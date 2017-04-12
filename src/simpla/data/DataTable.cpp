@@ -132,14 +132,14 @@ size_type DataTable::Foreach(std::function<void(std::string const&, std::shared_
     return m_backend_->Foreach(f);
 }
 
-std::ostream& DataTable::Print(std::ostream& os, int indent) const {
+std::ostream& DataTable::Serialize(std::ostream& os, int indent) const {
     os << "{";
 
     m_backend_->Foreach([&](std::string const& k, std::shared_ptr<DataEntity> const& v) {
         os << std::endl
            << std::setw(indent + 1) << " "
            << "\"" << k << "\": ";
-        v->Print(os, indent + 1);
+        v->Serialize(os, indent + 1);
         os << ",";
     });
 

@@ -6,12 +6,11 @@
 #define SIMPLA_DOMAIN_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/concept/Printable.h>
 #include <memory>
 #include "Attribute.h"
 #include "Chart.h"
 #include "simpla/mpl/macro.h"
-
+#include "simpla/geometry/GeoObject.h"
 namespace simpla {
 namespace engine {
 // class Attribute;
@@ -23,7 +22,7 @@ class Worker;
 // class Domain;
 // class Task;
 //
-class Domain : public SPObject, public concept::Serializable<Domain> {
+class Domain : public SPObject, public data::Serializable {
     SP_OBJECT_HEAD(Domain, SPObject)
    public:
     Domain();
@@ -37,7 +36,7 @@ class Domain : public SPObject, public concept::Serializable<Domain> {
     void SetChart(std::shared_ptr<Chart> const &);
     std::shared_ptr<Chart> const &GetChart() const;
     void SetGeoObject(geometry::GeoObject *g);
-    void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &geo_object)  ;
+    void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &geo_object);
     std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;
 
     void SetWorker(std::shared_ptr<Worker> const &);

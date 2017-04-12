@@ -1,28 +1,29 @@
 //
-// Created by salmon on 17-4-11.
+// Created by salmon on 17-4-12.
 //
 
-#ifndef SIMPLA_SERIALIZABLE_H
-#define SIMPLA_SERIALIZABLE_H
+#ifndef SIMPLA_ENABLECREATEFROMDATATABLE_H
+#define SIMPLA_ENABLECREATEFROMDATATABLE_H
 
-#include "CheckConcept.h"
-#include "simpla/data/DataTable.h"
+
+#include <iostream>
+#include <memory>
+#include <string>
+#include "simpla/concept/CheckConcept.h"
 #include "simpla/design_pattern/SingletonHolder.h"
-namespace simpla {
-namespace concept {
+
+namespace simpla{
+namespace data{
 
 template <typename TObj>
-class Serializable {
-   public:
-    Serializable(){};
-    virtual ~Serializable() {}
-    virtual std::shared_ptr<data::DataTable> Serialize() const { return std::make_shared<data::DataTable>(); };
-    virtual void Deserialize(std::shared_ptr<data::DataTable> const &) {}
+class EnableCreateFromDataTable {
+public:
+    EnableCreateFromDataTable(){};
+    virtual ~EnableCreateFromDataTable() {}
 
     struct ObjectFactory {
         std::map<std::string, std::function<TObj *()>> m_factory_;
     };
-
     static bool RegisterCreator(std::string const &k, std::function<TObj *()> const &fun) {
         return SingletonHolder<ObjectFactory>::instance().m_factory_.emplace(k, fun).second;
     };
@@ -40,26 +41,19 @@ class Serializable {
         if (res != nullptr) { LOGGER << "Object [" << k << "] is created!" << std::endl; }
         return res;
     }
-    static std::shared_ptr<TObj> Create(std::shared_ptr<data::DataTable> const &cfg) {
+    static std::shared_ptr<TObj> Create(std::shared_ptr<DataTable> const &cfg) {
         if (cfg == nullptr) { return nullptr; }
         auto res = Create(cfg->GetValue<std::string>("Type", "unnamed"));
         res->Deserialize(cfg);
         return res;
     }
 };
-
-}  // namespace concept{
-
 template <typename U>
-std::shared_ptr<data::DataTable> const &Serialize(U const &u,
-                                                  ENABLE_IF((std::is_base_of<concept::Serializable<U>, U>::value))) {
-    return u.Serialize();
+std::shared_ptr<U> Deserialize(std::shared_ptr<DataTable> const &d,
+                               ENABLE_IF((std::is_base_of<EnableCreateFromDataTable<U>, U>::value))) {
+return U::Create(d);
 }
-template <typename U>
-std::shared_ptr<U> Deserialize(std::shared_ptr<data::DataTable> const &d,
-                               ENABLE_IF((std::is_base_of<concept::Serializable<U>, U>::value))) {
-    return std::shared_ptr<U>(concept::Serializable<U>::Create(d));
-}
+}//namespace data{
 
-}  // namespace simpla{
-#endif  // SIMPLA_SERIALIZABLE_H
+}//namespace simpla{
+#endif //SIMPLA_ENABLECREATEFROMDATATABLE_H

@@ -7,11 +7,11 @@
 
 #include "SPObject.h"
 #include "simpla/SIMPLA_config.h"
-#include "simpla/concept/Serializable.h"
+#include "simpla/data/all.h"
 namespace simpla {
 namespace engine {
 class Context;
-class TimeIntegratorBackend : public concept::Serializable<TimeIntegratorBackend> {
+class TimeIntegratorBackend : public data::Serializable, public data::EnableCreateFromDataTable<TimeIntegratorBackend> {
     SP_OBJECT_BASE(TimeIntegratorBackend);
 
    public:
@@ -48,7 +48,7 @@ struct DummyTimeIntegratorBackend : public TimeIntegratorBackend {
     virtual size_type StepNumber() const { return 0; };
 };
 //
-//struct TimeIntegratorBackendFactory {
+// struct TimeIntegratorBackendFactory {
 //   public:
 //    TimeIntegratorBackendFactory();
 //    ~TimeIntegratorBackendFactory();

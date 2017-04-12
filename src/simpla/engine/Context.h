@@ -11,7 +11,7 @@
 #include "Model.h"
 #include "Patch.h"
 #include "Worker.h"
-#include "simpla/concept/Serializable.h"
+#include "simpla/data/Serializable.h"
 namespace simpla {
 namespace engine {
 
@@ -60,7 +60,7 @@ namespace engine {
  *  deactivate DomainView
  * @enduml
  */
-class Context : public concept::Serializable<Context> {
+class Context : public data::Serializable {
     SP_OBJECT_BASE(Context)
 
    public:

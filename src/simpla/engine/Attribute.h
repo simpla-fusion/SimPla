@@ -9,7 +9,7 @@
 #include "SPObject.h"
 #include "simpla/SIMPLA_config.h"
 #include "simpla/concept/CheckConcept.h"
-#include "simpla/concept/Serializable.h"
+#include "simpla/data/Serializable.h"
 #include "simpla/data/all.h"
 #include "simpla/design_pattern/Signal.h"
 namespace simpla {
@@ -46,43 +46,7 @@ class Patch;
 //    PRIVATE = GHOSTED | PERSISTENT,
 //    DEFAULT_ATTRIBUTE_TAG = GLOBAL
 //};
-// inline std::ostream &operator<<(std::ostream &os, AttributeTag const &tag) {
-//    os << std::bitset<32>(static_cast<unsigned long long int>(tag));
-//    return os;
-//}
-// enum AttributeState { READ = 0b01, WRITE = 0b10 };
-//
-// struct AttributeDesc : public std::enable_shared_from_this<AttributeDesc> {
-//    AttributeDesc(const std::string &name_s, const std::type_info &t_id, int IFORM, int DOF, int TAG = SCRATCH);
-//
-//    template <typename... Args>
-//    AttributeDesc(const std::string &name_s, const std::type_info &t_id, int IFORM, int DOF, int TAG, Args &&... args)
-//        : AttributeDesc(name_s, t_id, IFORM, DOF, TAG) {
-//        db().Set(std::forward<Args>(args)...);
-//    };
-//    ~AttributeDesc();
-//
-//    static id_type GenerateGUID(std::string const &s, std::type_info const &t_id, int IFORM, int DOF,
-//                                int tag = SCRATCH);
-//
-//    std::string const &GetName() const { return m_name_; }
-//    const std::type_info &GetValueTypeInfo() const { return m_value_type_info_; }
-//    int GetIFORM() const { return m_iform_; }
-//    int GetDOF() const { return m_dof_; }
-//    int GetTag() const { return m_tag_; }
-//    id_type GetGUID() const { return m_GUID_; }
-//    data::DataTable &db() { return m_db_; }
-//    data::DataTable const &db() const { return m_db_; }
-//
-//   private:
-//    const std::string m_name_;
-//    const std::type_info &m_value_type_info_;
-//    int m_iform_;
-//    int m_dof_;
-//    int m_tag_;
-//    id_type m_GUID_;
-//    data::DataTable m_db_;
-//};
+
 template <typename TV = double, int IFORM = VERTEX, int DOF = 1>
 struct AttributeDesc;
 class AttributeGroup {
@@ -128,7 +92,7 @@ class AttributeGroup {
  * deactivate AttributeView
  * @enduml
  */
-struct Attribute : public SPObject, public concept::Configurable, public concept::Serializable<Attribute> {
+struct Attribute : public SPObject, public concept::Configurable, public data::Serializable {
     SP_OBJECT_BASE(Attribute);
 
    public:

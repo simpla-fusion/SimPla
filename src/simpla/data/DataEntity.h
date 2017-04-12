@@ -12,7 +12,8 @@
 #include <typeindex>
 #include <vector>
 #include "DataTraits.h"
-
+#include "Serializable.h"
+#include "simpla/algebra/nTupleExt.h"
 namespace simpla {
 namespace data {
 template <typename, typename Enable = void>
@@ -22,7 +23,7 @@ class DataEntity;
 class DataArray;
 template <typename U, typename Enable = void>
 struct data_entity_traits {};
-struct DataEntity : public concept::Printable {
+struct DataEntity : public Serializable {
     SP_OBJECT_BASE(DataEntity);
 
    public:
@@ -31,7 +32,8 @@ struct DataEntity : public concept::Printable {
     DataEntity(DataEntity&&) = delete;
     virtual ~DataEntity();
 
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
+    virtual std::ostream& Serialize(std::ostream& os, int indent = 0) const;
+
     virtual bool empty() const { return true; }
     virtual std::type_info const& value_type_info() const { return typeid(void); };
     virtual bool isLight() const { return false; }
@@ -56,7 +58,6 @@ class DataEntityWithType : public DataEntity {
 
     virtual bool isLight() const { return traits::is_light_data<value_type>::value; }
 
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; }
     virtual bool equal(value_type const& other) const = 0;
     virtual value_type value() const = 0;
     virtual value_type* get() { return nullptr; }
@@ -82,7 +83,7 @@ struct DataEntityWrapper<U> : public DataEntityWithType<U> {
 
     virtual std::shared_ptr<DataEntity> Duplicate() const { return std::make_shared<DataEntityWrapper<U>>(*m_data_); };
 
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const {
+    virtual std::ostream& Serialize(std::ostream& os, int indent = 0) const {
         if (typeid(U) == typeid(std::string)) {
             os << "\"" << value() << "\"";
         } else {

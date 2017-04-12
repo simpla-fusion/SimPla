@@ -6,10 +6,11 @@
 #define SIMPLA_GEOMETRY_H
 
 #include <simpla/concept/Printable.h>
-#include <simpla/design_pattern/SingletonHolder.h>
 #include <simpla/geometry/GeoObject.h>
 #include "Attribute.h"
 #include "SPObject.h"
+#include "simpla/data/EnableCreateFromDataTable.h"
+
 namespace simpla {
 namespace engine {
 class MeshBlock;
@@ -23,7 +24,7 @@ class Chart;
  *   - \f$p\f$ is the projection
  *
  */
-class Mesh : public concept::Serializable<Mesh> {
+class Mesh : public data::Serializable, public data::EnableCreateFromDataTable<Mesh> {
     SP_OBJECT_BASE(Mesh);
 
    public:

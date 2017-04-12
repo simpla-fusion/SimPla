@@ -7,8 +7,8 @@
 
 #include <memory>
 #include "Attribute.h"
-#include "simpla/concept/Serializable.h"
 #include "simpla/data/all.h"
+
 namespace simpla {
 
 namespace engine {
@@ -18,7 +18,7 @@ class AttributeGroup;
 /**
 * @brief
 */
-class Worker : public concept::Serializable<Worker>, public AttributeGroup {
+class Worker : public data::Serializable, public data::EnableCreateFromDataTable<Worker>, public AttributeGroup {
     SP_OBJECT_BASE(engine::Worker)
    public:
     Worker();

@@ -13,6 +13,9 @@
 #include "DataTraits.h"
 #include "DataUtility.h"
 #include "KeyValue.h"
+#include "Serializable.h"
+#include "EnableCreateFromDataTable.h"
+
 namespace simpla {
 namespace data {
 /**

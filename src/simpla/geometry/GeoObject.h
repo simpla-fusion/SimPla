@@ -14,7 +14,8 @@
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/sp_def.h>
 #include "GeoAlgorithm.h"
-#include "simpla/concept/Serializable.h"
+#include "simpla/data/EnableCreateFromDataTable.h"
+#include "simpla/data/Serializable.h"
 
 namespace simpla {
 namespace geometry {
@@ -26,7 +27,7 @@ struct GeoObjectAdapter;
  *
  *  PlaceHolder Geometric object
  */
-class GeoObject : public concept::Serializable<GeoObject> {
+class GeoObject : public data::Serializable, public data::EnableCreateFromDataTable<GeoObject> {
     SP_OBJECT_BASE(GeoObject)
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 

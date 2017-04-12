@@ -5,18 +5,18 @@
 #ifndef SIMPLA_CHART_H
 #define SIMPLA_CHART_H
 
-#include <simpla/concept/Serializable.h>
-#include <simpla/geometry/GeoObject.h>
 #include <memory>
 #include "simpla/SIMPLA_config.h"
 #include "simpla/data/DataTable.h"
+#include "simpla/data/Serializable.h"
 #include "simpla/toolbox/sp_def.h"
+#include "simpla/data/EnableCreateFromDataTable.h"
 
 namespace simpla {
 namespace engine {
 class Mesh;
 class MeshBlock;
-class Chart : public concept::Serializable<Chart> {
+class Chart : public data::Serializable, public data::EnableCreateFromDataTable<Chart> {
     SP_OBJECT_BASE(Chart)
    public:
     Chart();

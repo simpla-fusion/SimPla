@@ -22,7 +22,7 @@ struct DataArray : public DataEntity {
    public:
     DataArray();
     virtual ~DataArray();
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
+    virtual std::ostream& Serialize(std::ostream& os, int indent = 0) const;
     virtual bool isArray() const { return true; }
     /**   DataArray */
     virtual size_type size() const { return 0; };
@@ -46,7 +46,7 @@ struct DataEntityWrapper<void*> : public DataArray {
     };
 
     virtual ~DataEntityWrapper(){};
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const {
+    virtual std::ostream& Serialize(std::ostream& os, int indent = 0) const {
         if (m_data_.size() == 0) { return os; };
         auto it = m_data_.begin();
         os << "[" << **it;
@@ -111,7 +111,7 @@ class DataEntityWrapper<U*> : public DataArrayWithType<U> {
     virtual ~DataEntityWrapper() {}
     std::vector<U>& get() { return m_data_; }
     std::vector<U> const& get() const { return m_data_; }
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const {
+    virtual std::ostream& Serialize(std::ostream& os, int indent = 0) const {
         if (m_data_.size() == 0) { return os; };
         auto it = m_data_.begin();
         os << "[" << *it;
@@ -140,8 +140,8 @@ class DataEntityWrapper<U*> : public DataArrayWithType<U> {
     virtual void Add(U const& v) { m_data_.push_back(v); }
 };
 //
-//template <typename U, int N>
-//class DataEntityWrapper<simpla::algebra::declare::nTuple_<U, N>> : public DataArrayWithType<U> {
+// template <typename U, int N>
+// class DataEntityWrapper<simpla::algebra::declare::nTuple_<U, N>> : public DataArrayWithType<U> {
 //    typedef simpla::algebra::declare::nTuple_<U, N> tuple_type;
 //    SP_OBJECT_HEAD(DataEntityWrapper<tuple_type>, DataArrayWithType<U>);
 //    tuple_type m_data_;
@@ -177,8 +177,8 @@ class DataEntityWrapper<U*> : public DataArrayWithType<U> {
 //    tuple_type value() const { return m_data_; }
 //};
 //
-//template <typename U, int N0, int N1, int... N>
-//class DataEntityWrapper<simpla::algebra::declare::nTuple_<U, N0, N1, N...>> : public DataArray {
+// template <typename U, int N0, int N1, int... N>
+// class DataEntityWrapper<simpla::algebra::declare::nTuple_<U, N0, N1, N...>> : public DataArray {
 //    typedef simpla::algebra::declare::nTuple_<U, N0, N1, N...> tuple_type;
 //    SP_OBJECT_HEAD(tuple_type, DataArray);
 //    tuple_type m_data_;

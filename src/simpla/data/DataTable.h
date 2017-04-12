@@ -45,7 +45,7 @@ class DataTable : public DataEntity {
     void swap(DataTable&);
     //******************************************************************************************************************
     /** Interface DataEntity */
-    std::ostream& Print(std::ostream& os, int indent = 0) const;
+    std::ostream& Serialize(std::ostream& os, int indent = 0) const;
     bool isTable() const { return true; }
     std::type_info const& value_type_info() const { return typeid(DataTable); };
     std::shared_ptr<DataEntity> Duplicate() const;

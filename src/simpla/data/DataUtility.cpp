@@ -58,7 +58,7 @@ void SerializeLua(std::shared_ptr<DataEntity> const &d, std::ostream &os, int in
         for (int i = 1; i < ndims; ++i) { os << "x" << blk.GetInnerUpperIndex()[i]; }
         os << "}}}\"";
     } else {
-        d->Print(os, 0);
+        d->Serialize(os, 0);
     }
 }
 
