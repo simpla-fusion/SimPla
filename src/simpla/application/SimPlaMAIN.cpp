@@ -12,7 +12,7 @@
 #include <simpla/parallel/all.h>
 #include <simpla/toolbox/Logo.h>
 #include <simpla/toolbox/parse_command_line.h>
-#include "Application.h"
+#include "SpApp.h"
 
 namespace simpla {
 std::shared_ptr<engine::Schedule> CREATE_SCHEDULE(int argc, char **argv);
@@ -96,15 +96,15 @@ int main(int argc, char **argv) {
             return CONTINUE;
         });
     MESSAGE << ShowLogo() << std::endl;
-    if (!application::SpApp::HasCreator(app_name)) {
-        MESSAGE << application::SpApp::ShowDescription() << std::endl;
-        exit(0);
-    }
+    //    if (!application::SpApp::HasCreator(app_name)) {
+    //        MESSAGE << application::SpApp::ShowDescription() << std::endl;
+    //        RUNTIME_ERROR << "Can not find App Creator:" << app_name << std::endl;
+    //    }
 
     MPI_Barrier(GLOBAL_COMM.comm());
     std::shared_ptr<application::SpApp> app = nullptr;
     std::shared_ptr<data::DataTable> cfg = nullptr;
-
+    std::string buffer;
     if (GLOBAL_COMM.rank() == 0) {
         cfg = data::ParseCommandLine(argc, argv);
         app = application::SpApp::Create(app_name);
@@ -114,11 +114,12 @@ int main(int argc, char **argv) {
         os << "Application={";
         data::Serialize(app->Serialize(), os, "lua");
         os << "}";
-        std::string buffer = os.str();
+        buffer = os.str();
+
         parallel::bcast_string(&buffer);
     } else {
-        std::string buffer;
         parallel::bcast_string(&buffer);
+
         cfg = std::make_shared<data::DataTable>("lua://");
         cfg->backend()->Parser(buffer);
 
@@ -129,17 +130,17 @@ int main(int argc, char **argv) {
 
     VERBOSE << DOUBLELINE << std::endl;
     VERBOSE << "Description : " << application::SpApp::ShowDescription(app_name) << std::endl;
-    VERBOSE << " Application : " << *app->Serialize() << std::endl;
+    VERBOSE << "Application : " << *app->Serialize() << std::endl;
     VERBOSE << DOUBLELINE << std::endl;
 
-    app->SetUp();
+    app->Initialize();
 
     TheStart();
     MPI_Barrier(GLOBAL_COMM.comm());
     app->Run();
     MPI_Barrier(GLOBAL_COMM.comm());
     TheEnd();
-    app->TearDown();
+    app->Finalize();
 
     VERBOSE << DOUBLELINE << std::endl;
 

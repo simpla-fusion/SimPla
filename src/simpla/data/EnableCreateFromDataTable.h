@@ -30,12 +30,13 @@ class EnableCreateFromDataTable {
     }
     static std::string ShowDescription(std::string const &k = "") {
         auto const &f = SingletonHolder<ObjectFactory>::instance().m_factory_;
-        if (k != "") {
-            auto it = f.find(k);
-            return it != f.end() ? it->second.second : "";
+        auto it = f.find(k);
+        if (it == f.end()) { it = f.begin(); }
+        if (it != f.end()) {
+            return it->second.second;
         } else {
             std::ostringstream os;
-            os << "Register " << TObj::ClassName() << " Creator:" << std::endl;
+            os << std::endl << "Register " << TObj::ClassName() << " Creator:" << std::endl;
             for (auto const &item : f) {
                 os << std::setw(15) << item.first << " : " << item.second.second << std::endl;
             }
@@ -55,13 +56,19 @@ class EnableCreateFromDataTable {
         auto const &f = SingletonHolder<ObjectFactory>::instance().m_factory_;
         std::shared_ptr<TObj> res = nullptr;
         auto it = f.find(k);
-        if (it == f.end()) { it = f.begin(); }
+
         if (it != f.end()) {
             res.reset(it->second.first());
+            LOGGER << TObj::ClassName() << "::" << it->first << "  is created!" << std::endl;
         } else {
-            res.reset(new TObj);
+            std::ostringstream os;
+            os << "Can not find Creator " << k << std::endl;
+            os << std::endl << "Register " << TObj::ClassName() << " Creator:" << std::endl;
+            for (auto const &item : f) {
+                os << std::setw(15) << item.first << " : " << item.second.second << std::endl;
+            }
+            RUNTIME_ERROR << os.str();
         }
-        if (res != nullptr) { LOGGER << TObj::ClassName() << "::" << k << "  is created!" << std::endl; }
         return res;
     }
     static std::shared_ptr<TObj> Create(std::shared_ptr<DataTable> const &cfg) {
@@ -71,8 +78,9 @@ class EnableCreateFromDataTable {
         return res;
     }
 };
-#define REGISTER_CREATOR(_BASE_CLASS_NAME_, _CLASS_NAME_) \
-    bool _CLASS_NAME_##_IS_REGISTERED_ = _BASE_CLASS_NAME_::RegisterCreator<_CLASS_NAME_>(__STRING(_CLASS_NAME_));
+#define REGISTER_CREATOR(_BASE_CLASS_NAME_, _CLASS_NAME_, _DESC_) \
+    bool _CLASS_NAME_##_IS_REGISTERED_ =                          \
+        _BASE_CLASS_NAME_::RegisterCreator<_CLASS_NAME_>(__STRING(_CLASS_NAME_), _DESC_);
 
 }  // namespace data{
 }  // namespace simpla{

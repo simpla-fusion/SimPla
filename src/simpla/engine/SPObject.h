@@ -217,7 +217,7 @@ class SPObject {
 //    virtual void PostProcess();
 //
 //    /**
-//     * @brief Finalize object. This function should be invoked _ONLY ONCE_ before TearDown()
+//     * @brief Finalize object. This function should be invoked _ONLY ONCE_ before Finalize()
 //     * @startuml
 //     * title  Finalize()
 //     * (*) --> if "isInitialized()?" then

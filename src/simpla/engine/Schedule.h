@@ -20,18 +20,10 @@ class Schedule : public data::Serializable, public data::EnableCreateFromDataTab
    public:
     Schedule();
     virtual ~Schedule();
-    /**
-     * make object configurable;
-     */
-    virtual void Initialize();
-    /**
-     * effectuate the configuration
-     */
-    virtual void Update();
-    /**
-     * Release all resource, make object unconfigurable
-     */
-    virtual void Finalize();
+
+    virtual void Initialize();  //!<make object configurable;
+    virtual void Finalize();    //!< Release all resource, make object unconfigurable
+    virtual void Update();      //!< effectuate the configuration
 
     virtual void Synchronize(int from_level = 0, int to_level = 0);
     virtual void NextStep();

@@ -692,6 +692,8 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
     virtual void Synchronize(int from_level = 0, int to_level = 0);
+    virtual void Deserialize(std::shared_ptr<data::DataTable>);
+
     virtual void Initialize();
     virtual void Update();
     virtual void Finalize();
@@ -728,7 +730,8 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
 
     static constexpr int ndims = 3;
 };
-bool SAMRAITimeIntegrator::is_register = engine::Schedule::RegisterCreator<SAMRAITimeIntegrator>("SAMRAI");
+bool SAMRAITimeIntegrator::is_register =
+    engine::Schedule::RegisterCreator<SAMRAITimeIntegrator>("SAMRAI", "SAMRAI Time Integrator");
 
 SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
     SAMRAI::tbox::SAMRAIManager::shutdown();
@@ -965,6 +968,7 @@ void SAMRAITimeIntegrator::Finalize() {
     hyperbolic_patch_strategy.reset();
 }
 void SAMRAITimeIntegrator::Synchronize(int from_level, int to_level) {}
+void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<data::DataTable>) {}
 
 Real SAMRAITimeIntegrator::Advance(Real dt) {
     Real loop_time = m_time_refinement_integrator_->getIntegratorTime();

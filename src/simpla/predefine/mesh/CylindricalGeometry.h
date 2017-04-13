@@ -30,8 +30,7 @@ struct CylindricalGeometry : public engine::Chart {
     typedef mesh::MeshEntityId entity_id;
 };
 
-REGISTER_CREATOR( engine::Chart, CylindricalGeometry)
-
+REGISTER_CREATOR(engine::Chart, CylindricalGeometry, " Cylindrical Geometry")
 }
 namespace engine {
 using namespace data;

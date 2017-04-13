@@ -51,8 +51,8 @@ void Schedule::SetContext(std::shared_ptr<Context> ctx) { m_pimpl_->m_ctx_ = ctx
 std::shared_ptr<Context> Schedule::GetContext() const { return m_pimpl_->m_ctx_; }
 
 void Schedule::Initialize() {}
-void Schedule::Update() {}
 void Schedule::Finalize() {}
+void Schedule::Update() {}
 void Schedule::Synchronize(int from_level, int to_level) {
     auto &atlas = GetContext()->GetAtlas();
     if (from_level >= atlas.GetNumOfLevels() || to_level >= atlas.GetNumOfLevels()) { return; }

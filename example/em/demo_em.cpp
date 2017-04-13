@@ -3,7 +3,7 @@
 //
 
 #include <simpla/algebra/all.h>
-#include <simpla/application/Application.h>
+#include <simpla/application/SpApp.h>
 #include <simpla/data/all.h>
 #include <simpla/engine/all.h>
 #include <simpla/predefine/mesh/CartesianGeometry.h>
@@ -12,42 +12,42 @@
 //#include "PML.h"
 
 namespace simpla {
-
 static bool _PRE_REGISTERED =
     EMFluid<mesh::CartesianGeometry>::is_register && PEC<mesh::CartesianGeometry>::is_register;
 
-struct EMFluidApp : public application::SpApp {
-    EMFluidApp() {}
-    virtual ~EMFluidApp() {}
+struct UseCaseEMFluid : public application::SpApp {
+    UseCaseEMFluid() {}
+    virtual ~UseCaseEMFluid() {}
     virtual std::shared_ptr<data::DataTable> Serialize() const;
     virtual void Deserialize(std::shared_ptr<data::DataTable>);
-    virtual void SetUp();
     virtual void Run() { m_schedule_->Run(); };
-    virtual void TearDown() { m_schedule_.reset(); }
+    void SetSchedule(std::shared_ptr<engine::Schedule> s) { m_schedule_ = s; }
+    std::shared_ptr<engine::Schedule> GetSchedule() const { return m_schedule_; }
 
+   private:
     std::shared_ptr<engine::Schedule> m_schedule_;
 };
-SP_REGISITER_APP(EMFluidApp, " EM Fluid ");
+SP_REGISITER_APP(UseCaseEMFluid, " EM Fluid ");
 
-std::shared_ptr<data::DataTable> EMFluidApp::Serialize() const {
+std::shared_ptr<data::DataTable> UseCaseEMFluid::Serialize() const {
     return m_schedule_ != nullptr ? m_schedule_->Serialize() : std::make_shared<data::DataTable>();
 };
-void EMFluidApp::Deserialize(std::shared_ptr<data::DataTable> t) {
-    if (m_schedule_ == nullptr) { m_schedule_ = engine::Schedule::Create("TimeIntegrator"); }
-    if (m_schedule_ != nullptr) { m_schedule_->Deserialize(t); }
 
-    auto time_ctrl = std::dynamic_pointer_cast<engine::TimeIntegrator>(m_schedule_);
-    time_ctrl->SetTime(0);
-    time_ctrl->SetTimeEnd(1);
-    time_ctrl->SetTimeStep(0.1);
+void UseCaseEMFluid::Deserialize(std::shared_ptr<data::DataTable> cfg) {
+    SetSchedule(engine::Schedule::Create("TimeIntegrator"));
 
-    auto domain = time_ctrl->GetContext()->CreateDomain("Center");
+    auto t = std::dynamic_pointer_cast<engine::TimeIntegrator>(GetSchedule());
+
+    t->SetTime(0);
+    t->SetTimeEnd(1);
+    t->SetTimeStep(0.1);
+
+    auto domain = t->GetContext()->CreateDomain("Center");
     domain->SetGeoObject(std::make_shared<geometry::Cube>(box_type{{-0.1, 0.2, 0.0}, {1.2, 1.3, 1.4}}));
     domain->SetChart("CartesianGeometry");
     domain->SetWorker("EMFluid");
     domain->AddBoundaryCondition("PEC");
 };
-void EMFluidApp::SetUp() {}
 
 //    ctx->GetAtlas().db()->SetValue("Origin"_ = {0.0, 0.0, 0.0}, "Dx"_ = {1.0, 1.0, 1.0}, "Dimensions"_ = {0, 0,
 //    0});

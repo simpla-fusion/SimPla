@@ -16,10 +16,12 @@ struct SpApp : public data::Serializable, public data::EnableCreateFromDataTable
     SpApp() {}
     virtual ~SpApp() {}
     virtual std::shared_ptr<data::DataTable> Serialize() const { return std::make_shared<data::DataTable>(); };
-    virtual void Deserialize(std::shared_ptr<data::DataTable>){};
-    virtual void SetUp(){};
+    virtual void Deserialize(std::shared_ptr<data::DataTable> t){};
+
+    virtual void Initialize(){};
+    virtual void Finalize(){};
+    virtual void Update(){};
     virtual void Run(){};
-    virtual void TearDown(){};
 };
 }  // namespace application{
 
