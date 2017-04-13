@@ -7,10 +7,16 @@
 #include <simpla/application/SpApp.h>
 #include <simpla/data/all.h>
 #include <simpla/engine/all.h>
+#include <simpla/geometry/Cube.h>
 #include <simpla/model/GEqdsk.h>
 #include <iostream>
+#include "simpla/predefine/mesh/CartesianGeometry.h"
+#include "simpla/predefine/physics/EMFluid.h"
+#include "simpla/predefine/physics/PEC.h"
 
 namespace simpla {
+static bool _PRE_REGISTERED =
+    EMFluid<mesh::CartesianGeometry>::is_register && PEC<mesh::CartesianGeometry>::is_register;
 
 struct UseCaseAMR : public application::SpApp {
     UseCaseAMR();
@@ -20,7 +26,7 @@ struct UseCaseAMR : public application::SpApp {
     virtual void Run();
 
    private:
-    std::shared_ptr<engine::Schedule> m_schedule_;
+    std::shared_ptr<engine::TimeIntegrator> m_schedule_;
 };
 SP_REGISITER_APP(UseCaseAMR, " AMR Test ");
 
@@ -31,12 +37,28 @@ UseCaseAMR::~UseCaseAMR() {
 void UseCaseAMR::Run() { m_schedule_->Run(); };
 
 std::shared_ptr<data::DataTable> UseCaseAMR::Serialize() const {
-    return (m_schedule_ != nullptr) ? m_schedule_->Serialize() : std::make_shared<data::DataTable>();
+    auto res = std::make_shared<data::DataTable>();
+    if (m_schedule_ != nullptr) {
+        res->Set("Schedule", m_schedule_->Serialize());
+        res->SetValue("Schedule/Type", m_schedule_->GetClassName());
+    }
+    return res;
 }
-void UseCaseAMR::Deserialize(std::shared_ptr<data::DataTable> t) {
-    m_schedule_ = engine::Schedule::Create("SAMRAI");
+void UseCaseAMR::Deserialize(std::shared_ptr<data::DataTable> cfg) {
+    m_schedule_ = std::dynamic_pointer_cast<engine::TimeIntegrator>(engine::Schedule::Create("SAMRAI"));
     m_schedule_->Initialize();
-    m_schedule_->Deserialize(t);
+    if (cfg->GetTable("Schedule") == nullptr) {
+        auto domain = m_schedule_->GetContext()->GetDomain("Center");
+        domain->SetGeoObject(std::make_shared<geometry::Cube>(box_type{{-0.1, 0.2, 0.0}, {1.2, 1.3, 1.4}}));
+        domain->SetChart("CartesianGeometry");
+        domain->SetWorker("EMFluid");
+        domain->AddBoundaryCondition("PEC");
+        m_schedule_->SetTime(0.0);
+        m_schedule_->SetTimeStep(0.1);
+        m_schedule_->SetTimeEnd(1.0);
+    } else {
+        m_schedule_->Deserialize(t->GetTable("Schedule"));
+    }
     m_schedule_->Update();
 }
 

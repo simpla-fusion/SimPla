@@ -22,6 +22,10 @@ struct Domain::pimpl_s {
 };
 
 Domain::Domain() : SPObject(), m_pimpl_(new pimpl_s) {}
+Domain::Domain(std::shared_ptr<data::DataTable> t) : Domain() {
+    if (t != nullptr) { Deserialize(t); }
+};
+
 Domain::~Domain() { Finalize(); }
 
 std::shared_ptr<data::DataTable> Domain::Serialize() const {
@@ -32,7 +36,7 @@ std::shared_ptr<data::DataTable> Domain::Serialize() const {
     if (m_pimpl_->m_worker_ != nullptr) { res->Link("Worker", m_pimpl_->m_worker_->Serialize()); }
     return res;
 }
-void Domain::Deserialize(std::shared_ptr<data::DataTable> const &t) {
+void Domain::Deserialize(std::shared_ptr<data::DataTable> t) {
     m_pimpl_->m_chart_ = Chart::Create(t->GetTable("Chart"));
     m_pimpl_->m_geo_obj_ = geometry::GeoObject::Create(t->GetTable("GeoObject"));
     m_pimpl_->m_worker_ = Worker::Create(t->GetTable("Worker"));
@@ -64,17 +68,18 @@ void Domain::AddBoundaryCondition(std::shared_ptr<Worker> const &w, std::shared_
     m_pimpl_->m_boundary_.emplace(g, w);
 }
 void Domain::Update(Patch *p, Real time_now, Real time_dt) {
+    if (p == nullptr) { return; }
     box_type mblk_box = m_pimpl_->m_chart_->inv_map(p->GetBlock()->GetBoundBox());
     switch (m_pimpl_->m_geo_obj_->CheckOverlap(mblk_box)) {
         case -1:
-            m_pimpl_->m_worker_->Push(*p);
+            m_pimpl_->m_worker_->Push(p);
             m_pimpl_->m_worker_->Advance(time_now, time_dt);
             m_pimpl_->m_worker_->Pop(p);
             break;
         case 0:
             for (auto &item : m_pimpl_->m_boundary_) {
                 if (item.first == nullptr || item.first->CheckOverlap(mblk_box) < 1) {
-                    item.second->Push(*p);
+                    item.second->Push(p);
                     item.second->Advance(time_now, time_dt);
                     item.second->Pop(p);
                 }

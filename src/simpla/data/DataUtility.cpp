@@ -4,7 +4,9 @@
 #include "DataUtility.h"
 #include <simpla/parallel/MPIAuxFunctions.h>
 #include <simpla/parallel/MPIComm.h>
+#include <simpla/toolbox/Logo.h>
 #include <simpla/toolbox/MiscUtilities.h>
+#include <simpla/toolbox/parse_command_line.h>
 #include "DataArray.h"
 #include "DataBlock.h"
 #include "DataEntity.h"
@@ -15,7 +17,15 @@ namespace data {
 // std::regex sub_group_regex=std::regex (R"(/([^/?#]+))", std::regex::optimize);
 // std::regex match_path_regex=std::regex (R"(^(/?([/\S]+/)*)?([^/]+)?$)", std::regex::optimize);
 
-std::shared_ptr<DataTable> ParseCommandLine(int argc, char **argv) { return std::make_shared<DataTable>(); };
+std::shared_ptr<DataTable> ParseCommandLine(int argc, char **argv) {
+    auto res = std::make_shared<DataTable>();
+
+    parse_cmd_line(argc, argv, [&](std::string const &opt, std::string const &value) -> int {
+        res->SetValue("CommandLine/" + opt, value);
+        return CONTINUE;
+    });
+    return res;
+};
 
 void SerializeLua(std::shared_ptr<DataEntity> const &d, std::ostream &os, int indent = 0) {
     if (d == nullptr) {

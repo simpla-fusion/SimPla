@@ -29,7 +29,8 @@ class Worker : public data::Serializable, public data::EnableCreateFromDataTable
 
     virtual void Register(AttributeGroup *);
     virtual void Deregister(AttributeGroup *);
-    virtual void Push(Patch &p);
+
+    virtual void Push(Patch *p);
     virtual void Pop(Patch *);
 
     virtual void Initialize(Real time_now = 0);

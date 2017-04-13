@@ -27,6 +27,8 @@ class EMFluid : public engine::Worker {
     typedef TM mesh_type;
     typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
 
+    mesh_type* m_mesh_;
+
     template <typename... Args>
     explicit EMFluid(Args&&... args) : engine::Worker(std::forward<Args>(args)...){};
     ~EMFluid() {}
@@ -37,17 +39,9 @@ class EMFluid : public engine::Worker {
         return res;
     };
     virtual void Deserialize(std::shared_ptr<data::DataTable> const& t) { UNIMPLEMENTED; }
-    mesh_type* m_mesh_;
 
-    //    virtual engine::Mesh* mesh() { return m_mesh_; };
-    //    virtual engine::Mesh const* mesh() const { return m_mesh_; };
-
-    virtual std::ostream& Print(std::ostream& os, int indent = 1) const;
-
-    virtual void NextTimeStep(Real data_time, Real dt);
-    virtual void Initialize();
-    virtual void PreProcess();
-    virtual void PostProcess();
+    virtual void Advance(Real data_time, Real dt = 0);
+    virtual void Initialize(Real time_now = 0);
     virtual void Finalize();
 
     virtual void SetPhysicalBoundaryConditions(Real time = 0){};
@@ -125,34 +119,23 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
     return sp;
 }
 
-template <typename TM>
-std::ostream& EMFluid<TM>::Print(std::ostream& os, int indent) const {
-    os << std::setw(indent + 1) << " "
-       << "ParticleAttribute=  " << std::endl
-       << std::setw(indent + 1) << " "
-       << "{ " << std::endl;
-    for (auto& sp : m_fluid_sp_) {
-        os << std::setw(indent + 1) << " " << sp.first << " = { Mass=" << sp.second->mass
-           << " , Charge = " << sp.second->charge << "}," << std::endl;
-    }
-    os << std::setw(indent + 1) << " "
-       << " }, " << std::endl;
-    return os;
-}
+// template <typename TM>
+// std::ostream& EMFluid<TM>::Print(std::ostream& os, int indent) const {
+//    os << std::setw(indent + 1) << " "
+//       << "ParticleAttribute=  " << std::endl
+//       << std::setw(indent + 1) << " "
+//       << "{ " << std::endl;
+//    for (auto& sp : m_fluid_sp_) {
+//        os << std::setw(indent + 1) << " " << sp.first << " = { Mass=" << sp.second->mass
+//           << " , Charge = " << sp.second->charge << "}," << std::endl;
+//    }
+//    os << std::setw(indent + 1) << " "
+//       << " }, " << std::endl;
+//    return os;
+//}
 
 template <typename TM>
-void EMFluid<TM>::PreProcess() {
-    //    base_type::Update();
-    //    if (E.isUpdated()) E.Clear();
-    //    if (!B.isUpdated()) B.Clear();
-    //    if (!B0.isUpdated()) { B0.Clear(); }
-}
-
-template <typename TM>
-void EMFluid<TM>::PostProcess() {}
-
-template <typename TM>
-void EMFluid<TM>::Initialize() {
+void EMFluid<TM>::Initialize(Real time_now) {
     if (m_fluid_sp_.size() > 0) {
         Ev = map_to<VERTEX>(E);
         B0v = map_to<VERTEX>(B0);
@@ -163,14 +146,13 @@ void EMFluid<TM>::Initialize() {
 template <typename TM>
 void EMFluid<TM>::Finalize() {
     // do sth here
-    PostProcess();
 }
 
 template <typename TM>
-void EMFluid<TM>::NextTimeStep(Real data_time, Real dt) {
-    MESSAGE << __PRETTY_FUNCTION__ << std::endl;
+void EMFluid<TM>::Advance(Real data_time, Real dt) {
+    TIME_STAMP;
+    return;
 
-    PreProcess();
     DEFINE_PHYSICAL_CONST
     B -= curl(E) * (dt * 0.5);
     SetPhysicalBoundaryConditionB(data_time);

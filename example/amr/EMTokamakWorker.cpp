@@ -26,14 +26,9 @@ class EMTokamakWorker : public EMFluid<engine::MeshView<mesh::CylindricalGeometr
     explicit EMTokamakWorker() : base_type() {}
     ~EMTokamakWorker() {}
 
-    virtual void Initialize();
-    virtual void PreProcess();
-    virtual void Process(){};
-    virtual void PostProcess();
+    virtual void Initialize(Real time_now);
     virtual void Finalize();
-    virtual void Initialize(Real data_time);
-    virtual void Finalize(Real data_time);
-    virtual void NextTimeStep(Real data_time, Real dt);
+    virtual void Advance(Real time_now, Real dt);
     virtual void SetPhysicalBoundaryConditions(Real data_time);
     virtual void SetPhysicalBoundaryConditionE(Real time);
     virtual void SetPhysicalBoundaryConditionB(Real time);
@@ -43,24 +38,7 @@ class EMTokamakWorker : public EMFluid<engine::MeshView<mesh::CylindricalGeometr
     std::function<Vec3(point_type const &, Real)> E_src_fun;
 };
 
-void EMTokamakWorker::Initialize() {
-    base_type::Initialize();
-    // first run, only Load configure, m_chart_=nullptr
-
-    //    db()->Get("Particles")
-    //        ->cast_as<DataTable>()
-    //        .Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &item) {
-    //            AddSpecies(key, item->cast_as<DataTable>());
-    //        });
-
-    //    db.SetValue("GetBoundBox", geqdsk.box());
-};
-
-void EMTokamakWorker::PreProcess() { base_type::PreProcess(); }
-void EMTokamakWorker::PostProcess() { base_type::PostProcess(); }
-
 void EMTokamakWorker::Initialize(Real data_time) {
-    PreProcess();
     //    rho0.Assign([&](point_type const &x) -> Real { return (geqdsk.in_boundary(x)) ? geqdsk.profile("ne", x) : 0.0;
     //    });
     //    psi.Assign([&](point_type const &x) -> Real { return geqdsk.psi(x); });
@@ -72,13 +50,9 @@ void EMTokamakWorker::Initialize(Real data_time) {
     //        *item.second->rho = rho0 * ratio;
     //    }
 }
-void EMTokamakWorker::Finalize() { base_type::Finalize(); }
-void EMTokamakWorker::Finalize(Real data_time) {}
+void EMTokamakWorker::Finalize() {}
 
-void EMTokamakWorker::NextTimeStep(Real data_time, Real dt) {
-    PreProcess();
-    base_type::NextTimeStep(data_time, dt);
-};
+void EMTokamakWorker::Advance(Real data_time, Real dt) { base_type::Advance(data_time, dt); };
 
 void EMTokamakWorker::SetPhysicalBoundaryConditions(Real data_time) {
     base_type::SetPhysicalBoundaryConditions(data_time);

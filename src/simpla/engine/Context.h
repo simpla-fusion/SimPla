@@ -70,13 +70,15 @@ class Context : public data::Serializable {
     virtual std::shared_ptr<DataTable> Serialize() const;
     virtual void Deserialize(std::shared_ptr<DataTable>);
 
+    void Update();
+
     void Register(AttributeGroup *);
 
     Atlas &GetAtlas() const;
     Model &GetModel() const;
 
     void SetDomain(std::string const &k, std::shared_ptr<Domain>);
-    std::shared_ptr<Domain> CreateDomain(std::string const &k);
+    std::shared_ptr<Domain> GetDomain(std::string const &k);
     std::shared_ptr<Domain> GetDomain(std::string const &k) const;
 
     //    std::map<std::string, std::shared_ptr<Domain>> &GetDomains() const;

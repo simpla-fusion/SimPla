@@ -19,7 +19,6 @@ struct Context::pimpl_s {
     std::map<std::string, std::shared_ptr<Domain>> m_domain_;
     Atlas m_atlas_;
     Model m_model_;
-    bool m_is_initialized_ = false;
 };
 
 Context::Context() : m_pimpl_(new pimpl_s) {}
@@ -30,8 +29,17 @@ std::shared_ptr<data::DataTable> Context::Serialize() const {
     for (auto const &item : m_pimpl_->m_domain_) { res->Link("Domain/" + item.first, item.second->Serialize()); }
     return res;
 }
-void Context::Deserialize(std::shared_ptr<DataTable>) {}
-
+void Context::Deserialize(std::shared_ptr<DataTable> cfg) {
+    auto domain_t = cfg->GetTable("Domains");
+    if (domain_t == nullptr) { return; }
+    domain_t->Foreach([&](std::string const &k, std::shared_ptr<DataEntity> t) {
+        if (t->isTable()) SetDomain(k, std::make_shared<Domain>(std::dynamic_pointer_cast<data::DataTable>(t)));
+    });
+}
+void Context::Update() {
+    for (auto &item : m_pimpl_->m_domain_) { m_pimpl_->m_model_.AddObject(item.first, item.second->GetGeoObject()); }
+    m_pimpl_->m_model_.Update();
+};
 Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
 Model &Context::GetModel() const { return m_pimpl_->m_model_; }
 
@@ -40,10 +48,10 @@ void Context::SetDomain(std::string const &k, std::shared_ptr<Domain> d) {
     auto res = m_pimpl_->m_domain_.emplace(k, d);
     if (!res.second) { res.first->second = d; }
 }
-std::shared_ptr<Domain> Context::CreateDomain(std::string const &k) {
-    auto p = std::make_shared<Domain>();
-    SetDomain(k, p);
-    return p;
+std::shared_ptr<Domain> Context::GetDomain(std::string const &k) {
+    auto res = m_pimpl_->m_domain_.emplace(k, nullptr);
+    if (res.first->second == nullptr) { res.first->second = std::make_shared<Domain>(); }
+    return res.first->second;
 }
 std::shared_ptr<Domain> Context::GetDomain(std::string const &k) const {
     auto it = m_pimpl_->m_domain_.find(k);

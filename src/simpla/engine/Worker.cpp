@@ -53,7 +53,7 @@ std::shared_ptr<Mesh> const &Worker::GetMesh() const { return m_pimpl_->m_mesh_;
 void Worker::Register(AttributeGroup *) {}
 void Worker::Deregister(AttributeGroup *) {}
 
-void Worker::Push(Patch &p) {
+void Worker::Push(Patch *p) {
     //    SetMesh(p->GetMeshBlock());
 }
 void Worker::Pop(Patch *) {

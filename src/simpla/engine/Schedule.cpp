@@ -12,11 +12,11 @@
 namespace simpla {
 namespace engine {
 struct Schedule::pimpl_s {
-    std::shared_ptr<Context> m_ctx_;
+    std::shared_ptr<Context> m_ctx_ = nullptr;
     size_type m_step_ = 0;
     size_type m_max_step_ = 1;
 };
-Schedule::Schedule() : m_pimpl_(new pimpl_s) { m_pimpl_->m_ctx_ = std::make_shared<Context>(); };
+Schedule::Schedule() : m_pimpl_(new pimpl_s){};
 Schedule::~Schedule() { Finalize(); };
 
 void Schedule::SetNumberOfSteps(size_type s) { m_pimpl_->m_max_step_ = s; }
@@ -31,28 +31,29 @@ void Schedule::Run() {
         VERBOSE << " [ STEP:" << std::setw(5) << m_pimpl_->m_step_ << " ] " << std::endl;
         ++m_pimpl_->m_step_;
     }
-
     //        if (step % step_of_check_points == 0) {
     //        data::DataTable(output_file).Set(ctx.db()->GetTable("Patches")); };
 }
 
 std::shared_ptr<data::DataTable> Schedule::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
-    if (m_pimpl_->m_ctx_ != nullptr) { res->Link("Context", m_pimpl_->m_ctx_->Serialize()); }
+    if (isInitialized()) { res->Link("Context", m_pimpl_->m_ctx_->Serialize()); }
     return res;
 }
 void Schedule::Deserialize(std::shared_ptr<data::DataTable> t) {
-    if (m_pimpl_->m_ctx_ == nullptr) { m_pimpl_->m_ctx_ = std::make_shared<Context>(); }
+    Initialize();
     m_pimpl_->m_ctx_->Deserialize(t->GetTable("Context"));
 }
 
 void Schedule::SetContext(std::shared_ptr<Context> ctx) { m_pimpl_->m_ctx_ = ctx; }
 
 std::shared_ptr<Context> Schedule::GetContext() const { return m_pimpl_->m_ctx_; }
-
-void Schedule::Initialize() {}
-void Schedule::Finalize() {}
-void Schedule::Update() {}
+bool Schedule::isInitialized() const { return m_pimpl_->m_ctx_ != nullptr; }
+void Schedule::Initialize() {
+    if (!isInitialized()) { m_pimpl_->m_ctx_ = std::make_shared<Context>(); }
+}
+void Schedule::Finalize() { m_pimpl_->m_ctx_.reset(); }
+void Schedule::Update() { m_pimpl_->m_ctx_->Update(); }
 void Schedule::Synchronize(int from_level, int to_level) {
     auto &atlas = GetContext()->GetAtlas();
     if (from_level >= atlas.GetNumOfLevels() || to_level >= atlas.GetNumOfLevels()) { return; }

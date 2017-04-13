@@ -26,12 +26,13 @@ class Domain : public SPObject, public data::Serializable {
     SP_OBJECT_HEAD(Domain, SPObject)
    public:
     Domain();
+    Domain(std::shared_ptr<data::DataTable>);
     Domain(const Domain &) = delete;
     Domain(Domain &&) = delete;
     ~Domain();
 
     virtual std::shared_ptr<data::DataTable> Serialize() const;
-    virtual void Deserialize(std::shared_ptr<data::DataTable> const &);
+    virtual void Deserialize(std::shared_ptr<data::DataTable>  );
 
     void SetChart(std::string const &w);
     void SetChart(std::shared_ptr<data::DataTable> const &w);
