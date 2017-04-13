@@ -285,6 +285,8 @@ std::string make_msg(Others const &... others) {
 #define DONE logger::done
 
 #define WARNING logger::Logger(logger::LOG_WARNING) << FILE_LINE_STAMP
+#define TIME_STAMP \
+    logger::Logger(logger::LOG_VERBOSE) << (__FILE__) << ":" << (__LINE__) << ":0: " << (__PRETTY_FUNCTION__)
 
 #define FUNCTION_START logger::Logger(logger::LOG_VERBOSE) << FILE_LINE_STAMP << " START " << std::endl
 #define FUNCTION_END logger::Logger(logger::LOG_VERBOSE) << FILE_LINE_STAMP << " END " << std::endl

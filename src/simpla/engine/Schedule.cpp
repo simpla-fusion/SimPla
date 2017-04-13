@@ -20,7 +20,7 @@ Schedule::Schedule() : m_pimpl_(new pimpl_s) { m_pimpl_->m_ctx_ = std::make_shar
 Schedule::~Schedule() { Finalize(); };
 
 void Schedule::SetNumberOfSteps(size_type s) { m_pimpl_->m_max_step_ = s; }
-void Schedule::NextStep() {}
+void Schedule::NextStep() { TIME_STAMP; }
 bool Schedule::Done() const { return m_pimpl_->m_step_ >= m_pimpl_->m_max_step_; }
 void Schedule::CheckPoint() { DO_NOTHING; }
 

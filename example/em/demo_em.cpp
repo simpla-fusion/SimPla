@@ -21,8 +21,6 @@ struct UseCaseEMFluid : public application::SpApp {
     virtual std::shared_ptr<data::DataTable> Serialize() const;
     virtual void Deserialize(std::shared_ptr<data::DataTable>);
     virtual void Run() { m_schedule_->Run(); };
-    void SetSchedule(std::shared_ptr<engine::Schedule> s) { m_schedule_ = s; }
-    std::shared_ptr<engine::Schedule> GetSchedule() const { return m_schedule_; }
 
    private:
     std::shared_ptr<engine::Schedule> m_schedule_;
@@ -34,9 +32,9 @@ std::shared_ptr<data::DataTable> UseCaseEMFluid::Serialize() const {
 };
 
 void UseCaseEMFluid::Deserialize(std::shared_ptr<data::DataTable> cfg) {
-    SetSchedule(engine::Schedule::Create("TimeIntegrator"));
+    m_schedule_ = engine::Schedule::Create("TimeIntegrator");
 
-    auto t = std::dynamic_pointer_cast<engine::TimeIntegrator>(GetSchedule());
+    auto t = std::dynamic_pointer_cast<engine::TimeIntegrator>(m_schedule_);
 
     t->SetTime(0);
     t->SetTimeEnd(1);

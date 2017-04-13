@@ -13,22 +13,32 @@
 namespace simpla {
 
 struct UseCaseAMR : public application::SpApp {
-    UseCaseAMR() {}
-    virtual ~UseCaseAMR() {}
+    UseCaseAMR();
+    virtual ~UseCaseAMR();
     virtual std::shared_ptr<data::DataTable> Serialize() const;
     virtual void Deserialize(std::shared_ptr<data::DataTable>);
-
-    void SetSchedule(std::shared_ptr<engine::Schedule> s) { m_schedule_ = s; }
-    std::shared_ptr<engine::Schedule> GetSchedule() const { return m_schedule_; }
+    virtual void Run();
 
    private:
     std::shared_ptr<engine::Schedule> m_schedule_;
 };
 SP_REGISITER_APP(UseCaseAMR, " AMR Test ");
 
-std::shared_ptr<data::DataTable> UseCaseAMR::Serialize() const { return std::make_shared<data::DataTable>(); };
+UseCaseAMR::UseCaseAMR(){};
+UseCaseAMR::~UseCaseAMR() {
+    if (m_schedule_ != nullptr) { m_schedule_->Finalize(); }
+}
+void UseCaseAMR::Run() { m_schedule_->Run(); };
 
-void UseCaseAMR::Deserialize(std::shared_ptr<data::DataTable> t) { SetSchedule(engine::Schedule::Create("SAMRAI")); }
+std::shared_ptr<data::DataTable> UseCaseAMR::Serialize() const {
+    return (m_schedule_ != nullptr) ? m_schedule_->Serialize() : std::make_shared<data::DataTable>();
+}
+void UseCaseAMR::Deserialize(std::shared_ptr<data::DataTable> t) {
+    m_schedule_ = engine::Schedule::Create("SAMRAI");
+    m_schedule_->Initialize();
+    m_schedule_->Deserialize(t);
+    m_schedule_->Update();
+}
 
 //    ctx->db()->SetValue("Domains", {"Center"_ = {"name"_ = "Center", "Mesh"_ = {"name"_ = "CartesianGeometry"},
 //                                                 "Worker"_ = {{"name"_ = "EMFluid"}}}});

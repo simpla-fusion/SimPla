@@ -30,6 +30,7 @@ void TimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> p) {
 };
 
 Real TimeIntegrator::Advance(Real time_dt) {
+    TIME_STAMP;
     if (std::abs(time_dt) < std::numeric_limits<Real>::min()) { time_dt = m_time_step_; }
     time_dt = std::min(std::min(time_dt, m_time_step_), m_time_end_ - m_time_now_);
     m_time_now_ += time_dt;
@@ -38,7 +39,10 @@ Real TimeIntegrator::Advance(Real time_dt) {
 
 void TimeIntegrator::Synchronize(int from_level, int to_level) {}
 
-void TimeIntegrator::NextStep() { Advance(m_time_step_); }
+void TimeIntegrator::NextStep() {
+    TIME_STAMP;
+    Advance(m_time_step_);
+}
 
 //    if (level >= m_pimpl_->m_ctx_->GetAtlas().GetNumOfLevels()) { return m_pimpl_->m_time_; }
 //    auto &atlas = m_pimpl_->m_ctx_->GetAtlas();

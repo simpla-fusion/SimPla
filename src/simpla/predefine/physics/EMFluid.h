@@ -168,6 +168,8 @@ void EMFluid<TM>::Finalize() {
 
 template <typename TM>
 void EMFluid<TM>::NextTimeStep(Real data_time, Real dt) {
+    MESSAGE << __PRETTY_FUNCTION__ << std::endl;
+
     PreProcess();
     DEFINE_PHYSICAL_CONST
     B -= curl(E) * (dt * 0.5);
