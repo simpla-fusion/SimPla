@@ -15,6 +15,8 @@ namespace data {
 // std::regex sub_group_regex=std::regex (R"(/([^/?#]+))", std::regex::optimize);
 // std::regex match_path_regex=std::regex (R"(^(/?([/\S]+/)*)?([^/]+)?$)", std::regex::optimize);
 
+std::shared_ptr<DataTable> ParseCommandLine(int argc, char **argv) { return std::make_shared<DataTable>(); };
+
 void SerializeLua(std::shared_ptr<DataEntity> const &d, std::ostream &os, int indent = 0) {
     if (d == nullptr) {
     } else if (d->isTable()) {

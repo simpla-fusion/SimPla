@@ -4,25 +4,23 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/all.h>
+#include <simpla/application/Application.h>
 #include <simpla/data/all.h>
 #include <simpla/engine/all.h>
 #include <simpla/model/GEqdsk.h>
 #include <simpla/parallel/MPIComm.h>
 #include <simpla/physics/Constants.h>
-
-#include <simpla/toolbox/FancyStream.h>
 #include <iostream>
 
 using namespace simpla;
 using namespace simpla::data;
 namespace simpla {
-std::shared_ptr<engine::Schedule> CREATE_SCHEDULE(int argc, char **argv) {
+SP_APP(AMR, "AMR Test") {
     auto time_integrator = std::dynamic_pointer_cast<engine::TimeIntegrator>(engine::Schedule::Create("SAMRAI"));
     time_integrator->Initialize();
     auto ctx = time_integrator->GetContext();
 
     time_integrator->Update();
-    return time_integrator;
 
     //    ctx->db()->SetValue("Domains", {"Center"_ = {"name"_ = "Center", "Mesh"_ = {"name"_ = "CartesianGeometry"},
     //                                                 "Worker"_ = {{"name"_ = "EMFluid"}}}});

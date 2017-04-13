@@ -13,6 +13,7 @@
 namespace simpla {
 namespace data {
 class DataEntity;
+std::shared_ptr<DataTable> ParseCommandLine(int argc, char **argv);
 
 template <typename U>
 std::shared_ptr<DataTable> const &Serialize(U const &u, ENABLE_IF((std::is_base_of<Serializable, U>::value))) {

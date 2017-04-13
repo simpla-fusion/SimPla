@@ -3,6 +3,7 @@
 //
 
 #include <simpla/algebra/all.h>
+#include <simpla/application/Application.h>
 #include <simpla/data/all.h>
 #include <simpla/engine/all.h>
 #include <simpla/predefine/mesh/CartesianGeometry.h>
@@ -15,9 +16,27 @@ namespace simpla {
 static bool _PRE_REGISTERED =
     EMFluid<mesh::CartesianGeometry>::is_register && PEC<mesh::CartesianGeometry>::is_register;
 
-std::shared_ptr<engine::Schedule> CREATE_SCHEDULE(int argc, char** argv) {
-    auto time_ctrl = std::dynamic_pointer_cast<TimeIntegrator>(Schedule::Create("TimeIntegrator"));
+struct EMFluidApp : public application::SpApp {
+    EMFluidApp() {}
+    virtual ~EMFluidApp() {}
+    virtual std::shared_ptr<data::DataTable> Serialize() const;
+    virtual void Deserialize(std::shared_ptr<data::DataTable>);
+    virtual void SetUp();
+    virtual void Run() { m_schedule_->Run(); };
+    virtual void TearDown() { m_schedule_.reset(); }
 
+    std::shared_ptr<engine::Schedule> m_schedule_;
+};
+SP_REGISITER_APP(EMFluidApp, " EM Fluid ");
+
+std::shared_ptr<data::DataTable> EMFluidApp::Serialize() const {
+    return m_schedule_ != nullptr ? m_schedule_->Serialize() : std::make_shared<data::DataTable>();
+};
+void EMFluidApp::Deserialize(std::shared_ptr<data::DataTable> t) {
+    if (m_schedule_ == nullptr) { m_schedule_ = engine::Schedule::Create("TimeIntegrator"); }
+    if (m_schedule_ != nullptr) { m_schedule_->Deserialize(t); }
+
+    auto time_ctrl = std::dynamic_pointer_cast<engine::TimeIntegrator>(m_schedule_);
     time_ctrl->SetTime(0);
     time_ctrl->SetTimeEnd(1);
     time_ctrl->SetTimeStep(0.1);
@@ -27,9 +46,8 @@ std::shared_ptr<engine::Schedule> CREATE_SCHEDULE(int argc, char** argv) {
     domain->SetChart("CartesianGeometry");
     domain->SetWorker("EMFluid");
     domain->AddBoundaryCondition("PEC");
-
-    return (time_ctrl);
-}
+};
+void EMFluidApp::SetUp() {}
 
 //    ctx->GetAtlas().db()->SetValue("Origin"_ = {0.0, 0.0, 0.0}, "Dx"_ = {1.0, 1.0, 1.0}, "Dimensions"_ = {0, 0,
 //    0});

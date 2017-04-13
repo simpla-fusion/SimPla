@@ -5,6 +5,7 @@
 #ifndef SIMPLA_ENABLECREATEFROMDATATABLE_H
 #define SIMPLA_ENABLECREATEFROMDATATABLE_H
 
+#include <iomanip>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -21,32 +22,44 @@ class EnableCreateFromDataTable {
     virtual ~EnableCreateFromDataTable() {}
 
     struct ObjectFactory {
-        std::map<std::string, std::function<TObj *()>> m_factory_;
+        std::map<std::string, std::pair<std::function<TObj *()>, std::string>> m_factory_;
     };
-    static bool RegisterCreator(std::string const &k, std::function<TObj *()> const &fun) {
-        return SingletonHolder<ObjectFactory>::instance().m_factory_.emplace(k, fun).second;
+    static bool HasCreator(std::string const &k) {
+        auto const &f = SingletonHolder<ObjectFactory>::instance().m_factory_;
+        return f.find(k) != f.end();
+    }
+    static std::string ShowDescription(std::string const &k = "") {
+        auto const &f = SingletonHolder<ObjectFactory>::instance().m_factory_;
+        if (k != "") {
+            auto it = f.find(k);
+            return it != f.end() ? it->second.second : "";
+        } else {
+            std::ostringstream os;
+            os << "Register " << TObj::ClassName() << " Creator:" << std::endl;
+            for (auto const &item : f) {
+                os << std::setw(15) << item.first << " : " << item.second.second << std::endl;
+            }
+            return os.str();
+        }
+    };
+    static bool RegisterCreator(std::string const &k, std::function<TObj *()> const &fun,
+                                std::string const &desc_s = "") {
+        return SingletonHolder<ObjectFactory>::instance().m_factory_.emplace(k, std::make_pair(fun, desc_s)).second;
     };
     template <typename U>
-    static bool RegisterCreator(std::string const &k) {
-        return RegisterCreator(k, []() { return new U; });
+    static bool RegisterCreator(std::string const &k, std::string const &desc_s = "") {
+        return RegisterCreator(k, []() { return new U; }, desc_s);
     };
 
     static std::shared_ptr<TObj> Create(std::string const &k) {
+        auto const &f = SingletonHolder<ObjectFactory>::instance().m_factory_;
         std::shared_ptr<TObj> res = nullptr;
-        if (k == "") {
-            res = std::make_shared<TObj>();
+        auto it = f.find(k);
+        if (it == f.end()) { it = f.begin(); }
+        if (it != f.end()) {
+            res.reset(it->second.first());
         } else {
-            try {
-                res.reset(SingletonHolder<ObjectFactory>::instance().m_factory_.at(k)());
-            } catch (std::out_of_range const &) {
-                std::ostringstream oss;
-                oss <<  TObj::ClassName() << "::" << k << " is not registered. [ ";
-                for (auto const &item : SingletonHolder<ObjectFactory>::instance().m_factory_) {
-                    oss << item.first << ",";
-                }
-                oss << "]" << std::endl;
-                RUNTIME_ERROR << oss.str() << std::endl;
-            }
+            res.reset(new TObj);
         }
         if (res != nullptr) { LOGGER << TObj::ClassName() << "::" << k << "  is created!" << std::endl; }
         return res;

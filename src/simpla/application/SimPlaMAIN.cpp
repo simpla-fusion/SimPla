@@ -12,6 +12,7 @@
 #include <simpla/parallel/all.h>
 #include <simpla/toolbox/Logo.h>
 #include <simpla/toolbox/parse_command_line.h>
+#include "Application.h"
 
 namespace simpla {
 std::shared_ptr<engine::Schedule> CREATE_SCHEDULE(int argc, char **argv);
@@ -30,13 +31,15 @@ int main(int argc, char **argv) {
     std::string conf_file(argv[0]);
     std::string conf_prologue = "";
     std::string conf_epilogue = "";
-
+    std::string app_name = "";
     conf_file += ".lua";
 
     simpla::parse_cmd_line(  //
         argc, argv, [&](std::string const &opt, std::string const &value) -> int {
             if (opt == "i" || opt == "input") {
                 conf_file = value;
+            } else if (opt == "app") {
+                app_name = value;
             } else if (opt == "prologue") {
                 conf_epilogue = value;
             } else if (opt == "e" || opt == "execute" || opt == "epilogue") {
@@ -65,9 +68,9 @@ int main(int argc, char **argv) {
                         << std::left << std::setw(20) << "  -v, --version "
                         << ": Print version information exit. " << std::endl
                         << std::left << std::setw(20) << "  -V, --verbose "
-                        << ": Verbose mode.  Print debugging messages," << std::endl
-                        << std::left << std::setw(20) << "                "
-                        << "   <-10 means quiet,  >10 means Print as much as it can.(default=0)" << std::endl
+                        << ": Verbose mode.  Print debugging messages,   <-10 means quiet,  >10 means Print as much as "
+                           "it can.(default=0)"
+                        << std::endl
                         << std::left << std::setw(20) << "  --quiet "
                         << ": quiet mode," << std::endl
                         << std::endl
@@ -79,8 +82,12 @@ int main(int argc, char **argv) {
                         << ": Execute Lua script before configure file is Load" << std::endl
                         << std::left << std::setw(20) << "  -e, --epilogue "
                         << ": Execute Lua script after configure file is Load" << std::endl
+                        << std::left << std::setw(20) << "  --app "
+                        << ": application name" << std::endl
+                        << std::endl
+                        << std::endl
                         << std::endl;
-
+                MESSAGE << application::SpApp::ShowDescription() << std::endl;
                 TheEnd(0);
                 return TERMINATE;
             } else {
@@ -88,35 +95,52 @@ int main(int argc, char **argv) {
             }
             return CONTINUE;
         });
-
     MESSAGE << ShowLogo() << std::endl;
+    if (!application::SpApp::HasCreator(app_name)) {
+        MESSAGE << application::SpApp::ShowDescription() << std::endl;
+        exit(0);
+    }
 
     MPI_Barrier(GLOBAL_COMM.comm());
-    std::shared_ptr<engine::Schedule> time_ctrl;
+    std::shared_ptr<application::SpApp> app = nullptr;
+    std::shared_ptr<data::DataTable> cfg = nullptr;
+
     if (GLOBAL_COMM.rank() == 0) {
-        time_ctrl = CREATE_SCHEDULE(argc, argv);
+        cfg = data::ParseCommandLine(argc, argv);
+        app = application::SpApp::Create(app_name);
+        app->Deserialize(cfg);
+
         std::ostringstream os;
-        os << "Config={";
-        data::Serialize(time_ctrl->Serialize(), os, "lua");
+        os << "Application={";
+        data::Serialize(app->Serialize(), os, "lua");
         os << "}";
         std::string buffer = os.str();
         parallel::bcast_string(&buffer);
     } else {
         std::string buffer;
         parallel::bcast_string(&buffer);
-        auto t_db = std::make_shared<data::DataTable>("lua://");
-        t_db->backend()->Parser(buffer);
-        time_ctrl = engine::Schedule::Create(t_db->GetTable("Schedule"));
+        cfg = std::make_shared<data::DataTable>("lua://");
+        cfg->backend()->Parser(buffer);
+
+        app = application::SpApp::Create(cfg->GetValue<std::string>("Application/Type", ""));
+        app->Deserialize(cfg);
     }
     MPI_Barrier(GLOBAL_COMM.comm());
 
     VERBOSE << DOUBLELINE << std::endl;
-    VERBOSE << std::endl << " Schedule : " << *time_ctrl->Serialize() << std::endl;
+    VERBOSE << "Description : " << application::SpApp::ShowDescription(app_name) << std::endl;
+    VERBOSE << " Application : " << *app->Serialize() << std::endl;
     VERBOSE << DOUBLELINE << std::endl;
 
+    app->SetUp();
+
     TheStart();
-    time_ctrl->Run();
+    MPI_Barrier(GLOBAL_COMM.comm());
+    app->Run();
+    MPI_Barrier(GLOBAL_COMM.comm());
     TheEnd();
+    app->TearDown();
+
     VERBOSE << DOUBLELINE << std::endl;
 
     parallel::close();
