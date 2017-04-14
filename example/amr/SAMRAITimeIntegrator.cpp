@@ -700,7 +700,6 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
 
    private:
     bool m_is_valid_ = false;
-    Real m_dt_now_ = 10000;
 
     boost::shared_ptr<SAMRAI_HyperbolicPatchStrategyAdapter> hyperbolic_patch_strategy;
     boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geometry;
@@ -859,107 +858,101 @@ void SAMRAITimeIntegrator::Update() {
     //---------------------------------
 
     auto const &atlas = ctx->GetAtlas();
-    {
-        auto PatchHierarchy = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("PatchHierarchy");
-        PatchHierarchy->putInteger("max_levels",
-                                   static_cast<int>(atlas.GetMaxLevel()));  // Maximum number of levels in hierarchy.
 
-        auto ratio_to_coarser = PatchHierarchy->putDatabase("ratio_to_coarser");
+    auto PatchHierarchy = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("PatchHierarchy");
 
-        for (int i = 0, n = static_cast<int>(atlas.GetMaxLevel()); i < n; ++i) {
-            nTuple<int, 3> level;
-            level = atlas.GetRefineRatio(i);
-            ratio_to_coarser->putIntegerArray("level_" + std::to_string(i), &level[0], ndims);
-        }
+    PatchHierarchy->putInteger("max_levels",
+                               static_cast<int>(atlas.GetMaxLevel()));  // Maximum number of levels in hierarchy.
 
-        auto largest_patch_size = PatchHierarchy->putDatabase("largest_patch_size");
-        auto smallest_patch_size = PatchHierarchy->putDatabase("smallest_patch_size");
+    auto ratio_to_coarser = PatchHierarchy->putDatabase("ratio_to_coarser");
 
-        nTuple<int, 3> level_largest, level_smallest;
-        level_smallest = atlas.GetSmallestDimensions();
-        level_largest = atlas.GetLargestDimensions();
-
-        smallest_patch_size->putIntegerArray("level_0", &level_smallest[0], ndims);
-        largest_patch_size->putIntegerArray("level_0", &level_largest[0], ndims);
-
-        patch_hierarchy =
-            boost::make_shared<SAMRAI::hier::PatchHierarchy>("PatchHierarchy", grid_geometry, PatchHierarchy);
+    for (int i = 0, n = static_cast<int>(atlas.GetMaxLevel()); i < n; ++i) {
+        nTuple<int, 3> level;
+        level = atlas.GetRefineRatio(i);
+        ratio_to_coarser->putIntegerArray("level_" + std::to_string(i), &level[0], ndims);
     }
 
-    //---------------------------------
-    {
-        auto HyperbolicLevelIntegrator = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("HyperbolicLevelIntegrator");
+    auto largest_patch_size = PatchHierarchy->putDatabase("largest_patch_size");
+    auto smallest_patch_size = PatchHierarchy->putDatabase("smallest_patch_size");
 
-        // Refer to algs::HyperbolicLevelIntegrator for input
-        // max cfl factor used in problem
-        HyperbolicLevelIntegrator->putDouble("cfl", engine::TimeIntegrator::GetCFL());
-        HyperbolicLevelIntegrator->putDouble("cfl_init", 0.9);
-        HyperbolicLevelIntegrator->putBool("lag_dt_computation", true);
-        HyperbolicLevelIntegrator->putBool("use_ghosts_to_compute_dt", true);
+    nTuple<int, 3> level_largest, level_smallest;
+    level_smallest = atlas.GetSmallestDimensions();
+    level_largest = atlas.GetLargestDimensions();
 
-        /***
-         *  create hyp_level_integrator and error_detector
-         */
-        hyperbolic_patch_strategy =
-            boost::make_shared<SAMRAI_HyperbolicPatchStrategyAdapter>(GetContext(), grid_geometry);
+    smallest_patch_size->putIntegerArray("level_0", &level_smallest[0], ndims);
+    largest_patch_size->putIntegerArray("level_0", &level_largest[0], ndims);
 
-        hyp_level_integrator = boost::make_shared<SAMRAI::algs::HyperbolicLevelIntegrator>(
-            "SAMRAILevelIntegrator", HyperbolicLevelIntegrator, hyperbolic_patch_strategy.get(),
-            use_refined_timestepping);
+    patch_hierarchy = boost::make_shared<SAMRAI::hier::PatchHierarchy>("PatchHierarchy", grid_geometry, PatchHierarchy);
 
-        //    hyp_level_integrator->printClassData(std::cout);
-    }
-    {
-        auto StandardTagAndInitialize = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("StandardTagAndInitialize");
-        //    // Refer to mesh::StandardTagAndInitialize for input
-        StandardTagAndInitialize->putString("tagging_method", "GRADIENT_DETECTOR");
+    auto HyperbolicLevelIntegrator = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("HyperbolicLevelIntegrator");
 
-        auto error_detector = boost::make_shared<SAMRAI::mesh::StandardTagAndInitialize>(
-            "StandardTagAndInitialize", hyp_level_integrator.get(), StandardTagAndInitialize);
-        /*********************************************************************
-         *  create grid_algorithm
-         */
-        auto BergerRigoutsos = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("BergerRigoutsos");
+    // Refer to algs::HyperbolicLevelIntegrator for input
+    // max cfl factor used in problem
+    HyperbolicLevelIntegrator->putDouble("cfl", engine::TimeIntegrator::GetCFL());
+    HyperbolicLevelIntegrator->putDouble("cfl_init", 0.9);
+    HyperbolicLevelIntegrator->putBool("lag_dt_computation", true);
+    HyperbolicLevelIntegrator->putBool("use_ghosts_to_compute_dt", true);
 
-        BergerRigoutsos->putBool("sort_output_nodes", true);       // Makes results repeatable.
-        BergerRigoutsos->putDouble("efficiency_tolerance", 0.85);  // min % of GetTag cells in new patch level,
-        BergerRigoutsos->putDouble("combine_efficiency", 0.95);    //  chop box if  sum of volumes of   smaller
-        // boxes <  efficiency * vol of large box
+    /***
+     *  create hyp_level_integrator and error_detector
+     */
+    hyperbolic_patch_strategy = boost::make_shared<SAMRAI_HyperbolicPatchStrategyAdapter>(GetContext(), grid_geometry);
 
-        auto box_generator = boost::make_shared<SAMRAI::mesh::BergerRigoutsos>(dim, BergerRigoutsos);
+    hyp_level_integrator = boost::make_shared<SAMRAI::algs::HyperbolicLevelIntegrator>(
+        "SAMRAILevelIntegrator", HyperbolicLevelIntegrator, hyperbolic_patch_strategy.get(), use_refined_timestepping);
 
-        box_generator->useDuplicateMPI(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
+    hyp_level_integrator->printClassData(std::cout);
 
-        auto LoadBalancer = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("LoadBalancer");
-        auto load_balancer = boost::make_shared<SAMRAI::mesh::CascadePartitioner>(dim, "LoadBalancer", LoadBalancer);
+    auto StandardTagAndInitialize = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("StandardTagAndInitialize");
+    //    // Refer to mesh::StandardTagAndInitialize for input
+    StandardTagAndInitialize->putString("tagging_method", "GRADIENT_DETECTOR");
 
-        load_balancer->setSAMRAI_MPI(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
-        //    load_balancer->printStatistics(std::cout);
+    auto error_detector = boost::make_shared<SAMRAI::mesh::StandardTagAndInitialize>(
+        "StandardTagAndInitialize", hyp_level_integrator.get(), StandardTagAndInitialize);
+    /*********************************************************************
+     *  create grid_algorithm
+     */
+    auto BergerRigoutsos = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("BergerRigoutsos");
 
-        auto GriddingAlgorithm = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("GriddingAlgorithm");
+    BergerRigoutsos->putBool("sort_output_nodes", true);       // Makes results repeatable.
+    BergerRigoutsos->putDouble("efficiency_tolerance", 0.85);  // min % of GetTag cells in new patch level,
+    BergerRigoutsos->putDouble("combine_efficiency", 0.95);    //  chop box if  sum of volumes of   smaller
+    // boxes <  efficiency * vol of large box
 
-        auto gridding_algorithm = boost::make_shared<SAMRAI::mesh::GriddingAlgorithm>(
-            patch_hierarchy, "GriddingAlgorithm", GriddingAlgorithm, error_detector, box_generator, load_balancer);
+    auto box_generator = boost::make_shared<SAMRAI::mesh::BergerRigoutsos>(dim, BergerRigoutsos);
 
-        //    gridding_algorithm->printClassData(std::cout);
+    box_generator->useDuplicateMPI(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 
-        // Refer to algs::TimeRefinementIntegrator for input
-        auto TimeRefinementIntegrator = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("TimeRefinementIntegrator");
+    auto LoadBalancer = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("LoadBalancer");
+    auto load_balancer = boost::make_shared<SAMRAI::mesh::CascadePartitioner>(dim, "LoadBalancer", LoadBalancer);
 
-        TimeRefinementIntegrator->putDouble("start_time",
-                                            engine::TimeIntegrator::GetTime());  // initial simulation time
-        TimeRefinementIntegrator->putDouble("end_time", engine::TimeIntegrator::GetTimeEnd());  // final simulation time
-        TimeRefinementIntegrator->putDouble("grow_dt",
-                                            engine::TimeIntegrator::GetTimeStep());  // growth factor for timesteps
-        TimeRefinementIntegrator->putInteger("max_integrator_steps", 100);  // max number of simulation timesteps
+    load_balancer->setSAMRAI_MPI(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
+    //    load_balancer->printStatistics(std::cout);
 
-        m_time_refinement_integrator_ = boost::make_shared<SAMRAI::algs::TimeRefinementIntegrator>(
-            "TimeRefinementIntegrator", TimeRefinementIntegrator, patch_hierarchy, hyp_level_integrator,
-            gridding_algorithm);
+    auto GriddingAlgorithm = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("GriddingAlgorithm");
 
-        m_time_refinement_integrator_->printClassData(std::cout);
-    }
-    //    m_dt_now_ = m_time_refinement_integrator_->initializeHierarchy();
+    auto gridding_algorithm = boost::make_shared<SAMRAI::mesh::GriddingAlgorithm>(
+        patch_hierarchy, "GriddingAlgorithm", GriddingAlgorithm, error_detector, box_generator, load_balancer);
+
+    //    gridding_algorithm->printClassData(std::cout);
+
+    // Refer to algs::TimeRefinementIntegrator for input
+    auto TimeRefinementIntegrator = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("TimeRefinementIntegrator");
+
+    TimeRefinementIntegrator->putDouble("start_time", engine::TimeIntegrator::GetTime());   // initial simulation time
+    TimeRefinementIntegrator->putDouble("end_time", engine::TimeIntegrator::GetTimeEnd());  // final simulation time
+    TimeRefinementIntegrator->putDouble("grow_dt",
+                                        engine::TimeIntegrator::GetTimeStep());  // growth factor for timesteps
+    TimeRefinementIntegrator->putInteger("max_integrator_steps",
+                                         engine::Schedule::GetMaxStep());  // max number of simulation timesteps
+
+    m_time_refinement_integrator_ = boost::make_shared<SAMRAI::algs::TimeRefinementIntegrator>(
+        "TimeRefinementIntegrator", TimeRefinementIntegrator, patch_hierarchy, hyp_level_integrator,
+        gridding_algorithm);
+
+//    m_time_refinement_integrator_->printClassData(std::cout);
+
+    engine::TimeIntegrator::SetTime(m_time_refinement_integrator_->initializeHierarchy());
 
     //    visit_data_writer = boost::make_shared<SAMRAI::appu::VisItDataWriter>(
     //            dim, db()->GetValue<std::string>("output_writer_name", name() + " VisIt Writer"),
@@ -969,7 +962,7 @@ void SAMRAITimeIntegrator::Update() {
     //    hyperbolic_patch_strategy->registerVisItDataWriter(visit_data_writer);
 
     m_is_valid_ = true;
-    //    MESSAGE << m_pimpl_->m_ctx_->name() << " is initialized!" << std::endl;
+    MESSAGE << "Context is initialized!" << std::endl;
 };
 void SAMRAITimeIntegrator::Finalize() {
     m_is_valid_ = false;
@@ -984,7 +977,7 @@ Real SAMRAITimeIntegrator::Advance(Real dt) {
     } else {
         Real loop_time = m_time_refinement_integrator_->getIntegratorTime();
         Real loop_time_end = loop_time + dt;
-        dt = std::min(dt, m_dt_now_);
+        dt = std::min(dt, GetTime());
         while (loop_time < loop_time_end && dt > 0 && m_time_refinement_integrator_->stepsRemaining() > 0) {
             Real dt_new = m_time_refinement_integrator_->advanceHierarchy(dt, false);
             loop_time += dt;

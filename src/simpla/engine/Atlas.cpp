@@ -23,11 +23,11 @@ struct Atlas::pimpl_s {
     std::multimap<id_type, id_type> m_coarsen_;
 
     size_type m_level_ = 0;
-    size_type m_max_level_;
+    size_type m_max_level_ = 3;
     std::set<std::shared_ptr<MeshBlock>> m_layers_[MAX_NUM_OF_LEVEL];
 
     size_tuple m_periodic_dimension_ = {1, 1, 1};
-    size_tuple m_refine_ratio_[MAX_NUM_OF_LEVEL];
+    size_tuple m_refine_ratio_[MAX_NUM_OF_LEVEL] = {{2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}};
     size_tuple m_largest_dimensions_{64, 64, 64};
     size_tuple m_smallest_dimensions_{64, 64, 64};
 
