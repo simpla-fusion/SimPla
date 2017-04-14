@@ -31,8 +31,10 @@ class Domain : public SPObject, public data::Serializable {
     Domain(Domain &&) = delete;
     ~Domain();
 
-    virtual std::shared_ptr<data::DataTable> Serialize() const;
-    virtual void Deserialize(std::shared_ptr<data::DataTable>  );
+    void Register(AttributeGroup *attr_grp);
+
+    std::shared_ptr<data::DataTable> Serialize() const;
+    void Deserialize(std::shared_ptr<data::DataTable>);
 
     void SetChart(std::string const &w);
     void SetChart(std::shared_ptr<data::DataTable> const &w);

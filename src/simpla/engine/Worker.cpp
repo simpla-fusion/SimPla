@@ -50,8 +50,8 @@ Worker *Worker::Clone() const { return new Worker(*this); };
 void Worker::SetMesh(std::shared_ptr<Mesh> const &m) { m_pimpl_->m_mesh_ = m; }
 std::shared_ptr<Mesh> const &Worker::GetMesh() const { return m_pimpl_->m_mesh_; }
 
-void Worker::Register(AttributeGroup *) {}
-void Worker::Deregister(AttributeGroup *) {}
+void Worker::Register(AttributeGroup *attr_grp) { AttributeGroup::Register(attr_grp); }
+void Worker::Deregister(AttributeGroup *) { UNIMPLEMENTED; }
 
 void Worker::Push(Patch *p) {
     //    SetMesh(p->GetMeshBlock());

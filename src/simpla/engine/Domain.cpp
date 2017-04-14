@@ -42,6 +42,7 @@ void Domain::Deserialize(std::shared_ptr<data::DataTable> t) {
     m_pimpl_->m_worker_ = Worker::Create(t->GetTable("Worker"));
     // TODO: unfinished
 }
+void Domain::Register(AttributeGroup *attr_grp) { m_pimpl_->m_worker_->Register(attr_grp); }
 
 void Domain::SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g) { m_pimpl_->m_geo_obj_ = g; }
 void Domain::SetGeoObject(std::shared_ptr<data::DataTable> const &w) { SetGeoObject(geometry::GeoObject::Create(w)); };

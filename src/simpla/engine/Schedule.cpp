@@ -24,7 +24,7 @@ void Schedule::SetMaxStep(size_type s) { m_pimpl_->m_max_step_ = s; }
 size_type Schedule::GetMaxStep() const { return m_pimpl_->m_max_step_; }
 
 void Schedule::NextStep() { TIME_STAMP; }
-bool Schedule::Done() const { return m_pimpl_->m_step_ >= m_pimpl_->m_max_step_; }
+bool Schedule::Done() const { return m_pimpl_->m_max_step_ == 0 ? false : m_pimpl_->m_step_ >= m_pimpl_->m_max_step_; }
 void Schedule::CheckPoint() { DO_NOTHING; }
 
 void Schedule::Run() {

@@ -43,7 +43,9 @@ void Context::Update() {
 Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
 Model &Context::GetModel() const { return m_pimpl_->m_model_; }
 
-void Context::Register(AttributeGroup *) {}
+void Context::Register(AttributeGroup *attr_grp) {
+    for (auto &item : m_pimpl_->m_domain_) { item.second->Register(attr_grp); }
+}
 void Context::SetDomain(std::string const &k, std::shared_ptr<Domain> d) {
     auto res = m_pimpl_->m_domain_.emplace(k, d);
     if (!res.second) { res.first->second = d; }

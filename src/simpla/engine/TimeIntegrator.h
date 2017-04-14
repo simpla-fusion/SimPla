@@ -24,18 +24,18 @@ struct TimeIntegrator : public Schedule {
     virtual void Deserialize(std::shared_ptr<data::DataTable>);
 
     virtual void NextStep();
-    virtual bool Done() const { return m_time_now_ >= m_time_end_; }
+    virtual bool Done() const { return m_time_now_ >= m_time_end_ || Schedule::Done(); }
 
     virtual Real Advance(Real time_dt = 0.0);
     virtual void Synchronize(int from_level = 0, int to_level = 0);
 
-    void SetTime(Real t) { m_time_now_ = t; }
-    void SetTimeEnd(Real t) { m_time_end_ = t; }
-    void SetTimeStep(Real t) { m_time_step_ = t; };
+    virtual void SetTime(Real t) { m_time_now_ = t; }
+    virtual void SetTimeEnd(Real t) { m_time_end_ = t; }
+    virtual void SetTimeStep(Real t) { m_time_step_ = t; };
 
-    Real GetTime() const { return m_time_now_; }
-    Real GetTimeEnd() const { return m_time_end_; }
-    Real GetTimeStep() const { return m_time_step_; }
+    virtual Real GetTime() const { return m_time_now_; }
+    virtual Real GetTimeEnd() const { return m_time_end_; }
+    virtual Real GetTimeStep() const { return m_time_step_; }
 
     void SetCFL(Real c) { m_cfl_ = c; }
     Real GetCFL() const { return m_cfl_; }
