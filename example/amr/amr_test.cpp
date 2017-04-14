@@ -57,7 +57,7 @@ void UseCaseAMR::Deserialize(std::shared_ptr<data::DataTable> cfg) {
         m_schedule_->SetTimeStep(0.1);
         m_schedule_->SetTimeEnd(1.0);
     } else {
-        m_schedule_->Deserialize(t->GetTable("Schedule"));
+        m_schedule_->Deserialize(cfg->GetTable("Schedule"));
     }
     m_schedule_->Update();
 }
@@ -76,7 +76,7 @@ void UseCaseAMR::Deserialize(std::shared_ptr<data::DataTable> cfg) {
 //        //        ctx->GetModel().AddDomain("VACUUM", geqdsk.limiter_gobj());
 //        //        ctx->GetModel().AddDomain("PLASMA", geqdsk.boundary_gobj());
 //
-//        auto bound_box = ctx->GetModel().bound_box();
+//        auto bound_box = ctx->GetModel().GetBoundBox();
 //    }
 //
 //    worker->db()->SetValue("Particles/H1/m", 1.0);

@@ -25,12 +25,21 @@ using namespace simpla::algebra;
  *          1 full out-side
  */
 template <typename U, typename V>
-inline int CheckOverlap(std::tuple<nTuple<U, 3>, nTuple<V, 3>> const& b0,
-                        std::tuple<nTuple<U, 3>, nTuple<V, 3>> const& b1) {
+int CheckOverlap(std::tuple<nTuple<U, 3>, nTuple<V, 3>> const& b0, std::tuple<nTuple<U, 3>, nTuple<V, 3>> const& b1) {
     return (std::get<1>(b0)[0] >= std::get<0>(b1)[0]) && (std::get<1>(b1)[0] >= std::get<0>(b0)[0]) &&
            (std::get<1>(b0)[1] >= std::get<0>(b1)[1]) && (std::get<1>(b1)[1] >= std::get<0>(b0)[1]) &&
            (std::get<1>(b0)[2] >= std::get<0>(b1)[2]) && (std::get<1>(b1)[2] >= std::get<0>(b0)[2]);
 }
+template <typename U, int N>
+std::tuple<nTuple<U, N>, nTuple<U, N>> BoundBox(std::tuple<nTuple<U, N>, nTuple<U, N>> const& l,
+                                                std::tuple<nTuple<U, N>, nTuple<U, N>> const& r) {
+    std::tuple<nTuple<U, N>, nTuple<U, N>> res;
+    for (int i = 0; i < N; ++i) {
+        std::get<0>(res)[i] = std::min(std::get<0>(l)[i], std::get<0>(r)[i]);
+        std::get<1>(res)[i] = std::max(std::get<1>(l)[i], std::get<1>(r)[i]);
+    }
+    return std::move(res);
+};
 /**
  * @ingroup geometry
  * @{

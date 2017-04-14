@@ -29,7 +29,10 @@ class Schedule : public data::Serializable, public data::EnableCreateFromDataTab
     virtual void NextStep();
     virtual bool Done() const;
     virtual void CheckPoint();
-    void SetNumberOfSteps(size_type s = 1);
+
+    size_type GetNumberOfStep() const;
+    void SetMaxStep(size_type s);
+    size_type GetMaxStep() const;
 
     void Run();
 

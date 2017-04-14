@@ -13,11 +13,6 @@ namespace engine {
 
 struct Atlas::pimpl_s {
     static constexpr int MAX_NUM_OF_LEVEL = 5;
-    size_type m_num_of_level_ = 1;
-    size_tuple m_refine_ratio_ = {2, 2, 2};
-    point_type m_origin_{0, 0, 0};
-    box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
-    std::map<int, point_type> m_dx_;
 
     typedef typename std::multimap<id_type, id_type>::iterator link_iterator;
     typedef typename std::multimap<id_type, id_type>::const_iterator const_link_iterator;
@@ -26,7 +21,15 @@ struct Atlas::pimpl_s {
     std::multimap<id_type, id_type> m_adjacent_;
     std::multimap<id_type, id_type> m_refine_;
     std::multimap<id_type, id_type> m_coarsen_;
+
+    size_type m_level_ = 0;
+    size_type m_max_level_;
     std::set<std::shared_ptr<MeshBlock>> m_layers_[MAX_NUM_OF_LEVEL];
+
+    size_tuple m_periodic_dimension_ = {1, 1, 1};
+    size_tuple m_refine_ratio_[MAX_NUM_OF_LEVEL];
+    size_tuple m_largest_dimensions_{64, 64, 64};
+    size_tuple m_smallest_dimensions_{64, 64, 64};
 
     std::shared_ptr<Chart> m_chart_;
 };
@@ -36,16 +39,11 @@ Atlas::~Atlas(){};
 
 void Atlas::Decompose(size_tuple const &d, int local_id){};
 
-size_type Atlas::GetNumOfLevels() const { return m_pimpl_->m_num_of_level_; };
-point_type Atlas::GetLevelDx(int l) { return m_pimpl_->m_dx_[l]; }
-point_type Atlas::GetOrigin() const { return m_pimpl_->m_origin_; };
-
 index_box_type Atlas::FitIndexBox(box_type const &b, int level, int flag) const { return index_box_type{}; }
-void Atlas::SetRefineRatio(size_tuple const &v, int level) { m_pimpl_->m_refine_ratio_ = v; }
 
-std::shared_ptr<MeshBlock> Atlas::AddBlock(std::shared_ptr<MeshBlock> const &m) {
+std::shared_ptr<MeshBlock> Atlas::AddBlock(std::shared_ptr<MeshBlock> m) {
     auto res = m_pimpl_->m_layers_[m->GetLevel()].emplace(m);
-    if (m->GetLevel() > m_pimpl_->m_num_of_level_) { m_pimpl_->m_num_of_level_ = m->GetLevel(); }
+    if (m->GetLevel() > m_pimpl_->m_level_) { m_pimpl_->m_level_ = m->GetLevel(); }
     return *res.first;
 };
 std::shared_ptr<MeshBlock> Atlas::AddBlock(index_box_type const &b) { return AddBlock(std::make_shared<MeshBlock>(b)); }
@@ -57,11 +55,27 @@ size_type Atlas::Delete(id_type id) {
 };
 std::shared_ptr<MeshBlock> Atlas::RefineBlock(id_type, index_box_type const &) { return nullptr; };
 
-void Atlas::Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const &fun, int level) const {
+void Atlas::Foreach(std::function<void(std::shared_ptr<MeshBlock>)> const &fun, int level) const {
     for (auto const &item : m_pimpl_->m_layers_[level]) { fun(item); }
 };
+
+void Atlas::SetPeriodicDimension(size_tuple const &d) { m_pimpl_->m_periodic_dimension_ = d; }
+size_tuple const &Atlas::GetPeriodicDimension() const { return m_pimpl_->m_periodic_dimension_; }
+
 std::set<std::shared_ptr<MeshBlock>> const &Atlas::Level(int level) const { return m_pimpl_->m_layers_[level]; };
 
+size_type Atlas::GetNumOfLevel() const { return m_pimpl_->m_max_level_; }
+size_type Atlas::GetMaxLevel() const { return m_pimpl_->m_max_level_; }
+void Atlas::SetMaxLevel(size_type l) { m_pimpl_->m_max_level_ = l; }
+void Atlas::SetRefineRatio(size_tuple const &v, size_type level) {
+    m_pimpl_->m_refine_ratio_[level] = v;
+    m_pimpl_->m_level_ = std::max(level, m_pimpl_->m_level_);
+}
+size_tuple Atlas::GetRefineRatio(int l) const { return m_pimpl_->m_refine_ratio_[l]; };
+void Atlas::SetLargestDimensions(size_tuple const &d) { m_pimpl_->m_largest_dimensions_ = d; };
+size_tuple Atlas::GetLargestDimensions() const { return m_pimpl_->m_largest_dimensions_; };
+void Atlas::SetSmallestDimensions(size_tuple const &d) { m_pimpl_->m_smallest_dimensions_ = d; };
+size_tuple Atlas::GetSmallestDimensions() const { return m_pimpl_->m_smallest_dimensions_; };
 //
 // size_type Atlas::size(int level) const { return m_backend_->m_layer_[level].size(); }
 // void Atlas::max_level(int ml) { m_backend_->m_max_level_ = ml; }

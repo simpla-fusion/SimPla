@@ -70,21 +70,33 @@ class Atlas {
     virtual ~Atlas();
     void Decompose(size_tuple const &d, int local_id = -1);
 
-    size_type GetNumOfLevels() const;
-    point_type GetLevelDx(int level = 0);
-    point_type GetOrigin() const;
-
     index_box_type FitIndexBox(box_type const &b, int level = 0, int flag = 0) const;
-    void SetRefineRatio(size_tuple const &v, int level = 0);
 
     std::shared_ptr<MeshBlock> AddBlock(index_box_type const &);
-    std::shared_ptr<MeshBlock> AddBlock(std::shared_ptr<MeshBlock> const &);
+    std::shared_ptr<MeshBlock> AddBlock(std::shared_ptr<MeshBlock>);
 
     size_type Delete(id_type);
     std::shared_ptr<MeshBlock> GetBlock(id_type) const;
     std::shared_ptr<MeshBlock> RefineBlock(id_type, index_box_type const &);
     std::set<std::shared_ptr<MeshBlock>> const &Level(int level = 0) const;
-    void Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const &fun, int level = 0) const;
+
+    void Foreach(std::function<void(std::shared_ptr<MeshBlock>)> const &fun, int level = 0) const;
+
+    void SetPeriodicDimension(size_tuple const &d);
+    size_tuple const &GetPeriodicDimension() const;
+
+    size_type GetNumOfLevel() const;
+
+    void SetMaxLevel(size_type l = 1);
+    size_type GetMaxLevel() const;
+
+    void SetRefineRatio(size_tuple const &v, size_type level = 0);
+    size_tuple GetRefineRatio(int l) const;
+
+    void SetLargestDimensions(size_tuple const &d);
+    size_tuple GetLargestDimensions() const;
+    size_tuple GetSmallestDimensions() const;
+    void SetSmallestDimensions(size_tuple const &d);
 
    private:
     struct pimpl_s;

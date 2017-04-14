@@ -19,7 +19,10 @@ struct Schedule::pimpl_s {
 Schedule::Schedule() : m_pimpl_(new pimpl_s){};
 Schedule::~Schedule() { Finalize(); };
 
-void Schedule::SetNumberOfSteps(size_type s) { m_pimpl_->m_max_step_ = s; }
+size_type Schedule::GetNumberOfStep() const { return m_pimpl_->m_step_; }
+void Schedule::SetMaxStep(size_type s) { m_pimpl_->m_max_step_ = s; }
+size_type Schedule::GetMaxStep() const { return m_pimpl_->m_max_step_; }
+
 void Schedule::NextStep() { TIME_STAMP; }
 bool Schedule::Done() const { return m_pimpl_->m_step_ >= m_pimpl_->m_max_step_; }
 void Schedule::CheckPoint() { DO_NOTHING; }
@@ -56,7 +59,7 @@ void Schedule::Finalize() { m_pimpl_->m_ctx_.reset(); }
 void Schedule::Update() { m_pimpl_->m_ctx_->Update(); }
 void Schedule::Synchronize(int from_level, int to_level) {
     auto &atlas = GetContext()->GetAtlas();
-    if (from_level >= atlas.GetNumOfLevels() || to_level >= atlas.GetNumOfLevels()) { return; }
+    if (from_level >= atlas.GetNumOfLevel() || to_level >= atlas.GetNumOfLevel()) { return; }
     for (auto const &src : atlas.Level(from_level)) {
         for (auto const &dest : atlas.Level(from_level)) {
             if (!geometry::CheckOverlap(src->GetIndexBox(), dest->GetIndexBox())) { continue; }

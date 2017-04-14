@@ -18,28 +18,31 @@ namespace engine {
 
 using namespace data;
 
-class Model : public concept::Configurable {
+class Model : public data::Serializable {
     typedef Model this_type;
 
    public:
-    Model(std::shared_ptr<data::DataTable> const &t = nullptr);
-    virtual ~Model();
-    virtual bool Update();
-    virtual void Initialize();
-    virtual void Finalize();
+    Model();
+    ~Model();
+    void Update();
+    void Initialize();
+    void Finalize();
 
-    box_type const &bound_box() const;
-    std::shared_ptr<data::DataTable> GetMaterial(std::string const &k = "") const;
-    std::shared_ptr<data::DataTable> SetMaterial(std::string const &k, std::shared_ptr<DataTable> const &p = nullptr);
-    id_type GetMaterialId(std::string const &k) const;
+    int GetNDims() const;
+    box_type const &GetBoundBox() const;
 
-    std::pair<std::shared_ptr<geometry::GeoObject>, bool> AddObject(std::string const &material_type_name,
-                                                                    std::shared_ptr<data::DataTable> const &);
+    //    std::shared_ptr<data::DataTable> GetMaterial(std::string const &k = "") const;
+    //    std::shared_ptr<data::DataTable> SetMaterial(std::string const &k, std::shared_ptr<DataTable> p = nullptr);
+    //    id_type GetMaterialId(std::string const &k) const;
 
-    id_type AddObject(std::string const &material_type_name, std::shared_ptr<geometry::GeoObject> const &);
+    std::pair<std::shared_ptr<geometry::GeoObject>, bool> AddObject(std::string const &k, std::shared_ptr<DataTable>);
+
+    id_type AddObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &);
     std::shared_ptr<geometry::GeoObject> GetObject(std::string const &k) const;
     size_type DeleteObject(std::string const &);
+
     std::map<std::string, std::shared_ptr<geometry::GeoObject>> const &GetAll() const;
+
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;

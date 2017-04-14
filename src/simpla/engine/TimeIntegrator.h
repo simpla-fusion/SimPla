@@ -37,7 +37,11 @@ struct TimeIntegrator : public Schedule {
     Real GetTimeEnd() const { return m_time_end_; }
     Real GetTimeStep() const { return m_time_step_; }
 
+    void SetCFL(Real c) { m_cfl_ = c; }
+    Real GetCFL() const { return m_cfl_; }
+
    private:
+    Real m_cfl_ = 0.9;
     Real m_time_now_ = 0.0;
     Real m_time_end_ = 1.0;
     Real m_time_step_ = 0.1;
