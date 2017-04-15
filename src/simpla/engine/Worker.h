@@ -37,8 +37,8 @@ class Worker : public data::Serializable, public data::EnableCreateFromDataTable
     virtual void Advance(Real time = 0, Real dt = 0);
     virtual void Finalize();
 
-    void SetMesh(std::shared_ptr<Mesh> const &);
-    std::shared_ptr<Mesh> const &GetMesh() const;
+    virtual Mesh *GetMesh();
+    virtual Mesh const *GetMesh() const;
 
    private:
     struct pimpl_s;

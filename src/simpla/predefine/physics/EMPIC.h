@@ -43,7 +43,7 @@ public:
 public:
     typedef TM mesh_type;
     typedef typename mesh_type::scalar_type scalar_type;
-    mesh_type const *m;
+    mesh_type   m_mesh_;
 
     EMPIC(const mesh_type *mp) : base_type(mp), m(mp) { }
 
@@ -57,6 +57,8 @@ public:
 
 //    virtual io::IOStream &Save(io::IOStream &os) const;
 
+    Mesh* GetMesh() { return &m_mesh_; }
+    Mesh const* GetMesh() const { return &m_mesh_; }
 
     EntityRange limiter_boundary;
     EntityRange vertex_boundary;

@@ -47,8 +47,8 @@ Worker::~Worker() {}
 void Worker::swap(Worker &other) { std::swap(m_pimpl_->m_mesh_, other.m_pimpl_->m_mesh_); }
 Worker *Worker::Clone() const { return new Worker(*this); };
 
-void Worker::SetMesh(std::shared_ptr<Mesh> const &m) { m_pimpl_->m_mesh_ = m; }
-std::shared_ptr<Mesh> const &Worker::GetMesh() const { return m_pimpl_->m_mesh_; }
+Mesh *Worker::GetMesh() { return nullptr; }
+Mesh const *Worker::GetMesh() const { return nullptr; }
 
 void Worker::Register(AttributeGroup *attr_grp) { GetMesh()->Register(attr_grp); }
 void Worker::Deregister(AttributeGroup *attr_grp) { GetMesh()->Deregister(attr_grp); }

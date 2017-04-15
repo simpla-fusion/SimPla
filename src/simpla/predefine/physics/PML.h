@@ -17,21 +17,26 @@ using namespace engine;
  *  @ingroup FieldSolver
  *  @brief absorb boundary condition, PML
  */
-template <typename TM>
+template <typename TChart>
 class PML : public engine::Worker {
-    SP_OBJECT_HEAD(PML<TM>, engine::Worker);
+    SP_OBJECT_HEAD(PML<TChart>, engine::Worker);
 
    public:
-    typedef TM mesh_type;
+    typedef engine::MeshView<TChart> mesh_type;
     typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
 
     template <int IFORM, int DOF = 1>
-    using field_type = Field<TM, scalar_type, IFORM, DOF>;
+    using field_type = Field<mesh_type, scalar_type, IFORM, DOF>;
 
     template <typename... Args>
-    explicit PML(Args &&... args) : engine::Task(std::forward<Args>(args)...){};
+    explicit PML(Args&&... args) : engine::Task(std::forward<Args>(args)...){};
     virtual ~PML(){};
-    void SetCenterDomain(geometry::GeoObject const &) {}
+
+    mesh_type m_mesh_;
+    Mesh* GetMesh() { return &m_mesh_; }
+    Mesh const* GetMesh() const { return &m_mesh_; }
+
+    void SetCenterDomain(geometry::GeoObject const&) {}
     void Initialize();
     bool Update() { return false; }
 
@@ -39,23 +44,23 @@ class PML : public engine::Worker {
     //    virtual std::string getClassName() const { return class_name(); }
     //    static std::string class_name() { return "PML<" + traits::type_id<TM>::GetName() + ">"; }
 
-    field_type<EDGE> E{this, "name"_ = "E"};
-    field_type<FACE> B{this, "name"_ = "B"};
+    field_type<EDGE> E{m_mesh_, "name"_ = "E"};
+    field_type<FACE> B{m_mesh_, "name"_ = "B"};
 
-    field_type<EDGE> X10{this}, X11{this}, X12{this};
-    field_type<FACE> X20{this}, X21{this}, X22{this};
+    field_type<EDGE> X10{m_mesh_}, X11{m_mesh_}, X12{m_mesh_};
+    field_type<FACE> X20{m_mesh_}, X21{m_mesh_}, X22{m_mesh_};
 
     // alpha
-    field_type<VERTEX> a0{this};
-    field_type<VERTEX> a1{this};
-    field_type<VERTEX> a2{this};
+    field_type<VERTEX> a0{m_mesh_};
+    field_type<VERTEX> a1{m_mesh_};
+    field_type<VERTEX> a2{m_mesh_};
     // sigma
-    field_type<VERTEX> s0{this};
-    field_type<VERTEX> s1{this};
-    field_type<VERTEX> s2{this};
+    field_type<VERTEX> s0{m_mesh_};
+    field_type<VERTEX> s1{m_mesh_};
+    field_type<VERTEX> s2{m_mesh_};
 
-    field_type<EDGE> dX1{this};
-    field_type<FACE> dX2{this};
+    field_type<EDGE> dX1{m_mesh_};
+    field_type<FACE> dX2{m_mesh_};
 
    private:
     inline Real sigma_(Real r, Real expN, Real dB) {

@@ -38,6 +38,9 @@ class EMFluid : public engine::Worker {
         res->SetValue<std::string>("Type", "EMFluid");
         return res;
     };
+    Mesh* GetMesh() { return &m_mesh_; }
+    Mesh const* GetMesh() const { return &m_mesh_; }
+
     virtual void Deserialize(std::shared_ptr<data::DataTable> const& t) { UNIMPLEMENTED; }
 
     virtual void Advance(Real data_time, Real dt = 0);
@@ -151,7 +154,6 @@ void EMFluid<TM>::Finalize() {
 template <typename TM>
 void EMFluid<TM>::Advance(Real data_time, Real dt) {
     TIME_STAMP;
-
 
     DEFINE_PHYSICAL_CONST
     B -= curl(E) * (dt * 0.5);

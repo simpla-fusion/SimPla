@@ -34,6 +34,9 @@ class PEC : public engine::Worker {
     explicit PEC(Args&&... args) : engine::Worker(std::forward<Args>(args)...){};
     virtual ~PEC(){};
 
+    Mesh* GetMesh() { return &m_mesh_; }
+    Mesh const* GetMesh() const { return &m_mesh_; }
+
     virtual std::shared_ptr<data::DataTable> Serialize() const {
         auto res = std::make_shared<data::DataTable>();
         res->SetValue<std::string>("Type", "PEC");
