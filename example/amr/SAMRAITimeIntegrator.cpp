@@ -84,98 +84,98 @@ class SAMRAITimeIntegrator;
 // static bool CartesianGeometry_EMFluid_IS_REGISTERED =
 //    Worker::RegisterCreator<EMFluid<mesh::CartesianGeometry>>("CartesianGeometry.EMFluid");
 //        GLOBAL_WORKER_FACTORY.RegisterCreator<PML<mesh::CartesianGeometry>>("CartesianGeometry.PML");
-
-struct SAMRAIPatchProxy : public data::DataTable {
-   public:
-    SAMRAIPatchProxy(SAMRAI::hier::Patch &patch, boost::shared_ptr<SAMRAI::hier::VariableContext> ctx,
-                     std::map<id_type, std::shared_ptr<data::DataTable>> const &simpla_attrs_,
-                     std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> const &samrai_variables);
-    virtual ~SAMRAIPatchProxy();
-    std::shared_ptr<data::DataBlock> data(id_type const &id, std::shared_ptr<data::DataBlock> const &p = nullptr);
-    std::shared_ptr<data::DataBlock> data(id_type const &id) const;
-
-   private:
-    SAMRAI::hier::Patch &m_samrai_patch_;
-    boost::shared_ptr<SAMRAI::hier::VariableContext> const &m_samrai_ctx_;
-    std::map<id_type, std::shared_ptr<data::DataTable>> const &m_simpla_attrs_;
-    std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> const &m_samrai_variables_;
-};
-SAMRAIPatchProxy::SAMRAIPatchProxy(SAMRAI::hier::Patch &patch, boost::shared_ptr<SAMRAI::hier::VariableContext> ctx,
-                                   std::map<id_type, std::shared_ptr<data::DataTable>> const &simpla_attrs_,
-                                   std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> const &var_map)
-    : m_samrai_patch_(patch), m_samrai_ctx_(ctx), m_simpla_attrs_(simpla_attrs_), m_samrai_variables_(var_map) {
-    auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
-
-    ASSERT(pgeom != nullptr);
-    const double *dx = pgeom->getDx();
-    const double *xlo = pgeom->getXLower();
-    const double *xhi = pgeom->getXUpper();
-
-    index_type lo[3] = {patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]};
-    index_type hi[3] = {patch.getBox().upper()[0], patch.getBox().upper()[1], patch.getBox().upper()[2]};
-
-    //    std::shared_ptr<simpla::engine::MeshBlock> m = std::make_shared<simpla::engine::MeshBlock>(3, lo, hi, dx,
-    //    xlo);
-    //    m->id(static_cast<id_type>(patch.getBox().getGlobalId().getOwnerRank() * 10000 +
-    //                               patch.getBox().getGlobalId().getLocalId().getValue()));
-    //    this->SetMeshBlock(m);
-};
-SAMRAIPatchProxy::~SAMRAIPatchProxy() {}
-
-namespace detail {
-
-template <typename TV>
-std::shared_ptr<data::DataBlock> create_data_block_t0(data::DataTable const &desc,
-                                                      boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
-    auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::NodeData<TV>>(pd);
-    int ndims = p_data->getDim().getValue();
-    int depth = p_data->getDepth();
-    auto outer_lower = p_data->getGhostBox().lower();
-    auto outer_upper = p_data->getGhostBox().upper();
-    auto inner_lower = p_data->getBox().lower();
-    auto inner_upper = p_data->getBox().upper();
-    size_type dims[4] = {static_cast<size_type>(outer_upper[0] - outer_lower[0]),
-                         static_cast<size_type>(outer_upper[1] - outer_lower[1]),
-                         static_cast<size_type>(outer_upper[2] - outer_lower[2]),
-                         static_cast<size_type>(desc.GetValue<int>("DOF"))};
-    index_type lo[4] = {inner_lower[0] - outer_lower[0], inner_lower[1] - outer_lower[1],
-                        inner_lower[2] - outer_lower[2], 0};
-    index_type hi[4] = {inner_upper[0] - outer_lower[0], inner_upper[1] - outer_lower[1],
-                        inner_upper[2] - outer_lower[2], static_cast<index_type>(desc.GetValue<int>("DOF"))};
-    //    auto res = std::make_shared<data::DataEntityWrapper<simpla::Array<TV, 4>>>();
-    // p_data->getPointer(), dims, lo, hi
-    //    res->Initialize();
-    //    return std::dynamic_pointer_cast<data::DataBlock>(res);
-    return nullptr;
-};
-
-std::shared_ptr<data::DataBlock> create_data_block(data::DataTable const &desc,
-                                                   boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
-    std::shared_ptr<data::DataBlock> res(nullptr);
-    if (desc.value_type_info() == (typeid(float))) {
-        res = create_data_block_t0<float>(desc, pd);
-    } else if (desc.value_type_info() == (typeid(double))) {
-        res = create_data_block_t0<double>(desc, pd);
-    } else if (desc.value_type_info() == (typeid(int))) {
-        res = create_data_block_t0<int>(desc, pd);
-    }
-    //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item,
-    //    std::forward<Args>(args)...); }
-    else {
-        RUNTIME_ERROR << "Unsupported m_value_ value_type_info" << std::endl;
-    }
-    ASSERT(res != nullptr);
-    return res;
-}
-}  // namespace detail
-std::shared_ptr<data::DataBlock> SAMRAIPatchProxy::data(id_type const &id, std::shared_ptr<data::DataBlock> const &p) {
-    UNIMPLEMENTED;
-    return nullptr;
-}
-std::shared_ptr<data::DataBlock> SAMRAIPatchProxy::data(id_type const &id) const {
-    return simpla::detail::create_data_block(*m_simpla_attrs_.at(id),
-                                             m_samrai_patch_.getPatchData(m_samrai_variables_.at(id), m_samrai_ctx_));
-}
+//
+//struct SAMRAIPatchProxy : public data::DataTable {
+//   public:
+//    SAMRAIPatchProxy(SAMRAI::hier::Patch &patch, boost::shared_ptr<SAMRAI::hier::VariableContext> ctx,
+//                     std::map<id_type, std::shared_ptr<data::DataTable>> const &simpla_attrs_,
+//                     std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> const &samrai_variables);
+//    virtual ~SAMRAIPatchProxy();
+//    std::shared_ptr<data::DataBlock> data(id_type const &id, std::shared_ptr<data::DataBlock> const &p = nullptr);
+//    std::shared_ptr<data::DataBlock> data(id_type const &id) const;
+//
+//   private:
+//    SAMRAI::hier::Patch &m_samrai_patch_;
+//    boost::shared_ptr<SAMRAI::hier::VariableContext> const &m_samrai_ctx_;
+//    std::map<id_type, std::shared_ptr<data::DataTable>> const &m_simpla_attrs_;
+//    std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> const &m_samrai_variables_;
+//};
+//SAMRAIPatchProxy::SAMRAIPatchProxy(SAMRAI::hier::Patch &patch, boost::shared_ptr<SAMRAI::hier::VariableContext> ctx,
+//                                   std::map<id_type, std::shared_ptr<data::DataTable>> const &simpla_attrs_,
+//                                   std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> const &var_map)
+//    : m_samrai_patch_(patch), m_samrai_ctx_(ctx), m_simpla_attrs_(simpla_attrs_), m_samrai_variables_(var_map) {
+//    auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
+//
+//    ASSERT(pgeom != nullptr);
+//    const double *dx = pgeom->getDx();
+//    const double *xlo = pgeom->getXLower();
+//    const double *xhi = pgeom->getXUpper();
+//
+//    index_type lo[3] = {patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]};
+//    index_type hi[3] = {patch.getBox().upper()[0], patch.getBox().upper()[1], patch.getBox().upper()[2]};
+//
+//    //    std::shared_ptr<simpla::engine::MeshBlock> m = std::make_shared<simpla::engine::MeshBlock>(3, lo, hi, dx,
+//    //    xlo);
+//    //    m->id(static_cast<id_type>(patch.getBox().getGlobalId().getOwnerRank() * 10000 +
+//    //                               patch.getBox().getGlobalId().getLocalId().getValue()));
+//    //    this->SetMeshBlock(m);
+//};
+//SAMRAIPatchProxy::~SAMRAIPatchProxy() {}
+//
+//namespace detail {
+//
+//template <typename TV>
+//std::shared_ptr<data::DataBlock> create_data_block_t0(data::DataTable const &desc,
+//                                                      boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
+//    auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::NodeData<TV>>(pd);
+//    int ndims = p_data->getDim().getValue();
+//    int depth = p_data->getDepth();
+//    auto outer_lower = p_data->getGhostBox().lower();
+//    auto outer_upper = p_data->getGhostBox().upper();
+//    auto inner_lower = p_data->getBox().lower();
+//    auto inner_upper = p_data->getBox().upper();
+//    size_type dims[4] = {static_cast<size_type>(outer_upper[0] - outer_lower[0]),
+//                         static_cast<size_type>(outer_upper[1] - outer_lower[1]),
+//                         static_cast<size_type>(outer_upper[2] - outer_lower[2]),
+//                         static_cast<size_type>(desc.GetValue<int>("DOF"))};
+//    index_type lo[4] = {inner_lower[0] - outer_lower[0], inner_lower[1] - outer_lower[1],
+//                        inner_lower[2] - outer_lower[2], 0};
+//    index_type hi[4] = {inner_upper[0] - outer_lower[0], inner_upper[1] - outer_lower[1],
+//                        inner_upper[2] - outer_lower[2], static_cast<index_type>(desc.GetValue<int>("DOF"))};
+//    //    auto res = std::make_shared<data::DataEntityWrapper<simpla::Array<TV, 4>>>();
+//    // p_data->getPointer(), dims, lo, hi
+//    //    res->Initialize();
+//    //    return std::dynamic_pointer_cast<data::DataBlock>(res);
+//    return nullptr;
+//};
+//
+//std::shared_ptr<data::DataBlock> create_data_block(data::DataTable const &desc,
+//                                                   boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
+//    std::shared_ptr<data::DataBlock> res(nullptr);
+//    if (desc.value_type_info() == (typeid(float))) {
+//        res = create_data_block_t0<float>(desc, pd);
+//    } else if (desc.value_type_info() == (typeid(double))) {
+//        res = create_data_block_t0<double>(desc, pd);
+//    } else if (desc.value_type_info() == (typeid(int))) {
+//        res = create_data_block_t0<int>(desc, pd);
+//    }
+//    //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item,
+//    //    std::forward<Args>(args)...); }
+//    else {
+//        RUNTIME_ERROR << "Unsupported m_value_ value_type_info" << std::endl;
+//    }
+//    ASSERT(res != nullptr);
+//    return res;
+//}
+//}  // namespace detail
+//std::shared_ptr<data::DataBlock> SAMRAIPatchProxy::data(id_type const &id, std::shared_ptr<data::DataBlock> const &p) {
+//    UNIMPLEMENTED;
+//    return nullptr;
+//}
+//std::shared_ptr<data::DataBlock> SAMRAIPatchProxy::data(id_type const &id) const {
+//    return simpla::detail::create_data_block(*m_simpla_attrs_.at(id),
+//                                             m_samrai_patch_.getPatchData(m_samrai_variables_.at(id), m_samrai_ctx_));
+//}
 
 class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatchStrategy {
    public:
@@ -596,9 +596,11 @@ void SAMRAIHyperbolicPatchStrategyAdapter::Push(SAMRAI::hier::Patch &patch, engi
     p->SetBlock(mblk);
     //    engine::AttributeGroup attr_grp;
     //    m_ctx_->Register(&attr_grp);
-        for (auto const &item : m_samrai_variables_) { p->Push(id, patch.getPatchData(item.second, m_samrai_ctx_)); }
+//    for (auto const &item : m_samrai_variables_) { p->Push(id, patch.getPatchData(item.second, m_samrai_ctx_)); }
 }
-void SAMRAIHyperbolicPatchStrategyAdapter::Pop(SAMRAI::hier::Patch &patch, engine::Patch *p) {}
+void SAMRAIHyperbolicPatchStrategyAdapter::Pop(SAMRAI::hier::Patch &patch, engine::Patch *p) {
+//    for (auto const &item : p->GetData()) { patch.setPatchData(item.first, item.second); }
+}
 void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch,
                                                                          const double time_now, const double time_dt,
                                                                          bool at_syncronization) {

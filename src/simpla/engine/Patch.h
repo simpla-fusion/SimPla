@@ -30,6 +30,8 @@ class Patch {
     void SetBlock(std::shared_ptr<MeshBlock> const &);
     std::shared_ptr<MeshBlock> GetBlock() const;
 
+    std::map<id_type, std::shared_ptr<data::DataBlock>> &GetData();
+
     int Push(id_type const &id, std::shared_ptr<data::DataBlock> const &);
     std::shared_ptr<data::DataBlock> Pop(id_type const &id) const;
 

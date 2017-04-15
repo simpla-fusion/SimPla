@@ -19,6 +19,8 @@ id_type Patch::GetBlockId() const { return m_pimpl_->m_mesh_ != nullptr ? m_pimp
 void Patch::SetBlock(std::shared_ptr<MeshBlock> const &m) { m_pimpl_->m_mesh_ = m; }
 std::shared_ptr<MeshBlock> Patch::GetBlock() const { return m_pimpl_->m_mesh_; }
 
+std::map<id_type, std::shared_ptr<data::DataBlock>> &Patch::GetData() { return m_pimpl_->m_data_; };
+
 int Patch::Push(id_type const &id, std::shared_ptr<data::DataBlock> const &d) {
     auto res = m_pimpl_->m_data_.emplace(id, d);
     if (res.first->second == nullptr) { res.first->second = d; }
