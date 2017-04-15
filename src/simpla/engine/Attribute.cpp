@@ -40,6 +40,7 @@ struct Attribute::pimpl_s {
 Attribute::Attribute(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {
     Update();
 }
+
 Attribute::Attribute(AttributeGroup *b, std::shared_ptr<data::DataTable> const &t)
     : m_pimpl_(new pimpl_s), concept::Configurable(t) {
     Register(b);

@@ -24,7 +24,7 @@ class Chart;
  *   - \f$p\f$ is the projection
  *
  */
-class Mesh : public data::Serializable, public data::EnableCreateFromDataTable<Mesh> {
+class Mesh : public data::Serializable, public data::EnableCreateFromDataTable<Mesh>, public AttributeGroup {
     SP_OBJECT_BASE(Mesh);
 
    public:
@@ -32,7 +32,7 @@ class Mesh : public data::Serializable, public data::EnableCreateFromDataTable<M
     Mesh(Mesh const &);
     virtual ~Mesh();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-//    virtual Mesh *Clone() const = 0;
+    //    virtual Mesh *Clone() const = 0;
 
     Range<mesh::MeshEntityId> range(int iform) const { return Range<mesh::MeshEntityId>(); };
 

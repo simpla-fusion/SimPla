@@ -18,7 +18,7 @@ class AttributeGroup;
 /**
 * @brief
 */
-class Worker : public data::Serializable, public data::EnableCreateFromDataTable<Worker>, public AttributeGroup {
+class Worker : public data::Serializable, public data::EnableCreateFromDataTable<Worker> {
     SP_OBJECT_BASE(engine::Worker)
    public:
     Worker();

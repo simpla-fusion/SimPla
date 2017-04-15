@@ -27,7 +27,7 @@ class EMFluid : public engine::Worker {
     typedef engine::MeshView<TChart> mesh_type;
     typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
 
-    mesh_type  m_mesh_;
+    mesh_type m_mesh_;
 
     template <typename... Args>
     explicit EMFluid(Args&&... args) : engine::Worker(std::forward<Args>(args)...){};
@@ -57,19 +57,19 @@ class EMFluid : public engine::Worker {
     typedef field_type<VERTEX> TRho;
     typedef field_type<VERTEX, 3> TJv;
 
-    field_type<VERTEX> rho0{this};
+    field_type<VERTEX> rho0{m_mesh_};
 
-    field_type<EDGE> E0{this};
-    field_type<FACE> B0{this};
-    field_type<VERTEX, 3> B0v{this};
-    field_type<VERTEX> BB{this};
-    field_type<VERTEX, 3> Ev{this};
-    field_type<VERTEX, 3> Bv{this};
-    field_type<VERTEX, 3> dE{this};
+    field_type<EDGE> E0{m_mesh_};
+    field_type<FACE> B0{m_mesh_};
+    field_type<VERTEX, 3> B0v{m_mesh_};
+    field_type<VERTEX> BB{m_mesh_};
+    field_type<VERTEX, 3> Ev{m_mesh_};
+    field_type<VERTEX, 3> Bv{m_mesh_};
+    field_type<VERTEX, 3> dE{m_mesh_};
 
-    field_type<FACE> B{this, "name"_ = "B", "SHARED"_};
-    field_type<EDGE> E{this, "name"_ = "E", "SHARED"_};
-    field_type<EDGE> J1{this, "name"_ = "J1"};
+    field_type<FACE> B{m_mesh_, "name"_ = "B", "SHARED"_};
+    field_type<EDGE> E{m_mesh_, "name"_ = "E", "SHARED"_};
+    field_type<EDGE> J1{m_mesh_, "name"_ = "J1"};
 
     struct fluid_s {
         Real mass;
@@ -113,8 +113,8 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
     auto sp = std::make_shared<fluid_s>();
     sp->mass = mass;
     sp->charge = charge;
-    sp->rho = std::make_shared<TRho>(this, name + "_rho");
-    sp->J = std::make_shared<TJv>(this, name + "_J");
+    sp->rho = std::make_shared<TRho>(m_mesh_, name + "_rho");
+    sp->J = std::make_shared<TJv>(m_mesh_, name + "_J");
     m_fluid_sp_.emplace(name, sp);
     return sp;
 }
@@ -151,7 +151,7 @@ void EMFluid<TM>::Finalize() {
 template <typename TM>
 void EMFluid<TM>::Advance(Real data_time, Real dt) {
     TIME_STAMP;
-    return;
+
 
     DEFINE_PHYSICAL_CONST
     B -= curl(E) * (dt * 0.5);
@@ -159,12 +159,12 @@ void EMFluid<TM>::Advance(Real data_time, Real dt) {
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
     SetPhysicalBoundaryConditionE(data_time);
     if (m_fluid_sp_.size() > 0) {
-        field_type<VERTEX, 3> Q{this};
-        field_type<VERTEX, 3> K{this};
+        field_type<VERTEX, 3> Q{m_mesh_};
+        field_type<VERTEX, 3> K{m_mesh_};
 
-        field_type<VERTEX> a{this};
-        field_type<VERTEX> b{this};
-        field_type<VERTEX> c{this};
+        field_type<VERTEX> a{m_mesh_};
+        field_type<VERTEX> b{m_mesh_};
+        field_type<VERTEX> c{m_mesh_};
 
         a.Clear();
         b.Clear();

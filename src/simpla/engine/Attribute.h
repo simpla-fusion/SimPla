@@ -102,6 +102,13 @@ struct Attribute : public SPObject, public concept::Configurable, public data::S
     template <typename U, typename... Args>
     explicit Attribute(AttributeGroup *b, U const &first, Args &&... args)
         : Attribute(b, std::make_shared<data::DataTable>(first, std::forward<Args>(args)...)){};
+
+    Attribute(AttributeGroup &b) : Attribute(&b){};
+
+    template <typename U, typename... Args>
+    Attribute(AttributeGroup &b, U const &first, Args &&... args)
+        : Attribute(&b, std::make_shared<data::DataTable>(first, std::forward<Args>(args)...)){};
+
     Attribute(Attribute const &other) = delete;
     Attribute(Attribute &&other) = delete;
     virtual ~Attribute();

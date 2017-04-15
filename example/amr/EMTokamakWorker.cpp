@@ -31,7 +31,7 @@ class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
     virtual void SetPhysicalBoundaryConditionE(Real time);
     virtual void SetPhysicalBoundaryConditionB(Real time);
 
-    field_type<VERTEX> psi{this, "name"_ = "psi"};
+    field_type<VERTEX> psi{base_type::m_mesh_, "name"_ = "psi"};
     std::function<Vec3(point_type const &, Real)> J_src_fun;
     std::function<Vec3(point_type const &, Real)> E_src_fun;
 };

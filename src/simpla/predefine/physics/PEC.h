@@ -26,7 +26,7 @@ class PEC : public engine::Worker {
 
     typedef engine::MeshView<TChart> mesh_type;
     typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
-
+    mesh_type m_mesh_;
     template <int IFORM, int DOF = 1>
     using field_type = Field<mesh_type, scalar_type, IFORM, DOF>;
 
@@ -43,8 +43,8 @@ class PEC : public engine::Worker {
 
     void Initialize();
     void Run(Real time, Real dt);
-    field_type<EDGE> E{this, "name"_ = "E"};
-    field_type<FACE> B{this, "name"_ = "B"};
+    field_type<EDGE> E{&m_mesh_, "name"_ = "E"};
+    field_type<FACE> B{&m_mesh_, "name"_ = "B"};
 
    private:
 };

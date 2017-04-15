@@ -23,7 +23,6 @@ namespace mesh {
 struct CylindricalGeometry : public engine::Chart {
     SP_OBJECT_HEAD(CylindricalGeometry, engine::Chart)
 };
-
 }
 namespace engine {
 using namespace simpla::data;
@@ -32,7 +31,7 @@ using namespace simpla::data;
  * @brief Uniform structured get_mesh
  */
 template <>
-struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh, public engine::AttributeGroup {
+struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
    public:
     SP_OBJECT_HEAD(MeshView<mesh::CylindricalGeometry>, engine::Mesh)
     typedef mesh::MeshEntityId entity_id;
