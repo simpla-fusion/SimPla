@@ -109,11 +109,11 @@ int main{
 //
 //	std::tie(dest,std::ignore)=model.coordinates_global_to_local(x);
 //
-//	auto range=model.SelectByNGP( make_domain<TestFixture::GetIFORM>(model), x);
+//	auto GetRange=model.SelectByNGP( make_domain<TestFixture::GetIFORM>(model), x);
 //
 //	size_t size =0;
 //
-//	for(auto s :range)
+//	for(auto s :GetRange)
 //	{
 //		EXPECT_EQ( manifold_type::get_cell_index(s),manifold_type::get_cell_index(dest));
 //		++size;

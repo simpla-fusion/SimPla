@@ -38,16 +38,15 @@ class Domain : public SPObject, public data::Serializable {
     std::shared_ptr<data::DataTable> Serialize() const;
     void Deserialize(std::shared_ptr<data::DataTable>);
 
-    void SetChart(std::string const &w);
-    void SetChart(std::shared_ptr<data::DataTable> const &w);
-    void SetChart(std::shared_ptr<Chart> const &);
-    std::shared_ptr<Chart> const &GetChart() const;
+//    void SetChart(std::string const &w);
+//    void SetChart(std::shared_ptr<data::DataTable> const &w);
+    void SetChart(std::shared_ptr<Chart>);
+    std::shared_ptr<Chart> GetChart() const;
 
-    void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &geo_object);
-    void SetGeoObject(std::shared_ptr<data::DataTable> const &w);
-    std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;
+    void SetGeoObject(std::shared_ptr<geometry::GeoObject> geo_object);
+    std::shared_ptr<geometry::GeoObject> GetGeoObject() const;
 
-    void SetWorker(std::shared_ptr<Worker> const &);
+    void SetWorker(std::shared_ptr<Worker>);
     template <typename T>
     void SetWorker(T const &t) {
         return SetWorker(CreateWorker(t));
@@ -57,9 +56,9 @@ class Domain : public SPObject, public data::Serializable {
     std::shared_ptr<Worker> CreateWorker(std::string const &w) const;
     std::shared_ptr<Worker> CreateWorker(std::shared_ptr<data::DataTable> w) const;
 
-    void AddBoundaryCondition(std::shared_ptr<Worker> const &, std::shared_ptr<geometry::GeoObject> const &g = nullptr);
+    void AddBoundaryCondition(std::shared_ptr<Worker>, std::shared_ptr<geometry::GeoObject> g = nullptr);
     template <typename T>
-    void AddBoundaryCondition(T const &t, std::shared_ptr<geometry::GeoObject> const &g = nullptr) {
+    void AddBoundaryCondition(T const &t, std::shared_ptr<geometry::GeoObject> g = nullptr) {
         AddBoundaryCondition(CreateWorker(t), g);
     };
 

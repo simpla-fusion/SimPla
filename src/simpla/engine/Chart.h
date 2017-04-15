@@ -22,9 +22,7 @@ class Chart : public data::Serializable, public data::EnableCreateFromDataTable<
     Chart();
     virtual ~Chart();
     virtual std::shared_ptr<data::DataTable> Serialize() const;
-    virtual void Deserialize(std::shared_ptr<data::DataTable> const &d);
-
-
+    virtual void Deserialize(std::shared_ptr<data::DataTable>);
 
     point_type const &GetOrigin() const;
     point_type const &GetDx() const;

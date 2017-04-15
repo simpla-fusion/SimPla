@@ -22,27 +22,26 @@ class Worker : public data::Serializable, public data::EnableCreateFromDataTable
     SP_OBJECT_BASE(engine::Worker)
    public:
     Worker();
-    Worker(Worker const &);
+    Worker(Worker const &) = delete;
     virtual ~Worker();
-    virtual void swap(Worker &);
-    virtual Worker *Clone() const;
+
+    //    virtual Worker *Clone() const;
+
+    virtual std::shared_ptr<data::DataTable> Serialize() const;
+    virtual void Deserialize(std::shared_ptr<data::DataTable>);
 
     virtual void Register(AttributeGroup *);
     virtual void Deregister(AttributeGroup *);
 
-    virtual void Push(Patch *p);
+    virtual void Push(Patch *);
     virtual void Pop(Patch *);
 
     virtual void Initialize(Real time_now = 0);
     virtual void Advance(Real time = 0, Real dt = 0);
     virtual void Finalize();
 
-    virtual Mesh *GetMesh();
-    virtual Mesh const *GetMesh() const;
-
-   private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
+    virtual Mesh *GetMesh() = 0;
+    virtual Mesh const *GetMesh() const = 0;
 };
 }
 }

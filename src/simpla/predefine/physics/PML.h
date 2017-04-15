@@ -10,6 +10,7 @@
 #include <simpla/engine/all.h>
 #include <simpla/physics/PhysicalConstants.h>
 #include <simpla/toolbox/Log.h>
+
 namespace simpla {
 using namespace engine;
 
@@ -28,8 +29,7 @@ class PML : public engine::Worker {
     template <int IFORM, int DOF = 1>
     using field_type = Field<mesh_type, scalar_type, IFORM, DOF>;
 
-    template <typename... Args>
-    explicit PML(Args&&... args) : engine::Task(std::forward<Args>(args)...){};
+    explicit PML(){};
     virtual ~PML(){};
 
     mesh_type m_mesh_;
@@ -98,7 +98,7 @@ void PML<TM>::Initialize() {
     //    std::tie(c_xmin, c_xmax) = center_box;
     //    auto dims = GetMesh()->dimensions();
     //
-    //    GetMesh()->range(VERTEX, mesh::SP_ES_ALL).foreach ([&](id_type const &s) {
+    //    GetMesh()->GetRange(VERTEX, mesh::SP_ES_ALL).foreach ([&](id_type const &s) {
     //        point_type x = m->point(s);
     //
     //#define DEF(_N_)                                                                            \

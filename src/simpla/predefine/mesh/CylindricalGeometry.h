@@ -45,9 +45,10 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
     MeshView() : engine::Mesh() {}
-    MeshView(this_type const &other) : engine::Mesh() {}
+    MeshView(this_type const &other) = delete;
     virtual ~MeshView() {}
-    this_type *Clone() const { return new this_type(*this); }
+
+    //    this_type *Clone() const { return new this_type(*this); }
     virtual void Register(engine::AttributeGroup *other) { engine::AttributeGroup::Register(other); }
 
    private:

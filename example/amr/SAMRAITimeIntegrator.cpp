@@ -587,10 +587,12 @@ void SAMRAIHyperbolicPatchStrategyAdapter::computeFluxesOnPatch(SAMRAI::hier::Pa
  *************************************************************************
  */
 
-void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, const double time,
-                                                                         const double dt, bool at_syncronization) {
+void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch,
+                                                                         const double time_now, const double time_dt,
+                                                                         bool at_syncronization) {
     // FIXME: Dispatch(patch);
     //    this->SetPhysicalBoundaryConditions(time);
+    m_ctx_->GetDomain("Center")->Update(nullptr, time_now, time_dt);
 }
 
 /**************************************************************************
@@ -711,14 +713,11 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
 };
 bool SAMRAITimeIntegrator::is_register =
     engine::Schedule::RegisterCreator<SAMRAITimeIntegrator>("SAMRAI", "SAMRAI Time Integrator");
-
 SAMRAITimeIntegrator::SAMRAITimeIntegrator() : engine::TimeIntegrator(){};
-
 SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
     SAMRAI::tbox::SAMRAIManager::shutdown();
     SAMRAI::tbox::SAMRAIManager::finalize();
 }
-
 void SAMRAITimeIntegrator::Initialize() {
     engine::TimeIntegrator::Initialize();
     /** Setup SAMRAI::tbox::MPI.      */
@@ -730,13 +729,10 @@ void SAMRAITimeIntegrator::Initialize() {
     //    data::DataTable(std::make_shared<DataBackendSAMRAI>()).swap(*db());
     //    const SAMRAI::tbox::SAMRAI_MPI & mpi(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 }
-
 void SAMRAITimeIntegrator::Synchronize(int from_level, int to_level) {
     engine::TimeIntegrator::Synchronize(from_level, to_level);
 }
-
 std::shared_ptr<data::DataTable> SAMRAITimeIntegrator::Serialize() const { return engine::TimeIntegrator::Serialize(); }
-
 void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> cfg) {
     engine::TimeIntegrator::Deserialize(cfg);
 }
@@ -811,7 +807,7 @@ void SAMRAITimeIntegrator::Update() {
     auto ctx = GetContext();
     auto const &atlas = ctx->GetAtlas();
     auto bound_box = ctx->GetModel().GetBoundBox();
-    ndims = ctx->GetModel().GetNDims();
+    ndims = static_cast<unsigned int>(ctx->GetModel().GetNDims());
     bool use_refined_timestepping = true;  // m_samrai_db_->GetValue<bool>("use_refined_timestepping", true);
 
     SAMRAI::tbox::Dimension dim(static_cast<unsigned short>(ndims));
@@ -959,7 +955,9 @@ Real SAMRAITimeIntegrator::Advance(Real dt) {
     Real loop_time = GetTime();
     Real loop_time_end = std::min(loop_time + dt, GetTimeEnd());
     Real loop_dt = dt;
-    while (loop_time < loop_time_end && loop_dt > 0 && m_time_refinement_integrator_->stepsRemaining() > 0) {
+    while ((loop_time < loop_time_end) && (loop_dt > 0)
+           //&& m_time_refinement_integrator_->stepsRemaining() > 0
+           ) {
         Real dt_new = m_time_refinement_integrator_->advanceHierarchy(loop_dt, false);
         loop_dt = std::min(dt_new, loop_time_end - loop_time);
         loop_time += loop_dt;
@@ -973,7 +971,6 @@ void SAMRAITimeIntegrator::CheckPoint() {
                                          m_time_refinement_integrator_->getIntegratorTime());
     }
 }
-
 bool SAMRAITimeIntegrator::Done() const {
     // m_time_refinement_integrator_ != nullptr ? !m_time_refinement_integrator_->stepsRemaining():;
     return engine::TimeIntegrator::Done();

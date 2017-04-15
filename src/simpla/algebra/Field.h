@@ -120,7 +120,7 @@ class FieldView : public engine::Attribute {
         return *this;
     }
 
-    void PushData(std::shared_ptr<data::DataBlock> const& d) {
+    void PushData(shared_ptr <data::DataBlock> d) {
         //        m_chart_ = dynamic_cast<mesh_type const*>(engine::Attribute::GetMesh());
         //        ASSERT(m_chart_ != nullptr && m_chart_->GetMeshBlock()->GetGUID() == m->GetGUID());
         //        if (d == nullptr) {

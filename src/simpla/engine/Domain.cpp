@@ -45,17 +45,13 @@ void Domain::Deserialize(std::shared_ptr<data::DataTable> t) {
 void Domain::Register(AttributeGroup *attr_grp) { m_pimpl_->m_worker_->Register(attr_grp); }
 void Domain::Deregister(AttributeGroup *attr_grp) { m_pimpl_->m_worker_->Deregister(attr_grp); }
 
-void Domain::SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g) { m_pimpl_->m_geo_obj_ = g; }
-void Domain::SetGeoObject(std::shared_ptr<data::DataTable> const &w) { SetGeoObject(geometry::GeoObject::Create(w)); };
+void Domain::SetGeoObject(std::shared_ptr<geometry::GeoObject> g) { m_pimpl_->m_geo_obj_ = g; }
+std::shared_ptr<geometry::GeoObject> Domain::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
 
-std::shared_ptr<geometry::GeoObject> const &Domain::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
+void Domain::SetChart(std::shared_ptr<Chart> m) { m_pimpl_->m_chart_ = m; };
+std::shared_ptr<Chart> Domain::GetChart() const { return m_pimpl_->m_chart_; }
 
-void Domain::SetChart(std::shared_ptr<Chart> const &m) { m_pimpl_->m_chart_ = m; };
-std::shared_ptr<Chart> const &Domain::GetChart() const { return m_pimpl_->m_chart_; }
-void Domain::SetChart(std::string const &w) { SetChart(Chart::Create(w)); }
-void Domain::SetChart(std::shared_ptr<data::DataTable> const &w) { SetChart(Chart::Create(w)); }
-
-void Domain::SetWorker(std::shared_ptr<Worker> const &w) { m_pimpl_->m_worker_ = w; }
+void Domain::SetWorker(std::shared_ptr<Worker> w) { m_pimpl_->m_worker_ = w; }
 std::shared_ptr<Worker> const &Domain::GetWorker() const { return m_pimpl_->m_worker_; }
 
 std::shared_ptr<Worker> Domain::CreateWorker(std::string const &k) const {
@@ -66,12 +62,15 @@ std::shared_ptr<Worker> Domain::CreateWorker(std::shared_ptr<data::DataTable> w)
     return Worker::Create(w);
 };
 
-void Domain::AddBoundaryCondition(std::shared_ptr<Worker> const &w, std::shared_ptr<geometry::GeoObject> const &g) {
+void Domain::AddBoundaryCondition(std::shared_ptr<Worker> w, std::shared_ptr<geometry::GeoObject> g) {
     m_pimpl_->m_boundary_.emplace(g, w);
 }
 void Domain::Update(Patch *p, Real time_now, Real time_dt) {
+    TIME_STAMP;
     if (p == nullptr) { return; }
+
     box_type mblk_box = m_pimpl_->m_chart_->inv_map(p->GetBlock()->GetBoundBox());
+
     switch (m_pimpl_->m_geo_obj_->CheckOverlap(mblk_box)) {
         case -1:
             m_pimpl_->m_worker_->Push(p);
@@ -92,15 +91,6 @@ void Domain::Update(Patch *p, Real time_now, Real time_dt) {
             // DO NOTHING
             break;
     };
-    //    auto m = p.GetMesh();
-    //    if (m == nullptr) {
-    //        m = m_pimpl_->m_chart_->CreateView(p.GetBlock());
-    //        m->SetGeoObject(m_pimpl_->m_geo_obj_);
-    //        m->Initialize();
-    //    }
-    //    m_pimpl_->m_worker_->SetMesh(m);
-    //    m_pimpl_->m_worker_->Push(std::move(p));
-    //    return std::move(m_pimpl_->m_worker_[m_pimpl_->m_geo_obj_->GetGUID()]->Pop());
 }
 
 // Domain *Domain::Clone() const { return new Domain(*this); }

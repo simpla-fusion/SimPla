@@ -70,7 +70,7 @@ void UseCaseEMFluid::Deserialize(std::shared_ptr<data::DataTable> cfg) {
 //        sp->J->Clear();
 //        if (std::get<1>(item).has("Density")) {
 //            sp->rho.apply_function_with_define_domain(
-//                _impl::_assign(), center_domain->mesh()->range(VERTEX),
+//                _impl::_assign(), center_domain->mesh()->GetRange(VERTEX),
 //                std::get<1>(item)["Shape"].as<std::function<Real(point_type const &)>>(),
 //                std::get<1>(item)["Density"].as<std::function<Real(point_type const &)>>());
 //        }
@@ -97,13 +97,13 @@ void UseCaseEMFluid::Deserialize(std::shared_ptr<data::DataTable> cfg) {
 //    }
 //
 //    if (options["Constraints"]["J"]) {
-//        center_domain->J_src_range = center_mesh->range(mesh::EDGE,
+//        center_domain->J_src_range = center_mesh->GetRange(mesh::EDGE,
 //        options["Constraints"]["J"]["Box"].as<box_type>());
 //        options["Constraints"]["J"]["Value"].as(&center_domain->J_src_fun);
 //    }
 //
 //    if (options["Constraints"]["E"]) {
-//        center_domain->E_src_range = center_mesh->range(mesh::EDGE,
+//        center_domain->E_src_range = center_mesh->GetRange(mesh::EDGE,
 //        options["Constraints"]["E"]["Box"].as<box_type>());
 //        options["Constraints"]["E"]["Value"].as(&center_domain->E_src_fun);
 //    }

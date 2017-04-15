@@ -29,19 +29,19 @@ class EMFluid : public engine::Worker {
 
     mesh_type m_mesh_;
 
-    template <typename... Args>
-    explicit EMFluid(Args&&... args) : engine::Worker(std::forward<Args>(args)...){};
+    EMFluid(){};
     ~EMFluid() {}
 
-    virtual std::shared_ptr<data::DataTable> Serialize() const {
+    std::shared_ptr<data::DataTable> Serialize() const {
         auto res = std::make_shared<data::DataTable>();
-        res->SetValue<std::string>("Type", "EMFluid");
+        res->SetValue<std::string>("Type", "EMFluid<" + TChart::ClassName() + ">");
         return res;
     };
+
+    virtual void Deserialize(shared_ptr<DataTable> t) { UNIMPLEMENTED; }
+
     Mesh* GetMesh() { return &m_mesh_; }
     Mesh const* GetMesh() const { return &m_mesh_; }
-
-    virtual void Deserialize(std::shared_ptr<data::DataTable> const& t) { UNIMPLEMENTED; }
 
     virtual void Advance(Real data_time, Real dt = 0);
     virtual void Initialize(Real time_now = 0);
@@ -70,8 +70,8 @@ class EMFluid : public engine::Worker {
     field_type<VERTEX, 3> Bv{m_mesh_};
     field_type<VERTEX, 3> dE{m_mesh_};
 
-    field_type<FACE> B{m_mesh_, "name"_ = "B", "SHARED"_};
-    field_type<EDGE> E{m_mesh_, "name"_ = "E", "SHARED"_};
+    field_type<FACE> B{m_mesh_, "name"_ = "B"};
+    field_type<EDGE> E{m_mesh_, "name"_ = "E"};
     field_type<EDGE> J1{m_mesh_, "name"_ = "J1"};
 
     struct fluid_s {

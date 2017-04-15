@@ -26,7 +26,12 @@ void AttributeGroup::Register(AttributeGroup *other) {
 void AttributeGroup::Deregister(AttributeGroup *other) {
     for (Attribute *attr : m_pimpl_->m_attributes_) { other->Detach(attr); }
 };
-
+void AttributeGroup::Push(Patch *p) {
+    for (auto *item : m_pimpl_->m_attributes_) { item->PushData(p->Pop(item->GetGUID())); }
+}
+void AttributeGroup::Pop(Patch *p) {
+    for (auto *item : m_pimpl_->m_attributes_) { p->Push(item->GetGUID(), item->PopData()); }
+}
 void AttributeGroup::Attach(Attribute *p) { m_pimpl_->m_attributes_.emplace(p); }
 void AttributeGroup::Detach(Attribute *p) { m_pimpl_->m_attributes_.erase(p); }
 
@@ -77,7 +82,7 @@ Mesh const *Attribute::GetMesh() const { return m_pimpl_->m_mesh_; }
 
 bool Attribute::isNull() const { return false; }
 bool Attribute::Update() {
-    SetName(db()->GetValue<std::string>("name", "_" + std::to_string(GetGUID())));
+    SetName(db()->GetValue<std::string>("name", ""));
     return SPObject::Update();
 };
 

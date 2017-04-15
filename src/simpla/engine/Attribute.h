@@ -60,8 +60,8 @@ class AttributeGroup {
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
 
-    //    virtual void Push(const std::shared_ptr<Patch> &);
-    //    virtual std::shared_ptr<Patch> Pop();
+    virtual void Push(Patch *);
+    virtual void Pop(Patch *);
 
     std::set<Attribute *> const &GetAll() const;
 
@@ -112,11 +112,15 @@ struct Attribute : public SPObject, public concept::Configurable, public data::S
     Attribute(Attribute const &other) = delete;
     Attribute(Attribute &&other) = delete;
     virtual ~Attribute();
+
     bool Update();
+
     void Register(AttributeGroup *);
     void Deregister(AttributeGroup *);
+
     //    virtual Attribute *Clone() const = 0;
     //    virtual std::shared_ptr<Attribute> GetDescription() const = 0;
+
     virtual int GetIFORM() const = 0;
     virtual int GetDOF() const = 0;
     virtual std::type_info const &value_type_info() const = 0;  //!< value type
@@ -124,7 +128,7 @@ struct Attribute : public SPObject, public concept::Configurable, public data::S
     void SetMesh(Mesh const *);
     Mesh const *GetMesh() const;
 
-    virtual void PushData(std::shared_ptr<data::DataBlock> const &){};
+    virtual void PushData(std::shared_ptr<data::DataBlock>){};
     virtual std::shared_ptr<data::DataBlock> PopData() { return nullptr; }
 
     virtual bool isNull() const;
