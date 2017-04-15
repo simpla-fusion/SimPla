@@ -33,13 +33,20 @@ void Context::Deserialize(std::shared_ptr<DataTable> cfg) {
     auto domain_t = cfg->GetTable("Domains");
     if (domain_t == nullptr) { return; }
     domain_t->Foreach([&](std::string const &k, std::shared_ptr<DataEntity> t) {
-        if (t->isTable()) SetDomain(k, std::make_shared<Domain>(std::dynamic_pointer_cast<data::DataTable>(t)));
+        auto v = std::make_shared<Domain>();
+        if (t->isTable()) { v->Deserialize(std::dynamic_pointer_cast<data::DataTable>(t)); }
+        SetDomain(k, v);
     });
 }
 void Context::Update() {
     for (auto &item : m_pimpl_->m_domain_) { m_pimpl_->m_model_.AddObject(item.first, item.second->GetGeoObject()); }
     m_pimpl_->m_model_.Update();
 };
+
+void Context::Apply(Patch *p, Real time_now, Real time_dt) {
+    for (auto &item : m_pimpl_->m_domain_) { item.second->Apply(p, time_now, time_dt); }
+}
+
 Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
 Model &Context::GetModel() const { return m_pimpl_->m_model_; }
 

@@ -348,10 +348,11 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
     int d_workload_data_id;
     bool d_use_nonuniform_workload;
     std::map<std::string, boost::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
-    //    boost::shared_ptr<SAMRAI::pdat::NodeVariable<double>> d_xyz;
-    engine::Context *m_manager_ = nullptr;
     SAMRAI::hier::IntVector d_nghosts;
     SAMRAI::hier::IntVector d_fluxghosts;
+
+    void Push(SAMRAI::hier::Patch &patch, engine::Patch *p);
+    void Pop(SAMRAI::hier::Patch &patch, engine::Patch *p);
 };
 
 SAMRAIHyperbolicPatchStrategyAdapter::SAMRAIHyperbolicPatchStrategyAdapter(
@@ -586,13 +587,25 @@ void SAMRAIHyperbolicPatchStrategyAdapter::computeFluxesOnPatch(SAMRAI::hier::Pa
  *
  *************************************************************************
  */
+void SAMRAIHyperbolicPatchStrategyAdapter::Push(SAMRAI::hier::Patch &patch, engine::Patch *p) {
+    auto mblk = std::make_shared<engine::MeshBlock>(
+        index_box_type{{patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]},
+                       {patch.getBox().upper()[0], patch.getBox().upper()[1], patch.getBox().upper()[2]}},
+        patch.getPatchLevelNumber());
 
+    p->SetBlock(mblk);
+    //    engine::AttributeGroup attr_grp;
+    //    m_ctx_->Register(&attr_grp);
+        for (auto const &item : m_samrai_variables_) { p->Push(id, patch.getPatchData(item.second, m_samrai_ctx_)); }
+}
+void SAMRAIHyperbolicPatchStrategyAdapter::Pop(SAMRAI::hier::Patch &patch, engine::Patch *p) {}
 void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch,
                                                                          const double time_now, const double time_dt,
                                                                          bool at_syncronization) {
-    // FIXME: Dispatch(patch);
-    //    this->SetPhysicalBoundaryConditions(time);
-    m_ctx_->GetDomain("Center")->Update(nullptr, time_now, time_dt);
+    engine::Patch p;
+    Push(patch, &p);
+    m_ctx_->Apply(&p, time_now, time_dt);
+    Pop(patch, &p);
 }
 
 /**************************************************************************

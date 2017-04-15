@@ -22,9 +22,6 @@ struct Domain::pimpl_s {
 };
 
 Domain::Domain() : SPObject(), m_pimpl_(new pimpl_s) {}
-Domain::Domain(std::shared_ptr<data::DataTable> t) : Domain() {
-    if (t != nullptr) { Deserialize(t); }
-};
 
 Domain::~Domain() { Finalize(); }
 
@@ -39,7 +36,8 @@ std::shared_ptr<data::DataTable> Domain::Serialize() const {
 void Domain::Deserialize(std::shared_ptr<data::DataTable> t) {
     m_pimpl_->m_chart_ = Chart::Create(t->GetTable("Chart"));
     m_pimpl_->m_geo_obj_ = geometry::GeoObject::Create(t->GetTable("GeoObject"));
-    m_pimpl_->m_worker_ = Worker::Create(t->GetTable("Worker"));
+    m_pimpl_->m_worker_ =
+        Worker::Create(t->GetValue<std::string>("Worker/Type") + "<" + t->GetValue<std::string>("Chart/Type") + ">");
     // TODO: unfinished
 }
 void Domain::Register(AttributeGroup *attr_grp) { m_pimpl_->m_worker_->Register(attr_grp); }
@@ -52,21 +50,13 @@ void Domain::SetChart(std::shared_ptr<Chart> m) { m_pimpl_->m_chart_ = m; };
 std::shared_ptr<Chart> Domain::GetChart() const { return m_pimpl_->m_chart_; }
 
 void Domain::SetWorker(std::shared_ptr<Worker> w) { m_pimpl_->m_worker_ = w; }
-std::shared_ptr<Worker> const &Domain::GetWorker() const { return m_pimpl_->m_worker_; }
-
-std::shared_ptr<Worker> Domain::CreateWorker(std::string const &k) const {
-    return Worker::Create(k + "<" + m_pimpl_->m_chart_->GetClassName() + ">");
-}
-std::shared_ptr<Worker> Domain::CreateWorker(std::shared_ptr<data::DataTable> w) const {
-    w->SetValue("Type", w->GetValue<std::string>("Type", "null") + "<" + m_pimpl_->m_chart_->GetClassName() + ">");
-    return Worker::Create(w);
-};
+std::shared_ptr<Worker> Domain::GetWorker() const { return m_pimpl_->m_worker_; }
 
 void Domain::AddBoundaryCondition(std::shared_ptr<Worker> w, std::shared_ptr<geometry::GeoObject> g) {
     m_pimpl_->m_boundary_.emplace(g, w);
 }
-void Domain::Update(Patch *p, Real time_now, Real time_dt) {
-    TIME_STAMP;
+void Domain::Apply(Patch *p, Real time_now, Real time_dt) {
+    CHECK(p->GetBlock()->GetBoundBox());
     if (p == nullptr) { return; }
 
     box_type mblk_box = m_pimpl_->m_chart_->inv_map(p->GetBlock()->GetBoundBox());
@@ -205,7 +195,7 @@ void Domain::Update(Patch *p, Real time_now, Real time_dt) {
 //    return os;
 //};
 //
-// void Model::Update(Real data_time, Real dt) {
+// void Model::Apply(Real data_time, Real dt) {
 //    PreProcess();
 //    //
 //    //    index_type const* lower = m_tags_.lower();

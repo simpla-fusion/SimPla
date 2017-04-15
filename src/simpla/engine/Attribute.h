@@ -208,9 +208,9 @@ struct AttributeDesc : public Attribute {
 //        return *this;
 //    };
 //
-//    bool Update() final {
-//        if (!Attribute::Update()) { return false; }
-//        return U::Update();
+//    bool Apply() final {
+//        if (!Attribute::Apply()) { return false; }
+//        return U::Apply();
 //    }
 //};
 //
@@ -277,9 +277,9 @@ struct AttributeDesc : public Attribute {
 //
 //    virtual value_type *data() { return reinterpret_cast<value_type *>(Attribute::GetDataBlock()->raw_data()); }
 //
-//    virtual void Update() {
-//        Attribute::Update();
-//        array_type::Update();
+//    virtual void Apply() {
+//        Attribute::Apply();
+//        array_type::Apply();
 //    }
 //    virtual void Finalize() {
 //        array_type::Finalize();

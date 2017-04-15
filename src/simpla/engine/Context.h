@@ -75,6 +75,8 @@ class Context : public data::Serializable {
     std::shared_ptr<Domain> GetDomain(std::string const &k);
     std::shared_ptr<Domain> GetDomain(std::string const &k) const;
 
+    void Apply(Patch *p, Real time_now, Real time_dt);
+
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
