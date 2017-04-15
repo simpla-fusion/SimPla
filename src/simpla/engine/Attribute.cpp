@@ -37,9 +37,13 @@ struct Attribute::pimpl_s {
     Mesh const *m_mesh_ = nullptr;
     Range<mesh::MeshEntityId> m_range_;
 };
-Attribute::Attribute(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s) {}
-Attribute::Attribute(AttributeGroup *b, std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s) {
+Attribute::Attribute(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {
+    Update();
+}
+Attribute::Attribute(AttributeGroup *b, std::shared_ptr<data::DataTable> const &t)
+    : m_pimpl_(new pimpl_s), concept::Configurable(t) {
     Register(b);
+    Update();
 };
 // Attribute::Attribute(Attribute const &other) : m_pimpl_(new pimpl_s)  {
 //    for (auto *b : other.m_pimpl_->m_bundle_) { Register(b); }
@@ -71,6 +75,10 @@ Mesh const *Attribute::GetMesh() const { return m_pimpl_->m_mesh_; }
 // Range<EntityId> const &Attribute::GetRange() const { return m_pimpl_->m_range_; }
 
 bool Attribute::isNull() const { return false; }
+bool Attribute::Update() {
+    SetName(db()->GetValue<std::string>("name", "_" + std::to_string(GetGUID())));
+    return SPObject::Update();
+};
 
 }  //{ namespace engine
 }  // namespace simpla

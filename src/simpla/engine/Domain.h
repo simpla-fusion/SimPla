@@ -32,6 +32,8 @@ class Domain : public SPObject, public data::Serializable {
     ~Domain();
 
     void Register(AttributeGroup *attr_grp);
+    void Deregister(AttributeGroup *);
+
 
     std::shared_ptr<data::DataTable> Serialize() const;
     void Deserialize(std::shared_ptr<data::DataTable>);

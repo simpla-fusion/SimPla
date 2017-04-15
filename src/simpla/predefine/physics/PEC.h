@@ -17,18 +17,18 @@ using namespace engine;
  *  @ingroup
  *  @brief   PEC
  */
-template <typename TM>
+template <typename TChart>
 class PEC : public engine::Worker {
-    SP_OBJECT_HEAD(PEC<TM>, engine::Worker);
+    SP_OBJECT_HEAD(PEC<TChart>, engine::Worker);
 
    public:
     static const bool is_register;
 
-    typedef TM mesh_type;
+    typedef engine::MeshView<TChart> mesh_type;
     typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
 
     template <int IFORM, int DOF = 1>
-    using field_type = Field<TM, scalar_type, IFORM, DOF>;
+    using field_type = Field<mesh_type, scalar_type, IFORM, DOF>;
 
     template <typename... Args>
     explicit PEC(Args&&... args) : engine::Worker(std::forward<Args>(args)...){};

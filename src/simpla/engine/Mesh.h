@@ -32,8 +32,10 @@ class Mesh : public data::Serializable, public data::EnableCreateFromDataTable<M
     Mesh(Mesh const &);
     virtual ~Mesh();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-    virtual Mesh *Clone() const = 0;
-    Range<mesh::MeshEntityId> range(int iform) const;
+//    virtual Mesh *Clone() const = 0;
+
+    Range<mesh::MeshEntityId> range(int iform) const { return Range<mesh::MeshEntityId>(); };
+
     virtual void Register(AttributeGroup *);
     virtual void Deregister(AttributeGroup *);
     virtual void Push(const std::shared_ptr<Patch> &);
@@ -51,14 +53,6 @@ class Mesh : public data::Serializable, public data::EnableCreateFromDataTable<M
 
     virtual void Initialize();
     virtual void Finalize();
-
-    static bool RegisterCreator(std::string const &k, std::function<Mesh *()> const &);
-    static Mesh *Create(std::shared_ptr<data::DataTable> const &);
-
-    template <typename U>
-    static bool RegisterCreator(std::string const &k) {
-        return RegisterCreator(k, [&]() -> Mesh * { return new U; });
-    }
 
    protected:
     struct pimpl_s;

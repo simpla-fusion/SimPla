@@ -30,11 +30,13 @@ static boost::hash<boost::uuids::uuid> g_obj_hasher;
 static boost::uuids::random_generator g_uuid_generator;
 SPObject::SPObject() : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_id_ = g_obj_hasher(g_uuid_generator());
-    m_pimpl_->m_name_ = std::to_string(m_pimpl_->m_id_);
+    m_pimpl_->m_name_ = "";  // std::to_string(m_pimpl_->m_id_);
 }
 SPObject::~SPObject() { OnDestroy(); }
 
 id_type SPObject::GetGUID() const { return m_pimpl_->m_id_; }
+
+void SPObject::SetName(std::string const& s) { m_pimpl_->m_name_ = s; }
 std::string const& SPObject::GetName() const { return m_pimpl_->m_name_; }
 
 void SPObject::lock() { m_pimpl_->m_mutex_.lock(); }

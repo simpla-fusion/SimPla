@@ -5,6 +5,7 @@
 #include <simpla/design_pattern/SingletonHolder.h>
 #include <simpla/toolbox/Log.h>
 #include <set>
+#include "Attribute.h"
 
 namespace simpla {
 namespace engine {
@@ -17,6 +18,8 @@ struct Chart::pimpl_s {
 
 Chart::Chart() : m_pimpl_(new pimpl_s) {}
 Chart::~Chart() {}
+
+
 point_type const &Chart::GetOrigin() const { return m_pimpl_->m_origin_; }
 point_type const &Chart::GetDx() const { return m_pimpl_->m_dx_; }
 std::shared_ptr<data::DataTable> Chart::Serialize() const {

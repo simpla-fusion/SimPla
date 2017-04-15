@@ -16,23 +16,28 @@
 #include "simpla/mesh/MeshCommon.h"
 
 namespace simpla {
+
 namespace mesh {
+struct CartesianGeometry : public engine::Chart {
+    SP_OBJECT_HEAD(CartesianGeometry, engine::Chart);
+};
+}
+namespace engine {
 
 /**
  * @ingroup mesh
- *
  * @brief Uniform structured get_mesh
  */
-
-struct CartesianGeometry : public engine::Chart {
+template <>
+struct MeshView<mesh::CartesianGeometry> : public engine::Mesh {
    public:
-    SP_OBJECT_HEAD(CartesianGeometry, engine::Chart)
+    SP_OBJECT_HEAD(MeshView<mesh::CartesianGeometry>, engine::Mesh)
 
     static bool is_register;
 
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
-    typedef MeshEntityId entity_id;
+    typedef mesh::MeshEntityId entity_id;
 
     /**
      *
@@ -65,7 +70,7 @@ struct CartesianGeometry : public engine::Chart {
      */
 
    public:
-    CartesianGeometry() : engine::Chart() {}
+    MeshView() : engine::Mesh() {}
     //    CartesianGeometry(Real const *lower, Real const *upper) : CartesianGeometry() {
     //        SetGeoObject(std::make_shared<geometry::Cube>(lower, upper));
     //    }
@@ -73,13 +78,13 @@ struct CartesianGeometry : public engine::Chart {
     //        SetGeoObject(other.GetGeoObject());
     //        UNIMPLEMENTED;
     //    }
-    virtual ~CartesianGeometry() {}
+    virtual ~MeshView() {}
     virtual std::shared_ptr<data::DataTable> Serialize() const {
-        auto p = engine::Chart::Serialize();
+        auto p = engine::Mesh::Serialize();
         p->SetValue<std::string>("Type", "CartesianGeometry");
         return p;
     };
-    virtual void Deserialize(std::shared_ptr<data::DataTable> const &d) { engine::Chart::Deserialize(d); }
+    virtual void Deserialize(std::shared_ptr<data::DataTable> const &d) { engine::Mesh::Deserialize(d); }
 
     //    this_type *Clone() const { return new this_type(*this); }
     void Initialize();
@@ -108,17 +113,19 @@ struct CartesianGeometry : public engine::Chart {
         return point_type{static_cast<Real>(x), static_cast<Real>(y), static_cast<Real>(z)};
     }
 
-    virtual point_type point(MeshEntityId s) const { return point_type(); /*Mesh::point(s); */ }
+    virtual point_type point(mesh::MeshEntityId s) const { return point_type(); /*Mesh::point(s); */ }
 
-    virtual point_type point(MeshEntityId s, point_type const &r) const { return point_type(); /*Mesh::point(s); */ }
+    virtual point_type point(mesh::MeshEntityId s, point_type const &r) const {
+        return point_type(); /*Mesh::point(s); */
+    }
 
-    virtual Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
+    virtual Real volume(mesh::MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
 
-    virtual Real dual_volume(MeshEntityId s) const { return m_dual_volume_[m::node_id(s)]; }
+    virtual Real dual_volume(mesh::MeshEntityId s) const { return m_dual_volume_[m::node_id(s)]; }
 
-    virtual Real inv_volume(MeshEntityId s) const { return m_inv_volume_[m::node_id(s)]; }
+    virtual Real inv_volume(mesh::MeshEntityId s) const { return m_inv_volume_[m::node_id(s)]; }
 
-    virtual Real inv_dual_volume(MeshEntityId s) const { return m_inv_dual_volume_[m::node_id(s)]; }
+    virtual Real inv_dual_volume(mesh::MeshEntityId s) const { return m_inv_dual_volume_[m::node_id(s)]; }
 
     template <typename TV>
     TV const &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> const *a, entity_id const &s) const {
@@ -129,23 +136,21 @@ struct CartesianGeometry : public engine::Chart {
         return a[m::node_id(s)]->at(m::unpack_index(s));
     }
 };  // struct  Mesh
-bool CartesianGeometry::is_register = engine::Chart::RegisterCreator<CartesianGeometry>("CartesianGeometry");
-
-template <>
-struct mesh_traits<CartesianGeometry> {
-    typedef CartesianGeometry type;
-    typedef MeshEntityId entity_id;
-    typedef Real scalar_type;
-
-    template <int IFORM, int DOF>
-    struct Shift {
-        template <typename... Args>
-        Shift(Args &&... args) {}
-        constexpr entity_id operator()(entity_id const &s) const { return s; }
-    };
-};
-
-inline void CartesianGeometry::Initialize() {
+//
+// template <>
+// struct mesh_traits<CartesianGeometry> {
+//    typedef CartesianGeometry type;
+//    typedef MeshEntityId entity_id;
+//    typedef Real scalar_type;
+//
+//    template <int IFORM, int DOF>
+//    struct Shift {
+//        template <typename... Args>
+//        Shift(Args &&... args) {}
+//        constexpr entity_id operator()(entity_id const &s) const { return s; }
+//    };
+//};
+inline void MeshView<mesh::CartesianGeometry>::Initialize() {
     /**
         *\verbatim
         *                ^y

@@ -427,6 +427,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     engine::AttributeGroup attr_grp;
     m_ctx_->Register(&attr_grp);
     for (engine::Attribute *v : attr_grp.GetAll()) {
+        if (v->GetName() == "" || v->GetName()[0] == '_') continue;
         boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, *v);
         m_samrai_variables_[v->GetName()] = var;
 
@@ -930,10 +931,9 @@ void SAMRAITimeIntegrator::Update() {
 
     engine::TimeIntegrator::SetTime(m_time_refinement_integrator_->initializeHierarchy());
 
-    grid_geometry->printClassData(std::cout);
-    gridding_algorithm->printClassData(std::cout);
-    hyp_level_integrator->printClassData(std::cout);
-    m_time_refinement_integrator_->printClassData(std::cout);
+    // grid_geometry->printClassData(std::cout);
+    // hyp_level_integrator->printClassData(std::cout);
+    // m_time_refinement_integrator_->printClassData(std::cout);
 
     //    visit_data_writer = boost::make_shared<SAMRAI::appu::VisItDataWriter>(
     //            dim, db()->GetValue<std::string>("output_writer_name", name() + " VisIt Writer"),
@@ -954,16 +954,17 @@ void SAMRAITimeIntegrator::Finalize() {
 }
 Real SAMRAITimeIntegrator::Advance(Real dt) {
     ASSERT(m_time_refinement_integrator_ != nullptr);
-    CHECK(GetTime());
-    SetTime(m_time_refinement_integrator_->getIntegratorTime());
+
+    // SetTime(m_time_refinement_integrator_->getIntegratorTime());
     Real loop_time = GetTime();
     Real loop_time_end = std::min(loop_time + dt, GetTimeEnd());
     Real loop_dt = dt;
     while (loop_time < loop_time_end && loop_dt > 0 && m_time_refinement_integrator_->stepsRemaining() > 0) {
-        Real dt_new = m_time_refinement_integrator_->advanceHierarchy(dt, false);
-        loop_time += loop_dt;
+        Real dt_new = m_time_refinement_integrator_->advanceHierarchy(loop_dt, false);
         loop_dt = std::min(dt_new, loop_time_end - loop_time);
+        loop_time += loop_dt;
     }
+    SetTime(loop_time_end);
     return loop_time_end;
 }
 void SAMRAITimeIntegrator::CheckPoint() {
@@ -974,8 +975,8 @@ void SAMRAITimeIntegrator::CheckPoint() {
 }
 
 bool SAMRAITimeIntegrator::Done() const {
-    return m_time_refinement_integrator_ != nullptr ? !m_time_refinement_integrator_->stepsRemaining()
-                                                    : engine::TimeIntegrator::Done();
+    // m_time_refinement_integrator_ != nullptr ? !m_time_refinement_integrator_->stepsRemaining():;
+    return engine::TimeIntegrator::Done();
 }
 }  // namespace simpla
 

@@ -85,6 +85,7 @@ class SPObject {
     SPObject &operator=(SPObject const &other) = delete;
     virtual ~SPObject();
     id_type GetGUID() const;
+    void SetName(std::string const &s);
     std::string const &GetName() const;
 
     void lock();

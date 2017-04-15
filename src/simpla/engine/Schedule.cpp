@@ -14,7 +14,7 @@ namespace engine {
 struct Schedule::pimpl_s {
     std::shared_ptr<Context> m_ctx_ = nullptr;
     size_type m_step_ = 0;
-    size_type m_max_step_ = 1;
+    size_type m_max_step_ = 0;
 };
 Schedule::Schedule() : m_pimpl_(new pimpl_s){};
 Schedule::~Schedule() { Finalize(); };

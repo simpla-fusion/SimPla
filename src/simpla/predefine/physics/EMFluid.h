@@ -17,17 +17,17 @@ using namespace algebra;
 using namespace data;
 using namespace engine;
 
-template <typename TM>
+template <typename TChart>
 class EMFluid : public engine::Worker {
    public:
-    SP_OBJECT_HEAD(EMFluid<TM>, engine::Worker)
+    SP_OBJECT_HEAD(EMFluid<TChart>, engine::Worker)
 
     static const bool is_register;
 
-    typedef TM mesh_type;
+    typedef engine::MeshView<TChart> mesh_type;
     typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
 
-    mesh_type* m_mesh_;
+    mesh_type  m_mesh_;
 
     template <typename... Args>
     explicit EMFluid(Args&&... args) : engine::Worker(std::forward<Args>(args)...){};
@@ -49,7 +49,7 @@ class EMFluid : public engine::Worker {
     virtual void SetPhysicalBoundaryConditionB(Real time = 0){};
 
     template <int IFORM, int DOF = 1>
-    using field_type = Field<TM, scalar_type, IFORM, DOF>;
+    using field_type = Field<mesh_type, scalar_type, IFORM, DOF>;
 
     typedef field_type<FACE> TB;
     typedef field_type<EDGE> TE;

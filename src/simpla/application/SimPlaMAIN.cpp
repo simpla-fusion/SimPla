@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
         argc, argv, [&](std::string const &opt, std::string const &value) -> int {
             if (opt == "i" || opt == "input") {
                 conf_file = value;
-            } else if (opt == "app") {
+            } else if (opt == "case") {
                 app_name = value;
             } else if (opt == "prologue") {
                 conf_epilogue = value;

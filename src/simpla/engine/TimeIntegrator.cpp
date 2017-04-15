@@ -19,6 +19,8 @@ std::shared_ptr<data::DataTable> TimeIntegrator::Serialize() const {
     p->SetValue("TimeBegin", GetTime());
     p->SetValue("TimeEnd", GetTimeEnd());
     p->SetValue("TimeStep", GetTimeStep());
+    p->SetValue("MaxStep", GetMaxStep());
+
     return p;
 }
 
@@ -27,6 +29,7 @@ void TimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> p) {
     SetTime(p->GetValue("TimeBegin", 0.0));
     SetTimeEnd(p->GetValue("TimeEnd", 1.0));
     SetTimeStep(p->GetValue("TimeStep", 0.1));
+    SetMaxStep(p->GetValue<size_type>("MaxStep", 0));
 };
 void TimeIntegrator::Synchronize(int from_level, int to_level) { Schedule::Synchronize(from_level, to_level); }
 

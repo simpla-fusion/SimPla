@@ -97,7 +97,6 @@ struct Attribute : public SPObject, public concept::Configurable, public data::S
 
    public:
     Attribute(std::shared_ptr<data::DataTable> const &t = nullptr);
-
     Attribute(AttributeGroup *b, std::shared_ptr<data::DataTable> const &p);
     Attribute(AttributeGroup *b) : Attribute(b, std::shared_ptr<data::DataTable>(nullptr)){};
     template <typename U, typename... Args>
@@ -106,7 +105,7 @@ struct Attribute : public SPObject, public concept::Configurable, public data::S
     Attribute(Attribute const &other) = delete;
     Attribute(Attribute &&other) = delete;
     virtual ~Attribute();
-
+    bool Update();
     void Register(AttributeGroup *);
     void Deregister(AttributeGroup *);
     //    virtual Attribute *Clone() const = 0;

@@ -20,6 +20,7 @@ struct TimeIntegrator : public Schedule {
    public:
     TimeIntegrator(std::string const &k = "");
     ~TimeIntegrator();
+
     virtual std::shared_ptr<data::DataTable> Serialize() const;
     virtual void Deserialize(std::shared_ptr<data::DataTable>);
 

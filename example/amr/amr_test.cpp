@@ -11,12 +11,19 @@
 #include <simpla/model/GEqdsk.h>
 #include <iostream>
 #include "simpla/predefine/mesh/CartesianGeometry.h"
+#include "simpla/predefine/mesh/CylindricalGeometry.h"
 #include "simpla/predefine/physics/EMFluid.h"
 #include "simpla/predefine/physics/PEC.h"
 
 namespace simpla {
-static bool _PRE_REGISTERED =
-    EMFluid<mesh::CartesianGeometry>::is_register && PEC<mesh::CartesianGeometry>::is_register;
+namespace mesh {
+REGISTER_CREATOR(engine::Chart, CartesianGeometry, " Cartesian Geometry")
+REGISTER_CREATOR(engine::Chart, CylindricalGeometry, " Cylindrical Geometry")
+}  // namespace mesh{
+
+static bool _PRE_REGISTERED = EMFluid<mesh::CylindricalGeometry>::is_register &&
+                              EMFluid<mesh::CartesianGeometry>::is_register &&
+                              PEC<mesh::CylindricalGeometry>::is_register && PEC<mesh::CartesianGeometry>::is_register;
 
 struct UseCaseAMR : public application::SpApp {
     UseCaseAMR();
@@ -31,9 +38,9 @@ struct UseCaseAMR : public application::SpApp {
 SP_REGISITER_APP(UseCaseAMR, " AMR Test ");
 
 UseCaseAMR::UseCaseAMR(){};
-UseCaseAMR::~UseCaseAMR() {
-    if (m_schedule_ != nullptr) { m_schedule_->Finalize(); }
-}
+
+UseCaseAMR::~UseCaseAMR() { m_schedule_->Finalize(); }
+
 void UseCaseAMR::Run() { m_schedule_->Run(); };
 
 std::shared_ptr<data::DataTable> UseCaseAMR::Serialize() const {
@@ -50,7 +57,7 @@ void UseCaseAMR::Deserialize(std::shared_ptr<data::DataTable> cfg) {
     if (cfg->GetTable("Schedule") == nullptr) {
         auto domain = m_schedule_->GetContext()->GetDomain("Center");
         domain->SetGeoObject(std::make_shared<geometry::Cube>(box_type{{-0.1, 0.2, 0.0}, {1.2, 1.3, 1.4}}));
-        domain->SetChart("CartesianGeometry");
+        domain->SetChart("CylindricalGeometry");
         domain->SetWorker("EMFluid");
         domain->AddBoundaryCondition("PEC");
         m_schedule_->SetTime(0.0);

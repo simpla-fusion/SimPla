@@ -5,11 +5,9 @@
 #include <simpla/SIMPLA_config.h>
 
 #include <simpla/algebra/all.h>
-#include <simpla/engine/Atlas.h>
-#include <simpla/engine/Task.h>
+#include <simpla/engine/all.h>
 #include <simpla/model/GEqdsk.h>
 #include <simpla/physics/Constants.h>
-//#include <simpla/predefine/mesh/CartesianGeometry.h>
 #include <simpla/predefine/mesh/CylindricalGeometry.h>
 #include <simpla/predefine/physics/EMFluid.h>
 #include <iostream>
@@ -20,9 +18,9 @@ using namespace engine;
 
 class EMTokamakWorker;
 
-class EMTokamakWorker : public EMFluid<engine::MeshView<mesh::CylindricalGeometry>> {
+class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
    public:
-    SP_OBJECT_HEAD(EMTokamakWorker, EMFluid<engine::MeshView<mesh::CylindricalGeometry>>);
+    SP_OBJECT_HEAD(EMTokamakWorker, EMFluid<mesh::CylindricalGeometry>);
     explicit EMTokamakWorker() : base_type() {}
     ~EMTokamakWorker() {}
 
