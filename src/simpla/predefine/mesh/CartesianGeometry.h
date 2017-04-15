@@ -20,6 +20,11 @@ namespace simpla {
 namespace mesh {
 struct CartesianGeometry : public engine::Chart {
     SP_OBJECT_HEAD(CartesianGeometry, engine::Chart);
+    std::shared_ptr<data::DataTable> Serialize() const {
+        auto p = engine::Chart::Serialize();
+        p->SetValue<std::string>("Type", "CartesianGeometry");
+        return p;
+    };
 };
 }
 namespace engine {

@@ -22,6 +22,12 @@ namespace simpla {
 namespace mesh {
 struct CylindricalGeometry : public engine::Chart {
     SP_OBJECT_HEAD(CylindricalGeometry, engine::Chart)
+
+    std::shared_ptr<data::DataTable> Serialize() const {
+        auto p = engine::Chart::Serialize();
+        p->SetValue<std::string>("Type", "CylindricalGeometry");
+        return p;
+    };
 };
 }
 namespace engine {
