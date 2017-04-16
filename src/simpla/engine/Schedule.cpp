@@ -15,6 +15,8 @@ struct Schedule::pimpl_s {
     std::shared_ptr<Context> m_ctx_ = nullptr;
     size_type m_step_ = 0;
     size_type m_max_step_ = 0;
+    size_type m_check_point_interval_ = 1;
+    size_type m_dump_interval_ = 0;
 };
 Schedule::Schedule() : m_pimpl_(new pimpl_s){};
 Schedule::~Schedule() { Finalize(); };
@@ -23,19 +25,29 @@ size_type Schedule::GetNumberOfStep() const { return m_pimpl_->m_step_; }
 void Schedule::SetMaxStep(size_type s) { m_pimpl_->m_max_step_ = s; }
 size_type Schedule::GetMaxStep() const { return m_pimpl_->m_max_step_; }
 
+void Schedule::SetCheckPointInterval(size_type s) { m_pimpl_->m_check_point_interval_ = s; }
+size_type Schedule::GetCheckPointInterval() const { return m_pimpl_->m_check_point_interval_; }
+
+void Schedule::SetDumpInterval(size_type s) { m_pimpl_->m_dump_interval_ = s; }
+size_type Schedule::GetDumpInterval() const { return m_pimpl_->m_dump_interval_; }
+
 void Schedule::NextStep() { TIME_STAMP; }
 bool Schedule::Done() const { return m_pimpl_->m_max_step_ == 0 ? false : m_pimpl_->m_step_ >= m_pimpl_->m_max_step_; }
-void Schedule::CheckPoint() { DO_NOTHING; }
+void Schedule::CheckPoint() const { DO_NOTHING; }
+void Schedule::Dump() const { DO_NOTHING; }
 
 void Schedule::Run() {
     while (!Done()) {
         Synchronize();
         NextStep();
+        if (m_pimpl_->m_check_point_interval_ != 0 && GetNumberOfStep() % m_pimpl_->m_check_point_interval_ == 0) {
+            CheckPoint();
+        };
+        if (m_pimpl_->m_dump_interval_ != 0 && GetNumberOfStep() % m_pimpl_->m_dump_interval_ == 0) { Dump(); };
+
         VERBOSE << " [ STEP:" << std::setw(5) << m_pimpl_->m_step_ << " ] " << std::endl;
         ++m_pimpl_->m_step_;
     }
-    //        if (step % step_of_check_points == 0) {
-    //        data::DataTable(output_file).Set(ctx.db()->GetTable("Patches")); };
 }
 
 std::shared_ptr<data::DataTable> Schedule::Serialize() const {

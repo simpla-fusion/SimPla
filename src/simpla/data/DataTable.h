@@ -73,13 +73,14 @@ class DataTable : public DataEntity {
     /** Interface DataBackend End */
     //******************************************************************************************************************
     bool has(std::string const& uri) const { return Get(uri) != nullptr; }
+
     template <typename U>
     bool Check(std::string const& key, U const& u = true) const {
         auto p = Get(key);
         return p != nullptr && p->isA(typeid(U)) && data_cast<U>(*p) == u;
     }
+    bool Check(std::string const& key) const { return Check(key, true); }
 
-    //    bool Check(std::string const& key) const { return Check(key, true); }
 
     void Link(std::shared_ptr<DataEntity> const& other);
     DataTable& Link(std::string const& uri, DataTable const& other);

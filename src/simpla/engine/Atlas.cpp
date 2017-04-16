@@ -28,8 +28,10 @@ struct Atlas::pimpl_s {
 
     size_tuple m_periodic_dimension_ = {1, 1, 1};
     size_tuple m_refine_ratio_[MAX_NUM_OF_LEVEL] = {{2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}};
+    size_tuple m_smallest_dimensions_{16, 16, 16};
     size_tuple m_largest_dimensions_{64, 64, 64};
-    size_tuple m_smallest_dimensions_{64, 64, 64};
+
+    index_box_type m_index_box_{{0, 0, 0}, {64, 32, 32}};
 
     std::shared_ptr<Chart> m_chart_;
 };
@@ -76,7 +78,13 @@ void Atlas::SetLargestDimensions(size_tuple const &d) { m_pimpl_->m_largest_dime
 size_tuple Atlas::GetLargestDimensions() const { return m_pimpl_->m_largest_dimensions_; };
 void Atlas::SetSmallestDimensions(size_tuple const &d) { m_pimpl_->m_smallest_dimensions_ = d; };
 size_tuple Atlas::GetSmallestDimensions() const { return m_pimpl_->m_smallest_dimensions_; };
-//
+size_tuple Atlas::GetDimensions() const {
+    size_tuple d;
+    d = std::get<1>(m_pimpl_->m_index_box_) - std::get<0>(m_pimpl_->m_index_box_);
+    return d;
+}
+index_box_type Atlas::GetIndexBox() const { return m_pimpl_->m_index_box_; }
+
 // size_type Atlas::size(int level) const { return m_backend_->m_layer_[level].size(); }
 // void Atlas::max_level(int ml) { m_backend_->m_max_level_ = ml; }
 // int Atlas::max_level() const { return m_backend_->m_max_level_; }

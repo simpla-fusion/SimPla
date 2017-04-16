@@ -28,11 +28,18 @@ class Schedule : public data::Serializable, public data::EnableCreateFromDataTab
     virtual void Synchronize(int from_level = 0, int to_level = 0);
     virtual void NextStep();
     virtual bool Done() const;
-    virtual void CheckPoint();
+    virtual void CheckPoint() const;
+    virtual void Dump() const;
 
     size_type GetNumberOfStep() const;
     void SetMaxStep(size_type s);
     size_type GetMaxStep() const;
+
+    void SetCheckPointInterval(size_type s = 0);
+    size_type GetCheckPointInterval() const;
+
+    void SetDumpInterval(size_type s = 0);
+    size_type GetDumpInterval() const;
 
     void Run();
 

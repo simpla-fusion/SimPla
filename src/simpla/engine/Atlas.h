@@ -95,8 +95,12 @@ class Atlas {
 
     void SetLargestDimensions(size_tuple const &d);
     size_tuple GetLargestDimensions() const;
-    size_tuple GetSmallestDimensions() const;
     void SetSmallestDimensions(size_tuple const &d);
+    size_tuple GetSmallestDimensions() const;
+
+    size_tuple GetDimensions() const;
+
+    index_box_type GetIndexBox() const;
 
    private:
     struct pimpl_s;

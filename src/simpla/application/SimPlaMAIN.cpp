@@ -130,7 +130,7 @@ int main(int argc, char **argv) {
 
     VERBOSE << DOUBLELINE << std::endl;
     VERBOSE << "Description : " << application::SpApp::ShowDescription(app_name) << std::endl;
-    VERBOSE << "Application : " << *app->Serialize() << std::endl;
+  //  VERBOSE << "Application : " << *app->Serialize() << std::endl;
     VERBOSE << DOUBLELINE << std::endl;
 
     app->Initialize();

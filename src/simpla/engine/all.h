@@ -9,7 +9,7 @@
 #include "Attribute.h"
 #include "Context.h"
 #include "Domain.h"
-
+#include "Schedule.h"
 #include "Mesh.h"
 #include "Model.h"
 #include "Patch.h"

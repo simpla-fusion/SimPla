@@ -56,7 +56,7 @@ void Domain::AddBoundaryCondition(std::shared_ptr<Worker> w, std::shared_ptr<geo
     m_pimpl_->m_boundary_.emplace(g, w);
 }
 void Domain::Apply(Patch *p, Real time_now, Real time_dt) {
-    CHECK(p->GetBlock()->GetBoundBox());
+//    CHECK(p->GetBlock()->GetBoundBox());
     if (p == nullptr) { return; }
 
     box_type mblk_box = m_pimpl_->m_chart_->inv_map(p->GetBlock()->GetBoundBox());
