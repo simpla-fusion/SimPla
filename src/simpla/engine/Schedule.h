@@ -21,7 +21,7 @@ class Schedule : public data::Serializable, public data::EnableCreateFromDataTab
     Schedule();
     virtual ~Schedule();
     virtual bool isInitialized() const;
-    virtual void Initialize();  //!<make object configurable;
+    virtual void Initialize();  //!< make object configurable;
     virtual void Finalize();    //!< Release all resource, make object unconfigurable
     virtual void Update();      //!< effectuate the configuration
 

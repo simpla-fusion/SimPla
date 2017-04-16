@@ -31,7 +31,7 @@ size_type Schedule::GetCheckPointInterval() const { return m_pimpl_->m_check_poi
 void Schedule::SetDumpInterval(size_type s) { m_pimpl_->m_dump_interval_ = s; }
 size_type Schedule::GetDumpInterval() const { return m_pimpl_->m_dump_interval_; }
 
-void Schedule::NextStep() { TIME_STAMP; }
+void Schedule::NextStep() { ++m_pimpl_->m_step_; }
 bool Schedule::Done() const { return m_pimpl_->m_max_step_ == 0 ? false : m_pimpl_->m_step_ >= m_pimpl_->m_max_step_; }
 void Schedule::CheckPoint() const { DO_NOTHING; }
 void Schedule::Dump() const { DO_NOTHING; }
@@ -40,13 +40,12 @@ void Schedule::Run() {
     while (!Done()) {
         Synchronize();
         NextStep();
-        if (m_pimpl_->m_check_point_interval_ != 0 && GetNumberOfStep() % m_pimpl_->m_check_point_interval_ == 0) {
+        if (m_pimpl_->m_check_point_interval_ > 0 && m_pimpl_->m_step_ % m_pimpl_->m_check_point_interval_ == 0) {
             CheckPoint();
         };
-        if (m_pimpl_->m_dump_interval_ != 0 && GetNumberOfStep() % m_pimpl_->m_dump_interval_ == 0) { Dump(); };
+        if (m_pimpl_->m_dump_interval_ > 0 && m_pimpl_->m_step_ % m_pimpl_->m_dump_interval_ == 0) { Dump(); };
 
         VERBOSE << " [ STEP:" << std::setw(5) << m_pimpl_->m_step_ << " ] " << std::endl;
-        ++m_pimpl_->m_step_;
     }
 }
 

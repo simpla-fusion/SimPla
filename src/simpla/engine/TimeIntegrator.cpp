@@ -33,7 +33,10 @@ void TimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> p) {
 };
 void TimeIntegrator::Synchronize(int from_level, int to_level) { Schedule::Synchronize(from_level, to_level); }
 
-void TimeIntegrator::NextStep() { Advance(m_time_step_); }
+void TimeIntegrator::NextStep() {
+    Advance(m_time_step_);
+    Schedule::NextStep();
+}
 
 Real TimeIntegrator::Advance(Real time_dt) {
     if (std::abs(time_dt) < std::numeric_limits<Real>::min()) { time_dt = m_time_step_; }

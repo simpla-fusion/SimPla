@@ -746,7 +746,6 @@ void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> cfg) {
 }
 void SAMRAITimeIntegrator::Update() {
     engine::TimeIntegrator::Update();
-    TIME_STAMP;
     /** test.3d.input */
     /**
     // Refer to geom::CartesianGridGeometry and its base classes for input
@@ -973,7 +972,7 @@ Real SAMRAITimeIntegrator::Advance(Real dt) {
 }
 void SAMRAITimeIntegrator::CheckPoint() const {
     if (visit_data_writer != nullptr) {
-        VERBOSE << "Check Point at Step " << engine::Schedule::GetNumberOfStep() << std::endl;
+        VERBOSE << "Check Point at Step " << m_time_refinement_integrator_->getIntegratorStep() << std::endl;
         visit_data_writer->writePlotData(patch_hierarchy, m_time_refinement_integrator_->getIntegratorStep(),
                                          m_time_refinement_integrator_->getIntegratorTime());
     }
