@@ -20,7 +20,7 @@ Model::~Model() {}
 void Model::Initialize() { LOGGER << "Model is initialized " << std::endl; }
 void Model::Finalize() {}
 
-void Model::Update() {
+void Model::SetUp() {
     auto it = m_pimpl_->m_g_objs_.begin();
     if (it == m_pimpl_->m_g_objs_.end()) { return; }
     m_pimpl_->m_bound_box_ = it->second->GetBoundBox();

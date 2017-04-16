@@ -144,7 +144,7 @@ class SAMRAITimeIntegrator;
 //                        inner_upper[2] - outer_lower[2], static_cast<index_type>(desc.GetValue<int>("DOF"))};
 //    //    auto res = std::make_shared<data::DataEntityWrapper<simpla::Array<TV, 4>>>();
 //    // p_data->getPointer(), dims, lo, hi
-//    //    res->Initialize();
+//    //    res->InitializeDataOnPatch();
 //    //    return std::dynamic_pointer_cast<data::DataBlock>(res);
 //    return nullptr;
 //};
@@ -532,7 +532,12 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setupLoadBalancer(SAMRAI::algs::Hyper
 
 void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::Patch &patch, const double data_time,
                                                                  const bool initial_time) {
-    if (initial_time) { TIME_STAMP; }
+    if (initial_time) {
+        engine::Patch p;
+        Push(patch, &p);
+        m_ctx_->Initialize();
+        Pop(patch, &p);
+    }
 
     if (d_use_nonuniform_workload) {
         if (!patch.checkAllocated(d_workload_data_id)) { patch.allocatePatchData(d_workload_data_id); }
@@ -588,8 +593,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::Push(SAMRAI::hier::Patch &patch, engi
         patch.getPatchLevelNumber());
 
     p->SetBlock(mblk);
-    //    engine::AttributeGroup attr_grp;
-    //    m_ctx_->Register(&attr_grp);
+    engine::AttributeGroup attr_grp;
+    m_ctx_->Register(&attr_grp);
     //    for (auto const &item : m_samrai_variables_) { p->Push(id, patch.getPatchData(item.second, m_samrai_ctx_)); }
 }
 void SAMRAIHyperbolicPatchStrategyAdapter::Pop(SAMRAI::hier::Patch &patch, engine::Patch *p) {
@@ -600,7 +605,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI:
                                                                          bool at_syncronization) {
     engine::Patch p;
     Push(patch, &p);
-    m_ctx_->Apply(&p, time_now, time_dt);
+    m_ctx_->UpdatePatch(&p, time_now, time_dt);
     Pop(patch, &p);
 }
 
@@ -685,7 +690,7 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
 
     virtual void Initialize();
     virtual void Finalize();
-    virtual void Update();
+    virtual void SetUp();
 
     virtual bool Done() const;
     virtual void CheckPoint() const;
@@ -737,15 +742,13 @@ void SAMRAITimeIntegrator::Initialize() {
     //    data::DataTable(std::make_shared<DataBackendSAMRAI>()).swap(*db());
     //    const SAMRAI::tbox::SAMRAI_MPI & mpi(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 }
-void SAMRAITimeIntegrator::Synchronize(int from_level, int to_level) {
-    engine::TimeIntegrator::Synchronize(from_level, to_level);
-}
+void SAMRAITimeIntegrator::Synchronize(int from_level, int to_level) { engine::TimeIntegrator::Synchronize(); }
 std::shared_ptr<data::DataTable> SAMRAITimeIntegrator::Serialize() const { return engine::TimeIntegrator::Serialize(); }
 void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> cfg) {
     engine::TimeIntegrator::Deserialize(cfg);
 }
-void SAMRAITimeIntegrator::Update() {
-    engine::TimeIntegrator::Update();
+void SAMRAITimeIntegrator::SetUp() {
+    engine::TimeIntegrator::SetUp();
     /** test.3d.input */
     /**
     // Refer to geom::CartesianGridGeometry and its base classes for input
@@ -933,8 +936,8 @@ void SAMRAITimeIntegrator::Update() {
                                                    patch_hierarchy, hyp_level_integrator, gridding_algorithm));
 
     visit_data_writer.reset(new SAMRAI::appu::VisItDataWriter(dim, " VisIt Writer",
-                                                              "SimPlaSavData",  // output_dir_name
-                                                              1                 // visit_number_procs_per_file
+                                                              GetOutputURL(),  // output_dir_name
+                                                              1             // visit_number_procs_per_file
                                                               ));
 
     hyperbolic_patch_strategy->registerVisItDataWriter(visit_data_writer);

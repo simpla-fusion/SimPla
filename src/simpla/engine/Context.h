@@ -67,15 +67,22 @@ class Context : public data::Serializable {
     ~Context();
     virtual std::shared_ptr<DataTable> Serialize() const;
     virtual void Deserialize(std::shared_ptr<DataTable>);
-    void Update();
+
+    void Initialize();  //!< initialize data on current patch
+    void Finalize();    //!< release data on current patch
+
+    void SetUp();
+
+    void UpdatePatch(Patch *p, Real time_now, Real time_dt);
+
     void Register(AttributeGroup *);
-    Atlas &GetAtlas() const;
+
     Model &GetModel() const;
+    Atlas &GetAtlas() const;
+
     void SetDomain(std::string const &k, std::shared_ptr<Domain>);
     std::shared_ptr<Domain> GetDomain(std::string const &k);
     std::shared_ptr<Domain> GetDomain(std::string const &k) const;
-
-    void Apply(Patch *p, Real time_now, Real time_dt);
 
    private:
     struct pimpl_s;

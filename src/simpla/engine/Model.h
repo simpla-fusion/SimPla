@@ -24,7 +24,7 @@ class Model : public data::Serializable {
    public:
     Model();
     ~Model();
-    void Update();
+    void SetUp();
     void Initialize();
     void Finalize();
 

@@ -13,16 +13,16 @@ namespace simpla {
 namespace engine {
 
 struct Context::pimpl_s {
-    std::map<id_type, std::shared_ptr<Patch>> m_patches_;
     std::map<std::string, std::shared_ptr<Worker>> m_workers_;
     std::map<std::string, std::shared_ptr<Attribute>> m_global_attributes_;
     std::map<std::string, std::shared_ptr<Domain>> m_domain_;
-    Atlas m_atlas_;
     Model m_model_;
+    Atlas m_atlas_;
 };
 
 Context::Context() : m_pimpl_(new pimpl_s) {}
 Context::~Context() {}
+Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
 
 std::shared_ptr<data::DataTable> Context::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
@@ -38,16 +38,18 @@ void Context::Deserialize(std::shared_ptr<DataTable> cfg) {
         SetDomain(k, v);
     });
 }
-void Context::Update() {
+
+void Context::Initialize() {}
+void Context::Finalize() {}
+void Context::SetUp() {
     for (auto &item : m_pimpl_->m_domain_) { m_pimpl_->m_model_.AddObject(item.first, item.second->GetGeoObject()); }
-    m_pimpl_->m_model_.Update();
+    m_pimpl_->m_model_.SetUp();
 };
 
-void Context::Apply(Patch *p, Real time_now, Real time_dt) {
-    for (auto &item : m_pimpl_->m_domain_) { item.second->Apply(p, time_now, time_dt); }
+void Context::UpdatePatch(Patch *p, Real time_now, Real time_dt) {
+    for (auto &item : m_pimpl_->m_domain_) { item.second->UpdateDataOnPatch(p, time_now, time_dt); }
 }
 
-Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
 Model &Context::GetModel() const { return m_pimpl_->m_model_; }
 
 void Context::Register(AttributeGroup *attr_grp) {
@@ -98,8 +100,8 @@ std::shared_ptr<Domain> Context::GetDomain(std::string const &k) const {
 // std::shared_ptr<Attribute> const &Context::GetAttribute(std::string const &key) const {
 //    return m_pimpl_->m_global_attributes_.at(key);
 //}
-//    GetModel().Initialize();
-//    GetAtlas().Initialize();
+//    GetModel().InitializeDataOnPatch();
+//    GetAtlas().InitializeDataOnPatch();
 //    auto workers_t = db()->GetTable("Workers");
 //    GetModel().GetMaterial().Foreach([]() {
 //

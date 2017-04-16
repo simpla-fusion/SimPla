@@ -47,7 +47,8 @@ class Domain : public SPObject, public data::Serializable {
 
     void AddBoundaryCondition(std::shared_ptr<Worker>, std::shared_ptr<geometry::GeoObject> g = nullptr);
 
-    void Apply(Patch *, Real time_now = 0, Real time_dt = 0);
+    void InitializeDataOnPatch(Patch *patch, Real time_now = 0);
+    void UpdateDataOnPatch(Patch *, Real time_now = 0, Real time_dt = 0);
 
    private:
     struct pimpl_s;

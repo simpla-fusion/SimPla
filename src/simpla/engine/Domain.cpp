@@ -55,8 +55,9 @@ std::shared_ptr<Worker> Domain::GetWorker() const { return m_pimpl_->m_worker_; 
 void Domain::AddBoundaryCondition(std::shared_ptr<Worker> w, std::shared_ptr<geometry::GeoObject> g) {
     m_pimpl_->m_boundary_.emplace(g, w);
 }
-void Domain::Apply(Patch *p, Real time_now, Real time_dt) {
-//    CHECK(p->GetBlock()->GetBoundBox());
+void Domain::InitializeDataOnPatch(Patch *patch, Real time_now) {}
+void Domain::UpdateDataOnPatch(Patch *p, Real time_now, Real time_dt) {
+    //    CHECK(p->GetBlock()->GetBoundBox());
     if (p == nullptr) { return; }
 
     box_type mblk_box = m_pimpl_->m_chart_->inv_map(p->GetBlock()->GetBoundBox());
@@ -143,7 +144,7 @@ void Domain::Apply(Patch *p, Real time_now, Real time_dt) {
 //
 // std::set<Attribute *> const &Domain::GetAllAttributes() const { return m_pimpl_->m_attributes_; }
 //
-// void Domain::Initialize() {
+// void Domain::InitializeDataOnPatch() {
 //    auto m = m_pimpl_->m_chart_->CreateView(nullptr, m_pimpl_->m_geo_obj_);
 //    m_pimpl_->m_worker_->SetMesh(m);
 //    for (auto *v : m_pimpl_->m_attr_bundle_.GetAll()) { v->SetMesh(m.get()); }
@@ -195,7 +196,7 @@ void Domain::Apply(Patch *p, Real time_now, Real time_dt) {
 //    return os;
 //};
 //
-// void Model::Apply(Real data_time, Real dt) {
+// void Model::UpdateDataOnPatch(Real data_time, Real dt) {
 //    PreProcess();
 //    //
 //    //    index_type const* lower = m_tags_.lower();

@@ -208,9 +208,9 @@ struct AttributeDesc : public Attribute {
 //        return *this;
 //    };
 //
-//    bool Apply() final {
-//        if (!Attribute::Apply()) { return false; }
-//        return U::Apply();
+//    bool UpdateDataOnPatch() final {
+//        if (!Attribute::UpdateDataOnPatch()) { return false; }
+//        return U::UpdateDataOnPatch();
 //    }
 //};
 //
@@ -277,9 +277,9 @@ struct AttributeDesc : public Attribute {
 //
 //    virtual value_type *data() { return reinterpret_cast<value_type *>(Attribute::GetDataBlock()->raw_data()); }
 //
-//    virtual void Apply() {
-//        Attribute::Apply();
-//        array_type::Apply();
+//    virtual void UpdateDataOnPatch() {
+//        Attribute::UpdateDataOnPatch();
+//        array_type::UpdateDataOnPatch();
 //    }
 //    virtual void Finalize() {
 //        array_type::Finalize();

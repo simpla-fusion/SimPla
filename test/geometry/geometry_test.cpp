@@ -33,7 +33,7 @@ int main{
 // class TestModel: public testing::Test
 //{
 // protected:
-//	virtual void Initialize()
+//	virtual void InitializeDataOnPatch()
 //	{
 //
 //		xmin = nTuple<Real, ndims>( { 0.0, 0.0, 0.0 });

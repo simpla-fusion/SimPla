@@ -28,7 +28,7 @@ struct TimeIntegrator : public Schedule {
     virtual bool Done() const { return m_time_now_ >= m_time_end_ || Schedule::Done(); }
 
     virtual Real Advance(Real time_dt = 0.0);
-    virtual void Synchronize(int from_level = 0, int to_level = 0);
+    virtual void Synchronize();
 
     virtual void SetTime(Real t) { m_time_now_ = t; }
     virtual void SetTimeEnd(Real t) { m_time_end_ = t; }

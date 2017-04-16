@@ -54,6 +54,7 @@ std::shared_ptr<data::DataTable> UseCaseAMR::Serialize() const {
 void UseCaseAMR::Deserialize(std::shared_ptr<data::DataTable> cfg) {
     m_schedule_ = std::dynamic_pointer_cast<engine::TimeIntegrator>(engine::Schedule::Create("SAMRAI"));
     m_schedule_->Initialize();
+    m_schedule_->SetOutputURL(cfg->GetValue<std::string>("output", "SimPLASaveData"));
     if (cfg->GetTable("Schedule") == nullptr) {
         auto domain = m_schedule_->GetContext()->GetDomain("Center");
         domain->SetGeoObject(std::make_shared<geometry::Cube>(box_type{{-1, 2, 0.0}, {12, 13, 14}}));
@@ -66,7 +67,7 @@ void UseCaseAMR::Deserialize(std::shared_ptr<data::DataTable> cfg) {
     } else {
         m_schedule_->Deserialize(cfg->GetTable("Schedule"));
     }
-    m_schedule_->Update();
+    m_schedule_->SetUp();
 }
 
 //    ctx->db()->SetValue("Domains", {"Center"_ = {"name"_ = "Center", "Mesh"_ = {"name"_ = "CartesianGeometry"},

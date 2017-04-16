@@ -31,7 +31,7 @@ void TimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> p) {
     SetTimeStep(p->GetValue("TimeStep", 0.1));
     SetMaxStep(p->GetValue<size_type>("MaxStep", 0));
 };
-void TimeIntegrator::Synchronize(int from_level, int to_level) { Schedule::Synchronize(from_level, to_level); }
+void TimeIntegrator::Synchronize() { Schedule::Synchronize(); }
 
 void TimeIntegrator::NextStep() {
     Advance(m_time_step_);
