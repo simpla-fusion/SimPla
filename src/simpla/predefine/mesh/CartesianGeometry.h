@@ -108,10 +108,8 @@ struct MeshView<mesh::CartesianGeometry> : public engine::Mesh {
     template <typename... Args>
     void apply(Args &&...) const {}
 
-    void deploy() {
-        //        engine::Mesh::InitializeDataOnPatch();
-        Initialize();
-    };
+    void SetUp(){};
+    void TearDown() {}
 
     template <typename... Args>
     point_type point(index_type x, index_type y, index_type z) const {

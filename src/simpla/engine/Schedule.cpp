@@ -38,7 +38,7 @@ size_type Schedule::GetDumpInterval() const { return m_pimpl_->m_dump_interval_;
 void Schedule::NextStep() { ++m_pimpl_->m_step_; }
 bool Schedule::Done() const { return m_pimpl_->m_max_step_ == 0 ? false : m_pimpl_->m_step_ >= m_pimpl_->m_max_step_; }
 
-void Schedule::SetOutputURL(std::string const &url) { m_pimpl_->m_output_url_ = url; };
+void Schedule::SetOutputURL(std::string const& url) { m_pimpl_->m_output_url_ = url; };
 std::string const& Schedule::GetOutputURL() const { return m_pimpl_->m_output_url_; }
 
 void Schedule::CheckPoint() const { UNIMPLEMENTED; }
@@ -63,16 +63,28 @@ std::shared_ptr<data::DataTable> Schedule::Serialize() const {
     return res;
 }
 void Schedule::Deserialize(std::shared_ptr<data::DataTable> t) {
-    Initialize();
+    TearDown();
     m_pimpl_->m_ctx_->Deserialize(t->GetTable("Context"));
+    Click();
 }
 
-void Schedule::SetContext(std::shared_ptr<Context> ctx) { m_pimpl_->m_ctx_ = ctx; }
-
+void Schedule::SetContext(std::shared_ptr<Context> ctx) {
+    m_pimpl_->m_ctx_ = ctx;
+    Click();
+}
 std::shared_ptr<Context> Schedule::GetContext() const { return m_pimpl_->m_ctx_; }
-void Schedule::Initialize() { m_pimpl_->m_ctx_ = std::make_shared<Context>(); }
-void Schedule::Finalize() { m_pimpl_->m_ctx_.reset(); }
+
+void Schedule::Initialize() {
+    SPObject::Initialize();
+    m_pimpl_->m_ctx_ = std::make_shared<Context>();
+}
+void Schedule::Finalize() {
+    m_pimpl_->m_ctx_.reset();
+    SPObject::Finalize();
+}
+
 void Schedule::SetUp() {
+    SPObject::SetUp();
     m_pimpl_->m_ctx_->SetUp();
     //    MPI_Barrier(GLOBAL_COMM.comm());
     //    std::shared_ptr<data::DataTable> cfg = nullptr;
@@ -97,6 +109,10 @@ void Schedule::SetUp() {
     //        m_pimpl_->m_ctx_->SetUp();
     //    }
     //    MPI_Barrier(GLOBAL_COMM.comm());
+}
+void Schedule::TearDown() {
+    m_pimpl_->m_ctx_->TearDown();
+    SPObject::TearDown();
 }
 void Schedule::Synchronize() {
     //    auto &atlas = GetContext()->GetAtlas();

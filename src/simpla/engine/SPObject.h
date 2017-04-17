@@ -98,14 +98,16 @@ class SPObject {
     size_type GetTagCount() const;
     size_type GetClickCount() const;
     bool isModified() const;
-    virtual void Initialize();
-    virtual bool Update();
-    virtual void Finalize();
-    virtual void Destroy();
+
+    virtual void Initialize();  //!< invoke once, before everything
+    virtual void SetUp();       //!< invoke once, after everything
+    virtual void TearDown();    //!< repeat invoke,
+    virtual void Finalize();    //!< repeat invoke,
 
     design_pattern::Signal<void()> OnInitialize;
+    design_pattern::Signal<void()> OnSetUp;
+    design_pattern::Signal<void()> OnTearDown;
     design_pattern::Signal<void()> OnFinalize;
-    design_pattern::Signal<void()> OnDestroy;
     design_pattern::Signal<void()> OnChanged;
 
    private:
@@ -140,16 +142,16 @@ class SPObject {
 //    /**
 //     *  @brief Initial setup.
 //     */
-//    virtual void InitializeDataOnPatch();
+//    virtual void SetUpDataOnPatch();
 //
 //    /**
-//     * @brief Initial setup. This function should be invoked _ONLY ONCE_  after InitializeDataOnPatch()
+//     * @brief Initial setup. This function should be invoked _ONLY ONCE_  after SetUpDataOnPatch()
 //     * @startuml
 //     *    title  TryPreProcess()
 //     *    (*) --> if "isPrepared()?" then
 //     *                --> [true] (*)
 //     *            else
-//     *                --> [false] InitializeDataOnPatch()
+//     *                --> [false] SetUpDataOnPatch()
 //     *                --> "state = PREPARED"
 //     *                --> (*)
 //     *           endif

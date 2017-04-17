@@ -43,13 +43,13 @@ struct Attribute::pimpl_s {
     Range<mesh::MeshEntityId> m_range_;
 };
 Attribute::Attribute(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {
-    Update();
+    SetUp();
 }
 
 Attribute::Attribute(AttributeGroup *b, std::shared_ptr<data::DataTable> const &t)
     : m_pimpl_(new pimpl_s), concept::Configurable(t) {
     Register(b);
-    Update();
+    SetUp();
 };
 // Attribute::Attribute(Attribute const &other) : m_pimpl_(new pimpl_s)  {
 //    for (auto *b : other.m_pimpl_->m_bundle_) { Register(b); }
@@ -81,9 +81,9 @@ Mesh const *Attribute::GetMesh() const { return m_pimpl_->m_mesh_; }
 // Range<EntityId> const &Attribute::GetRange() const { return m_pimpl_->m_range_; }
 
 bool Attribute::isNull() const { return false; }
-bool Attribute::Update() {
+void Attribute::SetUp() {
     SetName(db()->GetValue<std::string>("name", ""));
-    return SPObject::Update();
+    SPObject::SetUp();
 };
 
 }  //{ namespace engine

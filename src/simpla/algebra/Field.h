@@ -11,6 +11,7 @@
 #include "Algebra.h"
 #include "nTuple.h"
 #include "simpla/SIMPLA_config.h"
+#include "simpla/algebra/CalculusPolicy.h"
 #include "simpla/concept/Printable.h"
 #include "simpla/data/all.h"
 #include "simpla/engine/Attribute.h"
@@ -62,25 +63,28 @@ class FieldView : public engine::Attribute {
     typedef std::true_type prefer_pass_by_reference;
     typedef std::false_type is_expression;
     typedef std::true_type is_field;
-    typedef typename mesh_type::entity_id entity_id;
+    typedef mesh::MeshEntityId entity_id;
     typedef std::conditional_t<DOF == 1, value_type, nTuple<value_type, DOF>> cell_tuple;
     typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME), cell_tuple, nTuple<cell_tuple, 3>>
         field_value_type;
 
    private:
-    mesh_type const* m_mesh_;
     typedef Array<value_type, NDIMS> sub_array_type;
     static constexpr int num_of_subs = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
     std::shared_ptr<sub_array_type> m_data_[num_of_subs];
+    mesh_type const* m_mesh_;
 
    public:
     explicit FieldView(mesh_type* m, std::shared_ptr<data::DataEntity> const& d = nullptr)
-        : m_mesh_(m), engine::Attribute(m, d) {
-        Update();
-    };
+        : m_mesh_(m), engine::Attribute(m, d){};
+
+    FieldView(mesh_type& m) : m_mesh_(&m), engine::Attribute(&m){};
 
     template <typename... Args>
-    explicit FieldView(Args&&... args) : engine::Attribute(std::forward<Args>(args)...){};
+    FieldView(mesh_type* m, Args&&... args) : m_mesh_(m), engine::Attribute(m, std::forward<Args>(args)...){};
+
+    template <typename... Args>
+    FieldView(mesh_type& m, Args&&... args) : FieldView(&m, std::forward<Args>(args)...){};
 
     FieldView(this_type const& other) = delete;
     FieldView(this_type&& other) = delete;
@@ -95,13 +99,10 @@ class FieldView : public engine::Attribute {
     virtual int GetDOF() const { return DOF; };
     virtual std::type_info const& value_type_info() const { return typeid(value_type); };  //!< value type
 
-    virtual bool Update() {
-        m_mesh_ = dynamic_cast<mesh_type const*>(GetMesh());
-        return false;
-    }
+    virtual void SetUp() {}
     virtual void Initialize() {}
     virtual void Clear() {
-        Update();
+        SetUp();
         for (int i = 0; i < num_of_subs; ++i) {
             if (m_data_[i] != nullptr) { m_data_[i]->Clear(); }
         }
@@ -109,7 +110,6 @@ class FieldView : public engine::Attribute {
     virtual bool empty() const { return m_data_[0] == nullptr; }
 
     this_type& operator=(this_type const& other) {
-        if (m_mesh_ == nullptr) { m_mesh_ = other.m_mesh_; }
         Assign(other);
         for (int i = 0; i < num_of_subs; ++i) { m_data_[i] = other.m_data_[i]; }
         return *this;
@@ -120,7 +120,7 @@ class FieldView : public engine::Attribute {
         return *this;
     }
 
-    void PushData(shared_ptr <data::DataBlock> d) {
+    void PushData(shared_ptr<data::DataBlock> d) {
         //        m_chart_ = dynamic_cast<mesh_type const*>(engine::Attribute::GetMesh());
         //        ASSERT(m_chart_ != nullptr && m_chart_->GetMeshBlock()->GetGUID() == m->GetGUID());
         //        if (d == nullptr) {
@@ -155,38 +155,38 @@ class FieldView : public engine::Attribute {
     sub_array_type const& operator[](unsigned int i) const { return *m_data_[i % num_of_subs]; }
     sub_array_type& operator[](unsigned int i) { return *m_data_[i % num_of_subs]; }
 
-    value_type const& at(entity_id const& s) const { return m_mesh_->GetValue(m_data_, s); }
-    value_type& at(entity_id const& s) { return m_mesh_->GetValue(m_data_, s); }
+    value_type const& at(entity_id const& s) const { return (*m_data_[s.w])(s.x, s.y, s.z); }
+    value_type& at(entity_id const& s) { return (*m_data_[s.w])(s.x, s.y, s.z); }
 
    private:
     template <typename... Others>
-    decltype(auto) m_GetValue_(std::integral_constant<bool, true>, unsigned int n, Others&&... others) {
+    decltype(auto) get_(std::integral_constant<bool, true>, unsigned int n, Others&&... others) {
         return m_data_[n]->at(std::forward<Others>(others)...);
     }
     template <typename... Others>
-    decltype(auto) m_GetValue_(std::integral_constant<bool, true>, unsigned int n, Others&&... others) const {
+    decltype(auto) get_(std::integral_constant<bool, true>, unsigned int n, Others&&... others) const {
         return m_data_[n]->at(std::forward<Others>(others)...);
     }
     template <typename... Others>
-    decltype(auto) m_GetValue_(std::integral_constant<bool, false>, Others&&... others) {
+    decltype(auto) get_(std::integral_constant<bool, false>, Others&&... others) {
         return m_data_[0]->at(std::forward<Others>(others)...);
     }
     template <typename... Others>
-    decltype(auto) m_GetValue_(std::integral_constant<bool, false>, Others&&... others) const {
+    decltype(auto) get_(std::integral_constant<bool, false>, Others&&... others) const {
         return m_data_[0]->at(std::forward<Others>(others)...);
     }
 
    public:
     template <typename... Idx>
     value_type& operator()(index_type i0, Idx&&... idx) {
-        return m_GetValue_(std::integral_constant<bool, (NUMBER_OF_SUB > 1)>(), i0, std::forward<Idx>(idx)...);
+        return get_(std::integral_constant<bool, (NUMBER_OF_SUB > 1)>(), i0, std::forward<Idx>(idx)...);
     }
     template <typename... Idx>
     value_type const& operator()(index_type i0, Idx&&... idx) const {
-        return m_GetValue_(std::integral_constant<bool, (NUMBER_OF_SUB > 1)>(), i0, std::forward<Idx>(idx)...);
+        return get_(std::integral_constant<bool, (NUMBER_OF_SUB > 1)>(), i0, std::forward<Idx>(idx)...);
     }
 
-    typedef calculus::template calculator<TM> calculus_policy;
+    typedef calculus::template calculator<mesh_type> calculus_policy;
 
     template <typename... Args>
     decltype(auto) gather(Args&&... args) const {
@@ -218,13 +218,13 @@ class FieldView : public engine::Attribute {
     }
     template <typename... Args>
     void Foreach(Args&&... args) {
-        Update();
-        Foreach_(m_mesh_->range(), std::forward<Args>(args)...);
+        SetUp();
+        Foreach_(m_mesh_->GetRange(), std::forward<Args>(args)...);
     }
     template <typename Other>
     void Assign(Other const& other) {
-        Update();
-        Foreach_(m_mesh_->range(), tags::_assign(), other);
+        SetUp();
+        Foreach_(m_mesh_->GetRange(), tags::_assign(), other);
     }
     template <typename Other>
     void Assign(Range<entity_id> const& r, Other const& other) {

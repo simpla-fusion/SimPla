@@ -28,9 +28,10 @@ void Worker::Deregister(AttributeGroup *attr_grp) { GetMesh()->Deregister(attr_g
 
 void Worker::Push(Patch *p) { GetMesh()->Push(p); }
 void Worker::Pop(Patch *p) { GetMesh()->Pop(p); }
-
-void Worker::Initialize(Real time_now) {}
-void Worker::Advance(Real time_now, Real dt) { Initialize(time_now); }
+void Worker::Advance(Real time_now, Real dt) {}
+void Worker::SetUp(Real time_now) {}
+void Worker::TearDown() {}
+void Worker::Initialize() {}
 void Worker::Finalize() {}
 
 }  // namespace engine{

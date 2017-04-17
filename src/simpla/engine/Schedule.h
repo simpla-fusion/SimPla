@@ -13,7 +13,7 @@ namespace simpla {
 namespace engine {
 class Context;
 class Atlas;
-class Schedule : public data::Serializable, public data::EnableCreateFromDataTable<Schedule> {
+class Schedule : public SPObject, public data::Serializable, public data::EnableCreateFromDataTable<Schedule> {
     SP_OBJECT_BASE(Schedule);
 
    public:
@@ -23,9 +23,10 @@ class Schedule : public data::Serializable, public data::EnableCreateFromDataTab
     virtual std::shared_ptr<data::DataTable> Serialize() const;
     virtual void Deserialize(std::shared_ptr<data::DataTable>);
 
-    virtual void Initialize();  //!< make object configurable;
-    virtual void Finalize();    //!< Release all resource, make object unconfigurable
-    virtual void SetUp();       //!< effectuate the configuration
+    virtual void Initialize();
+    virtual void Finalize();
+    virtual void SetUp();
+    virtual void TearDown();
 
     virtual void Synchronize();
 
@@ -33,7 +34,9 @@ class Schedule : public data::Serializable, public data::EnableCreateFromDataTab
 
     virtual bool Done() const;
 
-    void SetOutputURL(std::string const &url);
+    void Run();
+
+    void SetOutputURL(std::string const& url);
     std::string const& GetOutputURL() const;
 
     virtual void CheckPoint() const;
@@ -48,8 +51,6 @@ class Schedule : public data::Serializable, public data::EnableCreateFromDataTab
 
     void SetDumpInterval(size_type s = 0);
     size_type GetDumpInterval() const;
-
-    void Run();
 
     void SetContext(std::shared_ptr<Context>);
     std::shared_ptr<Context> GetContext() const;

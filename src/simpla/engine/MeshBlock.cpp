@@ -41,11 +41,11 @@ index_box_type MeshBlock::GetOuterIndexBox(int IFORM, int sub) const {
 }
 index_box_type MeshBlock::GetInnerIndexBox(int IFORM, int sub) const { return GetIndexBox(IFORM, sub); }
 
-box_type MeshBlock::GetBoundBox() const {
-    box_type res;
-    res = GetIndexBox();
-    return std::move(res);
-}
+//box_type MeshBlock::GetBoundBox() const {
+//    box_type res;
+//    res = GetIndexBox();
+//    return std::move(res);
+//}
 
 index_tuple MeshBlock::GetOffset() const { return std::get<0>(m_pimpl_->m_index_box_); }
 

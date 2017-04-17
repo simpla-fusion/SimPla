@@ -194,18 +194,22 @@ struct ArrayView : public concept::Printable {
         }
         std::get<0>(m_outer_index_box_) = std::get<0>(m_inner_index_box_);
         std::get<1>(m_outer_index_box_) = std::get<1>(m_inner_index_box_);
-        Update();
     }
     ArrayView(m_index_box_type const& b, std::shared_ptr<value_type> const& d = nullptr)
-        : m_inner_index_box_(b), m_outer_index_box_(b), m_data_(d) {
-        Update();
-    }
+        : m_inner_index_box_(b), m_outer_index_box_(b), m_data_(d) {}
     ArrayView(m_index_box_type const& b_in, m_index_box_type const& b_out,
               std::shared_ptr<value_type> const& d = nullptr)
-        : m_inner_index_box_(b_in), m_outer_index_box_(b_out), m_data_(d) {
-        Update();
+        : m_inner_index_box_(b_in), m_outer_index_box_(b_out), m_data_(d) {}
+    ArrayView(index_type const* in_low, index_type const* in_up, index_type const* out_low, index_type const* out_up,
+              std::shared_ptr<value_type> const& d = nullptr)
+        : m_data_(d) {
+        for (int i = 0; i < NDIMS; ++i) {
+            std::get<0>(m_inner_index_box_)[i] = in_low[i];
+            std::get<1>(m_inner_index_box_)[i] = in_up[i];
+            std::get<0>(m_outer_index_box_)[i] = out_low[i];
+            std::get<1>(m_outer_index_box_)[i] = out_up[i];
+        }
     }
-
     template <typename... U>
     ArrayView(declare::Expression<U...> const& expr) {
         Foreach(tags::_assign(), expr);
@@ -258,6 +262,12 @@ struct ArrayView : public concept::Printable {
 
     std::shared_ptr<value_type>& GetData() { return m_data_; }
     std::shared_ptr<value_type> const& GetData() const { return m_data_; }
+
+    std::shared_ptr<value_type>& GetPointer() { return m_data_; }
+    std::shared_ptr<value_type> const& GetPointer() const { return m_data_; }
+    void* GetRawPointer() { return m_data_.get(); }
+    void* GetRawPointer() const { return m_data_.get(); }
+
     void SetData(std::shared_ptr<value_type> const& d) const { m_data_ = d; }
     m_index_box_type const& GetIndexBox() const { return m_inner_index_box_; }
     m_index_box_type const& GetInnerIndexBox() const { return m_inner_index_box_; }

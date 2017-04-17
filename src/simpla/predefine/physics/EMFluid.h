@@ -43,9 +43,11 @@ class EMFluid : public engine::Worker {
     Mesh* GetMesh() { return &m_mesh_; }
     Mesh const* GetMesh() const { return &m_mesh_; }
 
-    virtual void Advance(Real data_time, Real dt = 0);
-    virtual void Initialize(Real time_now = 0);
+    virtual void Initialize();
     virtual void Finalize();
+    virtual void SetUp(Real time_now = 0);
+    virtual void TearDown();
+    virtual void Advance(Real data_time, Real dt = 0);
 
     virtual void SetPhysicalBoundaryConditions(Real time = 0){};
     virtual void SetPhysicalBoundaryConditionE(Real time = 0){};
@@ -138,22 +140,29 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
 //}
 
 template <typename TM>
-void EMFluid<TM>::Initialize(Real time_now) {
-    if (m_fluid_sp_.size() > 0) {
-        Ev = map_to<VERTEX>(E);
-        B0v = map_to<VERTEX>(B0);
-        BB = dot(B0v, B0v);
-    }
-}
+void EMFluid<TM>::Initialize() {}
 
 template <typename TM>
-void EMFluid<TM>::Finalize() {
-    // do sth here
+void EMFluid<TM>::Finalize() {}
+
+template <typename TM>
+void EMFluid<TM>::TearDown() {}
+
+template <typename TM>
+void EMFluid<TM>::SetUp(Real time_now) {
+    CHECK(time_now);
+    if (E.isNull()) {
+        E.Clear();
+        B0.Clear();
+    }
+    Ev = map_to<VERTEX>(E);
+    B0v = map_to<VERTEX>(B0);
+    BB = dot(B0v, B0v);
 }
 
 template <typename TM>
 void EMFluid<TM>::Advance(Real data_time, Real dt) {
-    TIME_STAMP;
+    CHECK(data_time);
 
     DEFINE_PHYSICAL_CONST
     B -= curl(E) * (dt * 0.5);

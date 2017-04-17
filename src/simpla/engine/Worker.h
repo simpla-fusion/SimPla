@@ -36,8 +36,10 @@ class Worker : public data::Serializable, public data::EnableCreateFromDataTable
     virtual void Push(Patch *);
     virtual void Pop(Patch *);
 
-    virtual void Initialize(Real time_now = 0);
+    virtual void SetUp(Real time_now = 0);
+    virtual void TearDown();
     virtual void Advance(Real time = 0, Real dt = 0);
+    virtual void Initialize();
     virtual void Finalize();
 
     virtual Mesh *GetMesh() = 0;

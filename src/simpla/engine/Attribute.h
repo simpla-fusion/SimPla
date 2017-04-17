@@ -113,7 +113,7 @@ struct Attribute : public SPObject, public concept::Configurable, public data::S
     Attribute(Attribute &&other) = delete;
     virtual ~Attribute();
 
-    bool Update();
+    void SetUp();
 
     void Register(AttributeGroup *);
     void Deregister(AttributeGroup *);

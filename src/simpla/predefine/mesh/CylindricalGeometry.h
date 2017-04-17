@@ -128,7 +128,7 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
     virtual Real inv_dual_volume(entity_id s) const { return m_volume_.at(s); }
 
     typedef mesh::MeshEntityIdCoder m;
-    virtual Range<entity_id> range() const { return Range<entity_id>(); };
+    virtual Range<entity_id> GetRange() const { return Range<entity_id>(); };
 
     template <typename TV>
     TV const &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> const *a, entity_id const &s) const {
@@ -138,7 +138,12 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
     TV &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> *a, entity_id const &s) const {
         return a[m::node_id(s)]->at(m::unpack_index(s));
     }
-    virtual void Initialize() {
+
+    void Initialize(){};
+    void Finalize(){};
+
+    void TearDown() {}
+    void SetUp() {
         m_vertics_.Clear();
         m_volume_.Clear();
         m_dual_volume_.Clear();
@@ -164,74 +169,74 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
             *
             *\endverbatim
             */
-        //        auto const *lower = &(std::get<0>(GetBlock()->GetOuterIndexBox())[0]);
-        //        auto const *upper = &(std::get<1>(GetBlock()->GetOuterIndexBox())[0]);
-        //
-        //        index_type ib = lower[0];
-        //        index_type ie = upper[0];
-        //        index_type jb = lower[1];
-        //        index_type je = upper[1];
-        //        index_type kb = lower[2];
-        //        index_type ke = upper[2];
-        //        point_type m_dx_;  // = GetBlock()->dx();
-        //
-        //        for (index_type i = ib; i < ie; ++i)
-        //            for (index_type j = jb; j < je; ++j)
-        //                for (index_type k = kb; k < ke; ++k) {
-        //                    point_type x;  //= GetBlock()->point(i, j, k);
-        //                    m_vertics_(i, j, k, 0) = x[0] * std::cos(x[1]);
-        //                    m_vertics_(i, j, k, 1) = x[0] * std::sin(x[1]);
-        //                    m_vertics_(i, j, k, 2) = x[2];
-        //                    Real dr = m_dx_[0];
-        //                    Real dl0 = m_dx_[1] * x[0];
-        //                    Real dl1 = m_dx_[1] * (x[0] + m_dx_[0]);
-        //                    Real dz = m_dx_[2];
-        //
-        //                    m_volume_(i, j, k, 0) = 1.0;
-        //                    m_volume_(i, j, k, 1) = dr;
-        //                    m_volume_(i, j, k, 2) = dl0;
-        //                    m_volume_(i, j, k, 3) = 0.5 * dr * (dl0 + dl1);
-        //                    m_volume_(i, j, k, 4) = dz;
-        //                    m_volume_(i, j, k, 5) = dr * dz;
-        //                    m_volume_(i, j, k, 6) = dl0 * dz;
-        //                    m_volume_(i, j, k, 7) = 0.5 * dr * (dl0 + dl1) * dz;
-        //                    m_volume_(i, j, k, 8) = 1.0;
-        //
-        //                    m_inv_volume_(i, j, k, 0) = 1.0 / m_volume_(i, j, k, 0);
-        //                    m_inv_volume_(i, j, k, 1) = 1.0 / m_volume_(i, j, k, 1);
-        //                    m_inv_volume_(i, j, k, 2) = 1.0 / m_volume_(i, j, k, 2);
-        //                    m_inv_volume_(i, j, k, 3) = 1.0 / m_volume_(i, j, k, 3);
-        //                    m_inv_volume_(i, j, k, 4) = 1.0 / m_volume_(i, j, k, 4);
-        //                    m_inv_volume_(i, j, k, 5) = 1.0 / m_volume_(i, j, k, 5);
-        //                    m_inv_volume_(i, j, k, 6) = 1.0 / m_volume_(i, j, k, 6);
-        //                    m_inv_volume_(i, j, k, 7) = 1.0 / m_volume_(i, j, k, 7);
-        //                    m_inv_volume_(i, j, k, 8) = 1.0 / m_volume_(i, j, k, 8);
-        //
-        //                    dr = m_dx_[0];
-        //                    dl0 = m_dx_[1] * (x[0] - 0.5 * m_dx_[0]);
-        //                    dl1 = m_dx_[1] * (x[0] + 0.5 * m_dx_[0]);
-        //                    dz = m_dx_[2];
-        //
-        //                    m_dual_volume_(i, j, k, 7) = 1.0;
-        //                    m_dual_volume_(i, j, k, 6) = dr;
-        //                    m_dual_volume_(i, j, k, 5) = dl0;
-        //                    m_dual_volume_(i, j, k, 4) = 0.5 * dr * (dl0 + dl1);
-        //                    m_dual_volume_(i, j, k, 3) = dz;
-        //                    m_dual_volume_(i, j, k, 2) = dr * dz;
-        //                    m_dual_volume_(i, j, k, 1) = dl0 * dz;
-        //                    m_dual_volume_(i, j, k, 0) = 0.5 * dr * (dl0 + dl1) * dz;
-        //                    m_dual_volume_(i, j, k, 8) = 1.0;
-        //
-        //                    m_inv_dual_volume_(i, j, k, 0) = 1.0 / m_dual_volume_(i, j, k, 0);
-        //                    m_inv_dual_volume_(i, j, k, 1) = 1.0 / m_dual_volume_(i, j, k, 1);
-        //                    m_inv_dual_volume_(i, j, k, 2) = 1.0 / m_dual_volume_(i, j, k, 2);
-        //                    m_inv_dual_volume_(i, j, k, 3) = 1.0 / m_dual_volume_(i, j, k, 3);
-        //                    m_inv_dual_volume_(i, j, k, 4) = 1.0 / m_dual_volume_(i, j, k, 4);
-        //                    m_inv_dual_volume_(i, j, k, 5) = 1.0 / m_dual_volume_(i, j, k, 5);
-        //                    m_inv_dual_volume_(i, j, k, 6) = 1.0 / m_dual_volume_(i, j, k, 6);
-        //                    m_inv_dual_volume_(i, j, k, 7) = 1.0 / m_dual_volume_(i, j, k, 7);
-        //                    m_inv_dual_volume_(i, j, k, 8) = 1.0 / m_dual_volume_(i, j, k, 8);
-        //                }
+        auto const *lower = &(std::get<0>(GetBlock()->GetOuterIndexBox())[0]);
+        auto const *upper = &(std::get<1>(GetBlock()->GetOuterIndexBox())[0]);
+
+        index_type ib = lower[0];
+        index_type ie = upper[0];
+        index_type jb = lower[1];
+        index_type je = upper[1];
+        index_type kb = lower[2];
+        index_type ke = upper[2];
+        point_type m_dx_;  // = GetBlock()->dx();
+
+        for (index_type i = ib; i < ie; ++i)
+            for (index_type j = jb; j < je; ++j)
+                for (index_type k = kb; k < ke; ++k) {
+                    point_type x;  //= GetBlock()->point(i, j, k);
+                    m_vertics_(i, j, k, 0) = x[0] * std::cos(x[1]);
+                    m_vertics_(i, j, k, 1) = x[0] * std::sin(x[1]);
+                    m_vertics_(i, j, k, 2) = x[2];
+                    Real dr = m_dx_[0];
+                    Real dl0 = m_dx_[1] * x[0];
+                    Real dl1 = m_dx_[1] * (x[0] + m_dx_[0]);
+                    Real dz = m_dx_[2];
+
+                    m_volume_(i, j, k, 0) = 1.0;
+                    m_volume_(i, j, k, 1) = dr;
+                    m_volume_(i, j, k, 2) = dl0;
+                    m_volume_(i, j, k, 3) = 0.5 * dr * (dl0 + dl1);
+                    m_volume_(i, j, k, 4) = dz;
+                    m_volume_(i, j, k, 5) = dr * dz;
+                    m_volume_(i, j, k, 6) = dl0 * dz;
+                    m_volume_(i, j, k, 7) = 0.5 * dr * (dl0 + dl1) * dz;
+                    m_volume_(i, j, k, 8) = 1.0;
+
+                    m_inv_volume_(i, j, k, 0) = 1.0 / m_volume_(i, j, k, 0);
+                    m_inv_volume_(i, j, k, 1) = 1.0 / m_volume_(i, j, k, 1);
+                    m_inv_volume_(i, j, k, 2) = 1.0 / m_volume_(i, j, k, 2);
+                    m_inv_volume_(i, j, k, 3) = 1.0 / m_volume_(i, j, k, 3);
+                    m_inv_volume_(i, j, k, 4) = 1.0 / m_volume_(i, j, k, 4);
+                    m_inv_volume_(i, j, k, 5) = 1.0 / m_volume_(i, j, k, 5);
+                    m_inv_volume_(i, j, k, 6) = 1.0 / m_volume_(i, j, k, 6);
+                    m_inv_volume_(i, j, k, 7) = 1.0 / m_volume_(i, j, k, 7);
+                    m_inv_volume_(i, j, k, 8) = 1.0 / m_volume_(i, j, k, 8);
+
+                    dr = m_dx_[0];
+                    dl0 = m_dx_[1] * (x[0] - 0.5 * m_dx_[0]);
+                    dl1 = m_dx_[1] * (x[0] + 0.5 * m_dx_[0]);
+                    dz = m_dx_[2];
+
+                    m_dual_volume_(i, j, k, 7) = 1.0;
+                    m_dual_volume_(i, j, k, 6) = dr;
+                    m_dual_volume_(i, j, k, 5) = dl0;
+                    m_dual_volume_(i, j, k, 4) = 0.5 * dr * (dl0 + dl1);
+                    m_dual_volume_(i, j, k, 3) = dz;
+                    m_dual_volume_(i, j, k, 2) = dr * dz;
+                    m_dual_volume_(i, j, k, 1) = dl0 * dz;
+                    m_dual_volume_(i, j, k, 0) = 0.5 * dr * (dl0 + dl1) * dz;
+                    m_dual_volume_(i, j, k, 8) = 1.0;
+
+                    m_inv_dual_volume_(i, j, k, 0) = 1.0 / m_dual_volume_(i, j, k, 0);
+                    m_inv_dual_volume_(i, j, k, 1) = 1.0 / m_dual_volume_(i, j, k, 1);
+                    m_inv_dual_volume_(i, j, k, 2) = 1.0 / m_dual_volume_(i, j, k, 2);
+                    m_inv_dual_volume_(i, j, k, 3) = 1.0 / m_dual_volume_(i, j, k, 3);
+                    m_inv_dual_volume_(i, j, k, 4) = 1.0 / m_dual_volume_(i, j, k, 4);
+                    m_inv_dual_volume_(i, j, k, 5) = 1.0 / m_dual_volume_(i, j, k, 5);
+                    m_inv_dual_volume_(i, j, k, 6) = 1.0 / m_dual_volume_(i, j, k, 6);
+                    m_inv_dual_volume_(i, j, k, 7) = 1.0 / m_dual_volume_(i, j, k, 7);
+                    m_inv_dual_volume_(i, j, k, 8) = 1.0 / m_dual_volume_(i, j, k, 8);
+                }
     }
 
 };  // struct  Mesh

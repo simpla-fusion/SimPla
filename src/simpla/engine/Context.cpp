@@ -41,12 +41,18 @@ void Context::Deserialize(std::shared_ptr<DataTable> cfg) {
 
 void Context::Initialize() {}
 void Context::Finalize() {}
+void Context::TearDown() {
+    m_pimpl_->m_model_.TearDown();
+    m_pimpl_->m_atlas_.TearDown();
+}
 void Context::SetUp() {
     for (auto &item : m_pimpl_->m_domain_) { m_pimpl_->m_model_.AddObject(item.first, item.second->GetGeoObject()); }
     m_pimpl_->m_model_.SetUp();
 };
-
-void Context::UpdatePatch(Patch *p, Real time_now, Real time_dt) {
+void Context::SetUpDataOnPatch(Patch *p, Real time_now) {
+    for (auto &item : m_pimpl_->m_domain_) { item.second->SetUpDataOnPatch(p, time_now); }
+}
+void Context::UpdateDataOnPatch(Patch *p, Real time_now, Real time_dt) {
     for (auto &item : m_pimpl_->m_domain_) { item.second->UpdateDataOnPatch(p, time_now, time_dt); }
 }
 
@@ -100,8 +106,8 @@ std::shared_ptr<Domain> Context::GetDomain(std::string const &k) const {
 // std::shared_ptr<Attribute> const &Context::GetAttribute(std::string const &key) const {
 //    return m_pimpl_->m_global_attributes_.at(key);
 //}
-//    GetModel().InitializeDataOnPatch();
-//    GetAtlas().InitializeDataOnPatch();
+//    GetModel().SetUpDataOnPatch();
+//    GetAtlas().SetUpDataOnPatch();
 //    auto workers_t = db()->GetTable("Workers");
 //    GetModel().GetMaterial().Foreach([]() {
 //

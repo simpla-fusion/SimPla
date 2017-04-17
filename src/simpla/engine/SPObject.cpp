@@ -32,7 +32,7 @@ SPObject::SPObject() : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_id_ = g_obj_hasher(g_uuid_generator());
     m_pimpl_->m_name_ = "";  // std::to_string(m_pimpl_->m_id_);
 }
-SPObject::~SPObject() { OnDestroy(); }
+SPObject::~SPObject() { OnFinalize(); }
 
 id_type SPObject::GetGUID() const { return m_pimpl_->m_id_; }
 
@@ -49,19 +49,22 @@ void SPObject::Click() { ++m_pimpl_->m_click_; }
 void SPObject::Tag() { m_pimpl_->m_click_tag_ = m_pimpl_->m_click_; }
 void SPObject::ResetTag() { m_pimpl_->m_click_tag_ = m_pimpl_->m_click_ = 0; }
 bool SPObject::isModified() const { return GetTagCount() != GetClickCount(); }
-void SPObject::Initialize() { Tag(); }
-void SPObject::Finalize() {}
-void SPObject::Destroy() {}
-
-bool SPObject::Update() {
-    if (!isModified()) { return false; }
+void SPObject::Initialize() {
+    Click();
+    Tag();
+}
+void SPObject::Finalize() { ResetTag(); }
+void SPObject::TearDown() {
+    Click();
+    Tag();
+}
+void SPObject::SetUp() {
     if (GetTagCount() == 0) {
         Initialize();
         OnInitialize();
-    } else {
-        OnChanged();
     }
+    OnSetUp();
+
     Tag();
-    return true;
 }
 }  // namespace simpla { namespace base

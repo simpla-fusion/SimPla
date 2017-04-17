@@ -44,7 +44,8 @@ class Mesh : public AttributeGroup, public data::Serializable, public data::Enab
     virtual void Push(Patch *);
     virtual void Pop(Patch *);
 
-    virtual void Update();
+    virtual void SetUp();
+    virtual void TearDown();
     virtual void Initialize();
     virtual void Finalize();
 

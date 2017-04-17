@@ -18,7 +18,7 @@ namespace engine {
 
 using namespace data;
 
-class Model : public data::Serializable {
+class Model : public data::Serializable, public SPObject {
     typedef Model this_type;
 
    public:

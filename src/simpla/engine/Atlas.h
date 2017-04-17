@@ -64,7 +64,7 @@ class Patch;
  *  - '''Origin''' is the origin point of continue topology space and discrete index space
  *  - '''dx''' is the resolution ratio  of discrete mesh, x = i * dx + r where 0<= r < dx
  */
-class Atlas {
+class Atlas : public SPObject {
    public:
     Atlas();
     virtual ~Atlas();
@@ -95,6 +95,7 @@ class Atlas {
 
     void SetLargestDimensions(size_tuple const &d);
     size_tuple GetLargestDimensions() const;
+
     void SetSmallestDimensions(size_tuple const &d);
     size_tuple GetSmallestDimensions() const;
 

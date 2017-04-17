@@ -20,11 +20,8 @@ struct Domain::pimpl_s {
     std::shared_ptr<Worker> m_worker_ = nullptr;
     std::map<std::shared_ptr<geometry::GeoObject>, std::shared_ptr<Worker>> m_boundary_;
 };
-
 Domain::Domain() : SPObject(), m_pimpl_(new pimpl_s) {}
-
 Domain::~Domain() { Finalize(); }
-
 std::shared_ptr<data::DataTable> Domain::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
     res->SetValue("Type", "Domain");
@@ -55,33 +52,77 @@ std::shared_ptr<Worker> Domain::GetWorker() const { return m_pimpl_->m_worker_; 
 void Domain::AddBoundaryCondition(std::shared_ptr<Worker> w, std::shared_ptr<geometry::GeoObject> g) {
     m_pimpl_->m_boundary_.emplace(g, w);
 }
-void Domain::InitializeDataOnPatch(Patch *patch, Real time_now) {}
+void Domain::SetUpDataOnPatch(Patch *p, Real time_now) {
+    if (p == nullptr) { return; }
+    //    auto mblk_ibx = p->GetBlock()->GetIndexBox();
+    //
+    //    auto x0 = GetChart()->GetOrigin();
+    //    auto dx = GetChart()->GetOrigin();
+    //    dx *= std::pow(0.5, p->GetBlock()->GetLevel());
+    //
+    //    box_type mblk_box;
+    //    std::get<0>(mblk_box) = x0 + std::get<0>(mblk_ibx) * dx;
+    //    std::get<1>(mblk_box) = x0 + std::get<1>(mblk_ibx) * dx;
+    //    CHECK(m_pimpl_->m_geo_obj_->GetBoundBox());
+    //    CHECK(mblk_box);
+    //
+    //    switch (m_pimpl_->m_geo_obj_->CheckOverlap(mblk_box)) {
+    //        case -1:
+    m_pimpl_->m_worker_->Push(p);
+    m_pimpl_->m_worker_->SetUp(time_now);
+    m_pimpl_->m_worker_->Pop(p);
+    //            break;
+    //        case 0:
+    //            for (auto &item : m_pimpl_->m_boundary_) {
+    //                if (item.first == nullptr || item.first->CheckOverlap(mblk_box) < 1) {
+    //                    item.second->Push(p);
+    //                    item.second->SetUp(time_now);
+    //                    item.second->Pop(p);
+    //                }
+    //            }
+    //            break;
+    //        case 1:
+    //        default:
+    //            // DO NOTHING
+    //            break;
+    //    };
+}
 void Domain::UpdateDataOnPatch(Patch *p, Real time_now, Real time_dt) {
     //    CHECK(p->GetBlock()->GetBoundBox());
-    if (p == nullptr) { return; }
-
-    box_type mblk_box = m_pimpl_->m_chart_->inv_map(p->GetBlock()->GetBoundBox());
-
-    switch (m_pimpl_->m_geo_obj_->CheckOverlap(mblk_box)) {
-        case -1:
-            m_pimpl_->m_worker_->Push(p);
-            m_pimpl_->m_worker_->Advance(time_now, time_dt);
-            m_pimpl_->m_worker_->Pop(p);
-            break;
-        case 0:
-            for (auto &item : m_pimpl_->m_boundary_) {
-                if (item.first == nullptr || item.first->CheckOverlap(mblk_box) < 1) {
-                    item.second->Push(p);
-                    item.second->Advance(time_now, time_dt);
-                    item.second->Pop(p);
-                }
-            }
-            break;
-        case 1:
-        default:
-            // DO NOTHING
-            break;
-    };
+    //    if (p == nullptr) { return; }
+    //
+    //    auto mblk_ibx = p->GetBlock()->GetIndexBox();
+    //
+    //    auto x0 = GetChart()->GetOrigin();
+    //    auto dx = GetChart()->GetOrigin();
+    //    dx *= std::pow(0.5, p->GetBlock()->GetLevel());
+    //
+    //    box_type mblk_box;
+    //    std::get<0>(mblk_box) = x0 + std::get<0>(mblk_ibx) * dx;
+    //    std::get<1>(mblk_box) = x0 + std::get<1>(mblk_ibx) * dx;
+    //    CHECK(m_pimpl_->m_geo_obj_->GetBoundBox());
+    //    CHECK(mblk_box);
+    //
+    //    switch (m_pimpl_->m_geo_obj_->CheckOverlap(mblk_box)) {
+    //        case -1:
+    m_pimpl_->m_worker_->Push(p);
+    m_pimpl_->m_worker_->Advance(time_now, time_dt);
+    m_pimpl_->m_worker_->Pop(p);
+    //            break;
+    //        case 0:
+    //            for (auto &item : m_pimpl_->m_boundary_) {
+    //                if (item.first == nullptr || item.first->CheckOverlap(mblk_box) < 1) {
+    //                    item.second->Push(p);
+    //                    item.second->Advance(time_now, time_dt);
+    //                    item.second->Pop(p);
+    //                }
+    //            }
+    //            break;
+    //        case 1:
+    //        default:
+    //            // DO NOTHING
+    //            break;
+    //    };
 }
 
 // Domain *Domain::Clone() const { return new Domain(*this); }
@@ -144,7 +185,7 @@ void Domain::UpdateDataOnPatch(Patch *p, Real time_now, Real time_dt) {
 //
 // std::set<Attribute *> const &Domain::GetAllAttributes() const { return m_pimpl_->m_attributes_; }
 //
-// void Domain::InitializeDataOnPatch() {
+// void Domain::SetUpDataOnPatch() {
 //    auto m = m_pimpl_->m_chart_->CreateView(nullptr, m_pimpl_->m_geo_obj_);
 //    m_pimpl_->m_worker_->SetMesh(m);
 //    for (auto *v : m_pimpl_->m_attr_bundle_.GetAll()) { v->SetMesh(m.get()); }

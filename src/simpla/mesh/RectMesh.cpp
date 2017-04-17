@@ -32,7 +32,7 @@ RectMesh::~RectMesh() {}
 //    return os;
 //}
 //
-//void RectMesh::InitializeDataOnPatch() {
+//void RectMesh::SetUpDataOnPatch() {
 //    ASSERT(m_ndims_ <= 3);
 //
 //    ASSERT(toolbox::is_valid(m_g_box_));
@@ -100,7 +100,7 @@ std::shared_ptr<RectMesh> RectMesh::create(int inc_level, const index_type* lo, 
         std::get<1>(res->m_g_box_)[2] = hi[2] >> -inc_level;
     }
     res->m_level_ += inc_level;
-//    res->InitializeDataOnPatch();
+//    res->SetUpDataOnPatch();
     return res;
 }
 

@@ -70,10 +70,11 @@ class Context : public data::Serializable {
 
     void Initialize();  //!< initialize data on current patch
     void Finalize();    //!< release data on current patch
-
+    void TearDown();
     void SetUp();
 
-    void UpdatePatch(Patch *p, Real time_now, Real time_dt);
+    void SetUpDataOnPatch(Patch *p, Real time_now);
+    void UpdateDataOnPatch(Patch *p, Real time_now, Real time_dt = 0);
 
     void Register(AttributeGroup *);
 

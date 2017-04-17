@@ -144,7 +144,7 @@ class SAMRAITimeIntegrator;
 //                        inner_upper[2] - outer_lower[2], static_cast<index_type>(desc.GetValue<int>("DOF"))};
 //    //    auto res = std::make_shared<data::DataEntityWrapper<simpla::Array<TV, 4>>>();
 //    // p_data->getPointer(), dims, lo, hi
-//    //    res->InitializeDataOnPatch();
+//    //    res->SetUpDataOnPatch();
 //    //    return std::dynamic_pointer_cast<data::DataBlock>(res);
 //    return nullptr;
 //};
@@ -177,6 +177,64 @@ class SAMRAITimeIntegrator;
 //    return simpla::detail::create_data_block(*m_simpla_attrs_.at(id),
 //                                             m_samrai_patch_.getPatchData(m_samrai_variables_.at(id), m_samrai_ctx_));
 //}
+
+template <typename TV, int NDIMS, int IFORM, int DEPTH>
+class SAMRAIDataBlock : public data::DataMultiArray<TV, (DEPTH <= 1 ? NDIMS : NDIMS + 1),
+                                                    ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3)> {
+    typedef simpla::Array<TV, (DEPTH <= 1 ? NDIMS : NDIMS + 1)> array_type;
+
+    typedef data::DataMultiArray<TV, (DEPTH <= 1 ? NDIMS : NDIMS + 1), ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3)>
+        data_block_type;
+
+    typedef SAMRAIDataBlock<TV, NDIMS, IFORM, DEPTH> samrai_data_block;
+
+    SP_OBJECT_HEAD(samrai_data_block, data_block_type);
+
+    typedef std::conditional_t<
+        IFORM == VERTEX, SAMRAI::pdat::NodeData<TV>,
+        std::conditional_t<IFORM == EDGE, SAMRAI::pdat::EdgeData<TV>,
+                           std::conditional_t<IFORM == FACE, SAMRAI::pdat::FaceData<TV>, SAMRAI::pdat::CellData<TV>>>>
+        samrai_data_type;
+
+    boost::shared_ptr<samrai_data_type> m_data_;
+
+    SAMRAIDataBlock(boost::shared_ptr<SAMRAI::hier::PatchData> const d)
+        : m_data_(boost::dynamic_pointer_cast<samrai_data_type>(d)) {
+        for (int i = 0; i < DEPTH; ++i) {
+            index_type in_lower[4] = {d->getBox().lower()[0], d->getBox().lower()[1], d->getBox().lower()[2], DEPTH};
+            index_type in_upper[4] = {d->getBox().upper()[0], d->getBox().upper()[1], d->getBox().upper()[2], DEPTH};
+
+            index_type out_lower[4] = {d->getGhostBox().lower()[0], d->getGhostBox().lower()[1],
+                                       d->getGhostBox().lower()[2], DEPTH};
+            index_type out_upper[4] = {d->getGhostBox().upper()[0], d->getGhostBox().upper()[1],
+                                       d->getGhostBox().upper()[2], DEPTH};
+
+            array_type(in_lower, in_upper, out_lower, out_upper,
+                       std::shared_ptr<value_type>(m_data_->getPointer(i), tags::do_nothing()))
+                .swap(this->operator[](i));
+        }
+    }
+    ~SAMRAIDataBlock() {}
+
+    // data::DataBlock
+    virtual bool empty() const { return m_data_ != nullptr; }
+    virtual std::type_info const &value_type_info() const { return typeid(TV); };
+    virtual int GetNDIMS() const { return m_data_->getDim().getValue(); }
+    virtual size_type GetDepth() const { return m_data_->getDepth(); }
+
+    virtual index_type const *GetInnerLowerIndex(int depth = 0) const { return nullptr; }
+    virtual index_type const *GetInnerUpperIndex(int depth = 0) const { return nullptr; }
+    virtual index_type const *GetOuterLowerIndex(int depth = 0) const { return nullptr; }
+    virtual index_type const *GetOuterUpperIndex(int depth = 0) const { return nullptr; }
+
+    virtual TV const *GetPointer(int depth = 0) const { return m_data_->getPointer(depth); }
+    virtual TV *GetPointer(int depth = 0) { return m_data_->getPointer(depth); }
+
+    virtual void Clear() { m_data_->fillAll(0); }
+    virtual void Copy(data::DataBlock const &other) {
+        m_data_->copy(dynamic_cast<samrai_data_block const &>(other).m_data_);
+    };
+};
 
 class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatchStrategy {
    public:
@@ -348,7 +406,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
     boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_workload_variable;
     int d_workload_data_id;
     bool d_use_nonuniform_workload;
-    std::map<std::string, boost::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
+    std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
     SAMRAI::hier::IntVector d_nghosts;
     SAMRAI::hier::IntVector d_fluxghosts;
 
@@ -404,6 +462,8 @@ boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned int nd
     }
     return nullptr;
 }
+
+std::shared_ptr<data::DataBlock> convert(boost::shared_ptr<SAMRAI::hier::PatchData> d) {}
 }  // namespace detail{
 
 /**
@@ -430,12 +490,14 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     for (engine::Attribute *v : attr_grp.GetAll()) {
         if (v->GetName() == "" || v->GetName()[0] == '_') continue;
         boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, *v);
-        m_samrai_variables_[v->GetName()] = var;
+        m_samrai_variables_[v->GetGUID()] = var;
 
         /*** FIXME:
         *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
         *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
-        **/ if (v->db()->Check("COORDINATES", true)) {
+        **/
+
+        if (v->db()->Check("COORDINATES", true)) {
             VERBOSE << v->GetName() << " is registered as coordinate" << std::endl;
             integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
                                          d_grid_geometry, "", "LINEAR_REFINE");
@@ -519,8 +581,24 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setupLoadBalancer(SAMRAI::algs::Hyper
     }
 }
 
+void SAMRAIHyperbolicPatchStrategyAdapter::Push(SAMRAI::hier::Patch &patch, engine::Patch *p) {
+    auto mblk = std::make_shared<engine::MeshBlock>(
+        index_box_type{{patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]},
+                       {patch.getBox().upper()[0], patch.getBox().upper()[1], patch.getBox().upper()[2]}},
+        patch.getPatchLevelNumber());
+
+    p->SetBlock(mblk);
+
+    for (auto const &item : m_samrai_variables_) {
+        auto pdata = patch.getPatchData(item.second, getDataContext());
+        //        p->Push(item.first, d);
+    }
+}
+void SAMRAIHyperbolicPatchStrategyAdapter::Pop(SAMRAI::hier::Patch &patch, engine::Patch *p) {
+    //    for (auto const &item : p->GetData()) { patch.setPatchData(item.first, item.second); }
+}
+
 /**
- *
  * Set initial data for solution variables on patch interior.
  * This routine is called whenever a new patch is introduced to the
  * AMR patch hierarchy.  Note that the routine does nothing unless
@@ -535,7 +613,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
     if (initial_time) {
         engine::Patch p;
         Push(patch, &p);
-        m_ctx_->Initialize();
+        m_ctx_->SetUpDataOnPatch(&p, data_time);
         Pop(patch, &p);
     }
 
@@ -584,28 +662,14 @@ void SAMRAIHyperbolicPatchStrategyAdapter::computeFluxesOnPatch(SAMRAI::hier::Pa
  * Update solution variables by performing a conservative
  * difference with the fluxes calculated in computeFluxesOnPatch().
  *
- *************************************************************************
- */
-void SAMRAIHyperbolicPatchStrategyAdapter::Push(SAMRAI::hier::Patch &patch, engine::Patch *p) {
-    auto mblk = std::make_shared<engine::MeshBlock>(
-        index_box_type{{patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]},
-                       {patch.getBox().upper()[0], patch.getBox().upper()[1], patch.getBox().upper()[2]}},
-        patch.getPatchLevelNumber());
+ **************************************************************************/
 
-    p->SetBlock(mblk);
-    engine::AttributeGroup attr_grp;
-    m_ctx_->Register(&attr_grp);
-    //    for (auto const &item : m_samrai_variables_) { p->Push(id, patch.getPatchData(item.second, m_samrai_ctx_)); }
-}
-void SAMRAIHyperbolicPatchStrategyAdapter::Pop(SAMRAI::hier::Patch &patch, engine::Patch *p) {
-    //    for (auto const &item : p->GetData()) { patch.setPatchData(item.first, item.second); }
-}
 void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch,
                                                                          const double time_now, const double time_dt,
                                                                          bool at_syncronization) {
     engine::Patch p;
     Push(patch, &p);
-    m_ctx_->UpdatePatch(&p, time_now, time_dt);
+    m_ctx_->UpdateDataOnPatch(&p, time_now, time_dt);
     Pop(patch, &p);
 }
 
@@ -639,8 +703,10 @@ void SAMRAIHyperbolicPatchStrategyAdapter::tagGradientDetectorCells(SAMRAI::hier
 
 void SAMRAIHyperbolicPatchStrategyAdapter::setPhysicalBoundaryConditions(
     SAMRAI::hier::Patch &patch, const double fill_time, const SAMRAI::hier::IntVector &ghost_width_to_fill) {
-    // FIXME:    Dispatch(patch);
-    //        this->SetPhysicalBoundaryConditions(fill_time);
+    engine::Patch p;
+    Push(patch, &p);
+    m_ctx_->UpdateDataOnPatch(&p, fill_time);
+    Pop(patch, &p);
 }
 
 /**************************************************************************
@@ -658,11 +724,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerVisItDataWriter(
 }
 
 /**************************************************************************
- *
  * Write SAMRAIWorkerAdapter object state to specified stream.
- *
- *************************************************************************
- */
+ **************************************************************************/
 
 void SAMRAIHyperbolicPatchStrategyAdapter::printClassData(std::ostream &os) const {
     os << "\nSAMRAIWorkerAdapter::printClassData..." << std::endl;
@@ -676,14 +739,10 @@ void SAMRAIHyperbolicPatchStrategyAdapter::printClassData(std::ostream &os) cons
  */
 struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
     SP_OBJECT_HEAD(SAMRAITimeIntegrator, engine::TimeIntegrator);
-    static bool is_register;
 
    public:
     SAMRAITimeIntegrator();
     ~SAMRAITimeIntegrator();
-
-    // Schedule
-    virtual void Synchronize(int from_level = 0, int to_level = 0);
 
     virtual std::shared_ptr<data::DataTable> Serialize() const;
     virtual void Deserialize(std::shared_ptr<data::DataTable>);
@@ -691,16 +750,16 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
     virtual void Initialize();
     virtual void Finalize();
     virtual void SetUp();
+    virtual void TearDown();
 
+    virtual void Synchronize();
+    virtual Real Advance(Real time_dt = 0.0);
     virtual bool Done() const;
+
     virtual void CheckPoint() const;
     virtual void Dump() const;
-    // TimeIntegrator
-    virtual Real Advance(Real time_dt = 0.0);
 
    private:
-    bool m_is_valid_ = false;
-
     boost::shared_ptr<SAMRAIHyperbolicPatchStrategyAdapter> hyperbolic_patch_strategy;
     boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geometry;
     boost::shared_ptr<SAMRAI::hier::PatchHierarchy> patch_hierarchy;
@@ -724,8 +783,10 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
 
     unsigned int ndims = 3;
 };
-bool SAMRAITimeIntegrator::is_register =
+
+bool SAMRAITimeIntegrator_IS_REGISTERED =
     engine::Schedule::RegisterCreator<SAMRAITimeIntegrator>("SAMRAI", "SAMRAI Time Integrator");
+
 SAMRAITimeIntegrator::SAMRAITimeIntegrator() : engine::TimeIntegrator(){};
 SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
     SAMRAI::tbox::SAMRAIManager::shutdown();
@@ -742,11 +803,12 @@ void SAMRAITimeIntegrator::Initialize() {
     //    data::DataTable(std::make_shared<DataBackendSAMRAI>()).swap(*db());
     //    const SAMRAI::tbox::SAMRAI_MPI & mpi(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 }
-void SAMRAITimeIntegrator::Synchronize(int from_level, int to_level) { engine::TimeIntegrator::Synchronize(); }
+void SAMRAITimeIntegrator::Synchronize() { engine::TimeIntegrator::Synchronize(); }
 std::shared_ptr<data::DataTable> SAMRAITimeIntegrator::Serialize() const { return engine::TimeIntegrator::Serialize(); }
 void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> cfg) {
     engine::TimeIntegrator::Deserialize(cfg);
 }
+void SAMRAITimeIntegrator::TearDown() { engine::TimeIntegrator::TearDown(); }
 void SAMRAITimeIntegrator::SetUp() {
     engine::TimeIntegrator::SetUp();
     /** test.3d.input */
@@ -935,10 +997,7 @@ void SAMRAITimeIntegrator::SetUp() {
         new SAMRAI::algs::TimeRefinementIntegrator("TimeRefinementIntegrator", TimeRefinementIntegrator,
                                                    patch_hierarchy, hyp_level_integrator, gridding_algorithm));
 
-    visit_data_writer.reset(new SAMRAI::appu::VisItDataWriter(dim, " VisIt Writer",
-                                                              GetOutputURL(),  // output_dir_name
-                                                              1             // visit_number_procs_per_file
-                                                              ));
+    visit_data_writer.reset(new SAMRAI::appu::VisItDataWriter(dim, "SimPLA VisIt Writer", GetOutputURL(), 1));
 
     hyperbolic_patch_strategy->registerVisItDataWriter(visit_data_writer);
 
@@ -947,15 +1006,14 @@ void SAMRAITimeIntegrator::SetUp() {
     grid_geometry->printClassData(std::cout);
     hyp_level_integrator->printClassData(std::cout);
     //    m_time_refinement_integrator_->printClassData(std::cout);
-    m_is_valid_ = true;
     MESSAGE << "==================  Context is initialized!  =================" << std::endl;
 };
 void SAMRAITimeIntegrator::Finalize() {
-    m_is_valid_ = false;
     visit_data_writer.reset();
     m_time_refinement_integrator_.reset();
     hyp_level_integrator.reset();
     hyperbolic_patch_strategy.reset();
+    engine::TimeIntegrator::Finalize();
 }
 Real SAMRAITimeIntegrator::Advance(Real dt) {
     ASSERT(m_time_refinement_integrator_ != nullptr);
