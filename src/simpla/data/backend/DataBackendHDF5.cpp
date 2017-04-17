@@ -373,7 +373,7 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t loc_id
     hid_t dset;
     hid_t d_type = GetHDF5DataType(src->value_type_info());
     H5_ERROR(dset = H5Dcreate(loc_id, key.c_str(), d_type, f_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
-    H5_ERROR(H5Dwrite(dset, d_type, m_space, f_space, H5P_DEFAULT, src->GetRawData()));
+    H5_ERROR(H5Dwrite(dset, d_type, m_space, f_space, H5P_DEFAULT, src->GetPointer()));
 
     H5_ERROR(H5Dclose(dset));
     if (m_space != H5S_ALL) H5_ERROR(H5Sclose(m_space));
