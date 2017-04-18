@@ -51,6 +51,7 @@ void Context::SetUp() {
         m_pimpl_->m_model_.AddObject(item.first, item.second->GetGeoObject());
     }
     m_pimpl_->m_model_.SetUp();
+    m_pimpl_->m_atlas_.SetUp();
 };
 void Context::InitializeDataOnPatch(Patch *p, Real time_now) {
     for (auto &item : m_pimpl_->m_domain_) { item.second->InitializeDataOnPatch(p, time_now); }

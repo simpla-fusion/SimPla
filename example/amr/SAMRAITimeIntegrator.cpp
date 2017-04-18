@@ -348,7 +348,7 @@ std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, boost::share
             res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth);
             for (int d = 0; d < depth; ++d) {
                 array_type(in_lower, in_upper, out_lower, out_upper,
-                           std::shared_ptr<T>(p_data->getPointer(d), simpla::tags::do_nothing()))
+                           std::shared_ptr<T>(p_data->getPointer(d), simpla::tags::do_nothing()), true)
                     .swap(res->GetArray(d));
             }
             break;
@@ -365,7 +365,7 @@ std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, boost::share
 
                 for (int d = 0; d < depth; ++d) {
                     array_type(in_lower, in_upper, out_lower, out_upper,
-                               std::shared_ptr<T>(p_data->getPointer(axis, d), simpla::tags::do_nothing()))
+                               std::shared_ptr<T>(p_data->getPointer(axis, d), simpla::tags::do_nothing()), true)
                         .swap(res->GetArray(d + axis * depth));
                 }
                 if (in_upper[axis] > 1) {
@@ -390,7 +390,7 @@ std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, boost::share
                 }
                 for (int d = 0; d < depth; ++d) {
                     array_type(in_lower, in_upper, out_lower, out_upper,
-                               std::shared_ptr<T>(p_data->getPointer(axis, d), simpla::tags::do_nothing()))
+                               std::shared_ptr<T>(p_data->getPointer(axis, d), simpla::tags::do_nothing()), true)
                         .swap(res->GetArray(d + axis * depth));
                 }
                 if (in_upper[(axis + 1) % 3] > 1) {
@@ -410,7 +410,7 @@ std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, boost::share
             res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth);
             for (int d = 0; d < depth; ++d) {
                 array_type(in_lower, in_upper, out_lower, out_upper,
-                           std::shared_ptr<T>(p_data->getPointer(d), simpla::tags::do_nothing()))
+                           std::shared_ptr<T>(p_data->getPointer(d), simpla::tags::do_nothing()), true)
                     .swap(res->GetArray(d));
             }
             break;
@@ -434,10 +434,7 @@ std::shared_ptr<data::DataBlock> create_simpla_datablock(engine::Attribute const
         res = create_simpla_datablock<NDIMS, double>(desc->GetIFORM(), pd);
     } else if (desc->value_type_info() == (typeid(int))) {
         res = create_simpla_datablock<NDIMS, int>(desc->GetIFORM(), pd);
-    }
-    //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item,
-    //    std::forward<Args>(args)...); }
-    else {
+    } else {
         RUNTIME_ERROR << "Unsupported m_value_ value_type_info" << std::endl;
     }
     return res;
@@ -455,13 +452,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     ASSERT(integrator != nullptr);
     SAMRAI::hier::VariableDatabase *vardb = SAMRAI::hier::VariableDatabase::getDatabase();
 
-    //    if (!d_visit_writer) {
-    //        RUNTIME_ERROR << m_name_
-    //                      << ": registerModelVariables() VisIt GetDataBlock writer was not registered."
-    //                         "Consequently, no plot  DataBlock will be written."
-    //                      << std::endl;
-    //    }
-    //    SAMRAI::tbox::Dimension d_dim{4};
+
     SAMRAI::hier::IntVector d_nghosts{d_dim, 4};
     SAMRAI::hier::IntVector d_fluxghosts{d_dim, 1};
     //**************************************************************
@@ -520,8 +511,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
         }
     }
-    //    integrator->printClassData(std::cout);
-    vardb->printClassData(std::cout);
+    //integrator->printClassData(std::cout);
+    //vardb->printClassData(std::cout);
 }
 
 void SAMRAIHyperbolicPatchStrategyAdapter::Push(SAMRAI::hier::Patch &patch, engine::Patch *p) {
@@ -979,6 +970,7 @@ void SAMRAITimeIntegrator::SetUp() {
     m_time_refinement_integrator_->initializeHierarchy();
 
     grid_geometry->printClassData(std::cout);
+
     hyp_level_integrator->printClassData(std::cout);
     //    m_time_refinement_integrator_->printClassData(std::cout);
     MESSAGE << "==================  Context is initialized!  =================" << std::endl;

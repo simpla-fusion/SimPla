@@ -84,7 +84,6 @@ class FieldView : public engine::Attribute {
     virtual void SetUp() {}
     virtual void Initialize() {}
     virtual void Clear() {
-        SetUp();
         for (int i = 0; i < NUMBER_OF_SUB; ++i) { m_data_[i].Clear(); }
     }
     virtual bool empty() const { return m_data_[0] == nullptr; }

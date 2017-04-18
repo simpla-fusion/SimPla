@@ -18,7 +18,6 @@
 
 namespace simpla {
 
-
 typedef nTuple<Real, 3ul> point_type;  //!< DataType of configuration space point (coordinates i.e. (x,y,z) )
 
 typedef nTuple<Real, 3ul> vector_type;
@@ -44,9 +43,23 @@ typedef nTuple<Real, 3> RVec3;
 
 // typedef nTuple<Complex, 3> CVec3;
 
-
-
 namespace algebra {
+
+template <typename T>
+T vec_dot(declare::nTuple_<T, 3> const &l, declare::nTuple_<T, 3> const &r) {
+    return l[0] * r[0] + l[1] * r[1] + l[2] * r[2];
+}
+
+template <typename T>
+T vec_dot(declare::nTuple_<T, 4> const &l, declare::nTuple_<T, 4> const &r) {
+    return l[0] * r[0] + l[1] * r[1] + l[2] * r[2] + l[3] * r[3];
+}
+template <typename T, int N>
+T vec_dot(declare::nTuple_<T, N> const &l, declare::nTuple_<T, N> const &r) {
+    T res = l[0] * r[0];
+    for (int i = 1; i < N; ++i) { res += l[i] * r[i]; }
+    return res;
+}
 
 template <typename T>
 inline T determinant(declare::nTuple_<T, 3> const &m) {

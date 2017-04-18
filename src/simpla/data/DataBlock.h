@@ -47,12 +47,14 @@ class DataMultiArray : public DataBlock {
     typedef U value_type;
 
    public:
-    DataMultiArray(int depth = 1) : m_data_(depth) {}
+    DataMultiArray(int depth = 1) : m_data_(depth) {  }
     virtual ~DataMultiArray() {}
     virtual bool empty() const { return m_data_[0].empty(); }
     virtual std::type_info const &value_type_info() const { return typeid(value_type); };
     virtual int GetNDIMS() const { return NDIMS; }
     virtual size_type GetDepth() const { return m_data_.size(); }
+
+    void SetArray(int depth, array_type d) { array_type(d).swap(m_data_[depth % m_data_.size()]); }
 
     array_type &GetArray(int depth = 0) { return m_data_[depth % m_data_.size()]; }
     array_type const &GetArray(int depth = 0) const { return m_data_[depth % m_data_.size()]; }

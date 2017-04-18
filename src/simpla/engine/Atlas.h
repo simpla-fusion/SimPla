@@ -68,6 +68,9 @@ class Atlas : public SPObject {
    public:
     Atlas();
     virtual ~Atlas();
+
+    void SetUp();
+
     void Decompose(size_tuple const &d, int local_id = -1);
 
     index_box_type FitIndexBox(box_type const &b, int level = 0, int flag = 0) const;
@@ -101,6 +104,7 @@ class Atlas : public SPObject {
 
     size_tuple GetDimensions() const;
 
+    void SetIndexBox(index_box_type);
     index_box_type GetIndexBox() const;
 
    private:

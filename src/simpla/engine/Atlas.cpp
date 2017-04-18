@@ -32,12 +32,11 @@ struct Atlas::pimpl_s {
     size_tuple m_largest_dimensions_{64, 64, 64};
 
     index_box_type m_index_box_{{0, 0, 0}, {64, 32, 32}};
-
-    std::shared_ptr<Chart> m_chart_;
 };
 
 Atlas::Atlas() : m_pimpl_(new pimpl_s){};
 Atlas::~Atlas(){};
+void Atlas::SetUp(){};
 
 void Atlas::Decompose(size_tuple const &d, int local_id){};
 
@@ -83,6 +82,8 @@ size_tuple Atlas::GetDimensions() const {
     d = std::get<1>(m_pimpl_->m_index_box_) - std::get<0>(m_pimpl_->m_index_box_);
     return d;
 }
+
+void Atlas::SetIndexBox(index_box_type ibx) { m_pimpl_->m_index_box_ = ibx; }
 index_box_type Atlas::GetIndexBox() const { return m_pimpl_->m_index_box_; }
 
 // size_type Atlas::size(int level) const { return m_backend_->m_layer_[level].size(); }

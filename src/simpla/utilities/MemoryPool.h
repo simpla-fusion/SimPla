@@ -9,12 +9,11 @@
 #ifndef CORE_UTILITIES_MEMORY_POOL_H_
 #define CORE_UTILITIES_MEMORY_POOL_H_
 
+#include <simpla/utilities/SingletonHolder.h>
 #include <stddef.h>
 #include <memory>
-#include <simpla/utilities/SingletonHolder.h>
 
-namespace simpla
-{
+namespace simpla {
 
 /** @ingroup toolbox
  * @addtogroup memory_pool Memory Pool
@@ -23,10 +22,8 @@ namespace simpla
  * allocate operation of moderate size array or memory block.
  *
  */
-class MemoryPool
-{
-
-public:
+class MemoryPool {
+   public:
     typedef char byte_type;
 
     MemoryPool();
@@ -62,37 +59,24 @@ public:
 
     void clear();
 
-
-    struct deleter_s
-    {
+    struct deleter_s {
         void *addr_;
         size_t s_;
 
-        deleter_s(void *p, size_t s)
-                : addr_(p), s_(s)
-        {
-        }
+        deleter_s(void *p, size_t s) : addr_(p), s_(s) {}
 
-        ~deleter_s()
-        {
-        }
+        ~deleter_s() {}
 
-        inline void operator()(void *ptr)
-        {
-
-            SingletonHolder<MemoryPool>::instance().push(addr_, s_);
-        }
+        inline void operator()(void *ptr) { SingletonHolder<MemoryPool>::instance().push(addr_, s_); }
     };
 
-private:
+   private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> pimpl_;
 };
 
-
-template<typename T>
-std::shared_ptr<T> sp_alloc_array(size_t s)
-{
+template <typename T>
+std::shared_ptr<T> sp_alloc_array(size_t s) {
     void *addr = SingletonHolder<MemoryPool>::instance().pop(s * sizeof(T));
 
     return std::shared_ptr<T>(reinterpret_cast<T *>(addr), MemoryPool::deleter_s(addr, s * sizeof(T)));
@@ -101,7 +85,6 @@ std::shared_ptr<T> sp_alloc_array(size_t s)
 std::shared_ptr<void> sp_alloc_memory(size_t s);
 /** @} */
 
-} //namespace simpla
-
+}  // namespace simpla
 
 #endif  // CORE_UTILITIES_MEMORY_POOL_H_

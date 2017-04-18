@@ -28,11 +28,8 @@ class Model : public data::Serializable, public SPObject {
     void Finalize();
 
     int GetNDims() const;
-    box_type const &GetBoundBox() const;
 
-    //    std::shared_ptr<data::DataTable> GetMaterial(std::string const &k = "") const;
-    //    std::shared_ptr<data::DataTable> SetMaterial(std::string const &k, std::shared_ptr<DataTable> p = nullptr);
-    //    id_type GetMaterialId(std::string const &k) const;
+    box_type const &GetBoundBox() const;
 
     std::pair<std::shared_ptr<geometry::GeoObject>, bool> AddObject(std::string const &k, std::shared_ptr<DataTable>);
 
