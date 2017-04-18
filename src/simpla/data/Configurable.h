@@ -5,9 +5,9 @@
 #ifndef SIMPLA_CONFIGURABLE_H
 #define SIMPLA_CONFIGURABLE_H
 
-#include "simpla/data/DataTable.h"
+#include "DataTable.h"
 namespace simpla {
-namespace concept {
+namespace data {
 class Configurable {
    public:
     Configurable(std::shared_ptr<data::DataTable> const& t = nullptr)

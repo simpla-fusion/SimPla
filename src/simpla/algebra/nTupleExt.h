@@ -17,6 +17,35 @@
 #include "nTuple.h"
 
 namespace simpla {
+
+
+typedef nTuple<Real, 3ul> point_type;  //!< DataType of configuration space point (coordinates i.e. (x,y,z) )
+
+typedef nTuple<Real, 3ul> vector_type;
+
+typedef std::tuple<point_type, point_type> box_type;  //! two corner of rectangle (or hexahedron ) , <lower ,upper>
+
+typedef long difference_type;  //!< Data type of the difference between indices,i.e.  s = i - j
+
+typedef nTuple<index_type, 3> index_tuple;
+typedef nTuple<size_type, 3> size_tuple;
+
+typedef std::tuple<index_tuple, index_tuple> index_box_type;
+
+// typedef std::complex<Real> Complex;
+
+typedef nTuple<Real, 3> Vec3;
+
+typedef nTuple<Real, 3> CoVec3;
+
+typedef nTuple<Integral, 3> IVec3;
+
+typedef nTuple<Real, 3> RVec3;
+
+// typedef nTuple<Complex, 3> CVec3;
+
+
+
 namespace algebra {
 
 template <typename T>
@@ -196,7 +225,7 @@ std::ostream &operator<<(std::ostream &os, std::tuple<nTuple_<T, M...>, nTuple_<
 //{
 //    typedef algebra::declare::nTuple_<TV, N...> TSrc;
 //
-//    static constexpr any eval(toolbox::LuaObject const &v)
+//    static constexpr any eval(utilities::LuaObject const &v)
 //    {
 //        return v.as<TDest>();
 //    }

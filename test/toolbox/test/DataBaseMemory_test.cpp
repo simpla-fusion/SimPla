@@ -7,7 +7,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
-#include "simpla/toolbox/MemoryDataBase.h"
+#include "simpla/utilities/MemoryDataBase.h"
 
 using namespace simpla::toolbox;
 

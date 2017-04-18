@@ -41,7 +41,7 @@ void create_scenario(simulation::Context *ctx, ConfigParser const &options)
 
             std::function<Real(point_type const &)> density;
             std::get<1>(item)["Density"].as(&density);
-            r.foreach([&](MeshEntityId const &s)
+            r.foreach([&](EntityId const &s)
                       {
                           auto x = center_mesh->point(s);
                           if (g_obj(x) <= 0) { sp->rho[s] = density(x); }
@@ -59,7 +59,7 @@ void create_scenario(simulation::Context *ctx, ConfigParser const &options)
             std::function<vector_type(point_type const &)> fun;
             options["InitValue"]["B0"]["Value"].as(&fun);
             center_mesh->range(FACE).foreach(
-                    [&](mesh::MeshEntityId const &s)
+                    [&](EntityId const &s)
                     {
                         center_domain->B0[s] = center_mesh->
                                 template sample<FACE>(s, fun(center_mesh->point(s)));
@@ -71,7 +71,7 @@ void create_scenario(simulation::Context *ctx, ConfigParser const &options)
             std::function<vector_type(point_type const &)> fun;
             options["InitValue"]["B1"]["Value"].as(&fun);
             center_mesh->range(FACE).foreach(
-                    [&](mesh::MeshEntityId const &s)
+                    [&](EntityId const &s)
                     {
                         center_domain->B[s] = center_mesh->template sample<FACE>(s, fun(center_mesh->point(s)));
                     });
@@ -82,7 +82,7 @@ void create_scenario(simulation::Context *ctx, ConfigParser const &options)
             std::function<vector_type(point_type const &)> fun_fun;
             options["InitValue"]["E1"]["Value"].as(&fun_fun);
             center_mesh->range(EDGE).foreach(
-                    [&](mesh::MeshEntityId const &s)
+                    [&](EntityId const &s)
                     {
                         center_domain->E[s] = center_mesh->template sample<EDGE>(s, fun_fun(center_mesh->point(s)));
                     });

@@ -8,10 +8,11 @@
 #define SIMPLA_LINEAR_H
 
 #include <simpla/algebra/nTuple.h>
-#include <simpla/mesh/EntityId.h>
-#include <simpla/mpl/macro.h>
-#include <simpla/mpl/type_traits.h>
-#include <simpla/mpl/type_traits.h>
+#include <simpla/utilities/macro.h>
+#include <simpla/utilities/type_traits.h>
+#include <simpla/utilities/type_traits.h>
+#include <simpla/utilities/EntityId.h>
+
 #include "Algebra.h"
 #include "Calculus.h"
 #include "Expression.h"
@@ -19,7 +20,6 @@
 namespace simpla {
 namespace manifold {
 namespace schemes {
-using namespace simpla::mesh;
 namespace algt = simpla::algebra::tags;
 namespace at = simpla::algebra::traits;
 namespace st = simpla::traits;
@@ -32,7 +32,7 @@ template <typename TM>
 struct InterpolatePolicy {
     typedef TM mesh_type;
     typedef InterpolatePolicy<mesh_type> this_type;
-    typedef mesh::MeshEntityIdCoder M;
+    typedef EntityIdCoder M;
 
    public:
     InterpolatePolicy() {}
@@ -41,24 +41,24 @@ struct InterpolatePolicy {
 
    private:
     template <typename U, typename M, size_type... I>
-    inline U const &eval(algebra::declare::Field_<U, M, I...> &f, MeshEntityId const &s) {
+    inline U const &eval(algebra::declare::Field_<U, M, I...> &f, EntityId const &s) {
         return f[s];
     };
 
     template <typename U, typename M, size_type... I>
-    inline U &eval(algebra::declare::Field_<U, M, I...> const &f, MeshEntityId const &s) {
+    inline U &eval(algebra::declare::Field_<U, M, I...> const &f, EntityId const &s) {
         return f[s];
     };
 
     template <typename TD, typename TIDX>
     static inline auto gather_impl_(TD const &f, TIDX const &idx)
         -> decltype(traits::index(f, std::get<0>(idx)) * std::get<1>(idx)[0]) {
-        MeshEntityId X = (M::_DI);
-        MeshEntityId Y = (M::_DJ);
-        MeshEntityId Z = (M::_DK);
+        EntityId X = (M::_DI);
+        EntityId Y = (M::_DJ);
+        EntityId Z = (M::_DK);
 
         point_type r = std::get<1>(idx);
-        MeshEntityId s = std::get<0>(idx);
+        EntityId s = std::get<0>(idx);
 
         return eval(f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) +    //
                eval(f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) +    //
@@ -102,12 +102,12 @@ struct InterpolatePolicy {
    private:
     template <typename TF, typename IDX, typename TV>
     static inline void scatter_impl_(TF &f, IDX const &idx, TV const &v) {
-        MeshEntityId X = (M::_DI);
-        MeshEntityId Y = (M::_DJ);
-        MeshEntityId Z = (M::_DK);
+        EntityId X = (M::_DI);
+        EntityId Y = (M::_DJ);
+        EntityId Z = (M::_DK);
 
         point_type r = std::get<1>(idx);
-        MeshEntityId s = std::get<0>(idx);
+        EntityId s = std::get<0>(idx);
 
         eval(f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
         eval(f, (s + X) + Y) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
@@ -151,32 +151,32 @@ struct InterpolatePolicy {
 
    private:
     template <typename TV>
-    static inline TV sample_(mesh_type const &m, int_const<VERTEX>, MeshEntityId const &s, TV const &v) {
+    static inline TV sample_(mesh_type const &m, int_const<VERTEX>, EntityId const &s, TV const &v) {
         return v;
     }
 
     template <typename TV, size_type L>
-    static inline TV sample_(mesh_type const &m, int_const<VERTEX>, MeshEntityId const &s, nTuple<TV, L> const &v) {
+    static inline TV sample_(mesh_type const &m, int_const<VERTEX>, EntityId const &s, nTuple<TV, L> const &v) {
         return v[s.w % L];
     }
 
     template <typename TV>
-    static inline TV sample_(mesh_type const &m, int_const<VOLUME>, MeshEntityId const &s, TV const &v) {
+    static inline TV sample_(mesh_type const &m, int_const<VOLUME>, EntityId const &s, TV const &v) {
         return v;
     }
 
     template <typename TV, size_type L>
-    static inline TV sample_(mesh_type const &m, int_const<VOLUME>, MeshEntityId const &s, nTuple<TV, L> const &v) {
+    static inline TV sample_(mesh_type const &m, int_const<VOLUME>, EntityId const &s, nTuple<TV, L> const &v) {
         return v[s.w % L];
     }
 
     template <typename TV>
-    static inline TV sample_(mesh_type const &m, int_const<EDGE>, MeshEntityId const &s, nTuple<TV, 3> const &v) {
+    static inline TV sample_(mesh_type const &m, int_const<EDGE>, EntityId const &s, nTuple<TV, 3> const &v) {
         return v[M::sub_index(s)];
     }
 
     template <typename TV>
-    static inline TV sample_(mesh_type const &m, int_const<FACE>, MeshEntityId const &s, nTuple<TV, 3> const &v) {
+    static inline TV sample_(mesh_type const &m, int_const<FACE>, EntityId const &s, nTuple<TV, 3> const &v) {
         return v[M::sub_index(s)];
     }
     //
@@ -190,7 +190,7 @@ struct InterpolatePolicy {
     //    AUTO_RETURN((sample_(M const & m,int_const< IFORM>(), s, v)))
 
     template <int IFORM, typename TV>
-    static inline at::value_type_t<TV> sample(mesh_type const &m, MeshEntityId const &s, TV const &v) {
+    static inline at::value_type_t<TV> sample(mesh_type const &m, EntityId const &s, TV const &v) {
         return sample_(m, int_const<IFORM>(), s, v);
     }
     //    AUTO_RETURN((sample_(int_const< IFORM>(), s, v)))
@@ -215,31 +215,31 @@ struct InterpolatePolicy {
 
     template <typename V, mesh::MeshEntityType IFORM, size_type DOF, typename U>
     static inline void assign(algebra::declare::Field_<V, mesh_type, IFORM, DOF> &f, mesh_type const &m,
-                              MeshEntityId const &s, nTuple<U, DOF> const &v) {
+                              EntityId const &s, nTuple<U, DOF> const &v) {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
     }
 
     template <typename V, size_type DOF, typename U>
     static inline void assign(algebra::declare::Field_<V, mesh_type, EDGE, DOF> &f, mesh_type const &m,
-                              MeshEntityId const &s, nTuple<U, 3> const &v) {
+                              EntityId const &s, nTuple<U, 3> const &v) {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[M::sub_index(s)]; }
     }
 
     template <typename V, size_type DOF, typename U>
     static inline void assign(algebra::declare::Field_<V, mesh_type, FACE, DOF> &f, mesh_type const &m,
-                              MeshEntityId const &s, nTuple<U, 3> const &v) {
+                              EntityId const &s, nTuple<U, 3> const &v) {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[M::sub_index(s)]; }
     }
 
     template <typename V, size_type DOF, typename U>
     static inline void assign(algebra::declare::Field_<V, mesh_type, VOLUME, DOF> &f, mesh_type const &m,
-                              MeshEntityId const &s, nTuple<U, DOF> const &v) {
+                              EntityId const &s, nTuple<U, DOF> const &v) {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
     }
 
     template <typename V, mesh::MeshEntityType IFORM, size_type DOF, typename U>
     static inline void assign(algebra::declare::Field_<V, mesh_type, IFORM, DOF> &f, mesh_type const &m,
-                              MeshEntityId const &s, U const &v) {
+                              EntityId const &s, U const &v) {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v; }
     }
 };

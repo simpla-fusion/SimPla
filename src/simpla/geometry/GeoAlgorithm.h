@@ -13,7 +13,7 @@
 
 #include <simpla/algebra/all.h>
 
-#include <simpla/toolbox/sp_def.h>
+#include <simpla/utilities/sp_def.h>
 
 namespace simpla {
 namespace geometry {

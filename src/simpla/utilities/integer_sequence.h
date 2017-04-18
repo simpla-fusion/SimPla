@@ -8,11 +8,10 @@
 #ifndef CORE_toolbox_INTEGER_SEQUENCE_H_
 #define CORE_toolbox_INTEGER_SEQUENCE_H_
 
-#include <simpla/SIMPLA_config.h>
+#include <simpla/utilities/sp_def.h>
 #include <stddef.h>
 #include <iostream>
 #include "simpla/concept/CheckConcept.h"
-#include "simpla/mpl/macro.h"
 
 namespace simpla {
 using namespace concept;
@@ -234,14 +233,12 @@ struct _seq_reduce;
 template <int M, int... N>
 struct _seq_reduce<M, N...> {
     template <typename Reduction, int... L, typename... Args>
-    static inline auto eval(Reduction const &reduction, integer_sequence<int, L...>,
-                            Args &&... args) {
-        return ((reduction(_seq_reduce<N...>::eval(reduction, integer_sequence<int, L..., M>(),
-                                                   std::forward<Args>(args)...),
-                           _seq_reduce<M - 1, N...>::eval(reduction, integer_sequence<int, L...>(),
-                                                          std::forward<Args>(args)...)
+    static inline auto eval(Reduction const &reduction, integer_sequence<int, L...>, Args &&... args) {
+        return ((reduction(
+            _seq_reduce<N...>::eval(reduction, integer_sequence<int, L..., M>(), std::forward<Args>(args)...),
+            _seq_reduce<M - 1, N...>::eval(reduction, integer_sequence<int, L...>(), std::forward<Args>(args)...)
 
-                               )));
+                )));
     }
 
     template <typename Reduction, typename... Args>
@@ -253,10 +250,8 @@ struct _seq_reduce<M, N...> {
 template <int... N>
 struct _seq_reduce<1, N...> {
     template <typename Reduction, int... L, typename... Args>
-    static inline auto eval(Reduction const &reduction, integer_sequence<int, L...>,
-                            Args &&... args) {
-        return ((_seq_reduce<N...>::eval(reduction, integer_sequence<int, L..., 1>(),
-                                         std::forward<Args>(args)...)));
+    static inline auto eval(Reduction const &reduction, integer_sequence<int, L...>, Args &&... args) {
+        return ((_seq_reduce<N...>::eval(reduction, integer_sequence<int, L..., 1>(), std::forward<Args>(args)...)));
     }
 };
 
@@ -332,15 +327,13 @@ template <typename Tp>
 struct seq_max : public int_sequence<> {};
 
 template <typename _Tp, _Tp... I>
-struct seq_max<integer_sequence<_Tp, I...>>
-    : public std::integral_constant<_Tp, _impl::_seq_max<_Tp, I...>::value> {};
+struct seq_max<integer_sequence<_Tp, I...>> : public std::integral_constant<_Tp, _impl::_seq_max<_Tp, I...>::value> {};
 
 template <typename Tp>
 struct seq_min : public int_sequence<> {};
 
 template <typename _Tp, _Tp... I>
-struct seq_min<integer_sequence<_Tp, I...>>
-    : public std::integral_constant<_Tp, _impl::_seq_min<_Tp, I...>::value> {};
+struct seq_min<integer_sequence<_Tp, I...>> : public std::integral_constant<_Tp, _impl::_seq_min<_Tp, I...>::value> {};
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -407,8 +400,7 @@ std::ostream &seq_print(integer_sequence<TInts, N...>, std::ostream &os, TA cons
 }  // namespace traits
 
 template <typename _Tp, _Tp First, _Tp Second, _Tp... Others>
-std::ostream &operator<<(std::ostream &os,
-                         integer_sequence<_Tp, First, Second, Others...> const &) {
+std::ostream &operator<<(std::ostream &os, integer_sequence<_Tp, First, Second, Others...> const &) {
     os << First << " , " <<
 
         integer_sequence<_Tp, Second, Others...>();
@@ -471,8 +463,7 @@ auto operator+(integer_sequence<_T1>, integer_sequence<_T1>) {
 
 template <typename _T1, _T1 I0, _T1... I, typename _T2, _T2 J0, _T2... J>
 auto operator+(integer_sequence<_T1, I0, I...>, integer_sequence<_T2, J0, J...>) {
-    return integral_constant<_T1, (I0 + J0)>(),
-           (integer_sequence<_T1, I...>() + integer_sequence<_T2, J...>());
+    return integral_constant<_T1, (I0 + J0)>(), (integer_sequence<_T1, I...>() + integer_sequence<_T2, J...>());
 }
 
 template <typename _T1, _T1... I, typename _T2>
@@ -491,8 +482,7 @@ auto operator-(integer_sequence<_T1>, integer_sequence<_T1>) {
 
 template <typename _T1, _T1 I0, _T1... I, typename _T2, _T2 J0, _T2... J>
 auto operator-(integer_sequence<_T1, I0, I...>, integer_sequence<_T2, J0, J...>) {
-    return integral_constant<_T1, (I0 - J0)>(),
-           (integer_sequence<_T1, I...>() - integer_sequence<_T2, J...>());
+    return integral_constant<_T1, (I0 - J0)>(), (integer_sequence<_T1, I...>() - integer_sequence<_T2, J...>());
 }
 
 template <typename _T1, _T1... I, typename _T2, _T2 M>
@@ -513,15 +503,13 @@ template <typename _Tp, _Tp N0, _Tp N1>
 struct seq_max<_Tp, N0, N1> : public integral_constant<_Tp, (N0 > N1 ? N0 : N1)> {};
 
 template <typename _Tp, _Tp N0, _Tp... N>
-struct seq_max<_Tp, N0, N...>
-    : public integral_constant<_Tp, seq_max<_Tp, N0, seq_max<_Tp, N...>::value>::value> {};
+struct seq_max<_Tp, N0, N...> : public integral_constant<_Tp, seq_max<_Tp, N0, seq_max<_Tp, N...>::value>::value> {};
 
 template <typename _Tp, _Tp... N>
 struct seq_min;
 
 template <typename _Tp, _Tp N0, _Tp... N>
-struct seq_min<_Tp, N0, N...>
-    : public integral_constant<_Tp, seq_min<_Tp, N0, seq_min<_Tp, N...>::value>::value> {};
+struct seq_min<_Tp, N0, N...> : public integral_constant<_Tp, seq_min<_Tp, N0, seq_min<_Tp, N...>::value>::value> {};
 
 template <typename _Tp, _Tp N0>
 struct seq_min<_Tp, N0> : public integral_constant<_Tp, N0> {};

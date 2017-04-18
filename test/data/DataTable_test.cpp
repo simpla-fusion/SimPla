@@ -6,8 +6,8 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/all.h>
 #include <simpla/data/all.h>
-#include <simpla/design_pattern/SingletonHolder.h>
-#include <simpla/toolbox/FancyStream.h>
+#include <simpla/utilities/SingletonHolder.h>
+#include <simpla/utilities/FancyStream.h>
 #include <complex>
 #include <iostream>
 

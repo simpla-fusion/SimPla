@@ -296,7 +296,7 @@ void Domain::UpdateDataOnPatch(Patch *p, Real time_now, Real time_dt) {
 // }
 //
 // Range<id_type> const& Model::select(int GetIFORM, int GetTag) {
-//    //    typedef MeshEntityIdCoder M;
+//    //    typedef EntityIdCoder M;
 //    //
 //    //    try {
 //    //        return m_range_cache_.at(GetIFORM).at(GetTag);
@@ -376,7 +376,7 @@ void Domain::UpdateDataOnPatch(Patch *p, Real time_now, Real time_dt) {
 //    //        return m_interface_cache_.at(GetIFORM).at(tag_in).at(tag_out);
 //    //    } catch (...) {}
 //    //
-//    //    typedef mesh::MeshEntityIdCoder M;
+//    //    typedef EntityIdCoder M;
 //    //
 //    //    const_cast<this_type*>(this)->m_interface_cache_[GetIFORM][tag_in].emplace(
 //    //        std::make_pair(tag_out, Range<id_type>(std::make_shared<UnorderedRange<id_type>>())));

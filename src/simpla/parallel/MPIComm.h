@@ -18,8 +18,7 @@
 #include <mpi.h>
 
 #include "simpla/algebra/nTuple.h"
-#include "simpla/design_pattern/SingletonHolder.h"
-//#include "../toolbox/Utilities.h"
+#include "simpla/utilities/SingletonHolder.h"
 
 namespace simpla {
 namespace parallel {

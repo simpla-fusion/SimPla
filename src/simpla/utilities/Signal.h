@@ -5,15 +5,12 @@
 #ifndef SIMPLA_SIGNAL_H
 #define SIMPLA_SIGNAL_H
 
-#include <simpla/engine/SPObject.h>
-#include <simpla/mpl/macro.h>
-#include <simpla/toolbox/Log.h>
+#include <simpla/utilities/Log.h>
 #include <functional>
 #include <map>
 #include <set>
 
 namespace simpla {
-class SPObject;
 namespace design_pattern {
 template <typename...>
 class Signal;

@@ -7,6 +7,8 @@
 #ifndef SIMPLA_FIELD_H
 #define SIMPLA_FIELD_H
 
+#include <simpla/utilities/sp_def.h>
+#include <simpla/utilities/EntityId.h>
 #include <cstring>  // for memset
 #include "Algebra.h"
 #include "nTuple.h"
@@ -16,9 +18,8 @@
 #include "simpla/data/all.h"
 #include "simpla/engine/Attribute.h"
 #include "simpla/engine/MeshBlock.h"
-#include "simpla/mpl/Range.h"
-#include "simpla/toolbox/FancyStream.h"
-#include "simpla/toolbox/sp_def.h"
+#include "simpla/utilities/FancyStream.h"
+#include "simpla/utilities/Range.h"
 namespace simpla {
 namespace mesh {
 
@@ -63,7 +64,6 @@ class FieldView : public engine::Attribute {
     typedef std::true_type prefer_pass_by_reference;
     typedef std::false_type is_expression;
     typedef std::true_type is_field;
-    typedef mesh::MeshEntityId entity_id;
     typedef std::conditional_t<DOF == 1, value_type, nTuple<value_type, DOF>> cell_tuple;
     typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME), cell_tuple, nTuple<cell_tuple, 3>>
         field_value_type;
@@ -155,8 +155,8 @@ class FieldView : public engine::Attribute {
     sub_array_type const& operator[](unsigned int i) const { return *m_data_[i % num_of_subs]; }
     sub_array_type& operator[](unsigned int i) { return *m_data_[i % num_of_subs]; }
 
-    value_type const& at(entity_id const& s) const { return (*m_data_[s.w])(s.x, s.y, s.z); }
-    value_type& at(entity_id const& s) { return (*m_data_[s.w])(s.x, s.y, s.z); }
+    value_type const& at(EntityId const& s) const { return (*m_data_[s.w])(s.x, s.y, s.z); }
+    value_type& at(EntityId const& s) { return (*m_data_[s.w])(s.x, s.y, s.z); }
 
    private:
     template <typename... Others>
@@ -203,17 +203,17 @@ class FieldView : public engine::Attribute {
     //**********************************************************************************************
 
     template <typename TOP, typename... Args>
-    void Foreach_(Range<entity_id> const& r, TOP const& op, Args&&... args) {
+    void Foreach_(Range<EntityId> const& r, TOP const& op, Args&&... args) {
         ASSERT(!empty());
         for (int j = 0; j < num_of_subs; ++j) {
-            r.foreach ([&](entity_id s) {
+            r.foreach ([&](EntityId s) {
                 s.w = j;
                 op(at(s), calculus_policy::getValue(*m_mesh_, std::forward<Args>(args), s)...);
             });
         }
     }
     template <typename... Args>
-    void Foreach(Range<entity_id> const& r, Args&&... args) {
+    void Foreach(Range<EntityId> const& r, Args&&... args) {
         Foreach_(r, std::forward<Args>(args)...);
     }
     template <typename... Args>
@@ -227,7 +227,7 @@ class FieldView : public engine::Attribute {
         Foreach_(m_mesh_->GetRange(), tags::_assign(), other);
     }
     template <typename Other>
-    void Assign(Range<entity_id> const& r, Other const& other) {
+    void Assign(Range<EntityId> const& r, Other const& other) {
         Foreach_(r, tags::_assign(), other);
     }
 };  // class FieldView

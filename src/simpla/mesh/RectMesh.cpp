@@ -6,7 +6,7 @@
 
 #include <simpla/algebra/nTuple.h>
 #include <simpla/algebra/nTupleExt.h>
-#include <simpla/toolbox/Log.h>
+#include <simpla/utilities/Log.h>
 #include "EntityId.h"
 namespace simpla {
 namespace mesh {
@@ -35,7 +35,7 @@ RectMesh::~RectMesh() {}
 //void RectMesh::SetUpDataOnPatch() {
 //    ASSERT(m_ndims_ <= 3);
 //
-//    ASSERT(toolbox::is_valid(m_g_box_));
+//    ASSERT(utilities::is_valid(m_g_box_));
 //    for (int i = 0; i < m_ndims_; ++i) {
 //        if (std::get<1>(m_g_box_)[i] <= std::get<0>(m_g_box_)[i] + 1) {
 //            m_ghost_width_[i] = 0;
@@ -108,24 +108,24 @@ std::shared_ptr<RectMesh> RectMesh::intersection(index_box_type const& other_box
     return create(inc_level, toolbox::intersection(m_inner_box_, other_box));
 }
 
-Range<MeshEntityId> RectMesh::range(box_type const& b, int entityType) const {
+Range<EntityId> RectMesh::range(box_type const& b, int entityType) const {
     index_tuple l, u;
     l = point_to_index(std::get<1>(b));
     u = point_to_index(std::get<1>(b)) + 1;
     return std::move(range(&l[0], &u[0], entityType));
 }
 
-Range<MeshEntityId> RectMesh::range(index_box_type const& b, int iform) const {
+Range<EntityId> RectMesh::range(index_box_type const& b, int iform) const {
     return std::move(range(&(std::get<0>(b)[0]), &(std::get<1>(b)[0]), iform));
 }
 
-Range<MeshEntityId> RectMesh::range(index_type const* b, index_type const* e, int entityType) const {
-    return std::move(Range<MeshEntityId>(std::make_shared<ContinueRange<MeshEntityId>>(b, e, entityType)));
+Range<EntityId> RectMesh::range(index_type const* b, index_type const* e, int entityType) const {
+    return std::move(Range<EntityId>(std::make_shared<ContinueRange<EntityId>>(b, e, entityType)));
     //    return std::Move(make_continue_range<EntityId>(b, e, entityType));
 }
 
-Range<MeshEntityId> RectMesh::range(MeshZoneTag status, int entityType) const {
-    Range<mesh::MeshEntityId> res;
+Range<EntityId> RectMesh::range(MeshZoneTag status, int entityType) const {
+    Range<EntityId> res;
 
     /**
      *   |<-----------------------------     valid   --------------------------------->|
@@ -144,10 +144,10 @@ Range<MeshEntityId> RectMesh::range(MeshZoneTag status, int entityType) const {
     m_g_dimensions_ = toolbox::dimensions(m_g_box_);
     switch (status) {
         case SP_ES_ALL:  // all valid
-            res.append(std::make_shared<ContinueRange<MeshEntityId>>(m_outer_box_, entityType));
+            res.append(std::make_shared<ContinueRange<EntityId>>(m_outer_box_, entityType));
             break;
         case SP_ES_OWNED:
-            res.append(std::make_shared<ContinueRange<MeshEntityId>>(m_inner_box_, entityType));
+            res.append(std::make_shared<ContinueRange<EntityId>>(m_inner_box_, entityType));
             break;
         case SP_ES_NON_LOCAL:  // = SP_ES_SHARED | SP_ES_OWNED, //              0b000101
         case SP_ES_SHARED:     //       = 0x04,                    0b000100 shared by two or more
@@ -158,31 +158,31 @@ Range<MeshEntityId> RectMesh::range(MeshZoneTag status, int entityType) const {
             break;
         case SP_ES_GHOST:  // = SP_ES_SHARED | SP_ES_NOT_OWNED, //              0b000110
             if (m_g_dimensions_[0] > 1) {
-                res.append(std::make_shared<ContinueRange<MeshEntityId>>(
+                res.append(std::make_shared<ContinueRange<EntityId>>(
                     index_box_type{{m_outer_lower_[0], m_outer_lower_[1], m_outer_lower_[2]},
                                    {m_inner_lower_[0], m_outer_upper_[1], m_outer_upper_[2]}},
                     entityType));
-                res.append(std::make_shared<ContinueRange<MeshEntityId>>(
+                res.append(std::make_shared<ContinueRange<EntityId>>(
                     index_box_type{{m_inner_upper_[0], m_outer_lower_[1], m_outer_lower_[2]},
                                    {m_outer_upper_[0], m_outer_upper_[1], m_outer_upper_[2]}},
                     entityType));
             }
             if (m_g_dimensions_[1] > 1) {
-                res.append(std::make_shared<ContinueRange<MeshEntityId>>(
+                res.append(std::make_shared<ContinueRange<EntityId>>(
                     index_box_type{{m_inner_lower_[0], m_outer_lower_[1], m_outer_lower_[2]},
                                    {m_inner_upper_[0], m_inner_lower_[1], m_outer_upper_[2]}},
                     entityType));
-                res.append(std::make_shared<ContinueRange<MeshEntityId>>(
+                res.append(std::make_shared<ContinueRange<EntityId>>(
                     index_box_type{{m_inner_lower_[0], m_inner_upper_[1], m_outer_lower_[2]},
                                    {m_inner_upper_[0], m_outer_upper_[1], m_outer_upper_[2]}},
                     entityType));
             }
             if (m_g_dimensions_[2] > 1) {
-                res.append(std::make_shared<ContinueRange<MeshEntityId>>(
+                res.append(std::make_shared<ContinueRange<EntityId>>(
                     index_box_type{{m_inner_lower_[0], m_inner_lower_[1], m_outer_lower_[2]},
                                    {m_inner_upper_[0], m_inner_upper_[1], m_inner_lower_[2]}},
                     entityType));
-                res.append(std::make_shared<ContinueRange<MeshEntityId>>(
+                res.append(std::make_shared<ContinueRange<EntityId>>(
                     index_box_type{{m_inner_lower_[0], m_inner_lower_[1], m_inner_upper_[2]},
                                    {m_inner_upper_[0], m_inner_upper_[1], m_outer_upper_[2]}},
                     entityType));
@@ -191,7 +191,7 @@ Range<MeshEntityId> RectMesh::range(MeshZoneTag status, int entityType) const {
         case SP_ES_DMZ:      //  = 0x100,
         case SP_ES_NOT_DMZ:  //  = 0x200,
         case SP_ES_LOCAL:    // = SP_ES_NOT_SHARED | SP_ES_OWNED, //              0b001001
-            res.append(std::make_shared<ContinueRange<MeshEntityId>>(m_inner_box_, entityType));
+            res.append(std::make_shared<ContinueRange<EntityId>>(m_inner_box_, entityType));
             break;
         case SP_ES_VALID: {
             index_tuple l, u;
@@ -203,7 +203,7 @@ Range<MeshEntityId> RectMesh::range(MeshZoneTag status, int entityType) const {
                     u[i] -= 1;
                 }
             }
-            res.append(std::make_shared<ContinueRange<MeshEntityId>>(l, u, entityType));
+            res.append(std::make_shared<ContinueRange<EntityId>>(l, u, entityType));
             break;
         }
         //        case SP_ES_INTERFACE: //  = 0x010, //                        0b010000

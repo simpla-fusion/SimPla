@@ -7,7 +7,7 @@
 #ifndef SIMPLA_CONSTRAINT_H
 #define SIMPLA_CONSTRAINT_H
 
-#include <simpla/toolbox/Parallel.h>
+#include <simpla/utilities/Parallel.h>
 #include <simpla/manifold/ManifoldTraits.h>
 
 namespace simpla { namespace model

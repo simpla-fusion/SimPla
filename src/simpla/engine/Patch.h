@@ -11,26 +11,26 @@
 #include "SPObject.h"
 
 namespace simpla {
-template <typename>
-class Range;
-namespace geometry {
-class GeoObject;
-}
+
 namespace engine {
 class MeshBlock;
+class Chart;
 class Patch {
     SP_OBJECT_BASE(Patch)
    public:
     Patch();
-    //    Patch(Patch const &);
-    //    Patch(Patch &&);
+    Patch(Patch const &) = delete;
+    Patch(Patch &&) = delete;
     virtual ~Patch();
+
+    void SetChart(std::shared_ptr<Chart>);
+    std::shared_ptr<Chart> GetChart() const;
 
     id_type GetBlockId() const;
     void SetBlock(std::shared_ptr<MeshBlock> const &);
     std::shared_ptr<MeshBlock> GetBlock() const;
 
-    std::map<id_type, std::shared_ptr<data::DataBlock>> &GetData();
+    std::map<id_type, std::shared_ptr<data::DataBlock>> &GetAllData();
 
     int Push(id_type const &id, std::shared_ptr<data::DataBlock> const &);
     std::shared_ptr<data::DataBlock> Pop(id_type const &id) const;

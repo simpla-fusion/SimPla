@@ -9,10 +9,10 @@
 #define CORE_GEOMETRY_GEO_OBJECT_H_
 
 #include <simpla/algebra/nTuple.h>
-#include <simpla/design_pattern/design_pattern.h>
-#include <simpla/mpl/type_traits.h>
-#include <simpla/toolbox/Log.h>
-#include <simpla/toolbox/sp_def.h>
+#include <simpla/utilities/sp_def.h>
+#include <simpla/utilities/type_traits.h>
+#include <simpla/utilities/Log.h>
+#include <simpla/utilities/design_pattern.h>
 #include "GeoAlgorithm.h"
 #include "simpla/data/EnableCreateFromDataTable.h"
 #include "simpla/data/Serializable.h"

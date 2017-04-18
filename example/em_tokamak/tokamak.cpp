@@ -9,9 +9,9 @@
 
 #include "tokamak.h"
 
-//#include <simpla/toolbox/utilities.h>
-#include <simpla/toolbox/IO.h>
-#include <simpla/toolbox/Parallel.h>
+//#include <simpla/utilities/utilities.h>
+#include <simpla/utilities/IO.h>
+#include <simpla/utilities/Parallel.h>
 
 #include <simpla/manifold/pre_define/PreDefine.h>
 //#include <simpla/particle/pre_define/PICGyro.h>
@@ -19,7 +19,7 @@
 #include <simpla/geometry/Constraint.h>
 #include <simpla/model/GEqdsk.h>
 //#include <simpla/model/Constraint.h>
-//#include <simpla/toolbox/XDMFStream.h>
+//#include <simpla/utilities/XDMFStream.h>
 //#include <simpla/particle/ParticleGenerator.h>
 
 namespace simpla {

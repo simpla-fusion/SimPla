@@ -10,9 +10,9 @@
 #include <simpla/algebra/nTuple.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/geometry/GeoObject.h>
-#include <simpla/toolbox/Log.h>
+#include <simpla/utilities/Log.h>
 #include <type_traits>
-
+#include "SPObject.h"
 namespace simpla {
 namespace engine {
 

@@ -604,5 +604,5 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //}
 
 
-}}//namespace simpla { namespace toolbox
+}}//namespace simpla { namespace utilities
 

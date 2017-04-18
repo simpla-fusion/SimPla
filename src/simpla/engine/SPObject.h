@@ -12,11 +12,9 @@
 #include <typeinfo>
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/concept/Configurable.h>
-#include <simpla/data/DataTable.h>
-#include <simpla/design_pattern/Signal.h>
+#include <simpla/utilities/Signal.h>
+#include <simpla/utilities/sp_def.h>
 #include <typeindex>
-#include "SPObjectHead.h"
 namespace simpla {
 /**
  * @addtogroup concept

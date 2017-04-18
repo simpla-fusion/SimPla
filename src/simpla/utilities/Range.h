@@ -5,9 +5,9 @@
 #ifndef SIMPLA_RANGE_H
 #define SIMPLA_RANGE_H
 
+#include <simpla/utilities/sp_def.h>
 #include <simpla/concept/Splittable.h>
-#include <simpla/engine/SPObject.h>
-#include <simpla/toolbox/Log.h>
+#include <simpla/utilities/Log.h>
 #include <cstddef>
 #include <iterator>
 #include <memory>

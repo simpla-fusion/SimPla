@@ -11,10 +11,10 @@
 #include <cstddef>
 #include <type_traits>
 
-#include <simpla/mpl/integer_sequence.h>
-#include <simpla/mpl/macro.h>
-#include <simpla/mpl/type_traits.h>
-#include <simpla/toolbox/Log.h>
+#include <simpla/utilities/integer_sequence.h>
+#include <simpla/utilities/macro.h>
+#include <simpla/utilities/type_traits.h>
+#include <simpla/utilities/Log.h>
 #include "Algebra.h"
 #include "Arithmetic.h"
 

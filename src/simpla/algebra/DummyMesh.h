@@ -10,7 +10,7 @@
 #include <memory>
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/mpl/type_traits.h>
+#include <simpla/utilities/type_traits.h>
 #include "Algebra.h"
 #include "Expression.h"
 #include "Arithmetic.h"

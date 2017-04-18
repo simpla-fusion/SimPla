@@ -12,9 +12,9 @@ namespace simpla { namespace particle
 
 void _impl::load_dataset(mesh::MeshEntityRange const &r0, data_model::DataSet const &ds,
                          sp::spPagePool *pool,
-                         parallel::concurrent_hash_map<typename mesh::MeshEntityId, sp::spPage *> *data)
+                         parallel::concurrent_hash_map<typename EntityId, sp::spPage *> *data)
 {
-    typedef parallel::concurrent_hash_map<typename mesh::MeshEntityId, sp::spPage *> container_type;
+    typedef parallel::concurrent_hash_map<typename EntityId, sp::spPage *> container_type;
     std::mutex m_pool_mutex_;
     sp::spPage *pg = 0x0;
     size_t num_of_element = ds.memory_space.num_of_elements();

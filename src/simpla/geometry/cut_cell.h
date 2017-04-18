@@ -118,7 +118,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //
 //template<size_t N, size_t M>
 //template<typename TRes>
-//void MeshEntityIdCoder<N, M>::cut_cell(coordinates_type const & pV0,
+//void EntityIdCoder<N, M>::cut_cell(coordinates_type const & pV0,
 //		coordinates_type const & pV1, TRes*res, mesh_id_type node_id)
 //{
 //

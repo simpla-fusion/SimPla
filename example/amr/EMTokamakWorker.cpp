@@ -2,13 +2,13 @@
 // Created by salmon on 16-11-29.
 //
 
-#include <simpla/SIMPLA_config.h>
+#include <simpla/utilities/sp_def.h>
 
 #include <simpla/algebra/all.h>
 #include <simpla/engine/all.h>
+#include <simpla/mesh/CylindricalGeometry.h>
 #include <simpla/model/GEqdsk.h>
 #include <simpla/physics/Constants.h>
-#include <simpla/predefine/mesh/CylindricalGeometry.h>
 #include <simpla/predefine/physics/EMFluid.h>
 #include <iostream>
 
@@ -19,8 +19,8 @@ using namespace engine;
 class EMTokamakWorker;
 
 class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
+    SP_OBJECT_HEAD(EMTokamakWorker, EMFluid<mesh::CylindricalGeometry>)
    public:
-    SP_OBJECT_HEAD(EMTokamakWorker, EMFluid<mesh::CylindricalGeometry>);
     explicit EMTokamakWorker() : base_type() {}
     ~EMTokamakWorker() {}
 

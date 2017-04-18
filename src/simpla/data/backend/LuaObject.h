@@ -22,8 +22,8 @@
 #include <utility>
 
 #include <simpla/concept/Printable.h>
-#include <simpla/mpl/type_cast.h>
-#include <simpla/toolbox/Log.h>
+#include <simpla/utilities/type_cast.h>
+#include <simpla/utilities/Log.h>
 #include "LuaObjectExt.h"
 
 extern "C" {
@@ -360,7 +360,7 @@ class LuaObject : public concept::Printable {
 };
 
 std::ostream &operator<<(std::ostream &os, LuaObject const &obj);
-}  // namespace toolbox
+}  // namespace utilities
 
 namespace traits {
 
@@ -380,12 +380,12 @@ struct type_cast<toolbox::LuaObject, TDest> {
 // struct is_indexable;
 //
 // template<typename ...Args>
-// struct is_callable<toolbox::LuaObject, Args ...>
+// struct is_callable<utilities::LuaObject, Args ...>
 //{
 //    static constexpr bool entity = true;
 //};
 // template<typename Other>
-// struct is_indexable<toolbox::LuaObject, Other>
+// struct is_indexable<utilities::LuaObject, Other>
 //{
 //    static constexpr bool entity = true;
 //};

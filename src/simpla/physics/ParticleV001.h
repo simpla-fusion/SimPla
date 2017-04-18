@@ -39,7 +39,7 @@ public:
     typedef P engine_type;
     typedef Field<spPage *, M, int_const<mesh::VOLUME> > field_type;
     typedef typename P::point_s value_type;
-    typedef typename mesh::MeshEntityId id_type;
+    typedef typename EntityId id_type;
     typedef typename mesh::EntityRange range_type;
 
 
@@ -183,9 +183,9 @@ public:
     {
         *res = 0;
 
-        mesh::MeshEntityId s = std::get<0>(this->m_mesh_->point_global_to_local(x0));
+        EntityId s = std::get<0>(this->m_mesh_->point_global_to_local(x0));
 
-        mesh::MeshEntityId neighbours[mesh_type::MAX_NUM_OF_NEIGHBOURS];
+        EntityId neighbours[mesh_type::MAX_NUM_OF_NEIGHBOURS];
 
         int num = this->m_mesh_->get_adjacent_entities(this->entity_type(), s, neighbours);
 
@@ -202,9 +202,9 @@ public:
     {
         *res = 0;
 
-        mesh::MeshEntityId s = std::get<0>(this->m_mesh_->point_global_to_local(x0));
+        EntityId s = std::get<0>(this->m_mesh_->point_global_to_local(x0));
 
-        mesh::MeshEntityId neighbours[mesh_type::MAX_NUM_OF_NEIGHBOURS];
+        EntityId neighbours[mesh_type::MAX_NUM_OF_NEIGHBOURS];
 
         int num = this->m_mesh_->get_adjacent_entities(this->entity_type(), s, neighbours);
 
@@ -227,7 +227,7 @@ public:
     void push(range_type const &r0, Args &&...args)
     {
         parallel::parallel_foreach(
-                r0, [&](mesh::MeshEntityId const &s)
+                r0, [&](EntityId const &s)
                 {
 
                     spPage *pg = this->get(s);
@@ -245,7 +245,7 @@ public:
             typename std::enable_if<has_member_function_push<engine_type, spPage *, Args...>::value>::type * = nullptr>
     void push(range_type const &r0, Args &&...args)
     {
-        parallel::parallel_foreach(r0, [&](mesh::MeshEntityId const &s)
+        parallel::parallel_foreach(r0, [&](EntityId const &s)
         {
             engine_type::push(this->get(s), std::forward<Args>(args) ...);
         });
@@ -328,7 +328,7 @@ Particle<P, M, V001>::deploy()
 
 //    field_type::fill(reinterpret_cast<spPage *>(0x0));
 
-    parallel::parallel_foreach(entity_id_range(), [&](mesh::MeshEntityId const &s) { get(s) = nullptr; });
+    parallel::parallel_foreach(entity_id_range(), [&](EntityId const &s) { get(s) = nullptr; });
     return success;
 
 }
@@ -355,7 +355,7 @@ Particle<P, M, V001>::apply(range_type const &r0, TFun const &op, Args &&...args
 {
 
     parallel::parallel_foreach(
-            r0, [&](typename mesh::MeshEntityId const &s)
+            r0, [&](typename EntityId const &s)
             {
 
                 for (spOutputIterator __it = {0x0, 0x0, get(s), sizeof(value_type)};
@@ -374,7 +374,7 @@ void
 Particle<P, M, V001>::apply(range_type const &r0, TFun const &op, Args &&...args) const
 {
     parallel::parallel_foreach(
-            r0, [&](typename mesh::MeshEntityId const &s)
+            r0, [&](typename EntityId const &s)
             {
 
                 for (spOutputIterator __it = {0x0, 0x0, get(s), sizeof(value_type)};
@@ -397,7 +397,7 @@ template<typename P, typename M>
 void
 Particle<P, M, V001>::erase(range_type const &r)
 {
-    parallel::parallel_foreach(r, [&](mesh::MeshEntityId const &s) { erase(s); });
+    parallel::parallel_foreach(r, [&](EntityId const &s) { erase(s); });
 
 }
 //**************************************************************************************************
@@ -479,7 +479,7 @@ Particle<P, M, V001>::count(range_type const &r0) const
             r0, 0U,
             [&](range_type const &r, size_t init) -> size_t
             {
-                parallel::serial_foreach(r, [&](mesh::MeshEntityId const &s) { init += spSize(this->get(s)); });
+                parallel::serial_foreach(r, [&](EntityId const &s) { init += spSize(this->get(s)); });
                 return init;
             },
             [](size_t x, size_t y) -> size_t { return x + y; }
@@ -583,7 +583,7 @@ template<typename Predicate>
 void
 Particle<P, M, V001>::remove_if(range_type const &r0, Predicate const &pred)
 {
-    parallel::parallel_foreach(r0, [&](mesh::MeshEntityId const &s) { remove_if(s, pred); });
+    parallel::parallel_foreach(r0, [&](EntityId const &s) { remove_if(s, pred); });
 }
 
 
@@ -607,12 +607,12 @@ template<typename P, typename M> void
 Particle<P, M, V001>::neighbour_resort(range_type const &r)
 {
     parallel::parallel_foreach(
-            r, [&](typename mesh::MeshEntityId const &key)
+            r, [&](typename EntityId const &key)
             {
 
                 size_t number_of_neighbours = this->m_mesh_->get_adjacent_entities(entity_type(), key);
 
-                mesh::MeshEntityId neighbour_ids[number_of_neighbours];
+                EntityId neighbour_ids[number_of_neighbours];
 
                 this->m_mesh_->get_adjacent_entities(entity_type(), key, neighbour_ids);
 

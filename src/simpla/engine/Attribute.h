@@ -9,9 +9,8 @@
 #include "SPObject.h"
 #include "simpla/SIMPLA_config.h"
 #include "simpla/concept/CheckConcept.h"
-#include "simpla/data/Serializable.h"
 #include "simpla/data/all.h"
-#include "simpla/design_pattern/Signal.h"
+#include "simpla/utilities/Signal.h"
 namespace simpla {
 namespace engine {
 class Domain;
@@ -92,7 +91,7 @@ class AttributeGroup {
  * deactivate AttributeView
  * @enduml
  */
-struct Attribute : public SPObject, public concept::Configurable, public data::Serializable {
+struct Attribute : public SPObject, public data::Configurable, public data::Serializable {
     SP_OBJECT_BASE(Attribute);
 
    public:

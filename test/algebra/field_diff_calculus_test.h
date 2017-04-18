@@ -127,7 +127,7 @@ class FETLTest
 };
 
 TEST_P(FETLTest, grad0) {
-    typedef mesh::MeshEntityIdCoder M;
+    typedef EntityIdCoder M;
     field_type<VERTEX> f0{m};
     field_type<EDGE> f1(m);
     field_type<EDGE> f1b(m);
@@ -175,7 +175,7 @@ TEST_P(FETLTest, grad0) {
 }
 
 TEST_P(FETLTest, grad3) {
-    typedef mesh::MeshEntityIdCoder M;
+    typedef EntityIdCoder M;
 
     field_type<FACE> f2(m);
     field_type<FACE> f2b(m);
@@ -223,7 +223,7 @@ TEST_P(FETLTest, grad3) {
 }
 
 TEST_P(FETLTest, diverge1) {
-    typedef mesh::MeshEntityIdCoder M;
+    typedef EntityIdCoder M;
 
     field_type<EDGE> f1(m);
     field_type<VERTEX> f0(m);
@@ -269,7 +269,7 @@ TEST_P(FETLTest, diverge1) {
 }
 
 TEST_P(FETLTest, diverge2) {
-    typedef mesh::MeshEntityIdCoder M;
+    typedef EntityIdCoder M;
     field_type<FACE> f2(m);
     field_type<VOLUME> f3(m);
     field_type<VOLUME> f3b(m);
@@ -329,7 +329,7 @@ TEST_P(FETLTest, diverge2) {
 }
 
 TEST_P(FETLTest, curl1) {
-    typedef mesh::MeshEntityIdCoder M;
+    typedef EntityIdCoder M;
 
     field_type<EDGE> f1(m);
     field_type<EDGE> f1b(m);
@@ -428,7 +428,7 @@ TEST_P(FETLTest, curl1) {
 }
 
 TEST_P(FETLTest, curl2) {
-    typedef mesh::MeshEntityIdCoder M;
+    typedef EntityIdCoder M;
     field_type<EDGE> f1(m);
     field_type<EDGE> f1b(m);
     field_type<FACE> f2(m);

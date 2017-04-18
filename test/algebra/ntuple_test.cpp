@@ -12,7 +12,7 @@
 #include <simpla/algebra/Calculus.h>
 #include <simpla/algebra/Expression.h>
 #include <simpla/algebra/nTuple.h>
-#include <simpla/mpl/type_traits.h>
+#include <simpla/utilities/type_traits.h>
 #include <iostream>
 #include <type_traits>
 #include <typeinfo>

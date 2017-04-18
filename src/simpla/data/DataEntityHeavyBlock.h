@@ -9,7 +9,7 @@
 #include <simpla/algebra/Array.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/engine/SPObjectHead.h>
-#include <simpla/toolbox/Log.h>
+#include <simpla/utilities/Log.h>
 #include <typeindex>
 #include <vector>
 #include "DataEntity.h"

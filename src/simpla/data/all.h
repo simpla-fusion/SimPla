@@ -5,6 +5,7 @@
 #ifndef SIMPLA_DATA_ALL_H
 #define SIMPLA_DATA_ALL_H
 
+#include "Configurable.h"
 #include "DataArray.h"
 #include "DataBackend.h"
 #include "DataBlock.h"
@@ -12,9 +13,9 @@
 #include "DataTable.h"
 #include "DataTraits.h"
 #include "DataUtility.h"
+#include "EnableCreateFromDataTable.h"
 #include "KeyValue.h"
 #include "Serializable.h"
-#include "EnableCreateFromDataTable.h"
 
 namespace simpla {
 namespace data {

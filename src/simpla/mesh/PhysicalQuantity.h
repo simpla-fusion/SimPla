@@ -90,10 +90,10 @@ public:
 /** @name as_array   @{*/
 
     virtual value_type &
-    get(mesh::MeshEntityId s) { return m_data_->get(mesh::MeshEntityIdCoder::unpack_index4(s, DOF)); }
+    get(EntityId s) { return m_data_->get(EntityIdCoder::unpack_index4(s, DOF)); }
 
     virtual value_type const &
-    get(mesh::MeshEntityId s) const { return m_data_->get(mesh::MeshEntityIdCoder::unpack_index4(s, DOF)); }
+    get(EntityId s) const { return m_data_->get(EntityIdCoder::unpack_index4(s, DOF)); }
 
 
     virtual value_type &
@@ -155,13 +155,13 @@ private:
 public:
 
 
-    typedef mesh::MeshEntityIdCoder M;
+    typedef EntityIdCoder M;
 
-    void assign(this_type const &other, mesh::EntityIdRange const &r0)
+    void assign(this_type const &other, EntityIdRange const &r0)
     {
         PreProcess();
 
-        r0.foreach([&](mesh::MeshEntityId const &s)
+        r0.foreach([&](EntityId const &s)
                    {
                        for (int i = 0; i < DOF; ++i) { get(M::sw(s, i)) = other.get(M::sw(s, i)); }
                    });
@@ -182,14 +182,14 @@ public:
         }
     }
 
-    void copy(mesh::EntityIdRange const &r0, this_type const &g)
+    void copy(EntityIdRange const &r0, this_type const &g)
     {
         UNIMPLEMENTED;
-//        r0.Assign([&](mesh::EntityId const &s) { get(s) = g.Get(s); });
+//        r0.Assign([&](EntityId const &s) { get(s) = g.Get(s); });
     }
 
 
-    virtual void copy(mesh::EntityIdRange const &r0, mesh::DataBlock const &other)
+    virtual void copy(EntityIdRange const &r0, mesh::DataBlock const &other)
     {
         UNIMPLEMENTED;
 //        assert(other.is_a(typeid(this_type)));

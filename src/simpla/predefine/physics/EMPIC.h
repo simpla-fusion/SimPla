@@ -115,7 +115,7 @@ void EMPIC<TM>::init(ConfigParser const &options)
             std::function<vector_type(point_type const &)> fun;
             options["InitValue"]["B0"]["Value"].as(&fun);
             parallel::parallel_foreach(
-                    m->range(FACE), [&](mesh::MeshEntityId const &s)
+                    m->range(FACE), [&](EntityId const &s)
                     {
                         B0[s] = m->template sample<FACE>(s, fun(m->point(s)));
                     });
@@ -126,7 +126,7 @@ void EMPIC<TM>::init(ConfigParser const &options)
             std::function<vector_type(point_type const &)> fun;
             options["InitValue"]["B1"]["Value"].as(&fun);
             parallel::parallel_foreach(
-                    m->range(FACE), [&](mesh::MeshEntityId const &s)
+                    m->range(FACE), [&](EntityId const &s)
                     {
                         B1[s] = m->template sample<FACE>(s, fun(m->point(s)));
                     });
@@ -137,7 +137,7 @@ void EMPIC<TM>::init(ConfigParser const &options)
             std::function<vector_type(point_type const &)> fun;
             options["InitValue"]["E1"]["Value"].as(&fun);
             parallel::parallel_foreach(
-                    m->range(EDGE), [&](mesh::MeshEntityId const &s)
+                    m->range(EDGE), [&](EntityId const &s)
                     {
                         E1[s] = m->template sample<EDGE>(s, fun(m->point(s)));
                     });
@@ -194,7 +194,7 @@ void EMPIC<TM>::next_step(Real dt)
 
         auto f = J_src_fun;
         parallel::parallel_foreach(
-                J_src_range, [&](mesh::MeshEntityId const &s)
+                J_src_range, [&](EntityId const &s)
                 {
                     auto x0 = m->point(s);
                     auto v = J_src_fun(current_time, x0, J1(x0));
@@ -204,11 +204,11 @@ void EMPIC<TM>::next_step(Real dt)
 
     LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
 
-    B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+    B1.apply(face_boundary, [](EntityId const &) -> Real { return 0.0; });
 
     LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt);
 
-    E1.apply(edge_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+    E1.apply(edge_boundary, [](EntityId const &) -> Real { return 0.0; });
 
 
 }

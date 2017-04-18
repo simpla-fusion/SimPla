@@ -6,7 +6,7 @@
 #include "Atlas.h"
 #include "Chart.h"
 #include "TransitionMap.h"
-//#include "simpla/toolbox/BoxUtility.h"
+//#include "simpla/utilities/BoxUtility.h"
 
 namespace simpla {
 namespace engine {
@@ -168,7 +168,7 @@ index_box_type Atlas::GetIndexBox() const { return m_pimpl_->m_index_box_; }
 //    switch (l0 - l1)
 //    {
 //        case 0:
-//            if (toolbox::check_adjoining(b0, b1, dx, L))
+//            if (utilities::check_adjoining(b0, b1, dx, L))
 //            {
 //                m_adjacent_.Connect(i0, i1);
 //                m_adjacent_.Connect(i1, i0);
@@ -176,14 +176,14 @@ index_box_type Atlas::GetIndexBox() const { return m_pimpl_->m_index_box_; }
 //            break;
 //
 //        case -1:
-//            if (toolbox::check_overlapping(b0, b1))
+//            if (utilities::check_overlapping(b0, b1))
 //            {
 //                m_refine_.Connect(i0, i1);
 //                m_coarsen_.Connect(i1, i0);
 //            }
 //            break;
 //        case 1:
-//            if (toolbox::check_overlapping(b0, b1))
+//            if (utilities::check_overlapping(b0, b1))
 //            {
 //                m_coarsen_.Connect(i0, i1);
 //                m_refine_.Connect(i1, i0);

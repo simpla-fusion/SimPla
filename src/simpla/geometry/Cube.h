@@ -9,7 +9,7 @@
 #define CORE_GEOMETRY_CUBE_H_
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/toolbox/sp_def.h>
+#include <simpla/utilities/sp_def.h>
 #include "GeoObject.h"
 
 namespace simpla {

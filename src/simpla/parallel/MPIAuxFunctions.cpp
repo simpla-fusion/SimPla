@@ -16,8 +16,8 @@
 #include <tuple>
 #include <vector>
 
-#include <simpla/toolbox/Log.h>
-#include <simpla/toolbox/MemoryPool.h>
+#include <simpla/utilities/Log.h>
+#include <simpla/utilities/MemoryPool.h>
 
 extern "C" {
 #include <mpi.h>

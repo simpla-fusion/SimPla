@@ -20,8 +20,8 @@
 #include <vector>
 #include <simpla/algebra/nTuple.h>
 #include <simpla/algebra/nTupleExt.h>
-#include <simpla/mpl/integer_sequence.h>
-#include <simpla/mpl/type_traits.h>
+#include <simpla/utilities/integer_sequence.h>
+#include <simpla/utilities/type_traits.h>
 namespace simpla {
 template <typename T, size_type... N>
 std::ostream &printNd(std::ostream &os, T const &d, int_sequence<N...> const &,

@@ -5,7 +5,7 @@
  */
 #include "LuaObject.h"
 #include <simpla/algebra/nTuple.h>
-#include <simpla/toolbox/FancyStream.h>
+#include <simpla/utilities/FancyStream.h>
 #include "LuaObjectExt.h"
 
 namespace simpla {

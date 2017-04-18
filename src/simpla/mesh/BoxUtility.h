@@ -156,6 +156,6 @@ union_bounding(Box3<T> const &left, Box3<T> const &right)
     return Box3<T> {min(std::get<0>(left), std::get<0>(right)), max(std::get<1>(left), std::get<1>(right))};
 }
 
-}}//namespace simpla{namespace toolbox{
+}}//namespace simpla{namespace utilities{
 
 #endif //SIMPLA_BOXUTILITY_H

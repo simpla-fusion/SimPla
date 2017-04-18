@@ -6,9 +6,9 @@
 #define SIMPLA_DATAENTITY_H
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/utilities/sp_def.h>
 #include <simpla/concept/Printable.h>
-#include <simpla/engine/SPObjectHead.h>
-#include <simpla/toolbox/Log.h>
+#include <simpla/utilities/Log.h>
 #include <typeindex>
 #include <vector>
 #include "DataTraits.h"

@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
 
     f = [&](point_type const& x) { return x[1] + x[2]; };
 
-    g = [&](mesh::MeshEntityId const& s) { return 1.0; };
+    g = [&](EntityId const& s) { return 1.0; };
 
     //    CHECK(f);
     FieldAttribute<mesh_type, Real, EDGE> E(&m);

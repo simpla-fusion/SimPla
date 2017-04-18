@@ -5,8 +5,8 @@
 #ifndef SIMPLA_MESHBLOCK_H
 #define SIMPLA_MESHBLOCK_H
 
-#include <simpla/SIMPLA_config.h>
-#include <simpla/toolbox/sp_def.h>
+#include <simpla/algebra/nTupleExt.h>
+#include <simpla/utilities/sp_def.h>
 
 namespace simpla {
 namespace engine {
@@ -25,9 +25,9 @@ class MeshBlock {
     index_box_type GetOuterIndexBox(int IFORM = 0, int sub = 0) const;
     index_box_type GetInnerIndexBox(int IFORM = 0, int sub = 0) const;
 
-//    box_type GetBoundBox() const;
-//    size_type size(int IFORM = VERTEX) const { return 0; }
-//    size_tuple dimensions() const { return size_tuple{}; };
+    //    box_type GetBoundBox() const;
+    //    size_type size(int IFORM = VERTEX) const { return 0; }
+    //    size_tuple dimensions() const { return size_tuple{}; };
 
    private:
     struct pimpl_s;

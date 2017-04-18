@@ -7,8 +7,8 @@
 
 #include <simpla/algebra/nTuple.h>
 #include <simpla/algebra/nTupleExt.h>
-#include <simpla/toolbox/FancyStream.h>
-#include <simpla/toolbox/Log.h>
+#include <simpla/utilities/FancyStream.h>
+#include <simpla/utilities/Log.h>
 #include <type_traits>
 #include "MeshBlock.h"
 

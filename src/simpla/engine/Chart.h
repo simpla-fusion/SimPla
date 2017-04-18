@@ -5,12 +5,11 @@
 #ifndef SIMPLA_CHART_H
 #define SIMPLA_CHART_H
 
+#include <simpla/utilities/sp_def.h>
 #include <memory>
-#include "simpla/SIMPLA_config.h"
 #include "simpla/data/DataTable.h"
 #include "simpla/data/EnableCreateFromDataTable.h"
 #include "simpla/data/Serializable.h"
-#include "simpla/toolbox/sp_def.h"
 
 namespace simpla {
 namespace engine {

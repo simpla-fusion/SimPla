@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 #include <simpla/SIMPLA_config.h>
-#include <simpla/toolbox/Log.h>
+#include <simpla/utilities/Log.h>
 #include <cassert>
 #include <iostream>
 

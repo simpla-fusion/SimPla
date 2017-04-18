@@ -11,7 +11,7 @@
 #include <string>
 #include "DataTable.h"
 #include "simpla/concept/CheckConcept.h"
-#include "simpla/design_pattern/SingletonHolder.h"
+#include "simpla/utilities/SingletonHolder.h"
 namespace simpla {
 namespace data {
 class DataTable;

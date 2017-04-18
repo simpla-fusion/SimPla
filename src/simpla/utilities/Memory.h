@@ -30,6 +30,6 @@ inline void MemorySet(void *d, int v, size_type s) { memset(d, v, s); }
 
 inline void MemoryCopy(void *dest, void *src, size_type s) { memcpy(dest, src, s); }
 
-}}//namespace simpla { namespace toolbox
+}}//namespace simpla { namespace utilities
 
 #endif //SIMPLA_MEMORY_H

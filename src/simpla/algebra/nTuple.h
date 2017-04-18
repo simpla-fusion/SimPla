@@ -12,7 +12,7 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/concept/CheckConcept.h>
-#include <simpla/mpl/integer_sequence.h>
+#include <simpla/utilities/integer_sequence.h>
 
 #include "Algebra.h"
 #include "Expression.h"
@@ -64,6 +64,8 @@ struct Expression;
  *   nTuple_<T,N,M> equiv. build-in array T[N][M]
  *
  *    @endcode}
+ *
+ *    TODO: nTuple should move to sub-directory utilities
  **/
 namespace traits {
 

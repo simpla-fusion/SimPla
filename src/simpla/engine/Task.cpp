@@ -37,11 +37,11 @@ Task *Task::Create(std::string const &s_name) {
     }
 }
 
-Task::Task(std::shared_ptr<data::DataTable> const &t) : concept::Configurable(t) {}
+Task::Task(std::shared_ptr<data::DataTable> const &t) : data::Configurable(t) {}
 
-Task::Task(Task const &other) : concept::Configurable(other){};
+Task::Task(Task const &other) : data::Configurable(other){};
 Task::~Task() {}
-void Task::swap(Task &other) { concept::Configurable::swap(other); }
+void Task::swap(Task &other) { data::Configurable::swap(other); }
 void Task::Register(AttributeGroup *) {}
 std::ostream &Task::Print(std::ostream &os, int indent) const {
     //    os << std::setw(indent + 1) << " "

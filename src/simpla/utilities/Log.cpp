@@ -14,7 +14,7 @@
 #include <iomanip>
 #include <iostream>
 
-#include <simpla/design_pattern/SingletonHolder.h>
+#include "SingletonHolder.h"
 
 namespace simpla {
 namespace logger {
@@ -109,9 +109,9 @@ void LoggerStreams::push(int level, std::string const &msg) {
 
     prefix << "[" << time_stamp() << "] ";
 
-//    if (mpi_size_ > 1) {
-        prefix << "[" << mpi_rank_ << "/" << mpi_size_ << "]";
-//    }
+    //    if (mpi_size_ > 1) {
+    prefix << "[" << mpi_rank_ << "/" << mpi_size_ << "]";
+    //    }
 
     if (level <= m_std_out_level_) {
         switch (level) {

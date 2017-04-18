@@ -11,10 +11,10 @@
 
 #include <gtest/gtest.h>
 
-#include <simpla/mpl/macro.h>
-#include <simpla/mpl/type_traits.h>
-#include <simpla/toolbox/Log.h>
-#include <simpla/toolbox/sp_def.h>
+#include <simpla/utilities/macro.h>
+#include <simpla/utilities/type_traits.h>
+#include <simpla/utilities/Log.h>
+#include <simpla/utilities/sp_def.h>
 #include <simpla/algebra/all.h>
 #include <simpla/predefine/CalculusPolicy.h>
 using namespace simpla;
@@ -92,7 +92,7 @@ TYPED_TEST_P(TestArray, assign)
     f1 = va;
     size_type count = 0;
     TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform, TestFixture::dof).foreach(
-            [&](mesh::MeshEntityId const & s) { EXPECT_LE(abs(va - f1[s]), EPSILON); });
+            [&](EntityId const & s) { EXPECT_LE(abs(va - f1[s]), EPSILON); });
 }
 
 TYPED_TEST_P(TestArray, index)
@@ -111,10 +111,10 @@ TYPED_TEST_P(TestArray, index)
     va = 2.0;
 
     TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform).foreach(
-            [&](mesh::MeshEntityId const & s) { f1[s] = va * TestFixture::m->hash(s); });
+            [&](EntityId const & s) { f1[s] = va * TestFixture::m->hash(s); });
 
     TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform).foreach(
-            [&](mesh::MeshEntityId const & s) { EXPECT_LE(abs(va * TestFixture::m->hash(s) - f1[s]), EPSILON); });
+            [&](EntityId const & s) { EXPECT_LE(abs(va * TestFixture::m->hash(s) - f1[s]), EPSILON); });
 
 }
 
@@ -144,14 +144,14 @@ TYPED_TEST_P(TestArray, constant_real)
 
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    f1.assign([&](mesh::MeshEntityId const & s) { return va * uniform_dist(gen); });
-    f2.assign([&](mesh::MeshEntityId const & s) { return vb * uniform_dist(gen); });
+    f1.assign([&](EntityId const & s) { return va * uniform_dist(gen); });
+    f2.assign([&](EntityId const & s) { return vb * uniform_dist(gen); });
 
 
     LOG_CMD(f3 = -f1 + f1 * a + f2 * c - f1 / b);
 
     TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform).foreach(
-            [&](mesh::MeshEntityId const & s)
+            [&](EntityId const & s)
             {
                 value_type expect;
                 expect = -f1[s] + f1[s] * a + f2[s] * c - f1[s] / b;
@@ -224,7 +224,7 @@ TYPED_TEST_P(TestArray, scalarArray)
 //                            });
 
     TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform, TestFixture::dof).foreach(
-            [&](mesh::MeshEntityId const & s)
+            [&](EntityId const & s)
             {
                 value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
 

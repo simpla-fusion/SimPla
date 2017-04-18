@@ -10,8 +10,8 @@
 #include <simpla/geometry/Cube.h>
 #include <simpla/model/GEqdsk.h>
 #include <iostream>
-#include "simpla/predefine/mesh/CartesianGeometry.h"
-#include "simpla/predefine/mesh/CylindricalGeometry.h"
+#include "simpla/mesh/CartesianGeometry.h"
+#include "simpla/mesh/CylindricalGeometry.h"
 #include "simpla/predefine/physics/EMFluid.h"
 #include "simpla/predefine/physics/PEC.h"
 

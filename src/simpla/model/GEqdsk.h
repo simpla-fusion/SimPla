@@ -13,8 +13,8 @@
 #include <simpla/geometry/GeoObject.h>
 #include <simpla/geometry/Polygon.h>
 #include <simpla/geometry/Revolve.h>
-#include <simpla/mpl/type_traits.h>
-#include <simpla/toolbox/Log.h>
+#include <simpla/utilities/type_traits.h>
+#include <simpla/utilities/Log.h>
 #include <iostream>
 
 namespace simpla {

@@ -7,8 +7,8 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/concept/CheckConcept.h>
-#include <simpla/mpl/integer_sequence.h>
-#include <simpla/mpl/type_traits.h>
+#include <simpla/utilities/integer_sequence.h>
+#include <simpla/utilities/type_traits.h>
 #include <utility>
 
 namespace simpla {

@@ -5,10 +5,10 @@
  * @author salmon
  */
 #include <simpla/SIMPLA_config.h>
-#include <simpla/toolbox/parse_command_line.h>
+#include <simpla/utilities/parse_command_line.h>
 
 #ifdef MPI_FOUND
-#include <simpla/design_pattern/SingletonHolder.h>
+#include <simpla/utilities/SingletonHolder.h>
 #include "MPIComm.h"
 #endif
 
@@ -33,9 +33,9 @@ void close() {
 }
 
 std::string help_message() {
-//#ifdef MPI_FOUND
-//    return MPIComm::help_message();
-//#endif
+    //#ifdef MPI_FOUND
+    //    return MPIComm::help_message();
+    //#endif
     return "";
 };
 

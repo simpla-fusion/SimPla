@@ -6,7 +6,7 @@
 #define SIMPLA_DATATABLE_H_
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/engine/SPObjectHead.h>
+#include <simpla/utilities/sp_def.h>
 #include <memory>
 #include "DataArray.h"
 #include "DataEntity.h"

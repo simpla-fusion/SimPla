@@ -14,7 +14,7 @@
 #include <cstdbool>
 #include <type_traits>
 
-#include <simpla/mpl/type_traits.h>
+#include <simpla/utilities/type_traits.h>
 
 namespace simpla { namespace geometry
 {

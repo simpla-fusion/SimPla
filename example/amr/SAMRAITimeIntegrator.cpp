@@ -12,9 +12,8 @@
 #include "simpla/algebra/all.h"
 #include "simpla/data/all.h"
 #include "simpla/engine/all.h"
-#include "simpla/mesh/MeshCommon.h"
 #include "simpla/parallel/MPIComm.h"
-#include "simpla/toolbox/Log.h"
+#include "simpla/utilities/Log.h"
 // Headers for SAMRAI
 #include <SAMRAI/SAMRAI_config.h>
 
@@ -305,12 +304,94 @@ boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned int nd
     return nullptr;
 }
 
-}  // namespace detail{
+template <typename TV>
+std::shared_ptr<data::DataBlock> create_data_block_t0(engine::Attribute const &desc,
+                                                      boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
+    auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::NodeData<TV>>(pd);
+    int ndims = p_data->getDim().getValue();
+    int depth = p_data->getDepth();
+    auto outer_lower = p_data->getGhostBox().lower();
+    auto outer_upper = p_data->getGhostBox().upper();
+    auto inner_lower = p_data->getBox().lower();
+    auto inner_upper = p_data->getBox().upper();
+    size_type dims[4] = {static_cast<size_type>(outer_upper[0] - outer_lower[0]),
+                         static_cast<size_type>(outer_upper[1] - outer_lower[1]),
+                         static_cast<size_type>(outer_upper[2] - outer_lower[2]),
+                         static_cast<size_type>(desc.GetDOF())};
+    index_type lo[4] = {inner_lower[0] - outer_lower[0], inner_lower[1] - outer_lower[1],
+                        inner_lower[2] - outer_lower[2], 0};
+    index_type hi[4] = {inner_upper[0] - outer_lower[0], inner_upper[1] - outer_lower[1],
+                        inner_upper[2] - outer_lower[2], static_cast<index_type>(desc.GetDOF())};
+    auto res = std::make_shared<data::DataEntityWrapper<simpla::Array<TV, 4>>>();
+    // p_data->getPointer(), dims, lo, hi
+    //    res->SetUpDataOnPatch();
+    //    return std::dynamic_pointer_cast<data::DataBlock>(res);
+    return nullptr;
+};
 
-/**
- * Register conserved variables  and  register plot data with VisIt.
- */
+std::shared_ptr<data::DataBlock> convert_to_data_block(engine::Attribute const &desc,
+                                                       boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
+    std::shared_ptr<data::DataBlock> res(nullptr);
+    if (desc.value_type_info() == (typeid(float))) {
+        res = create_data_block_t0<float>(desc, pd);
+    } else if (desc.value_type_info() == (typeid(double))) {
+        res = create_data_block_t0<double>(desc, pd);
+    } else if (desc.value_type_info() == (typeid(int))) {
+        res = create_data_block_t0<int>(desc, pd);
+    }
+    //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item,
+    //    std::forward<Args>(args)...); }
+    else {
+        RUNTIME_ERROR << "Unsupported m_value_ value_type_info" << std::endl;
+    }
+    return res;
+}
+boost::shared_ptr<SAMRAI::hier::PatchData> convert_from_data_block(engine::Attribute const &desc,
+                                                                   std::shared_ptr<data::DataBlock> pd) {
+    return nullptr;
+}
+//
+// template <typename TV, int NDIMS, int IFORM, int DEPTH>
+// class SAMRAIDataBlock : public data::DataMultiArray<TV, (DEPTH <= 1 ? NDIMS : NDIMS + 1),
+//                                                    ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3)> {
+//    typedef simpla::Array<TV, (DEPTH <= 1 ? NDIMS : NDIMS + 1)> array_type;
+//
+//    typedef data::DataMultiArray<TV, (DEPTH <= 1 ? NDIMS : NDIMS + 1), ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3)>
+//        data_block_type;
+//
+//    typedef SAMRAIDataBlock<TV, NDIMS, IFORM, DEPTH> samrai_data_block;
+//
+//    SP_OBJECT_HEAD(samrai_data_block, data_block_type);
+//
+//    typedef std::conditional_t<
+//        IFORM == VERTEX, SAMRAI::pdat::NodeData<TV>,
+//        std::conditional_t<IFORM == EDGE, SAMRAI::pdat::EdgeData<TV>,
+//                           std::conditional_t<IFORM == FACE, SAMRAI::pdat::FaceData<TV>, SAMRAI::pdat::CellData<TV>>>>
+//        samrai_data_type;
+//
+//    boost::shared_ptr<samrai_data_type> m_data_;
+//
+//    SAMRAIDataBlock(boost::shared_ptr<SAMRAI::hier::PatchData> const d)
+//        : m_data_(boost::dynamic_pointer_cast<samrai_data_type>(d)) {
+//        for (int i = 0; i < DEPTH; ++i) {
+//            index_type in_lower[4] = {d->getBox().lower()[0], d->getBox().lower()[1], d->getBox().lower()[2], DEPTH};
+//            index_type in_upper[4] = {d->getBox().upper()[0], d->getBox().upper()[1], d->getBox().upper()[2], DEPTH};
+//
+//            index_type out_lower[4] = {d->getGhostBox().lower()[0], d->getGhostBox().lower()[1],
+//                                       d->getGhostBox().lower()[2], DEPTH};
+//            index_type out_upper[4] = {d->getGhostBox().upper()[0], d->getGhostBox().upper()[1],
+//                                       d->getGhostBox().upper()[2], DEPTH};
+//
+//            array_type(in_lower, in_upper, out_lower, out_upper,
+//                       std::shared_ptr<value_type>(m_data_->getPointer(i), tags::do_nothing()))
+//                .swap(this->operator[](i));
+//        }
+//    }
+//    ~SAMRAIDataBlock() {}
+//};
+}  // namespace detail
 
+/** Register conserved variables  and  register plot data with VisIt. */
 void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrator *integrator) {
     ASSERT(integrator != nullptr);
     SAMRAI::hier::VariableDatabase *vardb = SAMRAI::hier::VariableDatabase::getDatabase();
@@ -395,10 +476,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     //    vardb->printClassData(std::cout);
 }
 
-/**
- * Set up parameters for nonuniform load balancing, if used.
- */
-
+/** Set up parameters for nonuniform load balancing, if used. */
 void SAMRAIHyperbolicPatchStrategyAdapter::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
                                                              SAMRAI::mesh::GriddingAlgorithm *gridding_algorithm) {
     const SAMRAI::hier::IntVector &zero_vec = SAMRAI::hier::IntVector::getZero(d_dim);
@@ -422,95 +500,6 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setupLoadBalancer(SAMRAI::algs::Hyper
     }
 }
 
-namespace detail {
-
- template <typename TV>
- std::shared_ptr<data::DataBlock> create_data_block_t0(engine::Attribute const &desc,
-                                                      boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
-    auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::NodeData<TV>>(pd);
-    int ndims = p_data->getDim().getValue();
-    int depth = p_data->getDepth();
-    auto outer_lower = p_data->getGhostBox().lower();
-    auto outer_upper = p_data->getGhostBox().upper();
-    auto inner_lower = p_data->getBox().lower();
-    auto inner_upper = p_data->getBox().upper();
-    size_type dims[4] = {static_cast<size_type>(outer_upper[0] - outer_lower[0]),
-                         static_cast<size_type>(outer_upper[1] - outer_lower[1]),
-                         static_cast<size_type>(outer_upper[2] - outer_lower[2]),
-                         static_cast<size_type>(desc.GetDOF())};
-    index_type lo[4] = {inner_lower[0] - outer_lower[0], inner_lower[1] - outer_lower[1],
-                        inner_lower[2] - outer_lower[2], 0};
-    index_type hi[4] = {inner_upper[0] - outer_lower[0], inner_upper[1] - outer_lower[1],
-                        inner_upper[2] - outer_lower[2], static_cast<index_type>(desc.GetDOF())};
-        auto res = std::make_shared<data::DataEntityWrapper<simpla::Array<TV, 4>>>();
-    // p_data->getPointer(), dims, lo, hi
-    //    res->SetUpDataOnPatch();
-    //    return std::dynamic_pointer_cast<data::DataBlock>(res);
-    return nullptr;
-};
-
-std::shared_ptr<data::DataBlock> convert_to_data_block(engine::Attribute const &desc,
-                                                       boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
-    std::shared_ptr<data::DataBlock> res(nullptr);
-        if (desc.value_type_info() == (typeid(float))) {
-            res = create_data_block_t0<float>(desc, pd);
-        } else if (desc.value_type_info() == (typeid(double))) {
-            res = create_data_block_t0<double>(desc, pd);
-        } else if (desc.value_type_info() == (typeid(int))) {
-            res = create_data_block_t0<int>(desc, pd);
-        }
-        //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item,
-        //    std::forward<Args>(args)...); }
-        else {
-            RUNTIME_ERROR << "Unsupported m_value_ value_type_info" << std::endl;
-        }
-     return res;
-}
-boost::shared_ptr<SAMRAI::hier::PatchData> convert_from_data_block(engine::Attribute const &desc,
-                                                                   std::shared_ptr<data::DataBlock> pd) {
-    return nullptr;
-}
-//
-// template <typename TV, int NDIMS, int IFORM, int DEPTH>
-// class SAMRAIDataBlock : public data::DataMultiArray<TV, (DEPTH <= 1 ? NDIMS : NDIMS + 1),
-//                                                    ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3)> {
-//    typedef simpla::Array<TV, (DEPTH <= 1 ? NDIMS : NDIMS + 1)> array_type;
-//
-//    typedef data::DataMultiArray<TV, (DEPTH <= 1 ? NDIMS : NDIMS + 1), ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3)>
-//        data_block_type;
-//
-//    typedef SAMRAIDataBlock<TV, NDIMS, IFORM, DEPTH> samrai_data_block;
-//
-//    SP_OBJECT_HEAD(samrai_data_block, data_block_type);
-//
-//    typedef std::conditional_t<
-//        IFORM == VERTEX, SAMRAI::pdat::NodeData<TV>,
-//        std::conditional_t<IFORM == EDGE, SAMRAI::pdat::EdgeData<TV>,
-//                           std::conditional_t<IFORM == FACE, SAMRAI::pdat::FaceData<TV>, SAMRAI::pdat::CellData<TV>>>>
-//        samrai_data_type;
-//
-//    boost::shared_ptr<samrai_data_type> m_data_;
-//
-//    SAMRAIDataBlock(boost::shared_ptr<SAMRAI::hier::PatchData> const d)
-//        : m_data_(boost::dynamic_pointer_cast<samrai_data_type>(d)) {
-//        for (int i = 0; i < DEPTH; ++i) {
-//            index_type in_lower[4] = {d->getBox().lower()[0], d->getBox().lower()[1], d->getBox().lower()[2], DEPTH};
-//            index_type in_upper[4] = {d->getBox().upper()[0], d->getBox().upper()[1], d->getBox().upper()[2], DEPTH};
-//
-//            index_type out_lower[4] = {d->getGhostBox().lower()[0], d->getGhostBox().lower()[1],
-//                                       d->getGhostBox().lower()[2], DEPTH};
-//            index_type out_upper[4] = {d->getGhostBox().upper()[0], d->getGhostBox().upper()[1],
-//                                       d->getGhostBox().upper()[2], DEPTH};
-//
-//            array_type(in_lower, in_upper, out_lower, out_upper,
-//                       std::shared_ptr<value_type>(m_data_->getPointer(i), tags::do_nothing()))
-//                .swap(this->operator[](i));
-//        }
-//    }
-//    ~SAMRAIDataBlock() {}
-//};
-}  // namespace detail
-
 void SAMRAIHyperbolicPatchStrategyAdapter::Push(SAMRAI::hier::Patch &patch, engine::Patch *p) {
     p->SetBlock(std::make_shared<engine::MeshBlock>(
         index_box_type{{patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]},
@@ -528,6 +517,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::Pop(SAMRAI::hier::Patch &patch, engin
     for (auto &item : m_samrai_variables_) {
         auto samrai_id =
             SAMRAI::hier::VariableDatabase::getDatabase()->mapVariableAndContextToIndex(item.second, getDataContext());
+        if (!patch.checkAllocated(samrai_id)) { patch.allocatePatchData(samrai_id); }
         patch.setPatchData(samrai_id,
                            simpla::detail::convert_from_data_block(*item.first, p->Pop(item.first->GetGUID())));
     }
@@ -542,14 +532,13 @@ void SAMRAIHyperbolicPatchStrategyAdapter::Pop(SAMRAI::hier::Patch &patch, engin
  * same mesh resolution are sufficient to set data.
  *
  */
-
 void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::Patch &patch, const double data_time,
                                                                  const bool initial_time) {
     if (initial_time) {
         engine::Patch p;
         Push(patch, &p);
         m_ctx_->SetUpDataOnPatch(&p, data_time);
-//        Pop(patch, &p);
+        //        Pop(patch, &p);
     }
 
     if (d_use_nonuniform_workload) {

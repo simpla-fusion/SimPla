@@ -11,9 +11,9 @@
 #include "Attribute.h"
 #include "simpla/SIMPLA_config.h"
 #include "simpla/concept/Printable.h"
-#include "simpla/design_pattern/Observer.h"
 #include "simpla/engine/SPObject.h"
-#include "simpla/toolbox/Log.h"
+#include "simpla/utilities/Log.h"
+#include "simpla/utilities/Observer.h"
 
 namespace simpla {
 namespace engine {
@@ -97,7 +97,7 @@ namespace engine {
       --> (*)
    @enduml
  */
-class Task : public concept::Configurable {
+class Task : public data::Configurable {
     SP_OBJECT_BASE(Task)
    public:
     Task(std::shared_ptr<data::DataTable> const &t = nullptr);

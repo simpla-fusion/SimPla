@@ -9,38 +9,32 @@
 
 #include <vector>
 
-#include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/nTuple.h>
-#include <simpla/toolbox/sp_def.h>
+#include <simpla/utilities/sp_def.h>
 #include "GeoObject.h"
 
-namespace simpla { namespace geometry
-{
+namespace simpla {
+namespace geometry {
 /**
  * @ingroup geometry
  * @{
  */
 
-template<int NDIMS> class Polygon;
-
+template <int NDIMS>
+class Polygon;
 
 /**
  *  @brief 2D polygon
  */
-template<>
-struct Polygon<2>
-{
-
-
+template <>
+struct Polygon<2> {
     typedef nTuple<Real, 2> point2d_type;
 
     std::vector<point2d_type> m_polygon_;
     std::vector<Real> constant_;
     std::vector<Real> multiple_;
 
-public:
-
-
+   public:
     Polygon() {}
 
     ~Polygon() {}
@@ -61,11 +55,10 @@ public:
 
     virtual int check_inside(Real x, Real y) const;
 
-
-private:
+   private:
     point2d_type m_min_, m_max_;
 };
 /* @} */
-}// namespace geometry
-}// namespace simpla
-#endif //SIMPLA_POLYGON_H
+}  // namespace geometry
+}  // namespace simpla
+#endif  // SIMPLA_POLYGON_H

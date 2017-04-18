@@ -2,7 +2,7 @@
 // Created by salmon on 16-11-27.
 //
 
-#include <simpla/toolbox/Log.h>
+#include <simpla/utilities/Log.h>
 #include <simpla/algebra/nTupleExt.h>
 
 namespace simpla

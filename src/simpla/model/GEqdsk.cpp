@@ -21,8 +21,8 @@
 #include <simpla/numeric/Interpolation.h>
 #include <simpla/numeric/find_root.h>
 #include <simpla/physics/Constants.h>
-#include <simpla/toolbox/FancyStream.h>
-#include <simpla/toolbox/Log.h>
+#include <simpla/utilities/FancyStream.h>
+#include <simpla/utilities/Log.h>
 
 namespace simpla {
 constexpr int GEqdsk::PhiAxis;

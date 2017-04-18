@@ -2,8 +2,8 @@
 // Created by salmon on 17-2-17.
 //
 #include "Chart.h"
-#include <simpla/design_pattern/SingletonHolder.h>
-#include <simpla/toolbox/Log.h>
+#include <simpla/utilities/SingletonHolder.h>
+#include <simpla/utilities/Log.h>
 #include <set>
 #include "Attribute.h"
 

@@ -39,7 +39,7 @@ class Mesh : public AttributeGroup, public data::Serializable, public data::Enab
     virtual std::shared_ptr<data::DataTable> Serialize() const;
     virtual void Deserialize(std::shared_ptr<data::DataTable>);
 
-    virtual Range<mesh::MeshEntityId> GetRange(int iform = VERTEX) const;
+    virtual Range<EntityId> GetRange(int iform = VERTEX) const;
 
     virtual void Push(Patch *);
     virtual void Pop(Patch *);

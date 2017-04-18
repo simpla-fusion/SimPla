@@ -169,7 +169,7 @@ void generate_particle(TPart *part, TGen &gen, size_t number_of_pic, TFun const 
     gen.reserve(number_of_pic * r0.size());
 
     parallel::parallel_foreach(
-            r0, [&](mesh::MeshEntityId const &s)
+            r0, [&](EntityId const &s)
             {
 
                 typename TGen::template input_iterator<value_type> ib, ie;

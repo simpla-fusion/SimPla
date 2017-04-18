@@ -12,8 +12,7 @@
 #include <vector>
 #include "simpla/engine/all.h"
 #include "simpla/geometry/Cube.h"
-#include "simpla/mesh/EntityId.h"
-#include "simpla/mesh/MeshCommon.h"
+#include "simpla/utilities/sp_def.h"
 
 namespace simpla {
 
@@ -42,7 +41,6 @@ struct MeshView<mesh::CartesianGeometry> : public engine::Mesh {
 
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
-    typedef mesh::MeshEntityId entity_id;
 
     /**
      *
@@ -93,7 +91,7 @@ struct MeshView<mesh::CartesianGeometry> : public engine::Mesh {
 
     //    this_type *Clone() const { return new this_type(*this); }
     void Initialize();
-    virtual Range<entity_id> range() const { return Range<entity_id>(); };
+    virtual Range<EntityId> range() const { return Range<EntityId>(); };
 
    private:
     nTuple<Real, 3> m_dx_, m_inv_dx_;
@@ -103,7 +101,7 @@ struct MeshView<mesh::CartesianGeometry> : public engine::Mesh {
     Real m_inv_dual_volume_[9];
 
    public:
-    typedef mesh::MeshEntityIdCoder m;
+    typedef EntityIdCoder m;
 
     template <typename... Args>
     void apply(Args &&...) const {}
@@ -116,26 +114,24 @@ struct MeshView<mesh::CartesianGeometry> : public engine::Mesh {
         return point_type{static_cast<Real>(x), static_cast<Real>(y), static_cast<Real>(z)};
     }
 
-    virtual point_type point(mesh::MeshEntityId s) const { return point_type(); /*Mesh::point(s); */ }
+    virtual point_type point(EntityId s) const { return point_type(); /*Mesh::point(s); */ }
 
-    virtual point_type point(mesh::MeshEntityId s, point_type const &r) const {
-        return point_type(); /*Mesh::point(s); */
-    }
+    virtual point_type point(EntityId s, point_type const &r) const { return point_type(); /*Mesh::point(s); */ }
 
-    virtual Real volume(mesh::MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
+    virtual Real volume(EntityId s) const { return m_volume_[m::node_id(s)]; }
 
-    virtual Real dual_volume(mesh::MeshEntityId s) const { return m_dual_volume_[m::node_id(s)]; }
+    virtual Real dual_volume(EntityId s) const { return m_dual_volume_[m::node_id(s)]; }
 
-    virtual Real inv_volume(mesh::MeshEntityId s) const { return m_inv_volume_[m::node_id(s)]; }
+    virtual Real inv_volume(EntityId s) const { return m_inv_volume_[m::node_id(s)]; }
 
-    virtual Real inv_dual_volume(mesh::MeshEntityId s) const { return m_inv_dual_volume_[m::node_id(s)]; }
+    virtual Real inv_dual_volume(EntityId s) const { return m_inv_dual_volume_[m::node_id(s)]; }
 
     template <typename TV>
-    TV const &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> const *a, entity_id const &s) const {
+    TV const &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> const *a, EntityId const &s) const {
         return a[m::node_id(s)]->at(m::unpack_index(s));
     }
     template <typename TV>
-    TV &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> *a, entity_id const &s) const {
+    TV &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> *a, EntityId const &s) const {
         return a[m::node_id(s)]->at(m::unpack_index(s));
     }
 };  // struct  Mesh
@@ -143,14 +139,14 @@ struct MeshView<mesh::CartesianGeometry> : public engine::Mesh {
 // template <>
 // struct mesh_traits<CartesianGeometry> {
 //    typedef CartesianGeometry type;
-//    typedef MeshEntityId entity_id;
+//    typedef EntityId EntityId;
 //    typedef Real scalar_type;
 //
 //    template <int IFORM, int DOF>
 //    struct Shift {
 //        template <typename... Args>
 //        Shift(Args &&... args) {}
-//        constexpr entity_id operator()(entity_id const &s) const { return s; }
+//        constexpr EntityId operator()(EntityId const &s) const { return s; }
 //    };
 //};
 inline void MeshView<mesh::CartesianGeometry>::Initialize() {
@@ -221,7 +217,7 @@ inline void MeshView<mesh::CartesianGeometry>::Initialize() {
 
 #endif  // SIMPLA_CORECTMESH_H
 
-// typedef typename MeshEntityIdCoder::range_type block_range_type;
+// typedef typename EntityIdCoder::range_type block_range_type;
 //
 // virtual EntityIdRange select(box_type const &other,
 //                           MeshEntityType entityType = VERTEX,
@@ -247,7 +243,7 @@ inline void MeshView<mesh::CartesianGeometry>::Initialize() {
 //    } else
 //    {
 //        return EntityIdRange(
-//                MeshEntityIdCoder::make_range(point_to_index(c_lower), point_to_index(c_upper),
+//                EntityIdCoder::make_range(point_to_index(c_lower), point_to_index(c_upper),
 //                entityType));
 //    }
 //
@@ -290,7 +286,7 @@ inline void MeshView<mesh::CartesianGeometry>::Initialize() {
 //
 // virtual EntityIdRange Range(index_box_type const &b, MeshEntityType entityType = VERTEX) const
 //{
-//    return MeshEntityIdCoder::make_range(b, entityType);
+//    return EntityIdCoder::make_range(b, entityType);
 //}
 //
 // virtual EntityIdRange Range(MeshEntityType entityType = VERTEX, MeshZoneTag status = SP_ES_OWNED)
@@ -310,7 +306,7 @@ inline void MeshView<mesh::CartesianGeometry>::Initialize() {
 //    switch (status)
 //    {
 //        case SP_ES_ALL : //all valid
-//            res.append(MeshEntityIdCoder::make_range(m_outer_lower_, m_outer_upper_, entityType));
+//            res.append(EntityIdCoder::make_range(m_outer_lower_, m_outer_upper_, entityType));
 //            break;
 //        case SP_ES_NON_LOCAL : // = SP_ES_SHARED | SP_ES_OWNED, //              0b000101
 //        case SP_ES_SHARED : //       = 0x04,                    0b000100 shared by two or more
@@ -321,12 +317,12 @@ inline void MeshView<mesh::CartesianGeometry>::Initialize() {
 //            break;
 //        case SP_ES_GHOST : // = SP_ES_SHARED | SP_ES_NOT_OWNED, //              0b000110
 //            res.append(
-//                    MeshEntityIdCoder::make_range(
+//                    EntityIdCoder::make_range(
 //                            index_tuple{m_outer_lower_[0], m_outer_lower_[1], m_outer_lower_[2]},
 //                            index_tuple{m_origin_[0], m_outer_upper_[1], m_outer_upper_[2]},
 //                            entityType));
 //            res.append(
-//                    MeshEntityIdCoder::make_range(
+//                    EntityIdCoder::make_range(
 //                            index_tuple{m_upper_[0], m_outer_lower_[1], m_outer_lower_[2]},
 //                            index_tuple{m_outer_upper_[0], m_outer_upper_[1], m_outer_upper_[2]},
 //                            entityType));
@@ -334,12 +330,12 @@ inline void MeshView<mesh::CartesianGeometry>::Initialize() {
 //            if (m_dims_[1] > 1)
 //            {
 //                res.append(
-//                        MeshEntityIdCoder::make_range(
+//                        EntityIdCoder::make_range(
 //                                index_tuple{m_origin_[0], m_outer_lower_[1], m_outer_lower_[2]},
 //                                index_tuple{m_upper_[0], m_origin_[1], m_outer_upper_[2]},
 //                                entityType));
 //                res.append(
-//                        MeshEntityIdCoder::make_range(
+//                        EntityIdCoder::make_range(
 //                                index_tuple{m_origin_[0], m_upper_[1], m_outer_lower_[2]},
 //                                index_tuple{m_upper_[0], m_outer_upper_[1], m_outer_upper_[2]},
 //                                entityType));
@@ -347,11 +343,11 @@ inline void MeshView<mesh::CartesianGeometry>::Initialize() {
 //            if (m_dims_[2] > 1)
 //            {
 //                res.append(
-//                        MeshEntityIdCoder::make_range(
+//                        EntityIdCoder::make_range(
 //                                index_tuple{m_origin_[0], m_origin_[1], m_outer_lower_[2]},
 //                                index_tuple{m_upper_[0], m_upper_[1], m_origin_[2]}, entityType));
 //                res.append(
-//                        MeshEntityIdCoder::make_range(
+//                        EntityIdCoder::make_range(
 //                                index_tuple{m_origin_[0], m_origin_[1], m_upper_[2]},
 //                                index_tuple{m_upper_[0], m_upper_[1], m_outer_upper_[2]},
 //                                entityType));
@@ -360,7 +356,7 @@ inline void MeshView<mesh::CartesianGeometry>::Initialize() {
 //        case SP_ES_DMZ: //  = 0x100,
 //        case SP_ES_NOT_DMZ: //  = 0x200,
 //        case SP_ES_LOCAL : // = SP_ES_NOT_SHARED | SP_ES_OWNED, //              0b001001
-//            res.append(MeshEntityIdCoder::make_range(m_inner_lower_, m_inner_upper_, entityType));
+//            res.append(EntityIdCoder::make_range(m_inner_lower_, m_inner_upper_, entityType));
 //            break;
 //        case SP_ES_VALID:
 //            index_tuple l, u;
@@ -374,10 +370,10 @@ inline void MeshView<mesh::CartesianGeometry>::Initialize() {
 //                    u[i] -= 1;
 //                }
 //            }
-//            res.append(MeshEntityIdCoder::make_range(l, u, entityType));
+//            res.append(EntityIdCoder::make_range(l, u, entityType));
 //            break;
 //        case SP_ES_OWNED:
-//            res.append(MeshEntityIdCoder::make_range(m_origin_, m_upper_, entityType));
+//            res.append(EntityIdCoder::make_range(m_origin_, m_upper_, entityType));
 //            break;
 //        case SP_ES_INTERFACE: //  = 0x010, //                        0b010000 interface(boundary)
 //        shared by two get_mesh grid_dims,

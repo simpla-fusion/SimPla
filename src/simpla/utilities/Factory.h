@@ -9,8 +9,8 @@
 #define FACTORY_H_
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/mpl/macro.h>
-#include <simpla/toolbox/Log.h>
+#include <simpla/utilities/macro.h>
+#include <simpla/utilities/Log.h>
 #include <iostream>
 #include <map>
 #include <memory>

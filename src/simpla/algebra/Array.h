@@ -5,14 +5,12 @@
 #ifndef SIMPLA_ARRAY_H
 #define SIMPLA_ARRAY_H
 
-#include <simpla/SIMPLA_config.h>
+#include <simpla/utilities/sp_def.h>
+#include <simpla/concept/Printable.h>
+#include <simpla/utilities/Range.h>
+#include <simpla/utilities/FancyStream.h>
+#include <simpla/utilities/Log.h>
 #include <cstring>
-
-#include <simpla/concept/Splittable.h>
-#include <simpla/mpl/Range.h>
-#include <simpla/mpl/macro.h>
-#include <simpla/toolbox/FancyStream.h>
-#include <simpla/toolbox/Log.h>
 
 #include "Algebra.h"
 #include "Arithmetic.h"
@@ -21,7 +19,7 @@
 #include "nTupleExt.h"
 
 //#ifdef NDEBUG
-#include <simpla/toolbox/MemoryPool.h>
+#include <simpla/utilities/MemoryPool.h>
 //#endif
 
 namespace simpla {

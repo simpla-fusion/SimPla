@@ -35,7 +35,7 @@ public:
     typedef P engine_type;
     typedef typename P::point_s value_type;
     typedef std::list<value_type> bucket_type;
-    typedef typename mesh::MeshEntityId id_type;
+    typedef typename EntityId id_type;
     typedef typename mesh::EntityRange range_type;
     typedef parallel::concurrent_hash_map<id_type, bucket_type> container_type;
     typedef container_type buffer_type;
@@ -258,7 +258,7 @@ Particle<P, M>::clear()
 template<typename P, typename M> void
 Particle<P, M>::clear(range_type const &r)
 {
-    parallel::parallel_foreach([&](MeshEntityId const &s) { m_data_->erase(s); }
+    parallel::parallel_foreach([&](EntityId const &s) { m_data_->erase(s); }
 }
 
 );
@@ -317,9 +317,9 @@ template<typename P, typename M> template<typename TRes, typename ...Args> void
 Particle<P, M>::gather(TRes *res, mesh::point_type const &x0, Args &&...args) const
 {
     *res = 0;
-    mesh::MeshEntityId s = std::get<0>(m_mesh_->point_global_to_local(x0));
+    EntityId s = std::get<0>(m_mesh_->point_global_to_local(x0));
 
-    mesh::MeshEntityId neighbours[mesh_type::MAX_NUM_OF_NEIGHBOURS];
+    EntityId neighbours[mesh_type::MAX_NUM_OF_NEIGHBOURS];
 
     int num = m_mesh_->get_adjacent_entities(entity_type(), s, neighbours);
 

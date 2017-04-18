@@ -10,15 +10,14 @@
 
 #include <simpla/SIMPLA_config.h>
 
+#include <simpla/algebra/nTuple.h>
+#include <simpla/utilities/Log.h>
 #include <cstdbool>
 #include <memory>
 #include <vector>
-#include <simpla/algebra/nTuple.h>
-#include <simpla/toolbox/Log.h>
 
-namespace simpla { namespace data
-{
-
+namespace simpla {
+namespace data {
 
 /**
  * @ingroup data
@@ -26,26 +25,28 @@ namespace simpla { namespace data
  * @brief  Define the size and  shape of m_data set in memory/file
  *  Ref. http://www.hdfgroup.org/HDF5/doc/UG/UG_frame12Dataspaces.html
  */
-class DataSpace
-{
-public:
-
+class DataSpace {
+   public:
     typedef nTuple<size_type, MAX_NDIMS_OF_ARRAY> index_tuple;
 
-    typedef std::tuple<
-            int // m_ndims_
-            , index_tuple // dimensions
-            , index_tuple // start
-            , index_tuple // stride
-            , index_tuple // size
-            , index_tuple // block
-    > data_shape_s;
+    typedef std::tuple<int  // m_ndims_
+                       ,
+                       index_tuple  // dimensions
+                       ,
+                       index_tuple  // start
+                       ,
+                       index_tuple  // stride
+                       ,
+                       index_tuple  // size
+                       ,
+                       index_tuple  // block
+                       >
+        data_shape_s;
 
     // Creates a null data_space
     DataSpace();
 
     DataSpace(int rank, size_type const *dims);
-
 
     // Copy constructor: makes a Duplicate of the original data_space object.
     DataSpace(const DataSpace &other);
@@ -58,8 +59,7 @@ public:
     void swap(DataSpace &);
 
     // Assignment operator
-    DataSpace &operator=(const DataSpace &rhs)
-    {
+    DataSpace &operator=(const DataSpace &rhs) {
         DataSpace(rhs).swap(*this);
         return *this;
     }
@@ -72,19 +72,16 @@ public:
 
     static std::tuple<DataSpace, DataSpace> create_simple_unordered(size_type size);
 
-//    static std::tuple<DataSpace, DataSpace> clone(size_type rank,
-//                                                   index_type const *topology_dims = nullptr,
-//                                                   index_type const *start = nullptr,
-//                                                   index_type const *_stride = nullptr,
-//                                                   index_type const *size = nullptr,
-//                                                   index_type const *_block = nullptr
-//    );
-
+    //    static std::tuple<DataSpace, DataSpace> clone(size_type rank,
+    //                                                   index_type const *topology_dims = nullptr,
+    //                                                   index_type const *start = nullptr,
+    //                                                   index_type const *_stride = nullptr,
+    //                                                   index_type const *size = nullptr,
+    //                                                   index_type const *_block = nullptr
+    //    );
 
     // TODO complete support H5Sselect_hyperslab:H5S_seloper_t
-    DataSpace &select_hyperslab(const size_type *start,
-                                size_type const *_stride,
-                                size_type const *count,
+    DataSpace &select_hyperslab(const size_type *start, size_type const *_stride, size_type const *count,
                                 size_type const *_block);
 
     void clear_selected();
@@ -105,7 +102,6 @@ public:
 
     void select_points(size_type num, const size_type *b);
 
-
     /**
      * @return <ndims,dimensions,start,count,stride,block>
      */
@@ -117,14 +113,11 @@ public:
 
     size_type num_of_elements() const;
 
-private:
+   private:
     struct pimpl_s;
     std::shared_ptr<pimpl_s> m_pimpl_;
-
 };
-
-
-}} //namespace simpla { namespace data_model
-
+}
+}  // namespace simpla { namespace data_model
 
 #endif /* CORE_DATASET_DATASPACE_H_ */

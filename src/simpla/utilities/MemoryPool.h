@@ -11,7 +11,7 @@
 
 #include <stddef.h>
 #include <memory>
-#include <simpla/design_pattern/SingletonHolder.h>
+#include <simpla/utilities/SingletonHolder.h>
 
 namespace simpla
 {

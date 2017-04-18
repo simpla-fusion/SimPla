@@ -7,8 +7,8 @@
 #include "SPObject.h"
 
 #include <simpla/data/DataTable.h>
-#include <simpla/mpl/type_cast.h>
-#include <simpla/toolbox/Log.h>
+#include <simpla/utilities/type_cast.h>
+#include <simpla/utilities/Log.h>
 #include <boost/functional/hash.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>

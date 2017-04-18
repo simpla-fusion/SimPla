@@ -17,8 +17,8 @@
 #ifndef LOG_H_
 #define LOG_H_
 
-#include <simpla/concept/CheckConcept.h>
-#include <simpla/mpl/type_cast.h>
+//#include <simpla/concept/CheckConcept.h>
+//#include <simpla/utilities/type_cast.h>
 #include <stddef.h>
 #include <bitset>
 #include <iostream>
@@ -69,7 +69,7 @@ enum tags {
     LOG_VERBOSE = 10,  //!< LOG_VERBOSE
     LOG_DEBUG = -30    //!< LOG_DEBUG
 };
-CHECK_MEMBER_FUNCTION(has_member_function_print, print);
+// CHECK_MEMBER_FUNCTION(has_member_function_print, print);
 
 /**
  *
@@ -92,8 +92,10 @@ class Logger : public std::ostringstream {
    private:
    public:
     template <typename T>
-    inline this_type &push(T const &value,
-                           std::enable_if_t<!has_member_function_print<T, std::ostream &>::value> *__p = nullptr) {
+    inline this_type &push(
+        T const &value
+        //            , std::enable_if_t<!has_member_function_print<T, std::ostream &>::value> *__p = nullptr
+        ) {
         current_line_char_count_ -= get_buffer_length();
         *dynamic_cast<base_type *>(this) << (value);
         current_line_char_count_ += get_buffer_length();
@@ -101,16 +103,16 @@ class Logger : public std::ostringstream {
         return *this;
     }
 
-    template <typename T>
-    inline this_type &push(T const &value,
-                           std::enable_if_t<has_member_function_print<T, std::ostream &>::value> *__p = nullptr) {
-        current_line_char_count_ -= get_buffer_length();
-        value.print(*dynamic_cast<base_type *>(this));
-        current_line_char_count_ += get_buffer_length();
-        if (current_line_char_count_ > get_line_width()) { endl(); }
-
-        return *this;
-    }
+    //    template <typename T>
+    //    inline this_type &push(T const &value,
+    //                           std::enable_if_t<has_member_function_print<T, std::ostream &>::value> *__p = nullptr) {
+    //        current_line_char_count_ -= get_buffer_length();
+    //        value.print(*dynamic_cast<base_type *>(this));
+    //        current_line_char_count_ += get_buffer_length();
+    //        if (current_line_char_count_ > get_line_width()) { endl(); }
+    //
+    //        return *this;
+    //    }
 
     template <typename T>
     inline this_type const &push(T const &value) const {
@@ -275,7 +277,7 @@ std::string make_msg(Others const &... others) {
     "\n\e[0m \e[1;37m From [" << (__FILE__) << ":" << (__LINE__) << ":0: " << (__PRETTY_FUNCTION__) << "] \n " \
                                                                                                        "\e[1;31m\t"
 #define FILE_LINE_STAMP_STRING \
-    ("[" + std::string(__FILE__) + ":" + string_cast(__LINE__) + ":0: " + std::string(__PRETTY_FUNCTION__) + "] ")
+    ("[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + ":0: " + std::string(__PRETTY_FUNCTION__) + "] ")
 #define MAKE_ERROR_MSG(...)                                                                                 \
     logger::make_msg("\n\e[0m \e[1;37m From [", (__FILE__), ":", (__LINE__), ":0: ", (__PRETTY_FUNCTION__), \
                      "] \n \e[1;31m\t", __VA_ARGS__)
@@ -420,7 +422,7 @@ std::string make_msg(Others const &... others) {
 //#ifndef NDEBUG
 #define CHECK(_MSG_)                                                                                             \
     std::cerr << "\n\e[0m \e[1;37m From [" << (__FILE__) << ":" << (__LINE__) << ":0: " << (__PRETTY_FUNCTION__) \
-              << "] \n \e[1;31m\t" << __STRING((_MSG_)) << " = " << (_MSG_) << "\e[0m"<<std::endl
+              << "] \n \e[1;31m\t" << __STRING((_MSG_)) << " = " << (_MSG_) << "\e[0m" << std::endl
 #define SHOW(_MSG_) logger::Logger(logger::LOG_VERBOSE) << __STRING(_MSG_) << "\t= " << (_MSG_) << std::endl;
 #define SHOW_HEX(_MSG_) \
     logger::Logger(logger::LOG_VERBOSE) << __STRING(_MSG_) << "\t= " << std::hex << (_MSG_) << std::dec << std::endl;

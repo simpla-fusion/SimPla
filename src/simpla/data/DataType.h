@@ -21,7 +21,7 @@
 
 #include <simpla/algebra/Algebra.h>
 #include <simpla/algebra/nTuple.h>
-#include <simpla/mpl/type_traits.h>
+#include <simpla/utilities/type_traits.h>
 
 namespace simpla {
 namespace data {

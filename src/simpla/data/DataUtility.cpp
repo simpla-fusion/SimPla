@@ -4,9 +4,9 @@
 #include "DataUtility.h"
 #include <simpla/parallel/MPIAuxFunctions.h>
 #include <simpla/parallel/MPIComm.h>
-#include <simpla/toolbox/Logo.h>
-#include <simpla/toolbox/MiscUtilities.h>
-#include <simpla/toolbox/parse_command_line.h>
+#include <simpla/utilities/Logo.h>
+#include <simpla/utilities/MiscUtilities.h>
+#include <simpla/utilities/parse_command_line.h>
 #include "DataArray.h"
 #include "DataBlock.h"
 #include "DataEntity.h"

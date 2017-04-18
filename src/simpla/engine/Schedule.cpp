@@ -3,7 +3,7 @@
 //
 #include "Schedule.h"
 #include <simpla/parallel/all.h>
-#include <simpla/toolbox/Logo.h>
+#include <simpla/utilities/Logo.h>
 #include <map>
 #include <string>
 #include "Atlas.h"

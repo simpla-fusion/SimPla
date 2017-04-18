@@ -5,36 +5,29 @@
 #ifndef SIMPLA_MODELSELECT_H
 #define SIMPLA_MODELSELECT_H
 
-#include "simpla/SIMPLA_config.h"
+#include <simpla/utilities/sp_def.h>
 #include <functional>
-#include "MeshCommon.h"
-#include "MeshBase.h"
+namespace simpla {
+namespace mesh {
 
-namespace simpla { namespace mesh
-{
+template <typename TM, typename... Args>
+EntityRange select(TM const &m, MeshEntityType iform, Args &&... args) {
+    return EntityRange();
+}
 
-template<typename TM, typename ...Args>
-EntityRange select(TM const &m, MeshEntityType iform, Args &&...args) { return EntityRange(); }
-
-
-EntityRange select(MeshBase const &m, MeshEntityType entityType, box_type const &b)
-{
-
+EntityRange select(MeshBase const &m, MeshEntityType entityType, box_type const &b) {
     auto blk = m.clone();
     blk->intersection(b);
     blk->deploy();
 
-    if (blk->empty())
-    {
+    if (blk->empty()) {
         return EntityRange();
-    } else
-    {
+    } else {
         auto id_box = blk->index_box();
-        return EntityRange(
-                MeshEntityIdCoder::make_range(std::get<0>(id_box), std::get<1>(id_box), entityType));
+        return EntityRange(EntityIdCoder::make_range(std::get<0>(id_box), std::get<1>(id_box), entityType));
     }
-
 };
-}}//namespace simpla { namespace mesh_as
+}
+}  // namespace simpla { namespace mesh_as
 
-#endif //SIMPLA_MODELSELECT_H
+#endif  // SIMPLA_MODELSELECT_H

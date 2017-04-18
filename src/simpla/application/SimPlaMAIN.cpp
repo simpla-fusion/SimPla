@@ -10,8 +10,8 @@
 #include <simpla/engine/Context.h>
 #include <simpla/engine/TimeIntegrator.h>
 #include <simpla/parallel/all.h>
-#include <simpla/toolbox/Logo.h>
-#include <simpla/toolbox/parse_command_line.h>
+#include <simpla/utilities/Logo.h>
+#include <simpla/utilities/parse_command_line.h>
 #include "SpApp.h"
 
 namespace simpla {

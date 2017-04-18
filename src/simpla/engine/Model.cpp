@@ -1,9 +1,8 @@
 //
 // Created by salmon on 16-6-2.
 //
-
 #include "Model.h"
-#include <simpla/mesh/EntityId.h>
+#include <simpla/utilities/sp_def.h>
 #include "Attribute.h"
 #include "MeshBlock.h"
 namespace simpla {

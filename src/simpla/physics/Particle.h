@@ -38,7 +38,7 @@ public:
     typedef P engine_type;
     typedef Field<spPage *, M, simpla::int_const<mesh::VOLUME> > field_type;
     typedef typename P::point_s value_type;
-    typedef typename mesh::MeshEntityId id_type;
+    typedef typename EntityId id_type;
     typedef typename mesh::MeshEntityRange range_type;
 
     using typename P::point_s;

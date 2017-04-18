@@ -3,8 +3,8 @@
 //
 #include "DataTable.h"
 #include <simpla/SIMPLA_config.h>
-#include <simpla/design_pattern/SingletonHolder.h>
-#include <simpla/toolbox/Log.h>
+#include <simpla/utilities/Log.h>
+#include <simpla/utilities/SingletonHolder.h>
 #include <iomanip>
 #include <regex>
 #include <string>

@@ -13,11 +13,11 @@
 #include <simpla/data/all.h>
 #include <simpla/engine/all.h>
 
-#include <simpla/mpl/macro.h>
-#include <simpla/mpl/type_cast.h>
-#include <simpla/mpl/type_traits.h>
-#include <simpla/toolbox/FancyStream.h>
-#include <simpla/toolbox/Log.h>
+#include <simpla/utilities/macro.h>
+#include <simpla/utilities/type_cast.h>
+#include <simpla/utilities/type_traits.h>
+#include <simpla/utilities/FancyStream.h>
+#include <simpla/utilities/Log.h>
 namespace simpla {
 namespace mesh {
 struct CylindricalGeometry : public engine::Chart {
@@ -40,7 +40,7 @@ template <>
 struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
    public:
     SP_OBJECT_HEAD(MeshView<mesh::CylindricalGeometry>, engine::Mesh)
-    typedef mesh::MeshEntityId entity_id;
+    typedef EntityId entity_id;
 
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
@@ -59,7 +59,7 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
     Field<this_type, Real, VOLUME, 9> m_inv_dual_volume_{this, "name"_ = "inv_dual_volume", "NO_FILL"_};
 
    public:
-    typedef mesh::MeshEntityIdCoder M;
+    typedef EntityIdCoder M;
 
     virtual point_type point(index_type i, index_type j, index_type k) const {
         return point_type{m_vertics_(i, j, k, 0), m_vertics_(i, j, k, 1), m_vertics_(i, j, k, 2)};
@@ -89,7 +89,7 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
           *\endverbatim
           */
 
-        auto i = mesh::MeshEntityIdCoder::unpack_index(id);
+        auto i = EntityIdCoder::unpack_index(id);
         Real r = pr[0], s = pr[1], t = pr[2];
 
         Real w0 = (1 - r) * (1 - s) * (1 - t);
@@ -127,7 +127,7 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
     virtual Real inv_volume(entity_id s) const { return m_volume_.at(s); }
     virtual Real inv_dual_volume(entity_id s) const { return m_volume_.at(s); }
 
-    typedef mesh::MeshEntityIdCoder m;
+    typedef EntityIdCoder m;
     virtual Range<entity_id> GetRange() const { return Range<entity_id>(); };
 
     template <typename TV>

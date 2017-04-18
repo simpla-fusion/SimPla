@@ -219,7 +219,7 @@ std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<simpla::Array<U, ND
 //        index_tuple lower, upper;
 //        lower = data_entity_traits::index_lower();
 //        upper = data_entity_traits::index_upper();
-//        res.append(MeshEntityIdCoder::make_range(lower, upper, GetIFORM()));
+//        res.append(EntityIdCoder::make_range(lower, upper, GetIFORM()));
 //        return res;
 //    }
 //

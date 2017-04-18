@@ -8,8 +8,8 @@
 #ifndef EXPRESSION_TEMPLATE_H_
 #define EXPRESSION_TEMPLATE_H_
 
-#include <simpla/mpl/integer_sequence.h>
-#include <simpla/mpl/type_traits.h>
+#include <simpla/utilities/integer_sequence.h>
+#include <simpla/utilities/type_traits.h>
 #include <cmath>
 #include <cmath>
 #include <complex>
