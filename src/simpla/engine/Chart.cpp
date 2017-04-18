@@ -2,8 +2,8 @@
 // Created by salmon on 17-2-17.
 //
 #include "Chart.h"
-#include <simpla/utilities/SingletonHolder.h>
 #include <simpla/utilities/Log.h>
+#include <simpla/utilities/SingletonHolder.h>
 #include <set>
 #include "Attribute.h"
 
@@ -19,12 +19,13 @@ struct Chart::pimpl_s {
 Chart::Chart() : m_pimpl_(new pimpl_s) {}
 Chart::~Chart() {}
 
-
+void Chart::SetOrigin(point_type const &x0) { m_pimpl_->m_origin_ = x0; }
+void Chart::SetDx(point_type const &dx) { m_pimpl_->m_dx_ = dx; }
 point_type const &Chart::GetOrigin() const { return m_pimpl_->m_origin_; }
 point_type const &Chart::GetDx() const { return m_pimpl_->m_dx_; }
 std::shared_ptr<data::DataTable> Chart::Serialize() const {
     auto p = std::make_shared<data::DataTable>();
-//    p->SetValue<std::string>("Type", "CartesianGeometry");
+    //    p->SetValue<std::string>("Type", "CartesianGeometry");
     p->SetValue("Origin", m_pimpl_->m_origin_);
     p->SetValue("Dx", m_pimpl_->m_dx_);
     return p;

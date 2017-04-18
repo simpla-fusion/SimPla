@@ -43,11 +43,13 @@ class Mesh : public AttributeGroup, public data::Serializable, public data::Enab
 
     virtual void Push(Patch *);
     virtual void Pop(Patch *);
+    virtual void InitializeData(Real time_now = 0);
 
     virtual void SetUp();
     virtual void TearDown();
     virtual void Initialize();
     virtual void Finalize();
+
 
     Real GetTime() const;
     id_type GetBlockId() const;

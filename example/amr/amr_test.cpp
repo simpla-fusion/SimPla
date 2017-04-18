@@ -59,6 +59,7 @@ void UseCaseAMR::Deserialize(std::shared_ptr<data::DataTable> cfg) {
         auto domain = m_schedule_->GetContext()->GetDomain("Center");
         domain->SetGeoObject(std::make_shared<geometry::Cube>(box_type{{-1, 2, 0.0}, {12, 13, 14}}));
         domain->SetChart(engine::Chart::Create("CylindricalGeometry"));
+        domain->GetChart()->SetOrigin(point_type{1, 1, 1});
         domain->SetWorker(engine::Worker::Create("EMFluid<CylindricalGeometry>"));
         domain->AddBoundaryCondition(engine::Worker::Create("PEC<CylindricalGeometry>"));
         m_schedule_->SetTime(0.0);

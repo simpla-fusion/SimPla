@@ -62,7 +62,7 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
     typedef EntityIdCoder M;
 
     virtual point_type point(index_type i, index_type j, index_type k) const {
-        return point_type{m_vertics_(i, j, k, 0), m_vertics_(i, j, k, 1), m_vertics_(i, j, k, 2)};
+        return point_type{m_vertics_[0](i, j, k), m_vertics_[1](i, j, k), m_vertics_[2](i, j, k)};
     };
 
     virtual point_type point(entity_id s) const { return point_type{}; /*m_mesh_block_->point(s); */ };
@@ -139,13 +139,7 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
         return a[m::node_id(s)]->at(m::unpack_index(s));
     }
 
-    void Initialize(){};
-    void Finalize(){};
-
-    void TearDown() {}
-    void SetUp() {
-        ASSERT(GetChart() != nullptr);
-
+    void InitializeData(Real time_now = 0) {
         TIME_STAMP;
 
         m_vertics_.Clear();
@@ -183,11 +177,12 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
         index_type kb = lower[2];
         index_type ke = upper[2];
         point_type m_dx_ = GetChart()->GetDx();
-
+        point_type x0 = GetChart()->GetOrigin();
         for (index_type i = ib; i < ie; ++i)
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k) {
-                    point_type x;  //= GetBlock()->point(i, j, k);
+                    point_type x = GetChart()->inv_map(
+                        point_type{static_cast<Real>(i), static_cast<Real>(j), static_cast<Real>(k)});
                     m_vertics_[0](i, j, k) = x[0] * std::cos(x[1]);
                     m_vertics_[1](i, j, k) = x[0] * std::sin(x[1]);
                     m_vertics_[2](i, j, k) = x[2];
@@ -244,7 +239,7 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
     }
 
 };  // struct  Mesh
-}
-}  // namespace simpla // namespace get_mesh
+}  // namespace get_mesh
+}  // namespace simpla
 
 #endif  // SIMPLA_CYLINDRICALRECTMESH_H

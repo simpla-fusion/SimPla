@@ -73,8 +73,8 @@ class Context : public data::Serializable {
     void TearDown();
     void SetUp();
 
-    void SetUpDataOnPatch(Patch *p, Real time_now);
-    void UpdateDataOnPatch(Patch *p, Real time_now, Real time_dt = 0);
+    void InitializeDataOnPatch(Patch *p, Real time_now);
+    void AdvanceDataOnPatch(Patch *p, Real time_now, Real time_dt = 0);
 
     void Register(AttributeGroup *);
 

@@ -37,12 +37,15 @@ class Worker : public data::Serializable, public data::EnableCreateFromDataTable
 
     virtual void Initialize();
     virtual void SetUp();
-    virtual void Advance(Real dt = 0);
+
     virtual void TearDown();
     virtual void Finalize();
 
     virtual Mesh *GetMesh() = 0;
     virtual Mesh const *GetMesh() const = 0;
+
+    virtual void InitializeData(Real time_now = 0);
+    virtual void AdvanceData(Real time_now, Real dt = 0);
 };
 }
 }

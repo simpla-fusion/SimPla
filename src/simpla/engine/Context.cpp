@@ -46,14 +46,17 @@ void Context::TearDown() {
     m_pimpl_->m_atlas_.TearDown();
 }
 void Context::SetUp() {
-    for (auto &item : m_pimpl_->m_domain_) { m_pimpl_->m_model_.AddObject(item.first, item.second->GetGeoObject()); }
+    for (auto &item : m_pimpl_->m_domain_) {
+        item.second->SetUp();
+        m_pimpl_->m_model_.AddObject(item.first, item.second->GetGeoObject());
+    }
     m_pimpl_->m_model_.SetUp();
 };
-void Context::SetUpDataOnPatch(Patch *p, Real time_now) {
-    for (auto &item : m_pimpl_->m_domain_) { item.second->SetUpDataOnPatch(p, time_now); }
+void Context::InitializeDataOnPatch(Patch *p, Real time_now) {
+    for (auto &item : m_pimpl_->m_domain_) { item.second->InitializeDataOnPatch(p, time_now); }
 }
-void Context::UpdateDataOnPatch(Patch *p, Real time_now, Real time_dt) {
-    for (auto &item : m_pimpl_->m_domain_) { item.second->UpdateDataOnPatch(p, time_now, time_dt); }
+void Context::AdvanceDataOnPatch(Patch *p, Real time_now, Real time_dt) {
+    for (auto &item : m_pimpl_->m_domain_) { item.second->AdvanceDataOnPatch(p, time_now, time_dt); }
 }
 
 Model &Context::GetModel() const { return m_pimpl_->m_model_; }
@@ -106,8 +109,8 @@ std::shared_ptr<Domain> Context::GetDomain(std::string const &k) const {
 // std::shared_ptr<Attribute> const &Context::GetAttribute(std::string const &key) const {
 //    return m_pimpl_->m_global_attributes_.at(key);
 //}
-//    GetModel().SetUpDataOnPatch();
-//    GetAtlas().SetUpDataOnPatch();
+//    GetModel().InitializeDataOnPatch();
+//    GetAtlas().InitializeDataOnPatch();
 //    auto workers_t = db()->GetTable("Workers");
 //    GetModel().GetMaterial().Foreach([]() {
 //
@@ -157,7 +160,7 @@ std::shared_ptr<Domain> Context::GetDomain(std::string const &k) const {
 //            w->second->Push(p);
 //            LOGGER << " Worker [ " << std::setw(10) << std::left << w->second->name() << " ] is applied on "
 //                   << mblk->GetIndexBox() << " GeoObject id= " << g_item.first << std::endl;
-//            w->second->Advance(time_now, dt);
+//            w->second->AdvanceData(time_now, dt);
 //            m_pimpl_->m_patches_[mblk->GetGUID()] = w->second->Pop();
 //        }
 //    }

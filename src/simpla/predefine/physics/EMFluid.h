@@ -47,7 +47,9 @@ class EMFluid : public engine::Worker {
     virtual void Finalize();
     virtual void SetUp();
     virtual void TearDown();
-    virtual void Advance(Real dt = 0);
+
+    virtual void InitializeData(Real time_now = 0);
+    virtual void AdvanceData(Real time_now, Real dt = 0);
 
     virtual void SetPhysicalBoundaryConditions(Real time = 0){};
     virtual void SetPhysicalBoundaryConditionE(Real time = 0){};
@@ -149,8 +151,11 @@ template <typename TM>
 void EMFluid<TM>::TearDown() {}
 
 template <typename TM>
-void EMFluid<TM>::SetUp() {
-    Worker::SetUp();
+void EMFluid<TM>::SetUp() {}
+
+template <typename TM>
+void EMFluid<TM>::InitializeData(Real time_now) {
+    Worker::InitializeData(time_now);
     if (E.isNull()) {
         E.Clear();
         B0.Clear();
@@ -159,11 +164,9 @@ void EMFluid<TM>::SetUp() {
     B0v = map_to<VERTEX>(B0);
     BB = dot(B0v, B0v);
 }
-
 template <typename TM>
-void EMFluid<TM>::Advance(Real dt) {
+void EMFluid<TM>::AdvanceData(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
-    Real time_now = GetMesh()->GetTime();
     B -= curl(E) * (dt * 0.5);
     SetPhysicalBoundaryConditionB(time_now);
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;

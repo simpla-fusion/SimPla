@@ -37,6 +37,8 @@ void Mesh::TearDown() {}
 void Mesh::Initialize() {}
 void Mesh::Finalize() {}
 
+void Mesh::InitializeData(Real time_now) {}
+
 std::shared_ptr<data::DataTable> Mesh::Serialize() const {
     auto p = std::make_shared<data::DataTable>();
     p->SetValue("Type", GetClassName());

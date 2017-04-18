@@ -38,7 +38,7 @@ class PML : public engine::Worker {
 
     void SetCenterDomain(geometry::GeoObject const&) {}
 
-    void Advance(Real data_time, Real dt = 0);
+    void AdvanceData(Real data_time, Real dt = 0);
     void SetUp(Real time_now = 0);
 
      //    virtual std::string getClassName() const { return class_name(); }
@@ -123,7 +123,7 @@ void PML<TM>::SetUp(Real time_now) {
 }
 
 template <typename TM>
-void PML<TM>::Advance(Real time_now, Real dt) {
+void PML<TM>::AdvanceData(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
 
     dX2 = (X20 * (-2.0 * dt * s0) + curl_pdx(E) * dt) / (a0 + s0 * dt);

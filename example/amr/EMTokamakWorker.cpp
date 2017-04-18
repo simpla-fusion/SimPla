@@ -50,7 +50,7 @@ void EMTokamakWorker::Initialize() {
 }
 void EMTokamakWorker::Finalize() {}
 
-void EMTokamakWorker::Advance(Real dt) { base_type::Advance(dt); };
+void EMTokamakWorker::Advance(Real dt) { base_type::AdvanceData(dt); };
 
 void EMTokamakWorker::SetPhysicalBoundaryConditions() {
     base_type::SetPhysicalBoundaryConditions();
