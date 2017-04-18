@@ -38,38 +38,29 @@ class DataBlock : public DataEntity {
     virtual void Copy(DataBlock const &) { UNIMPLEMENTED; };
 };
 
-template <typename U, int NDIMS, int DEPTH>
+template <typename U, int NDIMS>
 class DataMultiArray : public DataBlock {
     typedef simpla::Array<U, NDIMS> array_type;
-    typedef DataMultiArray<U, NDIMS, DEPTH> multi_array_type;
+    typedef DataMultiArray<U, NDIMS> multi_array_type;
     SP_OBJECT_HEAD(multi_array_type, DataBlock);
 
     typedef U value_type;
 
    public:
-    DataMultiArray() {}
+    DataMultiArray(int depth = 1) : m_data_(depth) {}
     virtual ~DataMultiArray() {}
     virtual bool empty() const { return m_data_[0].empty(); }
-
     virtual std::type_info const &value_type_info() const { return typeid(value_type); };
-
     virtual int GetNDIMS() const { return NDIMS; }
-    virtual size_type GetDepth() const { return static_cast<size_type>(DEPTH); }
+    virtual size_type GetDepth() const { return m_data_.size(); }
 
-    virtual index_type const *GetInnerLowerIndex(int depth = 0) const { return m_data_[depth]->GetInnerLowerIndex(); }
-    virtual index_type const *GetInnerUpperIndex(int depth = 0) const { return m_data_[depth]->GetInnerUpperIndex(); }
-    virtual index_type const *GetOuterLowerIndex(int depth = 0) const { return m_data_[depth]->GetOuterLowerIndex(); }
-    virtual index_type const *GetOuterUpperIndex(int depth = 0) const { return m_data_[depth]->GetOuterUpperIndex(); }
-    virtual void const *GetRawData(int depth = 0) const { return m_data_[depth % DEPTH]->GetRawData(); }
-    virtual void *GetRawData(int depth = 0) { return m_data_[depth % DEPTH]->GetRawData(); }
-
-    array_type &get(int depth = 0) { return m_data_[depth % DEPTH]; }
-    array_type const &get(int depth = 0) const { return m_data_[depth % DEPTH]; }
-    array_type &operator[](int depth) { return m_data_[depth % DEPTH]; }
-    array_type const &operator[](int depth) const { return m_data_[depth % DEPTH]; }
+    array_type &GetArray(int depth = 0) { return m_data_[depth % m_data_.size()]; }
+    array_type const &GetArray(int depth = 0) const { return m_data_[depth % m_data_.size()]; }
+    array_type &operator[](int depth) { return m_data_[depth % m_data_.size()]; }
+    array_type const &operator[](int depth) const { return m_data_[depth % m_data_.size()]; }
 
    private:
-    array_type m_data_[DEPTH];
+    std::vector<array_type> m_data_;
 };
 template <typename U, int NDIMS>
 std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<simpla::Array<U, NDIMS>> const &p) {
