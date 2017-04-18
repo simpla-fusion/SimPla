@@ -22,7 +22,7 @@ struct CoRectMesh : public engine::Mesh {
     typedef Real scalar_type;
     typedef EntityId entity_id;
 
-    CoRectMesh() : engine::Mesh() {}
+    CoRectMesh() : engine::Mesh(std::shared_ptr<engine::Chart>()) {}
     virtual ~CoRectMesh() {}
     this_type *Clone() const { return new this_type(*this); }
     void Initialize();

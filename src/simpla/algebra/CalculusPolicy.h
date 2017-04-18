@@ -21,9 +21,7 @@
 #include "Field.h"
 namespace simpla {
 namespace algebra {
-
 namespace calculus {
-using namespace mesh;
 
 namespace st = simpla::traits;
 template <typename...>

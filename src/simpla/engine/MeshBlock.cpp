@@ -12,6 +12,7 @@ namespace engine {
 
 struct MeshBlock::pimpl_s {
     size_type m_level_ = 0;
+    Real m_time_ = 0;
     id_type m_GUID_ = NULL_ID;
     index_box_type m_index_box_;
     index_tuple m_ghost_width_{2, 2, 2};
@@ -20,17 +21,21 @@ struct MeshBlock::pimpl_s {
 };
 boost::uuids::random_generator MeshBlock::pimpl_s::m_gen_;
 boost::hash<boost::uuids::uuid> MeshBlock::pimpl_s::m_hasher_;
-MeshBlock::MeshBlock(index_box_type const &b, size_type level) : m_pimpl_(new pimpl_s) {
+MeshBlock::MeshBlock(index_box_type const &b, size_type level, Real time_now) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_index_box_ = b;
     m_pimpl_->m_level_ = level;
     m_pimpl_->m_GUID_ = m_pimpl_->m_hasher_(m_pimpl_->m_gen_());
+    m_pimpl_->m_time_ = time_now;
 };
 MeshBlock::MeshBlock(MeshBlock const &other) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_level_ = other.m_pimpl_->m_level_;
     m_pimpl_->m_GUID_ = other.m_pimpl_->m_GUID_;
     m_pimpl_->m_index_box_ = other.m_pimpl_->m_index_box_;
+    m_pimpl_->m_time_ = other.m_pimpl_->m_time_;
 }
 MeshBlock::~MeshBlock() {}
+
+Real MeshBlock::GetTime() const { return m_pimpl_->m_time_; }
 index_tuple MeshBlock::GetGhostWidth() const { return m_pimpl_->m_ghost_width_; };
 index_box_type MeshBlock::GetIndexBox(int IFORM, int sub) const { return m_pimpl_->m_index_box_; }
 index_box_type MeshBlock::GetOuterIndexBox(int IFORM, int sub) const {
@@ -41,7 +46,7 @@ index_box_type MeshBlock::GetOuterIndexBox(int IFORM, int sub) const {
 }
 index_box_type MeshBlock::GetInnerIndexBox(int IFORM, int sub) const { return GetIndexBox(IFORM, sub); }
 
-//box_type MeshBlock::GetBoundBox() const {
+// box_type MeshBlock::GetBoundBox() const {
 //    box_type res;
 //    res = GetIndexBox();
 //    return std::move(res);

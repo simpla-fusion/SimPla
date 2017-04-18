@@ -16,23 +16,10 @@ struct Mesh::pimpl_s {
     std::shared_ptr<geometry::GeoObject> m_geo_obj_;
     std::shared_ptr<Chart> m_chart_;
 };
-Mesh::Mesh() : m_pimpl_(new pimpl_s) {}
-
+Mesh::Mesh(std::shared_ptr<Chart> c) : m_pimpl_(new pimpl_s) { m_pimpl_->m_chart_ = c; }
 Mesh::~Mesh() {}
 
-// std::ostream &Mesh::Print(std::ostream &os, int indent) const {
-//    os << std::setw(indent + 1) << "value_type_info = \"" << GetClassName() << "\",";
-//    if (m_pimpl_->m_mesh_block_ != nullptr) {
-//        os << std::endl;
-//        os << std::setw(indent + 1) << " "
-//           << " Block = {";
-//        //        m_backend_->m_mesh_block_->Print(os, indent + 1);
-//        os << std::setw(indent + 1) << " "
-//           << "},";
-//    }
-//    return os;
-//};
-
+Real Mesh::GetTime() const { return m_pimpl_->m_mesh_block_->GetTime(); }
 void Mesh::SetBlock(std::shared_ptr<MeshBlock> m) { m_pimpl_->m_mesh_block_ = m; }
 std::shared_ptr<MeshBlock> Mesh::GetBlock() const { return m_pimpl_->m_mesh_block_; }
 id_type Mesh::GetBlockId() const {

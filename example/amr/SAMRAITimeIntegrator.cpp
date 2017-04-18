@@ -335,11 +335,11 @@ std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, boost::share
     auto inner_lower = pd->getBox().lower();
     auto inner_upper = pd->getBox().upper();
 
-    index_type in_lower[4] = {inner_lower[0], inner_lower[1], inner_lower[2]};
-    index_type in_upper[4] = {inner_upper[0], inner_upper[1], inner_upper[2]};
+    index_type in_lower[3] = {inner_lower[0], inner_lower[1], inner_lower[2]};
+    index_type in_upper[3] = {inner_upper[0], inner_upper[1], inner_upper[2]};
 
-    index_type out_lower[4] = {outer_lower[0], outer_lower[1], outer_lower[2]};
-    index_type out_upper[4] = {outer_upper[0], outer_upper[1], outer_upper[2]};
+    index_type out_lower[3] = {outer_lower[0], outer_lower[1], outer_lower[2]};
+    index_type out_upper[3] = {outer_upper[0], outer_upper[1], outer_upper[2]};
 
     switch (IFORM) {
         case VERTEX: {
@@ -521,7 +521,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         }
     }
     //    integrator->printClassData(std::cout);
-    //    vardb->printClassData(std::cout);
+    vardb->printClassData(std::cout);
 }
 
 void SAMRAIHyperbolicPatchStrategyAdapter::Push(SAMRAI::hier::Patch &patch, engine::Patch *p) {

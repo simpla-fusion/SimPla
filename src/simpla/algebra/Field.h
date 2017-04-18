@@ -7,41 +7,22 @@
 #ifndef SIMPLA_FIELD_H
 #define SIMPLA_FIELD_H
 
-#include <simpla/utilities/sp_def.h>
+#include <simpla/SIMPLA_config.h>
+#include <simpla/algebra/CalculusPolicy.h>
+#include <simpla/concept/Printable.h>
+#include <simpla/data/DataBlock.h>
+#include <simpla/data/all.h>
+#include <simpla/engine/Attribute.h>
+#include <simpla/engine/MeshBlock.h>
 #include <simpla/utilities/EntityId.h>
+#include <simpla/utilities/FancyStream.h>
+#include <simpla/utilities/Range.h>
+#include <simpla/utilities/sp_def.h>
 #include <cstring>  // for memset
 #include "Algebra.h"
+#include "Array.h"
 #include "nTuple.h"
-#include "simpla/SIMPLA_config.h"
-#include "simpla/algebra/CalculusPolicy.h"
-#include "simpla/concept/Printable.h"
-#include "simpla/data/all.h"
-#include "simpla/engine/Attribute.h"
-#include "simpla/engine/MeshBlock.h"
-#include "simpla/utilities/FancyStream.h"
-#include "simpla/utilities/Range.h"
 namespace simpla {
-namespace mesh {
-
-CHECK_MEMBER_TYPE(check_entity_id, entity_id)
-CHECK_MEMBER_TYPE(check_scalar_type, scalar_type)
-
-template <typename TM>
-struct mesh_traits {
-    typedef TM type;
-    typedef typename check_entity_id<TM>::type entity_id;
-    typedef typename check_scalar_type<TM>::type scalar_type;
-
-    //    template <int IFORM, int DOF>
-    //    struct Shift {
-    //        template <typename... Args>
-    //        Shift(Args&&... args) {}
-    //        constexpr entity_id const& operator()(TM const& m, id const& s) const { return s; }
-    //    };
-};
-
-}  // namespace mesh{
-
 namespace algebra {
 namespace calculus {
 template <typename...>
@@ -55,12 +36,13 @@ class FieldView : public engine::Attribute {
 
    public:
     typedef TV value_type;
-
     typedef TM mesh_type;
+
     static constexpr int iform = IFORM;
     static constexpr int dof = DOF;
     static constexpr int NDIMS = mesh_type::NDIMS;
     static constexpr int NUMBER_OF_SUB = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
+
     typedef std::true_type prefer_pass_by_reference;
     typedef std::false_type is_expression;
     typedef std::true_type is_field;
@@ -69,13 +51,12 @@ class FieldView : public engine::Attribute {
         field_value_type;
 
    private:
-    typedef Array<value_type, NDIMS> sub_array_type;
-    static constexpr int num_of_subs = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
-    std::shared_ptr<sub_array_type> m_data_[num_of_subs];
+    typedef Array<value_type, NDIMS> array_type;
+    array_type m_data_[NUMBER_OF_SUB];
     mesh_type const* m_mesh_;
 
    public:
-    explicit FieldView(mesh_type* m, std::shared_ptr<data::DataEntity> const& d = nullptr)
+    FieldView(mesh_type* m, std::shared_ptr<data::DataTable> const& d = nullptr)
         : m_mesh_(m), engine::Attribute(m, d){};
 
     FieldView(mesh_type& m) : m_mesh_(&m), engine::Attribute(&m){};
@@ -84,13 +65,14 @@ class FieldView : public engine::Attribute {
     FieldView(mesh_type* m, Args&&... args) : m_mesh_(m), engine::Attribute(m, std::forward<Args>(args)...){};
 
     template <typename... Args>
-    FieldView(mesh_type& m, Args&&... args) : FieldView(&m, std::forward<Args>(args)...){};
+    FieldView(mesh_type& m, Args&&... args) : m_mesh_(&m), engine::Attribute(&m, std::forward<Args>(args)...){};
 
     FieldView(this_type const& other) = delete;
     FieldView(this_type&& other) = delete;
-    virtual ~FieldView() {}
-    //    virtual this_type* Clone() const { return new this_type(*this); };
 
+    virtual ~FieldView() {}
+
+    //    virtual this_type* Clone() const { return new this_type(*this); };
     //    virtual std::shared_ptr<engine::Attribute> GetDescription() const {
     //        return std::make_shared<engine::AttributeDesc<TV, IFORM, DOF>>(db());
     //    };
@@ -103,15 +85,12 @@ class FieldView : public engine::Attribute {
     virtual void Initialize() {}
     virtual void Clear() {
         SetUp();
-        for (int i = 0; i < num_of_subs; ++i) {
-            if (m_data_[i] != nullptr) { m_data_[i]->Clear(); }
-        }
+        for (int i = 0; i < NUMBER_OF_SUB; ++i) { m_data_[i].Clear(); }
     }
     virtual bool empty() const { return m_data_[0] == nullptr; }
 
     this_type& operator=(this_type const& other) {
         Assign(other);
-        for (int i = 0; i < num_of_subs; ++i) { m_data_[i] = other.m_data_[i]; }
         return *this;
     }
     template <typename TR>
@@ -120,60 +99,43 @@ class FieldView : public engine::Attribute {
         return *this;
     }
 
-    void PushData(shared_ptr<data::DataBlock> d) {
-        //        m_chart_ = dynamic_cast<mesh_type const*>(engine::Attribute::GetMesh());
-        //        ASSERT(m_chart_ != nullptr && m_chart_->GetMeshBlock()->GetGUID() == m->GetGUID());
-        //        if (d == nullptr) {
-        //            for (int i = 0; i < num_of_subs; ++i) {
-        //                m_data_[i] = std::make_shared<sub_array_type>(m->GetInnerIndexBox(), m->GetOuterIndexBox());
-        //            }
-        //        } else if (d->isArray() && num_of_subs > 1) {
-        //            auto& t = d->cast_as<data::DataEntityWrapper<void*>>();
-        //            for (int i = 0; i < num_of_subs; ++i) {
-        //                m_data_[i] = t.Get(i)->cast_as<data::DataEntityWrapper<sub_array_type>>().get();
-        //            }
-        //        } else {
-        //            m_data_[0] = d->cast_as<data::DataEntityWrapper<sub_array_type>>().get();
-        //        }
+    void PushData(std::shared_ptr<data::DataBlock> d) {
+        if (d != nullptr) {
+            auto& t = d->cast_as<data::DataMultiArray<value_type, NDIMS>>();
+            for (int i = 0; i < NUMBER_OF_SUB; ++i) { array_type(t.GetArray(i)).swap(m_data_[i]); }
+        }
     }
-    virtual std::shared_ptr<data::DataBlock> PopData() {
-        //        std::shared_ptr<data::DataEntity> t = nullptr;
-        //        if (num_of_subs == 1) {
-        //            t = std::make_shared<data::DataEntityWrapper<sub_array_type>>(m_data_[0]);
-        //        } else {
-        //            auto t_array = std::make_shared<data::DataEntityWrapper<void*>>();
-        //            for (int i = 0; i < num_of_subs; ++i) {
-        //                auto res = std::make_shared<data::DataEntityWrapper<sub_array_type>>(m_data_[i]);
-        //                t_array->Add(res);
-        //                m_data_[i].reset();
-        //                t = t_array;
-        //            }
-        //        }
-        //        return std::make_pair(m_chart_->GetMeshBlock(), t);
-        return nullptr;
+    std::shared_ptr<data::DataBlock> PopData() {
+        auto res = std::make_shared<data::DataMultiArray<value_type, NDIMS>>(NUMBER_OF_SUB);
+        for (int i = 0; i < NUMBER_OF_SUB; ++i) { array_type(m_data_[i]).swap(res->GetArray(i)); }
+        return res;
     }
-    sub_array_type const& operator[](unsigned int i) const { return *m_data_[i % num_of_subs]; }
-    sub_array_type& operator[](unsigned int i) { return *m_data_[i % num_of_subs]; }
 
-    value_type const& at(EntityId const& s) const { return (*m_data_[s.w])(s.x, s.y, s.z); }
-    value_type& at(EntityId const& s) { return (*m_data_[s.w])(s.x, s.y, s.z); }
+    array_type const& operator[](int i) const { return m_data_[i % NUMBER_OF_SUB]; }
+    array_type& operator[](int i) { return m_data_[i % NUMBER_OF_SUB]; }
+
+    value_type const& operator[](EntityId const& s) const { return (m_data_[s.w])(s.x, s.y, s.z); }
+    value_type& operator[](EntityId const& s) { return (m_data_[s.w])(s.x, s.y, s.z); }
+
+    value_type const& at(EntityId const& s) const { return (m_data_[s.w])(s.x, s.y, s.z); }
+    value_type& at(EntityId const& s) { return (m_data_[s.w])(s.x, s.y, s.z); }
 
    private:
     template <typename... Others>
     decltype(auto) get_(std::integral_constant<bool, true>, unsigned int n, Others&&... others) {
-        return m_data_[n]->at(std::forward<Others>(others)...);
+        return m_data_[n].at(std::forward<Others>(others)...);
     }
     template <typename... Others>
     decltype(auto) get_(std::integral_constant<bool, true>, unsigned int n, Others&&... others) const {
-        return m_data_[n]->at(std::forward<Others>(others)...);
+        return m_data_[n].at(std::forward<Others>(others)...);
     }
     template <typename... Others>
     decltype(auto) get_(std::integral_constant<bool, false>, Others&&... others) {
-        return m_data_[0]->at(std::forward<Others>(others)...);
+        return m_data_[0].at(std::forward<Others>(others)...);
     }
     template <typename... Others>
     decltype(auto) get_(std::integral_constant<bool, false>, Others&&... others) const {
-        return m_data_[0]->at(std::forward<Others>(others)...);
+        return m_data_[0].at(std::forward<Others>(others)...);
     }
 
    public:
@@ -205,9 +167,9 @@ class FieldView : public engine::Attribute {
     template <typename TOP, typename... Args>
     void Foreach_(Range<EntityId> const& r, TOP const& op, Args&&... args) {
         ASSERT(!empty());
-        for (int j = 0; j < num_of_subs; ++j) {
+        for (int j = 0; j < NUMBER_OF_SUB; ++j) {
             r.foreach ([&](EntityId s) {
-                s.w = j;
+                s.w = static_cast<u_int16_t>(j);
                 op(at(s), calculus_policy::getValue(*m_mesh_, std::forward<Args>(args), s)...);
             });
         }
@@ -231,12 +193,8 @@ class FieldView : public engine::Attribute {
         Foreach_(r, tags::_assign(), other);
     }
 };  // class FieldView
-
-// template <typename TM, typename TV, int IFORM, int DOF>
-// std::ostream& FieldView<TM, TV, IFORM, DOF>::Print(std::ostream& os, int indent) const {
-//    for (int i = 0; i < num_of_subs; ++i) { os << *m_data_[i] << std::endl; }
-//    return os;
-//}
+template <typename TM, typename TV, int IFORM, int DOF>
+constexpr int FieldView<TM, TV, IFORM, DOF>::NUMBER_OF_SUB;
 
 namespace declare {
 

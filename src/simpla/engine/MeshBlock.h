@@ -13,9 +13,11 @@ namespace engine {
 
 class MeshBlock {
    public:
-    MeshBlock(index_box_type const &b, size_type level = 0);
+    MeshBlock(index_box_type const &b, size_type level = 0, Real time_now = 0);
     MeshBlock(MeshBlock const &);
     ~MeshBlock();
+
+    Real GetTime() const;
     id_type GetGUID() const;
     size_type GetLevel() const;
     size_tuple GetDimensions() const;

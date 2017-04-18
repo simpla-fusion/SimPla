@@ -5,11 +5,11 @@
 #ifndef SIMPLA_ARRAY_H
 #define SIMPLA_ARRAY_H
 
-#include <simpla/utilities/sp_def.h>
 #include <simpla/concept/Printable.h>
-#include <simpla/utilities/Range.h>
 #include <simpla/utilities/FancyStream.h>
 #include <simpla/utilities/Log.h>
+#include <simpla/utilities/Range.h>
+#include <simpla/utilities/sp_def.h>
 #include <cstring>
 
 #include "Algebra.h"
@@ -35,7 +35,7 @@ struct Array_ : public ArrayView<V, NDIMS> {
 
    public:
     Array_() : base_type() {}
-
+    Array_(Array_ const& other) : base_type(other) {}
     template <typename... Args>
     explicit Array_(Args&&... args) : base_type(std::forward<Args>(args)...) {}
 
@@ -179,6 +179,11 @@ struct ArrayView : public concept::Printable {
    public:
     ArrayView() {}
 
+    ArrayView(this_type const& other)
+        : m_data_(other.m_data_),
+          m_inner_index_box_(other.m_inner_index_box_),
+          m_outer_index_box_(other.m_outer_index_box_) {}
+
     explicit ArrayView(std::initializer_list<index_type> const& l) {
         for (int i = 0; i < NDIMS; ++i) {
             std::get<0>(m_inner_index_box_)[i] = 0;
@@ -214,6 +219,11 @@ struct ArrayView : public concept::Printable {
     }
 
     virtual ~ArrayView() {}
+    void swap(this_type& other) {
+        std::swap(m_data_, other.m_data_);
+        std::swap(m_inner_index_box_, other.m_inner_index_box_);
+        std::swap(m_outer_index_box_, other.m_outer_index_box_);
+    };
 
     template <typename... Others>
     declare::Array_<value_type, NDIMS> operator()(ArrayIndexShift const& IX, Others&&... others) const {
@@ -371,12 +381,6 @@ struct ArrayView : public concept::Printable {
     template <typename TOP>
     void Foreach(TOP const& op) {
         detail::ForeachND(m_inner_index_box_, [&](m_index_tuple const& idx) { op(at(idx)); });
-    };
-
-    void swap(this_type& other) {
-        std::swap(m_data_, other.m_data_);
-        std::swap(m_inner_index_box_, other.m_inner_index_box_);
-        std::swap(m_outer_index_box_, other.m_outer_index_box_);
     };
 
    public:

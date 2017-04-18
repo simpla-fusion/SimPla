@@ -45,9 +45,9 @@ class EMFluid : public engine::Worker {
 
     virtual void Initialize();
     virtual void Finalize();
-    virtual void SetUp(Real time_now = 0);
+    virtual void SetUp();
     virtual void TearDown();
-    virtual void Advance(Real data_time, Real dt = 0);
+    virtual void Advance(Real dt = 0);
 
     virtual void SetPhysicalBoundaryConditions(Real time = 0){};
     virtual void SetPhysicalBoundaryConditionE(Real time = 0){};
@@ -149,8 +149,8 @@ template <typename TM>
 void EMFluid<TM>::TearDown() {}
 
 template <typename TM>
-void EMFluid<TM>::SetUp(Real time_now) {
-    CHECK(time_now);
+void EMFluid<TM>::SetUp() {
+    Worker::SetUp();
     if (E.isNull()) {
         E.Clear();
         B0.Clear();
@@ -161,14 +161,13 @@ void EMFluid<TM>::SetUp(Real time_now) {
 }
 
 template <typename TM>
-void EMFluid<TM>::Advance(Real data_time, Real dt) {
-    CHECK(data_time);
-
+void EMFluid<TM>::Advance(Real dt) {
     DEFINE_PHYSICAL_CONST
+    Real time_now = GetMesh()->GetTime();
     B -= curl(E) * (dt * 0.5);
-    SetPhysicalBoundaryConditionB(data_time);
+    SetPhysicalBoundaryConditionB(time_now);
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
-    SetPhysicalBoundaryConditionE(data_time);
+    SetPhysicalBoundaryConditionE(time_now);
     if (m_fluid_sp_.size() > 0) {
         field_type<VERTEX, 3> Q{m_mesh_};
         field_type<VERTEX, 3> K{m_mesh_};
@@ -227,7 +226,7 @@ void EMFluid<TM>::Advance(Real data_time, Real dt) {
         E += map_to<EDGE>(Ev) - E;
     }
     B -= curl(E) * (dt * 0.5);
-    SetPhysicalBoundaryConditionB(data_time);
+    SetPhysicalBoundaryConditionB(time_now);
 }
 
 }  // namespace simpla  {

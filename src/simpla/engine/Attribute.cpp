@@ -42,9 +42,9 @@ struct Attribute::pimpl_s {
     Mesh const *m_mesh_ = nullptr;
     Range<EntityId> m_range_;
 };
-Attribute::Attribute(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), data::Configurable(t) {
-    SetUp();
-}
+//Attribute::Attribute(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), data::Configurable(t) {
+//    SetUp();
+//}
 
 Attribute::Attribute(AttributeGroup *b, std::shared_ptr<data::DataTable> const &t)
     : m_pimpl_(new pimpl_s), data::Configurable(t) {

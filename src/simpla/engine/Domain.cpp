@@ -22,6 +22,15 @@ struct Domain::pimpl_s {
 };
 Domain::Domain() : SPObject(), m_pimpl_(new pimpl_s) {}
 Domain::~Domain() { Finalize(); }
+
+void Domain::Initialize() {}
+void Domain::SetUp() {
+    m_pimpl_->m_worker_->GetMesh()->SetChart(m_pimpl_->m_chart_);
+    m_pimpl_->m_worker_->SetUp();
+}
+void Domain::TearDown() {}
+void Domain::Finalize() {}
+
 std::shared_ptr<data::DataTable> Domain::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
     res->SetValue("Type", "Domain");
@@ -68,8 +77,9 @@ void Domain::SetUpDataOnPatch(Patch *p, Real time_now) {
     //
     //    switch (m_pimpl_->m_geo_obj_->CheckOverlap(mblk_box)) {
     //        case -1:
+
     m_pimpl_->m_worker_->Push(p);
-    m_pimpl_->m_worker_->SetUp(time_now);
+    m_pimpl_->m_worker_->SetUp();
     m_pimpl_->m_worker_->Pop(p);
     //            break;
     //        case 0:
@@ -106,7 +116,7 @@ void Domain::UpdateDataOnPatch(Patch *p, Real time_now, Real time_dt) {
     //    switch (m_pimpl_->m_geo_obj_->CheckOverlap(mblk_box)) {
     //        case -1:
     m_pimpl_->m_worker_->Push(p);
-    m_pimpl_->m_worker_->Advance(time_now, time_dt);
+    m_pimpl_->m_worker_->Advance(time_dt);
     m_pimpl_->m_worker_->Pop(p);
     //            break;
     //        case 0:

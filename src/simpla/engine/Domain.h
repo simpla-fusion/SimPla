@@ -50,6 +50,11 @@ class Domain : public SPObject, public data::Serializable {
     void SetUpDataOnPatch(Patch *patch, Real time_now = 0);
     void UpdateDataOnPatch(Patch *, Real time_now = 0, Real time_dt = 0);
 
+    virtual void Initialize();
+    virtual void SetUp();
+    virtual void TearDown();
+    virtual void Finalize();
+
    private:
     struct pimpl_s;
     std::shared_ptr<pimpl_s> m_pimpl_;

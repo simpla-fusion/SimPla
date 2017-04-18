@@ -13,11 +13,11 @@
 #include <simpla/data/all.h>
 #include <simpla/engine/all.h>
 
+#include <simpla/utilities/FancyStream.h>
+#include <simpla/utilities/Log.h>
 #include <simpla/utilities/macro.h>
 #include <simpla/utilities/type_cast.h>
 #include <simpla/utilities/type_traits.h>
-#include <simpla/utilities/FancyStream.h>
-#include <simpla/utilities/Log.h>
 namespace simpla {
 namespace mesh {
 struct CylindricalGeometry : public engine::Chart {
@@ -44,7 +44,7 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
 
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
-    MeshView() : engine::Mesh() {}
+    MeshView(std::shared_ptr<mesh::CylindricalGeometry> c = nullptr) : engine::Mesh(c) {}
     MeshView(this_type const &other) = delete;
     virtual ~MeshView() {}
 
@@ -144,6 +144,10 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
 
     void TearDown() {}
     void SetUp() {
+        ASSERT(GetChart() != nullptr);
+
+        TIME_STAMP;
+
         m_vertics_.Clear();
         m_volume_.Clear();
         m_dual_volume_.Clear();
@@ -169,8 +173,8 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
             *
             *\endverbatim
             */
-        auto const *lower = &(std::get<0>(GetBlock()->GetOuterIndexBox())[0]);
-        auto const *upper = &(std::get<1>(GetBlock()->GetOuterIndexBox())[0]);
+        auto const *lower = &(std::get<0>(GetBlock()->GetInnerIndexBox())[0]);
+        auto const *upper = &(std::get<1>(GetBlock()->GetInnerIndexBox())[0]);
 
         index_type ib = lower[0];
         index_type ie = upper[0];
@@ -178,64 +182,64 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
         index_type je = upper[1];
         index_type kb = lower[2];
         index_type ke = upper[2];
-        point_type m_dx_;  // = GetBlock()->dx();
+        point_type m_dx_ = GetChart()->GetDx();
 
         for (index_type i = ib; i < ie; ++i)
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k) {
                     point_type x;  //= GetBlock()->point(i, j, k);
-                    m_vertics_(i, j, k, 0) = x[0] * std::cos(x[1]);
-                    m_vertics_(i, j, k, 1) = x[0] * std::sin(x[1]);
-                    m_vertics_(i, j, k, 2) = x[2];
+                    m_vertics_[0](i, j, k) = x[0] * std::cos(x[1]);
+                    m_vertics_[1](i, j, k) = x[0] * std::sin(x[1]);
+                    m_vertics_[2](i, j, k) = x[2];
                     Real dr = m_dx_[0];
                     Real dl0 = m_dx_[1] * x[0];
                     Real dl1 = m_dx_[1] * (x[0] + m_dx_[0]);
                     Real dz = m_dx_[2];
 
-                    m_volume_(i, j, k, 0) = 1.0;
-                    m_volume_(i, j, k, 1) = dr;
-                    m_volume_(i, j, k, 2) = dl0;
-                    m_volume_(i, j, k, 3) = 0.5 * dr * (dl0 + dl1);
-                    m_volume_(i, j, k, 4) = dz;
-                    m_volume_(i, j, k, 5) = dr * dz;
-                    m_volume_(i, j, k, 6) = dl0 * dz;
-                    m_volume_(i, j, k, 7) = 0.5 * dr * (dl0 + dl1) * dz;
-                    m_volume_(i, j, k, 8) = 1.0;
+                    m_volume_[0](i, j, k) = 1.0;
+                    m_volume_[1](i, j, k) = dr;
+                    m_volume_[2](i, j, k) = dl0;
+                    m_volume_[3](i, j, k) = 0.5 * dr * (dl0 + dl1);
+                    m_volume_[4](i, j, k) = dz;
+                    m_volume_[5](i, j, k) = dr * dz;
+                    m_volume_[6](i, j, k) = dl0 * dz;
+                    m_volume_[7](i, j, k) = 0.5 * dr * (dl0 + dl1) * dz;
+                    m_volume_[8](i, j, k) = 1.0;
 
-                    m_inv_volume_(i, j, k, 0) = 1.0 / m_volume_(i, j, k, 0);
-                    m_inv_volume_(i, j, k, 1) = 1.0 / m_volume_(i, j, k, 1);
-                    m_inv_volume_(i, j, k, 2) = 1.0 / m_volume_(i, j, k, 2);
-                    m_inv_volume_(i, j, k, 3) = 1.0 / m_volume_(i, j, k, 3);
-                    m_inv_volume_(i, j, k, 4) = 1.0 / m_volume_(i, j, k, 4);
-                    m_inv_volume_(i, j, k, 5) = 1.0 / m_volume_(i, j, k, 5);
-                    m_inv_volume_(i, j, k, 6) = 1.0 / m_volume_(i, j, k, 6);
-                    m_inv_volume_(i, j, k, 7) = 1.0 / m_volume_(i, j, k, 7);
-                    m_inv_volume_(i, j, k, 8) = 1.0 / m_volume_(i, j, k, 8);
+                    m_inv_volume_[0](i, j, k) = 1.0 / m_volume_[0](i, j, k);
+                    m_inv_volume_[1](i, j, k) = 1.0 / m_volume_[1](i, j, k);
+                    m_inv_volume_[2](i, j, k) = 1.0 / m_volume_[2](i, j, k);
+                    m_inv_volume_[3](i, j, k) = 1.0 / m_volume_[3](i, j, k);
+                    m_inv_volume_[4](i, j, k) = 1.0 / m_volume_[4](i, j, k);
+                    m_inv_volume_[5](i, j, k) = 1.0 / m_volume_[5](i, j, k);
+                    m_inv_volume_[6](i, j, k) = 1.0 / m_volume_[6](i, j, k);
+                    m_inv_volume_[7](i, j, k) = 1.0 / m_volume_[7](i, j, k);
+                    m_inv_volume_[8](i, j, k) = 1.0 / m_volume_[8](i, j, k);
 
                     dr = m_dx_[0];
                     dl0 = m_dx_[1] * (x[0] - 0.5 * m_dx_[0]);
                     dl1 = m_dx_[1] * (x[0] + 0.5 * m_dx_[0]);
                     dz = m_dx_[2];
 
-                    m_dual_volume_(i, j, k, 7) = 1.0;
-                    m_dual_volume_(i, j, k, 6) = dr;
-                    m_dual_volume_(i, j, k, 5) = dl0;
-                    m_dual_volume_(i, j, k, 4) = 0.5 * dr * (dl0 + dl1);
-                    m_dual_volume_(i, j, k, 3) = dz;
-                    m_dual_volume_(i, j, k, 2) = dr * dz;
-                    m_dual_volume_(i, j, k, 1) = dl0 * dz;
-                    m_dual_volume_(i, j, k, 0) = 0.5 * dr * (dl0 + dl1) * dz;
-                    m_dual_volume_(i, j, k, 8) = 1.0;
+                    m_dual_volume_[7](i, j, k) = 1.0;
+                    m_dual_volume_[6](i, j, k) = dr;
+                    m_dual_volume_[5](i, j, k) = dl0;
+                    m_dual_volume_[4](i, j, k) = 0.5 * dr * (dl0 + dl1);
+                    m_dual_volume_[3](i, j, k) = dz;
+                    m_dual_volume_[2](i, j, k) = dr * dz;
+                    m_dual_volume_[1](i, j, k) = dl0 * dz;
+                    m_dual_volume_[0](i, j, k) = 0.5 * dr * (dl0 + dl1) * dz;
+                    m_dual_volume_[8](i, j, k) = 1.0;
 
-                    m_inv_dual_volume_(i, j, k, 0) = 1.0 / m_dual_volume_(i, j, k, 0);
-                    m_inv_dual_volume_(i, j, k, 1) = 1.0 / m_dual_volume_(i, j, k, 1);
-                    m_inv_dual_volume_(i, j, k, 2) = 1.0 / m_dual_volume_(i, j, k, 2);
-                    m_inv_dual_volume_(i, j, k, 3) = 1.0 / m_dual_volume_(i, j, k, 3);
-                    m_inv_dual_volume_(i, j, k, 4) = 1.0 / m_dual_volume_(i, j, k, 4);
-                    m_inv_dual_volume_(i, j, k, 5) = 1.0 / m_dual_volume_(i, j, k, 5);
-                    m_inv_dual_volume_(i, j, k, 6) = 1.0 / m_dual_volume_(i, j, k, 6);
-                    m_inv_dual_volume_(i, j, k, 7) = 1.0 / m_dual_volume_(i, j, k, 7);
-                    m_inv_dual_volume_(i, j, k, 8) = 1.0 / m_dual_volume_(i, j, k, 8);
+                    m_inv_dual_volume_[0](i, j, k) = 1.0 / m_dual_volume_[0](i, j, k);
+                    m_inv_dual_volume_[1](i, j, k) = 1.0 / m_dual_volume_[1](i, j, k);
+                    m_inv_dual_volume_[2](i, j, k) = 1.0 / m_dual_volume_[2](i, j, k);
+                    m_inv_dual_volume_[3](i, j, k) = 1.0 / m_dual_volume_[3](i, j, k);
+                    m_inv_dual_volume_[4](i, j, k) = 1.0 / m_dual_volume_[4](i, j, k);
+                    m_inv_dual_volume_[5](i, j, k) = 1.0 / m_dual_volume_[5](i, j, k);
+                    m_inv_dual_volume_[6](i, j, k) = 1.0 / m_dual_volume_[6](i, j, k);
+                    m_inv_dual_volume_[7](i, j, k) = 1.0 / m_dual_volume_[7](i, j, k);
+                    m_inv_dual_volume_[8](i, j, k) = 1.0 / m_dual_volume_[8](i, j, k);
                 }
     }
 

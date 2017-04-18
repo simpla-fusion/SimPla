@@ -95,11 +95,9 @@ struct Attribute : public SPObject, public data::Configurable, public data::Seri
     SP_OBJECT_BASE(Attribute);
 
    public:
-    Attribute(std::shared_ptr<data::DataTable> const &t = nullptr);
-    Attribute(AttributeGroup *b, std::shared_ptr<data::DataTable> const &p);
-    Attribute(AttributeGroup *b) : Attribute(b, std::shared_ptr<data::DataTable>(nullptr)){};
+    Attribute(AttributeGroup *b, std::shared_ptr<data::DataTable> const &p = nullptr);
     template <typename U, typename... Args>
-    explicit Attribute(AttributeGroup *b, U const &first, Args &&... args)
+    Attribute(AttributeGroup *b, U const &first, Args &&... args)
         : Attribute(b, std::make_shared<data::DataTable>(first, std::forward<Args>(args)...)){};
 
     Attribute(AttributeGroup &b) : Attribute(&b){};
@@ -143,8 +141,8 @@ struct AttributeDesc : public Attribute {
     SP_OBJECT_HEAD(desc_type, Attribute);
 
    public:
-    AttributeDesc(std::shared_ptr<data::DataTable> const &t) : Attribute(t) {}
-    AttributeDesc(std::string const &k) : Attribute() {}
+    AttributeDesc(std::shared_ptr<data::DataTable> const &t) : Attribute(nullptr, t) {}
+    AttributeDesc(std::string const &k) : Attribute(nullptr) {}
     ~AttributeDesc() {}
 
     virtual std::shared_ptr<Attribute> GetDescription() const {

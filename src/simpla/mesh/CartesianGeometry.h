@@ -73,7 +73,7 @@ struct MeshView<mesh::CartesianGeometry> : public engine::Mesh {
      */
 
    public:
-    MeshView() : engine::Mesh() {}
+    MeshView() : engine::Mesh(std::shared_ptr<Chart>()) {}
     //    CartesianGeometry(Real const *lower, Real const *upper) : CartesianGeometry() {
     //        SetGeoObject(std::make_shared<geometry::Cube>(lower, upper));
     //    }

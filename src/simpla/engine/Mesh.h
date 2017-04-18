@@ -32,7 +32,7 @@ class Mesh : public AttributeGroup, public data::Serializable, public data::Enab
     SP_OBJECT_BASE(Mesh);
 
    public:
-    Mesh();
+    Mesh(std::shared_ptr<Chart> c = nullptr);
     Mesh(Mesh const &) = delete;
     virtual ~Mesh();
 
@@ -49,6 +49,7 @@ class Mesh : public AttributeGroup, public data::Serializable, public data::Enab
     virtual void Initialize();
     virtual void Finalize();
 
+    Real GetTime() const;
     id_type GetBlockId() const;
     void SetBlock(std::shared_ptr<MeshBlock>);
     std::shared_ptr<MeshBlock> GetBlock() const;
@@ -65,7 +66,9 @@ class Mesh : public AttributeGroup, public data::Serializable, public data::Enab
 };
 
 template <typename TM>
-class MeshView<TM> : public Mesh {};
+class MeshView<TM> : public Mesh {
+    MeshView() {}
+};
 
 }  // namespace engine
 }  // namespace simpla
