@@ -158,11 +158,12 @@ void EMFluid<TM>::InitializeData(Real time_now) {
     Worker::InitializeData(time_now);
     if (E.isNull()) {
         E.Clear();
+        B.Clear();
         B0.Clear();
     }
 
     //    rho0[0].Foreach([&](index_tuple const& k, Real& v) { v = k[1]; });
-    rho0.Assign([&](point_type const& z) -> Real { return z[1]; });
+    rho0.Assign([&](point_type const& z) -> Real { return z[1] * z[0] * z[2]; });
     //    Ev = map_to<VERTEX>(E);
     //    B0v = map_to<VERTEX>(B0);
     //    BB = dot(B0v, B0v);
@@ -170,9 +171,9 @@ void EMFluid<TM>::InitializeData(Real time_now) {
 template <typename TM>
 void EMFluid<TM>::AdvanceData(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
-    //    B -= curl(E) * (dt * 0.5);
+    B -= curl(E) * (dt * 0.5);
     //    SetPhysicalBoundaryConditionB(time_now);
-    //    E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
+    E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
     //    SetPhysicalBoundaryConditionE(time_now);
     //    if (m_fluid_sp_.size() > 0) {
     //        field_type<VERTEX, 3> Q{m_mesh_};
@@ -232,7 +233,7 @@ void EMFluid<TM>::AdvanceData(Real time_now, Real dt) {
     //        Ev += dE;
     //        E += map_to<EDGE>(Ev) - E;
     //    }
-    //    B -= curl(E) * (dt * 0.5);
+    B -= curl(E) * (dt * 0.5);
     //    SetPhysicalBoundaryConditionB(time_now);
 }
 

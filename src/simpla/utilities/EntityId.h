@@ -15,9 +15,9 @@
 #include <tuple>
 #include "Log.h"
 #include "Range.h"
+#include "simpla/algebra/nTupleExt.h"
 #include "sp_def.h"
 #include "type_traits.h"
-
 namespace simpla {
 // typedef union { struct { u_int8_t w, z, y, x; }; int32_t v; } EntityId32;
 
@@ -29,77 +29,35 @@ typedef union {
 } EntityId64;
 typedef EntityId64 EntityId;
 
-//  \verbatim
-//
-//   |----------------|----------------|---------------|--------------|------------|
-//   ^                ^                ^               ^              ^            ^
-//   |                |                |               |              |            |
-// global          local_outer      local_inner    local_inner    local_outer     global
-// _begin          _begin          _begin           _end           _end          _end
-//
-//  \endverbatim
 /**
- *
- *  signed long is 63bit, unsigned long is 64 bit, add a sign bit
- *  \note
- *  \verbatim
- * 	Thanks my wife Dr. CHEN Xiang Lan, for her advice on bitwise operation
- * 	    H          m  I           m    J           m K
- *  |--------|--------------|--------------|-------------|
- *  |11111111|00000000000000|00000000000000|0000000000000| <= _MH
- *  |00000000|11111111111111|00000000000000|0000000000000| <= _MI
- *  |00000000|00000000000000|11111111111111|0000000000000| <= _MJ
- *  |00000000|00000000000000|00000000000000|1111111111111| <= _MK
- *
- *                      I/J/K
- *  | INDEX_DIGITS------------------------>|
- *  |  Root------------------->| Leaf ---->|
- *  |11111111111111111111111111|00000000000| <=_MRI
- *  |00000000000000000000000001|00000000000| <=_DI
- *  |00000000000000000000000000|11111111111| <=_MTI
- *  | Page NO.->| Tree Root  ->|
- *  |00000000000|11111111111111|11111111111| <=_MASK
- *  \endverbatim
- *
- *  @comment similar to MOAB::EntityHandle but using different code ruler and more efficienct for FD
+ *  @comment similar to MOAB::EntityHandle but using different code ruler and more efficient for FD
  * and SAMR  -- salmon. 2016.5.24
  *  @note different get_mesh should use different 'code and hash ruler'  -- salmon. 2016.5.24
  */
 
-struct EntityIdHasher {
-    int64_t operator()(const EntityId& s) const { return s.v; }
-
-    int64_t hash(const EntityId& s) const { return s.v; }
-};
-
-struct MeshIdHashCompare {
-    static constexpr inline bool equal(const EntityId& l, const EntityId& r) { return l.v == r.v; }
-
-    static constexpr inline int64_t hash(const EntityId& s) { return s.v; }
-};
-
 #define INT_2_ENTITY_ID(_V_) (*reinterpret_cast<EntityId const*>(&(_V_)))
 
-constexpr inline bool operator==(EntityId const& first, EntityId const& second) { return first.v == second.v; }
+constexpr inline bool operator==(EntityId first, EntityId second) { return first.v == second.v; }
 
-constexpr inline EntityId operator-(EntityId const& first, EntityId const& second) {
-    return EntityId{first.w, static_cast<int16_t>(first.z - second.z), static_cast<int16_t>(first.y - second.y),
-                    static_cast<int16_t>(first.x - second.x)};
+constexpr inline EntityId operator-(EntityId first, EntityId second) {
+    return EntityId{.x = static_cast<int16_t>(first.x - second.x),
+                    .y = static_cast<int16_t>(first.y - second.y),
+                    .z = static_cast<int16_t>(first.z - second.z),
+                    .w = first.w};
 }
 
-constexpr inline EntityId operator+(EntityId const& first, EntityId const& second) {
-    return EntityId{first.w, static_cast<int16_t>(first.z + second.z), static_cast<int16_t>(first.y + second.y),
-                    static_cast<int16_t>(first.x + second.x)};
+constexpr inline EntityId operator+(EntityId first, EntityId second) {
+    return EntityId{.x = static_cast<int16_t>(first.x + second.x),
+                    .y = static_cast<int16_t>(first.y + second.y),
+                    .z = static_cast<int16_t>(first.z + second.z),
+                    .w = first.w};
 }
 
-constexpr inline EntityId operator|(EntityId const& first, EntityId const& second) {
-    return EntityId{.v = first.v | second.v};
-}
+constexpr inline EntityId operator|(EntityId first, EntityId second) { return EntityId{.v = first.v | second.v}; }
 
-constexpr inline bool operator<(EntityId const& first, EntityId const& second) { return first.v < second.v; }
+constexpr inline bool operator<(EntityId first, EntityId second) { return first.v < second.v; }
 
-template <int LEVEL = 4>
-struct EntityIdCoder_ {
+struct EntityIdCoder {
     /// @name at_level independent
     /// @{
 
@@ -108,12 +66,12 @@ struct EntityIdCoder_ {
     static constexpr int ndims = 3;
     static constexpr int MESH_RESOLUTION = 1;
 
-    static constexpr EntityId _DI{1, 0, 0, 0};
-    static constexpr EntityId _DJ{0, 1, 0, 0};
-    static constexpr EntityId _DK{0, 0, 1, 0};
-    static constexpr EntityId _DA{1, 1, 1, static_cast<int16_t>(-1)};
+    static constexpr EntityId _DI{.x = 1, .y = 0, .z = 0, .w = 0};
+    static constexpr EntityId _DJ{.x = 0, .y = 1, .z = 0, .w = 0};
+    static constexpr EntityId _DK{.x = 0, .y = 0, .z = 1, .w = 0};
+    static constexpr EntityId _DA{.x = 1, .y = 1, .z = 1, .w = static_cast<int16_t>(-1)};
 
-    typedef EntityIdCoder_ this_type;
+    typedef EntityIdCoder this_type;
 
     /// @name at_level dependent
     /// @{
@@ -124,7 +82,6 @@ struct EntityIdCoder_ {
 
     static constexpr int m_sub_index_to_id_[4][3] = {
         //
-
         {0, 0, 0}, /*VERTEX*/
         {1, 2, 4}, /*EDGE*/
         {6, 5, 3}, /*FACE*/
@@ -146,15 +103,14 @@ struct EntityIdCoder_ {
     };
 
     static constexpr EntityId m_id_to_shift_[] = {
-
-        {0, 0, 0, 0},  // 000
-        {0, 0, 0, 1},  // 001
-        {0, 0, 1, 0},  // 010
-        {0, 0, 1, 1},  // 011
-        {0, 1, 0, 0},  // 100
-        {0, 1, 0, 1},  // 101
-        {0, 1, 1, 0},  // 110
-        {0, 1, 1, 1},  // 111
+        {.x = 0, .y = 0, .z = 0, .w = 0},  // 000
+        {.x = 1, .y = 0, .z = 0, .w = 0},  // 001
+        {.x = 0, .y = 1, .z = 0, .w = 0},  // 010
+        {.x = 1, .y = 1, .z = 0, .w = 0},  // 011
+        {.x = 0, .y = 0, .z = 1, .w = 0},  // 100
+        {.x = 1, .y = 0, .z = 1, .w = 0},  // 101
+        {.x = 0, .y = 1, .z = 1, .w = 0},  // 110
+        {.x = 1, .y = 1, .z = 1, .w = 0},  // 111
 
     };
 
@@ -223,7 +179,7 @@ struct EntityIdCoder_ {
         s.v = (s.v & (~_DA.v)) | tag;
         return s;
     }
-    static constexpr EntityId minimal_vertex(EntityId s) { return EntityId{.v = s.v & (~_DA.v)}; }
+    static EntityId minimal_vertex(EntityId s) { return EntityId{.v = s.v & (~_DA.v)}; }
 
     template <int IFORM>
     static constexpr int sub_index_to_id(int n = 0) {
@@ -232,105 +188,123 @@ struct EntityIdCoder_ {
 
     static constexpr int iform(EntityId s) { return m_id_to_iform_[node_id(s)]; }
 
-    static constexpr EntityId pack(index_type i0, index_type i1, index_type i2, index_type w = 0) {
-        return EntityId{static_cast<int16_t>(w), static_cast<int16_t>(i2), static_cast<int16_t>(i1),
-                        static_cast<int16_t>(i0)};
-    }
-
-    template <typename T>
-    static constexpr EntityId pack(T const& idx, index_type w = 0) {
-        return pack(idx[0], idx[1], idx[2], w);
-    }
-
-    template <typename T>
-    static constexpr EntityId pack_index(T const& idx, index_type n_id = 0) {
-        return pack_index4(idx[0], idx[1], idx[2], n_id);
-    }
-
-    static constexpr EntityId pack_index(index_type i, index_type j, index_type k, index_type n_id = 0,
-                                         index_type w = 0) {
-        return pack((i + ZERO) << 1, (j + ZERO) << 1, (k + ZERO) << 1, w) | m_id_to_shift_[n_id];
-    }
-
-    template <int IFORM>
-    static constexpr EntityId pack_index4(index_type i, index_type j, index_type k, index_type n_id = 0,
-                                          index_type w = 0) {
-        return pack((i + ZERO) << 1, (j + ZERO) << 1, (k + ZERO) << 1, w) |
-               m_id_to_shift_[m_sub_index_to_id_[IFORM][n_id]];
-    }
-
-    static index_tuple unpack_index(EntityId const& s) {
-        return index_tuple{static_cast<index_type>(s.x >> 1) - ZERO, static_cast<index_type>(s.y >> 1) - ZERO,
-                           static_cast<index_type>(s.z >> 1) - ZERO};
-    }
-
-    static nTuple<index_type, 4> unpack_index4(EntityId const& s, index_type dof = 1) {
-        return nTuple<index_type, 4>{static_cast<index_type>(s.x >> 1) - ZERO, static_cast<index_type>(s.y >> 1) - ZERO,
-                                     static_cast<index_type>(s.z >> 1) - ZERO,
-                                     static_cast<index_type>(m_id_to_sub_index_[node_id(s)] * dof + s.w)};
-    }
-
-    static nTuple<index_type, 4> unpack_index4_nodeid(EntityId const& s, index_type dof = 1) {
-        return nTuple<index_type, 4>{static_cast<index_type>(s.x >> 1) - ZERO, static_cast<index_type>(s.y >> 1) - ZERO,
-                                     static_cast<index_type>(s.z >> 1) - ZERO,
-                                     static_cast<index_type>(node_id(s) * dof + s.w)};
-    }
+    //    static constexpr EntityId pack(index_type i0, index_type i1, index_type i2, index_type w = 0) {
+    //        return EntityId{.w = static_cast<int16_t>(w),
+    //                        .x = static_cast<int16_t>(i0),
+    //                        .y = static_cast<int16_t>(i1),
+    //                        .z = static_cast<int16_t>(i2)};
+    //    }
+    //
+    //    template <typename T>
+    //    static constexpr EntityId pack(T const& idx, index_type w = 0) {
+    //        return pack(idx[0], idx[1], idx[2], w);
+    //    }
+    //
+    //    template <typename T>
+    //    static constexpr EntityId pack_index(T const& idx, index_type n_id = 0) {
+    //        return pack_index4(idx[0], idx[1], idx[2], n_id);
+    //    }
+    //
+    //    static constexpr EntityId pack_index(index_type i, index_type j, index_type k, index_type n_id = 0,
+    //                                         index_type w = 0) {
+    //        return pack((i + ZERO) << 1, (j + ZERO) << 1, (k + ZERO) << 1, w) | m_id_to_shift_[n_id];
+    //    }
+    //
+    //    template <int IFORM>
+    //    static constexpr EntityId pack_index4(index_type i, index_type j, index_type k, index_type n_id = 0,
+    //                                          index_type w = 0) {
+    //        return pack((i + ZERO) << 1, (j + ZERO) << 1, (k + ZERO) << 1, w) |
+    //               m_id_to_shift_[m_sub_index_to_id_[IFORM][n_id]];
+    //    }
+    //
+    //    static index_tuple unpack_index(EntityId s) {
+    //        return index_tuple{static_cast<index_type>(s.x >> 1) - ZERO, static_cast<index_type>(s.y >> 1) - ZERO,
+    //                           static_cast<index_type>(s.z >> 1) - ZERO};
+    //    }
+    //
+    //    static nTuple<index_type, 4> unpack_index4(EntityId s, index_type dof = 1) {
+    //        return nTuple<index_type, 4>{static_cast<index_type>(s.x >> 1) - ZERO,
+    //                                     static_cast<index_type>(s.y >> 1) - ZERO,
+    //                                     static_cast<index_type>(s.z >> 1) - ZERO,
+    //                                     static_cast<index_type>(m_id_to_sub_index_[node_id(s)] * dof + s.w)};
+    //    }
+    //
+    //    static nTuple<index_type, 4> unpack_index4_nodeid(EntityId s, index_type dof = 1) {
+    //        return nTuple<index_type, 4>{static_cast<index_type>(s.x >> 1) - ZERO, static_cast<index_type>(s.y >> 1) -
+    //        ZERO,
+    //                                     static_cast<index_type>(s.z >> 1) - ZERO,
+    //                                     static_cast<index_type>(node_id(s) * dof + s.w)};
+    //    }
     //    template<typename T>
     //    static constexpr T type_cast(EntityId s)
     //    {
     //        return static_cast<T>(unpack(s));
     //    }
+    template <int IFORM>
+    static EntityId Pack(index_type i, index_type j, index_type k, unsigned int n, unsigned int d) {
+        EntityId s;
+        s.x = static_cast<int16_t>(i);
+        s.y = static_cast<int16_t>(j);
+        s.z = static_cast<int16_t>(k);
+        s.w = static_cast<int16_t>((d << 3) | m_sub_index_to_id_[IFORM][n]);
+        return s;
+    }
+    template <int IFORM, int DOF>
+    static int SubIndex(EntityId s) {
+        return m_id_to_sub_index_[s.w & 0x7] * DOF + (s.w >> 3);
+    }
 
     static constexpr int num_of_ele_in_cell(EntityId s) { return m_id_to_num_of_ele_in_cell_[node_id(s)]; }
 
-    static point_type point(EntityId const& s) {
-        return point_type{static_cast<Real>(s.x - ZERO * 2) * _R, static_cast<Real>(s.y - ZERO * 2) * _R,
-                          static_cast<Real>(s.z - ZERO * 2) * _R};
-    }
-
-    static std::tuple<EntityId, point_type> point_global_to_local(point_type const& x, int n_id = 0) {
-        index_tuple i = (x - m_id_to_coordinates_shift_[n_id]) * 2;
-
-        EntityId s = pack(i) | m_id_to_shift_[n_id];
-
-        point_type r = (x - point(s)) / (_R * 2.0);
-
-        return std::make_tuple(s, r);
-    }
-
-    static point_type point_local_to_global(EntityId s, point_type const& x) { return point(s) + x * _R * 2; }
-
-    static point_type point_local_to_global(std::tuple<EntityId, point_type> const& t) {
-        return point_local_to_global(std::get<0>(t), std::get<1>(t));
-    }
+    //    static point_type point(EntityId s) {
+    //        return point_type{static_cast<Real>(s.x - ZERO * 2) * _R,
+    //                          static_cast<Real>(s.y - ZERO * 2) * _R,
+    //                          static_cast<Real>(s.z - ZERO * 2) * _R};
+    //    }
+    //
+    //    static std::tuple<EntityId, point_type> point_global_to_local(point_type const& x, int n_id = 0) {
+    //        index_tuple i = (x - m_id_to_coordinates_shift_[n_id]) * 2;
+    //
+    //        EntityId s = pack(i) | m_id_to_shift_[n_id];
+    //
+    //        point_type r = (x - point(s)) / (_R * 2.0);
+    //
+    //        return std::make_tuple(s, r);
+    //    }
+    //
+    //    static point_type point_local_to_global(EntityId s, point_type const& x) { return point(s) + x * _R * 2; }
+    //
+    //    static point_type point_local_to_global(std::tuple<EntityId, point_type> const& t) {
+    //        return point_local_to_global(std::get<0>(t), std::get<1>(t));
+    //    }
 
     //! @name id auxiliary functions
     //! @{
     static constexpr EntityId m_num_to_id_[] = {  //
-        {0, 0, 0, 1},
-        {0, 0, 1, 0},
-        {0, 1, 0, 0}};
+        {.w = 1, .x = 0, .y = 0, .z = 0},
+        {.w = 2, .x = 0, .y = 0, .z = 0},
+        {.w = 4, .x = 0, .y = 0, .z = 0}};
 
-    static constexpr EntityId DI(int n) { return m_num_to_id_[n]; }
+    static EntityId DI(int n) { return m_num_to_id_[n]; }
 
-    static constexpr EntityId DI(int n, EntityId s) { return EntityId{.v = s.v & m_num_to_id_[n].v}; }
+    static EntityId DI(int n, EntityId s) { return EntityId{.v = s.v & m_num_to_id_[n].v}; }
 
-    static constexpr EntityId dual(EntityId s) { return EntityId{.v = (s.v & (~_DA.v)) | ((~(s.v & _DA.v)) & _DA.v)}; }
+    static EntityId dual(EntityId s) { return EntityId{.v = (s.v & (~_DA.v)) | ((~(s.v & _DA.v)) & _DA.v)}; }
 
-    static constexpr EntityId delta_index(EntityId s) { return EntityId{.v = static_cast<int64_t>(s.v & _DA.v)}; }
+    static EntityId delta_index(EntityId s) { return EntityId{.v = static_cast<int64_t>(s.v & _DA.v)}; }
 
-    static constexpr EntityId rotate(EntityId const& s) {
-        return EntityId{static_cast<int16_t>(s.w), static_cast<int16_t>((s.z & ~0x1) | (s.y & 0x1)),
-                        static_cast<int16_t>((s.y & ~0x1) | (s.x & 0x1)),
-                        static_cast<int16_t>((s.x & ~0x1) | (s.z & 0x1))
-
-        };
+    static EntityId rotate(EntityId s) {
+        return EntityId{.w = static_cast<int16_t>(s.w),
+                        .z = static_cast<int16_t>((s.z & ~0x1) | (s.y & 0x1)),
+                        .y = static_cast<int16_t>((s.y & ~0x1) | (s.x & 0x1)),
+                        .x = static_cast<int16_t>((s.x & ~0x1) | (s.z & 0x1))};
     }
 
-    static constexpr EntityId inverse_rotate(EntityId const& s) {
-        return EntityId{static_cast<int16_t>(s.w), static_cast<int16_t>((s.z & ~0x1) | (s.x & 0x1)),
-                        static_cast<int16_t>((s.y & ~0x1) | (s.z & 0x1)),
-                        static_cast<int16_t>((s.x & ~0x1) | (s.y & 0x1))};
+    static EntityId inverse_rotate(EntityId s) {
+        return EntityId{.w = static_cast<int16_t>(s.w),
+                        .z = static_cast<int16_t>((s.z & ~0x1) | (s.x & 0x1)),
+                        .y = static_cast<int16_t>((s.y & ~0x1) | (s.z & 0x1)),
+                        .x = static_cast<int16_t>((s.x & ~0x1) | (s.y & 0x1))};
     }
 
     /**
@@ -367,7 +341,10 @@ struct EntityIdCoder_ {
         TAG_VOLUME = 7
     };
 
-    static constexpr int node_id(EntityId const& s) { return (s.x & 0x1) | ((s.y & 0x1) << 1) | ((s.z & 0x1) << 2); }
+    static constexpr int node_id(EntityId s) {
+        return s.w & 0x7;
+        //                (s.x & 0x1) | ((s.y & 0x1) << 1) | ((s.z & 0x1) << 2);
+    }
 
     static constexpr int m_id_to_index_[8] = {
         //
@@ -382,7 +359,7 @@ struct EntityIdCoder_ {
         0,  // 111
     };
 
-    static constexpr int sub_index(EntityId const& s) { return m_id_to_index_[node_id(s)]; }
+    static constexpr int sub_index(EntityId s) { return m_id_to_index_[node_id(s)]; }
 
     /**
      * \verbatim
@@ -642,110 +619,7 @@ struct EntityIdCoder_ {
         }
         return m_adjacent_cell_num_[IFORM][nodeid];
     }
-
-    typedef Range<EntityId> range_type;
-
-    static size_type hash(index_type i, index_type j, index_type k, int nid, index_tuple const& b,
-                          index_tuple const& e) {
-        // C-ORDER SLOW FIRST
-        return static_cast<size_type>(
-            ((k + e[2] - b[2] - b[2]) % (e[2] - b[2]) +
-             (((j + e[1] - b[1] - b[1]) % (e[1] - b[1])) + ((i + e[0] - b[0] - b[0]) % (e[0] - b[0])) * (e[1] - b[1])) *
-                 (e[2] - b[2])));
-    }
-
-    static size_type hash(EntityId const& s, index_tuple const& b, index_tuple const& e) {
-        // C-ORDER SLOW FIRST
-
-        return hash(s.x >> 1, s.y >> 1, s.z >> 1, node_id(s), b, e);
-        //                (
-        //                        ((s.z >> 1) + e[2] - b[2] - b[2]) % (e[2] - b[2]) +
-        //
-        //                        (
-        //                                (((s.y >> 1) + e[1] - b[1] - b[1]) % (e[1] - b[1])) +
-        //
-        //                                (((s.x >> 1) + e[0] - b[0] - b[0]) % (e[0] - b[0])) *
-        //                                (e[1] - b[1])
-        //
-        //                        ) * (e[2] - b[2])
-        //
-        //                ) * num_of_ele_in_cell(s) + sub_index(s);
-    }
-
-    static index_type hash2(EntityId const& s, index_tuple const& b, size_tuple const& l) {
-        // C-ORDER SLOW FIRST
-
-        return (((s.z >> 1) + l[2] - b[2]) % (l[2]) +
-                ((((s.y >> 1) + l[1] - b[1]) % (l[1])) + (((s.x >> 1) + l[0] - b[0]) % (l[0])) * (l[1])) * (l[2]));
-    }
-
-    template <int IFORM>
-    static constexpr size_type max_hash(EntityId b, EntityId e) {
-        return max_hash(unpack_index(e), unpack_index(b));
-    }
 };
-
-/**
- * Solve problem: Undefined reference to static constexpr char[]
- * http://stackoverflow.com/questions/22172789/passing-a-static-constexpr-variable-by-universal-reference
- */
-
-template <int L>
-constexpr int EntityIdCoder_<L>::ndims;
-
-template <int L>
-constexpr int EntityIdCoder_<L>::MESH_RESOLUTION;
-
-template <int L>
-constexpr Real EntityIdCoder_<L>::_R;
-
-template <int L>
-constexpr EntityId EntityIdCoder_<L>::_DK;
-
-template <int L>
-constexpr EntityId EntityIdCoder_<L>::_DJ;
-
-template <int L>
-constexpr EntityId EntityIdCoder_<L>::_DI;
-
-template <int L>
-constexpr EntityId EntityIdCoder_<L>::_DA;
-
-template <int L>
-constexpr int EntityIdCoder_<L>::m_id_to_index_[];
-
-template <int L>
-constexpr int EntityIdCoder_<L>::m_id_to_iform_[];
-
-template <int L>
-constexpr int EntityIdCoder_<L>::m_id_to_num_of_ele_in_cell_[];
-
-template <int L>
-constexpr int EntityIdCoder_<L>::m_adjacent_cell_num_[4][8];
-
-template <int L>
-constexpr int EntityIdCoder_<L>::m_iform_to_num_of_ele_in_cell_[];
-
-template <int L>
-constexpr EntityId EntityIdCoder_<L>::m_num_to_id_[];
-
-template <int L>
-constexpr EntityId EntityIdCoder_<L>::m_id_to_shift_[];
-
-template <int L>
-constexpr int EntityIdCoder_<L>::m_id_to_sub_index_[];
-
-template <int L>
-constexpr int EntityIdCoder_<L>::m_sub_index_to_id_[4][3];
-
-template <int L>
-constexpr EntityId EntityIdCoder_<L>::m_adjacent_cell_matrix_[4 /* to GetIFORM*/][NUM_OF_NODE_ID /* node id*/]
-                                                             [MAX_NUM_OF_ADJACENT_CELL /*id shift*/];
-
-template <int L>
-constexpr Real EntityIdCoder_<L>::m_id_to_coordinates_shift_[8][3];
-
-typedef EntityIdCoder_<> EntityIdCoder;
 
 template <>
 struct ContinueRange<EntityId> : public RangeBase<EntityId> {
@@ -898,7 +772,7 @@ struct UnorderedRange<EntityId> : public RangeBase<EntityId> {
     size_t size() const { return m_ids_.size(); }
     bool is_divisible() const { return false; }
     template <typename TFun>
-    void foreach (TFun const& body, ENABLE_IF((simpla::concept::is_callable<TFun(EntityId const&)>::value))) const {
+    void foreach (TFun const& body, ENABLE_IF((simpla::concept::is_callable<TFun(EntityId)>::value))) const {
         for (auto s : m_ids_) { body(s); }
     }
 };

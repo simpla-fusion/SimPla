@@ -91,7 +91,6 @@ struct MeshView<mesh::CartesianGeometry> : public engine::Mesh {
 
     //    this_type *Clone() const { return new this_type(*this); }
     void Initialize();
-    virtual Range<EntityId> range() const { return Range<EntityId>(); };
 
    private:
     nTuple<Real, 3> m_dx_, m_inv_dx_;
@@ -126,14 +125,14 @@ struct MeshView<mesh::CartesianGeometry> : public engine::Mesh {
 
     virtual Real inv_dual_volume(EntityId s) const { return m_inv_dual_volume_[m::node_id(s)]; }
 
-    template <typename TV>
-    TV const &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> const *a, EntityId const &s) const {
-        return a[m::node_id(s)]->at(m::unpack_index(s));
-    }
-    template <typename TV>
-    TV &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> *a, EntityId const &s) const {
-        return a[m::node_id(s)]->at(m::unpack_index(s));
-    }
+//    template <typename TV>
+//    TV const &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> const *a, EntityId const &s) const {
+//        return a[m::node_id(s)]->at(m::unpack_index(s));
+//    }
+//    template <typename TV>
+//    TV &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> *a, EntityId const &s) const {
+//        return a[m::node_id(s)]->at(m::unpack_index(s));
+//    }
 };  // struct  Mesh
 //
 // template <>

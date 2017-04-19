@@ -8,19 +8,16 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/utilities/FancyStream.h>
 #include <simpla/utilities/Log.h>
+#include <simpla/utilities/MemoryPool.h>
 #include <simpla/utilities/Range.h>
 #include <simpla/utilities/sp_def.h>
-#include <cstring>
 
+#include <cstring>
 #include "Algebra.h"
 #include "Arithmetic.h"
 #include "Expression.h"
 #include "nTuple.h"
 #include "nTupleExt.h"
-
-//#ifdef NDEBUG
-#include <simpla/utilities/MemoryPool.h>
-//#endif
 
 namespace simpla {
 namespace algebra {
@@ -179,6 +176,8 @@ struct ArrayView : public concept::Printable {
     index_type m_offset_ = 0;
     m_index_tuple m_strides_;
 
+    size_type m_size_ = 0;
+
    public:
     ArrayView() {
         std::get<0>(m_index_box_) = 0;
@@ -240,7 +239,9 @@ struct ArrayView : public concept::Printable {
                 m_offset_ -= std::get<0>(m_index_box_)[i] * m_strides_[i];
             }
         }
-        if (m_data_ == nullptr && size() > 0) { m_data_ = sp_alloc_array<value_type>(size()); }
+        m_size_ = 1;
+        for (int i = 0; i < NDIMS; ++i) { m_size_ *= (std::get<1>(m_index_box_)[i] - std::get<0>(m_index_box_)[i]); }
+        if (m_data_ == nullptr && m_size_ > 0) { m_data_ = sp_alloc_array<value_type>(m_size_); }
     }
 
     template <typename... U>
@@ -253,7 +254,6 @@ struct ArrayView : public concept::Printable {
         std::swap(m_data_, other.m_data_);
         std::swap(m_array_order_fast_first_, other.m_array_order_fast_first_);
         std::swap(m_index_box_, other.m_index_box_);
-
         SetUp();
         other.SetUp();
     };
@@ -292,37 +292,35 @@ struct ArrayView : public concept::Printable {
 
     void SetData(std::shared_ptr<value_type> const& d) const { m_data_ = d; }
 
+    value_type& at(m_index_tuple const& idx) {
+        auto s = vec_dot(m_strides_, idx) + m_offset_;
+        if (s >= size() || s < 0) { CHECK(idx); }
+        return m_data_.get()[vec_dot(m_strides_, idx) + m_offset_];
+    }
+    value_type const& at(m_index_tuple const& idx) const {
+        auto s = vec_dot(m_strides_, idx) + m_offset_;
+        if (s >= size() || s < 0) { MESSAGE << (idx) << " ~ " << m_index_box_ << std::endl; }
+        return m_data_.get()[vec_dot(m_strides_, idx) + m_offset_];
+    }
+
+    value_type& operator[](m_index_tuple const& idx) { return at(idx); }
+    value_type const& operator[](m_index_tuple const& idx) const { return at(idx); }
+
     template <typename... TID>
     value_type& at(index_type i0, TID&&... s) {
-        return m_data_.get()[vec_dot(m_strides_, m_index_tuple{i0, std::forward<TID>(s)...}) + m_offset_];
+        return at(m_index_tuple{i0, std::forward<TID>(s)...});
     }
-
     template <typename... TID>
     value_type const& at(index_type i0, TID&&... s) const {
-        return m_data_.get()[vec_dot(m_strides_, m_index_tuple{i0, std::forward<TID>(s)...}) + m_offset_];
+        return at(m_index_tuple{i0, std::forward<TID>(s)...});
     }
-
-    value_type& at(m_index_tuple const& idx) { return m_data_.get()[vec_dot(m_strides_, idx) + m_offset_]; }
-    value_type const& at(m_index_tuple const& idx) const { return m_data_.get()[vec_dot(m_strides_, idx) + m_offset_]; }
-
-    template <typename TID>
-    value_type& operator[](TID s) {
-        return at(s);
-    }
-
-    template <typename TID>
-    value_type const& operator[](TID s) const {
-        return at(s);
-    }
-
     template <typename... TID>
-    value_type& operator()(index_type i0, TID&&... s) {
-        return at(i0, std::forward<TID>(s)...);
+    value_type& operator()(TID&&... s) {
+        return at(m_index_tuple{std::forward<TID>(s)...});
     }
-
     template <typename... TID>
-    value_type const& operator()(index_type i0, TID&&... s) const {
-        return at(i0, std::forward<TID>(s)...);
+    value_type const& operator()(TID&&... s) const {
+        return at(m_index_tuple{std::forward<TID>(s)...});
     }
 
     this_type& operator=(this_type const& rhs) {
@@ -336,11 +334,7 @@ struct ArrayView : public concept::Printable {
         return (*this);
     }
 
-    size_type size() const {
-        size_type res = 1;
-        for (int i = 0; i < NDIMS; ++i) { res *= (std::get<1>(m_index_box_)[i] - std::get<0>(m_index_box_)[i]); }
-        return res;
-    }
+    size_type size() const { return m_size_; }
 
     void Clear() {
         SetUp();

@@ -45,7 +45,7 @@ std::shared_ptr<data::DataTable> Mesh::Serialize() const {
     return p;
 }
 void Mesh::Deserialize(std::shared_ptr<data::DataTable>) {}
-Range<EntityId> Mesh::GetRange(int iform) const { return Range<EntityId>(); };
+Range<EntityId> Mesh::GetRange(int iform) const { return GetBlock()->GetRange(iform); };
 void Mesh::Push(Patch *p) {
     m_pimpl_->m_mesh_block_ = p->GetBlock();
     AttributeGroup::Push(p);

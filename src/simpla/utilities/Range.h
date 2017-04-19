@@ -5,13 +5,13 @@
 #ifndef SIMPLA_RANGE_H
 #define SIMPLA_RANGE_H
 
+#include <simpla/concept/CheckConcept.h>
 #include <simpla/concept/Splittable.h>
-#include <simpla/utilities/Log.h>
-#include <simpla/utilities/sp_def.h>
 #include <cstddef>
 #include <iterator>
 #include <memory>
-#include "simpla/concept/CheckConcept.h"
+#include "Log.h"
+#include "sp_def.h"
 
 namespace simpla {
 

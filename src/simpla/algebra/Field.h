@@ -66,10 +66,8 @@ class FieldView : public engine::Attribute {
 
     template <typename... Args>
     FieldView(mesh_type& m, Args&&... args) : m_mesh_(&m), engine::Attribute(&m, std::forward<Args>(args)...){};
-
     FieldView(this_type const& other) = delete;
     FieldView(this_type&& other) = delete;
-
     virtual ~FieldView() {}
 
     //    virtual this_type* Clone() const { return new this_type(*this); };
@@ -87,7 +85,7 @@ class FieldView : public engine::Attribute {
         SetUp();
         for (int i = 0; i < NUMBER_OF_SUB; ++i) { m_data_[i].Clear(); }
     }
-    virtual bool empty() const { return m_data_[0] == nullptr; }
+    virtual bool empty() const { return m_data_[0].empty(); }
 
     this_type& operator=(this_type const& other) {
         Assign(other);
@@ -124,37 +122,39 @@ class FieldView : public engine::Attribute {
 
     typedef calculus::template calculator<mesh_type> calculus_policy;
 
-    value_type const& operator[](EntityId const& s) const { return at(s); }
-    value_type& operator[](EntityId const& s) { return at(s); }
-
-    value_type const& at(EntityId const& s) const { return calculus_policy::getValue(*m_mesh_, *this, s); }
-    value_type& at(EntityId const& s) { return calculus_policy::getValue(*m_mesh_, *this, s); }
+    value_type const& at(EntityId s) const { return calculus_policy::getValue(*m_mesh_, *this, s); }
+    value_type& at(EntityId s) { return calculus_policy::getValue(*m_mesh_, *this, s); }
+    value_type const& operator[](EntityId s) const { return at(s); }
+    value_type& operator[](EntityId s) { return at(s); }
 
     template <typename... Args>
-    decltype(auto) gather(Args&&... args) const {
+    auto gather(Args&&... args) const {
         return calculus_policy::gather(*m_mesh_, *this, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
-    decltype(auto) scatter(Args&&... args) {
+    auto scatter(Args&&... args) {
         return calculus_policy::scatter(*m_mesh_, *this, std::forward<Args>(args)...);
     }
 
-    //    decltype(auto) operator()(point_type const& x) const { return gather(x); }
+    //        decltype(auto) operator()(point_type const& x) const { return gather(x); }
 
     template <typename Other>
     void Assign(Other const& other) {
         SetUp();
         int num_of_com = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
-        for (int n = 0; n < NUMBER_OF_SUB; ++n) {
+        for (int n = 0; n < num_of_com; ++n) {
             for (int d = 0; d < DOF; ++d) {
-                m_data_[n * DOF + d].Foreach([&](index_tuple const& k, value_type& v) {
-                    v = calculus_policy::getValue(std::integral_constant<int, IFORM>(), *m_mesh_, other, k[0], k[1],
-                                                  k[2], n, d);
+                //                m_data_[n * DOF + d].Foreach([&](index_tuple const& k, value_type& v) {
+                //                    v = calculus_policy::getValue(std::integral_constant<int, IFORM>(), *m_mesh_,
+                //                    other, k[0], k[1], k[2], n, d);
+                m_mesh_->GetRange(GetIFORM()).foreach ([&](EntityId s) {
+                    m_data_[n * DOF + d](s.x, s.y, s.z) = calculus_policy::getValue(
+                        std::integral_constant<int, IFORM>(), *m_mesh_, other, s.x, s.y, s.z, n, d);
+
                 });
             }
         }
-        //        Foreach_(m_mesh_->GetRange(GetIFORM()), tags::_assign(), other);
     }
     //    template <typename TOP, typename... Args>
     //    void Foreach_(Range<EntityId> const& r, TOP const& op, Args&&... args) {
