@@ -56,7 +56,7 @@ void UseCaseAMR::Deserialize(std::shared_ptr<data::DataTable> cfg) {
     m_schedule_->Initialize();
     m_schedule_->SetOutputURL(cfg->GetValue<std::string>("output", "SimPLASaveData"));
     if (cfg->GetTable("Schedule") == nullptr) {
-        m_schedule_->GetContext()->GetAtlas().SetIndexBox(index_box_type{{0, 0, 0}, {64, 16, 64}});
+        m_schedule_->GetContext()->GetAtlas().SetIndexBox(index_box_type{{0, 0, 0}, {16, 16, 16}});
         m_schedule_->GetContext()->GetAtlas().SetPeriodicDimension(size_tuple{0, 1, 0});
 
         auto domain = m_schedule_->GetContext()->GetDomain("Center");

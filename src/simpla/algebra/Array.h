@@ -168,91 +168,76 @@ struct ArrayView : public concept::Printable {
     typedef std::false_type is_expression;
     typedef std::true_type is_array;
 
-   private:
     typedef nTuple<index_type, NDIMS> m_index_tuple;
     typedef std::tuple<m_index_tuple, m_index_tuple> m_index_box_type;
 
-    m_index_box_type m_inner_index_box_;
-    m_index_box_type m_outer_index_box_;
+   private:
     std::shared_ptr<value_type> m_data_ = nullptr;
     bool m_array_order_fast_first_ = false;
-    index_type m_offset_ = 0;
+    m_index_box_type m_index_box_;
 
+    index_type m_offset_ = 0;
     m_index_tuple m_strides_;
 
    public:
     ArrayView() {
-        std::get<0>(m_inner_index_box_) = 0;
-        std::get<1>(m_inner_index_box_) = 0;
-        std::get<0>(m_outer_index_box_) = 0;
-        std::get<1>(m_outer_index_box_) = 0;
+        std::get<0>(m_index_box_) = 0;
+        std::get<1>(m_index_box_) = 0;
     }
 
     ArrayView(this_type const& other)
         : m_data_(other.m_data_),
-          m_inner_index_box_(other.m_inner_index_box_),
-          m_outer_index_box_(other.m_outer_index_box_),
+          m_index_box_(other.m_index_box_),
           m_array_order_fast_first_(other.m_array_order_fast_first_) {
         SetUp();
     }
 
     explicit ArrayView(std::initializer_list<index_type> const& l) {
         for (int i = 0; i < NDIMS; ++i) {
-            std::get<0>(m_inner_index_box_)[i] = 0;
-            std::get<1>(m_inner_index_box_)[i] = 1;
+            std::get<0>(m_index_box_)[i] = 0;
+            std::get<1>(m_index_box_)[i] = 1;
         }
         int count = 0;
         for (auto const& v : l) {
             if (count >= NDIMS) { break; }
-            std::get<1>(m_inner_index_box_)[count] = v;
+            std::get<1>(m_index_box_)[count] = v;
             ++count;
         }
-        std::get<0>(m_outer_index_box_) = std::get<0>(m_inner_index_box_);
-        std::get<1>(m_outer_index_box_) = std::get<1>(m_inner_index_box_);
+        std::get<0>(m_index_box_) = std::get<0>(m_index_box_);
+        std::get<1>(m_index_box_) = std::get<1>(m_index_box_);
         SetUp();
     }
     ArrayView(m_index_box_type const& b, std::shared_ptr<value_type> const& d = nullptr,
               bool array_order_fast_first = false)
-        : m_inner_index_box_(b), m_outer_index_box_(b), m_data_(d), m_array_order_fast_first_(array_order_fast_first) {
+        : m_index_box_(b), m_data_(d), m_array_order_fast_first_(array_order_fast_first) {
         SetUp();
     }
-    ArrayView(m_index_box_type const& b_in, m_index_box_type const& b_out,
-              std::shared_ptr<value_type> const& d = nullptr, bool array_order_fast_first = false)
-        : m_inner_index_box_(b_in),
-          m_outer_index_box_(b_out),
-          m_data_(d),
-          m_array_order_fast_first_(array_order_fast_first) {
-        SetUp();
-    }
-    ArrayView(index_type const* in_low, index_type const* in_up, index_type const* out_low, index_type const* out_up,
-              std::shared_ptr<value_type> const& d = nullptr, bool array_order_fast_first = false)
+
+    ArrayView(index_type const* in_low, index_type const* in_up, std::shared_ptr<value_type> const& d = nullptr,
+              bool array_order_fast_first = false)
         : m_data_(d), m_array_order_fast_first_(array_order_fast_first) {
         for (int i = 0; i < NDIMS; ++i) {
-            std::get<0>(m_inner_index_box_)[i] = in_low[i];
-            std::get<1>(m_inner_index_box_)[i] = in_up[i];
-            std::get<0>(m_outer_index_box_)[i] = out_low[i];
-            std::get<1>(m_outer_index_box_)[i] = out_up[i];
+            std::get<0>(m_index_box_)[i] = in_low[i];
+            std::get<1>(m_index_box_)[i] = in_up[i];
         }
         SetUp();
     }
     void SetUp() {
         if (m_array_order_fast_first_) {
             m_strides_[0] = 1;
-            m_offset_ = -std::get<0>(m_outer_index_box_)[0];
+            m_offset_ = -std::get<0>(m_index_box_)[0];
             for (int i = 1; i < NDIMS; ++i) {
-                m_strides_[i] = m_strides_[i - 1] *
-                                (std::get<1>(m_outer_index_box_)[i - 1] - std::get<0>(m_outer_index_box_)[i - 1]);
-
-                m_offset_ -= std::get<0>(m_outer_index_box_)[i] * m_strides_[i];
+                m_strides_[i] =
+                    m_strides_[i - 1] * (std::get<1>(m_index_box_)[i - 1] - std::get<0>(m_index_box_)[i - 1]);
+                m_offset_ -= std::get<0>(m_index_box_)[i] * m_strides_[i];
             }
         } else {
             m_strides_[NDIMS - 1] = 1;
-            m_offset_ = -std::get<0>(m_outer_index_box_)[NDIMS - 1];
+            m_offset_ = -std::get<0>(m_index_box_)[NDIMS - 1];
             for (int i = NDIMS - 2; i >= 0; --i) {
-                m_strides_[i] = m_strides_[i + 1] *
-                                (std::get<1>(m_outer_index_box_)[i + 1] - std::get<0>(m_outer_index_box_)[i + 1]);
-
-                m_offset_ -= std::get<0>(m_outer_index_box_)[i] * m_strides_[i];
+                m_strides_[i] =
+                    m_strides_[i + 1] * (std::get<1>(m_index_box_)[i + 1] - std::get<0>(m_index_box_)[i + 1]);
+                m_offset_ -= std::get<0>(m_index_box_)[i] * m_strides_[i];
             }
         }
         if (m_data_ == nullptr && GetMemorySize() > 0) { m_data_ = sp_alloc_array<value_type>(GetMemorySize()); }
@@ -267,9 +252,7 @@ struct ArrayView : public concept::Printable {
     void swap(this_type& other) {
         std::swap(m_data_, other.m_data_);
         std::swap(m_array_order_fast_first_, other.m_array_order_fast_first_);
-
-        std::swap(m_inner_index_box_, other.m_inner_index_box_);
-        std::swap(m_outer_index_box_, other.m_outer_index_box_);
+        std::swap(m_index_box_, other.m_index_box_);
 
         SetUp();
         other.SetUp();
@@ -282,10 +265,8 @@ struct ArrayView : public concept::Printable {
         return std::move(res);
     }
     void Shift(ArrayIndexShift const& IX) {
-        std::get<0>(m_inner_index_box_)[IX.dim_num] += IX.value;
-        std::get<1>(m_inner_index_box_)[IX.dim_num] += IX.value;
-        std::get<0>(m_outer_index_box_)[IX.dim_num] += IX.value;
-        std::get<1>(m_outer_index_box_)[IX.dim_num] += IX.value;
+        std::get<0>(m_index_box_)[IX.dim_num] += IX.value;
+        std::get<1>(m_index_box_)[IX.dim_num] += IX.value;
         SetUp();
     }
     template <typename... Others>
@@ -294,35 +275,22 @@ struct ArrayView : public concept::Printable {
         Shift(std::forward<Others>(others)...);
     }
     void Shift(m_index_tuple const& offset) {
-        std::get<0>(m_inner_index_box_) += offset;
-        std::get<1>(m_inner_index_box_) += offset;
-        std::get<0>(m_outer_index_box_) += offset;
-        std::get<1>(m_outer_index_box_) += offset;
+        std::get<0>(m_index_box_) += offset;
+        std::get<1>(m_index_box_) += offset;
         SetUp();
     }
     virtual bool empty() const { return m_data_ == nullptr; }
     virtual std::type_info const& value_type_info() const { return typeid(value_type); }
     virtual int GetNDIMS() const { return NDIMS; }
 
-    virtual index_type const* GetInnerLowerIndex() const { return &std::get<0>(m_inner_index_box_)[0]; };
-    virtual index_type const* GetInnerUpperIndex() const { return &std::get<1>(m_inner_index_box_)[0]; };
-    virtual index_type const* GetOuterLowerIndex() const { return &std::get<0>(m_outer_index_box_)[0]; };
-    virtual index_type const* GetOuterUpperIndex() const { return &std::get<1>(m_outer_index_box_)[0]; };
-    virtual void const* GetRawData() const { return m_data_.get(); };
-    virtual void* GetRawData() { return m_data_.get(); };
-
-    std::shared_ptr<value_type>& GetData() { return m_data_; }
-    std::shared_ptr<value_type> const& GetData() const { return m_data_; }
+    m_index_box_type const& GetIndexBox() const { return m_index_box_; }
 
     std::shared_ptr<value_type>& GetPointer() { return m_data_; }
     std::shared_ptr<value_type> const& GetPointer() const { return m_data_; }
-    void* GetRawPointer() { return m_data_.get(); }
-    void* GetRawPointer() const { return m_data_.get(); }
+    virtual void* GetRawPointer() { return m_data_.get(); }
+    virtual void* GetRawPointer() const { return m_data_.get(); }
 
     void SetData(std::shared_ptr<value_type> const& d) const { m_data_ = d; }
-    m_index_box_type const& GetIndexBox() const { return m_inner_index_box_; }
-    m_index_box_type const& GetInnerIndexBox() const { return m_inner_index_box_; }
-    m_index_box_type const& GetOuterIndexBox() const { return m_outer_index_box_; }
 
     template <typename... TID>
     value_type& at(index_type i0, TID&&... s) {
@@ -369,16 +337,12 @@ struct ArrayView : public concept::Printable {
     }
     size_type GetMemorySize() const {
         size_type res = 1;
-        for (int i = 0; i < NDIMS; ++i) {
-            res *= (std::get<1>(m_outer_index_box_)[i] - std::get<0>(m_outer_index_box_)[i]);
-        }
+        for (int i = 0; i < NDIMS; ++i) { res *= (std::get<1>(m_index_box_)[i] - std::get<0>(m_index_box_)[i]); }
         return res;
     }
     size_type size() const {
         size_type res = 1;
-        for (int i = 0; i < NDIMS; ++i) {
-            res *= (std::get<1>(m_inner_index_box_)[i] - std::get<0>(m_inner_index_box_)[i]);
-        }
+        for (int i = 0; i < NDIMS; ++i) { res *= (std::get<1>(m_index_box_)[i] - std::get<0>(m_index_box_)[i]); }
         return res;
     }
 
@@ -386,23 +350,23 @@ struct ArrayView : public concept::Printable {
 
     std::ostream& Print(std::ostream& os, int indent = 0) const {
         //        nTuple<size_type, NDIMS> m_dims_;
-        ////        CHECK(std::get<0>(m_outer_index_box_));
-        ////        CHECK(std::get<1>(m_outer_index_box_));
+        ////        CHECK(std::get<0>(m_index_box_));
+        ////        CHECK(std::get<1>(m_index_box_));
         //        for (int i = 0; i < NDIMS; ++i) {
-        //            m_dims_[i] = std::get<1>(m_outer_index_box_)[i] - std::get<0>(m_outer_index_box_)[i];
+        //            m_dims_[i] = std::get<1>(m_index_box_)[i] - std::get<0>(m_index_box_)[i];
         //        }
         //
         //        printNdArray(os, m_data_.get(), NDIMS, &m_dims_[0]);
 
-        os << "Print Array " << m_inner_index_box_ << std::endl;
+        os << "Print Array " << m_index_box_ << std::endl;
 
-        detail::ForeachND(m_inner_index_box_, [&](m_index_tuple const& idx) {
-            if (idx[NDIMS - 1] == std::get<0>(m_inner_index_box_)[NDIMS - 1]) {
+        detail::ForeachND(m_index_box_, [&](m_index_tuple const& idx) {
+            if (idx[NDIMS - 1] == std::get<0>(m_index_box_)[NDIMS - 1]) {
                 os << "{" << at(idx);
             } else {
                 os << "," << at(idx);
             }
-            if (idx[NDIMS - 1] == std::get<1>(m_inner_index_box_)[NDIMS - 1] - 1) { os << "}" << std::endl; }
+            if (idx[NDIMS - 1] == std::get<1>(m_index_box_)[NDIMS - 1] - 1) { os << "}" << std::endl; }
         });
 
         return os;
@@ -413,7 +377,7 @@ struct ArrayView : public concept::Printable {
     template <typename TOP, typename... Others>
     void Foreach(TOP const& op, Others&&... others) {
         if (size() <= 0) { return; }
-        detail::ForeachND(m_inner_index_box_, [&](m_index_tuple const& idx) {
+        detail::ForeachND(m_index_box_, [&](m_index_tuple const& idx) {
             op(at(idx), getValue(std::forward<Others>(others), idx)...);
         });
     };
@@ -421,7 +385,7 @@ struct ArrayView : public concept::Printable {
     template <typename TOP>
     void Foreach(TOP const& op) {
         if (size() <= 0) { return; }
-        detail::ForeachND(m_inner_index_box_, [&](m_index_tuple const& idx) { op(at(idx)); });
+        detail::ForeachND(m_index_box_, [&](m_index_tuple const& idx) { op(at(idx)); });
     };
 
    public:

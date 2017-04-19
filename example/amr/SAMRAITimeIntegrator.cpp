@@ -325,93 +325,59 @@ boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned short 
     return nullptr;
 }
 
+template <typename T, int NDIMS>
+Array<T, NDIMS> create_array(SAMRAI::pdat::ArrayData<T> &p_data, int depth = 0) {
+    auto i_lower = p_data.getBox().lower();
+    auto i_upper = p_data.getBox().upper();
+
+    typename Array<T, NDIMS>::m_index_box_type i_box{{i_lower[0], i_lower[1], i_lower[2]},
+                                                     {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}};
+    return Array<T, NDIMS>(i_box, std::shared_ptr<T>(p_data.getPointer(depth), simpla::tags::do_nothing()), true);
+};
+
 template <int NDIMS, typename T>
 std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
     std::shared_ptr<data::DataMultiArray<T, NDIMS>> res = nullptr;
     typedef Array<T, NDIMS> array_type;
 
-    auto outer_lower = pd->getGhostBox().lower();
-    auto outer_upper = pd->getGhostBox().upper();
-    auto inner_lower = pd->getBox().lower();
-    auto inner_upper = pd->getBox().upper();
-
-    index_type in_lower[3] = {inner_lower[0], inner_lower[1], inner_lower[2]};
-    index_type in_upper[3] = {inner_upper[0], inner_upper[1], inner_upper[2]};
-
-    index_type out_lower[3] = {outer_lower[0], outer_lower[1], outer_lower[2]};
-    index_type out_upper[3] = {outer_upper[0], outer_upper[1], outer_upper[2]};
-
     switch (IFORM) {
         case VERTEX: {
             auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::NodeData<T>>(pd);
-            auto depth = p_data->getDepth();
+            int depth = p_data->getDepth();
             res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth);
             for (int d = 0; d < depth; ++d) {
-                array_type(in_lower, in_upper, out_lower, out_upper,
-                           std::shared_ptr<T>(p_data->getPointer(d), simpla::tags::do_nothing()), true)
-                    .swap(res->GetArray(d));
+                create_array<T, NDIMS>(p_data->getArrayData(), d).swap(res->GetArray(d));
             }
             break;
         }
         case EDGE: {
             auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::EdgeData<T>>(pd);
-            auto depth = p_data->getDepth();
-            res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth);
+            int depth = p_data->getDepth();
+            res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth * 3);
             for (int axis = 0; axis < 3; ++axis) {
-                if (in_upper[axis] > 1) {
-                    ++in_upper[axis];
-                    ++out_upper[axis];
-                }
-
                 for (int d = 0; d < depth; ++d) {
-                    array_type(in_lower, in_upper, out_lower, out_upper,
-                               std::shared_ptr<T>(p_data->getPointer(axis, d), simpla::tags::do_nothing()), true)
-                        .swap(res->GetArray(d + axis * depth));
-                }
-                if (in_upper[axis] > 1) {
-                    --in_upper[axis];
-                    --out_upper[axis];
+                    create_array<T, NDIMS>(p_data->getArrayData(axis), d).swap(res->GetArray(axis * depth + d));
                 }
             }
             break;
         }
         case FACE: {
             auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::SideData<T>>(pd);
-            auto depth = p_data->getDepth();
-            res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth);
+            int depth = p_data->getDepth();
+            res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth * 3);
             for (int axis = 0; axis < 3; ++axis) {
-                if (in_upper[(axis + 1) % 3] > 1) {
-                    ++in_upper[(axis + 1) % 3];
-                    ++out_upper[(axis + 1) % 3];
-                }
-                if (in_upper[(axis + 2) % 3] > 1) {
-                    ++in_upper[(axis + 2) % 3];
-                    ++out_upper[(axis + 2) % 3];
-                }
                 for (int d = 0; d < depth; ++d) {
-                    array_type(in_lower, in_upper, out_lower, out_upper,
-                               std::shared_ptr<T>(p_data->getPointer(axis, d), simpla::tags::do_nothing()), true)
-                        .swap(res->GetArray(d + axis * depth));
-                }
-                if (in_upper[(axis + 1) % 3] > 1) {
-                    --in_upper[(axis + 1) % 3];
-                    --out_upper[(axis + 1) % 3];
-                }
-                if (in_upper[(axis + 2) % 3] > 1) {
-                    --in_upper[(axis + 2) % 3];
-                    --out_upper[(axis + 2) % 3];
+                    create_array<T, NDIMS>(p_data->getArrayData(axis), d).swap(res->GetArray(axis * depth + d));
                 }
             }
             break;
         }
         case VOLUME: {
             auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<T>>(pd);
-            auto depth = p_data->getDepth();
+            int depth = p_data->getDepth();
             res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth);
             for (int d = 0; d < depth; ++d) {
-                array_type(in_lower, in_upper, out_lower, out_upper,
-                           std::shared_ptr<T>(p_data->getPointer(d), simpla::tags::do_nothing()), true)
-                    .swap(res->GetArray(d));
+                create_array<T, NDIMS>(p_data->getArrayData(), d).swap(res->GetArray(d));
             }
             break;
         }
@@ -451,7 +417,6 @@ boost::shared_ptr<SAMRAI::hier::PatchData> convert_from_data_block(engine::Attri
 void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrator *integrator) {
     ASSERT(integrator != nullptr);
     SAMRAI::hier::VariableDatabase *vardb = SAMRAI::hier::VariableDatabase::getDatabase();
-
 
     SAMRAI::hier::IntVector d_nghosts{d_dim, 4};
     SAMRAI::hier::IntVector d_fluxghosts{d_dim, 1};
@@ -511,8 +476,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
         }
     }
-    //integrator->printClassData(std::cout);
-    //vardb->printClassData(std::cout);
+    // integrator->printClassData(std::cout);
+    // vardb->printClassData(std::cout);
 }
 
 void SAMRAIHyperbolicPatchStrategyAdapter::Push(SAMRAI::hier::Patch &patch, engine::Patch *p) {
@@ -912,7 +877,7 @@ void SAMRAITimeIntegrator::SetUp() {
     HyperbolicLevelIntegrator->putBool("lag_dt_computation", true);
     HyperbolicLevelIntegrator->putBool("use_ghosts_to_compute_dt", true);
 
-    /***
+    /**
      *  create hyp_level_integrator and error_detector
      */
     hyperbolic_patch_strategy.reset(new SAMRAIHyperbolicPatchStrategyAdapter(GetContext(), grid_geometry));
