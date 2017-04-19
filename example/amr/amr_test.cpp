@@ -56,14 +56,14 @@ void UseCaseAMR::Deserialize(std::shared_ptr<data::DataTable> cfg) {
     m_schedule_->Initialize();
     m_schedule_->SetOutputURL(cfg->GetValue<std::string>("output", "SimPLASaveData"));
     if (cfg->GetTable("Schedule") == nullptr) {
-        m_schedule_->GetContext()->GetAtlas().SetIndexBox(index_box_type{{0, 0, 0}, {16, 16, 16}});
+        m_schedule_->GetContext()->GetAtlas().SetIndexBox(index_box_type{{0, 0, 0}, {64, 32, 64}});
         m_schedule_->GetContext()->GetAtlas().SetPeriodicDimension(size_tuple{0, 1, 0});
 
         auto domain = m_schedule_->GetContext()->GetDomain("Center");
         domain->SetGeoObject(std::make_shared<geometry::Cube>(box_type{{1, 0, 0.0}, {2, TWOPI, 2}}));
         domain->SetChart(engine::Chart::Create("CylindricalGeometry"));
         domain->GetChart()->SetOrigin(point_type{1, 0, 0});
-        domain->GetChart()->SetDx(point_type{0.1, TWOPI / 32, 0.1});
+        domain->GetChart()->SetDx(point_type{0.1, TWOPI / 64, 0.1});
         domain->SetWorker(engine::Worker::Create("EMFluid<CylindricalGeometry>"));
         domain->AddBoundaryCondition(engine::Worker::Create("PEC<CylindricalGeometry>"));
         m_schedule_->SetTime(0.0);

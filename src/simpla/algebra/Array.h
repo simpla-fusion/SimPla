@@ -294,16 +294,16 @@ struct ArrayView : public concept::Printable {
 
     template <typename... TID>
     value_type& at(index_type i0, TID&&... s) {
-        return m_data_.get()[vec_dot(m_strides_, m_index_tuple{i0, std::forward<TID>(s)...}) - m_offset_];
+        return m_data_.get()[vec_dot(m_strides_, m_index_tuple{i0, std::forward<TID>(s)...}) + m_offset_];
     }
 
     template <typename... TID>
     value_type const& at(index_type i0, TID&&... s) const {
-        return m_data_.get()[vec_dot(m_strides_, m_index_tuple{i0, std::forward<TID>(s)...}) - m_offset_];
+        return m_data_.get()[vec_dot(m_strides_, m_index_tuple{i0, std::forward<TID>(s)...}) + m_offset_];
     }
 
-    value_type& at(m_index_tuple const& idx) { return m_data_.get()[vec_dot(m_strides_, idx) - m_offset_]; }
-    value_type const& at(m_index_tuple const& idx) const { return m_data_.get()[vec_dot(m_strides_, idx) - m_offset_]; }
+    value_type& at(m_index_tuple const& idx) { return m_data_.get()[vec_dot(m_strides_, idx) + m_offset_]; }
+    value_type const& at(m_index_tuple const& idx) const { return m_data_.get()[vec_dot(m_strides_, idx) + m_offset_]; }
 
     template <typename TID>
     value_type& operator[](TID s) {

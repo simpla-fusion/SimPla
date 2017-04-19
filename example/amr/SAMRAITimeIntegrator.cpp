@@ -280,47 +280,46 @@ SAMRAIHyperbolicPatchStrategyAdapter::~SAMRAIHyperbolicPatchStrategyAdapter() {}
 namespace detail {
 template <typename T>
 boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(unsigned short ndims,
-                                                                   engine::Attribute const &attr) {
+                                                                   engine::Attribute const *attr) {
     SAMRAI::tbox::Dimension d_dim(ndims);
 
     boost::shared_ptr<SAMRAI::hier::Variable> res;
-    switch (attr.GetIFORM()) {
+    switch (attr->GetIFORM()) {
         case VERTEX:
             res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-                boost::make_shared<SAMRAI::pdat::NodeVariable<T>>(d_dim, attr.GetName(), attr.GetDOF()));
+                boost::make_shared<SAMRAI::pdat::NodeVariable<T>>(d_dim, attr->GetName(), attr->GetDOF()));
             break;
         case EDGE:
             res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-                boost::make_shared<SAMRAI::pdat::EdgeVariable<T>>(d_dim, attr.GetName(), attr.GetDOF()));
+                boost::make_shared<SAMRAI::pdat::EdgeVariable<T>>(d_dim, attr->GetName(), attr->GetDOF()));
             break;
         case FACE:
             res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-                boost::make_shared<SAMRAI::pdat::SideVariable<T>>(d_dim, attr.GetName(), attr.GetDOF()));
+                boost::make_shared<SAMRAI::pdat::SideVariable<T>>(d_dim, attr->GetName(), attr->GetDOF()));
             break;
-
         case VOLUME:
             res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-                boost::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, attr.GetName(), attr.GetDOF()));
+                boost::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, attr->GetName(), attr->GetDOF()));
             break;
         case FIBER:
         default:
             //            res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
             //                boost::make_shared<SAMRAI::pdat::SparseDataVariable<SAMRAI::geom::CartesianGridGeometry>>(
-            //                    d_dim, attr.GetName(), attr.GetDOF()));
+            //                    d_dim,attr->GetName(),attr->GetDOF()));
             break;
     }
     return res;
 }
 
-boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned short ndims, engine::Attribute const &attr) {
-    if (attr.value_type_info() == (typeid(float))) {
+boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned short ndims, engine::Attribute const *attr) {
+    if (attr->value_type_info() == (typeid(float))) {
         return create_samrai_variable_t<float>(ndims, attr);
-    } else if (attr.value_type_info() == (typeid(double))) {
+    } else if (attr->value_type_info() == (typeid(double))) {
         return create_samrai_variable_t<double>(ndims, attr);
-    } else if (attr.value_type_info() == (typeid(int))) {
+    } else if (attr->value_type_info() == (typeid(int))) {
         return create_samrai_variable_t<int>(ndims, attr);
     } else {
-        RUNTIME_ERROR << " attr [" << attr.GetName() << "] is not supported!" << std::endl;
+        RUNTIME_ERROR << " attr [" << attr->GetName() << "] is not supported!" << std::endl;
     }
     return nullptr;
 }
@@ -426,7 +425,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     m_ctx_->Register(&attr_grp);
     for (engine::Attribute *v : attr_grp.GetAll()) {
         if (v->GetName() == "" || v->GetName()[0] == '_') continue;
-        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, *v);
+        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, v);
+        if (var == nullptr) { continue; }
         m_samrai_variables_[v] = var;
 
         /*** FIXME:
@@ -452,7 +452,6 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
             coarsen_name = "NO_REFINE";
             refine_name = "NO_REFINE";
         }
-
         integrator->registerVariable(var, ghosts, v_type, d_grid_geometry, "", coarsen_name);
 
         std::string visit_variable_type = "";
@@ -600,9 +599,9 @@ void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI:
                                                                          const double time_now, const double time_dt,
                                                                          bool at_syncronization) {
     engine::Patch p;
-    Push(patch, &p);
-    m_ctx_->AdvanceDataOnPatch(&p, time_now, time_dt);
-    Pop(patch, &p);
+    //    Push(patch, &p);
+    //    m_ctx_->AdvanceDataOnPatch(&p, time_now, time_dt);
+    //    Pop(patch, &p);
 }
 
 /**************************************************************************

@@ -187,7 +187,7 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
                         point_type{static_cast<Real>(i), static_cast<Real>(j), static_cast<Real>(k)});
                     m_vertics_[0](i, j, k) = x[0] * std::cos(x[1]);
                     m_vertics_[1](i, j, k) = x[0] * std::sin(x[1]);
-                    m_vertics_[2](i, j, k) = x[2];  // x[2];
+                    m_vertics_[2](i, j, k) = x[2];
                 }
 
         ib = std::get<0>(m_volume_[0].GetIndexBox())[0];
