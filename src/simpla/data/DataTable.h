@@ -77,10 +77,9 @@ class DataTable : public DataEntity {
     template <typename U>
     bool Check(std::string const& key, U const& u = true) const {
         auto p = Get(key);
-        return p != nullptr && p->isA(typeid(U)) && data_cast<U>(*p) == u;
+        return (p != nullptr) && (p->value_type_info() == typeid(U)) && (data_cast<U>(*p) == u);
     }
     bool Check(std::string const& key) const { return Check(key, true); }
-
 
     void Link(std::shared_ptr<DataEntity> const& other);
     DataTable& Link(std::string const& uri, DataTable const& other);

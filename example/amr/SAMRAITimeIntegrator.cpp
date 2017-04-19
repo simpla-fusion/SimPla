@@ -467,7 +467,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         } else {
             WARNING << "Can not register attribute [" << v->GetName() << "] to VisIt writer !" << std::endl;
         }
-        if (visit_variable_type != "" && v->db()->Check("COORDINATES")) {
+
+        if (visit_variable_type != "" && v->db()->Check("COORDINATES", true)) {
             d_visit_writer->registerNodeCoordinates(
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
         } else if (v->GetIFORM() == VERTEX || v->GetIFORM() == VOLUME) {
