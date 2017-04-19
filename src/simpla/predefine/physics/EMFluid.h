@@ -64,7 +64,7 @@ class EMFluid : public engine::Worker {
     typedef field_type<VERTEX> TRho;
     typedef field_type<VERTEX, 3> TJv;
 
-    field_type<VERTEX> rho0{m_mesh_};
+    field_type<VERTEX> rho0{m_mesh_, "name"_ = "rho"};
 
     field_type<EDGE> E0{m_mesh_};
     field_type<FACE> B0{m_mesh_};
@@ -160,76 +160,80 @@ void EMFluid<TM>::InitializeData(Real time_now) {
         E.Clear();
         B0.Clear();
     }
-    Ev = map_to<VERTEX>(E);
-    B0v = map_to<VERTEX>(B0);
-    BB = dot(B0v, B0v);
+
+    //    rho0[0].Foreach([&](index_tuple const& k, Real& v) { v = k[1]; });
+    rho0.Assign([&](point_type const& z) -> Real { return z[1]; });
+    //    Ev = map_to<VERTEX>(E);
+    //    B0v = map_to<VERTEX>(B0);
+    //    BB = dot(B0v, B0v);
 }
 template <typename TM>
 void EMFluid<TM>::AdvanceData(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
-    B -= curl(E) * (dt * 0.5);
-    SetPhysicalBoundaryConditionB(time_now);
-    E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
-    SetPhysicalBoundaryConditionE(time_now);
-    if (m_fluid_sp_.size() > 0) {
-        field_type<VERTEX, 3> Q{m_mesh_};
-        field_type<VERTEX, 3> K{m_mesh_};
-
-        field_type<VERTEX> a{m_mesh_};
-        field_type<VERTEX> b{m_mesh_};
-        field_type<VERTEX> c{m_mesh_};
-
-        a.Clear();
-        b.Clear();
-        c.Clear();
-
-        Q = map_to<VERTEX>(E) - Ev;
-        dE.Clear();
-        K.Clear();
-        for (auto& p : m_fluid_sp_) {
-            Real ms = p.second->mass;
-            Real qs = p.second->charge;
-            auto& ns = *p.second->rho;
-            auto& Js = *p.second->J;
-
-            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
-
-            Q -= 0.5 * dt / epsilon0 * Js;
-
-            K = (Ev * qs * ns * 2.0 + cross(Js, B0v)) * as + Js;
-
-            Js = (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
-
-            Q -= 0.5 * dt / epsilon0 * Js;
-
-            a += qs * ns * (as / (BB * as * as + 1));
-            b += qs * ns * (as * as / (BB * as * as + 1));
-            c += qs * ns * (as * as * as / (BB * as * as + 1));
-        }
-
-        a *= 0.5 * dt / epsilon0;
-        b *= 0.5 * dt / epsilon0;
-        c *= 0.5 * dt / epsilon0;
-        a += 1;
-
-        dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
-
-        for (auto& p : m_fluid_sp_) {
-            Real ms = p.second->mass;
-            Real qs = p.second->charge;
-            auto& ns = *p.second->rho;
-            auto& Js = *p.second->J;
-
-            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
-
-            K = dE * ns * qs * as;
-            Js += (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
-        }
-        Ev += dE;
-        E += map_to<EDGE>(Ev) - E;
-    }
-    B -= curl(E) * (dt * 0.5);
-    SetPhysicalBoundaryConditionB(time_now);
+    //    B -= curl(E) * (dt * 0.5);
+    //    SetPhysicalBoundaryConditionB(time_now);
+    //    E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
+    //    SetPhysicalBoundaryConditionE(time_now);
+    //    if (m_fluid_sp_.size() > 0) {
+    //        field_type<VERTEX, 3> Q{m_mesh_};
+    //        field_type<VERTEX, 3> K{m_mesh_};
+    //
+    //        field_type<VERTEX> a{m_mesh_};
+    //        field_type<VERTEX> b{m_mesh_};
+    //        field_type<VERTEX> c{m_mesh_};
+    //
+    //        a.Clear();
+    //        b.Clear();
+    //        c.Clear();
+    //
+    //        Q = map_to<VERTEX>(E) - Ev;
+    //        dE.Clear();
+    //        K.Clear();
+    //        for (auto& p : m_fluid_sp_) {
+    //            Real ms = p.second->mass;
+    //            Real qs = p.second->charge;
+    //            auto& ns = *p.second->rho;
+    //            auto& Js = *p.second->J;
+    //
+    //            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
+    //
+    //            Q -= 0.5 * dt / epsilon0 * Js;
+    //
+    //            K = (Ev * qs * ns * 2.0 + cross(Js, B0v)) * as + Js;
+    //
+    //            Js = (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
+    //
+    //            Q -= 0.5 * dt / epsilon0 * Js;
+    //
+    //            a += qs * ns * (as / (BB * as * as + 1));
+    //            b += qs * ns * (as * as / (BB * as * as + 1));
+    //            c += qs * ns * (as * as * as / (BB * as * as + 1));
+    //        }
+    //
+    //        a *= 0.5 * dt / epsilon0;
+    //        b *= 0.5 * dt / epsilon0;
+    //        c *= 0.5 * dt / epsilon0;
+    //        a += 1;
+    //
+    //        dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a
+    //        * a);
+    //
+    //        for (auto& p : m_fluid_sp_) {
+    //            Real ms = p.second->mass;
+    //            Real qs = p.second->charge;
+    //            auto& ns = *p.second->rho;
+    //            auto& Js = *p.second->J;
+    //
+    //            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
+    //
+    //            K = dE * ns * qs * as;
+    //            Js += (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
+    //        }
+    //        Ev += dE;
+    //        E += map_to<EDGE>(Ev) - E;
+    //    }
+    //    B -= curl(E) * (dt * 0.5);
+    //    SetPhysicalBoundaryConditionB(time_now);
 }
 
 }  // namespace simpla  {

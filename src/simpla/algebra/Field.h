@@ -84,6 +84,7 @@ class FieldView : public engine::Attribute {
     virtual void SetUp() {}
     virtual void Initialize() {}
     virtual void Clear() {
+        SetUp();
         for (int i = 0; i < NUMBER_OF_SUB; ++i) { m_data_[i].Clear(); }
     }
     virtual bool empty() const { return m_data_[0] == nullptr; }
@@ -110,44 +111,24 @@ class FieldView : public engine::Attribute {
         return res;
     }
 
-    array_type const& operator[](int i) const { return m_data_[i % NUMBER_OF_SUB]; }
-    array_type& operator[](int i) { return m_data_[i % NUMBER_OF_SUB]; }
+    array_type const& operator[](int i) const { return m_data_[i]; }
+    array_type& operator[](int i) { return m_data_[i]; }
 
-    value_type const& operator[](EntityId const& s) const { return (m_data_[s.w])(s.x, s.y, s.z); }
-    value_type& operator[](EntityId const& s) { return (m_data_[s.w])(s.x, s.y, s.z); }
-
-    value_type const& at(EntityId const& s) const { return (m_data_[s.w])(s.x, s.y, s.z); }
-    value_type& at(EntityId const& s) { return (m_data_[s.w])(s.x, s.y, s.z); }
-
-   private:
-    template <typename... Others>
-    decltype(auto) get_(std::integral_constant<bool, true>, unsigned int n, Others&&... others) {
-        return m_data_[n].at(std::forward<Others>(others)...);
+    value_type& operator()(index_type i, index_type j = 0, index_type k = 0, index_type w = 0) {
+        return m_data_[w](i, j, k);
     }
-    template <typename... Others>
-    decltype(auto) get_(std::integral_constant<bool, true>, unsigned int n, Others&&... others) const {
-        return m_data_[n].at(std::forward<Others>(others)...);
+    value_type const& operator()(index_type i, index_type j = 0, index_type k = 0, index_type w = 0) const {
+        return m_data_[w](i, j, k);
     }
-    template <typename... Others>
-    decltype(auto) get_(std::integral_constant<bool, false>, Others&&... others) {
-        return m_data_[0].at(std::forward<Others>(others)...);
-    }
-    template <typename... Others>
-    decltype(auto) get_(std::integral_constant<bool, false>, Others&&... others) const {
-        return m_data_[0].at(std::forward<Others>(others)...);
-    }
-
-   public:
-    template <typename... Idx>
-    value_type& operator()(index_type i0, Idx&&... idx) {
-        return get_(std::integral_constant<bool, (NUMBER_OF_SUB > 1)>(), i0, std::forward<Idx>(idx)...);
-    }
-    template <typename... Idx>
-    value_type const& operator()(index_type i0, Idx&&... idx) const {
-        return get_(std::integral_constant<bool, (NUMBER_OF_SUB > 1)>(), i0, std::forward<Idx>(idx)...);
-    }
+    //*****************************************************************************************************************
 
     typedef calculus::template calculator<mesh_type> calculus_policy;
+
+    value_type const& operator[](EntityId const& s) const { return at(s); }
+    value_type& operator[](EntityId const& s) { return at(s); }
+
+    value_type const& at(EntityId const& s) const { return calculus_policy::getValue(*m_mesh_, *this, s); }
+    value_type& at(EntityId const& s) { return calculus_policy::getValue(*m_mesh_, *this, s); }
 
     template <typename... Args>
     decltype(auto) gather(Args&&... args) const {
@@ -161,36 +142,40 @@ class FieldView : public engine::Attribute {
 
     //    decltype(auto) operator()(point_type const& x) const { return gather(x); }
 
-    //**********************************************************************************************
-
-    template <typename TOP, typename... Args>
-    void Foreach_(Range<EntityId> const& r, TOP const& op, Args&&... args) {
-        ASSERT(!empty());
-        for (int j = 0; j < NUMBER_OF_SUB; ++j) {
-            r.foreach ([&](EntityId s) {
-                s.w = static_cast<u_int16_t>(j);
-                op(at(s), calculus_policy::getValue(*m_mesh_, std::forward<Args>(args), s)...);
-            });
-        }
-    }
-    template <typename... Args>
-    void Foreach(Range<EntityId> const& r, Args&&... args) {
-        Foreach_(r, std::forward<Args>(args)...);
-    }
-    template <typename... Args>
-    void Foreach(Args&&... args) {
-        SetUp();
-        Foreach_(m_mesh_->GetRange(), std::forward<Args>(args)...);
-    }
     template <typename Other>
     void Assign(Other const& other) {
         SetUp();
-        Foreach_(m_mesh_->GetRange(), tags::_assign(), other);
+        int num_of_com = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
+        for (int n = 0; n < NUMBER_OF_SUB; ++n) {
+            for (int d = 0; d < DOF; ++d) {
+                m_data_[n * DOF + d].Foreach([&](index_tuple const& k, value_type& v) {
+                    v = calculus_policy::getValue(std::integral_constant<int, IFORM>(), *m_mesh_, other, k[0], k[1],
+                                                  k[2], n, d);
+                });
+            }
+        }
+        //        Foreach_(m_mesh_->GetRange(GetIFORM()), tags::_assign(), other);
     }
-    template <typename Other>
-    void Assign(Range<EntityId> const& r, Other const& other) {
-        Foreach_(r, tags::_assign(), other);
-    }
+    //    template <typename TOP, typename... Args>
+    //    void Foreach_(Range<EntityId> const& r, TOP const& op, Args&&... args) {
+    //        ASSERT(!empty());
+    //        SetUp();
+    //        r.foreach ([&](EntityId s) { op(at(s), calculus_policy::getValue(*m_mesh_, std::forward<Args>(args),
+    //        s)...); });
+    //    }
+    //    template <typename... Args>
+    //    void Foreach(Range<EntityId> const& r, Args&&... args) {
+    //        Foreach_(r, std::forward<Args>(args)...);
+    //    }
+    //    template <typename... Args>
+    //    void Foreach(Args&&... args) {
+    //        SetUp();
+    //        Foreach_(m_mesh_->GetRange(GetIFORM()), std::forward<Args>(args)...);
+    //    }
+    //    template <typename Other>
+    //    void Assign(Range<EntityId> const& r, Other const& other) {
+    //        Foreach_(r, tags::_assign(), other);
+    //    }
 };  // class FieldView
 template <typename TM, typename TV, int IFORM, int DOF>
 constexpr int FieldView<TM, TV, IFORM, DOF>::NUMBER_OF_SUB;

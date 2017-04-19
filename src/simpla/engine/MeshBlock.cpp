@@ -3,6 +3,7 @@
 //
 
 #include "MeshBlock.h"
+#include <simpla/utilities/EntityId.h>
 #include <boost/functional/hash.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -18,6 +19,8 @@ struct MeshBlock::pimpl_s {
     index_tuple m_ghost_width_{2, 2, 2};
     static boost::uuids::random_generator m_gen_;
     static boost::hash<boost::uuids::uuid> m_hasher_;
+
+    std::map<int, std::shared_ptr<UnorderedRange<EntityId>>> m_unordered_range_;
 };
 boost::uuids::random_generator MeshBlock::pimpl_s::m_gen_;
 boost::hash<boost::uuids::uuid> MeshBlock::pimpl_s::m_hasher_;
@@ -34,6 +37,15 @@ MeshBlock::MeshBlock(MeshBlock const &other) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_time_ = other.m_pimpl_->m_time_;
 }
 MeshBlock::~MeshBlock() {}
+
+Range<EntityId> MeshBlock::GetRange(int iform) const {
+    auto it = m_pimpl_->m_unordered_range_.find(iform);
+    if (it == m_pimpl_->m_unordered_range_.end()) {
+        return Range<EntityId>(std::make_shared<ContinueRange<EntityId>>(m_pimpl_->m_index_box_, iform));
+    } else {
+        return Range<EntityId>(it->second);
+    }
+}
 
 Real MeshBlock::GetTime() const { return m_pimpl_->m_time_; }
 index_tuple MeshBlock::GetGhostWidth() const { return m_pimpl_->m_ghost_width_; };

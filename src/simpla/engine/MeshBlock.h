@@ -6,8 +6,9 @@
 #define SIMPLA_MESHBLOCK_H
 
 #include <simpla/algebra/nTupleExt.h>
+#include <simpla/utilities/EntityId.h>
+#include <simpla/utilities/Range.h>
 #include <simpla/utilities/sp_def.h>
-
 namespace simpla {
 namespace engine {
 
@@ -26,6 +27,8 @@ class MeshBlock {
     index_box_type GetIndexBox(int IFORM = 0, int sub = 0) const;
     index_box_type GetOuterIndexBox(int IFORM = 0, int sub = 0) const;
     index_box_type GetInnerIndexBox(int IFORM = 0, int sub = 0) const;
+
+    Range<EntityId> GetRange(int iform = VERTEX) const;
 
     //    box_type GetBoundBox() const;
     //    size_type size(int IFORM = VERTEX) const { return 0; }

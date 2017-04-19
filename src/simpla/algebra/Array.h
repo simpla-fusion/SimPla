@@ -109,7 +109,7 @@ template <typename TFun>
 void ForeachND(std::tuple<nTuple<index_type, 3>, nTuple<index_type, 3>> const& inner_box, TFun const& fun) {
     for (index_type i = std::get<0>(inner_box)[0], ie = std::get<1>(inner_box)[0]; i < ie; ++i)
         for (index_type j = std::get<0>(inner_box)[1], je = std::get<1>(inner_box)[1]; j < je; ++j)
-            for (index_type k = std::get<0>(inner_box)[1], ke = std::get<1>(inner_box)[1]; k < ke; ++k) {
+            for (index_type k = std::get<0>(inner_box)[2], ke = std::get<1>(inner_box)[2]; k < ke; ++k) {
                 fun(nTuple<index_type, 3>{i, j, k});
             }
 }
@@ -118,8 +118,8 @@ template <typename TFun>
 void ForeachND(std::tuple<nTuple<index_type, 4>, nTuple<index_type, 4>> const& inner_box, TFun const& fun) {
     for (index_type i = std::get<0>(inner_box)[0], ie = std::get<1>(inner_box)[0]; i < ie; ++i)
         for (index_type j = std::get<0>(inner_box)[1], je = std::get<1>(inner_box)[1]; j < je; ++j)
-            for (index_type k = std::get<0>(inner_box)[1], ke = std::get<1>(inner_box)[1]; k < ke; ++k)
-                for (index_type l = std::get<0>(inner_box)[1], le = std::get<1>(inner_box)[1]; l < le; ++l) {
+            for (index_type k = std::get<0>(inner_box)[2], ke = std::get<1>(inner_box)[2]; k < ke; ++k)
+                for (index_type l = std::get<0>(inner_box)[3], le = std::get<1>(inner_box)[3]; l < le; ++l) {
                     fun(nTuple<index_type, 4>{i, j, k, l});
                 }
 }
@@ -240,7 +240,7 @@ struct ArrayView : public concept::Printable {
                 m_offset_ -= std::get<0>(m_index_box_)[i] * m_strides_[i];
             }
         }
-        if (m_data_ == nullptr && GetMemorySize() > 0) { m_data_ = sp_alloc_array<value_type>(GetMemorySize()); }
+        if (m_data_ == nullptr && size() > 0) { m_data_ = sp_alloc_array<value_type>(size()); }
     }
 
     template <typename... U>
@@ -335,18 +335,17 @@ struct ArrayView : public concept::Printable {
         Foreach(tags::_assign(), rhs);
         return (*this);
     }
-    size_type GetMemorySize() const {
-        size_type res = 1;
-        for (int i = 0; i < NDIMS; ++i) { res *= (std::get<1>(m_index_box_)[i] - std::get<0>(m_index_box_)[i]); }
-        return res;
-    }
+
     size_type size() const {
         size_type res = 1;
         for (int i = 0; i < NDIMS; ++i) { res *= (std::get<1>(m_index_box_)[i] - std::get<0>(m_index_box_)[i]); }
         return res;
     }
 
-    void Clear() { memset(m_data_.get(), 0, GetMemorySize() * sizeof(value_type)); }
+    void Clear() {
+        SetUp();
+        memset(m_data_.get(), 0, size() * sizeof(value_type));
+    }
 
     std::ostream& Print(std::ostream& os, int indent = 0) const {
         //        nTuple<size_type, NDIMS> m_dims_;
@@ -374,18 +373,26 @@ struct ArrayView : public concept::Printable {
 
    private:
    public:
-    template <typename TOP, typename... Others>
-    void Foreach(TOP const& op, Others&&... others) {
-        if (size() <= 0) { return; }
-        detail::ForeachND(m_index_box_, [&](m_index_tuple const& idx) {
-            op(at(idx), getValue(std::forward<Others>(others), idx)...);
-        });
-    };
+    //    template <typename TOP, typename... Others>
+    //    void Foreach(TOP const& op, Others&&... others) {
+    //        if (size() <= 0) { return; }
+    //        detail::ForeachND(m_index_box_, [&](m_index_tuple const& idx) {
+    //            op(at(idx), getValue(std::forward<Others>(others), idx)...);
+    //        });
+    //    };
 
-    template <typename TOP>
-    void Foreach(TOP const& op) {
+    template <typename TFun>
+    void Foreach(TFun const& op,
+                 ENABLE_IF(simpla::concept::is_callable<TFun(m_index_tuple const&, value_type&)>::value)) {
         if (size() <= 0) { return; }
-        detail::ForeachND(m_index_box_, [&](m_index_tuple const& idx) { op(at(idx)); });
+        SetUp();
+        detail::ForeachND(m_index_box_, [&](m_index_tuple const& idx) { op(idx, at(idx)); });
+    };
+    template <typename TFun>
+    void Foreach(TFun const& op,
+                 ENABLE_IF(simpla::concept::is_callable<TFun(m_index_tuple const&, value_type const&)>::value)) const {
+        if (size() <= 0) { return; }
+        detail::ForeachND(m_index_box_, [&](m_index_tuple const& idx) { op(idx, at(idx)); });
     };
 
    public:

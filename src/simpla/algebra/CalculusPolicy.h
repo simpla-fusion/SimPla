@@ -605,14 +605,13 @@ struct calculator<TM> {
     //        return gather(m, f, x);
     //    };
 
-    template <typename M, typename V, int I, int D, typename... Args>
-    static V const& getValue(mesh_type const& m, FieldView<M, V, I, D> const& f, Args&&... s) {
-        return f.at(std::forward<Args>(s)...);
+    template <typename M, typename V, int I, int D>
+    static V const& getValue(mesh_type const& m, FieldView<M, V, I, D> const& f, EntityId const& s) {
+        return f(s.x, s.y, s.z, EntityIdCoder::m_id_to_sub_index_[s.w]);
     };
-
-    template <typename M, typename V, int I, int D, typename... Args>
-    static V& getValue(mesh_type const& m, FieldView<M, V, I, D>& f, Args&&... s) {
-        return f.at(std::forward<Args>(s)...);
+    template <typename M, typename V, int I, int D>
+    static V& getValue(mesh_type const& m, FieldView<M, V, I, D>& f, EntityId const& s) {
+        return f(s.x, s.y, s.z, EntityIdCoder::m_id_to_sub_index_[s.w]);
     };
 
     template <typename TOP, typename... T>
@@ -630,6 +629,13 @@ struct calculator<TM> {
     static auto getValue(mesh_type const& m, TFun const& fun, EntityId const& s,
                          ENABLE_IF(simpla::concept::is_callable<TFun(point_type const&)>::value)) {
         return sample(m, s, fun(m.point(s)));
+    }
+
+    template <int IFORM, typename TFun>
+    static auto getValue(std::integral_constant<int, IFORM> const&, mesh_type const& m, TFun const& fun, index_type i,
+                         index_type j, index_type k, index_type w) {
+        return getValue(m, fun, EntityId{static_cast<int16_t>(i), static_cast<int16_t>(j), static_cast<int16_t>(k),
+                                         static_cast<int16_t>(EntityIdCoder::m_sub_index_to_id_[IFORM][w])});
     }
 
     //**********************************************************************************************

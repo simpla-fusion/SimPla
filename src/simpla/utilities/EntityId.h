@@ -11,6 +11,7 @@
 #include <simpla/algebra/nTuple.h>
 #include <stddef.h>
 #include <limits>
+#include <set>
 #include <tuple>
 #include "Log.h"
 #include "Range.h"
@@ -22,7 +23,7 @@ namespace simpla {
 
 typedef union {
     struct {
-        u_int16_t x, y, z, w;
+        int16_t x, y, z, w;
     };
     int64_t v;
 } EntityId64;
@@ -82,13 +83,13 @@ struct MeshIdHashCompare {
 constexpr inline bool operator==(EntityId const& first, EntityId const& second) { return first.v == second.v; }
 
 constexpr inline EntityId operator-(EntityId const& first, EntityId const& second) {
-    return EntityId{first.w, static_cast<u_int16_t>(first.z - second.z), static_cast<u_int16_t>(first.y - second.y),
-                    static_cast<u_int16_t>(first.x - second.x)};
+    return EntityId{first.w, static_cast<int16_t>(first.z - second.z), static_cast<int16_t>(first.y - second.y),
+                    static_cast<int16_t>(first.x - second.x)};
 }
 
 constexpr inline EntityId operator+(EntityId const& first, EntityId const& second) {
-    return EntityId{first.w, static_cast<u_int16_t>(first.z + second.z), static_cast<u_int16_t>(first.y + second.y),
-                    static_cast<u_int16_t>(first.x + second.x)};
+    return EntityId{first.w, static_cast<int16_t>(first.z + second.z), static_cast<int16_t>(first.y + second.y),
+                    static_cast<int16_t>(first.x + second.x)};
 }
 
 constexpr inline EntityId operator|(EntityId const& first, EntityId const& second) {
@@ -110,7 +111,7 @@ struct EntityIdCoder_ {
     static constexpr EntityId _DI{1, 0, 0, 0};
     static constexpr EntityId _DJ{0, 1, 0, 0};
     static constexpr EntityId _DK{0, 0, 1, 0};
-    static constexpr EntityId _DA{1, 1, 1, static_cast<u_int16_t>(-1)};
+    static constexpr EntityId _DA{1, 1, 1, static_cast<int16_t>(-1)};
 
     typedef EntityIdCoder_ this_type;
 
@@ -200,22 +201,22 @@ struct EntityIdCoder_ {
     };
 
     static EntityId sx(EntityId s, int w) {
-        s.x = static_cast<u_int16_t>(w);
+        s.x = static_cast<int16_t>(w);
         return s;
     }
 
     static EntityId sy(EntityId s, int w) {
-        s.y = static_cast<u_int16_t>(w);
+        s.y = static_cast<int16_t>(w);
         return s;
     }
 
     static EntityId sz(EntityId s, int w) {
-        s.z = static_cast<u_int16_t>(w);
+        s.z = static_cast<int16_t>(w);
         return s;
     }
 
     static EntityId sw(EntityId s, int w) {
-        s.w = static_cast<u_int16_t>(w);
+        s.w = static_cast<int16_t>(w);
         return s;
     }
     static EntityId tag(EntityId s, int64_t tag) {
@@ -232,8 +233,8 @@ struct EntityIdCoder_ {
     static constexpr int iform(EntityId s) { return m_id_to_iform_[node_id(s)]; }
 
     static constexpr EntityId pack(index_type i0, index_type i1, index_type i2, index_type w = 0) {
-        return EntityId{static_cast<u_int16_t>(w), static_cast<u_int16_t>(i2), static_cast<u_int16_t>(i1),
-                        static_cast<u_int16_t>(i0)};
+        return EntityId{static_cast<int16_t>(w), static_cast<int16_t>(i2), static_cast<int16_t>(i1),
+                        static_cast<int16_t>(i0)};
     }
 
     template <typename T>
@@ -319,17 +320,17 @@ struct EntityIdCoder_ {
     static constexpr EntityId delta_index(EntityId s) { return EntityId{.v = static_cast<int64_t>(s.v & _DA.v)}; }
 
     static constexpr EntityId rotate(EntityId const& s) {
-        return EntityId{static_cast<u_int16_t>(s.w), static_cast<u_int16_t>((s.z & ~0x1) | (s.y & 0x1)),
-                        static_cast<u_int16_t>((s.y & ~0x1) | (s.x & 0x1)),
-                        static_cast<u_int16_t>((s.x & ~0x1) | (s.z & 0x1))
+        return EntityId{static_cast<int16_t>(s.w), static_cast<int16_t>((s.z & ~0x1) | (s.y & 0x1)),
+                        static_cast<int16_t>((s.y & ~0x1) | (s.x & 0x1)),
+                        static_cast<int16_t>((s.x & ~0x1) | (s.z & 0x1))
 
         };
     }
 
     static constexpr EntityId inverse_rotate(EntityId const& s) {
-        return EntityId{static_cast<u_int16_t>(s.w), static_cast<u_int16_t>((s.z & ~0x1) | (s.x & 0x1)),
-                        static_cast<u_int16_t>((s.y & ~0x1) | (s.z & 0x1)),
-                        static_cast<u_int16_t>((s.x & ~0x1) | (s.y & 0x1))};
+        return EntityId{static_cast<int16_t>(s.w), static_cast<int16_t>((s.z & ~0x1) | (s.x & 0x1)),
+                        static_cast<int16_t>((s.y & ~0x1) | (s.z & 0x1)),
+                        static_cast<int16_t>((s.x & ~0x1) | (s.y & 0x1))};
     }
 
     /**
@@ -816,7 +817,6 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
 
     bool is_divisible() const {
         int count = 0;
-
         for (int i = 0; i < ndims; ++i) {
             if (m_max_[i] - m_min_[i] <= m_grain_size_[i]) { ++count; }
         }
@@ -824,42 +824,83 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
     }
 
     template <typename TFun>
-    void foreach (TFun const& body, ENABLE_IF((simpla::concept::is_callable<TFun(EntityId const&)>::value))) const {
+    void foreach (TFun const& body) const {
         typedef EntityIdCoder M;
         ContinueRange const& r = *this;
         index_type ib = r.m_min_[0];
         index_type ie = r.m_max_[0];
         index_type ne = M::m_iform_to_num_of_ele_in_cell_[r.m_iform_];
 #pragma omp parallel for
-        for (index_type i = ib; i < ie; ++i) {
-            for (index_type j = r.m_min_[1], je = r.m_max_[1]; j < je; ++j)
-                for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k)
+        for (index_type i = ib; i <= ie; ++i) {
+            for (index_type j = r.m_min_[1], je = r.m_max_[1]; j <= je; ++j)
+                for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k <= ke; ++k)
                     for (index_type n = 0; n < ne; ++n) {
-                        body(M::pack_index(i, j, k, M::m_sub_index_to_id_[r.m_iform_][n]));
+                        EntityId s;
+                        s.x = static_cast<int16_t>(i);
+                        s.y = static_cast<int16_t>(j);
+                        s.z = static_cast<int16_t>(k);
+                        s.w = static_cast<int16_t>(M::m_sub_index_to_id_[r.m_iform_][n]);
+                        body(s);
+
+                        // body(M::pack_index(i, j, k,M::m_sub_index_to_id_[r.m_iform_][n]));
                     }
         }
     }
 
-    template <typename TFun>
-    void foreach (
-        TFun const& body,
-        ENABLE_IF((simpla::concept::is_callable<TFun(index_type, index_type, index_type, index_type)>::value))) const {
-        typedef EntityIdCoder M;
-        ContinueRange const& r = *this;
-        index_type ib = r.m_min_[0];
-        index_type ie = r.m_max_[0];
-        index_type ne = M::m_iform_to_num_of_ele_in_cell_[r.m_iform_];
-#pragma omp parallel for
-        for (index_type i = ib; i < ie; ++i) {
-            for (index_type j = r.m_min_[1], je = r.m_max_[1]; j < je; ++j)
-                for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k)
-                    for (index_type n = 0; n < ne; ++n) { body(i, j, k, M::m_sub_index_to_id_[r.m_iform_][n]); }
-        }
-    }
+    //    template <typename TFun>
+    //    void foreach (
+    //        TFun const& body,
+    //        ENABLE_IF((simpla::concept::is_callable<TFun(index_type, index_type, index_type, index_type)>::value)))
+    //        const {
+    //        typedef EntityIdCoder M;
+    //        ContinueRange const& r = *this;
+    //        index_type ib = r.m_min_[0];
+    //        index_type ie = r.m_max_[0];
+    //        index_type ne = M::m_iform_to_num_of_ele_in_cell_[r.m_iform_];
+    //#pragma omp parallel for
+    //        for (index_type i = ib; i < ie; ++i) {
+    //            for (index_type j = r.m_min_[1], je = r.m_max_[1]; j < je; ++j)
+    //                for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k)
+    //                    for (index_type n = 0; n < ne; ++n) { body(i, j, k, M::m_sub_index_to_id_[r.m_iform_][n]); }
+    //        }
+    //    }
 
    private:
     int m_iform_;
     index_tuple m_min_, m_max_, m_grain_size_;
+};
+
+template <>
+struct UnorderedRange<EntityId> : public RangeBase<EntityId> {
+    SP_OBJECT_HEAD(UnorderedRange<EntityId>, RangeBase<EntityId>)
+
+   private:
+    static constexpr int ndims = 3;
+    int m_iform_ = VERTEX;
+    std::set<EntityId> m_ids_;
+
+   public:
+    UnorderedRange(int iform = VERTEX) : m_iform_(iform) {}
+    ~UnorderedRange() {}
+    std::shared_ptr<base_type> split(concept::tags::split const& proportion) {
+        UNIMPLEMENTED;
+        return (nullptr);
+    }
+
+    void swap(this_type& other) {
+        std::swap(m_ids_, other.m_ids_);
+        std::swap(m_iform_, other.m_iform_);
+    }
+    std::set<EntityId>& data() { return m_ids_; }
+    std::set<EntityId> const& data() const { return m_ids_; }
+    int entity_type() const { return m_iform_; }
+    bool empty() const { return m_ids_.empty(); }
+    size_t size() const { return m_ids_.size(); }
+    bool is_divisible() const { return false; }
+    template <typename TFun>
+    void foreach (TFun const& body, ENABLE_IF((simpla::concept::is_callable<TFun(EntityId const&)>::value))) const {
+        for (auto s : m_ids_) { body(s); }
+    }
 };
 
 }  // namespace simpla

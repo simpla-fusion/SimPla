@@ -5,9 +5,9 @@
 #ifndef SIMPLA_RANGE_H
 #define SIMPLA_RANGE_H
 
-#include <simpla/utilities/sp_def.h>
 #include <simpla/concept/Splittable.h>
 #include <simpla/utilities/Log.h>
+#include <simpla/utilities/sp_def.h>
 #include <cstddef>
 #include <iterator>
 #include <memory>
@@ -61,11 +61,8 @@ struct RangeBase {
    public:
     typedef T value_type;
     virtual bool is_divisible() const { return false; }
-
     virtual size_type size() const { return 0; }
-
     virtual bool empty() const { return true; }
-
     virtual void foreach_override(std::function<void(value_type&)> const& fun) const { DO_NOTHING; };
 
     virtual std::shared_ptr<this_type> split(concept::tags::split const& sp) {
@@ -76,9 +73,9 @@ struct RangeBase {
     template <typename TFun, typename... Args>
     void foreach (TFun const& fun, Args && ... args) const {
         if (isA(typeid(continue_type))) {
-            cast_as<continue_type>().foreach (fun, std::forward<Args>(args)...);
+            this->cast_as<continue_type>().foreach (fun, std::forward<Args>(args)...);
         } else if (isA(typeid(unordered_type))) {
-            cast_as<unordered_type>().foreach (fun, std::forward<Args>(args)...);
+            this->cast_as<unordered_type>().foreach (fun, std::forward<Args>(args)...);
         } else {
             foreach_override([&](value_type& v) { fun(v, std::forward<Args>(args)...); });
         }
