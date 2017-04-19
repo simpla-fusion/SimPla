@@ -91,38 +91,81 @@ void ForeachND(std::tuple<nTuple<index_type, N>, nTuple<index_type, N>> const& i
 }
 
 template <typename TFun>
-void ForeachND(std::tuple<nTuple<index_type, 1>, nTuple<index_type, 1>> const& inner_box, TFun const& fun) {
+void ForeachND(std::tuple<nTuple<index_type, 1>, nTuple<index_type, 1>> const& inner_box, TFun const& fun,
+               bool is_fast_first = false) {
+    index_type ib = std::get<0>(inner_box)[0];
+    index_type ie = std::get<1>(inner_box)[0];
 #pragma omp parallel for
-    for (index_type i = std::get<0>(inner_box)[0], ie = std::get<1>(inner_box)[0]; i < ie; ++i)
-        fun(nTuple<index_type, 1>{i});
+    for (index_type i = ib; i < ie; ++i) { fun(nTuple<index_type, 1>{i}); }
 }
 template <typename TFun>
-void ForeachND(std::tuple<nTuple<index_type, 2>, nTuple<index_type, 2>> const& inner_box, TFun const& fun) {
+void ForeachND(std::tuple<nTuple<index_type, 2>, nTuple<index_type, 2>> const& inner_box, TFun const& fun,
+               bool is_fast_first = false) {
+    index_type ib = std::get<0>(inner_box)[0];
+    index_type ie = std::get<1>(inner_box)[0];
+    index_type jb = std::get<0>(inner_box)[1];
+    index_type je = std::get<1>(inner_box)[1];
+    if (is_fast_first) {
 #pragma omp parallel for
-    for (index_type i = std::get<0>(inner_box)[0], ie = std::get<1>(inner_box)[0]; i < ie; ++i)
-        for (index_type j = std::get<0>(inner_box)[1], je = std::get<1>(inner_box)[1]; j < je; ++j)
-            fun(nTuple<index_type, 2>{i, j});
+        for (index_type j = jb; j < je; ++j)
+            for (index_type i = ib; i < ie; ++i) { fun(nTuple<index_type, 2>{i, j}); }
+    } else {
+#pragma omp parallel for
+        for (index_type i = ib; i < ie; ++i)
+            for (index_type j = jb; j < je; ++j) { fun(nTuple<index_type, 2>{i, j}); }
+    }
 }
 
 template <typename TFun>
-void ForeachND(std::tuple<nTuple<index_type, 3>, nTuple<index_type, 3>> const& inner_box, TFun const& fun) {
+void ForeachND(std::tuple<nTuple<index_type, 3>, nTuple<index_type, 3>> const& inner_box, TFun const& fun,
+               bool is_fast_first = false) {
+    index_type ib = std::get<0>(inner_box)[0];
+    index_type ie = std::get<1>(inner_box)[0];
+    index_type jb = std::get<0>(inner_box)[1];
+    index_type je = std::get<1>(inner_box)[1];
+    index_type kb = std::get<0>(inner_box)[2];
+    index_type ke = std::get<1>(inner_box)[2];
+
+    if (is_fast_first) {
 #pragma omp parallel for
-    for (index_type i = std::get<0>(inner_box)[0], ie = std::get<1>(inner_box)[0]; i < ie; ++i)
-        for (index_type j = std::get<0>(inner_box)[1], je = std::get<1>(inner_box)[1]; j < je; ++j)
-            for (index_type k = std::get<0>(inner_box)[2], ke = std::get<1>(inner_box)[2]; k < ke; ++k) {
-                fun(nTuple<index_type, 3>{i, j, k});
-            }
+        for (index_type k = kb; k < ke; ++k)
+            for (index_type j = jb; j < je; ++j)
+                for (index_type i = ib; i < ie; ++i) { fun(nTuple<index_type, 3>{i, j, k}); }
+
+    } else {
+#pragma omp parallel for
+        for (index_type i = ib; i < ie; ++i)
+            for (index_type j = jb; j < je; ++j)
+                for (index_type k = kb; k < ke; ++k) { fun(nTuple<index_type, 3>{i, j, k}); }
+    }
 }
 
 template <typename TFun>
-void ForeachND(std::tuple<nTuple<index_type, 4>, nTuple<index_type, 4>> const& inner_box, TFun const& fun) {
+void ForeachND(std::tuple<nTuple<index_type, 4>, nTuple<index_type, 4>> const& inner_box, TFun const& fun,
+               bool is_fast_first = false) {
+    index_type ib = std::get<0>(inner_box)[0];
+    index_type ie = std::get<1>(inner_box)[0];
+    index_type jb = std::get<0>(inner_box)[1];
+    index_type je = std::get<1>(inner_box)[1];
+    index_type kb = std::get<0>(inner_box)[2];
+    index_type ke = std::get<1>(inner_box)[2];
+    index_type lb = std::get<0>(inner_box)[3];
+    index_type le = std::get<1>(inner_box)[3];
+
+    if (is_fast_first) {
 #pragma omp parallel for
-    for (index_type i = std::get<0>(inner_box)[0], ie = std::get<1>(inner_box)[0]; i < ie; ++i)
-        for (index_type j = std::get<0>(inner_box)[1], je = std::get<1>(inner_box)[1]; j < je; ++j)
-            for (index_type k = std::get<0>(inner_box)[2], ke = std::get<1>(inner_box)[2]; k < ke; ++k)
-                for (index_type l = std::get<0>(inner_box)[3], le = std::get<1>(inner_box)[3]; l < le; ++l) {
-                    fun(nTuple<index_type, 4>{i, j, k, l});
-                }
+        for (index_type l = lb; l < le; ++l)
+            for (index_type k = kb; k < ke; ++k)
+                for (index_type j = jb; j < je; ++j)
+                    for (index_type i = ib; i < ie; ++i) fun(nTuple<index_type, 4>{i, j, k, l});
+
+    } else {
+#pragma omp parallel for
+        for (index_type i = ib; i < ie; ++i)
+            for (index_type j = jb; j < je; ++j)
+                for (index_type k = kb; k < ke; ++k)
+                    for (index_type l = lb; l < le; ++l) { fun(nTuple<index_type, 4>{i, j, k, l}); }
+    }
 }
 template <typename TIdx>
 size_type Hash(std::tuple<nTuple<index_type, 2>, nTuple<index_type, 2>> const& box, TIdx const& idx) {
