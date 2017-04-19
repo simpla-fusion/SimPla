@@ -109,8 +109,8 @@ class FieldView : public engine::Attribute {
         return res;
     }
 
-    array_type const& operator[](int i) const { return m_data_[i]; }
-    array_type& operator[](int i) { return m_data_[i]; }
+    array_type const& operator[](int i) const { return m_data_[i % NUMBER_OF_SUB]; }
+    array_type& operator[](int i) { return m_data_[i % NUMBER_OF_SUB]; }
 
     value_type& operator()(index_type i, index_type j = 0, index_type k = 0, index_type w = 0) {
         return m_data_[w](i, j, k);
@@ -145,14 +145,14 @@ class FieldView : public engine::Attribute {
         int num_of_com = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
         for (int n = 0; n < num_of_com; ++n) {
             for (int d = 0; d < DOF; ++d) {
-                //                m_data_[n * DOF + d].Foreach([&](index_tuple const& k, value_type& v) {
-                //                    v = calculus_policy::getValue(std::integral_constant<int, IFORM>(), *m_mesh_,
-                //                    other, k[0], k[1], k[2], n, d);
-                m_mesh_->GetRange(GetIFORM()).foreach ([&](EntityId s) {
-                    m_data_[n * DOF + d](s.x, s.y, s.z) = calculus_policy::getValue(
-                        std::integral_constant<int, IFORM>(), *m_mesh_, other, s.x, s.y, s.z, n, d);
-
+                m_data_[n * DOF + d].Foreach([&](index_tuple const& k, value_type& v) {
+                    v = calculus_policy::getValue(std::integral_constant<int, IFORM>(), *m_mesh_, other, k[0], k[1],
+                                                  k[2], n, d);
                 });
+                //                m_mesh_->GetRange(GetIFORM()).foreach ([&](EntityId s) {
+                //                    m_data_[n * DOF + d](s.x, s.y, s.z) = calculus_policy::getValue(
+                //                        std::integral_constant<int, IFORM>(), *m_mesh_, other, s.x, s.y, s.z, n,
+                //                        d);
             }
         }
     }

@@ -92,11 +92,13 @@ void ForeachND(std::tuple<nTuple<index_type, N>, nTuple<index_type, N>> const& i
 
 template <typename TFun>
 void ForeachND(std::tuple<nTuple<index_type, 1>, nTuple<index_type, 1>> const& inner_box, TFun const& fun) {
+#pragma omp parallel for
     for (index_type i = std::get<0>(inner_box)[0], ie = std::get<1>(inner_box)[0]; i < ie; ++i)
         fun(nTuple<index_type, 1>{i});
 }
 template <typename TFun>
 void ForeachND(std::tuple<nTuple<index_type, 2>, nTuple<index_type, 2>> const& inner_box, TFun const& fun) {
+#pragma omp parallel for
     for (index_type i = std::get<0>(inner_box)[0], ie = std::get<1>(inner_box)[0]; i < ie; ++i)
         for (index_type j = std::get<0>(inner_box)[1], je = std::get<1>(inner_box)[1]; j < je; ++j)
             fun(nTuple<index_type, 2>{i, j});
@@ -104,6 +106,7 @@ void ForeachND(std::tuple<nTuple<index_type, 2>, nTuple<index_type, 2>> const& i
 
 template <typename TFun>
 void ForeachND(std::tuple<nTuple<index_type, 3>, nTuple<index_type, 3>> const& inner_box, TFun const& fun) {
+#pragma omp parallel for
     for (index_type i = std::get<0>(inner_box)[0], ie = std::get<1>(inner_box)[0]; i < ie; ++i)
         for (index_type j = std::get<0>(inner_box)[1], je = std::get<1>(inner_box)[1]; j < je; ++j)
             for (index_type k = std::get<0>(inner_box)[2], ke = std::get<1>(inner_box)[2]; k < ke; ++k) {
@@ -113,6 +116,7 @@ void ForeachND(std::tuple<nTuple<index_type, 3>, nTuple<index_type, 3>> const& i
 
 template <typename TFun>
 void ForeachND(std::tuple<nTuple<index_type, 4>, nTuple<index_type, 4>> const& inner_box, TFun const& fun) {
+#pragma omp parallel for
     for (index_type i = std::get<0>(inner_box)[0], ie = std::get<1>(inner_box)[0]; i < ie; ++i)
         for (index_type j = std::get<0>(inner_box)[1], je = std::get<1>(inner_box)[1]; j < je; ++j)
             for (index_type k = std::get<0>(inner_box)[2], ke = std::get<1>(inner_box)[2]; k < ke; ++k)
@@ -298,9 +302,10 @@ struct ArrayView : public concept::Printable {
         return m_data_.get()[vec_dot(m_strides_, idx) + m_offset_];
     }
     value_type const& at(m_index_tuple const& idx) const {
-        auto s = vec_dot(m_strides_, idx) + m_offset_;
-        if (s >= size() || s < 0) { MESSAGE << (idx) << " ~ " << m_index_box_ << std::endl; }
-        return m_data_.get()[vec_dot(m_strides_, idx) + m_offset_];
+        //        auto s = vec_dot(m_strides_, idx) + m_offset_;
+        //        if (s >= size() || s < 0) { MESSAGE << (idx) << " ~ " << m_index_box_ << std::endl; }
+        ASSERT(m_size_ > 0);
+        return m_data_.get()[(vec_dot(m_strides_, idx) + m_offset_) % m_size_];
     }
 
     value_type& operator[](m_index_tuple const& idx) { return at(idx); }
