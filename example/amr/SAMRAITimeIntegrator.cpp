@@ -424,7 +424,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     engine::AttributeGroup attr_grp;
     m_ctx_->Register(&attr_grp);
     for (engine::Attribute *v : attr_grp.GetAll()) {
-        if (v->GetName() == "") continue;
+        if (v->GetName() == "" || v->GetName()[0] == '_') continue;
         boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, v);
         if (var == nullptr) { continue; }
         m_samrai_variables_[v] = var;

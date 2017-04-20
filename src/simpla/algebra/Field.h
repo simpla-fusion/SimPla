@@ -54,7 +54,6 @@ class FieldView : public engine::Attribute {
     typedef Array<value_type, NDIMS> array_type;
     array_type m_data_[NUMBER_OF_SUB];
     mesh_type const* m_mesh_;
-    id_type m_block_id_ = NULL_ID;
 
    public:
     FieldView(mesh_type* m, std::shared_ptr<data::DataTable> const& d = nullptr)
@@ -80,14 +79,7 @@ class FieldView : public engine::Attribute {
     virtual int GetDOF() const { return DOF; };
     virtual std::type_info const& value_type_info() const { return typeid(value_type); };  //!< value type
 
-    virtual void SetUp() {
-        ASSERT(m_mesh_ != nullptr);
-        if (m_block_id_ != m_mesh_->GetBlockId()) {
-            m_block_id_ = m_mesh_->GetBlockId();
-            for (int i = 0; i < NUMBER_OF_SUB; ++i) { array_type(m_mesh_->GetBlock()->GetIndexBox()).swap(m_data_[i]); }
-        }
-    }
-
+    virtual void SetUp() {}
     virtual void Initialize() {}
     virtual void Clear() {
         SetUp();

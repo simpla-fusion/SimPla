@@ -69,7 +69,7 @@ class EMFluid : public engine::Worker {
     field_type<EDGE> E0{m_mesh_};
     field_type<FACE> B0{m_mesh_};
     field_type<VERTEX, 3> B0v{m_mesh_};
-    field_type<VERTEX> BB{m_mesh_, "name"_ = "BB"};
+    field_type<VERTEX> BB{m_mesh_};
     field_type<VERTEX, 3> Ev{m_mesh_};
     field_type<VERTEX, 3> Bv{m_mesh_};
     field_type<VERTEX, 3> dE{m_mesh_};
@@ -160,14 +160,13 @@ void EMFluid<TM>::InitializeData(Real time_now) {
     E.Clear();
     B.Clear();
     B0.Clear();
-    B0v.Clear();
     //    if (E.isNull()) {}
 
     //    rho0[0].Foreach([&](index_tuple const& k, Real& v) { v = k[1]; });
     rho0.Assign([&](point_type const& z) -> Real { return z[1] * z[0] * z[2]; });
     //    Ev = map_to<VERTEX>(E);
     //    B0v = map_to<VERTEX>(B0);
-    BB = dot(B0v, B0v);
+    //    BB = dot(B0v, B0v);
 }
 template <typename TM>
 void EMFluid<TM>::AdvanceData(Real time_now, Real dt) {

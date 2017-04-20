@@ -28,33 +28,52 @@ static bool _PRE_REGISTERED = EMFluid<mesh::CylindricalGeometry>::is_register &&
 struct UseCaseAMR : public application::SpApp {
     UseCaseAMR();
     virtual ~UseCaseAMR();
-    virtual void SetUp();
+    virtual std::shared_ptr<data::DataTable> Serialize() const;
+    virtual void Deserialize(std::shared_ptr<data::DataTable>);
+    virtual void Run();
+
+   private:
+    std::shared_ptr<engine::TimeIntegrator> m_schedule_;
 };
 SP_REGISITER_APP(UseCaseAMR, " AMR Test ");
 
 UseCaseAMR::UseCaseAMR(){};
-UseCaseAMR::~UseCaseAMR() {}
-void UseCaseAMR::SetUp() {
-    SetSchedule(std::dynamic_pointer_cast<engine::TimeIntegrator>(engine::Schedule::Create("SAMRAI")));
-    GetSchedule()->SetOutputURL(db()->GetValue<std::string>("output", "SimPLASaveData"));
-    auto t = db()->GetTable("Schedule");
-    if (t != nullptr) {
-        GetSchedule()->Deserialize(t);
-    } else {
-        GetSchedule()->GetContext()->GetAtlas().SetIndexBox(index_box_type{{0, 0, 0}, {64, 32, 64}});
-        GetSchedule()->GetContext()->GetAtlas().SetPeriodicDimension(size_tuple{0, 0, 0});
-        auto domain = GetSchedule()->GetContext()->GetDomain("Center");
+
+UseCaseAMR::~UseCaseAMR() { m_schedule_->Finalize(); }
+
+void UseCaseAMR::Run() { m_schedule_->Run(); };
+
+std::shared_ptr<data::DataTable> UseCaseAMR::Serialize() const {
+    auto res = std::make_shared<data::DataTable>();
+    if (m_schedule_ != nullptr) {
+        res->Set("Schedule", m_schedule_->Serialize());
+        res->SetValue("Schedule/Type", m_schedule_->GetClassName());
+    }
+    return res;
+}
+void UseCaseAMR::Deserialize(std::shared_ptr<data::DataTable> cfg) {
+    m_schedule_ = std::dynamic_pointer_cast<engine::TimeIntegrator>(engine::Schedule::Create("SAMRAI"));
+    m_schedule_->Initialize();
+    m_schedule_->SetOutputURL(cfg->GetValue<std::string>("output", "SimPLASaveData"));
+    if (cfg->GetTable("Schedule") == nullptr) {
+        m_schedule_->GetContext()->GetAtlas().SetIndexBox(index_box_type{{0, 0, 0}, {64, 32, 64}});
+        m_schedule_->GetContext()->GetAtlas().SetPeriodicDimension(size_tuple{0, 0, 0});
+
+        auto domain = m_schedule_->GetContext()->GetDomain("Center");
         domain->SetGeoObject(std::make_shared<geometry::Cube>(box_type{{1, 0, 0.0}, {2, TWOPI, 2}}));
         domain->SetChart(engine::Chart::Create("CylindricalGeometry"));
         domain->GetChart()->SetOrigin(point_type{1, 0, 0});
         domain->GetChart()->SetDx(point_type{0.1, TWOPI / 64, 0.1});
         domain->SetWorker(engine::Worker::Create("EMFluid<CylindricalGeometry>"));
         domain->AddBoundaryCondition(engine::Worker::Create("PEC<CylindricalGeometry>"));
-        GetSchedule()->SetTime(0.0);
-        GetSchedule()->SetTimeStep(0.1);
-        GetSchedule()->SetTimeEnd(1.0);
+        m_schedule_->SetTime(0.0);
+        m_schedule_->SetTimeStep(0.1);
+        m_schedule_->SetTimeEnd(1.0);
+    } else {
+        m_schedule_->Deserialize(cfg->GetTable("Schedule"));
     }
-};
+    m_schedule_->SetUp();
+}
 
 //    ctx->db()->SetValue("Domains", {"Center"_ = {"name"_ = "Center", "Mesh"_ = {"name"_ = "CartesianGeometry"},
 //                                                 "Worker"_ = {{"name"_ = "EMFluid"}}}});

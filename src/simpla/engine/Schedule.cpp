@@ -86,6 +86,29 @@ void Schedule::Finalize() {
 void Schedule::SetUp() {
     SPObject::SetUp();
     m_pimpl_->m_ctx_->SetUp();
+    //    MPI_Barrier(GLOBAL_COMM.comm());
+    //    std::shared_ptr<data::DataTable> cfg = nullptr;
+    //    std::string buffer;
+    //    if (GLOBAL_COMM.rank() == 0) {
+    //        m_pimpl_->m_ctx_->SetUp();
+    //
+    //        std::ostringstream os;
+    //        os << "Context={";
+    //        data::Serialize(m_pimpl_->m_ctx_->Serialize(), os, "lua");
+    //        os << "}";
+    //        buffer = os.str();
+    //
+    //        parallel::bcast_string(&buffer);
+    //    } else {
+    //        parallel::bcast_string(&buffer);
+    //
+    //        cfg = std::make_shared<data::DataTable>("lua://");
+    //        cfg->backend()->Parser(buffer);
+    //
+    //        m_pimpl_->m_ctx_->Deserialize(cfg);
+    //        m_pimpl_->m_ctx_->SetUp();
+    //    }
+    //    MPI_Barrier(GLOBAL_COMM.comm());
 }
 void Schedule::TearDown() {
     m_pimpl_->m_ctx_->TearDown();

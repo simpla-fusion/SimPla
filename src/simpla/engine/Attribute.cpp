@@ -42,7 +42,7 @@ struct Attribute::pimpl_s {
     Mesh const *m_mesh_ = nullptr;
     Range<EntityId> m_range_;
 };
-// Attribute::Attribute(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), data::Configurable(t) {
+//Attribute::Attribute(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), data::Configurable(t) {
 //    SetUp();
 //}
 
@@ -82,7 +82,7 @@ Mesh const *Attribute::GetMesh() const { return m_pimpl_->m_mesh_; }
 
 bool Attribute::isNull() const { return false; }
 void Attribute::SetUp() {
-    SetName(db()->GetValue<std::string>("name", std::to_string(GetGUID())));
+    SetName(db()->GetValue<std::string>("name", ""));
     SPObject::SetUp();
 };
 
