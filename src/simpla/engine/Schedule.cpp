@@ -74,17 +74,12 @@ void Schedule::SetContext(std::shared_ptr<Context> ctx) {
 }
 std::shared_ptr<Context> Schedule::GetContext() const { return m_pimpl_->m_ctx_; }
 
-void Schedule::Initialize() {
-    SPObject::Initialize();
-    m_pimpl_->m_ctx_ = std::make_shared<Context>();
-}
-void Schedule::Finalize() {
-    m_pimpl_->m_ctx_.reset();
-    SPObject::Finalize();
-}
+void Schedule::Initialize() { SPObject::Initialize(); }
+void Schedule::Finalize() { SPObject::Finalize(); }
 
 void Schedule::SetUp() {
     SPObject::SetUp();
+    if (m_pimpl_->m_ctx_ == nullptr) { m_pimpl_->m_ctx_ = std::make_shared<Context>(); }
     m_pimpl_->m_ctx_->SetUp();
     //    MPI_Barrier(GLOBAL_COMM.comm());
     //    std::shared_ptr<data::DataTable> cfg = nullptr;
@@ -111,7 +106,10 @@ void Schedule::SetUp() {
     //    MPI_Barrier(GLOBAL_COMM.comm());
 }
 void Schedule::TearDown() {
-    m_pimpl_->m_ctx_->TearDown();
+    if (m_pimpl_->m_ctx_ == nullptr) {
+        m_pimpl_->m_ctx_->TearDown();
+        m_pimpl_->m_ctx_.reset();
+    }
     SPObject::TearDown();
 }
 void Schedule::Synchronize() {

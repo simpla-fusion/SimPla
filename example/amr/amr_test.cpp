@@ -28,51 +28,37 @@ static bool _PRE_REGISTERED = EMFluid<mesh::CylindricalGeometry>::is_register &&
 struct UseCaseAMR : public application::SpApp {
     UseCaseAMR();
     virtual ~UseCaseAMR();
-    virtual std::shared_ptr<data::DataTable> Serialize() const;
-    virtual void Deserialize(std::shared_ptr<data::DataTable>);
-    virtual void Run();
-
-   private:
-    std::shared_ptr<engine::TimeIntegrator> m_schedule_;
+    virtual void SetUp();
 };
 SP_REGISITER_APP(UseCaseAMR, " AMR Test ");
 
 UseCaseAMR::UseCaseAMR(){};
 
-UseCaseAMR::~UseCaseAMR() { m_schedule_->Finalize(); }
+UseCaseAMR::~UseCaseAMR() {}
 
-void UseCaseAMR::Run() { m_schedule_->Run(); };
+void UseCaseAMR::SetUp() {
+    auto domain = std::make_shared<engine::Domain>();
+    domain->SetGeoObject(std::make_shared<geometry::Cube>(box_type{{1, 0, 0.0}, {2, TWOPI, 2}}));
+    domain->SetChart(engine::Chart::Create("CylindricalGeometry"));
+    domain->GetChart()->SetOrigin(point_type{1, 0, 0});
+    domain->GetChart()->SetDx(point_type{0.1, TWOPI / 64, 0.1});
+    domain->SetWorker(engine::Worker::Create("EMFluid<CylindricalGeometry>"));
+    domain->AddBoundaryCondition(engine::Worker::Create("PEC<CylindricalGeometry>"));
 
-std::shared_ptr<data::DataTable> UseCaseAMR::Serialize() const {
-    auto res = std::make_shared<data::DataTable>();
-    if (m_schedule_ != nullptr) {
-        res->Set("Schedule", m_schedule_->Serialize());
-        res->SetValue("Schedule/Type", m_schedule_->GetClassName());
-    }
-    return res;
-}
-void UseCaseAMR::Deserialize(std::shared_ptr<data::DataTable> cfg) {
-    m_schedule_ = std::dynamic_pointer_cast<engine::TimeIntegrator>(engine::Schedule::Create("SAMRAI"));
-    m_schedule_->Initialize();
-    m_schedule_->SetOutputURL(cfg->GetValue<std::string>("output", "SimPLASaveData"));
-    if (cfg->GetTable("Schedule") == nullptr) {
-        m_schedule_->GetContext()->GetAtlas().SetIndexBox(index_box_type{{0, 0, 0}, {64, 32, 64}});
-        m_schedule_->GetContext()->GetAtlas().SetPeriodicDimension(size_tuple{0, 0, 0});
+    auto ctx = std::make_shared<engine::Context>();
+    ctx->GetAtlas().SetIndexBox(index_box_type{{0, 0, 0}, {64, 32, 64}});
+    ctx->GetAtlas().SetPeriodicDimension(size_tuple{0, 0, 0});
+    ctx->SetDomain("Center", domain);
 
-        auto domain = m_schedule_->GetContext()->GetDomain("Center");
-        domain->SetGeoObject(std::make_shared<geometry::Cube>(box_type{{1, 0, 0.0}, {2, TWOPI, 2}}));
-        domain->SetChart(engine::Chart::Create("CylindricalGeometry"));
-        domain->GetChart()->SetOrigin(point_type{1, 0, 0});
-        domain->GetChart()->SetDx(point_type{0.1, TWOPI / 64, 0.1});
-        domain->SetWorker(engine::Worker::Create("EMFluid<CylindricalGeometry>"));
-        domain->AddBoundaryCondition(engine::Worker::Create("PEC<CylindricalGeometry>"));
-        m_schedule_->SetTime(0.0);
-        m_schedule_->SetTimeStep(0.1);
-        m_schedule_->SetTimeEnd(1.0);
-    } else {
-        m_schedule_->Deserialize(cfg->GetTable("Schedule"));
-    }
-    m_schedule_->SetUp();
+    auto schedule = std::dynamic_pointer_cast<engine::TimeIntegrator>(engine::Schedule::Create("SAMRAI"));
+    schedule->Initialize();
+    schedule->SetTime(0.0);
+    schedule->SetTimeStep(0.1);
+    schedule->SetTimeEnd(1.0);
+    schedule->SetContext(ctx);
+    schedule->SetOutputURL("SimPLASaveData");
+    schedule->SetUp();
+    SetSchedule(schedule);
 }
 
 //    ctx->db()->SetValue("Domains", {"Center"_ = {"name"_ = "Center", "Mesh"_ = {"name"_ = "CartesianGeometry"},

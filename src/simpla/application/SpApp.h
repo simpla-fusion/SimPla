@@ -7,21 +7,29 @@
 //
 #include <string>
 #include "simpla/data/all.h"
+#include "simpla/engine/Schedule.h"
 namespace simpla {
 namespace application {
 struct SpApp : public data::Serializable, public data::EnableCreateFromDataTable<SpApp> {
     SP_OBJECT_BASE(SpApp);
 
    public:
-    SpApp() {}
-    virtual ~SpApp() {}
-    virtual std::shared_ptr<data::DataTable> Serialize() const { return std::make_shared<data::DataTable>(); };
-    virtual void Deserialize(std::shared_ptr<data::DataTable> t){};
+    SpApp();
+    virtual ~SpApp();
+    virtual std::shared_ptr<data::DataTable> Serialize() const;
+    virtual void Deserialize(std::shared_ptr<data::DataTable> t);
 
-    virtual void Initialize(){};
-    virtual void Finalize(){};
-    virtual void Update(){};
-    virtual void Run(){};
+    virtual void Initialize();
+    virtual void SetUp();
+    virtual void Run();
+    virtual void TearDown();
+    virtual void Finalize();
+
+    void SetSchedule(std::shared_ptr<engine::Schedule> s);
+    std::shared_ptr<engine::Schedule> GetSchedule() const;
+
+   private:
+    std::shared_ptr<engine::Schedule> m_schedule_ = nullptr;
 };
 }  // namespace application{
 

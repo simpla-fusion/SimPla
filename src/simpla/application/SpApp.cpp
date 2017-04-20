@@ -1,5 +1,5 @@
 /**
- * @file em_plasma.cpp
+ * @file SpApp.cpp
  * @author salmon
  * @date 2015-11-20.
  *
@@ -7,17 +7,50 @@
  *    This is an example of EM plasma
  */
 
+#include "SpApp.h"
 #include <simpla/engine/Context.h>
 #include <simpla/engine/TimeIntegrator.h>
 #include <simpla/parallel/all.h>
 #include <simpla/utilities/Logo.h>
 #include <simpla/utilities/parse_command_line.h>
-#include "SpApp.h"
+
+using namespace simpla;
 
 namespace simpla {
-std::shared_ptr<engine::Schedule> CREATE_SCHEDULE(int argc, char **argv);
-}
-using namespace simpla;
+namespace application {
+SpApp::SpApp() {}
+SpApp::~SpApp() {}
+std::shared_ptr<data::DataTable> SpApp::Serialize() const {
+    auto res = std::make_shared<data::DataTable>();
+    if (m_schedule_ != nullptr) {
+        res->Set("Schedule", m_schedule_->Serialize());
+        res->SetValue("Schedule/Type", m_schedule_->GetClassName());
+    }
+    return res;
+};
+void SpApp::Deserialize(std::shared_ptr<data::DataTable> t) {
+    m_schedule_ = engine::Schedule::Create(t->GetTable("Schedule"));
+};
+
+void SpApp::Initialize(){};
+void SpApp::Finalize(){};
+void SpApp::SetUp() {
+    if (m_schedule_ != nullptr) { m_schedule_->SetUp(); }
+};
+void SpApp::TearDown() {
+    if (m_schedule_ != nullptr) {
+        m_schedule_->TearDown();
+        m_schedule_.reset();
+    }
+};
+void SpApp::Run() {
+    if (m_schedule_ != nullptr) { m_schedule_->Run(); }
+};
+void SpApp::SetSchedule(std::shared_ptr<engine::Schedule> s) { m_schedule_ = s; }
+std::shared_ptr<engine::Schedule> SpApp::GetSchedule() const { return m_schedule_; }
+
+}  // namespace application{
+}  // namespace simpla{
 
 int main(int argc, char **argv) {
 #ifndef NDEBUG
@@ -106,9 +139,10 @@ int main(int argc, char **argv) {
     std::shared_ptr<data::DataTable> cfg = nullptr;
     std::string buffer;
     if (GLOBAL_COMM.rank() == 0) {
-        cfg = data::ParseCommandLine(argc, argv);
+        //        cfg = data::ParseCommandLine(argc, argv);
+        //        app->Deserialize(cfg);
         app = application::SpApp::Create(app_name);
-        app->Deserialize(cfg);
+        app->SetUp();
 
         std::ostringstream os;
         os << "Application={";
@@ -130,7 +164,7 @@ int main(int argc, char **argv) {
 
     VERBOSE << DOUBLELINE << std::endl;
     VERBOSE << "Description : " << application::SpApp::ShowDescription(app_name) << std::endl;
-  //  VERBOSE << "Application : " << *app->Serialize() << std::endl;
+    //  VERBOSE << "Application : " << *app->Serialize() << std::endl;
     VERBOSE << DOUBLELINE << std::endl;
 
     app->Initialize();
