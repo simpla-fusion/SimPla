@@ -82,7 +82,8 @@ Mesh const *Attribute::GetMesh() const { return m_pimpl_->m_mesh_; }
 
 bool Attribute::isNull() const { return false; }
 void Attribute::SetUp() {
-    SetName(db()->GetValue<std::string>("name", std::to_string(GetGUID())));
+    std::string default_name = std::string("_") + std::to_string(GetGUID());
+    SetName(db()->GetValue<std::string>("name", default_name));
     SPObject::SetUp();
 };
 

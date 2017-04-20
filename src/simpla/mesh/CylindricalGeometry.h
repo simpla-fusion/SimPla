@@ -138,7 +138,6 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
     //    }
 
     void InitializeData(Real time_now = 0) {
-        TIME_STAMP;
 
         m_vertics_.Clear();
         m_volume_.Clear();

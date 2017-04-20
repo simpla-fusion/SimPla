@@ -424,7 +424,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     engine::AttributeGroup attr_grp;
     m_ctx_->Register(&attr_grp);
     for (engine::Attribute *v : attr_grp.GetAll()) {
-        if (v->GetName() == "" || v->GetName()[0] == '_') continue;
+        if (v->GetName() == "") continue;
         boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, v);
         if (var == nullptr) { continue; }
         m_samrai_variables_[v] = var;
@@ -453,31 +453,32 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
             refine_name = "NO_REFINE";
         }
         integrator->registerVariable(var, ghosts, v_type, d_grid_geometry, "", coarsen_name);
+        if (v->GetName()[0] != '_') {
+            std::string visit_variable_type = "";
+            if ((v->GetIFORM() == VERTEX || v->GetIFORM() == VOLUME) && (v->GetDOF() == 1)) {
+                visit_variable_type = "SCALAR";
+            } else if (((v->GetIFORM() == EDGE || v->GetIFORM() == FACE) && (v->GetDOF() == 1)) ||
+                       ((v->GetIFORM() == VERTEX || v->GetIFORM() == VOLUME) && (v->GetDOF() == 3))) {
+                visit_variable_type = "VECTOR";
+            } else if (((v->GetIFORM() == VERTEX || v->GetIFORM() == VOLUME) && v->GetDOF() == 9) ||
+                       ((v->GetIFORM() == EDGE || v->GetIFORM() == FACE) && v->GetDOF() == 3)) {
+                visit_variable_type = "TENSOR";
+            } else {
+                WARNING << "Can not register attribute [" << v->GetName() << "] to VisIt writer !" << std::endl;
+            }
 
-        std::string visit_variable_type = "";
-        if ((v->GetIFORM() == VERTEX || v->GetIFORM() == VOLUME) && (v->GetDOF() == 1)) {
-            visit_variable_type = "SCALAR";
-        } else if (((v->GetIFORM() == EDGE || v->GetIFORM() == FACE) && (v->GetDOF() == 1)) ||
-                   ((v->GetIFORM() == VERTEX || v->GetIFORM() == VOLUME) && (v->GetDOF() == 3))) {
-            visit_variable_type = "VECTOR";
-        } else if (((v->GetIFORM() == VERTEX || v->GetIFORM() == VOLUME) && v->GetDOF() == 9) ||
-                   ((v->GetIFORM() == EDGE || v->GetIFORM() == FACE) && v->GetDOF() == 3)) {
-            visit_variable_type = "TENSOR";
-        } else {
-            WARNING << "Can not register attribute [" << v->GetName() << "] to VisIt writer !" << std::endl;
-        }
-
-        if (visit_variable_type != "" && v->db()->Check("COORDINATES", true)) {
-            d_visit_writer->registerNodeCoordinates(
-                vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-        } else if (v->GetIFORM() == VERTEX || v->GetIFORM() == VOLUME) {
-            d_visit_writer->registerPlotQuantity(
-                v->GetName(), visit_variable_type,
-                vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+            if (visit_variable_type != "" && v->db()->Check("COORDINATES", true)) {
+                d_visit_writer->registerNodeCoordinates(
+                    vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+            } else if (v->GetIFORM() == VERTEX || v->GetIFORM() == VOLUME) {
+                d_visit_writer->registerPlotQuantity(
+                    v->GetName(), visit_variable_type,
+                    vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+            }
         }
     }
     // integrator->printClassData(std::cout);
-    // vardb->printClassData(std::cout);
+    vardb->printClassData(std::cout);
 }
 
 void SAMRAIHyperbolicPatchStrategyAdapter::Push(SAMRAI::hier::Patch &patch, engine::Patch *p) {
