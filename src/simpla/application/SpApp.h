@@ -5,23 +5,32 @@
 #ifndef SIMPLA_APPLICATION_H
 #define SIMPLA_APPLICATION_H
 //
+#include <simpla/engine/TimeIntegrator.h>
 #include <string>
 #include "simpla/data/all.h"
 namespace simpla {
 namespace application {
-struct SpApp : public data::Serializable, public data::EnableCreateFromDataTable<SpApp> {
+struct SpApp : public data::Serializable, public data::EnableCreateFromDataTable<SpApp>, public data::Configurable {
     SP_OBJECT_BASE(SpApp);
 
    public:
-    SpApp() {}
-    virtual ~SpApp() {}
-    virtual std::shared_ptr<data::DataTable> Serialize() const { return std::make_shared<data::DataTable>(); };
-    virtual void Deserialize(std::shared_ptr<data::DataTable> t){};
+    SpApp();
+    virtual ~SpApp();
+    virtual std::shared_ptr<data::DataTable> Serialize() const;
+    virtual void Deserialize(std::shared_ptr<data::DataTable> t);
+    virtual void Initialize();
+    virtual void SetUp();
+    virtual void Run();
+    virtual void TearDown();
+    virtual void Finalize();
 
-    virtual void Initialize(){};
-    virtual void Finalize(){};
-    virtual void Update(){};
-    virtual void Run(){};
+    static std::shared_ptr<SpApp> Create(int argc, char **argv);
+
+    void SetSchedule(std::shared_ptr<engine::TimeIntegrator> s) { m_schedule_ = s; };
+    std::shared_ptr<engine::TimeIntegrator> GetSchedule() const { return m_schedule_; };
+
+   private:
+    std::shared_ptr<engine::TimeIntegrator> m_schedule_;
 };
 }  // namespace application{
 

@@ -73,7 +73,7 @@ class EnableCreateFromDataTable {
     }
     static std::shared_ptr<TObj> Create(std::shared_ptr<DataTable> const &cfg) {
         if (cfg == nullptr) { return nullptr; }
-        auto res = Create(cfg->GetValue<std::string>("Type", "unnamed"));
+        auto res = Create(cfg->GetValue<std::string>("Type", "default"));
         res->Deserialize(cfg);
         return res;
     }
