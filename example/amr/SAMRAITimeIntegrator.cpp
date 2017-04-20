@@ -935,9 +935,8 @@ void SAMRAITimeIntegrator::SetUp() {
 
     m_time_refinement_integrator_->initializeHierarchy();
 
-    grid_geometry->printClassData(std::cout);
-
-    hyp_level_integrator->printClassData(std::cout);
+    //    grid_geometry->printClassData(std::cout);
+    //    hyp_level_integrator->printClassData(std::cout);
     //    m_time_refinement_integrator_->printClassData(std::cout);
     MESSAGE << "==================  Context is initialized!  =================" << std::endl;
 };
