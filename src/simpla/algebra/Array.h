@@ -340,13 +340,11 @@ struct ArrayView : public concept::Printable {
     void SetData(std::shared_ptr<value_type> const& d) const { m_data_ = d; }
 
     value_type& at(m_index_tuple const& idx) {
-        auto s = vec_dot(m_strides_, idx) + m_offset_;
-        if (s >= size() || s < 0) { CHECK(idx); }
+        ASSERT(m_size_ > 0);
+        ASSERT(vec_dot(m_strides_, idx) + m_offset_ < m_size_);
         return m_data_.get()[vec_dot(m_strides_, idx) + m_offset_];
     }
     value_type const& at(m_index_tuple const& idx) const {
-        //        auto s = vec_dot(m_strides_, idx) + m_offset_;
-        //        if (s >= size() || s < 0) { MESSAGE << (idx) << " ~ " << m_index_box_ << std::endl; }
         ASSERT(m_size_ > 0);
         return m_data_.get()[(vec_dot(m_strides_, idx) + m_offset_) % m_size_];
     }
@@ -390,17 +388,6 @@ struct ArrayView : public concept::Printable {
     }
 
     std::ostream& Print(std::ostream& os, int indent = 0) const {
-        //        nTuple<size_type, NDIMS> m_dims_;
-        ////        CHECK(std::get<0>(m_index_box_));
-        ////        CHECK(std::get<1>(m_index_box_));
-        //        for (int i = 0; i < NDIMS; ++i) {
-        //            m_dims_[i] = std::get<1>(m_index_box_)[i] - std::get<0>(m_index_box_)[i];
-        //        }
-        //
-        //        printNdArray(os, m_data_.get(), NDIMS, &m_dims_[0]);
-
-        os << "Print Array " << m_index_box_ << std::endl;
-
         detail::ForeachND(m_index_box_, [&](m_index_tuple const& idx) {
             if (idx[NDIMS - 1] == std::get<0>(m_index_box_)[NDIMS - 1]) {
                 os << "{" << at(idx);

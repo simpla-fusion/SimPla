@@ -1,11 +1,7 @@
-/**
- * @file em_plasma.cpp
- * @author salmon
- * @date 2015-11-20.
- *
- * @example  em/em_plasma.cpp
- *    This is an example of EM plasma
- */
+//
+// Created by salmon on 17-4-20.
+//
+#include "SpApp.h"
 
 #include <simpla/engine/Context.h>
 #include <simpla/engine/TimeIntegrator.h>
@@ -15,17 +11,63 @@
 #include "SpApp.h"
 
 namespace simpla {
-std::shared_ptr<engine::Schedule> CREATE_SCHEDULE(int argc, char **argv);
+namespace application {
+
+SpApp::SpApp(){};
+SpApp::~SpApp() { Finalize(); };
+std::shared_ptr<data::DataTable> SpApp::Serialize() const {
+    auto res = std::make_shared<data::DataTable>();
+    if (m_schedule_ != nullptr) {
+        res->Set("Schedule", m_schedule_->Serialize());
+        res->SetValue("Schedule/Type", m_schedule_->GetClassName());
+    }
+    return res;
 }
-using namespace simpla;
+void SpApp::Deserialize(std::shared_ptr<data::DataTable> t){
 
-int main(int argc, char **argv) {
-#ifndef NDEBUG
-    logger::set_stdout_level(1000);
-#endif
+};
+void SpApp::Initialize(){
 
-    parallel::init(argc, argv);
+};
+void SpApp::SetUp() {
+    m_schedule_->SetUp();
+    //    MPI_Barrier(GLOBAL_COMM.comm());
+    //    std::shared_ptr<data::DataTable> cfg = nullptr;
+    //    std::string buffer;
+    //    if (GLOBAL_COMM.rank() == 0) {
+    //        m_pimpl_->m_ctx_->SetUp();
+    //
+    //        std::ostringstream os;
+    //        os << "Context={";
+    //        data::Serialize(m_pimpl_->m_ctx_->Serialize(), os, "lua");
+    //        os << "}";
+    //        buffer = os.str();
+    //
+    //        parallel::bcast_string(&buffer);
+    //    } else {
+    //        parallel::bcast_string(&buffer);
+    //
+    //        cfg = std::make_shared<data::DataTable>("lua://");
+    //        cfg->backend()->Parser(buffer);
+    //
+    //        m_pimpl_->m_ctx_->Deserialize(cfg);
+    //        m_pimpl_->m_ctx_->SetUp();
+    //    }
+    //    MPI_Barrier(GLOBAL_COMM.comm());
+    //    VERBOSE << DOUBLELINE << std::endl;
+    //    VERBOSE << "Description : " << application::SpApp::ShowDescription(app->GetName()) << std::endl;
+    //    //  VERBOSE << "Application : " << *app->Serialize() << std::endl;
+    //    VERBOSE << DOUBLELINE << std::endl;
+};
+void SpApp::Run() { m_schedule_->Run(); };
+void SpApp::TearDown() { m_schedule_->TearDown(); };
+void SpApp::Finalize() {
+    TearDown();
+    m_schedule_->Finalize();
+    m_schedule_.reset();
+};
 
+std::shared_ptr<SpApp> SpApp::Create(int argc, char **argv) {
     std::string output_file = "h5://SimPlaOutput";
 
     std::string conf_file(argv[0]);
@@ -100,48 +142,24 @@ int main(int argc, char **argv) {
     //        MESSAGE << application::SpApp::ShowDescription() << std::endl;
     //        RUNTIME_ERROR << "Can not find App Creator:" << app_name << std::endl;
     //    }
+    return data::EnableCreateFromDataTable<SpApp>::Create(app_name);
+}
 
-    MPI_Barrier(GLOBAL_COMM.comm());
-    std::shared_ptr<application::SpApp> app = nullptr;
-    std::shared_ptr<data::DataTable> cfg = nullptr;
-    std::string buffer;
-    if (GLOBAL_COMM.rank() == 0) {
-        cfg = data::ParseCommandLine(argc, argv);
-        app = application::SpApp::Create(app_name);
-        app->Deserialize(cfg);
+}  // namespace application{
+}  // namespace simpla{
 
-        std::ostringstream os;
-        os << "Application={";
-        data::Serialize(app->Serialize(), os, "lua");
-        os << "}";
-        buffer = os.str();
+using namespace simpla;
 
-        parallel::bcast_string(&buffer);
-    } else {
-        parallel::bcast_string(&buffer);
+int main(int argc, char **argv) {
+#ifndef NDEBUG
+    logger::set_stdout_level(1000);
+#endif
+    parallel::init(argc, argv);
 
-        cfg = std::make_shared<data::DataTable>("lua://");
-        cfg->backend()->Parser(buffer);
-
-        app = application::SpApp::Create(cfg->GetValue<std::string>("Application/Type", ""));
-        app->Deserialize(cfg);
-    }
-    MPI_Barrier(GLOBAL_COMM.comm());
-
-    VERBOSE << DOUBLELINE << std::endl;
-    VERBOSE << "Description : " << application::SpApp::ShowDescription(app_name) << std::endl;
-  //  VERBOSE << "Application : " << *app->Serialize() << std::endl;
-    VERBOSE << DOUBLELINE << std::endl;
-
-    app->Initialize();
-
-    TheStart();
-    MPI_Barrier(GLOBAL_COMM.comm());
+    auto app = application::SpApp::Create(argc, argv);
+    app->SetUp();
     app->Run();
-    MPI_Barrier(GLOBAL_COMM.comm());
-    TheEnd();
-    app->Finalize();
-
+    app->TearDown();
     VERBOSE << DOUBLELINE << std::endl;
 
     parallel::close();
