@@ -149,10 +149,6 @@ class FieldView : public engine::Attribute {
                     v = calculus_policy::getValue(std::integral_constant<int, IFORM>(), *m_mesh_, other, k[0], k[1],
                                                   k[2], n, d);
                 });
-                //                m_mesh_->GetRange(GetIFORM()).foreach ([&](EntityId s) {
-                //                    m_data_[n * DOF + d](s.x, s.y, s.z) = calculus_policy::getValue(
-                //                        std::integral_constant<int, IFORM>(), *m_mesh_, other, s.x, s.y, s.z, n,
-                //                        d);
             }
         }
     }
