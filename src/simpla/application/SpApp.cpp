@@ -149,16 +149,14 @@ int main(int argc, char **argv) {
         data::Serialize(app->Serialize(), os, "lua");
         os << "}";
         buffer = os.str();
-
         parallel::bcast_string(&buffer);
     } else {
         parallel::bcast_string(&buffer);
-
         cfg = std::make_shared<data::DataTable>("lua://");
         cfg->backend()->Parser(buffer);
-
-        app = application::SpApp::Create(cfg->GetValue<std::string>("Application/Type", ""));
-        app->Deserialize(cfg);
+        app = application::SpApp::Create(cfg->GetValue<std::string>("Application"));
+        ASSERT(app != nullptr);
+        app->SetUp();
     }
     MPI_Barrier(GLOBAL_COMM.comm());
 
