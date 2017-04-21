@@ -16,8 +16,9 @@ namespace engine {
 class MeshBlock;
 class Patch;
 class Chart;
+class Mesh;
 
-template <typename...>
+template <typename TChart, typename TBaseMesh = Mesh>
 class MeshView;
 
 /**
@@ -39,7 +40,7 @@ class Mesh : public AttributeGroup, public data::Serializable, public data::Enab
     virtual std::shared_ptr<data::DataTable> Serialize() const;
     virtual void Deserialize(std::shared_ptr<data::DataTable>);
 
-    virtual Range<EntityId> GetRange(int iform = VERTEX) const;
+    virtual Range <EntityId> GetRange(int iform) const;
 
     virtual void Push(Patch *);
     virtual void Pop(Patch *);
@@ -49,7 +50,6 @@ class Mesh : public AttributeGroup, public data::Serializable, public data::Enab
     virtual void TearDown();
     virtual void Initialize();
     virtual void Finalize();
-
 
     Real GetTime() const;
     id_type GetBlockId() const;
@@ -65,11 +65,6 @@ class Mesh : public AttributeGroup, public data::Serializable, public data::Enab
    protected:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
-};
-
-template <typename TM>
-class MeshView<TM> : public Mesh {
-    MeshView() {}
 };
 
 }  // namespace engine

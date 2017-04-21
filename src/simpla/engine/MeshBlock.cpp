@@ -19,8 +19,6 @@ struct MeshBlock::pimpl_s {
     index_tuple m_ghost_width_{2, 2, 2};
     static boost::uuids::random_generator m_gen_;
     static boost::hash<boost::uuids::uuid> m_hasher_;
-
-    std::map<int, std::shared_ptr<UnorderedRange<EntityId>>> m_unordered_range_;
 };
 boost::uuids::random_generator MeshBlock::pimpl_s::m_gen_;
 boost::hash<boost::uuids::uuid> MeshBlock::pimpl_s::m_hasher_;
@@ -38,25 +36,25 @@ MeshBlock::MeshBlock(MeshBlock const &other) : m_pimpl_(new pimpl_s) {
 }
 MeshBlock::~MeshBlock() {}
 
-Range<EntityId> MeshBlock::GetRange(int iform) const {
-    auto it = m_pimpl_->m_unordered_range_.find(iform);
-    if (it == m_pimpl_->m_unordered_range_.end()) {
-        return Range<EntityId>(std::make_shared<ContinueRange<EntityId>>(m_pimpl_->m_index_box_, iform));
-    } else {
-        return Range<EntityId>(it->second);
-    }
-}
+//Range<EntityId> MeshBlock::GetRange(int iform, int dof) const {
+//    auto it = m_pimpl_->m_unordered_range_.find(iform);
+//    if (it == m_pimpl_->m_unordered_range_.end()) {
+//        return Range<EntityId>(std::make_shared<ContinueRange<EntityId>>(m_pimpl_->m_index_box_, iform, dof));
+//    } else {
+//        return Range<EntityId>(it->second);
+//    }
+//}
 
 Real MeshBlock::GetTime() const { return m_pimpl_->m_time_; }
 index_tuple MeshBlock::GetGhostWidth() const { return m_pimpl_->m_ghost_width_; };
-index_box_type MeshBlock::GetIndexBox(int IFORM, int sub) const { return m_pimpl_->m_index_box_; }
-index_box_type MeshBlock::GetOuterIndexBox(int IFORM, int sub) const {
-    auto ibox = GetIndexBox(IFORM, sub);
+index_box_type MeshBlock::GetIndexBox() const { return m_pimpl_->m_index_box_; }
+index_box_type MeshBlock::GetOuterIndexBox() const {
+    auto ibox = GetIndexBox();
     std::get<0>(ibox) -= GetGhostWidth();
     std::get<1>(ibox) += GetGhostWidth();
     return std::move(ibox);
 }
-index_box_type MeshBlock::GetInnerIndexBox(int IFORM, int sub) const { return GetIndexBox(IFORM, sub); }
+index_box_type MeshBlock::GetInnerIndexBox() const { return GetIndexBox(); }
 
 // box_type MeshBlock::GetBoundBox() const {
 //    box_type res;

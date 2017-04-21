@@ -629,23 +629,24 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
     SP_OBJECT_HEAD(ContinueRange<EntityId>, RangeBase<EntityId>)
 
    public:
-    ContinueRange(index_type const* b = nullptr, index_type const* e = nullptr, int IFORM = VERTEX)
+    ContinueRange(index_type const* b = nullptr, index_type const* e = nullptr, int IFORM = VERTEX, int DOF = 1)
         : m_min_{b == nullptr ? 0 : b[0], b == nullptr ? 0 : b[1], b == nullptr ? 0 : b[2]},
           m_max_{e == nullptr ? 1 : e[0], e == nullptr ? 1 : e[1], e == nullptr ? 1 : e[2]},
-          m_iform_(IFORM) {
+          m_iform_(IFORM),
+          m_dof_(DOF) {
         m_grain_size_ = 1;
         for (int i = 0; i < ndims; ++i) {
             if (m_max_[i] - m_min_[i] <= m_grain_size_[i]) { m_grain_size_[i] = m_max_[i] - m_min_[i]; }
         }
     }
-    ContinueRange(index_tuple const& b, index_tuple const& e, int IFORM = VERTEX)
-        : ContinueRange(&b[0], &(e[0]), IFORM) {}
+    ContinueRange(index_tuple const& b, index_tuple const& e, int IFORM = VERTEX, int DOF = 1)
+        : ContinueRange(&b[0], &(e[0]), IFORM, DOF) {}
 
-    ContinueRange(std::tuple<index_tuple, index_tuple> const& b, int IFORM = VERTEX)
-        : ContinueRange(std::get<0>(b), std::get<1>(b), IFORM) {}
+    ContinueRange(std::tuple<index_tuple, index_tuple> const& b, int IFORM = VERTEX, int DOF = 1)
+        : ContinueRange(std::get<0>(b), std::get<1>(b), IFORM, DOF) {}
 
     ContinueRange(this_type const& r)
-        : m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_), m_iform_(r.m_iform_) {}
+        : m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_), m_iform_(r.m_iform_), m_dof_(r.m_dof_) {}
 
     std::shared_ptr<base_type> split(concept::tags::split const& proportion) {
         auto res = std::make_shared<this_type>(*this);
@@ -670,6 +671,7 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
 
     void swap(this_type& other) {
         std::swap(m_iform_, other.m_iform_);
+        std::swap(m_dof_, other.m_dof_);
         std::swap(m_min_, other.m_min_);
         std::swap(m_max_, other.m_max_);
         std::swap(m_grain_size_, other.m_grain_size_);
@@ -740,7 +742,9 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
     //    }
 
    private:
-    int m_iform_;
+    int m_iform_ = VERTEX;
+    int m_dof_ = 1;
+
     index_tuple m_min_, m_max_, m_grain_size_;
 };
 

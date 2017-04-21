@@ -22,7 +22,7 @@ namespace simpla {
 namespace mesh {
 struct CylindricalGeometry : public engine::Chart {
     SP_OBJECT_HEAD(CylindricalGeometry, engine::Chart)
-
+    static constexpr int NDIMS = 3;
     std::shared_ptr<data::DataTable> Serialize() const {
         auto p = engine::Chart::Serialize();
         p->SetValue<std::string>("Type", "CylindricalGeometry");
@@ -36,19 +36,18 @@ using namespace simpla::data;
  * @ingroup mesh
  * @brief Uniform structured get_mesh
  */
-template <>
-struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
+template <typename TBaseMesh>
+struct MeshView<mesh::CylindricalGeometry, TBaseMesh> : public TBaseMesh {
    public:
-    SP_OBJECT_HEAD(MeshView<mesh::CylindricalGeometry>, engine::Mesh)
-
-    static constexpr unsigned int NDIMS = 3;
+    SP_OBJECT_HEAD(MeshView<mesh::CylindricalGeometry>, TBaseMesh)
+    using TBaseMesh::GetChart;
     typedef Real scalar_type;
-    MeshView(std::shared_ptr<mesh::CylindricalGeometry> c = nullptr) : engine::Mesh(c) {}
+    MeshView(std::shared_ptr<mesh::CylindricalGeometry> c = nullptr) : TBaseMesh(c) {}
     MeshView(this_type const &other) = delete;
     virtual ~MeshView() {}
 
     //    this_type *Clone() const { return new this_type(*this); }
-    virtual void Register(engine::AttributeGroup *other) { engine::AttributeGroup::Register(other); }
+    virtual void Register(engine::AttributeGroup *other) { TBaseMesh::Register(other); }
 
    private:
     Field<this_type, Real, VERTEX, 3> m_vertics_{this, "name"_ = "vertics", "COORDINATES"_};
@@ -138,7 +137,6 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
     //    }
 
     void InitializeData(Real time_now = 0) {
-
         m_vertics_.Clear();
         m_volume_.Clear();
         m_dual_volume_.Clear();

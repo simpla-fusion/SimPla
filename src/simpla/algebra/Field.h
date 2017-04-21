@@ -40,7 +40,7 @@ class FieldView : public engine::Attribute {
 
     static constexpr int iform = IFORM;
     static constexpr int dof = DOF;
-    static constexpr int NDIMS = mesh_type::NDIMS;
+    static constexpr int NDIMS = 3;
     static constexpr int NUMBER_OF_SUB = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
 
     typedef std::true_type prefer_pass_by_reference;
@@ -142,6 +142,7 @@ class FieldView : public engine::Attribute {
     template <typename Other>
     void Assign(Other const& other) {
         SetUp();
+
         int num_of_com = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
         for (int n = 0; n < num_of_com; ++n) {
             for (int d = 0; d < DOF; ++d) {

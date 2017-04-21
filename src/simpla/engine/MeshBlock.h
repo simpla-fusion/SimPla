@@ -24,15 +24,9 @@ class MeshBlock {
     size_tuple GetDimensions() const;
     index_tuple GetOffset() const;
     index_tuple GetGhostWidth() const;
-    index_box_type GetIndexBox(int IFORM = VERTEX, int sub = 0) const;
-    index_box_type GetOuterIndexBox(int IFORM = 0, int sub = 0) const;
-    index_box_type GetInnerIndexBox(int IFORM = 0, int sub = 0) const;
-
-    Range<EntityId> GetRange(int iform = VERTEX) const;
-
-    //    box_type GetBoundBox() const;
-    //    size_type size(int IFORM = VERTEX) const { return 0; }
-    //    size_tuple dimensions() const { return size_tuple{}; };
+    index_box_type GetIndexBox() const;
+    index_box_type GetOuterIndexBox() const;
+    index_box_type GetInnerIndexBox() const;
 
    private:
     struct pimpl_s;
