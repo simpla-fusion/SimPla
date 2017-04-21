@@ -9,12 +9,13 @@
 #define FACTORY_H_
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/utilities/macro.h>
 #include <simpla/utilities/Log.h>
+#include <simpla/utilities/macro.h>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <type_traits>
+#include "sp_def.h"
 namespace simpla {
 namespace design_pattern {
 /**

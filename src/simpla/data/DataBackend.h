@@ -6,11 +6,11 @@
 #define SIMPLA_DATABACKEND_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/utilities/sp_def.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/utilities/Factory.h>
 #include <simpla/utilities/Log.h>
 #include <simpla/utilities/SingletonHolder.h>
+#include <simpla/utilities/sp_def.h>
 #include <memory>
 #include <regex>
 #include <typeindex>
@@ -24,11 +24,11 @@ class DataBackend : public std::enable_shared_from_this<DataBackend> {
     SP_OBJECT_BASE(DataBackend);
 
    public:
-    DataBackend(){};
-    virtual ~DataBackend(){};
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; }
+    DataBackend() = default;
+    virtual ~DataBackend() = default;
+    virtual std::ostream& Print(std::ostream& os, int indent) const { return os; }
 
-    virtual void Parser(std::string const&) { UNIMPLEMENTED; };
+    virtual void Parser(std::string const& c) { UNIMPLEMENTED; };
     virtual void Connect(std::string const& authority, std::string const& path = "", std::string const& query = "",
                          std::string const& fragment = ""){};
     virtual void Disconnect(){};
@@ -88,6 +88,7 @@ class DataBackendFactory : public design_pattern::Factory<std::string, DataBacke
    public:
     DataBackendFactory();
     virtual ~DataBackendFactory();
+    SP_DEFAULT_CONSTRUCT(DataBackendFactory)
     std::vector<std::string> GetBackendList() const;
     std::shared_ptr<DataBackend> Create(std::string const& uri, std::string const& ext_param = "");
 

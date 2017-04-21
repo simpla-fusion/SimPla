@@ -22,7 +22,7 @@ class DataBackendLua : public DataBackend {
     DataBackendLua(DataBackendLua const&);
     ~DataBackendLua() override;
 
-    DataBackendLua(DataBackendLua&&) = delete;
+    DataBackendLua(DataBackendLua&&) noexcept = delete;
     DataBackendLua& operator=(DataBackendLua const&) = delete;
     DataBackendLua& operator=(DataBackendLua&&) = delete;
 
