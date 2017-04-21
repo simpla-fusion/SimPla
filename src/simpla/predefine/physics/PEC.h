@@ -30,14 +30,15 @@ class PEC : public engine::Worker {
     template <int IFORM, int DOF = 1>
     using field_type = Field<mesh_type, scalar_type, IFORM, DOF>;
 
-    explicit PEC(){};
-    virtual ~PEC(){};
+    PEC(){};
+    ~PEC() override{};
 
-    Mesh* GetMesh() { return &m_mesh_; }
-    Mesh const* GetMesh() const { return &m_mesh_; }
+    Mesh* GetMesh() override { return &m_mesh_; }
+    Mesh const* GetMesh() const override { return &m_mesh_; }
 
-    void Initialize();
-    void Run(Real time, Real dt);
+    void InitializeCondition(Real time_now) override;
+    void Advance(Real time, Real dt) override;
+
     field_type<EDGE> E{&m_mesh_, "name"_ = "E"};
     field_type<FACE> B{&m_mesh_, "name"_ = "B"};
 
@@ -47,10 +48,10 @@ template <typename TM>
 const bool PEC<TM>::is_register = engine::Worker::RegisterCreator<PEC<TM>>(std::string("PEC<") + TM::ClassName() + ">");
 
 template <typename TM>
-void PEC<TM>::Initialize() {}
+void PEC<TM>::InitializeCondition(Real time_now) {}
 
 template <typename TM>
-void PEC<TM>::Run(Real time, Real dt) {
+void PEC<TM>::Advance(Real time, Real dt) {
     E = 0.0;
     B = 0.0;
 }

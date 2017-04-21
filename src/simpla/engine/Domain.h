@@ -28,13 +28,13 @@ class Domain : public SPObject, public data::Serializable {
     Domain();
     Domain(const Domain &) = delete;
     Domain(Domain &&) = delete;
-    ~Domain();
+    ~Domain() override;
 
     void Register(AttributeGroup *);
     void Deregister(AttributeGroup *);
 
-    std::shared_ptr<data::DataTable> Serialize() const;
-    void Deserialize(std::shared_ptr<data::DataTable>);
+    std::shared_ptr<data::DataTable> Serialize() const override;
+    void Deserialize(std::shared_ptr<data::DataTable> t) override;
 
     void SetChart(std::shared_ptr<Chart>);
     std::shared_ptr<Chart> GetChart() const;
@@ -51,14 +51,14 @@ class Domain : public SPObject, public data::Serializable {
     void BoundaryCondition(Patch *patch, Real time_now = 0);
     void Advance(Patch *, Real time_now = 0, Real time_dt = 0);
 
-    virtual void Initialize();
-    virtual void SetUp();
-    virtual void TearDown();
-    virtual void Finalize();
+    void Initialize() override;
+    void SetUp() override;
+    void TearDown() override;
+    void Finalize() override;
 
-    virtual void InitializeData(Real time_now = 0);
+    virtual void InitializeData(Real time_now);
 
-private:
+   private:
     struct pimpl_s;
     std::shared_ptr<pimpl_s> m_pimpl_;
 };

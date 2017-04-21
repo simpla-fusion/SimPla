@@ -29,17 +29,15 @@ struct Cube : public GeoObject {
 
     virtual ~Cube() {}
 
-    virtual std::shared_ptr<data::DataTable> Serialize() const {
+    std::shared_ptr<data::DataTable> Serialize() const override {
         auto p = std::make_shared<data::DataTable>();
         p->SetValue<std::string>("Type", "Cube");
         p->SetValue("Box", m_bound_box_);
         return p;
     };
-    virtual void Deserialize(std::shared_ptr<data::DataTable> const &d) { m_bound_box_ = d->GetValue<box_type>("Box"); }
+    void Deserialize(std::shared_ptr<data::DataTable> d) override { m_bound_box_ = d->GetValue<box_type>("Box"); }
 
-    virtual box_type const &GetBoundBox() const { return m_bound_box_; };
-    virtual point_type const &lower() const { return std::get<0>(m_bound_box_); }
-    virtual point_type const &upper() const { return std::get<1>(m_bound_box_); }
+    box_type const &GetBoundBox() const override { return m_bound_box_; };
 
     virtual Real distance(point_type const &x) const { return 0; }
     /**

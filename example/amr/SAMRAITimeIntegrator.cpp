@@ -674,22 +674,22 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
 
    public:
     SAMRAITimeIntegrator();
-    ~SAMRAITimeIntegrator();
+    ~SAMRAITimeIntegrator() override;
 
-    virtual std::shared_ptr<data::DataTable> Serialize() const;
-    virtual void Deserialize(std::shared_ptr<data::DataTable>);
+    std::shared_ptr<data::DataTable> Serialize() const override;
+    void Deserialize(std::shared_ptr<data::DataTable> t) override;
 
-    virtual void Initialize();
-    virtual void Finalize();
-    virtual void SetUp();
-    virtual void TearDown();
+    void Initialize() override;
+    void Finalize() override;
+    void SetUp() override;
+    void TearDown() override;
 
-    virtual void Synchronize();
-    virtual Real Advance(Real time_dt = 0.0);
-    virtual bool Done() const;
+    void Synchronize() override;
+    Real Advance(Real time_dt) override;
+    bool Done() const override;
 
-    virtual void CheckPoint() const;
-    virtual void Dump() const;
+    void CheckPoint() const override;
+    void Dump() const override;
 
    private:
     boost::shared_ptr<SAMRAIHyperbolicPatchStrategyAdapter> hyperbolic_patch_strategy;

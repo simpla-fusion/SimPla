@@ -90,21 +90,21 @@ struct ContinueRange<T> : public RangeBase<T> {
     typedef T value_type;
 
    public:
-    virtual bool is_divisible() const { return false; }
+    bool is_divisible() const override { return false; }
 
-    virtual size_type size() const { return 0; }
+    size_type size() const override { return 0; }
 
-    virtual bool empty() const { return true; }
+    bool empty() const override { return true; }
 
-    virtual void foreach_override(std::function<void(value_type&)> const& fun) const { UNIMPLEMENTED; };
+    void foreach_override(std::function<void(value_type&)> const& fun) const override { UNIMPLEMENTED; };
 
-    virtual std::shared_ptr<base_type> split(concept::tags::split const& sp) {
+    std::shared_ptr<base_type> split(concept::tags::split const& sp) override {
         UNIMPLEMENTED;
         return nullptr;
     }
 
     template <typename TFun, typename... Args>
-    void foreach (TFun const& fun, Args && ... args) const {
+    void foreach (TFun const& fun, Args && ... args) const  {
         UNIMPLEMENTED;
     }
 };
@@ -115,15 +115,15 @@ struct UnorderedRange<T> : public RangeBase<T> {
     typedef T value_type;
 
    public:
-    virtual bool is_divisible() const { return false; }
+    bool is_divisible() const override { return false; }
 
-    virtual size_type size() const { return 0; }
+    size_type size() const override { return 0; }
 
-    virtual bool empty() const { return true; }
+    bool empty() const override { return true; }
 
-    virtual void foreach_override(std::function<void(value_type&)> const& fun) const { UNIMPLEMENTED; };
+    void foreach_override(std::function<void(value_type&)> const& fun) const override { UNIMPLEMENTED; };
 
-    virtual std::shared_ptr<base_type> split(concept::tags::split const& sp) {
+    std::shared_ptr<base_type> split(concept::tags::split const& sp) override {
         UNIMPLEMENTED;
         return nullptr;
     }
@@ -132,7 +132,7 @@ struct UnorderedRange<T> : public RangeBase<T> {
     void foreach (TFun const& fun, Args && ... args) const {
         UNIMPLEMENTED;
     }
-    void insert(value_type const&) {}
+    void insert(value_type const& v) {}
 };
 
 template <typename TOtherRange>
@@ -146,18 +146,18 @@ struct RangeAdapter : public RangeBase<typename TOtherRange::value_type>, public
 
     RangeAdapter(TOtherRange& other, concept::tags::split const& sp) : TOtherRange(other.split(sp)) {}
 
-    virtual ~RangeAdapter() {}
+    ~RangeAdapter() override {}
 
-    virtual bool is_divisible() { return TOtherRange::is_divisible(); };
+    bool is_divisible() override { return TOtherRange::is_divisible(); };
 
-    virtual bool empty() const { return TOtherRange::empty(); };
+    bool empty() const override { return TOtherRange::empty(); };
 
-    virtual size_type size() const { return TOtherRange::size(); }
+    size_type size() const override { return TOtherRange::size(); }
 
-    std::shared_ptr<base_type> split(concept::tags::split const& sp) {
+    std::shared_ptr<base_type> split(concept::tags::split const& sp) override {
         return std::dynamic_pointer_cast<base_type>(std::make_shared<this_type>(*this, sp));
     }
-    virtual void foreach_override(std::function<void(value_type&)> const& fun) const {
+    void foreach_override(std::function<void(value_type&)> const& fun) const override {
         for (auto& item : *this) { fun(item); }
     };
 };
@@ -208,11 +208,15 @@ struct Range {
     typedef T value_type;
 
     Range() : m_next_(nullptr) {}
+    ~Range() = default;
+
     explicit Range(std::shared_ptr<base_type> const& p) : m_next_(p) {}
     Range(this_type const& other) : m_next_(other.m_next_) {}
-    Range(this_type&& other) : m_next_(other.m_next_) {}
+    Range(this_type&& other) noexcept : m_next_(other.m_next_) {}
     Range(this_type& other, concept::tags::split const& s) : Range(other.split(s)) {}
-    ~Range() {}
+
+    Range& operator=(this_type const& other) { this_type(other).swap(*this); }
+    Range& operator=(this_type&& other) { this_type(other).swap(*this); }
 
     void swap(this_type& other) { std::swap(m_next_, other.m_next_); }
 

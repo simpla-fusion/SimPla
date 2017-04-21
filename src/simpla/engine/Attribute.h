@@ -53,6 +53,12 @@ class AttributeGroup {
     AttributeGroup();
     virtual ~AttributeGroup();
 
+    AttributeGroup(AttributeGroup const &other) = delete;
+    AttributeGroup(AttributeGroup &&other) = delete;
+
+    AttributeGroup &operator=(AttributeGroup const &other) = delete;
+    AttributeGroup &operator=(AttributeGroup &&other) = delete;
+
     virtual void Register(AttributeGroup *);
     virtual void Deregister(AttributeGroup *);
 

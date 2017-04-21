@@ -350,10 +350,10 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t loc_id
         is_exist = false;
     }
 
-    index_type const* inner_lower = src->GetInnerLowerIndex();
-    index_type const* inner_upper = src->GetInnerUpperIndex();
-    index_type const* outer_lower = src->GetOuterLowerIndex();
-    index_type const* outer_upper = src->GetOuterUpperIndex();
+    index_type const* inner_lower = src->GetInnerLowerIndex(0);
+    index_type const* inner_upper = src->GetInnerUpperIndex(0);
+    index_type const* outer_lower = src->GetOuterLowerIndex(0);
+    index_type const* outer_upper = src->GetOuterUpperIndex(0);
     const int ndims = src->GetNDIMS();
     hsize_t m_shape[ndims];
     hsize_t m_start[ndims];
@@ -373,7 +373,7 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t loc_id
     hid_t dset;
     hid_t d_type = GetHDF5DataType(src->value_type_info());
     H5_ERROR(dset = H5Dcreate(loc_id, key.c_str(), d_type, f_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
-    H5_ERROR(H5Dwrite(dset, d_type, m_space, f_space, H5P_DEFAULT, src->GetPointer()));
+    H5_ERROR(H5Dwrite(dset, d_type, m_space, f_space, H5P_DEFAULT, src->GetPointer(0)));
 
     H5_ERROR(H5Dclose(dset));
     if (m_space != H5S_ALL) H5_ERROR(H5Sclose(m_space));
@@ -421,15 +421,15 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t g_id, 
         }
 
         if (false) {}
-#define DEC_TYPE(_T_, _H5_T_)                                                                 \
-    else if (src->value_type_info() == typeid(_T_)) {                                         \
-        d_type = _H5_T_;                                                                      \
-        if (src->isArray()) {                                                                 \
+#define DEC_TYPE(_T_, _H5_T_)                                                                  \
+    else if (src->value_type_info() == typeid(_T_)) {                                          \
+        d_type = _H5_T_;                                                                       \
+        if (src->isArray()) {                                                                  \
             data = reinterpret_cast<char*>(&src->cast_as<DataEntityWrapper<_T_*>>().get()[0]); \
-        } else {                                                                              \
-            data = new char[sizeof(_T_)];                                                     \
-            *reinterpret_cast<_T_*>(data) = data_cast<_T_>(*src);                             \
-        }                                                                                     \
+        } else {                                                                               \
+            data = new char[sizeof(_T_)];                                                      \
+            *reinterpret_cast<_T_*>(data) = data_cast<_T_>(*src);                              \
+        }                                                                                      \
     }
 
         //        DEC_TYPE(bool, H5T_NATIVE_HBOOL)
@@ -467,7 +467,7 @@ DataBackendHDF5::DataBackendHDF5(DataBackendHDF5 const& other) : DataBackendHDF5
     m_pimpl_->m_f_id_ = other.m_pimpl_->m_f_id_;
     m_pimpl_->m_g_id_ = other.m_pimpl_->m_g_id_;
 }
-DataBackendHDF5::DataBackendHDF5(DataBackendHDF5&& other) : m_pimpl_(std::move(other.m_pimpl_)) {}
+DataBackendHDF5::DataBackendHDF5(DataBackendHDF5&& other) noexcept : m_pimpl_(std::move(other.m_pimpl_)) {}
 DataBackendHDF5::DataBackendHDF5(std::string const& uri, std::string const& status) : DataBackendHDF5() {
     Connect(uri, status);
 }

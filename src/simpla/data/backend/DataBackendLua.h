@@ -20,24 +20,31 @@ class DataBackendLua : public DataBackend {
    public:
     DataBackendLua();
     DataBackendLua(DataBackendLua const&);
-    virtual ~DataBackendLua();
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
-    virtual void Parser(std::string const&);
-    void Connect(std::string const& authority, std::string const& path, std::string const& query = "",
-                 std::string const& fragment = "");
-    virtual void Disconnect();
-    virtual std::shared_ptr<DataBackend> Duplicate() const;
-    virtual std::shared_ptr<DataBackend> CreateNew() const;
-    virtual bool isNull() const;
-    virtual void Flush();
+    ~DataBackendLua() override;
 
-    virtual std::shared_ptr<DataEntity> Get(std::string const& URI) const;
-    virtual std::shared_ptr<DataEntity> Get(id_type key) const;
-    virtual void Set(std::string const& URI, std::shared_ptr<DataEntity> const&, bool overwrite = true);
-    virtual void Add(std::string const& URI, std::shared_ptr<DataEntity> const&);
-    virtual void Delete(std::string const& URI);
-    virtual size_type size() const;
-    virtual size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
+    DataBackendLua(DataBackendLua&&) = delete;
+    DataBackendLua& operator=(DataBackendLua const&) = delete;
+    DataBackendLua& operator=(DataBackendLua&&) = delete;
+
+    std::ostream& Print(std::ostream& os, int indent) const override;
+
+    void Parser(std::string const&) override;
+
+    void Connect(std::string const& authority, std::string const& path, std::string const& query = "",
+                 std::string const& fragment = "") override;
+    void Disconnect() override;
+    std::shared_ptr<DataBackend> Duplicate() const override;
+    std::shared_ptr<DataBackend> CreateNew() const override;
+    bool isNull() const;
+    void Flush() override;
+
+    std::shared_ptr<DataEntity> Get(std::string const& URI) const override;
+    std::shared_ptr<DataEntity> Get(id_type key) const;
+    void Set(std::string const& URI, std::shared_ptr<DataEntity> const&, bool overwrite = true) override;
+    void Add(std::string const& URI, std::shared_ptr<DataEntity> const&) override;
+    void Delete(std::string const& URI) override;
+    size_type size() const override;
+    size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const override;
 
    private:
     static const bool m_isRegistered_;

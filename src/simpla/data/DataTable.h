@@ -30,9 +30,21 @@ class DataTable : public DataEntity {
 
    public:
     DataTable();
-    DataTable(std::string const& uri, std::string const& param = "");
-    DataTable(std::shared_ptr<DataBackend> const& p);
     DataTable(const DataTable&);
+    DataTable(DataTable&&) noexcept;
+    virtual ~DataTable();
+
+    DataTable& operator=(const DataTable& other) {
+        this_type(other).swap(*this);
+        return *this;
+    }
+    DataTable& operator=(DataTable&& other) noexcept {
+        this_type(other).swap(*this);
+        return *this;
+    }
+
+    DataTable(std::string const& uri, std::string const& param = "");
+    explicit DataTable(std::shared_ptr<DataBackend> const& p);
 
     DataTable(std::initializer_list<KeyValue> const& l);
 
@@ -40,27 +52,25 @@ class DataTable : public DataEntity {
     explicit DataTable(KeyValue const& v, Others&&... others) : DataTable() {
         SetValue(v, std::forward<Others>(others)...);
     }
-    DataTable(DataTable&&);
-    virtual ~DataTable();
     void swap(DataTable&);
     //******************************************************************************************************************
     /** Interface DataEntity */
 
-    std::shared_ptr<DataTable> Serialize() const;
-    void Deserialize(std::shared_ptr<DataTable> const&);
-    std::ostream& Serialize(std::ostream& os, int indent = 0) const;
-    std::istream& Deserialize(std::istream& is);
+    std::shared_ptr<DataTable> Serialize() const override;
+    void Deserialize(std::shared_ptr<DataTable>) override;
+    std::ostream& Serialize(std::ostream& os, int indent) const override;
+    std::istream& Deserialize(std::istream& is) override;
 
-    bool isTable() const { return true; }
-    std::type_info const& value_type_info() const { return typeid(DataTable); };
-    std::shared_ptr<DataEntity> Duplicate() const;
+    bool isTable() const override { return true; }
+    std::type_info const& value_type_info() const override { return typeid(DataTable); };
+    std::shared_ptr<DataEntity> Duplicate() const override;
     //******************************************************************************************************************
     /** Interface DataBackend */
 
     std::shared_ptr<DataBackend> backend() const { return m_backend_; }
 
     void Flush();
-    bool isNull() const;
+    bool isNull() const override;
     size_type size() const;
 
     std::shared_ptr<DataEntity> Get(std::string const& uri) const;

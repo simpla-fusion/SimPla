@@ -19,9 +19,11 @@ class Chart : public data::Serializable, public data::EnableCreateFromDataTable<
     SP_OBJECT_BASE(engine::Chart)
    public:
     Chart();
-    virtual ~Chart();
-    virtual std::shared_ptr<data::DataTable> Serialize() const;
-    virtual void Deserialize(std::shared_ptr<data::DataTable>);
+    ~Chart() override;
+    SP_DEFAULT_CONSTRUCT(Chart)
+
+    std::shared_ptr<data::DataTable> Serialize() const override;
+    void Deserialize(std::shared_ptr<data::DataTable> t) override;
 
     void SetOrigin(point_type const &);
     void SetDx(point_type const &);

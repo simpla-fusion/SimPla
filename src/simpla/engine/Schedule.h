@@ -14,30 +14,32 @@ namespace engine {
 class Context;
 class Atlas;
 class Schedule : public SPObject, public data::Serializable, public data::EnableCreateFromDataTable<Schedule> {
-    SP_OBJECT_BASE(Schedule);
+    SP_OBJECT_HEAD(Schedule, SPObject);
 
    public:
     Schedule();
     virtual ~Schedule();
+    Schedule(Schedule const &other) = delete;
+    Schedule(Schedule &&other) = delete;
+    Schedule &operator=(Schedule const &other) = delete;
+    Schedule &operator=(Schedule &&other) = delete;
 
-    virtual std::shared_ptr<data::DataTable> Serialize() const;
-    virtual void Deserialize(std::shared_ptr<data::DataTable>);
+    std::shared_ptr<data::DataTable> Serialize() const override;
+    void Deserialize(std::shared_ptr<data::DataTable> t) override;
 
-    virtual void Initialize();
-    virtual void Finalize();
-    virtual void SetUp();
-    virtual void TearDown();
+    void Initialize() override;
+    void Finalize() override;
+    void SetUp() override;
+    void TearDown() override;
 
     virtual void Synchronize();
-
     virtual void NextStep();
-
     virtual bool Done() const;
 
     void Run();
 
-    void SetOutputURL(std::string const& url);
-    std::string const& GetOutputURL() const;
+    void SetOutputURL(std::string const &url);
+    std::string const &GetOutputURL() const;
 
     virtual void CheckPoint() const;
     virtual void Dump() const;

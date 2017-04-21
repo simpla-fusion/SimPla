@@ -33,13 +33,17 @@ struct DataEntityLua : public DataEntityWithType<U> {
     SP_OBJECT_HEAD(DataEntityLua<U>, DataEntityWithType<U>);
 
    public:
+    DataEntityLua(DataEntityLua&& other) = delete;
+    DataEntityLua& operator=(DataEntityLua const& other) = delete;
+    DataEntityLua& operator=(DataEntityLua&& other) = delete;
+
     DataEntityLua(DataEntityLua<U> const& other) : m_obj_(other.m_obj_){};
-    DataEntityLua(toolbox::LuaObject const& v) : m_obj_(v){};
-    DataEntityLua(toolbox::LuaObject&& v) : m_obj_(v){};
+    explicit DataEntityLua(toolbox::LuaObject const& v) : m_obj_(v){};
+    explicit DataEntityLua(toolbox::LuaObject&& v) : m_obj_(v){};
     virtual ~DataEntityLua(){};
 
-    virtual bool equal(U const& v) const { return m_obj_.as<U>() == v; };
-    virtual U value() const { return m_obj_.as<U>(); };
+    bool equal(U const& v) const override { return m_obj_.as<U>() == v; };
+    U value() const override { return m_obj_.as<U>(); };
 
    private:
     toolbox::LuaObject m_obj_;
@@ -51,8 +55,8 @@ struct DataArrayLua : public DataEntityWithType<U*> {
 
    public:
     DataArrayLua(DataArrayLua<U> const& other) : m_obj_(other.m_obj_){};
-    DataArrayLua(toolbox::LuaObject const& v) : m_obj_(v){};
-    DataArrayLua(toolbox::LuaObject&& v) : m_obj_(v){};
+    explicit DataArrayLua(toolbox::LuaObject const& v) : m_obj_(v){};
+    explicit DataArrayLua(toolbox::LuaObject&& v) : m_obj_(v){};
     virtual ~DataArrayLua(){};
 
     virtual bool equal(U const& v) const { return m_obj_.as<U>() == v; };

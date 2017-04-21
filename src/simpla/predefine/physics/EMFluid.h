@@ -30,27 +30,27 @@ class EMFluid : public engine::Worker {
     mesh_type m_mesh_;
 
     EMFluid(){};
-    ~EMFluid() {}
+    ~EMFluid() override {}
 
-    std::shared_ptr<data::DataTable> Serialize() const {
+    std::shared_ptr<data::DataTable> Serialize() const override {
         auto res = std::make_shared<data::DataTable>();
         res->SetValue<std::string>("Type", "EMFluid<" + TChart::ClassName() + ">");
         return res;
     };
 
-    virtual void Deserialize(shared_ptr<DataTable> t) { UNIMPLEMENTED; }
+    virtual void Deserialize(shared_ptr<DataTable> t) override { UNIMPLEMENTED; }
 
-    Mesh* GetMesh() { return &m_mesh_; }
-    Mesh const* GetMesh() const { return &m_mesh_; }
+    Mesh* GetMesh() override { return &m_mesh_; }
+    Mesh const* GetMesh() const override { return &m_mesh_; }
 
-    virtual void Initialize();
-    virtual void Finalize();
-    virtual void SetUp();
-    virtual void TearDown();
+    void Initialize() override;
+    void Finalize() override;
+    void SetUp() override;
+    void TearDown() override;
 
-    virtual void InitializeCondition(Real time_now = 0);
-    virtual void BoundaryCondition(Real time_now = 0, Real dt = 0);
-    virtual void Advance(Real time_now, Real dt = 0);
+    void InitializeCondition(Real time_now) override;
+    void BoundaryCondition(Real time_now, Real dt) override;
+    void Advance(Real time_now, Real dt) override;
 
     //    virtual void SetPhysicalBoundaryConditions(Real time = 0){};
     //    virtual void SetPhysicalBoundaryConditionE(Real time = 0){};

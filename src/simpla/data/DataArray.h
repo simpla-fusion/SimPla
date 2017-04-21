@@ -20,10 +20,12 @@ struct DataArray : public DataEntity {
     SP_OBJECT_HEAD(DataArray, DataEntity)
 
    public:
-    DataArray();
-    virtual ~DataArray();
-    virtual std::ostream& Serialize(std::ostream& os, int indent = 0) const;
-    virtual bool isArray() const { return true; }
+    DataArray() = default;
+    ~DataArray() override = default;
+    SP_DEFAULT_CONSTRUCT(DataArray)
+
+    std::ostream& Serialize(std::ostream& os, int indent = 0) const override;
+    bool isArray() const override { return true; }
     /**   DataArray */
     virtual size_type size() const { return 0; };
     virtual std::shared_ptr<DataEntity> Get(index_type idx) const { return std::make_shared<DataEntity>(); }
@@ -38,15 +40,16 @@ template <>
 struct DataEntityWrapper<void*> : public DataArray {
     SP_OBJECT_HEAD(DataEntityWrapper<void>, DataArray)
    public:
-    DataEntityWrapper() {}
+    DataEntityWrapper() = default;
+    ~DataEntityWrapper() override = default;
+    SP_DEFAULT_CONSTRUCT(DataEntityWrapper)
 
     template <typename U>
     DataEntityWrapper(std::initializer_list<U> const& v) {
         for (auto const& item : v) { m_data_.push_back(make_data_entity(item)); }
     };
 
-    virtual ~DataEntityWrapper(){};
-    virtual std::ostream& Serialize(std::ostream& os, int indent = 0) const {
+    std::ostream& Serialize(std::ostream& os, int indent) const override {
         if (m_data_.size() == 0) { return os; };
         auto it = m_data_.begin();
         os << "[" << **it;
@@ -58,13 +61,15 @@ struct DataEntityWrapper<void*> : public DataArray {
     std::vector<std::shared_ptr<DataEntity>>& get() { return m_data_; }
     std::vector<std::shared_ptr<DataEntity>> const& get() const { return m_data_; }
 
-    virtual void resize(size_type s) { m_data_.resize(s); }
-    virtual size_type size() const { return m_data_.size(); }
-    virtual std::shared_ptr<DataEntity> Get(index_type idx) const { return m_data_[idx]; }
-    virtual void Set(size_type idx, std::shared_ptr<DataEntity> const& v) { m_data_[idx] = v; }
-    virtual void Add(std::shared_ptr<DataEntity> const& v) { m_data_.push_back(v); }
-    virtual void Delete(size_type idx) { m_data_.erase(m_data_.begin() + idx); }
-    virtual size_type Foreach(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const {
+    void resize(size_type s) { m_data_.resize(s); }
+
+    size_type size() const override { return m_data_.size(); }
+    std::shared_ptr<DataEntity> Get(index_type idx) const override { return m_data_[idx]; }
+    void Set(size_type idx, std::shared_ptr<DataEntity> const& v) override { m_data_[idx] = v; }
+    void Add(std::shared_ptr<DataEntity> const& v) override { m_data_.push_back(v); }
+    void Delete(size_type idx) override { m_data_.erase(m_data_.begin() + idx); }
+
+    size_type Foreach(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const override {
         for (auto const& item : m_data_) { fun(item); }
         return m_data_.size();
     };
@@ -74,20 +79,24 @@ struct DataEntityWrapper<void*> : public DataArray {
 };
 template <typename U>
 class DataArrayWithType : public DataArray {
-    SP_OBJECT_HEAD(DataArrayWithType<U>, DataArray);
     typedef U value_type;
 
+    SP_OBJECT_HEAD(DataArrayWithType<U>, DataArray);
+
    public:
-    DataArrayWithType() {}
-    virtual ~DataArrayWithType() {}
+    DataArrayWithType() = default;
+    ~DataArrayWithType() override = default;
+
+    SP_DEFAULT_CONSTRUCT(DataArrayWithType)
+
     // DataEntity
-    virtual std::type_info const& value_type_info() const { return typeid(value_type); }
-    virtual bool isLight() const { return traits::is_light_data<value_type>::value; }
+    std::type_info const& value_type_info() const override { return typeid(value_type); }
+    bool isLight() const override { return traits::is_light_data<value_type>::value; }
 
     // DataArray
-    virtual std::shared_ptr<DataEntity> Get(index_type idx) const { return make_data_entity(GetValue(idx)); }
-    virtual void Set(size_type idx, std::shared_ptr<DataEntity> const& v) { Set(idx, data_cast<U>(*v)); }
-    virtual void Add(std::shared_ptr<DataEntity> const& v) { Add(data_cast<U>(*v)); }
+    std::shared_ptr<DataEntity> Get(index_type idx) const override { return make_data_entity(GetValue(idx)); }
+    void Set(size_type idx, std::shared_ptr<DataEntity> const& v) override { Set(idx, data_cast<U>(*v)); }
+    void Add(std::shared_ptr<DataEntity> const& v) override { Add(data_cast<U>(*v)); }
     // DataArrayWithType
     virtual value_type GetValue(index_type i) const = 0;
     virtual void Set(size_type idx, value_type const& v) = 0;
@@ -111,7 +120,7 @@ class DataEntityWrapper<U*> : public DataArrayWithType<U> {
     virtual ~DataEntityWrapper() {}
     std::vector<U>& get() { return m_data_; }
     std::vector<U> const& get() const { return m_data_; }
-    virtual std::ostream& Serialize(std::ostream& os, int indent = 0) const {
+    std::ostream& Serialize(std::ostream& os, int indent = 0) const override {
         if (m_data_.size() == 0) { return os; };
         auto it = m_data_.begin();
         os << "[" << *it;
@@ -121,23 +130,23 @@ class DataEntityWrapper<U*> : public DataArrayWithType<U> {
     }
     // DataEntity
 
-    virtual std::shared_ptr<DataEntity> Duplicate() const { return std::make_shared<DataEntityWrapper<U*>>(*this); }
+    std::shared_ptr<DataEntity> Duplicate() const override { return std::make_shared<DataEntityWrapper<U*>>(*this); }
 
     // DataArray
-    virtual size_type size() const { return m_data_.size(); };
-    virtual void Delete(size_type idx) { m_data_.erase(m_data_.begin() + idx); }
-    virtual size_type Foreach(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const {
+    size_type size() const override { return m_data_.size(); };
+    void Delete(size_type idx) override { m_data_.erase(m_data_.begin() + idx); }
+    size_type Foreach(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const override {
         for (auto const& item : m_data_) { fun(make_data_entity(item)); }
         return m_data_.size();
     };
     // DataArrayWithType
 
-    virtual U GetValue(index_type idx) const { return m_data_[idx]; }
-    virtual void Set(size_type idx, U const& v) {
+    U GetValue(index_type idx) const override { return m_data_[idx]; }
+    void Set(size_type idx, U const& v) override {
         if (size() < idx) { m_data_.resize(idx); }
         m_data_[idx] = v;
     }
-    virtual void Add(U const& v) { m_data_.push_back(v); }
+    void Add(U const& v) override { m_data_.push_back(v); }
 };
 //
 // template <typename U, int N>

@@ -7,8 +7,8 @@
 
 namespace simpla {
 namespace data {
-DataEntity::DataEntity() {}
-DataEntity::~DataEntity() {}
+//DataEntity::DataEntity() {}
+//DataEntity::~DataEntity() {}
 std::ostream& DataEntity::Serialize(std::ostream& os, int indent) const {
     if (isLight()) {
         os << "<Light Data:" << value_type_info().name() << ">";

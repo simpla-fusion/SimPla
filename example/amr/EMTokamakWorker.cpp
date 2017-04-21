@@ -21,12 +21,11 @@ class EMTokamakWorker;
 class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
     SP_OBJECT_HEAD(EMTokamakWorker, EMFluid<mesh::CylindricalGeometry>)
    public:
-    explicit EMTokamakWorker() : base_type() {}
-    ~EMTokamakWorker() {}
+    SP_DEFAULT_CONSTRUCT(EMTokamakWorker);
 
-    virtual void Initialize();
-    virtual void Finalize();
-    virtual void Advance(Real time_now, Real dt);
+    void Initialize() override;
+    void Finalize() override;
+    void Advance(Real time_now, Real dt) override;
     //    virtual void SetPhysicalBoundaryConditions();
     //    virtual void SetPhysicalBoundaryConditionE();
     //    virtual void SetPhysicalBoundaryConditionB();

@@ -18,24 +18,26 @@ class DataBlock : public DataEntity {
     SP_OBJECT_HEAD(DataBlock, DataEntity);
 
    public:
-    DataBlock() {}
-    virtual ~DataBlock() {}
-    virtual bool empty() const { return true; }
-    virtual bool isBlock() const { return true; }
-    virtual std::type_info const &value_type_info() const { return typeid(Real); };
+    DataBlock() = default;
+    ~DataBlock() override = default;
+    SP_DEFAULT_CONSTRUCT(DataBlock);
+
+    bool empty() const override { return true; }
+    bool isBlock() const override { return true; }
+    std::type_info const &value_type_info() const override { return typeid(Real); };
     virtual int GetNDIMS() const { return 0; }
     virtual size_type GetDepth() const { return 1; }
 
-    virtual index_type const *GetInnerLowerIndex(int depth = 0) const { return nullptr; }
-    virtual index_type const *GetInnerUpperIndex(int depth = 0) const { return nullptr; }
-    virtual index_type const *GetOuterLowerIndex(int depth = 0) const { return nullptr; }
-    virtual index_type const *GetOuterUpperIndex(int depth = 0) const { return nullptr; }
+    virtual index_type const *GetInnerLowerIndex(int depth) const { return nullptr; }
+    virtual index_type const *GetInnerUpperIndex(int depth) const { return nullptr; }
+    virtual index_type const *GetOuterLowerIndex(int depth) const { return nullptr; }
+    virtual index_type const *GetOuterUpperIndex(int depth) const { return nullptr; }
 
-    virtual void const *GetPointer(int depth = 0) const { return nullptr; }
-    virtual void *GetPointer(int depth = 0) { return nullptr; }
+    virtual void const *GetPointer(int depth) const { return nullptr; }
+    virtual void *GetPointer(int depth) { return nullptr; }
 
     virtual void Clear() { UNIMPLEMENTED; };
-    virtual void Copy(DataBlock const &) { UNIMPLEMENTED; };
+    virtual void Copy(DataBlock const &other) { UNIMPLEMENTED; };
 };
 
 template <typename U, int NDIMS>
@@ -47,12 +49,16 @@ class DataMultiArray : public DataBlock {
     typedef U value_type;
 
    public:
-    DataMultiArray(int depth = 1) : m_data_(depth) {  }
-    virtual ~DataMultiArray() {}
-    virtual bool empty() const { return m_data_[0].empty(); }
-    virtual std::type_info const &value_type_info() const { return typeid(value_type); };
-    virtual int GetNDIMS() const { return NDIMS; }
-    virtual size_type GetDepth() const { return m_data_.size(); }
+    DataMultiArray() = default;
+    ~DataMultiArray() override = default;
+    SP_DEFAULT_CONSTRUCT(DataMultiArray);
+
+    explicit DataMultiArray(unsigned long depth) : m_data_(depth) {}
+
+    bool empty() const override { return m_data_[0].empty(); }
+    std::type_info const &value_type_info() const override { return typeid(value_type); };
+    int GetNDIMS() const override { return NDIMS; }
+    size_type GetDepth() const override { return m_data_.size(); }
 
     void SetArray(int depth, array_type d) { array_type(d).swap(m_data_[depth % m_data_.size()]); }
 

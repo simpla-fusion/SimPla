@@ -18,7 +18,7 @@ class Patch;
 class Chart;
 class Mesh;
 
-template <typename TChart, typename TBaseMesh = Mesh>
+template <typename TChart>
 class MeshView;
 
 /**
@@ -33,18 +33,23 @@ class Mesh : public AttributeGroup, public data::Serializable, public data::Enab
     SP_OBJECT_BASE(Mesh);
 
    public:
-    Mesh(std::shared_ptr<Chart> c = nullptr);
+    explicit Mesh(std::shared_ptr<Chart> c = nullptr);
+    ~Mesh() override;
+
     Mesh(Mesh const &) = delete;
-    virtual ~Mesh();
+    Mesh(Mesh &&) = delete;
+    Mesh &operator=(Mesh const &) = delete;
+    Mesh &operator=(Mesh &&sss) = delete;
 
-    virtual std::shared_ptr<data::DataTable> Serialize() const;
-    virtual void Deserialize(std::shared_ptr<data::DataTable>);
+    std::shared_ptr<data::DataTable> Serialize() const override;
+    void Deserialize(std::shared_ptr<data::DataTable> t) override;
 
-    virtual Range <EntityId> GetRange(int iform) const;
+    virtual Range<EntityId> GetRange(int iform) const;
 
-    virtual void Push(Patch *);
-    virtual void Pop(Patch *);
-    virtual void InitializeData(Real time_now = 0);
+    void Push(Patch *p) override;
+    void Pop(Patch *p) override;
+
+    virtual void InitializeData(Real time_now);
 
     virtual void SetUp();
     virtual void TearDown();

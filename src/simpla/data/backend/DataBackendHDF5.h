@@ -14,27 +14,32 @@ class DataBackendHDF5 : public DataBackend {
    public:
     DataBackendHDF5();
     DataBackendHDF5(DataBackendHDF5 const&);
-    DataBackendHDF5(DataBackendHDF5&&);
-    DataBackendHDF5(std::string const& uri, std::string const& status = "");
+    DataBackendHDF5(DataBackendHDF5&&) noexcept;
 
-    virtual ~DataBackendHDF5();
-    virtual void Connect(std::string const& authority, std::string const& path  , std::string const& query = "",
-                         std::string const& fragment = "") ;
+    explicit DataBackendHDF5(std::string const& uri, std::string const& status = "");
 
-    virtual void Disconnect();
+    ~DataBackendHDF5() override;
+    bool isNull() const;
 
-    virtual std::shared_ptr<DataBackend> Duplicate() const;
-    virtual std::shared_ptr<DataBackend> CreateNew() const;
+    DataBackendHDF5& operator=(DataBackendHDF5 const&) = delete;
+    DataBackendHDF5& operator=(DataBackendHDF5&&) = delete;
 
-    virtual bool isNull() const;
-    virtual void Flush();
+    void Connect(std::string const& authority, std::string const& path, std::string const& query = "",
+                 std::string const& fragment = "") override;
 
-    virtual std::shared_ptr<DataEntity> Get(std::string const& URI) const;
-    virtual void Set(std::string const &URI, std::shared_ptr<DataEntity> const &, bool overwrite = true);
-    virtual void Add(std::string const &URI, std::shared_ptr<DataEntity> const &);
-    virtual void Delete(std::string const& URI);
-    virtual size_type size() const;
-    virtual size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
+    void Disconnect() override;
+
+    std::shared_ptr<DataBackend> Duplicate() const override;
+    std::shared_ptr<DataBackend> CreateNew() const override;
+
+    void Flush() override;
+
+    std::shared_ptr<DataEntity> Get(std::string const& URI) const override;
+    void Set(std::string const& URI, std::shared_ptr<DataEntity> const&, bool overwrite = true) override;
+    void Add(std::string const& URI, std::shared_ptr<DataEntity> const&) override;
+    void Delete(std::string const& URI) override;
+    size_type size() const override;
+    size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const override;
 
    private:
     struct pimpl_s;

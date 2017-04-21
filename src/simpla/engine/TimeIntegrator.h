@@ -18,17 +18,18 @@ struct TimeIntegrator : public Schedule {
     static bool is_register;
 
    public:
-    TimeIntegrator(std::string const &k = "");
-    ~TimeIntegrator();
+    TimeIntegrator() = default;
+    ~TimeIntegrator() override = default;
+    SP_DEFAULT_CONSTRUCT(TimeIntegrator);
 
-    virtual std::shared_ptr<data::DataTable> Serialize() const;
-    virtual void Deserialize(std::shared_ptr<data::DataTable>);
+    std::shared_ptr<data::DataTable> Serialize() const override;
+    void Deserialize(std::shared_ptr<data::DataTable> t) override;
 
-    virtual void NextStep();
-    virtual bool Done() const { return m_time_now_ >= m_time_end_ || Schedule::Done(); }
+    void Synchronize() override;
+    void NextStep() override;
+    bool Done() const override { return m_time_now_ >= m_time_end_ || Schedule::Done(); }
 
-    virtual Real Advance(Real time_dt = 0.0);
-    virtual void Synchronize();
+    virtual Real Advance(Real time_dt);
 
     virtual void SetTime(Real t) { m_time_now_ = t; }
     virtual void SetTimeEnd(Real t) { m_time_end_ = t; }

@@ -19,7 +19,7 @@ namespace simpla {
 namespace mesh {
 struct CartesianGeometry : public engine::Chart {
     SP_OBJECT_HEAD(CartesianGeometry, engine::Chart);
-    std::shared_ptr<data::DataTable> Serialize() const {
+    std::shared_ptr<data::DataTable> Serialize() const override {
         auto p = engine::Chart::Serialize();
         p->SetValue<std::string>("Type", "CartesianGeometry");
         return p;
@@ -81,16 +81,17 @@ struct MeshView<mesh::CartesianGeometry> : public engine::Mesh {
     //        SetGeoObject(other.GetGeoObject());
     //        UNIMPLEMENTED;
     //    }
-    virtual ~MeshView() {}
-    virtual std::shared_ptr<data::DataTable> Serialize() const {
+    ~MeshView() override = default;
+
+    std::shared_ptr<data::DataTable> Serialize() const override {
         auto p = engine::Mesh::Serialize();
         p->SetValue<std::string>("Type", "CartesianGeometry");
         return p;
     };
-    virtual void Deserialize(std::shared_ptr<data::DataTable> const &d) { engine::Mesh::Deserialize(d); }
+    void Deserialize(std::shared_ptr<data::DataTable> d) override { engine::Mesh::Deserialize(d); }
 
     //    this_type *Clone() const { return new this_type(*this); }
-    void Initialize();
+    void Initialize() override;
 
    private:
     nTuple<Real, 3> m_dx_, m_inv_dx_;
@@ -105,8 +106,8 @@ struct MeshView<mesh::CartesianGeometry> : public engine::Mesh {
     template <typename... Args>
     void apply(Args &&...) const {}
 
-    void SetUp(){};
-    void TearDown() {}
+    void SetUp() override{};
+    void TearDown() override {}
 
     template <typename... Args>
     point_type point(index_type x, index_type y, index_type z) const {
@@ -125,14 +126,14 @@ struct MeshView<mesh::CartesianGeometry> : public engine::Mesh {
 
     virtual Real inv_dual_volume(EntityId s) const { return m_inv_dual_volume_[m::node_id(s)]; }
 
-//    template <typename TV>
-//    TV const &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> const *a, EntityId const &s) const {
-//        return a[m::node_id(s)]->at(m::unpack_index(s));
-//    }
-//    template <typename TV>
-//    TV &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> *a, EntityId const &s) const {
-//        return a[m::node_id(s)]->at(m::unpack_index(s));
-//    }
+    //    template <typename TV>
+    //    TV const &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> const *a, EntityId const &s) const {
+    //        return a[m::node_id(s)]->at(m::unpack_index(s));
+    //    }
+    //    template <typename TV>
+    //    TV &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> *a, EntityId const &s) const {
+    //        return a[m::node_id(s)]->at(m::unpack_index(s));
+    //    }
 };  // struct  Mesh
 //
 // template <>

@@ -27,7 +27,7 @@ DataTable::DataTable(std::initializer_list<KeyValue> const& l) : DataTable() {
     for (auto const& item : l) { Set(item.first, item.second); }
 }
 
-DataTable::DataTable(DataTable&& other) : m_backend_(other.m_backend_) { ASSERT(m_backend_ != nullptr); }
+DataTable::DataTable(DataTable&& other) noexcept : m_backend_(other.m_backend_) { ASSERT(m_backend_ != nullptr); }
 
 DataTable::~DataTable(){};
 void DataTable::swap(DataTable& other) {
@@ -136,7 +136,7 @@ std::shared_ptr<DataTable> DataTable::Serialize() const {
     p->Set(*this);
     return p;
 }
-void DataTable::Deserialize(std::shared_ptr<DataTable> const& other) { Set(*other); }
+void DataTable::Deserialize(std::shared_ptr<DataTable> other) { Set(*other); }
 
 std::ostream& DataTable::Serialize(std::ostream& os, int indent) const {
     os << "{";

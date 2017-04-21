@@ -23,7 +23,7 @@ namespace mesh {
 struct CylindricalGeometry : public engine::Chart {
     SP_OBJECT_HEAD(CylindricalGeometry, engine::Chart)
     static constexpr int NDIMS = 3;
-    std::shared_ptr<data::DataTable> Serialize() const {
+    std::shared_ptr<data::DataTable> Serialize() const override {
         auto p = engine::Chart::Serialize();
         p->SetValue<std::string>("Type", "CylindricalGeometry");
         return p;
@@ -36,18 +36,23 @@ using namespace simpla::data;
  * @ingroup mesh
  * @brief Uniform structured get_mesh
  */
-template <typename TBaseMesh>
-struct MeshView<mesh::CylindricalGeometry, TBaseMesh> : public TBaseMesh {
+template <>
+struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
    public:
-    SP_OBJECT_HEAD(MeshView<mesh::CylindricalGeometry>, TBaseMesh)
-    using TBaseMesh::GetChart;
+    SP_OBJECT_HEAD(MeshView<mesh::CylindricalGeometry>, engine::Mesh)
+    using engine::Mesh::GetChart;
     typedef Real scalar_type;
-    MeshView(std::shared_ptr<mesh::CylindricalGeometry> c = nullptr) : TBaseMesh(c) {}
+
+    explicit MeshView(std::shared_ptr<mesh::CylindricalGeometry> c = nullptr) : engine::Mesh(c) {}
+
+    ~MeshView() override{};
     MeshView(this_type const &other) = delete;
-    virtual ~MeshView() {}
+    MeshView(this_type &&other) = delete;
+    MeshView &operator=(this_type &&other) = delete;
+    MeshView &operator=(this_type const &other) = delete;
 
     //    this_type *Clone() const { return new this_type(*this); }
-    virtual void Register(engine::AttributeGroup *other) { TBaseMesh::Register(other); }
+    void Register(engine::AttributeGroup *other) override { engine::Mesh::Register(other); }
 
    private:
     Field<this_type, Real, VERTEX, 3> m_vertics_{this, "name"_ = "vertics", "COORDINATES"_};
@@ -136,7 +141,7 @@ struct MeshView<mesh::CylindricalGeometry, TBaseMesh> : public TBaseMesh {
     //        return a[EntityIdCoder::SubIndex(s)]->at(s.x, s.y, s.z);
     //    }
 
-    void InitializeData(Real time_now = 0) {
+    void InitializeData(Real time_now ) override {
         m_vertics_.Clear();
         m_volume_.Clear();
         m_dual_volume_.Clear();

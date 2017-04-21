@@ -20,21 +20,23 @@ class DataBackendMemory : public DataBackend {
     DataBackendMemory();
     DataBackendMemory(std::string const& uri, std::string const& status = "");
     DataBackendMemory(const DataBackendMemory&);
-    DataBackendMemory(DataBackendMemory&&);
+    DataBackendMemory(DataBackendMemory&&) noexcept;
+    ~DataBackendMemory() override;
+    DataBackendMemory& operator=(DataBackendMemory const&) = delete;
+    DataBackendMemory& operator=(DataBackendMemory&&) = delete;
 
-    virtual ~DataBackendMemory();
-    virtual std::shared_ptr<DataBackend> Duplicate() const;
-    virtual std::shared_ptr<DataBackend> CreateNew() const;
-    virtual void Flush();
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
-    virtual bool isNull() const;  //!< is not initialized
+    std::shared_ptr<DataBackend> Duplicate() const override;
+    std::shared_ptr<DataBackend> CreateNew() const override;
+    void Flush() override;
+    std::ostream& Print(std::ostream& os, int indent = 0) const override;
+    bool isNull() const;  //!< is not initialized
 
-    virtual std::shared_ptr<DataEntity> Get(std::string const& URI) const;
-    virtual void Set(std::string const &URI, std::shared_ptr<DataEntity> const &, bool overwrite = true);
-    virtual void Add(std::string const &URI, std::shared_ptr<DataEntity> const &);
-    virtual void Delete(std::string const& URI);
-    virtual size_type size() const;
-    virtual size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
+    std::shared_ptr<DataEntity> Get(std::string const& URI) const override;
+    void Set(std::string const& URI, std::shared_ptr<DataEntity> const&, bool overwrite = true) override;
+    void Add(std::string const& URI, std::shared_ptr<DataEntity> const&) override;
+    void Delete(std::string const& URI) override;
+    size_type size() const override;
+    size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const override;
 
    private:
     struct pimpl_s;

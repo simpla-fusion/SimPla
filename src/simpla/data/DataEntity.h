@@ -6,9 +6,9 @@
 #define SIMPLA_DATAENTITY_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/utilities/sp_def.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/utilities/Log.h>
+#include <simpla/utilities/sp_def.h>
 #include <typeindex>
 #include <vector>
 #include "DataTraits.h"
@@ -21,18 +21,20 @@ class DataEntityWrapper {};
 
 class DataEntity;
 class DataArray;
+
 template <typename U, typename Enable = void>
 struct data_entity_traits {};
+
 struct DataEntity : public Serializable {
     SP_OBJECT_BASE(DataEntity);
 
    public:
-    DataEntity();
-    DataEntity(DataEntity const&) = delete;
-    DataEntity(DataEntity&&) = delete;
-    virtual ~DataEntity();
+    DataEntity() = default;
+    ~DataEntity() override = default;
 
-    virtual std::ostream& Serialize(std::ostream& os, int indent = 0) const;
+    SP_DEFAULT_CONSTRUCT(DataEntity)
+
+    virtual std::ostream& Serialize(std::ostream& os, int indent) const override;
 
     virtual bool empty() const { return true; }
     virtual std::type_info const& value_type_info() const { return typeid(void); };
@@ -51,12 +53,12 @@ class DataEntityWithType : public DataEntity {
     typedef U value_type;
 
    public:
-    DataEntityWithType() {}
-    virtual ~DataEntityWithType() {}
+    DataEntityWithType() = default;
+    ~DataEntityWithType() = default;
+    SP_DEFAULT_CONSTRUCT(DataEntityWithType)
 
-    virtual std::type_info const& value_type_info() const { return typeid(value_type); }
-
-    virtual bool isLight() const { return traits::is_light_data<value_type>::value; }
+    std::type_info const& value_type_info() const override { return typeid(value_type); }
+    bool isLight() const override { return traits::is_light_data<value_type>::value; }
 
     virtual bool equal(value_type const& other) const = 0;
     virtual value_type value() const = 0;
@@ -71,19 +73,20 @@ struct DataEntityWrapper<U> : public DataEntityWithType<U> {
     typedef U value_type;
 
    public:
-    DataEntityWrapper() {}
-    DataEntityWrapper(std::shared_ptr<value_type> const& d) : m_data_((d)) {}
+    DataEntityWrapper() : DataEntityWithType<U>() {}
+
+    explicit DataEntityWrapper(std::shared_ptr<value_type> const& d) : m_data_((d)) {}
     template <typename... Args>
     DataEntityWrapper(Args&&... args) : m_data_(std::make_shared<U>(std::forward<Args>(args)...)) {}
     virtual ~DataEntityWrapper() {}
 
-    virtual std::type_info const& value_type_info() const { return typeid(value_type); }
+    std::type_info const& value_type_info() const override { return typeid(value_type); }
 
-    virtual bool isLight() const { return traits::is_light_data<value_type>::value; }
+    bool isLight() const override { return traits::is_light_data<value_type>::value; }
 
-    virtual std::shared_ptr<DataEntity> Duplicate() const { return std::make_shared<DataEntityWrapper<U>>(*m_data_); };
+    std::shared_ptr<DataEntity> Duplicate() const override { return std::make_shared<DataEntityWrapper<U>>(*m_data_); };
 
-    virtual std::ostream& Serialize(std::ostream& os, int indent = 0) const {
+    std::ostream& Serialize(std::ostream& os, int indent) const override {
         if (typeid(U) == typeid(std::string)) {
             os << "\"" << value() << "\"";
         } else {
@@ -91,11 +94,11 @@ struct DataEntityWrapper<U> : public DataEntityWithType<U> {
         }
         return os;
     }
-    virtual bool equal(value_type const& other) const { return *m_data_ == other; }
-    virtual value_type value() const { return *m_data_; };
+    bool equal(value_type const& other) const override { return *m_data_ == other; }
+    value_type value() const override { return *m_data_; };
 
-    virtual value_type* get() { return m_data_.get(); }
-    virtual value_type const* get() const { return m_data_.get(); }
+    value_type* get() override { return m_data_.get(); }
+    value_type const* get() const override { return m_data_.get(); }
 
    private:
     std::shared_ptr<value_type> m_data_;

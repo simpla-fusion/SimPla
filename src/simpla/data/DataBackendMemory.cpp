@@ -23,7 +23,6 @@ struct DataBackendMemory::pimpl_s {
 std::pair<DataBackendMemory*, std::string> DataBackendMemory::pimpl_s::get_table(DataBackendMemory* t,
                                                                                  std::string const& uri,
                                                                                  bool return_if_not_exist) {
-
     return HierarchicalTableForeach(
         t, uri,
         [&](DataBackendMemory* s_t, std::string const& k) -> bool {
@@ -54,7 +53,7 @@ DataBackendMemory::DataBackendMemory(std::string const& url, std::string const& 
 DataBackendMemory::DataBackendMemory(const DataBackendMemory& other) : m_pimpl_(new pimpl_s) {
     std::map<std::string, std::shared_ptr<DataEntity>>(other.m_pimpl_->m_table_).swap(m_pimpl_->m_table_);
 };
-DataBackendMemory::DataBackendMemory(DataBackendMemory&& other) : m_pimpl_(new pimpl_s) {
+DataBackendMemory::DataBackendMemory(DataBackendMemory&& other) noexcept : m_pimpl_(new pimpl_s) {
     std::map<std::string, std::shared_ptr<DataEntity>>(other.m_pimpl_->m_table_).swap(m_pimpl_->m_table_);
 };
 DataBackendMemory::~DataBackendMemory() {}

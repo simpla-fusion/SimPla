@@ -7,8 +7,8 @@
 namespace simpla {
 namespace data {
 
-DataArray::DataArray() {}
-DataArray::~DataArray() {}
+//DataArray::DataArray() {}
+//DataArray::~DataArray() {}
 std::ostream& DataArray::Serialize(std::ostream& os, int indent) const {
     size_type ie = size();
     os << "[";

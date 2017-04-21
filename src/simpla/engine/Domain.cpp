@@ -107,17 +107,16 @@ void Domain::BoundaryCondition(Patch *p, Real time_now) {
     }
 
     m_pimpl_->m_worker_->Push(p);
-    m_pimpl_->m_worker_->BoundaryCondition(time_now);
+    m_pimpl_->m_worker_->BoundaryCondition(time_now, 0);
     m_pimpl_->m_worker_->Pop(p);
 }
 
 void Domain::Advance(Patch *p, Real time_now, Real time_dt) {
     if (p == nullptr || GetGeoObject()->CheckOverlap(GetChart()->inv_map(p->GetBlock()->GetIndexBox())) > 0) { return; }
     m_pimpl_->m_worker_->Push(p);
-    m_pimpl_->m_worker_->Advance(time_dt);
+    m_pimpl_->m_worker_->Advance(time_now, time_dt);
     m_pimpl_->m_worker_->Pop(p);
 }
-
 
 //    CHECK(p->GetBlock()->GetBoundBox());
 //    if (p == nullptr) { return; }

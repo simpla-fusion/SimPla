@@ -6,9 +6,9 @@
 #define SIMPLA_SP_DEF_H
 
 #include <simpla/SIMPLA_config.h>
+#include <cassert>
 #include <limits>
 #include <string>
-#include <cassert>
 namespace simpla {
 
 // enum POSITION
@@ -72,20 +72,26 @@ static constexpr Real EPSILON = std::numeric_limits<Real>::epsilon();
 /**
  * @brief define the common part of the derived class
  */
-#define SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_CLASS_NAME_)                                \
-   public:                                                                             \
-    virtual bool isA(std::type_info const &info) const {                               \
-        return typeid(_CLASS_NAME_) == info || _BASE_CLASS_NAME_::isA(info);           \
-    }                                                                                  \
-    virtual std::type_info const &GetTypeInfo() const { return typeid(_CLASS_NAME_); } \
-    virtual std::string GetClassName() const { return __STRING(_CLASS_NAME_); }        \
-    static std::string ClassName() { return __STRING(_CLASS_NAME_); }                  \
-                                                                                       \
-   private:                                                                            \
-    typedef _BASE_CLASS_NAME_ base_type;                                               \
-    typedef _CLASS_NAME_ this_type;                                                    \
-                                                                                       \
+#define SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_CLASS_NAME_)                                 \
+   public:                                                                              \
+    bool isA(std::type_info const &info) const override {                               \
+        return typeid(_CLASS_NAME_) == info || _BASE_CLASS_NAME_::isA(info);            \
+    }                                                                                   \
+    std::type_info const &GetTypeInfo() const override { return typeid(_CLASS_NAME_); } \
+    std::string GetClassName() const override { return __STRING(_CLASS_NAME_); }        \
+    static std::string ClassName() { return __STRING(_CLASS_NAME_); }                   \
+                                                                                        \
+   private:                                                                             \
+    typedef _BASE_CLASS_NAME_ base_type;                                                \
+    typedef _CLASS_NAME_ this_type;                                                     \
+                                                                                        \
    public:
+
+#define SP_DEFAULT_CONSTRUCT(_CLASS_NAME_)                       \
+    _CLASS_NAME_(_CLASS_NAME_ const &other) = delete;            \
+    _CLASS_NAME_(_CLASS_NAME_ &&other) = delete;                 \
+    _CLASS_NAME_ &operator=(_CLASS_NAME_ const &other) = delete; \
+    _CLASS_NAME_ &operator=(_CLASS_NAME_ &&other) = delete;
 
 #define ENABLE_IF(_COND_) std::enable_if_t<_COND_, void> *_p = nullptr
 

@@ -648,7 +648,7 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
     ContinueRange(this_type const& r)
         : m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_), m_iform_(r.m_iform_), m_dof_(r.m_dof_) {}
 
-    std::shared_ptr<base_type> split(concept::tags::split const& proportion) {
+    std::shared_ptr<base_type> split(concept::tags::split const& proportion) override{
         auto res = std::make_shared<this_type>(*this);
         int n = 0;
         index_type L = m_max_[0] - m_min_[0];
@@ -681,9 +681,9 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
 
     index_box_type index_box() const { return std::make_tuple(m_min_, m_max_); }
 
-    bool empty() const { return m_min_[0] == m_max_[0] || m_min_[1] == m_max_[1] || m_min_[2] == m_max_[2]; }
+    bool empty() const override { return m_min_[0] == m_max_[0] || m_min_[1] == m_max_[1] || m_min_[2] == m_max_[2]; }
 
-    size_t size() const {
+    size_t size() const override {
         return static_cast<size_t>(((m_iform_ == VERTEX || m_iform_ == VOLUME) ? 1 : 3) * (m_max_[0] - m_min_[0]) *
                                    (m_max_[1] - m_min_[1]) * (m_max_[2] - m_min_[2]));
     }
@@ -691,7 +691,7 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
     // access
     index_tuple const& grainsize() const { return m_grain_size_; }
 
-    bool is_divisible() const {
+    bool is_divisible() const override {
         int count = 0;
         for (int i = 0; i < ndims; ++i) {
             if (m_max_[i] - m_min_[i] <= m_grain_size_[i]) { ++count; }
@@ -760,7 +760,7 @@ struct UnorderedRange<EntityId> : public RangeBase<EntityId> {
    public:
     UnorderedRange(int iform = VERTEX) : m_iform_(iform) {}
     ~UnorderedRange() {}
-    std::shared_ptr<base_type> split(concept::tags::split const& proportion) {
+    std::shared_ptr<base_type> split(concept::tags::split const& proportion) override {
         UNIMPLEMENTED;
         return (nullptr);
     }
@@ -772,9 +772,9 @@ struct UnorderedRange<EntityId> : public RangeBase<EntityId> {
     std::set<EntityId>& data() { return m_ids_; }
     std::set<EntityId> const& data() const { return m_ids_; }
     int entity_type() const { return m_iform_; }
-    bool empty() const { return m_ids_.empty(); }
-    size_t size() const { return m_ids_.size(); }
-    bool is_divisible() const { return false; }
+    bool empty() const override { return m_ids_.empty(); }
+    size_t size() const override { return m_ids_.size(); }
+    bool is_divisible() const override { return false; }
     template <typename TFun>
     void foreach (TFun const& body, ENABLE_IF((simpla::concept::is_callable<TFun(EntityId)>::value))) const {
         for (auto s : m_ids_) { body(s); }
