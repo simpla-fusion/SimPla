@@ -88,10 +88,10 @@ static constexpr Real EPSILON = std::numeric_limits<Real>::epsilon();
    public:
 
 #define SP_DEFAULT_CONSTRUCT(_CLASS_NAME_)                       \
-    _CLASS_NAME_(_CLASS_NAME_ const &other) = delete;            \
-    _CLASS_NAME_(_CLASS_NAME_ &&other) = delete;                 \
-    _CLASS_NAME_ &operator=(_CLASS_NAME_ const &other) = delete; \
-    _CLASS_NAME_ &operator=(_CLASS_NAME_ &&other) = delete;
+    _CLASS_NAME_(this_type const &other) = delete;            \
+    _CLASS_NAME_(this_type &&other) = delete;                 \
+    this_type &operator=(this_type const &other) = delete; \
+    this_type &operator=(this_type &&other) = delete;
 
 #define ENABLE_IF(_COND_) std::enable_if_t<_COND_, void> *_p = nullptr
 

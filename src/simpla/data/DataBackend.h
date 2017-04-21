@@ -84,10 +84,11 @@ class DataBackend : public std::enable_shared_from_this<DataBackend> {
 
 class DataBackendFactory : public design_pattern::Factory<std::string, DataBackend>, public concept::Printable {
     typedef design_pattern::Factory<std::string, DataBackend> base_type;
+    SP_OBJECT_BASE(DataBackendFactory);
 
    public:
     DataBackendFactory();
-    virtual ~DataBackendFactory();
+    ~DataBackendFactory() override;
     SP_DEFAULT_CONSTRUCT(DataBackendFactory)
     std::vector<std::string> GetBackendList() const;
     std::shared_ptr<DataBackend> Create(std::string const& uri, std::string const& ext_param = "");
