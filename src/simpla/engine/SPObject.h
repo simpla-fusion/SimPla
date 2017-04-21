@@ -140,16 +140,16 @@ class SPObject {
 //    /**
 //     *  @brief Initial setup.
 //     */
-//    virtual void InitializeDataOnPatch();
+//    virtual void InitializeConditionPatch();
 //
 //    /**
-//     * @brief Initial setup. This function should be invoked _ONLY ONCE_  after InitializeDataOnPatch()
+//     * @brief Initial setup. This function should be invoked _ONLY ONCE_  after InitializeConditionPatch()
 //     * @startuml
 //     *    title  TryPreProcess()
 //     *    (*) --> if "isPrepared()?" then
 //     *                --> [true] (*)
 //     *            else
-//     *                --> [false] InitializeDataOnPatch()
+//     *                --> [false] InitializeConditionPatch()
 //     *                --> "state = PREPARED"
 //     *                --> (*)
 //     *           endif

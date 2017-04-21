@@ -73,8 +73,9 @@ class Context : public data::Serializable {
     void TearDown();
     void SetUp();
 
-    void InitializeDataOnPatch(Patch *p, Real time_now);
-    void AdvanceDataOnPatch(Patch *p, Real time_now, Real time_dt = 0);
+    void InitializeCondition(Patch *p, Real time_now);
+    void BoundaryCondition(Patch *p, Real time_now);
+    void Advance(Patch *p, Real time_now, Real time_dt = 0);
 
     void Register(AttributeGroup *);
 

@@ -132,7 +132,7 @@ void bcast_string(std::string *filename_) {
 //
 //		if (tmp == MPI_UNDEFINED)
 //		{
-//			THROW_RUNTIME_ERROR("AdvanceDataOnPatch Ghosts Particle fail");
+//			THROW_RUNTIME_ERROR("UpdatePatch Ghosts Particle fail");
 //		}
 //		else
 //		{

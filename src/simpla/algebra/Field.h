@@ -152,6 +152,12 @@ class FieldView : public engine::Attribute {
             }
         }
     }
+
+    template <typename Other>
+    void Assign(Range<EntityId> const& r, Other const& other) {
+        SetUp();
+        r.foreach ([&](EntityId s) { at(s) = calculus_policy::getValue(*m_mesh_, other, s); });
+    }
     //    template <typename TOP, typename... Args>
     //    void Foreach_(Range<EntityId> const& r, TOP const& op, Args&&... args) {
     //        ASSERT(!empty());

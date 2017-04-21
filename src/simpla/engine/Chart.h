@@ -30,8 +30,10 @@ class Chart : public data::Serializable, public data::EnableCreateFromDataTable<
 
     point_type map(point_type const &) const;
     point_type inv_map(point_type const &) const;
+    point_type inv_map(index_tuple const &) const;
     box_type map(box_type const &) const;
     box_type inv_map(box_type const &) const;
+    box_type inv_map(index_box_type const &) const;
 
    private:
     struct pimpl_s;

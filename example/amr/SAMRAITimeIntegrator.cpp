@@ -545,7 +545,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
     if (initial_time) {
         engine::Patch p;
         Push(patch, &p);
-        m_ctx_->InitializeDataOnPatch(&p, data_time);
+        m_ctx_->InitializeCondition(&p, data_time);
         Pop(patch, &p);
     }
 
@@ -602,7 +602,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI:
                                                                          bool at_syncronization) {
     engine::Patch p;
     Push(patch, &p);
-    m_ctx_->AdvanceDataOnPatch(&p, time_now, time_dt);
+    m_ctx_->Advance(&p, time_now, time_dt);
     Pop(patch, &p);
 }
 
@@ -638,7 +638,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setPhysicalBoundaryConditions(
     SAMRAI::hier::Patch &patch, const double fill_time, const SAMRAI::hier::IntVector &ghost_width_to_fill) {
     engine::Patch p;
     Push(patch, &p);
-    m_ctx_->AdvanceDataOnPatch(&p, fill_time);
+    m_ctx_->BoundaryCondition(&p, fill_time);
     Pop(patch, &p);
 }
 

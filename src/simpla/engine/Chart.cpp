@@ -46,11 +46,19 @@ point_type Chart::inv_map(point_type const &x) const {
     res = x * m_pimpl_->m_dx_ + m_pimpl_->m_origin_;
     return std::move(res);
 }
+point_type Chart::inv_map(index_tuple const &x) const {
+    point_type res;
+    res = x * m_pimpl_->m_dx_ + m_pimpl_->m_origin_;
+    return std::move(res);
+}
+
 box_type Chart::map(box_type const &b) const { return std::make_tuple(map(std::get<0>(b)), map(std::get<1>(b))); };
 box_type Chart::inv_map(box_type const &b) const {
     return std::make_tuple(inv_map(std::get<0>(b)), inv_map(std::get<1>(b)));
 };
-
+box_type Chart::inv_map(index_box_type const &b) const {
+    return std::make_tuple(inv_map(std::get<0>(b)), inv_map(std::get<1>(b)));
+};
 // int Chart::GetLevel() const { return m_pimpl_->m_level_; }
 //
 // struct ChartFactory {

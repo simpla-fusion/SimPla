@@ -47,8 +47,9 @@ class Domain : public SPObject, public data::Serializable {
 
     void AddBoundaryCondition(std::shared_ptr<Worker>, std::shared_ptr<geometry::GeoObject> g = nullptr);
 
-    void InitializeDataOnPatch(Patch *patch, Real time_now = 0);
-    void AdvanceDataOnPatch(Patch *, Real time_now = 0, Real time_dt = 0);
+    void InitializeCondition(Patch *patch, Real time_now = 0);
+    void BoundaryCondition(Patch *patch, Real time_now = 0);
+    void Advance(Patch *, Real time_now = 0, Real time_dt = 0);
 
     virtual void Initialize();
     virtual void SetUp();

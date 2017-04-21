@@ -48,12 +48,13 @@ class EMFluid : public engine::Worker {
     virtual void SetUp();
     virtual void TearDown();
 
-    virtual void InitializeData(Real time_now = 0);
-    virtual void AdvanceData(Real time_now, Real dt = 0);
+    virtual void InitializeCondition(Real time_now = 0);
+    virtual void BoundaryCondition(Real time_now = 0, Real dt = 0);
+    virtual void Advance(Real time_now, Real dt = 0);
 
-    virtual void SetPhysicalBoundaryConditions(Real time = 0){};
-    virtual void SetPhysicalBoundaryConditionE(Real time = 0){};
-    virtual void SetPhysicalBoundaryConditionB(Real time = 0){};
+    //    virtual void SetPhysicalBoundaryConditions(Real time = 0){};
+    //    virtual void SetPhysicalBoundaryConditionE(Real time = 0){};
+    //    virtual void SetPhysicalBoundaryConditionB(Real time = 0){};
 
     template <int IFORM, int DOF = 1>
     using field_type = Field<mesh_type, scalar_type, IFORM, DOF>;
@@ -154,8 +155,8 @@ template <typename TM>
 void EMFluid<TM>::SetUp() {}
 
 template <typename TM>
-void EMFluid<TM>::InitializeData(Real time_now) {
-    Worker::InitializeData(time_now);
+void EMFluid<TM>::InitializeCondition(Real time_now) {
+    Worker::InitializeCondition(time_now);
 
     E.Clear();
     B.Clear();
@@ -169,7 +170,12 @@ void EMFluid<TM>::InitializeData(Real time_now) {
     BB = dot(B0v, B0v);
 }
 template <typename TM>
-void EMFluid<TM>::AdvanceData(Real time_now, Real dt) {
+void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
+    E = 0;
+    B = 0;
+}
+template <typename TM>
+void EMFluid<TM>::Advance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
     B = B - curl(E) * (dt * 0.5);
     //    SetPhysicalBoundaryConditionB(time_now);

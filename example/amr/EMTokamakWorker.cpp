@@ -26,10 +26,10 @@ class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
 
     virtual void Initialize();
     virtual void Finalize();
-    virtual void Advance(Real dt);
-    virtual void SetPhysicalBoundaryConditions();
-    virtual void SetPhysicalBoundaryConditionE();
-    virtual void SetPhysicalBoundaryConditionB();
+    virtual void Advance(Real time_now, Real dt);
+    //    virtual void SetPhysicalBoundaryConditions();
+    //    virtual void SetPhysicalBoundaryConditionE();
+    //    virtual void SetPhysicalBoundaryConditionB();
 
     field_type<VERTEX> psi{base_type::m_mesh_, "name"_ = "psi"};
     std::function<Vec3(point_type const &, Real)> J_src_fun;
@@ -50,25 +50,25 @@ void EMTokamakWorker::Initialize() {
 }
 void EMTokamakWorker::Finalize() {}
 
-void EMTokamakWorker::Advance(Real dt) { base_type::AdvanceData(dt); };
-
-void EMTokamakWorker::SetPhysicalBoundaryConditions() {
-    base_type::SetPhysicalBoundaryConditions();
-    //    if (J_src_fun) {
-    //        J1.Assign(model()->select(EDGE, "J_SRC"), [&](point_type const &x) -> Vec3 { return J_src_fun(x,
-    //        data_time); });
-    //    }
-    //    if (E_src_fun) {
-    //        E.Assign(model()->select(EDGE, "E_SRC"), [&](point_type const &x) -> Vec3 { return E_src_fun(x,
-    //        data_time); });
-    //    }
-};
-
-void EMTokamakWorker::SetPhysicalBoundaryConditionE() {
-    //    E.Assign(model()->interface(EDGE, "PLASMA", "VACUUM"), 0);
-}
-
-void EMTokamakWorker::SetPhysicalBoundaryConditionB() {
-    //    B.Assign(model()->interface(FACE, "PLASMA", "VACUUM"), 0);
-}
+void EMTokamakWorker::Advance(Real time_now, Real dt) { base_type::Advance(time_now, dt); };
+//
+// void EMTokamakWorker::SetPhysicalBoundaryConditions() {
+//    base_type::SetPhysicalBoundaryConditions();
+//    //    if (J_src_fun) {
+//    //        J1.Assign(model()->select(EDGE, "J_SRC"), [&](point_type const &x) -> Vec3 { return J_src_fun(x,
+//    //        data_time); });
+//    //    }
+//    //    if (E_src_fun) {
+//    //        E.Assign(model()->select(EDGE, "E_SRC"), [&](point_type const &x) -> Vec3 { return E_src_fun(x,
+//    //        data_time); });
+//    //    }
+//};
+//
+// void EMTokamakWorker::SetPhysicalBoundaryConditionE() {
+//    //    E.Assign(model()->interface(EDGE, "PLASMA", "VACUUM"), 0);
+//}
+//
+// void EMTokamakWorker::SetPhysicalBoundaryConditionB() {
+//    //    B.Assign(model()->interface(FACE, "PLASMA", "VACUUM"), 0);
+//}
 }  // namespace simpla {

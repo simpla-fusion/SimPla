@@ -26,16 +26,16 @@ Mesh const *Worker::GetMesh() const { return nullptr; }
 void Worker::Register(AttributeGroup *attr_grp) { GetMesh()->Register(attr_grp); }
 void Worker::Deregister(AttributeGroup *attr_grp) { GetMesh()->Deregister(attr_grp); }
 
-void Worker::Push(Patch *p) { GetMesh()->Push(p); }
-void Worker::Pop(Patch *p) { GetMesh()->Pop(p); }
-
 void Worker::SetUp() { GetMesh()->SetUp(); }
 void Worker::TearDown() { GetMesh()->TearDown(); }
 void Worker::Initialize() { GetMesh()->Initialize(); }
 void Worker::Finalize() { GetMesh()->Finalize(); }
 
-void Worker::InitializeData(Real time_now) { GetMesh()->InitializeData(time_now); }
-void Worker::AdvanceData(Real time_now, Real dt) {}
+void Worker::Push(Patch *p) { GetMesh()->Push(p); }
+void Worker::Pop(Patch *p) { GetMesh()->Pop(p); }
+void Worker::InitializeCondition(Real time_now) { GetMesh()->InitializeData(time_now); }
+void Worker::BoundaryCondition(Real time_now, Real dt) {}
+void Worker::Advance(Real time_now, Real dt) {}
 
 }  // namespace engine{
 

@@ -24,7 +24,7 @@ class MeshBlock {
     size_tuple GetDimensions() const;
     index_tuple GetOffset() const;
     index_tuple GetGhostWidth() const;
-    index_box_type GetIndexBox(int IFORM = 0, int sub = 0) const;
+    index_box_type GetIndexBox(int IFORM = VERTEX, int sub = 0) const;
     index_box_type GetOuterIndexBox(int IFORM = 0, int sub = 0) const;
     index_box_type GetInnerIndexBox(int IFORM = 0, int sub = 0) const;
 

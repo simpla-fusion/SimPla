@@ -44,8 +44,9 @@ class Worker : public data::Serializable, public data::EnableCreateFromDataTable
     virtual Mesh *GetMesh() = 0;
     virtual Mesh const *GetMesh() const = 0;
 
-    virtual void InitializeData(Real time_now = 0);
-    virtual void AdvanceData(Real time_now, Real dt = 0);
+    virtual void InitializeCondition(Real time_now = 0);
+    virtual void BoundaryCondition(Real time_now = 0, Real dt = 0);
+    virtual void Advance(Real time_now, Real dt = 0);
 };
 }
 }

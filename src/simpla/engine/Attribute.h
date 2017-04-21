@@ -205,9 +205,9 @@ struct AttributeDesc : public Attribute {
 //        return *this;
 //    };
 //
-//    bool AdvanceDataOnPatch() final {
-//        if (!Attribute::AdvanceDataOnPatch()) { return false; }
-//        return U::AdvanceDataOnPatch();
+//    bool UpdatePatch() final {
+//        if (!Attribute::UpdatePatch()) { return false; }
+//        return U::UpdatePatch();
 //    }
 //};
 //
@@ -247,7 +247,7 @@ struct AttributeDesc : public Attribute {
 //        return std::make_shared<this_type>(std::forward<Args>(args)...);
 //    }
 //
-//    virtual std::shared_ptr<DataBlock> InitializeData(void *p = nullptr) const {
+//    virtual std::shared_ptr<DataBlock> InitializeCondition(void *p = nullptr) const {
 //        std::shared_ptr<value_type> d(nullptr);
 //        if (p != nullptr) {
 //            d = std::shared_ptr<value_type>(static_cast<value_type *>(p), simpla::tags::do_nothing());
@@ -274,9 +274,9 @@ struct AttributeDesc : public Attribute {
 //
 //    virtual value_type *data() { return reinterpret_cast<value_type *>(Attribute::GetDataBlock()->raw_data()); }
 //
-//    virtual void AdvanceDataOnPatch() {
-//        Attribute::AdvanceDataOnPatch();
-//        array_type::AdvanceDataOnPatch();
+//    virtual void UpdatePatch() {
+//        Attribute::UpdatePatch();
+//        array_type::UpdatePatch();
 //    }
 //    virtual void Finalize() {
 //        array_type::Finalize();

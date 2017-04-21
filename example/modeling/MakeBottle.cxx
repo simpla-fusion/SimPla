@@ -136,7 +136,7 @@ int main(int argc, char **argv) {
     // Default  background              Quantity_NOC_DARKVIOLET,
     // Type of  visualization            V3d_ZBUFFER,
     // Shading  geometry            V3d_GOURAUD,
-    // AdvanceDataOnPatch mode          V3d_WAIT
+    // UpdatePatch mode          V3d_WAIT
     // SetValue parameters for V3d_Viewer
     // defines default lights -
     //   positional-light 0.3 0.0 0.0

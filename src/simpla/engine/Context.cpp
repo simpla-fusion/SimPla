@@ -53,11 +53,15 @@ void Context::SetUp() {
     m_pimpl_->m_model_.SetUp();
     m_pimpl_->m_atlas_.SetUp();
 };
-void Context::InitializeDataOnPatch(Patch *p, Real time_now) {
-    for (auto &item : m_pimpl_->m_domain_) { item.second->InitializeDataOnPatch(p, time_now); }
+void Context::InitializeCondition(Patch *p, Real time_now) {
+    for (auto &item : m_pimpl_->m_domain_) { item.second->InitializeCondition(p, time_now); }
 }
-void Context::AdvanceDataOnPatch(Patch *p, Real time_now, Real time_dt) {
-    for (auto &item : m_pimpl_->m_domain_) { item.second->AdvanceDataOnPatch(p, time_now, time_dt); }
+void Context::BoundaryCondition(Patch *p, Real time_now) {
+    for (auto &item : m_pimpl_->m_domain_) { item.second->InitializeCondition(p, time_now); }
+}
+
+void Context::Advance(Patch *p, Real time_now, Real time_dt) {
+    for (auto &item : m_pimpl_->m_domain_) { item.second->Advance(p, time_now, time_dt); }
 }
 
 Model &Context::GetModel() const { return m_pimpl_->m_model_; }
@@ -110,8 +114,8 @@ std::shared_ptr<Domain> Context::GetDomain(std::string const &k) const {
 // std::shared_ptr<Attribute> const &Context::GetAttribute(std::string const &key) const {
 //    return m_pimpl_->m_global_attributes_.at(key);
 //}
-//    GetModel().InitializeDataOnPatch();
-//    GetAtlas().InitializeDataOnPatch();
+//    GetModel().InitializeConditionPatch();
+//    GetAtlas().InitializeConditionPatch();
 //    auto workers_t = db()->GetTable("Workers");
 //    GetModel().GetMaterial().Foreach([]() {
 //
