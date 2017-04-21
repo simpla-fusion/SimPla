@@ -77,15 +77,17 @@ namespace simpla {
 class SAMRAITimeIntegrator;
 
 class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatchStrategy {
+    SP_OBJECT_BASE(SAMRAIHyperbolicPatchStrategyAdapter)
    public:
     SAMRAIHyperbolicPatchStrategyAdapter(std::shared_ptr<engine::Context> const &ctx,
-                                         boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &);
+                                         boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &g);
 
     /**
      * The destructor for SAMRAIWorkerHyperbolic does nothing.
      */
-    ~SAMRAIHyperbolicPatchStrategyAdapter();
+    ~SAMRAIHyperbolicPatchStrategyAdapter() override;
 
+    SP_DEFAULT_CONSTRUCT(SAMRAIHyperbolicPatchStrategyAdapter)
     ///
     ///  The following routines:
     ///
@@ -101,37 +103,36 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
     ///  algs::HyperbolicPatchStrategy abstract base class.
     ///
 
-    void registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrator *integrator) final;
+    void registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrator *integrator) override;
 
     void setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
-                           SAMRAI::mesh::GriddingAlgorithm *gridding_algorithm) final;
+                           SAMRAI::mesh::GriddingAlgorithm *gridding_algorithm) override;
 
-    void initializeDataOnPatch(SAMRAI::hier::Patch &patch, const double data_time, const bool initial_time) final;
-    double computeStableDtOnPatch(SAMRAI::hier::Patch &patch, const bool initial_time, const double dt_time) final;
-    void computeFluxesOnPatch(SAMRAI::hier::Patch &patch, const double time, const double dt) final;
+    void initializeDataOnPatch(SAMRAI::hier::Patch &patch, double data_time, bool initial_time) override;
+    double computeStableDtOnPatch(SAMRAI::hier::Patch &patch, bool initial_time, double dt_time) override;
+    void computeFluxesOnPatch(SAMRAI::hier::Patch &patch, double time, double dt) override;
 
     /**
      * Update linear advection solution variables by performing a conservative
      * difference with the fluxes calculated in computeFluxesOnPatch().
      */
-    void conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, const double time, const double dt,
-                                       bool at_syncronization);
+    void conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, double time, double dt,
+                                       bool at_syncronization) override;
 
     /**
      * Tag cells for refinement using gradient detector.
      */
-    void tagGradientDetectorCells(SAMRAI::hier::Patch &patch, const double regrid_time, const bool initial_error,
-                                  const int tag_indexindx, const bool uses_richardson_extrapolation_too);
+    void tagGradientDetectorCells(SAMRAI::hier::Patch &patch, double regrid_time, bool initial_error, int tag_indexindx,
+                                  bool uses_richardson_extrapolation_too) override;
 
     /**
      * Tag cells for refinement using Richardson extrapolation.
      */
-    void tagRichardsonExtrapolationCells(SAMRAI::hier::Patch &patch, const int error_level_number,
+    void tagRichardsonExtrapolationCells(SAMRAI::hier::Patch &patch, int error_level_number,
                                          const boost::shared_ptr<SAMRAI::hier::VariableContext> &coarsened_fine,
                                          const boost::shared_ptr<SAMRAI::hier::VariableContext> &advanced_coarse,
-                                         const double regrid_time, const double deltat, const int error_coarsen_ratio,
-                                         const bool initial_error, const int tag_index,
-                                         const bool uses_gradient_detector_too);
+                                         double regrid_time, double deltat, int error_coarsen_ratio, bool initial_error,
+                                         int tag_index, bool uses_gradient_detector_too) override;
 
     //@{
     //! @name Required implementations of HyperbolicPatchStrategy pure virtuals.
@@ -154,15 +155,15 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
      * conditions.  Specific boundary conditions are determined by
      * information specified in input file and numerical routines.
      */
-    void setPhysicalBoundaryConditions(SAMRAI::hier::Patch &patch, const double fill_time,
-                                       const SAMRAI::hier::IntVector &ghost_width_to_fill);
+    void setPhysicalBoundaryConditions(SAMRAI::hier::Patch &patch, double fill_time,
+                                       const SAMRAI::hier::IntVector &ghost_width_to_fill) override;
 
-    SAMRAI::hier::IntVector getRefineOpStencilWidth(const SAMRAI::tbox::Dimension &dim) const {
+    SAMRAI::hier::IntVector getRefineOpStencilWidth(const SAMRAI::tbox::Dimension &dim) const override {
         return SAMRAI::hier::IntVector::getZero(dim);
     }
 
     void preprocessRefine(SAMRAI::hier::Patch &fine, const SAMRAI::hier::Patch &coarse,
-                          const SAMRAI::hier::Box &fine_box, const SAMRAI::hier::IntVector &ratio) {
+                          const SAMRAI::hier::Box &fine_box, const SAMRAI::hier::IntVector &ratio) override {
         NULL_USE(fine);
         NULL_USE(coarse);
         NULL_USE(fine_box);
@@ -170,7 +171,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
     }
 
     void postprocessRefine(SAMRAI::hier::Patch &fine, const SAMRAI::hier::Patch &coarse,
-                           const SAMRAI::hier::Box &fine_box, const SAMRAI::hier::IntVector &ratio) {
+                           const SAMRAI::hier::Box &fine_box, const SAMRAI::hier::IntVector &ratio) override {
         NULL_USE(fine);
         NULL_USE(coarse);
         NULL_USE(fine_box);
@@ -189,12 +190,12 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
     ///  because this class doesn't do any pre/postprocessCoarsen.
     ///
 
-    SAMRAI::hier::IntVector getCoarsenOpStencilWidth(const SAMRAI::tbox::Dimension &dim) const {
+    SAMRAI::hier::IntVector getCoarsenOpStencilWidth(const SAMRAI::tbox::Dimension &dim) const override {
         return SAMRAI::hier::IntVector::getZero(dim);
     }
 
     void preprocessCoarsen(SAMRAI::hier::Patch &coarse, const SAMRAI::hier::Patch &fine,
-                           const SAMRAI::hier::Box &coarse_box, const SAMRAI::hier::IntVector &ratio) {
+                           const SAMRAI::hier::Box &coarse_box, const SAMRAI::hier::IntVector &ratio) override {
         NULL_USE(coarse);
         NULL_USE(fine);
         NULL_USE(coarse_box);
@@ -202,7 +203,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
     }
 
     void postprocessCoarsen(SAMRAI::hier::Patch &coarse, const SAMRAI::hier::Patch &fine,
-                            const SAMRAI::hier::Box &coarse_box, const SAMRAI::hier::IntVector &ratio) {
+                            const SAMRAI::hier::Box &coarse_box, const SAMRAI::hier::IntVector &ratio) override {
         NULL_USE(coarse);
         NULL_USE(fine);
         NULL_USE(coarse_box);
@@ -258,8 +259,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
 SAMRAIHyperbolicPatchStrategyAdapter::SAMRAIHyperbolicPatchStrategyAdapter(
     std::shared_ptr<engine::Context> const &ctx,
     boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom)
-    : SAMRAI::algs::HyperbolicPatchStrategy(),
-      d_dim(3),
+    : d_dim(3),
       d_grid_geometry(grid_geom),
       d_use_nonuniform_workload(false),
       d_nghosts(d_dim, 4),
@@ -274,7 +274,7 @@ SAMRAIHyperbolicPatchStrategyAdapter::SAMRAIHyperbolicPatchStrategyAdapter(
  *
  **************************************************************************/
 
-SAMRAIHyperbolicPatchStrategyAdapter::~SAMRAIHyperbolicPatchStrategyAdapter() {}
+SAMRAIHyperbolicPatchStrategyAdapter::~SAMRAIHyperbolicPatchStrategyAdapter() = default;
 
 namespace detail {
 template <typename T>
@@ -405,7 +405,7 @@ std::shared_ptr<data::DataBlock> create_simpla_datablock(engine::Attribute const
     return res;
 }
 boost::shared_ptr<SAMRAI::hier::PatchData> convert_from_data_block(engine::Attribute const &desc,
-                                                                   std::shared_ptr<data::DataBlock> pd) {
+                                                                   std::shared_ptr<data::DataBlock>) {
     //    UNIMPLEMENTED;
     return nullptr;
 }
@@ -454,7 +454,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         }
         integrator->registerVariable(var, ghosts, v_type, d_grid_geometry, "", coarsen_name);
         if (v->GetName()[0] != '_') {
-            std::string visit_variable_type = "";
+            std::string visit_variable_type;
             if ((v->GetIFORM() == VERTEX || v->GetIFORM() == VOLUME) && (v->GetDOF() == 1)) {
                 visit_variable_type = "SCALAR";
             } else if (((v->GetIFORM() == EDGE || v->GetIFORM() == FACE) && (v->GetDOF() == 1)) ||
@@ -512,7 +512,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setupLoadBalancer(SAMRAI::algs::Hyper
                                                              SAMRAI::mesh::GriddingAlgorithm *gridding_algorithm) {
     const SAMRAI::hier::IntVector &zero_vec = SAMRAI::hier::IntVector::getZero(d_dim);
     SAMRAI::hier::VariableDatabase *vardb = SAMRAI::hier::VariableDatabase::getDatabase();
-    if (d_use_nonuniform_workload && gridding_algorithm) {
+    if (d_use_nonuniform_workload && (gridding_algorithm != nullptr)) {
         auto load_balancer =
             boost::dynamic_pointer_cast<SAMRAI::mesh::CascadePartitioner>(gridding_algorithm->getLoadBalanceStrategy());
         if (load_balancer) {
@@ -540,8 +540,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setupLoadBalancer(SAMRAI::algs::Hyper
  * same mesh resolution are sufficient to set data.
  *
  */
-void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::Patch &patch, const double data_time,
-                                                                 const bool initial_time) {
+void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::Patch &patch, double data_time,
+                                                                 bool initial_time) {
     if (initial_time) {
         engine::Patch p;
         Push(patch, &p);
@@ -559,7 +559,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
         const SAMRAI::hier::Box &box = patch.getBox();
         const SAMRAI::hier::BoxId &box_id = box.getBoxId();
         const SAMRAI::hier::LocalId &local_id = box_id.getLocalId();
-        double id_val = local_id.getValue() % 2 ? static_cast<double>(local_id.getValue() % 10) : 0.0;
+        double id_val = (local_id.getValue() % 2 == 0) ? static_cast<double>(local_id.getValue() % 10) : 0.0;
         workload_data->fillAll(1.0 + id_val);
     }
 }
@@ -571,8 +571,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
  *************************************************************************
  */
 
-double SAMRAIHyperbolicPatchStrategyAdapter::computeStableDtOnPatch(SAMRAI::hier::Patch &patch, const bool initial_time,
-                                                                    const double dt_time) {
+double SAMRAIHyperbolicPatchStrategyAdapter::computeStableDtOnPatch(SAMRAI::hier::Patch &patch, bool initial_time,
+                                                                    double dt_time) {
     //    auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
     //    return pgeom->getDx()[0] / 2.0;
     return dt_time;
@@ -587,8 +587,7 @@ double SAMRAIHyperbolicPatchStrategyAdapter::computeStableDtOnPatch(SAMRAI::hier
  *************************************************************************
  */
 
-void SAMRAIHyperbolicPatchStrategyAdapter::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, const double time,
-                                                                const double dt) {}
+void SAMRAIHyperbolicPatchStrategyAdapter::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, double time, double dt) {}
 
 /**************************************************************************
  *
@@ -597,9 +596,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::computeFluxesOnPatch(SAMRAI::hier::Pa
  *
  **************************************************************************/
 
-void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch,
-                                                                         const double time_now, const double time_dt,
-                                                                         bool at_syncronization) {
+void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, double time_now,
+                                                                         double time_dt, bool at_syncronization) {
     engine::Patch p;
     Push(patch, &p);
     m_ctx_->Advance(&p, time_now, time_dt);
@@ -617,9 +615,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI:
 void SAMRAIHyperbolicPatchStrategyAdapter::tagRichardsonExtrapolationCells(
     SAMRAI::hier::Patch &patch, const int error_level_number,
     const boost::shared_ptr<SAMRAI::hier::VariableContext> &coarsened_fine,
-    const boost::shared_ptr<SAMRAI::hier::VariableContext> &advanced_coarse, const double regrid_time,
-    const double deltat, const int error_coarsen_ratio, const bool initial_error, const int tag_index,
-    const bool uses_gradient_detector_too) {}
+    const boost::shared_ptr<SAMRAI::hier::VariableContext> &advanced_coarse, double regrid_time, double deltat,
+    const int error_coarsen_ratio, bool initial_error, const int tag_index, bool uses_gradient_detector_too) {}
 
 /**************************************************************************
  *
@@ -629,13 +626,12 @@ void SAMRAIHyperbolicPatchStrategyAdapter::tagRichardsonExtrapolationCells(
  *************************************************************************
  */
 
-void SAMRAIHyperbolicPatchStrategyAdapter::tagGradientDetectorCells(SAMRAI::hier::Patch &patch,
-                                                                    const double regrid_time, const bool initial_error,
-                                                                    const int tag_indx,
-                                                                    const bool uses_richardson_extrapolation_too) {}
+void SAMRAIHyperbolicPatchStrategyAdapter::tagGradientDetectorCells(SAMRAI::hier::Patch &patch, double regrid_time,
+                                                                    bool initial_error, int tag_indx,
+                                                                    bool uses_richardson_extrapolation_too) {}
 
 void SAMRAIHyperbolicPatchStrategyAdapter::setPhysicalBoundaryConditions(
-    SAMRAI::hier::Patch &patch, const double fill_time, const SAMRAI::hier::IntVector &ghost_width_to_fill) {
+    SAMRAI::hier::Patch &patch, double fill_time, const SAMRAI::hier::IntVector &ghost_width_to_fill) {
     engine::Patch p;
     Push(patch, &p);
     m_ctx_->BoundaryCondition(&p, fill_time);
@@ -673,8 +669,9 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
     SP_OBJECT_HEAD(SAMRAITimeIntegrator, engine::TimeIntegrator);
 
    public:
-    SAMRAITimeIntegrator();
+    SAMRAITimeIntegrator() = default;
     ~SAMRAITimeIntegrator() override;
+    SP_DEFAULT_CONSTRUCT(SAMRAITimeIntegrator)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> t) override;
@@ -719,7 +716,7 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
 bool SAMRAITimeIntegrator_IS_REGISTERED =
     engine::Schedule::RegisterCreator<SAMRAITimeIntegrator>("SAMRAI", "SAMRAI Time Integrator");
 
-SAMRAITimeIntegrator::SAMRAITimeIntegrator() : engine::TimeIntegrator(){};
+// SAMRAITimeIntegrator::SAMRAITimeIntegrator() : engine::TimeIntegrator(){};
 SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
     SAMRAI::tbox::SAMRAIManager::shutdown();
     SAMRAI::tbox::SAMRAIManager::finalize();
