@@ -27,15 +27,16 @@ struct CartesianGeometry : public engine::Chart {
 };
 }
 namespace engine {
-typedef MeshView<mesh::CartesianGeometry> CartesianRectMesh;
+using namespace mesh;
+typedef MeshView<CartesianGeometry> CartesianRectMesh;
 /**
  * @ingroup mesh
  * @brief Uniform structured get_mesh
  */
 template <>
-struct MeshView<mesh::CartesianGeometry> : public mesh::RectMesh {
+struct MeshView<CartesianGeometry> : public mesh::RectMesh {
    public:
-    SP_OBJECT_HEAD(MeshView<mesh::CartesianGeometry>, mesh::RectMesh)
+    SP_OBJECT_HEAD(MeshView<CartesianGeometry>, mesh::RectMesh)
 
     static bool is_register;
 

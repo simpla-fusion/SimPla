@@ -55,12 +55,22 @@ void Domain::Deregister(AttributeGroup *attr_grp) { m_pimpl_->m_worker_->Deregis
 void Domain::SetGeoObject(std::shared_ptr<geometry::GeoObject> g) { m_pimpl_->m_geo_obj_ = g; }
 std::shared_ptr<geometry::GeoObject> Domain::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
 
+void Domain::SetChart(std::string const &chart_s) { SetChart(Chart::Create(chart_s)); }
 void Domain::SetChart(std::shared_ptr<Chart> m) { m_pimpl_->m_chart_ = m; };
 std::shared_ptr<Chart> Domain::GetChart() const { return m_pimpl_->m_chart_; }
 
+std::shared_ptr<Worker> Domain::CreateWorker(std::string const &worker_s) const {
+    return Worker::Create(worker_s + "<MeshView<" + m_pimpl_->m_chart_->GetClassName() + ">>");
+}
+
+void Domain::SetWorker(std::string const &worker_s) { SetWorker(CreateWorker(worker_s)); }
 void Domain::SetWorker(std::shared_ptr<Worker> w) { m_pimpl_->m_worker_ = w; }
 std::shared_ptr<Worker> Domain::GetWorker() const { return m_pimpl_->m_worker_; }
 
+void Domain::AddBoundaryCondition(std::string const &worker_s, std::shared_ptr<geometry::GeoObject> g) {
+    AddBoundaryCondition(Worker::Create(worker_s + "<EBMesh<MeshView<" + m_pimpl_->m_chart_->GetClassName() + ">>>"),
+                         g);
+}
 void Domain::AddBoundaryCondition(std::shared_ptr<Worker> w, std::shared_ptr<geometry::GeoObject> g) {
     m_pimpl_->m_boundary_.emplace(g, w);
 }

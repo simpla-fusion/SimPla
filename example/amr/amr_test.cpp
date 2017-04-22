@@ -21,15 +21,16 @@ namespace mesh {
 REGISTER_CREATOR(engine::Chart, CartesianGeometry, " Cartesian Geometry")
 REGISTER_CREATOR(engine::Chart, CylindricalGeometry, " Cylindrical Geometry")
 }  // namespace mesh{
+using namespace simpla::mesh;
 using namespace simpla::engine;
-static bool _PRE_REGISTERED = EMFluid<CartesianRectMesh>::is_register &&                  //
-                              EMFluid<CylindricalRectMesh>::is_register &&                //
-                              EMFluid<mesh::EBMesh<CartesianRectMesh>>::is_register &&    //
-                              EMFluid<mesh::EBMesh<CylindricalRectMesh>>::is_register &&  //
-                              PEC<CartesianRectMesh>::is_register &&                      //
-                              PEC<CylindricalRectMesh>::is_register &&                    //
-                              PEC<mesh::EBMesh<CartesianRectMesh>>::is_register &&        //
-                              PEC<mesh::EBMesh<CylindricalRectMesh>>::is_register;
+static bool _PRE_REGISTERED = EMFluid<CartesianRectMesh>::is_register &&            //
+                              EMFluid<CylindricalRectMesh>::is_register &&          //
+                              EMFluid<EBMesh<CartesianRectMesh>>::is_register &&    //
+                              EMFluid<EBMesh<CylindricalRectMesh>>::is_register &&  //
+                              PEC<CartesianRectMesh>::is_register &&                //
+                              PEC<CylindricalRectMesh>::is_register &&              //
+                              PEC<EBMesh<CartesianRectMesh>>::is_register &&        //
+                              PEC<EBMesh<CylindricalRectMesh>>::is_register;
 
 struct UseCaseAMR : public application::SpApp {
     SP_OBJECT_HEAD(UseCaseAMR, application::SpApp)
@@ -44,11 +45,11 @@ SP_REGISITER_APP(UseCaseAMR, " AMR Test ");
 void UseCaseAMR::SetUp() {
     auto domain = std::make_shared<engine::Domain>();
     domain->SetGeoObject(std::make_shared<geometry::Cube>(box_type{{1, 0, 0.0}, {2, TWOPI, 2}}));
-    domain->SetChart(engine::Chart::Create("CylindricalGeometry"));
+    domain->SetChart("CylindricalGeometry");
     domain->GetChart()->SetOrigin(point_type{1, 0, 0});
     domain->GetChart()->SetDx(point_type{0.1, TWOPI / 64, 0.1});
-    domain->SetWorker(engine::Worker::Create("EMFluid<CylindricalGeometry>"));
-    domain->AddBoundaryCondition(engine::Worker::Create("PEC<CylindricalGeometry>"));
+    domain->SetWorker("EMFluid");
+    domain->AddBoundaryCondition("PEC");
 
     auto ctx = std::make_shared<engine::Context>();
     ctx->GetAtlas().SetIndexBox(index_box_type{{0, 0, 0}, {64, 32, 64}});

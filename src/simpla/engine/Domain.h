@@ -39,15 +39,19 @@ class Domain : public SPObject, public data::Serializable {
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> t) override;
 
+    void SetChart(std::string const &chart_s);
     void SetChart(std::shared_ptr<Chart>);
     std::shared_ptr<Chart> GetChart() const;
 
     void SetGeoObject(std::shared_ptr<geometry::GeoObject> geo_object);
     std::shared_ptr<geometry::GeoObject> GetGeoObject() const;
 
+    std::shared_ptr<Worker> CreateWorker(std::string const &worker_s) const;
+    void SetWorker(std::string const &worker_s);
     void SetWorker(std::shared_ptr<Worker>);
     std::shared_ptr<Worker> GetWorker() const;
 
+    void AddBoundaryCondition(std::string const &worker_s, std::shared_ptr<geometry::GeoObject> g = nullptr);
     void AddBoundaryCondition(std::shared_ptr<Worker>, std::shared_ptr<geometry::GeoObject> g = nullptr);
 
     void InitializeCondition(Real time_now);

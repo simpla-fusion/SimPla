@@ -33,20 +33,22 @@ struct CylindricalGeometry : public engine::Chart {
 }
 namespace engine {
 using namespace simpla::data;
-typedef MeshView<mesh::CylindricalGeometry> CylindricalRectMesh;
+using namespace mesh;
+
+typedef MeshView<CylindricalGeometry> CylindricalRectMesh;
 
 /**
  * @ingroup mesh
  * @brief Uniform structured get_mesh
  */
 template <>
-struct MeshView<mesh::CylindricalGeometry> : public mesh::RectMesh {
+struct MeshView<CylindricalGeometry> : public mesh::RectMesh {
    public:
-    SP_OBJECT_HEAD(MeshView<mesh::CylindricalGeometry>, mesh::RectMesh)
+    SP_OBJECT_HEAD(MeshView<CylindricalGeometry>, mesh::RectMesh)
     using engine::Mesh::GetChart;
     typedef Real scalar_type;
 
-    explicit MeshView(std::shared_ptr<mesh::CylindricalGeometry> c = nullptr) : mesh::RectMesh(c) {}
+    explicit MeshView(std::shared_ptr<CylindricalGeometry> c = nullptr) : mesh::RectMesh(c) {}
     ~MeshView() override = default;
 
     SP_DEFAULT_CONSTRUCT(MeshView)

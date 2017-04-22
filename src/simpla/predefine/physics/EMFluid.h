@@ -91,8 +91,8 @@ class EMFluid : public engine::Worker {
     std::map<std::string, std::shared_ptr<fluid_s>>& GetSpecies() { return m_fluid_sp_; };
 };
 template <typename TM>
-const bool EMFluid<TM>::is_register = engine::Worker::RegisterCreator<EMFluid<TM>>(std::string("EMFluid<") +
-                                                                                   TM::ClassName() + ">");
+const bool EMFluid<TM>::is_register =
+    engine::Worker::RegisterCreator<EMFluid<TM>>(std::string("EMFluid<") + TM::ClassName() + ">");
 
 template <typename TM>
 std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string const& name,
