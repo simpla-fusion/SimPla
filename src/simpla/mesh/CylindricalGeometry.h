@@ -18,6 +18,7 @@
 #include <simpla/utilities/macro.h>
 #include <simpla/utilities/type_cast.h>
 #include <simpla/utilities/type_traits.h>
+#include "RectMesh.h"
 namespace simpla {
 namespace mesh {
 struct CylindricalGeometry : public engine::Chart {
@@ -37,19 +38,16 @@ using namespace simpla::data;
  * @brief Uniform structured get_mesh
  */
 template <>
-struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
+struct MeshView<mesh::CylindricalGeometry> : public mesh::RectMesh {
    public:
-    SP_OBJECT_HEAD(MeshView<mesh::CylindricalGeometry>, engine::Mesh)
+    SP_OBJECT_HEAD(MeshView<mesh::CylindricalGeometry>, mesh::RectMesh)
     using engine::Mesh::GetChart;
     typedef Real scalar_type;
 
-    explicit MeshView(std::shared_ptr<mesh::CylindricalGeometry> c = nullptr) : engine::Mesh(c) {}
+    explicit MeshView(std::shared_ptr<mesh::CylindricalGeometry> c = nullptr) : mesh::RectMesh(c) {}
+    ~MeshView() override = default;
 
-    ~MeshView() override{};
-    MeshView(this_type const &other) = delete;
-    MeshView(this_type &&other) = delete;
-    MeshView &operator=(this_type &&other) = delete;
-    MeshView &operator=(this_type const &other) = delete;
+    SP_DEFAULT_CONSTRUCT(MeshView)
 
     //    this_type *Clone() const { return new this_type(*this); }
     void Register(engine::AttributeGroup *other) override { engine::Mesh::Register(other); }
@@ -63,74 +61,16 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
 
    public:
     typedef EntityIdCoder M;
+    using mesh::RectMesh::point;
 
-    virtual point_type point(index_type i, index_type j, index_type k) const {
+    point_type point(index_type i, index_type j, index_type k) const override {
         return point_type{m_vertics_[0](i, j, k), m_vertics_[1](i, j, k), m_vertics_[2](i, j, k)};
     };
 
-    virtual point_type point(EntityId s) const {
-        return GetChart()->inv_map(
-            point_type{static_cast<double>(s.x), static_cast<double>(s.y), static_cast<double>(s.z)});
-    };
-
-    virtual point_type point(EntityId id, point_type const &pr) const {
-        /**
-          *\verbatim
-          *                ^s (dl)
-          *               /
-          *   (dz) t     /
-          *        ^    /
-          *        |  110-------------111
-          *        |  /|              /|
-          *        | / |             / |
-          *        |/  |            /  |
-          *       100--|----------101  |
-          *        | m |           |   |
-          *        |  010----------|--011
-          *        |  /            |  /
-          *        | /             | /
-          *        |/              |/
-          *       000-------------001---> r (dr)
-          *
-          *\endverbatim
-          */
-
-        Real r = pr[0], s = pr[1], t = pr[2];
-
-        Real w0 = (1 - r) * (1 - s) * (1 - t);
-        Real w1 = r * (1 - s) * (1 - t);
-        Real w2 = (1 - r) * s * (1 - t);
-        Real w3 = r * s * (1 - t);
-        Real w4 = (1 - r) * (1 - s) * t;
-        Real w5 = r * (1 - s) * t;
-        Real w6 = (1 - r) * s * t;
-        Real w7 = r * s * t;
-
-        Real x =
-            m_vertics_(id.x /**/, id.y /**/, id.z /**/, 0) * w0 + m_vertics_(id.x + 1, id.y /**/, id.z /**/, 0) * w1 +
-            m_vertics_(id.x /**/, id.y + 1, id.z /**/, 0) * w2 + m_vertics_(id.x + 1, id.y + 1, id.z /**/, 0) * w3 +
-            m_vertics_(id.x /**/, id.y /**/, id.z + 1, 0) * w4 + m_vertics_(id.x + 1, id.y /**/, id.z + 1, 0) * w5 +
-            m_vertics_(id.x /**/, id.y + 1, id.z + 1, 0) * w6 + m_vertics_(id.x + 1, id.y + 1, id.z + 1, 0) * w7;
-
-        Real y =
-            m_vertics_(id.x /**/, id.y /**/, id.z /**/, 1) * w0 + m_vertics_(id.x + 1, id.y /**/, id.z /**/, 1) * w1 +
-            m_vertics_(id.x /**/, id.y + 1, id.z /**/, 1) * w2 + m_vertics_(id.x + 1, id.y + 1, id.z /**/, 1) * w3 +
-            m_vertics_(id.x /**/, id.y /**/, id.z + 1, 1) * w4 + m_vertics_(id.x + 1, id.y /**/, id.z + 1, 1) * w5 +
-            m_vertics_(id.x /**/, id.y + 1, id.z + 1, 1) * w6 + m_vertics_(id.x + 1, id.y + 1, id.z + 1, 1) * w7;
-
-        Real z =
-            m_vertics_(id.x /**/, id.y /**/, id.z /**/, 2) * w0 + m_vertics_(id.x + 1, id.y /**/, id.z /**/, 2) * w1 +
-            m_vertics_(id.x /**/, id.y + 1, id.z /**/, 2) * w2 + m_vertics_(id.x + 1, id.y + 1, id.z /**/, 2) * w3 +
-            m_vertics_(id.x /**/, id.y /**/, id.z + 1, 2) * w4 + m_vertics_(id.x + 1, id.y /**/, id.z + 1, 2) * w5 +
-            m_vertics_(id.x /**/, id.y + 1, id.z + 1, 2) * w6 + m_vertics_(id.x + 1, id.y + 1, id.z + 1, 2) * w7;
-
-        return point_type{x, y, z};
-    }
-
-    virtual Real volume(EntityId s) const { return m_volume_[s.w & 7](s.x, s.y, s.z); }
-    virtual Real dual_volume(EntityId s) const { return m_volume_[s.w & 7](s.x, s.y, s.z); }
-    virtual Real inv_volume(EntityId s) const { return m_volume_[s.w & 7](s.x, s.y, s.z); }
-    virtual Real inv_dual_volume(EntityId s) const { return m_volume_[s.w & 7](s.x, s.y, s.z); }
+    Real volume(EntityId s) const override { return m_volume_[s.w & 7](s.x, s.y, s.z); }
+    Real dual_volume(EntityId s) const override { return m_volume_[s.w & 7](s.x, s.y, s.z); }
+    Real inv_volume(EntityId s) const override { return m_volume_[s.w & 7](s.x, s.y, s.z); }
+    Real inv_dual_volume(EntityId s) const override { return m_volume_[s.w & 7](s.x, s.y, s.z); }
 
     //    template <typename TV>
     //    TV const &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> const *a, EntityId  const &s) const {
@@ -141,7 +81,7 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
     //        return a[EntityIdCoder::SubIndex(s)]->at(s.x, s.y, s.z);
     //    }
 
-    void InitializeData(Real time_now ) override {
+    void InitializeData(Real time_now) override {
         m_vertics_.Clear();
         m_volume_.Clear();
         m_dual_volume_.Clear();
@@ -256,6 +196,54 @@ struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh {
     }
 
 };  // struct  Mesh
+
+//    virtual point_type point(EntityId s) const override {
+//        return GetChart()->inv_map(
+//            point_type{static_cast<double>(s.x), static_cast<double>(s.y), static_cast<double>(s.z)});
+//    };
+//    virtual point_type point(EntityId id, point_type const &pr) const {
+
+//
+//        Real r = pr[0], s = pr[1], t = pr[2];
+//
+//        Real w0 = (1 - r) * (1 - s) * (1 - t);
+//        Real w1 = r * (1 - s) * (1 - t);
+//        Real w2 = (1 - r) * s * (1 - t);
+//        Real w3 = r * s * (1 - t);
+//        Real w4 = (1 - r) * (1 - s) * t;
+//        Real w5 = r * (1 - s) * t;
+//        Real w6 = (1 - r) * s * t;
+//        Real w7 = r * s * t;
+//
+//        Real x =
+//            m_vertics_(id.x /**/, id.y /**/, id.z /**/, 0) * w0 + m_vertics_(id.x + 1, id.y /**/, id.z /**/, 0) *
+//            w1 +
+//            m_vertics_(id.x /**/, id.y + 1, id.z /**/, 0) * w2 + m_vertics_(id.x + 1, id.y + 1, id.z /**/, 0) * w3
+//            +
+//            m_vertics_(id.x /**/, id.y /**/, id.z + 1, 0) * w4 + m_vertics_(id.x + 1, id.y /**/, id.z + 1, 0) * w5
+//            +
+//            m_vertics_(id.x /**/, id.y + 1, id.z + 1, 0) * w6 + m_vertics_(id.x + 1, id.y + 1, id.z + 1, 0) * w7;
+//
+//        Real y =
+//            m_vertics_(id.x /**/, id.y /**/, id.z /**/, 1) * w0 + m_vertics_(id.x + 1, id.y /**/, id.z /**/, 1) *
+//            w1 +
+//            m_vertics_(id.x /**/, id.y + 1, id.z /**/, 1) * w2 + m_vertics_(id.x + 1, id.y + 1, id.z /**/, 1) * w3
+//            +
+//            m_vertics_(id.x /**/, id.y /**/, id.z + 1, 1) * w4 + m_vertics_(id.x + 1, id.y /**/, id.z + 1, 1) * w5
+//            +
+//            m_vertics_(id.x /**/, id.y + 1, id.z + 1, 1) * w6 + m_vertics_(id.x + 1, id.y + 1, id.z + 1, 1) * w7;
+//
+//        Real z =
+//            m_vertics_(id.x /**/, id.y /**/, id.z /**/, 2) * w0 + m_vertics_(id.x + 1, id.y /**/, id.z /**/, 2) *
+//            w1 +
+//            m_vertics_(id.x /**/, id.y + 1, id.z /**/, 2) * w2 + m_vertics_(id.x + 1, id.y + 1, id.z /**/, 2) * w3
+//            +
+//            m_vertics_(id.x /**/, id.y /**/, id.z + 1, 2) * w4 + m_vertics_(id.x + 1, id.y /**/, id.z + 1, 2) * w5
+//            +
+//            m_vertics_(id.x /**/, id.y + 1, id.z + 1, 2) * w6 + m_vertics_(id.x + 1, id.y + 1, id.z + 1, 2) * w7;
+//
+//        return point_type{x, y, z};
+//    }
 }  // namespace get_mesh
 }  // namespace simpla
 

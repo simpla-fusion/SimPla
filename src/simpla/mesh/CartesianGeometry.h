@@ -10,10 +10,10 @@
 
 #include <iomanip>
 #include <vector>
+#include "RectMesh.h"
 #include "simpla/engine/all.h"
 #include "simpla/geometry/Cube.h"
 #include "simpla/utilities/sp_def.h"
-
 namespace simpla {
 
 namespace mesh {
@@ -33,9 +33,9 @@ namespace engine {
  * @brief Uniform structured get_mesh
  */
 template <>
-struct MeshView<mesh::CartesianGeometry> : public engine::Mesh {
+struct MeshView<mesh::CartesianGeometry> : public mesh::RectMesh {
    public:
-    SP_OBJECT_HEAD(MeshView<mesh::CartesianGeometry>, engine::Mesh)
+    SP_OBJECT_HEAD(MeshView<mesh::CartesianGeometry>, mesh::RectMesh)
 
     static bool is_register;
 
@@ -73,14 +73,7 @@ struct MeshView<mesh::CartesianGeometry> : public engine::Mesh {
      */
 
    public:
-    MeshView() : engine::Mesh(std::shared_ptr<Chart>()) {}
-    //    CartesianGeometry(Real const *lower, Real const *upper) : CartesianGeometry() {
-    //        SetGeoObject(std::make_shared<geometry::Cube>(lower, upper));
-    //    }
-    //    CartesianGeometry(CartesianGeometry const &other) : engine::Mesh(other) {
-    //        SetGeoObject(other.GetGeoObject());
-    //        UNIMPLEMENTED;
-    //    }
+    explicit MeshView(std::shared_ptr<mesh::CartesianGeometry> c = nullptr) : mesh::RectMesh(c) {}
     ~MeshView() override = default;
 
     std::shared_ptr<data::DataTable> Serialize() const override {
@@ -103,28 +96,20 @@ struct MeshView<mesh::CartesianGeometry> : public engine::Mesh {
    public:
     typedef EntityIdCoder m;
 
-    template <typename... Args>
-    void apply(Args &&...) const {}
-
     void SetUp() override{};
     void TearDown() override {}
-
-    template <typename... Args>
-    point_type point(index_type x, index_type y, index_type z) const {
+    using mesh::RectMesh::point;
+    point_type point(index_type x, index_type y, index_type z) const override {
         return point_type{static_cast<Real>(x), static_cast<Real>(y), static_cast<Real>(z)};
     }
 
-    virtual point_type point(EntityId s) const { return point_type(); /*Mesh::point(s); */ }
+    Real volume(EntityId s) const override { return m_volume_[m::node_id(s)]; }
 
-    virtual point_type point(EntityId s, point_type const &r) const { return point_type(); /*Mesh::point(s); */ }
+    Real dual_volume(EntityId s) const override { return m_dual_volume_[m::node_id(s)]; }
 
-    virtual Real volume(EntityId s) const { return m_volume_[m::node_id(s)]; }
+    Real inv_volume(EntityId s) const override { return m_inv_volume_[m::node_id(s)]; }
 
-    virtual Real dual_volume(EntityId s) const { return m_dual_volume_[m::node_id(s)]; }
-
-    virtual Real inv_volume(EntityId s) const { return m_inv_volume_[m::node_id(s)]; }
-
-    virtual Real inv_dual_volume(EntityId s) const { return m_inv_dual_volume_[m::node_id(s)]; }
+    Real inv_dual_volume(EntityId s) const override { return m_inv_dual_volume_[m::node_id(s)]; }
 
     //    template <typename TV>
     //    TV const &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> const *a, EntityId const &s) const {

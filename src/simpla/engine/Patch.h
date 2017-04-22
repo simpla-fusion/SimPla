@@ -35,8 +35,8 @@ class Patch {
     int Push(id_type const &id, std::shared_ptr<data::DataBlock> const &);
     std::shared_ptr<data::DataBlock> Pop(id_type const &id) const;
 
-//    Range<EntityId> &GetRange(id_type domain_id, int IFORM) const;
-//    void SetRange(id_type domain_id, int IFORM, Range<EntityId> &);
+    Range<EntityId> GetRange(id_type domain_id, int IFORM) const;
+    void SetRange(id_type domain_id, int IFORM, Range<EntityId> const &);
 
    private:
     struct pimpl_s;

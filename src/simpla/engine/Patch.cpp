@@ -54,8 +54,8 @@ std::shared_ptr<data::DataBlock> Patch::Pop(id_type const &id) const {
     return res;
 }
 
-//Range<EntityId> &Patch::GetRange(id_type domain_id, int IFORM) const {}
-//void Patch::SetRange(id_type domain_id, int IFORM, Range<EntityId> &) {}
+Range<EntityId> Patch::GetRange(id_type domain_id, int IFORM) const { return Range<EntityId>(); }
+void Patch::SetRange(id_type domain_id, int IFORM, Range<EntityId> const &) {}
 
 }  // namespace engine {
 }  // namespace simpla {

@@ -41,8 +41,6 @@ class Mesh : public AttributeGroup, public data::Serializable, public data::Enab
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> t) override;
 
-    virtual Range<EntityId> GetRange(int iform) const;
-
     void Push(std::shared_ptr<Patch> p);
     std::shared_ptr<Patch> Pop();
 
@@ -63,6 +61,19 @@ class Mesh : public AttributeGroup, public data::Serializable, public data::Enab
 
     void SetChart(std::shared_ptr<Chart> c);
     std::shared_ptr<Chart> GetChart() const;
+
+    virtual Range<EntityId> GetRange(int iform) const;
+
+    virtual Real volume(EntityId s) const = 0;
+    virtual Real dual_volume(EntityId s) const = 0;
+    virtual Real inv_volume(EntityId s) const = 0;
+    virtual Real inv_dual_volume(EntityId s) const = 0;
+
+    virtual point_type point(index_type i, index_type j, index_type k) const = 0;
+
+    virtual point_type point(EntityId s) const = 0;
+
+    virtual point_type point(EntityId id, point_type const &pr) const = 0;
 
    protected:
     struct pimpl_s;
