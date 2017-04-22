@@ -31,8 +31,9 @@ void Worker::TearDown() { GetMesh()->TearDown(); }
 void Worker::Initialize() { GetMesh()->Initialize(); }
 void Worker::Finalize() { GetMesh()->Finalize(); }
 
-void Worker::Push(Patch *p) { GetMesh()->Push(p); }
-void Worker::Pop(Patch *p) { GetMesh()->Pop(p); }
+void Worker::Push(std::shared_ptr<Patch> p) { GetMesh()->Push(p); }
+std::shared_ptr<Patch> Worker::Pop() { return GetMesh()->Pop(); }
+
 void Worker::InitializeCondition(Real time_now) { GetMesh()->InitializeData(time_now); }
 void Worker::BoundaryCondition(Real time_now, Real dt) {}
 void Worker::Advance(Real time_now, Real dt) {}

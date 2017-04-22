@@ -28,12 +28,12 @@ MeshBlock::MeshBlock(index_box_type const &b, size_type level, Real time_now) : 
     m_pimpl_->m_GUID_ = m_pimpl_->m_hasher_(m_pimpl_->m_gen_());
     m_pimpl_->m_time_ = time_now;
 };
-MeshBlock::MeshBlock(MeshBlock const &other) : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_level_ = other.m_pimpl_->m_level_;
-    m_pimpl_->m_GUID_ = other.m_pimpl_->m_GUID_;
-    m_pimpl_->m_index_box_ = other.m_pimpl_->m_index_box_;
-    m_pimpl_->m_time_ = other.m_pimpl_->m_time_;
-}
+//MeshBlock::MeshBlock(MeshBlock const &other) : m_pimpl_(new pimpl_s) {
+//    m_pimpl_->m_level_ = other.m_pimpl_->m_level_;
+//    m_pimpl_->m_GUID_ = other.m_pimpl_->m_GUID_;
+//    m_pimpl_->m_index_box_ = other.m_pimpl_->m_index_box_;
+//    m_pimpl_->m_time_ = other.m_pimpl_->m_time_;
+//}
 MeshBlock::~MeshBlock() {}
 
 //Range<EntityId> MeshBlock::GetRange(int iform, int dof) const {

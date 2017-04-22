@@ -18,6 +18,7 @@ struct Context::pimpl_s {
     std::map<std::string, std::shared_ptr<Domain>> m_domain_;
     Model m_model_;
     Atlas m_atlas_;
+    std::shared_ptr<Patch> m_patch_;
 };
 
 Context::Context() : m_pimpl_(new pimpl_s) {}
@@ -39,6 +40,9 @@ void Context::Deserialize(std::shared_ptr<DataTable> cfg) {
     });
 }
 
+void Context::Push(std::shared_ptr<Patch> p) { m_pimpl_->m_patch_ = p; }
+std::shared_ptr<Patch> Context::Pop() { return m_pimpl_->m_patch_; }
+
 void Context::Initialize() {}
 void Context::Finalize() {}
 void Context::TearDown() {
@@ -53,15 +57,27 @@ void Context::SetUp() {
     m_pimpl_->m_model_.SetUp();
     m_pimpl_->m_atlas_.SetUp();
 };
-void Context::InitializeCondition(Patch *p, Real time_now) {
-    for (auto &item : m_pimpl_->m_domain_) { item.second->InitializeCondition(p, time_now); }
+void Context::InitializeCondition(Real time_now) {
+    for (auto &item : m_pimpl_->m_domain_) {
+        item.second->Push(m_pimpl_->m_patch_);
+        item.second->InitializeCondition(time_now);
+        m_pimpl_->m_patch_ = item.second->Pop();
+    }
 }
-void Context::BoundaryCondition(Patch *p, Real time_now) {
-    for (auto &item : m_pimpl_->m_domain_) { item.second->InitializeCondition(p, time_now); }
+void Context::BoundaryCondition(Real time_now, Real time_dt) {
+    for (auto &item : m_pimpl_->m_domain_) {
+        item.second->Push(m_pimpl_->m_patch_);
+        item.second->BoundaryCondition(time_now, time_dt);
+        m_pimpl_->m_patch_ = item.second->Pop();
+    }
 }
 
-void Context::Advance(Patch *p, Real time_now, Real time_dt) {
-    for (auto &item : m_pimpl_->m_domain_) { item.second->Advance(p, time_now, time_dt); }
+void Context::Advance(Real time_now, Real time_dt) {
+    for (auto &item : m_pimpl_->m_domain_) {
+        item.second->Push(m_pimpl_->m_patch_);
+        item.second->Advance(time_dt, time_dt);
+        m_pimpl_->m_patch_ = item.second->Pop();
+    }
 }
 
 Model &Context::GetModel() const { return m_pimpl_->m_model_; }
@@ -89,7 +105,7 @@ std::shared_ptr<Domain> Context::GetDomain(std::string const &k) const {
 //
 //    auto res = m_pimpl_->m_workers_.emplace(d_name, p);
 //    if (!res.second) { res.first->second = p; }
-//    db()->Set("Workers/" + d_name, res.first->second->db());
+//    db()->PushPatch("Workers/" + d_name, res.first->second->db());
 //    return res.second;
 //}
 // void Context::DeregisterWorker(std::string const &k) {
@@ -162,11 +178,11 @@ std::shared_ptr<Domain> Context::GetDomain(std::string const &k) const {
 //                p = std::make_shared<Patch>();
 //                //                p->PushMeshBlock(mblk);
 //            }
-//            w->second->Push(p);
+//            w->second->ConvertPatchFromSAMRAI(p);
 //            LOGGER << " Worker [ " << std::setw(10) << std::left << w->second->name() << " ] is applied on "
 //                   << mblk->GetIndexBox() << " GeoObject id= " << g_item.first << std::endl;
 //            w->second->AdvanceData(time_now, dt);
-//            m_pimpl_->m_patches_[mblk->GetGUID()] = w->second->Pop();
+//            m_pimpl_->m_patches_[mblk->GetGUID()] = w->second->ConvertPatchToSAMRAI();
 //        }
 //    }
 

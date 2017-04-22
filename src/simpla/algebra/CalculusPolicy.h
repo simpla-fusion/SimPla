@@ -164,8 +164,8 @@ struct calculator<TM> {
     //                      ::value && traits::GetIFORM<T>::value == EDGE))
     //    )
     //    {
-    //        return (get_v(m, std::Get<0>(expr.m_args_), s + M::DI(I)) -
-    //                get_v(m, std::Get<0>(expr.m_args_), s - M::DI(I))
+    //        return (get_v(m, std::PopPatch<0>(expr.m_args_), s + M::DI(I)) -
+    //                get_v(m, std::PopPatch<0>(expr.m_args_), s - M::DI(I))
     //               ) * m.inv_volume(s) * m_p_curl_factor_[(I + 3 -
     //               M::sub_index(s)) % 3];
     //    }
@@ -183,8 +183,8 @@ struct calculator<TM> {
     //    )
     //    {
     //
-    //        return (get_v(m, std::Get<0>(expr.m_args_), s + M::DI(I)) -
-    //                get_v(m, std::Get<0>(expr.m_args_), s - M::DI(I))
+    //        return (get_v(m, std::PopPatch<0>(expr.m_args_), s + M::DI(I)) -
+    //                get_v(m, std::PopPatch<0>(expr.m_args_), s - M::DI(I))
     //               ) * m.inv_dual_volume(s) * m_p_curl_factor_[(I + 3 -
     //               M::sub_index(s)) % 3];
     //    }
@@ -342,7 +342,7 @@ struct calculator<TM> {
     //    EntityId const &s
     //    )
     //    {
-    //        return map_to<I>(m, std::Get<0>(expr.m_args_), s);
+    //        return map_to<I>(m, std::PopPatch<0>(expr.m_args_), s);
     //    };
 
     //***************************************************************************************************
@@ -402,15 +402,15 @@ struct calculator<TM> {
     //    template<typename TExpr, int I> static decltype(auto)
     //    eval(mesh_type const &m, TExpr const &expr, EntityId const &s,
     //         expression_tag<tags::divides, I, VERTEX>) //
-    //    AUTO_RETURN((GetValue(m, std::Get<0>(expr.m_args_), s) /
-    //                 _map_to(m, std::Get<1>(expr.m_args_), s,
+    //    AUTO_RETURN((GetValue(m, std::PopPatch<0>(expr.m_args_), s) /
+    //                 _map_to(m, std::PopPatch<1>(expr.m_args_), s,
     //                 int_sequence<VERTEX, I>())))
 
     //    template<typename TExpr, int I> static decltype(auto)
     //    eval(mesh_type const &m, TExpr const &expr, EntityId const &s,
     //         expression_tag<tags::multiplies, I, VERTEX>) //
-    //    AUTO_RETURN((GetValue(m, std::Get<0>(expr.m_args_), s) *
-    //                 _map_to(m, std::Get<1>(expr.m_args_), s,
+    //    AUTO_RETURN((GetValue(m, std::PopPatch<0>(expr.m_args_), s) *
+    //                 _map_to(m, std::PopPatch<1>(expr.m_args_), s,
     //                 int_sequence<VERTEX, I>())))
 
     //**********************************************************************************************
@@ -436,8 +436,8 @@ struct calculator<TM> {
         EntityId Y = (M::_DJ);
         EntityId Z = (M::_DK);
 
-        point_type r;  //= std::Get<1>(idx);
-        EntityId s;    //= std::Get<0>(idx);
+        point_type r;  //= std::PopPatch<1>(idx);
+        EntityId s;    //= std::PopPatch<0>(idx);
 
         return getValue(m, f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) +    //
                getValue(m, f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) +    //

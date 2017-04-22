@@ -19,6 +19,8 @@ struct Domain::pimpl_s {
     std::shared_ptr<geometry::GeoObject> m_geo_obj_ = nullptr;
     std::shared_ptr<Worker> m_worker_ = nullptr;
     std::map<std::shared_ptr<geometry::GeoObject>, std::shared_ptr<Worker>> m_boundary_;
+
+    std::shared_ptr<Patch> m_patch_;
 };
 Domain::Domain() : SPObject(), m_pimpl_(new pimpl_s) {}
 Domain::~Domain() { Finalize(); }
@@ -62,61 +64,62 @@ std::shared_ptr<Worker> Domain::GetWorker() const { return m_pimpl_->m_worker_; 
 void Domain::AddBoundaryCondition(std::shared_ptr<Worker> w, std::shared_ptr<geometry::GeoObject> g) {
     m_pimpl_->m_boundary_.emplace(g, w);
 }
+void Domain::Push(std::shared_ptr<Patch> p) { m_pimpl_->m_patch_ = p; }
+std::shared_ptr<Patch> Domain::Pop() { return m_pimpl_->m_patch_; }
 
-void Domain::InitializeCondition(Patch *p, Real time_now) {
-    if (p == nullptr || GetGeoObject()->CheckOverlap(GetChart()->inv_map(p->GetBlock()->GetIndexBox())) > 0) { return; }
-
-    m_pimpl_->m_worker_->Push(p);
-    m_pimpl_->m_worker_->InitializeCondition(time_now);
-    m_pimpl_->m_worker_->Pop(p);
-
-    //    auto mblk_ibx = p->GetBlock()->GetIndexBox();
-    //
-    //    auto x0 = GetChart()->GetOrigin();
-    //    auto dx = GetChart()->GetOrigin();
-    //    dx *= std::pow(0.5, p->GetBlock()->GetLevel());
-    //
-    //    box_type mblk_box;
-    //    std::get<0>(mblk_box) = x0 + std::get<0>(mblk_ibx) * dx;
-    //    std::get<1>(mblk_box) = x0 + std::get<1>(mblk_ibx) * dx;
-    //    CHECK(m_pimpl_->m_geo_obj_->GetBoundBox());
-    //    CHECK(mblk_box);
-    //
-    //    switch (m_pimpl_->m_geo_obj_->CheckOverlap(mblk_box)) {
-    //        case -1:
-    //            break;
-    //        case 0:
-    //            for (auto &item : m_pimpl_->m_boundary_) {
-    //                if (item.first == nullptr || item.first->CheckOverlap(mblk_box) < 1) {
-    //                    item.second->Push(p);
-    //                    item.second->SetUp(time_now);
-    //                    item.second->Pop(p);
-    //                }
-    //            }
-    //            break;
-    //        case 1:
-    //        default:
-    //            // DO NOTHING
-    //            break;
-    //    };
-}
-
-void Domain::BoundaryCondition(Patch *p, Real time_now) {
-    if (p == nullptr || GetGeoObject()->CheckOverlap(GetChart()->inv_map(p->GetBlock()->GetIndexBox())) != 0) {
-        return;
+void Domain::InitializeCondition(Real time_now) {
+    if (m_pimpl_->m_worker_ != nullptr && m_pimpl_->m_patch_ != nullptr) {
+        m_pimpl_->m_worker_->Push(m_pimpl_->m_patch_);
+        m_pimpl_->m_worker_->InitializeCondition(time_now);
+        m_pimpl_->m_patch_ = m_pimpl_->m_worker_->Pop();
     }
-
-    m_pimpl_->m_worker_->Push(p);
-    m_pimpl_->m_worker_->BoundaryCondition(time_now, 0);
-    m_pimpl_->m_worker_->Pop(p);
 }
 
-void Domain::Advance(Patch *p, Real time_now, Real time_dt) {
-    if (p == nullptr || GetGeoObject()->CheckOverlap(GetChart()->inv_map(p->GetBlock()->GetIndexBox())) > 0) { return; }
-    m_pimpl_->m_worker_->Push(p);
-    m_pimpl_->m_worker_->Advance(time_now, time_dt);
-    m_pimpl_->m_worker_->Pop(p);
+void Domain::BoundaryCondition(Real time_now, Real time_dt) {
+    if (m_pimpl_->m_worker_ != nullptr && m_pimpl_->m_patch_ != nullptr) {
+        m_pimpl_->m_worker_->Push(m_pimpl_->m_patch_);
+        m_pimpl_->m_worker_->BoundaryCondition(time_now, time_dt);
+        m_pimpl_->m_patch_ = m_pimpl_->m_worker_->Pop();
+    }
 }
+
+void Domain::Advance(Real time_now, Real time_dt) {
+    if (m_pimpl_->m_worker_ != nullptr && m_pimpl_->m_patch_ != nullptr) {
+        m_pimpl_->m_worker_->Push(m_pimpl_->m_patch_);
+        m_pimpl_->m_worker_->Advance(time_now, time_dt);
+        m_pimpl_->m_patch_ = m_pimpl_->m_worker_->Pop();
+    }
+}
+
+//    auto mblk_ibx = p->GetBlock()->GetIndexBox();
+//
+//    auto x0 = GetChart()->GetOrigin();
+//    auto dx = GetChart()->GetOrigin();
+//    dx *= std::pow(0.5, p->GetBlock()->GetLevel());
+//
+//    box_type mblk_box;
+//    std::get<0>(mblk_box) = x0 + std::get<0>(mblk_ibx) * dx;
+//    std::get<1>(mblk_box) = x0 + std::get<1>(mblk_ibx) * dx;
+//    CHECK(m_pimpl_->m_geo_obj_->GetBoundBox());
+//    CHECK(mblk_box);
+//
+//    switch (m_pimpl_->m_geo_obj_->CheckOverlap(mblk_box)) {
+//        case -1:
+//            break;
+//        case 0:
+//            for (auto &item : m_pimpl_->m_boundary_) {
+//                if (item.first == nullptr || item.first->CheckOverlap(mblk_box) < 1) {
+//                    item.second->ConvertPatchFromSAMRAI(p);
+//                    item.second->SetUp(time_now);
+//                    item.second->ConvertPatchToSAMRAI(p);
+//                }
+//            }
+//            break;
+//        case 1:
+//        default:
+//            // DO NOTHING
+//            break;
+//    };
 
 //    CHECK(p->GetBlock()->GetBoundBox());
 //    if (p == nullptr) { return; }
@@ -140,9 +143,9 @@ void Domain::Advance(Patch *p, Real time_now, Real time_dt) {
 //        case 0:
 //            for (auto &item : m_pimpl_->m_boundary_) {
 //                if (item.first == nullptr || item.first->CheckOverlap(mblk_box) < 1) {
-//                    item.second->Push(p);
+//                    item.second->ConvertPatchFromSAMRAI(p);
 //                    item.second->AdvanceData(time_now, time_dt);
-//                    item.second->Pop(p);
+//                    item.second->ConvertPatchToSAMRAI(p);
 //                }
 //            }
 //            break;
@@ -154,17 +157,18 @@ void Domain::Advance(Patch *p, Real time_now, Real time_dt) {
 
 // Domain *Domain::Clone() const { return new Domain(*this); }
 //
-// void Domain::Push(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &d) {
+// void Domain::ConvertPatchFromSAMRAI(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &d) {
 //    ASSERT(m != nullptr);
 //    m_pimpl_->m_mesh_block_ = m;
 //    if (m_pimpl_->m_patch_ == nullptr) { m_pimpl_->m_patch_ = std::make_shared<data::DataTable>(); }
 //    ASSERT(d->isTable());
-//    m_pimpl_->m_patch_->Set(d->cast_as<data::DataTable>());
+//    m_pimpl_->m_patch_->PushPatch(d->cast_as<data::DataTable>());
 //};
-// void Domain::Push(std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> const &p) {
-//    Push(p.first, p.second);
+// void Domain::ConvertPatchFromSAMRAI(std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> const &p)
+// {
+//    ConvertPatchFromSAMRAI(p.first, p.second);
 //}
-// std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> Domain::Pop() {
+// std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> Domain::ConvertPatchToSAMRAI() {
 //    auto res =
 //        std::make_pair(m_pimpl_->m_chart_->GetBlock(),
 //        std::dynamic_pointer_cast<data::DataTable>(m_pimpl_->m_patch_));
@@ -174,16 +178,16 @@ void Domain::Advance(Patch *p, Real time_now, Real time_dt) {
 //};
 //
 // void Domain::Run(Real dt) {
-//    //    m_pimpl_->m_chart_->Push(m_pimpl_->m_mesh_block_, m_pimpl_->m_patch_);
+//    //    m_pimpl_->m_chart_->ConvertPatchFromSAMRAI(m_pimpl_->m_mesh_block_, m_pimpl_->m_patch_);
 //    //
 //    //    for (auto &item : m_pimpl_->m_worker_) {
 //    //        ASSERT(m_pimpl_->m_chart_ != nullptr);
 //    //        item.second->SetMesh(m_pimpl_->m_chart_.get());
-//    //        item.second->Push(m_pimpl_->m_chart_->GetBlock(), m_pimpl_->m_patch_);
+//    //        item.second->ConvertPatchFromSAMRAI(m_pimpl_->m_chart_->GetBlock(), m_pimpl_->m_patch_);
 //    //        item.second->Run(dt);
 //    //        auto res = item.second->PopPatch();
 //    //
-//    //        Push(res);  // item.second->PopPatch());
+//    //        ConvertPatchFromSAMRAI(res);  // item.second->PopPatch());
 //    //    }
 //}
 // void Domain::Attach(AttributeGroup *p) {
@@ -195,11 +199,11 @@ void Domain::Advance(Patch *p, Real time_now, Real time_dt) {
 //        for (Attribute *v : (*res.first)->GetAllAttributes()) {
 //            ASSERT(v != nullptr)
 //            if (v->name() != "") {
-//                auto t = db()->Get("Attributes/" + v->name());
+//                auto t = db()->PopPatch("Attributes/" + v->name());
 //                if (t == nullptr || !t->isTable()) {
 //                    t = v->db();
 //                } else {
-//                    t->cast_as<data::DataTable>().Set(*v->db());
+//                    t->cast_as<data::DataTable>().PushPatch(*v->db());
 //                }
 //                db()->Link("Attributes/" + v->name(), t);
 //            }
@@ -221,7 +225,7 @@ void Domain::Advance(Patch *p, Real time_now, Real time_dt) {
 //    m_pimpl_->m_chart_.reset(Mesh::Create(db()->GetTable("Mesh")));
 //    ASSERT(m_pimpl_->m_chart_ != nullptr);
 //    db()->Link("Mesh", m_pimpl_->m_chart_->db());
-//    auto t_worker = db()->Get("Task");
+//    auto t_worker = db()->PopPatch("Task");
 //
 //    if (t_worker != nullptr && t_worker->isArray()) {
 //        t_worker->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<data::DataEntity> const &c) {

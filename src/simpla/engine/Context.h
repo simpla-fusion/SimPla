@@ -64,18 +64,22 @@ class Context : public data::Serializable {
     SP_OBJECT_BASE(Context)
    public:
     Context();
-    ~Context();
-    virtual std::shared_ptr<DataTable> Serialize() const;
-    virtual void Deserialize(std::shared_ptr<DataTable>);
+    ~Context() override;
+    SP_DEFAULT_CONSTRUCT(Context)
+    virtual std::shared_ptr<DataTable> Serialize() const override;
+    virtual void Deserialize(std::shared_ptr<DataTable>) override ;
+
+    std::shared_ptr<Patch> Pop();
+    void Push(std::shared_ptr<Patch> p);
 
     void Initialize();  //!< initialize data on current patch
     void Finalize();    //!< release data on current patch
     void TearDown();
     void SetUp();
 
-    void InitializeCondition(Patch *p, Real time_now);
-    void BoundaryCondition(Patch *p, Real time_now);
-    void Advance(Patch *p, Real time_now, Real time_dt = 0);
+    void InitializeCondition(Real time_now);
+    void BoundaryCondition(Real time_now, Real time_dt);
+    void Advance(Real time_now, Real time_dt);
 
     void Register(AttributeGroup *);
 

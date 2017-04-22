@@ -7,9 +7,9 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/data/all.h>
+#include <simpla/utilities/EntityId.h>
 #include <memory>
 #include "SPObject.h"
-
 namespace simpla {
 
 namespace engine {
@@ -18,22 +18,25 @@ class Chart;
 class Patch {
     SP_OBJECT_BASE(Patch)
    public:
-    Patch();
-    Patch(Patch const &) = delete;
-    Patch(Patch &&) = delete;
+    explicit Patch(id_type id = NULL_ID);
     virtual ~Patch();
+
+    SP_DEFAULT_CONSTRUCT(Patch);
+    id_type GetId() const;
 
     void SetChart(std::shared_ptr<Chart>);
     std::shared_ptr<Chart> GetChart() const;
 
-    id_type GetBlockId() const;
     void SetBlock(std::shared_ptr<MeshBlock> const &);
     std::shared_ptr<MeshBlock> GetBlock() const;
-
+    void Merge(Patch &other);
     std::map<id_type, std::shared_ptr<data::DataBlock>> &GetAllData();
 
     int Push(id_type const &id, std::shared_ptr<data::DataBlock> const &);
     std::shared_ptr<data::DataBlock> Pop(id_type const &id) const;
+
+//    Range<EntityId> &GetRange(id_type domain_id, int IFORM) const;
+//    void SetRange(id_type domain_id, int IFORM, Range<EntityId> &);
 
    private:
     struct pimpl_s;

@@ -374,7 +374,7 @@ std::string make_msg(Others const &... others) {
 #define THROW_EXCEPTION_OUT_OF_RANGE(_MSG_) \
     { OUT_OF_RANGE << _MESG_ << std::endl; }
 //
-//#define THROW_EXCEPTION_BAD_ALLOC(_SIZE_, _error_)    logger::Logger(logger::LOG_ERROR)<<__FILE__<<"["<<__LINE__<<"]: "<< "Can not Get enough memory! [ "  \
+//#define THROW_EXCEPTION_BAD_ALLOC(_SIZE_, _error_)    logger::Logger(logger::LOG_ERROR)<<__FILE__<<"["<<__LINE__<<"]: "<< "Can not PopPatch enough memory! [ "  \
 //        << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" << std::endl; throw(_error_);
 //
 #define THROW_EXCEPTION_BAD_ALLOC(_SIZE_)                                                                             \

@@ -26,10 +26,10 @@ void AttributeGroup::Register(AttributeGroup *other) {
 void AttributeGroup::Deregister(AttributeGroup *other) {
     for (Attribute *attr : m_pimpl_->m_attributes_) { other->Detach(attr); }
 };
-void AttributeGroup::Push(Patch *p) {
+void AttributeGroup::PushPatch(std::shared_ptr<Patch> p) {
     for (auto *item : m_pimpl_->m_attributes_) { item->PushData(p->Pop(item->GetGUID())); }
 }
-void AttributeGroup::Pop(Patch *p) {
+void AttributeGroup::PopPatch(std::shared_ptr<Patch> p) {
     for (auto *item : m_pimpl_->m_attributes_) { p->Push(item->GetGUID(), item->PopData()); }
 }
 void AttributeGroup::Attach(Attribute *p) { m_pimpl_->m_attributes_.emplace(p); }
@@ -53,12 +53,12 @@ Attribute::Attribute(AttributeGroup *b, std::shared_ptr<data::DataTable> const &
 };
 // Attribute::Attribute(Attribute const &other) : m_pimpl_(new pimpl_s)  {
 //    for (auto *b : other.m_pimpl_->m_bundle_) { Register(b); }
-//    m_pimpl_->m_mesh_ = other.m_pimpl_->m_mesh_;
+//    m_pimpl_->m_block_ = other.m_pimpl_->m_block_;
 //}
 // Attribute::Attribute(Attribute &&other) : m_pimpl_(new pimpl_s)  {
 //    for (auto *b : other.m_pimpl_->m_bundle_) { Register(b); }
 //    for (auto *b : m_pimpl_->m_bundle_) { other.Deregister(b); }
-//    m_pimpl_->m_mesh_ = other.m_pimpl_->m_mesh_;
+//    m_pimpl_->m_block_ = other.m_pimpl_->m_block_;
 //}
 Attribute::~Attribute() {
     for (auto *b : m_pimpl_->m_bundle_) { Deregister(b); }

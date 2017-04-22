@@ -83,7 +83,7 @@ box_type Chart::inv_map(index_box_type const &b) const {
 //
 // Chart *Chart::Create(std::shared_ptr<data::DataTable> const &config) {
 //    auto res = Create(config->GetValue<std::string>("name", ""));
-//    res->db()->Set(*config);
+//    res->db()->PushPatch(*config);
 //    return res;
 //}
 

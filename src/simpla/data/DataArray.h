@@ -173,11 +173,11 @@ class DataEntityWrapper<U*> : public DataArrayWithType<U> {
 //        return static_cast<size_type>(N);
 //    };
 //    virtual void Add(std::shared_ptr<DataEntity> const&) { UNSUPPORTED; };
-//    virtual void Delete(size_type idx) { UNSUPPORTED; };
+//    virtual void DeletePatch(size_type idx) { UNSUPPORTED; };
 //    // DataArrayWithType
 //
 //    virtual U GetValue(index_type idx) const { return m_data_[idx]; }
-//    virtual void Set(size_type idx, U const& v) {
+//    virtual void PushPatch(size_type idx, U const& v) {
 //        ASSERT(size() > idx);
 //        m_data_[idx] = v;
 //    }
@@ -212,11 +212,11 @@ class DataEntityWrapper<U*> : public DataArrayWithType<U> {
 //        return size();
 //    };
 //    virtual void Add(std::shared_ptr<DataEntity> const&) { UNSUPPORTED; };
-//    virtual void Delete(size_type idx) { UNSUPPORTED; };
+//    virtual void DeletePatch(size_type idx) { UNSUPPORTED; };
 //    // DataArrayWithType
 //    virtual U GetValue(index_type idx) const { return m_data_[idx]; }
 //
-//    virtual void Set(size_type idx, U const& v) {
+//    virtual void PushPatch(size_type idx, U const& v) {
 //        ASSERT(size() > idx);
 //        m_data_[idx] = v;
 //    }
@@ -245,13 +245,13 @@ inline std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<char c
 //
 // template <int N, typename... U>
 // void data_entity_from_helper(DataArray const& a, std::tuple<U...>& v, std::integral_constant<int, N>) {
-//    data_entity_from_helper0(*a.Get(N - 1), std::get<N - 1>(v));
+//    data_entity_from_helper0(*a.PopPatch(N - 1), std::get<N - 1>(v));
 //    data_entity_from_helper(a, v, std::integral_constant<int, N - 1>());
 //};
 //
 // template <typename V>
 // void data_entity_to_helper0(V const& src, DataArray& dest, size_type N) {
-//    dest.Set(N - 1, data_entity_traits<V>::to(src));
+//    dest.PushPatch(N - 1, data_entity_traits<V>::to(src));
 //}
 // template <typename... U>
 // void data_entity_to_helper(std::tuple<U...> const& src, DataArray& dest, std::integral_constant<int, 0>){};

@@ -114,7 +114,7 @@ int load_and_mesh(const char *input_filename,
     mk.save_mesh("input.vtk");
 
 
-    // Get the volumes
+    // PopPatch the volumes
     MEntVector vols;
     mk.get_entities_by_dimension(3, vols);
 
@@ -136,7 +136,7 @@ int load_and_mesh(const char *input_filename,
         result = ebm->get_volume_fraction(vol_frac_res);
         if (!result)
         {
-            std::cerr << "Couldn't Get volume fraction." << std::endl;
+            std::cerr << "Couldn't PopPatch volume fraction." << std::endl;
             return 1;
         }
     }
@@ -171,7 +171,7 @@ int load_and_mesh(const char *input_filename,
                                          mdCutCellEdge, vnInsideCell);
         if (!result)
         {
-            std::cerr << "Couldn't Get mesh information." << std::endl;
+            std::cerr << "Couldn't PopPatch mesh information." << std::endl;
             return 1;
         }
         time(&query_time);

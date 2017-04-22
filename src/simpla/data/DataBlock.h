@@ -179,8 +179,8 @@ std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<simpla::Array<U, ND
 //            ++ndims;
 //        }
 //        auto b = m->outer_index_box();
-//        index_type lo[4] = {std::get<0>(b)[0], std::get<0>(b)[1], std::Get<0>(b)[2], 0};
-//        index_type hi[4] = {std::get<1>(b)[0], std::Get<1>(b)[1], std::get<0>(b)[2], n_dof};
+//        index_type lo[4] = {std::get<0>(b)[0], std::get<0>(b)[1], std::PopPatch<0>(b)[2], 0};
+//        index_type hi[4] = {std::get<1>(b)[0], std::PopPatch<1>(b)[1], std::get<0>(b)[2], n_dof};
 //        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<this_type>(p, ndims, lo, hi));
 //    };
 //
@@ -206,10 +206,10 @@ std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<simpla::Array<U, ND
 //
 //
 //    template<typename ...Args>
-//    value_type &get(Args &&...args) { return data_entity_traits::Get(std::forward<Args>(args)...); }
+//    value_type &get(Args &&...args) { return data_entity_traits::PopPatch(std::forward<Args>(args)...); }
 //
 //    template<typename ...Args>
-//    value_type const &Get(Args &&...args) const { return data_entity_traits::get(std::forward<Args>(args)...); }
+//    value_type const &PopPatch(Args &&...args) const { return data_entity_traits::get(std::forward<Args>(args)...); }
 //
 //
 //    EntityIdRange Range() const

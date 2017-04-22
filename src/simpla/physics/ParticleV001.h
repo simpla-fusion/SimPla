@@ -424,7 +424,7 @@ Particle<P, M, V001>::dataset(mesh::EntityRange const &r0) const
 
         std::tie(ds.data_space, ds.memory_space) = data_model::DataSpace::create_simple_unordered(num);
 
-//        Duplicate(r0, reinterpret_cast< value_type *>( ds.GetDataBlock.Get()));
+//        Duplicate(r0, reinterpret_cast< value_type *>( ds.GetDataBlock.PopPatch()));
     }
     return std::move(ds);
 };
@@ -534,7 +534,7 @@ Particle<P, M, V001>::insert(id_type const &s, TInputIterator ib, TInputIterator
     spPage **pg = &(get(s));
 
 //    for (spInputIterator __it = {0x1, 0x0, pg};
-//         spNextBlank(&__it, m_pool_.Get()) != 0x0 && (ib != ie); ++ib)
+//         spNextBlank(&__it, m_pool_.PopPatch()) != 0x0 && (ib != ie); ++ib)
 //    {
 //        *reinterpret_cast<value_type *>(__it.p) = *ib;
 //    }
@@ -641,7 +641,7 @@ Particle<P, M, V001>::update(Args &&...args)
 {
     if (!this->is_valid()) { RUNTIME_ERROR << "Particle is not valid! [" << getClassName() << "]" << std::endl; }
     logger::Logger __logger(logger::LOG_VERBOSE);
-    __logger << "CMD:\t" << "Push   [" << getClassName() << "]";
+    __logger << "CMD:\t" << "ConvertPatchFromSAMRAI   [" << getClassName() << "]";
 
 /**
  *   |<-----------------------------     valid   --------------------------------->|

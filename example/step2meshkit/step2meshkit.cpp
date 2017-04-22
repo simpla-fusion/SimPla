@@ -19,7 +19,7 @@ void step2vtk(std::string const &input_filename, std::string const &output_filen
     MKCore mk;
     mk.load_mesh(input_filename.c_str(), NULL, 0, 0, 0, true);
     mk.save_mesh((input_filename + ".vtk").c_str());
-    // Get the volumes
+    // PopPatch the volumes
     MEntVector vols;
     mk.get_entities_by_dimension(3, vols);
     int n_interval[3] = {64, 64, 32};

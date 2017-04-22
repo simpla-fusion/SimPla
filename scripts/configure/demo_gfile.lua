@@ -136,7 +136,7 @@ Grid=
  
 -- Media=
 -- {
---    {Tag="Vacuum",Region={{0.2*LX,0,0},{0.8*LX,0,0}},Op="Set"},
+--    {Tag="Vacuum",Region={{0.2*LX,0,0},{0.8*LX,0,0}},Op="PushPatch"},
 
 --    {Tag="Plasma",
 --      Select=function(x,y,z)

@@ -65,8 +65,8 @@ class AttributeGroup {
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
 
-    virtual void Push(Patch *);
-    virtual void Pop(Patch *);
+    void PushPatch(std::shared_ptr<Patch>);
+    void PopPatch(std::shared_ptr<Patch> p);
 
     std::set<Attribute *> const &GetAll() const;
 
@@ -198,7 +198,8 @@ struct AttributeDesc : public Attribute {
 //    virtual void Clear() { U::Clear(); }
 //    virtual void SetMesh(Mesh const *){};
 //    virtual Mesh const *GetMesh() const { return nullptr; };
-//    virtual void Push(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &d) {
+//    virtual void ConvertPatchFromSAMRAI(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const
+//    &d) {
 //        data::data_cast<U>(*d).swap(*this);
 //    };
 //    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> PopPatch() {

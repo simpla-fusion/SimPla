@@ -32,8 +32,8 @@ class Worker : public data::Serializable, public data::EnableCreateFromDataTable
     virtual void Register(AttributeGroup *);
     virtual void Deregister(AttributeGroup *);
 
-    virtual void Push(Patch *);
-    virtual void Pop(Patch *);
+    virtual void Push(std::shared_ptr<Patch>);
+    virtual std::shared_ptr<Patch> Pop();
 
     virtual void Initialize();
     virtual void SetUp();

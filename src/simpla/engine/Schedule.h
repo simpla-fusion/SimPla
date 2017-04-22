@@ -18,14 +18,11 @@ class Schedule : public SPObject, public data::Serializable, public data::Enable
 
    public:
     Schedule();
-    virtual ~Schedule();
-    Schedule(Schedule const &other) = delete;
-    Schedule(Schedule &&other) = delete;
-    Schedule &operator=(Schedule const &other) = delete;
-    Schedule &operator=(Schedule &&other) = delete;
+    ~Schedule() override;
+    SP_DEFAULT_CONSTRUCT(Schedule)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataTable> t) override;
+    void Deserialize(std::shared_ptr<data::DataTable> cfg) override;
 
     void Initialize() override;
     void Finalize() override;

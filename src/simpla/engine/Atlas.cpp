@@ -5,6 +5,7 @@
 
 #include "Atlas.h"
 #include "Chart.h"
+#include "Patch.h"
 #include "TransitionMap.h"
 //#include "simpla/utilities/BoxUtility.h"
 
@@ -17,14 +18,14 @@ struct Atlas::pimpl_s {
     typedef typename std::multimap<id_type, id_type>::iterator link_iterator;
     typedef typename std::multimap<id_type, id_type>::const_iterator const_link_iterator;
     typedef std::pair<const_link_iterator, const_link_iterator> multi_links_type;
-    std::map<id_type, std::shared_ptr<MeshBlock>> m_blocks_;
+    std::map<id_type, std::shared_ptr<Patch>> m_patches_;
     std::multimap<id_type, id_type> m_adjacent_;
     std::multimap<id_type, id_type> m_refine_;
     std::multimap<id_type, id_type> m_coarsen_;
 
     size_type m_level_ = 0;
     size_type m_max_level_ = 3;
-    std::set<std::shared_ptr<MeshBlock>> m_layers_[MAX_NUM_OF_LEVEL];
+    std::set<std::shared_ptr<Patch>> m_layers_[MAX_NUM_OF_LEVEL];
 
     size_tuple m_periodic_dimension_ = {1, 1, 1};
     size_tuple m_refine_ratio_[MAX_NUM_OF_LEVEL] = {{2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}};
@@ -42,28 +43,37 @@ void Atlas::Decompose(size_tuple const &d, int local_id){};
 
 index_box_type Atlas::FitIndexBox(box_type const &b, int level, int flag) const { return index_box_type{}; }
 
-std::shared_ptr<MeshBlock> Atlas::AddBlock(std::shared_ptr<MeshBlock> m) {
-    auto res = m_pimpl_->m_layers_[m->GetLevel()].emplace(m);
-    if (m->GetLevel() > m_pimpl_->m_level_) { m_pimpl_->m_level_ = m->GetLevel(); }
-    return *res.first;
-};
-std::shared_ptr<MeshBlock> Atlas::AddBlock(index_box_type const &b) { return AddBlock(std::make_shared<MeshBlock>(b)); }
-std::shared_ptr<MeshBlock> Atlas::GetBlock(id_type id) const { return m_pimpl_->m_blocks_.at(id); };
-size_type Atlas::Delete(id_type id) {
-    auto p = GetBlock(id);
-    if (p != nullptr) { m_pimpl_->m_layers_[p->GetLevel()].erase(p); }
-    return m_pimpl_->m_blocks_.erase(id);
-};
-std::shared_ptr<MeshBlock> Atlas::RefineBlock(id_type, index_box_type const &) { return nullptr; };
+// std::shared_ptr<Patch> Atlas::AddBlock(id_type id, std::shared_ptr<Patch> m) {
+//    auto res = m_pimpl_->m_layers_[m->GetLevel()].emplace(m);
+//    if (m->GetLevel() > m_pimpl_->m_level_) { m_pimpl_->m_level_ = m->GetLevel(); }
+//    return *res.first;
+//};
+// std::shared_ptr<Patch> Atlas::GetBlock(id_type id) const { return m_pimpl_->m_patches_.at(id); };
+// size_type Atlas::DeletePatch(id_type id) {
+//    auto p = GetBlock(id);
+//    if (p != nullptr) { m_pimpl_->m_layers_[p->GetLevel()].erase(p); }
+//    return m_pimpl_->m_patches_.erase(id);
+//};
+size_type Atlas::DeletePatch(id_type id) { return m_pimpl_->m_patches_.erase(id); }
 
-void Atlas::Foreach(std::function<void(std::shared_ptr<MeshBlock>)> const &fun, int level) const {
-    for (auto const &item : m_pimpl_->m_layers_[level]) { fun(item); }
-};
+id_type Atlas::PushPatch(std::shared_ptr<Patch> p) {
+    if (p != nullptr) {
+        auto res = m_pimpl_->m_patches_.emplace(p->GetId(), p);
+        if (!res.second) { res.first->second->Merge(*p); }
+    }
+    return (p == nullptr) ? NULL_ID : p->GetId();
+}
+
+std::shared_ptr<Patch> Atlas::PopPatch(id_type id) {
+    auto res = m_pimpl_->m_patches_.emplace(id, nullptr);
+    if (res.first->second == nullptr) { res.first->second = std::make_shared<Patch>(id); }
+    return res.first->second;
+}
 
 void Atlas::SetPeriodicDimension(size_tuple const &d) { m_pimpl_->m_periodic_dimension_ = d; }
 size_tuple const &Atlas::GetPeriodicDimension() const { return m_pimpl_->m_periodic_dimension_; }
 
-std::set<std::shared_ptr<MeshBlock>> const &Atlas::Level(int level) const { return m_pimpl_->m_layers_[level]; };
+// std::set<std::shared_ptr<Patch>> const &Atlas::Level(int level) const { return m_pimpl_->m_layers_[level]; };
 
 size_type Atlas::GetNumOfLevel() const { return m_pimpl_->m_max_level_; }
 size_type Atlas::GetMaxLevel() const { return m_pimpl_->m_max_level_; }

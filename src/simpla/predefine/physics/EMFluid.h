@@ -182,12 +182,12 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
     //    SetPhysicalBoundaryConditionE(time_now);
     //    if (m_fluid_sp_.size() > 0) {
-    //        field_type<VERTEX, 3> Q{m_mesh_};
-    //        field_type<VERTEX, 3> K{m_mesh_};
+    //        field_type<VERTEX, 3> Q{m_block_};
+    //        field_type<VERTEX, 3> K{m_block_};
     //
-    //        field_type<VERTEX> a{m_mesh_};
-    //        field_type<VERTEX> b{m_mesh_};
-    //        field_type<VERTEX> c{m_mesh_};
+    //        field_type<VERTEX> a{m_block_};
+    //        field_type<VERTEX> b{m_block_};
+    //        field_type<VERTEX> c{m_block_};
     //
     //        a.Clear();
     //        b.Clear();

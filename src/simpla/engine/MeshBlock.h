@@ -13,10 +13,12 @@ namespace simpla {
 namespace engine {
 
 class MeshBlock {
+    SP_OBJECT_BASE(MeshBlock)
    public:
-    MeshBlock(index_box_type const &b, size_type level = 0, Real time_now = 0);
-    MeshBlock(MeshBlock const &);
+    explicit MeshBlock(index_box_type const &b, size_type level = 0, Real time_now = 0);
     ~MeshBlock();
+
+    SP_DEFAULT_CONSTRUCT(MeshBlock)
 
     Real GetTime() const;
     id_type GetGUID() const;

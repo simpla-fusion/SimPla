@@ -65,25 +65,25 @@ class Patch;
  *  - '''dx''' is the resolution ratio  of discrete mesh, x = i * dx + r where 0<= r < dx
  */
 class Atlas : public SPObject {
+    SP_OBJECT_HEAD(Atlas, SPObject)
    public:
     Atlas();
-    virtual ~Atlas();
+    ~Atlas() override;
+    SP_DEFAULT_CONSTRUCT(Atlas);
 
-    void SetUp();
+    void SetUp() override;
 
     void Decompose(size_tuple const &d, int local_id = -1);
 
     index_box_type FitIndexBox(box_type const &b, int level = 0, int flag = 0) const;
 
-    std::shared_ptr<MeshBlock> AddBlock(index_box_type const &);
-    std::shared_ptr<MeshBlock> AddBlock(std::shared_ptr<MeshBlock>);
+    size_type DeletePatch(id_type);
+    id_type PushPatch(std::shared_ptr<Patch>);
+    std::shared_ptr<Patch> PopPatch(id_type id);
 
-    size_type Delete(id_type);
-    std::shared_ptr<MeshBlock> GetBlock(id_type) const;
-    std::shared_ptr<MeshBlock> RefineBlock(id_type, index_box_type const &);
-    std::set<std::shared_ptr<MeshBlock>> const &Level(int level = 0) const;
-
-    void Foreach(std::function<void(std::shared_ptr<MeshBlock>)> const &fun, int level = 0) const;
+    //    std::shared_ptr<Patch> RefineBlock(id_type, index_box_type const &);
+    //    std::set<std::shared_ptr<Patch>> const &Level(int level = 0) const;
+    //    void Foreach(std::function<void(std::shared_ptr<MeshBlock>)> const &fun, int level = 0) const;
 
     void SetPeriodicDimension(size_tuple const &d);
     size_tuple const &GetPeriodicDimension() const;

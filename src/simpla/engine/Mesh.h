@@ -36,18 +36,15 @@ class Mesh : public AttributeGroup, public data::Serializable, public data::Enab
     explicit Mesh(std::shared_ptr<Chart> c = nullptr);
     ~Mesh() override;
 
-    Mesh(Mesh const &) = delete;
-    Mesh(Mesh &&) = delete;
-    Mesh &operator=(Mesh const &) = delete;
-    Mesh &operator=(Mesh &&sss) = delete;
+    SP_DEFAULT_CONSTRUCT(Mesh)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> t) override;
 
     virtual Range<EntityId> GetRange(int iform) const;
 
-    void Push(Patch *p) override;
-    void Pop(Patch *p) override;
+    void Push(std::shared_ptr<Patch> p);
+    std::shared_ptr<Patch> Pop();
 
     virtual void InitializeData(Real time_now);
 

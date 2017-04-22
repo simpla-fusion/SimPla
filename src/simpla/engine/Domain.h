@@ -26,12 +26,15 @@ class Domain : public SPObject, public data::Serializable {
     SP_OBJECT_HEAD(Domain, SPObject)
    public:
     Domain();
-    Domain(const Domain &) = delete;
-    Domain(Domain &&) = delete;
     ~Domain() override;
+
+    SP_DEFAULT_CONSTRUCT(Domain)
 
     void Register(AttributeGroup *);
     void Deregister(AttributeGroup *);
+
+    std::shared_ptr<Patch> Pop();
+    void Push(std::shared_ptr<Patch> p);
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> t) override;
@@ -47,9 +50,9 @@ class Domain : public SPObject, public data::Serializable {
 
     void AddBoundaryCondition(std::shared_ptr<Worker>, std::shared_ptr<geometry::GeoObject> g = nullptr);
 
-    void InitializeCondition(Patch *patch, Real time_now = 0);
-    void BoundaryCondition(Patch *patch, Real time_now = 0);
-    void Advance(Patch *, Real time_now = 0, Real time_dt = 0);
+    void InitializeCondition(Real time_now);
+    void BoundaryCondition(Real time_now, Real time_dt);
+    void Advance(Real time_now, Real time_dt);
 
     void Initialize() override;
     void SetUp() override;

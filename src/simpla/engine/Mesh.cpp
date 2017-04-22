@@ -16,6 +16,8 @@ struct Mesh::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
     std::shared_ptr<geometry::GeoObject> m_geo_obj_;
     std::shared_ptr<Chart> m_chart_;
+    std::shared_ptr<Patch> m_patch_;
+    std::map<int, Range<EntityId>> m_ranges_;
 };
 Mesh::Mesh(std::shared_ptr<Chart> c) : m_pimpl_(new pimpl_s) { m_pimpl_->m_chart_ = c; }
 Mesh::~Mesh() {}
@@ -49,13 +51,16 @@ void Mesh::Deserialize(std::shared_ptr<data::DataTable>) {}
 Range<EntityId> Mesh::GetRange(int iform) const {
     return Range<EntityId>(std::make_shared<ContinueRange<EntityId>>(GetBlock()->GetIndexBox(), iform));
 };
-void Mesh::Push(Patch *p) {
+void Mesh::Push(std::shared_ptr<Patch> p) {
+    ASSERT(p != nullptr);
+    m_pimpl_->m_patch_ = p;
     m_pimpl_->m_mesh_block_ = p->GetBlock();
-    AttributeGroup::Push(p);
+    AttributeGroup::PushPatch(m_pimpl_->m_patch_);
 }
-void Mesh::Pop(Patch *p) {
-    p->SetBlock(GetBlock());
-    AttributeGroup::Pop(p);
+std::shared_ptr<Patch> Mesh::Pop() {
+    AttributeGroup::PopPatch(m_pimpl_->m_patch_);
+    m_pimpl_->m_patch_->SetChart(m_pimpl_->m_chart_);
+    return m_pimpl_->m_patch_;
 }
 }  // {namespace mesh
 }  // namespace simpla

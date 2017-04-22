@@ -163,7 +163,7 @@ class FieldView : public engine::Attribute {
     //    void Foreach_(Range<EntityId> const& r, TOP const& op, Args&&... args) {
     //        ASSERT(!empty());
     //        SetUp();
-    //        r.foreach ([&](EntityId s) { op(at(s), calculus_policy::getValue(*m_mesh_, std::forward<Args>(args),
+    //        r.foreach ([&](EntityId s) { op(at(s), calculus_policy::getValue(*m_block_, std::forward<Args>(args),
     //        s)...); });
     //    }
     //    template <typename... Args>
@@ -173,7 +173,7 @@ class FieldView : public engine::Attribute {
     //    template <typename... Args>
     //    void Foreach(Args&&... args) {
     //        SetUp();
-    //        Foreach_(m_mesh_->GetRange(GetIFORM()), std::forward<Args>(args)...);
+    //        Foreach_(m_block_->GetRange(GetIFORM()), std::forward<Args>(args)...);
     //    }
     //    template <typename Other>
     //    void Assign(Range<EntityId> const& r, Other const& other) {

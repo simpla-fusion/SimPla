@@ -280,7 +280,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //
 //		xc = (x1 + x0) * 0.5;
 //
-//		auto sc = std::Get<0>(geometry.point_global_to_local(xc, node_id));
+//		auto sc = std::PopPatch<0>(geometry.point_global_to_local(xc, node_id));
 //
 //		res->SetValue(sc);
 //
@@ -319,7 +319,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //		for (size_t j = 0; j <= n1; ++j)
 //		{
 //			res->SetValue(
-//					std::Get<0>(
+//					std::PopPatch<0>(
 //							geometry.point_global_to_local(
 //									x0 + dx0 * i + dx1 * j, node_id)));
 //		}
@@ -375,11 +375,11 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //
 //	coordinate_tuple xmin, xmax;
 //
-//	mesh_id_type s0 = std::Get<0>(geometry.point_global_to_local(x0, node_id));
+//	mesh_id_type s0 = std::PopPatch<0>(geometry.point_global_to_local(x0, node_id));
 //
-//	mesh_id_type s1 = std::Get<0>(geometry.point_global_to_local(x1, node_id));
+//	mesh_id_type s1 = std::PopPatch<0>(geometry.point_global_to_local(x1, node_id));
 //
-//	mesh_id_type s2 = std::Get<0>(geometry.point_global_to_local(x2, node_id));
+//	mesh_id_type s2 = std::PopPatch<0>(geometry.point_global_to_local(x2, node_id));
 //
 //	for (auto s : geometry.box(bound(bound(x0, x1), x2), node_id))
 //	{
@@ -440,9 +440,9 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //	++it;
 //	coordinate_tuple x1 = *it;
 //
-//	mesh_id_type s0 = std::Get<0>(geometry.point_global_to_local(x0, node_id));
+//	mesh_id_type s0 = std::PopPatch<0>(geometry.point_global_to_local(x0, node_id));
 //
-//	mesh_id_type s1 = std::Get<0>(geometry.point_global_to_local(x1, node_id));
+//	mesh_id_type s1 = std::PopPatch<0>(geometry.point_global_to_local(x1, node_id));
 //
 //	for (auto s : geometry.box(bound(x0, x1), node_id))
 //	{
@@ -494,7 +494,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //		for (size_t i = 0; i <= m; ++i)
 //		{
 //
-//			res->SetValue(std::Get<0>(geometry.point_global_to_local(
+//			res->SetValue(std::PopPatch<0>(geometry.point_global_to_local(
 //
 //			x0 + (x1 - x0) * (static_cast<Real>(i) / static_cast<Real>(m))
 //

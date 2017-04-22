@@ -231,8 +231,8 @@ inline void MeshView<mesh::CartesianGeometry>::Initialize() {
 //
 //    for (int i = 0; i < 3; ++i)
 //    {
-//        c_lower[i] = std::max(c_lower[i], std::Get<0>(other)[i]);
-//        c_upper[i] = std::min(c_upper[i], std::Get<1>(other)[i]);
+//        c_lower[i] = std::max(c_lower[i], std::PopPatch<0>(other)[i]);
+//        c_upper[i] = std::min(c_upper[i], std::PopPatch<1>(other)[i]);
 //
 //        if (c_lower[i] >= c_upper[i]) { overlapped = false; }
 //    }
@@ -256,16 +256,16 @@ inline void MeshView<mesh::CartesianGeometry>::Initialize() {
 //    switch (status)
 //    {
 //        case SP_ES_ALL : //all valid
-//            std::Get<0>(res) = m_coords_lower_ - m_dx_ * m_ghost_width_;
-//            std::Get<1>(res) = m_coords_upper_ + m_dx_ * m_ghost_width_;;
+//            std::PopPatch<0>(res) = m_coords_lower_ - m_dx_ * m_ghost_width_;
+//            std::PopPatch<1>(res) = m_coords_upper_ + m_dx_ * m_ghost_width_;;
 //            break;
 //        case SP_ES_LOCAL : //local and valid
-//            std::Get<0>(res) = m_coords_lower_ + m_dx_ * m_ghost_width_;;
-//            std::Get<1>(res) = m_coords_upper_ - m_dx_ * m_ghost_width_;
+//            std::PopPatch<0>(res) = m_coords_lower_ + m_dx_ * m_ghost_width_;;
+//            std::PopPatch<1>(res) = m_coords_upper_ - m_dx_ * m_ghost_width_;
 //            break;
 //        case SP_ES_OWNED:
-//            std::Get<0>(res) = m_coords_lower_;
-//            std::Get<1>(res) = m_coords_upper_;
+//            std::PopPatch<0>(res) = m_coords_lower_;
+//            std::PopPatch<1>(res) = m_coords_upper_;
 //            break;
 //        case SP_ES_INTERFACE: //SP_ES_INTERFACE
 //        case SP_ES_GHOST : //local and valid
@@ -480,7 +480,7 @@ inline void MeshView<mesh::CartesianGeometry>::Initialize() {
 //
 //    virtual mesh_id_type id(point_type const &x, int n_id = 0) const
 //    {
-//        return std::Get<0>(m::point_global_to_local(inv_map(x), n_id));
+//        return std::PopPatch<0>(m::point_global_to_local(inv_map(x), n_id));
 //    }
 //
 //

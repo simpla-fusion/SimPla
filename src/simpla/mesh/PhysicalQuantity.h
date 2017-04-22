@@ -185,7 +185,7 @@ public:
     void copy(EntityIdRange const &r0, this_type const &g)
     {
         UNIMPLEMENTED;
-//        r0.Assign([&](EntityId const &s) { get(s) = g.Get(s); });
+//        r0.Assign([&](EntityId const &s) { get(s) = g.PopPatch(s); });
     }
 
 

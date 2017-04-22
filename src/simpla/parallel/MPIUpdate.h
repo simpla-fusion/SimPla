@@ -49,8 +49,8 @@ void ndarray_update_ghost(void *buffer,
 //
 //	auto res = sync_global_location(mpi_comm, static_cast<int>(size));
 //
-//	return std::make_tuple(static_cast<Integral>(std::Get<0>(res)),
-//			static_cast<Integral>(std::Get<1>(res)));
+//	return std::make_tuple(static_cast<Integral>(std::PopPatch<0>(res)),
+//			static_cast<Integral>(std::PopPatch<1>(res)));
 //
 //}
 //struct mpi_send_recv_block_s

@@ -47,7 +47,7 @@ bool DataTable::isNull() const { return m_backend_ == nullptr; }
 size_type DataTable::size() const { return m_backend_->size(); }
 std::shared_ptr<DataEntity> DataTable::Get(std::string const& path) const { return m_backend_->Get(path); };
 void DataTable::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v, bool overwrite) {
-    //    return m_backend_->Set(uri, v, overwrite);
+    //    return m_backend_->PushPatch(uri, v, overwrite);
     //    auto tab_res = pimpl_s::get_table((this), uri, overwrite);
     //    if (tab_res.second == "") { return 0; }
     //    auto res = tab_res.first->m_pimpl_->m_table_.emplace(tab_res.second, nullptr);

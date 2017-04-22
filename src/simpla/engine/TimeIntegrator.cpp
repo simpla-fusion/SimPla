@@ -9,8 +9,8 @@ namespace simpla {
 namespace engine {
 bool TimeIntegrator::is_register = engine::Schedule::RegisterCreator<TimeIntegrator>("TimeIntegrator");
 
-//TimeIntegrator::TimeIntegrator() : Schedule(){};
-//TimeIntegrator::~TimeIntegrator() {}
+// TimeIntegrator::TimeIntegrator() : Schedule(){};
+// TimeIntegrator::~TimeIntegrator() {}
 
 std::shared_ptr<data::DataTable> TimeIntegrator::Serialize() const {
     auto p = Schedule::Serialize();
@@ -23,12 +23,12 @@ std::shared_ptr<data::DataTable> TimeIntegrator::Serialize() const {
     return p;
 }
 
-void TimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> p) {
-    Schedule::Deserialize(p);
-    SetTime(p->GetValue("TimeBegin", 0.0));
-    SetTimeEnd(p->GetValue("TimeEnd", 1.0));
-    SetTimeStep(p->GetValue("TimeStep", 0.1));
-    SetMaxStep(p->GetValue<size_type>("MaxStep", 0));
+void TimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> cfg) {
+    Schedule::Deserialize(cfg);
+    SetTime(cfg->GetValue("TimeBegin", 0.0));
+    SetTimeEnd(cfg->GetValue("TimeEnd", 1.0));
+    SetTimeStep(cfg->GetValue("TimeStep", 0.1));
+    SetMaxStep(cfg->GetValue<size_type>("MaxStep", 0));
 };
 void TimeIntegrator::Synchronize() { Schedule::Synchronize(); }
 
@@ -52,12 +52,12 @@ Real TimeIntegrator::Advance(Real time_dt) {
 //    //            if (!v.second->GetGeoObject()->CheckOverlap(mblk->GetBoundBox())) { continue; }
 //    //            auto res = m_pimpl_->m_ctx_->GetPatches()->GetTable(std::to_string(id));
 //    //            if (res == nullptr) { res = std::make_shared<data::DataTable>(); }
-//    //            v.second->Push(mblk, res);
+//    //            v.second->ConvertPatchFromSAMRAI(mblk, res);
 //    //            LOGGER << " Domain [ " << std::setw(10) << std::left << v.second->name() << " ] is applied on "
 //    //                   << mblk->GetIndexBox() << " id= " << id << std::endl;
 //    //            v.second->Run(dt);
 //    //            auto t = v.second->PopPatch().second;
-//    //            m_pimpl_->m_ctx_->GetPatches()->Set(std::to_string(id), t);
+//    //            m_pimpl_->m_ctx_->GetPatches()->PushPatch(std::to_string(id), t);
 //    //        }
 //    //    }
 //    m_pimpl_->m_time_ += dt;

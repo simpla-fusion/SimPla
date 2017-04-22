@@ -94,11 +94,11 @@ void DataBackendMemory::Set(std::string const& uri, std::shared_ptr<DataEntity> 
     //        auto& dest_table = res.first->second->cast_as<DataTable>();
     //        auto const& src_table = v->cast_as<DataTable>();
     //        src_table.Foreach(
-    //            [&](std::string const& k, std::shared_ptr<DataEntity> const& v) { dest_table.Set(k, v, overwrite); });
+    //            [&](std::string const& k, std::shared_ptr<DataEntity> const& v) { dest_table.PushPatch(k, v, overwrite); });
     //    } else if (v->isArray() && v->cast_as<DataArray>().isA(typeid(DataArrayWrapper<void>))) {
     //        auto dest_array = std::make_shared<DataArrayWrapper<void>>();
     //        auto const& src_array = v->cast_as<DataArray>();
-    //        for (size_type i = 0, ie = src_array.size(); i < ie; ++i) { dest_array->Add(src_array.Get(i)); }
+    //        for (size_type i = 0, ie = src_array.size(); i < ie; ++i) { dest_array->Add(src_array.PopPatch(i)); }
     //        res.first->second = dest_array;
     //    } else if (res.second || overwrite) {
     //        res.first->second = v;
