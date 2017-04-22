@@ -18,8 +18,8 @@ class DataTable;
 template <typename TObj>
 class EnableCreateFromDataTable {
    public:
-    EnableCreateFromDataTable(){};
-    virtual ~EnableCreateFromDataTable() {}
+    EnableCreateFromDataTable() = default;
+    virtual ~EnableCreateFromDataTable() = default;
 
     struct ObjectFactory {
         std::map<std::string, std::pair<std::function<TObj *()>, std::string>> m_factory_;
@@ -30,25 +30,27 @@ class EnableCreateFromDataTable {
     }
     static std::string ShowDescription(std::string const &k = "") {
         auto const &f = SingletonHolder<ObjectFactory>::instance().m_factory_;
+        std::string res;
         auto it = f.find(k);
         if (it == f.end()) { it = f.begin(); }
         if (it != f.end()) {
-            return it->second.second;
+            res = it->second.second;
         } else {
             std::ostringstream os;
             os << std::endl << "Register " << TObj::ClassName() << " Creator:" << std::endl;
             for (auto const &item : f) {
                 os << std::setw(15) << item.first << " : " << item.second.second << std::endl;
             }
-            return os.str();
+            res = os.str();
         }
+        return res;
     };
     static bool RegisterCreator(std::string const &k, std::function<TObj *()> const &fun,
-                                std::string const &desc_s = "") {
+                                std::string const &desc_s = "") noexcept {
         return SingletonHolder<ObjectFactory>::instance().m_factory_.emplace(k, std::make_pair(fun, desc_s)).second;
     };
     template <typename U>
-    static bool RegisterCreator(std::string const &k, std::string const &desc_s = "") {
+    static bool RegisterCreator(std::string const &k, std::string const &desc_s = "") noexcept {
         return RegisterCreator(k, []() { return new U; }, desc_s);
     };
 

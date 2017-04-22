@@ -17,14 +17,14 @@ using namespace engine;
  *  @ingroup
  *  @brief   PEC
  */
-template <typename TChart>
+template <typename TM>
 class PEC : public engine::Worker {
-    SP_OBJECT_HEAD(PEC<TChart>, engine::Worker);
+    SP_OBJECT_HEAD(PEC<TM>, engine::Worker);
 
    public:
     static const bool is_register;
 
-    typedef engine::MeshView<TChart> mesh_type;
+    typedef TM mesh_type;
     typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
     mesh_type m_mesh_;
     template <int IFORM, int DOF = 1>

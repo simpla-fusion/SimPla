@@ -27,7 +27,7 @@ struct CartesianGeometry : public engine::Chart {
 };
 }
 namespace engine {
-
+typedef MeshView<mesh::CartesianGeometry> CartesianRectMesh;
 /**
  * @ingroup mesh
  * @brief Uniform structured get_mesh

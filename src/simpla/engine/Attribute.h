@@ -49,15 +49,12 @@ class Patch;
 template <typename TV = double, int IFORM = VERTEX, int DOF = 1>
 struct AttributeDesc;
 class AttributeGroup {
+    SP_OBJECT_BASE(AttributeGroup)
    public:
     AttributeGroup();
     virtual ~AttributeGroup();
 
-    AttributeGroup(AttributeGroup const &other) = delete;
-    AttributeGroup(AttributeGroup &&other) = delete;
-
-    AttributeGroup &operator=(AttributeGroup const &other) = delete;
-    AttributeGroup &operator=(AttributeGroup &&other) = delete;
+    SP_DEFAULT_CONSTRUCT(AttributeGroup);
 
     virtual void Register(AttributeGroup *);
     virtual void Deregister(AttributeGroup *);

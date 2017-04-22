@@ -30,7 +30,7 @@ class MeshView;
  *
  */
 class Mesh : public AttributeGroup, public data::Serializable, public data::EnableCreateFromDataTable<Mesh> {
-    SP_OBJECT_BASE(Mesh);
+    SP_OBJECT_HEAD(Mesh, AttributeGroup);
 
    public:
     explicit Mesh(std::shared_ptr<Chart> c = nullptr);

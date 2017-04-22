@@ -69,7 +69,6 @@ class RectMesh : public engine::Mesh {
 };
 
 }  // namespace mesh {
-
 }  // namespace simpla {
 
 #endif  // SIMPLA_RECTMESH_H

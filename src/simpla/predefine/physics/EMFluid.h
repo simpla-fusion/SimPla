@@ -17,24 +17,24 @@ using namespace algebra;
 using namespace data;
 using namespace engine;
 
-template <typename TChart>
+template <typename TM>
 class EMFluid : public engine::Worker {
+    SP_OBJECT_HEAD(EMFluid<TM>, engine::Worker)
+
    public:
-    SP_OBJECT_HEAD(EMFluid<TChart>, engine::Worker)
+    EMFluid() = default;
+    ~EMFluid() override = default;
 
     static const bool is_register;
 
-    typedef engine::MeshView<TChart> mesh_type;
+    typedef TM mesh_type;
     typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
 
     mesh_type m_mesh_;
 
-    EMFluid(){};
-    ~EMFluid() override {}
-
     std::shared_ptr<data::DataTable> Serialize() const override {
         auto res = std::make_shared<data::DataTable>();
-        res->SetValue<std::string>("Type", "EMFluid<" + TChart::ClassName() + ">");
+        res->SetValue<std::string>("Type", "EMFluid<" + TM::ClassName() + ">");
         return res;
     };
 

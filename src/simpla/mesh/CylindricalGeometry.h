@@ -33,6 +33,8 @@ struct CylindricalGeometry : public engine::Chart {
 }
 namespace engine {
 using namespace simpla::data;
+typedef MeshView<mesh::CylindricalGeometry> CylindricalRectMesh;
+
 /**
  * @ingroup mesh
  * @brief Uniform structured get_mesh

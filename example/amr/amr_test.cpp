@@ -8,6 +8,7 @@
 #include <simpla/data/all.h>
 #include <simpla/engine/all.h>
 #include <simpla/geometry/Cube.h>
+#include <simpla/mesh/EBMesh.h>
 #include <simpla/model/GEqdsk.h>
 #include <iostream>
 #include "simpla/mesh/CartesianGeometry.h"
@@ -20,21 +21,25 @@ namespace mesh {
 REGISTER_CREATOR(engine::Chart, CartesianGeometry, " Cartesian Geometry")
 REGISTER_CREATOR(engine::Chart, CylindricalGeometry, " Cylindrical Geometry")
 }  // namespace mesh{
-
-static bool _PRE_REGISTERED = EMFluid<mesh::CylindricalGeometry>::is_register &&
-                              EMFluid<mesh::CartesianGeometry>::is_register &&
-                              PEC<mesh::CylindricalGeometry>::is_register && PEC<mesh::CartesianGeometry>::is_register;
+using namespace simpla::engine;
+static bool _PRE_REGISTERED = EMFluid<CartesianRectMesh>::is_register &&                  //
+                              EMFluid<CylindricalRectMesh>::is_register &&                //
+                              EMFluid<mesh::EBMesh<CartesianRectMesh>>::is_register &&    //
+                              EMFluid<mesh::EBMesh<CylindricalRectMesh>>::is_register &&  //
+                              PEC<CartesianRectMesh>::is_register &&                      //
+                              PEC<CylindricalRectMesh>::is_register &&                    //
+                              PEC<mesh::EBMesh<CartesianRectMesh>>::is_register &&        //
+                              PEC<mesh::EBMesh<CylindricalRectMesh>>::is_register;
 
 struct UseCaseAMR : public application::SpApp {
-    UseCaseAMR();
-    virtual ~UseCaseAMR();
-    virtual void SetUp();
+    SP_OBJECT_HEAD(UseCaseAMR, application::SpApp)
+    UseCaseAMR() = default;
+    ~UseCaseAMR() override = default;
+    SP_DEFAULT_CONSTRUCT(UseCaseAMR);
+
+    void SetUp() override;
 };
 SP_REGISITER_APP(UseCaseAMR, " AMR Test ");
-
-UseCaseAMR::UseCaseAMR(){};
-
-UseCaseAMR::~UseCaseAMR() {}
 
 void UseCaseAMR::SetUp() {
     auto domain = std::make_shared<engine::Domain>();

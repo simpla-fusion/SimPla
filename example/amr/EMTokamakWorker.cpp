@@ -18,9 +18,11 @@ using namespace engine;
 
 class EMTokamakWorker;
 
-class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
-    SP_OBJECT_HEAD(EMTokamakWorker, EMFluid<mesh::CylindricalGeometry>)
+class EMTokamakWorker : public EMFluid<CylindricalRectMesh> {
+    SP_OBJECT_HEAD(EMTokamakWorker, EMFluid<CylindricalRectMesh>)
    public:
+    EMTokamakWorker() = default;
+    ~EMTokamakWorker() override = default;
     SP_DEFAULT_CONSTRUCT(EMTokamakWorker);
 
     void Initialize() override;
