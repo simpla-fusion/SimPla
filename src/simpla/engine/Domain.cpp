@@ -60,7 +60,8 @@ void Domain::SetChart(std::shared_ptr<Chart> m) { m_pimpl_->m_chart_ = m; };
 std::shared_ptr<Chart> Domain::GetChart() const { return m_pimpl_->m_chart_; }
 
 std::shared_ptr<Worker> Domain::CreateWorker(std::string const &worker_s) const {
-    return Worker::Create(worker_s + "<MeshView<" + m_pimpl_->m_chart_->GetClassName() + ">>");
+    //    return Worker::Create(worker_s + "<MeshView<" + m_pimpl_->m_chart_->GetClassName() + ">>");
+    return Worker::Create(worker_s + "<EBMesh<MeshView<" + m_pimpl_->m_chart_->GetClassName() + ">>>");
 }
 
 void Domain::SetWorker(std::string const &worker_s) { SetWorker(CreateWorker(worker_s)); }
