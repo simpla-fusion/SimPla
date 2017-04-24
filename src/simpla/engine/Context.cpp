@@ -3,7 +3,7 @@
 //
 #include "Context.h"
 #include "Domain.h"
-#include "Mesh.h"
+#include "MeshBase.h"
 #include "Task.h"
 #include "Worker.h"
 #include "simpla/data/all.h"
@@ -143,7 +143,7 @@ std::shared_ptr<Domain> Context::GetDomain(std::string const &k) const {
 //        if (!v->isTable()) { return; }
 //        auto const &t = v->cast_as<data::DataTable>();
 //
-//        std::shared_ptr m(GLOBAL_MESHVIEW_FACTORY.Create(t.GetTable("Mesh"),
+//        std::shared_ptr m(GLOBAL_MESHVIEW_FACTORY.Create(t.GetTable("MeshBase"),
 //                                                         GetModel().AddObject(key,
 //                                                         t.GetTable("Geometry")).first));
 //
@@ -160,7 +160,7 @@ std::shared_ptr<Domain> Context::GetDomain(std::string const &k) const {
 //    }
 //    std::shared_ptr<geometry::GeoObject> geo = g;
 //    if (geo == nullptr) { geo.reset(GLOBAL_GEO_OBJECT_FACTORY.Create(db()->GetTable("Geometry"))); }
-//    m_pimpl_->m_chart_.reset(GLOBAL_MESHVIEW_FACTORY.Create(db()->GetTable("Mesh"), geo));
+//    m_pimpl_->m_chart_.reset(GLOBAL_MESHVIEW_FACTORY.Create(db()->GetTable("MeshBase"), geo));
 //
 //    m_pimpl_->m_is_initialized_ = true;
 //    LOGGER << "Context is initialized!" << std::endl;

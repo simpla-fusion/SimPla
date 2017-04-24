@@ -179,7 +179,7 @@ int load_and_mesh(const char *input_filename,
                   << ", # of nInsideCell: " << vnInsideCell.size() / 3 << std::endl;
     }
 
-    std::cout << "EBMesh is succesfully finished." << std::endl;
+    std::cout << "BoundaryMesh is succesfully finished." << std::endl;
     std::cout << "Time including loading: "
               << difftime(mesh_time, start_time)
               << " secs, Time excluding loading: "

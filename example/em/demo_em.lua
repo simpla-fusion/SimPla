@@ -61,7 +61,7 @@ Geometry = {
     }
 }
 
-Mesh = {
+MeshBase = {
     Type = "Cartesian",
     Origin = { 0, 0, 0 }, -- Dimensions[?]=1 => ignored dimension
     Dx = { 0.1, 0.1, 0.1 }, -- Dimensions[?]=1 => ignored dimension

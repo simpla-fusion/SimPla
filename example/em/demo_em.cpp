@@ -60,8 +60,8 @@ void UseCaseEMFluid::Deserialize(std::shared_ptr<data::DataTable> cfg) {
 //    ctx->GetModel("Center").AddObject("OuterBox", geometry::Cube({{-0.1, -0.1, -0.1}, {1.1, 1.1, 1.1}}));
 //    ctx->GetModel().db()->SetValue("Center", {"GeoObject"_ = {"InnerBox"}});
 //    ctx->GetModel().db()->SetValue("Boundary", {"GeoObject"_ = {"+OuterBox", "-InnerBox"}});
-//    ctx->db()->SetValue("Domain/Center", {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "EMFluid"}}});
-//    ctx->db()->SetValue("Domain/Boundary", {"Mesh"_ = "CartesianGeometry", "Task"_ = {{"name"_ = "PML"}}});
+//    ctx->db()->SetValue("Domain/Center", {"MeshBase"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "EMFluid"}}});
+//    ctx->db()->SetValue("Domain/Boundary", {"MeshBase"_ = "CartesianGeometry", "Task"_ = {{"name"_ = "PML"}}});
 //    options.GetTable("Particles").foreach ([&](auto const &item) {
 //        auto sp = center_worker.AddSpecies(std::get<0>(item).template as<std::string>(),
 //                                           std::get<1>(item)["Mass"].template as<Real>(1.0),

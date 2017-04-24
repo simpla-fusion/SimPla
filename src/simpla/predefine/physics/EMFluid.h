@@ -20,17 +20,10 @@ using namespace engine;
 template <typename TM>
 class EMFluid : public engine::Worker {
     SP_OBJECT_HEAD(EMFluid<TM>, engine::Worker)
+    typedef TM mesh_type;
 
    public:
-    EMFluid() = default;
-    ~EMFluid() override = default;
-
-    static const bool is_register;
-
-    typedef TM mesh_type;
-    typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
-
-    mesh_type m_mesh_;
+    WORKER_HEAD(EMFluid)
 
     std::shared_ptr<data::DataTable> Serialize() const override {
         auto res = std::make_shared<data::DataTable>();
@@ -38,10 +31,7 @@ class EMFluid : public engine::Worker {
         return res;
     };
 
-    virtual void Deserialize(shared_ptr<DataTable> t) override { UNIMPLEMENTED; }
-
-    Mesh* GetMesh() override { return &m_mesh_; }
-    Mesh const* GetMesh() const override { return &m_mesh_; }
+    void Deserialize(shared_ptr<DataTable> t) override { UNIMPLEMENTED; }
 
     void Initialize() override;
     void Finalize() override;
@@ -56,8 +46,7 @@ class EMFluid : public engine::Worker {
     //    virtual void SetPhysicalBoundaryConditionE(Real time = 0){};
     //    virtual void SetPhysicalBoundaryConditionB(Real time = 0){};
 
-    template <int IFORM, int DOF = 1>
-    using field_type = Field<mesh_type, scalar_type, IFORM, DOF>;
+
 
     typedef field_type<FACE> TB;
     typedef field_type<EDGE> TE;
@@ -90,9 +79,9 @@ class EMFluid : public engine::Worker {
     std::shared_ptr<fluid_s> AddSpecies(std::string const& name, data::DataTable const& d);
     std::map<std::string, std::shared_ptr<fluid_s>>& GetSpecies() { return m_fluid_sp_; };
 };
+
 template <typename TM>
-const bool EMFluid<TM>::is_register =
-    engine::Worker::RegisterCreator<EMFluid<TM>>(std::string("EMFluid<") + TM::ClassName() + ">");
+bool EMFluid<TM>::is_registered = engine::Worker::RegisterCreator<EMFluid<TM>>();
 
 template <typename TM>
 std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string const& name,

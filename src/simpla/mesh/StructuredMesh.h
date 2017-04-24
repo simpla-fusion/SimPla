@@ -1,32 +1,36 @@
 //
-// Created by salmon on 17-4-11.
+// Created by salmon on 17-4-24.
 //
 
-#ifndef SIMPLA_RECTMESH_H
-#define SIMPLA_RECTMESH_H
+#ifndef SIMPLA_STRUCTUREDMESH_H
+#define SIMPLA_STRUCTUREDMESH_H
 
 #include <simpla/engine/MeshBase.h>
-#include "StructuredMesh.h"
 
 namespace simpla {
 namespace mesh {
 
-class RectMesh : public StructuredMesh {
-    SP_OBJECT_HEAD(RectMesh, StructuredMesh)
+class StructuredMesh : public engine::MeshBase {
+    SP_OBJECT_HEAD(StructuredMesh, engine::MeshBase)
    public:
-    static std::string ClassName() { return std::string("RectMesh"); }
+    static constexpr unsigned int NDIMS = 3;
+    typedef Real scalar_type;
 
     template <typename... Args>
-    explicit RectMesh(Args &&... args) : engine::MeshBase(std::forward<Args>(args)...){};
-    ~RectMesh() override = default;
+    explicit StructuredMesh(Args &&... args) : engine::MeshBase(std::forward<Args>(args)...){};
+    ~StructuredMesh() override = default;
+    SP_DEFAULT_CONSTRUCT(StructuredMesh);
 
-    SP_DEFAULT_CONSTRUCT(RectMesh)
+    std::string GetClassName() const override { return ClassName(); }
+    static std::string ClassName() { return "StructuredMesh"; }
 
     typedef EntityIdCoder M;
-    point_type point(index_type i, index_type j, index_type k) const override = 0;
+
+    virtual point_type point(index_type i, index_type j, index_type k) const = 0;
 
     point_type point(EntityId s) const override {
-        return point(s, point_type{M::m_id_to_coordinates_shift_[s.w & 7][0], M::m_id_to_coordinates_shift_[s.w & 7][1],
+        return point(s, point_type{M::m_id_to_coordinates_shift_[s.w & 7][0],  //
+                                   M::m_id_to_coordinates_shift_[s.w & 7][1],  //
                                    M::m_id_to_coordinates_shift_[s.w & 7][2]});
     }
 
@@ -70,8 +74,7 @@ class RectMesh : public StructuredMesh {
         return res;
     }
 };
-
 }  // namespace mesh {
 }  // namespace simpla {
 
-#endif  // SIMPLA_RECTMESH_H
+#endif  // SIMPLA_STRUCTUREDMESH_H

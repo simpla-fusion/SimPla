@@ -429,6 +429,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         if (v->GetName() == "") continue;
         boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, v);
         if (var == nullptr) { continue; }
+
         m_samrai_variables_[v] = var;
 
         /*** FIXME:
@@ -548,15 +549,15 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
     if (initial_time) {
         auto &atlas = m_ctx_->GetAtlas();
 
-//        auto p = atlas.PopPatch(static_cast<id_type>(patch.getLocalId().getValue()));
+        //        auto p = atlas.PopPatch(static_cast<id_type>(patch.getLocalId().getValue()));
         auto p = std::make_shared<engine::Patch>();
 
         ConvertPatchFromSAMRAI(patch, p.get());
         m_ctx_->Push(p);
         m_ctx_->InitializeCondition(data_time);
-//        p = m_ctx_->Pop();
-//        ConvertPatchToSAMRAI(patch, p.get());
-//        atlas.PushPatch(p);
+        //        p = m_ctx_->Pop();
+        //        ConvertPatchToSAMRAI(patch, p.get());
+        //        atlas.PushPatch(p);
     }
 
     if (d_use_nonuniform_workload) {
@@ -693,6 +694,7 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
     SAMRAITimeIntegrator() = default;
     ~SAMRAITimeIntegrator() override;
     SP_DEFAULT_CONSTRUCT(SAMRAITimeIntegrator)
+    DECLARE_REGISTER_NAME("SAMRAITimeIntegrator")
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> cfg) override;
@@ -733,11 +735,8 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
 
     unsigned int ndims = 3;
 };
+REGISTER_CREATOR(SAMRAITimeIntegrator)
 
-bool SAMRAITimeIntegrator_IS_REGISTERED =
-    engine::Schedule::RegisterCreator<SAMRAITimeIntegrator>("SAMRAI", "SAMRAI Time Integrator");
-
-// SAMRAITimeIntegrator::SAMRAITimeIntegrator() : engine::TimeIntegrator(){};
 SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
     SAMRAI::tbox::SAMRAIManager::shutdown();
     SAMRAI::tbox::SAMRAIManager::finalize();

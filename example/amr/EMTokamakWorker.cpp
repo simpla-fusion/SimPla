@@ -2,24 +2,20 @@
 // Created by salmon on 16-11-29.
 //
 
-#include <simpla/utilities/sp_def.h>
-
 #include <simpla/algebra/all.h>
 #include <simpla/engine/all.h>
-#include <simpla/mesh/CylindricalGeometry.h>
+#include <simpla/mesh/all.h>
 #include <simpla/model/GEqdsk.h>
 #include <simpla/physics/Constants.h>
 #include <simpla/predefine/physics/EMFluid.h>
+#include <simpla/utilities/sp_def.h>
 #include <iostream>
-
 namespace simpla {
 using namespace engine;
 // using namespace model;
 
-class EMTokamakWorker;
-
-class EMTokamakWorker : public EMFluid<CylindricalRectMesh> {
-    SP_OBJECT_HEAD(EMTokamakWorker, EMFluid<CylindricalRectMesh>)
+class EMTokamakWorker : public EMFluid<mesh::CylindricalSMesh> {
+    SP_OBJECT_HEAD(EMTokamakWorker, EMFluid<mesh::CylindricalSMesh>)
    public:
     EMTokamakWorker() = default;
     ~EMTokamakWorker() override = default;

@@ -7,14 +7,14 @@
 #include <set>
 #include <typeindex>
 #include "Domain.h"
-#include "Mesh.h"
+#include "MeshBase.h"
 #include "MeshBlock.h"
 #include "Patch.h"
 namespace simpla {
 namespace engine {
 
 struct AttributeGroup::pimpl_s {
-    Mesh const *m_mesh_;
+    MeshBase const *m_mesh_;
     std::set<Attribute *> m_attributes_;
 };
 
@@ -39,7 +39,7 @@ std::set<Attribute *> const &AttributeGroup::GetAll() const { return m_pimpl_->m
 
 struct Attribute::pimpl_s {
     std::set<AttributeGroup *> m_bundle_;
-    Mesh const *m_mesh_ = nullptr;
+    MeshBase const *m_mesh_ = nullptr;
     Range<EntityId> m_range_;
 };
 // Attribute::Attribute(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), data::Configurable(t) {
@@ -74,8 +74,8 @@ void Attribute::Deregister(AttributeGroup *attr_b) {
     if (m_pimpl_->m_bundle_.erase(attr_b) > 0) { attr_b->Detach(this); };
 }
 
-void Attribute::SetMesh(Mesh const *m) { m_pimpl_->m_mesh_ = m; }
-Mesh const *Attribute::GetMesh() const { return m_pimpl_->m_mesh_; }
+void Attribute::SetMesh(MeshBase const *m) { m_pimpl_->m_mesh_ = m; }
+MeshBase const *Attribute::GetMesh() const { return m_pimpl_->m_mesh_; }
 
 // void Attribute::SetRange(Range<EntityId> const &r) { m_pimpl_->m_range_ = r; }
 // Range<EntityId> const &Attribute::GetRange() const { return m_pimpl_->m_range_; }

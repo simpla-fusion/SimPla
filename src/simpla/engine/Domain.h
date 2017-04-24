@@ -14,7 +14,7 @@
 namespace simpla {
 namespace engine {
 // class Attribute;
-class Mesh;
+class MeshBase;
 class Patch;
 class Worker;
 // class MeshBlock;
@@ -39,16 +39,22 @@ class Domain : public SPObject, public data::Serializable {
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> t) override;
 
-    void SetChart(std::string const &chart_s);
-    void SetChart(std::shared_ptr<Chart>);
-    std::shared_ptr<Chart> GetChart() const;
-
     void SetGeoObject(std::shared_ptr<geometry::GeoObject> geo_object);
     std::shared_ptr<geometry::GeoObject> GetGeoObject() const;
 
-    std::shared_ptr<Worker> CreateWorker(std::string const &worker_s) const;
-    void SetWorker(std::string const &worker_s);
-    void SetWorker(std::shared_ptr<Worker>);
+    std::shared_ptr<Chart> CreateChart(std::string const &s) const;
+    void SetChart(std::string const &s);
+    void SetChart(std::shared_ptr<Chart>);
+    std::shared_ptr<Chart> GetChart() const;
+
+    std::shared_ptr<MeshBase> CreateMesh(std::string const &s) const;
+    void SetMesh(std::string const &s);
+    void SetMesh(std::shared_ptr<MeshBase> m);
+    std::shared_ptr<MeshBase> GetMesh() const;
+
+    std::shared_ptr<Worker> CreateWorker(std::string const &s) const;
+    void SetWorker(std::string const &s);
+    void SetWorker(std::shared_ptr<Worker> w);
     std::shared_ptr<Worker> GetWorker() const;
 
     void AddBoundaryCondition(std::string const &worker_s, std::shared_ptr<geometry::GeoObject> g = nullptr);

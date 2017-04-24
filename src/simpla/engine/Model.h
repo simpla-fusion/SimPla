@@ -7,7 +7,7 @@
 
 #include <simpla/geometry/GeoObject.h>
 #include "Attribute.h"
-#include "Mesh.h"
+#include "MeshBase.h"
 
 namespace simpla {
 namespace model {

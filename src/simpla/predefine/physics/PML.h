@@ -33,8 +33,8 @@ class PML : public engine::Worker {
     virtual ~PML(){};
 
     mesh_type m_mesh_;
-    Mesh* GetMesh() { return &m_mesh_; }
-    Mesh const* GetMesh() const { return &m_mesh_; }
+    MeshBase* GetMesh() { return &m_mesh_; }
+    MeshBase const* GetMesh() const { return &m_mesh_; }
 
     void SetCenterDomain(geometry::GeoObject const&) {}
 

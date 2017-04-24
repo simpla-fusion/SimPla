@@ -7,10 +7,6 @@
 #include "simpla/data/all.h"
 namespace simpla {
 namespace engine {
-bool TimeIntegrator::is_register = engine::Schedule::RegisterCreator<TimeIntegrator>("TimeIntegrator");
-
-// TimeIntegrator::TimeIntegrator() : Schedule(){};
-// TimeIntegrator::~TimeIntegrator() {}
 
 std::shared_ptr<data::DataTable> TimeIntegrator::Serialize() const {
     auto p = Schedule::Serialize();

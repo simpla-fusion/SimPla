@@ -13,7 +13,7 @@
 
 namespace simpla {
 namespace engine {
-class Mesh;
+class MeshBase;
 class MeshBlock;
 class Chart : public data::Serializable, public data::EnableCreateFromDataTable<Chart> {
     SP_OBJECT_BASE(engine::Chart)
@@ -21,6 +21,7 @@ class Chart : public data::Serializable, public data::EnableCreateFromDataTable<
     Chart();
     ~Chart() override;
     SP_DEFAULT_CONSTRUCT(Chart)
+    DECLARE_REGISTER_NAME("Chart")
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> t) override;

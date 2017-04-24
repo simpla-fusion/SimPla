@@ -2,95 +2,69 @@
 // Created by salmon on 16-10-9.
 //
 
-#ifndef SIMPLA_CYLINDRICALRECTMESH_H
-#define SIMPLA_CYLINDRICALRECTMESH_H
+#ifndef SIMPLA_CYLINDRICALGEOMETRY_H
+#define SIMPLA_CYLINDRICALGEOMETRY_H
 
 #include <simpla/SIMPLA_config.h>
-#include <iomanip>
-#include <vector>
-
 #include <simpla/algebra/all.h>
 #include <simpla/data/all.h>
 #include <simpla/engine/all.h>
-
 #include <simpla/utilities/FancyStream.h>
 #include <simpla/utilities/Log.h>
 #include <simpla/utilities/macro.h>
 #include <simpla/utilities/type_cast.h>
 #include <simpla/utilities/type_traits.h>
-#include "RectMesh.h"
+#include <iomanip>
+#include <vector>
+#include "Mesh.h"
+#include "SMesh.h"
+
 namespace simpla {
 namespace mesh {
 struct CylindricalGeometry : public engine::Chart {
     SP_OBJECT_HEAD(CylindricalGeometry, engine::Chart)
+    DECLARE_REGISTER_NAME("CylindricalGeometry");
+
     static constexpr int NDIMS = 3;
     std::shared_ptr<data::DataTable> Serialize() const override {
         auto p = engine::Chart::Serialize();
-        p->SetValue<std::string>("Type", "CylindricalGeometry");
+        p->SetValue<std::string>("Type", GetClassName());
         return p;
     };
 };
-}
-namespace engine {
-using namespace simpla::data;
-using namespace mesh;
 
-typedef MeshView<CylindricalGeometry> CylindricalRectMesh;
+using namespace simpla::data;
 
 /**
  * @ingroup mesh
  * @brief Uniform structured get_mesh
  */
 template <>
-struct MeshView<CylindricalGeometry> : public mesh::RectMesh {
+struct Mesh<CylindricalGeometry, SMesh> : public SMesh {
+    typedef Mesh<CylindricalGeometry, SMesh> mesh_type;
+    SP_OBJECT_HEAD(mesh_type, SMesh)
+
    public:
-    SP_OBJECT_HEAD(MeshView<CylindricalGeometry>, mesh::RectMesh)
-    using engine::Mesh::GetChart;
+    using SMesh::GetChart;
     typedef Real scalar_type;
 
-    explicit MeshView(std::shared_ptr<CylindricalGeometry> c = nullptr) : mesh::RectMesh(c) {}
-    ~MeshView() override = default;
+    explicit Mesh(std::shared_ptr<engine::Chart> c = nullptr)
+        : SMesh(c != nullptr ? c : std::make_shared<CylindricalGeometry>()) {}
+    ~Mesh() override = default;
 
-    SP_DEFAULT_CONSTRUCT(MeshView)
-
-    //    this_type *Clone() const { return new this_type(*this); }
-    void Register(engine::AttributeGroup *other) override { engine::Mesh::Register(other); }
-
-   private:
-    Field<this_type, Real, VERTEX, 3> m_vertics_{this, "name"_ = "vertics", "COORDINATES"_};
-    Field<this_type, Real, VOLUME, 9> m_volume_{this, "name"_ = "volume"};
-    Field<this_type, Real, VOLUME, 9> m_dual_volume_{this, "name"_ = "dual_volume"};
-    Field<this_type, Real, VOLUME, 9> m_inv_volume_{this, "name"_ = "inv_volume"};
-    Field<this_type, Real, VOLUME, 9> m_inv_dual_volume_{this, "name"_ = "inv_dual_volume"};
+    DECLARE_REGISTER_NAME("Mesh<CylindricalGeometry,SMesh>")
 
    public:
-    typedef EntityIdCoder M;
-    using mesh::RectMesh::point;
-
-    point_type point(index_type i, index_type j, index_type k) const override {
-        return point_type{m_vertics_[0](i, j, k), m_vertics_[1](i, j, k), m_vertics_[2](i, j, k)};
-    };
-
-    Real volume(EntityId s) const override { return m_volume_[s.w & 7](s.x, s.y, s.z); }
-    Real dual_volume(EntityId s) const override { return m_volume_[s.w & 7](s.x, s.y, s.z); }
-    Real inv_volume(EntityId s) const override { return m_volume_[s.w & 7](s.x, s.y, s.z); }
-    Real inv_dual_volume(EntityId s) const override { return m_volume_[s.w & 7](s.x, s.y, s.z); }
-
-    //    template <typename TV>
-    //    TV const &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> const *a, EntityId  const &s) const {
-    //        return a[EntityIdCoder::SubIndex(s)]->at(s.x, s.y, s.z);
-    //    }
-    //    template <typename TV>
-    //    TV &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> *a, EntityId  const &s) const {
-    //        return a[EntityIdCoder::SubIndex(s)]->at(s.x, s.y, s.z);
-    //    }
+    using SMesh::point;
 
     void InitializeData(Real time_now) override {
-        m_vertics_.Clear();
-        m_volume_.Clear();
-        m_dual_volume_.Clear();
-        m_inv_volume_.Clear();
-        m_inv_dual_volume_.Clear();
+        SMesh::InitializeData(time_now);
+
+        auto &m_vertics_ = GetVertics();
+        auto &m_volume_ = GetVolume();
+        auto &m_dual_volume_ = GetDualVolume();
+        auto &m_inv_volume_ = GetInvVolume();
+        auto &m_inv_dual_volume_ = GetInvDualVolume();
 
         /**
             *\verbatim
@@ -198,8 +172,7 @@ struct MeshView<CylindricalGeometry> : public mesh::RectMesh {
                     m_inv_dual_volume_[8](i, j, k) = 1.0 / m_dual_volume_[8](i, j, k);
                 }
     }
-
-};  // struct  Mesh
+};  // struct  MeshBase
 
 //    virtual point_type point(EntityId s) const override {
 //        return GetChart()->inv_map(
@@ -248,7 +221,7 @@ struct MeshView<CylindricalGeometry> : public mesh::RectMesh {
 //
 //        return point_type{x, y, z};
 //    }
-}  // namespace get_mesh
+}  // namespace mesh
 }  // namespace simpla
 
-#endif  // SIMPLA_CYLINDRICALRECTMESH_H
+#endif  // SIMPLA_CYLINDRICALGEOMETRY_H

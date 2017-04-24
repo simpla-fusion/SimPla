@@ -67,7 +67,7 @@ box_type Chart::inv_map(index_box_type const &b) const {
 //
 // bool Chart::RegisterCreator(std::string const &k, std::function<Chart *()> const &fun) {
 //    auto res = SingletonHolder<ChartFactory>::instance().m_mesh_factory_.emplace(k, fun).second;
-//    if (res) { LOGGER << "Mesh Creator [ " << k << " ] is registered!" << std::endl; }
+//    if (res) { LOGGER << "MeshBase Creator [ " << k << " ] is registered!" << std::endl; }
 //    return res;
 //}
 // Chart *Chart::Create(std::string const &k) {
@@ -77,7 +77,7 @@ box_type Chart::inv_map(index_box_type const &b) const {
 //        res = SingletonHolder<ChartFactory>::instance().m_mesh_factory_.at(k)();
 //    } catch (std::out_of_range const &) { RUNTIME_ERROR << "Missing mesh creator  [" << k << "]!" << std::endl; }
 //
-//    if (res != nullptr) { LOGGER << "Mesh [" << k << "] is created!" << std::endl; }
+//    if (res != nullptr) { LOGGER << "MeshBase [" << k << "] is created!" << std::endl; }
 //    return res;
 //};
 //

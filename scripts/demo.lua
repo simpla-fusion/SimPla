@@ -59,7 +59,7 @@ Model=
 
 	--GFile='/home/salmon/workspace/SimPla/example/gfile/g038300.03900',
 
-	MeshView={
+	Mesh={
 
 
 		Min={1.2,-1.2,0.0 },
@@ -93,7 +93,7 @@ Constraints=
 			return x[0]>antenna_pos-0.01 and x[0]<antenna_pos+0.01 and x[1]>-0.1 and x[1]<0.1
 		end,
 		Operation= function(t,x,f )
-			local tau = t*omega_ext+ x[2]*TWOPI/(Model.MeshView.Max[3]-Model.MeshView.Min[3])
+			local tau = t*omega_ext+ x[2]*TWOPI/(Model.Mesh.Max[3]-Model.Mesh.Min[3])
 			local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
 
 			return { f[0],f[1],f[2]+amp}

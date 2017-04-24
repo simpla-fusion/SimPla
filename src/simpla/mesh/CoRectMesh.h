@@ -5,56 +5,73 @@
 #ifndef SIMPLA_CORECTMESH_H
 #define SIMPLA_CORECTMESH_H
 
-#include <iomanip>
-#include <vector>
-#include "simpla/engine/SPObjectHead.h"
-#include "simpla/engine/all.h"
-#include "simpla/geometry/Cube.h"
-#include "simpla/mesh/EntityId.h"
-#include "simpla/mesh/MeshCommon.h"
+#include <simpla/utilities/sp_def.h>
+#include <string>
+#include "StructuredMesh.h"
 namespace simpla {
 namespace mesh {
 
-struct CoRectMesh : public engine::Mesh {
-    SP_OBJECT_HEAD(CoRectMesh, engine::Mesh)
-   public:
-    static constexpr unsigned int NDIMS = 3;
-    typedef Real scalar_type;
-    typedef EntityId entity_id;
+struct CoRectMesh : public StructuredMesh {
+    SP_OBJECT_HEAD(CoRectMesh, StructuredMesh)
 
-    CoRectMesh() : engine::Mesh(std::shared_ptr<engine::Chart>()) {}
-    virtual ~CoRectMesh() {}
-    this_type *Clone() const { return new this_type(*this); }
-    void Initialize();
+   public:
+    template <typename... Args>
+    explicit CoRectMesh(Args &&... args) : StructuredMesh(std::forward<Args>(args)...){};
+    ~CoRectMesh() override = default;
+
+    static std::string ClassName() { return std::string("CoRectMesh"); }
+    SP_DEFAULT_CONSTRUCT(CoRectMesh)
+
+    void InitializeData(Real time_now) override;
 
    private:
-    std::shared_ptr<engine::Chart> m_chart_;
-    std::shared_ptr<engine::MeshBlock> m_block_;
-    nTuple<Real, 3> m_dx_, m_inv_dx_, m_x0_;
-    Real m_v_[9];
-    Real m_inv_v_[9];
-    Real m_dual_v_[9];
-    Real m_inv_dual_v_[9];
+    nTuple<Real, 3> m_dx_{1, 1, 1}, m_inv_dx_{1, 1, 1}, m_x0_{0, 0, 0};
+    Real m_v_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_inv_v_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_dual_v_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_inv_dual_v_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
 
    public:
-    point_type vertex(index_tuple const &x) const {
-        return point_type{m_x0_[0] + m_dx_[0] * x[0], m_x0_[1] + m_dx_[1] * x[1], m_x0_[2] + m_dx_[2] * x[2]};
+    using StructuredMesh::point;
+
+    point_type point(index_type x, index_type y, index_type z) const override {
+        return point_type{m_x0_[0] + m_dx_[0] * x, m_x0_[1] + m_dx_[1] * y, m_x0_[2] + m_dx_[2] * z};
     }
 
-    std::pair<index_tuple, point_type> map(point_type const &x) const {
+    Real volume(EntityId s) const override { return m_v_[s.w & 7]; }
+    Real dual_volume(EntityId s) const override { return m_v_[s.w & 7]; }
+    Real inv_volume(EntityId s) const override { return m_v_[s.w & 7]; }
+    Real inv_dual_volume(EntityId s) const override { return m_v_[s.w & 7]; }
+
+    std::pair<EntityId, point_type> map(point_type const &x, int node_id = VERTEX) const {
         point_type r;
-        r = (x - m_x0_) * m_inv_dx_;
+
+        r[0] = std::fma(x[0] - m_x0_[0], m_inv_dx_[0], m_x0_[0] * m_inv_dx_[0]);
+        r[1] = std::fma(x[1] - m_x0_[1], m_inv_dx_[1], m_x0_[1] * m_inv_dx_[1]);
+        r[2] = std::fma(x[2] - m_x0_[2], m_inv_dx_[2], m_x0_[2] * m_inv_dx_[2]);
+
+        EntityId s;
         index_tuple idx;
-        for (int i = 0; i < 3; ++i) {
-            idx[i] = static_cast<index_type>(r[i]);
-            r[i] -= idx[i];
-        }
-        return std::make_pair(idx, r);
+        idx = r;
+        r -= idx;
+        s.w = static_cast<int16_t>(node_id);
+        s.x = static_cast<int16_t>(r[0]);
+        s.y = static_cast<int16_t>(r[1]);
+        s.z = static_cast<int16_t>(r[2]);
+
+        r[0] -= s.x;
+        r[1] -= s.y;
+        r[2] -= s.z;
+        return std::make_pair(s, r);
     }
 
-    point_type inv_map(std::pair<index_tuple, point_type> const &p) const {
+    point_type inv_map(std::pair<EntityId, point_type> const &p) const {
         point_type r;
-        r = (p.first + p.second) * m_dx_ + m_x0_;
+
+        r[0] = std::fma(static_cast<Real>(p.first.x + p.second[0]), m_dx_[0], m_x0_[0]);
+        r[1] = std::fma(static_cast<Real>(p.first.y + p.second[1]), m_dx_[1], m_x0_[1]);
+        r[2] = std::fma(static_cast<Real>(p.first.z + p.second[2]), m_dx_[2], m_x0_[2]);
+
         index_tuple idx;
         for (int i = 0; i < 3; ++i) {
             idx[i] = static_cast<index_type>(r[i]);
@@ -63,12 +80,7 @@ struct CoRectMesh : public engine::Mesh {
         return r;
     }
 
-    Real volume(index_tuple const &x, int d = 0) const { return m_v_[d]; }
-    Real dual_volume(index_tuple const &x, int d = 0) const { return m_dual_v_[d]; }
-    Real inv_volume(index_tuple const &x, int d = 0) const { return m_inv_v_[d]; }
-    Real inv_dual_volume(index_tuple const &x, int d = 0) const { return m_inv_dual_v_[d]; }
-
-};  // struct  Mesh
+};  // struct  MeshBase
 
 // template <>
 // struct mesh_traits<CoRectMesh> {
@@ -84,7 +96,8 @@ struct CoRectMesh : public engine::Mesh {
 //    };
 //};
 
-inline void CoRectMesh::Initialize() {
+inline void CoRectMesh::InitializeData(Real time_now) {
+    StructuredMesh::InitializeData(time_now);
     /**
         *\verbatim
         *                ^y

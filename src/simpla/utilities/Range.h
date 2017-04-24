@@ -88,6 +88,7 @@ template <typename T>
 struct ContinueRange<T> : public RangeBase<T> {
     SP_OBJECT_HEAD(ContinueRange<T>, RangeBase<T>)
     typedef T value_type;
+    static std::string ClassName() { return std::string("ContinueRange<") + typeid(T).name() + ">"; }
 
    public:
     bool is_divisible() const override { return false; }
@@ -104,7 +105,7 @@ struct ContinueRange<T> : public RangeBase<T> {
     }
 
     template <typename TFun, typename... Args>
-    void foreach (TFun const& fun, Args && ... args) const  {
+    void foreach (TFun const& fun, Args && ... args) const {
         UNIMPLEMENTED;
     }
 };

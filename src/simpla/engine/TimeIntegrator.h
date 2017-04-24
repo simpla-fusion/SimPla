@@ -15,12 +15,12 @@ class Context;
 
 struct TimeIntegrator : public Schedule {
     SP_OBJECT_HEAD(TimeIntegrator, Schedule);
-    static bool is_register;
 
    public:
     TimeIntegrator() = default;
     ~TimeIntegrator() override = default;
     SP_DEFAULT_CONSTRUCT(TimeIntegrator);
+    DECLARE_REGISTER_NAME("TimeIntegrator")
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> cfg) override;

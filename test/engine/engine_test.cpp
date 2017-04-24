@@ -12,10 +12,10 @@
 using namespace simpla::engine;
 using namespace simpla::data;
 
-struct Moo : public Mesh {
+struct Moo : public MeshBase {
     SP_OBJECT_HEAD(Moo, MeshView)
 
-    Moo() : Mesh(std::shared_ptr<Chart>()) {}
+    Moo() : MeshBase(std::shared_ptr<Chart>()) {}
     DataAttribute<Real, 2, 2> tags0{this, "tags0"};
     DataAttribute<Real> tags{this, "tags"};
     DataAttribute<Real> rho0{this, "rho0", "CHECK"_ = false, "TAG"_ = 12.345};

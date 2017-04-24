@@ -65,9 +65,7 @@ static constexpr Real EPSILON = std::numeric_limits<Real>::epsilon();
         assert(isA(typeid(U_)));                                                                     \
         return *dynamic_cast<U_ const *>(this);                                                      \
     }                                                                                                \
-    virtual std::type_info const &GetTypeInfo() const { return typeid(_BASE_CLASS_NAME_); }          \
-    virtual std::string GetClassName() const { return __STRING(_BASE_CLASS_NAME_); }                 \
-    static std::string ClassName() { return __STRING(_BASE_CLASS_NAME_); }
+    virtual std::type_info const &GetTypeInfo() const { return typeid(_BASE_CLASS_NAME_); }
 
 /**
  * @brief define the common part of the derived class
@@ -78,8 +76,6 @@ static constexpr Real EPSILON = std::numeric_limits<Real>::epsilon();
         return typeid(_CLASS_NAME_) == info || _BASE_CLASS_NAME_::isA(info);            \
     }                                                                                   \
     std::type_info const &GetTypeInfo() const override { return typeid(_CLASS_NAME_); } \
-    std::string GetClassName() const override { return __STRING(_CLASS_NAME_); }        \
-    static std::string ClassName() { return __STRING(_CLASS_NAME_); }                   \
                                                                                         \
    private:                                                                             \
     typedef _BASE_CLASS_NAME_ base_type;                                                \
@@ -87,9 +83,13 @@ static constexpr Real EPSILON = std::numeric_limits<Real>::epsilon();
                                                                                         \
    public:
 
-#define SP_DEFAULT_CONSTRUCT(_CLASS_NAME_)                       \
-    _CLASS_NAME_(this_type const &other) = delete;            \
-    _CLASS_NAME_(this_type &&other) = delete;                 \
+#define SP_DECLARE_NAME(_CLASS_NAME_)                                \
+    virtual std::string GetClassName() const { return ClassName(); } \
+    static std::string ClassName() { return __STRING(_CLASS_NAME_); }
+
+#define SP_DEFAULT_CONSTRUCT(_CLASS_NAME_)                 \
+    _CLASS_NAME_(this_type const &other) = delete;         \
+    _CLASS_NAME_(this_type &&other) = delete;              \
     this_type &operator=(this_type const &other) = delete; \
     this_type &operator=(this_type &&other) = delete;
 

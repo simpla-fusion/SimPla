@@ -54,7 +54,7 @@ step_of_check_point = 10
 omega_ext = omega_pe * 0.8
 
 
-MeshView =
+Mesh =
 {
     Dimensions = { NX, NY, NZ }, -- Dimensions[?]=1 => ignored dimension
     GhostWidth = { 2, 2, 2 }, -- GhostWidth[?]=0 => cycle boundary

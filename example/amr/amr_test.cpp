@@ -8,46 +8,50 @@
 #include <simpla/data/all.h>
 #include <simpla/engine/all.h>
 #include <simpla/geometry/Cube.h>
-#include <simpla/mesh/EBMesh.h>
 #include <simpla/model/GEqdsk.h>
 #include <iostream>
-#include "simpla/mesh/CartesianGeometry.h"
-#include "simpla/mesh/CylindricalGeometry.h"
+#include "simpla/mesh/all.h"
 #include "simpla/predefine/physics/EMFluid.h"
 #include "simpla/predefine/physics/PEC.h"
 
 namespace simpla {
+
 namespace mesh {
-REGISTER_CREATOR(engine::Chart, CartesianGeometry, " Cartesian Geometry")
-REGISTER_CREATOR(engine::Chart, CylindricalGeometry, " Cylindrical Geometry")
-}  // namespace mesh{
+REGISTER_CREATOR(CartesianGeometry)
+REGISTER_CREATOR(CylindricalGeometry)
+REGISTER_CREATOR(CartesianCoRectMesh)
+REGISTER_CREATOR(CylindricalSMesh)
+}
+
 using namespace simpla::mesh;
 using namespace simpla::engine;
-static bool _PRE_REGISTERED = EMFluid<CartesianRectMesh>::is_register &&            //
-                              EMFluid<CylindricalRectMesh>::is_register &&          //
-                              EMFluid<EBMesh<CartesianRectMesh>>::is_register &&    //
-                              EMFluid<EBMesh<CylindricalRectMesh>>::is_register &&  //
-                              PEC<CartesianRectMesh>::is_register &&                //
-                              PEC<CylindricalRectMesh>::is_register &&              //
-                              PEC<EBMesh<CartesianRectMesh>>::is_register &&        //
-                              PEC<EBMesh<CylindricalRectMesh>>::is_register;
 
+static bool _PRE_REGISTERED = EMFluid<CartesianCoRectMesh>::is_registered &&  //
+                              EMFluid<CylindricalSMesh>::is_registered &&     //
+                              PEC<BoundaryMeshBase>::is_registered            //
+    //  EMFluid<CartesianCoRectMeshEB>::is_register &&
+    //  PEC<CartesianCoRectMeshEB>::is_register &&
+    //  EMFluid<CylindricalSMeshEB>::is_register &&
+    //  PEC<CylindricalSMeshEB>::is_register
+    ;
 struct UseCaseAMR : public application::SpApp {
     SP_OBJECT_HEAD(UseCaseAMR, application::SpApp)
     UseCaseAMR() = default;
     ~UseCaseAMR() override = default;
     SP_DEFAULT_CONSTRUCT(UseCaseAMR);
-
+    DECLARE_REGISTER_NAME("UseCaseAMR")
     void SetUp() override;
 };
-SP_REGISITER_APP(UseCaseAMR, " AMR Test ");
+REGISTER_CREATOR(UseCaseAMR);
 
 void UseCaseAMR::SetUp() {
+    //    CHECK(_PRE_REGISTERED);
     auto domain = std::make_shared<engine::Domain>();
-    domain->SetGeoObject(std::make_shared<geometry::Cube>(box_type{{1, 0, 0.0}, {2, TWOPI, 2}}));
+    domain->SetGeoObject(std::make_shared<geometry::Cube>(box_type{{1.0, 0.0, 0.0}, {2, TWOPI, 2}}));
     domain->SetChart("CylindricalGeometry");
     domain->GetChart()->SetOrigin(point_type{1, 0, 0});
     domain->GetChart()->SetDx(point_type{0.1, TWOPI / 64, 0.1});
+    domain->SetMesh("SMesh");
     domain->SetWorker("EMFluid");
     domain->AddBoundaryCondition("PEC");
 
@@ -56,7 +60,7 @@ void UseCaseAMR::SetUp() {
     ctx->GetAtlas().SetPeriodicDimension(size_tuple{0, 0, 0});
     ctx->SetDomain("Center", domain);
 
-    auto schedule = std::dynamic_pointer_cast<engine::TimeIntegrator>(engine::Schedule::Create("SAMRAI"));
+    auto schedule = std::dynamic_pointer_cast<engine::TimeIntegrator>(engine::Schedule::Create("SAMRAITimeIntegrator"));
     schedule->Initialize();
     schedule->SetTime(0.0);
     schedule->SetTimeStep(0.1);
@@ -67,13 +71,11 @@ void UseCaseAMR::SetUp() {
     SetSchedule(schedule);
 }
 
-//    ctx->db()->SetValue("Domains", {"Center"_ = {"name"_ = "Center", "Mesh"_ = {"name"_ = "CartesianGeometry"},
+//    ctx->db()->SetValue("Domains", {"Center"_ = {"name"_ = "Center", "MeshBase"_ = {"name"_ = "CartesianGeometry"},
 //                                                 "Worker"_ = {{"name"_ = "EMFluid"}}}});
-
 //    ctx->RegisterAttribute<int>("tag");
 //    ctx->RegisterAttribute<double, EDGE>("E");
 //    ctx->RegisterAttribute<double, FACE>("B");
-
 //    {
 //        GEqdsk geqdsk;
 //        geqdsk.load(argv[1]);

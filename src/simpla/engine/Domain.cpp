@@ -5,7 +5,7 @@
 #include <simpla/SIMPLA_config.h>
 #include <set>
 #include "Attribute.h"
-#include "Mesh.h"
+#include "MeshBase.h"
 #include "MeshBlock.h"
 #include "Patch.h"
 #include "SPObject.h"
@@ -16,11 +16,10 @@ namespace engine {
 
 struct Domain::pimpl_s {
     std::shared_ptr<Chart> m_chart_ = nullptr;
-    std::shared_ptr<geometry::GeoObject> m_geo_obj_ = nullptr;
+    std::shared_ptr<MeshBase> m_mesh_ = nullptr;
     std::shared_ptr<Worker> m_worker_ = nullptr;
+    std::shared_ptr<geometry::GeoObject> m_geo_obj_ = nullptr;
     std::map<std::shared_ptr<geometry::GeoObject>, std::shared_ptr<Worker>> m_boundary_;
-
-    std::shared_ptr<Patch> m_patch_;
 };
 Domain::Domain() : SPObject(), m_pimpl_(new pimpl_s) {}
 Domain::~Domain() { Finalize(); }
@@ -43,63 +42,67 @@ std::shared_ptr<data::DataTable> Domain::Serialize() const {
     return res;
 }
 void Domain::Deserialize(std::shared_ptr<data::DataTable> t) {
-    m_pimpl_->m_chart_ = Chart::Create(t->GetTable("Chart"));
     m_pimpl_->m_geo_obj_ = geometry::GeoObject::Create(t->GetTable("GeoObject"));
-    m_pimpl_->m_worker_ =
-        Worker::Create(t->GetValue<std::string>("Worker/Type") + "<" + t->GetValue<std::string>("Chart/Type") + ">");
+    SetChart(t->GetValue<std::string>("Chart/Type"));
+    SetMesh(t->GetValue<std::string>("Topology/Type"));
+    SetWorker(t->GetValue<std::string>("Worker/Type"));
     // TODO: unfinished
 }
-void Domain::Register(AttributeGroup *attr_grp) { m_pimpl_->m_worker_->Register(attr_grp); }
-void Domain::Deregister(AttributeGroup *attr_grp) { m_pimpl_->m_worker_->Deregister(attr_grp); }
+void Domain::Register(AttributeGroup *attr_grp) { GetMesh()->Register(attr_grp); }
+void Domain::Deregister(AttributeGroup *attr_grp) { GetMesh()->Deregister(attr_grp); }
 
 void Domain::SetGeoObject(std::shared_ptr<geometry::GeoObject> g) { m_pimpl_->m_geo_obj_ = g; }
 std::shared_ptr<geometry::GeoObject> Domain::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
 
-void Domain::SetChart(std::string const &chart_s) { SetChart(Chart::Create(chart_s)); }
+std::shared_ptr<Chart> Domain::CreateChart(std::string const &chart_s) const { return Chart::Create(chart_s); }
+void Domain::SetChart(std::string const &s) { SetChart(CreateChart(s)); };
 void Domain::SetChart(std::shared_ptr<Chart> m) { m_pimpl_->m_chart_ = m; };
 std::shared_ptr<Chart> Domain::GetChart() const { return m_pimpl_->m_chart_; }
 
-std::shared_ptr<Worker> Domain::CreateWorker(std::string const &worker_s) const {
-    //    return Worker::Create(worker_s + "<MeshView<" + m_pimpl_->m_chart_->GetClassName() + ">>");
-    return Worker::Create(worker_s + "<EBMesh<MeshView<" + m_pimpl_->m_chart_->GetClassName() + ">>>");
+std::shared_ptr<MeshBase> Domain::CreateMesh(std::string const &s) const {
+    auto res = MeshBase::Create("Mesh<" + GetChart()->GetClassName() + "," + s + ">", GetChart());
+    res->SetUp();
+    return res;
 }
+void Domain::SetMesh(std::string const &s) { SetMesh(CreateMesh(s)); }
+void Domain::SetMesh(std::shared_ptr<MeshBase> m) { m_pimpl_->m_mesh_ = m; }
+std::shared_ptr<MeshBase> Domain::GetMesh() const { return m_pimpl_->m_mesh_; }
 
+std::shared_ptr<Worker> Domain::CreateWorker(std::string const &worker_s) const {
+    auto res = Worker::Create(worker_s + "<" + GetMesh()->GetClassName() + ">", GetMesh());
+    res->SetUp();
+    return res;
+}
 void Domain::SetWorker(std::string const &worker_s) { SetWorker(CreateWorker(worker_s)); }
-void Domain::SetWorker(std::shared_ptr<Worker> w) { m_pimpl_->m_worker_ = w; }
+void Domain::SetWorker(std::shared_ptr<Worker> w) {
+    m_pimpl_->m_worker_ = w;
+    if (w->GetMesh()->GetChart() != nullptr) { SetChart(w->GetMesh()->GetChart()); }
+}
 std::shared_ptr<Worker> Domain::GetWorker() const { return m_pimpl_->m_worker_; }
 
 void Domain::AddBoundaryCondition(std::string const &worker_s, std::shared_ptr<geometry::GeoObject> g) {
-    AddBoundaryCondition(Worker::Create(worker_s + "<EBMesh<MeshView<" + m_pimpl_->m_chart_->GetClassName() + ">>>"),
-                         g);
+    auto res = Worker::Create(worker_s + "<BoundaryMeshBase>", std::make_shared<BoundaryMeshBase>(GetMesh().get()));
+    res->SetUp();
+    AddBoundaryCondition(res, g);
 }
 void Domain::AddBoundaryCondition(std::shared_ptr<Worker> w, std::shared_ptr<geometry::GeoObject> g) {
     m_pimpl_->m_boundary_.emplace(g, w);
 }
-void Domain::Push(std::shared_ptr<Patch> p) { m_pimpl_->m_patch_ = p; }
-std::shared_ptr<Patch> Domain::Pop() { return m_pimpl_->m_patch_; }
+void Domain::Push(std::shared_ptr<Patch> p) {
+    if (m_pimpl_->m_worker_ != nullptr) { m_pimpl_->m_worker_->Push(p); }
+}
+std::shared_ptr<Patch> Domain::Pop() { return (m_pimpl_->m_worker_ == nullptr) ? nullptr : m_pimpl_->m_worker_->Pop(); }
 
 void Domain::InitializeCondition(Real time_now) {
-    if (m_pimpl_->m_worker_ != nullptr && m_pimpl_->m_patch_ != nullptr) {
-        m_pimpl_->m_worker_->Push(m_pimpl_->m_patch_);
-        m_pimpl_->m_worker_->InitializeCondition(time_now);
-        m_pimpl_->m_patch_ = m_pimpl_->m_worker_->Pop();
-    }
+    if (m_pimpl_->m_worker_ != nullptr) { m_pimpl_->m_worker_->InitializeCondition(time_now); }
 }
 
 void Domain::BoundaryCondition(Real time_now, Real time_dt) {
-    if (m_pimpl_->m_worker_ != nullptr && m_pimpl_->m_patch_ != nullptr) {
-        m_pimpl_->m_worker_->Push(m_pimpl_->m_patch_);
-        m_pimpl_->m_worker_->BoundaryCondition(time_now, time_dt);
-        m_pimpl_->m_patch_ = m_pimpl_->m_worker_->Pop();
-    }
+    if (m_pimpl_->m_worker_ != nullptr) { m_pimpl_->m_worker_->BoundaryCondition(time_now, time_dt); }
 }
 
 void Domain::Advance(Real time_now, Real time_dt) {
-    if (m_pimpl_->m_worker_ != nullptr && m_pimpl_->m_patch_ != nullptr) {
-        m_pimpl_->m_worker_->Push(m_pimpl_->m_patch_);
-        m_pimpl_->m_worker_->Advance(time_now, time_dt);
-        m_pimpl_->m_patch_ = m_pimpl_->m_worker_->Pop();
-    }
+    if (m_pimpl_->m_worker_ != nullptr) { m_pimpl_->m_worker_->Advance(time_now, time_dt); }
 }
 
 //    auto mblk_ibx = p->GetBlock()->GetIndexBox();
@@ -233,9 +236,9 @@ void Domain::Advance(Real time_now, Real time_dt) {
 //    for (auto *v : m_pimpl_->m_attr_bundle_.GetAll()) { v->SetMesh(m.get()); }
 //
 //    if (m_pimpl_->m_chart_ != nullptr) { return; }
-//    m_pimpl_->m_chart_.reset(Mesh::Create(db()->GetTable("Mesh")));
+//    m_pimpl_->m_chart_.reset(MeshBase::Create(db()->GetTable("MeshBase")));
 //    ASSERT(m_pimpl_->m_chart_ != nullptr);
-//    db()->Link("Mesh", m_pimpl_->m_chart_->db());
+//    db()->Link("MeshBase", m_pimpl_->m_chart_->db());
 //    auto t_worker = db()->PopPatch("Task");
 //
 //    if (t_worker != nullptr && t_worker->isArray()) {
@@ -266,7 +269,7 @@ void Domain::Advance(Real time_now, Real time_dt) {
 //
 // std::ostream &Domain::Print(std::ostream &os, int indent) const {
 //    if (m_pimpl_->m_chart_ != nullptr) {
-//        os << " Mesh = { ";
+//        os << " MeshBase = { ";
 //        m_pimpl_->m_chart_->Print(os, indent);
 //        os << " }, " << std::endl;
 //    }

@@ -1,207 +1,66 @@
 /**
  *
- * @file CoRectMesh.h
+ * @file CartesianGeometry.h
  * Created by salmon on 15-7-2.
  *
  */
 
-#ifndef SIMPLA_CORECTMESH_H
-#define SIMPLA_CORECTMESH_H
+#ifndef SIMPLA_CARTESIAN_GEOMETRY_H
+#define SIMPLA_CARTESIAN_GEOMETRY_H
 
 #include <iomanip>
 #include <vector>
-#include "RectMesh.h"
+#include "CoRectMesh.h"
+#include "Mesh.h"
 #include "simpla/engine/all.h"
-#include "simpla/geometry/Cube.h"
 #include "simpla/utilities/sp_def.h"
-namespace simpla {
 
+namespace simpla {
 namespace mesh {
 struct CartesianGeometry : public engine::Chart {
     SP_OBJECT_HEAD(CartesianGeometry, engine::Chart);
+    DECLARE_REGISTER_NAME("CartesianGeometry");
+
     std::shared_ptr<data::DataTable> Serialize() const override {
         auto p = engine::Chart::Serialize();
-        p->SetValue<std::string>("Type", "CartesianGeometry");
+        p->SetValue<std::string>("Type", ClassName());
         return p;
     };
 };
-}
-namespace engine {
-using namespace mesh;
-typedef MeshView<CartesianGeometry> CartesianRectMesh;
+
 /**
  * @ingroup mesh
  * @brief Uniform structured get_mesh
  */
 template <>
-struct MeshView<CartesianGeometry> : public mesh::RectMesh {
+struct Mesh<CartesianGeometry, CoRectMesh> : public CoRectMesh {
+    typedef Mesh<CartesianGeometry, CoRectMesh> mesh_type;
+    SP_OBJECT_HEAD(mesh_type, CoRectMesh)
+
    public:
-    SP_OBJECT_HEAD(MeshView<CartesianGeometry>, mesh::RectMesh)
-
-    static bool is_register;
-
-    static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
+    explicit Mesh(std::shared_ptr<engine::Chart> c = nullptr)
+        : CoRectMesh(c != nullptr ? c : std::make_shared<CartesianGeometry>()) {}
 
-    /**
-     *
-     *   -----------------------------5
-     *   |                            |
-     *   |     ---------------4       |
-     *   |     |              |       |
-     *   |     |  ********3   |       |
-     *   |     |  *       *   |       |
-     *   |     |  *       *   |       |
-     *   |     |  *       *   |       |
-     *   |     |  2********   |       |
-     *   |     1---------------       |
-     *   0-----------------------------
-     *
-     *	5-0 = dimensions
-     *	4-1 = e-d = ghosts
-     *	2-1 = counts
-     *
-     *	0 = id_begin
-     *	5 = id_end
-     *
-     *	1 = id_local_outer_begin
-     *	4 = id_local_outer_end
-     *
-     *	2 = id_local_inner_begin
-     *	3 = id_local_inner_end
-     *
-     *
-     */
+    ~Mesh() override = default;
+    SP_DEFAULT_CONSTRUCT(Mesh);
+    DECLARE_REGISTER_NAME("Mesh<CartesianGeometry,CoRectMesh>");
 
-   public:
-    explicit MeshView(std::shared_ptr<mesh::CartesianGeometry> c = nullptr) : mesh::RectMesh(c) {}
-    ~MeshView() override = default;
-
-    std::shared_ptr<data::DataTable> Serialize() const override {
-        auto p = engine::Mesh::Serialize();
-        p->SetValue<std::string>("Type", "CartesianGeometry");
-        return p;
-    };
-    void Deserialize(std::shared_ptr<data::DataTable> d) override { engine::Mesh::Deserialize(d); }
-
-    //    this_type *Clone() const { return new this_type(*this); }
-    void Initialize() override;
-
-   private:
-    nTuple<Real, 3> m_dx_, m_inv_dx_;
-    Real m_volume_[9];
-    Real m_inv_volume_[9];
-    Real m_dual_volume_[9];
-    Real m_inv_dual_volume_[9];
-
-   public:
-    typedef EntityIdCoder m;
-
-    void SetUp() override{};
-    void TearDown() override {}
-    using mesh::RectMesh::point;
-    point_type point(index_type x, index_type y, index_type z) const override {
-        return point_type{static_cast<Real>(x), static_cast<Real>(y), static_cast<Real>(z)};
+    void SetUp() override {
+        if (GetChart() == nullptr) { CoRectMesh::SetChart(std::make_shared<CartesianGeometry>()); }
     }
 
-    Real volume(EntityId s) const override { return m_volume_[m::node_id(s)]; }
-
-    Real dual_volume(EntityId s) const override { return m_dual_volume_[m::node_id(s)]; }
-
-    Real inv_volume(EntityId s) const override { return m_inv_volume_[m::node_id(s)]; }
-
-    Real inv_dual_volume(EntityId s) const override { return m_inv_dual_volume_[m::node_id(s)]; }
-
-    //    template <typename TV>
-    //    TV const &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> const *a, EntityId const &s) const {
-    //        return a[m::node_id(s)]->at(m::unpack_index(s));
-    //    }
-    //    template <typename TV>
-    //    TV &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> *a, EntityId const &s) const {
-    //        return a[m::node_id(s)]->at(m::unpack_index(s));
-    //    }
+    std::shared_ptr<data::DataTable> Serialize() const override {
+        auto p = CoRectMesh::Serialize();
+        p->template SetValue<std::string>("Type", ClassName());
+        return p;
+    };
 };  // struct  Mesh
-//
-// template <>
-// struct mesh_traits<CartesianGeometry> {
-//    typedef CartesianGeometry type;
-//    typedef EntityId EntityId;
-//    typedef Real scalar_type;
-//
-//    template <int IFORM, int DOF>
-//    struct Shift {
-//        template <typename... Args>
-//        Shift(Args &&... args) {}
-//        constexpr EntityId operator()(EntityId const &s) const { return s; }
-//    };
-//};
-inline void MeshView<mesh::CartesianGeometry>::Initialize() {
-    /**
-        *\verbatim
-        *                ^y
-        *               /
-        *        z     /
-        *        ^    /
-        *        |  110-------------111
-        *        |  /|              /|
-        *        | / |             / |
-        *        |/  |            /  |
-        *       100--|----------101  |
-        *        | m |           |   |
-        *        |  010----------|--011
-        *        |  /            |  /
-        *        | /             | /
-        *        |/              |/
-        *       000-------------001---> x
-        *
-        *\endverbatim
-        */
-    //    size_tuple m_dims_ = GetBlock()->GetDimensions();
-    //
-    //    m_volume_[0 /*000*/] = 1;
-    //    m_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 1 : m_dx_[0];
-    //    m_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 1 : m_dx_[1];
-    //    m_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 1 : m_dx_[2];
-    //    m_volume_[3 /*011*/] = m_volume_[1] * m_volume_[2];
-    //    m_volume_[5 /*101*/] = m_volume_[4] * m_volume_[1];
-    //    m_volume_[6 /*110*/] = m_volume_[4] * m_volume_[2];
-    //    m_volume_[7 /*111*/] = m_volume_[1] * m_volume_[2] * m_volume_[4];
-    //
-    //    m_dual_volume_[0 /*000*/] = m_volume_[7];
-    //    m_dual_volume_[1 /*001*/] = m_volume_[6];
-    //    m_dual_volume_[2 /*010*/] = m_volume_[5];
-    //    m_dual_volume_[4 /*100*/] = m_volume_[3];
-    //    m_dual_volume_[3 /*011*/] = m_volume_[4];
-    //    m_dual_volume_[5 /*101*/] = m_volume_[2];
-    //    m_dual_volume_[6 /*110*/] = m_volume_[1];
-    //    m_dual_volume_[7 /*111*/] = m_volume_[0];
-    //
-    //    m_inv_volume_[0 /*000*/] = 1;
-    //    m_inv_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 1 : m_inv_dx_[0];
-    //    m_inv_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 1 : m_inv_dx_[1];
-    //    m_inv_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 1 : m_inv_dx_[2];
-    //    m_inv_volume_[3 /*011*/] = m_inv_volume_[2] * m_inv_volume_[1];
-    //    m_inv_volume_[5 /*101*/] = m_inv_volume_[4] * m_inv_volume_[1];
-    //    m_inv_volume_[6 /*110*/] = m_inv_volume_[4] * m_inv_volume_[2];
-    //    m_inv_volume_[7 /*111*/] = m_inv_volume_[1] * m_inv_volume_[2] * m_inv_volume_[4];
-    //
-    //    m_inv_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 0 : m_inv_volume_[1];
-    //    m_inv_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 0 : m_inv_volume_[2];
-    //    m_inv_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 0 : m_inv_volume_[4];
-    //
-    //    m_inv_dual_volume_[0 /*000*/] = m_inv_volume_[7];
-    //    m_inv_dual_volume_[1 /*001*/] = m_inv_volume_[6];
-    //    m_inv_dual_volume_[2 /*010*/] = m_inv_volume_[5];
-    //    m_inv_dual_volume_[4 /*100*/] = m_inv_volume_[3];
-    //    m_inv_dual_volume_[3 /*011*/] = m_inv_volume_[4];
-    //    m_inv_dual_volume_[5 /*101*/] = m_inv_volume_[2];
-    //    m_inv_dual_volume_[6 /*110*/] = m_inv_volume_[1];
-    //    m_inv_dual_volume_[7 /*111*/] = m_inv_volume_[0];
-}
+
 }  // namespace  mesh
 }  // namespace simpla
 
-#endif  // SIMPLA_CORECTMESH_H
+#endif  // SIMPLA_CARTESIAN_GEOMETRY_H
 
 // typedef typename EntityIdCoder::range_type block_range_type;
 //

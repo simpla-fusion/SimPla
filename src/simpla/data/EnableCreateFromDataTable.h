@@ -15,14 +15,19 @@
 namespace simpla {
 namespace data {
 class DataTable;
-template <typename TObj>
+template <typename TObj, typename... Args>
 class EnableCreateFromDataTable {
+    typedef EnableCreateFromDataTable<TObj> this_type;
+
    public:
     EnableCreateFromDataTable() = default;
     virtual ~EnableCreateFromDataTable() = default;
+    SP_DEFAULT_CONSTRUCT(EnableCreateFromDataTable);
+
+    virtual std::string GetClassName() const { return TObj::ClassName(); }
 
     struct ObjectFactory {
-        std::map<std::string, std::pair<std::function<TObj *()>, std::string>> m_factory_;
+        std::map<std::string, std::pair<std::function<TObj *(Args &&...)>, std::string>> m_factory_;
     };
     static bool HasCreator(std::string const &k) {
         auto const &f = SingletonHolder<ObjectFactory>::instance().m_factory_;
@@ -45,22 +50,22 @@ class EnableCreateFromDataTable {
         }
         return res;
     };
-    static bool RegisterCreator(std::string const &k, std::function<TObj *()> const &fun,
+    static bool RegisterCreator(std::string const &k, std::function<TObj *(Args &&...)> const &fun,
                                 std::string const &desc_s = "") noexcept {
         return SingletonHolder<ObjectFactory>::instance().m_factory_.emplace(k, std::make_pair(fun, desc_s)).second;
     };
     template <typename U>
-    static bool RegisterCreator(std::string const &k, std::string const &desc_s = "") noexcept {
-        return RegisterCreator(k, []() { return new U; }, desc_s);
+    static bool RegisterCreator(std::string const &desc_s = "") noexcept {
+        return RegisterCreator(U::ClassName(), [](Args const &... args) { return new U(args...); }, desc_s);
     };
-
-    static std::shared_ptr<TObj> Create(std::string const &k) {
+    template <typename... U>
+    static std::shared_ptr<TObj> Create(std::string const &k, U &&... args) {
         auto const &f = SingletonHolder<ObjectFactory>::instance().m_factory_;
         std::shared_ptr<TObj> res = nullptr;
         auto it = f.find(k);
 
         if (it != f.end()) {
-            res.reset(it->second.first());
+            res.reset(it->second.first(std::forward<U>(args)...));
             LOGGER << TObj::ClassName() << "::" << it->first << "  is created!" << std::endl;
         } else {
             std::ostringstream os;
@@ -73,16 +78,22 @@ class EnableCreateFromDataTable {
         }
         return res;
     }
-    static std::shared_ptr<TObj> Create(std::shared_ptr<DataTable> const &cfg) {
+    template <typename... U>
+    static std::shared_ptr<TObj> Create(std::shared_ptr<DataTable> const &cfg, U &&... args) {
         if (cfg == nullptr) { return nullptr; }
-        auto res = Create(cfg->GetValue<std::string>("Type", "unnamed"));
+        auto res = Create(cfg->GetValue<std::string>("Type", "unnamed"), std::forward<U>(args)...);
         res->Deserialize(cfg);
         return res;
     }
 };
-#define REGISTER_CREATOR(_BASE_CLASS_NAME_, _CLASS_NAME_, _DESC_) \
-    bool _CLASS_NAME_##_IS_REGISTERED_ =                          \
-        _BASE_CLASS_NAME_::RegisterCreator<_CLASS_NAME_>(__STRING(_CLASS_NAME_), _DESC_);
+
+#define DECLARE_REGISTER_NAME(_CLASS_NAME_)                           \
+   public:                                                            \
+    std::string GetClassName() const override { return ClassName(); } \
+    static std::string ClassName() { return _CLASS_NAME_; }           \
+    static bool is_registered;
+
+#define REGISTER_CREATOR(_CLASS_NAME_) bool _CLASS_NAME_::is_registered = _CLASS_NAME_::RegisterCreator<_CLASS_NAME_>();
 
 }  // namespace data{
 }  // namespace simpla{

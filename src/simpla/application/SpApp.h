@@ -16,8 +16,11 @@ struct SpApp : public data::Serializable, public data::EnableCreateFromDataTable
    public:
     SpApp();
     virtual ~SpApp();
-    virtual std::shared_ptr<data::DataTable> Serialize() const;
-    virtual void Deserialize(std::shared_ptr<data::DataTable> t);
+    SP_DEFAULT_CONSTRUCT(SpApp);
+    DECLARE_REGISTER_NAME("SpApp")
+
+    std::shared_ptr<data::DataTable> Serialize() const override;
+    void Deserialize(std::shared_ptr<data::DataTable> t) override;
 
     virtual void Initialize();
     virtual void SetUp();

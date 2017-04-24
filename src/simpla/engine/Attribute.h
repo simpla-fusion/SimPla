@@ -14,7 +14,7 @@
 namespace simpla {
 namespace engine {
 class Domain;
-class Mesh;
+class MeshBase;
 class MeshBlock;
 class Attribute;
 class Patch;
@@ -125,8 +125,8 @@ struct Attribute : public SPObject, public data::Configurable, public data::Seri
     virtual int GetDOF() const = 0;
     virtual std::type_info const &value_type_info() const = 0;  //!< value type
 
-    void SetMesh(Mesh const *);
-    Mesh const *GetMesh() const;
+    void SetMesh(MeshBase const *);
+    MeshBase const *GetMesh() const;
 
     virtual void PushData(std::shared_ptr<data::DataBlock>){};
     virtual std::shared_ptr<data::DataBlock> PopData() { return nullptr; }
@@ -193,8 +193,8 @@ struct AttributeDesc : public Attribute {
 //    virtual std::type_info const &value_type_info() const { return typeid(value_type); };  //!< value type
 //    virtual std::type_info const &mesh_type_info() const { return typeid(void); };         //!< mesh type
 //    virtual void Clear() { U::Clear(); }
-//    virtual void SetMesh(Mesh const *){};
-//    virtual Mesh const *GetMesh() const { return nullptr; };
+//    virtual void SetMesh(MeshBase const *){};
+//    virtual MeshBase const *GetMesh() const { return nullptr; };
 //    virtual void ConvertPatchFromSAMRAI(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const
 //    &d) {
 //        data::data_cast<U>(*d).swap(*this);
@@ -228,11 +228,11 @@ struct AttributeDesc : public Attribute {
 //    typedef Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)> array_type;
 //    typedef DataAttribute<TV, IFORM, DOF> data_attr_type;
 //    SP_OBJECT_HEAD(data_attr_type, Attribute);
-//    CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, Mesh)
+//    CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, MeshBase)
 //    typedef TV value_type;
 //    static constexpr int GetIFORM = IFORM;
 //    static constexpr int GetDOF = DOF;
-//    typedef Mesh mesh_type;
+//    typedef MeshBase mesh_type;
 //
 //    template <typename TM, typename... Args>
 //    DataAttribute(TM *w, Args &&... args)
@@ -271,7 +271,7 @@ struct AttributeDesc : public Attribute {
 //    static std::shared_ptr<this_type> make_shared(Args &&... args) {
 //        return std::make_shared<this_type>(std::forward<Args>(args)...);
 //    }
-//    static std::shared_ptr<this_type> make_shared(Mesh *c, std::initializer_list<data::KeyValue> const &param) {
+//    static std::shared_ptr<this_type> make_shared(MeshBase *c, std::initializer_list<data::KeyValue> const &param) {
 //        return std::make_shared<this_type>(c, param);
 //    }
 //    virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return array_type::Print(os, indent); }

@@ -103,6 +103,8 @@ class Task : public data::Configurable {
     Task(std::shared_ptr<data::DataTable> const &t = nullptr);
     Task(Task const &other);
     virtual ~Task();
+    SP_DECLARE_NAME(Task);
+
     virtual void swap(Task &other);
     virtual void Register(AttributeGroup *);
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;

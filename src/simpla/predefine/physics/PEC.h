@@ -19,33 +19,20 @@ using namespace engine;
  */
 template <typename TM>
 class PEC : public engine::Worker {
-    SP_OBJECT_HEAD(PEC<TM>, engine::Worker);
+    SP_OBJECT_HEAD(PEC<TM>, engine::Worker)
+    typedef TM mesh_type;
 
    public:
-    static const bool is_register;
-
-    typedef TM mesh_type;
-    typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
-    mesh_type m_mesh_;
-    template <int IFORM, int DOF = 1>
-    using field_type = Field<mesh_type, scalar_type, IFORM, DOF>;
-
-    PEC(){};
-    ~PEC() override{};
-
-    Mesh* GetMesh() override { return &m_mesh_; }
-    Mesh const* GetMesh() const override { return &m_mesh_; }
+    WORKER_HEAD(PEC)
 
     void InitializeCondition(Real time_now) override;
     void Advance(Real time, Real dt) override;
 
-    field_type<EDGE> E{&m_mesh_, "name"_ = "E"};
-    field_type<FACE> B{&m_mesh_, "name"_ = "B"};
-
-   private:
+    field_type<EDGE> E{m_mesh_, "name"_ = "E"};
+    field_type<FACE> B{m_mesh_, "name"_ = "B"};
 };
 template <typename TM>
-const bool PEC<TM>::is_register = engine::Worker::RegisterCreator<PEC<TM>>(std::string("PEC<") + TM::ClassName() + ">");
+REGISTER_CREATOR(PEC<TM>)
 
 template <typename TM>
 void PEC<TM>::InitializeCondition(Real time_now) {}

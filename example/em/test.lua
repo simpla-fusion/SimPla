@@ -14,7 +14,7 @@ Config = {
                     name = "E",
                 },
             },
-            Mesh = "CartesianGeometry",
+            MeshBase = "CartesianGeometry",
             Worker = {
                 {
                     name = "PML",
@@ -36,7 +36,7 @@ Config = {
                     name = "J1",
                 },
             },
-            Mesh = "CartesianGeometry",
+            MeshBase = "CartesianGeometry",
             Worker = {
                 {
                     name = "EMFluid",
