@@ -36,6 +36,12 @@ class Schedule : public SPObject, public data::Serializable, public data::Enable
 
     void Run();
 
+    Atlas const &GetAtlas() const;
+    Atlas &GetAtlas();
+
+    Context const &GetContext() const;
+    Context &GetContext();
+
     void SetOutputURL(std::string const &url);
     std::string const &GetOutputURL() const;
 
@@ -51,9 +57,6 @@ class Schedule : public SPObject, public data::Serializable, public data::Enable
 
     void SetDumpInterval(size_type s = 0);
     size_type GetDumpInterval() const;
-
-    void SetContext(std::shared_ptr<Context>);
-    std::shared_ptr<Context> GetContext() const;
 
    private:
     struct pimpl_s;

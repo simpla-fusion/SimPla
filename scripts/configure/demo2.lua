@@ -130,7 +130,7 @@ Grid=
 --[[
 Media=
 {
-   {Type="Vacuum",Region={{0.2*LX,0,0},{0.8*LX,0,0}},Op="PushPatch"},
+   {Type="Vacuum",Region={{0.2*LX,0,0},{0.8*LX,0,0}},Op="Push"},
 
    {Type="Plasma",
      Select=function(x,y,z)

@@ -31,7 +31,11 @@ void Domain::SetUp() {
 }
 void Domain::TearDown() {}
 void Domain::Finalize() {}
-void Domain::InitializeData(Real time_now) { m_pimpl_->m_worker_->InitializeCondition(time_now); }
+void Domain::InitializeData(Patch *p, Real time_now) {
+    m_pimpl_->m_worker_->Push(p);
+    m_pimpl_->m_worker_->InitializeCondition(time_now);
+    m_pimpl_->m_worker_->Pop(p);
+}
 
 std::shared_ptr<data::DataTable> Domain::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
@@ -88,21 +92,26 @@ void Domain::AddBoundaryCondition(std::string const &worker_s, std::shared_ptr<g
 void Domain::AddBoundaryCondition(std::shared_ptr<Worker> w, std::shared_ptr<geometry::GeoObject> g) {
     m_pimpl_->m_boundary_.emplace(g, w);
 }
-void Domain::Push(std::shared_ptr<Patch> p) {
-    if (m_pimpl_->m_worker_ != nullptr) { m_pimpl_->m_worker_->Push(p); }
-}
-std::shared_ptr<Patch> Domain::Pop() { return (m_pimpl_->m_worker_ == nullptr) ? nullptr : m_pimpl_->m_worker_->Pop(); }
 
-void Domain::InitializeCondition(Real time_now) {
-    if (m_pimpl_->m_worker_ != nullptr) { m_pimpl_->m_worker_->InitializeCondition(time_now); }
-}
-
-void Domain::BoundaryCondition(Real time_now, Real time_dt) {
-    if (m_pimpl_->m_worker_ != nullptr) { m_pimpl_->m_worker_->BoundaryCondition(time_now, time_dt); }
+void Domain::InitializeCondition(Patch *p, Real time_now) {
+    ASSERT(m_pimpl_->m_worker_ != nullptr);
+    m_pimpl_->m_worker_->Push(p);
+    m_pimpl_->m_worker_->InitializeCondition(time_now);
+    m_pimpl_->m_worker_->Pop(p);
 }
 
-void Domain::Advance(Real time_now, Real time_dt) {
-    if (m_pimpl_->m_worker_ != nullptr) { m_pimpl_->m_worker_->Advance(time_now, time_dt); }
+void Domain::BoundaryCondition(Patch *p, Real time_now, Real time_dt) {
+    ASSERT(m_pimpl_->m_worker_ != nullptr);
+    m_pimpl_->m_worker_->Push(p);
+    m_pimpl_->m_worker_->BoundaryCondition(time_now, time_dt);
+    m_pimpl_->m_worker_->Pop(p);
+}
+
+void Domain::Advance(Patch *p, Real time_now, Real time_dt) {
+    ASSERT(m_pimpl_->m_worker_ != nullptr);
+    m_pimpl_->m_worker_->Push(p);
+    m_pimpl_->m_worker_->Advance(time_now, time_dt);
+    m_pimpl_->m_worker_->Pop(p);
 }
 
 //    auto mblk_ibx = p->GetBlock()->GetIndexBox();
@@ -176,7 +185,7 @@ void Domain::Advance(Real time_now, Real time_dt) {
 //    m_pimpl_->m_mesh_block_ = m;
 //    if (m_pimpl_->m_patch_ == nullptr) { m_pimpl_->m_patch_ = std::make_shared<data::DataTable>(); }
 //    ASSERT(d->isTable());
-//    m_pimpl_->m_patch_->PushPatch(d->cast_as<data::DataTable>());
+//    m_pimpl_->m_patch_->Push(d->cast_as<data::DataTable>());
 //};
 // void Domain::ConvertPatchFromSAMRAI(std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> const &p)
 // {
@@ -217,7 +226,7 @@ void Domain::Advance(Real time_now, Real time_dt) {
 //                if (t == nullptr || !t->isTable()) {
 //                    t = v->db();
 //                } else {
-//                    t->cast_as<data::DataTable>().PushPatch(*v->db());
+//                    t->cast_as<data::DataTable>().Push(*v->db());
 //                }
 //                db()->Link("Attributes/" + v->name(), t);
 //            }

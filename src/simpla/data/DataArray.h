@@ -177,7 +177,7 @@ class DataEntityWrapper<U*> : public DataArrayWithType<U> {
 //    // DataArrayWithType
 //
 //    virtual U GetValue(index_type idx) const { return m_data_[idx]; }
-//    virtual void PushPatch(size_type idx, U const& v) {
+//    virtual void Push(size_type idx, U const& v) {
 //        ASSERT(size() > idx);
 //        m_data_[idx] = v;
 //    }
@@ -216,7 +216,7 @@ class DataEntityWrapper<U*> : public DataArrayWithType<U> {
 //    // DataArrayWithType
 //    virtual U GetValue(index_type idx) const { return m_data_[idx]; }
 //
-//    virtual void PushPatch(size_type idx, U const& v) {
+//    virtual void Push(size_type idx, U const& v) {
 //        ASSERT(size() > idx);
 //        m_data_[idx] = v;
 //    }
@@ -251,7 +251,7 @@ inline std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<char c
 //
 // template <typename V>
 // void data_entity_to_helper0(V const& src, DataArray& dest, size_type N) {
-//    dest.PushPatch(N - 1, data_entity_traits<V>::to(src));
+//    dest.Push(N - 1, data_entity_traits<V>::to(src));
 //}
 // template <typename... U>
 // void data_entity_to_helper(std::tuple<U...> const& src, DataArray& dest, std::integral_constant<int, 0>){};

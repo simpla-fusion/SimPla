@@ -26,11 +26,11 @@ void AttributeGroup::Register(AttributeGroup *other) {
 void AttributeGroup::Deregister(AttributeGroup *other) {
     for (Attribute *attr : m_pimpl_->m_attributes_) { other->Detach(attr); }
 };
-void AttributeGroup::PushPatch(std::shared_ptr<Patch> p) {
-    for (auto *item : m_pimpl_->m_attributes_) { item->PushData(p->Pop(item->GetGUID())); }
+void AttributeGroup::Push(Patch *p) {
+    for (auto *item : m_pimpl_->m_attributes_) { item->Push(p->Pop(item->GetGUID())); }
 }
-void AttributeGroup::PopPatch(std::shared_ptr<Patch> p) {
-    for (auto *item : m_pimpl_->m_attributes_) { p->Push(item->GetGUID(), item->PopData()); }
+void AttributeGroup::Pop(Patch *p) {
+    for (auto *item : m_pimpl_->m_attributes_) { p->Push(item->GetGUID(), item->Pop()); }
 }
 void AttributeGroup::Attach(Attribute *p) { m_pimpl_->m_attributes_.emplace(p); }
 void AttributeGroup::Detach(Attribute *p) { m_pimpl_->m_attributes_.erase(p); }

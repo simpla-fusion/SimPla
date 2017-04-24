@@ -14,16 +14,23 @@
 namespace simpla {
 namespace engine {
 struct Schedule::pimpl_s {
-    std::shared_ptr<Context> m_ctx_ = nullptr;
-
     size_type m_step_ = 0;
     size_type m_max_step_ = 0;
     size_type m_check_point_interval_ = 1;
     size_type m_dump_interval_ = 0;
     std::string m_output_url_ = "";
+
+    Atlas m_atlas_;
+    Context m_ctx_;
 };
 Schedule::Schedule() : m_pimpl_(new pimpl_s){};
 Schedule::~Schedule(){};
+
+Atlas const& Schedule::GetAtlas() const { return m_pimpl_->m_atlas_; }
+Atlas& Schedule::GetAtlas() { return m_pimpl_->m_atlas_; }
+
+Context const& Schedule::GetContext() const { return m_pimpl_->m_ctx_; }
+Context& Schedule::GetContext() { return m_pimpl_->m_ctx_; }
 
 size_type Schedule::GetNumberOfStep() const { return m_pimpl_->m_step_; }
 void Schedule::SetMaxStep(size_type s) { m_pimpl_->m_max_step_ = s; }
@@ -59,28 +66,21 @@ void Schedule::Run() {
 
 std::shared_ptr<data::DataTable> Schedule::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
-    res->Link("Context", m_pimpl_->m_ctx_->Serialize());
+    res->Link("Context", m_pimpl_->m_ctx_.Serialize());
     return res;
 }
 void Schedule::Deserialize(std::shared_ptr<data::DataTable> t) {
     TearDown();
-    m_pimpl_->m_ctx_->Deserialize(t->GetTable("Context"));
+    m_pimpl_->m_ctx_.Deserialize(t->GetTable("Context"));
     Click();
 }
-
-void Schedule::SetContext(std::shared_ptr<Context> ctx) {
-    m_pimpl_->m_ctx_ = ctx;
-    Click();
-}
-std::shared_ptr<Context> Schedule::GetContext() const { return m_pimpl_->m_ctx_; }
 
 void Schedule::Initialize() { SPObject::Initialize(); }
 void Schedule::Finalize() { SPObject::Finalize(); }
 
 void Schedule::SetUp() {
     SPObject::SetUp();
-    if (m_pimpl_->m_ctx_ == nullptr) { m_pimpl_->m_ctx_ = std::make_shared<Context>(); }
-    m_pimpl_->m_ctx_->SetUp();
+    m_pimpl_->m_ctx_.SetUp();
     //    MPI_Barrier(GLOBAL_COMM.comm());
     //    std::shared_ptr<data::DataTable> cfg = nullptr;
     //    std::string buffer;
@@ -106,10 +106,7 @@ void Schedule::SetUp() {
     //    MPI_Barrier(GLOBAL_COMM.comm());
 }
 void Schedule::TearDown() {
-    if (m_pimpl_->m_ctx_ == nullptr) {
-        m_pimpl_->m_ctx_->TearDown();
-        m_pimpl_->m_ctx_.reset();
-    }
+    m_pimpl_->m_ctx_.TearDown();
     SPObject::TearDown();
 }
 void Schedule::Synchronize() {

@@ -39,8 +39,8 @@ class MeshBase : public AttributeGroup,
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> t) override;
 
-    void Push(std::shared_ptr<Patch> p);
-    std::shared_ptr<Patch> Pop();
+    void Push(Patch *p) override;
+    void Pop(Patch *p) override;
 
     virtual void InitializeData(Real time_now);
 

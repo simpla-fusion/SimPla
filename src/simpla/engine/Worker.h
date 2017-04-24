@@ -32,8 +32,8 @@ class Worker : public data::Serializable, public data::EnableCreateFromDataTable
     std::shared_ptr<MeshBase> GetMesh() { return m_mesh_; }
     std::shared_ptr<MeshBase> const GetMesh() const { return m_mesh_; }
 
-    virtual void Push(std::shared_ptr<Patch>);
-    virtual std::shared_ptr<Patch> Pop();
+    virtual void Push(Patch*);
+    virtual void Pop(Patch*);
 
     virtual void Initialize();
     virtual void SetUp();

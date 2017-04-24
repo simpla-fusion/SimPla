@@ -40,7 +40,7 @@ box_type const& Model::GetBoundBox() const { return m_pimpl_->m_bound_box_; };
 //}
 //
 // std::shared_ptr<data::DataTable> Model::SetMaterial(std::string const &s, std::shared_ptr<DataTable> other) {
-//    db()->PushPatch("/Material/" + s, other, false);
+//    db()->Push("/Material/" + s, other, false);
 //    db()->PopPatch("/Material/" + s)->cast_as<DataTable>().SetValue("GUID", std::hash<std::string>{}(s));
 //    return nullptr;
 //}

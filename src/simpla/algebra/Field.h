@@ -97,13 +97,13 @@ class FieldView : public engine::Attribute {
         return *this;
     }
 
-    void PushData(std::shared_ptr<data::DataBlock> d) {
+    void Push(std::shared_ptr<data::DataBlock> d) {
         if (d != nullptr) {
             auto& t = d->cast_as<data::DataMultiArray<value_type, NDIMS>>();
             for (int i = 0; i < NUMBER_OF_SUB; ++i) { array_type(t.GetArray(i)).swap(m_data_[i]); }
         }
     }
-    std::shared_ptr<data::DataBlock> PopData() {
+    std::shared_ptr<data::DataBlock> Pop() {
         auto res = std::make_shared<data::DataMultiArray<value_type, NDIMS>>(NUMBER_OF_SUB);
         for (int i = 0; i < NUMBER_OF_SUB; ++i) { array_type(m_data_[i]).swap(res->GetArray(i)); }
         return res;

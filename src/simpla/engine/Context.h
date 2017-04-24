@@ -66,25 +66,21 @@ class Context : public data::Serializable {
     Context();
     ~Context() override;
     SP_DEFAULT_CONSTRUCT(Context)
-    virtual std::shared_ptr<DataTable> Serialize() const override;
-    virtual void Deserialize(std::shared_ptr<DataTable>) override ;
-
-    std::shared_ptr<Patch> Pop();
-    void Push(std::shared_ptr<Patch> p);
+    std::shared_ptr<DataTable> Serialize() const override;
+    void Deserialize(std::shared_ptr<DataTable>) override;
 
     void Initialize();  //!< initialize data on current patch
     void Finalize();    //!< release data on current patch
     void TearDown();
     void SetUp();
 
-    void InitializeCondition(Real time_now);
-    void BoundaryCondition(Real time_now, Real time_dt);
-    void Advance(Real time_now, Real time_dt);
+    void InitializeCondition(Patch *p, Real time_now);
+    void BoundaryCondition(Patch *p, Real time_now, Real time_dt);
+    void Advance(Patch *p, Real time_now, Real time_dt);
 
     void Register(AttributeGroup *);
 
     Model &GetModel() const;
-    Atlas &GetAtlas() const;
 
     void SetDomain(std::string const &k, std::shared_ptr<Domain>);
     std::shared_ptr<Domain> GetDomain(std::string const &k);

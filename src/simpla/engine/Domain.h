@@ -33,9 +33,6 @@ class Domain : public SPObject, public data::Serializable {
     void Register(AttributeGroup *);
     void Deregister(AttributeGroup *);
 
-    std::shared_ptr<Patch> Pop();
-    void Push(std::shared_ptr<Patch> p);
-
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> t) override;
 
@@ -60,16 +57,15 @@ class Domain : public SPObject, public data::Serializable {
     void AddBoundaryCondition(std::string const &worker_s, std::shared_ptr<geometry::GeoObject> g = nullptr);
     void AddBoundaryCondition(std::shared_ptr<Worker>, std::shared_ptr<geometry::GeoObject> g = nullptr);
 
-    void InitializeCondition(Real time_now);
-    void BoundaryCondition(Real time_now, Real time_dt);
-    void Advance(Real time_now, Real time_dt);
-
     void Initialize() override;
     void SetUp() override;
     void TearDown() override;
     void Finalize() override;
 
-    virtual void InitializeData(Real time_now);
+    void InitializeData(Patch *p, Real time_now);
+    void InitializeCondition(Patch *p, Real time_now);
+    void BoundaryCondition(Patch *p, Real time_now, Real time_dt);
+    void Advance(Patch *p, Real time_now, Real time_dt);
 
    private:
     struct pimpl_s;

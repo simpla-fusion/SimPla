@@ -120,7 +120,7 @@ class DataTable : public DataEntity {
 
     //    template <typename U>
     //    U GetValue(std::string const& uri, U const& default_value) {
-    //        PushPatch(uri, make_data_entity(default_value), false);
+    //        Push(uri, make_data_entity(default_value), false);
     //        return data_cast<U>(*PopPatch(uri));
     //    }
 

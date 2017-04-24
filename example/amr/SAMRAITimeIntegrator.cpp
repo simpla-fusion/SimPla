@@ -79,7 +79,7 @@ class SAMRAITimeIntegrator;
 class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatchStrategy {
     SP_OBJECT_BASE(SAMRAIHyperbolicPatchStrategyAdapter)
    public:
-    SAMRAIHyperbolicPatchStrategyAdapter(std::shared_ptr<engine::Context> const &ctx,
+    SAMRAIHyperbolicPatchStrategyAdapter(engine::Context &ctx,
                                          boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom);
 
     /**
@@ -226,7 +226,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
 
    private:
     static constexpr int NDIMS = 3;
-    std::shared_ptr<engine::Context> m_ctx_;
+    engine::Context &m_ctx_;
     /*
      * The object GetName is used for error/warning reporting and also as a
      * string label for restart database entries.
@@ -257,8 +257,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
 };
 
 SAMRAIHyperbolicPatchStrategyAdapter::SAMRAIHyperbolicPatchStrategyAdapter(
-    std::shared_ptr<engine::Context> const &ctx,
-    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom)
+    engine::Context &ctx, boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom)
     : d_dim(3),
       d_grid_geometry(grid_geom),
       d_use_nonuniform_workload(false),
@@ -424,7 +423,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     //**************************************************************
 
     engine::AttributeGroup attr_grp;
-    m_ctx_->Register(&attr_grp);
+    m_ctx_.Register(&attr_grp);
     for (engine::Attribute *v : attr_grp.GetAll()) {
         if (v->GetName() == "") continue;
         boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, v);
@@ -547,17 +546,13 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setupLoadBalancer(SAMRAI::algs::Hyper
 void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::Patch &patch, double data_time,
                                                                  bool initial_time) {
     if (initial_time) {
-        auto &atlas = m_ctx_->GetAtlas();
-
         //        auto p = atlas.PopPatch(static_cast<id_type>(patch.getLocalId().getValue()));
-        auto p = std::make_shared<engine::Patch>();
-
-        ConvertPatchFromSAMRAI(patch, p.get());
-        m_ctx_->Push(p);
-        m_ctx_->InitializeCondition(data_time);
-        //        p = m_ctx_->Pop();
+        engine::Patch p;
+        ConvertPatchFromSAMRAI(patch, &p);
+        m_ctx_.InitializeCondition(&p, data_time);
+        //        p = m_ctx_.Pop();
         //        ConvertPatchToSAMRAI(patch, p.get());
-        //        atlas.PushPatch(p);
+        //        atlas.Push(p);
     }
 
     if (d_use_nonuniform_workload) {
@@ -609,16 +604,13 @@ void SAMRAIHyperbolicPatchStrategyAdapter::computeFluxesOnPatch(SAMRAI::hier::Pa
 
 void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, double time,
                                                                          double dt, bool at_syncronization) {
-    auto &atlas = m_ctx_->GetAtlas();
-
     //    auto p = atlas.PopPatch(static_cast<id_type>(patch.getLocalId().getValue()));
     auto p = std::make_shared<engine::Patch>();
     ConvertPatchFromSAMRAI(patch, p.get());
-    m_ctx_->Push(p);
-    m_ctx_->Advance(time, dt);
-    //    p = m_ctx_->Pop();
+    m_ctx_.Advance(p.get(), time, dt);
+    //    p = m_ctx_.Pop();
     //    ConvertPatchToSAMRAI(patch, p.get());
-    //    atlas.PushPatch(p);
+    //    atlas.Push(p);
 }
 
 /**************************************************************************
@@ -649,15 +641,15 @@ void SAMRAIHyperbolicPatchStrategyAdapter::tagGradientDetectorCells(SAMRAI::hier
 
 void SAMRAIHyperbolicPatchStrategyAdapter::setPhysicalBoundaryConditions(
     SAMRAI::hier::Patch &patch, double fill_time, const SAMRAI::hier::IntVector &ghost_width_to_fill) {
-    //    auto &atlas = m_ctx_->GetAtlas();
+    //    auto &atlas = m_ctx_.GetAtlas();
     //
     //    auto p = atlas.PopPatch(static_cast<id_type>(patch.getLocalId().getValue()));
     //    ConvertPatchFromSAMRAI(patch, p.get());
-    //    m_ctx_->Push(p);
-    //    m_ctx_->BoundaryCondition(fill_time, 0);
-    //    p = m_ctx_->Pop();
+    //    m_ctx_.Push(p);
+    //    m_ctx_.BoundaryCondition(fill_time, 0);
+    //    p = m_ctx_.Pop();
     //    ConvertPatchToSAMRAI(patch, p.get());
-    //    atlas.PushPatch(p);
+    //    atlas.Push(p);
 }
 
 /**************************************************************************
@@ -825,10 +817,10 @@ void SAMRAITimeIntegrator::SetUp() {
        // using default TreeLoadBalancer configuration
     }
      */
-    auto ctx = GetContext();
-    auto const &atlas = ctx->GetAtlas();
-    auto bound_box = ctx->GetModel().GetBoundBox();
-    ndims = static_cast<unsigned int>(ctx->GetModel().GetNDims());
+    auto &ctx = GetContext();
+    auto const &atlas = GetAtlas();
+    auto bound_box = ctx.GetModel().GetBoundBox();
+    ndims = static_cast<unsigned int>(ctx.GetModel().GetNDims());
     bool use_refined_timestepping = true;  // m_samrai_db_->GetValue<bool>("use_refined_timestepping", true);
 
     SAMRAI::tbox::Dimension dim(static_cast<unsigned short>(ndims));

@@ -22,7 +22,6 @@ class PEC : public engine::Worker {
     SP_OBJECT_HEAD(PEC<TM>, engine::Worker)
     typedef TM mesh_type;
 
-   public:
     WORKER_HEAD(PEC)
 
     void InitializeCondition(Real time_now) override;

@@ -46,6 +46,7 @@ REGISTER_CREATOR(UseCaseAMR);
 
 void UseCaseAMR::SetUp() {
     //    CHECK(_PRE_REGISTERED);
+
     auto domain = std::make_shared<engine::Domain>();
     domain->SetGeoObject(std::make_shared<geometry::Cube>(box_type{{1.0, 0.0, 0.0}, {2, TWOPI, 2}}));
     domain->SetChart("CylindricalGeometry");
@@ -55,17 +56,14 @@ void UseCaseAMR::SetUp() {
     domain->SetWorker("EMFluid");
     domain->AddBoundaryCondition("PEC");
 
-    auto ctx = std::make_shared<engine::Context>();
-    ctx->GetAtlas().SetIndexBox(index_box_type{{0, 0, 0}, {64, 32, 64}});
-    ctx->GetAtlas().SetPeriodicDimension(size_tuple{0, 0, 0});
-    ctx->SetDomain("Center", domain);
-
     auto schedule = std::dynamic_pointer_cast<engine::TimeIntegrator>(engine::Schedule::Create("SAMRAITimeIntegrator"));
     schedule->Initialize();
+    schedule->GetContext().SetDomain("Center", domain);
+    schedule->GetAtlas().SetIndexBox(index_box_type{{0, 0, 0}, {64, 32, 64}});
+    schedule->GetAtlas().SetPeriodicDimension(size_tuple{0, 0, 0});
     schedule->SetTime(0.0);
     schedule->SetTimeStep(0.1);
     schedule->SetTimeEnd(1.0);
-    schedule->SetContext(ctx);
     schedule->SetOutputURL("SimPLASaveData");
     schedule->SetUp();
     SetSchedule(schedule);
