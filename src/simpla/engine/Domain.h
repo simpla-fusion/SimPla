@@ -21,7 +21,7 @@ class Worker;
 // class DataBlock;
 // class Domain;
 // class Task;
-//
+
 class Domain : public SPObject, public data::Serializable {
     SP_OBJECT_HEAD(Domain, SPObject)
    public:

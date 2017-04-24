@@ -216,8 +216,14 @@ struct Range {
     Range(this_type&& other) noexcept : m_next_(other.m_next_) {}
     Range(this_type& other, concept::tags::split const& s) : Range(other.split(s)) {}
 
-    Range& operator=(this_type const& other) { this_type(other).swap(*this); }
-    Range& operator=(this_type&& other) { this_type(other).swap(*this); }
+    Range& operator=(this_type const& other) {
+        this_type(other).swap(*this);
+        return *this;
+    }
+    Range& operator=(this_type&& other) {
+        this_type(other).swap(*this);
+        return *this;
+    }
 
     void swap(this_type& other) { std::swap(m_next_, other.m_next_); }
 

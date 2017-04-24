@@ -142,14 +142,17 @@ class FieldView : public engine::Attribute {
     template <typename Other>
     void Assign(Other const& other) {
         SetUp();
-
-        int num_of_com = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
-        for (int n = 0; n < num_of_com; ++n) {
-            for (int d = 0; d < DOF; ++d) {
-                m_data_[n * DOF + d].Foreach([&](index_tuple const& k, value_type& v) {
-                    v = calculus_policy::getValue(std::integral_constant<int, IFORM>(), *m_mesh_, other, k[0], k[1],
-                                                  k[2], n, d);
-                });
+        if (!m_mesh_->GetRange(IFORM).empty()) {
+            Assign(m_mesh_->GetRange(IFORM), other);
+        } else {
+            int num_of_com = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
+            for (int n = 0; n < num_of_com; ++n) {
+                for (int d = 0; d < DOF; ++d) {
+                    m_data_[n * DOF + d].Foreach([&](index_tuple const& k, value_type& v) {
+                        v = calculus_policy::getValue(std::integral_constant<int, IFORM>(), *m_mesh_, other, k[0], k[1],
+                                                      k[2], n, d);
+                    });
+                }
             }
         }
     }

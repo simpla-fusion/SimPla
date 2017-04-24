@@ -60,7 +60,8 @@ class MeshBase : public AttributeGroup,
     void SetChart(std::shared_ptr<Chart> c);
     std::shared_ptr<Chart> GetChart() const;
 
-    virtual Range<EntityId> GetRange(int iform) const;
+    virtual Range<EntityId> &GetRange(int IFORM);
+    virtual Range<EntityId> const &GetRange(int IFORM) const;
 
     virtual Real volume(EntityId s) const = 0;
     virtual Real dual_volume(EntityId s) const = 0;
@@ -90,9 +91,6 @@ class BoundaryMeshBase : public MeshBase {
 
     void SetUp() override;
 
-    Range<EntityId> &GetRange(int IFORM) { return m_range_[IFORM]; };
-    Range<EntityId> GetRange(int IFORM) const override { return m_range_[IFORM]; };
-
     point_type point(EntityId s) const override { return GetBaseMesh()->point(s); }
     Real volume(EntityId s) const override { return m_base_mesh_->volume(s); }
     Real dual_volume(EntityId s) const override { return m_base_mesh_->volume(s); }
@@ -101,7 +99,6 @@ class BoundaryMeshBase : public MeshBase {
 
    private:
     MeshBase *m_base_mesh_ = nullptr;
-    Range<EntityId> m_range_[4];
 };
 
 }  // namespace engine

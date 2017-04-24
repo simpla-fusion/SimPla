@@ -16,7 +16,7 @@ struct MeshBase::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
     std::shared_ptr<geometry::GeoObject> m_geo_obj_;
     std::shared_ptr<Chart> m_chart_;
-    std::map<int, Range<EntityId>> m_ranges_;
+    Range<EntityId> m_ranges_[4];
     Real m_time_ = 0.0;
 };
 MeshBase::MeshBase(std::shared_ptr<Chart> c) : m_pimpl_(new pimpl_s) { m_pimpl_->m_chart_ = c; }
@@ -48,19 +48,31 @@ std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
     return p;
 }
 void MeshBase::Deserialize(std::shared_ptr<data::DataTable>) {}
-Range<EntityId> MeshBase::GetRange(int iform) const {
-    return Range<EntityId>(std::make_shared<ContinueRange<EntityId>>(GetBlock()->GetIndexBox(), iform));
-};
+
+Range<EntityId> &MeshBase::GetRange(int iform) { return m_pimpl_->m_ranges_[iform]; };
+Range<EntityId> const &MeshBase::GetRange(int iform) const { return m_pimpl_->m_ranges_[iform]; };
 
 void MeshBase::Push(Patch *p) {
     ASSERT(p != nullptr);
     m_pimpl_->m_mesh_block_ = p->GetBlock();
+    if (GetGeoObject() != nullptr) {
+        m_pimpl_->m_ranges_[VERTEX] = p->GetRange(VERTEX, GetGeoObject()->GetGUID());
+        m_pimpl_->m_ranges_[EDGE] = p->GetRange(EDGE, GetGeoObject()->GetGUID());
+        m_pimpl_->m_ranges_[FACE] = p->GetRange(FACE, GetGeoObject()->GetGUID());
+        m_pimpl_->m_ranges_[VOLUME] = p->GetRange(VOLUME, GetGeoObject()->GetGUID());
+    }
     AttributeGroup::Push(p);
 }
 void MeshBase::Pop(Patch *p) {
     ASSERT(p != nullptr);
     AttributeGroup::Pop(p);
-    p->SetChart(m_pimpl_->m_chart_);
+    p->SetBlock(m_pimpl_->m_mesh_block_);
+    if (GetGeoObject() != nullptr) {
+        p->SetRange(m_pimpl_->m_ranges_[VERTEX], VERTEX, GetGeoObject()->GetGUID());
+        p->SetRange(m_pimpl_->m_ranges_[EDGE], EDGE, GetGeoObject()->GetGUID());
+        p->SetRange(m_pimpl_->m_ranges_[FACE], FACE, GetGeoObject()->GetGUID());
+        p->SetRange(m_pimpl_->m_ranges_[VOLUME], VOLUME, GetGeoObject()->GetGUID());
+    }
 }
 void BoundaryMeshBase::SetUp() {}
 }  // {namespace engine

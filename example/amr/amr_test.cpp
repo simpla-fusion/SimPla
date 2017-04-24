@@ -92,13 +92,8 @@ void UseCaseAMR::SetUp() {
 //    worker->db()->SetValue("Particles/D1/ratio", 0.5);
 //    worker->db()->SetValue("Particles/e1/m", SI_electron_proton_mass_ratio);
 //    worker->db()->SetValue("Particles/e1/Z", -1.0);
-//    worker->db()->SetValue(
-//        "Particles", {"H"_ = {"m"_ = 1.0, "Z"_ = 1.0, "ratio"_ = 0.5}, "D"_ = {"m"_ = 2.0, "Z"_ = 1.0, "ratio"_ =
-//        0.5},
-//                      "e"_ = {"m"_ = SI_electron_proton_mass_ratio, "Z"_ = -1.0}});
-//
-//
-//
+//    worker->db()->SetValue( "Particles", {"H"_ = {"m"_ = 1.0, "Z"_ = 1.0, "ratio"_ = 0.5}, "D"_ = {"m"_ = 2.0, "Z"_ =
+//    1.0, "ratio"_ = 0.5},"e"_ = {"m"_ = SI_electron_proton_mass_ratio, "Z"_ = -1.0}});
 //    ctx->GetDomainView("PLASMA")->SetWorker(worker);
 
 }  // namespace simpla{

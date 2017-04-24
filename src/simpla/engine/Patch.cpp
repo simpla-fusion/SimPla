@@ -16,6 +16,8 @@ struct Patch::pimpl_s {
     std::shared_ptr<Chart> m_chart_ = nullptr;
     std::shared_ptr<MeshBlock> m_block_ = nullptr;
     std::map<id_type, std::shared_ptr<data::DataBlock>> m_data_;
+    std::map<id_type, Range<EntityId>> m_ranges_[4];
+
     static boost::uuids::random_generator m_gen_;
     static boost::hash<boost::uuids::uuid> m_hasher_;
 };
@@ -53,9 +55,9 @@ std::shared_ptr<data::DataBlock> Patch::Pop(id_type const &id) const {
     if (it != m_pimpl_->m_data_.end()) { res = it->second; }
     return res;
 }
-
-Range<EntityId> Patch::GetRange(id_type domain_id, int IFORM) const { return Range<EntityId>(); }
-void Patch::SetRange(id_type domain_id, int IFORM, Range<EntityId> const &) {}
+Range<EntityId> &Patch::GetRange(int IFORM, id_type id) { return m_pimpl_->m_ranges_[IFORM][id]; }
+Range<EntityId> const &Patch::GetRange(int IFORM, id_type id) const { return m_pimpl_->m_ranges_[IFORM].at(id); }
+void Patch::SetRange(Range<EntityId> r, int IFORM, id_type id) { m_pimpl_->m_ranges_[IFORM][id] = r; }
 
 }  // namespace engine {
 }  // namespace simpla {

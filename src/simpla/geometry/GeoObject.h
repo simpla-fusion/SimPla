@@ -27,8 +27,8 @@ struct GeoObjectAdapter;
  *
  *  PlaceHolder Geometric object
  */
-class GeoObject : public data::Serializable, public data::EnableCreateFromDataTable<GeoObject> {
-    SP_OBJECT_BASE(GeoObject)
+class GeoObject : public SPObject, public data::Serializable, public data::EnableCreateFromDataTable<GeoObject> {
+    SP_OBJECT_HEAD(GeoObject, SPObject)
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 
    public:
