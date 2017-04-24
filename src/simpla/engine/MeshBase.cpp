@@ -35,7 +35,9 @@ std::shared_ptr<geometry::GeoObject> MeshBase::GetGeoObject() const { return m_p
 void MeshBase::SetChart(std::shared_ptr<Chart> c) { m_pimpl_->m_chart_ = c; }
 std::shared_ptr<Chart> MeshBase::GetChart() const { return m_pimpl_->m_chart_; }
 
-void MeshBase::SetUp() {}
+void MeshBase::SetUp() {
+
+}
 void MeshBase::TearDown() {}
 void MeshBase::Initialize() {}
 void MeshBase::Finalize() {}

@@ -35,9 +35,9 @@ class Patch {
     int Push(id_type const &id, std::shared_ptr<data::DataBlock> const &);
     std::shared_ptr<data::DataBlock> Pop(id_type const &id) const;
 
-    Range<EntityId> &GetRange(int IFORM = VERTEX, id_type id = NULL_ID);
-    Range<EntityId> const &GetRange(int IFORM = VERTEX, id_type id = NULL_ID) const;
-    void SetRange(Range<EntityId>, int IFORM = VERTEX, id_type id = NULL_ID);
+    Range<EntityId> &GetRange(int IFORM = VERTEX, std::shared_ptr<geometry::GeoObject> g_obj = nullptr);
+    Range<EntityId> const &GetRange(int IFORM = VERTEX, std::shared_ptr<geometry::GeoObject> g_obj = nullptr) const;
+    void SetRange(Range<EntityId>, int IFORM = VERTEX, std::shared_ptr<geometry::GeoObject> g_obj = nullptr);
 
    private:
     struct pimpl_s;
