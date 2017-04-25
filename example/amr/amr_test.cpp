@@ -45,19 +45,14 @@ struct UseCaseAMR : public application::SpApp {
 REGISTER_CREATOR(UseCaseAMR);
 
 void UseCaseAMR::SetUp() {
-    //    CHECK(_PRE_REGISTERED);
-
-    //    auto domain = std::make_shared<engine::Domain>();
     auto g = std::make_shared<geometry::Cube>(box_type{{1.0, 0.0, 0.0}, {2, TWOPI, 2}});
-    //    domain->SetChart<CylindricalGeometry>();
-    //    domain->GetChart()->SetOrigin(point_type{1, 0, 0});
-    //    domain->GetChart()->SetDx(point_type{0.1, TWOPI / 64, 0.1});
 
     auto c = std::make_shared<CylindricalGeometry>();
     c->SetOrigin(point_type{1, 0, 0});
     c->SetDx(point_type{0.1, TWOPI / 64, 0.1});
 
     auto w = std::make_shared<EMFluid<Mesh<CylindricalGeometry, SMesh>>>(c, g);
+
     auto schedule = std::dynamic_pointer_cast<engine::TimeIntegrator>(engine::Schedule::Create("SAMRAITimeIntegrator"));
     schedule->Initialize();
     schedule->GetContext().SetWorker("Center", w);

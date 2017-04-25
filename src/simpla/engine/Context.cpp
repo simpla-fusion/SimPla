@@ -52,14 +52,26 @@ void Context::SetUp() {
     m_pimpl_->m_atlas_.SetUp();
 };
 void Context::InitializeCondition(Patch *p, Real time_now) {
-    for (auto &item : m_pimpl_->m_worker_) { item.second->InitializeCondition(time_now); }
+    for (auto &item : m_pimpl_->m_worker_) {
+        item.second->Push(p);
+        item.second->InitializeCondition(time_now);
+        item.second->Pop(p);
+    }
 }
 void Context::BoundaryCondition(Patch *p, Real time_now, Real time_dt) {
-    for (auto &item : m_pimpl_->m_worker_) { item.second->BoundaryCondition(time_now, time_dt); }
+    for (auto &item : m_pimpl_->m_worker_) {
+        item.second->Push(p);
+        item.second->BoundaryCondition(time_now, time_dt);
+        item.second->Pop(p);
+    }
 }
 
 void Context::Advance(Patch *p, Real time_now, Real time_dt) {
-    for (auto &item : m_pimpl_->m_worker_) { item.second->Advance(time_dt, time_dt); }
+    for (auto &item : m_pimpl_->m_worker_) {
+        item.second->Push(p);
+        item.second->Advance(time_dt, time_dt);
+        item.second->Pop(p);
+    }
 }
 
 Model &Context::GetModel() const { return m_pimpl_->m_model_; }
