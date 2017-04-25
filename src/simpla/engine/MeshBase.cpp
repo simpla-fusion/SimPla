@@ -14,12 +14,15 @@ namespace engine {
 
 struct MeshBase::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
-    std::shared_ptr<geometry::GeoObject> m_geo_obj_;
     std::shared_ptr<Chart> m_chart_;
+    std::shared_ptr<geometry::GeoObject> m_geo_obj_;
     Range<EntityId> m_ranges_[4];
     Real m_time_ = 0.0;
 };
-MeshBase::MeshBase(std::shared_ptr<Chart> c) : m_pimpl_(new pimpl_s) { m_pimpl_->m_chart_ = c; }
+MeshBase::MeshBase(std::shared_ptr<Chart> c, std::shared_ptr<geometry::GeoObject> g) : m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_chart_ = c;
+    m_pimpl_->m_geo_obj_ = g;
+}
 MeshBase::~MeshBase() {}
 
 Real MeshBase::GetTime() const { return m_pimpl_->m_time_; }
@@ -29,11 +32,8 @@ id_type MeshBase::GetBlockId() const {
     return m_pimpl_->m_mesh_block_ == nullptr ? NULL_ID : m_pimpl_->m_mesh_block_->GetGUID();
 }
 
-void MeshBase::SetGeoObject(std::shared_ptr<geometry::GeoObject> g) { m_pimpl_->m_geo_obj_ = g; }
-std::shared_ptr<geometry::GeoObject> MeshBase::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
-
-void MeshBase::SetChart(std::shared_ptr<Chart> c) { m_pimpl_->m_chart_ = c; }
 std::shared_ptr<Chart> MeshBase::GetChart() const { return m_pimpl_->m_chart_; }
+std::shared_ptr<geometry::GeoObject> MeshBase::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
 
 void MeshBase::SetUp() {}
 void MeshBase::TearDown() {}

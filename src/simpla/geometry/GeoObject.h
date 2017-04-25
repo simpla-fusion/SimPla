@@ -48,6 +48,8 @@ class GeoObject : public data::Serializable, public data::EnableCreateFromDataTa
     virtual bool equal(GeoObject const &other) const { return this == &other; }
     virtual Real GetDistanceTo(point_type const &x) const { return 0; }
 
+    virtual std::shared_ptr<GeoObject> Boundary() const { return nullptr; }
+
     bool operator==(GeoObject const &other) const { return equal(other); }
 
     /**

@@ -26,13 +26,14 @@ using namespace simpla::data;
  *   - \f$p\f$ is the projection
  *
  */
-class MeshBase : public AttributeGroup,
-                 public data::Serializable,
-                 public data::EnableCreateFromDataTable<MeshBase, std::shared_ptr<Chart>> {
+class MeshBase
+    : public AttributeGroup,
+      public data::Serializable,
+      public data::EnableCreateFromDataTable<MeshBase, std::shared_ptr<Chart>, std::shared_ptr<geometry::GeoObject>> {
     SP_OBJECT_HEAD(MeshBase, AttributeGroup);
 
    public:
-    explicit MeshBase(std::shared_ptr<Chart> c = nullptr);
+    explicit MeshBase(std::shared_ptr<Chart> c = nullptr, std::shared_ptr<geometry::GeoObject> g = nullptr);
     ~MeshBase() override;
     SP_DEFAULT_CONSTRUCT(MeshBase);
     DECLARE_REGISTER_NAME("MeshBase");
@@ -57,12 +58,8 @@ class MeshBase : public AttributeGroup,
     id_type GetBlockId() const;
     void SetBlock(std::shared_ptr<MeshBlock>);
     std::shared_ptr<MeshBlock> GetBlock() const;
-
-    void SetGeoObject(std::shared_ptr<geometry::GeoObject>);
-    std::shared_ptr<geometry::GeoObject> GetGeoObject() const;
-
-    void SetChart(std::shared_ptr<Chart> c);
     std::shared_ptr<Chart> GetChart() const;
+    std::shared_ptr<geometry::GeoObject> GetGeoObject() const;
 
     virtual Range<EntityId> &GetRange(int IFORM);
     virtual Range<EntityId> const &GetRange(int IFORM) const;
@@ -74,7 +71,6 @@ class MeshBase : public AttributeGroup,
 
     virtual point_type point(EntityId s) const = 0;
     virtual point_type point(EntityId id, point_type const &pr) const { return point_type{}; };
-
 
    protected:
     struct pimpl_s;

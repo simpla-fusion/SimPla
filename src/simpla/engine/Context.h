@@ -82,9 +82,9 @@ class Context : public data::Serializable {
 
     Model &GetModel() const;
 
-    void SetDomain(std::string const &k, std::shared_ptr<Domain>);
-    std::shared_ptr<Domain> GetDomain(std::string const &k);
-    std::shared_ptr<Domain> GetDomain(std::string const &k) const;
+    void SetWorker(std::string const &k, std::shared_ptr<Worker>);
+    std::shared_ptr<Worker> GetWorker(std::string const &k);
+    std::shared_ptr<Worker> GetWorker(std::string const &k) const;
 
    private:
     struct pimpl_s;

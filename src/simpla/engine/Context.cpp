@@ -14,7 +14,7 @@ namespace engine {
 
 struct Context::pimpl_s {
     std::map<std::string, std::shared_ptr<Attribute>> m_global_attributes_;
-    std::map<std::string, std::shared_ptr<Domain>> m_domain_;
+    std::map<std::string, std::shared_ptr<Worker>> m_worker_;
     Model m_model_;
     Atlas m_atlas_;
 };
@@ -24,17 +24,17 @@ Context::~Context() {}
 
 std::shared_ptr<data::DataTable> Context::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
-    for (auto const &item : m_pimpl_->m_domain_) { res->Link("Domain/" + item.first, item.second->Serialize()); }
+    for (auto const &item : m_pimpl_->m_worker_) { res->Link("Domain/" + item.first, item.second->Serialize()); }
     return res;
 }
 void Context::Deserialize(std::shared_ptr<DataTable> cfg) {
-    auto domain_t = cfg->GetTable("Domains");
-    if (domain_t == nullptr) { return; }
-    domain_t->Foreach([&](std::string const &k, std::shared_ptr<DataEntity> t) {
-        auto v = std::make_shared<Domain>();
-        if (t->isTable()) { v->Deserialize(std::dynamic_pointer_cast<data::DataTable>(t)); }
-        SetDomain(k, v);
-    });
+    //    auto worker_t = cfg->GetTable("Domains");
+    //    if (worker_t == nullptr) { return; }
+    //    worker_t->Foreach([&](std::string const &k, std::shared_ptr<DataEntity> t) {
+    //        auto v = std::make_shared<Domain>();
+    //        if (t->isTable()) { v->Deserialize(std::dynamic_pointer_cast<data::DataTable>(t)); }
+    //        SetDomain(k, v);
+    //    });
 }
 
 void Context::Initialize() {}
@@ -44,41 +44,41 @@ void Context::TearDown() {
     m_pimpl_->m_atlas_.TearDown();
 }
 void Context::SetUp() {
-    for (auto &item : m_pimpl_->m_domain_) {
+    for (auto &item : m_pimpl_->m_worker_) {
         item.second->SetUp();
-        m_pimpl_->m_model_.AddObject(item.first, item.second->GetGeoObject());
+        m_pimpl_->m_model_.AddObject(item.first, item.second->GetMesh()->GetGeoObject());
     }
     m_pimpl_->m_model_.SetUp();
     m_pimpl_->m_atlas_.SetUp();
 };
 void Context::InitializeCondition(Patch *p, Real time_now) {
-    for (auto &item : m_pimpl_->m_domain_) { item.second->InitializeCondition(p, time_now); }
+    for (auto &item : m_pimpl_->m_worker_) { item.second->InitializeCondition(time_now); }
 }
 void Context::BoundaryCondition(Patch *p, Real time_now, Real time_dt) {
-    for (auto &item : m_pimpl_->m_domain_) { item.second->BoundaryCondition(p, time_now, time_dt); }
+    for (auto &item : m_pimpl_->m_worker_) { item.second->BoundaryCondition(time_now, time_dt); }
 }
 
 void Context::Advance(Patch *p, Real time_now, Real time_dt) {
-    for (auto &item : m_pimpl_->m_domain_) { item.second->Advance(p, time_dt, time_dt); }
+    for (auto &item : m_pimpl_->m_worker_) { item.second->Advance(time_dt, time_dt); }
 }
 
 Model &Context::GetModel() const { return m_pimpl_->m_model_; }
 
 void Context::Register(AttributeGroup *attr_grp) {
-    for (auto &item : m_pimpl_->m_domain_) { item.second->Register(attr_grp); }
+    for (auto &item : m_pimpl_->m_worker_) { item.second->GetMesh()->Register(attr_grp); }
 }
-void Context::SetDomain(std::string const &k, std::shared_ptr<Domain> d) {
-    auto res = m_pimpl_->m_domain_.emplace(k, d);
+void Context::SetWorker(std::string const &k, std::shared_ptr<Worker> d) {
+    auto res = m_pimpl_->m_worker_.emplace(k, d);
     if (!res.second) { res.first->second = d; }
 }
-std::shared_ptr<Domain> Context::GetDomain(std::string const &k) {
-    auto res = m_pimpl_->m_domain_.emplace(k, nullptr);
-    if (res.first->second == nullptr) { res.first->second = std::make_shared<Domain>(); }
+std::shared_ptr<Worker> Context::GetWorker(std::string const &k) {
+    auto res = m_pimpl_->m_worker_.emplace(k, nullptr);
+    if (res.first->second == nullptr) { res.first->second = std::make_shared<Worker>(); }
     return res.first->second;
 }
-std::shared_ptr<Domain> Context::GetDomain(std::string const &k) const {
-    auto it = m_pimpl_->m_domain_.find(k);
-    return (it == m_pimpl_->m_domain_.end()) ? nullptr : it->second;
+std::shared_ptr<Worker> Context::GetWorker(std::string const &k) const {
+    auto it = m_pimpl_->m_worker_.find(k);
+    return (it == m_pimpl_->m_worker_.end()) ? nullptr : it->second;
 }
 // std::map<id_type, std::shared_ptr<Patch>> const &Context::GetPatches() const { return m_pimpl_->m_patches_; }
 //

@@ -48,8 +48,8 @@ struct Mesh<CylindricalGeometry, SMesh> : public SMesh {
     using SMesh::GetChart;
     typedef Real scalar_type;
 
-    explicit Mesh(std::shared_ptr<engine::Chart> c = nullptr)
-        : SMesh(c != nullptr ? c : std::make_shared<CylindricalGeometry>()) {}
+    explicit Mesh(std::shared_ptr<engine::Chart> c = nullptr, std::shared_ptr<geometry::GeoObject> g = nullptr)
+        : SMesh((c != nullptr ? c : std::make_shared<CylindricalGeometry>()), g) {}
     ~Mesh() override = default;
 
     DECLARE_REGISTER_NAME("Mesh<CylindricalGeometry,SMesh>")
@@ -60,7 +60,6 @@ struct Mesh<CylindricalGeometry, SMesh> : public SMesh {
     void InitializeData(Real time_now) override;
 
 };  // struct  MeshBase
-
 
 //    virtual point_type point(EntityId s) const override {
 //        return GetChart()->inv_map(

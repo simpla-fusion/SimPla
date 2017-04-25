@@ -17,6 +17,7 @@ namespace engine {
 class MeshBase;
 class Patch;
 class Worker;
+class Model;
 // class MeshBlock;
 // class DataBlock;
 // class Domain;
@@ -36,26 +37,20 @@ class Domain : public SPObject, public data::Serializable {
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> t) override;
 
-    void SetGeoObject(std::shared_ptr<geometry::GeoObject> geo_object);
-    std::shared_ptr<geometry::GeoObject> GetGeoObject() const;
-
-    std::shared_ptr<Chart> CreateChart(std::string const &s) const;
-    void SetChart(std::string const &s);
     void SetChart(std::shared_ptr<Chart>);
     std::shared_ptr<Chart> GetChart() const;
+    template <typename C>
+    void SetChart() {
+        SetChart(std::make_shared<C>());
+    }
 
-    std::shared_ptr<MeshBase> CreateMesh(std::string const &s) const;
-    void SetMesh(std::string const &s);
-    void SetMesh(std::shared_ptr<MeshBase> m);
-    std::shared_ptr<MeshBase> GetMesh() const;
+    void SetWorker(std::shared_ptr<geometry::GeoObject> g, std::shared_ptr<Worker> w);
+    template <typename U>
+    void SetWorker(std::shared_ptr<geometry::GeoObject> g, ENABLE_IF((std::is_base_of<Worker, U>::value))) {
+        SetWorker(g, std::dynamic_pointer_cast<Worker>(std::make_shared<U>(GetChart(), g)));
+    };
 
-    std::shared_ptr<Worker> CreateWorker(std::string const &s) const;
-    void SetWorker(std::string const &s);
-    void SetWorker(std::shared_ptr<Worker> w);
-    std::shared_ptr<Worker> GetWorker() const;
-
-    void AddBoundaryCondition(std::string const &worker_s, std::shared_ptr<geometry::GeoObject> g = nullptr);
-    void AddBoundaryCondition(std::shared_ptr<Worker>, std::shared_ptr<geometry::GeoObject> g = nullptr);
+    void RegisterModel(Model *);
 
     void Initialize() override;
     void SetUp() override;

@@ -54,6 +54,8 @@ class Worker : public data::Serializable, public data::EnableCreateFromDataTable
         : engine::Worker((m != nullptr) ? m                                                                            \
                                         : std::dynamic_pointer_cast<engine::MeshBase>(std::make_shared<mesh_type>())), \
           m_mesh_(std::dynamic_pointer_cast<mesh_type>(engine::Worker::GetMesh()).get()) {}                            \
+    explicit _WORKER_NAME_(std::shared_ptr<Chart> c, std::shared_ptr<geometry::GeoObject> g)                           \
+        : _WORKER_NAME_(std::make_shared<mesh_type>(c, g)){};                                                          \
     ~_WORKER_NAME_() override = default;                                                                               \
     SP_DEFAULT_CONSTRUCT(_WORKER_NAME_);                                                                               \
     DECLARE_REGISTER_NAME(std::string(__STRING(_WORKER_NAME_)) + "<" + mesh_type::ClassName() + ">")                   \

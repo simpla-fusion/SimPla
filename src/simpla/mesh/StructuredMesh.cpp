@@ -7,11 +7,12 @@ namespace simpla {
 namespace mesh {
 using namespace algebra;
 void StructuredMesh::InitializeData(Real time_now) {
-    if (GetGeoObject() == nullptr || isFullCovered()) { return; }
+    if (isFullCovered()) { return; }
     Field<this_type, int, VOLUME, 9> m_tags_{this};
+    auto g = GetGeoObject();
     m_tags_.Clear();
     m_tags_[0].Foreach([&](index_tuple const& idx, int& v) {
-        if (!GetGeoObject()->CheckInside(point(idx[0], idx[0], idx[0]))) { v = 1; }
+        if (!g->CheckInside(point(idx[0], idx[0], idx[0]))) { v = 1; }
     });
 
     /**
@@ -59,7 +60,7 @@ void StructuredMesh::InitializeData(Real time_now) {
                  | (m_tags_[0](I, J + 1, K + 1) << 6)  //
                  | (m_tags_[0](I + 1, J + 1, K + 1) << 7);
 
-    int out_tag[8] = {
+    static const int out_tag[8] = {
         0b00000001,  // 0
         0b00000011,  // 1
         0b00000101,  // 2
