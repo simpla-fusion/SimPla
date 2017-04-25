@@ -41,7 +41,7 @@ class FieldView : public engine::Attribute {
     static constexpr int iform = IFORM;
     static constexpr int dof = DOF;
     static constexpr int NDIMS = 3;
-    static constexpr int NUMBER_OF_SUB = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
+    int NUMBER_OF_SUB = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
 
     typedef std::true_type prefer_pass_by_reference;
     typedef std::false_type is_expression;
@@ -52,40 +52,44 @@ class FieldView : public engine::Attribute {
 
    private:
     typedef Array<value_type, NDIMS> array_type;
-    array_type m_data_[NUMBER_OF_SUB];
-    mesh_type const* m_mesh_;
+    std::vector<array_type> m_data_;
+    std::shared_ptr<mesh_type> m_mesh_;
 
    public:
-    FieldView(mesh_type* m, std::shared_ptr<data::DataTable> const& d = nullptr)
-        : m_mesh_(m), engine::Attribute(m, d){};
+    explicit FieldView(mesh_type* m, std::shared_ptr<data::DataTable> const& d = nullptr)
+        : m_mesh_(std::dynamic_pointer_cast<mesh_type>(m->shared_from_this())), engine::Attribute(m, d){};
 
-    FieldView(mesh_type& m) : m_mesh_(&m), engine::Attribute(&m){};
-
-    template <typename... Args>
-    FieldView(mesh_type* m, Args&&... args) : m_mesh_(m), engine::Attribute(m, std::forward<Args>(args)...){};
+    explicit FieldView(mesh_type& m)
+        : m_mesh_(std::dynamic_pointer_cast<mesh_type>(m.shared_from_this())), engine::Attribute(&m){};
 
     template <typename... Args>
-    FieldView(mesh_type& m, Args&&... args) : m_mesh_(&m), engine::Attribute(&m, std::forward<Args>(args)...){};
+    explicit FieldView(mesh_type* m, Args&&... args)
+        : m_mesh_(std::dynamic_pointer_cast<mesh_type>(m->shared_from_this())),
+          engine::Attribute(m, std::forward<Args>(args)...){};
+
+    template <typename... Args>
+    explicit FieldView(mesh_type& m, Args&&... args)
+        : m_mesh_(std::dynamic_pointer_cast<mesh_type>(m.shared_from_this())),
+          engine::Attribute(&m, std::forward<Args>(args)...){};
+
+    explicit FieldView(std::shared_ptr<mesh_type> m, this_type& other)
+        : m_mesh_(m), m_data_(other.m_data_), engine::Attribute(m.get()) {}
+
     FieldView(this_type const& other) = delete;
     FieldView(this_type&& other) = delete;
-    virtual ~FieldView() {}
+    ~FieldView() override = default;
 
-    //    virtual this_type* Clone() const { return new this_type(*this); };
-    //    virtual std::shared_ptr<engine::Attribute> GetDescription() const {
-    //        return std::make_shared<engine::AttributeDesc<TV, IFORM, DOF>>(db());
-    //    };
+    int GetIFORM() const override { return IFORM; };
+    int GetDOF() const override { return DOF; };
+    std::type_info const& value_type_info() const override { return typeid(value_type); };  //!< value type
 
-    virtual int GetIFORM() const { return IFORM; };
-    virtual int GetDOF() const { return DOF; };
-    virtual std::type_info const& value_type_info() const { return typeid(value_type); };  //!< value type
-
-    virtual void SetUp() {}
-    virtual void Initialize() {}
-    virtual void Clear() {
+    void SetUp() override {}
+    void Initialize() override {}
+    void Clear() {
         SetUp();
         for (int i = 0; i < NUMBER_OF_SUB; ++i) { m_data_[i].Clear(); }
     }
-    virtual bool empty() const { return m_data_[0].empty(); }
+    bool empty() const override { return m_data_[0].empty(); }
 
     this_type& operator=(this_type const& other) {
         Assign(other);
@@ -97,20 +101,20 @@ class FieldView : public engine::Attribute {
         return *this;
     }
 
-    void Push(std::shared_ptr<data::DataBlock> d) {
+    void Push(std::shared_ptr<data::DataBlock> d) override {
         if (d != nullptr) {
             auto& t = d->cast_as<data::DataMultiArray<value_type, NDIMS>>();
             for (int i = 0; i < NUMBER_OF_SUB; ++i) { array_type(t.GetArray(i)).swap(m_data_[i]); }
         }
     }
-    std::shared_ptr<data::DataBlock> Pop() {
+    std::shared_ptr<data::DataBlock> Pop() override {
         auto res = std::make_shared<data::DataMultiArray<value_type, NDIMS>>(NUMBER_OF_SUB);
         for (int i = 0; i < NUMBER_OF_SUB; ++i) { array_type(m_data_[i]).swap(res->GetArray(i)); }
         return res;
     }
 
-    array_type const& operator[](int i) const { return m_data_[i % NUMBER_OF_SUB]; }
-    array_type& operator[](int i) { return m_data_[i % NUMBER_OF_SUB]; }
+    array_type const& operator[](int i) const { return m_data_[i]; }
+    array_type& operator[](int i) { return m_data_[i]; }
 
     value_type& operator()(index_type i, index_type j = 0, index_type k = 0, index_type w = 0) {
         return m_data_[w](i, j, k);
@@ -183,8 +187,6 @@ class FieldView : public engine::Attribute {
     //        Foreach_(r, tags::_assign(), other);
     //    }
 };  // class FieldView
-template <typename TM, typename TV, int IFORM, int DOF>
-constexpr int FieldView<TM, TV, IFORM, DOF>::NUMBER_OF_SUB;
 
 namespace declare {
 
@@ -202,6 +204,7 @@ class Field_ : public FieldView<TM, TV, IFORM, DOF> {
 
     using base_type::operator[];
     using base_type::operator=;
+    this_type operator()(std::shared_ptr<TM> m) { return this_type(m, *this); }
 };
 
 }  // namespace declare
