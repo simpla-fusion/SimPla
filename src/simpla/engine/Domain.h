@@ -1,71 +1,67 @@
 //
-// Created by salmon on 17-2-10.
+// Created by salmon on 17-4-5.
 //
 
 #ifndef SIMPLA_DOMAIN_H
 #define SIMPLA_DOMAIN_H
 
-#include <simpla/SIMPLA_config.h>
 #include <memory>
 #include "Attribute.h"
-#include "Chart.h"
-#include "simpla/geometry/GeoObject.h"
-#include "simpla/utilities/macro.h"
+#include "simpla/data/all.h"
+
 namespace simpla {
 namespace engine {
-// class Attribute;
 class MeshBase;
 class Patch;
-class Worker;
-class Model;
-// class MeshBlock;
-// class DataBlock;
-// class Domain;
-// class Task;
-
-class Domain : public SPObject, public data::Serializable {
-    SP_OBJECT_HEAD(Domain, SPObject)
+class AttributeGroup;
+/**
+* @brief
+*/
+class Domain : public data::Serializable, public data::EnableCreateFromDataTable<Domain, std::shared_ptr<MeshBase>> {
+    SP_OBJECT_BASE(Domain)
    public:
-    Domain();
+    explicit Domain(std::shared_ptr<MeshBase> m = nullptr);
     ~Domain() override;
 
-    SP_DEFAULT_CONSTRUCT(Domain)
-
-    void Register(AttributeGroup *);
-    void Deregister(AttributeGroup *);
+    SP_DEFAULT_CONSTRUCT(Domain);
+    DECLARE_REGISTER_NAME("Domain")
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> t) override;
 
-    void SetChart(std::shared_ptr<Chart>);
-    std::shared_ptr<Chart> GetChart() const;
-    template <typename C>
-    void SetChart() {
-        SetChart(std::make_shared<C>());
-    }
+    std::shared_ptr<MeshBase> GetMesh() { return m_mesh_; }
+    std::shared_ptr<MeshBase> const GetMesh() const { return m_mesh_; }
 
-    void SetWorker(std::shared_ptr<geometry::GeoObject> g, std::shared_ptr<Worker> w);
-    template <typename U>
-    void SetWorker(std::shared_ptr<geometry::GeoObject> g, ENABLE_IF((std::is_base_of<Worker, U>::value))) {
-        SetWorker(g, std::dynamic_pointer_cast<Worker>(std::make_shared<U>(GetChart(), g)));
-    };
+    virtual void Push(Patch*);
+    virtual void Pop(Patch*);
 
-    void RegisterModel(Model *);
+    virtual void Initialize();
+    virtual void SetUp();
+    virtual void TearDown();
+    virtual void Finalize();
 
-    void Initialize() override;
-    void SetUp() override;
-    void TearDown() override;
-    void Finalize() override;
-
-    void InitializeData(Patch *p, Real time_now);
-    void InitializeCondition(Patch *p, Real time_now);
-    void BoundaryCondition(Patch *p, Real time_now, Real time_dt);
-    void Advance(Patch *p, Real time_now, Real time_dt);
+    virtual void InitializeCondition(Real time_now);
+    virtual void BoundaryCondition(Real time_now, Real dt);
+    virtual void Advance(Real time_now, Real dt);
 
    private:
-    struct pimpl_s;
-    std::shared_ptr<pimpl_s> m_pimpl_;
+    std::shared_ptr<MeshBase> m_mesh_;
 };
-}  // namespace engine {
-}  // namespace simpla {
+
+#define DOMAIN_HEAD(_DOMAIN_NAME_)                                                                                     \
+   public:                                                                                                             \
+    explicit _DOMAIN_NAME_(std::shared_ptr<engine::MeshBase> m = nullptr)                                              \
+        : engine::Domain((m != nullptr) ? m                                                                            \
+                                        : std::dynamic_pointer_cast<engine::MeshBase>(std::make_shared<mesh_type>())), \
+          m_mesh_(std::dynamic_pointer_cast<mesh_type>(engine::Domain::GetMesh()).get()) {}                            \
+    explicit _DOMAIN_NAME_(std::shared_ptr<Chart> c, std::shared_ptr<geometry::GeoObject> g)                           \
+        : _DOMAIN_NAME_(std::make_shared<mesh_type>(c, g)){};                                                          \
+    ~_DOMAIN_NAME_() override = default;                                                                               \
+    SP_DEFAULT_CONSTRUCT(_DOMAIN_NAME_);                                                                               \
+    DECLARE_REGISTER_NAME(std::string(__STRING(_DOMAIN_NAME_)) + "<" + mesh_type::ClassName() + ">")                   \
+    mesh_type* m_mesh_;                                                                                                \
+    template <int IFORM, int DOF = 1>                                                                                  \
+    using field_type = Field<mesh_type, typename mesh_type::scalar_type, IFORM, DOF>;
+}
+}
 #endif  // SIMPLA_DOMAIN_H

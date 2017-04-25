@@ -18,12 +18,12 @@ using namespace data;
 using namespace engine;
 
 template <typename TM>
-class EMFluid : public engine::Worker {
-    SP_OBJECT_HEAD(EMFluid<TM>, engine::Worker)
+class EMFluid : public engine::Domain {
+    SP_OBJECT_HEAD(EMFluid<TM>, engine::Domain)
     typedef TM mesh_type;
 
    public:
-    WORKER_HEAD(EMFluid)
+    DOMAIN_HEAD(EMFluid)
 
     std::shared_ptr<data::DataTable> Serialize() const override {
         auto res = std::make_shared<data::DataTable>();
@@ -75,7 +75,7 @@ class EMFluid : public engine::Worker {
 };
 
 template <typename TM>
-bool EMFluid<TM>::is_registered = engine::Worker::RegisterCreator<EMFluid<TM>>();
+bool EMFluid<TM>::is_registered = engine::Domain::RegisterCreator<EMFluid<TM>>();
 
 template <typename TM>
 std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string const& name,
@@ -124,7 +124,7 @@ void EMFluid<TM>::SetUp() {}
 
 template <typename TM>
 void EMFluid<TM>::InitializeCondition(Real time_now) {
-    Worker::InitializeCondition(time_now);
+    Domain::InitializeCondition(time_now);
 
     E.Clear();
     B.Clear();

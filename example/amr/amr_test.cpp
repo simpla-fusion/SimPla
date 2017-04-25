@@ -67,7 +67,7 @@ void UseCaseAMR::SetUp() {
 }
 
 //    ctx->db()->SetValue("Domains", {"Center"_ = {"name"_ = "Center", "MeshBase"_ = {"name"_ = "CartesianGeometry"},
-//                                                 "Worker"_ = {{"name"_ = "EMFluid"}}}});
+//                                                 "Domain"_ = {{"name"_ = "EMFluid"}}}});
 //    ctx->RegisterAttribute<int>("tag");
 //    ctx->RegisterAttribute<double, EDGE>("E");
 //    ctx->RegisterAttribute<double, FACE>("B");

@@ -18,11 +18,11 @@ using namespace engine;
  *  @brief   PEC
  */
 template <typename TM>
-class PEC : public engine::Worker {
-    SP_OBJECT_HEAD(PEC<TM>, engine::Worker)
+class PEC : public engine::Domain {
+    SP_OBJECT_HEAD(PEC<TM>, engine::Domain)
     typedef TM mesh_type;
 
-    WORKER_HEAD(PEC)
+    DOMAIN_HEAD(PEC)
 
     void InitializeCondition(Real time_now) override;
     void Advance(Real time, Real dt) override;

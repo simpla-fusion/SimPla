@@ -7,15 +7,14 @@
 
 #include "Atlas.h"
 #include "Attribute.h"
+#include "Chart.h"
 #include "Context.h"
 #include "Domain.h"
-#include "Schedule.h"
 #include "MeshBase.h"
 #include "Model.h"
 #include "Patch.h"
-#include "Task.h"
+#include "Schedule.h"
 #include "TimeIntegrator.h"
-
 /**
  *
  * @startuml
@@ -117,7 +116,7 @@
  *    Each point <latex> x\in\mathcal{O} </latex> is then uniquely associated with
  *    an n-tuple of real numbers - its coordinates.
  *    The boundary of Chart is not defined.
- *    <latex>\varphi:\left(x^{n}\right)\mapsto\left(z^{n},r^{n}\right),z^{n}\in\mathbb{Z},r^{n}\in\left[0,1\right)</latex>
+ * <latex>\varphi:\left(x^{n}\right)\mapsto\left(z^{n},r^{n}\right),z^{n}\in\mathbb{Z},r^{n}\in\left[0,1\right)</latex>
  *    <latex>z^{n}</latex> is the index of mesh vertex, and <latex>r^{n}</latex> is the local coordinates in cell
  *    <latex>x= \sum _{i=0}^{m} p_i w_i\left( r_0,r_1,...,r_{n-1} \right) </latex>
  *     where <latex>p_i</latex> is coordinate  of vertex i, and m is the number of vertices in the cell,

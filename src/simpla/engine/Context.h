@@ -10,7 +10,7 @@
 #include "Atlas.h"
 #include "Model.h"
 #include "Patch.h"
-#include "Worker.h"
+#include "Domain.h"
 #include "simpla/data/Serializable.h"
 namespace simpla {
 namespace engine {
@@ -82,9 +82,9 @@ class Context : public data::Serializable {
 
     Model &GetModel() const;
 
-    void SetWorker(std::string const &k, std::shared_ptr<Worker>);
-    std::shared_ptr<Worker> GetWorker(std::string const &k);
-    std::shared_ptr<Worker> GetWorker(std::string const &k) const;
+    void SetWorker(std::string const &k, std::shared_ptr<Domain>);
+    std::shared_ptr<Domain> GetWorker(std::string const &k);
+    std::shared_ptr<Domain> GetWorker(std::string const &k) const;
 
    private:
     struct pimpl_s;

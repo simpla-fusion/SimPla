@@ -4,8 +4,7 @@
 #include "Context.h"
 #include "Domain.h"
 #include "MeshBase.h"
-#include "Task.h"
-#include "Worker.h"
+#include "Domain.h"
 #include "simpla/data/all.h"
 #include "simpla/geometry/GeoAlgorithm.h"
 
@@ -14,7 +13,7 @@ namespace engine {
 
 struct Context::pimpl_s {
     std::map<std::string, std::shared_ptr<Attribute>> m_global_attributes_;
-    std::map<std::string, std::shared_ptr<Worker>> m_worker_;
+    std::map<std::string, std::shared_ptr<Domain>> m_worker_;
     Model m_model_;
     Atlas m_atlas_;
 };
@@ -79,22 +78,22 @@ Model &Context::GetModel() const { return m_pimpl_->m_model_; }
 void Context::Register(AttributeGroup *attr_grp) {
     for (auto &item : m_pimpl_->m_worker_) { item.second->GetMesh()->Register(attr_grp); }
 }
-void Context::SetWorker(std::string const &k, std::shared_ptr<Worker> d) {
+void Context::SetWorker(std::string const &k, std::shared_ptr<Domain> d) {
     auto res = m_pimpl_->m_worker_.emplace(k, d);
     if (!res.second) { res.first->second = d; }
 }
-std::shared_ptr<Worker> Context::GetWorker(std::string const &k) {
+std::shared_ptr<Domain> Context::GetWorker(std::string const &k) {
     auto res = m_pimpl_->m_worker_.emplace(k, nullptr);
-    if (res.first->second == nullptr) { res.first->second = std::make_shared<Worker>(); }
+    if (res.first->second == nullptr) { res.first->second = std::make_shared<Domain>(); }
     return res.first->second;
 }
-std::shared_ptr<Worker> Context::GetWorker(std::string const &k) const {
+std::shared_ptr<Domain> Context::GetWorker(std::string const &k) const {
     auto it = m_pimpl_->m_worker_.find(k);
     return (it == m_pimpl_->m_worker_.end()) ? nullptr : it->second;
 }
 // std::map<id_type, std::shared_ptr<Patch>> const &Context::GetPatches() const { return m_pimpl_->m_patches_; }
 //
-// bool Context::RegisterWorker(std::string const &d_name, std::shared_ptr<Worker> const &p) {
+// bool Context::RegisterWorker(std::string const &d_name, std::shared_ptr<Domain> const &p) {
 //    ASSERT(!IsInitialized());
 //
 //    auto res = m_pimpl_->m_workers_.emplace(d_name, p);
@@ -106,7 +105,7 @@ std::shared_ptr<Worker> Context::GetWorker(std::string const &k) const {
 //    ASSERT(!IsInitialized());
 //    m_pimpl_->m_workers_.erase(k);
 //}
-// std::shared_ptr<Worker> Context::GetWorker(std::string const &d_name) const { return m_pimpl_->m_workers_.at(d_name);
+// std::shared_ptr<Domain> Context::GetWorker(std::string const &d_name) const { return m_pimpl_->m_workers_.at(d_name);
 // }
 //
 // std::map<std::string, std::shared_ptr<Attribute>> const &Context::GetAllAttributes() const {
@@ -141,13 +140,13 @@ std::shared_ptr<Worker> Context::GetWorker(std::string const &k) const {
 //                                                         GetModel().AddObject(key,
 //                                                         t.GetTable("Geometry")).first));
 //
-//        m_pimpl_->m_worker_.emplace(key, std::make_shared<Worker>(t.GetTable("Worker"), m));
+//        m_pimpl_->m_worker_.emplace(key, std::make_shared<Domain>(t.GetTable("Domain"), m));
 //
 //    });
 //    for (auto const &item : GetModel().GetAll()) {
 //        auto worker_res = m_pimpl_->m_worker_.emplace(item.first, nullptr);
 //        if (worker_res.first->second == nullptr) {
-//            worker_res.first->second = std::make_shared<Worker>(workers_t->GetTable(item.first), nullptr,
+//            worker_res.first->second = std::make_shared<Domain>(workers_t->GetTable(item.first), nullptr,
 //            item.second);
 //        }
 //        workers_t->Link(item.first, worker_res.first->second->db());
@@ -173,7 +172,7 @@ std::shared_ptr<Worker> Context::GetWorker(std::string const &k) const {
 //                //                p->PushMeshBlock(mblk);
 //            }
 //            w->second->ConvertPatchFromSAMRAI(p);
-//            LOGGER << " Worker [ " << std::setw(10) << std::left << w->second->name() << " ] is applied on "
+//            LOGGER << " Domain [ " << std::setw(10) << std::left << w->second->name() << " ] is applied on "
 //                   << mblk->GetIndexBox() << " GeoObject id= " << g_item.first << std::endl;
 //            w->second->AdvanceData(time_now, dt);
 //            m_pimpl_->m_patches_[mblk->GetGUID()] = w->second->ConvertPatchToSAMRAI();
