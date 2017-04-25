@@ -6,10 +6,10 @@
 #define SIMPLA_MESHBASE_H
 
 #include <simpla/concept/Printable.h>
+#include <simpla/data/all.h>
 #include <simpla/geometry/GeoObject.h>
 #include "Attribute.h"
 #include "SPObject.h"
-#include "simpla/data/EnableCreateFromDataTable.h"
 
 namespace simpla {
 namespace engine {
@@ -17,6 +17,7 @@ class MeshBlock;
 class Patch;
 class Chart;
 class MeshBase;
+using namespace simpla::data;
 /**
  *  Define:
  *   A bundle is a triple \f$(E, p, B)\f$ where \f$E\f$, \f$B\f$ are sets and \f$p:E \rightarrow B\f$ a map
@@ -73,6 +74,7 @@ class MeshBase : public AttributeGroup,
 
     virtual point_type point(EntityId s) const = 0;
     virtual point_type point(EntityId id, point_type const &pr) const { return point_type{}; };
+
 
    protected:
     struct pimpl_s;

@@ -7,6 +7,7 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/data/all.h>
+#include <simpla/geometry/GeoObject.h>
 #include <simpla/utilities/EntityId.h>
 #include <memory>
 #include "SPObject.h"

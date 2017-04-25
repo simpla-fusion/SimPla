@@ -17,12 +17,10 @@ class StructuredMesh : public engine::MeshBase {
     typedef Real scalar_type;
 
     template <typename... Args>
-    explicit StructuredMesh(Args &&... args) : engine::MeshBase(std::forward<Args>(args)...){};
+    StructuredMesh(Args &&... args) : engine::MeshBase(std::forward<Args>(args)...){};
     ~StructuredMesh() override = default;
     SP_DEFAULT_CONSTRUCT(StructuredMesh);
-
-    std::string GetClassName() const override { return ClassName(); }
-    static std::string ClassName() { return "StructuredMesh"; }
+    //    DECLARE_REGISTER_NAME("StructuredMesh");
 
     typedef EntityIdCoder M;
 
@@ -73,6 +71,8 @@ class StructuredMesh : public engine::MeshBase {
 
         return res;
     }
+
+    void InitializeData(Real time_now) override;
 };
 }  // namespace mesh {
 }  // namespace simpla {

@@ -35,9 +35,7 @@ std::shared_ptr<geometry::GeoObject> MeshBase::GetGeoObject() const { return m_p
 void MeshBase::SetChart(std::shared_ptr<Chart> c) { m_pimpl_->m_chart_ = c; }
 std::shared_ptr<Chart> MeshBase::GetChart() const { return m_pimpl_->m_chart_; }
 
-void MeshBase::SetUp() {
-
-}
+void MeshBase::SetUp() {}
 void MeshBase::TearDown() {}
 void MeshBase::Initialize() {}
 void MeshBase::Finalize() {}
@@ -51,6 +49,9 @@ std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
 }
 void MeshBase::Deserialize(std::shared_ptr<data::DataTable>) {}
 
+bool MeshBase::isFullCovered() const { return true; }
+bool MeshBase::isBoundary() const { return false; }
+
 Range<EntityId> &MeshBase::GetRange(int iform) { return m_pimpl_->m_ranges_[iform]; };
 Range<EntityId> const &MeshBase::GetRange(int iform) const { return m_pimpl_->m_ranges_[iform]; };
 
@@ -58,10 +59,10 @@ void MeshBase::Push(Patch *p) {
     ASSERT(p != nullptr);
     m_pimpl_->m_mesh_block_ = p->GetBlock();
     if (GetGeoObject() != nullptr) {
-        m_pimpl_->m_ranges_[VERTEX] = p->GetRange(VERTEX, GetGeoObject()->GetGUID());
-        m_pimpl_->m_ranges_[EDGE] = p->GetRange(EDGE, GetGeoObject()->GetGUID());
-        m_pimpl_->m_ranges_[FACE] = p->GetRange(FACE, GetGeoObject()->GetGUID());
-        m_pimpl_->m_ranges_[VOLUME] = p->GetRange(VOLUME, GetGeoObject()->GetGUID());
+        m_pimpl_->m_ranges_[VERTEX] = p->GetRange(VERTEX, GetGeoObject());
+        m_pimpl_->m_ranges_[EDGE] = p->GetRange(EDGE, GetGeoObject());
+        m_pimpl_->m_ranges_[FACE] = p->GetRange(FACE, GetGeoObject());
+        m_pimpl_->m_ranges_[VOLUME] = p->GetRange(VOLUME, GetGeoObject());
     }
     AttributeGroup::Push(p);
 }
@@ -70,10 +71,10 @@ void MeshBase::Pop(Patch *p) {
     AttributeGroup::Pop(p);
     p->SetBlock(m_pimpl_->m_mesh_block_);
     if (GetGeoObject() != nullptr) {
-        p->SetRange(m_pimpl_->m_ranges_[VERTEX], VERTEX, GetGeoObject()->GetGUID());
-        p->SetRange(m_pimpl_->m_ranges_[EDGE], EDGE, GetGeoObject()->GetGUID());
-        p->SetRange(m_pimpl_->m_ranges_[FACE], FACE, GetGeoObject()->GetGUID());
-        p->SetRange(m_pimpl_->m_ranges_[VOLUME], VOLUME, GetGeoObject()->GetGUID());
+        p->SetRange(m_pimpl_->m_ranges_[VERTEX], VERTEX, GetGeoObject());
+        p->SetRange(m_pimpl_->m_ranges_[EDGE], EDGE, GetGeoObject());
+        p->SetRange(m_pimpl_->m_ranges_[FACE], FACE, GetGeoObject());
+        p->SetRange(m_pimpl_->m_ranges_[VOLUME], VOLUME, GetGeoObject());
     }
 }
 void BoundaryMeshBase::SetUp() {}

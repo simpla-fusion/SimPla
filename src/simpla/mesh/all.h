@@ -10,6 +10,7 @@
 #include "CylindricalGeometry.h"
 #include "Mesh.h"
 #include "SMesh.h"
+#include "StructuredMesh.h"
 namespace simpla {
 namespace mesh {
 

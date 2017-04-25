@@ -11,24 +11,18 @@
 namespace simpla {
 namespace mesh {
 using namespace simpla::engine;
+
 struct SMesh : public StructuredMesh {
    public:
     SP_OBJECT_HEAD(SMesh, StructuredMesh)
-    DECLARE_REGISTER_NAME("SMesh");
 
     template <typename... Args>
     explicit SMesh(Args &&... args) : StructuredMesh(std::forward<Args>(args)...){};
-    ~SMesh() override = default;
+    ~SMesh() override{};
 
     SP_DEFAULT_CONSTRUCT(SMesh)
-
-    void InitializeData(Real time_now) override {
-        m_vertics_.Clear();
-        m_volume_.Clear();
-        m_dual_volume_.Clear();
-        m_inv_volume_.Clear();
-        m_inv_dual_volume_.Clear();
-    };
+    DECLARE_REGISTER_NAME("SMesh");
+    void InitializeData(Real time_now) override;
 
    private:
     Field<this_type, Real, VERTEX, 3> m_vertics_{this, "name"_ = "vertics", "COORDINATES"_};

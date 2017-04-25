@@ -5,6 +5,7 @@
 #ifndef SIMPLA_CORECTMESH_H
 #define SIMPLA_CORECTMESH_H
 
+#include <simpla/engine/Chart.h>
 #include <simpla/utilities/sp_def.h>
 #include <string>
 #include "StructuredMesh.h"
@@ -97,7 +98,7 @@ struct CoRectMesh : public StructuredMesh {
 //};
 
 inline void CoRectMesh::InitializeData(Real time_now) {
-    StructuredMesh::InitializeData(time_now);
+    //    StructuredMesh::InitializeData(time_now);
     /**
         *\verbatim
         *                ^y

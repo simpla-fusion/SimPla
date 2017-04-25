@@ -48,16 +48,17 @@ class Worker : public data::Serializable, public data::EnableCreateFromDataTable
     std::shared_ptr<MeshBase> m_mesh_;
 };
 
-#define WORKER_HEAD(_WORKER_NAME_)                                                                                  \
-   public:                                                                                                          \
-    explicit _WORKER_NAME_(std::shared_ptr<engine::MeshBase> m = nullptr)                                           \
-        : engine::Worker((m != nullptr) ? m : std::dynamic_pointer_cast<engine::MeshBase>(std::make_shared<TM>())), \
-          m_mesh_(std::dynamic_pointer_cast<mesh_type>(engine::Worker::GetMesh()).get()) {}                         \
-    ~_WORKER_NAME_() override = default;                                                                            \
-    SP_DEFAULT_CONSTRUCT(_WORKER_NAME_);                                                                            \
-    DECLARE_REGISTER_NAME(std::string(__STRING(_WORKER_NAME_)) + "<" + mesh_type::ClassName() + ">")                \
-    mesh_type* m_mesh_;                                                                                             \
-    template <int IFORM, int DOF = 1>                                                                               \
+#define WORKER_HEAD(_WORKER_NAME_)                                                                                     \
+   public:                                                                                                             \
+    explicit _WORKER_NAME_(std::shared_ptr<engine::MeshBase> m = nullptr)                                              \
+        : engine::Worker((m != nullptr) ? m                                                                            \
+                                        : std::dynamic_pointer_cast<engine::MeshBase>(std::make_shared<mesh_type>())), \
+          m_mesh_(std::dynamic_pointer_cast<mesh_type>(engine::Worker::GetMesh()).get()) {}                            \
+    ~_WORKER_NAME_() override = default;                                                                               \
+    SP_DEFAULT_CONSTRUCT(_WORKER_NAME_);                                                                               \
+    DECLARE_REGISTER_NAME(std::string(__STRING(_WORKER_NAME_)) + "<" + mesh_type::ClassName() + ">")                   \
+    mesh_type* m_mesh_;                                                                                                \
+    template <int IFORM, int DOF = 1>                                                                                  \
     using field_type = Field<mesh_type, typename mesh_type::scalar_type, IFORM, DOF>;
 }
 }

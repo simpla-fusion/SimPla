@@ -363,12 +363,13 @@ struct ArrayView : public concept::Printable {
         return at(m_index_tuple{i0, std::forward<TID>(s)...});
     }
     template <typename... TID>
-    value_type& operator()(TID&&... s) {
-        return at(m_index_tuple{std::forward<TID>(s)...});
+    value_type& operator()(index_type ix, TID&&... s) {
+        return at(m_index_tuple{ix, std::forward<TID>(s)...});
     }
+
     template <typename... TID>
-    value_type const& operator()(TID&&... s) const {
-        return at(m_index_tuple{std::forward<TID>(s)...});
+    value_type const& operator()(index_type idx, TID&&... s) const {
+        return at(m_index_tuple{idx, std::forward<TID>(s)...});
     }
 
     this_type& operator=(this_type const& rhs) {
@@ -415,13 +416,13 @@ struct ArrayView : public concept::Printable {
 
    private:
    public:
-    //    template <typename TOP, typename... Others>
-    //    void Foreach(TOP const& op, Others&&... others) {
-    //        if (size() <= 0) { return; }
-    //        detail::ForeachND(m_index_box_, [&](m_index_tuple const& idx) {
-    //            op(at(idx), getValue(std::forward<Others>(others), idx)...);
-    //        });
-    //    };
+    template <typename TOP, typename... Others>
+    void Foreach(TOP const& op, Others&&... others) {
+        if (size() <= 0) { return; }
+        detail::ForeachND(m_index_box_, [&](m_index_tuple const& idx) {
+            op(at(idx), getValue(std::forward<Others>(others), idx)...);
+        });
+    };
 
     template <typename TFun>
     void Foreach(TFun const& op,

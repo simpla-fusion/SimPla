@@ -13,7 +13,6 @@ namespace simpla {
 namespace engine {
 
 struct Context::pimpl_s {
-    std::map<std::string, std::shared_ptr<Worker>> m_workers_;
     std::map<std::string, std::shared_ptr<Attribute>> m_global_attributes_;
     std::map<std::string, std::shared_ptr<Domain>> m_domain_;
     Model m_model_;

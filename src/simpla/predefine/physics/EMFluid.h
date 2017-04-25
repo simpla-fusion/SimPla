@@ -42,12 +42,6 @@ class EMFluid : public engine::Worker {
     void BoundaryCondition(Real time_now, Real dt) override;
     void Advance(Real time_now, Real dt) override;
 
-    //    virtual void SetPhysicalBoundaryConditions(Real time = 0){};
-    //    virtual void SetPhysicalBoundaryConditionE(Real time = 0){};
-    //    virtual void SetPhysicalBoundaryConditionB(Real time = 0){};
-
-
-
     typedef field_type<FACE> TB;
     typedef field_type<EDGE> TE;
     typedef field_type<EDGE> TJ;
@@ -116,21 +110,6 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
     return sp;
 }
 
-// template <typename TM>
-// std::ostream& EMFluid<TM>::Print(std::ostream& os, int indent) const {
-//    os << std::setw(indent + 1) << " "
-//       << "ParticleAttribute=  " << std::endl
-//       << std::setw(indent + 1) << " "
-//       << "{ " << std::endl;
-//    for (auto& sp : m_fluid_sp_) {
-//        os << std::setw(indent + 1) << " " << sp.first << " = { Mass=" << sp.second->mass
-//           << " , Charge = " << sp.second->charge << "}," << std::endl;
-//    }
-//    os << std::setw(indent + 1) << " "
-//       << " }, " << std::endl;
-//    return os;
-//}
-
 template <typename TM>
 void EMFluid<TM>::Initialize() {}
 
@@ -151,7 +130,6 @@ void EMFluid<TM>::InitializeCondition(Real time_now) {
     B.Clear();
     B0v.Clear();
     //    if (E.isNull()) {}
-
     //    rho0[0].Foreach([&](index_tuple const& k, Real& v) { v = k[1]; });
     rho0.Assign([&](point_type const& z) -> Real { return z[1] * z[0] * z[2]; });
     //    Ev = map_to<VERTEX>(E);
