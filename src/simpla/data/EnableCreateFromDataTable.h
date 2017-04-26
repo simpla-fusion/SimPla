@@ -89,7 +89,8 @@ class EnableCreateFromDataTable {
     static std::string ClassName() { return _CLASS_NAME_; }           \
     static bool is_registered;
 
-#define REGISTER_CREATOR(_CLASS_NAME_) bool _CLASS_NAME_::is_registered = _CLASS_NAME_::RegisterCreator<_CLASS_NAME_>();
+#define REGISTER_CREATOR(_CLASS_NAME_) \
+    bool _CLASS_NAME_::is_registered = _CLASS_NAME_::RegisterCreator<_CLASS_NAME_>(__STRING(_CLASS_NAME_));
 
 }  // namespace data{
 }  // namespace simpla{

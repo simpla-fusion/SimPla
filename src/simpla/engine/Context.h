@@ -93,7 +93,7 @@ class Context : public data::Serializable {
 
     template <typename U>
     std::shared_ptr<Domain> SetDomain(std::string const &k) {
-        return SetDomain(k, std::make_shared<U>(GetModel().GetObject(k)));
+        return SetDomain(k, std::dynamic_pointer_cast<Domain>(std::make_shared<U>(GetModel().GetObject(k))));
     }
     std::shared_ptr<Domain> GetDomain(std::string const &k) const;
 
