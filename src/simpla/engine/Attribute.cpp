@@ -14,7 +14,6 @@ namespace simpla {
 namespace engine {
 
 struct AttributeGroup::pimpl_s {
-    MeshBase const *m_mesh_;
     std::set<Attribute *> m_attributes_;
 };
 
@@ -40,9 +39,6 @@ std::set<Attribute *> const &AttributeGroup::GetAll() const { return m_pimpl_->m
 struct Attribute::pimpl_s {
     std::set<AttributeGroup *> m_bundle_;
 };
-// Attribute::Attribute(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), data::Configurable(t) {
-//    SetUp();
-//}
 
 Attribute::Attribute(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), data::Configurable(t) {
     SetUp();
@@ -61,9 +57,6 @@ void Attribute::RegisterAt(AttributeGroup *attr_b) {
 void Attribute::DeregisterFrom(AttributeGroup *attr_b) {
     if (m_pimpl_->m_bundle_.erase(attr_b) > 0) { attr_b->Detach(this); };
 }
-
-// void Attribute::SetRange(Range<EntityId> const &r) { m_pimpl_->m_range_ = r; }
-// Range<EntityId> const &Attribute::GetRange() const { return m_pimpl_->m_range_; }
 
 bool Attribute::isNull() const { return false; }
 void Attribute::SetUp() {
