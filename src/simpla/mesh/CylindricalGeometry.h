@@ -25,7 +25,6 @@ struct CylindricalGeometry : public engine::Chart {
     SP_OBJECT_HEAD(CylindricalGeometry, engine::Chart)
     DECLARE_REGISTER_NAME("CylindricalGeometry");
 
-    static constexpr int NDIMS = 3;
     std::shared_ptr<data::DataTable> Serialize() const override {
         auto p = engine::Chart::Serialize();
         p->SetValue<std::string>("Type", GetClassName());

@@ -27,7 +27,7 @@ class EnableCreateFromDataTable {
     virtual std::string GetClassName() const { return TObj::ClassName(); }
 
     struct ObjectFactory {
-        std::map<std::string, std::pair<std::function<TObj *(Args &&...)>, std::string>> m_factory_;
+        std::map<std::string, std::function<TObj *(Args &&...)>> m_factory_;
     };
     static bool HasCreator(std::string const &k) {
         auto const &f = SingletonHolder<ObjectFactory>::instance().m_factory_;
@@ -39,24 +39,22 @@ class EnableCreateFromDataTable {
         auto it = f.find(k);
         if (it == f.end()) { it = f.begin(); }
         if (it != f.end()) {
-            res = it->second.second;
+            res = it->first;
         } else {
             std::ostringstream os;
             os << std::endl << "Register " << TObj::ClassName() << " Creator:" << std::endl;
-            for (auto const &item : f) {
-                os << std::setw(15) << item.first << " : " << item.second.second << std::endl;
-            }
+            for (auto const &item : f) { os << std::setw(15) << item.first << std::endl; }
             res = os.str();
         }
         return res;
     };
-    static bool RegisterCreator(std::string const &k, std::function<TObj *(Args &&...)> const &fun,
-                                std::string const &desc_s = "") noexcept {
-        return SingletonHolder<ObjectFactory>::instance().m_factory_.emplace(k, std::make_pair(fun, desc_s)).second;
+    static bool RegisterCreator(std::string const &k, std::function<TObj *(Args &&...)> const &fun) noexcept {
+        return SingletonHolder<ObjectFactory>::instance().m_factory_.emplace(k, fun).second;
     };
     template <typename U>
-    static bool RegisterCreator(std::string const &desc_s = "") noexcept {
-        return RegisterCreator(U::ClassName(), [](Args const &... args) { return new U(args...); }, desc_s);
+    static bool RegisterCreator(std::string const &k_hint = "") noexcept {
+        return RegisterCreator(k_hint != "" ? k_hint : U::ClassName(),
+                               [](Args const &... args) { return new U(args...); });
     };
     template <typename... U>
     static std::shared_ptr<TObj> Create(std::string const &k, U &&... args) {
@@ -65,15 +63,13 @@ class EnableCreateFromDataTable {
         auto it = f.find(k);
 
         if (it != f.end()) {
-            res.reset(it->second.first(std::forward<U>(args)...));
+            res.reset(it->second(std::forward<U>(args)...));
             LOGGER << TObj::ClassName() << "::" << it->first << "  is created!" << std::endl;
         } else {
             std::ostringstream os;
             os << "Can not find Creator " << k << std::endl;
             os << std::endl << "Register " << TObj::ClassName() << " Creator:" << std::endl;
-            for (auto const &item : f) {
-                os << std::setw(15) << item.first << " : " << item.second.second << std::endl;
-            }
+            for (auto const &item : f) { os << item.first << std::endl; }
             RUNTIME_ERROR << os.str();
         }
         return res;

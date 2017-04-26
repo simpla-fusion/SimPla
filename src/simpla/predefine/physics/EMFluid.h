@@ -23,7 +23,7 @@ class EMFluid : public engine::Domain {
     typedef TM mesh_type;
 
    public:
-    DOMAIN_HEAD(EMFluid)
+    DOMAIN_HEAD(EMFluid, engine::Domain)
 
     std::shared_ptr<data::DataTable> Serialize() const override {
         auto res = std::make_shared<data::DataTable>();
@@ -139,20 +139,20 @@ void EMFluid<TM>::InitializeCondition(Real time_now) {
 }
 template <typename TM>
 void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
-//    auto brd = m_mesh_->Boundary();
-//    if (brd == nullptr) { return; }
-//    E(brd) = 0;
-//    B(brd) = 0;
-//    auto antenna = m_mesh_->SubMesh(m_antenna_);
-//    if (antenna != nullptr) {
-//        nTuple<Real, 3> k{1, 1, 1};
-//        Real omega = 1.0;
-//        E(antenna)
-//            .Assign([&](point_type const& x) {
-//                auto amp = std::sin(omega * time_now) * std::cos(dot(k, x));
-//                return nTuple<Real, 3>{amp, 0, 0};
-//            });
-//    }
+    //    auto brd = m_mesh_->Boundary();
+    //    if (brd == nullptr) { return; }
+    //    E(brd) = 0;
+    //    B(brd) = 0;
+    //    auto antenna = m_mesh_->SubMesh(m_antenna_);
+    //    if (antenna != nullptr) {
+    //        nTuple<Real, 3> k{1, 1, 1};
+    //        Real omega = 1.0;
+    //        E(antenna)
+    //            .Assign([&](point_type const& x) {
+    //                auto amp = std::sin(omega * time_now) * std::cos(dot(k, x));
+    //                return nTuple<Real, 3>{amp, 0, 0};
+    //            });
+    //    }
 }
 template <typename TM>
 void EMFluid<TM>::Advance(Real time_now, Real dt) {

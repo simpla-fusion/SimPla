@@ -84,6 +84,11 @@ class Context : public data::Serializable {
     Atlas &GetAtlas() const;
 
     void SetDomain(std::string const &k, std::shared_ptr<Domain>);
+
+    void SetDomain(std::string const &k, std::string const &d_name) {
+        SetDomain(k, Domain::Create(d_name, GetModel().GetObject(k), nullptr));
+    }
+
     template <typename U>
     void SetDomain(std::string const &k) {
         SetDomain(k, std::make_shared<U>(GetModel().GetObject(k)));

@@ -2,12 +2,13 @@
 // Created by salmon on 17-2-16.
 //
 #include "Context.h"
-#include "Domain.h"
+#include <simpla/algebra/all.h>
+#include <simpla/algebra/nTupleExt.h>
+#include <simpla/data/all.h>
+#include <simpla/geometry/GeoAlgorithm.h>
+#include "Chart.h"
 #include "Domain.h"
 #include "MeshBase.h"
-#include "simpla/data/all.h"
-#include "simpla/geometry/GeoAlgorithm.h"
-
 namespace simpla {
 namespace engine {
 
@@ -43,12 +44,17 @@ void Context::TearDown() {
     m_pimpl_->m_atlas_.TearDown();
 }
 void Context::SetUp() {
-    //    for (auto &item : m_pimpl_->m_domains_) {
-    //        item.second->SetUp();
-    //        m_pimpl_->m_model_.SetObject(item.first, item.second->GetGeoObject());
-    //    }
     m_pimpl_->m_model_.SetUp();
     m_pimpl_->m_atlas_.SetUp();
+    auto x_box = m_pimpl_->m_model_.GetBoundBox();
+    auto i_box = m_pimpl_->m_atlas_.GetIndexBox();
+    auto period = m_pimpl_->m_atlas_.GetPeriodicDimension();
+    point_type dx;
+    dx[0] = (std::get<1>(x_box)[0] - std::get<0>(x_box)[0]) / (std::get<1>(i_box)[0] - std::get<0>(i_box)[0]);
+    dx[1] = (std::get<1>(x_box)[1] - std::get<0>(x_box)[1]) / (std::get<1>(i_box)[1] - std::get<0>(i_box)[1]);
+    dx[2] = (std::get<1>(x_box)[2] - std::get<0>(x_box)[2]) / (std::get<1>(i_box)[2] - std::get<0>(i_box)[2]);
+
+    for (auto &item : m_pimpl_->m_domains_) { item.second->GetMesh()->GetChart()->SetDx(dx); }
 };
 void Context::InitializeCondition(Patch *p, Real time_now) {
     for (auto &item : m_pimpl_->m_domains_) {
