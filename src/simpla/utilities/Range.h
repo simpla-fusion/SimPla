@@ -231,9 +231,7 @@ struct Range {
         return m_next_ != nullptr && m_next_->is_divisible();
     }
 
-    bool empty() const {  // FIXME: this is not  full functional
-        return m_next_ == nullptr || m_next_->empty();
-    }
+    bool empty() const { return m_next_ == nullptr || m_next_->empty(); }
 
     this_type split(concept::tags::split const& s = concept::tags::split()) {
         // FIXME: this is not  full functional

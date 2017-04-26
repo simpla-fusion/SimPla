@@ -26,15 +26,14 @@ using namespace simpla::data;
  *   - \f$p\f$ is the projection
  *
  */
-class MeshBase
-    : public AttributeGroup,
-      public data::Serializable,
-      public data::EnableCreateFromDataTable<MeshBase, std::shared_ptr<Chart>, std::shared_ptr<geometry::GeoObject>>,
-      public std::enable_shared_from_this<MeshBase> {
+class MeshBase : public AttributeGroup,
+                 public data::Serializable,
+                 public data::EnableCreateFromDataTable<MeshBase, std::shared_ptr<Chart> >,
+                 public std::enable_shared_from_this<MeshBase> {
     SP_OBJECT_HEAD(MeshBase, AttributeGroup);
 
    public:
-    explicit MeshBase(std::shared_ptr<Chart> c = nullptr, std::shared_ptr<geometry::GeoObject> g = nullptr);
+    explicit MeshBase(std::shared_ptr<Chart> c);
     ~MeshBase() override;
     SP_DEFAULT_CONSTRUCT(MeshBase);
     DECLARE_REGISTER_NAME("MeshBase");
@@ -60,7 +59,6 @@ class MeshBase
     void SetBlock(std::shared_ptr<MeshBlock>);
     std::shared_ptr<MeshBlock> GetBlock() const;
     std::shared_ptr<Chart> GetChart() const;
-    std::shared_ptr<geometry::GeoObject> GetGeoObject() const;
 
     virtual Range<EntityId> &GetRange(int IFORM);
     virtual Range<EntityId> const &GetRange(int IFORM) const;
@@ -76,31 +74,6 @@ class MeshBase
    protected:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
-};
-class BoundaryMeshBase : public MeshBase {
-    SP_OBJECT_HEAD(BoundaryMeshBase, MeshBase);
-
-   public:
-    typedef Real scalar_type;
-    explicit BoundaryMeshBase(MeshBase *m = nullptr) : m_base_mesh_(m){};
-    ~BoundaryMeshBase() override = default;
-
-    SP_DEFAULT_CONSTRUCT(BoundaryMeshBase)
-    DECLARE_REGISTER_NAME("BoundaryMeshBase");
-
-    void SetBaseMesh(MeshBase *m) { m_base_mesh_ = m; }
-    const MeshBase *GetBaseMesh() const { return m_base_mesh_; }
-
-    void SetUp() override;
-
-    point_type point(EntityId s) const override { return GetBaseMesh()->point(s); }
-    Real volume(EntityId s) const override { return m_base_mesh_->volume(s); }
-    Real dual_volume(EntityId s) const override { return m_base_mesh_->volume(s); }
-    Real inv_volume(EntityId s) const override { return m_base_mesh_->volume(s); }
-    Real inv_dual_volume(EntityId s) const override { return m_base_mesh_->volume(s); }
-
-   private:
-    MeshBase *m_base_mesh_ = nullptr;
 };
 
 }  // namespace engine

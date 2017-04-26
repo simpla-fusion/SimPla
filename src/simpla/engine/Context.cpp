@@ -3,8 +3,8 @@
 //
 #include "Context.h"
 #include "Domain.h"
-#include "MeshBase.h"
 #include "Domain.h"
+#include "MeshBase.h"
 #include "simpla/data/all.h"
 #include "simpla/geometry/GeoAlgorithm.h"
 
@@ -13,7 +13,7 @@ namespace engine {
 
 struct Context::pimpl_s {
     std::map<std::string, std::shared_ptr<Attribute>> m_global_attributes_;
-    std::map<std::string, std::shared_ptr<Domain>> m_worker_;
+    std::map<std::string, std::shared_ptr<Domain>> m_domains_;
     Model m_model_;
     Atlas m_atlas_;
 };
@@ -23,7 +23,7 @@ Context::~Context() {}
 
 std::shared_ptr<data::DataTable> Context::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
-    for (auto const &item : m_pimpl_->m_worker_) { res->Link("Domain/" + item.first, item.second->Serialize()); }
+    for (auto const &item : m_pimpl_->m_domains_) { res->Link("Domain/" + item.first, item.second->Serialize()); }
     return res;
 }
 void Context::Deserialize(std::shared_ptr<DataTable> cfg) {
@@ -43,22 +43,22 @@ void Context::TearDown() {
     m_pimpl_->m_atlas_.TearDown();
 }
 void Context::SetUp() {
-    for (auto &item : m_pimpl_->m_worker_) {
-        item.second->SetUp();
-        m_pimpl_->m_model_.AddObject(item.first, item.second->GetMesh()->GetGeoObject());
-    }
+    //    for (auto &item : m_pimpl_->m_domains_) {
+    //        item.second->SetUp();
+    //        m_pimpl_->m_model_.SetObject(item.first, item.second->GetGeoObject());
+    //    }
     m_pimpl_->m_model_.SetUp();
     m_pimpl_->m_atlas_.SetUp();
 };
 void Context::InitializeCondition(Patch *p, Real time_now) {
-    for (auto &item : m_pimpl_->m_worker_) {
+    for (auto &item : m_pimpl_->m_domains_) {
         item.second->Push(p);
         item.second->InitializeCondition(time_now);
         item.second->Pop(p);
     }
 }
 void Context::BoundaryCondition(Patch *p, Real time_now, Real time_dt) {
-    for (auto &item : m_pimpl_->m_worker_) {
+    for (auto &item : m_pimpl_->m_domains_) {
         item.second->Push(p);
         item.second->BoundaryCondition(time_now, time_dt);
         item.second->Pop(p);
@@ -66,7 +66,7 @@ void Context::BoundaryCondition(Patch *p, Real time_now, Real time_dt) {
 }
 
 void Context::Advance(Patch *p, Real time_now, Real time_dt) {
-    for (auto &item : m_pimpl_->m_worker_) {
+    for (auto &item : m_pimpl_->m_domains_) {
         item.second->Push(p);
         item.second->Advance(time_dt, time_dt);
         item.second->Pop(p);
@@ -74,22 +74,19 @@ void Context::Advance(Patch *p, Real time_now, Real time_dt) {
 }
 
 Model &Context::GetModel() const { return m_pimpl_->m_model_; }
+Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
 
-void Context::Register(AttributeGroup *attr_grp) {
-    for (auto &item : m_pimpl_->m_worker_) { item.second->GetMesh()->Register(attr_grp); }
+void Context::RegisterAt(AttributeGroup *attr_grp) {
+    for (auto &item : m_pimpl_->m_domains_) { item.second->GetMesh()->RegisterAt(attr_grp); }
 }
-void Context::SetWorker(std::string const &k, std::shared_ptr<Domain> d) {
-    auto res = m_pimpl_->m_worker_.emplace(k, d);
-    if (!res.second) { res.first->second = d; }
+void Context::SetDomain(std::string const &k, std::shared_ptr<Domain> d) {
+    m_pimpl_->m_domains_[k] = d;
+    m_pimpl_->m_model_.SetObject(k, d->GetGeoObject());
 }
-std::shared_ptr<Domain> Context::GetWorker(std::string const &k) {
-    auto res = m_pimpl_->m_worker_.emplace(k, nullptr);
-    if (res.first->second == nullptr) { res.first->second = std::make_shared<Domain>(); }
-    return res.first->second;
-}
-std::shared_ptr<Domain> Context::GetWorker(std::string const &k) const {
-    auto it = m_pimpl_->m_worker_.find(k);
-    return (it == m_pimpl_->m_worker_.end()) ? nullptr : it->second;
+
+std::shared_ptr<Domain> Context::GetDomain(std::string const &k) const {
+    auto it = m_pimpl_->m_domains_.find(k);
+    return (it == m_pimpl_->m_domains_.end()) ? nullptr : it->second;
 }
 // std::map<id_type, std::shared_ptr<Patch>> const &Context::GetPatches() const { return m_pimpl_->m_patches_; }
 //
@@ -140,11 +137,11 @@ std::shared_ptr<Domain> Context::GetWorker(std::string const &k) const {
 //                                                         GetModel().AddObject(key,
 //                                                         t.GetTable("Geometry")).first));
 //
-//        m_pimpl_->m_worker_.emplace(key, std::make_shared<Domain>(t.GetTable("Domain"), m));
+//        m_pimpl_->m_domains_.emplace(key, std::make_shared<Domain>(t.GetTable("Domain"), m));
 //
 //    });
 //    for (auto const &item : GetModel().GetAll()) {
-//        auto worker_res = m_pimpl_->m_worker_.emplace(item.first, nullptr);
+//        auto worker_res = m_pimpl_->m_domains_.emplace(item.first, nullptr);
 //        if (worker_res.first->second == nullptr) {
 //            worker_res.first->second = std::make_shared<Domain>(workers_t->GetTable(item.first), nullptr,
 //            item.second);

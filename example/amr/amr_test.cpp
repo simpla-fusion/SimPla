@@ -28,7 +28,7 @@ using namespace simpla::engine;
 
 static bool _PRE_REGISTERED = EMFluid<CartesianCoRectMesh>::is_registered &&  //
                               EMFluid<CylindricalSMesh>::is_registered &&     //
-                              PEC<BoundaryMeshBase>::is_registered            //
+                              PEC<CylindricalSMesh>::is_registered            //
     //  EMFluid<CartesianCoRectMeshEB>::is_register &&
     //  PEC<CartesianCoRectMeshEB>::is_register &&
     //  EMFluid<CylindricalSMeshEB>::is_register &&
@@ -45,19 +45,13 @@ struct UseCaseAMR : public application::SpApp {
 REGISTER_CREATOR(UseCaseAMR);
 
 void UseCaseAMR::SetUp() {
-    auto g = std::make_shared<geometry::Cube>(box_type{{1.0, 0.0, 0.0}, {2, TWOPI, 2}});
-
-    auto c = std::make_shared<CylindricalGeometry>();
-    c->SetOrigin(point_type{1, 0, 0});
-    c->SetDx(point_type{0.1, TWOPI / 64, 0.1});
-
-    auto w = std::make_shared<EMFluid<Mesh<CylindricalGeometry, SMesh>>>(c, g);
-
     auto schedule = std::dynamic_pointer_cast<engine::TimeIntegrator>(engine::Schedule::Create("SAMRAITimeIntegrator"));
     schedule->Initialize();
-    schedule->GetContext().SetWorker("Center", w);
-    schedule->GetAtlas().SetIndexBox(index_box_type{{0, 0, 0}, {64, 32, 64}});
-    schedule->GetAtlas().SetPeriodicDimension(size_tuple{0, 0, 0});
+    schedule->GetContext().GetModel().SetObject(
+        "Center", std::make_shared<geometry::Cube>(box_type{{1.0, 0.0, 0.0}, {2, TWOPI, 2}}));
+    schedule->GetContext().GetAtlas().SetIndexBox(index_box_type{{0, 0, 0}, {64, 32, 64}});
+    schedule->GetContext().GetAtlas().SetPeriodicDimension(size_tuple{0, 0, 0});
+    schedule->GetContext().SetDomain<EMFluid<Mesh<CylindricalGeometry, SMesh>>>("Center");
     schedule->SetTime(0.0);
     schedule->SetTimeStep(0.1);
     schedule->SetTimeEnd(1.0);

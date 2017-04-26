@@ -16,8 +16,7 @@ class StructuredMesh : public engine::MeshBase {
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
 
-    template <typename... Args>
-    StructuredMesh(Args &&... args) : engine::MeshBase(std::forward<Args>(args)...){};
+    StructuredMesh(std::shared_ptr<engine::Chart> c = nullptr) : engine::MeshBase(c){};
     ~StructuredMesh() override = default;
     SP_DEFAULT_CONSTRUCT(StructuredMesh);
     //    DECLARE_REGISTER_NAME("StructuredMesh");

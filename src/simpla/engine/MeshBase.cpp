@@ -15,14 +15,10 @@ namespace engine {
 struct MeshBase::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
     std::shared_ptr<Chart> m_chart_;
-    std::shared_ptr<geometry::GeoObject> m_geo_obj_;
     Range<EntityId> m_ranges_[4];
     Real m_time_ = 0.0;
 };
-MeshBase::MeshBase(std::shared_ptr<Chart> c, std::shared_ptr<geometry::GeoObject> g) : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_chart_ = c;
-    m_pimpl_->m_geo_obj_ = g;
-}
+MeshBase::MeshBase(std::shared_ptr<Chart> c) : m_pimpl_(new pimpl_s) { m_pimpl_->m_chart_ = c; }
 MeshBase::~MeshBase() {}
 
 Real MeshBase::GetTime() const { return m_pimpl_->m_time_; }
@@ -33,7 +29,7 @@ id_type MeshBase::GetBlockId() const {
 }
 
 std::shared_ptr<Chart> MeshBase::GetChart() const { return m_pimpl_->m_chart_; }
-std::shared_ptr<geometry::GeoObject> MeshBase::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
+// std::shared_ptr<geometry::GeoObject> MeshBase::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
 
 void MeshBase::SetUp() {}
 void MeshBase::TearDown() {}
@@ -58,25 +54,24 @@ Range<EntityId> const &MeshBase::GetRange(int iform) const { return m_pimpl_->m_
 void MeshBase::Push(Patch *p) {
     ASSERT(p != nullptr);
     m_pimpl_->m_mesh_block_ = p->GetBlock();
-    if (GetGeoObject() != nullptr) {
-        m_pimpl_->m_ranges_[VERTEX] = p->GetRange(VERTEX, GetGeoObject());
-        m_pimpl_->m_ranges_[EDGE] = p->GetRange(EDGE, GetGeoObject());
-        m_pimpl_->m_ranges_[FACE] = p->GetRange(FACE, GetGeoObject());
-        m_pimpl_->m_ranges_[VOLUME] = p->GetRange(VOLUME, GetGeoObject());
-    }
+    //    if (GetGeoObject() != nullptr) {
+    //        m_pimpl_->m_ranges_[VERTEX] = p->GetRange(VERTEX, GetGeoObject());
+    //        m_pimpl_->m_ranges_[EDGE] = p->GetRange(EDGE, GetGeoObject());
+    //        m_pimpl_->m_ranges_[FACE] = p->GetRange(FACE, GetGeoObject());
+    //        m_pimpl_->m_ranges_[VOLUME] = p->GetRange(VOLUME, GetGeoObject());
+    //    }
     AttributeGroup::Push(p);
 }
 void MeshBase::Pop(Patch *p) {
     ASSERT(p != nullptr);
     AttributeGroup::Pop(p);
     p->SetBlock(m_pimpl_->m_mesh_block_);
-    if (GetGeoObject() != nullptr) {
-        p->SetRange(m_pimpl_->m_ranges_[VERTEX], VERTEX, GetGeoObject());
-        p->SetRange(m_pimpl_->m_ranges_[EDGE], EDGE, GetGeoObject());
-        p->SetRange(m_pimpl_->m_ranges_[FACE], FACE, GetGeoObject());
-        p->SetRange(m_pimpl_->m_ranges_[VOLUME], VOLUME, GetGeoObject());
-    }
+    //    if (GetGeoObject() != nullptr) {
+    //        p->SetRange(m_pimpl_->m_ranges_[VERTEX], VERTEX, GetGeoObject());
+    //        p->SetRange(m_pimpl_->m_ranges_[EDGE], EDGE, GetGeoObject());
+    //        p->SetRange(m_pimpl_->m_ranges_[FACE], FACE, GetGeoObject());
+    //        p->SetRange(m_pimpl_->m_ranges_[VOLUME], VOLUME, GetGeoObject());
+    //    }
 }
-void BoundaryMeshBase::SetUp() {}
 }  // {namespace engine
 }  // namespace simpla

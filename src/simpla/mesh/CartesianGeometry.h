@@ -39,8 +39,8 @@ struct Mesh<CartesianGeometry, CoRectMesh> : public CoRectMesh {
 
    public:
     typedef Real scalar_type;
-    explicit Mesh(std::shared_ptr<engine::Chart> c = nullptr, std::shared_ptr<geometry::GeoObject> g = nullptr)
-        : CoRectMesh((c != nullptr ? c : std::make_shared<CartesianGeometry>()), g) {}
+    explicit Mesh(std::shared_ptr<engine::Chart> c = nullptr)
+        : CoRectMesh((c != nullptr ? c : std::make_shared<CartesianGeometry>())) {}
 
     ~Mesh() override = default;
     SP_DEFAULT_CONSTRUCT(Mesh);

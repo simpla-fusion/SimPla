@@ -8,9 +8,9 @@
 #include <simpla/SIMPLA_config.h>
 #include <map>
 #include "Atlas.h"
+#include "Domain.h"
 #include "Model.h"
 #include "Patch.h"
-#include "Domain.h"
 #include "simpla/data/Serializable.h"
 namespace simpla {
 namespace engine {
@@ -78,13 +78,17 @@ class Context : public data::Serializable {
     void BoundaryCondition(Patch *p, Real time_now, Real time_dt);
     void Advance(Patch *p, Real time_now, Real time_dt);
 
-    void Register(AttributeGroup *);
+    void RegisterAt(AttributeGroup *);
 
     Model &GetModel() const;
+    Atlas &GetAtlas() const;
 
-    void SetWorker(std::string const &k, std::shared_ptr<Domain>);
-    std::shared_ptr<Domain> GetWorker(std::string const &k);
-    std::shared_ptr<Domain> GetWorker(std::string const &k) const;
+    void SetDomain(std::string const &k, std::shared_ptr<Domain>);
+    template <typename U>
+    void SetDomain(std::string const &k) {
+        SetDomain(k, std::make_shared<U>(GetModel().GetObject(k)));
+    }
+    std::shared_ptr<Domain> GetDomain(std::string const &k) const;
 
    private:
     struct pimpl_s;

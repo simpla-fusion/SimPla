@@ -16,8 +16,7 @@ struct SMesh : public StructuredMesh {
    public:
     SP_OBJECT_HEAD(SMesh, StructuredMesh)
 
-    template <typename... Args>
-    explicit SMesh(Args &&... args) : StructuredMesh(std::forward<Args>(args)...){};
+     explicit SMesh(std::shared_ptr<engine::Chart> c = nullptr) : StructuredMesh(c){};
     ~SMesh() override{};
 
     SP_DEFAULT_CONSTRUCT(SMesh)

@@ -20,11 +20,11 @@ struct AttributeGroup::pimpl_s {
 
 AttributeGroup::AttributeGroup() : m_pimpl_(new pimpl_s) {}
 AttributeGroup::~AttributeGroup() {}
-void AttributeGroup::Register(AttributeGroup *other) {
-    for (Attribute *attr : m_pimpl_->m_attributes_) { other->Attach(attr); }
+void AttributeGroup::RegisterAt(AttributeGroup *other) {
+    for (Attribute *attr : m_pimpl_->m_attributes_) { attr->RegisterAt(other); }
 };
-void AttributeGroup::Deregister(AttributeGroup *other) {
-    for (Attribute *attr : m_pimpl_->m_attributes_) { other->Detach(attr); }
+void AttributeGroup::DeregisterFrom(AttributeGroup *other) {
+    for (Attribute *attr : m_pimpl_->m_attributes_) { attr->DeregisterFrom(other); }
 };
 void AttributeGroup::Push(Patch *p) {
     for (auto *item : m_pimpl_->m_attributes_) { item->Push(p->Pop(item->GetGUID())); }
@@ -39,43 +39,28 @@ std::set<Attribute *> const &AttributeGroup::GetAll() const { return m_pimpl_->m
 
 struct Attribute::pimpl_s {
     std::set<AttributeGroup *> m_bundle_;
-    MeshBase const *m_mesh_ = nullptr;
-    Range<EntityId> m_range_;
 };
 // Attribute::Attribute(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), data::Configurable(t) {
 //    SetUp();
 //}
 
-Attribute::Attribute(AttributeGroup *b, std::shared_ptr<data::DataTable> const &t)
-    : m_pimpl_(new pimpl_s), data::Configurable(t) {
-    Register(b);
+Attribute::Attribute(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), data::Configurable(t) {
     SetUp();
 };
-// Attribute::Attribute(Attribute const &other) : m_pimpl_(new pimpl_s)  {
-//    for (auto *b : other.m_pimpl_->m_bundle_) { Register(b); }
-//    m_pimpl_->m_block_ = other.m_pimpl_->m_block_;
-//}
-// Attribute::Attribute(Attribute &&other) : m_pimpl_(new pimpl_s)  {
-//    for (auto *b : other.m_pimpl_->m_bundle_) { Register(b); }
-//    for (auto *b : m_pimpl_->m_bundle_) { other.Deregister(b); }
-//    m_pimpl_->m_block_ = other.m_pimpl_->m_block_;
-//}
+
 Attribute::~Attribute() {
-    for (auto *b : m_pimpl_->m_bundle_) { Deregister(b); }
+    for (auto *b : m_pimpl_->m_bundle_) { DeregisterFrom(b); }
 }
 
-void Attribute::Register(AttributeGroup *attr_b) {
+void Attribute::RegisterAt(AttributeGroup *attr_b) {
     if (attr_b != nullptr) {
         auto res = m_pimpl_->m_bundle_.emplace(attr_b);
         if (res.second) { attr_b->Attach(this); }
     }
 }
-void Attribute::Deregister(AttributeGroup *attr_b) {
+void Attribute::DeregisterFrom(AttributeGroup *attr_b) {
     if (m_pimpl_->m_bundle_.erase(attr_b) > 0) { attr_b->Detach(this); };
 }
-
-void Attribute::SetMesh(MeshBase const *m) { m_pimpl_->m_mesh_ = m; }
-MeshBase const *Attribute::GetMesh() const { return m_pimpl_->m_mesh_; }
 
 // void Attribute::SetRange(Range<EntityId> const &r) { m_pimpl_->m_range_ = r; }
 // Range<EntityId> const &Attribute::GetRange() const { return m_pimpl_->m_range_; }

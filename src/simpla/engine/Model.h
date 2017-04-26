@@ -31,9 +31,8 @@ class Model : public data::Serializable, public SPObject {
 
     box_type const &GetBoundBox() const;
 
-    std::pair<std::shared_ptr<geometry::GeoObject>, bool> AddObject(std::string const &k, std::shared_ptr<DataTable>);
-
-    id_type AddObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &);
+    std::pair<std::shared_ptr<geometry::GeoObject>, bool>SetObject(std::string const &k, std::shared_ptr<DataTable>);
+    id_type SetObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &);
     std::shared_ptr<geometry::GeoObject> GetObject(std::string const &k) const;
     size_type DeleteObject(std::string const &);
 

@@ -45,13 +45,13 @@ box_type const& Model::GetBoundBox() const { return m_pimpl_->m_bound_box_; };
 //    return nullptr;
 //}
 
-std::pair<std::shared_ptr<geometry::GeoObject>, bool> Model::AddObject(std::string const& key,
+std::pair<std::shared_ptr<geometry::GeoObject>, bool> Model::SetObject(std::string const& key,
                                                                        std::shared_ptr<DataTable> cfg) {
     auto geo = m_pimpl_->m_g_objs_.emplace(key, nullptr);
     //    if (geo.first->second == nullptr) {}
     return std::make_pair(geo.first->second, false);
 };
-id_type Model::AddObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
+id_type Model::SetObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
     m_pimpl_->m_g_objs_.emplace(key, g_obj);
     return 0;
 }

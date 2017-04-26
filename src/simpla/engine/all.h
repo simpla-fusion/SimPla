@@ -18,11 +18,18 @@
 /**
  *
  * @startuml
- *
-
+ * class Context{
+ * }
+ * Context o-- "*" Domain
+ * Context *-- "1" Model
+ * Context *-- "1" Atlas
+ * class Schedule{
+ * }
+ * Schedule *-- "1" Context
  *
  * class GeoObject{
  * }
+ * Model o--"*" GeoObject
  * note right
  *    <latex> \mathcal{O}_{\alpha}  </latex>
  * end note
@@ -39,58 +46,41 @@
  *      id_type AddBlock(index_box_type,int level)
  *      index_box_type  GetBlock(id_type)
  * }
- * note right
+ * note top of Atlas
  *   <latex>  \mathcal{G}_{\alpha}\supseteq \bigcup_{m}  \mathcal{O}_{\alpha,m}^0 ,</latex>
  *   <latex>  \mathcal{O}_{\alpha} \cap  \mathcal{O}_{\alpha,m}^l \neq  \oslash,</latex>
  *   <latex>  \mathcal{O}_{\alpha,m}^l \cap \mathcal{O}_{\alpha,n}^l =\oslash </latex>
- * end note
- * Atlas o-- "0..*" Patch
- * Atlas .. Domain
- * class Atlas{
- * }
-  note right
  *   A collection of charts  <latex>\mathcal{A}\equiv\left\{ \mathcal{O}_{\alpha},\varphi_{\alpha}\right\} </latex>
  *   is called as <b>atlas</b> .
  *      <latex>X=\bigcup_{\alpha} \mathcal{O}_{\alpha} </latex>
  *  The set <latex> \mathcal{O} </latex> is known as <b>coordinate patch </b>,
  * end note
- *
- *
+ * Atlas o-- "0..*" Patch
+ * Schedule .. Atlas: create/destroy
  * class Domain{
  *      GeoObject * m_geo_object_
- *      Chart * m_chart_
- *      Worker * m_worker_center_
- *      Worker * m_worker_boundary_[]
+ *      Mesh * m_mesh_
  *      int CheckOverlap(MeshBlock)
  *      void Push(Patch)
  *      Patch Pop()
- *      Worker & GetWorker()
  * }
  * note right
  *    <latex>\left\{ \mathcal{O}_{\alpha},\varphi_{\alpha}\right\} </latex>
  * end note
  * Domain *-- GeoObject
- * Domain *-- "0..*" Worker
- * Domain *-- "1" Chart
+ * Domain *-- "1" Mesh
+ * Domain o-- Field
+ *
  * class IdRange{
  * }
  *
- * class Worker{
- *      void SetMesh(Chart*)
- *      {abstract} void Register(AttributeGroup *);
- *      {abstract} void Deregister(AttributeGroup *);
- *      {abstract} void Push(Patch const &);
- *      {abstract} void Pop(Patch *) const;
- * }
- * Worker *-- "1" Mesh
  *
- * class ConcreteWorker<TMesh>{
+ * class ConcreteDomain<TMesh>{
  *      void Register(AttributeGroup*)
  *      void Initialize(Real time_now)
  *      void Run(Real time_now,Real dt)
  * }
- * ConcreteWorker --|> Worker
- * ConcreteWorker o-- Field
+ * ConcreteDomain --|> Domain
  *
  * class Chart{
  *      point_type origin;
@@ -136,15 +126,13 @@
  *    <latex>\left\{ \mathcal{O}_{\alpha,m},\varphi_{\alpha}\right\} </latex>
  * end note
  * Mesh *-- Chart
- * Mesh *-- GeoObject
- * Mesh <.. MeshBlock
- *
+ * Mesh *-- MeshBlock
+ * Mesh --|> AttributeGroup
  *
  * class Patch {
  * }
  * Patch *-- "1" MeshBlock
  * Patch *-- "0..*" DataBlock
- * Patch *-- "1..*" IdRange
  *
  * class IdRange{
  * }
@@ -156,8 +144,8 @@
  * }
  * EBMesh --|> Mesh
  *
- * ConcreteWorker ..> RectMesh
- * ConcreteWorker ..> EBMesh
+ * ConcreteDomain ..> RectMesh
+ * ConcreteDomain ..> EBMesh
  * class Attribute {
  *      void Register(AttributeGroup*)
  *      void SetMesh(Mesh *);
@@ -166,7 +154,6 @@
  *      Push(DataBlock);
  *      DataBlock Pop();
  * }
- * Attribute <.. IdRange: push/pop
  * class AttributeGroup {
  *      void Register(AttributeGroup*);
  *      void Detach(Attribute *attr);
@@ -174,7 +161,7 @@
  *      void Push(Patch );
  *      Patch Pop();
  * }
- * AttributeGroup o-- Attribute
+ * AttributeGroup o-- "*" Attribute
 
  * class Field<TMesh>{
   *    int GetIFORM()const;
@@ -182,7 +169,8 @@
  * }
  *
  * Field --|> Attribute
- *
+ * Field *-- Mesh
+ * Field *-- IdRange
  * Chart <|-- CartesianGeometry
  * Chart <|-- CylindricalGeometry
  *

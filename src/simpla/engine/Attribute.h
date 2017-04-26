@@ -56,8 +56,8 @@ class AttributeGroup {
 
     SP_DEFAULT_CONSTRUCT(AttributeGroup);
 
-    virtual void Register(AttributeGroup *);
-    virtual void Deregister(AttributeGroup *);
+    virtual void RegisterAt(AttributeGroup *);
+    virtual void DeregisterFrom(AttributeGroup *);
 
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
@@ -98,16 +98,10 @@ struct Attribute : public SPObject, public data::Configurable, public data::Seri
     SP_OBJECT_BASE(Attribute);
 
    public:
-    Attribute(AttributeGroup *b, std::shared_ptr<data::DataTable> const &p = nullptr);
+    Attribute(std::shared_ptr<data::DataTable> const &p = nullptr);
     template <typename U, typename... Args>
-    Attribute(AttributeGroup *b, U const &first, Args &&... args)
-        : Attribute(b, std::make_shared<data::DataTable>(first, std::forward<Args>(args)...)){};
-
-    Attribute(AttributeGroup &b) : Attribute(&b){};
-
-    template <typename U, typename... Args>
-    Attribute(AttributeGroup &b, U const &first, Args &&... args)
-        : Attribute(&b, std::make_shared<data::DataTable>(first, std::forward<Args>(args)...)){};
+    Attribute(U const &first, Args &&... args)
+        : Attribute(std::make_shared<data::DataTable>(first, std::forward<Args>(args)...)){};
 
     Attribute(Attribute const &other) = delete;
     Attribute(Attribute &&other) = delete;
@@ -115,8 +109,8 @@ struct Attribute : public SPObject, public data::Configurable, public data::Seri
 
     void SetUp();
 
-    void Register(AttributeGroup *);
-    void Deregister(AttributeGroup *);
+    void RegisterAt(AttributeGroup *);
+    void DeregisterFrom(AttributeGroup *);
 
     //    virtual Attribute *Clone() const = 0;
     //    virtual std::shared_ptr<Attribute> GetDescription() const = 0;
@@ -124,9 +118,6 @@ struct Attribute : public SPObject, public data::Configurable, public data::Seri
     virtual int GetIFORM() const = 0;
     virtual int GetDOF() const = 0;
     virtual std::type_info const &value_type_info() const = 0;  //!< value type
-
-    void SetMesh(MeshBase const *);
-    MeshBase const *GetMesh() const;
 
     virtual void Push(std::shared_ptr<data::DataBlock>){};
     virtual std::shared_ptr<data::DataBlock> Pop() { return nullptr; }
