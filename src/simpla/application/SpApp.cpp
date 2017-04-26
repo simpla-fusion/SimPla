@@ -22,17 +22,20 @@ SpApp::SpApp() {}
 SpApp::~SpApp() {}
 std::shared_ptr<data::DataTable> SpApp::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
-    if (m_schedule_ != nullptr) {
-        res->Set("Schedule", m_schedule_->Serialize());
-        res->SetValue("Schedule/Type", m_schedule_->GetClassName());
-    }
+    if (m_schedule_ != nullptr) { res->Set("Schedule", m_schedule_->Serialize()); }
     return res;
 };
-void SpApp::Deserialize(std::shared_ptr<data::DataTable> t) {
-    m_schedule_ = engine::Schedule::Create(t->GetTable("Schedule"));
-};
+void SpApp::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
 
-void SpApp::Initialize(){};
+    m_schedule_ = engine::Schedule::Create(cfg->Get("Schedule"));
+
+    if (m_schedule_ != nullptr) {
+        auto ctx = engine::Context::Create(cfg->Get("Context"));
+        if (ctx != nullptr) { m_schedule_->SetContext(ctx); }
+    }
+};
+void SpApp::Initialize() {}
+
 void SpApp::Finalize(){};
 void SpApp::SetUp() {
     if (m_schedule_ != nullptr) { m_schedule_->SetUp(); }
@@ -135,29 +138,28 @@ int main(int argc, char **argv) {
     //    }
 
     MPI_Barrier(GLOBAL_COMM.comm());
-    std::shared_ptr<application::SpApp> app = nullptr;
-    std::shared_ptr<data::DataTable> cfg = nullptr;
-    std::string buffer;
+
+    auto app = std::make_shared<application::SpApp>();
+
     if (GLOBAL_COMM.rank() == 0) {
-        //        cfg = data::ParseCommandLine(argc, argv);
-        //        app->Deserialize(cfg);
-        app = application::SpApp::Create(app_name);
-        app->SetUp();
+        app->Deserialize(data::ParseCommandLine(argc, argv));
 
         std::ostringstream os;
         os << "Application={";
         data::Serialize(app->Serialize(), os, "lua");
         os << "}";
-        buffer = os.str();
+        std::string buffer = os.str();
         parallel::bcast_string(&buffer);
     } else {
+        std::string buffer;
         parallel::bcast_string(&buffer);
-        cfg = std::make_shared<data::DataTable>("lua://");
+        auto cfg = std::make_shared<data::DataTable>("lua://");
         cfg->backend()->Parser(buffer);
-        app = application::SpApp::Create(cfg->GetValue<std::string>("Application"));
-        ASSERT(app != nullptr);
-        app->SetUp();
+
+        app->Deserialize(cfg->GetTable("Application"));
     }
+
+    app->SetUp();
     MPI_Barrier(GLOBAL_COMM.comm());
 
     VERBOSE << DOUBLELINE << std::endl;

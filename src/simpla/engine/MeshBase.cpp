@@ -43,7 +43,7 @@ std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
     p->SetValue("Type", GetClassName());
     return p;
 }
-void MeshBase::Deserialize(std::shared_ptr<data::DataTable>) {}
+void MeshBase::Deserialize(const std::shared_ptr<DataTable> &) {}
 
 bool MeshBase::isFullCovered() const { return true; }
 bool MeshBase::isBoundary() const { return false; }

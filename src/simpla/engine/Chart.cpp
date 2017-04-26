@@ -30,7 +30,7 @@ std::shared_ptr<data::DataTable> Chart::Serialize() const {
     p->SetValue("Dx", m_pimpl_->m_dx_);
     return p;
 };
-void Chart::Deserialize(std::shared_ptr<data::DataTable> d) {
+void Chart::Deserialize(const std::shared_ptr<data::DataTable> &d) {
     m_pimpl_->m_dx_ = d->GetValue<point_type>("Dx");
     m_pimpl_->m_origin_ = d->GetValue<point_type>("Origin");
     m_pimpl_->m_inv_dx_ = 1.0 / m_pimpl_->m_dx_;

@@ -60,16 +60,17 @@ namespace engine {
  *  deactivate DomainView
  * @enduml
  */
-class Context : public data::Serializable {
+class Context : public data::Serializable, public data::EnableCreateFromDataTable<Context> {
     SP_OBJECT_BASE(Context)
    public:
     Context();
     ~Context() override;
 
     SP_DEFAULT_CONSTRUCT(Context)
+    DECLARE_REGISTER_NAME("Context")
 
     std::shared_ptr<DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<DataTable>) override;
+    void Deserialize(const std::shared_ptr<DataTable> &cfg) override;
 
     void Initialize();  //!< initialize data on current patch
     void Finalize();    //!< release data on current patch

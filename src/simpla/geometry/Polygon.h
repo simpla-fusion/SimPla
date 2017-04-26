@@ -27,7 +27,7 @@ class Polygon;
  *  @brief 2D polygon
  */
 template <>
-struct Polygon<2> {
+struct Polygon<2> : public GeoObject {
     typedef nTuple<Real, 2> point2d_type;
 
     std::vector<point2d_type> m_polygon_;

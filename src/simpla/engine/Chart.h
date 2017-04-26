@@ -24,7 +24,7 @@ class Chart : public data::Serializable, public data::EnableCreateFromDataTable<
     DECLARE_REGISTER_NAME("Chart")
 
     std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataTable> t) override;
+    void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
 
     void SetOrigin(point_type const &);
     void SetDx(point_type const &);

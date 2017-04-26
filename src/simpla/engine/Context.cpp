@@ -27,7 +27,7 @@ std::shared_ptr<data::DataTable> Context::Serialize() const {
     for (auto const &item : m_pimpl_->m_domains_) { res->Link("Domain/" + item.first, item.second->Serialize()); }
     return res;
 }
-void Context::Deserialize(std::shared_ptr<DataTable> cfg) {
+void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
     //    auto worker_t = cfg->GetTable("Domains");
     //    if (worker_t == nullptr) { return; }
     //    worker_t->Foreach([&](std::string const &k, std::shared_ptr<DataEntity> t) {

@@ -19,7 +19,7 @@ std::shared_ptr<data::DataTable> TimeIntegrator::Serialize() const {
     return p;
 }
 
-void TimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> cfg) {
+void TimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     Schedule::Deserialize(cfg);
     SetTime(cfg->GetValue("TimeBegin", 0.0));
     SetTimeEnd(cfg->GetValue("TimeEnd", 1.0));

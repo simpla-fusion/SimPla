@@ -18,8 +18,7 @@ class AttributeGroup;
 * @brief
 */
 class Domain
-    : public data::Configurable,
-      public data::Serializable,
+    : public data::Serializable,
       public data::EnableCreateFromDataTable<Domain, std::shared_ptr<geometry::GeoObject>, std::shared_ptr<MeshBase> > {
     SP_OBJECT_BASE(Domain)
    public:
@@ -30,7 +29,7 @@ class Domain
     DECLARE_REGISTER_NAME("Domain")
 
     std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataTable> t) override;
+    void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
 
     virtual std::shared_ptr<Domain> Clone() const;
 
@@ -57,7 +56,8 @@ class Domain
 
 #define DOMAIN_HEAD(_DOMAIN_NAME_, _BASE_TYPE_)                                                                    \
    public:                                                                                                         \
-    explicit _DOMAIN_NAME_(std::shared_ptr<geometry::GeoObject> g, std::shared_ptr<engine::MeshBase> m = nullptr)  \
+    explicit _DOMAIN_NAME_(std::shared_ptr<geometry::GeoObject> const &g,                                          \
+                           std::shared_ptr<engine::MeshBase> const &m = nullptr)                                   \
         : _BASE_TYPE_(                                                                                             \
               g, (m != nullptr) ? m : std::dynamic_pointer_cast<engine::MeshBase>(std::make_shared<mesh_type>())), \
           m_mesh_(std::dynamic_pointer_cast<mesh_type>(engine::Domain::GetMesh())) {}                              \

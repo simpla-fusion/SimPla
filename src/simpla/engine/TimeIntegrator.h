@@ -23,7 +23,7 @@ struct TimeIntegrator : public Schedule {
     DECLARE_REGISTER_NAME("TimeIntegrator")
 
     std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataTable> cfg) override;
+    void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override;
 
     void Synchronize() override;
     void NextStep() override;

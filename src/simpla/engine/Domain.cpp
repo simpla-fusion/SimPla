@@ -18,7 +18,7 @@ std::shared_ptr<data::DataTable> Domain::Serialize() const {
     p->SetValue("Type", GetClassName());
     return p;
 }
-void Domain::Deserialize(std::shared_ptr<data::DataTable> t) { UNIMPLEMENTED; };
+void Domain::Deserialize(const std::shared_ptr<DataTable> &t) { UNIMPLEMENTED; };
 
 std::shared_ptr<Domain> Domain::Clone() const {
     UNIMPLEMENTED;

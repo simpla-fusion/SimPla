@@ -12,12 +12,17 @@
 #include <iostream>
 namespace simpla {
 using namespace engine;
-// using namespace model;
 
-class EMTokamak : public EMFluid<mesh::CylindricalSMesh> {
-    SP_OBJECT_HEAD(EMTokamak, EMFluid<mesh::CylindricalSMesh>)
+class EMTokamak : public engine::Context {
+    SP_OBJECT_HEAD(EMTokamak, engine::Context)
    public:
-    DOMAIN_HEAD(EMTokamak, EMFluid<mesh::CylindricalSMesh>)
+    EMTokamak() = default;
+    ~EMTokamak() override = default;
+
+    SP_DEFAULT_CONSTRUCT(EMTokamak);
+    DECLARE_REGISTER_NAME("EMTokamak");
+
+    //    DOMAIN_HEAD(EMTokamak, EMFluid<mesh::CylindricalSMesh>)
 
     std::shared_ptr<data::DataTable> Serialize() const override {
         auto res = std::make_shared<data::DataTable>();
@@ -25,25 +30,33 @@ class EMTokamak : public EMFluid<mesh::CylindricalSMesh> {
         return res;
     };
 
-    void Deserialize(shared_ptr<DataTable> t) override { UNIMPLEMENTED; }
+    void Deserialize(shared_ptr<data::DataTable> const& cfg) override;
 
-    void Initialize() override;
-    void Finalize() override;
-    void SetUp() override;
-    void TearDown() override;
-
-    void InitializeCondition(Real time_now) override;
-    void BoundaryCondition(Real time_now, Real dt) override;
-    void Advance(Real time_now, Real dt) override;
-
-    field_type<VERTEX> psi{base_type::m_mesh_, "name"_ = "psi"};
-    std::function<Vec3(point_type const &, Real)> J_src_fun;
-    std::function<Vec3(point_type const &, Real)> E_src_fun;
+    //    void InitializeCondition(Real time_now) override;
+    //    void BoundaryCondition(Real time_now, Real dt) override;
+    //    void Advance(Real time_now, Real dt) override;
+    //    field_type<VERTEX> psi{base_type::m_mesh_, "name"_ = "psi"};
+    std::function<Vec3(point_type const&, Real)> J_src_fun;
+    std::function<Vec3(point_type const&, Real)> E_src_fun;
 };
-bool EMTokamak::is_registered = engine::Domain::RegisterCreator<EMTokamak>("EMTokamak");
+bool EMTokamak::is_registered = engine::Context::RegisterCreator<EMTokamak>("EMTokamak");
 
-void EMTokamak::Initialize() {
-    base_type::Initialize();
+void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
+    //    base_type::Deserialize(cfg);
+    //    box_type box;
+    //    GEqdsk geqdsk;
+    //
+    //    Real phi0 = 0, phi1 = TWOPI;
+    //
+    //    geqdsk.load(db()->GetValue<std::string>("gfile", "gfile"));
+    //
+    //    box = geqdsk.limiter().box();
+    //
+    //    std::get<0>(box)[2] = phi0;
+    //    std::get<1>(box)[2] = phi1;
+    //
+    //    auto const &boundary = geqdsk.boundary();
+
     //    rho0.Assign([&](point_type const &x) -> Real { return (geqdsk.in_boundary(x)) ? geqdsk.profile("ne", x) : 0.0;
     //    });
     //    psi.Assign([&](point_type const &x) -> Real { return geqdsk.psi(x); });
@@ -55,13 +68,7 @@ void EMTokamak::Initialize() {
     //        *item.second->rho = rho0 * ratio;
     //    }
 }
-void EMTokamak::Finalize() { base_type::Finalize(); }
-void EMTokamak::SetUp() { base_type::SetUp(); };
-void EMTokamak::TearDown() { base_type::TearDown(); };
 
-void EMTokamak::InitializeCondition(Real time_now){};
-void EMTokamak::BoundaryCondition(Real time_now, Real dt){};
-void EMTokamak::Advance(Real time_now, Real dt) { base_type::Advance(time_now, dt); };
 //
 // void EMTokamak::SetPhysicalBoundaryConditions() {
 //    base_type::SetPhysicalBoundaryConditions();

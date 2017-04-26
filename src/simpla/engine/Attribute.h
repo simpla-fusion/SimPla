@@ -95,19 +95,19 @@ class AttributeGroup {
  * @enduml
  */
 struct Attribute : public SPObject, public data::Configurable, public data::Serializable {
-    SP_OBJECT_BASE(Attribute);
+    SP_OBJECT_HEAD(Attribute, SPObject);
 
    public:
-    Attribute(std::shared_ptr<data::DataTable> const &p = nullptr);
+    explicit Attribute(std::shared_ptr<data::DataTable> const &p = nullptr);
     template <typename U, typename... Args>
-    Attribute(U const &first, Args &&... args)
+    explicit Attribute(U const &first, Args &&... args)
         : Attribute(std::make_shared<data::DataTable>(first, std::forward<Args>(args)...)){};
 
     Attribute(Attribute const &other) = delete;
     Attribute(Attribute &&other) = delete;
-    virtual ~Attribute();
+    ~Attribute() override;
 
-    void SetUp();
+    void SetUp() override;
 
     void RegisterAt(AttributeGroup *);
     void DeregisterFrom(AttributeGroup *);
@@ -119,7 +119,7 @@ struct Attribute : public SPObject, public data::Configurable, public data::Seri
     virtual int GetDOF() const = 0;
     virtual std::type_info const &value_type_info() const = 0;  //!< value type
 
-    virtual void Push(std::shared_ptr<data::DataBlock>){};
+    virtual void Push(std::shared_ptr<data::DataBlock> d){};
     virtual std::shared_ptr<data::DataBlock> Pop() { return nullptr; }
 
     virtual bool isNull() const;
@@ -135,18 +135,18 @@ struct AttributeDesc : public Attribute {
     SP_OBJECT_HEAD(desc_type, Attribute);
 
    public:
-    AttributeDesc(std::shared_ptr<data::DataTable> const &t) : Attribute(nullptr, t) {}
-    AttributeDesc(std::string const &k) : Attribute(nullptr) {}
-    ~AttributeDesc() {}
+    explicit AttributeDesc(std::shared_ptr<data::DataTable> const &t) : Attribute(nullptr, t) {}
+    explicit AttributeDesc(std::string const &k) : Attribute(nullptr) {}
+    ~AttributeDesc() override = default;
 
     virtual std::shared_ptr<Attribute> GetDescription() const {
         return std::make_shared<AttributeDesc<TV, IFORM, DOF>>();
     };
     //    virtual Attribute *Clone() const { return new this_type; };
 
-    virtual int GetIFORM() const { return IFORM; };
-    virtual int GetDOF() const { return DOF; };
-    virtual std::type_info const &value_type_info() const { return typeid(TV); };
+    int GetIFORM() const override { return IFORM; };
+    int GetDOF() const override { return DOF; };
+    std::type_info const &value_type_info() const override { return typeid(TV); };
 };
 
 //

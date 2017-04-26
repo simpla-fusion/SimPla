@@ -23,7 +23,7 @@ class Schedule : public SPObject, public data::Serializable, public data::Enable
     DECLARE_REGISTER_NAME("Schedule")
 
     std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataTable> cfg) override;
+    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
 
     void Initialize() override;
     void Finalize() override;
@@ -36,11 +36,9 @@ class Schedule : public SPObject, public data::Serializable, public data::Enable
 
     void Run();
 
-    Atlas const &GetAtlas() const;
-    Atlas &GetAtlas();
-
-    Context const &GetContext() const;
-    Context &GetContext();
+    std::shared_ptr<Context> SetContext(std::shared_ptr<Context> const &ctx);
+    std::shared_ptr<Context> const &GetContext() const;
+    std::shared_ptr<Context> &GetContext();
 
     void SetOutputURL(std::string const &url);
     std::string const &GetOutputURL() const;

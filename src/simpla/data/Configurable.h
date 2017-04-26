@@ -10,11 +10,11 @@ namespace simpla {
 namespace data {
 class Configurable {
    public:
-    Configurable(std::shared_ptr<data::DataTable> const& t = nullptr)
+    explicit Configurable(std::shared_ptr<data::DataTable> const& t = nullptr)
         : m_db_((t != nullptr) ? (t) : std::make_shared<data::DataTable>()) {}
-    Configurable(std::string const& s_name) : Configurable() { m_db_->SetValue("name", s_name); }
-    Configurable(Configurable const& other) : m_db_(other.m_db_) {}
-    virtual ~Configurable() {}
+    explicit Configurable(std::string const& s_name) : Configurable() { m_db_->SetValue("name", s_name); }
+    explicit Configurable(Configurable const& other) : m_db_(other.m_db_) {}
+    virtual ~Configurable() = default;
 
     virtual void swap(Configurable& other) { std::swap(m_db_, other.m_db_); }
 

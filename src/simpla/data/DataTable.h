@@ -57,7 +57,7 @@ class DataTable : public DataEntity {
     /** Interface DataEntity */
 
     std::shared_ptr<DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<DataTable>) override;
+    void Deserialize(const std::shared_ptr<DataTable> &) override;
     std::ostream& Serialize(std::ostream& os, int indent) const override;
     std::istream& Deserialize(std::istream& is) override;
 
@@ -72,6 +72,7 @@ class DataTable : public DataEntity {
     void Flush();
     bool isNull() const override;
     size_type size() const;
+
 
     std::shared_ptr<DataEntity> Get(std::string const& uri) const;
 
@@ -90,6 +91,13 @@ class DataTable : public DataEntity {
         return (p != nullptr) && (p->value_type_info() == typeid(U)) && (data_cast<U>(*p) == u);
     }
     bool Check(std::string const& key) const { return Check(key, true); }
+
+    template <typename U>
+    bool CheckType(std::string const& uri) const {
+        auto r = Get(uri);
+        return r != nullptr && r->value_type_info() == typeid(U);
+    }
+
 
     void Link(std::shared_ptr<DataEntity> const& other);
     DataTable& Link(std::string const& uri, DataTable const& other);

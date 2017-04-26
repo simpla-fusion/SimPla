@@ -21,11 +21,13 @@ void Model::Finalize() {}
 
 void Model::SetUp() {
     auto it = m_pimpl_->m_g_objs_.begin();
-    if (it == m_pimpl_->m_g_objs_.end()) { return; }
+    if (it == m_pimpl_->m_g_objs_.end() || it->second == nullptr) { return; }
     m_pimpl_->m_bound_box_ = it->second->GetBoundBox();
     ++it;
     for (; it != m_pimpl_->m_g_objs_.end(); ++it) {
-        m_pimpl_->m_bound_box_ = geometry::BoundBox(m_pimpl_->m_bound_box_, it->second->GetBoundBox());
+        if (it->second == nullptr) {
+            m_pimpl_->m_bound_box_ = geometry::BoundBox(m_pimpl_->m_bound_box_, it->second->GetBoundBox());
+        }
     }
 };
 

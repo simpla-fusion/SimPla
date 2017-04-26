@@ -136,7 +136,7 @@ std::shared_ptr<DataTable> DataTable::Serialize() const {
     p->Set(*this);
     return p;
 }
-void DataTable::Deserialize(std::shared_ptr<DataTable> other) { Set(*other); }
+void DataTable::Deserialize(const std::shared_ptr<DataTable> &other) { Set(*other); }
 
 std::ostream& DataTable::Serialize(std::ostream& os, int indent) const {
     os << "{";

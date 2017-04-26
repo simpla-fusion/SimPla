@@ -58,6 +58,9 @@ class EnableCreateFromDataTable {
     };
     template <typename... U>
     static std::shared_ptr<TObj> Create(std::string const &k, U &&... args) {
+        if (k.find("://") != std::string::npos) {
+            return Create(std::make_shared<data::DataTable>(k), std::forward<U>(args)...);
+        }
         auto const &f = SingletonHolder<ObjectFactory>::instance().m_factory_;
         std::shared_ptr<TObj> res = nullptr;
         auto it = f.find(k);
@@ -73,6 +76,15 @@ class EnableCreateFromDataTable {
             RUNTIME_ERROR << os.str();
         }
         return res;
+    }
+    template <typename... U>
+    static std::shared_ptr<TObj> Create(std::shared_ptr<DataEntity> const &cfg, U &&... args) {
+        if (cfg->value_type_info() == typeid(std::string)) {
+            return Create(data::data_cast<std::string>(*cfg), std::forward<U>(args)...);
+        } else if (cfg->isTable()) {
+            return Create(std::dynamic_pointer_cast<data::DataTable>(cfg), std::forward<U>(args)...);
+        }
+        return nullptr;
     }
     template <typename... U>
     static std::shared_ptr<TObj> Create(std::shared_ptr<DataTable> const &cfg, U &&... args) {

@@ -9,6 +9,7 @@
 #include <simpla/engine/all.h>
 #include <simpla/geometry/Cube.h>
 #include <simpla/model/GEqdsk.h>
+#include <simpla/utilities/parse_command_line.h>
 #include <iostream>
 #include "simpla/mesh/all.h"
 #include "simpla/predefine/physics/EMFluid.h"
@@ -40,24 +41,47 @@ struct UseCaseAMR : public application::SpApp {
     ~UseCaseAMR() override = default;
     SP_DEFAULT_CONSTRUCT(UseCaseAMR);
     DECLARE_REGISTER_NAME("UseCaseAMR")
+    void Initialize() override;
+    void Deserialize(std::shared_ptr<data::DataTable> cfg) override;
     void SetUp() override;
 };
 REGISTER_CREATOR(UseCaseAMR);
-
-void UseCaseAMR::SetUp() {
-    auto schedule = std::dynamic_pointer_cast<engine::TimeIntegrator>(engine::Schedule::Create("SAMRAITimeIntegrator"));
-
+void UseCaseAMR::Deserialize(std::shared_ptr<data::DataTable> cfg) {
+    SetSchedule(engine::Schedule::Create("SAMRAITimeIntegrator"));
+    auto schedule = std::dynamic_pointer_cast<engine::TimeIntegrator>(GetSchedule());
     schedule->Initialize();
 
-    schedule->GetContext().SetDomain("Center", "EMTokamak")->Deserialize(std::make_shared<data::DataTable>(""));
+    std::string output_file = "SimPLASaveData";
 
-    schedule->SetTime(0.0);
-    schedule->SetTimeStep(0.1);
-    schedule->SetTimeEnd(1.0);
-    schedule->SetOutputURL("SimPLASaveData");
-    schedule->SetUp();
-    SetSchedule(schedule);
+    std::string conf_file(argv[0]);
+    std::string g_file;
+    conf_file += ".lua";
+    Real time_begin = 0;
+    Real time_end = 1;
+    Real time_dt = 0.1;
+    size_type num_of_step = 1;
+    simpla::parse_cmd_line(  //
+        argc, argv, [&](std::string const &opt, std::string const &value) -> int {
+            if (opt == "gfile") {
+                g_file = value;
+            } else if (opt == "o") {
+                output_file = value;
+            } else if (opt == "n" || opt == "num_of_step") {
+                num_of_step = simpla::type_cast<size_type>(value);
+            } else if (opt == "dt") {
+                time_dt = simpla::type_cast<Real>(value);
+            }
+            return CONTINUE;
+        });
+
+    schedule->GetContext().SetDomain("Center", "EMTokamak")->Deserialize(db()->GetValue<std::string>("gfile", "gfile"));
+
+    schedule->SetTime(time_begin);
+    schedule->SetTimeStep(time_dt);
+    schedule->SetTimeEnd(time_begin + time_dt * num_of_step);
+    schedule->SetOutputURL(output_file);
 }
+void UseCaseAMR::SetUp() { application::SpApp::SetUp(); }
 
 //    ctx->db()->SetValue("Domains", {"Center"_ = {"name"_ = "Center", "MeshBase"_ = {"name"_ = "CartesianGeometry"},
 //                                                 "Domain"_ = {{"name"_ = "EMFluid"}}}});

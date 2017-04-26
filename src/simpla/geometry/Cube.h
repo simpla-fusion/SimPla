@@ -35,7 +35,9 @@ struct Cube : public GeoObject {
         p->SetValue("Box", m_bound_box_);
         return p;
     };
-    void Deserialize(std::shared_ptr<data::DataTable> d) override { m_bound_box_ = d->GetValue<box_type>("Box"); }
+    void Deserialize(std::shared_ptr<data::DataTable> const &d) override {
+        m_bound_box_ = d->GetValue<box_type>("Box");
+    }
 
     box_type const &GetBoundBox() const override { return m_bound_box_; };
 

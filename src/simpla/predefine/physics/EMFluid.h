@@ -31,7 +31,7 @@ class EMFluid : public engine::Domain {
         return res;
     };
 
-    void Deserialize(shared_ptr<DataTable> t) override { UNIMPLEMENTED; }
+    void Deserialize(shared_ptr<data::DataTable> const& cfg) override {}
 
     void Initialize() override;
     void Finalize() override;
@@ -121,7 +121,9 @@ template <typename TM>
 void EMFluid<TM>::TearDown() {}
 
 template <typename TM>
-void EMFluid<TM>::SetUp() {}
+void EMFluid<TM>::SetUp() {
+    base_type::SetUp();
+}
 
 template <typename TM>
 void EMFluid<TM>::InitializeCondition(Real time_now) {

@@ -19,17 +19,18 @@ struct Schedule::pimpl_s {
     size_type m_dump_interval_ = 0;
     std::string m_output_url_ = "";
 
-    Atlas m_atlas_;
-    Context m_ctx_;
+    std::shared_ptr<Context> m_ctx_;
 };
 Schedule::Schedule() : m_pimpl_(new pimpl_s){};
 Schedule::~Schedule(){};
 
-Atlas const& Schedule::GetAtlas() const { return m_pimpl_->m_atlas_; }
-Atlas& Schedule::GetAtlas() { return m_pimpl_->m_atlas_; }
+std::shared_ptr<Context> Schedule::SetContext(std::shared_ptr<Context> const& ctx) {
+    m_pimpl_->m_ctx_ = ctx;
+    return m_pimpl_->m_ctx_;
+}
 
-Context const& Schedule::GetContext() const { return m_pimpl_->m_ctx_; }
-Context& Schedule::GetContext() { return m_pimpl_->m_ctx_; }
+std::shared_ptr<Context> const& Schedule::GetContext() const { return m_pimpl_->m_ctx_; }
+std::shared_ptr<Context>& Schedule::GetContext() { return m_pimpl_->m_ctx_; }
 
 size_type Schedule::GetNumberOfStep() const { return m_pimpl_->m_step_; }
 void Schedule::SetMaxStep(size_type s) { m_pimpl_->m_max_step_ = s; }
@@ -65,12 +66,12 @@ void Schedule::Run() {
 
 std::shared_ptr<data::DataTable> Schedule::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
-    res->Link("Context", m_pimpl_->m_ctx_.Serialize());
+    res->Link("Context", m_pimpl_->m_ctx_->Serialize());
     return res;
 }
-void Schedule::Deserialize(std::shared_ptr<data::DataTable> t) {
+void Schedule::Deserialize(const std::shared_ptr<data::DataTable>& cfg) {
     TearDown();
-    m_pimpl_->m_ctx_.Deserialize(t->GetTable("Context"));
+    m_pimpl_->m_ctx_ = Context::Create(cfg->GetTable("Context"));
     Click();
 }
 
@@ -79,33 +80,10 @@ void Schedule::Finalize() { SPObject::Finalize(); }
 
 void Schedule::SetUp() {
     SPObject::SetUp();
-    m_pimpl_->m_ctx_.SetUp();
-    //    MPI_Barrier(GLOBAL_COMM.comm());
-    //    std::shared_ptr<data::DataTable> cfg = nullptr;
-    //    std::string buffer;
-    //    if (GLOBAL_COMM.rank() == 0) {
-    //        m_pimpl_->m_ctx_->SetUp();
-    //
-    //        std::ostringstream os;
-    //        os << "Context={";
-    //        data::Serialize(m_pimpl_->m_ctx_->Serialize(), os, "lua");
-    //        os << "}";
-    //        buffer = os.str();
-    //
-    //        parallel::bcast_string(&buffer);
-    //    } else {
-    //        parallel::bcast_string(&buffer);
-    //
-    //        cfg = std::make_shared<data::DataTable>("lua://");
-    //        cfg->backend()->Parser(buffer);
-    //
-    //        m_pimpl_->m_ctx_->Deserialize(cfg);
-    //        m_pimpl_->m_ctx_->SetUp();
-    //    }
-    //    MPI_Barrier(GLOBAL_COMM.comm());
+    if (m_pimpl_->m_ctx_ != nullptr) { m_pimpl_->m_ctx_->SetUp(); }
 }
 void Schedule::TearDown() {
-    m_pimpl_->m_ctx_.TearDown();
+    if (m_pimpl_->m_ctx_ != nullptr) { m_pimpl_->m_ctx_->TearDown(); }
     SPObject::TearDown();
 }
 void Schedule::Synchronize() {

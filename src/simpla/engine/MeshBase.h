@@ -39,7 +39,7 @@ class MeshBase : public AttributeGroup,
     DECLARE_REGISTER_NAME("MeshBase");
 
     std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataTable> t) override;
+    void Deserialize(const std::shared_ptr<DataTable> &t) override;
 
     bool isFullCovered() const;
     bool isBoundary() const;
