@@ -22,7 +22,7 @@ class PEC : public engine::Domain {
     SP_OBJECT_HEAD(PEC<TM>, engine::Domain)
     typedef TM mesh_type;
 
-    DOMAIN_HEAD(PEC)
+    DOMAIN_HEAD(PEC, engine::Domain)
 
     void InitializeCondition(Real time_now) override;
     void Advance(Real time, Real dt) override;

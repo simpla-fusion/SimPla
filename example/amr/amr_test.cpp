@@ -43,15 +43,16 @@ struct UseCaseAMR : public application::SpApp {
     void SetUp() override;
 };
 REGISTER_CREATOR(UseCaseAMR);
-
+class EMTokamak;
 void UseCaseAMR::SetUp() {
+
     auto schedule = std::dynamic_pointer_cast<engine::TimeIntegrator>(engine::Schedule::Create("SAMRAITimeIntegrator"));
+
     schedule->Initialize();
-    schedule->GetContext().GetModel().SetObject(
-        "Center", std::make_shared<geometry::Cube>(box_type{{1.0, 0.0, 0.0}, {2, TWOPI, 2}}));
-    schedule->GetContext().GetAtlas().SetIndexBox(index_box_type{{0, 0, 0}, {64, 32, 64}});
-    schedule->GetContext().GetAtlas().SetPeriodicDimension(size_tuple{0, 0, 0});
-    schedule->GetContext().SetDomain<EMFluid<Mesh<CylindricalGeometry, SMesh>>>("Center");
+
+    schedule->GetContext().SetDomain<EMTokamak>("Center" )->Deserialize(std::make_shared<data::DataTable>(""));
+    
+   
     schedule->SetTime(0.0);
     schedule->SetTimeStep(0.1);
     schedule->SetTimeEnd(1.0);

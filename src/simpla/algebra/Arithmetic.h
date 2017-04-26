@@ -363,10 +363,6 @@ _SP_DEFINE_EXPR_UNARY_OPERATOR(+, unary_plus)
 
 _SP_DEFINE_EXPR_UNARY_OPERATOR(-, negate)
 
-_SP_DEFINE_EXPR_BINARY_RIGHT_OPERATOR(<<, shift_left)
-//
-_SP_DEFINE_EXPR_BINARY_RIGHT_OPERATOR(>>, shift_right)
-
 _SP_DEFINE_EXPR_UNARY_FUNCTION(cos)
 
 _SP_DEFINE_EXPR_UNARY_FUNCTION(acos)
@@ -418,6 +414,14 @@ _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(>=, greater_equal)
 //_SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(real)                                          \
 //_SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(imag)                                          \
 
+template <typename T1>
+auto operator<<(T1 const &l, unsigned int r) {
+    return ((Expression<tags::shift_left, const T1, unsigned int>(l, r)));
+}
+template <typename T1>
+auto operator>>(T1 const &l, unsigned int r) {
+    return ((Expression<tags::shift_right, const T1, unsigned int>(l, r)));
+}
 
 #undef _SP_DEFINE_EXPR_BINARY_OPERATOR
 #undef _SP_DEFINE_EXPR_BINARY_RIGHT_OPERATOR

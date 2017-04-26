@@ -2,12 +2,13 @@
 // Created by salmon on 17-2-16.
 //
 #include "Context.h"
-#include "Domain.h"
+#include <simpla/algebra/all.h>
+#include <simpla/algebra/nTupleExt.h>
+#include <simpla/data/all.h>
+#include <simpla/geometry/GeoAlgorithm.h>
+#include "Chart.h"
 #include "Domain.h"
 #include "MeshBase.h"
-#include "simpla/data/all.h"
-#include "simpla/geometry/GeoAlgorithm.h"
-
 namespace simpla {
 namespace engine {
 
@@ -43,12 +44,17 @@ void Context::TearDown() {
     m_pimpl_->m_atlas_.TearDown();
 }
 void Context::SetUp() {
-    //    for (auto &item : m_pimpl_->m_domains_) {
-    //        item.second->SetUp();
-    //        m_pimpl_->m_model_.SetObject(item.first, item.second->GetGeoObject());
-    //    }
     m_pimpl_->m_model_.SetUp();
     m_pimpl_->m_atlas_.SetUp();
+    auto x_box = m_pimpl_->m_model_.GetBoundBox();
+    auto i_box = m_pimpl_->m_atlas_.GetIndexBox();
+    auto period = m_pimpl_->m_atlas_.GetPeriodicDimension();
+    point_type dx;
+    dx[0] = (std::get<1>(x_box)[0] - std::get<0>(x_box)[0]) / (std::get<1>(i_box)[0] - std::get<0>(i_box)[0]);
+    dx[1] = (std::get<1>(x_box)[1] - std::get<0>(x_box)[1]) / (std::get<1>(i_box)[1] - std::get<0>(i_box)[1]);
+    dx[2] = (std::get<1>(x_box)[2] - std::get<0>(x_box)[2]) / (std::get<1>(i_box)[2] - std::get<0>(i_box)[2]);
+
+    for (auto &item : m_pimpl_->m_domains_) { item.second->GetMesh()->GetChart()->SetDx(dx); }
 };
 void Context::InitializeCondition(Patch *p, Real time_now) {
     for (auto &item : m_pimpl_->m_domains_) {
@@ -74,20 +80,24 @@ void Context::Advance(Patch *p, Real time_now, Real time_dt) {
 }
 
 Model &Context::GetModel() const { return m_pimpl_->m_model_; }
+
 Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
 
 void Context::RegisterAt(AttributeGroup *attr_grp) {
     for (auto &item : m_pimpl_->m_domains_) { item.second->GetMesh()->RegisterAt(attr_grp); }
 }
-void Context::SetDomain(std::string const &k, std::shared_ptr<Domain> d) {
+
+std::shared_ptr<Domain> Context::SetDomain(std::string const &k, std::shared_ptr<Domain> d) {
     m_pimpl_->m_domains_[k] = d;
     m_pimpl_->m_model_.SetObject(k, d->GetGeoObject());
+    return d;
 }
 
 std::shared_ptr<Domain> Context::GetDomain(std::string const &k) const {
     auto it = m_pimpl_->m_domains_.find(k);
     return (it == m_pimpl_->m_domains_.end()) ? nullptr : it->second;
 }
+
 // std::map<id_type, std::shared_ptr<Patch>> const &Context::GetPatches() const { return m_pimpl_->m_patches_; }
 //
 // bool Context::RegisterWorker(std::string const &d_name, std::shared_ptr<Domain> const &p) {

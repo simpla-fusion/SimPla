@@ -18,7 +18,8 @@ class AttributeGroup;
 * @brief
 */
 class Domain
-    : public data::Serializable,
+    : public data::Configurable,
+      public data::Serializable,
       public data::EnableCreateFromDataTable<Domain, std::shared_ptr<geometry::GeoObject>, std::shared_ptr<MeshBase> > {
     SP_OBJECT_BASE(Domain)
    public:
@@ -54,16 +55,12 @@ class Domain
     std::shared_ptr<geometry::GeoObject> m_geo_object_;
 };
 
-#define DOMAIN_HEAD(_DOMAIN_NAME_)                                                                                 \
+#define DOMAIN_HEAD(_DOMAIN_NAME_, _BASE_TYPE_)                                                                    \
    public:                                                                                                         \
     explicit _DOMAIN_NAME_(std::shared_ptr<geometry::GeoObject> g, std::shared_ptr<engine::MeshBase> m = nullptr)  \
-        : engine::Domain(                                                                                          \
+        : _BASE_TYPE_(                                                                                             \
               g, (m != nullptr) ? m : std::dynamic_pointer_cast<engine::MeshBase>(std::make_shared<mesh_type>())), \
-          m_mesh_(std::dynamic_pointer_cast<mesh_type>(engine::Domain::GetMesh())) {                               \
-        if (m == nullptr && g != nullptr) {                                                                        \
-            GetMesh()->GetChart()->SetOrigin(std::get<0>(GetGeoObject()->GetBoundBox()));                          \
-        }                                                                                                          \
-    }                                                                                                              \
+          m_mesh_(std::dynamic_pointer_cast<mesh_type>(engine::Domain::GetMesh())) {}                              \
     ~_DOMAIN_NAME_() override = default;                                                                           \
     SP_DEFAULT_CONSTRUCT(_DOMAIN_NAME_);                                                                           \
     DECLARE_REGISTER_NAME(std::string(__STRING(_DOMAIN_NAME_)) + "<" + mesh_type::ClassName() + ">")               \

@@ -65,7 +65,9 @@ class Context : public data::Serializable {
    public:
     Context();
     ~Context() override;
+
     SP_DEFAULT_CONSTRUCT(Context)
+
     std::shared_ptr<DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<DataTable>) override;
 
@@ -83,10 +85,15 @@ class Context : public data::Serializable {
     Model &GetModel() const;
     Atlas &GetAtlas() const;
 
-    void SetDomain(std::string const &k, std::shared_ptr<Domain>);
+    std::shared_ptr<Domain> SetDomain(std::string const &k, std::shared_ptr<Domain>);
+
+    std::shared_ptr<Domain> SetDomain(std::string const &k, std::string const &d_name) {
+        return SetDomain(k, Domain::Create(d_name, GetModel().GetObject(k), nullptr));
+    }
+
     template <typename U>
-    void SetDomain(std::string const &k) {
-        SetDomain(k, std::make_shared<U>(GetModel().GetObject(k)));
+    std::shared_ptr<Domain> SetDomain(std::string const &k) {
+        return SetDomain(k, std::make_shared<U>(GetModel().GetObject(k)));
     }
     std::shared_ptr<Domain> GetDomain(std::string const &k) const;
 
