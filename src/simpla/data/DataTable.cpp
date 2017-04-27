@@ -130,12 +130,7 @@ void DataTable::SetValue(std::initializer_list<KeyValue> const& other) {
 size_type DataTable::Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
     return m_backend_->Foreach(f);
 }
-std::shared_ptr<DataTable> DataTable::Serialize() const {
-    auto p = std::make_shared<DataTable>();
-    p->Set(*this);
-    return p;
-}
-void DataTable::Deserialize(const std::shared_ptr<DataTable>& other) { Set(*other); }
+
 
 std::ostream& DataTable::Serialize(std::ostream& os, int indent) const {
     os << "{";

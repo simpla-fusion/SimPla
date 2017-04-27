@@ -7,13 +7,14 @@
 
 namespace simpla {
 namespace data {
-//DataEntity::DataEntity() {}
-//DataEntity::~DataEntity() {}
+// DataEntity::DataEntity() {}
+// DataEntity::~DataEntity() {}
 std::ostream& DataEntity::Serialize(std::ostream& os, int indent) const {
     if (isLight()) {
         os << "<Light Data:" << value_type_info().name() << ">";
     } else if (isBlock()) {
-        os << "<Block:" << value_type_info().name() << "," << std::boolalpha << cast_as<DataBlock>().empty() << ">";
+        os << "<Block:" << value_type_info().name() << "," << std::boolalpha << this->cast_as<DataBlock>().empty()
+           << ">";
     } else if (isTable()) {
         os << "<Table:" << value_type_info().name() << ">";
     } else if (isArray()) {
@@ -21,6 +22,7 @@ std::ostream& DataEntity::Serialize(std::ostream& os, int indent) const {
     }
     return os;
 };
+std::istream& DataEntity::Deserialize(std::istream& is) { return is; }
 // DataEntity DataEntity::operator[](std::string const& url) {
 //    if (m_data_ == nullptr) {
 //        m_data_ = new DataTable;

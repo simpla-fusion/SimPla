@@ -25,16 +25,17 @@ class DataArray;
 template <typename U, typename Enable = void>
 struct data_entity_traits {};
 
-struct DataEntity : public Serializable {
+struct DataEntity {
     SP_OBJECT_BASE(DataEntity);
 
    public:
     DataEntity() = default;
-    ~DataEntity() override = default;
+    virtual ~DataEntity() = default;
 
     SP_DEFAULT_CONSTRUCT(DataEntity)
 
-    virtual std::ostream& Serialize(std::ostream& os, int indent) const override;
+    virtual std::ostream& Serialize(std::ostream& os, int indent) const;
+    virtual std::istream& Deserialize(std::istream& is);
 
     virtual bool empty() const { return true; }
     virtual std::type_info const& value_type_info() const { return typeid(void); };
@@ -64,6 +65,15 @@ class DataEntityWithType : public DataEntity {
     virtual value_type value() const = 0;
     virtual value_type* get() { return nullptr; }
     virtual value_type const* get() const { return nullptr; }
+
+    std::ostream& Serialize(std::ostream& os, int indent) const override {
+        if (value_type_info() == typeid(std::string)) {
+            os << "\"" << value() << "\"";
+        } else {
+            os << value();
+        }
+        return os;
+    };
 };
 template <>
 struct DataEntityWrapper<void> : public DataEntity {};

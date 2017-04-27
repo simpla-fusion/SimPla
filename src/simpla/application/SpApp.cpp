@@ -145,6 +145,12 @@ int main(int argc, char **argv) {
     cfg->Set("Context", input_file_cfg->Get("Context"));
     cfg->Set(cmd_line_cfg, true);
 
+    VERBOSE << DOUBLELINE << std::endl;
+    std::cout << "Description : ";
+    cfg->Serialize(std::cout, 0);
+    std::cout << std::endl;
+    VERBOSE << DOUBLELINE << std::endl;
+
     MPI_Barrier(GLOBAL_COMM.comm());
 
     auto app = std::make_shared<application::SpApp>();
@@ -159,19 +165,14 @@ int main(int argc, char **argv) {
     } else {
         std::string buffer;
         parallel::bcast_string(&buffer);
-        auto cfg = std::make_shared<data::DataTable>("lua://");
-        cfg->backend()->Parser(buffer);
+        auto t_cfg = std::make_shared<data::DataTable>("lua://");
+        t_cfg->backend()->Parser(buffer);
 
-        app->Deserialize(cfg);
+        app->Deserialize(t_cfg);
     }
 
     app->SetUp();
     MPI_Barrier(GLOBAL_COMM.comm());
-
-    VERBOSE << DOUBLELINE << std::endl;
-    VERBOSE << "Description : " << std::endl;
-    //  VERBOSE << "Application : " << *app->Serialize() << std::endl;
-    VERBOSE << DOUBLELINE << std::endl;
 
     app->Initialize();
 

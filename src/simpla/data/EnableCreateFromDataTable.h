@@ -58,6 +58,7 @@ class EnableCreateFromDataTable {
     };
     template <typename... U>
     static std::shared_ptr<TObj> Create(std::string const &k, U &&... args) {
+        if (k == "") { return nullptr; }
         if (k.find("://") != std::string::npos) {
             return Create(std::make_shared<data::DataTable>(k), std::forward<U>(args)...);
         }
@@ -79,19 +80,23 @@ class EnableCreateFromDataTable {
     }
     template <typename... U>
     static std::shared_ptr<TObj> Create(std::shared_ptr<DataEntity> const &cfg, U &&... args) {
-        if (cfg->value_type_info() == typeid(std::string)) {
+        if (cfg == nullptr) { return nullptr; }
+
+        if (cfg->isLight()) {
             return Create(data::data_cast<std::string>(*cfg), std::forward<U>(args)...);
         } else if (cfg->isTable()) {
-            return Create(std::dynamic_pointer_cast<data::DataTable>(cfg), std::forward<U>(args)...);
+            return Create(*std::dynamic_pointer_cast<data::DataTable>(cfg), std::forward<U>(args)...);
         }
         return nullptr;
     }
+
+    template <typename... U>
+    static std::shared_ptr<TObj> Create(DataTable const &cfg, U &&... args) {
+        return Create(cfg.GetValue<std::string>("Type", ""), std::forward<U>(args)...);
+    }
     template <typename... U>
     static std::shared_ptr<TObj> Create(std::shared_ptr<DataTable> const &cfg, U &&... args) {
-        if (cfg == nullptr) { return nullptr; }
-        auto res = Create(cfg->GetValue<std::string>("Type", "unnamed"), std::forward<U>(args)...);
-//        res->Deserialize(cfg);
-        return res;
+        return (cfg == nullptr) ? nullptr : Create(*cfg, std::forward<U>(args)...);
     }
 };
 

@@ -52,8 +52,12 @@ struct DataEntityWrapper<void*> : public DataArray {
     std::ostream& Serialize(std::ostream& os, int indent) const override {
         if (m_data_.size() == 0) { return os; };
         auto it = m_data_.begin();
-        os << "[" << **it;
-        for (++it; it != m_data_.end(); ++it) { os << "," << **it; }
+        os << "[";
+        (*it)->Serialize(os, indent + 1);
+        for (++it; it != m_data_.end(); ++it) {
+            os << ",";
+            (*it)->Serialize(os, indent + 1);
+        }
         os << "]";
         return os;
     }
