@@ -9,7 +9,7 @@
 #define FIND_ROOT_H_
 
 #include <tuple>
-#include "simpla/algebra/nTuple.h"
+#include "simpla/utilities/nTuple.h"
 
 namespace simpla
 {

@@ -5,7 +5,7 @@
 #ifndef SIMPLA_MESHCOMMON_H
 #define SIMPLA_MESHCOMMON_H
 
-#include <simpla/algebra/nTuple.h>
+#include <simpla/utilities/nTuple.h>
 #include <simpla/utilities/sp_def.h>
 #include <boost/uuid/uuid.hpp>
 

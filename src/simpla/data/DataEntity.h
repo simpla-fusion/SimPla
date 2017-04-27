@@ -13,7 +13,7 @@
 #include <vector>
 #include "DataTraits.h"
 #include "Serializable.h"
-#include "simpla/algebra/nTupleExt.h"
+#include "simpla/utilities/nTupleExt.h"
 namespace simpla {
 namespace data {
 template <typename, typename Enable = void>

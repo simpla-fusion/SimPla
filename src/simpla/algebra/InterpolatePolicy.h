@@ -7,7 +7,7 @@
 #ifndef SIMPLA_LINEAR_H
 #define SIMPLA_LINEAR_H
 
-#include <simpla/algebra/nTuple.h>
+#include <simpla/utilities/nTuple.h>
 #include <simpla/utilities/macro.h>
 #include <simpla/utilities/type_traits.h>
 #include <simpla/utilities/type_traits.h>

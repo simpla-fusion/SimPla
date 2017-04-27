@@ -15,8 +15,8 @@
 #include <memory>
 #include <utility>
 
-#include <simpla/algebra/nTuple.h>
-#include <simpla/algebra/nTupleExt.h>
+#include <simpla/utilities/nTuple.h>
+#include <simpla/utilities/nTupleExt.h>
 #include <simpla/geometry/Polygon.h>
 #include <simpla/numeric/Interpolation.h>
 #include <simpla/numeric/find_root.h>

@@ -4,7 +4,7 @@
  * @date 2015-12-10.
  */
 #include "LuaObject.h"
-#include <simpla/algebra/nTuple.h>
+#include <simpla/utilities/nTuple.h>
 #include <simpla/utilities/FancyStream.h>
 #include "LuaObjectExt.h"
 

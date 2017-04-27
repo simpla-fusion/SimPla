@@ -27,11 +27,6 @@ struct is_primary_field<FieldView<TM, TV, IFORM, DOF>> : public std::integral_co
 
 }  // namespace traits {
 
-namespace declare {
-template <typename...>
-struct Expression;
-}
-
 namespace traits {
 template <typename>
 struct num_of_dimension : public int_const<3> {};

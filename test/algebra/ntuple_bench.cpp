@@ -2,7 +2,7 @@
 // Created by salmon on 17-1-1.
 //
 #include <benchmark/benchmark.h>
-#include <simpla/algebra/nTuple.h>
+#include <simpla/utilities/nTuple.h>
 #include <eigen3/Eigen/Core>
 
 using namespace simpla;

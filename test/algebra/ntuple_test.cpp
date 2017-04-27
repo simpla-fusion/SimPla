@@ -11,7 +11,7 @@
 #include <simpla/algebra/Arithmetic.h>
 #include <simpla/algebra/Calculus.h>
 #include <simpla/algebra/Expression.h>
-#include <simpla/algebra/nTuple.h>
+#include <simpla/utilities/nTuple.h>
 #include <simpla/utilities/type_traits.h>
 #include <iostream>
 #include <type_traits>

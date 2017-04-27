@@ -9,7 +9,7 @@
 #define MULTI_NORMAL_DISTRIBUTION_H_
 
 #include <random>
-#include "simpla/algebra/nTuple.h"
+#include "simpla/utilities/nTuple.h"
 #include "cholesky.h"
 
 namespace simpla

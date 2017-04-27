@@ -9,7 +9,7 @@
 #include <tuple>
 #include <type_traits>
 
-#include "simpla/algebra/nTuple.h"
+#include "simpla/utilities/nTuple.h"
 
 
 namespace simpla { namespace toolbox

@@ -12,7 +12,7 @@
 #include <iterator>
 #include <numeric>
 #include <vector>
-#include "simpla/algebra/nTuple.h"
+#include "simpla/utilities/nTuple.h"
 #include "../sp_def.h"
 
 namespace simpla

@@ -9,7 +9,7 @@
 #define CORE_GEOMETRY_GEOMETRY_H_
 
 #include "simpla/sp_def.h"
-#include "simpla/algebra/nTuple.h"
+#include "simpla/utilities/nTuple.h"
 
 #include "CoordinateSystem.h"
 

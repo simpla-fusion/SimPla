@@ -3,7 +3,7 @@
 //
 #include "DataBackendHDF5.h"
 #include <simpla/algebra/Array.h>
-#include <simpla/algebra/nTuple.h>
+#include <simpla/utilities/nTuple.h>
 #include <regex>
 #include "../DataArray.h"
 #include "../DataBlock.h"

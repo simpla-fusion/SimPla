@@ -21,7 +21,7 @@
 #include <cstring>  // for memset
 #include "Algebra.h"
 #include "Array.h"
-#include "nTuple.h"
+#include "simpla/utilities/nTuple.h"
 namespace simpla {
 namespace algebra {
 namespace calculus {

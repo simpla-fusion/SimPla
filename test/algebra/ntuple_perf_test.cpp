@@ -11,7 +11,7 @@
 #include <type_traits>
 #include <typeinfo>
 #include <utility>
-#include <simpla/algebra/nTuple.h>
+#include <simpla/utilities/nTuple.h>
 
 using namespace simpla;
 

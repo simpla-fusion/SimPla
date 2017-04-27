@@ -8,14 +8,14 @@
 #ifndef CORE_MESH_MESH_ENTITY_ID_CODER_H_
 #define CORE_MESH_MESH_ENTITY_ID_CODER_H_
 
-#include <simpla/algebra/nTuple.h>
+#include <simpla/utilities/nTuple.h>
 #include <stddef.h>
 #include <limits>
 #include <set>
 #include <tuple>
 #include "Log.h"
 #include "Range.h"
-#include "simpla/algebra/nTupleExt.h"
+#include "nTupleExt.h"
 #include "sp_def.h"
 #include "type_traits.h"
 namespace simpla {

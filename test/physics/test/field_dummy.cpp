@@ -6,7 +6,7 @@
  */
 #include "../../mesh/Chart.h"
 #include "../../toolbox/PrettyStream.h"
-#include "simpla/algebra/nTupleExt.h"
+#include "simpla/utilities/nTupleExt.h"
 #include "../../manifold/pre_define/PreDefine.h"
 #include "simpla/mesh/Atlas.h"
 

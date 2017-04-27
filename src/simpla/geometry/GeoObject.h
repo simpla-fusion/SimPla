@@ -8,7 +8,7 @@
 #ifndef CORE_GEOMETRY_GEO_OBJECT_H_
 #define CORE_GEOMETRY_GEO_OBJECT_H_
 
-#include <simpla/algebra/nTuple.h>
+#include <simpla/utilities/nTuple.h>
 #include <simpla/utilities/Log.h>
 #include <simpla/utilities/design_pattern.h>
 #include <simpla/utilities/sp_def.h>

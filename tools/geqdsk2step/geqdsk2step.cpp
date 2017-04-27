@@ -2,7 +2,7 @@
 // Created by salmon on 16-11-27.
 //
 #include <simpla/utilities/Log.h>
-#include <simpla/algebra/nTupleExt.h>
+#include <simpla/utilities/nTupleExt.h>
 
 #include <oce/BRep_Tool.hxx>
 

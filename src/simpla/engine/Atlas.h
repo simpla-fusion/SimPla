@@ -7,7 +7,7 @@
 #ifndef SIMPLA_MESH_MESHATLAS_H
 #define SIMPLA_MESH_MESHATLAS_H
 
-#include <simpla/algebra/nTuple.h>
+#include <simpla/utilities/nTuple.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/geometry/GeoObject.h>
 #include <simpla/utilities/Log.h>

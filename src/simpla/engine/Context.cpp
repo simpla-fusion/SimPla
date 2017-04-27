@@ -3,7 +3,7 @@
 //
 #include "Context.h"
 #include <simpla/algebra/all.h>
-#include <simpla/algebra/nTupleExt.h>
+#include <simpla/utilities/nTupleExt.h>
 #include <simpla/data/all.h>
 #include <simpla/geometry/GeoAlgorithm.h>
 #include "Chart.h"

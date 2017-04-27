@@ -9,7 +9,7 @@
 #include <utility>
 #include <tuple>
 
-#include <simpla/algebra/nTuple.h>
+#include <simpla/utilities/nTuple.h>
 
 #include "DataSpace.h"
 

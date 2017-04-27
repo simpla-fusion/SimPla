@@ -3,23 +3,18 @@
 //
 #include <simpla/SIMPLA_config.h>
 
-#include <simpla/algebra/Algebra.h>
-#include <simpla/algebra/Arithmetic.h>
-#include <simpla/algebra/Calculus.h>
-#include <simpla/algebra/Expression.h>
-#include <simpla/algebra/nTuple.h>
-#include <simpla/algebra/nTupleExt.h>
+#include <simpla/utilities/nTupleExt.h>
+#include <simpla/utilities/nTuple.h>
 
 #include <complex>
 #include <iostream>
 using namespace simpla;
-using namespace simpla::algebra;
 
 int main(int argc, char** argv) {
-    nTuple<Real, 1> a{1.0};
-    nTuple<Real, 1> b{2.0};
-    nTuple<Real, 2> c;
-    c = (a, (b + 1));
+    nTuple<Real, 3> a{1.0};
+    nTuple<Real, 3> b{2.0};
+    nTuple<Real, 3> c;
+    c = (b + 1) ;
     std::cout << c << std::endl;
     //    double a[3] = {1, 2, 3};
     //    double b[3] = {1, 2, 3};

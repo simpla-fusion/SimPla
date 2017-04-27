@@ -9,7 +9,7 @@
 
 #include <vector>
 
-#include <simpla/algebra/nTuple.h>
+#include <simpla/utilities/nTuple.h>
 #include <simpla/utilities/FancyStream.h>
 #include <simpla/utilities/sp_def.h>
 #include "GeoObject.h"

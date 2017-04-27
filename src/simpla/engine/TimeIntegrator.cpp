@@ -3,7 +3,7 @@
 //
 #include "TimeIntegrator.h"
 #include "Context.h"
-#include "simpla/algebra/nTupleExt.h"
+#include "simpla/utilities/nTupleExt.h"
 #include "simpla/data/all.h"
 namespace simpla {
 namespace engine {
