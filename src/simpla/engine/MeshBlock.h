@@ -5,7 +5,6 @@
 #ifndef SIMPLA_MESHBLOCK_H
 #define SIMPLA_MESHBLOCK_H
 
-#include <simpla/utilities/nTupleExt.h>
 #include <simpla/utilities/EntityId.h>
 #include <simpla/utilities/Range.h>
 #include <simpla/utilities/sp_def.h>

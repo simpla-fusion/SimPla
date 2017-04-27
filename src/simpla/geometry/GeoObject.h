@@ -8,9 +8,9 @@
 #ifndef CORE_GEOMETRY_GEO_OBJECT_H_
 #define CORE_GEOMETRY_GEO_OBJECT_H_
 
-#include <simpla/utilities/nTuple.h>
 #include <simpla/utilities/Log.h>
 #include <simpla/utilities/design_pattern.h>
+#include <simpla/utilities/nTuple.h>
 #include <simpla/utilities/sp_def.h>
 #include <simpla/utilities/type_traits.h>
 #include "GeoAlgorithm.h"
@@ -85,14 +85,14 @@ class GeoObject : public data::Serializable, public data::EnableCreateFromDataTa
 
    private:
     template <typename T, size_t... I>
-    int CheckInside_invoke_helper(T const &p_tuple, index_sequence<I...>) const {
+    int CheckInside_invoke_helper(T const &p_tuple, int_sequence<I...>) const {
         return CheckInside(std::get<I>(std::forward<T>(p_tuple))...);
     };
 
    public:
     template <typename... Others>
     int CheckInside(std::tuple<Others...> const &p_tuple) const {
-        return CheckInside_invoke_helper(p_tuple, make_index_sequence<sizeof...(Others)>());
+        return CheckInside_invoke_helper(p_tuple, make_int_sequence<sizeof...(Others)>());
     };
 
     int CheckInside(int num, point_type const *p_tuple) const {

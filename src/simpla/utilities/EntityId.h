@@ -15,11 +15,11 @@
 #include <tuple>
 #include "Log.h"
 #include "Range.h"
-#include "nTupleExt.h"
 #include "sp_def.h"
 #include "type_traits.h"
 namespace simpla {
 // typedef union { struct { u_int8_t w, z, y, x; }; int32_t v; } EntityId32;
+enum { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3, FIBER = 6 };
 
 typedef union {
     struct {

@@ -6,7 +6,6 @@
 #define SIMPLA_TRANSITIONMAP_H
 
 #include <simpla/utilities/nTuple.h>
-#include <simpla/utilities/nTupleExt.h>
 #include <simpla/utilities/FancyStream.h>
 #include <simpla/utilities/Log.h>
 #include <type_traits>

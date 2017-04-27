@@ -7,7 +7,6 @@
 #include <gtest/gtest.h>
 
 #include "simpla/utilities/nTuple.h"
-#include "simpla/utilities/nTupleExt.h"
 #include "../../toolbox/utilities/Log.h"
 #include "../../toolbox/iterator/range.h"
 

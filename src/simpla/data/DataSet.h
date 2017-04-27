@@ -76,8 +76,7 @@ struct DataSet {
     bool operator==(DataSet const &other) const { return is_equal(other.data.get()); }
 
     bool is_valid() const {
-        return (data != nullptr) && data_type.is_valid() && data_space.is_valid() &&
-               memory_space.is_valid() &&
+        return (data != nullptr) && data_type.is_valid() && data_space.is_valid() && memory_space.is_valid() &&
                (data_space.num_of_elements() == memory_space.num_of_elements());
     }
 
@@ -118,8 +117,7 @@ namespace _impl {
 CHECK_MEMBER_FUNCTION(has_member_function_data_set, data_set)
 
 template <typename T>
-auto create_data_set(T const &f) ->
-    typename std::enable_if<has_member_function_data_set<T>::value, DataSet>::type {
+auto create_data_set(T const &f) -> typename std::enable_if<has_member_function_data_set<T>::value, DataSet>::type {
     return f.data_set();
 }
 
@@ -147,10 +145,9 @@ DataSet create_data_set(DataType const &dtype) {
 
 template <typename T, typename... Args>
 DataSet create_data_set(T const *p, Args &&... args) {
-    return create_data_set(
-        DataType::create<T>(),
-        std::shared_ptr<void>(reinterpret_cast<void *>(const_cast<T *>(p)), tags::do_nothing()),
-        std::forward<Args>(args)...);
+    return create_data_set(DataType::create<T>(), std::shared_ptr<void>(reinterpret_cast<void *>(const_cast<T *>(p)),
+                                                                        simpla::tags::do_nothing()),
+                           std::forward<Args>(args)...);
 }
 
 template <typename T>
@@ -158,8 +155,7 @@ DataSet create_data_set(T const *p, int ndims, const size_type *d) {
     DataSet ds;
 
     ds.data_type = DataType::create<T>();
-    ds.data =
-        std::shared_ptr<void>(reinterpret_cast<void *>(const_cast<T *>(p)), tags::do_nothing());
+    ds.data = std::shared_ptr<void>(reinterpret_cast<void *>(const_cast<T *>(p)), simpla::tags::do_nothing());
 
     ds.memory_space = DataSpace::create_simple(ndims, d);
 
@@ -170,18 +166,16 @@ DataSet create_data_set(T const *p, int ndims, const size_type *d) {
 
 template <typename T, typename... Args>
 DataSet create_data_set(std::shared_ptr<T> &p, Args &&... args) {
-    return create_data_set(
-        DataType::create<T>(),
-        std::shared_ptr<void>(reinterpret_cast<void *>(p.get()), tags::do_nothing()),
-        std::forward<Args>(args)...);
+    return create_data_set(DataType::create<T>(),
+                           std::shared_ptr<void>(reinterpret_cast<void *>(p.get()), simpla::tags::do_nothing()),
+                           std::forward<Args>(args)...);
 }
 
 template <typename T, typename... Args>
 DataSet create_data_set(std::shared_ptr<T> const &p, Args &&... args) {
-    auto ds = create_data_set(
-        DataType::create<T>(),
-        std::shared_ptr<void>(reinterpret_cast<void *>(p.get()), tags::do_nothing()),
-        std::forward<Args>(args)...);
+    auto ds = create_data_set(DataType::create<T>(),
+                              std::shared_ptr<void>(reinterpret_cast<void *>(p.get()), simpla::tags::do_nothing()),
+                              std::forward<Args>(args)...);
 
     return std::move(ds);
 }

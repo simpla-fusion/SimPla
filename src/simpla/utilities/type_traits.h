@@ -49,6 +49,23 @@ auto invoke(Func&& func, Tup&& tup) {
 }
 
 namespace traits {
+
+template <typename...>
+struct reference;
+template <typename T>
+struct reference<T> {
+    typedef T type;
+};
+template <typename T>
+using reference_t = typename reference<T>::type;
+
+template <typename T>
+struct value_type {
+    typedef T type;
+};
+template <typename T>
+using value_type_t = typename value_type<T>::type;
+
 typedef std::integral_constant<bool, true> true_t;
 typedef std::integral_constant<bool, false> false_t;
 //
@@ -200,8 +217,8 @@ struct nested_initializer_list_traits<std::initializer_list<std::initializer_lis
         dims[1] = max_length;
     }
 };
-//template <typename U>
-//struct nested_initializer_list_traits<std::initializer_list<std::initializer_list<std::initializer_list<U>>>> {
+// template <typename U>
+// struct nested_initializer_list_traits<std::initializer_list<std::initializer_list<std::initializer_list<U>>>> {
 //    static constexpr int number_of_levels = nested_initializer_list_traits<U>::number_of_levels + 3;
 //    static void GetDims(std::initializer_list<std::initializer_list<U>> const& list, size_t* dims) {
 //        static_assert(false, "UNIMPLEMENTED!");

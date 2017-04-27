@@ -11,7 +11,6 @@
 #define NTUPLE_H_
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/algebra/Arithmetic.h>
 #include <simpla/concept/CheckConcept.h>
 #include <simpla/utilities/integer_sequence.h>
 #include <simpla/utilities/type_traits.h>
@@ -66,14 +65,14 @@ namespace traits {
 template <typename...>
 struct reference;
 
-template <typename T, int... I0>
-struct reference<nTuple<T, I0...>> {
-    typedef nTuple<T, I0...>& type;
+template <typename T, int I0, int... I>
+struct reference<nTuple<T, I0, I...>> {
+    typedef nTuple<T, I0, I...>& type;
 };
 
-template <typename T, int... I0>
-struct reference<const nTuple<T, I0...>> {
-    typedef nTuple<T, I0...> const& type;
+template <typename T, int I0, int... I>
+struct reference<const nTuple<T, I0, I...>> {
+    typedef nTuple<T, I0, I...> const& type;
 };
 
 template <typename T, int... I>
@@ -86,9 +85,6 @@ struct extents<nTuple<V, I...>> : public int_sequence<I...> {};
 
 template <typename V, int I0, int... I>
 struct extent<nTuple<V, I0, I...>> : public int_const<I0> {};
-
-template <typename...>
-struct value_type;
 
 template <typename T, int I0>
 struct value_type<nTuple<T, I0>> {
@@ -145,9 +141,16 @@ struct make_nTuple<TV, simpla::integer_sequence<int>> {
     typedef TV type;
 };
 
+template <typename T>
+class is_scalar : public std::integral_constant<bool, std::is_arithmetic<T>::value> {};
+
+template <typename T>
+class is_nTuple : public std::integral_constant<bool, false> {};
+template <typename T, int... N>
+class is_nTuple<nTuple<T, N...>> : public std::integral_constant<bool, true> {};
+
 }  // namespace traits
 
-namespace calculus {
 namespace tags {
 class _nTuple_cross;
 class _nTuple_dot;
@@ -240,8 +243,8 @@ struct nTuple_calculator {
     }
 
     template <typename V, int N0, int... N, typename TR>
-    static void assign(nTuple<V, N0, N...>& lhs, TR& rhs) {
-        for (int i = 0; i < N0; ++i) { getValue(lhs, i) = getValue(rhs, i); }
+    static void assign(nTuple<V, N0, N...>& lhs, TR& rhs){
+        //        for (int i = 0; i < N0; ++i) { getValue(lhs, i) = getValue(rhs, i); }
     };
 
     template <typename V, int N0, int... N>
@@ -249,7 +252,6 @@ struct nTuple_calculator {
         for (int i = 0; i < N0; ++i) { std::swap(getValue(lhs, i), getValue(rhs, i)); }
     };
 };
-}
 
 // namespace st = simpla::traits;
 //
@@ -288,18 +290,16 @@ template <typename TOP, typename... Args>
 struct nTuple<_Expression<TOP, Args...>> {
     typedef nTuple<_Expression<TOP, Args...>> this_type;
 
-    typename std::tuple<typename algebra::traits::reference<Args>::type...> m_args_;
+    std::tuple<traits::reference_t<Args>...> m_args_;
     typedef std::true_type is_expression;
     typedef std::false_type prefer_pass_by_reference;
     typedef std::true_type prefer_pass_by_value;
 
     TOP m_op_;
 
-    nTuple(this_type const& that) : m_args_(that.m_args_) {}
-
+    nTuple(Args const&... args) : m_args_((args)...) {}
+    nTuple(this_type const& that) noexcept : m_args_(that.m_args_) {}
     nTuple(this_type&& that) noexcept : m_args_(that.m_args_) {}
-
-    explicit nTuple(Args&... args) noexcept : m_args_(args...) {}
 
     virtual ~nTuple() = default;
 
@@ -308,7 +308,7 @@ struct nTuple<_Expression<TOP, Args...>> {
 
     template <typename T>
     explicit operator T() const {
-        return calculus::expr_parser<T, this_type>::eval(*this);
+        return expr_parser<T, this_type>::eval(*this);
     }
 };
 template <typename TV>
@@ -321,7 +321,7 @@ template <typename TV, int N0, int... NOthers>
 struct nTuple<TV, N0, NOthers...> {
     typedef nTuple<TV, N0, NOthers...> this_type;
 
-    typedef calculus::nTuple_calculator calculator;
+    typedef nTuple_calculator calculator;
     typedef std::true_type prefer_pass_by_reference;
     typedef TV value_type;
 
@@ -332,12 +332,12 @@ struct nTuple<TV, N0, NOthers...> {
     nTuple() = default;
     ~nTuple() = default;
 
-    explicit nTuple(simpla::traits::nested_initializer_list_t<value_type, sizeof...(NOthers) + 1> l) {
+    nTuple(simpla::traits::nested_initializer_list_t<value_type, sizeof...(NOthers) + 1> l) {
         simpla::traits::assign_nested_initializer_list<N0, NOthers...>::apply(data_, l);
     }
 
     template <typename... U>
-    explicit nTuple(nTuple<_Expression<U...>> const& expr) {
+    nTuple(nTuple<_Expression<U...>> const& expr) {
         calculator::assign((*this), expr);
     }
 
@@ -408,25 +408,92 @@ struct nTuple<TV, N0, NOthers...> {
         *this = *this / rhs;
         return (*this);
     }
+
     template <typename TR>
-    auto operator+(TR const& rhs) const {
-        return nTuple<_Expression<algebra::tags::plus, const this_type, const TR>>(*this, rhs);
-    };
-    template <typename TR>
-    auto operator-(TR const& rhs) const {
-        return nTuple<_Expression<algebra::tags::minus, const this_type, const TR>>(*this, rhs);
-    };
-    template <typename TR>
-    auto operator*(TR const& rhs) const {
-        return nTuple<_Expression<algebra::tags::multiplies, const this_type, const TR>>(*this, rhs);
-    };
-    template <typename TR>
-    auto operator/(TR const& rhs) const {
-        return nTuple<_Expression<algebra::tags::divides, const this_type, const TR>>(*this, rhs);
+    bool operator==(TR const& rhs) const {
+        return false;
+    }
+};
+
+#define DEF_BOP(_NAME_, _OP_)                                                                                        \
+    namespace ntuple_tags {                                                                                          \
+    struct _NAME_ {                                                                                                  \
+        template <typename TL, typename TR>                                                                          \
+        static constexpr auto eval(TL const& l, TR const& r) {                                                       \
+            return ((l _OP_ r));                                                                                     \
+        }                                                                                                            \
+        template <typename TL, typename TR>                                                                          \
+        constexpr auto operator()(TL const& l, TR const& r) const {                                                  \
+            return ((l _OP_ r));                                                                                     \
+        }                                                                                                            \
+    };                                                                                                               \
+    }                                                                                                                \
+                                                                                                                     \
+    template <typename TL, int... NL>                                                                                \
+    auto operator _OP_(nTuple<TL, NL...> const& lhs, Real rhs) {                                                     \
+        return nTuple<_Expression<ntuple_tags::_NAME_, const nTuple<TL, NL...>, Real>>(lhs, rhs);                    \
+    };                                                                                                               \
+    template <typename TR, int... NR>                                                                                \
+    auto operator _OP_(Real lhs, nTuple<TR, NR...> const& rhs) {                                                     \
+        return nTuple<_Expression<ntuple_tags::_NAME_, Real, const nTuple<TR, NR...>>>(lhs, rhs);                    \
+    };                                                                                                               \
+    template <typename TL, int... NL>                                                                                \
+    auto operator _OP_(nTuple<TL, NL...> const& lhs, int rhs) {                                                      \
+        return nTuple<_Expression<ntuple_tags::_NAME_, const nTuple<TL, NL...>, int>>(lhs, rhs);                     \
+    };                                                                                                               \
+    template <typename TR, int... NR>                                                                                \
+    auto operator _OP_(int lhs, nTuple<TR, NR...> const& rhs) {                                                      \
+        return nTuple<_Expression<ntuple_tags::_NAME_, int, const nTuple<TR, NR...>>>(lhs, rhs);                     \
+    };                                                                                                               \
+    template <typename TL, int... NL, typename TR, int... NR>                                                        \
+    auto operator _OP_(nTuple<TL, NL...> const& lhs, nTuple<TR, NR...> const& rhs) {                                 \
+        return nTuple<_Expression<ntuple_tags::_NAME_, const nTuple<TL, NL...>, const nTuple<TR, NR...>>>(lhs, rhs); \
     };
 
-    auto operator-() const { return nTuple<_Expression<algebra::tags::negate, const this_type>>(*this); };
-};
+#define DEF_UOP(_NAME_, _OP_)                                                          \
+    namespace ntuple_tags {                                                            \
+    struct _NAME_ {                                                                    \
+        template <typename TL>                                                         \
+        static constexpr auto eval(TL const& l) {                                      \
+            return ((_OP_ l));                                                         \
+        }                                                                              \
+        template <typename TL>                                                         \
+        constexpr auto operator()(TL const& l) const {                                 \
+            return ((_OP_ l));                                                         \
+        }                                                                              \
+    };                                                                                 \
+    }                                                                                  \
+                                                                                       \
+    template <typename TL, int... NL>                                                  \
+    auto operator _OP_(nTuple<TL, NL...> const& lhs) {                                 \
+        return nTuple<_Expression<ntuple_tags::_NAME_, const nTuple<TL, NL...>>>(lhs); \
+    };
+
+DEF_BOP(plus, +)
+DEF_BOP(minus, -)
+DEF_BOP(multiplies, *)
+DEF_BOP(divides, /)
+DEF_BOP(modulus, %)
+DEF_UOP(negate, -)
+DEF_UOP(unary_plus, +)
+DEF_BOP(bitwise_and, &)
+DEF_BOP(bitwise_or, |)
+DEF_BOP(bitwise_xor, ^)
+DEF_UOP(bitwise_not, ~)
+DEF_BOP(shift_left, <<)
+DEF_BOP(shift_right, >>)
+DEF_UOP(logical_not, !)
+// DEF_BOP(logical_and, &&)
+// DEF_BOP(logical_or, ||)
+// DEF_BOP(not_equal_to, !=)
+// DEF_BOP(greater, >)
+// DEF_BOP(less, <)
+// DEF_BOP(greater_equal, >=)
+// DEF_BOP(less_equal, <=)
+// DEF_BOP(equal_to, ==)
+
+#undef DEF_UOP
+#undef DEF_BOP
 
 template <typename T, int N>
 using Vector = nTuple<T, N>;
@@ -436,6 +503,215 @@ using Matrix = nTuple<T, M, N>;
 
 template <typename T, int... N>
 using Tensor = nTuple<T, N...>;
+
+typedef nTuple<Real, 3ul> point_type;  //!< DataType of configuration space point (coordinates i.e. (x,y,z) )
+
+typedef nTuple<Real, 3ul> vector_type;
+
+typedef std::tuple<point_type, point_type> box_type;  //! two corner of rectangle (or hexahedron ) , <lower ,upper>
+
+typedef long difference_type;  //!< Data type of the difference between indices,i.e.  s = i - j
+
+typedef nTuple<index_type, 3> index_tuple;
+typedef nTuple<size_type, 3> size_tuple;
+
+typedef std::tuple<index_tuple, index_tuple> index_box_type;
+
+// typedef std::complex<Real> Complex;
+
+typedef nTuple<Real, 3> Vec3;
+
+typedef nTuple<Real, 3> CoVec3;
+
+typedef nTuple<Integral, 3> IVec3;
+
+typedef nTuple<Real, 3> RVec3;
+
+// typedef nTuple<Complex, 3> CVec3;
+
+template <typename T>
+T vec_dot(nTuple<T, 3> const& l, nTuple<T, 3> const& r) {
+    return l[0] * r[0] + l[1] * r[1] + l[2] * r[2];
+}
+
+template <typename TL, int... NL, typename TR, int... NR>
+auto vec_dot(nTuple<TL, NL...> const& l, nTuple<TR, NR...> const& r) {
+    return abs(l * r);
+}
+
+template <typename T>
+T vec_dot(nTuple<T, 4> const& l, nTuple<T, 4> const& r) {
+    return l[0] * r[0] + l[1] * r[1] + l[2] * r[2] + l[3] * r[3];
+}
+template <typename T, int N>
+T vec_dot(nTuple<T, N> const& l, nTuple<T, N> const& r) {
+    T res = l[0] * r[0];
+    for (int i = 1; i < N; ++i) { res += l[i] * r[i]; }
+    return res;
+}
+
+template <typename T>
+T determinant(nTuple<T, 3> const& m) {
+    return m[0] * m[1] * m[2];
+}
+
+template <typename T>
+T determinant(nTuple<T, 4> const& m) {
+    return m[0] * m[1] * m[2] * m[3];
+}
+
+template <typename T>
+T determinant(nTuple<T, 3, 3> const& m) {
+    return m[0][0] * m[1][1] * m[2][2] - m[0][2] * m[1][1] * m[2][0] + m[0][1] * m[1][2] * m[2][0] -
+           m[0][1] * m[1][0] * m[2][2] + m[1][0] * m[2][1] * m[0][2] - m[1][2] * m[2][1] * m[0][0];
+}
+template <typename TL, int... NL, typename TR, int... NR>
+auto abs(nTuple<TL, NL...> const& l, nTuple<TR, NR...> const& r) {
+    return std::sqrt(vec_dot(l, r));
+}
+template <typename T, int... N>
+T abs(nTuple<T, N...> const& m) {
+    return std::sqrt(vec_dot(m, m));
+}
+
+template <typename T>
+T determinant(nTuple<T, 4, 4> const& m) {
+    return m[0][3] * m[1][2] * m[2][1] * m[3][0] - m[0][2] * m[1][3] * m[2][1] * m[3][0] -
+           m[0][3] * m[1][1] * m[2][2] * m[3][0] + m[0][1] * m[1][3] * m[2][2] * m[3][0] +
+           m[0][2] * m[1][1] * m[2][3] * m[3][0] - m[0][1] * m[1][2] * m[2][3] * m[3][0] -
+           m[0][3] * m[1][2] * m[2][0] * m[3][1] + m[0][2] * m[1][3] * m[2][0] * m[3][1] +
+           m[0][3] * m[1][0] * m[2][2] * m[3][1] - m[0][0] * m[1][3] * m[2][2] * m[3][1] -
+           m[0][2] * m[1][0] * m[2][3] * m[3][1] + m[0][0] * m[1][2] * m[2][3] * m[3][1] +
+           m[0][3] * m[1][1] * m[2][0] * m[3][2] - m[0][1] * m[1][3] * m[2][0] * m[3][2] -
+           m[0][3] * m[1][0] * m[2][1] * m[3][2] + m[0][0] * m[1][3] * m[2][1] * m[3][2] +
+           m[0][1] * m[1][0] * m[2][3] * m[3][2] - m[0][0] * m[1][1] * m[2][3] * m[3][2] -
+           m[0][2] * m[1][1] * m[2][0] * m[3][3] + m[0][1] * m[1][2] * m[2][0] * m[3][3] +
+           m[0][2] * m[1][0] * m[2][1] * m[3][3] - m[0][0] * m[1][2] * m[2][1] * m[3][3] -
+           m[0][1] * m[1][0] * m[2][2] * m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3];
+}
+
+template <typename T1, typename T2>
+//  nTuple<std::result_of_t<tags::multiplies::eval(traits::value_type_t < T1 > ,
+//                                                                traits::value_type_t < T2 > )>, 3>
+auto cross(T1 const& l, T2 const& r, ENABLE_IF(traits::is_nTuple<T1>::value&& traits::is_nTuple<T2>::value)) {
+    return nTuple<std::result_of_t<ntuple_tags::multiplies::eval(traits::value_type_t<T1>, traits::value_type_t<T2>)>,
+                  3>{traits::get_v(l, 1) * traits::get_v(r, 2) - traits::get_v(l, 2) * traits::get_v(r, 1),
+                     traits::get_v(l, 2) * traits::get_v(r, 0) - traits::get_v(l, 0) * traits::get_v(r, 2),
+                     traits::get_v(l, 0) * traits::get_v(r, 1) - traits::get_v(l, 1) * traits::get_v(r, 0)};
+}
+//
+// template <typename T, int... N>
+// auto mod(nTuple<T, N...> const &l) {
+//    return std::sqrt(std::abs(inner_product(l, l)));
+//}
+
+template <typename TOP, typename T>
+T reduce(T const& v, ENABLE_IF(traits::is_scalar<T>::value)) {
+    return v;
+}
+
+template <typename TOP, typename T>
+traits::value_type_t<T> reduce(T const& v, ENABLE_IF(traits::is_nTuple<T>::value)) {
+    static constexpr int n = traits::extent<T>::value;
+
+    traits::value_type_t<T> res = reduce<TOP>(traits::get_v(v, 0));
+
+    for (int s = 1; s < n; ++s) { res = TOP::eval(res, reduce<TOP>(traits::get_v(v, s))); }
+
+    return res;
+}
+
+template <typename TL, typename TR>
+auto inner_product(TL const& l, TR const& r, ENABLE_IF(traits::is_nTuple<TL>::value&& traits::is_nTuple<TL>::value)) {
+    return ((reduce<ntuple_tags::plus>(l * r)));
+}
+
+template <typename T>
+auto normal(T const& l, ENABLE_IF(traits::is_nTuple<T>::value)) {
+    return ((std::sqrt(inner_product(l, l))));
+}
+
+template <typename T>
+auto abs(T const& l, ENABLE_IF(traits::is_nTuple<T>::value)) {
+    return ((std::sqrt(inner_product(l, l))));
+}
+
+template <typename T>
+auto NProduct(T const& v, ENABLE_IF(traits::is_nTuple<T>::value)) {
+    return ((reduce<ntuple_tags::multiplies>(v)));
+}
+
+template <typename T>
+auto NSum(T const& v, ENABLE_IF(traits::is_nTuple<T>::value)) {
+    return ((reduce<ntuple_tags::plus>(v)));
+}
+
+//
+// template<typename T, int N0> std::istream &
+// input(std::istream &is, nTuple <T, N0> &tv)
+//{
+//    for (int i = 0; i < N0 && is; ++i) { is >> tv[i]; }
+//    return (is);
+//}
+//
+// template<typename T, int N0, int ...N> std::istream &
+// input(std::istream &is, nTuple<T, N0, N ...> &tv)
+//{
+//    for (int i = 0; i < N0 && is; ++i) { input(is, tv[i]); }
+//    return (is);
+//}
+
+namespace _detail {
+template <typename T, int... N>
+std::ostream& printNd_(std::ostream& os, T const& d, int_sequence<N...> const&,
+                       ENABLE_IF((!simpla::concept::is_indexable<T>::value))) {
+    os << d;
+    return os;
+}
+
+template <typename T, int M, int... N>
+std::ostream& printNd_(std::ostream& os, T const& d, int_sequence<M, N...> const&,
+                       ENABLE_IF((simpla::concept::is_indexable<T>::value))) {
+    os << "[";
+    printNd_(os, d[0], int_sequence<N...>());
+    for (int i = 1; i < M; ++i) {
+        os << " , ";
+        printNd_(os, d[i], int_sequence<N...>());
+    }
+    os << "]";
+
+    return os;
+}
+
+template <typename T>
+std::istream& input(std::istream& is, T& a) {
+    is >> a;
+    return is;
+}
+
+template <typename T, int M0, int... M>
+std::istream& input(std::istream& is, nTuple<T, M0, M...>& a) {
+    for (int n = 0; n < M0; ++n) { _detail::input(is, a[n]); }
+    return is;
+}
+
+}  // namespace _detail
+
+template <typename T, int... M>
+std::ostream& operator<<(std::ostream& os, nTuple<T, M...> const& v) {
+    return _detail::printNd_(os, v.data_, int_sequence<M...>());
+}
+
+template <typename T, int... M>
+std::istream& operator>>(std::istream& is, nTuple<T, M...>& a) {
+    _detail::input(is, a);
+    return is;
+}
+template <typename T, int... M>
+std::ostream& operator<<(std::ostream& os, std::tuple<nTuple<T, M...>, nTuple<T, M...>> const& v) {
+    os << "{ " << std::get<0>(v) << " ," << std::get<1>(v) << "}";
+    return os;
+};
 
 }  // namespace simpla
 #endif  // NTUPLE_H_

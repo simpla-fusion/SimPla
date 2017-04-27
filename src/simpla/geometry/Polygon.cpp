@@ -3,11 +3,10 @@
  * @author salmon
  * @date 2015-11-18.
  */
-#include <simpla/algebra/all.h>
-
-#include "GeoAlgorithm.h"
 #include "Polygon.h"
-
+#include <simpla/algebra/all.h>
+#include <simpla/utilities/nTuple.h>
+#include "GeoAlgorithm.h"
 namespace simpla {
 namespace geometry {
 
@@ -42,9 +41,9 @@ Real Polygon<2>::nearest_point(Real *x, Real *y) const {
         u = x0 - p0;
         v = p1 - p0;
 
-        Real v2 = dot(v, v);
+        Real v2 = vec_dot(v, v);
 
-        Real s = dot(u, v) / v2;
+        Real s = vec_dot(u, v) / v2;
 
         point2d_type p;
 
@@ -60,7 +59,7 @@ Real Polygon<2>::nearest_point(Real *x, Real *y) const {
          */
         UNIMPLEMENTED;
 
-        Real dd = dot(x0 - p, x0 - p);
+        Real dd = 0;  // vec_dot(x0 - p, x0 - p);
 
         if (std::abs(dd) < std::abs(d2)) {
             d2 = dd;
@@ -87,12 +86,10 @@ void Polygon<2>::deploy() {
             constant_[i] = m_polygon_[i][0];
             multiple_[i] = 0;
         } else {
-            constant_[i] =
-                m_polygon_[i][0] -
-                (m_polygon_[i][1] * m_polygon_[j][0]) / (m_polygon_[j][1] - m_polygon_[i][1]) +
-                (m_polygon_[i][1] * m_polygon_[i][0]) / (m_polygon_[j][1] - m_polygon_[i][1]);
-            multiple_[i] =
-                (m_polygon_[j][0] - m_polygon_[i][0]) / (m_polygon_[j][1] - m_polygon_[i][1]);
+            constant_[i] = m_polygon_[i][0] -
+                           (m_polygon_[i][1] * m_polygon_[j][0]) / (m_polygon_[j][1] - m_polygon_[i][1]) +
+                           (m_polygon_[i][1] * m_polygon_[i][0]) / (m_polygon_[j][1] - m_polygon_[i][1]);
+            multiple_[i] = (m_polygon_[j][0] - m_polygon_[i][0]) / (m_polygon_[j][1] - m_polygon_[i][1]);
         }
         j = i;
     }

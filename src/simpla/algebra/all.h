@@ -13,7 +13,6 @@
 #include "Expression.h"
 #include "Field.h"
 #include "simpla/utilities/nTuple.h"
-#include "simpla/utilities/nTupleExt.h"
 /**
  * @addtogroup algebra Algebra System
  **/

@@ -17,7 +17,6 @@
 #include "Arithmetic.h"
 #include "Expression.h"
 #include "simpla/utilities/nTuple.h"
-#include "simpla/utilities/nTupleExt.h"
 
 namespace simpla {
 namespace algebra {
