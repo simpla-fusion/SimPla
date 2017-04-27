@@ -10,11 +10,13 @@
 #include "DataBackendMemory.h"
 #include "DataEntity.h"
 #include "DataTable.h"
+#include "backend/DataBackendHDF5.h"
+#include "backend/DataBackendLua.h"
 namespace simpla {
 namespace data {
-
-DataBackendFactory::DataBackendFactory() : base_type() { RegisterDefault(); };
-DataBackendFactory::~DataBackendFactory(){};
+bool DataBackend::s_RegisterDataBackends_ = DataBackendMemory::is_registered &&  //
+                                            DataBackendHDF5::is_registered &&    //
+                                            DataBackendLua::is_registered;
 
 /**
 *   https://tools.ietf.org/html/rfc3986#page-50
@@ -67,7 +69,7 @@ DataBackendFactory::~DataBackendFactory(){};
 *   */
 static std::regex uri_regex(R"(^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?)");
 static std::regex file_extension_regex(R"(^(.*)(\.([[:alnum:]]+))$)");
-std::shared_ptr<DataBackend> DataBackendFactory::Create(std::string const &uri, std::string const &ext_param) {
+std::shared_ptr<DataBackend> DataBackend::Create(std::string const &uri, std::string const &ext_param) {
     if (uri == "" || uri == "mem://") { return std::make_shared<DataBackendMemory>(); }
 
     std::string scheme = "";
@@ -88,22 +90,22 @@ std::shared_ptr<DataBackend> DataBackendFactory::Create(std::string const &uri, 
     }
 
     if (scheme == "") {
-        if (std::regex_match(path, uri_match_result, file_extension_regex)) { scheme = uri_match_result.str(2); }
+        if (std::regex_match(path, uri_match_result, file_extension_regex)) { scheme = uri_match_result.str(3); }
     }
     if (scheme == "") { RUNTIME_ERROR << "illegal URI: [" << uri << "]" << std::endl; }
 
     VERBOSE << "Create New Data Backend [ " << scheme << " : " << authority << path << " ]" << std::endl;
-    std::shared_ptr<DataBackend> res{base_type::Create(scheme)};
+    auto res = EnableCreateFromDataTable<DataBackend>::Create(scheme);
     ASSERT(res != nullptr);
     res->Connect(authority, path, query, fragment);
     return res;
 };
 
-std::vector<std::string> DataBackendFactory::GetBackendList() const {
-    std::vector<std::string> res;
-    for (auto const &item : *this) { res.push_back(item.first); }
-    return std::move(res);
-};
+// std::vector<std::string> DataBackendFactory::GetBackendList() const {
+//    std::vector<std::string> res;
+//    for (auto const &item : *this) { res.push_back(item.first); }
+//    return std::move(res);
+//};
 
 }  // namespace data {
 }  // namespace simpla {

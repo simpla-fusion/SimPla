@@ -66,14 +66,9 @@ void Schedule::Run() {
 
 std::shared_ptr<data::DataTable> Schedule::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
-    res->Link("Context", m_pimpl_->m_ctx_->Serialize());
     return res;
 }
-void Schedule::Deserialize(const std::shared_ptr<data::DataTable>& cfg) {
-    TearDown();
-    m_pimpl_->m_ctx_ = Context::Create(cfg->GetTable("Context"));
-    Click();
-}
+void Schedule::Deserialize(const std::shared_ptr<data::DataTable>& cfg) {}
 
 void Schedule::Initialize() { SPObject::Initialize(); }
 void Schedule::Finalize() { SPObject::Finalize(); }

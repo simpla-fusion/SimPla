@@ -22,6 +22,7 @@ extern "C" {
 
 namespace simpla {
 namespace data {
+REGISTER_CREATOR(DataBackendHDF5);
 
 #define H5_ERROR(_FUN_)                                                               \
     if ((_FUN_) < 0) {                                                                \
@@ -468,10 +469,12 @@ DataBackendHDF5::DataBackendHDF5(DataBackendHDF5 const& other) : DataBackendHDF5
     m_pimpl_->m_g_id_ = other.m_pimpl_->m_g_id_;
 }
 DataBackendHDF5::DataBackendHDF5(DataBackendHDF5&& other) noexcept : m_pimpl_(std::move(other.m_pimpl_)) {}
+
 DataBackendHDF5::DataBackendHDF5(std::string const& uri, std::string const& status) : DataBackendHDF5() {
     Connect(uri, status);
 }
 DataBackendHDF5::~DataBackendHDF5() {}
+
 void DataBackendHDF5::Connect(std::string const& authority, std::string const& path, std::string const& query,
                               std::string const& fragment) {
     Disconnect();

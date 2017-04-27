@@ -23,7 +23,7 @@ struct CartesianGeometry : public engine::Chart {
 
     std::shared_ptr<data::DataTable> Serialize() const override {
         auto p = engine::Chart::Serialize();
-        p->SetValue<std::string>("Type", ClassName());
+        p->SetValue<std::string>("Type", GetRegisterName());
         return p;
     };
 };

@@ -8,9 +8,8 @@
 
 namespace simpla {
 namespace data {
-void DataBackendFactory::RegisterDefault() {
-    Register<DataBackendLua>("lua");
-    Register<DataBackendHDF5>("h5");
-};
+//bool DataBackend::s_RegisterDataBackends_ = DataBackendHDF5::is_registered &&  //
+//                                            DataBackendLua::is_registered;
+
 }  // namespace data {
 }  // namespace simpla {

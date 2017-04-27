@@ -25,16 +25,19 @@ Context::~Context() {}
 std::shared_ptr<data::DataTable> Context::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
     for (auto const &item : m_pimpl_->m_domains_) { res->Link("Domain/" + item.first, item.second->Serialize()); }
+    res->Link("Model", m_pimpl_->m_model_.Serialize());
+    res->Link("Atlas", m_pimpl_->m_atlas_.Serialize());
     return res;
 }
 void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
-    //    auto worker_t = cfg->GetTable("Domains");
-    //    if (worker_t == nullptr) { return; }
-    //    worker_t->Foreach([&](std::string const &k, std::shared_ptr<DataEntity> t) {
-    //        auto v = std::make_shared<Domain>();
-    //        if (t->isTable()) { v->Deserialize(std::dynamic_pointer_cast<data::DataTable>(t)); }
-    //        SetDomain(k, v);
-    //    });
+    auto worker_t = cfg->GetTable("Domains");
+    if (worker_t != nullptr) {
+        worker_t->Foreach([&](std::string const &k, std::shared_ptr<DataEntity> t) {
+            SetDomain(k, Domain::Create(t, m_pimpl_->m_model_.GetObject(k)));
+        });
+    }
+    m_pimpl_->m_atlas_.Deserialize(cfg->GetTable("Atlas"));
+    m_pimpl_->m_model_.Deserialize(cfg->GetTable("Model"));
 }
 
 void Context::Initialize() {}

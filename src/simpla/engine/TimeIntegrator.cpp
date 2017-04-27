@@ -10,7 +10,7 @@ namespace engine {
 
 std::shared_ptr<data::DataTable> TimeIntegrator::Serialize() const {
     auto p = Schedule::Serialize();
-    p->SetValue("Type", GetClassName());
+    p->SetValue("Type", GetRegisterName());
     p->SetValue("TimeBegin", GetTime());
     p->SetValue("TimeEnd", GetTimeEnd());
     p->SetValue("TimeStep", GetTimeStep());

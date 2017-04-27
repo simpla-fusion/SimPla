@@ -40,7 +40,7 @@ void MeshBase::InitializeData(Real time_now) { m_pimpl_->m_time_ = time_now; }
 
 std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
     auto p = std::make_shared<data::DataTable>();
-    p->SetValue("Type", GetClassName());
+    p->SetValue("Type", GetRegisterName());
     return p;
 }
 void MeshBase::Deserialize(const std::shared_ptr<DataTable> &) {}

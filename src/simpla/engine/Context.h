@@ -89,7 +89,7 @@ class Context : public data::Serializable, public data::EnableCreateFromDataTabl
     std::shared_ptr<Domain> SetDomain(std::string const &k, std::shared_ptr<Domain>);
 
     std::shared_ptr<Domain> SetDomain(std::string const &k, std::string const &d_name) {
-        return SetDomain(k, Domain::Create(d_name, GetModel().GetObject(k), nullptr));
+        return SetDomain(k, Domain::Create(d_name, GetModel().GetObject(k)));
     }
 
     template <typename U>

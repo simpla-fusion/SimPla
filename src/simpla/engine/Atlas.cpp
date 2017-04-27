@@ -38,9 +38,10 @@ struct Atlas::pimpl_s {
 Atlas::Atlas() : m_pimpl_(new pimpl_s){};
 Atlas::~Atlas(){};
 void Atlas::SetUp(){};
+std::shared_ptr<data::DataTable> Atlas::Serialize() const { return nullptr; };
+void Atlas::Deserialize(const std::shared_ptr<data::DataTable> &cfg) { DO_NOTHING; };
 
 void Atlas::Decompose(size_tuple const &d, int local_id){};
-
 index_box_type Atlas::FitIndexBox(box_type const &b, int level, int flag) const { return index_box_type{}; }
 
 // std::shared_ptr<Patch> Atlas::AddBlock(id_type id, std::shared_ptr<Patch> m) {

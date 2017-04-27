@@ -64,12 +64,16 @@ class Patch;
  *  - '''Origin''' is the origin point of continue topology space and discrete index space
  *  - '''dx''' is the resolution ratio  of discrete mesh, x = i * dx + r where 0<= r < dx
  */
-class Atlas : public SPObject {
+class Atlas : public SPObject, public data::Serializable {
     SP_OBJECT_HEAD(Atlas, SPObject)
    public:
     Atlas();
     ~Atlas() override;
     SP_DEFAULT_CONSTRUCT(Atlas);
+
+    std::shared_ptr<data::DataTable> Serialize() const override;
+
+    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
 
     void SetUp() override;
 

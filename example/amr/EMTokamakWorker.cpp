@@ -39,12 +39,13 @@ class EMTokamak : public engine::Context {
     std::function<Vec3(point_type const&, Real)> J_src_fun;
     std::function<Vec3(point_type const&, Real)> E_src_fun;
 };
-bool EMTokamak::is_registered = engine::Context::RegisterCreator<EMTokamak>("EMTokamak");
+
+REGISTER_CREATOR(EMTokamak)
 
 void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     //    base_type::Deserialize(cfg);
     //    box_type box;
-    //    GEqdsk geqdsk;
+    GEqdsk geqdsk;
     //
     //    Real phi0 = 0, phi1 = TWOPI;
     //

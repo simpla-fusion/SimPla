@@ -9,7 +9,8 @@
 #include "LuaObject.h"
 namespace simpla {
 namespace data {
-const bool DataBackendLua::m_isRegistered_ = GLOBAL_DATA_BACKEND_FACTORY.Register<DataBackendLua>("lua");
+REGISTER_CREATOR(DataBackendLua);
+
 template <typename U>
 struct DataEntityLua;
 template <typename U>
@@ -96,8 +97,8 @@ std::shared_ptr<DataEntity> make_data_entity_lua(toolbox::LuaObject const& lobj)
         }
     } else if (lobj.is_table()) {
         auto p = std::make_unique<DataBackendLua>();
-        UNIMPLEMENTED;
-        //        p->m_pimpl_->m_lua_obj_ = lobj;
+        //        UNIMPLEMENTED;
+        p->m_pimpl_->m_lua_obj_ = lobj;
         return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>(std::move(p)));
     } else if (lobj.is_boolean()) {
         return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityLua<bool>>(lobj));
@@ -260,7 +261,6 @@ size_type DataBackendLua::size() const { return m_pimpl_->m_lua_obj_.size(); }
 size_type DataBackendLua::Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
     if (m_pimpl_->m_lua_obj_.is_global()) {
         UNSUPPORTED;
-        UNIMPLEMENTED;
     } else {
         for (auto const& item : m_pimpl_->m_lua_obj_) {
             if (item.first.is_string()) { f(item.first.as<std::string>(), make_data_entity_lua(item.second)); }

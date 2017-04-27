@@ -12,6 +12,7 @@
 
 namespace simpla {
 namespace data {
+REGISTER_CREATOR(DataBackendMemory);
 
 struct DataBackendMemory::pimpl_s {
     typedef std::map<std::string, std::shared_ptr<DataEntity>> table_type;
@@ -94,7 +95,8 @@ void DataBackendMemory::Set(std::string const& uri, std::shared_ptr<DataEntity> 
     //        auto& dest_table = res.first->second->cast_as<DataTable>();
     //        auto const& src_table = v->cast_as<DataTable>();
     //        src_table.Foreach(
-    //            [&](std::string const& k, std::shared_ptr<DataEntity> const& v) { dest_table.Push(k, v, overwrite); });
+    //            [&](std::string const& k, std::shared_ptr<DataEntity> const& v) { dest_table.Push(k, v, overwrite);
+    //            });
     //    } else if (v->isArray() && v->cast_as<DataArray>().isA(typeid(DataArrayWrapper<void>))) {
     //        auto dest_array = std::make_shared<DataArrayWrapper<void>>();
     //        auto const& src_array = v->cast_as<DataArray>();

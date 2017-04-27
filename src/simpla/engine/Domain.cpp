@@ -15,10 +15,10 @@ Domain::~Domain() {}
 
 std::shared_ptr<data::DataTable> Domain::Serialize() const {
     auto p = std::make_shared<data::DataTable>();
-    p->SetValue("Type", GetClassName());
+    p->SetValue("Type", GetRegisterName());
     return p;
 }
-void Domain::Deserialize(const std::shared_ptr<DataTable> &t) { UNIMPLEMENTED; };
+void Domain::Deserialize(const std::shared_ptr<DataTable>& t) { UNIMPLEMENTED; };
 
 std::shared_ptr<Domain> Domain::Clone() const {
     UNIMPLEMENTED;

@@ -16,16 +16,25 @@
 #include <typeindex>
 #include <typeinfo>
 #include <vector>
+#include "EnableCreateFromDataTable.h"
+
 namespace simpla {
 namespace data {
+
 class DataEntity;
 class DataTable;
-class DataBackend : public std::enable_shared_from_this<DataBackend> {
+class DataBackend : public EnableCreateFromDataTable<DataBackend> {
     SP_OBJECT_BASE(DataBackend);
 
    public:
     DataBackend() = default;
     virtual ~DataBackend() = default;
+
+    SP_DEFAULT_CONSTRUCT(DataBackend)
+    DECLARE_REGISTER_NAME("DataBackend")
+
+    static std::shared_ptr<DataBackend> Create(std::string const& uri, std::string const& ext_param);
+
     virtual std::ostream& Print(std::ostream& os, int indent) const { return os; }
 
     virtual void Parser(std::string const& c) { UNIMPLEMENTED; };
@@ -80,22 +89,25 @@ class DataBackend : public std::enable_shared_from_this<DataBackend> {
      */
     virtual size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const = 0;
 
+   private:
+    static bool s_RegisterDataBackends_;
+
 };  // class DataBackend {
 
-class DataBackendFactory : public design_pattern::Factory<std::string, DataBackend>, public concept::Printable {
-    typedef design_pattern::Factory<std::string, DataBackend> base_type;
-    SP_OBJECT_BASE(DataBackendFactory);
-
-   public:
-    DataBackendFactory();
-    ~DataBackendFactory() override;
-    SP_DEFAULT_CONSTRUCT(DataBackendFactory)
-    std::vector<std::string> GetBackendList() const;
-    std::shared_ptr<DataBackend> Create(std::string const& uri, std::string const& ext_param = "");
-
-    void RegisterDefault();
-};
-#define GLOBAL_DATA_BACKEND_FACTORY SingletonHolder<DataBackendFactory>::instance()
+// class DataBackendFactory : public design_pattern::Factory<std::string, DataBackend>, public concept::Printable {
+//    typedef design_pattern::Factory<std::string, DataBackend> base_type;
+//    SP_OBJECT_BASE(DataBackendFactory);
+//
+//   public:
+//    DataBackendFactory();
+//    ~DataBackendFactory() override;
+//    SP_DEFAULT_CONSTRUCT(DataBackendFactory)
+//    std::vector<std::string> GetBackendList() const;
+//    std::shared_ptr<DataBackend> Create(std::string const& uri, std::string const& ext_param = "");
+//
+//    void RegisterDefault();
+//};
+//#define GLOBAL_DATA_BACKEND_FACTORY SingletonHolder<DataBackendFactory>::instance()
 }  // namespace data {
 }  // namespace simpla{
 #endif  // SIMPLA_DATABACKEND_H

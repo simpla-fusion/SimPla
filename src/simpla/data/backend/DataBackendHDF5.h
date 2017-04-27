@@ -15,14 +15,12 @@ class DataBackendHDF5 : public DataBackend {
     DataBackendHDF5();
     DataBackendHDF5(DataBackendHDF5 const&);
     DataBackendHDF5(DataBackendHDF5&&) noexcept;
-
     explicit DataBackendHDF5(std::string const& uri, std::string const& status = "");
-
     ~DataBackendHDF5() override;
-    bool isNull() const;
 
-    DataBackendHDF5& operator=(DataBackendHDF5 const&) = delete;
-    DataBackendHDF5& operator=(DataBackendHDF5&&) = delete;
+    DECLARE_REGISTER_NAME("hdf5")
+
+    bool isNull() const;
 
     void Connect(std::string const& authority, std::string const& path, std::string const& query = "",
                  std::string const& fragment = "") override;

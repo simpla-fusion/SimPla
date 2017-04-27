@@ -19,12 +19,10 @@ class DataBackendLua : public DataBackend {
     SP_OBJECT_HEAD(DataBackendLua, DataBackend)
    public:
     DataBackendLua();
-    DataBackendLua(DataBackendLua const&);
+    DataBackendLua(this_type const& other);
     ~DataBackendLua() override;
 
-    DataBackendLua(DataBackendLua&&) noexcept = delete;
-    DataBackendLua& operator=(DataBackendLua const&) = delete;
-    DataBackendLua& operator=(DataBackendLua&&) = delete;
+    DECLARE_REGISTER_NAME("lua")
 
     std::ostream& Print(std::ostream& os, int indent) const override;
 
@@ -46,8 +44,7 @@ class DataBackendLua : public DataBackend {
     size_type size() const override;
     size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const override;
 
-   private:
-    static const bool m_isRegistered_;
+//   private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };

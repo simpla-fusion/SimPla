@@ -10,14 +10,13 @@
 #include "simpla/engine/Schedule.h"
 namespace simpla {
 namespace application {
-struct SpApp : public data::Serializable, public data::EnableCreateFromDataTable<SpApp> {
+struct SpApp : public data::Serializable {
     SP_OBJECT_BASE(SpApp);
 
    public:
     SpApp();
     virtual ~SpApp();
     SP_DEFAULT_CONSTRUCT(SpApp);
-    DECLARE_REGISTER_NAME("SpApp")
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
@@ -28,11 +27,15 @@ struct SpApp : public data::Serializable, public data::EnableCreateFromDataTable
     virtual void TearDown();
     virtual void Finalize();
 
+    void SetContext(std::shared_ptr<engine::Context> s);
+    std::shared_ptr<engine::Context> GetContext() const;
+
     void SetSchedule(std::shared_ptr<engine::Schedule> s);
     std::shared_ptr<engine::Schedule> GetSchedule() const;
 
    private:
-    std::shared_ptr<engine::Schedule> m_schedule_ = nullptr;
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 }  // namespace application{
 

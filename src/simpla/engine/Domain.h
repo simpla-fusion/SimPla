@@ -17,9 +17,8 @@ class AttributeGroup;
 /**
 * @brief
 */
-class Domain
-    : public data::Serializable,
-      public data::EnableCreateFromDataTable<Domain, std::shared_ptr<geometry::GeoObject>, std::shared_ptr<MeshBase> > {
+class Domain : public data::Serializable,
+               public data::EnableCreateFromDataTable<Domain, std::shared_ptr<geometry::GeoObject> > {
     SP_OBJECT_BASE(Domain)
    public:
     explicit Domain(std::shared_ptr<geometry::GeoObject> g = nullptr, std::shared_ptr<MeshBase> m = nullptr);

@@ -14,16 +14,16 @@ namespace simpla {
 namespace data {
 class DataBackendMemory : public DataBackend {
     SP_OBJECT_HEAD(DataBackendMemory, DataBackend);
-    static constexpr char scheme_tag[] = "mem";
 
    public:
     DataBackendMemory();
     DataBackendMemory(std::string const& uri, std::string const& status = "");
-    DataBackendMemory(const DataBackendMemory&);
-    DataBackendMemory(DataBackendMemory&&) noexcept;
     ~DataBackendMemory() override;
-    DataBackendMemory& operator=(DataBackendMemory const&) = delete;
-    DataBackendMemory& operator=(DataBackendMemory&&) = delete;
+
+    DataBackendMemory(this_type const& other);
+    DataBackendMemory(this_type&& other) noexcept;
+
+    DECLARE_REGISTER_NAME("mem")
 
     std::shared_ptr<DataBackend> Duplicate() const override;
     std::shared_ptr<DataBackend> CreateNew() const override;

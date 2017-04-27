@@ -818,7 +818,7 @@ void SAMRAITimeIntegrator::SetUp() {
        // using default TreeLoadBalancer configuration
     }
      */
-    auto ctx = GetContext();
+    auto &ctx = GetContext();
     auto const &atlas = ctx->GetAtlas();
     auto bound_box = ctx->GetModel().GetBoundBox();
     ndims = static_cast<unsigned int>(ctx->GetModel().GetNDims());

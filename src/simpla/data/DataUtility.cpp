@@ -20,6 +20,7 @@ namespace data {
 std::shared_ptr<DataTable> ParseCommandLine(int argc, char **argv) {
     auto res = std::make_shared<DataTable>();
 
+
     parse_cmd_line(argc, argv, [&](std::string const &opt, std::string const &value) -> int {
         res->SetValue(opt, value);
         return CONTINUE;

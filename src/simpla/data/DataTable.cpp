@@ -14,9 +14,8 @@
 #include "KeyValue.h"
 namespace simpla {
 namespace data {
-DataTable::DataTable() : m_backend_(GLOBAL_DATA_BACKEND_FACTORY.Create("mem://")) { ASSERT(m_backend_ != nullptr); };
-DataTable::DataTable(std::string const& uri, std::string const& param)
-    : m_backend_(GLOBAL_DATA_BACKEND_FACTORY.Create(uri, param)) {
+DataTable::DataTable() : m_backend_(DataBackend::Create("mem://", "")) { ASSERT(m_backend_ != nullptr); };
+DataTable::DataTable(std::string const& uri, std::string const& param) : m_backend_(DataBackend::Create(uri, param)) {
     ASSERT(m_backend_ != nullptr);
 };
 DataTable::DataTable(std::shared_ptr<DataBackend> const& p) : m_backend_(p) { ASSERT(m_backend_ != nullptr); };
@@ -136,7 +135,7 @@ std::shared_ptr<DataTable> DataTable::Serialize() const {
     p->Set(*this);
     return p;
 }
-void DataTable::Deserialize(const std::shared_ptr<DataTable> &other) { Set(*other); }
+void DataTable::Deserialize(const std::shared_ptr<DataTable>& other) { Set(*other); }
 
 std::ostream& DataTable::Serialize(std::ostream& os, int indent) const {
     os << "{";

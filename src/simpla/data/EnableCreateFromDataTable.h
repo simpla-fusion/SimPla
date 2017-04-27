@@ -24,7 +24,7 @@ class EnableCreateFromDataTable {
     virtual ~EnableCreateFromDataTable() = default;
     SP_DEFAULT_CONSTRUCT(EnableCreateFromDataTable);
 
-    virtual std::string GetClassName() const { return TObj::ClassName(); }
+    virtual std::string GetRegisterName() const { return TObj::RegisterName(); }
 
     struct ObjectFactory {
         std::map<std::string, std::function<TObj *(Args &&...)>> m_factory_;
@@ -42,7 +42,7 @@ class EnableCreateFromDataTable {
             res = it->first;
         } else {
             std::ostringstream os;
-            os << std::endl << "Register " << TObj::ClassName() << " Creator:" << std::endl;
+            os << std::endl << "Register " << TObj::RegisterName() << " Creator:" << std::endl;
             for (auto const &item : f) { os << std::setw(15) << item.first << std::endl; }
             res = os.str();
         }
@@ -53,7 +53,7 @@ class EnableCreateFromDataTable {
     };
     template <typename U>
     static bool RegisterCreator(std::string const &k_hint = "") noexcept {
-        return RegisterCreator(k_hint != "" ? k_hint : U::ClassName(),
+        return RegisterCreator(k_hint != "" ? k_hint : U::RegisterName(),
                                [](Args const &... args) { return new U(args...); });
     };
     template <typename... U>
@@ -67,11 +67,11 @@ class EnableCreateFromDataTable {
 
         if (it != f.end()) {
             res.reset(it->second(std::forward<U>(args)...));
-            LOGGER << TObj::ClassName() << "::" << it->first << "  is created!" << std::endl;
+            LOGGER << TObj::RegisterName() << "::" << it->first << "  is created!" << std::endl;
         } else {
             std::ostringstream os;
             os << "Can not find Creator " << k << std::endl;
-            os << std::endl << "Register " << TObj::ClassName() << " Creator:" << std::endl;
+            os << std::endl << "Register " << TObj::RegisterName() << " Creator:" << std::endl;
             for (auto const &item : f) { os << item.first << std::endl; }
             RUNTIME_ERROR << os.str();
         }
@@ -90,19 +90,18 @@ class EnableCreateFromDataTable {
     static std::shared_ptr<TObj> Create(std::shared_ptr<DataTable> const &cfg, U &&... args) {
         if (cfg == nullptr) { return nullptr; }
         auto res = Create(cfg->GetValue<std::string>("Type", "unnamed"), std::forward<U>(args)...);
-        res->Deserialize(cfg);
+//        res->Deserialize(cfg);
         return res;
     }
 };
 
-#define DECLARE_REGISTER_NAME(_CLASS_NAME_)                           \
-   public:                                                            \
-    std::string GetClassName() const override { return ClassName(); } \
-    static std::string ClassName() { return _CLASS_NAME_; }           \
+#define DECLARE_REGISTER_NAME(_REGISTER_NAME_)                              \
+   public:                                                                  \
+    std::string GetRegisterName() const override { return RegisterName(); } \
+    static std::string RegisterName() { return _REGISTER_NAME_; }           \
     static bool is_registered;
 
-#define REGISTER_CREATOR(_CLASS_NAME_) \
-    bool _CLASS_NAME_::is_registered = _CLASS_NAME_::RegisterCreator<_CLASS_NAME_>(__STRING(_CLASS_NAME_));
+#define REGISTER_CREATOR(_CLASS_NAME_) bool _CLASS_NAME_::is_registered = _CLASS_NAME_::RegisterCreator<_CLASS_NAME_>();
 
 }  // namespace data{
 }  // namespace simpla{
