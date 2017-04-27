@@ -72,10 +72,10 @@ class Context : public data::Serializable, public data::EnableCreateFromDataTabl
     std::shared_ptr<DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<DataTable> &cfg) override;
 
-    void Initialize();  //!< initialize data on current patch
-    void Finalize();    //!< release data on current patch
-    void TearDown();
-    void SetUp();
+    virtual void Initialize();
+    virtual void Finalize();
+    virtual void TearDown();
+    virtual void SetUp();
 
     void InitializeCondition(Patch *p, Real time_now);
     void BoundaryCondition(Patch *p, Real time_now, Real time_dt);

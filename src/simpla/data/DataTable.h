@@ -201,6 +201,9 @@ std::shared_ptr<DataEntity> make_data_entity(KeyValue const& first, Others&&... 
     res->SetValue(first, std::forward<Others>(others)...);
     return res;
 }
+
+
+
 }  // namespace data
 }  // namespace simpla
 

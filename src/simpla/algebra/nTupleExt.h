@@ -187,20 +187,26 @@ std::ostream &printNd_(std::ostream &os, T const &d, int_sequence<N...> const &,
 template <typename T, int M, int... N>
 std::ostream &printNd_(std::ostream &os, T const &d, int_sequence<M, N...> const &,
                        ENABLE_IF((simpla::concept::is_indexable<T>::value))) {
-    os << "{";
+    os << "[";
     printNd_(os, d[0], int_sequence<N...>());
     for (int i = 1; i < M; ++i) {
         os << " , ";
         printNd_(os, d[i], int_sequence<N...>());
     }
-    os << "}";
+    os << "]";
 
     return os;
 }
 
-template <typename T, int... M>
-std::istream &input(std::istream &is, declare::nTuple_<T, M...> &a) {
-    //    _detail::input(is, a);
+template <typename T>
+std::istream &input(std::istream &is, T &a) {
+    is >> a;
+    return is;
+}
+
+template <typename T, int M0, int... M>
+std::istream &input(std::istream &is, declare::nTuple_<T, M0, M...> &a) {
+    for (int n = 0; n < M0; ++n) { _detail::input(is, a[n]); }
     return is;
 }
 

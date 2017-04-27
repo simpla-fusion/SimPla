@@ -8,6 +8,8 @@
 #ifndef PRETTY_STREAM_H_
 #define PRETTY_STREAM_H_
 
+#include <simpla/utilities/integer_sequence.h>
+#include <simpla/utilities/type_traits.h>
 #include <stddef.h>
 #include <complex>
 #include <iomanip>
@@ -18,10 +20,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <simpla/algebra/nTuple.h>
-#include <simpla/algebra/nTupleExt.h>
-#include <simpla/utilities/integer_sequence.h>
-#include <simpla/utilities/type_traits.h>
 namespace simpla {
 template <typename T, size_type... N>
 std::ostream &printNd(std::ostream &os, T const &d, int_sequence<N...> const &,
@@ -51,9 +49,8 @@ std::ostream &printNd(std::ostream &os, T const &d, int_sequence<M, N...> const 
  */
 
 template <typename TV, typename TI>
-inline TV const *printNdArray(std::ostream &os, TV const *v, int rank, TI const *d,
-                              bool is_first = true, bool is_last = true,
-                              std::string const &left_brace = "{", std::string const &sep = ",",
+inline TV const *printNdArray(std::ostream &os, TV const *v, int rank, TI const *d, bool is_first = true,
+                              bool is_last = true, std::string const &left_brace = "{", std::string const &sep = ",",
                               std::string const &right_brace = "}", bool is_slow_first = true) {
     constexpr int ELE_NUM_PER_LINE = 10;
     if (rank == 1) {
@@ -75,8 +72,7 @@ inline TV const *printNdArray(std::ostream &os, TV const *v, int rank, TI const 
                 os << sep;
                 if (rank > 1) { os << std::endl; }
             }
-            v = printNdArray(os, v, rank - 1, d + 1, s == 0, s == d[0] - 1, left_brace, sep,
-                             right_brace);
+            v = printNdArray(os, v, rank - 1, d + 1, s == 0, s == d[0] - 1, left_brace, sep, right_brace);
         }
         os << right_brace;
         return (v);
@@ -97,7 +93,7 @@ std::istream &get_(std::istream &is, size_t num, std::map<TX, TY, Others...> &a)
 }
 
 template <typename TI>
-std::ostream &ContainerOutPut1(std::ostream &os, TI const ib, TI const ie) {
+std::ostream &ContainerOutPut1(std::ostream &os, TI const &ib, TI const &ie) {
     if (ib == ie) { return os; }
 
     TI it = ib;
@@ -105,11 +101,26 @@ std::ostream &ContainerOutPut1(std::ostream &os, TI const ib, TI const ie) {
     os << *it;
 
     size_t s = 0;
-
-    for (++it; it != ie; ++it) {
+    ++it;
+    for (; it != ie; ++it) {
         os << " , " << *it;
 
         ++s;
+        if (s % 10 == 0) { os << std::endl; }
+    }
+
+    return os;
+}
+
+template <typename TI>
+std::ostream &ContainerOutPut1(std::ostream &os, TI const *d, size_type num) {
+    if (num == 0) { return os; }
+
+    os << d[0];
+
+    for (size_type s = 1; s < num; ++s) {
+        os << " , " << d[s];
+
         if (s % 10 == 0) { os << std::endl; }
     }
 
@@ -167,7 +178,8 @@ std::ostream &operator<<(std::ostream &os, std::map<T1, T2> const &p) {
 
 template <typename TV, typename... Others>
 std::istream &operator>>(std::istream &is, std::vector<TV, Others...> &a) {
-    for (auto &v : a) { is >> v; }
+    for (auto it = a.begin(); it != a.end(); ++it) { is >> *it; }
+    //    for (auto &v : a) { is >> v; }
     //	std::Duplicate(std::istream_iterator<TV>(is), std::istream_iterator<TV>(),
     // std::back_inserter(a));
     return is;
@@ -175,7 +187,7 @@ std::istream &operator>>(std::istream &is, std::vector<TV, Others...> &a) {
 
 template <typename U, typename... Others>
 std::ostream &operator<<(std::ostream &os, std::vector<U, Others...> const &d) {
-    return simpla::ContainerOutPut1(os, d.begin(), d.end());
+    return simpla::ContainerOutPut1(os, &d[0], d.size());
 }
 
 template <typename U, typename... Others>
@@ -208,14 +220,12 @@ std::ostream &operator<<(std::ostream &os, std::multimap<TX, TY, Others...> cons
 //}
 namespace _impl {
 template <typename... Args>
-std::ostream &print_helper(std::ostream &os, std::tuple<Args...> const &v,
-                           std::integral_constant<int, 0>) {
+std::ostream &print_helper(std::ostream &os, std::tuple<Args...> const &v, std::integral_constant<int, 0>) {
     return os;
 };
 
 template <typename... Args, int N>
-std::ostream &print_helper(std::ostream &os, std::tuple<Args...> const &v,
-                           std::integral_constant<int, N>) {
+std::ostream &print_helper(std::ostream &os, std::tuple<Args...> const &v, std::integral_constant<int, N>) {
     os << " , " << std::get<sizeof...(Args)-N>(v);
     print_helper(os, v, std::integral_constant<int, N - 1>());
     return os;
@@ -224,15 +234,12 @@ std::ostream &print_helper(std::ostream &os, std::tuple<Args...> const &v,
 
 template <typename T, typename... Args>
 std::ostream &operator<<(std::ostream &os, std::tuple<T, Args...> const &v) {
-
     os << "{ " << std::get<0>(v);
     _impl::print_helper(os, v, std::integral_constant<int, sizeof...(Args)>());
     os << "}";
 
     return os;
 };
-
-
 
 //
 // template<typename T, typename ...Others>

@@ -15,7 +15,12 @@ struct Model::pimpl_s {
 
 Model::Model() : m_pimpl_(new pimpl_s) {}
 Model::~Model() {}
-
+std::shared_ptr<data::DataTable> Model::Serialize() const {
+    auto res = std::make_shared<data::DataTable>();
+    for (auto const& item : m_pimpl_->m_g_objs_) { res->SetValue(item.first, item.second->Serialize()); }
+    return res;
+};
+void Model::Deserialize(const std::shared_ptr<data::DataTable>& cfg){};
 void Model::Initialize() { LOGGER << "Model is initialized " << std::endl; }
 void Model::Finalize() {}
 
@@ -30,7 +35,7 @@ void Model::SetUp() {
         }
     }
 };
-
+void Model::TearDown() {}
 int Model::GetNDims() const { return 3; }
 
 box_type const& Model::GetBoundBox() const { return m_pimpl_->m_bound_box_; };

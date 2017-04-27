@@ -147,7 +147,7 @@ int main(int argc, char **argv) {
 
     VERBOSE << DOUBLELINE << std::endl;
     std::cout << "Description : ";
-    cfg->Serialize(std::cout, 0);
+    //    cfg->Serialize(std::cout, 0);
     std::cout << std::endl;
     VERBOSE << DOUBLELINE << std::endl;
 

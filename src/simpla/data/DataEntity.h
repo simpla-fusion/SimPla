@@ -120,7 +120,14 @@ std::shared_ptr<DataEntity> make_data_entity(U const& u) {
     return std::make_shared<DataEntityWrapper<U>>(u);
 }
 template <typename U>
-std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<U> const& u) {
+std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<U> const& u,
+                                             ENABLE_IF((std::is_base_of<DataEntity, U>::value))) {
+    return std::dynamic_pointer_cast<DataEntity>(u);
+}
+
+template <typename U>
+std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<U> const& u,
+                                             ENABLE_IF((!std::is_base_of<DataEntity, U>::value))) {
     return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityWrapper<U>>(u));
 }
 template <typename U, typename... Args>

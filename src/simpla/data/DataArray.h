@@ -24,7 +24,7 @@ struct DataArray : public DataEntity {
     ~DataArray() override = default;
     SP_DEFAULT_CONSTRUCT(DataArray)
 
-    std::ostream& Serialize(std::ostream& os, int indent = 0) const override;
+    std::ostream& Serialize(std::ostream& os, int indent) const override;
     bool isArray() const override { return true; }
     /**   DataArray */
     virtual size_type size() const { return 0; };
@@ -124,7 +124,7 @@ class DataEntityWrapper<U*> : public DataArrayWithType<U> {
     virtual ~DataEntityWrapper() {}
     std::vector<U>& get() { return m_data_; }
     std::vector<U> const& get() const { return m_data_; }
-    std::ostream& Serialize(std::ostream& os, int indent = 0) const override {
+    std::ostream& Serialize(std::ostream& os, int indent) const override {
         if (m_data_.size() == 0) { return os; };
         auto it = m_data_.begin();
         os << "[" << *it;
@@ -138,7 +138,7 @@ class DataEntityWrapper<U*> : public DataArrayWithType<U> {
 
     // DataArray
     size_type size() const override { return m_data_.size(); };
-    void Delete(size_type idx) override { m_data_.erase(m_data_.begin() + idx); }
+    void Delete(size_type idx) override { UNIMPLEMENTED; }
     size_type Foreach(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const override {
         for (auto const& item : m_data_) { fun(make_data_entity(item)); }
         return m_data_.size();

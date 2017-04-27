@@ -8,13 +8,11 @@
 
 Context = {
     Type = "EMTokamak",
-    Model = {
-        tokamak = { Type = "GEqdsk", gfile = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900" }
-    },
+    gfile = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900",
     Domains =
     {
         Center = { Type = "EMFluid" },
-        Limter = { Type = "PEC" },
+        Limiter = { Type = "EMFluid" },
         Atenna = { Type = "ICRF" }
     }
 }

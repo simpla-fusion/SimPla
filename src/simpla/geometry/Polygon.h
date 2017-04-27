@@ -10,9 +10,9 @@
 #include <vector>
 
 #include <simpla/algebra/nTuple.h>
+#include <simpla/utilities/FancyStream.h>
 #include <simpla/utilities/sp_def.h>
 #include "GeoObject.h"
-
 namespace simpla {
 namespace geometry {
 /**
@@ -30,6 +30,8 @@ template <>
 struct Polygon<2> : public GeoObject {
     typedef nTuple<Real, 2> point2d_type;
 
+    SP_OBJECT_HEAD(Polygon<2>, GeoObject);
+
     std::vector<point2d_type> m_polygon_;
     std::vector<Real> constant_;
     std::vector<Real> multiple_;
@@ -40,6 +42,19 @@ struct Polygon<2> : public GeoObject {
     ~Polygon() {}
 
     Polygon(Polygon const &) = delete;
+
+    std::shared_ptr<data::DataTable> Serialize() const override {
+        auto res = data::Serializable::Serialize();
+        res->SetValue("Type", "Polygon2D");
+
+        auto v_array = std::make_shared<data::DataEntityWrapper<point2d_type *>>();
+
+        for (size_type s = 0, se = m_polygon_.size(); s < se; ++s) { v_array->Add(m_polygon_[s]); }
+
+        res->Set("data", std::dynamic_pointer_cast<data::DataEntity>(v_array));
+        return res;
+    };
+    void Deserialize(const std::shared_ptr<data::DataTable> &t) override {}
 
     std::vector<point2d_type> &data() { return m_polygon_; };
 

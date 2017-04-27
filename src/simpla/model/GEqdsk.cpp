@@ -109,11 +109,9 @@ void GEqdsk::pimpl_s::load(std::string const &fname) {
 
     inFileStream_ >> std::setw(4) >> idum >> nw >> nh;
 
-    inFileStream_ >> std::setw(16)
-        >> m_rdim_ >> m_zdim_ >> m_rcenter_ >> m_rleft_ >> m_zmid_
-        >> m_rmaxis_ >> m_zmaxis >> simag >> sibry >> m_bcenter_
-        >> m_current_ >> simag >> xdum >> m_rmaxis_ >> xdum
-        >> m_zmaxis >> xdum >> sibry >> xdum >> xdum;
+    inFileStream_ >> std::setw(16) >> m_rdim_ >> m_zdim_ >> m_rcenter_ >> m_rleft_ >> m_zmid_ >> m_rmaxis_ >>
+        m_zmaxis >> simag >> sibry >> m_bcenter_ >> m_current_ >> simag >> xdum >> m_rmaxis_ >> xdum >> m_zmaxis >>
+        xdum >> sibry >> xdum >> xdum;
 
     m_rmin_ = m_rleft_;
     m_rmax_ = m_rleft_ + m_rdim_;

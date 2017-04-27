@@ -24,6 +24,8 @@ class EMTokamak : public engine::Context {
 
     //    DOMAIN_HEAD(EMTokamak, EMFluid<mesh::CylindricalSMesh>)
 
+    void Initialize() override;
+    void Finalize() override;
     std::shared_ptr<data::DataTable> Serialize() const override {
         auto res = std::make_shared<data::DataTable>();
         res->SetValue<std::string>("Type", "EMTokamak");
@@ -42,22 +44,25 @@ class EMTokamak : public engine::Context {
 
 REGISTER_CREATOR(EMTokamak)
 
+void EMTokamak::Initialize() {}
+void EMTokamak::Finalize() {}
 void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
-    //    base_type::Deserialize(cfg);
-    //    box_type box;
+    if (cfg == nullptr) { return; }
+
     GEqdsk geqdsk;
-    //
-    //    Real phi0 = 0, phi1 = TWOPI;
-    //
-    //    geqdsk.load(db()->GetValue<std::string>("gfile", "gfile"));
-    //
-    //    box = geqdsk.limiter().box();
-    //
-    //    std::get<0>(box)[2] = phi0;
-    //    std::get<1>(box)[2] = phi1;
+
+    Real phi0 = 0, phi1 = TWOPI;
+
+    geqdsk.load(cfg->GetValue<std::string>("gfile", "gfile"));
+
+    GetModel().SetObject("Boundary", geqdsk.boundary_gobj());
+
+    GetModel().SetObject("Limiter", geqdsk.limiter_gobj());
+
+    std::cout << "Model = ";
+    GetModel().Serialize(std::cout, 0);
     //
     //    auto const &boundary = geqdsk.boundary();
-
     //    rho0.Assign([&](point_type const &x) -> Real { return (geqdsk.in_boundary(x)) ? geqdsk.profile("ne", x) : 0.0;
     //    });
     //    psi.Assign([&](point_type const &x) -> Real { return geqdsk.psi(x); });

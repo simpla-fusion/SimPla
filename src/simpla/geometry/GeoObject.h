@@ -38,6 +38,13 @@ class GeoObject : public data::Serializable, public data::EnableCreateFromDataTa
 
     DECLARE_REGISTER_NAME("GeoObject");
 
+    std::shared_ptr<data::DataTable> Serialize() const override {
+        auto res = data::Serializable::Serialize();
+        res->SetValue<std::string>("Type", GetRegisterName());
+        return res;
+    };
+    void Deserialize(const std::shared_ptr<data::DataTable> &t) override {}
+
     virtual box_type const &GetBoundBox() const { return m_bound_box_; };
 
     bool isNull() const { return true; };
