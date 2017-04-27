@@ -8,10 +8,6 @@
 #define SIMPLA_FIELD_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/algebra/CalculusPolicy.h>
-#include <simpla/concept/Printable.h>
-#include <simpla/data/DataBlock.h>
-#include <simpla/data/all.h>
 #include <simpla/engine/Attribute.h>
 #include <simpla/engine/MeshBlock.h>
 #include <simpla/utilities/EntityId.h>
@@ -21,6 +17,7 @@
 #include <cstring>  // for memset
 #include "Algebra.h"
 #include "Array.h"
+#include "CalculusPolicy.h"
 #include "simpla/utilities/nTuple.h"
 namespace simpla {
 namespace algebra {

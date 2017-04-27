@@ -10,10 +10,12 @@
 using namespace simpla;
 
 int main(int argc, char** argv) {
-    nTuple<Real, 3> a{1.0};
-    nTuple<Real, 3> b{2.0};
+    nTuple<Real, 3> a{1.0, 3, 4};
+    nTuple<Real, 3> b{2.0, 5, 6};
     nTuple<Real, 3> c;
-    c = (b + 1) ;
+    c = b + 1;
+    std::cout << a << std::endl;
+    std::cout << b << std::endl;
     std::cout << c << std::endl;
     //    double a[3] = {1, 2, 3};
     //    double b[3] = {1, 2, 3};

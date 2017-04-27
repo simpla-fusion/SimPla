@@ -243,8 +243,8 @@ struct nTuple_calculator {
     }
 
     template <typename V, int N0, int... N, typename TR>
-    static void assign(nTuple<V, N0, N...>& lhs, TR& rhs){
-        //        for (int i = 0; i < N0; ++i) { getValue(lhs, i) = getValue(rhs, i); }
+    static void assign(nTuple<V, N0, N...>& lhs, TR& rhs) {
+        for (int i = 0; i < N0; ++i) { getValue(lhs, i) = getValue(rhs, i); }
     };
 
     template <typename V, int N0, int... N>
@@ -590,15 +590,16 @@ T determinant(nTuple<T, 4, 4> const& m) {
            m[0][1] * m[1][0] * m[2][2] * m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3];
 }
 
-template <typename T1, typename T2>
-//  nTuple<std::result_of_t<tags::multiplies::eval(traits::value_type_t < T1 > ,
-//                                                                traits::value_type_t < T2 > )>, 3>
-auto cross(T1 const& l, T2 const& r, ENABLE_IF(traits::is_nTuple<T1>::value&& traits::is_nTuple<T2>::value)) {
-    return nTuple<std::result_of_t<ntuple_tags::multiplies::eval(traits::value_type_t<T1>, traits::value_type_t<T2>)>,
-                  3>{traits::get_v(l, 1) * traits::get_v(r, 2) - traits::get_v(l, 2) * traits::get_v(r, 1),
-                     traits::get_v(l, 2) * traits::get_v(r, 0) - traits::get_v(l, 0) * traits::get_v(r, 2),
-                     traits::get_v(l, 0) * traits::get_v(r, 1) - traits::get_v(l, 1) * traits::get_v(r, 0)};
-}
+// template <typename T1, typename T2>
+////  nTuple<std::result_of_t<tags::multiplies::eval(traits::value_type_t < T1 > ,
+////                                                                traits::value_type_t < T2 > )>, 3>
+// auto cross(T1 const& l, T2 const& r, ENABLE_IF(traits::is_nTuple<T1>::value&& traits::is_nTuple<T2>::value)) {
+//    return nTuple<
+//        std::result_of_t<ntuple_tags::multiplies::eval(traits::value_type_t<T1>, traits::value_type_t<T2>)>, 3>{
+//        traits::get_v(l, 1) * traits::get_v(r, 2) - traits::get_v(l, 2) * traits::get_v(r, 1),
+//        traits::get_v(l, 2) * traits::get_v(r, 0) - traits::get_v(l, 0) * traits::get_v(r, 2),
+//        traits::get_v(l, 0) * traits::get_v(r, 1) - traits::get_v(l, 1) * traits::get_v(r, 0)};
+//}
 //
 // template <typename T, int... N>
 // auto mod(nTuple<T, N...> const &l) {

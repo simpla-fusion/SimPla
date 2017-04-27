@@ -69,14 +69,14 @@ typedef testing::Types<nTuple<double, 3>
 
 TYPED_TEST_CASE(TestNtuple, ntuple_type_lists);
 
-// TYPED_TEST(TestNtuple, swap) {
-//    TestFixture::vA.swap(TestFixture::vB);
-//
-//    traits::seq_for_each(typename TestFixture::extents(), [&](int const *idx) {
-//        EXPECT_DOUBLE_EQ(0, algebra::abs(traits::get_v(TestFixture::aA, idx) - traits::get_v(TestFixture::vB, idx)));
-//        EXPECT_DOUBLE_EQ(0, algebra::abs(traits::get_v(TestFixture::aB, idx) - traits::get_v(TestFixture::vA, idx)));
-//    });
-//}
+TYPED_TEST(TestNtuple, swap) {
+    TestFixture::vA.swap(TestFixture::vB);
+
+    traits::seq_for_each(typename TestFixture::extents(), [&](int const *idx) {
+        EXPECT_DOUBLE_EQ(0, abs(traits::get_v(TestFixture::aA, idx) - traits::get_v(TestFixture::vB, idx)));
+        EXPECT_DOUBLE_EQ(0, abs(traits::get_v(TestFixture::aB, idx) - traits::get_v(TestFixture::vA, idx)));
+    });
+}
 
 TYPED_TEST(TestNtuple, assign_Scalar) {
     TestFixture::vA = TestFixture::a;

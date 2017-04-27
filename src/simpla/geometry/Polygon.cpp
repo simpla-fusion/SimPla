@@ -4,7 +4,6 @@
  * @date 2015-11-18.
  */
 #include "Polygon.h"
-#include <simpla/algebra/all.h>
 #include <simpla/utilities/nTuple.h>
 #include "GeoAlgorithm.h"
 namespace simpla {
@@ -14,7 +13,6 @@ namespace geometry {
 //{
 //    return geometry::box_intersection(m_min_, m_max_, x0, x1);
 //}
-using namespace simpla::algebra;
 
 Real Polygon<2>::nearest_point(Real *x, Real *y) const {
     typedef nTuple<Real, 2> Vec2;

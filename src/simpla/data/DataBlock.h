@@ -9,6 +9,7 @@
 #include <simpla/algebra/Array.h>
 #include "DataEntity.h"
 namespace simpla {
+
 namespace data {
 /**
  *  Base class of Data Blocks (pure virtual)
