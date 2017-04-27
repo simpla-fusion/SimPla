@@ -20,5 +20,5 @@ Context = {
 }
 
 Schedule = {
-    Type = "SAMRAITimeIntegral"
+    Type = "SAMRAITimeIntegrator"
 }
