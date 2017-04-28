@@ -11,6 +11,10 @@
 #include "type_traits.h"
 
 namespace simpla {
+
+namespace tags {
+class _assign {};
+}
 namespace traits {
 
 template <typename...>

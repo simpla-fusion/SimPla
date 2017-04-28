@@ -13,7 +13,6 @@ add_executable(field_dummy field_dummy.cpp)
 target_link_libraries(field_dummy   mesh data)
 
 
-add_executable(array_dummy array_dummy.cpp)
-target_link_libraries(array_dummy data)
+
 
 
