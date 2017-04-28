@@ -19,7 +19,6 @@
 #include <typeindex>
 #include <vector>
 
-#include <simpla/algebra/Algebra.h>
 #include <simpla/utilities/nTuple.h>
 #include <simpla/utilities/type_traits.h>
 
@@ -41,8 +40,8 @@ namespace data {
 struct DataType {
     DataType();
 
-    DataType(std::type_index t_index, int ele_size_in_byte, int ndims = 0,
-             size_type const *dims = nullptr, std::string name = "");
+    DataType(std::type_index t_index, int ele_size_in_byte, int ndims = 0, size_type const *dims = nullptr,
+             std::string name = "");
 
     DataType(const DataType &other);
 
@@ -127,8 +126,7 @@ struct type_id {
 
    public:
     static std::string name() {
-        return name_(
-            std::integral_constant<bool, has_static_member_function_class_name<T>::value>());
+        return name_(std::integral_constant<bool, has_static_member_function_class_name<T>::value>());
     }
 };
 
@@ -139,9 +137,7 @@ struct type_id<std::integral_constant<size_t, I>> {
 
 template <int I>
 struct type_id<std::integral_constant<int, I>> {
-    static std::string name() {
-        return std::string("[") + simpla::traits::type_cast<int, std::string>::eval(I) + "]";
-    }
+    static std::string name() { return std::string("[") + simpla::traits::type_cast<int, std::string>::eval(I) + "]"; }
 };
 
 CHECK_BOOLEAN_TYPE_MEMBER(is_self_describing, is_self_describing)
@@ -175,8 +171,7 @@ struct type_id<T, typename std::enable_if_t<is_self_describing<T>::value>> {
 template <typename T, int N>
 struct type_id<T[N], void> {
     static std::string name() {
-        return type_id<T[N]>::name() + "[" + simpla::traits::type_cast<int, std::string>::eval(N) +
-               "]";
+        return type_id<T[N]>::name() + "[" + simpla::traits::type_cast<int, std::string>::eval(N) + "]";
     }
 
     static auto data_type() -> decltype(T::data_type()) { return T::data_type(); }
@@ -184,9 +179,7 @@ struct type_id<T[N], void> {
 
 template <typename T, typename... Others>
 struct type_id_list {
-    static std::string name() {
-        return type_id_list<T>::name() + "," + type_id_list<Others...>::name();
-    }
+    static std::string name() { return type_id_list<T>::name() + "," + type_id_list<Others...>::name(); }
 };
 
 template <typename T>
@@ -220,7 +213,7 @@ struct DataType::create_helper {
     static DataType create_(std::string const &name, std::integral_constant<bool, false>) {
         typedef typename std::remove_cv<T>::type obj_type;
 
-        typedef typename algebra::traits::value_type<obj_type>::type element_type;
+        typedef typename simpla::traits::value_type<obj_type>::type element_type;
 
         int ele_size_in_byte = sizeof(obj_type) / sizeof(char);
 
@@ -229,17 +222,13 @@ struct DataType::create_helper {
         //        d = traits::seq_value<algebra::traits::extents<obj_type> >::value;
 
         return std::move(DataType(std::type_index(typeid(obj_type)), ele_size_in_byte,
-                                  algebra::traits::rank<obj_type>::value, &d[0], name)
-
-                             );
+                                  simpla::traits::rank<obj_type>::value, &d[0], name));
     }
 
    public:
     static DataType create(std::string const &name = "") {
-        return create_(
-            ((name != "") ? name : (typeid(T).name())),
-            std::integral_constant<
-                bool, has_static_member_function_data_type<traits::type_id<T>>::value>());
+        return create_(((name != "") ? name : (typeid(T).name())),
+                       std::integral_constant<bool, has_static_member_function_data_type<traits::type_id<T>>::value>());
     }
 };
 
@@ -248,14 +237,13 @@ struct DataType::create_helper<T[N]> {
     static DataType create(std::string const &name = "") {
         typedef typename std::remove_cv<T>::type obj_type;
 
-        typedef typename algebra::traits::value_type<obj_type>::type element_type;
+        typedef typename simpla::traits::value_type<obj_type>::type element_type;
 
         int ele_size_in_byte = sizeof(element_type) / sizeof(char);
 
         size_type d = N;
 
-        return std::move(
-            DataType(std::type_index(typeid(element_type)), ele_size_in_byte, 1, &d, name));
+        return std::move(DataType(std::type_index(typeid(element_type)), ele_size_in_byte, 1, &d, name));
     }
 };
 
@@ -264,16 +252,15 @@ struct DataType::create_helper<T[N][M]> {
     static DataType create(std::string const &name = "") {
         typedef typename std::remove_cv<T>::type obj_type;
 
-        typedef typename algebra::traits::value_type<obj_type>::type element_type;
+        typedef typename simpla::traits::value_type<obj_type>::type element_type;
 
         int ele_size_in_byte = sizeof(element_type) / sizeof(char);
 
         size_type d[] = {N, M};
 
-        return std::move(
-            DataType(std::type_index(typeid(element_type)), ele_size_in_byte, 2, d, name)
+        return std::move(DataType(std::type_index(typeid(element_type)), ele_size_in_byte, 2, d, name)
 
-                );
+                             );
     }
 };
 }  // namespace data_model

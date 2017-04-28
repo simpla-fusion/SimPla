@@ -434,8 +434,18 @@ _SP_DEFINE_ARRAY_UNARY_OPERATOR(bitwise_not, ~)
 _SP_DEFINE_ARRAY_BINARY_OPERATOR(bitwise_xor, ^)
 _SP_DEFINE_ARRAY_BINARY_OPERATOR(bitwise_and, &)
 _SP_DEFINE_ARRAY_BINARY_OPERATOR(bitwise_or, |)
+
+template <typename TL, int NL>
+auto operator<<(Array<TL, NL> const& lhs, int n) {
+    return Expression<simpla::tags::bitwise_left_shift, const Array<TL, NL>, int>(lhs, n);
+};
+
+template <typename TL, int NL>
+auto operator>>(Array<TL, NL> const& lhs, int n) {
+    return Expression<simpla::tags::bitwise_right_shifit, const Array<TL, NL>, int>(lhs, n);
+};
 //_SP_DEFINE_ARRAY_BINARY_OPERATOR(bitwise_left_shift, <<)
-//_SP_DEFINE_ARRAY_BINARY_OPERATOR(bitwise_right_shifit, >>)
+//_SP_DEFINE_ARRAY_BINARY_OPERATOR(bitwise_right_shift, >>)
 
 _SP_DEFINE_ARRAY_UNARY_OPERATOR(unary_plus, +)
 _SP_DEFINE_ARRAY_UNARY_OPERATOR(unary_minus, -)

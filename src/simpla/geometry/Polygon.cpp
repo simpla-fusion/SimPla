@@ -39,9 +39,9 @@ Real Polygon<2>::nearest_point(Real *x, Real *y) const {
         u = x0 - p0;
         v = p1 - p0;
 
-        Real v2 = vec_dot(v, v);
+        Real v2 = dot(v, v);
 
-        Real s = vec_dot(u, v) / v2;
+        Real s = dot(u, v) / v2;
 
         point2d_type p;
 
@@ -57,7 +57,7 @@ Real Polygon<2>::nearest_point(Real *x, Real *y) const {
          */
         UNIMPLEMENTED;
 
-        Real dd = 0;  // vec_dot(x0 - p, x0 - p);
+        Real dd = 0;  // dot(x0 - p, x0 - p);
 
         if (std::abs(dd) < std::abs(d2)) {
             d2 = dd;

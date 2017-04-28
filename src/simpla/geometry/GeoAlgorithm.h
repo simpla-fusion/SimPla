@@ -81,9 +81,9 @@ std::tuple<Real, Vec3> GetNearestPointToPlane(T0 const& x0, T1 const& p0, T2 con
 
     n = cross(p1 - p0, p2 - p1);
 
-    n /= vec_dot(n, n);
+    n /= dot(n, n);
 
-    return std::forward_as_tuple(vec_dot(p0 - x0, n), std::move(n));
+    return std::forward_as_tuple(dot(p0 - x0, n), std::move(n));
 }
 
 template <typename T0, typename T1, typename T2>
@@ -93,9 +93,9 @@ Real GetNearestPointToLineSegment(T0 const& p0, T1 const& p1, T2 const& x) {
     u = x - *p0;
     v = *p1 - *p0;
 
-    Real v2 = vec_dot(v, v);
+    Real v2 = dot(v, v);
 
-    Real s = vec_dot(u, v) / v2;
+    Real s = dot(u, v) / v2;
 
     if (s < 0) {
         s = 0;
@@ -116,9 +116,9 @@ Real GetNearestPointToPolygon(T0 const& p0, T1 const& p1, TP* x) {
     u = x - *p0;
     v = *p1 - *p0;
 
-    Real v2 = vec_dot(v, v);
+    Real v2 = dot(v, v);
 
-    Real s = vec_dot(u, v) / v2;
+    Real s = dot(u, v) / v2;
 
     if (s < 0) {
         s = 0;
@@ -177,11 +177,11 @@ std::tuple<Real, Real> GetNearestLineToLine(T0 const& P0, T1 const& P1, T2 const
     auto w0 = P0 - Q0;
 
     // @ref http://geomalgorithms.com/a07-_distance.html
-    Real a = vec_dot(u, u);
-    Real b = vec_dot(u, v);
-    Real c = vec_dot(v, v);
-    Real d = vec_dot(u, w0);
-    Real e = vec_dot(v, w0);
+    Real a = dot(u, u);
+    Real b = dot(u, v);
+    Real c = dot(v, v);
+    Real d = dot(u, w0);
+    Real e = dot(v, w0);
 
     if (std::abs(a * c - b * b) < EPSILON) {
         // two lines are parallel
@@ -196,7 +196,7 @@ std::tuple<Real, Real> GetNearestLineToLine(T0 const& P0, T1 const& P1, T2 const
         //		auto w = w0
         //				+ ((b * e - c * d) * u - (a * e - b * d) * v) / (a * c - b *
         // b);
-        //		dist = vec_dot(w, w);
+        //		dist = dot(w, w);
     }
 
     return std::make_tuple(s, t);
@@ -285,9 +285,9 @@ std::tuple<Real, Real, TI, TI> GetDistanceFromLineToPolylines(TX const& x, TI co
         u = x - *p0;
         v = *p1 - *p0;
 
-        Real v2 = vec_dot(v, v);
+        Real v2 = dot(v, v);
 
-        Real s = vec_dot(u, v) / v2;
+        Real s = dot(u, v) / v2;
 
         if (s < 0) {
             s = 0;
@@ -297,7 +297,7 @@ std::tuple<Real, Real, TI, TI> GetDistanceFromLineToPolylines(TX const& x, TI co
 
         d = u - v * s;
 
-        Real dist2 = vec_dot(d, d);
+        Real dist2 = dot(d, d);
 
         if (min_dist2 > dist2 || (min_dist2 == dist2 && s == 0)) {
             res_p0 = p0;
@@ -320,15 +320,15 @@ Real IntersectionLineToPolygons(T0 const& p0, T1 const& p1, T2 const& polygon) {
 
     Vec3 n;
     n = cross(q2 - q1, q1 - q0);
-    n /= std::sqrt(static_cast<Real>(vec_dot(n, n)));
+    n /= std::sqrt(static_cast<Real>(dot(n, n)));
 
     it = polygon.begin();
 
     while (it != polygon.end()) {
         auto q0 = *it;
         auto q1 = *(++it);
-        q0 -= vec_dot(q0, n) * n;
-        q1 -= vec_dot(q1, n) * n;
+        q0 -= dot(q0, n) * n;
+        q1 -= dot(q1, n) * n;
     }
 }
 
@@ -370,7 +370,7 @@ Real IntersectionLineToPolygons(T0 const& p0, T1 const& p1, T2 const& polygon) {
  */
 template <typename T0, typename T1>
 Vec3 reflect(T0 const& v, T1 const& normal) {
-    return v - (2 * vec_dot(v, normal) / vec_dot(normal, normal)) * normal;
+    return v - (2 * dot(v, normal) / dot(normal, normal)) * normal;
 }
 
 /**
@@ -409,11 +409,11 @@ inline Vec3 reflect_point_by_plane(T0 const& x0, T1 const& p0, T2 const& p1, T3 
 //	auto v = p2 - p0;
 //
 //	// @ref http://geomalgorithms.com/a07-_distance.html
-//	Real a = vec_dot(x1 - x0, x1 - x0);
-//	Real b = vec_dot(x1 - x0, y1 - y0);
-//	Real c = vec_dot(y1 - y0, y1 - y0);
-//	Real d = vec_dot(y0 - x0, x1 - x0);
-//	Real e = vec_dot(y0 - x0, y1 - y0);
+//	Real a = dot(x1 - x0, x1 - x0);
+//	Real b = dot(x1 - x0, y1 - y0);
+//	Real c = dot(y1 - y0, y1 - y0);
+//	Real d = dot(y0 - x0, x1 - x0);
+//	Real e = dot(y0 - x0, y1 - y0);
 //
 //	if (std::abs(a * c - b * b) < EPSILON)
 //	{
