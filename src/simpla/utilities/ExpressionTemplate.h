@@ -89,10 +89,15 @@ struct Expression<TOP, Args...> {
     }
 };
 
+template <typename TReduction, typename T>
+std::complex<T> reduction(std::complex<T> const &expr) {
+    return expr;
+}
 template <typename TReduction, typename TExpr>
 TExpr reduction(TExpr const &expr) {
     return expr;
 }
+
 //
 // template<typename TOP, typename TL, typename TR>
 // struct AssignmentExpression<TOP, TL, TR>

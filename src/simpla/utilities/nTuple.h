@@ -221,27 +221,6 @@ class is_nTuple<Expression<TOP, Args...>>
 
 }  // namespace traits
 
-// namespace tags {
-// class _nTuple_cross;
-// class _nTuple_dot;
-//}
-// template <typename TL, typename TR>
-// struct expr_parser;
-//
-// template <typename TL, typename TR>
-// struct expr_parser<Real, Expression<tags::_nTuple_dot, TL, TR>> {
-//    static Real eval(Expression<tags::_nTuple_dot, TL, TR> const& expr) {
-//        static constexpr size_type N = std::max(traits::extent<TL>::value, traits::extent<TR>::value);
-//        Real res = 0.0;
-//
-//        //        for (int i = 0; i < N; ++i) {
-//        //            res += static_cast<Real>(dot(nTuple_calculator::getValue(std::get<0>(expr.m_args_), i),
-//        //                                         nTuple_calculator::getValue(std::get<1>(expr.m_args_), i)));
-//        //        }
-//        return res;
-//    }
-//};
-
 struct nTuple_calculator {
     template <typename T>
     static T& getValue(T* v, int s) {
@@ -321,37 +300,6 @@ struct nTuple_calculator {
         for (int i = 0; i < N0; ++i) { std::swap(getValue(lhs, i), getValue(rhs, i)); }
     };
 };
-
-// namespace st = simpla::traits;
-//
-// template <typename TRes, typename TL, typename TR, typename TOP, typename TReduction>
-// TRes reduce(TRes init, TL const& lhs, TR const& rhs, TOP const& op, TReduction const& reduction,
-//            ENABLE_IF((std::max(traits::extent<TL>::value, traits::extent<TR>::value) > 1))) {
-//    static constexpr int N = std::max(traits::extent<TL>::value, traits::extent<TR>::value);
-//    TRes res = init;
-//    for (int i = 0; i < N; ++i) {
-//        res = reduction(
-//            res, reduce(init, nTuple_calculator::getValue(lhs, i), nTuple_calculator::getValue(rhs, i), op,
-//            reduction));
-//    }
-//
-//    return res;
-//}
-//
-// template <typename TRes, typename TL, typename TR, typename TOP, typename TReduction>
-// TRes reduce(TRes init, TL const& lhs, TR const& rhs, TOP const& op, TReduction const& reduction,
-//            ENABLE_IF((std::max(traits::extent<TL>::value, traits::extent<TR>::value) <= 1))) {
-//    return init;
-//}
-// template <typename V, int... N, typename TOP, typename... Args>
-// struct expr_parser<nTuple<V, N...>, nTupleExpression<TOP, Args...>> {
-//    static nTuple<V, N...> eval(nTupleExpression<TOP, Args...> const& expr) {
-//        nTuple<V, N...> res;
-//        //        res = expr;
-//        return std::move(res);
-//    };
-//};
-//
 
 /// n-dimensional primary type
 

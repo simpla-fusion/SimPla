@@ -103,32 +103,32 @@ TYPED_TEST(TestNtuple, self_assign) {
 
     });
 }
-//
-// TYPED_TEST(TestNtuple, cross) {
-//    nTuple<typename TestFixture::value_type, 3> vA, vB, vC, vD;
-//
-//    for (int i = 0; i < 3; ++i) {
-//        vA[i] = (i * 2);
-//        vB[i] = (5 - i);
-//    }
-//
-//    for (int i = 0; i < 3; ++i) { vD[i] = vA[(i + 1) % 3] * vB[(i + 2) % 3] - vA[(i + 2) % 3] * vB[(i + 1) % 3]; }
-//
-//    vC = cross(vA, vB);
-//    vD -= vC;
-//    EXPECT_DOUBLE_EQ(0, abs(vD[0]) + abs(vD[1]) + abs(vD[2]));
-//}
-//
-TYPED_TEST(TestNtuple, dot) {
-    typename TestFixture::value_type expect;
-    expect = 0;
 
-    traits::seq_for_each(typename TestFixture::extents(), [&](int const *idx) {
-        expect += traits::get_v(TestFixture::aA, idx) * traits::get_v(TestFixture::aB, idx);
-    });
+TYPED_TEST(TestNtuple, cross) {
+    nTuple<typename TestFixture::value_type, 3> vA, vB, vC, vD;
 
-    EXPECT_DOUBLE_EQ(0.0, abs(expect - (dot(TestFixture::vA, TestFixture::vB))));
+    for (int i = 0; i < 3; ++i) {
+        vA[i] = (i * 2);
+        vB[i] = (5 - i);
+    }
+
+    for (int i = 0; i < 3; ++i) { vD[i] = vA[(i + 1) % 3] * vB[(i + 2) % 3] - vA[(i + 2) % 3] * vB[(i + 1) % 3]; }
+
+    vC = cross(vA, vB);
+    vD -= vC;
+    EXPECT_DOUBLE_EQ(0, abs(vD[0]) + abs(vD[1]) + abs(vD[2]));
 }
+
+//TYPED_TEST(TestNtuple, dot) {
+//    typename TestFixture::value_type expect;
+//    expect = 0;
+//
+//    traits::seq_for_each(typename TestFixture::extents(), [&](int const *idx) {
+//        expect += traits::get_v(TestFixture::aA, idx) * traits::get_v(TestFixture::aB, idx);
+//    });
+//
+//    EXPECT_DOUBLE_EQ(0.0, abs(expect - (dot(TestFixture::vA, TestFixture::vB))));
+//}
 
 TYPED_TEST(TestNtuple, arithmetic) {
     TestFixture::vD = EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC);
