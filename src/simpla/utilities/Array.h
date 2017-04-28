@@ -396,26 +396,26 @@ struct Array : public concept::Printable {
     }
 };
 
-#define _SP_DEFINE_ARRAY_BINARY_OPERATOR(_NAME_, _OP_)                                                \
-    template <typename TL, int NL, typename TR>                                                       \
-    auto operator _OP_(Array<TL, NL> const& lhs, TR const& rhs) {                                     \
-        return Expression<simpla::tags::_NAME_, const Array<TL, NL>, TR const>(lhs, rhs);             \
-    };                                                                                                \
-    template <typename TL, typename TR, int NR>                                                       \
-    auto operator _OP_(TL const& lhs, Array<TR, NR> const& rhs) {                                     \
-        return Expression<simpla::tags::_NAME_, TL const, const Array<TR, NR>>(lhs, rhs);             \
-    };                                                                                                \
-    template <typename TL, int NL, typename TR>                                                       \
-    auto operator _OP_(Array<TL, NL> const& lhs, Expression<TR> const& rhs) {                         \
-        return Expression<simpla::tags::_NAME_, const Array<TL, NL>, Expression<TR> const>(lhs, rhs); \
-    };                                                                                                \
-    template <typename TL, typename TR, int NR>                                                       \
-    auto operator _OP_(Expression<TL> const& lhs, Array<TR, NR> const& rhs) {                         \
-        return Expression<simpla::tags::_NAME_, Expression<TL> const, const Array<TR, NR>>(lhs, rhs); \
-    };                                                                                                \
-    template <typename TL, int NL, typename TR, int NR>                                               \
-    auto operator _OP_(Array<TL, NL> const& lhs, Array<TR, NR> const& rhs) {                          \
-        return Expression<simpla::tags::_NAME_, const Array<TL, NL>, const Array<TR, NR>>(lhs, rhs);  \
+#define _SP_DEFINE_ARRAY_BINARY_OPERATOR(_NAME_, _OP_)                                                   \
+    template <typename TL, int NL, typename TR>                                                          \
+    auto operator _OP_(Array<TL, NL> const& lhs, TR const& rhs) {                                        \
+        return Expression<simpla::tags::_NAME_, const Array<TL, NL>, TR const>(lhs, rhs);                \
+    };                                                                                                   \
+    template <typename TL, typename TR, int NR>                                                          \
+    auto operator _OP_(TL const& lhs, Array<TR, NR> const& rhs) {                                        \
+        return Expression<simpla::tags::_NAME_, TL const, const Array<TR, NR>>(lhs, rhs);                \
+    };                                                                                                   \
+    template <typename TL, int NL, typename... TR>                                                       \
+    auto operator _OP_(Array<TL, NL> const& lhs, Expression<TR...> const& rhs) {                         \
+        return Expression<simpla::tags::_NAME_, const Array<TL, NL>, Expression<TR...> const>(lhs, rhs); \
+    };                                                                                                   \
+    template <typename... TL, typename TR, int NR>                                                       \
+    auto operator _OP_(Expression<TL...> const& lhs, Array<TR, NR> const& rhs) {                         \
+        return Expression<simpla::tags::_NAME_, Expression<TL...> const, const Array<TR, NR>>(lhs, rhs); \
+    };                                                                                                   \
+    template <typename TL, int NL, typename TR, int NR>                                                  \
+    auto operator _OP_(Array<TL, NL> const& lhs, Array<TR, NR> const& rhs) {                             \
+        return Expression<simpla::tags::_NAME_, const Array<TL, NL>, const Array<TR, NR>>(lhs, rhs);     \
     };
 
 #define _SP_DEFINE_ARRAY_UNARY_OPERATOR(_NAME_, _OP_)                      \
@@ -434,8 +434,8 @@ _SP_DEFINE_ARRAY_UNARY_OPERATOR(bitwise_not, ~)
 _SP_DEFINE_ARRAY_BINARY_OPERATOR(bitwise_xor, ^)
 _SP_DEFINE_ARRAY_BINARY_OPERATOR(bitwise_and, &)
 _SP_DEFINE_ARRAY_BINARY_OPERATOR(bitwise_or, |)
-_SP_DEFINE_ARRAY_BINARY_OPERATOR(bitwise_left_shift, <<)
-_SP_DEFINE_ARRAY_BINARY_OPERATOR(bitwise_right_shifit, >>)
+//_SP_DEFINE_ARRAY_BINARY_OPERATOR(bitwise_left_shift, <<)
+//_SP_DEFINE_ARRAY_BINARY_OPERATOR(bitwise_right_shifit, >>)
 
 _SP_DEFINE_ARRAY_UNARY_OPERATOR(unary_plus, +)
 _SP_DEFINE_ARRAY_UNARY_OPERATOR(unary_minus, -)

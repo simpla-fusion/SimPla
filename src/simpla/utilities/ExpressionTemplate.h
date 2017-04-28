@@ -13,7 +13,12 @@
 namespace simpla {
 
 namespace tags {
-class _assign {};
+struct _assign {
+    template <typename TL, typename TR>
+    void operator()(TL &lhs, TR const &rhs) const {
+        lhs = rhs;
+    }
+};
 }
 namespace traits {
 

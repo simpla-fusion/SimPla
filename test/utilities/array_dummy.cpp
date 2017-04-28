@@ -25,8 +25,8 @@ int main(int argc, char **argv) {
     c.Clear();
     for (index_type i = -2; i < 6; ++i)
         for (index_type j = -2; j < 7; ++j) {
-            a(i, j) = i + j;
-            b(i, j) = i * j;
+            a(i, j, 0) = i + j;
+            b(i, j, 0) = i * j;
         }
 
     c = a + b * 3;

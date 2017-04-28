@@ -386,6 +386,16 @@ struct nTuple<TV, N0, N...> {
     }
 };
 
+template <typename TReduction, typename TV, int N0, int... N>
+auto reduction(nTuple<TV, N0, N...> const& expr) {
+    auto res = reduction<TReduction>(nTuple_calculator::getValue(expr, 0));
+    for (int s = 1; s < N0; ++s) {
+        res = TReduction::eval(res, reduction<TReduction>(nTuple_calculator::getValue(expr, s)));
+    }
+
+    return res;
+}
+
 template <typename TReduction, typename TOP, typename... Args>
 auto reduction(simpla::Expression<TOP, Args...> const& expr) {
     static constexpr int n = simpla::traits::extent<simpla::Expression<TOP, Args...>>::value;
