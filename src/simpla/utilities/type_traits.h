@@ -50,22 +50,6 @@ auto invoke(Func&& func, Tup&& tup) {
 
 namespace traits {
 
-template <typename...>
-struct reference;
-template <typename T>
-struct reference<T> {
-    typedef T type;
-};
-template <typename T>
-using reference_t = typename reference<T>::type;
-
-template <typename T>
-struct value_type {
-    typedef T type;
-};
-template <typename T>
-using value_type_t = typename value_type<T>::type;
-
 typedef std::integral_constant<bool, true> true_t;
 typedef std::integral_constant<bool, false> false_t;
 //

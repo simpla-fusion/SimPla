@@ -12,15 +12,46 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/concept/CheckConcept.h>
-#include <simpla/utilities/integer_sequence.h>
-#include <simpla/utilities/type_traits.h>
+#include "ExpressionTemplate.h"
+#include "integer_sequence.h"
+#include "type_traits.h"
 
 namespace simpla {
 template <typename, int...>
 struct nTuple;
 
-template <typename...>
-struct _Expression;
+// typedef std::complex<Real> Complex;
+
+template <typename T, int N>
+using Vector = nTuple<T, N>;
+
+template <typename T, int M, int N>
+using Matrix = nTuple<T, M, N>;
+
+template <typename T, int... N>
+using Tensor = nTuple<T, N...>;
+
+typedef nTuple<Real, 3ul> point_type;  //!< DataType of configuration space point (coordinates i.e. (x,y,z) )
+
+typedef nTuple<Real, 3ul> vector_type;
+
+typedef std::tuple<point_type, point_type> box_type;  //! two corner of rectangle (or hexahedron ) , <lower ,upper>
+
+typedef nTuple<index_type, 3> index_tuple;
+
+typedef nTuple<size_type, 3> size_tuple;
+
+typedef std::tuple<index_tuple, index_tuple> index_box_type;
+
+typedef nTuple<Real, 3> Vec3;
+
+typedef nTuple<Real, 3> CoVec3;
+
+typedef nTuple<Integral, 3> IVec3;
+
+typedef nTuple<Real, 3> RVec3;
+
+// typedef nTuple<Complex, 3> CVec3;
 
 /**
  * @addtogroup ntuple n-tuple
@@ -159,9 +190,9 @@ template <typename TL, typename TR>
 struct expr_parser;
 
 template <typename TL, typename TR>
-struct expr_parser<Real, nTuple<_Expression<tags::_nTuple_dot, TL, TR>>> {
-    static Real eval(nTuple<_Expression<tags::_nTuple_dot, TL, TR>> const& expr) {
-        static constexpr int N = std::max(traits::extent<TL>::value, traits::extent<TR>::value);
+struct expr_parser<Real, Expression<tags::_nTuple_dot, TL, TR>> {
+    static Real eval(Expression<tags::_nTuple_dot, TL, TR> const& expr) {
+        static constexpr size_type N = std::max(traits::extent<TL>::value, traits::extent<TR>::value);
         Real res = 0.0;
 
         //        for (int i = 0; i < N; ++i) {
@@ -224,7 +255,7 @@ struct nTuple_calculator {
     };
 
     template <typename... T, typename... Idx>
-    static decltype(auto) getValue(nTuple<_Expression<tags::_nTuple_cross, T...>> const& expr, int s, Idx&&... others) {
+    static decltype(auto) getValue(Expression<tags::_nTuple_cross, T...> const& expr, int s, Idx&&... others) {
         return getValue(std::get<0>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...) *
                    getValue(std::get<1>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) -
                getValue(std::get<0>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) *
@@ -232,13 +263,12 @@ struct nTuple_calculator {
     }
 
     template <typename TOP, typename... Others, int... index, typename... Idx>
-    static decltype(auto) _invoke_helper(nTuple<_Expression<TOP, Others...>> const& expr, int_sequence<index...>,
-                                         Idx&&... s) {
+    static decltype(auto) _invoke_helper(Expression<TOP, Others...> const& expr, int_sequence<index...>, Idx&&... s) {
         return ((expr.m_op_(getValue(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)));
     }
 
     template <typename TOP, typename... Others, typename... Idx>
-    static decltype(auto) getValue(nTuple<_Expression<TOP, Others...>> const& expr, Idx&&... s) {
+    static decltype(auto) getValue(Expression<TOP, Others...> const& expr, Idx&&... s) {
         return ((_invoke_helper(expr, int_sequence_for<Others...>(), std::forward<Idx>(s)...)));
     }
 
@@ -286,40 +316,15 @@ struct nTuple_calculator {
 
 /// n-dimensional primary type
 
-template <typename TOP, typename... Args>
-struct nTuple<_Expression<TOP, Args...>> {
-    typedef nTuple<_Expression<TOP, Args...>> this_type;
-
-    std::tuple<traits::reference_t<Args>...> m_args_;
-    typedef std::true_type is_expression;
-    typedef std::false_type prefer_pass_by_reference;
-    typedef std::true_type prefer_pass_by_value;
-
-    TOP m_op_;
-
-    nTuple(Args const&... args) : m_args_((args)...) {}
-    nTuple(this_type const& that) noexcept : m_args_(that.m_args_) {}
-    nTuple(this_type&& that) noexcept : m_args_(that.m_args_) {}
-
-    virtual ~nTuple() = default;
-
-    this_type& operator=(this_type const& that) = delete;
-    this_type& operator=(this_type&& that) = delete;
-
-    template <typename T>
-    explicit operator T() const {
-        return expr_parser<T, this_type>::eval(*this);
-    }
-};
 template <typename TV>
 struct nTuple<TV> {
     typedef TV value_type;
     typedef TV pod_type;
 };
 
-template <typename TV, int N0, int... NOthers>
-struct nTuple<TV, N0, NOthers...> {
-    typedef nTuple<TV, N0, NOthers...> this_type;
+template <typename TV, int N0, int... N>
+struct nTuple<TV, N0, N...> {
+    typedef nTuple<TV, N0, N...> this_type;
 
     typedef nTuple_calculator calculator;
     typedef std::true_type prefer_pass_by_reference;
@@ -332,12 +337,12 @@ struct nTuple<TV, N0, NOthers...> {
     nTuple() = default;
     ~nTuple() = default;
 
-    nTuple(simpla::traits::nested_initializer_list_t<value_type, sizeof...(NOthers) + 1> l) {
-        simpla::traits::assign_nested_initializer_list<N0, NOthers...>::apply(data_, l);
+    nTuple(simpla::traits::nested_initializer_list_t<value_type, sizeof...(N) + 1> l) {
+        simpla::traits::assign_nested_initializer_list<N0, N...>::apply(data_, l);
     }
 
     template <typename... U>
-    nTuple(nTuple<_Expression<U...>> const& expr) {
+    nTuple(Expression<U...> const& expr) {
         calculator::assign((*this), expr);
     }
 
@@ -388,146 +393,167 @@ struct nTuple<TV, N0, NOthers...> {
         calculator::assign((*this), rhs);
         return (*this);
     }
-    template <typename TR>
-    this_type& operator+=(TR const& rhs) {
-        *this = *this + rhs;
-        return (*this);
-    }
-    template <typename TR>
-    this_type& operator-=(TR const& rhs) {
-        *this = *this - rhs;
-        return (*this);
-    }
-    template <typename TR>
-    this_type& operator*=(TR const& rhs) {
-        *this = *this * rhs;
-        return (*this);
-    }
-    template <typename TR>
-    this_type& operator/=(TR const& rhs) {
-        *this = *this / rhs;
-        return (*this);
-    }
-
-    template <typename TR>
-    bool operator==(TR const& rhs) const {
-        return false;
-    }
 };
 
-#define DEF_BOP(_NAME_, _OP_)                                                                                        \
-    namespace ntuple_tags {                                                                                          \
-    struct _NAME_ {                                                                                                  \
-        template <typename TL, typename TR>                                                                          \
-        static constexpr auto eval(TL const& l, TR const& r) {                                                       \
-            return ((l _OP_ r));                                                                                     \
-        }                                                                                                            \
-        template <typename TL, typename TR>                                                                          \
-        constexpr auto operator()(TL const& l, TR const& r) const {                                                  \
-            return ((l _OP_ r));                                                                                     \
-        }                                                                                                            \
-    };                                                                                                               \
-    }                                                                                                                \
-                                                                                                                     \
-    template <typename TL, int... NL>                                                                                \
-    auto operator _OP_(nTuple<TL, NL...> const& lhs, Real rhs) {                                                     \
-        return nTuple<_Expression<ntuple_tags::_NAME_, const nTuple<TL, NL...>, Real>>(lhs, rhs);                    \
-    };                                                                                                               \
-    template <typename TR, int... NR>                                                                                \
-    auto operator _OP_(Real lhs, nTuple<TR, NR...> const& rhs) {                                                     \
-        return nTuple<_Expression<ntuple_tags::_NAME_, Real, const nTuple<TR, NR...>>>(lhs, rhs);                    \
-    };                                                                                                               \
-    template <typename TL, int... NL>                                                                                \
-    auto operator _OP_(nTuple<TL, NL...> const& lhs, int rhs) {                                                      \
-        return nTuple<_Expression<ntuple_tags::_NAME_, const nTuple<TL, NL...>, int>>(lhs, rhs);                     \
-    };                                                                                                               \
-    template <typename TR, int... NR>                                                                                \
-    auto operator _OP_(int lhs, nTuple<TR, NR...> const& rhs) {                                                      \
-        return nTuple<_Expression<ntuple_tags::_NAME_, int, const nTuple<TR, NR...>>>(lhs, rhs);                     \
-    };                                                                                                               \
-    template <typename TL, int... NL, typename TR, int... NR>                                                        \
-    auto operator _OP_(nTuple<TL, NL...> const& lhs, nTuple<TR, NR...> const& rhs) {                                 \
-        return nTuple<_Expression<ntuple_tags::_NAME_, const nTuple<TL, NL...>, const nTuple<TR, NR...>>>(lhs, rhs); \
+#define _SP_DEFINE_NTUPLE_BINARY_OPERATOR(_NAME_, _OP_)                                              \
+    template <typename TL, int... NL, typename TR>                                                   \
+    auto operator _OP_(nTuple<TL, NL...> const& lhs, TR const& rhs) {                                \
+        return Expression<tags::_NAME_, const nTuple<TL, NL...>, TR const>(lhs, rhs);                \
+    };                                                                                               \
+    template <typename TL, typename TR, int... NR>                                                   \
+    auto operator _OP_(TL const& lhs, nTuple<TR, NR...> const& rhs) {                                \
+        return Expression<tags::_NAME_, TL const, const nTuple<TR, NR...>>(lhs, rhs);                \
+    };                                                                                               \
+    template <typename TL, int... NL, typename... TR>                                                \
+    auto operator _OP_(nTuple<TL, NL...> const& lhs, Expression<TR...> const& rhs) {                 \
+        return Expression<tags::_NAME_, const nTuple<TL, NL...>, Expression<TR...> const>(lhs, rhs); \
+    };                                                                                               \
+    template <typename... TL, typename TR, int... NR>                                                \
+    auto operator _OP_(Expression<TL...> const& lhs, nTuple<TR, NR...> const& rhs) {                 \
+        return Expression<tags::_NAME_, Expression<TL...> const, const nTuple<TR, NR...>>(lhs, rhs); \
+    };                                                                                               \
+    template <typename TL, int... NL, typename TR, int... NR>                                        \
+    auto operator _OP_(nTuple<TL, NL...> const& lhs, nTuple<TR, NR...> const& rhs) {                 \
+        return Expression<tags::_NAME_, const nTuple<TL, NL...>, const nTuple<TR, NR...>>(lhs, rhs); \
     };
 
-#define DEF_UOP(_NAME_, _OP_)                                                          \
-    namespace ntuple_tags {                                                            \
-    struct _NAME_ {                                                                    \
-        template <typename TL>                                                         \
-        static constexpr auto eval(TL const& l) {                                      \
-            return ((_OP_ l));                                                         \
-        }                                                                              \
-        template <typename TL>                                                         \
-        constexpr auto operator()(TL const& l) const {                                 \
-            return ((_OP_ l));                                                         \
-        }                                                                              \
-    };                                                                                 \
-    }                                                                                  \
-                                                                                       \
-    template <typename TL, int... NL>                                                  \
-    auto operator _OP_(nTuple<TL, NL...> const& lhs) {                                 \
-        return nTuple<_Expression<ntuple_tags::_NAME_, const nTuple<TL, NL...>>>(lhs); \
+#define _SP_DEFINE_NTUPLE_UNARY_OPERATOR(_NAME_, _OP_)                 \
+    template <typename TL, int... NL>                                  \
+    auto operator _OP_(nTuple<TL, NL...> const& lhs) {                 \
+        return Expression<tags::_NAME_, const nTuple<TL, NL...>>(lhs); \
     };
 
-DEF_BOP(plus, +)
-DEF_BOP(minus, -)
-DEF_BOP(multiplies, *)
-DEF_BOP(divides, /)
-DEF_BOP(modulus, %)
-DEF_UOP(negate, -)
-DEF_UOP(unary_plus, +)
-DEF_BOP(bitwise_and, &)
-DEF_BOP(bitwise_or, |)
-DEF_BOP(bitwise_xor, ^)
-DEF_UOP(bitwise_not, ~)
-DEF_BOP(shift_left, <<)
-DEF_BOP(shift_right, >>)
-DEF_UOP(logical_not, !)
-// DEF_BOP(logical_and, &&)
-// DEF_BOP(logical_or, ||)
-// DEF_BOP(not_equal_to, !=)
-// DEF_BOP(greater, >)
-// DEF_BOP(less, <)
-// DEF_BOP(greater_equal, >=)
-// DEF_BOP(less_equal, <=)
-// DEF_BOP(equal_to, ==)
+_SP_DEFINE_NTUPLE_BINARY_OPERATOR(addition, +)
+_SP_DEFINE_NTUPLE_BINARY_OPERATOR(subtraction, -)
+_SP_DEFINE_NTUPLE_BINARY_OPERATOR(multiplication, *)
+_SP_DEFINE_NTUPLE_BINARY_OPERATOR(division, /)
+_SP_DEFINE_NTUPLE_BINARY_OPERATOR(modulo, %)
 
-#undef DEF_UOP
-#undef DEF_BOP
+_SP_DEFINE_NTUPLE_UNARY_OPERATOR(bitwise_not, ~)
+_SP_DEFINE_NTUPLE_BINARY_OPERATOR(bitwise_xor, ^)
+_SP_DEFINE_NTUPLE_BINARY_OPERATOR(bitwise_and, &)
+_SP_DEFINE_NTUPLE_BINARY_OPERATOR(bitwise_or, |)
+_SP_DEFINE_NTUPLE_BINARY_OPERATOR(bitwise_left_shift, <<)
+_SP_DEFINE_NTUPLE_BINARY_OPERATOR(bitwise_right_shifit, >>)
 
-template <typename T, int N>
-using Vector = nTuple<T, N>;
+_SP_DEFINE_NTUPLE_UNARY_OPERATOR(unary_plus, +)
+_SP_DEFINE_NTUPLE_UNARY_OPERATOR(unary_minus, -)
 
-template <typename T, int M, int N>
-using Matrix = nTuple<T, M, N>;
+_SP_DEFINE_NTUPLE_UNARY_OPERATOR(logical_not, !)
+_SP_DEFINE_NTUPLE_BINARY_OPERATOR(logical_and, &&)
+_SP_DEFINE_NTUPLE_BINARY_OPERATOR(logical_or, ||)
 
-template <typename T, int... N>
-using Tensor = nTuple<T, N...>;
+#undef _SP_DEFINE_NTUPLE_BINARY_OPERATOR
+#undef _SP_DEFINE_NTUPLE_UNARY_OPERATOR
 
-typedef nTuple<Real, 3ul> point_type;  //!< DataType of configuration space point (coordinates i.e. (x,y,z) )
+#define _SP_DEFINE_NTUPLE_BINARY_FUNCTION(_NAME_)                                                    \
+    template <typename TL, int... NL, typename TR>                                                   \
+    auto _NAME_(nTuple<TL, NL...> const& lhs, TR const& rhs) {                                       \
+        return Expression<tags::_NAME_, const nTuple<TL, NL...>, const TR>(lhs, rhs);                \
+    };                                                                                               \
+    template <typename TL, typename TR, int... NR>                                                   \
+    auto _NAME_(TL const& lhs, nTuple<TR, NR...> const& rhs) {                                       \
+        return Expression<tags::_NAME_, const TL, const nTuple<TR, NR...>>(lhs, rhs);                \
+    };                                                                                               \
+    template <typename TL, int... NL, typename... TR>                                                \
+    auto _NAME_(nTuple<TL, NL...> const& lhs, Expression<TR...> const& rhs) {                        \
+        return Expression<tags::_NAME_, const nTuple<TL, NL...>, const Expression<TR...>>(lhs, rhs); \
+    };                                                                                               \
+    template <typename... TL, typename TR, int... NR>                                                \
+    auto _NAME_(Expression<TL...> const& lhs, nTuple<TR, NR...> const& rhs) {                        \
+        return Expression<tags::_NAME_, const Expression<TL...>, const nTuple<TR, NR...>>(lhs, rhs); \
+    };                                                                                               \
+    template <typename TL, int... NL, typename TR, int... NR>                                        \
+    auto _NAME_(nTuple<TL, NL...> const& lhs, nTuple<TR, NR...> const& rhs) {                        \
+        return Expression<tags::_NAME_, const nTuple<TL, NL...>, const nTuple<TR, NR...>>(lhs, rhs); \
+    };
 
-typedef nTuple<Real, 3ul> vector_type;
+#define _SP_DEFINE_NTUPLE_UNARY_FUNCTION(_NAME_)                     \
+    template <typename T, int... N>                                  \
+    auto _NAME_(nTuple<T, N...> const& lhs) {                        \
+        return Expression<tags::_NAME_, const nTuple<T, N...>>(lhs); \
+    }
 
-typedef std::tuple<point_type, point_type> box_type;  //! two corner of rectangle (or hexahedron ) , <lower ,upper>
+_SP_DEFINE_NTUPLE_UNARY_FUNCTION(cos)
+_SP_DEFINE_NTUPLE_UNARY_FUNCTION(acos)
+_SP_DEFINE_NTUPLE_UNARY_FUNCTION(cosh)
+_SP_DEFINE_NTUPLE_UNARY_FUNCTION(sin)
+_SP_DEFINE_NTUPLE_UNARY_FUNCTION(asin)
+_SP_DEFINE_NTUPLE_UNARY_FUNCTION(sinh)
+_SP_DEFINE_NTUPLE_UNARY_FUNCTION(tan)
+_SP_DEFINE_NTUPLE_UNARY_FUNCTION(tanh)
+_SP_DEFINE_NTUPLE_UNARY_FUNCTION(atan)
+_SP_DEFINE_NTUPLE_UNARY_FUNCTION(exp)
+_SP_DEFINE_NTUPLE_UNARY_FUNCTION(log)
+_SP_DEFINE_NTUPLE_UNARY_FUNCTION(log10)
+_SP_DEFINE_NTUPLE_UNARY_FUNCTION(sqrt)
+_SP_DEFINE_NTUPLE_BINARY_FUNCTION(atan2)
+_SP_DEFINE_NTUPLE_BINARY_FUNCTION(pow)
 
-typedef long difference_type;  //!< Data type of the difference between indices,i.e.  s = i - j
+#undef _SP_DEFINE_NTUPLE_BINARY_FUNCTION
+#undef _SP_DEFINE_NTUPLE_UNARY_FUNCTION
 
-typedef nTuple<index_type, 3> index_tuple;
-typedef nTuple<size_type, 3> size_tuple;
+#define _SP_DEFINE_NTUPLE_COMPOUND_OP(_OP_)                                                     \
+    template <typename TL, int... NL, typename TR>                                              \
+    nTuple<TL, NL...>& operator _OP_##=(nTuple<TL, NL...>& lhs, TR const& rhs) {                \
+        lhs = lhs _OP_ rhs;                                                                     \
+        return lhs;                                                                             \
+    }                                                                                           \
+    template <typename TL, int... NL, typename... TR>                                           \
+    nTuple<TL, NL...>& operator _OP_##=(nTuple<TL, NL...>& lhs, Expression<TR...> const& rhs) { \
+        lhs = lhs _OP_ rhs;                                                                     \
+        return lhs;                                                                             \
+    }
 
-typedef std::tuple<index_tuple, index_tuple> index_box_type;
+_SP_DEFINE_NTUPLE_COMPOUND_OP(+)
+_SP_DEFINE_NTUPLE_COMPOUND_OP(-)
+_SP_DEFINE_NTUPLE_COMPOUND_OP(*)
+_SP_DEFINE_NTUPLE_COMPOUND_OP(/)
+_SP_DEFINE_NTUPLE_COMPOUND_OP(%)
+_SP_DEFINE_NTUPLE_COMPOUND_OP(&)
+_SP_DEFINE_NTUPLE_COMPOUND_OP(|)
+_SP_DEFINE_NTUPLE_COMPOUND_OP (^)
+_SP_DEFINE_NTUPLE_COMPOUND_OP(<<)
+_SP_DEFINE_NTUPLE_COMPOUND_OP(>>)
 
-// typedef std::complex<Real> Complex;
+#undef _SP_DEFINE_NTUPLE_COMPOUND_OP
 
-typedef nTuple<Real, 3> Vec3;
+#define _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(_NAME_, _REDUCTION_, _OP_)                                  \
+    template <typename TL, int... NL, typename TR>                                                            \
+    auto operator _OP_(nTuple<TL, NL...> const& lhs, TR const& rhs) {                                         \
+        return Reduction<_REDUCTION_>(Expression<tags::_NAME_, const nTuple<TL, NL...>, const TR>(lhs, rhs)); \
+    };                                                                                                        \
+    template <typename TL, typename TR, int... NR>                                                            \
+    auto operator _OP_(TL const& lhs, nTuple<TR, NR...> const& rhs) {                                         \
+        return Reduction<_REDUCTION_>(Expression<tags::_NAME_, const TL, const nTuple<TR, NR...>>(lhs, rhs)); \
+    };                                                                                                        \
+    template <typename TL, int... NL, typename... TR>                                                         \
+    auto operator _OP_(nTuple<TL, NL...> const& lhs, Expression<TR...> const& rhs) {                          \
+        return Reduction<_REDUCTION_>(                                                                        \
+            Expression<tags::_NAME_, const nTuple<TL, NL...>, const Expression<TR...>>(lhs, rhs));            \
+    };                                                                                                        \
+    template <typename... TL, typename TR, int... NR>                                                         \
+    auto operator _OP_(Expression<TL...> const& lhs, nTuple<TR, NR...> const& rhs) {                          \
+        return Reduction<_REDUCTION_>(                                                                        \
+            Expression<tags::_NAME_, const Expression<TL...>, const nTuple<TR, NR...>>(lhs, rhs));            \
+    };                                                                                                        \
+    template <typename TL, int... NL, typename TR, int... NR>                                                 \
+    auto operator _OP_(nTuple<TL, NL...> const& lhs, nTuple<TR, NR...> const& rhs) {                          \
+        return Reduction<_REDUCTION_>(                                                                        \
+            Expression<tags::_NAME_, const nTuple<TL, NL...>, const nTuple<TR, NR...>>(lhs, rhs));            \
+    };
 
-typedef nTuple<Real, 3> CoVec3;
+_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(not_equal_to, tags::logical_or, !=)
+_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(equal_to, tags::logical_and, ==)
+_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(less, tags::logical_and, <)
+_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(greater, tags::logical_and, >)
+_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(less_equal, tags::logical_and, <=)
+_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(greater_equal, tags::logical_and, >=)
 
-typedef nTuple<Integral, 3> IVec3;
+#undef _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR
 
-typedef nTuple<Real, 3> RVec3;
-
-// typedef nTuple<Complex, 3> CVec3;
+//    DEF_BOP(shift_left, <<)
+//    DEF_BOP(shift_right, >>)
 
 template <typename T>
 T vec_dot(nTuple<T, 3> const& l, nTuple<T, 3> const& r) {
@@ -591,20 +617,19 @@ T determinant(nTuple<T, 4, 4> const& m) {
 }
 
 // template <typename T1, typename T2>
-////  nTuple<std::result_of_t<tags::multiplies::eval(traits::value_type_t < T1 > ,
-////                                                                traits::value_type_t < T2 > )>, 3>
+//  nTuple<std::result_of_t<tags::multiplies::eval(traits::value_type_t < T1 > ,
+//                                                                traits::value_type_t < T2 > )>, 3>
 // auto cross(T1 const& l, T2 const& r, ENABLE_IF(traits::is_nTuple<T1>::value&& traits::is_nTuple<T2>::value)) {
-//    return nTuple<
-//        std::result_of_t<ntuple_tags::multiplies::eval(traits::value_type_t<T1>, traits::value_type_t<T2>)>, 3>{
+//    return nTuple<std::result_of_t<tags::multiplies::eval(traits::value_type_t<T1>, traits::value_type_t<T2>)>, 3>{
 //        traits::get_v(l, 1) * traits::get_v(r, 2) - traits::get_v(l, 2) * traits::get_v(r, 1),
 //        traits::get_v(l, 2) * traits::get_v(r, 0) - traits::get_v(l, 0) * traits::get_v(r, 2),
 //        traits::get_v(l, 0) * traits::get_v(r, 1) - traits::get_v(l, 1) * traits::get_v(r, 0)};
 //}
-//
-// template <typename T, int... N>
-// auto mod(nTuple<T, N...> const &l) {
-//    return std::sqrt(std::abs(inner_product(l, l)));
-//}
+
+template <typename T, int... N>
+auto mod(nTuple<T, N...> const& l) {
+    return std::sqrt(std::abs(inner_product(l, l)));
+}
 
 template <typename TOP, typename T>
 T reduce(T const& v, ENABLE_IF(traits::is_scalar<T>::value)) {
@@ -613,18 +638,18 @@ T reduce(T const& v, ENABLE_IF(traits::is_scalar<T>::value)) {
 
 template <typename TOP, typename T>
 traits::value_type_t<T> reduce(T const& v, ENABLE_IF(traits::is_nTuple<T>::value)) {
-    static constexpr int n = traits::extent<T>::value;
+    static constexpr size_type n = traits::extent<T>::value;
 
     traits::value_type_t<T> res = reduce<TOP>(traits::get_v(v, 0));
 
-    for (int s = 1; s < n; ++s) { res = TOP::eval(res, reduce<TOP>(traits::get_v(v, s))); }
+    for (size_type s = 1; s < n; ++s) { res = TOP::eval(res, reduce<TOP>(traits::get_v(v, s))); }
 
     return res;
 }
 
 template <typename TL, typename TR>
 auto inner_product(TL const& l, TR const& r, ENABLE_IF(traits::is_nTuple<TL>::value&& traits::is_nTuple<TL>::value)) {
-    return ((reduce<ntuple_tags::plus>(l * r)));
+    return ((reduce<tags::addition>(l * r)));
 }
 
 template <typename T>
@@ -634,17 +659,21 @@ auto normal(T const& l, ENABLE_IF(traits::is_nTuple<T>::value)) {
 
 template <typename T>
 auto abs(T const& l, ENABLE_IF(traits::is_nTuple<T>::value)) {
-    return ((std::sqrt(inner_product(l, l))));
+    return std::sqrt(inner_product(l, l));
+}
+template <typename T>
+auto abs(T const& l, ENABLE_IF(!traits::is_nTuple<T>::value)) {
+    return std::abs(l);
 }
 
 template <typename T>
 auto NProduct(T const& v, ENABLE_IF(traits::is_nTuple<T>::value)) {
-    return ((reduce<ntuple_tags::multiplies>(v)));
+    return ((reduce<tags::multiplication>(v)));
 }
 
 template <typename T>
 auto NSum(T const& v, ENABLE_IF(traits::is_nTuple<T>::value)) {
-    return ((reduce<ntuple_tags::plus>(v)));
+    return ((reduce<tags::addition>(v)));
 }
 
 //

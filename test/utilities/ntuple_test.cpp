@@ -58,12 +58,12 @@ class TestNtuple : public testing::Test {
     value_type a, b, c, d;
 };
 
-typedef testing::Types<nTuple<double, 3>
-                       //       , nTuple<std::complex<double>, 3>,
-                       //                       Matrix<double, 3, 3>,     //
-                       //                       Tensor<double, 3, 4, 5>,  //
-                       //                       Tensor<int, 3, 4, 5, 6>
-                       //        ,Tensor<std::complex<double>, 3, 4, 5, 6>
+typedef testing::Types<nTuple<double, 3>,                        //
+                       Matrix<double, 3, 3>,                     //
+                       Tensor<double, 3, 4, 5>,                  //
+                       Tensor<int, 3, 4, 5, 6>,                  //
+                       nTuple<std::complex<double>, 3>,          //
+                       Tensor<std::complex<double>, 3, 4, 5, 6>  //
                        >
     ntuple_type_lists;
 
@@ -73,8 +73,8 @@ TYPED_TEST(TestNtuple, swap) {
     TestFixture::vA.swap(TestFixture::vB);
 
     traits::seq_for_each(typename TestFixture::extents(), [&](int const *idx) {
-        EXPECT_DOUBLE_EQ(0, abs(traits::get_v(TestFixture::aA, idx) - traits::get_v(TestFixture::vB, idx)));
-        EXPECT_DOUBLE_EQ(0, abs(traits::get_v(TestFixture::aB, idx) - traits::get_v(TestFixture::vA, idx)));
+        EXPECT_DOUBLE_EQ(0, simpla::abs(traits::get_v(TestFixture::aA, idx) - traits::get_v(TestFixture::vB, idx)));
+        EXPECT_DOUBLE_EQ(0, simpla::abs(traits::get_v(TestFixture::aB, idx) - traits::get_v(TestFixture::vA, idx)));
     });
 }
 
@@ -82,7 +82,7 @@ TYPED_TEST(TestNtuple, assign_Scalar) {
     TestFixture::vA = TestFixture::a;
 
     traits::seq_for_each(typename TestFixture::extents(), [&](int const *idx) {
-        EXPECT_DOUBLE_EQ(0, abs(TestFixture::a - traits::get_v(TestFixture::vA, idx)));
+        EXPECT_DOUBLE_EQ(0, simpla::abs(TestFixture::a - traits::get_v(TestFixture::vA, idx)));
     });
 }
 //
@@ -90,7 +90,7 @@ TYPED_TEST(TestNtuple, assign_Array) {
     TestFixture::vA = TestFixture::aA;
 
     traits::seq_for_each(typename TestFixture::extents(), [&](int const *idx) {
-        EXPECT_DOUBLE_EQ(0, abs(traits::get_v(TestFixture::aA, idx) - traits::get_v(TestFixture::vA, idx)));
+        EXPECT_DOUBLE_EQ(0, simpla::abs(traits::get_v(TestFixture::aA, idx) - traits::get_v(TestFixture::vA, idx)));
     });
 }
 
@@ -98,8 +98,8 @@ TYPED_TEST(TestNtuple, self_assign) {
     TestFixture::vB += TestFixture::vA;
 
     traits::seq_for_each(typename TestFixture::extents(), [&](int const *idx) {
-        EXPECT_DOUBLE_EQ(abs(traits::get_v(TestFixture::vB, idx)),
-                         abs(traits::get_v(TestFixture::aA, idx) + traits::get_v(TestFixture::aB, idx)));
+        EXPECT_DOUBLE_EQ(simpla::abs(traits::get_v(TestFixture::vB, idx)),
+                         simpla::abs(traits::get_v(TestFixture::aA, idx) + traits::get_v(TestFixture::aB, idx)));
 
     });
 }
@@ -119,9 +119,24 @@ TYPED_TEST(TestNtuple, self_assign) {
 //    EXPECT_DOUBLE_EQ(0, abs(vD[0]) + abs(vD[1]) + abs(vD[2]));
 //}
 //
+// TYPED_TEST(TestNtuple, dot) {
+//    nTuple<typename TestFixture::value_type, 3> vA, vB, vC, vD;
+//
+//    for (int i = 0; i < 3; ++i) {
+//        vA[i] = (i * 2);
+//        vB[i] = (5 - i);
+//    }
+//
+//    for (int i = 0; i < 3; ++i) { vD[i] = vA[(i + 1) % 3] * vB[(i + 2) % 3] - vA[(i + 2) % 3] * vB[(i + 1) % 3]; }
+//
+//    auto vC = dot(vA, vB);
+//    vD -= vC;
+//    EXPECT_DOUBLE_EQ(0, abs(vD[0]) + abs(vD[1]) + abs(vD[2]));
+//}
+
 TYPED_TEST(TestNtuple, arithmetic) {
     TestFixture::vD = EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC);
-    //
+
     traits::seq_for_each(typename TestFixture::extents(), [&](int const *idx) {
         auto ta = traits::get_v(TestFixture::vA, idx);
         auto tb = traits::get_v(TestFixture::vB, idx);

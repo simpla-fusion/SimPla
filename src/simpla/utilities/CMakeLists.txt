@@ -1,7 +1,7 @@
 
 
 FILE(GLOB toolbox_SRC ./*.cpp)
-add_library(toolbox ${toolbox_SRC})
+add_library(toolbox ${toolbox_SRC} ExpressionTemplate.h)
 target_link_libraries(toolbox ${LUA_LIBRARIES} )
 
 #${HDF5_LIBRARIES} ${MPI_LIBRARIES}  ${TBB_LIBRARIES}
