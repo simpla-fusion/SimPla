@@ -12,11 +12,25 @@ using namespace simpla;
 int main(int argc, char** argv) {
     nTuple<Real, 3> a{1.0, 3, 4};
     nTuple<Real, 3> b{2.0, 5, 6};
-    nTuple<Real, 3> c;
+    nTuple<Real, 3> c{1.0, 3, 4};
+
+    std::cout << std::boolalpha << (a == b) << std::endl;
+    std::cout << std::boolalpha << (a == c) << std::endl;
     c = b + 1;
     std::cout << a << std::endl;
     std::cout << b << std::endl;
     std::cout << c << std::endl;
+
+    std::cout << dot(a, b) << std::endl;
+
+    nTuple<Real, 2, 3> A{{1.0, 3, 4}, {1.0, 3, 4}};
+
+    nTuple<Real, 2, 3> B{{1.0, 3, 4}, {1.0, 3, 4}};
+
+    std::cout << std::boolalpha << (A == B) << std::endl;
+    std::cout << std::boolalpha << (A != B) << std::endl;
+    std::cout << dot(A, B) << std::endl;
+
     //    double a[3] = {1, 2, 3};
     //    double b[3] = {1, 2, 3};
     //    double c[3] = {1, 2, 3};

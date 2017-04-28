@@ -60,7 +60,7 @@ class DataEntityWithType : public DataEntity {
     std::type_info const& value_type_info() const override { return typeid(value_type); }
     bool isLight() const override { return traits::is_light_data<value_type>::value; }
 
-    virtual bool equal(value_type const& other) const = 0;
+//    virtual bool equal(value_type const& other) const = 0;
     virtual value_type value() const = 0;
     virtual value_type* get() { return nullptr; }
     virtual value_type const* get() const { return nullptr; }
@@ -103,7 +103,7 @@ struct DataEntityWrapper<U> : public DataEntityWithType<U> {
         }
         return os;
     }
-    bool equal(value_type const& other) const override { return *m_data_ == other; }
+//    bool equal(value_type const& other) const override { return *m_data_ == other; }
     value_type value() const override { return *m_data_; };
 
     value_type* get() override { return m_data_.get(); }

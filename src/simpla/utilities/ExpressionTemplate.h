@@ -90,7 +90,7 @@ struct Expression<TOP, Args...> {
 };
 
 template <typename TReduction, typename TExpr>
-TExpr Reduction(TExpr const &expr, ENABLE_IF((std::is_arithmetic<TExpr>::value))) {
+TExpr reduction(TExpr const &expr) {
     return expr;
 }
 //
@@ -286,15 +286,15 @@ _SP_DEFINE_COMPOUND_OP(>>)
     }                                                                                                   \
     template <typename... TL, typename TR>                                                              \
     auto operator _OP_(Expression<TL...> const &lhs, TR &rhs) {                                         \
-        return Reduction<_REDUCTION_>(Expression<tags::_NAME_, const Expression<TL...>, TR>(lhs, rhs)); \
+        return reduction<_REDUCTION_>(Expression<tags::_NAME_, const Expression<TL...>, TR>(lhs, rhs)); \
     };                                                                                                  \
     template <typename TL, typename... TR>                                                              \
     auto operator _OP_(TL &lhs, Expression<TR...> const &rhs) {                                         \
-        return Reduction<_REDUCTION_>(Expression<tags::_NAME_, TL, const Expression<TR...>>(lhs, rhs)); \
+        return reduction<_REDUCTION_>(Expression<tags::_NAME_, TL, const Expression<TR...>>(lhs, rhs)); \
     };                                                                                                  \
     template <typename... TL, typename... TR>                                                           \
     auto operator _OP_(Expression<TL...> const &lhs, Expression<TR...> const &rhs) {                    \
-        return Reduction<_REDUCTION_>(                                                                  \
+        return reduction<_REDUCTION_>(                                                                  \
             Expression<tags::_NAME_, const Expression<TL...>, const Expression<TR...>>(lhs, rhs));      \
     };
 

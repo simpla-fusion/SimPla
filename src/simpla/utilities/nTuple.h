@@ -93,6 +93,37 @@ typedef nTuple<Real, 3> RVec3;
  *    TODO: nTuple should move to sub-directory utilities
  **/
 namespace traits {
+
+template <bool... B>
+struct logical_or;
+template <bool B0>
+struct logical_or<B0> : public std::integral_constant<bool, B0> {};
+template <bool B0, bool... B>
+struct logical_or<B0, B...> : public std::integral_constant<bool, B0 || logical_or<B...>::value> {};
+
+template <bool... B>
+struct logical_and;
+template <bool B0>
+struct logical_and<B0> : public std::integral_constant<bool, B0> {};
+template <bool B0, bool... B>
+struct logical_and<B0, B...> : public std::integral_constant<bool, B0 && logical_or<B...>::value> {};
+
+template <typename T, T... B>
+struct mt_max;
+template <typename T, T B0>
+struct mt_max<T, B0> : public std::integral_constant<T, B0> {};
+template <typename T, T B0, T... B>
+struct mt_max<T, B0, B...>
+    : public std::integral_constant<T, ((B0 > (mt_max<T, B...>::value)) ? B0 : (mt_max<T, B...>::value))> {};
+
+template <typename T, T... B>
+struct mt_min;
+template <typename T, T B0>
+struct mt_min<T, B0> : public std::integral_constant<T, B0> {};
+template <typename T, T B0, T... B>
+struct mt_min<T, B0, B...>
+    : public std::integral_constant<T, ((B0 < (mt_min<T, B...>::value)) ? B0 : (mt_min<T, B...>::value))> {};
+
 template <typename...>
 struct reference;
 
@@ -115,7 +146,11 @@ template <typename V, int... I>
 struct extents<nTuple<V, I...>> : public int_sequence<I...> {};
 
 template <typename V, int I0, int... I>
-struct extent<nTuple<V, I0, I...>> : public int_const<I0> {};
+struct extent<nTuple<V, I0, I...>> : public std::integral_constant<int, I0> {};
+
+template <typename TOP, typename... Args>
+struct extent<Expression<TOP, Args...>>
+    : public std::integral_constant<int, mt_min<int, extent<typename std::remove_cv<Args>::type>::value...>::value> {};
 
 template <typename T, int I0>
 struct value_type<nTuple<T, I0>> {
@@ -180,28 +215,32 @@ class is_nTuple : public std::integral_constant<bool, false> {};
 template <typename T, int... N>
 class is_nTuple<nTuple<T, N...>> : public std::integral_constant<bool, true> {};
 
+template <typename TOP, typename... Args>
+class is_nTuple<Expression<TOP, Args...>>
+    : public std::integral_constant<bool, logical_or<is_nTuple<Args>::value...>::value> {};
+
 }  // namespace traits
 
-namespace tags {
-class _nTuple_cross;
-class _nTuple_dot;
-}
-template <typename TL, typename TR>
-struct expr_parser;
-
-template <typename TL, typename TR>
-struct expr_parser<Real, Expression<tags::_nTuple_dot, TL, TR>> {
-    static Real eval(Expression<tags::_nTuple_dot, TL, TR> const& expr) {
-        static constexpr size_type N = std::max(traits::extent<TL>::value, traits::extent<TR>::value);
-        Real res = 0.0;
-
-        //        for (int i = 0; i < N; ++i) {
-        //            res += static_cast<Real>(dot(nTuple_calculator::getValue(std::get<0>(expr.m_args_), i),
-        //                                         nTuple_calculator::getValue(std::get<1>(expr.m_args_), i)));
-        //        }
-        return res;
-    }
-};
+// namespace tags {
+// class _nTuple_cross;
+// class _nTuple_dot;
+//}
+// template <typename TL, typename TR>
+// struct expr_parser;
+//
+// template <typename TL, typename TR>
+// struct expr_parser<Real, Expression<tags::_nTuple_dot, TL, TR>> {
+//    static Real eval(Expression<tags::_nTuple_dot, TL, TR> const& expr) {
+//        static constexpr size_type N = std::max(traits::extent<TL>::value, traits::extent<TR>::value);
+//        Real res = 0.0;
+//
+//        //        for (int i = 0; i < N; ++i) {
+//        //            res += static_cast<Real>(dot(nTuple_calculator::getValue(std::get<0>(expr.m_args_), i),
+//        //                                         nTuple_calculator::getValue(std::get<1>(expr.m_args_), i)));
+//        //        }
+//        return res;
+//    }
+//};
 
 struct nTuple_calculator {
     template <typename T>
@@ -253,14 +292,14 @@ struct nTuple_calculator {
     static decltype(auto) getValue(nTuple<T, N0, N...> const& v, int s, Idx&&... idx) {
         return getValue(v.data_[s], std::forward<Idx>(idx)...);
     };
-
-    template <typename... T, typename... Idx>
-    static decltype(auto) getValue(Expression<tags::_nTuple_cross, T...> const& expr, int s, Idx&&... others) {
-        return getValue(std::get<0>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...) *
-                   getValue(std::get<1>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) -
-               getValue(std::get<0>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) *
-                   getValue(std::get<1>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...);
-    }
+    //
+    //    template <typename... T, typename... Idx>
+    //    static decltype(auto) getValue(Expression<tags::_nTuple_cross, T...> const& expr, int s, Idx&&... others) {
+    //        return getValue(std::get<0>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...) *
+    //                   getValue(std::get<1>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) -
+    //               getValue(std::get<0>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) *
+    //                   getValue(std::get<1>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...);
+    //    }
 
     template <typename TOP, typename... Others, int... index, typename... Idx>
     static decltype(auto) _invoke_helper(Expression<TOP, Others...> const& expr, int_sequence<index...>, Idx&&... s) {
@@ -395,6 +434,17 @@ struct nTuple<TV, N0, N...> {
     }
 };
 
+template <typename TReduction, typename TOP, typename... Args>
+auto reduction(Expression<TOP, Args...> const& expr) {
+    static constexpr int n = traits::extent<Expression<TOP, Args...>>::value;
+    auto res = reduction<TReduction>(nTuple_calculator::getValue(expr, 0));
+    for (int s = 1; s < n; ++s) {
+        res = TReduction::eval(res, reduction<TReduction>(nTuple_calculator::getValue(expr, s)));
+    }
+
+    return res;
+}
+
 #define _SP_DEFINE_NTUPLE_BINARY_OPERATOR(_NAME_, _OP_)                                              \
     template <typename TL, int... NL, typename TR>                                                   \
     auto operator _OP_(nTuple<TL, NL...> const& lhs, TR const& rhs) {                                \
@@ -521,25 +571,25 @@ _SP_DEFINE_NTUPLE_COMPOUND_OP(>>)
 #define _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(_NAME_, _REDUCTION_, _OP_)                                  \
     template <typename TL, int... NL, typename TR>                                                            \
     auto operator _OP_(nTuple<TL, NL...> const& lhs, TR const& rhs) {                                         \
-        return Reduction<_REDUCTION_>(Expression<tags::_NAME_, const nTuple<TL, NL...>, const TR>(lhs, rhs)); \
+        return reduction<_REDUCTION_>(Expression<tags::_NAME_, const nTuple<TL, NL...>, const TR>(lhs, rhs)); \
     };                                                                                                        \
     template <typename TL, typename TR, int... NR>                                                            \
     auto operator _OP_(TL const& lhs, nTuple<TR, NR...> const& rhs) {                                         \
-        return Reduction<_REDUCTION_>(Expression<tags::_NAME_, const TL, const nTuple<TR, NR...>>(lhs, rhs)); \
+        return reduction<_REDUCTION_>(Expression<tags::_NAME_, const TL, const nTuple<TR, NR...>>(lhs, rhs)); \
     };                                                                                                        \
     template <typename TL, int... NL, typename... TR>                                                         \
     auto operator _OP_(nTuple<TL, NL...> const& lhs, Expression<TR...> const& rhs) {                          \
-        return Reduction<_REDUCTION_>(                                                                        \
+        return reduction<_REDUCTION_>(                                                                        \
             Expression<tags::_NAME_, const nTuple<TL, NL...>, const Expression<TR...>>(lhs, rhs));            \
     };                                                                                                        \
     template <typename... TL, typename TR, int... NR>                                                         \
     auto operator _OP_(Expression<TL...> const& lhs, nTuple<TR, NR...> const& rhs) {                          \
-        return Reduction<_REDUCTION_>(                                                                        \
+        return reduction<_REDUCTION_>(                                                                        \
             Expression<tags::_NAME_, const Expression<TL...>, const nTuple<TR, NR...>>(lhs, rhs));            \
     };                                                                                                        \
     template <typename TL, int... NL, typename TR, int... NR>                                                 \
     auto operator _OP_(nTuple<TL, NL...> const& lhs, nTuple<TR, NR...> const& rhs) {                          \
-        return Reduction<_REDUCTION_>(                                                                        \
+        return reduction<_REDUCTION_>(                                                                        \
             Expression<tags::_NAME_, const nTuple<TL, NL...>, const nTuple<TR, NR...>>(lhs, rhs));            \
     };
 
@@ -555,26 +605,31 @@ _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(greater_equal, tags::logical_and, >=)
 //    DEF_BOP(shift_left, <<)
 //    DEF_BOP(shift_right, >>)
 
-template <typename T>
-T vec_dot(nTuple<T, 3> const& l, nTuple<T, 3> const& r) {
-    return l[0] * r[0] + l[1] * r[1] + l[2] * r[2];
+template <typename T, int... N, typename TR>
+auto dot(nTuple<T, N...> const& l, TR const& r) {
+    return reduction<tags::addition>(l * r);
 }
 
-template <typename TL, int... NL, typename TR, int... NR>
-auto vec_dot(nTuple<TL, NL...> const& l, nTuple<TR, NR...> const& r) {
-    return abs(l * r);
-}
-
-template <typename T>
-T vec_dot(nTuple<T, 4> const& l, nTuple<T, 4> const& r) {
-    return l[0] * r[0] + l[1] * r[1] + l[2] * r[2] + l[3] * r[3];
-}
-template <typename T, int N>
-T vec_dot(nTuple<T, N> const& l, nTuple<T, N> const& r) {
-    T res = l[0] * r[0];
-    for (int i = 1; i < N; ++i) { res += l[i] * r[i]; }
-    return res;
-}
+// template <typename T>
+// T vec_dot(nTuple<T, 3> const& l, nTuple<T, 3> const& r) {
+//    return l[0] * r[0] + l[1] * r[1] + l[2] * r[2];
+//}
+//
+// template <typename TL, int... NL, typename TR, int... NR>
+// auto vec_dot(nTuple<TL, NL...> const& l, nTuple<TR, NR...> const& r) {
+//    return abs(l * r);
+//}
+//
+// template <typename T>
+// T vec_dot(nTuple<T, 4> const& l, nTuple<T, 4> const& r) {
+//    return l[0] * r[0] + l[1] * r[1] + l[2] * r[2] + l[3] * r[3];
+//}
+// template <typename T, int N>
+// T vec_dot(nTuple<T, N> const& l, nTuple<T, N> const& r) {
+//    T res = l[0] * r[0];
+//    for (int i = 1; i < N; ++i) { res += l[i] * r[i]; }
+//    return res;
+//}
 
 template <typename T>
 T determinant(nTuple<T, 3> const& m) {
