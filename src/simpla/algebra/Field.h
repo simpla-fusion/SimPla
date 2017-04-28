@@ -16,7 +16,7 @@
 #include <simpla/utilities/sp_def.h>
 #include <cstring>  // for memset
 #include "Algebra.h"
-#include "Array.h"
+#include "simpla/utilities/Array.h"
 #include "CalculusPolicy.h"
 #include "simpla/utilities/nTuple.h"
 namespace simpla {

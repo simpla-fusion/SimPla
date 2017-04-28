@@ -326,6 +326,11 @@ _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(greater_equal, tags::logical_and, >=)
 #undef _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR
 #undef _SP_DEFINE_EXPR_UNARY_BOOLEAN_OPERATOR
 
+template <typename TL, typename TR>
+auto inner_product(TL const &l, TR const &r) {
+    return reduction<tags::addition>(l * r);
+}
+
 }  // namespace simpla
 
 #endif  // SIMPLA_EXPRESSIONTEMPLATE_H

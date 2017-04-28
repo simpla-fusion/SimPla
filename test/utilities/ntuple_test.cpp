@@ -119,16 +119,16 @@ TYPED_TEST(TestNtuple, cross) {
     EXPECT_DOUBLE_EQ(0, abs(vD[0]) + abs(vD[1]) + abs(vD[2]));
 }
 
-//TYPED_TEST(TestNtuple, dot) {
-//    typename TestFixture::value_type expect;
-//    expect = 0;
-//
-//    traits::seq_for_each(typename TestFixture::extents(), [&](int const *idx) {
-//        expect += traits::get_v(TestFixture::aA, idx) * traits::get_v(TestFixture::aB, idx);
-//    });
-//
-//    EXPECT_DOUBLE_EQ(0.0, abs(expect - (dot(TestFixture::vA, TestFixture::vB))));
-//}
+TYPED_TEST(TestNtuple, dot) {
+    typename TestFixture::value_type expect;
+    expect = 0;
+
+    traits::seq_for_each(typename TestFixture::extents(), [&](int const *idx) {
+        expect += traits::get_v(TestFixture::aA, idx) * traits::get_v(TestFixture::aB, idx);
+    });
+
+    EXPECT_DOUBLE_EQ(0.0, abs(expect - (dot(TestFixture::vA, TestFixture::vB))));
+}
 
 TYPED_TEST(TestNtuple, arithmetic) {
     TestFixture::vD = EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC);

@@ -3,7 +3,7 @@
 //
 
 #include <simpla/algebra/Algebra.h>
-#include <simpla/algebra/Array.h>
+#include <simpla/utilities/Array.h>
 #include <simpla/utilities/nTuple.h>
 #include <iostream>
 

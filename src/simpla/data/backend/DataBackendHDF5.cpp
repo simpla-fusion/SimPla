@@ -2,7 +2,7 @@
 // Created by salmon on 17-3-10.
 //
 #include "DataBackendHDF5.h"
-#include <simpla/algebra/Array.h>
+#include <simpla/utilities/Array.h>
 #include <simpla/utilities/nTuple.h>
 #include <regex>
 #include "../DataArray.h"

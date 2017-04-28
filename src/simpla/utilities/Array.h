@@ -5,53 +5,15 @@
 #ifndef SIMPLA_ARRAY_H
 #define SIMPLA_ARRAY_H
 
-#include <simpla/concept/Printable.h>
-#include <simpla/utilities/FancyStream.h>
-#include <simpla/utilities/Log.h>
-#include <simpla/utilities/MemoryPool.h>
-#include <simpla/utilities/Range.h>
-#include <simpla/utilities/sp_def.h>
-
 #include <cstring>
-#include "Algebra.h"
-#include "Arithmetic.h"
-#include "Expression.h"
-#include "simpla/utilities/nTuple.h"
-
+#include "ExpressionTemplate.h"
+#include "FancyStream.h"
+#include "Log.h"
+#include "MemoryPool.h"
+#include "Range.h"
+#include "nTuple.h"
+#include "sp_def.h"
 namespace simpla {
-namespace algebra {
-template <typename V, int NDIMS>
-struct ArrayView;
-namespace declare {
-template <typename V, int NDIMS>
-struct Array_ : public ArrayView<V, NDIMS> {
-   private:
-    typedef Array_<V, NDIMS> this_type;
-    typedef ArrayView<V, NDIMS> base_type;
-
-   public:
-    Array_() : base_type() {}
-    Array_(Array_ const& other) : base_type(other) {}
-    template <typename... Args>
-    explicit Array_(Args&&... args) : base_type(std::forward<Args>(args)...) {}
-
-    template <typename T>
-    explicit Array_(std::initializer_list<T> const& l) : base_type(l) {}
-
-    virtual ~Array_() {}
-
-    using base_type::operator=;
-    using base_type::operator[];
-    using base_type::operator();
-    using base_type::ndims;
-    using base_type::at;
-    using base_type::swap;
-
-    //    Array_<V, NDIMS> view(index_type const* il, index_type const* iu) { return Array_<V, NDIMS>(*this, il, iu); };
-    //    Array_<const V, NDIMS> view(index_type const* il, index_type const* iu) const { return Array_<V, NDIMS>(*this,
-    //    il, iu); };
-};
-}  // namespace declare
 
 struct ArrayIndexShift {
     int dim_num = 0;
@@ -200,9 +162,9 @@ size_type Hash(std::tuple<nTuple<index_type, N>, nTuple<index_type, N>> const& b
 };
 
 template <typename V, int NDIMS>
-struct ArrayView : public concept::Printable {
+struct Array {
    private:
-    typedef ArrayView<V, NDIMS> this_type;
+    typedef Array<V, NDIMS> this_type;
 
    public:
     typedef V value_type;
@@ -225,19 +187,19 @@ struct ArrayView : public concept::Printable {
     size_type m_size_ = 0;
 
    public:
-    ArrayView() {
+    Array() {
         std::get<0>(m_index_box_) = 0;
         std::get<1>(m_index_box_) = 0;
     }
 
-    ArrayView(this_type const& other)
+    Array(this_type const& other)
         : m_data_(other.m_data_),
           m_index_box_(other.m_index_box_),
           m_array_order_fast_first_(other.m_array_order_fast_first_) {
         SetUp();
     }
 
-    explicit ArrayView(std::initializer_list<index_type> const& l) {
+    explicit Array(std::initializer_list<index_type> const& l) {
         for (int i = 0; i < NDIMS; ++i) {
             std::get<0>(m_index_box_)[i] = 0;
             std::get<1>(m_index_box_)[i] = 1;
@@ -252,14 +214,14 @@ struct ArrayView : public concept::Printable {
         std::get<1>(m_index_box_) = std::get<1>(m_index_box_);
         SetUp();
     }
-    ArrayView(m_index_box_type const& b, std::shared_ptr<value_type> const& d = nullptr,
-              bool array_order_fast_first = false)
+    Array(m_index_box_type const& b, std::shared_ptr<value_type> const& d = nullptr,
+          bool array_order_fast_first = false)
         : m_index_box_(b), m_data_(d), m_array_order_fast_first_(array_order_fast_first) {
         SetUp();
     }
 
-    ArrayView(index_type const* in_low, index_type const* in_up, std::shared_ptr<value_type> const& d = nullptr,
-              bool array_order_fast_first = false)
+    Array(index_type const* in_low, index_type const* in_up, std::shared_ptr<value_type> const& d = nullptr,
+          bool array_order_fast_first = false)
         : m_data_(d), m_array_order_fast_first_(array_order_fast_first) {
         for (int i = 0; i < NDIMS; ++i) {
             std::get<0>(m_index_box_)[i] = in_low[i];
@@ -291,11 +253,11 @@ struct ArrayView : public concept::Printable {
     }
 
     template <typename... U>
-    ArrayView(declare::Expression<U...> const& expr) {
+    Array(Expression<U...> const& expr) {
         Foreach(tags::_assign(), expr);
     }
 
-    virtual ~ArrayView() {}
+    virtual ~Array() {}
     void swap(this_type& other) {
         std::swap(m_data_, other.m_data_);
         std::swap(m_array_order_fast_first_, other.m_array_order_fast_first_);
@@ -305,8 +267,8 @@ struct ArrayView : public concept::Printable {
     };
 
     template <typename... Others>
-    declare::Array_<value_type, NDIMS> operator()(ArrayIndexShift const& IX, Others&&... others) const {
-        declare::Array_<value_type, NDIMS> res(*this);
+    this_type operator()(ArrayIndexShift const& IX, Others&&... others) const {
+        this_type res(*this);
         res.Shift(IX, std::forward<Others>(others)...);
         return std::move(res);
     }
@@ -339,15 +301,15 @@ struct ArrayView : public concept::Printable {
     void SetData(std::shared_ptr<value_type> const& d) const { m_data_ = d; }
 
     value_type& at(m_index_tuple const& idx) {
-        auto s = vec_dot(m_strides_, idx) + m_offset_;
+        auto s = dot(m_strides_, idx) + m_offset_;
         if (s >= size() || s < 0) { CHECK(idx); }
-        return m_data_.get()[vec_dot(m_strides_, idx) + m_offset_];
+        return m_data_.get()[dot(m_strides_, idx) + m_offset_];
     }
     value_type const& at(m_index_tuple const& idx) const {
         //        auto s = vec_dot(m_strides_, idx) + m_offset_;
         //        if (s >= size() || s < 0) { MESSAGE << (idx) << " ~ " << m_index_box_ << std::endl; }
         ASSERT(m_size_ > 0);
-        return m_data_.get()[(vec_dot(m_strides_, idx) + m_offset_) % m_size_];
+        return m_data_.get()[(dot(m_strides_, idx) + m_offset_) % m_size_];
     }
 
     value_type& operator[](m_index_tuple const& idx) { return at(idx); }
@@ -454,9 +416,5 @@ struct ArrayView : public concept::Printable {
     }
 };
 
-}  // namespace algebra{
-
-template <typename V, int NDIMS>
-using Array = simpla::algebra::declare::Array_<V, NDIMS>;
 }  // namespace simpla{
 #endif  // SIMPLA_ARRAY_H

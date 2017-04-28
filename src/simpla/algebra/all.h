@@ -7,7 +7,7 @@
 
 #include "Algebra.h"
 #include "Arithmetic.h"
-#include "Array.h"
+#include "simpla/utilities/Array.h"
 #include "Calculus.h"
 #include "CalculusPolicy.h"
 #include "Expression.h"

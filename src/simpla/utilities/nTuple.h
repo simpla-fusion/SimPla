@@ -193,19 +193,19 @@ struct pod_type<nTuple<T, I0, I...>> {
     typedef typename pod_type<nTuple<T, I...>>::type type[I0];
 };
 
-template <typename...>
-struct make_nTuple {
-    typedef void type;
-};
-
-template <typename TV, int... I>
-struct make_nTuple<TV, simpla::integer_sequence<int, I...>> {
-    typedef nTuple<TV, I...> type;
-};
-template <typename TV>
-struct make_nTuple<TV, simpla::integer_sequence<int>> {
-    typedef TV type;
-};
+// template <typename...>
+// struct make_nTuple {
+//    typedef void type;
+//};
+//
+// template <typename TV, int... I>
+// struct make_nTuple<TV, simpla::integer_sequence<int, I...>> {
+//    typedef nTuple<TV, I...> type;
+//};
+// template <typename TV>
+// struct make_nTuple<TV, simpla::integer_sequence<int>> {
+//    typedef TV type;
+//};
 
 template <typename T>
 class is_scalar : public std::integral_constant<bool, std::is_arithmetic<T>::value> {};
@@ -219,6 +219,10 @@ template <typename TOP, typename... Args>
 class is_nTuple<Expression<TOP, Args...>>
     : public std::integral_constant<bool, logical_or<is_nTuple<Args>::value...>::value> {};
 
+template <typename T0, typename... Others>
+auto make_ntuple(T0 const& a0, Others&&... others) {
+    return nTuple<T0, sizeof...(Others) + 1>{a0, others...};
+};
 }  // namespace traits
 
 struct nTuple_calculator {
@@ -553,9 +557,19 @@ _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(greater_equal, tags::logical_and, >=)
 //    DEF_BOP(shift_left, <<)
 //    DEF_BOP(shift_right, >>)
 
-template <typename T, int... N, typename TR>
-auto dot(nTuple<T, N...> const& l, TR const& r) {
-    return reduction<tags::addition>(l * r);
+template <typename TL, typename TR>
+auto dot(TL const& l, TR const& r) {
+    return inner_product(l, r);
+}
+
+template <typename T1, typename T2>
+auto cross(T1 const& l, T2 const& r) {
+    return traits::make_ntuple(nTuple_calculator::getValue(l, 1) * nTuple_calculator::getValue(r, 2) -
+                                   nTuple_calculator::getValue(l, 2) * nTuple_calculator::getValue(r, 1),
+                               nTuple_calculator::getValue(l, 2) * nTuple_calculator::getValue(r, 0) -
+                                   nTuple_calculator::getValue(l, 0) * nTuple_calculator::getValue(r, 2),
+                               nTuple_calculator::getValue(l, 0) * nTuple_calculator::getValue(r, 1) -
+                                   nTuple_calculator::getValue(l, 1) * nTuple_calculator::getValue(r, 0));
 }
 
 // template <typename T>
@@ -596,11 +610,11 @@ T determinant(nTuple<T, 3, 3> const& m) {
 }
 template <typename TL, int... NL, typename TR, int... NR>
 auto abs(nTuple<TL, NL...> const& l, nTuple<TR, NR...> const& r) {
-    return std::sqrt(vec_dot(l, r));
+    return std::sqrt(inner_product(l, r));
 }
 template <typename T, int... N>
 T abs(nTuple<T, N...> const& m) {
-    return std::sqrt(vec_dot(m, m));
+    return std::sqrt(inner_product(m, m));
 }
 
 template <typename T>
@@ -619,41 +633,26 @@ T determinant(nTuple<T, 4, 4> const& m) {
            m[0][1] * m[1][0] * m[2][2] * m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3];
 }
 
-// template <typename T1, typename T2>
-//  nTuple<std::result_of_t<tags::multiplies::eval(traits::value_type_t < T1 > ,
-//                                                                traits::value_type_t < T2 > )>, 3>
-// auto cross(T1 const& l, T2 const& r, ENABLE_IF(traits::is_nTuple<T1>::value&& traits::is_nTuple<T2>::value)) {
-//    return nTuple<std::result_of_t<tags::multiplies::eval(traits::value_type_t<T1>, traits::value_type_t<T2>)>, 3>{
-//        traits::get_v(l, 1) * traits::get_v(r, 2) - traits::get_v(l, 2) * traits::get_v(r, 1),
-//        traits::get_v(l, 2) * traits::get_v(r, 0) - traits::get_v(l, 0) * traits::get_v(r, 2),
-//        traits::get_v(l, 0) * traits::get_v(r, 1) - traits::get_v(l, 1) * traits::get_v(r, 0)};
-//}
-
 template <typename T, int... N>
 auto mod(nTuple<T, N...> const& l) {
     return std::sqrt(std::abs(inner_product(l, l)));
 }
 
-template <typename TOP, typename T>
-T reduce(T const& v, ENABLE_IF(traits::is_scalar<T>::value)) {
-    return v;
-}
-
-template <typename TOP, typename T>
-traits::value_type_t<T> reduce(T const& v, ENABLE_IF(traits::is_nTuple<T>::value)) {
-    static constexpr size_type n = traits::extent<T>::value;
-
-    traits::value_type_t<T> res = reduce<TOP>(traits::get_v(v, 0));
-
-    for (size_type s = 1; s < n; ++s) { res = TOP::eval(res, reduce<TOP>(traits::get_v(v, s))); }
-
-    return res;
-}
-
-template <typename TL, typename TR>
-auto inner_product(TL const& l, TR const& r, ENABLE_IF(traits::is_nTuple<TL>::value&& traits::is_nTuple<TL>::value)) {
-    return ((reduce<tags::addition>(l * r)));
-}
+// template <typename TOP, typename T>
+// traits::value_type_t<T> reduce(T const& v, ENABLE_IF(traits::is_nTuple<T>::value)) {
+//    static constexpr size_type n = traits::extent<T>::value;
+//
+//    traits::value_type_t<T> res = reduce<TOP>(traits::get_v(v, 0));
+//
+//    for (size_type s = 1; s < n; ++s) { res = TOP::eval(res, reduce<TOP>(traits::get_v(v, s))); }
+//
+//    return res;
+//}
+// template <typename TL, typename TR>
+// auto inner_product(TL const& l, TR const& r, ENABLE_IF(traits::is_nTuple<TL>::value&& traits::is_nTuple<TL>::value))
+// {
+//    return ((reduce<tags::addition>(l * r)));
+//}
 
 template <typename T>
 auto normal(T const& l, ENABLE_IF(traits::is_nTuple<T>::value)) {
@@ -669,15 +668,15 @@ auto abs(T const& l, ENABLE_IF(!traits::is_nTuple<T>::value)) {
     return std::abs(l);
 }
 
-template <typename T>
-auto NProduct(T const& v, ENABLE_IF(traits::is_nTuple<T>::value)) {
-    return ((reduce<tags::multiplication>(v)));
-}
-
-template <typename T>
-auto NSum(T const& v, ENABLE_IF(traits::is_nTuple<T>::value)) {
-    return ((reduce<tags::addition>(v)));
-}
+// template <typename T>
+// auto NProduct(T const& v, ENABLE_IF(traits::is_nTuple<T>::value)) {
+//    return ((reduce<tags::multiplication>(v)));
+//}
+//
+// template <typename T>
+// auto NSum(T const& v, ENABLE_IF(traits::is_nTuple<T>::value)) {
+//    return ((reduce<tags::addition>(v)));
+//}
 
 //
 // template<typename T, int N0> std::istream &
