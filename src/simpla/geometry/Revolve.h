@@ -32,13 +32,16 @@ class Revolve : public GeoObject {
         res->Set("2DShape", base_obj.Serialize());
         return res;
     };
-    void Deserialize(const std::shared_ptr<data::DataTable> &t) override {}
+    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override {}
 
-    int check_inside(point_type const &x) const { return base_obj.check_inside(MapTo2d(x)); };
+    virtual box_type GetBoundBox() const override { return box_type{{0, 0, 0}, {1, 2, 3}}; };
+
+    int CheckInside(point_type const &x) const override { return base_obj.CheckInside(MapTo2d(x)); };
+
     nTuple<Real, 2> MapTo2d(point_type const &x) const {
         nTuple<Real, 2> y{0, 0};
-        y[1] = vec_dot(m_axis_, x - m_origin_);                                                     // Z
-        y[0] = std::sqrt(vec_dot(x - m_origin_ - y[1] * m_axis_, x - m_origin_ - y[1] * m_axis_));  // R
+        y[1] = dot(m_axis_, x - m_origin_);                                                     // Z
+        y[0] = std::sqrt(dot(x - m_origin_ - y[1] * m_axis_, x - m_origin_ - y[1] * m_axis_));  // R
         return std::move(y);
     };
 
@@ -50,6 +53,57 @@ class Revolve : public GeoObject {
 
 template <typename TObj>
 std::shared_ptr<GeoObject> revolve(TObj const &obj, int phi_axis = 2) {
+    return std::dynamic_pointer_cast<GeoObject>(std::make_shared<Revolve<TObj>>(obj, phi_axis));
+}
+
+template <typename TObj>
+class RevolveZ : public GeoObject {
+    SP_OBJECT_HEAD(RevolveZ<TObj>, GeoObject)
+
+   public:
+    RevolveZ(TObj const &obj, point_type origin, int axis = 2, Real angle0 = 0, Real angle1 = 1)
+        : m_origin_(origin), base_obj(obj), m_axis_(axis), m_angle_min_(angle0), m_angle_max_(angle1) {}
+    RevolveZ(this_type const &other) : base_obj(other.base_obj), m_origin_(other.m_origin_), m_axis_(other.m_axis_) {}
+    ~RevolveZ() override = default;
+
+    DECLARE_REGISTER_NAME("RevolveZ");
+
+    std::shared_ptr<data::DataTable> Serialize() const override {
+        auto res = data::Serializable::Serialize();
+        res->template SetValue<std::string>("Type", "RevolveZ");
+        res->template SetValue<int>("Axis", m_axis_);
+        res->template SetValue<point_type>("Origin", m_origin_);
+        res->Set("2DShape", base_obj.Serialize());
+        return res;
+    };
+    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override {}
+
+    virtual box_type GetBoundBox() const override {
+        nTuple<Real, 2> lo, hi;
+        std::tie(lo, hi) = base_obj.GetBoundBox();
+        box_type res;
+        std::get<0>(res)[m_axis_] = m_angle_min_;
+        std::get<1>(res)[m_axis_] = m_angle_max_;
+
+        return box_type{{0, 0, 0}, {1, 2, 3}};
+    };
+
+    int CheckInside(point_type const &x) const override { return base_obj.CheckInside(MapTo2d(x)); };
+
+    nTuple<Real, 2> MapTo2d(point_type const &x) const {
+        return nTuple<Real, 2>{x[(m_axis_ + 1) % 3] - m_origin_[(m_axis_ + 1) % 3],
+                               x[(m_axis_ + 2) % 3] - m_origin_[(m_axis_ + 2) % 3]};
+    };
+
+    point_type m_origin_{0, 0, 0};
+    Real m_angle_min_, m_angle_max_;
+    int m_axis_ = 2;
+
+    TObj const &base_obj;
+};
+
+template <typename TObj>
+std::shared_ptr<GeoObject> revolveZ(TObj const &obj, int phi_axis = 2) {
     return std::dynamic_pointer_cast<GeoObject>(std::make_shared<Revolve<TObj>>(obj, phi_axis));
 }
 }

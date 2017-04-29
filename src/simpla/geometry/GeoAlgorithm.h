@@ -11,7 +11,7 @@
 #include <simpla/utilities/integer_sequence.h>
 #include <simpla/utilities/nTuple.h>
 #include <simpla/utilities/sp_def.h>
-#include <stddef.h>
+#include <cstddef>
 #include <tuple>
 
 namespace simpla {
@@ -23,15 +23,17 @@ namespace geometry {
  *          1 full out-side
  */
 template <typename U, typename V>
-int CheckOverlap(std::tuple<nTuple<U, 3>, nTuple<V, 3>> const& b0, std::tuple<nTuple<U, 3>, nTuple<V, 3>> const& b1) {
+int CheckOverlap(std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b0,
+                 std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b1) {
     return (std::get<1>(b0)[0] >= std::get<0>(b1)[0]) && (std::get<1>(b1)[0] >= std::get<0>(b0)[0]) &&
            (std::get<1>(b0)[1] >= std::get<0>(b1)[1]) && (std::get<1>(b1)[1] >= std::get<0>(b0)[1]) &&
            (std::get<1>(b0)[2] >= std::get<0>(b1)[2]) && (std::get<1>(b1)[2] >= std::get<0>(b0)[2]);
 }
 template <typename U, int N>
-std::tuple<nTuple<U, N>, nTuple<U, N>> BoundBox(std::tuple<nTuple<U, N>, nTuple<U, N>> const& l,
-                                                std::tuple<nTuple<U, N>, nTuple<U, N>> const& r) {
-    std::tuple<nTuple<U, N>, nTuple<U, N>> res;
+std::tuple<simpla::nTuple<U, N>, simpla::nTuple<U, N>> BoundBox(
+    std::tuple<simpla::nTuple<U, N>, simpla::nTuple<U, N>> const& l,
+    std::tuple<simpla::nTuple<U, N>, simpla::nTuple<U, N>> const& r) {
+    std::tuple<simpla::nTuple<U, N>, simpla::nTuple<U, N>> res;
     for (int i = 0; i < N; ++i) {
         std::get<0>(res)[i] = std::min(std::get<0>(l)[i], std::get<0>(r)[i]);
         std::get<1>(res)[i] = std::max(std::get<1>(l)[i], std::get<1>(r)[i]);
@@ -46,7 +48,7 @@ std::tuple<nTuple<U, N>, nTuple<U, N>> BoundBox(std::tuple<nTuple<U, N>, nTuple<
  */
 
 template <typename T, typename T1>
-bool in_box(T1 const& p0, T1 const& p1, nTuple<T, 2> const& x0) {
+bool in_box(T1 const& p0, T1 const& p1, simpla::nTuple<T, 2> const& x0) {
     return (x0[0] >= p0[0]) && (x0[1] >= p0[1]) && (x0[0] < p1[0]) && (x0[1] < p1[1]);
 }
 
@@ -83,7 +85,7 @@ std::tuple<Real, Vec3> GetNearestPointToPlane(T0 const& x0, T1 const& p0, T2 con
 
     n /= dot(n, n);
 
-    return std::forward_as_tuple(dot(p0 - x0, n), std::move(n));
+    return std::make_tuple(dot(p0 - x0, n), std::move(n));
 }
 
 template <typename T0, typename T1, typename T2>
@@ -130,7 +132,7 @@ Real GetNearestPointToPolygon(T0 const& p0, T1 const& p1, TP* x) {
 }
 
 template <typename TS, int N>
-void extent_box(nTuple<TS, N>* x0, nTuple<TS, N>* x1, const TS* x) {
+void extent_box(simpla::nTuple<TS, N>* x0, simpla::nTuple<TS, N>* x1, const TS* x) {
     for (int i = 0; i < N; ++i) {
         (*x0)[i] = std::min(x[i], (*x0)[i]);
         (*x1)[i] = std::max(x[i], (*x1)[i]);
@@ -138,7 +140,7 @@ void extent_box(nTuple<TS, N>* x0, nTuple<TS, N>* x1, const TS* x) {
 }
 
 template <typename TS, int N, typename T1, typename... Others>
-void extent_box(nTuple<TS, N>* x0, nTuple<TS, N>* x1, T1 const& y0, Others&&... others) {
+void extent_box(simpla::nTuple<TS, N>* x0, simpla::nTuple<TS, N>* x1, T1 const& y0, Others&&... others) {
     extent_box(x0, x1, y0);
     extent_box(x0, x1, std::forward<Others>(others)...);
 }

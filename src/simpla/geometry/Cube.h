@@ -39,7 +39,7 @@ struct Cube : public GeoObject {
         m_bound_box_ = d->GetValue<box_type>("Box");
     }
 
-    box_type const &GetBoundBox() const override { return m_bound_box_; };
+    box_type GetBoundBox() const override { return m_bound_box_; };
 
     virtual Real distance(point_type const &x) const { return 0; }
     /**

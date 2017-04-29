@@ -13,9 +13,9 @@
 #include <simpla/utilities/nTuple.h>
 #include <simpla/utilities/sp_def.h>
 #include <simpla/utilities/type_traits.h>
-#include "GeoAlgorithm.h"
 #include "simpla/data/EnableCreateFromDataTable.h"
 #include "simpla/data/Serializable.h"
+#include "simpla/geometry/GeoAlgorithm.h"
 
 namespace simpla {
 namespace geometry {
@@ -29,7 +29,6 @@ struct GeoObjectAdapter;
  */
 class GeoObject : public data::Serializable, public data::EnableCreateFromDataTable<GeoObject> {
     SP_OBJECT_BASE(GeoObject)
-    box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 
    public:
     GeoObject(){};
@@ -45,7 +44,7 @@ class GeoObject : public data::Serializable, public data::EnableCreateFromDataTa
     };
     void Deserialize(const std::shared_ptr<data::DataTable> &t) override {}
 
-    virtual box_type const &GetBoundBox() const { return m_bound_box_; };
+    virtual box_type GetBoundBox() const { return box_type{{0, 0, 0}, {1, 1, 1}}; };
 
     bool isNull() const { return true; };
 
@@ -241,19 +240,19 @@ class GeoObject : public data::Serializable, public data::EnableCreateFromDataTa
 // inline GeoObjectIntersection operator&(GeoObject const &l, GeoObject const &r) { return GeoObjectIntersection(l, r);
 // }
 
-}  // namespace geometry
-namespace data {
-template <typename U>
-struct data_entity_traits<U, std::enable_if_t<std::is_base_of<geometry::GeoObject, U>::value>> {
-    static U from(DataEntity const &v) { return v.cast_as<DataEntityWrapper<U>>().value(); };
-    static std::shared_ptr<DataEntity> to(U const &v) {
-        auto t = std::make_shared<DataTable>();
-        t->SetValue("type", v.GetClassName());
-        t->SetValue("GetBoundBox", v.GetBoundBox());
-        return std::dynamic_pointer_cast<DataEntity>(t);
-    };
-};
-}
+}  // namespace engine
+// namespace data {
+// template <typename U>
+// struct data_entity_traits<U, std::enable_if_t<std::is_base_of<geometry::GeoObject, U>::value>> {
+//    static U from(DataEntity const &v) { return v.cast_as<DataEntityWrapper<U>>().value(); };
+//    static std::shared_ptr<DataEntity> to(U const &v) {
+//        auto t = std::make_shared<DataTable>();
+//        t->SetValue("type", v.GetClassName());
+//        t->SetValue("GetBoundBox", v.GetBoundBox());
+//        return std::dynamic_pointer_cast<DataEntity>(t);
+//    };
+//};
+//}
 }  // namespace simpla
 
 #endif /* CORE_GEOMETRY_GEO_OBJECT_H_ */

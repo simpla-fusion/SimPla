@@ -64,7 +64,6 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     cfg->GetTable("Domains")->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> const v) {
         Context::SetDomain(k, Domain::Create(v, GetModel().GetObject(k)));
     });
-
     //    std::cout << "Model = ";
     //    GetModel().Serialize(std::cout, 0);
     //

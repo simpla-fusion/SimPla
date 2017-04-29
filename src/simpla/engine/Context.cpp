@@ -47,6 +47,8 @@ void Context::TearDown() {
 void Context::SetUp() {
     m_pimpl_->m_model_.SetUp();
     m_pimpl_->m_atlas_.SetUp();
+    CHECK(m_pimpl_->m_model_.GetBoundBox());
+
     auto x_box = m_pimpl_->m_model_.GetBoundBox();
     auto i_box = m_pimpl_->m_atlas_.GetIndexBox();
     auto period = m_pimpl_->m_atlas_.GetPeriodicDimension();

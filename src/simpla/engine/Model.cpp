@@ -31,6 +31,7 @@ void Model::SetUp() {
     ++it;
     for (; it != m_pimpl_->m_g_objs_.end(); ++it) {
         if (it->second != nullptr) {
+            CHECK(it->second->GetBoundBox());
             m_pimpl_->m_bound_box_ = geometry::BoundBox(m_pimpl_->m_bound_box_, it->second->GetBoundBox());
         }
     }
@@ -52,15 +53,11 @@ box_type const& Model::GetBoundBox() const { return m_pimpl_->m_bound_box_; };
 //    return nullptr;
 //}
 
-std::pair<std::shared_ptr<geometry::GeoObject>, bool> Model::SetObject(std::string const& key,
-                                                                       std::shared_ptr<DataTable> cfg) {
-    auto geo = m_pimpl_->m_g_objs_.emplace(key, nullptr);
-    //    if (geo.first->second == nullptr) {}
-    return std::make_pair(geo.first->second, false);
+void Model::SetObject(std::string const& key, std::shared_ptr<DataTable> cfg) {
+    SetObject(key, geometry::GeoObject::Create(cfg));
 };
-id_type Model::SetObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
-    m_pimpl_->m_g_objs_.emplace(key, g_obj);
-    return 0;
+void Model::SetObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
+    m_pimpl_->m_g_objs_[key] = g_obj;
 }
 
 std::shared_ptr<geometry::GeoObject> Model::GetObject(std::string const& k) const {
