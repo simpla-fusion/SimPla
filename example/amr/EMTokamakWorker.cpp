@@ -12,7 +12,9 @@
 #include <iostream>
 namespace simpla {
 using namespace engine;
-
+static bool s_RegisterDomain =
+    engine::Domain::RegisterCreator<EMFluid<mesh::Mesh<mesh::CylindricalGeometry, mesh::SMesh>>>(
+        "EMFluidCylindricalSMesh");
 class EMTokamak : public engine::Context {
     SP_OBJECT_HEAD(EMTokamak, engine::Context)
    public:
@@ -59,8 +61,12 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
 
     GetModel().SetObject("Limiter", geqdsk.limiter_gobj());
 
-    std::cout << "Model = ";
-    GetModel().Serialize(std::cout, 0);
+    cfg->GetTable("Domains")->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> const v) {
+        Context::SetDomain(k, Domain::Create(v, GetModel().GetObject(k)));
+    });
+
+    //    std::cout << "Model = ";
+    //    GetModel().Serialize(std::cout, 0);
     //
     //    auto const &boundary = geqdsk.boundary();
     //    rho0.Assign([&](point_type const &x) -> Real { return (geqdsk.in_boundary(x)) ? geqdsk.profile("ne", x) : 0.0;

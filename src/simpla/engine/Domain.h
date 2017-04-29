@@ -62,7 +62,7 @@ class Domain : public data::Serializable,
           m_mesh_(std::dynamic_pointer_cast<mesh_type>(engine::Domain::GetMesh())) {}                              \
     ~_DOMAIN_NAME_() override = default;                                                                           \
     SP_DEFAULT_CONSTRUCT(_DOMAIN_NAME_);                                                                           \
-    DECLARE_REGISTER_NAME(std::string(__STRING(_DOMAIN_NAME_)) + "<" + mesh_type::ClassName() + ">")               \
+    DECLARE_REGISTER_NAME(std::string(__STRING(_DOMAIN_NAME_)) + "<" + mesh_type::RegisterName() + ">")            \
     std::shared_ptr<mesh_type> m_mesh_;                                                                            \
     template <int IFORM, int DOF = 1>                                                                              \
     using field_type = Field<mesh_type, typename mesh_type::scalar_type, IFORM, DOF>;

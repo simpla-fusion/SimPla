@@ -28,8 +28,7 @@ using namespace simpla::data;
  */
 class MeshBase : public AttributeGroup,
                  public data::Serializable,
-                 public data::EnableCreateFromDataTable<MeshBase, std::shared_ptr<Chart> >,
-                 public std::enable_shared_from_this<MeshBase> {
+                 public data::EnableCreateFromDataTable<MeshBase, std::shared_ptr<Chart> > {
     SP_OBJECT_HEAD(MeshBase, AttributeGroup);
 
    public:

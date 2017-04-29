@@ -11,9 +11,9 @@ Context = {
     gfile = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900",
     Domains =
     {
-        Center = { Type = "EMFluid" },
-        Limiter = { Type = "EMFluid" },
-        Atenna = { Type = "ICRF" }
+        Center = { Type = "EMFluidCylindricalSMesh" },
+      --   Limiter = { Type = "EMFluidCylindricalSMesh" },
+      --  Atenna = { Type = "ICRF" }
     }
 }
 

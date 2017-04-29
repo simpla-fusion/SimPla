@@ -17,7 +17,7 @@ struct Schedule::pimpl_s {
     size_type m_max_step_ = 0;
     size_type m_check_point_interval_ = 1;
     size_type m_dump_interval_ = 0;
-    std::string m_output_url_ = "";
+    std::string m_output_url_ = "SimPlaSaveData";
 
     std::shared_ptr<Context> m_ctx_;
 };

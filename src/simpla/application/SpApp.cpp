@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
     conf_file += ".lua";
 
     auto cmd_line_cfg = std::make_shared<data::DataTable>();
-    std::shared_ptr<data::DataTable> input_file_cfg = nullptr;
+    auto input_file_cfg = std::make_shared<data::DataTable>();
 
     simpla::parse_cmd_line(  //
         argc, argv, [&](std::string const &opt, std::string const &value) -> int {
@@ -147,7 +147,7 @@ int main(int argc, char **argv) {
 
     VERBOSE << DOUBLELINE << std::endl;
     std::cout << "Description : ";
-    //    cfg->Serialize(std::cout, 0);
+    cfg->Serialize(std::cout, 0);
     std::cout << std::endl;
     VERBOSE << DOUBLELINE << std::endl;
 
