@@ -36,7 +36,7 @@ class Revolve : public GeoObject {
 
     virtual box_type GetBoundBox() const override { return box_type{{0, 0, 0}, {1, 2, 3}}; };
 
-    int CheckInside(point_type const &x) const override { return base_obj.CheckInside(MapTo2d(x)); };
+    bool CheckInside(point_type const &x) const override { return base_obj.CheckInside(MapTo2d(x)); };
 
     nTuple<Real, 2> MapTo2d(point_type const &x) const {
         nTuple<Real, 2> y{0, 0};
@@ -93,8 +93,9 @@ class RevolveZ : public GeoObject {
         return res;
     };
 
-    int CheckInside(point_type const &x) const override {
-        return base_obj->check_inside(x[(m_axis_ + 1) % 2], x[(m_axis_ + 2) % 2]);
+    bool CheckInside(point_type const &x) const override {
+        return base_obj->check_inside(x[(m_axis_ + 1) % 2], x[(m_axis_ + 2) % 2]) &&
+               ((x[m_axis_] >= m_angle_min_) && (x[m_axis_] < m_angle_max_));
     };
 
     nTuple<Real, 2> MapTo2d(point_type const &x) const {

@@ -17,7 +17,7 @@ Model::Model() : m_pimpl_(new pimpl_s) {}
 Model::~Model() {}
 std::shared_ptr<data::DataTable> Model::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
-    for (auto const& item : m_pimpl_->m_g_objs_) { res->SetValue(item.first, item.second->Serialize()); }
+    for (auto const& item : m_pimpl_->m_g_objs_) { res->Set(item.first, item.second->Serialize()); }
     return res;
 };
 void Model::Deserialize(const std::shared_ptr<data::DataTable>& cfg){};
@@ -31,7 +31,6 @@ void Model::SetUp() {
     ++it;
     for (; it != m_pimpl_->m_g_objs_.end(); ++it) {
         if (it->second != nullptr) {
-            CHECK(it->second->GetBoundBox());
             m_pimpl_->m_bound_box_ = geometry::BoundBox(m_pimpl_->m_bound_box_, it->second->GetBoundBox());
         }
     }
@@ -57,7 +56,7 @@ void Model::SetObject(std::string const& key, std::shared_ptr<DataTable> cfg) {
     SetObject(key, geometry::GeoObject::Create(cfg));
 };
 void Model::SetObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
-    m_pimpl_->m_g_objs_[key] = g_obj;
+    if (g_obj != nullptr) m_pimpl_->m_g_objs_[key] = g_obj;
 }
 
 std::shared_ptr<geometry::GeoObject> Model::GetObject(std::string const& k) const {

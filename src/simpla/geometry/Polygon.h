@@ -65,7 +65,7 @@ struct Polygon<2> : public data::Serializable {
     void deploy();
 
     Real nearest_point(Real *x, Real *y) const;
-    int check_inside(Real x, Real y) const;
+    bool check_inside(Real x, Real y) const;
 
     std::tuple<point2d_type, point2d_type> GetBoundBox() const { return std::move(std::make_tuple(m_min_, m_max_)); };
 

@@ -31,6 +31,7 @@ class EMTokamak : public engine::Context {
     std::shared_ptr<data::DataTable> Serialize() const override {
         auto res = std::make_shared<data::DataTable>();
         res->SetValue<std::string>("Type", "EMTokamak");
+        res->Set(Context::Serialize());
         return res;
     };
 
@@ -56,7 +57,7 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     Real phi0 = 0, phi1 = TWOPI;
     geqdsk.load(cfg->GetValue<std::string>("gfile", "gfile"));
     GetModel().SetObject("Boundary", std::make_shared<geometry::RevolveZ>(geqdsk.boundary(), 2, 0, TWOPI));
-    GetModel().SetObject("Boundary", std::make_shared<geometry::RevolveZ>(geqdsk.limiter(), 2, 0, TWOPI));
+    GetModel().SetObject("Center", std::make_shared<geometry::RevolveZ>(geqdsk.limiter(), 2, 0, TWOPI));
 
     cfg->GetTable("Domains")->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> const v) {
         Context::SetDomain(k, Domain::Create(v, GetModel().GetObject(k)));

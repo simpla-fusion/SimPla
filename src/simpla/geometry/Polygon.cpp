@@ -98,7 +98,7 @@ void Polygon<2>::deploy() {
     for (auto const &p : m_polygon_) { geometry::extent_box(&m_min_, &m_max_, &p[0]); }
 }
 
-int Polygon<2>::check_inside(Real x, Real y) const {
+bool Polygon<2>::check_inside(Real x, Real y) const {
     if ((x >= m_min_[0]) && (y >= m_min_[1]) && (x < m_max_[0]) && (y < m_max_[1])) {
         size_t num_of_vertex_ = m_polygon_.size();
 
@@ -113,9 +113,9 @@ int Polygon<2>::check_inside(Real x, Real y) const {
             j = i;
         }
 
-        return oddNodes ? 1 : 0;
+        return oddNodes;
     } else {
-        return 0;
+        return false;
     }
 }
 }
