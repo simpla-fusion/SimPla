@@ -92,7 +92,10 @@ std::shared_ptr<DataBackend> DataBackend::Create(std::string const &uri, std::st
     if (scheme == "") {
         if (std::regex_match(path, uri_match_result, file_extension_regex)) { scheme = uri_match_result.str(3); }
     }
-    if (scheme == "") { RUNTIME_ERROR << "illegal URI: [" << uri << "]" << std::endl; }
+    if (scheme == "") {
+        RUNTIME_ERROR << "illegal URI: [" << uri_match_result.str(0) << "|" << uri_match_result.str(1) << "|"
+                      << uri_match_result.str(2) << "|" << uri_match_result.str(3) << "]" << std::endl;
+    }
 
     VERBOSE << "Create New Data Backend [ " << scheme << " : " << authority << path << " ]" << std::endl;
     auto res = EnableCreateFromDataTable<DataBackend>::Create(scheme);
@@ -100,12 +103,6 @@ std::shared_ptr<DataBackend> DataBackend::Create(std::string const &uri, std::st
     res->Connect(authority, path, query, fragment);
     return res;
 };
-
-// std::vector<std::string> DataBackendFactory::GetBackendList() const {
-//    std::vector<std::string> res;
-//    for (auto const &item : *this) { res.push_back(item.first); }
-//    return std::move(res);
-//};
 
 }  // namespace data {
 }  // namespace simpla {

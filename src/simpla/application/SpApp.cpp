@@ -145,12 +145,6 @@ int main(int argc, char **argv) {
     cfg->Set("Context", input_file_cfg->Get("Context"));
     cfg->Set(cmd_line_cfg, true);
 
-    VERBOSE << DOUBLELINE << std::endl;
-    std::cout << "Description : ";
-    cfg->Serialize(std::cout, 0);
-    std::cout << std::endl;
-    VERBOSE << DOUBLELINE << std::endl;
-
     MPI_Barrier(GLOBAL_COMM.comm());
 
     auto app = std::make_shared<application::SpApp>();
@@ -172,6 +166,13 @@ int main(int argc, char **argv) {
     }
 
     app->SetUp();
+
+    VERBOSE << DOUBLELINE << std::endl;
+    VERBOSE << "SpApp:";
+    app->Serialize(std::cout, 0);
+    std::cout << std::endl;
+    VERBOSE << DOUBLELINE << std::endl;
+
     MPI_Barrier(GLOBAL_COMM.comm());
 
     app->Initialize();

@@ -17,6 +17,8 @@ struct SpApp : public data::Serializable {
     SpApp();
     virtual ~SpApp();
     SP_DEFAULT_CONSTRUCT(SpApp);
+    using data::Serializable::Serialize;
+    using data::Serializable::Deserialize;
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;

@@ -61,8 +61,8 @@ class RevolveZ : public GeoObject {
     SP_OBJECT_HEAD(RevolveZ<TObj>, GeoObject)
 
    public:
-    RevolveZ(TObj const &obj, point_type origin, int axis = 2, Real angle0 = 0, Real angle1 = 1)
-        : m_origin_(origin), base_obj(obj), m_axis_(axis), m_angle_min_(angle0), m_angle_max_(angle1) {}
+    RevolveZ(TObj const &obj, point_type origin, int phi_axis = 2, Real phi0 = 0, Real phi1 = 1)
+        : m_origin_(origin), base_obj(obj), m_axis_(phi_axis), m_angle_min_(phi0), m_angle_max_(phi1) {}
     RevolveZ(this_type const &other) : base_obj(other.base_obj), m_origin_(other.m_origin_), m_axis_(other.m_axis_) {}
     ~RevolveZ() override = default;
 
@@ -85,7 +85,13 @@ class RevolveZ : public GeoObject {
         std::get<0>(res)[m_axis_] = m_angle_min_;
         std::get<1>(res)[m_axis_] = m_angle_max_;
 
-        return box_type{{0, 0, 0}, {1, 2, 3}};
+        std::get<0>(res)[(m_axis_ + 1) % 3] = lo[0];
+        std::get<1>(res)[(m_axis_ + 1) % 3] = hi[0];
+
+        std::get<0>(res)[(m_axis_ + 2) % 3] = lo[1];
+        std::get<1>(res)[(m_axis_ + 2) % 3] = hi[1];
+
+        return res;
     };
 
     int CheckInside(point_type const &x) const override { return base_obj.CheckInside(MapTo2d(x)); };

@@ -29,7 +29,7 @@ class EMTokamak : public engine::Context {
     void Initialize() override;
     void Finalize() override;
     std::shared_ptr<data::DataTable> Serialize() const override {
-        auto res = std::make_shared<data::DataTable>();
+        auto res = std::make_shared<data::DataTable>();         
         res->SetValue<std::string>("Type", "EMTokamak");
         return res;
     };

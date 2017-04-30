@@ -9,11 +9,11 @@
 #define GEQDSK_H_
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/utilities/nTuple.h>
 #include <simpla/geometry/GeoObject.h>
 #include <simpla/geometry/Polygon.h>
 #include <simpla/geometry/Revolve.h>
 #include <simpla/utilities/Log.h>
+#include <simpla/utilities/nTuple.h>
 #include <simpla/utilities/type_traits.h>
 #include <iostream>
 
@@ -44,51 +44,28 @@ class GEqdsk {
 
    public:
     GEqdsk();
-
     ~GEqdsk();
-
     void load(std::string const &fname);
-
     void load_profile(std::string const &fname);
-
     void write(const std::string &url);
-
     std::ostream &print(std::ostream &os);
-
     std::string const &description() const;
-
     box_type box() const;
-
     geometry::Polygon<2> const &boundary() const;
-
     geometry::Polygon<2> const &limiter() const;
-
-    std::shared_ptr<geometry::GeoObject> boundary_gobj() const { return geometry::revolve(boundary()); }
-
-    std::shared_ptr<geometry::GeoObject> limiter_gobj() const { return geometry::revolve(limiter()); }
-
+    std::shared_ptr<geometry::GeoObject> boundary_gobj() const { return geometry::revolveZ(boundary(), PhiAxis); }
+    std::shared_ptr<geometry::GeoObject> limiter_gobj() const { return geometry::revolveZ(limiter(), PhiAxis); }
     bool in_boundary(point_type const &x) const { return boundary().check_inside(x[RAxis], x[ZAxis]) > 0; }
-
     bool in_limiter(point_type const &x) const { return limiter().check_inside(x[RAxis], x[ZAxis]) > 0; }
-
     Real psi(Real R, Real Z) const;
-
     Real psi(point_type const &x) const { return psi(x[RAxis], x[ZAxis]); }
-
     nTuple<Real, 2> grad_psi(Real R, Real Z) const;
-
     Real profile(std::string const &name, Real p_psi) const;
-
     Real profile(std::string const &name, Real R, Real Z) const { return profile(name, psi(R, Z)); }
-
     Real profile(std::string const &name, point_type const &x) const { return profile(name, psi(x[RAxis], x[ZAxis])); }
-
     point_type magnetic_axis() const;
-
     nTuple<size_type, 3> dimensions() const;
-
     Real B0() const;
-
     /**
      *
      * @param R
@@ -112,11 +89,8 @@ class GEqdsk {
         Real Phi = x[PhiAxis];
 
         auto gradPsi = grad_psi(R, Z);
-
         Real v_r = gradPsi[1] / R;
-
         Real v_z = -gradPsi[0] / R;
-
         Real v_phi = profile("fpol", psi(R, Z));
 
         Vec3 res;
@@ -126,9 +100,7 @@ class GEqdsk {
         res[PhiAxis] = v_phi;
 
         //        res[CartesianXAxis] = v_r * std::cos(Phi) - v_phi * std::sin(Phi);
-        //
         //        res[CartesianYAxis] = v_r * std::sin(Phi) + v_phi * std::cos(Phi);
-        //
         //        res[CartesianZAxis] = v_z;
 
         return std::move(res);
