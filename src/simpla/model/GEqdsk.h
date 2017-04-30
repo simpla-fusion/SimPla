@@ -34,9 +34,9 @@ class GEqdsk {
    private:
     typedef GEqdsk this_type;
 
-    static constexpr int PhiAxis = 1;
-    static constexpr int RAxis = 0;
-    static constexpr int ZAxis = 2;
+    static constexpr int PhiAxis = 2;
+    static constexpr int RAxis = (PhiAxis + 1) % 3;
+    static constexpr int ZAxis = (PhiAxis + 2) % 3;
     static constexpr int CartesianZAxis = 2;
     static constexpr int CartesianXAxis = (CartesianZAxis + 1) % 3;
     static constexpr int CartesianYAxis = (CartesianZAxis + 2) % 3;
@@ -51,12 +51,11 @@ class GEqdsk {
     std::ostream &print(std::ostream &os);
     std::string const &description() const;
     box_type box() const;
-    geometry::Polygon<2> const &boundary() const;
-    geometry::Polygon<2> const &limiter() const;
-    std::shared_ptr<geometry::GeoObject> boundary_gobj() const { return geometry::revolveZ(boundary(), PhiAxis); }
-    std::shared_ptr<geometry::GeoObject> limiter_gobj() const { return geometry::revolveZ(limiter(), PhiAxis); }
-    bool in_boundary(point_type const &x) const { return boundary().check_inside(x[RAxis], x[ZAxis]) > 0; }
-    bool in_limiter(point_type const &x) const { return limiter().check_inside(x[RAxis], x[ZAxis]) > 0; }
+    std::shared_ptr<geometry::Polygon<2>> const &boundary() const;
+    std::shared_ptr<geometry::Polygon<2>> const &limiter() const;
+
+    bool in_boundary(point_type const &x) const { return boundary()->check_inside(x[RAxis], x[ZAxis]) > 0; }
+    bool in_limiter(point_type const &x) const { return limiter()->check_inside(x[RAxis], x[ZAxis]) > 0; }
     Real psi(Real R, Real Z) const;
     Real psi(point_type const &x) const { return psi(x[RAxis], x[ZAxis]); }
     nTuple<Real, 2> grad_psi(Real R, Real Z) const;

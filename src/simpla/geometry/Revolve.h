@@ -56,12 +56,11 @@ std::shared_ptr<GeoObject> revolve(TObj const &obj, int phi_axis = 2) {
     return std::dynamic_pointer_cast<GeoObject>(std::make_shared<Revolve<TObj>>(obj, phi_axis));
 }
 
-template <typename TObj>
 class RevolveZ : public GeoObject {
-    SP_OBJECT_HEAD(RevolveZ<TObj>, GeoObject)
+    SP_OBJECT_HEAD(RevolveZ, GeoObject)
 
    public:
-    RevolveZ(TObj const &obj, point_type origin, int phi_axis = 2, Real phi0 = 0, Real phi1 = 1)
+    RevolveZ(std::shared_ptr<Polygon<2>> const &obj, int phi_axis, Real phi0, Real phi1, point_type origin = {0, 0, 0})
         : m_origin_(origin), base_obj(obj), m_axis_(phi_axis), m_angle_min_(phi0), m_angle_max_(phi1) {}
     RevolveZ(this_type const &other) : base_obj(other.base_obj), m_origin_(other.m_origin_), m_axis_(other.m_axis_) {}
     ~RevolveZ() override = default;
@@ -73,14 +72,14 @@ class RevolveZ : public GeoObject {
         res->template SetValue<std::string>("Type", "RevolveZ");
         res->template SetValue<int>("Axis", m_axis_);
         res->template SetValue<point_type>("Origin", m_origin_);
-        res->Set("2DShape", base_obj.Serialize());
+        res->Set("2DShape", base_obj->Serialize());
         return res;
     };
     void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override {}
 
-    virtual box_type GetBoundBox() const override {
+    box_type GetBoundBox() const override {
         nTuple<Real, 2> lo, hi;
-        std::tie(lo, hi) = base_obj.GetBoundBox();
+        std::tie(lo, hi) = base_obj->GetBoundBox();
         box_type res;
         std::get<0>(res)[m_axis_] = m_angle_min_;
         std::get<1>(res)[m_axis_] = m_angle_max_;
@@ -94,7 +93,9 @@ class RevolveZ : public GeoObject {
         return res;
     };
 
-    int CheckInside(point_type const &x) const override { return base_obj.CheckInside(MapTo2d(x)); };
+    int CheckInside(point_type const &x) const override {
+        return base_obj->check_inside(x[(m_axis_ + 1) % 2], x[(m_axis_ + 2) % 2]);
+    };
 
     nTuple<Real, 2> MapTo2d(point_type const &x) const {
         return nTuple<Real, 2>{x[(m_axis_ + 1) % 3] - m_origin_[(m_axis_ + 1) % 3],
@@ -105,13 +106,8 @@ class RevolveZ : public GeoObject {
     Real m_angle_min_, m_angle_max_;
     int m_axis_ = 2;
 
-    TObj const &base_obj;
+    std::shared_ptr<Polygon<2>> base_obj;
 };
-
-template <typename TObj>
-std::shared_ptr<GeoObject> revolveZ(TObj const &obj, int phi_axis = 2) {
-    return std::dynamic_pointer_cast<GeoObject>(std::make_shared<Revolve<TObj>>(obj, phi_axis));
-}
 }
 }
 #endif  // SIMPLA_REVOLVE_H

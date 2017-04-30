@@ -9,10 +9,10 @@
 
 #include <vector>
 
-#include <simpla/utilities/nTuple.h>
+#include <simpla/data/all.h>
 #include <simpla/utilities/FancyStream.h>
+#include <simpla/utilities/nTuple.h>
 #include <simpla/utilities/sp_def.h>
-#include "GeoObject.h"
 namespace simpla {
 namespace geometry {
 /**
@@ -27,10 +27,10 @@ class Polygon;
  *  @brief 2D polygon
  */
 template <>
-struct Polygon<2> : public GeoObject {
+struct Polygon<2> : public data::Serializable {
     typedef nTuple<Real, 2> point2d_type;
 
-    SP_OBJECT_HEAD(Polygon<2>, GeoObject);
+    SP_OBJECT_BASE(Polygon<2>);
 
     std::vector<point2d_type> m_polygon_;
     std::vector<Real> constant_;
@@ -64,11 +64,10 @@ struct Polygon<2> : public GeoObject {
 
     void deploy();
 
-    virtual Real nearest_point(Real *x, Real *y) const;
+    Real nearest_point(Real *x, Real *y) const;
+    int check_inside(Real x, Real y) const;
 
-    virtual std::tuple<point2d_type, point2d_type> box() const { return std::make_tuple(m_min_, m_max_); };
-
-    virtual int check_inside(Real x, Real y) const;
+    std::tuple<point2d_type, point2d_type> GetBoundBox() const { return std::move(std::make_tuple(m_min_, m_max_)); };
 
    private:
     point2d_type m_min_, m_max_;
