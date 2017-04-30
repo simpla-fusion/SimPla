@@ -51,17 +51,23 @@ void EMTokamak::Initialize() {}
 void EMTokamak::Finalize() {}
 void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     if (cfg == nullptr) { return; }
+    unsigned int PhiAxe = 2;
 
+    size_tuple period_dimensions;
+    period_dimensions = cfg->GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 1});
+
+    GetAtlas().SetPeriodicDimension(period_dimensions);
+    nTuple<Real, 2> phi{0, TWOPI / 4};
+    phi = cfg->GetValue<nTuple<Real, 2>>("Phi", phi);
     GEqdsk geqdsk;
-
-    Real phi0 = 0, phi1 = TWOPI;
     geqdsk.load(cfg->GetValue<std::string>("gfile", "gfile"));
-    GetModel().SetObject("Boundary", std::make_shared<geometry::RevolveZ>(geqdsk.boundary(), 2, 0, TWOPI));
-    GetModel().SetObject("Center", std::make_shared<geometry::RevolveZ>(geqdsk.limiter(), 2, 0, TWOPI));
+    GetModel().SetObject("Boundary", std::make_shared<geometry::RevolveZ>(geqdsk.boundary(), PhiAxe, phi[0], phi[1]));
+    GetModel().SetObject("Center", std::make_shared<geometry::RevolveZ>(geqdsk.limiter(), PhiAxe, phi[0], phi[1]));
 
     cfg->GetTable("Domains")->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> const v) {
         Context::SetDomain(k, Domain::Create(v, GetModel().GetObject(k)));
     });
+
     //    std::cout << "Model = ";
     //    GetModel().Serialize(std::cout, 0);
     //

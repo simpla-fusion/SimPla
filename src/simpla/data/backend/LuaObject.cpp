@@ -4,8 +4,8 @@
  * @date 2015-12-10.
  */
 #include "LuaObject.h"
-#include <simpla/utilities/nTuple.h>
 #include <simpla/utilities/FancyStream.h>
+#include <simpla/utilities/nTuple.h>
 #include "LuaObjectExt.h"
 
 namespace simpla {
@@ -463,17 +463,17 @@ LuaObject LuaObject::new_table(std::string const &name, unsigned int narr, unsig
 DEF_TYPE_CHECK(is_nil, lua_isnil)
 
 bool LuaObject::is_integer() const {
-#if LUA_VERSION_NUM >= 503
-    auto acc = L_.acc();
-    return lua_isinteger(*acc, self_);
-#else
+//#if LUA_VERSION_NUM >= 503
+//    auto acc = L_.acc();
+//    return lua_isinteger(*acc, self_);
+//#else
     if (is_number()) {
         double v = as<double>();
         return floor(v) == v;
     } else {
         return false;
     }
-#endif
+//#endif
 }
 
 bool LuaObject::is_floating_point() const {
@@ -524,7 +524,8 @@ bool LuaObject::is_array() const {
 bool LuaObject::is_nTuple() const {
     if (!is_table()) { return false; }
     auto first_item = (*this->begin());
-    return (first_item.first.as<int>() == 1 && (first_item.second.is_number() || first_item.second.is_nTuple()));
+    return (size() < 10 && first_item.first.as<int>() == 1 &&
+            (first_item.second.is_number() || first_item.second.is_nTuple()));
 }
 
 std::ostream &operator<<(std::ostream &os, LuaObject const &obj) {

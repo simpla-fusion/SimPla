@@ -397,7 +397,7 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t g_id, 
     } else if (src->isBlock()) {
         HDF5Set(self, g_id, key, std::dynamic_pointer_cast<DataBlock>(src), overwrite);
     } else if (src->value_type_info() == typeid(std::string) && src->isLight()) {
-        std::string const& s_str = data_cast<std::string>(*src);
+        std::string const& s_str = DataCastTraits<std::string>::Get(src);
         hid_t m_type = H5Tcopy(H5T_C_S1);
         H5Tset_size(m_type, s_str.size());
         H5Tset_strpad(m_type, H5T_STR_NULLTERM);
@@ -429,7 +429,7 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t g_id, 
             data = reinterpret_cast<char*>(&src->cast_as<DataEntityWrapper<_T_*>>().get()[0]); \
         } else {                                                                               \
             data = new char[sizeof(_T_)];                                                      \
-            *reinterpret_cast<_T_*>(data) = data_cast<_T_>(*src);                              \
+            *reinterpret_cast<_T_*>(data) = DataCastTraits<_T_>::Get(src);                              \
         }                                                                                      \
     }
 

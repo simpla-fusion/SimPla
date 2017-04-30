@@ -99,12 +99,14 @@ class DataArrayWithType : public DataArray {
 
     // DataArray
     std::shared_ptr<DataEntity> Get(index_type idx) const override { return make_data_entity(GetValue(idx)); }
-    void Set(size_type idx, std::shared_ptr<DataEntity> const& v) override { Set(idx, data_cast<U>(*v)); }
-    void Add(std::shared_ptr<DataEntity> const& v) override { Add(data_cast<U>(*v)); }
-    // DataArrayWithType
     virtual value_type GetValue(index_type i) const = 0;
-    virtual void Set(size_type idx, value_type const& v) = 0;
+    virtual void Set(size_type idx, value_type v) = 0;
     virtual void Add(value_type const& v) = 0;
+    void Set(size_type idx, std::shared_ptr<DataEntity> const& v) override {
+        Set(idx, DataCastTraits<value_type>::Get(v));
+    }
+    void Add(std::shared_ptr<DataEntity> const& v) override { Add(DataCastTraits<value_type>::Get(v)); }
+    // DataArrayWithType
 };
 
 template <typename U>
@@ -114,8 +116,8 @@ class DataEntityWrapper<U*> : public DataArrayWithType<U> {
 
    public:
     DataEntityWrapper() {}
-    template <typename V>
-    DataEntityWrapper(std::initializer_list<V> const& l) {
+
+    DataEntityWrapper(std::initializer_list<U> const& l) {
         for (auto const& v : l) { m_data_.push_back(v); }
     }
     DataEntityWrapper(this_type const& other) : m_data_(other.m_data_) {}
@@ -146,12 +148,28 @@ class DataEntityWrapper<U*> : public DataArrayWithType<U> {
     // DataArrayWithType
 
     U GetValue(index_type idx) const override { return m_data_[idx]; }
-    void Set(size_type idx, U const& v) override {
+    void Set(size_type idx, U v) override {
         if (size() < idx) { m_data_.resize(idx); }
         m_data_[idx] = v;
     }
     void Add(U const& v) override { m_data_.push_back(v); }
 };
+
+template <typename U, int N>
+struct DataCastTraits<nTuple<U, N>> {
+    static nTuple<U, N> Get(std::shared_ptr<DataEntity> const& p) {
+        ASSERT(p != nullptr && p->isA<DataEntityWrapper<U*>>());
+        auto const& a = p->cast_as<DataEntityWrapper<U*>>();
+        nTuple<U, N> res;
+        for (int i = 0; i < N; ++i) { res[i] = i < a.size() ? DataCastTraits<U>::Get(a.Get(i)) : 0; }
+        return std::move(res);
+    }
+    static nTuple<U, N> Get(std::shared_ptr<DataEntity> const& p, nTuple<U, N> const& default_value) {
+        if (p == nullptr || !p->isA<DataEntityWrapper<U*>>()) { return default_value; }
+        return Get(p);
+    }
+};
+
 //
 // template <typename U, int N>
 // class DataEntityWrapper<simpla::algebra::declare::nTuple_<U, N>> : public DataArrayWithType<U> {
@@ -236,7 +254,9 @@ std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<std::initiali
     return std::make_shared<DataEntityWrapper<void*>>(u);
 }
 inline std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<char const*> const& u) {
-    return std::make_shared<DataEntityWrapper<std::string*>>(u);
+    auto res = std::make_shared<DataEntityWrapper<std::string*>>();
+    for (auto const& v : u) { res->Add(v); }
+    return res;
 }
 //
 // namespace detail {

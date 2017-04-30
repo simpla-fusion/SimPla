@@ -83,7 +83,7 @@ class EnableCreateFromDataTable {
         std::shared_ptr<TObj> res = nullptr;
         if (cfg == nullptr) {
         } else if (cfg->isLight()) {
-            res = Create(data::data_cast<std::string>(*cfg), std::forward<U>(args)...);
+            res = Create(data::DataCastTraits<std::string>::Get(cfg), std::forward<U>(args)...);
         } else if (cfg->isTable()) {
             res = Create(*std::dynamic_pointer_cast<data::DataTable>(cfg), std::forward<U>(args)...);
             res->Deserialize(std::dynamic_pointer_cast<data::DataTable>(cfg));

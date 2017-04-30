@@ -23,7 +23,6 @@
 
 #include <SAMRAI/mesh/BergerRigoutsos.h>
 #include <SAMRAI/mesh/CascadePartitioner.h>
-#include <SAMRAI/mesh/CascadePartitioner.h>
 #include <SAMRAI/mesh/GriddingAlgorithm.h>
 #include <SAMRAI/mesh/StandardTagAndInitialize.h>
 
@@ -42,7 +41,6 @@
 #include <SAMRAI/pdat/CellIndex.h>
 #include <SAMRAI/pdat/CellIterator.h>
 #include <SAMRAI/pdat/CellVariable.h>
-#include <SAMRAI/pdat/CellVariable.h>
 #include <SAMRAI/pdat/EdgeVariable.h>
 #include <SAMRAI/pdat/FaceData.h>
 #include <SAMRAI/pdat/FaceIndex.h>
@@ -56,15 +54,12 @@
 #include <SAMRAI/tbox/InputManager.h>
 #include <SAMRAI/tbox/MathUtilities.h>
 #include <SAMRAI/tbox/PIO.h>
-#include <SAMRAI/tbox/PIO.h>
-#include <SAMRAI/tbox/RestartManager.h>
 #include <SAMRAI/tbox/RestartManager.h>
 #include <SAMRAI/tbox/SAMRAIManager.h>
 #include <SAMRAI/tbox/SAMRAI_MPI.h>
 #include <SAMRAI/tbox/Utilities.h>
 
 #include <SAMRAI/appu/BoundaryUtilityStrategy.h>
-#include <SAMRAI/appu/CartesianBoundaryDefines.h>
 #include <SAMRAI/appu/CartesianBoundaryDefines.h>
 #include <SAMRAI/appu/CartesianBoundaryUtilities2.h>
 #include <SAMRAI/appu/CartesianBoundaryUtilities3.h>
@@ -79,7 +74,7 @@ class SAMRAITimeIntegrator;
 class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatchStrategy {
     SP_OBJECT_BASE(SAMRAIHyperbolicPatchStrategyAdapter)
    public:
-    SAMRAIHyperbolicPatchStrategyAdapter(std::shared_ptr<engine::Context> const &ctx,
+    SAMRAIHyperbolicPatchStrategyAdapter(std::shared_ptr<engine::Context> ctx,
                                          boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom);
 
     /**
@@ -257,14 +252,13 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
 };
 
 SAMRAIHyperbolicPatchStrategyAdapter::SAMRAIHyperbolicPatchStrategyAdapter(
-    std::shared_ptr<engine::Context> const &ctx,
-    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom)
+    std::shared_ptr<engine::Context> ctx, boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom)
     : d_dim(3),
       d_grid_geometry(grid_geom),
       d_use_nonuniform_workload(false),
       d_nghosts(d_dim, 4),
       d_fluxghosts(d_dim, 1),
-      m_ctx_(ctx) {
+      m_ctx_(std::move(ctx)) {
     TBOX_ASSERT(grid_geom);
 }
 

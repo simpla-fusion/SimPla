@@ -23,6 +23,9 @@ namespace simpla {
 namespace mesh {
 struct CylindricalGeometry : public engine::Chart {
     SP_OBJECT_HEAD(CylindricalGeometry, engine::Chart)
+
+    explicit CylindricalGeometry(unsigned int axe = 2) : m_phi_axe_(axe) {}
+
     DECLARE_REGISTER_NAME("CylindricalGeometry");
 
     std::shared_ptr<data::DataTable> Serialize() const override {
@@ -30,6 +33,10 @@ struct CylindricalGeometry : public engine::Chart {
         p->SetValue<std::string>("Type", GetRegisterName());
         return p;
     };
+    constexpr unsigned int GetPhiAxe() const { return m_phi_axe_; }
+
+   private:
+    unsigned int m_phi_axe_;
 };
 
 using namespace simpla::data;

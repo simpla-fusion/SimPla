@@ -71,13 +71,14 @@ bool DataBackendMemory::isNull() const { return m_pimpl_ == nullptr; };
 size_type DataBackendMemory::size() const { return m_pimpl_->m_table_.size(); }
 
 std::shared_ptr<DataEntity> DataBackendMemory::Get(std::string const& url) const {
-    auto res = m_pimpl_->get_table(const_cast<DataBackendMemory*>(this), url, true);
-    if (res.first != nullptr && res.second != "") {
-        auto it = res.first->m_pimpl_->m_table_.find(res.second);
-        if (it != res.first->m_pimpl_->m_table_.end()) { return it->second; }
+    std::shared_ptr<DataEntity> res = nullptr;
+    auto t = m_pimpl_->get_table(const_cast<DataBackendMemory*>(this), url, true);
+    if (t.first != nullptr && t.second != "") {
+        auto it = t.first->m_pimpl_->m_table_.find(t.second);
+        if (it != t.first->m_pimpl_->m_table_.end()) { res = it->second; }
     }
 
-    return nullptr;
+    return res;
 };
 
 void DataBackendMemory::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v, bool overwrite) {

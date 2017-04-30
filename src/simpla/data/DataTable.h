@@ -85,7 +85,7 @@ class DataTable : public DataEntity {
     template <typename U>
     bool Check(std::string const& key, U const& u = true) const {
         auto p = Get(key);
-        return (p != nullptr) && (p->value_type_info() == typeid(U)) && (data_cast<U>(*p) == u);
+        return (p != nullptr) && (p->value_type_info() == typeid(U)) && (DataCastTraits<U>::Get(p) == u);
     }
     bool Check(std::string const& key) const { return Check(key, true); }
 
@@ -109,17 +109,12 @@ class DataTable : public DataEntity {
 
     template <typename U>
     U GetValue(std::string const& uri) const {
-        return data_cast<U>(*Get(uri));
+        return DataCastTraits<U>::Get(Get(uri));
     }
 
     template <typename U>
     U GetValue(std::string const& uri, U const& default_value) const {
-        auto p = Get(uri);
-        if (p == nullptr || p->isNull() || p->value_type_info() != typeid(U)) {
-            return default_value;
-        } else {
-            return data_cast<U>(*p);
-        }
+        return DataCastTraits<U>::Get(Get(uri), default_value);
     }
 
     //    template <typename U>
@@ -201,8 +196,6 @@ std::shared_ptr<DataEntity> make_data_entity(KeyValue const& first, Others&&... 
     res->SetValue(first, std::forward<Others>(others)...);
     return res;
 }
-
-
 
 }  // namespace data
 }  // namespace simpla

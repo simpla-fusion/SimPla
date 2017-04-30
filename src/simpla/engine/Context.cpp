@@ -51,12 +51,16 @@ void Context::SetUp() {
     auto x_box = m_pimpl_->m_model_.GetBoundBox();
     auto i_box = m_pimpl_->m_atlas_.GetIndexBox();
     auto period = m_pimpl_->m_atlas_.GetPeriodicDimension();
+
     point_type dx;
     dx[0] = (std::get<1>(x_box)[0] - std::get<0>(x_box)[0]) / (std::get<1>(i_box)[0] - std::get<0>(i_box)[0]);
     dx[1] = (std::get<1>(x_box)[1] - std::get<0>(x_box)[1]) / (std::get<1>(i_box)[1] - std::get<0>(i_box)[1]);
     dx[2] = (std::get<1>(x_box)[2] - std::get<0>(x_box)[2]) / (std::get<1>(i_box)[2] - std::get<0>(i_box)[2]);
 
-    for (auto &item : m_pimpl_->m_domains_) { item.second->GetMesh()->GetChart()->SetDx(dx); }
+    for (auto &item : m_pimpl_->m_domains_) {
+        item.second->GetMesh()->GetChart()->SetOrigin(std::get<0>(x_box));
+        item.second->GetMesh()->GetChart()->SetDx(dx);
+    }
 };
 void Context::InitializeCondition(Patch *p, Real time_now) {
     for (auto &item : m_pimpl_->m_domains_) {

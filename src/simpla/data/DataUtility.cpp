@@ -20,7 +20,6 @@ namespace data {
 std::shared_ptr<DataTable> ParseCommandLine(int argc, char **argv) {
     auto res = std::make_shared<DataTable>();
 
-
     parse_cmd_line(argc, argv, [&](std::string const &opt, std::string const &value) -> int {
         res->SetValue(opt, value);
         return CONTINUE;
@@ -62,7 +61,7 @@ void SerializeLua(std::shared_ptr<DataEntity> const &d, std::ostream &os, int in
         }
         os << "}";
     } else if (d->value_type_info() == typeid(bool)) {
-        os << (data_cast<bool>(*d) ? "true" : "false");
+        os << (DataCastTraits<bool>::Get(d) ? "true" : "false");
     } else if (d->isBlock()) {
         auto const &blk = d->cast_as<DataBlock>();
         int ndims = blk.GetNDIMS();

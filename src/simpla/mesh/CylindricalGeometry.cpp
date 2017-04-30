@@ -45,14 +45,17 @@ void Mesh<CylindricalGeometry, SMesh>::InitializeData(Real time_now) {
     point_type m_dx_ = GetChart()->GetDx();
     point_type x0 = GetChart()->GetOrigin();
 
+    int Phi_axe = std::dynamic_pointer_cast<CylindricalGeometry>(GetChart())->GetPhiAxe();
+    int R_axe = (Phi_axe + 1) % 3;
+    int Z_axe = (Phi_axe + 2) % 3;
     for (index_type i = ib; i < ie; ++i)
         for (index_type j = jb; j < je; ++j)
             for (index_type k = kb; k < ke; ++k) {
                 point_type x =
                     GetChart()->inv_map(point_type{static_cast<Real>(i), static_cast<Real>(j), static_cast<Real>(k)});
-                m_vertics_[0](i, j, k) = x[0] * std::cos(x[1]);
-                m_vertics_[1](i, j, k) = x[0] * std::sin(x[1]);
-                m_vertics_[2](i, j, k) = x[2];
+                m_vertics_[0](i, j, k) = x[R_axe] * std::cos(x[Phi_axe]);
+                m_vertics_[1](i, j, k) = x[R_axe] * std::sin(x[Phi_axe]);
+                m_vertics_[2](i, j, k) = x[Z_axe];
             }
 
     ib = std::get<0>(m_volume_[0].GetIndexBox())[0];
@@ -68,10 +71,10 @@ void Mesh<CylindricalGeometry, SMesh>::InitializeData(Real time_now) {
                 point_type x =
                     GetChart()->inv_map(point_type{static_cast<Real>(i), static_cast<Real>(j), static_cast<Real>(k)});
 
-                Real dr = m_dx_[0];
-                Real dl0 = m_dx_[1] * x[0];
-                Real dl1 = m_dx_[1] * (x[0] + m_dx_[0]);
-                Real dz = m_dx_[2];
+                Real dr = m_dx_[R_axe];
+                Real dl0 = m_dx_[Phi_axe] * x[R_axe];
+                Real dl1 = m_dx_[Phi_axe] * (x[R_axe] + m_dx_[R_axe]);
+                Real dz = m_dx_[Z_axe];
 
                 m_volume_[0](i, j, k) = 1.0;
                 m_volume_[1](i, j, k) = dr;

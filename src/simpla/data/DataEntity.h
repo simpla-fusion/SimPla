@@ -60,7 +60,7 @@ class DataEntityWithType : public DataEntity {
     std::type_info const& value_type_info() const override { return typeid(value_type); }
     bool isLight() const override { return traits::is_light_data<value_type>::value; }
 
-//    virtual bool equal(value_type const& other) const = 0;
+    //    virtual bool equal(value_type const& other) const = 0;
     virtual value_type value() const = 0;
     virtual value_type* get() { return nullptr; }
     virtual value_type const* get() const { return nullptr; }
@@ -103,7 +103,7 @@ struct DataEntityWrapper<U> : public DataEntityWithType<U> {
         }
         return os;
     }
-//    bool equal(value_type const& other) const override { return *m_data_ == other; }
+    //    bool equal(value_type const& other) const override { return *m_data_ == other; }
     value_type value() const override { return *m_data_; };
 
     value_type* get() override { return m_data_.get(); }
@@ -135,9 +135,16 @@ std::shared_ptr<DataEntity> make_data_entity(Args&&... args) {
 }
 
 template <typename U>
-decltype(auto) data_cast(DataEntity const& v) {
-    return v.cast_as<DataEntityWrapper<U>>().value();
-}
+struct DataCastTraits {
+    static U Get(std::shared_ptr<DataEntity> const& p) {
+        ASSERT(p != nullptr && p->isA<DataEntityWrapper<U>>());
+        return p->cast_as<DataEntityWrapper<U>>().value();
+    }
+    static U Get(std::shared_ptr<DataEntity> const& p, U const& default_value) {
+        ASSERT(p == nullptr || p->isA<DataEntityWrapper<U>>());
+        return p == nullptr ? default_value : p->cast_as<DataEntityWrapper<U>>().value();
+    }
+};
 
 inline std::shared_ptr<DataEntity> make_data_entity(char const* u) {
     return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityWrapper<std::string>>(u));

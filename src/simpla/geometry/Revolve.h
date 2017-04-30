@@ -70,8 +70,10 @@ class RevolveZ : public GeoObject {
     std::shared_ptr<data::DataTable> Serialize() const override {
         auto res = data::Serializable::Serialize();
         res->template SetValue<std::string>("Type", "RevolveZ");
-        res->template SetValue<int>("Axis", m_axis_);
-        res->template SetValue<point_type>("Origin", m_origin_);
+        res->template SetValue("Axis", m_axis_);
+        res->template SetValue("Origin", m_origin_);
+        res->template SetValue("Phi", nTuple<Real, 2>{m_angle_min_, m_angle_max_});
+
         res->Set("2DShape", base_obj->Serialize());
         return res;
     };
