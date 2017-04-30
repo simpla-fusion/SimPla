@@ -165,8 +165,7 @@ struct DataCastTraits<nTuple<U, N>> {
         return std::move(res);
     }
     static nTuple<U, N> Get(std::shared_ptr<DataEntity> const& p, nTuple<U, N> const& default_value) {
-        if (p == nullptr || !p->isA<DataEntityWrapper<U*>>()) { return default_value; }
-        return Get(p);
+        return (p != nullptr && p->isArray()) ? Get(p) : default_value;
     }
 };
 

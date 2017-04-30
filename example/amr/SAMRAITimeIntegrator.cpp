@@ -421,6 +421,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     m_ctx_->RegisterAt(&attr_grp);
     for (engine::Attribute *v : attr_grp.GetAll()) {
         if (v->GetName() == "") continue;
+
         boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, v);
         if (var == nullptr) { continue; }
 
@@ -831,13 +832,15 @@ void SAMRAITimeIntegrator::SetUp() {
 
     auto CartesianGridGeometry = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("CartesianGeometry");
 
-    nTuple<int, 3> i_low, i_up;
+    nTuple<int, 3> i_low{0, 0, 0};
+    nTuple<int, 3> i_up{0, 0, 0};
     std::tie(i_low, i_up) = atlas.GetIndexBox();
     SAMRAI::tbox::DatabaseBox box{SAMRAI::tbox::Dimension(3), &i_low[0], &i_up[0]};
     CartesianGridGeometry->putDatabaseBox("domain_boxes_0", box);
-    nTuple<int, 3> periodic_dimension;
+    nTuple<int, 3> periodic_dimension{0, 0, 0};
     periodic_dimension = atlas.GetPeriodicDimension();
-    nTuple<double, 3> x_low, x_up;
+    nTuple<double, 3> x_low{0, 0, 0};
+    nTuple<double, 3> x_up{0, 0, 0};
     std::tie(x_low, x_up) = bound_box;
 
     CartesianGridGeometry->putIntegerArray("periodic_dimension", &periodic_dimension[0], ndims);

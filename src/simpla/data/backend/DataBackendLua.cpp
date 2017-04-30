@@ -58,10 +58,10 @@ std::shared_ptr<DataEntity> DataBackendLua::pimpl_s::make_data_entity_lua(toolbo
 
     if (lobj.is_list()) {
         auto p = lobj[0];
-        if (p.is_floating_point()) {
-            res = make_data_array_lua<double>(lobj);
-        } else if (p.is_integer()) {
+        if (p.is_integer()) {
             res = make_data_array_lua<int>(lobj);
+        } else if (p.is_floating_point()) {
+            res = make_data_array_lua<double>(lobj);
         } else if (p.is_string()) {
             res = make_data_array_lua<std::string>(lobj);
         } else {

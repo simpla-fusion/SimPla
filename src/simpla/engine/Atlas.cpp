@@ -38,7 +38,11 @@ struct Atlas::pimpl_s {
 Atlas::Atlas() : m_pimpl_(new pimpl_s){};
 Atlas::~Atlas(){};
 void Atlas::SetUp(){};
-std::shared_ptr<data::DataTable> Atlas::Serialize() const { return nullptr; };
+std::shared_ptr<data::DataTable> Atlas::Serialize() const {
+    auto res = std::make_shared<data::DataTable>();
+    res->SetValue("PeriodicDimension", m_pimpl_->m_periodic_dimension_);
+    return res;
+};
 void Atlas::Deserialize(const std::shared_ptr<data::DataTable> &cfg) { DO_NOTHING; };
 
 void Atlas::Decompose(size_tuple const &d, int local_id){};

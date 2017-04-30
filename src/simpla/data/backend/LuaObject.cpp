@@ -463,30 +463,31 @@ LuaObject LuaObject::new_table(std::string const &name, unsigned int narr, unsig
 DEF_TYPE_CHECK(is_nil, lua_isnil)
 
 bool LuaObject::is_integer() const {
-//#if LUA_VERSION_NUM >= 503
-//    auto acc = L_.acc();
-//    return lua_isinteger(*acc, self_);
-//#else
+    //#if LUA_VERSION_NUM >= 503
+    //    auto acc = L_.acc();
+    //    return lua_isinteger(*acc, self_);
+    //#else
     if (is_number()) {
         double v = as<double>();
         return floor(v) == v;
     } else {
         return false;
     }
-//#endif
+    //#endif
 }
 
 bool LuaObject::is_floating_point() const {
-#if LUA_VERSION_NUM >= 503
-    return is_number() && (!is_integer());
-#else
-    if (is_number()) {
-        double v = as<double>();
-        return floor(v) != v;
-    } else {
-        return false;
-    }
-#endif
+    //#if LUA_VERSION_NUM >= 503
+    return is_number();
+//           && (!is_integer());
+    //    #else
+    //    if (is_number()) {
+    //        double v = as<double>();
+    //        return floor(v) != v;
+    //    } else {
+    //        return false;
+    //    }
+    //#endif
 }
 
 DEF_TYPE_CHECK(is_boolean, lua_isboolean)

@@ -53,12 +53,13 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     if (cfg == nullptr) { return; }
     unsigned int PhiAxe = 2;
 
-    size_tuple period_dimensions;
+    size_tuple period_dimensions{0, 0, 0};
     period_dimensions = cfg->GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 1});
 
     GetAtlas().SetPeriodicDimension(period_dimensions);
-    nTuple<Real, 2> phi{0, TWOPI / 4};
+    nTuple<Real, 2> phi{0, TWOPI};
     phi = cfg->GetValue<nTuple<Real, 2>>("Phi", phi);
+    CHECK(phi);
     GEqdsk geqdsk;
     geqdsk.load(cfg->GetValue<std::string>("gfile", "gfile"));
     GetModel().SetObject("Boundary", std::make_shared<geometry::RevolveZ>(geqdsk.boundary(), PhiAxe, phi[0], phi[1]));
@@ -79,7 +80,7 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     //    nTuple<Real, 3> ZERO_V{0, 0, 0};
     //    //    B0.Assign([&](point_type const &x) -> Vec3 { return (geqdsk.in_limiter(x)) ? geqdsk.B(x) : ZERO_V; });
     //    for (auto &item : GetSpecies()) {
-    ////        Real ratio = db()->GetValue("Particles." + item.first + ".ratio", 1.0);
+    //        Real ratio = db()->GetValue("Particles." + item.first + ".ratio", 1.0);
     //        *item.second->rho = rho0 * ratio;
     //    }
 }
