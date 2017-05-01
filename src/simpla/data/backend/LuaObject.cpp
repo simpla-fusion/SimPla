@@ -391,63 +391,6 @@ LuaObject LuaObject::new_table(std::string const &name, unsigned int narr, unsig
     }
     return std::move(res);
 }
-//
-// unsigned int
-// Converter<Properties>::to(lua_State *L, Properties const &v)
-//{
-//    unsigned int res = -1;
-//
-//    if (v.size() > 0) { res = Converter<std::map<std::string, Properties>>::to(L, v); }
-//
-//    else if (v.isBoolean()) { res = Converter<bool>::to(L, v.template as<bool>()); }
-//
-//    else if (v.isIntegral()) { res = Converter<int>::to(L, v.template as<int>()); }
-//
-//    else if (v.isFloatingPoint()) { res = Converter<double>::to(L, v.template as<double>()); }
-//
-//    else if (v.is_string()) { res = Converter<std::string>::to(L, v.template as<std::string>()); }
-//
-//
-//    return res;
-//
-//}
-//
-// unsigned int
-// Converter<Properties>::from(lua_State *L, unsigned int idx, Properties *v)
-//{
-//    unsigned int success = 0;
-//
-//    if (lua_istable(L, idx))
-//    {
-//        success = Converter<std::map<std::string, Properties>>::from(
-//                L, idx,
-//                dynamic_cast<std::map<std::string, Properties> *>(v));
-//    } else if (lua_isboolean(L, idx))
-//    {
-//        bool t;
-//        success = Converter<bool>::from(L, idx, &t);
-//        *v = t;
-//    } else if (lua_isnumber(L, idx))
-//    {
-//
-//        double t;
-//
-//        success = Converter<double>::from(L, idx, &t);
-//
-//        *v = t;
-//    } else if (lua_isstring(L, idx))
-//    {
-//
-////        std::string t;
-////        success = Converter<std::string>::from(L, idx, &t);
-////        *v = t;
-//    } else
-//    {
-//        return 0;
-//    }
-//    return 1;
-//}
-
 #define DEF_TYPE_CHECK(_FUN_NAME_, _LUA_FUN_)              \
     bool LuaObject::_FUN_NAME_() const {                   \
         bool res = false;                                  \
@@ -462,65 +405,20 @@ LuaObject LuaObject::new_table(std::string const &name, unsigned int narr, unsig
 
 DEF_TYPE_CHECK(is_nil, lua_isnil)
 
-bool LuaObject::is_integer() const {
-    //#if LUA_VERSION_NUM >= 503
-    //    auto acc = L_.acc();
-    //    return lua_isinteger(*acc, self_);
-    //#else
-    if (is_number()) {
-        double v = as<double>();
-        return floor(v) == v;
-    } else {
-        return false;
-    }
-    //#endif
-}
-
-bool LuaObject::is_floating_point() const {
-    //#if LUA_VERSION_NUM >= 503
-    return is_number();
-//           && (!is_integer());
-    //    #else
-    //    if (is_number()) {
-    //        double v = as<double>();
-    //        return floor(v) != v;
-    //    } else {
-    //        return false;
-    //    }
-    //#endif
-}
-
 DEF_TYPE_CHECK(is_boolean, lua_isboolean)
 DEF_TYPE_CHECK(is_lightuserdata, lua_islightuserdata)
 DEF_TYPE_CHECK(is_function, lua_isfunction)
 DEF_TYPE_CHECK(is_thread, lua_isthread)
 DEF_TYPE_CHECK(is_table, lua_istable)
+DEF_TYPE_CHECK(is_string, lua_isstring)
+DEF_TYPE_CHECK(is_number, lua_isnumber)
+DEF_TYPE_CHECK(is_integer, lua_isinteger)
+
 #undef DEF_TYPE_CHECK
 
-bool LuaObject::is_number() const {
-    if (L_.empty()) { return false; }
-    auto acc = L_.acc();
-    try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-    bool res = lua_type(*acc, -1) == LUA_TNUMBER;
-    lua_pop(*acc, 1);
-    return res;
-}
+bool LuaObject::is_floating_point() const { return is_number() && !is_integer(); }
 
-bool LuaObject::is_string() const {
-    if (L_.empty()) { return false; }
-    auto acc = L_.acc();
-    try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-    bool res = lua_type(*acc, -1) == LUA_TSTRING;
-    lua_pop(*acc, 1);
-    return res;
-}
-
-bool LuaObject::is_array() const {
-    if (!this->is_table()) { return false; }
-    auto first_item = *this->begin();
-    if (first_item.first.as<int>() == 1) { return true; }
-    return false;
-}
+bool LuaObject::is_array() const { return this->is_table() && (*this)[1].as<int>() == 1; }
 
 bool LuaObject::is_nTuple() const {
     if (!is_table()) { return false; }

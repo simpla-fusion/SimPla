@@ -9,8 +9,8 @@
 Context = {
     Type = "EMTokamak",
     gfile = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900",
-    Phi = { 0.0, 3.14},
-    PeriodicDimension={1,0,0},
+    Phi = { 0.0, 3.14/2},
+    PeriodicDimension={1,0,1},
     Domains =
     {
         Center = { Type = "EMFluidCylindricalSMesh" },
