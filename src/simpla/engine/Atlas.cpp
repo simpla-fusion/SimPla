@@ -43,7 +43,12 @@ std::shared_ptr<data::DataTable> Atlas::Serialize() const {
     res->SetValue("PeriodicDimension", m_pimpl_->m_periodic_dimension_);
     return res;
 };
-void Atlas::Deserialize(const std::shared_ptr<data::DataTable> &cfg) { DO_NOTHING; };
+void Atlas::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
+    if (cfg == nullptr) { return; }
+    size_tuple period_dimensions{0, 0, 0};
+    period_dimensions = cfg->GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 1});
+    SetPeriodicDimension(period_dimensions);
+};
 
 void Atlas::Decompose(size_tuple const &d, int local_id){};
 index_box_type Atlas::FitIndexBox(box_type const &b, int level, int flag) const { return index_box_type{}; }

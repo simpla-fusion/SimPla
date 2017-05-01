@@ -24,50 +24,37 @@ class EMTokamak : public engine::Context {
     SP_DEFAULT_CONSTRUCT(EMTokamak);
     DECLARE_REGISTER_NAME("EMTokamak");
 
-    //    DOMAIN_HEAD(EMTokamak, EMFluid<mesh::CylindricalSMesh>)
-
-    void Initialize() override;
-    void Finalize() override;
-    std::shared_ptr<data::DataTable> Serialize() const override {
-        auto res = std::make_shared<data::DataTable>();
-        res->SetValue<std::string>("Type", "EMTokamak");
-        res->Set(Context::Serialize());
-        return res;
-    };
-
+    std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(shared_ptr<data::DataTable> const& cfg) override;
 
     //    void InitializeCondition(Real time_now) override;
     //    void BoundaryCondition(Real time_now, Real dt) override;
     //    void Advance(Real time_now, Real dt) override;
     //    field_type<VERTEX> psi{base_type::m_mesh_, "name"_ = "psi"};
-    std::function<Vec3(point_type const&, Real)> J_src_fun;
-    std::function<Vec3(point_type const&, Real)> E_src_fun;
+    //    std::function<Vec3(point_type const&, Real)> J_src_fun;
+    //    std::function<Vec3(point_type const&, Real)> E_src_fun;
 };
 
 REGISTER_CREATOR(EMTokamak)
 
-void EMTokamak::Initialize() {}
-void EMTokamak::Finalize() {}
+std::shared_ptr<data::DataTable> EMTokamak::Serialize() const {
+    auto res = std::make_shared<data::DataTable>();
+    res->SetValue<std::string>("Type", "EMTokamak");
+    res->Set(Context::Serialize());
+    return res;
+};
 void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     if (cfg == nullptr) { return; }
+
     unsigned int PhiAxe = 2;
-
-    size_tuple period_dimensions{0, 0, 0};
-    period_dimensions = cfg->GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 1});
-
-    GetAtlas().SetPeriodicDimension(period_dimensions);
     nTuple<Real, 2> phi{0, TWOPI};
     phi = cfg->GetValue<nTuple<Real, 2>>("Phi", phi);
-    CHECK(phi);
     GEqdsk geqdsk;
     geqdsk.load(cfg->GetValue<std::string>("gfile", "gfile"));
     GetModel().SetObject("Boundary", std::make_shared<geometry::RevolveZ>(geqdsk.boundary(), PhiAxe, phi[0], phi[1]));
     GetModel().SetObject("Center", std::make_shared<geometry::RevolveZ>(geqdsk.limiter(), PhiAxe, phi[0], phi[1]));
 
-    cfg->GetTable("Domains")->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> const v) {
-        Context::SetDomain(k, Domain::Create(v, GetModel().GetObject(k)));
-    });
+    engine::Context::Deserialize(cfg);
 
     //    std::cout << "Model = ";
     //    GetModel().Serialize(std::cout, 0);

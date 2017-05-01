@@ -21,7 +21,8 @@ class Domain : public data::Serializable,
                public data::EnableCreateFromDataTable<Domain, std::shared_ptr<geometry::GeoObject> > {
     SP_OBJECT_BASE(Domain)
    public:
-    explicit Domain(std::shared_ptr<geometry::GeoObject> g = nullptr, std::shared_ptr<MeshBase> m = nullptr);
+    explicit Domain(std::shared_ptr<geometry::GeoObject> const &g = nullptr,
+                    std::shared_ptr<MeshBase> const &m = nullptr);
     ~Domain() override;
 
     SP_DEFAULT_CONSTRUCT(Domain);

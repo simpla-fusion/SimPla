@@ -28,14 +28,12 @@ std::shared_ptr<data::DataTable> Context::Serialize() const {
     return res;
 }
 void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
-    auto worker_t = cfg->GetTable("Domains");
-    if (worker_t != nullptr) {
-        worker_t->Foreach([&](std::string const &k, std::shared_ptr<DataEntity> t) {
-            SetDomain(k, Domain::Create(t, m_pimpl_->m_model_.GetObject(k)));
-        });
-    }
     m_pimpl_->m_atlas_.Deserialize(cfg->GetTable("Atlas"));
     m_pimpl_->m_model_.Deserialize(cfg->GetTable("Model"));
+
+    for (auto const &geo : GetModel().GetAll()) {
+        Context::SetDomain(geo.first, Domain::Create(cfg->Get("Domains/" + geo.first), geo.second));
+    }
 }
 
 void Context::Initialize() {}
@@ -60,6 +58,7 @@ void Context::SetUp() {
     for (auto &item : m_pimpl_->m_domains_) {
         item.second->GetMesh()->GetChart()->SetOrigin(std::get<0>(x_box));
         item.second->GetMesh()->GetChart()->SetDx(dx);
+        item.second->GetMesh()->RegisterDescription(&m_pimpl_->m_global_attributes_);
     }
 };
 void Context::InitializeCondition(Patch *p, Real time_now) {
@@ -89,11 +88,12 @@ Model &Context::GetModel() const { return m_pimpl_->m_model_; }
 
 Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
 
-void Context::RegisterAt(AttributeGroup *attr_grp) {
-    for (auto &item : m_pimpl_->m_domains_) { item.second->GetMesh()->RegisterAt(attr_grp); }
+std::map<std::string, std::shared_ptr<Attribute>> const &Context::GetRegisiteredAttribute() const {
+    return m_pimpl_->m_global_attributes_;
 }
 
 std::shared_ptr<Domain> Context::SetDomain(std::string const &k, std::shared_ptr<Domain> d) {
+    if (d == nullptr) { return d; }
     m_pimpl_->m_domains_[k] = d;
     m_pimpl_->m_model_.SetObject(k, d->GetGeoObject());
     return d;

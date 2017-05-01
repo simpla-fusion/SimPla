@@ -84,7 +84,9 @@ class FieldView : public engine::Attribute {
     int GetIFORM() const override { return IFORM; };
     int GetDOF() const override { return DOF; };
     std::type_info const& value_type_info() const override { return typeid(value_type); };  //!< value type
-
+    std::shared_ptr<engine::Attribute> GetDescription() const override {
+        return std::make_shared<engine::AttributeDesc<TV, IFORM, DOF>>(db());
+    };
     void SetUp() override { m_data_.resize(static_cast<size_type>(NUMBER_OF_SUB)); }
 
     void Clear() {

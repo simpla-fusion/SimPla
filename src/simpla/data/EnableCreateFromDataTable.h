@@ -27,7 +27,7 @@ class EnableCreateFromDataTable {
     virtual std::string GetRegisterName() const { return TObj::RegisterName(); }
 
     struct ObjectFactory {
-        std::map<std::string, std::function<TObj *(Args &&...)>> m_factory_;
+        std::map<std::string, std::function<TObj *(Args const &...)>> m_factory_;
     };
     static bool HasCreator(std::string const &k) {
         auto const &f = SingletonHolder<ObjectFactory>::instance().m_factory_;
@@ -48,7 +48,7 @@ class EnableCreateFromDataTable {
         }
         return res;
     };
-    static bool RegisterCreator(std::string const &k, std::function<TObj *(Args &&...)> const &fun) noexcept {
+    static bool RegisterCreator(std::string const &k, std::function<TObj *(Args const &...)> const &fun) noexcept {
         return SingletonHolder<ObjectFactory>::instance().m_factory_.emplace(k, fun).second;
     };
     template <typename U>
@@ -57,47 +57,37 @@ class EnableCreateFromDataTable {
                                [](Args const &... args) { return new U(args...); });
     };
     template <typename... U>
-    static std::shared_ptr<TObj> Create(std::string const &k, U &&... args) {
+    static std::shared_ptr<TObj> Create(std::string const &k, U const &... args) {
         if (k == "") { return nullptr; }
-        if (k.find("://") != std::string::npos) {
-            return Create(std::make_shared<data::DataTable>(k), std::forward<U>(args)...);
-        }
+        if (k.find("://") != std::string::npos) { return Create(std::make_shared<data::DataTable>(k), args...); }
         auto const &f = SingletonHolder<ObjectFactory>::instance().m_factory_;
         std::shared_ptr<TObj> res = nullptr;
         auto it = f.find(k);
 
         if (it != f.end()) {
-            res.reset(it->second(std::forward<U>(args)...));
+            res.reset(it->second(args...));
             LOGGER << TObj::RegisterName() << "::" << it->first << "  is created!" << std::endl;
         } else {
             std::ostringstream os;
             os << "Can not find Creator " << k << std::endl;
             os << std::endl << "Register " << TObj::RegisterName() << " Creator:" << std::endl;
             for (auto const &item : f) { os << item.first << std::endl; }
-            RUNTIME_ERROR << os.str();
+            WARNING << os.str();
         }
         return res;
     }
     template <typename... U>
-    static std::shared_ptr<TObj> Create(std::shared_ptr<DataEntity> const &cfg, U &&... args) {
+    static std::shared_ptr<TObj> Create(std::shared_ptr<DataEntity> const &cfg, U const &... args) {
         std::shared_ptr<TObj> res = nullptr;
         if (cfg == nullptr) {
         } else if (cfg->isLight()) {
-            res = Create(data::DataCastTraits<std::string>::Get(cfg), std::forward<U>(args)...);
+            res = Create(data::DataCastTraits<std::string>::Get(cfg), args...);
         } else if (cfg->isTable()) {
-            res = Create(*std::dynamic_pointer_cast<data::DataTable>(cfg), std::forward<U>(args)...);
-            res->Deserialize(std::dynamic_pointer_cast<data::DataTable>(cfg));
+            auto t = std::dynamic_pointer_cast<data::DataTable>(cfg);
+            res = Create(t->GetValue<std::string>("Type", ""), args...);
+            if (res != nullptr) res->Deserialize(t);
         }
         return res;
-    }
-
-    template <typename... U>
-    static std::shared_ptr<TObj> Create(DataTable const &cfg, U &&... args) {
-        return Create(cfg.GetValue<std::string>("Type", ""), std::forward<U>(args)...);
-    }
-    template <typename... U>
-    static std::shared_ptr<TObj> Create(std::shared_ptr<DataTable> const &cfg, U &&... args) {
-        return (cfg == nullptr) ? nullptr : Create(*cfg, std::forward<U>(args)...);
     }
 };
 

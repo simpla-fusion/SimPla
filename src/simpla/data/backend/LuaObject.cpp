@@ -409,7 +409,6 @@ DEF_TYPE_CHECK(is_boolean, lua_isboolean)
 DEF_TYPE_CHECK(is_lightuserdata, lua_islightuserdata)
 DEF_TYPE_CHECK(is_function, lua_isfunction)
 DEF_TYPE_CHECK(is_thread, lua_isthread)
-DEF_TYPE_CHECK(is_table, lua_istable)
 DEF_TYPE_CHECK(is_string, lua_isstring)
 DEF_TYPE_CHECK(is_number, lua_isnumber)
 DEF_TYPE_CHECK(is_integer, lua_isinteger)
@@ -418,15 +417,28 @@ DEF_TYPE_CHECK(is_integer, lua_isinteger)
 
 bool LuaObject::is_floating_point() const { return is_number() && !is_integer(); }
 
-bool LuaObject::is_array() const { return this->is_table() && (*this)[1].as<int>() == 1; }
-
-bool LuaObject::is_nTuple() const {
-    if (!is_table()) { return false; }
-    auto first_item = (*this->begin());
-    return (size() < 10 && first_item.first.as<int>() == 1 &&
-            (first_item.second.is_number() || first_item.second.is_nTuple()));
+bool LuaObject::is_table() const {
+    bool res = false;
+    if (!L_.empty()) {
+        auto acc = L_.acc();
+        try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+        res = lua_istable(*acc, -1);
+        if (res) { res = res && lua_rawlen(*acc, -1) == 0; }
+        lua_pop(*acc, 1);
+    }
+    return res;
 }
-
+bool LuaObject::is_array() const {
+    bool res = false;
+    if (!L_.empty()) {
+        auto acc = L_.acc();
+        try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+        res = lua_istable(*acc, -1);
+        if (res) { res = res && lua_rawlen(*acc, -1) > 0; }
+        lua_pop(*acc, 1);
+    }
+    return res;
+}
 std::ostream &operator<<(std::ostream &os, LuaObject const &obj) {
     os << obj.as<std::string>();
     return os;

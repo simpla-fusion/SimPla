@@ -73,34 +73,34 @@ class GeoObject : public data::Serializable, public data::EnableCreateFromDataTa
     */
     virtual bool CheckInside(const point_type &x) const { return in_box(GetBoundBox(), x) ? 1 : 0; };
 
-//    int CheckInside() const { return 0; }
-//
-//    /**
-//     * return id= 0b012345...
-//     */
-//    template <typename P0, typename... Others>
-//    int CheckInside(P0 const &p0, Others &&... others) const {
-//        return (CheckInside(p0) << (sizeof...(others))) | CheckInside(std::forward<Others>(others)...);
-//    };
-//
-//   private:
-//    template <typename T, size_t... I>
-//    int CheckInside_invoke_helper(T const &p_tuple, int_sequence<I...>) const {
-//        return CheckInside(std::get<I>(std::forward<T>(p_tuple))...);
-//    };
-//
-//   public:
-//    template <typename... Others>
-//    int CheckInside(std::tuple<Others...> const &p_tuple) const {
-//        return CheckInside_invoke_helper(p_tuple, make_int_sequence<sizeof...(Others)>());
-//    };
-//
-//    int CheckInside(int num, point_type const *p_tuple) const {
-//        ASSERT(num < std::numeric_limits<int>::digits);
-//        int res = 0;
-//        for (int i = 0; i < num; ++i) { res = (res << 1) | CheckInside(&p_tuple[i][0]); }
-//        return res;
-//    };
+    //    int CheckInside() const { return 0; }
+    //
+    //    /**
+    //     * return id= 0b012345...
+    //     */
+    //    template <typename P0, typename... Others>
+    //    int CheckInside(P0 const &p0, Others &&... others) const {
+    //        return (CheckInside(p0) << (sizeof...(others))) | CheckInside(std::forward<Others>(others)...);
+    //    };
+    //
+    //   private:
+    //    template <typename T, size_t... I>
+    //    int CheckInside_invoke_helper(T const &p_tuple, int_sequence<I...>) const {
+    //        return CheckInside(std::get<I>(std::forward<T>(p_tuple))...);
+    //    };
+    //
+    //   public:
+    //    template <typename... Others>
+    //    int CheckInside(std::tuple<Others...> const &p_tuple) const {
+    //        return CheckInside_invoke_helper(p_tuple, make_int_sequence<sizeof...(Others)>());
+    //    };
+    //
+    //    int CheckInside(int num, point_type const *p_tuple) const {
+    //        ASSERT(num < std::numeric_limits<int>::digits);
+    //        int res = 0;
+    //        for (int i = 0; i < num; ++i) { res = (res << 1) | CheckInside(&p_tuple[i][0]); }
+    //        return res;
+    //    };
 
     /**
       * find nearest point from \f$M\f$ to \f$x\f$

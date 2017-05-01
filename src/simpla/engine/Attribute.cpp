@@ -19,6 +19,10 @@ struct AttributeGroup::pimpl_s {
 
 AttributeGroup::AttributeGroup() : m_pimpl_(new pimpl_s) {}
 AttributeGroup::~AttributeGroup() {}
+void AttributeGroup::RegisterDescription(std::map<std::string, std::shared_ptr<Attribute>> *m) {
+    for (Attribute *attr : m_pimpl_->m_attributes_) { (*m)[attr->GetName()] = attr->GetDescription(); }
+};
+
 void AttributeGroup::RegisterAt(AttributeGroup *other) {
     for (Attribute *attr : m_pimpl_->m_attributes_) { attr->RegisterAt(other); }
 };

@@ -10,7 +10,8 @@
 namespace simpla {
 namespace engine {
 
-Domain::Domain(std::shared_ptr<geometry::GeoObject> g, std::shared_ptr<MeshBase> m) : m_mesh_(m), m_geo_object_(g) {}
+Domain::Domain(std::shared_ptr<geometry::GeoObject> const& g, std::shared_ptr<MeshBase> const& m)
+    : m_mesh_(m), m_geo_object_(g) {}
 Domain::~Domain() {}
 
 std::shared_ptr<data::DataTable> Domain::Serialize() const {

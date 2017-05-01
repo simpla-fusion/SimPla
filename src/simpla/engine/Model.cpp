@@ -17,10 +17,18 @@ Model::Model() : m_pimpl_(new pimpl_s) {}
 Model::~Model() {}
 std::shared_ptr<data::DataTable> Model::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
-    for (auto const& item : m_pimpl_->m_g_objs_) { res->Set(item.first, item.second->Serialize()); }
+    for (auto const& item : m_pimpl_->m_g_objs_) {
+        if (item.second != nullptr) { res->Set(item.first, item.second->Serialize()); }
+    }
     return res;
 };
-void Model::Deserialize(const std::shared_ptr<data::DataTable>& cfg){};
+void Model::Deserialize(const std::shared_ptr<data::DataTable>& cfg) {
+    if (cfg == nullptr) { return; }
+    cfg->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> const& v) {
+        auto res = m_pimpl_->m_g_objs_.emplace(k, nullptr);
+        if (res.first->second == nullptr) { res.first->second = geometry::GeoObject::Create(v); }
+    });
+};
 void Model::Initialize() { LOGGER << "Model is initialized " << std::endl; }
 void Model::Finalize() {}
 

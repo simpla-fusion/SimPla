@@ -243,7 +243,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
     boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_workload_variable;
     int d_workload_data_id = 0;
     bool d_use_nonuniform_workload;
-    std::map<engine::Attribute *, boost::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
+    std::map<std::shared_ptr<engine::Attribute>, boost::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
     SAMRAI::hier::IntVector d_nghosts;
     SAMRAI::hier::IntVector d_fluxghosts;
 
@@ -273,7 +273,7 @@ SAMRAIHyperbolicPatchStrategyAdapter::~SAMRAIHyperbolicPatchStrategyAdapter() = 
 namespace detail {
 template <typename T>
 boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(unsigned short ndims,
-                                                                   engine::Attribute const *attr) {
+                                                                   const std::shared_ptr<engine::Attribute> attr) {
     SAMRAI::tbox::Dimension d_dim(ndims);
 
     boost::shared_ptr<SAMRAI::hier::Variable> res;
@@ -304,7 +304,8 @@ boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(unsigned shor
     return res;
 }
 
-boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned short ndims, engine::Attribute const *attr) {
+boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned short ndims,
+                                                                 const std::shared_ptr<engine::Attribute> &attr) {
     boost::shared_ptr<SAMRAI::hier::Variable> res = nullptr;
 
     if (attr->value_type_info() == (typeid(float))) {
@@ -386,7 +387,7 @@ std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, boost::share
 }
 
 template <int NDIMS>
-std::shared_ptr<data::DataBlock> create_simpla_datablock(engine::Attribute const *desc,
+std::shared_ptr<data::DataBlock> create_simpla_datablock(const std::shared_ptr<engine::Attribute> &desc,
                                                          boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
     std::shared_ptr<data::DataBlock> res(nullptr);
     if (desc->value_type_info() == (typeid(float))) {
@@ -417,15 +418,13 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     SAMRAI::hier::IntVector d_fluxghosts{d_dim, 1};
     //**************************************************************
 
-    engine::AttributeGroup attr_grp;
-    m_ctx_->RegisterAt(&attr_grp);
-    for (engine::Attribute *v : attr_grp.GetAll()) {
-        if (v->GetName() == "") continue;
+    for (auto const &item : m_ctx_->GetRegisiteredAttribute()) {
+        if (item.second->GetName() == "") continue;
 
-        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, v);
+        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, item.second);
         if (var == nullptr) { continue; }
 
-        m_samrai_variables_[v] = var;
+        m_samrai_variables_[item.second] = var;
 
         /*** FIXME:
         *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
@@ -437,40 +436,46 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         std::string coarsen_name = "NO_REFINE";
         std::string refine_name = "NO_REFINE";
 
-        if (v->db()->Check("COORDINATES", true) || v->db()->Check("INPUT", true)) {
+        if (item.second->db()->Check("COORDINATES", true) || item.second->db()->Check("INPUT", true)) {
             v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT;
         }
-        if (v->db()->Check("FLUX", true)) {
+        if (item.second->db()->Check("FLUX", true)) {
             ghosts = d_fluxghosts;
             v_type = SAMRAI::algs::HyperbolicLevelIntegrator::FLUX;
             coarsen_name = "CONSERVATIVE_COARSEN";
             refine_name = "NO_REFINE";
         }
-        if (v->db()->Check("INPUT", true)) {
+        if (item.second->db()->Check("INPUT", true)) {
             coarsen_name = "NO_REFINE";
             refine_name = "NO_REFINE";
         }
         integrator->registerVariable(var, ghosts, v_type, d_grid_geometry, "", coarsen_name);
-        if (v->GetName()[0] != '_') {
+        if (item.second->GetName()[0] != '_') {
             std::string visit_variable_type;
-            if ((v->GetIFORM() == VERTEX || v->GetIFORM() == VOLUME) && (v->GetDOF() == 1)) {
+            if ((item.second->GetIFORM() == VERTEX || item.second->GetIFORM() == VOLUME) &&
+                (item.second->GetDOF() == 1)) {
                 visit_variable_type = "SCALAR";
-            } else if (((v->GetIFORM() == EDGE || v->GetIFORM() == FACE) && (v->GetDOF() == 1)) ||
-                       ((v->GetIFORM() == VERTEX || v->GetIFORM() == VOLUME) && (v->GetDOF() == 3))) {
+            } else if (((item.second->GetIFORM() == EDGE || item.second->GetIFORM() == FACE) &&
+                        (item.second->GetDOF() == 1)) ||
+                       ((item.second->GetIFORM() == VERTEX || item.second->GetIFORM() == VOLUME) &&
+                        (item.second->GetDOF() == 3))) {
                 visit_variable_type = "VECTOR";
-            } else if (((v->GetIFORM() == VERTEX || v->GetIFORM() == VOLUME) && v->GetDOF() == 9) ||
-                       ((v->GetIFORM() == EDGE || v->GetIFORM() == FACE) && v->GetDOF() == 3)) {
+            } else if (((item.second->GetIFORM() == VERTEX || item.second->GetIFORM() == VOLUME) &&
+                        item.second->GetDOF() == 9) ||
+                       ((item.second->GetIFORM() == EDGE || item.second->GetIFORM() == FACE) &&
+                        item.second->GetDOF() == 3)) {
                 visit_variable_type = "TENSOR";
             } else {
-                WARNING << "Can not register attribute [" << v->GetName() << "] to VisIt writer !" << std::endl;
+                WARNING << "Can not register attribute [" << item.second->GetName() << "] to VisIt writer !"
+                        << std::endl;
             }
 
-            if (visit_variable_type != "" && v->db()->Check("COORDINATES", true)) {
+            if (visit_variable_type != "" && item.second->db()->Check("COORDINATES", true)) {
                 d_visit_writer->registerNodeCoordinates(
                     vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-            } else if (v->GetIFORM() == VERTEX || v->GetIFORM() == VOLUME) {
+            } else if (item.second->GetIFORM() == VERTEX || item.second->GetIFORM() == VOLUME) {
                 d_visit_writer->registerPlotQuantity(
-                    v->GetName(), visit_variable_type,
+                    item.second->GetName(), visit_variable_type,
                     vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
             }
         }

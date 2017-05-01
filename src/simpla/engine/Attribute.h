@@ -55,7 +55,7 @@ class AttributeGroup {
     virtual ~AttributeGroup();
 
     SP_DEFAULT_CONSTRUCT(AttributeGroup);
-
+    virtual void RegisterDescription(std::map<std::string, std::shared_ptr<Attribute>> *);
     virtual void RegisterAt(AttributeGroup *);
     virtual void DeregisterFrom(AttributeGroup *);
 
@@ -113,7 +113,7 @@ struct Attribute : public SPObject, public data::Configurable, public data::Seri
     void DeregisterFrom(AttributeGroup *);
 
     //    virtual Attribute *Clone() const = 0;
-    //    virtual std::shared_ptr<Attribute> GetDescription() const = 0;
+    virtual std::shared_ptr<Attribute> GetDescription() const = 0;
 
     virtual int GetIFORM() const = 0;
     virtual int GetDOF() const = 0;
@@ -135,12 +135,12 @@ struct AttributeDesc : public Attribute {
     SP_OBJECT_HEAD(desc_type, Attribute);
 
    public:
-    explicit AttributeDesc(std::shared_ptr<data::DataTable> const &t) : Attribute(nullptr, t) {}
+    explicit AttributeDesc(std::shared_ptr<data::DataTable> const &t) : Attribute(t) {}
     explicit AttributeDesc(std::string const &k) : Attribute(nullptr) {}
     ~AttributeDesc() override = default;
 
-    virtual std::shared_ptr<Attribute> GetDescription() const {
-        return std::make_shared<AttributeDesc<TV, IFORM, DOF>>();
+    virtual std::shared_ptr<Attribute> GetDescription() const override {
+        return std::make_shared<AttributeDesc<TV, IFORM, DOF>>(db());
     };
     //    virtual Attribute *Clone() const { return new this_type; };
 

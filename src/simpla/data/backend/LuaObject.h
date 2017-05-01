@@ -22,8 +22,8 @@
 #include <utility>
 
 #include <simpla/concept/Printable.h>
-#include <simpla/utilities/type_cast.h>
 #include <simpla/utilities/Log.h>
+#include <simpla/utilities/type_cast.h>
 #include "LuaObjectExt.h"
 
 extern "C" {
@@ -137,19 +137,18 @@ class LuaObject : public concept::Printable {
     bool is_lightuserdata() const;
     bool is_function() const;
     bool is_thread() const;
-    bool is_table() const;
     bool is_boolean() const;
     bool is_number() const;
     bool is_string() const;
     bool is_integer() const;
     bool is_floating_point() const;
-    /** ntuple < list < table
-     *  list =  table without key
-     *  ntuple = list with number value
+    /**
+     *  table : key-value map
+     *  array : table without key
      */
-    bool is_list() const { return is_array(); }
+    bool is_table() const;
     bool is_array() const;
-    bool is_nTuple() const;
+
     std::string get_typename() const;
     void init();
     void parse_file(std::string const &filename, std::string const &status = "");

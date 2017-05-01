@@ -33,6 +33,8 @@ class DataBackend : public EnableCreateFromDataTable<DataBackend> {
     SP_DEFAULT_CONSTRUCT(DataBackend)
     DECLARE_REGISTER_NAME("DataBackend")
 
+    void Deserialize(std::shared_ptr<DataTable> const& t){};
+
     static std::shared_ptr<DataBackend> Create(std::string const& uri, std::string const& ext_param);
 
     virtual std::ostream& Print(std::ostream& os, int indent) const { return os; }
