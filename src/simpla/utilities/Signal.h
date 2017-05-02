@@ -20,7 +20,7 @@ class Signal<TRet(Args...)> {
     typedef Signal<Args...> this_type;
     typedef std::function<TRet(Args...)> call_back_type;
     mutable std::map<int, call_back_type> m_slots_;
-    mutable std::map<int, call_back_type> m_destroy_;
+    mutable std::map<int, std::function<TRet()>> m_destroy_;
     mutable id_type m_count_ = 0;
 
    public:
@@ -29,14 +29,14 @@ class Signal<TRet(Args...)> {
         for (auto& item : m_destroy_) { item.second(); }
     }
 
-    TRet operator()(Args&&... args) const { return emit(std::forward<Args>(args)...); }
-    TRet emit(Args&&... args) const {
-        for (auto const& item : m_slots_) { item.second(std::forward<Args>(args)...); }
+    TRet operator()(Args... args) const { return emit(args...); }
+    TRet emit(Args... args) const {
+        for (auto const& item : m_slots_) { item.second(args...); }
     };
     template <typename TReduction>
-    TRet emit(Args&&... args, TReduction reduction) const {
+    TRet emit(Args... args, TReduction reduction) const {
         TRet res;
-        for (auto const& item : m_slots_) { res = reduction(res, item.second(std::forward<Args>(args)...)); }
+        for (auto const& item : m_slots_) { res = reduction(res, item.second(args...)); }
         return res;
     };
     id_type Connect(std::function<TRet(Args...)> const& fun) {
@@ -52,7 +52,7 @@ class Signal<TRet(Args...)> {
     }
     template <typename T, TRet (T::*mem_ptr)(Args...)>
     id_type Connect(T* recv) {
-        auto send_id = Connect([=](Args... args) { (recv->*mem_ptr)(args...); });
+        auto send_id = Connect([=](Args&&... args) { (recv->*mem_ptr)(args...); });
         AddDependence(send_id, recv);
         return send_id;
     }

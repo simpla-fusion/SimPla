@@ -27,7 +27,7 @@ class EMTokamak : public engine::Context {
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(shared_ptr<data::DataTable> const& cfg) override;
 
-    //    void InitializeCondition(Real time_now) override;
+    //    void InitialCondition(Real time_now) override;
     //    void BoundaryCondition(Real time_now, Real dt) override;
     //    void Advance(Real time_now, Real dt) override;
     //    field_type<VERTEX> psi{base_type::m_mesh_, "name"_ = "psi"};
@@ -54,6 +54,24 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     GetModel().SetObject("Center", std::make_shared<geometry::RevolveZ>(geqdsk.limiter(), PhiAxe, phi[0], phi[1]));
 
     engine::Context::Deserialize(cfg);
+
+    typedef mesh::Mesh<mesh::CylindricalGeometry, mesh::SMesh> mesh_type;
+    auto d = GetDomain("Center");
+
+    d->OnBoundaryCondition.Connect([&](Domain* self, Real time_now, Real time_dt) {
+        //        auto& E = self->GetMesh()->GetAttribute<Field<mesh_type, Real, EDGE>>("E");
+        //        auto& B = self->GetMesh()->GetAttribute<Field<mesh_type, Real, FACE>>("B");
+        //        E(self->GetBoundaryRange(EDGE)) = 0;
+        //        B(self->GetBoundaryRange(Face)) = 0;
+
+    });
+
+    d->OnInitialCondition.Connect([&](Domain* self, Real time_now) {
+        auto& rho = self->GetMesh()->GetAttribute<Field<mesh_type, Real, VERTEX>>("rho");
+
+        rho = [&](point_type const& x) -> Real { return std::sin(x[2]); };
+
+    });
 
     //    std::cout << "Model = ";
     //    GetModel().Serialize(std::cout, 0);

@@ -3,7 +3,7 @@
 Context = {
     Type = "EMTokamak",
     gfile = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900",
-    Phi = { 0.0, 3.14 / 2 },
+    Phi = { 0.0, 3.14  },
     Domains =
     {
         Center = { Type = "EMFluidCylindricalSMesh" },

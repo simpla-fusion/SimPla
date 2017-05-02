@@ -34,9 +34,12 @@ void Domain::Finalize() { GetMesh()->Finalize(); }
 void Domain::Push(Patch* p) { GetMesh()->Push(p); }
 void Domain::Pop(Patch* p) { return GetMesh()->Pop(p); }
 
-void Domain::InitializeCondition(Real time_now) { GetMesh()->InitializeData(time_now); }
-void Domain::BoundaryCondition(Real time_now, Real dt) {}
-void Domain::Advance(Real time_now, Real dt) {}
+void Domain::InitialCondition(Real time_now) {
+    GetMesh()->InitializeData(time_now);
+    OnInitialCondition(this, time_now);
+}
+void Domain::BoundaryCondition(Real time_now, Real dt) { OnBoundaryCondition(this, time_now, dt); }
+void Domain::Advance(Real time_now, Real dt) { OnAdvance(this, time_now, dt); }
 
 }  // namespace engine{
 

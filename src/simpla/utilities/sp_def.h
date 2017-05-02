@@ -57,12 +57,10 @@ static constexpr Real EPSILON = std::numeric_limits<Real>::epsilon();
     }                                                                                                \
     template <typename U_>                                                                           \
     U_ &cast_as() {                                                                                  \
-        assert(isA(typeid(U_)));                                                                     \
         return *dynamic_cast<U_ *>(this);                                                            \
     }                                                                                                \
     template <typename U_>                                                                           \
     U_ const &cast_as() const {                                                                      \
-        assert(isA(typeid(U_)));                                                                     \
         return *dynamic_cast<U_ const *>(this);                                                      \
     }                                                                                                \
     virtual std::type_info const &GetTypeInfo() const { return typeid(_BASE_CLASS_NAME_); }

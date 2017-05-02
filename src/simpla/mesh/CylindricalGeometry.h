@@ -36,7 +36,7 @@ struct CylindricalGeometry : public engine::Chart {
     constexpr unsigned int GetPhiAxe() const { return m_phi_axe_; }
 
    private:
-    unsigned int m_phi_axe_;
+    unsigned int m_phi_axe_ = 2;
 };
 
 using namespace simpla::data;

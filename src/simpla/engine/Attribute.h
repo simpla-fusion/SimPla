@@ -47,8 +47,6 @@ class Patch;
 //};
 
 struct AttributeDesc : public data::Configurable {
-    SP_OBJECT_BASE(AttributeDesc);
-
    public:
     AttributeDesc() = default;
     AttributeDesc(AttributeDesc const &);
@@ -88,7 +86,14 @@ class AttributeGroup {
     virtual void Push(Patch *p);
     virtual void Pop(Patch *p);
 
-    std::set<Attribute *> const &GetAll() const;
+    Attribute *Get(std::string const &k);
+    Attribute const *Get(std::string const &k) const;
+
+    template <typename T>
+    T &GetAttribute(std::string const &k);
+
+    template <typename T>
+    T const &GetAttribute(std::string const &k) const;
 
    private:
     struct pimpl_s;
@@ -142,6 +147,22 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
+};
+
+template <typename T>
+T &AttributeGroup::GetAttribute(std::string const &k) {
+    auto res = Get(k);
+    if (res == nullptr) { RUNTIME_ERROR << "Can not find Field [" << k << "] " << std::endl; }
+    return Get(k)->cast_as<T>();
+};
+
+template <typename T>
+T const &AttributeGroup::GetAttribute(std::string const &k) const {
+    auto res = Get(k);
+    if (res == nullptr) {
+        RUNTIME_ERROR << "Can not find Field [" << k << ":" << typeid(T).name() << "] " << std::endl;
+    }
+    return Get(k)->cast_as<const T>();
 };
 
 //
@@ -237,7 +258,7 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
 //        return std::make_shared<this_type>(std::forward<Args>(args)...);
 //    }
 //
-//    virtual std::shared_ptr<DataBlock> InitializeCondition(void *p = nullptr) const {
+//    virtual std::shared_ptr<DataBlock> InitialCondition(void *p = nullptr) const {
 //        std::shared_ptr<value_type> d(nullptr);
 //        if (p != nullptr) {
 //            d = std::shared_ptr<value_type>(static_cast<value_type *>(p), simpla::tags::do_nothing());

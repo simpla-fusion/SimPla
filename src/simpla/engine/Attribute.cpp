@@ -46,31 +46,56 @@ std::shared_ptr<AttributeDesc> AttributeDesc::GetDescription() const {
 };
 
 struct AttributeGroup::pimpl_s {
-    std::set<Attribute *> m_attributes_;
+    std::map<std::string, Attribute *> m_attributes_;
 };
 
 AttributeGroup::AttributeGroup() : m_pimpl_(new pimpl_s) {}
 AttributeGroup::~AttributeGroup() {}
 void AttributeGroup::RegisterDescription(std::map<std::string, std::shared_ptr<AttributeDesc>> *m) {
-    for (Attribute *attr : m_pimpl_->m_attributes_) { (*m)[attr->GetName()] = attr->GetDescription(); }
+    for (auto &item : m_pimpl_->m_attributes_) { (*m)[item.first] = item.second->GetDescription(); }
 };
 
 void AttributeGroup::RegisterAt(AttributeGroup *other) {
-    for (Attribute *attr : m_pimpl_->m_attributes_) { attr->RegisterAt(other); }
+    for (auto &item : m_pimpl_->m_attributes_) { item.second->RegisterAt(other); }
 };
 void AttributeGroup::DeregisterFrom(AttributeGroup *other) {
-    for (Attribute *attr : m_pimpl_->m_attributes_) { attr->DeregisterFrom(other); }
+    for (auto &item : m_pimpl_->m_attributes_) { item.second->DeregisterFrom(other); }
 };
 void AttributeGroup::Push(Patch *p) {
-    for (auto *item : m_pimpl_->m_attributes_) { item->Push(p->Pop(item->GetID())); }
+    for (auto &item : m_pimpl_->m_attributes_) { item.second->Push(p->Pop(item.second->GetID())); }
 }
 void AttributeGroup::Pop(Patch *p) {
-    for (auto *item : m_pimpl_->m_attributes_) { p->Push(item->GetID(), item->Pop()); }
+    for (auto &item : m_pimpl_->m_attributes_) { p->Push(item.second->GetID(), item.second->Pop()); }
 }
-void AttributeGroup::Attach(Attribute *p) { m_pimpl_->m_attributes_.emplace(p); }
-void AttributeGroup::Detach(Attribute *p) { m_pimpl_->m_attributes_.erase(p); }
+void AttributeGroup::Attach(Attribute *p) { m_pimpl_->m_attributes_.emplace(p->GetName(), p); }
+void AttributeGroup::Detach(Attribute *p) { m_pimpl_->m_attributes_.erase(p->GetName()); }
 
-std::set<Attribute *> const &AttributeGroup::GetAll() const { return m_pimpl_->m_attributes_; }
+Attribute *AttributeGroup::Get(std::string const &k) {
+    auto it = m_pimpl_->m_attributes_.find(k);
+    Attribute *res = nullptr;
+    if (it != m_pimpl_->m_attributes_.end()) {
+        res = it->second;
+    } else {
+        VERBOSE << "Can not find field [" << k << "] in [";
+        for (auto const &item : m_pimpl_->m_attributes_) { VERBOSE << item.first << ","; }
+        VERBOSE << std::endl;
+    }
+
+    return res;
+}
+Attribute const *AttributeGroup::Get(std::string const &k) const {
+    auto it = m_pimpl_->m_attributes_.find(k);
+    Attribute *res = nullptr;
+    if (it != m_pimpl_->m_attributes_.end()) {
+        res = it->second;
+    } else {
+        VERBOSE << "Can not find field [" << k << "] in [";
+        for (auto const &item : m_pimpl_->m_attributes_) { VERBOSE << item.first << ","; }
+        VERBOSE << std::endl;
+    }
+
+    return res;
+}
 
 struct Attribute::pimpl_s {
     std::set<AttributeGroup *> m_bundle_;

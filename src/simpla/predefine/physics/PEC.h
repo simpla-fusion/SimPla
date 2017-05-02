@@ -24,7 +24,7 @@ class PEC : public engine::Domain {
 
     DOMAIN_HEAD(PEC, engine::Domain)
 
-    void InitializeCondition(Real time_now) override;
+    void InitialCondition(Real time_now) override;
     void Advance(Real time, Real dt) override;
 
     field_type<EDGE> E{m_mesh_, "name"_ = "E"};
@@ -34,7 +34,7 @@ template <typename TM>
 REGISTER_CREATOR(PEC<TM>)
 
 template <typename TM>
-void PEC<TM>::InitializeCondition(Real time_now) {}
+void PEC<TM>::InitialCondition(Real time_now) {}
 
 template <typename TM>
 void PEC<TM>::Advance(Real time, Real dt) {

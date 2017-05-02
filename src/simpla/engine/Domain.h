@@ -6,6 +6,7 @@
 #define SIMPLA_DOMAIN_H
 
 #include <simpla/geometry/GeoObject.h>
+#include <simpla/utilities/Signal.h>
 #include <memory>
 #include "Attribute.h"
 #include "simpla/data/all.h"
@@ -45,7 +46,11 @@ class Domain : public data::Serializable,
     virtual void Pop(Patch *);
     virtual void SetUp();
     virtual void TearDown();
-    virtual void InitializeCondition(Real time_now);
+
+    design_pattern::Signal<void(Domain *, Real)> OnInitialCondition;
+    design_pattern::Signal<void(Domain *, Real, Real)> OnBoundaryCondition;
+    design_pattern::Signal<void(Domain *, Real, Real)> OnAdvance;
+    virtual void InitialCondition(Real time_now);
     virtual void BoundaryCondition(Real time_now, Real dt);
     virtual void Advance(Real time_now, Real dt);
 

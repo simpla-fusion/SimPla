@@ -64,7 +64,7 @@ void Context::SetUp() {
 void Context::InitializeCondition(Patch *p, Real time_now) {
     for (auto &item : m_pimpl_->m_domains_) {
         item.second->Push(p);
-        item.second->InitializeCondition(time_now);
+        item.second->InitialCondition(time_now);
         item.second->Pop(p);
     }
 }
