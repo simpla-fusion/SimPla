@@ -22,7 +22,12 @@ AttributeDesc::AttributeDesc(AttributeDesc const &other)
       m_iform_(other.m_iform_),
       m_dof_(other.m_dof_),
       m_t_info_(other.m_t_info_){};
-
+AttributeDesc::AttributeDesc(AttributeDesc &&other)
+    : data::Configurable(other),
+      m_name_(other.m_name_),
+      m_iform_(other.m_iform_),
+      m_dof_(other.m_dof_),
+      m_t_info_(other.m_t_info_){};
 std::string AttributeDesc::GetName() const { return m_name_; };
 int AttributeDesc::GetIFORM() const { return m_iform_; };
 int AttributeDesc::GetDOF() const { return m_dof_; };
@@ -71,12 +76,13 @@ struct Attribute::pimpl_s {
     std::set<AttributeGroup *> m_bundle_;
 };
 
-Attribute::Attribute(std::shared_ptr<data::DataTable> const &cfg)
+Attribute::Attribute(std::shared_ptr<data::DataTable> const &cfg, int IFORM, int DOF, std::type_info const &t_info)
     : AttributeDesc(((cfg != nullptr && cfg->has("name")) ? cfg->GetValue<std::string>("name")
                                                           : ("_" + std::to_string(SPObject::GetGUID()))),
-                    VERTEX, 1, typeid(void), cfg),
+                    IFORM, DOF, t_info, cfg),
       m_pimpl_(new pimpl_s){};
-
+Attribute::Attribute(Attribute const &other) : AttributeDesc(other), m_pimpl_(new pimpl_s) {}
+Attribute::Attribute(Attribute &&other) : AttributeDesc(other), m_pimpl_(std::move(other.m_pimpl_)) {}
 Attribute::~Attribute() {
     for (auto *b : m_pimpl_->m_bundle_) { DeregisterFrom(b); }
 }

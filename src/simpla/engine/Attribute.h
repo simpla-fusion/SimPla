@@ -52,6 +52,7 @@ struct AttributeDesc : public data::Configurable {
    public:
     AttributeDesc() = default;
     AttributeDesc(AttributeDesc const &);
+    AttributeDesc(AttributeDesc &&other);
     AttributeDesc(std::string const &s, int IFORM, int DOF, std::type_info const &t_info,
                   std::shared_ptr<data::DataTable> const &t_db);
     virtual ~AttributeDesc() = default;
@@ -120,13 +121,11 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
     SP_OBJECT_HEAD(Attribute, SPObject);
 
    public:
-    explicit Attribute(std::shared_ptr<data::DataTable> const &p = nullptr);
-    template <typename U, typename... Args>
-    explicit Attribute(U const &first, Args &&... args)
-        : Attribute(std::make_shared<data::DataTable>(first, std::forward<Args>(args)...)){};
+    explicit Attribute(std::shared_ptr<data::DataTable> const &p = nullptr, int IFORM = VERTEX, int DOF = 1,
+                       std::type_info const &t_info = typeid(void));
 
-    Attribute(Attribute const &other) = delete;
-    Attribute(Attribute &&other) = delete;
+    Attribute(Attribute const &other);
+    Attribute(Attribute &&other);
     ~Attribute() override;
 
     void SetUp() override;

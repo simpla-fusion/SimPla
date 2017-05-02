@@ -7,7 +7,7 @@ Context = {
     Domains =
     {
         Center = { Type = "EMFluidCylindricalSMesh" },
-        -- Boundary = { Type = "EMFluidCylindricalSMesh" },
+        Boundary = { Type = "EMFluidCylindricalSMesh" },
         --   Atenna = { Type = "ICRF" ,
         --         WaveNumber={0,0,1},
         --         Frequence=1.9e19,

@@ -47,8 +47,7 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     if (cfg == nullptr) { return; }
 
     unsigned int PhiAxe = 2;
-    nTuple<Real, 2> phi{0, TWOPI};
-    phi = cfg->GetValue<nTuple<Real, 2>>("Phi", phi);
+    nTuple<Real, 2> phi = cfg->GetValue("Phi", nTuple<Real, 2>{0, TWOPI});
     GEqdsk geqdsk;
     geqdsk.load(cfg->GetValue<std::string>("gfile", "gfile"));
     GetModel().SetObject("Boundary", std::make_shared<geometry::RevolveZ>(geqdsk.boundary(), PhiAxe, phi[0], phi[1]));

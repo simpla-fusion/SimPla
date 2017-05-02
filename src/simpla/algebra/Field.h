@@ -55,7 +55,10 @@ class FieldView : public engine::Attribute {
 
    public:
     template <typename... Args>
-    explicit FieldView(mesh_type* m, Args&&... args) : engine::Attribute(std::forward<Args>(args)...), m_mesh_(m) {
+    explicit FieldView(mesh_type* m, Args&&... args)
+        : engine::Attribute(std::make_shared<data::DataTable>(std::forward<Args>(args)...), IFORM, DOF,
+                            typeid(value_type)),
+          m_mesh_(m) {
         engine::Attribute::RegisterAt(m_mesh_);
     };
     template <typename... Args>
@@ -81,13 +84,9 @@ class FieldView : public engine::Attribute {
 
     ~FieldView() override = default;
 
-    int GetIFORM() const override { return IFORM; };
-    int GetDOF() const override { return DOF; };
-    std::type_info const& value_type_info() const override { return typeid(value_type); };
-
     void SetUp() override {
         engine::Attribute::SetUp();
-        m_data_.resize(static_cast<size_type>(NUMBER_OF_SUB));
+        if (m_data_.size() < NUMBER_OF_SUB) { m_data_.resize(static_cast<size_type>(NUMBER_OF_SUB)); }
     }
 
     void Clear() {
