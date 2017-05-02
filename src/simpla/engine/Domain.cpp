@@ -21,18 +21,25 @@ std::shared_ptr<data::DataTable> Domain::Serialize() const {
 }
 void Domain::Deserialize(const std::shared_ptr<DataTable>& t) { UNIMPLEMENTED; };
 
-std::shared_ptr<Domain> Domain::Clone() const {
-    UNIMPLEMENTED;
-    return nullptr;
-}
-
-void Domain::SetUp() { GetMesh()->SetUp(); }
-void Domain::TearDown() { GetMesh()->TearDown(); }
-void Domain::Initialize() { GetMesh()->Initialize(); }
-void Domain::Finalize() { GetMesh()->Finalize(); }
-
 void Domain::Push(Patch* p) { GetMesh()->Push(p); }
 void Domain::Pop(Patch* p) { return GetMesh()->Pop(p); }
+
+void Domain::SetUp() {
+    GetMesh()->SetUp();
+    OnSetUp(this);
+}
+void Domain::TearDown() {
+    GetMesh()->TearDown();
+    OnTearDown(this);
+}
+void Domain::Initialize() {
+    GetMesh()->Initialize();
+    OnFinalize(this);
+}
+void Domain::Finalize() {
+    GetMesh()->Finalize();
+    OnInitialize(this);
+}
 
 void Domain::InitialCondition(Real time_now) {
     GetMesh()->InitializeData(time_now);

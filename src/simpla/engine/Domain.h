@@ -32,20 +32,23 @@ class Domain : public data::Serializable,
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
 
-    virtual std::shared_ptr<Domain> Clone() const;
-
     std::shared_ptr<MeshBase> &GetMesh() { return m_mesh_; }
     std::shared_ptr<MeshBase> const &GetMesh() const { return m_mesh_; }
     std::shared_ptr<geometry::GeoObject> &GetGeoObject() { return m_geo_object_; }
     std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const { return m_geo_object_; }
 
+    void Push(Patch *);
+    void Pop(Patch *);
+
     virtual void Initialize();
     virtual void Finalize();
-
-    virtual void Push(Patch *);
-    virtual void Pop(Patch *);
     virtual void SetUp();
     virtual void TearDown();
+
+    design_pattern::Signal<void(Domain *)> OnInitialize;
+    design_pattern::Signal<void(Domain *)> OnFinalize;
+    design_pattern::Signal<void(Domain *)> OnSetUp;
+    design_pattern::Signal<void(Domain *)> OnTearDown;
 
     design_pattern::Signal<void(Domain *, Real)> OnInitialCondition;
     design_pattern::Signal<void(Domain *, Real, Real)> OnBoundaryCondition;
