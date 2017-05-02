@@ -94,9 +94,13 @@ std::map<std::string, std::shared_ptr<AttributeDesc>> const &Context::GetRegisit
 
 std::shared_ptr<Domain> Context::SetDomain(std::string const &k, std::shared_ptr<Domain> d) {
     if (d == nullptr) { return d; }
-    m_pimpl_->m_domains_[k] = d;
-    m_pimpl_->m_model_.SetObject(k, d->GetGeoObject());
-    return d;
+    auto res = m_pimpl_->m_domains_.emplace(k, d);
+    if (res.first->second == nullptr) {
+        res.first->second = d;
+    } else if (!res.second) {
+        RUNTIME_ERROR << "Re-assign domain " << k << std::endl;
+    }
+    return res.first->second;
 }
 
 std::shared_ptr<Domain> Context::GetDomain(std::string const &k) const {
