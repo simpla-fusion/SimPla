@@ -34,7 +34,6 @@ extern "C" {
 }
 
 namespace simpla {
-namespace toolbox {
 
 /**
  * @ingroup toolbox
@@ -359,13 +358,12 @@ class LuaObject : public concept::Printable {
 };
 
 std::ostream &operator<<(std::ostream &os, LuaObject const &obj);
-}  // namespace utilities
 
 namespace traits {
 
 template <typename TDest>
-struct type_cast<toolbox::LuaObject, TDest> {
-    static constexpr TDest eval(toolbox::LuaObject const &v) { return v.as<TDest>(); }
+struct type_cast<LuaObject, TDest> {
+    static constexpr TDest eval(LuaObject const &v) { return v.as<TDest>(); }
 };
 
 }  // namespace traits

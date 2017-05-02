@@ -27,7 +27,6 @@ extern "C" {
 }
 
 namespace simpla {
-namespace toolbox {
 /** @ingroup toolbox */
 template <typename T>
 struct Converter {
@@ -98,7 +97,7 @@ DEF_LUA_TRANS(int, lua_pushinteger, lua_tointeger, lua_isnumber)
 
 DEF_LUA_TRANS(long, lua_pushinteger, lua_tointeger, lua_isnumber)
 
-//DEF_LUA_TRANS(ulong, lua_pushinteger, lua_tointeger, lua_isnumber)
+// DEF_LUA_TRANS(ulong, lua_pushinteger, lua_tointeger, lua_isnumber)
 
 DEF_LUA_TRANS(size_t, lua_pushinteger, lua_tointeger, lua_isnumber)
 
@@ -381,7 +380,7 @@ struct Converter<std::tuple<T...>> {
 
     template <unsigned int N>
     static inline unsigned int to_(lua_State *L, value_type const &v, std::integral_constant<unsigned int, N>) {
-        return _impl::push_to_lua(L, std::get<sizeof...(T)-N>(v)) +
+        return _impl::push_to_lua(L, std::get<sizeof...(T) - N>(v)) +
                to_(L, v, std::integral_constant<unsigned int, N - 1>());
     }
 
@@ -396,7 +395,7 @@ struct Converter<std::tuple<T...>> {
 };
 
 /** @} LuaTrans */
-}
+
 }  // namespace simpla
 
 #endif /* CORE_UTILITIES_LUA_OBJECT_EXT_H_ */

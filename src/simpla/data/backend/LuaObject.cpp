@@ -9,7 +9,6 @@
 #include "LuaObjectExt.h"
 
 namespace simpla {
-namespace toolbox {
 
 LuaObject::LuaObject() : self_(0), GLOBAL_REF_IDX_(0) {}
 
@@ -594,5 +593,4 @@ std::ostream &operator<<(std::ostream &os, LuaObject const &obj) {
 //    UNIMPLEMENTED;
 //    return false;
 //}
-}
 }

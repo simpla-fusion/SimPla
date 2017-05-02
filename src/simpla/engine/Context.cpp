@@ -11,7 +11,7 @@ namespace simpla {
 namespace engine {
 
 struct Context::pimpl_s {
-    std::map<std::string, std::shared_ptr<Attribute>> m_global_attributes_;
+    std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
     std::map<std::string, std::shared_ptr<Domain>> m_domains_;
     Model m_model_;
     Atlas m_atlas_;
@@ -88,7 +88,7 @@ Model &Context::GetModel() const { return m_pimpl_->m_model_; }
 
 Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
 
-std::map<std::string, std::shared_ptr<Attribute>> const &Context::GetRegisiteredAttribute() const {
+std::map<std::string, std::shared_ptr<AttributeDesc>> const &Context::GetRegisiteredAttribute() const {
     return m_pimpl_->m_global_attributes_;
 }
 

@@ -81,8 +81,6 @@ class Context : public data::Serializable, public data::EnableCreateFromDataTabl
     void BoundaryCondition(Patch *p, Real time_now, Real time_dt);
     void Advance(Patch *p, Real time_now, Real time_dt);
 
-    void RegisterAt(AttributeGroup *);
-
     Model &GetModel() const;
     Atlas &GetAtlas() const;
 
@@ -97,7 +95,7 @@ class Context : public data::Serializable, public data::EnableCreateFromDataTabl
         return SetDomain(k, std::dynamic_pointer_cast<Domain>(std::make_shared<U>(GetModel().GetObject(k))));
     }
     std::shared_ptr<Domain> GetDomain(std::string const &k) const;
-    std::map<std::string, std::shared_ptr<Attribute>> const &GetRegisiteredAttribute() const;
+    std::map<std::string, std::shared_ptr<AttributeDesc>> const &GetRegisiteredAttribute() const;
 
    private:
     struct pimpl_s;

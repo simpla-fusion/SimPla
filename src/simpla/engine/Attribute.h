@@ -46,8 +46,30 @@ class Patch;
 //    DEFAULT_ATTRIBUTE_TAG = GLOBAL
 //};
 
-template <typename TV = double, int IFORM = VERTEX, int DOF = 1>
-struct AttributeDesc;
+struct AttributeDesc : public data::Configurable {
+    SP_OBJECT_BASE(AttributeDesc);
+
+   public:
+    AttributeDesc() = default;
+    AttributeDesc(AttributeDesc const &);
+    AttributeDesc(std::string const &s, int IFORM, int DOF, std::type_info const &t_info,
+                  std::shared_ptr<data::DataTable> const &t_db);
+    virtual ~AttributeDesc() = default;
+
+    virtual std::string GetName() const;
+    virtual int GetIFORM() const;
+    virtual int GetDOF() const;
+    virtual std::type_info const &value_type_info() const;
+    virtual id_type GetID() const;
+    virtual std::shared_ptr<AttributeDesc> GetDescription() const;
+
+   private:
+    std::string m_name_ = "";
+    int m_iform_ = 0;
+    int m_dof_ = 1;
+    std::type_info const &m_t_info_ = typeid(void);
+};
+
 class AttributeGroup {
     SP_OBJECT_BASE(AttributeGroup)
    public:
@@ -55,7 +77,7 @@ class AttributeGroup {
     virtual ~AttributeGroup();
 
     SP_DEFAULT_CONSTRUCT(AttributeGroup);
-    virtual void RegisterDescription(std::map<std::string, std::shared_ptr<Attribute>> *);
+    virtual void RegisterDescription(std::map<std::string, std::shared_ptr<AttributeDesc>> *);
     virtual void RegisterAt(AttributeGroup *);
     virtual void DeregisterFrom(AttributeGroup *);
 
@@ -94,7 +116,7 @@ class AttributeGroup {
  * deactivate AttributeView
  * @enduml
  */
-struct Attribute : public SPObject, public data::Configurable, public data::Serializable {
+struct Attribute : public SPObject, public AttributeDesc, public data::Serializable {
     SP_OBJECT_HEAD(Attribute, SPObject);
 
    public:
@@ -112,13 +134,6 @@ struct Attribute : public SPObject, public data::Configurable, public data::Seri
     void RegisterAt(AttributeGroup *);
     void DeregisterFrom(AttributeGroup *);
 
-    //    virtual Attribute *Clone() const = 0;
-    virtual std::shared_ptr<Attribute> GetDescription() const = 0;
-
-    virtual int GetIFORM() const = 0;
-    virtual int GetDOF() const = 0;
-    virtual std::type_info const &value_type_info() const = 0;  //!< value type
-
     virtual void Push(std::shared_ptr<data::DataBlock> d){};
     virtual std::shared_ptr<data::DataBlock> Pop() { return nullptr; }
 
@@ -128,25 +143,6 @@ struct Attribute : public SPObject, public data::Configurable, public data::Seri
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
-};
-template <typename TV, int IFORM, int DOF>
-struct AttributeDesc : public Attribute {
-    typedef AttributeDesc<TV, IFORM, DOF> desc_type;
-    SP_OBJECT_HEAD(desc_type, Attribute);
-
-   public:
-    explicit AttributeDesc(std::shared_ptr<data::DataTable> const &t) : Attribute(t) {}
-    explicit AttributeDesc(std::string const &k) : Attribute(nullptr) {}
-    ~AttributeDesc() override = default;
-
-    virtual std::shared_ptr<Attribute> GetDescription() const override {
-        return std::make_shared<AttributeDesc<TV, IFORM, DOF>>(db());
-    };
-    //    virtual Attribute *Clone() const { return new this_type; };
-
-    int GetIFORM() const override { return IFORM; };
-    int GetDOF() const override { return DOF; };
-    std::type_info const &value_type_info() const override { return typeid(TV); };
 };
 
 //

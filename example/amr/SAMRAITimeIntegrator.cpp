@@ -243,7 +243,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
     boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_workload_variable;
     int d_workload_data_id = 0;
     bool d_use_nonuniform_workload;
-    std::map<std::shared_ptr<engine::Attribute>, boost::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
+    std::map<std::shared_ptr<engine::AttributeDesc>, boost::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
     SAMRAI::hier::IntVector d_nghosts;
     SAMRAI::hier::IntVector d_fluxghosts;
 
@@ -272,9 +272,8 @@ SAMRAIHyperbolicPatchStrategyAdapter::~SAMRAIHyperbolicPatchStrategyAdapter() = 
 
 namespace detail {
 template <typename T>
-boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(unsigned short ndims,
-                                                                   const std::shared_ptr<engine::Attribute> attr) {
-    SAMRAI::tbox::Dimension d_dim(ndims);
+boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(const std::shared_ptr<engine::AttributeDesc> attr) {
+    SAMRAI::tbox::Dimension d_dim(3);
 
     boost::shared_ptr<SAMRAI::hier::Variable> res;
     switch (attr->GetIFORM()) {
@@ -304,16 +303,15 @@ boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(unsigned shor
     return res;
 }
 
-boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned short ndims,
-                                                                 const std::shared_ptr<engine::Attribute> &attr) {
+boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(const std::shared_ptr<engine::AttributeDesc> &attr) {
     boost::shared_ptr<SAMRAI::hier::Variable> res = nullptr;
 
     if (attr->value_type_info() == (typeid(float))) {
-        res = create_samrai_variable_t<float>(ndims, attr);
+        res = create_samrai_variable_t<float>(attr);
     } else if (attr->value_type_info() == (typeid(double))) {
-        res = create_samrai_variable_t<double>(ndims, attr);
+        res = create_samrai_variable_t<double>(attr);
     } else if (attr->value_type_info() == (typeid(int))) {
-        res = create_samrai_variable_t<int>(ndims, attr);
+        res = create_samrai_variable_t<int>(attr);
     } else {
         RUNTIME_ERROR << " attr [" << attr->GetName() << "] is not supported!" << std::endl;
     }
@@ -387,7 +385,7 @@ std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, boost::share
 }
 
 template <int NDIMS>
-std::shared_ptr<data::DataBlock> create_simpla_datablock(const std::shared_ptr<engine::Attribute> &desc,
+std::shared_ptr<data::DataBlock> create_simpla_datablock(const std::shared_ptr<engine::AttributeDesc> &desc,
                                                          boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
     std::shared_ptr<data::DataBlock> res(nullptr);
     if (desc->value_type_info() == (typeid(float))) {
@@ -401,7 +399,7 @@ std::shared_ptr<data::DataBlock> create_simpla_datablock(const std::shared_ptr<e
     }
     return res;
 }
-boost::shared_ptr<SAMRAI::hier::PatchData> convert_from_data_block(engine::Attribute const &desc,
+boost::shared_ptr<SAMRAI::hier::PatchData> convert_from_data_block(const std::shared_ptr<engine::AttributeDesc> &desc,
                                                                    std::shared_ptr<data::DataBlock> t) {
     //    UNIMPLEMENTED;
     return nullptr;
@@ -419,9 +417,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     //**************************************************************
 
     for (auto const &item : m_ctx_->GetRegisiteredAttribute()) {
-        if (item.second->GetName() == "") continue;
-
-        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, item.second);
+        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(item.second);
         if (var == nullptr) { continue; }
 
         m_samrai_variables_[item.second] = var;
@@ -481,9 +477,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         }
     }
     // integrator->printClassData(std::cout);
-    // vardb->printClassData(std::cout);
+    vardb->printClassData(std::cout);
 }
-
 void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchFromSAMRAI(SAMRAI::hier::Patch &patch, engine::Patch *p) {
     p->SetBlock(std::make_shared<engine::MeshBlock>(
         index_box_type{{patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]},
@@ -496,7 +491,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchFromSAMRAI(SAMRAI::hier::
 
         if (!patch.checkAllocated(samrai_id)) { patch.allocatePatchData(samrai_id); }
 
-        p->Push(item.first->GetGUID(),
+        p->Push(item.first->GetID(),
                 simpla::detail::create_simpla_datablock<NDIMS>(item.first, patch.getPatchData(samrai_id)));
     }
 }
