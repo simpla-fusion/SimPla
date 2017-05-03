@@ -54,9 +54,11 @@ void Context::SetUp() {
     dx[1] = (std::get<1>(x_box)[1] - std::get<0>(x_box)[1]) / (std::get<1>(i_box)[1] - std::get<0>(i_box)[1]);
     dx[2] = (std::get<1>(x_box)[2] - std::get<0>(x_box)[2]) / (std::get<1>(i_box)[2] - std::get<0>(i_box)[2]);
 
+    CHECK(x_box);
+
     for (auto &item : m_pimpl_->m_domains_) {
-        //        item.second->GetChart()->SetOrigin(std::get<0>(x_box));
-        //        item.second->GetChart()->SetDx(dx);
+        item.second->GetMesh()->SetOrigin(std::get<0>(x_box));
+        item.second->GetMesh()->SetDx(dx);
         item.second->RegisterDescription(&m_pimpl_->m_global_attributes_);
     }
 };

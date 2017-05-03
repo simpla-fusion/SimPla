@@ -65,6 +65,13 @@ class MeshBase : public data::Serializable, public data::EnableCreateFromDataTab
     virtual point_type point(EntityId s) const = 0;
     virtual point_type point(EntityId id, point_type const &pr) const { return point_type{}; };
 
+    virtual point_type map(point_type const &x) const = 0;
+    virtual point_type inv_map(point_type const &x) const = 0;
+    virtual void SetOrigin(point_type x) = 0;
+    virtual void SetDx(point_type dx) = 0;
+    virtual point_type const &GetOrigin() = 0;
+    virtual point_type const &GetDx() = 0;
+
    protected:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;

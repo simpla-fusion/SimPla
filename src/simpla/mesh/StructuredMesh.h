@@ -72,6 +72,32 @@ class StructuredMesh : public engine::MeshBase {
     }
 
     void InitializeData(Real time_now) override;
+
+    point_type map(point_type const &x) const override {
+        return point_type{std::fma(x[0], m_dx_[0], m_x0_[0]), std::fma(x[1], m_dx_[1], m_x0_[1]),
+                          std::fma(x[2], m_dx_[2], m_x0_[2])};
+    }
+
+    point_type inv_map(point_type const &x) const override {
+        return point_type{std::fma(x[0], m_i_dx_[0], m_i_x0_[0]), std::fma(x[1], m_i_dx_[1], m_i_x0_[1]),
+                          std::fma(x[2], m_i_dx_[2], m_i_x0_[2])};
+    }
+
+    void SetOrigin(point_type x) override { m_x0_ = x; }
+    void SetDx(point_type dx) override { m_dx_ = dx; }
+    point_type const &GetOrigin() override { return m_x0_; }
+    point_type const &GetDx() override { return m_dx_; }
+    void SetUp() override {
+        m_i_dx_ = 1.0 / m_dx_;
+        m_i_x0_ = -m_x0_ / m_dx_;
+    }
+
+   private:
+    point_type m_dx_{1, 1, 1};
+    point_type m_x0_{0, 0, 0};
+
+    point_type m_i_dx_{1, 1, 1};
+    point_type m_i_x0_{0, 0, 0};
 };
 }  // namespace mesh {
 }  // namespace simpla {

@@ -51,8 +51,7 @@ void CylindricalSMesh::InitializeData(Real time_now) {
     for (index_type i = ib; i < ie; ++i)
         for (index_type j = jb; j < je; ++j)
             for (index_type k = kb; k < ke; ++k) {
-                point_type
-                    x;  //= inv_map(point_type{static_cast<Real>(i), static_cast<Real>(j), static_cast<Real>(k)});
+                point_type x = map(point_type{static_cast<Real>(i), static_cast<Real>(j), static_cast<Real>(k)});
                 m_vertics_[0](i, j, k) = x[R_axe] * std::cos(x[Phi_axe]);
                 m_vertics_[1](i, j, k) = x[R_axe] * std::sin(x[Phi_axe]);
                 m_vertics_[2](i, j, k) = x[Z_axe];
@@ -68,13 +67,12 @@ void CylindricalSMesh::InitializeData(Real time_now) {
     for (index_type i = ib; i < ie; ++i)
         for (index_type j = jb; j < je; ++j)
             for (index_type k = kb; k < ke; ++k) {
-                point_type
-                    x;  // = inv_map(point_type{static_cast<Real>(i), static_cast<Real>(j), static_cast<Real>(k)});
+                point_type x = map(point_type{static_cast<Real>(i), static_cast<Real>(j), static_cast<Real>(k)});
 
-                Real dr = m_dx_[R_axe];
-                Real dl0 = m_dx_[Phi_axe] * x[R_axe];
-                Real dl1 = m_dx_[Phi_axe] * (x[R_axe] + m_dx_[R_axe]);
-                Real dz = m_dx_[Z_axe];
+                Real dr = GetDx()[R_axe];
+                Real dl0 = GetDx()[Phi_axe] * x[R_axe];
+                Real dl1 = GetDx()[Phi_axe] * (x[R_axe] + GetDx()[R_axe]);
+                Real dz = GetDx()[Z_axe];
 
                 m_volume_[0](i, j, k) = 1.0;
                 m_volume_[1](i, j, k) = dr;
@@ -96,10 +94,10 @@ void CylindricalSMesh::InitializeData(Real time_now) {
                 m_inv_volume_[7](i, j, k) = 1.0 / m_volume_[7](i, j, k);
                 m_inv_volume_[8](i, j, k) = 1.0 / m_volume_[8](i, j, k);
 
-                dr = m_dx_[0];
-                dl0 = m_dx_[1] * (x[0] - 0.5 * m_dx_[0]);
-                dl1 = m_dx_[1] * (x[0] + 0.5 * m_dx_[0]);
-                dz = m_dx_[2];
+                dr = GetDx()[0];
+                dl0 = GetDx()[1] * (x[0] - 0.5 * GetDx()[0]);
+                dl1 = GetDx()[1] * (x[0] + 0.5 * GetDx()[0]);
+                dz = GetDx()[2];
 
                 m_dual_volume_[7](i, j, k) = 1.0;
                 m_dual_volume_[6](i, j, k) = dr;

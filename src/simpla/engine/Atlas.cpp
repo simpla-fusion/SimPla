@@ -5,7 +5,7 @@
 
 #include "Atlas.h"
 #include "Patch.h"
-#include "TransitionMap.h"
+//#include "TransitionMap.h"
 //#include "simpla/utilities/BoxUtility.h"
 
 namespace simpla {

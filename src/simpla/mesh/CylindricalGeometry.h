@@ -45,9 +45,6 @@ struct CylindricalSMesh : public SMesh {
 
     void InitializeData(Real time_now) override;
 
-    nTuple<Real, 3> m_dx_{1, 1, 1};
-    nTuple<Real, 3> m_x0_{0, 0, 0};
-
 };  // struct  MeshBase
 
 //    virtual point_type point(EntityId s) const override {
