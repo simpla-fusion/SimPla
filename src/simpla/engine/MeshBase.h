@@ -40,8 +40,6 @@ class MeshBase : public data::Serializable, public data::EnableCreateFromDataTab
     void Deserialize(const std::shared_ptr<DataTable> &t) override;
 
     Domain *GetDomain() const;
-    bool isFullCovered() const;
-    bool isBoundary() const;
 
     virtual void InitializeData(Real time_now);
 

@@ -71,7 +71,9 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
 
         ne[self->GetBody("Center")] = [&](point_type const& x) -> Real { return geqdsk.profile("ne", x[0], x[1]); };
 
-        //        B = [&](point_type const& x) -> Vec3 { return geqdsk.B(x); };
+        auto& B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
+
+        B = [&](point_type const& x) -> Vec3 { return geqdsk.B(x); };
 
     });
 

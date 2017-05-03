@@ -40,11 +40,8 @@ std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
 }
 void MeshBase::Deserialize(const std::shared_ptr<DataTable> &) {}
 
-bool MeshBase::isFullCovered() const { return true; }
-bool MeshBase::isBoundary() const { return false; }
 
-Range<EntityId> &MeshBase::GetRange(int iform) { return m_pimpl_->m_ranges_[iform]; };
-Range<EntityId> const &MeshBase::GetRange(int iform) const { return m_pimpl_->m_ranges_[iform]; };
+
 
 }  // {namespace engine
 }  // namespace simpla

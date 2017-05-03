@@ -6,14 +6,13 @@
 namespace simpla {
 namespace mesh {
 using namespace algebra;
-void StructuredMesh::InitializeData(Real time_now) {
-    if (isFullCovered()) { return; }
+void StructuredMesh::InitializeRange(std::shared_ptr<geometry::GeoObject> const& g, Range<EntityId> body[4],
+                                     Range<EntityId> boundary[4]) const {
     Field<this_type, int, VOLUME, 9> m_tags_{this};
-//    auto g = GetGeoObject();
-//    m_tags_.Clear();
-//    m_tags_[0].Foreach([&](index_tuple const& idx, int& v) {
-//        if (!g->CheckInside(point(idx[0], idx[0], idx[0]))) { v = 1; }
-//    });
+    m_tags_.Clear();
+    m_tags_[0].Foreach([&](index_tuple const& idx, int& v) {
+        if (!g->CheckInside(point(idx[0], idx[0], idx[0]))) { v = 1; }
+    });
 
     /**
     *\verbatim
@@ -70,24 +69,28 @@ void StructuredMesh::InitializeData(Real time_now) {
         0b01010101,  // 6
         0b11111111   // 7
     };
-    std::shared_ptr<UnorderedRange<EntityId>> in_range[8];
-    std::shared_ptr<UnorderedRange<EntityId>> brd_range[8];
+    std::shared_ptr<UnorderedRange<EntityId>> body_range[4];
+    std::shared_ptr<UnorderedRange<EntityId>> boundary_range[4];
 
     for (int i = 0; i < 8; ++i) {
-        in_range[i] = std::make_shared<UnorderedRange<EntityId>>();
-        brd_range[i] = std::make_shared<UnorderedRange<EntityId>>();
+        body_range[i] = std::make_shared<UnorderedRange<EntityId>>(i);
+        boundary_range[i] = std::make_shared<UnorderedRange<EntityId>>(i);
+
+        body[i].reset(body_range[i]);
+        boundary[i].reset(boundary_range[i]);
     }
 
-    m_tags_[0].Foreach([&](index_tuple const& idx, int& v) {
-        //        EntityId s{.w = static_cast<int16_t>(0),
-        //                   .x = static_cast<int16_t>(x),
-        //                   .y = static_cast<int16_t>(y),
-        //                   .z = static_cast<int16_t>(z)};
-        //        if (m_tags_[0](x, y, z) == 0) {
-        //            in_range[0]->Insert(s);
-        //        } else {
-        //            brd_range[0]->Insert(s);
-        //        }
+    // VOLUME center
+    m_tags_[7].Foreach([&](index_tuple const& idx, int& v) {
+        EntityId s{.w = static_cast<int16_t>(7),
+                   .x = static_cast<int16_t>(idx[0]),
+                   .y = static_cast<int16_t>(idx[1]),
+                   .z = static_cast<int16_t>(idx[2])};
+        if (v == 0) {
+            body_range[7]->Insert(s);
+        } else {
+            boundary_range[7]->Insert(s);
+        }
     });
 
     m_tags_[7].Foreach([&](index_tuple const& idx, int& v) {

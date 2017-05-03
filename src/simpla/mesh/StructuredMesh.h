@@ -16,10 +16,13 @@ class StructuredMesh : public engine::MeshBase {
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
 
-    StructuredMesh(engine::Domain *d) : engine::MeshBase(d){};
+    explicit StructuredMesh(engine::Domain *d) : engine::MeshBase(d){};
     ~StructuredMesh() override = default;
     SP_DEFAULT_CONSTRUCT(StructuredMesh);
-    //    DECLARE_REGISTER_NAME("StructuredMesh");
+    DECLARE_REGISTER_NAME("StructuredMesh");
+
+    void InitializeRange(std::shared_ptr<geometry::GeoObject> const & g, Range<EntityId> body[4],
+                         Range<EntityId> boundary[4]) const override;
 
     typedef EntityIdCoder M;
 
@@ -62,7 +65,7 @@ class StructuredMesh : public engine::MeshBase {
         Real w5 = r * (1 - s) * t;
         Real w6 = (1 - r) * s * t;
         Real w7 = r * s * t;
-        point_type res;
+        point_type res{0, 0, 0};
         res = point(id.x /**/, id.y /**/, id.z /**/) * w0 + point(id.x + 1, id.y, id.z) * w1 +
               point(id.x /**/, id.y + 1, id.z /* */) * w2 + point(id.x + 1, id.y + 1, id.z) * w3 +
               point(id.x /**/, id.y /* */, id.z + 1) * w4 + point(id.x + 1, id.y, id.z + 1) * w5 +
@@ -71,7 +74,7 @@ class StructuredMesh : public engine::MeshBase {
         return res;
     }
 
-    void InitializeData(Real time_now) override;
+    void InitializeData(Real time_now) override {}
 
     point_type map(point_type const &x) const override {
         return point_type{std::fma(x[0], m_dx_[0], m_x0_[0]), std::fma(x[1], m_dx_[1], m_x0_[1]),
