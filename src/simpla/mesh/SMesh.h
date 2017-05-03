@@ -25,7 +25,7 @@ struct SMesh : public StructuredMesh {
 
    private:
     Field<this_type, Real, VERTEX, 3> m_coordinates_{this, "name"_ = "Coordinates", "COORDINATES"_};
-    Field<this_type, Real, VERTEX, 3> m_vertics_{this, "name"_ = "vertics"};
+    Field<this_type, Real, VERTEX, 3> m_vertices_{this, "name"_ = "vertics"};
     Field<this_type, Real, VOLUME, 9> m_volume_{this, "name"_ = "volume"};
     Field<this_type, Real, VOLUME, 9> m_dual_volume_{this, "name"_ = "dual_volume"};
     Field<this_type, Real, VOLUME, 9> m_inv_volume_{this, "name"_ = "inv_volume"};
@@ -34,7 +34,7 @@ struct SMesh : public StructuredMesh {
 
    public:
     point_type point(index_type i, index_type j, index_type k) const override {
-        return point_type{m_vertics_[0](i, j, k), m_vertics_[1](i, j, k), m_vertics_[2](i, j, k)};
+        return point_type{m_vertices_[0](i, j, k), m_vertices_[1](i, j, k), m_vertices_[2](i, j, k)};
     };
     point_type point(EntityId s) const override { return StructuredMesh::point(s); }
 
@@ -43,16 +43,19 @@ struct SMesh : public StructuredMesh {
     Real inv_volume(EntityId s) const override { return m_volume_[s.w & 7](s.x, s.y, s.z); }
     Real inv_dual_volume(EntityId s) const override { return m_volume_[s.w & 7](s.x, s.y, s.z); }
 
+    void InitializeRange(std::shared_ptr<geometry::GeoObject> const &, Range<EntityId> body[4],
+                         Range<EntityId> boundary[4]) const override;
+
    protected:
     auto &GetCoordinates() const { return m_coordinates_; }
-    auto &GetVertics() const { return m_vertics_; };
+    auto &GetVertices() const { return m_vertices_; };
     auto &GetVolume() const { return m_volume_; };
     auto &GetDualVolume() const { return m_dual_volume_; };
     auto &GetInvVolume() const { return m_inv_volume_; };
     auto &GetInvDualVolume() const { return m_inv_dual_volume_; };
 
     auto &GetCoordinates() { return m_coordinates_; }
-    auto &GetVertics() { return m_vertics_; };
+    auto &GetVertices() { return m_vertices_; };
     auto &GetVolume() { return m_volume_; };
     auto &GetDualVolume() { return m_dual_volume_; };
     auto &GetInvVolume() { return m_inv_volume_; };

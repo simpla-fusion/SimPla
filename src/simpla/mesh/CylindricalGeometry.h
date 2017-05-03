@@ -66,31 +66,31 @@ struct CylindricalSMesh : public SMesh {
 //        Real w7 = r * s * t;
 //
 //        Real x =
-//            m_vertics_(id.x /**/, id.y /**/, id.z /**/, 0) * w0 + m_vertics_(id.x + 1, id.y /**/, id.z /**/, 0) *
+//            m_vertices_(id.x /**/, id.y /**/, id.z /**/, 0) * w0 + m_vertices_(id.x + 1, id.y /**/, id.z /**/, 0) *
 //            w1 +
-//            m_vertics_(id.x /**/, id.y + 1, id.z /**/, 0) * w2 + m_vertics_(id.x + 1, id.y + 1, id.z /**/, 0) * w3
+//            m_vertices_(id.x /**/, id.y + 1, id.z /**/, 0) * w2 + m_vertices_(id.x + 1, id.y + 1, id.z /**/, 0) * w3
 //            +
-//            m_vertics_(id.x /**/, id.y /**/, id.z + 1, 0) * w4 + m_vertics_(id.x + 1, id.y /**/, id.z + 1, 0) * w5
+//            m_vertices_(id.x /**/, id.y /**/, id.z + 1, 0) * w4 + m_vertices_(id.x + 1, id.y /**/, id.z + 1, 0) * w5
 //            +
-//            m_vertics_(id.x /**/, id.y + 1, id.z + 1, 0) * w6 + m_vertics_(id.x + 1, id.y + 1, id.z + 1, 0) * w7;
+//            m_vertices_(id.x /**/, id.y + 1, id.z + 1, 0) * w6 + m_vertices_(id.x + 1, id.y + 1, id.z + 1, 0) * w7;
 //
 //        Real y =
-//            m_vertics_(id.x /**/, id.y /**/, id.z /**/, 1) * w0 + m_vertics_(id.x + 1, id.y /**/, id.z /**/, 1) *
+//            m_vertices_(id.x /**/, id.y /**/, id.z /**/, 1) * w0 + m_vertices_(id.x + 1, id.y /**/, id.z /**/, 1) *
 //            w1 +
-//            m_vertics_(id.x /**/, id.y + 1, id.z /**/, 1) * w2 + m_vertics_(id.x + 1, id.y + 1, id.z /**/, 1) * w3
+//            m_vertices_(id.x /**/, id.y + 1, id.z /**/, 1) * w2 + m_vertices_(id.x + 1, id.y + 1, id.z /**/, 1) * w3
 //            +
-//            m_vertics_(id.x /**/, id.y /**/, id.z + 1, 1) * w4 + m_vertics_(id.x + 1, id.y /**/, id.z + 1, 1) * w5
+//            m_vertices_(id.x /**/, id.y /**/, id.z + 1, 1) * w4 + m_vertices_(id.x + 1, id.y /**/, id.z + 1, 1) * w5
 //            +
-//            m_vertics_(id.x /**/, id.y + 1, id.z + 1, 1) * w6 + m_vertics_(id.x + 1, id.y + 1, id.z + 1, 1) * w7;
+//            m_vertices_(id.x /**/, id.y + 1, id.z + 1, 1) * w6 + m_vertices_(id.x + 1, id.y + 1, id.z + 1, 1) * w7;
 //
 //        Real z =
-//            m_vertics_(id.x /**/, id.y /**/, id.z /**/, 2) * w0 + m_vertics_(id.x + 1, id.y /**/, id.z /**/, 2) *
+//            m_vertices_(id.x /**/, id.y /**/, id.z /**/, 2) * w0 + m_vertices_(id.x + 1, id.y /**/, id.z /**/, 2) *
 //            w1 +
-//            m_vertics_(id.x /**/, id.y + 1, id.z /**/, 2) * w2 + m_vertics_(id.x + 1, id.y + 1, id.z /**/, 2) * w3
+//            m_vertices_(id.x /**/, id.y + 1, id.z /**/, 2) * w2 + m_vertices_(id.x + 1, id.y + 1, id.z /**/, 2) * w3
 //            +
-//            m_vertics_(id.x /**/, id.y /**/, id.z + 1, 2) * w4 + m_vertics_(id.x + 1, id.y /**/, id.z + 1, 2) * w5
+//            m_vertices_(id.x /**/, id.y /**/, id.z + 1, 2) * w4 + m_vertices_(id.x + 1, id.y /**/, id.z + 1, 2) * w5
 //            +
-//            m_vertics_(id.x /**/, id.y + 1, id.z + 1, 2) * w6 + m_vertics_(id.x + 1, id.y + 1, id.z + 1, 2) * w7;
+//            m_vertices_(id.x /**/, id.y + 1, id.z + 1, 2) * w6 + m_vertices_(id.x + 1, id.y + 1, id.z + 1, 2) * w7;
 //
 //        return point_type{x, y, z};
 //    }

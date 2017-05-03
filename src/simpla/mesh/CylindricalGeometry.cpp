@@ -8,7 +8,7 @@ void CylindricalSMesh::InitializeData(Real time_now) {
     SMesh::InitializeData(time_now);
 
     auto &m_coordinates_ = GetCoordinates();
-    auto &m_vertics_ = GetVertics();
+    auto &m_vertics_ = GetVertices();
     auto &m_volume_ = GetVolume();
     auto &m_dual_volume_ = GetDualVolume();
     auto &m_inv_volume_ = GetInvVolume();

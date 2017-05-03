@@ -16,6 +16,7 @@ namespace engine {
 class MeshBase;
 class Patch;
 class AttributeGroup;
+
 /**
 * @brief
 */
@@ -37,8 +38,10 @@ class Domain : public SPObject,
     virtual MeshBase *GetMesh() = 0;
     virtual MeshBase const *GetMesh() const = 0;
 
-    std::shared_ptr<geometry::GeoObject> &GetGeoObject() { return m_geo_object_; }
-    std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const { return m_geo_object_; }
+    void SetGeoObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &g);
+    std::shared_ptr<geometry::GeoObject> GetGeoObject(std::string const &k = "") const;
+    Range<EntityId> const *GetBody(std::string const &k = "") const;
+    Range<EntityId> const *GetBoundary(std::string const &k = "") const;
 
     void Push(Patch *) override;
     void Pop(Patch *) override;
@@ -51,12 +54,14 @@ class Domain : public SPObject,
     design_pattern::Signal<void(Domain *, Real)> OnInitialCondition;
     design_pattern::Signal<void(Domain *, Real, Real)> OnBoundaryCondition;
     design_pattern::Signal<void(Domain *, Real, Real)> OnAdvance;
+
     virtual void InitialCondition(Real time_now);
     virtual void BoundaryCondition(Real time_now, Real dt);
     virtual void Advance(Real time_now, Real dt);
 
    private:
-    std::shared_ptr<geometry::GeoObject> m_geo_object_ = nullptr;
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
 #define DOMAIN_HEAD(_DOMAIN_NAME_, _BASE_TYPE_, _MESH_TYPE_)                                                           \

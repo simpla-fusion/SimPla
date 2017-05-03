@@ -72,7 +72,7 @@ class FieldView : public engine::Attribute {
     FieldView(this_type&& other)
         : engine::Attribute(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(other.m_range_) {}
 
-    FieldView(this_type const& other, Range<EntityId> r)
+    FieldView(this_type const& other, Range<EntityId> const& r)
         : engine::Attribute(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(r) {}
 
     ~FieldView() override = default;
@@ -121,6 +121,7 @@ class FieldView : public engine::Attribute {
     value_type const& operator()(index_type i, index_type j = 0, index_type k = 0, index_type w = 0) const {
         return m_data_[w](i, j, k);
     }
+
     //*****************************************************************************************************************
 
     typedef calculus::template calculator<mesh_type> calculus_policy;
@@ -179,7 +180,8 @@ class Field_ : public FieldView<TM, TV, IFORM, DOF> {
     using base_type::operator[];
     using base_type::operator=;
     using base_type::operator();
-    this_type operator()(Range<EntityId> r) { return this_type(*this, r); }
+
+    this_type operator[](Range<EntityId> const* d) const { return d == nullptr ? (*this) : this_type(*this, d[IFORM]); }
 };
 
 }  // namespace declare

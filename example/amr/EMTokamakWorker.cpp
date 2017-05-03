@@ -58,10 +58,10 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     auto d = GetDomain("Center");
 
     d->OnBoundaryCondition.Connect([&](Domain* self, Real time_now, Real time_dt) {
-        //        auto& E = self->GetMesh()->GetAttribute<Field<mesh_type, Real, EDGE>>("E");
-        //        auto& B = self->GetMesh()->GetAttribute<Field<mesh_type, Real, FACE>>("B");
-        //        E(self->GetBoundaryRange(EDGE)) = 0;
-        //        B(self->GetBoundaryRange(Face)) = 0;
+        auto& E = self->GetAttribute<Field<mesh_type, Real, EDGE>>("E");
+        auto& B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
+        E[self->GetBoundary()] = 0;
+        B[self->GetBoundary()] = 0;
 
     });
 
@@ -69,7 +69,7 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
 
         auto& ne = self->GetAttribute<Field<mesh_type, Real, VERTEX>>("ne");
 
-        ne = [&](point_type const& x) -> Real { return geqdsk.profile("ne", x[0], x[1]); };
+        ne[self->GetBody("Center")] = [&](point_type const& x) -> Real { return geqdsk.profile("ne", x[0], x[1]); };
 
         //        B = [&](point_type const& x) -> Vec3 { return geqdsk.B(x); };
 

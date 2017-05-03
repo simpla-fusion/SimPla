@@ -54,9 +54,6 @@ class MeshBase : public data::Serializable, public data::EnableCreateFromDataTab
     void SetBlock(std::shared_ptr<MeshBlock>);
     std::shared_ptr<MeshBlock> GetBlock() const;
 
-    virtual Range<EntityId> &GetRange(int IFORM);
-    virtual Range<EntityId> const &GetRange(int IFORM) const;
-
     virtual Real volume(EntityId s) const = 0;
     virtual Real dual_volume(EntityId s) const = 0;
     virtual Real inv_volume(EntityId s) const = 0;
@@ -71,6 +68,11 @@ class MeshBase : public data::Serializable, public data::EnableCreateFromDataTab
     virtual void SetDx(point_type dx) = 0;
     virtual point_type const &GetOrigin() = 0;
     virtual point_type const &GetDx() = 0;
+
+    virtual void InitializeRange(std::shared_ptr<geometry::GeoObject> const &, Range<EntityId> body[4],
+                                 Range<EntityId> boundary[4]) const {};
+
+    virtual box_type GetBox() const { return box_type{{0, 0, 0}, {1, 1, 1}}; }
 
    protected:
     struct pimpl_s;

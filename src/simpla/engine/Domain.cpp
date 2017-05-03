@@ -10,7 +10,18 @@
 namespace simpla {
 namespace engine {
 
-Domain::Domain(std::shared_ptr<geometry::GeoObject> const& g) : m_geo_object_(g) {}
+struct Domain::pimpl_s {
+    struct range_group {
+        Range<EntityId> body[4];
+        Range<EntityId> boundary[4];
+    };
+
+    std::map<std::string, std::shared_ptr<geometry::GeoObject>> m_geo_object_;
+    std::map<std::string, range_group> m_range_;
+};
+Domain::Domain(std::shared_ptr<geometry::GeoObject> const& g) : m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_geo_object_[""] = g;
+}
 Domain::~Domain() {}
 
 std::shared_ptr<data::DataTable> Domain::Serialize() const {
@@ -19,15 +30,6 @@ std::shared_ptr<data::DataTable> Domain::Serialize() const {
     return p;
 }
 void Domain::Deserialize(const std::shared_ptr<DataTable>& t) { UNIMPLEMENTED; };
-
-void Domain::Push(Patch* p) {
-    GetMesh()->SetBlock(p->GetBlock());
-    AttributeGroup::Push(p);
-}
-void Domain::Pop(Patch* p) {
-    p->SetBlock(GetMesh()->GetBlock());
-    AttributeGroup::Pop(p);
-}
 
 void Domain::SetUp() {
     SPObject::SetUp();
@@ -46,8 +48,43 @@ void Domain::Finalize() {
     SPObject::Finalize();
 }
 
+void Domain::SetGeoObject(std::string const& k, std::shared_ptr<geometry::GeoObject> const& g) {
+    m_pimpl_->m_geo_object_[k] = g;
+}
+
+std::shared_ptr<geometry::GeoObject> Domain::GetGeoObject(std::string const& k) const {
+    auto it = m_pimpl_->m_geo_object_.find(k);
+    return (it == m_pimpl_->m_geo_object_.end()) ? nullptr : it->second;
+}
+
+Range<EntityId> const* Domain::GetBody(std::string const& k) const {
+    auto it = m_pimpl_->m_range_.find(k);
+    return (it == m_pimpl_->m_range_.end()) ? nullptr : it->second.body;
+};
+Range<EntityId> const* Domain::GetBoundary(std::string const& k) const {
+    auto it = m_pimpl_->m_range_.find(k);
+    return (it == m_pimpl_->m_range_.end()) ? nullptr : it->second.boundary;
+}
+
+void Domain::Push(Patch* p) {
+    GetMesh()->SetBlock(p->GetBlock());
+    AttributeGroup::Push(p);
+}
+void Domain::Pop(Patch* p) {
+    p->SetBlock(GetMesh()->GetBlock());
+    AttributeGroup::Pop(p);
+}
+
 void Domain::InitialCondition(Real time_now) {
+    if (GetMesh() == nullptr) { return; }
+
     GetMesh()->InitializeData(time_now);
+    for (auto const& item : m_pimpl_->m_geo_object_) {
+        if (item.second->CheckOverlap(GetMesh()->GetBox())) {
+            GetMesh()->InitializeRange(item.second, m_pimpl_->m_range_[item.first].body,
+                                       m_pimpl_->m_range_[item.first].boundary);
+        }
+    }
     OnInitialCondition(this, time_now);
 }
 void Domain::BoundaryCondition(Real time_now, Real dt) { OnBoundaryCondition(this, time_now, dt); }
