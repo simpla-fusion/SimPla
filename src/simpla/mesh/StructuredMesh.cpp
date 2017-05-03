@@ -8,6 +8,7 @@ namespace mesh {
 using namespace algebra;
 void StructuredMesh::InitializeRange(std::shared_ptr<geometry::GeoObject> const& g, Range<EntityId> body[4],
                                      Range<EntityId> boundary[4]) {
+    if (g->CheckOverlap(GetBox()) != 0) { return; }
     Field<this_type, int, VOLUME, 9> m_tags_{this};
     m_tags_.Clear();
     m_tags_[0].Foreach([&](index_tuple const& idx, int& v) {
@@ -76,8 +77,8 @@ void StructuredMesh::InitializeRange(std::shared_ptr<geometry::GeoObject> const&
         body_range[i] = std::make_shared<UnorderedRange<EntityId>>(i);
         boundary_range[i] = std::make_shared<UnorderedRange<EntityId>>(i);
 
-        body[i].reset(body_range[i]);
-        boundary[i].reset(boundary_range[i]);
+        body[i].append(body_range[i]);
+        boundary[i].append(boundary_range[i]);
     }
 
     // VOLUME center

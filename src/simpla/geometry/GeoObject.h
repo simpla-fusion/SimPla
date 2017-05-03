@@ -61,9 +61,9 @@ class GeoObject : public data::Serializable, public data::EnableCreateFromDataTa
     /**
     * @brief
     * @param b
-    * @return  -1 full in-side
-    *          0  overlap
-    *          1 full out-side
+    * @return  -1   in-side
+    *          0  intersection
+    *          1   out-side
     */
     virtual int CheckOverlap(box_type const &b) const { return geometry::CheckOverlap(GetBoundBox(), b); }
     /**
@@ -71,7 +71,7 @@ class GeoObject : public data::Serializable, public data::EnableCreateFromDataTa
     *           `in` then 1
     *           `out` then 0
     */
-    virtual bool CheckInside(const point_type &x) const { return in_box(GetBoundBox(), x) ? 1 : 0; };
+    virtual bool CheckInside(const point_type &x) const { return in_box(GetBoundBox(), x)  ; };
 
     //    int CheckInside() const { return 0; }
     //
