@@ -18,7 +18,7 @@ struct Moo : public MeshBase {
     Moo() : MeshBase(std::shared_ptr<Chart>()) {}
     DataAttribute<Real, 2, 2> tags0{this, "tags0"};
     DataAttribute<Real> tags{this, "tags"};
-    DataAttribute<Real> rho0{this, "rho0", "CHECK"_ = false, "TAG"_ = 12.345};
+    DataAttribute<Real> rho0{this, "ne", "CHECK"_ = false, "TAG"_ = 12.345};
     DataAttribute<Real> rho1{this, "s"};
     DataAttribute<Real> tE{this};
 
@@ -27,7 +27,7 @@ struct Moo : public MeshBase {
 
 struct Foo : public Task {
     SP_OBJECT_HEAD(Foo, Task)
-    DataAttribute<Real> rho0{this, "rho0", "CHECK"_ = true};
+    DataAttribute<Real> rho0{this, "ne", "CHECK"_ = true};
     DataAttribute<Real> E{this, "E", "CHECK"_ = false};
     void Initialize() final {}
     void Process() final {}

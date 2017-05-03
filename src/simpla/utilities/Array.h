@@ -89,13 +89,13 @@ void ForeachND(std::tuple<nTuple<index_type, 3>, nTuple<index_type, 3>> const& i
     index_type ke = std::get<1>(inner_box)[2];
 
     if (is_fast_first) {
-#pragma omp parallel for
+//#pragma omp parallel for
         for (index_type k = kb; k < ke; ++k)
             for (index_type j = jb; j < je; ++j)
                 for (index_type i = ib; i < ie; ++i) { fun(nTuple<index_type, 3>{i, j, k}); }
 
     } else {
-#pragma omp parallel for
+//#pragma omp parallel for
         for (index_type i = ib; i < ie; ++i)
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k) { fun(nTuple<index_type, 3>{i, j, k}); }

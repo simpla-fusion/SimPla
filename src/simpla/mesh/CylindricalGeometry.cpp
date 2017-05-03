@@ -7,6 +7,7 @@ namespace mesh {
 void CylindricalSMesh::InitializeData(Real time_now) {
     SMesh::InitializeData(time_now);
 
+    auto &m_coordinates_ = GetCoordinates();
     auto &m_vertics_ = GetVertics();
     auto &m_volume_ = GetVolume();
     auto &m_dual_volume_ = GetDualVolume();
@@ -52,9 +53,14 @@ void CylindricalSMesh::InitializeData(Real time_now) {
         for (index_type j = jb; j < je; ++j)
             for (index_type k = kb; k < ke; ++k) {
                 point_type x = map(point_type{static_cast<Real>(i), static_cast<Real>(j), static_cast<Real>(k)});
-                m_vertics_[0](i, j, k) = x[R_axe] * std::cos(x[Phi_axe]);
-                m_vertics_[1](i, j, k) = x[R_axe] * std::sin(x[Phi_axe]);
-                m_vertics_[2](i, j, k) = x[Z_axe];
+
+                m_vertics_[0](i, j, k) = x[0];
+                m_vertics_[1](i, j, k) = x[1];
+                m_vertics_[2](i, j, k) = x[2];
+
+                m_coordinates_[0](i, j, k) = x[R_axe] * std::cos(x[Phi_axe]);
+                m_coordinates_[1](i, j, k) = x[R_axe] * std::sin(x[Phi_axe]);
+                m_coordinates_[2](i, j, k) = x[Z_axe];
             }
 
     ib = std::get<0>(m_volume_[0].GetIndexBox())[0];

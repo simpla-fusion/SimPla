@@ -43,7 +43,7 @@ class EMFluid : public engine::Domain {
     typedef field_type<VERTEX> TRho;
     typedef field_type<VERTEX, 3> TJv;
 
-    field_type<VERTEX> rho0{this, "name"_ = "rho"};
+    field_type<VERTEX> ne{this, "name"_ = "ne"};
 
     field_type<EDGE> E0{this};
     field_type<FACE> B0{this};
@@ -56,6 +56,9 @@ class EMFluid : public engine::Domain {
     field_type<FACE> B{this, "name"_ = "B"};
     field_type<EDGE> E{this, "name"_ = "E"};
     field_type<EDGE> J1{this, "name"_ = "J1"};
+    field_type<VERTEX> Z0{this, "name"_ = "Z0"};
+    field_type<VERTEX> Z1{this, "name"_ = "Z1"};
+    field_type<VERTEX> Z2{this, "name"_ = "Z2"};
 
     struct fluid_s {
         Real mass;
@@ -130,8 +133,8 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
     B.Clear();
     B0v.Clear();
     //    if (E.isNull()) {}
-    //    rho0[0].Foreach([&](index_tuple const& k, Real& v) { v = k[1]; });
-    //    rho0.Assign([&](point_type const& z) -> Real { return z[1] * z[0] * z[2]; });
+    //    ne[0].Foreach([&](index_tuple const& k, Real& v) { v = k[1]; });
+    //    ne.Assign([&](point_type const& z) -> Real { return z[1] * z[0] * z[2]; });
     //    Ev = map_to<VERTEX>(E);
     //    B0v = map_to<VERTEX>(B0);
     //    BB = inner_product(B0v, B0v);

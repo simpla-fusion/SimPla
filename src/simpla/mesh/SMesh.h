@@ -24,7 +24,8 @@ struct SMesh : public StructuredMesh {
     void InitializeData(Real time_now) override;
 
    private:
-    Field<this_type, Real, VERTEX, 3> m_vertics_{this, "name"_ = "vertics", "COORDINATES"_};
+    Field<this_type, Real, VERTEX, 3> m_coordinates_{this, "name"_ = "Coordinates", "COORDINATES"_};
+    Field<this_type, Real, VERTEX, 3> m_vertics_{this, "name"_ = "vertics"};
     Field<this_type, Real, VOLUME, 9> m_volume_{this, "name"_ = "volume"};
     Field<this_type, Real, VOLUME, 9> m_dual_volume_{this, "name"_ = "dual_volume"};
     Field<this_type, Real, VOLUME, 9> m_inv_volume_{this, "name"_ = "inv_volume"};
@@ -43,12 +44,14 @@ struct SMesh : public StructuredMesh {
     Real inv_dual_volume(EntityId s) const override { return m_volume_[s.w & 7](s.x, s.y, s.z); }
 
    protected:
+    auto &GetCoordinates() const { return m_coordinates_; }
     auto &GetVertics() const { return m_vertics_; };
     auto &GetVolume() const { return m_volume_; };
     auto &GetDualVolume() const { return m_dual_volume_; };
     auto &GetInvVolume() const { return m_inv_volume_; };
     auto &GetInvDualVolume() const { return m_inv_dual_volume_; };
 
+    auto &GetCoordinates() { return m_coordinates_; }
     auto &GetVertics() { return m_vertics_; };
     auto &GetVolume() { return m_volume_; };
     auto &GetDualVolume() { return m_dual_volume_; };

@@ -26,6 +26,7 @@ class EMTokamak : public engine::Context {
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(shared_ptr<data::DataTable> const& cfg) override;
 
+    GEqdsk geqdsk;
     //    void InitialCondition(Real time_now) override;
     //    void BoundaryCondition(Real time_now, Real dt) override;
     //    void Advance(Real time_now, Real dt) override;
@@ -47,7 +48,6 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
 
     unsigned int PhiAxe = 2;
     nTuple<Real, 2> phi = cfg->GetValue("Phi", nTuple<Real, 2>{0, TWOPI});
-    GEqdsk geqdsk;
     geqdsk.load(cfg->GetValue<std::string>("gfile", "gfile"));
     GetModel().SetObject("Boundary", std::make_shared<geometry::RevolveZ>(geqdsk.boundary(), PhiAxe, phi[0], phi[1]));
     GetModel().SetObject("Center", std::make_shared<geometry::RevolveZ>(geqdsk.limiter(), PhiAxe, phi[0], phi[1]));
@@ -66,11 +66,11 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     });
 
     d->OnInitialCondition.Connect([&](Domain* self, Real time_now) {
-        auto& rho = self->GetAttribute<Field<mesh_type, Real, VERTEX>>("rho");
-        auto& B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
-        rho = [&](point_type const& x) -> Real {
-            return x[1]; /* geqdsk.profile("ne", x[0], x[1]);*/
-        };
+
+        auto& ne = self->GetAttribute<Field<mesh_type, Real, VERTEX>>("ne");
+
+        ne = [&](point_type const& x) -> Real { return geqdsk.profile("ne", x[0], x[1]); };
+
         //        B = [&](point_type const& x) -> Vec3 { return geqdsk.B(x); };
 
     });
@@ -79,7 +79,7 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     //    GetModel().Serialize(std::cout, 0);
     //
     //    auto const &boundary = geqdsk.boundary();
-    //    rho0.Assign([&](point_type const &x) -> Real { return (geqdsk.in_boundary(x)) ? geqdsk.profile("ne", x) : 0.0;
+    //    ne.Assign([&](point_type const &x) -> Real { return (geqdsk.in_boundary(x)) ? geqdsk.profile("ne", x) : 0.0;
     //    });
     //    psi.Assign([&](point_type const &x) -> Real { return geqdsk.psi(x); });
 
@@ -87,7 +87,7 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     //    //    B0.Assign([&](point_type const &x) -> Vec3 { return (geqdsk.in_limiter(x)) ? geqdsk.B(x) : ZERO_V; });
     //    for (auto &item : GetSpecies()) {
     //        Real ratio = db()->GetValue("Particles." + item.first + ".ratio", 1.0);
-    //        *item.second->rho = rho0 * ratio;
+    //        *item.second->rho = ne * ratio;
     //    }
 }
 
