@@ -7,7 +7,7 @@ namespace simpla {
 namespace mesh {
 using namespace algebra;
 void StructuredMesh::InitializeRange(std::shared_ptr<geometry::GeoObject> const& g, Range<EntityId> body[4],
-                                     Range<EntityId> boundary[4]) const {
+                                     Range<EntityId> boundary[4]) {
     Field<this_type, int, VOLUME, 9> m_tags_{this};
     m_tags_.Clear();
     m_tags_[0].Foreach([&](index_tuple const& idx, int& v) {

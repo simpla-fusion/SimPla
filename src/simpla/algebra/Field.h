@@ -173,15 +173,17 @@ class Field_ : public FieldView<TM, TV, IFORM, DOF> {
     template <typename... Args>
     explicit Field_(Args&&... args) : base_type(std::forward<Args>(args)...) {}
 
-    Field_(this_type const& other) = delete;
-    Field_(this_type&& other) = delete;
+    Field_(this_type const& other) : base_type(other){};
+//    Field_(this_type&& other) = delete;
     ~Field_() {}
 
     using base_type::operator[];
     using base_type::operator=;
     using base_type::operator();
 
-    this_type operator[](Range<EntityId> const* d) const { return d == nullptr ? (*this) : this_type(*this, d[IFORM]); }
+    this_type operator[](Range<EntityId> const* d) const {
+        return d == nullptr ? this_type(*this) : this_type(*this, d[IFORM]);
+    }
 };
 
 }  // namespace declare

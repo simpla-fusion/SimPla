@@ -43,9 +43,6 @@ struct SMesh : public StructuredMesh {
     Real inv_volume(EntityId s) const override { return m_volume_[s.w & 7](s.x, s.y, s.z); }
     Real inv_dual_volume(EntityId s) const override { return m_volume_[s.w & 7](s.x, s.y, s.z); }
 
-    void InitializeRange(std::shared_ptr<geometry::GeoObject> const &, Range<EntityId> body[4],
-                         Range<EntityId> boundary[4]) const override;
-
    protected:
     auto &GetCoordinates() const { return m_coordinates_; }
     auto &GetVertices() const { return m_vertices_; };
