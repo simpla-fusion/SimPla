@@ -12,10 +12,6 @@
 #include "SMesh.h"
 #include "StructuredMesh.h"
 namespace simpla {
-namespace mesh {
-
-typedef Mesh<CartesianGeometry, CoRectMesh> CartesianCoRectMesh;
-typedef Mesh<CylindricalGeometry, SMesh> CylindricalSMesh;
-}
+namespace mesh {}
 }
 #endif  // SIMPLA_MESH_ALL_H

@@ -17,34 +17,20 @@
 
 namespace simpla {
 namespace mesh {
-struct CartesianGeometry : public engine::Chart {
-    SP_OBJECT_HEAD(CartesianGeometry, engine::Chart);
-    DECLARE_REGISTER_NAME("CartesianGeometry");
-
-    std::shared_ptr<data::DataTable> Serialize() const override {
-        auto p = engine::Chart::Serialize();
-        p->SetValue<std::string>("Type", GetRegisterName());
-        return p;
-    };
-};
 
 /**
  * @ingroup mesh
  * @brief Uniform structured get_mesh
  */
-template <>
-struct Mesh<CartesianGeometry, CoRectMesh> : public CoRectMesh {
-    typedef Mesh<CartesianGeometry, CoRectMesh> mesh_type;
-    SP_OBJECT_HEAD(mesh_type, CoRectMesh)
+struct CartesianCoRectMesh : public CoRectMesh {
+    SP_OBJECT_HEAD(CartesianCoRectMesh, CoRectMesh)
 
    public:
     typedef Real scalar_type;
-    explicit Mesh(std::shared_ptr<engine::Chart> c = nullptr)
-        : CoRectMesh((c != nullptr ? c : std::make_shared<CartesianGeometry>())) {}
-
-    ~Mesh() override = default;
-    SP_DEFAULT_CONSTRUCT(Mesh);
-    DECLARE_REGISTER_NAME("Mesh<CartesianGeometry,CoRectMesh>");
+    explicit CartesianCoRectMesh(engine::Domain* d) : CoRectMesh(d) {}
+    ~CartesianCoRectMesh() override = default;
+    SP_DEFAULT_CONSTRUCT(CartesianCoRectMesh);
+    DECLARE_REGISTER_NAME("CartesianCoRectMesh");
 
     void SetUp() override {}
 

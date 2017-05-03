@@ -7,18 +7,19 @@
 #ifndef SIMPLA_FIELD_H
 #define SIMPLA_FIELD_H
 
+#include <simpla/SIMPLA_config.h>
+#include <simpla/engine/Attribute.h>
+#include <simpla/engine/Domain.h>
+#include <simpla/engine/MeshBlock.h>
+#include <simpla/utilities/Array.h>
+#include <simpla/utilities/EntityId.h>
+#include <simpla/utilities/FancyStream.h>
+#include <simpla/utilities/Range.h>
+#include <simpla/utilities/nTuple.h>
+#include <simpla/utilities/sp_def.h>
 #include <cstring>  // for memset
 #include "Algebra.h"
 #include "CalculusPolicy.h"
-#include "simpla/SIMPLA_config.h"
-#include "simpla/engine/Attribute.h"
-#include "simpla/engine/MeshBlock.h"
-#include "simpla/utilities/Array.h"
-#include "simpla/utilities/EntityId.h"
-#include "simpla/utilities/FancyStream.h"
-#include "simpla/utilities/Range.h"
-#include "simpla/utilities/nTuple.h"
-#include "simpla/utilities/sp_def.h"
 namespace simpla {
 namespace algebra {
 namespace calculus {
@@ -55,32 +56,24 @@ class FieldView : public engine::Attribute {
 
    public:
     template <typename... Args>
-    explicit FieldView(mesh_type* m, Args&&... args)
-        : engine::Attribute(std::make_shared<data::DataTable>(std::forward<Args>(args)...), IFORM, DOF,
-                            typeid(value_type)),
-          m_mesh_(m) {
-        engine::Attribute::RegisterAt(m_mesh_);
-    };
+    explicit FieldView(engine::Domain* d, Args&&... args)
+        : engine::Attribute(IFORM, DOF, typeid(value_type), d,
+                            std::make_shared<data::DataTable>(std::forward<Args>(args)...)),
+          m_mesh_(dynamic_cast<mesh_type*>(engine::Attribute::GetDomain()->GetMesh())){};
     template <typename... Args>
-    explicit FieldView(mesh_type& m, Args&&... args) : FieldView(&m, std::forward<Args>(args)...){};
-
-    template <typename... Args>
-    explicit FieldView(std::shared_ptr<mesh_type> m, Args&&... args)
-        : FieldView(m.get(), std::forward<Args>(args)...){};
+    explicit FieldView(engine::MeshBase* d, Args&&... args)
+        : engine::Attribute(IFORM, DOF, typeid(value_type), d,
+                            std::make_shared<data::DataTable>(std::forward<Args>(args)...)),
+          m_mesh_(dynamic_cast<mesh_type*>(engine::Attribute::GetDomain()->GetMesh())){};
 
     FieldView(this_type const& other)
-        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(other.m_range_) {
-        engine::Attribute::RegisterAt(m_mesh_);
-    }
+        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(other.m_range_) {}
+
     FieldView(this_type&& other)
-        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(other.m_range_) {
-        engine::Attribute::RegisterAt(m_mesh_);
-    }
+        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(other.m_range_) {}
 
     FieldView(this_type const& other, Range<EntityId> r)
-        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(r) {
-        engine::Attribute::RegisterAt(m_mesh_);
-    }
+        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(r) {}
 
     ~FieldView() override = default;
 

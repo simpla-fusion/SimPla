@@ -27,13 +27,11 @@ using namespace simpla::data;
  *   - \f$p\f$ is the projection
  *
  */
-class MeshBase : public AttributeGroup,
-                 public data::Serializable,
-                 public data::EnableCreateFromDataTable<MeshBase, std::shared_ptr<Chart> > {
-    SP_OBJECT_HEAD(MeshBase, AttributeGroup);
+class MeshBase : public data::Serializable, public data::EnableCreateFromDataTable<MeshBase, Domain *> {
+    SP_OBJECT_BASE(MeshBase);
 
    public:
-    explicit MeshBase(std::shared_ptr<Chart> c);
+    explicit MeshBase(Domain *d);
     ~MeshBase() override;
     SP_DEFAULT_CONSTRUCT(MeshBase);
     DECLARE_REGISTER_NAME("MeshBase");
@@ -41,11 +39,9 @@ class MeshBase : public AttributeGroup,
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<DataTable> &t) override;
 
+    Domain *GetDomain() const;
     bool isFullCovered() const;
     bool isBoundary() const;
-
-    void Push(Patch *p) override;
-    void Pop(Patch *p) override;
 
     virtual void InitializeData(Real time_now);
 
@@ -54,11 +50,9 @@ class MeshBase : public AttributeGroup,
     virtual void Initialize();
     virtual void Finalize();
 
-    Real GetTime() const;
     id_type GetBlockId() const;
     void SetBlock(std::shared_ptr<MeshBlock>);
     std::shared_ptr<MeshBlock> GetBlock() const;
-    std::shared_ptr<Chart> GetChart() const;
 
     virtual Range<EntityId> &GetRange(int IFORM);
     virtual Range<EntityId> const &GetRange(int IFORM) const;

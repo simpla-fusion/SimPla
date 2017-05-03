@@ -4,7 +4,7 @@
 
 #include <simpla/algebra/all.h>
 #include <simpla/engine/all.h>
-#include <simpla/mesh/all.h>
+#include <simpla/mesh/CylindricalGeometry.h>
 #include <simpla/model/GEqdsk.h>
 #include <simpla/physics/Constants.h>
 #include <simpla/predefine/physics/EMFluid.h>
@@ -13,8 +13,7 @@
 namespace simpla {
 using namespace engine;
 static bool s_RegisterDomain =
-    engine::Domain::RegisterCreator<EMFluid<mesh::Mesh<mesh::CylindricalGeometry, mesh::SMesh>>>(
-        "EMFluidCylindricalSMesh");
+    engine::Domain::RegisterCreator<EMFluid<mesh::CylindricalSMesh>>(std::string("EMFluidCylindricalSMesh"));
 class EMTokamak : public engine::Context {
     SP_OBJECT_HEAD(EMTokamak, engine::Context)
    public:
@@ -55,7 +54,7 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
 
     engine::Context::Deserialize(cfg);
 
-    typedef mesh::Mesh<mesh::CylindricalGeometry, mesh::SMesh> mesh_type;
+    typedef mesh::CylindricalSMesh mesh_type;
     auto d = GetDomain("Center");
 
     d->OnBoundaryCondition.Connect([&](Domain* self, Real time_now, Real time_dt) {
@@ -67,9 +66,12 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     });
 
     d->OnInitialCondition.Connect([&](Domain* self, Real time_now) {
-        auto& rho = self->GetMesh()->GetAttribute<Field<mesh_type, Real, VERTEX>>("rho");
-
-        rho = [&](point_type const& x) -> Real { return std::sin(x[2]); };
+        auto& rho = self->GetAttribute<Field<mesh_type, Real, VERTEX>>("rho");
+        auto& B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
+        rho = [&](point_type const& x) -> Real {
+            return x[1]; /* geqdsk.profile("ne", x[0], x[1]);*/
+        };
+        //        B = [&](point_type const& x) -> Vec3 { return geqdsk.B(x); };
 
     });
 

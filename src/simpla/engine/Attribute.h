@@ -14,10 +14,9 @@
 namespace simpla {
 namespace engine {
 class Domain;
-class MeshBase;
-class MeshBlock;
 class Attribute;
 class Patch;
+class MeshBase;
 ///**
 // *  permissions
 // *
@@ -70,12 +69,15 @@ struct AttributeDesc : public data::Configurable {
 };
 
 class AttributeGroup {
-    SP_OBJECT_BASE(AttributeGroup)
    public:
     AttributeGroup();
     virtual ~AttributeGroup();
 
-    SP_DEFAULT_CONSTRUCT(AttributeGroup);
+    AttributeGroup(AttributeGroup const &other) = delete;
+    AttributeGroup(AttributeGroup &&other) = delete;
+    AttributeGroup &operator=(AttributeGroup const &other) = delete;
+    AttributeGroup &operator=(AttributeGroup &&other) = delete;
+
     virtual void RegisterDescription(std::map<std::string, std::shared_ptr<AttributeDesc>> *);
     virtual void RegisterAt(AttributeGroup *);
     virtual void DeregisterFrom(AttributeGroup *);
@@ -126,14 +128,16 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
     SP_OBJECT_HEAD(Attribute, SPObject);
 
    public:
-    explicit Attribute(std::shared_ptr<data::DataTable> const &p = nullptr, int IFORM = VERTEX, int DOF = 1,
-                       std::type_info const &t_info = typeid(void));
+    Attribute(int IFORM, int DOF, std::type_info const &t_info, Domain *d, std::shared_ptr<data::DataTable> const &p);
+    Attribute(int IFORM, int DOF, std::type_info const &t_info, MeshBase *m, std::shared_ptr<data::DataTable> const &p);
 
     Attribute(Attribute const &other);
     Attribute(Attribute &&other);
     ~Attribute() override;
 
     void SetUp() override;
+
+    Domain *GetDomain() const;
 
     void RegisterAt(AttributeGroup *);
     void DeregisterFrom(AttributeGroup *);

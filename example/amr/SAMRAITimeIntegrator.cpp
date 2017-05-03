@@ -416,7 +416,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     SAMRAI::hier::IntVector d_fluxghosts{d_dim, 1};
     //**************************************************************
 
-    for (auto const &item : m_ctx_->GetRegisiteredAttribute()) {
+    for (auto const &item : m_ctx_->GetRegisteredAttribute()) {
         boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(item.second);
         if (var == nullptr) { continue; }
 

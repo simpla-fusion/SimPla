@@ -21,23 +21,6 @@
 
 namespace simpla {
 namespace mesh {
-struct CylindricalGeometry : public engine::Chart {
-    SP_OBJECT_HEAD(CylindricalGeometry, engine::Chart)
-
-    explicit CylindricalGeometry(unsigned int axe = 2) : m_phi_axe_(axe) {}
-
-    DECLARE_REGISTER_NAME("CylindricalGeometry");
-
-    std::shared_ptr<data::DataTable> Serialize() const override {
-        auto p = engine::Chart::Serialize();
-        p->SetValue<std::string>("Type", GetRegisterName());
-        return p;
-    };
-    constexpr unsigned int GetPhiAxe() const { return m_phi_axe_; }
-
-   private:
-    unsigned int m_phi_axe_ = 2;
-};
 
 using namespace simpla::data;
 
@@ -45,25 +28,25 @@ using namespace simpla::data;
  * @ingroup mesh
  * @brief Uniform structured get_mesh
  */
-template <>
-struct Mesh<CylindricalGeometry, SMesh> : public SMesh {
-    typedef Mesh<CylindricalGeometry, SMesh> mesh_type;
-    SP_OBJECT_HEAD(mesh_type, SMesh)
+
+struct CylindricalSMesh : public SMesh {
+    SP_OBJECT_HEAD(CylindricalSMesh, SMesh)
+    unsigned int m_phi_axe_ = 2;
 
    public:
-    using SMesh::GetChart;
     typedef Real scalar_type;
+    explicit CylindricalSMesh(Domain* d) : SMesh(d) {}
+    ~CylindricalSMesh() override = default;
 
-    explicit Mesh(std::shared_ptr<engine::Chart> c = nullptr)
-        : SMesh((c != nullptr ? c : std::make_shared<CylindricalGeometry>())) {}
-    ~Mesh() override = default;
-
-    DECLARE_REGISTER_NAME("Mesh<CylindricalGeometry,SMesh>")
+    DECLARE_REGISTER_NAME("CylindricalSMesh")
 
    public:
     using SMesh::point;
 
     void InitializeData(Real time_now) override;
+
+    nTuple<Real, 3> m_dx_{1, 1, 1};
+    nTuple<Real, 3> m_x0_{0, 0, 0};
 
 };  // struct  MeshBase
 

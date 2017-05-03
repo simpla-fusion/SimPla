@@ -2,13 +2,12 @@
 // Created by salmon on 17-2-22.
 //
 #include "Patch.h"
+#include <simpla/geometry/GeoObject.h>
 #include <boost/functional/hash.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <map>
-#include "Chart.h"
 #include "MeshBlock.h"
-#include "simpla/geometry/GeoObject.h"
 namespace simpla {
 namespace engine {
 struct Patch::pimpl_s {

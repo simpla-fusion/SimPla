@@ -16,7 +16,7 @@ struct SMesh : public StructuredMesh {
    public:
     SP_OBJECT_HEAD(SMesh, StructuredMesh)
 
-     explicit SMesh(std::shared_ptr<engine::Chart> c = nullptr) : StructuredMesh(c){};
+    explicit SMesh(Domain *d) : StructuredMesh(d){};
     ~SMesh() override{};
 
     SP_DEFAULT_CONSTRUCT(SMesh)

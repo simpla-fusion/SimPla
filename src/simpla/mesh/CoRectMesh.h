@@ -5,7 +5,6 @@
 #ifndef SIMPLA_CORECTMESH_H
 #define SIMPLA_CORECTMESH_H
 
-#include <simpla/engine/Chart.h>
 #include <simpla/utilities/sp_def.h>
 #include <string>
 #include "StructuredMesh.h"
@@ -119,8 +118,8 @@ inline void CoRectMesh::InitializeData(Real time_now) {
         *
         *\endverbatim
         */
-    m_x0_ = GetChart()->GetOrigin();
-    m_dx_ = GetChart()->GetDx();
+    //    m_x0_ = GetChart()->GetOrigin();
+    //    m_dx_ = GetChart()->GetDx();
     size_tuple m_dims_ = GetBlock()->GetDimensions();
 
     m_v_[0 /*000*/] = 1;

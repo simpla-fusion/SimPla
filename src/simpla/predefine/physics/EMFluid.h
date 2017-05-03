@@ -23,7 +23,7 @@ class EMFluid : public engine::Domain {
     typedef TM mesh_type;
 
    public:
-    DOMAIN_HEAD(EMFluid, engine::Domain)
+    DOMAIN_HEAD(EMFluid, engine::Domain, mesh_type)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(shared_ptr<data::DataTable> const& cfg) override;
@@ -43,19 +43,19 @@ class EMFluid : public engine::Domain {
     typedef field_type<VERTEX> TRho;
     typedef field_type<VERTEX, 3> TJv;
 
-    field_type<VERTEX> rho0{m_mesh_, "name"_ = "rho"};
+    field_type<VERTEX> rho0{this, "name"_ = "rho"};
 
-    field_type<EDGE> E0{m_mesh_};
-    field_type<FACE> B0{m_mesh_};
-    field_type<VERTEX, 3> B0v{m_mesh_};
-    field_type<VERTEX> BB{m_mesh_, "name"_ = "BB"};
-    field_type<VERTEX, 3> Ev{m_mesh_};
-    field_type<VERTEX, 3> Bv{m_mesh_};
-    field_type<VERTEX, 3> dE{m_mesh_};
+    field_type<EDGE> E0{this};
+    field_type<FACE> B0{this};
+    field_type<VERTEX, 3> B0v{this};
+    field_type<VERTEX> BB{this, "name"_ = "BB"};
+    field_type<VERTEX, 3> Ev{this};
+    field_type<VERTEX, 3> Bv{this};
+    field_type<VERTEX, 3> dE{this};
 
-    field_type<FACE> B{m_mesh_, "name"_ = "B"};
-    field_type<EDGE> E{m_mesh_, "name"_ = "E"};
-    field_type<EDGE> J1{m_mesh_, "name"_ = "J1"};
+    field_type<FACE> B{this, "name"_ = "B"};
+    field_type<EDGE> E{this, "name"_ = "E"};
+    field_type<EDGE> J1{this, "name"_ = "J1"};
 
     struct fluid_s {
         Real mass;
@@ -102,8 +102,8 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
     VERBOSE << "Add particle : {\"" << name << "\", mass = " << sp->mass / SI_proton_mass
             << " [m_p], charge = " << sp->charge / SI_elementary_charge << " [q_e] }" << std::endl;
 
-    sp->rho = std::make_shared<TRho>(m_mesh_, name + "_rho");
-    sp->J = std::make_shared<TJv>(m_mesh_, name + "_J");
+    sp->rho = std::make_shared<TRho>(this, name + "_rho");
+    sp->J = std::make_shared<TJv>(this, name + "_J");
     m_fluid_sp_.emplace(name, sp);
     return sp;
 }
@@ -138,11 +138,11 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
 }
 template <typename TM>
 void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
-    //    auto brd = m_mesh_->Boundary();
+    //    auto brd = this->Boundary();
     //    if (brd == nullptr) { return; }
     //    E(brd) = 0;
     //    B(brd) = 0;
-    //    auto antenna = m_mesh_->SubMesh(m_antenna_);
+    //    auto antenna = this->SubMesh(m_antenna_);
     //    if (antenna != nullptr) {
     //        nTuple<Real, 3> k{1, 1, 1};
     //        Real omega = 1.0;
@@ -161,12 +161,12 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
     //    //    SetPhysicalBoundaryConditionE(time_now);
     //    if (m_fluid_sp_.size() > 0) {
-    //        field_type<VERTEX, 3> Q{m_mesh_};
-    //        field_type<VERTEX, 3> K{m_mesh_};
+    //        field_type<VERTEX, 3> Q{this};
+    //        field_type<VERTEX, 3> K{this};
     //
-    //        field_type<VERTEX> a{m_mesh_};
-    //        field_type<VERTEX> b{m_mesh_};
-    //        field_type<VERTEX> c{m_mesh_};
+    //        field_type<VERTEX> a{this};
+    //        field_type<VERTEX> b{this};
+    //        field_type<VERTEX> c{this};
     //
     //        a.Clear();
     //        b.Clear();

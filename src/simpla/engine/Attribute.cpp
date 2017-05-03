@@ -98,14 +98,21 @@ Attribute const *AttributeGroup::Get(std::string const &k) const {
 }
 
 struct Attribute::pimpl_s {
+    Domain *m_domain_;
     std::set<AttributeGroup *> m_bundle_;
 };
-
-Attribute::Attribute(std::shared_ptr<data::DataTable> const &cfg, int IFORM, int DOF, std::type_info const &t_info)
+Attribute::Attribute(int IFORM, int DOF, std::type_info const &t_info, Domain *d,
+                     std::shared_ptr<data::DataTable> const &cfg)
     : AttributeDesc(((cfg != nullptr && cfg->has("name")) ? cfg->GetValue<std::string>("name")
                                                           : ("_" + std::to_string(SPObject::GetGUID()))),
                     IFORM, DOF, t_info, cfg),
-      m_pimpl_(new pimpl_s){};
+      m_pimpl_(new pimpl_s) {
+    RegisterAt(d);
+    m_pimpl_->m_domain_ = d;
+};
+Attribute::Attribute(int IFORM, int DOF, std::type_info const &t_info, MeshBase *m,
+                     std::shared_ptr<data::DataTable> const &p)
+    : Attribute(IFORM, DOF, t_info, m->GetDomain(), p) {}
 Attribute::Attribute(Attribute const &other) : AttributeDesc(other), m_pimpl_(new pimpl_s) {}
 Attribute::Attribute(Attribute &&other) : AttributeDesc(other), m_pimpl_(std::move(other.m_pimpl_)) {}
 Attribute::~Attribute() {
@@ -121,7 +128,7 @@ void Attribute::RegisterAt(AttributeGroup *attr_b) {
 void Attribute::DeregisterFrom(AttributeGroup *attr_b) {
     if (m_pimpl_->m_bundle_.erase(attr_b) > 0) { attr_b->Detach(this); };
 }
-
+Domain *Attribute::GetDomain() const { return m_pimpl_->m_domain_; }
 bool Attribute::isNull() const { return true; }
 void Attribute::SetUp() { SPObject::SetUp(); };
 

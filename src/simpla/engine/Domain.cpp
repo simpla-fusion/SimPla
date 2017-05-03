@@ -10,8 +10,7 @@
 namespace simpla {
 namespace engine {
 
-Domain::Domain(std::shared_ptr<geometry::GeoObject> const& g, std::shared_ptr<MeshBase> const& m)
-    : m_mesh_(m), m_geo_object_(g) {}
+Domain::Domain(std::shared_ptr<geometry::GeoObject> const& g) : m_geo_object_(g) {}
 Domain::~Domain() {}
 
 std::shared_ptr<data::DataTable> Domain::Serialize() const {
@@ -21,24 +20,30 @@ std::shared_ptr<data::DataTable> Domain::Serialize() const {
 }
 void Domain::Deserialize(const std::shared_ptr<DataTable>& t) { UNIMPLEMENTED; };
 
-void Domain::Push(Patch* p) { GetMesh()->Push(p); }
-void Domain::Pop(Patch* p) { return GetMesh()->Pop(p); }
+void Domain::Push(Patch* p) {
+    GetMesh()->SetBlock(p->GetBlock());
+    AttributeGroup::Push(p);
+}
+void Domain::Pop(Patch* p) {
+    p->SetBlock(GetMesh()->GetBlock());
+    AttributeGroup::Pop(p);
+}
 
 void Domain::SetUp() {
+    SPObject::SetUp();
     GetMesh()->SetUp();
-    OnSetUp(this);
 }
 void Domain::TearDown() {
     GetMesh()->TearDown();
-    OnTearDown(this);
+    SPObject::TearDown();
 }
 void Domain::Initialize() {
     GetMesh()->Initialize();
-    OnFinalize(this);
+    SPObject::Initialize();
 }
 void Domain::Finalize() {
     GetMesh()->Finalize();
-    OnInitialize(this);
+    SPObject::Finalize();
 }
 
 void Domain::InitialCondition(Real time_now) {

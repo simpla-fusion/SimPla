@@ -100,11 +100,11 @@ class SPObject {
     virtual void TearDown();    //!< repeat invoke,
     virtual void Finalize();    //!< repeat invoke,
 
-    design_pattern::Signal<void()> OnInitialize;
-    design_pattern::Signal<void()> OnSetUp;
-    design_pattern::Signal<void()> OnTearDown;
-    design_pattern::Signal<void()> OnFinalize;
-    design_pattern::Signal<void()> OnChanged;
+    design_pattern::Signal<void(SPObject*)> OnInitialize;
+    design_pattern::Signal<void(SPObject*)> OnSetUp;
+    design_pattern::Signal<void(SPObject*)> OnTearDown;
+    design_pattern::Signal<void(SPObject*)> OnFinalize;
+    design_pattern::Signal<void(SPObject*)> OnChanged;
 
    private:
     struct pimpl_s;

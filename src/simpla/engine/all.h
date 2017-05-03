@@ -7,7 +7,6 @@
 
 #include "Atlas.h"
 #include "Attribute.h"
-#include "Chart.h"
 #include "Context.h"
 #include "Domain.h"
 #include "MeshBase.h"

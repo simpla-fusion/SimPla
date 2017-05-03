@@ -95,7 +95,7 @@ class Context : public data::Serializable, public data::EnableCreateFromDataTabl
         return SetDomain(k, std::dynamic_pointer_cast<Domain>(std::make_shared<U>(GetModel().GetObject(k))));
     }
     std::shared_ptr<Domain> GetDomain(std::string const &k) const;
-    std::map<std::string, std::shared_ptr<AttributeDesc>> const &GetRegisiteredAttribute() const;
+    std::map<std::string, std::shared_ptr<AttributeDesc>> const &GetRegisteredAttribute() const;
 
    private:
     struct pimpl_s;

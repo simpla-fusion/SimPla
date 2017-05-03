@@ -26,7 +26,7 @@ struct SPObject::pimpl_s {
 static boost::hash<boost::uuids::uuid> g_obj_hasher;
 static boost::uuids::random_generator g_uuid_generator;
 SPObject::SPObject() : m_pimpl_(new pimpl_s) { m_pimpl_->m_id_ = g_obj_hasher(g_uuid_generator()); }
-SPObject::~SPObject() { OnFinalize(); }
+SPObject::~SPObject() { OnFinalize(this); }
 
 void SPObject::SetGUID(id_type id) { m_pimpl_->m_id_ = id; }
 
@@ -46,17 +46,22 @@ void SPObject::Initialize() {
     Click();
     Tag();
 }
-void SPObject::Finalize() { ResetTag(); }
+void SPObject::Finalize() {
+    TearDown();
+    OnFinalize(this);
+    ResetTag();
+}
 void SPObject::TearDown() {
+    OnTearDown(this);
     Click();
     Tag();
 }
 void SPObject::SetUp() {
     if (GetTagCount() == 0) {
         Initialize();
-        OnInitialize();
+        OnInitialize(this);
     }
-    OnSetUp();
+    OnSetUp(this);
 
     Tag();
 }

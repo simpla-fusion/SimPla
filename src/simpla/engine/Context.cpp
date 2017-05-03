@@ -4,7 +4,6 @@
 #include "Context.h"
 #include <simpla/data/all.h>
 #include <simpla/geometry/GeoAlgorithm.h>
-#include "Chart.h"
 #include "Domain.h"
 #include "MeshBase.h"
 namespace simpla {
@@ -56,9 +55,9 @@ void Context::SetUp() {
     dx[2] = (std::get<1>(x_box)[2] - std::get<0>(x_box)[2]) / (std::get<1>(i_box)[2] - std::get<0>(i_box)[2]);
 
     for (auto &item : m_pimpl_->m_domains_) {
-        item.second->GetMesh()->GetChart()->SetOrigin(std::get<0>(x_box));
-        item.second->GetMesh()->GetChart()->SetDx(dx);
-        item.second->GetMesh()->RegisterDescription(&m_pimpl_->m_global_attributes_);
+        //        item.second->GetChart()->SetOrigin(std::get<0>(x_box));
+        //        item.second->GetChart()->SetDx(dx);
+        item.second->RegisterDescription(&m_pimpl_->m_global_attributes_);
     }
 };
 void Context::InitializeCondition(Patch *p, Real time_now) {
@@ -88,7 +87,7 @@ Model &Context::GetModel() const { return m_pimpl_->m_model_; }
 
 Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
 
-std::map<std::string, std::shared_ptr<AttributeDesc>> const &Context::GetRegisiteredAttribute() const {
+std::map<std::string, std::shared_ptr<AttributeDesc>> const &Context::GetRegisteredAttribute() const {
     return m_pimpl_->m_global_attributes_;
 }
 

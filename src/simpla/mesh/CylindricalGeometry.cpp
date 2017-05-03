@@ -4,7 +4,7 @@
 #include "CylindricalGeometry.h"
 namespace simpla {
 namespace mesh {
-void Mesh<CylindricalGeometry, SMesh>::InitializeData(Real time_now) {
+void CylindricalSMesh::InitializeData(Real time_now) {
     SMesh::InitializeData(time_now);
 
     auto &m_vertics_ = GetVertics();
@@ -42,17 +42,17 @@ void Mesh<CylindricalGeometry, SMesh>::InitializeData(Real time_now) {
     index_type je = upper[1];
     index_type kb = lower[2];
     index_type ke = upper[2];
-    point_type m_dx_ = GetChart()->GetDx();
-    point_type x0 = GetChart()->GetOrigin();
+    //    point_type m_dx_ = GetChart()->GetDx();
+    //    point_type x0 = GetChart()->GetOrigin();
 
-    int Phi_axe = std::dynamic_pointer_cast<CylindricalGeometry>(GetChart())->GetPhiAxe();
+    int Phi_axe = 2;  // std::dynamic_pointer_cast<CylindricalGeometry>(GetChart())->GetPhiAxe();
     int R_axe = (Phi_axe + 1) % 3;
     int Z_axe = (Phi_axe + 2) % 3;
     for (index_type i = ib; i < ie; ++i)
         for (index_type j = jb; j < je; ++j)
             for (index_type k = kb; k < ke; ++k) {
-                point_type x =
-                    GetChart()->inv_map(point_type{static_cast<Real>(i), static_cast<Real>(j), static_cast<Real>(k)});
+                point_type
+                    x;  //= inv_map(point_type{static_cast<Real>(i), static_cast<Real>(j), static_cast<Real>(k)});
                 m_vertics_[0](i, j, k) = x[R_axe] * std::cos(x[Phi_axe]);
                 m_vertics_[1](i, j, k) = x[R_axe] * std::sin(x[Phi_axe]);
                 m_vertics_[2](i, j, k) = x[Z_axe];
@@ -68,8 +68,8 @@ void Mesh<CylindricalGeometry, SMesh>::InitializeData(Real time_now) {
     for (index_type i = ib; i < ie; ++i)
         for (index_type j = jb; j < je; ++j)
             for (index_type k = kb; k < ke; ++k) {
-                point_type x =
-                    GetChart()->inv_map(point_type{static_cast<Real>(i), static_cast<Real>(j), static_cast<Real>(k)});
+                point_type
+                    x;  // = inv_map(point_type{static_cast<Real>(i), static_cast<Real>(j), static_cast<Real>(k)});
 
                 Real dr = m_dx_[R_axe];
                 Real dl0 = m_dx_[Phi_axe] * x[R_axe];
