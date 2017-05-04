@@ -17,7 +17,7 @@ struct Domain::pimpl_s {
     };
 
     std::map<std::string, std::shared_ptr<geometry::GeoObject>> m_geo_object_;
-    std::map<std::string, range_group> m_range_;
+    std::map<std::string, std::shared_ptr<range_group>> m_range_;
 };
 Domain::Domain(std::shared_ptr<geometry::GeoObject> const& g) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_geo_object_[""] = g;
@@ -59,11 +59,11 @@ std::shared_ptr<geometry::GeoObject> Domain::GetGeoObject(std::string const& k) 
 
 Range<EntityId> const* Domain::GetBody(std::string const& k) const {
     auto it = m_pimpl_->m_range_.find(k);
-    return (it == m_pimpl_->m_range_.end()) ? nullptr : it->second.body;
+    return (it == m_pimpl_->m_range_.end() || it->second == nullptr) ? nullptr : it->second->body;
 };
 Range<EntityId> const* Domain::GetBoundary(std::string const& k) const {
     auto it = m_pimpl_->m_range_.find(k);
-    return (it == m_pimpl_->m_range_.end()) ? nullptr : it->second.boundary;
+    return (it == m_pimpl_->m_range_.end() || it->second == nullptr) ? nullptr : it->second->boundary;
 }
 
 void Domain::Push(Patch* p) {
@@ -80,10 +80,9 @@ void Domain::InitialCondition(Real time_now) {
 
     GetMesh()->InitializeData(time_now);
     for (auto const& item : m_pimpl_->m_geo_object_) {
-        if (item.second->CheckOverlap(GetMesh()->GetBox())) {
-            GetMesh()->InitializeRange(item.second, m_pimpl_->m_range_[item.first].body,
-                                       m_pimpl_->m_range_[item.first].boundary);
-        }
+        CHECK(item.first);
+        auto it = m_pimpl_->m_range_.emplace(item.first, std::make_shared<pimpl_s::range_group>());
+        GetMesh()->InitializeRange(item.second, it.first->second->body, it.first->second->boundary);
     }
     OnInitialCondition(this, time_now);
 }

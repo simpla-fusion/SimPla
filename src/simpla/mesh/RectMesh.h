@@ -16,8 +16,7 @@ class RectMesh : public StructuredMesh {
    public:
     static std::string ClassName() { return std::string("RectMesh"); }
 
-    template <typename... Args>
-    explicit RectMesh(Args &&... args) : engine::MeshBase(std::forward<Args>(args)...){};
+    explicit RectMesh(engine::Domain *d) : StructuredMesh(d){};
     ~RectMesh() override = default;
 
     SP_DEFAULT_CONSTRUCT(RectMesh)

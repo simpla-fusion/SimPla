@@ -629,24 +629,22 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
     SP_OBJECT_HEAD(ContinueRange<EntityId>, RangeBase<EntityId>)
 
    public:
-    ContinueRange(index_type const* b = nullptr, index_type const* e = nullptr, int IFORM = VERTEX, int DOF = 1)
+    ContinueRange(index_type const* b = nullptr, index_type const* e = nullptr, int w = 0)
         : m_min_{b == nullptr ? 0 : b[0], b == nullptr ? 0 : b[1], b == nullptr ? 0 : b[2]},
           m_max_{e == nullptr ? 1 : e[0], e == nullptr ? 1 : e[1], e == nullptr ? 1 : e[2]},
-          m_iform_(IFORM),
-          m_dof_(DOF) {
+          m_w_(w) {
         m_grain_size_ = 1;
         for (int i = 0; i < ndims; ++i) {
             if (m_max_[i] - m_min_[i] <= m_grain_size_[i]) { m_grain_size_[i] = m_max_[i] - m_min_[i]; }
         }
     }
-    ContinueRange(index_tuple const& b, index_tuple const& e, int IFORM = VERTEX, int DOF = 1)
-        : ContinueRange(&b[0], &(e[0]), IFORM, DOF) {}
+    ContinueRange(index_tuple const& b, index_tuple const& e, int w = 0) : ContinueRange(&b[0], &(e[0]), w) {}
 
-    ContinueRange(std::tuple<index_tuple, index_tuple> const& b, int IFORM = VERTEX, int DOF = 1)
-        : ContinueRange(std::get<0>(b), std::get<1>(b), IFORM, DOF) {}
+    ContinueRange(std::tuple<index_tuple, index_tuple> const& b, int w = 0)
+        : ContinueRange(std::get<0>(b), std::get<1>(b), w) {}
 
     ContinueRange(this_type const& r)
-        : m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_), m_iform_(r.m_iform_), m_dof_(r.m_dof_) {}
+        : m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_), m_w_(r.m_w_) {}
 
     std::shared_ptr<base_type> split(concept::tags::split const& proportion) override {
         auto res = std::make_shared<this_type>(*this);
@@ -670,22 +668,18 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
     ~ContinueRange() {}
 
     void swap(this_type& other) {
-        std::swap(m_iform_, other.m_iform_);
-        std::swap(m_dof_, other.m_dof_);
+        std::swap(m_w_, other.m_w_);
         std::swap(m_min_, other.m_min_);
         std::swap(m_max_, other.m_max_);
         std::swap(m_grain_size_, other.m_grain_size_);
     }
 
-    int entity_type() const { return m_iform_; }
-
     index_box_type index_box() const { return std::make_tuple(m_min_, m_max_); }
 
-    bool empty() const override { return m_min_[0] == m_max_[0] || m_min_[1] == m_max_[1] || m_min_[2] == m_max_[2]; }
+    bool empty() const override { return size() == 0; }
 
     size_t size() const override {
-        return static_cast<size_t>(((m_iform_ == VERTEX || m_iform_ == VOLUME) ? 1 : 3) * (m_max_[0] - m_min_[0]) *
-                                   (m_max_[1] - m_min_[1]) * (m_max_[2] - m_min_[2]));
+        return static_cast<size_t>((m_max_[0] - m_min_[0]) * (m_max_[1] - m_min_[1]) * (m_max_[2] - m_min_[2]));
     }
 
     // access
@@ -701,50 +695,24 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
 
     template <typename TFun>
     void foreach (TFun const& body) const {
-        typedef EntityIdCoder M;
-        ContinueRange const& r = *this;
-        index_type ib = r.m_min_[0];
-        index_type ie = r.m_max_[0];
-        index_type ne = M::m_iform_to_num_of_ele_in_cell_[r.m_iform_];
+        index_type ib = this->m_min_[0];
+        index_type ie = this->m_max_[0];
 #pragma omp parallel for
         for (index_type i = ib; i <= ie; ++i) {
-            for (index_type j = r.m_min_[1], je = r.m_max_[1]; j <= je; ++j)
-                for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k <= ke; ++k)
-                    for (index_type n = 0; n < ne; ++n) {
-                        EntityId s;
-                        s.x = static_cast<int16_t>(i);
-                        s.y = static_cast<int16_t>(j);
-                        s.z = static_cast<int16_t>(k);
-                        s.w = static_cast<int16_t>(M::m_sub_index_to_id_[r.m_iform_][n]);
-                        body(s);
-
-                        // body(M::pack_index(i, j, k,M::m_sub_index_to_id_[r.m_iform_][n]));
-                    }
+            for (index_type j = this->m_min_[1], je = this->m_max_[1]; j <= je; ++j)
+                for (index_type k = this->m_min_[2], ke = this->m_max_[2]; k <= ke; ++k) {
+                    EntityId s;
+                    s.y = static_cast<int16_t>(j);
+                    s.z = static_cast<int16_t>(k);
+                    s.x = static_cast<int16_t>(i);
+                    s.w = static_cast<int16_t>(m_w_);
+                    body(s);
+                }
         }
     }
 
-    //    template <typename TFun>
-    //    void foreach (
-    //        TFun const& body,
-    //        ENABLE_IF((simpla::concept::is_callable<TFun(index_type, index_type, index_type, index_type)>::value)))
-    //        const {
-    //        typedef EntityIdCoder M;
-    //        ContinueRange const& r = *this;
-    //        index_type ib = r.m_min_[0];
-    //        index_type ie = r.m_max_[0];
-    //        index_type ne = M::m_iform_to_num_of_ele_in_cell_[r.m_iform_];
-    //#pragma omp parallel for
-    //        for (index_type i = ib; i < ie; ++i) {
-    //            for (index_type j = r.m_min_[1], je = r.m_max_[1]; j < je; ++j)
-    //                for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k)
-    //                    for (index_type n = 0; n < ne; ++n) { body(i, j, k, M::m_sub_index_to_id_[r.m_iform_][n]); }
-    //        }
-    //    }
-
    private:
-    int m_iform_ = VERTEX;
-    int m_dof_ = 1;
-
+    int m_w_ = 1;
     index_tuple m_min_, m_max_, m_grain_size_;
 };
 

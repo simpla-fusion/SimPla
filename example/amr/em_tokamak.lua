@@ -6,8 +6,7 @@ Context = {
     Phi = { 0.0, 3.14  },
     Domains =
     {
-        Center = { Type = "EMFluidCylindricalSMesh" },
-        Boundary = { Type = "EMFluidCylindricalSMesh" },
+        Limiter = { Type = "EMFluidCylindricalSMesh" },
         --   Atenna = { Type = "ICRF" ,
         --         WaveNumber={0,0,1},
         --         Frequence=1.9e19,
