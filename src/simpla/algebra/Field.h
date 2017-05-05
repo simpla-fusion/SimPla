@@ -52,7 +52,7 @@ class FieldView : public engine::Attribute {
     typedef Array<value_type, NDIMS> array_type;
     std::vector<array_type> m_data_;
     mesh_type* m_mesh_ = nullptr;
-    Range<EntityId> m_range_;
+    EntityRange m_range_;
 
    public:
     template <typename... Args>

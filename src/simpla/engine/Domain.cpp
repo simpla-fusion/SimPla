@@ -81,7 +81,6 @@ void Domain::InitialCondition(Real time_now) {
     GetMesh()->InitializeData(time_now);
     m_pimpl_->m_range_ = std::make_shared<std::map<std::string, nTuple<EntityRange, 4>>>();
     for (auto const& item : m_pimpl_->m_geo_object_) {
-        CHECK(item.first);
         auto body_it = m_pimpl_->m_range_->emplace(item.first, nTuple<EntityRange, 4>());
         auto boundary_it = m_pimpl_->m_range_->emplace(item.first + ".boundary", nTuple<EntityRange, 4>());
         GetMesh()->InitializeRange(item.second, &(body_it.first->second[0]), &(boundary_it.first->second[0]));
