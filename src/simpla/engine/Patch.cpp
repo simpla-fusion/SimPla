@@ -38,6 +38,8 @@ void Patch::Merge(Patch &other) {
     if (other.m_pimpl_->m_block_ != nullptr) { m_pimpl_->m_block_ = other.m_pimpl_->m_block_; }
     if (m_pimpl_->m_id_ == NULL_ID) { m_pimpl_->m_id_ = other.m_pimpl_->m_id_; }
     m_pimpl_->m_data_.insert(other.m_pimpl_->m_data_.begin(), other.m_pimpl_->m_data_.end());
+    if (other.m_pimpl_->m_range_ != nullptr)
+        m_pimpl_->m_range_->insert(other.m_pimpl_->m_range_->begin(), other.m_pimpl_->m_range_->end());
 }
 
 std::map<id_type, std::shared_ptr<data::DataBlock>> &Patch::GetAllData() { return m_pimpl_->m_data_; };

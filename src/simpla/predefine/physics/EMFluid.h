@@ -56,9 +56,6 @@ class EMFluid : public engine::Domain {
     field_type<FACE> B{this, "name"_ = "B"};
     field_type<EDGE> E{this, "name"_ = "E"};
     field_type<EDGE> J1{this, "name"_ = "J1"};
-    field_type<VERTEX> Z0{this, "name"_ = "Z0"};
-    field_type<VERTEX> Z1{this, "name"_ = "Z1"};
-    field_type<VERTEX> Z2{this, "name"_ = "Z2"};
 
     struct fluid_s {
         Real mass;
@@ -159,9 +156,9 @@ void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
 template <typename TM>
 void EMFluid<TM>::Advance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
-    B = B - curl(E) * (dt * 0.5);
+    //    B = B - curl(E) * (dt * 0.5);
     //    SetPhysicalBoundaryConditionB(time_now);
-    E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
+    //    E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
     //    //    SetPhysicalBoundaryConditionE(time_now);
     //    if (m_fluid_sp_.size() > 0) {
     //        field_type<VERTEX, 3> Q{this};
@@ -221,7 +218,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     //        Ev += dE;
     //        E += map_to<EDGE>(Ev) - E;
     //    }
-    B -= curl(E) * (dt * 0.5);
+    //    B -= curl(E) * (dt * 0.5);
     //    SetPhysicalBoundaryConditionB(time_now);
 }
 

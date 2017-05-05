@@ -61,8 +61,9 @@ class RevolveZ : public GeoObject {
 
    public:
     RevolveZ(std::shared_ptr<Polygon<2>> const &obj, int phi_axis, Real phi0, Real phi1, point_type origin = {0, 0, 0})
-        : m_origin_(origin), base_obj(obj), m_axis_(phi_axis), m_angle_min_(phi0), m_angle_max_(phi1) {}
-    RevolveZ(this_type const &other) : base_obj(other.base_obj), m_origin_(other.m_origin_), m_axis_(other.m_axis_) {}
+        : m_origin_(origin), base_obj(obj), m_phi_axe_(phi_axis), m_angle_min_(phi0), m_angle_max_(phi1) {}
+    RevolveZ(this_type const &other)
+        : base_obj(other.base_obj), m_origin_(other.m_origin_), m_phi_axe_(other.m_phi_axe_) {}
     ~RevolveZ() override = default;
 
     DECLARE_REGISTER_NAME("RevolveZ");
@@ -70,7 +71,7 @@ class RevolveZ : public GeoObject {
     std::shared_ptr<data::DataTable> Serialize() const override {
         auto res = data::Serializable::Serialize();
         res->template SetValue<std::string>("Type", "RevolveZ");
-        res->template SetValue("Axis", m_axis_);
+        res->template SetValue("Axis", m_phi_axe_);
         res->template SetValue("Origin", m_origin_);
         res->template SetValue("Phi", nTuple<Real, 2>{m_angle_min_, m_angle_max_});
 
@@ -83,31 +84,32 @@ class RevolveZ : public GeoObject {
         nTuple<Real, 2> lo, hi;
         std::tie(lo, hi) = base_obj->GetBoundBox();
         box_type res;
-        std::get<0>(res)[m_axis_] = m_angle_min_;
-        std::get<1>(res)[m_axis_] = m_angle_max_;
+        std::get<0>(res)[m_phi_axe_] = m_angle_min_;
+        std::get<1>(res)[m_phi_axe_] = m_angle_max_;
 
-        std::get<0>(res)[(m_axis_ + 1) % 3] = lo[0];
-        std::get<1>(res)[(m_axis_ + 1) % 3] = hi[0];
+        std::get<0>(res)[(m_phi_axe_ + 1) % 3] = lo[0];
+        std::get<1>(res)[(m_phi_axe_ + 1) % 3] = hi[0];
 
-        std::get<0>(res)[(m_axis_ + 2) % 3] = lo[1];
-        std::get<1>(res)[(m_axis_ + 2) % 3] = hi[1];
+        std::get<0>(res)[(m_phi_axe_ + 2) % 3] = lo[1];
+        std::get<1>(res)[(m_phi_axe_ + 2) % 3] = hi[1];
 
         return res;
     };
 
     bool CheckInside(point_type const &x) const override {
-        return base_obj->check_inside(x[(m_axis_ + 1) % 2], x[(m_axis_ + 2) % 2]) &&
-               ((x[m_axis_] >= m_angle_min_) && (x[m_axis_] < m_angle_max_));
+        return base_obj->check_inside(x[(m_phi_axe_ + 1) % 3], x[(m_phi_axe_ + 2) % 3]);
+
+        //        &&((x[m_phi_axe_] >= m_angle_min_) && (x[m_phi_axe_] < m_angle_max_));
     };
 
     nTuple<Real, 2> MapTo2d(point_type const &x) const {
-        return nTuple<Real, 2>{x[(m_axis_ + 1) % 3] - m_origin_[(m_axis_ + 1) % 3],
-                               x[(m_axis_ + 2) % 3] - m_origin_[(m_axis_ + 2) % 3]};
+        return nTuple<Real, 2>{x[(m_phi_axe_ + 1) % 3] - m_origin_[(m_phi_axe_ + 1) % 3],
+                               x[(m_phi_axe_ + 2) % 3] - m_origin_[(m_phi_axe_ + 2) % 3]};
     };
 
     point_type m_origin_{0, 0, 0};
     Real m_angle_min_, m_angle_max_;
-    int m_axis_ = 2;
+    int m_phi_axe_ = 2;
 
     std::shared_ptr<Polygon<2>> base_obj;
 };

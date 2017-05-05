@@ -27,11 +27,10 @@ void StructuredMesh::InitializeRange(std::shared_ptr<geometry::GeoObject> const&
         return;
     }
 
-    Field<this_type, int, VERTEX> vertex_tags{this};
-
     vertex_tags.Clear();
+
     vertex_tags[0].Foreach([&](index_tuple const& idx, int& v) {
-        if (!g->CheckInside(point(idx[0], idx[0], idx[0]))) { v = 1; }
+        if (g->CheckInside(point(idx[0], idx[1], idx[2])) == 0) { v = 1; }
     });
     /**
     *\verbatim
@@ -197,7 +196,6 @@ void StructuredMesh::InitializeRange(std::shared_ptr<geometry::GeoObject> const&
                     VOLUME_boundary->Insert(s + t7 | s0);
                 }
             }
-
     range[VERTEX_BODY].append(VERTEX_body);
     range[EDGE_BODY].append(EDGE_body);
     range[FACE_BODY].append(FACE_body);

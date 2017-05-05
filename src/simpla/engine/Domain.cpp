@@ -79,14 +79,14 @@ void Domain::Push(Patch* p) {
     GetMesh()->SetBlock(p->GetBlock());
     m_pimpl_->m_range_ = p->PopRange();
 
-    for (auto& item : GetAll()) {
+    for (auto& item : GetAllAttributes()) {
         item.second->Push(p->Pop(item.second->GetID()), GetBodyRange(item.second->GetIFORM()));
     }
 }
 void Domain::Pop(Patch* p) {
     p->SetBlock(GetMesh()->GetBlock());
     p->PushRange(m_pimpl_->m_range_);
-    for (auto& item : GetAll()) { p->Push(item.second->GetID(), item.second->Pop()); }
+    for (auto& item : GetAllAttributes()) { p->Push(item.second->GetID(), item.second->Pop()); }
 }
 
 void Domain::InitialCondition(Real time_now) {
@@ -98,7 +98,6 @@ void Domain::InitialCondition(Real time_now) {
 
     for (auto const& item : m_pimpl_->m_geo_object_) {
         if (item.second == nullptr) { continue; }
-
         EntityRange r[10];
         GetMesh()->InitializeRange(item.second, r);
 
@@ -113,6 +112,7 @@ void Domain::InitialCondition(Real time_now) {
         m_pimpl_->m_range_->emplace(item.first + ".FACE_PERP_BOUNDARY", r[MeshBase::FACE_PERP_BOUNDARY]);
         m_pimpl_->m_range_->emplace(item.first + ".VOLUME_BOUNDARY", r[MeshBase::VOLUME_BOUNDARY]);
     }
+
     OnInitialCondition(this, time_now);
 }
 void Domain::BoundaryCondition(Real time_now, Real dt) { OnBoundaryCondition(this, time_now, dt); }

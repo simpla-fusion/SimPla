@@ -5,11 +5,14 @@
 #ifndef SIMPLA_STRUCTUREDMESH_H
 #define SIMPLA_STRUCTUREDMESH_H
 
-#include <simpla/engine/MeshBase.h>
+#include <simpla/algebra/all.h>
+#include <simpla/data/all.h>
 
+#include <simpla/engine/MeshBase.h>
 namespace simpla {
 namespace mesh {
-
+using namespace simpla::data;
+using namespace simpla::algebra;
 class StructuredMesh : public engine::MeshBase {
     SP_OBJECT_HEAD(StructuredMesh, engine::MeshBase)
    public:
@@ -100,6 +103,8 @@ class StructuredMesh : public engine::MeshBase {
 
     point_type m_i_dx_{1, 1, 1};
     point_type m_i_x0_{0, 0, 0};
+
+    Field<StructuredMesh, int, VERTEX> vertex_tags{this, "name"_ = "tags", "INPUT"_};
 };
 }  // namespace mesh {
 }  // namespace simpla {

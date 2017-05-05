@@ -477,7 +477,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         }
     }
     // integrator->printClassData(std::cout);
-    vardb->printClassData(std::cout);
+    //    vardb->printClassData(std::cout);
 }
 void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchFromSAMRAI(SAMRAI::hier::Patch &patch, engine::Patch *p) {
     p->SetBlock(std::make_shared<engine::MeshBlock>(
@@ -542,13 +542,11 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setupLoadBalancer(SAMRAI::algs::Hyper
 void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::Patch &patch, double data_time,
                                                                  bool initial_time) {
     if (initial_time) {
-        //        auto p = atlas.PopPatch(static_cast<id_type>(patch.getLocalId().getValue()));
-        engine::Patch p;
-        ConvertPatchFromSAMRAI(patch, &p);
-        m_ctx_->InitializeCondition(&p, data_time);
-        //        p =m_ctx_->Pop();
+        auto p = m_ctx_->GetAtlas().PopPatch(static_cast<id_type>(patch.getLocalId().getValue()));
+        ConvertPatchFromSAMRAI(patch, p.get());
+        m_ctx_->InitializeCondition(p.get(), data_time);
         //        ConvertPatchToSAMRAI(patch, p.get());
-        //        atlas.Push(p);
+        m_ctx_->GetAtlas().PushPatch(p);
     }
 
     if (d_use_nonuniform_workload) {
@@ -600,13 +598,10 @@ void SAMRAIHyperbolicPatchStrategyAdapter::computeFluxesOnPatch(SAMRAI::hier::Pa
 
 void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, double time,
                                                                          double dt, bool at_syncronization) {
-    //    auto p = atlas.PopPatch(static_cast<id_type>(patch.getLocalId().getValue()));
-    auto p = std::make_shared<engine::Patch>();
+    auto p = m_ctx_->GetAtlas().PopPatch(static_cast<id_type>(patch.getLocalId().getValue()));
     ConvertPatchFromSAMRAI(patch, p.get());
     m_ctx_->Advance(p.get(), time, dt);
-    //    p =m_ctx_->Pop();
-    //    ConvertPatchToSAMRAI(patch, p.get());
-    //    atlas.Push(p);
+    m_ctx_->GetAtlas().PushPatch(p);
 }
 
 /**************************************************************************

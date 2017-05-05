@@ -749,6 +749,8 @@ struct UnorderedRange<EntityId> : public RangeBase<EntityId> {
     bool is_divisible() const override { return false; }
     template <typename TFun>
     void foreach (TFun const& body, ENABLE_IF((simpla::concept::is_callable<TFun(EntityId)>::value))) const {
+        CHECK(m_ids_.size());
+
         for (auto s : m_ids_) { body(s); }
     }
 };

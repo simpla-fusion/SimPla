@@ -93,7 +93,7 @@ class AttributeGroup {
 
     template <typename T>
     T const &GetAttribute(std::string const &k) const;
-    std::map<std::string, Attribute *> &GetAll();
+    std::map<std::string, Attribute *> &GetAllAttributes();
     std::map<std::string, Attribute *> const &GetAll() const;
 
    private:

@@ -70,14 +70,12 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
         d->OnInitialCondition.Connect([&](Domain* self, Real time_now) {
 
             auto& ne = self->GetAttribute<Field<mesh_type, Real, VERTEX>>("ne");
+            ne.Clear();
+            //            auto ne1 = ne[self->GetBodyRange(VERTEX, "Center")];
+            ne = [&](point_type const& x) -> Real { return geqdsk.profile("ne", x[0], x[1]); };
 
-            ne[self->GetBodyRange(VERTEX, "Center")] = [&](point_type const& x) -> Real {
-                return geqdsk.profile("ne", x[0], x[1]);
-            };
-
-            auto& B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
-
-            B = [&](point_type const& x) -> Vec3 { return geqdsk.B(x); };
+            //            auto& B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
+            //            B = [&](point_type const& x) -> Vec3 { return geqdsk.B(x); };
 
         });
     }

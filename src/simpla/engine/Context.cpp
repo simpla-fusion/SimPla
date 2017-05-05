@@ -160,7 +160,7 @@ std::shared_ptr<Domain> Context::GetDomain(std::string const &k) const {
 //        m_pimpl_->m_domains_.emplace(key, std::make_shared<Domain>(t.GetTable("Domain"), m));
 //
 //    });
-//    for (auto const &item : GetModel().GetAll()) {
+//    for (auto const &item : GetModel().GetAllAttributes()) {
 //        auto worker_res = m_pimpl_->m_domains_.emplace(item.first, nullptr);
 //        if (worker_res.first->second == nullptr) {
 //            worker_res.first->second = std::make_shared<Domain>(workers_t->GetTable(item.first), nullptr,
@@ -177,7 +177,7 @@ std::shared_ptr<Domain> Context::GetDomain(std::string const &k) const {
 
 //    if (level >= GetAtlas().GetNumOfLevels()) { return; }
 //
-//    for (auto const &g_item : GetModel().GetAll()) {
+//    for (auto const &g_item : GetModel().GetAllAttributes()) {
 //        auto w = m_pimpl_->m_workers_.find(g_item.first);
 //        if (w == m_pimpl_->m_workers_.end()) { continue; }
 //        for (auto const &mblk : GetAtlas().Level(level)) {

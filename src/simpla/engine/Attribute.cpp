@@ -64,7 +64,7 @@ void AttributeGroup::DeregisterFrom(AttributeGroup *other) {
 
 void AttributeGroup::Attach(Attribute *p) { m_pimpl_->m_attributes_.emplace(p->GetName(), p); }
 void AttributeGroup::Detach(Attribute *p) { m_pimpl_->m_attributes_.erase(p->GetName()); }
-std::map<std::string, Attribute *> &AttributeGroup::GetAll() { return m_pimpl_->m_attributes_; };
+std::map<std::string, Attribute *> &AttributeGroup::GetAllAttributes() { return m_pimpl_->m_attributes_; };
 std::map<std::string, Attribute *> const &AttributeGroup::GetAll() const { return m_pimpl_->m_attributes_; };
 Attribute *AttributeGroup::Get(std::string const &k) {
     auto it = m_pimpl_->m_attributes_.find(k);

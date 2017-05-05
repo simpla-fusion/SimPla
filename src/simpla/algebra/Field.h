@@ -73,7 +73,9 @@ class FieldView : public engine::Attribute {
         : engine::Attribute(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(other.m_range_) {}
 
     FieldView(this_type const& other, EntityRange const& r)
-        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(r) {}
+        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(r) {
+        CHECK(m_range_.size());
+    }
 
     ~FieldView() override = default;
 
@@ -104,6 +106,7 @@ class FieldView : public engine::Attribute {
                 }
             }
         }
+        Tag();
     }
 
     void Clear() {
@@ -176,7 +179,7 @@ class FieldView : public engine::Attribute {
         if (!m_range_.isNull()) {
             for (int i = 0; i < DOF; ++i) {
                 m_range_.foreach ([&](EntityId s) {
-                    s.w |= static_cast<int16_t>(i << 3);
+                    s.w = s.w | static_cast<int16_t>(i << 3);
                     at(s) = calculus_policy::getValue(*m_mesh_, other, s);
                 });
             }
