@@ -83,6 +83,7 @@ class MeshBase : public data::Serializable, public data::EnableCreateFromDataTab
 
     virtual void InitializeRange(std::shared_ptr<geometry::GeoObject> const &g, EntityRange *body){};
 
+    virtual index_box_type GetIndexBox(int tag) const;
     virtual box_type GetBox() const { return box_type{{0, 0, 0}, {1, 1, 1}}; }
 
    protected:

@@ -40,13 +40,14 @@ class Domain : public SPObject,
 
     void SetGeoObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &g);
     std::shared_ptr<geometry::GeoObject> GetGeoObject(std::string const &k = "") const;
-    EntityRange const *GetRange(std::string const &k = "") const;
-
-    EntityRange const *GetBody(std::string const &k = "") const;
-    EntityRange const *GetBoundary(std::string const &k = "") const;
+    EntityRange GetRange(std::string const &k = "") const;
+    EntityRange GetBodyRange(int IFORM = VERTEX, std::string const &k = "") const;
+    EntityRange GetBoundaryRange(int IFORM = VERTEX, std::string const &k = "", bool is_parallel = true) const;
+    EntityRange GetParallelBoundaryRange(int IFORM = VERTEX, std::string const &k = "") const;
+    EntityRange GetPerpendicularBoundaryRange(int IFORM = VERTEX, std::string const &k = "") const;
 
     virtual void Push(Patch *);
-    void Pop(Patch *) override;
+    virtual void Pop(Patch *);
 
     void Initialize() override;
     void Finalize() override;

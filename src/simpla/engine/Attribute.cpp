@@ -61,15 +61,11 @@ void AttributeGroup::RegisterAt(AttributeGroup *other) {
 void AttributeGroup::DeregisterFrom(AttributeGroup *other) {
     for (auto &item : m_pimpl_->m_attributes_) { item.second->DeregisterFrom(other); }
 };
-void AttributeGroup::Push(Patch *p, EntityRange const *r) {
-    for (auto &item : m_pimpl_->m_attributes_) { item.second->Push(p->Pop(item.second->GetID()), r); }
-}
-void AttributeGroup::Pop(Patch *p) {
-    for (auto &item : m_pimpl_->m_attributes_) { p->Push(item.second->GetID(), item.second->Pop()); }
-}
+
 void AttributeGroup::Attach(Attribute *p) { m_pimpl_->m_attributes_.emplace(p->GetName(), p); }
 void AttributeGroup::Detach(Attribute *p) { m_pimpl_->m_attributes_.erase(p->GetName()); }
-
+std::map<std::string, Attribute *> &AttributeGroup::GetAll() { return m_pimpl_->m_attributes_; };
+std::map<std::string, Attribute *> const &AttributeGroup::GetAll() const { return m_pimpl_->m_attributes_; };
 Attribute *AttributeGroup::Get(std::string const &k) {
     auto it = m_pimpl_->m_attributes_.find(k);
     Attribute *res = nullptr;
@@ -129,8 +125,8 @@ void Attribute::DeregisterFrom(AttributeGroup *attr_b) {
     if (m_pimpl_->m_bundle_.erase(attr_b) > 0) { attr_b->Detach(this); };
 }
 
-void Attribute::Push(std::shared_ptr<data::DataBlock> d, EntityRange const *r) {}
-std::shared_ptr<data::DataBlock> Attribute::Pop() {return nullptr;}
+void Attribute::Push(std::shared_ptr<data::DataBlock> d, EntityRange const &r) {}
+std::shared_ptr<data::DataBlock> Attribute::Pop() { return nullptr; }
 
 Domain *Attribute::GetDomain() const { return m_pimpl_->m_domain_; }
 bool Attribute::isNull() const { return true; }

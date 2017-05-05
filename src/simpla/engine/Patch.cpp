@@ -15,7 +15,7 @@ struct Patch::pimpl_s {
     std::shared_ptr<Chart> m_chart_ = nullptr;
     std::shared_ptr<MeshBlock> m_block_ = nullptr;
     std::map<id_type, std::shared_ptr<data::DataBlock>> m_data_;
-    std::shared_ptr<std::map<std::string, nTuple<EntityRange, 4>>> m_range_;
+    std::shared_ptr<std::map<std::string, EntityRange>> m_range_;
     static boost::uuids::random_generator m_gen_;
     static boost::hash<boost::uuids::uuid> m_hasher_;
 };
@@ -53,29 +53,21 @@ std::shared_ptr<data::DataBlock> Patch::Pop(id_type const &id) const {
     if (it != m_pimpl_->m_data_.end()) { res = it->second; }
     return res;
 }
-EntityRange const *Patch::GetRange(const std::string &g) const {
-    EntityRange const *res = nullptr;
+EntityRange Patch::GetRange(const std::string &g) const {
     if (m_pimpl_->m_range_ != nullptr) {
         auto it = m_pimpl_->m_range_->find(g);
-        if (it != m_pimpl_->m_range_->end()) { res = &(it->second[0]); }
+        if (it != m_pimpl_->m_range_->end()) { return it->second; }
     }
-    return res;
+    return EntityRange{};
 }
 
-void Patch::SetRange(EntityRange const *r, const std::string &g) {
-    if (r != nullptr) {
-        if (m_pimpl_->m_range_ == nullptr) {
-            m_pimpl_->m_range_ = std::make_shared<std::map<std::string, nTuple<EntityRange, 4>>>();
-        }
-
-        for (int i = 0; i < 4; ++i) { (*m_pimpl_->m_range_)[g][i] = r[i]; }
-    };
+void Patch::SetRange(const std::string &g, EntityRange const &r) {
+    if (m_pimpl_->m_range_ == nullptr) { m_pimpl_->m_range_ = std::make_shared<std::map<std::string, EntityRange>>(); }
+    (*m_pimpl_->m_range_)[g] = r;
 }
 
-void Patch::PushRange(std::shared_ptr<std::map<std::string, nTuple<EntityRange, 4>>> const &r) {
-    m_pimpl_->m_range_ = r;
-};
-std::shared_ptr<std::map<std::string, nTuple<EntityRange, 4>>> Patch::PopRange() { return m_pimpl_->m_range_; };
+void Patch::PushRange(std::shared_ptr<std::map<std::string, EntityRange>> const &r) { m_pimpl_->m_range_ = r; };
+std::shared_ptr<std::map<std::string, EntityRange>> Patch::PopRange() { return m_pimpl_->m_range_; };
 
 }  // namespace engine {
 }  // namespace simpla {

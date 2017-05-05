@@ -40,8 +40,38 @@ std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
 }
 void MeshBase::Deserialize(const std::shared_ptr<DataTable> &) {}
 
-
-
+index_box_type MeshBase::GetIndexBox(int tag) const {
+    index_box_type res = GetBlock()->GetIndexBox();
+    switch (tag) {
+        case 0:
+            std::get<1>(res) += 1;
+            break;
+        case 1:
+            std::get<1>(res)[1] += 1;
+            std::get<1>(res)[2] += 1;
+            break;
+        case 2:
+            std::get<1>(res)[0] += 1;
+            std::get<1>(res)[2] += 1;
+            break;
+        case 4:
+            std::get<1>(res)[0] += 1;
+            std::get<1>(res)[1] += 1;
+            break;
+        case 3:
+            std::get<1>(res)[2] += 1;
+            break;
+        case 5:
+            std::get<1>(res)[1] += 1;
+            break;
+        case 6:
+            std::get<1>(res)[0] += 1;
+            break;
+        default:
+            break;
+    }
+    return res;
+}
 
 }  // {namespace engine
 }  // namespace simpla

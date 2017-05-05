@@ -36,11 +36,11 @@ class Patch {
     int Push(id_type const &id, std::shared_ptr<data::DataBlock> const &);
     std::shared_ptr<data::DataBlock> Pop(id_type const &id) const;
 
-    EntityRange const *GetRange(const std::string &g_str = "") const;
-    void SetRange(EntityRange const *, const std::string &g_str = "");
+    EntityRange GetRange(const std::string &g_str) const;
+    void SetRange(const std::string &g_str, EntityRange const &);
 
-    void PushRange(std::shared_ptr<std::map<std::string, nTuple<EntityRange, 4>>> const &r);
-    std::shared_ptr<std::map<std::string, nTuple<EntityRange, 4>>> PopRange();
+    void PushRange(std::shared_ptr<std::map<std::string, EntityRange>> const &r);
+    std::shared_ptr<std::map<std::string, EntityRange>> PopRange();
 
    private:
     struct pimpl_s;

@@ -85,9 +85,6 @@ class AttributeGroup {
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
 
-    virtual void Push(Patch *p, EntityRange const* r = nullptr);
-    virtual void Pop(Patch *p);
-
     Attribute *Get(std::string const &k);
     Attribute const *Get(std::string const &k) const;
 
@@ -96,6 +93,8 @@ class AttributeGroup {
 
     template <typename T>
     T const &GetAttribute(std::string const &k) const;
+    std::map<std::string, Attribute *> &GetAll();
+    std::map<std::string, Attribute *> const &GetAll() const;
 
    private:
     struct pimpl_s;
@@ -142,7 +141,7 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
     void RegisterAt(AttributeGroup *);
     void DeregisterFrom(AttributeGroup *);
 
-    virtual void Push(std::shared_ptr<data::DataBlock> d, EntityRange const *r = nullptr);
+    virtual void Push(std::shared_ptr<data::DataBlock> d, EntityRange const &r = EntityRange{});
     virtual std::shared_ptr<data::DataBlock> Pop();
 
     virtual bool isNull() const;

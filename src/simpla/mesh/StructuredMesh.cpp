@@ -8,40 +8,22 @@ namespace mesh {
 using namespace algebra;
 
 void StructuredMesh::InitializeRange(std::shared_ptr<geometry::GeoObject> const& g, EntityRange* range) {
+    if (g == nullptr) { return; }
     auto overlap = g->CheckOverlap(GetBox());
     if (overlap == 1) { return; }
     if (overlap == -1) {
-        auto idx_box = GetBlock()->GetIndexBox();
-        {
-            index_tuple ib, ie;
-            std::tie(ib, ie) = idx_box;
-            ie += 1;
-            range[VERTEX_BODY].append(std::make_shared<ContinueRange<EntityId>>(ib, ie, 0));
-        }
+        range[VERTEX_BODY].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(0), 0));
 
-        {
-            index_tuple ib, ie;
-            for (int i = 0; i < 3; ++i) {
-                std::tie(ib, ie) = idx_box;
-                ie[(i + 1) % 3] += 1;
-                ie[(i + 2) % 3] += 1;
-                range[EDGE_BODY].append(std::make_shared<ContinueRange<EntityId>>(ib, ie, 0b1 << i));
-            }
-        }
+        range[EDGE_BODY].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(1), 1));
+        range[EDGE_BODY].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(2), 2));
+        range[EDGE_BODY].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(4), 4));
 
-        {
-            index_tuple ib, ie;
-            for (int i = 0; i < 3; ++i) {
-                std::tie(ib, ie) = idx_box;
-                ie[i] += 1;
-                range[FACE_BODY].append(std::make_shared<ContinueRange<EntityId>>(ib, ie, (~(0b1 << i)) & 0b111));
-            }
-        }
-        {
-            index_tuple ib, ie;
-            std::tie(ib, ie) = idx_box;
-            range[VOLUME_BODY].append(std::make_shared<ContinueRange<EntityId>>(ib, ie, 0b111));
-        }
+        range[FACE_BODY].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(3), 3));
+        range[FACE_BODY].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(5), 5));
+        range[FACE_BODY].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(6), 6));
+
+        range[VOLUME_BODY].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(7), 7));
+
         return;
     }
 
