@@ -67,8 +67,8 @@ class MeshBase : public data::Serializable, public data::EnableCreateFromDataTab
     virtual point_type const &GetOrigin() = 0;
     virtual point_type const &GetDx() = 0;
 
-    virtual void InitializeRange(std::shared_ptr<geometry::GeoObject> const &, Range<EntityId> body[4],
-                                 Range<EntityId> boundary[4]){};
+    virtual void InitializeRange(std::shared_ptr<geometry::GeoObject> const &g, EntityRange body[4],
+                                 EntityRange boundary[4]){};
 
     virtual box_type GetBox() const { return box_type{{0, 0, 0}, {1, 1, 1}}; }
 

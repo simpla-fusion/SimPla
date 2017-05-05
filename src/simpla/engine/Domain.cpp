@@ -11,13 +11,8 @@ namespace simpla {
 namespace engine {
 
 struct Domain::pimpl_s {
-    struct range_group {
-        Range<EntityId> body[4];
-        Range<EntityId> boundary[4];
-    };
-
     std::map<std::string, std::shared_ptr<geometry::GeoObject>> m_geo_object_;
-    std::map<std::string, std::shared_ptr<range_group>> m_range_;
+    std::shared_ptr<std::map<std::string, nTuple<EntityRange, 4>>> m_range_;
 };
 Domain::Domain(std::shared_ptr<geometry::GeoObject> const& g) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_geo_object_[""] = g;
@@ -57,21 +52,26 @@ std::shared_ptr<geometry::GeoObject> Domain::GetGeoObject(std::string const& k) 
     return (it == m_pimpl_->m_geo_object_.end()) ? nullptr : it->second;
 }
 
-Range<EntityId> const* Domain::GetBody(std::string const& k) const {
-    auto it = m_pimpl_->m_range_.find(k);
-    return (it == m_pimpl_->m_range_.end() || it->second == nullptr) ? nullptr : it->second->body;
+EntityRange const* Domain::GetRange(std::string const& k) const {
+    EntityRange const* res = nullptr;
+    if (m_pimpl_->m_range_ != nullptr) {
+        auto it = m_pimpl_->m_range_->find(k);
+        res = (it == m_pimpl_->m_range_->end()) ? nullptr : &(it->second[0]);
+    }
+    return res;
 };
-Range<EntityId> const* Domain::GetBoundary(std::string const& k) const {
-    auto it = m_pimpl_->m_range_.find(k);
-    return (it == m_pimpl_->m_range_.end() || it->second == nullptr) ? nullptr : it->second->boundary;
-}
+
+EntityRange const* Domain::GetBody(std::string const& k) const { return GetRange(k); }
+EntityRange const* Domain::GetBoundary(std::string const& k) const { return GetRange(k + ".boundary"); }
 
 void Domain::Push(Patch* p) {
     GetMesh()->SetBlock(p->GetBlock());
-    AttributeGroup::Push(p);
+    m_pimpl_->m_range_ = p->PopRange();
+    AttributeGroup::Push(p, GetBody());
 }
 void Domain::Pop(Patch* p) {
     p->SetBlock(GetMesh()->GetBlock());
+    p->PushRange(m_pimpl_->m_range_);
     AttributeGroup::Pop(p);
 }
 
@@ -79,10 +79,12 @@ void Domain::InitialCondition(Real time_now) {
     if (GetMesh() == nullptr) { return; }
 
     GetMesh()->InitializeData(time_now);
+    m_pimpl_->m_range_ = std::make_shared<std::map<std::string, nTuple<EntityRange, 4>>>();
     for (auto const& item : m_pimpl_->m_geo_object_) {
         CHECK(item.first);
-        auto it = m_pimpl_->m_range_.emplace(item.first, std::make_shared<pimpl_s::range_group>());
-        GetMesh()->InitializeRange(item.second, it.first->second->body, it.first->second->boundary);
+        auto body_it = m_pimpl_->m_range_->emplace(item.first, nTuple<EntityRange, 4>());
+        auto boundary_it = m_pimpl_->m_range_->emplace(item.first + ".boundary", nTuple<EntityRange, 4>());
+        GetMesh()->InitializeRange(item.second, &(body_it.first->second[0]), &(boundary_it.first->second[0]));
     }
     OnInitialCondition(this, time_now);
 }

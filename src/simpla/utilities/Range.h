@@ -224,7 +224,7 @@ struct Range {
         this_type(other).swap(*this);
         return *this;
     }
-    void reset(std::shared_ptr<RangeBase<T>> const& p) { m_next_ = p; }
+    void reset(std::shared_ptr<RangeBase<T>> const& p = nullptr) { m_next_ = p; }
 
     void swap(this_type& other) { std::swap(m_next_, other.m_next_); }
 

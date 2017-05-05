@@ -29,6 +29,8 @@ typedef union {
 } EntityId64;
 typedef EntityId64 EntityId;
 
+typedef Range<EntityId> EntityRange;
+
 /**
  *  @comment similar to MOAB::EntityHandle but using different code ruler and more efficient for FD
  * and SAMR  -- salmon. 2016.5.24

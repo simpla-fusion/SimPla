@@ -40,10 +40,12 @@ class Domain : public SPObject,
 
     void SetGeoObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &g);
     std::shared_ptr<geometry::GeoObject> GetGeoObject(std::string const &k = "") const;
-    Range<EntityId> const *GetBody(std::string const &k = "") const;
-    Range<EntityId> const *GetBoundary(std::string const &k = "") const;
+    EntityRange const *GetRange(std::string const &k = "") const;
 
-    void Push(Patch *) override;
+    EntityRange const *GetBody(std::string const &k = "") const;
+    EntityRange const *GetBoundary(std::string const &k = "") const;
+
+    virtual void Push(Patch *);
     void Pop(Patch *) override;
 
     void Initialize() override;

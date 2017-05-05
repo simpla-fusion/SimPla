@@ -85,7 +85,7 @@ class AttributeGroup {
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
 
-    virtual void Push(Patch *p);
+    virtual void Push(Patch *p, EntityRange const* r = nullptr);
     virtual void Pop(Patch *p);
 
     Attribute *Get(std::string const &k);
@@ -142,8 +142,8 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
     void RegisterAt(AttributeGroup *);
     void DeregisterFrom(AttributeGroup *);
 
-    virtual void Push(std::shared_ptr<data::DataBlock> d){};
-    virtual std::shared_ptr<data::DataBlock> Pop() { return nullptr; }
+    virtual void Push(std::shared_ptr<data::DataBlock> d, EntityRange const *r = nullptr);
+    virtual std::shared_ptr<data::DataBlock> Pop();
 
     virtual bool isNull() const;
     virtual bool empty() const { return isNull(); };

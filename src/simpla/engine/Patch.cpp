@@ -15,8 +15,7 @@ struct Patch::pimpl_s {
     std::shared_ptr<Chart> m_chart_ = nullptr;
     std::shared_ptr<MeshBlock> m_block_ = nullptr;
     std::map<id_type, std::shared_ptr<data::DataBlock>> m_data_;
-    std::map<std::shared_ptr<geometry::GeoObject>, Range<EntityId>> m_ranges_[4];
-
+    std::shared_ptr<std::map<std::string, nTuple<EntityRange, 4>>> m_range_;
     static boost::uuids::random_generator m_gen_;
     static boost::hash<boost::uuids::uuid> m_hasher_;
 };
@@ -54,15 +53,29 @@ std::shared_ptr<data::DataBlock> Patch::Pop(id_type const &id) const {
     if (it != m_pimpl_->m_data_.end()) { res = it->second; }
     return res;
 }
-Range<EntityId> &Patch::GetRange(int IFORM, std::shared_ptr<geometry::GeoObject> g) {
-    return m_pimpl_->m_ranges_[IFORM][g];
+EntityRange const *Patch::GetRange(const std::string &g) const {
+    EntityRange const *res = nullptr;
+    if (m_pimpl_->m_range_ != nullptr) {
+        auto it = m_pimpl_->m_range_->find(g);
+        if (it != m_pimpl_->m_range_->end()) { res = &(it->second[0]); }
+    }
+    return res;
 }
-Range<EntityId> const &Patch::GetRange(int IFORM, std::shared_ptr<geometry::GeoObject> g) const {
-    return m_pimpl_->m_ranges_[IFORM].at(g);
+
+void Patch::SetRange(EntityRange const *r, const std::string &g) {
+    if (r != nullptr) {
+        if (m_pimpl_->m_range_ == nullptr) {
+            m_pimpl_->m_range_ = std::make_shared<std::map<std::string, nTuple<EntityRange, 4>>>();
+        }
+
+        for (int i = 0; i < 4; ++i) { (*m_pimpl_->m_range_)[g][i] = r[i]; }
+    };
 }
-void Patch::SetRange(Range<EntityId> r, int IFORM, std::shared_ptr<geometry::GeoObject> g) {
-    m_pimpl_->m_ranges_[IFORM][g] = r;
-}
+
+void Patch::PushRange(std::shared_ptr<std::map<std::string, nTuple<EntityRange, 4>>> const &r) {
+    m_pimpl_->m_range_ = r;
+};
+std::shared_ptr<std::map<std::string, nTuple<EntityRange, 4>>> Patch::PopRange() { return m_pimpl_->m_range_; };
 
 }  // namespace engine {
 }  // namespace simpla {
