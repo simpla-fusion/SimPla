@@ -22,7 +22,6 @@ class AttributeGroup;
 */
 class Domain : public SPObject,
                public AttributeGroup,
-               public data::Serializable,
                public data::EnableCreateFromDataTable<Domain, std::shared_ptr<geometry::GeoObject>> {
     SP_OBJECT_HEAD(Domain, SPObject)
    public:

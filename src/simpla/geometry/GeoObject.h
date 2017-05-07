@@ -27,7 +27,7 @@ struct GeoObjectAdapter;
  *
  *  PlaceHolder Geometric object
  */
-class GeoObject : public data::Serializable, public data::EnableCreateFromDataTable<GeoObject> {
+class GeoObject : public data::EnableCreateFromDataTable<GeoObject> {
     SP_OBJECT_BASE(GeoObject)
 
    public:
@@ -71,7 +71,7 @@ class GeoObject : public data::Serializable, public data::EnableCreateFromDataTa
     *           `in` then 1
     *           `out` then 0
     */
-    virtual bool CheckInside(const point_type &x) const { return in_box(GetBoundBox(), x)  ; };
+    virtual bool CheckInside(const point_type &x) const { return in_box(GetBoundBox(), x); };
 
     //    int CheckInside() const { return 0; }
     //

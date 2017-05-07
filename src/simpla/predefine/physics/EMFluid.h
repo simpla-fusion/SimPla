@@ -109,13 +109,19 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
 }
 
 template <typename TM>
-void EMFluid<TM>::Initialize() {}
+void EMFluid<TM>::Initialize() {
+    Domain::Initialize();
+}
 
 template <typename TM>
-void EMFluid<TM>::Finalize() {}
+void EMFluid<TM>::Finalize() {
+    Domain::Finalize();
+}
 
 template <typename TM>
-void EMFluid<TM>::TearDown() {}
+void EMFluid<TM>::TearDown() {
+    Domain::TearDown();
+}
 
 template <typename TM>
 void EMFluid<TM>::SetUp() {

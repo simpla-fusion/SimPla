@@ -31,7 +31,11 @@ void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
     m_pimpl_->m_model_.Deserialize(cfg->GetTable("Model"));
 
     for (auto const &geo : GetModel().GetAll()) {
-        Context::SetDomain(geo.first, Domain::Create(cfg->Get("Domains/" + geo.first), geo.second));
+        auto d = Domain::Create(cfg->Get("Domains/" + geo.first), geo.second);
+        if (d != nullptr) {
+            d->Initialize();
+            Context::SetDomain(geo.first, d);
+        }
     }
 }
 
@@ -54,11 +58,12 @@ void Context::SetUp() {
     dx[1] = (std::get<1>(x_box)[1] - std::get<0>(x_box)[1]) / (std::get<1>(i_box)[1] - std::get<0>(i_box)[1]);
     dx[2] = (std::get<1>(x_box)[2] - std::get<0>(x_box)[2]) / (std::get<1>(i_box)[2] - std::get<0>(i_box)[2]);
 
-
     for (auto &item : m_pimpl_->m_domains_) {
+        item.second->Initialize();
         item.second->GetMesh()->SetOrigin(std::get<0>(x_box));
         item.second->GetMesh()->SetDx(dx);
         item.second->RegisterDescription(&m_pimpl_->m_global_attributes_);
+        item.second->SetUp();
     }
 };
 void Context::InitializeCondition(Patch *p, Real time_now) {

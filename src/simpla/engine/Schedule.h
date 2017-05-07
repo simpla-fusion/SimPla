@@ -13,7 +13,7 @@ namespace simpla {
 namespace engine {
 class Context;
 class Atlas;
-class Schedule : public SPObject, public data::Serializable, public data::EnableCreateFromDataTable<Schedule> {
+class Schedule : public SPObject, public data::EnableCreateFromDataTable<Schedule> {
     SP_OBJECT_HEAD(Schedule, SPObject);
 
    public:

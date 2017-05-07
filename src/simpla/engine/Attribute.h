@@ -134,6 +134,8 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
     Attribute(Attribute &&other);
     ~Attribute() override;
 
+    virtual size_type size() const { return 0; }
+
     void SetUp() override;
 
     Domain *GetDomain() const;
@@ -141,7 +143,7 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
     void RegisterAt(AttributeGroup *);
     void DeregisterFrom(AttributeGroup *);
 
-    virtual void Push(std::shared_ptr<data::DataBlock> d, EntityRange const &r = EntityRange{});
+    virtual void Push(std::shared_ptr<data::DataBlock> d, EntityRange const &r);
     virtual std::shared_ptr<data::DataBlock> Pop();
 
     virtual bool isNull() const;

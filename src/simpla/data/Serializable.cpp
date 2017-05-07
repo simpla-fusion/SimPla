@@ -5,8 +5,8 @@
 #include "DataTable.h"
 namespace simpla {
 namespace data {
-Serializable::Serializable(){};
-Serializable::~Serializable() {}
+//Serializable::Serializable(){};
+//Serializable::~Serializable() {}
 std::shared_ptr<DataTable> Serializable::Serialize() const { return std::make_shared<DataTable>(); };
 void Serializable::Deserialize(const std::shared_ptr<DataTable> &) {}
 std::ostream &Serializable::Serialize(std::ostream &os, int indent) const { return Serialize()->Serialize(os, indent); }

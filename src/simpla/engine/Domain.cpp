@@ -35,6 +35,7 @@ void Domain::TearDown() {
     SPObject::TearDown();
 }
 void Domain::Initialize() {
+    m_pimpl_->m_range_ = std::make_shared<std::map<std::string, EntityRange>>();
     GetMesh()->Initialize();
     SPObject::Initialize();
 }
@@ -53,11 +54,14 @@ std::shared_ptr<geometry::GeoObject> Domain::GetGeoObject(std::string const& k) 
 }
 
 EntityRange Domain::GetRange(std::string const& k) const {
-    if (m_pimpl_->m_range_ != nullptr) {
-        auto it = m_pimpl_->m_range_->find(k);
-        if (it != m_pimpl_->m_range_->end()) { return it->second; }
+    ASSERT(m_pimpl_->m_range_ != nullptr)
+    auto it = m_pimpl_->m_range_->find(k);
+    if (it != m_pimpl_->m_range_->end()) {
+        return it->second;
+    } else {
+        VERBOSE << k << " is not found!" << std::endl;
+        return EntityRange{};
     }
-    return EntityRange{};
 };
 
 EntityRange Domain::GetBodyRange(int IFORM, std::string const& k) const {
@@ -78,7 +82,6 @@ EntityRange Domain::GetPerpendicularBoundaryRange(int IFORM, std::string const& 
 void Domain::Push(Patch* p) {
     GetMesh()->SetBlock(p->GetBlock());
     m_pimpl_->m_range_ = p->PopRange();
-
     for (auto& item : GetAllAttributes()) {
         item.second->Push(p->Pop(item.second->GetID()), GetBodyRange(item.second->GetIFORM()));
     }
@@ -101,18 +104,20 @@ void Domain::InitialCondition(Real time_now) {
         EntityRange r[10];
         GetMesh()->InitializeRange(item.second, r);
 
-        m_pimpl_->m_range_->emplace(item.first + ".VERTEX_BODY", r[MeshBase::VERTEX_BODY]);
-        m_pimpl_->m_range_->emplace(item.first + ".EDGE_BODY", r[MeshBase::EDGE_BODY]);
-        m_pimpl_->m_range_->emplace(item.first + ".FACE_BODY", r[MeshBase::FACE_BODY]);
-        m_pimpl_->m_range_->emplace(item.first + ".VOLUME_BODY", r[MeshBase::VOLUME_BODY]);
-        m_pimpl_->m_range_->emplace(item.first + ".VERTEX_BOUNDARY", r[MeshBase::VERTEX_BOUNDARY]);
-        m_pimpl_->m_range_->emplace(item.first + ".EDGE_PARA_BOUNDARY", r[MeshBase::EDGE_PARA_BOUNDARY]);
-        m_pimpl_->m_range_->emplace(item.first + ".FACE_PARA_BOUNDARY", r[MeshBase::FACE_PARA_BOUNDARY]);
-        m_pimpl_->m_range_->emplace(item.first + ".EDGE_PERP_BOUNDARY", r[MeshBase::EDGE_PERP_BOUNDARY]);
-        m_pimpl_->m_range_->emplace(item.first + ".FACE_PERP_BOUNDARY", r[MeshBase::FACE_PERP_BOUNDARY]);
-        m_pimpl_->m_range_->emplace(item.first + ".VOLUME_BOUNDARY", r[MeshBase::VOLUME_BOUNDARY]);
+        (*m_pimpl_->m_range_)[item.first + ".VERTEX_BODY"] = r[MeshBase::VERTEX_BODY];
+        (*m_pimpl_->m_range_)[item.first + ".EDGE_BODY"] = r[MeshBase::EDGE_BODY];
+        (*m_pimpl_->m_range_)[item.first + ".FACE_BODY"] = r[MeshBase::FACE_BODY];
+        (*m_pimpl_->m_range_)[item.first + ".VOLUME_BODY"] = r[MeshBase::VOLUME_BODY];
+        (*m_pimpl_->m_range_)[item.first + ".VERTEX_BOUNDARY"] = r[MeshBase::VERTEX_BOUNDARY];
+        (*m_pimpl_->m_range_)[item.first + ".EDGE_PARA_BOUNDARY"] = r[MeshBase::EDGE_PARA_BOUNDARY];
+        (*m_pimpl_->m_range_)[item.first + ".FACE_PARA_BOUNDARY"] = r[MeshBase::FACE_PARA_BOUNDARY];
+        (*m_pimpl_->m_range_)[item.first + ".EDGE_PERP_BOUNDARY"] = r[MeshBase::EDGE_PERP_BOUNDARY];
+        (*m_pimpl_->m_range_)[item.first + ".FACE_PERP_BOUNDARY"] = r[MeshBase::FACE_PERP_BOUNDARY];
+        (*m_pimpl_->m_range_)[item.first + ".VOLUME_BOUNDARY"] = r[MeshBase::VOLUME_BOUNDARY];
     }
-
+    for (auto const& item : *m_pimpl_->m_range_) {
+        VERBOSE << item.first << " size= " << item.second.size() << std::endl;
+    }
     OnInitialCondition(this, time_now);
 }
 void Domain::BoundaryCondition(Real time_now, Real dt) { OnBoundaryCondition(this, time_now, dt); }

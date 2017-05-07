@@ -16,7 +16,7 @@ namespace simpla {
 namespace data {
 class DataTable;
 template <typename TObj, typename... Args>
-class EnableCreateFromDataTable {
+class EnableCreateFromDataTable : public data::Serializable {
     typedef EnableCreateFromDataTable<TObj> this_type;
 
    public:
@@ -25,6 +25,11 @@ class EnableCreateFromDataTable {
     SP_DEFAULT_CONSTRUCT(EnableCreateFromDataTable);
 
     virtual std::string GetRegisterName() const { return TObj::RegisterName(); }
+
+    virtual void Initialize() {}
+    virtual void Finalize() {}
+    virtual void SetUp() {}
+    virtual void TearDown() {}
 
     struct ObjectFactory {
         std::map<std::string, std::function<TObj *(Args const &...)>> m_factory_;
@@ -82,10 +87,14 @@ class EnableCreateFromDataTable {
         if (cfg == nullptr) {
         } else if (cfg->isLight()) {
             res = Create(data::DataCastTraits<std::string>::Get(cfg), args...);
+            if (res != nullptr) { res->Initialize(); }
         } else if (cfg->isTable()) {
             auto t = std::dynamic_pointer_cast<data::DataTable>(cfg);
             res = Create(t->GetValue<std::string>("Type", ""), args...);
-            if (res != nullptr) res->Deserialize(t);
+            if (res != nullptr) {
+                res->Initialize();
+                res->Deserialize(t);
+            }
         }
         return res;
     }

@@ -27,7 +27,7 @@ using namespace simpla::data;
  *   - \f$p\f$ is the projection
  *
  */
-class MeshBase : public data::Serializable, public data::EnableCreateFromDataTable<MeshBase, Domain *> {
+class MeshBase : public data::EnableCreateFromDataTable<MeshBase, Domain *> {
     SP_OBJECT_BASE(MeshBase);
 
    public:
@@ -43,10 +43,10 @@ class MeshBase : public data::Serializable, public data::EnableCreateFromDataTab
 
     virtual void InitializeData(Real time_now);
 
-    virtual void SetUp();
-    virtual void TearDown();
-    virtual void Initialize();
-    virtual void Finalize();
+    void SetUp() override;
+    void TearDown() override;
+    void Initialize() override;
+    void Finalize() override;
 
     id_type GetBlockId() const;
     void SetBlock(std::shared_ptr<MeshBlock>);

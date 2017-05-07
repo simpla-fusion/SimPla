@@ -17,7 +17,7 @@ struct SMesh : public StructuredMesh {
     SP_OBJECT_HEAD(SMesh, StructuredMesh)
 
     explicit SMesh(Domain *d) : StructuredMesh(d){};
-    ~SMesh() override{};
+    ~SMesh() override = default;
 
     SP_DEFAULT_CONSTRUCT(SMesh)
     DECLARE_REGISTER_NAME("SMesh");
@@ -25,7 +25,7 @@ struct SMesh : public StructuredMesh {
 
    private:
     Field<this_type, Real, VERTEX, 3> m_coordinates_{this, "name"_ = "Coordinates", "COORDINATES"_};
-    Field<this_type, Real, VERTEX, 3> m_vertices_{this, "name"_ = "vertics"};
+    Field<this_type, Real, VERTEX, 3> m_vertices_{this, "name"_ = "vertices"};
     Field<this_type, Real, VOLUME, 9> m_volume_{this, "name"_ = "volume"};
     Field<this_type, Real, VOLUME, 9> m_dual_volume_{this, "name"_ = "dual_volume"};
     Field<this_type, Real, VOLUME, 9> m_inv_volume_{this, "name"_ = "inv_volume"};

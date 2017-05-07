@@ -79,6 +79,8 @@ class FieldView : public engine::Attribute {
 
     ~FieldView() override = default;
 
+    size_type size() const override { return m_range_.size() * DOF; }
+
     void SetUp() override {
         if (isModified()) {
             engine::Attribute::SetUp();
@@ -126,9 +128,10 @@ class FieldView : public engine::Attribute {
         return *this;
     }
 
-    void Push(std::shared_ptr<data::DataBlock> d, EntityRange const& r = EntityRange{}) override {
+    void Push(std::shared_ptr<data::DataBlock> d, EntityRange const& r) override {
         Click();
         m_range_ = r;
+
         if (d != nullptr) {
             auto& t = d->cast_as<data::DataMultiArray<value_type, NDIMS>>();
             m_data_.resize(NUMBER_OF_SUB);

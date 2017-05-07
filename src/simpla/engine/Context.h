@@ -60,7 +60,7 @@ namespace engine {
  *  deactivate DomainView
  * @enduml
  */
-class Context : public data::Serializable, public data::EnableCreateFromDataTable<Context> {
+class Context : public data::EnableCreateFromDataTable<Context> {
     SP_OBJECT_BASE(Context)
    public:
     Context();
@@ -72,10 +72,10 @@ class Context : public data::Serializable, public data::EnableCreateFromDataTabl
     std::shared_ptr<DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<DataTable> &cfg) override;
 
-    virtual void Initialize();
-    virtual void Finalize();
-    virtual void TearDown();
-    virtual void SetUp();
+    void SetUp() override;
+    void TearDown() override;
+    void Initialize() override;
+    void Finalize() override;
 
     void InitializeCondition(Patch *p, Real time_now);
     void BoundaryCondition(Patch *p, Real time_now, Real time_dt);
