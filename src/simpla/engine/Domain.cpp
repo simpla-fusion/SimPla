@@ -16,6 +16,7 @@ struct Domain::pimpl_s {
 };
 Domain::Domain(std::shared_ptr<geometry::GeoObject> const& g) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_geo_object_[""] = g;
+    m_pimpl_->m_range_ = std::make_shared<std::map<std::string, EntityRange>>();
 }
 Domain::~Domain() {}
 
@@ -35,7 +36,6 @@ void Domain::TearDown() {
     SPObject::TearDown();
 }
 void Domain::Initialize() {
-    m_pimpl_->m_range_ = std::make_shared<std::map<std::string, EntityRange>>();
     GetMesh()->Initialize();
     SPObject::Initialize();
 }
@@ -81,7 +81,7 @@ EntityRange Domain::GetPerpendicularBoundaryRange(int IFORM, std::string const& 
 
 void Domain::Push(Patch* p) {
     GetMesh()->SetBlock(p->GetBlock());
-    m_pimpl_->m_range_ = p->PopRange();
+    if (p->PopRange() != nullptr) { m_pimpl_->m_range_ = p->PopRange(); }
     for (auto& item : GetAllAttributes()) {
         item.second->Push(p->Pop(item.second->GetID()), GetBodyRange(item.second->GetIFORM()));
     }
@@ -92,12 +92,11 @@ void Domain::Pop(Patch* p) {
     for (auto& item : GetAllAttributes()) { p->Push(item.second->GetID(), item.second->Pop()); }
 }
 
-void Domain::InitialCondition(Real time_now) {
+void Domain::ApplyInitialCondition(Patch* patch, Real time_now) {
     if (GetMesh() == nullptr) { return; }
-
+    Push(patch);
     GetMesh()->InitializeData(time_now);
-
-    m_pimpl_->m_range_ = std::make_shared<std::map<std::string, EntityRange>>();
+    if (m_pimpl_->m_range_ == nullptr) { m_pimpl_->m_range_ = std::make_shared<std::map<std::string, EntityRange>>(); }
 
     for (auto const& item : m_pimpl_->m_geo_object_) {
         if (item.second == nullptr) { continue; }
@@ -119,9 +118,21 @@ void Domain::InitialCondition(Real time_now) {
         VERBOSE << item.first << " size= " << item.second.size() << std::endl;
     }
     OnInitialCondition(this, time_now);
+
+    Pop(patch);
 }
-void Domain::BoundaryCondition(Real time_now, Real dt) { OnBoundaryCondition(this, time_now, dt); }
-void Domain::Advance(Real time_now, Real dt) { OnAdvance(this, time_now, dt); }
+void Domain::ApplyBoundaryCondition(Patch* patch, Real time_now, Real dt) {
+    Push(patch);
+    BoundaryCondition(time_now, dt);
+    OnBoundaryCondition(this, time_now, dt);
+    Pop(patch);
+}
+void Domain::ApplyAdvance(Patch* patch, Real time_now, Real dt) {
+    Push(patch);
+    Advance(time_now, dt);
+    OnAdvance(this, time_now, dt);
+    Pop(patch);
+}
 
 }  // namespace engine{
 

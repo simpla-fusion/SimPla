@@ -45,9 +45,6 @@ class Domain : public SPObject,
     EntityRange GetParallelBoundaryRange(int IFORM = VERTEX, std::string const &k = "") const;
     EntityRange GetPerpendicularBoundaryRange(int IFORM = VERTEX, std::string const &k = "") const;
 
-    virtual void Push(Patch *);
-    virtual void Pop(Patch *);
-
     void Initialize() override;
     void Finalize() override;
     void SetUp() override;
@@ -57,9 +54,16 @@ class Domain : public SPObject,
     design_pattern::Signal<void(Domain *, Real, Real)> OnBoundaryCondition;
     design_pattern::Signal<void(Domain *, Real, Real)> OnAdvance;
 
-    virtual void InitialCondition(Real time_now);
-    virtual void BoundaryCondition(Real time_now, Real dt);
-    virtual void Advance(Real time_now, Real dt);
+    virtual void InitialCondition(Real time_now) {}
+    virtual void BoundaryCondition(Real time_now, Real dt) {}
+    virtual void Advance(Real time_now, Real dt) {}
+
+    void Push(Patch *);
+    void Pop(Patch *);
+
+    void ApplyInitialCondition(Patch *, Real time_now);
+    void ApplyBoundaryCondition(Patch *, Real time_now, Real dt);
+    void ApplyAdvance(Patch *, Real time_now, Real dt);
 
    private:
     struct pimpl_s;

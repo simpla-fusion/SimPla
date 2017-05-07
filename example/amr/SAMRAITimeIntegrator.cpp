@@ -632,15 +632,10 @@ void SAMRAIHyperbolicPatchStrategyAdapter::tagGradientDetectorCells(SAMRAI::hier
 
 void SAMRAIHyperbolicPatchStrategyAdapter::setPhysicalBoundaryConditions(
     SAMRAI::hier::Patch &patch, double fill_time, const SAMRAI::hier::IntVector &ghost_width_to_fill) {
-    //    auto &atlas =m_ctx_->GetAtlas();
-    //
-    //    auto p = atlas.PopPatch(static_cast<id_type>(patch.getLocalId().getValue()));
-    //    ConvertPatchFromSAMRAI(patch, p.get());
-    //   m_ctx_->Push(p);
-    //   m_ctx_->BoundaryCondition(fill_time, 0);
-    //    p =m_ctx_->Pop();
-    //    ConvertPatchToSAMRAI(patch, p.get());
-    //    atlas.Push(p);
+    auto p = m_ctx_->GetAtlas().PopPatch(static_cast<id_type>(patch.getLocalId().getValue()));
+    ConvertPatchFromSAMRAI(patch, p.get());
+    m_ctx_->BoundaryCondition(p.get(), fill_time, 0);
+    m_ctx_->GetAtlas().PushPatch(p);
 }
 
 /**************************************************************************

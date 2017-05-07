@@ -39,7 +39,7 @@ class FieldView : public engine::Attribute {
     static constexpr int iform = IFORM;
     static constexpr int dof = DOF;
     static constexpr int NDIMS = mesh_type::NDIMS;
-    int NUMBER_OF_SUB = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
+    static constexpr int NUMBER_OF_SUB = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
 
     typedef std::true_type prefer_pass_by_reference;
     typedef std::false_type is_expression;
@@ -59,12 +59,14 @@ class FieldView : public engine::Attribute {
     explicit FieldView(engine::Domain* d, Args&&... args)
         : engine::Attribute(IFORM, DOF, typeid(value_type), d,
                             std::make_shared<data::DataTable>(std::forward<Args>(args)...)),
-          m_mesh_(dynamic_cast<mesh_type*>(engine::Attribute::GetDomain()->GetMesh())){};
+          m_mesh_(dynamic_cast<mesh_type*>(engine::Attribute::GetDomain()->GetMesh())),
+          m_data_(NUMBER_OF_SUB){};
     template <typename... Args>
     explicit FieldView(engine::MeshBase* d, Args&&... args)
         : engine::Attribute(IFORM, DOF, typeid(value_type), d,
                             std::make_shared<data::DataTable>(std::forward<Args>(args)...)),
-          m_mesh_(dynamic_cast<mesh_type*>(engine::Attribute::GetDomain()->GetMesh())){};
+          m_mesh_(dynamic_cast<mesh_type*>(engine::Attribute::GetDomain()->GetMesh())),
+          m_data_(NUMBER_OF_SUB){};
 
     FieldView(this_type const& other)
         : engine::Attribute(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(other.m_range_) {}
@@ -81,40 +83,11 @@ class FieldView : public engine::Attribute {
 
     size_type size() const override { return m_range_.size() * DOF; }
 
-    void SetUp() override {
-        if (isModified()) {
-            engine::Attribute::SetUp();
-            m_data_.resize(static_cast<size_type>(NUMBER_OF_SUB));
-            for (int i = 0; i < DOF; ++i) {
-                switch (IFORM) {
-                    case VERTEX:
-                        array_type(m_mesh_->GetIndexBox(0)).swap(m_data_[i * DOF + 0]);
-                        break;
-                    case EDGE:
-                        array_type(m_mesh_->GetIndexBox(1)).swap(m_data_[i * DOF + 0]);
-                        array_type(m_mesh_->GetIndexBox(2)).swap(m_data_[i * DOF + 1]);
-                        array_type(m_mesh_->GetIndexBox(4)).swap(m_data_[i * DOF + 2]);
-                        break;
-                    case FACE:
-                        array_type(m_mesh_->GetIndexBox(6)).swap(m_data_[i * DOF + 0]);
-                        array_type(m_mesh_->GetIndexBox(5)).swap(m_data_[i * DOF + 1]);
-                        array_type(m_mesh_->GetIndexBox(3)).swap(m_data_[i * DOF + 2]);
-                        break;
-                    case VOLUME:
-                        array_type(m_mesh_->GetIndexBox(7)).swap(m_data_[i * DOF + 0]);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-        Tag();
-    }
-
     void Clear() {
         SetUp();
         for (int i = 0; i < m_data_.size(); ++i) { m_data_[i].Clear(); }
     }
+
     bool empty() const override { return m_data_.size() == 0; }
 
     this_type& operator=(this_type const& other) {
@@ -134,13 +107,12 @@ class FieldView : public engine::Attribute {
 
         if (d != nullptr) {
             auto& t = d->cast_as<data::DataMultiArray<value_type, NDIMS>>();
-            m_data_.resize(NUMBER_OF_SUB);
             for (int i = 0; i < m_data_.size(); ++i) { array_type(t.GetArray(i)).swap(m_data_[i]); }
             Tag();
         }
     }
     std::shared_ptr<data::DataBlock> Pop() override {
-        auto res = std::make_shared<data::DataMultiArray<value_type, NDIMS>>(NUMBER_OF_SUB);
+        auto res = std::make_shared<data::DataMultiArray<value_type, NDIMS>>(m_data_.size());
         for (int i = 0; i < m_data_.size(); ++i) { array_type(m_data_[i]).swap(res->GetArray(i)); }
         return res;
     }
@@ -176,10 +148,69 @@ class FieldView : public engine::Attribute {
 
     //        decltype(auto) operator()(point_type const& x) const { return gather(x); }
 
+    void SetUp() override {
+        engine::Attribute::SetUp();
+        static constexpr int id_2_sub_edge[3] = {1, 2, 4};
+        static constexpr int id_2_sub_face[3] = {6, 5, 3};
+
+        for (int i = 0; i < NUMBER_OF_SUB; ++i) {
+            if (!m_data_[i].empty()) { continue; }
+            switch (IFORM) {
+                case VERTEX:
+                    array_type(m_mesh_->GetIndexBox(0)).swap(m_data_[i]);
+                    break;
+                case EDGE:
+                    array_type(m_mesh_->GetIndexBox(id_2_sub_edge[(i / DOF) % 3])).swap(m_data_[i]);
+                    break;
+                case FACE:
+                    array_type(m_mesh_->GetIndexBox(id_2_sub_face[(i / DOF) % 3])).swap(m_data_[i]);
+                    break;
+                case VOLUME:
+                    array_type(m_mesh_->GetIndexBox(7)).swap(m_data_[i]);
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (m_range_.empty() && GetDomain() != nullptr) { m_range_ = GetDomain()->GetBodyRange(GetIFORM()); }
+        Tag();
+    }
+
     template <typename Other>
     void Assign(Other const& other) {
         SetUp();
-        if (!m_range_.isNull()) {
+        static constexpr int id_2_sub_edge[3] = {1, 2, 4};
+        static constexpr int id_2_sub_face[3] = {6, 5, 3};
+
+        if (m_range_.empty()) {
+            for (int i = 0; i < NUMBER_OF_SUB; ++i) {
+                int16_t w = 0;
+                switch (IFORM) {
+                    case VERTEX:
+                        w = static_cast<int16_t>(i << 3);
+                        break;
+                    case EDGE:
+                        w = static_cast<int16_t>(((i % DOF) << 3) | id_2_sub_edge[(i / DOF) % 3]);
+                        break;
+                    case FACE:
+                        w = static_cast<int16_t>(((i % DOF) << 3) | id_2_sub_face[(i / DOF) % 3]);
+                        break;
+                    case VOLUME:
+                        w = static_cast<int16_t>((i << 3) | 0b111);
+                        break;
+                    default:
+                        break;
+                }
+                m_data_[i].Foreach([&](index_tuple const& idx, value_type& v) {
+                    EntityId s;
+                    s.w = w;
+                    s.x = static_cast<int16_t>(idx[0]);
+                    s.y = static_cast<int16_t>(idx[1]);
+                    s.z = static_cast<int16_t>(idx[2]);
+                    v = calculus_policy::getValue(*m_mesh_, other, s);
+                });
+            }
+        } else {
             for (int i = 0; i < DOF; ++i) {
                 m_range_.foreach ([&](EntityId s) {
                     s.w = s.w | static_cast<int16_t>(i << 3);

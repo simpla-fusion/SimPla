@@ -67,26 +67,14 @@ void Context::SetUp() {
     }
 };
 void Context::InitializeCondition(Patch *p, Real time_now) {
-    for (auto &item : m_pimpl_->m_domains_) {
-        item.second->Push(p);
-        item.second->InitialCondition(time_now);
-        item.second->Pop(p);
-    }
+    for (auto &item : m_pimpl_->m_domains_) { item.second->ApplyInitialCondition(p, time_now); }
 }
 void Context::BoundaryCondition(Patch *p, Real time_now, Real time_dt) {
-    for (auto &item : m_pimpl_->m_domains_) {
-        item.second->Push(p);
-        item.second->BoundaryCondition(time_now, time_dt);
-        item.second->Pop(p);
-    }
+    for (auto &item : m_pimpl_->m_domains_) { item.second->ApplyBoundaryCondition(p, time_now, time_dt); }
 }
 
 void Context::Advance(Patch *p, Real time_now, Real time_dt) {
-    for (auto &item : m_pimpl_->m_domains_) {
-        item.second->Push(p);
-        item.second->Advance(time_dt, time_dt);
-        item.second->Pop(p);
-    }
+    for (auto &item : m_pimpl_->m_domains_) { item.second->ApplyAdvance(p, time_dt, time_dt); }
 }
 
 Model &Context::GetModel() const { return m_pimpl_->m_model_; }

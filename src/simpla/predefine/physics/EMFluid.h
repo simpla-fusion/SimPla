@@ -28,11 +28,6 @@ class EMFluid : public engine::Domain {
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(shared_ptr<data::DataTable> const& cfg) override;
 
-    void Initialize() override;
-    void Finalize() override;
-    void SetUp() override;
-    void TearDown() override;
-
     void InitialCondition(Real time_now) override;
     void BoundaryCondition(Real time_now, Real dt) override;
     void Advance(Real time_now, Real dt) override;
@@ -106,26 +101,6 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
     sp->J = std::make_shared<TJv>(this, name + "_J");
     m_fluid_sp_.emplace(name, sp);
     return sp;
-}
-
-template <typename TM>
-void EMFluid<TM>::Initialize() {
-    Domain::Initialize();
-}
-
-template <typename TM>
-void EMFluid<TM>::Finalize() {
-    Domain::Finalize();
-}
-
-template <typename TM>
-void EMFluid<TM>::TearDown() {
-    Domain::TearDown();
-}
-
-template <typename TM>
-void EMFluid<TM>::SetUp() {
-    base_type::SetUp();
 }
 
 template <typename TM>

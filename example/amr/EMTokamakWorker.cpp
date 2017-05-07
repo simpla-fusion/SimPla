@@ -52,8 +52,9 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     GetModel().SetObject("Limiter", std::make_shared<geometry::RevolveZ>(geqdsk.boundary(), PhiAxe, phi[0], phi[1]));
     GetModel().SetObject("Center", std::make_shared<geometry::RevolveZ>(geqdsk.limiter(), PhiAxe, phi[0], phi[1]));
 
-    engine::Context::Deserialize(cfg);
     engine::Context::Initialize();
+    engine::Context::Deserialize(cfg);
+
     GetDomain("Limiter")->SetGeoObject("Center", GetModel().GetObject("Center"));
 
     typedef mesh::CylindricalSMesh mesh_type;
@@ -64,16 +65,13 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
             auto& B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
             E[self->GetBoundaryRange(EDGE)] = 0;
             B[self->GetBoundaryRange(FACE)] = 0;
-            auto& ne = self->GetAttribute<Field<mesh_type, Real, VERTEX>>("ne");
-
-            ne = [&](point_type const& x) -> Real { return geqdsk.profile("ne", x[0], x[1]); };
         });
 
         d->OnInitialCondition.Connect([&](Domain* self, Real time_now) {
 
             auto& ne = self->GetAttribute<Field<mesh_type, Real, VERTEX>>("ne");
             ne.Clear();
-            //            auto ne1 = ne[self->GetBodyRange(VERTEX, "Center")];
+            //[self->GetBodyRange(VERTEX, "Center")]
             ne = [&](point_type const& x) -> Real { return geqdsk.profile("ne", x[0], x[1]); };
 
             //            auto& B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");

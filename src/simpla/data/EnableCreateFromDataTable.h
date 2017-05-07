@@ -87,7 +87,6 @@ class EnableCreateFromDataTable : public data::Serializable {
         if (cfg == nullptr) {
         } else if (cfg->isLight()) {
             res = Create(data::DataCastTraits<std::string>::Get(cfg), args...);
-            if (res != nullptr) { res->Initialize(); }
         } else if (cfg->isTable()) {
             auto t = std::dynamic_pointer_cast<data::DataTable>(cfg);
             res = Create(t->GetValue<std::string>("Type", ""), args...);
