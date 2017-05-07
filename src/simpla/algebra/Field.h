@@ -75,9 +75,7 @@ class FieldView : public engine::Attribute {
         : engine::Attribute(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(other.m_range_) {}
 
     FieldView(this_type const& other, EntityRange const& r)
-        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(r) {
-        CHECK(m_range_.size());
-    }
+        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(r) {}
 
     ~FieldView() override = default;
 
@@ -173,50 +171,51 @@ class FieldView : public engine::Attribute {
             }
         }
         if (m_range_.empty() && GetDomain() != nullptr) { m_range_ = GetDomain()->GetBodyRange(GetIFORM()); }
+
         Tag();
     }
 
     template <typename Other>
     void Assign(Other const& other) {
         SetUp();
-        static constexpr int id_2_sub_edge[3] = {1, 2, 4};
-        static constexpr int id_2_sub_face[3] = {6, 5, 3};
+        //        static constexpr int id_2_sub_edge[3] = {1, 2, 4};
+        //        static constexpr int id_2_sub_face[3] = {6, 5, 3};
+        //        if (m_range_.empty()) {
+        //            for (int i = 0; i < NUMBER_OF_SUB; ++i) {
+        //                int16_t w = 0;
+        //                switch (IFORM) {
+        //                    case VERTEX:
+        //                        w = static_cast<int16_t>(i << 3);
+        //                        break;
+        //                    case EDGE:
+        //                        w = static_cast<int16_t>(((i % DOF) << 3) | id_2_sub_edge[(i / DOF) % 3]);
+        //                        break;
+        //                    case FACE:
+        //                        w = static_cast<int16_t>(((i % DOF) << 3) | id_2_sub_face[(i / DOF) % 3]);
+        //                        break;
+        //                    case VOLUME:
+        //                        w = static_cast<int16_t>((i << 3) | 0b111);
+        //                        break;
+        //                    default:
+        //                        break;
+        //                }
+        //                m_data_[i].Foreach([&](index_tuple const& idx, value_type& v) {
+        //                    EntityId s;
+        //                    s.w = w;
+        //                    s.x = static_cast<int16_t>(idx[0]);
+        //                    s.y = static_cast<int16_t>(idx[1]);
+        //                    s.z = static_cast<int16_t>(idx[2]);
+        //                    v = calculus_policy::getValue(*m_mesh_, other, s);
+        //                });
+        //            }
+        //        } else {
+        //        }
 
-        if (m_range_.empty()) {
-            for (int i = 0; i < NUMBER_OF_SUB; ++i) {
-                int16_t w = 0;
-                switch (IFORM) {
-                    case VERTEX:
-                        w = static_cast<int16_t>(i << 3);
-                        break;
-                    case EDGE:
-                        w = static_cast<int16_t>(((i % DOF) << 3) | id_2_sub_edge[(i / DOF) % 3]);
-                        break;
-                    case FACE:
-                        w = static_cast<int16_t>(((i % DOF) << 3) | id_2_sub_face[(i / DOF) % 3]);
-                        break;
-                    case VOLUME:
-                        w = static_cast<int16_t>((i << 3) | 0b111);
-                        break;
-                    default:
-                        break;
-                }
-                m_data_[i].Foreach([&](index_tuple const& idx, value_type& v) {
-                    EntityId s;
-                    s.w = w;
-                    s.x = static_cast<int16_t>(idx[0]);
-                    s.y = static_cast<int16_t>(idx[1]);
-                    s.z = static_cast<int16_t>(idx[2]);
-                    v = calculus_policy::getValue(*m_mesh_, other, s);
-                });
-            }
-        } else {
-            for (int i = 0; i < DOF; ++i) {
-                m_range_.foreach ([&](EntityId s) {
-                    s.w = s.w | static_cast<int16_t>(i << 3);
-                    at(s) = calculus_policy::getValue(*m_mesh_, other, s);
-                });
-            }
+        for (int i = 0; i < DOF; ++i) {
+            m_range_.foreach ([&](EntityId s) {
+                s.w = s.w | static_cast<int16_t>(i << 3);
+                at(s) = calculus_policy::getValue(*m_mesh_, other, s);
+            });
         }
     }
 };  // class FieldView

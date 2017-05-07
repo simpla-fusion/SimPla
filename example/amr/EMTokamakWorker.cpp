@@ -49,8 +49,8 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     unsigned int PhiAxe = 2;
     nTuple<Real, 2> phi = cfg->GetValue("Phi", nTuple<Real, 2>{0, TWOPI});
     geqdsk.load(cfg->GetValue<std::string>("gfile", "gfile"));
-    GetModel().SetObject("Limiter", std::make_shared<geometry::RevolveZ>(geqdsk.boundary(), PhiAxe, phi[0], phi[1]));
-    GetModel().SetObject("Center", std::make_shared<geometry::RevolveZ>(geqdsk.limiter(), PhiAxe, phi[0], phi[1]));
+    GetModel().SetObject("Limiter", std::make_shared<geometry::RevolveZ>(geqdsk.limiter(), PhiAxe, phi[0], phi[1]));
+    GetModel().SetObject("Center", std::make_shared<geometry::RevolveZ>(geqdsk.boundary(), PhiAxe, phi[0], phi[1]));
 
     engine::Context::Initialize();
     engine::Context::Deserialize(cfg);
@@ -63,16 +63,17 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
         d->OnBoundaryCondition.Connect([&](Domain* self, Real time_now, Real time_dt) {
             auto& E = self->GetAttribute<Field<mesh_type, Real, EDGE>>("E");
             auto& B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
-            E[self->GetBoundaryRange(EDGE)] = 0;
-            B[self->GetBoundaryRange(FACE)] = 0;
+            //            E[self->GetBoundaryRange(EDGE)] = 0;
+            //            B[self->GetBoundaryRange(FACE)] = 0;
         });
 
         d->OnInitialCondition.Connect([&](Domain* self, Real time_now) {
 
             auto& ne = self->GetAttribute<Field<mesh_type, Real, VERTEX>>("ne");
             ne.Clear();
-            //[self->GetBodyRange(VERTEX, "Center")]
-            ne = [&](point_type const& x) -> Real { return geqdsk.profile("ne", x[0], x[1]); };
+            ne[self->GetBodyRange(VERTEX, "Center")] = [&](point_type const& x) -> Real {
+                return geqdsk.profile("ne", x[0], x[1]);
+            };
 
             //            auto& B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
             //            B = [&](point_type const& x) -> Vec3 { return geqdsk.B(x); };

@@ -103,14 +103,14 @@ void StructuredMesh::InitializeRange(std::shared_ptr<geometry::GeoObject> const&
                               .y = static_cast<int16_t>(J),  //
                               .z = static_cast<int16_t>(K)};
 
-                int volume_tags = (vertex_tags[s + s0] << 0) |  //
-                                  (vertex_tags[s + s1] << 1) |  //
-                                  (vertex_tags[s + s2] << 2) |  //
-                                  (vertex_tags[s + s3] << 3) |  //
-                                  (vertex_tags[s + s4] << 4) |  //
-                                  (vertex_tags[s + s5] << 5) |  //
-                                  (vertex_tags[s + s6] << 6) |  //
-                                  (vertex_tags[s + s7] << 7);
+                int volume_tags = (vertex_tags[s0 + s] << 0) |  //
+                                  (vertex_tags[s1 + s] << 1) |  //
+                                  (vertex_tags[s2 + s] << 2) |  //
+                                  (vertex_tags[s3 + s] << 3) |  //
+                                  (vertex_tags[s4 + s] << 4) |  //
+                                  (vertex_tags[s5 + s] << 5) |  //
+                                  (vertex_tags[s6 + s] << 6) |  //
+                                  (vertex_tags[s7 + s] << 7);
 
                 if (volume_tags == 0) {
                     /**
@@ -134,67 +134,70 @@ void StructuredMesh::InitializeRange(std::shared_ptr<geometry::GeoObject> const&
                      *\endverbatim
                      */
 
-                    VERTEX_body->Insert(s + s0);
-                    VERTEX_body->Insert(s + s1);
-                    VERTEX_body->Insert(s + s2);
-                    VERTEX_body->Insert(s + s3);
-                    VERTEX_body->Insert(s + s4);
-                    VERTEX_body->Insert(s + s5);
-                    VERTEX_body->Insert(s + s6);
-                    VERTEX_body->Insert(s + s7);
+                    VERTEX_body->Insert(s0 + s);
+                    VERTEX_body->Insert(s1 + s);
+                    VERTEX_body->Insert(s2 + s);
+                    VERTEX_body->Insert(s3 + s);
+                    VERTEX_body->Insert(s4 + s);
+                    VERTEX_body->Insert(s5 + s);
+                    VERTEX_body->Insert(s6 + s);
+                    VERTEX_body->Insert(s7 + s);
 
-                    EDGE_body->Insert(s + (t1 | s0));
-                    EDGE_body->Insert(s + (t1 | s2));
-                    EDGE_body->Insert(s + (t1 | s4));
-                    EDGE_body->Insert(s + (t1 | s6));
-                    EDGE_body->Insert(s + (t2 | s0));
-                    EDGE_body->Insert(s + (t2 | s1));
-                    EDGE_body->Insert(s + (t2 | s4));
-                    EDGE_body->Insert(s + (t2 | s5));
-                    EDGE_body->Insert(s + (t4 | s0));
-                    EDGE_body->Insert(s + (t4 | s1));
-                    EDGE_body->Insert(s + (t4 | s2));
-                    EDGE_body->Insert(s + (t4 | s3));
-                    FACE_body->Insert(s + (t3 | s0));
-                    FACE_body->Insert(s + (t5 | s0));
-                    FACE_body->Insert(s + (t6 | s0));
-                    FACE_body->Insert(s + (t6 | s1));
-                    FACE_body->Insert(s + (t5 | s2));
-                    FACE_body->Insert(s + (t3 | s4));
+                    EDGE_body->Insert((t1 | s0) + s);
+                    EDGE_body->Insert((t1 | s2) + s);
+                    EDGE_body->Insert((t1 | s4) + s);
+                    EDGE_body->Insert((t1 | s6) + s);
+
+                    EDGE_body->Insert((t2 | s0) + s);
+                    EDGE_body->Insert((t2 | s1) + s);
+                    EDGE_body->Insert((t2 | s4) + s);
+                    EDGE_body->Insert((t2 | s5) + s);
+
+                    EDGE_body->Insert((t4 | s0) + s);
+                    EDGE_body->Insert((t4 | s1) + s);
+                    EDGE_body->Insert((t4 | s2) + s);
+                    EDGE_body->Insert((t4 | s3) + s);
+
+                    FACE_body->Insert((t3 | s0) + s);
+                    FACE_body->Insert((t5 | s0) + s);
+                    FACE_body->Insert((t6 | s0) + s);
+                    FACE_body->Insert((t6 | s1) + s);
+                    FACE_body->Insert((t5 | s2) + s);
+                    FACE_body->Insert((t3 | s4) + s);
 
                     VOLUME_body->Insert(t7 | s0);
 
                 } else if (volume_tags < 0b11111111) {
-                    if ((volume_tags & b0) != 0) { VERTEX_boundary->Insert(s + s0); }
-                    if ((volume_tags & b1) != 0) { VERTEX_boundary->Insert(s + s1); }
-                    if ((volume_tags & b2) != 0) { VERTEX_boundary->Insert(s + s2); }
-                    if ((volume_tags & b3) != 0) { VERTEX_boundary->Insert(s + s3); }
-                    if ((volume_tags & b4) != 0) { VERTEX_boundary->Insert(s + s4); }
-                    if ((volume_tags & b5) != 0) { VERTEX_boundary->Insert(s + s5); }
-                    if ((volume_tags & b6) != 0) { VERTEX_boundary->Insert(s + s6); }
-                    if ((volume_tags & b7) != 0) { VERTEX_boundary->Insert(s + s7); }
+                    if ((volume_tags & b0) != 0) { VERTEX_boundary->Insert(s0 + s); }
+                    if ((volume_tags & b1) != 0) { VERTEX_boundary->Insert(s1 + s); }
+                    if ((volume_tags & b2) != 0) { VERTEX_boundary->Insert(s2 + s); }
+                    if ((volume_tags & b3) != 0) { VERTEX_boundary->Insert(s3 + s); }
+                    if ((volume_tags & b4) != 0) { VERTEX_boundary->Insert(s4 + s); }
+                    if ((volume_tags & b5) != 0) { VERTEX_boundary->Insert(s5 + s); }
+                    if ((volume_tags & b6) != 0) { VERTEX_boundary->Insert(s6 + s); }
+                    if ((volume_tags & b7) != 0) { VERTEX_boundary->Insert(s7 + s); }
 
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(s + t1 | s0); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(s + t1 | s2); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(s + t1 | s4); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(s + t1 | s6); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(s + t2 | s0); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(s + t2 | s1); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(s + t2 | s4); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(s + t2 | s5); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(s + t4 | s0); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(s + t4 | s1); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(s + t4 | s2); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(s + t4 | s3); }
+                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t1 | s0 + s); }
+                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t1 | s2 + s); }
+                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t1 | s4 + s); }
+                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t1 | s6 + s); }
+                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t2 | s0 + s); }
+                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t2 | s1 + s); }
+                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t2 | s4 + s); }
+                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t2 | s5 + s); }
+                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t4 | s0 + s); }
+                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t4 | s1 + s); }
+                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t4 | s2 + s); }
+                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t4 | s3 + s); }
 
-                    if ((volume_tags & (0b1 << 0)) != 0) { FACE_PARA_boundary->Insert(s + t3 | s0); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { FACE_PARA_boundary->Insert(s + t5 | s0); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { FACE_PARA_boundary->Insert(s + t6 | s0); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { FACE_PARA_boundary->Insert(s + t6 | s1); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { FACE_PARA_boundary->Insert(s + t5 | s2); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { FACE_PARA_boundary->Insert(s + t3 | s4); }
+                    if ((volume_tags & (0b1 << 0)) != 0) { FACE_PARA_boundary->Insert(t3 | s0 + s); }
+                    if ((volume_tags & (0b1 << 0)) != 0) { FACE_PARA_boundary->Insert(t5 | s0 + s); }
+                    if ((volume_tags & (0b1 << 0)) != 0) { FACE_PARA_boundary->Insert(t6 | s0 + s); }
+                    if ((volume_tags & (0b1 << 0)) != 0) { FACE_PARA_boundary->Insert(t6 | s1 + s); }
+                    if ((volume_tags & (0b1 << 0)) != 0) { FACE_PARA_boundary->Insert(t5 | s2 + s); }
+                    if ((volume_tags & (0b1 << 0)) != 0) { FACE_PARA_boundary->Insert(t3 | s4 + s); }
 
-                    VOLUME_boundary->Insert(s + t7 | s0);
+                    VOLUME_boundary->Insert(t7 + s);
                 }
             }
     range[VERTEX_BODY].append(VERTEX_body);

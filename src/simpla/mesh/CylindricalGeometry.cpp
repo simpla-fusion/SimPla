@@ -71,7 +71,7 @@ void CylindricalSMesh::InitializeData(Real time_now) {
     ie = std::get<1>(index_box)[0];
     je = std::get<1>(index_box)[1];
     ke = std::get<1>(index_box)[2];
-    CHECK(index_box);
+
     for (index_type i = ib; i < ie; ++i)
         for (index_type j = jb; j < je; ++j)
             for (index_type k = kb; k < ke; ++k) {
