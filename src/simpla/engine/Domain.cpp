@@ -110,7 +110,7 @@ std::shared_ptr<Patch> Domain::ApplyBoundaryCondition(const std::shared_ptr<Patc
 }
 std::shared_ptr<Patch> Domain::DoAdvance(const std::shared_ptr<Patch>& patch, Real time_now, Real dt) {
     Push(patch);
-    //    Advance(time_now, dt);
+    Advance(time_now, dt);
     OnAdvance(this, time_now, dt);
     return PopPatch();
 }

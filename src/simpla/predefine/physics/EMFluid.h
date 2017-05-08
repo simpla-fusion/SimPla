@@ -112,8 +112,6 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
     Bv.Clear();
     B0v.Clear();
 
-    Ev = map_to<VERTEX>(E);
-    B0v = map_to<VERTEX>(B0);
     //    BB = inner_product(B0v, B0v);
 }
 template <typename TM>
@@ -203,6 +201,9 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     B -= curl(E) * (dt * 0.5);
     //    B[GetBoundaryRange(FACE, "PEC")] = 0;
     //    SetPhysicalBoundaryConditionB(time_now);
+
+    Ev = map_to<VERTEX>(E);
+    Bv = map_to<VERTEX>(B);
 }
 
 }  // namespace simpla  {
