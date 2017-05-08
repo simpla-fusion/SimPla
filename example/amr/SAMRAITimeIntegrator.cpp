@@ -325,7 +325,6 @@ Array<T, NDIMS> create_array(SAMRAI::pdat::ArrayData<T> &p_data, int depth = 0) 
 
     typename Array<T, NDIMS>::m_index_box_type i_box{{i_lower[0], i_lower[1], i_lower[2]},
                                                      {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}};
-
     return Array<T, NDIMS>(i_box, std::shared_ptr<T>(p_data.getPointer(depth), simpla::tags::do_nothing()), true);
 };
 
@@ -482,7 +481,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
 void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchFromSAMRAI(SAMRAI::hier::Patch &patch, engine::Patch *p) {
     p->SetBlock(std::make_shared<engine::MeshBlock>(
         index_box_type{{patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]},
-                       {patch.getBox().upper()[0], patch.getBox().upper()[1], patch.getBox().upper()[2]}},
+                       {patch.getBox().upper()[0] + 1, patch.getBox().upper()[1] + 1, patch.getBox().upper()[2] + 1}},
         patch.getPatchLevelNumber()));
 
     for (auto &item : m_samrai_variables_) {
@@ -544,7 +543,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
     if (initial_time) {
         auto p = m_ctx_->GetAtlas().PopPatch(static_cast<id_type>(patch.getLocalId().getValue()));
         ConvertPatchFromSAMRAI(patch, p.get());
-        m_ctx_->InitializeCondition(p.get(), data_time);
+        p = m_ctx_->ApplyInitializeCondition(p, data_time);
         //        ConvertPatchToSAMRAI(patch, p.get());
         m_ctx_->GetAtlas().PushPatch(p);
     }
@@ -600,7 +599,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI:
                                                                          double dt, bool at_syncronization) {
     auto p = m_ctx_->GetAtlas().PopPatch(static_cast<id_type>(patch.getLocalId().getValue()));
     ConvertPatchFromSAMRAI(patch, p.get());
-    m_ctx_->Advance(p.get(), time, dt);
+    p = m_ctx_->DoAdvance(p, time, dt);
     m_ctx_->GetAtlas().PushPatch(p);
 }
 
@@ -634,7 +633,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setPhysicalBoundaryConditions(
     SAMRAI::hier::Patch &patch, double fill_time, const SAMRAI::hier::IntVector &ghost_width_to_fill) {
     auto p = m_ctx_->GetAtlas().PopPatch(static_cast<id_type>(patch.getLocalId().getValue()));
     ConvertPatchFromSAMRAI(patch, p.get());
-    m_ctx_->BoundaryCondition(p.get(), fill_time, 0);
+    p = m_ctx_->ApplyBoundaryCondition(p, fill_time, 0);
     m_ctx_->GetAtlas().PushPatch(p);
 }
 

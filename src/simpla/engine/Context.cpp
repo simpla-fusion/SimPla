@@ -66,15 +66,21 @@ void Context::SetUp() {
         item.second->SetUp();
     }
 };
-void Context::InitializeCondition(Patch *p, Real time_now) {
-    for (auto &item : m_pimpl_->m_domains_) { item.second->ApplyInitialCondition(p, time_now); }
+std::shared_ptr<Patch> Context::ApplyInitializeCondition(const std::shared_ptr<Patch> &p, Real time_now) {
+    std::shared_ptr<Patch> res = p;
+    for (auto &item : m_pimpl_->m_domains_) { res = item.second->ApplyInitialCondition(res, time_now); }
+    return res;
 }
-void Context::BoundaryCondition(Patch *p, Real time_now, Real time_dt) {
-    for (auto &item : m_pimpl_->m_domains_) { item.second->ApplyBoundaryCondition(p, time_now, time_dt); }
+std::shared_ptr<Patch> Context::ApplyBoundaryCondition(const std::shared_ptr<Patch> &p, Real time_now, Real time_dt) {
+    std::shared_ptr<Patch> res = p;
+    for (auto &item : m_pimpl_->m_domains_) { res = item.second->ApplyBoundaryCondition(res, time_now, time_dt); }
+    return res;
 }
 
-void Context::Advance(Patch *p, Real time_now, Real time_dt) {
-    for (auto &item : m_pimpl_->m_domains_) { item.second->ApplyAdvance(p, time_dt, time_dt); }
+std::shared_ptr<Patch> Context::DoAdvance(const std::shared_ptr<Patch> &p, Real time_now, Real time_dt) {
+    std::shared_ptr<Patch> res = p;
+    for (auto &item : m_pimpl_->m_domains_) { res = item.second->DoAdvance(res, time_dt, time_dt); }
+    return res;
 }
 
 Model &Context::GetModel() const { return m_pimpl_->m_model_; }

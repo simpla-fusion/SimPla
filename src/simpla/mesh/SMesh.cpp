@@ -10,7 +10,6 @@ namespace mesh {
 
 void SMesh::InitializeData(Real time_now) {
     StructuredMesh::InitializeData(time_now);
-    TIME_STAMP;
 
     m_vertices_.Clear();
     m_volume_.Clear();

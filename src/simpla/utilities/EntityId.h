@@ -725,27 +725,21 @@ struct UnorderedRange<EntityId> : public RangeBase<EntityId> {
     SP_OBJECT_HEAD(UnorderedRange<EntityId>, RangeBase<EntityId>)
 
    private:
-    static constexpr int ndims = 3;
-    int m_iform_ = VERTEX;
     std::set<EntityId> m_ids_;
 
    public:
-    UnorderedRange(int iform = VERTEX) : m_iform_(iform) {}
+    UnorderedRange() {}
     ~UnorderedRange() {}
     std::shared_ptr<base_type> split(concept::tags::split const& proportion) override {
         UNIMPLEMENTED;
         return (nullptr);
     }
 
-    void swap(this_type& other) {
-        std::swap(m_ids_, other.m_ids_);
-        std::swap(m_iform_, other.m_iform_);
-    }
+    void swap(this_type& other) { std::swap(m_ids_, other.m_ids_); }
     void Insert(EntityId s) { m_ids_.insert(s); }
 
     std::set<EntityId>& data() { return m_ids_; }
     std::set<EntityId> const& data() const { return m_ids_; }
-    int entity_type() const { return m_iform_; }
     bool empty() const override { return m_ids_.empty(); }
     size_t size() const override { return m_ids_.size(); }
     bool is_divisible() const override { return false; }

@@ -33,14 +33,14 @@ class Patch {
     void Merge(Patch &other);
     std::map<id_type, std::shared_ptr<data::DataBlock>> &GetAllData();
 
-    int Push(id_type const &id, std::shared_ptr<data::DataBlock> const &);
+    void Push(id_type const &id, std::shared_ptr<data::DataBlock> const &);
     std::shared_ptr<data::DataBlock> Pop(id_type const &id) const;
 
-    EntityRange GetRange(const std::string &g_str) const;
-    void SetRange(const std::string &g_str, EntityRange const &);
-
-    void PushRange(std::shared_ptr<std::map<std::string, EntityRange>> const &r);
-    std::shared_ptr<std::map<std::string, EntityRange>> PopRange();
+    //    EntityRange GetRange(const std::string &g_str) const;
+    //    void SetRange(const std::string &g_str, EntityRange const &);
+    //    void PushRange(std::shared_ptr<std::map<std::string, EntityRange>> const &r);
+    //    std::shared_ptr<std::map<std::string, EntityRange>> PopRange();
+    std::map<std::string, EntityRange> m_ranges;
 
    private:
     struct pimpl_s;

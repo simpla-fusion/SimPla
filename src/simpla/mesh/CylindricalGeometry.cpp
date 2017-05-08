@@ -5,8 +5,6 @@
 namespace simpla {
 namespace mesh {
 void CylindricalSMesh::InitializeData(Real time_now) {
-    TIME_STAMP;
-
     SMesh::InitializeData(time_now);
 
     auto &m_coordinates_ = GetCoordinates();
@@ -36,15 +34,15 @@ void CylindricalSMesh::InitializeData(Real time_now) {
         *
         *\endverbatim
         */
-    auto const *lower = &(std::get<0>(m_vertices_[0].GetIndexBox())[0]);
-    auto const *upper = &(std::get<1>(m_vertices_[0].GetIndexBox())[0]);
 
-    index_type ib = lower[0];
-    index_type ie = upper[0];
-    index_type jb = lower[1];
-    index_type je = upper[1];
-    index_type kb = lower[2];
-    index_type ke = upper[2];
+    index_type ib = std::get<0>(m_vertices_[0].GetIndexBox())[0];
+    index_type jb = std::get<0>(m_vertices_[0].GetIndexBox())[1];
+    index_type kb = std::get<0>(m_vertices_[0].GetIndexBox())[2];
+
+    index_type ie = std::get<1>(m_vertices_[0].GetIndexBox())[0];
+    index_type je = std::get<1>(m_vertices_[0].GetIndexBox())[1];
+    index_type ke = std::get<1>(m_vertices_[0].GetIndexBox())[2];
+
     //    point_type m_dx_ = GetChart()->GetDx();
     //    point_type x0 = GetChart()->GetOrigin();
 
@@ -64,13 +62,12 @@ void CylindricalSMesh::InitializeData(Real time_now) {
                 m_coordinates_[1](i, j, k) = x[R_axe] * std::sin(x[Phi_axe]);
                 m_coordinates_[2](i, j, k) = x[Z_axe];
             }
-    auto index_box = GetIndexBox(VERTEX);
-    ib = std::get<0>(index_box)[0];
-    jb = std::get<0>(index_box)[1];
-    kb = std::get<0>(index_box)[2];
-    ie = std::get<1>(index_box)[0];
-    je = std::get<1>(index_box)[1];
-    ke = std::get<1>(index_box)[2];
+    ib = std::get<0>(m_volume_[0].GetIndexBox())[0];
+    jb = std::get<0>(m_volume_[0].GetIndexBox())[1];
+    kb = std::get<0>(m_volume_[0].GetIndexBox())[2];
+    ie = std::get<1>(m_volume_[0].GetIndexBox())[0];
+    je = std::get<1>(m_volume_[0].GetIndexBox())[1];
+    ke = std::get<1>(m_volume_[0].GetIndexBox())[2];
 
     for (index_type i = ib; i < ie; ++i)
         for (index_type j = jb; j < je; ++j)

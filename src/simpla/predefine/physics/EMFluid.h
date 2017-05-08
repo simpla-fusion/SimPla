@@ -42,10 +42,10 @@ class EMFluid : public engine::Domain {
 
     field_type<EDGE> E0{this};
     field_type<FACE> B0{this};
-    field_type<VERTEX, 3> B0v{this};
+    field_type<VERTEX, 3> B0v{this, "name"_ = "B0"};
     field_type<VERTEX> BB{this, "name"_ = "BB"};
-    field_type<VERTEX, 3> Ev{this};
-    field_type<VERTEX, 3> Bv{this};
+    field_type<VERTEX, 3> Ev{this, "name"_ = "Ev"};
+    field_type<VERTEX, 3> Bv{this, "name"_ = "Bv"};
     field_type<VERTEX, 3> dE{this};
 
     field_type<FACE> B{this, "name"_ = "B"};
@@ -109,12 +109,12 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
 
     E.Clear();
     B.Clear();
+    Ev.Clear();
+    Bv.Clear();
     B0v.Clear();
-    //    if (E.isNull()) {}
-    //    ne[0].Foreach([&](index_tuple const& k, Real& v) { v = k[1]; });
-    //    ne.Assign([&](point_type const& z) -> Real { return z[1] * z[0] * z[2]; });
-    //    Ev = map_to<VERTEX>(E);
-    //    B0v = map_to<VERTEX>(B0);
+
+    Ev = map_to<VERTEX>(E);
+    B0v = map_to<VERTEX>(B0);
     //    BB = inner_product(B0v, B0v);
 }
 template <typename TM>
@@ -137,9 +137,11 @@ void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
 template <typename TM>
 void EMFluid<TM>::Advance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
-    //    B = B - curl(E) * (dt * 0.5);
+    B = B - curl(E) * (dt * 0.5);
+    //    B[GetBoundaryRange(FACE, "PEC")] = 0;
     //    SetPhysicalBoundaryConditionB(time_now);
-    //    E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
+    E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
+    //    E[GetBoundaryRange(EDGE, "PEC")] = 0;
     //    //    SetPhysicalBoundaryConditionE(time_now);
     //    if (m_fluid_sp_.size() > 0) {
     //        field_type<VERTEX, 3> Q{this};
@@ -199,7 +201,8 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     //        Ev += dE;
     //        E += map_to<EDGE>(Ev) - E;
     //    }
-    //    B -= curl(E) * (dt * 0.5);
+    B -= curl(E) * (dt * 0.5);
+    //    B[GetBoundaryRange(FACE, "PEC")] = 0;
     //    SetPhysicalBoundaryConditionB(time_now);
 }
 

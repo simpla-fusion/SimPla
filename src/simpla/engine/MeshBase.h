@@ -67,21 +67,8 @@ class MeshBase : public data::EnableCreateFromDataTable<MeshBase, Domain *> {
     virtual point_type const &GetOrigin() = 0;
     virtual point_type const &GetDx() = 0;
 
-    enum {
-        VERTEX_BODY = 0,
-        EDGE_BODY,
-        FACE_BODY,
-        VOLUME_BODY,
-        VERTEX_BOUNDARY,
-        EDGE_PARA_BOUNDARY,
-        FACE_PARA_BOUNDARY,
-        EDGE_PERP_BOUNDARY,
-        FACE_PERP_BOUNDARY,
-        VOLUME_BOUNDARY
-
-    };
-
-    virtual void InitializeRange(std::shared_ptr<geometry::GeoObject> const &g, EntityRange *body){};
+    virtual void RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix,
+                                std::map<std::string, EntityRange> &ranges){};
 
     virtual index_box_type GetIndexBox(int tag) const;
     virtual box_type GetBox() const { return box_type{{0, 0, 0}, {1, 1, 1}}; }

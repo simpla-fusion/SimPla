@@ -8,29 +8,30 @@ namespace simpla {
 namespace mesh {
 using namespace algebra;
 
-void StructuredMesh::InitializeRange(std::shared_ptr<geometry::GeoObject> const& g, EntityRange* range) {
+void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix,
+                                    std::map<std::string, EntityRange> &ranges) {
     if (g == nullptr) { return; }
     auto overlap = g->CheckOverlap(GetBox());
     if (overlap == 1) { return; }
     if (overlap == -1) {
-        range[VERTEX_BODY].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(0), 0));
+        ranges[prefix + ".VERTEX_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(0), 0));
 
-        range[EDGE_BODY].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(1), 1));
-        range[EDGE_BODY].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(2), 2));
-        range[EDGE_BODY].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(4), 4));
+        ranges[prefix + ".EDGE_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(1), 1));
+        ranges[prefix + ".EDGE_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(2), 2));
+        ranges[prefix + ".EDGE_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(4), 4));
 
-        range[FACE_BODY].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(3), 3));
-        range[FACE_BODY].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(5), 5));
-        range[FACE_BODY].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(6), 6));
+        ranges[prefix + ".FACE_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(3), 3));
+        ranges[prefix + ".FACE_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(5), 5));
+        ranges[prefix + ".FACE_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(6), 6));
 
-        range[VOLUME_BODY].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(7), 7));
+        ranges[prefix + ".VOLUME_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(7), 7));
 
         return;
     }
 
     vertex_tags.Clear();
 
-    vertex_tags[0].Foreach([&](index_tuple const& idx, int& v) {
+    vertex_tags[0].Foreach([&](index_tuple const &idx, int &v) {
         if (g->CheckInside(point(idx[0], idx[1], idx[2])) == 0) { v = 1; }
     });
     /**
@@ -111,7 +112,7 @@ void StructuredMesh::InitializeRange(std::shared_ptr<geometry::GeoObject> const&
                                   (vertex_tags[s5 + s] << 5) |  //
                                   (vertex_tags[s6 + s] << 6) |  //
                                   (vertex_tags[s7 + s] << 7);
-
+                //
                 if (volume_tags == 0) {
                     /**
                      *\verbatim
@@ -177,39 +178,40 @@ void StructuredMesh::InitializeRange(std::shared_ptr<geometry::GeoObject> const&
                     if ((volume_tags & b6) != 0) { VERTEX_boundary->Insert(s6 + s); }
                     if ((volume_tags & b7) != 0) { VERTEX_boundary->Insert(s7 + s); }
 
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t1 | s0 + s); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t1 | s2 + s); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t1 | s4 + s); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t1 | s6 + s); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t2 | s0 + s); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t2 | s1 + s); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t2 | s4 + s); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t2 | s5 + s); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t4 | s0 + s); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t4 | s1 + s); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t4 | s2 + s); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { EDGE_PARA_boundary->Insert(t4 | s3 + s); }
+#define CHECK_TAG(_TAG_) if ((volume_tags & _TAG_) == _TAG_)
+                    CHECK_TAG(0b00000011) { EDGE_PARA_boundary->Insert(t1 | s0 + s); }
+                    CHECK_TAG(0b00001100) { EDGE_PARA_boundary->Insert(t1 | s2 + s); }
+                    CHECK_TAG(0b00110000) { EDGE_PARA_boundary->Insert(t1 | s4 + s); }
+                    CHECK_TAG(0b11000000) { EDGE_PARA_boundary->Insert(t1 | s6 + s); }
+                    CHECK_TAG(0b00000101) { EDGE_PARA_boundary->Insert(t2 | s0 + s); }
+                    CHECK_TAG(0b00001010) { EDGE_PARA_boundary->Insert(t2 | s1 + s); }
+                    CHECK_TAG(0b01010000) { EDGE_PARA_boundary->Insert(t2 | s4 + s); }
+                    CHECK_TAG(0b10100000) { EDGE_PARA_boundary->Insert(t2 | s5 + s); }
+                    CHECK_TAG(0b00010001) { EDGE_PARA_boundary->Insert(t4 | s0 + s); }
+                    CHECK_TAG(0b00100010) { EDGE_PARA_boundary->Insert(t4 | s1 + s); }
+                    CHECK_TAG(0b01000100) { EDGE_PARA_boundary->Insert(t4 | s2 + s); }
+                    CHECK_TAG(0b10001000) { EDGE_PARA_boundary->Insert(t4 | s3 + s); }
 
-                    if ((volume_tags & (0b1 << 0)) != 0) { FACE_PARA_boundary->Insert(t3 | s0 + s); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { FACE_PARA_boundary->Insert(t5 | s0 + s); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { FACE_PARA_boundary->Insert(t6 | s0 + s); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { FACE_PARA_boundary->Insert(t6 | s1 + s); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { FACE_PARA_boundary->Insert(t5 | s2 + s); }
-                    if ((volume_tags & (0b1 << 0)) != 0) { FACE_PARA_boundary->Insert(t3 | s4 + s); }
-
+//                    CHECK_TAG(0b00000011) { FACE_PARA_boundary->Insert(t3 | s0 + s); }
+//                    CHECK_TAG(0b00000011) { FACE_PARA_boundary->Insert(t5 | s0 + s); }
+//                    CHECK_TAG(0b00000011) { FACE_PARA_boundary->Insert(t6 | s0 + s); }
+//                    CHECK_TAG(0b00000011) { FACE_PARA_boundary->Insert(t6 | s1 + s); }
+//                    CHECK_TAG(0b00000011) { FACE_PARA_boundary->Insert(t5 | s2 + s); }
+//                    CHECK_TAG(0b00000011) { FACE_PARA_boundary->Insert(t3 | s4 + s); }
+#undef CHECK_TAG
                     VOLUME_boundary->Insert(t7 + s);
                 }
             }
-    range[VERTEX_BODY].append(VERTEX_body);
-    range[EDGE_BODY].append(EDGE_body);
-    range[FACE_BODY].append(FACE_body);
-    range[VOLUME_BODY].append(VOLUME_body);
-    range[VERTEX_BOUNDARY].append(VERTEX_boundary);
-    range[EDGE_PARA_BOUNDARY].append(EDGE_PARA_boundary);
-    range[FACE_PARA_BOUNDARY].append(FACE_PARA_boundary);
-    range[EDGE_PERP_BOUNDARY].append(EDGE_PERP_boundary);
-    range[FACE_PERP_BOUNDARY].append(FACE_PERP_boundary);
-    range[VOLUME_BOUNDARY].append(VOLUME_boundary);
+    ranges[prefix + ".VERTEX_BODY"].append(VERTEX_body);
+    ranges[prefix + ".EDGE_BODY"].append(EDGE_body);
+    ranges[prefix + ".FACE_BODY"].append(FACE_body);
+    ranges[prefix + ".VOLUME_BODY"].append(VOLUME_body);
+    ranges[prefix + ".VERTEX_BOUNDARY"].append(VERTEX_boundary);
+    ranges[prefix + ".EDGE_PARA_BOUNDARY"].append(EDGE_PARA_boundary);
+    ranges[prefix + ".FACE_PARA_BOUNDARY"].append(FACE_PARA_boundary);
+    ranges[prefix + ".EDGE_PERP_BOUNDARY"].append(EDGE_PERP_boundary);
+    ranges[prefix + ".FACE_PERP_BOUNDARY"].append(FACE_PERP_boundary);
+    ranges[prefix + ".VOLUME_BOUNDARY"].append(VOLUME_boundary);
 }
 
 }  // namespace mesh{

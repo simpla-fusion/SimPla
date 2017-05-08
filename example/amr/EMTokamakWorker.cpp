@@ -28,8 +28,8 @@ class EMTokamak : public engine::Context {
 
     GEqdsk geqdsk;
     //    void InitialCondition(Real time_now) override;
-    //    void BoundaryCondition(Real time_now, Real dt) override;
-    //    void Advance(Real time_now, Real dt) override;
+    //    void ApplyBoundaryCondition(Real time_now, Real dt) override;
+    //    void DoAdvance(Real time_now, Real dt) override;
     //    field_type<VERTEX> psi{base_type::m_mesh_, "name"_ = "psi"};
     //    std::function<Vec3(point_type const&, Real)> J_src_fun;
     //    std::function<Vec3(point_type const&, Real)> E_src_fun;
@@ -55,7 +55,7 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     engine::Context::Initialize();
     engine::Context::Deserialize(cfg);
 
-    GetDomain("Limiter")->SetGeoObject("Center", GetModel().GetObject("Center"));
+    GetDomain("Limiter")->AddGeoObject("Center", GetModel().GetObject("Center"));
 
     typedef mesh::CylindricalSMesh mesh_type;
     auto d = GetDomain("Limiter");
@@ -63,8 +63,8 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
         d->OnBoundaryCondition.Connect([&](Domain* self, Real time_now, Real time_dt) {
             auto& E = self->GetAttribute<Field<mesh_type, Real, EDGE>>("E");
             auto& B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
-            //            E[self->GetBoundaryRange(EDGE)] = 0;
-            //            B[self->GetBoundaryRange(FACE)] = 0;
+            E[self->GetBoundaryRange(EDGE)] = 0;
+            B[self->GetBoundaryRange(FACE)] = 0;
         });
 
         d->OnInitialCondition.Connect([&](Domain* self, Real time_now) {
@@ -75,9 +75,9 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
                 return geqdsk.profile("ne", x[0], x[1]);
             };
 
-            //            auto& B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
-            //            B = [&](point_type const& x) -> Vec3 { return geqdsk.B(x); };
-
+            auto& B0 = self->GetAttribute<Field<mesh_type, Real, VERTEX, 3>>("B0");
+            B0.Clear();
+            B0 = [&](point_type const& x) -> Vec3 { return geqdsk.B(x[0], x[1]); };
         });
     }
     //    std::cout << "Model = ";

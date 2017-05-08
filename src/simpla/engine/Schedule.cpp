@@ -53,6 +53,7 @@ void Schedule::Dump() const { UNIMPLEMENTED; }
 
 void Schedule::Run() {
     while (!Done()) {
+        VERBOSE << " [ STEP:" << std::setw(5) << m_pimpl_->m_step_ << " START ] " << std::endl;
         Synchronize();
         NextStep();
         if (m_pimpl_->m_check_point_interval_ > 0 && m_pimpl_->m_step_ % m_pimpl_->m_check_point_interval_ == 0) {
@@ -60,7 +61,7 @@ void Schedule::Run() {
         };
         if (m_pimpl_->m_dump_interval_ > 0 && m_pimpl_->m_step_ % m_pimpl_->m_dump_interval_ == 0) { Dump(); };
 
-        VERBOSE << " [ STEP:" << std::setw(5) << m_pimpl_->m_step_ << " ] " << std::endl;
+        VERBOSE << " [ STEP:" << std::setw(5) << m_pimpl_->m_step_ - 1 << " STOP  ] " << std::endl;
     }
 }
 

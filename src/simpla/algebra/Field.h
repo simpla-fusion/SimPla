@@ -50,7 +50,7 @@ class FieldView : public engine::Attribute {
 
    private:
     typedef Array<value_type, NDIMS> array_type;
-    std::vector<array_type> m_data_;
+    array_type m_data_[NUMBER_OF_SUB];
     mesh_type* m_mesh_ = nullptr;
     EntityRange m_range_;
 
@@ -59,23 +59,25 @@ class FieldView : public engine::Attribute {
     explicit FieldView(engine::Domain* d, Args&&... args)
         : engine::Attribute(IFORM, DOF, typeid(value_type), d,
                             std::make_shared<data::DataTable>(std::forward<Args>(args)...)),
-          m_mesh_(dynamic_cast<mesh_type*>(engine::Attribute::GetDomain()->GetMesh())),
-          m_data_(NUMBER_OF_SUB){};
+          m_mesh_(dynamic_cast<mesh_type*>(engine::Attribute::GetDomain()->GetMesh())){};
     template <typename... Args>
     explicit FieldView(engine::MeshBase* d, Args&&... args)
         : engine::Attribute(IFORM, DOF, typeid(value_type), d,
                             std::make_shared<data::DataTable>(std::forward<Args>(args)...)),
-          m_mesh_(dynamic_cast<mesh_type*>(engine::Attribute::GetDomain()->GetMesh())),
-          m_data_(NUMBER_OF_SUB){};
+          m_mesh_(dynamic_cast<mesh_type*>(engine::Attribute::GetDomain()->GetMesh())){};
 
-    FieldView(this_type const& other)
-        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(other.m_range_) {}
+    FieldView(this_type const& other) : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_) {
+        for (int i = 0; i < NUMBER_OF_SUB; ++i) { array_type(other.m_data_[i]).swap(m_data_[i]); }
+    }
 
-    FieldView(this_type&& other)
-        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(other.m_range_) {}
+    FieldView(this_type&& other) : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_) {
+        for (int i = 0; i < NUMBER_OF_SUB; ++i) { array_type(std::move(other.m_data_[i])).swap(m_data_[i]); }
+    }
 
     FieldView(this_type const& other, EntityRange const& r)
-        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(r) {}
+        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(r) {
+        for (int i = 0; i < NUMBER_OF_SUB; ++i) { array_type(other.m_data_[i]).swap(m_data_[i]); }
+    }
 
     ~FieldView() override = default;
 
@@ -83,10 +85,10 @@ class FieldView : public engine::Attribute {
 
     void Clear() {
         SetUp();
-        for (int i = 0; i < m_data_.size(); ++i) { m_data_[i].Clear(); }
+        for (int i = 0; i < NUMBER_OF_SUB; ++i) { m_data_[i].Clear(); }
     }
 
-    bool empty() const override { return m_data_.size() == 0; }
+    bool empty() const override { return m_data_[0].empty(); }
 
     this_type& operator=(this_type const& other) {
         Assign(other);
@@ -97,21 +99,21 @@ class FieldView : public engine::Attribute {
     this_type& operator=(TR const& rhs) {
         Assign(rhs);
         return *this;
-    }
+    };
 
-    void Push(std::shared_ptr<data::DataBlock> d, EntityRange const& r) override {
+    void Push(const std::shared_ptr<data::DataBlock>& d, EntityRange const& r) override {
         Click();
         m_range_ = r;
 
         if (d != nullptr) {
             auto& t = d->cast_as<data::DataMultiArray<value_type, NDIMS>>();
-            for (int i = 0; i < m_data_.size(); ++i) { array_type(t.GetArray(i)).swap(m_data_[i]); }
+            for (int i = 0; i < NUMBER_OF_SUB; ++i) { array_type(t.GetArray(i)).swap(m_data_[i]); }
             Tag();
         }
     }
     std::shared_ptr<data::DataBlock> Pop() override {
-        auto res = std::make_shared<data::DataMultiArray<value_type, NDIMS>>(m_data_.size());
-        for (int i = 0; i < m_data_.size(); ++i) { array_type(m_data_[i]).swap(res->GetArray(i)); }
+        auto res = std::make_shared<data::DataMultiArray<value_type, NDIMS>>(NUMBER_OF_SUB);
+        for (int i = 0; i < NUMBER_OF_SUB; ++i) { array_type(m_data_[i]).swap(res->GetArray(i)); }
         return res;
     }
 
@@ -148,29 +150,14 @@ class FieldView : public engine::Attribute {
 
     void SetUp() override {
         engine::Attribute::SetUp();
-        static constexpr int id_2_sub_edge[3] = {1, 2, 4};
-        static constexpr int id_2_sub_face[3] = {6, 5, 3};
+        static constexpr int id_2_sub[4][3] = {{0, 0, 0}, {1, 2, 4}, {6, 5, 3}, {7, 7, 7}};
 
         for (int i = 0; i < NUMBER_OF_SUB; ++i) {
             if (!m_data_[i].empty()) { continue; }
-            switch (IFORM) {
-                case VERTEX:
-                    array_type(m_mesh_->GetIndexBox(0)).swap(m_data_[i]);
-                    break;
-                case EDGE:
-                    array_type(m_mesh_->GetIndexBox(id_2_sub_edge[(i / DOF) % 3])).swap(m_data_[i]);
-                    break;
-                case FACE:
-                    array_type(m_mesh_->GetIndexBox(id_2_sub_face[(i / DOF) % 3])).swap(m_data_[i]);
-                    break;
-                case VOLUME:
-                    array_type(m_mesh_->GetIndexBox(7)).swap(m_data_[i]);
-                    break;
-                default:
-                    break;
-            }
+
+            array_type(m_mesh_->GetIndexBox(id_2_sub[IFORM][(i / DOF) % 3])).swap(m_data_[i]);
         }
-        if (m_range_.empty() && GetDomain() != nullptr) { m_range_ = GetDomain()->GetBodyRange(GetIFORM()); }
+        if (m_range_.isNull() && GetDomain() != nullptr) { m_range_ = GetDomain()->GetBodyRange(GetIFORM()); }
 
         Tag();
     }
@@ -178,47 +165,59 @@ class FieldView : public engine::Attribute {
     template <typename Other>
     void Assign(Other const& other) {
         SetUp();
-        //        static constexpr int id_2_sub_edge[3] = {1, 2, 4};
-        //        static constexpr int id_2_sub_face[3] = {6, 5, 3};
-        //        if (m_range_.empty()) {
-        //            for (int i = 0; i < NUMBER_OF_SUB; ++i) {
-        //                int16_t w = 0;
-        //                switch (IFORM) {
-        //                    case VERTEX:
-        //                        w = static_cast<int16_t>(i << 3);
-        //                        break;
-        //                    case EDGE:
-        //                        w = static_cast<int16_t>(((i % DOF) << 3) | id_2_sub_edge[(i / DOF) % 3]);
-        //                        break;
-        //                    case FACE:
-        //                        w = static_cast<int16_t>(((i % DOF) << 3) | id_2_sub_face[(i / DOF) % 3]);
-        //                        break;
-        //                    case VOLUME:
-        //                        w = static_cast<int16_t>((i << 3) | 0b111);
-        //                        break;
-        //                    default:
-        //                        break;
-        //                }
-        //                m_data_[i].Foreach([&](index_tuple const& idx, value_type& v) {
-        //                    EntityId s;
-        //                    s.w = w;
-        //                    s.x = static_cast<int16_t>(idx[0]);
-        //                    s.y = static_cast<int16_t>(idx[1]);
-        //                    s.z = static_cast<int16_t>(idx[2]);
-        //                    v = calculus_policy::getValue(*m_mesh_, other, s);
-        //                });
-        //            }
-        //        } else {
-        //        }
+
+        ASSERT(!m_range_.isNull());
 
         for (int i = 0; i < DOF; ++i) {
             m_range_.foreach ([&](EntityId s) {
                 s.w = s.w | static_cast<int16_t>(i << 3);
-                at(s) = calculus_policy::getValue(*m_mesh_, other, s);
+                this->at(s) = calculus_policy::getValue(*m_mesh_, other, s);
             });
         }
     }
+    //        static int tag[4][3] = {{0, 0, 0}, {1, 2, 4}, {6, 5, 3}, {7, 7, 7}};
+    //        for (int j = 0; j < NUMBER_OF_SUB; ++j) {
+    //            VERBOSE << m_data_[j].GetIndexBox() << "~" << m_mesh_->GetIndexBox(tag[IFORM][(j / DOF) % 3]) <<
+    //            std::endl;
+    //        }
+    //        VERBOSE << s.x << "," << s.y << "," << s.z << "   " << std::boolalpha
+    //                << m_data_[EntityIdCoder::SubIndex<IFORM, DOF>(s)].empty() << std::endl;
+    //        static constexpr int id_2_sub_edge[3] = {1, 2, 4};
+    //        static constexpr int id_2_sub_face[3] = {6, 5, 3};
+    //        if (m_range_.empty()) {
+    //            for (int i = 0; i < NUMBER_OF_SUB; ++i) {
+    //                int16_t w = 0;
+    //                switch (IFORM) {
+    //                    case VERTEX:
+    //                        w = static_cast<int16_t>(i << 3);
+    //                        break;
+    //                    case EDGE:
+    //                        w = static_cast<int16_t>(((i % DOF) << 3) | id_2_sub_edge[(i / DOF) % 3]);
+    //                        break;
+    //                    case FACE:
+    //                        w = static_cast<int16_t>(((i % DOF) << 3) | id_2_sub_face[(i / DOF) % 3]);
+    //                        break;
+    //                    case VOLUME:
+    //                        w = static_cast<int16_t>((i << 3) | 0b111);
+    //                        break;
+    //                    default:
+    //                        break;
+    //                }
+    //                m_data_[i].Foreach([&](index_tuple const& idx, value_type& v) {
+    //                    EntityId s;
+    //                    s.w = w;
+    //                    s.x = static_cast<int16_t>(idx[0]);
+    //                    s.y = static_cast<int16_t>(idx[1]);
+    //                    s.z = static_cast<int16_t>(idx[2]);
+    //                    v = calculus_policy::getValue(*m_mesh_, other, s);
+    //                });
+    //            }
+    //        } else {
+    //        }
+
 };  // class FieldView
+template <typename TM, typename TV, int IFORM, int DOF>
+constexpr int FieldView<TM, TV, IFORM, DOF>::NUMBER_OF_SUB;  //= ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
 
 namespace declare {
 

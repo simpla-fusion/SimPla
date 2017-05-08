@@ -77,9 +77,9 @@ class Context : public data::EnableCreateFromDataTable<Context> {
     void Initialize() override;
     void Finalize() override;
 
-    void InitializeCondition(Patch *p, Real time_now);
-    void BoundaryCondition(Patch *p, Real time_now, Real time_dt);
-    void Advance(Patch *p, Real time_now, Real time_dt);
+    std::shared_ptr<Patch> ApplyInitializeCondition(const std::shared_ptr<Patch> &p, Real time_now);
+    std::shared_ptr<Patch> ApplyBoundaryCondition(const std::shared_ptr<Patch> &p, Real time_now, Real time_dt);
+    std::shared_ptr<Patch> DoAdvance(const std::shared_ptr<Patch> &p, Real time_now, Real time_dt);
 
     Model &GetModel() const;
     Atlas &GetAtlas() const;

@@ -37,7 +37,7 @@ class Domain : public SPObject,
     virtual MeshBase *GetMesh() = 0;
     virtual MeshBase const *GetMesh() const = 0;
 
-    void SetGeoObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &g);
+    void AddGeoObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &g);
     std::shared_ptr<geometry::GeoObject> GetGeoObject(std::string const &k = "") const;
     EntityRange GetRange(std::string const &k = "") const;
     EntityRange GetBodyRange(int IFORM = VERTEX, std::string const &k = "") const;
@@ -58,12 +58,12 @@ class Domain : public SPObject,
     virtual void BoundaryCondition(Real time_now, Real dt) {}
     virtual void Advance(Real time_now, Real dt) {}
 
-    void Push(Patch *);
-    void Pop(Patch *);
+    void Push(const std::shared_ptr<Patch> &);
+    std::shared_ptr<Patch> PopPatch();
 
-    void ApplyInitialCondition(Patch *, Real time_now);
-    void ApplyBoundaryCondition(Patch *, Real time_now, Real dt);
-    void ApplyAdvance(Patch *, Real time_now, Real dt);
+    std::shared_ptr<Patch> ApplyInitialCondition(const std::shared_ptr<Patch> &, Real time_now);
+    std::shared_ptr<Patch> ApplyBoundaryCondition(const std::shared_ptr<Patch> &, Real time_now, Real dt);
+    std::shared_ptr<Patch> DoAdvance(const std::shared_ptr<Patch> &, Real time_now, Real dt);
 
    private:
     struct pimpl_s;

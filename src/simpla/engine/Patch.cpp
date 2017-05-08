@@ -44,32 +44,29 @@ void Patch::Merge(Patch &other) {
 
 std::map<id_type, std::shared_ptr<data::DataBlock>> &Patch::GetAllData() { return m_pimpl_->m_data_; };
 
-int Patch::Push(id_type const &id, std::shared_ptr<data::DataBlock> const &d) {
-    auto res = m_pimpl_->m_data_.emplace(id, d);
-    if (res.first->second == nullptr) { res.first->second = d; }
-    return res.first->second != nullptr ? 1 : 0;
-}
+void Patch::Push(id_type const &id, std::shared_ptr<data::DataBlock> const &d) { m_pimpl_->m_data_[id] = d; }
 std::shared_ptr<data::DataBlock> Patch::Pop(id_type const &id) const {
     std::shared_ptr<data::DataBlock> res = nullptr;
     auto it = m_pimpl_->m_data_.find(id);
     if (it != m_pimpl_->m_data_.end()) { res = it->second; }
     return res;
 }
-EntityRange Patch::GetRange(const std::string &g) const {
-    if (m_pimpl_->m_range_ != nullptr) {
-        auto it = m_pimpl_->m_range_->find(g);
-        if (it != m_pimpl_->m_range_->end()) { return it->second; }
-    }
-    return EntityRange{};
-}
-
-void Patch::SetRange(const std::string &g, EntityRange const &r) {
-    if (m_pimpl_->m_range_ == nullptr) { m_pimpl_->m_range_ = std::make_shared<std::map<std::string, EntityRange>>(); }
-    (*m_pimpl_->m_range_)[g] = r;
-}
-
-void Patch::PushRange(std::shared_ptr<std::map<std::string, EntityRange>> const &r) { m_pimpl_->m_range_ = r; };
-std::shared_ptr<std::map<std::string, EntityRange>> Patch::PopRange() { return m_pimpl_->m_range_; };
+// EntityRange Patch::GetRange(const std::string &g) const {
+//    if (m_pimpl_->m_range_ != nullptr) {
+//        auto it = m_pimpl_->m_range_->find(g);
+//        if (it != m_pimpl_->m_range_->end()) { return it->second; }
+//    }
+//    return EntityRange{};
+//}
+//
+// void Patch::SetRange(const std::string &g, EntityRange const &r) {
+//    if (m_pimpl_->m_range_ == nullptr) { m_pimpl_->m_range_ = std::make_shared<std::map<std::string, EntityRange>>();
+//    }
+//    (*m_pimpl_->m_range_)[g] = r;
+//}
+//
+// void Patch::PushRange(std::shared_ptr<std::map<std::string, EntityRange>> const &r) { m_pimpl_->m_range_ = r; };
+// std::shared_ptr<std::map<std::string, EntityRange>> Patch::PopRange() { return m_pimpl_->m_range_; };
 
 }  // namespace engine {
 }  // namespace simpla {

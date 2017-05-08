@@ -12,11 +12,11 @@ namespace engine {
 
 struct Domain::pimpl_s {
     std::map<std::string, std::shared_ptr<geometry::GeoObject>> m_geo_object_;
-    std::shared_ptr<std::map<std::string, EntityRange>> m_range_;
+
+    std::shared_ptr<Patch> m_patch_ = nullptr;
 };
 Domain::Domain(std::shared_ptr<geometry::GeoObject> const& g) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_geo_object_[""] = g;
-    m_pimpl_->m_range_ = std::make_shared<std::map<std::string, EntityRange>>();
 }
 Domain::~Domain() {}
 
@@ -44,8 +44,9 @@ void Domain::Finalize() {
     SPObject::Finalize();
 }
 
-void Domain::SetGeoObject(std::string const& k, std::shared_ptr<geometry::GeoObject> const& g) {
+void Domain::AddGeoObject(std::string const& k, std::shared_ptr<geometry::GeoObject> const& g) {
     m_pimpl_->m_geo_object_[k] = g;
+    m_pimpl_->m_patch_ = std::make_shared<Patch>();
 }
 
 std::shared_ptr<geometry::GeoObject> Domain::GetGeoObject(std::string const& k) const {
@@ -54,84 +55,64 @@ std::shared_ptr<geometry::GeoObject> Domain::GetGeoObject(std::string const& k) 
 }
 
 EntityRange Domain::GetRange(std::string const& k) const {
-    ASSERT(m_pimpl_->m_range_ != nullptr)
-    auto it = m_pimpl_->m_range_->find(k);
-    if (it != m_pimpl_->m_range_->end()) {
-        return it->second;
-    } else {
-        VERBOSE << k << " is not found!" << std::endl;
-        return EntityRange{};
-    }
+    EntityRange res;
+    auto it = m_pimpl_->m_patch_->m_ranges.find(k);
+    if (it != m_pimpl_->m_patch_->m_ranges.end()) { res = it->second; }
+    return res;
 };
 
 EntityRange Domain::GetBodyRange(int IFORM, std::string const& k) const {
     return GetRange(k + "." + EntityIFORMName[IFORM] + "_BODY");
 };
 EntityRange Domain::GetBoundaryRange(int IFORM, std::string const& k, bool is_parallel) const {
-    return is_parallel ? GetParallelBoundaryRange(IFORM, k) : GetPerpendicularBoundaryRange(IFORM, k);
+    return (IFORM == VERTEX || IFORM == VOLUME)
+               ? GetRange(k + "." + EntityIFORMName[IFORM] + "_BOUNDARY")
+               : GetRange(k + "." + EntityIFORMName[IFORM] + (is_parallel ? "_PARA" : "_PERP") + "_BOUNDARY");
 };
 EntityRange Domain::GetParallelBoundaryRange(int IFORM, std::string const& k) const {
-    return (IFORM == VERTEX || IFORM == VOLUME) ? GetRange(k + "." + EntityIFORMName[IFORM] + "_BOUNDARY")
-                                                : GetRange(k + "." + EntityIFORMName[IFORM] + "_PARA_BOUNDARY");
+    return GetBoundaryRange(IFORM, k, true);
 }
 EntityRange Domain::GetPerpendicularBoundaryRange(int IFORM, std::string const& k) const {
-    return (IFORM == VERTEX || IFORM == VOLUME) ? GetRange(k + "." + EntityIFORMName[IFORM] + "_BOUNDARY")
-                                                : GetRange(k + "." + EntityIFORMName[IFORM] + "_PERP_BOUNDARY");
+    return GetBoundaryRange(IFORM, k, false);
 }
 
-void Domain::Push(Patch* p) {
-    GetMesh()->SetBlock(p->GetBlock());
-    if (p->PopRange() != nullptr) { m_pimpl_->m_range_ = p->PopRange(); }
+void Domain::Push(const std::shared_ptr<Patch>& p) {
+    m_pimpl_->m_patch_ = p;
+    GetMesh()->SetBlock(m_pimpl_->m_patch_->GetBlock());
     for (auto& item : GetAllAttributes()) {
-        item.second->Push(p->Pop(item.second->GetID()), GetBodyRange(item.second->GetIFORM()));
+        item.second->Push(m_pimpl_->m_patch_->Pop(item.second->GetID()), GetBodyRange(item.second->GetIFORM()));
     }
 }
-void Domain::Pop(Patch* p) {
-    p->SetBlock(GetMesh()->GetBlock());
-    p->PushRange(m_pimpl_->m_range_);
-    for (auto& item : GetAllAttributes()) { p->Push(item.second->GetID(), item.second->Pop()); }
+std::shared_ptr<Patch> Domain::PopPatch() {
+    m_pimpl_->m_patch_->SetBlock(GetMesh()->GetBlock());
+    for (auto& item : GetAllAttributes()) { m_pimpl_->m_patch_->Push(item.second->GetID(), item.second->Pop()); }
+    auto res = m_pimpl_->m_patch_;
+    m_pimpl_->m_patch_ = nullptr;
+    return res;
 }
 
-void Domain::ApplyInitialCondition(Patch* patch, Real time_now) {
-    if (GetMesh() == nullptr) { return; }
+std::shared_ptr<Patch> Domain::ApplyInitialCondition(const std::shared_ptr<Patch>& patch, Real time_now) {
     Push(patch);
-    GetMesh()->InitializeData(time_now);
-    if (m_pimpl_->m_range_ == nullptr) { m_pimpl_->m_range_ = std::make_shared<std::map<std::string, EntityRange>>(); }
-
+    if (GetMesh() != nullptr) { GetMesh()->InitializeData(time_now); }
     for (auto const& item : m_pimpl_->m_geo_object_) {
-        if (item.second == nullptr) { continue; }
-        EntityRange r[10];
-        GetMesh()->InitializeRange(item.second, r);
-
-        (*m_pimpl_->m_range_)[item.first + ".VERTEX_BODY"] = r[MeshBase::VERTEX_BODY];
-        (*m_pimpl_->m_range_)[item.first + ".EDGE_BODY"] = r[MeshBase::EDGE_BODY];
-        (*m_pimpl_->m_range_)[item.first + ".FACE_BODY"] = r[MeshBase::FACE_BODY];
-        (*m_pimpl_->m_range_)[item.first + ".VOLUME_BODY"] = r[MeshBase::VOLUME_BODY];
-        (*m_pimpl_->m_range_)[item.first + ".VERTEX_BOUNDARY"] = r[MeshBase::VERTEX_BOUNDARY];
-        (*m_pimpl_->m_range_)[item.first + ".EDGE_PARA_BOUNDARY"] = r[MeshBase::EDGE_PARA_BOUNDARY];
-        (*m_pimpl_->m_range_)[item.first + ".FACE_PARA_BOUNDARY"] = r[MeshBase::FACE_PARA_BOUNDARY];
-        (*m_pimpl_->m_range_)[item.first + ".EDGE_PERP_BOUNDARY"] = r[MeshBase::EDGE_PERP_BOUNDARY];
-        (*m_pimpl_->m_range_)[item.first + ".FACE_PERP_BOUNDARY"] = r[MeshBase::FACE_PERP_BOUNDARY];
-        (*m_pimpl_->m_range_)[item.first + ".VOLUME_BOUNDARY"] = r[MeshBase::VOLUME_BOUNDARY];
+        GetMesh()->RegisterRanges(item.second, item.first, m_pimpl_->m_patch_->m_ranges);
     }
-    for (auto const& item : *m_pimpl_->m_range_) {
-        VERBOSE << item.first << " size= " << item.second.size() << std::endl;
-    }
+    InitialCondition(time_now);
     OnInitialCondition(this, time_now);
 
-    Pop(patch);
+    return PopPatch();
 }
-void Domain::ApplyBoundaryCondition(Patch* patch, Real time_now, Real dt) {
+std::shared_ptr<Patch> Domain::ApplyBoundaryCondition(const std::shared_ptr<Patch>& patch, Real time_now, Real dt) {
     Push(patch);
     BoundaryCondition(time_now, dt);
     OnBoundaryCondition(this, time_now, dt);
-    Pop(patch);
+    return PopPatch();
 }
-void Domain::ApplyAdvance(Patch* patch, Real time_now, Real dt) {
+std::shared_ptr<Patch> Domain::DoAdvance(const std::shared_ptr<Patch>& patch, Real time_now, Real dt) {
     Push(patch);
-    Advance(time_now, dt);
+    //    Advance(time_now, dt);
     OnAdvance(this, time_now, dt);
-    Pop(patch);
+    return PopPatch();
 }
 
 }  // namespace engine{

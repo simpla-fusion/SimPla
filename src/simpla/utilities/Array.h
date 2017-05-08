@@ -89,13 +89,13 @@ void ForeachND(std::tuple<nTuple<index_type, 3>, nTuple<index_type, 3>> const& i
     index_type ke = std::get<1>(inner_box)[2];
 
     if (is_fast_first) {
-//#pragma omp parallel for
+        //#pragma omp parallel for
         for (index_type k = kb; k < ke; ++k)
             for (index_type j = jb; j < je; ++j)
                 for (index_type i = ib; i < ie; ++i) { fun(nTuple<index_type, 3>{i, j, k}); }
 
     } else {
-//#pragma omp parallel for
+        //#pragma omp parallel for
         for (index_type i = ib; i < ie; ++i)
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k) { fun(nTuple<index_type, 3>{i, j, k}); }
@@ -289,19 +289,30 @@ struct Array : public concept::Printable {
 
     void SetData(std::shared_ptr<value_type> const& d) const { m_data_ = d; }
 
-    value_type& at(m_index_tuple const& idx) {
-        auto s = dot(m_strides_, idx) + m_offset_;
-        if (s >= size() || s < 0) { CHECK(idx); }
-        return m_data_.get()[dot(m_strides_, idx) + m_offset_];
-    }
+    //    size_type hash(m_index_tuple const& idx) const {
+    //        size_type s = 0;
+    //        for (int i = 0; i < NDIMS; ++i) {
+    //            //            if (idx[i] >= std::get<1>(m_index_box_)[i] || idx[i] < std::get<0>(m_index_box_)[i]) {
+    //            //                OUT_OF_RANGE << idx[0] << "," << idx[1] << "," << idx[2] << " in " << m_index_box_
+    //            <<
+    //            //                std::endl;
+    //            //            }
+    //            s += ((idx[i] - std::get<0>(m_index_box_)[i]) %
+    //                  (std::get<1>(m_index_box_)[i] - std::get<0>(m_index_box_)[i])) *
+    //                 m_strides_[i];
+    //        }
+    //
+    //        return s;
+    //    }
+
+    value_type& at(m_index_tuple const& idx) { return m_data_.get()[dot(m_strides_, idx) + m_offset_]; }
+
     value_type const& at(m_index_tuple const& idx) const {
-        //        auto s = vec_dot(m_strides_, idx) + m_offset_;
-        //        if (s >= size() || s < 0) { MESSAGE << (idx) << " ~ " << m_index_box_ << std::endl; }
-        ASSERT(m_size_ > 0);
         return m_data_.get()[(dot(m_strides_, idx) + m_offset_) % m_size_];
     }
 
     value_type& operator[](m_index_tuple const& idx) { return at(idx); }
+
     value_type const& operator[](m_index_tuple const& idx) const { return at(idx); }
 
     template <typename... TID>
