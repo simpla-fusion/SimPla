@@ -175,9 +175,7 @@ int main(int argc, char **argv) {
     VERBOSE << DOUBLELINE << std::endl;
 
     MPI_Barrier(GLOBAL_COMM.comm());
-
     app->Initialize();
-
     TheStart();
     MPI_Barrier(GLOBAL_COMM.comm());
     app->Run();

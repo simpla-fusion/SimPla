@@ -157,7 +157,7 @@ class FieldView : public engine::Attribute {
 
             array_type(m_mesh_->GetIndexBox(id_2_sub[IFORM][(i / DOF) % 3])).swap(m_data_[i]);
         }
-        if (m_range_.isNull() && GetDomain() != nullptr) { m_range_ = GetDomain()->GetBodyRange(GetIFORM()); }
+//        if (m_range_.isNull() && GetDomain() != nullptr) { m_range_ = GetDomain()->GetBodyRange(GetIFORM()); }
 
         Tag();
     }
@@ -166,7 +166,7 @@ class FieldView : public engine::Attribute {
     void Assign(Other const& other) {
         SetUp();
 
-        ASSERT(!m_range_.isNull());
+        if (m_range_.isNull()) { return; };
 
         for (int i = 0; i < DOF; ++i) {
             m_range_.foreach ([&](EntityId s) {

@@ -50,7 +50,7 @@ class EMFluid : public engine::Domain {
 
     field_type<FACE> B{this, "name"_ = "B"};
     field_type<EDGE> E{this, "name"_ = "E"};
-    field_type<EDGE> J1{this, "name"_ = "J1"};
+    field_type<EDGE> J{this, "name"_ = "J"};
 
     struct fluid_s {
         Real mass;
@@ -62,7 +62,6 @@ class EMFluid : public engine::Domain {
     std::map<std::string, std::shared_ptr<fluid_s>> m_fluid_sp_;
     std::shared_ptr<fluid_s> AddSpecies(std::string const& name, std::shared_ptr<data::DataTable> const& d);
     std::map<std::string, std::shared_ptr<fluid_s>>& GetSpecies() { return m_fluid_sp_; };
-    std::shared_ptr<geometry::GeoObject> m_antenna_;
 };
 
 template <typename TM>
@@ -140,7 +139,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     B = B - curl(E) * (dt * 0.5);
     //    B[GetBoundaryRange(FACE, "PEC")] = 0;
     //    SetPhysicalBoundaryConditionB(time_now);
-    E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
+    E += (curl(B) * speed_of_light2 - J / epsilon0) * dt;
     //    E[GetBoundaryRange(EDGE, "PEC")] = 0;
     //    //    SetPhysicalBoundaryConditionE(time_now);
     //    if (m_fluid_sp_.size() > 0) {

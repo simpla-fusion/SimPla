@@ -56,19 +56,30 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     engine::Context::Deserialize(cfg);
 
     GetDomain("Limiter")->AddGeoObject("Center", GetModel().GetObject("Center"));
+    GetDomain("Limiter")->AddGeoObject("Antenna", GetModel().GetObject("Antenna"));
+
+    auto amp = cfg->GetValue<Real>("antenna/amp", 1.0);
+    auto n_phi = cfg->GetValue<Real>("antenna/n_phi", 1.0);
+    auto omega = cfg->GetValue<Real>("antenna/omega", 1.0e9);
 
     typedef mesh::CylindricalSMesh mesh_type;
     auto d = GetDomain("Limiter");
     if (d != nullptr) {
-        d->OnBoundaryCondition.Connect([&](Domain* self, Real time_now, Real time_dt) {
+        d->OnBoundaryCondition.Connect([=](Domain* self, Real time_now, Real time_dt) {
             auto& E = self->GetAttribute<Field<mesh_type, Real, EDGE>>("E");
             auto& B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
             E[self->GetBoundaryRange(EDGE)] = 0;
             B[self->GetBoundaryRange(FACE)] = 0;
+
+            auto& J = self->GetAttribute<Field<mesh_type, Real, EDGE>>("J");
+            J[self->GetParallelBoundaryRange(EDGE, "Antenna")] = [=](point_type const& x) -> Vec3 {
+                Vec3 res{amp * std::sin(x[2]), 0, amp * std::cos(x[2])};
+                res *= std::sin(n_phi * x[2]) * std::sin(omega * time_now);
+                return res;
+            };
         });
 
         d->OnInitialCondition.Connect([&](Domain* self, Real time_now) {
-
             auto& ne = self->GetAttribute<Field<mesh_type, Real, VERTEX>>("ne");
             ne.Clear();
             ne[self->GetBodyRange(VERTEX, "Center")] = [&](point_type const& x) -> Real {
@@ -82,12 +93,10 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     }
     //    std::cout << "Model = ";
     //    GetModel().Serialize(std::cout, 0);
-    //
     //    auto const &boundary = geqdsk.boundary();
     //    ne.Assign([&](point_type const &x) -> Real { return (geqdsk.in_boundary(x)) ? geqdsk.profile("ne", x) : 0.0;
     //    });
     //    psi.Assign([&](point_type const &x) -> Real { return geqdsk.psi(x); });
-
     //    nTuple<Real, 3> ZERO_V{0, 0, 0};
     //    //    B0.Assign([&](point_type const &x) -> Vec3 { return (geqdsk.in_limiter(x)) ? geqdsk.B(x) : ZERO_V; });
     //    for (auto &item : GetSpecies()) {

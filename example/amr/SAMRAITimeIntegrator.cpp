@@ -932,8 +932,8 @@ void SAMRAITimeIntegrator::SetUp() {
     m_time_refinement_integrator_->initializeHierarchy();
 
     // grid_geometry->printClassData(std::cout);
-    //    hyp_level_integrator->printClassData(std::cout);
-    //    m_time_refinement_integrator_->printClassData(std::cout);
+    // hyp_level_integrator->printClassData(std::cout);
+    // m_time_refinement_integrator_->printClassData(std::cout);
     MESSAGE << "==================  Context is initialized!  =================" << std::endl;
 };
 void SAMRAITimeIntegrator::Finalize() {
@@ -961,7 +961,7 @@ Real SAMRAITimeIntegrator::Advance(Real time_dt) {
 }
 void SAMRAITimeIntegrator::CheckPoint() const {
     if (visit_data_writer != nullptr) {
-        VERBOSE << "Check Point at Step " << m_time_refinement_integrator_->getIntegratorStep() << std::endl;
+        // VERBOSE << "Check Point at Step " << m_time_refinement_integrator_->getIntegratorStep() << std::endl;
         visit_data_writer->writePlotData(patch_hierarchy, m_time_refinement_integrator_->getIntegratorStep(),
                                          m_time_refinement_integrator_->getIntegratorTime());
     }
