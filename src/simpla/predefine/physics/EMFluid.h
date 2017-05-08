@@ -137,7 +137,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     B = B - curl(E) * (dt * 0.5);
     //    B[GetBoundaryRange(FACE, "PEC")] = 0;
     //    SetPhysicalBoundaryConditionB(time_now);
-    E += (curl(B) * speed_of_light2 - J / epsilon0) * dt;
+    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * dt;
     //    E[GetBoundaryRange(EDGE, "PEC")] = 0;
     //    //    SetPhysicalBoundaryConditionE(time_now);
     //    if (m_fluid_sp_.size() > 0) {
@@ -198,7 +198,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     //        Ev += dE;
     //        E += map_to<EDGE>(Ev) - E;
     //    }
-    B -= curl(E) * (dt * 0.5);
+    B = B - curl(E) * (dt * 0.5);
     //    B[GetBoundaryRange(FACE, "PEC")] = 0;
     //    SetPhysicalBoundaryConditionB(time_now);
 
