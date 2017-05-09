@@ -10,10 +10,23 @@ using namespace algebra;
 
 void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix,
                                     std::map<std::string, EntityRange> &ranges) {
-    if (g == nullptr) { return; }
-    auto overlap = g->CheckOverlap(GetBox());
-    if (overlap == 1) { return; }
-    if (overlap == -1) {
+    auto overlap = (g == nullptr) ? 1 : g->CheckOverlap(GetBox());
+
+    if (overlap == 1) {
+        ranges[prefix + ".VERTEX_BODY"].append(std::make_shared<EmptyRangeBase<EntityId>>());
+
+        ranges[prefix + ".EDGE_BODY"].append(std::make_shared<EmptyRangeBase<EntityId>>());
+        ranges[prefix + ".EDGE_BODY"].append(std::make_shared<EmptyRangeBase<EntityId>>());
+        ranges[prefix + ".EDGE_BODY"].append(std::make_shared<EmptyRangeBase<EntityId>>());
+
+        ranges[prefix + ".FACE_BODY"].append(std::make_shared<EmptyRangeBase<EntityId>>());
+        ranges[prefix + ".FACE_BODY"].append(std::make_shared<EmptyRangeBase<EntityId>>());
+        ranges[prefix + ".FACE_BODY"].append(std::make_shared<EmptyRangeBase<EntityId>>());
+
+        ranges[prefix + ".VOLUME_BODY"].append(std::make_shared<EmptyRangeBase<EntityId>>());
+
+        return;
+    } else if (overlap == -1) {
         ranges[prefix + ".VERTEX_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(0), 0));
 
         ranges[prefix + ".EDGE_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(1), 1));

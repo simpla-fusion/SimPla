@@ -88,11 +88,6 @@ class AttributeGroup {
     Attribute *Get(std::string const &k);
     Attribute const *Get(std::string const &k) const;
 
-    template <typename T>
-    T &GetAttribute(std::string const &k);
-
-    template <typename T>
-    T const &GetAttribute(std::string const &k) const;
     std::map<std::string, Attribute *> &GetAllAttributes();
     std::map<std::string, Attribute *> const &GetAll() const;
 
@@ -152,22 +147,6 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
-};
-
-template <typename T>
-T &AttributeGroup::GetAttribute(std::string const &k) {
-    auto res = Get(k);
-    if (res == nullptr) { RUNTIME_ERROR << "Can not find Field [" << k << "] " << std::endl; }
-    return Get(k)->cast_as<T>();
-};
-
-template <typename T>
-T const &AttributeGroup::GetAttribute(std::string const &k) const {
-    auto res = Get(k);
-    if (res == nullptr) {
-        RUNTIME_ERROR << "Can not find Field [" << k << ":" << typeid(T).name() << "] " << std::endl;
-    }
-    return Get(k)->cast_as<const T>();
 };
 
 //

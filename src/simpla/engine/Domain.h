@@ -65,6 +65,15 @@ class Domain : public SPObject,
     std::shared_ptr<Patch> ApplyBoundaryCondition(const std::shared_ptr<Patch> &, Real time_now, Real dt);
     std::shared_ptr<Patch> DoAdvance(const std::shared_ptr<Patch> &, Real time_now, Real dt);
 
+    template <typename T>
+    T GetAttribute(std::string const &k, std::string const &s = "") const {
+        return T(Get(k)->cast_as<T>(), GetBodyRange(T::iform, s));
+    };
+    template <typename T>
+    T GetAttribute(std::string const &k, EntityId const &r) const {
+        return T(Get(k)->cast_as<T>(), r);
+    };
+
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;

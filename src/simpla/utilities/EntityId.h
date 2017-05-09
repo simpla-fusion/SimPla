@@ -698,7 +698,7 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
     }
 
     template <typename TFun>
-    void foreach (TFun const& body) const {
+    void DoForeach(TFun const& body) const {
         index_type ib = this->m_min_[0];
         index_type ie = this->m_max_[0];
 #pragma omp parallel for
@@ -744,7 +744,7 @@ struct UnorderedRange<EntityId> : public RangeBase<EntityId> {
     size_t size() const override { return m_ids_.size(); }
     bool is_divisible() const override { return false; }
     template <typename TFun>
-    void foreach (TFun const& body, ENABLE_IF((simpla::concept::is_callable<TFun(EntityId)>::value))) const {
+    void DoForeach(TFun const& body, ENABLE_IF((simpla::concept::is_callable<TFun(EntityId)>::value))) const {
         for (auto s : m_ids_) { body(s); }
     }
 };

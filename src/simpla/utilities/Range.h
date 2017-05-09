@@ -73,13 +73,32 @@ struct RangeBase {
     template <typename TFun, typename... Args>
     void foreach (TFun const& fun, Args && ... args) const {
         if (isA(typeid(continue_type))) {
-            this->cast_as<continue_type>().foreach (fun, std::forward<Args>(args)...);
+            this->cast_as<continue_type>().DoForeach(fun, std::forward<Args>(args)...);
         } else if (isA(typeid(unordered_type))) {
-            this->cast_as<unordered_type>().foreach (fun, std::forward<Args>(args)...);
+            this->cast_as<unordered_type>().DoForeach(fun, std::forward<Args>(args)...);
         } else {
             foreach_override([&](value_type& v) { fun(v, std::forward<Args>(args)...); });
         }
     }
+
+    std::shared_ptr<RangeBase<T>> m_next_;
+};
+
+template <typename T>
+struct EmptyRangeBase : public RangeBase<T> {
+    SP_OBJECT_HEAD(EmptyRangeBase<T>, RangeBase<T>);
+
+   private:
+    typedef T value_type;
+    bool is_divisible() const override { return false; }
+    size_type size() const override { return 0; }
+    bool empty() const override { return true; }
+    void foreach_override(std::function<void(value_type&)> const& fun) const override { DO_NOTHING; };
+
+    std::shared_ptr<base_type> split(concept::tags::split const& sp) override { return std::make_shared<this_type>(); }
+
+    template <typename TFun, typename... Args>
+    void DoForeach(TFun const& fun, Args&&... args) const {}
 
     std::shared_ptr<RangeBase<T>> m_next_;
 };
@@ -105,7 +124,7 @@ struct ContinueRange<T> : public RangeBase<T> {
     }
 
     template <typename TFun, typename... Args>
-    void foreach (TFun const& fun, Args && ... args) const {
+    void DoForeach(TFun const& fun, Args&&... args) const {
         UNIMPLEMENTED;
     }
 };
@@ -130,7 +149,7 @@ struct UnorderedRange<T> : public RangeBase<T> {
     }
 
     template <typename TFun, typename... Args>
-    void foreach (TFun const& fun, Args && ... args) const {
+    void DoForeach(TFun const& fun, Args&&... args) const {
         UNIMPLEMENTED;
     }
     void insert(value_type const& v) {}
@@ -147,7 +166,7 @@ struct RangeAdapter : public RangeBase<typename TOtherRange::value_type>, public
 
     RangeAdapter(TOtherRange& other, concept::tags::split const& sp) : TOtherRange(other.split(sp)) {}
 
-    ~RangeAdapter() override {}
+    ~RangeAdapter() override = default;
 
     bool is_divisible() override { return TOtherRange::is_divisible(); };
 
@@ -192,7 +211,7 @@ struct IteratorRange : public RangeBase<typename std::iterator_traits<TIterator>
         return std::dynamic_pointer_cast<base_type>(std::make_shared<this_type>(b, m_b_));
     }
 
-    void foreach_override(std::function<void(value_type&)> const& fun) const {
+    void DoForeach(std::function<void(value_type&)> const& fun) const {
         for (auto it = m_b_; it != m_e_; ++it) { fun(*it); }
     }
 

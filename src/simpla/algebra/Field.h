@@ -179,7 +179,7 @@ class FieldView : public engine::Attribute {
                     v = calculus_policy::getValue(*m_mesh_, other, s);
                 });
             }
-        } else {
+        } else if (!m_range_.empty()) {
             for (int i = 0; i < DOF; ++i) {
                 m_range_.foreach ([&](EntityId s) {
                     s.w = s.w | static_cast<int16_t>(i << 3);

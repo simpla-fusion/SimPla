@@ -134,12 +134,10 @@ void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
 template <typename TM>
 void EMFluid<TM>::Advance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
-    B = B - curl(E) * (dt * 0.5);
-    //    B[GetBoundaryRange(FACE, "PEC")] = 0;
-    //    SetPhysicalBoundaryConditionB(time_now);
-    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * dt;
-    //    E[GetBoundaryRange(EDGE, "PEC")] = 0;
-    //    //    SetPhysicalBoundaryConditionE(time_now);
+    //    B = B - curl(E) * (dt * 0.5);
+    //    B[GetBoundaryRange(FACE)] = 0;
+    //    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * dt;
+    //    E[GetBoundaryRange(EDGE)] = 0;
     //    if (m_fluid_sp_.size() > 0) {
     //        field_type<VERTEX, 3> Q{this};
     //        field_type<VERTEX, 3> K{this};
@@ -198,12 +196,8 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     //        Ev += dE;
     //        E += map_to<EDGE>(Ev) - E;
     //    }
-    B = B - curl(E) * (dt * 0.5);
-    //    B[GetBoundaryRange(FACE, "PEC")] = 0;
-    //    SetPhysicalBoundaryConditionB(time_now);
-
-    Ev = map_to<VERTEX>(E);
-    Bv = map_to<VERTEX>(B);
+    //    B = B - curl(E) * (dt * 0.5);
+    //    B[GetBoundaryRange(FACE)] = 0;
 }
 
 }  // namespace simpla  {

@@ -67,19 +67,19 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     if (d != nullptr) {
         d->OnBoundaryCondition.Connect([=](Domain* self, Real time_now, Real time_dt) {
             //            auto& E = self->GetAttribute<Field<mesh_type, Real, EDGE>>("E");
-            auto& B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
+            auto B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
             //            E[self->GetBoundaryRange(EDGE)] = 0;
             //            B[self->GetBoundaryRange(FACE)] = 0;
-            auto& Bv = self->GetAttribute<Field<mesh_type, Real, VERTEX, 3>>("Bv");
+            auto Bv = self->GetAttribute<Field<mesh_type, Real, VERTEX, 3>>("Bv");
 
             B.Clear();
             Bv.Clear();
 
             B = 1;
-            //            Bv = map_to<VERTEX>(B);
+            Bv = map_to<VERTEX>(B);
 
-            auto& J = self->GetAttribute<Field<mesh_type, Real, EDGE>>("J");
-            J[self->GetParallelBoundaryRange(EDGE, "Antenna")] = [=](point_type const& x) -> Vec3 {
+            self->GetAttribute<Field<mesh_type, Real, EDGE>>(
+                "J", "Antenna.EDGE_PARA_BOUNDARY") = [=](point_type const& x) -> Vec3 {
                 Vec3 res{amp * std::sin(x[2]), 0, amp * std::cos(x[2])};
                 res *= std::sin(n_phi * x[2]) * std::sin(omega * time_now);
                 return res;
@@ -87,13 +87,11 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
         });
 
         d->OnInitialCondition.Connect([&](Domain* self, Real time_now) {
-            auto& ne = self->GetAttribute<Field<mesh_type, Real, VERTEX>>("ne");
+            auto ne = self->GetAttribute<Field<mesh_type, Real, VERTEX>>("ne", "Center");
             ne.Clear();
-            ne[self->GetBodyRange(VERTEX, "Center")] = [&](point_type const& x) -> Real {
-                return geqdsk.profile("ne", x[0], x[1]);
-            };
+            ne = [&](point_type const& x) -> Real { return geqdsk.profile("ne", x[0], x[1]); };
 
-            auto& B0 = self->GetAttribute<Field<mesh_type, Real, VERTEX, 3>>("B0");
+            auto B0 = self->GetAttribute<Field<mesh_type, Real, VERTEX, 3>>("B0", "FULL");
             B0.Clear();
             B0 = [&](point_type const& x) -> Vec3 { return geqdsk.B(x[0], x[1]); };
 
