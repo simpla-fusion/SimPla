@@ -151,11 +151,15 @@ class FieldView : public engine::Attribute {
         engine::Attribute::SetUp();
         static constexpr int id_2_sub[4][3] = {{0, 0, 0}, {1, 2, 4}, {6, 5, 3}, {7, 7, 7}};
 
+        auto gw = m_mesh_->GetGhostWidth();
+
         for (int i = 0; i < NUMBER_OF_SUB; ++i) {
             if (!m_data_[i].empty()) { continue; }
-            array_type(m_mesh_->GetIndexBox(id_2_sub[IFORM][(i / DOF) % 3])).swap(m_data_[i]);
+            auto ib_box = m_mesh_->GetIndexBox(id_2_sub[IFORM][(i / DOF) % 3]);
+            std::get<0>(ib_box) -= gw;
+            std::get<1>(ib_box) += gw;
+            array_type(ib_box).swap(m_data_[i]);
         }
-        //        if (m_range_.isNull() && GetDomain() != nullptr) { m_range_ = GetDomain()->GetBodyRange(GetIFORM()); }
 
         Tag();
     }
@@ -180,9 +184,15 @@ class FieldView : public engine::Attribute {
                 });
             }
         } else if (!m_range_.empty()) {
+            auto ib_box = m_mesh_->GetIndexBox();
             for (int i = 0; i < DOF; ++i) {
                 m_range_.foreach ([&](EntityId s) {
                     s.w = s.w | static_cast<int16_t>(i << 3);
+//                    if (s.x < std::get<0>(ib_box)[0] || s.x >= std::get<1>(ib_box)[0] ||  //
+//                        s.y < std::get<0>(ib_box)[1] || s.y >= std::get<1>(ib_box)[1] ||  //
+//                        s.z < std::get<0>(ib_box)[2] || s.z >= std::get<1>(ib_box)[2]) {
+//                        VERBOSE << s.w << "," << s.x << "," << s.y << "," << s.z << std::endl;
+//                    }
                     this->at(s) = calculus_policy::getValue(*m_mesh_, other, s);
                 });
             }

@@ -42,11 +42,11 @@ class EMFluid : public engine::Domain {
 
     field_type<EDGE> E0{this};
     field_type<FACE> B0{this};
-    field_type<VERTEX, 3> B0v{this, "name"_ = "B0"};
-    field_type<VERTEX> BB{this, "name"_ = "BB"};
-    field_type<VERTEX, 3> Ev{this, "name"_ = "Ev"};
-    field_type<VERTEX, 3> Bv{this, "name"_ = "Bv"};
-    field_type<VERTEX, 3> dE{this};
+    field_type<VOLUME, 3> B0v{this, "name"_ = "B0"};
+    field_type<VOLUME> BB{this, "name"_ = "BB"};
+    field_type<VOLUME, 3> Ev{this, "name"_ = "Ev"};
+    field_type<VOLUME, 3> Bv{this, "name"_ = "Bv"};
+    field_type<VOLUME, 3> dE{this};
 
     field_type<FACE> B{this, "name"_ = "B"};
     field_type<EDGE> E{this, "name"_ = "E"};

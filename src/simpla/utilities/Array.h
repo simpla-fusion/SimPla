@@ -289,27 +289,20 @@ struct Array {
 
     void SetData(std::shared_ptr<value_type> const& d) const { m_data_ = d; }
 
-    //    size_type hash(m_index_tuple const& idx) const {
-    //        size_type s = 0;
-    //        for (int i = 0; i < NDIMS; ++i) {
-    //            //            if (idx[i] >= std::get<1>(m_index_box_)[i] || idx[i] < std::get<0>(m_index_box_)[i]) {
-    //            //                OUT_OF_RANGE << idx[0] << "," << idx[1] << "," << idx[2] << " in " << m_index_box_
-    //            <<
-    //            //                std::endl;
-    //            //            }
-    //            s += ((idx[i] - std::get<0>(m_index_box_)[i]) %
-    //                  (std::get<1>(m_index_box_)[i] - std::get<0>(m_index_box_)[i])) *
-    //                 m_strides_[i];
-    //        }
-    //
-    //        return s;
-    //    }
-
-    value_type& at(m_index_tuple const& idx) { return m_data_.get()[dot(m_strides_, idx) + m_offset_]; }
-
-    value_type const& at(m_index_tuple const& idx) const {
-        return m_data_.get()[(dot(m_strides_, idx) + m_offset_) % m_size_];
+    size_type hash(m_index_tuple const& idx) const {
+        //        size_type s = 0;
+        //        for (int i = 0; i < NDIMS; ++i) {
+        //            s += ((idx[i] - std::get<0>(m_index_box_)[i]) %
+        //                  (std::get<1>(m_index_box_)[i] - std::get<0>(m_index_box_)[i])) *
+        //                 m_strides_[i];
+        //        }
+        //        return s;
+        return dot(m_strides_, idx) + m_offset_;
     }
+
+    value_type& at(m_index_tuple const& idx) { return m_data_.get()[hash(idx)]; }
+
+    value_type const& at(m_index_tuple const& idx) const { return m_data_.get()[hash(idx)]; }
 
     value_type& operator[](m_index_tuple const& idx) { return at(idx); }
 

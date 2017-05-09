@@ -70,13 +70,13 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
             auto B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
             //            E[self->GetBoundaryRange(EDGE)] = 0;
             //            B[self->GetBoundaryRange(FACE)] = 0;
-            auto Bv = self->GetAttribute<Field<mesh_type, Real, VERTEX, 3>>("Bv");
+            auto Bv = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Bv");
 
             B.Clear();
             Bv.Clear();
 
-            B = 1;
-            Bv = map_to<VERTEX>(B);
+            B = [&](point_type const& x) -> Vec3 { return nTuple<Real, 3>{0, 0, 1}; };
+            Bv = map_to<VOLUME>(B);
 
             self->GetAttribute<Field<mesh_type, Real, EDGE>>("J", "Antenna") = [=](point_type const& x) -> Vec3 {
                 Vec3 res{amp * std::sin(x[2]), 0, amp * std::cos(x[2])};
@@ -90,7 +90,7 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
             ne.Clear();
             ne = [&](point_type const& x) -> Real { return geqdsk.profile("ne", x[0], x[1]); };
 
-            auto B0 = self->GetAttribute<Field<mesh_type, Real, VERTEX, 3>>("B0", "FULL");
+            auto B0 = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("B0", "FULL");
             B0.Clear();
             B0 = [&](point_type const& x) -> Vec3 { return geqdsk.B(x[0], x[1]); };
 

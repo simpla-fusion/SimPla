@@ -105,7 +105,6 @@ class StructuredMesh : public engine::MeshBase {
     point_type m_i_dx_{1, 1, 1};
     point_type m_i_x0_{0, 0, 0};
 
-    Field<StructuredMesh, int, VERTEX> vertex_tags{this, "name"_ = "tags", "INPUT"_};
 };
 }  // namespace mesh {
 }  // namespace simpla {

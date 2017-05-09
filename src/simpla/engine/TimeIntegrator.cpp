@@ -21,7 +21,7 @@ void TimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     Schedule::Deserialize(cfg);
     SetTime(cfg->GetValue("TimeBegin", 0.0));
     SetTimeEnd(cfg->GetValue("TimeEnd", 1.0));
-    SetTimeStep(cfg->GetValue("TimeStep", 0.1));
+    SetTimeStep(cfg->GetValue("TimeStep", 0.5));
     SetMaxStep(cfg->GetValue<size_type>("MaxStep", 0));
 };
 void TimeIntegrator::Synchronize() { Schedule::Synchronize(); }

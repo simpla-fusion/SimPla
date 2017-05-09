@@ -69,8 +69,8 @@ class MeshBase : public data::EnableCreateFromDataTable<MeshBase, Domain *> {
 
     virtual void RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix,
                                 std::map<std::string, EntityRange> &ranges){};
-
-    virtual index_box_type GetIndexBox(int tag) const;
+    virtual index_tuple GetGhostWidth() const;
+    virtual index_box_type GetIndexBox(int tag = VERTEX) const;
     virtual box_type GetBox() const { return box_type{{0, 0, 0}, {1, 1, 1}}; }
 
    protected:
