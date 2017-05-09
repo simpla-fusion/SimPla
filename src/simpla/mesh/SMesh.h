@@ -33,9 +33,9 @@ struct SMesh : public StructuredMesh {
     typedef EntityIdCoder M;
 
    public:
-    point_type point(index_type i, index_type j, index_type k) const override {
-        return point_type{m_vertices_[0](i, j, k), m_vertices_[1](i, j, k), m_vertices_[2](i, j, k)};
-    };
+//    point_type point(index_type i, index_type j, index_type k) const override {
+//        return point_type{m_vertices_[0](i, j, k), m_vertices_[1](i, j, k), m_vertices_[2](i, j, k)};
+//    };
     point_type point(EntityId s) const override { return StructuredMesh::point(s); }
 
     Real volume(EntityId s) const override { return m_volume_[s.w & 7](s.x, s.y, s.z); }

@@ -29,7 +29,10 @@ class StructuredMesh : public engine::MeshBase {
 
     typedef EntityIdCoder M;
 
-    virtual point_type point(index_type i, index_type j, index_type k) const = 0;
+    virtual point_type point(index_type i, index_type j, index_type k) const {
+        return point_type{std::fma(i, m_dx_[0], m_x0_[0]), std::fma(j, m_dx_[1], m_x0_[1]),
+                          std::fma(k, m_dx_[2], m_x0_[2])};
+    }
 
     point_type point(EntityId s) const override {
         return point(s, point_type{M::m_id_to_coordinates_shift_[s.w & 7][0],  //
@@ -104,7 +107,6 @@ class StructuredMesh : public engine::MeshBase {
 
     point_type m_i_dx_{1, 1, 1};
     point_type m_i_x0_{0, 0, 0};
-
 };
 }  // namespace mesh {
 }  // namespace simpla {
