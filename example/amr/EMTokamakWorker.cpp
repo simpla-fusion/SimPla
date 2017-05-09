@@ -67,7 +67,9 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     if (d != nullptr) {
         d->OnBoundaryCondition.Connect([=](Domain* self, Real time_now, Real time_dt) {
             //            auto& E = self->GetAttribute<Field<mesh_type, Real, EDGE>>("E");
-            auto B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
+            auto B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B", "FULL");
+            auto B0 = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("B0");
+
             //            E[self->GetBoundaryRange(EDGE)] = 0;
             //            B[self->GetBoundaryRange(FACE)] = 0;
             auto Bv = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Bv");
@@ -96,20 +98,19 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
 
         });
     }
-    //    std::cout << "Model = ";
-    //    GetModel().Serialize(std::cout, 0);
-    //    auto const &boundary = geqdsk.boundary();
-    //    ne.Assign([&](point_type const &x) -> Real { return (geqdsk.in_boundary(x)) ? geqdsk.profile("ne", x) : 0.0;
-    //    });
-    //    psi.Assign([&](point_type const &x) -> Real { return geqdsk.psi(x); });
-    //    nTuple<Real, 3> ZERO_V{0, 0, 0};
-    //    //    B0.Assign([&](point_type const &x) -> Vec3 { return (geqdsk.in_limiter(x)) ? geqdsk.B(x) : ZERO_V; });
-    //    for (auto &item : GetSpecies()) {
-    //        Real ratio = db()->GetValue("Particles." + item.first + ".ratio", 1.0);
-    //        *item.second->rho = ne * ratio;
-    //    }
 }
-
+//    std::cout << "Model = ";
+//    GetModel().Serialize(std::cout, 0);
+//    auto const &boundary = geqdsk.boundary();
+//    ne.Assign([&](point_type const &x) -> Real { return (geqdsk.in_boundary(x)) ? geqdsk.profile("ne", x) : 0.0;
+//    });
+//    psi.Assign([&](point_type const &x) -> Real { return geqdsk.psi(x); });
+//    nTuple<Real, 3> ZERO_V{0, 0, 0};
+//    //    B0.Assign([&](point_type const &x) -> Vec3 { return (geqdsk.in_limiter(x)) ? geqdsk.B(x) : ZERO_V; });
+//    for (auto &item : GetSpecies()) {
+//        Real ratio = db()->GetValue("Particles." + item.first + ".ratio", 1.0);
+//        *item.second->rho = ne * ratio;
+//    }
 //
 // void EMTokamak::SetPhysicalBoundaryConditions() {
 //    base_type::SetPhysicalBoundaryConditions();

@@ -10,6 +10,7 @@ using namespace algebra;
 
 void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix,
                                     std::map<std::string, EntityRange> &ranges) {
+
     auto overlap = (g == nullptr) ? 1 : g->CheckOverlap(GetBox());
 
     if (overlap == 1) {
@@ -47,11 +48,14 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
 
     index_tuple ib, ie;
     std::tie(ib, ie) = vertex_tags[0].GetIndexBox();
-
+    auto dx = GetDx();
+    auto x0 = GetOrigin();
     for (index_type I = ib[0]; I < ie[0]; ++I)
         for (index_type J = ib[1]; J < ie[1]; ++J)
             for (index_type K = ib[2]; K < ie[2]; ++K) {
-                if (g->CheckInside(point(I, J, K)) == 0) { vertex_tags[0](I, J, K) = 1; }
+                if (g->CheckInside(point_type{I * dx[0] + x0[0], J * dx[1] + x0[1], K * dx[2] + x0[2]}) == 0) {
+                    vertex_tags[0](I, J, K) = 1;
+                }
             }
 
     /**
@@ -234,7 +238,7 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
     ranges[prefix + ".FACE_PERP_BOUNDARY"].append(FACE_PERP_boundary);
     ranges[prefix + ".VOLUME_BOUNDARY"].append(VOLUME_boundary);
 
-//    CHECK(VOLUME_body->size());
+    //    CHECK(VOLUME_body->size());
 }
 
 }  // namespace mesh{

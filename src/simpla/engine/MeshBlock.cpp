@@ -16,7 +16,7 @@ struct MeshBlock::pimpl_s {
     Real m_time_ = 0;
     id_type m_GUID_ = NULL_ID;
     index_box_type m_index_box_;
-    index_tuple m_ghost_width_{2, 2, 2};
+    index_tuple m_ghost_width_{4, 4, 4};
     static boost::uuids::random_generator m_gen_;
     static boost::hash<boost::uuids::uuid> m_hasher_;
 };
@@ -28,7 +28,7 @@ MeshBlock::MeshBlock(index_box_type const &b, size_type level, Real time_now) : 
     m_pimpl_->m_GUID_ = m_pimpl_->m_hasher_(m_pimpl_->m_gen_());
     m_pimpl_->m_time_ = time_now;
 };
-//MeshBlock::MeshBlock(MeshBlock const &other) : m_pimpl_(new pimpl_s) {
+// MeshBlock::MeshBlock(MeshBlock const &other) : m_pimpl_(new pimpl_s) {
 //    m_pimpl_->m_level_ = other.m_pimpl_->m_level_;
 //    m_pimpl_->m_GUID_ = other.m_pimpl_->m_GUID_;
 //    m_pimpl_->m_index_box_ = other.m_pimpl_->m_index_box_;
@@ -36,7 +36,7 @@ MeshBlock::MeshBlock(index_box_type const &b, size_type level, Real time_now) : 
 //}
 MeshBlock::~MeshBlock() {}
 
-//Range<EntityId> MeshBlock::GetRange(int iform, int dof) const {
+// Range<EntityId> MeshBlock::GetRange(int iform, int dof) const {
 //    auto it = m_pimpl_->m_unordered_range_.find(iform);
 //    if (it == m_pimpl_->m_unordered_range_.end()) {
 //        return Range<EntityId>(std::make_shared<ContinueRange<EntityId>>(m_pimpl_->m_index_box_, iform, dof));

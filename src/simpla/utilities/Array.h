@@ -289,7 +289,14 @@ struct Array {
 
     void SetData(std::shared_ptr<value_type> const& d) const { m_data_ = d; }
 
-    size_type hash(m_index_tuple const& idx) const { return dot(m_strides_, idx) + m_offset_; }
+    size_type hash(m_index_tuple const& idx) const {
+#ifndef NDEBUG
+        for (int n = 0; n < NDIMS; ++n) {
+            ASSERT(std::get<0>(m_index_box_)[n] <= idx[0] && idx[n] < std::get<1>(m_index_box_)[n])
+        }
+#endif
+        return dot(m_strides_, idx) + m_offset_;
+    }
     //        size_type s = 0;
     //        for (int i = 0; i < NDIMS; ++i) {
     //            s += ((idx[i] - std::get<0>(m_index_box_)[i]) %
