@@ -21,6 +21,7 @@
 #include "Algebra.h"
 #include "CalculusPolicy.h"
 namespace simpla {
+
 namespace algebra {
 namespace calculus {
 template <typename...>
@@ -146,18 +147,15 @@ class FieldView : public engine::Attribute {
         return calculus_policy::scatter(*m_mesh_, *this, std::forward<Args>(args)...);
     }
 
-    //        decltype(auto) operator()(point_type const& x) const { return gather(x); }
-
     void SetUp() override {
         engine::Attribute::SetUp();
         static constexpr int id_2_sub[4][3] = {{0, 0, 0}, {1, 2, 4}, {6, 5, 3}, {7, 7, 7}};
 
         for (int i = 0; i < NUMBER_OF_SUB; ++i) {
             if (!m_data_[i].empty()) { continue; }
-
             array_type(m_mesh_->GetIndexBox(id_2_sub[IFORM][(i / DOF) % 3])).swap(m_data_[i]);
         }
-//        if (m_range_.isNull() && GetDomain() != nullptr) { m_range_ = GetDomain()->GetBodyRange(GetIFORM()); }
+        //        if (m_range_.isNull() && GetDomain() != nullptr) { m_range_ = GetDomain()->GetBodyRange(GetIFORM()); }
 
         Tag();
     }
@@ -166,13 +164,28 @@ class FieldView : public engine::Attribute {
     void Assign(Other const& other) {
         SetUp();
 
-        if (m_range_.isNull()) { return; };
+        if (m_range_.isNull()) {
+            static int tag[4][3] = {{0, 0, 0}, {1, 2, 4}, {6, 5, 3}, {7, 7, 7}};
 
-        for (int i = 0; i < DOF; ++i) {
-            m_range_.foreach ([&](EntityId s) {
-                s.w = s.w | static_cast<int16_t>(i << 3);
-                this->at(s) = calculus_policy::getValue(*m_mesh_, other, s);
-            });
+            for (int i = 0; i < NUMBER_OF_SUB; ++i) {
+                int16_t w = static_cast<int16_t>(((i % DOF) << 3) | tag[IFORM][(i / DOF) % 3]);
+
+                m_data_[i].Foreach([&](index_tuple const& idx, value_type& v) {
+                    EntityId s;
+                    s.w = w;
+                    s.x = static_cast<int16_t>(idx[0]);
+                    s.y = static_cast<int16_t>(idx[1]);
+                    s.z = static_cast<int16_t>(idx[2]);
+                    v = calculus_policy::getValue(*m_mesh_, other, s);
+                });
+            }
+        } else {
+            for (int i = 0; i < DOF; ++i) {
+                m_range_.foreach ([&](EntityId s) {
+                    s.w = s.w | static_cast<int16_t>(i << 3);
+                    this->at(s) = calculus_policy::getValue(*m_mesh_, other, s);
+                });
+            }
         }
     }
     //        static int tag[4][3] = {{0, 0, 0}, {1, 2, 4}, {6, 5, 3}, {7, 7, 7}};

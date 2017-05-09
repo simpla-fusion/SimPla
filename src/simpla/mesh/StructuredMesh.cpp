@@ -31,9 +31,24 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
 
     vertex_tags.Clear();
 
-    vertex_tags[0].Foreach([&](index_tuple const &idx, int &v) {
-        if (g->CheckInside(point(idx[0], idx[1], idx[2])) == 0) { v = 1; }
-    });
+    //    vertex_tags[0].Foreach([&](index_tuple const &idx, int &v) {
+    //        if (g->CheckInside(point(idx[0], idx[1], idx[2])) == 0) { v = 1; }
+    //    });
+
+    index_tuple ib, ie;
+    std::tie(ib, ie) = GetBlock()->GetIndexBox();
+    ie += 1;
+
+    for (index_type I = ib[0]; I < ie[0]; ++I)
+        for (index_type J = ib[1]; J < ie[1]; ++J)
+            for (index_type K = ib[2]; K < ie[2]; ++K) {
+                EntityId s = {.w = 0,
+                              .x = static_cast<int16_t>(I),  //
+                              .y = static_cast<int16_t>(J),  //
+                              .z = static_cast<int16_t>(K)};
+                if (g->CheckInside(point(I, J, K)) == 0) { vertex_tags[0](I, J, K) = 1; }
+            }
+
     /**
     *\verbatim
     *                ^s (dl)
@@ -93,7 +108,6 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
     static const EntityId s6 = {.w = 0, .x = 0, .y = 1, .z = 1};
     static const EntityId s7 = {.w = 0, .x = 1, .y = 1, .z = 1};
 
-    index_tuple ib, ie;
     std::tie(ib, ie) = GetBlock()->GetIndexBox();
 
     for (index_type I = ib[0]; I < ie[0]; ++I)

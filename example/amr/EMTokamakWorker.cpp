@@ -66,10 +66,17 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     auto d = GetDomain("Limiter");
     if (d != nullptr) {
         d->OnBoundaryCondition.Connect([=](Domain* self, Real time_now, Real time_dt) {
-            auto& E = self->GetAttribute<Field<mesh_type, Real, EDGE>>("E");
+            //            auto& E = self->GetAttribute<Field<mesh_type, Real, EDGE>>("E");
             auto& B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
-            E[self->GetBoundaryRange(EDGE)] = 0;
-            B[self->GetBoundaryRange(FACE)] = 0;
+            //            E[self->GetBoundaryRange(EDGE)] = 0;
+            //            B[self->GetBoundaryRange(FACE)] = 0;
+            auto& Bv = self->GetAttribute<Field<mesh_type, Real, VERTEX, 3>>("Bv");
+
+            B.Clear();
+            Bv.Clear();
+
+            B = 1;
+            //            Bv = map_to<VERTEX>(B);
 
             auto& J = self->GetAttribute<Field<mesh_type, Real, EDGE>>("J");
             J[self->GetParallelBoundaryRange(EDGE, "Antenna")] = [=](point_type const& x) -> Vec3 {
@@ -89,6 +96,7 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
             auto& B0 = self->GetAttribute<Field<mesh_type, Real, VERTEX, 3>>("B0");
             B0.Clear();
             B0 = [&](point_type const& x) -> Vec3 { return geqdsk.B(x[0], x[1]); };
+
         });
     }
     //    std::cout << "Model = ";
