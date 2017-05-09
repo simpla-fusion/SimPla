@@ -78,8 +78,7 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
             B = 1;
             Bv = map_to<VERTEX>(B);
 
-            self->GetAttribute<Field<mesh_type, Real, EDGE>>(
-                "J", "Antenna.EDGE_PARA_BOUNDARY") = [=](point_type const& x) -> Vec3 {
+            self->GetAttribute<Field<mesh_type, Real, EDGE>>("J", "Antenna") = [=](point_type const& x) -> Vec3 {
                 Vec3 res{amp * std::sin(x[2]), 0, amp * std::cos(x[2])};
                 res *= std::sin(n_phi * x[2]) * std::sin(omega * time_now);
                 return res;
