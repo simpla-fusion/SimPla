@@ -76,23 +76,22 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     typedef mesh::CylindricalSMesh mesh_type;
     auto d = GetDomain("Limiter");
     if (d != nullptr) {
-        d->OnBoundaryCondition.Connect([=](Domain* self, Real time_now, Real time_dt) {
-
+        d->OnAdvance.Connect([=](Domain* self, Real time_now, Real time_dt) {
             auto E = self->GetAttribute<Field<mesh_type, Real, EDGE>>("E");
             auto Ev = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Ev");
-            auto J = self->GetAttribute<Field<mesh_type, Real, EDGE>>("J");
-            auto Jv = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Jv");
-            E[self->GetBoundaryRange(EDGE)] = 1;
-
             Ev.DeepCopy(E);
-
-            self->GetAttribute<Field<mesh_type, Real, EDGE>>("J", "Antenna") = [=](point_type const& x) -> Vec3 {
+            auto J = self->GetAttribute<Field<mesh_type, Real, EDGE>>("J", "Antenna");
+            auto Jv = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Jv");
+            J = [=](point_type const& x) -> Vec3 {
                 Vec3 res{amp * std::sin(x[2]), 0, amp * std::cos(x[2])};
                 res *= std::sin(n_phi * x[2]) * std::sin(omega * time_now);
                 return res;
             };
 
             Jv.DeepCopy(J);
+        });
+        d->OnBoundaryCondition.Connect([=](Domain* self, Real time_now, Real time_dt) {
+
         });
 
         d->OnInitialCondition.Connect([&](Domain* self, Real time_now) {

@@ -6,8 +6,8 @@ Context = {
     Phi = { 0.0, 3.14 },
     Dimensions = { 64, 64, 32 },
     Antenna = {
-        x_lower = { 1.4, -0.5, -3.1415926 / 2 },
-        x_upper = { 1.45, 0.5, 3.1415926 / 2 },
+        x_lower = { 1.4, -0.1, 0 },
+        x_upper = { 1.45, 0.1, 3.1415926  },
         amp = 1.0,
         n_phi = 10.0,
         omega = 1.0e9
@@ -27,5 +27,8 @@ Context = {
 }
 
 Schedule = {
-    Type = "SAMRAITimeIntegrator"
+    Type = "SAMRAITimeIntegrator",
+    TimeBegin=0.0,
+    TimeEnd=1.0,
+    TimeStep=0.1
 }

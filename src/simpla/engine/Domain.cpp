@@ -116,5 +116,4 @@ std::shared_ptr<Patch> Domain::DoAdvance(const std::shared_ptr<Patch>& patch, Re
 }
 
 }  // namespace engine{
-
 }  // namespace simpla{
