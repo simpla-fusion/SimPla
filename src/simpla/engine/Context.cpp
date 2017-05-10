@@ -79,7 +79,7 @@ std::shared_ptr<Patch> Context::ApplyBoundaryCondition(const std::shared_ptr<Pat
 
 std::shared_ptr<Patch> Context::DoAdvance(const std::shared_ptr<Patch> &p, Real time_now, Real time_dt) {
     std::shared_ptr<Patch> res = p;
-    for (auto &item : m_pimpl_->m_domains_) { res = item.second->DoAdvance(res, time_dt, time_dt); }
+    for (auto &item : m_pimpl_->m_domains_) { res = item.second->DoAdvance(res, time_now, time_dt); }
     return res;
 }
 
