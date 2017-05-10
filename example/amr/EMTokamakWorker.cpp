@@ -26,7 +26,7 @@ class EMTokamak : public engine::Context {
     DECLARE_REGISTER_NAME("EMTokamak");
 
     std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(shared_ptr<data::DataTable> const& cfg) override;
+    void Deserialize(std::shared_ptr<data::DataTable> const& cfg) override;
 
     GEqdsk geqdsk;
     //    void InitialCondition(Real time_now) override;
@@ -45,7 +45,7 @@ std::shared_ptr<data::DataTable> EMTokamak::Serialize() const {
     res->Set(Context::Serialize());
     return res;
 };
-void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
+void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     if (cfg == nullptr) { return; }
 
     unsigned int PhiAxe = 2;
@@ -78,13 +78,16 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     if (d != nullptr) {
         d->OnAdvance.Connect([=](Domain* self, Real time_now, Real time_dt) {
             auto E = self->GetAttribute<Field<mesh_type, Real, EDGE>>("E");
+            auto B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
             auto Ev = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Ev");
+            auto Bv = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Bv");
+            Bv.DeepCopy(B);
             Ev.DeepCopy(E);
             auto J = self->GetAttribute<Field<mesh_type, Real, EDGE>>("J", "Antenna");
             auto Jv = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Jv");
             J = [=](point_type const& x) -> Vec3 {
                 Real a = amp * std::sin(n_phi * x[2] + TWOPI * freq * time_now);
-                return Vec3{std::sin(x[2]) * a, a * std::cos(x[2]), 0};
+                return Vec3{std::sin(x[2]) * a, 0, a * std::cos(x[2])};
             };
 
             Jv.DeepCopy(J);

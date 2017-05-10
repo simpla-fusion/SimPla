@@ -13,78 +13,72 @@
 #include <utility>
 namespace simpla {
 
-namespace algebra {
-
-template <typename, typename, int, int>
-class FieldView;
 namespace traits {
 template <typename T>
 struct is_primary_field : public std::integral_constant<bool, false> {};
-
 template <typename TM, typename TV, int IFORM, int DOF>
-struct is_primary_field<FieldView<TM, TV, IFORM, DOF>> : public std::integral_constant<bool, true> {};
+class Field;
+template <typename TM, typename TV, int IFORM, int DOF>
+struct is_primary_field<Field<TM, TV, IFORM, DOF>> : public std::integral_constant<bool, true> {};
 
-}  // namespace traits {
-
-namespace traits {
 template <typename>
 struct num_of_dimension : public int_const<3> {};
 
-CHECK_MEMBER_TYPE(value_type, value_type)
-
-template <typename T>
-using value_type_t = typename value_type<T>::type;
-
-template <typename T>
-struct value_type<T&> {
-    typedef T& type;
-};
-template <typename T>
-struct value_type<T const&> {
-    typedef T const& type;
-};
-
-template <typename T>
-struct value_type<T*> {
-    typedef T type;
-};
-template <typename T, int N>
-struct value_type<T[N]> {
-    typedef T type;
-};
-template <typename T>
-struct value_type<T const*> {
-    typedef T type;
-};
-template <typename T>
-struct value_type<T const[]> {
-    typedef T type;
-};
-
-template <typename T>
-struct reference {
-   private:
-    typedef std::true_type yes;
-    typedef std::false_type no;
-
-    template <typename U>
-    static auto test(int) -> typename U::prefer_pass_by_reference;
-    template <typename>
-    static no test(...);
-
-   public:
-    typedef std::conditional_t<std::is_same<decltype(test<T>(0)), no>::value, T, T&> type;
-};
-template <typename T>
-using reference_t = typename reference<T>::type;
-template <typename T, int N>
-struct reference<T[N]> {
-    typedef T* type;
-};
-template <typename T, int N>
-struct reference<const T[N]> {
-    typedef T const* type;
-};
+// CHECK_MEMBER_TYPE(value_type, value_type)
+//
+// template <typename T>
+// using value_type_t = typename value_type<T>::type;
+//
+// template <typename T>
+// struct value_type<T&> {
+//    typedef T& type;
+//};
+// template <typename T>
+// struct value_type<T const&> {
+//    typedef T const& type;
+//};
+//
+// template <typename T>
+// struct value_type<T*> {
+//    typedef T type;
+//};
+// template <typename T, int N>
+// struct value_type<T[N]> {
+//    typedef T type;
+//};
+// template <typename T>
+// struct value_type<T const*> {
+//    typedef T type;
+//};
+// template <typename T>
+// struct value_type<T const[]> {
+//    typedef T type;
+//};
+//
+// template <typename T>
+// struct reference {
+//   private:
+//    typedef std::true_type yes;
+//    typedef std::false_type no;
+//
+//    template <typename U>
+//    static auto test(int) -> typename U::prefer_pass_by_reference;
+//    template <typename>
+//    static no test(...);
+//
+//   public:
+//    typedef std::conditional_t<std::is_same<decltype(test<T>(0)), no>::value, T, T&> type;
+//};
+// template <typename T>
+// using reference_t = typename reference<T>::type;
+// template <typename T, int N>
+// struct reference<T[N]> {
+//    typedef T* type;
+//};
+// template <typename T, int N>
+// struct reference<const T[N]> {
+//    typedef T const* type;
+//};
 
 //**************************************************************************************************
 
@@ -109,7 +103,7 @@ using field_value_t = typename field_value_type<T>::type;
 
 CHECK_BOOLEAN_TYPE_MEMBER(is_array, is_array)
 CHECK_BOOLEAN_TYPE_MEMBER(is_field, is_field)
-CHECK_BOOLEAN_TYPE_MEMBER(is_nTuple, is_nTuple)
+// CHECK_BOOLEAN_TYPE_MEMBER(is_nTuple, is_nTuple)
 CHECK_BOOLEAN_TYPE_MEMBER(is_expression, is_expression)
 
 template <typename First, typename... Others>
@@ -118,14 +112,16 @@ struct is_field<First, Others...>
 
 template <typename First, typename... Others>
 struct is_array<First, Others...>
-    : public std::integral_constant<bool, (is_array<First>::value && !is_field<First>::value) ||
-                                              is_array<Others...>::value> {};
+    : public std::integral_constant<bool,
+                                    (is_array<First>::value && !is_field<First>::value) || is_array<Others...>::value> {
+};
 
-template <typename First, typename... Others>
-struct is_nTuple<First, Others...>
-    : public std::integral_constant<bool, (is_nTuple<First>::value &&
-                                           !(is_field<Others...>::value || is_array<Others...>::value)) ||
-                                              is_nTuple<Others...>::value> {};
+// template <typename First, typename... Others>
+// struct is_nTuple<First, Others...>
+//    : public std::integral_constant<bool,
+//                                    (is_nTuple<First>::value &&
+//                                     !(is_field<Others...>::value || is_array<Others...>::value)) ||
+//                                        is_nTuple<Others...>::value> {};
 
 CHECK_STATIC_INTEGRAL_CONSTEXPR_DATA_MEMBER(ndims, NDIMS, 1)
 
@@ -167,46 +163,47 @@ struct iform<const T> : public int_const<iform<T>::value> {};
 // struct GetDOF : public int_const<dof_<T>::value> {};
 // template <typename T>
 // struct GetDOF<const T> : public GetDOF<T> {};
-
-template <typename>
-struct rank : public int_const<3> {};
-template <typename T>
-struct rank<const T> : public rank<T> {};
-
-template <typename>
-struct extent : public int_const<0> {};
-template <typename T>
-struct extent<const T> : public int_const<extent<T>::value> {};
-template <typename T>
-struct extents : public int_sequence<> {};
-
-template <typename T>
-struct scalar_type {
-    typedef Real type;
-};
-
-template <typename T>
-using scalar_type_t = typename scalar_type<T>::type;
-
-template <typename...>
-struct is_complex : public std::integral_constant<bool, false> {};
-
-template <typename T>
-struct is_complex<std::complex<T>> : public std::integral_constant<bool, true> {};
-
-template <typename...>
-struct is_scalar : public std::integral_constant<bool, false> {};
-
-template <typename T>
-struct is_scalar<T> : public std::integral_constant<bool, std::is_arithmetic<std::decay_t<T>>::value ||
-                                                              is_complex<std::decay_t<T>>::value> {};
-template <typename First, typename... Others>
-struct is_scalar<First, Others...>
-    : public std::integral_constant<bool, is_scalar<First>::value && is_scalar<Others...>::value> {};
+//
+// template <typename>
+// struct rank : public int_const<3> {};
+// template <typename T>
+// struct rank<const T> : public rank<T> {};
+//
+// template <typename>
+// struct extent : public int_const<0> {};
+// template <typename T>
+// struct extent<const T> : public int_const<extent<T>::value> {};
+// template <typename T>
+// struct extents : public int_sequence<> {};
+//
+// template <typename T>
+// struct scalar_type {
+//    typedef Real type;
+//};
+//
+// template <typename T>
+// using scalar_type_t = typename scalar_type<T>::type;
+//
+// template <typename...>
+// struct is_complex : public std::integral_constant<bool, false> {};
+//
+// template <typename T>
+// struct is_complex<std::complex<T>> : public std::integral_constant<bool, true> {};
+//
+// template <typename...>
+// struct is_scalar : public std::integral_constant<bool, false> {};
+//
+// template <typename T>
+// struct is_scalar<T>
+//    : public std::integral_constant<bool,
+//                                    std::is_arithmetic<std::decay_t<T>>::value || is_complex<std::decay_t<T>>::value>
+//                                    {
+//};
+// template <typename First, typename... Others>
+// struct is_scalar<First, Others...>
+//    : public std::integral_constant<bool, is_scalar<First>::value && is_scalar<Others...>::value> {};
 
 }  // namespace traits
-
-}  // namespace algebra
 
 // template <typename T, int... N>
 // using nTuple = algebra::declare::nTuple_<T, N...>;

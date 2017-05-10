@@ -65,7 +65,7 @@ struct RangeBase {
     virtual bool empty() const { return true; }
     virtual void foreach_override(std::function<void(value_type&)> const& fun) const { DO_NOTHING; };
 
-    virtual std::shared_ptr<this_type> split(concept::tags::split const& sp) {
+    virtual std::shared_ptr<this_type> split(tags::split const& sp) {
         UNIMPLEMENTED;
         return nullptr;
     }
@@ -95,7 +95,7 @@ struct EmptyRangeBase : public RangeBase<T> {
     bool empty() const override { return true; }
     void foreach_override(std::function<void(value_type&)> const& fun) const override { DO_NOTHING; };
 
-    std::shared_ptr<base_type> split(concept::tags::split const& sp) override { return std::make_shared<this_type>(); }
+    std::shared_ptr<base_type> split(tags::split const& sp) override { return std::make_shared<this_type>(); }
 
     template <typename TFun, typename... Args>
     void DoForeach(TFun const& fun, Args&&... args) const {}
@@ -118,7 +118,7 @@ struct ContinueRange<T> : public RangeBase<T> {
 
     void foreach_override(std::function<void(value_type&)> const& fun) const override { UNIMPLEMENTED; };
 
-    std::shared_ptr<base_type> split(concept::tags::split const& sp) override {
+    std::shared_ptr<base_type> split(tags::split const& sp) override {
         UNIMPLEMENTED;
         return nullptr;
     }
@@ -143,7 +143,7 @@ struct UnorderedRange<T> : public RangeBase<T> {
 
     void foreach_override(std::function<void(value_type&)> const& fun) const override { UNIMPLEMENTED; };
 
-    std::shared_ptr<base_type> split(concept::tags::split const& sp) override {
+    std::shared_ptr<base_type> split(tags::split const& sp) override {
         UNIMPLEMENTED;
         return nullptr;
     }
@@ -164,7 +164,7 @@ struct RangeAdapter : public RangeBase<typename TOtherRange::value_type>, public
     template <typename... Args>
     RangeAdapter(Args&&... args) : TOtherRange(std::forward<Args>(args)...) {}
 
-    RangeAdapter(TOtherRange& other, concept::tags::split const& sp) : TOtherRange(other.split(sp)) {}
+    RangeAdapter(TOtherRange& other, tags::split const& sp) : TOtherRange(other.split(sp)) {}
 
     ~RangeAdapter() override = default;
 
@@ -174,7 +174,7 @@ struct RangeAdapter : public RangeBase<typename TOtherRange::value_type>, public
 
     size_type size() const override { return TOtherRange::size(); }
 
-    std::shared_ptr<base_type> split(concept::tags::split const& sp) override {
+    std::shared_ptr<base_type> split(tags::split const& sp) override {
         return std::dynamic_pointer_cast<base_type>(std::make_shared<this_type>(*this, sp));
     }
     void foreach_override(std::function<void(value_type&)> const& fun) const override {
@@ -205,7 +205,7 @@ struct IteratorRange : public RangeBase<typename std::iterator_traits<TIterator>
 
     bool empty() const { return size() > 0; }
 
-    std::shared_ptr<base_type> split(concept::tags::split const& sp) {
+    std::shared_ptr<base_type> split(tags::split const& sp) {
         iterator b = m_b_;
         m_b_ = std::distance(m_e_, m_b_) * sp.left() / (sp.left() + sp.right());
         return std::dynamic_pointer_cast<base_type>(std::make_shared<this_type>(b, m_b_));
@@ -233,7 +233,7 @@ struct Range {
     explicit Range(std::shared_ptr<base_type> const& p) : m_next_(p) {}
     Range(this_type const& other) : m_next_(other.m_next_) {}
     Range(this_type&& other) noexcept : m_next_(other.m_next_) {}
-    Range(this_type& other, concept::tags::split const& s) : Range(other.split(s)) {}
+    Range(this_type& other, tags::split const& s) : Range(other.split(s)) {}
 
     Range& operator=(this_type const& other) {
         this_type(other).swap(*this);
@@ -254,7 +254,7 @@ struct Range {
     bool isNull() const { return m_next_ == nullptr; }
     void clear() { m_next_.reset(); }
 
-    this_type split(concept::tags::split const& s = concept::tags::split()) {
+    this_type split(tags::split const& s = tags::split()) {
         // FIXME: this is not  full functional
         this_type res;
         UNIMPLEMENTED;

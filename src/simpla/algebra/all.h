@@ -5,14 +5,12 @@
 #ifndef SIMPLA_ALGEBRA_ALL_H
 #define SIMPLA_ALGEBRA_ALL_H
 
+#include <simpla/utilities/Array.h>
+#include <simpla/utilities/nTuple.h>
 #include "Algebra.h"
-#include "Arithmetic.h"
-#include "simpla/utilities/Array.h"
 #include "Calculus.h"
 #include "CalculusPolicy.h"
-#include "Expression.h"
 #include "Field.h"
-#include "simpla/utilities/nTuple.h"
 /**
  * @addtogroup algebra Algebra System
  **/

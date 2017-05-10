@@ -7,23 +7,18 @@
 
 #include <simpla/SIMPLA_config.h>
 
-namespace simpla { namespace concept
-{
-/** @ingroup concept */
-namespace tags
-{
+namespace simpla {
 
-struct split
-{
+/** @ingroup concept */
+namespace tags {
+
+struct split {
     virtual size_type left() const { return my_left; }
 
     virtual size_type right() const { return my_right; }
 
     size_type my_left = 1, my_right = 1;
 };
-
-
-
 
 //! Type enables transmission of splitting proportion from partitioners to range objects
 /**
@@ -32,11 +27,9 @@ struct split
  * constant boolean field 'is_splittable_in_proportion' with the value
  * of 'true'
  */
-class proportional_split : public split
-{
-public:
-    proportional_split(size_type _left = 1, size_type _right = 1)
-    {
+class proportional_split : public split {
+   public:
+    proportional_split(size_type _left = 1, size_type _right = 1) {
         split::my_left = _left;
         split::my_right = _right;
     }
@@ -44,10 +37,8 @@ public:
     proportional_split(proportional_split const &) = delete;
 
     ~proportional_split() {}
-
-
 };
-}//namespace tags
+}  // namespace tags
 
 /** @ingroup concept */
 /**
@@ -88,17 +79,15 @@ public:
  * ratio specified by left() and right(). (alter from tbb::proportional_split)
  *
  */
-struct Splittable
-{
+struct Splittable {
     Splittable(Splittable &, tags::split) {}
 
     ~Splittable() {}
 
-    virtual bool is_divisible()=0;
+    virtual bool is_divisible() = 0;
 
-    virtual bool empty()=0;
-
+    virtual bool empty() = 0;
 };
-}}//namespace simpla { namespace concept
+}  // namespace simpla { namespace concept
 
-#endif //SIMPLA_SPLITTABLE_H
+#endif  // SIMPLA_SPLITTABLE_H

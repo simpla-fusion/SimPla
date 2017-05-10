@@ -26,7 +26,7 @@ class EMFluid : public engine::Domain {
     DOMAIN_HEAD(EMFluid, engine::Domain, mesh_type)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(shared_ptr<data::DataTable> const& cfg) override;
+    void Deserialize(std::shared_ptr<data::DataTable> const& cfg) override;
 
     void InitialCondition(Real time_now) override;
     void BoundaryCondition(Real time_now, Real dt) override;
@@ -76,7 +76,7 @@ std::shared_ptr<data::DataTable> EMFluid<TM>::Serialize() const {
     return res;
 };
 template <typename TM>
-void EMFluid<TM>::Deserialize(shared_ptr<data::DataTable> const& cfg) {
+void EMFluid<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     if (cfg == nullptr || cfg->GetTable("Species") == nullptr) { return; }
     auto sp = cfg->GetTable("Species");
 

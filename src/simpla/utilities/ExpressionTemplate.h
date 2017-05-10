@@ -38,6 +38,12 @@ struct value_type {
 template <typename T>
 using value_type_t = typename value_type<T>::type;
 
+template <typename T>
+struct scalar_type {
+    typedef Real type;
+};
+template <typename T>
+using scalar_type_t = typename scalar_type<T>::type;
 }  // namespace traits{
 
 /**

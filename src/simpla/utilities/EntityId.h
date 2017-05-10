@@ -648,7 +648,7 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
     ContinueRange(this_type const& r)
         : m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_), m_w_(r.m_w_) {}
 
-    std::shared_ptr<base_type> split(concept::tags::split const& proportion) override {
+    std::shared_ptr<base_type> split(tags::split const& proportion) override {
         auto res = std::make_shared<this_type>(*this);
         int n = 0;
         index_type L = m_max_[0] - m_min_[0];
@@ -730,7 +730,7 @@ struct UnorderedRange<EntityId> : public RangeBase<EntityId> {
    public:
     UnorderedRange() {}
     ~UnorderedRange() {}
-    std::shared_ptr<base_type> split(concept::tags::split const& proportion) override {
+    std::shared_ptr<base_type> split(tags::split const& proportion) override {
         UNIMPLEMENTED;
         return (nullptr);
     }

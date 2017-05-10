@@ -11,9 +11,9 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/utilities/type_traits.h>
+#include <simpla/utilities/ExpressionTemplate.h>
+
 #include "Algebra.h"
-#include "Expression.h"
-#include "Arithmetic.h"
 #include "Field.h"
 
 namespace simpla

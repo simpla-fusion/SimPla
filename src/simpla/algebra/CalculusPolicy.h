@@ -20,7 +20,6 @@
 #include "Calculus.h"
 #include "Field.h"
 namespace simpla {
-namespace algebra {
 namespace calculus {
 
 namespace st = simpla::traits;
@@ -126,9 +125,9 @@ struct calculator<TM> {
     //
     //    template<typename T>
     //    static  decltype(auto) // traits::value_type_t
-    //    <declare::Expression<tags::_codifferential_derivative, T>>
+    //    <Expression<tags::_codifferential_derivative, T>>
     //    GetValue(mesh_type const &m,
-    //    declare::Expression<tags::_codifferential_derivative, T> const &expr,
+    //    Expression<tags::_codifferential_derivative, T> const &expr,
     //              EntityId const &s)
     //    {
     //        static_assert(traits::GetIFORM<T>::value != VOLUME &&
@@ -157,8 +156,8 @@ struct calculator<TM> {
     static constexpr Real m_p_curl_factor_[3] = {0, 1, -1};
 
     //    template<typename TOP, typename T> static  traits::value_type_t
-    //    <declare::Expression<TOP, T>>
-    //    GetValue(mesh_type const &m, declare::Expression<TOP, T> const &expr,
+    //    <Expression<TOP, T>>
+    //    GetValue(mesh_type const &m, Expression<TOP, T> const &expr,
     //    EntityId const &s,
     //    ENABLE_IF((std::is_same<TOP, tags::_p_exterior_derivative < 0>>
     //                      ::value && traits::GetIFORM<T>::value == EDGE))
@@ -173,10 +172,10 @@ struct calculator<TM> {
     //
     //    template<typename T, size_t I>
     //    static  traits::value_type_t
-    //    <declare::Expression<tags::_p_codifferential_derivative < I>, T>>
+    //    <Expression<tags::_p_codifferential_derivative < I>, T>>
     //    GetValue(
     //    mesh_type const &m,
-    //    declare::Expression<tags::_p_codifferential_derivative < I>, T
+    //    Expression<tags::_p_codifferential_derivative < I>, T
     //    > const &expr,
     //    EntityId const &s,
     //    ENABLE_IF(traits::GetIFORM<T>::value == FACE)
@@ -206,12 +205,13 @@ struct calculator<TM> {
     //          *_p = nullptr) { return GetValue(m, expr, s); }
    private:
     template <typename TExpr, int I>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& f, EntityId s, index_sequence<I, I>) {
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& f, EntityId s, std::index_sequence<I, I>) {
         return getValue(m, f, s);
     };
 
     template <typename TExpr>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, EntityId s, index_sequence<VERTEX, EDGE>) {
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, EntityId s,
+                                  std::index_sequence<VERTEX, EDGE>) {
         int n = M::sub_index(s);
         EntityId X = M::delta_index(s);
         auto l = getValue(m, expr, sw(s - X, n));
@@ -220,7 +220,8 @@ struct calculator<TM> {
     }
 
     template <typename TExpr>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, EntityId s, index_sequence<VERTEX, FACE>) {
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, EntityId s,
+                                  std::index_sequence<VERTEX, FACE>) {
         int n = M::sub_index(s);
 
         auto X = M::delta_index(M::dual(s));
@@ -233,7 +234,8 @@ struct calculator<TM> {
     }
 
     template <typename TExpr>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, EntityId s, index_sequence<VERTEX, VOLUME>) {
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, EntityId s,
+                                  std::index_sequence<VERTEX, VOLUME>) {
         auto const& l = expr;
 
         auto X = M::DI(0, s);
@@ -247,13 +249,15 @@ struct calculator<TM> {
     }
 
     template <typename TExpr>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, EntityId s, index_sequence<EDGE, VERTEX>) {
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, EntityId s,
+                                  std::index_sequence<EDGE, VERTEX>) {
         EntityId X = M::DI(s.w, s);
         return (getValue(m, expr, sw(s - X, 0)) + getValue(m, expr, sw(s + X, 0))) * 0.5;
     }
 
     template <typename TExpr>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, EntityId s, index_sequence<FACE, VERTEX>) {
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, EntityId s,
+                                  std::index_sequence<FACE, VERTEX>) {
         EntityId Y = M::DI((s.w + 1) % 3, s);
         EntityId Z = M::DI((s.w + 2) % 3, s);
 
@@ -263,7 +267,8 @@ struct calculator<TM> {
     }
 
     template <typename TExpr>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, EntityId s, index_sequence<VOLUME, VERTEX>) {
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, EntityId s,
+                                  std::index_sequence<VOLUME, VERTEX>) {
         auto const& l = expr;
 
         auto X = M::DI(0, s);
@@ -278,14 +283,16 @@ struct calculator<TM> {
     }
 
     template <typename TExpr>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, EntityId s, index_sequence<VOLUME, FACE>) {
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, EntityId s,
+                                  std::index_sequence<VOLUME, FACE>) {
         auto X = M::delta_index(M::dual(s));
 
         return (getValue(m, expr, s - X) + getValue(m, expr, s + X)) * 0.5;
     }
 
     template <typename TExpr>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, EntityId s, index_sequence<VOLUME, EDGE>) {
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, EntityId s,
+                                  std::index_sequence<VOLUME, EDGE>) {
         auto const& l = expr;
         auto X = M::delta_index(s);
         auto Y = M::rotate(X);
@@ -297,14 +304,16 @@ struct calculator<TM> {
     }
 
     template <typename TExpr>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, EntityId s, index_sequence<FACE, VOLUME>) {
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, EntityId s,
+                                  std::index_sequence<FACE, VOLUME>) {
         EntityId X = M::DI(s.w, s);
 
         return (getValue(m, expr, sw(s - X, 0)) + getValue(m, expr, sw(s + X, 0))) * 0.5;
     }
 
     template <typename TExpr>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, EntityId s, index_sequence<EDGE, VOLUME>) {
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, EntityId s,
+                                  std::index_sequence<EDGE, VOLUME>) {
         //        auto const &l = expr;
         //
         //        auto X = M::DI(0, s);
@@ -321,8 +330,8 @@ struct calculator<TM> {
 
     template <typename TExpr, int IL, int IR>
     static decltype(auto) eval(mesh_type const& m, TExpr const& expr, EntityId s,
-                               expression_tag<algebra::tags::_map_to<IL>, IR>) {
-        return _map_to(m, std::get<0>(expr.m_args_), s, index_sequence<IL, IR>());
+                               expression_tag<tags::_map_to<IL>, IR>) {
+        return _map_to(m, std::get<0>(expr.m_args_), s, std::index_sequence<IL, IR>());
     }
 
     //    template<int I, typename T>
@@ -335,7 +344,7 @@ struct calculator<TM> {
     //
     //    template<int I, typename T>
     //    static  traits::value_type_t <T>
-    //    GetValue(mesh_type const &m, declare::Expression<tags::_map_to < I>,
+    //    GetValue(mesh_type const &m, Expression<tags::_map_to < I>,
     //    T
     //
     //    > const &expr,
@@ -351,8 +360,8 @@ struct calculator<TM> {
     template <typename TExpr, int IL, int IR>
     static decltype(auto) eval(mesh_type const& m, TExpr const& expr, EntityId s,
                                expression_tag<tags::_wedge, IL, IR>) {
-        return m.inner_product(_map_to(m, std::get<0>(expr.m_args_), s, index_sequence<IL, IR + IL>()),
-                               _map_to(m, std::get<1>(expr.m_args_), s, index_sequence<IR, IR + IL>()), s);
+        return m.inner_product(_map_to(m, std::get<0>(expr.m_args_), s, std::index_sequence<IL, IR + IL>()),
+                               _map_to(m, std::get<1>(expr.m_args_), s, std::index_sequence<IR, IR + IL>()), s);
     }
 
     template <typename TExpr>
@@ -585,27 +594,27 @@ struct calculator<TM> {
     //        return f.at(s);
     //    };
     //    template <typename... U>
-    //    static decltype(auto) getValue(mesh_type const& m, FieldView<U...> const& f, EntityId s) {
+    //    static decltype(auto) getValue(mesh_type const& m, Field<U...> const& f, EntityId s) {
     //        return f.at(s);
     //    };
     //
     //    template <typename... U>
-    //    static decltype(auto) getValue(mesh_type const& m, FieldView<U...> const& f, point_type const& x) {
+    //    static decltype(auto) getValue(mesh_type const& m, Field<U...> const& f, point_type const& x) {
     //        return gather(m, f, x);
     //    };
 
     template <typename M, typename V, int I, int D>
-    static V const& getValue(mesh_type const& m, FieldView<M, V, I, D> const& f, EntityId s) {
+    static V const& getValue(mesh_type const& m, Field<M, V, I, D> const& f, EntityId s) {
         return f[EntityIdCoder::SubIndex<I, D>(s)](s.x, s.y, s.z);
     };
     template <typename M, typename V, int I, int D>
-    static V& getValue(mesh_type const& m, FieldView<M, V, I, D>& f, EntityId s) {
+    static V& getValue(mesh_type const& m, Field<M, V, I, D>& f, EntityId s) {
         return f[EntityIdCoder::SubIndex<I, D>(s)](s.x, s.y, s.z);
     };
 
     template <typename TOP, typename... T>
-    static auto getValue(mesh_type const& m, declare::Expression<TOP, T...> const& expr, EntityId s) {
-        return eval(m, expr, s, expression_tag<TOP, algebra::traits::iform<T>::value...>());
+    static auto getValue(mesh_type const& m, Expression<TOP, T...> const& expr, EntityId s) {
+        return eval(m, expr, s, expression_tag<TOP, traits::iform<T>::value...>());
     }
 
     template <typename TFun>
@@ -620,11 +629,12 @@ struct calculator<TM> {
         return sample(m, s, fun(m.point(s)));
     }
 
-    template <int IFORM, typename TExpr>
-    static auto getValue(std::integral_constant<int, IFORM> const&, mesh_type const& m, TExpr const& expr, index_type i,
-                         index_type j, index_type k, unsigned int n, unsigned int d) {
-        return getValue(m, expr, EntityIdCoder::Pack<IFORM>(i, j, k, n, d));
-    }
+    //    template <int IFORM, typename TExpr>
+    //    static auto getValue(std::integral_constant<int, IFORM> const&, mesh_type const& m, TExpr const& expr,
+    //    index_type i,
+    //                         index_type j, index_type k, unsigned int n, unsigned int d) {
+    //        return getValue(m, expr, EntityIdCoder::Pack<IFORM>(i, j, k, n, d));
+    //    }
 
     //**********************************************************************************************
 
@@ -670,43 +680,41 @@ struct calculator<TM> {
     Real RBF(mesh_type const& m, point_type const& x0, point_type const& x1, Real const& a) {
         return (1.0 - m.distance(x1, x0) / a);
     }
-
-    //    template <int DOF, typename... U>
-    //    static void Assign(mesh_type const& m, FieldView<mesh_type, U...>& f, EntityId
-    //    s,
-    //                       nTuple<U, DOF> const& v) {
-    //        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
-    //    }
-
-    ////    template <typename... U>
-    ////    static void assign(mesh_type const& m, FieldView<U...>& f,
-    ////                       EntityId s, nTuple<U, 3> const& v) {
-    ////        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[M::sub_index(s)]; }
-    ////    }
-    ////
-    ////    template <typename V, int DOF, int... I, typename U>
-    ////    static void assign(mesh_type const& m, FieldView<mesh_type, V, FACE, DOF, I...>& f,
-    ////                       EntityId s, nTuple<U, 3> const& v) {
-    ////        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[M::sub_index(s)]; }
-    ////    }
-    ////
-    ////    template <typename V, int DOF, int... I, typename U>
-    ////    static void assign(mesh_type const& m, FieldView<mesh_type, V, VOLUME, DOF, I...>& f,
-    ////                       EntityId s, nTuple<U, DOF> const& v) {
-    ////        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
-    //    }
-    //
-    //    template <typename V, int IFORM, int DOF, int... I, typename U>
-    //    static void Assign(mesh_type const& m, FieldView<mesh_type, V, IFORM, DOF, I...>& f,
-    //                       EntityId s, U const& v) {
-    //        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v; }
-    //    }
 };
+//    template <int DOF, typename... U>
+//    static void Assign(mesh_type const& m, Field<mesh_type, U...>& f, EntityId
+//    s,
+//                       nTuple<U, DOF> const& v) {
+//        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
+//    }
+
+////    template <typename... U>
+////    static void assign(mesh_type const& m, Field<U...>& f,
+////                       EntityId s, nTuple<U, 3> const& v) {
+////        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[M::sub_index(s)]; }
+////    }
+////
+////    template <typename V, int DOF, int... I, typename U>
+////    static void assign(mesh_type const& m, Field<mesh_type, V, FACE, DOF, I...>& f,
+////                       EntityId s, nTuple<U, 3> const& v) {
+////        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[M::sub_index(s)]; }
+////    }
+////
+////    template <typename V, int DOF, int... I, typename U>
+////    static void assign(mesh_type const& m, Field<mesh_type, V, VOLUME, DOF, I...>& f,
+////                       EntityId s, nTuple<U, DOF> const& v) {
+////        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
+//    }
+//
+//    template <typename V, int IFORM, int DOF, int... I, typename U>
+//    static void Assign(mesh_type const& m, Field<mesh_type, V, IFORM, DOF, I...>& f,
+//                       EntityId s, U const& v) {
+//        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v; }
+//    }
 
 // template <typename TV, typename TM, int IFORM, int DOF>
-// constexpr Real   calculator<FieldView<TV, TM, IFORM, DOF>>::m_p_curl_factor[3];
+// constexpr Real   calculator<Field<TV, TM, IFORM, DOF>>::m_p_curl_factor[3];
 }  // namespace calculus
-}  // namespace algebra
 }  // namespace simpla { {
 
 #endif /* FDM_H_ */

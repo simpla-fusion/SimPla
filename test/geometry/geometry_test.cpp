@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 
-#include <simpla/algebra/Arithmetic.h>
+#include "../../to_delete/Arithmetic.h"
 #include <simpla/model/geometry/GeoObject.h>
 
 class Cube : public simpla::geometry::GeoObjectBase {};

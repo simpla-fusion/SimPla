@@ -8,7 +8,7 @@
 #include <simpla/SIMPLA_config.h>
 #include <cmath>
 #include <type_traits>
-#include "Algebra.h"
+#include "simpla/algebra/Algebra.h"
 
 namespace simpla {
 namespace algebra {
