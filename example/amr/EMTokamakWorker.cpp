@@ -74,7 +74,7 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
             auto E = self->GetAttribute<Field<mesh_type, Real, EDGE>>("E");
             auto Ev = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Ev");
 
-            E[self->GetBoundaryRange(EDGE, "Limiter")] = 1;
+            E[self->GetBoundaryRange(EDGE)] = 1;
 
             Ev = map_to<VOLUME>(E);
 

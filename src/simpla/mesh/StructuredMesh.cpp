@@ -10,7 +10,6 @@ using namespace algebra;
 
 void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix,
                                     std::map<std::string, EntityRange> &ranges) {
-
     auto overlap = (g == nullptr) ? 1 : g->CheckOverlap(GetBox());
 
     if (overlap == 1) {
@@ -227,6 +226,7 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
                     VOLUME_boundary->Insert(t7 + s);
                 }
             }
+
     ranges[prefix + ".VERTEX_BODY"].append(VERTEX_body);
     ranges[prefix + ".EDGE_BODY"].append(EDGE_body);
     ranges[prefix + ".FACE_BODY"].append(FACE_body);
@@ -237,6 +237,7 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
     ranges[prefix + ".EDGE_PERP_BOUNDARY"].append(EDGE_PERP_boundary);
     ranges[prefix + ".FACE_PERP_BOUNDARY"].append(FACE_PERP_boundary);
     ranges[prefix + ".VOLUME_BOUNDARY"].append(VOLUME_boundary);
+
 
     //    CHECK(VOLUME_body->size());
 }
