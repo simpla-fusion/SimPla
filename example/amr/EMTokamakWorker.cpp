@@ -52,6 +52,10 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     GetModel().SetObject("Limiter", std::make_shared<geometry::RevolveZ>(geqdsk.limiter(), PhiAxe, phi[0], phi[1]));
     GetModel().SetObject("Center", std::make_shared<geometry::RevolveZ>(geqdsk.boundary(), PhiAxe, phi[0], phi[1]));
 
+    index_box_type idx_box{{0, 0, 0}, {1, 1, 1}};
+    std::get<1>(idx_box) = cfg->GetValue<nTuple<int, 3>>("Dimensions", nTuple<int, 3>{64, 64, 32});
+    GetAtlas().SetIndexBox(idx_box);
+
     engine::Context::Initialize();
     engine::Context::Deserialize(cfg);
 
@@ -66,18 +70,11 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     auto d = GetDomain("Limiter");
     if (d != nullptr) {
         d->OnBoundaryCondition.Connect([=](Domain* self, Real time_now, Real time_dt) {
-            //            auto& E = self->GetAttribute<Field<mesh_type, Real, EDGE>>("E");
-            auto B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B", "FULL");
-            auto B0 = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("B0");
 
-            //            E[self->GetBoundaryRange(EDGE)] = 0;
-            //            B[self->GetBoundaryRange(FACE)] = 0;
+            auto B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
             auto Bv = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Bv");
+            B[self->GetBoundaryRange(FACE, "Limiter")] = 1;
 
-            B.Clear();
-            Bv.Clear();
-
-            B = [&](point_type const& x) -> Vec3 { return nTuple<Real, 3>{0, 0, 1}; };
             Bv = map_to<VOLUME>(B);
 
             self->GetAttribute<Field<mesh_type, Real, EDGE>>("J", "Antenna") = [=](point_type const& x) -> Vec3 {

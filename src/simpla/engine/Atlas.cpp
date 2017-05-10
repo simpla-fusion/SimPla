@@ -31,7 +31,7 @@ struct Atlas::pimpl_s {
     size_tuple m_smallest_dimensions_{16, 16, 16};
     size_tuple m_largest_dimensions_{64, 64, 64};
 
-    index_box_type m_index_box_{{0, 0, 0}, {64, 32, 32}};
+    index_box_type m_index_box_{{0, 0, 0}, {64, 64, 32}};
 };
 
 Atlas::Atlas() : m_pimpl_(new pimpl_s){};
@@ -40,6 +40,8 @@ void Atlas::SetUp(){};
 std::shared_ptr<data::DataTable> Atlas::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
     res->SetValue("PeriodicDimension", m_pimpl_->m_periodic_dimension_);
+    res->SetValue("IndexBox", m_pimpl_->m_index_box_);
+
     return res;
 };
 void Atlas::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {

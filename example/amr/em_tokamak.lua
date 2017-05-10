@@ -3,7 +3,8 @@
 Context = {
     Type = "EMTokamak",
     gfile = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900",
-    Phi = { 0.0, 3.14  },
+    Phi = { 0.0, 3.14 },
+    Dimensions =  { 64, 64, 32 }  ,
     Domains =
     {
         Limiter = { Type = "EMFluidCylindricalSMesh" },

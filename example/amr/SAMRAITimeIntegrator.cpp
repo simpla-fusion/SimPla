@@ -888,7 +888,7 @@ void SAMRAITimeIntegrator::SetUp() {
 
     auto error_detector = boost::make_shared<SAMRAI::mesh::StandardTagAndInitialize>(
         "StandardTagAndInitialize", hyp_level_integrator.get(), StandardTagAndInitialize);
-    /*********************************************************************
+    /**
      *  create grid_algorithm
      */
     auto BergerRigoutsos = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("BergerRigoutsos");

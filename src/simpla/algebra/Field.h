@@ -184,10 +184,18 @@ class FieldView : public engine::Attribute {
                 });
             }
         } else if (!m_range_.empty()) {
+            index_tuple ib, ie;
+            std::tie(ib, ie) = m_mesh_->GetIndexBox();
+
             for (int i = 0; i < DOF; ++i) {
                 m_range_.foreach ([&](EntityId s) {
-                    s.w = s.w | static_cast<int16_t>(i << 3);
-                    this->at(s) = calculus_policy::getValue(*m_mesh_, other, s);
+                    if (ib[0] <= s.x && s.x < ie[0] &&  //
+                        ib[1] <= s.y && s.y < ie[1] &&  //
+                        ib[2] <= s.z && s.z < ie[2])       //
+                    {
+                        s.w = s.w | static_cast<int16_t>(i << 3);
+                        this->at(s) = calculus_policy::getValue(*m_mesh_, other, s);
+                    }
                 });
             }
         }
