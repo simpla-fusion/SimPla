@@ -66,12 +66,13 @@ class Domain : public SPObject,
     std::shared_ptr<Patch> DoAdvance(const std::shared_ptr<Patch> &, Real time_now, Real dt);
 
     template <typename T>
-    T GetAttribute(std::string const &k, std::string const &s = "") const {
-        return T(Get(k)->cast_as<T>(), GetBodyRange(T::iform, s));
-    };
-    template <typename T>
-    T GetAttribute(std::string const &k, EntityId const &r) const {
+    T GetAttribute(std::string const &k, EntityRange const &r = EntityRange()) const {
         return T(Get(k)->cast_as<T>(), r);
+    };
+
+    template <typename T>
+    T GetAttribute(std::string const &k, std::string const &s) const {
+        return GetAttribute<T>(k, GetBodyRange(T::iform, s));
     };
 
    private:

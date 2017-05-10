@@ -191,7 +191,7 @@ class FieldView : public engine::Attribute {
                 m_range_.foreach ([&](EntityId s) {
                     if (ib[0] <= s.x && s.x < ie[0] &&  //
                         ib[1] <= s.y && s.y < ie[1] &&  //
-                        ib[2] <= s.z && s.z < ie[2])       //
+                        ib[2] <= s.z && s.z < ie[2])    //
                     {
                         s.w = s.w | static_cast<int16_t>(i << 3);
                         this->at(s) = calculus_policy::getValue(*m_mesh_, other, s);

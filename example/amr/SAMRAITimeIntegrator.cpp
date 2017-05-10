@@ -475,7 +475,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
             }
         }
     }
-    integrator->printClassData(std::cout);
+    //    integrator->printClassData(std::cout);
     //    vardb->printClassData(std::cout);
 }
 void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchFromSAMRAI(SAMRAI::hier::Patch &patch, engine::Patch *p) {
@@ -931,8 +931,8 @@ void SAMRAITimeIntegrator::SetUp() {
 
     m_time_refinement_integrator_->initializeHierarchy();
 
-    grid_geometry->printClassData(std::cout);
-    hyp_level_integrator->printClassData(std::cout);
+    //    grid_geometry->printClassData(std::cout);
+    //    hyp_level_integrator->printClassData(std::cout);
     // m_time_refinement_integrator_->printClassData(std::cout);
     MESSAGE << "==================  Context is initialized!  =================" << std::endl;
 };
