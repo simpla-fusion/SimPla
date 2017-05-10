@@ -361,6 +361,10 @@ struct Array {
 
         return os;
     }
+    template <typename TOther>
+    void DeepCopy(TOther const& other) {
+        simpla::detail::ForeachND(m_index_box_, [&](m_index_tuple const& idx) { at(idx) = getValue(other, idx); });
+    }
 
    public:
     template <typename TOP, typename... Others>

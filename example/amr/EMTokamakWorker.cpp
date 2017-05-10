@@ -84,7 +84,7 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
             auto Jv = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Jv");
             E[self->GetBoundaryRange(EDGE)] = 1;
 
-            Ev = map_to<VOLUME>(E);
+            Ev.DeepCopy(E);
 
             self->GetAttribute<Field<mesh_type, Real, EDGE>>("J", "Antenna") = [=](point_type const& x) -> Vec3 {
                 Vec3 res{amp * std::sin(x[2]), 0, amp * std::cos(x[2])};
@@ -92,7 +92,7 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
                 return res;
             };
 
-            Jv = map_to<VOLUME>(J);
+            Jv.DeepCopy(J);
         });
 
         d->OnInitialCondition.Connect([&](Domain* self, Real time_now) {

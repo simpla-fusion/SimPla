@@ -163,6 +163,10 @@ class FieldView : public engine::Attribute {
 
         Tag();
     }
+    template <typename TOther>
+    void DeepCopy(TOther const& other) {
+        for (int i = 0; i < NUMBER_OF_SUB; ++i) { m_data_[i].DeepCopy(other[i]); }
+    }
 
     template <typename Other>
     void Assign(Other const& other) {
