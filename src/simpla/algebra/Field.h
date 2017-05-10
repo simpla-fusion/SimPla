@@ -218,103 +218,91 @@ class Field : public engine::Attribute {
 template <typename TM, typename TV, int IFORM, int DOF>
 constexpr int Field<TM, TV, IFORM, DOF>::NUMBER_OF_SUB;  //= ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
 
-#define _SP_DEFINE_FIELD_BINARY_OPERATOR(_NAME_, _OP_)                                                               \
-    template <typename TM, typename TL, int NL, int DL, typename TR>                                                 \
-    auto operator _OP_(Field<TM, TL, NL, DL> const& lhs, TR const& rhs) {                                            \
-        return Expression<simpla::tags::_NAME_, const Field<TM, TL, NL, DL>, TR const>(lhs, rhs);                    \
-    };                                                                                                               \
-    template <typename TL, typename TM, typename TR, int NR, int DR>                                                 \
-    auto operator _OP_(TL const& lhs, Field<TM, TR, NR, DR> const& rhs) {                                            \
-        return Expression<simpla::tags::_NAME_, TL const, const Field<TM, TR, NR, DR>>(lhs, rhs);                    \
-    };                                                                                                               \
-    template <typename TM, typename TL, int NL, int DL, typename... TR>                                              \
-    auto operator _OP_(Field<TM, TL, NL, DL> const& lhs, Expression<TR...> const& rhs) {                             \
-        return Expression<simpla::tags::_NAME_, const Field<TM, TL, NL, DL>, Expression<TR...> const>(lhs, rhs);     \
-    };                                                                                                               \
-    template <typename... TL, typename TM, typename TR, int NR, int DR>                                              \
-    auto operator _OP_(Expression<TL...> const& lhs, Field<TM, TR, NR, DR> const& rhs) {                             \
-        return Expression<simpla::tags::_NAME_, Expression<TL...> const, const Field<TM, TR, NR, DR>>(lhs, rhs);     \
-    };                                                                                                               \
-    template <typename TM, typename TL, int NL, int DL, typename TR, int NR, int DR>                                 \
-    auto operator _OP_(Field<TM, TL, NL, DL> const& lhs, Field<TM, TR, NR, DR> const& rhs) {                         \
-        return Expression<simpla::tags::_NAME_, const Field<TM, TL, NL, DL>, const Field<TM, TR, NR, DR>>(lhs, rhs); \
+#define _SP_DEFINE_FIELD_BINARY_OPERATOR(_NAME_, _OP_)                                                       \
+    template <typename TM, typename TL, int NL, int DL, typename TR>                                         \
+    auto operator _OP_(Field<TM, TL, NL, DL> const& lhs, TR const& rhs) {                                    \
+        return Expression<tags::_NAME_, const Field<TM, TL, NL, DL>, TR const>(lhs, rhs);                    \
+    };                                                                                                       \
+    template <typename TL, typename TM, typename TR, int NR, int DR>                                         \
+    auto operator _OP_(TL const& lhs, Field<TM, TR, NR, DR> const& rhs) {                                    \
+        return Expression<tags::_NAME_, TL const, const Field<TM, TR, NR, DR>>(lhs, rhs);                    \
+    };                                                                                                       \
+    template <typename TM, typename TL, int NL, int DL, typename... TR>                                      \
+    auto operator _OP_(Field<TM, TL, NL, DL> const& lhs, Expression<TR...> const& rhs) {                     \
+        return Expression<tags::_NAME_, const Field<TM, TL, NL, DL>, Expression<TR...> const>(lhs, rhs);     \
+    };                                                                                                       \
+    template <typename... TL, typename TM, typename TR, int NR, int DR>                                      \
+    auto operator _OP_(Expression<TL...> const& lhs, Field<TM, TR, NR, DR> const& rhs) {                     \
+        return Expression<tags::_NAME_, Expression<TL...> const, const Field<TM, TR, NR, DR>>(lhs, rhs);     \
+    };                                                                                                       \
+    template <typename TM, typename TL, int NL, int DL, typename TR, int NR, int DR>                         \
+    auto operator _OP_(Field<TM, TL, NL, DL> const& lhs, Field<TM, TR, NR, DR> const& rhs) {                 \
+        return Expression<tags::_NAME_, const Field<TM, TL, NL, DL>, const Field<TM, TR, NR, DR>>(lhs, rhs); \
     };
 
-#define _SP_DEFINE_FIELD_UNARY_OPERATOR(_NAME_, _OP_)                              \
-    template <typename TM, typename TL, int NL, int DL>                            \
-    auto operator _OP_(Field<TM, TL, NL, DL> const& lhs) {                         \
-        return Expression<simpla::tags::_NAME_, const Field<TM, TL, NL, DL>>(lhs); \
+#define _SP_DEFINE_FIELD_UNARY_OPERATOR(_NAME_, _OP_)                      \
+    template <typename TM, typename TL, int NL, int DL>                    \
+    auto operator _OP_(Field<TM, TL, NL, DL> const& lhs) {                 \
+        return Expression<tags::_NAME_, const Field<TM, TL, NL, DL>>(lhs); \
     };
 
 _SP_DEFINE_FIELD_BINARY_OPERATOR(addition, +)
-
 _SP_DEFINE_FIELD_BINARY_OPERATOR(subtraction, -)
-
 _SP_DEFINE_FIELD_BINARY_OPERATOR(multiplication, *)
-
 _SP_DEFINE_FIELD_BINARY_OPERATOR(division, /)
-
 _SP_DEFINE_FIELD_BINARY_OPERATOR(modulo, %)
-
 _SP_DEFINE_FIELD_UNARY_OPERATOR(bitwise_not, ~)
-
 _SP_DEFINE_FIELD_BINARY_OPERATOR(bitwise_xor, ^)
-
 _SP_DEFINE_FIELD_BINARY_OPERATOR(bitwise_and, &)
-
 _SP_DEFINE_FIELD_BINARY_OPERATOR(bitwise_or, |)
 
 template <typename TM, typename TL, int NL, int DL>
 auto operator<<(Field<TM, TL, NL, DL> const& lhs, int n) {
-    return Expression<simpla::tags::bitwise_left_shift, const Field<TM, TL, NL, DL>, int>(lhs, n);
+    return Expression<tags::bitwise_left_shift, const Field<TM, TL, NL, DL>, int>(lhs, n);
 };
 
 template <typename TM, typename TL, int NL, int DL>
 auto operator>>(Field<TM, TL, NL, DL> const& lhs, int n) {
-    return Expression<simpla::tags::bitwise_right_shifit, const Field<TM, TL, NL, DL>, int>(lhs, n);
+    return Expression<tags::bitwise_right_shifit, const Field<TM, TL, NL, DL>, int>(lhs, n);
 };
 //_SP_DEFINE_FIELD_BINARY_OPERATOR(bitwise_left_shift, <<)
 //_SP_DEFINE_FIELD_BINARY_OPERATOR(bitwise_right_shift, >>)
 
 _SP_DEFINE_FIELD_UNARY_OPERATOR(unary_plus, +)
-
 _SP_DEFINE_FIELD_UNARY_OPERATOR(unary_minus, -)
-
 _SP_DEFINE_FIELD_UNARY_OPERATOR(logical_not, !)
-
 _SP_DEFINE_FIELD_BINARY_OPERATOR(logical_and, &&)
-
 _SP_DEFINE_FIELD_BINARY_OPERATOR(logical_or, ||)
 
 #undef _SP_DEFINE_FIELD_BINARY_OPERATOR
 #undef _SP_DEFINE_FIELD_UNARY_OPERATOR
 
-#define _SP_DEFINE_FIELD_BINARY_FUNCTION(_NAME_)                                                                     \
-    template <typename TM, typename TL, int NL, int DL, typename TR>                                                 \
-    auto _NAME_(Field<TM, TL, NL, DL> const& lhs, TR const& rhs) {                                                   \
-        return Expression<simpla::tags::_NAME_, const Field<TM, TL, NL, DL>, const TR>(lhs, rhs);                    \
-    };                                                                                                               \
-    template <typename TL, typename TM, typename TR, int NR, int DR>                                                 \
-    auto _NAME_(TL const& lhs, Field<TM, TR, NR, DR> const& rhs) {                                                   \
-        return Expression<simpla::tags::_NAME_, const TL, const Field<TM, TR, NR, DR>>(lhs, rhs);                    \
-    };                                                                                                               \
-    template <typename TM, typename TL, int NL, int DL, typename... TR>                                              \
-    auto _NAME_(Field<TM, TL, NL, DL> const& lhs, Expression<TR...> const& rhs) {                                    \
-        return Expression<simpla::tags::_NAME_, const Field<TM, TL, NL, DL>, const Expression<TR...>>(lhs, rhs);     \
-    };                                                                                                               \
-    template <typename... TL, typename TM, typename TR, int NR, int DR>                                              \
-    auto _NAME_(Expression<TL...> const& lhs, Field<TM, TR, NR, DR> const& rhs) {                                    \
-        return Expression<simpla::tags::_NAME_, const Expression<TL...>, const Field<TM, TR, NR, DR>>(lhs, rhs);     \
-    };                                                                                                               \
-    template <typename TM, typename TL, int NL, int DL, typename TR, int NR, int DR>                                 \
-    auto _NAME_(Field<TM, TL, NL, DL> const& lhs, Field<TM, TR, NR, DR> const& rhs) {                                \
-        return Expression<simpla::tags::_NAME_, const Field<TM, TL, NL, DL>, const Field<TM, TR, NR, DR>>(lhs, rhs); \
+#define _SP_DEFINE_FIELD_BINARY_FUNCTION(_NAME_)                                                             \
+    template <typename TM, typename TL, int NL, int DL, typename TR>                                         \
+    auto _NAME_(Field<TM, TL, NL, DL> const& lhs, TR const& rhs) {                                           \
+        return Expression<tags::_NAME_, const Field<TM, TL, NL, DL>, const TR>(lhs, rhs);                    \
+    };                                                                                                       \
+    template <typename TL, typename TM, typename TR, int NR, int DR>                                         \
+    auto _NAME_(TL const& lhs, Field<TM, TR, NR, DR> const& rhs) {                                           \
+        return Expression<tags::_NAME_, const TL, const Field<TM, TR, NR, DR>>(lhs, rhs);                    \
+    };                                                                                                       \
+    template <typename TM, typename TL, int NL, int DL, typename... TR>                                      \
+    auto _NAME_(Field<TM, TL, NL, DL> const& lhs, Expression<TR...> const& rhs) {                            \
+        return Expression<tags::_NAME_, const Field<TM, TL, NL, DL>, const Expression<TR...>>(lhs, rhs);     \
+    };                                                                                                       \
+    template <typename... TL, typename TM, typename TR, int NR, int DR>                                      \
+    auto _NAME_(Expression<TL...> const& lhs, Field<TM, TR, NR, DR> const& rhs) {                            \
+        return Expression<tags::_NAME_, const Expression<TL...>, const Field<TM, TR, NR, DR>>(lhs, rhs);     \
+    };                                                                                                       \
+    template <typename TM, typename TL, int NL, int DL, typename TR, int NR, int DR>                         \
+    auto _NAME_(Field<TM, TL, NL, DL> const& lhs, Field<TM, TR, NR, DR> const& rhs) {                        \
+        return Expression<tags::_NAME_, const Field<TM, TL, NL, DL>, const Field<TM, TR, NR, DR>>(lhs, rhs); \
     };
 
-#define _SP_DEFINE_FIELD_UNARY_FUNCTION(_NAME_)                                    \
-    template <typename TM, typename TL, int NL, int DL>                            \
-    auto _NAME_(Field<TM, TL, NL, DL> const& lhs) {                                \
-        return Expression<simpla::tags::_NAME_, const Field<TM, TL, NL, DL>>(lhs); \
+#define _SP_DEFINE_FIELD_UNARY_FUNCTION(_NAME_)                            \
+    template <typename TM, typename TL, int NL, int DL>                    \
+    auto _NAME_(Field<TM, TL, NL, DL> const& lhs) {                        \
+        return Expression<tags::_NAME_, const Field<TM, TL, NL, DL>>(lhs); \
     }
 
 _SP_DEFINE_FIELD_UNARY_FUNCTION(cos)
@@ -349,65 +337,48 @@ _SP_DEFINE_FIELD_BINARY_FUNCTION(pow)
     }
 
 _SP_DEFINE_FIELD_COMPOUND_OP(+)
-
 _SP_DEFINE_FIELD_COMPOUND_OP(-)
-
 _SP_DEFINE_FIELD_COMPOUND_OP(*)
-
 _SP_DEFINE_FIELD_COMPOUND_OP(/)
-
 _SP_DEFINE_FIELD_COMPOUND_OP(%)
-
 _SP_DEFINE_FIELD_COMPOUND_OP(&)
-
 _SP_DEFINE_FIELD_COMPOUND_OP(|)
-
 _SP_DEFINE_FIELD_COMPOUND_OP (^)
-
 _SP_DEFINE_FIELD_COMPOUND_OP(<<)
-
 _SP_DEFINE_FIELD_COMPOUND_OP(>>)
-
 #undef _SP_DEFINE_FIELD_COMPOUND_OP
 
-#define _SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(_NAME_, _REDUCTION_, _OP_)                                        \
-    template <typename TM, typename TL, int NL, int DL, typename TR>                                               \
-    auto operator _OP_(Field<TM, TL, NL, DL> const& lhs, TR const& rhs) {                                          \
-        return reduction<_REDUCTION_>(Expression<simpla::tags::_NAME_, const Array<TL, NL>, const TR>(lhs, rhs));  \
-    };                                                                                                             \
-    template <typename TL, typename TM, typename TR, int NR, int DR>                                               \
-    auto operator _OP_(TL const& lhs, Array<TR, NR> const& rhs) {                                                  \
-        return reduction<_REDUCTION_>(                                                                             \
-            Expression<simpla::tags::_NAME_, const TL, const Field<TM, TR, NR, DR>>(lhs, rhs));                    \
-    };                                                                                                             \
-    template <typename TM, typename TL, int NL, int DL, typename... TR>                                            \
-    auto operator _OP_(Field<TM, TL, NL, DL> const& lhs, Expression<TR...> const& rhs) {                           \
-        return reduction<_REDUCTION_>(                                                                             \
-            Expression<simpla::tags::_NAME_, const Field<TM, TL, NL, DL>, const Expression<TR...>>(lhs, rhs));     \
-    };                                                                                                             \
-    template <typename... TL, typename TM, typename TR, int NR, int DR>                                            \
-    auto operator _OP_(Expression<TL...> const& lhs, Field<TM, TR, NR, DR> const& rhs) {                           \
-        return reduction<_REDUCTION_>(                                                                             \
-            Expression<simpla::tags::_NAME_, const Expression<TL...>, const Field<TM, TR, NR, DR>>(lhs, rhs));     \
-    };                                                                                                             \
-    template <typename TM, typename TL, int NL, int DL, typename TR, int NR, int DR>                               \
-    auto operator _OP_(Field<TM, TL, NL, DL> const& lhs, Field<TM, TR, NR, DR> const& rhs) {                       \
-        return reduction<_REDUCTION_>(                                                                             \
-            Expression<simpla::tags::_NAME_, const Field<TM, TL, NL, DL>, const Field<TM, TR, NR, DR>>(lhs, rhs)); \
+#define _SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(_NAME_, _REDUCTION_, _OP_)                                       \
+    template <typename TM, typename TL, int NL, int DL, typename TR>                                              \
+    auto operator _OP_(Field<TM, TL, NL, DL> const& lhs, TR const& rhs) {                                         \
+        return reduction<_REDUCTION_>(Expression<tags::_NAME_, const Array<TL, NL>, const TR>(lhs, rhs));         \
+    };                                                                                                            \
+    template <typename TL, typename TM, typename TR, int NR, int DR>                                              \
+    auto operator _OP_(TL const& lhs, Array<TR, NR> const& rhs) {                                                 \
+        return reduction<_REDUCTION_>(Expression<tags::_NAME_, const TL, const Field<TM, TR, NR, DR>>(lhs, rhs)); \
+    };                                                                                                            \
+    template <typename TM, typename TL, int NL, int DL, typename... TR>                                           \
+    auto operator _OP_(Field<TM, TL, NL, DL> const& lhs, Expression<TR...> const& rhs) {                          \
+        return reduction<_REDUCTION_>(                                                                            \
+            Expression<tags::_NAME_, const Field<TM, TL, NL, DL>, const Expression<TR...>>(lhs, rhs));            \
+    };                                                                                                            \
+    template <typename... TL, typename TM, typename TR, int NR, int DR>                                           \
+    auto operator _OP_(Expression<TL...> const& lhs, Field<TM, TR, NR, DR> const& rhs) {                          \
+        return reduction<_REDUCTION_>(                                                                            \
+            Expression<tags::_NAME_, const Expression<TL...>, const Field<TM, TR, NR, DR>>(lhs, rhs));            \
+    };                                                                                                            \
+    template <typename TM, typename TL, int NL, int DL, typename TR, int NR, int DR>                              \
+    auto operator _OP_(Field<TM, TL, NL, DL> const& lhs, Field<TM, TR, NR, DR> const& rhs) {                      \
+        return reduction<_REDUCTION_>(                                                                            \
+            Expression<tags::_NAME_, const Field<TM, TL, NL, DL>, const Field<TM, TR, NR, DR>>(lhs, rhs));        \
     };
 
-_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(not_equal_to, simpla::tags::logical_or, !=)
-
-_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(equal_to, simpla::tags::logical_and, ==)
-
-_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(less, simpla::tags::logical_and, <)
-
-_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(greater, simpla::tags::logical_and, >)
-
-_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(less_equal, simpla::tags::logical_and, <=)
-
-_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(greater_equal, simpla::tags::logical_and, >=)
-
+_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(not_equal_to, tags::logical_or, !=)
+_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(equal_to, tags::logical_and, ==)
+_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(less, tags::logical_and, <)
+_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(greater, tags::logical_and, >)
+_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(less_equal, tags::logical_and, <=)
+_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(greater_equal, tags::logical_and, >=)
 #undef _SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR
 
 //        static int tag[4][3] = {{0, 0, 0}, {1, 2, 4}, {6, 5, 3}, {7, 7, 7}};
