@@ -9,15 +9,15 @@ Context = {
         x_lower = { 1.4, -0.1, 0 },
         x_upper = { 1.45, 0.1, 3.1415926  },
         amp = 1.0,
-        n_phi = 10.0,
-        omega = 1.0e9
+        n_phi = 1.0,
+        Frequency = 1.0e8
     },
     Domains =
     {
         Limiter = { Type = "EMFluidCylindricalSMesh" },
         --   Atenna = { Type = "ICRF" ,
         --         WaveNumber={0,0,1},
-        --         Frequence=1.9e19,
+        --         Frequence=1.9e9,
         --         Amplify= 1.0e5,
         --         },
     },
@@ -29,6 +29,6 @@ Context = {
 Schedule = {
     Type = "SAMRAITimeIntegrator",
     TimeBegin=0.0,
-    TimeEnd=1.0,
-    TimeStep=0.1
+    TimeEnd=2.0e-8,
+    TimeStep=1.0e-9
 }

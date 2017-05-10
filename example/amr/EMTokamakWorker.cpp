@@ -71,7 +71,7 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
 
     auto amp = cfg->GetValue<Real>("Antenna/amp", 1.0);
     auto n_phi = cfg->GetValue<Real>("Antenna/n_phi", 1.0);
-    auto omega = cfg->GetValue<Real>("Antenna/omega", 1.0e9);
+    auto freq = cfg->GetValue<Real>("Antenna/Frequency", 1.0e9);
 
     typedef mesh::CylindricalSMesh mesh_type;
     auto d = GetDomain("Limiter");
@@ -83,9 +83,8 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
             auto J = self->GetAttribute<Field<mesh_type, Real, EDGE>>("J", "Antenna");
             auto Jv = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Jv");
             J = [=](point_type const& x) -> Vec3 {
-                Real a = std::sin(n_phi * x[2]) * std::sin(omega * time_now);
-                return Vec3{amp * std::sin(x[2]) * a, 0, a * amp * std::cos(x[2])};
-                ;
+                Real a = amp * std::sin(n_phi * x[2] + TWOPI * freq * time_now);
+                return Vec3{std::sin(x[2]) * a, a * std::cos(x[2]), 0};
             };
 
             Jv.DeepCopy(J);
