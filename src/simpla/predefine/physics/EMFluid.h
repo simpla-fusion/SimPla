@@ -46,6 +46,8 @@ class EMFluid : public engine::Domain {
     field_type<VOLUME> BB{this, "name"_ = "BB"};
     field_type<VOLUME, 3> Ev{this, "name"_ = "Ev"};
     field_type<VOLUME, 3> Bv{this, "name"_ = "Bv"};
+    field_type<VOLUME, 3> Jv{this, "name"_ = "Jv"};
+
     field_type<VOLUME, 3> dE{this};
 
     field_type<FACE> B{this, "name"_ = "B"};
@@ -111,6 +113,8 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
     Ev.Clear();
     Bv.Clear();
     B0v.Clear();
+    J.Clear();
+    Jv.Clear();
 
     //    BB = inner_product(B0v, B0v);
 }

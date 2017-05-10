@@ -4,12 +4,14 @@
 
 #include <simpla/algebra/all.h>
 #include <simpla/engine/all.h>
+#include <simpla/geometry/Cube.h>
 #include <simpla/mesh/CylindricalGeometry.h>
 #include <simpla/model/GEqdsk.h>
 #include <simpla/physics/Constants.h>
 #include <simpla/predefine/physics/EMFluid.h>
 #include <simpla/utilities/sp_def.h>
 #include <iostream>
+
 namespace simpla {
 using namespace engine;
 static bool s_RegisterDomain =
@@ -52,6 +54,11 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     GetModel().SetObject("Limiter", std::make_shared<geometry::RevolveZ>(geqdsk.limiter(), PhiAxe, phi[0], phi[1]));
     GetModel().SetObject("Center", std::make_shared<geometry::RevolveZ>(geqdsk.boundary(), PhiAxe, phi[0], phi[1]));
 
+    box_type antenna_box{{1.4, -0.5, -3.1415926 / 2}, {1.45, 0.5, 3.1415926 / 2}};
+    std::get<0>(antenna_box) = cfg->GetValue<point_type>("Antenna/x_lower", std::get<0>(antenna_box));
+    std::get<1>(antenna_box) = cfg->GetValue<point_type>("Antenna/x_upper", std::get<1>(antenna_box));
+    GetModel().SetObject("Antenna", std::make_shared<geometry::Cube>(antenna_box));
+
     index_box_type idx_box{{0, 0, 0}, {1, 1, 1}};
     std::get<1>(idx_box) = cfg->GetValue<nTuple<int, 3>>("Dimensions", nTuple<int, 3>{64, 64, 32});
     GetAtlas().SetIndexBox(idx_box);
@@ -62,9 +69,9 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
     GetDomain("Limiter")->AddGeoObject("Center", GetModel().GetObject("Center"));
     GetDomain("Limiter")->AddGeoObject("Antenna", GetModel().GetObject("Antenna"));
 
-    auto amp = cfg->GetValue<Real>("antenna/amp", 1.0);
-    auto n_phi = cfg->GetValue<Real>("antenna/n_phi", 1.0);
-    auto omega = cfg->GetValue<Real>("antenna/omega", 1.0e9);
+    auto amp = cfg->GetValue<Real>("Antenna/amp", 1.0);
+    auto n_phi = cfg->GetValue<Real>("Antenna/n_phi", 1.0);
+    auto omega = cfg->GetValue<Real>("Antenna/omega", 1.0e9);
 
     typedef mesh::CylindricalSMesh mesh_type;
     auto d = GetDomain("Limiter");
@@ -73,7 +80,8 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
 
             auto E = self->GetAttribute<Field<mesh_type, Real, EDGE>>("E");
             auto Ev = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Ev");
-
+            auto J = self->GetAttribute<Field<mesh_type, Real, EDGE>>("J");
+            auto Jv = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Jv");
             E[self->GetBoundaryRange(EDGE)] = 1;
 
             Ev = map_to<VOLUME>(E);
@@ -83,6 +91,8 @@ void EMTokamak::Deserialize(shared_ptr<data::DataTable> const& cfg) {
                 res *= std::sin(n_phi * x[2]) * std::sin(omega * time_now);
                 return res;
             };
+
+            Jv = map_to<VOLUME>(J);
         });
 
         d->OnInitialCondition.Connect([&](Domain* self, Real time_now) {
