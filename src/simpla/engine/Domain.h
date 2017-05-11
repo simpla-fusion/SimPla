@@ -25,7 +25,7 @@ class Domain : public SPObject,
                public data::EnableCreateFromDataTable<Domain, std::shared_ptr<geometry::GeoObject>> {
     SP_OBJECT_HEAD(Domain, SPObject)
    public:
-    explicit Domain(std::shared_ptr<geometry::GeoObject> const &g);
+    explicit Domain(std::shared_ptr<geometry::GeoObject> const &g = nullptr);
     ~Domain() override;
 
     SP_DEFAULT_CONSTRUCT(Domain);

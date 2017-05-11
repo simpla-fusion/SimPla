@@ -163,13 +163,12 @@ class Field : public engine::Attribute {
     auto scatter(Args&&... args) {
         return calculus_policy::scatter(*m_mesh_, *this, std::forward<Args>(args)...);
     }
-    static constexpr int id_2_sub[4][3] = {{0, 0, 0}, {1, 2, 4}, {6, 5, 3}, {7, 7, 7}};
 
     void SetUp() override {
         engine::Attribute::SetUp();
 
         for (int i = 0; i < NUMBER_OF_SUB; ++i) {
-            int tag = id_2_sub[IFORM][i];
+            int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][i];
             auto gw = m_mesh_->GetGhostWidth(tag);
             auto ib_box = m_mesh_->GetIndexBox(tag);
             std::get<0>(ib_box) -= gw;
@@ -196,10 +195,10 @@ class Field : public engine::Attribute {
         if (m_range_.isNull()) {
             for (int i = 0; i < NUMBER_OF_SUB; ++i)
                 for (int j = 0; j < DOF; ++j) {
-                    int16_t w = static_cast<int16_t>(((i % DOF) << 3) | id_2_sub[IFORM][i]);
+                    int16_t w = static_cast<int16_t>(((i % DOF) << 3) | EntityIdCoder::m_sub_index_to_id_[IFORM][i]);
 
-                    m_data_[i][j] =
-                        calculus_policy::getValue(*m_mesh_, other, id_2_sub[IFORM][i] | (j << 3), IdxShift{0, 0, 0});
+                    m_data_[i][j] = calculus_policy::getValue(
+                        *m_mesh_, other, EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3), IdxShift{0, 0, 0});
 
                     //                m_data_[i].Foreach([&](index_tuple const& idx, value_type& v) {
                     //                    EntityId s;

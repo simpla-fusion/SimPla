@@ -2,60 +2,86 @@
 // Created by salmon on 16-12-26.
 //
 
-#include <simpla/mesh/AttributeView.h>
+#include <simpla/mesh/CartesianGeometry.h>
+#include "simpla/algebra/CalculusPolicy.h"
 #include "simpla/algebra/all.h"
-#include "simpla/predefine/CalculusPolicy.h"
-#include "simpla/predefine/CartesianGeometry.h"
 
 using namespace simpla;
-using namespace simpla::algebra;
-using namespace simpla::mesh;
+struct DummyMesh : public engine::MeshBase {
+   public:
+    //    size_type m_dims_[3];
+    //    Real m_lower_[3];
+    //    Real m_upper_[3];
+    point_type m_dx_{1, 1, 1};
+    point_type m_x0_{0, 0, 0};
+    static constexpr unsigned int ndims = 3;
 
-int main(int argc, char** argv) {
-    index_type dims[3] = {2, 4, 3};
-    Real xmin[3] = {0, 0, 0};
-    Real xmax[3] = {1, 2, 3};
-    //        m->dimensions(dims);
-    //        m->box(xmin, xmax);
+    typedef DummyMesh mesh_type;
 
-    size_type gw[3] = {2, 2, 2};
-    index_type lo[3] = {0, 0, 0};
-    index_type hi[3] = {dims[0], dims[1], dims[2]};
+    explicit DummyMesh(engine::Domain *d) : engine::MeshBase(d) {}
+    ~DummyMesh() override = default;
 
-    typedef mesh::CartesianGeometry mesh_type;
+    template <typename TFun>
+    void Foreach(TFun const &fun, size_type iform = VERTEX, size_type dof = 1) const {}
+    Real volume(EntityId s) const override { return 1.0; }
+    Real dual_volume(EntityId s) const override { return 1.0; }
+    Real inv_volume(EntityId s) const override { return 1.0; }
+    Real inv_dual_volume(EntityId s) const override { return 1.0; }
 
-    mesh_type m(nullptr, &dims[0]);
+    point_type point(EntityId s) const override {
+        return point_type{static_cast<Real>(s.x), static_cast<Real>(s.y), static_cast<Real>(s.z)};
+    }
+    point_type point(EntityId s, point_type const &pr) const override {
+        return point_type{static_cast<Real>(s.x) + pr[0], static_cast<Real>(s.y) + pr[1],
+                          static_cast<Real>(s.z) + pr[2]};
+    };
+
+    point_type map(point_type const &x) const override { return x; }
+    point_type inv_map(point_type const &x) const override { return x; }
+    void SetOrigin(point_type x) override { m_x0_ = x; }
+    void SetDx(point_type dx) override { m_dx_ = dx; }
+    point_type const &GetOrigin() override { return m_x0_; }
+    point_type const &GetDx() override { return m_dx_; };
+};
+struct DummyDomain : public engine::Domain {
+    DummyMesh m_mesh_{this};
+    engine::MeshBase *GetMesh() override { return &m_mesh_; };
+    engine::MeshBase const *GetMesh() const override { return &m_mesh_; };
+};
+int main(int argc, char **argv) {
+    index_box_type i_box = {{0, 0, 0}, {2, 4, 3}};
+    box_type x_box{{0, 0, 0}, {1, 2, 3}};
+
+    typedef mesh::CartesianCoRectMesh mesh_type;
+    DummyDomain domain;
+    mesh_type m(&domain, x_box, i_box);
     m.Initialize();
-    FieldAttribute<mesh_type, Real> f(&m);
-    FieldAttribute<mesh_type, Real> g(&m);
+    Field<mesh_type, Real> f(&domain);
+    Field<mesh_type, Real> g(&domain);
 
-    f.clear();
-    g.clear();
+    f.Clear();
+    g.Clear();
 
-    f(0, 2, 3) = 1990;
+    (*f[0])(0, 2, 3) = 1990;
     f = 1;
     g = 2;
 
     f = f + g;
     f = -g * 0.2;
 
-    CHECK(f);
-    //    CHECK(g);
-
-    f = [&](point_type const& x) { return x[1] + x[2]; };
-
-    g = [&](EntityId const& s) { return 1.0; };
+    //    f = [&](point_type const &x) { return x[1] + x[2]; };
+    //    g = [&](EntityId const &s) { return 1.0; };
 
     //    CHECK(f);
-    FieldAttribute<mesh_type, Real, EDGE> E(&m);
-    FieldAttribute<mesh_type, Real, FACE> B(&m);
-    FieldAttribute<mesh_type, Real, VERTEX, 3> d(&m);
-    FieldAttribute<mesh_type, Real, VERTEX> rho(&m);
-    FieldAttribute<mesh_type, Real, VERTEX, 8> v(&m);
-    E.clear();
-    rho.clear();
+    Field<mesh_type, Real, EDGE> E(&domain);
+    Field<mesh_type, Real, FACE> B(&domain);
+    Field<mesh_type, Real, VERTEX, 3> d(&domain);
+    Field<mesh_type, Real, VERTEX> rho(&domain);
+    Field<mesh_type, Real, VERTEX, 8> v(&domain);
+    E.Clear();
+    rho.Clear();
 
-    E = [&](point_type const& x) { return x; };
+    //    E = [&](point_type const &x) { return x; };
     //    CHECK(E);
     rho = diverge(E);
 
@@ -65,5 +91,5 @@ int main(int argc, char** argv) {
     //               E[1][I - 1] * v[1][I - 1]) /
     //              v[3][I];
     //    CHECK(E);
-    diverge(E);
+    //    diverge(E);
 }

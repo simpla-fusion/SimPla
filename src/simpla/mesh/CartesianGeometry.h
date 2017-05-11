@@ -27,6 +27,8 @@ struct CartesianCoRectMesh : public CoRectMesh {
 
    public:
     typedef Real scalar_type;
+    CartesianCoRectMesh(engine::Domain* d, box_type const&, index_box_type const&);
+
     explicit CartesianCoRectMesh(engine::Domain* d) : CoRectMesh(d) {}
     ~CartesianCoRectMesh() override = default;
     SP_DEFAULT_CONSTRUCT(CartesianCoRectMesh);
