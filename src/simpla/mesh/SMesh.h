@@ -23,7 +23,6 @@ struct SMesh : public StructuredMesh {
     DECLARE_REGISTER_NAME("SMesh");
     void InitializeData(Real time_now) override;
 
-   private:
     Field<this_type, Real, VERTEX, 3> m_coordinates_{this, "name"_ = "Coordinates", "COORDINATES"_};
     Field<this_type, Real, VERTEX, 3> m_vertices_{this, "name"_ = "vertices"};
     Field<this_type, Real, VOLUME, 9> m_volume_{this, "name"_ = "volume"};
@@ -33,15 +32,15 @@ struct SMesh : public StructuredMesh {
     typedef EntityIdCoder M;
 
    public:
-//    point_type point(index_type i, index_type j, index_type k) const override {
-//        return point_type{m_vertices_[0](i, j, k), m_vertices_[1](i, j, k), m_vertices_[2](i, j, k)};
-//    };
+    //    point_type point(index_type i, index_type j, index_type k) const override {
+    //        return point_type{m_vertices_[0](i, j, k), m_vertices_[1](i, j, k), m_vertices_[2](i, j, k)};
+    //    };
     point_type point(EntityId s) const override { return StructuredMesh::point(s); }
 
-    Real volume(EntityId s) const override { return m_volume_[s.w & 7](s.x, s.y, s.z); }
-    Real dual_volume(EntityId s) const override { return m_volume_[s.w & 7](s.x, s.y, s.z); }
-    Real inv_volume(EntityId s) const override { return m_volume_[s.w & 7](s.x, s.y, s.z); }
-    Real inv_dual_volume(EntityId s) const override { return m_volume_[s.w & 7](s.x, s.y, s.z); }
+    Real volume(EntityId s) const override { return m_volume_[s]; }
+    Real dual_volume(EntityId s) const override { return m_volume_[s]; }
+    Real inv_volume(EntityId s) const override { return m_volume_[s]; }
+    Real inv_dual_volume(EntityId s) const override { return m_volume_[s]; }
 
    protected:
     auto &GetCoordinates() const { return m_coordinates_; }

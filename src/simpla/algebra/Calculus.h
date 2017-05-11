@@ -22,6 +22,27 @@
 namespace simpla {
 template <typename...>
 class Expression;
+
+template <typename TM, typename TV, int IFORM, int DOF>
+class Field;
+
+namespace traits {
+
+template <typename TM, typename TV, int IFORM, int DOF>
+struct iform<Field<TM, TV, IFORM, DOF>> : public int_const<IFORM> {};
+
+template <typename TM, typename TV, int IFORM, int DOF>
+struct dof<Field<TM, TV, IFORM, DOF>> : public int_const<DOF> {};
+
+template <typename TM, typename TV, int IFORM, int DOF>
+struct rank<Field<TM, TV, IFORM, DOF>> : public int_const<rank<TM>::value> {};
+
+template <typename TM, typename TV, int IFORM, int DOF>
+struct value_type<Field<TM, TV, IFORM, DOF>> {
+    typedef TV type;
+};
+}  // namespace traits {
+
 /**
  * @defgroup algebra Algebra
  * @ingroup algebra
@@ -93,7 +114,7 @@ struct value_type<Expression<tags::_hodge_star, T>> {
 //******************************************************
 
 template <typename T0, typename T1>
-struct iform<Expression<tags::_interior_product, T0, T1>> : public int_const<traits::iform<T1>::value - 1> {};
+struct iform<Expression<tags::_interior_product, T0, T1>> : public int_const<iform<T1>::value - 1> {};
 
 template <typename T0, typename T1>
 struct value_type<Expression<tags::_interior_product, T0, T1>> {
@@ -157,25 +178,25 @@ auto cross(TL const& lhs, TR const& rhs,
     return ((Expression<tags::_cross, const TL, const TR>(lhs, rhs)));
 }
 
-//template <typename TL, typename TR>
-//auto dot(TL const& lhs, TR const& rhs,
+// template <typename TL, typename TR>
+// auto dot(TL const& lhs, TR const& rhs,
 //         ENABLE_IF((traits::is_field<TL, TR>::value) &&
 //                   (traits::iform<TL>::value == VERTEX || traits::iform<TL>::value == VOLUME ||
 //                    traits::iform<TR>::value == VERTEX || traits::iform<TR>::value == VOLUME))) {
 //    return ((Expression<tags::_dot, const TL, const TR>(lhs, rhs)));
 //};
 //
-//template <typename TL, typename TR>
-//auto cross(TL const& l, TR const& r, ENABLE_IF(!(traits::is_field<TL, TR>::value))) {
+// template <typename TL, typename TR>
+// auto cross(TL const& l, TR const& r, ENABLE_IF(!(traits::is_field<TL, TR>::value))) {
 //    return ((Expression<tags::_nTuple_cross, const TL, const TR>(l, r)));
 //}
-//template <typename TL, typename TR>
-//auto dot(TL const& lhs, TR const& rhs, ENABLE_IF(!(traits::is_field<TL, TR>::value) &&
+// template <typename TL, typename TR>
+// auto dot(TL const& lhs, TR const& rhs, ENABLE_IF(!(traits::is_field<TL, TR>::value) &&
 //                                                 !(std::is_arithmetic<TL>::value && std::is_arithmetic<TR>::value))) {
 //    return Expression<tags::_nTuple_dot, const TL, const TR>(lhs, rhs);
 //}
-//template <typename TL, typename TR>
-//auto dot(TL const& lhs, TR const& rhs, ENABLE_IF((std::is_arithmetic<TL>::value && std::is_arithmetic<TR>::value))) {
+// template <typename TL, typename TR>
+// auto dot(TL const& lhs, TR const& rhs, ENABLE_IF((std::is_arithmetic<TL>::value && std::is_arithmetic<TR>::value))) {
 //    return lhs * rhs;
 //}
 // template<typename  T>

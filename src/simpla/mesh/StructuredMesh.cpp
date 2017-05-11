@@ -46,14 +46,14 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
     vertex_tags.Clear();
 
     index_tuple ib, ie;
-    std::tie(ib, ie) = vertex_tags[0].GetIndexBox();
+    std::tie(ib, ie) = vertex_tags[0]->GetIndexBox();
     auto dx = GetDx();
     auto x0 = GetOrigin();
     for (index_type I = ib[0]; I < ie[0]; ++I)
         for (index_type J = ib[1]; J < ie[1]; ++J)
             for (index_type K = ib[2]; K < ie[2]; ++K) {
                 if (g->CheckInside(point_type{I * dx[0] + x0[0], J * dx[1] + x0[1], K * dx[2] + x0[2]}) == 0) {
-                    vertex_tags[0](I, J, K) = 1;
+                    (*vertex_tags[0])(I, J, K) = 1;
                 }
             }
 
@@ -116,7 +116,7 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
     static const EntityId s6 = {.w = 0, .x = 0, .y = 1, .z = 1};
     static const EntityId s7 = {.w = 0, .x = 1, .y = 1, .z = 1};
 
-    std::tie(ib, ie) = vertex_tags[0].GetIndexBox();
+    std::tie(ib, ie) = vertex_tags[0]->GetIndexBox();
     ie -= 1;
 
     for (index_type I = ib[0]; I < ie[0]; ++I)
@@ -127,14 +127,14 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
                               .y = static_cast<int16_t>(J),  //
                               .z = static_cast<int16_t>(K)};
 
-                int volume_tags = (vertex_tags[s0 + s] << 0) |  //
-                                  (vertex_tags[s1 + s] << 1) |  //
-                                  (vertex_tags[s2 + s] << 2) |  //
-                                  (vertex_tags[s3 + s] << 3) |  //
-                                  (vertex_tags[s4 + s] << 4) |  //
-                                  (vertex_tags[s5 + s] << 5) |  //
-                                  (vertex_tags[s6 + s] << 6) |  //
-                                  (vertex_tags[s7 + s] << 7);
+                int volume_tags = ((vertex_tags[s0 + s]) << 0) |  //
+                                  ((vertex_tags[s1 + s]) << 1) |  //
+                                  ((vertex_tags[s2 + s]) << 2) |  //
+                                  ((vertex_tags[s3 + s]) << 3) |  //
+                                  ((vertex_tags[s4 + s]) << 4) |  //
+                                  ((vertex_tags[s5 + s]) << 5) |  //
+                                  ((vertex_tags[s6 + s]) << 6) |  //
+                                  ((vertex_tags[s7 + s]) << 7);
                 //
                 if (volume_tags == 0) {
                     /**
@@ -237,7 +237,6 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
     ranges[prefix + ".EDGE_PERP_BOUNDARY"].append(EDGE_PERP_boundary);
     ranges[prefix + ".FACE_PERP_BOUNDARY"].append(FACE_PERP_boundary);
     ranges[prefix + ".VOLUME_BOUNDARY"].append(VOLUME_boundary);
-
 
     //    CHECK(VOLUME_body->size());
 }

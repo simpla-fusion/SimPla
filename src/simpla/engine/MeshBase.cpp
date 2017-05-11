@@ -39,7 +39,7 @@ std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
     return p;
 }
 void MeshBase::Deserialize(const std::shared_ptr<DataTable> &) {}
-index_tuple MeshBase::GetGhostWidth() const {
+index_tuple MeshBase::GetGhostWidth(int tag) const {
     auto blk = GetBlock();
     return blk == nullptr ? index_tuple{0, 0, 0} : blk->GetGhostWidth();
 }

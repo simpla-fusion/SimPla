@@ -16,20 +16,22 @@
 #include "sp_def.h"
 namespace simpla {
 
-struct ArrayIndexShift {
-    int dim_num = 0;
-    index_type value = 0;
-};
-inline ArrayIndexShift operator+(ArrayIndexShift const& l, index_type s) {
-    return ArrayIndexShift{l.dim_num, l.value - s};
-}
-inline ArrayIndexShift operator-(ArrayIndexShift const& l, index_type s) {
-    return ArrayIndexShift{l.dim_num, l.value + s};
-}
+// struct ArrayIndexShift {
+//    nTuple<int, 3> m_data_;
+//};
+// inline ArrayIndexShift operator+(ArrayIndexShift const& l, index_type s) {
+//    return ArrayIndexShift{l.dim_num, l.value - s};
+//}
+// inline ArrayIndexShift operator-(ArrayIndexShift const& l, index_type s) {
+//    return ArrayIndexShift{l.dim_num, l.value + s};
+//}
 
-static const ArrayIndexShift I{0, 0};
-static const ArrayIndexShift J{1, 0};
-static const ArrayIndexShift K{2, 0};
+typedef nTuple<int, 3> ArrayIndexShift;
+typedef nTuple<int, 3> IdxShift;
+
+// static const ArrayIndexShift I{0, 0};
+// static const ArrayIndexShift J{1, 0};
+// static const ArrayIndexShift K{2, 0};
 
 namespace detail {
 template <int N, typename TFun>
@@ -255,23 +257,14 @@ struct Array {
         other.SetUp();
     };
 
-    template <typename... Others>
-    this_type operator()(ArrayIndexShift const& IX, Others&&... others) const {
+    this_type operator()(ArrayIndexShift const& IX) const {
         this_type res(*this);
-        res.Shift(IX, std::forward<Others>(others)...);
+        res.Shift(IX);
         return std::move(res);
     }
-    void Shift(ArrayIndexShift const& IX) {
-        std::get<0>(m_index_box_)[IX.dim_num] += IX.value;
-        std::get<1>(m_index_box_)[IX.dim_num] += IX.value;
-        SetUp();
-    }
-    template <typename... Others>
-    void Shift(ArrayIndexShift const& IX, Others&&... others) {
-        Shift(IX);
-        Shift(std::forward<Others>(others)...);
-    }
-    void Shift(m_index_tuple const& offset) {
+
+    template <typename TIdx>
+    void Shift(nTuple<TIdx, NDIMS> const& offset) {
         std::get<0>(m_index_box_) += offset;
         std::get<1>(m_index_box_) += offset;
         SetUp();
