@@ -10,6 +10,8 @@
 
 #include <simpla/utilities/nTuple.h>
 #include <stddef.h>
+#include <tbb/concurrent_unordered_set.h>
+#include <tbb/tbb.h>
 #include <limits>
 #include <set>
 #include <tuple>
@@ -719,13 +721,12 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
     int m_w_ = 1;
     index_tuple m_min_, m_max_, m_grain_size_;
 };
-
+struct EntityIdHasher {
+    size_t operator()(const EntityId& key) const { return static_cast<size_t>(key.v); }
+};
 template <>
 struct UnorderedRange<EntityId> : public RangeBase<EntityId> {
     SP_OBJECT_HEAD(UnorderedRange<EntityId>, RangeBase<EntityId>)
-
-   private:
-    std::set<EntityId> m_ids_;
 
    public:
     UnorderedRange() {}
@@ -738,15 +739,24 @@ struct UnorderedRange<EntityId> : public RangeBase<EntityId> {
     void swap(this_type& other) { std::swap(m_ids_, other.m_ids_); }
     void Insert(EntityId s) { m_ids_.insert(s); }
 
-    std::set<EntityId>& data() { return m_ids_; }
-    std::set<EntityId> const& data() const { return m_ids_; }
+    auto& data() { return m_ids_; }
+    auto const& data() const { return m_ids_; }
     bool empty() const override { return m_ids_.empty(); }
     size_t size() const override { return m_ids_.size(); }
     bool is_divisible() const override { return false; }
+
     template <typename TFun>
     void DoForeach(TFun const& body, ENABLE_IF((simpla::concept::is_callable<TFun(EntityId)>::value))) const {
-        for (auto s : m_ids_) { body(s); }
+        tbb::parallel_for(m_ids_.range(), [&](auto const& r) {
+            for (EntityId s : r) { body(s); }
+        });
+
+        // for (auto s : m_ids_) { body(s); }
     }
+
+   private:
+    //    std::set<EntityId> m_ids_;
+    tbb::concurrent_unordered_set<EntityId, EntityIdHasher> m_ids_;
 };
 
 }  // namespace simpla

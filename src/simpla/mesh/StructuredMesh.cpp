@@ -118,7 +118,7 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
 
     std::tie(ib, ie) = vertex_tags[0]->GetIndexBox();
     ie -= 1;
-
+#pragma omp parallel for
     for (index_type I = ib[0]; I < ie[0]; ++I)
         for (index_type J = ib[1]; J < ie[1]; ++J)
             for (index_type K = ib[2]; K < ie[2]; ++K) {

@@ -200,16 +200,15 @@ class Field : public engine::Attribute {
         } else if (!m_range_.empty()) {
             index_tuple ib, ie;
             std::tie(ib, ie) = m_mesh_->GetIndexBox();
-
-            for (int n = 0; n < DOF; ++n) {
+            for (int j = 0; j < DOF; ++j) {
                 m_range_.foreach ([&](EntityId s) {
-                    if (ib[0] <= s.x && s.x < ie[0] &&  //
-                        ib[1] <= s.y && s.y < ie[1] &&  //
-                        ib[2] <= s.z && s.z < ie[2])    //
+                    index_tuple idx = {s.x, s.y, s.z};
+                    if (ib[0] <= idx[0] && idx[0] < ie[0] &&  //
+                        ib[1] <= idx[1] && idx[1] < ie[1] &&  //
+                        ib[2] <= idx[2] && idx[2] < ie[2])    //
                     {
-                        m_data_[EntityIdCoder::m_id_to_sub_index_[s.w]][n](s.x, s.y, s.z) = array_type::getValue(
-                            calculus_policy::getValue(*m_mesh_, other, s.w | (n << 3), IdxShift{0, 0, 0}),
-                            index_tuple{s.x, s.y, s.z});
+                        m_data_[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]][j].at(idx) = array_type::getValue(
+                            calculus_policy::getValue(*m_mesh_, other, s.w | (j << 3), IdxShift{0, 0, 0}), idx);
                     }
                 });
             }
