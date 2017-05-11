@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
 
     //    E = [&](point_type const &x) { return x; };
     //    CHECK(E);
-    rho = diverge(E);
+    rho = codifferential_derivative(E);
 
     //    E[I] = 2;
 

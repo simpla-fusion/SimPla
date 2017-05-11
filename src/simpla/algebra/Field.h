@@ -22,7 +22,7 @@
 #include "CalculusPolicy.h"
 namespace simpla {
 
-template <typename...>
+template <typename>
 class calculator;
 
 template <typename TM, typename TV, int IFORM = VERTEX, int DOF = 1>
@@ -34,7 +34,6 @@ class Field : public engine::Attribute {
    public:
     typedef TV value_type;
     typedef TM mesh_type;
-
     static constexpr int iform = IFORM;
     static constexpr int dof = DOF;
     static constexpr int NDIMS = mesh_type::NDIMS;
@@ -53,6 +52,7 @@ class Field : public engine::Attribute {
 
     mesh_type* m_mesh_ = nullptr;
     EntityRange m_range_;
+    calculator<TM> m_calculator_;
 
    public:
     template <typename... Args>
@@ -146,9 +146,9 @@ class Field : public engine::Attribute {
 
     typedef calculator<mesh_type> calculus_policy;
 
-    value_type const& at(EntityId s) const { return calculus_policy::getValue(*m_mesh_, *this, s); }
+    value_type const& at(EntityId s) const { return m_calculator_.getValue(*m_mesh_, *this, s); }
 
-    value_type& at(EntityId s) { return calculus_policy::getValue(*m_mesh_, *this, s); }
+    value_type& at(EntityId s) { return m_calculator_.getValue(*m_mesh_, *this, s); }
 
     value_type const& operator[](EntityId s) const { return at(s); }
 
@@ -192,12 +192,13 @@ class Field : public engine::Attribute {
     void Assign(Other const& other) {
         SetUp();
 
-        if (m_range_.isNull()) {
+        //        if (m_range_.isNull())
+        {
             for (int i = 0; i < NUMBER_OF_SUB; ++i)
                 for (int j = 0; j < DOF; ++j) {
                     int16_t w = static_cast<int16_t>(((i % DOF) << 3) | EntityIdCoder::m_sub_index_to_id_[IFORM][i]);
 
-                    m_data_[i][j] = calculus_policy::getValue(
+                    m_data_[i][j] = m_calculator_.getValue(
                         *m_mesh_, other, EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3), IdxShift{0, 0, 0});
 
                     //                m_data_[i].Foreach([&](index_tuple const& idx, value_type& v) {
@@ -209,24 +210,26 @@ class Field : public engine::Attribute {
                     //                    v = calculus_policy::getValue(*m_mesh_, other, s);
                     //                });
                 }
-        } else if (!m_range_.empty()) {
-            //            index_tuple ib, ie;
-            //            std::tie(ib, ie) = m_mesh_->GetIndexBox();
-            //
-            //            for (int i = 0; i < DOF; ++i) {
-            //                m_range_.foreach ([&](EntityId s) {
-            //                    if (ib[0] <= s.x && s.x < ie[0] &&  //
-            //                        ib[1] <= s.y && s.y < ie[1] &&  //
-            //                        ib[2] <= s.z && s.z < ie[2])    //
-            //                    {
-            //                        m_data_[s.w][i] =
-            //                            calculus_policy::getValue(*m_mesh_, other, s.w | (i << 3), nTuple<int, 3>{0,
-            //                            0, 0});
-            //                        (s.x, s.y, s.z);
-            //                    }
-            //                });
-            //            }
         }
+        //        else if (!m_range_.empty())
+        //        {
+        //            index_tuple ib, ie;
+        //            std::tie(ib, ie) = m_mesh_->GetIndexBox();
+        //
+        //            for (int i = 0; i < DOF; ++i) {
+        //                m_range_.foreach ([&](EntityId s) {
+        //                    if (ib[0] <= s.x && s.x < ie[0] &&  //
+        //                        ib[1] <= s.y && s.y < ie[1] &&  //
+        //                        ib[2] <= s.z && s.z < ie[2])    //
+        //                    {
+        //                        m_data_[s.w][i] =
+        //                            calculus_policy::getValue(*m_mesh_, other, s.w | (i << 3), nTuple<int, 3>{0,
+        //                            0, 0});
+        //                        (s.x, s.y, s.z);
+        //                    }
+        //                });
+        //            }
+        //        }
     }
 };  // class Field
 

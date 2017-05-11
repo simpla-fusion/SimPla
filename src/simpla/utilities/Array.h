@@ -383,6 +383,12 @@ struct Array {
     };
 
    public:
+    template <typename TFun>
+    static constexpr value_type getValue(TFun const& op, m_index_tuple const& s,
+                                         ENABLE_IF(simpla::concept::is_callable<TFun(m_index_tuple const&)>::value)) {
+        return op(s);
+    };
+
     static constexpr value_type const& getValue(value_type const& v, m_index_tuple const& s) { return v; };
     static constexpr decltype(auto) getValue(this_type& self, m_index_tuple const& s) { return self.at(s); };
     static constexpr decltype(auto) getValue(this_type const& self, m_index_tuple const& s) { return self.at(s); };
