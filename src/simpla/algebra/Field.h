@@ -52,7 +52,6 @@ class Field : public engine::Attribute {
 
     mesh_type* m_mesh_ = nullptr;
     EntityRange m_range_;
-    calculator<TM> m_calculator_;
 
    public:
     template <typename... Args>
@@ -133,22 +132,22 @@ class Field : public engine::Attribute {
         return (IFORM == VERTEX || IFORM == VOLUME) ? (&m_data_[0][n % DOF]) : m_data_[n % 3];
     }
 
-    value_type& operator()(index_type i, index_type j = 0, index_type k = 0, index_type w = 0) {
-        return m_data_[w & 0b111][w >> 3](i, j, k);
-    }
-
-    value_type const& operator()(index_type i, index_type j = 0, index_type k = 0, index_type w = 0) const {
-        return m_data_[w & 0b111][w >> 3](i, j, k);
-    }
+    //    value_type& operator()(index_type i, index_type j, index_type k, index_type w = 0) {
+    //        return m_data_[w & 0b111][w >> 3](i, j, k);
+    //    }
+    //
+    //    value_type const& operator()(index_type i, index_type j, index_type k, index_type w = 0) const {
+    //        return m_data_[w & 0b111][w >> 3](i, j, k);
+    //    }
 
     //*****************************************************************************************************************
     this_type operator[](EntityRange const& d) const { return this_type(*this, d); }
 
     typedef calculator<mesh_type> calculus_policy;
 
-    value_type const& at(EntityId s) const { return m_calculator_.getValue(*m_mesh_, *this, s); }
+    value_type const& at(EntityId s) const { return calculus_policy::getValue(*m_mesh_, *this, s); }
 
-    value_type& at(EntityId s) { return m_calculator_.getValue(*m_mesh_, *this, s); }
+    value_type& at(EntityId s) { return calculus_policy::getValue(*m_mesh_, *this, s); }
 
     value_type const& operator[](EntityId s) const { return at(s); }
 
@@ -189,48 +188,79 @@ class Field : public engine::Attribute {
     }
 
     template <typename Other>
-    void Assign(Other const& other) {
+    void Assign(Other const& other, ENABLE_IF(!(concept::is_callable<Other(EntityId)>::value ||
+                                                concept::is_callable<Other(point_type const&)>::value))) {
         SetUp();
 
-        //        if (m_range_.isNull())
-        {
+        if (m_range_.isNull()) {
             for (int i = 0; i < NUMBER_OF_SUB; ++i)
                 for (int j = 0; j < DOF; ++j) {
-                    int16_t w = static_cast<int16_t>(((i % DOF) << 3) | EntityIdCoder::m_sub_index_to_id_[IFORM][i]);
-
-                    m_data_[i][j] = m_calculator_.getValue(
-                        *m_mesh_, other, EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3), IdxShift{0, 0, 0});
-
-                    //                m_data_[i].Foreach([&](index_tuple const& idx, value_type& v) {
-                    //                    EntityId s;
-                    //                    s.w = w;
-                    //                    s.x = static_cast<int16_t>(idx[0]);
-                    //                    s.y = static_cast<int16_t>(idx[1]);
-                    //                    s.z = static_cast<int16_t>(idx[2]);
-                    //                    v = calculus_policy::getValue(*m_mesh_, other, s);
-                    //                });
+                    m_data_[i][j] = calculus_policy::getValue(*m_mesh_, other, i * DOF + j, IdxShift{0, 0, 0});
                 }
+        } else if (!m_range_.empty()) {
+            index_tuple ib, ie;
+            std::tie(ib, ie) = m_mesh_->GetIndexBox();
+
+            for (int n = 0; n < DOF; ++n) {
+                m_range_.foreach ([&](EntityId s) {
+                    if (ib[0] <= s.x && s.x < ie[0] &&  //
+                        ib[1] <= s.y && s.y < ie[1] &&  //
+                        ib[2] <= s.z && s.z < ie[2])    //
+                    {
+                        m_data_[EntityIdCoder::m_id_to_sub_index_[s.w]][n](s.x, s.y, s.z) = array_type::getValue(
+                            calculus_policy::getValue(*m_mesh_, other, s.w | (n << 3), IdxShift{0, 0, 0}),
+                            index_tuple{s.x, s.y, s.z});
+                    }
+                });
+            }
         }
-        //        else if (!m_range_.empty())
-        //        {
-        //            index_tuple ib, ie;
-        //            std::tie(ib, ie) = m_mesh_->GetIndexBox();
-        //
-        //            for (int i = 0; i < DOF; ++i) {
-        //                m_range_.foreach ([&](EntityId s) {
-        //                    if (ib[0] <= s.x && s.x < ie[0] &&  //
-        //                        ib[1] <= s.y && s.y < ie[1] &&  //
-        //                        ib[2] <= s.z && s.z < ie[2])    //
-        //                    {
-        //                        m_data_[s.w][i] =
-        //                            calculus_policy::getValue(*m_mesh_, other, s.w | (i << 3), nTuple<int, 3>{0,
-        //                            0, 0});
-        //                        (s.x, s.y, s.z);
-        //                    }
-        //                });
-        //            }
-        //        }
     }
+
+    template <typename TFun>
+    void Assign(TFun const& fun, ENABLE_IF((std::is_same<std::result_of_t<TFun(EntityId)>, value_type>::value))) {
+        SetUp();
+
+        if (m_range_.isNull()) {
+            for (int i = 0; i < NUMBER_OF_SUB; ++i)
+                for (int j = 0; j < DOF; ++j) {
+                    m_data_[i][j] = [&](index_tuple const& idx) {
+                        EntityId s;
+                        s.w = static_cast<int16_t>(EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3));
+                        s.x = static_cast<int16_t>(idx[0]);
+                        s.y = static_cast<int16_t>(idx[1]);
+                        s.z = static_cast<int16_t>(idx[2]);
+                        return fun(s);
+                    };
+                }
+        } else if (!m_range_.empty()) {
+            index_tuple ib, ie;
+            std::tie(ib, ie) = m_mesh_->GetIndexBox();
+
+            for (int j = 0; j < DOF; ++j) {
+                m_range_.foreach ([&](EntityId s) {
+                    if (ib[0] <= s.x && s.x < ie[0] &&  //
+                        ib[1] <= s.y && s.y < ie[1] &&  //
+                        ib[2] <= s.z && s.z < ie[2])    //
+                    {
+                        s.w |= j << 3;
+                        at(s) = fun(s);
+                    }
+                });
+            }
+        }
+    }
+    template <typename TFun>
+    void Assign(TFun const& fun,
+                ENABLE_IF((std::is_same<std::result_of_t<TFun(point_type const&)>, value_type>::value))) {
+        Assign([&](EntityId s) { return fun(m_mesh_->point(s)); });
+    }
+    template <typename TFun>
+    void Assign(TFun const& fun,
+                ENABLE_IF(((!std::is_same<field_value_type, value_type>::value) &&
+                           std::is_same<std::result_of_t<TFun(point_type const&)>, field_value_type>::value))) {
+        Assign([&](EntityId s) { return calculus_policy::sample(*m_mesh_, s, fun(m_mesh_->point(s))); });
+    }
+
 };  // class Field
 
 template <typename TM, typename TV, int IFORM, int DOF>
