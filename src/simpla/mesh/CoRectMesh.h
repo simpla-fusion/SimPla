@@ -30,7 +30,6 @@ struct CoRectMesh : public StructuredMesh {
     Real m_dual_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
     Real m_inv_dual_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
 
-   public:
     using StructuredMesh::point;
 
     point_type point(index_type x, index_type y, index_type z) const override {
@@ -81,19 +80,6 @@ struct CoRectMesh : public StructuredMesh {
 
 };  // struct  MeshBase
 
-// template <>
-// struct mesh_traits<CoRectMesh> {
-//    typedef CoRectMesh type;
-//    typedef entity_id entity_id;
-//    typedef Real scalar_type;
-//
-//    template <int IFORM, int DOF>
-//    struct Shift {
-//        template <typename... Args>
-//        Shift(Args &&... args) {}
-//        constexpr entity_id operator()(entity_id const &s) const { return s; }
-//    };
-//};
 
 inline void CoRectMesh::InitializeData(Real time_now) {
     //    StructuredMesh::InitializeData(time_now);

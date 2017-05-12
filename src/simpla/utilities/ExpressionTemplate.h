@@ -341,9 +341,22 @@ _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(greater_equal, tags::logical_and, >=)
 #undef _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR
 #undef _SP_DEFINE_EXPR_UNARY_BOOLEAN_OPERATOR
 
+namespace tags {
+struct _dot {};
+struct _cross {};
+}
+
 template <typename TL, typename TR>
 auto inner_product(TL const &l, TR const &r) {
     return reduction<tags::addition>(l * r);
+}
+template <typename TL, typename TR>
+auto dot_v(TL const &l, TR const &r) {
+    return Expression<tags::_dot, const TL, const TR>(l, r);
+}
+template <typename TL, typename TR>
+auto cross_v(TL const &l, TR const &r) {
+    return Expression<tags::_cross, const TL, const TR>(l, r);
 }
 
 }  // namespace simpla

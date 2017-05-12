@@ -8,13 +8,6 @@ namespace mesh {
 void CylindricalSMesh::InitializeData(Real time_now) {
     SMesh::InitializeData(time_now);
 
-    auto &m_coordinates_ = GetCoordinates();
-    auto &m_vertices_ = GetVertices();
-    auto &m_volume_ = GetVolume();
-    auto &m_dual_volume_ = GetDualVolume();
-    auto &m_inv_volume_ = GetInvVolume();
-    auto &m_inv_dual_volume_ = GetInvDualVolume();
-
     /**
         *\verbatim
         *                ^y (dl)

@@ -231,6 +231,47 @@ struct calculator {
                    ) *
                IDVolume(m, n, S) * 0.125;
     };
+    template <typename... TExpr>
+    static auto eval(mesh_type const& m, Expression<tags::_cross, TExpr...> const& expr, int n, IdxShift S,
+                     int_sequence<VERTEX, VERTEX>) {
+        static auto const& l = std::get<0>(expr.m_args_);
+        static auto const& r = std::get<1>(expr.m_args_);
+        n = n >> 3;
+        return getValue(m, l, ((n + 1) % 3) << 3, S) * getValue(m, r, ((n + 2) % 3) << 3, S) -
+               getValue(m, l, ((n + 2) % 3) << 3, S) * getValue(m, r, ((n + 1) % 3) << 3, S);
+    }
+
+    template <typename... TExpr>
+    static auto eval(mesh_type const& m, Expression<tags::_cross, TExpr...> const& expr, int n, IdxShift S,
+                     int_sequence<VOLUME, VOLUME>) {
+        static auto const& l = std::get<0>(expr.m_args_);
+        static auto const& r = std::get<1>(expr.m_args_);
+        n = n >> 3;
+        return getValue(m, l, 7 | (((n + 1) % 3) << 3), S) * getValue(m, r, 7 | (((n + 2) % 3) << 3), S) -  //
+               getValue(m, l, 7 | (((n + 2) % 3) << 3), S) * getValue(m, r, 7 | (((n + 1) % 3) << 3), S);
+    }
+
+    template <typename... TExpr>
+    static auto eval(mesh_type const& m, Expression<tags::_dot, TExpr...> const& expr, int n, IdxShift S,
+                     int_sequence<VERTEX, VERTEX>) {
+        static auto const& l = std::get<0>(expr.m_args_);
+        static auto const& r = std::get<1>(expr.m_args_);
+        n = n & 7;
+        return getValue(m, l, n | (0 << 3), S) * getValue(m, r, n | (0 << 3), S) +  //
+               getValue(m, l, n | (1 << 3), S) * getValue(m, r, n | (1 << 3), S) +  //
+               getValue(m, l, n | (2 << 3), S) * getValue(m, r, n | (2 << 3), S);
+    }
+
+    template <typename... TExpr>
+    static auto eval(mesh_type const& m, Expression<tags::_dot, TExpr...> const& expr, int n, IdxShift S,
+                     int_sequence<VOLUME, VOLUME>) {
+        static auto const& l = std::get<0>(expr.m_args_);
+        static auto const& r = std::get<1>(expr.m_args_);
+        n = n & 7;
+        return getValue(m, l, n | (0 << 3), S) * getValue(m, r, n | (0 << 3), S) +  //
+               getValue(m, l, n | (1 << 3), S) * getValue(m, r, n | (1 << 3), S) +  //
+               getValue(m, l, n | (2 << 3), S) * getValue(m, r, n | (2 << 3), S);
+    }
 
     ////***************************************************************************************************
     //! p_curl<1>

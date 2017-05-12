@@ -94,12 +94,7 @@ _SP_DEFINE_EXPR_BINARY_FUNCTION(wedge)
 //_SP_DEFINE_EXPR_BINARY_FUNCTION(cross)
 //
 //_SP_DEFINE_EXPR_BINARY_FUNCTION(dot)
-namespace tags {
-struct _dot {};
-struct _cross {};
-struct _nTuple_dot {};
-struct _nTuple_cross {};
-}
+
 namespace traits {
 
 //******************************************************
@@ -156,27 +151,19 @@ auto inner_product(TL const& lhs, TR const& rhs, ENABLE_IF((traits::is_field<TL,
     return (wedge(lhs, hodge_star(rhs)));
 }
 
-template <typename TL, typename TR>
-auto cross(TL const& lhs, TR const& rhs,
-           ENABLE_IF((traits::is_field<TL, TR>::value) &&
-                     (traits::iform<TL>::value == EDGE && traits::iform<TR>::value == EDGE))) {
-    return ((wedge(lhs, rhs)));
-}
-
-template <typename TL, typename TR>
-auto cross(TL const& lhs, TR const& rhs,
-           ENABLE_IF((traits::is_field<TL, TR>::value) &&
-                     (traits::iform<TL>::value == FACE && traits::iform<TR>::value == FACE))) {
-    return (hodge_star(wedge(hodge_star(lhs), hodge_star(rhs))));
-}
-
-template <typename TL, typename TR>
-auto cross(TL const& lhs, TR const& rhs,
-           ENABLE_IF((traits::is_field<TL, TR>::value) &&
-                     (traits::iform<TL>::value == VERTEX || traits::iform<TL>::value == VOLUME ||
-                      traits::iform<TR>::value == VERTEX || traits::iform<TR>::value == VOLUME))) {
-    return ((Expression<tags::_cross, const TL, const TR>(lhs, rhs)));
-}
+//template <typename TL, typename TR>
+//auto cross(TL const& lhs, TR const& rhs,
+//           ENABLE_IF((traits::is_field<TL, TR>::value) &&
+//                     (traits::iform<TL>::value == EDGE && traits::iform<TR>::value == EDGE))) {
+//    return ((wedge(lhs, rhs)));
+//}
+//
+//template <typename TL, typename TR>
+//auto cross(TL const& lhs, TR const& rhs,
+//           ENABLE_IF((traits::is_field<TL, TR>::value) &&
+//                     (traits::iform<TL>::value == FACE && traits::iform<TR>::value == FACE))) {
+//    return (hodge_star(wedge(hodge_star(lhs), hodge_star(rhs))));
+//}
 
 // template <typename TL, typename TR>
 // auto dot(TL const& lhs, TR const& rhs,
