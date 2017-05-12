@@ -3,14 +3,14 @@
 Context = {
     Type = "EMTokamak",
     gfile = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900",
-    Phi = { 0.0, 3.14*2 },
-    Dimensions = { 64, 64, 32 },
+    Phi = { -3.14/4, 3.14/4 },
+    Dimensions = { 100, 100, 16 },
     Antenna = {
-        x_lower = { 1.4, -0.1, 0 },
-        x_upper = { 1.45, 0.1, 3.1415926/2  },
-        amp = 1.0,
+        x_lower = { 1.7, -0.2,  -3.1415926/16 },
+        x_upper = { 2.0, 0.2,   3.1415926/16  },
+        amp = {0.0,0.0,1.0} ,
         n_phi = 1.0,
-        Frequency = 1.0e8
+        Frequency = 1.0e9
     },
     Domains =
     {
@@ -23,12 +23,12 @@ Context = {
     },
     Model =
     {},
-    Atlas = { PeriodicDimension = { 0, 0, 1 }, }
+    Atlas = { PeriodicDimension = { 0, 1, 1 }, }
 }
 
 Schedule = {
     Type = "SAMRAITimeIntegrator",
     TimeBegin=0.0,
-    TimeEnd=4.0e-8,
+    TimeEnd=10.0e-8,
     TimeStep=1.0e-9
 }

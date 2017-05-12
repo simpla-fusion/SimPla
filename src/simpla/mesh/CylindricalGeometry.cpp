@@ -37,12 +37,13 @@ void CylindricalSMesh::InitializeData(Real time_now) {
     index_type je = std::get<1>(m_vertices_[0]->GetIndexBox())[1];
     index_type ke = std::get<1>(m_vertices_[0]->GetIndexBox())[2];
 
-    //    point_type m_dx_ = GetChart()->GetDx();
+    point_type m_dx_ = GetDx();
     //    point_type x0 = GetChart()->GetOrigin();
 
     int Phi_axe = 2;  // std::dynamic_pointer_cast<CylindricalGeometry>(GetChart())->GetPhiAxe();
     int R_axe = (Phi_axe + 1) % 3;
     int Z_axe = (Phi_axe + 2) % 3;
+
     for (index_type i = ib; i < ie; ++i)
         for (index_type j = jb; j < je; ++j)
             for (index_type k = kb; k < ke; ++k) {
@@ -56,6 +57,7 @@ void CylindricalSMesh::InitializeData(Real time_now) {
                 (*m_coordinates_[1])(i, j, k) = x[R_axe] * std::sin(x[Phi_axe]);
                 (*m_coordinates_[2])(i, j, k) = x[Z_axe];
             }
+
     ib = std::get<0>((*m_volume_[0]).GetIndexBox())[0];
     jb = std::get<0>((*m_volume_[0]).GetIndexBox())[1];
     kb = std::get<0>((*m_volume_[0]).GetIndexBox())[2];
@@ -68,17 +70,19 @@ void CylindricalSMesh::InitializeData(Real time_now) {
             for (index_type k = kb; k < ke; ++k) {
                 point_type x = map(point_type{static_cast<Real>(i), static_cast<Real>(j), static_cast<Real>(k)});
 
-                Real dr = GetDx()[R_axe];
-                Real dl0 = GetDx()[Phi_axe] * x[R_axe];
-                Real dl1 = GetDx()[Phi_axe] * (x[R_axe] + GetDx()[R_axe]);
-                Real dz = GetDx()[Z_axe];
+                Real dr = m_dx_[R_axe];
+                Real dl0 = m_dx_[Phi_axe] * x[R_axe];
+                Real dl1 = m_dx_[Phi_axe] * (x[R_axe] + m_dx_[R_axe]);
+                Real dz = m_dx_[Z_axe];
+
+//                VERBOSE << dr << "," << dz << "," << dl0 << std::endl;
 
                 (*m_volume_[0])(i, j, k) = 1.0;
                 (*m_volume_[1])(i, j, k) = dr;
-                (*m_volume_[2])(i, j, k) = dl0;
-                (*m_volume_[3])(i, j, k) = 0.5 * dr * (dl0 + dl1);
-                (*m_volume_[4])(i, j, k) = dz;
-                (*m_volume_[5])(i, j, k) = dr * dz;
+                (*m_volume_[2])(i, j, k) = dz;                      // dl0;
+                (*m_volume_[3])(i, j, k) = dr * dz;                 // 0.5 * dr * (dl0 + dl1);
+                (*m_volume_[4])(i, j, k) = dl0;                     // dz;
+                (*m_volume_[5])(i, j, k) = 0.5 * dr * (dl0 + dl1);  // dr * dz;
                 (*m_volume_[6])(i, j, k) = dl0 * dz;
                 (*m_volume_[7])(i, j, k) = 0.5 * dr * (dl0 + dl1) * dz;
                 (*m_volume_[8])(i, j, k) = 1.0;
@@ -93,17 +97,17 @@ void CylindricalSMesh::InitializeData(Real time_now) {
                 (*m_inv_volume_[7])(i, j, k) = 1.0 / (*m_volume_[7])(i, j, k);
                 (*m_inv_volume_[8])(i, j, k) = 1.0 / (*m_volume_[8])(i, j, k);
 
-                dr = GetDx()[0];
-                dl0 = GetDx()[1] * (x[0] - 0.5 * GetDx()[0]);
-                dl1 = GetDx()[1] * (x[0] + 0.5 * GetDx()[0]);
-                dz = GetDx()[2];
+                dr = m_dx_[0];
+                dl0 = m_dx_[1] * (x[0] - 0.5 * m_dx_[0]);
+                dl1 = m_dx_[1] * (x[0] + 0.5 * m_dx_[0]);
+                dz = m_dx_[2];
 
                 (*m_dual_volume_[7])(i, j, k) = 1.0;
                 (*m_dual_volume_[6])(i, j, k) = dr;
-                (*m_dual_volume_[5])(i, j, k) = dl0;
-                (*m_dual_volume_[4])(i, j, k) = 0.5 * dr * (dl0 + dl1);
-                (*m_dual_volume_[3])(i, j, k) = dz;
-                (*m_dual_volume_[2])(i, j, k) = dr * dz;
+                (*m_dual_volume_[5])(i, j, k) = dz;                      // dl0;
+                (*m_dual_volume_[4])(i, j, k) = dr * dz;                 // 0.5 * dr * (dl0 + dl1);
+                (*m_dual_volume_[3])(i, j, k) = dl0;                     // dz;
+                (*m_dual_volume_[2])(i, j, k) = 0.5 * dr * (dl0 + dl1);  // dr * dz;
                 (*m_dual_volume_[1])(i, j, k) = dl0 * dz;
                 (*m_dual_volume_[0])(i, j, k) = 0.5 * dr * (dl0 + dl1) * dz;
                 (*m_dual_volume_[8])(i, j, k) = 1.0;

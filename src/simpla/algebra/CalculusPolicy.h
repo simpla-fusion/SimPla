@@ -82,10 +82,16 @@ struct calculator {
                              ENABLE_IF((std::is_arithmetic<T>::value))) {
         return v[(((n & 0b111) == 0) || ((n & 0b111) == 7)) ? (n >> 3) : EntityIdCoder::m_id_to_sub_index_[n & 0b111]];
     }
-    static auto Volume(mesh_type const& m, int n, IdxShift S) { return getValue(m, m.m_volume_, n, S); }
-    static auto IVolume(mesh_type const& m, int n, IdxShift S) { return getValue(m, m.m_inv_volume_, n, S); }
-    static auto DVolume(mesh_type const& m, int n, IdxShift S) { return getValue(m, m.m_dual_volume_, n, S); }
-    static auto IDVolume(mesh_type const& m, int n, IdxShift S) { return getValue(m, m.m_inv_dual_volume_, n, S); }
+    static auto Volume(mesh_type const& m, int n, IdxShift S) { return 1.0; /*getValue(m, m.m_volume_, n, S);   */ }
+    static auto IVolume(mesh_type const& m, int n, IdxShift S) {
+        return 1.0; /*getValue(m, m.m_inv_volume_, n, S);   */
+    }
+    static auto DVolume(mesh_type const& m, int n, IdxShift S) {
+        return 1.0; /*getValue(m, m.m_dual_volume_, n, S);   */
+    }
+    static auto IDVolume(mesh_type const& m, int n, IdxShift S) {
+        return 1.0; /*getValue(m, m.m_inv_dual_volume_, n, S);   */
+    }
 
     template <typename TExpr>
     static auto getV(mesh_type const& m, TExpr const& expr, int n, IdxShift S) {
@@ -118,18 +124,19 @@ struct calculator {
                      int_sequence<EDGE>) {
         static auto const& l = std::get<0>(expr.m_args_);
 
-        IdxShift X{0, 0, 0};
         IdxShift Y{0, 0, 0};
-
         IdxShift Z{0, 0, 0};
+
+        n = EntityIdCoder::m_id_to_sub_index_[n];
+
         Y[(n + 1) % 3] = 1;
         Z[(n + 2) % 3] = 1;
 
-        return ((getV(m, l, (n + 1) % 3, S) -        //
-                 getV(m, l, (n + 1) % 3, S - Y)) +   //
-                (getV(m, l, (n + 2) % 3, S) -        //
-                 getV(m, l, (n + 2) % 3, S - Z))) *  //
-               IVolume(m, n, S);
+        return ((getV(m, l, EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 1) % 3], S + Z) -
+                 getV(m, l, EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 1) % 3], S)) -
+                (getV(m, l, EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 2) % 3], S + Y) -
+                 getV(m, l, EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 2) % 3], S))) *
+               IVolume(m, EntityIdCoder::m_sub_index_to_id_[FACE][n], S);
     }
 
     //! div<2>
@@ -154,20 +161,19 @@ struct calculator {
     static auto eval(mesh_type const& m, Expression<tags::_codifferential_derivative, TExpr> const& expr, int n,
                      IdxShift S, int_sequence<FACE>) {
         static auto const& l = std::get<0>(expr.m_args_);
-
-        IdxShift X{0, 0, 0};
         IdxShift Y{0, 0, 0};
         IdxShift Z{0, 0, 0};
 
-        X[n] = 1;
+        n = EntityIdCoder::m_id_to_sub_index_[n];
+
         Y[(n + 1) % 3] = 1;
         Z[(n + 2) % 3] = 1;
 
-        return ((getV(m, l, (n + 1) % 3, S + Y) -  //
-                 getV(m, l, (n + 1) % 3, S)) +     //
-                (getV(m, l, (n + 2) % 3, S + Z) -  //
-                 getV(m, l, (n + 2) % 3, S))) *    //
-               (-IVolume(m, n, S));
+        return ((getDualV(m, l, EntityIdCoder::m_sub_index_to_id_[FACE][(n + 1) % 3], S) -
+                 getDualV(m, l, EntityIdCoder::m_sub_index_to_id_[FACE][(n + 1) % 3], S - Z)) -
+                (getDualV(m, l, EntityIdCoder::m_sub_index_to_id_[FACE][(n + 2) % 3], S) -
+                 getDualV(m, l, EntityIdCoder::m_sub_index_to_id_[FACE][(n + 2) % 3], S - Y))) *
+               (-IDVolume(m, EntityIdCoder::m_sub_index_to_id_[EDGE][n], S));
     }
 
     //! div<1>
@@ -177,13 +183,13 @@ struct calculator {
                      IdxShift S, int_sequence<EDGE>) {
         static auto const& l = std::get<0>(expr.m_args_);
 
-        IdxShift X{0, 0};
-        IdxShift Y{1, 0};
-        IdxShift Z{2, 0};
+        IdxShift X{1, 0, 0};
+        IdxShift Y{0, 1, 0};
+        IdxShift Z{0, 0, 1};
 
-        return ((getDualV(m, l, 0, S) - getDualV(m, l, 0, S /*- X*/)) +  //
-                (getDualV(m, l, 1, S) - getDualV(m, l, 1, S /*- Y*/)) +  //
-                (getDualV(m, l, 2, S) - getDualV(m, l, 2, S /*- Z*/))) *
+        return ((getDualV(m, l, 0, S) - getDualV(m, l, 0, S - X)) +  //
+                (getDualV(m, l, 1, S) - getDualV(m, l, 1, S - Y)) +  //
+                (getDualV(m, l, 2, S) - getDualV(m, l, 2, S - Z))) *
                (-IDVolume(m, n, S));
         ;
     }
