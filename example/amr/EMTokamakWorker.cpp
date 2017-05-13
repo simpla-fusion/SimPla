@@ -97,11 +97,7 @@ void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
             Ev.DeepCopy(E);
 
         });
-        d->OnBoundaryCondition.Connect([=](Domain* self, Real time_now, Real time_dt) {
-
-
-
-        });
+        //        d->OnBoundaryCondition.Connect([=](Domain* self, Real time_now, Real time_dt) {});
         //
         //        d->OnInitialCondition.Connect([&](Domain* self, Real time_now) {
         //            auto ne = self->GetAttribute<Field<mesh_type, Real, VERTEX>>("ne", "Center");
