@@ -97,9 +97,7 @@ void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
             Ev.DeepCopy(E);
 
         });
-        //        d->OnBoundaryCondition.Connect([=](Domain* self, Real time_now, Real time_dt) {
-        //
-        //        });
+        //        d->OnBoundaryCondition.Connect([=](Domain* self, Real time_now, Real time_dt) {  });
         //
         //        d->OnInitialCondition.Connect([&](Domain* self, Real time_now) {
         //            auto ne = self->GetAttribute<Field<mesh_type, Real, VERTEX>>("ne", "Center");
@@ -109,7 +107,6 @@ void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
         //            auto B0 = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("B0");
         //            B0.Clear();
         //            B0 = [&](point_type const& x) -> Vec3 { return geqdsk.B(x[0], x[1]); };
-        //
         //        });
     }
 }
