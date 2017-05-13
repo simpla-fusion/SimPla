@@ -30,13 +30,17 @@ void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
     m_pimpl_->m_atlas_.Deserialize(cfg->GetTable("Atlas"));
     m_pimpl_->m_model_.Deserialize(cfg->GetTable("Model"));
 
-    for (auto const &geo : GetModel().GetAll()) {
-        auto d = Domain::Create(cfg->Get("Domains/" + geo.first), geo.second);
+    //    for (auto const &geo : GetModel().GetAll()) {
+
+    //    }
+    auto d_cfg = cfg->GetTable("Domains");
+    d_cfg->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t) {
+        auto d = Domain::Create(t, m_pimpl_->m_model_.GetObject(key));
         if (d != nullptr) {
             d->Initialize();
-            Context::SetDomain(geo.first, d);
+            Context::SetDomain(key, d);
         }
-    }
+    });
 }
 
 void Context::Initialize() {}
