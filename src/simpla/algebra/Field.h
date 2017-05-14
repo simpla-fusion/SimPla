@@ -191,7 +191,6 @@ class Field : public engine::Attribute {
     void Assign(Other const& other, ENABLE_IF(!(concept::is_callable<Other(EntityId)>::value ||
                                                 concept::is_callable<Other(point_type const&)>::value))) {
         SetUp();
-
         if (m_range_.isNull()) {
             for (int i = 0; i < NUMBER_OF_SUB; ++i)
                 for (int j = 0; j < DOF; ++j) {
@@ -222,9 +221,10 @@ class Field : public engine::Attribute {
         if (m_range_.isNull()) {
             for (int i = 0; i < NUMBER_OF_SUB; ++i)
                 for (int j = 0; j < DOF; ++j) {
+                    int w = EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3);
                     m_data_[i][j] = [&](index_tuple const& idx) {
                         EntityId s;
-                        s.w = static_cast<int16_t>(EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3));
+                        s.w = static_cast<int16_t>(w);
                         s.x = static_cast<int16_t>(idx[0]);
                         s.y = static_cast<int16_t>(idx[1]);
                         s.z = static_cast<int16_t>(idx[2]);

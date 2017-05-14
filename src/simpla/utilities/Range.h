@@ -252,6 +252,7 @@ struct Range {
     }
     bool empty() const { return m_next_ == nullptr || m_next_->empty(); }
     bool isNull() const { return m_next_ == nullptr; }
+
     void clear() { m_next_.reset(); }
 
     this_type split(tags::split const& s = tags::split()) {
@@ -284,7 +285,7 @@ struct Range {
     RangeBase<T> const& self() const { return *m_next_; }
 
    private:
-    std::shared_ptr<RangeBase<T>> m_next_;
+    std::shared_ptr<RangeBase<T>> m_next_ = nullptr;
 };
 
 template <typename T, typename... Args>

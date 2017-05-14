@@ -55,7 +55,7 @@ std::shared_ptr<geometry::GeoObject> Domain::GetGeoObject(std::string const& k) 
 }
 
 EntityRange Domain::GetRange(std::string const& k) const {
-    EntityRange res{std::make_shared<EmptyRangeBase<EntityId>>()};
+    EntityRange res;
     auto it = m_pimpl_->m_patch_->m_ranges.find(k);
     if (it != m_pimpl_->m_patch_->m_ranges.end()) { res = it->second; }
     return res;

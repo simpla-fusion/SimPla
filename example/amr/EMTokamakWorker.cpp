@@ -83,8 +83,8 @@ void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
             auto Jv = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Jv");
 
             J = [=](point_type const& x) -> Vec3 {
-                Vec3 a = amp * std::sin(/*n_phi * x[2] +*/ TWOPI * freq * time_now);
-                return a;  // Vec3{std::sin(x[2]) * a, 0, a * std::cos(x[2])};
+                Real a = std::sin(n_phi * x[2] + TWOPI * freq * time_now);
+                return Vec3{std::sin(x[2]) * a, 0, a * std::cos(x[2])};
             };
 
             auto E = self->GetAttribute<Field<mesh_type, Real, EDGE>>("E");
@@ -99,15 +99,15 @@ void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
         });
         //        d->OnBoundaryCondition.Connect([=](Domain* self, Real time_now, Real time_dt) {});
         //
-        //        d->OnInitialCondition.Connect([&](Domain* self, Real time_now) {
-        //            auto ne = self->GetAttribute<Field<mesh_type, Real, VERTEX>>("ne", "Center");
-        //            ne.Clear();
-        //            ne = [&](point_type const& x) -> Real { return geqdsk.profile("ne", x[0], x[1]); };
-        //
-        //            auto B0 = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("B0");
-        //            B0.Clear();
-        //            B0 = [&](point_type const& x) -> Vec3 { return geqdsk.B(x[0], x[1]); };
-        //        });
+        d->OnInitialCondition.Connect([&](Domain* self, Real time_now) {
+            auto ne = self->GetAttribute<Field<mesh_type, Real, VERTEX>>("ne", "Center");
+            ne.Clear();
+            ne = [&](point_type const& x) -> Real { return geqdsk.profile("ne", x[0], x[1]); };
+
+            auto B0 = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("B0");
+            B0.Clear();
+            B0 = [&](point_type const& x) -> Vec3 { return geqdsk.B(x[0], x[1]); };
+        });
     }
 }
 //    std::cout << "Model = ";
