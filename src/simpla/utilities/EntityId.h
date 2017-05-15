@@ -683,8 +683,6 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
     bool empty() const override { return size() == 0; }
 
     size_t size() const override {
-        CHECK(index_box());
-
         return static_cast<size_t>((m_max_[0] - m_min_[0]) * (m_max_[1] - m_min_[1]) * (m_max_[2] - m_min_[2]));
     }
 

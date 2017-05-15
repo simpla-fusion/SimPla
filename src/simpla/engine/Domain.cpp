@@ -45,6 +45,7 @@ void Domain::Finalize() {
 }
 
 void Domain::AddGeoObject(std::string const& k, std::shared_ptr<geometry::GeoObject> const& g) {
+    Click();
     m_pimpl_->m_geo_object_[k] = g;
     m_pimpl_->m_patch_ = std::make_shared<Patch>();
 }
@@ -77,6 +78,7 @@ EntityRange Domain::GetPerpendicularBoundaryRange(int IFORM, std::string const& 
 }
 
 void Domain::Push(const std::shared_ptr<Patch>& p) {
+    Click();
     m_pimpl_->m_patch_ = p;
     GetMesh()->SetBlock(m_pimpl_->m_patch_->GetBlock());
     for (auto& item : GetAllAttributes()) {
@@ -92,6 +94,7 @@ std::shared_ptr<Patch> Domain::PopPatch() {
 }
 
 std::shared_ptr<Patch> Domain::ApplyInitialCondition(const std::shared_ptr<Patch>& patch, Real time_now) {
+    SetUp();
     Push(patch);
     if (GetMesh() != nullptr) { GetMesh()->InitializeData(time_now); }
     for (auto const& item : m_pimpl_->m_geo_object_) {

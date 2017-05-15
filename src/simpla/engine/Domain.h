@@ -54,6 +54,8 @@ class Domain : public SPObject,
     design_pattern::Signal<void(Domain *, Real, Real)> OnBoundaryCondition;
     design_pattern::Signal<void(Domain *, Real, Real)> OnAdvance;
 
+
+
     virtual void InitialCondition(Real time_now) {}
     virtual void BoundaryCondition(Real time_now, Real dt) {}
     virtual void Advance(Real time_now, Real dt) {}

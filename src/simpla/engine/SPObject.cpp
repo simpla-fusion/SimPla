@@ -41,28 +41,39 @@ size_type SPObject::GetClickCount() const { return m_pimpl_->m_click_; }
 void SPObject::Click() { ++m_pimpl_->m_click_; }
 void SPObject::Tag() { m_pimpl_->m_click_tag_ = m_pimpl_->m_click_; }
 void SPObject::ResetTag() { m_pimpl_->m_click_tag_ = m_pimpl_->m_click_ = 0; }
-bool SPObject::isModified() const { return GetTagCount() != GetClickCount(); }
-void SPObject::Initialize() {
-    Click();
-    Tag();
-}
-void SPObject::Finalize() {
-    TearDown();
-    OnFinalize(this);
-    ResetTag();
-}
-void SPObject::TearDown() {
-    OnTearDown(this);
-    Click();
-    Tag();
-}
-void SPObject::SetUp() {
-    if (GetTagCount() == 0) {
+bool SPObject::isModified() const { return m_pimpl_->m_click_tag_ != m_pimpl_->m_click_; }
+
+void SPObject::Initialize() {}
+void SPObject::Finalize() {}
+void SPObject::TearDown() {}
+void SPObject::SetUp() {}
+
+void SPObject::DoInitialize() {
+
+    if (GetClickCount() == 0 && GetTagCount() == 0) {
         Initialize();
         OnInitialize(this);
+        Tag();
     }
-    OnSetUp(this);
-
-    Tag();
 }
+
+void SPObject::DoSetUp() {
+    if (isModified()) {
+        DoInitialize();
+        SetUp();
+        OnSetUp(this);
+        Tag();
+    }
+}
+void SPObject::DoTearDown() {
+    if (isModified()) {}
+};
+void SPObject::DoFinalize() {
+    if (GetClickCount() != 0) {
+        DoTearDown();
+        Finalize();
+        OnFinalize(this);
+        ResetTag();
+    }
+};
 }  // namespace simpla { namespace base

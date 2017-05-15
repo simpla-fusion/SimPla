@@ -48,6 +48,13 @@ std::shared_ptr<data::DataTable> EMTokamak::Serialize() const {
 void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     if (cfg == nullptr) { return; }
 
+    typedef mesh::CylindricalSMesh mesh_type;
+
+    engine::Context::Initialize();
+    engine::Context::Deserialize(cfg);
+    auto d = GetDomain("Main");
+    ASSERT(d != nullptr);
+
     unsigned int PhiAxe = 2;
     nTuple<Real, 2> phi = cfg->GetValue("Phi", nTuple<Real, 2>{0, TWOPI});
     geqdsk.load(cfg->GetValue<std::string>("gfile", "gfile"));
@@ -68,47 +75,40 @@ void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     std::get<1>(idx_box) = cfg->GetValue<nTuple<int, 3>>("Dimensions", nTuple<int, 3>{64, 64, 32});
     GetAtlas().SetIndexBox(idx_box);
 
-    engine::Context::Initialize();
-    engine::Context::Deserialize(cfg);
+    d->AddGeoObject("Center", GetModel().GetObject("Center"));
+    d->AddGeoObject("Antenna", GetModel().GetObject("Antenna"));
 
-    GetDomain("Main")->AddGeoObject("Center", GetModel().GetObject("Center"));
-    GetDomain("Main")->AddGeoObject("Antenna", GetModel().GetObject("Antenna"));
+    d->OnAdvance.Connect([=](Domain* self, Real time_now, Real time_dt) {
 
-    typedef mesh::CylindricalSMesh mesh_type;
-    auto d = GetDomain("Main");
-    if (d != nullptr) {
-        d->OnAdvance.Connect([=](Domain* self, Real time_now, Real time_dt) {
+        auto J = self->GetAttribute<Field<mesh_type, Real, EDGE>>("J", "Antenna");
+        auto Jv = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Jv");
 
-            auto J = self->GetAttribute<Field<mesh_type, Real, EDGE>>("J", "Antenna");
-            auto Jv = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Jv");
+        J = [=](point_type const& x) -> Vec3 {
+            Real a = std::sin(n_phi * x[2] + TWOPI * freq * time_now);
+            return Vec3{std::sin(x[2]) * a, 0, a * std::cos(x[2])};
+        };
+        Jv.DeepCopy(J);
 
-            J = [=](point_type const& x) -> Vec3 {
-                Real a = std::sin(n_phi * x[2] + TWOPI * freq * time_now);
-                return Vec3{std::sin(x[2]) * a, 0, a * std::cos(x[2])};
-            };
+        auto E = self->GetAttribute<Field<mesh_type, Real, EDGE>>("E");
+        auto B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
+        auto Ev = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Ev");
+        auto Bv = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Bv");
 
-            auto E = self->GetAttribute<Field<mesh_type, Real, EDGE>>("E");
-            auto B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
-            auto Ev = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Ev");
-            auto Bv = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Bv");
+        Bv.DeepCopy(B);
+        Ev.DeepCopy(E);
 
-            Jv.DeepCopy(J);
-            Bv.DeepCopy(B);
-            Ev.DeepCopy(E);
+    });
+    //        d->OnBoundaryCondition.Connect([=](Domain* self, Real time_now, Real time_dt) {});
+    //
+    d->OnInitialCondition.Connect([&](Domain* self, Real time_now) {
+        auto ne = self->GetAttribute<Field<mesh_type, Real, VERTEX>>("ne", "Center");
+        ne.Clear();
+        ne = [&](point_type const& x) -> Real { return geqdsk.profile("ne", x[0], x[1]); };
 
-        });
-        //        d->OnBoundaryCondition.Connect([=](Domain* self, Real time_now, Real time_dt) {});
-        //
-        d->OnInitialCondition.Connect([&](Domain* self, Real time_now) {
-            auto ne = self->GetAttribute<Field<mesh_type, Real, VERTEX>>("ne", "Center");
-            ne.Clear();
-            ne = [&](point_type const& x) -> Real { return geqdsk.profile("ne", x[0], x[1]); };
-
-            auto B0 = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("B0");
-            B0.Clear();
-            B0 = [&](point_type const& x) -> Vec3 { return geqdsk.B(x[0], x[1]); };
-        });
-    }
+        auto B0 = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("B0");
+        B0.Clear();
+        B0 = [&](point_type const& x) -> Vec3 { return geqdsk.B(x[0], x[1]); };
+    });
 }
 //    std::cout << "Model = ";
 //    GetModel().Serialize(std::cout, 0);

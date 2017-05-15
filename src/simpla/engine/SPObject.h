@@ -106,6 +106,11 @@ class SPObject {
     design_pattern::Signal<void(SPObject*)> OnFinalize;
     design_pattern::Signal<void(SPObject*)> OnChanged;
 
+    void DoInitialize();
+    void DoFinalize();
+    void DoSetUp();
+    void DoTearDown();
+
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;

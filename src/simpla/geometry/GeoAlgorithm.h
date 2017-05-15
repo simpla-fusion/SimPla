@@ -16,12 +16,8 @@
 
 namespace simpla {
 namespace geometry {
+enum GEO_POSITION_STATUS { INSIDE = -1, INTERSECTION = 0, OUTSIDE = 1 };
 
-/**
- * @return  -1 full in-side
- *          0  overlap
- *          1 full out-side
- */
 template <typename U, typename V>
 int CheckOverlap(std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b0,
                  std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b1) {
