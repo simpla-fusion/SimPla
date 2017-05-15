@@ -51,7 +51,7 @@ class Field : public engine::Attribute {
     array_type m_data_[NUMBER_OF_SUB][DOF];
 
     mesh_type* m_mesh_ = nullptr;
-    EntityRange m_range_;
+    std::shared_ptr<EntityRange> m_range_ = nullptr;
 
    public:
     template <typename... Args>
@@ -77,14 +77,23 @@ class Field : public engine::Attribute {
     }
 
     Field(this_type const& other, EntityRange const& r)
-        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(r) {
+        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(std::make_shared<EntityRange>(r)) {
         for (int i = 0; i < NUMBER_OF_SUB; ++i)
             for (int j = 0; j < DOF; ++j) { array_type(other.m_data_[i][j]).swap(m_data_[i][j]); }
     }
 
     ~Field() override = default;
 
-    size_type size() const override { return m_range_.size() * DOF; }
+    size_type size() const override {
+        size_type s = 0;
+        if (m_range_ == nullptr) {
+            for (int i = 0; i < NUMBER_OF_SUB; ++i)
+                for (int j = 0; j < DOF; ++j) { s += m_data_[i][j].size(); }
+        } else {
+            s = m_range_->size() * DOF;
+        }
+        return s;
+    }
 
     void Clear() {
         SetUp();
@@ -105,9 +114,9 @@ class Field : public engine::Attribute {
         return *this;
     };
 
-    void Push(const std::shared_ptr<data::DataBlock>& d, EntityRange const& r) override {
+    void Push(const std::shared_ptr<data::DataBlock>& d, const EntityRange* r) override {
         Click();
-        m_range_ = r;
+        m_range_ = r == nullptr ? nullptr : std::make_shared<EntityRange>(*r);
 
         if (d != nullptr) {
             auto& t = d->cast_as<data::DataMultiArray<value_type, NDIMS>>();
@@ -191,16 +200,16 @@ class Field : public engine::Attribute {
     void Assign(Other const& other, ENABLE_IF(!(concept::is_callable<Other(EntityId)>::value ||
                                                 concept::is_callable<Other(point_type const&)>::value))) {
         DoSetUp();
-        if (m_range_.isNull()) {
+        if (m_range_ == nullptr) {
             for (int i = 0; i < NUMBER_OF_SUB; ++i)
                 for (int j = 0; j < DOF; ++j) {
-                    m_data_[i][j] = calculus_policy::getValue(*m_mesh_, other, i * DOF + j, IdxShift{0, 0, 0});
+                    m_data_[i][j] = calculus_policy::getValue(*m_mesh_, other, i * DOF + j);
                 }
-        } else if (!m_range_.empty()) {
+        } else {
             index_tuple ib, ie;
             std::tie(ib, ie) = m_mesh_->GetIndexBox();
             for (int j = 0; j < DOF; ++j) {
-                m_range_.foreach ([&](EntityId s) {
+                m_range_->foreach ([&](EntityId s) {
                     index_tuple idx = {s.x, s.y, s.z};
                     if (ib[0] <= idx[0] && idx[0] < ie[0] &&  //
                         ib[1] <= idx[1] && idx[1] < ie[1] &&  //
@@ -218,7 +227,7 @@ class Field : public engine::Attribute {
     void Assign(TFun const& fun, ENABLE_IF((std::is_same<std::result_of_t<TFun(EntityId)>, value_type>::value))) {
         DoSetUp();
 
-        if (m_range_.isNull()) {
+        if (m_range_ == nullptr) {
             for (int i = 0; i < NUMBER_OF_SUB; ++i)
                 for (int j = 0; j < DOF; ++j) {
                     int w = EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3);
@@ -231,12 +240,12 @@ class Field : public engine::Attribute {
                         return fun(s);
                     };
                 }
-        } else if (!m_range_.empty()) {
+        } else {
             index_tuple ib, ie;
             std::tie(ib, ie) = m_mesh_->GetIndexBox();
 
             for (int j = 0; j < DOF; ++j) {
-                m_range_.foreach ([&](EntityId s) {
+                m_range_->foreach ([&](EntityId s) {
                     if (ib[0] <= s.x && s.x < ie[0] &&  //
                         ib[1] <= s.y && s.y < ie[1] &&  //
                         ib[2] <= s.z && s.z < ie[2])    //

@@ -8,39 +8,48 @@ namespace simpla {
 namespace mesh {
 using namespace algebra;
 
-void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix,
-                                    std::map<std::string, EntityRange> &ranges) {
-    auto overlap = (g == nullptr) ? 1 : g->CheckOverlap(GetBox());
+void StructuredMesh::RegisterRanges(std::map<std::string, EntityRange> &ranges, std::shared_ptr<geometry::GeoObject> const &g,
+                                    std::string const &prefix) {
+    auto pos = g == nullptr ? geometry::INSIDE : g->CheckOverlap(GetBox());
+    switch (pos) {
+        case geometry::INSIDE: {
+            ranges[prefix + "_0_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(0), 0));
 
-    if (overlap == 1) {
-        ranges[prefix + ".VERTEX_BODY"].append(std::make_shared<EmptyRangeBase<EntityId>>());
+            ranges[prefix + "_1_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(1), 1));
+            ranges[prefix + "_1_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(2), 2));
+            ranges[prefix + "_1_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(4), 4));
+            ranges[prefix + "_2_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(3), 3));
+            ranges[prefix + "_2_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(5), 5));
+            ranges[prefix + "_2_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(6), 6));
+            ranges[prefix + "_3_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(7), 7));
+            ranges[prefix + "_0_BOUNDARY"].reset();
+            ranges[prefix + "_1_PARA_BOUNDARY"].reset();
+            ranges[prefix + "_2_PARA_BOUNDARY"].reset();
+            ranges[prefix + "_1_PERP_BOUNDARY"].reset();
+            ranges[prefix + "_2_PERP_BOUNDARY"].reset();
+            ranges[prefix + "_3_BOUNDARY"].reset();
 
-        ranges[prefix + ".EDGE_BODY"].append(std::make_shared<EmptyRangeBase<EntityId>>());
-        ranges[prefix + ".EDGE_BODY"].append(std::make_shared<EmptyRangeBase<EntityId>>());
-        ranges[prefix + ".EDGE_BODY"].append(std::make_shared<EmptyRangeBase<EntityId>>());
+        } break;
+        case geometry::OUTSIDE: {
+            ranges[prefix + "_0_BODY"].reset();
+            ranges[prefix + "_1_BODY"].reset();
+            ranges[prefix + "_1_BODY"].reset();
+            ranges[prefix + "_1_BODY"].reset();
+            ranges[prefix + "_2_BODY"].reset();
+            ranges[prefix + "_2_BODY"].reset();
+            ranges[prefix + "_2_BODY"].reset();
+            ranges[prefix + "_3_BODY"].reset();
+            ranges[prefix + "_0_BOUNDARY"].reset();
+            ranges[prefix + "_1_PARA_BOUNDARY"].reset();
+            ranges[prefix + "_2_PARA_BOUNDARY"].reset();
+            ranges[prefix + "_1_PERP_BOUNDARY"].reset();
+            ranges[prefix + "_2_PERP_BOUNDARY"].reset();
+            ranges[prefix + "_3_BOUNDARY"].reset();
 
-        ranges[prefix + ".FACE_BODY"].append(std::make_shared<EmptyRangeBase<EntityId>>());
-        ranges[prefix + ".FACE_BODY"].append(std::make_shared<EmptyRangeBase<EntityId>>());
-        ranges[prefix + ".FACE_BODY"].append(std::make_shared<EmptyRangeBase<EntityId>>());
-
-        ranges[prefix + ".VOLUME_BODY"].append(std::make_shared<EmptyRangeBase<EntityId>>());
-
-        return;
-    } else if (overlap == -1) {
-        ranges[prefix + ".VERTEX_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(0), 0));
-
-        ranges[prefix + ".EDGE_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(1), 1));
-        ranges[prefix + ".EDGE_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(2), 2));
-        ranges[prefix + ".EDGE_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(4), 4));
-
-        ranges[prefix + ".FACE_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(3), 3));
-        ranges[prefix + ".FACE_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(5), 5));
-        ranges[prefix + ".FACE_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(6), 6));
-
-        ranges[prefix + ".VOLUME_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(7), 7));
-
-        return;
+        } break;
+        default: { break; }
     }
+    if (pos != geometry::INTERSECTION) { return; }
 
     Field<StructuredMesh, int, VERTEX> vertex_tags{this};
     vertex_tags.Clear();
@@ -227,16 +236,16 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
                 }
             }
 
-    ranges[prefix + ".VERTEX_BODY"].append(VERTEX_body);
-    ranges[prefix + ".EDGE_BODY"].append(EDGE_body);
-    ranges[prefix + ".FACE_BODY"].append(FACE_body);
-    ranges[prefix + ".VOLUME_BODY"].append(VOLUME_body);
-    ranges[prefix + ".VERTEX_BOUNDARY"].append(VERTEX_boundary);
-    ranges[prefix + ".EDGE_PARA_BOUNDARY"].append(EDGE_PARA_boundary);
-    ranges[prefix + ".FACE_PARA_BOUNDARY"].append(FACE_PARA_boundary);
-    ranges[prefix + ".EDGE_PERP_BOUNDARY"].append(EDGE_PERP_boundary);
-    ranges[prefix + ".FACE_PERP_BOUNDARY"].append(FACE_PERP_boundary);
-    ranges[prefix + ".VOLUME_BOUNDARY"].append(VOLUME_boundary);
+    ranges[prefix + "_0_BODY"].append(VERTEX_body);
+    ranges[prefix + "_1_BODY"].append(EDGE_body);
+    ranges[prefix + "_2_BODY"].append(FACE_body);
+    ranges[prefix + "_3_BODY"].append(VOLUME_body);
+    ranges[prefix + "_0_BOUNDARY"].append(VERTEX_boundary);
+    ranges[prefix + "_1_PARA_BOUNDARY"].append(EDGE_PARA_boundary);
+    ranges[prefix + "_2_PARA_BOUNDARY"].append(FACE_PARA_boundary);
+    ranges[prefix + "_1_PERP_BOUNDARY"].append(EDGE_PERP_boundary);
+    ranges[prefix + "_2_PERP_BOUNDARY"].append(FACE_PERP_boundary);
+    ranges[prefix + "_3_BOUNDARY"].append(VOLUME_boundary);
 
     //    CHECK(VOLUME_body->size());
 }

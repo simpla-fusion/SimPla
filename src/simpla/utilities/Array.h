@@ -283,18 +283,6 @@ struct Array {
     void SetData(std::shared_ptr<value_type> const& d) const { m_data_ = d; }
 
     size_type hash(m_index_tuple const& idx) const { return dot(m_strides_, idx) + m_offset_; }
-    //#ifndef NDEBUG
-    //        bool out_boundary = false;
-    //        for (int n = 0; n < NDIMS; ++n) {
-    //            out_boundary =
-    //                out_boundary || std::get<0>(m_index_box_)[n] > idx[n] || idx[n] >=
-    //                std::get<1>(m_index_box_)[n];
-    //        }
-    //        if (out_boundary) {
-    //            VERBOSE << "{" << idx[0] << "," << idx[1] << "," << idx[2] << "}," << m_index_box_ << std::endl;
-    //        }
-    //        ASSERT(!out_boundary);
-    //#endif
 
     value_type& at(m_index_tuple const& idx) { return m_data_.get()[hash(idx)]; }
 

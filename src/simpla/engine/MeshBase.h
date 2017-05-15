@@ -62,8 +62,9 @@ class MeshBase : public SPObject, public data::EnableCreateFromDataTable<MeshBas
     virtual point_type const &GetOrigin() = 0;
     virtual point_type const &GetDx() = 0;
 
-    virtual void RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix,
-                                std::map<std::string, EntityRange> &ranges){};
+    virtual void RegisterRanges(std::map<std::string, EntityRange> &ranges,
+                                std::shared_ptr<geometry::GeoObject> const &g = nullptr,
+                                std::string const &prefix = ""){};
     virtual index_tuple GetGhostWidth(int tag = VERTEX) const;
     virtual index_box_type GetIndexBox(int tag = VERTEX) const;
     virtual box_type GetBox() const { return box_type{{0, 0, 0}, {1, 1, 1}}; }

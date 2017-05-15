@@ -46,21 +46,21 @@ struct calculator {
     }
 
     template <typename TOP, typename... T>
-    static auto getValue(mesh_type const& m, Expression<TOP, T...> const& expr, int n, IdxShift S) {
+    static auto getValue(mesh_type const& m, Expression<TOP, T...> const& expr, int n, IdxShift S = IdxShift{0, 0, 0}) {
         return eval(m, expr, n, S, int_sequence<traits::iform<T>::value...>());
     }
 
     template <typename M, typename V, int I, int D>
-    static auto getValue(mesh_type const& m, Field<M, V, I, D> const& f, int n, IdxShift S) {
+    static auto getValue(mesh_type const& m, Field<M, V, I, D> const& f, int n, IdxShift S = IdxShift{0, 0, 0}) {
         return f[EntityIdCoder::m_id_to_sub_index_[n & 0b111]][n >> 3](S);
     };
     template <typename M, typename V, int I, int D>
-    static auto getValue(mesh_type const& m, Field<M, V, I, D>& f, int n, IdxShift S) {
+    static auto getValue(mesh_type const& m, Field<M, V, I, D>& f, int n, IdxShift S = IdxShift{0, 0, 0}) {
         return f[EntityIdCoder::m_id_to_sub_index_[n & 0b111]][n >> 3](S);
     };
 
     template <typename TFun>
-    static auto getValue(mesh_type const& m, TFun const& f, int n, IdxShift S,
+    static auto getValue(mesh_type const& m, TFun const& f, int n, IdxShift S = IdxShift{0, 0, 0},
                          ENABLE_IF((concept::is_callable<TFun(simpla::EntityId)>::value))) {
         return [&](index_tuple const& idx) {
             EntityId s;
@@ -73,12 +73,12 @@ struct calculator {
     };
 
     template <typename T>
-    static T const& getValue(mesh_type const& m, T const& v, int n, IdxShift S,
+    static T const& getValue(mesh_type const& m, T const& v, int n, IdxShift S = IdxShift{0, 0, 0},
                              ENABLE_IF((std::is_arithmetic<T>::value))) {
         return v;
     }
     template <typename T>
-    static T const& getValue(mesh_type const& m, T const* v, int n, IdxShift S,
+    static T const& getValue(mesh_type const& m, T const* v, int n, IdxShift S = IdxShift{0, 0, 0},
                              ENABLE_IF((std::is_arithmetic<T>::value))) {
         return v[(((n & 0b111) == 0) || ((n & 0b111) == 7)) ? (n >> 3) : EntityIdCoder::m_id_to_sub_index_[n & 0b111]];
     }

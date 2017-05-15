@@ -145,11 +145,11 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
 
     DEFINE_PHYSICAL_CONST
 
-    //    B = B - curl(E) * dt;
-    //    B[GetBoundaryRange(FACE)] = 0;
+    B = B - curl(E) * dt;
+    B[GetBoundaryRange(FACE)] = 0;
 
-    E = J;  // E + (curl(B) * speed_of_light2 - J / epsilon0) * dt;
-    //    E[GetBoundaryRange(EDGE)] = 0;
+    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * dt;
+    E[GetBoundaryRange(EDGE)] = 0;
 
     //    if (m_fluid_sp_.size() > 0) {
     //        field_type<VOLUME, 3> Q{this};

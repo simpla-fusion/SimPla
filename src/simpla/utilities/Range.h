@@ -85,25 +85,6 @@ struct RangeBase {
 };
 
 template <typename T>
-struct EmptyRangeBase : public RangeBase<T> {
-    SP_OBJECT_HEAD(EmptyRangeBase<T>, RangeBase<T>);
-
-   private:
-    typedef T value_type;
-    bool is_divisible() const override { return false; }
-    size_type size() const override { return 0; }
-    bool empty() const override { return true; }
-    void foreach_override(std::function<void(value_type&)> const& fun) const override { DO_NOTHING; };
-
-    std::shared_ptr<base_type> split(tags::split const& sp) override { return std::make_shared<this_type>(); }
-
-    template <typename TFun, typename... Args>
-    void DoForeach(TFun const& fun, Args&&... args) const {}
-
-    std::shared_ptr<RangeBase<T>> m_next_;
-};
-
-template <typename T>
 struct ContinueRange<T> : public RangeBase<T> {
     SP_OBJECT_HEAD(ContinueRange<T>, RangeBase<T>)
     typedef T value_type;
@@ -252,7 +233,6 @@ struct Range {
     }
     bool empty() const { return m_next_ == nullptr || m_next_->empty(); }
     bool isNull() const { return m_next_ == nullptr; }
-
     void clear() { m_next_.reset(); }
 
     this_type split(tags::split const& s = tags::split()) {

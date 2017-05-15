@@ -12,10 +12,11 @@ namespace engine {
 
 struct Domain::pimpl_s {
     std::map<std::string, std::shared_ptr<geometry::GeoObject>> m_geo_object_;
+    std::shared_ptr<geometry::GeoObject> m_geo_shape_;
     std::shared_ptr<Patch> m_patch_ = nullptr;
 };
 Domain::Domain(std::shared_ptr<geometry::GeoObject> const& g) : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_geo_object_[""] = g;
+    m_pimpl_->m_geo_shape_ = g;
     m_pimpl_->m_patch_ = std::make_shared<Patch>();
 }
 Domain::~Domain() {}
@@ -38,24 +39,28 @@ void Domain::AddGeoObject(std::string const& k, std::shared_ptr<geometry::GeoObj
 }
 
 std::shared_ptr<geometry::GeoObject> Domain::GetGeoObject(std::string const& k) const {
-    auto it = m_pimpl_->m_geo_object_.find(k);
-    return (it == m_pimpl_->m_geo_object_.end()) ? nullptr : it->second;
+    std::shared_ptr<geometry::GeoObject> res = nullptr;
+    if (k == "") {
+        res = m_pimpl_->m_geo_shape_;
+    } else {
+        auto it = m_pimpl_->m_geo_object_.find(k);
+        if (it == m_pimpl_->m_geo_object_.end()) { res = it->second; }
+    };
+    return res;
 }
 
 EntityRange Domain::GetRange(std::string const& k) const {
-    EntityRange res;
     auto it = m_pimpl_->m_patch_->m_ranges.find(k);
-    if (it != m_pimpl_->m_patch_->m_ranges.end()) { res = it->second; }
-    return res;
+    return (it != m_pimpl_->m_patch_->m_ranges.end()) ? it->second : EntityRange();
 };
 
 EntityRange Domain::GetBodyRange(int IFORM, std::string const& k) const {
-    return GetRange(k + "." + EntityIFORMName[IFORM] + "_BODY");
+    return GetRange(k + "_" + std::to_string(IFORM) + "_BODY");
 };
 EntityRange Domain::GetBoundaryRange(int IFORM, std::string const& k, bool is_parallel) const {
     return (IFORM == VERTEX || IFORM == VOLUME)
-               ? GetRange(k + "." + EntityIFORMName[IFORM] + "_BOUNDARY")
-               : GetRange(k + "." + EntityIFORMName[IFORM] + (is_parallel ? "_PARA" : "_PERP") + "_BOUNDARY");
+               ? GetRange(k + "_" + std::to_string(IFORM) + "_BOUNDARY")
+               : GetRange(k + "_" + std::to_string(IFORM) + (is_parallel ? "_PARA" : "_PERP") + "_BOUNDARY");
 };
 EntityRange Domain::GetParallelBoundaryRange(int IFORM, std::string const& k) const {
     return GetBoundaryRange(IFORM, k, true);
@@ -63,13 +68,17 @@ EntityRange Domain::GetParallelBoundaryRange(int IFORM, std::string const& k) co
 EntityRange Domain::GetPerpendicularBoundaryRange(int IFORM, std::string const& k) const {
     return GetBoundaryRange(IFORM, k, false);
 }
+EntityRange Domain::GetGhostRange(int IFORM) const { return GetRange("_" + std::to_string(IFORM) + "_GHOST"); }
 
 void Domain::Push(const std::shared_ptr<Patch>& p) {
     Click();
     m_pimpl_->m_patch_ = p;
     GetMesh()->SetBlock(m_pimpl_->m_patch_->GetBlock());
     for (auto& item : GetAllAttributes()) {
-        item.second->Push(m_pimpl_->m_patch_->Pop(item.second->GetID()), GetBodyRange(item.second->GetIFORM()));
+        auto k = "_" + std::to_string(item.second->GetIFORM()) + "_BODY";
+        auto it = m_pimpl_->m_patch_->m_ranges.find(k);
+        EntityRange const* r = (it == m_pimpl_->m_patch_->m_ranges.end()) ? nullptr : &it->second;
+        item.second->Push(m_pimpl_->m_patch_->Pop(item.second->GetID()), r);
     }
     DoSetUp();
 }
@@ -88,7 +97,7 @@ std::shared_ptr<Patch> Domain::ApplyInitialCondition(const std::shared_ptr<Patch
 
     if (GetMesh() != nullptr) { GetMesh()->InitializeData(time_now); }
     for (auto const& item : m_pimpl_->m_geo_object_) {
-        GetMesh()->RegisterRanges(item.second, item.first, m_pimpl_->m_patch_->m_ranges);
+        GetMesh()->RegisterRanges(m_pimpl_->m_patch_->m_ranges, item.second, item.first);
     }
     InitialCondition(time_now);
     OnInitialCondition(this, time_now);

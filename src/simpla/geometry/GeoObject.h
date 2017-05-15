@@ -236,7 +236,7 @@ class GeoObjectFull : public GeoObject {
     *          0  intersection
     *          1   out-side
     */
-    int CheckOverlap(box_type const &b) const override { return -1; }
+    int CheckOverlap(box_type const &b) const override { return INSIDE; }
 
     /**
     * @return  check \f$ (x,y,z)\f$ in \f$ M\f$

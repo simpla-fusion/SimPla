@@ -24,8 +24,8 @@ class StructuredMesh : public engine::MeshBase {
     SP_DEFAULT_CONSTRUCT(StructuredMesh);
     DECLARE_REGISTER_NAME("StructuredMesh");
 
-    void RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix,
-                        std::map<std::string, EntityRange> &ranges) override;
+    void RegisterRanges(std::map<std::string, EntityRange> &ranges, std::shared_ptr<geometry::GeoObject> const &g,
+                        std::string const &prefix) override;
 
     typedef EntityIdCoder M;
 
