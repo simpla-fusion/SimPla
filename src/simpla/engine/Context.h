@@ -60,8 +60,8 @@ namespace engine {
  *  deactivate DomainView
  * @enduml
  */
-class Context : public data::EnableCreateFromDataTable<Context> {
-    SP_OBJECT_BASE(Context)
+class Context : public SPObject, public data::EnableCreateFromDataTable<Context> {
+    SP_OBJECT_HEAD(Context, SPObject)
    public:
     Context();
     ~Context() override;

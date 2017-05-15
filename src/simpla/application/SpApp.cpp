@@ -36,23 +36,29 @@ void SpApp::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     m_pimpl_->m_context_ = engine::Context::Create(cfg->Get("Context"));
     if (m_pimpl_->m_context_ == nullptr) { m_pimpl_->m_context_ = std::make_shared<engine::Context>(); }
 };
-void SpApp::Initialize() {}
-void SpApp::Finalize(){};
-void SpApp::SetUp() {
-    ASSERT(m_pimpl_->m_schedule_ != nullptr);
-    m_pimpl_->m_context_->SetUp();
-    m_pimpl_->m_schedule_->SetContext(m_pimpl_->m_context_);
-    m_pimpl_->m_schedule_->SetUp();
-};
-void SpApp::TearDown() {
+void SpApp::Initialize() {
+    if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->DoInitialize(); }
+    if (m_pimpl_->m_context_ != nullptr) { m_pimpl_->m_context_->DoInitialize(); }
+}
+void SpApp::Finalize() {
     if (m_pimpl_->m_schedule_ != nullptr) {
-        m_pimpl_->m_schedule_->TearDown();
+        m_pimpl_->m_schedule_->DoFinalize();
         m_pimpl_->m_schedule_.reset();
     }
     if (m_pimpl_->m_context_ != nullptr) {
-        m_pimpl_->m_context_->TearDown();
+        m_pimpl_->m_context_->DoFinalize();
         m_pimpl_->m_context_.reset();
     }
+};
+void SpApp::SetUp() {
+    ASSERT(m_pimpl_->m_schedule_ != nullptr);
+    m_pimpl_->m_context_->DoSetUp();
+    m_pimpl_->m_schedule_->SetContext(m_pimpl_->m_context_);
+    m_pimpl_->m_schedule_->DoSetUp();
+};
+void SpApp::TearDown() {
+    if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->DoTearDown(); }
+    if (m_pimpl_->m_context_ != nullptr) { m_pimpl_->m_context_->DoTearDown(); }
 };
 void SpApp::Run() {
     if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Run(); }

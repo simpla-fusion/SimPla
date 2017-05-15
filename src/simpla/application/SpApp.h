@@ -7,11 +7,12 @@
 //
 #include <string>
 #include "simpla/data/all.h"
+#include "simpla/engine/SPObject.h"
 #include "simpla/engine/Schedule.h"
 namespace simpla {
 namespace application {
-struct SpApp : public data::Serializable {
-    SP_OBJECT_BASE(SpApp);
+struct SpApp : public SPObject, public data::Serializable {
+    SP_OBJECT_HEAD(SpApp, SPObject);
 
    public:
     SpApp();
@@ -23,11 +24,11 @@ struct SpApp : public data::Serializable {
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
 
-    virtual void Initialize();
-    virtual void SetUp();
+    void Initialize() override;
+    void SetUp() override;
     virtual void Run();
-    virtual void TearDown();
-    virtual void Finalize();
+    void TearDown() override;
+    void Finalize() override;
 
     void SetContext(std::shared_ptr<engine::Context> s);
     std::shared_ptr<engine::Context> GetContext() const;

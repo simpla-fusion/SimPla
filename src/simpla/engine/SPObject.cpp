@@ -26,7 +26,7 @@ struct SPObject::pimpl_s {
 static boost::hash<boost::uuids::uuid> g_obj_hasher;
 static boost::uuids::random_generator g_uuid_generator;
 SPObject::SPObject() : m_pimpl_(new pimpl_s) { m_pimpl_->m_id_ = g_obj_hasher(g_uuid_generator()); }
-SPObject::~SPObject() { OnFinalize(this); }
+SPObject::~SPObject() { DoFinalize(); }
 
 void SPObject::SetGUID(id_type id) { m_pimpl_->m_id_ = id; }
 
@@ -42,6 +42,7 @@ void SPObject::Click() { ++m_pimpl_->m_click_; }
 void SPObject::Tag() { m_pimpl_->m_click_tag_ = m_pimpl_->m_click_; }
 void SPObject::ResetTag() { m_pimpl_->m_click_tag_ = m_pimpl_->m_click_ = 0; }
 bool SPObject::isModified() const { return m_pimpl_->m_click_tag_ != m_pimpl_->m_click_; }
+bool SPObject::isInitialized() const { return m_pimpl_->m_click_tag_ > 0; }
 
 void SPObject::Initialize() {}
 void SPObject::Finalize() {}
@@ -49,10 +50,10 @@ void SPObject::TearDown() {}
 void SPObject::SetUp() {}
 
 void SPObject::DoInitialize() {
-
-    if (GetClickCount() == 0 && GetTagCount() == 0) {
+    if (!isInitialized()) {
         Initialize();
         OnInitialize(this);
+        Click();
         Tag();
     }
 }
@@ -66,10 +67,13 @@ void SPObject::DoSetUp() {
     }
 }
 void SPObject::DoTearDown() {
-    if (isModified()) {}
+    TearDown();
+    OnTearDown(this);
+    Tag();
+    Click();
 };
 void SPObject::DoFinalize() {
-    if (GetClickCount() != 0) {
+    if (isInitialized()) {
         DoTearDown();
         Finalize();
         OnFinalize(this);

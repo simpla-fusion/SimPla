@@ -12,11 +12,11 @@ namespace engine {
 
 struct Domain::pimpl_s {
     std::map<std::string, std::shared_ptr<geometry::GeoObject>> m_geo_object_;
-
     std::shared_ptr<Patch> m_patch_ = nullptr;
 };
 Domain::Domain(std::shared_ptr<geometry::GeoObject> const& g) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_geo_object_[""] = g;
+    m_pimpl_->m_patch_ = std::make_shared<Patch>();
 }
 Domain::~Domain() {}
 
@@ -27,27 +27,14 @@ std::shared_ptr<data::DataTable> Domain::Serialize() const {
 }
 void Domain::Deserialize(const std::shared_ptr<DataTable>& t) { UNIMPLEMENTED; };
 
-void Domain::SetUp() {
-    SPObject::SetUp();
-    GetMesh()->SetUp();
-}
-void Domain::TearDown() {
-    GetMesh()->TearDown();
-    SPObject::TearDown();
-}
-void Domain::Initialize() {
-    GetMesh()->Initialize();
-    SPObject::Initialize();
-}
-void Domain::Finalize() {
-    GetMesh()->Finalize();
-    SPObject::Finalize();
-}
+void Domain::SetUp() { GetMesh()->SetUp(); }
+void Domain::TearDown() { GetMesh()->TearDown(); }
+void Domain::Initialize() { GetMesh()->Initialize(); }
+void Domain::Finalize() { GetMesh()->Finalize(); }
 
 void Domain::AddGeoObject(std::string const& k, std::shared_ptr<geometry::GeoObject> const& g) {
     Click();
     m_pimpl_->m_geo_object_[k] = g;
-    m_pimpl_->m_patch_ = std::make_shared<Patch>();
 }
 
 std::shared_ptr<geometry::GeoObject> Domain::GetGeoObject(std::string const& k) const {
@@ -84,18 +71,21 @@ void Domain::Push(const std::shared_ptr<Patch>& p) {
     for (auto& item : GetAllAttributes()) {
         item.second->Push(m_pimpl_->m_patch_->Pop(item.second->GetID()), GetBodyRange(item.second->GetIFORM()));
     }
+    DoSetUp();
 }
 std::shared_ptr<Patch> Domain::PopPatch() {
     m_pimpl_->m_patch_->SetBlock(GetMesh()->GetBlock());
     for (auto& item : GetAllAttributes()) { m_pimpl_->m_patch_->Push(item.second->GetID(), item.second->Pop()); }
     auto res = m_pimpl_->m_patch_;
     m_pimpl_->m_patch_ = nullptr;
+    Click();
+    DoTearDown();
     return res;
 }
 
 std::shared_ptr<Patch> Domain::ApplyInitialCondition(const std::shared_ptr<Patch>& patch, Real time_now) {
-    SetUp();
     Push(patch);
+
     if (GetMesh() != nullptr) { GetMesh()->InitializeData(time_now); }
     for (auto const& item : m_pimpl_->m_geo_object_) {
         GetMesh()->RegisterRanges(item.second, item.first, m_pimpl_->m_patch_->m_ranges);

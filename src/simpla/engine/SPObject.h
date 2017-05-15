@@ -94,11 +94,11 @@ class SPObject {
     size_type GetTagCount() const;
     size_type GetClickCount() const;
     bool isModified() const;
-
+    bool isInitialized() const;
     virtual void Initialize();  //!< invoke once, before everything
-    virtual void SetUp();       //!< invoke once, after everything
+    virtual void SetUp();       //!< repeat invoke,
     virtual void TearDown();    //!< repeat invoke,
-    virtual void Finalize();    //!< repeat invoke,
+    virtual void Finalize();    //!< invoke once, after everything
 
     design_pattern::Signal<void(SPObject*)> OnInitialize;
     design_pattern::Signal<void(SPObject*)> OnSetUp;

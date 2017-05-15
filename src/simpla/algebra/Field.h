@@ -190,7 +190,7 @@ class Field : public engine::Attribute {
     template <typename Other>
     void Assign(Other const& other, ENABLE_IF(!(concept::is_callable<Other(EntityId)>::value ||
                                                 concept::is_callable<Other(point_type const&)>::value))) {
-        SetUp();
+        DoSetUp();
         if (m_range_.isNull()) {
             for (int i = 0; i < NUMBER_OF_SUB; ++i)
                 for (int j = 0; j < DOF; ++j) {
@@ -216,7 +216,7 @@ class Field : public engine::Attribute {
 
     template <typename TFun>
     void Assign(TFun const& fun, ENABLE_IF((std::is_same<std::result_of_t<TFun(EntityId)>, value_type>::value))) {
-        SetUp();
+        DoSetUp();
 
         if (m_range_.isNull()) {
             for (int i = 0; i < NUMBER_OF_SUB; ++i)

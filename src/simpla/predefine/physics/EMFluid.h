@@ -77,6 +77,7 @@ std::shared_ptr<data::DataTable> EMFluid<TM>::Serialize() const {
 };
 template <typename TM>
 void EMFluid<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
+    DoInitialize();
     if (cfg == nullptr || cfg->GetTable("Species") == nullptr) { return; }
     auto sp = cfg->GetTable("Species");
 
@@ -85,27 +86,28 @@ void EMFluid<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
         auto t = std::dynamic_pointer_cast<data::DataTable>(v);
         AddSpecies(k, t);
     });
+    Click();
 }
 
 template <typename TM>
 std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string const& name,
                                                                      std::shared_ptr<data::DataTable> const& d) {
+    Click();
     auto sp = std::make_shared<fluid_s>();
-
     sp->mass = d->GetValue<double>("mass", d->GetValue<double>("m", 1) * SI_proton_mass);
     sp->charge = d->GetValue<double>("charge", d->GetValue<double>("Z", 1) * SI_elementary_charge);
-
-    VERBOSE << "Add particle : {\"" << name << "\", mass = " << sp->mass / SI_proton_mass
-            << " [m_p], charge = " << sp->charge / SI_elementary_charge << " [q_e] }" << std::endl;
 
     sp->rho = std::make_shared<TRho>(this, name + "_rho");
     sp->J = std::make_shared<TJv>(this, name + "_J");
     m_fluid_sp_.emplace(name, sp);
+    VERBOSE << "Add particle : {\"" << name << "\", mass = " << sp->mass / SI_proton_mass
+            << " [m_p], charge = " << sp->charge / SI_elementary_charge << " [q_e] }" << std::endl;
     return sp;
 }
 
 template <typename TM>
 void EMFluid<TM>::InitialCondition(Real time_now) {
+    DoSetUp();
     Domain::InitialCondition(time_now);
 
     E.Clear();
@@ -120,6 +122,8 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
 }
 template <typename TM>
 void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
+    DoSetUp();
+
     //    auto brd = this->Boundary();
     //    if (brd == nullptr) { return; }
     //    E(brd) = 0;
@@ -137,13 +141,15 @@ void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
 }
 template <typename TM>
 void EMFluid<TM>::Advance(Real time_now, Real dt) {
+    DoSetUp();
+
     DEFINE_PHYSICAL_CONST
 
-    B = B - curl(E) * dt;
-    B[GetBoundaryRange(FACE)] = 0;
+    //    B = B - curl(E) * dt;
+    //    B[GetBoundaryRange(FACE)] = 0;
 
-    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * dt;
-    E[GetBoundaryRange(EDGE)] = 0;
+    E = J;  // E + (curl(B) * speed_of_light2 - J / epsilon0) * dt;
+    //    E[GetBoundaryRange(EDGE)] = 0;
 
     //    if (m_fluid_sp_.size() > 0) {
     //        field_type<VOLUME, 3> Q{this};

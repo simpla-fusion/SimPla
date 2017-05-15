@@ -26,11 +26,6 @@ class EnableCreateFromDataTable : public data::Serializable {
 
     virtual std::string GetRegisterName() const { return TObj::RegisterName(); }
 
-    virtual void Initialize() {}
-    virtual void Finalize() {}
-    virtual void SetUp() {}
-    virtual void TearDown() {}
-
     struct ObjectFactory {
         std::map<std::string, std::function<TObj *(Args const &...)>> m_factory_;
     };
@@ -90,10 +85,7 @@ class EnableCreateFromDataTable : public data::Serializable {
         } else if (cfg->isTable()) {
             auto t = std::dynamic_pointer_cast<data::DataTable>(cfg);
             res = Create(t->GetValue<std::string>("Type", ""), args...);
-            if (res != nullptr) {
-                res->Initialize();
-                res->Deserialize(t);
-            }
+            if (res != nullptr) { res->Deserialize(t); }
         }
         return res;
     }

@@ -26,10 +26,7 @@ id_type MeshBase::GetBlockId() const {
     return m_pimpl_->m_mesh_block_ == nullptr ? NULL_ID : m_pimpl_->m_mesh_block_->GetGUID();
 }
 
-void MeshBase::SetUp() {}
-void MeshBase::TearDown() {}
-void MeshBase::Initialize() {}
-void MeshBase::Finalize() {}
+
 
 void MeshBase::InitializeData(Real time_now) {}
 
