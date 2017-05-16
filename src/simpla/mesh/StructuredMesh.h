@@ -7,8 +7,8 @@
 
 #include <simpla/algebra/all.h>
 #include <simpla/data/all.h>
-
 #include <simpla/engine/MeshBase.h>
+#include <simpla/utilities/Array.h>
 namespace simpla {
 namespace mesh {
 using namespace simpla::data;
@@ -38,6 +38,22 @@ class StructuredMesh : public engine::MeshBase {
         return point(s, point_type{M::m_id_to_coordinates_shift_[s.w & 7][0],  //
                                    M::m_id_to_coordinates_shift_[s.w & 7][1],  //
                                    M::m_id_to_coordinates_shift_[s.w & 7][2]});
+    }
+    template <typename V>
+    using array_type = Array<V, NDIMS>;
+
+    template <typename V>
+    array_type<V> make_data(int tag) const {
+        auto gw = GetGhostWidth(tag);
+        auto id_box = GetIndexBox(tag);
+        std::get<0>(id_box) -= gw;
+        std::get<1>(id_box) += gw;
+
+        return array_type<V>(id_box);
+    }
+
+    EntityRange make_range(int tag) const {
+        return EntityRange(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(tag), tag));
     }
 
     /**

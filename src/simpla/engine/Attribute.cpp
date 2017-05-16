@@ -125,7 +125,7 @@ void Attribute::DeregisterFrom(AttributeGroup *attr_b) {
     if (m_pimpl_->m_bundle_.erase(attr_b) > 0) { attr_b->Detach(this); };
 }
 
-void Attribute::Push(const std::shared_ptr<DataBlock> &d, const EntityRange *r) {}
+void Attribute::Push(const std::shared_ptr<DataBlock> &d, const EntityRange &r) {}
 std::shared_ptr<data::DataBlock> Attribute::Pop() { return nullptr; }
 
 Domain *Attribute::GetDomain() const { return m_pimpl_->m_domain_; }

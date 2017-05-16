@@ -32,7 +32,9 @@ void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
 
     auto d_cfg = cfg->GetTable("Domains");
     d_cfg->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t) {
-        auto d = Domain::Create(t, m_pimpl_->m_model_.GetObject(key));
+        auto geo = m_pimpl_->m_model_.GetObject(key);
+
+        auto d = Domain::Create(t, (geo != nullptr) ? geo : std::make_shared<geometry::GeoObjectFull>());
         if (d != nullptr) {
             VERBOSE << "Add Domain [" << key << " : " << d->GetRegisterName() << "] " << std::endl;
             d->Initialize();

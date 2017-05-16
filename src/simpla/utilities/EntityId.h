@@ -626,6 +626,77 @@ struct EntityIdCoder {
 };
 
 template <>
+struct Range<EntityId> {
+    typedef Range<EntityId> this_type;
+    typedef RangeBase<EntityId> base_type;
+
+   public:
+    typedef EntityId value_type;
+
+    Range() : m_next_(nullptr) {}
+    ~Range() = default;
+
+    explicit Range(std::shared_ptr<base_type> const& p) : m_next_(p) {}
+    Range(this_type const& other) : m_next_(other.m_next_) {}
+    Range(this_type&& other) noexcept : m_next_(other.m_next_) {}
+    Range(this_type& other, tags::split const& s) : Range(other.split(s)) {}
+
+    Range& operator=(this_type const& other) {
+        this_type(other).swap(*this);
+        return *this;
+    }
+    Range& operator=(this_type&& other) {
+        this_type(other).swap(*this);
+        return *this;
+    }
+    void reset(std::shared_ptr<base_type> const& p = nullptr) { m_next_ = p; }
+
+    void swap(this_type& other) { std::swap(m_next_, other.m_next_); }
+
+    bool is_divisible() const {  // FIXME: this is not  full functional
+        return m_next_ != nullptr && m_next_->is_divisible();
+    }
+    bool empty() const { return m_next_ == nullptr || m_next_->empty(); }
+    bool isNull() const { return m_next_ == nullptr; }
+    void clear() { m_next_.reset(); }
+
+    this_type split(tags::split const& s = tags::split()) {
+        // FIXME: this is not  full functional
+        this_type res;
+        UNIMPLEMENTED;
+        return std::move(res);
+    }
+
+    this_type& append(this_type const& other) { return append(other.m_next_); }
+
+    this_type& append(std::shared_ptr<base_type> const& other) {
+        auto& cursor = m_next_;
+        while (cursor != nullptr) { cursor = cursor->m_next_; }
+        cursor = other;
+        return *this;
+    }
+    size_type size() const {
+        size_type res = 0;
+        for (auto* cursor = &m_next_; *cursor != nullptr; cursor = &((*cursor)->m_next_)) { res += (*cursor)->size(); }
+        return res;
+    }
+
+    template <typename... Args>
+    void foreach (Args&&... args) const {
+        for (auto* cursor = &m_next_; *cursor != nullptr; cursor = &((*cursor)->m_next_)) {
+            (*cursor)->foreach (std::forward<Args>(args)...);
+        }
+    }
+    base_type& self() { return *m_next_; }
+    base_type const& self() const { return *m_next_; }
+    std::shared_ptr<base_type> operator[](int) { return m_next_; }
+    std::shared_ptr<base_type> operator[](int) const { return m_next_; }
+
+   private:
+    std::shared_ptr<base_type> m_next_ = nullptr;
+};
+
+template <>
 struct ContinueRange<EntityId> : public RangeBase<EntityId> {
    private:
     static constexpr int ndims = 3;

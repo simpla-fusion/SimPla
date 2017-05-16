@@ -138,7 +138,7 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
     void RegisterAt(AttributeGroup *);
     void DeregisterFrom(AttributeGroup *);
 
-    virtual void Push(const std::shared_ptr<data::DataBlock> &d, const EntityRange *r);
+    virtual void Push(const std::shared_ptr<data::DataBlock> &d, const EntityRange &r);
     virtual std::shared_ptr<data::DataBlock> Pop();
 
     virtual bool isNull() const;

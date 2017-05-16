@@ -164,6 +164,13 @@ size_type Hash(std::tuple<nTuple<index_type, N>, nTuple<index_type, N>> const& b
 };
 };
 
+template <typename T, int N>
+bool in_box(std::tuple<nTuple<T, N>, nTuple<T, N>> const& b, nTuple<T, N> const& idx) {
+    bool res = true;
+    for (int i = 0; i < N; ++i) { res = res && (std::get<0>(b)[i] <= idx[i]) && (idx[i] < std::get<1>(b)[i]); }
+    return res;
+};
+
 template <typename V, int NDIMS>
 struct Array {
    private:
@@ -282,7 +289,18 @@ struct Array {
 
     void SetData(std::shared_ptr<value_type> const& d) const { m_data_ = d; }
 
-    size_type hash(m_index_tuple const& idx) const { return dot(m_strides_, idx) + m_offset_; }
+    size_type hash(m_index_tuple const& idx) const {
+#ifndef NDEBUG
+        if (!in_box(m_index_box_, idx)) {
+            std::cerr << "[" << std::get<0>(m_index_box_) << "," << std::get<1>(m_index_box_) << "] ~" << idx
+                      << std::endl;
+
+            OUT_OF_RANGE;
+        }
+#endif
+
+        return dot(m_strides_, idx) + m_offset_;
+    }
 
     value_type& at(m_index_tuple const& idx) { return m_data_.get()[hash(idx)]; }
 

@@ -8,43 +8,46 @@ namespace simpla {
 namespace mesh {
 using namespace algebra;
 
-void StructuredMesh::RegisterRanges(std::map<std::string, EntityRange> &ranges, std::shared_ptr<geometry::GeoObject> const &g,
-                                    std::string const &prefix) {
+void StructuredMesh::RegisterRanges(std::map<std::string, EntityRange> &ranges,
+                                    std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix) {
     auto pos = g == nullptr ? geometry::INSIDE : g->CheckOverlap(GetBox());
     switch (pos) {
         case geometry::INSIDE: {
-            ranges[prefix + "_0_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(0), 0));
+            ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"].append(
+                std::make_shared<ContinueRange<EntityId>>(GetIndexBox(0), 0));
 
-            ranges[prefix + "_1_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(1), 1));
-            ranges[prefix + "_1_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(2), 2));
-            ranges[prefix + "_1_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(4), 4));
-            ranges[prefix + "_2_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(3), 3));
-            ranges[prefix + "_2_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(5), 5));
-            ranges[prefix + "_2_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(6), 6));
-            ranges[prefix + "_3_BODY"].append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(7), 7));
-            ranges[prefix + "_0_BOUNDARY"].reset();
-            ranges[prefix + "_1_PARA_BOUNDARY"].reset();
-            ranges[prefix + "_2_PARA_BOUNDARY"].reset();
-            ranges[prefix + "_1_PERP_BOUNDARY"].reset();
-            ranges[prefix + "_2_PERP_BOUNDARY"].reset();
-            ranges[prefix + "_3_BOUNDARY"].reset();
+            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_BODY"]
+                .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(1), 1))
+                .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(2), 2))
+                .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(4), 4));
+
+            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_BODY"]
+                .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(3), 3))
+                .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(5), 5))
+                .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(6), 6));
+
+            ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BODY"].append(
+                std::make_shared<ContinueRange<EntityId>>(GetIndexBox(7), 7));
+
+            ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BOUNDARY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PARA_BOUNDARY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PARA_BOUNDARY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PERP_BOUNDARY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PERP_BOUNDARY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BOUNDARY"];
 
         } break;
         case geometry::OUTSIDE: {
-            ranges[prefix + "_0_BODY"].reset();
-            ranges[prefix + "_1_BODY"].reset();
-            ranges[prefix + "_1_BODY"].reset();
-            ranges[prefix + "_1_BODY"].reset();
-            ranges[prefix + "_2_BODY"].reset();
-            ranges[prefix + "_2_BODY"].reset();
-            ranges[prefix + "_2_BODY"].reset();
-            ranges[prefix + "_3_BODY"].reset();
-            ranges[prefix + "_0_BOUNDARY"].reset();
-            ranges[prefix + "_1_PARA_BOUNDARY"].reset();
-            ranges[prefix + "_2_PARA_BOUNDARY"].reset();
-            ranges[prefix + "_1_PERP_BOUNDARY"].reset();
-            ranges[prefix + "_2_PERP_BOUNDARY"].reset();
-            ranges[prefix + "_3_BOUNDARY"].reset();
+            ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_0_BODY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_1_BODY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_2_BODY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_3_BODY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_0_BOUNDARY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_1_PARA_BOUNDARY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_2_PARA_BOUNDARY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_1_PERP_BOUNDARY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_2_PERP_BOUNDARY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_3_BOUNDARY"];
 
         } break;
         default: { break; }

@@ -242,12 +242,13 @@ struct Range {
         return std::move(res);
     }
 
-    void append(this_type const& other) { append(other.m_next_); }
+    this_type& append(this_type const& other) { return append(other.m_next_); }
 
-    void append(std::shared_ptr<base_type> const& other) {
+    this_type& append(std::shared_ptr<base_type> const& other) {
         auto& cursor = m_next_;
         while (cursor != nullptr) { cursor = cursor->m_next_; }
         cursor = other;
+        return *this;
     }
     size_type size() const {
         size_type res = 0;
@@ -263,6 +264,7 @@ struct Range {
     }
     RangeBase<T>& self() { return *m_next_; }
     RangeBase<T> const& self() const { return *m_next_; }
+
 
    private:
     std::shared_ptr<RangeBase<T>> m_next_ = nullptr;

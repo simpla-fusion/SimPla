@@ -95,6 +95,7 @@ class SPObject {
     size_type GetClickCount() const;
     bool isModified() const;
     bool isInitialized() const;
+
     virtual void Initialize();  //!< invoke once, before everything
     virtual void SetUp();       //!< repeat invoke,
     virtual void TearDown();    //!< repeat invoke,

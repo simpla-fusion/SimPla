@@ -40,8 +40,12 @@ struct CylindricalSMesh : public SMesh {
 
     DECLARE_REGISTER_NAME("CylindricalSMesh")
 
+    template <typename V>
+    using array_type = Array<V, NDIMS>;
+
    public:
     using SMesh::point;
+    //    using SMesh::array_type;
 
     void InitializeData(Real time_now) override;
 
