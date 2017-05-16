@@ -70,8 +70,14 @@ class DataMultiArray : public DataBlock {
     array_type const &GetArray(int depth = 0) const { return m_data_[depth % m_data_.size()]; }
     array_type &operator[](int depth) { return m_data_[depth % m_data_.size()]; }
     array_type const &operator[](int depth) const { return m_data_[depth % m_data_.size()]; }
-    void DeepCopy(std::shared_ptr<this_type> const &other) {}
-    void Clear() override { UNIMPLEMENTED; };
+    void DeepCopy(std::shared_ptr<this_type> const &other) {
+        if (other == nullptr) { return; }
+        m_data_.resize(other->m_data_.size());
+        for (int i = 0; i < m_data_.size(); ++i) { m_data_[i].DeepCopy(other->m_data_[i]); }
+    }
+    void Clear() override {
+        for (int i = 0; i < m_data_.size(); ++i) { m_data_[i].Clear(); };
+    };
 
    private:
     std::vector<array_type> m_data_;

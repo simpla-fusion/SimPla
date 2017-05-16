@@ -55,10 +55,7 @@ class StructuredMesh : public engine::MeshBase {
     EntityRange make_range(int IFORM) const {
         return EntityRange(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(), IFORM));
     }
-    template <typename M, typename V, int IFORM, int DOF, typename Other>
-    void Assign(Field<M, V, IFORM, DOF> &f, EntityRange const &r, Other const &other) const {
-        static_assert(std::is_base_of<this_type, M>::value, "illegal mesh type");
-    };
+
     /**
     *\verbatim
     *                ^s (dl)
