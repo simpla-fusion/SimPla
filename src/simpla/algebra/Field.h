@@ -37,7 +37,6 @@ class Field : public engine::Attribute {
     static constexpr int iform = IFORM;
     static constexpr int dof = DOF;
     static constexpr int NDIMS = mesh_type::NDIMS;
-    static constexpr int NUMBER_OF_SUB = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
 
     typedef std::true_type prefer_pass_by_reference;
     typedef std::false_type is_expression;
@@ -47,10 +46,9 @@ class Field : public engine::Attribute {
         field_value_type;
 
    private:
-    typedef typename mesh_type::template array_type<value_type> array_type;
-    array_type m_data_[NUMBER_OF_SUB];
+    typedef typename mesh_type::template data_type<value_type> data_type;
+    std::shared_ptr<data_type> m_data_ = nullptr;
     EntityRange m_range_;
-
     mesh_type* m_mesh_ = nullptr;
 
    public:
@@ -66,29 +64,26 @@ class Field : public engine::Attribute {
                             std::make_shared<data::DataTable>(std::forward<Args>(args)...)),
           m_mesh_(dynamic_cast<mesh_type*>(engine::Attribute::GetDomain()->GetMesh())){};
 
-    Field(this_type const& other) : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_) {
-        for (int i = 0; i < NUMBER_OF_SUB; ++i) { array_type(other.m_data_[i]).swap(m_data_[i]); }
-    }
+    Field(this_type const& other)
+        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_data_(other.m_data_) {}
 
-    Field(this_type&& other) : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_) {
-        for (int i = 0; i < NUMBER_OF_SUB; ++i) { array_type(std::move(other.m_data_[i])).swap(m_data_[i]); }
-    }
+    Field(this_type&& other)
+        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_data_(other.m_data_) {}
 
     Field(this_type const& other, EntityRange const& r)
-        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(r) {
-        for (int i = 0; i < NUMBER_OF_SUB; ++i) { array_type(other.m_data_[i]).swap(m_data_[i]); }
-    }
+        : engine::Attribute(other), m_data_(other.m_data_), m_mesh_(other.m_mesh_), m_range_(r) {}
 
     ~Field() override = default;
 
     size_type size() const override { return m_range_.size() * DOF; }
 
     void Clear() {
-        SetUp();
-        for (int i = 0; i < NUMBER_OF_SUB; ++i) { m_data_[i].Clear(); }
+        DoSetUp();
+        m_data_->Clear();
     }
-
-    bool empty() const override { return m_data_[0].empty(); }
+    std::shared_ptr<data_type> data() { return m_data_; }
+    std::shared_ptr<data_type> data() const { return m_data_; }
+    bool empty() const override { return (m_data_ == nullptr) ? true : m_data_->empty(); }
 
     this_type& operator=(this_type const& other) {
         Assign(other);
@@ -101,9 +96,9 @@ class Field : public engine::Attribute {
         return *this;
     };
 
-    array_type const* operator[](int n) const { return &m_data_[n * DOF]; }
+    auto const* operator[](int n) const { return m_data_->Get(n * DOF); }
 
-    array_type* operator[](int n) { return &m_data_[n * DOF]; }
+    auto* operator[](int n) { return m_data_->Get(n * DOF); }
 
     //*****************************************************************************************************************
     this_type operator[](EntityRange const& d) const { return this_type(*this, d); }
@@ -130,24 +125,19 @@ class Field : public engine::Attribute {
 
     void SetUp() override {
         engine::Attribute::SetUp();
-
-        for (int i = 0; i < NUMBER_OF_SUB; ++i) {
-            m_range_[i].reset();
-            int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][i];
-            m_range_[i] = m_mesh_->make_range(tag);
-            for (int j = 0; j < DOF; ++j) { m_mesh_->template make_data<value_type>(tag).swap(m_data_[i][j]); }
-        }
+        m_range_ = m_mesh_->make_range(IFORM);
+        m_data_ = m_mesh_->template make_data<value_type, IFORM, DOF>();
     }
 
     void TearDown() override {
-        for (int i = 0; i < NUMBER_OF_SUB; ++i) { m_range_[i].reset(); }
+        m_range_.reset();
+        m_data_.reset();
     }
 
     void Push(const std::shared_ptr<data::DataBlock>& d, const EntityRange& r) override {
         if (d != nullptr) {
-            auto& t = d->cast_as<data::DataMultiArray<value_type, NDIMS>>();
             m_range_ = r;
-            for (int i = 0; i < NUMBER_OF_SUB; ++i) { array_type(t.GetArray(i)).swap(m_data_[i]); }
+            m_data_ = std::make_shared<data_type>(d->cast_as<data_type>());
             Tag();
         } else {
             DoSetUp();
@@ -155,55 +145,46 @@ class Field : public engine::Attribute {
     }
 
     std::shared_ptr<data::DataBlock> Pop() override {
-        auto res = std::make_shared<data::DataMultiArray<value_type, NDIMS>>(NUMBER_OF_SUB);
-        for (int i = 0; i < NUMBER_OF_SUB; ++i) { array_type(m_data_[i]).swap(res->GetArray(i)); }
+        auto res = std::dynamic_pointer_cast<data::DataBlock>(m_data_);
         DoTearDown();
         return res;
     }
     template <typename TOther>
     void DeepCopy(TOther const& other) {
-        for (int i = 0; i < NUMBER_OF_SUB; ++i) { m_data_[i].DeepCopy(other[i]); }
+        m_data_->DeepCopy(other.data());
     }
 
     template <typename Other>
-    void Assign(Other const& other, ENABLE_IF(!(concept::is_callable<Other(EntityId)>::value ||
-                                                concept::is_callable<Other(point_type const&)>::value))) {
+    void Assign(Other const& other) {
         DoSetUp();
-
-        for (int i = 0; i < NUMBER_OF_SUB; ++i) {
-            int w = EntityIdCoder::m_sub_index_to_id_[IFORM][i / DOF] | ((i % DOF) << 3);
-            m_data_[i].Assign(m_range_[i / DOF], calculus_policy::getValue(*m_mesh_, other, w));
-        }
+        m_mesh_->Assign(*this, m_range_, other);
     }
 
-    template <typename TFun>
-    void Assign(TFun const& fun, ENABLE_IF((std::is_same<std::result_of_t<TFun(EntityId)>, value_type>::value))) {
-        DoSetUp();
-
-        for (int i = 0; i < NUMBER_OF_SUB; ++i) {
-            int w = EntityIdCoder::m_sub_index_to_id_[IFORM][i / DOF] | ((i % DOF) << 3);
-            m_data_[i].Assign(m_range_[i / DOF], [&](EntityId s) {
-                s.w = static_cast<int16_t>(w);
-                return fun(s);
-            });
-        }
-    }
-    template <typename TFun>
-    void Assign(TFun const& fun,
-                ENABLE_IF((std::is_same<std::result_of_t<TFun(point_type const&)>, value_type>::value))) {
-        Assign([&](EntityId s) { return fun(m_mesh_->point(s)); });
-    }
-    template <typename TFun>
-    void Assign(TFun const& fun,
-                ENABLE_IF(((!std::is_same<field_value_type, value_type>::value) &&
-                           std::is_same<std::result_of_t<TFun(point_type const&)>, field_value_type>::value))) {
-        Assign([&](EntityId s) { return calculus_policy::sample(*m_mesh_, s, fun(m_mesh_->point(s))); });
-    }
+    //    template <typename TFun>
+    //    void Assign(TFun const& fun, ENABLE_IF((std::is_same<std::result_of_t<TFun(EntityId)>, value_type>::value))) {
+    //        DoSetUp();
+    //
+    //        for (int i = 0; i < NUMBER_OF_SUB; ++i) {
+    //            int w = EntityIdCoder::m_sub_index_to_id_[IFORM][i / DOF] | ((i % DOF) << 3);
+    //            m_data_[i].Assign(m_range_[i / DOF], [&](EntityId s) {
+    //                s.w = static_cast<int16_t>(w);
+    //                return fun(s);
+    //            });
+    //        }
+    //    }
+    //    template <typename TFun>
+    //    void Assign(TFun const& fun,
+    //                ENABLE_IF((std::is_same<std::result_of_t<TFun(point_type const&)>, value_type>::value))) {
+    //        Assign([&](EntityId s) { return fun(m_mesh_->point(s)); });
+    //    }
+    //    template <typename TFun>
+    //    void Assign(TFun const& fun,
+    //                ENABLE_IF(((!std::is_same<field_value_type, value_type>::value) &&
+    //                           std::is_same<std::result_of_t<TFun(point_type const&)>, field_value_type>::value))) {
+    //        Assign([&](EntityId s) { return calculus_policy::sample(*m_mesh_, s, fun(m_mesh_->point(s))); });
+    //    }
 
 };  // class Field
-
-template <typename TM, typename TV, int IFORM, int DOF>
-constexpr int Field<TM, TV, IFORM, DOF>::NUMBER_OF_SUB;  //= ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
 
 template <typename TM, typename TL, int NL, int DL>
 auto operator<<(Field<TM, TL, NL, DL> const& lhs, int n) {

@@ -52,7 +52,9 @@ class DataMultiArray : public DataBlock {
    public:
     DataMultiArray() = default;
     ~DataMultiArray() override = default;
-    SP_DEFAULT_CONSTRUCT(DataMultiArray);
+
+    DataMultiArray(this_type const &other) {}
+    DataMultiArray(this_type &&other) {}
 
     explicit DataMultiArray(unsigned long depth) : m_data_(depth) {}
 
@@ -62,11 +64,14 @@ class DataMultiArray : public DataBlock {
     size_type GetDepth() const override { return m_data_.size(); }
 
     void SetArray(int depth, array_type d) { array_type(d).swap(m_data_[depth % m_data_.size()]); }
-
+    array_type *Get(int depth = 0) { return &m_data_[depth % m_data_.size()]; }
+    array_type const *Get(int depth = 0) const { return &m_data_[depth % m_data_.size()]; }
     array_type &GetArray(int depth = 0) { return m_data_[depth % m_data_.size()]; }
     array_type const &GetArray(int depth = 0) const { return m_data_[depth % m_data_.size()]; }
     array_type &operator[](int depth) { return m_data_[depth % m_data_.size()]; }
     array_type const &operator[](int depth) const { return m_data_[depth % m_data_.size()]; }
+    void DeepCopy(std::shared_ptr<this_type> const &other) {}
+    void Clear() override { UNIMPLEMENTED; };
 
    private:
     std::vector<array_type> m_data_;

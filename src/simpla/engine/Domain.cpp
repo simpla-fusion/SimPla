@@ -81,7 +81,7 @@ void Domain::Push(const std::shared_ptr<Patch>& p) {
         auto k = "." + std::to_string(item.second->GetIFORM()) + "_BODY";
         auto it = m_pimpl_->m_patch_->m_ranges.find(k);
         item.second->Push(m_pimpl_->m_patch_->Pop(item.second->GetID()),
-                          (it == m_pimpl_->m_patch_->m_ranges.end()) ? nullptr : &it->second);
+                          (it == m_pimpl_->m_patch_->m_ranges.end()) ? EntityRange{} : it->second);
     }
     DoSetUp();
 }

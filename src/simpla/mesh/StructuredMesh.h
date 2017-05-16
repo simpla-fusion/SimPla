@@ -40,22 +40,25 @@ class StructuredMesh : public engine::MeshBase {
                                    M::m_id_to_coordinates_shift_[s.w & 7][2]});
     }
     template <typename V>
-    using array_type = Array<V, NDIMS>;
+    using data_type = data::DataMultiArray<V, NDIMS>;
 
-    template <typename V>
-    array_type<V> make_data(int tag) const {
-        auto gw = GetGhostWidth(tag);
-        auto id_box = GetIndexBox(tag);
+    template <typename V, int IFORM, int DOF>
+    std::shared_ptr<data_type<V>> make_data() const {
+        auto gw = GetGhostWidth();
+        auto id_box = GetIndexBox();
         std::get<0>(id_box) -= gw;
         std::get<1>(id_box) += gw;
-
-        return array_type<V>(id_box);
+        //  ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF
+        return nullptr;
     }
 
-    EntityRange make_range(int tag) const {
-        return EntityRange(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(tag), tag));
+    EntityRange make_range(int IFORM) const {
+        return EntityRange(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(), IFORM));
     }
-
+    template <typename M, typename V, int IFORM, int DOF, typename Other>
+    void Assign(Field<M, V, IFORM, DOF> &f, EntityRange const &r, Other const &other) const {
+        static_assert(std::is_base_of<this_type, M>::value, "illegal mesh type");
+    };
     /**
     *\verbatim
     *                ^s (dl)
