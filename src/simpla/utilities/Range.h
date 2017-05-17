@@ -207,7 +207,7 @@ struct InfinityRangeBase : public RangeBase<T> {
    public:
     typedef T value_type;
     virtual bool is_divisible() const { return false; }
-    virtual size_type size() const { return std::numeric_limits<size_type>::infinity(); }
+    virtual size_type size() const { return std::numeric_limits<size_type>::max(); }
     virtual bool empty() const { return false; }
 };
 
