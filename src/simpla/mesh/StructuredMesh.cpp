@@ -58,14 +58,14 @@ void StructuredMesh::RegisterRanges(std::map<std::string, EntityRange> &ranges,
     vertex_tags.Clear();
 
     index_tuple ib, ie;
-    std::tie(ib, ie) = vertex_tags[0]->GetIndexBox();
+    std::tie(ib, ie) = GetIndexBox(VERTEX);
     auto dx = GetDx();
     auto x0 = GetOrigin();
     for (index_type I = ib[0]; I < ie[0]; ++I)
         for (index_type J = ib[1]; J < ie[1]; ++J)
             for (index_type K = ib[2]; K < ie[2]; ++K) {
                 if (g->CheckInside(point_type{I * dx[0] + x0[0], J * dx[1] + x0[1], K * dx[2] + x0[2]}) == 0) {
-                    (*vertex_tags[0])(I, J, K) = 1;
+                    (vertex_tags[0])(I, J, K) = 1;
                 }
             }
 
@@ -128,8 +128,8 @@ void StructuredMesh::RegisterRanges(std::map<std::string, EntityRange> &ranges,
     static const EntityId s6 = {.w = 0, .x = 0, .y = 1, .z = 1};
     static const EntityId s7 = {.w = 0, .x = 1, .y = 1, .z = 1};
 
-    std::tie(ib, ie) = vertex_tags[0]->GetIndexBox();
-    ie -= 1;
+    std::tie(ib, ie) = GetIndexBox(VOLUME);
+
 #pragma omp parallel for
     for (index_type I = ib[0]; I < ie[0]; ++I)
         for (index_type J = ib[1]; J < ie[1]; ++J)

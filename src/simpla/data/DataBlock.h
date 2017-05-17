@@ -43,13 +43,13 @@ class DataBlock : public DataEntity {
 
 template <typename U, int NDIMS>
 class DataMultiArray : public DataBlock {
+   public:
     typedef simpla::Array<U, NDIMS> array_type;
     typedef DataMultiArray<U, NDIMS> multi_array_type;
     SP_OBJECT_HEAD(multi_array_type, DataBlock);
 
     typedef U value_type;
 
-   public:
     DataMultiArray() = default;
     ~DataMultiArray() override = default;
 
@@ -58,6 +58,8 @@ class DataMultiArray : public DataBlock {
 
     explicit DataMultiArray(unsigned long depth) : m_data_(depth) {}
 
+
+    size_type size() const { return m_data_.size(); }
     bool empty() const override { return m_data_[0].empty(); }
     std::type_info const &value_type_info() const override { return typeid(value_type); };
     int GetNDIMS() const override { return NDIMS; }

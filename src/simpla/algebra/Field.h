@@ -96,9 +96,9 @@ class Field : public engine::Attribute {
         return *this;
     };
 
-    auto const* operator[](int n) const { return m_data_->Get(n * DOF); }
+    auto const& operator[](int n) const { return *m_data_->Get(n); }
 
-    auto* operator[](int n) { return m_data_->Get(n * DOF); }
+    auto& operator[](int n) { return *m_data_->Get(n); }
 
     //*****************************************************************************************************************
     this_type operator[](EntityRange const& d) const { return this_type(*this, d); }
@@ -125,8 +125,8 @@ class Field : public engine::Attribute {
 
     void SetUp() override {
         engine::Attribute::SetUp();
-        m_range_ = m_mesh_->make_range(IFORM);
-        m_data_ = m_mesh_->template make_data<value_type, IFORM, DOF>();
+        if (m_range_.isNull()) { m_range_ = m_mesh_->make_range(IFORM); }
+        if (m_data_ == nullptr) { m_data_ = m_mesh_->template make_data<value_type, IFORM, DOF>(); }
     }
 
     void TearDown() override {
@@ -137,11 +137,10 @@ class Field : public engine::Attribute {
     void Push(const std::shared_ptr<data::DataBlock>& d, const EntityRange& r) override {
         if (d != nullptr) {
             m_range_ = r;
-            m_data_ = std::make_shared<data_type>(d->cast_as<data_type>());
-            Tag();
-        } else {
-            DoSetUp();
+            m_data_ = std::dynamic_pointer_cast<data_type>(d);
         }
+        if (m_data_ == nullptr || m_data_->GetDepth() == 0) { DoSetUp(); }
+        Tag();
     }
 
     std::shared_ptr<data::DataBlock> Pop() override {
@@ -151,12 +150,15 @@ class Field : public engine::Attribute {
     }
     template <typename TOther>
     void DeepCopy(TOther const& other) {
+        DoSetUp();
+        ASSERT(m_data_ != nullptr);
         m_data_->DeepCopy(other.data());
     }
 
     template <typename Other>
     void Assign(Other const& other) {
         DoSetUp();
+        ASSERT(m_mesh_ != nullptr);
         m_mesh_->Assign(*this, m_range_, other);
     }
 

@@ -52,19 +52,19 @@ struct calculator {
 
     template <typename M, typename V, int I, int D>
     static auto getValue(mesh_type const& m, Field<M, V, I, D> const& f, int n, IdxShift S = IdxShift{0, 0, 0}) {
-        return f[EntityIdCoder::m_id_to_sub_index_[n & 0b111]][n >> 3](S);
+        return f[EntityIdCoder::m_id_to_sub_index_[(n & 0b111)] * D + (n >> 3)](S);
     };
     template <typename M, typename V, int I, int D>
     static auto getValue(mesh_type const& m, Field<M, V, I, D>& f, int n, IdxShift S = IdxShift{0, 0, 0}) {
-        return f[EntityIdCoder::m_id_to_sub_index_[n & 0b111]][n >> 3](S);
+        return f[EntityIdCoder::m_id_to_sub_index_[n & 0b111] * D + (n >> 3)](S);
     };
 
     template <typename TFun>
-    static auto getValue(mesh_type const& m, TFun const& f, int n, IdxShift S = IdxShift{0, 0, 0},
+    static auto getValue(mesh_type const& m, TFun const& f, int tag, IdxShift S = IdxShift{0, 0, 0},
                          ENABLE_IF((concept::is_callable<TFun(simpla::EntityId)>::value))) {
         return [&](index_tuple const& idx) {
             EntityId s;
-            s.w = static_cast<int16_t>(n);
+            s.w = static_cast<int16_t>(tag);
             s.x = static_cast<int16_t>(idx[0] + S[0]);
             s.y = static_cast<int16_t>(idx[1] + S[1]);
             s.z = static_cast<int16_t>(idx[2] + S[2]);
@@ -73,14 +73,15 @@ struct calculator {
     };
 
     template <typename T>
-    static T const& getValue(mesh_type const& m, T const& v, int n, IdxShift S = IdxShift{0, 0, 0},
+    static T const& getValue(mesh_type const& m, T const& v, int tag, IdxShift S = IdxShift{0, 0, 0},
                              ENABLE_IF((std::is_arithmetic<T>::value))) {
         return v;
     }
     template <typename T>
-    static T const& getValue(mesh_type const& m, T const* v, int n, IdxShift S = IdxShift{0, 0, 0},
+    static T const& getValue(mesh_type const& m, T const* v, int tag, IdxShift S = IdxShift{0, 0, 0},
                              ENABLE_IF((std::is_arithmetic<T>::value))) {
-        return v[(((n & 0b111) == 0) || ((n & 0b111) == 7)) ? (n >> 3) : EntityIdCoder::m_id_to_sub_index_[n & 0b111]];
+        return v[(((tag & 0b111) == 0) || ((tag & 0b111) == 7)) ? (tag >> 3)
+                                                                : EntityIdCoder::m_id_to_sub_index_[tag & 0b111]];
     }
     static auto Volume(mesh_type const& m, int s, IdxShift S) { return getValue(m, m.m_volume_, s, S); }
     static auto IVolume(mesh_type const& m, int s, IdxShift S) { return getValue(m, m.m_inv_volume_, s, S); }
@@ -549,11 +550,11 @@ struct calculator {
 
     template <typename V, int I, int D>
     static V const& getValue(mesh_type const& m, Field<TM, V, I, D> const& f, EntityId s) {
-        return f[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]][(s.w >> 3) % D](s.x, s.y, s.z);
+        return f[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111] * D + (s.w >> 3)](s.x, s.y, s.z);
     };
     template <typename V, int I, int D>
     static V& getValue(mesh_type const& m, Field<TM, V, I, D>& f, EntityId s) {
-        return f[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]][(s.w >> 3) % D](s.x, s.y, s.z);
+        return f[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111] * D + (s.w >> 3)](s.x, s.y, s.z);
     };
 
     ///*********************************************************************************************
@@ -668,36 +669,36 @@ struct calculator {
         return v[s.w % N];
     }
 
-    template <typename TFun>
-    static auto getValue(mesh_type const& m, TFun const& fun, int n, IdxShift S,
-                         ENABLE_IF(simpla::concept::is_callable<TFun(simpla::EntityId)>::value)) {
-        return [&](index_tuple const& idx) {
-            EntityId s;
-            s.w = static_cast<int16_t>(n);
-            s.x = static_cast<int16_t>(idx[0] + S[0]);
-            s.y = static_cast<int16_t>(idx[1] + S[1]);
-            s.z = static_cast<int16_t>(idx[2] + S[2]);
-            return sample(m, s, fun(s));
-        };
-    }
-
-    template <typename TFun>
-    static auto getValue(mesh_type const& m, TFun const& fun, int n, IdxShift S,
-                         ENABLE_IF(simpla::concept::is_callable<TFun(point_type const&)>::value)) {
-        return [&](index_tuple const& idx) {
-            EntityId s;
-            s.w = static_cast<int16_t>(n);
-            s.x = static_cast<int16_t>(idx[0] + S[0]);
-            s.y = static_cast<int16_t>(idx[1] + S[1]);
-            s.z = static_cast<int16_t>(idx[2] + S[2]);
-            return sample(m, s, fun(m.point(s)));
-        };
-    }
-
     template <typename TV>
     static auto sample(mesh_type const& m, EntityId s, TV const& v) {
         return sample_(m, s, v);
     }
+
+    //    template <typename TFun>
+    //    static auto getValue(mesh_type const& m, TFun const& fun, int tag, IdxShift S,
+    //                         ENABLE_IF(simpla::concept::is_callable<TFun(simpla::EntityId)>::value)) {
+    //        return [&](index_tuple const& idx) {
+    //            EntityId s;
+    //            s.w = static_cast<int16_t>(tag);
+    //            s.x = static_cast<int16_t>(idx[0] + S[0]);
+    //            s.y = static_cast<int16_t>(idx[1] + S[1]);
+    //            s.z = static_cast<int16_t>(idx[2] + S[2]);
+    //            return sample(m, s, fun(s));
+    //        };
+    //    }
+    //
+    //    template <typename TFun>
+    //    static auto getValue(mesh_type const& m, TFun const& fun, int tag, IdxShift S,
+    //                         ENABLE_IF(simpla::concept::is_callable<TFun(point_type const&)>::value)) {
+    //        return [&](index_tuple const& idx) {
+    //            EntityId s;
+    //            s.w = static_cast<int16_t>(tag);
+    //            s.x = static_cast<int16_t>(idx[0] + S[0]);
+    //            s.y = static_cast<int16_t>(idx[1] + S[1]);
+    //            s.z = static_cast<int16_t>(idx[2] + S[2]);
+    //            return sample(m, tag, fun(m.point(s)));
+    //        };
+    //    }
     //
     //    template <int IFORM, typename TExpr>
     //    static auto  getValue(std::integral_constant<int, IFORM> const&, mesh_type const& m, TExpr const& expr,

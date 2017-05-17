@@ -291,15 +291,22 @@ struct Array {
 
     size_type hash(m_index_tuple const& idx) const {
 #ifndef NDEBUG
-        if (!in_box(m_index_box_, idx)) {
-            std::cerr << "[" << std::get<0>(m_index_box_) << "," << std::get<1>(m_index_box_) << "] ~" << idx
-                      << std::endl;
-
-            OUT_OF_RANGE;
+//        if (!in_box(m_index_box_, idx)) {
+//            std::cerr << FILE_LINE_STAMP << "Out of range!"
+//                      << "[" << std::get<0>(m_index_box_) << "," << std::get<1>(m_index_box_) << "] ~" << idx
+//                      << std::endl;
+//        }
+        size_type s = 0;
+        for (int i = 0; i < NDIMS; ++i) {
+            s += ((idx[i] - std::get<0>(m_index_box_)[i] +
+                   (std::get<1>(m_index_box_)[i] - std::get<0>(m_index_box_)[i])) %
+                  (std::get<1>(m_index_box_)[i] - std::get<0>(m_index_box_)[i])) *
+                 m_strides_[i];
         }
-#endif
-
+        return s;
+#else
         return dot(m_strides_, idx) + m_offset_;
+#endif
     }
 
     value_type& at(m_index_tuple const& idx) { return m_data_.get()[hash(idx)]; }

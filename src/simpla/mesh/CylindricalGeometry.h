@@ -45,7 +45,6 @@ struct CylindricalSMesh : public SMesh {
 
    public:
     using SMesh::point;
-    //    using SMesh::array_type;
 
     void InitializeData(Real time_now) override;
 

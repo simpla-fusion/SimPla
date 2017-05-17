@@ -45,15 +45,28 @@ class StructuredMesh : public engine::MeshBase {
     template <typename V, int IFORM, int DOF>
     std::shared_ptr<data_type<V>> make_data() const {
         auto gw = GetGhostWidth();
-        auto id_box = GetIndexBox();
-        std::get<0>(id_box) -= gw;
-        std::get<1>(id_box) += gw;
-        //  ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF
-        return nullptr;
+
+        int num_of_subs = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
+        auto res = std::make_shared<data::DataMultiArray<V, NDIMS>>(num_of_subs * DOF);
+        for (int i = 0; i < num_of_subs; ++i) {
+            auto id_box = GetIndexBox(EntityIdCoder::m_sub_index_to_id_[IFORM][i]);
+            std::get<0>(id_box) -= gw;
+            std::get<1>(id_box) += gw;
+            for (int j = 0; j < DOF; ++j) { Array<V, NDIMS>(id_box).swap((*res)[i * DOF + j]); }
+        }
+        return res;
     }
 
     EntityRange make_range(int IFORM) const {
-        return EntityRange(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(), IFORM));
+        EntityRange res;
+        int num_of_subs = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
+        for (int i = 0; i < num_of_subs; ++i) {
+            int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][i];
+            auto id_box = GetIndexBox(tag);
+            res.append(std::make_shared<ContinueRange<EntityId>>(id_box, tag));
+        }
+
+        return res;
     }
 
     /**
