@@ -56,13 +56,15 @@ class Field : public engine::Attribute {
     explicit Field(engine::Domain* d, Args&&... args)
         : engine::Attribute(IFORM, DOF, typeid(value_type), d,
                             std::make_shared<data::DataTable>(std::forward<Args>(args)...)),
-          m_mesh_(dynamic_cast<mesh_type*>(engine::Attribute::GetDomain()->GetMesh())){};
+          m_mesh_(dynamic_cast<mesh_type*>(engine::Attribute::GetDomain()->GetMesh())),
+          m_range_(make_infinity_range<EntityId>()){};
 
     template <typename... Args>
     explicit Field(engine::MeshBase* d, Args&&... args)
         : engine::Attribute(IFORM, DOF, typeid(value_type), d,
                             std::make_shared<data::DataTable>(std::forward<Args>(args)...)),
-          m_mesh_(dynamic_cast<mesh_type*>(engine::Attribute::GetDomain()->GetMesh())){};
+          m_mesh_(dynamic_cast<mesh_type*>(engine::Attribute::GetDomain()->GetMesh())),
+          m_range_(make_infinity_range<EntityId>()){};
 
     Field(this_type const& other)
         : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_data_(other.m_data_) {}
@@ -125,7 +127,6 @@ class Field : public engine::Attribute {
 
     void SetUp() override {
         engine::Attribute::SetUp();
-        if (m_range_.isNull()) { m_range_ = m_mesh_->make_range(IFORM); }
         if (m_data_ == nullptr) { m_data_ = m_mesh_->template make_data<value_type, IFORM, DOF>(); }
     }
 

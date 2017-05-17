@@ -44,10 +44,20 @@ struct SMesh : public StructuredMesh {
                 ENABLE_IF((std::is_base_of<this_type, M>::value))) const {
         int num_of_sub = IFORM == VERTEX || IFORM == VOLUME ? 1 : 3;
 
-        for (int i = 0; i < num_of_sub; ++i) {
+        if (r.size() == std::numeric_limits<size_type>::infinity()) {
+            for (int i = 0; i < num_of_sub; ++i) {
+                for (int j = 0; j < DOF; ++j) {
+                    f[i * DOF + j] = calculus_policy::getValue(*dynamic_cast<M const *>(this), expr,
+                                                               EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3));
+                }
+            }
+        } else {
             for (int j = 0; j < DOF; ++j) {
-                f[i * DOF + j] =
-                    calculus_policy::getValue(*this, expr, EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3));
+                r.foreach ([&](EntityId s) {
+                    index_tuple idx{s.x, s.y, s.z};
+                    f[EntityIdCoder::m_id_to_sub_index_[(s.w & 0b111)] * DOF + (s.w >> 3)].Assign(
+                        idx, calculus_policy::getValue(*dynamic_cast<M const *>(this), expr, s.w));
+                });
             }
         }
 
@@ -61,22 +71,35 @@ struct SMesh : public StructuredMesh {
     void Assign(Field<M, V, IFORM, DOF> &f, EntityRange const &r, Field<M, V, IFORM, DOF> const &other,
                 ENABLE_IF((std::is_base_of<this_type, M>::value))) const {
         int num_of_sub = IFORM == VERTEX || IFORM == VOLUME ? 1 : 3;
-        for (int i = 0; i < num_of_sub; ++i) {
-            for (int j = 0; j < DOF; ++j) { f[i * DOF + j] = other[i * DOF + j]; }
+
+        if (r.size() == std::numeric_limits<size_type>::infinity()) {
+            for (int i = 0; i < num_of_sub; ++i) {
+                for (int j = 0; j < DOF; ++j) { f[i * DOF + j] = other[i * DOF + j]; }
+            }
+        } else {
+            r.foreach ([&](EntityId s) {
+                index_tuple idx{s.x, s.y, s.z};
+                int i = EntityIdCoder::m_id_to_sub_index_[(s.w & 0b111)];
+                int j = s.w >> 3;
+                f[i * DOF + j].Assign(idx, other[i * DOF + j]);
+            });
         }
     }
 
     template <typename M, typename V, int IFORM, int DOF, typename Other>
     void Assign(Field<M, V, IFORM, DOF> &f, EntityRange const &r, Other const &other,
-                ENABLE_IF((std::is_base_of<this_type, M>::value && !concept::is_callable<Other(EntityId)>::value &&
+                ENABLE_IF((std::is_base_of<this_type, M>::value &&           //
+                           !concept::is_callable<Other(EntityId)>::value &&  //
                            !concept::is_callable<Other(point_type const &)>::value))) const {
         static_assert(std::is_base_of<this_type, M>::value, "illegal mesh type");
         int num_of_sub = IFORM == VERTEX || IFORM == VOLUME ? 1 : 3;
 
-        for (int i = 0; i < num_of_sub; ++i) {
-            for (int j = 0; j < DOF; ++j) {
-                f[i * DOF + j] =
-                    calculus_policy::getValue(*this, other, EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3));
+        if (r.size() == std::numeric_limits<size_type>::infinity()) {
+            for (int i = 0; i < num_of_sub; ++i) {
+                for (int j = 0; j < DOF; ++j) {
+                    f[i * DOF + j] = calculus_policy::getValue(*dynamic_cast<M const *>(this), other,
+                                                               EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3));
+                }
             }
         }
     };
@@ -87,18 +110,21 @@ struct SMesh : public StructuredMesh {
                            std::is_same<std::result_of_t<TFun(EntityId)>, V>::value))) const {
         int num_of_sub = IFORM == VERTEX || IFORM == VOLUME ? 1 : 3;
 
-        for (int i = 0; i < num_of_sub * DOF; ++i) {
-            for (int j = 0; j < DOF; ++j) {
-                int w = EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3);
-                f[i * DOF + j] = [=](index_tuple const &idx) {
-                    EntityId s;
-                    s.w = static_cast<int16_t>(w);
-                    s.x = static_cast<int16_t>(idx[0]);
-                    s.y = static_cast<int16_t>(idx[1]);
-                    s.z = static_cast<int16_t>(idx[2]);
-                    return fun(s);
-                };
+        if (r.size() == std::numeric_limits<size_type>::infinity()) {
+            for (int i = 0; i < num_of_sub * DOF; ++i) {
+                for (int j = 0; j < DOF; ++j) {
+                    int w = EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3);
+                    f[i * DOF + j] = [=](index_tuple const &idx) {
+                        EntityId s;
+                        s.w = static_cast<int16_t>(w);
+                        s.x = static_cast<int16_t>(idx[0]);
+                        s.y = static_cast<int16_t>(idx[1]);
+                        s.z = static_cast<int16_t>(idx[2]);
+                        return fun(s);
+                    };
+                }
             }
+        } else {
         }
     }
     template <typename M, typename V, int IFORM, int DOF, typename TFun>

@@ -279,6 +279,7 @@ struct Array {
     virtual bool empty() const { return m_data_ == nullptr; }
     virtual std::type_info const& value_type_info() const { return typeid(value_type); }
     virtual int GetNDIMS() const { return NDIMS; }
+    size_type size() const { return m_size_; }
 
     m_index_box_type const& GetIndexBox() const { return m_index_box_; }
 
@@ -291,11 +292,11 @@ struct Array {
 
     size_type hash(m_index_tuple const& idx) const {
 #ifndef NDEBUG
-//        if (!in_box(m_index_box_, idx)) {
-//            std::cerr << FILE_LINE_STAMP << "Out of range!"
-//                      << "[" << std::get<0>(m_index_box_) << "," << std::get<1>(m_index_box_) << "] ~" << idx
-//                      << std::endl;
-//        }
+        //        if (!in_box(m_index_box_, idx)) {
+        //            std::cerr << FILE_LINE_STAMP << "Out of range!"
+        //                      << "[" << std::get<0>(m_index_box_) << "," << std::get<1>(m_index_box_) << "] ~" << idx
+        //                      << std::endl;
+        //        }
         size_type s = 0;
         for (int i = 0; i < NDIMS; ++i) {
             s += ((idx[i] - std::get<0>(m_index_box_)[i] +
@@ -346,7 +347,10 @@ struct Array {
         return (*this);
     }
 
-    size_type size() const { return m_size_; }
+    template <typename TExpr>
+    void Assign(m_index_tuple const& idx, TExpr const& expr) {
+        at(idx) = getValue(expr, idx);
+    }
 
     void Clear() {
         SetUp();

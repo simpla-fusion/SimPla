@@ -201,6 +201,17 @@ struct IteratorRange : public RangeBase<typename std::iterator_traits<TIterator>
 };
 
 template <typename T>
+struct InfinityRangeBase : public RangeBase<T> {
+    typedef InfinityRangeBase<T> this_type;
+
+   public:
+    typedef T value_type;
+    virtual bool is_divisible() const { return false; }
+    virtual size_type size() const { return std::numeric_limits<size_type>::infinity(); }
+    virtual bool empty() const { return false; }
+};
+
+template <typename T>
 struct Range {
     typedef Range<T> this_type;
     typedef RangeBase<T> base_type;
@@ -265,11 +276,13 @@ struct Range {
     RangeBase<T>& self() { return *m_next_; }
     RangeBase<T> const& self() const { return *m_next_; }
 
-
    private:
     std::shared_ptr<RangeBase<T>> m_next_ = nullptr;
 };
-
+template <typename T>
+Range<T> make_infinity_range() {
+    return std::move(Range<T>(std::make_shared<InfinityRangeBase<T>>()));
+};
 template <typename T, typename... Args>
 Range<T> make_continue_range(Args&&... args) {
     return std::move(Range<T>(std::make_shared<ContinueRange<T>>(std::forward<Args>...)));
