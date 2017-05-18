@@ -29,25 +29,25 @@ void StructuredMesh::RegisterRanges(std::map<std::string, EntityRange> &ranges,
             ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BODY"].append(
                 std::make_shared<ContinueRange<EntityId>>(GetIndexBox(7), 7));
 
-            ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BOUNDARY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PARA_BOUNDARY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PARA_BOUNDARY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PERP_BOUNDARY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PERP_BOUNDARY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BOUNDARY"];
+            //            ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BOUNDARY"].clear();
+            //            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PARA_BOUNDARY"].clear();
+            //            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PARA_BOUNDARY"];
+            //            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PERP_BOUNDARY"];
+            //            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PERP_BOUNDARY"];
+            //            ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BOUNDARY"];
 
         } break;
         case geometry::OUTSIDE: {
-            ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_BODY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_BODY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BODY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BOUNDARY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PARA_BOUNDARY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PARA_BOUNDARY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PERP_BOUNDARY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PERP_BOUNDARY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BOUNDARY"];
+            //            ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"];
+            //            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_BODY"];
+            //            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_BODY"];
+            //            ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BODY"];
+            //            ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BOUNDARY"];
+            //            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PARA_BOUNDARY"];
+            //            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PARA_BOUNDARY"];
+            //            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PERP_BOUNDARY"];
+            //            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PERP_BOUNDARY"];
+            //            ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BOUNDARY"];
 
         } break;
         default: { break; }

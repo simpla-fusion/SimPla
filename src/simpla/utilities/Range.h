@@ -235,6 +235,7 @@ struct Range {
         return *this;
     }
     void reset(std::shared_ptr<RangeBase<T>> const& p = nullptr) { m_next_ = p; }
+    bool isNull() const { return m_next_ == nullptr; }
 
     void swap(this_type& other) { std::swap(m_next_, other.m_next_); }
 
@@ -242,8 +243,7 @@ struct Range {
         return m_next_ != nullptr && m_next_->is_divisible();
     }
     bool empty() const { return m_next_ == nullptr || m_next_->empty(); }
-    bool isNull() const { return m_next_ == nullptr; }
-    void clear() { m_next_.reset(); }
+    void clear() { m_next_ = std::make_shared<EmptyRangeBase<value_type>>(); }
 
     this_type split(tags::split const& s = tags::split()) {
         // FIXME: this is not  full functional
