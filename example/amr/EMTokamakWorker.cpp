@@ -81,21 +81,22 @@ void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     d->OnAdvance.Connect([=](Domain* self, Real time_now, Real time_dt) {
 
         auto J = self->GetAttribute<Field<mesh_type, Real, EDGE>>("J", "Antenna");
-        auto Jv = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Jv");
 
         J = [=](point_type const& x) -> Vec3 {
             Real a = std::sin(n_phi * x[2] + TWOPI * freq * time_now);
             return Vec3{std::sin(x[2]) * a, 0, a * std::cos(x[2])};
         };
-        Jv.DeepCopy(J);
 
-        auto E = self->GetAttribute<Field<mesh_type, Real, EDGE>>("E");
-        auto B = self->GetAttribute<Field<mesh_type, Real, FACE>>("B");
-        auto Ev = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Ev");
-        auto Bv = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Bv");
 
-        Bv.DeepCopy(B);
-        Ev.DeepCopy(E);
+        // for VisIt dump
+        self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Jv").DeepCopy(
+            self->GetAttribute<Field<mesh_type, Real, EDGE>>("J"));
+
+        self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Ev").DeepCopy(
+            self->GetAttribute<Field<mesh_type, Real, EDGE>>("E"));
+
+        self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Bv").DeepCopy(
+            self->GetAttribute<Field<mesh_type, Real, FACE>>("B"));
 
     });
     //        d->OnBoundaryCondition.Connect([=](Domain* self, Real time_now, Real time_dt) {});
@@ -105,9 +106,9 @@ void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
         ne.Clear();
         ne = [&](point_type const& x) -> Real { return geqdsk.profile("ne", x[0], x[1]); };
 
-        auto B0 = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("B0");
-        B0.Clear();
-        B0 = [&](point_type const& x) -> Vec3 { return geqdsk.B(x[0], x[1]); };
+        auto B0v = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("B0v");
+        B0v.Clear();
+        B0v = [&](point_type const& x) -> Vec3 { return geqdsk.B(x[0], x[1]); };
     });
 }
 //    std::cout << "Model = ";

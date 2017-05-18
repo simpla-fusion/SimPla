@@ -37,8 +37,8 @@ class Domain : public SPObject,
     virtual MeshBase *GetMesh() = 0;
     virtual MeshBase const *GetMesh() const = 0;
 
-    engine::Domain* GetDomain() { return this; }
-    engine::Domain const* GetDomain() const{ return this; }
+    engine::Domain *GetDomain() { return this; }
+    engine::Domain const *GetDomain() const { return this; }
 
     void AddGeoObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &g);
     std::shared_ptr<geometry::GeoObject> GetGeoObject(std::string const &k = "") const;
@@ -97,11 +97,16 @@ class Domain : public SPObject,
     ~_DOMAIN_NAME_() override = default;                                                                               \
     SP_DEFAULT_CONSTRUCT(_DOMAIN_NAME_);                                                                               \
     DECLARE_REGISTER_NAME(std::string(__STRING(_DOMAIN_NAME_)) + "<" + _MESH_TYPE_::RegisterName() + ">")              \
+    typedef _MESH_TYPE_ mesh_type;                                                                                     \
     template <int IFORM, int DOF = 1>                                                                                  \
-    using field_type = Field<_MESH_TYPE_, typename _MESH_TYPE_::scalar_type, IFORM, DOF>;                              \
-    _MESH_TYPE_ m_mesh_;                                                                                               \
+    using field_type = Field<mesh_type, typename _MESH_TYPE_::scalar_type, IFORM, DOF>;                                \
+    mesh_type m_mesh_;                                                                                                 \
     MeshBase *GetMesh() override { return &m_mesh_; }                                                                  \
     MeshBase const *GetMesh() const override { return &m_mesh_; }
+
+#define DOMAIN_DECLARE_FIELD(_NAME_, _IFORM_, _DOF_, ...)                                                      \
+    Field<mesh_type, typename mesh_type::scalar_type, _IFORM_, _DOF_> _NAME_{this, "name"_ = __STRING(_NAME_), \
+                                                                             __VA_ARGS__};
 }
 }
 #endif  // SIMPLA_DOMAIN_H

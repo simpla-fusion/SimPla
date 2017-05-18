@@ -82,9 +82,8 @@ Attribute *AttributeGroup::Get(std::string const &k) {
 Attribute const *AttributeGroup::Get(std::string const &k) const {
     auto it = m_pimpl_->m_attributes_.find(k);
     Attribute *res = nullptr;
-    if (it != m_pimpl_->m_attributes_.end()) {
-        res = it->second;
-    } else {
+    if (it != m_pimpl_->m_attributes_.end()) { res = it->second; }
+    if (res == nullptr) {
         VERBOSE << "Can not find field [" << k << "] in [";
         for (auto const &item : m_pimpl_->m_attributes_) { VERBOSE << item.first << ","; }
         VERBOSE << std::endl;

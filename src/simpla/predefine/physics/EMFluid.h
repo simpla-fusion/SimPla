@@ -20,14 +20,12 @@ using namespace engine;
 template <typename TM>
 class EMFluid : public engine::Domain {
     SP_OBJECT_HEAD(EMFluid<TM>, engine::Domain)
-    typedef TM mesh_type;
 
    public:
-    DOMAIN_HEAD(EMFluid, engine::Domain, mesh_type)
+    DOMAIN_HEAD(EMFluid, engine::Domain, TM)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const& cfg) override;
-
 
     void InitialCondition(Real time_now) override;
     void BoundaryCondition(Real time_now, Real dt) override;
@@ -39,21 +37,34 @@ class EMFluid : public engine::Domain {
     typedef field_type<VERTEX> TRho;
     typedef field_type<VERTEX, 3> TJv;
 
-    field_type<VERTEX> ne{this, "name"_ = "ne"};
+    //    field_type<VERTEX> ne{this, "name"_ = "ne"};
+    //
+    //    field_type<EDGE> E0{this};
+    //    field_type<FACE> B0{this};
+    //    field_type<VOLUME, 3> B0v{this, "name"_ = "B0v"};
+    //    field_type<VOLUME> BB{this, "name"_ = "BB"};
+    //    field_type<VOLUME, 3> Ev{this, "name"_ = "Ev"};
+    //    field_type<VOLUME, 3> Bv{this, "name"_ = "Bv"};
+    //    field_type<VOLUME, 3> Jv{this, "name"_ = "Jv"};
+    //
+    //    field_type<VOLUME, 3> dE{this};
+    //
+    //    field_type<FACE> B{this, "name"_ = "B"};
+    //    field_type<EDGE> E{this, "name"_ = "E"};
+    //    field_type<EDGE> J{this, "name"_ = "J"};
 
-    field_type<EDGE> E0{this};
-    field_type<FACE> B0{this};
-    field_type<VOLUME, 3> B0v{this, "name"_ = "B0"};
-    field_type<VOLUME> BB{this, "name"_ = "BB"};
-    field_type<VOLUME, 3> Ev{this, "name"_ = "Ev"};
-    field_type<VOLUME, 3> Bv{this, "name"_ = "Bv"};
-    field_type<VOLUME, 3> Jv{this, "name"_ = "Jv"};
-
-    field_type<VOLUME, 3> dE{this};
-
-    field_type<FACE> B{this, "name"_ = "B"};
-    field_type<EDGE> E{this, "name"_ = "E"};
-    field_type<EDGE> J{this, "name"_ = "J"};
+    DOMAIN_DECLARE_FIELD(ne, VERTEX, 1);
+    DOMAIN_DECLARE_FIELD(E0, EDGE, 1);
+    DOMAIN_DECLARE_FIELD(B0, FACE, 1);
+    DOMAIN_DECLARE_FIELD(B0v, VOLUME, 3);
+    DOMAIN_DECLARE_FIELD(BB, VOLUME, 1);
+    DOMAIN_DECLARE_FIELD(Ev, VOLUME, 3);
+    DOMAIN_DECLARE_FIELD(Bv, VOLUME, 3);
+    DOMAIN_DECLARE_FIELD(Jv, VOLUME, 3);
+    DOMAIN_DECLARE_FIELD(dE, VOLUME, 3);
+    DOMAIN_DECLARE_FIELD(B, FACE, 1);
+    DOMAIN_DECLARE_FIELD(E, EDGE, 1);
+    DOMAIN_DECLARE_FIELD(J, EDGE, 1);
 
     struct fluid_s {
         Real mass;
@@ -146,12 +157,12 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
 
     DEFINE_PHYSICAL_CONST
 
-    B = B - curl(E) * dt;
-    B[GetBoundaryRange(FACE)] = 0;
-
-    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * dt;
-    E[GetBoundaryRange(EDGE)] = 0;
-
+    //    B = B - curl(E) * dt;
+    //    B[GetBoundaryRange(FACE)] = 0;
+    //
+    //    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * dt;
+    //    E[GetBoundaryRange(EDGE)] = 0;
+    E = J;
     //    if (m_fluid_sp_.size() > 0) {
     //        field_type<VOLUME, 3> Q{this};
     //        field_type<VOLUME, 3> K{this};
