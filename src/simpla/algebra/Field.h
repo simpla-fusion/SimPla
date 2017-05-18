@@ -52,19 +52,19 @@ class Field : public engine::Attribute {
     mesh_type* m_mesh_ = nullptr;
 
    public:
-    template <typename... Args>
-    explicit Field(engine::Domain* d, Args&&... args)
+    template <typename Holder, typename... Args>
+    explicit Field(Holder* d, Args&&... args)
         : engine::Attribute(IFORM, DOF, typeid(value_type), d,
                             std::make_shared<data::DataTable>(std::forward<Args>(args)...)),
           m_mesh_(dynamic_cast<mesh_type*>(engine::Attribute::GetDomain()->GetMesh())),
-          m_range_(make_infinity_range<EntityId>()){};
+          m_range_(){};
 
-    template <typename... Args>
-    explicit Field(engine::MeshBase* d, Args&&... args)
-        : engine::Attribute(IFORM, DOF, typeid(value_type), d,
-                            std::make_shared<data::DataTable>(std::forward<Args>(args)...)),
-          m_mesh_(dynamic_cast<mesh_type*>(engine::Attribute::GetDomain()->GetMesh())),
-          m_range_(make_infinity_range<EntityId>()){};
+    //    template <typename... Args>
+    //    explicit Field(engine::MeshBase* d, Args&&... args)
+    //        : engine::Attribute(IFORM, DOF, typeid(value_type), d,
+    //                            std::make_shared<data::DataTable>(std::forward<Args>(args)...)),
+    //          m_mesh_(dynamic_cast<mesh_type*>(engine::Attribute::GetDomain()->GetMesh())),
+    //          m_range_(make_infinity_range<EntityId>()){};
 
     Field(this_type const& other)
         : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_data_(other.m_data_) {}
@@ -139,9 +139,9 @@ class Field : public engine::Attribute {
         if (d != nullptr) {
             m_range_ = r;
             m_data_ = std::dynamic_pointer_cast<data_type>(d);
+            Click();
         }
-        if (m_data_ == nullptr || m_data_->GetDepth() == 0) { DoSetUp(); }
-        Tag();
+        DoSetUp();
     }
 
     std::shared_ptr<data::DataBlock> Pop() override {

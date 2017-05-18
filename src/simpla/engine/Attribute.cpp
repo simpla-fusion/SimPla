@@ -106,9 +106,7 @@ Attribute::Attribute(int IFORM, int DOF, std::type_info const &t_info, Domain *d
     RegisterAt(d);
     m_pimpl_->m_domain_ = d;
 };
-Attribute::Attribute(int IFORM, int DOF, std::type_info const &t_info, MeshBase *m,
-                     std::shared_ptr<data::DataTable> const &p)
-    : Attribute(IFORM, DOF, t_info, m->GetDomain(), p) {}
+
 Attribute::Attribute(Attribute const &other) : AttributeDesc(other), m_pimpl_(new pimpl_s) {}
 Attribute::Attribute(Attribute &&other) : AttributeDesc(other), m_pimpl_(std::move(other.m_pimpl_)) {}
 Attribute::~Attribute() {

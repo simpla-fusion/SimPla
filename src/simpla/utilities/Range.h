@@ -63,7 +63,7 @@ struct RangeBase {
     virtual bool is_divisible() const { return false; }
     virtual size_type size() const { return 0; }
     virtual bool empty() const { return true; }
-    virtual void foreach_override(std::function<void(value_type&)> const& fun) const { DO_NOTHING; };
+    virtual void foreach_override(std::function<void(value_type&)> const& fun) const {};
 
     virtual std::shared_ptr<this_type> split(tags::split const& sp) {
         UNIMPLEMENTED;
@@ -82,6 +82,16 @@ struct RangeBase {
     }
 
     std::shared_ptr<RangeBase<T>> m_next_;
+};
+
+template <typename T>
+struct EmptyRangeBase : public RangeBase<T> {
+    SP_OBJECT_HEAD(EmptyRangeBase<T>, RangeBase<T>);
+
+   public:
+    bool is_divisible() const override { return false; }
+    size_type size() const override { return 0; }
+    bool empty() const override { return true; }
 };
 
 template <typename T>
@@ -201,17 +211,6 @@ struct IteratorRange : public RangeBase<typename std::iterator_traits<TIterator>
 };
 
 template <typename T>
-struct InfinityRangeBase : public RangeBase<T> {
-    typedef InfinityRangeBase<T> this_type;
-
-   public:
-    typedef T value_type;
-    virtual bool is_divisible() const { return false; }
-    virtual size_type size() const { return std::numeric_limits<size_type>::max(); }
-    virtual bool empty() const { return false; }
-};
-
-template <typename T>
 struct Range {
     typedef Range<T> this_type;
     typedef RangeBase<T> base_type;
@@ -279,10 +278,7 @@ struct Range {
    private:
     std::shared_ptr<RangeBase<T>> m_next_ = nullptr;
 };
-template <typename T>
-Range<T> make_infinity_range() {
-    return std::move(Range<T>(std::make_shared<InfinityRangeBase<T>>()));
-};
+
 template <typename T, typename... Args>
 Range<T> make_continue_range(Args&&... args) {
     return std::move(Range<T>(std::make_shared<ContinueRange<T>>(std::forward<Args>...)));

@@ -27,17 +27,15 @@ class StructuredMesh : public engine::MeshBase {
     void RegisterRanges(std::map<std::string, EntityRange> &ranges, std::shared_ptr<geometry::GeoObject> const &g,
                         std::string const &prefix) override;
 
-    typedef EntityIdCoder M;
-
     virtual point_type point(index_type i, index_type j, index_type k) const {
         return point_type{std::fma(i, m_dx_[0], m_x0_[0]), std::fma(j, m_dx_[1], m_x0_[1]),
                           std::fma(k, m_dx_[2], m_x0_[2])};
     }
 
     point_type point(EntityId s) const override {
-        return point(s, point_type{M::m_id_to_coordinates_shift_[s.w & 7][0],  //
-                                   M::m_id_to_coordinates_shift_[s.w & 7][1],  //
-                                   M::m_id_to_coordinates_shift_[s.w & 7][2]});
+        return point(s, point_type{EntityIdCoder::m_id_to_coordinates_shift_[s.w & 7][0],  //
+                                   EntityIdCoder::m_id_to_coordinates_shift_[s.w & 7][1],  //
+                                   EntityIdCoder::m_id_to_coordinates_shift_[s.w & 7][2]});
     }
     template <typename V>
     using data_type = data::DataMultiArray<V, NDIMS>;
@@ -136,6 +134,130 @@ class StructuredMesh : public engine::MeshBase {
 
     point_type m_i_dx_{1, 1, 1};
     point_type m_i_x0_{0, 0, 0};
+
+   public:
+    //    typedef calculator<this_type> calculus_policy;
+
+    template <typename M, typename V, int IFORM, int DOF, typename... Others>
+    void Assign(Field<M, V, IFORM, DOF> &f, EntityRange const &r, Expression<Others...> const &expr,
+                ENABLE_IF((std::is_base_of<this_type, M>::value))) const {
+        int num_of_sub = IFORM == VERTEX || IFORM == VOLUME ? 1 : 3;
+
+        if (r.isNull()) {
+            for (int i = 0; i < num_of_sub; ++i) {
+                for (int j = 0; j < DOF; ++j) {
+                    f[i * DOF + j] = calculator<M>::getValue(*dynamic_cast<M const *>(this), expr,
+                                                             EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3));
+                }
+            }
+        } else {
+            for (int j = 0; j < DOF; ++j) {
+                r.foreach ([&](EntityId s) {
+                    index_tuple idx{s.x, s.y, s.z};
+                    f[EntityIdCoder::m_id_to_sub_index_[(s.w & 0b111)] * DOF + (s.w >> 3)].Assign(
+                        idx, calculator<M>::getValue(*dynamic_cast<M const *>(this), expr, s.w));
+                });
+            }
+        }
+
+        //        for (int i = 0; i < NUMBER_OF_SUB; ++i) {
+        //            int w = EntityIdCoder::m_sub_index_to_id_[IFORM][i / DOF] | ((i % DOF) << 3);
+        //            f[i].Assign(m_range_[i / DOF], calculator<M>::getValue(*this, other, w));
+        //        }
+    }
+
+    template <typename M, typename V, int IFORM, int DOF>
+    void Assign(Field<M, V, IFORM, DOF> &f, EntityRange const &r, Field<M, V, IFORM, DOF> const &other,
+                ENABLE_IF((std::is_base_of<this_type, M>::value))) const {
+        int num_of_sub = IFORM == VERTEX || IFORM == VOLUME ? 1 : 3;
+
+        if (r.isNull()) {
+            for (int i = 0; i < num_of_sub; ++i) {
+                for (int j = 0; j < DOF; ++j) { f[i * DOF + j] = other[i * DOF + j]; }
+            }
+        } else {
+            r.foreach ([&](EntityId s) {
+                index_tuple idx{s.x, s.y, s.z};
+                int i = EntityIdCoder::m_id_to_sub_index_[(s.w & 0b111)];
+                int j = s.w >> 3;
+                f[i * DOF + j].Assign(idx, other[i * DOF + j]);
+            });
+        }
+    }
+
+    template <typename M, typename V, int IFORM, int DOF, typename Other>
+    void Assign(Field<M, V, IFORM, DOF> &f, EntityRange const &r, Other const &other,
+                ENABLE_IF((std::is_base_of<this_type, M>::value &&           //
+                           !concept::is_callable<Other(EntityId)>::value &&  //
+                           !concept::is_callable<Other(point_type const &)>::value))) const {
+        static_assert(std::is_base_of<this_type, M>::value, "illegal mesh type");
+        int num_of_sub = IFORM == VERTEX || IFORM == VOLUME ? 1 : 3;
+
+        if (r.isNull()) {
+            for (int i = 0; i < num_of_sub; ++i) {
+                for (int j = 0; j < DOF; ++j) {
+                    f[i * DOF + j] = calculator<M>::getValue(*dynamic_cast<M const *>(this), other,
+                                                             EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3));
+                }
+            }
+        } else {
+            for (int j = 0; j < DOF; ++j) {
+                r.foreach ([&](EntityId s) {
+                    index_tuple idx{s.x, s.y, s.z};
+                    int i = EntityIdCoder::m_id_to_sub_index_[(s.w & 0b111)];
+                    f[i * DOF + j].Assign(
+                        idx, calculator<M>::getValue(*dynamic_cast<M const *>(this), other,
+                                                     EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3)));
+                });
+            }
+        }
+    };
+
+    template <typename M, typename V, int IFORM, int DOF, typename TFun>
+    void Assign(Field<M, V, IFORM, DOF> &f, EntityRange const &r, TFun const &fun,
+                ENABLE_IF((std::is_base_of<this_type, M>::value &&
+                           std::is_same<std::result_of_t<TFun(EntityId)>, V>::value))) const {
+        int num_of_sub = IFORM == VERTEX || IFORM == VOLUME ? 1 : 3;
+
+        if (r.isNull()) {
+            for (int i = 0; i < num_of_sub * DOF; ++i) {
+                for (int j = 0; j < DOF; ++j) {
+                    int w = EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3);
+                    f[i * DOF + j] = [=](index_tuple const &idx) {
+                        EntityId s;
+                        s.w = static_cast<int16_t>(w);
+                        s.x = static_cast<int16_t>(idx[0]);
+                        s.y = static_cast<int16_t>(idx[1]);
+                        s.z = static_cast<int16_t>(idx[2]);
+                        return fun(s);
+                    };
+                }
+            }
+        } else {
+            for (int j = 0; j < DOF; ++j) {
+                r.foreach ([&](EntityId s) {
+                    index_tuple idx{s.x, s.y, s.z};
+                    int i = EntityIdCoder::m_id_to_sub_index_[(s.w & 0b111)];
+                    s.w = static_cast<int16_t>((s.w & 0b111) | (j << 3));
+                    f[i * DOF + j].Assign(idx, fun(s));
+                });
+            }
+        }
+    }
+    template <typename M, typename V, int IFORM, int DOF, typename TFun>
+    void Assign(Field<M, V, IFORM, DOF> &f, EntityRange const &r, TFun const &fun,
+                ENABLE_IF((std::is_base_of<this_type, M>::value &&
+                           std::is_same<std::result_of_t<TFun(point_type const &)>, V>::value))) const {
+        Assign(f, r, [&](EntityId s) { return fun(this->point(s)); });
+    }
+    template <typename M, typename V, int IFORM, int DOF, typename TFun>
+    void Assign(Field<M, V, IFORM, DOF> &f, EntityRange const &r, TFun const &fun,
+                ENABLE_IF((std::is_base_of<this_type, M>::value &&
+                           std::is_same<std::result_of_t<TFun(point_type const &)>, nTuple<V, 3>>::value))) const {
+        Assign(f, r, [&](EntityId s) {
+            return calculator<M>::sample(*dynamic_cast<M const *>(this), s, fun(this->point(s)));
+        });
+    }
 };
 }  // namespace mesh {
 }  // namespace simpla {

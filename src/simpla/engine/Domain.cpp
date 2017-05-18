@@ -52,7 +52,8 @@ std::shared_ptr<geometry::GeoObject> Domain::GetGeoObject(std::string const& k) 
 EntityRange Domain::GetRange(std::string const& k) const {
     ASSERT(!isModified());
     auto it = m_pimpl_->m_patch_->m_ranges.find(k);
-    return (it != m_pimpl_->m_patch_->m_ranges.end()) ? it->second : EntityRange();
+    return (it != m_pimpl_->m_patch_->m_ranges.end()) ? it->second
+                                                      : EntityRange{std::make_shared<EmptyRangeBase<EntityId>>()};
 };
 
 EntityRange Domain::GetBodyRange(int IFORM, std::string const& k) const {
@@ -98,9 +99,11 @@ std::shared_ptr<Patch> Domain::PopPatch() {
 std::shared_ptr<Patch> Domain::ApplyInitialCondition(const std::shared_ptr<Patch>& patch, Real time_now) {
     Push(patch);
 
-    if (GetMesh() != nullptr) { GetMesh()->InitializeData(time_now); }
-    for (auto const& item : m_pimpl_->m_geo_object_) {
-        GetMesh()->RegisterRanges(m_pimpl_->m_patch_->m_ranges, item.second, item.first);
+    if (GetMesh() != nullptr) {
+        GetMesh()->InitializeData(time_now);
+        for (auto const& item : m_pimpl_->m_geo_object_) {
+            GetMesh()->RegisterRanges(m_pimpl_->m_patch_->m_ranges, item.second, item.first);
+        }
     }
     InitialCondition(time_now);
     OnInitialCondition(this, time_now);

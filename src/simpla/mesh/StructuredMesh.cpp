@@ -38,16 +38,16 @@ void StructuredMesh::RegisterRanges(std::map<std::string, EntityRange> &ranges,
 
         } break;
         case geometry::OUTSIDE: {
-            ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_0_BODY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_1_BODY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_2_BODY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_3_BODY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_0_BOUNDARY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_1_PARA_BOUNDARY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_2_PARA_BOUNDARY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_1_PERP_BOUNDARY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_2_PERP_BOUNDARY"];
-            ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_3_BOUNDARY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_BODY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_BODY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BODY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BOUNDARY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PARA_BOUNDARY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PARA_BOUNDARY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PERP_BOUNDARY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PERP_BOUNDARY"];
+            ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BOUNDARY"];
 
         } break;
         default: { break; }
@@ -239,16 +239,16 @@ void StructuredMesh::RegisterRanges(std::map<std::string, EntityRange> &ranges,
                 }
             }
 
-    ranges[prefix + "_0_BODY"].append(VERTEX_body);
-    ranges[prefix + "_1_BODY"].append(EDGE_body);
-    ranges[prefix + "_2_BODY"].append(FACE_body);
-    ranges[prefix + "_3_BODY"].append(VOLUME_body);
-    ranges[prefix + "_0_BOUNDARY"].append(VERTEX_boundary);
-    ranges[prefix + "_1_PARA_BOUNDARY"].append(EDGE_PARA_boundary);
-    ranges[prefix + "_2_PARA_BOUNDARY"].append(FACE_PARA_boundary);
-    ranges[prefix + "_1_PERP_BOUNDARY"].append(EDGE_PERP_boundary);
-    ranges[prefix + "_2_PERP_BOUNDARY"].append(FACE_PERP_boundary);
-    ranges[prefix + "_3_BOUNDARY"].append(VOLUME_boundary);
+    ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"].append(VERTEX_body);
+    ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_BODY"].append(EDGE_body);
+    ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_BODY"].append(FACE_body);
+    ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BODY"].append(VOLUME_body);
+    ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BOUNDARY"].append(VERTEX_boundary);
+    ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PARA_BOUNDARY"].append(EDGE_PARA_boundary);
+    ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PARA_BOUNDARY"].append(FACE_PARA_boundary);
+    ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PERP_BOUNDARY"].append(EDGE_PERP_boundary);
+    ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PERP_BOUNDARY"].append(FACE_PERP_boundary);
+    ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BOUNDARY"].append(VOLUME_boundary);
 
     //    CHECK(VOLUME_body->size());
 }

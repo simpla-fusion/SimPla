@@ -28,6 +28,7 @@ class EMFluid : public engine::Domain {
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const& cfg) override;
 
+
     void InitialCondition(Real time_now) override;
     void BoundaryCondition(Real time_now, Real dt) override;
     void Advance(Real time_now, Real dt) override;

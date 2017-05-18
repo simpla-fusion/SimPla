@@ -37,6 +37,9 @@ class Domain : public SPObject,
     virtual MeshBase *GetMesh() = 0;
     virtual MeshBase const *GetMesh() const = 0;
 
+    engine::Domain* GetDomain() { return this; }
+    engine::Domain const* GetDomain() const{ return this; }
+
     void AddGeoObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &g);
     std::shared_ptr<geometry::GeoObject> GetGeoObject(std::string const &k = "") const;
     EntityRange GetRange(std::string const &k = "") const;

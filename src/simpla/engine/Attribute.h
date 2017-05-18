@@ -123,7 +123,10 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
 
    public:
     Attribute(int IFORM, int DOF, std::type_info const &t_info, Domain *d, std::shared_ptr<data::DataTable> const &p);
-    Attribute(int IFORM, int DOF, std::type_info const &t_info, MeshBase *m, std::shared_ptr<data::DataTable> const &p);
+
+    template <typename Holder>
+    Attribute(int IFORM, int DOF, std::type_info const &t_info, Holder *m, std::shared_ptr<data::DataTable> const &p)
+        : Attribute(IFORM, DOF, t_info, m->GetDomain(), p) {}
 
     Attribute(Attribute const &other);
     Attribute(Attribute &&other);
