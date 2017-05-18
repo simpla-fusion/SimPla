@@ -29,7 +29,7 @@ struct Atlas::pimpl_s {
     size_tuple m_periodic_dimension_ = {1, 1, 1};
     size_tuple m_refine_ratio_[MAX_NUM_OF_LEVEL] = {{2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}};
     size_tuple m_smallest_dimensions_{8, 8, 8};
-    size_tuple m_largest_dimensions_{128, 128, 128};
+    size_tuple m_largest_dimensions_{32, 32, 32};
 
     index_box_type m_index_box_{{0, 0, 0}, {64, 64, 64}};
 };
