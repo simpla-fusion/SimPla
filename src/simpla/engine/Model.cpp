@@ -64,7 +64,10 @@ void Model::SetObject(std::string const& key, std::shared_ptr<DataTable> cfg) {
     SetObject(key, geometry::GeoObject::Create(cfg));
 };
 void Model::SetObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
-    if (g_obj != nullptr) m_pimpl_->m_g_objs_[key] = g_obj;
+    if (g_obj != nullptr) {
+        m_pimpl_->m_g_objs_[key] = g_obj;
+        VERBOSE << "Add GeoObject [ " << key << " : " << g_obj->GetRegisterName() << " ]" << std::endl;
+    }
 }
 
 std::shared_ptr<geometry::GeoObject> Model::GetObject(std::string const& k) const {

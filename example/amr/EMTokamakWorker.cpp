@@ -47,18 +47,14 @@ std::shared_ptr<data::DataTable> EMTokamak::Serialize() const {
 };
 void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     if (cfg == nullptr) { return; }
+    engine::Context::Initialize();
 
     typedef mesh::CylindricalSMesh mesh_type;
-
-    engine::Context::Initialize();
-    engine::Context::Deserialize(cfg);
-    auto d = GetDomain("Main");
-    ASSERT(d != nullptr);
 
     unsigned int PhiAxe = 2;
     nTuple<Real, 2> phi = cfg->GetValue("Phi", nTuple<Real, 2>{0, TWOPI});
     geqdsk.load(cfg->GetValue<std::string>("gfile", "gfile"));
-    GetModel().SetObject("Limiter", std::make_shared<geometry::RevolveZ>(geqdsk.limiter(), PhiAxe, phi[0], phi[1]));
+    GetModel().SetObject("Main", std::make_shared<geometry::RevolveZ>(geqdsk.limiter(), PhiAxe, phi[0], phi[1]));
     GetModel().SetObject("Center", std::make_shared<geometry::RevolveZ>(geqdsk.boundary(), PhiAxe, phi[0], phi[1]));
 
     Vec3 amp = cfg->GetValue<nTuple<Real, 3>>("Antenna/amp", nTuple<Real, 3>{0, 0, 1});
@@ -75,6 +71,11 @@ void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     std::get<1>(idx_box) = cfg->GetValue<nTuple<int, 3>>("Dimensions", nTuple<int, 3>{64, 64, 32});
     GetAtlas().SetIndexBox(idx_box);
 
+    engine::Context::Deserialize(cfg);
+    auto d = GetDomain("Main");
+
+    ASSERT(d != nullptr);
+
     d->AddGeoObject("Center", GetModel().GetObject("Center"));
     d->AddGeoObject("Antenna", GetModel().GetObject("Antenna"));
 
@@ -86,7 +87,6 @@ void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
             Real a = std::sin(n_phi * x[2] + TWOPI * freq * time_now);
             return Vec3{std::sin(x[2]) * a, 0, a * std::cos(x[2])};
         };
-
 
         // for VisIt dump
         self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Jv").DeepCopy(

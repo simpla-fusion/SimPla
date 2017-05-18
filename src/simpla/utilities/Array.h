@@ -291,23 +291,15 @@ struct Array {
     void SetData(std::shared_ptr<value_type> const& d) const { m_data_ = d; }
 
     size_type hash(m_index_tuple const& idx) const {
-#ifndef NDEBUG
-        //        if (!in_box(m_index_box_, idx)) {
-        //            std::cerr << FILE_LINE_STAMP << "Out of range!"
-        //                      << "[" << std::get<0>(m_index_box_) << "," << std::get<1>(m_index_box_) << "] ~" << idx
-        //                      << std::endl;
+        size_type s = dot(m_strides_, idx) + m_offset_;
+        //#ifndef NDEBUG
+        //        if (s < 0 || s >= m_size_) {
+        ////            std::cerr << m_index_box_ << "~" << idx << std::endl;
+        //
+        //            OUT_OF_RANGE << "[" << 0 << "," << m_size_ << "] ~" << s << std::endl;
         //        }
-        size_type s = 0;
-        for (int i = 0; i < NDIMS; ++i) {
-            s += ((idx[i] - std::get<0>(m_index_box_)[i] +
-                   (std::get<1>(m_index_box_)[i] - std::get<0>(m_index_box_)[i])) %
-                  (std::get<1>(m_index_box_)[i] - std::get<0>(m_index_box_)[i])) *
-                 m_strides_[i];
-        }
-        return s;
-#else
-        return dot(m_strides_, idx) + m_offset_;
-#endif
+        //#endif
+        return ((s < 0 || s >= m_size_) ? 0 : s);
     }
 
     value_type& at(m_index_tuple const& idx) { return m_data_.get()[hash(idx)]; }

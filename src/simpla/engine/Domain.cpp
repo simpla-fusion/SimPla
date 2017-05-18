@@ -79,11 +79,13 @@ void Domain::Push(const std::shared_ptr<Patch>& p) {
     m_pimpl_->m_patch_ = p;
     GetMesh()->SetBlock(m_pimpl_->m_patch_->GetBlock());
     for (auto& item : GetAllAttributes()) {
-        auto k = "." + std::to_string(item.second->GetIFORM()) + "_BODY";
+        auto k = "." + std::string(EntityIFORMName[item.second->GetIFORM()]) + "_BODY";
+
         auto it = m_pimpl_->m_patch_->m_ranges.find(k);
         item.second->Push(m_pimpl_->m_patch_->Pop(item.second->GetID()),
                           (it == m_pimpl_->m_patch_->m_ranges.end()) ? EntityRange{} : it->second);
     }
+
     DoSetUp();
 }
 std::shared_ptr<Patch> Domain::PopPatch() {

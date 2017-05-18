@@ -17,6 +17,7 @@ namespace geometry {
 
 struct Cube : public GeoObject {
     SP_OBJECT_HEAD(Cube, GeoObject)
+    DECLARE_REGISTER_NAME("Cube");
 
     box_type m_bound_box_;
 
@@ -31,7 +32,7 @@ struct Cube : public GeoObject {
 
     std::shared_ptr<data::DataTable> Serialize() const override {
         auto p = std::make_shared<data::DataTable>();
-        p->SetValue<std::string>("Type", "Cube");
+        p->SetValue<std::string>("Type", GetRegisterName());
         p->SetValue("Box", m_bound_box_);
         return p;
     };

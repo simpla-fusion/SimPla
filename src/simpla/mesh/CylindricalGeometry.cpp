@@ -29,13 +29,12 @@ void CylindricalSMesh::InitializeData(Real time_now) {
         *\endverbatim
         */
 
-    index_type ib = std::get<0>(GetIndexBox(VERTEX))[0];
-    index_type jb = std::get<0>(GetIndexBox(VERTEX))[1];
-    index_type kb = std::get<0>(GetIndexBox(VERTEX))[2];
-
-    index_type ie = std::get<1>(GetIndexBox(VERTEX))[0];
-    index_type je = std::get<1>(GetIndexBox(VERTEX))[1];
-    index_type ke = std::get<1>(GetIndexBox(VERTEX))[2];
+    index_type ib = std::get<0>(GetIndexBox(0))[0];
+    index_type jb = std::get<0>(GetIndexBox(0))[1];
+    index_type kb = std::get<0>(GetIndexBox(0))[2];
+    index_type ie = std::get<1>(GetIndexBox(0))[0];
+    index_type je = std::get<1>(GetIndexBox(0))[1];
+    index_type ke = std::get<1>(GetIndexBox(0))[2];
 
     point_type m_dx_ = GetDx();
     //    point_type x0 = GetChart()->GetOrigin();
@@ -58,12 +57,12 @@ void CylindricalSMesh::InitializeData(Real time_now) {
                 m_coordinates_[2](i, j, k) = x[Z_axe];
             }
 
-    ib = std::get<0>(GetIndexBox(VOLUME))[0];
-    jb = std::get<0>(GetIndexBox(VOLUME))[1];
-    kb = std::get<0>(GetIndexBox(VOLUME))[2];
-    ie = std::get<1>(GetIndexBox(VOLUME))[0];
-    je = std::get<1>(GetIndexBox(VOLUME))[1];
-    ke = std::get<1>(GetIndexBox(VOLUME))[2];
+    ib = std::get<0>(GetIndexBox(7))[0];
+    jb = std::get<0>(GetIndexBox(7))[1];
+    kb = std::get<0>(GetIndexBox(7))[2];
+    ie = std::get<1>(GetIndexBox(7))[0];
+    je = std::get<1>(GetIndexBox(7))[1];
+    ke = std::get<1>(GetIndexBox(7))[2];
 
     for (index_type i = ib; i < ie; ++i)
         for (index_type j = jb; j < je; ++j)

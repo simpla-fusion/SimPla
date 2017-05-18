@@ -176,11 +176,15 @@ class StructuredMesh : public engine::MeshBase {
                 for (int j = 0; j < DOF; ++j) { f[i * DOF + j] = other[i * DOF + j]; }
             }
         } else {
+            auto id_box = GetIndexBox(IFORM);
+
             r.foreach ([&](EntityId s) {
                 index_tuple idx{s.x, s.y, s.z};
-                int i = EntityIdCoder::m_id_to_sub_index_[(s.w & 0b111)];
-                int j = s.w >> 3;
-                f[i * DOF + j].Assign(idx, other[i * DOF + j]);
+                if (in_box(id_box, idx)) {
+                    int i = EntityIdCoder::m_id_to_sub_index_[(s.w & 0b111)];
+                    int j = s.w >> 3;
+                    f[i * DOF + j].Assign(idx, other[i * DOF + j]);
+                }
             });
         }
     }
@@ -201,13 +205,16 @@ class StructuredMesh : public engine::MeshBase {
                 }
             }
         } else {
+            auto id_box = GetIndexBox(IFORM);
             for (int j = 0; j < DOF; ++j) {
                 r.foreach ([&](EntityId s) {
                     index_tuple idx{s.x, s.y, s.z};
-                    int i = EntityIdCoder::m_id_to_sub_index_[(s.w & 0b111)];
-                    f[i * DOF + j].Assign(
-                        idx, calculator<M>::getValue(*dynamic_cast<M const *>(this), other,
-                                                     EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3)));
+                    if (in_box(id_box, idx)) {
+                        int i = EntityIdCoder::m_id_to_sub_index_[(s.w & 0b111)];
+                        f[i * DOF + j].Assign(
+                            idx, calculator<M>::getValue(*dynamic_cast<M const *>(this), other,
+                                                         EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3)));
+                    }
                 });
             }
         }
@@ -234,12 +241,17 @@ class StructuredMesh : public engine::MeshBase {
                 }
             }
         } else {
+            auto id_box = GetIndexBox(IFORM);
+
             for (int j = 0; j < DOF; ++j) {
                 r.foreach ([&](EntityId s) {
+
                     index_tuple idx{s.x, s.y, s.z};
-                    int i = EntityIdCoder::m_id_to_sub_index_[(s.w & 0b111)];
-                    s.w = static_cast<int16_t>((s.w & 0b111) | (j << 3));
-                    f[i * DOF + j].Assign(idx, fun(s));
+                    if (in_box(id_box, idx)) {
+                        int i = EntityIdCoder::m_id_to_sub_index_[(s.w & 0b111)];
+                        s.w = static_cast<int16_t>((s.w & 0b111) | (j << 3));
+                        f[i * DOF + j].Assign(idx, fun(s));
+                    }
                 });
             }
         }
