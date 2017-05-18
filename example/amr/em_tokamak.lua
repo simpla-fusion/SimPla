@@ -10,7 +10,7 @@ Context = {
         x_upper = { 2.0, 0.2, 3.1415926 / 4 },
         amp = { 0.0, 0.0, 1.0 },
         n_phi = 1.0,
-        Frequency = 1.0
+        Frequency = 1.0e9
     },
     Domains =
     {
@@ -23,4 +23,4 @@ Context = {
     }
 }
 
-Schedule = { Type = "SAMRAITimeIntegrator", TimeBegin = 0.0, TimeEnd = 2.0, TimeStep = 1.0e-1 }
+Schedule = { Type = "SAMRAITimeIntegrator", TimeBegin = 0.0, TimeEnd = 2.0e-8, TimeStep = 1.0e-10}
