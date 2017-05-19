@@ -107,21 +107,23 @@ std::shared_ptr<Patch> Domain::ApplyInitialCondition(const std::shared_ptr<Patch
             GetMesh()->RegisterRanges(m_pimpl_->m_patch_->m_ranges, item.second, item.first);
         }
     }
+    PreInitialCondition(this, time_now);
     InitialCondition(time_now);
-    OnInitialCondition(this, time_now);
-
+    PostInitialCondition(this, time_now);
     return PopPatch();
 }
 std::shared_ptr<Patch> Domain::ApplyBoundaryCondition(const std::shared_ptr<Patch>& patch, Real time_now, Real dt) {
     Push(patch);
+    PreBoundaryCondition(this, time_now, dt);
     BoundaryCondition(time_now, dt);
-    OnBoundaryCondition(this, time_now, dt);
+    PostBoundaryCondition(this, time_now, dt);
     return PopPatch();
 }
 std::shared_ptr<Patch> Domain::DoAdvance(const std::shared_ptr<Patch>& patch, Real time_now, Real dt) {
     Push(patch);
+    PreAdvance(this, time_now, dt);
     Advance(time_now, dt);
-    OnAdvance(this, time_now, dt);
+    PostAdvance(this, time_now, dt);
     return PopPatch();
 }
 

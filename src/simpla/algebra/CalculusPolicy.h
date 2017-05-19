@@ -504,7 +504,7 @@ struct calculator {
         return eval(m, dot_v(map_to<VERTEX>(l), map_to<VERTEX>(r)), s, S, int_sequence<VERTEX>());
     }
     template <typename... TExpr>
-    static auto eval(mesh_type const& m, Expression<tags::_cross, TExpr...> const& expr, int s, IdxShift S,
+    static auto eval(mesh_type const& m, Expression<simpla::tags::_cross, TExpr...> const& expr, int s, IdxShift S,
                      int_sequence<VERTEX, VERTEX>) {
         static auto const& l = std::get<0>(expr.m_args_);
         static auto const& r = std::get<1>(expr.m_args_);
@@ -515,7 +515,7 @@ struct calculator {
     }
 
     template <typename... TExpr>
-    static auto eval(mesh_type const& m, Expression<tags::_cross, TExpr...> const& expr, int s, IdxShift S,
+    static auto eval(mesh_type const& m, Expression<simpla::tags::_cross, TExpr...> const& expr, int s, IdxShift S,
                      int_sequence<VOLUME, VOLUME>) {
         static auto const& l = std::get<0>(expr.m_args_);
         static auto const& r = std::get<1>(expr.m_args_);

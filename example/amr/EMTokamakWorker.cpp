@@ -79,7 +79,7 @@ void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     d->AddGeoObject("Center", GetModel().GetObject("Center"));
     d->AddGeoObject("Antenna", GetModel().GetObject("Antenna"));
 
-    d->OnAdvance.Connect([=](Domain* self, Real time_now, Real time_dt) {
+    d->PostAdvance.Connect([=](Domain* self, Real time_now, Real time_dt) {
 
         auto J = self->GetAttribute<Field<mesh_type, Real, EDGE>>("J", "Antenna");
 
@@ -101,8 +101,8 @@ void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     });
     //        d->OnBoundaryCondition.Connect([=](Domain* self, Real time_now, Real time_dt) {});
     //
-    d->OnInitialCondition.Connect([&](Domain* self, Real time_now) {
-        auto ne = self->GetAttribute<Field<mesh_type, Real, VERTEX>>("ne", "Center");
+    d->PreInitialCondition.Connect([&](Domain* self, Real time_now) {
+        auto ne = self->GetAttribute<Field<mesh_type, Real, VOLUME>>("ne", "Center");
         ne.Clear();
         ne = [&](point_type const& x) -> Real { return geqdsk.profile("ne", x[0], x[1]); };
 

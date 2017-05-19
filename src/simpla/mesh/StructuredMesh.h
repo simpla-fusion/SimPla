@@ -151,12 +151,18 @@ class StructuredMesh : public engine::MeshBase {
                 }
             }
         } else {
-            for (int j = 0; j < DOF; ++j) {
-                r.foreach ([&](EntityId s) {
-                    index_tuple idx{s.x, s.y, s.z};
-                    f[EntityIdCoder::m_id_to_sub_index_[(s.w & 0b111)] * DOF + (s.w >> 3)].Assign(
-                        idx, calculator<M>::getValue(*dynamic_cast<M const *>(this), expr, s.w));
-                });
+            auto id_box = GetIndexBox(IFORM);
+
+            for (int i = 0; i < num_of_sub; ++i) {
+                for (int j = 0; j < DOF; ++j) {
+                    int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][i];
+                    auto lhs = f[i * DOF + j];
+                    auto rhs = calculator<M>::getValue(*dynamic_cast<M const *>(this), expr, tag | (j << 3));
+                    r.foreach ([&](EntityId s) {
+                        index_tuple idx{s.x, s.y, s.z};
+                        if (in_box(id_box, idx) && tag == (s.w & 0b111)) { lhs.Assign(idx, rhs); }
+                    });
+                }
             }
         }
 
@@ -178,14 +184,18 @@ class StructuredMesh : public engine::MeshBase {
         } else {
             auto id_box = GetIndexBox(IFORM);
 
-            r.foreach ([&](EntityId s) {
-                index_tuple idx{s.x, s.y, s.z};
-                if (in_box(id_box, idx)) {
-                    int i = EntityIdCoder::m_id_to_sub_index_[(s.w & 0b111)];
-                    int j = s.w >> 3;
-                    f[i * DOF + j].Assign(idx, other[i * DOF + j]);
+            for (int i = 0; i < num_of_sub; ++i) {
+                for (int j = 0; j < DOF; ++j) {
+                    auto &lhs = f[i * DOF + j];
+                    auto &rhs = other[i * DOF + j];
+
+                    int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][i];
+                    r.foreach ([&](EntityId s) {
+                        index_tuple idx{s.x, s.y, s.z};
+                        if (in_box(id_box, idx) && tag == (s.w & 0b111)) { lhs.Assign(idx, rhs); }
+                    });
                 }
-            });
+            }
         }
     }
 
@@ -206,16 +216,16 @@ class StructuredMesh : public engine::MeshBase {
             }
         } else {
             auto id_box = GetIndexBox(IFORM);
-            for (int j = 0; j < DOF; ++j) {
-                r.foreach ([&](EntityId s) {
-                    index_tuple idx{s.x, s.y, s.z};
-                    if (in_box(id_box, idx)) {
-                        int i = EntityIdCoder::m_id_to_sub_index_[(s.w & 0b111)];
-                        f[i * DOF + j].Assign(
-                            idx, calculator<M>::getValue(*dynamic_cast<M const *>(this), other,
-                                                         EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3)));
-                    }
-                });
+            for (int i = 0; i < num_of_sub; ++i) {
+                for (int j = 0; j < DOF; ++j) {
+                    int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][i];
+                    auto &lhs = f[i * DOF + j];
+                    auto rhs = calculator<M>::getValue(*dynamic_cast<M const *>(this), other, tag | (j << 3));
+                    r.foreach ([&](EntityId s) {
+                        index_tuple idx{s.x, s.y, s.z};
+                        if (in_box(id_box, idx) && tag == (s.w & 0b111)) { lhs.Assign(idx, rhs); }
+                    });
+                }
             }
         }
     };
@@ -242,17 +252,18 @@ class StructuredMesh : public engine::MeshBase {
             }
         } else {
             auto id_box = GetIndexBox(IFORM);
-
-            for (int j = 0; j < DOF; ++j) {
-                r.foreach ([&](EntityId s) {
-
-                    index_tuple idx{s.x, s.y, s.z};
-                    if (in_box(id_box, idx)) {
-                        int i = EntityIdCoder::m_id_to_sub_index_[(s.w & 0b111)];
-                        s.w = static_cast<int16_t>((s.w & 0b111) | (j << 3));
-                        f[i * DOF + j].Assign(idx, fun(s));
-                    }
-                });
+            for (int i = 0; i < num_of_sub; ++i) {
+                for (int j = 0; j < DOF; ++j) {
+                    int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][i];
+                    auto &lhs = f[i * DOF + j];
+                    r.foreach ([&](EntityId s) {
+                        index_tuple idx{s.x, s.y, s.z};
+                        if (in_box(id_box, idx) && tag == (s.w & 0b111)) {
+                            s.w = static_cast<int16_t>((s.w & 0b111) | (j << 3));
+                            lhs.Assign(idx, fun(s));
+                        }
+                    });
+                }
             }
         }
     }
