@@ -20,6 +20,7 @@ class StructuredMesh : public engine::MeshBase {
     typedef Real scalar_type;
 
     explicit StructuredMesh(engine::Domain *d) : engine::MeshBase(d){};
+
     ~StructuredMesh() override = default;
     SP_DEFAULT_CONSTRUCT(StructuredMesh);
     DECLARE_REGISTER_NAME("StructuredMesh");
@@ -37,6 +38,7 @@ class StructuredMesh : public engine::MeshBase {
                                    EntityIdCoder::m_id_to_coordinates_shift_[s.w & 7][1],  //
                                    EntityIdCoder::m_id_to_coordinates_shift_[s.w & 7][2]});
     }
+
     template <typename V>
     using data_type = data::DataMultiArray<V, NDIMS>;
 
@@ -120,9 +122,13 @@ class StructuredMesh : public engine::MeshBase {
     }
 
     void SetOrigin(point_type x) override { m_x0_ = x; }
+
     void SetDx(point_type dx) override { m_dx_ = dx; }
+
     point_type const &GetOrigin() override { return m_x0_; }
+
     point_type const &GetDx() override { return m_dx_; }
+
     void SetUp() override {
         m_i_dx_ = 1.0 / m_dx_;
         m_i_x0_ = -m_x0_ / m_dx_;
@@ -175,21 +181,18 @@ class StructuredMesh : public engine::MeshBase {
     template <typename M, typename V, int IFORM, int DOF>
     void Assign(Field<M, V, IFORM, DOF> &f, EntityRange const &r, Field<M, V, IFORM, DOF> const &other,
                 ENABLE_IF((std::is_base_of<this_type, M>::value))) const {
-        int num_of_sub = IFORM == VERTEX || IFORM == VOLUME ? 1 : 3;
+        static constexpr int num_of_sub = IFORM == VERTEX || IFORM == VOLUME ? 1 : 3;
 
-        if (r.isNull()) {
-            for (int i = 0; i < num_of_sub; ++i) {
-                for (int j = 0; j < DOF; ++j) { f[i * DOF + j] = other[i * DOF + j]; }
-            }
-        } else {
-            auto id_box = GetIndexBox(IFORM);
+        for (int i = 0; i < num_of_sub; ++i) {
+            for (int j = 0; j < DOF; ++j) {
+                int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][i];
+                auto id_box = GetIndexBox(tag);
+                auto &lhs = f[i * DOF + j];
+                auto &rhs = other[i * DOF + j];
 
-            for (int i = 0; i < num_of_sub; ++i) {
-                for (int j = 0; j < DOF; ++j) {
-                    auto &lhs = f[i * DOF + j];
-                    auto &rhs = other[i * DOF + j];
-
-                    int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][i];
+                if (r.isNull()) {
+                    lhs = rhs;
+                } else {
                     r.foreach ([&](EntityId s) {
                         index_tuple idx{s.x, s.y, s.z};
                         if (in_box(id_box, idx) && tag == (s.w & 0b111)) { lhs.Assign(idx, rhs); }
@@ -199,48 +202,21 @@ class StructuredMesh : public engine::MeshBase {
         }
     }
 
-    template <typename M, typename V, int IFORM, int DOF, typename Other>
-    void Assign(Field<M, V, IFORM, DOF> &f, EntityRange const &r, Other const &other,
-                ENABLE_IF((std::is_base_of<this_type, M>::value &&           //
-                           !concept::is_callable<Other(EntityId)>::value &&  //
-                           !concept::is_callable<Other(point_type const &)>::value))) const {
-        static_assert(std::is_base_of<this_type, M>::value, "illegal mesh type");
-        int num_of_sub = IFORM == VERTEX || IFORM == VOLUME ? 1 : 3;
-
-        if (r.isNull()) {
-            for (int i = 0; i < num_of_sub; ++i) {
-                for (int j = 0; j < DOF; ++j) {
-                    f[i * DOF + j] = calculator<M>::getValue(*dynamic_cast<M const *>(this), other,
-                                                             EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3));
-                }
-            }
-        } else {
-            auto id_box = GetIndexBox(IFORM);
-            for (int i = 0; i < num_of_sub; ++i) {
-                for (int j = 0; j < DOF; ++j) {
-                    int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][i];
-                    auto &lhs = f[i * DOF + j];
-                    auto rhs = calculator<M>::getValue(*dynamic_cast<M const *>(this), other, tag | (j << 3));
-                    r.foreach ([&](EntityId s) {
-                        index_tuple idx{s.x, s.y, s.z};
-                        if (in_box(id_box, idx) && tag == (s.w & 0b111)) { lhs.Assign(idx, rhs); }
-                    });
-                }
-            }
-        }
-    };
-
     template <typename M, typename V, int IFORM, int DOF, typename TFun>
     void Assign(Field<M, V, IFORM, DOF> &f, EntityRange const &r, TFun const &fun,
                 ENABLE_IF((std::is_base_of<this_type, M>::value &&
                            std::is_same<std::result_of_t<TFun(EntityId)>, V>::value))) const {
-        int num_of_sub = IFORM == VERTEX || IFORM == VOLUME ? 1 : 3;
+        static constexpr int num_of_sub = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
 
-        if (r.isNull()) {
-            for (int i = 0; i < num_of_sub * DOF; ++i) {
-                for (int j = 0; j < DOF; ++j) {
-                    int w = EntityIdCoder::m_sub_index_to_id_[IFORM][i] | (j << 3);
-                    f[i * DOF + j] = [=](index_tuple const &idx) {
+        for (int i = 0; i < num_of_sub; ++i)
+            for (int j = 0; j < DOF; ++j) {
+                int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][i];
+                auto id_box = GetIndexBox(tag);
+                int16_t w = static_cast<int16_t>(tag | (j << 3));
+                auto &lhs = f[i * DOF + j];
+
+                if (r.isNull()) {
+                    lhs = [=](index_tuple const &idx) {
                         EntityId s;
                         s.w = static_cast<int16_t>(w);
                         s.x = static_cast<int16_t>(idx[0]);
@@ -248,25 +224,45 @@ class StructuredMesh : public engine::MeshBase {
                         s.z = static_cast<int16_t>(idx[2]);
                         return fun(s);
                     };
-                }
-            }
-        } else {
-            auto id_box = GetIndexBox(IFORM);
-            for (int i = 0; i < num_of_sub; ++i) {
-                for (int j = 0; j < DOF; ++j) {
-                    int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][i];
-                    auto &lhs = f[i * DOF + j];
+                } else {
                     r.foreach ([&](EntityId s) {
                         index_tuple idx{s.x, s.y, s.z};
-                        if (in_box(id_box, idx) && tag == (s.w & 0b111)) {
-                            s.w = static_cast<int16_t>((s.w & 0b111) | (j << 3));
+                        if (in_box(id_box, idx) && (tag == s.w)) {
+                            s.w = w;
                             lhs.Assign(idx, fun(s));
                         }
                     });
                 }
             }
-        }
     }
+    template <typename M, typename V, int IFORM, int DOF, typename Other>
+    void Assign(Field<M, V, IFORM, DOF> &f, EntityRange const &r, Other const &other,
+                ENABLE_IF((std::is_base_of<this_type, M>::value &&           //
+                           !concept::is_callable<Other(EntityId)>::value &&  //
+                           !concept::is_callable<Other(point_type const &)>::value))) const {
+        static_assert(std::is_base_of<this_type, M>::value, "illegal mesh type");
+
+        static constexpr int num_of_sub = IFORM == VERTEX || IFORM == VOLUME ? 1 : 3;
+
+        for (int i = 0; i < num_of_sub; ++i) {
+            for (int j = 0; j < DOF; ++j) {
+                int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][i];
+                auto id_box = GetIndexBox(tag);
+
+                auto &lhs = f[i * DOF + j];
+                auto rhs = calculator<M>::getValue(*dynamic_cast<M const *>(this), other, tag | (j << 3));
+
+                if (r.isNull()) {
+                    lhs = rhs;
+                } else {
+                    r.foreach ([&](EntityId s) {
+                        index_tuple idx{s.x, s.y, s.z};
+                        if (in_box(id_box, idx) && tag == s.w) { lhs.Assign(idx, rhs); }
+                    });
+                }
+            }
+        }
+    };
     template <typename M, typename V, int IFORM, int DOF, typename TFun>
     void Assign(Field<M, V, IFORM, DOF> &f, EntityRange const &r, TFun const &fun,
                 ENABLE_IF((std::is_base_of<this_type, M>::value &&
