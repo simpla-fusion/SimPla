@@ -109,8 +109,8 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
                                                                      std::shared_ptr<data::DataTable> const& d) {
     Click();
     auto sp = std::make_shared<fluid_s>();
-    sp->mass = d->GetValue<double>("mass", d->GetValue<double>("mass", 1) * SI_proton_mass);
-    sp->charge = d->GetValue<double>("charge", d->GetValue<double>("Z", 1) * SI_elementary_charge);
+    sp->mass = d->GetValue<double>("mass", d->GetValue<double>("mass", 1)) * SI_proton_mass;
+    sp->charge = d->GetValue<double>("charge", d->GetValue<double>("Z", 1)) * SI_elementary_charge;
     sp->ratio = d->GetValue<double>("ratio", d->GetValue<double>("ratio", 1));
 
     sp->rho = std::make_shared<field_type<VOLUME>>(this, "name"_ = name + "_rho");

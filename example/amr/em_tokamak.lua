@@ -16,10 +16,10 @@ Context = {
     {
         Main = {
             Type = "EMFluidCylindricalSMesh",
---                        Species = {
---                            ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
---                            H = { Z = 1.0, mass = 1.0 , ratio = 1.0 },
---                        }
+            Species = {
+                ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
+                H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
+            }
         },
     },
     Model = {},
@@ -29,4 +29,4 @@ Context = {
     }
 }
 
-Schedule = { Type = "SAMRAITimeIntegrator", TimeBegin = 0.0, TimeEnd = 20e-8, TimeStep = 1.0e-11 }
+Schedule = { Type = "SAMRAITimeIntegrator", TimeBegin = 0.0, TimeEnd = 2e-9, TimeStep = 1.0e-11 }
