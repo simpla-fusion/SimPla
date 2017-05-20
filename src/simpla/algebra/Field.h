@@ -97,10 +97,8 @@ class Field : public engine::Attribute {
         Assign(rhs);
         return *this;
     };
-
-    auto const& operator[](int n) const { return *m_data_->Get(n); }
-
-    auto& operator[](int n) { return *m_data_->Get(n); }
+    auto& operator[](int n) { return m_data_->at(n); }
+    auto const& operator[](int n) const { return m_data_->at(n); }
 
     //*****************************************************************************************************************
     this_type operator[](EntityRange const& d) const { return this_type(*this, d); }
