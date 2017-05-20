@@ -176,8 +176,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     if (m_fluid_sp_.size() > 0) {
         field_type<VOLUME, 3> Q{this};
         field_type<VOLUME, 3> K{this};
-        field_type<VOLUME, 3> KB{this};
-        field_type<VOLUME, 1> tmp{this};
+
         field_type<VOLUME> a{this};
         field_type<VOLUME> b{this};
         field_type<VOLUME> c{this};
@@ -199,13 +198,13 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
 
             Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
 
-            Q = Q - 0.5 * dt / epsilon0 * Js;
+            Q += -0.5 * dt / epsilon0 * Js;
 
             K = (Ev * qs * ns * 2.0 + cross_v(Js, B0v)) * as + Js;
 
             Js = (K + cross_v(K, B0v) * as + B0v * (dot_v(K, B0v) * as * as)) / (BB * as * as + 1);
 
-            Q = Q - 0.5 * dt / epsilon0 * Js;
+            Q += -0.5 * dt / epsilon0 * Js;
 
             a += qs * ns * (as / (BB * as * as + 1));
             b += qs * ns * (as * as / (BB * as * as + 1));

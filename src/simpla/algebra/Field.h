@@ -150,14 +150,14 @@ class Field : public engine::Attribute {
     template <typename TOther>
     void DeepCopy(TOther const& other) {
         DoSetUp();
-        ASSERT(m_data_ != nullptr);
+        ASSERT(m_data_ != nullptr && m_data_->size() > 0);
         m_data_->DeepCopy(other.data());
     }
 
     template <typename Other>
     void Assign(Other const& other) {
         DoSetUp();
-        ASSERT(m_mesh_ != nullptr);
+        ASSERT(m_data_ != nullptr && m_data_->size() > 0);
         m_mesh_->Assign(*this, m_range_, other);
     }
 

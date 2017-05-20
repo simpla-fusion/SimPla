@@ -16,10 +16,10 @@ Context = {
     {
         Main = {
             Type = "EMFluidCylindricalSMesh",
-            Species = {
-                ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
-                H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
-            }
+--            Species = {
+--                ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
+--                H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
+--            }
         },
     },
     Model = {},
