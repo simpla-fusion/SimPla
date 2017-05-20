@@ -95,8 +95,16 @@ struct Expression<TOP, Args...> {
     explicit Expression(Args &... args) noexcept : m_args_(args...) {}
     virtual ~Expression() = default;
 
-    this_type &operator=(this_type const &) = delete;
-    this_type &operator=(this_type &&) = delete;
+    void swap(this_type &other) { m_args_.swap(other.m_args_); }
+
+    this_type &operator=(this_type const &other) {
+        this_type(other).swap(*this);
+        return *this;
+    };
+    this_type &operator=(this_type &&other) {
+        this_type(other).swap(*this);
+        return *this;
+    };
 
     template <typename T>
     explicit operator T() const {

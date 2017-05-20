@@ -176,7 +176,6 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     if (m_fluid_sp_.size() > 0) {
         field_type<VOLUME, 3> Q{this};
         field_type<VOLUME, 3> K{this};
-        field_type<VOLUME, 3> KB{this};
 
         field_type<VOLUME> a{this};
         field_type<VOLUME> b{this};
@@ -189,7 +188,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
         Q = map_to<VOLUME>(E) - Ev;
         dE.Clear();
         K.Clear();
-        KB.Clear();
+
         for (auto& p : m_fluid_sp_) {
             Real ms = p.second->mass;
             Real qs = p.second->charge;
@@ -201,8 +200,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
             Q -= 0.5 * dt / epsilon0 * Js;
 
             K = (Ev * qs * ns * 2.0 + cross_v(Js, B0v)) * as + Js;
-            KB = dot_v(K, K);
-            Js = (K + cross_v(K, B0v) * as + B0v * (KB * as * as)) / (BB * as * as + 1);
+            Js = (K + cross_v(K, B0v) * as + B0v * (dot_v(K, B0v) * as * as)) / (BB * as * as + 1);
 
             Q -= 0.5 * dt / epsilon0 * Js;
 
@@ -215,8 +213,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
         b *= 0.5 * dt / epsilon0;
         c *= 0.5 * dt / epsilon0;
         a += 1;
-        //        KB = dot_v(Q, B0v);
-        dE = (Q * a - cross_v(Q, B0v) * b + B0v * (/*dot_v(Q, B0v)*/ KB * (b * b - c * a) / (a + c * BB))) /
+        dE = (Q * a - cross_v(Q, B0v) * b + B0v * (dot_v(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
              (b * b * BB + a * a);
 
         for (auto& p : m_fluid_sp_) {
@@ -228,8 +225,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
             Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
 
             K = dE * ns * qs * as;
-            //            KB = dot_v(Q, B0v);
-            Js += (K + cross_v(K, B0v) * as + B0v * (/*dot_v(K, B0v)*/ KB * as * as)) / (BB * as * as + 1);
+            Js += (K + cross_v(K, B0v) * as + B0v * (dot_v(K, B0v) * as * as)) / (BB * as * as + 1);
         }
         Ev += dE;
         E += map_to<EDGE>(Ev) - E;

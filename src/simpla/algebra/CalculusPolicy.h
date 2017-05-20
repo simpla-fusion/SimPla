@@ -53,11 +53,11 @@ struct calculator {
 
     template <typename M, typename V, int I, int D>
     static auto getValue(mesh_type const& m, Field<M, V, I, D> const& f, int tag, IdxShift S = IdxShift{0, 0, 0}) {
-        return f[EntityIdCoder::m_id_to_sub_index_[(tag & 0b111)] * D + (tag >> 3)](S);
+        return f[EntityIdCoder::m_id_to_sub_index_[(tag & 0b111)] * D + (tag >> 3) % D](S);
     };
     template <typename M, typename V, int I, int D>
     static auto getValue(mesh_type const& m, Field<M, V, I, D>& f, int tag, IdxShift S = IdxShift{0, 0, 0}) {
-        return f[EntityIdCoder::m_id_to_sub_index_[tag & 0b111] * D + (tag >> 3)](S);
+        return f[EntityIdCoder::m_id_to_sub_index_[tag & 0b111] * D + (tag >> 3) % D](S);
     };
 
     template <typename TFun>
@@ -592,26 +592,6 @@ struct calculator {
         return getValue(m, l, 0b111 | (((n + 1) % 3) << 3), S) * getValue(m, r, 0b111 | (((n + 2) % 3) << 3), S) -
                getValue(m, l, 0b111 | (((n + 2) % 3) << 3), S) * getValue(m, r, 0b111 | (((n + 1) % 3) << 3), S);
     }
-    //
-    //    template <typename... TExpr>
-    //    static auto eval(mesh_type const& m, Expression<tags::_dot, TExpr...> const& expr, int s, IdxShift S,
-    //                     int_sequence<VERTEX, VERTEX>) {
-    //        static auto const& l = std::get<0>(expr.m_args_);
-    //        static auto const& r = std::get<1>(expr.m_args_);
-    //        return getValue(m, l, (0 << 3), S) * getValue(m, r, (0 << 3), S) +  //
-    //               getValue(m, l, (1 << 3), S) * getValue(m, r, (1 << 3), S) +  //
-    //               getValue(m, l, (2 << 3), S) * getValue(m, r, (2 << 3), S);
-    //    }
-    //
-    //    template <typename... TExpr>
-    //    static auto eval(mesh_type const& m, Expression<tags::_dot, TExpr...> const& expr, int s, IdxShift S,
-    //                     int_sequence<VOLUME, VOLUME>) {
-    //        static auto const& l = std::get<0>(expr.m_args_);
-    //        static auto const& r = std::get<1>(expr.m_args_);
-    //        return getValue(m, l, 0b111 | (0 << 3), S) * getValue(m, r, 0b111 | (0 << 3), S) +  //
-    //               getValue(m, l, 0b111 | (1 << 3), S) * getValue(m, r, 0b111 | (1 << 3), S) +  //
-    //               getValue(m, l, 0b111 | (2 << 3), S) * getValue(m, r, 0b111 | (2 << 3), S);
-    //    }
 
     ///*********************************************************************************************
     /// @name general_algebra General algebra
