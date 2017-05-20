@@ -84,7 +84,7 @@ std::shared_ptr<data::DataTable> EMFluid<TM>::Serialize() const {
     for (auto& item : m_fluid_sp_) {
         auto t = std::make_shared<data::DataTable>();
         t->SetValue<double>("mass", item.second->mass / SI_proton_mass);
-        t->SetValue<double>("charge", item.second->charge / SI_elementary_charge);
+        t->SetValue<double>("Z", item.second->charge / SI_elementary_charge);
         t->SetValue<double>("ratio", item.second->ratio);
 
         res->Set("Species/" + item.first, t);
