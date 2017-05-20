@@ -74,11 +74,6 @@ class Domain : public SPObject,
     std::shared_ptr<Patch> ApplyBoundaryCondition(const std::shared_ptr<Patch> &, Real time_now, Real dt);
     std::shared_ptr<Patch> DoAdvance(const std::shared_ptr<Patch> &, Real time_now, Real dt);
 
-    //    template <typename T>
-    //    T GetAttribute(std::string const &k) const {
-    //        return T(Get(k)->cast_as<T>());
-    //    };
-
     template <typename T>
     T GetAttribute(std::string const &k, EntityRange const &r) const {
         return T(Get(k)->cast_as<T>(), r);

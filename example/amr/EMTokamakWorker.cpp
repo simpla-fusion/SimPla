@@ -91,14 +91,20 @@ void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
         B0v = [&](point_type const& x) -> Vec3 { return geqdsk.B(x[0], x[1]); };
     });
 
-
-
     d->PreAdvance.Connect([=](Domain* self, Real time_now, Real time_dt) {
         auto J = self->GetAttribute<Field<mesh_type, Real, EDGE>>("J", "Antenna");
+        J.Clear();
         J = [&](point_type const& x) -> Vec3 {
             Real a = std::sin(n_phi * x[2] + TWOPI * freq * time_now);
             return Vec3{std::sin(x[2]) * a, 0, a * std::cos(x[2])};
         };
+
+        //        auto Jv = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Jv");
+        //        Jv = [&](point_type const& x) -> Vec3 {
+        //            Real a = std::sin(n_phi * x[2] + TWOPI * freq * time_now);
+        //            return Vec3{std::sin(x[2]) * a, 0, a * std::cos(x[2])};
+        //        };
+
     });
     d->PostAdvance.Connect([=](Domain* self, Real time_now, Real time_dt) {
 
@@ -113,7 +119,6 @@ void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
             self->GetAttribute<Field<mesh_type, Real, FACE>>("B"));
 
     });
-
 }
 //    std::cout << "Model = ";
 //    GetModel().Serialize(std::cout, 0);
