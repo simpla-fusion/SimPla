@@ -170,7 +170,7 @@ struct calculator {
     template <typename TExpr>
     static auto eval(mesh_type const& m, Expression<tags::_exterior_derivative, TExpr> const& expr, int s, IdxShift S,
                      int_sequence<VERTEX>) {
-        static auto const& l = std::get<0>(expr.m_args_);
+        auto const& l = std::get<0>(expr.m_args_);
         IdxShift D{0, 0, 0};
         D[EntityIdCoder::m_id_to_sub_index_[s % 0b111]] = 1;
         return (getValue(m, getV(m, l), s & (~0b111), S + D) - getValue(m, getV(m, l), s & (~0b111), S)) *
@@ -182,7 +182,7 @@ struct calculator {
     template <typename TExpr>
     static auto eval(mesh_type const& m, Expression<tags::_exterior_derivative, TExpr> const& expr, int s, IdxShift S,
                      int_sequence<EDGE>) {
-        static auto const& l = std::get<0>(expr.m_args_);
+        auto const& l = std::get<0>(expr.m_args_);
 
         IdxShift Y{0, 0, 0};
         IdxShift Z{0, 0, 0};
@@ -203,7 +203,7 @@ struct calculator {
     template <typename TExpr>
     static auto eval(mesh_type const& m, Expression<tags::_exterior_derivative, TExpr> const& expr, int s, IdxShift S,
                      int_sequence<FACE>) {
-        static auto const& l = std::get<0>(expr.m_args_);
+        auto const& l = std::get<0>(expr.m_args_);
 
         IdxShift X{1, 0, 0};
         IdxShift Y{0, 1, 0};
@@ -223,7 +223,7 @@ struct calculator {
     template <typename TExpr>
     static auto eval(mesh_type const& m, Expression<tags::_codifferential_derivative, TExpr> const& expr, int s,
                      IdxShift S, int_sequence<FACE>) {
-        static auto const& l = std::get<0>(expr.m_args_);
+        auto const& l = std::get<0>(expr.m_args_);
         IdxShift Y{0, 0, 0};
         IdxShift Z{0, 0, 0};
 
@@ -246,7 +246,7 @@ struct calculator {
     template <typename TExpr>
     static auto eval(mesh_type const& m, Expression<tags::_codifferential_derivative, TExpr> const& expr, int s,
                      IdxShift S, int_sequence<EDGE>) {
-        static auto const& l = std::get<0>(expr.m_args_);
+        auto const& l = std::get<0>(expr.m_args_);
 
         IdxShift X{1, 0, 0};
         IdxShift Y{0, 1, 0};
@@ -268,7 +268,7 @@ struct calculator {
     template <typename TExpr>
     static auto eval(mesh_type const& m, Expression<tags::_codifferential_derivative, TExpr> const& expr, int s,
                      IdxShift S, int_sequence<VOLUME>) {
-        static auto const& l = std::get<0>(expr.m_args_);
+        auto const& l = std::get<0>(expr.m_args_);
         IdxShift D{0, 0, 0};
         D[EntityIdCoder::m_id_to_sub_index_[s & 0b111]] = 1;
 
@@ -281,7 +281,7 @@ struct calculator {
     template <typename TExpr>
     static auto eval(mesh_type const& m, Expression<tags::_hodge_star, TExpr> const& expr, int s, IdxShift S,
                      int_sequence<VERTEX>) {
-        static auto const& l = std::get<0>(expr.m_args_);
+        auto const& l = std::get<0>(expr.m_args_);
 
         return (                                                                      //
                    getValue(m, getV(m, l), s & (~0b111), S + IdxShift{-1, -1, -1}) +  //
@@ -410,7 +410,7 @@ struct calculator {
 
     template <typename TExpr>
     static auto _map_to(mesh_type const& m, TExpr const& expr, int s, IdxShift S, std::index_sequence<VOLUME, VERTEX>) {
-        static auto const& l = expr;
+        auto const& l = expr;
 
         return (                                                          //
                    getValue(m, l, s | 0b111, S + IdxShift{-1, -1, -1}) +  //
@@ -435,7 +435,7 @@ struct calculator {
 
     template <typename TExpr>
     static auto _map_to(mesh_type const& m, TExpr const& expr, int s, IdxShift S, std::index_sequence<VOLUME, EDGE>) {
-        static auto const& l = expr;
+        auto const& l = expr;
         int n = EntityIdCoder::m_id_to_sub_index_[s];
 
         IdxShift X{0, 0, 0};
@@ -487,7 +487,7 @@ struct calculator {
     template <typename TExpr, int IL, int IR>
     static auto eval(mesh_type const& m, Expression<simpla::tags::_map_to<IL>, TExpr> const& expr, int s, IdxShift S,
                      int_sequence<IR>) {
-        return _map_to(m, std::get<0>(expr.m_args_), s, S, std::index_sequence<IL, IR>());
+        return _map_to(m, std::get<0>(expr.m_args_), s, S, std::index_sequence<IR, IL>());
     }
     //***************************************************************************************************
     //
@@ -504,8 +504,8 @@ struct calculator {
                      int_sequence<EDGE, EDGE>) {
         int n = EntityIdCoder::m_id_to_sub_index_[s];
 
-        static auto const& l = std::get<0>(expr.m_args_);
-        static auto const& r = std::get<1>(expr.m_args_);
+        auto const& l = std::get<0>(expr.m_args_);
+        auto const& r = std::get<1>(expr.m_args_);
 
         IdxShift Y{0, 0, 0};
         IdxShift Z{0, 0, 0};
@@ -524,8 +524,8 @@ struct calculator {
                      int_sequence<FACE, FACE>) {
         int n = EntityIdCoder::m_id_to_sub_index_[tag];
 
-        static auto const& l = std::get<0>(expr.m_args_);
-        static auto const& r = std::get<1>(expr.m_args_);
+        auto const& l = std::get<0>(expr.m_args_);
+        auto const& r = std::get<1>(expr.m_args_);
 
         IdxShift Y{0, 0, 0};
         IdxShift Z{0, 0, 0};
@@ -538,8 +538,8 @@ struct calculator {
     template <typename... TExpr>
     static auto eval(mesh_type const& m, Expression<simpla::tags::_dot, TExpr...> const& expr, int tag, IdxShift S,
                      int_sequence<VERTEX, VERTEX>) {
-        static auto const& l = std::get<0>(expr.m_args_);
-        static auto const& r = std::get<1>(expr.m_args_);
+        auto const& l = std::get<0>(expr.m_args_);
+        auto const& r = std::get<1>(expr.m_args_);
 
         return getValue(m, l, (0 << 3), S) * getValue(m, r, (0 << 3), S) +
                getValue(m, l, (1 << 3), S) * getValue(m, r, (1 << 3), S) +
@@ -549,8 +549,8 @@ struct calculator {
     template <typename... TExpr>
     static auto eval(mesh_type const& m, Expression<simpla::tags::_dot, TExpr...> const& expr, int tag, IdxShift S,
                      int_sequence<VOLUME, VOLUME>) {
-        static auto const& l = std::get<0>(expr.m_args_);
-        static auto const& r = std::get<1>(expr.m_args_);
+        auto const& l = std::get<0>(expr.m_args_);
+        auto const& r = std::get<1>(expr.m_args_);
 
         return getValue(m, l, (0 << 3) | 0b111, S) * getValue(m, r, (0 << 3) | 0b111, S) +
                getValue(m, l, (1 << 3) | 0b111, S) * getValue(m, r, (1 << 3) | 0b111, S) +
@@ -560,23 +560,23 @@ struct calculator {
     template <typename... TExpr>
     static auto eval(mesh_type const& m, Expression<simpla::tags::_dot, TExpr...> const& expr, int tag, IdxShift S,
                      int_sequence<EDGE, EDGE>) {
-        static auto const& l = std::get<0>(expr.m_args_);
-        static auto const& r = std::get<1>(expr.m_args_);
+        auto const& l = std::get<0>(expr.m_args_);
+        auto const& r = std::get<1>(expr.m_args_);
 
         return eval(m, dot_v(map_to<VERTEX>(l), map_to<VERTEX>(r)), tag, S, int_sequence<VERTEX>());
     }
     template <typename... TExpr>
     static auto eval(mesh_type const& m, Expression<simpla::tags::_dot, TExpr...> const& expr, int tag, IdxShift S,
                      int_sequence<FACE, FACE>) {
-        static auto const& l = std::get<0>(expr.m_args_);
-        static auto const& r = std::get<1>(expr.m_args_);
+        auto const& l = std::get<0>(expr.m_args_);
+        auto const& r = std::get<1>(expr.m_args_);
         return eval(m, dot_v(map_to<VERTEX>(l), map_to<VERTEX>(r)), tag, S, int_sequence<VERTEX>());
     }
     template <typename... TExpr>
     static auto eval(mesh_type const& m, Expression<simpla::tags::_cross, TExpr...> const& expr, int tag, IdxShift S,
                      int_sequence<VERTEX, VERTEX>) {
-        static auto const& l = std::get<0>(expr.m_args_);
-        static auto const& r = std::get<1>(expr.m_args_);
+        auto const& l = std::get<0>(expr.m_args_);
+        auto const& r = std::get<1>(expr.m_args_);
 
         int n = tag >> 3;
         return getValue(m, l, ((n + 1) % 3) << 3, S) * getValue(m, r, ((n + 2) % 3) << 3, S) -
@@ -586,8 +586,8 @@ struct calculator {
     template <typename... TExpr>
     static auto eval(mesh_type const& m, Expression<simpla::tags::_cross, TExpr...> const& expr, int tag, IdxShift S,
                      int_sequence<VOLUME, VOLUME>) {
-        static auto const& l = std::get<0>(expr.m_args_);
-        static auto const& r = std::get<1>(expr.m_args_);
+        auto const& l = std::get<0>(expr.m_args_);
+        auto const& r = std::get<1>(expr.m_args_);
         int n = (tag >> 3) % 3;
         return getValue(m, l, 0b111 | (((n + 1) % 3) << 3), S) * getValue(m, r, 0b111 | (((n + 2) % 3) << 3), S) -
                getValue(m, l, 0b111 | (((n + 2) % 3) << 3), S) * getValue(m, r, 0b111 | (((n + 1) % 3) << 3), S);

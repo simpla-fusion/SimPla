@@ -267,7 +267,7 @@ struct Array {
     this_type operator()(ArrayIndexShift const& IX) const {
         this_type res(*this);
         res.Shift(IX);
-        return std::move(res);
+        return res;
     }
 
     template <typename TIdx>
@@ -294,8 +294,7 @@ struct Array {
         size_type s = dot(m_strides_, idx) + m_offset_;
         //#ifndef NDEBUG
         //        if (s < 0 || s >= m_size_) {
-        ////            std::cerr << m_index_box_ << "~" << idx << std::endl;
-        //
+        //           std::cerr << m_index_box_ << "~" << idx << std::endl;
         //            OUT_OF_RANGE << "[" << 0 << "," << m_size_ << "] ~" << s << std::endl;
         //        }
         //#endif
