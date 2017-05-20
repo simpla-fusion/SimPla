@@ -29,4 +29,4 @@ Context = {
     }
 }
 
-Schedule = { Type = "SAMRAITimeIntegrator", TimeBegin = 0.0, TimeEnd = 20e-8, TimeStep = 1.0e-9 }
+Schedule = { Type = "SAMRAITimeIntegrator", TimeBegin = 0.0, TimeEnd = 20e-8, TimeStep = 1.0e-11 }
