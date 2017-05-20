@@ -47,10 +47,10 @@ class MeshBase : public SPObject, public data::EnableCreateFromDataTable<MeshBas
     void SetBlock(std::shared_ptr<MeshBlock>);
     std::shared_ptr<MeshBlock> GetBlock() const;
 
-    virtual Real volume(EntityId s) const = 0;
-    virtual Real dual_volume(EntityId s) const = 0;
-    virtual Real inv_volume(EntityId s) const = 0;
-    virtual Real inv_dual_volume(EntityId s) const = 0;
+//    virtual Real volume(EntityId s) const = 0;
+//    virtual Real dual_volume(EntityId s) const = 0;
+//    virtual Real inv_volume(EntityId s) const = 0;
+//    virtual Real inv_dual_volume(EntityId s) const = 0;
 
     virtual point_type point(EntityId s) const = 0;
     virtual point_type point(EntityId id, point_type const &pr) const { return point_type{}; };

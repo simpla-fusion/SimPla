@@ -64,13 +64,13 @@ class DataMultiArray : public DataBlock {
     int GetNDIMS() const override { return NDIMS; }
     size_type GetDepth() const override { return m_data_.size(); }
 
-    void SetArray(int depth, array_type d) { array_type(d).swap(m_data_[depth % m_data_.size()]); }
-    array_type *Get(int depth = 0) { return &m_data_[depth % m_data_.size()]; }
-    array_type const *Get(int depth = 0) const { return &m_data_[depth % m_data_.size()]; }
-    array_type &GetArray(int depth = 0) { return m_data_[depth % m_data_.size()]; }
-    array_type const &GetArray(int depth = 0) const { return m_data_[depth % m_data_.size()]; }
-    array_type &operator[](int depth) { return m_data_[depth % m_data_.size()]; }
-    array_type const &operator[](int depth) const { return m_data_[depth % m_data_.size()]; }
+    void SetArray(int depth, array_type d) { array_type(d).swap(m_data_[depth]); }
+    array_type *Get(int depth = 0) { return &m_data_[depth]; }
+    array_type const *Get(int depth = 0) const { return &m_data_[depth]; }
+    array_type &GetArray(int depth = 0) { return m_data_[depth]; }
+    array_type const &GetArray(int depth = 0) const { return m_data_[depth]; }
+    array_type &operator[](int depth) { return m_data_[depth]; }
+    array_type const &operator[](int depth) const { return m_data_[depth]; }
     void DeepCopy(std::shared_ptr<this_type> const &other) {
         if (other == nullptr) { return; }
         if (m_data_.size() < other->size()) { m_data_.resize(other->m_data_.size()); }

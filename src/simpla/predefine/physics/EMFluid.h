@@ -173,67 +173,67 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * dt;
     E[GetBoundaryRange(EDGE)] = 0;
 
-//    if (m_fluid_sp_.size() > 0) {
-//        field_type<VOLUME, 3> Q{this};
-//        field_type<VOLUME, 3> K{this};
-//
-//        field_type<VOLUME> a{this};
-//        field_type<VOLUME> b{this};
-//        field_type<VOLUME> c{this};
-//
-//        a.Clear();
-//        b.Clear();
-//        c.Clear();
-//
-//        Q = map_to<VOLUME>(E) - Ev;
-//        dE.Clear();
-//        K.Clear();
-//
-//        for (auto& p : m_fluid_sp_) {
-//            Real ms = p.second->mass;
-//            Real qs = p.second->charge;
-//            auto& ns = *p.second->rho;
-//            auto& Js = *p.second->J;
-//
-//            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
-//
-//            Q -= 0.5 * dt / epsilon0 * Js;
-//
-//            K = (Ev * qs * ns * 2.0 + cross_v(Js, B0v)) * as + Js;
-//
-//            Js = B0v * dot_v(K, B0v);
-//
-//            // (K + cross_v(K, B0v) * as + B0v * (dot_v(K, B0v) * as * as)) / (BB * as * as + 1);
-//
-//            Q -= 0.5 * dt / epsilon0 * Js;
-//
-//            a += qs * ns * (as / (BB * as * as + 1));
-//            b += qs * ns * (as * as / (BB * as * as + 1));
-//            c += qs * ns * (as * as * as / (BB * as * as + 1));
-//        }
-//
-//        a *= 0.5 * dt / epsilon0;
-//        b *= 0.5 * dt / epsilon0;
-//        c *= 0.5 * dt / epsilon0;
-//        a += 1;
-//
-//        dE = (Q * a - cross_v(Q, B0v) * b + B0v * (dot_v(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
-//             (b * b * BB + a * a);
-//
-//        for (auto& p : m_fluid_sp_) {
-//            Real ms = p.second->mass;
-//            Real qs = p.second->charge;
-//            auto& ns = *p.second->rho;
-//            auto& Js = *p.second->J;
-//
-//            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
-//
-//            K = dE * ns * qs * as;
-//            Js += (K + cross_v(K, B0v) * as + B0v * (dot_v(K, B0v) * as * as)) / (BB * as * as + 1);
-//        }
-//        Ev += dE;
-//        E += map_to<EDGE>(Ev) - E;
-//    }
+    if (m_fluid_sp_.size() > 0) {
+        field_type<VOLUME, 3> Q{this};
+        field_type<VOLUME, 3> K{this};
+        field_type<VOLUME, 3> KB{this};
+
+        field_type<VOLUME> a{this};
+        field_type<VOLUME> b{this};
+        field_type<VOLUME> c{this};
+
+        a.Clear();
+        b.Clear();
+        c.Clear();
+
+        Q = map_to<VOLUME>(E) - Ev;
+        dE.Clear();
+        K.Clear();
+        KB.Clear();
+        for (auto& p : m_fluid_sp_) {
+            Real ms = p.second->mass;
+            Real qs = p.second->charge;
+            auto& ns = *p.second->rho;
+            auto& Js = *p.second->J;
+
+            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
+
+            Q -= 0.5 * dt / epsilon0 * Js;
+
+            K = (Ev * qs * ns * 2.0 + cross_v(Js, B0v)) * as + Js;
+            KB = dot_v(K, K);
+            Js = (K + cross_v(K, B0v) * as + B0v * (KB * as * as)) / (BB * as * as + 1);
+
+            Q -= 0.5 * dt / epsilon0 * Js;
+
+            a += qs * ns * (as / (BB * as * as + 1));
+            b += qs * ns * (as * as / (BB * as * as + 1));
+            c += qs * ns * (as * as * as / (BB * as * as + 1));
+        }
+
+        a *= 0.5 * dt / epsilon0;
+        b *= 0.5 * dt / epsilon0;
+        c *= 0.5 * dt / epsilon0;
+        a += 1;
+        //        KB = dot_v(Q, B0v);
+        dE = (Q * a - cross_v(Q, B0v) * b + B0v * (/*dot_v(Q, B0v)*/ KB * (b * b - c * a) / (a + c * BB))) /
+             (b * b * BB + a * a);
+
+        for (auto& p : m_fluid_sp_) {
+            Real ms = p.second->mass;
+            Real qs = p.second->charge;
+            auto& ns = *p.second->rho;
+            auto& Js = *p.second->J;
+
+            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
+
+            K = dE * ns * qs * as;
+            //            KB = dot_v(Q, B0v);
+            Js += (K + cross_v(K, B0v) * as + B0v * (/*dot_v(K, B0v)*/ KB * as * as)) / (BB * as * as + 1);
+        }
+        Ev += dE;
+        E += map_to<EDGE>(Ev) - E;
+    }
     B = B - curl(E) * (dt * 0.5);
     B[GetBoundaryRange(FACE)] = 0;
 }

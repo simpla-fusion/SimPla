@@ -36,10 +36,10 @@ struct CoRectMesh : public StructuredMesh {
         return point_type{m_x0_[0] + m_dx_[0] * x, m_x0_[1] + m_dx_[1] * y, m_x0_[2] + m_dx_[2] * z};
     }
 
-    Real volume(EntityId s) const override { return m_volume_[s.w & 7]; }
-    Real dual_volume(EntityId s) const override { return m_volume_[s.w & 7]; }
-    Real inv_volume(EntityId s) const override { return m_volume_[s.w & 7]; }
-    Real inv_dual_volume(EntityId s) const override { return m_volume_[s.w & 7]; }
+//    Real volume(EntityId s) const override { return m_volume_[s.w & 7]; }
+//    Real dual_volume(EntityId s) const override { return m_volume_[s.w & 7]; }
+//    Real inv_volume(EntityId s) const override { return m_volume_[s.w & 7]; }
+//    Real inv_dual_volume(EntityId s) const override { return m_volume_[s.w & 7]; }
 
     std::pair<EntityId, point_type> map(point_type const &x, int node_id = VERTEX) const {
         point_type r;

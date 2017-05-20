@@ -216,9 +216,9 @@ auto operator>>(Field<TM, TL, NL, DL> const& lhs, int n) {
     auto _FUN_(Expression<TL...> const& lhs, Field<TM, TR, NR, DR> const& rhs) {                            \
         return Expression<tags::_TAG_, const Expression<TL...>, const Field<TM, TR, NR, DR>>(lhs, rhs);     \
     };                                                                                                      \
-    template <typename TM, typename TL, int NL, int DL, typename TR, int NR, int DR>                        \
-    auto _FUN_(Field<TM, TL, NL, DL> const& lhs, Field<TM, TR, NR, DR> const& rhs) {                        \
-        return Expression<tags::_TAG_, const Field<TM, TL, NL, DL>, const Field<TM, TR, NR, DR>>(lhs, rhs); \
+    template <typename ML, typename TL, int NL, int DL, typename MR, typename TR, int NR, int DR>           \
+    auto _FUN_(Field<ML, TL, NL, DL> const& lhs, Field<MR, TR, NR, DR> const& rhs) {                        \
+        return Expression<tags::_TAG_, const Field<ML, TL, NL, DL>, const Field<MR, TR, NR, DR>>(lhs, rhs); \
     };
 
 #define _SP_DEFINE_FIELD_UNARY_FUNCTION(_TAG_, _FUN_)                     \

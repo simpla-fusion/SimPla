@@ -41,22 +41,23 @@ struct calculator {
     }
 
     template <typename TOP, typename... T, int... I>
-    static auto eval(mesh_type const& m, Expression<TOP, T...> const& expr, int n, IdxShift S, int_sequence<I...>) {
-        return _invoke_helper(m, expr, n, S, make_int_sequence<sizeof...(I)>());
+    static auto eval(mesh_type const& m, Expression<TOP, T...> const& expr, int tag, IdxShift S, int_sequence<I...>) {
+        return _invoke_helper(m, expr, tag, S, make_int_sequence<sizeof...(I)>());
     }
 
     template <typename TOP, typename... T>
-    static auto getValue(mesh_type const& m, Expression<TOP, T...> const& expr, int n, IdxShift S = IdxShift{0, 0, 0}) {
-        return eval(m, expr, n, S, int_sequence<traits::iform<T>::value...>());
+    static auto getValue(mesh_type const& m, Expression<TOP, T...> const& expr, int tag,
+                         IdxShift S = IdxShift{0, 0, 0}) {
+        return eval(m, expr, tag, S, int_sequence<traits::iform<T>::value...>());
     }
 
     template <typename M, typename V, int I, int D>
-    static auto getValue(mesh_type const& m, Field<M, V, I, D> const& f, int n, IdxShift S = IdxShift{0, 0, 0}) {
-        return f[EntityIdCoder::m_id_to_sub_index_[(n & 0b111)] * D + (n >> 3)](S);
+    static auto getValue(mesh_type const& m, Field<M, V, I, D> const& f, int tag, IdxShift S = IdxShift{0, 0, 0}) {
+        return f[EntityIdCoder::m_id_to_sub_index_[(tag & 0b111)] * D + (tag >> 3)](S);
     };
     template <typename M, typename V, int I, int D>
-    static auto getValue(mesh_type const& m, Field<M, V, I, D>& f, int n, IdxShift S = IdxShift{0, 0, 0}) {
-        return f[EntityIdCoder::m_id_to_sub_index_[n & 0b111] * D + (n >> 3)](S);
+    static auto getValue(mesh_type const& m, Field<M, V, I, D>& f, int tag, IdxShift S = IdxShift{0, 0, 0}) {
+        return f[EntityIdCoder::m_id_to_sub_index_[tag & 0b111] * D + (tag >> 3)](S);
     };
 
     template <typename TFun>
@@ -83,19 +84,82 @@ struct calculator {
         return v[(((tag & 0b111) == 0) || ((tag & 0b111) == 7)) ? (tag >> 3)
                                                                 : EntityIdCoder::m_id_to_sub_index_[tag & 0b111]];
     }
-    static auto Volume(mesh_type const& m, int s, IdxShift S) { return getValue(m, m.m_volume_, s, S); }
-    static auto IVolume(mesh_type const& m, int s, IdxShift S) { return getValue(m, m.m_inv_volume_, s, S); }
-    static auto DVolume(mesh_type const& m, int s, IdxShift S) { return getValue(m, m.m_dual_volume_, s, S); }
-    static auto IDVolume(mesh_type const& m, int s, IdxShift S) { return getValue(m, m.m_inv_dual_volume_, s, S); }
+    //    static auto Volume(mesh_type const& m, int tag, IdxShift S) {
+    //        return getValue(m, m.m_volume_, ((tag & 0b111) << 3) | 0b111, S);
+    //    }
+    //    static auto IVolume(mesh_type const& m, int tag, IdxShift S) {
+    //        return getValue(m, m.m_inv_volume_, ((tag & 0b111) << 3) | 0b111, S);
+    //    }
+    //    static auto DVolume(mesh_type const& m, int tag, IdxShift S) {
+    //        return getValue(m, m.m_dual_volume_, ((tag & 0b111) << 3) | 0b111, S);
+    //    }
+    //    static auto IDVolume(mesh_type const& m, int tag, IdxShift S) {
+    //        return getValue(m, m.m_inv_dual_volume_, ((tag & 0b111) << 3) | 0b111, S);
+    //    }
+    //
+    //
+    //    template <typename TExpr>
+    //    static auto getV_(mesh_type const& m, std::integral_constant<int, VERTEX>, TExpr const& expr, int tag,
+    //    IdxShift S) {
+    //        return getValue(m, expr * m.m_vertex_volume_, tag, S);
+    //    }
+    //    template <typename TExpr>
+    //    static auto getV_(mesh_type const& m, std::integral_constant<int, EDGE>, TExpr const& expr, int tag, IdxShift
+    //    S) {
+    //        return getValue(m, expr * m.m_edge_volume_, tag, S);
+    //    }
+    //    template <typename TExpr>
+    //    static auto getV_(mesh_type const& m, std::integral_constant<int, FACE>, TExpr const& expr, int tag, IdxShift
+    //    S) {
+    //        return getValue(m, expr * m.m_face_volume_, tag, S);
+    //    }
+    //    template <typename TExpr>
+    //    static auto getV_(mesh_type const& m, std::integral_constant<int, VOLUME>, TExpr const& expr, int tag,
+    //    IdxShift S) {
+    //        return getValue(m, expr * m.m_volume_volume_, tag, S);
+    //    }
+    template <typename TExpr>
+    static auto getV(mesh_type const& m, TExpr const& expr, ENABLE_IF((traits::iform<TExpr>::value == VERTEX))) {
+        return expr * m.m_vertex_volume_;
+    }
+    template <typename TExpr>
+    static auto getV(mesh_type const& m, TExpr const& expr, ENABLE_IF((traits::iform<TExpr>::value == EDGE))) {
+        return expr * m.m_edge_volume_;
+    }
+    template <typename TExpr>
+    static auto getV(mesh_type const& m, TExpr const& expr, ENABLE_IF((traits::iform<TExpr>::value == FACE))) {
+        return expr * m.m_face_volume_;
+    }
+    template <typename TExpr>
+    static auto getV(mesh_type const& m, TExpr const& expr, ENABLE_IF((traits::iform<TExpr>::value == VOLUME))) {
+        return expr * m.m_volume_volume_;
+    }
 
     template <typename TExpr>
-    static auto getV(mesh_type const& m, TExpr const& expr, int s, IdxShift S) {
-        return getValue(m, expr, s, S) * Volume(m, s, S);
+    static auto getDualV(mesh_type const& m, TExpr const& expr, ENABLE_IF((traits::iform<TExpr>::value == VERTEX))) {
+        return expr * m.m_vertex_dual_volume_;
     }
     template <typename TExpr>
-    static auto getDualV(mesh_type const& m, TExpr const& expr, int s, IdxShift S) {
-        return getValue(m, expr, s, S) * DVolume(m, s, S);
+    static auto getDualV(mesh_type const& m, TExpr const& expr, ENABLE_IF((traits::iform<TExpr>::value == EDGE))) {
+        return expr * m.m_edge_dual_volume_;
     }
+    template <typename TExpr>
+    static auto getDualV(mesh_type const& m, TExpr const& expr, ENABLE_IF((traits::iform<TExpr>::value == FACE))) {
+        return expr * m.m_face_dual_volume_;
+    }
+    template <typename TExpr>
+    static auto getDualV(mesh_type const& m, TExpr const& expr, ENABLE_IF((traits::iform<TExpr>::value == VOLUME))) {
+        return expr * m.m_volume_dual_volume_;
+    }
+    //
+    //
+    //
+    //
+    //    template <typename TExpr>
+    //    static auto getDualV(mesh_type const& m, TExpr const& expr, int tag, IdxShift S) {
+    //        return getDualV_(m, std::integral_constant<int, traits::iform<TExpr>::value>(), expr, tag, S);
+    //        //        return getValue(m, expr, tag, S) * Volume(m, tag, S);
+    //    }
 
     //******************************************************************************
     // Exterior algebra
@@ -109,7 +173,8 @@ struct calculator {
         static auto const& l = std::get<0>(expr.m_args_);
         IdxShift D{0, 0, 0};
         D[EntityIdCoder::m_id_to_sub_index_[s % 0b111]] = 1;
-        return (getV(m, l, s & (~0b111), S + D) - getV(m, l, s & (~0b111), S)) * IVolume(m, s, S);
+        return (getValue(m, getV(m, l), s & (~0b111), S + D) - getValue(m, getV(m, l), s & (~0b111), S)) *
+               *getValue(m, m.m_edge_inv_volume_, s, S);
     }
 
     //! curl<1>
@@ -127,11 +192,11 @@ struct calculator {
         Y[(n + 1) % 3] = 1;
         Z[(n + 2) % 3] = 1;
 
-        return ((getV(m, l, (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 1) % 3], S + Z) -
-                 getV(m, l, (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 1) % 3], S)) -
-                (getV(m, l, (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 2) % 3], S + Y) -
-                 getV(m, l, (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 2) % 3], S))) *
-               IVolume(m, s, S);
+        return ((getValue(m, getV(m, l), (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 1) % 3], S + Z) -
+                 getValue(m, getV(m, l), (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 1) % 3], S)) -
+                (getValue(m, getV(m, l), (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 2) % 3], S + Y) -
+                 getValue(m, getV(m, l), (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 2) % 3], S))) *
+               getValue(m, m.m_face_inv_volume_, s, S);
     }
 
     //! div<2>
@@ -144,14 +209,14 @@ struct calculator {
         IdxShift Y{0, 1, 0};
         IdxShift Z{0, 0, 1};
 
-        return ((getV(m, l, (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][0], S + X) -
-                 getV(m, l, (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][0], S)) +  //
-                (getV(m, l, (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][1], S + Y) -
-                 getV(m, l, (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][1], S)) +  //
-                (getV(m, l, (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][2], S + Z) -
-                 getV(m, l, (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][2], S))  //
+        return ((getValue(m, getV(m, l), (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][0], S + X) -
+                 getValue(m, getV(m, l), (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][0], S)) +  //
+                (getValue(m, getV(m, l), (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][1], S + Y) -
+                 getValue(m, getV(m, l), (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][1], S)) +  //
+                (getValue(m, getV(m, l), (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][2], S + Z) -
+                 getValue(m, getV(m, l), (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][2], S))  //
                 ) *
-               IVolume(m, s, S);
+               getValue(m, m.m_edge_inv_volume_, s, S);
     }
 
     //! curl<2>
@@ -167,11 +232,13 @@ struct calculator {
         Y[(n + 1) % 3] = 1;
         Z[(n + 2) % 3] = 1;
 
-        return ((getDualV(m, l, (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][(n + 1) % 3], S) -
-                 getDualV(m, l, (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][(n + 1) % 3], S - Z)) -
-                (getDualV(m, l, (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][(n + 2) % 3], S) -
-                 getDualV(m, l, (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][(n + 2) % 3], S - Y))) *
-               (-IDVolume(m, s, S));
+        return ((getValue(m, getDualV(m, l), (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][(n + 1) % 3], S) -
+                 getValue(m, getDualV(m, l), (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][(n + 1) % 3],
+                          S - Z)) -
+                (getValue(m, getDualV(m, l), (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][(n + 2) % 3], S) -
+                 getValue(m, getDualV(m, l), (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][(n + 2) % 3],
+                          S - Y))) *
+               getValue(m, -m.m_edge_inv_dual_volume_, s, S);
     }
 
     //! div<1>
@@ -185,13 +252,14 @@ struct calculator {
         IdxShift Y{0, 1, 0};
         IdxShift Z{0, 0, 1};
 
-        return ((getDualV(m, l, (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][0], S) -
-                 getDualV(m, l, (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][0], S - X)) +  //
-                (getDualV(m, l, (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][1], S) -
-                 getDualV(m, l, (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][1], S - Y)) +  //
-                (getDualV(m, l, (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][2], S) -
-                 getDualV(m, l, (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][2], S - Z))) *
-               (-IDVolume(m, s, S));
+        return ((getValue(m, getDualV(m, l), (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][0], S) -
+                 getValue(m, getDualV(m, l), (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][0], S - X)) +  //
+                (getValue(m, getDualV(m, l), (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][1], S) -
+                 getValue(m, getDualV(m, l), (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][1], S - Y)) +  //
+                (getValue(m, getDualV(m, l), (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][2], S) -
+                 getValue(m, getDualV(m, l), (s & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][2], S - Z))) *
+               getValue(m, -m.m_vertex_inv_dual_volume_, s, S);
+
         ;
     }
 
@@ -204,7 +272,8 @@ struct calculator {
         IdxShift D{0, 0, 0};
         D[EntityIdCoder::m_id_to_sub_index_[s & 0b111]] = 1;
 
-        return (getV(m, l, s | 0b111, S) - getV(m, l, s | 0b111, S - D)) * (-IVolume(m, s, S));
+        return (getValue(m, getV(m, l), s | 0b111, S) - getValue(m, getV(m, l), s | 0b111, S - D)) *
+               getValue(m, -m.m_face_inv_volume_, s, S);
     }
 
     //! *Form<IR> => Form<N-IL>
@@ -214,17 +283,17 @@ struct calculator {
                      int_sequence<VERTEX>) {
         static auto const& l = std::get<0>(expr.m_args_);
 
-        return (                                                         //
-                   getV(m, l, s & (~0b111), S + IdxShift{-1, -1, -1}) +  //
-                   getV(m, l, s & (~0b111), S + IdxShift{-1, -1, +1}) +  //
-                   getV(m, l, s & (~0b111), S + IdxShift{-1, +1, -1}) +  //
-                   getV(m, l, s & (~0b111), S + IdxShift{-1, +1, +1}) +  //
-                   getV(m, l, s & (~0b111), S + IdxShift{+1, -1, -1}) +  //
-                   getV(m, l, s & (~0b111), S + IdxShift{+1, -1, +1}) +  //
-                   getV(m, l, s & (~0b111), S + IdxShift{+1, +1, -1}) +  //
-                   getV(m, l, s & (~0b111), S + IdxShift{+1, +1, +1})    //
+        return (                                                                      //
+                   getValue(m, getV(m, l), s & (~0b111), S + IdxShift{-1, -1, -1}) +  //
+                   getValue(m, getV(m, l), s & (~0b111), S + IdxShift{-1, -1, +1}) +  //
+                   getValue(m, getV(m, l), s & (~0b111), S + IdxShift{-1, +1, -1}) +  //
+                   getValue(m, getV(m, l), s & (~0b111), S + IdxShift{-1, +1, +1}) +  //
+                   getValue(m, getV(m, l), s & (~0b111), S + IdxShift{+1, -1, -1}) +  //
+                   getValue(m, getV(m, l), s & (~0b111), S + IdxShift{+1, -1, +1}) +  //
+                   getValue(m, getV(m, l), s & (~0b111), S + IdxShift{+1, +1, -1}) +  //
+                   getValue(m, getV(m, l), s & (~0b111), S + IdxShift{+1, +1, +1})    //
                    ) *
-               IDVolume(m, s, S) * 0.125;
+               getValue(m, m.m_volume_inv_volume_, s, S) * 0.125;
     };
     ////***************************************************************************************************
     //! p_curl<1>
@@ -451,9 +520,9 @@ struct calculator {
     }
 
     template <typename... TExpr>
-    static auto eval(mesh_type const& m, Expression<simpla::tags::_wedge, TExpr...> const& expr, int s, IdxShift S,
+    static auto eval(mesh_type const& m, Expression<simpla::tags::_wedge, TExpr...> const& expr, int tag, IdxShift S,
                      int_sequence<FACE, FACE>) {
-        int n = EntityIdCoder::m_id_to_sub_index_[s];
+        int n = EntityIdCoder::m_id_to_sub_index_[tag];
 
         static auto const& l = std::get<0>(expr.m_args_);
         static auto const& r = std::get<1>(expr.m_args_);
@@ -467,7 +536,7 @@ struct calculator {
     }
 
     template <typename... TExpr>
-    static auto eval(mesh_type const& m, Expression<simpla::tags::_dot, TExpr...> const& expr, int s, IdxShift S,
+    static auto eval(mesh_type const& m, Expression<simpla::tags::_dot, TExpr...> const& expr, int tag, IdxShift S,
                      int_sequence<VERTEX, VERTEX>) {
         static auto const& l = std::get<0>(expr.m_args_);
         static auto const& r = std::get<1>(expr.m_args_);
@@ -478,7 +547,7 @@ struct calculator {
     }
 
     template <typename... TExpr>
-    static auto eval(mesh_type const& m, Expression<simpla::tags::_dot, TExpr...> const& expr, int s, IdxShift S,
+    static auto eval(mesh_type const& m, Expression<simpla::tags::_dot, TExpr...> const& expr, int tag, IdxShift S,
                      int_sequence<VOLUME, VOLUME>) {
         static auto const& l = std::get<0>(expr.m_args_);
         static auto const& r = std::get<1>(expr.m_args_);
@@ -489,37 +558,37 @@ struct calculator {
     }
 
     template <typename... TExpr>
-    static auto eval(mesh_type const& m, Expression<simpla::tags::_dot, TExpr...> const& expr, int s, IdxShift S,
+    static auto eval(mesh_type const& m, Expression<simpla::tags::_dot, TExpr...> const& expr, int tag, IdxShift S,
                      int_sequence<EDGE, EDGE>) {
         static auto const& l = std::get<0>(expr.m_args_);
         static auto const& r = std::get<1>(expr.m_args_);
 
-        return eval(m, dot_v(map_to<VERTEX>(l), map_to<VERTEX>(r)), s, S, int_sequence<VERTEX>());
+        return eval(m, dot_v(map_to<VERTEX>(l), map_to<VERTEX>(r)), tag, S, int_sequence<VERTEX>());
     }
     template <typename... TExpr>
-    static auto eval(mesh_type const& m, Expression<simpla::tags::_dot, TExpr...> const& expr, int s, IdxShift S,
+    static auto eval(mesh_type const& m, Expression<simpla::tags::_dot, TExpr...> const& expr, int tag, IdxShift S,
                      int_sequence<FACE, FACE>) {
         static auto const& l = std::get<0>(expr.m_args_);
         static auto const& r = std::get<1>(expr.m_args_);
-        return eval(m, dot_v(map_to<VERTEX>(l), map_to<VERTEX>(r)), s, S, int_sequence<VERTEX>());
+        return eval(m, dot_v(map_to<VERTEX>(l), map_to<VERTEX>(r)), tag, S, int_sequence<VERTEX>());
     }
     template <typename... TExpr>
-    static auto eval(mesh_type const& m, Expression<simpla::tags::_cross, TExpr...> const& expr, int s, IdxShift S,
+    static auto eval(mesh_type const& m, Expression<simpla::tags::_cross, TExpr...> const& expr, int tag, IdxShift S,
                      int_sequence<VERTEX, VERTEX>) {
         static auto const& l = std::get<0>(expr.m_args_);
         static auto const& r = std::get<1>(expr.m_args_);
 
-        int n = s >> 3;
+        int n = tag >> 3;
         return getValue(m, l, ((n + 1) % 3) << 3, S) * getValue(m, r, ((n + 2) % 3) << 3, S) -
                getValue(m, l, ((n + 2) % 3) << 3, S) * getValue(m, r, ((n + 1) % 3) << 3, S);
     }
 
     template <typename... TExpr>
-    static auto eval(mesh_type const& m, Expression<simpla::tags::_cross, TExpr...> const& expr, int s, IdxShift S,
+    static auto eval(mesh_type const& m, Expression<simpla::tags::_cross, TExpr...> const& expr, int tag, IdxShift S,
                      int_sequence<VOLUME, VOLUME>) {
         static auto const& l = std::get<0>(expr.m_args_);
         static auto const& r = std::get<1>(expr.m_args_);
-        int n = (s >> 3) % 3;
+        int n = (tag >> 3) % 3;
         return getValue(m, l, 0b111 | (((n + 1) % 3) << 3), S) * getValue(m, r, 0b111 | (((n + 2) % 3) << 3), S) -
                getValue(m, l, 0b111 | (((n + 2) % 3) << 3), S) * getValue(m, r, 0b111 | (((n + 1) % 3) << 3), S);
     }
