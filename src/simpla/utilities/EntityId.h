@@ -819,9 +819,7 @@ struct UnorderedRange<EntityId> : public RangeBase<EntityId> {
         tbb::parallel_for(m_ids_.range(), [&](auto const& r) {
             for (EntityId s : r) { body(s); }
         });
-
-        // for (auto s : m_ids_) { body(s); }
-    }
+     }
 
    private:
     //    std::set<EntityId> m_ids_;

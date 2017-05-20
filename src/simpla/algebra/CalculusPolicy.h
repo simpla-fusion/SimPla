@@ -666,7 +666,8 @@ struct calculator {
 
     template <typename TV, int N>
     static auto sample_(mesh_type const& m, EntityId s, nTuple<TV, N> const& v) {
-        return v[s.w % N];
+        return v[((s.w & 0b111) == 0 || (s.w & 0b111) == 7) ? (s.w >> 3) % N
+                                                            : EntityIdCoder::m_id_to_sub_index_[s.w & 0b11]];
     }
 
     template <typename TV>

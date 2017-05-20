@@ -58,7 +58,6 @@ class DataMultiArray : public DataBlock {
 
     explicit DataMultiArray(unsigned long depth) : m_data_(depth) {}
 
-
     size_type size() const { return m_data_.size(); }
     bool empty() const override { return m_data_[0].empty(); }
     std::type_info const &value_type_info() const override { return typeid(value_type); };
@@ -74,7 +73,7 @@ class DataMultiArray : public DataBlock {
     array_type const &operator[](int depth) const { return m_data_[depth % m_data_.size()]; }
     void DeepCopy(std::shared_ptr<this_type> const &other) {
         if (other == nullptr) { return; }
-        m_data_.resize(other->m_data_.size());
+        if (m_data_.size() < other->size()) { m_data_.resize(other->m_data_.size()); }
         for (int i = 0; i < m_data_.size(); ++i) { m_data_[i].DeepCopy(other->m_data_[i]); }
     }
     void Clear() override {

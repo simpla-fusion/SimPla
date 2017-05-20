@@ -216,7 +216,7 @@ class StructuredMesh : public engine::MeshBase {
                 auto &lhs = f[i * DOF + j];
 
                 if (r.isNull()) {
-                    lhs = [=](index_tuple const &idx) {
+                    lhs = [&](index_tuple const &idx) {
                         EntityId s;
                         s.w = static_cast<int16_t>(w);
                         s.x = static_cast<int16_t>(idx[0]);
@@ -235,13 +235,73 @@ class StructuredMesh : public engine::MeshBase {
                 }
             }
     }
+    template <typename M, typename V, int IFORM, int DOF, typename TFun>
+    void Assign(Field<M, V, IFORM, DOF> &f, EntityRange const &r, TFun const &fun,
+                ENABLE_IF((std::is_same<std::result_of_t<TFun(point_type const &)>, nTuple<V, 3>>::value))) const {
+        static constexpr int num_of_sub = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
+
+        for (int i = 0; i < num_of_sub; ++i)
+            for (int j = 0; j < DOF; ++j) {
+                int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][i];
+                auto id_box = GetIndexBox(tag);
+                int16_t w = static_cast<int16_t>(tag | (j << 3));
+                auto &lhs = f[i * DOF + j];
+                int n = (IFORM == VERTEX || IFORM == VOLUME) ? j : i;
+                if (r.isNull()) {
+                    f[i * DOF + j] = [&](index_tuple const &idx) {
+                        EntityId s;
+                        s.w = static_cast<int16_t>(w);
+                        s.x = static_cast<int16_t>(idx[0]);
+                        s.y = static_cast<int16_t>(idx[1]);
+                        s.z = static_cast<int16_t>(idx[2]);
+                        return fun(this->point(s))[n];
+                    };
+                } else {
+                    r.foreach ([&](EntityId s) {
+                        index_tuple idx{s.x, s.y, s.z};
+                        if (in_box(id_box, idx) && (tag == s.w)) {
+                            s.w = w;
+                            lhs.Assign(idx, fun(this->point(s))[n]);
+                        }
+                    });
+                }
+            }
+    }
+    template <typename M, typename V, int IFORM, int DOF, typename TFun>
+    void Assign(Field<M, V, IFORM, DOF> &f, EntityRange const &r, TFun const &fun,
+                ENABLE_IF((std::is_same<std::result_of_t<TFun(point_type const &)>, V>::value))) const {
+        static constexpr int num_of_sub = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
+
+        for (int i = 0; i < num_of_sub; ++i)
+            for (int j = 0; j < DOF; ++j) {
+                int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][i];
+                auto id_box = GetIndexBox(tag);
+                int16_t w = static_cast<int16_t>(tag | (j << 3));
+                auto &lhs = f[i * DOF + j];
+                if (r.isNull()) {
+                    lhs = [&](index_tuple const &idx) {
+                        EntityId s;
+                        s.w = static_cast<int16_t>(w);
+                        s.x = static_cast<int16_t>(idx[0]);
+                        s.y = static_cast<int16_t>(idx[1]);
+                        s.z = static_cast<int16_t>(idx[2]);
+                        return fun(point(s));
+                    };
+                } else {
+                    r.foreach ([&](EntityId s) {
+                        index_tuple idx{s.x, s.y, s.z};
+                        if (in_box(id_box, idx) && (tag == s.w)) {
+                            s.w = w;
+                            lhs.Assign(idx, fun(point(s)));
+                        }
+                    });
+                }
+            }
+    }
     template <typename M, typename V, int IFORM, int DOF, typename Other>
     void Assign(Field<M, V, IFORM, DOF> &f, EntityRange const &r, Other const &other,
-                ENABLE_IF((std::is_base_of<this_type, M>::value &&           //
-                           !concept::is_callable<Other(EntityId)>::value &&  //
+                ENABLE_IF((!concept::is_callable<Other(EntityId)>::value &&
                            !concept::is_callable<Other(point_type const &)>::value))) const {
-        static_assert(std::is_base_of<this_type, M>::value, "illegal mesh type");
-
         static constexpr int num_of_sub = IFORM == VERTEX || IFORM == VOLUME ? 1 : 3;
 
         for (int i = 0; i < num_of_sub; ++i) {
@@ -263,20 +323,6 @@ class StructuredMesh : public engine::MeshBase {
             }
         }
     };
-    template <typename M, typename V, int IFORM, int DOF, typename TFun>
-    void Assign(Field<M, V, IFORM, DOF> &f, EntityRange const &r, TFun const &fun,
-                ENABLE_IF((std::is_base_of<this_type, M>::value &&
-                           std::is_same<std::result_of_t<TFun(point_type const &)>, V>::value))) const {
-        Assign(f, r, [&](EntityId s) { return fun(this->point(s)); });
-    }
-    template <typename M, typename V, int IFORM, int DOF, typename TFun>
-    void Assign(Field<M, V, IFORM, DOF> &f, EntityRange const &r, TFun const &fun,
-                ENABLE_IF((std::is_base_of<this_type, M>::value &&
-                           std::is_same<std::result_of_t<TFun(point_type const &)>, nTuple<V, 3>>::value))) const {
-        Assign(f, r, [&](EntityId s) {
-            return calculator<M>::sample(*dynamic_cast<M const *>(this), s, fun(this->point(s)));
-        });
-    }
 };
 }  // namespace mesh {
 }  // namespace simpla {
