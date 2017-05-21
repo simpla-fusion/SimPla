@@ -187,7 +187,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
         Q.Clear();
         dE.Clear();
         K.Clear();
-
+        dE.DeepCopy(E);
         Q = map_to<VOLUME>(E) - Ev;
 
         for (auto& p : m_fluid_sp_) {
