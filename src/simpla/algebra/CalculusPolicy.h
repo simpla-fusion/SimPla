@@ -253,9 +253,11 @@ struct calculator {
         IdxShift Z{0, 0, 1};
 
         return ((getValue(m, getDualV(m, l), (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][0], S) -
-                 getValue(m, getDualV(m, l), (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][0], S - X)) +  //
+                 getValue(m, getDualV(m, l), (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][0],
+                          S - X)) +  //
                 (getValue(m, getDualV(m, l), (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][1], S) -
-                 getValue(m, getDualV(m, l), (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][1], S - Y)) +  //
+                 getValue(m, getDualV(m, l), (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][1],
+                          S - Y)) +  //
                 (getValue(m, getDualV(m, l), (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][2], S) -
                  getValue(m, getDualV(m, l), (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][2], S - Z))) *
                getValue(m, -m.m_vertex_inv_dual_volume_, tag, S);
@@ -336,8 +338,8 @@ struct calculator {
     ////! map_to
 
     template <typename TExpr, int I>
-    static auto _map_to(mesh_type const& m, TExpr const& l, int n, IdxShift S, std::index_sequence<I, I>) {
-        return getValue(m, l, n, S);
+    static auto _map_to(mesh_type const& m, TExpr const& expr, int tag, IdxShift S, std::index_sequence<I, I>) {
+        return getValue(m, expr, tag, S);
     };
 
     template <typename TExpr>
@@ -348,6 +350,15 @@ struct calculator {
         D[n] = 1;
 
         return (getValue(m, expr, id, S) + getValue(m, expr, id, S + D)) * 0.5;
+    }
+
+    template <typename TExpr>
+    static auto _map_to(mesh_type const& m, TExpr const& expr, int tag, IdxShift S, std::index_sequence<EDGE, VERTEX>) {
+        IdxShift D{0, 0, 0};
+        int n = (tag >> 3) % 3;
+        int id = EntityIdCoder::m_sub_index_to_id_[EDGE][n];
+        D[n] = 1;
+        return (getValue(m, expr, id, S - D) + getValue(m, expr, id, S)) * 0.5;
     }
 
     template <typename TExpr>
@@ -365,31 +376,6 @@ struct calculator {
                    getValue(m, expr, id, S + Y + Z)  //
                    ) *
                0.25;
-    }
-
-    template <typename TExpr>
-    static auto _map_to(mesh_type const& m, TExpr const& l, int tag, IdxShift S, std::index_sequence<VERTEX, VOLUME>) {
-        int id = tag | 0b111;
-        return (                                                //
-                   getValue(m, l, id, S + IdxShift{0, 0, 1}) +  //
-                   getValue(m, l, id, S + IdxShift{0, 1, 0}) +  //
-                   getValue(m, l, id, S + IdxShift{0, 0, 0}) +  //
-                   getValue(m, l, id, S + IdxShift{0, 1, 1}) +  //
-                   getValue(m, l, id, S + IdxShift{1, 0, 0}) +  //
-                   getValue(m, l, id, S + IdxShift{1, 0, 1}) +  //
-                   getValue(m, l, id, S + IdxShift{1, 1, 0}) +  //
-                   getValue(m, l, id, S + IdxShift{1, 1, 1})    //
-                   ) *
-               0.125;
-    }
-
-    template <typename TExpr>
-    static auto _map_to(mesh_type const& m, TExpr const& l, int tag, IdxShift S, std::index_sequence<EDGE, VERTEX>) {
-        IdxShift D{0, 0, 0};
-        int n = (tag >> 3) % 3;
-        int id = EntityIdCoder::m_sub_index_to_id_[EDGE][n];
-        D[n] = 1;
-        return (getValue(m, l, id, S - D) + getValue(m, l, id, S)) * 0.5;
     }
 
     template <typename TExpr>
@@ -412,9 +398,25 @@ struct calculator {
     }
 
     template <typename TExpr>
+    static auto _map_to(mesh_type const& m, TExpr const& expr, int tag, IdxShift S, std::index_sequence<VERTEX, VOLUME>) {
+        int id = tag & (~0b111);
+        return (                                                //
+                   getValue(m, expr, id, S + IdxShift{0, 0, 0}) +  //
+                   getValue(m, expr, id, S + IdxShift{0, 0, 1}) +  //
+                   getValue(m, expr, id, S + IdxShift{0, 1, 0}) +  //
+                   getValue(m, expr, id, S + IdxShift{0, 1, 1}) +  //
+                   getValue(m, expr, id, S + IdxShift{1, 0, 0}) +  //
+                   getValue(m, expr, id, S + IdxShift{1, 0, 1}) +  //
+                   getValue(m, expr, id, S + IdxShift{1, 1, 0}) +  //
+                   getValue(m, expr, id, S + IdxShift{1, 1, 1})    //
+                   ) *
+               0.125;
+    }
+
+    template <typename TExpr>
     static auto _map_to(mesh_type const& m, TExpr const& expr, int tag, IdxShift S,
                         std::index_sequence<VOLUME, VERTEX>) {
-        int id = tag & (~0b111);
+        int id = tag | 0b111;
         return (                                                   //
                    getValue(m, expr, id, S - IdxShift{1, 1, 1}) +  //
                    getValue(m, expr, id, S - IdxShift{1, 1, 0}) +  //
@@ -438,6 +440,16 @@ struct calculator {
     }
 
     template <typename TExpr>
+    static auto _map_to(mesh_type const& m, TExpr const& expr, int tag, IdxShift S, std::index_sequence<FACE, VOLUME>) {
+        int n = (tag >> 3) % 3;
+        int id = EntityIdCoder::m_sub_index_to_id_[FACE][n];
+        IdxShift D{0, 0, 0};
+        D[n] = 1;
+
+        return (getValue(m, expr, id, S) + getValue(m, expr, id, S + D)) * 0.5;
+    }
+
+    template <typename TExpr>
     static auto _map_to(mesh_type const& m, TExpr const& expr, int tag, IdxShift S, std::index_sequence<VOLUME, EDGE>) {
         int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
         int id = (n << 3) | 0b111;
@@ -456,23 +468,13 @@ struct calculator {
     }
 
     template <typename TExpr>
-    static auto _map_to(mesh_type const& m, TExpr const& expr, int tag, IdxShift S, std::index_sequence<FACE, VOLUME>) {
-        int n = (tag >> 3) % 3;
-        int id = EntityIdCoder::m_sub_index_to_id_[FACE][n];
-        IdxShift D{0, 0, 0};
-        D[n] = 1;
-
-        return (getValue(m, expr, id, S) + getValue(m, expr, id, S + D)) * 0.5;
-    }
-
-    template <typename TExpr>
     static auto _map_to(mesh_type const& m, TExpr const& expr, int tag, IdxShift S, std::index_sequence<EDGE, VOLUME>) {
         int n = (tag >> 3) % 3;
         int id = EntityIdCoder::m_sub_index_to_id_[EDGE][n];
-        IdxShift X{0, 0, 0};
+
         IdxShift Y{0, 0, 0};
         IdxShift Z{0, 0, 0};
-        X[n] = 1;
+
         Y[(n + 1) % 3] = 1;
         Z[(n + 2) % 3] = 1;
 
@@ -484,10 +486,10 @@ struct calculator {
                0.25;
     }
 
-    template <typename TExpr, int IL, int IR>
-    static auto eval(mesh_type const& m, Expression<simpla::tags::_map_to<IL>, TExpr> const& expr, int s, IdxShift S,
-                     int_sequence<IR>) {
-        return _map_to(m, std::get<0>(expr.m_args_), s, S, std::index_sequence<IR, IL>());
+    template <typename TExpr, int ISrc, int IDest>
+    static auto eval(mesh_type const& m, Expression<simpla::tags::_map_to<IDest>, TExpr> const& expr, int s, IdxShift S,
+                     int_sequence<ISrc>) {
+        return _map_to(m, std::get<0>(expr.m_args_), s, S, std::index_sequence<ISrc, IDest>());
     }
     //***************************************************************************************************
     //

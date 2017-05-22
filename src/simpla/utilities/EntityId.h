@@ -5,8 +5,8 @@
  * @author salmon
  */
 
-#ifndef CORE_MESH_MESH_ENTITY_ID_CODER_H_
-#define CORE_MESH_MESH_ENTITY_ID_CODER_H_
+#ifndef SIMPLA_ENTITY_ID_H_
+#define SIMPLA_ENTITY_ID_H_
 
 #include <simpla/utilities/nTuple.h>
 #include <stddef.h>
@@ -21,7 +21,26 @@
 #include "type_traits.h"
 namespace simpla {
 // typedef union { struct { u_int8_t w, z, y, x; }; int32_t v; } EntityId32;
-enum { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3, FIBER = 6 };
+enum CenterOnMesh { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3 };
+enum TypeOfValue {
+    SCALAR = 1,
+    VECTOR = 3,
+    TENSOR = 9,
+    SKEW_SYMMETRIC_TENSOR,  //  |0  -c  b |
+                            //  | c  0 -a |
+                            //  |-b  a  0 |
+
+    SYMMETRIC_TRI_TENSOR,  //  |0    a    b |
+                           //  |a    0    c |
+                           //  |b    c    0 |
+
+    DIAGONAL_TENSOR,  //  |d0   0   0 |
+                      //  |0   d1   0 |
+                      //  |0    0  d2 |
+
+    UNORDERED = 10000
+};
+
 static const char EntityIFORMName[][10] = {"VERTEX", "EDGE", "FACE", "VOLUME"};
 typedef union {
     struct {
@@ -32,14 +51,6 @@ typedef union {
 typedef EntityId64 EntityId;
 
 typedef Range<EntityId> EntityRange;
-
-/**
- *  @comment similar to MOAB::EntityHandle but using different code ruler and more efficient for FD
- * and SAMR  -- salmon. 2016.5.24
- *  @note different get_mesh should use different 'code and hash ruler'  -- salmon. 2016.5.24
- */
-
-#define INT_2_ENTITY_ID(_V_) (*reinterpret_cast<EntityId const*>(&(_V_)))
 
 constexpr inline bool operator==(EntityId first, EntityId second) { return first.v == second.v; }
 
@@ -819,7 +830,7 @@ struct UnorderedRange<EntityId> : public RangeBase<EntityId> {
         tbb::parallel_for(m_ids_.range(), [&](auto const& r) {
             for (EntityId s : r) { body(s); }
         });
-     }
+    }
 
    private:
     //    std::set<EntityId> m_ids_;
@@ -828,4 +839,4 @@ struct UnorderedRange<EntityId> : public RangeBase<EntityId> {
 
 }  // namespace simpla
 
-#endif /* CORE_MESH_MESH_ENTITY_ID_CODER_H_ */
+#endif /* SIMPLA_ENTITY_ID_H_ */

@@ -293,11 +293,7 @@ boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(const std::sh
             res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
                 boost::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, attr->GetName(), attr->GetDOF()));
             break;
-        case FIBER:
         default:
-            //            res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-            //                boost::make_shared<SAMRAI::pdat::SparseDataVariable<SAMRAI::geom::CartesianGridGeometry>>(
-            //                    d_dim,attr->GetName(),attr->GetDOF()));
             break;
     }
     return res;
@@ -374,7 +370,6 @@ std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, boost::share
             }
             break;
         }
-        case FIBER:
         default: {
             UNIMPLEMENTED;
             break;

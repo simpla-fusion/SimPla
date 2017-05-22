@@ -109,13 +109,13 @@ void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     d->PostAdvance.Connect([=](Domain* self, Real time_now, Real time_dt) {
 
         // for VisIt dump
-        self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Jv").DeepCopy(
+        self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("dumpJ").DeepCopy(
             self->GetAttribute<Field<mesh_type, Real, EDGE>>("J"));
-
-        self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Ev").DeepCopy(
+        //
+        self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("dumpE").DeepCopy(
             self->GetAttribute<Field<mesh_type, Real, EDGE>>("E"));
 
-        self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Bv").DeepCopy(
+        self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("dumpB").DeepCopy(
             self->GetAttribute<Field<mesh_type, Real, FACE>>("B"));
 
     });

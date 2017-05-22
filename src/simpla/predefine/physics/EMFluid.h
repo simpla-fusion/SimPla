@@ -51,14 +51,20 @@ class EMFluid : public engine::Domain {
     DOMAIN_DECLARE_FIELD(E0, EDGE, 1);
     DOMAIN_DECLARE_FIELD(B0, FACE, 1);
     DOMAIN_DECLARE_FIELD(B0v, VOLUME, 3);
+
     DOMAIN_DECLARE_FIELD(BB, VOLUME, 1);
+
     DOMAIN_DECLARE_FIELD(Ev, VOLUME, 3);
     DOMAIN_DECLARE_FIELD(Bv, VOLUME, 3);
-    DOMAIN_DECLARE_FIELD(Jv, VOLUME, 3);
+
     DOMAIN_DECLARE_FIELD(dE, VOLUME, 3);
     DOMAIN_DECLARE_FIELD(B, FACE, 1);
     DOMAIN_DECLARE_FIELD(E, EDGE, 1);
     DOMAIN_DECLARE_FIELD(J, EDGE, 1);
+
+    DOMAIN_DECLARE_FIELD(dumpE, VOLUME, 3);
+    DOMAIN_DECLARE_FIELD(dumpB, VOLUME, 3);
+    DOMAIN_DECLARE_FIELD(dumpJ, VOLUME, 3);
 
     struct fluid_s {
         Real mass = 1;
@@ -131,7 +137,6 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
     Ev.Clear();
     Bv.Clear();
     J.Clear();
-    Jv.Clear();
 
     BB = dot_v(B0v, B0v);
 
@@ -141,6 +146,7 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
         *item.second->rho = ne * item.second->ratio;
         item.second->J->Clear();
     }
+    Ev = map_to<VOLUME>(E);
 }
 template <typename TM>
 void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
@@ -170,10 +176,13 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     B = B - curl(E) * (dt * 0.5);
     B[GetBoundaryRange(FACE)] = 0;
 
-    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * dt;
+    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
     E[GetBoundaryRange(EDGE)] = 0;
 
-    if (m_fluid_sp_.size() > 0) {
+    //    if (m_fluid_sp_.size() > 0)
+    {
+        Ev = map_to<VOLUME>(E);
+
         field_type<VOLUME, 3> Q{this};
         field_type<VOLUME, 3> K{this};
 
@@ -184,11 +193,11 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
         a.Clear();
         b.Clear();
         c.Clear();
+
         Q.Clear();
-        dE.Clear();
         K.Clear();
-        dE.DeepCopy(E);
-        Q = map_to<VOLUME>(E) - Ev;
+
+        dE.Clear();
 
         for (auto& p : m_fluid_sp_) {
             Real ms = p.second->mass;
@@ -198,13 +207,13 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
 
             Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
 
-            Q += -0.5 * dt / epsilon0 * Js;
+            Q -= (0.5 * dt / epsilon0) * Js;
 
-            K = (Ev * qs * ns * 2.0 + cross_v(Js, B0v)) * as + Js;
+            K = Js + cross_v(Js, B0v) * as + Ev * ns * (qs * 2.0 * as);
 
             Js = (K + cross_v(K, B0v) * as + B0v * (dot_v(K, B0v) * as * as)) / (BB * as * as + 1);
 
-            Q += -0.5 * dt / epsilon0 * Js;
+            Q -= (0.5 * dt / epsilon0) * Js;
 
             a += qs * ns * (as / (BB * as * as + 1));
             b += qs * ns * (as * as / (BB * as * as + 1));
@@ -229,9 +238,13 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
             K = dE * ns * qs * as;
             Js += (K + cross_v(K, B0v) * as + B0v * (dot_v(K, B0v) * as * as)) / (BB * as * as + 1);
         }
-        Ev += dE;
-        E += map_to<EDGE>(Ev) - E;
+
+        E += map_to<EDGE>(dE);
     }
+
+    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
+    E[GetBoundaryRange(EDGE)] = 0;
+
     B = B - curl(E) * (dt * 0.5);
     B[GetBoundaryRange(FACE)] = 0;
 }
