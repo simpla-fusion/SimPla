@@ -479,6 +479,45 @@ void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchFromSAMRAI(SAMRAI::hier::
                        {patch.getBox().upper()[0] + 1, patch.getBox().upper()[1] + 1, patch.getBox().upper()[2] + 1}},
         patch.getPatchLevelNumber()));
 
+    auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
+    for (auto const &b : pgeom->getNodeBoundaries()) {
+        auto i_lower = b.getBox().lower();
+        auto i_upper = b.getBox().upper();
+
+        index_box_type box{{i_lower[0], i_lower[1], i_lower[2]}, {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}};
+        //        CHECK(box);
+        p->m_ranges["." + std::string(EntityIFORMName[VERTEX]) + "_PATCH_BOUNDARY"].append(
+            std::make_shared<ContinueRange<EntityId>>(box, 0));
+    }
+
+    for (auto const &b : pgeom->getEdgeBoundaries()) {
+        auto i_lower = b.getBox().lower();
+        auto i_upper = b.getBox().upper();
+
+        index_box_type box{{i_lower[0], i_lower[1], i_lower[2]}, {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}};
+        //        CHECK(box);
+        p->m_ranges["." + std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"].append(
+            std::make_shared<ContinueRange<EntityId>>(box, 1));
+        p->m_ranges["." + std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"].append(
+            std::make_shared<ContinueRange<EntityId>>(box, 2));
+        p->m_ranges["." + std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"].append(
+            std::make_shared<ContinueRange<EntityId>>(box, 4));
+    }
+
+    for (auto const &b : pgeom->getFaceBoundaries()) {
+        auto i_lower = b.getBox().lower();
+        auto i_upper = b.getBox().upper();
+
+        index_box_type box{{i_lower[0], i_lower[1], i_lower[2]}, {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}};
+        //        CHECK(box);
+        p->m_ranges["." + std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"].append(
+            std::make_shared<ContinueRange<EntityId>>(box, 3));
+        p->m_ranges["." + std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"].append(
+            std::make_shared<ContinueRange<EntityId>>(box, 5));
+        p->m_ranges["." + std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"].append(
+            std::make_shared<ContinueRange<EntityId>>(box, 6));
+    }
+
     for (auto &item : m_samrai_variables_) {
         auto samrai_id =
             SAMRAI::hier::VariableDatabase::getDatabase()->mapVariableAndContextToIndex(item.second, getDataContext());

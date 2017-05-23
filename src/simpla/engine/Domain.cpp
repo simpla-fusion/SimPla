@@ -60,9 +60,14 @@ EntityRange Domain::GetBodyRange(int IFORM, std::string const& k) const {
     return GetRange(k + "." + std::string(EntityIFORMName[IFORM]) + "_BODY");
 };
 EntityRange Domain::GetBoundaryRange(int IFORM, std::string const& k, bool is_parallel) const {
-    return (IFORM == VERTEX || IFORM == VOLUME) ? GetRange(k + "." + std::string(EntityIFORMName[IFORM]) + "_BOUNDARY")
-                                                : GetRange(k + "." + std::string(EntityIFORMName[IFORM]) +
-                                                           (is_parallel ? "_PARA" : "_PERP") + "_BOUNDARY");
+    auto res =
+        (IFORM == VERTEX || IFORM == VOLUME)
+            ? GetRange(k + "." + std::string(EntityIFORMName[IFORM]) + "_BOUNDARY")
+            : GetRange(k + "." + std::string(EntityIFORMName[IFORM]) + (is_parallel ? "_PARA" : "_PERP") + "_BOUNDARY");
+
+    if (res.isNull()) { res = GetRange(k + "." + std::string(EntityIFORMName[IFORM]) + "_PATCH_BOUNDARY"); }
+
+    return res;
 };
 EntityRange Domain::GetParallelBoundaryRange(int IFORM, std::string const& k) const {
     return GetBoundaryRange(IFORM, k, true);

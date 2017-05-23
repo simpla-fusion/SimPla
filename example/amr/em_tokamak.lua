@@ -25,7 +25,7 @@ Context = {
     Model = {},
     Atlas =
     {
-        PeriodicDimension = { 0, 1, 1 },
+        PeriodicDimension = { 1, 1, 1 },
     }
 }
 
