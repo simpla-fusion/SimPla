@@ -340,7 +340,7 @@ struct Array {
 
     template <typename TExpr>
     void Assign(m_index_tuple const& idx, TExpr const& expr) {
-        at(idx) = getValue(expr, idx);
+        if (in_box(m_index_box_, idx)) { at(idx) = getValue(expr, idx); }
     }
 
     void Clear() {

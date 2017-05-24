@@ -538,68 +538,256 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
     if (initial_time) {
         auto p = m_ctx_->GetAtlas().PopPatch(static_cast<id_type>(patch.getLocalId().getValue()));
         ConvertPatchFromSAMRAI(patch, p.get());
-
-        index_type gw = 0;
+        index_tuple lo, hi;
+        std::tie(lo, hi) = p->GetBlock()->GetIndexBox();
+        index_tuple gw = p->GetBlock()->GetGhostWidth();
+        CHECK(p->GetBlock()->GetIndexBox());
+        CHECK(gw);
 
         auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
-        for (auto const &b : pgeom->getNodeBoundaries()) {
-            auto i_lower = b.getBox().lower();
-            auto i_upper = b.getBox().upper();
 
-            p->m_ranges["." + std::string(EntityIFORMName[VERTEX]) + "_PATCH_BOUNDARY"].append(
-                std::make_shared<ContinueRange<EntityId>>(
-                    index_box_type{{i_lower[0] - gw, i_lower[1] - gw, i_lower[2] - gw},
-                                   {i_upper[0] + 1 + gw, i_upper[1] + 1 + gw, i_upper[2] + 1 + gw}},
-                    0));
-        }
+        //        for (auto const &b : pgeom->getNodeBoundaries()) {
+        //            /**
+        //             * node (codimension 3):
+        //             * x_lo, y_lo, z_lo: 0
+        //             * x_hi, y_lo, z_lo: 1
+        //             * x_lo, y_hi, z_lo: 2
+        //             * x_hi, y_hi, z_lo: 3
+        //             * x_lo, y_lo, z_hi: 4
+        //             * x_hi, y_lo, z_hi: 5
+        //             * x_lo, y_hi, z_hi: 6
+        //             * x_hi, y_hi, z_hi: 7
+        //             *
+        //             */
+        //            auto &node_edge = p->m_ranges[  std::string(EntityIFORMName[VERTEX]) + "_PATCH_BOUNDARY"];
+        //            switch (b.getLocationIndex()) {
+        //                case 9:
+        //                    node_edge.append(std::make_shared<ContinueRange<EntityId>>(index_box_type{lo - gw, lo},
+        //                    0));
+        //                    break;
+        //                default:
+        //                    break;
+        //            }
+        //        }
 
         for (auto const &b : pgeom->getEdgeBoundaries()) {
-            auto i_lower = b.getBox().lower();
-            auto i_upper = b.getBox().upper();
+            /**
+             * x_lo, y_lo: 0
+             * x_hi, y_lo: 1
+             * x_lo, y_hi: 2
+             * x_hi, y_hi: 3
+             * x_lo, z_lo: 4
+             * x_hi, z_lo: 5
+             * x_lo, z_hi: 6
+             * x_hi, z_hi: 7
+             * y_lo, z_lo: 8
+             * y_hi, z_lo: 9
+             * y_lo, z_hi: 10
+             * y_hi, z_hi: 11
+             *
+             **/
 
-            ;
-            //        CHECK(box);
-            p->m_ranges["." + std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"].append(
-                std::make_shared<ContinueRange<EntityId>>(
-                    index_box_type{{i_lower[0] - gw, i_lower[1] - gw, i_lower[2] - gw},
-                                   {i_upper[0] + gw, i_upper[1] + gw + 1, i_upper[2] + gw + 1}},
-                    1));
-            p->m_ranges["." + std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"].append(
-                std::make_shared<ContinueRange<EntityId>>(
-                    index_box_type{{i_lower[0] - gw, i_lower[1] - gw, i_lower[2] - gw},
-                                   {i_upper[0] + gw + 1, i_upper[1] + gw, i_upper[2] + gw + 1}},
-                    2));
-            p->m_ranges["." + std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"].append(
-                std::make_shared<ContinueRange<EntityId>>(
-                    index_box_type{{i_lower[0] - gw, i_lower[1] - gw, i_lower[2] - gw},
-                                   {i_upper[0] + gw + 1, i_upper[1] + gw + 1, i_upper[2] + gw}},
-                    4));
+            switch (b.getLocationIndex()) {
+                case 0:  // x_lo, y_lo: 0
+                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{lo[0] - gw[0], lo[1] - gw[1] /* */, lo[2] - gw[2]},
+                                           {lo[0], lo[1] /*         */, hi[2] + gw[2] + 1}},
+                            1))
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{lo[0] - gw[0], lo[1] - gw[1], lo[2] - gw[2]},
+                                           {lo[0], lo[1], hi[2] + gw[2] + 1}},
+                            2))
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{lo[0] - gw[0], lo[1] - gw[1] /* */, lo[2] - gw[2]},
+                                           {lo[0], lo[1] /*         */, hi[2] + gw[2]}},
+                            4));
+
+                    break;
+
+                case 1:  // x_hi, y_lo: 1
+                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{hi[0], lo[1] - gw[1], lo[2] - gw[2]},
+                                           {hi[0] + gw[0], lo[1], hi[2] + gw[2] + 1}},
+                            1))
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{hi[0] + 1, lo[1] - gw[1], lo[2] - gw[2]},
+                                           {hi[0] + gw[0] + 1, lo[1], hi[2] + gw[2] + 1}},
+                            2))
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{hi[0] + 1, lo[1] - gw[1], lo[2] - gw[2]},
+                                           {hi[0] + gw[0] + 1, lo[1], hi[2] + gw[2]}},
+                            4));
+                    break;
+
+                case 2:  // x_lo, y_hi: 2
+                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{lo[0] - gw[0], hi[1] + 1, lo[2] - gw[2]},
+                                           {lo[0], hi[1] + gw[1] + 1, hi[2] + gw[2] + 1}},
+                            1))
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{lo[0] - gw[0], hi[1], lo[2] - gw[2]},
+                                           {lo[0], hi[1] + gw[1], hi[2] + gw[2] + 1}},
+                            2))
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{lo[0] - gw[0], hi[1] + 1, lo[2] - gw[2]},
+                                           {lo[0], hi[1] + gw[1] + 1, hi[2] + gw[2]}},
+                            4));
+                    break;
+                case 3:  // x_hi, y_hi: 3
+                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{hi[0], hi[1] + 1, lo[2] - gw[2]},
+                                           {hi[0] + gw[0], hi[1] + gw[1] + 1, hi[2] + gw[2]}},
+                            1))
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{hi[0] + 1, hi[1], lo[2] - gw[2]},
+                                           {hi[0] + gw[0] + 1, hi[1] + gw[1], hi[2] + gw[2]}},
+                            2))
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{hi[0] + 1, hi[1] + 1, lo[2] - gw[2]},
+                                           {hi[0] + gw[0] + 1, hi[1] + gw[1] + 1, hi[2] + gw[2]}},
+                            4));
+
+                    break;
+
+                case 4:  // x_lo, z_lo: 4
+                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{lo[0] - gw[0], lo[1] - gw[0], lo[2] - gw[2]},
+                                           {lo[0], hi[1] + gw[1] + 1, lo[2]}},
+                            1))
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{lo[0] - gw[0], lo[1] - gw[0], lo[2] - gw[2]},
+                                           {lo[0], hi[1] + gw[1], lo[2]}},
+                            2))
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{lo[0] - gw[0], lo[1] - gw[0], lo[2] - gw[2]},
+                                           {lo[0], hi[1] + gw[1] + 1, lo[2]}},
+                            4));
+
+                    break;
+
+                case 5:  // x_hi, z_lo: 5
+                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{hi[0], lo[1] - gw[1], lo[2] - gw[2]},
+                                           {hi[0] + gw[0], hi[1] + gw[1] + 1, lo[2]}},
+                            1))
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{hi[0] + 1, lo[1] - gw[1], lo[2] - gw[2]},
+                                           {hi[0] + gw[0] + 1, hi[1] + gw[1], lo[2]}},
+                            2))
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{hi[0] + 1, lo[1] - gw[1], lo[2] - gw[2]},
+                                           {hi[0] + gw[0] + 1, hi[1] + gw[1] + 1, lo[2]}},
+                            4));
+
+                    break;
+
+                case 6:  // x_lo, z_hi: 6
+                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{lo[0] - gw[0], lo[1] - gw[1], hi[2] + 1},
+                                           {lo[0], hi[1] + gw[1] + 1, hi[2] + gw[2] + 1}},
+                            1))
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{lo[0] - gw[0], lo[1] - gw[1], hi[2] + 1},
+                                           {lo[0], hi[1] + gw[1], hi[2] + gw[2] + 1}},
+                            2))
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{lo[0] - gw[0], lo[1] - gw[1], hi[2]},
+                                           {lo[0], hi[1] + gw[1] + 1, hi[2] + gw[2]}},
+                            4));
+
+                    break;
+
+                case 7:  // x_hi, z_hi: 7
+                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{hi[0], lo[1] - gw[0], hi[2] + 1},
+                                           {hi[0] + gw[0], hi[1] + gw[1], hi[2] + gw[2]}},
+                            1))
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{hi[0], lo[1] - gw[0], hi[2] + 1},
+                                           {hi[0] + gw[0], hi[1] + gw[1], hi[2] + gw[2]}},
+                            2))
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{hi[0], lo[1] - gw[0], hi[2]},
+                                           {hi[0] + gw[0], hi[1] + gw[1], hi[2] + gw[2]}},
+                            4));
+
+                    break;
+
+                case 8:  // y_lo, z_lo: 8
+                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{lo[0] - gw[0], lo[1] - gw[1], lo[2] - gw[2]},
+                                           {hi[0] + gw[0], lo[1], lo[2]}},
+                            1))
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{lo[0] - gw[0], lo[1] - gw[1], lo[2] - gw[2]},
+                                           {hi[0] + gw[0], lo[1], lo[2]}},
+                            2))
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{hi[0] - gw[0], lo[1] - gw[1], lo[2] - gw[2]},
+                                           {hi[0] + gw[0], lo[1], lo[2]}},
+                            4));
+
+                    break;
+
+                case 9:  // y_hi, z_lo: 9
+                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{lo[0] - gw[0], hi[1], lo[2] - gw[2]},
+                                           {hi[0] + gw[0], hi[1] + gw[1], lo[2]}},
+                            1))
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{lo[0] - gw[0], hi[1], lo[2] - gw[2]},
+                                           {hi[0] + gw[0], hi[1] + gw[1], lo[2]}},
+                            2))
+                        .append(std::make_shared<ContinueRange<EntityId>>(
+                            index_box_type{{lo[0] - gw[0], hi[1], lo[2] - gw[2]},
+                                           {hi[0] + gw[0], hi[1] + gw[1], lo[2]}},
+                            4));
+
+                    break;
+                case 10:  // y_lo, z_hi: 10
+                    break;
+                case 11:  // y_hi, z_hi: 11
+                    break;
+                default:
+                    break;
+            }
         }
 
-        for (auto const &b : pgeom->getFaceBoundaries()) {
-            auto i_lower = b.getBox().lower();
-            auto i_upper = b.getBox().upper();
-
-            index_box_type box{{i_lower[0] - 1, i_lower[1] - 1, i_lower[2] - 1},
-                               {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}};
-            //        CHECK(box);
-            p->m_ranges["." + std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"].append(
-                std::make_shared<ContinueRange<EntityId>>(
-                    index_box_type{{i_lower[0] - gw, i_lower[1] - gw, i_lower[2] - gw},
-                                   {i_upper[0] + gw, i_upper[1] + gw, i_upper[2] + gw + 1}},
-                    3));
-            p->m_ranges["." + std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"].append(
-                std::make_shared<ContinueRange<EntityId>>(
-                    index_box_type{{i_lower[0] - gw, i_lower[1] - gw, i_lower[2] - gw},
-                                   {i_upper[0] + gw, i_upper[1] + gw + 1, i_upper[2] + gw}},
-                    5));
-            p->m_ranges["." + std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"].append(
-                std::make_shared<ContinueRange<EntityId>>(
-                    index_box_type{{i_lower[0] - gw, i_lower[1] - gw, i_lower[2] - gw},
-                                   {i_upper[0] + gw + 1, i_upper[1] + gw, i_upper[2] + gw}},
-                    6));
-        }
-
+        //        for (auto const &b : pgeom->getFaceBoundaries()) {
+        //            auto i_lower = b.getBox().lower();
+        //            auto i_upper = b.getBox().upper();
+        //
+        //            index_box_type face_box{{i_lower[0] - lo, i_lower[1] - lo, i_lower[2] - lo},
+        //                                    {i_upper[0] + hi, i_upper[1] + hi, i_upper[2] + hi}};
+        //
+        //            CHECK(face_box);
+        //            p->m_ranges["." + std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"].append(
+        //                std::make_shared<ContinueRange<EntityId>>(
+        //                    index_box_type{{i_lower[0] - lo, i_lower[1] - lo, i_lower[2] - lo},
+        //                                   {i_upper[0] + hi, i_upper[1] + hi, i_upper[2] + hi}},
+        //                    3));
+        //            p->m_ranges["." + std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"].append(
+        //                std::make_shared<ContinueRange<EntityId>>(
+        //                    index_box_type{{i_lower[0] - lo, i_lower[1] - lo, i_lower[2] - lo},
+        //                                   {i_upper[0] + hi, i_upper[1] + hi + 1, i_upper[2] + hi}},
+        //                    5));
+        //            p->m_ranges["." + std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"].append(
+        //                std::make_shared<ContinueRange<EntityId>>(
+        //                    index_box_type{{i_lower[0] - lo, i_lower[1] - lo, i_lower[2] - lo},
+        //                                   {i_upper[0] + hi + 1, i_upper[1] + hi, i_upper[2] + hi}},
+        //                    6));
+        //        }
+        VERBOSE << "==============================================" << std::endl;
         for (auto &d : m_ctx_->GetAllDomains()) { p = d.second->DoInitialCondition(p, data_time); }
 
         //        ConvertPatchToSAMRAI(patch, p.get());
@@ -630,7 +818,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
 
 double SAMRAIHyperbolicPatchStrategyAdapter::computeStableDtOnPatch(SAMRAI::hier::Patch &patch, bool initial_time,
                                                                     double dt_time) {
-    //    auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
+    //    auto pgeom =
+    //    boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
     //    return pgeom->getDx()[0] / 2.0;
     return dt_time;
 }
@@ -1019,7 +1208,8 @@ Real SAMRAITimeIntegrator::Advance(Real time_dt) {
 }
 void SAMRAITimeIntegrator::CheckPoint() const {
     if (visit_data_writer != nullptr) {
-        // VERBOSE << "Check Point at Step " << m_time_refinement_integrator_->getIntegratorStep() << std::endl;
+        // VERBOSE << "Check Point at Step " << m_time_refinement_integrator_->getIntegratorStep() <<
+        // std::endl;
         visit_data_writer->writePlotData(patch_hierarchy, m_time_refinement_integrator_->getIntegratorStep(),
                                          m_time_refinement_integrator_->getIntegratorTime());
     }
@@ -1027,7 +1217,8 @@ void SAMRAITimeIntegrator::CheckPoint() const {
 void SAMRAITimeIntegrator::Dump() const {
     //    if (visit_data_writer != nullptr) {
     //        VERBOSE << "Dump : Step = " << GetNumberOfStep() << std::end;
-    //        visit_data_writer->writePlotData(patch_hierarchy, m_time_refinement_integrator_->getIntegratorStep(),
+    //        visit_data_writer->writePlotData(patch_hierarchy,
+    //        m_time_refinement_integrator_->getIntegratorStep(),
     //                                         m_time_refinement_integrator_->getIntegratorTime());
     //    }
 }

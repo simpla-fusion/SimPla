@@ -681,9 +681,9 @@ struct Range<EntityId> {
     this_type& append(this_type const& other) { return append(other.m_next_); }
 
     this_type& append(std::shared_ptr<base_type> const& other) {
-        auto& cursor = m_next_;
-        while (cursor != nullptr) { cursor = cursor->m_next_; }
-        cursor = other;
+        auto* cursor = &m_next_;
+        while ((*cursor) != nullptr) { cursor = &(*cursor)->m_next_; }
+        *cursor = other;
         return *this;
     }
     size_type size() const {
@@ -691,7 +691,15 @@ struct Range<EntityId> {
         for (auto* cursor = &m_next_; *cursor != nullptr; cursor = &((*cursor)->m_next_)) { res += (*cursor)->size(); }
         return res;
     }
-
+    size_type num_of_block() const {
+        size_type count = 0;
+        auto const* cursor = &m_next_;
+        while ((*cursor) != nullptr) {
+            ++count;
+            cursor = &(*cursor)->m_next_;
+        }
+        return count;
+    }
     template <typename... Args>
     void foreach (Args&&... args) const {
         for (auto* cursor = &m_next_; *cursor != nullptr; cursor = &((*cursor)->m_next_)) {
@@ -784,9 +792,9 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
         index_type ib = this->m_min_[0];
         index_type ie = this->m_max_[0];
 #pragma omp parallel for
-        for (index_type i = ib; i <= ie; ++i) {
-            for (index_type j = this->m_min_[1], je = this->m_max_[1]; j <= je; ++j)
-                for (index_type k = this->m_min_[2], ke = this->m_max_[2]; k <= ke; ++k) {
+        for (index_type i = ib; i < ie; ++i) {
+            for (index_type j = this->m_min_[1], je = this->m_max_[1]; j < je; ++j)
+                for (index_type k = this->m_min_[2], ke = this->m_max_[2]; k < ke; ++k) {
                     EntityId s;
                     s.y = static_cast<int16_t>(j);
                     s.z = static_cast<int16_t>(k);

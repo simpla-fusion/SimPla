@@ -151,6 +151,7 @@ class Field : public engine::Attribute {
     void DeepCopy(TOther const& other) {
         DoSetUp();
         ASSERT(m_data_ != nullptr && m_data_->size() > 0);
+        Clear();
         m_data_->DeepCopy(other.data());
     }
 
@@ -158,6 +159,7 @@ class Field : public engine::Attribute {
     void Assign(Other const& other) {
         DoSetUp();
         ASSERT(m_data_ != nullptr && m_data_->size() > 0);
+        CHECK(m_range_.num_of_block());
         m_mesh_->Assign(*this, m_range_, other);
     }
 

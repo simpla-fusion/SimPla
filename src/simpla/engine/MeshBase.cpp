@@ -67,6 +67,7 @@ index_box_type MeshBase::GetIndexBox(int tag) const {
         case 6:
             std::get<1>(res)[0] += 1;
             break;
+        case 7:
         default:
             break;
     }

@@ -161,7 +161,7 @@ class StructuredMesh : public engine::MeshBase {
                 } else {
                     r.foreach ([&](EntityId s) {
                         index_tuple idx{s.x, s.y, s.z};
-                        if (in_box(id_box, idx) && tag == (s.w & 0b111)) { lhs.Assign(idx, rhs); }
+                        if (tag == (s.w & 0b111)) { lhs.Assign(idx, rhs); }
                     });
                 }
             }
@@ -183,7 +183,7 @@ class StructuredMesh : public engine::MeshBase {
                 } else {
                     r.foreach ([&](EntityId s) {
                         index_tuple idx{s.x, s.y, s.z};
-                        if (in_box(id_box, idx) && tag == (s.w & 0b111)) { lhs.Assign(idx, rhs); }
+                        if (tag == (s.w & 0b111)) { lhs.Assign(idx, rhs); }
                     });
                 }
             }
@@ -206,7 +206,7 @@ class StructuredMesh : public engine::MeshBase {
                 } else {
                     r.foreach ([&](EntityId s) {
                         index_tuple idx{s.x, s.y, s.z};
-                        if (in_box(id_box, idx) && tag == (s.w & 0b111)) { lhs.Assign(idx, rhs); }
+                        if (tag == (s.w & 0b111)) { lhs.Assign(idx, rhs); }
                     });
                 }
             }
@@ -237,7 +237,7 @@ class StructuredMesh : public engine::MeshBase {
                 } else {
                     r.foreach ([&](EntityId s) {
                         index_tuple idx{s.x, s.y, s.z};
-                        if (in_box(id_box, idx) && (tag == s.w)) {
+                        if (tag == s.w) {
                             s.w = w;
                             lhs.Assign(idx, fun(s));
                         }
@@ -272,7 +272,7 @@ class StructuredMesh : public engine::MeshBase {
                 } else {
                     r.foreach ([&](EntityId s) {
                         index_tuple idx{s.x, s.y, s.z};
-                        if (in_box(id_box, idx) && (tag == s.w)) {
+                        if (tag == s.w) {
                             s.w = w;
                             lhs.Assign(idx, fun(s)[n]);
                         }
@@ -304,7 +304,7 @@ class StructuredMesh : public engine::MeshBase {
                 } else {
                     r.foreach ([&](EntityId s) {
                         index_tuple idx{s.x, s.y, s.z};
-                        if (in_box(id_box, idx) && (tag == s.w)) {
+                        if (tag == s.w) {
                             s.w = w;
                             lhs.Assign(idx, fun(this->point(s))[n]);
                         }
@@ -335,7 +335,7 @@ class StructuredMesh : public engine::MeshBase {
                 } else {
                     r.foreach ([&](EntityId s) {
                         index_tuple idx{s.x, s.y, s.z};
-                        if (in_box(id_box, idx) && (tag == s.w)) {
+                        if (tag == s.w) {
                             s.w = w;
                             lhs.Assign(idx, fun(point(s)));
                         }

@@ -137,6 +137,10 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
     Bv.Clear();
     J.Clear();
 
+    E = 1;
+    B = 1;
+    J = 1;
+
     BB = dot_v(B0v, B0v);
 
     for (auto& item : m_fluid_sp_) {
@@ -149,90 +153,91 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
 }
 template <typename TM>
 void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
-    B[GetRange(".FACE_PATCH_BOUNDARY")] = 0;
-    E[GetRange(".EDGE_PATCH_BOUNDARY")] = 0;
+    //    B[GetRange(".FACE_PATCH_BOUNDARY")] = 0;
+    //    E[GetRange(".EDGE_PATCH_BOUNDARY")] = 0;
 }
 template <typename TM>
 void EMFluid<TM>::Advance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
 
-    B = B - curl(E) * (dt * 0.5);
-    B[GetPerpendicularBoundaryRange(FACE)] = 0;
+    //    B[GetRange("FACE_PATCH_BOUNDARY")] = 0;
+    //    E[GetRange("EDGE_PATCH_BOUNDARY")] = 0;
 
-    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
-    E[GetParallelBoundaryRange(EDGE)] = 0;
+    //    E = curl(B);
+    B = curl(E);
+    //    B = B - curl(E) * (dt * 0.5);
+    //    B[GetPerpendicularBoundaryRange(FACE)] = 0;
 
-    //    if (m_fluid_sp_.size() > 0)
-    {
-        Ev = map_to<VOLUME>(E);
-
-        field_type<VOLUME, 3> Q{this};
-        field_type<VOLUME, 3> K{this};
-
-        field_type<VOLUME> a{this};
-        field_type<VOLUME> b{this};
-        field_type<VOLUME> c{this};
-
-        a.Clear();
-        b.Clear();
-        c.Clear();
-
-        Q.Clear();
-        K.Clear();
-
-        dE.Clear();
-
-        for (auto& p : m_fluid_sp_) {
-            Real ms = p.second->mass;
-            Real qs = p.second->charge;
-            auto& ns = *p.second->rho;
-            auto& Js = *p.second->J;
-
-            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
-
-            Q -= (0.5 * dt / epsilon0) * Js;
-
-            K = Js + cross_v(Js, B0v) * as + Ev * ns * (qs * 2.0 * as);
-
-            Js = (K + cross_v(K, B0v) * as + B0v * (dot_v(K, B0v) * as * as)) / (BB * as * as + 1);
-
-            Q -= (0.5 * dt / epsilon0) * Js;
-
-            a += qs * ns * (as / (BB * as * as + 1));
-            b += qs * ns * (as * as / (BB * as * as + 1));
-            c += qs * ns * (as * as * as / (BB * as * as + 1));
-        }
-
-        a *= 0.5 * dt / epsilon0;
-        b *= 0.5 * dt / epsilon0;
-        c *= 0.5 * dt / epsilon0;
-        a += 1;
-        dE = (Q * a - cross_v(Q, B0v) * b + B0v * (dot_v(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
-             (b * b * BB + a * a);
-
-        for (auto& p : m_fluid_sp_) {
-            Real ms = p.second->mass;
-            Real qs = p.second->charge;
-            auto& ns = *p.second->rho;
-            auto& Js = *p.second->J;
-
-            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
-
-            K = dE * ns * qs * as;
-            Js += (K + cross_v(K, B0v) * as + B0v * (dot_v(K, B0v) * as * as)) / (BB * as * as + 1);
-        }
-
-        E += map_to<EDGE>(dE);
-    }
-
-    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
-    E[GetParallelBoundaryRange(EDGE)] = 0;
-
-    B = B - curl(E) * (dt * 0.5);
-    B[GetPerpendicularBoundaryRange(FACE)] = 0;
-
-    //    B[GetRange(".FACE_PATCH_BOUNDARY")] = 0;
-    //    E[GetRange(".EDGE_PATCH_BOUNDARY")] = 0;
+    //    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
+    //    E[GetParallelBoundaryRange(EDGE)] = 0;
+    //
+    //    if (m_fluid_sp_.size() > 0) {
+    //        Ev = map_to<VOLUME>(E);
+    //
+    //        field_type<VOLUME, 3> Q{this};
+    //        field_type<VOLUME, 3> K{this};
+    //
+    //        field_type<VOLUME> a{this};
+    //        field_type<VOLUME> b{this};
+    //        field_type<VOLUME> c{this};
+    //
+    //        a.Clear();
+    //        b.Clear();
+    //        c.Clear();
+    //
+    //        Q.Clear();
+    //        K.Clear();
+    //
+    //        dE.Clear();
+    //
+    //        for (auto& p : m_fluid_sp_) {
+    //            Real ms = p.second->mass;
+    //            Real qs = p.second->charge;
+    //            auto& ns = *p.second->rho;
+    //            auto& Js = *p.second->J;
+    //
+    //            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
+    //
+    //            Q -= (0.5 * dt / epsilon0) * Js;
+    //
+    //            K = Js + cross_v(Js, B0v) * as + Ev * ns * (qs * 2.0 * as);
+    //
+    //            Js = (K + cross_v(K, B0v) * as + B0v * (dot_v(K, B0v) * as * as)) / (BB * as * as + 1);
+    //
+    //            Q -= (0.5 * dt / epsilon0) * Js;
+    //
+    //            a += qs * ns * (as / (BB * as * as + 1));
+    //            b += qs * ns * (as * as / (BB * as * as + 1));
+    //            c += qs * ns * (as * as * as / (BB * as * as + 1));
+    //        }
+    //
+    //        a *= 0.5 * dt / epsilon0;
+    //        b *= 0.5 * dt / epsilon0;
+    //        c *= 0.5 * dt / epsilon0;
+    //        a += 1;
+    //        dE = (Q * a - cross_v(Q, B0v) * b + B0v * (dot_v(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
+    //             (b * b * BB + a * a);
+    //
+    //        for (auto& p : m_fluid_sp_) {
+    //            Real ms = p.second->mass;
+    //            Real qs = p.second->charge;
+    //            auto& ns = *p.second->rho;
+    //            auto& Js = *p.second->J;
+    //
+    //            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
+    //
+    //            K = dE * ns * qs * as;
+    //            Js += (K + cross_v(K, B0v) * as + B0v * (dot_v(K, B0v) * as * as)) / (BB * as * as + 1);
+    //        }
+    //
+    //        E += map_to<EDGE>(dE);
+    //    }
+    //
+    //    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
+    //    E[GetParallelBoundaryRange(EDGE)] = 0;
+    //
+    //    B = B - curl(E) * (dt * 0.5);
+    //    B[GetPerpendicularBoundaryRange(FACE)] = 0;
 }
 
 }  // namespace simpla  {
