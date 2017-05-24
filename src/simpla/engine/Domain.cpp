@@ -52,6 +52,7 @@ std::shared_ptr<geometry::GeoObject> Domain::GetGeoObject(std::string const& k) 
 EntityRange Domain::GetRange(std::string const& k) const {
     ASSERT(!isModified());
     auto it = m_pimpl_->m_patch_->m_ranges.find(k);
+//    VERBOSE << FILE_LINE_STAMP << "Get Range " << k << std::endl;
     return (it != m_pimpl_->m_patch_->m_ranges.end()) ? it->second
                                                       : EntityRange{std::make_shared<EmptyRangeBase<EntityId>>()};
 };
@@ -64,9 +65,6 @@ EntityRange Domain::GetBoundaryRange(int IFORM, std::string const& k, bool is_pa
         (IFORM == VERTEX || IFORM == VOLUME)
             ? GetRange(k + "." + std::string(EntityIFORMName[IFORM]) + "_BOUNDARY")
             : GetRange(k + "." + std::string(EntityIFORMName[IFORM]) + (is_parallel ? "_PARA" : "_PERP") + "_BOUNDARY");
-
-    if (res.isNull()) { res = GetRange(k + "." + std::string(EntityIFORMName[IFORM]) + "_PATCH_BOUNDARY"); }
-
     return res;
 };
 EntityRange Domain::GetParallelBoundaryRange(int IFORM, std::string const& k) const {
@@ -103,7 +101,7 @@ std::shared_ptr<Patch> Domain::PopPatch() {
     return res;
 }
 
-std::shared_ptr<Patch> Domain::ApplyInitialCondition(const std::shared_ptr<Patch>& patch, Real time_now) {
+std::shared_ptr<Patch> Domain::DoInitialCondition(const std::shared_ptr<Patch>& patch, Real time_now) {
     Push(patch);
 
     if (GetMesh() != nullptr) {
@@ -117,7 +115,7 @@ std::shared_ptr<Patch> Domain::ApplyInitialCondition(const std::shared_ptr<Patch
     PostInitialCondition(this, time_now);
     return PopPatch();
 }
-std::shared_ptr<Patch> Domain::ApplyBoundaryCondition(const std::shared_ptr<Patch>& patch, Real time_now, Real dt) {
+std::shared_ptr<Patch> Domain::DoBoundaryCondition(const std::shared_ptr<Patch>& patch, Real time_now, Real dt) {
     Push(patch);
     PreBoundaryCondition(this, time_now, dt);
     BoundaryCondition(time_now, dt);

@@ -70,22 +70,22 @@ void Context::SetUp() {
         item.second->SetUp();
     }
 };
-std::shared_ptr<Patch> Context::ApplyInitializeCondition(const std::shared_ptr<Patch> &p, Real time_now) {
-    std::shared_ptr<Patch> res = p;
-    for (auto &item : m_pimpl_->m_domains_) { res = item.second->ApplyInitialCondition(res, time_now); }
-    return res;
-}
-std::shared_ptr<Patch> Context::ApplyBoundaryCondition(const std::shared_ptr<Patch> &p, Real time_now, Real time_dt) {
-    std::shared_ptr<Patch> res = p;
-    for (auto &item : m_pimpl_->m_domains_) { res = item.second->ApplyBoundaryCondition(res, time_now, time_dt); }
-    return res;
-}
-
-std::shared_ptr<Patch> Context::DoAdvance(const std::shared_ptr<Patch> &p, Real time_now, Real time_dt) {
-    std::shared_ptr<Patch> res = p;
-    for (auto &item : m_pimpl_->m_domains_) { res = item.second->DoAdvance(res, time_now, time_dt); }
-    return res;
-}
+// std::shared_ptr<Patch> Context::ApplyInitializeCondition(const std::shared_ptr<Patch> &p, Real time_now) {
+//    std::shared_ptr<Patch> res = p;
+//    for (auto &item : m_pimpl_->m_domains_) { res = item.second->DoInitialCondition(res, time_now); }
+//    return res;
+//}
+// std::shared_ptr<Patch> Context::DoBoundaryCondition(const std::shared_ptr<Patch> &p, Real time_now, Real time_dt) {
+//    std::shared_ptr<Patch> res = p;
+//    for (auto &item : m_pimpl_->m_domains_) { res = item.second->DoBoundaryCondition(res, time_now, time_dt); }
+//    return res;
+//}
+//
+// std::shared_ptr<Patch> Context::DoAdvance(const std::shared_ptr<Patch> &p, Real time_now, Real time_dt) {
+//    std::shared_ptr<Patch> res = p;
+//    for (auto &item : m_pimpl_->m_domains_) { res = item.second->DoAdvance(res, time_now, time_dt); }
+//    return res;
+//}
 
 Model &Context::GetModel() const { return m_pimpl_->m_model_; }
 
@@ -110,7 +110,8 @@ std::shared_ptr<Domain> Context::GetDomain(std::string const &k) const {
     auto it = m_pimpl_->m_domains_.find(k);
     return (it == m_pimpl_->m_domains_.end()) ? nullptr : it->second;
 }
-
+std::map<std::string, std::shared_ptr<Domain>> &Context::GetAllDomains() { return m_pimpl_->m_domains_; };
+std::map<std::string, std::shared_ptr<Domain>> const &Context::GetAllDomain() const { return m_pimpl_->m_domains_; };
 // std::map<id_type, std::shared_ptr<Patch>> const &Context::GetPatches() const { return m_pimpl_->m_patches_; }
 //
 // bool Context::RegisterWorker(std::string const &d_name, std::shared_ptr<Domain> const &p) {

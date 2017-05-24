@@ -129,7 +129,6 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
 
 template <typename TM>
 void EMFluid<TM>::InitialCondition(Real time_now) {
-    DoSetUp();
     Domain::InitialCondition(time_now);
 
     E.Clear();
@@ -150,28 +149,11 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
 }
 template <typename TM>
 void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
-    DoSetUp();
- 
-
-    //    auto brd = this->Boundary();
-    //    if (brd == nullptr) { return; }
-    //    E(brd) = 0;
-    //    B(brd) = 0;
-    //    auto antenna = this->SubMesh(m_antenna_);
-    //    if (antenna != nullptr) {
-    //        nTuple<Real, 3> k{1, 1, 1};
-    //        Real omega = 1.0;
-    //        E(antenna)
-    //            .Assign([&](point_type const& x) {
-    //                auto amp = std::sin(omega * time_now) * std::cos(dot(k, x));
-    //                return nTuple<Real, 3>{amp, 0, 0};
-    //            });
-    //    }
+    B[GetRange(".FACE_PATCH_BOUNDARY")] = 0;
+    E[GetRange(".EDGE_PATCH_BOUNDARY")] = 0;
 }
 template <typename TM>
 void EMFluid<TM>::Advance(Real time_now, Real dt) {
-    DoSetUp();
-
     DEFINE_PHYSICAL_CONST
 
     B = B - curl(E) * (dt * 0.5);
@@ -248,6 +230,9 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
 
     B = B - curl(E) * (dt * 0.5);
     B[GetPerpendicularBoundaryRange(FACE)] = 0;
+
+    //    B[GetRange(".FACE_PATCH_BOUNDARY")] = 0;
+    //    E[GetRange(".EDGE_PATCH_BOUNDARY")] = 0;
 }
 
 }  // namespace simpla  {

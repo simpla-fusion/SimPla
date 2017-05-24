@@ -51,8 +51,9 @@ void SPObject::SetUp() {}
 
 void SPObject::DoInitialize() {
     if (!isInitialized()) {
+        PreInitialize(this);
         Initialize();
-        OnInitialize(this);
+        PostInitialize(this);
         Click();
         Tag();
     }
@@ -61,22 +62,25 @@ void SPObject::DoInitialize() {
 void SPObject::DoSetUp() {
     if (isModified()) {
         DoInitialize();
+        PreSetUp(this);
         SetUp();
-        OnSetUp(this);
+        PostSetUp(this);
         Tag();
     }
 }
 void SPObject::DoTearDown() {
+    PreTearDown(this);
     TearDown();
-    OnTearDown(this);
+    PostTearDown(this);
     Tag();
     Click();
 };
 void SPObject::DoFinalize() {
     if (isInitialized()) {
         DoTearDown();
+        PreFinalize(this);
         Finalize();
-        OnFinalize(this);
+        PostFinalize(this);
         ResetTag();
     }
 };

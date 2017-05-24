@@ -10,7 +10,7 @@ namespace engine {
 std::shared_ptr<data::DataTable> TimeIntegrator::Serialize() const {
     auto p = Schedule::Serialize();
     p->SetValue("Type", GetRegisterName());
-    p->SetValue("TimeBegin", GetTime());
+    p->SetValue("TimeBegin", GetTimeNow());
     p->SetValue("TimeEnd", GetTimeEnd());
     p->SetValue("TimeStep", GetTimeStep());
     p->SetValue("MaxStep", GetMaxStep());
@@ -19,7 +19,7 @@ std::shared_ptr<data::DataTable> TimeIntegrator::Serialize() const {
 
 void TimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     Schedule::Deserialize(cfg);
-    SetTime(cfg->GetValue("TimeBegin", 0.0));
+    SetTimeNow(cfg->GetValue("TimeBegin", 0.0));
     SetTimeEnd(cfg->GetValue("TimeEnd", 1.0));
     SetTimeStep(cfg->GetValue("TimeStep", 0.5));
     SetMaxStep(cfg->GetValue<size_type>("MaxStep", 0));

@@ -31,11 +31,11 @@ struct TimeIntegrator : public Schedule {
 
     virtual Real Advance(Real time_dt);
 
-    virtual void SetTime(Real t) { m_time_now_ = t; }
+    virtual void SetTimeNow(Real t) { m_time_now_ = t; }
     virtual void SetTimeEnd(Real t) { m_time_end_ = t; }
     virtual void SetTimeStep(Real t) { m_time_step_ = t; };
 
-    virtual Real GetTime() const { return m_time_now_; }
+    virtual Real GetTimeNow() const { return m_time_now_; }
     virtual Real GetTimeEnd() const { return m_time_end_; }
     virtual Real GetTimeStep() const { return m_time_step_; }
 

@@ -111,7 +111,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
      * Update linear advection solution variables by performing a conservative
      * difference with the fluxes calculated in computeFluxesOnPatch().
      */
-    void conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, double time, double dt,
+    void conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, double time_now, double time_dt,
                                        bool at_syncronization) override;
 
     /**
@@ -479,45 +479,6 @@ void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchFromSAMRAI(SAMRAI::hier::
                        {patch.getBox().upper()[0] + 1, patch.getBox().upper()[1] + 1, patch.getBox().upper()[2] + 1}},
         patch.getPatchLevelNumber()));
 
-    auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
-    for (auto const &b : pgeom->getNodeBoundaries()) {
-        auto i_lower = b.getBox().lower();
-        auto i_upper = b.getBox().upper();
-
-        index_box_type box{{i_lower[0], i_lower[1], i_lower[2]}, {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}};
-        //        CHECK(box);
-        p->m_ranges["." + std::string(EntityIFORMName[VERTEX]) + "_PATCH_BOUNDARY"].append(
-            std::make_shared<ContinueRange<EntityId>>(box, 0));
-    }
-
-    for (auto const &b : pgeom->getEdgeBoundaries()) {
-        auto i_lower = b.getBox().lower();
-        auto i_upper = b.getBox().upper();
-
-        index_box_type box{{i_lower[0], i_lower[1], i_lower[2]}, {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}};
-        //        CHECK(box);
-        p->m_ranges["." + std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"].append(
-            std::make_shared<ContinueRange<EntityId>>(box, 1));
-        p->m_ranges["." + std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"].append(
-            std::make_shared<ContinueRange<EntityId>>(box, 2));
-        p->m_ranges["." + std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"].append(
-            std::make_shared<ContinueRange<EntityId>>(box, 4));
-    }
-
-    for (auto const &b : pgeom->getFaceBoundaries()) {
-        auto i_lower = b.getBox().lower();
-        auto i_upper = b.getBox().upper();
-
-        index_box_type box{{i_lower[0], i_lower[1], i_lower[2]}, {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}};
-        //        CHECK(box);
-        p->m_ranges["." + std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"].append(
-            std::make_shared<ContinueRange<EntityId>>(box, 3));
-        p->m_ranges["." + std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"].append(
-            std::make_shared<ContinueRange<EntityId>>(box, 5));
-        p->m_ranges["." + std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"].append(
-            std::make_shared<ContinueRange<EntityId>>(box, 6));
-    }
-
     for (auto &item : m_samrai_variables_) {
         auto samrai_id =
             SAMRAI::hier::VariableDatabase::getDatabase()->mapVariableAndContextToIndex(item.second, getDataContext());
@@ -577,7 +538,70 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
     if (initial_time) {
         auto p = m_ctx_->GetAtlas().PopPatch(static_cast<id_type>(patch.getLocalId().getValue()));
         ConvertPatchFromSAMRAI(patch, p.get());
-        p = m_ctx_->ApplyInitializeCondition(p, data_time);
+
+        index_type gw = 0;
+
+        auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
+        for (auto const &b : pgeom->getNodeBoundaries()) {
+            auto i_lower = b.getBox().lower();
+            auto i_upper = b.getBox().upper();
+
+            p->m_ranges["." + std::string(EntityIFORMName[VERTEX]) + "_PATCH_BOUNDARY"].append(
+                std::make_shared<ContinueRange<EntityId>>(
+                    index_box_type{{i_lower[0] - gw, i_lower[1] - gw, i_lower[2] - gw},
+                                   {i_upper[0] + 1 + gw, i_upper[1] + 1 + gw, i_upper[2] + 1 + gw}},
+                    0));
+        }
+
+        for (auto const &b : pgeom->getEdgeBoundaries()) {
+            auto i_lower = b.getBox().lower();
+            auto i_upper = b.getBox().upper();
+
+            ;
+            //        CHECK(box);
+            p->m_ranges["." + std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"].append(
+                std::make_shared<ContinueRange<EntityId>>(
+                    index_box_type{{i_lower[0] - gw, i_lower[1] - gw, i_lower[2] - gw},
+                                   {i_upper[0] + gw, i_upper[1] + gw + 1, i_upper[2] + gw + 1}},
+                    1));
+            p->m_ranges["." + std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"].append(
+                std::make_shared<ContinueRange<EntityId>>(
+                    index_box_type{{i_lower[0] - gw, i_lower[1] - gw, i_lower[2] - gw},
+                                   {i_upper[0] + gw + 1, i_upper[1] + gw, i_upper[2] + gw + 1}},
+                    2));
+            p->m_ranges["." + std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"].append(
+                std::make_shared<ContinueRange<EntityId>>(
+                    index_box_type{{i_lower[0] - gw, i_lower[1] - gw, i_lower[2] - gw},
+                                   {i_upper[0] + gw + 1, i_upper[1] + gw + 1, i_upper[2] + gw}},
+                    4));
+        }
+
+        for (auto const &b : pgeom->getFaceBoundaries()) {
+            auto i_lower = b.getBox().lower();
+            auto i_upper = b.getBox().upper();
+
+            index_box_type box{{i_lower[0] - 1, i_lower[1] - 1, i_lower[2] - 1},
+                               {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}};
+            //        CHECK(box);
+            p->m_ranges["." + std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"].append(
+                std::make_shared<ContinueRange<EntityId>>(
+                    index_box_type{{i_lower[0] - gw, i_lower[1] - gw, i_lower[2] - gw},
+                                   {i_upper[0] + gw, i_upper[1] + gw, i_upper[2] + gw + 1}},
+                    3));
+            p->m_ranges["." + std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"].append(
+                std::make_shared<ContinueRange<EntityId>>(
+                    index_box_type{{i_lower[0] - gw, i_lower[1] - gw, i_lower[2] - gw},
+                                   {i_upper[0] + gw, i_upper[1] + gw + 1, i_upper[2] + gw}},
+                    5));
+            p->m_ranges["." + std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"].append(
+                std::make_shared<ContinueRange<EntityId>>(
+                    index_box_type{{i_lower[0] - gw, i_lower[1] - gw, i_lower[2] - gw},
+                                   {i_upper[0] + gw + 1, i_upper[1] + gw, i_upper[2] + gw}},
+                    6));
+        }
+
+        for (auto &d : m_ctx_->GetAllDomains()) { p = d.second->DoInitialCondition(p, data_time); }
+
         //        ConvertPatchToSAMRAI(patch, p.get());
         m_ctx_->GetAtlas().PushPatch(p);
     }
@@ -629,11 +653,11 @@ void SAMRAIHyperbolicPatchStrategyAdapter::computeFluxesOnPatch(SAMRAI::hier::Pa
  *
  **************************************************************************/
 
-void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, double time,
-                                                                         double dt, bool at_syncronization) {
+void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, double time_now,
+                                                                         double time_dt, bool at_syncronization) {
     auto p = m_ctx_->GetAtlas().PopPatch(static_cast<id_type>(patch.getLocalId().getValue()));
     ConvertPatchFromSAMRAI(patch, p.get());
-    p = m_ctx_->DoAdvance(p, time, dt);
+    for (auto &d : m_ctx_->GetAllDomains()) { p = d.second->DoAdvance(p, time_now, time_dt); }
     m_ctx_->GetAtlas().PushPatch(p);
 }
 
@@ -667,7 +691,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setPhysicalBoundaryConditions(
     SAMRAI::hier::Patch &patch, double fill_time, const SAMRAI::hier::IntVector &ghost_width_to_fill) {
     auto p = m_ctx_->GetAtlas().PopPatch(static_cast<id_type>(patch.getLocalId().getValue()));
     ConvertPatchFromSAMRAI(patch, p.get());
-    p = m_ctx_->ApplyBoundaryCondition(p, fill_time, 0);
+    for (auto &d : m_ctx_->GetAllDomains()) { p = d.second->DoBoundaryCondition(p, fill_time, 0); }
     m_ctx_->GetAtlas().PushPatch(p);
 }
 
@@ -950,8 +974,8 @@ void SAMRAITimeIntegrator::SetUp() {
     // Refer to algs::TimeRefinementIntegrator for input
     auto TimeRefinementIntegrator = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("TimeRefinementIntegrator");
 
-    TimeRefinementIntegrator->putDouble("start_time", engine::TimeIntegrator::GetTime());   // initial simulation time
-    TimeRefinementIntegrator->putDouble("end_time", engine::TimeIntegrator::GetTimeEnd());  // final simulation time
+    TimeRefinementIntegrator->putDouble("start_time", engine::TimeIntegrator::GetTimeNow());  // initial simulation time
+    TimeRefinementIntegrator->putDouble("end_time", engine::TimeIntegrator::GetTimeEnd());    // final simulation time
     TimeRefinementIntegrator->putDouble("grow_dt", 1.1);  // growth factor for timesteps
     TimeRefinementIntegrator->putInteger("max_integrator_steps", 100);
 
@@ -980,8 +1004,8 @@ void SAMRAITimeIntegrator::Finalize() {
 Real SAMRAITimeIntegrator::Advance(Real time_dt) {
     ASSERT(m_time_refinement_integrator_ != nullptr);
 
-    // SetTime(m_time_refinement_integrator_->getIntegratorTime());
-    Real loop_time = GetTime();
+    // SetTimeNow(m_time_refinement_integrator_->getIntegratorTime());
+    Real loop_time = GetTimeNow();
     Real loop_time_end = std::min(loop_time + time_dt, GetTimeEnd());
     Real loop_dt = time_dt;
     while ((loop_time < loop_time_end) && (loop_dt > 0)) {  //&& m_time_refinement_integrator_->stepsRemaining() > 0
@@ -990,7 +1014,7 @@ Real SAMRAITimeIntegrator::Advance(Real time_dt) {
         loop_time += loop_dt;
     }
 
-    SetTime(loop_time_end);
+    SetTimeNow(loop_time_end);
     return loop_time_end;
 }
 void SAMRAITimeIntegrator::CheckPoint() const {

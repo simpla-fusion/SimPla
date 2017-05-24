@@ -30,7 +30,7 @@ class EMTokamak : public engine::Context {
 
     GEqdsk geqdsk;
     //    void InitialCondition(Real time_now) override;
-    //    void ApplyBoundaryCondition(Real time_now, Real dt) override;
+    //    void DoBoundaryCondition(Real time_now, Real dt) override;
     //    void DoAdvance(Real time_now, Real dt) override;
     //    field_type<VERTEX> psi{base_type::m_mesh_, "name"_ = "psi"};
     //    std::function<Vec3(point_type const&, Real)> J_src_fun;

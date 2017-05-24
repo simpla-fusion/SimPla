@@ -101,11 +101,15 @@ class SPObject {
     virtual void TearDown();    //!< repeat invoke,
     virtual void Finalize();    //!< invoke once, after everything
 
-    design_pattern::Signal<void(SPObject*)> OnInitialize;
-    design_pattern::Signal<void(SPObject*)> OnSetUp;
-    design_pattern::Signal<void(SPObject*)> OnTearDown;
-    design_pattern::Signal<void(SPObject*)> OnFinalize;
-    design_pattern::Signal<void(SPObject*)> OnChanged;
+    design_pattern::Signal<void(SPObject *)> PreInitialize;
+    design_pattern::Signal<void(SPObject *)> PostInitialize;
+    design_pattern::Signal<void(SPObject *)> PreSetUp;
+    design_pattern::Signal<void(SPObject *)> PostSetUp;
+    design_pattern::Signal<void(SPObject *)> PreTearDown;
+    design_pattern::Signal<void(SPObject *)> PostTearDown;
+    design_pattern::Signal<void(SPObject *)> PreFinalize;
+    design_pattern::Signal<void(SPObject *)> PostFinalize;
+    design_pattern::Signal<void(SPObject *)> PostChanged;
 
     void DoInitialize();
     void DoFinalize();

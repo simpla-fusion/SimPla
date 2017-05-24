@@ -56,6 +56,22 @@ class Domain : public SPObject,
     void SetUp() override;
     void TearDown() override;
 
+    void Push(const std::shared_ptr<Patch> &);
+    std::shared_ptr<Patch> PopPatch();
+
+//#define DEF_OPERATION(_NAME_, ...)                                                            \
+//    virtual void _NAME_(__VA_ARGS__) {}                                                       \
+//    design_pattern::Signal<void(this_type *, __VA_ARGS__)> Pre##_NAME_;                       \
+//    design_pattern::Signal<void(this_type *, __VA_ARGS__)> Post##_NAME_;                      \
+//    template <typename... Args>                                                               \
+//    std::shared_ptr<Patch> Do##_NAME_(const std::shared_ptr<Patch> &patch, Args &&... args) { \
+//        Push(patch);                                                                          \
+//        Pre##_NAME_(std::forward<Args>(args)...);                                             \
+//        _NAME_(std::forward<Args>(args)...)                                                   \
+//        Post##_NAME_(std::forward<Args>(args)...);                                            \
+//        return PopPatch();                                                                    \
+//    };
+
     design_pattern::Signal<void(Domain *, Real)> PreInitialCondition;
     design_pattern::Signal<void(Domain *, Real)> PostInitialCondition;
     design_pattern::Signal<void(Domain *, Real, Real)> PreBoundaryCondition;
@@ -67,11 +83,8 @@ class Domain : public SPObject,
     virtual void BoundaryCondition(Real time_now, Real dt) {}
     virtual void Advance(Real time_now, Real dt) {}
 
-    void Push(const std::shared_ptr<Patch> &);
-    std::shared_ptr<Patch> PopPatch();
-
-    std::shared_ptr<Patch> ApplyInitialCondition(const std::shared_ptr<Patch> &, Real time_now);
-    std::shared_ptr<Patch> ApplyBoundaryCondition(const std::shared_ptr<Patch> &, Real time_now, Real dt);
+    std::shared_ptr<Patch> DoInitialCondition(const std::shared_ptr<Patch> &, Real time_now);
+    std::shared_ptr<Patch> DoBoundaryCondition(const std::shared_ptr<Patch> &, Real time_now, Real dt);
     std::shared_ptr<Patch> DoAdvance(const std::shared_ptr<Patch> &, Real time_now, Real dt);
 
     template <typename T>
