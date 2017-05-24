@@ -538,11 +538,9 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
     if (initial_time) {
         auto p = m_ctx_->GetAtlas().PopPatch(static_cast<id_type>(patch.getLocalId().getValue()));
         ConvertPatchFromSAMRAI(patch, p.get());
-        index_tuple lo, hi;
-        std::tie(lo, hi) = p->GetBlock()->GetIndexBox();
+        index_tuple l, h;
+        std::tie(l, h) = p->GetBlock()->GetIndexBox();
         index_tuple gw = p->GetBlock()->GetGhostWidth();
-        CHECK(p->GetBlock()->GetIndexBox());
-        CHECK(gw);
 
         auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
 
@@ -569,199 +567,294 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
         //                    break;
         //            }
         //        }
+        for (int n = 1; n <= 3; ++n)
+            for (auto const &b : pgeom->getCodimensionBoundaries(n)) {
+                /**
+                 * x_lo, y_lo: 0
+                 * x_hi, y_lo: 1
+                 * x_lo, y_hi: 2
+                 * x_hi, y_hi: 3
+                 * x_lo, z_lo: 4
+                 * x_hi, z_lo: 5
+                 * x_lo, z_hi: 6
+                 * x_hi, z_hi: 7
+                 * y_lo, z_lo: 8
+                 * y_hi, z_lo: 9
+                 * y_lo, z_hi: 10
+                 * y_hi, z_hi: 11
+                 *
+                 **/
+                auto l = b.getBox().lower();
+                auto h = b.getBox().upper();
 
-        for (auto const &b : pgeom->getEdgeBoundaries()) {
-            /**
-             * x_lo, y_lo: 0
-             * x_hi, y_lo: 1
-             * x_lo, y_hi: 2
-             * x_hi, y_hi: 3
-             * x_lo, z_lo: 4
-             * x_hi, z_lo: 5
-             * x_lo, z_hi: 6
-             * x_hi, z_hi: 7
-             * y_lo, z_lo: 8
-             * y_hi, z_lo: 9
-             * y_lo, z_hi: 10
-             * y_hi, z_hi: 11
-             *
-             **/
+                p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
+                    .append(std::make_shared<ContinueRange<EntityId>>(
+                        index_box_type{{l[0], l[1], l[2]}, {h[0] + 1, h[1] + 1, h[2] + 1}}, 1))
+                    .append(std::make_shared<ContinueRange<EntityId>>(
+                        index_box_type{{l[0], l[1], l[2]}, {h[0] + 1, h[1] + 1, h[2] + 1}}, 2))
+                    .append(std::make_shared<ContinueRange<EntityId>>(
+                        index_box_type{{l[0], l[1], l[2]}, {h[0] + 1, h[1] + 1, h[2] + 1}}, 4));
 
-            switch (b.getLocationIndex()) {
-                case 0:  // x_lo, y_lo: 0
-                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{lo[0] - gw[0], lo[1] - gw[1] /* */, lo[2] - gw[2]},
-                                           {lo[0], lo[1] /*         */, hi[2] + gw[2] + 1}},
-                            1))
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{lo[0] - gw[0], lo[1] - gw[1], lo[2] - gw[2]},
-                                           {lo[0], lo[1], hi[2] + gw[2] + 1}},
-                            2))
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{lo[0] - gw[0], lo[1] - gw[1] /* */, lo[2] - gw[2]},
-                                           {lo[0], lo[1] /*         */, hi[2] + gw[2]}},
-                            4));
+                p->m_ranges[std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"]
+                    .append(std::make_shared<ContinueRange<EntityId>>(
+                        index_box_type{{l[0], l[1], l[2]}, {h[0] + 2, h[1] + 1, h[2] + 1}}, 3))
+                    .append(std::make_shared<ContinueRange<EntityId>>(
+                        index_box_type{{l[0], l[1], l[2]}, {h[0] + 1, h[1] + 2, h[2] + 1}}, 5))
+                    .append(std::make_shared<ContinueRange<EntityId>>(
+                        index_box_type{{l[0], l[1], l[2]}, {h[0] + 1, h[1] + 1, h[2] + 2}}, 6));
 
-                    break;
+                p->m_ranges[std::string(EntityIFORMName[VERTEX]) + "_PATCH_BOUNDARY"].append(
+                    std::make_shared<ContinueRange<EntityId>>(
+                        index_box_type{{l[0], l[1], l[2]}, {h[0] + 2, h[1] + 2, h[2] + 2}}, 0));
 
-                case 1:  // x_hi, y_lo: 1
-                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{hi[0], lo[1] - gw[1], lo[2] - gw[2]},
-                                           {hi[0] + gw[0], lo[1], hi[2] + gw[2] + 1}},
-                            1))
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{hi[0] + 1, lo[1] - gw[1], lo[2] - gw[2]},
-                                           {hi[0] + gw[0] + 1, lo[1], hi[2] + gw[2] + 1}},
-                            2))
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{hi[0] + 1, lo[1] - gw[1], lo[2] - gw[2]},
-                                           {hi[0] + gw[0] + 1, lo[1], hi[2] + gw[2]}},
-                            4));
-                    break;
-
-                case 2:  // x_lo, y_hi: 2
-                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{lo[0] - gw[0], hi[1] + 1, lo[2] - gw[2]},
-                                           {lo[0], hi[1] + gw[1] + 1, hi[2] + gw[2] + 1}},
-                            1))
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{lo[0] - gw[0], hi[1], lo[2] - gw[2]},
-                                           {lo[0], hi[1] + gw[1], hi[2] + gw[2] + 1}},
-                            2))
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{lo[0] - gw[0], hi[1] + 1, lo[2] - gw[2]},
-                                           {lo[0], hi[1] + gw[1] + 1, hi[2] + gw[2]}},
-                            4));
-                    break;
-                case 3:  // x_hi, y_hi: 3
-                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{hi[0], hi[1] + 1, lo[2] - gw[2]},
-                                           {hi[0] + gw[0], hi[1] + gw[1] + 1, hi[2] + gw[2]}},
-                            1))
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{hi[0] + 1, hi[1], lo[2] - gw[2]},
-                                           {hi[0] + gw[0] + 1, hi[1] + gw[1], hi[2] + gw[2]}},
-                            2))
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{hi[0] + 1, hi[1] + 1, lo[2] - gw[2]},
-                                           {hi[0] + gw[0] + 1, hi[1] + gw[1] + 1, hi[2] + gw[2]}},
-                            4));
-
-                    break;
-
-                case 4:  // x_lo, z_lo: 4
-                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{lo[0] - gw[0], lo[1] - gw[0], lo[2] - gw[2]},
-                                           {lo[0], hi[1] + gw[1] + 1, lo[2]}},
-                            1))
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{lo[0] - gw[0], lo[1] - gw[0], lo[2] - gw[2]},
-                                           {lo[0], hi[1] + gw[1], lo[2]}},
-                            2))
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{lo[0] - gw[0], lo[1] - gw[0], lo[2] - gw[2]},
-                                           {lo[0], hi[1] + gw[1] + 1, lo[2]}},
-                            4));
-
-                    break;
-
-                case 5:  // x_hi, z_lo: 5
-                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{hi[0], lo[1] - gw[1], lo[2] - gw[2]},
-                                           {hi[0] + gw[0], hi[1] + gw[1] + 1, lo[2]}},
-                            1))
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{hi[0] + 1, lo[1] - gw[1], lo[2] - gw[2]},
-                                           {hi[0] + gw[0] + 1, hi[1] + gw[1], lo[2]}},
-                            2))
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{hi[0] + 1, lo[1] - gw[1], lo[2] - gw[2]},
-                                           {hi[0] + gw[0] + 1, hi[1] + gw[1] + 1, lo[2]}},
-                            4));
-
-                    break;
-
-                case 6:  // x_lo, z_hi: 6
-                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{lo[0] - gw[0], lo[1] - gw[1], hi[2] + 1},
-                                           {lo[0], hi[1] + gw[1] + 1, hi[2] + gw[2] + 1}},
-                            1))
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{lo[0] - gw[0], lo[1] - gw[1], hi[2] + 1},
-                                           {lo[0], hi[1] + gw[1], hi[2] + gw[2] + 1}},
-                            2))
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{lo[0] - gw[0], lo[1] - gw[1], hi[2]},
-                                           {lo[0], hi[1] + gw[1] + 1, hi[2] + gw[2]}},
-                            4));
-
-                    break;
-
-                case 7:  // x_hi, z_hi: 7
-                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{hi[0], lo[1] - gw[0], hi[2] + 1},
-                                           {hi[0] + gw[0], hi[1] + gw[1], hi[2] + gw[2]}},
-                            1))
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{hi[0], lo[1] - gw[0], hi[2] + 1},
-                                           {hi[0] + gw[0], hi[1] + gw[1], hi[2] + gw[2]}},
-                            2))
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{hi[0], lo[1] - gw[0], hi[2]},
-                                           {hi[0] + gw[0], hi[1] + gw[1], hi[2] + gw[2]}},
-                            4));
-
-                    break;
-
-                case 8:  // y_lo, z_lo: 8
-                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{lo[0] - gw[0], lo[1] - gw[1], lo[2] - gw[2]},
-                                           {hi[0] + gw[0], lo[1], lo[2]}},
-                            1))
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{lo[0] - gw[0], lo[1] - gw[1], lo[2] - gw[2]},
-                                           {hi[0] + gw[0], lo[1], lo[2]}},
-                            2))
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{hi[0] - gw[0], lo[1] - gw[1], lo[2] - gw[2]},
-                                           {hi[0] + gw[0], lo[1], lo[2]}},
-                            4));
-
-                    break;
-
-                case 9:  // y_hi, z_lo: 9
-                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{lo[0] - gw[0], hi[1], lo[2] - gw[2]},
-                                           {hi[0] + gw[0], hi[1] + gw[1], lo[2]}},
-                            1))
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{lo[0] - gw[0], hi[1], lo[2] - gw[2]},
-                                           {hi[0] + gw[0], hi[1] + gw[1], lo[2]}},
-                            2))
-                        .append(std::make_shared<ContinueRange<EntityId>>(
-                            index_box_type{{lo[0] - gw[0], hi[1], lo[2] - gw[2]},
-                                           {hi[0] + gw[0], hi[1] + gw[1], lo[2]}},
-                            4));
-
-                    break;
-                case 10:  // y_lo, z_hi: 10
-                    break;
-                case 11:  // y_hi, z_hi: 11
-                    break;
-                default:
-                    break;
+                p->m_ranges[std::string(EntityIFORMName[VOLUME]) + "_PATCH_BOUNDARY"].append(
+                    std::make_shared<ContinueRange<EntityId>>(
+                        index_box_type{{l[0], l[1], l[2]}, {h[0] + 1, h[1] + 1, h[2] + 1}}, 7));
+                            switch (b.getLocationIndex()) {
+                //                case 0:  // x_lo, y_lo: 0
+                //                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
+                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                            index_box_type{{l[0] - gw[0], l[1] - gw[1], l[2]}, {l[0], l[1], h[2] +
+                //                            gw[2] +
+                //                            1}}, 1))
+                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                            index_box_type{{l[0] - gw[0], l[1] - gw[1], l[2]}, {l[0], l[1], h[2] +
+                //                            gw[2] +
+                //                            1}}, 2))
+                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                            index_box_type{{l[0] - gw[0], l[1] - gw[1], l[2]}, {l[0], l[1], h[2] +
+                //                            gw[2]}}, 4));
+                //
+                //                    break;
+                //
+                //                //                case 1:  // x_hi, y_lo: 1
+                //                //                    p->m_ranges[std::string(EntityIFORMName[EDGE]) +
+                //                "_PATCH_BOUNDARY"]
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{hi[0], lo[1] - gw[1], lo[2] - gw[2]},
+                //                //                                           {hi[0] + gw[0], hi[1] + gw[1] + 1, hi[2]
+                //                +
+                //                gw[2] + 1}},
+                //                //                            1))
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{hi[0] + 1, lo[1] - gw[1], lo[2] -
+                //                gw[2]},
+                //                //                                           {hi[0] + gw[0] + 1, hi[1] + gw[1], hi[2]
+                //                +
+                //                gw[2] + 1}},
+                //                //                            2))
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{hi[0] + 1, lo[1] - gw[1], lo[2] -
+                //                gw[2]},
+                //                //                                           {hi[0] + gw[0] + 1, hi[1] + gw[1] + 1,
+                //                hi[2]
+                //                + gw[2]}},
+                //                //                            4));
+                //                //                    break;
+                //                //
+                //                case 2:  // x_lo, y_hi: 2
+                //                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
+                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                            index_box_type{{l[0] - gw[0], h[1] + 1, l[2]}, {l[0], h[1] + gw[1] + 1,
+                //                            h[2] +
+                //                            gw[2] + 1}},
+                //                            1))
+                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                            index_box_type{{l[0] - gw[0], h[1], l[2]}, {l[0], h[1] + gw[1], h[2] +
+                //                            gw[2] +
+                //                            1}}, 2))
+                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                            index_box_type{{l[0] - gw[0], h[1] + 1, l[2]}, {l[0], h[1] + gw[1] + 1,
+                //                            h[2] +
+                //                            gw[2]}}, 4));
+                //                    break;
+                //                //                case 3:  // x_hi, y_hi: 3
+                //                //                    p->m_ranges[std::string(EntityIFORMName[EDGE]) +
+                //                "_PATCH_BOUNDARY"]
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{hi[0], hi[1] + 1, lo[2] - gw[2]},
+                //                //                                           {hi[0] + gw[0], hi[1] + gw[1] + 1, hi[2]
+                //                +
+                //                gw[2]}},
+                //                //                            1))
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{hi[0] + 1, hi[1], lo[2] - gw[2]},
+                //                //                                           {hi[0] + gw[0] + 1, hi[1] + gw[1], hi[2]
+                //                +
+                //                gw[2]}},
+                //                //                            2))
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{hi[0] + 1, hi[1] + 1, lo[2] - gw[2]},
+                //                //                                           {hi[0] + gw[0] + 1, hi[1] + gw[1] + 1,
+                //                hi[2]
+                //                + gw[2]}},
+                //                //                            4));
+                //                //
+                //                //                    break;
+                //                //
+                //                case 4:  // x_lo, z_lo: 4
+                //                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
+                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                            index_box_type{{l[0] - gw[0], l[1]-gw[1], l[2] - gw[2]}, {l[0], h[1] +
+                //                            gw[1],
+                //                            l[2]}}, 1))
+                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                            index_box_type{{l[0] - gw[0], l[1], l[2] - gw[2]}, {l[0], h[1] + gw[1],
+                //                            l[2]}}, 2))
+                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                            index_box_type{{l[0] - gw[0], l[1], l[2] - gw[2]}, {l[0], h[1] + gw[1],
+                //                            l[2]}}, 4));
+                //
+                //                    break;
+                //                //
+                //                //                case 5:  // x_hi, z_lo: 5
+                //                //                    p->m_ranges[std::string(EntityIFORMName[EDGE]) +
+                //                "_PATCH_BOUNDARY"]
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{hi[0], lo[1] - gw[1], lo[2] - gw[2]},
+                //                //                                           {hi[0] + gw[0], hi[1] + gw[1] + 1,
+                //                lo[2]}},
+                //                //                            1))
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{hi[0] + 1, lo[1] - gw[1], lo[2] -
+                //                gw[2]},
+                //                //                                           {hi[0] + gw[0] + 1, hi[1] + gw[1],
+                //                lo[2]}},
+                //                //                            2))
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{hi[0] + 1, lo[1] - gw[1], lo[2] -
+                //                gw[2]},
+                //                //                                           {hi[0] + gw[0] + 1, hi[1] + gw[1] + 1,
+                //                lo[2]}},
+                //                //                            4));
+                //                //
+                //                //                    break;
+                //                //
+                //                case 6:  // x_lo, z_hi: 6
+                //                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
+                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                            index_box_type{{l[0] - gw[0], l[1] - gw[1], h[2]}, {l[0], h[1], h[2] +
+                //                            gw[2]}}, 1))
+                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                            index_box_type{{l[0] - gw[0], l[1] - gw[1], h[2]}, {l[0], h[1], h[2] +
+                //                            gw[2]}}, 2))
+                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                            index_box_type{{l[0] - gw[0], l[1] - gw[1], h[2]}, {l[0], h[1], h[2] +
+                //                            gw[2]}}, 4));
+                //
+                //                    break;
+                //                //
+                //                //                case 7:  // x_hi, z_hi: 7
+                //                //                    p->m_ranges[std::string(EntityIFORMName[EDGE]) +
+                //                "_PATCH_BOUNDARY"]
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{hi[0], lo[1] - gw[1], hi[2] + 1},
+                //                //                                           {hi[0] + gw[0], hi[1] + gw[1], hi[2] +
+                //                gw[2]
+                //                + 1}},
+                //                //                            1))
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{hi[0] + 1, lo[1] - gw[1], hi[2] + 1},
+                //                //                                           {hi[0] + gw[0] + 1, hi[1] + gw[1], hi[2]
+                //                +
+                //                gw[2] + 1}},
+                //                //                            2))
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{hi[0] + 1, lo[1] - gw[1], hi[2]},
+                //                //                                           {hi[0] + gw[0] + 1, hi[1] + gw[1], hi[2]
+                //                +
+                //                gw[2]}},
+                //                //                            4));
+                //                //
+                //                //                    break;
+                //                //
+                //                case 8:  // y_lo, z_lo: 8
+                //                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
+                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                            index_box_type{{l[0], l[1] - gw[1], l[2] - gw[2]}, {h[0] + gw[2], l[1],
+                //                            l[2]}}, 1))
+                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                            index_box_type{{l[0], l[1] - gw[1], l[2] - gw[2]}, {h[0] + gw[2], l[1],
+                //                            l[2]}}, 2))
+                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                            index_box_type{{l[0], l[1] - gw[1], l[2] - gw[2]}, {h[0] + gw[2], l[1],
+                //                            l[2]}}, 4));
+                //
+                //                    break;
+                //                //
+                //                //                case 9:  // y_hi, z_lo: 9
+                //                //                    p->m_ranges[std::string(EntityIFORMName[EDGE]) +
+                //                "_PATCH_BOUNDARY"]
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{lo[0] - gw[0], hi[1] + 1, lo[2] -
+                //                gw[2]},
+                //                //                                           {hi[0] + gw[0], hi[1] + gw[1] + 1,
+                //                lo[2]}},
+                //                //                            1))
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{lo[0] - gw[0], hi[1], lo[2] - gw[2]},
+                //                //                                           {hi[0] + gw[0] + 1, hi[1] + gw[1],
+                //                lo[2]}},
+                //                //                            2))
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{lo[0] - gw[0], hi[1] + 1, lo[2] -
+                //                gw[2]},
+                //                //                                           {hi[0] + gw[0] + 1, hi[1] + gw[1] + 1,
+                //                lo[2]}},
+                //                //                            4));
+                //                //
+                //                //                    break;
+                //                //                case 10:  // y_lo, z_hi: 10
+                //                //                    p->m_ranges[std::string(EntityIFORMName[EDGE]) +
+                //                "_PATCH_BOUNDARY"]
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{lo[0] - gw[0], lo[1] - gw[1], hi[2] +
+                //                1},
+                //                //                                           {hi[0] + gw[0], lo[1], hi[2] + gw[2] +
+                //                1}},
+                //                //                            1))
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{lo[0] - gw[0], lo[1] - gw[1], hi[2] +
+                //                1},
+                //                //                                           {hi[0] + gw[0] + 1, lo[1], hi[2] + gw[2]
+                //                +
+                //                1}},
+                //                //                            2))
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{lo[0] - gw[0], lo[1] - gw[1], hi[2]},
+                //                //                                           {hi[0] + gw[0] + 1, lo[1], hi[2] + gw[2]
+                //                +
+                //                1}},
+                //                //                            4));
+                //                //
+                //                //                    break;
+                //                //                case 11:  // y_hi, z_hi: 11
+                //                //                    p->m_ranges[std::string(EntityIFORMName[EDGE]) +
+                //                "_PATCH_BOUNDARY"]
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{lo[0] - gw[0], hi[1], hi[2] + 1},
+                //                //                                           {hi[0] + gw[0], hi[1] + gw[1] + 1, hi[2]
+                //                +
+                //                gw[2] + 1}},
+                //                //                            1))
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{lo[0] - gw[0], hi[1], hi[2] + 1},
+                //                //                                           {hi[0] + gw[0] + 1, hi[1] + gw[1], hi[2]
+                //                +
+                //                gw[2] + 1}},
+                //                //                            2))
+                //                //                        .append(std::make_shared<ContinueRange<EntityId>>(
+                //                //                            index_box_type{{lo[0] - gw[0], hi[1] + 1, hi[2]},
+                //                //                                           {hi[0] + gw[0] + 1, hi[1] + gw[1] + 1,
+                //                hi[2]
+                //                + gw[2]}},
+                //                //                            4));
+                //                //
+                //                //                    break;
+                //                default:
+                //                    break;
+                //            }
             }
-        }
 
         //        for (auto const &b : pgeom->getFaceBoundaries()) {
         //            auto i_lower = b.getBox().lower();

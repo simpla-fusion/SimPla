@@ -137,10 +137,6 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
     Bv.Clear();
     J.Clear();
 
-    E = 1;
-    B = 1;
-    J = 1;
-
     BB = dot_v(B0v, B0v);
 
     for (auto& item : m_fluid_sp_) {
@@ -153,23 +149,30 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
 }
 template <typename TM>
 void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
-    //    B[GetRange(".FACE_PATCH_BOUNDARY")] = 0;
-    //    E[GetRange(".EDGE_PATCH_BOUNDARY")] = 0;
+    B[GetRange("FACE_PATCH_BOUNDARY")] = 0;
+    E[GetRange("EDGE_PATCH_BOUNDARY")] = 0;
+    m_mesh_.m_vertex_volume_[GetRange("VERTEX_PATCH_BOUNDARY")] = 0;
+    m_mesh_.m_vertex_dual_volume_[GetRange("VERTEX_PATCH_BOUNDARY")] = 0;
+
+    m_mesh_.m_edge_volume_[GetRange("EDGE_PATCH_BOUNDARY")] = 0;
+    m_mesh_.m_edge_dual_volume_[GetRange("EDGE_PATCH_BOUNDARY")] = 0;
+
+    m_mesh_.m_face_volume_[GetRange("FACE_PATCH_BOUNDARY")] = 0;
+    m_mesh_.m_face_dual_volume_[GetRange("FACE_PATCH_BOUNDARY")] = 0;
+
+    m_mesh_.m_volume_volume_[GetRange("VOLUME_PATCH_BOUNDARY")] = 0;
+    m_mesh_.m_volume_dual_volume_[GetRange("VOLUME_PATCH_BOUNDARY")] = 0;
 }
 template <typename TM>
 void EMFluid<TM>::Advance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
 
-    //    B[GetRange("FACE_PATCH_BOUNDARY")] = 0;
-    //    E[GetRange("EDGE_PATCH_BOUNDARY")] = 0;
+    B = B - curl(E) * (dt * 0.5);
+    B[GetPerpendicularBoundaryRange(FACE)] = 0;
 
-    //    E = curl(B);
-    B = curl(E);
-    //    B = B - curl(E) * (dt * 0.5);
-    //    B[GetPerpendicularBoundaryRange(FACE)] = 0;
+    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
+    E[GetParallelBoundaryRange(EDGE)] = 0;
 
-    //    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
-    //    E[GetParallelBoundaryRange(EDGE)] = 0;
     //
     //    if (m_fluid_sp_.size() > 0) {
     //        Ev = map_to<VOLUME>(E);

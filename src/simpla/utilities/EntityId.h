@@ -790,15 +790,20 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
     template <typename TFun>
     void DoForeach(TFun const& body) const {
         index_type ib = this->m_min_[0];
+        index_type jb = this->m_min_[1];
+        index_type kb = this->m_min_[2];
+
         index_type ie = this->m_max_[0];
+        index_type je = this->m_max_[1];
+        index_type ke = this->m_max_[2];
 #pragma omp parallel for
         for (index_type i = ib; i < ie; ++i) {
-            for (index_type j = this->m_min_[1], je = this->m_max_[1]; j < je; ++j)
-                for (index_type k = this->m_min_[2], ke = this->m_max_[2]; k < ke; ++k) {
+            for (index_type j = jb; j < je; ++j)
+                for (index_type k = kb; k < ke; ++k) {
                     EntityId s;
+                    s.x = static_cast<int16_t>(i);
                     s.y = static_cast<int16_t>(j);
                     s.z = static_cast<int16_t>(k);
-                    s.x = static_cast<int16_t>(i);
                     s.w = static_cast<int16_t>(m_w_);
                     body(s);
                 }
