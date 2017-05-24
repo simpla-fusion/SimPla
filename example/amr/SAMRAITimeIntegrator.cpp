@@ -610,7 +610,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
                 p->m_ranges[std::string(EntityIFORMName[VOLUME]) + "_PATCH_BOUNDARY"].append(
                     std::make_shared<ContinueRange<EntityId>>(
                         index_box_type{{l[0], l[1], l[2]}, {h[0] + 1, h[1] + 1, h[2] + 1}}, 7));
-                            switch (b.getLocationIndex()) {
+                //                            switch (b.getLocationIndex()) {
                 //                case 0:  // x_lo, y_lo: 0
                 //                    p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
                 //                        .append(std::make_shared<ContinueRange<EntityId>>(

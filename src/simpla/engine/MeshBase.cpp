@@ -26,9 +26,8 @@ id_type MeshBase::GetBlockId() const {
     return m_pimpl_->m_mesh_block_ == nullptr ? NULL_ID : m_pimpl_->m_mesh_block_->GetGUID();
 }
 
-
-
-void MeshBase::InitializeData(Real time_now) {}
+void MeshBase::InitialCondition(Real time_now) {}
+void MeshBase::BoundaryCondition(Real time_now, Real time_dt) {}
 
 std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
     auto p = std::make_shared<data::DataTable>();

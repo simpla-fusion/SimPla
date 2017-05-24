@@ -52,7 +52,7 @@ std::shared_ptr<geometry::GeoObject> Domain::GetGeoObject(std::string const& k) 
 EntityRange Domain::GetRange(std::string const& k) const {
     ASSERT(!isModified());
     auto it = m_pimpl_->m_patch_->m_ranges.find(k);
-//    VERBOSE << FILE_LINE_STAMP << "Get Range " << k << std::endl;
+    //    VERBOSE << FILE_LINE_STAMP << "Get Range " << k << std::endl;
     return (it != m_pimpl_->m_patch_->m_ranges.end()) ? it->second
                                                       : EntityRange{std::make_shared<EmptyRangeBase<EntityId>>()};
 };
@@ -105,7 +105,7 @@ std::shared_ptr<Patch> Domain::DoInitialCondition(const std::shared_ptr<Patch>& 
     Push(patch);
 
     if (GetMesh() != nullptr) {
-        GetMesh()->InitializeData(time_now);
+        GetMesh()->InitialCondition(time_now);
         for (auto const& item : m_pimpl_->m_geo_object_) {
             GetMesh()->RegisterRanges(m_pimpl_->m_patch_->m_ranges, item.second, item.first);
         }
@@ -117,6 +117,7 @@ std::shared_ptr<Patch> Domain::DoInitialCondition(const std::shared_ptr<Patch>& 
 }
 std::shared_ptr<Patch> Domain::DoBoundaryCondition(const std::shared_ptr<Patch>& patch, Real time_now, Real dt) {
     Push(patch);
+    GetMesh()->BoundaryCondition(time_now, dt);
     PreBoundaryCondition(this, time_now, dt);
     BoundaryCondition(time_now, dt);
     PostBoundaryCondition(this, time_now, dt);

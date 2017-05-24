@@ -21,7 +21,8 @@ struct SMesh : public StructuredMesh {
 
     SP_DEFAULT_CONSTRUCT(SMesh)
     DECLARE_REGISTER_NAME("SMesh");
-    void InitializeData(Real time_now) override;
+    void InitialCondition(Real time_now) override;
+    void BoundaryCondition(Real time_now, Real time_dt) override;
 
     Field<this_type, Real, VERTEX, 3> m_coordinates_{this, "COORDINATES"_, "name"_ = "Coordinates"};
     Field<this_type, Real, VERTEX, 3> m_vertices_{this, "name"_ = "vertices"};

@@ -151,17 +151,6 @@ template <typename TM>
 void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
     B[GetRange("FACE_PATCH_BOUNDARY")] = 0;
     E[GetRange("EDGE_PATCH_BOUNDARY")] = 0;
-    m_mesh_.m_vertex_volume_[GetRange("VERTEX_PATCH_BOUNDARY")] = 0;
-    m_mesh_.m_vertex_dual_volume_[GetRange("VERTEX_PATCH_BOUNDARY")] = 0;
-
-    m_mesh_.m_edge_volume_[GetRange("EDGE_PATCH_BOUNDARY")] = 0;
-    m_mesh_.m_edge_dual_volume_[GetRange("EDGE_PATCH_BOUNDARY")] = 0;
-
-    m_mesh_.m_face_volume_[GetRange("FACE_PATCH_BOUNDARY")] = 0;
-    m_mesh_.m_face_dual_volume_[GetRange("FACE_PATCH_BOUNDARY")] = 0;
-
-    m_mesh_.m_volume_volume_[GetRange("VOLUME_PATCH_BOUNDARY")] = 0;
-    m_mesh_.m_volume_dual_volume_[GetRange("VOLUME_PATCH_BOUNDARY")] = 0;
 }
 template <typename TM>
 void EMFluid<TM>::Advance(Real time_now, Real dt) {

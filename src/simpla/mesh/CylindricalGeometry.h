@@ -46,7 +46,7 @@ struct CylindricalSMesh : public SMesh {
    public:
     using SMesh::point;
 
-    void InitializeData(Real time_now) override;
+    void InitialCondition(Real time_now) override;
 
 };  // struct  MeshBase
 

@@ -22,7 +22,7 @@ struct CoRectMesh : public StructuredMesh {
     static std::string ClassName() { return std::string("CoRectMesh"); }
     SP_DEFAULT_CONSTRUCT(CoRectMesh)
 
-    void InitializeData(Real time_now) override;
+    void InitialCondition(Real time_now) override;
 
     nTuple<Real, 3> m_dx_{1, 1, 1}, m_inv_dx_{1, 1, 1}, m_x0_{0, 0, 0};
     Real m_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
@@ -81,8 +81,8 @@ struct CoRectMesh : public StructuredMesh {
 };  // struct  MeshBase
 
 
-inline void CoRectMesh::InitializeData(Real time_now) {
-    //    StructuredMesh::InitializeData(time_now);
+inline void CoRectMesh::InitialCondition(Real time_now) {
+    //    StructuredMesh::InitialCondition(time_now);
     /**
         *\verbatim
         *                ^y

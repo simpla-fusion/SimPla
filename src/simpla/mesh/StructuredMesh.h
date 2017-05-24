@@ -109,7 +109,8 @@ class StructuredMesh : public engine::MeshBase {
         return res;
     }
 
-    void InitializeData(Real time_now) override {}
+    void InitialCondition(Real time_now) override {}
+    void BoundaryCondition(Real time_now, Real time_dt) override {}
 
     point_type map(point_type const &x) const override {
         return point_type{std::fma(x[0], m_dx_[0], m_x0_[0]), std::fma(x[1], m_dx_[1], m_x0_[1]),

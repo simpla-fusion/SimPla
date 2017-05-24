@@ -5,8 +5,8 @@
 
 namespace simpla {
 namespace mesh {
-void CylindricalSMesh::InitializeData(Real time_now) {
-    SMesh::InitializeData(time_now);
+void CylindricalSMesh::InitialCondition(Real time_now) {
+    SMesh::InitialCondition(time_now);
 
     /**
         *\verbatim
