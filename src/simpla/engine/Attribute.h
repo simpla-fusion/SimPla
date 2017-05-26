@@ -122,7 +122,8 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
     SP_OBJECT_HEAD(Attribute, SPObject);
 
    public:
-    Attribute(int IFORM, int DOF, std::type_info const &t_info, Domain *d, std::shared_ptr<data::DataTable> const &p);
+    Attribute(int IFORM = VERTEX, int DOF = 1, std::type_info const &t_info = typeid(Real), Domain *d = nullptr,
+              std::shared_ptr<data::DataTable> const &p = nullptr);
 
     template <typename Holder>
     Attribute(int IFORM, int DOF, std::type_info const &t_info, Holder *m, std::shared_ptr<data::DataTable> const &p)

@@ -24,39 +24,33 @@ struct SMesh : public StructuredMesh {
     void InitialCondition(Real time_now) override;
     void BoundaryCondition(Real time_now, Real time_dt) override;
 
-    Field<this_type, Real, VERTEX, 3> m_coordinates_{this, "COORDINATES"_, "name"_ = "Coordinates"};
-    Field<this_type, Real, VERTEX, 3> m_vertices_{this, "name"_ = "vertices"};
-    //    Field<this_type, Real, VOLUME, 9> m_volume_{this, "name"_ = "volume"};
-    //    Field<this_type, Real, VOLUME, 9> m_dual_volume_{this, "name"_ = "dual_volume"};
-    //    Field<this_type, Real, VOLUME, 9> m_inv_volume_{this, "name"_ = "inv_volume"};
-    //    Field<this_type, Real, VOLUME, 9> m_inv_dual_volume_{this, "name"_ = "inv_dual_volume"};
+#define DECLARE_FIELD(_IFORM_, _DOF_, _NAME_, ...) \
+    Field<this_type, Real, _IFORM_, _DOF_> _NAME_{this, "name"_ = __STRING(_NAME_), __VA_ARGS__};
 
-    Field<this_type, Real, VERTEX> m_vertex_volume_{this, "name"_ = "vertex_volume"};
-    Field<this_type, Real, VERTEX> m_vertex_inv_volume_{this, "name"_ = "vertex_inv_volume"};
-    Field<this_type, Real, VERTEX> m_vertex_dual_volume_{this, "name"_ = "vertex_dual_volume"};
-    Field<this_type, Real, VERTEX> m_vertex_inv_dual_volume_{this, "name"_ = "vertex_inv_dual_volume"};
+    DECLARE_FIELD(VERTEX, 3, m_coordinates_, "COORDINATES"_);
+    DECLARE_FIELD(VERTEX, 3, m_vertices_);
 
-    Field<this_type, Real, VOLUME> m_volume_volume_{this, "name"_ = "volume_volume"};
-    Field<this_type, Real, VOLUME> m_volume_inv_volume_{this, "name"_ = "volume_inv_volume"};
-    Field<this_type, Real, VOLUME> m_volume_dual_volume_{this, "name"_ = "volume_dual_volume"};
-    Field<this_type, Real, VOLUME> m_volume_inv_dual_volume_{this, "name"_ = "volume_inv_dual_volume"};
+    DECLARE_FIELD(VERTEX, 1, m_vertex_volume_);
+    DECLARE_FIELD(VERTEX, 1, m_vertex_inv_volume_);
+    DECLARE_FIELD(VERTEX, 1, m_vertex_dual_volume_);
+    DECLARE_FIELD(VERTEX, 1, m_vertex_inv_dual_volume_);
 
-    Field<this_type, Real, EDGE> m_edge_volume_{this, "name"_ = "edge_volume"};
-    Field<this_type, Real, EDGE> m_edge_inv_volume_{this, "name"_ = "edge_inv_volume"};
-    Field<this_type, Real, EDGE> m_edge_dual_volume_{this, "name"_ = "edge_dual_volume"};
-    Field<this_type, Real, EDGE> m_edge_inv_dual_volume_{this, "name"_ = "edge_inv_dual_volume"};
+    DECLARE_FIELD(VOLUME, 1, m_volume_volume_);
+    DECLARE_FIELD(VOLUME, 1, m_volume_inv_volume_);
+    DECLARE_FIELD(VOLUME, 1, m_volume_dual_volume_);
+    DECLARE_FIELD(VOLUME, 1, m_volume_inv_dual_volume_);
 
-    Field<this_type, Real, FACE> m_face_volume_{this, "name"_ = "face_volume"};
-    Field<this_type, Real, FACE> m_face_inv_volume_{this, "name"_ = "face_inv_volume"};
-    Field<this_type, Real, FACE> m_face_dual_volume_{this, "name"_ = "face_dual_volume"};
-    Field<this_type, Real, FACE> m_face_inv_dual_volume_{this, "name"_ = "face_inv_dual_volume"};
+    DECLARE_FIELD(EDGE, 1, m_edge_volume_);
+    DECLARE_FIELD(EDGE, 1, m_edge_inv_volume_);
+    DECLARE_FIELD(EDGE, 1, m_edge_dual_volume_);
+    DECLARE_FIELD(EDGE, 1, m_edge_inv_dual_volume_);
 
-    point_type point(EntityId s) const override { return StructuredMesh::point(s); }
+    DECLARE_FIELD(FACE, 1, m_face_volume_);
+    DECLARE_FIELD(FACE, 1, m_face_inv_volume_);
+    DECLARE_FIELD(FACE, 1, m_face_dual_volume_);
+    DECLARE_FIELD(FACE, 1, m_face_inv_dual_volume_);
 
-    //    Real volume(EntityId s) const override { return m_volume_[s]; }
-    //    Real dual_volume(EntityId s) const override { return m_volume_[s]; }
-    //    Real inv_volume(EntityId s) const override { return m_volume_[s]; }
-    //    Real inv_dual_volume(EntityId s) const override { return m_volume_[s]; }
+#undef DECLARE_FIELD
 };
 
 }  // namespace mesh {

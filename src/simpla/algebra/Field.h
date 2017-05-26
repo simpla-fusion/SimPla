@@ -52,6 +52,8 @@ class Field : public engine::Attribute {
     mesh_type* m_mesh_ = nullptr;
 
    public:
+    Field() {}
+
     template <typename Holder, typename... Args>
     explicit Field(Holder* d, Args&&... args)
         : engine::Attribute(IFORM, DOF, typeid(value_type), d,
