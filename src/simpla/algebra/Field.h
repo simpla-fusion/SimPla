@@ -107,9 +107,9 @@ class Field : public engine::Attribute {
 
     typedef calculator<mesh_type> calculus_policy;
 
-    value_type const& at(EntityId s) const { return calculus_policy::getValue(*m_mesh_, *this, s); }
+    value_type const& at(EntityId s) const { return calculus_policy::getValue(*this, *m_mesh_, s); }
 
-    value_type& at(EntityId s) { return calculus_policy::getValue(*m_mesh_, *this, s); }
+    value_type& at(EntityId s) { return calculus_policy::getValue(*this, *m_mesh_, s); }
 
     value_type const& operator[](EntityId s) const { return at(s); }
 

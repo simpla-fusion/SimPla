@@ -574,7 +574,6 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
                         index_box_type{{l[0], l[1], l[2]}, {h[0] + 1, h[1] + 1, h[2] + 1}}, 7));
             }
 
-        VERBOSE << "==============================================" << std::endl;
         for (auto &d : m_ctx_->GetAllDomains()) { p = d.second->DoInitialCondition(p, data_time); }
 
         //        ConvertPatchToSAMRAI(patch, p.get());

@@ -178,7 +178,7 @@ class StructuredMesh : public engine::MeshBase {
                 auto id_box = GetIndexBox(IFORM);
 
                 auto &lhs = f[i * DOF + j];
-                auto rhs = calculator<M>::getValue(*dynamic_cast<M const *>(this), expr, tag | (j << 3));
+                auto rhs = calculator<M>::getValue(expr, *dynamic_cast<M const *>(this), tag | (j << 3));
                 if (r.isNull()) {
                     lhs = rhs;
                 } else {
