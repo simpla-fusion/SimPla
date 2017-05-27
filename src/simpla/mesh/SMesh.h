@@ -27,6 +27,7 @@ struct SMesh : public StructuredMesh {
 #define DECLARE_FIELD(_IFORM_, _DOF_, _NAME_, ...) \
     Field<this_type, Real, _IFORM_, _DOF_> _NAME_{this, "name"_ = __STRING(_NAME_), __VA_ARGS__};
 
+    DECLARE_FIELD(VERTEX, 3, m_coordinates_, "COORDINATES"_);
     DECLARE_FIELD(VERTEX, 3, m_vertices_);
 
     DECLARE_FIELD(VERTEX, 1, m_vertex_volume_);
