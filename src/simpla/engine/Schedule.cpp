@@ -10,6 +10,7 @@
 #include "Attribute.h"
 #include "Context.h"
 #include "simpla/data/all.h"
+
 namespace simpla {
 namespace engine {
 struct Schedule::pimpl_s {
@@ -21,34 +22,44 @@ struct Schedule::pimpl_s {
 
     std::shared_ptr<Context> m_ctx_;
 };
-Schedule::Schedule(std::string const& s_name) : SPObject(s_name), m_pimpl_(new pimpl_s){};
+
+Schedule::Schedule(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s){};
+
 Schedule::~Schedule(){};
 
-std::shared_ptr<Context> Schedule::SetContext(std::shared_ptr<Context> const& ctx) {
+std::shared_ptr<Context> Schedule::SetContext(std::shared_ptr<Context> const &ctx) {
     m_pimpl_->m_ctx_ = ctx;
     return m_pimpl_->m_ctx_;
 }
 
-std::shared_ptr<Context> const& Schedule::GetContext() const { return m_pimpl_->m_ctx_; }
-std::shared_ptr<Context>& Schedule::GetContext() { return m_pimpl_->m_ctx_; }
+std::shared_ptr<Context> const &Schedule::GetContext() const { return m_pimpl_->m_ctx_; }
+
+std::shared_ptr<Context> &Schedule::GetContext() { return m_pimpl_->m_ctx_; }
 
 size_type Schedule::GetNumberOfStep() const { return m_pimpl_->m_step_; }
+
 void Schedule::SetMaxStep(size_type s) { m_pimpl_->m_max_step_ = s; }
+
 size_type Schedule::GetMaxStep() const { return m_pimpl_->m_max_step_; }
 
 void Schedule::SetCheckPointInterval(size_type s) { m_pimpl_->m_check_point_interval_ = s; }
+
 size_type Schedule::GetCheckPointInterval() const { return m_pimpl_->m_check_point_interval_; }
 
 void Schedule::SetDumpInterval(size_type s) { m_pimpl_->m_dump_interval_ = s; }
+
 size_type Schedule::GetDumpInterval() const { return m_pimpl_->m_dump_interval_; }
 
 void Schedule::NextStep() { ++m_pimpl_->m_step_; }
+
 bool Schedule::Done() const { return m_pimpl_->m_max_step_ == 0 ? false : m_pimpl_->m_step_ >= m_pimpl_->m_max_step_; }
 
-void Schedule::SetOutputURL(std::string const& url) { m_pimpl_->m_output_url_ = url; };
-std::string const& Schedule::GetOutputURL() const { return m_pimpl_->m_output_url_; }
+void Schedule::SetOutputURL(std::string const &url) { m_pimpl_->m_output_url_ = url; };
+
+std::string const &Schedule::GetOutputURL() const { return m_pimpl_->m_output_url_; }
 
 void Schedule::CheckPoint() const { UNIMPLEMENTED; }
+
 void Schedule::Dump() const { UNIMPLEMENTED; }
 
 void Schedule::Run() {
@@ -69,19 +80,25 @@ std::shared_ptr<data::DataTable> Schedule::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
     return res;
 }
-void Schedule::Deserialize(const std::shared_ptr<data::DataTable>& cfg) {}
+
+void Schedule::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
+    SetCheckPointInterval(cfg->GetValue("CheckPointInterval", 1));
+}
 
 void Schedule::Initialize() { SPObject::Initialize(); }
+
 void Schedule::Finalize() { SPObject::Finalize(); }
 
 void Schedule::SetUp() {
     SPObject::SetUp();
     if (m_pimpl_->m_ctx_ != nullptr) { m_pimpl_->m_ctx_->SetUp(); }
 }
+
 void Schedule::TearDown() {
     if (m_pimpl_->m_ctx_ != nullptr) { m_pimpl_->m_ctx_->TearDown(); }
     SPObject::TearDown();
 }
+
 void Schedule::Synchronize() {
     //    auto &atlas = GetContext()->GetAtlas();
     //    if (from_level >= atlas.GetNumOfLevel() || to_level >= atlas.GetNumOfLevel()) { return; }
