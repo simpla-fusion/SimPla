@@ -9,43 +9,41 @@
 #include <simpla/model/GEqdsk.h>
 #include <simpla/physics/Constants.h>
 #include <simpla/predefine/physics/EMFluid.h>
+#include <simpla/predefine/physics/HyperbolicConservationLaw.h>
 #include <simpla/utilities/sp_def.h>
 #include <iostream>
 
 namespace simpla {
 using namespace engine;
 static bool s_RegisterDomain =
-    engine::Domain::RegisterCreator<EMFluid<mesh::CylindricalSMesh>>(std::string("EMFluidCylindricalSMesh"));
-class EMTokamak : public engine::Context {
-    SP_OBJECT_HEAD(EMTokamak, engine::Context)
-   public:
-    EMTokamak() = default;
-    ~EMTokamak() override = default;
+    engine::Domain::RegisterCreator<EMFluid<mesh::CylindricalSMesh>>(std::string("EMFluidCylindricalSMesh")) &&
+    engine::Domain::RegisterCreator<HyperbolicConservationLaw<mesh::CylindricalSMesh>>(
+        std::string("HyperbolicConservationLawCylindricalSMesh"));
 
-    SP_DEFAULT_CONSTRUCT(EMTokamak);
-    DECLARE_REGISTER_NAME("EMTokamak");
+class Tokamak : public engine::Context {
+    SP_OBJECT_HEAD(Tokamak, engine::Context)
+   public:
+    Tokamak() = default;
+    ~Tokamak() override = default;
+
+    SP_DEFAULT_CONSTRUCT(Tokamak);
+    DECLARE_REGISTER_NAME("Tokamak");
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const& cfg) override;
 
     GEqdsk geqdsk;
-    //    void InitialCondition(Real time_now) override;
-    //    void DoBoundaryCondition(Real time_now, Real dt) override;
-    //    void DoAdvance(Real time_now, Real dt) override;
-    //    field_type<VERTEX> psi{base_type::m_mesh_, "name"_ = "psi"};
-    //    std::function<Vec3(point_type const&, Real)> J_src_fun;
-    //    std::function<Vec3(point_type const&, Real)> E_src_fun;
 };
 
-REGISTER_CREATOR(EMTokamak)
+REGISTER_CREATOR(Tokamak)
 
-std::shared_ptr<data::DataTable> EMTokamak::Serialize() const {
+std::shared_ptr<data::DataTable> Tokamak::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
-    res->SetValue<std::string>("Type", "EMTokamak");
+    res->SetValue<std::string>("Type", "Tokamak");
     res->Set(Context::Serialize());
     return res;
 };
-void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
+void Tokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     if (cfg == nullptr) { return; }
     engine::Context::Initialize();
 
@@ -99,26 +97,20 @@ void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
             return Vec3{std::sin(x[2]) * a, 0, a * std::cos(x[2])};
         };
 
-        //        auto Jv = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("Jv");
-        //        Jv = [&](point_type const& x) -> Vec3 {
-        //            Real a = std::sin(n_phi * x[2] + TWOPI * freq * time_now);
-        //            return Vec3{std::sin(x[2]) * a, 0, a * std::cos(x[2])};
-        //        };
-
     });
-    d->PostAdvance.Connect([=](Domain* self, Real time_now, Real time_dt) {
-
-        // for VisIt dump
-        self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("dumpJ").DeepCopy(
-            self->GetAttribute<Field<mesh_type, Real, EDGE>>("J"));
-        //
-        self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("dumpE").DeepCopy(
-            self->GetAttribute<Field<mesh_type, Real, EDGE>>("E"));
-
-        self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("dumpB").DeepCopy(
-            self->GetAttribute<Field<mesh_type, Real, FACE>>("B"));
-
-    });
+    //    d->PostAdvance.Connect([=](Domain* self, Real time_now, Real time_dt) {
+    //
+    //        // for VisIt dump
+    //        self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("dumpJ").DeepCopy(
+    //            self->GetAttribute<Field<mesh_type, Real, EDGE>>("J"));
+    //        //
+    //        self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("dumpE").DeepCopy(
+    //            self->GetAttribute<Field<mesh_type, Real, EDGE>>("E"));
+    //
+    //        self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("dumpB").DeepCopy(
+    //            self->GetAttribute<Field<mesh_type, Real, FACE>>("B"));
+    //
+    //    });
 }
 //    std::cout << "Model = ";
 //    GetModel().Serialize(std::cout, 0);
@@ -133,7 +125,7 @@ void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
 //        *item.second->rho = ne * ratio;
 //    }
 //
-// void EMTokamak::SetPhysicalBoundaryConditions() {
+// void Tokamak::SetPhysicalBoundaryConditions() {
 //    base_type::SetPhysicalBoundaryConditions();
 //    //    if (J_src_fun) {
 //    //        J1.Assign(model()->select(EDGE, "J_SRC"), [&](point_type const &x) -> Vec3 { return J_src_fun(x,
@@ -145,11 +137,11 @@ void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
 //    //    }
 //};
 //
-// void EMTokamak::SetPhysicalBoundaryConditionE() {
+// void Tokamak::SetPhysicalBoundaryConditionE() {
 //    //    E.Assign(model()->interface(EDGE, "PLASMA", "VACUUM"), 0);
 //}
 //
-// void EMTokamak::SetPhysicalBoundaryConditionB() {
+// void Tokamak::SetPhysicalBoundaryConditionB() {
 //    //    B.Assign(model()->interface(FACE, "PLASMA", "VACUUM"), 0);
 //}
 }  // namespace simpla {

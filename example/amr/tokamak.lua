@@ -1,7 +1,7 @@
 --! / bin / lua
 
 Context = {
-    Type = "EMTokamak",
+    Type = "Tokamak",
     gfile = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900",
     Phi = { -3.14 / 8, 3.14 / 8 },
     Dimensions = { 32, 32, 32 },
@@ -14,23 +14,25 @@ Context = {
     },
     Domains =
     {
-        Main = {
-            Type = "EMFluidCylindricalSMesh",
-            Species = {
-                ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
-                H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
-            }
-        },
+--        Main = {
+--            Type = "EMFluidCylindricalSMesh",
+--            Species = {
+--                ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
+--                H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
+--            }
+--        },
+        Main={
+            Type="HyperbolicConservationLawCylindricalSMesh"
+        }
+
     },
     Model = {},
-    Atlas =
-    {
-        PeriodicDimension = { 0, 0, 0 },
-    }
+    Atlas =    { PeriodicDimension = { 0, 0, 1 }, }
 }
 
 Schedule = {
     Type = "SAMRAITimeIntegrator",
+    OutputURL = "TokamakMHD",
     TimeBegin = 0.0,
     TimeEnd = 5e-9,
     TimeStep = 1.0e-11,

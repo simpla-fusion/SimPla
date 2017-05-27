@@ -229,6 +229,10 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
 
     B = B - curl(E) * (dt * 0.5);
     B[GetPerpendicularBoundaryRange(FACE, "PEC")] = 0;
+
+    dumpE.DeepCopy(E);
+    dumpB.DeepCopy(B);
+    dumpJ.DeepCopy(J);
 }
 
 }  // namespace simpla  {

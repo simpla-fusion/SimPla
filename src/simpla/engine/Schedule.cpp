@@ -78,11 +78,14 @@ void Schedule::Run() {
 
 std::shared_ptr<data::DataTable> Schedule::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
+    res->SetValue("OutputURL", GetOutputURL());
+    res->SetValue("CheckPointInterval", GetCheckPointInterval());
     return res;
 }
 
 void Schedule::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
-    SetCheckPointInterval(cfg->GetValue("CheckPointInterval", 1));
+    SetCheckPointInterval(static_cast<size_type>(cfg->GetValue("CheckPointInterval", 1)));
+    SetOutputURL(cfg->GetValue<std::string>("OutputURL", GetOutputURL()));
 }
 
 void Schedule::Initialize() { SPObject::Initialize(); }

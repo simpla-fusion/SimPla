@@ -86,7 +86,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # workaround for CLion 1.0.x
 FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
-add_executable(all_clion ${clion_all_headers} src/dummy.h src/dummy.cpp)
+add_executable(all_clion ${clion_all_headers} src/dummy.h src/dummy.cpp src/simpla/predefine/physics/HyperbolicConservationLaw.h)
 
 add_subdirectory(src/simpla)
 add_subdirectory(example)
