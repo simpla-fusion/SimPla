@@ -15,7 +15,7 @@ struct SpApp : public SPObject, public data::Serializable {
     SP_OBJECT_HEAD(SpApp, SPObject);
 
    public:
-    SpApp();
+    SpApp(std::string const &s_name = "");
     virtual ~SpApp();
     SP_DEFAULT_CONSTRUCT(SpApp);
     using data::Serializable::Serialize;

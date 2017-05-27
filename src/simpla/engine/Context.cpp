@@ -10,13 +10,15 @@ namespace simpla {
 namespace engine {
 
 struct Context::pimpl_s {
+    pimpl_s() {}
+
     std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
     std::map<std::string, std::shared_ptr<Domain>> m_domains_;
     Model m_model_;
     Atlas m_atlas_;
 };
 
-Context::Context() : m_pimpl_(new pimpl_s) {}
+Context::Context(std::string const &s_name) : m_pimpl_(new pimpl_s), SPObject(s_name) {}
 Context::~Context() {}
 
 std::shared_ptr<data::DataTable> Context::Serialize() const {
@@ -34,7 +36,7 @@ void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
     d_cfg->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t) {
         auto geo = m_pimpl_->m_model_.GetObject(key);
 
-        auto d = Domain::Create(t, (geo != nullptr) ? geo : std::make_shared<geometry::GeoObjectFull>());
+        auto d = Domain::Create(t, key, (geo != nullptr) ? geo : std::make_shared<geometry::GeoObjectFull>());
         if (d != nullptr) {
             VERBOSE << "Add Domain [" << key << " : " << d->GetRegisterName() << "] " << std::endl;
             d->Initialize();

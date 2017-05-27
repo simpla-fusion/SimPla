@@ -7,10 +7,10 @@
 #ifndef SIMPLA_MESH_MESHATLAS_H
 #define SIMPLA_MESH_MESHATLAS_H
 
-#include <simpla/utilities/nTuple.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/geometry/GeoObject.h>
 #include <simpla/utilities/Log.h>
+#include <simpla/utilities/nTuple.h>
 #include <type_traits>
 #include "SPObject.h"
 namespace simpla {
@@ -67,7 +67,7 @@ class Patch;
 class Atlas : public SPObject, public data::Serializable {
     SP_OBJECT_HEAD(Atlas, SPObject)
    public:
-    Atlas();
+    explicit Atlas(std::string const &s_name = "");
     ~Atlas() override;
     SP_DEFAULT_CONSTRUCT(Atlas);
 

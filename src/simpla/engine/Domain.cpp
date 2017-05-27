@@ -15,9 +15,10 @@ struct Domain::pimpl_s {
 
     std::shared_ptr<Patch> m_patch_ = nullptr;
 };
-Domain::Domain(std::shared_ptr<geometry::GeoObject> const& g) : m_pimpl_(new pimpl_s) {
+Domain::Domain(std::string const& s_name, std::shared_ptr<geometry::GeoObject> const& g)
+    : m_pimpl_(new pimpl_s), SPObject(s_name) {
     ASSERT(g != nullptr);
-    m_pimpl_->m_geo_object_[""] = g;
+    AddGeoObject(GetName(), g);
 }
 Domain::~Domain() {}
 
@@ -58,7 +59,7 @@ EntityRange Domain::GetRange(std::string const& k) const {
 };
 
 EntityRange Domain::GetBodyRange(int IFORM, std::string const& k) const {
-    return GetRange(k + "." + std::string(EntityIFORMName[IFORM]) + "_BODY");
+    return GetRange((k != "" ? k : GetName()) + "." + std::string(EntityIFORMName[IFORM]) + "_BODY");
 };
 EntityRange Domain::GetBoundaryRange(int IFORM, std::string const& k, bool is_parallel) const {
     auto res =

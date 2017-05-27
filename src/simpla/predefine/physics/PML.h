@@ -42,7 +42,7 @@ class PML : public engine::Domain {
     void SetUp(Real time_now = 0);
 
      //    virtual std::string getClassName() const { return class_name(); }
-    //    static std::string class_name() { return "PML<" + traits::type_id<TM>::GetName() + ">"; }
+    //    static std::string class_name() { return "PML<" + traits::type_id<TM>::GetPrefix() + ">"; }
 
     field_type<EDGE> E{m_mesh_, "name"_ = "E"};
     field_type<FACE> B{m_mesh_, "name"_ = "B"};

@@ -10,8 +10,8 @@ function(simpla_test name)
 
     target_link_libraries(${name} ${GTEST_BOTH_LIBRARIES} pthread)
     GTEST_ADD_TESTS(${name} "" ${ARGN})
-    #    ADD_DEPENDENCIES(${GetName} googletest)
-    #    ADD_DEPENDENCIES(alltest ${GetName} )
+    #    ADD_DEPENDENCIES(${GetPrefix} googletest)
+    #    ADD_DEPENDENCIES(alltest ${GetPrefix} )
 endfunction()
 
 MACRO(SUBDIRLIST result curdir)

@@ -17,8 +17,8 @@ struct TimeIntegrator : public Schedule {
     SP_OBJECT_HEAD(TimeIntegrator, Schedule);
 
    public:
-    TimeIntegrator() = default;
-    ~TimeIntegrator() override = default;
+    explicit TimeIntegrator(std::string const &s_name = "TimeIntegrator");
+    ~TimeIntegrator() override  ;
     SP_DEFAULT_CONSTRUCT(TimeIntegrator);
     DECLARE_REGISTER_NAME("TimeIntegrator")
 

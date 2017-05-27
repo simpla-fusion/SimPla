@@ -21,7 +21,7 @@ struct Schedule::pimpl_s {
 
     std::shared_ptr<Context> m_ctx_;
 };
-Schedule::Schedule() : m_pimpl_(new pimpl_s){};
+Schedule::Schedule(std::string const& s_name) : m_pimpl_(new pimpl_s), SPObject(s_name){};
 Schedule::~Schedule(){};
 
 std::shared_ptr<Context> Schedule::SetContext(std::shared_ptr<Context> const& ctx) {
@@ -67,6 +67,7 @@ void Schedule::Run() {
 
 std::shared_ptr<data::DataTable> Schedule::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
+    res->SetValue("Name", GetName());
     return res;
 }
 void Schedule::Deserialize(const std::shared_ptr<data::DataTable>& cfg) {}

@@ -34,7 +34,7 @@ struct Atlas::pimpl_s {
     index_box_type m_index_box_{{0, 0, 0}, {64, 64, 64}};
 };
 
-Atlas::Atlas() : m_pimpl_(new pimpl_s){};
+Atlas::Atlas(std::string const &s_name) : m_pimpl_(new pimpl_s), SPObject(s_name) {};
 Atlas::~Atlas(){};
 void Atlas::SetUp(){};
 std::shared_ptr<data::DataTable> Atlas::Serialize() const {

@@ -1986,7 +1986,7 @@ SKIP_FUNCTION_MACROS   = YES
 # where loc1 and loc2 can be relative or absolute paths or URLs. See the
 # section "Linking to external documentation" for more information about the use
 # of tag files.
-# Note: Each tag file must have a unique name (where the GetName does NOT include
+# Note: Each tag file must have a unique name (where the GetPrefix does NOT include
 # the path). If a tag file is not located in the directory in which doxygen is
 # run, you must also specify the path to the tagfile here.
 

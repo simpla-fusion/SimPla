@@ -67,7 +67,7 @@ namespace engine {
 class Context : public SPObject, public data::EnableCreateFromDataTable<Context> {
     SP_OBJECT_HEAD(Context, SPObject)
    public:
-    Context();
+    explicit Context(std::string const &s_name = "");
     ~Context() override;
 
     SP_DEFAULT_CONSTRUCT(Context)
@@ -91,7 +91,7 @@ class Context : public SPObject, public data::EnableCreateFromDataTable<Context>
     std::shared_ptr<Domain> SetDomain(std::string const &k, std::shared_ptr<Domain>);
 
     std::shared_ptr<Domain> SetDomain(std::string const &k, std::string const &d_name) {
-        return SetDomain(k, Domain::Create(d_name, GetModel().GetObject(k)));
+        return SetDomain(k, Domain::Create(d_name, d_name, GetModel().GetObject(k)));
     }
 
     template <typename U>

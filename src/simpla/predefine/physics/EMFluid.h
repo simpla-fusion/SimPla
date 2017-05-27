@@ -149,18 +149,18 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
 }
 template <typename TM>
 void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
-    B[GetRange("FACE_PATCH_BOUNDARY")] = 0;
-    E[GetRange("EDGE_PATCH_BOUNDARY")] = 0;
+    B[GetRange("EDGE_PATCH_BOUNDARY")] = 0;
+    E[GetRange("FACE_PATCH_BOUNDARY")] = 0;
 }
 template <typename TM>
 void EMFluid<TM>::Advance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
 
     B = B - curl(E) * (dt * 0.5);
-    B[GetPerpendicularBoundaryRange(FACE)] = 0;
+    B[GetPerpendicularBoundaryRange(FACE, "PEC")] = 0;
 
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
-    E[GetParallelBoundaryRange(EDGE)] = 0;
+    E[GetParallelBoundaryRange(EDGE, "PEC")] = 0;
 
     if (m_fluid_sp_.size() > 0) {
         Ev = map_to<VOLUME>(E);
@@ -225,10 +225,10 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     }
 
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
-    E[GetParallelBoundaryRange(EDGE)] = 0;
+    E[GetParallelBoundaryRange(EDGE, "PEC")] = 0;
 
     B = B - curl(E) * (dt * 0.5);
-    B[GetPerpendicularBoundaryRange(FACE)] = 0;
+    B[GetPerpendicularBoundaryRange(FACE, "PEC")] = 0;
 }
 
 }  // namespace simpla  {

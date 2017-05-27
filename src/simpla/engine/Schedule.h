@@ -17,7 +17,7 @@ class Schedule : public SPObject, public data::EnableCreateFromDataTable<Schedul
     SP_OBJECT_HEAD(Schedule, SPObject);
 
    public:
-    Schedule();
+    Schedule(std::string const &s_name = "Schedule");
     ~Schedule() override;
     SP_DEFAULT_CONSTRUCT(Schedule)
     DECLARE_REGISTER_NAME("Schedule")
