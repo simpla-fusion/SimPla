@@ -173,7 +173,7 @@ std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<simpla::Array<U, ND
 //
 //    virtual std::ostream &Print(std::ostream &os, int indent) const
 //    {
-//        os << " value_type_info = \'" << GetValueTypeInfo().GetName() << "\' "
+//        os << " value_type_info = \'" << GetValueTypeInfo().GetPrefix() << "\' "
 //           << ", entity value_type_info = " << static_cast<int>(GetIFORM())
 //           << ", GetDataBlock = {";
 //        data_entity_traits::Print(os, indent + 1);

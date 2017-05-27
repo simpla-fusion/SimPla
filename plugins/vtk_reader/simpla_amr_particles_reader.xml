@@ -1,6 +1,6 @@
 <ServerManagerConfiguration>
-    <ProxyGroup GetName="sources">
-        <SourceProxy GetName="SimPlaParticleReader"
+    <ProxyGroup GetPrefix="sources">
+        <SourceProxy GetPrefix="SimPlaParticleReader"
                      class="vtkAMRSimPlaParticleReader"
                      label="SimPla particle reader">
             <Documentation
@@ -10,14 +10,14 @@
                 default file extension is .png.
             </Documentation>
             <StringVectorProperty
-                    GetName="FileName"
+                    GetPrefix="FileName"
                     animateable="0"
                     command="SetFileName"
                     number_of_elements="1"
                     panel_visibility="never">
-                <FileListDomain GetName="files"/>
+                <FileListDomain GetPrefix="files"/>
                 <Documentation>
-                    This property specifies the file GetName for the PNG reader.
+                    This property specifies the file GetPrefix for the PNG reader.
                 </Documentation>
             </StringVectorProperty>
 

@@ -21,7 +21,7 @@ struct Schedule::pimpl_s {
 
     std::shared_ptr<Context> m_ctx_;
 };
-Schedule::Schedule() : m_pimpl_(new pimpl_s){};
+Schedule::Schedule(std::string const& s_name) : SPObject(s_name), m_pimpl_(new pimpl_s){};
 Schedule::~Schedule(){};
 
 std::shared_ptr<Context> Schedule::SetContext(std::shared_ptr<Context> const& ctx) {

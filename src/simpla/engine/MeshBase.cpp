@@ -17,7 +17,7 @@ struct MeshBase::pimpl_s {
     Range<EntityId> m_ranges_[4];
     Domain *m_domain_ = nullptr;
 };
-MeshBase::MeshBase(Domain *d) : m_pimpl_(new pimpl_s) { m_pimpl_->m_domain_ = d; }
+MeshBase::MeshBase(Domain *d) : SPObject(""), m_pimpl_(new pimpl_s) { m_pimpl_->m_domain_ = d; }
 MeshBase::~MeshBase() {}
 Domain *MeshBase::GetDomain() const { return m_pimpl_->m_domain_; }
 void MeshBase::SetBlock(std::shared_ptr<MeshBlock> m) { m_pimpl_->m_mesh_block_ = m; }

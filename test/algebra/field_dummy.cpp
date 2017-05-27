@@ -44,6 +44,8 @@ struct DummyMesh : public engine::MeshBase {
     point_type const &GetDx() override { return m_dx_; };
 };
 struct DummyDomain : public engine::Domain {
+    DummyDomain() {}
+
     DummyMesh m_mesh_{this};
     engine::MeshBase *GetMesh() override { return &m_mesh_; };
     engine::MeshBase const *GetMesh() const override { return &m_mesh_; };

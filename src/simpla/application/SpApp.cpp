@@ -22,7 +22,7 @@ struct SpApp::pimpl_s {
     std::shared_ptr<engine::Schedule> m_schedule_ = nullptr;
     std::shared_ptr<engine::Context> m_context_ = nullptr;
 };
-SpApp::SpApp() : m_pimpl_(new pimpl_s) {}
+SpApp::SpApp(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
 SpApp::~SpApp() {}
 std::shared_ptr<data::DataTable> SpApp::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
@@ -126,7 +126,7 @@ int main(int argc, char **argv) {
                         << ": quiet mode," << std::endl
                         << std::endl
                         << std::left << std::setw(20) << "  -o, --output  "
-                        << ": Output file GetName (default: simpla.h5)." << std::endl
+                        << ": Output file GetPrefix (default: simpla.h5)." << std::endl
                         << std::left << std::setw(20) << "  -i, --input  "
                         << ": Input configure file (default:" + conf_file + ")" << std::endl
                         << std::left << std::setw(20) << "  -p, --prologue "

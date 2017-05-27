@@ -15,7 +15,8 @@ struct Domain::pimpl_s {
 
     std::shared_ptr<Patch> m_patch_ = nullptr;
 };
-Domain::Domain(std::shared_ptr<geometry::GeoObject> const& g) : m_pimpl_(new pimpl_s) {
+Domain::Domain(std::string const& s_name, std::shared_ptr<geometry::GeoObject> const& g)
+    : m_pimpl_(new pimpl_s), SPObject(s_name) {
     ASSERT(g != nullptr);
     m_pimpl_->m_geo_object_[""] = g;
 }
@@ -24,6 +25,7 @@ Domain::~Domain() {}
 std::shared_ptr<data::DataTable> Domain::Serialize() const {
     auto p = std::make_shared<data::DataTable>();
     p->SetValue("Type", GetRegisterName());
+    p->SetValue("Name", GetName());
     return p;
 }
 void Domain::Deserialize(const std::shared_ptr<DataTable>& t) { UNIMPLEMENTED; };

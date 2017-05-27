@@ -223,7 +223,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
     static constexpr int NDIMS = 3;
     std::shared_ptr<engine::Context> m_ctx_;
     /*
-     * The object GetName is used for error/warning reporting and also as a
+     * The object GetPrefix is used for error/warning reporting and also as a
      * string label for restart database entries.
      */
     std::string m_name_;
@@ -279,19 +279,19 @@ boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(const std::sh
     switch (attr->GetIFORM()) {
         case VERTEX:
             res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-                boost::make_shared<SAMRAI::pdat::NodeVariable<T>>(d_dim, attr->GetName(), attr->GetDOF()));
+                boost::make_shared<SAMRAI::pdat::NodeVariable<T>>(d_dim, attr->GetPrefix(), attr->GetDOF()));
             break;
         case EDGE:
             res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-                boost::make_shared<SAMRAI::pdat::EdgeVariable<T>>(d_dim, attr->GetName(), attr->GetDOF()));
+                boost::make_shared<SAMRAI::pdat::EdgeVariable<T>>(d_dim, attr->GetPrefix(), attr->GetDOF()));
             break;
         case FACE:
             res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-                boost::make_shared<SAMRAI::pdat::SideVariable<T>>(d_dim, attr->GetName(), attr->GetDOF()));
+                boost::make_shared<SAMRAI::pdat::SideVariable<T>>(d_dim, attr->GetPrefix(), attr->GetDOF()));
             break;
         case VOLUME:
             res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-                boost::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, attr->GetName(), attr->GetDOF()));
+                boost::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, attr->GetPrefix(), attr->GetDOF()));
             break;
         default:
             break;
@@ -309,7 +309,7 @@ boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(const std::shar
     } else if (attr->value_type_info() == (typeid(int))) {
         res = create_samrai_variable_t<int>(attr);
     } else {
-        RUNTIME_ERROR << " attr [" << attr->GetName() << "] is not supported!" << std::endl;
+        RUNTIME_ERROR << " attr [" << attr->GetPrefix() << "] is not supported!" << std::endl;
     }
     return res;
 }
@@ -440,7 +440,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
             refine_name = "NO_REFINE";
         }
         integrator->registerVariable(var, ghosts, v_type, d_grid_geometry, "", coarsen_name);
-        if (item.second->GetName()[0] != '_') {
+        if (item.second->GetPrefix()[0] != '_') {
             std::string visit_variable_type;
             if ((item.second->GetIFORM() == VERTEX || item.second->GetIFORM() == VOLUME) &&
                 (item.second->GetDOF() == 1)) {
@@ -456,7 +456,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
                         item.second->GetDOF() == 3)) {
                 visit_variable_type = "TENSOR";
             } else {
-                WARNING << "Can not register attribute [" << item.second->GetName() << "] to VisIt writer !"
+                WARNING << "Can not register attribute [" << item.second->GetPrefix() << "] to VisIt writer !"
                         << std::endl;
             }
 
@@ -465,7 +465,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
                     vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
             } else if (item.second->GetIFORM() == VERTEX || item.second->GetIFORM() == VOLUME) {
                 d_visit_writer->registerPlotQuantity(
-                    item.second->GetName(), visit_variable_type,
+                        item.second->GetPrefix(), visit_variable_type,
                     vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
             }
         }
@@ -689,7 +689,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerVisItDataWriter(
 
 void SAMRAIHyperbolicPatchStrategyAdapter::printClassData(std::ostream &os) const {
     os << "\nSAMRAIWorkerAdapter::printClassData..." << std::endl;
-    os << "m_name_ = " << m_name_ << std::endl;
+    os << "m_prefix_ = " << m_name_ << std::endl;
     os << "d_grid_geometry = " << d_grid_geometry.get() << std::endl;
     os << std::endl;
 }

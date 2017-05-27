@@ -50,11 +50,11 @@ struct AttributeDesc : public data::Configurable {
     AttributeDesc() = default;
     AttributeDesc(AttributeDesc const &);
     AttributeDesc(AttributeDesc &&other);
-    AttributeDesc(std::string const &s, int IFORM, int DOF, std::type_info const &t_info,
-                  std::shared_ptr<data::DataTable> const &t_db);
+    AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, std::string const &s_prefix = "",
+                  std::shared_ptr<data::DataTable> const &t_db = nullptr);
     virtual ~AttributeDesc() = default;
 
-    virtual std::string GetName() const;
+    virtual std::string GetPrefix() const;
     virtual int GetIFORM() const;
     virtual int GetDOF() const;
     virtual std::type_info const &value_type_info() const;
@@ -62,7 +62,7 @@ struct AttributeDesc : public data::Configurable {
     virtual std::shared_ptr<AttributeDesc> GetDescription() const;
 
    private:
-    std::string m_name_ = "";
+    std::string m_prefix_ = "";
     int m_iform_ = 0;
     int m_dof_ = 1;
     std::type_info const &m_t_info_ = typeid(void);

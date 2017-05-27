@@ -76,13 +76,16 @@ namespace simpla {
 class SPObject {
     SP_OBJECT_BASE(SPObject)
    public:
-    SPObject();
+    explicit SPObject(std::string const &s_name = "");
     virtual ~SPObject();
 
     SP_DEFAULT_CONSTRUCT(SPObject);
 
     void SetGUID(id_type id);
     id_type GetGUID() const;
+
+    void SetName(std::string const &s_name);
+    std::string const &GetName() const;
 
     void lock();
     void unlock();

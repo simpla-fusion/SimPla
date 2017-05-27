@@ -12,37 +12,37 @@
 #include "Patch.h"
 namespace simpla {
 namespace engine {
-AttributeDesc::AttributeDesc(std::string const &s, int IFORM, int DOF, std::type_info const &t_info,
+AttributeDesc::AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, std::string const &s_prefix,
                              std::shared_ptr<data::DataTable> const &t_db)
-    : data::Configurable(t_db), m_name_(s), m_iform_(IFORM), m_dof_(DOF), m_t_info_(t_info) {}
+    : data::Configurable(t_db), m_prefix_(s_prefix), m_iform_(IFORM), m_dof_(DOF), m_t_info_(t_info) {}
 
 AttributeDesc::AttributeDesc(AttributeDesc const &other)
     : data::Configurable(other),
-      m_name_(other.m_name_),
+      m_prefix_(other.m_prefix_),
       m_iform_(other.m_iform_),
       m_dof_(other.m_dof_),
       m_t_info_(other.m_t_info_){};
 AttributeDesc::AttributeDesc(AttributeDesc &&other)
     : data::Configurable(other),
-      m_name_(other.m_name_),
+      m_prefix_(other.m_prefix_),
       m_iform_(other.m_iform_),
       m_dof_(other.m_dof_),
       m_t_info_(other.m_t_info_){};
-std::string AttributeDesc::GetName() const { return m_name_; };
+std::string AttributeDesc::GetPrefix() const { return m_prefix_; };
 int AttributeDesc::GetIFORM() const { return m_iform_; };
 int AttributeDesc::GetDOF() const { return m_dof_; };
 std::type_info const &AttributeDesc::value_type_info() const { return m_t_info_; };
 
 id_type AttributeDesc::GetID() const {
     static std::hash<std::string> s_hasher;
-    return s_hasher(GetName() +                         //
+    return s_hasher(GetPrefix() +                       //
                     "." + value_type_info().name() +    //
                     "." + std::to_string(GetIFORM()) +  //
                     "." + std::to_string(GetDOF()));
 }
 
 std::shared_ptr<AttributeDesc> AttributeDesc::GetDescription() const {
-    return std::make_shared<AttributeDesc>(GetName(), GetIFORM(), GetDOF(), value_type_info(), db());
+    return std::make_shared<AttributeDesc>(GetIFORM(), GetDOF(), value_type_info(), GetPrefix(), db());
 };
 
 struct AttributeGroup::pimpl_s {
@@ -62,8 +62,8 @@ void AttributeGroup::DeregisterFrom(AttributeGroup *other) {
     for (auto &item : m_pimpl_->m_attributes_) { item.second->DeregisterFrom(other); }
 };
 
-void AttributeGroup::Attach(Attribute *p) { m_pimpl_->m_attributes_.emplace(p->GetName(), p); }
-void AttributeGroup::Detach(Attribute *p) { m_pimpl_->m_attributes_.erase(p->GetName()); }
+void AttributeGroup::Attach(Attribute *p) { m_pimpl_->m_attributes_.emplace(p->GetPrefix(), p); }
+void AttributeGroup::Detach(Attribute *p) { m_pimpl_->m_attributes_.erase(p->GetPrefix()); }
 std::map<std::string, Attribute *> &AttributeGroup::GetAllAttributes() { return m_pimpl_->m_attributes_; };
 std::map<std::string, Attribute *> const &AttributeGroup::GetAll() const { return m_pimpl_->m_attributes_; };
 Attribute *AttributeGroup::Get(std::string const &k) {
@@ -98,9 +98,8 @@ struct Attribute::pimpl_s {
 };
 Attribute::Attribute(int IFORM, int DOF, std::type_info const &t_info, Domain *d,
                      std::shared_ptr<data::DataTable> const &cfg)
-    : AttributeDesc(((cfg != nullptr && cfg->has("name")) ? cfg->GetValue<std::string>("name")
-                                                          : ("_" + std::to_string(SPObject::GetGUID()))),
-                    IFORM, DOF, t_info, cfg),
+    : SPObject((cfg != nullptr && cfg->has("name")) ? cfg->GetValue<std::string>("name") : ""),
+      AttributeDesc(IFORM, DOF, t_info, SPObject::GetName(), cfg),
       m_pimpl_(new pimpl_s) {
     RegisterAt(d);
     m_pimpl_->m_domain_ = d;
