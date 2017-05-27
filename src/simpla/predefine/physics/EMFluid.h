@@ -162,6 +162,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
     E[GetParallelBoundaryRange(EDGE, "PEC")] = 0;
 
+<<<<<<< HEAD
     if (m_fluid_sp_.size() > 0) {
         Ev = map_to<VOLUME>(E);
 
@@ -229,6 +230,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
 
     B = B - curl(E) * (dt * 0.5);
     B[GetPerpendicularBoundaryRange(FACE, "PEC")] = 0;
+
 }
 
 }  // namespace simpla  {
