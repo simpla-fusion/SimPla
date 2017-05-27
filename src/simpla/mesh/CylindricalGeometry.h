@@ -48,6 +48,13 @@ struct CylindricalSMesh : public SMesh {
 
     void InitialCondition(Real time_now) override;
 
+#define DECLARE_FIELD(_IFORM_, _DOF_, _NAME_, ...) \
+    Field<this_type, Real, _IFORM_, _DOF_> _NAME_{this, "name"_ = __STRING(_NAME_), __VA_ARGS__};
+
+    DECLARE_FIELD(VERTEX, 3, m_coordinates_, "COORDINATES"_);
+
+#undef DECLARE_FIELD
+
 };  // struct  MeshBase
 
 //    virtual point_type point(EntityId s) const override {

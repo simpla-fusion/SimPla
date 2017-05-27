@@ -7,6 +7,7 @@ namespace simpla {
 namespace mesh {
 void CylindricalSMesh::InitialCondition(Real time_now) {
     SMesh::InitialCondition(time_now);
+    m_coordinates_.Clear();
 
     /**
         *\verbatim
