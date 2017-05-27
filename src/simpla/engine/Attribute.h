@@ -50,8 +50,8 @@ struct AttributeDesc : public data::Configurable {
     AttributeDesc() = default;
     AttributeDesc(AttributeDesc const &);
     AttributeDesc(AttributeDesc &&other);
-    AttributeDesc(std::string const &s, int IFORM, int DOF, std::type_info const &t_info,
-                  std::shared_ptr<data::DataTable> const &t_db);
+    AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, std::string const &s_prefix = "",
+                  std::shared_ptr<data::DataTable> const &t_db = nullptr);
     virtual ~AttributeDesc() = default;
 
     virtual std::string GetPrefix() const;

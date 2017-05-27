@@ -26,7 +26,7 @@ class Domain
       public data::EnableCreateFromDataTable<Domain, std::string const &, std::shared_ptr<geometry::GeoObject>> {
     SP_OBJECT_HEAD(Domain, SPObject)
    public:
-    explicit Domain(std::string const &s_name = "", std::shared_ptr<geometry::GeoObject> const &boundar_geo = nullptr);
+    explicit Domain(std::string const &s_name = "", std::shared_ptr<geometry::GeoObject> const &g = nullptr);
     ~Domain() override;
 
     SP_DEFAULT_CONSTRUCT(Domain);
@@ -43,10 +43,6 @@ class Domain
 
     void AddGeoObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &g);
     std::shared_ptr<geometry::GeoObject> GetGeoObject(std::string const &k = "") const;
-
-    void SetBoundary(std::shared_ptr<geometry::GeoObject> const &g);
-    std::shared_ptr<geometry::GeoObject> GetBoundary() const;
-
     EntityRange GetRange(std::string const &k = "") const;
     EntityRange GetBodyRange(int IFORM = VERTEX, std::string const &k = "") const;
     EntityRange GetBoundaryRange(int IFORM = VERTEX, std::string const &k = "", bool is_parallel = true) const;

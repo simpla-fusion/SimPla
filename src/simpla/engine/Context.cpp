@@ -18,7 +18,7 @@ struct Context::pimpl_s {
     Atlas m_atlas_;
 };
 
-Context::Context(std::string const &s_name) : m_pimpl_(new pimpl_s), SPObject(s_name) {}
+Context::Context(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
 Context::~Context() {}
 
 std::shared_ptr<data::DataTable> Context::Serialize() const {

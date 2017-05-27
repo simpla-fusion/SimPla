@@ -76,7 +76,6 @@ void EMTokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
 
     ASSERT(d != nullptr);
 
-    d->AddGeoObject("PEC", GetModel().GetObject("Limiter"));
     d->AddGeoObject("Center", GetModel().GetObject("Center"));
     d->AddGeoObject("Antenna", GetModel().GetObject("Antenna"));
 

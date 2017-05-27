@@ -22,7 +22,7 @@ struct SpApp::pimpl_s {
     std::shared_ptr<engine::Schedule> m_schedule_ = nullptr;
     std::shared_ptr<engine::Context> m_context_ = nullptr;
 };
-SpApp::SpApp(std::string const &s_name) : m_pimpl_(new pimpl_s), SPObject(s_name) {}
+SpApp::SpApp(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
 SpApp::~SpApp() {}
 std::shared_ptr<data::DataTable> SpApp::Serialize() const {
     auto res = std::make_shared<data::DataTable>();

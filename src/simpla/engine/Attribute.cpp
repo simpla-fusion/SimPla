@@ -12,9 +12,9 @@
 #include "Patch.h"
 namespace simpla {
 namespace engine {
-AttributeDesc::AttributeDesc(std::string const &prefix, int IFORM, int DOF, std::type_info const &t_info,
+AttributeDesc::AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, std::string const &s_prefix,
                              std::shared_ptr<data::DataTable> const &t_db)
-    : data::Configurable(t_db), m_prefix_(prefix), m_iform_(IFORM), m_dof_(DOF), m_t_info_(t_info) {}
+    : data::Configurable(t_db), m_prefix_(s_prefix), m_iform_(IFORM), m_dof_(DOF), m_t_info_(t_info) {}
 
 AttributeDesc::AttributeDesc(AttributeDesc const &other)
     : data::Configurable(other),
@@ -42,7 +42,7 @@ id_type AttributeDesc::GetID() const {
 }
 
 std::shared_ptr<AttributeDesc> AttributeDesc::GetDescription() const {
-    return std::make_shared<AttributeDesc>(GetPrefix(), GetIFORM(), GetDOF(), value_type_info(), db());
+    return std::make_shared<AttributeDesc>(GetIFORM(), GetDOF(), value_type_info(), GetPrefix(), db());
 };
 
 struct AttributeGroup::pimpl_s {
@@ -99,15 +99,14 @@ struct Attribute::pimpl_s {
 Attribute::Attribute(int IFORM, int DOF, std::type_info const &t_info, Domain *d,
                      std::shared_ptr<data::DataTable> const &cfg)
     : SPObject((cfg != nullptr && cfg->has("name")) ? cfg->GetValue<std::string>("name") : ""),
-      AttributeDesc(SPObject::GetName(), IFORM, DOF, t_info, cfg),
+      AttributeDesc(IFORM, DOF, t_info, SPObject::GetName(), cfg),
       m_pimpl_(new pimpl_s) {
     RegisterAt(d);
     m_pimpl_->m_domain_ = d;
 };
 
-Attribute::Attribute(Attribute const &other) : AttributeDesc(other), m_pimpl_(new pimpl_s), SPObject(other.GetName()) {}
-Attribute::Attribute(Attribute &&other)
-    : AttributeDesc(other), m_pimpl_(std::move(other.m_pimpl_)), SPObject(other.GetName()) {}
+Attribute::Attribute(Attribute const &other) : AttributeDesc(other), m_pimpl_(new pimpl_s) {}
+Attribute::Attribute(Attribute &&other) : AttributeDesc(other), m_pimpl_(std::move(other.m_pimpl_)) {}
 Attribute::~Attribute() {
     for (auto *b : m_pimpl_->m_bundle_) { DeregisterFrom(b); }
 }

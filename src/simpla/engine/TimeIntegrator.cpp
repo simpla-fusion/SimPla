@@ -7,11 +7,12 @@
 namespace simpla {
 namespace engine {
 
-TimeIntegrator::TimeIntegrator(std::string const& s_name) : Schedule(s_name) {}
+TimeIntegrator::TimeIntegrator(std::string const& s_name) : Schedule(s_name){};
 TimeIntegrator::~TimeIntegrator() {}
 
 std::shared_ptr<data::DataTable> TimeIntegrator::Serialize() const {
     auto p = Schedule::Serialize();
+    p->SetValue("Name", GetName());
     p->SetValue("Type", GetRegisterName());
     p->SetValue("TimeBegin", GetTimeNow());
     p->SetValue("TimeEnd", GetTimeEnd());
