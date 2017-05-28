@@ -14,16 +14,14 @@ Context = {
     },
     Domains =
     {
---        Main = {
---            Type = "EMFluidCylindricalSMesh",
---            Species = {
---                ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
---                H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
---            }
---        },
-        Main={
-            Type="HyperbolicConservationLawCylindricalSMesh"
-        }
+        Main = {
+            Type = "EMFluidCylindricalSMesh",
+            Species = {
+                ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
+                H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
+            }
+        },
+
 
     },
     Model = {},
@@ -32,7 +30,7 @@ Context = {
 
 Schedule = {
     Type = "SAMRAITimeIntegrator",
-    OutputURL = "TokamakMHD",
+    OutputURL = "TokamakSaveData",
     TimeBegin = 0.0,
     TimeEnd = 5e-9,
     TimeStep = 1.0e-11,
