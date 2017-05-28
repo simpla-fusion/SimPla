@@ -66,6 +66,13 @@ void AttributeGroup::Attach(Attribute *p) { m_pimpl_->m_attributes_.emplace(p->G
 void AttributeGroup::Detach(Attribute *p) { m_pimpl_->m_attributes_.erase(p->GetPrefix()); }
 std::map<std::string, Attribute *> &AttributeGroup::GetAllAttributes() { return m_pimpl_->m_attributes_; };
 std::map<std::string, Attribute *> const &AttributeGroup::GetAll() const { return m_pimpl_->m_attributes_; };
+bool AttributeGroup::has(std::string const &k) const {
+    return m_pimpl_->m_attributes_.find(k) != m_pimpl_->m_attributes_.end();
+}
+bool AttributeGroup::check(std::string const &k, std::type_info const &t_info) const {
+    auto it = m_pimpl_->m_attributes_.find(k);
+    return (it != m_pimpl_->m_attributes_.end() && it->second->isA(t_info));
+}
 Attribute *AttributeGroup::Get(std::string const &k) {
     auto it = m_pimpl_->m_attributes_.find(k);
     Attribute *res = nullptr;

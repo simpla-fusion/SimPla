@@ -85,6 +85,9 @@ class AttributeGroup {
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
 
+    bool has(std::string const &k) const;
+    bool check(std::string const &k, std::type_info const &t_info) const;
+
     Attribute *Get(std::string const &k);
     Attribute const *Get(std::string const &k) const;
 

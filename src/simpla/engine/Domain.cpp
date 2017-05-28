@@ -40,7 +40,7 @@ void Domain::Finalize() { GetMesh()->Finalize(); }
 
 void Domain::AddGeoObject(std::string const& k, std::shared_ptr<geometry::GeoObject> const& g) {
     Click();
-    m_pimpl_->m_geo_object_[k] = g;
+    if (g != nullptr) { m_pimpl_->m_geo_object_[k] = g; }
 }
 
 std::shared_ptr<geometry::GeoObject> Domain::GetGeoObject(std::string const& k) const {
