@@ -9,16 +9,14 @@
 #include <simpla/model/GEqdsk.h>
 #include <simpla/physics/Constants.h>
 #include <simpla/predefine/physics/EMFluid.h>
-#include <simpla/predefine/physics/HyperbolicConservationLaw.h>
+#include "../mhd_test/HyperbolicConservationLaw.h"
 #include <simpla/third_part/SAMRAITimeIntegrator.h>
 #include <simpla/utilities/sp_def.h>
 #include <iostream>
 namespace simpla {
 using namespace engine;
 static bool s_RegisterDomain =
-    engine::Domain::RegisterCreator<EMFluid<mesh::CylindricalSMesh>>(std::string("EMFluidCylindricalSMesh")) &&
-    engine::Domain::RegisterCreator<HyperbolicConservationLaw<mesh::CylindricalSMesh>>(
-        std::string("HyperbolicConservationLawCylindricalSMesh"));
+    engine::Domain::RegisterCreator<EMFluid<mesh::CylindricalSMesh>>(std::string("EMFluidCylindricalSMesh"));
 REGISTER_CREATOR(SAMRAITimeIntegrator)
 
 class Tokamak : public engine::Context {
@@ -121,36 +119,5 @@ void Tokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     //
     //    });
 }
-//    std::cout << "Model = ";
-//    GetModel().Serialize(std::cout, 0);
-//    auto const &boundary = geqdsk.boundary();
-//    ne.Assign([&](point_type const &x) -> Real { return (geqdsk.in_boundary(x)) ? geqdsk.profile("ne", x) : 0.0;
-//    });
-//    psi.Assign([&](point_type const &x) -> Real { return geqdsk.psi(x); });
-//    nTuple<Real, 3> ZERO_V{0, 0, 0};
-//    //    B0.Assign([&](point_type const &x) -> Vec3 { return (geqdsk.in_limiter(x)) ? geqdsk.B(x) : ZERO_V; });
-//    for (auto &item : GetSpecies()) {
-//        Real ratio = db()->GetValue("Particles." + item.first + ".ratio", 1.0);
-//        *item.second->rho = ne * ratio;
-//    }
-//
-// void Tokamak::SetPhysicalBoundaryConditions() {
-//    base_type::SetPhysicalBoundaryConditions();
-//    //    if (J_src_fun) {
-//    //        J1.Assign(model()->select(EDGE, "J_SRC"), [&](point_type const &x) -> Vec3 { return J_src_fun(x,
-//    //        data_time); });
-//    //    }
-//    //    if (E_src_fun) {
-//    //        E.Assign(model()->select(EDGE, "E_SRC"), [&](point_type const &x) -> Vec3 { return E_src_fun(x,
-//    //        data_time); });
-//    //    }
-//};
-//
-// void Tokamak::SetPhysicalBoundaryConditionE() {
-//    //    E.Assign(model()->interface(EDGE, "PLASMA", "VACUUM"), 0);
-//}
-//
-// void Tokamak::SetPhysicalBoundaryConditionB() {
-//    //    B.Assign(model()->interface(FACE, "PLASMA", "VACUUM"), 0);
-//}
+
 }  // namespace simpla {

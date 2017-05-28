@@ -12,7 +12,6 @@ void SMesh::InitialCondition(Real time_now) {
     StructuredMesh::InitialCondition(time_now);
 
     m_vertices_.Clear();
-    m_coordinates_.Clear();
 
     m_vertex_volume_.Clear();
     m_vertex_inv_volume_.Clear();

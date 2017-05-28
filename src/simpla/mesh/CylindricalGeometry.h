@@ -33,18 +33,17 @@ struct CylindricalSMesh : public SMesh {
     SP_OBJECT_HEAD(CylindricalSMesh, SMesh)
     unsigned int m_phi_axe_ = 2;
 
-   public:
     typedef Real scalar_type;
     explicit CylindricalSMesh(Domain* d) : SMesh(d) {}
     ~CylindricalSMesh() override = default;
 
     DECLARE_REGISTER_NAME("CylindricalSMesh")
 
-    template <typename V>
-    using array_type = Array<V, NDIMS>;
+#define DECLARE_FIELD(_IFORM_, _DOF_, _NAME_, ...) \
+    Field<this_type, Real, _IFORM_, _DOF_> _NAME_{this, "name"_ = __STRING(_NAME_), __VA_ARGS__};
 
-   public:
-    using SMesh::point;
+    DECLARE_FIELD(VERTEX, 3, m_coordinates_, "COORDINATES"_);
+#undef define
 
     void InitialCondition(Real time_now) override;
 

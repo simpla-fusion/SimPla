@@ -25,10 +25,27 @@ struct CoRectMesh : public StructuredMesh {
     void InitialCondition(Real time_now) override;
 
     nTuple<Real, 3> m_dx_{1, 1, 1}, m_inv_dx_{1, 1, 1}, m_x0_{0, 0, 0};
-    Real m_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
-    Real m_inv_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
-    Real m_dual_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
-    Real m_inv_dual_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+
+    Real m_vertex_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_vertex_inv_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_vertex_dual_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_vertex_inv_dual_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_volume_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_volume_inv_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_volume_dual_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_volume_inv_dual_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_edge_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_edge_inv_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_edge_dual_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_edge_inv_dual_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_face_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_face_inv_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_face_dual_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_face_inv_dual_volume_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_vertex_hodge_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_edge_hodge_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_face_hodge_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    Real m_volume_hodge_[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
 
     using StructuredMesh::point;
 
@@ -36,10 +53,10 @@ struct CoRectMesh : public StructuredMesh {
         return point_type{m_x0_[0] + m_dx_[0] * x, m_x0_[1] + m_dx_[1] * y, m_x0_[2] + m_dx_[2] * z};
     }
 
-//    Real volume(EntityId s) const override { return m_volume_[s.w & 7]; }
-//    Real dual_volume(EntityId s) const override { return m_volume_[s.w & 7]; }
-//    Real inv_volume(EntityId s) const override { return m_volume_[s.w & 7]; }
-//    Real inv_dual_volume(EntityId s) const override { return m_volume_[s.w & 7]; }
+    //    Real volume(EntityId s) const override { return m_volume_[s.w & 7]; }
+    //    Real dual_volume(EntityId s) const override { return m_volume_[s.w & 7]; }
+    //    Real inv_volume(EntityId s) const override { return m_volume_[s.w & 7]; }
+    //    Real inv_dual_volume(EntityId s) const override { return m_volume_[s.w & 7]; }
 
     std::pair<EntityId, point_type> map(point_type const &x, int node_id = VERTEX) const {
         point_type r;
@@ -80,7 +97,6 @@ struct CoRectMesh : public StructuredMesh {
 
 };  // struct  MeshBase
 
-
 inline void CoRectMesh::InitialCondition(Real time_now) {
     //    StructuredMesh::InitialCondition(time_now);
     /**
@@ -107,45 +123,45 @@ inline void CoRectMesh::InitialCondition(Real time_now) {
     //    m_dx_ = GetChart()->GetDx();
     size_tuple m_dims_ = GetBlock()->GetDimensions();
 
-    m_volume_[0 /*000*/] = 1;
-    m_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 1 : m_dx_[0];
-    m_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 1 : m_dx_[1];
-    m_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 1 : m_dx_[2];
-    m_volume_[3 /*011*/] = m_volume_[1] * m_volume_[2];
-    m_volume_[5 /*101*/] = m_volume_[4] * m_volume_[1];
-    m_volume_[6 /*110*/] = m_volume_[4] * m_volume_[2];
-    m_volume_[7 /*111*/] = m_volume_[1] * m_volume_[2] * m_volume_[4];
-
-    m_dual_volume_[0 /*000*/] = m_volume_[7];
-    m_dual_volume_[1 /*001*/] = m_volume_[6];
-    m_dual_volume_[2 /*010*/] = m_volume_[5];
-    m_dual_volume_[4 /*100*/] = m_volume_[3];
-    m_dual_volume_[3 /*011*/] = m_volume_[4];
-    m_dual_volume_[5 /*101*/] = m_volume_[2];
-    m_dual_volume_[6 /*110*/] = m_volume_[1];
-    m_dual_volume_[7 /*111*/] = m_volume_[0];
-
-    m_inv_volume_[0 /*000*/] = 1;
-    m_inv_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 1 : m_inv_dx_[0];
-    m_inv_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 1 : m_inv_dx_[1];
-    m_inv_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 1 : m_inv_dx_[2];
-    m_inv_volume_[3 /*011*/] = m_inv_volume_[2] * m_inv_volume_[1];
-    m_inv_volume_[5 /*101*/] = m_inv_volume_[4] * m_inv_volume_[1];
-    m_inv_volume_[6 /*110*/] = m_inv_volume_[4] * m_inv_volume_[2];
-    m_inv_volume_[7 /*111*/] = m_inv_volume_[1] * m_inv_volume_[2] * m_inv_volume_[4];
-
-    m_inv_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 0 : m_inv_volume_[1];
-    m_inv_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 0 : m_inv_volume_[2];
-    m_inv_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 0 : m_inv_volume_[4];
-
-    m_inv_dual_volume_[0 /*000*/] = m_inv_volume_[7];
-    m_inv_dual_volume_[1 /*001*/] = m_inv_volume_[6];
-    m_inv_dual_volume_[2 /*010*/] = m_inv_volume_[5];
-    m_inv_dual_volume_[4 /*100*/] = m_inv_volume_[3];
-    m_inv_dual_volume_[3 /*011*/] = m_inv_volume_[4];
-    m_inv_dual_volume_[5 /*101*/] = m_inv_volume_[2];
-    m_inv_dual_volume_[6 /*110*/] = m_inv_volume_[1];
-    m_inv_dual_volume_[7 /*111*/] = m_inv_volume_[0];
+//    m_volume_[0 /*000*/] = 1;
+//    m_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 1 : m_dx_[0];
+//    m_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 1 : m_dx_[1];
+//    m_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 1 : m_dx_[2];
+//    m_volume_[3 /*011*/] = m_volume_[1] * m_volume_[2];
+//    m_volume_[5 /*101*/] = m_volume_[4] * m_volume_[1];
+//    m_volume_[6 /*110*/] = m_volume_[4] * m_volume_[2];
+//    m_volume_[7 /*111*/] = m_volume_[1] * m_volume_[2] * m_volume_[4];
+//
+//    m_dual_volume_[0 /*000*/] = m_volume_[7];
+//    m_dual_volume_[1 /*001*/] = m_volume_[6];
+//    m_dual_volume_[2 /*010*/] = m_volume_[5];
+//    m_dual_volume_[4 /*100*/] = m_volume_[3];
+//    m_dual_volume_[3 /*011*/] = m_volume_[4];
+//    m_dual_volume_[5 /*101*/] = m_volume_[2];
+//    m_dual_volume_[6 /*110*/] = m_volume_[1];
+//    m_dual_volume_[7 /*111*/] = m_volume_[0];
+//
+//    m_inv_volume_[0 /*000*/] = 1;
+//    m_inv_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 1 : m_inv_dx_[0];
+//    m_inv_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 1 : m_inv_dx_[1];
+//    m_inv_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 1 : m_inv_dx_[2];
+//    m_inv_volume_[3 /*011*/] = m_inv_volume_[2] * m_inv_volume_[1];
+//    m_inv_volume_[5 /*101*/] = m_inv_volume_[4] * m_inv_volume_[1];
+//    m_inv_volume_[6 /*110*/] = m_inv_volume_[4] * m_inv_volume_[2];
+//    m_inv_volume_[7 /*111*/] = m_inv_volume_[1] * m_inv_volume_[2] * m_inv_volume_[4];
+//
+//    m_inv_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 0 : m_inv_volume_[1];
+//    m_inv_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 0 : m_inv_volume_[2];
+//    m_inv_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 0 : m_inv_volume_[4];
+//
+//    m_inv_dual_volume_[0 /*000*/] = m_inv_volume_[7];
+//    m_inv_dual_volume_[1 /*001*/] = m_inv_volume_[6];
+//    m_inv_dual_volume_[2 /*010*/] = m_inv_volume_[5];
+//    m_inv_dual_volume_[4 /*100*/] = m_inv_volume_[3];
+//    m_inv_dual_volume_[3 /*011*/] = m_inv_volume_[4];
+//    m_inv_dual_volume_[5 /*101*/] = m_inv_volume_[2];
+//    m_inv_dual_volume_[6 /*110*/] = m_inv_volume_[1];
+//    m_inv_dual_volume_[7 /*111*/] = m_inv_volume_[0];
 }
 }  // namespace  mesh
 }  // namespace simpla

@@ -244,7 +244,7 @@ struct calculator {
                  getDualV(l, m, (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][(n + 1) % 3], S - Z)) -
                 (getDualV(l, m, (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][(n + 2) % 3], S) -
                  getDualV(l, m, (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][(n + 2) % 3], S - Y))) *
-               getValue(-m.m_edge_inv_dual_volume_, m, tag, S);
+               (-getValue(m.m_edge_inv_dual_volume_, m, tag, S));
     }
 
     //! div<1>
@@ -264,7 +264,7 @@ struct calculator {
                  getDualV(l, m, (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][1], S - Y)) +  //
                 (getDualV(l, m, (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][2], S) -
                  getDualV(l, m, (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][2], S - Z))) *
-               getValue(-m.m_vertex_inv_dual_volume_, m, tag, S);
+               (-getValue(m.m_vertex_inv_dual_volume_, m, tag, S));
 
         ;
     }
@@ -279,7 +279,7 @@ struct calculator {
         D[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]] = 1;
 
         return (getV(l, m, tag | 0b111, S) - getV(l, m, tag | 0b111, S - D)) *
-               getValue(-m.m_face_inv_volume_, m, tag, S);
+               (-getValue(m.m_face_inv_volume_, m, tag, S));
     }
 
     //! *Form<IR> => Form<N-IL>
