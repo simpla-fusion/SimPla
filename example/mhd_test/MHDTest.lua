@@ -9,22 +9,20 @@ Context = {
     Type = "MHDTest",
     Phi = { -3.14 / 8, 3.14 / 8 },
     Dimensions = { 32, 32, 32 },
-
     Domains =
     {
-
-        Main={
-            Type="HyperbolicConservationLawCartesianCoRectMesh"
+        Main = {
+            Type = "EMFluidCartesianCoRectMesh"
         }
-
     },
     Model = {
---        MainBox={
---            Type="Cube",
---            lo={0,0,0},hi={1,1,1}
---        }
+        Main = {
+            Type = "Cube",
+            lo = { 0.0, 0.0, 0.0 },
+            hi = { 1.0, 1.0, 1.0 }
+        }
     },
-    Atlas =    { PeriodicDimension = { 1, 1, 1 }, }
+    Atlas = { PeriodicDimension = { 1, 1, 1 }, }
 }
 
 Schedule = {

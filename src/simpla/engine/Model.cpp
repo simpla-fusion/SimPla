@@ -2,10 +2,14 @@
 // Created by salmon on 16-6-2.
 //
 #include "Model.h"
+#include <simpla/geometry/Cube.h>
 #include <simpla/utilities/sp_def.h>
 #include "Attribute.h"
 #include "MeshBlock.h"
 namespace simpla {
+namespace geometry {
+REGISTER_CREATOR(Cube)
+}  // namespace geometry {
 namespace engine {
 
 struct Model::pimpl_s {

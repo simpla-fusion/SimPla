@@ -19,8 +19,9 @@ struct Cube : public GeoObject {
     SP_OBJECT_HEAD(Cube, GeoObject)
     DECLARE_REGISTER_NAME("Cube");
 
-    box_type m_bound_box_;
+    box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 
+    Cube() {}
     Cube(std::initializer_list<std::initializer_list<Real>> const &v)
         : m_bound_box_(point_type(*v.begin()), point_type(*(v.begin() + 1))) {}
 
@@ -37,7 +38,12 @@ struct Cube : public GeoObject {
         return p;
     };
     void Deserialize(std::shared_ptr<data::DataTable> const &d) override {
-        m_bound_box_ = d->GetValue<box_type>("Box");
+        if (d->has("Box")) {
+            m_bound_box_ = d->GetValue<box_type>("Box");
+        } else {
+            std::get<0>(m_bound_box_) = d->GetValue<nTuple<Real, 3>>("lo", std::get<0>(m_bound_box_));
+            std::get<1>(m_bound_box_) = d->GetValue<nTuple<Real, 3>>("hi", std::get<1>(m_bound_box_));
+        }
     }
 
     box_type GetBoundBox() const override { return m_bound_box_; };

@@ -65,11 +65,10 @@ void Context::SetUp() {
     dx[2] = (std::get<1>(x_box)[2] - std::get<0>(x_box)[2]) / (std::get<1>(i_box)[2] - std::get<0>(i_box)[2]);
 
     for (auto &item : m_pimpl_->m_domains_) {
-        item.second->Initialize();
         item.second->GetMesh()->SetOrigin(std::get<0>(x_box));
         item.second->GetMesh()->SetDx(dx);
-        item.second->RegisterDescription(&m_pimpl_->m_global_attributes_);
         item.second->SetUp();
+        item.second->RegisterDescription(&m_pimpl_->m_global_attributes_);
     }
 };
 // std::shared_ptr<Patch> Context::ApplyInitializeCondition(const std::shared_ptr<Patch> &p, Real time_now) {

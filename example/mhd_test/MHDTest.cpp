@@ -4,7 +4,6 @@
 
 #include <simpla/algebra/all.h>
 #include <simpla/engine/all.h>
-#include <simpla/geometry/Cube.h>
 #include <simpla/mesh/CartesianGeometry.h>
 #include <simpla/mesh/CylindricalGeometry.h>
 #include <simpla/physics/Constants.h>
@@ -45,15 +44,28 @@ std::shared_ptr<data::DataTable> MHDTest::Serialize() const {
 void MHDTest::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     if (cfg == nullptr) { return; }
     engine::Context::Initialize();
-
-    GetModel().SetObject("Box", std::make_shared<geometry::Cube>(box_type{{0, 0, 0}, {1, 1, 1}}));
+    engine::Context::Deserialize(cfg);
 
     index_box_type idx_box{{0, 0, 0}, {1, 1, 1}};
     std::get<1>(idx_box) = cfg->GetValue<nTuple<int, 3>>("Dimensions", nTuple<int, 3>{64, 64, 32});
     GetAtlas().SetIndexBox(idx_box);
 
-    engine::Context::Deserialize(cfg);
     auto d = GetDomain("Main");
-}
+    typedef mesh::CartesianCoRectMesh mesh_type;
 
+    d->PostInitialCondition.Connect([&](Domain* self, Real time_now) {
+
+        if (self->check("E", typeid(Field<mesh_type, Real, EDGE, 1>))) {
+            auto E = self->GetAttribute<Field<mesh_type, Real, EDGE, 1>>("E");
+            E.Clear();
+
+            E = [&](point_type const& x) -> Vec3 {
+                Real a = std::sin(TWOPI * x[0]) * std::sin(TWOPI * x[1]);
+
+                CHECK(a);
+                return Vec3{0, 0, a};
+            };
+        }
+    });
+}
 }  // namespace simpla {
