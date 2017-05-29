@@ -162,8 +162,6 @@ void GEqdsk::pimpl_s::load(std::string const &fname) {
     m_rzbbb_->deploy();
     m_rzlim_->deploy();
 
-
-
     load_profile(fname + "_profiles.txt");
 }
 
@@ -315,7 +313,7 @@ std::ostream &GEqdsk::print(std::ostream &os) {
     return os;
 }
 
-GEqdsk::GEqdsk() : m_pimpl_(new pimpl_s) {}
+GEqdsk::GEqdsk(std::shared_ptr<geometry::Chart> const &c) : m_pimpl_(new pimpl_s), geometry::GeoObject(c) {}
 
 GEqdsk::~GEqdsk() {}
 

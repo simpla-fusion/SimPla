@@ -4,18 +4,19 @@
 #include "Context.h"
 #include <simpla/data/all.h>
 #include <simpla/geometry/GeoAlgorithm.h>
+#include "simpla/geometry/Chart.h"
 #include "Domain.h"
 #include "MeshBase.h"
 namespace simpla {
 namespace engine {
 
 struct Context::pimpl_s {
-    pimpl_s() {}
-
-    std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
     std::map<std::string, std::shared_ptr<Domain>> m_domains_;
+    std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
+
     Model m_model_;
     Atlas m_atlas_;
+    std::shared_ptr<Chart> m_chart_ = nullptr;
 };
 
 Context::Context(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
@@ -26,6 +27,7 @@ std::shared_ptr<data::DataTable> Context::Serialize() const {
     for (auto const &item : m_pimpl_->m_domains_) { res->Link("Domains/" + item.first, item.second->Serialize()); }
     res->Set("Model", m_pimpl_->m_model_.Serialize());
     res->Set("Atlas", m_pimpl_->m_atlas_.Serialize());
+    if (m_pimpl_->m_chart_ != nullptr) { res->Set("Chart", m_pimpl_->m_chart_->Serialize()); }
     return res;
 }
 void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
@@ -51,46 +53,20 @@ void Context::TearDown() {
     m_pimpl_->m_model_.TearDown();
     m_pimpl_->m_atlas_.TearDown();
 }
-void Context::SetUp() {
+void Context::Update() {
     m_pimpl_->m_model_.SetUp();
-    m_pimpl_->m_atlas_.SetUp();
-
+    m_pimpl_->m_atlas_.Update();
     auto x_box = m_pimpl_->m_model_.GetBoundBox();
-    auto i_box = m_pimpl_->m_atlas_.GetIndexBox();
-    auto period = m_pimpl_->m_atlas_.GetPeriodicDimension();
+    m_pimpl_->m_chart_ = std::make_shared<Chart>("Base");
+    m_pimpl_->m_chart_->SetOrigin(std::get<0>(x_box));
+    m_pimpl_->m_chart_->SetScale((std::get<1>(x_box) - std::get<0>(x_box)) / m_pimpl_->m_atlas_.GetDimensions());
 
-    point_type dx;
-    dx[0] = (std::get<1>(x_box)[0] - std::get<0>(x_box)[0]) / (std::get<1>(i_box)[0] - std::get<0>(i_box)[0]);
-    dx[1] = (std::get<1>(x_box)[1] - std::get<0>(x_box)[1]) / (std::get<1>(i_box)[1] - std::get<0>(i_box)[1]);
-    dx[2] = (std::get<1>(x_box)[2] - std::get<0>(x_box)[2]) / (std::get<1>(i_box)[2] - std::get<0>(i_box)[2]);
-
-    for (auto &item : m_pimpl_->m_domains_) {
-        item.second->GetMesh()->SetOrigin(std::get<0>(x_box));
-        item.second->GetMesh()->SetDx(dx);
-        item.second->SetUp();
-        item.second->RegisterDescription(&m_pimpl_->m_global_attributes_);
-    }
+    for (auto &item : m_pimpl_->m_domains_) { item.second->RegisterDescription(&m_pimpl_->m_global_attributes_); }
 };
-// std::shared_ptr<Patch> Context::ApplyInitializeCondition(const std::shared_ptr<Patch> &p, Real time_now) {
-//    std::shared_ptr<Patch> res = p;
-//    for (auto &item : m_pimpl_->m_domains_) { res = item.second->DoInitialCondition(res, time_now); }
-//    return res;
-//}
-// std::shared_ptr<Patch> Context::DoBoundaryCondition(const std::shared_ptr<Patch> &p, Real time_now, Real time_dt) {
-//    std::shared_ptr<Patch> res = p;
-//    for (auto &item : m_pimpl_->m_domains_) { res = item.second->DoBoundaryCondition(res, time_now, time_dt); }
-//    return res;
-//}
-//
-// std::shared_ptr<Patch> Context::DoAdvance(const std::shared_ptr<Patch> &p, Real time_now, Real time_dt) {
-//    std::shared_ptr<Patch> res = p;
-//    for (auto &item : m_pimpl_->m_domains_) { res = item.second->DoAdvance(res, time_now, time_dt); }
-//    return res;
-//}
 
 Model &Context::GetModel() const { return m_pimpl_->m_model_; }
-
 Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
+std::shared_ptr<Chart> Context::GetChart() const { return m_pimpl_->m_chart_; }
 
 std::map<std::string, std::shared_ptr<AttributeDesc>> const &Context::GetRegisteredAttribute() const {
     return m_pimpl_->m_global_attributes_;
@@ -112,7 +88,8 @@ std::shared_ptr<Domain> Context::GetDomain(std::string const &k) const {
     return (it == m_pimpl_->m_domains_.end()) ? nullptr : it->second;
 }
 std::map<std::string, std::shared_ptr<Domain>> &Context::GetAllDomains() { return m_pimpl_->m_domains_; };
-std::map<std::string, std::shared_ptr<Domain>> const &Context::GetAllDomain() const { return m_pimpl_->m_domains_; };
+std::map<std::string, std::shared_ptr<Domain>> const &Context::GetAllDomains() const { return m_pimpl_->m_domains_; };
+
 // std::map<id_type, std::shared_ptr<Patch>> const &Context::GetPatches() const { return m_pimpl_->m_patches_; }
 //
 // bool Context::RegisterWorker(std::string const &d_name, std::shared_ptr<Domain> const &p) {

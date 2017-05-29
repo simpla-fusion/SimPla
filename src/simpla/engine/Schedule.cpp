@@ -92,9 +92,9 @@ void Schedule::Initialize() { SPObject::Initialize(); }
 
 void Schedule::Finalize() { SPObject::Finalize(); }
 
-void Schedule::SetUp() {
-    SPObject::SetUp();
-    if (m_pimpl_->m_ctx_ != nullptr) { m_pimpl_->m_ctx_->SetUp(); }
+void Schedule::Update() {
+    SPObject::Update();
+    if (m_pimpl_->m_ctx_ != nullptr) { m_pimpl_->m_ctx_->Update(); }
 }
 
 void Schedule::TearDown() {

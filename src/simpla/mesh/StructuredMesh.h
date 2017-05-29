@@ -25,6 +25,14 @@ class StructuredMesh : public engine::MeshBase {
     SP_DEFAULT_CONSTRUCT(StructuredMesh);
     DECLARE_REGISTER_NAME("StructuredMesh");
 
+    void Update() override {
+        engine::MeshBase::Update();
+        m_dx_ = GetDx();
+        m_x0_ = GetOrigin();
+        m_i_dx_ = 1.0 / m_dx_;
+        m_i_x0_ = -m_x0_ / m_dx_;
+    }
+
     void RegisterRanges(std::map<std::string, EntityRange> &ranges, std::shared_ptr<geometry::GeoObject> const &g,
                         std::string const &prefix) override;
 
@@ -109,8 +117,10 @@ class StructuredMesh : public engine::MeshBase {
         return res;
     }
 
-    void InitialCondition(Real time_now) override {}
-    void BoundaryCondition(Real time_now, Real time_dt) override {}
+    void InitializeData(Real time_now) override { engine::MeshBase::InitializeData(time_now); }
+    void SetBoundaryCondition(Real time_now, Real time_dt) override {
+        engine::MeshBase::SetBoundaryCondition(time_now, time_dt);
+    }
 
     point_type map(point_type const &x) const override {
         return point_type{std::fma(x[0], m_dx_[0], m_x0_[0]), std::fma(x[1], m_dx_[1], m_x0_[1]),
@@ -120,19 +130,6 @@ class StructuredMesh : public engine::MeshBase {
     point_type inv_map(point_type const &x) const override {
         return point_type{std::fma(x[0], m_i_dx_[0], m_i_x0_[0]), std::fma(x[1], m_i_dx_[1], m_i_x0_[1]),
                           std::fma(x[2], m_i_dx_[2], m_i_x0_[2])};
-    }
-
-    void SetOrigin(point_type x) override { m_x0_ = x; }
-
-    void SetDx(point_type dx) override { m_dx_ = dx; }
-
-    point_type const &GetOrigin() override { return m_x0_; }
-
-    point_type const &GetDx() override { return m_dx_; }
-
-    void SetUp() override {
-        m_i_dx_ = 1.0 / m_dx_;
-        m_i_x0_ = -m_x0_ / m_dx_;
     }
 
    private:

@@ -100,14 +100,14 @@ class SPObject {
     bool isInitialized() const;
 
     virtual void Initialize();  //!< invoke once, before everything
-    virtual void SetUp();       //!< repeat invoke,
+    virtual void Update();       //!< repeat invoke, Update object after modified
     virtual void TearDown();    //!< repeat invoke,
     virtual void Finalize();    //!< invoke once, after everything
 
     design_pattern::Signal<void(SPObject *)> PreInitialize;
     design_pattern::Signal<void(SPObject *)> PostInitialize;
-    design_pattern::Signal<void(SPObject *)> PreSetUp;
-    design_pattern::Signal<void(SPObject *)> PostSetUp;
+    design_pattern::Signal<void(SPObject *)> PreUpdate;
+    design_pattern::Signal<void(SPObject *)> PostUpdate;
     design_pattern::Signal<void(SPObject *)> PreTearDown;
     design_pattern::Signal<void(SPObject *)> PostTearDown;
     design_pattern::Signal<void(SPObject *)> PreFinalize;
@@ -116,7 +116,7 @@ class SPObject {
 
     void DoInitialize();
     void DoFinalize();
-    void DoSetUp();
+    void DoUpdate();
     void DoTearDown();
 
    private:

@@ -50,11 +50,11 @@ void SpApp::Finalize() {
         m_pimpl_->m_context_.reset();
     }
 };
-void SpApp::SetUp() {
+void SpApp::Update() {
     ASSERT(m_pimpl_->m_schedule_ != nullptr);
-    m_pimpl_->m_context_->DoSetUp();
+    m_pimpl_->m_context_->DoUpdate();
     m_pimpl_->m_schedule_->SetContext(m_pimpl_->m_context_);
-    m_pimpl_->m_schedule_->DoSetUp();
+    m_pimpl_->m_schedule_->DoUpdate();
 };
 void SpApp::TearDown() {
     if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->DoTearDown(); }
@@ -172,7 +172,7 @@ int main(int argc, char **argv) {
         app->Deserialize(t_cfg);
     }
 
-    app->SetUp();
+    app->Update();
 
     VERBOSE << DOUBLELINE << std::endl;
     VERBOSE << "SpApp:";

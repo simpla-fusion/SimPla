@@ -25,9 +25,6 @@ class Patch {
     SP_DEFAULT_CONSTRUCT(Patch);
     id_type GetId() const;
 
-    void SetChart(std::shared_ptr<Chart>);
-    std::shared_ptr<Chart> GetChart() const;
-
     void SetBlock(std::shared_ptr<MeshBlock> const &);
     std::shared_ptr<MeshBlock> GetBlock() const;
     void Merge(Patch &other);
@@ -36,10 +33,6 @@ class Patch {
     void Push(id_type const &id, std::shared_ptr<data::DataBlock> const &);
     std::shared_ptr<data::DataBlock> Pop(id_type const &id) const;
 
-    //    EntityRange GetRange(const std::string &g_str) const;
-    //    void SetRange(const std::string &g_str, EntityRange const &);
-    //    void PushRange(std::shared_ptr<std::map<std::string, EntityRange>> const &r);
-    //    std::shared_ptr<std::map<std::string, EntityRange>> PopRange();
     std::map<std::string, EntityRange> m_ranges;
 
    private:

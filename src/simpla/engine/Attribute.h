@@ -138,7 +138,7 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
 
     virtual size_type size() const { return 0; }
 
-    void SetUp() override;
+    void Update() override;
 
     Domain *GetDomain() const;
 
@@ -249,7 +249,7 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
 //        return std::make_shared<this_type>(std::forward<Args>(args)...);
 //    }
 //
-//    virtual std::shared_ptr<DataBlock> InitialCondition(void *p = nullptr) const {
+//    virtual std::shared_ptr<DataBlock> InitializeData(void *p = nullptr) const {
 //        std::shared_ptr<value_type> d(nullptr);
 //        if (p != nullptr) {
 //            d = std::shared_ptr<value_type>(static_cast<value_type *>(p), simpla::tags::do_nothing());

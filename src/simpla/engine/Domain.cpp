@@ -30,8 +30,8 @@ std::shared_ptr<data::DataTable> Domain::Serialize() const {
 }
 void Domain::Deserialize(const std::shared_ptr<DataTable>& t) { UNIMPLEMENTED; };
 
-void Domain::SetUp() {
-    GetMesh()->SetUp();
+void Domain::Update() {
+    GetMesh()->Update();
     if (m_pimpl_->m_patch_ == nullptr) { m_pimpl_->m_patch_ = std::make_shared<Patch>(); }
 }
 void Domain::TearDown() { GetMesh()->TearDown(); }
@@ -91,7 +91,7 @@ void Domain::Push(const std::shared_ptr<Patch>& p) {
                           (it == m_pimpl_->m_patch_->m_ranges.end()) ? EntityRange{} : it->second);
     }
 
-    DoSetUp();
+    DoUpdate();
 }
 std::shared_ptr<Patch> Domain::PopPatch() {
     m_pimpl_->m_patch_->SetBlock(GetMesh()->GetBlock());
@@ -107,7 +107,7 @@ std::shared_ptr<Patch> Domain::DoInitialCondition(const std::shared_ptr<Patch>& 
     Push(patch);
 
     if (GetMesh() != nullptr) {
-        GetMesh()->InitialCondition(time_now);
+        GetMesh()->InitializeData(time_now);
         for (auto const& item : m_pimpl_->m_geo_object_) {
             GetMesh()->RegisterRanges(m_pimpl_->m_patch_->m_ranges, item.second, item.first);
         }
@@ -119,7 +119,7 @@ std::shared_ptr<Patch> Domain::DoInitialCondition(const std::shared_ptr<Patch>& 
 }
 std::shared_ptr<Patch> Domain::DoBoundaryCondition(const std::shared_ptr<Patch>& patch, Real time_now, Real dt) {
     Push(patch);
-    GetMesh()->BoundaryCondition(time_now, dt);
+    GetMesh()->SetBoundaryCondition(time_now, dt);
     PreBoundaryCondition(this, time_now, dt);
     BoundaryCondition(time_now, dt);
     PostBoundaryCondition(this, time_now, dt);

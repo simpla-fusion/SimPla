@@ -56,7 +56,7 @@ bool SPObject::isInitialized() const { return m_pimpl_->m_click_tag_ > 0; }
 void SPObject::Initialize() {}
 void SPObject::Finalize() {}
 void SPObject::TearDown() {}
-void SPObject::SetUp() {}
+void SPObject::Update() {}
 
 void SPObject::DoInitialize() {
     if (!isInitialized()) {
@@ -68,12 +68,12 @@ void SPObject::DoInitialize() {
     }
 }
 
-void SPObject::DoSetUp() {
+void SPObject::DoUpdate() {
     if (isModified()) {
         DoInitialize();
-        PreSetUp(this);
-        SetUp();
-        PostSetUp(this);
+        PreUpdate(this);
+        Update();
+        PostUpdate(this);
         Tag();
     }
 }

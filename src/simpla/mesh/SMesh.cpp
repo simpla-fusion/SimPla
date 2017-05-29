@@ -8,8 +8,8 @@
 namespace simpla {
 namespace mesh {
 
-void SMesh::InitialCondition(Real time_now) {
-    StructuredMesh::InitialCondition(time_now);
+void SMesh::InitializeData(Real time_now) {
+    StructuredMesh::InitializeData(time_now);
 
     m_vertices_.Clear();
 
@@ -31,7 +31,9 @@ void SMesh::InitialCondition(Real time_now) {
     m_face_inv_dual_volume_.Clear();
 };
 
-void SMesh::BoundaryCondition(Real time_now, Real time_dt) {
+void SMesh::SetBoundaryCondition(Real time_now, Real time_dt) {
+    StructuredMesh::SetBoundaryCondition(time_now, time_dt);
+
     m_vertex_volume_[GetDomain()->GetRange("VERTEX_PATCH_BOUNDARY")] = 0;
     m_vertex_dual_volume_[GetDomain()->GetRange("VERTEX_PATCH_BOUNDARY")] = 0;
 

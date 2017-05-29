@@ -41,27 +41,23 @@ class MeshBase : public SPObject, public data::EnableCreateFromDataTable<MeshBas
 
     Domain *GetDomain() const;
 
-    virtual void InitialCondition(Real time_now);
-    virtual void BoundaryCondition(Real time_now, Real time_dt);
+    virtual void InitializeData(Real time_now);
+    virtual void SetBoundaryCondition(Real time_now, Real time_dt);
 
     id_type GetBlockId() const;
+
+    void SetChart(std::shared_ptr<Chart> const &);
+    std::shared_ptr<Chart> GetChart() const;
     void SetBlock(std::shared_ptr<MeshBlock>);
     std::shared_ptr<MeshBlock> GetBlock() const;
 
-    //    virtual Real volume(EntityId s) const = 0;
-    //    virtual Real dual_volume(EntityId s) const = 0;
-    //    virtual Real inv_volume(EntityId s) const = 0;
-    //    virtual Real inv_dual_volume(EntityId s) const = 0;
+    void Update() override { Tag(); };
 
     virtual point_type point(EntityId s) const = 0;
     virtual point_type point(EntityId id, point_type const &pr) const { return point_type{}; };
 
     virtual point_type map(point_type const &x) const = 0;
     virtual point_type inv_map(point_type const &x) const = 0;
-    virtual void SetOrigin(point_type x) = 0;
-    virtual void SetDx(point_type dx) = 0;
-    virtual point_type const &GetOrigin() = 0;
-    virtual point_type const &GetDx() = 0;
 
     virtual void RegisterRanges(std::map<std::string, EntityRange> &ranges,
                                 std::shared_ptr<geometry::GeoObject> const &g = nullptr,

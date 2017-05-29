@@ -75,7 +75,7 @@ class Atlas : public SPObject, public data::Serializable {
 
     void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
 
-    void SetUp() override;
+    void Update() override;
 
     void Decompose(size_tuple const &d, int local_id = -1);
 
@@ -85,12 +85,12 @@ class Atlas : public SPObject, public data::Serializable {
     id_type PushPatch(std::shared_ptr<Patch>);
     std::shared_ptr<Patch> PopPatch(id_type id);
 
+    void SetPeriodicDimension(size_tuple const &d);
+    size_tuple GetPeriodicDimension() const;
+
     //    std::shared_ptr<Patch> RefineBlock(id_type, index_box_type const &);
     //    std::set<std::shared_ptr<Patch>> const &Level(int level = 0) const;
     //    void Foreach(std::function<void(std::shared_ptr<MeshBlock>)> const &fun, int level = 0) const;
-
-    void SetPeriodicDimension(size_tuple const &d);
-    size_tuple const &GetPeriodicDimension() const;
 
     size_type GetNumOfLevel() const;
 
@@ -107,8 +107,6 @@ class Atlas : public SPObject, public data::Serializable {
     size_tuple GetSmallestDimensions() const;
 
     size_tuple GetDimensions() const;
-
-    void SetIndexBox(index_box_type);
     index_box_type GetIndexBox() const;
 
    private:

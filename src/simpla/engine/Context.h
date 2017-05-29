@@ -76,17 +76,16 @@ class Context : public SPObject, public data::EnableCreateFromDataTable<Context>
     std::shared_ptr<DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<DataTable> &cfg) override;
 
-    void SetUp() override;
+    void Update() override;
     void TearDown() override;
+
     void Initialize() override;
     void Finalize() override;
 
-    //    std::shared_ptr<Patch> ApplyInitializeCondition(const std::shared_ptr<Patch> &p, Real time_now);
-    //    std::shared_ptr<Patch> DoBoundaryCondition(const std::shared_ptr<Patch> &p, Real time_now, Real time_dt);
-    //    std::shared_ptr<Patch> DoAdvance(const std::shared_ptr<Patch> &p, Real time_now, Real time_dt);
-
     Model &GetModel() const;
     Atlas &GetAtlas() const;
+
+    std::shared_ptr<Chart> GetChart() const;
 
     std::shared_ptr<Domain> SetDomain(std::string const &k, std::shared_ptr<Domain>);
 
@@ -102,7 +101,7 @@ class Context : public SPObject, public data::EnableCreateFromDataTable<Context>
     std::shared_ptr<Domain> GetDomain(std::string const &k) const;
 
     std::map<std::string, std::shared_ptr<Domain>> &GetAllDomains();
-    std::map<std::string, std::shared_ptr<Domain>> const &GetAllDomain() const;
+    std::map<std::string, std::shared_ptr<Domain>> const &GetAllDomains() const;
 
     std::map<std::string, std::shared_ptr<AttributeDesc>> const &GetRegisteredAttribute() const;
 

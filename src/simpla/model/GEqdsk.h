@@ -9,6 +9,8 @@
 #define GEQDSK_H_
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/engine/SPObject.h>
+#include <simpla/geometry/Chart.h>
 #include <simpla/geometry/GeoObject.h>
 #include <simpla/geometry/Polygon.h>
 #include <simpla/geometry/Revolve.h>
@@ -16,7 +18,6 @@
 #include <simpla/utilities/nTuple.h>
 #include <simpla/utilities/type_traits.h>
 #include <iostream>
-
 namespace simpla {
 
 /**
@@ -30,7 +31,10 @@ namespace simpla {
  *  default using cylindrical coordinates \f$R,Z,\phi\f$
  * \note http://w3.pppl.gov/ntcc/TORAY/G_EQDSK.pdf
  */
-class GEqdsk {
+class GEqdsk : public geometry::GeoObject {
+    SP_OBJECT_HEAD(GEqdsk, geometry::GeoObject)
+    DECLARE_REGISTER_NAME("Tokamak");
+
    private:
     typedef GEqdsk this_type;
 
@@ -43,7 +47,7 @@ class GEqdsk {
     typedef nTuple<Real, 3> Vec3;
 
    public:
-    GEqdsk();
+    GEqdsk(std::shared_ptr<geometry::Chart> const &c = nullptr);
     ~GEqdsk();
     void load(std::string const &fname);
     void load_profile(std::string const &fname);

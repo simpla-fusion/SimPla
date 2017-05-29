@@ -11,7 +11,6 @@
 #include <iomanip>
 #include <vector>
 #include "CoRectMesh.h"
-#include "Mesh.h"
 #include "simpla/engine/all.h"
 #include "simpla/utilities/sp_def.h"
 
@@ -34,7 +33,7 @@ struct CartesianCoRectMesh : public CoRectMesh {
     SP_DEFAULT_CONSTRUCT(CartesianCoRectMesh);
     DECLARE_REGISTER_NAME("CartesianCoRectMesh");
 
-    void SetUp() override {}
+    void Update() override { CoRectMesh::Update(); }
 
     std::shared_ptr<data::DataTable> Serialize() const override {
         auto p = CoRectMesh::Serialize();
@@ -87,12 +86,12 @@ struct CartesianCoRectMesh : public CoRectMesh {
 //    switch (status)
 //    {
 //        case SP_ES_ALL : //all valid
-//            std::PopPatch<0>(res) = m_coords_lower_ - m_dx_ * m_ghost_width_;
-//            std::PopPatch<1>(res) = m_coords_upper_ + m_dx_ * m_ghost_width_;;
+//            std::PopPatch<0>(res) = m_coords_lower_ - m_scale_ * m_ghost_width_;
+//            std::PopPatch<1>(res) = m_coords_upper_ + m_scale_ * m_ghost_width_;;
 //            break;
 //        case SP_ES_LOCAL : //local and valid
-//            std::PopPatch<0>(res) = m_coords_lower_ + m_dx_ * m_ghost_width_;;
-//            std::PopPatch<1>(res) = m_coords_upper_ - m_dx_ * m_ghost_width_;
+//            std::PopPatch<0>(res) = m_coords_lower_ + m_scale_ * m_ghost_width_;;
+//            std::PopPatch<1>(res) = m_coords_upper_ - m_scale_ * m_ghost_width_;
 //            break;
 //        case SP_ES_OWNED:
 //            std::PopPatch<0>(res) = m_coords_lower_;

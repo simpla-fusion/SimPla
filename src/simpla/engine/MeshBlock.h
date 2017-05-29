@@ -14,12 +14,11 @@ namespace engine {
 class MeshBlock {
     SP_OBJECT_BASE(MeshBlock)
    public:
-    explicit MeshBlock(index_box_type const &b, size_type level = 0, Real time_now = 0);
+    explicit MeshBlock(index_box_type const &b, size_type level = 0, point_type const &x0 = {0, 0, 0},
+                       point_type const &dx = {1, 1, 1});
     ~MeshBlock();
 
     SP_DEFAULT_CONSTRUCT(MeshBlock)
-
-    Real GetTime() const;
     id_type GetGUID() const;
     size_type GetLevel() const;
     size_tuple GetDimensions() const;
@@ -28,6 +27,7 @@ class MeshBlock {
     index_box_type GetIndexBox() const;
     index_box_type GetOuterIndexBox() const;
     index_box_type GetInnerIndexBox() const;
+
 
    private:
     struct pimpl_s;

@@ -14,20 +14,32 @@ namespace engine {
 
 struct MeshBase::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
+    std::shared_ptr<Chart> m_chart_;
     Range<EntityId> m_ranges_[4];
     Domain *m_domain_ = nullptr;
 };
 MeshBase::MeshBase(Domain *d) : SPObject(""), m_pimpl_(new pimpl_s) { m_pimpl_->m_domain_ = d; }
 MeshBase::~MeshBase() {}
 Domain *MeshBase::GetDomain() const { return m_pimpl_->m_domain_; }
-void MeshBase::SetBlock(std::shared_ptr<MeshBlock> m) { m_pimpl_->m_mesh_block_ = m; }
+
+void MeshBase::SetChart(std::shared_ptr<Chart> const &c) { m_pimpl_->m_chart_ = c; }
+std::shared_ptr<Chart> MeshBase::GetChart() const { return m_pimpl_->m_chart_; }
+void MeshBase::SetBlock(std::shared_ptr<MeshBlock> m) {
+    m_pimpl_->m_mesh_block_ = m;
+    Click();
+}
 std::shared_ptr<MeshBlock> MeshBase::GetBlock() const { return m_pimpl_->m_mesh_block_; }
+point_type MeshBase::GetOrigin() const { return point_type{0, 0, 0}; }
+point_type MeshBase::GetDx() const {
+    return (m_pimpl_->m_mesh_block_ != nullptr) ? m_pimpl_->m_mesh_block_->GetDx() : point_type{1, 1, 1};
+}
+
 id_type MeshBase::GetBlockId() const {
     return m_pimpl_->m_mesh_block_ == nullptr ? NULL_ID : m_pimpl_->m_mesh_block_->GetGUID();
 }
 
-void MeshBase::InitialCondition(Real time_now) {}
-void MeshBase::BoundaryCondition(Real time_now, Real time_dt) {}
+void MeshBase::InitializeData(Real time_now) { DoUpdate(); }
+void MeshBase::SetBoundaryCondition(Real time_now, Real time_dt) { DoUpdate(); }
 
 std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
     auto p = std::make_shared<data::DataTable>();

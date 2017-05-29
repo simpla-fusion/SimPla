@@ -16,7 +16,6 @@
 #include <simpla/utilities/type_traits.h>
 #include <iomanip>
 #include <vector>
-#include "Mesh.h"
 #include "SMesh.h"
 
 namespace simpla {
@@ -45,7 +44,7 @@ struct CylindricalSMesh : public SMesh {
     DECLARE_FIELD(VERTEX, 3, m_coordinates_, "COORDINATES"_);
 #undef define
 
-    void InitialCondition(Real time_now) override;
+    void InitializeData(Real time_now) override;
 
 };  // struct  MeshBase
 

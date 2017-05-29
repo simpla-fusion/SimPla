@@ -54,7 +54,7 @@ class Domain
 
     void Initialize() override;
     void Finalize() override;
-    void SetUp() override;
+    void Update() override;
     void TearDown() override;
 
     void Push(const std::shared_ptr<Patch> &);

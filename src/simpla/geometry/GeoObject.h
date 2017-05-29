@@ -19,7 +19,7 @@
 
 namespace simpla {
 namespace geometry {
-
+class Chart;
 template <typename TObj>
 struct GeoObjectAdapter;
 
@@ -28,17 +28,14 @@ struct GeoObjectAdapter;
  *
  *  PlaceHolder Geometric object
  */
-class GeoObject : public data::EnableCreateFromDataTable<GeoObject> {
+class GeoObject : public data::EnableCreateFromDataTable<GeoObject, std::shared_ptr<Chart>> {
     SP_OBJECT_BASE(GeoObject)
+    SP_DEFAULT_CONSTRUCT(GeoObject)
+    DECLARE_REGISTER_NAME("GeoObject");
 
    public:
-    GeoObject(){};
-
+    GeoObject(std::shared_ptr<Chart> const &c = nullptr){};
     ~GeoObject() override = default;
-
-    SP_DEFAULT_CONSTRUCT(GeoObject)
-
-    DECLARE_REGISTER_NAME("GeoObject");
 
     std::shared_ptr<data::DataTable> Serialize() const override {
         auto res = data::Serializable::Serialize();

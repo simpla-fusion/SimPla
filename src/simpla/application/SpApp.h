@@ -26,7 +26,7 @@ struct SpApp : public SPObject, public data::Serializable {
     void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
 
     void Initialize() override;
-    void SetUp() override;
+    void Update() override;
     virtual void Run();
     void TearDown() override;
     void Finalize() override;

@@ -26,22 +26,21 @@ struct Atlas::pimpl_s {
     size_type m_max_level_ = 3;
     std::set<std::shared_ptr<Patch>> m_layers_[MAX_NUM_OF_LEVEL];
 
-    size_tuple m_periodic_dimension_ = {1, 1, 1};
     size_tuple m_refine_ratio_[MAX_NUM_OF_LEVEL] = {{2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}};
     size_tuple m_smallest_dimensions_{8, 8, 8};
     size_tuple m_largest_dimensions_{32, 32, 32};
 
-    index_box_type m_index_box_{{0, 0, 0}, {64, 64, 64}};
+    size_tuple m_periodic_dimension_ = {0, 0, 0};
+
+    index_box_type m_index_box_;
 };
 
 Atlas::Atlas(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s){};
 Atlas::~Atlas(){};
-void Atlas::SetUp(){};
+void Atlas::Update() { SPObject::Update(); };
 std::shared_ptr<data::DataTable> Atlas::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
     res->SetValue("PeriodicDimension", m_pimpl_->m_periodic_dimension_);
-    res->SetValue("IndexBox", m_pimpl_->m_index_box_);
-
     return res;
 };
 void Atlas::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
@@ -49,22 +48,12 @@ void Atlas::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     size_tuple period_dimensions{0, 0, 0};
     period_dimensions = cfg->GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 1});
     SetPeriodicDimension(period_dimensions);
+    Click();
 };
 
-void Atlas::Decompose(size_tuple const &d, int local_id){};
+void Atlas::Decompose(size_tuple const &d, int local_id) { Click(); };
 index_box_type Atlas::FitIndexBox(box_type const &b, int level, int flag) const { return index_box_type{}; }
 
-// std::shared_ptr<Patch> Atlas::AddBlock(id_type id, std::shared_ptr<Patch> m) {
-//    auto res = m_pimpl_->m_layers_[m->GetLevel()].emplace(m);
-//    if (m->GetLevel() > m_pimpl_->m_level_) { m_pimpl_->m_level_ = m->GetLevel(); }
-//    return *res.first;
-//};
-// std::shared_ptr<Patch> Atlas::GetBlock(id_type id) const { return m_pimpl_->m_patches_.at(id); };
-// size_type Atlas::DeletePatch(id_type id) {
-//    auto p = GetBlock(id);
-//    if (p != nullptr) { m_pimpl_->m_layers_[p->GetLevel()].erase(p); }
-//    return m_pimpl_->m_patches_.erase(id);
-//};
 size_type Atlas::DeletePatch(id_type id) { return m_pimpl_->m_patches_.erase(id); }
 
 id_type Atlas::PushPatch(std::shared_ptr<Patch> p) {
@@ -81,22 +70,35 @@ std::shared_ptr<Patch> Atlas::PopPatch(id_type id) {
     return res.first->second;
 }
 
-void Atlas::SetPeriodicDimension(size_tuple const &d) { m_pimpl_->m_periodic_dimension_ = d; }
-size_tuple const &Atlas::GetPeriodicDimension() const { return m_pimpl_->m_periodic_dimension_; }
+void Atlas::SetPeriodicDimension(size_tuple const &d) {
+    m_pimpl_->m_periodic_dimension_ = d;
+    Click();
+}
+size_tuple Atlas::GetPeriodicDimension() const { return m_pimpl_->m_periodic_dimension_; }
 
 // std::set<std::shared_ptr<Patch>> const &Atlas::Level(int level) const { return m_pimpl_->m_layers_[level]; };
 
 size_type Atlas::GetNumOfLevel() const { return m_pimpl_->m_max_level_; }
 size_type Atlas::GetMaxLevel() const { return m_pimpl_->m_max_level_; }
-void Atlas::SetMaxLevel(size_type l) { m_pimpl_->m_max_level_ = l; }
+void Atlas::SetMaxLevel(size_type l) {
+    m_pimpl_->m_max_level_ = l;
+    Click();
+}
 void Atlas::SetRefineRatio(size_tuple const &v, size_type level) {
     m_pimpl_->m_refine_ratio_[level] = v;
     m_pimpl_->m_level_ = std::max(level, m_pimpl_->m_level_);
+    Click();
 }
 size_tuple Atlas::GetRefineRatio(int l) const { return m_pimpl_->m_refine_ratio_[l]; };
-void Atlas::SetLargestDimensions(size_tuple const &d) { m_pimpl_->m_largest_dimensions_ = d; };
+void Atlas::SetLargestDimensions(size_tuple const &d) {
+    m_pimpl_->m_largest_dimensions_ = d;
+    Click();
+};
 size_tuple Atlas::GetLargestDimensions() const { return m_pimpl_->m_largest_dimensions_; };
-void Atlas::SetSmallestDimensions(size_tuple const &d) { m_pimpl_->m_smallest_dimensions_ = d; };
+void Atlas::SetSmallestDimensions(size_tuple const &d) {
+    m_pimpl_->m_smallest_dimensions_ = d;
+    Click();
+};
 size_tuple Atlas::GetSmallestDimensions() const { return m_pimpl_->m_smallest_dimensions_; };
 size_tuple Atlas::GetDimensions() const {
     size_tuple d;
@@ -104,7 +106,6 @@ size_tuple Atlas::GetDimensions() const {
     return d;
 }
 
-void Atlas::SetIndexBox(index_box_type ibx) { m_pimpl_->m_index_box_ = ibx; }
 index_box_type Atlas::GetIndexBox() const { return m_pimpl_->m_index_box_; }
 
 // size_type Atlas::size(int level) const { return m_backend_->m_layer_[level].size(); }

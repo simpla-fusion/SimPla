@@ -82,7 +82,7 @@ class Field : public engine::Attribute {
     size_type size() const override { return m_range_.size() * DOF; }
 
     void Clear() {
-        DoSetUp();
+        DoUpdate();
         m_data_->Clear();
     }
     std::shared_ptr<data_type> data() { return m_data_; }
@@ -125,8 +125,8 @@ class Field : public engine::Attribute {
         return calculus_policy::scatter(*m_mesh_, *this, std::forward<Args>(args)...);
     }
 
-    void SetUp() override {
-        engine::Attribute::SetUp();
+    void Update() override {
+        engine::Attribute::Update();
         if (m_data_ == nullptr) { m_data_ = m_mesh_->template make_data<value_type, IFORM, DOF>(); }
     }
 
@@ -141,7 +141,7 @@ class Field : public engine::Attribute {
             m_data_ = std::dynamic_pointer_cast<data_type>(d);
             Click();
         }
-        DoSetUp();
+        DoUpdate();
     }
 
     std::shared_ptr<data::DataBlock> Pop() override {
@@ -151,7 +151,7 @@ class Field : public engine::Attribute {
     }
     template <typename TOther>
     void DeepCopy(TOther const& other) {
-        DoSetUp();
+        DoUpdate();
         ASSERT(m_data_ != nullptr && m_data_->size() > 0);
         Clear();
         m_data_->DeepCopy(other.data());
@@ -159,7 +159,7 @@ class Field : public engine::Attribute {
 
     template <typename Other>
     void Assign(Other const& other) {
-        DoSetUp();
+        DoUpdate();
         ASSERT(m_data_ != nullptr && m_data_->size() > 0);
         //        CHECK(m_range_.num_of_block());
         m_mesh_->Assign(*this, m_range_, other);
@@ -167,7 +167,7 @@ class Field : public engine::Attribute {
 
     //    template <typename TFun>
     //    void Assign(TFun const& fun, ENABLE_IF((std::is_same<std::result_of_t<TFun(EntityId)>, value_type>::value))) {
-    //        DoSetUp();
+    //        DoUpdate();
     //
     //        for (int i = 0; i < NUMBER_OF_SUB; ++i) {
     //            int w = EntityIdCoder::m_sub_index_to_id_[IFORM][i / DOF] | ((i % DOF) << 3);

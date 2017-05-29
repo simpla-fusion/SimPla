@@ -28,7 +28,7 @@ class Schedule : public SPObject, public data::EnableCreateFromDataTable<Schedul
 
     void Initialize() override;
     void Finalize() override;
-    void SetUp() override;
+    void Update() override;
     void TearDown() override;
 
     virtual void Synchronize();

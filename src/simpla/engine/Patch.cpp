@@ -28,8 +28,6 @@ Patch::~Patch() {}
 
 id_type Patch::GetId() const { return m_pimpl_->m_id_; }
 
-void Patch::SetChart(std::shared_ptr<Chart> c) { m_pimpl_->m_chart_ = c; }
-std::shared_ptr<Chart> Patch::GetChart() const { return m_pimpl_->m_chart_; }
 void Patch::SetBlock(std::shared_ptr<MeshBlock> const &m) { m_pimpl_->m_block_ = m; }
 std::shared_ptr<MeshBlock> Patch::GetBlock() const { return m_pimpl_->m_block_; }
 

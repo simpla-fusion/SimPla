@@ -21,8 +21,8 @@ struct SMesh : public StructuredMesh {
 
     SP_DEFAULT_CONSTRUCT(SMesh)
     DECLARE_REGISTER_NAME("SMesh");
-    void InitialCondition(Real time_now) override;
-    void BoundaryCondition(Real time_now, Real time_dt) override;
+    void InitializeData(Real time_now) override;
+    void SetBoundaryCondition(Real time_now, Real time_dt) override;
 
 #define DECLARE_FIELD(_IFORM_, _DOF_, _NAME_, ...) \
     Field<this_type, Real, _IFORM_, _DOF_> _NAME_{this, "name"_ = __STRING(_NAME_), __VA_ARGS__};

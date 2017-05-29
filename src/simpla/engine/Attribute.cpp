@@ -133,7 +133,7 @@ std::shared_ptr<data::DataBlock> Attribute::Pop() { return nullptr; }
 
 Domain *Attribute::GetDomain() const { return m_pimpl_->m_domain_; }
 bool Attribute::isNull() const { return true; }
-void Attribute::SetUp() { SPObject::SetUp(); };
+void Attribute::Update() { SPObject::Update(); };
 
 }  //{ namespace engine
 }  // namespace simpla
