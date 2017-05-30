@@ -14,25 +14,21 @@ namespace engine {
 
 struct MeshBase::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
-    std::shared_ptr<Chart> m_chart_;
-    Range<EntityId> m_ranges_[4];
-    Domain *m_domain_ = nullptr;
+    std::shared_ptr<geometry::Chart> m_chart_;
 };
-MeshBase::MeshBase(Domain *d) : SPObject(""), m_pimpl_(new pimpl_s) { m_pimpl_->m_domain_ = d; }
+MeshBase::MeshBase(std::string const &s_name, std::shared_ptr<geometry::Chart> const &c)
+    : SPObject(s_name),AttributeGroup(), m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_chart_ = c;
+}
 MeshBase::~MeshBase() {}
-Domain *MeshBase::GetDomain() const { return m_pimpl_->m_domain_; }
 
-void MeshBase::SetChart(std::shared_ptr<Chart> const &c) { m_pimpl_->m_chart_ = c; }
-std::shared_ptr<Chart> MeshBase::GetChart() const { return m_pimpl_->m_chart_; }
+std::shared_ptr<geometry::Chart> MeshBase::GetChart() const { return m_pimpl_->m_chart_; }
+
 void MeshBase::SetBlock(std::shared_ptr<MeshBlock> m) {
     m_pimpl_->m_mesh_block_ = m;
     Click();
 }
 std::shared_ptr<MeshBlock> MeshBase::GetBlock() const { return m_pimpl_->m_mesh_block_; }
-point_type MeshBase::GetOrigin() const { return point_type{0, 0, 0}; }
-point_type MeshBase::GetDx() const {
-    return (m_pimpl_->m_mesh_block_ != nullptr) ? m_pimpl_->m_mesh_block_->GetDx() : point_type{1, 1, 1};
-}
 
 id_type MeshBase::GetBlockId() const {
     return m_pimpl_->m_mesh_block_ == nullptr ? NULL_ID : m_pimpl_->m_mesh_block_->GetGUID();

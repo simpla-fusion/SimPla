@@ -12,7 +12,6 @@ namespace simpla {
 namespace engine {
 struct Patch::pimpl_s {
     id_type m_id_ = NULL_ID;
-    std::shared_ptr<Chart> m_chart_ = nullptr;
     std::shared_ptr<MeshBlock> m_block_ = nullptr;
     std::map<id_type, std::shared_ptr<data::DataBlock>> m_data_;
     std::shared_ptr<std::map<std::string, EntityRange>> m_range_;
@@ -32,7 +31,6 @@ void Patch::SetBlock(std::shared_ptr<MeshBlock> const &m) { m_pimpl_->m_block_ =
 std::shared_ptr<MeshBlock> Patch::GetBlock() const { return m_pimpl_->m_block_; }
 
 void Patch::Merge(Patch &other) {
-    if (other.m_pimpl_->m_chart_ != nullptr) { m_pimpl_->m_chart_ = other.m_pimpl_->m_chart_; }
     if (other.m_pimpl_->m_block_ != nullptr) { m_pimpl_->m_block_ = other.m_pimpl_->m_block_; }
     if (m_pimpl_->m_id_ == NULL_ID) { m_pimpl_->m_id_ = other.m_pimpl_->m_id_; }
     m_pimpl_->m_data_.insert(other.m_pimpl_->m_data_.begin(), other.m_pimpl_->m_data_.end());

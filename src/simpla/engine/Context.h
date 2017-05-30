@@ -85,17 +85,21 @@ class Context : public SPObject, public data::EnableCreateFromDataTable<Context>
     Model &GetModel() const;
     Atlas &GetAtlas() const;
 
-    std::shared_ptr<Chart> GetChart() const;
+    std::shared_ptr<geometry::Chart> GetChart() const;
+
+    std::shared_ptr<MeshBase> GetMesh(std::string const &k = "Default") const;
+    std::shared_ptr<geometry::GeoObject> GetGeoObject(std::string const &k) const;
 
     std::shared_ptr<Domain> SetDomain(std::string const &k, std::shared_ptr<Domain>);
 
     std::shared_ptr<Domain> SetDomain(std::string const &k, std::string const &d_name) {
-        return SetDomain(k, Domain::Create(d_name, d_name, GetModel().GetObject(k)));
+        return SetDomain(k, Domain::Create(d_name, k, GetMesh("Default"), GetGeoObject(k)));
     }
 
     template <typename U>
     std::shared_ptr<Domain> SetDomain(std::string const &k) {
-        return SetDomain(k, std::dynamic_pointer_cast<Domain>(std::make_shared<U>(GetModel().GetObject(k))));
+        return SetDomain(
+            k, std::dynamic_pointer_cast<Domain>(std::make_shared<U>(k, GetMesh("Default"), GetGeoObject(k))));
     }
 
     std::shared_ptr<Domain> GetDomain(std::string const &k) const;

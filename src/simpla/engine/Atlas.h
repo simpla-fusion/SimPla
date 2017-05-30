@@ -54,7 +54,6 @@ namespace engine {
  * @enduml
  */
 
-class Chart;
 class MeshBlock;
 class Patch;
 /**

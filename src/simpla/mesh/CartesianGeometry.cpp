@@ -4,6 +4,5 @@
 #include "CartesianGeometry.h"
 namespace simpla {
 namespace mesh {
-CartesianCoRectMesh::CartesianCoRectMesh(engine::Domain* d, box_type const&, index_box_type const&) : CoRectMesh(d) {}
-}  // namespace mesh{
+ }  // namespace mesh{
 }  // namespace simpla {

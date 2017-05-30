@@ -29,11 +29,11 @@ class PML : public engine::Domain {
     template <int IFORM, int DOF = 1>
     using field_type = Field<mesh_type, scalar_type, IFORM, DOF>;
 
-    explicit PML(){};
+    explicit PML() : Domain(<#initializer#>, <#initializer#>) {};
     virtual ~PML(){};
 
     mesh_type m_mesh_;
-    MeshBase* GetMesh() { return &m_mesh_; }
+    std::shared_ptr<MeshBase> GetMesh() { return &m_mesh_; }
     MeshBase const* GetMesh() const { return &m_mesh_; }
 
     void SetCenterDomain(geometry::GeoObject const&) {}

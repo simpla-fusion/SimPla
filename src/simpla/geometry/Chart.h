@@ -11,8 +11,8 @@
 #include "simpla/engine/SPObject.h"
 namespace simpla {
 namespace geometry {
-struct Chart : public data::EnableCreateFromDataTable<Chart, std::string const &> {
-    SP_OBJECT_BASE(Chart)
+struct Chart : public SPObject, public data::EnableCreateFromDataTable<Chart, std::string const &> {
+    SP_OBJECT_HEAD(Chart, SPObject)
     SP_DEFAULT_CONSTRUCT(Chart);
     DECLARE_REGISTER_NAME("Chart")
 

@@ -18,7 +18,7 @@ struct DummyMesh : public engine::MeshBase {
 
     typedef DummyMesh mesh_type;
 
-    explicit DummyMesh(engine::Domain *d) : engine::MeshBase(d) {}
+    explicit DummyMesh(engine::Domain *d) : engine::MeshBase(<#initializer#>) {}
     ~DummyMesh() override = default;
 
     template <typename TFun>
@@ -44,7 +44,7 @@ struct DummyMesh : public engine::MeshBase {
     point_type const &GetDx() override { return m_dx_; };
 };
 struct DummyDomain : public engine::Domain {
-    DummyDomain() {}
+    DummyDomain() : Domain(<#initializer#>, <#initializer#>) {}
 
     DummyMesh m_mesh_{this};
     engine::MeshBase *GetMesh() override { return &m_mesh_; };

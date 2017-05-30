@@ -30,7 +30,7 @@ void CylindricalSMesh::InitializeData(Real time_now) {
         *\endverbatim
         */
 
-    point_type m_dx_ = GetDx();
+    point_type m_dx_ = GetChart()->GetScale();
 
     int Phi_axe = 2;  // std::dynamic_pointer_cast<CylindricalGeometry>(GetChart())->GetPhiAxe();
     int R_axe = (Phi_axe + 1) % 3;

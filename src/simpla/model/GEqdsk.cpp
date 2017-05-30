@@ -313,7 +313,7 @@ std::ostream &GEqdsk::print(std::ostream &os) {
     return os;
 }
 
-GEqdsk::GEqdsk(std::shared_ptr<geometry::Chart> const &c) : m_pimpl_(new pimpl_s), geometry::GeoObject(c) {}
+GEqdsk::GEqdsk(std::shared_ptr<geometry::Chart> const &c) : m_pimpl_(new pimpl_s), geometry::GeoObject() {}
 
 GEqdsk::~GEqdsk() {}
 

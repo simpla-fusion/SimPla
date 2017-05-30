@@ -36,7 +36,6 @@ class GEqdsk : public geometry::GeoObject {
     DECLARE_REGISTER_NAME("Tokamak");
 
    private:
-    typedef GEqdsk this_type;
 
     static constexpr int PhiAxis = 2;
     static constexpr int RAxis = (PhiAxis + 1) % 3;

@@ -9,6 +9,7 @@
 #include <simpla/algebra/all.h>
 #include <simpla/data/all.h>
 #include <simpla/engine/all.h>
+#include <simpla/geometry/Chart.h>
 #include <simpla/utilities/FancyStream.h>
 #include <simpla/utilities/Log.h>
 #include <simpla/utilities/macro.h>
@@ -17,8 +18,10 @@
 #include <iomanip>
 #include <vector>
 #include "SMesh.h"
-
 namespace simpla {
+namespace geometry {
+struct Cylindrical : public Chart {};
+}
 namespace mesh {
 
 using namespace simpla::data;
@@ -33,16 +36,12 @@ struct CylindricalSMesh : public SMesh {
     unsigned int m_phi_axe_ = 2;
 
     typedef Real scalar_type;
-    explicit CylindricalSMesh(Domain* d) : SMesh(d) {}
+    explicit CylindricalSMesh(std::string const &s_name = "CylindricalSMesh",
+                              std::shared_ptr<geometry::Chart> const &c = nullptr)
+        : SMesh(s_name, c != nullptr ? c : std::make_shared<geometry::Cylindrical>()) {}
     ~CylindricalSMesh() override = default;
 
     DECLARE_REGISTER_NAME("CylindricalSMesh")
-
-#define DECLARE_FIELD(_IFORM_, _DOF_, _NAME_, ...) \
-    Field<this_type, Real, _IFORM_, _DOF_> _NAME_{this, "name"_ = __STRING(_NAME_), __VA_ARGS__};
-
-    DECLARE_FIELD(VERTEX, 3, m_coordinates_, "COORDINATES"_);
-#undef define
 
     void InitializeData(Real time_now) override;
 

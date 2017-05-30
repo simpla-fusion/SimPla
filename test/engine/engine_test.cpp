@@ -15,7 +15,7 @@ using namespace simpla::data;
 struct Moo : public MeshBase {
     SP_OBJECT_HEAD(Moo, MeshView)
 
-    Moo() : MeshBase(std::shared_ptr<Chart>()) {}
+    Moo() : MeshBase(<#initializer#>) {}
     DataAttribute<Real, 2, 2> tags0{this, "tags0"};
     DataAttribute<Real> tags{this, "tags"};
     DataAttribute<Real> rho0{this, "ne", "CHECK"_ = false, "TAG"_ = 12.345};
@@ -34,7 +34,7 @@ struct Foo : public Task {
 };
 int main(int argc, char** argv) {
     auto patch = std::make_shared<Patch>();
-    Domain domain;
+    Domain domain(<#initializer#>);
     domain.SetMesh<Moo>();
     domain.SetWorker<Foo>();
     //    domain.Dispatch(patch);

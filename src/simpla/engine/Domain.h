@@ -20,13 +20,13 @@ class AttributeGroup;
 /**
 * @brief
 */
-class Domain
-    : public SPObject,
-      public AttributeGroup,
-      public data::EnableCreateFromDataTable<Domain, std::string const &, std::shared_ptr<geometry::GeoObject>> {
+class Domain : public SPObject,
+               public data::EnableCreateFromDataTable<Domain, std::string const &, std::shared_ptr<MeshBase> const &,
+                                                      std::shared_ptr<geometry::GeoObject> const &> {
     SP_OBJECT_HEAD(Domain, SPObject)
    public:
-    explicit Domain(std::string const &s_name = "", std::shared_ptr<geometry::GeoObject> const &g = nullptr);
+    explicit Domain(std::string const &s_name = "", std::shared_ptr<MeshBase> const &m = nullptr,
+                    const std::shared_ptr<geometry::GeoObject> &g = nullptr);
     ~Domain() override;
 
     SP_DEFAULT_CONSTRUCT(Domain);
@@ -35,14 +35,14 @@ class Domain
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
 
-    virtual MeshBase *GetMesh() = 0;
-    virtual MeshBase const *GetMesh() const = 0;
+    MeshBase const *GetMesh() const;
+    MeshBase *GetMesh();
 
     engine::Domain *GetDomain() { return this; }
     engine::Domain const *GetDomain() const { return this; }
 
-    void AddGeoObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &g);
-    std::shared_ptr<geometry::GeoObject> GetGeoObject(std::string const &k = "") const;
+    void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g);
+    std::shared_ptr<geometry::GeoObject> GetGeoObject() const;
     EntityRange GetRange(std::string const &k = "") const;
     EntityRange GetBodyRange(int IFORM = VERTEX, std::string const &k = "") const;
     EntityRange GetBoundaryRange(int IFORM = VERTEX, std::string const &k = "", bool is_parallel = true) const;
@@ -90,7 +90,7 @@ class Domain
 
     template <typename T>
     T GetAttribute(std::string const &k, EntityRange const &r) const {
-        return T(Get(k)->cast_as<T>(), r);
+        return T(GetMesh()->Get(k)->cast_as<T>(), r);
     };
 
     template <typename T>
@@ -103,20 +103,19 @@ class Domain
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
-#define DOMAIN_HEAD(_DOMAIN_NAME_, _BASE_TYPE_, _MESH_TYPE_)                                              \
-   public:                                                                                                \
-    explicit _DOMAIN_NAME_(std::string const &s_name = __STRING(_DOMAIN_NAME_),                           \
-                           std::shared_ptr<geometry::GeoObject> const &g = nullptr)                       \
-        : _BASE_TYPE_(s_name, g), m_mesh_(this) {}                                                        \
-    ~_DOMAIN_NAME_() override = default;                                                                  \
-    SP_DEFAULT_CONSTRUCT(_DOMAIN_NAME_);                                                                  \
-    DECLARE_REGISTER_NAME(std::string(__STRING(_DOMAIN_NAME_)) + "<" + _MESH_TYPE_::RegisterName() + ">") \
-    typedef _MESH_TYPE_ mesh_type;                                                                        \
-    template <int IFORM, int DOF = 1>                                                                     \
-    using field_type = Field<mesh_type, typename _MESH_TYPE_::scalar_type, IFORM, DOF>;                   \
-    mesh_type m_mesh_;                                                                                    \
-    MeshBase *GetMesh() override { return &m_mesh_; }                                                     \
-    MeshBase const *GetMesh() const override { return &m_mesh_; }
+#define DOMAIN_HEAD(_DOMAIN_NAME_, _MESH_TYPE_)                                                                       \
+   public:                                                                                                            \
+    explicit _DOMAIN_NAME_(std::string const &s_name = __STRING(_DOMAIN_NAME_),                                       \
+                           std::shared_ptr<MeshBase> const &m = nullptr,                                              \
+                           std::shared_ptr<geometry::GeoObject> const &g = nullptr)                                   \
+        : engine::Domain(s_name,                                                                                      \
+                         m != nullptr ? m : std::dynamic_pointer_cast<MeshBase>(std::make_shared<mesh_type>()), g) {} \
+    ~_DOMAIN_NAME_() override = default;                                                                              \
+    SP_DEFAULT_CONSTRUCT(_DOMAIN_NAME_);                                                                              \
+    DECLARE_REGISTER_NAME(std::string(__STRING(_DOMAIN_NAME_)) + "<" + _MESH_TYPE_::RegisterName() + ">")             \
+    typedef _MESH_TYPE_ mesh_type;                                                                                    \
+    template <int IFORM, int DOF = 1>                                                                                 \
+    using field_type = Field<mesh_type, typename _MESH_TYPE_::scalar_type, IFORM, DOF>;
 
 #define DOMAIN_DECLARE_FIELD(_NAME_, _IFORM_, _DOF_, ...)                                                      \
     Field<mesh_type, typename mesh_type::scalar_type, _IFORM_, _DOF_> _NAME_{this, "name"_ = __STRING(_NAME_), \

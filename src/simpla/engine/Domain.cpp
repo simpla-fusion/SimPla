@@ -11,14 +11,16 @@ namespace simpla {
 namespace engine {
 
 struct Domain::pimpl_s {
-    std::map<std::string, std::shared_ptr<geometry::GeoObject>> m_geo_object_;
-
+    std::shared_ptr<geometry::GeoObject> m_geo_object_;
     std::shared_ptr<Patch> m_patch_ = nullptr;
+    std::shared_ptr<MeshBase> m_mesh_ = nullptr;
 };
-Domain::Domain(std::string const& s_name, std::shared_ptr<geometry::GeoObject> const& g)
-    : m_pimpl_(new pimpl_s), SPObject(s_name) {
-    ASSERT(g != nullptr);
-    m_pimpl_->m_geo_object_[""] = g;
+Domain::Domain(std::string const& s_name, std::shared_ptr<MeshBase> const& m,
+               const std::shared_ptr<geometry::GeoObject>& g)
+    : SPObject(s_name), m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_mesh_ = m;
+    m_pimpl_->m_geo_object_ = g;
+    Click();
 }
 Domain::~Domain() {}
 
@@ -37,19 +39,15 @@ void Domain::Update() {
 void Domain::TearDown() { GetMesh()->TearDown(); }
 void Domain::Initialize() { GetMesh()->Initialize(); }
 void Domain::Finalize() { GetMesh()->Finalize(); }
+MeshBase const* Domain::GetMesh() const { return m_pimpl_->m_mesh_.get(); }
+MeshBase* Domain::GetMesh() { return m_pimpl_->m_mesh_.get(); }
 
-void Domain::AddGeoObject(std::string const& k, std::shared_ptr<geometry::GeoObject> const& g) {
+void Domain::SetGeoObject(std::shared_ptr<geometry::GeoObject> const& g) {
     Click();
-    if (g != nullptr) { m_pimpl_->m_geo_object_[k] = g; }
+    m_pimpl_->m_geo_object_ = g;
 }
 
-std::shared_ptr<geometry::GeoObject> Domain::GetGeoObject(std::string const& k) const {
-    ASSERT(!isModified());
-    std::shared_ptr<geometry::GeoObject> res = nullptr;
-    auto it = m_pimpl_->m_geo_object_.find(k);
-    if (it == m_pimpl_->m_geo_object_.end()) { res = it->second; }
-    return res;
-}
+std::shared_ptr<geometry::GeoObject> Domain::GetGeoObject() const { return m_pimpl_->m_geo_object_; }
 
 EntityRange Domain::GetRange(std::string const& k) const {
     ASSERT(!isModified());
@@ -83,7 +81,7 @@ void Domain::Push(const std::shared_ptr<Patch>& p) {
     Click();
     m_pimpl_->m_patch_ = p;
     GetMesh()->SetBlock(m_pimpl_->m_patch_->GetBlock());
-    for (auto& item : GetAllAttributes()) {
+    for (auto& item : GetMesh()->GetAllAttributes()) {
         auto k = "." + std::string(EntityIFORMName[item.second->GetIFORM()]) + "_BODY";
 
         auto it = m_pimpl_->m_patch_->m_ranges.find(k);
@@ -95,7 +93,9 @@ void Domain::Push(const std::shared_ptr<Patch>& p) {
 }
 std::shared_ptr<Patch> Domain::PopPatch() {
     m_pimpl_->m_patch_->SetBlock(GetMesh()->GetBlock());
-    for (auto& item : GetAllAttributes()) { m_pimpl_->m_patch_->Push(item.second->GetID(), item.second->Pop()); }
+    for (auto& item : GetMesh()->GetAllAttributes()) {
+        m_pimpl_->m_patch_->Push(item.second->GetID(), item.second->Pop());
+    }
     auto res = m_pimpl_->m_patch_;
     m_pimpl_->m_patch_ = nullptr;
     Click();
@@ -108,9 +108,7 @@ std::shared_ptr<Patch> Domain::DoInitialCondition(const std::shared_ptr<Patch>& 
 
     if (GetMesh() != nullptr) {
         GetMesh()->InitializeData(time_now);
-        for (auto const& item : m_pimpl_->m_geo_object_) {
-            GetMesh()->RegisterRanges(m_pimpl_->m_patch_->m_ranges, item.second, item.first);
-        }
+        GetMesh()->RegisterRanges(m_pimpl_->m_patch_->m_ranges, m_pimpl_->m_geo_object_, GetName());
     }
     PreInitialCondition(this, time_now);
     InitialCondition(time_now);

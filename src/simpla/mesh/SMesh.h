@@ -16,7 +16,7 @@ struct SMesh : public StructuredMesh {
    public:
     SP_OBJECT_HEAD(SMesh, StructuredMesh)
 
-    explicit SMesh(Domain *d) : StructuredMesh(d){};
+    explicit SMesh(std::string const &s_name, std::shared_ptr<geometry::Chart> const &c) : StructuredMesh(s_name, c){};
     ~SMesh() override = default;
 
     SP_DEFAULT_CONSTRUCT(SMesh)
@@ -26,6 +26,8 @@ struct SMesh : public StructuredMesh {
 
 #define DECLARE_FIELD(_IFORM_, _DOF_, _NAME_, ...) \
     Field<this_type, Real, _IFORM_, _DOF_> _NAME_{this, "name"_ = __STRING(_NAME_), __VA_ARGS__};
+
+    DECLARE_FIELD(VERTEX, 3, m_coordinates_, "COORDINATES"_);
 
     DECLARE_FIELD(VERTEX, 3, m_vertices_);
 

@@ -1,19 +1,31 @@
 --! / bin / lua
 
 Context = {
-    CoordinateSystem = {
-        BigCylindrical = {
-            Type = "Cylindrical",
+    Type="Tokamak",
+    Mesh = {
+        Base = {
+            Type = "CoRectMesh",
+            CoordinateSystem = {
+                Type = "Cartesian",
+                x0 = { 0, 0, 0 },
+                dx = { 1.0, 1.0, 1.0 },
+            },
+        },
+        Default = {
+            Type = "SMesh",
             PeriodicDimension = { 0, 0, 1 },
-            dx = { 0.1, 0.1, 0.1 }
+            CoordinateSystem = {
+                Type = "Cylindrical",
+                x0 = { 0, 0, 0 },
+                dx = { 0.1, 0.1, 0.1 },
+            },
         },
     },
     Domains =
     {
         Tokamak = {
             Type = "EMFluid",
-            CoordinateSystem = "BigCylindrical",
-            Mesh = "SMesh",
+            Mesh = "Default",
             Model = "Tokamak",
             BoundaryCondition = {
                 Type = "PEC",
@@ -28,10 +40,9 @@ Context = {
                 H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
             }
         },
-        Antenna = {
+        RFAntenna = {
             Type = "ExtraSource",
-            CoordinateSystem = "BigCylindrical",
-            Mesh = "SMesh",
+            Mesh = "Default",
             Variable = "E",
             IsHard = false,
             Model = "Antenna",
@@ -43,25 +54,22 @@ Context = {
     Model = {
         Tokamak = {
             Type = "Tokamak",
-            CoordinateSystem = "BigCylindrical",
             gfile = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900",
             Phi = { -3.14 / 8, 3.14 / 8 },
         },
         Antenna = {
             Type = "Cube",
-            CoordinateSystem = "BigCylindrical",
             lo = { 2.2, -0.1, -3.1415926 / 64 },
             hi = { 2.25, 0.1, 3.1415926 / 64 }
         },
     },
 }
 
-Schedule = {
-    Backend = "SAMRAITimeIntegrator",
+Schedule = {  Type = "SAMRAITimeIntegrator",
     OutputURL = "TokamakSaveData",
     TimeBegin = 0.0,
     TimeEnd = 5e-9,
     TimeStep = 1.0e-11,
     CheckPointInterval = 10,
-    UpdateOrder = { "Antenna", "Core" }
+    UpdateOrder = { "RFAntenna", "Tokamak" }
 }

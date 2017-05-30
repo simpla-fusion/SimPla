@@ -16,9 +16,11 @@ class Revolve : public GeoObject {
     SP_OBJECT_HEAD(Revolve<TObj>, GeoObject)
 
    public:
-    Revolve(TObj const &obj, int ZAxis = 2) : base_obj(obj) { m_axis_[ZAxis] = 1; }
-    Revolve(TObj const &obj, point_type origin, point_type axis) : base_obj(obj), m_axis_(axis), m_origin_(origin) {}
-    Revolve(this_type const &other) : base_obj(other.base_obj), m_origin_(other.m_origin_), m_axis_(other.m_axis_) {}
+    Revolve(TObj const &obj, int ZAxis = 2) : base_obj(obj), GeoObject() { m_axis_[ZAxis] = 1; }
+    Revolve(TObj const &obj, point_type origin, point_type axis) : base_obj(obj), m_axis_(axis), m_origin_(origin),
+                                                                   GeoObject() {}
+    Revolve(this_type const &other) : base_obj(other.base_obj), m_origin_(other.m_origin_), m_axis_(other.m_axis_),
+                                      GeoObject() {}
 
     ~Revolve() override = default;
 

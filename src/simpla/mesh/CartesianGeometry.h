@@ -15,6 +15,9 @@
 #include "simpla/utilities/sp_def.h"
 
 namespace simpla {
+namespace geometry {
+struct Cartesian : public Chart {};
+}
 namespace mesh {
 
 /**
@@ -26,9 +29,10 @@ struct CartesianCoRectMesh : public CoRectMesh {
 
    public:
     typedef Real scalar_type;
-    CartesianCoRectMesh(engine::Domain* d, box_type const&, index_box_type const&);
 
-    explicit CartesianCoRectMesh(engine::Domain* d) : CoRectMesh(d) {}
+    template <typename... Args>
+    explicit CartesianCoRectMesh(std::string const &s_name, Args &&... args)
+        : CoRectMesh(s_name, std::make_shared<geometry::Cartesian>(std::forward<Args>(args)...)) {}
     ~CartesianCoRectMesh() override = default;
     SP_DEFAULT_CONSTRUCT(CartesianCoRectMesh);
     DECLARE_REGISTER_NAME("CartesianCoRectMesh");

@@ -28,13 +28,13 @@ struct GeoObjectAdapter;
  *
  *  PlaceHolder Geometric object
  */
-class GeoObject : public data::EnableCreateFromDataTable<GeoObject, std::shared_ptr<Chart>> {
+class GeoObject : public data::EnableCreateFromDataTable<GeoObject> {
     SP_OBJECT_BASE(GeoObject)
     SP_DEFAULT_CONSTRUCT(GeoObject)
     DECLARE_REGISTER_NAME("GeoObject");
 
    public:
-    GeoObject(std::shared_ptr<Chart> const &c = nullptr){};
+    GeoObject() {};
     ~GeoObject() override = default;
 
     std::shared_ptr<data::DataTable> Serialize() const override {

@@ -14,7 +14,6 @@
 namespace simpla {
 namespace engine {
 class Patch;
-class Chart;
 class MeshBase;
 class MeshBlock;
 
@@ -27,11 +26,13 @@ using namespace simpla::data;
  *   - \f$p\f$ is the projection
  *
  */
-class MeshBase : public SPObject, public data::EnableCreateFromDataTable<MeshBase, Domain *> {
+class MeshBase : public SPObject,
+                 public AttributeGroup,
+                 public data::EnableCreateFromDataTable<MeshBase, std::string const &> {
     SP_OBJECT_HEAD(MeshBase, SPObject);
 
    public:
-    explicit MeshBase(Domain *d);
+    explicit MeshBase(std::string const &s_name, std::shared_ptr<geometry::Chart> const &c);
     ~MeshBase() override;
     SP_DEFAULT_CONSTRUCT(MeshBase);
     DECLARE_REGISTER_NAME("MeshBase");
@@ -39,15 +40,15 @@ class MeshBase : public SPObject, public data::EnableCreateFromDataTable<MeshBas
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<DataTable> &t) override;
 
-    Domain *GetDomain() const;
+    MeshBase *GetMesh() { return this; };
+    MeshBase const *GetMesh() const { return this; };
 
     virtual void InitializeData(Real time_now);
     virtual void SetBoundaryCondition(Real time_now, Real time_dt);
 
     id_type GetBlockId() const;
 
-    void SetChart(std::shared_ptr<Chart> const &);
-    std::shared_ptr<Chart> GetChart() const;
+    std::shared_ptr<geometry::Chart> GetChart() const;
     void SetBlock(std::shared_ptr<MeshBlock>);
     std::shared_ptr<MeshBlock> GetBlock() const;
 

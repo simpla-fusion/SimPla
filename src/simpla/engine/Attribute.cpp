@@ -100,16 +100,16 @@ Attribute const *AttributeGroup::Get(std::string const &k) const {
 }
 
 struct Attribute::pimpl_s {
-    Domain *m_domain_;
+    MeshBase *m_mesh_;
     std::set<AttributeGroup *> m_bundle_;
 };
-Attribute::Attribute(int IFORM, int DOF, std::type_info const &t_info, Domain *d,
+Attribute::Attribute(int IFORM, int DOF, std::type_info const &t_info, MeshBase *m,
                      std::shared_ptr<data::DataTable> const &cfg)
     : SPObject((cfg != nullptr && cfg->has("name")) ? cfg->GetValue<std::string>("name") : ""),
       AttributeDesc(IFORM, DOF, t_info, SPObject::GetName(), cfg),
       m_pimpl_(new pimpl_s) {
-    RegisterAt(d);
-    m_pimpl_->m_domain_ = d;
+    RegisterAt(m);
+    m_pimpl_->m_mesh_ = m;
 };
 
 Attribute::Attribute(Attribute const &other) : AttributeDesc(other), m_pimpl_(new pimpl_s) {}
@@ -131,7 +131,7 @@ void Attribute::DeregisterFrom(AttributeGroup *attr_b) {
 void Attribute::Push(const std::shared_ptr<DataBlock> &d, const EntityRange &r) {}
 std::shared_ptr<data::DataBlock> Attribute::Pop() { return nullptr; }
 
-Domain *Attribute::GetDomain() const { return m_pimpl_->m_domain_; }
+const MeshBase *Attribute::GetMesh() const { return m_pimpl_->m_mesh_; }
 bool Attribute::isNull() const { return true; }
 void Attribute::Update() { SPObject::Update(); };
 

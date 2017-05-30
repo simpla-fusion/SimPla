@@ -22,13 +22,11 @@ struct MeshBlock::pimpl_s {
 };
 boost::uuids::random_generator MeshBlock::pimpl_s::m_gen_;
 boost::hash<boost::uuids::uuid> MeshBlock::pimpl_s::m_hasher_;
-MeshBlock::MeshBlock(index_box_type const &b, size_type level, point_type const &x0, point_type const &dx)
+MeshBlock::MeshBlock(index_box_type const &b, size_type level)
     : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_index_box_ = b;
     m_pimpl_->m_level_ = level;
     m_pimpl_->m_GUID_ = m_pimpl_->m_hasher_(m_pimpl_->m_gen_());
-    m_pimpl_->m_origin_ = x0;
-    m_pimpl_->m_dx_ = dx;
 };
 // MeshBlock::MeshBlock(MeshBlock const &other) : m_pimpl_(new pimpl_s) {
 //    m_pimpl_->m_level_ = other.m_pimpl_->m_level_;
@@ -53,8 +51,7 @@ index_tuple MeshBlock::GetOffset() const { return std::get<0>(m_pimpl_->m_index_
 size_tuple MeshBlock::GetDimensions() const {
     return std::get<1>(m_pimpl_->m_index_box_) - std::get<0>(m_pimpl_->m_index_box_);
 }
-point_type MeshBlock::GetOrigin() const { return m_pimpl_->m_origin_; }
-point_type MeshBlock::GetDx() const { return m_pimpl_->m_dx_; }
+
 id_type MeshBlock::GetGUID() const { return m_pimpl_->m_GUID_; }
 size_type MeshBlock::GetLevel() const { return m_pimpl_->m_level_; }
 

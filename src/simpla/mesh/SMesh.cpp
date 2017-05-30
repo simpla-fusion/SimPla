@@ -34,17 +34,17 @@ void SMesh::InitializeData(Real time_now) {
 void SMesh::SetBoundaryCondition(Real time_now, Real time_dt) {
     StructuredMesh::SetBoundaryCondition(time_now, time_dt);
 
-    m_vertex_volume_[GetDomain()->GetRange("VERTEX_PATCH_BOUNDARY")] = 0;
-    m_vertex_dual_volume_[GetDomain()->GetRange("VERTEX_PATCH_BOUNDARY")] = 0;
-
-    m_edge_volume_[GetDomain()->GetRange("EDGE_PATCH_BOUNDARY")] = 0;
-    m_edge_dual_volume_[GetDomain()->GetRange("EDGE_PATCH_BOUNDARY")] = 0;
-
-    m_face_volume_[GetDomain()->GetRange("FACE_PATCH_BOUNDARY")] = 0;
-    m_face_dual_volume_[GetDomain()->GetRange("FACE_PATCH_BOUNDARY")] = 0;
-
-    m_volume_volume_[GetDomain()->GetRange("VOLUME_PATCH_BOUNDARY")] = 0;
-    m_volume_dual_volume_[GetDomain()->GetRange("VOLUME_PATCH_BOUNDARY")] = 0;
+//    m_vertex_volume_[GetDomain()->GetRange("VERTEX_PATCH_BOUNDARY")] = 0;
+//    m_vertex_dual_volume_[GetDomain()->GetRange("VERTEX_PATCH_BOUNDARY")] = 0;
+//
+//    m_edge_volume_[GetDomain()->GetRange("EDGE_PATCH_BOUNDARY")] = 0;
+//    m_edge_dual_volume_[GetDomain()->GetRange("EDGE_PATCH_BOUNDARY")] = 0;
+//
+//    m_face_volume_[GetDomain()->GetRange("FACE_PATCH_BOUNDARY")] = 0;
+//    m_face_dual_volume_[GetDomain()->GetRange("FACE_PATCH_BOUNDARY")] = 0;
+//
+//    m_volume_volume_[GetDomain()->GetRange("VOLUME_PATCH_BOUNDARY")] = 0;
+//    m_volume_dual_volume_[GetDomain()->GetRange("VOLUME_PATCH_BOUNDARY")] = 0;
 }
 }
 }

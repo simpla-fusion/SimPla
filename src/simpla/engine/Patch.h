@@ -15,7 +15,6 @@ namespace simpla {
 
 namespace engine {
 class MeshBlock;
-class Chart;
 class Patch {
     SP_OBJECT_BASE(Patch)
    public:

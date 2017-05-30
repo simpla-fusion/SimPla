@@ -9,6 +9,7 @@
 #include <simpla/data/all.h>
 #include <simpla/engine/MeshBase.h>
 #include <simpla/utilities/Array.h>
+#include <simpla/geometry/Chart.h>
 namespace simpla {
 namespace mesh {
 using namespace simpla::data;
@@ -19,7 +20,8 @@ class StructuredMesh : public engine::MeshBase {
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
 
-    explicit StructuredMesh(engine::Domain *d) : engine::MeshBase(d){};
+    explicit StructuredMesh(std::string const &s_name, std::shared_ptr<geometry::Chart> const &c)
+        : engine::MeshBase(s_name, c){};
 
     ~StructuredMesh() override = default;
     SP_DEFAULT_CONSTRUCT(StructuredMesh);
@@ -27,8 +29,8 @@ class StructuredMesh : public engine::MeshBase {
 
     void Update() override {
         engine::MeshBase::Update();
-        m_dx_ = GetDx();
-        m_x0_ = GetOrigin();
+        m_dx_ = GetChart()->GetScale();
+        m_x0_ = GetChart()->GetOrigin();
         m_i_dx_ = 1.0 / m_dx_;
         m_i_x0_ = -m_x0_ / m_dx_;
     }

@@ -3,20 +3,21 @@
 //
 #include "Context.h"
 #include <simpla/data/all.h>
+#include <simpla/geometry/Chart.h>
 #include <simpla/geometry/GeoAlgorithm.h>
-#include "simpla/geometry/Chart.h"
 #include "Domain.h"
 #include "MeshBase.h"
 namespace simpla {
 namespace engine {
 
 struct Context::pimpl_s {
+    std::map<std::string, std::shared_ptr<MeshBase>> m_mesh_;
     std::map<std::string, std::shared_ptr<Domain>> m_domains_;
     std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
 
     Model m_model_;
     Atlas m_atlas_;
-    std::shared_ptr<Chart> m_chart_ = nullptr;
+    std::shared_ptr<geometry::Chart> m_chart_ = nullptr;
 };
 
 Context::Context(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
@@ -31,17 +32,26 @@ std::shared_ptr<data::DataTable> Context::Serialize() const {
     return res;
 }
 void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
+    //    m_pimpl_->m_chart_ = geometry::Chart::Create(cfg->GetTable("CoordinateSystem"));
     m_pimpl_->m_atlas_.Deserialize(cfg->GetTable("Atlas"));
     m_pimpl_->m_model_.Deserialize(cfg->GetTable("Model"));
 
     auto d_cfg = cfg->GetTable("Domains");
     d_cfg->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t) {
-        auto geo = m_pimpl_->m_model_.GetObject(key);
+        std::shared_ptr<Domain> d = nullptr;
+        if (!t->isTable()) {
+            d = Domain::Create(t, key, GetMesh(), nullptr);
+            return;
+        } else {
+            std::shared_ptr<geometry::GeoObject> geo = std::make_shared<geometry::GeoObjectFull>();
 
-        auto d = Domain::Create(t, key, (geo != nullptr) ? geo : std::make_shared<geometry::GeoObjectFull>());
+            auto &t_cfg = t->cast_as<data::DataTable>();
+            geo = m_pimpl_->m_model_.GetObject(t_cfg.GetValue<std::string>("Model", ""));
+
+            d = Domain::Create(t, key, GetMesh(), geo);
+        }
         if (d != nullptr) {
             VERBOSE << "Add Domain [" << key << " : " << d->GetRegisterName() << "] " << std::endl;
-            d->Initialize();
             Context::SetDomain(key, d);
         }
     });
@@ -57,16 +67,23 @@ void Context::Update() {
     m_pimpl_->m_model_.SetUp();
     m_pimpl_->m_atlas_.Update();
     auto x_box = m_pimpl_->m_model_.GetBoundBox();
-    m_pimpl_->m_chart_ = std::make_shared<Chart>("Base");
-    m_pimpl_->m_chart_->SetOrigin(std::get<0>(x_box));
-    m_pimpl_->m_chart_->SetScale((std::get<1>(x_box) - std::get<0>(x_box)) / m_pimpl_->m_atlas_.GetDimensions());
+    //    m_pimpl_->m_chart_->SetOrigin(std::get<0>(x_box));
+    //    m_pimpl_->m_chart_->SetScale((std::get<1>(x_box) - std::get<0>(x_box)) / m_pimpl_->m_atlas_.GetDimensions());
 
-    for (auto &item : m_pimpl_->m_domains_) { item.second->RegisterDescription(&m_pimpl_->m_global_attributes_); }
+    for (auto &item : m_pimpl_->m_mesh_) { item.second->RegisterDescription(&m_pimpl_->m_global_attributes_); }
 };
 
 Model &Context::GetModel() const { return m_pimpl_->m_model_; }
 Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
-std::shared_ptr<Chart> Context::GetChart() const { return m_pimpl_->m_chart_; }
+std::shared_ptr<MeshBase> Context::GetMesh(std::string const &k) const {
+    auto it = m_pimpl_->m_mesh_.find(k);
+    return it != m_pimpl_->m_mesh_.end() ? it->second : nullptr;
+}
+std::shared_ptr<geometry::GeoObject> Context::GetGeoObject(std::string const &k) const {
+    return m_pimpl_->m_model_.GetObject(k);
+}
+
+std::shared_ptr<geometry::Chart> Context::GetChart() const { return m_pimpl_->m_chart_; }
 
 std::map<std::string, std::shared_ptr<AttributeDesc>> const &Context::GetRegisteredAttribute() const {
     return m_pimpl_->m_global_attributes_;

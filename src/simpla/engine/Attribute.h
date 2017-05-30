@@ -125,12 +125,8 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
     SP_OBJECT_HEAD(Attribute, SPObject);
 
    public:
-    Attribute(int IFORM = VERTEX, int DOF = 1, std::type_info const &t_info = typeid(Real), Domain *d = nullptr,
+    Attribute(int IFORM = VERTEX, int DOF = 1, std::type_info const &t_info = typeid(Real), MeshBase *m = nullptr,
               std::shared_ptr<data::DataTable> const &p = nullptr);
-
-    template <typename Holder>
-    Attribute(int IFORM, int DOF, std::type_info const &t_info, Holder *m, std::shared_ptr<data::DataTable> const &p)
-        : Attribute(IFORM, DOF, t_info, m->GetDomain(), p) {}
 
     Attribute(Attribute const &other);
     Attribute(Attribute &&other);
@@ -140,7 +136,7 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
 
     void Update() override;
 
-    Domain *GetDomain() const;
+    const MeshBase *GetMesh() const;
 
     void RegisterAt(AttributeGroup *);
     void DeregisterFrom(AttributeGroup *);

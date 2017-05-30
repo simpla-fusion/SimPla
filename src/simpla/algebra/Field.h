@@ -49,25 +49,23 @@ class Field : public engine::Attribute {
     typedef typename mesh_type::template data_type<value_type> data_type;
     std::shared_ptr<data_type> m_data_ = nullptr;
     EntityRange m_range_;
-    mesh_type* m_mesh_ = nullptr;
+    mesh_type const* m_mesh_ = nullptr;
 
    public:
     Field() {}
 
-    template <typename Holder, typename... Args>
-    explicit Field(Holder* d, Args&&... args)
-        : engine::Attribute(IFORM, DOF, typeid(value_type), d,
+    template <typename... Args>
+    explicit Field(engine::MeshBase* m, Args&&... args)
+        : engine::Attribute(IFORM, DOF, typeid(value_type), m,
                             std::make_shared<data::DataTable>(std::forward<Args>(args)...)),
-          m_mesh_(dynamic_cast<mesh_type*>(engine::Attribute::GetDomain()->GetMesh())),
+          m_mesh_(nullptr),
           m_range_(){};
-
-    //    template <typename... Args>
-    //    explicit Field(engine::MeshBase* d, Args&&... args)
-    //        : engine::Attribute(IFORM, DOF, typeid(value_type), d,
-    //                            std::make_shared<data::DataTable>(std::forward<Args>(args)...)),
-    //          m_mesh_(dynamic_cast<mesh_type*>(engine::Attribute::GetDomain()->GetMesh())),
-    //          m_range_(make_infinity_range<EntityId>()){};
-
+    template <typename Holder, typename... Args>
+    explicit Field(Holder* holder, Args&&... args)
+        : engine::Attribute(IFORM, DOF, typeid(value_type), holder->GetMesh(),
+                            std::make_shared<data::DataTable>(std::forward<Args>(args)...)),
+          m_mesh_(nullptr),
+          m_range_(){};
     Field(this_type const& other)
         : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_data_(other.m_data_) {}
 
@@ -127,6 +125,7 @@ class Field : public engine::Attribute {
 
     void Update() override {
         engine::Attribute::Update();
+        m_mesh_ = dynamic_cast<mesh_type const*>(engine::Attribute::GetMesh());
         if (m_data_ == nullptr) { m_data_ = m_mesh_->template make_data<value_type, IFORM, DOF>(); }
     }
 

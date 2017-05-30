@@ -14,8 +14,7 @@ namespace engine {
 class MeshBlock {
     SP_OBJECT_BASE(MeshBlock)
    public:
-    explicit MeshBlock(index_box_type const &b, size_type level = 0, point_type const &x0 = {0, 0, 0},
-                       point_type const &dx = {1, 1, 1});
+    explicit MeshBlock(index_box_type const &b, size_type level);
     ~MeshBlock();
 
     SP_DEFAULT_CONSTRUCT(MeshBlock)

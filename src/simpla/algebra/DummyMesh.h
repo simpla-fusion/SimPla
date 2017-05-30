@@ -31,7 +31,7 @@ class DummyMesh : public engine::MeshBase {
     DummyMesh(size_type const *dims, Real const *lower, Real const *upper)
         : m_dims_{dims[0], dims[1], dims[2]},
           m_lower_{lower[0], lower[1], lower[2]},
-          m_upper_{upper[0], upper[1], upper[2]} {}
+          m_upper_{upper[0], upper[1], upper[2]}, MeshBase(<#initializer#>) {}
 
     ~DummyMesh() = default;
 

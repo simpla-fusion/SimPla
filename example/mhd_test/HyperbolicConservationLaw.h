@@ -15,7 +15,7 @@ class HyperbolicConservationLaw : public engine::Domain {
     SP_OBJECT_HEAD(HyperbolicConservationLaw<TM>, engine::Domain)
 
    public:
-    DOMAIN_HEAD(HyperbolicConservationLaw, engine::Domain, TM)
+    DOMAIN_HEAD(HyperbolicConservationLaw, TM)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
 

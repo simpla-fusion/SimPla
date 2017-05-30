@@ -9,7 +9,7 @@ struct Chart::pimpl_s {
     point_type m_scale_{1, 1, 1};
     point_type m_periodic_dimension_ = {0, 0, 0};
 };
-Chart::Chart(std::string const &s_name = "") : SPObject(s_name), m_pimpl_(new pimpl_s) {}
+Chart::Chart(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
 Chart::~Chart(){};
 
 std::shared_ptr<data::DataTable> Chart::Serialize() const {
