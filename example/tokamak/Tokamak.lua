@@ -53,7 +53,7 @@ Context = {
     },
     Model = {
         Tokamak = {
-            Type = "Tokamak",
+            Type = "GEqdsk",
             gfile = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900",
             Phi = { -3.14 / 8, 3.14 / 8 },
         },

@@ -32,23 +32,34 @@ std::shared_ptr<data::DataTable> Context::Serialize() const {
     return res;
 }
 void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
+    DoInitialize();
     //    m_pimpl_->m_chart_ = geometry::Chart::Create(cfg->GetTable("CoordinateSystem"));
     m_pimpl_->m_atlas_.Deserialize(cfg->GetTable("Atlas"));
     m_pimpl_->m_model_.Deserialize(cfg->GetTable("Model"));
-
+    auto m_cfg = cfg->GetTable("Mesh");
+    m_cfg->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t) {
+        // FIXME: !!!!!
+    });
     auto d_cfg = cfg->GetTable("Domains");
     d_cfg->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t) {
         std::shared_ptr<Domain> d = nullptr;
+
         if (!t->isTable()) {
             d = Domain::Create(t, key, GetMesh(), nullptr);
             return;
         } else {
             std::shared_ptr<geometry::GeoObject> geo = std::make_shared<geometry::GeoObjectFull>();
 
-            auto &t_cfg = t->cast_as<data::DataTable>();
-            geo = m_pimpl_->m_model_.GetObject(t_cfg.GetValue<std::string>("Model", ""));
-
-            d = Domain::Create(t, key, GetMesh(), geo);
+            auto t_cfg = std::dynamic_pointer_cast<data::DataTable>(t);
+            geo = m_pimpl_->m_model_.GetObject(t_cfg->GetValue<std::string>("Model", ""));
+            auto s_mesh = t_cfg->GetValue<std::string>("Mesh", "Default");
+            auto p_mesh = m_pimpl_->m_mesh_[s_mesh];
+            std::string type = t_cfg->GetValue<std::string>("Type", "");
+            if (type != "") {
+                type = type + "." + p_mesh->GetRegisterName();
+                d = Domain::Create(type, key, p_mesh, geo);
+                d->Deserialize(t_cfg);
+            }
         }
         if (d != nullptr) {
             VERBOSE << "Add Domain [" << key << " : " << d->GetRegisterName() << "] " << std::endl;

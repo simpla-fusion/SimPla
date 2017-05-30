@@ -9,14 +9,18 @@
 #include <simpla/model/GEqdsk.h>
 #include <simpla/physics/Constants.h>
 #include <simpla/predefine/physics/EMFluid.h>
+#include <simpla/predefine/physics/ExtraSource.h>
 #include <simpla/third_part/SAMRAITimeIntegrator.h>
 #include <simpla/utilities/sp_def.h>
 #include <iostream>
 namespace simpla {
 using namespace engine;
-static bool s_RegisterDomain =
-    engine::Domain::RegisterCreator<EMFluid<mesh::CylindricalSMesh>>(std::string("EMFluidCylindricalSMesh"));
+// static bool s_RegisterDomain =
+//    engine::Domain::RegisterCreator<EMFluid<mesh::CylindricalSMesh>>(std::string("EMFluidCylindricalSMesh")) &&
+//    engine::Domain::RegisterCreator<EMFluid<mesh::CylindricalSMesh>>(std::string("ExtraSourceCylindricalSMesh"));
 REGISTER_CREATOR(SAMRAITimeIntegrator)
+REGISTER_CREATOR_TEMPLATE(EMFluid, mesh::CylindricalSMesh)
+REGISTER_CREATOR_TEMPLATE(ExtraSource, mesh::CylindricalSMesh)
 
 class Tokamak : public engine::Context {
     SP_OBJECT_HEAD(Tokamak, engine::Context)
@@ -43,17 +47,9 @@ std::shared_ptr<data::DataTable> Tokamak::Serialize() const {
 };
 void Tokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     if (cfg == nullptr) { return; }
-    engine::Context::Initialize();
+    engine::Context::Deserialize(cfg);
 
     typedef mesh::CylindricalSMesh mesh_type;
-
-    //    unsigned int PhiAxe = 2;
-    //    nTuple<Real, 2> phi = cfg->GetValue("Phi", nTuple<Real, 2>{0, TWOPI});
-    //    geqdsk.load(cfg->GetValue<std::string>("gfile", "gfile"));
-    //    GetModel().SetObject("Limiter", std::make_shared<geometry::RevolveZ>(geqdsk.limiter(), PhiAxe, phi[0],
-    //    phi[1]));
-    //    GetModel().SetObject("Center", std::make_shared<geometry::RevolveZ>(geqdsk.boundary(), PhiAxe, phi[0],
-    //    phi[1]));
 
     Vec3 amp = cfg->GetValue<nTuple<Real, 3>>("Antenna/amp", nTuple<Real, 3>{0, 0, 1});
     auto n_phi = cfg->GetValue<Real>("Antenna/n_phi", 1.0);
@@ -69,8 +65,8 @@ void Tokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     std::get<1>(idx_box) = cfg->GetValue<nTuple<int, 3>>("Dimensions", nTuple<int, 3>{64, 64, 32});
     //    GetAtlas().SetIndexBox(idx_box);
 
-    engine::Context::Deserialize(cfg);
-    auto d = GetDomain("Main");
+    //    engine::Context::Deserialize(cfg);
+    auto d = GetDomain("Tokamak");
 
     ASSERT(d != nullptr);
     d->SetGeoObject(GetModel().GetObject("Limiter"));

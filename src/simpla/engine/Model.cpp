@@ -3,6 +3,7 @@
 //
 #include "Model.h"
 #include <simpla/geometry/Cube.h>
+#include <simpla/model/GEqdsk.h>
 #include <simpla/utilities/sp_def.h>
 #include "Attribute.h"
 #include "MeshBlock.h"
@@ -10,6 +11,7 @@ namespace simpla {
 namespace geometry {
 REGISTER_CREATOR(Cube)
 }  // namespace geometry {
+REGISTER_CREATOR(GEqdsk)
 namespace engine {
 
 struct Model::pimpl_s {

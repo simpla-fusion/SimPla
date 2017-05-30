@@ -9,6 +9,7 @@
 #define GEQDSK_H_
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/engine/Model.h>
 #include <simpla/engine/SPObject.h>
 #include <simpla/geometry/Chart.h>
 #include <simpla/geometry/GeoObject.h>
@@ -33,10 +34,9 @@ namespace simpla {
  */
 class GEqdsk : public geometry::GeoObject {
     SP_OBJECT_HEAD(GEqdsk, geometry::GeoObject)
-    DECLARE_REGISTER_NAME("Tokamak");
+    DECLARE_REGISTER_NAME("GEqdsk");
 
    private:
-
     static constexpr int PhiAxis = 2;
     static constexpr int RAxis = (PhiAxis + 1) % 3;
     static constexpr int ZAxis = (PhiAxis + 2) % 3;
@@ -48,6 +48,10 @@ class GEqdsk : public geometry::GeoObject {
    public:
     GEqdsk(std::shared_ptr<geometry::Chart> const &c = nullptr);
     ~GEqdsk();
+
+    std::shared_ptr<data::DataTable> Serialize() const override;
+    void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
+    void RegisiterGeoObject(std::shared_ptr<geometry::Chart> const &, std::shared_ptr<engine::Model> const &m);
     void load(std::string const &fname);
     void load_profile(std::string const &fname);
     void write(const std::string &url);

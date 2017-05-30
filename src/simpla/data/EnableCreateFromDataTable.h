@@ -98,6 +98,9 @@ class EnableCreateFromDataTable : public data::Serializable {
     static bool is_registered;
 
 #define REGISTER_CREATOR(_CLASS_NAME_) bool _CLASS_NAME_::is_registered = _CLASS_NAME_::RegisterCreator<_CLASS_NAME_>();
+#define REGISTER_CREATOR_TEMPLATE(_CLASS_NAME_, _T_PARA_) \
+    template <>                                           \
+    bool _CLASS_NAME_<_T_PARA_>::is_registered = _CLASS_NAME_::RegisterCreator<_CLASS_NAME_<_T_PARA_>>();
 
 }  // namespace data{
 }  // namespace simpla{

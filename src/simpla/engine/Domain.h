@@ -112,7 +112,7 @@ class Domain : public SPObject,
                          m != nullptr ? m : std::dynamic_pointer_cast<MeshBase>(std::make_shared<mesh_type>()), g) {} \
     ~_DOMAIN_NAME_() override = default;                                                                              \
     SP_DEFAULT_CONSTRUCT(_DOMAIN_NAME_);                                                                              \
-    DECLARE_REGISTER_NAME(std::string(__STRING(_DOMAIN_NAME_)) + "<" + _MESH_TYPE_::RegisterName() + ">")             \
+    DECLARE_REGISTER_NAME(std::string(__STRING(_DOMAIN_NAME_)) + "." + _MESH_TYPE_::RegisterName())                   \
     typedef _MESH_TYPE_ mesh_type;                                                                                    \
     template <int IFORM, int DOF = 1>                                                                                 \
     using field_type = Field<mesh_type, typename _MESH_TYPE_::scalar_type, IFORM, DOF>;

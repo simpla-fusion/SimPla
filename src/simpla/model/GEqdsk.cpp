@@ -15,6 +15,7 @@
 #include <memory>
 #include <utility>
 
+#include <simpla/engine/Model.h>
 #include <simpla/geometry/Polygon.h>
 #include <simpla/numeric/Interpolation.h>
 #include <simpla/numeric/find_root.h>
@@ -71,6 +72,8 @@ struct GEqdsk::pimpl_s {
     void load_profile(std::string const &fname);
     //    bool flux_surface(Real psi_j, size_t M, point_type *res, Real resoluton = 0.001);
     void write(std::string const &);
+
+    Real m_phi0_ = 0, m_phi1_ = TWOPI;
 };
 
 void GEqdsk::load(std::string const &fname) { m_pimpl_->load(fname); }
@@ -316,6 +319,24 @@ std::ostream &GEqdsk::print(std::ostream &os) {
 GEqdsk::GEqdsk(std::shared_ptr<geometry::Chart> const &c) : m_pimpl_(new pimpl_s), geometry::GeoObject() {}
 
 GEqdsk::~GEqdsk() {}
+std::shared_ptr<data::DataTable> GEqdsk::Serialize() const {
+    DO_NOTHING;
+    return nullptr;
+}
+void GEqdsk::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
+    nTuple<Real, 2> phi = cfg->GetValue("Phi", nTuple<Real, 2>{0, TWOPI});
+
+    m_pimpl_->m_phi0_ = phi[0];
+    m_pimpl_->m_phi0_ = phi[1];
+
+    load(cfg->GetValue<std::string>("gfile", "gfile"));
+}
+void GEqdsk::RegisiterGeoObject(std::shared_ptr<geometry::Chart> const &c, std::shared_ptr<engine::Model> const &m) {
+    m->SetObject("Limiter",
+                 std::make_shared<geometry::RevolveZ>(limiter(), PhiAxis, m_pimpl_->m_phi0_, m_pimpl_->m_phi1_));
+    m->SetObject("Center",
+                 std::make_shared<geometry::RevolveZ>(boundary(), PhiAxis, m_pimpl_->m_phi0_, m_pimpl_->m_phi1_));
+}
 
 std::string const &GEqdsk::description() const { return m_pimpl_->m_desc_; }
 
