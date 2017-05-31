@@ -18,7 +18,7 @@ using namespace engine;
 // static bool s_RegisterDomain =
 //    engine::Domain::RegisterCreator<EMFluid<mesh::CylindricalSMesh>>(std::string("EMFluidCylindricalSMesh")) &&
 //    engine::Domain::RegisterCreator<EMFluid<mesh::CylindricalSMesh>>(std::string("ExtraSourceCylindricalSMesh"));
-REGISTER_CREATOR(SAMRAITimeIntegrator)
+//REGISTER_CREATOR(SAMRAITimeIntegrator)
 REGISTER_CREATOR_TEMPLATE(EMFluid, mesh::CylindricalSMesh)
 REGISTER_CREATOR_TEMPLATE(ExtraSource, mesh::CylindricalSMesh)
 

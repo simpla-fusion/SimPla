@@ -65,7 +65,8 @@ Context = {
     },
 }
 
-Schedule = {  Type = "SAMRAITimeIntegrator",
+Schedule = {
+    Type = "SAMRAITimeIntegrator",
     OutputURL = "TokamakSaveData",
     TimeBegin = 0.0,
     TimeEnd = 5e-9,
