@@ -4,7 +4,7 @@ TWOPI=3.141592653589793*2.0
 N_PHI=100
 Context = {
 
-    CoordinateSystem={
+    Chart={
         Cartesian = {
             Type = "Cartesian",
             x0 = { 0, 0, 0 },

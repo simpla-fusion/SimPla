@@ -37,18 +37,27 @@ void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
     DoInitialize();
     m_pimpl_->m_atlas_.Deserialize(cfg->GetTable("Atlas"));
 
-    cfg->GetTable("Chart")->Foreach(
-        [&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) { SetChart(key, t_cfg); });
+    auto t_chart = cfg->GetTable("Chart");
+    if (t_chart != nullptr) {
+        t_chart->Foreach(
+            [&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) { SetChart(key, t_cfg); });
+    }
+    auto t_mesh = cfg->GetTable("Mesh");
+    if (t_mesh != nullptr) {
+        t_mesh->Foreach(
+            [&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) { SetMesh(key, t_cfg); });
+    }
 
-    cfg->GetTable("Mesh")->Foreach(
-        [&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) { SetMesh(key, t_cfg); });
-
-    cfg->GetTable("Model")->Foreach(
-        [&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) { SetGeoObject(key, t_cfg); });
-
-    cfg->GetTable("Domain")->Foreach(
-        [&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) { SetDomain(key, t_cfg); });
-
+    auto t_model = cfg->GetTable("Model");
+    if (t_model != nullptr) {
+        t_model->Foreach(
+            [&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) { SetGeoObject(key, t_cfg); });
+    }
+    auto t_domain = cfg->GetTable("Domain");
+    if (t_domain != nullptr) {
+        cfg->GetTable("Domain")->Foreach(
+            [&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) { SetDomain(key, t_cfg); });
+    }
     //    auto m_cfg = cfg->GetTable("Mesh");
     //    m_cfg->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t) {
     //        // FIXME: !!!!!
@@ -96,7 +105,7 @@ void Context::SetChart(std::string const &s_name, std::shared_ptr<geometry::Char
     m_pimpl_->m_chart_[s_name] = c;
 }
 void Context::SetChart(std::string const &s_name, std::shared_ptr<data::DataEntity> const &cfg) {
-    SetChart(s_name, geometry::Chart::Create(cfg));
+    SetChart(s_name, GetChart(cfg));
 }
 std::shared_ptr<geometry::Chart> Context::GetChart(std::string const &s_name) const {
     auto it = m_pimpl_->m_chart_.find(s_name);
@@ -104,7 +113,9 @@ std::shared_ptr<geometry::Chart> Context::GetChart(std::string const &s_name) co
 }
 std::shared_ptr<geometry::Chart> Context::GetChart(std::shared_ptr<data::DataEntity> const &cfg) const {
     std::shared_ptr<geometry::Chart> res = nullptr;
-    if (cfg->isTable()) {
+
+    if (cfg == nullptr) {
+    } else if (cfg->isTable()) {
         res = geometry::Chart::Create(cfg);
     } else if (cfg->value_type_info() == typeid(std::string)) {
         res = GetChart(data::data_cast<std::string>(cfg));
@@ -119,7 +130,8 @@ void Context::SetGeoObject(std::string const &s_name, std::shared_ptr<data::Data
 }
 std::shared_ptr<geometry::GeoObject> Context::GetGeoObject(std::shared_ptr<data::DataEntity> const &cfg) const {
     std::shared_ptr<geometry::GeoObject> res = nullptr;
-    if (cfg->isTable()) {
+    if (cfg == nullptr) {
+    } else if (cfg->isTable()) {
         res = geometry::GeoObject::Create(cfg);
     } else if (cfg->value_type_info() == typeid(std::string)) {
         res = GetGeoObject(data::data_cast<std::string>(cfg));
@@ -142,7 +154,8 @@ std::shared_ptr<MeshBase> Context::GetMesh(std::string const &k) const {
 
 std::shared_ptr<MeshBase> Context::GetMesh(std::shared_ptr<data::DataEntity> const &cfg) const {
     std::shared_ptr<MeshBase> res = nullptr;
-    if (cfg->isTable()) {
+    if (cfg == nullptr) {
+    } else if (cfg->isTable()) {
         auto t_cfg = std::dynamic_pointer_cast<data::DataTable>(cfg);
         res = MeshBase::Create(cfg, GetChart(t_cfg->Get("Chart")));
     } else {
@@ -164,7 +177,8 @@ std::shared_ptr<Domain> Context::GetDomain(std::string const &k) const {
 
 std::shared_ptr<Domain> Context::GetDomain(std::shared_ptr<data::DataEntity> const &cfg) const {
     std::shared_ptr<Domain> res = nullptr;
-    if (cfg->isTable()) {
+    if (cfg == nullptr) {
+    } else if (cfg->isTable()) {
         auto t_cfg = std::dynamic_pointer_cast<data::DataTable>(cfg);
         res = Domain::Create(cfg, GetMesh(t_cfg->Get("Mesh")), GetGeoObject(t_cfg->Get("Model")));
     } else {
