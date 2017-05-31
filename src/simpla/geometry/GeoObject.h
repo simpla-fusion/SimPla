@@ -19,7 +19,6 @@
 
 namespace simpla {
 namespace geometry {
-class Chart;
 template <typename TObj>
 struct GeoObjectAdapter;
 
@@ -34,7 +33,7 @@ class GeoObject : public data::EnableCreateFromDataTable<GeoObject> {
     DECLARE_REGISTER_NAME("GeoObject");
 
    public:
-    GeoObject() {};
+    GeoObject(){};
     ~GeoObject() override = default;
 
     std::shared_ptr<data::DataTable> Serialize() const override {

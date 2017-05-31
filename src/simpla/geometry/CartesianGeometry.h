@@ -10,7 +10,7 @@
 
 #include <iomanip>
 #include <vector>
-#include "CoRectMesh.h"
+#include "simpla/mesh/CoRectMesh.h"
 #include "simpla/engine/all.h"
 #include "simpla/utilities/sp_def.h"
 

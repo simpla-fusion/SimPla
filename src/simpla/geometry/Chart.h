@@ -30,6 +30,10 @@ struct Chart : public SPObject, public data::EnableCreateFromDataTable<Chart> {
     point_type GetOrigin() const;
     point_type GetScale() const;
 
+    virtual point_type map(point_type const &) const = 0;
+    virtual point_type inv_map(point_type const &) const = 0;
+    virtual void InitializeData(engine::MeshBase *, Real) const = 0;
+
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;

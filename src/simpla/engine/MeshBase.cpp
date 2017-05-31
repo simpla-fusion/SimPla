@@ -2,6 +2,7 @@
 // Created by salmon on 16-11-24.
 //
 #include "MeshBase.h"
+#include <simpla/geometry/Chart.h>
 #include <simpla/geometry/GeoObject.h>
 #include <simpla/utilities/EntityId.h>
 #include "Attribute.h"
@@ -33,7 +34,10 @@ id_type MeshBase::GetBlockId() const {
     return m_pimpl_->m_mesh_block_ == nullptr ? NULL_ID : m_pimpl_->m_mesh_block_->GetGUID();
 }
 
-void MeshBase::InitializeData(Real time_now) { DoUpdate(); }
+void MeshBase::InitializeData(Real time_now) {
+    DoUpdate();
+    GetChart()->InitializeData(this, time_now);
+}
 void MeshBase::SetBoundaryCondition(Real time_now, Real time_dt) { DoUpdate(); }
 
 std::shared_ptr<data::DataTable> MeshBase::Serialize() const {

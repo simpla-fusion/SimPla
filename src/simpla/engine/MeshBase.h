@@ -7,6 +7,7 @@
 
 #include <simpla/concept/Printable.h>
 #include <simpla/data/all.h>
+#include <simpla/geometry/Chart.h>
 #include <simpla/geometry/GeoObject.h>
 #include "Attribute.h"
 #include "SPObject.h"
@@ -53,12 +54,21 @@ class MeshBase : public SPObject,
     std::shared_ptr<MeshBlock> GetBlock() const;
 
     void Update() override { Tag(); };
-
-    virtual point_type point(EntityId s) const = 0;
-    virtual point_type point(EntityId id, point_type const &pr) const { return point_type{}; };
-
-    virtual point_type map(point_type const &x) const = 0;
-    virtual point_type inv_map(point_type const &x) const = 0;
+    virtual point_type local_coordinates(EntityId s) const = 0;
+    virtual point_type local_coordinates(EntityId s, point_type const &pr) const = 0;
+    virtual std::tuple<EntityId, point_type> cell_coordinates(point_type const &) const = 0;
+    template <typename... Args>
+    point_type global_coordinates(Args &&... args) const {
+        return GetChart()->inv_map(local_coordinates(std::forward<Args>(args)...));
+    };
+    std::tuple<EntityId, point_type> pull_back(point_type const &x) const {
+        return cell_coordinates(GetChart()->map(x));
+    }
+    //    virtual point_type point(EntityId s) const = 0;
+    //    virtual point_type point(EntityId id, point_type const &pr) const { return point_type{}; };
+    //
+    //    virtual point_type map(point_type const &x) const = 0;
+    //    virtual point_type inv_map(point_type const &x) const = 0;
 
     virtual void RegisterRanges(std::map<std::string, EntityRange> &ranges,
                                 std::shared_ptr<geometry::GeoObject> const &g = nullptr,
