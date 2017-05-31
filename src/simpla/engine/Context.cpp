@@ -19,7 +19,6 @@ struct Context::pimpl_s {
     std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
 
     Atlas m_atlas_;
-
     box_type m_bound_box_;
 };
 
