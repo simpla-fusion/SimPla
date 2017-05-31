@@ -21,7 +21,7 @@ class StructuredMesh : public engine::MeshBase {
     typedef Real scalar_type;
 
     explicit StructuredMesh(std::string const &s_name, std::shared_ptr<geometry::Chart> const &c)
-        : engine::MeshBase(s_name, c){};
+        : engine::MeshBase(c) {};
 
     ~StructuredMesh() override = default;
     SP_DEFAULT_CONSTRUCT(StructuredMesh);

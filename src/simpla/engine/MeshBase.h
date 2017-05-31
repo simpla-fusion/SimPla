@@ -28,11 +28,11 @@ using namespace simpla::data;
  */
 class MeshBase : public SPObject,
                  public AttributeGroup,
-                 public data::EnableCreateFromDataTable<MeshBase, std::string const &> {
+                 public data::EnableCreateFromDataTable<MeshBase, std::shared_ptr<geometry::Chart> const &> {
     SP_OBJECT_HEAD(MeshBase, SPObject);
 
    public:
-    explicit MeshBase(std::string const &s_name, std::shared_ptr<geometry::Chart> const &c);
+    explicit MeshBase(std::shared_ptr<geometry::Chart> const &c);
     ~MeshBase() override;
     SP_DEFAULT_CONSTRUCT(MeshBase);
     DECLARE_REGISTER_NAME("MeshBase");

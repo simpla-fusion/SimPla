@@ -1,24 +1,26 @@
 --! / bin / lua
 
+TWOPI=3.141592653589793*2.0
+N_PHI=100
 Context = {
-    Type="Tokamak",
-    Mesh = {
-        Base = {
-            Type = "CoRectMesh",
-            CoordinateSystem = {
-                Type = "Cartesian",
-                x0 = { 0, 0, 0 },
-                dx = { 1.0, 1.0, 1.0 },
-            },
+
+    CoordinateSystem={
+        Cartesian = {
+            Type = "Cartesian",
+            x0 = { 0, 0, 0 },
         },
+        Cylindrical = {
+            Type = "Cylindrical",
+            x0 = { 0, 0, 0 },
+        },
+    },
+
+    Mesh = {
         Default = {
             Type = "SMesh",
+            CoordinateSystem="Cylindrical",
+            Scale = { 0.1, 0.1, TWOPI/N_PHI },
             PeriodicDimension = { 0, 0, 1 },
-            CoordinateSystem = {
-                Type = "Cylindrical",
-                x0 = { 0, 0, 0 },
-                dx = { 0.1, 0.1, 0.1 },
-            },
         },
     },
     Domains =

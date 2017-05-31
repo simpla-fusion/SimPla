@@ -20,7 +20,9 @@
 #include "SMesh.h"
 namespace simpla {
 namespace geometry {
-struct Cylindrical : public Chart {};
+struct Cylindrical : public Chart {
+    Cylindrical() {}
+};
 }
 namespace mesh {
 

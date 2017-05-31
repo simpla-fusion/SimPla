@@ -11,13 +11,13 @@
 #include "simpla/engine/SPObject.h"
 namespace simpla {
 namespace geometry {
-struct Chart : public SPObject, public data::EnableCreateFromDataTable<Chart, std::string const &> {
+struct Chart : public SPObject, public data::EnableCreateFromDataTable<Chart> {
     SP_OBJECT_HEAD(Chart, SPObject)
     SP_DEFAULT_CONSTRUCT(Chart);
     DECLARE_REGISTER_NAME("Chart")
 
    public:
-    explicit Chart(std::string const &s_name = "");
+    explicit Chart();
     ~Chart() override;
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &t) override;

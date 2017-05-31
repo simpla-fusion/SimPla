@@ -6,12 +6,12 @@
 #define SIMPLA_CONTEXT_H
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/data/Serializable.h>
 #include <map>
 #include "Atlas.h"
 #include "Domain.h"
-#include "Model.h"
 #include "Patch.h"
-#include "simpla/data/Serializable.h"
+
 namespace simpla {
 namespace engine {
 
@@ -76,37 +76,38 @@ class Context : public SPObject, public data::EnableCreateFromDataTable<Context>
     std::shared_ptr<DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<DataTable> &cfg) override;
 
+    void Initialize() override;
+    void Finalize() override;
     void Update() override;
     void TearDown() override;
 
-    void Initialize() override;
-    void Finalize() override;
-
-    Model &GetModel() const;
     Atlas &GetAtlas() const;
 
-    std::shared_ptr<geometry::Chart> GetChart() const;
+    int GetNDims() const;
+    box_type GetBoundBox() const;
 
-    std::shared_ptr<MeshBase> GetMesh(std::string const &k = "Default") const;
+    void SetChart(std::string const &s_name, std::shared_ptr<geometry::Chart> const &m);
+    void SetChart(std::string const &s_name, std::shared_ptr<data::DataEntity> const &);
+    std::shared_ptr<geometry::Chart> GetChart(std::shared_ptr<data::DataEntity> const &) const;
+    std::shared_ptr<geometry::Chart> GetChart(std::string const &s_name = "Default") const;
+
+    void SetGeoObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &m);
+    void SetGeoObject(std::string const &k, std::shared_ptr<data::DataEntity> const &);
+    std::shared_ptr<geometry::GeoObject> GetGeoObject(std::shared_ptr<data::DataEntity> const &) const;
     std::shared_ptr<geometry::GeoObject> GetGeoObject(std::string const &k) const;
 
-    std::shared_ptr<Domain> SetDomain(std::string const &k, std::shared_ptr<Domain>);
+    void SetMesh(std::string const &k, std::shared_ptr<MeshBase> const &m);
+    void SetMesh(std::string const &k, std::shared_ptr<data::DataEntity> const &);
+    std::shared_ptr<MeshBase> GetMesh(std::shared_ptr<data::DataEntity> const &) const;
+    std::shared_ptr<MeshBase> GetMesh(std::string const &k = "Default") const;
 
-    std::shared_ptr<Domain> SetDomain(std::string const &k, std::string const &d_name) {
-        return SetDomain(k, Domain::Create(d_name, k, GetMesh("Default"), GetGeoObject(k)));
-    }
-
-    template <typename U>
-    std::shared_ptr<Domain> SetDomain(std::string const &k) {
-        return SetDomain(
-            k, std::dynamic_pointer_cast<Domain>(std::make_shared<U>(k, GetMesh("Default"), GetGeoObject(k))));
-    }
-
+    void SetDomain(std::string const &k, std::shared_ptr<Domain> const &);
+    void SetDomain(std::string const &k, std::shared_ptr<data::DataEntity> const &);
+    std::shared_ptr<Domain> GetDomain(std::shared_ptr<data::DataEntity> const &) const;
     std::shared_ptr<Domain> GetDomain(std::string const &k) const;
 
     std::map<std::string, std::shared_ptr<Domain>> &GetAllDomains();
     std::map<std::string, std::shared_ptr<Domain>> const &GetAllDomains() const;
-
     std::map<std::string, std::shared_ptr<AttributeDesc>> const &GetRegisteredAttribute() const;
 
    private:

@@ -16,7 +16,9 @@
 
 namespace simpla {
 namespace geometry {
-struct Cartesian : public Chart {};
+struct Cartesian : public Chart {
+    Cartesian() {}
+};
 }
 namespace mesh {
 

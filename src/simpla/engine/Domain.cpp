@@ -15,9 +15,8 @@ struct Domain::pimpl_s {
     std::shared_ptr<Patch> m_patch_ = nullptr;
     std::shared_ptr<MeshBase> m_mesh_ = nullptr;
 };
-Domain::Domain(std::string const& s_name, std::shared_ptr<MeshBase> const& m,
-               const std::shared_ptr<geometry::GeoObject>& g)
-    : SPObject(s_name), m_pimpl_(new pimpl_s) {
+Domain::Domain(const std::shared_ptr<MeshBase>& m, const std::shared_ptr<geometry::GeoObject>& g)
+    : SPObject(), m_pimpl_(new pimpl_s) {
     m_pimpl_->m_mesh_ = m;
     m_pimpl_->m_geo_object_ = g;
     Click();

@@ -145,6 +145,14 @@ struct DataCastTraits {
         return p == nullptr ? default_value : p->cast_as<DataEntityWrapper<U>>().value();
     }
 };
+template <typename U>
+U data_cast(std::shared_ptr<DataEntity> const& p) {
+    return DataCastTraits<U>::Get(p);
+}
+template <typename U>
+U data_cast(std::shared_ptr<DataEntity> const& p, U const& default_value) {
+    return DataCastTraits<U>::Get(p, default_value);
+}
 
 inline std::shared_ptr<DataEntity> make_data_entity(char const* u) {
     return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityWrapper<std::string>>(u));

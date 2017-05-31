@@ -16,8 +16,7 @@ struct MeshBase::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
     std::shared_ptr<geometry::Chart> m_chart_;
 };
-MeshBase::MeshBase(std::string const &s_name, std::shared_ptr<geometry::Chart> const &c)
-    : SPObject(s_name),AttributeGroup(), m_pimpl_(new pimpl_s) {
+MeshBase::MeshBase(std::shared_ptr<geometry::Chart> const &c) : SPObject(), AttributeGroup(), m_pimpl_(new pimpl_s) {
     m_pimpl_->m_chart_ = c;
 }
 MeshBase::~MeshBase() {}

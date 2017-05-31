@@ -10,7 +10,6 @@
 #include "Context.h"
 #include "Domain.h"
 #include "MeshBase.h"
-#include "Model.h"
 #include "Patch.h"
 #include "Schedule.h"
 #include "TimeIntegrator.h"
@@ -20,15 +19,16 @@
  * class Context{
  * }
  * Context o-- "*" Domain
- * Context *-- "1" Model
+ * Context "1" *-- "n" GeoObject
  * Context *-- "1" Atlas
+ * Context "1" *-- "*" Chart
+ *
  * class Schedule{
  * }
  * Schedule *-- "1" Context
  *
  * class GeoObject{
  * }
- * Model o--"*" GeoObject
  * note right
  *    <latex> \mathcal{O}_{\alpha}  </latex>
  * end note

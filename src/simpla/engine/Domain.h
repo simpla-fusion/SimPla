@@ -21,12 +21,11 @@ class AttributeGroup;
 * @brief
 */
 class Domain : public SPObject,
-               public data::EnableCreateFromDataTable<Domain, std::string const &, std::shared_ptr<MeshBase> const &,
+               public data::EnableCreateFromDataTable<Domain, std::shared_ptr<MeshBase> const &,
                                                       std::shared_ptr<geometry::GeoObject> const &> {
     SP_OBJECT_HEAD(Domain, SPObject)
    public:
-    explicit Domain(std::string const &s_name = "", std::shared_ptr<MeshBase> const &m = nullptr,
-                    const std::shared_ptr<geometry::GeoObject> &g = nullptr);
+    explicit Domain(const std::shared_ptr<MeshBase> &m, const std::shared_ptr<geometry::GeoObject> &g);
     ~Domain() override;
 
     SP_DEFAULT_CONSTRUCT(Domain);
