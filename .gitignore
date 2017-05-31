@@ -31,7 +31,7 @@
 
 # Directory
 build*/
-third_part
+#third_part
 .idea*/
 .directory
 
