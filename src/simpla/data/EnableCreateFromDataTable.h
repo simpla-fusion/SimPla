@@ -97,6 +97,7 @@ class EnableCreateFromDataTable : public data::Serializable {
     static std::string RegisterName() { return _REGISTER_NAME_; }           \
     static bool is_registered;
 
+
 #define REGISTER_CREATOR(_CLASS_NAME_) bool _CLASS_NAME_::is_registered = _CLASS_NAME_::RegisterCreator<_CLASS_NAME_>();
 #define REGISTER_CREATOR_TEMPLATE(_CLASS_NAME_, _T_PARA_) \
     template <>                                           \

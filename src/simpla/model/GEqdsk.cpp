@@ -25,6 +25,9 @@
 #include <simpla/utilities/nTuple.h>
 
 namespace simpla {
+
+REGISTER_CREATOR(GEqdsk)
+
 constexpr int GEqdsk::PhiAxis;
 constexpr int GEqdsk::RAxis;
 constexpr int GEqdsk::ZAxis;

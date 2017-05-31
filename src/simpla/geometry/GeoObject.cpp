@@ -5,6 +5,5 @@
 #include "Cube.h"
 namespace simpla {
 namespace geometry {
-REGISTER_CREATOR(Cube)
 }  // namespace geometry {
 }  // namespace simpla {

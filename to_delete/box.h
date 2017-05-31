@@ -7,7 +7,7 @@
 
 #ifndef CORE_GEOMETRY_BOX_H_
 #define CORE_GEOMETRY_BOX_H_
-#include "primitive.h"
+#include "simpla/geometry/primitive.h"
 namespace simpla
 {
 

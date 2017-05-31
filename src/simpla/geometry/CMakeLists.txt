@@ -1,4 +1,4 @@
 
 FILE(GLOB geometry_SRC ./*.cpp)
-add_library(geometry ${geometry_SRC})
+add_library(geometry ${geometry_SRC} Cube.cpp)
 

@@ -8,10 +8,7 @@
 #include "Attribute.h"
 #include "MeshBlock.h"
 namespace simpla {
-namespace geometry {
-REGISTER_CREATOR(Cube)
-}  // namespace geometry {
-REGISTER_CREATOR(GEqdsk)
+
 namespace engine {
 
 struct Model::pimpl_s {

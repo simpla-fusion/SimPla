@@ -6,21 +6,18 @@
 #include <simpla/engine/all.h>
 #include <simpla/geometry/Cube.h>
 #include <simpla/mesh/CylindricalGeometry.h>
-#include <simpla/model/GEqdsk.h>
+//#include <simpla/model/GEqdsk.h>
 #include <simpla/physics/Constants.h>
-#include <simpla/predefine/physics/EMFluid.h>
-#include <simpla/predefine/physics/ExtraSource.h>
-#include <simpla/third_part/SAMRAITimeIntegrator.h>
+//#include <simpla/predefine/physics/EMFluid.h>
+//#include <simpla/predefine/physics/ExtraSource.h>
+//#include <simpla/third_part/SAMRAITimeIntegrator.h>
 #include <simpla/utilities/sp_def.h>
 #include <iostream>
 namespace simpla {
-using namespace engine;
-// static bool s_RegisterDomain =
-//    engine::Domain::RegisterCreator<EMFluid<mesh::CylindricalSMesh>>(std::string("EMFluidCylindricalSMesh")) &&
-//    engine::Domain::RegisterCreator<EMFluid<mesh::CylindricalSMesh>>(std::string("ExtraSourceCylindricalSMesh"));
-//REGISTER_CREATOR(SAMRAITimeIntegrator)
-REGISTER_CREATOR_TEMPLATE(EMFluid, mesh::CylindricalSMesh)
-REGISTER_CREATOR_TEMPLATE(ExtraSource, mesh::CylindricalSMesh)
+//
+// REGISTER_CREATOR(SAMRAITimeIntegrator)
+// REGISTER_CREATOR_TEMPLATE(EMFluid, mesh::CylindricalSMesh)
+// REGISTER_CREATOR_TEMPLATE(ExtraSource, mesh::CylindricalSMesh)
 
 class Tokamak : public engine::Context {
     SP_OBJECT_HEAD(Tokamak, engine::Context)
@@ -33,8 +30,6 @@ class Tokamak : public engine::Context {
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const& cfg) override;
-
-    GEqdsk geqdsk;
 };
 
 REGISTER_CREATOR(Tokamak)
@@ -42,7 +37,7 @@ REGISTER_CREATOR(Tokamak)
 std::shared_ptr<data::DataTable> Tokamak::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
     res->SetValue<std::string>("Type", "Tokamak");
-    res->Set(Context::Serialize());
+    res->Set(engine::Context::Serialize());
     return res;
 };
 void Tokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
@@ -76,32 +71,32 @@ void Tokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     //        d->OnBoundaryCondition.Connect([=](Domain* self, Real time_now, Real time_dt) {});
     //
 
-    d->PreInitialCondition.Connect([&](Domain* self, Real time_now) {
-        if (self->GetMesh()->check("ne", typeid(Field<mesh_type, Real, VOLUME>))) {
-            auto ne = self->GetAttribute<Field<mesh_type, Real, VOLUME>>("ne", "Center");
-            ne.Clear();
-            ne = [&](point_type const& x) -> Real { return geqdsk.profile("ne", x[0], x[1]); };
-        }
-
-        if (self->GetMesh()->check("B0v", typeid(Field<mesh_type, Real, VOLUME, 3>))) {
-            auto B0v = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("B0v");
-            B0v.Clear();
-            B0v = [&](point_type const& x) -> Vec3 { return geqdsk.B(x[0], x[1]); };
-        }
-    });
-
-    d->PreAdvance.Connect([=](Domain* self, Real time_now, Real time_dt) {
-
-        if (self->GetMesh()->check("J", typeid(Field<mesh_type, Real, EDGE>))) {
-            auto J = self->GetAttribute<Field<mesh_type, Real, EDGE>>("J", "Antenna");
-            J.Clear();
-            J = [&](point_type const& x) -> Vec3 {
-                Real a = std::sin(n_phi * x[2] + TWOPI * freq * time_now);
-                return Vec3{std::sin(x[2]) * a, 0, a * std::cos(x[2])};
-            };
-        }
-
-    });
+//    d->PreInitialCondition.Connect([&](engine::Domain* self, Real time_now) {
+//        if (self->GetMesh()->check("ne", typeid(Field<mesh_type, Real, VOLUME>))) {
+//            auto ne = self->GetAttribute<Field<mesh_type, Real, VOLUME>>("ne", "Center");
+//            ne.Clear();
+//            ne = [&](point_type const& x) -> Real { return geqdsk.profile("ne", x[0], x[1]); };
+//        }
+//
+//        if (self->GetMesh()->check("B0v", typeid(Field<mesh_type, Real, VOLUME, 3>))) {
+//            auto B0v = self->GetAttribute<Field<mesh_type, Real, VOLUME, 3>>("B0v");
+//            B0v.Clear();
+//            B0v = [&](point_type const& x) -> Vec3 { return geqdsk.B(x[0], x[1]); };
+//        }
+//    });
+//
+//    d->PreAdvance.Connect([=](engine::Domain* self, Real time_now, Real time_dt) {
+//
+//        if (self->GetMesh()->check("J", typeid(Field<mesh_type, Real, EDGE>))) {
+//            auto J = self->GetAttribute<Field<mesh_type, Real, EDGE>>("J", "Antenna");
+//            J.Clear();
+//            J = [&](point_type const& x) -> Vec3 {
+//                Real a = std::sin(n_phi * x[2] + TWOPI * freq * time_now);
+//                return Vec3{std::sin(x[2]) * a, 0, a * std::cos(x[2])};
+//            };
+//        }
+//
+//    });
     //    d->PostAdvance.Connect([=](Domain* self, Real time_now, Real time_dt) {
     //
     //        // for VisIt dump

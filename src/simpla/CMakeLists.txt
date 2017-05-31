@@ -5,3 +5,11 @@ FOREACH (subdir ${SUBDIRS})
     MESSAGE("Add sub directory: ${subdir}")
     ADD_SUBDIRECTORY(${subdir})
 ENDFOREACH ()
+
+
+ #
+##TARGET_LINK_LIBRARIES(SimPlaLib
+##        netcdf ${HDF5_LIBRARIES} ${MPI_LIBRARIES} ${TBB_LIBRARIES}
+##          toolbox geometry parallel data mesh engine model physics third_part
+##        )
+

@@ -46,7 +46,7 @@ struct Chains<TPrimitive, Policies...>
     static constexpr size_t max_number_of_points = traits::number_of_points<
             primitive_type>::value;
 
-    static constexpr size_t dimension = traits::dimension<primitive_type>::value;
+    static constexpr int dimension = traits::dimension<primitive_type>::value;
 
     typedef Chains<Primitive<dimension - 1, coordinate_system, tag_type>,
             Policies...> boundary_type;
@@ -143,7 +143,7 @@ struct coordinate_system<model::Chains<PrimitiveType, Others...>>
 template<typename PrimitiveType, typename ...Others>
 struct dimension<model::Chains<PrimitiveType, Others...>>
 {
-    static constexpr size_t value = dimension<PrimitiveType>::value;
+    static constexpr int value = dimension<PrimitiveType>::value;
 };
 
 template<typename PrimitiveType, typename ...Others>
