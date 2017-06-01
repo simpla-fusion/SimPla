@@ -12,7 +12,7 @@
 #include "Particle.h"
 
 #include "../toolbox/Parallel.h"
-#include "simpla/geometry/Constraint.h"
+#include "../../../to_delete/Constraint.h"
 
 
 namespace simpla { namespace particle

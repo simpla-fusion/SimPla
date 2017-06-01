@@ -46,6 +46,12 @@ struct Cartesian : public Chart {
                         point_type const &p3) const override {
         return dot(p3 - p0, cross(p1 - p0, p2 - p1)) / 6.0;
     }
+
+    virtual Real box_area(point_type const &p0, point_type const &p1) const {};
+
+    virtual Real box_volume(point_type const &p0, point_type const &p1) const override {
+        return (p1[0] - p0[0]) * (p1[1] - p0[1]) * (p1[2] - p0[2]);
+    };
 };
 /** @}*/
 }

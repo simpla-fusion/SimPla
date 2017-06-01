@@ -5,9 +5,9 @@
 #ifndef SIMPLA_MESH_ALL_H
 #define SIMPLA_MESH_ALL_H
 
-#include "simpla/geometry/CartesianGeometry.h"
+#include "../../../to_delete/CartesianGeometry.h"
 #include "CoRectMesh.h"
-#include "simpla/geometry/CylindricalCoordinates.h"
+#include "../../../to_delete/CylindricalCoordinates.h"
 #include "Mesh.h"
 #include "SMesh.h"
 #include "StructuredMesh.h"
