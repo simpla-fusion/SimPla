@@ -21,7 +21,7 @@ struct Cube : public GeoObject {
 
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 
-    Cube(std::shared_ptr<Chart> const &c = nullptr) : GeoObject() {}
+    Cube() : GeoObject() {}
     Cube(std::initializer_list<std::initializer_list<Real>> const &v)
         : m_bound_box_(point_type(*v.begin()), point_type(*(v.begin() + 1))) {}
 

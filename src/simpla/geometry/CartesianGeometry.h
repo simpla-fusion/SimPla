@@ -10,8 +10,8 @@
 
 #include <iomanip>
 #include <vector>
-#include "simpla/mesh/CoRectMesh.h"
 #include "simpla/engine/all.h"
+#include "simpla/mesh/CoRectMesh.h"
 #include "simpla/utilities/sp_def.h"
 
 namespace simpla {
@@ -43,7 +43,7 @@ struct CartesianCoRectMesh : public CoRectMesh {
 
     std::shared_ptr<data::DataTable> Serialize() const override {
         auto p = CoRectMesh::Serialize();
-        p->template SetValue<std::string>("Type", ClassName());
+        p->template SetValue<std::string>("Type", GetRegisterName());
         return p;
     };
 };  // struct  Mesh

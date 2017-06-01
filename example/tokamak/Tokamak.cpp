@@ -5,7 +5,7 @@
 #include <simpla/algebra/all.h>
 #include <simpla/engine/all.h>
 #include <simpla/geometry/Cube.h>
-#include <simpla/geometry/CylindricalCoordinates.h>
+#include <simpla/mesh/SMesh.h>
 #include <simpla/physics/Constants.h>
 #include <simpla/utilities/sp_def.h>
 #include <iostream>
@@ -36,7 +36,7 @@ void Tokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     if (cfg == nullptr) { return; }
     engine::Context::Deserialize(cfg);
 
-    typedef mesh::CylindricalSMesh mesh_type;
+    typedef mesh::SMesh mesh_type;
 
     Vec3 amp = cfg->GetValue<nTuple<Real, 3>>("Antenna/amp", nTuple<Real, 3>{0, 0, 1});
     auto n_phi = cfg->GetValue<Real>("Antenna/n_phi", 1.0);

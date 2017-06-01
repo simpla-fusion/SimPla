@@ -8,8 +8,74 @@ namespace simpla {
 namespace mesh {
 using namespace algebra;
 
-void StructuredMesh::RegisterRanges(std::map<std::string, EntityRange> &ranges,
-                                    std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix) {
+void StructuredMesh::Update() { engine::MeshBase::Update(); }
+
+/**
+*\verbatim
+*                ^s (dl)
+*               /
+*   (dz) t     /
+*        ^    /
+*        |  110-------------111
+*        |  /|              /|
+*        | / |             / |
+*        |/  |            /  |
+*       100--|----------101  |
+*        | m |           |   |
+*        |  010----------|--011
+*        |  /            |  /
+*        | /             | /
+*        |/              |/
+*       000-------------001---> r (dr)
+*
+*\endverbatim
+*/
+
+point_type StructuredMesh::local_coordinates(EntityId s, point_type const &r) const { return point(s) + r * m_dx_; }
+
+point_type StructuredMesh::point(EntityId s) const {
+    auto const *r = EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111];
+    return point_type{std::fma(static_cast<Real>(s.x), m_dx_[0], r[0] * m_dx_[0]),
+                      std::fma(static_cast<Real>(s.y), m_dx_[1], r[1] * m_dx_[1]),
+                      std::fma(static_cast<Real>(s.z), m_dx_[2], r[2] * m_dx_[2])};
+};
+
+index_box_type StructuredMesh::GetIndexBox(int tag) const {
+    index_box_type res = GetBlock()->GetIndexBox();
+    switch (tag) {
+        case 0:
+            std::get<1>(res) += 1;
+            break;
+        case 1:
+            std::get<1>(res)[1] += 1;
+            std::get<1>(res)[2] += 1;
+            break;
+        case 2:
+            std::get<1>(res)[0] += 1;
+            std::get<1>(res)[2] += 1;
+            break;
+        case 4:
+            std::get<1>(res)[0] += 1;
+            std::get<1>(res)[1] += 1;
+            break;
+        case 3:
+            std::get<1>(res)[2] += 1;
+            break;
+        case 5:
+            std::get<1>(res)[1] += 1;
+            break;
+        case 6:
+            std::get<1>(res)[0] += 1;
+            break;
+        case 7:
+        default:
+            break;
+    }
+    return res;
+}
+void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix) {
+    auto &ranges = GetRangeDict();
+
     auto pos = g == nullptr ? geometry::INSIDE : g->CheckOverlap(GetBox());
     switch (pos) {
         case geometry::INSIDE: {
@@ -60,7 +126,7 @@ void StructuredMesh::RegisterRanges(std::map<std::string, EntityRange> &ranges,
     index_tuple ib, ie;
     std::tie(ib, ie) = GetIndexBox(VERTEX);
     auto dx = GetChart()->GetScale();
-    auto x0 = GetChart()->GetOrigin();
+    auto x0 = GetChart()->GetShift();
     for (index_type I = ib[0]; I < ie[0]; ++I)
         for (index_type J = ib[1]; J < ie[1]; ++J)
             for (index_type K = ib[2]; K < ie[2]; ++K) {

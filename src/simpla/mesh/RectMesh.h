@@ -1,10 +1,9 @@
 //
-// Created by salmon on 17-4-24.
+// Created by salmon on 17-6-1.
 //
 
-#ifndef SIMPLA_SMESH_H
-#define SIMPLA_SMESH_H
-
+#ifndef SIMPLA_RECTMESH_H
+#define SIMPLA_RECTMESH_H
 #include <simpla/algebra/all.h>
 #include <simpla/data/all.h>
 #include "StructuredMesh.h"
@@ -13,32 +12,26 @@ namespace mesh {
 using namespace simpla::engine;
 
 /**
- *  Curvilinear
- *  metric is not uniform
+ * Axis are perpendicular
  */
-struct SMesh : public StructuredMesh {
+struct RectMesh : public StructuredMesh {
    public:
-    SP_OBJECT_HEAD(SMesh, StructuredMesh)
+    SP_OBJECT_HEAD(RectMesh, StructuredMesh)
 
     template <typename... Args>
-    explicit SMesh(Args &&... args) : StructuredMesh(std::forward<Args>(args)...){};
-    ~SMesh() override = default;
+    explicit RectMesh(Args &&... args) : StructuredMesh(std::forward<Args>(args)...){};
+    ~RectMesh() override = default;
 
-    SP_DEFAULT_CONSTRUCT(SMesh)
-    DECLARE_REGISTER_NAME("SMesh");
+    SP_DEFAULT_CONSTRUCT(RectMesh)
+    DECLARE_REGISTER_NAME("RectMesh");
+
     void InitializeData(Real time_now) override;
     void SetBoundaryCondition(Real time_now, Real time_dt) override;
-
-    point_type point(EntityId s) const override;
-
-    point_type local_coordinates(EntityId s, point_type const &r) const override;
 
 #define DECLARE_FIELD(_IFORM_, _DOF_, _NAME_, ...) \
     Field<this_type, Real, _IFORM_, _DOF_> _NAME_{this, "name"_ = __STRING(_NAME_), __VA_ARGS__};
 
     DECLARE_FIELD(VERTEX, 3, m_coordinates_, "COORDINATES"_);
-
-    DECLARE_FIELD(VERTEX, 3, m_vertices_);
 
     DECLARE_FIELD(VERTEX, 1, m_vertex_volume_);
     DECLARE_FIELD(VERTEX, 1, m_vertex_inv_volume_);
@@ -69,4 +62,4 @@ struct SMesh : public StructuredMesh {
 
 }  // namespace mesh {
 }  // namespace simpla {
-#endif  // SIMPLA_SMESH_H
+#endif  // SIMPLA_RECTMESH_H

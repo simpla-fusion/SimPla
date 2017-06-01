@@ -37,11 +37,6 @@ void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
     DoInitialize();
     m_pimpl_->m_atlas_.Deserialize(cfg->GetTable("Atlas"));
 
-    auto t_chart = cfg->GetTable("Chart");
-    if (t_chart != nullptr) {
-        t_chart->Foreach(
-            [&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) { SetChart(key, t_cfg); });
-    }
     auto t_mesh = cfg->GetTable("Mesh");
     if (t_mesh != nullptr) {
         t_mesh->Foreach(
@@ -101,27 +96,7 @@ void Context::Update() {
 Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
 int Context::GetNDims() const { return 3; };
 box_type Context::GetBoundBox() const { return m_pimpl_->m_bound_box_; };
-void Context::SetChart(std::string const &s_name, std::shared_ptr<geometry::Chart> const &c) {
-    m_pimpl_->m_chart_[s_name] = c;
-}
-void Context::SetChart(std::string const &s_name, std::shared_ptr<data::DataEntity> const &cfg) {
-    SetChart(s_name, GetChart(cfg));
-}
-std::shared_ptr<geometry::Chart> Context::GetChart(std::string const &s_name) const {
-    auto it = m_pimpl_->m_chart_.find(s_name);
-    return it != m_pimpl_->m_chart_.end() ? it->second : nullptr;
-}
-std::shared_ptr<geometry::Chart> Context::GetChart(std::shared_ptr<data::DataEntity> const &cfg) const {
-    std::shared_ptr<geometry::Chart> res = nullptr;
 
-    if (cfg == nullptr) {
-    } else if (cfg->isTable()) {
-        res = geometry::Chart::Create(cfg);
-    } else if (cfg->value_type_info() == typeid(std::string)) {
-        res = GetChart(data::data_cast<std::string>(cfg));
-    }
-    return res;
-}
 void Context::SetGeoObject(std::string const &s_name, std::shared_ptr<geometry::GeoObject> const &g) {
     m_pimpl_->m_geo_obj_[s_name] = g;
 }
@@ -157,7 +132,7 @@ std::shared_ptr<MeshBase> Context::GetMesh(std::shared_ptr<data::DataEntity> con
     if (cfg == nullptr) {
     } else if (cfg->isTable()) {
         auto t_cfg = std::dynamic_pointer_cast<data::DataTable>(cfg);
-        res = MeshBase::Create(cfg, GetChart(t_cfg->Get("Chart")));
+        res = MeshBase::Create(cfg);
     } else {
         RUNTIME_ERROR << "illegal domain config!" << std::endl;
     }

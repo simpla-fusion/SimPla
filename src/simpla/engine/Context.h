@@ -86,11 +86,6 @@ class Context : public SPObject, public data::EnableCreateFromDataTable<Context>
     int GetNDims() const;
     box_type GetBoundBox() const;
 
-    void SetChart(std::string const &s_name, std::shared_ptr<geometry::Chart> const &m);
-    void SetChart(std::string const &s_name, std::shared_ptr<data::DataEntity> const &);
-    std::shared_ptr<geometry::Chart> GetChart(std::shared_ptr<data::DataEntity> const &) const;
-    std::shared_ptr<geometry::Chart> GetChart(std::string const &s_name = "Default") const;
-
     void SetGeoObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &m);
     void SetGeoObject(std::string const &k, std::shared_ptr<data::DataEntity> const &);
     std::shared_ptr<geometry::GeoObject> GetGeoObject(std::shared_ptr<data::DataEntity> const &) const;

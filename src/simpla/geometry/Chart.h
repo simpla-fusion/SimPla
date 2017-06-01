@@ -17,22 +17,40 @@ struct Chart : public SPObject, public data::EnableCreateFromDataTable<Chart> {
     DECLARE_REGISTER_NAME("Chart")
 
    public:
-    explicit Chart();
+    explicit Chart(point_type shift = point_type{0, 0, 0}, point_type scale = point_type{0, 0, 0},
+                   point_type rotate = point_type{0, 0, 0});
     ~Chart() override;
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
 
     void SetPeriodicDimension(point_type const &d);
     point_type const &GetPeriodicDimension() const;
-    void SetOrigin(point_type const &x);
+
+    void SetShift(point_type const &x);
+    point_type const &GetShift() const;
+
     void SetScale(point_type const &x);
+    point_type const &GetScale() const;
 
-    point_type GetOrigin() const;
-    point_type GetScale() const;
+    void SetRotation(point_type const &x);
+    point_type const &GetRotation() const;
 
-    virtual point_type map(point_type const &) const = 0;
-    virtual point_type inv_map(point_type const &) const = 0;
-    virtual void InitializeData(engine::MeshBase *, Real) const = 0;
+    virtual point_type map(point_type const &) const;
+
+    virtual point_type inv_map(point_type const &) const;
+
+    virtual Real length(point_type const &p0, point_type const &p1) const = 0;
+
+    virtual Real box_area(point_type const &p0, point_type const &p1) const = 0;
+
+    virtual Real box_volume(point_type const &p0, point_type const &p1) const = 0;
+
+    virtual Real simplex_area(point_type const &p0, point_type const &p1, point_type const &p2) const = 0;
+
+    virtual Real simplex_volume(point_type const &p0, point_type const &p1, point_type const &p2,
+                                point_type const &p3) const = 0;
+
+    virtual Real inner_product(point_type const &uvw, vector_type const &v0, vector_type const &v1) const = 0;
 
    private:
     struct pimpl_s;

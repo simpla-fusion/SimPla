@@ -9,59 +9,63 @@
 #define CORE_GEOMETRY_CS_CYLINDRICAL_H_
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/utilities/nTuple.h>
 
+#include "Chart.h"
+#include "CoordinateSystem.h"
 #include "simpla/utilities/macro.h"
 #include "simpla/utilities/type_traits.h"
-#include "CoordinateSystem.h"
-
-namespace simpla
-{
-namespace geometry
-{
-
-
-namespace st = ::simpla::traits;
-namespace gt = ::simpla::geometry::traits;
-
-
-template<typename...> struct Metric;
-
-using CylindricalMetric= Metric<geometry::coordinate_system::Cylindrical<2> >;
+namespace simpla {
+namespace geometry {
 
 /** @ingroup   coordinate_system
  ** @{
  *  Metric of  Cylindrical topology_coordinate system
  */
-template<int IPhiAxis>
-struct Metric<coordinate_system::template Cylindrical<IPhiAxis> >
-{
-public:
-    typedef ::simpla::geometry::coordinate_system::Cylindrical<IPhiAxis> cs;
 
+/**
+ *  RZPhi
+ */
+struct Cylindrical : public Chart {
+    SP_OBJECT_HEAD(Cylindrical, Chart)
+   public:
     typedef Real scalar_type;
-    typedef nTuple<scalar_type, 3> point_type;
-    typedef nTuple<scalar_type, 3> vector_type;
-    typedef nTuple<scalar_type, 3> covector_type;
 
-    typedef nTuple<Real, 3> delta_t;
+    SP_DEFAULT_CONSTRUCT(Cylindrical);
+    DECLARE_REGISTER_NAME("Cylindrical")
 
-    static constexpr int PhiAxis = cs::PhiAxis;
-    static constexpr int RAxis = cs::RAxis;
-    static constexpr int ZAxis = cs::ZAxis;
+    static constexpr int PhiAxis = 2;
+    static constexpr int RAxis = (PhiAxis + 1) % 3;
+    static constexpr int ZAxis = (PhiAxis + 2) % 3;
 
-    static point_type map_to_cartesian(point_type const &p)
-    {
-        point_type x;
+    template <typename... Args>
+    explicit Cylindrical(Args &&... args) : Chart(std::forward<Args>(args)...) {}
+    ~Cylindrical() override = default;
 
-        x[0] = p[RAxis] * std::cos(p[PhiAxis]);
-        x[1] = p[RAxis] * std::sin(p[PhiAxis]);
-        x[2] = p[ZAxis];
-        return std::move(x);
+   public:
+    /**
+     *  from local coordinates to global Cartesian coordinates
+     */
+    point_type map(point_type const &uvw) const override {
+        return Chart::map(
+            point_type{uvw[RAxis] * std::cos(uvw[PhiAxis]), uvw[RAxis] * std::sin(uvw[PhiAxis]), uvw[ZAxis]});
     }
 
+    /**
+     *  from  global Cartesian coordinates to local coordinates
+     * @param uvw
+     * @return
+     */
+    point_type inv_map(point_type const &xyz) const override {
+        point_type r = Chart::inv_map(xyz);
+        point_type uvw;
+        uvw[PhiAxis] = std::atan2(r[1], r[0]);
+        uvw[RAxis] = std::hypot(r[0], r[1]);
+        uvw[ZAxis] = r[2];
+        return uvw;
+    }
 
-    static Real simplex_length(point_type const &p0, point_type const &p1)
-    {
+    Real simplex_length(point_type const &p0, point_type const &p1) const override {
         Real r0 = p0[RAxis];
         Real z0 = p0[ZAxis];
         Real phi0 = p0[PhiAxis];
@@ -70,20 +74,12 @@ public:
         Real dz1 = p1[ZAxis] - z0;
         Real dphi1 = p1[PhiAxis] - phi0;
 
-
         Real a = std::sqrt(power2(dr1) + power2(dz1) + power2(r0 * dphi1));
 
-        return a /*1st*/ +
-               power2(dphi1)
-               *
-               dr1 * r0
-               / (2 * a) /*2nd*/
-                ;
+        return a /*1st*/ + power2(dphi1) * dr1 * r0 / (2 * a) /*2nd*/;
     }
 
-    static Real simplex_area(point_type const &p0, point_type const &p1, point_type const &p2)
-    {
-
+    Real simplex_area(point_type const &p0, point_type const &p1, point_type const &p2) const override {
         Real r0 = p0[RAxis];
         Real z0 = p0[ZAxis];
         Real phi0 = p0[PhiAxis];
@@ -96,41 +92,36 @@ public:
         Real dz2 = p2[ZAxis] - z0;
         Real dphi2 = p2[PhiAxis] - phi0;
 
-
-        Real A = std::sqrt(
-                power2(r0) * (power2(dphi1 * dr2 - dphi2 * dr1) + power2(dphi1 * dz2 - dphi2 * dz1)) +
-                power2(dr1 * dz2 - dr2 * dz1));
-
+        Real A = std::sqrt(power2(r0) * (power2(dphi1 * dr2 - dphi2 * dr1) + power2(dphi1 * dz2 - dphi2 * dz1)) +
+                           power2(dr1 * dz2 - dr2 * dz1));
 
         return
 
             // 2nd
-                0.5 * A
+            0.5 * A
 
-                // 3rd
-                + r0 * (dr1 + dr2) * (power2(dphi1 * dr2 - dphi2 * dr1) + power2(dphi1 * dz2 - dphi2 * dz1)) /
-                  (6 * A) /* 3rd */
+            // 3rd
+            +
+            r0 * (dr1 + dr2) * (power2(dphi1 * dr2 - dphi2 * dr1) + power2(dphi1 * dz2 - dphi2 * dz1)) /
+                (6 * A) /* 3rd */
 
-//                // 4th
-//                + power2(dr1 + dr2) * power2(dr1 * dz2 - dr2 * dz1) *
-//                  (power2(dphi1 * dr2 - dphi2 * dr1) + power2(dphi1 * dz2 - dphi2 * dz1)) / (24 * power3(A))
-//
-//                // 5th
-//                - r0 * (dr1 + dr2) * (power2(dr1) + power2(dr2)) * power2(dr1 * dz2 - dr2 * dz1) *
-//                  power2(power2(dphi1 * dr2 - dphi2 * dr1) + power2(dphi1 * dz2 - dphi2 * dz1)) /
-//                  (40 * power3(A) * power2(A))
-//
-//            //
+            //                // 4th
+            //                + power2(dr1 + dr2) * power2(dr1 * dz2 - dr2 * dz1) *
+            //                  (power2(dphi1 * dr2 - dphi2 * dr1) + power2(dphi1 * dz2 - dphi2 * dz1)) / (24 *
+            //                  power3(A))
+            //
+            //                // 5th
+            //                - r0 * (dr1 + dr2) * (power2(dr1) + power2(dr2)) * power2(dr1 * dz2 - dr2 * dz1) *
+            //                  power2(power2(dphi1 * dr2 - dphi2 * dr1) + power2(dphi1 * dz2 - dphi2 * dz1)) /
+            //                  (40 * power3(A) * power2(A))
+            //
+            //            //
 
-                ;
-
-
+            ;
     }
 
-
-    static Real simplex_volume(point_type const &p0, point_type const &p1, point_type const &p2, point_type const &p3)
-    {
-
+    Real simplex_volume(point_type const &p0, point_type const &p1, point_type const &p2,
+                        point_type const &p3) const override {
         Real r0 = p0[RAxis];
         Real phi0 = p0[PhiAxis];
         Real z0 = p0[ZAxis];
@@ -147,14 +138,12 @@ public:
         Real dphi3 = p3[PhiAxis] - phi0;
         Real dz3 = p3[ZAxis] - z0;
 
-        return (dr1 + dr2 + dr3 + 4 * r0) *
-               (dphi1 * dr2 * dz3 - dphi1 * dr3 * dz2 - dphi2 * dr1 * dz3 + dphi2 * dr3 * dz1 + dphi3 * dr1 * dz2 -
-                dphi3 * dr2 * dz1) / 24.0;
+        return (dr1 + dr2 + dr3 + 4 * r0) * (dphi1 * dr2 * dz3 - dphi1 * dr3 * dz2 - dphi2 * dr1 * dz3 +
+                                             dphi2 * dr3 * dz1 + dphi3 * dr1 * dz2 - dphi3 * dr2 * dz1) /
+               24.0;
     }
 
-    static Real box_area(point_type const &p0, point_type const &p1)
-    {
-
+    Real box_area(point_type const &p0, point_type const &p1) const override {
         Real r0 = min(p0[RAxis], p1[RAxis]);
         Real phi0 = min(p0[PhiAxis], p1[PhiAxis]);
         Real z0 = min(p0[RAxis], p1[RAxis]);
@@ -163,28 +152,20 @@ public:
         Real phi1 = max(p0[PhiAxis], p1[PhiAxis]);
         Real z1 = max(p0[ZAxis], p1[ZAxis]);
 
-        if (std::abs(r1 - r0) < EPSILON)
-        {
+        if (std::abs(r1 - r0) < EPSILON) {
             return r0 * (phi1 - phi0) * (z1 - z0);
-
-        } else if (std::abs(z1 - z0) < EPSILON)
-        {
+        } else if (std::abs(z1 - z0) < EPSILON) {
             return 0.5 * (power2(r1 - r0) + 2 * r0 * (r1 - r0)) * (phi1 - phi0);
-        } else if (std::abs(phi1 - phi0) < EPSILON)
-        {
-
+        } else if (std::abs(phi1 - phi0) < EPSILON) {
             return (r1 - r0) * (z1 - z0);
 
-        } else
-        {
+        } else {
             THROW_EXCEPTION("Undefined result");
             return 0;
         }
     }
 
-    static Real box_volume(point_type const &p0, point_type const &p1)
-    {
-
+    Real box_volume(point_type const &p0, point_type const &p1) const override {
         Real r0 = min(p0[RAxis], p1[RAxis]);
         Real phi0 = min(p0[PhiAxis], p1[PhiAxis]);
         Real z0 = min(p0[RAxis], p1[RAxis]);
@@ -193,44 +174,23 @@ public:
         Real phi1 = max(p0[PhiAxis], p1[PhiAxis]);
         Real z1 = max(p0[ZAxis], p1[ZAxis]);
 
-
         return 0.5 * ((r1 - r0) * (r1 - r0) + 2 * r0 * (r1 - r0)) * (phi1 - phi0) * (z1 - z0);
     }
 
-    template<typename T0, typename T1, typename TX, typename ...Others>
-    static constexpr Real inner_product(T0 const &v0, T1 const &v1, TX const &r, Others &&... others)
-    {
-        return std::abs((v0[RAxis] * v1[RAxis] + v0[ZAxis] * v1[ZAxis] +
-                         v0[PhiAxis] * v1[PhiAxis] * r[RAxis] * r[RAxis]));
+    Real inner_product(point_type const &uvw, vector_type const &v0, vector_type const &v1) const override {
+        return std::abs(
+            (v0[RAxis] * v1[RAxis] + v0[ZAxis] * v1[ZAxis] + v0[PhiAxis] * v1[PhiAxis] * r[RAxis] * r[RAxis]));
     }
-
-
 };
 
-/** @}*/
 }  // namespace geometry
-namespace traits
-{
-
-template<int IPhiAxis>
-struct type_id<::simpla::geometry::coordinate_system::Cylindrical<IPhiAxis> >
-{
-    static std::string name()
-    {
-        return "Cylindrical<" + simpla::type_cast<std::string>(IPhiAxis) + ">";
-    }
-};
-
-}  // namespace traits
-
 }  // namespace simpla
 
-
 //
-//template<typename, typename> struct map;
+// template<typename, typename> struct map;
 //
-//template<size_t IPhiAxis, size_t I_CARTESIAN_ZAXIS>
-//struct map<Cylindrical<IPhiAxis>, Cartesian<3, I_CARTESIAN_ZAXIS> >
+// template<size_t IPhiAxis, size_t I_CARTESIAN_ZAXIS>
+// struct map<Cylindrical<IPhiAxis>, Cartesian<3, I_CARTESIAN_ZAXIS> >
 //{
 //
 //    typedef gt::point_type<Cylindrical<IPhiAxis> > point_t0;
@@ -322,21 +282,21 @@ struct type_id<::simpla::geometry::coordinate_system::Cylindrical<IPhiAxis> >
 //
 //};
 //
-//template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-//constexpr size_t map<Cylindrical<IPhiAxis>, Cartesian<3, ICARTESIAN_ZAXIS>>::CylindricalRAxis;
-//template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-//constexpr size_t map<Cylindrical<IPhiAxis>, Cartesian<3, ICARTESIAN_ZAXIS>>::CylindricalZAxis;
-//template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-//constexpr size_t map<Cylindrical<IPhiAxis>, Cartesian<3, ICARTESIAN_ZAXIS>>::CylindricalPhiAxis;
-//template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-//constexpr size_t map<Cylindrical<IPhiAxis>, Cartesian<3, ICARTESIAN_ZAXIS>>::CartesianXAxis;
-//template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-//constexpr size_t map<Cylindrical<IPhiAxis>, Cartesian<3, ICARTESIAN_ZAXIS>>::CartesianYAxis;
-//template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-//constexpr size_t map<Cylindrical<IPhiAxis>, Cartesian<3, ICARTESIAN_ZAXIS>>::CartesianZAxis;
+// template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
+// constexpr size_t map<Cylindrical<IPhiAxis>, Cartesian<3, ICARTESIAN_ZAXIS>>::CylindricalRAxis;
+// template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
+// constexpr size_t map<Cylindrical<IPhiAxis>, Cartesian<3, ICARTESIAN_ZAXIS>>::CylindricalZAxis;
+// template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
+// constexpr size_t map<Cylindrical<IPhiAxis>, Cartesian<3, ICARTESIAN_ZAXIS>>::CylindricalPhiAxis;
+// template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
+// constexpr size_t map<Cylindrical<IPhiAxis>, Cartesian<3, ICARTESIAN_ZAXIS>>::CartesianXAxis;
+// template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
+// constexpr size_t map<Cylindrical<IPhiAxis>, Cartesian<3, ICARTESIAN_ZAXIS>>::CartesianYAxis;
+// template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
+// constexpr size_t map<Cylindrical<IPhiAxis>, Cartesian<3, ICARTESIAN_ZAXIS>>::CartesianZAxis;
 //
-//template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-//struct map<Cartesian<3, ICARTESIAN_ZAXIS>, Cylindrical<IPhiAxis> >
+// template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
+// struct map<Cartesian<3, ICARTESIAN_ZAXIS>, Cylindrical<IPhiAxis> >
 //{
 //
 //    typedef gt::point_type<Cylindrical<IPhiAxis>> point_t1;
@@ -446,23 +406,22 @@ struct type_id<::simpla::geometry::coordinate_system::Cylindrical<IPhiAxis> >
 //
 //};
 //
-//template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-//constexpr size_t map<Cartesian<3, ICARTESIAN_ZAXIS>, Cylindrical<IPhiAxis>>::CylindricalRAxis;
+// template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
+// constexpr size_t map<Cartesian<3, ICARTESIAN_ZAXIS>, Cylindrical<IPhiAxis>>::CylindricalRAxis;
 //
-//template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-//constexpr size_t map<Cartesian<3, ICARTESIAN_ZAXIS>, Cylindrical<IPhiAxis>>::CylindricalZAxis;
+// template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
+// constexpr size_t map<Cartesian<3, ICARTESIAN_ZAXIS>, Cylindrical<IPhiAxis>>::CylindricalZAxis;
 //
-//template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-//constexpr size_t map<Cartesian<3, ICARTESIAN_ZAXIS>, Cylindrical<IPhiAxis>>::CylindricalPhiAxis;
+// template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
+// constexpr size_t map<Cartesian<3, ICARTESIAN_ZAXIS>, Cylindrical<IPhiAxis>>::CylindricalPhiAxis;
 //
-//template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-//constexpr size_t map<Cartesian<3, ICARTESIAN_ZAXIS>, Cylindrical<IPhiAxis>>::CartesianXAxis;
+// template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
+// constexpr size_t map<Cartesian<3, ICARTESIAN_ZAXIS>, Cylindrical<IPhiAxis>>::CartesianXAxis;
 //
-//template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-//constexpr size_t map<Cartesian<3, ICARTESIAN_ZAXIS>, Cylindrical<IPhiAxis>>::CartesianYAxis;
+// template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
+// constexpr size_t map<Cartesian<3, ICARTESIAN_ZAXIS>, Cylindrical<IPhiAxis>>::CartesianYAxis;
 //
-//template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-//constexpr size_t map<Cartesian<3, ICARTESIAN_ZAXIS>, Cylindrical<IPhiAxis>>::CartesianZAxis;
-
+// template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
+// constexpr size_t map<Cartesian<3, ICARTESIAN_ZAXIS>, Cylindrical<IPhiAxis>>::CartesianZAxis;
 
 #endif /* CORE_GEOMETRY_CS_CYLINDRICAL_H_ */
