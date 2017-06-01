@@ -8,77 +8,55 @@
 #ifndef CORE_GEOMETRY_CS_CARTESIAN_H_
 #define CORE_GEOMETRY_CS_CARTESIAN_H_
 
+#include <simpla/utilities/nTuple.h>
+#include "Chart.h"
 #include "simpla/utilities/macro.h"
 #include "simpla/utilities/type_cast.h"
-#include <simpla/utilities/nTuple.h>
-#include "CoordinateSystem.h"
-
-namespace simpla { namespace geometry
-{
-
+namespace simpla {
+namespace geometry {
 
 /**
  * @ingroup  coordinate_system
  * @{
  *  Metric of  Cartesian topology_coordinate system
  */
-struct CartesianMetric
-{
-    static constexpr int I_CARTESIAN_ZAXIS = 2;
-
-
-    static constexpr int CartesianZAxis = (I_CARTESIAN_ZAXIS) % 3;
-    static constexpr int CartesianYAxis = (CartesianZAxis + 2) % 3;
-    static constexpr int CartesianXAxis = (CartesianZAxis + 1) % 3;
-
+struct Cartesian : public Chart {
+    SP_OBJECT_HEAD(Cartesian, Chart)
+   public:
     typedef Real scalar_type;
-    typedef nTuple<scalar_type, 3> point_type;
-    typedef nTuple<scalar_type, 3> vector_type;
-    typedef nTuple<scalar_type, 3> covector_type;
 
+    SP_DEFAULT_CONSTRUCT(Cartesian);
+    DECLARE_REGISTER_NAME("Cartesian")
 
     /**
      * metric only diff_scheme the volume of simplex
      *
      */
 
-    static inline point_type map_to_cartesian(point_type const &p)
-    {
-        return p;
-    }
+    point_type map(point_type const &p) const override { return p; }
+    point_type inv_map(point_type const &p) const override { return p; }
 
-    static inline Real simplex_length(point_type const &p0, point_type const &p1)
-    {
-        return std::sqrt(dot(p1 - p0, p1 - p0));
-    }
+    Real length(point_type const &p0, point_type const &p1) const override { return std::sqrt(dot(p1 - p0, p1 - p0)); }
 
-    static inline Real simplex_area(point_type const &p0, point_type const &p1, point_type const &p2)
-    {
+    Real simplex_area(point_type const &p0, point_type const &p1, point_type const &p2) const override {
         return (std::sqrt(dot(cross(p1 - p0, p2 - p0), cross(p1 - p0, p2 - p0)))) * 0.5;
     }
 
-
-    static inline Real simplex_volume(point_type const &p0, point_type const &p1, point_type const &p2,
-                                      point_type const &p3)
-    {
+    Real simplex_volume(point_type const &p0, point_type const &p1, point_type const &p2,
+                        point_type const &p3) const override {
         return dot(p3 - p0, cross(p1 - p0, p2 - p1)) / 6.0;
     }
-
-
 };
 /** @}*/
-
-}}  // namespace simpla
-
-
-
+}
+}  // namespace simpla
 
 //
-//template<typename, typename> struct map;
+// template<typename, typename> struct map;
 //
 //
-//template<int ZAXIS0, int ZAXIS1>
-//struct map<coordinate_system::Cartesian<3, ZAXIS0>,
+// template<int ZAXIS0, int ZAXIS1>
+// struct map<coordinate_system::Cartesian<3, ZAXIS0>,
 //        coordinate_system::Cartesian<3, ZAXIS1> >
 //{
 //

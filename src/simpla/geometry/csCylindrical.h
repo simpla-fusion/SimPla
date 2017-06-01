@@ -65,7 +65,7 @@ struct Cylindrical : public Chart {
         return uvw;
     }
 
-    Real simplex_length(point_type const &p0, point_type const &p1) const override {
+    Real length(point_type const &p0, point_type const &p1) const override {
         Real r0 = p0[RAxis];
         Real z0 = p0[ZAxis];
         Real phi0 = p0[PhiAxis];
@@ -178,8 +178,10 @@ struct Cylindrical : public Chart {
     }
 
     Real inner_product(point_type const &uvw, vector_type const &v0, vector_type const &v1) const override {
-        return std::abs(
-            (v0[RAxis] * v1[RAxis] + v0[ZAxis] * v1[ZAxis] + v0[PhiAxis] * v1[PhiAxis] * r[RAxis] * r[RAxis]));
+        return 0;
+        //        return std::abs(
+        //            (v0[RAxis] * v1[RAxis] + v0[ZAxis] * v1[ZAxis] + v0[PhiAxis] * v1[PhiAxis] * r[RAxis] *
+        //            r[RAxis]));
     }
 };
 

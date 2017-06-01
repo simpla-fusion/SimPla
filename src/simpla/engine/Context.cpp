@@ -130,8 +130,10 @@ std::shared_ptr<MeshBase> Context::GetMesh(std::string const &k) const {
 std::shared_ptr<MeshBase> Context::GetMesh(std::shared_ptr<data::DataEntity> const &cfg) const {
     std::shared_ptr<MeshBase> res = nullptr;
     if (cfg == nullptr) {
+        res = GetMesh("Default");
+    } else if (cfg->value_type_info() == typeid(std::string)) {
+        res = GetMesh(data::data_cast<std::string>(cfg));
     } else if (cfg->isTable()) {
-        auto t_cfg = std::dynamic_pointer_cast<data::DataTable>(cfg);
         res = MeshBase::Create(cfg);
     } else {
         RUNTIME_ERROR << "illegal domain config!" << std::endl;
