@@ -32,7 +32,7 @@ struct Atlas::pimpl_s {
 
     size_tuple m_periodic_dimension_ = {0, 0, 0};
 
-    index_box_type m_index_box_;
+    index_box_type m_index_box_{{0,0,0},{32,32,32}};
 };
 
 Atlas::Atlas(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s){};

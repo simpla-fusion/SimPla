@@ -1,20 +1,29 @@
 --! / bin / lua
 
-TWOPI=3.141592653589793*2.0
-N_PHI=100
+TWOPI = 3.141592653589793 * 2.0
+N_PHI = 100
 Context = {
-
-
-
     Mesh = {
         Default = {
-            Type = "SMesh",
-            Coordinates={Type="Cylindrical"},
-            Scale = { 0.1, 0.1, TWOPI/N_PHI },
+            Type = "RectMesh",
+            Coordinates = { Type = "Cylindrical" },
+            Scale = { 0.1, 0.1, TWOPI / N_PHI },
             PeriodicDimension = { 0, 0, 1 },
         },
     },
-    Domains =
+    Model = {
+        Tokamak = {
+            Type = "GEqdsk",
+            gfile = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900",
+            Phi = { -3.14 / 8, 3.14 / 8 },
+        },
+        Antenna = {
+            Type = "Cube",
+            lo = { 2.2, -0.1, -3.1415926 / 64 },
+            hi = { 2.25, 0.1, 3.1415926 / 64 }
+        },
+    },
+    Domain =
     {
         Tokamak = {
             Type = "EMFluid",
@@ -42,18 +51,6 @@ Context = {
             Amplify = { 0.0, 0.0, 1.0 },
             WaveNumber = 0.0,
             Frequency = 1.0e9
-        },
-    },
-    Model = {
-        Tokamak = {
-            Type = "GEqdsk",
-            gfile = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900",
-            Phi = { -3.14 / 8, 3.14 / 8 },
-        },
-        Antenna = {
-            Type = "Cube",
-            lo = { 2.2, -0.1, -3.1415926 / 64 },
-            hi = { 2.25, 0.1, 3.1415926 / 64 }
         },
     },
 }

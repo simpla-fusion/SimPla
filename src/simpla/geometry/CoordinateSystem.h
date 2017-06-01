@@ -64,7 +64,7 @@ template <>
 struct dimension<Polar> {
     static constexpr int value = 2;
 };
-
+template <>
 struct dimension<Cartesian> {
     static constexpr int value = 3;
 };

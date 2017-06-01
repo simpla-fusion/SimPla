@@ -19,7 +19,7 @@ struct Context::pimpl_s {
     std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
 
     Atlas m_atlas_;
-    box_type m_bound_box_;
+    box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 };
 
 Context::Context(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
@@ -157,7 +157,11 @@ std::shared_ptr<Domain> Context::GetDomain(std::shared_ptr<data::DataEntity> con
     if (cfg == nullptr) {
     } else if (cfg->isTable()) {
         auto t_cfg = std::dynamic_pointer_cast<data::DataTable>(cfg);
-        res = Domain::Create(cfg, GetMesh(t_cfg->Get("Mesh")), GetGeoObject(t_cfg->Get("Model")));
+        auto p_mesh = GetMesh(t_cfg->Get("Mesh"));
+        auto p_model = GetGeoObject(t_cfg->Get("Model"));
+        std::string s_type = t_cfg->GetValue<std::string>("Type") + "." + p_mesh->GetRegisterName();
+        res = Domain::Create(s_type, p_mesh, p_model);
+        res->Deserialize(t_cfg);
     } else {
         RUNTIME_ERROR << "illegal domain config!" << std::endl;
     }

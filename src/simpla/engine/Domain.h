@@ -94,18 +94,15 @@ class Domain : public SPObject,
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
-#define DOMAIN_HEAD(_DOMAIN_NAME_, _MESH_TYPE_)                                                                       \
-   public:                                                                                                            \
-    explicit _DOMAIN_NAME_(std::string const &s_name = __STRING(_DOMAIN_NAME_),                                       \
-                           std::shared_ptr<MeshBase> const &m = nullptr,                                              \
-                           std::shared_ptr<geometry::GeoObject> const &g = nullptr)                                   \
-        : engine::Domain(s_name,                                                                                      \
-                         m != nullptr ? m : std::dynamic_pointer_cast<MeshBase>(std::make_shared<mesh_type>()), g) {} \
-    ~_DOMAIN_NAME_() override = default;                                                                              \
-    SP_DEFAULT_CONSTRUCT(_DOMAIN_NAME_);                                                                              \
-    DECLARE_REGISTER_NAME(std::string(__STRING(_DOMAIN_NAME_)) + "." + _MESH_TYPE_::RegisterName())                   \
-    typedef _MESH_TYPE_ mesh_type;                                                                                    \
-    template <int IFORM, int DOF = 1>                                                                                 \
+#define DOMAIN_HEAD(_DOMAIN_NAME_, _MESH_TYPE_)                                                     \
+   public:                                                                                          \
+    template <typename... Args>                                                                     \
+    explicit _DOMAIN_NAME_(Args &&... args) : engine::Domain(std::forward<Args>(args)...) {}        \
+    ~_DOMAIN_NAME_() override = default;                                                            \
+    SP_DEFAULT_CONSTRUCT(_DOMAIN_NAME_);                                                            \
+    DECLARE_REGISTER_NAME(std::string(__STRING(_DOMAIN_NAME_)) + "." + _MESH_TYPE_::RegisterName()) \
+    typedef _MESH_TYPE_ mesh_type;                                                                  \
+    template <int IFORM, int DOF = 1>                                                               \
     using field_type = Field<mesh_type, typename _MESH_TYPE_::scalar_type, IFORM, DOF>;
 
 #define DOMAIN_DECLARE_FIELD(_NAME_, _IFORM_, _DOF_, ...)                                                      \
