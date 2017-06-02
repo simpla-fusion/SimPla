@@ -9,12 +9,12 @@
 #define GEQDSK_H_
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/engine/Model.h>
 #include <simpla/engine/SPObject.h>
 #include <simpla/geometry/Chart.h>
 #include <simpla/geometry/GeoObject.h>
 #include <simpla/geometry/Polygon.h>
 #include <simpla/geometry/Revolve.h>
+#include <simpla/model/Model.h>
 #include <simpla/utilities/Log.h>
 #include <simpla/utilities/nTuple.h>
 #include <simpla/utilities/type_traits.h>
@@ -51,7 +51,10 @@ class GEqdsk : public geometry::GeoObject {
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
-    void RegisiterGeoObject(std::shared_ptr<geometry::Chart> const &, std::shared_ptr<engine::Model> const &m);
+
+    virtual bool hasChildren() const override { return true; }
+    virtual void Register(std::map<std::string, std::shared_ptr<GeoObject>> &, std::string const &prefix = "") override;
+
     void load(std::string const &fname);
     void load_profile(std::string const &fname);
     void write(const std::string &url);

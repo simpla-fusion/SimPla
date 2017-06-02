@@ -15,8 +15,8 @@
 #include <memory>
 #include <utility>
 
-#include <simpla/engine/Model.h>
 #include <simpla/geometry/Polygon.h>
+#include <simpla/model/Model.h>
 #include <simpla/numeric/Interpolation.h>
 #include <simpla/numeric/find_root.h>
 #include <simpla/physics/Constants.h>
@@ -334,11 +334,14 @@ void GEqdsk::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
 
     load(cfg->GetValue<std::string>("gfile", "gfile"));
 }
-void GEqdsk::RegisiterGeoObject(std::shared_ptr<geometry::Chart> const &c, std::shared_ptr<engine::Model> const &m) {
-    m->SetObject("Limiter",
-                 std::make_shared<geometry::RevolveZ>(limiter(), PhiAxis, m_pimpl_->m_phi0_, m_pimpl_->m_phi1_));
-    m->SetObject("Center",
-                 std::make_shared<geometry::RevolveZ>(boundary(), PhiAxis, m_pimpl_->m_phi0_, m_pimpl_->m_phi1_));
+void GEqdsk::Register(std::map<std::string, std::shared_ptr<geometry::GeoObject>> &m, std::string const &prefix) {
+    m[prefix + ".Limiter"] =
+        std::make_shared<geometry::RevolveZ>(limiter(), PhiAxis, m_pimpl_->m_phi0_, m_pimpl_->m_phi1_);
+
+    m[prefix + ".Center"] =
+        std::make_shared<geometry::RevolveZ>(boundary(), PhiAxis, m_pimpl_->m_phi0_, m_pimpl_->m_phi1_);
+
+    VERBOSE << "Add GeoObject-Sub [ " << prefix << ".Limiter , " << prefix << ".Center ]" << std::endl;
 }
 
 std::string const &GEqdsk::description() const { return m_pimpl_->m_desc_; }

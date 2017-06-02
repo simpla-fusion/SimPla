@@ -7,7 +7,7 @@
 #include <simpla/geometry/GeoAlgorithm.h>
 #include "Domain.h"
 #include "MeshBase.h"
-#include "Model.h"
+#include "simpla/model/Model.h"
 namespace simpla {
 namespace engine {
 
@@ -17,7 +17,7 @@ struct Context::pimpl_s {
     std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
 
     Atlas m_atlas_;
-    Model m_model_;
+    model::Model m_model_;
 };
 
 Context::Context(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
@@ -34,14 +34,14 @@ void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
     DoInitialize();
     m_pimpl_->m_atlas_.Deserialize(cfg->GetTable("Atlas"));
     m_pimpl_->m_model_.Deserialize(cfg->GetTable("Model"));
-    m_pimpl_->m_mesh_ = MeshBase::Create(cfg);
-
+    m_pimpl_->m_mesh_ = MeshBase::Create(cfg->GetTable("Mesh"));
+    ASSERT(m_pimpl_->m_mesh_ != nullptr);
     auto t_domain = cfg->GetTable("Domain");
     if (t_domain != nullptr) {
         cfg->GetTable("Domain")->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) {
             if (t_cfg != nullptr && t_cfg->isTable()) {
                 auto p_cfg = std::dynamic_pointer_cast<data::DataTable>(t_cfg);
-                auto p_geo = m_pimpl_->m_model_.GetObject(p_cfg->Get("GeometryObject"));
+                auto p_geo = m_pimpl_->m_model_.GetObject(p_cfg->GetValue<std::string>("GeometryObject"));
                 std::string s_type = p_cfg->GetValue<std::string>("Type") + "." + m_pimpl_->m_mesh_->GetRegisterName();
                 auto res = Domain::Create(s_type, m_pimpl_->m_mesh_, p_geo);
                 res->Deserialize(p_cfg);
@@ -97,7 +97,7 @@ void Context::Update() {
 };
 
 Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
-Model &Context::GetModel() const { return m_pimpl_->m_model_; }
+model::Model &Context::GetModel() const { return m_pimpl_->m_model_; }
 
 void Context::SetMesh(std::shared_ptr<MeshBase> const &m) {
     m_pimpl_->m_mesh_ = m;

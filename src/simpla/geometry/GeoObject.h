@@ -43,6 +43,10 @@ class GeoObject : public data::EnableCreateFromDataTable<GeoObject> {
     };
     void Deserialize(const std::shared_ptr<data::DataTable> &t) override {}
 
+    virtual bool hasChildren() const { return false; }
+
+    virtual void Register(std::map<std::string, std::shared_ptr<GeoObject> > &, std::string const &prefix = ""){};
+
     virtual box_type GetBoundBox() const { return box_type{{0, 0, 0}, {1, 1, 1}}; };
 
     virtual bool isNull() const { return true; };

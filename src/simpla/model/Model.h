@@ -5,15 +5,11 @@
 #ifndef SIMPLA_MODEL_H
 #define SIMPLA_MODEL_H
 
+#include <simpla/data/Serializable.h>
+#include <simpla/engine/SPObject.h>
 #include <simpla/geometry/GeoObject.h>
-#include "Attribute.h"
-#include "MeshBase.h"
-
 namespace simpla {
 namespace model {
-class GeoObject;
-}
-namespace engine {
 
 using namespace data;
 
@@ -39,9 +35,7 @@ class Model : public SPObject, public data::Serializable {
 
     box_type const &GetBoundBox() const;
 
-    void SetObject(std::string const &k, std::shared_ptr<DataTable>);
     void SetObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &);
-    std::shared_ptr<geometry::GeoObject> GetObject(std::shared_ptr<data::DataEntity> const &k) const;
     std::shared_ptr<geometry::GeoObject> GetObject(std::string const &k) const;
     size_type DeleteObject(std::string const &);
 

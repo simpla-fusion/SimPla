@@ -10,8 +10,9 @@
 #include <map>
 #include "Atlas.h"
 #include "Domain.h"
-#include "Model.h"
 #include "Patch.h"
+#include "simpla/model/Model.h"
+
 namespace simpla {
 namespace engine {
 
@@ -82,7 +83,7 @@ class Context : public SPObject, public data::EnableCreateFromDataTable<Context>
     void TearDown() override;
 
     Atlas &GetAtlas() const;
-    Model &GetModel() const;
+    model::Model &GetModel() const;
 
     void SetMesh(std::shared_ptr<MeshBase> const &m);
     std::shared_ptr<MeshBase> GetMesh() const;

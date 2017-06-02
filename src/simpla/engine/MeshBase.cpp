@@ -8,7 +8,7 @@
 #include "Attribute.h"
 #include "Domain.h"
 #include "MeshBlock.h"
-#include "Model.h"
+#include "simpla/model/Model.h"
 #include "Patch.h"
 namespace simpla {
 namespace engine {
