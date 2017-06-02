@@ -46,7 +46,7 @@ void Tokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     std::get<0>(antenna_box) = cfg->GetValue<point_type>("Antenna/x_lower", std::get<0>(antenna_box));
     std::get<1>(antenna_box) = cfg->GetValue<point_type>("Antenna/x_upper", std::get<1>(antenna_box));
 
-    SetGeoObject("Antenna", std::make_shared<geometry::Cube>(antenna_box));
+//    GeoObject("Antenna", std::make_shared<geometry::Cube>(antenna_box));
 
     index_box_type idx_box{{0, 0, 0}, {1, 1, 1}};
     std::get<1>(idx_box) = cfg->GetValue<nTuple<int, 3>>("Dimensions", nTuple<int, 3>{64, 64, 32});
@@ -56,9 +56,9 @@ void Tokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     auto d = GetDomain("Tokamak");
 
     ASSERT(d != nullptr);
-    //    d->SetGeoObject(GetObject("Limiter"));
-    //    d->SetGeoObject(GetModel().GetObject("Center"));
-    //    d->SetGeoObject(GetModel().GetObject("Antenna"));
+    //    d->AddGeoObject(GetObject("Limiter"));
+    //    d->AddGeoObject(GetModel().GetObject("Center"));
+    //    d->AddGeoObject(GetModel().GetObject("Antenna"));
 
     //        d->OnBoundaryCondition.Connect([=](Domain* self, Real time_now, Real time_dt) {});
     //

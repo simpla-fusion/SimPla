@@ -36,6 +36,8 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
     SP_DEFAULT_CONSTRUCT(MeshBase);
     DECLARE_REGISTER_NAME("MeshBase");
 
+
+
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<DataTable> &t) override;
 
@@ -45,6 +47,7 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
     MeshBase *GetMesh() { return this; };
     MeshBase const *GetMesh() const { return this; };
 
+    virtual unsigned int GetNDims() const { return 3; }
     virtual void InitializeData(Real time_now);
     virtual void SetBoundaryCondition(Real time_now, Real time_dt);
 
@@ -53,10 +56,30 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
     void GetChart(std::shared_ptr<geometry::Chart> const &);
     std::shared_ptr<geometry::Chart> GetChart() const;
 
+    void SetScale(point_type const &x);
+    point_type const &GetScale() const;
+
+    void SetPeriodicDimension(size_tuple const &x);
+    size_tuple const &GetPeriodicDimension() const;
+
+    void SetDefaultGhostWidth(index_tuple const &);
+    index_tuple GetDefaultGhostWidth() const;
+
+    void SetGlobalBoundBox(box_type const &);
+    box_type GetGlobalBoundBox() const;
+
+    virtual index_box_type GetGlobalIndexBox() const;
+
     void SetBlock(std::shared_ptr<MeshBlock>);
     std::shared_ptr<MeshBlock> GetBlock() const;
 
-    void Update() override { Tag(); };
+    void Update() override;
+
+    index_tuple GetGhostWidth(int tag = VERTEX) const;
+
+    box_type GetBox() const;
+
+    virtual index_box_type GetIndexBox(int tag = VERTEX) const = 0;
 
     virtual point_type point(EntityId s) const = 0;
 
@@ -71,12 +94,6 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
     //    virtual point_type inv_map(point_type const &x) const = 0;
 
     virtual void RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix = ""){};
-
-    virtual index_tuple GetGhostWidth(int tag = VERTEX) const;
-
-    virtual index_box_type GetIndexBox(int tag = VERTEX) const = 0;
-
-    virtual box_type GetBox() const;
 
     EntityRange GetRange(std::string const &k = "") const;
     EntityRange GetBodyRange(int IFORM = VERTEX, std::string const &k = "") const;

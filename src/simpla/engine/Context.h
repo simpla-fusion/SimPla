@@ -10,8 +10,8 @@
 #include <map>
 #include "Atlas.h"
 #include "Domain.h"
+#include "Model.h"
 #include "Patch.h"
-
 namespace simpla {
 namespace engine {
 
@@ -82,23 +82,12 @@ class Context : public SPObject, public data::EnableCreateFromDataTable<Context>
     void TearDown() override;
 
     Atlas &GetAtlas() const;
+    Model &GetModel() const;
 
-    int GetNDims() const;
-    box_type GetBoundBox() const;
-
-    void SetGeoObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &m);
-    void SetGeoObject(std::string const &k, std::shared_ptr<data::DataEntity> const &);
-    std::shared_ptr<geometry::GeoObject> GetGeoObject(std::shared_ptr<data::DataEntity> const &) const;
-    std::shared_ptr<geometry::GeoObject> GetGeoObject(std::string const &k) const;
-
-    void SetMesh(std::string const &k, std::shared_ptr<MeshBase> const &m);
-    void SetMesh(std::string const &k, std::shared_ptr<data::DataEntity> const &);
-    std::shared_ptr<MeshBase> GetMesh(std::shared_ptr<data::DataEntity> const &) const;
-    std::shared_ptr<MeshBase> GetMesh(std::string const &k = "Default") const;
+    void SetMesh(std::shared_ptr<MeshBase> const &m);
+    std::shared_ptr<MeshBase> GetMesh() const;
 
     void SetDomain(std::string const &k, std::shared_ptr<Domain> const &);
-    void SetDomain(std::string const &k, std::shared_ptr<data::DataEntity> const &);
-    std::shared_ptr<Domain> GetDomain(std::shared_ptr<data::DataEntity> const &) const;
     std::shared_ptr<Domain> GetDomain(std::string const &k) const;
 
     std::map<std::string, std::shared_ptr<Domain>> &GetAllDomains();

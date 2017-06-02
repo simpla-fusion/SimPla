@@ -17,8 +17,8 @@ namespace engine {
 
 using namespace data;
 
-class Model : public data::Serializable {
-    SP_OBJECT_BASE(Model);
+class Model : public SPObject, public data::Serializable {
+    SP_OBJECT_HEAD(Model, SPObject);
 
    public:
     Model();
@@ -30,19 +30,18 @@ class Model : public data::Serializable {
     void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
     using data::Serializable::Serialize;
 
-    void Initialize();
-    void SetUp();
-    void TearDown();
-
-    void Finalize();
+    void Initialize() override;
+    void Update() override;
+    void TearDown() override;
+    void Finalize() override;
 
     int GetNDims() const;
 
     box_type const &GetBoundBox() const;
 
     void SetObject(std::string const &k, std::shared_ptr<DataTable>);
-    void SetObject(std::string const &k,
-                                                                    std::shared_ptr<geometry::GeoObject> const &);
+    void SetObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &);
+    std::shared_ptr<geometry::GeoObject> GetObject(std::shared_ptr<data::DataEntity> const &k) const;
     std::shared_ptr<geometry::GeoObject> GetObject(std::string const &k) const;
     size_type DeleteObject(std::string const &);
 

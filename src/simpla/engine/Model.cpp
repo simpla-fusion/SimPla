@@ -35,7 +35,7 @@ void Model::Deserialize(const std::shared_ptr<data::DataTable>& cfg) {
 void Model::Initialize() { LOGGER << "Model is initialized " << std::endl; }
 void Model::Finalize() {}
 
-void Model::SetUp() {
+void Model::Update() {
     auto it = m_pimpl_->m_g_objs_.begin();
     if (it == m_pimpl_->m_g_objs_.end() || it->second == nullptr) { return; }
     m_pimpl_->m_bound_box_ = it->second->GetBoundBox();
@@ -51,18 +51,6 @@ int Model::GetNDims() const { return 3; }
 
 box_type const& Model::GetBoundBox() const { return m_pimpl_->m_bound_box_; };
 
-// id_type Model::GetMaterialId(std::string const& k) const { return GetMaterial(k)->GetValue<id_type>("GUID"); }
-//
-// std::shared_ptr<data::DataTable> Model::GetMaterial(std::string const& s) const {
-//    return s == "" ? db() : db()->GetTable(s);
-//}
-//
-// std::shared_ptr<data::DataTable> Model::SetMaterial(std::string const &s, std::shared_ptr<DataTable> other) {
-//    db()->Push("/Material/" + s, other, false);
-//    db()->PopPatch("/Material/" + s)->cast_as<DataTable>().SetValue("GUID", std::hash<std::string>{}(s));
-//    return nullptr;
-//}
-
 void Model::SetObject(std::string const& key, std::shared_ptr<DataTable> cfg) {
     SetObject(key, geometry::GeoObject::Create(cfg));
 };
@@ -72,7 +60,19 @@ void Model::SetObject(std::string const& key, std::shared_ptr<geometry::GeoObjec
         VERBOSE << "Add GeoObject [ " << key << " : " << g_obj->GetRegisterName() << " ]" << std::endl;
     }
 }
+std::shared_ptr<geometry::GeoObject> Model::GetObject(std::shared_ptr<data::DataEntity> const& k) const {
+    std::shared_ptr<geometry::GeoObject> res = nullptr;
 
+    if (k == nullptr) {
+    } else if (k->value_type_info() == typeid(std::string)) {
+        res = GetObject(data::data_cast<std::string>(k));
+    } else if (k->isTable()) {
+        res = geometry::GeoObject::Create(k);
+    } else {
+        RUNTIME_ERROR << "illegal configure!" << std::endl;
+    }
+    return res;
+}
 std::shared_ptr<geometry::GeoObject> Model::GetObject(std::string const& k) const {
     auto it = m_pimpl_->m_g_objs_.find(k);
     return it == m_pimpl_->m_g_objs_.end() ? nullptr : it->second;

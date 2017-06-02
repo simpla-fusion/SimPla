@@ -88,17 +88,24 @@ void Schedule::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     SetOutputURL(cfg->GetValue<std::string>("OutputURL", GetOutputURL()));
 }
 
-void Schedule::Initialize() { SPObject::Initialize(); }
+void Schedule::Initialize() {
+    m_pimpl_->m_ctx_->DoInitialize();
+    SPObject::Initialize();
+}
 
-void Schedule::Finalize() { SPObject::Finalize(); }
+void Schedule::Finalize() {
+    m_pimpl_->m_ctx_->DoFinalize();
+    SPObject::Finalize();
+}
 
 void Schedule::Update() {
     SPObject::Update();
-    if (m_pimpl_->m_ctx_ != nullptr) { m_pimpl_->m_ctx_->Update(); }
+    ASSERT(m_pimpl_->m_ctx_ != nullptr);
+    m_pimpl_->m_ctx_->DoUpdate();
 }
 
 void Schedule::TearDown() {
-    if (m_pimpl_->m_ctx_ != nullptr) { m_pimpl_->m_ctx_->TearDown(); }
+    if (m_pimpl_->m_ctx_ != nullptr) { m_pimpl_->m_ctx_->DoTearDown(); }
     SPObject::TearDown();
 }
 

@@ -4,12 +4,10 @@ TWOPI = 3.141592653589793 * 2.0
 N_PHI = 100
 Context = {
     Mesh = {
-        Default = {
-            Type = "RectMesh",
-            Coordinates = { Type = "Cylindrical" },
-            Scale = { 0.1, 0.1, TWOPI / N_PHI },
-            PeriodicDimension = { 0, 0, 1 },
-        },
+        Type = "RectMesh",
+        Coordinates = { Type = "Cylindrical" },
+        Scale = { 0.1, 0.1, TWOPI / N_PHI },
+        PeriodicDimension = { 0, 0, 1 },
     },
     Model = {
         Tokamak = {
@@ -28,7 +26,7 @@ Context = {
         Tokamak = {
             Type = "EMFluid",
             Mesh = "Default",
-            Model = "Tokamak",
+            GeometryObject = "Tokamak",
             BoundaryCondition = {
                 Type = "PEC",
                 Model = "Tokamak.Limiter",
@@ -47,7 +45,7 @@ Context = {
             Mesh = "Default",
             Variable = "E",
             IsHard = false,
-            Model = "Antenna",
+            GeometryObject = "Antenna",
             Amplify = { 0.0, 0.0, 1.0 },
             WaveNumber = 0.0,
             Frequency = 1.0e9

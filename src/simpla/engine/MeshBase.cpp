@@ -17,6 +17,11 @@ struct MeshBase::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
     std::shared_ptr<geometry::Chart> m_chart_;
     std::shared_ptr<Patch> m_patch_ = nullptr;
+    point_type m_scale_ = {1, 1, 1};
+    size_tuple m_periodic_dimension_{0, 0, 0};
+    index_tuple m_ghost_width_{2, 2, 2};
+    box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
+    index_box_type m_global_index_box_{{0, 0, 0}, {1, 1, 1}};
 };
 MeshBase::MeshBase(std::shared_ptr<geometry::Chart> const& c, std::string const& s_name)
     : SPObject(s_name), AttributeGroup(), m_pimpl_(new pimpl_s) {
@@ -28,6 +33,40 @@ void MeshBase::GetChart(std::shared_ptr<geometry::Chart> const& c) {
     Click();
 }
 std::shared_ptr<geometry::Chart> MeshBase::GetChart() const { return m_pimpl_->m_chart_; }
+
+void MeshBase::SetScale(point_type const& x) {
+    m_pimpl_->m_scale_ = x;
+    Click();
+}
+point_type const& MeshBase::GetScale() const { return m_pimpl_->m_scale_; }
+
+void MeshBase::SetPeriodicDimension(size_tuple const& x) {
+    m_pimpl_->m_periodic_dimension_ = x;
+    Click();
+}
+size_tuple const& MeshBase::GetPeriodicDimension() const { return m_pimpl_->m_periodic_dimension_; }
+
+void MeshBase::SetDefaultGhostWidth(index_tuple const& g) {
+    m_pimpl_->m_ghost_width_ = g;
+    Click();
+}
+index_tuple MeshBase::GetDefaultGhostWidth() const { return m_pimpl_->m_ghost_width_; }
+
+void MeshBase::SetGlobalBoundBox(box_type const& b) {
+    m_pimpl_->m_bound_box_ = b;
+    Click();
+}
+box_type MeshBase::GetGlobalBoundBox() const { return m_pimpl_->m_bound_box_; }
+
+index_box_type MeshBase::GetGlobalIndexBox() const { return m_pimpl_->m_global_index_box_; }
+
+void MeshBase::Update() {
+
+    std::get<0>(m_pimpl_->m_global_index_box_) = std::get<0>(m_pimpl_->m_global_index_box_) / m_pimpl_->m_scale_;
+    std::get<1>(m_pimpl_->m_global_index_box_) = std::get<1>(m_pimpl_->m_global_index_box_) / m_pimpl_->m_scale_;
+
+    Tag();
+};
 
 void MeshBase::SetBlock(std::shared_ptr<MeshBlock> m) {
     m_pimpl_->m_mesh_block_ = m;
@@ -50,14 +89,12 @@ std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
 void MeshBase::Deserialize(const std::shared_ptr<DataTable>& cfg) {
     m_pimpl_->m_chart_ = cfg->has("Coordinates") ? geometry::Chart::Create(cfg->Get("Coordinates"))
                                                  : geometry::Chart::Create("Cartesian");
+    m_pimpl_->m_scale_ = cfg->GetValue<point_type>("Scale", point_type{1, 1, 1});
+    m_pimpl_->m_periodic_dimension_ = cfg->GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 0});
 }
 index_tuple MeshBase::GetGhostWidth(int tag) const {
     auto blk = GetBlock();
     return blk == nullptr ? index_tuple{0, 0, 0} : blk->GetGhostWidth();
-}
-
-point_type MeshBase::global_coordinates(EntityId s, point_type const& pr) const {
-    return GetChart()->map(local_coordinates(s, pr));
 }
 
 box_type MeshBase::GetBox() const {
@@ -70,7 +107,9 @@ box_type MeshBase::GetBox() const {
         .w = 0, .x = static_cast<int16_t>(hi[0]), .y = static_cast<int16_t>(hi[1]), .z = static_cast<int16_t>(hi[2])});
     return res;
 }
-
+point_type MeshBase::global_coordinates(EntityId s, point_type const& pr) const {
+    return GetChart()->map(local_coordinates(s, pr));
+}
 // index_box_type MeshBase::GetIndexBox(int tag) const {
 //    index_box_type res = GetBlock()->GetIndexBox();
 //    switch (tag) {

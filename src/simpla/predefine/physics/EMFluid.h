@@ -22,9 +22,7 @@ class EMFluid : public engine::Domain {
     SP_OBJECT_HEAD(EMFluid<TM>, engine::Domain)
 
    public:
-
     DOMAIN_HEAD(EMFluid, TM)
-
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const& cfg) override;
@@ -32,22 +30,6 @@ class EMFluid : public engine::Domain {
     void InitialCondition(Real time_now) override;
     void BoundaryCondition(Real time_now, Real dt) override;
     void Advance(Real time_now, Real dt) override;
-
-    //    field_type<VERTEX> ne{this, "name"_ = "ne"};
-    //
-    //    field_type<EDGE> E0{this};
-    //    field_type<FACE> B0{this};
-    //    field_type<VOLUME, 3> B0v{this, "name"_ = "B0v"};
-    //    field_type<VOLUME> BB{this, "name"_ = "BB"};
-    //    field_type<VOLUME, 3> Ev{this, "name"_ = "Ev"};
-    //    field_type<VOLUME, 3> Bv{this, "name"_ = "Bv"};
-    //    field_type<VOLUME, 3> Jv{this, "name"_ = "Jv"};
-    //
-    //    field_type<VOLUME, 3> dE{this};
-    //
-    //    field_type<FACE> B{this, "name"_ = "B"};
-    //    field_type<EDGE> E{this, "name"_ = "E"};
-    //    field_type<EDGE> J{this, "name"_ = "J"};
 
     DOMAIN_DECLARE_FIELD(ne, VOLUME, 1);
     DOMAIN_DECLARE_FIELD(E0, EDGE, 1);
