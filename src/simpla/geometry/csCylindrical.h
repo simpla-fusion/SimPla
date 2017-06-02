@@ -229,13 +229,13 @@ struct Cylindrical : public Chart {
 // */
 //        point_t1 y;
 //
-//        st::get<CartesianXAxis>(y) = st::PopPatch<CylindricalRAxis>(x)
-//                                     * std::cos(st::PopPatch<CylindricalPhiAxis>(x));
+//        st::get<CartesianXAxis>(y) = st::Pop<CylindricalRAxis>(x)
+//                                     * std::cos(st::Pop<CylindricalPhiAxis>(x));
 //
-//        st::get<CartesianYAxis>(y) = st::PopPatch<CylindricalRAxis>(x)
-//                                     * std::sin(st::PopPatch<CylindricalPhiAxis>(x));
+//        st::get<CartesianYAxis>(y) = st::Pop<CylindricalRAxis>(x)
+//                                     * std::sin(st::Pop<CylindricalPhiAxis>(x));
 //
-//        st::get<CartesianZAxis>(y) = st::PopPatch<CylindricalZAxis>(x);
+//        st::get<CartesianZAxis>(y) = st::Pop<CylindricalZAxis>(x);
 //
 //        return std::Move(y);
 //    }
@@ -266,18 +266,18 @@ struct Cylindrical : public Chart {
 //    vector_t1 push_forward(point_t0 const &x0, vector_t0 const &v0)
 //    {
 //
-//        Real cos_phi = std::cos(st::PopPatch<CylindricalPhiAxis>(x0));
-//        Real sin_phi = std::cos(st::PopPatch<CylindricalPhiAxis>(x0));
-//        Real r = st::PopPatch<CylindricalRAxis>(x0);
+//        Real cos_phi = std::cos(st::Pop<CylindricalPhiAxis>(x0));
+//        Real sin_phi = std::cos(st::Pop<CylindricalPhiAxis>(x0));
+//        Real r = st::Pop<CylindricalRAxis>(x0);
 //
-//        Real vr = st::PopPatch<CylindricalRAxis>(v0);
-//        Real vphi = st::PopPatch<CylindricalPhiAxis>(v0);
+//        Real vr = st::Pop<CylindricalRAxis>(v0);
+//        Real vphi = st::Pop<CylindricalPhiAxis>(v0);
 //
 //        vector_t1 u;
 //
-//        st::PopPatch<CartesianXAxis>(u) = vr * cos_phi - vphi * r * sin_phi;
-//        st::PopPatch<CartesianYAxis>(u) = vr * sin_phi + vphi * r * cos_phi;
-//        st::PopPatch<CartesianZAxis>(u) = st::get<CylindricalZAxis>(v0);
+//        st::Pop<CartesianXAxis>(u) = vr * cos_phi - vphi * r * sin_phi;
+//        st::Pop<CartesianYAxis>(u) = vr * sin_phi + vphi * r * cos_phi;
+//        st::Pop<CartesianZAxis>(u) = st::get<CylindricalZAxis>(v0);
 //
 //        return std::Move(u);
 //    }
@@ -330,13 +330,13 @@ struct Cylindrical : public Chart {
 //         *  \f}
 //         *
 //         */
-//        st::get<CylindricalZAxis>(y) = st::PopPatch<CartesianYAxis>(x);
-//        st::PopPatch<CylindricalRAxis>(y) = std::sqrt(
-//                st::get<CartesianXAxis>(x) * st::PopPatch<CartesianXAxis>(x)
-//                + st::PopPatch<CartesianZAxis>(x)
-//                  * st::PopPatch<CartesianZAxis>(x));
-//        st::PopPatch<CylindricalPhiAxis>(y) = std::atan2(st::get<CartesianZAxis>(x),
-//                                                    st::PopPatch<CartesianXAxis>(x));
+//        st::get<CylindricalZAxis>(y) = st::Pop<CartesianYAxis>(x);
+//        st::Pop<CylindricalRAxis>(y) = std::sqrt(
+//                st::get<CartesianXAxis>(x) * st::Pop<CartesianXAxis>(x)
+//                + st::Pop<CartesianZAxis>(x)
+//                  * st::Pop<CartesianZAxis>(x));
+//        st::Pop<CylindricalPhiAxis>(y) = std::atan2(st::get<CartesianZAxis>(x),
+//                                                    st::Pop<CartesianXAxis>(x));
 //
 //        return std::Move(y);
 //
@@ -387,21 +387,21 @@ struct Cylindrical : public Chart {
 //
 //        y = map(x0);
 //
-//        Real cos_phi = std::cos(st::PopPatch<CylindricalPhiAxis>(x0));
-//        Real sin_phi = std::cos(st::PopPatch<CylindricalPhiAxis>(x0));
+//        Real cos_phi = std::cos(st::Pop<CylindricalPhiAxis>(x0));
+//        Real sin_phi = std::cos(st::Pop<CylindricalPhiAxis>(x0));
 //
-//        Real r = st::PopPatch<CylindricalRAxis>(x0);
+//        Real r = st::Pop<CylindricalRAxis>(x0);
 //
 //        vector_t1 u;
 //
-//        Real vx = st::PopPatch<CartesianXAxis>(v0);
-//        Real vy = st::PopPatch<CartesianYAxis>(v0);
+//        Real vx = st::Pop<CartesianXAxis>(v0);
+//        Real vy = st::Pop<CartesianYAxis>(v0);
 //
-//        st::PopPatch<CylindricalPhiAxis>(u) = (-vx * sin_phi + vy * cos_phi) / r;
+//        st::Pop<CylindricalPhiAxis>(u) = (-vx * sin_phi + vy * cos_phi) / r;
 //
-//        st::PopPatch<CylindricalRAxis>(u) = vx * cos_phi + vy * sin_phi;
+//        st::Pop<CylindricalRAxis>(u) = vx * cos_phi + vy * sin_phi;
 //
-//        st::PopPatch<CylindricalZAxis>(u) = st::get<CartesianZAxis>(v0);
+//        st::Pop<CylindricalZAxis>(u) = st::get<CartesianZAxis>(v0);
 //
 //        return std::Move(u);
 //    }

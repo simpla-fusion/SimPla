@@ -256,13 +256,13 @@ REGISTER_TYPED_TEST_CASE_P(TestField, Assign, index, constant_real, scalarField)
 //		LOGGER.set_stdout_level(LOG_INFORM);
 //		auto _fdtd_param = GetParam();
 //
-//		xmin = std::PopPatch<0>(_fdtd_param);
+//		xmin = std::Pop<0>(_fdtd_param);
 //
-//		xmax = std::PopPatch<1>(_fdtd_param);
+//		xmax = std::Pop<1>(_fdtd_param);
 //
-//		topology_dims = std::PopPatch<2>(_fdtd_param);
+//		topology_dims = std::Pop<2>(_fdtd_param);
 //
-//		K_real = std::PopPatch<3>(_fdtd_param);
+//		K_real = std::Pop<3>(_fdtd_param);
 //
 //		SetDefaultValue(&default_value);
 //

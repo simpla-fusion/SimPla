@@ -51,6 +51,7 @@ void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
             }
         });
     }
+    Click();
 }
 //    auto m_cfg = cfg->GetTable("Mesh");
 //    m_cfg->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t) {

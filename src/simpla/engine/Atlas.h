@@ -81,8 +81,8 @@ class Atlas : public SPObject, public data::Serializable {
     index_box_type FitIndexBox(box_type const &b, int level = 0, int flag = 0) const;
 
     size_type DeletePatch(id_type);
-    id_type PushPatch(std::shared_ptr<Patch>);
-    std::shared_ptr<Patch> PopPatch(id_type id);
+    id_type Push(std::shared_ptr<Patch>);
+    std::shared_ptr<Patch> Pop(id_type id);
 
     void SetPeriodicDimension(size_tuple const &d);
     size_tuple GetPeriodicDimension() const;

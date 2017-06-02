@@ -469,9 +469,9 @@ bool box_intersection(TL const& l, TR* r) {
 //{
 //	bool res = true;
 //
-//	auto min = std::PopPatch<0>(entity_id_range);
+//	auto min = std::Pop<0>(entity_id_range);
 //
-//	auto max = std::PopPatch<1>(entity_id_range);
+//	auto max = std::Pop<1>(entity_id_range);
 //
 //	for (size_t i = 0; i < DIM; ++i)
 //	{

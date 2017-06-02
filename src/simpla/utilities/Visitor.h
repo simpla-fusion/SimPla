@@ -156,7 +156,7 @@ struct Acceptor
 //    template<typename TFUN, unsigned int  ...S>
 //    inline void callFunc(TFUN const &fun, integer_sequence<int, S...>)
 //    {
-//        fun(std::PopPatch<S>(args_) ...);
+//        fun(std::Pop<S>(args_) ...);
 //    }
 
 

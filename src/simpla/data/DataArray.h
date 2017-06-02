@@ -268,7 +268,7 @@ inline std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<char c
 //
 // template <int N, typename... U>
 // void data_entity_from_helper(DataArray const& a, std::tuple<U...>& v, std::integral_constant<int, N>) {
-//    data_entity_from_helper0(*a.PopPatch(N - 1), std::get<N - 1>(v));
+//    data_entity_from_helper0(*a.Pop(N - 1), std::get<N - 1>(v));
 //    data_entity_from_helper(a, v, std::integral_constant<int, N - 1>());
 //};
 //

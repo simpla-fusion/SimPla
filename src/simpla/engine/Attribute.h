@@ -193,7 +193,7 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
 //    &d) {
 //        data::data_cast<U>(*d).swap(*this);
 //    };
-//    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> PopPatch() {
+//    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> Pop() {
 //        return std::make_pair(std::shared_ptr<MeshBlock>(nullptr), data::make_data_entity(*this));
 //    };
 //    template <typename TExpr>

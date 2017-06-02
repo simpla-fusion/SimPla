@@ -42,7 +42,7 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
     void Deserialize(const std::shared_ptr<DataTable> &t) override;
 
     void Push(const std::shared_ptr<Patch> &);
-    std::shared_ptr<Patch> PopPatch();
+    std::shared_ptr<Patch> Pop();
 
     MeshBase *GetMesh() { return this; };
     MeshBase const *GetMesh() const { return this; };
@@ -53,7 +53,7 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
 
     id_type GetBlockId() const;
 
-    void GetChart(std::shared_ptr<geometry::Chart> const &);
+    void SetChart(std::shared_ptr<geometry::Chart> const &);
     std::shared_ptr<geometry::Chart> GetChart() const;
 
     void SetScale(point_type const &x);

@@ -56,7 +56,7 @@ index_box_type Atlas::FitIndexBox(box_type const &b, int level, int flag) const 
 
 size_type Atlas::DeletePatch(id_type id) { return m_pimpl_->m_patches_.erase(id); }
 
-id_type Atlas::PushPatch(std::shared_ptr<Patch> p) {
+id_type Atlas::Push(std::shared_ptr<Patch> p) {
     if (p != nullptr) {
         auto res = m_pimpl_->m_patches_.emplace(p->GetId(), p);
         if (!res.second) { res.first->second->Merge(*p); }
@@ -64,7 +64,7 @@ id_type Atlas::PushPatch(std::shared_ptr<Patch> p) {
     return (p == nullptr) ? NULL_ID : p->GetId();
 }
 
-std::shared_ptr<Patch> Atlas::PopPatch(id_type id) {
+std::shared_ptr<Patch> Atlas::Pop(id_type id) {
     auto res = m_pimpl_->m_patches_.emplace(id, nullptr);
     if (res.first->second == nullptr) { res.first->second = std::make_shared<Patch>(id); }
     return res.first->second;

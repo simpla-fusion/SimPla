@@ -8,8 +8,8 @@
 #include "Attribute.h"
 #include "Domain.h"
 #include "MeshBlock.h"
-#include "simpla/model/Model.h"
 #include "Patch.h"
+#include "simpla/model/Model.h"
 namespace simpla {
 namespace engine {
 
@@ -25,10 +25,10 @@ struct MeshBase::pimpl_s {
 };
 MeshBase::MeshBase(std::shared_ptr<geometry::Chart> const& c, std::string const& s_name)
     : SPObject(s_name), AttributeGroup(), m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_chart_ = c;
+    SetChart(c);
 }
 MeshBase::~MeshBase() {}
-void MeshBase::GetChart(std::shared_ptr<geometry::Chart> const& c) {
+void MeshBase::SetChart(std::shared_ptr<geometry::Chart> const& c) {
     m_pimpl_->m_chart_ = c;
     Click();
 }
@@ -61,9 +61,8 @@ box_type MeshBase::GetGlobalBoundBox() const { return m_pimpl_->m_bound_box_; }
 index_box_type MeshBase::GetGlobalIndexBox() const { return m_pimpl_->m_global_index_box_; }
 
 void MeshBase::Update() {
-
-    std::get<0>(m_pimpl_->m_global_index_box_) = std::get<0>(m_pimpl_->m_global_index_box_) / m_pimpl_->m_scale_;
-    std::get<1>(m_pimpl_->m_global_index_box_) = std::get<1>(m_pimpl_->m_global_index_box_) / m_pimpl_->m_scale_;
+    std::get<0>(m_pimpl_->m_global_index_box_) = std::get<0>(m_pimpl_->m_bound_box_) / m_pimpl_->m_scale_;
+    std::get<1>(m_pimpl_->m_global_index_box_) = std::get<1>(m_pimpl_->m_bound_box_) / m_pimpl_->m_scale_;
 
     Tag();
 };
@@ -146,8 +145,8 @@ point_type MeshBase::global_coordinates(EntityId s, point_type const& pr) const 
 
 EntityRange MeshBase::GetRange(std::string const& k) const {
     ASSERT(!isModified());
+    ASSERT(m_pimpl_->m_patch_ != nullptr);
     auto it = m_pimpl_->m_patch_->m_ranges.find(k);
-    //    VERBOSE << FILE_LINE_STAMP << "Get Range " << k << std::endl;
     return (it != m_pimpl_->m_patch_->m_ranges.end()) ? it->second
                                                       : EntityRange{std::make_shared<EmptyRangeBase<EntityId>>()};
 };
@@ -185,7 +184,7 @@ void MeshBase::Push(const std::shared_ptr<Patch>& p) {
 
     DoUpdate();
 }
-std::shared_ptr<Patch> MeshBase::PopPatch() {
+std::shared_ptr<Patch> MeshBase::Pop() {
     m_pimpl_->m_patch_->SetBlock(GetMesh()->GetBlock());
     for (auto& item : GetMesh()->GetAllAttributes()) {
         m_pimpl_->m_patch_->Push(item.second->GetID(), item.second->Pop());

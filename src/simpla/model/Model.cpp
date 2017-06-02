@@ -40,6 +40,7 @@ void Model::Update() {
     ++it;
     for (; it != m_pimpl_->m_g_objs_.end(); ++it) {
         if (it->second != nullptr) {
+            if (it->second->hasChildren()) { continue; }
             m_pimpl_->m_bound_box_ = geometry::BoundBox(m_pimpl_->m_bound_box_, it->second->GetBoundBox());
         }
     }

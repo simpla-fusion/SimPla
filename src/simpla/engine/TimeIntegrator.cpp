@@ -54,7 +54,7 @@ Real TimeIntegrator::Advance(Real time_dt) {
 //            LOGGER << " Domain [ " << std::setw(10) << std::left << v.second->name() << " ] is applied on "
 //                   << mblk->GetIndexBox() << " id= " << id << std::endl;
 //            v.second->Run(dt);
-//            auto t = v.second->PopPatch().second;
+//            auto t = v.second->Pop().second;
 //            m_pimpl_->m_ctx_->GetPatches()->Push(std::to_string(id), t);
 //        }
 //    }

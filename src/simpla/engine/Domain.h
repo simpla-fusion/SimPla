@@ -61,7 +61,7 @@ class Domain : public SPObject,
 //        Pre##_NAME_(std::forward<Args>(args)...);                                             \
 //        _NAME_(std::forward<Args>(args)...)                                                   \
 //        Post##_NAME_(std::forward<Args>(args)...);                                            \
-//        return PopPatch();                                                                    \
+//        return Pop();                                                                    \
 //    };
 
     design_pattern::Signal<void(Domain *, Real)> PreInitialCondition;

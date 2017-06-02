@@ -312,8 +312,8 @@ struct calculator {
     //                      ::value && traits::GetIFORM<T>::value == EDGE))
     //    )
     //    {
-    //        return (get_v(m, std::PopPatch<0>(expr.m_args_), s + EntityIdCoder::DI(I)) -
-    //                get_v(m, std::PopPatch<0>(expr.m_args_), s - EntityIdCoder::DI(I))
+    //        return (get_v(m, std::Pop<0>(expr.m_args_), s + EntityIdCoder::DI(I)) -
+    //                get_v(m, std::Pop<0>(expr.m_args_), s - EntityIdCoder::DI(I))
     //               ) * m.inv_volume(s) * m_p_curl_factor_[(I + 3 -
     //               EntityIdCoder::sub_index(s)) % 3];
     //    }
@@ -331,8 +331,8 @@ struct calculator {
     //    )
     //    {
     //
-    //        return (get_v(m, std::PopPatch<0>(expr.m_args_), s + EntityIdCoder::DI(I)) -
-    //                get_v(m, std::PopPatch<0>(expr.m_args_), s - EntityIdCoder::DI(I))
+    //        return (get_v(m, std::Pop<0>(expr.m_args_), s + EntityIdCoder::DI(I)) -
+    //                get_v(m, std::Pop<0>(expr.m_args_), s - EntityIdCoder::DI(I))
     //               ) * m.inv_dual_volume(s) * m_p_curl_factor_[(I + 3 -
     //               EntityIdCoder::sub_index(s)) % 3];
     //    }
@@ -626,8 +626,8 @@ struct calculator {
         EntityId Y = (EntityIdCoder::_DJ);
         EntityId Z = (EntityIdCoder::_DK);
 
-        point_type r;  //= std::PopPatch<1>(idx);
-        EntityId s;    //= std::PopPatch<0>(idx);
+        point_type r;  //= std::Pop<1>(idx);
+        EntityId s;    //= std::Pop<0>(idx);
 
         return getValue(f, m, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) +    //
                getValue(f, m, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) +    //
