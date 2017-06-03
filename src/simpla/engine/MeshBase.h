@@ -27,7 +27,7 @@ using namespace simpla::data;
  *   - \f$p\f$ is the projection
  *
  */
-class MeshBase : public SPObject, public data::EnableCreateFromDataTable<MeshBase> {
+class MeshBase : public SPObject, public AttributeGroup, public data::EnableCreateFromDataTable<MeshBase> {
     SP_OBJECT_HEAD(MeshBase, SPObject);
 
    public:
@@ -42,8 +42,8 @@ class MeshBase : public SPObject, public data::EnableCreateFromDataTable<MeshBas
     MeshBase *GetMesh() { return this; };
     MeshBase const *GetMesh() const { return this; };
 
-    virtual void Push(Patch *);
-    virtual void Pop(Patch *);
+    void Push(Patch *) override;
+    void Pop(Patch *) override;
 
     virtual unsigned int GetNDims() const { return 3; }
     virtual void InitializeData(Real time_now);

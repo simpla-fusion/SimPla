@@ -174,10 +174,12 @@ void MeshBase::Push(Patch* p) {
     Click();
     m_pimpl_->m_patch_ = p;
     SetBlock(m_pimpl_->m_patch_->GetBlock());
+    AttributeGroup::Push(p);
     DoUpdate();
 }
 void MeshBase::Pop(Patch* p) {
     p->SetBlock(GetMesh()->GetBlock());
+    AttributeGroup::Pop(p);
     m_pimpl_->m_patch_ = nullptr;
     Click();
     DoTearDown();

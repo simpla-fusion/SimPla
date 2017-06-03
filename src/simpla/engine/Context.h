@@ -93,7 +93,7 @@ class Context : public SPObject, public data::EnableCreateFromDataTable<Context>
 
     std::map<std::string, std::shared_ptr<Domain>> &GetAllDomains();
     std::map<std::string, std::shared_ptr<Domain>> const &GetAllDomains() const;
-    std::map<std::string, std::shared_ptr<AttributeDesc>> const &GetRegisteredAttribute() const;
+    std::map<std::string, std::shared_ptr<AttributeDesc>> CollectRegisteredAttributes() const;
 
    private:
     struct pimpl_s;

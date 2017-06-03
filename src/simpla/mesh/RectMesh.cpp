@@ -9,14 +9,6 @@ namespace simpla {
 namespace mesh {
 REGISTER_CREATOR(RectMesh);
 
-    void RectMesh::Push(Patch *p) {
-        StructuredMesh::Push(p);
-        AttributeGroup::Push(p);
-    };
-    void RectMesh::Pop(Patch *p) {
-        StructuredMesh::Pop(nullptr);
-        AttributeGroup::Pop(p);
-    }
 void RectMesh::InitializeData(Real time_now) {
     StructuredMesh::InitializeData(time_now);
 

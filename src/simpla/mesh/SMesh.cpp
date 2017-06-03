@@ -8,14 +8,7 @@
 namespace simpla {
 namespace mesh {
 REGISTER_CREATOR(SMesh);
-void SMesh::Push(Patch *p) {
-    StructuredMesh::Push(p);
-    AttributeGroup::Push(p);
-};
-void SMesh::Pop(Patch *p) {
-    StructuredMesh::Pop(nullptr);
-    AttributeGroup::Pop(p);
-}
+
 point_type SMesh::point(EntityId s) const { return local_coordinates(s, point_type{0, 0, 0}); }
 
 point_type SMesh::local_coordinates(EntityId s, point_type const &pr) const {
