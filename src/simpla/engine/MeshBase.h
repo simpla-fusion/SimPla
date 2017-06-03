@@ -39,8 +39,8 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<DataTable> &t) override;
 
-    MeshBase *GetMesh() { return this; };
-    MeshBase const *GetMesh() const { return this; };
+    MeshBase *GetMesh() override { return this; };
+    MeshBase const *GetMesh() const override { return this; };
 
     void Push(Patch *) override;
     void Pop(Patch *) override;

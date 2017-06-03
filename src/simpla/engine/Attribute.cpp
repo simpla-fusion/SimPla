@@ -118,6 +118,7 @@ Attribute::Attribute(int IFORM, int DOF, std::type_info const &t_info, Attribute
       AttributeDesc(IFORM, DOF, t_info, SPObject::GetName(), cfg),
       m_pimpl_(new pimpl_s) {
     Register(grp);
+    m_pimpl_->m_mesh_ = grp->GetMesh();
 };
 
 Attribute::Attribute(Attribute const &other) : AttributeDesc(other), m_pimpl_(new pimpl_s) {}

@@ -14,7 +14,7 @@ namespace engine {
 struct Context::pimpl_s {
     std::shared_ptr<MeshBase> m_mesh_;
     std::map<std::string, std::shared_ptr<Domain>> m_domains_;
-
+    std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
     Atlas m_atlas_;
     model::Model m_model_;
 };
@@ -23,9 +23,10 @@ Context::Context(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pim
 Context::~Context() {}
 std::shared_ptr<data::DataTable> Context::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
-    for (auto const &item : m_pimpl_->m_domains_) { res->Link("Domains/" + item.first, item.second->Serialize()); }
-
     res->Set("Atlas", m_pimpl_->m_atlas_.Serialize());
+    res->Set("Model", m_pimpl_->m_model_.Serialize());
+    res->Set("Mesh", m_pimpl_->m_mesh_->Serialize());
+    for (auto const &item : m_pimpl_->m_domains_) { res->Link("Domains/" + item.first, item.second->Serialize()); }
 
     return res;
 }
@@ -89,8 +90,6 @@ void Context::Update() {
     m_pimpl_->m_model_.DoUpdate();
     m_pimpl_->m_mesh_->SetGlobalBoundBox(m_pimpl_->m_model_.GetBoundBox());
     m_pimpl_->m_mesh_->DoUpdate();
-
-    //    m_pimpl_->m_mesh_->RegisterDescription(&m_pimpl_->m_global_attributes_);
 };
 
 Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
@@ -114,7 +113,8 @@ std::shared_ptr<Domain> Context::GetDomain(std::string const &k) const {
 
 std::map<std::string, std::shared_ptr<AttributeDesc>> Context::CollectRegisteredAttributes() const {
     std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
-
+    m_pimpl_->m_mesh_->RegisterDescription(&m_global_attributes_);
+    for (auto const &item : GetAllDomains()) { item.second->RegisterDescription(&m_global_attributes_); }
     return m_global_attributes_;
 }
 

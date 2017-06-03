@@ -322,10 +322,7 @@ std::ostream &GEqdsk::print(std::ostream &os) {
 GEqdsk::GEqdsk(std::shared_ptr<geometry::Chart> const &c) : m_pimpl_(new pimpl_s), geometry::GeoObject() {}
 
 GEqdsk::~GEqdsk() {}
-std::shared_ptr<data::DataTable> GEqdsk::Serialize() const {
-    DO_NOTHING;
-    return nullptr;
-}
+std::shared_ptr<data::DataTable> GEqdsk::Serialize() const { return std::make_shared<data::DataTable>(); }
 void GEqdsk::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     nTuple<Real, 2> phi = cfg->GetValue("Phi", nTuple<Real, 2>{0, TWOPI});
 

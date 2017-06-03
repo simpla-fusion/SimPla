@@ -35,8 +35,8 @@ class Domain : public SPObject,
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
 
-    MeshBase const *GetMesh() const;
-    MeshBase *GetMesh();
+    MeshBase const *GetMesh() const override;
+    MeshBase *GetMesh() override;
 
     engine::Domain *GetDomain() { return this; }
     engine::Domain const *GetDomain() const { return this; }
