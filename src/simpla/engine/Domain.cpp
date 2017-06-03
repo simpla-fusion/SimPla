@@ -48,25 +48,20 @@ std::shared_ptr<geometry::GeoObject> Domain::GetGeoObject() const { return m_pim
 void Domain::Push(Patch* p) {
     Click();
     m_pimpl_->m_patch_ = p;
+    m_pimpl_->m_mesh_->Push(p);
     AttributeGroup::Push(p);
-
     DoUpdate();
 }
 void Domain::Pop(Patch* p) {
-    auto res = m_pimpl_->m_patch_;
-    m_pimpl_->m_patch_ = nullptr;
     AttributeGroup::Pop(p);
+    m_pimpl_->m_mesh_->Pop(p);
+    m_pimpl_->m_patch_ = nullptr;
     Click();
     DoTearDown();
 }
 
 void Domain::DoInitialCondition(Patch* patch, Real time_now) {
     Push(patch);
-
-    //    if (GetMesh() != nullptr) {
-    //        GetMesh()->InitializeData(time_now);
-    //        GetMesh()->RegisterRanges(m_pimpl_->m_patch_->m_ranges, m_pimpl_->m_geo_object_, GetName());
-    //    }
     PreInitialCondition(this, time_now);
     InitialCondition(time_now);
     PostInitialCondition(this, time_now);
@@ -74,7 +69,6 @@ void Domain::DoInitialCondition(Patch* patch, Real time_now) {
 }
 void Domain::DoBoundaryCondition(Patch* patch, Real time_now, Real dt) {
     Push(patch);
-    GetMesh()->SetBoundaryCondition(time_now, dt);
     PreBoundaryCondition(this, time_now, dt);
     BoundaryCondition(time_now, dt);
     PostBoundaryCondition(this, time_now, dt);
