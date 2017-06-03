@@ -55,7 +55,6 @@ void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
 }
 //    auto m_cfg = cfg->GetTable("Mesh");
 //    m_cfg->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t) {
-//        // FIXME: !!!!!
 //    });
 //    auto d_cfg = cfg->GetTable("Domains");
 //    d_cfg->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t) {
@@ -94,7 +93,7 @@ void Context::Update() {
 
     m_pimpl_->m_mesh_->DoUpdate();
 
-    m_pimpl_->m_mesh_->RegisterDescription(&m_pimpl_->m_global_attributes_);
+//    m_pimpl_->m_mesh_->RegisterDescription(&m_pimpl_->m_global_attributes_);
 };
 
 Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }

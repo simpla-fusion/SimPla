@@ -27,7 +27,7 @@ using namespace simpla::data;
  *   - \f$p\f$ is the projection
  *
  */
-class MeshBase : public SPObject, public AttributeGroup, public data::EnableCreateFromDataTable<MeshBase> {
+class MeshBase : public SPObject, public data::EnableCreateFromDataTable<MeshBase> {
     SP_OBJECT_HEAD(MeshBase, SPObject);
 
    public:
@@ -36,16 +36,14 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
     SP_DEFAULT_CONSTRUCT(MeshBase);
     DECLARE_REGISTER_NAME("MeshBase");
 
-
-
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<DataTable> &t) override;
 
-    void Push(const std::shared_ptr<Patch> &);
-    std::shared_ptr<Patch> Pop();
-
     MeshBase *GetMesh() { return this; };
     MeshBase const *GetMesh() const { return this; };
+
+    virtual void Push(Patch *);
+    virtual void Pop(Patch *);
 
     virtual unsigned int GetNDims() const { return 3; }
     virtual void InitializeData(Real time_now);
@@ -68,7 +66,7 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
     void SetGlobalBoundBox(box_type const &);
     box_type GetGlobalBoundBox() const;
 
-    virtual index_box_type GetGlobalIndexBox() const;
+    virtual index_box_type GetCoarsestIndexBox() const;
 
     void SetBlock(std::shared_ptr<MeshBlock>);
     std::shared_ptr<MeshBlock> GetBlock() const;

@@ -7,6 +7,7 @@ Context = {
         Type = "RectMesh",
         Coordinates = { Type = "Cylindrical" },
         Scale = { 0.1, 0.1, TWOPI / N_PHI },
+        --Dimensions={32,32,32},
         PeriodicDimension = { 0, 0, 1 },
     },
     Model = {

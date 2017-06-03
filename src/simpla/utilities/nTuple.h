@@ -90,7 +90,6 @@ typedef nTuple<Real, 3> RVec3;
  *
  *    @endcode}
  *
- *    TODO: nTuple should move to sub-directory utilities
  **/
 namespace traits {
 

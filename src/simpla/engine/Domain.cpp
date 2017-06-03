@@ -13,7 +13,7 @@ namespace engine {
 struct Domain::pimpl_s {
     std::shared_ptr<geometry::GeoObject> m_geo_object_;
     std::shared_ptr<MeshBase> m_mesh_ = nullptr;
-    std::shared_ptr<Patch> m_patch_ = nullptr;
+    Patch* m_patch_ = nullptr;
 };
 Domain::Domain(const std::shared_ptr<MeshBase>& m, const std::shared_ptr<geometry::GeoObject>& g)
     : SPObject(), m_pimpl_(new pimpl_s) {
@@ -45,58 +45,47 @@ void Domain::SetGeoObject(std::shared_ptr<geometry::GeoObject> const& g) {
 
 std::shared_ptr<geometry::GeoObject> Domain::GetGeoObject() const { return m_pimpl_->m_geo_object_; }
 
-void Domain::Push(const std::shared_ptr<Patch>& p) {
+void Domain::Push(Patch* p) {
     Click();
     m_pimpl_->m_patch_ = p;
-    GetMesh()->SetBlock(m_pimpl_->m_patch_->GetBlock());
-    for (auto& item : GetMesh()->GetAllAttributes()) {
-        auto k = "." + std::string(EntityIFORMName[item.second->GetIFORM()]) + "_BODY";
-
-        auto it = m_pimpl_->m_patch_->m_ranges.find(k);
-        item.second->Push(m_pimpl_->m_patch_->Pop(item.second->GetID()),
-                          (it == m_pimpl_->m_patch_->m_ranges.end()) ? EntityRange{} : it->second);
-    }
+    AttributeGroup::Push(p);
 
     DoUpdate();
 }
-std::shared_ptr<Patch> Domain::PopPatch() {
-    m_pimpl_->m_patch_->SetBlock(GetMesh()->GetBlock());
-    for (auto& item : GetMesh()->GetAllAttributes()) {
-        m_pimpl_->m_patch_->Push(item.second->GetID(), item.second->Pop());
-    }
+void Domain::Pop(Patch* p) {
     auto res = m_pimpl_->m_patch_;
     m_pimpl_->m_patch_ = nullptr;
+    AttributeGroup::Pop(p);
     Click();
     DoTearDown();
-    return res;
 }
 
-std::shared_ptr<Patch> Domain::DoInitialCondition(const std::shared_ptr<Patch>& patch, Real time_now) {
+void Domain::DoInitialCondition(Patch* patch, Real time_now) {
     Push(patch);
 
-//    if (GetMesh() != nullptr) {
-//        GetMesh()->InitializeData(time_now);
-//        GetMesh()->RegisterRanges(m_pimpl_->m_patch_->m_ranges, m_pimpl_->m_geo_object_, GetName());
-//    }
+    //    if (GetMesh() != nullptr) {
+    //        GetMesh()->InitializeData(time_now);
+    //        GetMesh()->RegisterRanges(m_pimpl_->m_patch_->m_ranges, m_pimpl_->m_geo_object_, GetName());
+    //    }
     PreInitialCondition(this, time_now);
     InitialCondition(time_now);
     PostInitialCondition(this, time_now);
-    return PopPatch();
+    Pop(patch);
 }
-std::shared_ptr<Patch> Domain::DoBoundaryCondition(const std::shared_ptr<Patch>& patch, Real time_now, Real dt) {
+void Domain::DoBoundaryCondition(Patch* patch, Real time_now, Real dt) {
     Push(patch);
     GetMesh()->SetBoundaryCondition(time_now, dt);
     PreBoundaryCondition(this, time_now, dt);
     BoundaryCondition(time_now, dt);
     PostBoundaryCondition(this, time_now, dt);
-    return PopPatch();
+    Pop(patch);
 }
-std::shared_ptr<Patch> Domain::DoAdvance(const std::shared_ptr<Patch>& patch, Real time_now, Real dt) {
+void Domain::DoAdvance(Patch* patch, Real time_now, Real dt) {
     Push(patch);
     PreAdvance(this, time_now, dt);
     Advance(time_now, dt);
     PostAdvance(this, time_now, dt);
-    return PopPatch();
+    Pop(patch);
 }
 
 }  // namespace engine{

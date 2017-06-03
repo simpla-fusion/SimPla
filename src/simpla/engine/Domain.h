@@ -21,6 +21,7 @@ class AttributeGroup;
 * @brief
 */
 class Domain : public SPObject,
+               public AttributeGroup,
                public data::EnableCreateFromDataTable<Domain, std::shared_ptr<MeshBase> const &,
                                                       std::shared_ptr<geometry::GeoObject> const &> {
     SP_OBJECT_HEAD(Domain, SPObject)
@@ -48,8 +49,8 @@ class Domain : public SPObject,
     void Update() override;
     void TearDown() override;
 
-    void Push(const std::shared_ptr<Patch> &);
-    std::shared_ptr<Patch> PopPatch();
+    void Push(Patch *) override;
+    void Pop(Patch *) override;
 
     //#define DEF_OPERATION(_NAME_, ...)                                                            \
 //    virtual void _NAME_(__VA_ARGS__) {}                                                       \
@@ -75,18 +76,18 @@ class Domain : public SPObject,
     virtual void BoundaryCondition(Real time_now, Real dt) {}
     virtual void Advance(Real time_now, Real dt) {}
 
-    std::shared_ptr<Patch> DoInitialCondition(const std::shared_ptr<Patch> &, Real time_now);
-    std::shared_ptr<Patch> DoBoundaryCondition(const std::shared_ptr<Patch> &, Real time_now, Real dt);
-    std::shared_ptr<Patch> DoAdvance(const std::shared_ptr<Patch> &, Real time_now, Real dt);
+    void DoInitialCondition(Patch *, Real time_now);
+    void DoBoundaryCondition(Patch *, Real time_now, Real dt);
+    void DoAdvance(Patch *, Real time_now, Real dt);
 
     template <typename T>
     T GetAttribute(std::string const &k, EntityRange const &r) const {
-        return T(GetMesh()->Get(k)->cast_as<T>(), r);
+        return T(AttributeGroup::Get(k)->cast_as<T>(), r);
     };
 
     template <typename T>
     T GetAttribute(std::string const &k, std::string const &s = "") const {
-        return GetAttribute<T>(k, GetBodyRange(T::iform, s));
+        return GetAttribute<T>(k, GetMesh()->GetBodyRange(T::iform, s));
     };
 
    private:

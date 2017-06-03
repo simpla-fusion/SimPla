@@ -56,12 +56,21 @@ void AttributeGroup::RegisterDescription(std::map<std::string, std::shared_ptr<A
 };
 
 void AttributeGroup::RegisterAt(AttributeGroup *other) {
-    for (auto &item : m_pimpl_->m_attributes_) { item.second->RegisterAt(other); }
+    for (auto &item : m_pimpl_->m_attributes_) { item.second->Register(other); }
 };
 void AttributeGroup::DeregisterFrom(AttributeGroup *other) {
-    for (auto &item : m_pimpl_->m_attributes_) { item.second->DeregisterFrom(other); }
+    for (auto &item : m_pimpl_->m_attributes_) { item.second->Deregister(other); }
 };
-
+void AttributeGroup::Push(Patch *p) {
+    for (auto &item : GetAllAttributes()) {
+        auto k = "." + std::string(EntityIFORMName[item.second->GetIFORM()]) + "_BODY";
+        auto it = p->m_ranges.find(k);
+        item.second->Push(p->Pop(item.second->GetID()), (it == p->m_ranges.end()) ? EntityRange{} : it->second);
+    }
+}
+void AttributeGroup::Pop(Patch *p) {
+    for (auto &item : GetAllAttributes()) { p->Push(item.second->GetID(), item.second->Pop()); }
+}
 void AttributeGroup::Attach(Attribute *p) { m_pimpl_->m_attributes_.emplace(p->GetPrefix(), p); }
 void AttributeGroup::Detach(Attribute *p) { m_pimpl_->m_attributes_.erase(p->GetPrefix()); }
 std::map<std::string, Attribute *> &AttributeGroup::GetAllAttributes() { return m_pimpl_->m_attributes_; };
@@ -103,28 +112,27 @@ struct Attribute::pimpl_s {
     MeshBase *m_mesh_;
     std::set<AttributeGroup *> m_bundle_;
 };
-Attribute::Attribute(int IFORM, int DOF, std::type_info const &t_info, MeshBase *m,
-                     std::shared_ptr<data::DataTable> const &cfg)
+Attribute::Attribute(int IFORM, int DOF, std::type_info const &t_info, AttributeGroup *grp,
+                     std::shared_ptr<DataTable> cfg)
     : SPObject((cfg != nullptr && cfg->has("name")) ? cfg->GetValue<std::string>("name") : ""),
       AttributeDesc(IFORM, DOF, t_info, SPObject::GetName(), cfg),
       m_pimpl_(new pimpl_s) {
-    RegisterAt(m);
-    m_pimpl_->m_mesh_ = m;
+    Register(grp);
 };
 
 Attribute::Attribute(Attribute const &other) : AttributeDesc(other), m_pimpl_(new pimpl_s) {}
 Attribute::Attribute(Attribute &&other) : AttributeDesc(other), m_pimpl_(std::move(other.m_pimpl_)) {}
 Attribute::~Attribute() {
-    for (auto *b : m_pimpl_->m_bundle_) { DeregisterFrom(b); }
+    for (auto *b : m_pimpl_->m_bundle_) { Deregister(b); }
 }
 
-void Attribute::RegisterAt(AttributeGroup *attr_b) {
+void Attribute::Register(AttributeGroup *attr_b) {
     if (attr_b != nullptr) {
         auto res = m_pimpl_->m_bundle_.emplace(attr_b);
         if (res.second) { attr_b->Attach(this); }
     }
 }
-void Attribute::DeregisterFrom(AttributeGroup *attr_b) {
+void Attribute::Deregister(AttributeGroup *attr_b) {
     if (m_pimpl_->m_bundle_.erase(attr_b) > 0) { attr_b->Detach(this); };
 }
 

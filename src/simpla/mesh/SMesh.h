@@ -16,7 +16,7 @@ using namespace simpla::engine;
  *  Curvilinear
  *  metric is not uniform
  */
-struct SMesh : public StructuredMesh {
+struct SMesh : public StructuredMesh, public AttributeGroup {
    public:
     SP_OBJECT_HEAD(SMesh, StructuredMesh)
 
@@ -32,6 +32,9 @@ struct SMesh : public StructuredMesh {
     point_type point(EntityId s) const override;
 
     point_type local_coordinates(EntityId s, point_type const &r) const override;
+
+    void Push(Patch *) override;
+    void Pop(Patch *) override;
 
 #define DECLARE_FIELD(_IFORM_, _DOF_, _NAME_, ...) \
     Field<this_type, Real, _IFORM_, _DOF_> _NAME_{this, "name"_ = __STRING(_NAME_), __VA_ARGS__};

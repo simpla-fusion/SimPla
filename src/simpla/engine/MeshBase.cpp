@@ -16,7 +16,7 @@ namespace engine {
 struct MeshBase::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
     std::shared_ptr<geometry::Chart> m_chart_;
-    std::shared_ptr<Patch> m_patch_ = nullptr;
+    Patch* m_patch_ = nullptr;
     point_type m_scale_ = {1, 1, 1};
     size_tuple m_periodic_dimension_{0, 0, 0};
     index_tuple m_ghost_width_{2, 2, 2};
@@ -24,7 +24,7 @@ struct MeshBase::pimpl_s {
     index_box_type m_global_index_box_{{0, 0, 0}, {1, 1, 1}};
 };
 MeshBase::MeshBase(std::shared_ptr<geometry::Chart> const& c, std::string const& s_name)
-    : SPObject(s_name), AttributeGroup(), m_pimpl_(new pimpl_s) {
+    : SPObject(s_name), m_pimpl_(new pimpl_s) {
     SetChart(c);
 }
 MeshBase::~MeshBase() {}
@@ -58,7 +58,7 @@ void MeshBase::SetGlobalBoundBox(box_type const& b) {
 }
 box_type MeshBase::GetGlobalBoundBox() const { return m_pimpl_->m_bound_box_; }
 
-index_box_type MeshBase::GetGlobalIndexBox() const { return m_pimpl_->m_global_index_box_; }
+index_box_type MeshBase::GetCoarsestIndexBox() const { return m_pimpl_->m_global_index_box_; }
 
 void MeshBase::Update() {
     std::get<0>(m_pimpl_->m_global_index_box_) = std::get<0>(m_pimpl_->m_bound_box_) / m_pimpl_->m_scale_;
@@ -170,30 +170,17 @@ EntityRange MeshBase::GetPerpendicularBoundaryRange(int IFORM, std::string const
 EntityRange MeshBase::GetGhostRange(int IFORM) const {
     return GetRange("." + std::string(EntityIFORMName[IFORM]) + "_GHOST");
 }
-void MeshBase::Push(const std::shared_ptr<Patch>& p) {
+void MeshBase::Push(Patch* p) {
     Click();
     m_pimpl_->m_patch_ = p;
     SetBlock(m_pimpl_->m_patch_->GetBlock());
-    for (auto& item : GetAllAttributes()) {
-        auto k = "." + std::string(EntityIFORMName[item.second->GetIFORM()]) + "_BODY";
-
-        auto it = m_pimpl_->m_patch_->m_ranges.find(k);
-        item.second->Push(m_pimpl_->m_patch_->Pop(item.second->GetID()),
-                          (it == m_pimpl_->m_patch_->m_ranges.end()) ? EntityRange{} : it->second);
-    }
-
     DoUpdate();
 }
-std::shared_ptr<Patch> MeshBase::Pop() {
-    m_pimpl_->m_patch_->SetBlock(GetMesh()->GetBlock());
-    for (auto& item : GetMesh()->GetAllAttributes()) {
-        m_pimpl_->m_patch_->Push(item.second->GetID(), item.second->Pop());
-    }
-    auto res = m_pimpl_->m_patch_;
+void MeshBase::Pop(Patch* p) {
+    p->SetBlock(GetMesh()->GetBlock());
     m_pimpl_->m_patch_ = nullptr;
     Click();
     DoTearDown();
-    return res;
 }
 
 std::map<std::string, EntityRange>& MeshBase::GetRangeDict() { return m_pimpl_->m_patch_->m_ranges; };

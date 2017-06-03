@@ -160,8 +160,8 @@ struct Cylindrical : public Chart {
             return (r1 - r0) * (z1 - z0);
 
         } else {
-            THROW_EXCEPTION("Undefined result");
-            return 0;
+            //            THROW_EXCEPTION("Undefined result");
+            return std::numeric_limits<Real>::quiet_NaN();
         }
     }
 

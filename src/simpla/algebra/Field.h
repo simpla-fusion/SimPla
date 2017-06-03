@@ -52,20 +52,10 @@ class Field : public engine::Attribute {
     mesh_type const* m_mesh_ = nullptr;
 
    public:
-    Field() {}
 
     template <typename... Args>
-    explicit Field(engine::MeshBase* m, Args&&... args)
-        : engine::Attribute(IFORM, DOF, typeid(value_type), m,
-                            std::make_shared<data::DataTable>(std::forward<Args>(args)...)),
-          m_mesh_(nullptr),
-          m_range_(){};
-    template <typename Holder, typename... Args>
-    explicit Field(Holder* holder, Args&&... args)
-        : engine::Attribute(IFORM, DOF, typeid(value_type), holder->GetMesh(),
-                            std::make_shared<data::DataTable>(std::forward<Args>(args)...)),
-          m_mesh_(nullptr),
-          m_range_(){};
+    explicit Field(Args&&... args) : engine::Attribute(IFORM, DOF, typeid(value_type), std::forward<Args>(args)...){};
+
     Field(this_type const& other)
         : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_data_(other.m_data_) {}
 
@@ -125,13 +115,16 @@ class Field : public engine::Attribute {
 
     void Update() override {
         engine::Attribute::Update();
-        m_mesh_ = dynamic_cast<mesh_type const*>(engine::Attribute::GetMesh());
+        if (m_mesh_ == nullptr) { m_mesh_ = dynamic_cast<mesh_type const*>(engine::Attribute::GetMesh()); }
+        ASSERT(m_mesh_ != nullptr);
+
         if (m_data_ == nullptr) { m_data_ = m_mesh_->template make_data<value_type, IFORM, DOF>(); }
     }
 
     void TearDown() override {
         m_range_.reset();
         m_data_.reset();
+        m_mesh_ = nullptr;
     }
 
     void Push(const std::shared_ptr<data::DataBlock>& d, const EntityRange& r) override {
@@ -159,6 +152,7 @@ class Field : public engine::Attribute {
     template <typename Other>
     void Assign(Other const& other) {
         DoUpdate();
+        ASSERT(m_mesh_ != nullptr);
         ASSERT(m_data_ != nullptr && m_data_->size() > 0);
         //        CHECK(m_range_.num_of_block());
         m_mesh_->Assign(*this, m_range_, other);

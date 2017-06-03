@@ -94,6 +94,9 @@ class AttributeGroup {
     std::map<std::string, Attribute *> &GetAllAttributes();
     std::map<std::string, Attribute *> const &GetAll() const;
 
+    virtual void Push(Patch *);
+    virtual void Pop(Patch *);
+
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
@@ -125,8 +128,15 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
     SP_OBJECT_HEAD(Attribute, SPObject);
 
    public:
-    Attribute(int IFORM = VERTEX, int DOF = 1, std::type_info const &t_info = typeid(Real), MeshBase *m = nullptr,
-              std::shared_ptr<data::DataTable> const &p = nullptr);
+    Attribute(int IFORM, int DOF, std::type_info const &t_info, AttributeGroup *grp,
+              std::shared_ptr<data::DataTable> p);
+    template <typename TGrp>
+    Attribute(int IFORM, int DOF, std::type_info const &t_info, TGrp *grp, std::shared_ptr<data::DataTable> cfg)
+        : Attribute(IFORM, DOF, t_info, dynamic_cast<AttributeGroup *>(grp), cfg) {}
+    template <typename TGrp, typename... Args>
+    Attribute(int IFORM, int DOF, std::type_info const &t_info, TGrp *grp, Args &&... args)
+        : Attribute(IFORM, DOF, t_info, dynamic_cast<AttributeGroup *>(grp),
+                    std::make_shared<data::DataTable>(std::forward<Args>(args)...)) {}
 
     Attribute(Attribute const &other);
     Attribute(Attribute &&other);
@@ -138,8 +148,9 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
 
     const MeshBase *GetMesh() const;
 
-    void RegisterAt(AttributeGroup *);
-    void DeregisterFrom(AttributeGroup *);
+    void Register(AttributeGroup *);
+
+    void Deregister(AttributeGroup *);
 
     virtual void Push(const std::shared_ptr<data::DataBlock> &d, const EntityRange &r);
     virtual std::shared_ptr<data::DataBlock> Pop();

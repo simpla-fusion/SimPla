@@ -416,7 +416,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
 
         m_samrai_variables_[item.second] = var;
 
-        /*** FIXME:
+        /*** NOTE:
         *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
         *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
         **/
@@ -574,13 +574,10 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
                         index_box_type{{l[0], l[1], l[2]}, {h[0] + 1, h[1] + 1, h[2] + 1}}, 7));
             }
 
-        m_ctx_->GetMesh()->Push(p);
+        m_ctx_->GetMesh()->Push(p.get());
         m_ctx_->GetMesh()->InitializeData(data_time);
-        p = m_ctx_->GetMesh()->Pop();
-        for (auto &d : m_ctx_->GetAllDomains()) { p = d.second->DoInitialCondition(p, data_time); }
-
-        //        ConvertPatchToSAMRAI(patch, p.get());
-        m_ctx_->GetAtlas().Push(p);
+        for (auto &d : m_ctx_->GetAllDomains()) { d.second->DoInitialCondition(p.get(), data_time); }
+        m_ctx_->GetMesh()->Pop(p.get());
     }
 
     if (d_use_nonuniform_workload) {
@@ -636,9 +633,9 @@ void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI:
     auto p = m_ctx_->GetAtlas().Pop(static_cast<id_type>(patch.getLocalId().getValue()));
     ConvertPatchFromSAMRAI(patch, p.get());
 
-    m_ctx_->GetMesh()->Push(p);
-    for (auto &d : m_ctx_->GetAllDomains()) { p = d.second->DoAdvance(p, time_now, time_dt); }
-    m_ctx_->GetAtlas().Push(p);
+    m_ctx_->GetMesh()->Push(p.get());
+    for (auto &d : m_ctx_->GetAllDomains()) { d.second->DoAdvance(p.get(), time_now, time_dt); }
+    m_ctx_->GetMesh()->Pop(p.get());
 }
 
 /**************************************************************************
@@ -671,10 +668,10 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setPhysicalBoundaryConditions(
     SAMRAI::hier::Patch &patch, double fill_time, const SAMRAI::hier::IntVector &ghost_width_to_fill) {
     auto p = m_ctx_->GetAtlas().Pop(static_cast<id_type>(patch.getLocalId().getValue()));
     ConvertPatchFromSAMRAI(patch, p.get());
-    m_ctx_->GetMesh()->Push(p);
+    m_ctx_->GetMesh()->Push(p.get());
     m_ctx_->GetMesh()->SetBoundaryCondition(fill_time, 0);
-    for (auto &d : m_ctx_->GetAllDomains()) { p = d.second->DoBoundaryCondition(p, fill_time, 0); }
-    m_ctx_->GetAtlas().Push(p);
+    for (auto &d : m_ctx_->GetAllDomains()) { d.second->DoBoundaryCondition(p.get(), fill_time, 0); }
+    m_ctx_->GetMesh()->Pop(p.get());
 }
 
 /**************************************************************************
@@ -835,7 +832,7 @@ void SAMRAITimeIntegrator::Update() {
 
     nTuple<int, 3> i_low{0, 0, 0};
     nTuple<int, 3> i_up{0, 0, 0};
-    std::tie(i_low, i_up) = p_mesh->GetGlobalIndexBox();
+    std::tie(i_low, i_up) = p_mesh->GetCoarsestIndexBox();
     SAMRAI::tbox::DatabaseBox box{SAMRAI::tbox::Dimension(3), &i_low[0], &i_up[0]};
     CartesianGridGeometry->putDatabaseBox("domain_boxes_0", box);
     nTuple<int, 3> periodic_dimension{0, 0, 0};
@@ -922,7 +919,7 @@ void SAMRAITimeIntegrator::Update() {
     auto load_balancer = boost::make_shared<SAMRAI::mesh::CascadePartitioner>(dim, "LoadBalancer", LoadBalancer);
 
     load_balancer->setSAMRAI_MPI(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
-    load_balancer->printStatistics(std::cout);
+    //    load_balancer->printStatistics(std::cout);
 
     auto GriddingAlgorithm = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("GriddingAlgorithm");
 
