@@ -8,7 +8,11 @@ namespace simpla {
 namespace mesh {
 using namespace algebra;
 
-void StructuredMesh::Update() { engine::MeshBase::Update(); }
+void StructuredMesh::Update() {
+    engine::MeshBase::Update();
+    m_dx_ = engine::MeshBase::GetCellWidth();
+    m_x0_ = engine::MeshBase::GetOrigin();
+}
 
 /**
 *\verbatim

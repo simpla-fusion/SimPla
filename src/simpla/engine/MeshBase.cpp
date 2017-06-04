@@ -110,7 +110,7 @@ box_type MeshBase::GetBox() const {
     return res;
 }
 point_type MeshBase::global_coordinates(EntityId s, point_type const& pr) const {
-    return GetChart()->map(local_coordinates(s, pr));
+    return m_pimpl_->m_chart_->map(local_coordinates(s, pr));
 }
 // index_box_type MeshBase::GetIndexBox(int tag) const {
 //    index_box_type res = GetBlock()->GetIndexBox();

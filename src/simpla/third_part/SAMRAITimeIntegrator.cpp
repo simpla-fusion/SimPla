@@ -575,8 +575,12 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
             }
 
         m_ctx_->GetMesh()->Push(p.get());
+        VERBOSE << "Initialize Mesh : " << m_ctx_->GetMesh()->GetRegisterName() << std::endl;
         m_ctx_->GetMesh()->InitializeData(data_time);
-        for (auto &d : m_ctx_->GetAllDomains()) { d.second->DoInitialCondition(p.get(), data_time); }
+        for (auto &d : m_ctx_->GetAllDomains()) {
+            VERBOSE << "Initialize Domain : " << d.first << std::endl;
+            d.second->DoInitialCondition(p.get(), data_time);
+        }
         m_ctx_->GetMesh()->Pop(p.get());
     }
 
@@ -956,7 +960,7 @@ void SAMRAITimeIntegrator::Update() {
 
     m_pimpl_->grid_geometry->printClassData(std::cout);
     m_pimpl_->hyp_level_integrator->printClassData(std::cout);
-    m_pimpl_->m_time_refinement_integrator_->printClassData(std::cout);
+//    m_pimpl_->m_time_refinement_integrator_->printClassData(std::cout);
     MESSAGE << "==================  Context is initialized!  =================" << std::endl;
 };
 void SAMRAITimeIntegrator::Finalize() {

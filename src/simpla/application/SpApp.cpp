@@ -159,6 +159,7 @@ int main(int argc, char **argv) {
     MPI_Barrier(GLOBAL_COMM.comm());
 
     auto app = std::make_shared<application::SpApp>();
+    app->Initialize();
 
     if (GLOBAL_COMM.rank() == 0) {
         app->Deserialize(cfg);
@@ -180,18 +181,21 @@ int main(int argc, char **argv) {
     VERBOSE << "SpApp:";
     app->Serialize(std::cout, 0);
     std::cout << std::endl;
-    VERBOSE << DOUBLELINE << std::endl;
 
+    app->Update();
+
+    VERBOSE << DOUBLELINE << std::endl;
     MPI_Barrier(GLOBAL_COMM.comm());
-    app->Initialize();
+
     TheStart();
-    MPI_Barrier(GLOBAL_COMM.comm());
     app->Run();
-    MPI_Barrier(GLOBAL_COMM.comm());
     TheEnd();
-    app->Finalize();
 
+    MPI_Barrier(GLOBAL_COMM.comm());
     VERBOSE << DOUBLELINE << std::endl;
+
+    app->TearDown();
+    app->Finalize();
 
     parallel::close();
     logger::close();

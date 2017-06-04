@@ -11,7 +11,7 @@ REGISTER_CREATOR(RectMesh);
 
 void RectMesh::InitializeData(Real time_now) {
     StructuredMesh::InitializeData(time_now);
-
+    m_coordinates_.Clear();
     m_coordinates_ = [&](EntityId s) -> point_type { return global_coordinates(s); };
 
     m_vertex_volume_.Clear();
