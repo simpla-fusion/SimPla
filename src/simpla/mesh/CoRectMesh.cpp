@@ -32,13 +32,13 @@ inline void CoRectMesh::InitializeData(Real time_now) {
         *\endverbatim
         */
     //    m_x0_ = GetChart()->GetOrigin();
-    //    m_scale_ = GetChart()->GetDx();
+    //    m_coarsest_cell_width_ = GetChart()->GetDx();
     size_tuple m_dims_ = GetBlock()->GetDimensions();
 
     //    m_volume_[0 /*000*/] = 1;
-    //    m_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 1 : m_scale_[0];
-    //    m_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 1 : m_scale_[1];
-    //    m_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 1 : m_scale_[2];
+    //    m_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 1 : m_coarsest_cell_width_[0];
+    //    m_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 1 : m_coarsest_cell_width_[1];
+    //    m_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 1 : m_coarsest_cell_width_[2];
     //    m_volume_[3 /*011*/] = m_volume_[1] * m_volume_[2];
     //    m_volume_[5 /*101*/] = m_volume_[4] * m_volume_[1];
     //    m_volume_[6 /*110*/] = m_volume_[4] * m_volume_[2];

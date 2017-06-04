@@ -46,34 +46,29 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
     void Pop(Patch *) override;
 
     virtual unsigned int GetNDims() const { return 3; }
-    virtual void InitializeData(Real time_now);
-    virtual void SetBoundaryCondition(Real time_now, Real time_dt);
-
-    id_type GetBlockId() const;
 
     void SetChart(std::shared_ptr<geometry::Chart> const &);
     std::shared_ptr<geometry::Chart> GetChart() const;
 
-    void SetScale(point_type const &x);
-    point_type const &GetScale() const;
+    point_type const &GetCellWidth() const;
+    point_type const &GetOrigin() const;
+
+    void FitBoundBox(box_type const &);
+
+    index_tuple GetIndexOffset() const;
+    void SetDimensions(index_tuple const &);
+    index_tuple GetDimensions() const;
 
     void SetPeriodicDimension(size_tuple const &x);
     size_tuple const &GetPeriodicDimension() const;
 
     void SetDefaultGhostWidth(index_tuple const &);
     index_tuple GetDefaultGhostWidth() const;
-
-    void SetGlobalBoundBox(box_type const &);
-    box_type GetGlobalBoundBox() const;
-
-    virtual index_box_type GetCoarsestIndexBox() const;
+    index_tuple GetGhostWidth(int tag = VERTEX) const;
 
     void SetBlock(std::shared_ptr<MeshBlock>);
     std::shared_ptr<MeshBlock> GetBlock() const;
-
-    void Update() override;
-
-    index_tuple GetGhostWidth(int tag = VERTEX) const;
+    id_type GetBlockId() const;
 
     box_type GetBox() const;
 
@@ -103,6 +98,10 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
     EntityRange GetGhostRange(int IFORM = VERTEX) const;
     std::map<std::string, EntityRange> &GetRangeDict();
     std::map<std::string, EntityRange> const &GetRangeDict() const;
+
+    void Update() override;
+    virtual void InitializeData(Real time_now);
+    virtual void SetBoundaryCondition(Real time_now, Real time_dt);
 
    protected:
     struct pimpl_s;

@@ -32,7 +32,7 @@ struct Atlas::pimpl_s {
 
     size_tuple m_periodic_dimension_ = {0, 0, 0};
 
-    index_box_type m_index_box_{{0,0,0},{32,32,32}};
+    index_box_type m_index_box_{{0, 0, 0}, {32, 32, 32}};
 };
 
 Atlas::Atlas(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s){};
@@ -40,14 +40,11 @@ Atlas::~Atlas(){};
 void Atlas::Update() { SPObject::Update(); };
 std::shared_ptr<data::DataTable> Atlas::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
-    res->SetValue("PeriodicDimension", m_pimpl_->m_periodic_dimension_);
     return res;
 };
 void Atlas::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     if (cfg == nullptr) { return; }
-    size_tuple period_dimensions{0, 0, 0};
-    period_dimensions = cfg->GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 1});
-    SetPeriodicDimension(period_dimensions);
+
     Click();
 };
 
@@ -69,12 +66,6 @@ std::shared_ptr<Patch> Atlas::Pop(id_type id) {
     if (res.first->second == nullptr) { res.first->second = std::make_shared<Patch>(id); }
     return res.first->second;
 }
-
-void Atlas::SetPeriodicDimension(size_tuple const &d) {
-    m_pimpl_->m_periodic_dimension_ = d;
-    Click();
-}
-size_tuple Atlas::GetPeriodicDimension() const { return m_pimpl_->m_periodic_dimension_; }
 
 // std::set<std::shared_ptr<Patch>> const &Atlas::Level(int level) const { return m_pimpl_->m_layers_[level]; };
 

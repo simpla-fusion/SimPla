@@ -832,14 +832,22 @@ void SAMRAITimeIntegrator::Update() {
 
     nTuple<int, 3> i_low{0, 0, 0};
     nTuple<int, 3> i_up{0, 0, 0};
-    std::tie(i_low, i_up) = p_mesh->GetCoarsestIndexBox();
+
+    i_low = p_mesh->GetIndexOffset();
+    i_up = i_low + p_mesh->GetDimensions();
+
     SAMRAI::tbox::DatabaseBox box{SAMRAI::tbox::Dimension(3), &i_low[0], &i_up[0]};
     CartesianGridGeometry->putDatabaseBox("domain_boxes_0", box);
     nTuple<int, 3> periodic_dimension{0, 0, 0};
     periodic_dimension = p_mesh->GetPeriodicDimension();
-    nTuple<double, 3> x_low{0, 0, 0};
-    nTuple<double, 3> x_up{0, 0, 0};
-    std::tie(x_low, x_up) = p_mesh->GetGlobalBoundBox();
+    nTuple<double, 3> x_low = p_mesh->point(EntityId{.w = 0,
+                                                     .x = static_cast<int16_t>(i_low[0]),
+                                                     .y = static_cast<int16_t>(i_low[1]),
+                                                     .z = static_cast<int16_t>(i_low[2])});
+    nTuple<double, 3> x_up = p_mesh->point(EntityId{.w = 0,
+                                                    .x = static_cast<int16_t>(i_up[0]),
+                                                    .y = static_cast<int16_t>(i_up[1]),
+                                                    .z = static_cast<int16_t>(i_up[2])});
 
     CartesianGridGeometry->putIntegerArray("periodic_dimension", &periodic_dimension[0], ndims);
     CartesianGridGeometry->putDoubleArray("x_lo", &x_low[0], ndims);
@@ -946,9 +954,9 @@ void SAMRAITimeIntegrator::Update() {
 
     m_pimpl_->m_time_refinement_integrator_->initializeHierarchy();
 
-    //    m_pimpl_->grid_geometry->printClassData(std::cout);
-    //    m_pimpl_->hyp_level_integrator->printClassData(std::cout);
-    // m_pimpl_->m_time_refinement_integrator->printClassData(std::cout);
+    m_pimpl_->grid_geometry->printClassData(std::cout);
+    m_pimpl_->hyp_level_integrator->printClassData(std::cout);
+    m_pimpl_->m_time_refinement_integrator_->printClassData(std::cout);
     MESSAGE << "==================  Context is initialized!  =================" << std::endl;
 };
 void SAMRAITimeIntegrator::Finalize() {

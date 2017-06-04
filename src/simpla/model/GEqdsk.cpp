@@ -327,7 +327,7 @@ void GEqdsk::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     nTuple<Real, 2> phi = cfg->GetValue("Phi", nTuple<Real, 2>{0, TWOPI});
 
     m_pimpl_->m_phi0_ = phi[0];
-    m_pimpl_->m_phi0_ = phi[1];
+    m_pimpl_->m_phi1_ = phi[1];
 
     load(cfg->GetValue<std::string>("gfile", "gfile"));
 }

@@ -35,9 +35,9 @@ point_type StructuredMesh::local_coordinates(EntityId s, point_type const &r) co
 
 point_type StructuredMesh::point(EntityId s) const {
     auto const *r = EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111];
-    return point_type{std::fma(static_cast<Real>(s.x), m_dx_[0], r[0] * m_dx_[0]),
-                      std::fma(static_cast<Real>(s.y), m_dx_[1], r[1] * m_dx_[1]),
-                      std::fma(static_cast<Real>(s.z), m_dx_[2], r[2] * m_dx_[2])};
+    return point_type{std::fma(static_cast<Real>(s.x), m_dx_[0], r[0] * m_dx_[0] + m_x0_[0]),
+                      std::fma(static_cast<Real>(s.y), m_dx_[1], r[1] * m_dx_[1] + m_x0_[1]),
+                      std::fma(static_cast<Real>(s.z), m_dx_[2], r[2] * m_dx_[2] + m_x0_[2])};
 };
 
 index_box_type StructuredMesh::GetIndexBox(int tag) const {

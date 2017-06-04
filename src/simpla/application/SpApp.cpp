@@ -40,11 +40,15 @@ void SpApp::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
         m_pimpl_->m_context_->Deserialize(cfg->GetTable("Context"));
     }
 };
-void SpApp::Initialize() {
-    if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->DoInitialize(); }
-    if (m_pimpl_->m_context_ != nullptr) { m_pimpl_->m_context_->DoInitialize(); }
-}
-void SpApp::Finalize() {
+void SpApp::Initialize() {}
+void SpApp::Finalize(){};
+void SpApp::Update() {
+    ASSERT(m_pimpl_->m_schedule_ != nullptr);
+    m_pimpl_->m_context_->DoUpdate();
+    m_pimpl_->m_schedule_->SetContext(m_pimpl_->m_context_);
+    m_pimpl_->m_schedule_->DoUpdate();
+};
+void SpApp::TearDown() {
     if (m_pimpl_->m_schedule_ != nullptr) {
         m_pimpl_->m_schedule_->DoFinalize();
         m_pimpl_->m_schedule_.reset();
@@ -54,17 +58,8 @@ void SpApp::Finalize() {
         m_pimpl_->m_context_.reset();
     }
 };
-void SpApp::Update() {
-    ASSERT(m_pimpl_->m_schedule_ != nullptr);
-    m_pimpl_->m_context_->DoUpdate();
-    m_pimpl_->m_schedule_->SetContext(m_pimpl_->m_context_);
-    m_pimpl_->m_schedule_->DoUpdate();
-};
-void SpApp::TearDown() {
-    if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->DoTearDown(); }
-    if (m_pimpl_->m_context_ != nullptr) { m_pimpl_->m_context_->DoTearDown(); }
-};
 void SpApp::Run() {
+    DoUpdate();
     if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Run(); }
 };
 
@@ -180,8 +175,6 @@ int main(int argc, char **argv) {
 
         app->Deserialize(t_cfg);
     }
-
-    app->Update();
 
     VERBOSE << DOUBLELINE << std::endl;
     VERBOSE << "SpApp:";

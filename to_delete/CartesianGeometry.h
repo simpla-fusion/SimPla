@@ -92,12 +92,12 @@ struct CartesianCoRectMesh : public CoRectMesh {
 //    switch (status)
 //    {
 //        case SP_ES_ALL : //all valid
-//            std::Pop<0>(res) = m_coords_lower_ - m_scale_ * m_ghost_width_;
-//            std::Pop<1>(res) = m_coords_upper_ + m_scale_ * m_ghost_width_;;
+//            std::Pop<0>(res) = m_coords_lower_ - m_coarsest_cell_width_ * m_ghost_width_;
+//            std::Pop<1>(res) = m_coords_upper_ + m_coarsest_cell_width_ * m_ghost_width_;;
 //            break;
 //        case SP_ES_LOCAL : //local and valid
-//            std::Pop<0>(res) = m_coords_lower_ + m_scale_ * m_ghost_width_;;
-//            std::Pop<1>(res) = m_coords_upper_ - m_scale_ * m_ghost_width_;
+//            std::Pop<0>(res) = m_coords_lower_ + m_coarsest_cell_width_ * m_ghost_width_;;
+//            std::Pop<1>(res) = m_coords_upper_ - m_coarsest_cell_width_ * m_ghost_width_;
 //            break;
 //        case SP_ES_OWNED:
 //            std::Pop<0>(res) = m_coords_lower_;

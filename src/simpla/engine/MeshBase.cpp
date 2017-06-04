@@ -16,12 +16,14 @@ namespace engine {
 struct MeshBase::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
     std::shared_ptr<geometry::Chart> m_chart_;
-    Patch* m_patch_ = nullptr;
-    point_type m_scale_ = {1, 1, 1};
-    size_tuple m_periodic_dimension_{0, 0, 0};
+
+    point_type m_origin_ = {1, 1, 1};
+    point_type m_coarsest_cell_width_ = {1, 1, 1};
     index_tuple m_ghost_width_{2, 2, 2};
-    box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
-    index_box_type m_global_index_box_{{0, 0, 0}, {1, 1, 1}};
+    index_tuple m_idx_origin_{0, 0, 0};
+    index_tuple m_dimensions_{1, 1, 1};
+    size_tuple m_periodic_dimension_{0, 0, 0};
+    Patch* m_patch_ = nullptr;
 };
 MeshBase::MeshBase(std::shared_ptr<geometry::Chart> const& c, std::string const& s_name)
     : SPObject(s_name), m_pimpl_(new pimpl_s) {
@@ -34,11 +36,8 @@ void MeshBase::SetChart(std::shared_ptr<geometry::Chart> const& c) {
 }
 std::shared_ptr<geometry::Chart> MeshBase::GetChart() const { return m_pimpl_->m_chart_; }
 
-void MeshBase::SetScale(point_type const& x) {
-    m_pimpl_->m_scale_ = x;
-    Click();
-}
-point_type const& MeshBase::GetScale() const { return m_pimpl_->m_scale_; }
+point_type const& MeshBase::GetCellWidth() const { return m_pimpl_->m_coarsest_cell_width_; }
+point_type const& MeshBase::GetOrigin() const { return m_pimpl_->m_origin_; }
 
 void MeshBase::SetPeriodicDimension(size_tuple const& x) {
     m_pimpl_->m_periodic_dimension_ = x;
@@ -52,20 +51,17 @@ void MeshBase::SetDefaultGhostWidth(index_tuple const& g) {
 }
 index_tuple MeshBase::GetDefaultGhostWidth() const { return m_pimpl_->m_ghost_width_; }
 
-void MeshBase::SetGlobalBoundBox(box_type const& b) {
-    m_pimpl_->m_bound_box_ = b;
+void MeshBase::FitBoundBox(box_type const& b) {
+    m_pimpl_->m_coarsest_cell_width_ = (std::get<1>(b) - std::get<0>(b)) / m_pimpl_->m_dimensions_;
+    m_pimpl_->m_origin_ = std::get<0>(b) - m_pimpl_->m_idx_origin_ * m_pimpl_->m_coarsest_cell_width_;
     Click();
 }
-box_type MeshBase::GetGlobalBoundBox() const { return m_pimpl_->m_bound_box_; }
 
-index_box_type MeshBase::GetCoarsestIndexBox() const { return m_pimpl_->m_global_index_box_; }
+void MeshBase::SetDimensions(index_tuple const& d) { m_pimpl_->m_dimensions_ = d; }
+index_tuple MeshBase::GetDimensions() const { return m_pimpl_->m_dimensions_; }
+index_tuple MeshBase::GetIndexOffset() const { return m_pimpl_->m_idx_origin_; }
 
-void MeshBase::Update() {
-    std::get<0>(m_pimpl_->m_global_index_box_) = std::get<0>(m_pimpl_->m_bound_box_) / m_pimpl_->m_scale_;
-    std::get<1>(m_pimpl_->m_global_index_box_) = std::get<1>(m_pimpl_->m_bound_box_) / m_pimpl_->m_scale_;
-
-    Tag();
-};
+void MeshBase::Update() { Tag(); };
 
 void MeshBase::SetBlock(std::shared_ptr<MeshBlock> m) {
     m_pimpl_->m_mesh_block_ = m;
@@ -83,12 +79,19 @@ void MeshBase::SetBoundaryCondition(Real time_now, Real time_dt) { DoUpdate(); }
 std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
     auto p = std::make_shared<data::DataTable>();
     p->SetValue("Type", GetRegisterName());
+
+    if (m_pimpl_->m_chart_ != nullptr) { p->SetValue("Chart", m_pimpl_->m_chart_->Serialize()); }
+
+    p->SetValue("PeriodicDimensions", m_pimpl_->m_periodic_dimension_);
+    p->SetValue("Dimensions", m_pimpl_->m_dimensions_);
+    p->SetValue("IndexOrigin", m_pimpl_->m_idx_origin_);
     return p;
 }
 void MeshBase::Deserialize(const std::shared_ptr<DataTable>& cfg) {
     m_pimpl_->m_chart_ = cfg->has("Coordinates") ? geometry::Chart::Create(cfg->Get("Coordinates"))
                                                  : geometry::Chart::Create("Cartesian");
-    m_pimpl_->m_scale_ = cfg->GetValue<point_type>("Scale", point_type{1, 1, 1});
+    m_pimpl_->m_idx_origin_ = cfg->GetValue<nTuple<int, 3>>("IndexOrigin", nTuple<int, 3>{0, 0, 0});
+    m_pimpl_->m_dimensions_ = cfg->GetValue<nTuple<int, 3>>("Dimensions", nTuple<int, 3>{1, 1, 1});
     m_pimpl_->m_periodic_dimension_ = cfg->GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 0});
 }
 index_tuple MeshBase::GetGhostWidth(int tag) const {

@@ -84,9 +84,6 @@ class Atlas : public SPObject, public data::Serializable {
     id_type Push(std::shared_ptr<Patch>);
     std::shared_ptr<Patch> Pop(id_type id);
 
-    void SetPeriodicDimension(size_tuple const &d);
-    size_tuple GetPeriodicDimension() const;
-
     //    std::shared_ptr<Patch> RefineBlock(id_type, index_box_type const &);
     //    std::set<std::shared_ptr<Patch>> const &Level(int level = 0) const;
     //    void Foreach(std::function<void(std::shared_ptr<MeshBlock>)> const &fun, int level = 0) const;

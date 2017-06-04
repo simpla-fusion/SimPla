@@ -50,7 +50,7 @@ class StructuredMesh : public engine::MeshBase {
 
     template <typename V, int IFORM, int DOF>
     std::shared_ptr<data_type<V>> make_data() const {
-        auto gw = GetGhostWidth();
+        auto gw = GetDefaultGhostWidth();
 
         int num_of_subs = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
         auto res = std::make_shared<data_type<V>>(num_of_subs * DOF);

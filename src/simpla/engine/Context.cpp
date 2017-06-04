@@ -88,7 +88,7 @@ void Context::TearDown() { m_pimpl_->m_atlas_.TearDown(); }
 void Context::Update() {
     m_pimpl_->m_atlas_.DoUpdate();
     m_pimpl_->m_model_.DoUpdate();
-    m_pimpl_->m_mesh_->SetGlobalBoundBox(m_pimpl_->m_model_.GetBoundBox());
+    m_pimpl_->m_mesh_->FitBoundBox(m_pimpl_->m_model_.GetBoundBox());
     m_pimpl_->m_mesh_->DoUpdate();
 };
 
