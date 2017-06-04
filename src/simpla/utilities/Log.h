@@ -395,14 +395,14 @@ std::string make_msg(Others const &... others) {
 ///(__PRETTY_FUNCTION__)<<"]:"<<"\n\tConfigure fails :"<<(_MSG_) ;}throw(std::runtime_error(""));}
 #define THROW_EXCEPTION_PARSER_ERROR(...) throw(std::logic_error(MAKE_ERROR_MSG("Configure fails:", __VA_ARGS__)));
 
-#define PARSER_WARNING(_MSG_)                                                                                         \
-    {                                                                                                                 \
-        {                                                                                                             \
-            logger::Logger(logger::LOG_WARNING) << "[" << __FILE__ << ":" << __LINE__ << ":" << (__PRETTY_FUNCTION__) \
-                                                << "]:"                                                               \
-                                                << "\n\tConfigure fails :" << (_MSG_);                                \
-        }                                                                                                             \
-        throw(std::runtime_error(""));                                                                                \
+#define PARSER_WARNING(_MSG_)                                                                 \
+    {                                                                                         \
+        {                                                                                     \
+            logger::Logger(logger::LOG_WARNING)                                               \
+                << "[" << __FILE__ << ":" << __LINE__ << ":" << (__PRETTY_FUNCTION__) << "]:" \
+                << "\n\tConfigure fails :" << (_MSG_);                                        \
+        }                                                                                     \
+        throw(std::runtime_error(""));                                                        \
     }
 
 #define TRY_IT(_CMD_)                                                                 \
@@ -422,7 +422,7 @@ std::string make_msg(Others const &... others) {
 //#ifndef NDEBUG
 #define CHECK(_MSG_)                                                                                             \
     std::cerr << "\n\e[0m \e[1;37m From [" << (__FILE__) << ":" << (__LINE__) << ":0: " << (__PRETTY_FUNCTION__) \
-              << "] \n \e[1;31m\t" << __STRING((_MSG_)) << " = " << (_MSG_) << "\e[0m" << std::endl
+              << "] \n \e[1;31m\t" << __STRING((_MSG_)) << " = " << std::boolalpha << (_MSG_) << "\e[0m" << std::endl
 #define SHOW(_MSG_) logger::Logger(logger::LOG_VERBOSE) << __STRING(_MSG_) << "\t= " << (_MSG_) << std::endl;
 #define SHOW_HEX(_MSG_) \
     logger::Logger(logger::LOG_VERBOSE) << __STRING(_MSG_) << "\t= " << std::hex << (_MSG_) << std::dec << std::endl;
@@ -431,15 +431,15 @@ std::string make_msg(Others const &... others) {
 //#	define CHECK(_MSG_)
 //#endif
 
-#define REDUCE_CHECK(_MSG_)                                                                                            \
-    {                                                                                                                  \
-        auto __a = (_MSG_);                                                                                            \
-        __a = reduce(__a);                                                                                             \
-        if (GLOBAL_COMM.get_rank() == 0) {                                                                             \
-            logger::Logger(logger::LOG_DEBUG) << " " << (__FILE__) << ": line " << (__LINE__) << ":"                   \
-                                              << (__PRETTY_FUNCTION__) << "\n\t GLOBAL_SUM:" << __STRING(_MSG_) << "=" \
-                                              << __a;                                                                  \
-        }                                                                                                              \
+#define REDUCE_CHECK(_MSG_)                                                                     \
+    {                                                                                           \
+        auto __a = (_MSG_);                                                                     \
+        __a = reduce(__a);                                                                      \
+        if (GLOBAL_COMM.get_rank() == 0) {                                                      \
+            logger::Logger(logger::LOG_DEBUG)                                                   \
+                << " " << (__FILE__) << ": line " << (__LINE__) << ":" << (__PRETTY_FUNCTION__) \
+                << "\n\t GLOBAL_SUM:" << __STRING(_MSG_) << "=" << __a;                         \
+        }                                                                                       \
     }
 
 #define RIGHT_COLUMN(_FIRST_) MESSAGE << std::setw(15) << std::right << _FIRST_

@@ -5,6 +5,7 @@
 #ifndef SIMPLA_REVOLVE_H
 #define SIMPLA_REVOLVE_H
 
+#include <simpla/physics/Constants.h>
 #include "GeoObject.h"
 #include "Polygon.h"
 
@@ -17,10 +18,10 @@ class Revolve : public GeoObject {
 
    public:
     Revolve(TObj const &obj, int ZAxis = 2) : base_obj(obj), GeoObject() { m_axis_[ZAxis] = 1; }
-    Revolve(TObj const &obj, point_type origin, point_type axis) : base_obj(obj), m_axis_(axis), m_origin_(origin),
-                                                                   GeoObject() {}
-    Revolve(this_type const &other) : base_obj(other.base_obj), m_origin_(other.m_origin_), m_axis_(other.m_axis_),
-                                      GeoObject() {}
+    Revolve(TObj const &obj, point_type origin, point_type axis)
+        : base_obj(obj), m_axis_(axis), m_origin_(origin), GeoObject() {}
+    Revolve(this_type const &other)
+        : base_obj(other.base_obj), m_origin_(other.m_origin_), m_axis_(other.m_axis_), GeoObject() {}
 
     ~Revolve() override = default;
 
@@ -94,14 +95,12 @@ class RevolveZ : public GeoObject {
 
         std::get<0>(res)[(m_phi_axe_ + 2) % 3] = lo[1];
         std::get<1>(res)[(m_phi_axe_ + 2) % 3] = hi[1];
-
         return res;
     };
 
     bool CheckInside(point_type const &x) const override {
-        return base_obj->check_inside(x[(m_phi_axe_ + 1) % 3], x[(m_phi_axe_ + 2) % 3]);
-
-        //        &&((x[m_phi_axe_] >= m_angle_min_) && (x[m_phi_axe_] < m_angle_max_));
+        return ((x[m_phi_axe_] >= m_angle_min_) && (x[m_phi_axe_] < m_angle_max_)) &&
+               base_obj->check_inside(x[(m_phi_axe_ + 1) % 3], x[(m_phi_axe_ + 2) % 3]);
     };
 
     nTuple<Real, 2> MapTo2d(point_type const &x) const {
@@ -110,7 +109,7 @@ class RevolveZ : public GeoObject {
     };
 
     point_type m_origin_{0, 0, 0};
-    Real m_angle_min_, m_angle_max_;
+    Real m_angle_min_ = 0, m_angle_max_ = TWOPI;
     int m_phi_axe_ = 2;
 
     std::shared_ptr<Polygon<2>> base_obj;

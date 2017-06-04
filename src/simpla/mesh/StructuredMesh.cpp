@@ -35,7 +35,17 @@ void StructuredMesh::Update() {
 *\endverbatim
 */
 
-point_type StructuredMesh::local_coordinates(EntityId s, point_type const &r) const { return point(s) + r * m_dx_; }
+point_type StructuredMesh::local_coordinates(EntityId s, point_type const &pr) const {
+    point_type r = pr;
+
+    r[0] += EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][0];
+    r[1] += EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][1];
+    r[2] += EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][2];
+
+    return point_type{std::fma(static_cast<Real>(s.x), m_dx_[0], r[0] * m_dx_[0] + m_x0_[0]),
+                      std::fma(static_cast<Real>(s.y), m_dx_[1], r[1] * m_dx_[1] + m_x0_[1]),
+                      std::fma(static_cast<Real>(s.z), m_dx_[2], r[2] * m_dx_[2] + m_x0_[2])};
+}
 
 point_type StructuredMesh::point(EntityId s) const {
     auto const *r = EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111];
@@ -79,8 +89,14 @@ index_box_type StructuredMesh::GetIndexBox(int tag) const {
 }
 void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix) {
     auto &ranges = GetRangeDict();
+    CHECK(prefix);
 
-    auto pos = g == nullptr ? geometry::INSIDE : g->CheckOverlap(GetBox());
+    auto pos = g == nullptr ? geometry::INSIDE : geometry::CheckOverlap(g->GetBoundBox(), GetBox());
+
+    if (pos == geometry::OUTSIDE) {
+        CHECK(g->GetBoundBox());
+        CHECK(GetBox());
+    }
     switch (pos) {
         case geometry::INSIDE: {
             ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"].append(
@@ -129,15 +145,16 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
 
     index_tuple ib, ie;
     std::tie(ib, ie) = GetIndexBox(VERTEX);
-    auto dx = GetChart()->GetScale();
-    auto x0 = GetChart()->GetShift();
+    auto b = GetBox();
+
     for (index_type I = ib[0]; I < ie[0]; ++I)
         for (index_type J = ib[1]; J < ie[1]; ++J)
             for (index_type K = ib[2]; K < ie[2]; ++K) {
-                if (g->CheckInside(point_type{I * dx[0] + x0[0], J * dx[1] + x0[1], K * dx[2] + x0[2]}) == 0) {
-                    (vertex_tags[0])(I, J, K) = 1;
-                }
+                auto x = local_coordinates(EntityId{
+                    .w = 0, .x = static_cast<int16_t>(I), .y = static_cast<int16_t>(J), .z = static_cast<int16_t>(K)});
+                if (!g->CheckInside(x)) { (vertex_tags[0])(I, J, K) = 1; }
             }
+    //
 
     /**
     *\verbatim
@@ -308,6 +325,8 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
                     VOLUME_boundary->Insert(t7 + s);
                 }
             }
+
+    CHECK(VERTEX_body->size());
 
     ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"].append(VERTEX_body);
     ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_BODY"].append(EDGE_body);

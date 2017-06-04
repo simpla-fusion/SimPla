@@ -49,10 +49,7 @@ void Tokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
         //        auto& ne = self->Get("ne")->cast_as<Field<mesh_type, Real, VOLUME>>();
         auto ne = self->GetAttribute<Field<mesh_type, Real, VOLUME>>("ne", "Tokamak.Center");
         ne.Clear();
-        ne = [&](point_type const& x) -> Real {
-            CHECK(x);
-            return geqdsk->profile("ne", x[0], x[1]);
-        };
+        ne = [&](point_type const& x) -> Real { return geqdsk->profile("ne", x[0], x[1]); };
         //        }
         //
         //        //        if (self->check("B0v", typeid(Field<mesh_type, Real, VOLUME, 3>)))

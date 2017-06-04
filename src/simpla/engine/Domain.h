@@ -86,8 +86,12 @@ class Domain : public SPObject,
     };
 
     template <typename T>
-    T GetAttribute(std::string const &k, std::string const &s = "") const {
+    T GetAttribute(std::string const &k, std::string const &s) const {
         return GetAttribute<T>(k, GetMesh()->GetBodyRange(T::iform, s));
+    };
+    template <typename T>
+    T GetAttribute(std::string const &k) const {
+        return T(AttributeGroup::Get(k)->cast_as<T>());
     };
 
    private:

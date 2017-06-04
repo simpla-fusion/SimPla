@@ -139,10 +139,7 @@ void Context::InitialCondition(Patch *patch, Real time_now) {
     GetMesh()->InitializeData(time_now);
 
     for (auto const &item : GetModel().GetAll()) {
-        if (!item.second->hasChildren()) {
-            CHECK(item.first);
-            GetMesh()->RegisterRanges(item.second, item.first);
-        };
+        if (!item.second->hasChildren()) { GetMesh()->RegisterRanges(item.second, item.first); };
     }
 
     for (auto &d : GetAllDomains()) {
