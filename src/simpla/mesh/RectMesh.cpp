@@ -18,14 +18,17 @@ void RectMesh::InitializeData(Real time_now) {
     m_vertex_inv_volume_.Clear();
     m_vertex_dual_volume_.Clear();
     m_vertex_inv_dual_volume_.Clear();
+
     m_volume_volume_.Clear();
     m_volume_inv_volume_.Clear();
     m_volume_dual_volume_.Clear();
     m_volume_inv_dual_volume_.Clear();
+
     m_edge_volume_.Clear();
     m_edge_inv_volume_.Clear();
     m_edge_dual_volume_.Clear();
     m_edge_inv_dual_volume_.Clear();
+
     m_face_volume_.Clear();
     m_face_inv_volume_.Clear();
     m_face_dual_volume_.Clear();

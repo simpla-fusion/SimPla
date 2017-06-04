@@ -65,6 +65,7 @@ void Schedule::Dump() const { UNIMPLEMENTED; }
 void Schedule::Run() {
     while (!Done()) {
         VERBOSE << " [ STEP:" << std::setw(5) << m_pimpl_->m_step_ << " START ] " << std::endl;
+        if (m_pimpl_->m_step_ == 0) { CheckPoint(); }
         Synchronize();
         NextStep();
         if (m_pimpl_->m_check_point_interval_ > 0 && m_pimpl_->m_step_ % m_pimpl_->m_check_point_interval_ == 0) {
@@ -86,6 +87,7 @@ std::shared_ptr<data::DataTable> Schedule::Serialize() const {
 void Schedule::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     SetCheckPointInterval(static_cast<size_type>(cfg->GetValue("CheckPointInterval", 1)));
     SetOutputURL(cfg->GetValue<std::string>("OutputURL", GetOutputURL()));
+    m_pimpl_->m_ctx_ = Context::Create(cfg->Get("Context"));
 }
 
 void Schedule::Initialize() {

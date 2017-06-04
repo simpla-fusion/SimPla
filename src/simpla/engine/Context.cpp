@@ -82,14 +82,20 @@ void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
 //            Context::SetDomain(key, d);
 //        }
 //    });
-void Context::Initialize() {}
-void Context::Finalize() {}
-void Context::TearDown() { m_pimpl_->m_atlas_.TearDown(); }
+void Context::Initialize() { SPObject::Initialize(); }
+void Context::Finalize() { SPObject::Finalize(); }
+void Context::TearDown() {
+    SPObject::TearDown();
+    m_pimpl_->m_atlas_.TearDown();
+}
 void Context::Update() {
+    SPObject::Update();
+
     m_pimpl_->m_atlas_.DoUpdate();
     m_pimpl_->m_model_.DoUpdate();
     m_pimpl_->m_mesh_->FitBoundBox(m_pimpl_->m_model_.GetBoundBox());
     m_pimpl_->m_mesh_->DoUpdate();
+    for (auto &d : m_pimpl_->m_domains_) { d.second->DoUpdate(); }
 };
 
 Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
@@ -120,6 +126,38 @@ std::map<std::string, std::shared_ptr<AttributeDesc>> Context::CollectRegistered
 
 std::map<std::string, std::shared_ptr<Domain>> &Context::GetAllDomains() { return m_pimpl_->m_domains_; };
 std::map<std::string, std::shared_ptr<Domain>> const &Context::GetAllDomains() const { return m_pimpl_->m_domains_; };
+
+void Context::InitialCondition(Patch *patch, Real time_now) {
+    DoUpdate();
+
+    ASSERT(patch != nullptr);
+
+    VERBOSE << "Initialize Mesh : " << GetMesh()->GetRegisterName() << std::endl;
+
+    GetMesh()->Push(patch);
+
+    GetMesh()->InitializeData(time_now);
+
+    for (auto const &item : GetModel().GetAll()) {
+        if (!item.second->hasChildren()) {
+            CHECK(item.first);
+            GetMesh()->RegisterRanges(item.second, item.first);
+        };
+    }
+
+    for (auto &d : GetAllDomains()) {
+        VERBOSE << "Initialize Domain : " << d.first << std::endl;
+        d.second->DoInitialCondition(patch, time_now);
+    }
+    GetMesh()->Pop(patch);
+}
+
+void Context::Advance(Patch *patch, Real time_now, Real time_dt) {
+    DoUpdate();
+    GetMesh()->Push(patch);
+    for (auto &d : GetAllDomains()) { d.second->DoAdvance(patch, time_now, time_dt); }
+    GetMesh()->Pop(patch);
+}
 
 // std::map<id_type, std::shared_ptr<Patch>> const &Context::GetPatches() const { return m_pimpl_->m_patches_; }
 //

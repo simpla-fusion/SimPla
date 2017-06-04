@@ -549,7 +549,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
                 auto l = b.getBox().lower();
                 auto h = b.getBox().upper();
 
-                p->m_ranges[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
+                p->m_ranges_[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
                     .append(std::make_shared<ContinueRange<EntityId>>(
                         index_box_type{{l[0], l[1], l[2]}, {h[0] + 1, h[1] + 1, h[2] + 1}}, 1))
                     .append(std::make_shared<ContinueRange<EntityId>>(
@@ -557,7 +557,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
                     .append(std::make_shared<ContinueRange<EntityId>>(
                         index_box_type{{l[0], l[1], l[2]}, {h[0] + 1, h[1] + 1, h[2] + 1}}, 4));
 
-                p->m_ranges[std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"]
+                p->m_ranges_[std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"]
                     .append(std::make_shared<ContinueRange<EntityId>>(
                         index_box_type{{l[0], l[1], l[2]}, {h[0] + 2, h[1] + 1, h[2] + 1}}, 3))
                     .append(std::make_shared<ContinueRange<EntityId>>(
@@ -565,23 +565,29 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
                     .append(std::make_shared<ContinueRange<EntityId>>(
                         index_box_type{{l[0], l[1], l[2]}, {h[0] + 1, h[1] + 1, h[2] + 2}}, 6));
 
-                p->m_ranges[std::string(EntityIFORMName[VERTEX]) + "_PATCH_BOUNDARY"].append(
+                p->m_ranges_[std::string(EntityIFORMName[VERTEX]) + "_PATCH_BOUNDARY"].append(
                     std::make_shared<ContinueRange<EntityId>>(
                         index_box_type{{l[0], l[1], l[2]}, {h[0] + 2, h[1] + 2, h[2] + 2}}, 0));
 
-                p->m_ranges[std::string(EntityIFORMName[VOLUME]) + "_PATCH_BOUNDARY"].append(
+                p->m_ranges_[std::string(EntityIFORMName[VOLUME]) + "_PATCH_BOUNDARY"].append(
                     std::make_shared<ContinueRange<EntityId>>(
                         index_box_type{{l[0], l[1], l[2]}, {h[0] + 1, h[1] + 1, h[2] + 1}}, 7));
             }
 
-        m_ctx_->GetMesh()->Push(p.get());
-        VERBOSE << "Initialize Mesh : " << m_ctx_->GetMesh()->GetRegisterName() << std::endl;
-        m_ctx_->GetMesh()->InitializeData(data_time);
-        for (auto &d : m_ctx_->GetAllDomains()) {
-            VERBOSE << "Initialize Domain : " << d.first << std::endl;
-            d.second->DoInitialCondition(p.get(), data_time);
-        }
-        m_ctx_->GetMesh()->Pop(p.get());
+        m_ctx_->InitialCondition(p.get(), data_time);
+
+        //        m_ctx_->GetMesh()->Push(p.get());
+        //        VERBOSE << "Initialize Mesh : " << m_ctx_->GetMesh()->GetRegisterName() << std::endl;
+        //        m_ctx_->GetMesh()->InitializeData(data_time);
+        //        for (auto const &item : m_ctx_->GetModel().GetAll()) {
+        //            m_ctx_->GetMesh()->RegisterRanges(item.second, item.first);
+        //        }
+        //
+        //        for (auto &d : m_ctx_->GetAllDomains()) {
+        //            VERBOSE << "Initialize Domain : " << d.first << std::endl;
+        //            d.second->DoInitialCondition(p.get(), data_time);
+        //        }
+        //        m_ctx_->GetMesh()->Pop(p.get());
     }
 
     if (d_use_nonuniform_workload) {
@@ -636,10 +642,10 @@ void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI:
                                                                          double time_dt, bool at_syncronization) {
     auto p = m_ctx_->GetAtlas().Pop(static_cast<id_type>(patch.getLocalId().getValue()));
     ConvertPatchFromSAMRAI(patch, p.get());
-
-    m_ctx_->GetMesh()->Push(p.get());
-    for (auto &d : m_ctx_->GetAllDomains()) { d.second->DoAdvance(p.get(), time_now, time_dt); }
-    m_ctx_->GetMesh()->Pop(p.get());
+    m_ctx_->Advance(p.get(), time_now, time_dt);
+    //    m_ctx_->GetMesh()->Push(p.get());
+    //    for (auto &d : m_ctx_->GetAllDomains()) { d.second->DoAdvance(p.get(), time_now, time_dt); }
+    //    m_ctx_->GetMesh()->Pop(p.get());
 }
 
 /**************************************************************************
@@ -960,7 +966,7 @@ void SAMRAITimeIntegrator::Update() {
 
     m_pimpl_->grid_geometry->printClassData(std::cout);
     m_pimpl_->hyp_level_integrator->printClassData(std::cout);
-//    m_pimpl_->m_time_refinement_integrator_->printClassData(std::cout);
+    //    m_pimpl_->m_time_refinement_integrator_->printClassData(std::cout);
     MESSAGE << "==================  Context is initialized!  =================" << std::endl;
 };
 void SAMRAITimeIntegrator::Finalize() {

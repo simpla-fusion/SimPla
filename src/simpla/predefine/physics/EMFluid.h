@@ -32,9 +32,10 @@ class EMFluid : public engine::Domain {
     void Advance(Real time_now, Real dt) override;
 
     DOMAIN_DECLARE_FIELD(ne, VOLUME, 1);
+    DOMAIN_DECLARE_FIELD(B0v, VOLUME, 3);
+
     DOMAIN_DECLARE_FIELD(E0, EDGE, 1);
     DOMAIN_DECLARE_FIELD(B0, FACE, 1);
-    DOMAIN_DECLARE_FIELD(B0v, VOLUME, 3);
 
     DOMAIN_DECLARE_FIELD(BB, VOLUME, 1);
 
@@ -117,9 +118,9 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
 
     E.Clear();
     B.Clear();
+    J.Clear();
     Ev.Clear();
     Bv.Clear();
-    J.Clear();
 
     BB = dot_v(B0v, B0v);
 

@@ -64,8 +64,8 @@ void AttributeGroup::DeregisterFrom(AttributeGroup *other) {
 void AttributeGroup::Push(Patch *p) {
     for (auto &item : GetAllAttributes()) {
         auto k = "." + std::string(EntityIFORMName[item.second->GetIFORM()]) + "_BODY";
-        auto it = p->m_ranges.find(k);
-        item.second->Push(p->Pop(item.second->GetID()), (it == p->m_ranges.end()) ? EntityRange{} : it->second);
+        auto it = p->m_ranges_.find(k);
+        item.second->Push(p->Pop(item.second->GetID()), (it == p->m_ranges_.end()) ? EntityRange{} : it->second);
     }
 }
 void AttributeGroup::Pop(Patch *p) {

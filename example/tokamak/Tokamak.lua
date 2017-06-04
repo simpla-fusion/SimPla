@@ -3,6 +3,7 @@
 TWOPI = 3.141592653589793 * 2.0
 N_PHI = 100
 Context = {
+    Type= "Tokamak",
     Mesh = {
         Type = "RectMesh",
         Coordinates = { Type = "Cylindrical" },
@@ -41,16 +42,16 @@ Context = {
                 H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
             }
         },
-        RFAntenna = {
-            Type = "ExtraSource",
-            Mesh = "Default",
-            Variable = "E",
-            IsHard = false,
-            GeometryObject = "Antenna",
-            Amplify = { 0.0, 0.0, 1.0 },
-            WaveNumber = 0.0,
-            Frequency = 1.0e9
-        },
+--        RFAntenna = {
+--            Type = "ExtraSource",
+--            Mesh = "Default",
+--            Variable = "E",
+--            IsHard = false,
+--            GeometryObject = "Antenna",
+--            Amplify = { 0.0, 0.0, 1.0 },
+--            WaveNumber = 0.0,
+--            Frequency = 1.0e9
+--        },
     },
 }
 

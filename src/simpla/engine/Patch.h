@@ -32,7 +32,7 @@ class Patch {
     void Push(id_type const &id, std::shared_ptr<data::DataBlock> const &);
     std::shared_ptr<data::DataBlock> Pop(id_type const &id) const;
 
-    std::map<std::string, EntityRange> m_ranges;
+    std::map<std::string, EntityRange> m_ranges_;
 
    private:
     struct pimpl_s;

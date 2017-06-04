@@ -52,7 +52,6 @@ class Field : public engine::Attribute {
     mesh_type const* m_mesh_ = nullptr;
 
    public:
-
     template <typename... Args>
     explicit Field(Args&&... args) : engine::Attribute(IFORM, DOF, typeid(value_type), std::forward<Args>(args)...){};
 
@@ -154,7 +153,6 @@ class Field : public engine::Attribute {
         DoUpdate();
         ASSERT(m_mesh_ != nullptr);
         ASSERT(m_data_ != nullptr && m_data_->size() > 0);
-        //        CHECK(m_range_.num_of_block());
         m_mesh_->Assign(*this, m_range_, other);
     }
 

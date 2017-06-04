@@ -95,6 +95,9 @@ class Context : public SPObject, public data::EnableCreateFromDataTable<Context>
     std::map<std::string, std::shared_ptr<Domain>> const &GetAllDomains() const;
     std::map<std::string, std::shared_ptr<AttributeDesc>> CollectRegisteredAttributes() const;
 
+    void InitialCondition(Patch *patch, Real time_now);
+    void Advance(Patch *patch, Real time_now, Real time_dt);
+
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;

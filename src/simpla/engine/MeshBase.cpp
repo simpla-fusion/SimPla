@@ -149,9 +149,9 @@ point_type MeshBase::global_coordinates(EntityId s, point_type const& pr) const 
 EntityRange MeshBase::GetRange(std::string const& k) const {
     ASSERT(!isModified());
     ASSERT(m_pimpl_->m_patch_ != nullptr);
-    auto it = m_pimpl_->m_patch_->m_ranges.find(k);
-    return (it != m_pimpl_->m_patch_->m_ranges.end()) ? it->second
-                                                      : EntityRange{std::make_shared<EmptyRangeBase<EntityId>>()};
+    auto it = m_pimpl_->m_patch_->m_ranges_.find(k);
+    return (it != m_pimpl_->m_patch_->m_ranges_.end()) ? it->second
+                                                       : EntityRange{std::make_shared<EmptyRangeBase<EntityId>>()};
 };
 
 EntityRange MeshBase::GetBodyRange(int IFORM, std::string const& k) const {
@@ -188,7 +188,10 @@ void MeshBase::Pop(Patch* p) {
     DoTearDown();
 }
 
-std::map<std::string, EntityRange>& MeshBase::GetRangeDict() { return m_pimpl_->m_patch_->m_ranges; };
-std::map<std::string, EntityRange> const& MeshBase::GetRangeDict() const { return m_pimpl_->m_patch_->m_ranges; };
+std::map<std::string, EntityRange>& MeshBase::GetRangeDict() {
+    ASSERT(m_pimpl_->m_patch_ != nullptr);
+    return m_pimpl_->m_patch_->m_ranges_;
+};
+std::map<std::string, EntityRange> const& MeshBase::GetRangeDict() const { return m_pimpl_->m_patch_->m_ranges_; };
 }  // {namespace engine
 }  // namespace simpla
