@@ -65,11 +65,12 @@ class GeoObject : public data::EnableCreateFromDataTable<GeoObject> {
     /**
     * @brief
     * @param b
-    * @return  -1   in-side
-    *          0  intersection
-    *          1   out-side
+    * @return  (*this & b).volume/ b.volume
+    *         1   all in
+    *          0<res<1  intersection
+    *          0   out-side
     */
-    virtual int CheckOverlap(box_type const &b) const { return geometry::CheckOverlap(GetBoundBox(), b); }
+    virtual Real CheckOverlap(box_type const &b) const { return geometry::OverlapVolume(GetBoundBox(), b) / Volume(b); }
     /**
     * @return  check \f$ (x,y,z)\f$ in \f$ M\f$
     *           `in` then 1
@@ -229,14 +230,8 @@ class GeoObjectFull : public GeoObject {
         return std::dynamic_pointer_cast<GeoObject>(std::make_shared<GeoObjectNull>());
     }
 
-    /**
-    * @brief
-    * @param b
-    * @return  -1   in-side
-    *          0  intersection
-    *          1   out-side
-    */
-    int CheckOverlap(box_type const &b) const override { return INSIDE; }
+    /**    */
+    Real CheckOverlap(box_type const &b) const override { return 1.0; }
 
     /**
     * @return  check \f$ (x,y,z)\f$ in \f$ M\f$
@@ -274,14 +269,7 @@ class GeoObjectNull : public GeoObject {
 
     std::shared_ptr<GeoObject> Boundary() const override { return std::make_shared<GeoObjectNull>(); }
 
-    /**
-    * @brief
-    * @param b
-    * @return  -1   in-side
-    *          0  intersection
-    *          1   out-side
-    */
-    int CheckOverlap(box_type const &b) const override { return 1; }
+    Real CheckOverlap(box_type const &b) const override { return 0; }
 
     /**
     * @return  check \f$ (x,y,z)\f$ in \f$ M\f$

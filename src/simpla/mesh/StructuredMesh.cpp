@@ -3,6 +3,7 @@
 //
 #include "StructuredMesh.h"
 #include <simpla/algebra/all.h>
+#include <simpla/geometry/GeoAlgorithm.h>
 #include <simpla/utilities/EntityId.h>
 namespace simpla {
 namespace mesh {
@@ -88,57 +89,32 @@ index_box_type StructuredMesh::GetIndexBox(int tag) const {
     return res;
 }
 void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix) {
-    auto &ranges = GetRangeDict();
     CHECK(prefix);
 
-    auto pos = g == nullptr ? geometry::INSIDE : geometry::CheckOverlap(g->GetBoundBox(), GetBox());
+    Real ratio = g == nullptr ? 1.0 : g->CheckOverlap(GetBox());
 
-    if (pos == geometry::OUTSIDE) {
-        CHECK(g->GetBoundBox());
-        CHECK(GetBox());
+    auto &ranges = GetRangeDict();
+
+    if (ratio < EPSILON) {  // no overlap
+        return;
+    } else if (1.0 - ratio < EPSILON) {  // all in
+        ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"].append(
+            std::make_shared<ContinueRange<EntityId>>(GetIndexBox(0), 0));
+
+        ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_BODY"]
+            .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(1), 1))
+            .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(2), 2))
+            .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(4), 4));
+
+        ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_BODY"]
+            .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(3), 3))
+            .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(5), 5))
+            .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(6), 6));
+
+        ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BODY"].append(
+            std::make_shared<ContinueRange<EntityId>>(GetIndexBox(7), 7));
+        return;
     }
-    switch (pos) {
-        case geometry::INSIDE: {
-            ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"].append(
-                std::make_shared<ContinueRange<EntityId>>(GetIndexBox(0), 0));
-
-            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_BODY"]
-                .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(1), 1))
-                .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(2), 2))
-                .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(4), 4));
-
-            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_BODY"]
-                .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(3), 3))
-                .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(5), 5))
-                .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(6), 6));
-
-            ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BODY"].append(
-                std::make_shared<ContinueRange<EntityId>>(GetIndexBox(7), 7));
-
-            //            ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BOUNDARY"].clear();
-            //            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PARA_BOUNDARY"].clear();
-            //            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PARA_BOUNDARY"];
-            //            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PERP_BOUNDARY"];
-            //            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PERP_BOUNDARY"];
-            //            ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BOUNDARY"];
-
-        } break;
-        case geometry::OUTSIDE: {
-            //            ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"];
-            //            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_BODY"];
-            //            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_BODY"];
-            //            ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BODY"];
-            //            ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BOUNDARY"];
-            //            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PARA_BOUNDARY"];
-            //            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PARA_BOUNDARY"];
-            //            ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PERP_BOUNDARY"];
-            //            ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PERP_BOUNDARY"];
-            //            ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BOUNDARY"];
-
-        } break;
-        default: { break; }
-    }
-    if (pos != geometry::INTERSECTION) { return; }
 
     Field<StructuredMesh, int, VERTEX> vertex_tags{this};
     vertex_tags.Clear();

@@ -16,15 +16,41 @@
 
 namespace simpla {
 namespace geometry {
-enum GEO_POSITION_STATUS { INSIDE = -1, INTERSECTION = 0, OUTSIDE = 1 };
 
 template <typename U, typename V>
-int CheckOverlap(std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b0,
-                 std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b1) {
-    return (std::get<1>(b0)[0] >= std::get<0>(b1)[0]) && (std::get<1>(b1)[0] >= std::get<0>(b0)[0]) &&
-           (std::get<1>(b0)[1] >= std::get<0>(b1)[1]) && (std::get<1>(b1)[1] >= std::get<0>(b0)[1]) &&
-           (std::get<1>(b0)[2] >= std::get<0>(b1)[2]) && (std::get<1>(b1)[2] >= std::get<0>(b0)[2]);
+bool CheckOverlap(std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b0,
+                  std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b1) {
+    return !((std::get<1>(b0)[0] < std::get<0>(b1)[0] || std::get<0>(b0)[0] >= std::get<1>(b1)[0]) ||
+             (std::get<1>(b0)[1] < std::get<0>(b1)[1] || std::get<0>(b0)[1] >= std::get<1>(b1)[1]) ||
+             (std::get<1>(b0)[2] < std::get<0>(b1)[2] || std::get<0>(b0)[2] >= std::get<1>(b1)[2]));
 }
+/**
+ *   (b0 & b1).volume
+ * @tparam U
+ * @tparam V
+ * @tparam N
+ * @param b0
+ * @param b1
+ * @return
+ */
+template <typename U, typename V, int N>
+Real OverlapVolume(std::tuple<simpla::nTuple<U, N>, simpla::nTuple<U, N>> const& b0,
+                   std::tuple<simpla::nTuple<V, N>, simpla::nTuple<V, N>> const& b1) {
+    Real area = 1;
+    for (int i = 0; i < N; ++i) {
+        Real l = std::min(std::get<1>(b0)[i], std::get<1>(b1)[i]) - std::max(std::get<0>(b0)[i], std::get<0>(b1)[i]);
+        area *= (l > 0) ? l : 0;
+    }
+    return area;
+};
+
+template <typename U, int N>
+Real Volume(std::tuple<simpla::nTuple<U, N>, simpla::nTuple<U, N>> const& b0) {
+    Real volume = 1;
+    for (int i = 0; i < N; ++i) { volume *= std::get<1>(b0)[i] - std::get<0>(b0)[i]; }
+    return volume;
+};
+
 template <typename U, int N>
 std::tuple<simpla::nTuple<U, N>, simpla::nTuple<U, N>> BoundBox(
     std::tuple<simpla::nTuple<U, N>, simpla::nTuple<U, N>> const& l,
