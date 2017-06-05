@@ -89,13 +89,24 @@ index_box_type StructuredMesh::GetIndexBox(int tag) const {
     return res;
 }
 void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix) {
-    CHECK(prefix);
-
     Real ratio = g == nullptr ? 1.0 : g->CheckOverlap(GetBox());
 
     auto &ranges = GetRangeDict();
 
     if (ratio < EPSILON) {  // no overlap
+
+        ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"].append(
+            std::make_shared<EmptyRangeBase<EntityId>>());
+
+        ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_BODY"].append(
+            std::make_shared<EmptyRangeBase<EntityId>>());
+
+        ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_BODY"].append(
+            std::make_shared<EmptyRangeBase<EntityId>>());
+
+        ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BODY"].append(
+            std::make_shared<EmptyRangeBase<EntityId>>());
+
         return;
     } else if (1.0 - ratio < EPSILON) {  // all in
         ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"].append(
@@ -302,7 +313,7 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
                 }
             }
 
-    CHECK(VERTEX_body->size());
+//    CHECK(prefix) << VERTEX_body->size() << "  " << g->GetBoundBox();
 
     ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"].append(VERTEX_body);
     ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_BODY"].append(EDGE_body);

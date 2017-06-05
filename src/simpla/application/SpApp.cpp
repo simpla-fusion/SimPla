@@ -177,12 +177,12 @@ int main(int argc, char **argv) {
         app->Deserialize(t_cfg);
     }
 
+    app->Update();
+
     VERBOSE << DOUBLELINE << std::endl;
     VERBOSE << "SpApp:";
     app->Serialize(std::cout, 0);
     std::cout << std::endl;
-
-    app->Update();
 
     VERBOSE << DOUBLELINE << std::endl;
     MPI_Barrier(GLOBAL_COMM.comm());

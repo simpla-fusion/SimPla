@@ -12,6 +12,7 @@ namespace engine {
 
 struct Domain::pimpl_s {
     std::shared_ptr<geometry::GeoObject> m_geo_object_;
+    std::string m_prefix_;
     std::shared_ptr<MeshBase> m_mesh_ = nullptr;
     Patch* m_patch_ = nullptr;
 };
@@ -22,14 +23,18 @@ Domain::Domain(const std::shared_ptr<MeshBase>& m, const std::shared_ptr<geometr
     Click();
 }
 Domain::~Domain() {}
+std::string Domain::GetDomainPrefix() const { return m_pimpl_->m_prefix_; };
 
 std::shared_ptr<data::DataTable> Domain::Serialize() const {
     auto p = std::make_shared<data::DataTable>();
     p->SetValue("Type", GetRegisterName());
     p->SetValue("Name", GetName());
+    p->SetValue("GeometryObject", m_pimpl_->m_prefix_);
     return p;
 }
-void Domain::Deserialize(const std::shared_ptr<DataTable>& t) { UNIMPLEMENTED; };
+void Domain::Deserialize(const std::shared_ptr<DataTable>& cfg) {
+    m_pimpl_->m_prefix_ = cfg->GetValue<std::string>("GeometryObject", "");
+};
 
 void Domain::Update() {}
 void Domain::TearDown() {}

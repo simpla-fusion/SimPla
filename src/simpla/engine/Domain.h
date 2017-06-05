@@ -34,6 +34,7 @@ class Domain : public SPObject,
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
+    std::string GetDomainPrefix() const override;
 
     MeshBase const *GetMesh() const override;
     MeshBase *GetMesh() override;

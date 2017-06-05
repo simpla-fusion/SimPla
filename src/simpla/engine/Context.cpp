@@ -132,8 +132,6 @@ void Context::InitialCondition(Patch *patch, Real time_now) {
 
     ASSERT(patch != nullptr);
 
-    VERBOSE << "Initialize Mesh : " << GetMesh()->GetRegisterName() << std::endl;
-
     GetMesh()->Push(patch);
 
     GetMesh()->InitializeData(time_now);
@@ -142,10 +140,7 @@ void Context::InitialCondition(Patch *patch, Real time_now) {
         if (!item.second->hasChildren()) { GetMesh()->RegisterRanges(item.second, item.first); };
     }
 
-    for (auto &d : GetAllDomains()) {
-        VERBOSE << "Initialize Domain : " << d.first << std::endl;
-        d.second->DoInitialCondition(patch, time_now);
-    }
+    for (auto &d : GetAllDomains()) { d.second->DoInitialCondition(patch, time_now); }
     GetMesh()->Pop(patch);
 }
 

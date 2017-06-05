@@ -85,6 +85,8 @@ std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
     p->SetValue("PeriodicDimensions", m_pimpl_->m_periodic_dimension_);
     p->SetValue("Dimensions", m_pimpl_->m_dimensions_);
     p->SetValue("IndexOrigin", m_pimpl_->m_idx_origin_);
+    p->SetValue("CoarsestCellWidth", m_pimpl_->m_coarsest_cell_width_);
+
     return p;
 }
 void MeshBase::Deserialize(const std::shared_ptr<DataTable>& cfg) {

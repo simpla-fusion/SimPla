@@ -93,6 +93,8 @@ class AttributeGroup {
 
     std::map<std::string, Attribute *> &GetAllAttributes();
     std::map<std::string, Attribute *> const &GetAll() const;
+
+    virtual std::string GetDomainPrefix() const { return ""; }
     virtual MeshBase *GetMesh() = 0;
     virtual MeshBase const *GetMesh() const = 0;
     virtual void Push(Patch *);

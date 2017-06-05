@@ -39,6 +39,7 @@ class EMFluid : public engine::Domain {
 
     DOMAIN_DECLARE_FIELD(BB, VOLUME, 1);
 
+    DOMAIN_DECLARE_FIELD(Jv, VOLUME, 3);
     DOMAIN_DECLARE_FIELD(Ev, VOLUME, 3);
     DOMAIN_DECLARE_FIELD(Bv, VOLUME, 3);
 
@@ -62,6 +63,8 @@ class EMFluid : public engine::Domain {
     std::map<std::string, std::shared_ptr<fluid_s>> m_fluid_sp_;
     std::shared_ptr<fluid_s> AddSpecies(std::string const& name, std::shared_ptr<data::DataTable> const& d);
     std::map<std::string, std::shared_ptr<fluid_s>>& GetSpecies() { return m_fluid_sp_; };
+
+    std::string m_boundary_geo_obj_prefix_ = "PEC";
 };
 
 template <typename TM>
@@ -92,6 +95,7 @@ void EMFluid<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
         auto t = std::dynamic_pointer_cast<data::DataTable>(v);
         AddSpecies(k, t);
     });
+    m_boundary_geo_obj_prefix_ = cfg->GetValue<std::string>("BoundaryCondition/GeometryObject", "PEC");
     Click();
 }
 
@@ -119,6 +123,7 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
     E.Clear();
     B.Clear();
     J.Clear();
+
     Ev.Clear();
     Bv.Clear();
 
@@ -142,10 +147,10 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
 
     B = B - curl(E) * (dt * 0.5);
-    B[GetMesh()->GetPerpendicularBoundaryRange(FACE, "PEC")] = 0;
+    B[GetMesh()->GetPerpendicularBoundaryRange(FACE, m_boundary_geo_obj_prefix_)] = 0;
 
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
-    E[GetMesh()->GetParallelBoundaryRange(EDGE, "PEC")] = 0;
+    E[GetMesh()->GetParallelBoundaryRange(EDGE, m_boundary_geo_obj_prefix_)] = 0;
 
     if (m_fluid_sp_.size() > 0) {
         Ev = map_to<VOLUME>(E);
@@ -210,10 +215,10 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     }
 
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
-    E[GetMesh()->GetParallelBoundaryRange(EDGE, "PEC")] = 0;
+    E[GetMesh()->GetParallelBoundaryRange(EDGE, m_boundary_geo_obj_prefix_)] = 0;
 
     B = B - curl(E) * (dt * 0.5);
-    B[GetMesh()->GetPerpendicularBoundaryRange(FACE, "PEC")] = 0;
+    B[GetMesh()->GetPerpendicularBoundaryRange(FACE, m_boundary_geo_obj_prefix_)] = 0;
 
     dumpE.DeepCopy(E);
     dumpB.DeepCopy(B);
