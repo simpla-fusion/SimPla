@@ -8,7 +8,7 @@ Context = {
         Type = "RectMesh",
         Coordinates = { Type = "Cylindrical" },
         -- IndexOrigin = { 0, 0, 0 },
-        Dimensions = { 32, 32, 32 },
+        Dimensions = { 64, 64, 32 },
         PeriodicDimension = { 0, 0, 1 },
     },
     Model = {
