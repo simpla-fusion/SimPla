@@ -171,31 +171,6 @@ struct EntityIdCoder {
         3   // 111
     };
 
-    static EntityId sx(EntityId s, int w) {
-        s.x = static_cast<int16_t>(w);
-        return s;
-    }
-
-    static EntityId sy(EntityId s, int w) {
-        s.y = static_cast<int16_t>(w);
-        return s;
-    }
-
-    static EntityId sz(EntityId s, int w) {
-        s.z = static_cast<int16_t>(w);
-        return s;
-    }
-
-    static EntityId sw(EntityId s, int w) {
-        s.w = static_cast<int16_t>(w);
-        return s;
-    }
-    static EntityId tag(EntityId s, int64_t tag) {
-        s.v = (s.v & (~_DA.v)) | tag;
-        return s;
-    }
-    static EntityId minimal_vertex(EntityId s) { return EntityId{.v = s.v & (~_DA.v)}; }
-
     template <int IFORM>
     static constexpr int sub_index_to_id(int n = 0) {
         return m_sub_index_to_id_[IFORM][n];
@@ -203,58 +178,6 @@ struct EntityIdCoder {
 
     static constexpr int iform(EntityId s) { return m_id_to_iform_[node_id(s)]; }
 
-    //    static constexpr EntityId pack(index_type i0, index_type i1, index_type i2, index_type w = 0) {
-    //        return EntityId{.w = static_cast<int16_t>(w),
-    //                        .x = static_cast<int16_t>(i0),
-    //                        .y = static_cast<int16_t>(i1),
-    //                        .z = static_cast<int16_t>(i2)};
-    //    }
-    //
-    //    template <typename T>
-    //    static constexpr EntityId pack(T const& idx, index_type w = 0) {
-    //        return pack(idx[0], idx[1], idx[2], w);
-    //    }
-    //
-    //    template <typename T>
-    //    static constexpr EntityId pack_index(T const& idx, index_type n_id = 0) {
-    //        return pack_index4(idx[0], idx[1], idx[2], n_id);
-    //    }
-    //
-    //    static constexpr EntityId pack_index(index_type i, index_type j, index_type k, index_type n_id = 0,
-    //                                         index_type w = 0) {
-    //        return pack((i + ZERO) << 1, (j + ZERO) << 1, (k + ZERO) << 1, w) | m_id_to_shift_[n_id];
-    //    }
-    //
-    //    template <int IFORM>
-    //    static constexpr EntityId pack_index4(index_type i, index_type j, index_type k, index_type n_id = 0,
-    //                                          index_type w = 0) {
-    //        return pack((i + ZERO) << 1, (j + ZERO) << 1, (k + ZERO) << 1, w) |
-    //               m_id_to_shift_[m_sub_index_to_id_[IFORM][n_id]];
-    //    }
-    //
-    //    static index_tuple unpack_index(EntityId s) {
-    //        return index_tuple{static_cast<index_type>(s.x >> 1) - ZERO, static_cast<index_type>(s.y >> 1) - ZERO,
-    //                           static_cast<index_type>(s.z >> 1) - ZERO};
-    //    }
-    //
-    //    static nTuple<index_type, 4> unpack_index4(EntityId s, index_type dof = 1) {
-    //        return nTuple<index_type, 4>{static_cast<index_type>(s.x >> 1) - ZERO,
-    //                                     static_cast<index_type>(s.y >> 1) - ZERO,
-    //                                     static_cast<index_type>(s.z >> 1) - ZERO,
-    //                                     static_cast<index_type>(m_id_to_sub_index_[node_id(s)] * dof + s.w)};
-    //    }
-    //
-    //    static nTuple<index_type, 4> unpack_index4_nodeid(EntityId s, index_type dof = 1) {
-    //        return nTuple<index_type, 4>{static_cast<index_type>(s.x >> 1) - ZERO, static_cast<index_type>(s.y >> 1) -
-    //        ZERO,
-    //                                     static_cast<index_type>(s.z >> 1) - ZERO,
-    //                                     static_cast<index_type>(node_id(s) * dof + s.w)};
-    //    }
-    //    template<typename T>
-    //    static constexpr T type_cast(EntityId s)
-    //    {
-    //        return static_cast<T>(unpack(s));
-    //    }
     template <int IFORM>
     static EntityId Pack(index_type i, index_type j, index_type k, unsigned int n, unsigned int d) {
         EntityId s;
