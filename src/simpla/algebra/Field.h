@@ -154,31 +154,8 @@ class Field : public engine::Attribute {
         ASSERT(m_mesh_ != nullptr);
         ASSERT(m_data_ != nullptr && m_data_->size() > 0);
         m_mesh_->Assign(*this, m_range_, other);
+        m_mesh_->Assign(*this, m_mesh_->GetRange(std::string(EntityIFORMName[IFORM]) + "_PATCH_BOUNDARY"), 0);
     }
-
-    //    template <typename TFun>
-    //    void Assign(TFun const& fun, ENABLE_IF((std::is_same<std::result_of_t<TFun(EntityId)>, value_type>::value))) {
-    //        DoUpdate();
-    //
-    //        for (int i = 0; i < NUMBER_OF_SUB; ++i) {
-    //            int w = EntityIdCoder::m_sub_index_to_id_[IFORM][i / DOF] | ((i % DOF) << 3);
-    //            m_data_[i].Assign(m_range_[i / DOF], [&](EntityId s) {
-    //                s.w = static_cast<int16_t>(w);
-    //                return fun(s);
-    //            });
-    //        }
-    //    }
-    //    template <typename TFun>
-    //    void Assign(TFun const& fun,
-    //                ENABLE_IF((std::is_same<std::result_of_t<TFun(point_type const&)>, value_type>::value))) {
-    //        Assign([&](EntityId s) { return fun(m_mesh_->point(s)); });
-    //    }
-    //    template <typename TFun>
-    //    void Assign(TFun const& fun,
-    //                ENABLE_IF(((!std::is_same<field_value_type, value_type>::value) &&
-    //                           std::is_same<std::result_of_t<TFun(point_type const&)>, field_value_type>::value))) {
-    //        Assign([&](EntityId s) { return calculus_policy::sample(*m_mesh_, s, fun(m_mesh_->point(s))); });
-    //    }
 
 };  // class Field
 

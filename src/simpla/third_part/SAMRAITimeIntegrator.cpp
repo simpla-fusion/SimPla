@@ -538,44 +538,117 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
     if (initial_time) {
         auto p = m_ctx_->GetAtlas().Pop(static_cast<id_type>(patch.getLocalId().getValue()));
         ConvertPatchFromSAMRAI(patch, p.get());
-        index_tuple l, h;
-        std::tie(l, h) = p->GetBlock()->GetIndexBox();
+
         index_tuple gw = p->GetBlock()->GetGhostWidth();
 
         auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
 
         for (int n = 1; n <= 3; ++n)
             for (auto const &b : pgeom->getCodimensionBoundaries(n)) {
-                auto l = b.getBox().lower();
-                auto h = b.getBox().upper();
+                index_box_type box{{b.getBox().lower()[0], b.getBox().lower()[1], b.getBox().lower()[2]},
+                                   {b.getBox().upper()[0], b.getBox().upper()[1], b.getBox().upper()[2]}};
 
-                p->m_ranges_[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
-                    .append(std::make_shared<ContinueRange<EntityId>>(
-                        index_box_type{{l[0], l[1], l[2]}, {h[0] + 1, h[1] + 1, h[2] + 1}}, 1))
-                    .append(std::make_shared<ContinueRange<EntityId>>(
-                        index_box_type{{l[0], l[1], l[2]}, {h[0] + 1, h[1] + 1, h[2] + 1}}, 2))
-                    .append(std::make_shared<ContinueRange<EntityId>>(
-                        index_box_type{{l[0], l[1], l[2]}, {h[0] + 1, h[1] + 1, h[2] + 1}}, 4));
+                index_box_type vertex_box = box;
+                index_box_type volume_box = box;
+                index_box_type edge0_box = box;
+                index_box_type edge1_box = box;
+                index_box_type edge2_box = box;
+                index_box_type face0_box = box;
+                index_box_type face1_box = box;
+                index_box_type face2_box = box;
 
-                p->m_ranges_[std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"]
-                    .append(std::make_shared<ContinueRange<EntityId>>(
-                        index_box_type{{l[0], l[1], l[2]}, {h[0] + 2, h[1] + 1, h[2] + 1}}, 3))
-                    .append(std::make_shared<ContinueRange<EntityId>>(
-                        index_box_type{{l[0], l[1], l[2]}, {h[0] + 1, h[1] + 2, h[2] + 1}}, 5))
-                    .append(std::make_shared<ContinueRange<EntityId>>(
-                        index_box_type{{l[0], l[1], l[2]}, {h[0] + 1, h[1] + 1, h[2] + 2}}, 6));
+                for (int j = 0; j < 3; ++j) {
+                    switch (b.getBoundaryOrientation(j)) {
+                        case SAMRAI::hier::BoundaryBox::LOWER:
+                            std::get<0>(vertex_box)[j] -= gw[j];
+                            std::get<1>(vertex_box)[j] += 1;
+                            std::get<0>(volume_box)[j] -= gw[j];
+                            std::get<1>(volume_box)[j] += 1;
+
+                            std::get<0>(edge0_box)[j] -= gw[j];
+                            std::get<0>(edge1_box)[j] -= gw[j];
+                            std::get<0>(edge2_box)[j] -= gw[j];
+
+                            std::get<1>(edge0_box)[j] += 1;
+                            std::get<1>(edge1_box)[j] += 1;
+                            std::get<1>(edge2_box)[j] += 1;
+
+                            std::get<0>(face0_box)[j] -= gw[j];
+                            std::get<0>(face1_box)[j] -= gw[j];
+                            std::get<0>(face2_box)[j] -= gw[j];
+
+                            std::get<1>(face0_box)[j] += 1;
+                            std::get<1>(face1_box)[j] += 1;
+                            std::get<1>(face2_box)[j] += 1;
+
+                            break;
+
+                        case SAMRAI::hier::BoundaryBox::UPPER:
+
+                            std::get<0>(vertex_box)[j] += 1;
+                            std::get<1>(vertex_box)[j] += gw[j] + 1;
+                            std::get<1>(volume_box)[j] += gw[j];
+
+                            std::get<0>(edge0_box)[j] += (j == 0) ? 0 : 1;
+                            std::get<0>(edge1_box)[j] += (j == 1) ? 0 : 1;
+                            std::get<0>(edge2_box)[j] += (j == 2) ? 0 : 1;
+
+                            std::get<1>(edge0_box)[j] += gw[j] + ((j == 0) ? 1 : 2);
+                            std::get<1>(edge1_box)[j] += gw[j] + ((j == 1) ? 1 : 2);
+                            std::get<1>(edge2_box)[j] += gw[j] + ((j == 2) ? 1 : 2);
+
+                            std::get<0>(face0_box)[j] += (j == 0) ? 1 : 0;
+                            std::get<0>(face1_box)[j] += (j == 1) ? 1 : 0;
+                            std::get<0>(face2_box)[j] += (j == 2) ? 1 : 0;
+
+                            std::get<1>(face0_box)[j] += gw[j] + ((j == 0) ? 2 : 1);
+                            std::get<1>(face1_box)[j] += gw[j] + ((j == 1) ? 2 : 1);
+                            std::get<1>(face2_box)[j] += gw[j] + ((j == 2) ? 2 : 1);
+
+                            break;
+                        case SAMRAI::hier::BoundaryBox::MIDDLE:
+                            std::get<1>(vertex_box)[j] += 1;
+                            std::get<1>(volume_box)[j] += 1;
+
+                            std::get<1>(edge0_box)[j] += (j == 0) ? 0 : 1;
+                            std::get<1>(edge1_box)[j] += (j == 1) ? 0 : 1;
+                            std::get<1>(edge2_box)[j] += (j == 2) ? 0 : 1;
+
+                            std::get<1>(face0_box)[j] += (j == 0) ? 1 : 0;
+                            std::get<1>(face1_box)[j] += (j == 1) ? 1 : 0;
+                            std::get<1>(face2_box)[j] += (j == 2) ? 1 : 0;
+
+                        default:
+                            break;
+                    }
+                }
+                //                CHECK(p->GetBlock()->GetIndexBox());
+                //                CHECK(vertex_box);
+                //                CHECK(edge0_box);
+                //                CHECK(edge1_box);
+                //                CHECK(edge2_box);
+                //                CHECK(face0_box);
+                //                CHECK(face1_box);
+                //                CHECK(face2_box);
+                //                CHECK(volume_box);
 
                 p->m_ranges_[std::string(EntityIFORMName[VERTEX]) + "_PATCH_BOUNDARY"].append(
-                    std::make_shared<ContinueRange<EntityId>>(
-                        index_box_type{{l[0], l[1], l[2]}, {h[0] + 2, h[1] + 2, h[2] + 2}}, 0));
+                    std::make_shared<ContinueRange<EntityId>>(vertex_box, 0));
+
+                p->m_ranges_[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
+                    .append(std::make_shared<ContinueRange<EntityId>>(edge0_box, 1))
+                    .append(std::make_shared<ContinueRange<EntityId>>(edge1_box, 2))
+                    .append(std::make_shared<ContinueRange<EntityId>>(edge2_box, 4));
+
+                p->m_ranges_[std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"]
+                    .append(std::make_shared<ContinueRange<EntityId>>(face0_box, 6))
+                    .append(std::make_shared<ContinueRange<EntityId>>(face1_box, 5))
+                    .append(std::make_shared<ContinueRange<EntityId>>(face2_box, 3));
 
                 p->m_ranges_[std::string(EntityIFORMName[VOLUME]) + "_PATCH_BOUNDARY"].append(
-                    std::make_shared<ContinueRange<EntityId>>(
-                        index_box_type{{l[0], l[1], l[2]}, {h[0] + 1, h[1] + 1, h[2] + 1}}, 7));
+                    std::make_shared<ContinueRange<EntityId>>(volume_box, 7));
             }
-
         m_ctx_->InitialCondition(p.get(), data_time);
-
 
         //        m_ctx_->GetMesh()->Push(p.get());
         //        VERBOSE << "Initialize Mesh : " << m_ctx_->GetMesh()->GetRegisterName() << std::endl;

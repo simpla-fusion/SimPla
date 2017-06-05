@@ -144,6 +144,9 @@ template <typename TM>
 void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
     B[GetMesh()->GetRange("FACE_PATCH_BOUNDARY")] = 0;
     E[GetMesh()->GetRange("EDGE_PATCH_BOUNDARY")] = 0;
+    J[GetMesh()->GetRange("EDGE_PATCH_BOUNDARY")] = 0;
+    dumpE[GetMesh()->GetRange("VOLUME_PATCH_BOUNDARY")] = 0;
+    dumpB[GetMesh()->GetRange("VOLUME_PATCH_BOUNDARY")] = 0;
 }
 template <typename TM>
 void EMFluid<TM>::Advance(Real time_now, Real dt) {
@@ -151,10 +154,8 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
 
     B = B - curl(E) * (dt * 0.5);
     B[GetMesh()->GetPerpendicularBoundaryRange(FACE, m_boundary_geo_obj_prefix_)] = 0;
-    B[GetMesh()->GetRange("FACE_PATCH_BOUNDARY")] = 0;
 
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
-    E[GetMesh()->GetRange("EDGE_PATCH_BOUNDARY")] = 0;
     E[GetMesh()->GetParallelBoundaryRange(EDGE, m_boundary_geo_obj_prefix_)] = 0;
 
     if (m_fluid_sp_.size() > 0) {
@@ -217,16 +218,13 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
         }
 
         E += map_to<EDGE>(dE);
-        E[GetMesh()->GetRange("EDGE_PATCH_BOUNDARY")] = 0;
     }
 
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
     E[GetMesh()->GetParallelBoundaryRange(EDGE, m_boundary_geo_obj_prefix_)] = 0;
-    E[GetMesh()->GetRange("EDGE_PATCH_BOUNDARY")] = 0;
 
     B = B - curl(E) * (dt * 0.5);
     B[GetMesh()->GetPerpendicularBoundaryRange(FACE, m_boundary_geo_obj_prefix_)] = 0;
-    B[GetMesh()->GetRange("FACE_PATCH_BOUNDARY")] = 0;
 
     dumpE.DeepCopy(E);
     dumpB.DeepCopy(B);
