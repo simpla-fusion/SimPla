@@ -110,6 +110,7 @@ void RectMesh::InitializeData(Real time_now) {
     };
 
     m_face_inv_volume_ = 1.0 / m_face_volume_;
+
     m_face_dual_volume_ = [&](EntityId s) -> Real {
         return chart->length(point(EntityId{.w = 0b111,
                                             .x = static_cast<int16_t>(s.x - ((s.w & 0b111) == 0b110 ? 1 : 0)),
@@ -119,6 +120,8 @@ void RectMesh::InitializeData(Real time_now) {
                              EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]);
     };
     m_face_inv_dual_volume_ = 1.0 / m_face_dual_volume_;
+
+    SetBoundaryCondition(0, 0);
 };
 
 void RectMesh::SetBoundaryCondition(Real time_now, Real time_dt) {

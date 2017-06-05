@@ -75,7 +75,7 @@ TYPED_TEST(TestAlgebra, iform_arithmetic) {
               TestFixture::iform);
 }
 // TEST(AlgebraTest, iform_calculus) {
-//    EXPECT_EQ(sat::GetIFORM<decltype(grad(-std::declval<rho>() * 2))>::value, EDGE);
+//    EXPECT_EQ(sat::GetIFORM<decltype(grad(-std::declval<n>() * 2))>::value, EDGE);
 //    EXPECT_EQ(sat::GetIFORM<decltype(grad(-std::declval<vrho>() * 2))>::value, FACE);
 //
 //    EXPECT_EQ(sat::GetIFORM<decltype(curl(-std::declval<E>() * 2) * 3.0)>::value, FACE);

@@ -56,7 +56,7 @@ class EMFluid : public engine::Domain {
         Real mass = 1;
         Real charge = 1;
         Real ratio = 1;
-        std::shared_ptr<field_type<VOLUME>> rho;
+        std::shared_ptr<field_type<VOLUME>> n;
         std::shared_ptr<field_type<VOLUME, 3>> J;
     };
 
@@ -108,7 +108,7 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
     sp->charge = d->GetValue<double>("charge", d->GetValue<double>("Z", 1)) * SI_elementary_charge;
     sp->ratio = d->GetValue<double>("ratio", d->GetValue<double>("ratio", 1));
 
-    sp->rho = std::make_shared<field_type<VOLUME>>(this, "name"_ = name + "_rho");
+    sp->n = std::make_shared<field_type<VOLUME>>(this, "name"_ = name + "_n");
     sp->J = std::make_shared<field_type<VOLUME, 3>>(this, "name"_ = name + "_J");
     m_fluid_sp_.emplace(name, sp);
     VERBOSE << "Add particle : {\"" << name << "\", mass = " << sp->mass / SI_proton_mass
@@ -134,8 +134,8 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
 
     for (auto& item : m_fluid_sp_) {
         if (item.second == nullptr) { continue; }
-
-        *item.second->rho = ne * item.second->ratio;
+        item.second->n->Clear();
+        *item.second->n = ne * item.second->ratio;
         item.second->J->Clear();
     }
     Ev = map_to<VOLUME>(E);
@@ -180,7 +180,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
         for (auto& p : m_fluid_sp_) {
             Real ms = p.second->mass;
             Real qs = p.second->charge;
-            auto& ns = *p.second->rho;
+            auto& ns = *p.second->n;
             auto& Js = *p.second->J;
 
             Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
@@ -208,7 +208,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
         for (auto& p : m_fluid_sp_) {
             Real ms = p.second->mass;
             Real qs = p.second->charge;
-            auto& ns = *p.second->rho;
+            auto& ns = *p.second->n;
             auto& Js = *p.second->J;
 
             Real as = static_cast<Real>((dt * qs) / (2.0 * ms));

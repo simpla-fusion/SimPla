@@ -169,8 +169,8 @@ i\omega\tilde{\boldsymbol{Z}}_{2} & =s_{z}^{-1}\boldsymbol{e}_{z}\times\partial_
 \begin_layout Standard
 \begin_inset Formula 
 \begin{eqnarray}
-\sigma_{\zeta}\left(\rho\right) & = & \sigma_{\zeta}^{max}\left(\frac{\rho}{\delta}\right)^{n+1}=\frac{\left(n+2\right)\ln\left(R_{0}^{-1}\right)}{2\delta}\left(\frac{\rho}{\delta}\right)^{n+1}\\
-\alpha_{\zeta}\left(\rho\right) & = & 1+\varepsilon_{\zeta}^{max}\left(\frac{\rho}{\delta}\right)^{n},\quad\rho\in\left[0,\delta\right],\:\zeta=x,y,z
+\sigma_{\zeta}\left(\n\right) & = & \sigma_{\zeta}^{max}\left(\frac{\n}{\delta}\right)^{n+1}=\frac{\left(n+2\right)\ln\left(R_{0}^{-1}\right)}{2\delta}\left(\frac{\n}{\delta}\right)^{n+1}\\
+\alpha_{\zeta}\left(\n\right) & = & 1+\varepsilon_{\zeta}^{max}\left(\frac{\n}{\delta}\right)^{n},\quad\n\in\left[0,\delta\right],\:\zeta=x,y,z
 \end{eqnarray}
 
 \end_inset

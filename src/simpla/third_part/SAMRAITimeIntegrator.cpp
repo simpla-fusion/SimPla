@@ -610,13 +610,13 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
                             std::get<1>(vertex_box)[j] += 1;
                             std::get<1>(volume_box)[j] += 1;
 
-                            std::get<1>(edge0_box)[j] += (j == 0) ? 0 : 1;
-                            std::get<1>(edge1_box)[j] += (j == 1) ? 0 : 1;
-                            std::get<1>(edge2_box)[j] += (j == 2) ? 0 : 1;
+                            std::get<1>(edge0_box)[j] += (j == 0) ? 1 : 2;
+                            std::get<1>(edge1_box)[j] += (j == 1) ? 1 : 2;
+                            std::get<1>(edge2_box)[j] += (j == 2) ? 1 : 2;
 
-                            std::get<1>(face0_box)[j] += (j == 0) ? 1 : 0;
-                            std::get<1>(face1_box)[j] += (j == 1) ? 1 : 0;
-                            std::get<1>(face2_box)[j] += (j == 2) ? 1 : 0;
+                            std::get<1>(face0_box)[j] += (j == 0) ? 2 : 1;
+                            std::get<1>(face1_box)[j] += (j == 1) ? 2 : 1;
+                            std::get<1>(face2_box)[j] += (j == 2) ? 2 : 1;
 
                         default:
                             break;
@@ -715,11 +715,14 @@ void SAMRAIHyperbolicPatchStrategyAdapter::computeFluxesOnPatch(SAMRAI::hier::Pa
 void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, double time_now,
                                                                          double time_dt, bool at_syncronization) {
     auto p = m_ctx_->GetAtlas().Pop(static_cast<id_type>(patch.getLocalId().getValue()));
+
     ConvertPatchFromSAMRAI(patch, p.get());
+    m_ctx_->GetMesh()->Push(p.get());
+    m_ctx_->GetMesh()->SetBoundaryCondition(time_now, time_dt);
     m_ctx_->Advance(p.get(), time_now, time_dt);
     //    m_ctx_->GetMesh()->Push(p.get());
     //    for (auto &d : m_ctx_->GetAllDomains()) { d.second->DoAdvance(p.get(), time_now, time_dt); }
-    //    m_ctx_->GetMesh()->Pop(p.get());
+    m_ctx_->GetMesh()->Pop(p.get());
 }
 
 /**************************************************************************
