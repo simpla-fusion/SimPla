@@ -25,23 +25,23 @@ Context = {
     },
     Domain =
     {
-                Tokamak = {
-                    Type = "EMFluid",
-                    Mesh = "Default",
-                    GeometryObject = "Tokamak.Limiter",
-                    BoundaryCondition = {
-                        Type = "PEC",
-                        GeometryObject = "Tokamak.Limiter",
-                    },
-                    --            InitialCondition = {
-                    --                ne = "Tokamak.ne",
-                    --                B0v = "Tokamak.B0",
-                    --            },
---                    Species = {
---                        ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
---                        H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
---                    }
-                },
+        Tokamak = {
+            Type = "EMFluid",
+            Mesh = "Default",
+            GeometryObject = "Tokamak.Limiter",
+            BoundaryCondition = {
+                Type = "PEC",
+                GeometryObject = "Tokamak.Limiter",
+            },
+            --            InitialCondition = {
+            --                ne = "Tokamak.ne",
+            --                B0v = "Tokamak.B0",
+            --            },
+            Species = {
+                ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
+                H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
+            }
+        },
         RFAntenna = {
             Type = "ICRFAntenna",
             Mesh = "Default",
