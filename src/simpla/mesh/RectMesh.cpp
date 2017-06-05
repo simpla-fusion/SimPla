@@ -11,6 +11,7 @@ REGISTER_CREATOR(RectMesh);
 
 void RectMesh::InitializeData(Real time_now) {
     StructuredMesh::InitializeData(time_now);
+
     m_coordinates_.Clear();
     m_coordinates_ = [&](EntityId s) -> point_type { return global_coordinates(s); };
 
@@ -81,9 +82,9 @@ void RectMesh::InitializeData(Real time_now) {
     m_edge_volume_ = [&](EntityId s) -> Real {
         return chart->length(point(EntityId{.w = 0b0, .x = s.x, .y = s.y, .z = s.z}),
                              point(EntityId{.w = 0b0,
-                                            .x = static_cast<int16_t>(s.x + (s.w & 0b111) == 0b001 ? 1 : 0),
-                                            .y = static_cast<int16_t>(s.y + (s.w & 0b111) == 0b010 ? 1 : 0),
-                                            .z = static_cast<int16_t>(s.z + (s.w & 0b111) == 0b100 ? 1 : 0)}),
+                                            .x = static_cast<int16_t>(s.x + ((s.w & 0b111) == 0b001 ? 1 : 0)),
+                                            .y = static_cast<int16_t>(s.y + ((s.w & 0b111) == 0b010 ? 1 : 0)),
+                                            .z = static_cast<int16_t>(s.z + ((s.w & 0b111) == 0b100 ? 1 : 0))}),
                              EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]);
     };
     m_edge_inv_volume_ = 1.0 / m_edge_volume_;
@@ -111,18 +112,13 @@ void RectMesh::InitializeData(Real time_now) {
     m_face_inv_volume_ = 1.0 / m_face_volume_;
     m_face_dual_volume_ = [&](EntityId s) -> Real {
         return chart->length(point(EntityId{.w = 0b111,
-                                            .x = static_cast<int16_t>(s.x - (s.w & 0b111) == 0b110 ? 1 : 0),
-                                            .y = static_cast<int16_t>(s.y - (s.w & 0b111) == 0b101 ? 1 : 0),
-                                            .z = static_cast<int16_t>(s.z - (s.w & 0b111) == 0b011 ? 1 : 0)}),
+                                            .x = static_cast<int16_t>(s.x - ((s.w & 0b111) == 0b110 ? 1 : 0)),
+                                            .y = static_cast<int16_t>(s.y - ((s.w & 0b111) == 0b101 ? 1 : 0)),
+                                            .z = static_cast<int16_t>(s.z - ((s.w & 0b111) == 0b011 ? 1 : 0))}),
                              point(EntityId{.w = 0b111, .x = s.x, .y = s.y, .z = s.z}),
                              EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]);
     };
-    //    m_face_inv_dual_volume_ = 1.0 / m_face_dual_volume_;
-
-    m_1_volume_.DeepCopy(m_edge_dual_volume_);
-    m_2_volume_.DeepCopy(m_face_dual_volume_);
-    m_1_inv_volume_.DeepCopy(m_edge_inv_dual_volume_);
-    m_2_inv_volume_.DeepCopy(m_face_inv_dual_volume_);
+    m_face_inv_dual_volume_ = 1.0 / m_face_dual_volume_;
 };
 
 void RectMesh::SetBoundaryCondition(Real time_now, Real time_dt) {

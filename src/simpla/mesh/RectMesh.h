@@ -53,10 +53,10 @@ struct RectMesh : public StructuredMesh {
     DECLARE_FIELD(FACE, 1, m_face_dual_volume_);
     DECLARE_FIELD(FACE, 1, m_face_inv_dual_volume_);
 
-    DECLARE_FIELD(VOLUME, 3, m_1_volume_);
-    DECLARE_FIELD(VOLUME, 3, m_2_volume_);
-    DECLARE_FIELD(VOLUME, 3, m_1_inv_volume_);
-    DECLARE_FIELD(VOLUME, 3, m_2_inv_volume_);
+//    DECLARE_FIELD(VOLUME, 3, m_1_volume_);
+//    DECLARE_FIELD(VOLUME, 3, m_2_volume_);
+//    DECLARE_FIELD(VOLUME, 3, m_1_inv_volume_);
+//    DECLARE_FIELD(VOLUME, 3, m_2_inv_volume_);
 
 #undef DECLARE_FIELD
 };
