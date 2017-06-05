@@ -38,14 +38,16 @@ struct Chart : public SPObject, public data::EnableCreateFromDataTable<Chart> {
 
     virtual Real length(point_type const &p0, point_type const &p1) const = 0;
 
-    virtual Real box_area(point_type const &p0, point_type const &p1) const = 0;
+    virtual Real area(point_type const &p0, point_type const &p1, point_type const &p2) const = 0;
 
-    virtual Real box_volume(point_type const &p0, point_type const &p1) const = 0;
+    virtual Real volume(point_type const &p0, point_type const &p1, point_type const &p2,
+                        point_type const &p3) const = 0;
 
-    virtual Real simplex_area(point_type const &p0, point_type const &p1, point_type const &p2) const = 0;
+    virtual Real length(point_type const &p0, point_type const &p1, int normal) const = 0;
 
-    virtual Real simplex_volume(point_type const &p0, point_type const &p1, point_type const &p2,
-                                point_type const &p3) const = 0;
+    virtual Real area(point_type const &p0, point_type const &p1, int normal) const = 0;
+
+    virtual Real volume(point_type const &p0, point_type const &p1) const = 0;
 
     virtual Real inner_product(point_type const &uvw, vector_type const &v0, vector_type const &v1) const = 0;
 

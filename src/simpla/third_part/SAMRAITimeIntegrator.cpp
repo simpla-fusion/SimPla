@@ -576,6 +576,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
 
         m_ctx_->InitialCondition(p.get(), data_time);
 
+
         //        m_ctx_->GetMesh()->Push(p.get());
         //        VERBOSE << "Initialize Mesh : " << m_ctx_->GetMesh()->GetRegisterName() << std::endl;
         //        m_ctx_->GetMesh()->InitializeData(data_time);

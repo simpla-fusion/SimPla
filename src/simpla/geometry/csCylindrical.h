@@ -79,7 +79,7 @@ struct Cylindrical : public Chart {
         return a /*1st*/ + power2(dphi1) * dr1 * r0 / (2 * a) /*2nd*/;
     }
 
-    Real simplex_area(point_type const &p0, point_type const &p1, point_type const &p2) const override {
+    Real area(point_type const &p0, point_type const &p1, point_type const &p2) const override {
         Real r0 = p0[RAxis];
         Real z0 = p0[ZAxis];
         Real phi0 = p0[PhiAxis];
@@ -120,8 +120,7 @@ struct Cylindrical : public Chart {
             ;
     }
 
-    Real simplex_volume(point_type const &p0, point_type const &p1, point_type const &p2,
-                        point_type const &p3) const override {
+    Real volume(point_type const &p0, point_type const &p1, point_type const &p2, point_type const &p3) const override {
         Real r0 = p0[RAxis];
         Real phi0 = p0[PhiAxis];
         Real z0 = p0[ZAxis];
@@ -143,36 +142,76 @@ struct Cylindrical : public Chart {
                24.0;
     }
 
-    Real box_area(point_type const &p0, point_type const &p1) const override {
-        Real r0 = min(p0[RAxis], p1[RAxis]);
-        Real phi0 = min(p0[PhiAxis], p1[PhiAxis]);
-        Real z0 = min(p0[RAxis], p1[RAxis]);
+    Real length(point_type const &p0, point_type const &p1, int normal) const override {
+        Real r0 = p0[RAxis];
+        Real phi0 = p0[PhiAxis];
+        Real z0 = p0[ZAxis];
 
-        Real r1 = max(p0[RAxis], p1[RAxis]);
-        Real phi1 = max(p0[PhiAxis], p1[PhiAxis]);
-        Real z1 = max(p0[ZAxis], p1[ZAxis]);
+        Real r1 = p1[RAxis];
+        Real phi1 = p1[PhiAxis];
+        Real z1 = p1[ZAxis];
 
-        if (std::abs(r1 - r0) < EPSILON) {
-            return r0 * (phi1 - phi0) * (z1 - z0);
-        } else if (std::abs(z1 - z0) < EPSILON) {
-            return 0.5 * (power2(r1 - r0) + 2 * r0 * (r1 - r0)) * (phi1 - phi0);
-        } else if (std::abs(phi1 - phi0) < EPSILON) {
-            return (r1 - r0) * (z1 - z0);
-
-        } else {
-            //            THROW_EXCEPTION("Undefined result");
-            return std::numeric_limits<Real>::quiet_NaN();
+        Real res = 0;
+        switch (normal) {
+            case RAxis:
+                res = r1 - r0;
+                break;
+            case ZAxis:
+                res = z1 - z0;
+                break;
+            case PhiAxis:
+            default:
+                res = r0 * (phi1 - phi0);
+                break;
         }
+        return res;
     }
 
-    Real box_volume(point_type const &p0, point_type const &p1) const override {
-        Real r0 = min(p0[RAxis], p1[RAxis]);
-        Real phi0 = min(p0[PhiAxis], p1[PhiAxis]);
-        Real z0 = min(p0[RAxis], p1[RAxis]);
+    Real area(point_type const &p0, point_type const &p1, int normal = 0) const override {
+        Real r0 = p0[RAxis];
+        Real phi0 = p0[PhiAxis];
+        Real z0 = p0[ZAxis];
 
-        Real r1 = max(p0[RAxis], p1[RAxis]);
-        Real phi1 = max(p0[PhiAxis], p1[PhiAxis]);
-        Real z1 = max(p0[ZAxis], p1[ZAxis]);
+        Real r1 = p1[RAxis];
+        Real phi1 = p1[PhiAxis];
+        Real z1 = p1[ZAxis];
+
+        Real res = 0;
+        switch (normal) {
+            case RAxis:
+                res = r0 * (phi1 - phi0) * (z1 - z0);
+                break;
+            case ZAxis:
+                res = 0.5 * ((r1 - r0) * (r1 - r0) + 2 * r0 * (r1 - r0)) * (phi1 - phi0);
+                break;
+            case PhiAxis:
+            default:
+                res = (r1 - r0) * (z1 - z0);
+                break;
+        }
+        return res;
+
+        //        if (std::abs(r1 - r0) < EPSILON) {
+        //            return r0 * (phi1 - phi0) * (z1 - z0);
+        //        } else if (std::abs(z1 - z0) < EPSILON) {
+        //            return 0.5 * (power2(r1 - r0) + 2 * r0 * (r1 - r0)) * (phi1 - phi0);
+        //        } else if (std::abs(phi1 - phi0) < EPSILON) {
+        //            return (r1 - r0) * (z1 - z0);
+        //
+        //        } else {
+        //            //            THROW_EXCEPTION("Undefined result");
+        //            return std::numeric_limits<Real>::quiet_NaN();
+        //        }
+    }
+
+    Real volume(point_type const &p0, point_type const &p1) const override {
+        Real r0 = p0[RAxis];
+        Real phi0 = p0[PhiAxis];
+        Real z0 = p0[ZAxis];
+
+        Real r1 = p1[RAxis];
+        Real phi1 = p1[PhiAxis];
+        Real z1 = p1[ZAxis];
 
         return 0.5 * ((r1 - r0) * (r1 - r0) + 2 * r0 * (r1 - r0)) * (phi1 - phi0) * (z1 - z0);
     }

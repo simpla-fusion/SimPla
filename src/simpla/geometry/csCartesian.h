@@ -38,21 +38,20 @@ struct Cartesian : public Chart {
 
     Real length(point_type const &p0, point_type const &p1) const override { return std::sqrt(dot(p1 - p0, p1 - p0)); }
 
-    Real simplex_area(point_type const &p0, point_type const &p1, point_type const &p2) const override {
+    Real area(point_type const &p0, point_type const &p1, point_type const &p2) const override {
         return (std::sqrt(dot(cross(p1 - p0, p2 - p0), cross(p1 - p0, p2 - p0)))) * 0.5;
     }
 
-    Real simplex_volume(point_type const &p0, point_type const &p1, point_type const &p2,
-                        point_type const &p3) const override {
+    Real volume(point_type const &p0, point_type const &p1, point_type const &p2,
+                point_type const &p3) const override {
         return dot(p3 - p0, cross(p1 - p0, p2 - p1)) / 6.0;
     }
 
-    Real box_area(point_type const &p0, point_type const &p1) const override {
-        FIXME;
-        return 1.0;
+    Real area(point_type const &p0, point_type const &p1, int normal) const override {
+        return (p1[(normal + 1) % 3] - p0[(normal + 1) % 3]) * (p1[(normal + 2) % 3] - p0[(normal + 2) % 3]);
     };
 
-    Real box_volume(point_type const &p0, point_type const &p1) const override {
+    Real volume(point_type const &p0, point_type const &p1) const override {
         return (p1[0] - p0[0]) * (p1[1] - p0[1]) * (p1[2] - p0[2]);
     };
 };

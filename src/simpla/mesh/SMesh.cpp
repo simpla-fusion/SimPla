@@ -63,7 +63,7 @@ Real QuadrilateralArea(SMesh const *m, EntityId s, int d) {
                                 .y = static_cast<int16_t>(s.y + r[d][3][1]),
                                 .z = static_cast<int16_t>(s.z + r[d][3][2])});
 
-    return m->GetChart()->simplex_area(p0, p1, p2) + m->GetChart()->simplex_area(p1, p2, p3);
+    return m->GetChart()->area(p0, p1, p2) + m->GetChart()->area(p1, p2, p3);
 }
 
 Real HexahedronVolume(SMesh const *m, EntityId s) {
@@ -109,9 +109,9 @@ Real HexahedronVolume(SMesh const *m, EntityId s) {
                                 .y = static_cast<int16_t>(s.y + r[7][1]),
                                 .z = static_cast<int16_t>(s.z + r[7][2])});
 
-    return m->GetChart()->simplex_volume(p0, p1, p2, p4) + m->GetChart()->simplex_volume(p1, p2, p4, p6) +
-           m->GetChart()->simplex_volume(p4, p6, p1, p5) + m->GetChart()->simplex_volume(p6, p1, p5, p7) +
-           m->GetChart()->simplex_volume(p1, p5, p7, p2) + m->GetChart()->simplex_volume(p5, p7, p2, p3);
+    return m->GetChart()->volume(p0, p1, p2, p4) + m->GetChart()->volume(p1, p2, p4, p6) +
+            m->GetChart()->volume(p4, p6, p1, p5) + m->GetChart()->volume(p6, p1, p5, p7) +
+            m->GetChart()->volume(p1, p5, p7, p2) + m->GetChart()->volume(p5, p7, p2, p3);
 }
 
 void SMesh::InitializeData(Real time_now) {

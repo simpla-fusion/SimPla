@@ -137,7 +137,7 @@ struct EntityIdCoder {
         {_R, _R, 0.0},    // 100
         {_R, 0.0, _R},    // 101
         {0.0, _R, _R},    // 110
-        {0.0, _R, _R},    // 111
+        {_R, _R, _R},     // 111
 
     };
     static constexpr int m_iform_to_num_of_ele_in_cell_[8] = {
