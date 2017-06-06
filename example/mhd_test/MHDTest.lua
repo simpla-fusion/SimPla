@@ -11,6 +11,7 @@ Context = {
     Name ="MHDTest",
     Mesh = {
         Type = "RectMesh",
+
         Coordinates = { Type = "Cylindrical" },
         -- IndexOrigin = { 0, 0, 0 },
         Dimensions = { 32, 32, 32 },
@@ -26,6 +27,7 @@ Context = {
     Domain =
     {
         MHDTest = {
+            Name="IdealMHD",
             Type = "IdealMHD",
         },
     },

@@ -4,6 +4,7 @@ TWOPI = 3.141592653589793 * 2.0
 N_PHI = 100
 Context = {
     Type = "Tokamak",
+    Name ="EMTokamak",
     Mesh = {
         Type = "RectMesh",
         Coordinates = { Type = "Cylindrical" },
