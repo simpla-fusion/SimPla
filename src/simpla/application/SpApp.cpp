@@ -35,16 +35,11 @@ std::shared_ptr<data::DataTable> SpApp::Serialize() const {
 void SpApp::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     m_pimpl_->m_schedule_ = engine::Schedule::Create(cfg->Get("Schedule"));
     m_pimpl_->m_context_ = engine::Context::Create(cfg->Get("Context"));
-    if (m_pimpl_->m_context_ == nullptr) {
-        m_pimpl_->m_context_ = std::make_shared<engine::Context>();
-        m_pimpl_->m_context_->Deserialize(cfg->GetTable("Context"));
-    }
 };
 void SpApp::Initialize() {}
 void SpApp::Finalize(){};
 void SpApp::Update() {
     ASSERT(m_pimpl_->m_schedule_ != nullptr);
-    m_pimpl_->m_context_->DoUpdate();
     m_pimpl_->m_schedule_->SetContext(m_pimpl_->m_context_);
     m_pimpl_->m_schedule_->DoUpdate();
 };

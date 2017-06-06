@@ -780,7 +780,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerVisItDataWriter(
 
 void SAMRAIHyperbolicPatchStrategyAdapter::printClassData(std::ostream &os) const {
     os << "\nSAMRAIWorkerAdapter::printClassData..." << std::endl;
-    os << "m_prefix_ = " << m_name_ << std::endl;
+    os << "m_domain_geo_prefix_ = " << m_name_ << std::endl;
     os << "d_grid_geometry = " << d_grid_geometry.get() << std::endl;
     os << std::endl;
 }

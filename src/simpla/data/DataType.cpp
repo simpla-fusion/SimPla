@@ -102,7 +102,7 @@ DataType &DataType::operator=(DataType const &other)
 {
 //    m_self_->m_ele_size_in_byte_ = (other.m_self_->m_ele_size_in_byte_);
 //    m_self_->m_t_index_ = (other.m_self_->m_t_index_);
-//    m_self_->m_prefix_ = (other.m_self_->m_prefix_);
+//    m_self_->m_domain_geo_prefix_ = (other.m_self_->m_domain_geo_prefix_);
 //
 //    std::Duplicate(other.m_self_->m_extents_.begin(), other.m_self_->m_extents_.end(),
 //              std::back_inserter(m_self_->m_extents_));

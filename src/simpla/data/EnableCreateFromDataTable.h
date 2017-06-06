@@ -76,17 +76,41 @@ class EnableCreateFromDataTable : public data::Serializable {
         }
         return res;
     }
+
+   private:
     template <typename... U>
-    static std::shared_ptr<TObj> Create(std::shared_ptr<DataEntity> const &cfg, U const &... args) {
+    static std::shared_ptr<TObj> _CreateIfNotAbstract(std::integral_constant<bool, true>, U &&... args) {
+        return std::make_shared<TObj>(std::forward<U>(args)...);
+    }
+    template <typename... U>
+    static std::shared_ptr<TObj> _CreateIfNotAbstract(std::integral_constant<bool, false>, U &&... args) {
+        return nullptr;
+    }
+
+   public:
+    template <typename... U>
+    static std::shared_ptr<TObj> Create(std::shared_ptr<DataEntity> const &cfg, U &&... args) {
         std::shared_ptr<TObj> res = nullptr;
+        std::string s_type = "";
         if (cfg == nullptr) {
-        } else if (cfg->isLight()) {
-            res = Create(data::DataCastTraits<std::string>::Get(cfg), args...);
+        } else if (cfg->value_type_info() == typeid(std::string)) {
+            s_type = data::DataCastTraits<std::string>::Get(cfg);
         } else if (cfg->isTable()) {
             auto t = std::dynamic_pointer_cast<data::DataTable>(cfg);
-            res = Create(t->GetValue<std::string>("Type", ""), args...);
-            if (res != nullptr) { res->Deserialize(t); }
+            s_type = t->GetValue<std::string>("Type", "");
         }
+
+        if (s_type != "") {
+            res = Create(s_type, args...);
+        } else {
+            res = _CreateIfNotAbstract(std::integral_constant<bool, !std::is_abstract<TObj>::value>(),
+                                       std::forward<U>(args)...);
+        }
+
+        if (res != nullptr && cfg != nullptr && cfg->isTable()) {
+            res->Deserialize(std::dynamic_pointer_cast<data::DataTable>(cfg));
+        }
+
         return res;
     }
 };
@@ -96,7 +120,6 @@ class EnableCreateFromDataTable : public data::Serializable {
     std::string GetRegisterName() const override { return RegisterName(); } \
     static std::string RegisterName() { return _REGISTER_NAME_; }           \
     static bool is_registered;
-
 
 #define REGISTER_CREATOR(_CLASS_NAME_) bool _CLASS_NAME_::is_registered = _CLASS_NAME_::RegisterCreator<_CLASS_NAME_>();
 #define REGISTER_CREATOR_TEMPLATE(_CLASS_NAME_, _T_PARA_) \

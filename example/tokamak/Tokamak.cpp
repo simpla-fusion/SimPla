@@ -29,9 +29,7 @@ class Tokamak : public engine::Context {
 REGISTER_CREATOR(Tokamak)
 
 std::shared_ptr<data::DataTable> Tokamak::Serialize() const {
-    auto res = std::make_shared<data::DataTable>();
-    res->SetValue<std::string>("Type", "Tokamak");
-    res->Set(engine::Context::Serialize());
+    auto res = engine::Context::Serialize();
     return res;
 };
 void Tokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {

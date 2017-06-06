@@ -23,15 +23,18 @@ Context::Context(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pim
 Context::~Context() {}
 std::shared_ptr<data::DataTable> Context::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
+    res->SetValue("Name", GetName());
     res->Set("Atlas", m_pimpl_->m_atlas_.Serialize());
     res->Set("Model", m_pimpl_->m_model_.Serialize());
-    res->Set("Mesh", m_pimpl_->m_mesh_->Serialize());
+    if (m_pimpl_->m_mesh_ != nullptr) { res->Set("Mesh", m_pimpl_->m_mesh_->Serialize()); }
     for (auto const &item : m_pimpl_->m_domains_) { res->Link("Domains/" + item.first, item.second->Serialize()); }
 
     return res;
 }
 void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
     DoInitialize();
+    SetName(cfg->GetValue<std::string>("Name", "unnamed"));
+
     m_pimpl_->m_atlas_.Deserialize(cfg->GetTable("Atlas"));
     m_pimpl_->m_model_.Deserialize(cfg->GetTable("Model"));
     m_pimpl_->m_mesh_ = MeshBase::Create(cfg->GetTable("Mesh"));
@@ -41,8 +44,9 @@ void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
         cfg->GetTable("Domain")->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) {
             if (t_cfg != nullptr && t_cfg->isTable()) {
                 auto p_cfg = std::dynamic_pointer_cast<data::DataTable>(t_cfg);
-                auto p_geo = m_pimpl_->m_model_.GetObject(p_cfg->GetValue<std::string>("GeometryObject"));
-                std::string s_type = p_cfg->GetValue<std::string>("Type") + "." + m_pimpl_->m_mesh_->GetRegisterName();
+                auto p_geo = m_pimpl_->m_model_.GetObject(p_cfg->GetValue<std::string>("GeometryObject", "Default"));
+                std::string s_type =
+                    p_cfg->GetValue<std::string>("Type", "Unknown") + "." + m_pimpl_->m_mesh_->GetRegisterName();
                 auto res = Domain::Create(s_type, m_pimpl_->m_mesh_, p_geo);
                 res->Deserialize(p_cfg);
                 SetDomain(key, res);
@@ -93,6 +97,7 @@ void Context::Update() {
 
     m_pimpl_->m_atlas_.DoUpdate();
     m_pimpl_->m_model_.DoUpdate();
+    ASSERT(m_pimpl_->m_mesh_ != nullptr);
     m_pimpl_->m_mesh_->FitBoundBox(m_pimpl_->m_model_.GetBoundBox());
     m_pimpl_->m_mesh_->DoUpdate();
     for (auto &d : m_pimpl_->m_domains_) { d.second->DoUpdate(); }

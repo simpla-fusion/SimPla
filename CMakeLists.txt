@@ -89,7 +89,6 @@ FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
 add_executable(all_clion ${clion_all_headers} src/dummy.h src/dummy.cpp example/mhd_test/HyperbolicConservationLaw.h src/simpla/third_part/SAMRAITimeIntegrator.cpp src/simpla/third_part/SAMRAITimeIntegrator.h)
 
 
-
 add_subdirectory(src/simpla)
 add_subdirectory(test)
 add_subdirectory(docs)

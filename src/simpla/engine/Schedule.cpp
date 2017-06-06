@@ -18,7 +18,7 @@ struct Schedule::pimpl_s {
     size_type m_max_step_ = 0;
     size_type m_check_point_interval_ = 1;
     size_type m_dump_interval_ = 0;
-    std::string m_output_url_ = "SimPlaSaveData";
+    std::string m_output_url_ = "unknown";
 
     std::shared_ptr<Context> m_ctx_;
 };
@@ -29,6 +29,7 @@ Schedule::~Schedule(){};
 
 std::shared_ptr<Context> Schedule::SetContext(std::shared_ptr<Context> const &ctx) {
     m_pimpl_->m_ctx_ = ctx;
+    SetOutputURL(m_pimpl_->m_ctx_->GetName() + ".SaveData");
     return m_pimpl_->m_ctx_;
 }
 
@@ -85,9 +86,9 @@ std::shared_ptr<data::DataTable> Schedule::Serialize() const {
 }
 
 void Schedule::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
+    SetContext(Context::Create(cfg->Get("Context")));
     SetCheckPointInterval(static_cast<size_type>(cfg->GetValue("CheckPointInterval", 1)));
-    SetOutputURL(cfg->GetValue<std::string>("OutputURL", GetOutputURL()));
-    m_pimpl_->m_ctx_ = Context::Create(cfg->Get("Context"));
+    SetOutputURL(cfg->GetValue<std::string>("OutPutPrefix", "") + GetOutputURL());
 }
 
 void Schedule::Initialize() {
@@ -97,6 +98,7 @@ void Schedule::Initialize() {
 
 void Schedule::Finalize() {
     m_pimpl_->m_ctx_->DoFinalize();
+    m_pimpl_->m_ctx_.reset();
     SPObject::Finalize();
 }
 
