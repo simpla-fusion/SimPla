@@ -8,8 +8,8 @@
 #define SIMPLA_PIC_BORIS_H
 
 
-#include "../Particle.h"
-#include "../ParticleEngine.h"
+#include "simpla/particle/ParticleOld.h"
+#include "simpla/particle/ParticleEngine.h"
 #include "../../toolbox/type_traits.h"
 
 

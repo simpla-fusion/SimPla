@@ -36,7 +36,7 @@ void StructuredMesh::Update() {
 *\endverbatim
 */
 
-point_type StructuredMesh::local_coordinates(EntityId s, point_type const &pr) const {
+point_type StructuredMesh::local_coordinates(EntityId s, Real const *pr) const {
     point_type r;
 
     r[0] = pr[0] + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][0];

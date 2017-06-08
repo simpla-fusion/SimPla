@@ -11,7 +11,7 @@
 
 namespace simpla { namespace particle
 {
-template<typename...> struct Particle;
+template<typename...> struct ParticleOld;
 template<typename...> struct ParticleAdapterBase;
 template<typename...> struct ParticleAdapter;
 

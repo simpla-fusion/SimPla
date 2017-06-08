@@ -18,19 +18,19 @@
 namespace simpla { namespace particle
 {
 
-template<typename ...> struct Particle;
+template<typename ...> struct ParticleOld;
 typedef typename simpla::tags::VERSION<0, 0, 1> V001;
 
 
 template<typename P, typename M>
-struct Particle<P, M, V001>
+struct ParticleOld<P, M, V001>
         : public P,
           public Field<spPage *, M, int_const<mesh::VOLUME> >,
-          public std::enable_shared_from_this<Particle<P, M, V001>>
+          public std::enable_shared_from_this<ParticleOld<P, M, V001>>
 {
 private:
 
-    typedef Particle<P, M, V001> this_type;
+    typedef ParticleOld<P, M, V001> this_type;
     typedef mesh::AttributeDesc::View View;
     typedef mesh::AttributeDesc::View base_type;
 public:
@@ -65,7 +65,7 @@ private:
 public:
 
 
-    Particle(mesh_type const *m = nullptr)
+    ParticleOld(mesh_type const *m = nullptr)
             : field_type(m), m_properties_(nullptr), m_pool_(nullptr)
     {
     }
@@ -91,7 +91,7 @@ public:
 //    }
 
     template<typename TFactory, typename ... Args, typename std::enable_if<TFactory::is_factory>::type * = nullptr>
-    Particle(TFactory &factory, Args &&...args)
+    ParticleOld(TFactory &factory, Args &&...args)
             : m_properties_(nullptr), m_pool_(nullptr)
     {
         field_type::m_holder_ = (std::dynamic_pointer_cast<base_type>(
@@ -112,7 +112,7 @@ public:
     {
     }
 
-    virtual ~Particle() { }
+    virtual ~ParticleOld() { }
 
     this_type &operator=(this_type const &other)
     {

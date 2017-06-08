@@ -86,7 +86,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
 INCLUDE_DIRECTORIES(/pkg/SAMRAI/3.11.0-debug-hdf5-1.10-openmpi-2.0.2/include/)
 # workaround for CLion 1.0.x
 FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
-add_executable(all_clion ${clion_all_headers} src/dummy.h src/dummy.cpp example/mhd_test/HyperbolicConservationLaw.h src/simpla/third_part/SAMRAITimeIntegrator.cpp src/simpla/third_part/SAMRAITimeIntegrator.h)
+add_executable(all_clion ${clion_all_headers}  src/dummy.h src/dummy.cpp src/simpla/particle/ParticleLoad.cpp src/simpla/particle/spParticle.h src/simpla/particle/ParticleBase.cpp)
 
 
 add_subdirectory(src/simpla)

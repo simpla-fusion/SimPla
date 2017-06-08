@@ -18,18 +18,18 @@ namespace simpla { namespace particle
 {
 /**  @addtogroup physics Physics */
 
-template<typename ...> struct Particle;
+template<typename ...> struct ParticleOld;
 
 
 template<typename P, typename M, typename ...Others>
-struct Particle<P, M, Others...>
+struct ParticleOld<P, M, Others...>
         : public P,
           public Field<spPage *, M, simpla::int_const<mesh::VOLUME> >,
-          public std::enable_shared_from_this<Particle<P, M, Others...>>
+          public std::enable_shared_from_this<ParticleOld<P, M, Others...>>
 {
 private:
 
-    typedef Particle<P, M, Others...> this_type;
+    typedef ParticleOld<P, M, Others...> this_type;
     typedef mesh::MeshAttribute::View View;
     typedef mesh::MeshAttribute::View base_type;
 public:
@@ -65,18 +65,18 @@ private:
 public:
 
 
-    Particle(mesh_type const *m = nullptr)
+    ParticleOld(mesh_type const *m = nullptr)
             : field_type(m), m_properties_(nullptr), m_pool_(nullptr)
     {
     }
 
-    Particle(mesh::MeshBase const *m)
+    ParticleOld(mesh::MeshBase const *m)
             : field_type(m), m_properties_(nullptr), m_pool_(nullptr)
     {
         assert(m->template is_a<mesh_type>());
     }
 
-    Particle(std::shared_ptr<base_type> other)
+    ParticleOld(std::shared_ptr<base_type> other)
             : field_type(other), m_pool_(nullptr)
     {
         deploy();
@@ -84,7 +84,7 @@ public:
 
 
     template<typename TFactory, typename ... Args, typename std::enable_if<TFactory::is_factory>::type * = nullptr>
-    Particle(TFactory &factory, Args &&...args)
+    ParticleOld(TFactory &factory, Args &&...args)
             : m_properties_(nullptr), m_pool_(nullptr)
     {
         field_type::m_pimpl_ = (std::dynamic_pointer_cast<base_type>(
@@ -93,23 +93,23 @@ public:
     }
 
     //Duplicate construct
-    Particle(this_type const &other)
+    ParticleOld(this_type const &other)
             : engine_type(other), field_type(other), m_properties_(other.m_properties_), m_pool_(other.m_pool_)
     {
     }
 
 
     // Move construct
-    Particle(this_type &&other)
+    ParticleOld(this_type &&other)
             : engine_type(other), field_type(other), m_properties_(other.m_properties_), m_pool_(other.m_pool_)
     {
     }
 
-    virtual ~Particle() { }
+    virtual ~ParticleOld() { }
 
-    Particle<P, M, Others...> &operator=(Particle<P, M, Others...> const &other)
+    ParticleOld<P, M, Others...> &operator=(ParticleOld<P, M, Others...> const &other)
     {
-        Particle<P, M, Others...>(other).swap(*this);
+        ParticleOld<P, M, Others...>(other).swap(*this);
         return *this;
     }
 

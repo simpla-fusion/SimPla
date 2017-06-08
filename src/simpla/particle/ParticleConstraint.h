@@ -9,7 +9,7 @@
 #define PARTICLE_CONSTRAINT_H_
 
 
-#include "Particle.h"
+#include "ParticleOld.h"
 
 #include "../toolbox/Parallel.h"
 #include "../../../to_delete/Constraint.h"
@@ -18,10 +18,10 @@
 namespace simpla { namespace particle
 {
 template<typename P, typename M>
-void reflect(Particle<P, M> &p, model::Surface<M> const &surface)
+void reflect(ParticleOld<P, M> &p, model::Surface<M> const &surface)
 {
     typedef typename model::Surface<M>::value_type constraint_value;
-    typedef typename Particle<P, M>::value_type particle_value;
+    typedef typename ParticleOld<P, M>::value_type particle_value;
 
     p.accept(surface.range(),
              [&](constraint_value const &item, particle_value &p)
@@ -32,10 +32,10 @@ void reflect(Particle<P, M> &p, model::Surface<M> const &surface)
 };
 
 template<typename P, typename M>
-void absorb(Particle<P, M> &p, model::Surface<M> const &surface)
+void absorb(ParticleOld<P, M> &p, model::Surface<M> const &surface)
 {
     typedef typename model::Surface<M>::value_type constraint_value;
-    typedef typename Particle<P, M>::value_type particle_value;
+    typedef typename ParticleOld<P, M>::value_type particle_value;
 
     p.remove_if(surface.range(),
                 [&](constraint_value const &item, particle_value const &p)
@@ -48,10 +48,10 @@ void absorb(Particle<P, M> &p, model::Surface<M> const &surface)
 };
 
 template<typename P, typename M, typename ...T, typename Func>
-void transform(Particle<P, M> &p, model::Constraint<M, T...> const &constraint, Func const &func)
+void transform(ParticleOld<P, M> &p, model::Constraint<M, T...> const &constraint, Func const &func)
 {
     typedef typename model::Surface<M>::value_type constraint_value;
-    typedef typename Particle<P, M>::value_type particle_value;
+    typedef typename ParticleOld<P, M>::value_type particle_value;
 
     p.remove_if(constraint.range(),
                 [&](constraint_value const &item, particle_value &p)

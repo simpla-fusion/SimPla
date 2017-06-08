@@ -111,7 +111,7 @@ box_type MeshBase::GetBox() const {
         .w = 0, .x = static_cast<int16_t>(hi[0]), .y = static_cast<int16_t>(hi[1]), .z = static_cast<int16_t>(hi[2])});
     return res;
 }
-point_type MeshBase::global_coordinates(EntityId s, point_type const& pr) const {
+point_type MeshBase::global_coordinates(EntityId s, Real const* pr) const {
     return m_pimpl_->m_chart_->map(local_coordinates(s, pr));
 }
 // index_box_type MeshBase::GetIndexBox(int tag) const {

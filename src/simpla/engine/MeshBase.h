@@ -75,11 +75,11 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
     virtual index_box_type GetIndexBox(int tag = VERTEX) const = 0;
 
     virtual point_type point(EntityId s) const = 0;
+    virtual point_type local_coordinates(EntityId s, Real const *r) const = 0;
+    virtual point_type global_coordinates(EntityId s, Real const *r) const;
 
-    virtual point_type local_coordinates(EntityId s, point_type const &r) const = 0;
-
-    virtual point_type global_coordinates(EntityId s, point_type const &pr = point_type{0, 0, 0}) const;
-
+    point_type local_coordinates(EntityId s, point_type const &r) const { return local_coordinates(s, &r[0]); };
+    point_type global_coordinates(EntityId s, point_type const &r) const { return global_coordinates(s, &r[0]); };
     //    virtual point_type point(EntityId s) const = 0;
     //    virtual point_type point(EntityId id, point_type const &pr) const { return point_type{}; };
     //
@@ -102,6 +102,8 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
     void Update() override;
     virtual void InitializeData(Real time_now);
     virtual void SetBoundaryCondition(Real time_now, Real time_dt);
+
+    index_tuple Unpack(EntityId s) const { return index_tuple{s.x, s.y, s.z}; }
 
    protected:
     struct pimpl_s;

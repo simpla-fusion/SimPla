@@ -11,10 +11,10 @@
 #include "simpla/geometry/LinearInterpolator.h"
 
 #include "../../toolbox/DataTypeExt.h"
-#include "../Particle.h"
-#include "../ParticleContainer.h"
-#include "../ParticleEngine.h"
-#include "../../geometry/csCylindrical.h"
+#include "simpla/particle/ParticleOld.h"
+#include "simpla/particle/ParticleContainer.h"
+#include "simpla/particle/ParticleEngine.h"
+#include "simpla/geometry/csCylindrical.h"
 #include "../../manifold/pre_define/PreDefine.h"
 
 namespace simpla { namespace particle { namespace engine
@@ -178,7 +178,7 @@ public:
 }}}//namespace simpla { namespace particle { namespace engine
 namespace simpla { namespace particle
 {
-template<typename TM> using GyroParticle = Particle<particle::engine::GyroParticleWithCylindricalCoord<TM>, TM>;
+template<typename TM> using GyroParticle = ParticleOld<particle::engine::GyroParticleWithCylindricalCoord<TM>, TM>;
 
 }}
 #endif //SIMPLA_PIC_GYRO_H

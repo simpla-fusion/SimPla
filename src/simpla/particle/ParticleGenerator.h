@@ -15,8 +15,8 @@
 #include <random>
 #include "../toolbox/type_traits.h"
 #include "../sp_def.h"
-#include "../numeric/rectangle_distribution.h"
-#include "../numeric/multi_normal_distribution.h"
+#include "simpla/numeric/rectangle_distribution.h"
+#include "simpla/numeric/multi_normal_distribution.h"
 #include "../toolbox/DistributedCounter.h"
 
 namespace simpla { namespace particle

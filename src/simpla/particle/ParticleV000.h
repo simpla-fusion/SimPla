@@ -18,16 +18,16 @@ namespace particle
 {
 
 
-template<typename ...> struct Particle;
+template<typename ...> struct ParticleOld;
 
 template<typename P, typename M>
-struct Particle<P, M>
+struct ParticleOld<P, M>
         : public mesh::AttributeDesc::View, public P,
-          public std::enable_shared_from_this<Particle<P, M>>
+          public std::enable_shared_from_this<ParticleOld<P, M>>
 {
 private:
 
-    typedef Particle<P, M> this_type;
+    typedef ParticleOld<P, M> this_type;
     typedef mesh::AttributeDesc::View base_type;
 public:
 
@@ -68,19 +68,19 @@ private:
 public:
 
 
-    Particle(mesh_type const *m = nullptr)
+    ParticleOld(mesh_type const *m = nullptr)
             : m_holder_(nullptr), m_mesh_(m), m_data_(nullptr), m_properties_(new Properties), MeshAttribute(nullptr),
               MeshAttribute(nullptr), AttributeDesc(<#initializer#>, 0, 0, 0, <#initializer#>) {
     }
 
-    Particle(mesh::MeshView const *m)
+    ParticleOld(mesh::MeshView const *m)
             : m_holder_(nullptr), m_mesh_(dynamic_cast<mesh_type const *>(m)),
               m_data_(nullptr), m_properties_(new Properties), MeshAttribute(nullptr), MeshAttribute(nullptr),
               AttributeDesc(<#initializer#>, 0, 0, 0, <#initializer#>) {
         assert(m->template is_a<mesh_type>());
     }
 
-    Particle(std::shared_ptr<base_type> h)
+    ParticleOld(std::shared_ptr<base_type> h)
             : m_holder_(h), m_mesh_(nullptr), m_data_(nullptr), MeshAttribute(nullptr), MeshAttribute(nullptr),
               AttributeDesc(<#initializer#>, 0, 0, 0, <#initializer#>) {
         deploy();
@@ -88,7 +88,7 @@ public:
 
     //factory construct
     template<typename TFactory, typename ... Args, typename std::enable_if<TFactory::is_factory>::type * = nullptr>
-    Particle(TFactory &factory, Args &&...args)
+    ParticleOld(TFactory &factory, Args &&...args)
             : m_holder_(std::dynamic_pointer_cast<base_type>(
             factory.template create<this_type>(std::forward<Args>(args)...))),
               m_mesh_(nullptr), m_data_(nullptr), m_properties_(nullptr), MeshAttribute(nullptr), MeshAttribute(nullptr),
@@ -98,7 +98,7 @@ public:
 
 
     //Duplicate construct
-    Particle(this_type const &other)
+    ParticleOld(this_type const &other)
             : engine_type(other), m_holder_(other.m_holder_), m_mesh_(other.m_mesh_),
               m_data_(other.m_data_), m_properties_(other.m_properties_), MeshAttribute(nullptr), MeshAttribute(nullptr),
               AttributeDesc(<#initializer#>, 0, 0, 0, <#initializer#>) {
@@ -106,13 +106,13 @@ public:
 
 
     // Move construct
-    Particle(this_type &&other)
+    ParticleOld(this_type &&other)
             : engine_type(other), m_holder_(other.m_holder_), m_mesh_(other.m_mesh_),
               m_data_(other.m_data_), m_properties_(other.m_properties_), MeshAttribute(nullptr), MeshAttribute(nullptr),
               AttributeDesc(<#initializer#>, 0, 0, 0, <#initializer#>) {
     }
 
-    virtual ~Particle() { }
+    virtual ~ParticleOld() { }
 
     this_type &operator=(this_type const &other)
     {
@@ -249,14 +249,14 @@ public:
 
 
 template<typename P, typename M> void
-Particle<P, M>::clear()
+ParticleOld<P, M>::clear()
 {
     deploy();
     m_data_->clear();
 }
 
 template<typename P, typename M> void
-Particle<P, M>::clear(range_type const &r)
+ParticleOld<P, M>::clear(range_type const &r)
 {
     parallel::parallel_foreach([&](EntityId const &s) { m_data_->erase(s); }
 }

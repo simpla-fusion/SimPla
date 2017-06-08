@@ -3,7 +3,7 @@
 //
 #include <cstddef>
 #include "BucketContainer.h"
-#include "../mesh/MeshCommon.h"
+#include "simpla/mesh/MeshCommon.h"
 #include "ParticleInterface.h"
 #include "ParticleV001.h"
 

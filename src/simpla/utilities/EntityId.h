@@ -21,7 +21,7 @@
 #include "type_traits.h"
 namespace simpla {
 // typedef union { struct { u_int8_t w, z, y, x; }; int32_t v; } EntityId32;
-enum CenterOnMesh { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3 };
+enum CenterOnMesh { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3, FIBER = 6 };
 enum TypeOfValue {
     SCALAR = 1,
     VECTOR = 3,

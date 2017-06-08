@@ -11,14 +11,14 @@
 #include "simpla/geometry/FVMStructured.h"
 #include "simpla/geometry/LinearInterpolator.h"
 
-#include "../Particle.h"
-#include "simpla/physics/ParticleAdapter.h"
-#include "../ParticleEngine.h"
-#include "../ParticleGenerator.h"
-#include "../ParticleConstraint.h"
-#include "../ParticleTracker.h"
-#include "../../geometry/csCartesian.h"
-#include "../../geometry/csCylindrical.h"
+#include "simpla/particle/ParticleOld.h"
+#include "simpla/particle/ParticleAdapter.h"
+#include "simpla/particle/ParticleEngine.h"
+#include "simpla/particle/ParticleGenerator.h"
+#include "simpla/particle/ParticleConstraint.h"
+#include "simpla/particle/ParticleTracker.h"
+#include "simpla/geometry/csCartesian.h"
+#include "simpla/geometry/csCylindrical.h"
 
 namespace simpla { namespace particle { namespace engine
 {
@@ -120,13 +120,13 @@ struct GuidingCenterEngine<geometry::CylindricalMetric>
 namespace simpla { namespace particle
 {
 template<typename TM> using GuidingCenterParticle =
-Particle<particle::engine::GuidingCenterEngine<typename TM::metric_type>, TM,
+ParticleOld<particle::engine::GuidingCenterEngine<typename TM::metric_type>, TM,
         manifold::policy::FiniteVolume,
         manifold::policy::LinearInterpolator
 >;
 
 template<typename TM> using GuidingCenterTrackingParticle =
-Particle<enable_tracking<particle::engine::GuidingCenterEngine<typename TM::metric_type>>, TM,
+ParticleOld<enable_tracking<particle::engine::GuidingCenterEngine<typename TM::metric_type>>, TM,
         manifold::policy::FiniteVolume,
         manifold::policy::LinearInterpolator
 >;

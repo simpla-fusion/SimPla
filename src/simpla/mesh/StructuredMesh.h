@@ -43,7 +43,7 @@ class StructuredMesh : public engine::MeshBase {
 
     point_type point(EntityId s) const override;
 
-    point_type local_coordinates(EntityId s, point_type const &r = point_type{0, 0, 0}) const override;
+    point_type local_coordinates(EntityId s, Real const *r) const override;
 
     template <typename V>
     using data_type = data::DataMultiArray<V, NDIMS>;
