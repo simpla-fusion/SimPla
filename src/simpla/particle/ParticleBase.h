@@ -26,9 +26,9 @@ class ParticleBase : public engine::Attribute {
     static constexpr int SP_MAX_PARTICLE_IN_CELL = 256;
 
     struct bucket_s {
-        size_type size = 0;
+        int size = 0;
         int tag[SP_MAX_PARTICLE_IN_CELL];
-        Real d[][SP_MAX_PARTICLE_IN_CELL];
+        Real data[][SP_MAX_PARTICLE_IN_CELL];
     };
 
     auto at(EntityId s) const { return std::make_tuple(m_data_->lower_bound(s), m_data_->upper_bound(s)); }
@@ -50,16 +50,32 @@ class ParticleBase : public engine::Attribute {
     void push_bucket(std::shared_ptr<bucket_s> const&);
 
     template <typename TFun>
-    void Advance(int tag, bucket_s const* src, bucket_s* dest, Real const* E[3], Real const* B[3], Real* J[3]);
+    size_type Advance(int tag, bucket_s const* src, bucket_s* dest, TFun const&);
 
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-template <typename TFun>
-void ParticleBase::Advance(int tag, bucket_s const* src, bucket_s* dest, TFun const& fun, Real const* E[3],
-                           Real const* B[3], Real* J[3]){
 
+void scan(int num, int const* in, int* out) {}
+
+template <typename T>
+void filter(int num, int dest, int const* tag, int* o_idx) {
+    int idx[num];
+    for (int i = 0; i < num; ++i) { idx[i] = tag[i] == dest ? 1 : 0; }
+    scan(num, idx, o_idx);
+}
+template <typename TFun>
+size_type ParticleBase::Advance(int tag, bucket_s const* src, bucket_s* dest, TFun const& fun) {
+    int num = src->size;
+    int o_idx[num];
+    filter(num, tag, src->tag, o_idx);
+    int dest_min = dest->size;
+    int dest_max = o_idx[num - 1] - (SP_MAX_PARTICLE_IN_CELL - dest->size);
+    for (int i = 0; i < num; ++i) {
+        if (src->tag[i] == tag && o_idx[i] + dest_min < SP_MAX_PARTICLE_IN_CELL && o_idx[i] < dest_max)
+            fun(src->data, i, dest->data, o_idx[i] + dest_min);
+    }
 };
 }  // namespace simpla{namespace particle{
 #endif  // SIMPLA_PARTICLEBASE_H
