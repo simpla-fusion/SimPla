@@ -31,7 +31,7 @@ class DataTable : public DataEntity {
    public:
     DataTable();
     DataTable(const DataTable&);
-    DataTable(DataTable&&) noexcept;
+    DataTable(DataTable&&) noexcept ;
     virtual ~DataTable();
 
     DataTable& operator=(const DataTable& other) {

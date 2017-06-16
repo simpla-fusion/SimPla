@@ -142,7 +142,7 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
                     std::make_shared<data::DataTable>(std::forward<Args>(args)...)) {}
 
     Attribute(Attribute const &other);
-    Attribute(Attribute &&other);
+    Attribute(Attribute &&other) noexcept;
     ~Attribute() override;
 
     virtual size_type size() const { return 0; }

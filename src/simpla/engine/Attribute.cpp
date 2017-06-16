@@ -123,7 +123,7 @@ Attribute::Attribute(int IFORM, int DOF, std::type_info const &t_info, Attribute
 };
 
 Attribute::Attribute(Attribute const &other) : AttributeDesc(other), m_pimpl_(new pimpl_s) {}
-Attribute::Attribute(Attribute &&other) : AttributeDesc(other), m_pimpl_(std::move(other.m_pimpl_)) {}
+Attribute::Attribute(Attribute &&other) noexcept : AttributeDesc(other), m_pimpl_(std::move(other.m_pimpl_)) {}
 Attribute::~Attribute() {
     for (auto *b : m_pimpl_->m_bundle_) { Deregister(b); }
 }

@@ -14,13 +14,19 @@ if (NOT STD_CXX)
     SET(STD_CXX "c++14")
 endif (NOT STD_CXX)
 
+
+SET(CMAKE_CXX_FLAGS "-std=${STD_CXX} -fPIC  ")
+
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-    SET(CMAKE_CXX_FLAGS "-std=${STD_CXX} -fcolor-diagnostics -ftemplate-backtrace-limit=0  -fPIC -funroll-loops  -fno-limit-debug-info ")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics -ftemplate-backtrace-limit=0 -funroll-loops  -fno-limit-debug-info ")
     SET(CMAKE_Fortran_COMPILER gfortran)
 elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-    SET(CMAKE_CXX_FLAGS "-std=${STD_CXX} -fPIC   ")
+
+elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "PGI")
+    SET(OpenACC_CXX_FLAGS "-acc -Minfo=accel")
 else ()
-    SET(CMAKE_CXX_FLAGS "-std=${STD_CXX} -fPIC   ")
+    SET(OpenACC_CXX_FLAGS " -fopenacc -foffload=nvptx-none -foffload=\"-O3\" -O3 -o gpu.x ")
+
 endif ()
 
 INCLUDE(CTest)
@@ -32,6 +38,8 @@ SET(BUILD_SHARED_LIBS OFF)
 
 
 FIND_PACKAGE(Boost REQUIRED)
+
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenACC_CXX_FLAGS} ")
 
 FIND_PACKAGE(OpenMP REQUIRED)
 
@@ -45,8 +53,6 @@ FIND_PACKAGE(MPI REQUIRED)
 IF (MPI_FOUND)
     INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
     ADD_DEFINITIONS(-DOMPI_SKIP_MPICXX)
-
-
     SET(SKIP_MPICXX "OMPI_SKIP_MPICXX")
 ENDIF (MPI_FOUND)
 
@@ -84,7 +90,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/include/)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 INCLUDE_DIRECTORIES(/pkg/SAMRAI/3.11.0-debug-hdf5-1.10-openmpi-2.0.2/include/)
-# workaround for CLion 1.0.x
+#workaround for CLion 1.0.x
 FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
 add_executable(all_clion ${clion_all_headers}  src/dummy.h src/dummy.cpp src/simpla/particle/ParticleLoad.cpp src/simpla/particle/spParticle.h src/simpla/particle/ParticleBase.cpp)
 

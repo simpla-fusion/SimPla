@@ -641,7 +641,7 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
     SP_OBJECT_HEAD(ContinueRange<EntityId>, RangeBase<EntityId>)
 
    public:
-    ContinueRange(index_type const* b = nullptr, index_type const* e = nullptr, int w = 0)
+    explicit ContinueRange(index_type const* b = nullptr, index_type const* e = nullptr, int w = 0)
         : m_min_{b == nullptr ? 0 : b[0], b == nullptr ? 0 : b[1], b == nullptr ? 0 : b[2]},
           m_max_{e == nullptr ? 1 : e[0], e == nullptr ? 1 : e[1], e == nullptr ? 1 : e[2]},
           m_w_(w) {
@@ -652,10 +652,10 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
     }
     ContinueRange(index_tuple const& b, index_tuple const& e, int w = 0) : ContinueRange(&b[0], &(e[0]), w) {}
 
-    ContinueRange(std::tuple<index_tuple, index_tuple> const& b, int w = 0)
+    explicit ContinueRange(std::tuple<index_tuple, index_tuple> const& b, int w = 0)
         : ContinueRange(std::get<0>(b), std::get<1>(b), w) {}
 
-    ContinueRange(this_type const& r)
+    explicit ContinueRange(this_type const& r)
         : m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_), m_w_(r.m_w_) {}
 
     std::shared_ptr<base_type> split(tags::split const& proportion) override {
@@ -714,7 +714,11 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
         index_type ie = this->m_max_[0];
         index_type je = this->m_max_[1];
         index_type ke = this->m_max_[2];
+#ifdef __OPENACC
+#pragma acc parallel for
+#else
 #pragma omp parallel for
+#endif
         for (index_type i = ib; i < ie; ++i) {
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k) {

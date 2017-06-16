@@ -26,7 +26,7 @@ DataTable::DataTable(std::initializer_list<KeyValue> const& l) : DataTable() {
     for (auto const& item : l) { Set(item.first, item.second); }
 }
 
-DataTable::DataTable(DataTable&& other) noexcept : m_backend_(other.m_backend_) { ASSERT(m_backend_ != nullptr); }
+DataTable::DataTable(DataTable&& other) noexcept : m_backend_(other.m_backend_) {}
 
 DataTable::~DataTable(){};
 void DataTable::swap(DataTable& other) {
@@ -46,7 +46,6 @@ bool DataTable::isNull() const { return m_backend_ == nullptr; }
 size_type DataTable::size() const { return m_backend_->size(); }
 std::shared_ptr<DataEntity> DataTable::Get(std::string const& path) const { return m_backend_->Get(path); };
 void DataTable::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v, bool overwrite) {
-
     bool success = false;
     auto res = Get(uri);
     if (res != nullptr && !overwrite) { return; }
@@ -127,7 +126,6 @@ void DataTable::SetValue(std::initializer_list<KeyValue> const& other) {
 size_type DataTable::Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
     return m_backend_->Foreach(f);
 }
-
 
 std::ostream& DataTable::Serialize(std::ostream& os, int indent) const {
     os << "{";

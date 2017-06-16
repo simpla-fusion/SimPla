@@ -58,11 +58,11 @@ class Field : public engine::Attribute {
     Field(this_type const& other)
         : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_data_(other.m_data_) {}
 
-    Field(this_type&& other)
-        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_data_(other.m_data_) {}
+//    Field(this_type&& other)
+//        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_data_(other.m_data_) {}
 
-    Field(this_type const& other, EntityRange const& r)
-        : engine::Attribute(other), m_data_(other.m_data_), m_mesh_(other.m_mesh_), m_range_(r) {}
+    Field(this_type const& other, EntityRange r)
+        : engine::Attribute(other), m_data_(other.m_data_), m_mesh_(other.m_mesh_), m_range_(std::move(r)) {}
 
     ~Field() override = default;
 
@@ -79,6 +79,17 @@ class Field : public engine::Attribute {
     this_type& operator=(this_type const& other) {
         Assign(other);
         return *this;
+    }
+//    this_type& operator=(this_type&& other) {
+//        this_type(other).swap(*this);
+//        return *this;
+//    }
+
+    void swap(this_type& other) {
+        engine::Attribute::swap(other);
+        std::swap(m_data_, other.m_data_);
+        std::swap(m_mesh_, other.m_mesh_);
+        m_range_.swap(other.m_range_);
     }
 
     template <typename TR>
