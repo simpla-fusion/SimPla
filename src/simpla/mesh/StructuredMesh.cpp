@@ -37,6 +37,7 @@ void StructuredMesh::Update() {
 */
 
 point_type StructuredMesh::local_coordinates(EntityId s, Real const *pr) const {
+    ASSERT(pr != nullptr);
     point_type r;
 
     r[0] = pr[0] + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][0];
@@ -137,8 +138,7 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
     for (index_type I = ib[0]; I < ie[0]; ++I)
         for (index_type J = ib[1]; J < ie[1]; ++J)
             for (index_type K = ib[2]; K < ie[2]; ++K) {
-                auto x = local_coordinates(
-                    EntityId{static_cast<int16_t>(I), static_cast<int16_t>(J), static_cast<int16_t>(K), 0}, nullptr);
+                auto x = point(EntityId{static_cast<int16_t>(I), static_cast<int16_t>(J), static_cast<int16_t>(K)});
                 if (!g->CheckInside(x)) { (vertex_tags[0])(I, J, K) = 1; }
             }
     //
