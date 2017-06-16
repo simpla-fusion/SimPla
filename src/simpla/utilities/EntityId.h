@@ -55,17 +55,14 @@ typedef Range<EntityId> EntityRange;
 constexpr inline bool operator==(EntityId first, EntityId second) { return first.v == second.v; }
 
 constexpr inline EntityId operator-(EntityId first, EntityId second) {
-    return EntityId{.x = static_cast<int16_t>(first.x - second.x),
-                    .y = static_cast<int16_t>(first.y - second.y),
-                    .z = static_cast<int16_t>(first.z - second.z),
-                    .w = first.w};
+    EntityId res = {static_cast<int16_t>(first.x - second.x), static_cast<int16_t>(first.y - second.y),
+                    static_cast<int16_t>(first.z - second.z), first.w};
+    return res;
 }
 
 constexpr inline EntityId operator+(EntityId first, EntityId second) {
-    return EntityId{.x = static_cast<int16_t>(first.x + second.x),
-                    .y = static_cast<int16_t>(first.y + second.y),
-                    .z = static_cast<int16_t>(first.z + second.z),
-                    .w = first.w};
+    return EntityId{static_cast<int16_t>(first.x + second.x), static_cast<int16_t>(first.y + second.y),
+                    static_cast<int16_t>(first.z + second.z), first.w};
 }
 
 constexpr inline EntityId operator|(EntityId first, EntityId second) { return EntityId{.v = first.v | second.v}; }
@@ -81,10 +78,10 @@ struct EntityIdCoder {
     static constexpr int ndims = 3;
     static constexpr int MESH_RESOLUTION = 1;
 
-    static constexpr EntityId _DI{.x = 1, .y = 0, .z = 0, .w = 0};
-    static constexpr EntityId _DJ{.x = 0, .y = 1, .z = 0, .w = 0};
-    static constexpr EntityId _DK{.x = 0, .y = 0, .z = 1, .w = 0};
-    static constexpr EntityId _DA{.x = 1, .y = 1, .z = 1, .w = static_cast<int16_t>(-1)};
+    static constexpr EntityId _DI{1, 0, 0, 0};
+    static constexpr EntityId _DJ{0, 1, 0, 0};
+    static constexpr EntityId _DK{0, 0, 1, 0};
+    static constexpr EntityId _DA{1, 1, 1, static_cast<int16_t>(-1)};
 
     typedef EntityIdCoder this_type;
 
@@ -118,14 +115,14 @@ struct EntityIdCoder {
     };
 
     static constexpr EntityId m_id_to_shift_[] = {
-        {.x = 0, .y = 0, .z = 0, .w = 0},  // 000
-        {.x = 1, .y = 0, .z = 0, .w = 0},  // 001
-        {.x = 0, .y = 1, .z = 0, .w = 0},  // 010
-        {.x = 1, .y = 1, .z = 0, .w = 0},  // 011
-        {.x = 0, .y = 0, .z = 1, .w = 0},  // 100
-        {.x = 1, .y = 0, .z = 1, .w = 0},  // 101
-        {.x = 0, .y = 1, .z = 1, .w = 0},  // 110
-        {.x = 1, .y = 1, .z = 1, .w = 0},  // 111
+        {0, 0, 0, 0},  // 000
+        {1, 0, 0, 0},  // 001
+        {0, 1, 0, 0},  // 010
+        {1, 1, 0, 0},  // 011
+        {0, 0, 1, 0},  // 100
+        {1, 0, 1, 0},  // 101
+        {0, 1, 1, 0},  // 110
+        {1, 1, 1, 0},  // 111
 
     };
 
@@ -219,9 +216,9 @@ struct EntityIdCoder {
     //! @name id auxiliary functions
     //! @{
     static constexpr EntityId m_num_to_id_[] = {  //
-        {.w = 1, .x = 0, .y = 0, .z = 0},
-        {.w = 2, .x = 0, .y = 0, .z = 0},
-        {.w = 4, .x = 0, .y = 0, .z = 0}};
+        {0, 0, 0, 1},
+        {0, 0, 0, 2},
+        {0, 0, 0, 4}};
 
     static EntityId DI(int n) { return m_num_to_id_[n]; }
 
@@ -232,17 +229,15 @@ struct EntityIdCoder {
     static EntityId delta_index(EntityId s) { return EntityId{.v = static_cast<int64_t>(s.v & _DA.v)}; }
 
     static EntityId rotate(EntityId s) {
-        return EntityId{.w = static_cast<int16_t>(s.w),
-                        .z = static_cast<int16_t>((s.z & ~0x1) | (s.y & 0x1)),
-                        .y = static_cast<int16_t>((s.y & ~0x1) | (s.x & 0x1)),
-                        .x = static_cast<int16_t>((s.x & ~0x1) | (s.z & 0x1))};
+        return EntityId{static_cast<int16_t>((s.x & ~0x1) | (s.z & 0x1)),
+                        static_cast<int16_t>((s.y & ~0x1) | (s.x & 0x1)),
+                        static_cast<int16_t>((s.z & ~0x1) | (s.y & 0x1)), static_cast<int16_t>(s.w)};
     }
 
     static EntityId inverse_rotate(EntityId s) {
-        return EntityId{.w = static_cast<int16_t>(s.w),
-                        .z = static_cast<int16_t>((s.z & ~0x1) | (s.x & 0x1)),
-                        .y = static_cast<int16_t>((s.y & ~0x1) | (s.z & 0x1)),
-                        .x = static_cast<int16_t>((s.x & ~0x1) | (s.y & 0x1))};
+        return EntityId{static_cast<int16_t>((s.x & ~0x1) | (s.y & 0x1)),
+                        static_cast<int16_t>((s.y & ~0x1) | (s.z & 0x1)),
+                        static_cast<int16_t>((s.z & ~0x1) | (s.x & 0x1)), static_cast<int16_t>(s.w)};
     }
 
     /**

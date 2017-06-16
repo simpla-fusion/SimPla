@@ -49,19 +49,13 @@ Real QuadrilateralArea(SMesh const *m, EntityId s, int d) {
                                            {{0, 0, 0}, {1, 0, 0}, {0, 0, 1}, {1, 0, 1}},
                                            {{0, 0, 0}, {0, 0, 1}, {0, 1, 0}, {1, 1, 0}}};
 
-    auto p0 = m->point(EntityId{.w = s.w, .x = s.x, .y = s.y, .z = s.z});
-    auto p1 = m->point(EntityId{.w = s.w,
-                                .x = static_cast<int16_t>(s.x + r[d][1][0]),
-                                .y = static_cast<int16_t>(s.y + r[d][1][1]),
-                                .z = static_cast<int16_t>(s.z + r[d][1][2])});
-    auto p2 = m->point(EntityId{.w = s.w,
-                                .x = static_cast<int16_t>(s.x + r[d][2][0]),
-                                .y = static_cast<int16_t>(s.y + r[d][2][1]),
-                                .z = static_cast<int16_t>(s.z + r[d][2][2])});
-    auto p3 = m->point(EntityId{.w = s.w,
-                                .x = static_cast<int16_t>(s.x + r[d][3][0]),
-                                .y = static_cast<int16_t>(s.y + r[d][3][1]),
-                                .z = static_cast<int16_t>(s.z + r[d][3][2])});
+    auto p0 = m->point(EntityId{s.x, s.y, s.z, s.w});
+    auto p1 = m->point(EntityId{static_cast<int16_t>(s.x + r[d][1][0]), static_cast<int16_t>(s.y + r[d][1][1]),
+                                static_cast<int16_t>(s.z + r[d][1][2]), s.w});
+    auto p2 = m->point(EntityId{static_cast<int16_t>(s.x + r[d][2][0]), static_cast<int16_t>(s.y + r[d][2][1]),
+                                static_cast<int16_t>(s.z + r[d][2][2]), s.w});
+    auto p3 = m->point(EntityId{static_cast<int16_t>(s.x + r[d][3][0]), static_cast<int16_t>(s.y + r[d][3][1]),
+                                static_cast<int16_t>(s.z + r[d][3][2]), s.w});
 
     return m->GetChart()->area(p0, p1, p2) + m->GetChart()->area(p1, p2, p3);
 }
@@ -79,45 +73,31 @@ Real HexahedronVolume(SMesh const *m, EntityId s) {
 
     };
 
-    auto p0 = m->point(EntityId{.w = s.w, .x = s.x, .y = s.y, .z = s.z});
-    auto p1 = m->point(EntityId{.w = s.w,
-                                .x = static_cast<int16_t>(s.x + r[1][0]),
-                                .y = static_cast<int16_t>(s.y + r[1][1]),
-                                .z = static_cast<int16_t>(s.z + r[1][2])});
-    auto p2 = m->point(EntityId{.w = s.w,
-                                .x = static_cast<int16_t>(s.x + r[2][0]),
-                                .y = static_cast<int16_t>(s.y + r[2][1]),
-                                .z = static_cast<int16_t>(s.z + r[2][2])});
-    auto p3 = m->point(EntityId{.w = s.w,
-                                .x = static_cast<int16_t>(s.x + r[3][0]),
-                                .y = static_cast<int16_t>(s.y + r[3][1]),
-                                .z = static_cast<int16_t>(s.z + r[3][2])});
-    auto p4 = m->point(EntityId{.w = s.w,
-                                .x = static_cast<int16_t>(s.x + r[4][0]),
-                                .y = static_cast<int16_t>(s.y + r[4][1]),
-                                .z = static_cast<int16_t>(s.z + r[4][2])});
-    auto p5 = m->point(EntityId{.w = s.w,
-                                .x = static_cast<int16_t>(s.x + r[5][0]),
-                                .y = static_cast<int16_t>(s.y + r[5][1]),
-                                .z = static_cast<int16_t>(s.z + r[5][2])});
-    auto p6 = m->point(EntityId{.w = s.w,
-                                .x = static_cast<int16_t>(s.x + r[6][0]),
-                                .y = static_cast<int16_t>(s.y + r[6][1]),
-                                .z = static_cast<int16_t>(s.z + r[6][2])});
-    auto p7 = m->point(EntityId{.w = s.w,
-                                .x = static_cast<int16_t>(s.x + r[7][0]),
-                                .y = static_cast<int16_t>(s.y + r[7][1]),
-                                .z = static_cast<int16_t>(s.z + r[7][2])});
+    auto p0 = m->point(EntityId{s.x, s.y, s.z, s.w});
+    auto p1 = m->point(EntityId{static_cast<int16_t>(s.x + r[1][0]), static_cast<int16_t>(s.y + r[1][1]),
+                                static_cast<int16_t>(s.z + r[1][2]), s.w});
+    auto p2 = m->point(EntityId{static_cast<int16_t>(s.x + r[2][0]), static_cast<int16_t>(s.y + r[2][1]),
+                                static_cast<int16_t>(s.z + r[2][2]), s.w});
+    auto p3 = m->point(EntityId{static_cast<int16_t>(s.x + r[3][0]), static_cast<int16_t>(s.y + r[3][1]),
+                                static_cast<int16_t>(s.z + r[3][2]), s.w});
+    auto p4 = m->point(EntityId{static_cast<int16_t>(s.x + r[4][0]), static_cast<int16_t>(s.y + r[4][1]),
+                                static_cast<int16_t>(s.z + r[4][2]), s.w});
+    auto p5 = m->point(EntityId{static_cast<int16_t>(s.x + r[5][0]), static_cast<int16_t>(s.y + r[5][1]),
+                                static_cast<int16_t>(s.z + r[5][2]), s.w});
+    auto p6 = m->point(EntityId{static_cast<int16_t>(s.x + r[6][0]), static_cast<int16_t>(s.y + r[6][1]),
+                                static_cast<int16_t>(s.z + r[6][2]), s.w});
+    auto p7 = m->point(EntityId{static_cast<int16_t>(s.x + r[7][0]), static_cast<int16_t>(s.y + r[7][1]),
+                                static_cast<int16_t>(s.z + r[7][2]), s.w});
 
     return m->GetChart()->volume(p0, p1, p2, p4) + m->GetChart()->volume(p1, p2, p4, p6) +
-            m->GetChart()->volume(p4, p6, p1, p5) + m->GetChart()->volume(p6, p1, p5, p7) +
-            m->GetChart()->volume(p1, p5, p7, p2) + m->GetChart()->volume(p5, p7, p2, p3);
+           m->GetChart()->volume(p4, p6, p1, p5) + m->GetChart()->volume(p6, p1, p5, p7) +
+           m->GetChart()->volume(p1, p5, p7, p2) + m->GetChart()->volume(p5, p7, p2, p3);
 }
 
 void SMesh::InitializeData(Real time_now) {
     StructuredMesh::InitializeData(time_now);
 
-    m_coordinates_ = [&](EntityId s) -> point_type { return global_coordinates(s); };
+    m_coordinates_ = [&](EntityId s) -> point_type { return global_coordinates(s, nullptr); };
 
     m_vertex_volume_.Clear();
     m_vertex_inv_volume_.Clear();
@@ -161,16 +141,14 @@ void SMesh::InitializeData(Real time_now) {
     m_vertex_volume_ = 1.0;
     m_vertex_inv_volume_ = 1.0;
     m_vertex_dual_volume_ = [&](EntityId s) -> Real {
-        return HexahedronVolume(this, EntityId{.w = 0b111,
-                                               .x = static_cast<int16_t>(s.x - 1),
-                                               .y = static_cast<int16_t>(s.y - 1),
-                                               .z = static_cast<int16_t>(s.z - 1)});
+        return HexahedronVolume(this, EntityId{static_cast<int16_t>(s.x - 1), static_cast<int16_t>(s.y - 1),
+                                               static_cast<int16_t>(s.z - 1), 0b111});
 
     };
     m_vertex_inv_dual_volume_ = 1.0 / m_vertex_dual_volume_;
 
     m_volume_volume_ = [&](EntityId s) -> Real {
-        return HexahedronVolume(this, EntityId{.w = 0b0, .x = s.x, .y = s.y, .z = s.z});
+        return HexahedronVolume(this, EntityId{s.x, s.y, s.z, 0b0});
 
     };
     m_volume_inv_volume_ = 1.0 / m_volume_volume_;
@@ -178,36 +156,32 @@ void SMesh::InitializeData(Real time_now) {
     m_volume_inv_dual_volume_ = 1.0;
 
     m_edge_volume_ = [&](EntityId s) -> Real {
-        return chart->length(point(EntityId{.w = 0b0, .x = s.x, .y = s.y, .z = s.z}),
-                             point(EntityId{.w = 0b0,
-                                            .x = static_cast<int16_t>(s.x + (s.w & 0b111) == 0b001 ? 1 : 0),
-                                            .y = static_cast<int16_t>(s.y + (s.w & 0b111) == 0b010 ? 1 : 0),
-                                            .z = static_cast<int16_t>(s.z + (s.w & 0b111) == 0b100 ? 1 : 0)}));
+        return chart->length(point(EntityId{s.x, s.y, s.z, 0b0}),
+                             point(EntityId{static_cast<int16_t>(s.x + (s.w & 0b111) == 0b001 ? 1 : 0),
+                                            static_cast<int16_t>(s.y + (s.w & 0b111) == 0b010 ? 1 : 0),
+                                            static_cast<int16_t>(s.z + (s.w & 0b111) == 0b100 ? 1 : 0), 0b0}));
     };
     m_edge_inv_volume_ = 1.0 / m_edge_volume_;
 
     m_edge_dual_volume_ = [&](EntityId s) -> Real {
         int n = EntityIdCoder::m_id_to_sub_index_[s.w];
-        return QuadrilateralArea(this, EntityId{.w = 0b111,
-                                                .x = static_cast<int16_t>(s.x - (n != 0 ? 1 : 0)),
-                                                .y = static_cast<int16_t>(s.y - (n != 1 ? 1 : 0)),
-                                                .z = static_cast<int16_t>(s.z - (n != 2 ? 1 : 0))},
-                                 n);
+        return QuadrilateralArea(
+            this, EntityId{static_cast<int16_t>(s.x - (n != 0 ? 1 : 0)), static_cast<int16_t>(s.y - (n != 1 ? 1 : 0)),
+                           static_cast<int16_t>(s.z - (n != 2 ? 1 : 0)), 0b111},
+            n);
     };
     m_edge_inv_dual_volume_ = 1.0 / m_edge_dual_volume_;
 
     m_face_volume_ = [&](EntityId s) -> Real {
-        return QuadrilateralArea(this, EntityId{.w = 0b0, .x = s.x, .y = s.y, .z = s.z},
-                                 EntityIdCoder::m_id_to_sub_index_[s.w]);
+        return QuadrilateralArea(this, EntityId{s.x, s.y, s.z, 0b0}, EntityIdCoder::m_id_to_sub_index_[s.w]);
     };
 
     m_face_inv_volume_ = 1.0 / m_face_volume_;
     m_face_dual_volume_ = [&](EntityId s) -> Real {
-        return chart->length(point(EntityId{.w = 0b111,
-                                            .x = static_cast<int16_t>(s.x - (s.w & 0b111) == 0b110 ? 1 : 0),
-                                            .y = static_cast<int16_t>(s.y - (s.w & 0b111) == 0b101 ? 1 : 0),
-                                            .z = static_cast<int16_t>(s.z - (s.w & 0b111) == 0b011 ? 1 : 0)}),
-                             point(EntityId{.w = 0b111, .x = s.x, .y = s.y, .z = s.z}));
+        return chart->length(point(EntityId{static_cast<int16_t>(s.x - (s.w & 0b111) == 0b110 ? 1 : 0),
+                                            static_cast<int16_t>(s.y - (s.w & 0b111) == 0b101 ? 1 : 0),
+                                            static_cast<int16_t>(s.z - (s.w & 0b111) == 0b011 ? 1 : 0), 0b111}),
+                             point(EntityId{s.x, s.y, s.z, 0b111}));
     };
     m_face_inv_dual_volume_ = 1.0 / m_face_dual_volume_;
 };

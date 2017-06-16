@@ -105,10 +105,10 @@ box_type MeshBase::GetBox() const {
     box_type res;
     index_tuple lo, hi;
     std::tie(lo, hi) = GetIndexBox(VERTEX);
-    std::get<0>(res) = point(EntityId{
-        .w = 0, .x = static_cast<int16_t>(lo[0]), .y = static_cast<int16_t>(lo[1]), .z = static_cast<int16_t>(lo[2])});
-    std::get<1>(res) = point(EntityId{
-        .w = 0, .x = static_cast<int16_t>(hi[0]), .y = static_cast<int16_t>(hi[1]), .z = static_cast<int16_t>(hi[2])});
+    std::get<0>(res) =
+        point(EntityId{static_cast<int16_t>(lo[0]), static_cast<int16_t>(lo[1]), static_cast<int16_t>(lo[2]), 0});
+    std::get<1>(res) =
+        point(EntityId{static_cast<int16_t>(hi[0]), static_cast<int16_t>(hi[1]), static_cast<int16_t>(hi[2]), 0});
     return res;
 }
 point_type MeshBase::global_coordinates(EntityId s, Real const* pr) const {

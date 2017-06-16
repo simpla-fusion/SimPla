@@ -3,9 +3,14 @@ IF (NOT SAMRAI_DIR)
     SET(SAMRAI_DIR /pkg/SAMRAI/3.11.0-debug-hdf5-1.10-openmpi-2.0.2)
 ENDIF (NOT SAMRAI_DIR)
 
-#FIND_PACKAGE(SAMRAI REQUIRED)
+FIND_PACKAGE(SAMRAI REQUIRED)
 
 MESSAGE("-- SAMRAI IS FOUND: " ${SAMRAI_INCLUDE_DIRS})
+
+
+LINK_DIRECTORIES(/usr/lib/gcc/x86_64-linux-gnu/5/)
+INCLUDE_DIRECTORIES(${SAMRAI_INCLUDE_DIRS}     )
+
 #SET(OCCT_PREFER_COMMUNITY_EDITION ON)
 #
 #FIND_PACKAGE(OCE 0.17 REQUIRED)
@@ -27,18 +32,17 @@ MESSAGE("-- SAMRAI IS FOUND: " ${SAMRAI_INCLUDE_DIRS})
 #    MESSAGE(" -- MeshKit Found: ${MeshKit_LIBRARIES};  INCLUDE: ${MESHKIT_INCLUDE_DIRS}")
 #ENDIF (MeshKit_FOUND)
 #
-LINK_DIRECTORIES(/usr/lib/gcc/x86_64-linux-gnu/5/)
-INCLUDE_DIRECTORIES(${SAMRAI_INCLUDE_DIRS}
-        #        ${MOAB_INCLUDE_DIRS} ${MESHKIT_INCLUDE_DIRS} ${OCE_INCLUDE_DIRS}
-        )
+# ${MOAB_INCLUDE_DIRS} ${MESHKIT_INCLUDE_DIRS} ${OCE_INCLUDE_DIRS}
+
 
 FILE(GLOB third_part_SRC *.cpp)
 #FILE(GLOB third_part_SRC DataTable.cpp )
 add_library(third_part ${third_part_SRC})
 
-TARGET_LINK_LIBRARIES(third_part ${SAMRAI_LIBRARIES}
+TARGET_LINK_LIBRARIES(third_part
         #     ${OCE_LIBRARIES}   ${MeshKit_LIBRARIES} ${MOAB_LIBRARIES}
-        #        netcdf    ${HDF5_LIBRARIES} ${MPI_LIBRARIES} ${TBB_LIBRARIES}
+        ${SAMRAI_LIBRARIES}    netcdf    ${HDF5_LIBRARIES} ${MPI_LIBRARIES} ${TBB_LIBRARIES}
+
         #        toolbox geometry parallel data mesh engine model physics
         )
 

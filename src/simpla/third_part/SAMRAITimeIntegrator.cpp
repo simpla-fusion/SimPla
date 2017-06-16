@@ -927,14 +927,10 @@ void SAMRAITimeIntegrator::Update() {
     CartesianGridGeometry->putDatabaseBox("domain_boxes_0", box);
     nTuple<int, 3> periodic_dimension{0, 0, 0};
     periodic_dimension = p_mesh->GetPeriodicDimension();
-    nTuple<double, 3> x_low = p_mesh->point(EntityId{.w = 0,
-                                                     .x = static_cast<int16_t>(i_low[0]),
-                                                     .y = static_cast<int16_t>(i_low[1]),
-                                                     .z = static_cast<int16_t>(i_low[2])});
-    nTuple<double, 3> x_up = p_mesh->point(EntityId{.w = 0,
-                                                    .x = static_cast<int16_t>(i_up[0]),
-                                                    .y = static_cast<int16_t>(i_up[1]),
-                                                    .z = static_cast<int16_t>(i_up[2])});
+    nTuple<double, 3> x_low = p_mesh->point(
+        EntityId{static_cast<int16_t>(i_low[0]), static_cast<int16_t>(i_low[1]), static_cast<int16_t>(i_low[2]), 0});
+    nTuple<double, 3> x_up = p_mesh->point(
+        EntityId{static_cast<int16_t>(i_up[0]), static_cast<int16_t>(i_up[1]), static_cast<int16_t>(i_up[2]), 0});
 
     CartesianGridGeometry->putIntegerArray("periodic_dimension", &periodic_dimension[0], ndims);
     CartesianGridGeometry->putDoubleArray("x_lo", &x_low[0], ndims);

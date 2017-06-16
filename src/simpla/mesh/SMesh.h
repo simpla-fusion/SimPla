@@ -31,7 +31,7 @@ struct SMesh : public StructuredMesh {
 
     point_type point(EntityId s) const override;
 
-    point_type local_coordinates(EntityId s, point_type const &r) const override;
+    point_type local_coordinates(EntityId s, point_type const &r) const;
 
 #define DECLARE_FIELD(_IFORM_, _DOF_, _NAME_, ...) \
     Field<this_type, Real, _IFORM_, _DOF_> _NAME_{this, "name"_ = __STRING(_NAME_), __VA_ARGS__};

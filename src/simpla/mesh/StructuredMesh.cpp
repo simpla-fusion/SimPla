@@ -137,8 +137,8 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
     for (index_type I = ib[0]; I < ie[0]; ++I)
         for (index_type J = ib[1]; J < ie[1]; ++J)
             for (index_type K = ib[2]; K < ie[2]; ++K) {
-                auto x = local_coordinates(EntityId{
-                    .w = 0, .x = static_cast<int16_t>(I), .y = static_cast<int16_t>(J), .z = static_cast<int16_t>(K)});
+                auto x = local_coordinates(
+                    EntityId{static_cast<int16_t>(I), static_cast<int16_t>(J), static_cast<int16_t>(K), 0}, nullptr);
                 if (!g->CheckInside(x)) { (vertex_tags[0])(I, J, K) = 1; }
             }
     //
@@ -184,23 +184,23 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
     static const int b5 = 0b101;
     static const int b6 = 0b110;
     static const int b7 = 0b111;
-    static const EntityId t0 = {.w = 0b000, .x = 0, .y = 0, .z = 0};
-    static const EntityId t1 = {.w = 0b001, .x = 0, .y = 0, .z = 0};
-    static const EntityId t2 = {.w = 0b010, .x = 0, .y = 0, .z = 0};
-    static const EntityId t3 = {.w = 0b011, .x = 0, .y = 0, .z = 0};
-    static const EntityId t4 = {.w = 0b100, .x = 0, .y = 0, .z = 0};
-    static const EntityId t5 = {.w = 0b101, .x = 0, .y = 0, .z = 0};
-    static const EntityId t6 = {.w = 0b110, .x = 0, .y = 0, .z = 0};
-    static const EntityId t7 = {.w = 0b111, .x = 0, .y = 0, .z = 0};
+    static const EntityId t0 = {0, 0, 0, 0b000};
+    static const EntityId t1 = {0, 0, 0, 0b001};
+    static const EntityId t2 = {0, 0, 0, 0b010};
+    static const EntityId t3 = {0, 0, 0, 0b011};
+    static const EntityId t4 = {0, 0, 0, 0b100};
+    static const EntityId t5 = {0, 0, 0, 0b101};
+    static const EntityId t6 = {0, 0, 0, 0b110};
+    static const EntityId t7 = {0, 0, 0, 0b111};
 
-    static const EntityId s0 = {.w = 0, .x = 0, .y = 0, .z = 0};
-    static const EntityId s1 = {.w = 0, .x = 1, .y = 0, .z = 0};
-    static const EntityId s2 = {.w = 0, .x = 0, .y = 1, .z = 0};
-    static const EntityId s3 = {.w = 0, .x = 1, .y = 1, .z = 0};
-    static const EntityId s4 = {.w = 0, .x = 0, .y = 0, .z = 1};
-    static const EntityId s5 = {.w = 0, .x = 1, .y = 0, .z = 1};
-    static const EntityId s6 = {.w = 0, .x = 0, .y = 1, .z = 1};
-    static const EntityId s7 = {.w = 0, .x = 1, .y = 1, .z = 1};
+    static const EntityId s0 = {0, 0, 0, 0};
+    static const EntityId s1 = {1, 0, 0, 0};
+    static const EntityId s2 = {0, 1, 0, 0};
+    static const EntityId s3 = {1, 1, 0, 0};
+    static const EntityId s4 = {0, 0, 1, 0};
+    static const EntityId s5 = {1, 0, 1, 0};
+    static const EntityId s6 = {0, 1, 1, 0};
+    static const EntityId s7 = {1, 1, 1, 0};
 
     std::tie(ib, ie) = GetIndexBox(VOLUME);
 
@@ -208,10 +208,7 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
     for (index_type I = ib[0]; I < ie[0]; ++I)
         for (index_type J = ib[1]; J < ie[1]; ++J)
             for (index_type K = ib[2]; K < ie[2]; ++K) {
-                EntityId s = {.w = 0,                        //
-                              .x = static_cast<int16_t>(I),  //
-                              .y = static_cast<int16_t>(J),  //
-                              .z = static_cast<int16_t>(K)};
+                EntityId s = {static_cast<int16_t>(I), static_cast<int16_t>(J), static_cast<int16_t>(K), 0};
 
                 int volume_tags = ((vertex_tags[s0 + s]) << 0) |  //
                                   ((vertex_tags[s1 + s]) << 1) |  //
