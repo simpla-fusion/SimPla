@@ -13,6 +13,8 @@ template <bool BOOLEAN, typename... T>
 using conditional_t = typename conditional<BOOLEAN, T...>::type;
 template <bool BOOLEAN, typename... T>
 using enable_if_t = typename enable_if<BOOLEAN, T...>::type;
+template <typename... T>
+using result_of_t = typename result_of<T...>::type;
 }
 
 #define AUTO_RETURN(_EXPR_) \

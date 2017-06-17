@@ -130,7 +130,7 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
     Ev.Clear();
     Bv.Clear();
 
-    BB = dot_v(B0v, B0v);
+    BB = dot(B0v, B0v);
 
     for (auto& item : m_fluid_sp_) {
         if (item.second == nullptr) { continue; }

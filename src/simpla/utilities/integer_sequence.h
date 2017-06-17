@@ -97,6 +97,9 @@ using int_sequence = integer_sequence<int, _Idx...>;
 template <int _Num>
 using make_int_sequence = make_integer_sequence<int, _Num>;
 
+template <int _Num>
+using make_index_sequence = make_integer_sequence<int, _Num>;
+
 template <typename... _Types>
 using int_sequence_for = make_int_sequence<sizeof...(_Types)>;
 

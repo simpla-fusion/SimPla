@@ -58,8 +58,8 @@ class Field : public engine::Attribute {
     Field(this_type const& other)
         : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_data_(other.m_data_) {}
 
-//    Field(this_type&& other)
-//        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_data_(other.m_data_) {}
+    //    Field(this_type&& other)
+    //        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_data_(other.m_data_) {}
 
     Field(this_type const& other, EntityRange r)
         : engine::Attribute(other), m_data_(other.m_data_), m_mesh_(other.m_mesh_), m_range_(std::move(r)) {}
@@ -80,10 +80,10 @@ class Field : public engine::Attribute {
         Assign(other);
         return *this;
     }
-//    this_type& operator=(this_type&& other) {
-//        this_type(other).swap(*this);
-//        return *this;
-//    }
+    //    this_type& operator=(this_type&& other) {
+    //        this_type(other).swap(*this);
+    //        return *this;
+    //    }
 
     void swap(this_type& other) {
         engine::Attribute::swap(other);
@@ -97,8 +97,8 @@ class Field : public engine::Attribute {
         Assign(rhs);
         return *this;
     };
-    auto& operator[](int n) { return m_data_->at(n); }
-    auto const& operator[](int n) const { return m_data_->at(n); }
+    auto& operator[](int n) AUTO_RETURN((m_data_->at(n)));
+    auto const& operator[](int n) const AUTO_RETURN((m_data_->at(n)));
 
     //*****************************************************************************************************************
     this_type operator[](EntityRange const& d) const { return this_type(*this, d); }
@@ -114,14 +114,11 @@ class Field : public engine::Attribute {
     value_type& operator[](EntityId s) { return at(s); }
 
     template <typename... Args>
-    auto gather(Args&&... args) const {
-        return calculus_policy::gather(*m_mesh_, *this, std::forward<Args>(args)...);
-    }
+    auto gather(Args&&... args) const
+        AUTO_RETURN((calculus_policy::gather(*m_mesh_, *this, std::forward<Args>(args)...)));
 
     template <typename... Args>
-    auto scatter(Args&&... args) {
-        return calculus_policy::scatter(*m_mesh_, *this, std::forward<Args>(args)...);
-    }
+    auto scatter(Args&&... args) AUTO_RETURN((calculus_policy::scatter(*m_mesh_, *this, std::forward<Args>(args)...)));
 
     void Update() override {
         engine::Attribute::Update();
@@ -171,41 +168,48 @@ class Field : public engine::Attribute {
 };  // class Field
 
 template <typename TM, typename TL, int NL, int DL>
-auto operator<<(Field<TM, TL, NL, DL> const& lhs, int n) {
+Expression<tags::bitwise_left_shift, const Field<TM, TL, NL, DL>, int> operator<<(Field<TM, TL, NL, DL> const& lhs,
+                                                                                  int n) {
     return Expression<tags::bitwise_left_shift, const Field<TM, TL, NL, DL>, int>(lhs, n);
 };
 
 template <typename TM, typename TL, int NL, int DL>
-auto operator>>(Field<TM, TL, NL, DL> const& lhs, int n) {
+Expression<tags::bitwise_right_shifit, const Field<TM, TL, NL, DL>, int> operator>>(Field<TM, TL, NL, DL> const& lhs,
+                                                                                    int n) {
     return Expression<tags::bitwise_right_shifit, const Field<TM, TL, NL, DL>, int>(lhs, n);
 };
 
-#define _SP_DEFINE_FIELD_BINARY_FUNCTION(_TAG_, _FUN_)                                                      \
-    template <typename TM, typename TL, int NL, int DL, typename TR>                                        \
-    auto _FUN_(Field<TM, TL, NL, DL> const& lhs, TR const& rhs) {                                           \
-        return Expression<tags::_TAG_, const Field<TM, TL, NL, DL>, const TR>(lhs, rhs);                    \
-    };                                                                                                      \
-    template <typename TL, typename TM, typename TR, int NR, int DR>                                        \
-    auto _FUN_(TL const& lhs, Field<TM, TR, NR, DR> const& rhs) {                                           \
-        return Expression<tags::_TAG_, const TL, const Field<TM, TR, NR, DR>>(lhs, rhs);                    \
-    };                                                                                                      \
-    template <typename TM, typename TL, int NL, int DL, typename... TR>                                     \
-    auto _FUN_(Field<TM, TL, NL, DL> const& lhs, Expression<TR...> const& rhs) {                            \
-        return Expression<tags::_TAG_, const Field<TM, TL, NL, DL>, const Expression<TR...>>(lhs, rhs);     \
-    };                                                                                                      \
-    template <typename... TL, typename TM, typename TR, int NR, int DR>                                     \
-    auto _FUN_(Expression<TL...> const& lhs, Field<TM, TR, NR, DR> const& rhs) {                            \
-        return Expression<tags::_TAG_, const Expression<TL...>, const Field<TM, TR, NR, DR>>(lhs, rhs);     \
-    };                                                                                                      \
-    template <typename ML, typename TL, int NL, int DL, typename MR, typename TR, int NR, int DR>           \
-    auto _FUN_(Field<ML, TL, NL, DL> const& lhs, Field<MR, TR, NR, DR> const& rhs) {                        \
-        return Expression<tags::_TAG_, const Field<ML, TL, NL, DL>, const Field<MR, TR, NR, DR>>(lhs, rhs); \
+#define _SP_DEFINE_FIELD_BINARY_FUNCTION(_TAG_, _FUN_)                                                       \
+    template <typename TM, typename TL, int NL, int DL, typename TR>                                         \
+    Expression<tags::_TAG_, const Field<TM, TL, NL, DL>, const TR> _FUN_(Field<TM, TL, NL, DL> const& lhs,   \
+                                                                         TR const& rhs) {                    \
+        return Expression<tags::_TAG_, const Field<TM, TL, NL, DL>, const TR>(lhs, rhs);                     \
+    };                                                                                                       \
+    template <typename TL, typename TM, typename TR, int NR, int DR>                                         \
+    Expression<tags::_TAG_, const TL, const Field<TM, TR, NR, DR>> _FUN_(TL const& lhs,                      \
+                                                                         Field<TM, TR, NR, DR> const& rhs) { \
+        return Expression<tags::_TAG_, const TL, const Field<TM, TR, NR, DR>>(lhs, rhs);                     \
+    };                                                                                                       \
+    template <typename TM, typename TL, int NL, int DL, typename... TR>                                      \
+    Expression<tags::_TAG_, const Field<TM, TL, NL, DL>, const Expression<TR...>> _FUN_(                     \
+        Field<TM, TL, NL, DL> const& lhs, Expression<TR...> const& rhs) {                                    \
+        return Expression<tags::_TAG_, const Field<TM, TL, NL, DL>, const Expression<TR...>>(lhs, rhs);      \
+    };                                                                                                       \
+    template <typename... TL, typename TM, typename TR, int NR, int DR>                                      \
+    Expression<tags::_TAG_, const Expression<TL...>, const Field<TM, TR, NR, DR>> _FUN_(                     \
+        Expression<TL...> const& lhs, Field<TM, TR, NR, DR> const& rhs) {                                    \
+        return Expression<tags::_TAG_, const Expression<TL...>, const Field<TM, TR, NR, DR>>(lhs, rhs);      \
+    };                                                                                                       \
+    template <typename ML, typename TL, int NL, int DL, typename MR, typename TR, int NR, int DR>            \
+    Expression<tags::_TAG_, const Field<ML, TL, NL, DL>, const Field<MR, TR, NR, DR>> _FUN_(                 \
+        Field<ML, TL, NL, DL> const& lhs, Field<MR, TR, NR, DR> const& rhs) {                                \
+        return Expression<tags::_TAG_, const Field<ML, TL, NL, DL>, const Field<MR, TR, NR, DR>>(lhs, rhs);  \
     };
 
-#define _SP_DEFINE_FIELD_UNARY_FUNCTION(_TAG_, _FUN_)                     \
-    template <typename TM, typename TL, int NL, int DL>                   \
-    auto _FUN_(Field<TM, TL, NL, DL> const& lhs) {                        \
-        return Expression<tags::_TAG_, const Field<TM, TL, NL, DL>>(lhs); \
+#define _SP_DEFINE_FIELD_UNARY_FUNCTION(_TAG_, _FUN_)                                              \
+    template <typename TM, typename TL, int NL, int DL>                                            \
+    Expression<tags::_TAG_, const Field<TM, TL, NL, DL>> _FUN_(Field<TM, TL, NL, DL> const& lhs) { \
+        return Expression<tags::_TAG_, const Field<TM, TL, NL, DL>>(lhs);                          \
     }
 
 _SP_DEFINE_FIELD_UNARY_FUNCTION(cos, cos)
@@ -267,37 +271,36 @@ _SP_DEFINE_FIELD_COMPOUND_OP(<<)
 _SP_DEFINE_FIELD_COMPOUND_OP(>>)
 #undef _SP_DEFINE_FIELD_COMPOUND_OP
 
-#define _SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(_TAG_, _REDUCTION_, _OP_)                                       \
-    template <typename TM, typename TL, int NL, int DL, typename TR>                                             \
-    auto operator _OP_(Field<TM, TL, NL, DL> const& lhs, TR const& rhs) {                                        \
-        return reduction<_REDUCTION_>(Expression<tags::_TAG_, const Array<TL, NL>, const TR>(lhs, rhs));         \
-    };                                                                                                           \
-    template <typename TL, typename TM, typename TR, int NR, int DR>                                             \
-    auto operator _OP_(TL const& lhs, Array<TR, NR> const& rhs) {                                                \
-        return reduction<_REDUCTION_>(Expression<tags::_TAG_, const TL, const Field<TM, TR, NR, DR>>(lhs, rhs)); \
-    };                                                                                                           \
-    template <typename TM, typename TL, int NL, int DL, typename... TR>                                          \
-    auto operator _OP_(Field<TM, TL, NL, DL> const& lhs, Expression<TR...> const& rhs) {                         \
-        return reduction<_REDUCTION_>(                                                                           \
-            Expression<tags::_TAG_, const Field<TM, TL, NL, DL>, const Expression<TR...>>(lhs, rhs));            \
-    };                                                                                                           \
-    template <typename... TL, typename TM, typename TR, int NR, int DR>                                          \
-    auto operator _OP_(Expression<TL...> const& lhs, Field<TM, TR, NR, DR> const& rhs) {                         \
-        return reduction<_REDUCTION_>(                                                                           \
-            Expression<tags::_TAG_, const Expression<TL...>, const Field<TM, TR, NR, DR>>(lhs, rhs));            \
-    };                                                                                                           \
-    template <typename TM, typename TL, int NL, int DL, typename TR, int NR, int DR>                             \
-    auto operator _OP_(Field<TM, TL, NL, DL> const& lhs, Field<TM, TR, NR, DR> const& rhs) {                     \
-        return reduction<_REDUCTION_>(                                                                           \
-            Expression<tags::_TAG_, const Field<TM, TL, NL, DL>, const Field<TM, TR, NR, DR>>(lhs, rhs));        \
+#define _SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(_OP_, _TAG_)                                                        \
+    template <typename TM, typename TL, int NL, int DL, typename TR>                                                 \
+    bool operator _OP_(Field<TM, TL, NL, DL> const& lhs, TR const& rhs) {                                            \
+        return static_cast<bool>(Expression<_TAG_, const Array<TL, NL>, const TR>(lhs, rhs));                        \
+    };                                                                                                               \
+    template <typename TL, typename TM, typename TR, int NR, int DR>                                                 \
+    bool operator _OP_(TL const& lhs, Array<TR, NR> const& rhs) {                                                    \
+        return static_cast<bool>(Expression<_TAG_, const TL, const Field<TM, TR, NR, DR>>(lhs, rhs));                \
+    };                                                                                                               \
+    template <typename TM, typename TL, int NL, int DL, typename... TR>                                              \
+    bool operator _OP_(Field<TM, TL, NL, DL> const& lhs, Expression<TR...> const& rhs) {                             \
+        return static_cast<bool>(Expression<_TAG_, const Field<TM, TL, NL, DL>, const Expression<TR...>>(lhs, rhs)); \
+    };                                                                                                               \
+    template <typename... TL, typename TM, typename TR, int NR, int DR>                                              \
+    bool operator _OP_(Expression<TL...> const& lhs, Field<TM, TR, NR, DR> const& rhs) {                             \
+        return static_cast<bool>(Expression<_TAG_, const Expression<TL...>, const Field<TM, TR, NR, DR>>(lhs, rhs)); \
+    };                                                                                                               \
+    template <typename TM, typename TL, int NL, int DL, typename TR, int NR, int DR>                                 \
+    bool operator _OP_(Field<TM, TL, NL, DL> const& lhs, Field<TM, TR, NR, DR> const& rhs) {                         \
+        return static_cast<bool>(                                                                                    \
+            Expression<_TAG_, const Field<TM, TL, NL, DL>, const Field<TM, TR, NR, DR>>(lhs, rhs));                  \
     };
 
-_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(not_equal_to, tags::logical_or, !=)
-_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(equal_to, tags::logical_and, ==)
-_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(less, tags::logical_and, <)
-_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(greater, tags::logical_and, >)
-_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(less_equal, tags::logical_and, <=)
-_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(greater_equal, tags::logical_and, >=)
+_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(!=, tags::not_equal_to)
+_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(==, tags::equal_to)
+_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(<=, tags::less_equal)
+_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(>=, tags::greater_equal)
+_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(<, tags::less)
+_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(>, tags::greater)
+
 #undef _SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR
 
 }  // namespace simpla

@@ -55,9 +55,9 @@ typedef Range<EntityId> EntityRange;
 constexpr inline bool operator==(EntityId first, EntityId second) { return first.v == second.v; }
 
 constexpr inline EntityId operator-(EntityId first, EntityId second) {
-    EntityId res = {static_cast<int16_t>(first.x - second.x), static_cast<int16_t>(first.y - second.y),
+    return EntityId{static_cast<int16_t>(first.x - second.x), static_cast<int16_t>(first.y - second.y),
                     static_cast<int16_t>(first.z - second.z), first.w};
-    return res;
+    ;
 }
 
 constexpr inline EntityId operator+(EntityId first, EntityId second) {
@@ -754,17 +754,18 @@ struct UnorderedRange<EntityId> : public RangeBase<EntityId> {
     void swap(this_type& other) { std::swap(m_ids_, other.m_ids_); }
     void Insert(EntityId s) { m_ids_.insert(s); }
 
-    auto& data() { return m_ids_; }
-    auto const& data() const { return m_ids_; }
+    tbb::concurrent_unordered_set<EntityId, EntityIdHasher>& data() { return m_ids_; }
+    tbb::concurrent_unordered_set<EntityId, EntityIdHasher> const& data() const { return m_ids_; }
     bool empty() const override { return m_ids_.empty(); }
     size_t size() const override { return m_ids_.size(); }
     bool is_divisible() const override { return false; }
 
     template <typename TFun>
     void DoForeach(TFun const& body, ENABLE_IF((simpla::concept::is_callable<TFun(EntityId)>::value))) const {
-        tbb::parallel_for(m_ids_.range(), [&](auto const& r) {
-            for (EntityId s : r) { body(s); }
-        });
+        tbb::parallel_for(m_ids_.range(),
+                          [&](typename tbb::concurrent_unordered_set<EntityId, EntityIdHasher>::range_type const& r) {
+                              for (EntityId s : r) { body(s); }
+                          });
     }
 
    private:

@@ -328,13 +328,13 @@ struct Array {
     }
 
     this_type& operator=(this_type const& rhs) {
-        Foreach(simpla::tags::_assign(), rhs);
+        Foreach(tags::_assign(), rhs);
         return (*this);
     }
 
     template <typename TR>
     this_type& operator=(TR const& rhs) {
-        Foreach(simpla::tags::_assign(), rhs);
+        Foreach(tags::_assign(), rhs);
         return (*this);
     }
 
@@ -377,15 +377,14 @@ struct Array {
     };
 
     template <typename TFun>
-    void Foreach(TFun const& op,
-                 ENABLE_IF(simpla::concept::is_callable<TFun(m_index_tuple const&, value_type&)>::value)) {
+    void Foreach(TFun const& op, ENABLE_IF(concept::is_callable<TFun(m_index_tuple const&, value_type&)>::value)) {
         if (size() <= 0) { return; }
         SetUp();
         simpla::detail::ForeachND(m_index_box_, [&](m_index_tuple const& idx) { op(idx, at(idx)); });
     };
     template <typename TFun>
     void Foreach(TFun const& op,
-                 ENABLE_IF(simpla::concept::is_callable<TFun(m_index_tuple const&, value_type const&)>::value)) const {
+                 ENABLE_IF(concept::is_callable<TFun(m_index_tuple const&, value_type const&)>::value)) const {
         if (size() <= 0) { return; }
         simpla::detail::ForeachND(m_index_box_, [&](m_index_tuple const& idx) { op(idx, at(idx)); });
     };
@@ -393,52 +392,53 @@ struct Array {
    public:
     template <typename TFun>
     static constexpr value_type getValue(TFun const& op, m_index_tuple const& s,
-                                         ENABLE_IF(simpla::concept::is_callable<TFun(m_index_tuple const&)>::value)) {
+                                         ENABLE_IF(concept::is_callable<TFun(m_index_tuple const&)>::value)) {
         return op(s);
     };
 
     static constexpr value_type const& getValue(value_type const& v, m_index_tuple const& s) { return v; };
-    static constexpr decltype(auto) getValue(this_type& self, m_index_tuple const& s) { return self.at(s); };
-    static constexpr decltype(auto) getValue(this_type const& self, m_index_tuple const& s) { return self.at(s); };
+    static constexpr auto getValue(this_type& self, m_index_tuple const& s) AUTO_RETURN((self.at(s)));
+    static constexpr auto getValue(this_type const& self, m_index_tuple const& s) AUTO_RETURN((self.at(s)));
 
     template <typename TOP, typename... Others, int... IND>
-    static constexpr decltype(auto) _invoke_helper(Expression<TOP, Others...> const& expr, int_sequence<IND...>,
-                                                   m_index_tuple const& s) {
-        return TOP::eval(getValue(std::get<IND>(expr.m_args_), s)...);
-    }
+    static constexpr auto _invoke_helper(Expression<TOP, Others...> const& expr, int_sequence<IND...>,
+                                         m_index_tuple const& s)
+        AUTO_RETURN((TOP::eval(getValue(std::get<IND>(expr.m_args_), s)...)));
 
     template <typename TOP, typename... Others>
-    static constexpr decltype(auto) getValue(Expression<TOP, Others...> const& expr, m_index_tuple const& s) {
-        return _invoke_helper(expr, int_sequence_for<Others...>(), s);
-    }
+    static constexpr auto getValue(Expression<TOP, Others...> const& expr, m_index_tuple const& s)
+        AUTO_RETURN((_invoke_helper(expr, int_sequence_for<Others...>(), s)));
 };
 
-#define _SP_DEFINE_ARRAY_BINARY_OPERATOR(_NAME_, _OP_)                                                   \
-    template <typename TL, int NL, typename TR>                                                          \
-    auto operator _OP_(Array<TL, NL> const& lhs, TR const& rhs) {                                        \
-        return Expression<simpla::tags::_NAME_, const Array<TL, NL>, TR const>(lhs, rhs);                \
-    };                                                                                                   \
-    template <typename TL, typename TR, int NR>                                                          \
-    auto operator _OP_(TL const& lhs, Array<TR, NR> const& rhs) {                                        \
-        return Expression<simpla::tags::_NAME_, TL const, const Array<TR, NR>>(lhs, rhs);                \
-    };                                                                                                   \
-    template <typename TL, int NL, typename... TR>                                                       \
-    auto operator _OP_(Array<TL, NL> const& lhs, Expression<TR...> const& rhs) {                         \
-        return Expression<simpla::tags::_NAME_, const Array<TL, NL>, Expression<TR...> const>(lhs, rhs); \
-    };                                                                                                   \
-    template <typename... TL, typename TR, int NR>                                                       \
-    auto operator _OP_(Expression<TL...> const& lhs, Array<TR, NR> const& rhs) {                         \
-        return Expression<simpla::tags::_NAME_, Expression<TL...> const, const Array<TR, NR>>(lhs, rhs); \
-    };                                                                                                   \
-    template <typename TL, int NL, typename TR, int NR>                                                  \
-    auto operator _OP_(Array<TL, NL> const& lhs, Array<TR, NR> const& rhs) {                             \
-        return Expression<simpla::tags::_NAME_, const Array<TL, NL>, const Array<TR, NR>>(lhs, rhs);     \
+#define _SP_DEFINE_ARRAY_BINARY_OPERATOR(_NAME_, _OP_)                                                                 \
+    template <typename TL, int NL, typename TR>                                                                        \
+    Expression<tags::_NAME_, const Array<TL, NL>, TR const> operator _OP_(Array<TL, NL> const& lhs, TR const& rhs) {   \
+        return Expression<tags::_NAME_, const Array<TL, NL>, TR const>(lhs, rhs);                                      \
+    };                                                                                                                 \
+    template <typename TL, typename TR, int NR>                                                                        \
+    Expression<tags::_NAME_, TL const, const Array<TR, NR>> operator _OP_(TL const& lhs, Array<TR, NR> const& rhs) {   \
+        return Expression<tags::_NAME_, TL const, const Array<TR, NR>>(lhs, rhs);                                      \
+    };                                                                                                                 \
+    template <typename TL, int NL, typename... TR>                                                                     \
+    Expression<tags::_NAME_, const Array<TL, NL>, Expression<TR...> const> operator _OP_(                              \
+        Array<TL, NL> const& lhs, Expression<TR...> const& rhs) {                                                      \
+        return Expression<tags::_NAME_, const Array<TL, NL>, Expression<TR...> const>(lhs, rhs);                       \
+    };                                                                                                                 \
+    template <typename... TL, typename TR, int NR>                                                                     \
+    Expression<tags::_NAME_, Expression<TL...> const, const Array<TR, NR>> operator _OP_(Expression<TL...> const& lhs, \
+                                                                                         Array<TR, NR> const& rhs) {   \
+        return Expression<tags::_NAME_, Expression<TL...> const, const Array<TR, NR>>(lhs, rhs);                       \
+    };                                                                                                                 \
+    template <typename TL, int NL, typename TR, int NR>                                                                \
+    Expression<tags::_NAME_, const Array<TL, NL>, const Array<TR, NR>> operator _OP_(Array<TL, NL> const& lhs,         \
+                                                                                     Array<TR, NR> const& rhs) {       \
+        return Expression<tags::_NAME_, const Array<TL, NL>, const Array<TR, NR>>(lhs, rhs);                           \
     };
 
-#define _SP_DEFINE_ARRAY_UNARY_OPERATOR(_NAME_, _OP_)                      \
-    template <typename TL, int NL>                                         \
-    auto operator _OP_(Array<TL, NL> const& lhs) {                         \
-        return Expression<simpla::tags::_NAME_, const Array<TL, NL>>(lhs); \
+#define _SP_DEFINE_ARRAY_UNARY_OPERATOR(_NAME_, _OP_)                                       \
+    template <typename TL, int NL>                                                          \
+    Expression<tags::_NAME_, const Array<TL, NL>> operator _OP_(Array<TL, NL> const& lhs) { \
+        return Expression<tags::_NAME_, const Array<TL, NL>>(lhs);                          \
     };
 
 _SP_DEFINE_ARRAY_BINARY_OPERATOR(addition, +)
@@ -453,13 +453,13 @@ _SP_DEFINE_ARRAY_BINARY_OPERATOR(bitwise_and, &)
 _SP_DEFINE_ARRAY_BINARY_OPERATOR(bitwise_or, |)
 
 template <typename TL, int NL>
-auto operator<<(Array<TL, NL> const& lhs, int n) {
-    return Expression<simpla::tags::bitwise_left_shift, const Array<TL, NL>, int>(lhs, n);
+Expression<tags::bitwise_left_shift, const Array<TL, NL>, int> operator<<(Array<TL, NL> const& lhs, int n) {
+    return Expression<tags::bitwise_left_shift, const Array<TL, NL>, int>(lhs, n);
 };
 
 template <typename TL, int NL>
-auto operator>>(Array<TL, NL> const& lhs, int n) {
-    return Expression<simpla::tags::bitwise_right_shifit, const Array<TL, NL>, int>(lhs, n);
+Expression<tags::bitwise_right_shifit, const Array<TL, NL>, int> operator>>(Array<TL, NL> const& lhs, int n) {
+    return Expression<tags::bitwise_right_shifit, const Array<TL, NL>, int>(lhs, n);
 };
 //_SP_DEFINE_ARRAY_BINARY_OPERATOR(bitwise_left_shift, <<)
 //_SP_DEFINE_ARRAY_BINARY_OPERATOR(bitwise_right_shift, >>)
@@ -474,32 +474,35 @@ _SP_DEFINE_ARRAY_BINARY_OPERATOR(logical_or, ||)
 #undef _SP_DEFINE_ARRAY_BINARY_OPERATOR
 #undef _SP_DEFINE_ARRAY_UNARY_OPERATOR
 
-#define _SP_DEFINE_ARRAY_BINARY_FUNCTION(_NAME_)                                                      \
-    template <typename TL, int NL, typename TR>                                                       \
-    auto _NAME_(Array<TL, NL> const& lhs, TR const& rhs) {                                            \
-        return Expression<simpla::tags::_NAME_, const Array<TL, NL>, const TR>(lhs, rhs);             \
-    };                                                                                                \
-    template <typename TL, typename TR, int NR>                                                       \
-    auto _NAME_(TL const& lhs, Array<TR, NR> const& rhs) {                                            \
-        return Expression<simpla::tags::_NAME_, const TL, const Array<TR, NR>>(lhs, rhs);             \
-    };                                                                                                \
-    template <typename TL, int NL, typename TR>                                                       \
-    auto _NAME_(Array<TL, NL> const& lhs, Expression<TR> const& rhs) {                                \
-        return Expression<simpla::tags::_NAME_, const Array<TL, NL>, const Expression<TR>>(lhs, rhs); \
-    };                                                                                                \
-    template <typename TL, typename TR, int NR>                                                       \
-    auto _NAME_(Expression<TL> const& lhs, Array<TR, NR> const& rhs) {                                \
-        return Expression<simpla::tags::_NAME_, const Expression<TL>, const Array<TR, NR>>(lhs, rhs); \
-    };                                                                                                \
-    template <typename TL, int NL, typename TR, int NR>                                               \
-    auto _NAME_(Array<TL, NL> const& lhs, Array<TR, NR> const& rhs) {                                 \
-        return Expression<simpla::tags::_NAME_, const Array<TL, NL>, const Array<TR, NR>>(lhs, rhs);  \
+#define _SP_DEFINE_ARRAY_BINARY_FUNCTION(_NAME_)                                                              \
+    template <typename TL, int NL, typename TR>                                                               \
+    Expression<tags::_NAME_, const Array<TL, NL>, const TR> _NAME_(Array<TL, NL> const& lhs, TR const& rhs) { \
+        return Expression<tags::_NAME_, const Array<TL, NL>, const TR>(lhs, rhs);                             \
+    };                                                                                                        \
+    template <typename TL, typename TR, int NR>                                                               \
+    Expression<tags::_NAME_, const TL, const Array<TR, NR>> _NAME_(TL const& lhs, Array<TR, NR> const& rhs) { \
+        return Expression<tags::_NAME_, const TL, const Array<TR, NR>>(lhs, rhs);                             \
+    };                                                                                                        \
+    template <typename TL, int NL, typename TR>                                                               \
+    Expression<tags::_NAME_, const Array<TL, NL>, const Expression<TR>> _NAME_(Array<TL, NL> const& lhs,      \
+                                                                               Expression<TR> const& rhs) {   \
+        return Expression<tags::_NAME_, const Array<TL, NL>, const Expression<TR>>(lhs, rhs);                 \
+    };                                                                                                        \
+    template <typename TL, typename TR, int NR>                                                               \
+    Expression<tags::_NAME_, const Expression<TL>, const Array<TR, NR>> _NAME_(Expression<TL> const& lhs,     \
+                                                                               Array<TR, NR> const& rhs) {    \
+        return Expression<tags::_NAME_, const Expression<TL>, const Array<TR, NR>>(lhs, rhs);                 \
+    };                                                                                                        \
+    template <typename TL, int NL, typename TR, int NR>                                                       \
+    Expression<tags::_NAME_, const Array<TL, NL>, const Array<TR, NR>> _NAME_(Array<TL, NL> const& lhs,       \
+                                                                              Array<TR, NR> const& rhs) {     \
+        return Expression<tags::_NAME_, const Array<TL, NL>, const Array<TR, NR>>(lhs, rhs);                  \
     };
 
-#define _SP_DEFINE_ARRAY_UNARY_FUNCTION(_NAME_)                          \
-    template <typename T, int N>                                         \
-    auto _NAME_(Array<T, N> const& lhs) {                                \
-        return Expression<simpla::tags::_NAME_, const Array<T, N>>(lhs); \
+#define _SP_DEFINE_ARRAY_UNARY_FUNCTION(_NAME_)                                  \
+    template <typename T, int N>                                                 \
+    Expression<tags::_NAME_, const Array<T, N>> _NAME_(Array<T, N> const& lhs) { \
+        return Expression<tags::_NAME_, const Array<T, N>>(lhs);                 \
     }
 
 _SP_DEFINE_ARRAY_UNARY_FUNCTION(cos)
@@ -546,37 +549,34 @@ _SP_DEFINE_ARRAY_COMPOUND_OP(>>)
 
 #undef _SP_DEFINE_ARRAY_COMPOUND_OP
 
-#define _SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(_NAME_, _REDUCTION_, _OP_)                                       \
-    template <typename TL, int NL, typename TR>                                                                   \
-    auto operator _OP_(Array<TL, NL> const& lhs, TR const& rhs) {                                                 \
-        return reduction<_REDUCTION_>(Expression<simpla::tags::_NAME_, const Array<TL, NL>, const TR>(lhs, rhs)); \
-    };                                                                                                            \
-    template <typename TL, typename TR, int NR>                                                                   \
-    auto operator _OP_(TL const& lhs, Array<TR, NR> const& rhs) {                                                 \
-        return reduction<_REDUCTION_>(Expression<simpla::tags::_NAME_, const TL, const Array<TR, NR>>(lhs, rhs)); \
-    };                                                                                                            \
-    template <typename TL, int NL, typename... TR>                                                                \
-    auto operator _OP_(Array<TL, NL> const& lhs, Expression<TR...> const& rhs) {                                  \
-        return reduction<_REDUCTION_>(                                                                            \
-            Expression<simpla::tags::_NAME_, const Array<TL, NL>, const Expression<TR...>>(lhs, rhs));            \
-    };                                                                                                            \
-    template <typename... TL, typename TR, int NR>                                                                \
-    auto operator _OP_(Expression<TL...> const& lhs, Array<TR, NR> const& rhs) {                                  \
-        return reduction<_REDUCTION_>(                                                                            \
-            Expression<simpla::tags::_NAME_, const Expression<TL...>, const Array<TR, NR>>(lhs, rhs));            \
-    };                                                                                                            \
-    template <typename TL, int NL, typename TR, int NR>                                                           \
-    auto operator _OP_(Array<TL, NL> const& lhs, Array<TR, NR> const& rhs) {                                      \
-        return reduction<_REDUCTION_>(                                                                            \
-            Expression<simpla::tags::_NAME_, const Array<TL, NL>, const Array<TR, NR>>(lhs, rhs));                \
+#define _SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_)                                                  \
+    template <typename TL, int NL, typename TR>                                                                 \
+    bool operator _OP_(Array<TL, NL> const& lhs, TR const& rhs) {                                               \
+        return static_cast<bool>((Expression<_NAME_, const Array<TL, NL>, const TR>(lhs, rhs)));                \
+    };                                                                                                          \
+    template <typename TL, typename TR, int NR>                                                                 \
+    bool operator _OP_(TL const& lhs, Array<TR, NR> const& rhs) {                                               \
+        return static_cast<bool>((Expression<_NAME_, const TL, const Array<TR, NR>>(lhs, rhs)));                \
+    };                                                                                                          \
+    template <typename TL, int NL, typename... TR>                                                              \
+    bool operator _OP_(Array<TL, NL> const& lhs, Expression<TR...> const& rhs) {                                \
+        return static_cast<bool>((Expression<_NAME_, const Array<TL, NL>, const Expression<TR...>>(lhs, rhs))); \
+    };                                                                                                          \
+    template <typename... TL, typename TR, int NR>                                                              \
+    bool operator _OP_(Expression<TL...> const& lhs, Array<TR, NR> const& rhs) {                                \
+        return static_cast<bool>((Expression<_NAME_, const Expression<TL...>, const Array<TR, NR>>(lhs, rhs))); \
+    };                                                                                                          \
+    template <typename TL, int NL, typename TR, int NR>                                                         \
+    bool operator _OP_(Array<TL, NL> const& lhs, Array<TR, NR> const& rhs) {                                    \
+        return static_cast<bool>((Expression<_NAME_, const Array<TL, NL>, const Array<TR, NR>>(lhs, rhs)));     \
     };
 
-_SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(not_equal_to, simpla::tags::logical_or, !=)
-_SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(equal_to, simpla::tags::logical_and, ==)
-_SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(less, simpla::tags::logical_and, <)
-_SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(greater, simpla::tags::logical_and, >)
-_SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(less_equal, simpla::tags::logical_and, <=)
-_SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(greater_equal, simpla::tags::logical_and, >=)
+_SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(!=, tags::not_equal_to)
+_SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(==, tags::equal_to)
+_SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(<=, tags::less_equal)
+_SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(>=, tags::greater_equal)
+_SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(<, tags::less)
+_SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(>, tags::greater)
 
 #undef _SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR
 

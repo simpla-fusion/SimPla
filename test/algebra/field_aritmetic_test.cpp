@@ -7,7 +7,7 @@
 
 using namespace simpla;
 using namespace algebra;
-namespace sat = simpla::algebra::traits;
+
 struct DummyMesh {
     typedef size_type entity_id;
     typedef Real scalar_type;

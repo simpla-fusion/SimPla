@@ -31,16 +31,16 @@ int main(int argc, char **argv) {
 
     c = a + b * 3;
 
-    e = a(I + 1, J) - a(I - 1, J) + a(I, J + 1) - a(I - 1, J - 1);
+//    e = a(I + 1, J) - a(I - 1, J) + a(I, J + 1) - a(I - 1, J - 1);
     //    nTuple<double, 3> v = {1, 2, 3};
     //    Array<nTuple<double, 3>, 3> d(4, 5, 2);
     //    d = c * v;
 
-    std::cout << a << std::endl;
-    std::cout << b << std::endl;
-    std::cout << c << std::endl;
-    std::cout << d << std::endl;
-    std::cout << e << std::endl;
+//    std::cout << a << std::endl;
+//    std::cout << b << std::endl;
+//    std::cout << c << std::endl;
+//    std::cout << d << std::endl;
+//    std::cout << e << std::endl;
 
     std::cout << "DONE" << std::endl;
 }

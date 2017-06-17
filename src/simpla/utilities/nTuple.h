@@ -12,7 +12,9 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/concept/CheckConcept.h>
+
 #include "ExpressionTemplate.h"
+
 #include "integer_sequence.h"
 #include "type_traits.h"
 
@@ -147,10 +149,6 @@ struct extents<nTuple<V, I...>> : public int_sequence<I...> {};
 template <typename V, int I0, int... I>
 struct extent<nTuple<V, I0, I...>> : public std::integral_constant<int, I0> {};
 
-template <typename TOP, typename... Args>
-struct extent<Expression<TOP, Args...>>
-    : public std::integral_constant<int, mt_min<int, extent<typename std::remove_cv<Args>::type>::value...>::value> {};
-
 template <typename T, int I0>
 struct value_type<nTuple<T, I0>> {
     typedef T type;
@@ -218,6 +216,10 @@ template <typename TOP, typename... Args>
 class is_nTuple<Expression<TOP, Args...>>
     : public std::integral_constant<bool, logical_or<is_nTuple<Args>::value...>::value> {};
 
+template <typename TOP, typename... Args>
+struct extent<Expression<TOP, Args...>>
+    : public std::integral_constant<int, mt_min<int, extent<typename std::remove_cv<Args>::type>::value...>::value> {};
+
 template <typename T0, typename... Others>
 nTuple<T0, sizeof...(Others) + 1> make_ntuple(T0 const& a0, Others&&... others) {
     return nTuple<T0, sizeof...(Others) + 1>{a0, others...};
@@ -284,12 +286,12 @@ struct nTuple_calculator {
 
     template <typename V, int N0, int... N, typename TR>
     static void assign(nTuple<V, N0, N...>& lhs, TR& rhs) {
-        for (int i = 0; i < N0; ++i) { getValue(lhs, i) = getValue(rhs, i); }
+        for (int i = 0; i < N0; ++i) { lhs[i] = getValue(rhs, i); }
     };
 
     template <typename V, int N0, int... N>
     static void swap(nTuple<V, N0, N...>& lhs, nTuple<V, N0, N...>& rhs) {
-        for (int i = 0; i < N0; ++i) { std::swap(getValue(lhs, i), getValue(rhs, i)); }
+        for (int i = 0; i < N0; ++i) { std::swap(lhs[i], rhs[i]); }
     };
 };
 
@@ -497,26 +499,6 @@ _SP_DEFINE_NTUPLE_COMPOUND_OP(>>)
 
 #undef _SP_DEFINE_NTUPLE_COMPOUND_OP
 
-// template <typename TReduction, typename TV, int N0, int... N>
-// auto reduction(nTuple<TV, N0, N...> const& expr) {
-//    auto res = reduction<TReduction>(nTuple_calculator::getValue(expr, 0));
-//    for (int s = 1; s < N0; ++s) {
-//        res = TReduction::eval(res, reduction<TReduction>(nTuple_calculator::getValue(expr, s)));
-//    }
-//
-//    return res;
-//}
-//
-template <typename TReduction, typename TRes, typename TOP, typename... Args>
-TRes reduction(Expression<TOP, Args...> const& expr, ENABLE_IF((traits::extent<Expression<TOP, Args...>>::value > 1))) {
-    static constexpr int n = traits::extent<Expression<TOP, Args...>>::value;
-    TRes res = reduction<TReduction, TRes>(nTuple_calculator::getValue(expr, 0));
-    for (int s = 1; s < n; ++s) {
-        res = TReduction::eval(res, reduction<TReduction, TRes>(nTuple_calculator::getValue(expr, s)));
-    }
-    return res;
-}
-
 #define _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_)                                                     \
     template <typename TL, int... NL, typename TR>                                                                  \
     bool operator _OP_(nTuple<TL, NL...> const& lhs, TR const& rhs) {                                               \
@@ -554,11 +536,33 @@ _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(>, tags::greater)
 
 //    DEF_BOP(shift_left, <<)
 //    DEF_BOP(shift_right, >>)
+//
 
-template <typename TL, typename TR, int... N>
-TL dot(nTuple<TL, N...> const& l, TR const& r) {
-    return reduction<tags::addition, TL>(l * r);
+// template <typename TReduction, typename TV, int N0, int... N>
+// auto reduction(nTuple<TV, N0, N...> const& expr) {
+//    auto res = reduction<TReduction>(nTuple_calculator::getValue(expr, 0));
+//    for (int s = 1; s < N0; ++s) {
+//        res = TReduction::eval(res, reduction<TReduction>(nTuple_calculator::getValue(expr, s)));
+//    }
+//
+//    return res;
+//}
+//
+template <typename TReduction, typename... Args>
+auto reduction(Expression<Args...> const& expr) -> typename traits::value_type<Expression<Args...>>::type {
+    static constexpr int n = traits::extent<Expression<Args...>>::value;
+    auto res = reduction<TReduction>(nTuple_calculator::getValue(expr, 0));
+    for (int s = 1; s < n; ++s) {
+        res = TReduction::eval(res, reduction<TReduction>(nTuple_calculator::getValue(expr, s)));
+    }
+    return res;
 }
+
+template <typename TL, typename TR>
+auto dot(TL const& l, TR const& r) AUTO_RETURN((reduction<tags::addition>(l * r)));
+
+// template <typename TL, typename TR>
+// auto dot(TL const& l, TR const& r) AUTO_RETURN((l[0] * r[0] + l[1] * r[1] + l[2] * r[2]));
 
 template <typename T1, typename T2>
 auto cross(T1 const& l, T2 const& r)

@@ -147,19 +147,18 @@ struct value_type<Expression<tags::_dot, T0, T1>> {
 }  // namespace traits
 
 template <typename TL, typename TR>
-auto inner_product(TL const& lhs, TR const& rhs, ENABLE_IF((traits::is_field<TL, TR>::value))) {
-    return (wedge(lhs, hodge_star(rhs)));
-}
+auto inner_product(TL const& lhs, TR const& rhs, ENABLE_IF((traits::is_field<TL, TR>::value)))
+    AUTO_RETURN(((wedge(lhs, hodge_star(rhs)))));
 
-//template <typename TL, typename TR>
-//auto cross(TL const& lhs, TR const& rhs,
+// template <typename TL, typename TR>
+// auto cross(TL const& lhs, TR const& rhs,
 //           ENABLE_IF((traits::is_field<TL, TR>::value) &&
 //                     (traits::iform<TL>::value == EDGE && traits::iform<TR>::value == EDGE))) {
 //    return ((wedge(lhs, rhs)));
 //}
 //
-//template <typename TL, typename TR>
-//auto cross(TL const& lhs, TR const& rhs,
+// template <typename TL, typename TR>
+// auto cross(TL const& lhs, TR const& rhs,
 //           ENABLE_IF((traits::is_field<TL, TR>::value) &&
 //                     (traits::iform<TL>::value == FACE && traits::iform<TR>::value == FACE))) {
 //    return (hodge_star(wedge(hodge_star(lhs), hodge_star(rhs))));
@@ -179,11 +178,13 @@ auto inner_product(TL const& lhs, TR const& rhs, ENABLE_IF((traits::is_field<TL,
 //}
 // template <typename TL, typename TR>
 // auto dot(TL const& lhs, TR const& rhs, ENABLE_IF(!(traits::is_field<TL, TR>::value) &&
-//                                                 !(std::is_arithmetic<TL>::value && std::is_arithmetic<TR>::value))) {
+//                                                 !(std::is_arithmetic<TL>::value &&
+//                                                 std::is_arithmetic<TR>::value))) {
 //    return Expression<tags::_nTuple_dot, const TL, const TR>(lhs, rhs);
 //}
 // template <typename TL, typename TR>
-// auto dot(TL const& lhs, TR const& rhs, ENABLE_IF((std::is_arithmetic<TL>::value && std::is_arithmetic<TR>::value))) {
+// auto dot(TL const& lhs, TR const& rhs, ENABLE_IF((std::is_arithmetic<TL>::value &&
+// std::is_arithmetic<TR>::value))) {
 //    return lhs * rhs;
 //}
 // template<typename  T>
@@ -326,9 +327,7 @@ struct iform<Expression<tags::_map_to<I>, T0>> : public int_const<I> {};
 }  // namespace traits
 
 template <int I, typename T1>
-auto map_to(T1 const& l) {
-    return (Expression<tags::_map_to<I>, const T1>(l));
-}
+auto map_to(T1 const& l) AUTO_RETURN((Expression<tags::_map_to<I>, const T1>(l)));
 
 /** @} */
 
@@ -363,122 +362,77 @@ auto map_to(T1 const& l) {
  *
  */
 template <typename T>
-auto grad(T const& f, int_const<VERTEX>) {
-    return ((exterior_derivative(f)));
-}
+auto grad(T const& f, int_const<VERTEX>) AUTO_RETURN((exterior_derivative(f)));
 
 template <typename T>
-auto grad(T const& f, int_const<VOLUME>) {
-    return (((codifferential_derivative(-f))));
-}
+auto grad(T const& f, int_const<VOLUME>) AUTO_RETURN(((codifferential_derivative(-f))));
 
 template <typename T, int I>
-auto grad(T const& f, int_const<I>) {
-    return ((Expression<tags::_grad, const T>(f)));
-}
+auto grad(T const& f, int_const<I>) AUTO_RETURN((Expression<tags::_grad, const T>(f)));
 
 template <typename T>
-auto grad(T const& f) {
-    return ((grad(f, traits::iform<T>())));
-}
+auto grad(T const& f) AUTO_RETURN((grad(f, traits::iform<T>())));
 
 template <typename T>
-auto diverge(T const& f, int_const<FACE> const&) {
-    return ((exterior_derivative(f)));
-}
+auto diverge(T const& f, int_const<FACE> const&) AUTO_RETURN((exterior_derivative(f)));
 
 template <typename T>
-auto diverge(T const& f, int_const<EDGE> const&) {
-    return ((-codifferential_derivative(f)));
-}
+auto diverge(T const& f, int_const<EDGE> const&) AUTO_RETURN((-codifferential_derivative(f)));
 
 template <typename T, int I>
-auto diverge(T const& f, int_const<I> const&) {
-    return ((Expression<tags::_diverge, const T>(f)));
-}
+auto diverge(T const& f, int_const<I> const&) AUTO_RETURN((Expression<tags::_diverge, const T>(f)));
 
 template <typename T>
-auto diverge(T const& f) {
-    return ((diverge(f, traits::iform<T>())));
-}
+auto diverge(T const& f) AUTO_RETURN((diverge(f, traits::iform<T>())));
 
 template <typename T>
-auto curl(T const& f, int_const<EDGE> const&) {
-    return ((exterior_derivative(f)));
-}
+auto curl(T const& f, int_const<EDGE> const&) AUTO_RETURN((exterior_derivative(f)));
 
 template <typename T>
-auto curl(T const& f, int_const<FACE> const&) {
-    return ((-codifferential_derivative(f)));
-}
+auto curl(T const& f, int_const<FACE> const&) AUTO_RETURN((-codifferential_derivative(f)));
 
 template <typename T>
-auto curl(T const& f, int_const<VERTEX> const&) {
-    return Expression<tags::_curl, const T>(f);
-}
+auto curl(T const& f, int_const<VERTEX> const&) AUTO_RETURN((Expression<tags::_curl, const T>(f)));
+
 template <typename T>
-auto curl(T const& f, int_const<VOLUME> const&) {
-    return Expression<tags::_curl, const T>(f);
-}
+auto curl(T const& f, int_const<VOLUME> const&) AUTO_RETURN((Expression<tags::_curl, const T>(f)));
+
 template <typename T>
-auto curl(T const& f) {
-    return curl(f, traits::iform<T>());
-}
+auto curl(T const& f) AUTO_RETURN((curl(f, traits::iform<T>())));
 
 template <int I, typename U>
-auto p_exterior_derivative(U const& f) {
-    return Expression<tags::_p_exterior_derivative<I>, U const>(f);
-}
+auto p_exterior_derivative(U const& f) AUTO_RETURN((Expression<tags::_p_exterior_derivative<I>, U const>(f)));
 
 template <int I, typename U>
-auto p_codifferential_derivative(U const& f) {
-    return ((Expression<tags::_p_exterior_derivative<I>, U const>(f)));
-}
+auto p_codifferential_derivative(U const& f) AUTO_RETURN((Expression<tags::_p_exterior_derivative<I>, U const>(f)));
 
 template <typename T>
-auto curl_pdx(T const& f, int_const<EDGE>) {
-    return ((p_exterior_derivative<0>(f)));
-}
+auto curl_pdx(T const& f, int_const<EDGE>) AUTO_RETURN((p_exterior_derivative<0>(f)));
 
 template <typename T>
-auto curl_pdx(T const& f, int_const<FACE>) {
-    return ((p_codifferential_derivative<0>(f)));
-}
+auto curl_pdx(T const& f, int_const<FACE>) AUTO_RETURN((p_codifferential_derivative<0>(f)));
 
 template <typename T>
-auto curl_pdx(T const& f) {
-    return ((curl_pdx(f, traits::iform<T>())));
-}
+auto curl_pdx(T const& f) AUTO_RETURN((curl_pdx(f, traits::iform<T>())));
 
 template <typename T>
-auto curl_pdy(T const& f, int_const<EDGE>) {
-    return ((p_exterior_derivative<1>(f)));
-}
+auto curl_pdy(T const& f, int_const<EDGE>) AUTO_RETURN((p_exterior_derivative<1>(f)));
 
 template <typename T>
-auto curl_pdy(T const& f, int_const<FACE>) {
-    return ((p_codifferential_derivative<1>(f)));
-}
+auto curl_pdy(T const& f, int_const<FACE>) AUTO_RETURN((p_codifferential_derivative<1>(f)));
 
 template <typename T>
-auto curl_pdy(T const& f) {
-    return ((curl_pdy(f, traits::iform<T>())));
-}
+auto curl_pdy(T const& f) AUTO_RETURN((curl_pdy(f, traits::iform<T>())));
 
 template <typename T>
-auto curl_pdz(T const& f, int_const<EDGE>) {
-    return ((p_exterior_derivative<2>(f)));
-}
+auto curl_pdz(T const& f, int_const<EDGE>) AUTO_RETURN((p_exterior_derivative<2>(f)));
 
 template <typename T>
-auto curl_pdz(T const& f, int_const<FACE>) {
-    return ((p_codifferential_derivative<2>(f)));
-}
+auto curl_pdz(T const& f, int_const<FACE>) AUTO_RETURN((p_codifferential_derivative<2>(f)));
 
 template <typename T>
-auto curl_pdz(T const& f) {
-    return ((curl_pdz(f, traits::iform<T>())));
-}
+auto curl_pdz(T const& f) AUTO_RETURN((curl_pdz(f, traits::iform<T>())));
+
 /** @} */
 
 /** @} */
