@@ -36,17 +36,15 @@ struct do_nothing {
 
 namespace _impl {
 template <typename Func, typename Tup, int... index>
-auto invoke_helper(Func&& func, Tup&& tup, int_sequence<index...>) {
-    return ((func(std::get<index>(std::forward<Tup>(tup))...)));
-}
+auto invoke_helper(Func&& func, Tup&& tup, int_sequence<index...>)
+    AUTO_RETURN(((func(std::get<index>(std::forward<Tup>(tup))...))));
 
 }  // namespace _impl
 
 template <typename Func, typename Tup>
-auto invoke(Func&& func, Tup&& tup) {
-    return ((_impl::invoke_helper(std::forward<Func>(func), std::forward<Tup>(tup),
-                                  make_int_sequence<std::tuple_size<typename std::decay<Tup>::type>::value>())));
-}
+auto invoke(Func&& func, Tup&& tup)
+    AUTO_RETURN((_impl::invoke_helper(std::forward<Func>(func), std::forward<Tup>(tup),
+                                      make_int_sequence<std::tuple_size<typename std::decay<Tup>::type>::value>())));
 
 namespace traits {
 
@@ -327,49 +325,33 @@ namespace _impl {
 template <int N>
 struct unpack_args_helper {
     template <typename... Args>
-    auto eval(Args&&... args) {
-        return ((unpack_args_helper<N - 1>(std::forward<Args>(args)...)));
-    }
+    auto eval(Args&&... args) AUTO_RETURN((unpack_args_helper<N - 1>(std::forward<Args>(args)...)));
 };
 
 template <>
 struct unpack_args_helper<0> {
     template <typename First, typename... Args>
-    auto eval(First&& first, Args&&... args) {
-        return ((std::forward<First>(first)));
-    }
+    auto eval(First&& first, Args&&... args) AUTO_RETURN((std::forward<First>(first)));
 };
 }  // namespace _impl
 
 template <int N, typename... Args>
-auto unpack_args(Args&&... args) {
-    return ((_impl::unpack_args_helper<N>(std::forward<Args>(args)...)));
-}
+auto unpack_args(Args&&... args) AUTO_RETURN((_impl::unpack_args_helper<N>(std::forward<Args>(args)...)));
 
 template <typename T0>
-auto max(T0 const& first) {
-    return ((first));
-}
+auto max(T0 const& first) AUTO_RETURN((first));
 
 template <typename T0, typename... Others>
-auto max(T0 const& first, Others const&... others) {
-    return ((std::max(first, max(others...))));
-}
+auto max(T0 const& first, Others const&... others) AUTO_RETURN((std::max(first, max(others...))));
 
 template <typename T0>
-auto min(T0 const& first) {
-    return ((first));
-}
+auto min(T0 const& first) AUTO_RETURN((first));
 
 template <typename T0, typename... Others>
-auto min(T0 const& first, Others const&... others) {
-    return ((std::min(first, min(others...))));
-}
+auto min(T0 const& first, Others const&... others) AUTO_RETURN((std::min(first, min(others...))));
 
 template <typename T>
-auto distance(T const& b, T const& e) {
-    return (((e - b)));
-}
+auto distance(T const& b, T const& e) AUTO_RETURN(((e - b)));
 
 // template<typename T, typename TI>auto index(std::shared_ptr<T> &v, TI const &s)
 // AUTO_RETURN(v.Pop()[s])
@@ -381,17 +363,13 @@ namespace _impl {
 template <int N>
 struct recursive_try_index_aux {
     template <typename T, typename TI>
-    static auto eval(T& v, TI const* s) {
-        return ((recursive_try_index_aux<N - 1>::eval(v[s[0]], s + 1)));
-    }
+    static auto eval(T& v, TI const* s) AUTO_RETURN((recursive_try_index_aux<N - 1>::eval(v[s[0]], s + 1)));
 };
 
 template <>
 struct recursive_try_index_aux<0> {
     template <typename T, typename TI>
-    static auto eval(T& v, TI const* s) {
-        return ((v));
-    }
+    static auto eval(T& v, TI const* s) AUTO_RETURN((v));
 };
 }  // namespace _impl
 

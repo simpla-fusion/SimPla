@@ -9,6 +9,8 @@
 #include <cassert>
 #include <limits>
 #include <string>
+#include "c++14_port.h"
+
 namespace simpla {
 
 // enum POSITION

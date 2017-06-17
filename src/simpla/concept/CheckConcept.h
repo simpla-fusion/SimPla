@@ -10,6 +10,9 @@
 
 #include <type_traits>
 #include <utility>  //for std::forward
+
+#include "../utilities/c++14_port.h"
+
 namespace simpla {
 namespace concept {
 /**
@@ -471,7 +474,7 @@ struct is_callable<_TFun(_Args...), _R> {
     typedef std::false_type no;
 
     template <typename _U>
-    static auto test(int) -> std::result_of_t<_U(_Args...)>;
+    static auto test(int) -> typename std::result_of<_U(_Args...)>::type;
 
     template <typename>
     static no test(...);
@@ -487,7 +490,7 @@ struct is_callable<_TFun(_Args...) const, _R> {
     typedef std::false_type no;
 
     template <typename _U>
-    static auto test(int) -> std::result_of_t<_U(_Args...) const>;
+    static auto test(int) -> typename std::result_of<_U(_Args...) const>::type;
 
     template <typename>
     static no test(...);
@@ -504,7 +507,7 @@ struct is_callable<_TFun(_Args...)> {
     typedef std::false_type no;
 
     template <typename _U>
-    static auto test(int) -> std::result_of_t<_U(_Args...)>;
+    static auto test(int) -> typename std::result_of<_U(_Args...)>::type;
 
     template <typename>
     static no test(...);
@@ -521,7 +524,7 @@ struct is_callable<_TFun(_Args...) const> {
     typedef std::false_type no;
 
     template <typename _U>
-    static auto test(int) -> std::result_of_t<_U(_Args...) const>;
+    static auto test(int) -> typename std::result_of<_U(_Args...) const>::type;
 
     template <typename>
     static no test(...);

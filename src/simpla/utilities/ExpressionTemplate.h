@@ -62,19 +62,19 @@ namespace traits {
 template <typename...>
 struct expr_parser;
 
-template <typename TRes, typename TR>
-struct expr_parser<TRes, TR> {
-    static TRes eval(TR const &expr) { return static_cast<TRes>(expr); };
-};
+// template <typename TRes, typename TR>
+// struct expr_parser<TRes, TR> {
+//    static TRes eval(TR const &expr) { return static_cast<TRes>(expr); };
+//};
+
 template <typename TRes, typename TOP, typename... Args>
 struct expr_parser<TRes, Expression<TOP, Args...>> {
-    template <size_type... index>
-    static decltype(auto) _invoke_helper(Expression<TOP, Args...> const &expr, std::index_sequence<index...>) {
-        return expr.m_op_(expr_parser<TRes, std::remove_cv_t<Args>>::eval(std::get<index>(expr.m_args_))...);
-    }
+    template <int... index>
+    static auto _invoke_helper(Expression<TOP, Args...> const &expr, index_sequence<index...>) AUTO_RETURN(
+        (expr.m_op_(expr_parser<TRes, typename std::remove_cv<Args>::type>::eval(std::get<index>(expr.m_args_))...)));
 
     static TRes eval(Expression<TOP, Args...> const &expr) {
-        return _invoke_helper(expr, std::index_sequence_for<Args...>());
+        return _invoke_helper(expr, index_sequence_for<Args...>());
     };
 };
 }
@@ -91,8 +91,10 @@ struct Expression<TOP, Args...> {
     TOP m_op_;
 
     Expression(this_type const &that) : m_args_(that.m_args_) {}
-    Expression(this_type &&that) noexcept : m_args_(that.m_args_) {}
-    explicit Expression(Args &... args) noexcept : m_args_(args...) {}
+
+    //    Expression(this_type &&that) noexcept : m_args_(that.m_args_) {}
+    explicit Expression(Args &... args) : m_args_(args...) {}
+
     virtual ~Expression() = default;
 
     void swap(this_type &other) { m_args_.swap(other.m_args_); }
@@ -101,25 +103,16 @@ struct Expression<TOP, Args...> {
         this_type(other).swap(*this);
         return *this;
     };
-    this_type &operator=(this_type &&other) {
-        this_type(other).swap(*this);
-        return *this;
-    };
+    //    this_type &operator=(this_type &&other) {
+    //        this_type(other).swap(*this);
+    //        return *this;
+    //    };
 
     template <typename T>
     explicit operator T() const {
         return traits::expr_parser<T, this_type>::eval(*this);
     }
 };
-
-template <typename TReduction, typename T>
-std::complex<T> reduction(std::complex<T> const &expr) {
-    return expr;
-}
-template <typename TReduction, typename TExpr>
-TExpr reduction(TExpr const &expr) {
-    return expr;
-}
 
 //
 // template<typename TOP, typename TL, typename TR>
@@ -150,92 +143,96 @@ TExpr reduction(TExpr const &expr) {
 //
 //};
 
-#define _SP_DEFINE_EXPR_BINARY_OPERATOR(_NAME_, _OP_)                                                \
-    namespace tags {                                                                                 \
-    struct _NAME_ {                                                                                  \
-        template <typename TL, typename TR>                                                          \
-        static constexpr auto eval(TL const &l, TR const &r) {                                       \
-            return ((l _OP_ r));                                                                     \
-        }                                                                                            \
-        template <typename TL, typename TR>                                                          \
-        constexpr auto operator()(TL const &l, TR const &r) const {                                  \
-            return ((l _OP_ r));                                                                     \
-        }                                                                                            \
-    };                                                                                               \
-    }                                                                                                \
-    template <typename... TL, typename TR>                                                           \
-    auto operator _OP_(Expression<TL...> const &lhs, TR const &rhs) {                                \
-        return Expression<tags::_NAME_, const Expression<TL...>, const TR>(lhs, rhs);                \
-    };                                                                                               \
-    template <typename TL, typename... TR>                                                           \
-    auto operator _OP_(TL const &lhs, Expression<TR...> const &rhs) {                                \
-        return Expression<tags::_NAME_, const TL, const Expression<TR...>>(lhs, rhs);                \
-    };                                                                                               \
-    template <typename... TL, typename... TR>                                                        \
-    auto operator _OP_(Expression<TL...> const &lhs, Expression<TR...> const &rhs) {                 \
-        return Expression<tags::_NAME_, const Expression<TL...>, const Expression<TR...>>(lhs, rhs); \
+#define _SP_DEFINE_EXPR_BINARY_OPERATOR(_NAME_, _OP_)                                                         \
+    namespace tags {                                                                                          \
+    struct _NAME_ {                                                                                           \
+        template <typename TL, typename TR>                                                                   \
+        static constexpr auto eval(TL const &l, TR const &r) -> decltype(l _OP_ r) {                          \
+            return ((l _OP_ r));                                                                              \
+        }                                                                                                     \
+        template <typename TL, typename TR>                                                                   \
+        constexpr auto operator()(TL const &l, TR const &r) const -> decltype(l _OP_ r) {                     \
+            return ((l _OP_ r));                                                                              \
+        }                                                                                                     \
+    };                                                                                                        \
+    }                                                                                                         \
+    template <typename... TL, typename TR>                                                                    \
+    Expression<tags::_NAME_, const Expression<TL...>, const TR> operator _OP_(Expression<TL...> const &lhs,   \
+                                                                              TR const &rhs) {                \
+        return Expression<tags::_NAME_, const Expression<TL...>, const TR>(lhs, rhs);                         \
+    };                                                                                                        \
+    template <typename TL, typename... TR>                                                                    \
+    Expression<tags::_NAME_, const TL, const Expression<TR...>> operator _OP_(TL const &lhs,                  \
+                                                                              Expression<TR...> const &rhs) { \
+        return Expression<tags::_NAME_, const TL, const Expression<TR...>>(lhs, rhs);                         \
+    };                                                                                                        \
+    template <typename... TL, typename... TR>                                                                 \
+    Expression<tags::_NAME_, const Expression<TL...>, const Expression<TR...>> operator _OP_(                 \
+        Expression<TL...> const &lhs, Expression<TR...> const &rhs) {                                         \
+        return Expression<tags::_NAME_, const Expression<TL...>, const Expression<TR...>>(lhs, rhs);          \
     };
 
-#define _SP_DEFINE_EXPR_UNARY_OPERATOR(_NAME_, _OP_)                  \
-    namespace tags {                                                  \
-    struct _NAME_ {                                                   \
-        template <typename TL>                                        \
-        static constexpr auto eval(TL const &l) {                     \
-            return (_OP_(l));                                         \
-        }                                                             \
-        template <typename TL>                                        \
-        constexpr auto operator()(TL const &l) const {                \
-            return _OP_(l);                                           \
-        }                                                             \
-    };                                                                \
-    }                                                                 \
-    template <typename... T>                                          \
-    auto operator _OP_(Expression<T...> const &lhs) {                 \
-        return Expression<tags::_NAME_, const Expression<T...>>(lhs); \
+#define _SP_DEFINE_EXPR_UNARY_OPERATOR(_NAME_, _OP_)                                              \
+    namespace tags {                                                                              \
+    struct _NAME_ {                                                                               \
+        template <typename TL>                                                                    \
+        static constexpr auto eval(TL const &l) -> decltype(_OP_(l)) {                            \
+            return (_OP_(l));                                                                     \
+        }                                                                                         \
+        template <typename TL>                                                                    \
+        constexpr auto operator()(TL const &l) const -> decltype(_OP_(l)) {                       \
+            return _OP_(l);                                                                       \
+        }                                                                                         \
+    };                                                                                            \
+    }                                                                                             \
+    template <typename... T>                                                                      \
+    Expression<tags::_NAME_, const Expression<T...>> operator _OP_(Expression<T...> const &lhs) { \
+        return Expression<tags::_NAME_, const Expression<T...>>(lhs);                             \
     }
 
-#define _SP_DEFINE_EXPR_BINARY_FUNCTION(_NAME_)                                                      \
-    namespace tags {                                                                                 \
-    struct _NAME_ {                                                                                  \
-        template <typename TL, typename TR>                                                          \
-        static constexpr auto eval(TL const &l, TR const &r) {                                       \
-            return (_NAME_(l, r));                                                                   \
-        }                                                                                            \
-        template <typename TL, typename TR>                                                          \
-        constexpr auto operator()(TL const &l, TR const &r) const {                                  \
-            return (_NAME_(l, r));                                                                   \
-        }                                                                                            \
-    };                                                                                               \
-    }                                                                                                \
-    template <typename... TL, typename TR>                                                           \
-    auto _NAME_(Expression<TL...> const &lhs, TR const &rhs) {                                       \
-        return Expression<tags::_NAME_, const Expression<TL...>, const TR>(lhs, rhs);                \
-    };                                                                                               \
-    template <typename TL, typename... TR>                                                           \
-    auto _NAME_(TL const &lhs, Expression<TR...> const &rhs) {                                       \
-        return Expression<tags::_NAME_, const TL, const Expression<TR...>>(lhs, rhs);                \
-    };                                                                                               \
-    template <typename... TL, typename... TR>                                                        \
-    auto _NAME_(Expression<TL...> const &lhs, Expression<TR...> const &rhs) {                        \
-        return Expression<tags::_NAME_, const Expression<TL...>, const Expression<TR...>>(lhs, rhs); \
+#define _SP_DEFINE_EXPR_BINARY_FUNCTION(_NAME_)                                                                       \
+    namespace tags {                                                                                                  \
+    struct _NAME_ {                                                                                                   \
+        template <typename TL, typename TR>                                                                           \
+        static constexpr auto eval(TL const &l, TR const &r) -> decltype((_NAME_(l, r))) {                            \
+            return (_NAME_(l, r));                                                                                    \
+        }                                                                                                             \
+        template <typename TL, typename TR>                                                                           \
+        constexpr auto operator()(TL const &l, TR const &r) const -> decltype((_NAME_(l, r))) {                       \
+            return (_NAME_(l, r));                                                                                    \
+        }                                                                                                             \
+    };                                                                                                                \
+    }                                                                                                                 \
+    template <typename... TL, typename TR>                                                                            \
+    Expression<tags::_NAME_, const Expression<TL...>, const TR> _NAME_(Expression<TL...> const &lhs, TR const &rhs) { \
+        return Expression<tags::_NAME_, const Expression<TL...>, const TR>(lhs, rhs);                                 \
+    };                                                                                                                \
+    template <typename TL, typename... TR>                                                                            \
+    Expression<tags::_NAME_, const TL, const Expression<TR...>> _NAME_(TL const &lhs, Expression<TR...> const &rhs) { \
+        return Expression<tags::_NAME_, const TL, const Expression<TR...>>(lhs, rhs);                                 \
+    };                                                                                                                \
+    template <typename... TL, typename... TR>                                                                         \
+    Expression<tags::_NAME_, const Expression<TL...>, const Expression<TR...>> _NAME_(Expression<TL...> const &lhs,   \
+                                                                                      Expression<TR...> const &rhs) { \
+        return Expression<tags::_NAME_, const Expression<TL...>, const Expression<TR...>>(lhs, rhs);                  \
     };
 
-#define _SP_DEFINE_EXPR_UNARY_FUNCTION(_NAME_)                        \
-    namespace tags {                                                  \
-    struct _NAME_ {                                                   \
-        template <typename TL>                                        \
-        static constexpr auto eval(TL &l) {                           \
-            return (_NAME_(l));                                       \
-        }                                                             \
-        template <typename TL>                                        \
-        constexpr auto operator()(TL &l) const {                      \
-            return _NAME_(l);                                         \
-        }                                                             \
-    };                                                                \
-    }                                                                 \
-    template <typename... T>                                          \
-    auto _NAME_(Expression<T...> const &lhs) {                        \
-        return Expression<tags::_NAME_, const Expression<T...>>(lhs); \
+#define _SP_DEFINE_EXPR_UNARY_FUNCTION(_NAME_)                                             \
+    namespace tags {                                                                       \
+    struct _NAME_ {                                                                        \
+        template <typename TL>                                                             \
+        static constexpr auto eval(TL &l) -> decltype((_NAME_(l))) {                       \
+            return (_NAME_(l));                                                            \
+        }                                                                                  \
+        template <typename TL>                                                             \
+        constexpr auto operator()(TL &l) const -> decltype((_NAME_(l))) {                  \
+            return _NAME_(l);                                                              \
+        }                                                                                  \
+    };                                                                                     \
+    }                                                                                      \
+    template <typename... T>                                                               \
+    Expression<tags::_NAME_, const Expression<T...>> _NAME_(Expression<T...> const &lhs) { \
+        return Expression<tags::_NAME_, const Expression<T...>>(lhs);                      \
     }
 
 _SP_DEFINE_EXPR_BINARY_OPERATOR(addition, +)
@@ -245,6 +242,7 @@ _SP_DEFINE_EXPR_BINARY_OPERATOR(division, /)
 _SP_DEFINE_EXPR_BINARY_OPERATOR(modulo, %)
 
 _SP_DEFINE_EXPR_UNARY_OPERATOR(bitwise_not, ~)
+
 _SP_DEFINE_EXPR_BINARY_OPERATOR(bitwise_xor, ^)
 _SP_DEFINE_EXPR_BINARY_OPERATOR(bitwise_and, &)
 _SP_DEFINE_EXPR_BINARY_OPERATOR(bitwise_or, |)
@@ -252,25 +250,40 @@ _SP_DEFINE_EXPR_BINARY_OPERATOR(bitwise_left_shift, <<)
 _SP_DEFINE_EXPR_BINARY_OPERATOR(bitwise_right_shifit, >>)
 
 _SP_DEFINE_EXPR_UNARY_OPERATOR(unary_plus, +)
+
 _SP_DEFINE_EXPR_UNARY_OPERATOR(unary_minus, -)
 
 _SP_DEFINE_EXPR_UNARY_OPERATOR(logical_not, !)
+
 _SP_DEFINE_EXPR_BINARY_OPERATOR(logical_and, &&)
 _SP_DEFINE_EXPR_BINARY_OPERATOR(logical_or, ||)
 
 _SP_DEFINE_EXPR_UNARY_FUNCTION(cos)
+
 _SP_DEFINE_EXPR_UNARY_FUNCTION(acos)
+
 _SP_DEFINE_EXPR_UNARY_FUNCTION(cosh)
+
 _SP_DEFINE_EXPR_UNARY_FUNCTION(sin)
+
 _SP_DEFINE_EXPR_UNARY_FUNCTION(asin)
+
 _SP_DEFINE_EXPR_UNARY_FUNCTION(sinh)
+
 _SP_DEFINE_EXPR_UNARY_FUNCTION(tan)
+
 _SP_DEFINE_EXPR_UNARY_FUNCTION(tanh)
+
 _SP_DEFINE_EXPR_UNARY_FUNCTION(atan)
+
 _SP_DEFINE_EXPR_UNARY_FUNCTION(exp)
+
 _SP_DEFINE_EXPR_UNARY_FUNCTION(log)
+
 _SP_DEFINE_EXPR_UNARY_FUNCTION(log10)
+
 _SP_DEFINE_EXPR_UNARY_FUNCTION(sqrt)
+
 _SP_DEFINE_EXPR_BINARY_FUNCTION(atan2)
 _SP_DEFINE_EXPR_BINARY_FUNCTION(pow)
 
@@ -287,51 +300,77 @@ _SP_DEFINE_EXPR_BINARY_FUNCTION(pow)
     }
 
 _SP_DEFINE_COMPOUND_OP(+)
+
 _SP_DEFINE_COMPOUND_OP(-)
+
 _SP_DEFINE_COMPOUND_OP(*)
+
 _SP_DEFINE_COMPOUND_OP(/)
+
 _SP_DEFINE_COMPOUND_OP(%)
+
 _SP_DEFINE_COMPOUND_OP(&)
+
 _SP_DEFINE_COMPOUND_OP(|)
+
 _SP_DEFINE_COMPOUND_OP (^)
+
 _SP_DEFINE_COMPOUND_OP(<<)
+
 _SP_DEFINE_COMPOUND_OP(>>)
 
 #undef _SP_DEFINE_COMPOUND_OP
 
-#define _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(_NAME_, _REDUCTION_, _OP_)                              \
-    namespace tags {                                                                                    \
-    struct _NAME_ {                                                                                     \
-        template <typename TL, typename TR>                                                             \
-        static constexpr auto eval(TL const &l, TR &r) {                                                \
-            return ((l _OP_ r));                                                                        \
-        }                                                                                               \
-        template <typename TL, typename TR>                                                             \
-        constexpr auto operator()(TL const &l, TR &r) const {                                           \
-            return ((l _OP_ r));                                                                        \
-        }                                                                                               \
-    };                                                                                                  \
-    }                                                                                                   \
-    template <typename... TL, typename TR>                                                              \
-    auto operator _OP_(Expression<TL...> const &lhs, TR &rhs) {                                         \
-        return reduction<_REDUCTION_>(Expression<tags::_NAME_, const Expression<TL...>, TR>(lhs, rhs)); \
-    };                                                                                                  \
-    template <typename TL, typename... TR>                                                              \
-    auto operator _OP_(TL &lhs, Expression<TR...> const &rhs) {                                         \
-        return reduction<_REDUCTION_>(Expression<tags::_NAME_, TL, const Expression<TR...>>(lhs, rhs)); \
-    };                                                                                                  \
-    template <typename... TL, typename... TR>                                                           \
-    auto operator _OP_(Expression<TL...> const &lhs, Expression<TR...> const &rhs) {                    \
-        return reduction<_REDUCTION_>(                                                                  \
-            Expression<tags::_NAME_, const Expression<TL...>, const Expression<TR...>>(lhs, rhs));      \
-    };
+#define _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_)                                        \
+    namespace tags {                                                                                 \
+    struct _NAME_ {                                                                                  \
+        template <typename TL, typename TR>                                                          \
+        static constexpr auto eval(TL const &l, TR &r) AUTO_RETURN((l _OP_ r));                      \
+                                                                                                     \
+        template <typename TL, typename TR>                                                          \
+        constexpr auto operator()(TL const &l, TR &r) const AUTO_RETURN((l _OP_ r));                 \
+    };                                                                                               \
+    }                                                                                                \
+    template <typename... TL, typename TR>                                                           \
+    bool operator _OP_(Expression<TL...> const &lhs, TR &rhs) {                                      \
+        return static_cast<bool>((Expression<tags::_NAME_, const Expression<TL...>, TR>(lhs, rhs))); \
+    }                                                                                                \
+                                                                                                     \
+    template <typename TL, typename... TR>                                                           \
+    bool operator _OP_(TL &lhs, Expression<TR...> const &rhs) {                                      \
+        return static_cast<bool>((Expression<tags::_NAME_, TL, const Expression<TR...>>(lhs, rhs))); \
+    }                                                                                                \
+                                                                                                     \
+    template <typename... TL, typename... TR>                                                        \
+    bool operator _OP_(Expression<TL...> const &lhs, Expression<TR...> const &rhs) {                 \
+        return static_cast<bool>(                                                                    \
+            (Expression<tags::_NAME_, const Expression<TL...>, const Expression<TR...>>(lhs, rhs))); \
+    }
 
-_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(not_equal_to, tags::logical_or, !=)
-_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(equal_to, tags::logical_and, ==)
-_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(less, tags::logical_and, <)
-_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(greater, tags::logical_and, >)
-_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(less_equal, tags::logical_and, <=)
-_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(greater_equal, tags::logical_and, >=)
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(!=, not_equal_to)
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(==, equal_to)
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(<=, less_equal)
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(>=, greater_equal)
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(<, less)
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(>, greater)
+
+template <typename TReduction, typename TRes>
+TRes reduction(TRes const &expr) {
+    return expr;
+}
+
+namespace traits {
+template <typename TOP, typename... Args>
+struct expr_parser<bool, Expression<TOP, Args...>> {
+    static bool eval(Expression<TOP, Args...> const &expr) { return reduction<tags::logical_and, bool>(expr); };
+};
+template <typename... Args>
+struct expr_parser<bool, Expression<tags::not_equal_to, Args...>> {
+    static bool eval(Expression<tags::not_equal_to, Args...> const &expr) {
+        return reduction<tags::logical_or, bool>(expr);
+    };
+};
+}
 
 //_SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(real)                                          \
 //_SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(imag)                                          \
@@ -354,16 +393,16 @@ struct _dot {};
 struct _cross {};
 }
 
+// template <typename TL, typename TR>
+// auto inner_product(TL const &l, TR const &r) -> decltype((reduction<tags::addition>(l * r))) {
+//    return reduction<tags::addition>(l * r);
+//}
 template <typename TL, typename TR>
-auto inner_product(TL const &l, TR const &r) {
-    return reduction<tags::addition>(l * r);
-}
-template <typename TL, typename TR>
-auto dot_v(TL const &l, TR const &r) {
+Expression<tags::_dot, const TL, const TR> dot_v(TL const &l, TR const &r) {
     return Expression<tags::_dot, const TL, const TR>(l, r);
 }
 template <typename TL, typename TR>
-auto cross_v(TL const &l, TR const &r) {
+Expression<tags::_cross, const TL, const TR> cross_v(TL const &l, TR const &r) {
     return Expression<tags::_cross, const TL, const TR>(l, r);
 }
 

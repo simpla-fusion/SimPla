@@ -10,24 +10,24 @@ SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH})
 MESSAGE(STATUS "Using C++ Compiler ${CMAKE_CXX_COMPILER_ID} ")
-if (NOT STD_CXX)
-    SET(STD_CXX "c++14")
-endif (NOT STD_CXX)
+
+SET(CMAKE_CXX_FLAGS "-std=c++11  -fPIC ")
 
 
-SET(CMAKE_CXX_FLAGS "-std=${STD_CXX} -fPIC  ")
+#if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+#    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics -ftemplate-backtrace-limit=0 -funroll-loops  -fno-limit-debug-info ")
+#    SET(CMAKE_Fortran_COMPILER gfortran)
+#elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
+#
+#elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "PGI")
+#    SET(OpenACC_CXX_FLAGS "-acc -Minfo=accel")
+#else ()
+#    SET(OpenACC_CXX_FLAGS " -fopenacc -foffload=nvptx-none -foffload=\"-O3\" -O3 -o gpu.x ")
+#
+#endif ()
 
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics -ftemplate-backtrace-limit=0 -funroll-loops  -fno-limit-debug-info ")
-    SET(CMAKE_Fortran_COMPILER gfortran)
-elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
+MESSAGE(CMAKE_LIBRARY_ARCHITECTURE ${CMAKE_LIBRARY_ARCHITECTURE})
 
-elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "PGI")
-    SET(OpenACC_CXX_FLAGS "-acc -Minfo=accel")
-else ()
-    SET(OpenACC_CXX_FLAGS " -fopenacc -foffload=nvptx-none -foffload=\"-O3\" -O3 -o gpu.x ")
-
-endif ()
 
 INCLUDE(CTest)
 ENABLE_TESTING()
@@ -36,13 +36,10 @@ ADD_CUSTOM_TARGET(alltest)
 
 SET(BUILD_SHARED_LIBS OFF)
 
-
 FIND_PACKAGE(Boost REQUIRED)
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenACC_CXX_FLAGS} ")
 
 FIND_PACKAGE(OpenMP REQUIRED)
-
 IF (OPENMP_FOUND)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -57,11 +54,11 @@ IF (MPI_FOUND)
 ENDIF (MPI_FOUND)
 
 
-FIND_PACKAGE(TBB)
-IF (TBB_FOUND)
-    INCLUDE_DIRECTORIES(${TBB_INCLUDE_DIRS})
-    SET(HAVE_TBB 1)
-ENDIF (TBB_FOUND)
+#FIND_PACKAGE(TBB)
+#IF (TBB_FOUND)
+#    INCLUDE_DIRECTORIES(${TBB_INCLUDE_DIRS})
+#    SET(HAVE_TBB 1)
+#ENDIF (TBB_FOUND)
 
 SET(HDF5_PREFER_PARALLEL ON)
 SET(HDF5_USE_STATIC_LIBRARIES OFF)
@@ -92,7 +89,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
 INCLUDE_DIRECTORIES(/pkg/SAMRAI/3.11.0-debug-hdf5-1.10-openmpi-2.0.2/include/)
 #workaround for CLion 1.0.x
 FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
-add_executable(all_clion ${clion_all_headers}  src/dummy.h src/dummy.cpp src/simpla/particle/ParticleLoad.cpp src/simpla/particle/spParticle.h src/simpla/particle/ParticleBase.cpp)
+add_executable(all_clion ${clion_all_headers}  src/dummy.h src/dummy.cpp)
 
 
 add_subdirectory(src/simpla)
