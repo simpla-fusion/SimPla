@@ -557,8 +557,7 @@ _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(>, tags::greater)
 
 template <typename TL, typename TR, int... N>
 TL dot(nTuple<TL, N...> const& l, TR const& r) {
-    TL res = 0;
-    return res;
+    return reduction<tags::addition, TL>(l * r);
 }
 
 template <typename T1, typename T2>
