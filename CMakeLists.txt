@@ -11,24 +11,24 @@ SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH})
 MESSAGE(STATUS "Using C++ Compiler ${CMAKE_CXX_COMPILER_ID} ")
 
-SET(CMAKE_CXX_FLAGS "-std=c++14 -fPIC ")
+SET(CMAKE_CXX_FLAGS " -std=c++14 -fPIC ")
 
 
-#if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-#    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics -ftemplate-backtrace-limit=0 -funroll-loops  -fno-limit-debug-info ")
-#    SET(CMAKE_Fortran_COMPILER gfortran)
-#elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-#
-#elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "PGI")
-#    SET(OpenACC_CXX_FLAGS "-acc -Minfo=accel")
-#else ()
-#    SET(OpenACC_CXX_FLAGS " -fopenacc -foffload=nvptx-none -foffload=\"-O3\" -O3 -o gpu.x ")
-#
-#endif ()
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics -ftemplate-backtrace-limit=0 -funroll-loops  -fno-limit-debug-info ")
+    SET(CMAKE_Fortran_COMPILER gfortran)
+elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
+
+elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "PGI")
+    SET(OpenACC_CXX_FLAGS "-acc -Minfo=accel")
+else ()
+    SET(OpenACC_CXX_FLAGS " -fopenacc -foffload=nvptx-none -foffload=\"-O3\" -O3 -o gpu.x ")
+
+endif ()
 
 MESSAGE("-- ARCHITECTURE: " ${CMAKE_LIBRARY_ARCHITECTURE})
 
-SET(BUILD_SHARED_LIBS ON)
+SET(BUILD_SHARED_LIBS OFF)
 
 INCLUDE(CTest)
 ENABLE_TESTING()
@@ -58,11 +58,11 @@ IF (MPI_FOUND)
 ENDIF (MPI_FOUND)
 
 
-#FIND_PACKAGE(TBB)
-#IF (TBB_FOUND)
-#    INCLUDE_DIRECTORIES(${TBB_INCLUDE_DIRS})
-#    SET(HAVE_TBB 1)
-#ENDIF (TBB_FOUND)
+FIND_PACKAGE(TBB)
+IF (TBB_FOUND)
+    INCLUDE_DIRECTORIES(${TBB_INCLUDE_DIRS})
+    SET(HAVE_TBB 1)
+ENDIF (TBB_FOUND)
 
 SET(HDF5_PREFER_PARALLEL ON)
 SET(HDF5_USE_STATIC_LIBRARIES OFF)
