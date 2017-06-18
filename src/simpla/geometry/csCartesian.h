@@ -42,7 +42,8 @@ struct Cartesian : public Chart {
         return (std::sqrt(dot(cross(p1 - p0, p2 - p0), cross(p1 - p0, p2 - p0)))) * 0.5;
     }
 
-    Real volume(point_type const &p0, point_type const &p1, point_type const &p2, point_type const &p3) const override {
+    Real volume(point_type const &p0, point_type const &p1, point_type const &p2,
+                point_type const &p3) const override {
         return dot(p3 - p0, cross(p1 - p0, p2 - p1)) / 6.0;
     }
 

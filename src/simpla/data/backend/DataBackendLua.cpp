@@ -58,7 +58,7 @@ std::shared_ptr<DataEntity> DataBackendLua::pimpl_s::make_data_entity_lua(LuaObj
     std::shared_ptr<DataEntity> res = nullptr;
 
     if (lobj.is_table()) {
-        std::unique_ptr<DataBackendLua> p(new DataBackendLua);
+        auto p = std::make_unique<DataBackendLua>();
         p->m_pimpl_->m_lua_obj_ = lobj;
         res = std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>(std::move(p)));
     } else if (lobj.is_array()) {

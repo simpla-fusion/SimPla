@@ -66,13 +66,15 @@ class DataMultiArray : public DataBlock {
 
     void SetArray(int depth, array_type d) { array_type(d).swap(m_data_[depth]); }
 
+
+
     array_type *Get(int depth = 0) { return &m_data_[depth]; }
     array_type const *Get(int depth = 0) const { return &m_data_[depth]; }
     array_type &GetArray(int depth = 0) { return m_data_[depth]; }
     array_type const &GetArray(int depth = 0) const { return m_data_[depth]; }
 
-    array_type &at(int depth = 0) { return m_data_.at(depth); }
-    array_type const &at(int depth = 0) const { return m_data_.at(depth); }
+    auto &at(int depth = 0) { return m_data_.at(depth); }
+    auto const &at(int depth = 0) const { return m_data_.at(depth); }
     array_type &operator[](int depth) { return m_data_[depth]; }
     array_type const &operator[](int depth) const { return m_data_[depth]; }
     void DeepCopy(std::shared_ptr<this_type> const &other) {
