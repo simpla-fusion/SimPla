@@ -152,8 +152,6 @@ template <typename TM>
 void EMFluid<TM>::Advance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
 
-    TIME_STAMP;
-
     B = B - curl(E) * (dt * 0.5);
     B[GetMesh()->GetPerpendicularBoundaryRange(FACE, m_boundary_geo_obj_prefix_)] = 0;
 
@@ -231,7 +229,6 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     dumpE.DeepCopy(E);
     dumpB.DeepCopy(B);
     dumpJ.DeepCopy(J);
-    TIME_STAMP;
 }
 
 }  // namespace simpla  {
