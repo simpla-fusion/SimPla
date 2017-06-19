@@ -11,6 +11,7 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/utilities/Log.h>
 #include <simpla/utilities/macro.h>
+#include <functional>
 #include <iostream>
 #include <map>
 #include <memory>

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 cmake_policy(SET CMP0028 NEW)
-
+cmake_policy(SET CMP0021 OLD)
 PROJECT(SimPla CXX C)
 INCLUDE(local_conf.cmake)
 INCLUDE(${PROJECT_SOURCE_DIR}/CMake/utils.cmake)
@@ -11,7 +11,7 @@ SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH})
 MESSAGE(STATUS "Using C++ Compiler ${CMAKE_CXX_COMPILER_ID} ")
 
-SET(CMAKE_CXX_FLAGS " -std=c++14 -fPIC ")
+SET(CMAKE_CXX_FLAGS " -std=c++14 -fPIC  ")
 
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
@@ -23,7 +23,6 @@ elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "PGI")
     SET(OpenACC_CXX_FLAGS "-acc -Minfo=accel")
 else ()
     SET(OpenACC_CXX_FLAGS " -fopenacc -foffload=nvptx-none -foffload=\"-O3\" -O3 -o gpu.x ")
-
 endif ()
 
 MESSAGE("-- ARCHITECTURE: " ${CMAKE_LIBRARY_ARCHITECTURE})
@@ -33,7 +32,7 @@ SET(BUILD_SHARED_LIBS OFF)
 INCLUDE(CTest)
 ENABLE_TESTING()
 
-SET(GTEST_ROOT "/usr/src/googletest/googletest/" )
+SET(GTEST_ROOT "/usr/src/googletest/googletest/")
 FIND_PACKAGE(GTest REQUIRED)
 MESSAGE("-- Google Test: " ${GTEST_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(${GTEST_INCLUDE_DIRS})
@@ -41,7 +40,6 @@ ADD_CUSTOM_TARGET(alltest)
 
 
 FIND_PACKAGE(Boost REQUIRED)
-
 
 FIND_PACKAGE(OpenMP REQUIRED)
 IF (OPENMP_FOUND)
@@ -52,8 +50,9 @@ ENDIF (OPENMP_FOUND)
 
 FIND_PACKAGE(MPI REQUIRED)
 IF (MPI_FOUND)
-    INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
+    INCLUDE_DIRECTORIES(${MPI_C_INCLUDE_PATH})
     ADD_DEFINITIONS(-DOMPI_SKIP_MPICXX)
+    SET(HAVE_MPI 1)
     SET(SKIP_MPICXX "OMPI_SKIP_MPICXX")
 ENDIF (MPI_FOUND)
 
@@ -64,7 +63,7 @@ IF (TBB_FOUND)
     SET(HAVE_TBB 1)
 ENDIF (TBB_FOUND)
 
-SET(HDF5_PREFER_PARALLEL ON)
+SET(HDF5_PREFER_PARALLEL OFF)
 SET(HDF5_USE_STATIC_LIBRARIES OFF)
 FIND_PACKAGE(HDF5 1.8 COMPONENTS C HL REQUIRED)
 IF (HDF5_FOUND)
@@ -90,10 +89,10 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/include/SIMPLA_config.h.in
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/include/)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-INCLUDE_DIRECTORIES(/pkg/SAMRAI/3.11.0-debug-hdf5-1.10-openmpi-2.0.2/include/)
+LINK_DIRECTORIES(/usr/local/cuda/lib64)
 #workaround for CLion 1.0.x
 FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
-add_executable(all_clion ${clion_all_headers}  src/dummy.h src/dummy.cpp)
+add_executable(all_clion ${clion_all_headers} src/dummy.cpp src/dummy.h)
 
 
 add_subdirectory(src/simpla)

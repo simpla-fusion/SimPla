@@ -8,8 +8,10 @@
 #include <simpla/concept/CheckConcept.h>
 #include <simpla/concept/Splittable.h>
 #include <cstddef>
+#include <functional>
 #include <iterator>
 #include <memory>
+
 #include "Log.h"
 #include "sp_def.h"
 

@@ -150,42 +150,26 @@ class Logger : public std::ostringstream {
      *
      */
 
-    // this is the function signature of std::endl
-    typedef std::basic_ostream<char, std::char_traits<char> > StdCoutType;
-
-    typedef StdCoutType &(*StandardEndLine)(StdCoutType &);
-
-    //! define an operator<< to take in std::endl
-    Logger &operator<<(StandardEndLine manip) {
-        // call the function, but we cannot return it's entity
-        manip(*dynamic_cast<std::ostringstream *>(this));
-        return *this;
-    }
-
-    Logger const &operator<<(StandardEndLine manip) const {
-        // call the function, but we cannot return it's entity
-        manip(*dynamic_cast<std::ostringstream *>(const_cast<this_type *>(this)));
-        return *this;
-    }
-
-    template <typename Arg>
-    Logger const &operator<<(Arg const &arg) {
-        return this->push(arg);
-    }
-
-    template <typename Arg>
-    Logger const &operator<<(Arg const &arg) const {
-        return this->push(arg);
-    }
-
-    Logger const &operator<<(const char *arg) { return this->push(arg); }
-
-    Logger const &operator<<(const char *arg) const { return this->push(arg); }
-
     int m_level_ = 10;
     int current_line_char_count_;
     bool endl_;
 };
+// this is the function signature of std::endl
+typedef std::basic_ostream<char, std::char_traits<char> > StdCoutType;
+typedef StdCoutType &(*StandardEndLine)(StdCoutType &);
+//! define an operator<< to take in std::endl
+inline Logger &operator<<(Logger &self, StandardEndLine manip) {
+    // call the function, but we cannot return it's entity
+    manip(dynamic_cast<std::ostringstream &>(self));
+    return self;
+}
+
+inline Logger &operator<<(Logger &self, const char *arg) { return self.push(arg); }
+
+template <typename Arg>
+inline Logger &operator<<(Logger &self, Arg const &arg) {
+    return self.push(arg);
+}
 
 // template<typename Arg>
 // Logger &operator<<(Logger &L, Arg const &arg)

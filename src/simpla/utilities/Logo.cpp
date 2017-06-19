@@ -39,11 +39,13 @@ std::string ShowLogo() { return SIMPLA_LOGO; }
 std::string ShowVersion() { return SIMPLA_VERSION_IDENTIFY; }
 
 void TheStart(int flag) {
+    TIME_STAMP;
     switch (flag) {
         default:
             VERBOSE << SINGLELINE << std::endl;
             INFORM << "[MISSION     START]" << std::endl;
     }
+    TIME_STAMP;
 }
 
 void TheEnd(int flag) {

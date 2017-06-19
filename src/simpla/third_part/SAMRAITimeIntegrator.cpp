@@ -816,7 +816,7 @@ SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
 void SAMRAITimeIntegrator::Initialize() {
     engine::TimeIntegrator::Initialize();
     /** Setup SAMRAI::tbox::MPI.      */
-    SAMRAI::tbox::SAMRAI_MPI::init(GLOBAL_COMM.comm());
+    SAMRAI::tbox::SAMRAI_MPI::init(GLOBAL_COMM.comm());  //
     SAMRAI::tbox::SAMRAIManager::initialize();
     /** Setup SAMRAI, enable logging, and process command line.     */
     SAMRAI::tbox::SAMRAIManager::startup();

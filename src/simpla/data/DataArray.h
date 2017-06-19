@@ -6,6 +6,8 @@
 #define SIMPLA_DATAARRAY_H
 #include "DataEntity.h"
 #include "DataTraits.h"
+#include <functional>
+
 namespace simpla {
 namespace data {
 

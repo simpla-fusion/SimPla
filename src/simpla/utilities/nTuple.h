@@ -457,32 +457,32 @@ _SP_DEFINE_NTUPLE_BINARY_OPERATOR(logical_or, ||)
 #undef _SP_DEFINE_NTUPLE_BINARY_OPERATOR
 #undef _SP_DEFINE_NTUPLE_UNARY_OPERATOR
 
-#define _SP_DEFINE_NTUPLE_BINARY_FUNCTION(_NAME_)                                                            \
-    template <typename TL, int... NL, typename TR>                                                           \
-    auto _NAME_(nTuple<TL, NL...> const& lhs, TR const& rhs) {                                               \
-        return Expression<simpla::tags::_NAME_, const nTuple<TL, NL...>, const TR>(lhs, rhs);                \
-    };                                                                                                       \
-    template <typename TL, typename TR, int... NR>                                                           \
-    auto _NAME_(TL const& lhs, nTuple<TR, NR...> const& rhs) {                                               \
-        return Expression<simpla::tags::_NAME_, const TL, const nTuple<TR, NR...>>(lhs, rhs);                \
-    };                                                                                                       \
-    template <typename TL, int... NL, typename... TR>                                                        \
-    auto _NAME_(nTuple<TL, NL...> const& lhs, Expression<TR...> const& rhs) {                                \
-        return Expression<simpla::tags::_NAME_, const nTuple<TL, NL...>, const Expression<TR...>>(lhs, rhs); \
-    };                                                                                                       \
-    template <typename... TL, typename TR, int... NR>                                                        \
-    auto _NAME_(Expression<TL...> const& lhs, nTuple<TR, NR...> const& rhs) {                                \
-        return Expression<simpla::tags::_NAME_, const Expression<TL...>, const nTuple<TR, NR...>>(lhs, rhs); \
-    };                                                                                                       \
-    template <typename TL, int... NL, typename TR, int... NR>                                                \
-    auto _NAME_(nTuple<TL, NL...> const& lhs, nTuple<TR, NR...> const& rhs) {                                \
-        return Expression<simpla::tags::_NAME_, const nTuple<TL, NL...>, const nTuple<TR, NR...>>(lhs, rhs); \
+#define _SP_DEFINE_NTUPLE_BINARY_FUNCTION(_NAME_)                                                    \
+    template <typename TL, int... NL, typename TR>                                                   \
+    auto _NAME_(nTuple<TL, NL...> const& lhs, TR const& rhs) {                                       \
+        return Expression<tags::_NAME_, const nTuple<TL, NL...>, const TR>(lhs, rhs);                \
+    };                                                                                               \
+    template <typename TL, typename TR, int... NR>                                                   \
+    auto _NAME_(TL const& lhs, nTuple<TR, NR...> const& rhs) {                                       \
+        return Expression<tags::_NAME_, const TL, const nTuple<TR, NR...>>(lhs, rhs);                \
+    };                                                                                               \
+    template <typename TL, int... NL, typename... TR>                                                \
+    auto _NAME_(nTuple<TL, NL...> const& lhs, Expression<TR...> const& rhs) {                        \
+        return Expression<tags::_NAME_, const nTuple<TL, NL...>, const Expression<TR...>>(lhs, rhs); \
+    };                                                                                               \
+    template <typename... TL, typename TR, int... NR>                                                \
+    auto _NAME_(Expression<TL...> const& lhs, nTuple<TR, NR...> const& rhs) {                        \
+        return Expression<tags::_NAME_, const Expression<TL...>, const nTuple<TR, NR...>>(lhs, rhs); \
+    };                                                                                               \
+    template <typename TL, int... NL, typename TR, int... NR>                                        \
+    auto _NAME_(nTuple<TL, NL...> const& lhs, nTuple<TR, NR...> const& rhs) {                        \
+        return Expression<tags::_NAME_, const nTuple<TL, NL...>, const nTuple<TR, NR...>>(lhs, rhs); \
     };
 
-#define _SP_DEFINE_NTUPLE_UNARY_FUNCTION(_NAME_)                             \
-    template <typename T, int... N>                                          \
-    auto _NAME_(nTuple<T, N...> const& lhs) {                                \
-        return Expression<simpla::tags::_NAME_, const nTuple<T, N...>>(lhs); \
+#define _SP_DEFINE_NTUPLE_UNARY_FUNCTION(_NAME_)                     \
+    template <typename T, int... N>                                  \
+    auto _NAME_(nTuple<T, N...> const& lhs) {                        \
+        return Expression<tags::_NAME_, const nTuple<T, N...>>(lhs); \
     }
 
 _SP_DEFINE_NTUPLE_UNARY_FUNCTION(cos)
@@ -529,38 +529,37 @@ _SP_DEFINE_NTUPLE_COMPOUND_OP(>>)
 
 #undef _SP_DEFINE_NTUPLE_COMPOUND_OP
 
-#define _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(_NAME_, _REDUCTION_, _OP_)                                          \
-    template <typename TL, int... NL, typename TR>                                                                    \
-    auto operator _OP_(nTuple<TL, NL...> const& lhs, TR const& rhs) {                                                 \
-        return reduction<_REDUCTION_>(Expression<simpla::tags::_NAME_, const nTuple<TL, NL...>, const TR>(lhs, rhs)); \
-    };                                                                                                                \
-    template <typename TL, typename TR, int... NR>                                                                    \
-    auto operator _OP_(TL const& lhs, nTuple<TR, NR...> const& rhs) {                                                 \
-        return reduction<_REDUCTION_>(Expression<simpla::tags::_NAME_, const TL, const nTuple<TR, NR...>>(lhs, rhs)); \
-    };                                                                                                                \
-    template <typename TL, int... NL, typename... TR>                                                                 \
-    auto operator _OP_(nTuple<TL, NL...> const& lhs, Expression<TR...> const& rhs) {                                  \
-        return reduction<_REDUCTION_>(                                                                                \
-            Expression<simpla::tags::_NAME_, const nTuple<TL, NL...>, const Expression<TR...>>(lhs, rhs));            \
-    };                                                                                                                \
-    template <typename... TL, typename TR, int... NR>                                                                 \
-    auto operator _OP_(Expression<TL...> const& lhs, nTuple<TR, NR...> const& rhs) {                                  \
-        return reduction<_REDUCTION_>(                                                                                \
-            Expression<simpla::tags::_NAME_, const Expression<TL...>, const nTuple<TR, NR...>>(lhs, rhs));            \
-    };                                                                                                                \
-    template <typename TL, int... NL, typename TR, int... NR>                                                         \
-    auto operator _OP_(nTuple<TL, NL...> const& lhs, nTuple<TR, NR...> const& rhs) {                                  \
-        return reduction<_REDUCTION_>(                                                                                \
-            Expression<simpla::tags::_NAME_, const nTuple<TL, NL...>, const nTuple<TR, NR...>>(lhs, rhs));            \
+#define _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_, _REDUCTION_)                                  \
+    template <typename TL, int... NL, typename TR>                                                            \
+    auto operator _OP_(nTuple<TL, NL...> const& lhs, TR const& rhs) {                                         \
+        return reduction<_REDUCTION_>(Expression<tags::_NAME_, const nTuple<TL, NL...>, const TR>(lhs, rhs)); \
+    };                                                                                                        \
+    template <typename TL, typename TR, int... NR>                                                            \
+    auto operator _OP_(TL const& lhs, nTuple<TR, NR...> const& rhs) {                                         \
+        return reduction<_REDUCTION_>(Expression<tags::_NAME_, const TL, const nTuple<TR, NR...>>(lhs, rhs)); \
+    };                                                                                                        \
+    template <typename TL, int... NL, typename... TR>                                                         \
+    auto operator _OP_(nTuple<TL, NL...> const& lhs, Expression<TR...> const& rhs) {                          \
+        return reduction<_REDUCTION_>(                                                                        \
+            Expression<tags::_NAME_, const nTuple<TL, NL...>, const Expression<TR...>>(lhs, rhs));            \
+    };                                                                                                        \
+    template <typename... TL, typename TR, int... NR>                                                         \
+    auto operator _OP_(Expression<TL...> const& lhs, nTuple<TR, NR...> const& rhs) {                          \
+        return reduction<_REDUCTION_>(                                                                        \
+            Expression<tags::_NAME_, const Expression<TL...>, const nTuple<TR, NR...>>(lhs, rhs));            \
+    };                                                                                                        \
+    template <typename TL, int... NL, typename TR, int... NR>                                                 \
+    auto operator _OP_(nTuple<TL, NL...> const& lhs, nTuple<TR, NR...> const& rhs) {                          \
+        return reduction<_REDUCTION_>(                                                                        \
+            Expression<tags::_NAME_, const nTuple<TL, NL...>, const nTuple<TR, NR...>>(lhs, rhs));            \
     };
 
-_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(not_equal_to, simpla::tags::logical_or, !=)
-_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(equal_to, simpla::tags::logical_and, ==)
-_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(less, simpla::tags::logical_and, <)
-_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(greater, simpla::tags::logical_and, >)
-_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(less_equal, simpla::tags::logical_and, <=)
-_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(greater_equal, simpla::tags::logical_and, >=)
-
+_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(!=, not_equal_to, tags::logical_or)
+_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(==, equal_to, tags::logical_and)
+_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(<=, less_equal, tags::logical_and)
+_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(>=, greater_equal, tags::logical_and)
+_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(>, greater, tags::logical_and)
+_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(<, less, tags::logical_and)
 #undef _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR
 
 //    DEF_BOP(shift_left, <<)
@@ -663,12 +662,12 @@ auto abs(T const& l, ENABLE_IF(!traits::is_nTuple<T>::value)) {
 
 template <typename T>
 auto NProduct(T const& v, ENABLE_IF(traits::is_nTuple<T>::value)) {
-    return ((reduction<simpla::tags::multiplication>(v)));
+    return ((reduction<tags::multiplication>(v)));
 }
 
 template <typename T>
 auto NSum(T const& v, ENABLE_IF(traits::is_nTuple<T>::value)) {
-    return ((reduction<simpla::tags::addition>(v)));
+    return ((reduction<tags::addition>(v)));
 }
 
 //
@@ -689,14 +688,14 @@ auto NSum(T const& v, ENABLE_IF(traits::is_nTuple<T>::value)) {
 namespace _detail {
 template <typename T, int... N>
 std::ostream& printNd_(std::ostream& os, T const& d, integer_sequence<int, N...> const&,
-                       ENABLE_IF((!simpla::concept::is_indexable<T>::value))) {
+                       ENABLE_IF((!concept::is_indexable<T>::value))) {
     os << d;
     return os;
 }
 
 template <typename T, int M, int... N>
 std::ostream& printNd_(std::ostream& os, T const& d, integer_sequence<int, M, N...> const&,
-                       ENABLE_IF((simpla::concept::is_indexable<T>::value))) {
+                       ENABLE_IF((concept::is_indexable<T>::value))) {
     os << "[";
     printNd_(os, d[0], integer_sequence<int, N...>());
     for (int i = 1; i < M; ++i) {

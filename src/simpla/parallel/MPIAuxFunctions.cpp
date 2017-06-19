@@ -30,7 +30,7 @@ namespace simpla {
 namespace parallel {
 
 void bcast_string(std::string *filename_) {
-    if (!GLOBAL_COMM.is_valid()) return;
+    if (!GLOBAL_COMM.size() <= 1) return;
     int name_len;
     if (GLOBAL_COMM.process_num() == 0) { name_len = static_cast<int>(filename_->size()); }
     MPI_Bcast(&name_len, 1, MPI_INT, 0, GLOBAL_COMM.comm());
