@@ -42,32 +42,27 @@ enum TypeOfValue {
 };
 
 static const char EntityIFORMName[][10] = {"VERTEX", "EDGE", "FACE", "VOLUME"};
-typedef union {
-    struct {
-        int16_t x, y, z, w;
-    };
-    int64_t v;
-} EntityId64;
+// typedef union {
+typedef struct EntityId64 { int x, y, z, w; } EntityId64;
+//    int64_t v;} EntityId64;
 typedef EntityId64 EntityId;
 
 typedef Range<EntityId> EntityRange;
 
-constexpr inline bool operator==(EntityId first, EntityId second) { return first.v == second.v; }
+constexpr inline bool operator==(EntityId first, EntityId second) { return first.x == second.x; }
 
 constexpr inline EntityId operator-(EntityId first, EntityId second) {
-    EntityId res = {static_cast<int16_t>(first.x - second.x), static_cast<int16_t>(first.y - second.y),
-                    static_cast<int16_t>(first.z - second.z), first.w};
+    EntityId res = {(first.x - second.x), (first.y - second.y), (first.z - second.z), first.w};
     return res;
 }
 
 constexpr inline EntityId operator+(EntityId first, EntityId second) {
-    return EntityId{static_cast<int16_t>(first.x + second.x), static_cast<int16_t>(first.y + second.y),
-                    static_cast<int16_t>(first.z + second.z), first.w};
+    return EntityId{(first.x + second.x), (first.y + second.y), (first.z + second.z), first.w};
 }
 
-constexpr inline EntityId operator|(EntityId first, EntityId second) { return EntityId{.v = first.v | second.v}; }
+constexpr inline EntityId operator|(EntityId first, EntityId second) { return EntityId{.x = first.x | second.x}; }
 
-constexpr inline bool operator<(EntityId first, EntityId second) { return first.v < second.v; }
+constexpr inline bool operator<(EntityId first, EntityId second) { return first.x < second.x; }
 
 struct EntityIdCoder {
     /// @name at_level independent
@@ -81,7 +76,7 @@ struct EntityIdCoder {
     static constexpr EntityId _DI{1, 0, 0, 0};
     static constexpr EntityId _DJ{0, 1, 0, 0};
     static constexpr EntityId _DK{0, 0, 1, 0};
-    static constexpr EntityId _DA{1, 1, 1, static_cast<int16_t>(-1)};
+    static constexpr EntityId _DA{1, 1, 1, (-1)};
 
     typedef EntityIdCoder this_type;
 
@@ -178,10 +173,10 @@ struct EntityIdCoder {
     template <int IFORM>
     static EntityId Pack(index_type i, index_type j, index_type k, unsigned int n, unsigned int d) {
         EntityId s;
-        s.x = static_cast<int16_t>(i);
-        s.y = static_cast<int16_t>(j);
-        s.z = static_cast<int16_t>(k);
-        s.w = static_cast<int16_t>((d << 3) | m_sub_index_to_id_[IFORM][n]);
+        s.x = (i);
+        s.y = (j);
+        s.z = (k);
+        s.w = ((d << 3) | m_sub_index_to_id_[IFORM][n]);
         return s;
     }
     template <int IFORM, int DOF>
@@ -222,22 +217,20 @@ struct EntityIdCoder {
 
     static EntityId DI(int n) { return m_num_to_id_[n]; }
 
-    static EntityId DI(int n, EntityId s) { return EntityId{.v = s.v & m_num_to_id_[n].v}; }
+    static EntityId DI(int n, EntityId s) { return EntityId{.x = s.x & m_num_to_id_[n].x}; }
 
-    static EntityId dual(EntityId s) { return EntityId{.v = (s.v & (~_DA.v)) | ((~(s.v & _DA.v)) & _DA.v)}; }
+    static EntityId dual(EntityId s) { return EntityId{.x = (s.x & (~_DA.x)) | ((~(s.x & _DA.x)) & _DA.x)}; }
 
-    static EntityId delta_index(EntityId s) { return EntityId{.v = static_cast<int64_t>(s.v & _DA.v)}; }
+    static EntityId delta_index(EntityId s) { return EntityId{.x = static_cast<int64_t>(s.x & _DA.x)}; }
 
     static EntityId rotate(EntityId s) {
-        return EntityId{static_cast<int16_t>((s.x & ~0x1) | (s.z & 0x1)),
-                        static_cast<int16_t>((s.y & ~0x1) | (s.x & 0x1)),
-                        static_cast<int16_t>((s.z & ~0x1) | (s.y & 0x1)), static_cast<int16_t>(s.w)};
+        return EntityId{((s.x & ~0x1) | (s.z & 0x1)), ((s.y & ~0x1) | (s.x & 0x1)), ((s.z & ~0x1) | (s.y & 0x1)),
+                        (s.w)};
     }
 
     static EntityId inverse_rotate(EntityId s) {
-        return EntityId{static_cast<int16_t>((s.x & ~0x1) | (s.y & 0x1)),
-                        static_cast<int16_t>((s.y & ~0x1) | (s.z & 0x1)),
-                        static_cast<int16_t>((s.z & ~0x1) | (s.x & 0x1)), static_cast<int16_t>(s.w)};
+        return EntityId{((s.x & ~0x1) | (s.y & 0x1)), ((s.y & ~0x1) | (s.z & 0x1)), ((s.z & ~0x1) | (s.x & 0x1)),
+                        (s.w)};
     }
 
     /**
@@ -714,19 +707,16 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
         index_type ie = this->m_max_[0];
         index_type je = this->m_max_[1];
         index_type ke = this->m_max_[2];
-#ifdef __OPENACC
-#pragma acc parallel for
-#else
+
 #pragma omp parallel for
-#endif
         for (index_type i = ib; i < ie; ++i) {
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k) {
                     EntityId s;
-                    s.x = static_cast<int16_t>(i);
-                    s.y = static_cast<int16_t>(j);
-                    s.z = static_cast<int16_t>(k);
-                    s.w = static_cast<int16_t>(m_w_);
+                    s.x = (i);
+                    s.y = (j);
+                    s.z = (k);
+                    s.w = (m_w_);
                     body(s);
                 }
         }
@@ -737,7 +727,7 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
     index_tuple m_min_, m_max_, m_grain_size_;
 };
 struct EntityIdHasher {
-    size_t operator()(const EntityId& key) const { return static_cast<size_t>(key.v); }
+    size_t operator()(const EntityId& key) const { return static_cast<size_t>(key.x); }
 };
 template <>
 struct UnorderedRange<EntityId> : public RangeBase<EntityId> {
@@ -762,9 +752,11 @@ struct UnorderedRange<EntityId> : public RangeBase<EntityId> {
 
     template <typename TFun>
     void DoForeach(TFun const& body, ENABLE_IF((simpla::concept::is_callable<TFun(EntityId)>::value))) const {
-        tbb::parallel_for(m_ids_.range(), [&](auto const& r) {
-            for (EntityId s : r) { body(s); }
-        });
+        tbb::parallel_for(
+            m_ids_.range(),
+            [&](typename tbb::concurrent_unordered_set<EntityId, EntityIdHasher>::const_range_type const& r) {
+                for (EntityId64 s : r) { body(s); }
+            });
     }
 
    private:

@@ -20,7 +20,7 @@
 //#include <simpla/concept/CheckConcept.h>
 //#include <simpla/utilities/type_cast.h>
 #include <stddef.h>
-#include <bitset>
+//#include <bitset>
 #include <iostream>
 #include <memory>
 #include <sstream>
@@ -224,7 +224,7 @@ inline Logger &flush(Logger &self) {
     return self;
 }
 
-inline std::string ShowBit(unsigned long s) { return std::bitset<64>(s).to_string(); }
+//inline std::string ShowBit(unsigned long s) { return std::bitset<64>(s).to_string(); }
 
 inline std::ostringstream &_make_error_msg(std::ostringstream &os) { return os; }
 

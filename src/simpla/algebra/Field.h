@@ -52,14 +52,18 @@ class Field : public engine::Attribute {
     mesh_type const* m_mesh_ = nullptr;
 
    public:
-    template <typename... Args>
-    explicit Field(Args&&... args) : engine::Attribute(IFORM, DOF, typeid(value_type), std::forward<Args>(args)...){};
-
+    //    template <typename... Args>
+    //    explicit Field(Args&&... args) : engine::Attribute(IFORM, DOF, typeid(value_type),
+    //    std::forward<Args>(args)...){};
+    template <typename TGrp, typename... Args>
+    explicit Field(TGrp* grp, Args&&... args)
+        : engine::Attribute(IFORM, DOF, typeid(value_type), dynamic_cast<engine::AttributeGroup*>(grp),
+                            std::make_shared<data::DataTable>(std::forward<Args>(args)...)) {}
     Field(this_type const& other)
         : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_data_(other.m_data_) {}
 
-//    Field(this_type&& other)
-//        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_data_(other.m_data_) {}
+    //    Field(this_type&& other)
+    //        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_data_(other.m_data_) {}
 
     Field(this_type const& other, EntityRange r)
         : engine::Attribute(other), m_data_(other.m_data_), m_mesh_(other.m_mesh_), m_range_(std::move(r)) {}
@@ -80,10 +84,10 @@ class Field : public engine::Attribute {
         Assign(other);
         return *this;
     }
-//    this_type& operator=(this_type&& other) {
-//        this_type(other).swap(*this);
-//        return *this;
-//    }
+    //    this_type& operator=(this_type&& other) {
+    //        this_type(other).swap(*this);
+    //        return *this;
+    //    }
 
     void swap(this_type& other) {
         engine::Attribute::swap(other);
