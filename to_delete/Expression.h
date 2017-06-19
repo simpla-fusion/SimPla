@@ -38,7 +38,7 @@ struct expr_parser<TRes, TR> {
 template <typename TRes, typename TOP, typename... Args>
 struct expr_parser<TRes, declare::Expression<TOP, Args...>> {
     template <size_type... index>
-    static decltype(auto) _invoke_helper(declare::Expression<TOP, Args...> const &expr, index_sequence<index...>) {
+    static auto _invoke_helper(declare::Expression<TOP, Args...> const &expr, index_sequence<index...>) {
         return expr.m_op_(expr_parser<TRes, std::remove_cv_t<Args>>::eval(std::get<index>(expr.m_args_))...);
     }
 

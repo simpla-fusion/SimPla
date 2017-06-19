@@ -398,17 +398,17 @@ struct Array {
     };
 
     static constexpr value_type const& getValue(value_type const& v, m_index_tuple const& s) { return v; };
-    static constexpr decltype(auto) getValue(this_type& self, m_index_tuple const& s) { return self.at(s); };
-    static constexpr decltype(auto) getValue(this_type const& self, m_index_tuple const& s) { return self.at(s); };
+    static constexpr auto getValue(this_type& self, m_index_tuple const& s) { return self.at(s); };
+    static constexpr auto getValue(this_type const& self, m_index_tuple const& s) { return self.at(s); };
 
     template <typename TOP, typename... Others, int... IND>
-    static constexpr decltype(auto) _invoke_helper(Expression<TOP, Others...> const& expr, int_sequence<IND...>,
+    static constexpr auto _invoke_helper(Expression<TOP, Others...> const& expr, int_sequence<IND...>,
                                                    m_index_tuple const& s) {
         return TOP::eval(getValue(std::get<IND>(expr.m_args_), s)...);
     }
 
     template <typename TOP, typename... Others>
-    static constexpr decltype(auto) getValue(Expression<TOP, Others...> const& expr, m_index_tuple const& s) {
+    static constexpr auto getValue(Expression<TOP, Others...> const& expr, m_index_tuple const& s) {
         return _invoke_helper(expr, int_sequence_for<Others...>(), s);
     }
 };
