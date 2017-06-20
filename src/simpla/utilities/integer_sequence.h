@@ -279,8 +279,8 @@ auto seq_reduce(integer_sequence<int, N...>, TOP const &op, Args &&... args) {
 template <int... N, typename TOP>
 void seq_for_each(int_sequence<N...>, TOP const &op) {
     int ndims = sizeof...(N);
+    int idx[10];
     int dims[] = {N...};
-    int idx[ndims];
 
     for (int i = 0; i < ndims; ++i) { idx[i] = 0; }
 

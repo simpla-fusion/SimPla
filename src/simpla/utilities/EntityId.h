@@ -10,8 +10,8 @@
 
 #include <simpla/utilities/nTuple.h>
 #include <stddef.h>
-#include <tbb/concurrent_unordered_set.h>
-#include <tbb/tbb.h>
+//#include <tbb/concurrent_unordered_set.h>
+//#include <tbb/tbb.h>
 #include <limits>
 #include <set>
 #include <tuple>
@@ -752,16 +752,17 @@ struct UnorderedRange<EntityId> : public RangeBase<EntityId> {
 
     template <typename TFun>
     void DoForeach(TFun const& body, ENABLE_IF((simpla::concept::is_callable<TFun(EntityId)>::value))) const {
-        tbb::parallel_for(
-            m_ids_.range(),
-            [&](typename tbb::concurrent_unordered_set<EntityId, EntityIdHasher>::const_range_type const& r) {
-                for (EntityId64 s : r) { body(s); }
-            });
+        //        tbb::parallel_for(
+        //            m_ids_.range(),
+        //            [&](typename tbb::concurrent_unordered_set<EntityId, EntityIdHasher>::const_range_type const& r) {
+        //                for (EntityId64 s : r) { body(s); }
+        //            });
+        for (EntityId64 s : m_ids_) { body(s); }
     }
 
    private:
-    //    std::set<EntityId> m_ids_;
-    tbb::concurrent_unordered_set<EntityId, EntityIdHasher> m_ids_;
+    std::set<EntityId> m_ids_;
+    //    tbb::concurrent_unordered_set<EntityId, EntityIdHasher> m_ids_;
 };
 
 }  // namespace simpla

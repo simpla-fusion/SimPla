@@ -9,7 +9,6 @@
 #define CORE_DATASET_DATASET_H_
 
 #include <stddef.h>
-#include <tbb/concurrent_vector.h>
 #include <algorithm>
 #include <list>
 #include <memory>

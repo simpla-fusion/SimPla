@@ -814,6 +814,7 @@ SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
     SAMRAI::tbox::SAMRAIManager::finalize();
 }
 void SAMRAITimeIntegrator::Initialize() {
+    dcomplex a=std::numeric_limits<dcomplex>::signaling_NaN();
     engine::TimeIntegrator::Initialize();
     /** Setup SAMRAI::tbox::MPI.      */
     SAMRAI::tbox::SAMRAI_MPI::init(GLOBAL_COMM.comm());  //
