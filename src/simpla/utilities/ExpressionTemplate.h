@@ -155,6 +155,19 @@ struct Expression<TOP, Args...> {
     }
 };
 
+namespace tags {
+struct _assign {
+    template <typename TL, typename TR>
+    static void eval(TL &l, TR const &r) {
+        l = r;
+    }
+    template <typename TL, typename TR>
+    void operator()(TL &l, TR const &r) const {
+        l = r;
+    }
+};
+}
+
 #define _SP_DEFINE_EXPR_BINARY_OPERATOR(_OP_, _NAME_)                                    \
     namespace tags {                                                                     \
     struct _NAME_ {                                                                      \
