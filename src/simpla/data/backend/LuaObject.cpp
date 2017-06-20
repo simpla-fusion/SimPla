@@ -29,9 +29,10 @@ LuaObject::LuaObject(LuaObject const &other) {
     }
 }
 
-LuaObject::LuaObject(LuaObject &&r) : L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), self_(r.self_), path_(r.path_) {
-    r.self_ = 0;
-}
+// LuaObject::LuaObject(LuaObject &&r)
+//        : L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), self_(r.self_), path_(r.path_) {
+//    r.self_ = 0;
+//}
 
 void LuaObject::swap(LuaObject &other) {
     std::swap(L_, other.L_);
@@ -224,7 +225,7 @@ std::pair<LuaObject, LuaObject> LuaObject::iterator::value() const {
         LuaObject(acc.get(), GLOBAL_IDX_, value, path_ + ".entity").swap(res.second);
     }
 
-    return std::move(res);
+    return (res);
 }
 
 // size_t LuaObject::accept(std::function<void(LuaObject const &, LuaObject const &)> const &fun) {
@@ -276,7 +277,7 @@ LuaObject LuaObject::get(std::string const &s) const noexcept {
             LuaObject(acc.get(), GLOBAL_REF_IDX_, id, path_ + "." + s).swap(res);
         }
     }
-    return std::move(res);
+    return (res);
 }
 
 // LuaObject LuaObject::operator[](std::string const &s) const noexcept {
@@ -302,7 +303,7 @@ LuaObject LuaObject::get(std::string const &s) const noexcept {
 //            LuaObject(acc.get(), GLOBAL_REF_IDX_, id, path_ + "." + s).swap(res);
 //        }
 //    }
-//    return std::move(res);
+//    return (res);
 //}
 
 //! unsafe fast access, no boundary check, no path information
@@ -321,7 +322,7 @@ LuaObject LuaObject::get(int s) const noexcept {
         lua_pop(*acc, 1);
         LuaObject(acc.get(), GLOBAL_REF_IDX_, res).swap(r);
     }
-    return std::move(r);
+    return (r);
 }
 
 //! index operator with out_of_range exception
@@ -333,7 +334,7 @@ LuaObject LuaObject::at(size_t const &s) const {
 
         if (res.is_null()) { throw(std::out_of_range(type_cast<std::string>(s) + "\" is not an element in " + path_)); }
     }
-    return std::move(res);
+    return (res);
 }
 
 //! safe access, with boundary check, no path information
@@ -352,7 +353,7 @@ LuaObject LuaObject::at(int s) const {
 
         LuaObject(acc.get(), GLOBAL_REF_IDX_, res, path_ + "[" + type_cast<std::string>(s) + "]").swap(r);
     }
-    return std::move(r);
+    return (r);
 }
 
 /**
@@ -388,7 +389,7 @@ LuaObject LuaObject::new_table(std::string const &name, unsigned int narr, unsig
 
         lua_pop(*acc, 1);
     }
-    return std::move(res);
+    return (res);
 }
 #define DEF_TYPE_CHECK(_FUN_NAME_, _LUA_FUN_)              \
     bool LuaObject::_FUN_NAME_() const {                   \

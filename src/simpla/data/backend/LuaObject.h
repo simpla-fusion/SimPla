@@ -118,7 +118,7 @@ class LuaObject : public concept::Printable {
     LuaObject();
     LuaObject(std::shared_ptr<LuaState::lua_s> const &l, int G, int s, std::string const &path = "");
     LuaObject(LuaObject const &other);
-    LuaObject(LuaObject &&r);
+//    LuaObject(LuaObject &&r) = delete;
     LuaObject &operator=(LuaObject const &other) {
         LuaObject(other).swap(*this);
         return *this;
@@ -207,13 +207,13 @@ class LuaObject : public concept::Printable {
     void push_to_self();
 
    public:
-    inline LuaObject operator[](char const s[]) const noexcept { return operator[](std::string(s)); }
-    LuaObject operator[](std::string const &s) const noexcept { return get(s); };
+    LuaObject operator[](char const s[]) const { return get(std::string(s)); }
+    LuaObject operator[](std::string const &s) const { return get(s); };
 
-    LuaObject get(std::string const &s) const noexcept;
+    LuaObject get(std::string const &s) const;
     //! unsafe fast access, no boundary check, no path information
-    LuaObject get(int s) const noexcept;
-    LuaObject operator[](int s) const noexcept { return get(s); }
+    LuaObject get(int s) const;
+    LuaObject operator[](int s) const { return get(s); }
 
     //! index operator with out_of_range exception
     LuaObject at(size_t const &s) const;
