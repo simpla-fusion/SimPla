@@ -221,7 +221,7 @@ struct EntityIdCoder {
 
     static EntityId dual(EntityId s) { return EntityId{.x = (s.x & (~_DA.x)) | ((~(s.x & _DA.x)) & _DA.x)}; }
 
-    static EntityId delta_index(EntityId s) { return EntityId{.x = static_cast<int64_t>(s.x & _DA.x)}; }
+    static EntityId delta_index(EntityId s) { return EntityId{.x = static_cast<int>(s.x & _DA.x)}; }
 
     static EntityId rotate(EntityId s) {
         return EntityId{((s.x & ~0x1) | (s.z & 0x1)), ((s.y & ~0x1) | (s.x & 0x1)), ((s.z & ~0x1) | (s.y & 0x1)),

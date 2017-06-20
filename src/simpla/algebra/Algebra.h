@@ -101,20 +101,20 @@ struct field_value_type {
 template <typename T>
 using field_value_t = typename field_value_type<T>::type;
 
-CHECK_BOOLEAN_TYPE_MEMBER(is_array, is_array)
-CHECK_BOOLEAN_TYPE_MEMBER(is_field, is_field)
-// CHECK_BOOLEAN_TYPE_MEMBER(is_nTuple, is_nTuple)
-CHECK_BOOLEAN_TYPE_MEMBER(is_expression, is_expression)
-
-template <typename First, typename... Others>
-struct is_field<First, Others...>
-    : public std::integral_constant<bool, is_field<First>::value || is_field<Others...>::value> {};
-
-template <typename First, typename... Others>
-struct is_array<First, Others...>
-    : public std::integral_constant<bool,
-                                    (is_array<First>::value && !is_field<First>::value) || is_array<Others...>::value> {
-};
+//CHECK_BOOLEAN_TYPE_MEMBER(is_array, is_array)
+//CHECK_BOOLEAN_TYPE_MEMBER(is_field, is_field)
+//// CHECK_BOOLEAN_TYPE_MEMBER(is_nTuple, is_nTuple)
+////CHECK_BOOLEAN_TYPE_MEMBER(is_expression, is_expression)
+//
+//template <typename First, typename... Others>
+//struct is_field<First, Others...>
+//    : public std::integral_constant<bool, is_field<First>::value || is_field<Others...>::value> {};
+//
+//template <typename First, typename... Others>
+//struct is_array<First, Others...>
+//    : public std::integral_constant<bool,
+//                                    (is_array<First>::value && !is_field<First>::value) || is_array<Others...>::value> {
+//};
 
 // template <typename First, typename... Others>
 // struct is_nTuple<First, Others...>

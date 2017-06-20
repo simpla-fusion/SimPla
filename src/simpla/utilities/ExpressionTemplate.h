@@ -103,14 +103,7 @@ auto reduction(TExpr const &expr, ENABLE_IF((rank<TExpr>::value > 0))) {
     return res;
 }
 
-template <typename TReduction, typename TOP, typename... Args>
-auto reduction(Expression<TOP, Args...> const &expr, ENABLE_IF((rank<Expression<TOP, Args...>>::value > 0))) {
-    auto res = reduction<TReduction>(getValue(expr, 0));
-    int n = extent<TExpr>::value;
-    for (int s = 1; s < n; ++s) { res = TReduction::eval(res, reduction<TReduction>(getValue(expr, s))); }
 
-    return res;
-}
 }
 
 template <typename TOP, typename... Args>

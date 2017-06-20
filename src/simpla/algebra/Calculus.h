@@ -147,19 +147,20 @@ struct value_type<Expression<tags::_dot, T0, T1>> {
 }  // namespace traits
 
 template <typename TL, typename TR>
-auto inner_product(TL const& lhs, TR const& rhs, ENABLE_IF((traits::is_field<TL, TR>::value))) {
+auto inner_product(TL const& lhs, TR const& rhs,
+                   ENABLE_IF((traits::dimension<TL>::value + traits::dimension<TR>::value > 0))) {
     return (wedge(lhs, hodge_star(rhs)));
 }
 
-//template <typename TL, typename TR>
-//auto cross(TL const& lhs, TR const& rhs,
+// template <typename TL, typename TR>
+// auto cross(TL const& lhs, TR const& rhs,
 //           ENABLE_IF((traits::is_field<TL, TR>::value) &&
 //                     (traits::iform<TL>::value == EDGE && traits::iform<TR>::value == EDGE))) {
 //    return ((wedge(lhs, rhs)));
 //}
 //
-//template <typename TL, typename TR>
-//auto cross(TL const& lhs, TR const& rhs,
+// template <typename TL, typename TR>
+// auto cross(TL const& lhs, TR const& rhs,
 //           ENABLE_IF((traits::is_field<TL, TR>::value) &&
 //                     (traits::iform<TL>::value == FACE && traits::iform<TR>::value == FACE))) {
 //    return (hodge_star(wedge(hodge_star(lhs), hodge_star(rhs))));
