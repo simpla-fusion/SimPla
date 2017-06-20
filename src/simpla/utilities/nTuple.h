@@ -195,11 +195,10 @@ auto make_ntuple(T0 const& a0, Others&&... others) {
     return nTuple<T0, sizeof...(Others) + 1>{a0, others...};
 };
 
-template <typename T, int... N>
-struct getValue_s<nTuple<T, N...>> {
-    static auto const& eval(nTuple<T, N...> const& expr, int n) { return expr[n]; }
-};
-
+template <int N, typename T, int... M>
+auto const& get(nTuple<T, M...> const& expr) {
+    return expr[N];
+}
 }  // namespace traits
 
 struct nTuple_calculator {
@@ -270,16 +269,6 @@ struct nTuple_calculator {
     static auto getValue(Expression<TOP, Others...> const& expr, Idx&&... s) {
         return ((_invoke_helper(expr, int_sequence_for<Others...>(), std::forward<Idx>(s)...)));
     }
-
-    template <typename V, int N0, int... N, typename TR>
-    static void assign(nTuple<V, N0, N...>& lhs, TR& rhs) {
-        for (int i = 0; i < N0; ++i) { lhs[i] = getValue(rhs, i); }
-    };
-
-    template <typename V, int N0, int... N>
-    static void swap(nTuple<V, N0, N...>& lhs, nTuple<V, N0, N...>& rhs) {
-        for (int i = 0; i < N0; ++i) { std::swap(lhs[i], rhs[i]); }
-    };
 };
 
 /// n-dimensional primary type
@@ -295,7 +284,6 @@ struct nTuple<TV, N0, N...> {
     typedef nTuple<TV, N0, N...> this_type;
 
     typedef nTuple_calculator calculator;
-    typedef std::true_type prefer_pass_by_reference;
     typedef TV value_type;
 
     typedef typename std::conditional<sizeof...(N) == 0, TV, nTuple<TV, N...>>::type sub_type;
@@ -311,7 +299,7 @@ struct nTuple<TV, N0, N...> {
 
     template <typename... U>
     nTuple(Expression<U...> const& expr) {
-        calculator::assign((*this), expr);
+        traits::assign(*this, expr);
     }
 
     //    nTuple_(this_type const &other) = delete;
@@ -349,16 +337,16 @@ struct nTuple<TV, N0, N...> {
         return calculator::getValue(*this, std::forward<Idx>(s)...);
     }
 
-    void swap(this_type& other) { calculator::swap((*this), other); }
+    void swap(this_type& other) { traits::swap(*this, other); }
 
     this_type& operator=(this_type const& rhs) {
-        calculator::assign((*this), rhs);
+        traits::assign(*this, rhs);
         return (*this);
     }
 
     template <typename TR>
     this_type& operator=(TR const& rhs) {
-        calculator::assign((*this), rhs);
+        traits::assign(*this, rhs);
         return (*this);
     }
 };

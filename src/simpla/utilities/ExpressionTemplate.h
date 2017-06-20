@@ -7,7 +7,6 @@
 
 #include <type_traits>
 #include <utility>
-#include "../../../../../../../pkg/gcc/7.1.0/include/c++/7.1.0/type_traits"
 #include "integer_sequence.h"
 #include "type_traits.h"
 namespace simpla {
@@ -19,17 +18,6 @@ namespace simpla {
 template <typename...>
 class Expression;
 
-template <typename...>
-struct AssignmentExpression;
-
-namespace tags {
-struct _assign {
-    template <typename TL, typename TR>
-    void operator()(TL &lhs, TR const &rhs) const {
-        lhs = rhs;
-    }
-};
-}
 namespace traits {
 
 template <typename TExpr>
@@ -44,100 +32,126 @@ struct rank<Expression<TOP, Args...>> : public seq_max<int_sequence<rank<Args>::
 template <int N, typename TOP, typename... Args>
 struct extent<Expression<TOP, Args...>, N> : public seq_max<int_sequence<extent<Args, N>::value...>> {};
 
-template <typename...>
-struct expr_parser;
-
-template <typename TRes, typename TR>
-struct expr_parser<TRes, TR> {
-    static TRes eval(TR const &expr) { return static_cast<TRes>(expr); };
-};
-template <typename TRes, typename TOP, typename... Args>
-struct expr_parser<TRes, Expression<TOP, Args...>> {
-    template <size_type... index>
-    static auto _invoke_helper(Expression<TOP, Args...> const &expr, index_sequence<index...>) {
-        return expr.m_op_(expr_parser<TRes, std::remove_cv_t<Args>>::eval(std::get<index>(expr.m_args_))...);
+template <int N>
+struct get_s {
+    template <typename T>
+    static T const &eval(T const &expr, ENABLE_IF((extent<T>::value == 0))) {
+        return expr;
+    }
+    template <typename T>
+    static auto const &eval(T const &expr, ENABLE_IF((extent<T>::value > 0))) {
+        return expr[N];
     }
 
+    template <typename TOP, typename... Args, int... index>
+    static auto eval0_(Expression<TOP, Args...> const &expr, index_sequence<index...>) {
+        return expr.m_op_(get_s<N>::eval(std::get<index>(expr.m_args_))...);
+    }
+
+    template <typename TOP, typename... Args>
     static auto eval(Expression<TOP, Args...> const &expr) {
-        return _invoke_helper(expr, index_sequence_for<Args...>());
+        return eval0_(expr, index_sequence_for<Args...>());
+    }
+};
+
+template <int N, typename T>
+auto get(T const &expr) {
+    return get_s<N>::eval(expr);
+}
+template <int N, typename T>
+auto const &get(T const *expr) {
+    return expr[N];
+}
+template <typename TReduction>
+struct reduction_s {
+    template <typename Arg0>
+    static auto eval0_(Arg0 const &arg0) {
+        return reduction_s<TReduction>::eval(arg0);
     };
-};
 
-template <typename T>
-struct getValue_s {
-    static T const &eval(T const &expr, int n) { return expr; }
-};
+    template <typename Arg0, typename Arg1, typename... Others>
+    static auto eval0_(Arg0 const &arg0, Arg1 const &arg1, Others &&... others) {
+        return TReduction::eval(eval0_(arg0), eval0_(arg1, std::forward<Others>(others)...));
+    };
 
-template <typename T>
-struct getValue_s<T *> {
-    static auto &eval(T *expr, int n) { return expr[n]; }
-};
-
-template <typename T>
-auto getValue(T const &expr, int n) {
-    return getValue_s<T>::eval(expr, n);
-}
-
-template <typename TOP, typename... Args>
-struct getValue_s<Expression<TOP, Args...>> {
-    template <int... index>
-    static auto get(Expression<TOP, Args...> const &expr, int n, index_sequence<index...>) {
-        return expr.m_op_(getValue(std::get<index>(expr.m_args_), n)...);
+    template <typename TExpr>
+    static auto const &eval1_(TExpr const &expr, int_sequence<>) {
+        return expr;
     }
-    static auto eval(Expression<TOP, Args...> const &expr, int n) {
-        return get(expr, n, index_sequence_for<Args...>());
+
+    template <typename TExpr, int... I>
+    static auto eval1_(TExpr const &expr, int_sequence<I...>) {
+        return eval0_(get<I>(expr)...);
+    }
+    template <typename TExpr>
+    static auto eval(TExpr const &expr) {
+        return eval1_(expr, make_int_sequence<extent<TExpr>::value>());
     }
 };
-
 template <typename TReduction, typename TExpr>
-auto reduction(TExpr const &expr, ENABLE_IF((rank<TExpr>::value == 0))) {
-    return expr;
+auto reduction(TExpr const &expr) {
+    return reduction_s<TReduction>::eval(expr);
+};
+
+namespace _impl {
+
+template <typename TL, typename TR>
+void assign_(TL &lhs, TR const &rhs, int_sequence<>){};
+
+template <typename TL, typename TR, int I0, int... I>
+void assign_(TL &lhs, TR const &rhs, int_sequence<I0, I...>) {
+    lhs[I0] = traits::get<I0>(rhs);
+    assign_(lhs, rhs, int_sequence<I...>());
+};
+template <typename T>
+void swap_(T &lhs, T &rhs, int_sequence<>){};
+
+template <typename T>
+void swap0_(T &lhs, T &rhs, ENABLE_IF((traits::rank<T>::value == 0))) {
+    std::swap(lhs, rhs);
 }
 
-template <typename TReduction, typename TExpr>
-auto reduction(TExpr const &expr, ENABLE_IF((rank<TExpr>::value > 0))) {
-    auto res = reduction<TReduction>(getValue(expr, 0));
-    int n = extent<TExpr>::value;
-    for (int s = 1; s < n; ++s) { res = TReduction::eval(res, reduction<TReduction>(getValue(expr, s))); }
-
-    return res;
+template <typename T>
+void swap0_(T &lhs, T &rhs, ENABLE_IF((traits::rank<T>::value > 0))) {
+    lhs.swap(rhs);
 }
 
+template <typename T, int I0, int... I>
+void swap_(T &lhs, T &rhs, int_sequence<I0, I...>) {
+    swap0_(lhs[I0], rhs[I0]);
+    swap_(lhs, rhs, int_sequence<I...>());
+};
 
-}
+}  // namespace _impl {
+
+template <typename T>
+void swap(T &lhs, T &rhs) {
+    _impl::swap_(lhs, rhs, make_int_sequence<extent<T>::value>());
+};
+template <typename TL, typename TR>
+void assign(TL &lhs, TR const &rhs) {
+    _impl::assign_(lhs, rhs, make_int_sequence<extent<TL>::value>());
+};
+}  // namespace
 
 template <typename TOP, typename... Args>
 struct Expression<TOP, Args...> {
     typedef Expression<TOP, Args...> this_type;
 
     typename std::tuple<traits::reference_t<Args>...> m_args_;
-    typedef std::true_type is_expression;
-    typedef std::false_type prefer_pass_by_reference;
-    typedef std::true_type prefer_pass_by_value;
 
     TOP m_op_;
 
     Expression(this_type const &that) : m_args_(that.m_args_) {}
     Expression(this_type &&that) noexcept : m_args_(that.m_args_) {}
     template <typename... U>
-    explicit Expression(U &&... args) noexcept : m_args_(std::forward<U>(args)...) {}
+    explicit Expression(U &&... args) : m_args_(std::forward<U>(args)...) {}
 
     virtual ~Expression() = default;
 
-    void swap(this_type &other) { m_args_.swap(other.m_args_); }
-    this_type &operator=(this_type const &other) {
-        this_type(other).swap(*this);
-        return *this;
-    };
-    this_type &operator=(this_type &&other) {
-        this_type(other).swap(*this);
-        return *this;
-    };
-
     template <typename T>
     explicit operator T() const {
-        //        return traits::expr_parser<T, this_type>::eval(*this);
-        return traits::getValue(*this, 0);
+        return static_cast<T>(traits::reduction(*this));
     }
 };
 
