@@ -50,12 +50,64 @@ auto invoke(Func&& func, Tup&& tup) {
 
 namespace traits {
 
-typedef std::integral_constant<bool, true> true_t;
-typedef std::integral_constant<bool, false> false_t;
-//
 ////////////////////////////////////////////////////////////////////////
 ///// Property queries of n-dimensional array
 ////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+struct reference {
+    typedef T type;
+};
+template <typename T>
+using reference_t = typename reference<T>::type;
+
+template <typename T>
+struct value_type {
+    typedef T type;
+};
+template <typename T>
+using value_type_t = typename value_type<T>::type;
+
+template <typename T>
+struct scalar_type {
+    typedef Real type;
+};
+template <typename T>
+using scalar_type_t = typename scalar_type<T>::type;
+
+/**
+*  alt. of std::rank
+*  @quto http://en.cppreference.com/w/cpp/types/rank
+*  If T is an array type, provides the member constant
+*  value equal to the number of dimensions of the array.
+*  For any other type, value is 0.
+*/
+// template <typename T, typename Idx = int>
+// struct rank : public int_const<(!is_indexable<T, Idx>::value) ? 0 : 1 + rank<remove_extent<T, Idx>>::value> {};
+
+template <typename T>
+struct rank : public int_const<0> {};
+
+template <typename T>
+struct rank<T*> : public std::integral_constant<int, rank<T>::value + 1> {};
+
+/**
+* alt. of std::extent
+*  @quto http://en.cppreference.com/w/cpp/types/extent
+*  If T is an array type, provides the member constant value equal to
+* the number of elements along the Nth dimension of the array, if N
+* is in [0, std::rank<T>::value). For any other type, or if T is array
+* of unknown bound along its first dimension and N is 0, value is 0.
+*/
+
+template <typename T, int N = 0>
+struct extent : public std::extent<T, N> {};
+
+// template <typename _Tp, _Tp... N>
+// struct extent<integer_sequence<_Tp, N...>, 0> : public int_const<sizeof...(N)> {};
+
+template <typename TExpr>
+struct dimension : public std::integral_constant<int, 0> {};
 
 template <typename T, typename Idx = int>
 struct remove_extent {
@@ -232,16 +284,6 @@ struct assign_nested_initializer_list<I0, I...> {
     }
 };
 
-/**
- *  alt. of std::rank
- *  @quto http://en.cppreference.com/w/cpp/types/rank
- *  If T is an array type, provides the member constant
- *  value equal to the number of dimensions of the array.
- *  For any other type, value is 0.
- */
-template <typename T, typename Idx = int>
-struct rank : public int_const<(!is_indexable<T, Idx>::value) ? 0 : 1 + rank<remove_extent<T, Idx>>::value> {};
-
 namespace _detail {
 template <bool F>
 struct remove_entent_v;
@@ -281,24 +323,6 @@ struct remove_entent_v<false> {
     };
 };
 }  // namespace _detail{
-
-/**
- * alt. of std::extent
- *  @quto http://en.cppreference.com/w/cpp/types/extent
- *  If T is an array type, provides the member constant value equal to
- * the number of elements along the Nth dimension of the array, if N
- * is in [0, std::rank<T>::value). For any other type, or if T is array
- * of unknown bound along its first dimension and N is 0, value is 0.
- */
-
-template <typename T, int N = 0>
-struct extent : public std::extent<T, N> {};
-
-template <typename T>
-struct size : public std::integral_constant<size_t, 1> {};
-
-template <typename _Tp, _Tp... N>
-struct extent<integer_sequence<_Tp, N...>, 0> : public int_const<sizeof...(N)> {};
 
 //**********************************************************************************************************************
 

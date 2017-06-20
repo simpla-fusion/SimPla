@@ -98,6 +98,11 @@ using make_int_sequence = make_integer_sequence<int, _Num>;
 template <typename... _Types>
 using int_sequence_for = make_int_sequence<sizeof...(_Types)>;
 
+template <int... _Idx>
+using index_sequence = integer_sequence<int, _Idx...>;
+
+template <typename... _Types>
+using index_sequence_for = make_integer_sequence<int, sizeof...(_Types)>;
 //**************************************************************************
 
 //#endif
@@ -419,6 +424,8 @@ std::ostream &operator<<(std::ostream &os, integer_sequence<_Tp> const &) {
     return os;
 }
 
+typedef std::integral_constant<bool, true> true_type;
+typedef std::integral_constant<bool, false> false_type;
 template <int I>
 using int_const = std::integral_constant<int, I>;
 
