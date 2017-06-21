@@ -29,10 +29,9 @@ LuaObject::LuaObject(LuaObject const &other) {
     }
 }
 
-// LuaObject::LuaObject(LuaObject &&r)
-//        : L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), self_(r.self_), path_(r.path_) {
-//    r.self_ = 0;
-//}
+LuaObject::LuaObject(LuaObject &&r) : L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), self_(r.self_), path_(r.path_) {
+    r.self_ = 0;
+}
 
 void LuaObject::swap(LuaObject &other) {
     std::swap(L_, other.L_);
@@ -225,7 +224,7 @@ std::pair<LuaObject, LuaObject> LuaObject::iterator::value() const {
         LuaObject(acc.get(), GLOBAL_IDX_, value, path_ + ".entity").swap(res.second);
     }
 
-    return (res);
+    return std::move(res);
 }
 
 // size_t LuaObject::accept(std::function<void(LuaObject const &, LuaObject const &)> const &fun) {
@@ -254,7 +253,7 @@ size_t LuaObject::size() const {
 
 bool LuaObject::has(std::string const &key) const { return !LuaObject(this->operator[](key)).is_nil(); };
 
-LuaObject LuaObject::get(std::string const &s) const noexcept {
+LuaObject LuaObject::get(std::string const &s) const {
     LuaObject res;
 
     if ((is_table() || is_global())) {
@@ -277,7 +276,7 @@ LuaObject LuaObject::get(std::string const &s) const noexcept {
             LuaObject(acc.get(), GLOBAL_REF_IDX_, id, path_ + "." + s).swap(res);
         }
     }
-    return (res);
+    return std::move(res);
 }
 
 // LuaObject LuaObject::operator[](std::string const &s) const noexcept {
@@ -303,11 +302,11 @@ LuaObject LuaObject::get(std::string const &s) const noexcept {
 //            LuaObject(acc.get(), GLOBAL_REF_IDX_, id, path_ + "." + s).swap(res);
 //        }
 //    }
-//    return (res);
+//    return std::move(res);
 //}
 
 //! unsafe fast access, no boundary check, no path information
-LuaObject LuaObject::get(int s) const noexcept {
+LuaObject LuaObject::get(int s) const {
     LuaObject r;
 
     if ((is_table() || is_global())) {
@@ -322,7 +321,7 @@ LuaObject LuaObject::get(int s) const noexcept {
         lua_pop(*acc, 1);
         LuaObject(acc.get(), GLOBAL_REF_IDX_, res).swap(r);
     }
-    return (r);
+    return std::move(r);
 }
 
 //! index operator with out_of_range exception
@@ -334,7 +333,7 @@ LuaObject LuaObject::at(size_t const &s) const {
 
         if (res.is_null()) { throw(std::out_of_range(type_cast<std::string>(s) + "\" is not an element in " + path_)); }
     }
-    return (res);
+    return std::move(res);
 }
 
 //! safe access, with boundary check, no path information
@@ -353,7 +352,7 @@ LuaObject LuaObject::at(int s) const {
 
         LuaObject(acc.get(), GLOBAL_REF_IDX_, res, path_ + "[" + type_cast<std::string>(s) + "]").swap(r);
     }
-    return (r);
+    return std::move(r);
 }
 
 /**
@@ -389,7 +388,7 @@ LuaObject LuaObject::new_table(std::string const &name, unsigned int narr, unsig
 
         lua_pop(*acc, 1);
     }
-    return (res);
+    return std::move(res);
 }
 #define DEF_TYPE_CHECK(_FUN_NAME_, _LUA_FUN_)              \
     bool LuaObject::_FUN_NAME_() const {                   \
