@@ -8,6 +8,8 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <map>
 #include "MeshBlock.h"
+#include "../../../cmake-build-debug/include/simpla/SIMPLA_config.h"
+
 namespace simpla {
 namespace engine {
 struct Patch::pimpl_s {
@@ -40,7 +42,7 @@ void Patch::Merge(Patch &other) {
 
 std::map<id_type, std::shared_ptr<data::DataBlock>> &Patch::GetAllData() { return m_pimpl_->m_data_; };
 
-void Patch::Push(id_type const &id, std::shared_ptr<data::DataBlock> const &d) { m_pimpl_->m_data_[id] = d; }
+void Patch::Push(id_type id, std::shared_ptr<data::DataBlock> const &d) { m_pimpl_->m_data_[id] = d; }
 std::shared_ptr<data::DataBlock> Patch::Pop(id_type const &id) const {
     std::shared_ptr<data::DataBlock> res = nullptr;
     auto it = m_pimpl_->m_data_.find(id);

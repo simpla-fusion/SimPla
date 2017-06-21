@@ -11,6 +11,8 @@
 #include <simpla/utilities/EntityId.h>
 #include <memory>
 #include "SPObject.h"
+#include "../../../cmake-build-debug/include/simpla/SIMPLA_config.h"
+
 namespace simpla {
 
 namespace engine {
@@ -29,7 +31,7 @@ class Patch {
     void Merge(Patch &other);
     std::map<id_type, std::shared_ptr<data::DataBlock>> &GetAllData();
 
-    void Push(id_type const &id, std::shared_ptr<data::DataBlock> const &);
+    void Push(id_type id, std::shared_ptr<data::DataBlock> const &);
     std::shared_ptr<data::DataBlock> Pop(id_type const &id) const;
 
     std::map<std::string, EntityRange> m_ranges_;

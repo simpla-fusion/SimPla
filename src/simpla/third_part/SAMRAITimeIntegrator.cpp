@@ -258,7 +258,9 @@ SAMRAIHyperbolicPatchStrategyAdapter::SAMRAIHyperbolicPatchStrategyAdapter(
       d_use_nonuniform_workload(false),
       d_nghosts(d_dim, 4),
       d_fluxghosts(d_dim, 1),
-      m_ctx_(std::move(ctx)) {
+      m_ctx_(std::move(ctx)),
+      m_name_("SAMRAIHyperbolicPatchStrategyAdapter"),
+      m_samrai_variables_() {
     TBOX_ASSERT(grid_geom);
 }
 
@@ -269,6 +271,75 @@ SAMRAIHyperbolicPatchStrategyAdapter::SAMRAIHyperbolicPatchStrategyAdapter(
  **************************************************************************/
 
 SAMRAIHyperbolicPatchStrategyAdapter::~SAMRAIHyperbolicPatchStrategyAdapter() = default;
+
+struct spVariable : public SAMRAI::hier::Variable {
+    spVariable(const std::string &name, const std::shared_ptr<engine::AttributeDesc> &attr_desc)
+        : SAMRAI::hier::Variable(name, nullptr){};
+
+    spVariable(const std::string &name, const boost::shared_ptr<SAMRAI::hier::PatchDataFactory> &factory)
+        : SAMRAI::hier::Variable(name, factory){};
+
+    ~spVariable() override = default;
+
+    spVariable(spVariable const &) = delete;
+    spVariable(spVariable &&) = delete;
+
+    bool fineBoundaryRepresentsVariable() const override { return true; }
+
+    bool dataLivesOnPatchBorder() const override { return true; }
+};
+
+struct spPatchData : public SAMRAI::hier::PatchData {
+    spPatchData(const SAMRAI::hier::Box &domain, const SAMRAI::hier::IntVector &ghosts)
+        : SAMRAI::hier::PatchData(domain, ghosts){};
+
+    ~spPatchData() override = default;
+
+    spPatchData(spPatchData const &) = delete;
+    spPatchData(spPatchData &&) = delete;
+
+    void copy(const SAMRAI::hier::PatchData &src) override {}
+
+    void copy2(SAMRAI::hier::PatchData &dst) const override {}
+
+    void copy(const SAMRAI::hier::PatchData &src, const SAMRAI::hier::BoxOverlap &overlap) override {}
+
+    void copy2(SAMRAI::hier::PatchData &dst, const SAMRAI::hier::BoxOverlap &overlap) const override {}
+
+    bool canEstimateStreamSizeFromBox() const override {}
+
+    size_t getDataStreamSize(const SAMRAI::hier::BoxOverlap &overlap) const override {}
+
+    void packStream(SAMRAI::tbox::MessageStream &stream, const SAMRAI::hier::BoxOverlap &overlap) const override {}
+
+    void unpackStream(SAMRAI::tbox::MessageStream &stream, const SAMRAI::hier::BoxOverlap &overlap) override {}
+
+    //    virtual void getFromRestart(const boost::shared_ptr<SAMRAI::tbox::Database> &restart_db)  ;
+    //    virtual void putToRestart(const boost::shared_ptr<SAMRAI::tbox::Database> &restart_db) const  ;
+};
+
+struct spPatchDataFactory : public SAMRAI::hier::PatchDataFactory {
+    explicit spPatchDataFactory(const SAMRAI::hier::IntVector &ghosts) : SAMRAI::hier::PatchDataFactory(ghosts){};
+
+    ~spPatchDataFactory() override = default;
+
+    boost::shared_ptr<SAMRAI::hier::PatchDataFactory> cloneFactory(const SAMRAI::hier::IntVector &ghosts) override {}
+
+    boost::shared_ptr<SAMRAI::hier::PatchData> allocate(const SAMRAI::hier::Patch &patch) const override {}
+
+    boost::shared_ptr<SAMRAI::hier::BoxGeometry> getBoxGeometry(const SAMRAI::hier::Box &box) const override {}
+
+    size_t getSizeOfMemory(const SAMRAI::hier::Box &box) const override {}
+
+    bool fineBoundaryRepresentsVariable() const override {}
+
+    bool dataLivesOnPatchBorder() const override {}
+
+    bool validCopyTo(const boost::shared_ptr<SAMRAI::hier::PatchDataFactory> &dst_pdf) const override {}
+
+    //    virtual void getFromRestart(const boost::shared_ptr<SAMRAI::tbox::Database> &restart_db)  ;
+    //    virtual void putToRestart(const boost::shared_ptr<SAMRAI::tbox::Database> &restart_db) const  ;
+};
 
 namespace detail {
 template <typename T>
@@ -411,8 +482,10 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     //**************************************************************
     auto attr_desc = m_ctx_->CollectRegisteredAttributes();
     for (auto const &item : attr_desc) {
-        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(item.second);
-        if (var == nullptr) { continue; }
+        //        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(item.second);
+        //        if (var == nullptr) { continue; }
+
+        auto var = boost::make_shared<spVariable>(item.first, item.second);
 
         m_samrai_variables_[item.second] = var;
 
@@ -814,7 +887,7 @@ SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
     SAMRAI::tbox::SAMRAIManager::finalize();
 }
 void SAMRAITimeIntegrator::Initialize() {
-    dcomplex a=std::numeric_limits<dcomplex>::signaling_NaN();
+    dcomplex a = std::numeric_limits<dcomplex>::signaling_NaN();
     engine::TimeIntegrator::Initialize();
     /** Setup SAMRAI::tbox::MPI.      */
     SAMRAI::tbox::SAMRAI_MPI::init(GLOBAL_COMM.comm());  //
