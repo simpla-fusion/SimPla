@@ -71,6 +71,237 @@ namespace simpla {
 
 REGISTER_CREATOR(SAMRAITimeIntegrator)
 
+struct spVariable : public SAMRAI::hier::Variable {
+    spVariable(SAMRAI::tbox::Dimension const &dim, const std::string &name,
+               const std::shared_ptr<engine::AttributeDesc> &attr_desc);
+
+    ~spVariable() override = default;
+
+    spVariable(spVariable const &) = delete;
+    spVariable(spVariable &&) = delete;
+    spVariable &operator=(spVariable const &) = delete;
+    spVariable &operator=(spVariable &&) = delete;
+
+    bool fineBoundaryRepresentsVariable() const override { return true; }
+
+    bool dataLivesOnPatchBorder() const override { return true; }
+};
+
+struct spPatchData : public SAMRAI::hier::PatchData {
+    spPatchData(const SAMRAI::hier::Box &domain, const SAMRAI::hier::IntVector &ghosts)
+        : SAMRAI::hier::PatchData(domain, ghosts){};
+
+    ~spPatchData() override = default;
+
+    spPatchData(spPatchData const &) = delete;
+    spPatchData(spPatchData &&) = delete;
+    spPatchData &operator=(spPatchData const &) = delete;
+    spPatchData &operator=(spPatchData &&) = delete;
+
+    void copy(const SAMRAI::hier::PatchData &src) override {}
+
+    void copy2(SAMRAI::hier::PatchData &dst) const override {}
+
+    void copy(const SAMRAI::hier::PatchData &src, const SAMRAI::hier::BoxOverlap &overlap) override {}
+
+    void copy2(SAMRAI::hier::PatchData &dst, const SAMRAI::hier::BoxOverlap &overlap) const override {}
+
+    bool canEstimateStreamSizeFromBox() const override {}
+
+    size_t getDataStreamSize(const SAMRAI::hier::BoxOverlap &overlap) const override {}
+
+    void packStream(SAMRAI::tbox::MessageStream &stream, const SAMRAI::hier::BoxOverlap &overlap) const override {}
+
+    void unpackStream(SAMRAI::tbox::MessageStream &stream, const SAMRAI::hier::BoxOverlap &overlap) override {}
+
+    std::shared_ptr<data::DataBlock> GetDataBlock() { return m_data_; }
+    std::shared_ptr<data::DataBlock> const &GetDataBlock() const { return m_data_; }
+    void SetDataBlock(std::shared_ptr<data::DataBlock> d) { m_data_ = d; }
+
+    //    virtual void getFromRestart(const boost::shared_ptr<SAMRAI::tbox::Database> &restart_db)  ;
+    //    virtual void putToRestart(const boost::shared_ptr<SAMRAI::tbox::Database> &restart_db) const  ;
+
+   private:
+    std::shared_ptr<data::DataBlock> m_data_ = nullptr;
+};
+
+struct spPatchDataFactory : public SAMRAI::hier::PatchDataFactory {
+    explicit spPatchDataFactory(const std::shared_ptr<engine::AttributeDesc> &attr_desc,
+                                const SAMRAI::hier::IntVector &ghosts);
+
+    ~spPatchDataFactory() override = default;
+
+    spPatchDataFactory(spPatchDataFactory const &) = delete;
+    spPatchDataFactory(spPatchDataFactory &&) = delete;
+    spPatchDataFactory &operator=(spPatchDataFactory const &) = delete;
+    spPatchDataFactory &operator=(spPatchDataFactory &&) = delete;
+
+    boost::shared_ptr<SAMRAI::hier::PatchDataFactory> cloneFactory(const SAMRAI::hier::IntVector &ghosts) override {}
+
+    boost::shared_ptr<SAMRAI::hier::PatchData> allocate(const SAMRAI::hier::Patch &patch) const override;
+
+    boost::shared_ptr<SAMRAI::hier::BoxGeometry> getBoxGeometry(const SAMRAI::hier::Box &box) const override {}
+
+    size_t getSizeOfMemory(const SAMRAI::hier::Box &box) const override {}
+
+    bool fineBoundaryRepresentsVariable() const override {}
+
+    bool dataLivesOnPatchBorder() const override {}
+
+    bool validCopyTo(const boost::shared_ptr<SAMRAI::hier::PatchDataFactory> &dst_pdf) const override {}
+
+   private:
+    std::shared_ptr<engine::AttributeDesc> m_desc_;
+    //    virtual void getFromRestart(const boost::shared_ptr<SAMRAI::tbox::Database> &restart_db)  ;
+    //    virtual void putToRestart(const boost::shared_ptr<SAMRAI::tbox::Database> &restart_db) const  ;
+};
+
+spVariable::spVariable(SAMRAI::tbox::Dimension const &dim, const std::string &name,
+                       const std::shared_ptr<engine::AttributeDesc> &attr_desc)
+    : SAMRAI::hier::Variable(
+          name, boost::make_shared<spPatchDataFactory>(attr_desc, SAMRAI::hier::IntVector::getZero(dim))) {}
+
+spPatchDataFactory::spPatchDataFactory(const std::shared_ptr<engine::AttributeDesc> &attr_desc,
+                                       const SAMRAI::hier::IntVector &ghosts)
+    : SAMRAI::hier::PatchDataFactory(ghosts), m_desc_(attr_desc){};
+
+boost::shared_ptr<SAMRAI::hier::PatchData> spPatchDataFactory::allocate(const SAMRAI::hier::Patch &patch) const {
+    VERBOSE << "Allocate " << m_desc_->GetPrefix() << std::endl;
+}
+
+namespace detail {
+// template <typename T>
+// boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(const std::shared_ptr<engine::AttributeDesc> attr)
+// {
+//    SAMRAI::tbox::Dimension d_dim(3);
+//
+//    boost::shared_ptr<SAMRAI::hier::Variable> res;
+//    switch (attr->GetIFORM()) {
+//        case VERTEX:
+//            res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
+//                boost::make_shared<SAMRAI::pdat::NodeVariable<T>>(d_dim, attr->GetPrefix(), attr->GetDOF()));
+//            break;
+//        case EDGE:
+//            res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
+//                boost::make_shared<SAMRAI::pdat::EdgeVariable<T>>(d_dim, attr->GetPrefix(), attr->GetDOF()));
+//            break;
+//        case FACE:
+//            res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
+//                boost::make_shared<SAMRAI::pdat::SideVariable<T>>(d_dim, attr->GetPrefix(), attr->GetDOF()));
+//            break;
+//        case VOLUME:
+//            res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
+//                boost::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, attr->GetPrefix(), attr->GetDOF()));
+//            break;
+//        default:
+//            break;
+//    }
+//    return res;
+//}
+//
+// boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(const std::shared_ptr<engine::AttributeDesc> &attr)
+// {
+//    boost::shared_ptr<SAMRAI::hier::Variable> res = nullptr;
+//
+//    if (attr->value_type_info() == (typeid(float))) {
+//        res = create_samrai_variable_t<float>(attr);
+//    } else if (attr->value_type_info() == (typeid(double))) {
+//        res = create_samrai_variable_t<double>(attr);
+//    } else if (attr->value_type_info() == (typeid(int))) {
+//        res = create_samrai_variable_t<int>(attr);
+//    } else {
+//        RUNTIME_ERROR << " attr [" << attr->GetPrefix() << "] is not supported!" << std::endl;
+//    }
+//    return res;
+//}
+
+template <typename T, int NDIMS>
+Array<T, NDIMS> create_array(SAMRAI::pdat::ArrayData<T> &p_data, int depth = 0) {
+    auto i_lower = p_data.getBox().lower();
+    auto i_upper = p_data.getBox().upper();
+
+    typename Array<T, NDIMS>::m_index_box_type i_box{{i_lower[0], i_lower[1], i_lower[2]},
+                                                     {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}};
+    return Array<T, NDIMS>(i_box, std::shared_ptr<T>(p_data.getPointer(depth), simpla::tags::do_nothing()), true);
+};
+
+template <int NDIMS, typename T>
+std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
+    std::shared_ptr<data::DataMultiArray<T, NDIMS>> res = nullptr;
+    typedef Array<T, NDIMS> array_type;
+
+    switch (IFORM) {
+        case VERTEX: {
+            auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::NodeData<T>>(pd);
+            int depth = p_data->getDepth();
+            res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth);
+            for (int d = 0; d < depth; ++d) {
+                create_array<T, NDIMS>(p_data->getArrayData(), d).swap(res->GetArray(d));
+            }
+            break;
+        }
+        case EDGE: {
+            auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::EdgeData<T>>(pd);
+            int depth = p_data->getDepth();
+            res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth * 3);
+            for (int axis = 0; axis < 3; ++axis) {
+                for (int d = 0; d < depth; ++d) {
+                    create_array<T, NDIMS>(p_data->getArrayData(axis), d).swap(res->GetArray(axis * depth + d));
+                }
+            }
+            break;
+        }
+        case FACE: {
+            auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::SideData<T>>(pd);
+            int depth = p_data->getDepth();
+            res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth * 3);
+            for (int axis = 0; axis < 3; ++axis) {
+                for (int d = 0; d < depth; ++d) {
+                    create_array<T, NDIMS>(p_data->getArrayData(axis), d).swap(res->GetArray(axis * depth + d));
+                }
+            }
+            break;
+        }
+        case VOLUME: {
+            auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<T>>(pd);
+            int depth = p_data->getDepth();
+            res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth);
+            for (int d = 0; d < depth; ++d) {
+                create_array<T, NDIMS>(p_data->getArrayData(), d).swap(res->GetArray(d));
+            }
+            break;
+        }
+        default: {
+            UNIMPLEMENTED;
+            break;
+        }
+    }
+    return res;
+}
+
+template <int NDIMS>
+std::shared_ptr<data::DataBlock> create_simpla_datablock(const std::shared_ptr<engine::AttributeDesc> &desc,
+                                                         boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
+    std::shared_ptr<data::DataBlock> res(nullptr);
+    if (desc->value_type_info() == (typeid(float))) {
+        res = create_simpla_datablock<NDIMS, float>(desc->GetIFORM(), pd);
+    } else if (desc->value_type_info() == (typeid(double))) {
+        res = create_simpla_datablock<NDIMS, double>(desc->GetIFORM(), pd);
+    } else if (desc->value_type_info() == (typeid(int))) {
+        res = create_simpla_datablock<NDIMS, int>(desc->GetIFORM(), pd);
+    } else {
+        RUNTIME_ERROR << "Unsupported m_value_ value_type_info" << std::endl;
+    }
+    return res;
+}
+boost::shared_ptr<SAMRAI::hier::PatchData> convert_from_data_block(const std::shared_ptr<engine::AttributeDesc> &desc,
+                                                                   std::shared_ptr<data::DataBlock> t) {
+    //    UNIMPLEMENTED;
+    return nullptr;
+}
+
+}  // namespace detail
+
 class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatchStrategy {
     SP_OBJECT_BASE(SAMRAIHyperbolicPatchStrategyAdapter)
    public:
@@ -272,206 +503,6 @@ SAMRAIHyperbolicPatchStrategyAdapter::SAMRAIHyperbolicPatchStrategyAdapter(
 
 SAMRAIHyperbolicPatchStrategyAdapter::~SAMRAIHyperbolicPatchStrategyAdapter() = default;
 
-struct spVariable : public SAMRAI::hier::Variable {
-    spVariable(const std::string &name, const std::shared_ptr<engine::AttributeDesc> &attr_desc)
-        : SAMRAI::hier::Variable(name, nullptr){};
-
-    spVariable(const std::string &name, const boost::shared_ptr<SAMRAI::hier::PatchDataFactory> &factory)
-        : SAMRAI::hier::Variable(name, factory){};
-
-    ~spVariable() override = default;
-
-    spVariable(spVariable const &) = delete;
-    spVariable(spVariable &&) = delete;
-
-    bool fineBoundaryRepresentsVariable() const override { return true; }
-
-    bool dataLivesOnPatchBorder() const override { return true; }
-};
-
-struct spPatchData : public SAMRAI::hier::PatchData {
-    spPatchData(const SAMRAI::hier::Box &domain, const SAMRAI::hier::IntVector &ghosts)
-        : SAMRAI::hier::PatchData(domain, ghosts){};
-
-    ~spPatchData() override = default;
-
-    spPatchData(spPatchData const &) = delete;
-    spPatchData(spPatchData &&) = delete;
-
-    void copy(const SAMRAI::hier::PatchData &src) override {}
-
-    void copy2(SAMRAI::hier::PatchData &dst) const override {}
-
-    void copy(const SAMRAI::hier::PatchData &src, const SAMRAI::hier::BoxOverlap &overlap) override {}
-
-    void copy2(SAMRAI::hier::PatchData &dst, const SAMRAI::hier::BoxOverlap &overlap) const override {}
-
-    bool canEstimateStreamSizeFromBox() const override {}
-
-    size_t getDataStreamSize(const SAMRAI::hier::BoxOverlap &overlap) const override {}
-
-    void packStream(SAMRAI::tbox::MessageStream &stream, const SAMRAI::hier::BoxOverlap &overlap) const override {}
-
-    void unpackStream(SAMRAI::tbox::MessageStream &stream, const SAMRAI::hier::BoxOverlap &overlap) override {}
-
-    //    virtual void getFromRestart(const boost::shared_ptr<SAMRAI::tbox::Database> &restart_db)  ;
-    //    virtual void putToRestart(const boost::shared_ptr<SAMRAI::tbox::Database> &restart_db) const  ;
-};
-
-struct spPatchDataFactory : public SAMRAI::hier::PatchDataFactory {
-    explicit spPatchDataFactory(const SAMRAI::hier::IntVector &ghosts) : SAMRAI::hier::PatchDataFactory(ghosts){};
-
-    ~spPatchDataFactory() override = default;
-
-    boost::shared_ptr<SAMRAI::hier::PatchDataFactory> cloneFactory(const SAMRAI::hier::IntVector &ghosts) override {}
-
-    boost::shared_ptr<SAMRAI::hier::PatchData> allocate(const SAMRAI::hier::Patch &patch) const override {}
-
-    boost::shared_ptr<SAMRAI::hier::BoxGeometry> getBoxGeometry(const SAMRAI::hier::Box &box) const override {}
-
-    size_t getSizeOfMemory(const SAMRAI::hier::Box &box) const override {}
-
-    bool fineBoundaryRepresentsVariable() const override {}
-
-    bool dataLivesOnPatchBorder() const override {}
-
-    bool validCopyTo(const boost::shared_ptr<SAMRAI::hier::PatchDataFactory> &dst_pdf) const override {}
-
-    //    virtual void getFromRestart(const boost::shared_ptr<SAMRAI::tbox::Database> &restart_db)  ;
-    //    virtual void putToRestart(const boost::shared_ptr<SAMRAI::tbox::Database> &restart_db) const  ;
-};
-
-namespace detail {
-template <typename T>
-boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(const std::shared_ptr<engine::AttributeDesc> attr) {
-    SAMRAI::tbox::Dimension d_dim(3);
-
-    boost::shared_ptr<SAMRAI::hier::Variable> res;
-    switch (attr->GetIFORM()) {
-        case VERTEX:
-            res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-                boost::make_shared<SAMRAI::pdat::NodeVariable<T>>(d_dim, attr->GetPrefix(), attr->GetDOF()));
-            break;
-        case EDGE:
-            res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-                boost::make_shared<SAMRAI::pdat::EdgeVariable<T>>(d_dim, attr->GetPrefix(), attr->GetDOF()));
-            break;
-        case FACE:
-            res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-                boost::make_shared<SAMRAI::pdat::SideVariable<T>>(d_dim, attr->GetPrefix(), attr->GetDOF()));
-            break;
-        case VOLUME:
-            res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-                boost::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, attr->GetPrefix(), attr->GetDOF()));
-            break;
-        default:
-            break;
-    }
-    return res;
-}
-
-boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(const std::shared_ptr<engine::AttributeDesc> &attr) {
-    boost::shared_ptr<SAMRAI::hier::Variable> res = nullptr;
-
-    if (attr->value_type_info() == (typeid(float))) {
-        res = create_samrai_variable_t<float>(attr);
-    } else if (attr->value_type_info() == (typeid(double))) {
-        res = create_samrai_variable_t<double>(attr);
-    } else if (attr->value_type_info() == (typeid(int))) {
-        res = create_samrai_variable_t<int>(attr);
-    } else {
-        RUNTIME_ERROR << " attr [" << attr->GetPrefix() << "] is not supported!" << std::endl;
-    }
-    return res;
-}
-
-template <typename T, int NDIMS>
-Array<T, NDIMS> create_array(SAMRAI::pdat::ArrayData<T> &p_data, int depth = 0) {
-    auto i_lower = p_data.getBox().lower();
-    auto i_upper = p_data.getBox().upper();
-
-    typename Array<T, NDIMS>::m_index_box_type i_box{{i_lower[0], i_lower[1], i_lower[2]},
-                                                     {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}};
-    return Array<T, NDIMS>(i_box, std::shared_ptr<T>(p_data.getPointer(depth), simpla::tags::do_nothing()), true);
-};
-
-template <int NDIMS, typename T>
-std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
-    std::shared_ptr<data::DataMultiArray<T, NDIMS>> res = nullptr;
-    typedef Array<T, NDIMS> array_type;
-
-    switch (IFORM) {
-        case VERTEX: {
-            auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::NodeData<T>>(pd);
-            int depth = p_data->getDepth();
-            res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth);
-            for (int d = 0; d < depth; ++d) {
-                create_array<T, NDIMS>(p_data->getArrayData(), d).swap(res->GetArray(d));
-            }
-            break;
-        }
-        case EDGE: {
-            auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::EdgeData<T>>(pd);
-            int depth = p_data->getDepth();
-            res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth * 3);
-            for (int axis = 0; axis < 3; ++axis) {
-                for (int d = 0; d < depth; ++d) {
-                    create_array<T, NDIMS>(p_data->getArrayData(axis), d).swap(res->GetArray(axis * depth + d));
-                }
-            }
-            break;
-        }
-        case FACE: {
-            auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::SideData<T>>(pd);
-            int depth = p_data->getDepth();
-            res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth * 3);
-            for (int axis = 0; axis < 3; ++axis) {
-                for (int d = 0; d < depth; ++d) {
-                    create_array<T, NDIMS>(p_data->getArrayData(axis), d).swap(res->GetArray(axis * depth + d));
-                }
-            }
-            break;
-        }
-        case VOLUME: {
-            auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<T>>(pd);
-            int depth = p_data->getDepth();
-            res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth);
-            for (int d = 0; d < depth; ++d) {
-                create_array<T, NDIMS>(p_data->getArrayData(), d).swap(res->GetArray(d));
-            }
-            break;
-        }
-        default: {
-            UNIMPLEMENTED;
-            break;
-        }
-    }
-    return res;
-}
-
-template <int NDIMS>
-std::shared_ptr<data::DataBlock> create_simpla_datablock(const std::shared_ptr<engine::AttributeDesc> &desc,
-                                                         boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
-    std::shared_ptr<data::DataBlock> res(nullptr);
-    if (desc->value_type_info() == (typeid(float))) {
-        res = create_simpla_datablock<NDIMS, float>(desc->GetIFORM(), pd);
-    } else if (desc->value_type_info() == (typeid(double))) {
-        res = create_simpla_datablock<NDIMS, double>(desc->GetIFORM(), pd);
-    } else if (desc->value_type_info() == (typeid(int))) {
-        res = create_simpla_datablock<NDIMS, int>(desc->GetIFORM(), pd);
-    } else {
-        RUNTIME_ERROR << "Unsupported m_value_ value_type_info" << std::endl;
-    }
-    return res;
-}
-boost::shared_ptr<SAMRAI::hier::PatchData> convert_from_data_block(const std::shared_ptr<engine::AttributeDesc> &desc,
-                                                                   std::shared_ptr<data::DataBlock> t) {
-    //    UNIMPLEMENTED;
-    return nullptr;
-}
-
-}  // namespace detail
-
 /** Register conserved variables  and  register plot data with VisIt. */
 void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrator *integrator) {
     ASSERT(integrator != nullptr);
@@ -485,7 +516,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         //        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(item.second);
         //        if (var == nullptr) { continue; }
 
-        auto var = boost::make_shared<spVariable>(item.first, item.second);
+        auto var = boost::make_shared<spVariable>(d_dim, item.first, item.second);
 
         m_samrai_variables_[item.second] = var;
 
@@ -559,7 +590,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchFromSAMRAI(SAMRAI::hier::
         if (!patch.checkAllocated(samrai_id)) { patch.allocatePatchData(samrai_id); }
 
         p->Push(item.first->GetID(),
-                simpla::detail::create_simpla_datablock<NDIMS>(item.first, patch.getPatchData(samrai_id)));
+                boost::dynamic_pointer_cast<spPatchData>(patch.getPatchData(samrai_id))->GetDataBlock());
+        //                simpla::detail::create_simpla_datablock<NDIMS>(item.first, patch.getPatchData(samrai_id))
     }
 }
 void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchToSAMRAI(SAMRAI::hier::Patch &patch, engine::Patch *p) {
@@ -793,8 +825,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI:
     m_ctx_->GetMesh()->Push(p.get());
     m_ctx_->GetMesh()->SetBoundaryCondition(time_now, time_dt);
     m_ctx_->Advance(p.get(), time_now, time_dt);
-    //    m_ctx_->GetMesh()->Push(p.get());
-    //    for (auto &d : m_ctx_->GetAllDomains()) { d.second->DoAdvance(p.get(), time_now, time_dt); }
+    m_ctx_->GetMesh()->Push(p.get());
+    for (auto &d : m_ctx_->GetAllDomains()) { d.second->DoAdvance(p.get(), time_now, time_dt); }
     m_ctx_->GetMesh()->Pop(p.get());
 }
 
