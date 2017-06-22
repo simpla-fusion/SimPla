@@ -8,6 +8,7 @@
 #include <type_traits>
 #include <utility>
 #include "integer_sequence.h"
+#include "tuple.h"
 #include "type_traits.h"
 namespace simpla {
 /**
@@ -35,31 +36,31 @@ struct extent<Expression<TOP, Args...>, N> : public seq_max<int_sequence<extent<
 template <int N>
 struct get_s {
     template <typename T>
-    static T const &eval(T const &expr, ENABLE_IF((extent<T>::value == 0))) {
+    __host__ __device__ static T const &eval(T const &expr, ENABLE_IF((extent<T>::value == 0))) {
         return expr;
     }
     template <typename T>
-    static auto const &eval(T const &expr, ENABLE_IF((extent<T>::value > 0))) {
+    __host__ __device__ static auto const &eval(T const &expr, ENABLE_IF((extent<T>::value > 0))) {
         return expr[N];
     }
 
     template <typename TOP, typename... Args, int... index>
-    static auto eval0_(Expression<TOP, Args...> const &expr, index_sequence<index...>) {
-        return expr.m_op_(get_s<N>::eval(std::get<index>(expr.m_args_))...);
+    __host__ __device__ static auto eval0_(Expression<TOP, Args...> const &expr, index_sequence<index...>) {
+        return expr.m_op_(get_s<N>::eval(get<index>(expr.m_args_))...);
     }
 
     template <typename TOP, typename... Args>
-    static auto eval(Expression<TOP, Args...> const &expr) {
+    __host__ __device__ static auto eval(Expression<TOP, Args...> const &expr) {
         return eval0_(expr, index_sequence_for<Args...>());
     }
 };
 
 template <int N, typename T>
-auto get(T const &expr) {
+__host__ __device__ auto get(T const &expr) {
     return get_s<N>::eval(expr);
 }
 template <int N, typename T>
-auto const &get(T const *expr) {
+__host__ __device__ auto const &get(T const *expr) {
     return expr[N];
 }
 template <typename TReduction>
@@ -96,18 +97,18 @@ auto reduction(TExpr const &expr) {
 namespace _impl {
 
 template <typename TL, typename TR>
-void assign_(TL &lhs, TR const &rhs, int_sequence<>){};
+__host__ __device__ void assign_(TL &lhs, TR const &rhs, int_sequence<>){};
 
 template <typename TL, typename TR, int I0, int... I>
-void assign_(TL &lhs, TR const &rhs, int_sequence<I0, I...>) {
+__host__ __device__ void assign_(TL &lhs, TR const &rhs, int_sequence<I0, I...>) {
     lhs[I0] = traits::get<I0>(rhs);
     assign_(lhs, rhs, int_sequence<I...>());
 };
 template <typename T>
-void swap_(T &lhs, T &rhs, int_sequence<>){};
+__host__ __device__ void swap_(T &lhs, T &rhs, int_sequence<>){};
 
 template <typename T>
-void swap0_(T &lhs, T &rhs, ENABLE_IF((traits::rank<T>::value == 0))) {
+__host__ __device__ void swap0_(T &lhs, T &rhs, ENABLE_IF((traits::rank<T>::value == 0))) {
     std::swap(lhs, rhs);
 }
 
@@ -125,11 +126,11 @@ void swap_(T &lhs, T &rhs, int_sequence<I0, I...>) {
 }  // namespace _impl {
 
 template <typename T>
-void swap(T &lhs, T &rhs) {
+__host__ __device__ void swap(T &lhs, T &rhs) {
     _impl::swap_(lhs, rhs, make_int_sequence<extent<T>::value>());
 };
 template <typename TL, typename TR>
-void assign(TL &lhs, TR const &rhs) {
+__host__ __device__ void assign(TL &lhs, TR const &rhs) {
     _impl::assign_(lhs, rhs, make_int_sequence<extent<TL>::value>());
 };
 }  // namespace
@@ -138,19 +139,19 @@ template <typename TOP, typename... Args>
 struct Expression<TOP, Args...> {
     typedef Expression<TOP, Args...> this_type;
 
-    typename std::tuple<traits::reference_t<Args>...> m_args_;
+    std::tuple<traits::reference_t<Args>...> m_args_;
 
     TOP m_op_;
 
-    Expression(this_type const &that) : m_args_(that.m_args_) {}
-    Expression(this_type &&that) noexcept : m_args_(that.m_args_) {}
+    __host__ __device__ Expression(this_type const &that) : m_args_(that.m_args_) {}
+    __host__ __device__ Expression(this_type &&that) noexcept : m_args_(that.m_args_) {}
     template <typename... U>
-    explicit Expression(U &&... args) : m_args_(std::forward<U>(args)...) {}
+    __host__ __device__ explicit Expression(U &&... args) : m_args_(std::forward<U>(args)...) {}
 
-    virtual ~Expression() = default;
+    __host__ __device__ virtual ~Expression() = default;
 
     template <typename T>
-    explicit operator T() const {
+    __host__ __device__ explicit operator T() const {
         return static_cast<T>(traits::reduction(*this));
     }
 };
@@ -168,92 +169,92 @@ struct _assign {
 };
 }
 
-#define _SP_DEFINE_EXPR_BINARY_OPERATOR(_OP_, _NAME_)                                    \
-    namespace tags {                                                                     \
-    struct _NAME_ {                                                                      \
-        template <typename TL, typename TR>                                              \
-        static constexpr auto eval(TL const &l, TR const &r) {                           \
-            return ((l _OP_ r));                                                         \
-        }                                                                                \
-        template <typename TL, typename TR>                                              \
-        constexpr auto operator()(TL const &l, TR const &r) const {                      \
-            return ((l _OP_ r));                                                         \
-        }                                                                                \
-    };                                                                                   \
-    }                                                                                    \
-    template <typename... TL, typename TR>                                               \
-    auto operator _OP_(Expression<TL...> const &lhs, TR const &rhs) {                    \
-        return Expression<tags::_NAME_, Expression<TL...>, TR>(lhs, rhs);                \
-    };                                                                                   \
-    template <typename TL, typename... TR>                                               \
-    auto operator _OP_(TL const &lhs, Expression<TR...> const &rhs) {                    \
-        return Expression<tags::_NAME_, TL, Expression<TR...>>(lhs, rhs);                \
-    };                                                                                   \
-    template <typename... TL, typename... TR>                                            \
-    auto operator _OP_(Expression<TL...> const &lhs, Expression<TR...> const &rhs) {     \
-        return Expression<tags::_NAME_, Expression<TL...>, Expression<TR...>>(lhs, rhs); \
+#define _SP_DEFINE_EXPR_BINARY_OPERATOR(_OP_, _NAME_)                                                    \
+    namespace tags {                                                                                     \
+    struct _NAME_ {                                                                                      \
+        template <typename TL, typename TR>                                                              \
+        __host__ __device__ static constexpr auto eval(TL const &l, TR const &r) {                       \
+            return ((l _OP_ r));                                                                         \
+        }                                                                                                \
+        template <typename TL, typename TR>                                                              \
+        __host__ __device__ constexpr auto operator()(TL const &l, TR const &r) const {                  \
+            return ((l _OP_ r));                                                                         \
+        }                                                                                                \
+    };                                                                                                   \
+    }                                                                                                    \
+    template <typename... TL, typename TR>                                                               \
+    __host__ __device__ auto operator _OP_(Expression<TL...> const &lhs, TR const &rhs) {                \
+        return Expression<tags::_NAME_, Expression<TL...>, TR>(lhs, rhs);                                \
+    };                                                                                                   \
+    template <typename TL, typename... TR>                                                               \
+    __host__ __device__ auto operator _OP_(TL const &lhs, Expression<TR...> const &rhs) {                \
+        return Expression<tags::_NAME_, TL, Expression<TR...>>(lhs, rhs);                                \
+    };                                                                                                   \
+    template <typename... TL, typename... TR>                                                            \
+    __host__ __device__ auto operator _OP_(Expression<TL...> const &lhs, Expression<TR...> const &rhs) { \
+        return Expression<tags::_NAME_, Expression<TL...>, Expression<TR...>>(lhs, rhs);                 \
     };
 
-#define _SP_DEFINE_EXPR_UNARY_OPERATOR(_OP_, _NAME_)            \
-    namespace tags {                                            \
-    struct _NAME_ {                                             \
-        template <typename TL>                                  \
-        static constexpr auto eval(TL const &l) {               \
-            return (_OP_(l));                                   \
-        }                                                       \
-        template <typename TL>                                  \
-        constexpr auto operator()(TL const &l) const {          \
-            return _OP_(l);                                     \
-        }                                                       \
-    };                                                          \
-    }                                                           \
-    template <typename... T>                                    \
-    auto operator _OP_(Expression<T...> const &lhs) {           \
-        return Expression<tags::_NAME_, Expression<T...>>(lhs); \
+#define _SP_DEFINE_EXPR_UNARY_OPERATOR(_OP_, _NAME_)                       \
+    namespace tags {                                                       \
+    struct _NAME_ {                                                        \
+        template <typename TL>                                             \
+        __host__ __device__ static constexpr auto eval(TL const &l) {      \
+            return (_OP_(l));                                              \
+        }                                                                  \
+        template <typename TL>                                             \
+        __host__ __device__ constexpr auto operator()(TL const &l) const { \
+            return _OP_(l);                                                \
+        }                                                                  \
+    };                                                                     \
+    }                                                                      \
+    template <typename... T>                                               \
+    __host__ __device__ auto operator _OP_(Expression<T...> const &lhs) {  \
+        return Expression<tags::_NAME_, Expression<T...>>(lhs);            \
     }
 
-#define _SP_DEFINE_EXPR_BINARY_FUNCTION(_NAME_)                                          \
-    namespace tags {                                                                     \
-    struct _NAME_ {                                                                      \
-        template <typename TL, typename TR>                                              \
-        static constexpr auto eval(TL const &l, TR const &r) {                           \
-            return (_NAME_(l, r));                                                       \
-        }                                                                                \
-        template <typename TL, typename TR>                                              \
-        constexpr auto operator()(TL const &l, TR const &r) const {                      \
-            return (_NAME_(l, r));                                                       \
-        }                                                                                \
-    };                                                                                   \
-    }                                                                                    \
-    template <typename... TL, typename TR>                                               \
-    auto _NAME_(Expression<TL...> const &lhs, TR const &rhs) {                           \
-        return Expression<tags::_NAME_, Expression<TL...>, TR>(lhs, rhs);                \
-    };                                                                                   \
-    template <typename TL, typename... TR>                                               \
-    auto _NAME_(TL const &lhs, Expression<TR...> const &rhs) {                           \
-        return Expression<tags::_NAME_, TL, Expression<TR...>>(lhs, rhs);                \
-    };                                                                                   \
-    template <typename... TL, typename... TR>                                            \
-    auto _NAME_(Expression<TL...> const &lhs, Expression<TR...> const &rhs) {            \
-        return Expression<tags::_NAME_, Expression<TL...>, Expression<TR...>>(lhs, rhs); \
+#define _SP_DEFINE_EXPR_BINARY_FUNCTION(_NAME_)                                                   \
+    namespace tags {                                                                              \
+    struct _NAME_ {                                                                               \
+        template <typename TL, typename TR>                                                       \
+        __host__ __device__ static constexpr auto eval(TL const &l, TR const &r) {                \
+            return (_NAME_(l, r));                                                                \
+        }                                                                                         \
+        template <typename TL, typename TR>                                                       \
+        __host__ __device__ constexpr auto operator()(TL const &l, TR const &r) const {           \
+            return (_NAME_(l, r));                                                                \
+        }                                                                                         \
+    };                                                                                            \
+    }                                                                                             \
+    template <typename... TL, typename TR>                                                        \
+    __host__ __device__ auto _NAME_(Expression<TL...> const &lhs, TR const &rhs) {                \
+        return Expression<tags::_NAME_, Expression<TL...>, TR>(lhs, rhs);                         \
+    };                                                                                            \
+    template <typename TL, typename... TR>                                                        \
+    __host__ __device__ auto _NAME_(TL const &lhs, Expression<TR...> const &rhs) {                \
+        return Expression<tags::_NAME_, TL, Expression<TR...>>(lhs, rhs);                         \
+    };                                                                                            \
+    template <typename... TL, typename... TR>                                                     \
+    __host__ __device__ auto _NAME_(Expression<TL...> const &lhs, Expression<TR...> const &rhs) { \
+        return Expression<tags::_NAME_, Expression<TL...>, Expression<TR...>>(lhs, rhs);          \
     };
 
-#define _SP_DEFINE_EXPR_UNARY_FUNCTION(_NAME_)                  \
-    namespace tags {                                            \
-    struct _NAME_ {                                             \
-        template <typename TL>                                  \
-        static constexpr auto eval(TL &l) {                     \
-            return (_NAME_(l));                                 \
-        }                                                       \
-        template <typename TL>                                  \
-        constexpr auto operator()(TL &l) const {                \
-            return _NAME_(l);                                   \
-        }                                                       \
-    };                                                          \
-    }                                                           \
-    template <typename... T>                                    \
-    auto _NAME_(Expression<T...> const &lhs) {                  \
-        return Expression<tags::_NAME_, Expression<T...>>(lhs); \
+#define _SP_DEFINE_EXPR_UNARY_FUNCTION(_NAME_)                       \
+    namespace tags {                                                 \
+    struct _NAME_ {                                                  \
+        template <typename TL>                                       \
+        __host__ __device__ static constexpr auto eval(TL &l) {      \
+            return (_NAME_(l));                                      \
+        }                                                            \
+        template <typename TL>                                       \
+        __host__ __device__ constexpr auto operator()(TL &l) const { \
+            return _NAME_(l);                                        \
+        }                                                            \
+    };                                                               \
+    }                                                                \
+    template <typename... T>                                         \
+    __host__ __device__ auto _NAME_(Expression<T...> const &lhs) {   \
+        return Expression<tags::_NAME_, Expression<T...>>(lhs);      \
     }
 
 _SP_DEFINE_EXPR_BINARY_OPERATOR(+, addition)

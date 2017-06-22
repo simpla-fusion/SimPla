@@ -22,7 +22,7 @@
 #cmakedefine HAVE_BOOST_HEADERS
 
 #cmakedefine MPI_FOUND
-#define @SKIP_MPICXX@ 1
+#cmakedefine  SKIP_MPICXX
 
 /* HDF5 library is available so use it */
 #cmakedefine HDF5_FOUND

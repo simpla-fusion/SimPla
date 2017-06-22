@@ -290,87 +290,84 @@ struct nTuple<TV, N0, N...> {
 
     sub_type data_[N0];
 
-    nTuple() = default;
-    ~nTuple() = default;
+    __host__ __device__ nTuple() = default;
+    __host__ __device__ ~nTuple() = default;
 
-    nTuple(simpla::traits::nested_initializer_list_t<value_type, sizeof...(N) + 1> l) {
+    __host__ __device__ nTuple(simpla::traits::nested_initializer_list_t<value_type, sizeof...(N) + 1> l) {
         simpla::traits::assign_nested_initializer_list<N0, N...>::apply(data_, l);
     }
 
     template <typename... U>
-    nTuple(Expression<U...> const& expr) {
+    __host__ __device__ nTuple(Expression<U...> const& expr) {
         traits::assign(*this, expr);
     }
 
     //    nTuple_(this_type const &other) = delete;
     //    nTuple_(this_type &&other) = delete;
 
-    sub_type& operator[](int s) { return data_[s]; }
+    __host__ __device__ sub_type& operator[](int s) { return data_[s]; }
 
-    sub_type const& operator[](int s) const { return data_[s]; }
+    __host__ __device__ sub_type const& operator[](int s) const { return data_[s]; }
 
-    sub_type& at(int s) { return data_[s]; }
+    __host__ __device__ sub_type& at(int s) { return data_[s]; }
 
-    sub_type const& at(int s) const { return data_[s]; }
+    __host__ __device__ sub_type const& at(int s) const { return data_[s]; }
 
-    value_type& at(int const* s) { return calculator::getValue(*this, s); }
-
-    value_type const& at(int const* s) const { return calculator::getValue(*this, s); }
+    __host__ __device__ value_type& at(int const* s) { return calculator::getValue(*this, s); }
 
     template <typename... Idx>
-    auto at(Idx&&... s) {
+    __host__ __device__ auto at(Idx&&... s) {
         return calculator::getValue(*this, std::forward<Idx>(s)...);
     }
 
     template <typename... Idx>
-    auto at(Idx&&... s) const {
+    __host__ __device__ auto at(Idx&&... s) const {
         return calculator::getValue(*this, std::forward<Idx>(s)...);
     }
 
     template <typename... Idx>
-    auto operator()(Idx&&... s) {
+    __host__ __device__ auto operator()(Idx&&... s) {
         return calculator::getValue(*this, std::forward<Idx>(s)...);
     }
 
     template <typename... Idx>
-    auto operator()(Idx&&... s) const {
+    __host__ __device__ auto operator()(Idx&&... s) const {
         return calculator::getValue(*this, std::forward<Idx>(s)...);
     }
+    __host__ __device__ void swap(this_type& other) { traits::swap(*this, other); }
 
-    void swap(this_type& other) { traits::swap(*this, other); }
-
-    this_type& operator=(this_type const& rhs) {
+    __host__ __device__ this_type& operator=(this_type const& rhs) {
         traits::assign(*this, rhs);
         return (*this);
     }
 
     template <typename TR>
-    this_type& operator=(TR const& rhs) {
+    __host__ __device__ this_type& operator=(TR const& rhs) {
         traits::assign(*this, rhs);
         return (*this);
     }
 };
 
-#define _SP_DEFINE_NTUPLE_BINARY_OPERATOR(_NAME_, _OP_)                                          \
-    template <typename TL, int... NL, typename TR>                                               \
-    auto operator _OP_(nTuple<TL, NL...> const& lhs, TR const& rhs) {                            \
-        return Expression<simpla::tags::_NAME_, nTuple<TL, NL...>, TR>(lhs, rhs);                \
-    };                                                                                           \
-    template <typename TL, typename TR, int... NR>                                               \
-    auto operator _OP_(TL const& lhs, nTuple<TR, NR...> const& rhs) {                            \
-        return Expression<simpla::tags::_NAME_, TL, nTuple<TR, NR...>>(lhs, rhs);                \
-    };                                                                                           \
-    template <typename TL, int... NL, typename... TR>                                            \
-    auto operator _OP_(nTuple<TL, NL...> const& lhs, Expression<TR...> const& rhs) {             \
-        return Expression<simpla::tags::_NAME_, nTuple<TL, NL...>, Expression<TR...>>(lhs, rhs); \
-    };                                                                                           \
-    template <typename... TL, typename TR, int... NR>                                            \
-    auto operator _OP_(Expression<TL...> const& lhs, nTuple<TR, NR...> const& rhs) {             \
-        return Expression<simpla::tags::_NAME_, Expression<TL...>, nTuple<TR, NR...>>(lhs, rhs); \
-    };                                                                                           \
-    template <typename TL, int... NL, typename TR, int... NR>                                    \
-    auto operator _OP_(nTuple<TL, NL...> const& lhs, nTuple<TR, NR...> const& rhs) {             \
-        return Expression<simpla::tags::_NAME_, nTuple<TL, NL...>, nTuple<TR, NR...>>(lhs, rhs); \
+#define _SP_DEFINE_NTUPLE_BINARY_OPERATOR(_NAME_, _OP_)                                                  \
+    template <typename TL, int... NL, typename TR>                                                       \
+    __host__ __device__ auto operator _OP_(nTuple<TL, NL...> const& lhs, TR const& rhs) {                \
+        return Expression<simpla::tags::_NAME_, nTuple<TL, NL...>, TR>(lhs, rhs);                        \
+    };                                                                                                   \
+    template <typename TL, typename TR, int... NR>                                                       \
+    __host__ __device__ auto operator _OP_(TL const& lhs, nTuple<TR, NR...> const& rhs) {                \
+        return Expression<simpla::tags::_NAME_, TL, nTuple<TR, NR...>>(lhs, rhs);                        \
+    };                                                                                                   \
+    template <typename TL, int... NL, typename... TR>                                                    \
+    __host__ __device__ auto operator _OP_(nTuple<TL, NL...> const& lhs, Expression<TR...> const& rhs) { \
+        return Expression<simpla::tags::_NAME_, nTuple<TL, NL...>, Expression<TR...>>(lhs, rhs);         \
+    };                                                                                                   \
+    template <typename... TL, typename TR, int... NR>                                                    \
+    __host__ __device__ auto operator _OP_(Expression<TL...> const& lhs, nTuple<TR, NR...> const& rhs) { \
+        return Expression<simpla::tags::_NAME_, Expression<TL...>, nTuple<TR, NR...>>(lhs, rhs);         \
+    };                                                                                                   \
+    template <typename TL, int... NL, typename TR, int... NR>                                            \
+    __host__ __device__ auto operator _OP_(nTuple<TL, NL...> const& lhs, nTuple<TR, NR...> const& rhs) { \
+        return Expression<simpla::tags::_NAME_, nTuple<TL, NL...>, nTuple<TR, NR...>>(lhs, rhs);         \
     };
 
 #define _SP_DEFINE_NTUPLE_UNARY_OPERATOR(_NAME_, _OP_)                         \
