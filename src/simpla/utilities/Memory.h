@@ -9,27 +9,32 @@
 
 #include <cstring>
 
-#include "MemoryPool.h"
 #include "Log.h"
+#include "MemoryPool.h"
 
-namespace simpla { namespace toolbox
-{
+namespace simpla {
+enum { HOST_MEMORY, DEVICE_MEMORY };
 
-
-template<typename T> std::shared_ptr<T> MemoryHostAllocT(size_type s)
-{
-    return sp_alloc_array<T>(s);
+template <typename T>
+std::shared_ptr<T> MemoryAllocT(size_type s, int location = HOST_MEMORY) {
+    std::shared_ptr<T> res = nullptr;
+    switch (location) {
+        case DEVICE_MEMORY:
+            break;
+        case HOST_MEMORY:
+        default:
+            res = sp_alloc_array<T>(s);
+            break;
+    }
+    return res;
 }
 
-inline std::shared_ptr<void> MemoryHostAlloc(size_type s)
-{
-    return sp_alloc_memory(s);
-}
+std::shared_ptr<void> MemoryHostAlloc(size_type s) { return sp_alloc_memory(s); }
 
 inline void MemorySet(void *d, int v, size_type s) { memset(d, v, s); }
 
 inline void MemoryCopy(void *dest, void *src, size_type s) { memcpy(dest, src, s); }
 
-}}//namespace simpla { namespace utilities
+}  // namespace simpla { namespace utilities
 
-#endif //SIMPLA_MEMORY_H
+#endif  // SIMPLA_MEMORY_H
