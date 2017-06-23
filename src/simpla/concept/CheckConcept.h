@@ -245,7 +245,8 @@ EXAMPLE:
     } /*namespace detail*/                                                                     \
     template <typename T>                                                                      \
     struct _CHECKER_NAME_                                                                      \
-        : public int_const<detail::_CHECKER_NAME_<T, detail::has_##_CHECKER_NAME_<T>::value>::value> {};
+        : public std::integral_constant<int,                                                   \
+                                        detail::_CHECKER_NAME_<T, detail::has_##_CHECKER_NAME_<T>::value>::value> {};
 /**
  * @brief check if T has data memeber _V_NAME_
  *

@@ -2,7 +2,7 @@
 // Created by salmon on 17-4-5.
 //
 #include "Schedule.h"
-#include <simpla/parallel/all.h>
+//#include <simpla/parallel/all.h>
 #include <simpla/utilities/Logo.h>
 #include <map>
 #include <string>

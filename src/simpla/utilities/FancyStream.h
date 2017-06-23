@@ -8,8 +8,8 @@
 #ifndef PRETTY_STREAM_H_
 #define PRETTY_STREAM_H_
 
-#include <simpla/utilities/integer_sequence.h>
 #include <simpla/utilities/type_traits.h>
+#include <simpla/utilities/utility.h>
 #include <stddef.h>
 #include <complex>
 #include <iomanip>
@@ -18,24 +18,23 @@
 #include <set>
 #include <sstream>
 #include <string>
-#include <utility>
 #include <vector>
 namespace simpla {
-template <typename T, size_type... N>
-std::ostream &printNd(std::ostream &os, T const &d, int_sequence<N...> const &,
-                      ENABLE_IF((!concept::is_indexable<T, size_type>::value))) {
+template <typename T, size_t... N>
+std::ostream &printNd(std::ostream &os, T const &d, std::index_sequence<N...> const &,
+                      ENABLE_IF((!is_indexable<T, size_t>::value))) {
     os << d;
     return os;
 }
 
-template <typename T, size_type M, size_type... N>
-std::ostream &printNd(std::ostream &os, T const &d, int_sequence<M, N...> const &,
-                      ENABLE_IF((concept::is_indexable<T, size_type>::value))) {
+template <typename T, size_t M, size_t... N>
+std::ostream &printNd(std::ostream &os, T const &d, std::index_sequence<M, N...> const &,
+                      ENABLE_IF((is_indexable<T, size_t>::value))) {
     os << "{";
-    printNd(os, d[0], int_sequence<N...>());
-    for (size_type i = 1; i < M; ++i) {
+    printNd(os, d[0], std::index_sequence<N...>());
+    for (size_t i = 1; i < M; ++i) {
         os << " , ";
-        printNd(os, d[i], int_sequence<N...>());
+        printNd(os, d[i], std::index_sequence<N...>());
     }
     os << "}";
 
@@ -113,12 +112,12 @@ std::ostream &ContainerOutPut1(std::ostream &os, TI const &ib, TI const &ie) {
 }
 
 template <typename TI>
-std::ostream &ContainerOutPut1(std::ostream &os, TI const *d, size_type num) {
+std::ostream &ContainerOutPut1(std::ostream &os, TI const *d, int num) {
     if (num == 0) { return os; }
 
     os << d[0];
 
-    for (size_type s = 1; s < num; ++s) {
+    for (int s = 1; s < num; ++s) {
         os << " , " << d[s];
 
         if (s % 10 == 0) { os << std::endl; }
@@ -214,7 +213,7 @@ template <typename TX, typename TY, typename... Others>
 std::ostream &operator<<(std::ostream &os, std::multimap<TX, TY, Others...> const &d) {
     return simpla::ContainerOutPut2(os, d.begin(), d.end());
 }
-// template <typename T, size_type... M>
+// template <typename T, int... M>
 // std::ostream &operator<<(std::ostream &os, algebra::declare::nTuple_<T, M...> const &v) {
 //    return algebra::_detail::printNd_(os, v.data_, int_sequence<M...>());
 //}
@@ -226,7 +225,7 @@ std::ostream &print_helper(std::ostream &os, std::tuple<Args...> const &v, std::
 
 template <typename... Args, int N>
 std::ostream &print_helper(std::ostream &os, std::tuple<Args...> const &v, std::integral_constant<int, N>) {
-    os << " , " << std::get<sizeof...(Args)-N>(v);
+    os << " , " << std::get<sizeof...(Args) - N>(v);
     print_helper(os, v, std::integral_constant<int, N - 1>());
     return os;
 };

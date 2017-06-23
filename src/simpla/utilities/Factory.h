@@ -11,12 +11,12 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/utilities/Log.h>
 #include <simpla/utilities/macro.h>
+#include <simpla/utilities/type_traits.h>
 #include <functional>
 #include <iostream>
 #include <map>
 #include <memory>
-#include <type_traits>
-#include "sp_def.h"
+
 namespace simpla {
 namespace design_pattern {
 /**

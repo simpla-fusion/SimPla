@@ -9,7 +9,9 @@
 #define GEOMETRY_ALGORITHM_H_
 
 #include <simpla/utilities/integer_sequence.h>
+#include <simpla/utilities/nTuple.ext.h>
 #include <simpla/utilities/nTuple.h>
+
 #include <simpla/utilities/sp_def.h>
 #include <cstddef>
 #include <tuple>

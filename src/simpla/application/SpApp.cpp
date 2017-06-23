@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
     cfg->Set("Context", input_file_cfg->Get("Context"));
     cfg->Set(cmd_line_cfg, true);
 
-    MPI_Barrier(GLOBAL_COMM.comm());
+    GLOBAL_COMM.barrier();
 
     auto app = std::make_shared<application::SpApp>();
     app->Initialize();
@@ -180,13 +180,13 @@ int main(int argc, char **argv) {
     std::cout << std::endl;
 
     VERBOSE << DOUBLELINE << std::endl;
-    MPI_Barrier(GLOBAL_COMM.comm());
+    GLOBAL_COMM.barrier();
 
     TheStart();
     app->Run();
     TheEnd();
 
-    MPI_Barrier(GLOBAL_COMM.comm());
+    GLOBAL_COMM.barrier();
     VERBOSE << DOUBLELINE << std::endl;
 
     app->TearDown();

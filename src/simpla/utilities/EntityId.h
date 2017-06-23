@@ -8,7 +8,7 @@
 #ifndef SIMPLA_ENTITY_ID_H_
 #define SIMPLA_ENTITY_ID_H_
 
-#include <simpla/utilities/nTuple.h>
+#include <simpla/SIMPLA_config.h>
 #include <stddef.h>
 #include <tbb/concurrent_unordered_set.h>
 #include <tbb/tbb.h>
@@ -17,6 +17,8 @@
 #include <tuple>
 #include "Log.h"
 #include "Range.h"
+#include "nTuple.h"
+#include "nTuple.ext.h"
 #include "sp_def.h"
 #include "type_traits.h"
 namespace simpla {

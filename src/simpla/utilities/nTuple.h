@@ -195,7 +195,7 @@ struct nTuple_calculator {
     //                   getValue(std::get<1>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...);
     //    }
 
-    template <typename TOP, typename... Others, int... index, typename... Idx>
+    template <typename TOP, typename... Others, size_t... index, typename... Idx>
     static auto _invoke_helper(Expression<TOP, Others...> const& expr, std::index_sequence<index...>, Idx&&... s) {
         return ((expr.m_op_(getValue(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)));
     }

@@ -23,23 +23,13 @@ extern "C" {
 #include <mpi.h>
 }
 
-#include "MPIComm.h"
-#include "MPIDataType.h"
+#include "simpla/parallel/MPIComm.h"
+#include "simpla/parallel/MPIDataType.h"
 
 namespace simpla {
 namespace parallel {
 
-void bcast_string(std::string *filename_) {
-    if (GLOBAL_COMM.size() <= 1) return;
-    int name_len;
-    if (GLOBAL_COMM.process_num() == 0) { name_len = static_cast<int>(filename_->size()); }
-    MPI_Bcast(&name_len, 1, MPI_INT, 0, GLOBAL_COMM.comm());
-    std::vector<char> buffer(static_cast<size_type>(name_len));
-    if (GLOBAL_COMM.process_num() == 0) { std::copy(filename_->begin(), filename_->end(), buffer.begin()); }
-    MPI_Bcast((&buffer[0]), name_len, MPI_CHAR, 0, GLOBAL_COMM.comm());
-    buffer.push_back('\0');
-    if (GLOBAL_COMM.process_num() != 0) { *filename_ = &buffer[0]; }
-}
+
 
 // inline MPI_Op get_MPI_Op(std::string const &op_c) {
 //    MPI_Op op = MPI_SUM;

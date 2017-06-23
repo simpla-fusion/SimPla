@@ -2,7 +2,7 @@
 // Created by salmon on 17-3-9.
 //
 #include "DataUtility.h"
-#include <simpla/parallel/MPIAuxFunctions.h>
+#include "../../../to_delete/MPIAuxFunctions.h"
 #include <simpla/parallel/MPIComm.h>
 #include <simpla/utilities/Logo.h>
 #include <simpla/utilities/MiscUtilities.h>

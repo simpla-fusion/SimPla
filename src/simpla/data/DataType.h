@@ -14,12 +14,13 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include <tuple>
-#include <type_traits>
+
 #include <typeindex>
 #include <vector>
 
+#include <simpla/concept/CheckConcept.h>
 #include <simpla/utilities/nTuple.h>
+#include <simpla/utilities/type_cast.h>
 #include <simpla/utilities/type_traits.h>
 
 namespace simpla {
@@ -221,8 +222,8 @@ struct DataType::create_helper {
 
         //        d = traits::seq_value<algebra::traits::extents<obj_type> >::value;
 
-        return std::move(DataType(std::type_index(typeid(obj_type)), ele_size_in_byte,
-                                  simpla::traits::rank<obj_type>::value, &d[0], name));
+        return std::move(
+            DataType(std::type_index(typeid(obj_type)), ele_size_in_byte, std::rank<obj_type>::value, &d[0], name));
     }
 
    public:

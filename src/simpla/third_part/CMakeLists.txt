@@ -49,6 +49,7 @@ TARGET_LINK_LIBRARIES(third_part
 
         #        toolbox geometry parallel data mesh engine model physics
         )
+target_include_directories(third_part BEFORE PRIVATE  ${MPI_C_INCLUDE_PATH} ${HDF5_INCLUDE_DIRS})
 
 #FILE(GLOB amr_test_SRC ./*.cpp)
 #

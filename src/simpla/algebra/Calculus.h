@@ -25,17 +25,22 @@ class Expression;
 
 template <typename TM, typename TV, int IFORM, int DOF>
 class Field;
+}
 
+namespace std {
+template <typename TM, typename TV, int IFORM, int DOF>
+struct rank<simpla::Field<TM, TV, IFORM, DOF>> : public std::integral_constant<int, rank<TM>::value> {};
+
+}  // namespace std{
+
+namespace simpla {
 namespace traits {
 
 template <typename TM, typename TV, int IFORM, int DOF>
-struct iform<Field<TM, TV, IFORM, DOF>> : public int_const<IFORM> {};
+struct iform<Field<TM, TV, IFORM, DOF>> : public std::integral_constant<int, IFORM> {};
 
 template <typename TM, typename TV, int IFORM, int DOF>
-struct dof<Field<TM, TV, IFORM, DOF>> : public int_const<DOF> {};
-
-template <typename TM, typename TV, int IFORM, int DOF>
-struct rank<Field<TM, TV, IFORM, DOF>> : public int_const<rank<TM>::value> {};
+struct dof<Field<TM, TV, IFORM, DOF>> : public std::integral_constant<int, DOF> {};
 
 template <typename TM, typename TV, int IFORM, int DOF>
 struct value_type<Field<TM, TV, IFORM, DOF>> {
@@ -100,7 +105,8 @@ namespace traits {
 //******************************************************
 
 template <typename T>
-struct iform<Expression<tags::_hodge_star, T>> : public int_const<rank<T>::value - iform<T>::value> {};
+struct iform<Expression<tags::_hodge_star, T>>
+    : public std::integral_constant<int, std::rank<T>::value - iform<T>::value> {};
 
 template <typename T>
 struct value_type<Expression<tags::_hodge_star, T>> {
@@ -109,7 +115,7 @@ struct value_type<Expression<tags::_hodge_star, T>> {
 //******************************************************
 
 template <typename T0, typename T1>
-struct iform<Expression<tags::_interior_product, T0, T1>> : public int_const<iform<T1>::value - 1> {};
+struct iform<Expression<tags::_interior_product, T0, T1>> : public std::integral_constant<int, iform<T1>::value - 1> {};
 
 template <typename T0, typename T1>
 struct value_type<Expression<tags::_interior_product, T0, T1>> {
@@ -119,7 +125,8 @@ struct value_type<Expression<tags::_interior_product, T0, T1>> {
 //******************************************************
 
 template <typename T0, typename T1>
-struct iform<Expression<tags::_wedge, T0, T1>> : public int_const<iform<T0>::value + iform<T1>::value> {};
+struct iform<Expression<tags::_wedge, T0, T1>>
+    : public std::integral_constant<int, iform<T0>::value + iform<T1>::value> {};
 template <typename T0, typename T1>
 struct value_type<Expression<tags::_wedge, T0, T1>> {
     typedef std::result_of_t<tags::multiplication(value_type_t<T0>, value_type_t<T1>)> type;
@@ -127,7 +134,8 @@ struct value_type<Expression<tags::_wedge, T0, T1>> {
 //******************************************************`
 
 template <typename T0, typename T1>
-struct iform<Expression<tags::_cross, T0, T1>> : public int_const<(iform<T0>::value + iform<T1>::value) % 3> {};
+struct iform<Expression<tags::_cross, T0, T1>>
+    : public std::integral_constant<int, (iform<T0>::value + iform<T1>::value) % 3> {};
 
 template <typename T0, typename T1>
 struct value_type<Expression<tags::_cross, T0, T1>> {
@@ -136,7 +144,7 @@ struct value_type<Expression<tags::_cross, T0, T1>> {
 //******************************************************
 
 template <typename T0, typename T1>
-struct iform<Expression<tags::_dot, T0, T1>> : public int_const<VERTEX> {};
+struct iform<Expression<tags::_dot, T0, T1>> : public std::integral_constant<int, VERTEX> {};
 
 template <typename T0, typename T1>
 struct value_type<Expression<tags::_dot, T0, T1>> {
@@ -257,7 +265,7 @@ namespace traits {
 //******************************************************
 
 template <typename T>
-struct iform<Expression<tags::_exterior_derivative, T>> : public int_const<iform<T>::value + 1> {};
+struct iform<Expression<tags::_exterior_derivative, T>> : public std::integral_constant<int, iform<T>::value + 1> {};
 
 template <typename T>
 struct value_type<Expression<tags::_exterior_derivative, T>> {
@@ -267,7 +275,8 @@ struct value_type<Expression<tags::_exterior_derivative, T>> {
 //******************************************************
 
 template <typename T>
-struct iform<Expression<tags::_codifferential_derivative, T>> : public int_const<iform<T>::value - 1> {};
+struct iform<Expression<tags::_codifferential_derivative, T>>
+    : public std::integral_constant<int, iform<T>::value - 1> {};
 template <typename T>
 struct value_type<Expression<tags::_codifferential_derivative, T>> {
     typedef std::result_of_t<tags::multiplication(typename scalar_type<T>::type, value_type_t<T>)> type;
@@ -275,7 +284,8 @@ struct value_type<Expression<tags::_codifferential_derivative, T>> {
 
 //******************************************************
 template <typename T, int I>
-struct iform<Expression<tags::_p_exterior_derivative<I>, T>> : public int_const<iform<T>::value + 1> {};
+struct iform<Expression<tags::_p_exterior_derivative<I>, T>> : public std::integral_constant<int, iform<T>::value + 1> {
+};
 
 template <typename T, int I>
 struct value_type<Expression<tags::_p_exterior_derivative<I>, T>> {
@@ -284,7 +294,8 @@ struct value_type<Expression<tags::_p_exterior_derivative<I>, T>> {
 //******************************************************
 
 template <typename T, int I>
-struct iform<Expression<tags::_p_codifferential_derivative<I>, T>> : public int_const<iform<T>::value - 1> {};
+struct iform<Expression<tags::_p_codifferential_derivative<I>, T>>
+    : public std::integral_constant<int, iform<T>::value - 1> {};
 template <typename T, int I>
 struct value_type<Expression<tags::_p_codifferential_derivative<I>, T>> {
     typedef std::result_of_t<tags::multiplication(typename scalar_type<T>::type, typename scalar_type<T>::type)> type;
@@ -323,7 +334,7 @@ struct value_type<Expression<tags::_map_to<I>, T, Others...>> {
 };
 //******************************************************
 template <int I, typename T0>
-struct iform<Expression<tags::_map_to<I>, T0>> : public int_const<I> {};
+struct iform<Expression<tags::_map_to<I>, T0>> : public std::integral_constant<int, I> {};
 }  // namespace traits
 
 template <int I, typename T1>
@@ -364,17 +375,17 @@ auto map_to(T1 const& l) {
  *
  */
 template <typename T>
-auto grad(T const& f, int_const<VERTEX>) {
+auto grad(T const& f, std::integral_constant<int, VERTEX>) {
     return ((exterior_derivative(f)));
 }
 
 template <typename T>
-auto grad(T const& f, int_const<VOLUME>) {
+auto grad(T const& f, std::integral_constant<int, VOLUME>) {
     return (((codifferential_derivative(-f))));
 }
 
 template <typename T, int I>
-auto grad(T const& f, int_const<I>) {
+auto grad(T const& f, std::integral_constant<int, I>) {
     return ((Expression<tags::_grad, const T>(f)));
 }
 
@@ -384,17 +395,17 @@ auto grad(T const& f) {
 }
 
 template <typename T>
-auto diverge(T const& f, int_const<FACE> const&) {
+auto diverge(T const& f, std::integral_constant<int, FACE> const&) {
     return ((exterior_derivative(f)));
 }
 
 template <typename T>
-auto diverge(T const& f, int_const<EDGE> const&) {
+auto diverge(T const& f, std::integral_constant<int, EDGE> const&) {
     return ((-codifferential_derivative(f)));
 }
 
 template <typename T, int I>
-auto diverge(T const& f, int_const<I> const&) {
+auto diverge(T const& f, std::integral_constant<int, I> const&) {
     return ((Expression<tags::_diverge, const T>(f)));
 }
 
@@ -404,21 +415,21 @@ auto diverge(T const& f) {
 }
 
 template <typename T>
-auto curl(T const& f, int_const<EDGE> const&) {
+auto curl(T const& f, std::integral_constant<int, EDGE> const&) {
     return ((exterior_derivative(f)));
 }
 
 template <typename T>
-auto curl(T const& f, int_const<FACE> const&) {
+auto curl(T const& f, std::integral_constant<int, FACE> const&) {
     return ((-codifferential_derivative(f)));
 }
 
 template <typename T>
-auto curl(T const& f, int_const<VERTEX> const&) {
+auto curl(T const& f, std::integral_constant<int, VERTEX> const&) {
     return Expression<tags::_curl, const T>(f);
 }
 template <typename T>
-auto curl(T const& f, int_const<VOLUME> const&) {
+auto curl(T const& f, std::integral_constant<int, VOLUME> const&) {
     return Expression<tags::_curl, const T>(f);
 }
 template <typename T>
@@ -437,12 +448,12 @@ auto p_codifferential_derivative(U const& f) {
 }
 
 template <typename T>
-auto curl_pdx(T const& f, int_const<EDGE>) {
+auto curl_pdx(T const& f, std::integral_constant<int, EDGE>) {
     return ((p_exterior_derivative<0>(f)));
 }
 
 template <typename T>
-auto curl_pdx(T const& f, int_const<FACE>) {
+auto curl_pdx(T const& f, std::integral_constant<int, FACE>) {
     return ((p_codifferential_derivative<0>(f)));
 }
 
@@ -452,12 +463,12 @@ auto curl_pdx(T const& f) {
 }
 
 template <typename T>
-auto curl_pdy(T const& f, int_const<EDGE>) {
+auto curl_pdy(T const& f, std::integral_constant<int, EDGE>) {
     return ((p_exterior_derivative<1>(f)));
 }
 
 template <typename T>
-auto curl_pdy(T const& f, int_const<FACE>) {
+auto curl_pdy(T const& f, std::integral_constant<int, FACE>) {
     return ((p_codifferential_derivative<1>(f)));
 }
 
@@ -467,12 +478,12 @@ auto curl_pdy(T const& f) {
 }
 
 template <typename T>
-auto curl_pdz(T const& f, int_const<EDGE>) {
+auto curl_pdz(T const& f, std::integral_constant<int, EDGE>) {
     return ((p_exterior_derivative<2>(f)));
 }
 
 template <typename T>
-auto curl_pdz(T const& f, int_const<FACE>) {
+auto curl_pdz(T const& f, std::integral_constant<int, FACE>) {
     return ((p_codifferential_derivative<2>(f)));
 }
 

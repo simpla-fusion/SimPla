@@ -15,10 +15,9 @@
 #include <cstdbool>
 #include <memory>
 
-#include <mpi.h>
-
-#include "simpla/utilities/nTuple.h"
 #include "simpla/utilities/SingletonHolder.h"
+#include "simpla/utilities/nTuple.h"
+//#include <mpi.h>
 
 namespace simpla {
 namespace parallel {
@@ -30,8 +29,8 @@ class MPIComm {
     ~MPIComm();
     void init(int argc = 0, char **argv = nullptr);
     void close();
-    MPI_Comm comm() const;
-    MPI_Info info();
+    void const *comm() const;
+    //    MPI_Info info();
     void barrier();
     bool is_valid() const;
     int process_num() const;
@@ -44,10 +43,11 @@ class MPIComm {
 
     //    std::tuple<int, int, int> make_send_recv_tag(size_t prefix, const nTuple<int, 3> &m_global_start_);
 
-   private:
     struct pimpl_s;
-    std::unique_ptr<pimpl_s> pimpl_;
+    std::unique_ptr<pimpl_s> m_pimpl_;
 };
+
+void bcast_string(std::string *filename_);
 
 #define GLOBAL_COMM SingletonHolder<::simpla::parallel::MPIComm>::instance()
 

@@ -34,21 +34,22 @@ struct calculator {
 
     //**********************************************************************************************
     // for element-wise arithmetic operation
-    template <typename TOP, typename... T, int... I>
+    template <typename TOP, typename... T, size_t... I>
     static auto _invoke_helper(Expression<TOP, T...> const& expr, mesh_type const& m, int tag, IdxShift S,
-                               int_sequence<I...>) {
+                               std::index_sequence<I...>) {
         return expr.m_op_(getValue(std::get<I>(expr.m_args_), m, tag, S)...);
     }
 
     template <typename TOP, typename... T, int... I>
-    static auto eval(Expression<TOP, T...> const& expr, mesh_type const& m, int tag, IdxShift S, int_sequence<I...>) {
-        return _invoke_helper(expr, m, tag, S, make_int_sequence<sizeof...(I)>());
+    static auto eval(Expression<TOP, T...> const& expr, mesh_type const& m, int tag, IdxShift S,
+                     std::integer_sequence<int, I...>) {
+        return _invoke_helper(expr, m, tag, S, std::make_index_sequence<sizeof...(I)>());
     }
 
     template <typename TOP, typename... T>
     static auto getValue(Expression<TOP, T...> const& expr, mesh_type const& m, int tag,
                          IdxShift S = IdxShift{0, 0, 0}) {
-        return eval(expr, m, tag, S, int_sequence<traits::iform<T>::value...>());
+        return eval(expr, m, tag, S, std::integer_sequence<int, traits::iform<T>::value...>());
     }
 
     template <typename M, typename V, int I, int D>
@@ -177,7 +178,7 @@ struct calculator {
 
     template <typename TExpr>
     static auto eval(Expression<tags::_exterior_derivative, TExpr> const& expr, mesh_type const& m, int tag, IdxShift S,
-                     int_sequence<VERTEX>) {
+                     std::integer_sequence<int, VERTEX>) {
         auto const& l = std::get<0>(expr.m_args_);
         IdxShift D{0, 0, 0};
         D[EntityIdCoder::m_id_to_sub_index_[tag % 0b111]] = 1;
@@ -189,7 +190,7 @@ struct calculator {
 
     template <typename TExpr>
     static auto eval(Expression<tags::_exterior_derivative, TExpr> const& expr, mesh_type const& m, int tag, IdxShift S,
-                     int_sequence<EDGE>) {
+                     std::integer_sequence<int, EDGE>) {
         auto const& l = std::get<0>(expr.m_args_);
 
         IdxShift Y{0, 0, 0};
@@ -210,7 +211,7 @@ struct calculator {
     //! div<2>
     template <typename TExpr>
     static auto eval(Expression<tags::_exterior_derivative, TExpr> const& expr, mesh_type const& m, int tag, IdxShift S,
-                     int_sequence<FACE>) {
+                     std::integer_sequence<int, FACE>) {
         auto const& l = std::get<0>(expr.m_args_);
 
         IdxShift X{1, 0, 0};
@@ -230,7 +231,7 @@ struct calculator {
     //! curl<2>
     template <typename TExpr>
     static auto eval(Expression<tags::_codifferential_derivative, TExpr> const& expr, mesh_type const& m, int tag,
-                     IdxShift S, int_sequence<FACE>) {
+                     IdxShift S, std::integer_sequence<int, FACE>) {
         auto const& l = std::get<0>(expr.m_args_);
         IdxShift Y{0, 0, 0};
         IdxShift Z{0, 0, 0};
@@ -251,7 +252,7 @@ struct calculator {
 
     template <typename TExpr>
     static auto eval(Expression<tags::_codifferential_derivative, TExpr> const& expr, mesh_type const& m, int tag,
-                     IdxShift S, int_sequence<EDGE>) {
+                     IdxShift S, std::integer_sequence<int, EDGE>) {
         auto const& l = std::get<0>(expr.m_args_);
 
         IdxShift X{1, 0, 0};
@@ -273,7 +274,7 @@ struct calculator {
 
     template <typename TExpr>
     static auto eval(Expression<tags::_codifferential_derivative, TExpr> const& expr, mesh_type const& m, int tag,
-                     IdxShift S, int_sequence<VOLUME>) {
+                     IdxShift S, std::integer_sequence<int, VOLUME>) {
         auto const& l = std::get<0>(expr.m_args_);
         IdxShift D{0, 0, 0};
         D[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]] = 1;
@@ -286,7 +287,7 @@ struct calculator {
 
     template <typename TExpr>
     static auto eval(Expression<tags::_hodge_star, TExpr> const& expr, mesh_type const& m, int tag, IdxShift S,
-                     int_sequence<VERTEX>) {
+                     std::integer_sequence<int, VERTEX>) {
         auto const& l = std::get<0>(expr.m_args_);
         auto id = tag & (~0b111);
         return (                                            //
@@ -493,7 +494,7 @@ struct calculator {
 
     template <typename TExpr, int ISrc, int IDest>
     static auto eval(Expression<simpla::tags::_map_to<IDest>, TExpr> const& expr, mesh_type const& m, int tag,
-                     IdxShift S, int_sequence<ISrc>) {
+                     IdxShift S, std::integer_sequence<int, ISrc>) {
         return _map_to(std::get<0>(expr.m_args_), m, tag, S, std::index_sequence<ISrc, IDest>());
     }
     //***************************************************************************************************
@@ -501,14 +502,14 @@ struct calculator {
     //! Form<IL> ^ Form<IR> => Form<IR+IL>
     template <typename... TExpr, int IL, int IR>
     static auto eval(Expression<simpla::tags::_wedge, TExpr...> const& expr, mesh_type const& m, int tag, IdxShift S,
-                     int_sequence<IL, IR>) {
+                     std::integer_sequence<int, IL, IR>) {
         return m.inner_product(_map_to(std::get<0>(expr.m_args_), m, tag, S, std::index_sequence<IL, IR + IL>()),
                                _map_to(std::get<1>(expr.m_args_), m, tag, S, std::index_sequence<IR, IR + IL>()));
     }
 
     template <typename... TExpr>
     static auto eval(Expression<simpla::tags::_wedge, TExpr...> const& expr, mesh_type const& m, int tag, IdxShift S,
-                     int_sequence<EDGE, EDGE>) {
+                     std::integer_sequence<int, EDGE, EDGE>) {
         int n = EntityIdCoder::m_id_to_sub_index_[tag];
 
         auto const& l = std::get<0>(expr.m_args_);
@@ -530,7 +531,7 @@ struct calculator {
 
     template <typename... TExpr>
     static auto eval(Expression<simpla::tags::_wedge, TExpr...> const& expr, mesh_type const& m, int tag, IdxShift S,
-                     int_sequence<FACE, FACE>) {
+                     std::integer_sequence<int, FACE, FACE>) {
         int n = EntityIdCoder::m_id_to_sub_index_[tag];
 
         auto const& l = std::get<0>(expr.m_args_);
@@ -546,7 +547,7 @@ struct calculator {
 
     template <typename... TExpr>
     static auto eval(Expression<simpla::tags::_dot, TExpr...> const& expr, mesh_type const& m, int tag, IdxShift S,
-                     int_sequence<VERTEX, VERTEX>) {
+                     std::integer_sequence<int, VERTEX, VERTEX>) {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
@@ -557,7 +558,7 @@ struct calculator {
 
     template <typename... TExpr>
     static auto eval(Expression<simpla::tags::_dot, TExpr...> const& expr, mesh_type const& m, int tag, IdxShift S,
-                     int_sequence<VOLUME, VOLUME>) {
+                     std::integer_sequence<int, VOLUME, VOLUME>) {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
@@ -568,22 +569,22 @@ struct calculator {
 
     template <typename... TExpr>
     static auto eval(Expression<simpla::tags::_dot, TExpr...> const& expr, mesh_type const& m, int tag, IdxShift S,
-                     int_sequence<EDGE, EDGE>) {
+                     std::integer_sequence<int, EDGE, EDGE>) {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
-        return eval(dot_v(map_to<VERTEX>(l), map_to<VERTEX>(r)), m, tag, S, int_sequence<VERTEX>());
+        return eval(dot_v(map_to<VERTEX>(l), map_to<VERTEX>(r)), m, tag, S, std::integer_sequence<int, VERTEX>());
     }
     template <typename... TExpr>
     static auto eval(Expression<simpla::tags::_dot, TExpr...> const& expr, mesh_type const& m, int tag, IdxShift S,
-                     int_sequence<FACE, FACE>) {
+                     std::integer_sequence<int, FACE, FACE>) {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
-        return eval(dot_v(map_to<VERTEX>(l), map_to<VERTEX>(r)), m, tag, S, int_sequence<VERTEX>());
+        return eval(dot_v(map_to<VERTEX>(l), map_to<VERTEX>(r)), m, tag, S, std::integer_sequence<int, VERTEX>());
     }
     template <typename... TExpr>
     static auto eval(Expression<simpla::tags::_cross, TExpr...> const& expr, mesh_type const& m, int tag, IdxShift S,
-                     int_sequence<VERTEX, VERTEX>) {
+                     std::integer_sequence<int, VERTEX, VERTEX>) {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
@@ -594,7 +595,7 @@ struct calculator {
 
     template <typename... TExpr>
     static auto eval(Expression<simpla::tags::_cross, TExpr...> const& expr, mesh_type const& m, int tag, IdxShift S,
-                     int_sequence<VOLUME, VOLUME>) {
+                     std::integer_sequence<int, VOLUME, VOLUME>) {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
         int n = (tag >> 3) % 3;
@@ -688,26 +689,26 @@ struct calculator {
     }
 
     template <typename TF, typename TX, typename TV>
-    static void scatter_(mesh_type const& m, int_const<VERTEX>, TF& f, TX const& x, TV const& u) {
+    static void scatter_(mesh_type const& m, std::integral_constant<int, VERTEX>, TF& f, TX const& x, TV const& u) {
         scatter_impl_(m, f, m.point_global_to_local(x, 0), u);
     }
 
     template <typename TF, typename TX, typename TV>
-    static void scatter_(mesh_type const& m, int_const<EDGE>, TF& f, TX const& x, TV const& u) {
+    static void scatter_(mesh_type const& m, std::integral_constant<int, EDGE>, TF& f, TX const& x, TV const& u) {
         scatter_impl_(m, f, m.point_global_to_local(x, 1), u[0]);
         scatter_impl_(m, f, m.point_global_to_local(x, 2), u[1]);
         scatter_impl_(m, f, m.point_global_to_local(x, 4), u[2]);
     }
 
     template <typename TF, typename TX, typename TV>
-    static void scatter_(mesh_type const& m, int_const<FACE>, TF& f, TX const& x, TV const& u) {
+    static void scatter_(mesh_type const& m, std::integral_constant<int, FACE>, TF& f, TX const& x, TV const& u) {
         scatter_impl_(m, f, m.point_global_to_local(x, 6), u[0]);
         scatter_impl_(m, f, m.point_global_to_local(x, 5), u[1]);
         scatter_impl_(m, f, m.point_global_to_local(x, 3), u[2]);
     }
 
     template <typename TF, typename TX, typename TV>
-    static void scatter_(mesh_type const& m, int_const<VOLUME>, TF& f, TX const& x, TV const& u) {
+    static void scatter_(mesh_type const& m, std::integral_constant<int, VOLUME>, TF& f, TX const& x, TV const& u) {
         scatter_impl_(m, f, m.point_global_to_local(x, 7), u);
     }
 

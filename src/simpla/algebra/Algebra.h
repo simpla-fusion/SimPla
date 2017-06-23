@@ -15,14 +15,14 @@ namespace simpla {
 
 namespace traits {
 template <typename T>
-struct is_primary_field : public std::integral_constant<bool, false> {};
+struct is_primary_field : public std::false_type {};
 template <typename TM, typename TV, int IFORM, int DOF>
 class Field;
 template <typename TM, typename TV, int IFORM, int DOF>
-struct is_primary_field<Field<TM, TV, IFORM, DOF>> : public std::integral_constant<bool, true> {};
+struct is_primary_field<Field<TM, TV, IFORM, DOF>> : public std::true_type {};
 
 template <typename>
-struct num_of_dimension : public int_const<3> {};
+struct num_of_dimension : public std::integral_constant<int, 3> {};
 
 // CHECK_MEMBER_TYPE(value_type, value_type)
 //
@@ -101,19 +101,20 @@ struct field_value_type {
 template <typename T>
 using field_value_t = typename field_value_type<T>::type;
 
-//CHECK_BOOLEAN_TYPE_MEMBER(is_array, is_array)
-//CHECK_BOOLEAN_TYPE_MEMBER(is_field, is_field)
+// CHECK_BOOLEAN_TYPE_MEMBER(is_array, is_array)
+// CHECK_BOOLEAN_TYPE_MEMBER(is_field, is_field)
 //// CHECK_BOOLEAN_TYPE_MEMBER(is_nTuple, is_nTuple)
 ////CHECK_BOOLEAN_TYPE_MEMBER(is_expression, is_expression)
 //
-//template <typename First, typename... Others>
-//struct is_field<First, Others...>
+// template <typename First, typename... Others>
+// struct is_field<First, Others...>
 //    : public std::integral_constant<bool, is_field<First>::value || is_field<Others...>::value> {};
 //
-//template <typename First, typename... Others>
-//struct is_array<First, Others...>
+// template <typename First, typename... Others>
+// struct is_array<First, Others...>
 //    : public std::integral_constant<bool,
-//                                    (is_array<First>::value && !is_field<First>::value) || is_array<Others...>::value> {
+//                                    (is_array<First>::value && !is_field<First>::value) || is_array<Others...>::value>
+//                                    {
 //};
 
 // template <typename First, typename... Others>
@@ -132,7 +133,7 @@ CHECK_STATIC_INTEGRAL_CONSTEXPR_DATA_MEMBER(iform, iform, VERTEX)
 CHECK_STATIC_INTEGRAL_CONSTEXPR_DATA_MEMBER(num_of_sub, num_of_sub, 1)
 
 template <typename T>
-struct iform<const T> : public int_const<iform<T>::value> {};
+struct iform<const T> : public std::integral_constant<int, iform<T>::value> {};
 
 // template <typename _T>
 // struct iform_ {
@@ -146,7 +147,7 @@ struct iform<const T> : public int_const<iform<T>::value> {};
 //    static constexpr int value = decltype(test<_T>(0))::value;
 //};
 // template <typename T>
-// struct GetIFORM : public int_const<iform_<T>::value> {};
+// struct GetIFORM : public std::integral_constant<int,    iform_<T>::value> {};
 //
 // template <typename _T>
 // struct dof_ {
@@ -160,19 +161,19 @@ struct iform<const T> : public int_const<iform<T>::value> {};
 //    static constexpr int value = decltype(test<_T>(0))::value;
 //};
 // template <typename T>
-// struct GetDOF : public int_const<dof_<T>::value> {};
+// struct GetDOF : public std::integral_constant<int,    dof_<T>::value> {};
 // template <typename T>
 // struct GetDOF<const T> : public GetDOF<T> {};
 //
 // template <typename>
-// struct rank : public int_const<3> {};
+// struct rank : public std::integral_constant<int,    3> {};
 // template <typename T>
 // struct rank<const T> : public rank<T> {};
 //
 // template <typename>
-// struct extent : public int_const<0> {};
+// struct extent : public std::integral_constant<int,    0> {};
 // template <typename T>
-// struct extent<const T> : public int_const<extent<T>::value> {};
+// struct extent<const T> : public std::integral_constant<int,    extent<T>::value> {};
 // template <typename T>
 // struct extents : public int_sequence<> {};
 //
