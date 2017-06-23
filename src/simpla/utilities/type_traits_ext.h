@@ -12,6 +12,12 @@
 #include "macro.h"
 
 namespace simpla {
+
+
+
+
+
+
 /// \note  http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
 template <unsigned long N>
 struct CountBits {

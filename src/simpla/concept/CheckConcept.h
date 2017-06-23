@@ -426,38 +426,6 @@ EXAMPLE:
     template <typename... T>                     \
     struct _NAME_ : public std::integral_constant<bool, detail::_NAME_<T...>::value> {};
 
-// CHECK_OPERATOR(is_indexable, [])
-/**
- * @ref http://en.cppreference.com/w/cpp/types/remove_extent
- * If T is '''is_indexable''' by '''S''', provides the member typedef type equal to
- * decltyp(T[S])
- * otherwise type is T. Note that if T is a multidimensional array, only the first dimension is
- * removed.
- */
-namespace detail {
-
-template <typename _T, typename _TI>
-struct is_indexable {
-   private:
-    typedef std::true_type yes;
-    typedef std::false_type no;
-
-    template <typename _U>
-    static auto test(int) -> decltype(std::declval<_U>()[std::declval<_TI>()]);
-
-    template <typename>
-    static no test(...);
-    typedef decltype(test<_T>(0)) check_result;
-
-   public:
-    static constexpr bool value = !std::is_same<check_result, no>::value;
-    typedef std::conditional_t<std::is_same<check_result, no>::value, void, check_result> type;
-};
-}
-template <typename T, typename TI = int>
-struct is_indexable : public std::integral_constant<bool, detail::is_indexable<T, TI>::value> {
-    typedef typename detail::is_indexable<T, TI>::type type;
-};
 // CHECK_OPERATOR(is_callable, ())
 
 namespace detail {

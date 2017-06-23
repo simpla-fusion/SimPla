@@ -8,16 +8,44 @@
 #ifndef SP_TYPE_TRAITS_H_
 #define SP_TYPE_TRAITS_H_
 
-#include <simpla/SIMPLA_config.h>
-#include <stddef.h>
-#include <complex>
-#include <map>
-#include <tuple>
 #include <type_traits>
-#include "integer_sequence.h"
-#include "macro.h"
-#include "simpla/concept/CheckConcept.h"
-#include "type_cast.h"
+
+namespace simpla {
+#define ENABLE_IF(_COND_) std::enable_if_t<_COND_, void>* _p = nullptr
+
+// CHECK_OPERATOR(is_indexable, [])
+/**
+ * @ref http://en.cppreference.com/w/cpp/types/remove_extent
+ * If T is '''is_indexable''' by '''S''', provides the member typedef type equal to
+ * decltyp(T[S])
+ * otherwise type is T. Note that if T is a multidimensional array, only the first dimension is
+ * removed.
+ */
+namespace detail {
+
+template <typename _T, typename _TI>
+struct is_indexable {
+   private:
+    typedef std::true_type yes;
+    typedef std::false_type no;
+
+    template <typename _U>
+    static auto test(int) -> decltype(std::declval<_U>()[std::declval<_TI>()]);
+
+    template <typename>
+    static no test(...);
+    typedef decltype(test<_T>(0)) check_result;
+
+   public:
+    static constexpr bool value = !std::is_same<check_result, no>::value;
+    typedef std::conditional_t<std::is_same<check_result, no>::value, void, check_result> type;
+};
+}
+template <typename T, typename TI = int>
+struct is_indexable : public std::integral_constant<bool, detail::is_indexable<T, TI>::value> {
+    typedef typename detail::is_indexable<T, TI>::type type;
+};
+}
 
 namespace simpla {
 
@@ -36,7 +64,7 @@ struct do_nothing {
 
 namespace _impl {
 template <typename Func, typename Tup, int... index>
-auto invoke_helper(Func&& func, Tup&& tup, int_sequence<index...>) {
+auto invoke_helper(Func&& func, Tup&& tup, std::index_sequence<index...>) {
     return ((func(std::get<index>(std::forward<Tup>(tup))...)));
 }
 
@@ -45,7 +73,7 @@ auto invoke_helper(Func&& func, Tup&& tup, int_sequence<index...>) {
 template <typename Func, typename Tup>
 auto invoke(Func&& func, Tup&& tup) {
     return ((_impl::invoke_helper(std::forward<Func>(func), std::forward<Tup>(tup),
-                                  make_int_sequence<std::tuple_size<typename std::decay<Tup>::type>::value>())));
+                                  std::make_index_sequence<std::tuple_size<typename std::decay<Tup>::type>::value>())));
 }
 
 namespace traits {
@@ -70,41 +98,10 @@ using value_type_t = typename value_type<T>::type;
 
 template <typename T>
 struct scalar_type {
-    typedef Real type;
+    typedef double type;
 };
 template <typename T>
 using scalar_type_t = typename scalar_type<T>::type;
-
-/**
-*  alt. of std::rank
-*  @quto http://en.cppreference.com/w/cpp/types/rank
-*  If T is an array type, provides the member constant
-*  value equal to the number of dimensions of the array.
-*  For any other type, value is 0.
-*/
-// template <typename T, typename Idx = int>
-// struct rank : public int_const<(!is_indexable<T, Idx>::value) ? 0 : 1 + rank<remove_extent<T, Idx>>::value> {};
-
-template <typename T>
-struct rank : public int_const<0> {};
-
-template <typename T>
-struct rank<T*> : public std::integral_constant<int, rank<T>::value + 1> {};
-
-/**
-* alt. of std::extent
-*  @quto http://en.cppreference.com/w/cpp/types/extent
-*  If T is an array type, provides the member constant value equal to
-* the number of elements along the Nth dimension of the array, if N
-* is in [0, std::rank<T>::value). For any other type, or if T is array
-* of unknown bound along its first dimension and N is 0, value is 0.
-*/
-
-template <typename T, int N = 0>
-struct extent : public std::extent<T, N> {};
-
-// template <typename _Tp, _Tp... N>
-// struct extent<integer_sequence<_Tp, N...>, 0> : public int_const<sizeof...(N)> {};
 
 template <typename TExpr>
 struct dimension : public std::integral_constant<int, 0> {};
@@ -275,7 +272,7 @@ template <int I0, int... I>
 struct assign_nested_initializer_list<I0, I...> {
     template <typename U, typename TR>
     static inline void apply(U& u, std::initializer_list<TR> const& rhs) {
-        static_assert(concept::is_indexable<U, int>::value, " illegal value_type_info");
+        static_assert(is_indexable<U, int>::value, " illegal value_type_info");
 
         auto it = rhs.begin();
         auto ie = rhs.end();
@@ -291,12 +288,12 @@ struct remove_entent_v;
 
 template <typename T, typename I0>
 remove_all_extents_t<T, I0>& get_v(T& v, I0 const* s) {
-    return _detail::remove_entent_v<concept::is_indexable<T, I0>::value>::get(v, s);
+    return _detail::remove_entent_v<is_indexable<T, I0>::value>::get(v, s);
 };
 
 template <typename T, typename I0, typename... Idx>
 remove_extents_t<T, I0, Idx...>& get_v(T& v, I0 const& s0, Idx&&... idx) {
-    return _detail::remove_entent_v<concept::is_indexable<T, I0>::value>::get(v, s0, std::forward<Idx>(idx)...);
+    return _detail::remove_entent_v<is_indexable<T, I0>::value>::get(v, s0, std::forward<Idx>(idx)...);
 };
 
 namespace _detail {

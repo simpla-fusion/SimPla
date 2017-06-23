@@ -10,49 +10,29 @@
 #ifndef NTUPLE_H_
 #define NTUPLE_H_
 
-#include <simpla/SIMPLA_config.h>
-#include <simpla/concept/CheckConcept.h>
-#include "../../../../../../../pkg/gcc/7.1.0/include/c++/7.1.0/type_traits"
 #include "ExpressionTemplate.h"
-#include "integer_sequence.h"
 #include "type_traits.h"
-
+#include "utility.h"
 namespace simpla {
 template <typename, int...>
 struct nTuple;
+}  // namespace simpla {
 
-// typedef std::complex<Real> Complex;
+namespace std {
 
-template <typename T, int N>
-using Vector = nTuple<T, N>;
+template <typename T, int... I>
+struct rank<simpla::nTuple<T, I...>> : public std::integral_constant<size_t, sizeof...(I)> {};
 
-template <typename T, int M, int N>
-using Matrix = nTuple<T, M, N>;
+template <typename V, int I0, int... I>
+struct extent<simpla::nTuple<V, I0, I...>> : public std::integral_constant<size_t, I0> {};
 
-template <typename T, int... N>
-using Tensor = nTuple<T, N...>;
+template <typename...>
+struct extents;
+template <typename V, int... I>
+struct extents<simpla::nTuple<V, I...>> : public std::index_sequence<I...> {};
+}  // namespace std {
 
-typedef nTuple<Real, 3ul> point_type;  //!< DataType of configuration space point (coordinates i.e. (x,y,z) )
-
-typedef nTuple<Real, 3ul> vector_type;
-
-typedef std::tuple<point_type, point_type> box_type;  //! two corner of rectangle (or hexahedron ) , <lower ,upper>
-
-typedef nTuple<index_type, 3> index_tuple;
-
-typedef nTuple<size_type, 3> size_tuple;
-
-typedef std::tuple<index_tuple, index_tuple> index_box_type;
-
-typedef nTuple<Real, 3> Vec3;
-
-typedef nTuple<Real, 3> CoVec3;
-
-typedef nTuple<Integral, 3> IVec3;
-
-typedef nTuple<Real, 3> RVec3;
-
-// typedef nTuple<Complex, 3> CVec3;
+namespace simpla {
 
 /**
  * @addtogroup ntuple n-tuple
@@ -94,36 +74,6 @@ typedef nTuple<Real, 3> RVec3;
  **/
 namespace traits {
 
-template <bool... B>
-struct logical_or;
-template <bool B0>
-struct logical_or<B0> : public std::integral_constant<bool, B0> {};
-template <bool B0, bool... B>
-struct logical_or<B0, B...> : public std::integral_constant<bool, B0 || logical_or<B...>::value> {};
-
-template <bool... B>
-struct logical_and;
-template <bool B0>
-struct logical_and<B0> : public std::integral_constant<bool, B0> {};
-template <bool B0, bool... B>
-struct logical_and<B0, B...> : public std::integral_constant<bool, B0 && logical_or<B...>::value> {};
-
-template <typename T, T... B>
-struct mt_max;
-template <typename T, T B0>
-struct mt_max<T, B0> : public std::integral_constant<T, B0> {};
-template <typename T, T B0, T... B>
-struct mt_max<T, B0, B...>
-    : public std::integral_constant<T, ((B0 > (mt_max<T, B...>::value)) ? B0 : (mt_max<T, B...>::value))> {};
-
-template <typename T, T... B>
-struct mt_min;
-template <typename T, T B0>
-struct mt_min<T, B0> : public std::integral_constant<T, B0> {};
-template <typename T, T B0, T... B>
-struct mt_min<T, B0, B...>
-    : public std::integral_constant<T, ((B0 < (mt_min<T, B...>::value)) ? B0 : (mt_min<T, B...>::value))> {};
-
 template <typename T, int I0, int... I>
 struct reference<nTuple<T, I0, I...>> {
     typedef nTuple<T, I0, I...> const& type;
@@ -133,21 +83,6 @@ template <typename T, int I0, int... I>
 struct reference<const nTuple<T, I0, I...>> {
     typedef nTuple<T, I0, I...> const& type;
 };
-
-template <typename T, int... I>
-struct rank<nTuple<T, I...>> : public int_const<sizeof...(I)> {};
-
-template <typename...>
-struct extents;
-template <typename V, int... I>
-struct extents<nTuple<V, I...>> : public int_sequence<I...> {};
-
-template <typename V, int I0, int... I>
-struct extent<nTuple<V, I0, I...>> : public int_const<I0> {};
-
-template <typename TOP, typename... Args>
-struct extent<simpla::Expression<TOP, Args...>>
-    : public std::integral_constant<int, mt_min<int, extent<typename std::remove_cv<Args>::type>::value...>::value> {};
 
 template <typename T, int I0>
 struct value_type<nTuple<T, I0>> {
@@ -261,13 +196,13 @@ struct nTuple_calculator {
     //    }
 
     template <typename TOP, typename... Others, int... index, typename... Idx>
-    static auto _invoke_helper(Expression<TOP, Others...> const& expr, int_sequence<index...>, Idx&&... s) {
+    static auto _invoke_helper(Expression<TOP, Others...> const& expr, std::index_sequence<index...>, Idx&&... s) {
         return ((expr.m_op_(getValue(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)));
     }
 
     template <typename TOP, typename... Others, typename... Idx>
     static auto getValue(Expression<TOP, Others...> const& expr, Idx&&... s) {
-        return ((_invoke_helper(expr, int_sequence_for<Others...>(), std::forward<Idx>(s)...)));
+        return ((_invoke_helper(expr, std::index_sequence_for<Others...>(), std::forward<Idx>(s)...)));
     }
 };
 
@@ -543,141 +478,73 @@ auto cross(T1 const& l, T2 const& r) {
 //    return res;
 //}
 
-template <typename T>
-T determinant(nTuple<T, 3> const& m) {
-    return m[0] * m[1] * m[2];
-}
-
-template <typename T>
-T determinant(nTuple<T, 4> const& m) {
-    return m[0] * m[1] * m[2] * m[3];
-}
-
-template <typename T>
-T determinant(nTuple<T, 3, 3> const& m) {
-    return m[0][0] * m[1][1] * m[2][2] - m[0][2] * m[1][1] * m[2][0] + m[0][1] * m[1][2] * m[2][0] -
-           m[0][1] * m[1][0] * m[2][2] + m[1][0] * m[2][1] * m[0][2] - m[1][2] * m[2][1] * m[0][0];
-}
-template <typename TL, int... NL, typename TR, int... NR>
-auto abs(nTuple<TL, NL...> const& l, nTuple<TR, NR...> const& r) {
-    return std::sqrt(inner_product(l, r));
-}
-template <typename T, int... N>
-T abs(nTuple<T, N...> const& m) {
-    return std::sqrt(inner_product(m, m));
-}
-
-template <typename T>
-T determinant(nTuple<T, 4, 4> const& m) {
-    return m[0][3] * m[1][2] * m[2][1] * m[3][0] - m[0][2] * m[1][3] * m[2][1] * m[3][0] -
-           m[0][3] * m[1][1] * m[2][2] * m[3][0] + m[0][1] * m[1][3] * m[2][2] * m[3][0] +
-           m[0][2] * m[1][1] * m[2][3] * m[3][0] - m[0][1] * m[1][2] * m[2][3] * m[3][0] -
-           m[0][3] * m[1][2] * m[2][0] * m[3][1] + m[0][2] * m[1][3] * m[2][0] * m[3][1] +
-           m[0][3] * m[1][0] * m[2][2] * m[3][1] - m[0][0] * m[1][3] * m[2][2] * m[3][1] -
-           m[0][2] * m[1][0] * m[2][3] * m[3][1] + m[0][0] * m[1][2] * m[2][3] * m[3][1] +
-           m[0][3] * m[1][1] * m[2][0] * m[3][2] - m[0][1] * m[1][3] * m[2][0] * m[3][2] -
-           m[0][3] * m[1][0] * m[2][1] * m[3][2] + m[0][0] * m[1][3] * m[2][1] * m[3][2] +
-           m[0][1] * m[1][0] * m[2][3] * m[3][2] - m[0][0] * m[1][1] * m[2][3] * m[3][2] -
-           m[0][2] * m[1][1] * m[2][0] * m[3][3] + m[0][1] * m[1][2] * m[2][0] * m[3][3] +
-           m[0][2] * m[1][0] * m[2][1] * m[3][3] - m[0][0] * m[1][2] * m[2][1] * m[3][3] -
-           m[0][1] * m[1][0] * m[2][2] * m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3];
-}
-
-template <typename T, int... N>
-auto mod(nTuple<T, N...> const& l) {
-    return std::sqrt(std::abs(inner_product(l, l)));
-}
-
-template <typename T>
-auto normal(T const& l, ENABLE_IF((traits::rank<T>::value > 0))) {
-    return ((std::sqrt(inner_product(l, l))));
-}
-
-template <typename T>
-auto abs(T const& l, ENABLE_IF((traits::rank<T>::value > 0))) {
-    return std::sqrt(inner_product(l, l));
-}
-template <typename T>
-auto abs(T const& l, ENABLE_IF((traits::rank<T>::value == 0))) {
-    return std::abs(l);
-}
-
-template <typename T>
-auto NProduct(T const& v, ENABLE_IF((traits::rank<T>::value == 0))) {
-    return ((traits::reduction<tags::multiplication>(v)));
-}
-
-template <typename T>
-auto NSum(T const& v, ENABLE_IF((traits::rank<T>::value == 0))) {
-    return ((traits::reduction<tags::addition>(v)));
-}
-
 //
-// template<typename T, int N0> std::istream &
-// input(std::istream &is, nTuple <T, N0> &tv)
-//{
-//    for (int i = 0; i < N0 && is; ++i) { is >> tv[i]; }
-//    return (is);
+////
+//// template<typename T, int N0> std::istream &
+//// input(std::istream &is, nTuple <T, N0> &tv)
+////{
+////    for (int i = 0; i < N0 && is; ++i) { is >> tv[i]; }
+////    return (is);
+////}
+////
+//// template<typename T, int N0, int ...N> std::istream &
+//// input(std::istream &is, nTuple<T, N0, N ...> &tv)
+////{
+////    for (int i = 0; i < N0 && is; ++i) { input(is, tv[i]); }
+////    return (is);
+////}
+//
+// namespace _detail {
+// template <typename T, int... N>
+// std::ostream& printNd_(std::ostream& os, T const& d, integer_sequence<int, N...> const&,
+//                       ENABLE_IF((!concept::is_indexable<T>::value))) {
+//    os << d;
+//    return os;
 //}
 //
-// template<typename T, int N0, int ...N> std::istream &
-// input(std::istream &is, nTuple<T, N0, N ...> &tv)
-//{
-//    for (int i = 0; i < N0 && is; ++i) { input(is, tv[i]); }
-//    return (is);
+// template <typename T, int M, int... N>
+// std::ostream& printNd_(std::ostream& os, T const& d, integer_sequence<int, M, N...> const&,
+//                       ENABLE_IF((concept::is_indexable<T>::value))) {
+//    os << "[";
+//    printNd_(os, d[0], integer_sequence<int, N...>());
+//    for (int i = 1; i < M; ++i) {
+//        os << " , ";
+//        printNd_(os, d[i], integer_sequence<int, N...>());
+//    }
+//    os << "]";
+//
+//    return os;
 //}
-
-namespace _detail {
-template <typename T, int... N>
-std::ostream& printNd_(std::ostream& os, T const& d, integer_sequence<int, N...> const&,
-                       ENABLE_IF((!concept::is_indexable<T>::value))) {
-    os << d;
-    return os;
-}
-
-template <typename T, int M, int... N>
-std::ostream& printNd_(std::ostream& os, T const& d, integer_sequence<int, M, N...> const&,
-                       ENABLE_IF((concept::is_indexable<T>::value))) {
-    os << "[";
-    printNd_(os, d[0], integer_sequence<int, N...>());
-    for (int i = 1; i < M; ++i) {
-        os << " , ";
-        printNd_(os, d[i], integer_sequence<int, N...>());
-    }
-    os << "]";
-
-    return os;
-}
-
-template <typename T>
-std::istream& input(std::istream& is, T& a) {
-    is >> a;
-    return is;
-}
-
-template <typename T, int M0, int... M>
-std::istream& input(std::istream& is, nTuple<T, M0, M...>& a) {
-    for (int n = 0; n < M0; ++n) { _detail::input(is, a[n]); }
-    return is;
-}
-
-}  // namespace _detail
-
-template <typename T, int... M>
-std::ostream& operator<<(std::ostream& os, nTuple<T, M...> const& v) {
-    return _detail::printNd_(os, v.data_, integer_sequence<int, M...>());
-}
-
-template <typename T, int... M>
-std::istream& operator>>(std::istream& is, nTuple<T, M...>& a) {
-    _detail::input(is, a);
-    return is;
-}
-template <typename T, int... M>
-std::ostream& operator<<(std::ostream& os, std::tuple<nTuple<T, M...>, nTuple<T, M...>> const& v) {
-    os << "{ " << std::get<0>(v) << " ," << std::get<1>(v) << "}";
-    return os;
-};
+//
+// template <typename T>
+// std::istream& input(std::istream& is, T& a) {
+//    is >> a;
+//    return is;
+//}
+//
+// template <typename T, int M0, int... M>
+// std::istream& input(std::istream& is, nTuple<T, M0, M...>& a) {
+//    for (int n = 0; n < M0; ++n) { _detail::input(is, a[n]); }
+//    return is;
+//}
+//
+//}  // namespace _detail
+//
+// template <typename T, int... M>
+// std::ostream& operator<<(std::ostream& os, nTuple<T, M...> const& v) {
+//    return _detail::printNd_(os, v.data_, integer_sequence<int, M...>());
+//}
+//
+// template <typename T, int... M>
+// std::istream& operator>>(std::istream& is, nTuple<T, M...>& a) {
+//    _detail::input(is, a);
+//    return is;
+//}
+// template <typename T, int... M>
+// std::ostream& operator<<(std::ostream& os, std::tuple<nTuple<T, M...>, nTuple<T, M...>> const& v) {
+//    os << "{ " << std::get<0>(v) << " ," << std::get<1>(v) << "}";
+//    return os;
+//};
 
 }  // namespace simpla
 #endif  // NTUPLE_H_

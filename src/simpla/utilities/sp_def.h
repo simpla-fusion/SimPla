@@ -91,6 +91,5 @@ static constexpr Real EPSILON = std::numeric_limits<Real>::epsilon();
     this_type &operator=(this_type const &other) = delete; \
     this_type &operator=(this_type &&other) = delete;
 
-#define ENABLE_IF(_COND_) std::enable_if_t<_COND_, void> *_p = nullptr
 
 #endif  // SIMPLA_SP_DEF_H

@@ -5,11 +5,10 @@
 #ifndef SIMPLA_EXPRESSIONTEMPLATE_H
 #define SIMPLA_EXPRESSIONTEMPLATE_H
 
-#include <type_traits>
-#include <utility>
-#include "integer_sequence.h"
+#include "host_define.h"
 #include "tuple.h"
 #include "type_traits.h"
+#include "utility.h"
 namespace simpla {
 /**
 *  @ingroup calculus
@@ -18,40 +17,50 @@ namespace simpla {
 */
 template <typename...>
 class Expression;
+}
+namespace std {
+template <typename TOP, typename... Args>
+struct rank<simpla::Expression<TOP, Args...>>
+    : public simpla::traits::seq_max<std::index_sequence<rank<Args>::value...>> {};
 
+template <size_t N, typename TOP, typename... Args>
+struct extent<simpla::Expression<TOP, Args...>, N>
+    : public simpla::traits::seq_max<std::index_sequence<extent<Args, N>::value...>> {};
+
+//    template <typename TOP, typename... Args>
+//    struct extent<simpla::Expression<TOP, Args...>>
+//            : public std::integral_constant<
+//                    int, simpla::traits::mt_min<int, std::extent<typename
+//                    std::remove_cv<Args>::type>::value...>::value> {};
+}
+namespace simpla {
 namespace traits {
 
 template <typename TExpr>
-struct is_expression : public false_type {};
+struct is_expression : public std::false_type {};
 
 template <typename... T>
-struct is_expression<Expression<T...>> : public true_type {};
-
-template <typename TOP, typename... Args>
-struct rank<Expression<TOP, Args...>> : public seq_max<int_sequence<rank<Args>::value...>> {};
-
-template <int N, typename TOP, typename... Args>
-struct extent<Expression<TOP, Args...>, N> : public seq_max<int_sequence<extent<Args, N>::value...>> {};
+struct is_expression<Expression<T...>> : public std::true_type {};
 
 template <int N>
 struct get_s {
     template <typename T>
-    __host__ __device__ static T const &eval(T const &expr, ENABLE_IF((extent<T>::value == 0))) {
+    __host__ __device__ static T const &eval(T const &expr, ENABLE_IF((std::extent<T>::value == 0))) {
         return expr;
     }
     template <typename T>
-    __host__ __device__ static auto const &eval(T const &expr, ENABLE_IF((extent<T>::value > 0))) {
+    __host__ __device__ static auto const &eval(T const &expr, ENABLE_IF((std::extent<T>::value > 0))) {
         return expr[N];
     }
 
-    template <typename TOP, typename... Args, int... index>
-    __host__ __device__ static auto eval0_(Expression<TOP, Args...> const &expr, index_sequence<index...>) {
-        return expr.m_op_(get_s<N>::eval(get<index>(expr.m_args_))...);
+    template <typename TOP, typename... Args, size_t... index>
+    __host__ __device__ static auto eval0_(Expression<TOP, Args...> const &expr, std::index_sequence<index...>) {
+        return expr.m_op_(get_s<N>::eval(std::get<index>(expr.m_args_))...);
     }
 
     template <typename TOP, typename... Args>
     __host__ __device__ static auto eval(Expression<TOP, Args...> const &expr) {
-        return eval0_(expr, index_sequence_for<Args...>());
+        return eval0_(expr, std::index_sequence_for<Args...>());
     }
 };
 
@@ -76,17 +85,17 @@ struct reduction_s {
     };
 
     template <typename TExpr>
-    static auto const &eval1_(TExpr const &expr, int_sequence<>) {
+    static auto const &eval1_(TExpr const &expr, std::index_sequence<>) {
         return expr;
     }
 
-    template <typename TExpr, int... I>
-    static auto eval1_(TExpr const &expr, int_sequence<I...>) {
+    template <typename TExpr, size_t... I>
+    static auto eval1_(TExpr const &expr, std::index_sequence<I...>) {
         return eval0_(get<I>(expr)...);
     }
     template <typename TExpr>
     static auto eval(TExpr const &expr) {
-        return eval1_(expr, make_int_sequence<extent<TExpr>::value>());
+        return eval1_(expr, std::make_index_sequence<std::extent<TExpr>::value>());
     }
 };
 template <typename TReduction, typename TExpr>
@@ -97,41 +106,41 @@ auto reduction(TExpr const &expr) {
 namespace _impl {
 
 template <typename TL, typename TR>
-__host__ __device__ void assign_(TL &lhs, TR const &rhs, int_sequence<>){};
+__host__ __device__ void assign_(TL &lhs, TR const &rhs, std::index_sequence<>){};
 
-template <typename TL, typename TR, int I0, int... I>
-__host__ __device__ void assign_(TL &lhs, TR const &rhs, int_sequence<I0, I...>) {
+template <typename TL, typename TR, size_t I0, size_t... I>
+__host__ __device__ void assign_(TL &lhs, TR const &rhs, std::index_sequence<I0, I...>) {
     lhs[I0] = traits::get<I0>(rhs);
-    assign_(lhs, rhs, int_sequence<I...>());
+    assign_(lhs, rhs, std::index_sequence<I...>());
 };
 template <typename T>
-__host__ __device__ void swap_(T &lhs, T &rhs, int_sequence<>){};
+__host__ __device__ void swap_(T &lhs, T &rhs, std::index_sequence<>){};
 
 template <typename T>
-__host__ __device__ void swap0_(T &lhs, T &rhs, ENABLE_IF((traits::rank<T>::value == 0))) {
+__host__ __device__ void swap0_(T &lhs, T &rhs, ENABLE_IF((std::rank<T>::value == 0))) {
     std::swap(lhs, rhs);
 }
 
 template <typename T>
-void swap0_(T &lhs, T &rhs, ENABLE_IF((traits::rank<T>::value > 0))) {
+void swap0_(T &lhs, T &rhs, ENABLE_IF((std::rank<T>::value > 0))) {
     lhs.swap(rhs);
 }
 
-template <typename T, int I0, int... I>
-void swap_(T &lhs, T &rhs, int_sequence<I0, I...>) {
+template <typename T, size_t I0, size_t... I>
+void swap_(T &lhs, T &rhs, std::index_sequence<I0, I...>) {
     swap0_(lhs[I0], rhs[I0]);
-    swap_(lhs, rhs, int_sequence<I...>());
+    swap_(lhs, rhs, std::index_sequence<I...>());
 };
 
 }  // namespace _impl {
 
 template <typename T>
 __host__ __device__ void swap(T &lhs, T &rhs) {
-    _impl::swap_(lhs, rhs, make_int_sequence<extent<T>::value>());
+    _impl::swap_(lhs, rhs, std::make_index_sequence<std::extent<T>::value>());
 };
 template <typename TL, typename TR>
 __host__ __device__ void assign(TL &lhs, TR const &rhs) {
-    _impl::assign_(lhs, rhs, make_int_sequence<extent<TL>::value>());
+    _impl::assign_(lhs, rhs, std::make_index_sequence<std::extent<TL>::value>());
 };
 }  // namespace
 
@@ -356,12 +365,12 @@ _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(>=, greater_equal, tags::logical_and)
 //_SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(imag)                                          \
 //
 // template <typename T1>
-// auto operator<<(T1 const &l, unsigned int r) {
-//    return ((Expression<tags::shift_left, const T1, unsigned int>(l, r)));
+// auto operator<<(T1 const &l,   size_t r) {
+//    return ((Expression<tags::shift_left, const T1,   size_t>(l, r)));
 //}
 // template <typename T1>
-// auto operator>>(T1 const &l, unsigned int r) {
-//    return ((Expression<tags::shift_right, const T1, unsigned int>(l, r)));
+// auto operator>>(T1 const &l,   size_t r) {
+//    return ((Expression<tags::shift_right, const T1, unsigned size_t>(l, r)));
 //}
 
 #undef _SP_DEFINE_EXPR_BINARY_RIGHT_OPERATOR

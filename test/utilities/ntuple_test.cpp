@@ -7,13 +7,12 @@
 
 #include <gtest/gtest.h>
 
+#include <simpla/utilities/nTuple.ext.h>
 #include <simpla/utilities/nTuple.h>
 #include <simpla/utilities/type_traits.h>
+#include <complex>
 #include <iostream>
-#include <type_traits>
 #include <typeinfo>
-#include <utility>
-
 using namespace simpla;
 
 #define EQUATION(_A, _B, _C) (-(_A + TestFixture::a) / (_B * TestFixture::b - TestFixture::c) - _C)
@@ -45,9 +44,9 @@ class TestNtuple : public testing::Test {
    public:
     typedef T type;
 
-    typedef traits::extents<type> extents;
+    typedef std::extents<type> extents;
 
-    nTuple<int, traits::rank<type>::value> DIMENSIONS;
+    nTuple<int, std::rank<type>::value> DIMENSIONS;
 
     typedef traits::value_type_t<type> value_type;
 
