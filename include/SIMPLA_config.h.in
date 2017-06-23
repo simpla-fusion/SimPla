@@ -82,5 +82,8 @@ typedef size_type id_type;
 #define MAX_NDIMS_OF_ARRAY  8
 
 
+#define SP_SUCCESS 0
+#define SP_FAILED 1
+
 #endif //SIMPLA_CONFIG_H
 

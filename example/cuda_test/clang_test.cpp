@@ -2,7 +2,7 @@
 // Created by salmon on 17-6-22.
 //
 
-#include <host_defines.h>
+#include <simpla/acc_backend/Backend.h>
 #include <simpla/utilities/ExpressionTemplate.h>
 #include <simpla/utilities/nTuple.ext.h>
 #include <simpla/utilities/nTuple.h>
@@ -18,12 +18,12 @@ __global__ void saxpy(int n, T *a, T *b, T *y) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     a[i] = i;
     b[i] = 2 * i;
-    y[i] = a[i] + b[i];
+    y[i] = a[i] + b[i] * 2.0;
 }
 
 int main(void) {
     int N = 1 << 10;
-    typedef nTuple<Real, 3> value_type;
+    typedef nTuple<Real, 5> value_type;
     value_type *a;
     value_type *b;
     value_type *x, *y;
@@ -39,24 +39,24 @@ int main(void) {
 
     //    std::cout << c << std::endl;
 
-    cudaMalloc(&a, N * sizeof(value_type));
-    cudaMalloc(&b, N * sizeof(value_type));
-    cudaMalloc(&y, N * sizeof(value_type));
+    SP_DEVICE_CALL(cudaMalloc(&a, N * sizeof(value_type)));
+    SP_DEVICE_CALL(cudaMalloc(&b, N * sizeof(value_type)));
+    SP_DEVICE_CALL(cudaMalloc(&y, N * sizeof(value_type)));
 
     //    cudaMemcpy(y, x, N * sizeof(value_type), cudaMemcpyHostToDevice);
 
     // Perform SAXPY on 1M elements
     saxpy<<<(N + 32) / 32, 32>>>(N, a, b, y);
 
-    cudaMemcpy(x, y, N * sizeof(value_type), cudaMemcpyDefault);
+    SP_DEVICE_CALL(cudaMemcpy(x, y, N * sizeof(value_type), cudaMemcpyDefault));
     //    cudaMemcpy(y, d_y, N * sizeof(float), cudaMemcpyDefault);
 
     //    float maxError = 0.0f;
     for (int i = 0; i < 100; i++) { std::cout << i << "\t=" << x[i] << std::endl; }
     //    printf("Max error: %f\n", maxError);
 
-    cudaFree(&a);
-    cudaFree(&b);
-    cudaFree(&c);
+    SP_DEVICE_CALL(cudaFree(a));
+    SP_DEVICE_CALL(cudaFree(b));
+    SP_DEVICE_CALL(cudaFree(y));
     free(x);
 }

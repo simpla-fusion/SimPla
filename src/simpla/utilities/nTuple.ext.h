@@ -62,11 +62,11 @@ T determinant(nTuple<T, 3, 3> const& m) {
     return m[0][0] * m[1][1] * m[2][2] - m[0][2] * m[1][1] * m[2][0] + m[0][1] * m[1][2] * m[2][0] -
            m[0][1] * m[1][0] * m[2][2] + m[1][0] * m[2][1] * m[0][2] - m[1][2] * m[2][1] * m[0][0];
 }
-template <typename TL, size_t... NL, typename TR, size_t... NR>
+template <typename TL, int... NL, typename TR, int... NR>
 auto abs(nTuple<TL, NL...> const& l, nTuple<TR, NR...> const& r) {
     return std::sqrt(inner_product(l, r));
 }
-template <typename T, size_t... N>
+template <typename T, int... N>
 T abs(nTuple<T, N...> const& m) {
     return std::sqrt(inner_product(m, m));
 }
@@ -87,7 +87,7 @@ T determinant(nTuple<T, 4, 4> const& m) {
            m[0][1] * m[1][0] * m[2][2] * m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3];
 }
 
-template <typename T, size_t... N>
+template <typename T, int... N>
 auto mod(nTuple<T, N...> const& l) {
     return std::sqrt(std::abs(inner_product(l, l)));
 }
@@ -116,34 +116,34 @@ auto NSum(T const& v, ENABLE_IF((std::rank<T>::value == 0))) {
     return ((traits::reduction<tags::addition>(v)));
 }
 
-template <typename T, size_t N0>
+template <typename T, int N0>
 std::istream& input(std::istream& is, nTuple<T, N0>& tv) {
-    for (size_t i = 0; i < N0 && is; ++i) { is >> tv[i]; }
+    for (int i = 0; i < N0 && is; ++i) { is >> tv[i]; }
     return (is);
 }
 
-template <typename T, size_t N0, size_t... N>
+template <typename T, int N0, int... N>
 std::istream& input(std::istream& is, nTuple<T, N0, N...>& tv) {
-    for (size_t i = 0; i < N0 && is; ++i) { input(is, tv[i]); }
+    for (int i = 0; i < N0 && is; ++i) { input(is, tv[i]); }
     return (is);
 }
 
 namespace _detail {
-template <typename T, size_t... N>
-std::ostream& printNd_(std::ostream& os, T const& d, std::index_sequence<N...> const&,
+template <typename T, int... N>
+std::ostream& printNd_(std::ostream& os, T const& d, std::integer_sequence<int, N...> const&,
                        ENABLE_IF((!is_indexable<T>::value))) {
     os << d;
     return os;
 }
 
-template <typename T, size_t M, size_t... N>
-std::ostream& printNd_(std::ostream& os, T const& d, std::index_sequence<M, N...> const&,
+template <typename T, int M, int... N>
+std::ostream& printNd_(std::ostream& os, T const& d, std::integer_sequence<int, M, N...> const&,
                        ENABLE_IF((is_indexable<T>::value))) {
     os << "[";
-    printNd_(os, d[0], std::index_sequence<N...>());
-    for (size_t i = 1; i < M; ++i) {
+    printNd_(os, d[0], std::integer_sequence<int, N...>());
+    for (int i = 1; i < M; ++i) {
         os << " , ";
-        printNd_(os, d[i], std::index_sequence<N...>());
+        printNd_(os, d[i], std::integer_sequence<int, N...>());
     }
     os << "]";
 
@@ -156,26 +156,26 @@ std::istream& input(std::istream& is, T& a) {
     return is;
 }
 
-template <typename T, size_t M0, size_t... M>
+template <typename T, int M0, int... M>
 std::istream& input(std::istream& is, nTuple<T, M0, M...>& a) {
-    for (size_t n = 0; n < M0; ++n) { _detail::input(is, a[n]); }
+    for (int n = 0; n < M0; ++n) { _detail::input(is, a[n]); }
     return is;
 }
 
 }  // namespace _detail
 
-template <typename T, size_t... M>
+template <typename T, int... M>
 std::ostream& operator<<(std::ostream& os, nTuple<T, M...> const& v) {
-    _detail::printNd_(os, v.data_, std::index_sequence<M...>());
+    _detail::printNd_(os, v.data_, std::integer_sequence<int, M...>());
     return os;
 }
 
-template <typename T, size_t... M>
+template <typename T, int... M>
 std::istream& operator>>(std::istream& is, nTuple<T, M...>& a) {
     _detail::input(is, a);
     return is;
 }
-template <typename T, size_t... M>
+template <typename T, int... M>
 std::ostream& operator<<(std::ostream& os, std::tuple<nTuple<T, M...>, nTuple<T, M...>> const& v) {
     os << "{ " << std::get<0>(v) << " ," << std::get<1>(v) << "}";
     return os;
