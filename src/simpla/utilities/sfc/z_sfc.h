@@ -106,8 +106,8 @@ class ZSFC {
     constexpr size_t hash(array_index_type const& idx) const { return dot(idx - m_offset_, m_strides_); }
 
     template <typename... Args>
-    size_t hash(Args&&... idx) const {
-        return 0;
+    constexpr size_t hash(index_type s0, Args&&... idx) const {
+        return hash(array_index_type{s0, std::forward<Args>(idx)...});
     }
 
     template <typename TFun>

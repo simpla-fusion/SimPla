@@ -20,7 +20,7 @@
 #include "memory.h"
 #include "nTuple.h"
 namespace simpla {
-
+typedef nTuple<index_type, 3> IdxShift;
 template <typename V, int NDIMS, typename SFC = ZSFC<NDIMS>>
 struct Array {
    private:
@@ -38,7 +38,8 @@ struct Array {
     SFC m_sfc_;
     std::shared_ptr<value_type> m_holder_ = nullptr;
     value_type* m_data_ = nullptr;
-    static constexpr value_type m_snan_ = std::numeric_limits<V>::signaling_NaN();
+    static value_type m_snan_;
+    static value_type m_null_;
 
    public:
     Array() = default;
@@ -123,7 +124,12 @@ struct Array {
     }
     template <typename... Args>
     value_type& at(Args&&... args) {
+#ifdef ENABLE_BOUND_CHECK
+        auto s = m_sfc_.hash(std::forward<Args>(args)...);
+        return (s < m_size_) ? m_data_[s] : m_null_;
+#else
         return m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
+#endif
     }
     template <typename... Args>
     value_type const& at(Args&&... args) const {
@@ -166,6 +172,7 @@ struct Array {
    public:
     template <typename TOP, typename... Others>
     void Foreach(TOP const& op, Others&&... others) {
+        DoSetUp();
         m_sfc_.Foreach(
             [&](array_index_type const& idx) { op(at(idx), getValue(std::forward<Others>(others), idx)...); });
     };
@@ -190,8 +197,13 @@ struct Array {
         ENABLE_IF(simpla::concept::is_callable<TFun(array_index_type const&)>::value)) {
         return op(s);
     };
-
     static constexpr value_type const& getValue(value_type const& v, array_index_type const& s) { return v; };
+
+    template <typename U, typename RSFC>
+    static constexpr auto getValue(Array<U, NDIMS, RSFC> const& v, array_index_type const& s) {
+        return v[s];
+    };
+
     static constexpr auto getValue(this_type& self, array_index_type const& s) { return self.at(s); };
     static constexpr auto getValue(this_type const& self, array_index_type const& s) { return self.at(s); };
 
@@ -215,7 +227,16 @@ struct Array {
 };
 
 template <typename V, int NDIMS, typename SFC>
-constexpr V Array<V, NDIMS, SFC>::m_snan_;  //= std::numeric_limits<V>::signaling_NaN();
+V Array<V, NDIMS, SFC>::m_snan_ = std::numeric_limits<V>::signaling_NaN();
+template <typename V, int NDIMS, typename SFC>
+V Array<V, NDIMS, SFC>::m_null_ = 0;
+
+// template <typename V, int NDIMS, typename SFC>
+// nTuple<V, 3> Array<nTuple<V, 3>, NDIMS, SFC>::m_snan_{std::numeric_limits<V>::signaling_NaN(),
+//                                                      std::numeric_limits<V>::signaling_NaN(),
+//                                                      std::numeric_limits<V>::signaling_NaN()};
+// template <typename V, int NDIMS, typename SFC>
+// nTuple<V, 3> Array<nTuple<V, 3>, NDIMS, SFC>::m_null_{0, 0, 0};
 
 template <typename TL, int NL, typename SFC>
 std::ostream& operator<<(std::ostream& os, Array<TL, NL, SFC> const& lhs) {
