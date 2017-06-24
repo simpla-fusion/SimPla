@@ -26,9 +26,9 @@ int main(int argc, char **argv) {
     b.Fill(1);
     c.Fill(2);
 
-    for (index_type i = 0; i < 4; ++i)
-        for (index_type j = 0; j < 5; ++j)
-            for (index_type k = 0; k < 5; ++k) { b(i, j, k) = i + j + k; }
+//    for (index_type i = 0; i < 4; ++i)
+//        for (index_type j = 0; j < 5; ++j)
+//            for (index_type k = 0; k < 5; ++k) { b(i, j, k) = i + j + k; }
     std::cout << b << std::endl;
     c = a + b * 2;
     try {

@@ -6,8 +6,8 @@
 #define SIMPLA_VERSION_PATCHLEVEL @SIMPLA_VERSION_PATCHLEVEL@
 #define SIMPLA_VERSION_IDENTIFY "@SIMPLA_VERSION_IDENTIFY@"
 
-#define  AUTHOR "@AUTHOR@"
-#define  COPYRIGHT "@COPYRIGHT@"
+#define AUTHOR "@AUTHOR@"
+#define COPYRIGHT "@COPYRIGHT@"
 
 /* Optimized build */
 #cmakedefine OPT_BUILD
@@ -22,7 +22,10 @@
 #cmakedefine HAVE_BOOST_HEADERS
 
 #cmakedefine MPI_FOUND
-#cmakedefine  SKIP_MPICXX
+
+#cmakedefine SKIP_MPICXX
+
+#cmakedefine CUDA_FOUND
 
 /* HDF5 library is available so use it */
 #cmakedefine HDF5_FOUND
@@ -39,19 +42,18 @@
 
 #cmakedefine SIMPLA_MAXIMUM_DIMENSION @SIMPLA_MAXIMUM_DIMENSION@
 
-#cmakedefine MAX_NDIMS_OF_ARRAY  @MAX_NDIMS_OF_ARRAY@
+#cmakedefine MAX_NDIMS_OF_ARRAY @MAX_NDIMS_OF_ARRAY@
 
-#cmakedefine DEFAULT_SPACE_DIMS  @DEFAULT_SPACE_DIMS@
+#cmakedefine DEFAULT_SPACE_DIMS @DEFAULT_SPACE_DIMS@
 
 #cmakedefine SIMPLA_ARRAY_HAS_INITIAL_VALUE
 
 
 #ifdef __cplusplus
- namespace simpla{ static const unsigned short MAX_DIM_VAL = SIMPLA_MAXIMUM_DIMENSION;}
-#endif //__cplusplus
-
-
-
+namespace simpla {
+static const unsigned short MAX_DIM_VAL = @SIMPLA_MAXIMUM_DIMENSION@;
+}
+#endif  //__cplusplus
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -63,30 +65,27 @@
 
 typedef SP_REAL Real;
 
-
 #define SP_TRUE 1
-#define SP_FALSE  0
+#define SP_FALSE 0
 #define SP_SUCCESS 0
 #define SP_FAILED 1
 
 #define SP_DO_NOTHING 0xFFFF
 
-#define SP_UNIMPLEMENTED  SP_DO_NOTHING +1
+#define SP_UNIMPLEMENTED SP_DO_NOTHING + 1
 
 #define SP_MAX_NUM_DIMS 10
 
 typedef size_t size_type;
-typedef int8_t byte_type; // int8_t
+typedef int8_t byte_type;  // int8_t
 typedef int Integral;
-typedef int64_t mesh_id_type; //!< Data value_type_info of vertex's index , i.e. i,j
+typedef int64_t mesh_id_type;  //!< Data value_type_info of vertex's index , i.e. i,j
 typedef int64_t index_type;
 typedef unsigned int uint;
 typedef size_type id_type;
-#define MAX_NDIMS_OF_ARRAY  8
-
+#define MAX_NDIMS_OF_ARRAY 8
 
 #define SP_SUCCESS 0
 #define SP_FAILED 1
 
-#endif //SIMPLA_CONFIG_H
-
+#endif  // SIMPLA_CONFIG_H

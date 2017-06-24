@@ -15,7 +15,7 @@ SET(CMAKE_CXX_FLAGS " -fPIC --std=c++14 ")
 
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics -ftemplate-backtrace-limit=0 -funroll-loops  -fno-limit-debug-info ")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics -ftemplate-backtrace-limit=0 -funroll-loops  -fno-limit-debug-info  ")
     SET(CMAKE_Fortran_COMPILER gfortran)
 elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
 
@@ -54,26 +54,21 @@ FIND_PACKAGE(Boost REQUIRED)
 
 FIND_PACKAGE(OpenMP REQUIRED)
 IF (OPENMP_FOUND)
-#    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-#    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-#    SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${OpenMP_Fortran_FLAGS}")
+#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+#SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+#SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${OpenMP_Fortran_FLAGS}")
 ENDIF (OPENMP_FOUND)
 
 FIND_PACKAGE(MPI   REQUIRED)
 IF (MPI_FOUND)
     ADD_DEFINITIONS(-DOMPI_SKIP_MPICXX)
     SET(HAVE_MPI 1)
-#    SET(SKIP_MPICXX "OMPI_SKIP_MPICXX")
+#SET(SKIP_MPICXX "OMPI_SKIP_MPICXX")
 ENDIF (MPI_FOUND)
 
 FIND_PACKAGE(CUDA)
-IF (CUDA_FOUND)
-    SET(HAVE_CUDA 1)
-ENDIF (CUDA_FOUND)
 
-
-
-#SET(TBB_ROOT /pkg/tbb/20170604/)
+#SET(TBB_ROOT / pkg / tbb / 20170604 /)
 FIND_PACKAGE(TBB)
 IF (TBB_FOUND)
     SET(HAVE_TBB 1)

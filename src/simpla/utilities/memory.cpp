@@ -7,17 +7,17 @@
 
 #include "memory.h"
 
+#include <simpla/SIMPLA_config.h>
+#include <simpla/utilities/SingletonHolder.h>
 #include <stddef.h>
+#include <cstring>
 #include <map>
 #include <mutex>
 #include <new>
 #include <tuple>
-
-#include <simpla/SIMPLA_config.h>
-#include <simpla/utilities/SingletonHolder.h>
-#include <cstring>
 #include "Log.h"
 #include "SingletonHolder.h"
+#include "cuda.h"
 #ifdef __CUDA__
 #define DEFAULT_MEMORY_LOCATION DEVICE_MEMORY
 #else
@@ -48,7 +48,7 @@ class MemoryPool {
      * @param d memory address
      * @param s size of memory in byte
      */
-    void push(void *p, size_t s, int location);
+    int push(void *p, size_t s, int loc = MANAGED_MEMORY);
 
     /**
      * allocate an array TV[s] from local pool or system memory
@@ -59,12 +59,13 @@ class MemoryPool {
      * @param s size of memory in byte
      * @return shared point of memory
      */
-    void *pop(size_t s, int location);
+    void *pop(size_t s, int loc = MANAGED_MEMORY);
 
     void clear();
 
     std::mutex locker_;
     std::multimap<size_t, void *> pool_;
+    std::multimap<size_t, void *> pool_dev_ptr_;
 
     static constexpr size_t ONE_GIGA = 1024l * 1024l * 1024l;
     static constexpr size_t MAX_BLOCK_SIZE = 4 * ONE_GIGA;  // std::numeric_limits<size_t>::max();
@@ -92,7 +93,7 @@ void MemoryPool::clear() {
     locker_.unlock();
 }
 
-void MemoryPool::push(void *p, size_t s, int location) {
+int MemoryPool::push(void *p, size_t s, int loc) {
     if ((s > MIN_BLOCK_SIZE) && (s < MAX_BLOCK_SIZE)) {
         locker_.lock();
         if ((pool_depth_ + s < max_pool_depth_)) {
@@ -101,13 +102,19 @@ void MemoryPool::push(void *p, size_t s, int location) {
             p = nullptr;
         }
         locker_.unlock();
+        if (p != nullptr) {
+#ifdef CUDA_FOUND
+            SP_DEVICE_CALL(cudaFree(p));
+#else
+            free(p);
+#endif
+        }
     }
-    if (p != nullptr) { delete[] reinterpret_cast<byte_type *>(p); }
-
+    return SP_SUCCESS;
     //    VERBOSE << SHORT_FILE_LINE_STAMP << "Free MemoryPool [" << s << " ]" << std::endl;
 }
 
-void *MemoryPool::pop(size_t s, int location) {
+void *MemoryPool::pop(size_t s, int loc) {
     void *addr = nullptr;
 
     if ((s > MIN_BLOCK_SIZE) && (s < MAX_BLOCK_SIZE)) {
@@ -127,23 +134,48 @@ void *MemoryPool::pop(size_t s, int location) {
                 addr = nullptr;
             }
         }
-
         locker_.unlock();
     }
 
     if (addr == nullptr) {
         try {
-            addr = (new byte_type[s]);
+#ifdef CUDA_FOUND
+            SP_DEVICE_CALL(cudaMallocManaged(&addr, s));
+#else
+            addr = malloc(s);
+#endif
         } catch (std::bad_alloc const &error) { THROW_EXCEPTION_BAD_ALLOC(s); }
     }
     return addr;
 }
 int spMemoryAlloc(void **p, size_t s, int location) {
-    *p = SingletonHolder<MemoryPool>::instance().pop(s, location);
+    //    *p = SingletonHolder<MemoryPool>::instance().pop(s, 0);
+
+    switch (location) {
+        case MANAGED_MEMORY:
+            SP_DEVICE_CALL(cudaMallocManaged(p, s));
+            break;
+        case DEVICE_MEMORY:
+            SP_DEVICE_CALL(cudaMalloc(p, s));
+            break;
+        case HOST_MEMORY:
+        default:
+            *p = malloc(s);
+    }
+
     return SP_SUCCESS;
 }
 int spMemoryFree(void **p, size_t s, int location) {
-    SingletonHolder<MemoryPool>::instance().push(*p, s, location);
+    //    SingletonHolder<MemoryPool>::instance().push(*p, s, 0);
+    switch (location) {
+        case MANAGED_MEMORY:
+        case DEVICE_MEMORY:
+            SP_DEVICE_CALL(cudaFree(p));
+            break;
+        case HOST_MEMORY:
+        default:
+            *p = malloc(s);
+    }
     *p = nullptr;
     return SP_SUCCESS;
 }

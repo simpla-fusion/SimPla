@@ -70,7 +70,7 @@ struct Array {
     }
     void DoSetUp() {
         if (m_holder_ == nullptr && m_sfc_.size() > 0) {
-            m_holder_ = spMakeSharedArray<value_type>(m_sfc_.size() * sizeof(value_type));
+            m_holder_ = spMakeSharedArray<value_type>(m_sfc_.size());
             m_data_ = m_holder_.get();
 #ifdef SIMPLA_ARRAY_HAS_INITIAL_VALUE
             spMemoryFill(m_data_, size(), m_snan_);
@@ -115,15 +115,15 @@ struct Array {
     void* GetRawPointer() const { return m_holder_.get(); }
 
     template <typename... Args>
-    value_type& operator()(Args&&... args) {
+    __host__ __device__ value_type& operator()(Args&&... args) {
         return at(std::forward<Args>(args)...);
     }
     template <typename... Args>
-    value_type const& operator()(Args&&... args) const {
+    __host__ __device__ value_type const& operator()(Args&&... args) const {
         return at(std::forward<Args>(args)...);
     }
     template <typename... Args>
-    value_type& at(Args&&... args) {
+    __host__ __device__ value_type& at(Args&&... args) {
 #ifdef ENABLE_BOUND_CHECK
         auto s = m_sfc_.hash(std::forward<Args>(args)...);
         return (s < m_size_) ? m_data_[s] : m_null_;
@@ -132,7 +132,7 @@ struct Array {
 #endif
     }
     template <typename... Args>
-    value_type const& at(Args&&... args) const {
+    __host__ __device__ value_type const& at(Args&&... args) const {
 #ifdef ENABLE_BOUND_CHECK
         auto s = m_sfc_.hash(std::forward<Args>(args)...);
         return (s < m_size_) ? m_data_[s] : m_snan_;
@@ -141,11 +141,11 @@ struct Array {
 #endif
     }
     template <typename TIdx>
-    value_type& operator[](TIdx const& idx) {
+    __host__ __device__ value_type& operator[](TIdx const& idx) {
         return m_data_[m_sfc_.hash(idx)];
     }
     template <typename TIdx>
-    value_type const& operator[](TIdx const& idx) const {
+    __host__ __device__ value_type const& operator[](TIdx const& idx) const {
         return m_data_[m_sfc_.hash(idx)];
     }
 
@@ -192,29 +192,33 @@ struct Array {
 
    public:
     template <typename TFun>
-    static constexpr value_type getValue(
+    __host__ __device__ constexpr value_type getValue(
         TFun const& op, array_index_type const& s,
         ENABLE_IF(simpla::concept::is_callable<TFun(array_index_type const&)>::value)) {
         return op(s);
     };
-    static constexpr value_type const& getValue(value_type const& v, array_index_type const& s) { return v; };
+    __host__ __device__ constexpr value_type const& getValue(value_type const& v, array_index_type const& s) {
+        return v;
+    };
 
     template <typename U, typename RSFC>
-    static constexpr auto getValue(Array<U, NDIMS, RSFC> const& v, array_index_type const& s) {
+    __host__ __device__ constexpr auto getValue(Array<U, NDIMS, RSFC> const& v, array_index_type const& s) {
         return v[s];
     };
 
-    static constexpr auto getValue(this_type& self, array_index_type const& s) { return self.at(s); };
-    static constexpr auto getValue(this_type const& self, array_index_type const& s) { return self.at(s); };
+    __host__ __device__ constexpr auto getValue(this_type& self, array_index_type const& s) { return self.at(s); };
+    __host__ __device__ constexpr auto getValue(this_type const& self, array_index_type const& s) {
+        return self.at(s);
+    };
 
     template <typename TOP, typename... Others, size_t... IND>
-    static constexpr auto _invoke_helper(Expression<TOP, Others...> const& expr, std::index_sequence<IND...>,
-                                         array_index_type const& s) {
+    __host__ __device__ constexpr auto _invoke_helper(Expression<TOP, Others...> const& expr,
+                                                      std::index_sequence<IND...>, array_index_type const& s) {
         return TOP::eval(getValue(std::get<IND>(expr.m_args_), s)...);
     }
 
     template <typename TOP, typename... Others>
-    static constexpr auto getValue(Expression<TOP, Others...> const& expr, array_index_type const& s) {
+    __host__ __device__ constexpr auto getValue(Expression<TOP, Others...> const& expr, array_index_type const& s) {
         return _invoke_helper(expr, std::index_sequence_for<Others...>(), s);
     }
 

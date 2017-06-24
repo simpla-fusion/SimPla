@@ -21,10 +21,10 @@ namespace simpla {
  *
  */
 
-enum { DEFAULT_MEMORY_LOCATION, HOST_MEMORY, DEVICE_MEMORY };
+enum { MANAGED_MEMORY, HOST_MEMORY, DEVICE_MEMORY };
 
-int spMemoryAlloc(void **p, size_t s, int location = DEFAULT_MEMORY_LOCATION);
-int spMemoryFree(void **p, size_t s, int location = DEFAULT_MEMORY_LOCATION);
+int spMemoryAlloc(void **p, size_t s, int location = MANAGED_MEMORY);
+int spMemoryFree(void **p, size_t s, int location = MANAGED_MEMORY);
 int spMemoryFill(void *dest, size_t, void const *v, size_t else_size);
 int spMemoryCopy(void *dest, void const *src, size_t s);
 
@@ -42,7 +42,7 @@ struct deleter_s {
 };
 
 template <typename T>
-std::shared_ptr<T> spMakeSharedArray(size_t s, int location = DEFAULT_MEMORY_LOCATION) {
+std::shared_ptr<T> spMakeSharedArray(size_t s, int location = MANAGED_MEMORY) {
     void *addr;
     spMemoryAlloc(&addr, s * sizeof(T), location);
 
@@ -50,8 +50,8 @@ std::shared_ptr<T> spMakeSharedArray(size_t s, int location = DEFAULT_MEMORY_LOC
 }
 
 template <typename T>
-int spMemoryFill(T *d, size_t n, T v) {
-    return spMemoryFill(d, n, &v, sizeof(T));
+int spMemoryFill(T *d, size_t s, T v) {
+    return spMemoryFill(d, s, &v, sizeof(T));
 }
 
 template <typename T>

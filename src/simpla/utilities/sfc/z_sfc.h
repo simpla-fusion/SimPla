@@ -20,8 +20,8 @@ class ZSFC {
     typedef nTuple<index_type, NDIMS> array_index_type;
     typedef std::tuple<array_index_type, array_index_type> array_index_box_type;
     array_index_box_type m_index_box_{{0, 0, 0}, {1, 1, 1}};
-    index_type m_offset_ = 0;
     array_index_type m_strides_{0, 0, 0};
+    index_type m_offset_ = 0;
     size_type m_size_ = 0;
     bool m_is_fast_first_ = false;
     ZSFC() = default;
