@@ -72,7 +72,7 @@ struct Array {
         if (m_holder_ == nullptr && m_sfc_.size() > 0) {
             m_holder_ = spMakeSharedArray<value_type>(m_sfc_.size());
             m_data_ = m_holder_.get();
-#ifdef SIMPLA_ARRAY_HAS_INITIAL_VALUE
+#ifdef SIMPLA_INITIALIZE_ARRAY_TO_SIGNALING_NAN
             spMemoryFill(m_data_, size(), m_snan_);
 #endif
         }
@@ -235,6 +235,12 @@ V Array<V, NDIMS, SFC>::m_snan_ = std::numeric_limits<V>::signaling_NaN();
 template <typename V, int NDIMS, typename SFC>
 V Array<V, NDIMS, SFC>::m_null_ = 0;
 
+namespace traits {
+template <typename T, int N, typename SFC>
+struct reference<Array<T, N, SFC>> {
+    typedef Array<T, N, SFC> const& type;
+};
+}
 // template <typename V, int NDIMS, typename SFC>
 // nTuple<V, 3> Array<nTuple<V, 3>, NDIMS, SFC>::m_snan_{std::numeric_limits<V>::signaling_NaN(),
 //                                                      std::numeric_limits<V>::signaling_NaN(),

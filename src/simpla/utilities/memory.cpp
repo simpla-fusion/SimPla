@@ -17,7 +17,7 @@
 #include <tuple>
 #include "Log.h"
 #include "SingletonHolder.h"
-#include "cuda.h"
+#include "simpla/utilities/cuda/cuda.h"
 #ifdef __CUDA__
 #define DEFAULT_MEMORY_LOCATION DEVICE_MEMORY
 #else
@@ -181,11 +181,11 @@ int spMemoryFree(void **p, size_t s, int location) {
 }
 
 int spMemoryFill(void *dest, size_t n, void const *src, size_t else_size) {
-    size_t ne = n * else_size;
-#pragma omp parallel for
-    for (size_t i = 0; i < ne; ++i) {
-        reinterpret_cast<char *>(dest)[i] = reinterpret_cast<char const *>(src)[i % else_size];
-    }
+    SP_DEVICE_CALL(cudaMemcpy(dest, src, ))
+    //#pragma omp parallel for
+    //    for (size_t i = 0; i < ne; ++i) {
+    //        reinterpret_cast<char *>(dest)[i] = reinterpret_cast<char const *>(src)[i % else_size];
+    //    }
     return SP_SUCCESS;
 }
 int spMemoryCopy(void *dest, void const *src, size_t s) {
