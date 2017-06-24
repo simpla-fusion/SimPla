@@ -43,6 +43,9 @@
 
 #cmakedefine DEFAULT_SPACE_DIMS  @DEFAULT_SPACE_DIMS@
 
+#cmakedefine SIMPLA_ARRAY_HAS_INITIAL_VALUE
+
+
 #ifdef __cplusplus
  namespace simpla{ static const unsigned short MAX_DIM_VAL = SIMPLA_MAXIMUM_DIMENSION;}
 #endif //__cplusplus

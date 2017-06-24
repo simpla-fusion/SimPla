@@ -17,7 +17,7 @@
 #include <vector>
 
 #include <simpla/utilities/Log.h>
-#include <simpla/utilities/MemoryPool.h>
+#include <simpla/utilities/memory.h>
 
 extern "C" {
 #include <mpi.h>

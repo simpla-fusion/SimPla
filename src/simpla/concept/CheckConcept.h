@@ -188,9 +188,7 @@ EXAMPLE:
 
 /**
  * @brief check if T has static  data member  T::_NAME_
- *
- *
- *   @code{.cpp}
+     @code{.cpp}
     struct Foo { static constexpr int iform = 2;};
     struct Goo { static constexpr double iform = 2.1; };
     struct Koo {};
@@ -307,9 +305,6 @@ EXAMPLE:
 //    struct _CHECKER_NAME_                                                                         \
 //        : public std::integral_constant<bool, detail::_CHECKER_NAME_<_Args...>::value> {};
 
-/**
- * @brief
- */
 #define CHOICE_TYPE_WITH_FUNCTION_MEMBER(_CHECKER_NAME_, _FUN_NAME_, _DEFAULT_TYPE_)                         \
     template <typename...>                                                                                   \
     struct _CHECKER_NAME_ {                                                                                  \

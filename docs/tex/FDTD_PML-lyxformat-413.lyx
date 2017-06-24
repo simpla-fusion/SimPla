@@ -62,7 +62,7 @@
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\partial_{x}\to s_{x}^{-1}\partial_{x}
+\partial_{x}\to m_size_{x}^{-1}\partial_{x}
 \end{equation}
 
 \end_inset
@@ -70,7 +70,7 @@
 
 \begin_inset Formula 
 \begin{equation}
-s_{\zeta}\equiv\alpha_{\zeta}+\sigma_{\zeta}/i\omega,\quad\zeta=x,y,z
+m_size_{\zeta}\equiv\alpha_{\zeta}+\sigma_{\zeta}/i\omega,\quad\zeta=x,y,z
 \end{equation}
 
 \end_inset
@@ -86,7 +86,7 @@ s_{\zeta}\equiv\alpha_{\zeta}+\sigma_{\zeta}/i\omega,\quad\zeta=x,y,z
  
 \begin_inset Formula 
 \begin{equation}
-\tilde{\nabla}\equiv\boldsymbol{e}_{x}s_{x}^{-1}\partial_{x}+\boldsymbol{e}_{y}s_{y}^{-1}\partial_{y}+\boldsymbol{e}_{z}s_{z}^{-1}\partial_{z}\,.
+\tilde{\nabla}\equiv\boldsymbol{e}_{x}m_size_{x}^{-1}\partial_{x}+\boldsymbol{e}_{y}m_size_{y}^{-1}\partial_{y}+\boldsymbol{e}_{z}m_size_{z}^{-1}\partial_{z}\,.
 \end{equation}
 
 \end_inset
@@ -103,9 +103,9 @@ s_{\zeta}\equiv\alpha_{\zeta}+\sigma_{\zeta}/i\omega,\quad\zeta=x,y,z
 \begin_inset Formula 
 \begin{equation}
 \begin{cases}
-i\omega\tilde{\boldsymbol{X}}_{1} & =s_{x}^{-1}\boldsymbol{e}_{x}\times\partial_{x}\tilde{\boldsymbol{A}}\\
-i\omega\tilde{\boldsymbol{Y}}_{1} & =s_{y}^{-1}\boldsymbol{e}_{y}\times\partial_{y}\tilde{\boldsymbol{A}}\\
-i\omega\tilde{\boldsymbol{Z}}_{1} & =s_{z}^{-1}\boldsymbol{e}_{z}\times\partial_{z}\tilde{\boldsymbol{A}}
+i\omega\tilde{\boldsymbol{X}}_{1} & =m_size_{x}^{-1}\boldsymbol{e}_{x}\times\partial_{x}\tilde{\boldsymbol{A}}\\
+i\omega\tilde{\boldsymbol{Y}}_{1} & =m_size_{y}^{-1}\boldsymbol{e}_{y}\times\partial_{y}\tilde{\boldsymbol{A}}\\
+i\omega\tilde{\boldsymbol{Z}}_{1} & =m_size_{z}^{-1}\boldsymbol{e}_{z}\times\partial_{z}\tilde{\boldsymbol{A}}
 \end{cases}\label{eq:PML X1 Freq}
 \end{equation}
 
@@ -123,9 +123,9 @@ i\omega\tilde{\boldsymbol{Z}}_{1} & =s_{z}^{-1}\boldsymbol{e}_{z}\times\partial_
 \begin_inset Formula 
 \begin{equation}
 \begin{cases}
-i\omega\tilde{\boldsymbol{X}}_{2} & =s_{x}^{-1}\boldsymbol{e}_{x}\times\partial_{x}\left(i\omega\tilde{\boldsymbol{X}}_{2}+i\omega\tilde{\boldsymbol{Y}}_{2}+i\omega\tilde{\boldsymbol{Z}}_{2}\right)\\
-i\omega\tilde{\boldsymbol{Y}}_{2} & =s_{y}^{-1}\boldsymbol{e}_{y}\times\partial_{y}\left(i\omega\tilde{\boldsymbol{X}}_{2}+i\omega\tilde{\boldsymbol{Y}}_{2}+i\omega\tilde{\boldsymbol{Z}}_{2}\right)\\
-i\omega\tilde{\boldsymbol{Z}}_{2} & =s_{z}^{-1}\boldsymbol{e}_{z}\times\partial_{z}\left(i\omega\tilde{\boldsymbol{X}}_{2}+i\omega\tilde{\boldsymbol{Y}}_{2}+i\omega\tilde{\boldsymbol{Z}}_{2}\right)
+i\omega\tilde{\boldsymbol{X}}_{2} & =m_size_{x}^{-1}\boldsymbol{e}_{x}\times\partial_{x}\left(i\omega\tilde{\boldsymbol{X}}_{2}+i\omega\tilde{\boldsymbol{Y}}_{2}+i\omega\tilde{\boldsymbol{Z}}_{2}\right)\\
+i\omega\tilde{\boldsymbol{Y}}_{2} & =m_size_{y}^{-1}\boldsymbol{e}_{y}\times\partial_{y}\left(i\omega\tilde{\boldsymbol{X}}_{2}+i\omega\tilde{\boldsymbol{Y}}_{2}+i\omega\tilde{\boldsymbol{Z}}_{2}\right)\\
+i\omega\tilde{\boldsymbol{Z}}_{2} & =m_size_{z}^{-1}\boldsymbol{e}_{z}\times\partial_{z}\left(i\omega\tilde{\boldsymbol{X}}_{2}+i\omega\tilde{\boldsymbol{Y}}_{2}+i\omega\tilde{\boldsymbol{Z}}_{2}\right)
 \end{cases}\label{eq:PML X2 freq}
 \end{equation}
 

@@ -5,460 +5,255 @@
 #ifndef SIMPLA_ARRAY_H
 #define SIMPLA_ARRAY_H
 
+#include <simpla/SIMPLA_config.h>
+#include <cfenv>
+#include <cstring>
+#include <initializer_list>
+#include <memory>
 #include <string>
+#include <tuple>
 #include "ExpressionTemplate.h"
 #include "FancyStream.h"
 #include "Log.h"
-#include "Memory.h"
-#include "MemoryPool.h"
 #include "Range.h"
+#include "SFC.h"
+#include "memory.h"
 #include "nTuple.h"
-#include "sp_def.h"
 namespace simpla {
 
-// struct ArrayIndexShift {
-//    nTuple<int, 3> m_data_;
-//};
-// inline ArrayIndexShift operator+(ArrayIndexShift const& l, index_type s) {
-//    return ArrayIndexShift{l.dim_num, l.value - s};
-//}
-// inline ArrayIndexShift operator-(ArrayIndexShift const& l, index_type s) {
-//    return ArrayIndexShift{l.dim_num, l.value + s};
-//}
-
-typedef nTuple<int, 3> ArrayIndexShift;
-typedef nTuple<int, 3> IdxShift;
-
-// static const ArrayIndexShift I{0, 0};
-// static const ArrayIndexShift J{1, 0};
-// static const ArrayIndexShift K{2, 0};
-
-namespace detail {
-template <int N, typename TFun>
-void ForeachND(std::tuple<nTuple<index_type, N>, nTuple<index_type, N>> const& inner_box, TFun const& fun) {
-    UNIMPLEMENTED;
-    //    nTuple<index_type, N> idx;
-    //    idx = std::get<0>(inner_box);
-    //
-    //    while (1) {
-    //        fun(idx);
-    //
-    //        ++idx[N - 1];
-    //        for (int rank = N - 1; rank > 0; --rank) {
-    //            if (idx[rank] >= std::get<1>(inner_box)[rank]) {
-    //                idx[rank] = std::get<0>(inner_box)[rank];
-    //                ++idx[rank - 1];
-    //            }
-    //        }
-    //        if (idx[0] >= std::get<1>(inner_box)[0]) break;
-    //    }
-}
-
-template <typename TFun>
-void ForeachND(std::tuple<nTuple<index_type, 1>, nTuple<index_type, 1>> const& inner_box, TFun const& fun,
-               bool is_fast_first = false) {
-    index_type ib = std::get<0>(inner_box)[0];
-    index_type ie = std::get<1>(inner_box)[0];
-#pragma omp parallel for
-    for (index_type i = ib; i < ie; ++i) { fun(nTuple<index_type, 1>{i}); }
-}
-template <typename TFun>
-void ForeachND(std::tuple<nTuple<index_type, 2>, nTuple<index_type, 2>> const& inner_box, TFun const& fun,
-               bool is_fast_first = false) {
-    index_type ib = std::get<0>(inner_box)[0];
-    index_type ie = std::get<1>(inner_box)[0];
-    index_type jb = std::get<0>(inner_box)[1];
-    index_type je = std::get<1>(inner_box)[1];
-    if (is_fast_first) {
-#pragma omp parallel for
-        for (index_type j = jb; j < je; ++j)
-            for (index_type i = ib; i < ie; ++i) { fun(nTuple<index_type, 2>{i, j}); }
-    } else {
-#pragma omp parallel for
-        for (index_type i = ib; i < ie; ++i)
-            for (index_type j = jb; j < je; ++j) { fun(nTuple<index_type, 2>{i, j}); }
-    }
-}
-
-template <typename TFun>
-void ForeachND(std::tuple<nTuple<index_type, 3>, nTuple<index_type, 3>> const& inner_box, TFun const& fun,
-               bool is_fast_first = false) {
-    index_type ib = std::get<0>(inner_box)[0];
-    index_type ie = std::get<1>(inner_box)[0];
-    index_type jb = std::get<0>(inner_box)[1];
-    index_type je = std::get<1>(inner_box)[1];
-    index_type kb = std::get<0>(inner_box)[2];
-    index_type ke = std::get<1>(inner_box)[2];
-
-    if (is_fast_first) {
-#pragma omp parallel for
-        for (index_type k = kb; k < ke; ++k)
-            for (index_type j = jb; j < je; ++j)
-                for (index_type i = ib; i < ie; ++i) { fun(nTuple<index_type, 3>{i, j, k}); }
-
-    } else {
-#pragma omp parallel for
-        for (index_type i = ib; i < ie; ++i)
-            for (index_type j = jb; j < je; ++j)
-                for (index_type k = kb; k < ke; ++k) { fun(nTuple<index_type, 3>{i, j, k}); }
-    }
-}
-
-template <typename TFun>
-void ForeachND(std::tuple<nTuple<index_type, 4>, nTuple<index_type, 4>> const& inner_box, TFun const& fun,
-               bool is_fast_first = false) {
-    index_type ib = std::get<0>(inner_box)[0];
-    index_type ie = std::get<1>(inner_box)[0];
-    index_type jb = std::get<0>(inner_box)[1];
-    index_type je = std::get<1>(inner_box)[1];
-    index_type kb = std::get<0>(inner_box)[2];
-    index_type ke = std::get<1>(inner_box)[2];
-    index_type lb = std::get<0>(inner_box)[3];
-    index_type le = std::get<1>(inner_box)[3];
-
-    if (is_fast_first) {
-#pragma omp parallel for
-        for (index_type l = lb; l < le; ++l)
-            for (index_type k = kb; k < ke; ++k)
-                for (index_type j = jb; j < je; ++j)
-                    for (index_type i = ib; i < ie; ++i) fun(nTuple<index_type, 4>{i, j, k, l});
-
-    } else {
-#pragma omp parallel for
-        for (index_type i = ib; i < ie; ++i)
-            for (index_type j = jb; j < je; ++j)
-                for (index_type k = kb; k < ke; ++k)
-                    for (index_type l = lb; l < le; ++l) { fun(nTuple<index_type, 4>{i, j, k, l}); }
-    }
-}
-template <typename TIdx>
-size_type Hash(std::tuple<nTuple<index_type, 2>, nTuple<index_type, 2>> const& box, TIdx const& idx) {
-    return static_cast<size_type>(((idx[1] - std::get<0>(box)[1]) +
-                                   (idx[0] - std::get<0>(box)[0]) * (std::get<1>(box)[1] - std::get<0>(box)[1])));
-};
-template <typename TIdx>
-size_type Hash(std::tuple<nTuple<index_type, 3>, nTuple<index_type, 3>> const& box, TIdx const& idx) {
-    return static_cast<size_type>((idx[2] - std::get<0>(box)[2]) +
-                                  ((idx[1] - std::get<0>(box)[1]) +
-                                   (idx[0] - std::get<0>(box)[0]) * (std::get<1>(box)[1] - std::get<0>(box)[1])) *
-                                      (std::get<1>(box)[2] - std::get<0>(box)[2]));
-};
-template <typename TIdx>
-size_type Hash(std::tuple<nTuple<index_type, 4>, nTuple<index_type, 4>> const& box, TIdx const& idx) {
-    return static_cast<size_type>((idx[3] - std::get<0>(box)[3]) +
-                                  ((idx[2] - std::get<0>(box)[2]) +
-                                   ((idx[1] - std::get<0>(box)[1]) +
-                                    (idx[0] - std::get<0>(box)[0]) * (std::get<1>(box)[1] - std::get<0>(box)[1])) *
-                                       (std::get<1>(box)[2] - std::get<0>(box)[2])) *
-                                      (std::get<1>(box)[3] - std::get<0>(box)[3]));
-};
-
-template <int N, typename TIdx>
-size_type Hash(std::tuple<nTuple<index_type, N>, nTuple<index_type, N>> const& box, TIdx const& idx) {
-    size_type res = idx[0] - std::get<0>(box)[0];
-    for (int i = 1; i < N; ++i) {
-        res *= (std::get<1>(box)[i - 1] - std::get<0>(box)[i - 1]);
-        res += idx[i] - std::get<0>(box)[i];
-    }
-    return res;
-};
-};
-
-template <typename T, int N>
-bool in_box(std::tuple<nTuple<T, N>, nTuple<T, N>> const& b, nTuple<T, N> const& idx) {
-    bool res = true;
-    for (int i = 0; i < N; ++i) { res = res && (std::get<0>(b)[i] <= idx[i]) && (idx[i] < std::get<1>(b)[i]); }
-    return res;
-};
-
-template <typename V, int NDIMS>
+template <typename V, int NDIMS, typename SFC = ZSFC<NDIMS>>
 struct Array {
    private:
-    typedef Array<V, NDIMS> this_type;
+    typedef Array<V, NDIMS, SFC> this_type;
 
    public:
     typedef V value_type;
-    static const int ndims = NDIMS;
-    typedef std::true_type prefer_pass_by_reference;
-    typedef std::false_type is_expression;
-    typedef std::true_type is_array;
+    typedef typename SFC::array_index_type array_index_type;
 
-    typedef nTuple<index_type, NDIMS> m_index_tuple;
-    typedef std::tuple<m_index_tuple, m_index_tuple> m_index_box_type;
+    static const int ndims = NDIMS;
+
+    typedef std::tuple<array_index_type, array_index_type> array_index_box_type;
 
    private:
-    std::shared_ptr<value_type> m_data_ = nullptr;
-    bool m_array_order_fast_first_ = false;
-    m_index_box_type m_index_box_;
-
-    index_type m_offset_ = 0;
-    m_index_tuple m_strides_;
-
-    size_type m_size_ = 0;
-
-    int m_data_location_ = HOST_MEMORY;
+    SFC m_sfc_;
+    std::shared_ptr<value_type> m_holder_ = nullptr;
+    value_type* m_data_ = nullptr;
+    static constexpr value_type m_snan_ = std::numeric_limits<V>::signaling_NaN();
 
    public:
-    Array() {}
+    Array() = default;
 
-    Array(this_type const& other)
-        : m_data_(other.m_data_),
-          m_index_box_(other.m_index_box_),
-          m_array_order_fast_first_(other.m_array_order_fast_first_) {
-        SetUp();
+    Array(this_type const& other) : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_holder_(other.m_holder_) {}
+
+    Array(this_type&& other) noexcept : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_holder_(other.m_holder_) {}
+
+    Array& operator=(this_type&& other) = delete;
+
+    Array(std::initializer_list<index_type> const& l) : m_sfc_(l), m_holder_(nullptr), m_data_(nullptr) { DoSetUp(); }
+
+    template <typename... Args>
+    explicit Array(Args&&... args) : m_sfc_(std::forward<Args>(args)...), m_holder_(nullptr), m_data_(nullptr) {
+        DoSetUp();
     }
 
-    explicit Array(std::initializer_list<index_type> const& l) {
-        for (int i = 0; i < NDIMS; ++i) {
-            std::get<0>(m_index_box_)[i] = 0;
-            std::get<1>(m_index_box_)[i] = 1;
-        }
-        int count = 0;
-        for (auto const& v : l) {
-            if (count >= NDIMS) { break; }
-            std::get<1>(m_index_box_)[count] = v;
-            ++count;
-        }
-        std::get<0>(m_index_box_) = std::get<0>(m_index_box_);
-        std::get<1>(m_index_box_) = std::get<1>(m_index_box_);
-        SetUp();
-    }
-    explicit Array(m_index_box_type const& b, int location = HOST_MEMORY)
-        : m_index_box_(b), m_data_(nullptr), m_data_location_(location), m_array_order_fast_first_(false) {
-        SetUp();
-    }
+    template <typename... Args>
+    explicit Array(std::shared_ptr<value_type> const& d, Args&&... args)
+        : m_sfc_(std::forward<Args>(args)...), m_holder_(d), m_data_(d.get()) {}
 
-    explicit Array(m_index_box_type const& b, std::shared_ptr<value_type> const& d, bool array_order_fast_first = false)
-        : m_index_box_(b),
-          m_data_(d),
-          m_data_location_(HOST_MEMORY),
-          m_array_order_fast_first_(array_order_fast_first) {
-        SetUp();
-    }
+    virtual ~Array() = default;
 
-    void SetUp() {
-        if (m_array_order_fast_first_) {
-            m_strides_[0] = 1;
-            m_offset_ = -std::get<0>(m_index_box_)[0];
-            for (int i = 1; i < NDIMS; ++i) {
-                m_strides_[i] =
-                    m_strides_[i - 1] * (std::get<1>(m_index_box_)[i - 1] - std::get<0>(m_index_box_)[i - 1]);
-                m_offset_ -= std::get<0>(m_index_box_)[i] * m_strides_[i];
-            }
-        } else {
-            m_strides_[NDIMS - 1] = 1;
-            m_offset_ = -std::get<0>(m_index_box_)[NDIMS - 1];
-            for (int i = NDIMS - 2; i >= 0; --i) {
-                m_strides_[i] =
-                    m_strides_[i + 1] * (std::get<1>(m_index_box_)[i + 1] - std::get<0>(m_index_box_)[i + 1]);
-                m_offset_ -= std::get<0>(m_index_box_)[i] * m_strides_[i];
-            }
-        }
-        m_size_ = 1;
-        for (int i = 0; i < NDIMS; ++i) { m_size_ *= (std::get<1>(m_index_box_)[i] - std::get<0>(m_index_box_)[i]); }
-        if (m_data_ == nullptr && m_size_ > 0) { m_data_ = MemoryAllocT<value_type>(m_size_, m_data_location_); }
-    }
-
-    template <typename... U>
-    Array(Expression<U...> const& expr) {
-        Foreach(simpla::tags::_assign(), expr);
-    }
-
-    virtual ~Array() {}
     void swap(this_type& other) {
+        std::swap(m_holder_, other.m_holder_);
         std::swap(m_data_, other.m_data_);
-        std::swap(m_array_order_fast_first_, other.m_array_order_fast_first_);
-        std::swap(m_index_box_, other.m_index_box_);
-        SetUp();
-        other.SetUp();
-    };
+        m_sfc_.swap(other.m_sfc_);
+    }
+    void DoSetUp() {
+        if (m_holder_ == nullptr && m_sfc_.size() > 0) {
+            m_holder_ = spMakeSharedArray<value_type>(m_sfc_.size() * sizeof(value_type));
+            m_data_ = m_holder_.get();
+#ifdef SIMPLA_ARRAY_HAS_INITIAL_VALUE
+            spMemoryFill(m_data_, size(), m_snan_);
+#endif
+        }
+        m_data_ = m_holder_.get();
+    }
 
-    this_type operator()(ArrayIndexShift const& IX) const {
+    void Clear() { Fill(0); }
+    void Fill(value_type v) {
+        DoSetUp();
+        spMemoryFill(m_data_, size(), v);
+    }
+    template <typename TOther>
+    void DeepCopy(TOther const& other) {
+        m_sfc_.Foreach([&](array_index_type const& idx) { at(idx) = getValue(other, idx); });
+    }
+
+    std::ostream& Print(std::ostream& os, int indent = 0) const { return m_sfc_.Print(os, m_data_, indent); }
+
+    this_type operator()(array_index_type const& IX) const {
         this_type res(*this);
         res.Shift(IX);
         return res;
     }
 
-    template <typename TIdx>
-    void Shift(nTuple<TIdx, NDIMS> const& offset) {
-        std::get<0>(m_index_box_) += offset;
-        std::get<1>(m_index_box_) += offset;
-        SetUp();
-    }
-    virtual bool empty() const { return m_data_ == nullptr; }
-    virtual std::type_info const& value_type_info() const { return typeid(value_type); }
-    virtual int GetNDIMS() const { return NDIMS; }
-    size_type size() const { return m_size_; }
+    void Shift(array_index_type const& offset) { m_sfc_.Shfit(offset); }
 
-    m_index_box_type const& GetIndexBox() const { return m_index_box_; }
+    SFC const& GetSpaceFillingCurve() const { return m_sfc_; }
 
-    std::shared_ptr<value_type>& GetPointer() { return m_data_; }
-    std::shared_ptr<value_type> const& GetPointer() const { return m_data_; }
-    virtual void* GetRawPointer() { return m_data_.get(); }
-    virtual void* GetRawPointer() const { return m_data_.get(); }
+    int GetNDIMS() const { return NDIMS; }
+    bool empty() const { return m_data_ == nullptr; }
+    std::type_info const& value_type_info() const { return typeid(value_type); }
+    size_type size() const { return m_sfc_.size(); }
+
+    array_index_box_type const& GetIndexBox() const { return m_sfc_.GetIndexBox(); }
 
     void SetData(std::shared_ptr<value_type> const& d) const { m_data_ = d; }
+    std::shared_ptr<value_type>& GetData() { return m_holder_; }
+    std::shared_ptr<value_type> const& GetData() const { return m_holder_; }
+    void* GetRawPointer() { return m_holder_.get(); }
+    void* GetRawPointer() const { return m_holder_.get(); }
 
-    size_type hash(m_index_tuple const& idx) const {
-        size_type s = dot(m_strides_, idx) + m_offset_;
-        //#ifndef NDEBUG
-        //        if (s < 0 || s >= m_size_) {
-        //           std::cerr << m_index_box_ << "~" << idx << std::endl;
-        //            OUT_OF_RANGE << "[" << 0 << "," << m_size_ << "] ~" << s << std::endl;
-        //        }
-        //#endif
-        return ((s < 0 || s >= m_size_) ? 0 : s);
+    template <typename... Args>
+    value_type& operator()(Args&&... args) {
+        return at(std::forward<Args>(args)...);
     }
-
-    value_type& at(m_index_tuple const& idx) { return m_data_.get()[hash(idx)]; }
-
-    value_type const& at(m_index_tuple const& idx) const { return m_data_.get()[hash(idx)]; }
-
-    value_type& operator[](m_index_tuple const& idx) { return at(idx); }
-
-    value_type const& operator[](m_index_tuple const& idx) const { return at(idx); }
-
-    template <typename... TID>
-    value_type& at(index_type i0, TID&&... s) {
-        return at(m_index_tuple{i0, std::forward<TID>(s)...});
+    template <typename... Args>
+    value_type const& operator()(Args&&... args) const {
+        return at(std::forward<Args>(args)...);
     }
-    template <typename... TID>
-    value_type const& at(index_type i0, TID&&... s) const {
-        return at(m_index_tuple{i0, std::forward<TID>(s)...});
+    template <typename... Args>
+    value_type& at(Args&&... args) {
+        return m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
     }
-    template <typename... TID>
-    value_type& operator()(index_type ix, TID&&... s) {
-        return at(m_index_tuple{ix, std::forward<TID>(s)...});
+    template <typename... Args>
+    value_type const& at(Args&&... args) const {
+#ifdef ENABLE_BOUND_CHECK
+        auto s = m_sfc_.hash(std::forward<Args>(args)...);
+        return (s < m_size_) ? m_data_[s] : m_snan_;
+#else
+        return m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
+#endif
     }
-
-    template <typename... TID>
-    value_type const& operator()(index_type idx, TID&&... s) const {
-        return at(m_index_tuple{idx, std::forward<TID>(s)...});
+    template <typename TIdx>
+    value_type& operator[](TIdx const& idx) {
+        return m_data_[m_sfc_.hash(idx)];
+    }
+    template <typename TIdx>
+    value_type const& operator[](TIdx const& idx) const {
+        return m_data_[m_sfc_.hash(idx)];
     }
 
     this_type& operator=(this_type const& rhs) {
-        Foreach(simpla::tags::_assign(), rhs);
+        DoSetUp();
+        m_sfc_.Foreach([&](array_index_type const& idx) { at(idx) = getValue(rhs, idx); });
+        show_fe_exceptions();
         return (*this);
     }
 
     template <typename TR>
     this_type& operator=(TR const& rhs) {
-        Foreach(simpla::tags::_assign(), rhs);
+        DoSetUp();
+        m_sfc_.Foreach([&](array_index_type const& idx) { at(idx) = getValue(rhs, idx); });
+        show_fe_exceptions();
         return (*this);
     }
 
     template <typename TExpr>
-    void Assign(m_index_tuple const& idx, TExpr const& expr) {
-        if (in_box(m_index_box_, idx)) { at(idx) = getValue(expr, idx); }
-    }
-
-    void Clear() {
-        SetUp();
-        memset(m_data_.get(), 0, size() * sizeof(value_type));
-    }
-
-    std::ostream& Print(std::ostream& os, int indent = 0) const {
-        os << "Array [" << typeid(value_type).name() << "]: " << m_index_box_ << std::endl;
-
-        simpla::detail::ForeachND(m_index_box_, [&](m_index_tuple const& idx) {
-            if (idx[NDIMS - 1] == std::get<0>(m_index_box_)[NDIMS - 1]) {
-                os << "{" << at(idx);
-            } else {
-                os << "," << at(idx);
-            }
-            if (idx[NDIMS - 1] == std::get<1>(m_index_box_)[NDIMS - 1] - 1) { os << "}" << std::endl; }
-        });
-
-        return os;
-    }
-    template <typename TOther>
-    void DeepCopy(TOther const& other) {
-        simpla::detail::ForeachND(m_index_box_, [&](m_index_tuple const& idx) { at(idx) = getValue(other, idx); });
+    void Assign(array_index_type const& idx, TExpr const& expr) {
+        if (m_sfc_.in_box(idx)) { at(idx) = getValue(expr, idx); }
     }
 
    public:
     template <typename TOP, typename... Others>
     void Foreach(TOP const& op, Others&&... others) {
-        if (size() <= 0) { return; }
-        simpla::detail::ForeachND(m_index_box_, [&](m_index_tuple const& idx) {
-            op(at(idx), getValue(std::forward<Others>(others), idx)...);
-        });
+        m_sfc_.Foreach(
+            [&](array_index_type const& idx) { op(at(idx), getValue(std::forward<Others>(others), idx)...); });
     };
 
     template <typename TFun>
     void Foreach(TFun const& op,
-                 ENABLE_IF(simpla::concept::is_callable<TFun(m_index_tuple const&, value_type&)>::value)) {
-        if (size() <= 0) { return; }
-        SetUp();
-        simpla::detail::ForeachND(m_index_box_, [&](m_index_tuple const& idx) { op(idx, at(idx)); });
+                 ENABLE_IF(simpla::concept::is_callable<TFun(array_index_type const&, value_type&)>::value)) {
+        DoSetUp();
+        m_sfc_.Foreach([&](array_index_type const& idx) { op(idx, at(idx)); });
     };
     template <typename TFun>
-    void Foreach(TFun const& op,
-                 ENABLE_IF(simpla::concept::is_callable<TFun(m_index_tuple const&, value_type const&)>::value)) const {
-        if (size() <= 0) { return; }
-        simpla::detail::ForeachND(m_index_box_, [&](m_index_tuple const& idx) { op(idx, at(idx)); });
+    void Foreach(
+        TFun const& op,
+        ENABLE_IF(simpla::concept::is_callable<TFun(array_index_type const&, value_type const&)>::value)) const {
+        m_sfc_.Foreach([&](array_index_type const& idx) { op(idx, at(idx)); });
     };
 
    public:
     template <typename TFun>
-    static constexpr value_type getValue(TFun const& op, m_index_tuple const& s,
-                                         ENABLE_IF(simpla::concept::is_callable<TFun(m_index_tuple const&)>::value)) {
+    static constexpr value_type getValue(
+        TFun const& op, array_index_type const& s,
+        ENABLE_IF(simpla::concept::is_callable<TFun(array_index_type const&)>::value)) {
         return op(s);
     };
 
-    static constexpr value_type const& getValue(value_type const& v, m_index_tuple const& s) { return v; };
-    static constexpr auto getValue(this_type& self, m_index_tuple const& s) { return self.at(s); };
-    static constexpr auto getValue(this_type const& self, m_index_tuple const& s) { return self.at(s); };
+    static constexpr value_type const& getValue(value_type const& v, array_index_type const& s) { return v; };
+    static constexpr auto getValue(this_type& self, array_index_type const& s) { return self.at(s); };
+    static constexpr auto getValue(this_type const& self, array_index_type const& s) { return self.at(s); };
 
     template <typename TOP, typename... Others, size_t... IND>
     static constexpr auto _invoke_helper(Expression<TOP, Others...> const& expr, std::index_sequence<IND...>,
-                                         m_index_tuple const& s) {
+                                         array_index_type const& s) {
         return TOP::eval(getValue(std::get<IND>(expr.m_args_), s)...);
     }
 
     template <typename TOP, typename... Others>
-    static constexpr auto getValue(Expression<TOP, Others...> const& expr, m_index_tuple const& s) {
+    static constexpr auto getValue(Expression<TOP, Others...> const& expr, array_index_type const& s) {
         return _invoke_helper(expr, std::index_sequence_for<Others...>(), s);
+    }
+
+   private:
+#pragma STDC_FENV_ACCESS on
+    void show_fe_exceptions() {
+        if (std::fetestexcept(FE_ALL_EXCEPT) & FE_INVALID) { RUNTIME_ERROR << ("FE_INVALID is raised") << std::endl; }
+        std::feclearexcept(FE_ALL_EXCEPT);
     }
 };
 
-template <typename TL, int NL>
-std::ostream& operator<<(std::ostream& os, Array<TL, NL> const& lhs) {
+template <typename V, int NDIMS, typename SFC>
+constexpr V Array<V, NDIMS, SFC>::m_snan_;  //= std::numeric_limits<V>::signaling_NaN();
+
+template <typename TL, int NL, typename SFC>
+std::ostream& operator<<(std::ostream& os, Array<TL, NL, SFC> const& lhs) {
     return lhs.Print(os, 0);
 };
 
-template <typename TL, int NL>
-std::istream& operator>>(std::istream& is, Array<TL, NL>& lhs) {
+template <typename TL, int NL, typename SFC>
+std::istream& operator>>(std::istream& is, Array<TL, NL, SFC>& lhs) {
     UNIMPLEMENTED;
     return is;
 };
 
-#define _SP_DEFINE_ARRAY_BINARY_OPERATOR(_OP_, _NAME_)                                       \
-    template <typename TL, int NL, typename TR>                                              \
-    auto operator _OP_(Array<TL, NL> const& lhs, TR const& rhs) {                            \
-        return Expression<simpla::tags::_NAME_, Array<TL, NL>, TR>(lhs, rhs);                \
-    };                                                                                       \
-    template <typename TL, typename TR, int NR>                                              \
-    auto operator _OP_(TL const& lhs, Array<TR, NR> const& rhs) {                            \
-        return Expression<simpla::tags::_NAME_, TL, Array<TR, NR>>(lhs, rhs);                \
-    };                                                                                       \
-    template <typename TL, int NL, typename... TR>                                           \
-    auto operator _OP_(Array<TL, NL> const& lhs, Expression<TR...> const& rhs) {             \
-        return Expression<simpla::tags::_NAME_, Array<TL, NL>, Expression<TR...>>(lhs, rhs); \
-    };                                                                                       \
-    template <typename... TL, typename TR, int NR>                                           \
-    auto operator _OP_(Expression<TL...> const& lhs, Array<TR, NR> const& rhs) {             \
-        return Expression<simpla::tags::_NAME_, Expression<TL...>, Array<TR, NR>>(lhs, rhs); \
-    };                                                                                       \
-    template <typename TL, int NL, typename TR, int NR>                                      \
-    auto operator _OP_(Array<TL, NL> const& lhs, Array<TR, NR> const& rhs) {                 \
-        return Expression<simpla::tags::_NAME_, Array<TL, NL>, Array<TR, NR>>(lhs, rhs);     \
+#define _SP_DEFINE_ARRAY_BINARY_OPERATOR(_OP_, _NAME_)                                             \
+    template <typename TL, int NL, typename TR, typename SFC>                                      \
+    auto operator _OP_(Array<TL, NL, SFC> const& lhs, TR const& rhs) {                             \
+        return Expression<simpla::tags::_NAME_, Array<TL, NL, SFC>, TR>(lhs, rhs);                 \
+    };                                                                                             \
+    template <typename TL, typename TR, int NR, typename SFC>                                      \
+    auto operator _OP_(TL const& lhs, Array<TR, NR, SFC> const& rhs) {                             \
+        return Expression<simpla::tags::_NAME_, TL, Array<TR, NR, SFC>>(lhs, rhs);                 \
+    };                                                                                             \
+    template <typename TL, int NL, typename... TR, typename SFC>                                   \
+    auto operator _OP_(Array<TL, NL, SFC> const& lhs, Expression<TR...> const& rhs) {              \
+        return Expression<simpla::tags::_NAME_, Array<TL, NL, SFC>, Expression<TR...>>(lhs, rhs);  \
+    };                                                                                             \
+    template <typename... TL, typename TR, int NR, typename SFC>                                   \
+    auto operator _OP_(Expression<TL...> const& lhs, Array<TR, NR, SFC> const& rhs) {              \
+        return Expression<simpla::tags::_NAME_, Expression<TL...>, Array<TR, NR, SFC>>(lhs, rhs);  \
+    };                                                                                             \
+    template <typename TL, int NL, typename TR, int NR, typename SFC>                              \
+    auto operator _OP_(Array<TL, NL, SFC> const& lhs, Array<TR, NR, SFC> const& rhs) {             \
+        return Expression<simpla::tags::_NAME_, Array<TL, NL, SFC>, Array<TR, NR, SFC>>(lhs, rhs); \
     };
 
-#define _SP_DEFINE_ARRAY_UNARY_OPERATOR(_OP_, _NAME_)                \
-    template <typename TL, int NL>                                   \
-    auto operator _OP_(Array<TL, NL> const& lhs) {                   \
-        return Expression<simpla::tags::_NAME_, Array<TL, NL>>(lhs); \
+#define _SP_DEFINE_ARRAY_UNARY_OPERATOR(_OP_, _NAME_)                     \
+    template <typename TL, int NL, typename SFC>                          \
+    auto operator _OP_(Array<TL, NL, SFC> const& lhs) {                   \
+        return Expression<simpla::tags::_NAME_, Array<TL, NL, SFC>>(lhs); \
     };
 
 _SP_DEFINE_ARRAY_BINARY_OPERATOR(+, addition)
@@ -472,13 +267,13 @@ _SP_DEFINE_ARRAY_BINARY_OPERATOR (^, bitwise_xor)
 _SP_DEFINE_ARRAY_BINARY_OPERATOR(&, bitwise_and)
 _SP_DEFINE_ARRAY_BINARY_OPERATOR(|, bitwise_or)
 
-template <typename TL, int NL>
-auto operator<<(Array<TL, NL> const& lhs, int n) {
+template <typename TL, int NL, typename SFC>
+auto operator<<(Array<TL, NL, SFC> const& lhs, int n) {
     return Expression<simpla::tags::bitwise_left_shift, Array<TL, NL>, int>(lhs, n);
 };
 
-template <typename TL, int NL>
-auto operator>>(Array<TL, NL> const& lhs, int n) {
+template <typename TL, int NL, typename SFC>
+auto operator>>(Array<TL, NL, SFC> const& lhs, int n) {
     return Expression<simpla::tags::bitwise_right_shifit, Array<TL, NL>, int>(lhs, n);
 };
 //_SP_DEFINE_ARRAY_BINARY_OPERATOR(bitwise_left_shift, <<)
@@ -493,32 +288,32 @@ _SP_DEFINE_ARRAY_BINARY_OPERATOR(||, logical_or)
 #undef _SP_DEFINE_ARRAY_BINARY_OPERATOR
 #undef _SP_DEFINE_ARRAY_UNARY_OPERATOR
 
-#define _SP_DEFINE_ARRAY_BINARY_FUNCTION(_NAME_)                                          \
-    template <typename TL, int NL, typename TR>                                           \
-    auto _NAME_(Array<TL, NL> const& lhs, TR const& rhs) {                                \
-        return Expression<simpla::tags::_NAME_, Array<TL, NL>, TR>(lhs, rhs);             \
-    };                                                                                    \
-    template <typename TL, typename TR, int NR>                                           \
-    auto _NAME_(TL const& lhs, Array<TR, NR> const& rhs) {                                \
-        return Expression<simpla::tags::_NAME_, TL, Array<TR, NR>>(lhs, rhs);             \
-    };                                                                                    \
-    template <typename TL, int NL, typename TR>                                           \
-    auto _NAME_(Array<TL, NL> const& lhs, Expression<TR> const& rhs) {                    \
-        return Expression<simpla::tags::_NAME_, Array<TL, NL>, Expression<TR>>(lhs, rhs); \
-    };                                                                                    \
-    template <typename TL, typename TR, int NR>                                           \
-    auto _NAME_(Expression<TL> const& lhs, Array<TR, NR> const& rhs) {                    \
-        return Expression<simpla::tags::_NAME_, Expression<TL>, Array<TR, NR>>(lhs, rhs); \
-    };                                                                                    \
-    template <typename TL, int NL, typename TR, int NR>                                   \
-    auto _NAME_(Array<TL, NL> const& lhs, Array<TR, NR> const& rhs) {                     \
-        return Expression<simpla::tags::_NAME_, Array<TL, NL>, Array<TR, NR>>(lhs, rhs);  \
+#define _SP_DEFINE_ARRAY_BINARY_FUNCTION(_NAME_)                                                     \
+    template <typename TL, int NL, typename TR, typename SFC>                                        \
+    auto _NAME_(Array<TL, NL, SFC> const& lhs, TR const& rhs) {                                      \
+        return Expression<simpla::tags::_NAME_, Array<TL, NL, SFC>, TR>(lhs, rhs);                   \
+    };                                                                                               \
+    template <typename TL, typename TR, int NR, typename SFC>                                        \
+    auto _NAME_(TL const& lhs, Array<TR, NR, SFC> const& rhs) {                                      \
+        return Expression<simpla::tags::_NAME_, TL, Array<TR, NR, SFC>>(lhs, rhs);                   \
+    };                                                                                               \
+    template <typename TL, int NL, typename TR, typename SFC>                                        \
+    auto _NAME_(Array<TL, NL, SFC> const& lhs, Expression<TR> const& rhs) {                          \
+        return Expression<simpla::tags::_NAME_, Array<TL, NL, SFC>, Expression<TR>>(lhs, rhs);       \
+    };                                                                                               \
+    template <typename TL, typename TR, int NR, typename SFC>                                        \
+    auto _NAME_(Expression<TL> const& lhs, Array<TR, NR, SFC> const& rhs) {                          \
+        return Expression<simpla::tags::_NAME_, Expression<TL>, Array<TR, NR, SFC>>(lhs, rhs);       \
+    };                                                                                               \
+    template <typename TL, int NL, typename TR, int NR, typename SFCL, typename SFCR>                \
+    auto _NAME_(Array<TL, NL, SFCL> const& lhs, Array<TR, NR, SFCR> const& rhs) {                    \
+        return Expression<simpla::tags::_NAME_, Array<TL, NL, SFCL>, Array<TR, NR, SFCR>>(lhs, rhs); \
     };
 
-#define _SP_DEFINE_ARRAY_UNARY_FUNCTION(_NAME_)                    \
-    template <typename T, int N>                                   \
-    auto _NAME_(Array<T, N> const& lhs) {                          \
-        return Expression<simpla::tags::_NAME_, Array<T, N>>(lhs); \
+#define _SP_DEFINE_ARRAY_UNARY_FUNCTION(_NAME_)                         \
+    template <typename T, int N, typename SFC>                          \
+    auto _NAME_(Array<T, N, SFC> const& lhs) {                          \
+        return Expression<simpla::tags::_NAME_, Array<T, N, SFC>>(lhs); \
     }
 
 _SP_DEFINE_ARRAY_UNARY_FUNCTION(cos)
@@ -540,16 +335,16 @@ _SP_DEFINE_ARRAY_BINARY_FUNCTION(pow)
 #undef _SP_DEFINE_ARRAY_BINARY_FUNCTION
 #undef _SP_DEFINE_ARRAY_UNARY_FUNCTION
 
-#define _SP_DEFINE_ARRAY_COMPOUND_OP(_OP_)                                              \
-    template <typename TL, int NL, typename TR>                                         \
-    Array<TL, NL>& operator _OP_##=(Array<TL, NL>& lhs, TR const& rhs) {                \
-        lhs = lhs _OP_ rhs;                                                             \
-        return lhs;                                                                     \
-    }                                                                                   \
-    template <typename TL, int NL, typename... TR>                                      \
-    Array<TL, NL>& operator _OP_##=(Array<TL, NL>& lhs, Expression<TR...> const& rhs) { \
-        lhs = lhs _OP_ rhs;                                                             \
-        return lhs;                                                                     \
+#define _SP_DEFINE_ARRAY_COMPOUND_OP(_OP_)                                                        \
+    template <typename TL, int NL, typename TR, typename SFC>                                     \
+    Array<TL, NL, SFC>& operator _OP_##=(Array<TL, NL, SFC>& lhs, TR const& rhs) {                \
+        lhs = lhs _OP_ rhs;                                                                       \
+        return lhs;                                                                               \
+    }                                                                                             \
+    template <typename TL, int NL, typename... TR, typename SFC>                                  \
+    Array<TL, NL, SFC>& operator _OP_##=(Array<TL, NL, SFC>& lhs, Expression<TR...> const& rhs) { \
+        lhs = lhs _OP_ rhs;                                                                       \
+        return lhs;                                                                               \
     }
 
 _SP_DEFINE_ARRAY_COMPOUND_OP(+)
@@ -565,29 +360,29 @@ _SP_DEFINE_ARRAY_COMPOUND_OP(>>)
 
 #undef _SP_DEFINE_ARRAY_COMPOUND_OP
 
-#define _SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_, _REDUCTION_)                                   \
-    template <typename TL, int NL, typename TR>                                                               \
-    bool operator _OP_(Array<TL, NL> const& lhs, TR const& rhs) {                                             \
-        return traits::reduction<_REDUCTION_>(Expression<simpla::tags::_NAME_, Array<TL, NL>, TR>(lhs, rhs)); \
-    };                                                                                                        \
-    template <typename TL, typename TR, int NR>                                                               \
-    bool operator _OP_(TL const& lhs, Array<TR, NR> const& rhs) {                                             \
-        return traits::reduction<_REDUCTION_>(Expression<simpla::tags::_NAME_, TL, Array<TR, NR>>(lhs, rhs)); \
-    };                                                                                                        \
-    template <typename TL, int NL, typename... TR>                                                            \
-    bool operator _OP_(Array<TL, NL> const& lhs, Expression<TR...> const& rhs) {                              \
-        return traits::reduction<_REDUCTION_>(                                                                \
-            Expression<simpla::tags::_NAME_, Array<TL, NL>, Expression<TR...>>(lhs, rhs));                    \
-    };                                                                                                        \
-    template <typename... TL, typename TR, int NR>                                                            \
-    bool operator _OP_(Expression<TL...> const& lhs, Array<TR, NR> const& rhs) {                              \
-        return traits::reduction<_REDUCTION_>(                                                                \
-            Expression<simpla::tags::_NAME_, Expression<TL...>, Array<TR, NR>>(lhs, rhs));                    \
-    };                                                                                                        \
-    template <typename TL, int NL, typename TR, int NR>                                                       \
-    bool operator _OP_(Array<TL, NL> const& lhs, Array<TR, NR> const& rhs) {                                  \
-        return traits::reduction<_REDUCTION_>(                                                                \
-            Expression<simpla::tags::_NAME_, Array<TL, NL>, Array<TR, NR>>(lhs, rhs));                        \
+#define _SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_, _REDUCTION_)                                        \
+    template <typename TL, int NL, typename TR, typename SFC>                                                      \
+    bool operator _OP_(Array<TL, NL, SFC> const& lhs, TR const& rhs) {                                             \
+        return traits::reduction<_REDUCTION_>(Expression<simpla::tags::_NAME_, Array<TL, NL, SFC>, TR>(lhs, rhs)); \
+    };                                                                                                             \
+    template <typename TL, typename TR, int NR, typename SFC>                                                      \
+    bool operator _OP_(TL const& lhs, Array<TR, NR, SFC> const& rhs) {                                             \
+        return traits::reduction<_REDUCTION_>(Expression<simpla::tags::_NAME_, TL, Array<TR, NR, SFC>>(lhs, rhs)); \
+    };                                                                                                             \
+    template <typename TL, int NL, typename... TR, typename SFC>                                                   \
+    bool operator _OP_(Array<TL, NL, SFC> const& lhs, Expression<TR...> const& rhs) {                              \
+        return traits::reduction<_REDUCTION_>(                                                                     \
+            Expression<simpla::tags::_NAME_, Array<TL, NL, SFC>, Expression<TR...>>(lhs, rhs));                    \
+    };                                                                                                             \
+    template <typename... TL, typename TR, int NR, typename SFC>                                                   \
+    bool operator _OP_(Expression<TL...> const& lhs, Array<TR, NR, SFC> const& rhs) {                              \
+        return traits::reduction<_REDUCTION_>(                                                                     \
+            Expression<simpla::tags::_NAME_, Expression<TL...>, Array<TR, NR, SFC>>(lhs, rhs));                    \
+    };                                                                                                             \
+    template <typename TL, int NL, typename TR, int NR, typename SFCL, typename SFCR>                              \
+    bool operator _OP_(Array<TL, NL, SFCL> const& lhs, Array<TR, NR, SFCR> const& rhs) {                           \
+        return traits::reduction<_REDUCTION_>(                                                                     \
+            Expression<simpla::tags::_NAME_, Array<TL, NL, SFCL>, Array<TR, NR, SFCR>>(lhs, rhs));                 \
     };
 
 _SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(!=, not_equal_to, simpla::tags::logical_or)
