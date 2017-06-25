@@ -72,9 +72,9 @@ struct Array {
         if (m_holder_ == nullptr && m_sfc_.size() > 0) {
             m_holder_ = spMakeSharedArray<value_type>(m_sfc_.size());
             m_data_ = m_holder_.get();
-#ifdef SIMPLA_INITIALIZE_ARRAY_TO_SIGNALING_NAN
-            spMemoryFill(m_data_, m_snan_, size());
-#endif
+            //#ifdef SIMPLA_INITIALIZE_ARRAY_TO_SIGNALING_NAN
+            //            spMemoryFill(m_data_, m_snan_, size());
+            //#endif
         }
         m_data_ = m_holder_.get();
     }
@@ -82,7 +82,7 @@ struct Array {
     void Clear() { Fill(0); }
     void Fill(value_type v) {
         DoSetUp();
-        spMemoryFill(m_data_, size(), v);
+        spMemoryFill(m_holder_.get(), v, size());
     }
     template <typename TOther>
     void DeepCopy(TOther const& other) {
