@@ -22,18 +22,17 @@ int main(int argc, char **argv) {
     Array<double, 3> c(inner_box);
     Array<double, 3> e(inner_box);
 
-    a.Clear();
-    b.Fill(1);
-    c.Fill(2);
+    a.Fill(1);
+    b.Fill(2);
 
     //    for (index_type i = 0; i < 4; ++i)
     //        for (index_type j = 0; j < 5; ++j)
     //            for (index_type k = 0; k < 5; ++k) { b(i, j, k) = i + j + k; }
     //    std::cout << b << std::endl;
-    c = a + b * 2;
-    try {
-        c = a + b * 3;
-    } catch (std::runtime_error const &error) { VERBOSE << error.what() << std::endl; }
+    c = a+ b * 2;
+   // try {
+  //      c = a + b * 3;
+  //  } catch (std::runtime_error const &error) { VERBOSE << error.what() << std::endl; }
 
     //    d.Clear();
     //    e.Clear();
@@ -42,10 +41,10 @@ int main(int argc, char **argv) {
     //    Array<nTuple<double, 3>, 3> d(inner_box);
     //    d = b * v;
 
-    std::cout << a << std::endl;
-    std::cout << b << std::endl;
-    std::cout << c << std::endl;
-    std::cout << e << std::endl;
+    std::cout << " a = " << a << std::endl;
+    std::cout << " b = " << b << std::endl;
+    std::cout << " c = " << c << std::endl;
+    std::cout << " e = " << e << std::endl;
     //    std::cout << d << std::endl;
 
     std::cout << "DONE" << std::endl;

@@ -9,6 +9,7 @@
 #define SP_TYPE_TRAITS_H_
 
 #include <type_traits>
+#include "host_define.h"
 
 namespace simpla {
 #define ENABLE_IF(_COND_) std::enable_if_t<_COND_, void>* _p = nullptr
@@ -263,7 +264,7 @@ struct assign_nested_initializer_list;
 template <>
 struct assign_nested_initializer_list<> {
     template <typename U, typename TR>
-    static inline void apply(U& u, TR const& rhs) {
+    __host__ __device__ static void apply(U& u, TR const& rhs) {
         u = rhs;
     }
 };
@@ -271,7 +272,7 @@ struct assign_nested_initializer_list<> {
 template <int I0, int... I>
 struct assign_nested_initializer_list<I0, I...> {
     template <typename U, typename TR>
-    static inline void apply(U& u, std::initializer_list<TR> const& rhs) {
+    __host__ __device__ static void apply(U& u, std::initializer_list<TR> const& rhs) {
         static_assert(is_indexable<U, int>::value, " illegal value_type_info");
 
         auto it = rhs.begin();

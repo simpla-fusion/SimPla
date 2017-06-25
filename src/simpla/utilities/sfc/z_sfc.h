@@ -7,9 +7,11 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <tuple>
+#include "../cuda/cuda.h"
 #include "../nTuple.h"
 namespace simpla {
-
+template <typename V, int NDIMS, typename SFC>
+struct Array;
 template <int NDIMS>
 class ZSFC {
     typedef ZSFC<NDIMS> this_type;
@@ -103,15 +105,21 @@ class ZSFC {
         DoSetUp();
     }
 
-    constexpr size_t hash(array_index_type const& idx) const { return dot(idx - m_offset_, m_strides_); }
+    __host__ __device__ constexpr size_t hash(array_index_type const& idx) const {
+        return dot(idx - m_offset_, m_strides_);
+    }
 
     template <typename... Args>
-    constexpr size_t hash(index_type s0, Args&&... idx) const {
+    __host__ __device__ constexpr size_t hash(index_type s0, Args&&... idx) const {
         return hash(array_index_type{s0, std::forward<Args>(idx)...});
     }
 
     template <typename TFun>
     void Foreach(TFun const& f) const;
+
+    template <typename T, typename TRhs>
+    void Assign(T& lhs, TRhs const& rhs) const;
+
     template <typename value_type>
     std::ostream& Print(std::ostream& os, value_type const* v, int indent = 0) const;
 };
@@ -199,6 +207,49 @@ void ZSFC<3>::Foreach(TFun const& fun) const {
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k) { fun(nTuple<index_type, 3>{i, j, k}); }
     }
+}
+#ifdef __CUDA__
+template <typename T, typename TRhs>
+__global__ void assign(T lhs, TRhs rhs) {
+    nTuple<index_type, 3> idx{blockIdx.x * blockDim.x + threadIdx.x, blockIdx.y * blockDim.y + threadIdx.y,
+                              blockIdx.z * blockDim.z + threadIdx.z};
+    lhs.at(idx) = T::getValue(rhs, idx);
+};
+
+#endif
+
+template <>
+template <typename T, typename TRhs>
+void ZSFC<3>::Assign(T& lhs, TRhs const& rhs) const {
+    index_type ib = std::get<0>(m_index_box_)[0];
+    index_type ie = std::get<1>(m_index_box_)[0];
+    index_type jb = std::get<0>(m_index_box_)[1];
+    index_type je = std::get<1>(m_index_box_)[1];
+    index_type kb = std::get<0>(m_index_box_)[2];
+    index_type ke = std::get<1>(m_index_box_)[2];
+
+#ifdef __CUDA__
+    SP_CALL_DEVICE_KERNEL(assign, 2, 32, lhs, rhs);
+#else
+    if (m_is_fast_first_) {
+#pragma omp parallel for
+        for (index_type k = kb; k < ke; ++k)
+            for (index_type j = jb; j < je; ++j)
+                for (index_type i = ib; i < ie; ++i) {
+                    nTuple<index_type, 3> idx{i, j, k};
+                    lhs.at(idx) = T::getValue(rhs, idx);
+                }
+
+    } else {
+#pragma omp parallel for
+        for (index_type i = ib; i < ie; ++i)
+            for (index_type j = jb; j < je; ++j)
+                for (index_type k = kb; k < ke; ++k) {
+                    nTuple<index_type, 3> idx{i, j, k};
+                    lhs.at(idx) = T::getValue(rhs, idx);
+                }
+    }
+#endif
 }
 template <>
 template <typename TFun>

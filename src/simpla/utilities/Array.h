@@ -151,7 +151,7 @@ struct Array {
 
     this_type& operator=(this_type const& rhs) {
         DoSetUp();
-        m_sfc_.Foreach([&](array_index_type const& idx) { at(idx) = getValue(rhs, idx); });
+        m_sfc_.Assign(*this, rhs);
         show_fe_exceptions();
         return (*this);
     }
@@ -159,7 +159,7 @@ struct Array {
     template <typename TR>
     this_type& operator=(TR const& rhs) {
         DoSetUp();
-        m_sfc_.Foreach([&](array_index_type const& idx) { at(idx) = getValue(rhs, idx); });
+        m_sfc_.Assign(*this, rhs);
         show_fe_exceptions();
         return (*this);
     }
@@ -192,33 +192,36 @@ struct Array {
 
    public:
     template <typename TFun>
-    __host__ __device__ constexpr value_type getValue(
+    __host__ __device__ static constexpr value_type getValue(
         TFun const& op, array_index_type const& s,
         ENABLE_IF(simpla::concept::is_callable<TFun(array_index_type const&)>::value)) {
         return op(s);
     };
-    __host__ __device__ constexpr value_type const& getValue(value_type const& v, array_index_type const& s) {
+    __host__ __device__ static constexpr value_type const& getValue(value_type const& v, array_index_type const& s) {
         return v;
     };
 
     template <typename U, typename RSFC>
-    __host__ __device__ constexpr auto getValue(Array<U, NDIMS, RSFC> const& v, array_index_type const& s) {
+    __host__ __device__ static constexpr auto getValue(Array<U, NDIMS, RSFC> const& v, array_index_type const& s) {
         return v[s];
     };
 
-    __host__ __device__ constexpr auto getValue(this_type& self, array_index_type const& s) { return self.at(s); };
-    __host__ __device__ constexpr auto getValue(this_type const& self, array_index_type const& s) {
+    __host__ __device__ static constexpr auto getValue(this_type& self, array_index_type const& s) {
+        return self.at(s);
+    };
+    __host__ __device__ static constexpr auto getValue(this_type const& self, array_index_type const& s) {
         return self.at(s);
     };
 
     template <typename TOP, typename... Others, size_t... IND>
-    __host__ __device__ constexpr auto _invoke_helper(Expression<TOP, Others...> const& expr,
-                                                      std::index_sequence<IND...>, array_index_type const& s) {
+    __host__ __device__ static constexpr auto _invoke_helper(Expression<TOP, Others...> const& expr,
+                                                             std::index_sequence<IND...>, array_index_type const& s) {
         return TOP::eval(getValue(std::get<IND>(expr.m_args_), s)...);
     }
 
     template <typename TOP, typename... Others>
-    __host__ __device__ constexpr auto getValue(Expression<TOP, Others...> const& expr, array_index_type const& s) {
+    __host__ __device__ static constexpr auto getValue(Expression<TOP, Others...> const& expr,
+                                                       array_index_type const& s) {
         return _invoke_helper(expr, std::index_sequence_for<Others...>(), s);
     }
 
@@ -238,7 +241,7 @@ V Array<V, NDIMS, SFC>::m_null_ = 0;
 namespace traits {
 template <typename T, int N, typename SFC>
 struct reference<Array<T, N, SFC>> {
-    typedef Array<T, N, SFC> const& type;
+    typedef Array<T, N, SFC>  type;
 };
 }
 // template <typename V, int NDIMS, typename SFC>

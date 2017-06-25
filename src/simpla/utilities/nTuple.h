@@ -307,7 +307,7 @@ struct nTuple<TV, N0, N...> {
 
 #define _SP_DEFINE_NTUPLE_UNARY_OPERATOR(_NAME_, _OP_)                         \
     template <typename TL, int... NL>                                          \
-    auto operator _OP_(nTuple<TL, NL...> const& lhs) {                         \
+    __host__ __device__ auto operator _OP_(nTuple<TL, NL...> const& lhs) {     \
         return Expression<simpla::tags::_NAME_, const nTuple<TL, NL...>>(lhs); \
     };
 
@@ -334,32 +334,32 @@ _SP_DEFINE_NTUPLE_BINARY_OPERATOR(logical_or, ||)
 #undef _SP_DEFINE_NTUPLE_BINARY_OPERATOR
 #undef _SP_DEFINE_NTUPLE_UNARY_OPERATOR
 
-#define _SP_DEFINE_NTUPLE_BINARY_FUNCTION(_NAME_)                                        \
-    template <typename TL, int... NL, typename TR>                                       \
-    auto _NAME_(nTuple<TL, NL...> const& lhs, TR const& rhs) {                           \
-        return Expression<tags::_NAME_, nTuple<TL, NL...>, TR>(lhs, rhs);                \
-    };                                                                                   \
-    template <typename TL, typename TR, int... NR>                                       \
-    auto _NAME_(TL const& lhs, nTuple<TR, NR...> const& rhs) {                           \
-        return Expression<tags::_NAME_, TL, nTuple<TR, NR...>>(lhs, rhs);                \
-    };                                                                                   \
-    template <typename TL, int... NL, typename... TR>                                    \
-    auto _NAME_(nTuple<TL, NL...> const& lhs, Expression<TR...> const& rhs) {            \
-        return Expression<tags::_NAME_, nTuple<TL, NL...>, Expression<TR...>>(lhs, rhs); \
-    };                                                                                   \
-    template <typename... TL, typename TR, int... NR>                                    \
-    auto _NAME_(Expression<TL...> const& lhs, nTuple<TR, NR...> const& rhs) {            \
-        return Expression<tags::_NAME_, Expression<TL...>, nTuple<TR, NR...>>(lhs, rhs); \
-    };                                                                                   \
-    template <typename TL, int... NL, typename TR, int... NR>                            \
-    auto _NAME_(nTuple<TL, NL...> const& lhs, nTuple<TR, NR...> const& rhs) {            \
-        return Expression<tags::_NAME_, nTuple<TL, NL...>, nTuple<TR, NR...>>(lhs, rhs); \
+#define _SP_DEFINE_NTUPLE_BINARY_FUNCTION(_NAME_)                                                 \
+    template <typename TL, int... NL, typename TR>                                                \
+    __host__ __device__ auto _NAME_(nTuple<TL, NL...> const& lhs, TR const& rhs) {                \
+        return Expression<tags::_NAME_, nTuple<TL, NL...>, TR>(lhs, rhs);                         \
+    };                                                                                            \
+    template <typename TL, typename TR, int... NR>                                                \
+    __host__ __device__ auto _NAME_(TL const& lhs, nTuple<TR, NR...> const& rhs) {                \
+        return Expression<tags::_NAME_, TL, nTuple<TR, NR...>>(lhs, rhs);                         \
+    };                                                                                            \
+    template <typename TL, int... NL, typename... TR>                                             \
+    __host__ __device__ auto _NAME_(nTuple<TL, NL...> const& lhs, Expression<TR...> const& rhs) { \
+        return Expression<tags::_NAME_, nTuple<TL, NL...>, Expression<TR...>>(lhs, rhs);          \
+    };                                                                                            \
+    template <typename... TL, typename TR, int... NR>                                             \
+    __host__ __device__ auto _NAME_(Expression<TL...> const& lhs, nTuple<TR, NR...> const& rhs) { \
+        return Expression<tags::_NAME_, Expression<TL...>, nTuple<TR, NR...>>(lhs, rhs);          \
+    };                                                                                            \
+    template <typename TL, int... NL, typename TR, int... NR>                                     \
+    __host__ __device__ auto _NAME_(nTuple<TL, NL...> const& lhs, nTuple<TR, NR...> const& rhs) { \
+        return Expression<tags::_NAME_, nTuple<TL, NL...>, nTuple<TR, NR...>>(lhs, rhs);          \
     };
 
-#define _SP_DEFINE_NTUPLE_UNARY_FUNCTION(_NAME_)               \
-    template <typename T, int... N>                            \
-    auto _NAME_(nTuple<T, N...> const& lhs) {                  \
-        return Expression<tags::_NAME_, nTuple<T, N...>>(lhs); \
+#define _SP_DEFINE_NTUPLE_UNARY_FUNCTION(_NAME_)                  \
+    template <typename T, int... N>                               \
+    __host__ __device__ auto _NAME_(nTuple<T, N...> const& lhs) { \
+        return Expression<tags::_NAME_, nTuple<T, N...>>(lhs);    \
     }
 
 _SP_DEFINE_NTUPLE_UNARY_FUNCTION(cos)
@@ -381,16 +381,16 @@ _SP_DEFINE_NTUPLE_BINARY_FUNCTION(pow)
 #undef _SP_DEFINE_NTUPLE_BINARY_FUNCTION
 #undef _SP_DEFINE_NTUPLE_UNARY_FUNCTION
 
-#define _SP_DEFINE_NTUPLE_COMPOUND_OP(_OP_)                                                     \
-    template <typename TL, int... NL, typename TR>                                              \
-    nTuple<TL, NL...>& operator _OP_##=(nTuple<TL, NL...>& lhs, TR const& rhs) {                \
-        lhs = lhs _OP_ rhs;                                                                     \
-        return lhs;                                                                             \
-    }                                                                                           \
-    template <typename TL, int... NL, typename... TR>                                           \
-    nTuple<TL, NL...>& operator _OP_##=(nTuple<TL, NL...>& lhs, Expression<TR...> const& rhs) { \
-        lhs = lhs _OP_ rhs;                                                                     \
-        return lhs;                                                                             \
+#define _SP_DEFINE_NTUPLE_COMPOUND_OP(_OP_)                                                                         \
+    template <typename TL, int... NL, typename TR>                                                                  \
+    __host__ __device__ nTuple<TL, NL...>& operator _OP_##=(nTuple<TL, NL...>& lhs, TR const& rhs) {                \
+        lhs = lhs _OP_ rhs;                                                                                         \
+        return lhs;                                                                                                 \
+    }                                                                                                               \
+    template <typename TL, int... NL, typename... TR>                                                               \
+    __host__ __device__ nTuple<TL, NL...>& operator _OP_##=(nTuple<TL, NL...>& lhs, Expression<TR...> const& rhs) { \
+        lhs = lhs _OP_ rhs;                                                                                         \
+        return lhs;                                                                                                 \
     }
 
 _SP_DEFINE_NTUPLE_COMPOUND_OP(+)
@@ -408,25 +408,25 @@ _SP_DEFINE_NTUPLE_COMPOUND_OP(>>)
 
 #define _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_, _REDUCTION_)                              \
     template <typename TL, int... NL, typename TR>                                                        \
-    bool operator _OP_(nTuple<TL, NL...> const& lhs, TR const& rhs) {                                     \
+    __host__ __device__ bool operator _OP_(nTuple<TL, NL...> const& lhs, TR const& rhs) {                 \
         return traits::reduction<_REDUCTION_>(Expression<tags::_NAME_, nTuple<TL, NL...>, TR>(lhs, rhs)); \
     };                                                                                                    \
     template <typename TL, typename TR, int... NR>                                                        \
-    bool operator _OP_(TL const& lhs, nTuple<TR, NR...> const& rhs) {                                     \
+    __host__ __device__ bool operator _OP_(TL const& lhs, nTuple<TR, NR...> const& rhs) {                 \
         return traits::reduction<_REDUCTION_>(Expression<tags::_NAME_, TL, nTuple<TR, NR...>>(lhs, rhs)); \
     };                                                                                                    \
     template <typename TL, int... NL, typename... TR>                                                     \
-    bool operator _OP_(nTuple<TL, NL...> const& lhs, Expression<TR...> const& rhs) {                      \
+    __host__ __device__ bool operator _OP_(nTuple<TL, NL...> const& lhs, Expression<TR...> const& rhs) {  \
         return traits::reduction<_REDUCTION_>(                                                            \
             Expression<tags::_NAME_, nTuple<TL, NL...>, Expression<TR...>>(lhs, rhs));                    \
     };                                                                                                    \
     template <typename... TL, typename TR, int... NR>                                                     \
-    bool operator _OP_(Expression<TL...> const& lhs, nTuple<TR, NR...> const& rhs) {                      \
+    __host__ __device__ bool operator _OP_(Expression<TL...> const& lhs, nTuple<TR, NR...> const& rhs) {  \
         return traits::reduction<_REDUCTION_>(                                                            \
             Expression<tags::_NAME_, Expression<TL...>, nTuple<TR, NR...>>(lhs, rhs));                    \
     };                                                                                                    \
     template <typename TL, int... NL, typename TR, int... NR>                                             \
-    bool operator _OP_(nTuple<TL, NL...> const& lhs, nTuple<TR, NR...> const& rhs) {                      \
+    __host__ __device__ bool operator _OP_(nTuple<TL, NL...> const& lhs, nTuple<TR, NR...> const& rhs) {  \
         return traits::reduction<_REDUCTION_>(                                                            \
             Expression<tags::_NAME_, nTuple<TL, NL...>, nTuple<TR, NR...>>(lhs, rhs));                    \
     };
@@ -443,12 +443,12 @@ _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(<, less, tags::logical_and)
 //    DEF_BOP(shift_right, >>)
 
 template <typename TL, typename TR>
-auto dot(TL const& l, TR const& r) {
+__host__ __device__ auto dot(TL const& l, TR const& r) {
     return traits::reduction<tags::addition>(l * r);
 }
 
 template <typename T1, typename T2>
-auto cross(T1 const& l, T2 const& r) {
+__host__ __device__ auto cross(T1 const& l, T2 const& r) {
     return traits::make_ntuple(nTuple_calculator::getValue(l, 1) * nTuple_calculator::getValue(r, 2) -
                                    nTuple_calculator::getValue(l, 2) * nTuple_calculator::getValue(r, 1),
                                nTuple_calculator::getValue(l, 2) * nTuple_calculator::getValue(r, 0) -

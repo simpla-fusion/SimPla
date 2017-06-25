@@ -75,31 +75,31 @@ __host__ __device__ auto const &get(T const *expr) {
 template <typename TReduction>
 struct reduction_s {
     template <typename Arg0>
-    static auto eval0_(Arg0 const &arg0) {
+    __device__ __host__ static auto eval0_(Arg0 const &arg0) {
         return reduction_s<TReduction>::eval(arg0);
     };
 
     template <typename Arg0, typename Arg1, typename... Others>
-    static auto eval0_(Arg0 const &arg0, Arg1 const &arg1, Others &&... others) {
+    __device__ __host__ static auto eval0_(Arg0 const &arg0, Arg1 const &arg1, Others &&... others) {
         return TReduction::eval(eval0_(arg0), eval0_(arg1, std::forward<Others>(others)...));
     };
 
     template <typename TExpr>
-    static auto const &eval1_(TExpr const &expr, std::index_sequence<>) {
+    __device__ __host__ static auto const &eval1_(TExpr const &expr, std::index_sequence<>) {
         return expr;
     }
 
     template <typename TExpr, size_t... I>
-    static auto eval1_(TExpr const &expr, std::index_sequence<I...>) {
+    __device__ __host__ static auto eval1_(TExpr const &expr, std::index_sequence<I...>) {
         return eval0_(get<I>(expr)...);
     }
     template <typename TExpr>
-    static auto eval(TExpr const &expr) {
+    __device__ __host__ static auto eval(TExpr const &expr) {
         return eval1_(expr, std::make_index_sequence<std::extent<TExpr>::value>());
     }
 };
 template <typename TReduction, typename TExpr>
-auto reduction(TExpr const &expr) {
+__device__ __host__ auto reduction(TExpr const &expr) {
     return reduction_s<TReduction>::eval(expr);
 };
 
@@ -122,12 +122,12 @@ __host__ __device__ void swap0_(T &lhs, T &rhs, ENABLE_IF((std::rank<T>::value =
 }
 
 template <typename T>
-void swap0_(T &lhs, T &rhs, ENABLE_IF((std::rank<T>::value > 0))) {
+__host__ __device__ void swap0_(T &lhs, T &rhs, ENABLE_IF((std::rank<T>::value > 0))) {
     lhs.swap(rhs);
 }
 
 template <typename T, size_t I0, size_t... I>
-void swap_(T &lhs, T &rhs, std::index_sequence<I0, I...>) {
+__host__ __device__ void swap_(T &lhs, T &rhs, std::index_sequence<I0, I...>) {
     swap0_(lhs[I0], rhs[I0]);
     swap_(lhs, rhs, std::index_sequence<I...>());
 };
@@ -168,11 +168,11 @@ struct Expression<TOP, Args...> {
 namespace tags {
 struct _assign {
     template <typename TL, typename TR>
-    static void eval(TL &l, TR const &r) {
+    __host__ __device__ static void eval(TL &l, TR const &r) {
         l = r;
     }
     template <typename TL, typename TR>
-    void operator()(TL &l, TR const &r) const {
+    __host__ __device__ void operator()(TL &l, TR const &r) const {
         l = r;
     }
 };
@@ -307,11 +307,11 @@ _SP_DEFINE_EXPR_BINARY_FUNCTION(pow)
 #undef _SP_DEFINE_EXPR_BINARY_FUNCTION
 #undef _SP_DEFINE_EXPR_UNARY_FUNCTION
 
-#define _SP_DEFINE_COMPOUND_OP(_OP_)                              \
-    template <typename TL, typename... TR>                        \
-    TL &operator _OP_##=(TL &lhs, Expression<TR...> const &rhs) { \
-        lhs = lhs _OP_ rhs;                                       \
-        return lhs;                                               \
+#define _SP_DEFINE_COMPOUND_OP(_OP_)                                                  \
+    template <typename TL, typename... TR>                                            \
+    __host__ __device__ TL &operator _OP_##=(TL &lhs, Expression<TR...> const &rhs) { \
+        lhs = lhs _OP_ rhs;                                                           \
+        return lhs;                                                                   \
     }
 
 _SP_DEFINE_COMPOUND_OP(+)
@@ -331,25 +331,25 @@ _SP_DEFINE_COMPOUND_OP(>>)
     namespace tags {                                                                                      \
     struct _NAME_ {                                                                                       \
         template <typename TL, typename TR>                                                               \
-        static constexpr bool eval(TL const &l, TR const &r) {                                            \
+        __host__ __device__ static constexpr bool eval(TL const &l, TR const &r) {                        \
             return ((l _OP_ r));                                                                          \
         }                                                                                                 \
         template <typename TL, typename TR>                                                               \
-        constexpr bool operator()(TL const &l, TR const &r) const {                                       \
+        __host__ __device__ constexpr bool operator()(TL const &l, TR const &r) const {                   \
             return ((l _OP_ r));                                                                          \
         }                                                                                                 \
     };                                                                                                    \
     }                                                                                                     \
     template <typename... TL, typename TR>                                                                \
-    bool operator _OP_(Expression<TL...> const &lhs, TR const &rhs) {                                     \
+    __host__ __device__ bool operator _OP_(Expression<TL...> const &lhs, TR const &rhs) {                 \
         return traits::reduction<_REDUCTION_>(Expression<tags::_NAME_, Expression<TL...>, TR>(lhs, rhs)); \
     };                                                                                                    \
     template <typename TL, typename... TR>                                                                \
-    bool operator _OP_(TL const &lhs, Expression<TR...> const &rhs) {                                     \
+    __host__ __device__ bool operator _OP_(TL const &lhs, Expression<TR...> const &rhs) {                 \
         return traits::reduction<_REDUCTION_>(Expression<tags::_NAME_, TL, Expression<TR...>>(lhs, rhs)); \
     };                                                                                                    \
     template <typename... TL, typename... TR>                                                             \
-    bool operator _OP_(Expression<TL...> const &lhs, Expression<TR...> const &rhs) {                      \
+    __host__ __device__ bool operator _OP_(Expression<TL...> const &lhs, Expression<TR...> const &rhs) {  \
         return traits::reduction<_REDUCTION_>(                                                            \
             Expression<tags::_NAME_, Expression<TL...>, Expression<TR...>>(lhs, rhs));                    \
     };
@@ -383,15 +383,15 @@ struct _cross {};
 }
 
 template <typename TL, typename TR>
-auto inner_product(TL const &l, TR const &r) {
+__host__ __device__ auto inner_product(TL const &l, TR const &r) {
     return traits::reduction<tags::addition>(l * r);
 }
 template <typename TL, typename TR>
-auto dot_v(TL const &l, TR const &r) {
+__host__ __device__ auto dot_v(TL const &l, TR const &r) {
     return Expression<tags::_dot, const TL, const TR>(l, r);
 }
 template <typename TL, typename TR>
-auto cross_v(TL const &l, TR const &r) {
+__host__ __device__ auto cross_v(TL const &l, TR const &r) {
     return Expression<tags::_cross, const TL, const TR>(l, r);
 }
 

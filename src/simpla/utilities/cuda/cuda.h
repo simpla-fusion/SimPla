@@ -4,12 +4,15 @@
 
 #ifndef SIMPLA_CUDA_H
 #define SIMPLA_CUDA_H
+
+#include <simpla/SIMPLA_config.h>
+#include <simpla/utilities/Log.h>
+
+#ifdef __CUDA__
 #include </usr/local/cuda/include/cuda_runtime_api.h>
 #include </usr/local/cuda/include/device_launch_parameters.h>
 #include </usr/local/cuda/include/driver_types.h>
-#include <simpla/SIMPLA_config.h>
-#include <simpla/utilities/Log.h>
-#ifdef CUDA_FOUND
+
 #define SP_DEVICE_CALL(_CMD_)                                                                                        \
     {                                                                                                                \
         auto err_code = (_CMD_);                                                                                     \
@@ -19,21 +22,21 @@
         }                                                                                                            \
     }
 
-#define SP_CALL_DEVICE_KERNEL(_FUN_, _DIMS_, _N_THREADS_, ...)                                                       \
-    _FUN_<<<(_DIMS_), (_N_THREADS_)>>>(__VA_ARGS__);                                                                 \
-    {                                                                                                                \
-        auto err_code = (cudaPeekAtLastError());                                                                     \
-        if (err_code != cudaSuccess) {                                                                               \
+#define SP_CALL_DEVICE_KERNEL(_FUN_, _DIMS_, _N_THREADS_, ...)                                                         \
+    _FUN_<<<(_DIMS_), (_N_THREADS_)>>>(__VA_ARGS__);                                                                   \
+    {                                                                                                                  \
+        auto err_code = (cudaPeekAtLastError());                                                                       \
+        if (err_code != cudaSuccess) {                                                                                 \
             RUNTIME_ERROR << "[code=0x" << err_code << ":" << cudaGetErrorString(err_code) << "] :" << __STRING(_FUN_) \
-                          << std::endl;                                                                              \
-        }                                                                                                            \
-    }                                                                                                                \
-    {                                                                                                                \
-        auto err_code = (cudaDeviceSynchronize());                                                                   \
-        if (err_code != cudaSuccess) {                                                                               \
+                          << std::endl;                                                                                \
+        }                                                                                                              \
+    }                                                                                                                  \
+    {                                                                                                                  \
+        auto err_code = (cudaDeviceSynchronize());                                                                     \
+        if (err_code != cudaSuccess) {                                                                                 \
             RUNTIME_ERROR << "[code=0x" << err_code << ":" << cudaGetErrorString(err_code) << "] :" << __STRING(_FUN_) \
-                          << std::endl;                                                                              \
-        }                                                                                                            \
+                          << std::endl;                                                                                \
+        }                                                                                                              \
     }
 
 #define SP_DEVICE_CALL_KERNEL2(_FUN_, _DIMS_, _N_THREADS_, _SMEM_, ...) \
