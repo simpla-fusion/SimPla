@@ -73,7 +73,7 @@ struct Array {
             m_holder_ = spMakeSharedArray<value_type>(m_sfc_.size());
             m_data_ = m_holder_.get();
 #ifdef SIMPLA_INITIALIZE_ARRAY_TO_SIGNALING_NAN
-            spMemoryFill(m_data_, size(), m_snan_);
+            spMemoryFill(m_data_, m_snan_, size());
 #endif
         }
         m_data_ = m_holder_.get();

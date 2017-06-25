@@ -148,50 +148,6 @@ void *MemoryPool::pop(size_t s, int loc) {
     }
     return addr;
 }
-int spMemoryAlloc(void **p, size_t s, int location) {
-    //    *p = SingletonHolder<MemoryPool>::instance().pop(s, 0);
-
-    switch (location) {
-        case MANAGED_MEMORY:
-            SP_DEVICE_CALL(cudaMallocManaged(p, s));
-            break;
-        case DEVICE_MEMORY:
-            SP_DEVICE_CALL(cudaMalloc(p, s));
-            break;
-        case HOST_MEMORY:
-        default:
-            *p = malloc(s);
-    }
-
-    return SP_SUCCESS;
-}
-int spMemoryFree(void **p, size_t s, int location) {
-    //    SingletonHolder<MemoryPool>::instance().push(*p, s, 0);
-    switch (location) {
-        case MANAGED_MEMORY:
-        case DEVICE_MEMORY:
-            SP_DEVICE_CALL(cudaFree(p));
-            break;
-        case HOST_MEMORY:
-        default:
-            *p = malloc(s);
-    }
-    *p = nullptr;
-    return SP_SUCCESS;
-}
-
-int spMemoryFill(void *dest, size_t n, void const *src, size_t else_size) {
-    SP_DEVICE_CALL(cudaMemcpy(dest, src, ))
-    //#pragma omp parallel for
-    //    for (size_t i = 0; i < ne; ++i) {
-    //        reinterpret_cast<char *>(dest)[i] = reinterpret_cast<char const *>(src)[i % else_size];
-    //    }
-    return SP_SUCCESS;
-}
-int spMemoryCopy(void *dest, void const *src, size_t s) {
-    memcpy(dest, src, s);
-    return SP_SUCCESS;
-}
 
 // std::shared_ptr<void> sp_alloc_MemoryPool(size_t s) {
 //    void *addr = SingletonHolder<MemoryPool>::instance().pop(s);

@@ -46,7 +46,7 @@
 
 #cmakedefine DEFAULT_SPACE_DIMS @DEFAULT_SPACE_DIMS@
 
-#cmakedefine SIMPLA_ARRAY_HAS_INITIAL_VALUE
+#cmakedefine SIMPLA_INITIALIZE_ARRAY_TO_SIGNALING_NAN
 
 
 #ifdef __cplusplus
