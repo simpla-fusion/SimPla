@@ -1,11 +1,9 @@
 
-add_subdirectory(cuda)
-#target_link_libraries(toolbox ${LUA_LIBRARIES} )
 
 FILE(GLOB toolbox_SRC ./*.cpp ./*.cu)
 add_library(toolbox ${toolbox_SRC} )
 MESSAGE(${toolbox_SRC})
-target_link_libraries(toolbox ${LUA_LIBRARIES}  toolbox_cuda)
+target_link_libraries(toolbox ${LUA_LIBRARIES}  )
 
 #${HDF5_LIBRARIES} ${MPI_LIBRARIES}  ${TBB_LIBRARIES}
 ###########################################################

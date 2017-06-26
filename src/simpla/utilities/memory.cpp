@@ -17,7 +17,7 @@
 #include <tuple>
 #include "Log.h"
 #include "SingletonHolder.h"
-#include "simpla/utilities/cuda/cuda.h"
+#include "device_common.h"
 #ifdef __CUDA__
 #define DEFAULT_MEMORY_LOCATION DEVICE_MEMORY
 #else

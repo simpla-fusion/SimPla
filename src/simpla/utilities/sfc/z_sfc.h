@@ -6,9 +6,10 @@
 #define SIMPLA_Z_SFC_H
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/utilities/memory.h>
 #include <tuple>
-#include "../cuda/cuda.h"
 #include "../nTuple.h"
+#include "simpla/utilities/device_common.h"
 namespace simpla {
 template <typename V, int NDIMS, typename SFC>
 struct Array;
@@ -114,8 +115,24 @@ class ZSFC {
         return hash(array_index_type{s0, std::forward<Args>(idx)...});
     }
 
+    template <typename T>
+    std::shared_ptr<T> make_shared(bool fill_san = false) const;
+
+    template <typename V, typename... Args>
+    __host__ __device__ V& Get(V* p, Args&&... args) const {
+#ifdef ENABLE_BOUND_CHECK
+        auto s = hash(std::forward<Args>(args)...);
+        return (s < m_size_) ? p[s] : m_null_;
+#else
+        return p[hash(std::forward<Args>(args)...)];
+#endif
+    }
+
     template <typename TFun>
     void Foreach(TFun const& f) const;
+
+    template <typename T, typename TRhs>
+    void Fill(T& lhs, TRhs const& rhs) const;
 
     template <typename T, typename TRhs>
     void Assign(T& lhs, TRhs const& rhs) const;
@@ -123,6 +140,15 @@ class ZSFC {
     template <typename value_type>
     std::ostream& Print(std::ostream& os, value_type const* v, int indent = 0) const;
 };
+
+template <int NDIMS>
+template <typename T>
+std::shared_ptr<T> ZSFC<NDIMS>::make_shared(bool fill_snan) const {
+    auto res = spMakeShared<T>(size(), fill_snan);
+    if (fill_snan) { spMemoryFill(res.get(), std::numeric_limits<T>::signaling_NaN(), size()); }
+    return res;
+};
+
 template <int NDIMS>
 template <typename value_type>
 std::ostream& ZSFC<NDIMS>::Print(std::ostream& os, value_type const* v, int indent) const {
@@ -208,12 +234,14 @@ void ZSFC<3>::Foreach(TFun const& fun) const {
                 for (index_type k = kb; k < ke; ++k) { fun(nTuple<index_type, 3>{i, j, k}); }
     }
 }
+
 #ifdef __CUDA__
 template <typename T, typename TRhs>
-__global__ void assign(T lhs, TRhs rhs) {
-    nTuple<index_type, 3> idx{blockIdx.x * blockDim.x + threadIdx.x, blockIdx.y * blockDim.y + threadIdx.y,
-                              blockIdx.z * blockDim.z + threadIdx.z};
-    lhs.at(idx) = T::getValue(rhs, idx);
+__global__ void assign(nTuple<index_type, 3> min, nTuple<index_type, 3> max, T lhs, TRhs rhs) {
+    nTuple<index_type, 3> idx{min[0] + blockIdx.x * blockDim.x + threadIdx.x,
+                              min[1] + blockIdx.y * blockDim.y + threadIdx.y,
+                              min[2] + blockIdx.z * blockDim.z + threadIdx.z};
+    if (idx[0] < max[0] && idx[1] < max[1] && idx[2] < max[2]) { lhs.at(idx) = T::getValue(rhs, idx); }
 };
 
 #endif
@@ -221,16 +249,26 @@ __global__ void assign(T lhs, TRhs rhs) {
 template <>
 template <typename T, typename TRhs>
 void ZSFC<3>::Assign(T& lhs, TRhs const& rhs) const {
+#ifdef __CUDA__
+    dim3 threadsPerBlock{4, 4, 4};
+
+    dim3 numBlocks{static_cast<uint>(std::get<1>(m_index_box_)[0] - std::get<0>(m_index_box_)[0] + threadsPerBlock.x) /
+                       threadsPerBlock.x,
+                   static_cast<uint>(std::get<1>(m_index_box_)[1] - std::get<0>(m_index_box_)[1] + threadsPerBlock.y) /
+                       threadsPerBlock.y,
+                   static_cast<uint>(std::get<1>(m_index_box_)[2] - std::get<0>(m_index_box_)[2] + threadsPerBlock.z) /
+                       threadsPerBlock.z};
+
+    SP_CALL_DEVICE_KERNEL(assign, numBlocks, threadsPerBlock, std::get<0>(m_index_box_), std::get<1>(m_index_box_), lhs,
+                          rhs);
+#else
+
     index_type ib = std::get<0>(m_index_box_)[0];
     index_type ie = std::get<1>(m_index_box_)[0];
     index_type jb = std::get<0>(m_index_box_)[1];
     index_type je = std::get<1>(m_index_box_)[1];
     index_type kb = std::get<0>(m_index_box_)[2];
     index_type ke = std::get<1>(m_index_box_)[2];
-
-#ifdef __CUDA__
-    SP_CALL_DEVICE_KERNEL(assign, 2, 32, lhs, rhs);
-#else
     if (m_is_fast_first_) {
 #pragma omp parallel for
         for (index_type k = kb; k < ke; ++k)
@@ -251,6 +289,13 @@ void ZSFC<3>::Assign(T& lhs, TRhs const& rhs) const {
     }
 #endif
 }
+
+template <>
+template <typename T, typename TRhs>
+void ZSFC<3>::Fill(T& lhs, TRhs const& rhs) const {
+    spMemoryFill(lhs.get(), rhs, size());
+};
+
 template <>
 template <typename TFun>
 void ZSFC<4>::Foreach(TFun const& fun) const {

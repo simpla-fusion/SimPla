@@ -5,6 +5,7 @@
 #ifndef SIMPLA_EXPRESSIONTEMPLATE_H
 #define SIMPLA_EXPRESSIONTEMPLATE_H
 
+#include <cmath>
 #include "host_define.h"
 #include "tuple.h"
 #include "type_traits.h"
@@ -148,8 +149,11 @@ template <typename TOP, typename... Args>
 struct Expression<TOP, Args...> {
     typedef Expression<TOP, Args...> this_type;
 
+#if defined(__CUDA__)  // for cuda host
+    std::tuple<std::decay_t<Args>...> m_args_;
+#else  // default, cpu
     std::tuple<traits::reference_t<Args>...> m_args_;
-
+#endif
     TOP m_op_;
 
     __host__ __device__ Expression(this_type const &that) : m_args_(that.m_args_) {}
@@ -248,22 +252,22 @@ struct _assign {
         return Expression<tags::_NAME_, Expression<TL...>, Expression<TR...>>(lhs, rhs);          \
     };
 
-#define _SP_DEFINE_EXPR_UNARY_FUNCTION(_NAME_)                       \
-    namespace tags {                                                 \
-    struct _NAME_ {                                                  \
-        template <typename TL>                                       \
-        __host__ __device__ static constexpr auto eval(TL &l) {      \
-            return (_NAME_(l));                                      \
-        }                                                            \
-        template <typename TL>                                       \
-        __host__ __device__ constexpr auto operator()(TL &l) const { \
-            return _NAME_(l);                                        \
-        }                                                            \
-    };                                                               \
-    }                                                                \
-    template <typename... T>                                         \
-    __host__ __device__ auto _NAME_(Expression<T...> const &lhs) {   \
-        return Expression<tags::_NAME_, Expression<T...>>(lhs);      \
+#define _SP_DEFINE_EXPR_UNARY_FUNCTION(_NAME_)                             \
+    namespace tags {                                                       \
+    struct _NAME_ {                                                        \
+        template <typename TL>                                             \
+        __host__ __device__ static constexpr auto eval(TL const &l) {      \
+            return (std::_NAME_(l));                                       \
+        }                                                                  \
+        template <typename TL>                                             \
+        __host__ __device__ constexpr auto operator()(TL const &l) const { \
+            return std::_NAME_(l);                                         \
+        }                                                                  \
+    };                                                                     \
+    }                                                                      \
+    template <typename... T>                                               \
+    __host__ __device__ auto _NAME_(Expression<T...> const &lhs) {         \
+        return Expression<tags::_NAME_, Expression<T...>>(lhs);            \
     }
 
 _SP_DEFINE_EXPR_BINARY_OPERATOR(+, addition)

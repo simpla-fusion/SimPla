@@ -36,67 +36,48 @@ struct Array {
 
    private:
     SFC m_sfc_;
-    std::shared_ptr<value_type> m_holder_ = nullptr;
-    value_type* m_data_ = nullptr;
+    std::shared_ptr<value_type> m_data_ = nullptr;
+    value_type* m_pointer_ = nullptr;
     static value_type m_snan_;
     static value_type m_null_;
 
    public:
     Array() = default;
 
-    Array(this_type const& other) : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_holder_(other.m_holder_) {}
+    Array(this_type const& other) : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_pointer_(other.m_pointer_) {}
 
-    Array(this_type&& other) noexcept : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_holder_(other.m_holder_) {}
+    Array(this_type&& other) noexcept : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_pointer_(other.m_pointer_) {}
 
     Array& operator=(this_type&& other) = delete;
 
-    Array(std::initializer_list<index_type> const& l) : m_sfc_(l), m_holder_(nullptr), m_data_(nullptr) { DoSetUp(); }
+    Array(std::initializer_list<index_type> const& l) : m_sfc_(l) { DoSetUp(); }
 
     template <typename... Args>
-    explicit Array(Args&&... args) : m_sfc_(std::forward<Args>(args)...), m_holder_(nullptr), m_data_(nullptr) {
+    explicit Array(Args&&... args) : m_sfc_(std::forward<Args>(args)...) {
         DoSetUp();
     }
 
     template <typename... Args>
     explicit Array(std::shared_ptr<value_type> const& d, Args&&... args)
-        : m_sfc_(std::forward<Args>(args)...), m_holder_(d), m_data_(d.get()) {}
+        : m_sfc_(std::forward<Args>(args)...), m_data_(d), m_pointer_(d.get()) {}
 
     virtual ~Array() = default;
 
     void swap(this_type& other) {
-        std::swap(m_holder_, other.m_holder_);
         std::swap(m_data_, other.m_data_);
+        std::swap(m_pointer_, other.m_pointer_);
         m_sfc_.swap(other.m_sfc_);
     }
     void DoSetUp() {
-        if (m_holder_ == nullptr && m_sfc_.size() > 0) {
-            m_holder_ = spMakeSharedArray<value_type>(m_sfc_.size());
-            m_data_ = m_holder_.get();
-            //#ifdef SIMPLA_INITIALIZE_ARRAY_TO_SIGNALING_NAN
-            //            spMemoryFill(m_data_, m_snan_, size());
-            //#endif
+        if (m_data_ == nullptr) {
+#ifdef SIMPLA_INITIALIZE_ARRAY_TO_SIGNALING_NAN
+            m_data_ = m_sfc_.template make_shared<value_type>(true);
+#else
+            m_data_ = m_sfc_.template make_shared<value_type>(false);
+#endif
         }
-        m_data_ = m_holder_.get();
+        m_pointer_ = m_data_.get();
     }
-
-    void Clear() { Fill(0); }
-    void Fill(value_type v) {
-        DoSetUp();
-        spMemoryFill(m_holder_.get(), v, size());
-    }
-    template <typename TOther>
-    void DeepCopy(TOther const& other) {
-        m_sfc_.Foreach([&](array_index_type const& idx) { at(idx) = getValue(other, idx); });
-    }
-
-    std::ostream& Print(std::ostream& os, int indent = 0) const { return m_sfc_.Print(os, m_data_, indent); }
-
-    this_type operator()(array_index_type const& IX) const {
-        this_type res(*this);
-        res.Shift(IX);
-        return res;
-    }
-
     void Shift(array_index_type const& offset) { m_sfc_.Shfit(offset); }
 
     SFC const& GetSpaceFillingCurve() const { return m_sfc_; }
@@ -105,48 +86,20 @@ struct Array {
     bool empty() const { return m_data_ == nullptr; }
     std::type_info const& value_type_info() const { return typeid(value_type); }
     size_type size() const { return m_sfc_.size(); }
-
     array_index_box_type const& GetIndexBox() const { return m_sfc_.GetIndexBox(); }
-
     void SetData(std::shared_ptr<value_type> const& d) const { m_data_ = d; }
-    std::shared_ptr<value_type>& GetData() { return m_holder_; }
-    std::shared_ptr<value_type> const& GetData() const { return m_holder_; }
-    void* GetRawPointer() { return m_holder_.get(); }
-    void* GetRawPointer() const { return m_holder_.get(); }
+    std::shared_ptr<value_type>& GetData() { return m_data_; }
+    std::shared_ptr<value_type> const& GetData() const { return m_data_; }
+    value_type* GetRawPointer() { return m_data_.get(); }
+    value_type* GetRawPointer() const { return m_data_.get(); }
 
-    template <typename... Args>
-    __host__ __device__ value_type& operator()(Args&&... args) {
-        return at(std::forward<Args>(args)...);
-    }
-    template <typename... Args>
-    __host__ __device__ value_type const& operator()(Args&&... args) const {
-        return at(std::forward<Args>(args)...);
-    }
-    template <typename... Args>
-    __host__ __device__ value_type& at(Args&&... args) {
-#ifdef ENABLE_BOUND_CHECK
-        auto s = m_sfc_.hash(std::forward<Args>(args)...);
-        return (s < m_size_) ? m_data_[s] : m_null_;
-#else
-        return m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
-#endif
-    }
-    template <typename... Args>
-    __host__ __device__ value_type const& at(Args&&... args) const {
-#ifdef ENABLE_BOUND_CHECK
-        auto s = m_sfc_.hash(std::forward<Args>(args)...);
-        return (s < m_size_) ? m_data_[s] : m_snan_;
-#else
-        return m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
-#endif
-    }
-    template <typename TIdx>
-    __host__ __device__ value_type& operator[](TIdx const& idx) {
-        return m_data_[m_sfc_.hash(idx)];
-    }
-    template <typename TIdx>
-    __host__ __device__ value_type const& operator[](TIdx const& idx) const {
-        return m_data_[m_sfc_.hash(idx)];
+    value_type* get() { return m_data_.get(); }
+    value_type* get() const { return m_data_.get(); }
+
+    void Clear() { Fill(0); }
+    void Fill(value_type v) {
+        DoSetUp();
+        m_sfc_.Fill(m_data_, v);
     }
 
     this_type& operator=(this_type const& rhs) {
@@ -162,6 +115,43 @@ struct Array {
         m_sfc_.Assign(*this, rhs);
         show_fe_exceptions();
         return (*this);
+    }
+
+    template <typename TOther>
+    void DeepCopy(TOther const& other) {
+        m_sfc_.Foreach([&](array_index_type const& idx) { at(idx) = getValue(other, idx); });
+    }
+
+    std::ostream& Print(std::ostream& os, int indent = 0) const { return m_sfc_.Print(os, m_data_.get(), indent); }
+
+    this_type operator()(array_index_type const& IX) const {
+        this_type res(*this);
+        res.Shift(IX);
+        return res;
+    }
+    template <typename... Args>
+    __host__ __device__ value_type& at(Args&&... args) {
+        return m_sfc_.Get(m_pointer_, std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    __host__ __device__ value_type const& at(Args&&... args) const {
+        return m_sfc_.Get(m_pointer_, std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    __host__ __device__ value_type& operator()(Args&&... args) {
+        return at(std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    __host__ __device__ value_type const& operator()(Args&&... args) const {
+        return at(std::forward<Args>(args)...);
+    }
+    template <typename TIdx>
+    __host__ __device__ value_type& operator[](TIdx const& idx) {
+        return at(idx);
+    }
+    template <typename TIdx>
+    __host__ __device__ value_type const& operator[](TIdx const& idx) const {
+        return at(idx);
     }
 
     template <typename TExpr>
@@ -241,7 +231,7 @@ V Array<V, NDIMS, SFC>::m_null_ = 0;
 namespace traits {
 template <typename T, int N, typename SFC>
 struct reference<Array<T, N, SFC>> {
-    typedef Array<T, N, SFC>  type;
+    typedef Array<T, N, SFC> const& type;
 };
 }
 // template <typename V, int NDIMS, typename SFC>

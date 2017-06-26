@@ -12,40 +12,33 @@
 using namespace simpla;
 
 int main(int argc, char **argv) {
-    typedef Array<double, 1> a1_t;
-    typedef Array<double, 3> a3_slow_t;
-    typedef Array<double, 3> a3_fast_t;
-
     index_box_type inner_box{{0, 0, 0}, {4, 5, 5}};
     Array<double, 3> a(inner_box);
     Array<double, 3> b(inner_box);
     Array<double, 3> c(inner_box);
-    Array<double, 3> e(inner_box);
+    Array<double, 3> d(inner_box);
 
     a.Fill(1);
     b.Fill(2);
 
-    //    for (index_type i = 0; i < 4; ++i)
-    //        for (index_type j = 0; j < 5; ++j)
-    //            for (index_type k = 0; k < 5; ++k) { b(i, j, k) = i + j + k; }
-    //    std::cout << b << std::endl;
-    c = a+ b * 2;
-   // try {
-  //      c = a + b * 3;
-  //  } catch (std::runtime_error const &error) { VERBOSE << error.what() << std::endl; }
+    c = sin(a) + b * 2;
+    std::cout << " a = " << a << std::endl;
+    std::cout << " b = " << b << std::endl;
+    std::cout << " c = " << c << std::endl;
+    try {
+        c = a + sin(b) * 3 + d;
+    } catch (std::runtime_error const &error) { VERBOSE << error.what() << std::endl; }
+
+    std::cout << " d = " << d << std::endl;
 
     //    d.Clear();
     //    e.Clear();
     //    c = a(IdxShift{1, 0, 0}) - a(IdxShift{-1, 0, 0}) + a(IdxShift{0, 1, 0}) - a(IdxShift{0, -1, 0});
-    //    nTuple<double, 3> v = {1, 2, 3};
-    //    Array<nTuple<double, 3>, 3> d(inner_box);
-    //    d = b * v;
+    nTuple<double, 3> v = {1, 2, 3};
+    Array<nTuple<double, 3>, 3> e(inner_box);
+    e = b * v;
 
-    std::cout << " a = " << a << std::endl;
-    std::cout << " b = " << b << std::endl;
-    std::cout << " c = " << c << std::endl;
-    std::cout << " e = " << e << std::endl;
-    //    std::cout << d << std::endl;
+    std::cout << e << std::endl;
 
     std::cout << "DONE" << std::endl;
 }
