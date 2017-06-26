@@ -6,7 +6,6 @@
 #define SIMPLA_ARRAY_H
 
 #include <simpla/SIMPLA_config.h>
-#include <cfenv>
 #include <cstring>
 #include <initializer_list>
 #include <memory>
@@ -105,7 +104,6 @@ struct Array {
     this_type& operator=(this_type const& rhs) {
         DoSetUp();
         m_sfc_.Assign(*this, rhs);
-        show_fe_exceptions();
         return (*this);
     }
 
@@ -113,7 +111,6 @@ struct Array {
     this_type& operator=(TR const& rhs) {
         DoSetUp();
         m_sfc_.Assign(*this, rhs);
-        show_fe_exceptions();
         return (*this);
     }
 
@@ -213,13 +210,6 @@ struct Array {
     __host__ __device__ static constexpr auto getValue(Expression<TOP, Others...> const& expr,
                                                        array_index_type const& s) {
         return _invoke_helper(expr, std::index_sequence_for<Others...>(), s);
-    }
-
-   private:
-#pragma STDC_FENV_ACCESS on
-    void show_fe_exceptions() {
-        if (std::fetestexcept(FE_ALL_EXCEPT) & FE_INVALID) { RUNTIME_ERROR << ("FE_INVALID is raised") << std::endl; }
-        std::feclearexcept(FE_ALL_EXCEPT);
     }
 };
 

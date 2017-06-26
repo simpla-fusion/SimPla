@@ -21,13 +21,13 @@ int main(int argc, char **argv) {
     a.Fill(1);
     b.Fill(2);
 
-    c = sin(a) + b * 2;
+    c = (a) + b * 2;
+
     std::cout << " a = " << a << std::endl;
     std::cout << " b = " << b << std::endl;
     std::cout << " c = " << c << std::endl;
-    try {
-        c = a + sin(b) * 3 + d;
-    } catch (std::runtime_error const &error) { VERBOSE << error.what() << std::endl; }
+
+    FE_CMD(c = a + sin(b) * 3 + d);
 
     std::cout << " d = " << d << std::endl;
 

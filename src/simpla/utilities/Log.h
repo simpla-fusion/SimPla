@@ -19,7 +19,10 @@
 
 //#include <simpla/concept/CheckConcept.h>
 //#include <simpla/utilities/type_cast.h>
+
 #include <stddef.h>
+#include <cfenv>
+
 //#include <bitset>
 #include <iostream>
 #include <memory>
@@ -271,49 +274,53 @@ std::string make_msg(Others const &... others) {
 #define DONE simpla::logger::done
 
 #define WARNING simpla::logger::Logger(simpla::logger::LOG_WARNING) << FILE_LINE_STAMP
-#define TIME_STAMP \
-    simpla::logger::Logger(simpla::logger::LOG_VERBOSE) << (__FILE__) << ":" << (__LINE__) << ":0: " << (__PRETTY_FUNCTION__)
+#define TIME_STAMP                                      \
+    simpla::logger::Logger(simpla::logger::LOG_VERBOSE) \
+        << (__FILE__) << ":" << (__LINE__) << ":0: " << (__PRETTY_FUNCTION__)
 
 #define FUNCTION_START simpla::logger::Logger(simpla::logger::LOG_VERBOSE) << FILE_LINE_STAMP << " START " << std::endl
 #define FUNCTION_END simpla::logger::Logger(simpla::logger::LOG_VERBOSE) << FILE_LINE_STAMP << " END " << std::endl
 
 #define INFORM simpla::logger::Logger(simpla::logger::LOG_INFORM)
 
-#define NEED_OPTIMIZATION \
-    simpla::logger::Logger(simpla::logger::LOG_VERBOSE) << FILE_LINE_STAMP << "This function should be optimized!" << std::endl
-#define UNSUPPORTED \
-    simpla::logger::Logger(simpla::logger::LOG_WARNING) << FILE_LINE_STAMP << "UNSUPPORTED!! I won't  do this!" << std::endl
-#define UNIMPLEMENTED                           \
+#define NEED_OPTIMIZATION                               \
+    simpla::logger::Logger(simpla::logger::LOG_VERBOSE) \
+        << FILE_LINE_STAMP << "This function should be optimized!" << std::endl
+#define UNSUPPORTED                                     \
+    simpla::logger::Logger(simpla::logger::LOG_WARNING) \
+        << FILE_LINE_STAMP << "UNSUPPORTED!! I won't  do this!" << std::endl
+#define UNIMPLEMENTED                                   \
     simpla::logger::Logger(simpla::logger::LOG_WARNING) \
         << FILE_LINE_STAMP << "Sorry, this function is not implemented. Try again next year, good luck! " << std::endl
-#define FIXME                                   \
+#define FIXME                                           \
     simpla::logger::Logger(simpla::logger::LOG_VERBOSE) \
         << FILE_LINE_STAMP << "Some problems at here, please recheck! " << std::endl
-#define DO_NOTHING simpla::logger::Logger(simpla::logger::LOG_WARNING) << FILE_LINE_STAMP << "NOTHING TO DO" << std::endl
+#define DO_NOTHING \
+    simpla::logger::Logger(simpla::logger::LOG_WARNING) << FILE_LINE_STAMP << "NOTHING TO DO" << std::endl
 
-#define OBSOLETE                                                                                              \
+#define OBSOLETE                                                                                                      \
     simpla::logger::Logger(simpla::logger::LOG_WARNING) << FILE_LINE_STAMP << "The function [" << __PRETTY_FUNCTION__ \
-                                                << "] is obsolete. Please do not use  it any more."
+                                                        << "] is obsolete. Please do not use  it any more."
 
 #define CHANGE_INTERFACE(_MSG_)                                                       \
-    simpla::logger::Logger(simpla::logger::LOG_WARNING)                                       \
+    simpla::logger::Logger(simpla::logger::LOG_WARNING)                               \
         << "[" << __FILE__ << ":" << __LINE__ << ":" << (__PRETTY_FUNCTION__) << "]:" \
         << "The function [" << __PRETTY_FUNCTION__ << "] is obsolete. Please use [" << _MSG_ << "] inside."
 
 #define UNIMPLEMENTED2(_MSG_) THROW_EXCEPTION_RUNTIME_ERROR(_MSG_)
 
 #define UNDEFINE_FUNCTION                                                             \
-    simpla::logger::Logger(simpla::logger::LOG_WARNING)                                       \
+    simpla::logger::Logger(simpla::logger::LOG_WARNING)                               \
         << "[" << __FILE__ << ":" << __LINE__ << ":" << (__PRETTY_FUNCTION__) << "]:" \
         << "This function is not defined!"
 
 #define NOTHING_TODO                                                                  \
-    simpla::logger::Logger(simpla::logger::LOG_VERBOSE)                                       \
+    simpla::logger::Logger(simpla::logger::LOG_VERBOSE)                               \
         << "[" << __FILE__ << ":" << __LINE__ << ":" << (__PRETTY_FUNCTION__) << "]:" \
         << "oh....... NOTHING TODO!"
 
 #define DEADEND                                                                       \
-    simpla::logger::Logger(simpla::logger::LOG_DEBUG)                                         \
+    simpla::logger::Logger(simpla::logger::LOG_DEBUG)                                 \
         << "[" << __FILE__ << ":" << __LINE__ << ":" << (__PRETTY_FUNCTION__) << "]:" \
         << "WHAT YOU DO!! YOU SHOULD NOT GET HERE!!"
 
@@ -385,7 +392,7 @@ std::string make_msg(Others const &... others) {
 #define PARSER_WARNING(_MSG_)                                                                 \
     {                                                                                         \
         {                                                                                     \
-            simpla::logger::Logger(simpla::logger::LOG_WARNING)                                       \
+            simpla::logger::Logger(simpla::logger::LOG_WARNING)                               \
                 << "[" << __FILE__ << ":" << __LINE__ << ":" << (__PRETTY_FUNCTION__) << "]:" \
                 << "\n\tConfigure fails :" << (_MSG_);                                        \
         }                                                                                     \
@@ -410,8 +417,9 @@ std::string make_msg(Others const &... others) {
 #define CHECK(_MSG_)                                                                                             \
     std::cerr << "\n\e[0m \e[1;37m From [" << (__FILE__) << ":" << (__LINE__) << ":0: " << (__PRETTY_FUNCTION__) \
               << "] \n \e[1;31m\t" << __STRING((_MSG_)) << " = " << std::boolalpha << (_MSG_) << "\e[0m" << std::endl
-#define SHOW(_MSG_) simpla::logger::Logger(simpla::logger::LOG_VERBOSE) << __STRING(_MSG_) << "\t= " << (_MSG_) << std::endl;
-#define SHOW_HEX(_MSG_)                         \
+#define SHOW(_MSG_) \
+    simpla::logger::Logger(simpla::logger::LOG_VERBOSE) << __STRING(_MSG_) << "\t= " << (_MSG_) << std::endl;
+#define SHOW_HEX(_MSG_)                                 \
     simpla::logger::Logger(simpla::logger::LOG_VERBOSE) \
         << __STRING(_MSG_) << "\t= " << std::hex << (_MSG_) << std::dec << std::endl;
 
@@ -424,7 +432,7 @@ std::string make_msg(Others const &... others) {
         auto __a = (_MSG_);                                                                     \
         __a = reduce(__a);                                                                      \
         if (GLOBAL_COMM.get_rank() == 0) {                                                      \
-            simpla::logger::Logger(simpla::logger::LOG_DEBUG)                                           \
+            simpla::logger::Logger(simpla::logger::LOG_DEBUG)                                   \
                 << " " << (__FILE__) << ": line " << (__LINE__) << ":" << (__PRETTY_FUNCTION__) \
                 << "\n\t GLOBAL_SUM:" << __STRING(_MSG_) << "=" << __a;                         \
         }                                                                                       \
@@ -441,30 +449,30 @@ std::string make_msg(Others const &... others) {
 #define SEPERATOR(_C_) std::setw(simpla::logger::get_line_width()) << std::setfill(_C_) << _C_
 #define CMD VERBOSE << "CMD:\t"
 
-#define LOG_CMD(_CMD_)                                        \
-    try {                                                     \
+#define LOG_CMD(_CMD_)                                                \
+    try {                                                             \
         simpla::logger::Logger __logger(simpla::logger::LOG_VERBOSE); \
-        __logger << "CMD:\t" << std::string(__STRING(_CMD_)); \
-        _CMD_;                                                \
-        __logger << DONE;                                     \
+        __logger << "CMD:\t" << std::string(__STRING(_CMD_));         \
+        _CMD_;                                                        \
+        __logger << DONE;                                             \
     } catch (std::exception const &error) { RUNTIME_ERROR << ("[", __STRING(_CMD_), "]", error.what()) << std::endl; }
 
-#define LOG_CMD_DESC(_DESC_, _CMD_)                           \
-    try {                                                     \
+#define LOG_CMD_DESC(_DESC_, _CMD_)                                   \
+    try {                                                             \
         simpla::logger::Logger __logger(simpla::logger::LOG_VERBOSE); \
-        __logger << "CMD:\t" << _DESC_;                       \
-        _CMD_;                                                \
-        __logger << DONE;                                     \
+        __logger << "CMD:\t" << _DESC_;                               \
+        _CMD_;                                                        \
+        __logger << DONE;                                             \
     } catch (std::exception const &error) { RUNTIME_ERROR << ("[", __STRING(_CMD_), "]", error.what()) << std::endl; }
 
-#define VERBOSE_CMD(_CMD_)                                    \
-    {                                                         \
+#define VERBOSE_CMD(_CMD_)                                            \
+    {                                                                 \
         simpla::logger::Logger __logger(simpla::logger::LOG_VERBOSE); \
-        __logger << __STRING(_CMD_);                          \
-        try {                                                 \
-            _CMD_;                                            \
-            __logger << DONE;                                 \
-        } catch (...) { __logger << simpla::logger::failed; } \
+        __logger << __STRING(_CMD_);                                  \
+        try {                                                         \
+            _CMD_;                                                    \
+            __logger << DONE;                                         \
+        } catch (...) { __logger << simpla::logger::failed; }         \
     }
 
 #define LOG_CMD1(_LEVEL_, _MSG_, _CMD_)                  \
@@ -473,6 +481,16 @@ std::string make_msg(Others const &... others) {
         __logger << _MSG_;                               \
         _CMD_;                                           \
         __logger << DONE;                                \
+    }
+
+#define FE_CMD(_CMD_)                                               \
+    _Pragma("STDC_FENV_ACCESS = on") {                              \
+        _CMD_;                                                      \
+        if (std::fetestexcept(FE_ALL_EXCEPT) & FE_INVALID) {        \
+            WARNING << " FE_INVALID is raised! "                    \
+                    << " [" << __STRING(_CMD_) << "]" << std::endl; \
+        }                                                           \
+        std::feclearexcept(FE_ALL_EXCEPT);                          \
     }
 
 //#define LOG_CMD2(_MSG_, _CMD_) {auto

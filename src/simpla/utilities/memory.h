@@ -9,9 +9,10 @@
 #ifndef CORE_UTILITIES_MEMORY_POOL_H_
 #define CORE_UTILITIES_MEMORY_POOL_H_
 
-#ifdef __CUDA__
+#include <simpla/SIMPLA_config.h>
+
 #include "device_common.h"
-#endif
+
 #include <memory>
 
 namespace simpla {
@@ -29,19 +30,35 @@ enum { MANAGED_MEMORY, HOST_MEMORY, DEVICE_MEMORY };
 #ifndef __CUDA__
 
 template <typename T>
-int spMemoryAlloc(T **dest, size_t n, int location = MANAGED_MEMORY);
+int spMemoryAlloc(T **dest, size_t n, int location = MANAGED_MEMORY) {
+    ASSERT(dest != nullptr);
+    *dest = reinterpret_cast<T *>(malloc(n * sizeof(T)));
+    return SP_SUCCESS;
+}
 
 template <typename T>
-int spMemoryFree(T **dest, size_t n = 0);
+int spMemoryFree(T **dest, size_t n = 0, int loc = HOST_MEMORY) {
+    if (dest == nullptr) { return SP_FAILED; }
+    free(*dest);
+    *dest = nullptr;
+    return SP_SUCCESS;
+};
 
 template <typename T>
-int spMakeShared(size_t n, bool fill_snan, int location = MANAGED_MEMORY);
+int spMemoryFill(T *dest, T const &src, size_t n) {
+    char *p_dest = reinterpret_cast<char *>(dest);
+    char const *p_src = reinterpret_cast<char const *>(&src);
+    static constexpr int m = sizeof(T);
+#pragma omp parallel for
+    for (int i = 0; i < m * n; ++i) { p_dest[i] = p_src[i % m]; }
+    return  SP_SUCCESS;
+}
 
 template <typename T>
-int spMemoryFill(T *dest, T const &v, size_t n) {}
-
-template <typename T>
-int spMemoryCopy(T *dest, T const *src, size_t n);
+int spMemoryCopy(T *dest, T const *src, size_t n) {
+    memcpy(dest, src, sizeof(T) * n);
+    return  SP_SUCCESS;
+};
 
 #else
 
@@ -111,6 +128,8 @@ int spMemoryCopy(T *dest, T const *src, size_t n) {
     return SP_SUCCESS;
 }
 
+#endif
+
 namespace detail {
 struct deleter_device_ptr_s {
     void *addr_;
@@ -139,8 +158,6 @@ std::shared_ptr<T> spMakeShared(size_t n, int location = MANAGED_MEMORY) {
     spMemoryAlloc(&addr, n, location);
     return std::shared_ptr<T>(addr, detail::deleter_device_ptr_s(addr, n * sizeof(T), location));
 }
-
-#endif
 }  // namespace simpla
 
 #endif  // CORE_UTILITIES_MEMORY_POOL_H_

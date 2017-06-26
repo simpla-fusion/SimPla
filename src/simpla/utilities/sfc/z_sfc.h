@@ -8,6 +8,7 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/utilities/memory.h>
 #include <tuple>
+#include <limits>
 #include "../nTuple.h"
 #include "simpla/utilities/device_common.h"
 namespace simpla {
@@ -144,7 +145,7 @@ class ZSFC {
 template <int NDIMS>
 template <typename T>
 std::shared_ptr<T> ZSFC<NDIMS>::make_shared(bool fill_snan) const {
-    auto res = spMakeShared<T>(size(), fill_snan);
+    auto res = spMakeShared<T>(size());
     if (fill_snan) { spMemoryFill(res.get(), std::numeric_limits<T>::signaling_NaN(), size()); }
     return res;
 };
