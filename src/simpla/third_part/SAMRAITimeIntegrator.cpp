@@ -319,9 +319,12 @@ Array<T, NDIMS> create_array(SAMRAI::pdat::ArrayData<T> &p_data, int depth = 0) 
     auto i_lower = p_data.getBox().lower();
     auto i_upper = p_data.getBox().upper();
 
-    typename Array<T, NDIMS>::m_index_box_type i_box{{i_lower[0], i_lower[1], i_lower[2]},
-                                                     {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}};
-    return Array<T, NDIMS>(i_box, std::shared_ptr<T>(p_data.getPointer(depth), simpla::tags::do_nothing()), true);
+    typename Array<T, NDIMS>::array_index_box_type i_box{{i_lower[0], i_lower[1], i_lower[2]},
+                                                         {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}};
+    Array<T, NDIMS> res(i_box, true);
+    res.reset(std::shared_ptr<T>(p_data.getPointer(depth), simpla::tags::do_nothing()));
+    res.DoSetUp();
+    return res;
 };
 
 template <int NDIMS, typename T>

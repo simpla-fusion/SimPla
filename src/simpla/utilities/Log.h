@@ -483,6 +483,9 @@ std::string make_msg(Others const &... others) {
         __logger << DONE;                                \
     }
 
+#ifdef __CUDA__
+#define FE_CMD(_CMD_) _CMD_
+#else
 #define FE_CMD(_CMD_)                                               \
     _Pragma("STDC_FENV_ACCESS = on") {                              \
         _CMD_;                                                      \
@@ -492,7 +495,7 @@ std::string make_msg(Others const &... others) {
         }                                                           \
         std::feclearexcept(FE_ALL_EXCEPT);                          \
     }
-
+#endif
 //#define LOG_CMD2(_MSG_, _CMD_) {auto
 //__logger=logger::Logger(simpla::logger::LOG_LOG);__logger<<_MSG_<<__STRING(_CMD_);_CMD_;__logger<<DONE;}
 

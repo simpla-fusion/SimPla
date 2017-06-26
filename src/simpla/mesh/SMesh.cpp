@@ -3,7 +3,7 @@
 //
 
 #include "SMesh.h"
-#include <simpla/utilities/EntityIdCoder.h>
+#include <simpla/utilities/EntityId.h>
 #include "StructuredMesh.h"
 namespace simpla {
 namespace mesh {

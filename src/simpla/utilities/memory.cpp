@@ -18,11 +18,7 @@
 #include "Log.h"
 #include "SingletonHolder.h"
 #include "device_common.h"
-#ifdef __CUDA__
-#define DEFAULT_MEMORY_LOCATION DEVICE_MEMORY
-#else
-#define DEFAULT_MEMORY_LOCATION HOST_MEMORY
-#endif
+
 namespace simpla {
 class MemoryPool {
    public:

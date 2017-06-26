@@ -4,7 +4,6 @@
 
 #include "RectMesh.h"
 
-#include <simpla/utilities/EntityIdCoder.h>
 namespace simpla {
 namespace mesh {
 REGISTER_CREATOR(RectMesh);

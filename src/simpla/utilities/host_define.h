@@ -8,6 +8,7 @@
 #ifndef __CUDA__
 #define __host__
 #define __device__
+#define __managed__
 #else
 #include </usr/local/cuda/include/driver_types.h>
 #include </usr/local/cuda/include/device_launch_parameters.h>

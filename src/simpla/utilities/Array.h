@@ -47,18 +47,15 @@ struct Array {
 
     Array(this_type&& other) noexcept : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_pointer_(other.m_pointer_) {}
 
-    Array& operator=(this_type&& other) = delete;
+    Array& operator=(this_type&& other) {
+        this_type(std::forward<this_type>(other)).swap(*this);
+        return *this;
+    };
 
-    Array(std::initializer_list<index_type> const& l) : m_sfc_(l) { DoSetUp(); }
-
-    template <typename... Args>
-    explicit Array(Args&&... args) : m_sfc_(std::forward<Args>(args)...) {
-        DoSetUp();
-    }
+    Array(std::initializer_list<index_type> const& l) : m_sfc_(l) {}
 
     template <typename... Args>
-    explicit Array(std::shared_ptr<value_type> const& d, Args&&... args)
-        : m_sfc_(std::forward<Args>(args)...), m_data_(d), m_pointer_(d.get()) {}
+    explicit Array(Args&&... args) : m_sfc_(std::forward<Args>(args)...) {}
 
     virtual ~Array() = default;
 
@@ -86,7 +83,17 @@ struct Array {
     std::type_info const& value_type_info() const { return typeid(value_type); }
     size_type size() const { return m_sfc_.size(); }
     array_index_box_type const& GetIndexBox() const { return m_sfc_.GetIndexBox(); }
-    void SetData(std::shared_ptr<value_type> const& d) const { m_data_ = d; }
+
+    void reset(std::shared_ptr<value_type> const& d) {
+        m_data_ = d;
+        m_pointer_ = m_data_.get();
+    }
+
+    void SetData(std::shared_ptr<value_type> const& d) {
+        m_data_ = d;
+        m_pointer_ = m_data_.get();
+    }
+
     std::shared_ptr<value_type>& GetData() { return m_data_; }
     std::shared_ptr<value_type> const& GetData() const { return m_data_; }
     value_type* GetRawPointer() { return m_data_.get(); }
@@ -95,6 +102,7 @@ struct Array {
     value_type* get() { return m_data_.get(); }
     value_type* get() const { return m_data_.get(); }
 
+    void Initialize() { DoSetUp(); }
     void Clear() { Fill(0); }
     void Fill(value_type v) {
         DoSetUp();

@@ -20,6 +20,7 @@ int main(int argc, char **argv) {
 
     a.Fill(1);
     b.Fill(2);
+    d.Initialize();
 
     c = (a) + b * 2;
 
@@ -34,11 +35,11 @@ int main(int argc, char **argv) {
     //    d.Clear();
     //    e.Clear();
     //    c = a(IdxShift{1, 0, 0}) - a(IdxShift{-1, 0, 0}) + a(IdxShift{0, 1, 0}) - a(IdxShift{0, -1, 0});
-    nTuple<double, 3> v = {1, 2, 3};
-    Array<nTuple<double, 3>, 3> e(inner_box);
-    e = b * v;
-
-    std::cout << e << std::endl;
+    //    nTuple<double, 3> v = {1, 2, 3};
+    //    Array<nTuple<double, 3>, 3> e(inner_box);
+    //    e = b * v;
+    //
+    //    std::cout << e << std::endl;
 
     std::cout << "DONE" << std::endl;
 }

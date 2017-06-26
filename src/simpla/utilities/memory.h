@@ -51,13 +51,13 @@ int spMemoryFill(T *dest, T const &src, size_t n) {
     static constexpr int m = sizeof(T);
 #pragma omp parallel for
     for (int i = 0; i < m * n; ++i) { p_dest[i] = p_src[i % m]; }
-    return  SP_SUCCESS;
+    return SP_SUCCESS;
 }
 
 template <typename T>
 int spMemoryCopy(T *dest, T const *src, size_t n) {
     memcpy(dest, src, sizeof(T) * n);
-    return  SP_SUCCESS;
+    return SP_SUCCESS;
 };
 
 #else
@@ -156,7 +156,7 @@ template <typename T>
 std::shared_ptr<T> spMakeShared(size_t n, int location = MANAGED_MEMORY) {
     T *addr = nullptr;
     spMemoryAlloc(&addr, n, location);
-    return std::shared_ptr<T>(addr, detail::deleter_device_ptr_s(addr, n * sizeof(T), location));
+    return std::shared_ptr<T>(addr, simpla::detail::deleter_device_ptr_s(addr, n * sizeof(T), location));
 }
 }  // namespace simpla
 
