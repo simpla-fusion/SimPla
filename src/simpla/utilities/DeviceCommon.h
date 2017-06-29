@@ -55,26 +55,26 @@ inline void _free(void *addr) {
 }
 
 namespace detail {
-    template <typename T>
-    struct deleter_device_ptr_s {
-        inline void operator()(T *ptr) {
-            cudaPointerAttributes attributes;
+template <typename T>
+struct deleter_device_ptr_s {
+    inline void operator()(T *ptr) {
+        cudaPointerAttributes attributes;
 
-            auto errcode = (cudaPointerGetAttributes(&attributes, ptr));
+        auto errcode = (cudaPointerGetAttributes(&attributes, ptr));
 
-            if (errcode == cudaErrorInvalidValue) {
-                cudaGetErrorString(errcode);
-                free(ptr);
-            } else {
-                SP_DEVICE_CALL(cudaFree(ptr));
-            }
+        if (errcode == cudaErrorInvalidValue) {
+            cudaGetErrorString(errcode);
+            free(ptr);
+        } else {
+            SP_DEVICE_CALL(cudaFree(ptr));
         }
-    };
+    }
+};
 }
 
 template <typename T, int N = 3>  //
 class ManagedArray {
-public:
+   public:
     typedef T value_type;
     ManagedArray(T *d, int const *min, int const *max);
     ManagedArray(T *d, int3 min, int3 max);
@@ -96,7 +96,7 @@ public:
     __host__ __device__ bool in_box(int x, int y = 0, int z = 0) const;
     __host__ __device__ size_t size() const { return static_cast<size_t>(m_offset_); };
 
-private:
+   private:
     std::remove_cv_t<T> *m_data_;
     std::remove_cv_t<T> *m_host_data_ = nullptr;
     std::shared_ptr<std::remove_cv_t<T>> m_holder_ = nullptr;
@@ -106,10 +106,10 @@ private:
 
 template <typename T, int N>
 ManagedArray<T, N>::ManagedArray(T *d, int x_min, int x_max, int y_min, int y_max, int z_min, int z_max)
-        : m_data_(const_cast<std::remove_cv_t<T> *>(d)),
-          m_min_{x_min, y_min, z_min},
-          m_max_{x_max, y_max, z_max},
-          m_offset_((m_max_.z - m_min_.z) * (m_max_.y - m_min_.y) * (m_max_.x - m_min_.x)) {
+    : m_data_(const_cast<std::remove_cv_t<T> *>(d)),
+      m_min_{x_min, y_min, z_min},
+      m_max_{x_max, y_max, z_max},
+      m_offset_((m_max_.z - m_min_.z) * (m_max_.y - m_min_.y) * (m_max_.x - m_min_.x)) {
     struct cudaPointerAttributes attributes;
 
     auto errcode = (cudaPointerGetAttributes(&attributes, m_data_));
@@ -137,28 +137,28 @@ ManagedArray<T, N>::~ManagedArray() {
 }
 template <typename T, int N>
 ManagedArray<T, N>::ManagedArray(T *d, int const *min, int const *max)
-        : ManagedArray(d, min[0], max[0], min[1], max[1], min[2], max[2]) {}
+    : ManagedArray(d, min[0], max[0], min[1], max[1], min[2], max[2]) {}
 template <typename T, int N>
 ManagedArray<T, N>::ManagedArray(T *d, int3 min, int3 max)
-        : ManagedArray(d, min.x, max.x, min.y, max.y, min.z, max.z) {}
+    : ManagedArray(d, min.x, max.x, min.y, max.y, min.z, max.z) {}
 
 template <typename T, int N>
 ManagedArray<T, N>::ManagedArray(ManagedArray<T, N> const &other)
-        : m_data_(other.m_data_),
-          m_min_(other.m_min_),
-          m_max_(other.m_max_),
-          m_offset_(m_offset_),
-          m_host_data_(other.m_host_data_),
-          m_holder_(other.m_holder_) {}
+    : m_data_(other.m_data_),
+      m_min_(other.m_min_),
+      m_max_(other.m_max_),
+      m_offset_(m_offset_),
+      m_host_data_(other.m_host_data_),
+      m_holder_(other.m_holder_) {}
 
 template <typename T, int N>
 ManagedArray<T, N>::ManagedArray(ManagedArray<T, N> &&other)
-        : m_data_(other.m_data_),
-          m_min_(other.m_min_),
-          m_max_(other.m_max_),
-          m_offset_(other.m_offset_),
-          m_host_data_(other.m_host_data_),
-          m_holder_(other.m_holder_) {
+    : m_data_(other.m_data_),
+      m_min_(other.m_min_),
+      m_max_(other.m_max_),
+      m_offset_(other.m_offset_),
+      m_host_data_(other.m_host_data_),
+      m_holder_(other.m_holder_) {
     other.m_holder_.reset();
 }
 

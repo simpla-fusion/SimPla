@@ -103,7 +103,7 @@ struct DataEntityWrapper<U> : public DataEntityWithType<U> {
         }
         return os;
     }
-    //    bool equal(value_type const& other) const override { return *m_data_ == other; }
+    //    bool equal(value_type const& other) const override { return *m_holder_ == other; }
     value_type value() const override { return *m_data_; };
 
     value_type* get() override { return m_data_.get(); }

@@ -8,9 +8,11 @@
 #include <simpla/SIMPLA_config.h>
 #include <cstring>
 #include <initializer_list>
+#include <limits>
 #include <memory>
 #include <string>
 #include <tuple>
+
 #include "ExpressionTemplate.h"
 #include "FancyStream.h"
 #include "Log.h"
@@ -35,17 +37,20 @@ struct Array {
 
    private:
     SFC m_sfc_;
-    std::shared_ptr<value_type> m_data_ = nullptr;
-    value_type* m_pointer_ = nullptr;
+    std::shared_ptr<value_type> m_holder_ = nullptr;
+    value_type* m_host_data_ = nullptr;
+    value_type* m_data_ = nullptr;
     static value_type m_snan_;
     static value_type m_null_;
 
    public:
     Array() = default;
 
-    Array(this_type const& other) : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_pointer_(other.m_pointer_) {}
+    Array(this_type const& other)
+        : m_sfc_(other.m_sfc_), m_holder_(other.m_holder_), m_host_data_(other.m_host_data_), m_data_(other.m_data_) {}
 
-    Array(this_type&& other) noexcept : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_pointer_(other.m_pointer_) {}
+    Array(this_type&& other) noexcept
+        : m_sfc_(other.m_sfc_), m_holder_(other.m_holder_), m_host_data_(other.m_host_data_), m_data_(other.m_data_) {}
 
     Array& operator=(this_type&& other) {
         this_type(std::forward<this_type>(other)).swap(*this);
@@ -60,53 +65,53 @@ struct Array {
     virtual ~Array() = default;
 
     void swap(this_type& other) {
-        std::swap(m_data_, other.m_data_);
-        std::swap(m_pointer_, other.m_pointer_);
+        std::swap(m_holder_, other.m_holder_);
+        std::swap(m_host_data_, other.m_host_data_);
         m_sfc_.swap(other.m_sfc_);
     }
     void DoSetUp() {
-        if (m_data_ == nullptr) {
+        if (m_holder_ == nullptr) {
 #ifdef SIMPLA_INITIALIZE_ARRAY_TO_SIGNALING_NAN
-            m_data_ = m_sfc_.template make_shared<value_type>(true);
+            m_holder_ = m_sfc_.template make_shared<value_type>(true);
 #else
-            m_data_ = m_sfc_.template make_shared<value_type>(false);
+            m_holder_ = m_sfc_.template make_shared<value_type>(false);
 #endif
         }
-        m_pointer_ = m_data_.get();
+        m_host_data_ = m_holder_.get();
     }
     void Shift(array_index_type const& offset) { m_sfc_.Shfit(offset); }
 
     SFC const& GetSpaceFillingCurve() const { return m_sfc_; }
 
     int GetNDIMS() const { return NDIMS; }
-    bool empty() const { return m_data_ == nullptr; }
+    bool empty() const { return m_holder_ == nullptr; }
     std::type_info const& value_type_info() const { return typeid(value_type); }
     size_type size() const { return m_sfc_.size(); }
     array_index_box_type const& GetIndexBox() const { return m_sfc_.GetIndexBox(); }
 
     void reset(std::shared_ptr<value_type> const& d) {
-        m_data_ = d;
-        m_pointer_ = m_data_.get();
+        m_holder_ = d;
+        m_host_data_ = m_holder_.get();
     }
 
     void SetData(std::shared_ptr<value_type> const& d) {
-        m_data_ = d;
-        m_pointer_ = m_data_.get();
+        m_holder_ = d;
+        m_host_data_ = m_holder_.get();
     }
 
-    std::shared_ptr<value_type>& GetData() { return m_data_; }
-    std::shared_ptr<value_type> const& GetData() const { return m_data_; }
-    value_type* GetRawPointer() { return m_data_.get(); }
-    value_type* GetRawPointer() const { return m_data_.get(); }
+    std::shared_ptr<value_type>& GetData() { return m_holder_; }
+    std::shared_ptr<value_type> const& GetData() const { return m_holder_; }
+    value_type* GetRawPointer() { return m_holder_.get(); }
+    value_type* GetRawPointer() const { return m_holder_.get(); }
 
-    value_type* get() { return m_data_.get(); }
-    value_type* get() const { return m_data_.get(); }
+    value_type* get() { return m_holder_.get(); }
+    value_type* get() const { return m_holder_.get(); }
 
     void Initialize() { DoSetUp(); }
     void Clear() { Fill(0); }
     void Fill(value_type v) {
         DoSetUp();
-        m_sfc_.Fill(m_data_, v);
+        m_sfc_.Fill(m_holder_, v);
     }
 
     this_type& operator=(this_type const& rhs) {
@@ -127,7 +132,7 @@ struct Array {
         m_sfc_.Foreach([&](array_index_type const& idx) { at(idx) = getValue(other, idx); });
     }
 
-    std::ostream& Print(std::ostream& os, int indent = 0) const { return m_sfc_.Print(os, m_data_.get(), indent); }
+    std::ostream& Print(std::ostream& os, int indent = 0) const { return m_sfc_.Print(os, m_holder_.get(), indent); }
 
     this_type operator()(array_index_type const& IX) const {
         this_type res(*this);
@@ -136,11 +141,11 @@ struct Array {
     }
     template <typename... Args>
     __host__ __device__ value_type& at(Args&&... args) {
-        return m_sfc_.Get(m_pointer_, std::forward<Args>(args)...);
+        return m_sfc_.Get(m_host_data_, std::forward<Args>(args)...);
     }
     template <typename... Args>
     __host__ __device__ value_type const& at(Args&&... args) const {
-        return m_sfc_.Get(m_pointer_, std::forward<Args>(args)...);
+        return m_sfc_.Get(m_host_data_, std::forward<Args>(args)...);
     }
     template <typename... Args>
     __host__ __device__ value_type& operator()(Args&&... args) {

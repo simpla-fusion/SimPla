@@ -176,53 +176,53 @@ struct DataCastTraits<nTuple<U, N>> {
 // class DataEntityWrapper<simpla::algebra::declare::nTuple_<U, N>> : public DataArrayWithType<U> {
 //    typedef simpla::algebra::declare::nTuple_<U, N> tuple_type;
 //    SP_OBJECT_HEAD(DataEntityWrapper<tuple_type>, DataArrayWithType<U>);
-//    tuple_type m_data_;
+//    tuple_type m_holder_;
 //
 //   public:
 //    DataEntityWrapper() {}
-//    DataEntityWrapper(tuple_type const& other) : m_data_(other) {}
-//    DataEntityWrapper(this_type const& other) : m_data_(other.m_data_) {}
-//    DataEntityWrapper(this_type&& other) : m_data_(other.m_data_) {}
+//    DataEntityWrapper(tuple_type const& other) : m_holder_(other) {}
+//    DataEntityWrapper(this_type const& other) : m_holder_(other.m_holder_) {}
+//    DataEntityWrapper(this_type&& other) : m_holder_(other.m_holder_) {}
 //    virtual ~DataEntityWrapper() {}
-//    tuple_type& get() { return m_data_; }
-//    tuple_type const& get() const { return m_data_; }
+//    tuple_type& get() { return m_holder_; }
+//    tuple_type const& get() const { return m_holder_; }
 //    // DataEntity
 //    virtual std::shared_ptr<DataEntity> Duplicate() { return std::make_shared<this_type>(*this); }
 //
 //    // DataArray
 //    virtual size_type size() const { return static_cast<size_type>(N); };
 //    virtual size_type Foreach(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const {
-//        for (size_type s = 0; s < N; ++s) { fun(make_data_entity(m_data_[s])); }
+//        for (size_type s = 0; s < N; ++s) { fun(make_data_entity(m_holder_[s])); }
 //        return static_cast<size_type>(N);
 //    };
 //    virtual void Add(std::shared_ptr<DataEntity> const&) { UNSUPPORTED; };
 //    virtual void DeletePatch(size_type idx) { UNSUPPORTED; };
 //    // DataArrayWithType
 //
-//    virtual U GetValue(index_type idx) const { return m_data_[idx]; }
+//    virtual U GetValue(index_type idx) const { return m_holder_[idx]; }
 //    virtual void Push(size_type idx, U const& v) {
 //        ASSERT(size() > idx);
-//        m_data_[idx] = v;
+//        m_holder_[idx] = v;
 //    }
 //    virtual void Add(U const&) { UNSUPPORTED; };
 //
-//    tuple_type value() const { return m_data_; }
+//    tuple_type value() const { return m_holder_; }
 //};
 //
 // template <typename U, int N0, int N1, int... N>
 // class DataEntityWrapper<simpla::algebra::declare::nTuple_<U, N0, N1, N...>> : public DataArray {
 //    typedef simpla::algebra::declare::nTuple_<U, N0, N1, N...> tuple_type;
 //    SP_OBJECT_HEAD(tuple_type, DataArray);
-//    tuple_type m_data_;
+//    tuple_type m_holder_;
 //
 //   public:
 //    DataEntityWrapper() {}
-//    DataEntityWrapper(this_type const& other) : m_data_(other.m_data_) {}
-//    DataEntityWrapper(this_type&& other) : m_data_(other.m_data_) {}
+//    DataEntityWrapper(this_type const& other) : m_holder_(other.m_holder_) {}
+//    DataEntityWrapper(this_type&& other) : m_holder_(other.m_holder_) {}
 //
 //    virtual ~DataEntityWrapper() {}
-//    tuple_type& get() { return m_data_; }
-//    tuple_type const& get() const { return m_data_; }
+//    tuple_type& get() { return m_holder_; }
+//    tuple_type const& get() const { return m_holder_; }
 //    // DataEntity
 //    virtual std::shared_ptr<DataEntity> Duplicate() { return std::make_shared<DataEntityWrapper<U*>>(*this); }
 //    // DataArray
@@ -237,11 +237,11 @@ struct DataCastTraits<nTuple<U, N>> {
 //    virtual void Add(std::shared_ptr<DataEntity> const&) { UNSUPPORTED; };
 //    virtual void DeletePatch(size_type idx) { UNSUPPORTED; };
 //    // DataArrayWithType
-//    virtual U GetValue(index_type idx) const { return m_data_[idx]; }
+//    virtual U GetValue(index_type idx) const { return m_holder_[idx]; }
 //
 //    virtual void Push(size_type idx, U const& v) {
 //        ASSERT(size() > idx);
-//        m_data_[idx] = v;
+//        m_holder_[idx] = v;
 //    }
 //    virtual void Add(U const&) { UNSUPPORTED; };
 //};
