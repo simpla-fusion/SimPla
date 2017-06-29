@@ -3,10 +3,16 @@ SET(SAMRAI_DIR /pkg/SAMRAI/3.11.2/clang-4.0.0/lib/cmake/SAMRAI/)
 FIND_PACKAGE(SAMRAI REQUIRED)
 
 IF (SAMRAI_FOUND)
-    MESSAGE("-- SAMRAI: " ${SAMRAI_INCLUDE_DIRS})
+    MESSAGE("-- SAMRAI Version: " ${SAMRAI_VERSION})
 ENDIF (SAMRAI_FOUND)
 
- #SET(OCCT_PREFER_COMMUNITY_EDITION ON)
+FILE(GLOB third_part_SRC *.cpp)
+add_library(third_part ${third_part_SRC})
+
+TARGET_LINK_LIBRARIES(third_part  netcdf ${HDF5_LIBRARIES} ${MPI_LIBRARIES} ${TBB_LIBRARIES} ${SAMRAI_LIBRARIES}  )
+target_include_directories(third_part BEFORE PRIVATE  ${MPI_C_INCLUDE_PATH} ${HDF5_INCLUDE_DIRS} ${SAMRAI_INCLUDE_DIRS})
+
+#SET(OCCT_PREFER_COMMUNITY_EDITION ON)
 #
 #FIND_PACKAGE(OCE 0.17 REQUIRED)
 #MESSAGE("-- OCE Found:${OCE_LIBRARIES} INCLUDE:${OCE_INCLUDE_DIRS}")
@@ -28,19 +34,9 @@ ENDIF (SAMRAI_FOUND)
 #ENDIF (MeshKit_FOUND)
 #
 # ${MOAB_INCLUDE_DIRS} ${MESHKIT_INCLUDE_DIRS} ${OCE_INCLUDE_DIRS}
+#     ${OCE_LIBRARIES}   ${MeshKit_LIBRARIES} ${MOAB_LIBRARIES}
 
 
-FILE(GLOB third_part_SRC *.cpp)
-#FILE(GLOB third_part_SRC DataTable.cpp )
-add_library(third_part ${third_part_SRC})
-
-TARGET_LINK_LIBRARIES(third_part
-        #     ${OCE_LIBRARIES}   ${MeshKit_LIBRARIES} ${MOAB_LIBRARIES}
-         netcdf ${HDF5_LIBRARIES} ${MPI_LIBRARIES} ${TBB_LIBRARIES} ${SAMRAI_LIBRARIES}
-
-        #        toolbox geometry parallel data mesh engine model physics
-        )
-target_include_directories(third_part BEFORE PRIVATE  ${MPI_C_INCLUDE_PATH} ${HDF5_INCLUDE_DIRS} ${SAMRAI_INCLUDE_DIRS})
 
 #FILE(GLOB amr_test_SRC ./*.cpp)
 #

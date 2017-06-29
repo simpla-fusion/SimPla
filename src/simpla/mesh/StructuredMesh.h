@@ -100,7 +100,7 @@ class StructuredMesh : public engine::MeshBase {
                 if (r.isNull()) {
                     lhs = rhs;
                 } else {
-                    r.foreach ([&](EntityId s) {
+                    r.foreach ([&] __host__ __device__(EntityId s) {
                         index_tuple idx{s.x, s.y, s.z};
                         if (tag == (s.w & 0b111)) { lhs.Assign(idx, rhs); }
                     });
@@ -122,7 +122,7 @@ class StructuredMesh : public engine::MeshBase {
                 if (r.isNull()) {
                     lhs = rhs;
                 } else {
-                    r.foreach ([&](EntityId s) {
+                    r.foreach ([&] __host__ __device__(EntityId s) {
                         index_tuple idx{s.x, s.y, s.z};
                         if (tag == (s.w & 0b111)) { lhs.Assign(idx, rhs); }
                     });
@@ -145,7 +145,7 @@ class StructuredMesh : public engine::MeshBase {
                 if (r.isNull()) {
                     lhs = rhs;
                 } else {
-                    r.foreach ([&](EntityId s) {
+                    r.foreach ([&] __host__ __device__(EntityId s) {
                         index_tuple idx{s.x, s.y, s.z};
                         if (tag == (s.w & 0b111)) { lhs.Assign(idx, rhs); }
                     });
@@ -167,7 +167,7 @@ class StructuredMesh : public engine::MeshBase {
                 auto &lhs = f[i * DOF + j];
 
                 if (r.isNull()) {
-                    lhs = [&](index_tuple const &idx) {
+                    lhs = [&] __host__ __device__(index_tuple const &idx) {
                         EntityId s;
                         s.w = static_cast<int16_t>(w);
                         s.x = static_cast<int16_t>(idx[0]);
@@ -176,7 +176,7 @@ class StructuredMesh : public engine::MeshBase {
                         return fun(s);
                     };
                 } else {
-                    r.foreach ([&](EntityId s) {
+                    r.foreach ([&] __host__ __device__(EntityId s) {
                         index_tuple idx{s.x, s.y, s.z};
                         if (tag == s.w) {
                             s.w = w;
@@ -202,7 +202,7 @@ class StructuredMesh : public engine::MeshBase {
                 int n = (IFORM == VERTEX || IFORM == VOLUME) ? j : i;
 
                 if (r.isNull()) {
-                    lhs = [&](index_tuple const &idx) {
+                    lhs = [&] __host__ __device__(index_tuple const &idx) {
                         EntityId s;
                         s.w = static_cast<int16_t>(w);
                         s.x = static_cast<int16_t>(idx[0]);
@@ -211,7 +211,7 @@ class StructuredMesh : public engine::MeshBase {
                         return fun(s)[n];
                     };
                 } else {
-                    r.foreach ([&](EntityId s) {
+                    r.foreach ([&] __host__ __device__(EntityId s) {
                         index_tuple idx{s.x, s.y, s.z};
                         if (tag == s.w) {
                             s.w = w;
@@ -234,7 +234,7 @@ class StructuredMesh : public engine::MeshBase {
                 auto &lhs = f[i * DOF + j];
                 int n = (IFORM == VERTEX || IFORM == VOLUME) ? j : i;
                 if (r.isNull()) {
-                    f[i * DOF + j] = [&](index_tuple const &idx) {
+                    f[i * DOF + j] = [&] __host__ __device__(index_tuple const &idx) {
                         EntityId s;
                         s.w = static_cast<int16_t>(w);
                         s.x = static_cast<int16_t>(idx[0]);
@@ -243,7 +243,7 @@ class StructuredMesh : public engine::MeshBase {
                         return fun(this->point(s))[n];
                     };
                 } else {
-                    r.foreach ([&](EntityId s) {
+                    r.foreach ([&] __host__ __device__(EntityId s) {
                         index_tuple idx{s.x, s.y, s.z};
                         if (tag == s.w) {
                             s.w = w;
@@ -265,7 +265,7 @@ class StructuredMesh : public engine::MeshBase {
                 int16_t w = static_cast<int16_t>(tag | (j << 3));
                 auto &lhs = f[i * DOF + j];
                 if (r.isNull()) {
-                    lhs = [&](index_tuple const &idx) {
+                    lhs = [&] __host__ __device__(index_tuple const &idx) {
                         EntityId s;
                         s.w = static_cast<int16_t>(w);
                         s.x = static_cast<int16_t>(idx[0]);
@@ -274,7 +274,7 @@ class StructuredMesh : public engine::MeshBase {
                         return fun(point(s));
                     };
                 } else {
-                    r.foreach ([&](EntityId s) {
+                    r.foreach ([&] __host__ __device__(EntityId s) {
                         index_tuple idx{s.x, s.y, s.z};
                         if (tag == s.w) {
                             s.w = w;

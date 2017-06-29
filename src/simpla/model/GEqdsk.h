@@ -19,6 +19,7 @@
 #include <simpla/utilities/nTuple.h>
 #include <simpla/utilities/type_traits.h>
 #include <iostream>
+#include <string>
 namespace simpla {
 
 /**
@@ -60,20 +61,26 @@ class GEqdsk : public geometry::GeoObject {
     void write(const std::string &url);
     std::ostream &print(std::ostream &os);
     std::string const &description() const;
-    box_type box() const;
+    __host__ __device__ box_type box() const;
     std::shared_ptr<geometry::Polygon<2>> const &boundary() const;
     std::shared_ptr<geometry::Polygon<2>> const &limiter() const;
 
-    bool in_boundary(point_type const &x) const { return boundary()->check_inside(x[RAxis], x[ZAxis]) > 0; }
-    bool in_limiter(point_type const &x) const { return limiter()->check_inside(x[RAxis], x[ZAxis]) > 0; }
-    Real psi(Real R, Real Z) const;
-    Real psi(point_type const &x) const { return psi(x[RAxis], x[ZAxis]); }
-    nTuple<Real, 2> grad_psi(Real R, Real Z) const;
-    Real profile(std::string const &name, Real p_psi) const;
-    Real profile(std::string const &name, Real R, Real Z) const { return profile(name, psi(R, Z)); }
-    Real profile(std::string const &name, point_type const &x) const { return profile(name, psi(x[RAxis], x[ZAxis])); }
-    point_type magnetic_axis() const;
-    nTuple<size_type, 3> dimensions() const;
+    __host__ __device__ bool in_boundary(point_type const &x) const {
+        return boundary()->check_inside(x[RAxis], x[ZAxis]) > 0;
+    }
+    __host__ __device__ bool in_limiter(point_type const &x) const {
+        return limiter()->check_inside(x[RAxis], x[ZAxis]) > 0;
+    }
+    __host__ __device__ Real psi(Real R, Real Z) const;
+    __host__ __device__ Real psi(point_type const &x) const { return psi(x[RAxis], x[ZAxis]); }
+    __host__ __device__ nTuple<Real, 2> grad_psi(Real R, Real Z) const;
+    __host__ __device__ Real profile(std::string const &name, Real p_psi) const;
+    __host__ __device__ Real profile(std::string const &name, Real R, Real Z) const { return profile(name, psi(R, Z)); }
+    __host__ __device__ Real profile(std::string const &name, point_type const &x) const {
+        return profile(name, psi(x[RAxis], x[ZAxis]));
+    }
+    __host__ __device__ point_type magnetic_axis() const;
+    __host__ __device__ nTuple<size_type, 3> dimensions() const;
     Real B0() const;
     /**
      *
@@ -81,7 +88,7 @@ class GEqdsk : public geometry::GeoObject {
      * @param Z
      * @return magnetic field on cylindrical coordinates \f$\left(R,Z,\phi\right)\f$
      */
-    inline Vec3 B(Real R, Real Z) const {
+    __host__ __device__ Vec3 B(Real R, Real Z) const {
         auto gradPsi = grad_psi(R, Z);
 
         Vec3 res;
@@ -92,7 +99,7 @@ class GEqdsk : public geometry::GeoObject {
         return std::move(res);
     }
 
-    inline Vec3 B(point_type const &x) const {
+    __host__ __device__ Vec3 B(point_type const &x) const {
         Real R = x[RAxis];
         Real Z = x[ZAxis];
         Real Phi = x[PhiAxis];
@@ -115,7 +122,9 @@ class GEqdsk : public geometry::GeoObject {
         return std::move(res);
     }
 
-    inline Real JT(Real R, Real Z) const { return R * profile("pprim", psi(R, Z)) + profile("ffprim", psi(R, Z)) / R; }
+    __host__ __device__ Real JT(Real R, Real Z) const {
+        return R * profile("pprim", psi(R, Z)) + profile("ffprim", psi(R, Z)) / R;
+    }
 
     //    inline Real JT(point_type const &x) const
     //    {
