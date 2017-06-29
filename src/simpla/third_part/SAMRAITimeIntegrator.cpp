@@ -75,7 +75,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
     SP_OBJECT_BASE(SAMRAIHyperbolicPatchStrategyAdapter)
    public:
     SAMRAIHyperbolicPatchStrategyAdapter(std::shared_ptr<engine::Context> ctx,
-                                         boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom);
+                                         std::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom);
 
     /**
      * The destructor for SAMRAIWorkerHyperbolic does nothing.
@@ -124,8 +124,8 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
      * Tag cells for refinement using Richardson extrapolation.
      */
     void tagRichardsonExtrapolationCells(SAMRAI::hier::Patch &patch, int error_level_number,
-                                         const boost::shared_ptr<SAMRAI::hier::VariableContext> &coarsened_fine,
-                                         const boost::shared_ptr<SAMRAI::hier::VariableContext> &advanced_coarse,
+                                         const std::shared_ptr<SAMRAI::hier::VariableContext> &coarsened_fine,
+                                         const std::shared_ptr<SAMRAI::hier::VariableContext> &advanced_coarse,
                                          double regrid_time, double deltat, int error_coarsen_ratio, bool initial_error,
                                          int tag_index, bool uses_gradient_detector_too) override;
 
@@ -212,7 +212,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
      * plot files that may be postprocessed with the VisIt
      * visualization tool.
      */
-    void registerVisItDataWriter(boost::shared_ptr<SAMRAI::appu::VisItDataWriter> viz_writer);
+    void registerVisItDataWriter(std::shared_ptr<SAMRAI::appu::VisItDataWriter> viz_writer);
 
     /**Print all data members for SAMRAIWorkerHyperbolic class.     */
     void printClassData(std::ostream &os) const;
@@ -234,16 +234,16 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
      * GetDataBlock, SetValue physical boundary conditions, and register plot
      * variables.
      */
-    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geometry = nullptr;
-    boost::shared_ptr<SAMRAI::appu::VisItDataWriter> d_visit_writer = nullptr;
+    std::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geometry = nullptr;
+    std::shared_ptr<SAMRAI::appu::VisItDataWriter> d_visit_writer = nullptr;
 
     /*
      * Data items used for nonuniform Load balance, if used.
      */
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_workload_variable;
+    std::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_workload_variable;
     int d_workload_data_id = 0;
     bool d_use_nonuniform_workload;
-    std::map<std::shared_ptr<engine::AttributeDesc>, boost::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
+    std::map<std::shared_ptr<engine::AttributeDesc>, std::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
     SAMRAI::hier::IntVector d_nghosts;
     SAMRAI::hier::IntVector d_fluxghosts;
 
@@ -252,7 +252,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
 };
 
 SAMRAIHyperbolicPatchStrategyAdapter::SAMRAIHyperbolicPatchStrategyAdapter(
-    std::shared_ptr<engine::Context> ctx, boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom)
+    std::shared_ptr<engine::Context> ctx, std::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom)
     : d_dim(3),
       d_grid_geometry(grid_geom),
       d_use_nonuniform_workload(false),
@@ -272,26 +272,26 @@ SAMRAIHyperbolicPatchStrategyAdapter::~SAMRAIHyperbolicPatchStrategyAdapter() = 
 
 namespace detail {
 template <typename T>
-boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(const std::shared_ptr<engine::AttributeDesc> attr) {
+std::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(const std::shared_ptr<engine::AttributeDesc> attr) {
     SAMRAI::tbox::Dimension d_dim(3);
 
-    boost::shared_ptr<SAMRAI::hier::Variable> res;
+    std::shared_ptr<SAMRAI::hier::Variable> res;
     switch (attr->GetIFORM()) {
         case VERTEX:
-            res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-                boost::make_shared<SAMRAI::pdat::NodeVariable<T>>(d_dim, attr->GetPrefix(), attr->GetDOF()));
+            res = std::dynamic_pointer_cast<SAMRAI::hier::Variable>(
+                std::make_shared<SAMRAI::pdat::NodeVariable<T>>(d_dim, attr->GetPrefix(), attr->GetDOF()));
             break;
         case EDGE:
-            res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-                boost::make_shared<SAMRAI::pdat::EdgeVariable<T>>(d_dim, attr->GetPrefix(), attr->GetDOF()));
+            res = std::dynamic_pointer_cast<SAMRAI::hier::Variable>(
+                std::make_shared<SAMRAI::pdat::EdgeVariable<T>>(d_dim, attr->GetPrefix(), attr->GetDOF()));
             break;
         case FACE:
-            res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-                boost::make_shared<SAMRAI::pdat::SideVariable<T>>(d_dim, attr->GetPrefix(), attr->GetDOF()));
+            res = std::dynamic_pointer_cast<SAMRAI::hier::Variable>(
+                std::make_shared<SAMRAI::pdat::SideVariable<T>>(d_dim, attr->GetPrefix(), attr->GetDOF()));
             break;
         case VOLUME:
-            res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-                boost::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, attr->GetPrefix(), attr->GetDOF()));
+            res = std::dynamic_pointer_cast<SAMRAI::hier::Variable>(
+                std::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, attr->GetPrefix(), attr->GetDOF()));
             break;
         default:
             break;
@@ -299,8 +299,8 @@ boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(const std::sh
     return res;
 }
 
-boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(const std::shared_ptr<engine::AttributeDesc> &attr) {
-    boost::shared_ptr<SAMRAI::hier::Variable> res = nullptr;
+std::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(const std::shared_ptr<engine::AttributeDesc> &attr) {
+    std::shared_ptr<SAMRAI::hier::Variable> res = nullptr;
 
     if (attr->value_type_info() == (typeid(float))) {
         res = create_samrai_variable_t<float>(attr);
@@ -328,13 +328,13 @@ Array<T, NDIMS> create_array(SAMRAI::pdat::ArrayData<T> &p_data, int depth = 0) 
 };
 
 template <int NDIMS, typename T>
-std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
+std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, std::shared_ptr<SAMRAI::hier::PatchData> pd) {
     std::shared_ptr<data::DataMultiArray<T, NDIMS>> res = nullptr;
     typedef Array<T, NDIMS> array_type;
 
     switch (IFORM) {
         case VERTEX: {
-            auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::NodeData<T>>(pd);
+            auto p_data = std::dynamic_pointer_cast<SAMRAI::pdat::NodeData<T>>(pd);
             int depth = p_data->getDepth();
             res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth);
             for (int d = 0; d < depth; ++d) {
@@ -343,7 +343,7 @@ std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, boost::share
             break;
         }
         case EDGE: {
-            auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::EdgeData<T>>(pd);
+            auto p_data = std::dynamic_pointer_cast<SAMRAI::pdat::EdgeData<T>>(pd);
             int depth = p_data->getDepth();
             res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth * 3);
             for (int axis = 0; axis < 3; ++axis) {
@@ -354,7 +354,7 @@ std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, boost::share
             break;
         }
         case FACE: {
-            auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::SideData<T>>(pd);
+            auto p_data = std::dynamic_pointer_cast<SAMRAI::pdat::SideData<T>>(pd);
             int depth = p_data->getDepth();
             res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth * 3);
             for (int axis = 0; axis < 3; ++axis) {
@@ -365,7 +365,7 @@ std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, boost::share
             break;
         }
         case VOLUME: {
-            auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<T>>(pd);
+            auto p_data = std::dynamic_pointer_cast<SAMRAI::pdat::CellData<T>>(pd);
             int depth = p_data->getDepth();
             res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth);
             for (int d = 0; d < depth; ++d) {
@@ -383,7 +383,7 @@ std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, boost::share
 
 template <int NDIMS>
 std::shared_ptr<data::DataBlock> create_simpla_datablock(const std::shared_ptr<engine::AttributeDesc> &desc,
-                                                         boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
+                                                         std::shared_ptr<SAMRAI::hier::PatchData> pd) {
     std::shared_ptr<data::DataBlock> res(nullptr);
     if (desc->value_type_info() == (typeid(float))) {
         res = create_simpla_datablock<NDIMS, float>(desc->GetIFORM(), pd);
@@ -396,8 +396,8 @@ std::shared_ptr<data::DataBlock> create_simpla_datablock(const std::shared_ptr<e
     }
     return res;
 }
-boost::shared_ptr<SAMRAI::hier::PatchData> convert_from_data_block(const std::shared_ptr<engine::AttributeDesc> &desc,
-                                                                   std::shared_ptr<data::DataBlock> t) {
+std::shared_ptr<SAMRAI::hier::PatchData> convert_from_data_block(const std::shared_ptr<engine::AttributeDesc> &desc,
+                                                                 std::shared_ptr<data::DataBlock> t) {
     //    UNIMPLEMENTED;
     return nullptr;
 }
@@ -414,7 +414,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     //**************************************************************
     auto attr_desc = m_ctx_->CollectRegisteredAttributes();
     for (auto const &item : attr_desc) {
-        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(item.second);
+        std::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(item.second);
         if (var == nullptr) { continue; }
 
         m_samrai_variables_[item.second] = var;
@@ -510,7 +510,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setupLoadBalancer(SAMRAI::algs::Hyper
     SAMRAI::hier::VariableDatabase *vardb = SAMRAI::hier::VariableDatabase::getDatabase();
     if (d_use_nonuniform_workload && (gridding_algorithm != nullptr)) {
         auto load_balancer =
-            boost::dynamic_pointer_cast<SAMRAI::mesh::CascadePartitioner>(gridding_algorithm->getLoadBalanceStrategy());
+            std::dynamic_pointer_cast<SAMRAI::mesh::CascadePartitioner>(gridding_algorithm->getLoadBalanceStrategy());
         if (load_balancer) {
             d_workload_variable.reset(new SAMRAI::pdat::CellVariable<double>(d_dim, "workload_variable", 1));
             d_workload_data_id =
@@ -544,7 +544,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
 
         index_tuple gw = p->GetBlock()->GetGhostWidth();
 
-        auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
+        auto pgeom = std::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
 
         for (int n = 1; n <= 3; ++n)
             for (auto const &b : pgeom->getCodimensionBoundaries(n)) {
@@ -669,8 +669,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
 
     if (d_use_nonuniform_workload) {
         if (!patch.checkAllocated(d_workload_data_id)) { patch.allocatePatchData(d_workload_data_id); }
-        boost::shared_ptr<SAMRAI::pdat::CellData<double>> workload_data(
-            boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<double>, SAMRAI::hier::PatchData>(
+        std::shared_ptr<SAMRAI::pdat::CellData<double>> workload_data(
+            std::dynamic_pointer_cast<SAMRAI::pdat::CellData<double>, SAMRAI::hier::PatchData>(
                 patch.getPatchData(d_workload_data_id)));
         TBOX_ASSERT(workload_data);
 
@@ -692,7 +692,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
 double SAMRAIHyperbolicPatchStrategyAdapter::computeStableDtOnPatch(SAMRAI::hier::Patch &patch, bool initial_time,
                                                                     double dt_time) {
     //    auto pgeom =
-    //    boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
+    //    std::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
     //    return pgeom->getDx()[0] / 2.0;
     return dt_time;
 }
@@ -738,8 +738,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI:
 
 void SAMRAIHyperbolicPatchStrategyAdapter::tagRichardsonExtrapolationCells(
     SAMRAI::hier::Patch &patch, const int error_level_number,
-    const boost::shared_ptr<SAMRAI::hier::VariableContext> &coarsened_fine,
-    const boost::shared_ptr<SAMRAI::hier::VariableContext> &advanced_coarse, double regrid_time, double deltat,
+    const std::shared_ptr<SAMRAI::hier::VariableContext> &coarsened_fine,
+    const std::shared_ptr<SAMRAI::hier::VariableContext> &advanced_coarse, double regrid_time, double deltat,
     const int error_coarsen_ratio, bool initial_error, const int tag_index, bool uses_gradient_detector_too) {}
 
 /**************************************************************************
@@ -772,7 +772,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setPhysicalBoundaryConditions(
  **************************************************************************/
 
 void SAMRAIHyperbolicPatchStrategyAdapter::registerVisItDataWriter(
-    boost::shared_ptr<SAMRAI::appu::VisItDataWriter> viz_writer) {
+    std::shared_ptr<SAMRAI::appu::VisItDataWriter> viz_writer) {
     TBOX_ASSERT(viz_writer);
     d_visit_writer = viz_writer;
 }
@@ -788,18 +788,18 @@ void SAMRAIHyperbolicPatchStrategyAdapter::printClassData(std::ostream &os) cons
     os << std::endl;
 }
 struct SAMRAITimeIntegrator::pimpl_s {
-    boost::shared_ptr<SAMRAIHyperbolicPatchStrategyAdapter> hyperbolic_patch_strategy;
-    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geometry;
-    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> patch_hierarchy;
-    boost::shared_ptr<SAMRAI::algs::HyperbolicLevelIntegrator> hyp_level_integrator;
+    std::shared_ptr<SAMRAIHyperbolicPatchStrategyAdapter> hyperbolic_patch_strategy;
+    std::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geometry;
+    std::shared_ptr<SAMRAI::hier::PatchHierarchy> patch_hierarchy;
+    std::shared_ptr<SAMRAI::algs::HyperbolicLevelIntegrator> hyp_level_integrator;
 
-    //    boost::shared_ptr<SAMRAI::engine::StandardTagAndInitialize> error_detector;
-    //    boost::shared_ptr<SAMRAI::engine::BergerRigoutsos> box_generator;
-    //    boost::shared_ptr<SAMRAI::engine::CascadePartitioner> load_balancer;
-    //    boost::shared_ptr<SAMRAI::engine::GriddingAlgorithm> gridding_algorithm;
-    boost::shared_ptr<SAMRAI::algs::TimeRefinementIntegrator> m_time_refinement_integrator_;
+    //    std::shared_ptr<SAMRAI::engine::StandardTagAndInitialize> error_detector;
+    //    std::shared_ptr<SAMRAI::engine::BergerRigoutsos> box_generator;
+    //    std::shared_ptr<SAMRAI::engine::CascadePartitioner> load_balancer;
+    //    std::shared_ptr<SAMRAI::engine::GriddingAlgorithm> gridding_algorithm;
+    std::shared_ptr<SAMRAI::algs::TimeRefinementIntegrator> m_time_refinement_integrator_;
     // VisItDataWriter is only present if HDF is available
-    boost::shared_ptr<SAMRAI::appu::VisItDataWriter> visit_data_writer_;
+    std::shared_ptr<SAMRAI::appu::VisItDataWriter> visit_data_writer_;
 
     bool write_restart = false;
     int restart_interval = 0;
@@ -919,7 +919,7 @@ void SAMRAITimeIntegrator::Update() {
      * for this application, see comments at top of file.
      */
 
-    auto CartesianGridGeometry = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("CartesianGeometry");
+    auto CartesianGridGeometry = std::make_shared<SAMRAI::tbox::MemoryDatabase>("CartesianGeometry");
 
     nTuple<int, 3> i_low{0, 0, 0};
     nTuple<int, 3> i_up{0, 0, 0};
@@ -945,7 +945,7 @@ void SAMRAITimeIntegrator::Update() {
 
     //---------------------------------
 
-    auto PatchHierarchy = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("PatchHierarchy");
+    auto PatchHierarchy = std::make_shared<SAMRAI::tbox::MemoryDatabase>("PatchHierarchy");
 
     // Maximum number of levels in hierarchy.
     PatchHierarchy->putInteger("max_levels", static_cast<int>(atlas.GetMaxLevel()));
@@ -971,7 +971,7 @@ void SAMRAITimeIntegrator::Update() {
     m_pimpl_->patch_hierarchy.reset(
         new SAMRAI::hier::PatchHierarchy("PatchHierarchy", m_pimpl_->grid_geometry, PatchHierarchy));
 
-    auto HyperbolicLevelIntegrator = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("HyperbolicLevelIntegrator");
+    auto HyperbolicLevelIntegrator = std::make_shared<SAMRAI::tbox::MemoryDatabase>("HyperbolicLevelIntegrator");
 
     // Refer to algs::HyperbolicLevelIntegrator for input
     // max cfl factor used in problem
@@ -990,40 +990,40 @@ void SAMRAITimeIntegrator::Update() {
         "SAMRAILevelIntegrator", HyperbolicLevelIntegrator, m_pimpl_->hyperbolic_patch_strategy.get(),
         use_refined_timestepping));
 
-    auto StandardTagAndInitialize = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("StandardTagAndInitialize");
+    auto StandardTagAndInitialize = std::make_shared<SAMRAI::tbox::MemoryDatabase>("StandardTagAndInitialize");
     // Refer to mesh::StandardTagAndInitialize for input
     StandardTagAndInitialize->putString("tagging_method", "GRADIENT_DETECTOR");
 
-    auto error_detector = boost::make_shared<SAMRAI::mesh::StandardTagAndInitialize>(
+    auto error_detector = std::make_shared<SAMRAI::mesh::StandardTagAndInitialize>(
         "StandardTagAndInitialize", m_pimpl_->hyp_level_integrator.get(), StandardTagAndInitialize);
     /**
      *  create grid_algorithm
      */
-    auto BergerRigoutsos = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("BergerRigoutsos");
+    auto BergerRigoutsos = std::make_shared<SAMRAI::tbox::MemoryDatabase>("BergerRigoutsos");
 
     BergerRigoutsos->putBool("sort_output_nodes", true);       // Makes results repeatable.
     BergerRigoutsos->putDouble("efficiency_tolerance", 0.85);  // min % of GetTag cells in new patch level,
     BergerRigoutsos->putDouble("combine_efficiency", 0.95);    //  chop box if  sum of volumes of   smaller
     // boxes <  efficiency * vol of large box
 
-    auto box_generator = boost::make_shared<SAMRAI::mesh::BergerRigoutsos>(dim, BergerRigoutsos);
+    auto box_generator = std::make_shared<SAMRAI::mesh::BergerRigoutsos>(dim, BergerRigoutsos);
 
     box_generator->useDuplicateMPI(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 
-    auto LoadBalancer = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("LoadBalancer");
-    auto load_balancer = boost::make_shared<SAMRAI::mesh::CascadePartitioner>(dim, "LoadBalancer", LoadBalancer);
+    auto LoadBalancer = std::make_shared<SAMRAI::tbox::MemoryDatabase>("LoadBalancer");
+    auto load_balancer = std::make_shared<SAMRAI::mesh::CascadePartitioner>(dim, "LoadBalancer", LoadBalancer);
 
     load_balancer->setSAMRAI_MPI(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
     //    load_balancer->printStatistics(std::cout);
 
-    auto GriddingAlgorithm = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("GriddingAlgorithm");
+    auto GriddingAlgorithm = std::make_shared<SAMRAI::tbox::MemoryDatabase>("GriddingAlgorithm");
 
-    auto gridding_algorithm = boost::make_shared<SAMRAI::mesh::GriddingAlgorithm>(
+    auto gridding_algorithm = std::make_shared<SAMRAI::mesh::GriddingAlgorithm>(
         m_pimpl_->patch_hierarchy, "GriddingAlgorithm", GriddingAlgorithm, error_detector, box_generator,
         load_balancer);
 
     // Refer to algs::TimeRefinementIntegrator for input
-    auto TimeRefinementIntegrator = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("TimeRefinementIntegrator");
+    auto TimeRefinementIntegrator = std::make_shared<SAMRAI::tbox::MemoryDatabase>("TimeRefinementIntegrator");
 
     TimeRefinementIntegrator->putDouble("start_time", engine::TimeIntegrator::GetTimeNow());  // initial simulation time
     TimeRefinementIntegrator->putDouble("end_time", engine::TimeIntegrator::GetTimeEnd());    // final simulation time
