@@ -9,7 +9,6 @@
 #include <simpla/engine/all.h>
 #include <simpla/parallel/MPIComm.h>
 #include <simpla/utilities/Log.h>
-#include <boost/shared_ptr.hpp>
 #include <cmath>
 #include <map>
 #include <memory>
