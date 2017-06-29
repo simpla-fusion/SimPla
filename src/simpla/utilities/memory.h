@@ -82,7 +82,7 @@ int spMemoryAlloc(T **addr, size_t n, int location = MANAGED_MEMORY) {
     //    }
 };
 
-int spMemoryFree(void **addr, size_t n = 0, int location = MANAGED_MEMORY) {
+inline int spMemoryFree(void **addr, size_t n = 0, int location = MANAGED_MEMORY) {
     ASSERT(addr != nullptr && *addr != nullptr);
     SP_DEVICE_CALL(cudaFree(*addr));
     SP_DEVICE_CALL(cudaDeviceSynchronize());
