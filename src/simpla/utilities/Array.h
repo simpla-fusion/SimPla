@@ -6,7 +6,6 @@
 #define SIMPLA_ARRAY_H
 
 #include <simpla/SIMPLA_config.h>
-#include <cstring>
 #include <initializer_list>
 #include <limits>
 #include <memory>
@@ -40,17 +39,17 @@ struct Array {
     std::shared_ptr<value_type> m_holder_ = nullptr;
     value_type* m_host_data_ = nullptr;
     value_type* m_data_ = nullptr;
-    static value_type m_snan_;
-    static value_type m_null_;
+    static const value_type m_snan_;
+    static const value_type m_null_;
 
    public:
     Array() = default;
 
     Array(this_type const& other)
-        : m_sfc_(other.m_sfc_), m_holder_(other.m_holder_), m_host_data_(other.m_host_data_), m_data_(other.m_data_) {}
+        : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_holder_(other.m_holder_), m_host_data_(other.m_host_data_) {}
 
     Array(this_type&& other) noexcept
-        : m_sfc_(other.m_sfc_), m_holder_(other.m_holder_), m_host_data_(other.m_host_data_), m_data_(other.m_data_) {}
+        : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_holder_(other.m_holder_), m_host_data_(other.m_host_data_) {}
 
     Array& operator=(this_type&& other) {
         this_type(std::forward<this_type>(other)).swap(*this);
@@ -59,32 +58,33 @@ struct Array {
 
     Array(std::initializer_list<index_type> const& l) : m_sfc_(l) {}
 
+    Array(value_type* d, std::initializer_list<index_type> const& l) : m_data_(d), m_sfc_(l) {}
+
     template <typename... Args>
     explicit Array(Args&&... args) : m_sfc_(std::forward<Args>(args)...) {}
+    template <typename... Args>
+    explicit Array(value_type* d, Args&&... args) : m_data_(d), m_sfc_(std::forward<Args>(args)...) {}
 
     virtual ~Array() = default;
 
     void swap(this_type& other) {
         std::swap(m_holder_, other.m_holder_);
         std::swap(m_host_data_, other.m_host_data_);
+        std::swap(m_data_, other.m_data_);
         m_sfc_.swap(other.m_sfc_);
     }
     void DoSetUp() {
-        if (m_holder_ == nullptr) {
-#ifdef SIMPLA_INITIALIZE_ARRAY_TO_SIGNALING_NAN
-            m_holder_ = m_sfc_.template make_shared<value_type>(true);
-#else
-            m_holder_ = m_sfc_.template make_shared<value_type>(false);
-#endif
+        if (m_data_ == nullptr) {
+            m_holder_ = spMakeShared<value_type>(m_data_, m_sfc_.size());
+            m_host_data_ = m_data_;
+            m_data_ = m_holder_.get();
         }
-        m_host_data_ = m_holder_.get();
     }
-    void Shift(array_index_type const& offset) { m_sfc_.Shfit(offset); }
 
     SFC const& GetSpaceFillingCurve() const { return m_sfc_; }
 
     int GetNDIMS() const { return NDIMS; }
-    bool empty() const { return m_holder_ == nullptr; }
+    bool empty() const { return m_data_ == nullptr; }
     std::type_info const& value_type_info() const { return typeid(value_type); }
     size_type size() const { return m_sfc_.size(); }
     array_index_box_type const& GetIndexBox() const { return m_sfc_.GetIndexBox(); }
@@ -101,51 +101,59 @@ struct Array {
 
     std::shared_ptr<value_type>& GetData() { return m_holder_; }
     std::shared_ptr<value_type> const& GetData() const { return m_holder_; }
-    value_type* GetRawPointer() { return m_holder_.get(); }
-    value_type* GetRawPointer() const { return m_holder_.get(); }
 
     value_type* get() { return m_holder_.get(); }
     value_type* get() const { return m_holder_.get(); }
 
-    void Initialize() { DoSetUp(); }
+    template <typename Other, typename... Args>
+    void Assign(Other const& other, Args&&... args) {
+        at(std::forward<Args>(args)...) = this_type::getValue(other, std::forward<Args>(args)...);
+    };
+    void Shift(array_index_type const& offset) { m_sfc_.Shfit(offset); }
+
+    this_type operator[](array_index_type const& IX) const {
+        this_type res(*this);
+        res.Shift(IX);
+        return res;
+    }
+
+    void SetUndefined() { Fill(m_snan_); }
     void Clear() { Fill(0); }
     void Fill(value_type v) {
         DoSetUp();
-        m_sfc_.Fill(m_holder_, v);
+        spMemoryFill(m_data_, v, m_sfc_.size());
+    }
+    void DeepCopy(value_type const* other) {
+        DoSetUp();
+        spMemoryCopy(m_data_, other, m_sfc_.size());
     }
 
     this_type& operator=(this_type const& rhs) {
         DoSetUp();
-        m_sfc_.Assign(*this, rhs);
+        m_sfc_.Foreach(*this, [=] __host__ __device__(auto const& s) { return this_type::getValue(rhs, s); });
         return (*this);
     }
 
     template <typename TR>
     this_type& operator=(TR const& rhs) {
         DoSetUp();
-        m_sfc_.Assign(*this, rhs);
+        m_sfc_.Foreach(*this, [=] __host__ __device__(auto const& s) { return this_type::getValue(rhs, s); });
         return (*this);
-    }
-
-    template <typename TOther>
-    void DeepCopy(TOther const& other) {
-        m_sfc_.Foreach([&](array_index_type const& idx) { at(idx) = getValue(other, idx); });
     }
 
     std::ostream& Print(std::ostream& os, int indent = 0) const { return m_sfc_.Print(os, m_holder_.get(), indent); }
 
-    this_type operator()(array_index_type const& IX) const {
-        this_type res(*this);
-        res.Shift(IX);
-        return res;
-    }
+    __host__ __device__ value_type& operator[](size_type s) { return m_data_[s]; }
+
+    __host__ __device__ value_type const& operator[](size_type s) const { return m_data_[s]; }
+
     template <typename... Args>
     __host__ __device__ value_type& at(Args&&... args) {
-        return m_sfc_.Get(m_host_data_, std::forward<Args>(args)...);
+        return m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
     }
     template <typename... Args>
     __host__ __device__ value_type const& at(Args&&... args) const {
-        return m_sfc_.Get(m_host_data_, std::forward<Args>(args)...);
+        return m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
     }
     template <typename... Args>
     __host__ __device__ value_type& operator()(Args&&... args) {
@@ -155,81 +163,47 @@ struct Array {
     __host__ __device__ value_type const& operator()(Args&&... args) const {
         return at(std::forward<Args>(args)...);
     }
-    template <typename TIdx>
-    __host__ __device__ value_type& operator[](TIdx const& idx) {
-        return at(idx);
-    }
-    template <typename TIdx>
-    __host__ __device__ value_type const& operator[](TIdx const& idx) const {
-        return at(idx);
-    }
 
-    template <typename TExpr>
-    void Assign(array_index_type const& idx, TExpr const& expr) {
-        if (m_sfc_.in_box(idx)) { at(idx) = getValue(expr, idx); }
-    }
-
-   public:
-    template <typename TOP, typename... Others>
-    void Foreach(TOP const& op, Others&&... others) {
-        DoSetUp();
-        m_sfc_.Foreach(
-            [&](array_index_type const& idx) { op(at(idx), getValue(std::forward<Others>(others), idx)...); });
-    };
-
-    template <typename TFun>
-    void Foreach(TFun const& op,
-                 ENABLE_IF(simpla::concept::is_callable<TFun(array_index_type const&, value_type&)>::value)) {
-        DoSetUp();
-        m_sfc_.Foreach([&](array_index_type const& idx) { op(idx, at(idx)); });
-    };
-    template <typename TFun>
-    void Foreach(
-        TFun const& op,
-        ENABLE_IF(simpla::concept::is_callable<TFun(array_index_type const&, value_type const&)>::value)) const {
-        m_sfc_.Foreach([&](array_index_type const& idx) { op(idx, at(idx)); });
-    };
-
-   public:
-    template <typename TFun>
-    __host__ __device__ static constexpr value_type getValue(
-        TFun const& op, array_index_type const& s,
-        ENABLE_IF(simpla::concept::is_callable<TFun(array_index_type const&)>::value)) {
-        return op(s);
-    };
-    __host__ __device__ static constexpr value_type const& getValue(value_type const& v, array_index_type const& s) {
+    //    template <typename... Args>
+    //    __host__ __device__ static constexpr value_type& getValue(this_type& other, Args&&... args) {
+    //        return other.at(std::forward<Args>(args)...);
+    //    }
+    //    template <typename TFun, typename... Args>
+    //    __host__ __device__ static constexpr value_type getValue(
+    //        TFun const& op, Args&&... args, ENABLE_IF(simpla::concept::is_callable<TFun(Args...)>::value)) {
+    //        return op(std::forward<Args>(args)...);
+    //    };
+    template <typename... Args>
+    __host__ __device__ static constexpr value_type const& getValue(value_type const& v, Args&&... args) {
         return v;
     };
 
-    template <typename U, typename RSFC>
-    __host__ __device__ static constexpr auto getValue(Array<U, NDIMS, RSFC> const& v, array_index_type const& s) {
-        return v[s];
+    template <typename U, typename RSFC, typename... Args>
+    __host__ __device__ static constexpr U const& getValue(Array<U, NDIMS, RSFC> const& other, Args&&... args) {
+        return other.at(std::forward<Args>(args)...);
     };
 
-    __host__ __device__ static constexpr auto getValue(this_type& self, array_index_type const& s) {
-        return self.at(s);
-    };
-    __host__ __device__ static constexpr auto getValue(this_type const& self, array_index_type const& s) {
-        return self.at(s);
+    template <typename... Args>
+    __host__ __device__ static constexpr value_type const& getValue(this_type const& other, Args&&... args) {
+        return other.at(std::forward<Args>(args)...);
     };
 
-    template <typename TOP, typename... Others, size_t... IND>
+    template <typename TOP, typename... Others, size_t... IND, typename... Args>
     __host__ __device__ static constexpr auto _invoke_helper(Expression<TOP, Others...> const& expr,
-                                                             std::index_sequence<IND...>, array_index_type const& s) {
-        return TOP::eval(getValue(std::get<IND>(expr.m_args_), s)...);
+                                                             std::index_sequence<IND...>, Args&&... args) {
+        return TOP::eval(getValue(std::get<IND>(expr.m_args_), std::forward<Args>(args)...)...);
     }
 
-    template <typename TOP, typename... Others>
-    __host__ __device__ static constexpr auto getValue(Expression<TOP, Others...> const& expr,
-                                                       array_index_type const& s) {
-        return _invoke_helper(expr, std::index_sequence_for<Others...>(), s);
+    template <typename TOP, typename... Others, typename... Args>
+    __host__ __device__ static constexpr auto getValue(Expression<TOP, Others...> const& expr, Args&&... args) {
+        return _invoke_helper(expr, std::index_sequence_for<Others...>(), std::forward<Args>(args)...);
     }
 };
 
 template <typename V, int NDIMS, typename SFC>
-V Array<V, NDIMS, SFC>::m_snan_ = std::numeric_limits<V>::signaling_NaN();
+constexpr V Array<V, NDIMS, SFC>::m_snan_ = std::numeric_limits<V>::signaling_NaN();
 template <typename V, int NDIMS, typename SFC>
-V Array<V, NDIMS, SFC>::m_null_ = 0;
+constexpr V Array<V, NDIMS, SFC>::m_null_ = 0;
 
 namespace traits {
 template <typename T, int N, typename SFC>

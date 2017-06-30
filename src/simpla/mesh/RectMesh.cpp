@@ -1,8 +1,8 @@
 //
 // Created by salmon on 17-6-1.
 //
-
 #include "RectMesh.h"
+#include <simpla/SIMPLA_config.h>
 
 namespace simpla {
 namespace mesh {

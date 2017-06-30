@@ -80,7 +80,7 @@ class DataMultiArray : public DataBlock {
     void DeepCopy(std::shared_ptr<this_type> const &other) {
         if (other == nullptr) { return; }
         if (m_data_.size() < other->size()) { m_data_.resize(other->m_data_.size()); }
-        for (int i = 0; i < m_data_.size(); ++i) { m_data_[i].DeepCopy(other->m_data_[i]); }
+        for (int i = 0; i < m_data_.size(); ++i) { m_data_[i].DeepCopy(other->m_data_[i].get()); }
     }
     void Clear() override {
         for (int i = 0; i < m_data_.size(); ++i) { m_data_[i].Clear(); };
