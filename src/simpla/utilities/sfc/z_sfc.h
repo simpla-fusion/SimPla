@@ -9,6 +9,7 @@
 #include <simpla/utilities/device_common.h>
 #include <simpla/utilities/memory.h>
 #include <algorithm>
+#include <cmath>
 #include <cstddef>  // for size_t
 #include <limits>
 #include <tuple>
@@ -24,6 +25,7 @@ class ZSFC {
    public:
     typedef nTuple<index_type, NDIMS> array_index_type;
     typedef std::tuple<array_index_type, array_index_type> array_index_box_type;
+    static constexpr int ndims = NDIMS;
     array_index_box_type m_index_box_{{0, 0, 0}, {1, 1, 1}};
     array_index_type m_strides_{0, 0, 0};
     size_type m_size_ = 0;
@@ -102,7 +104,7 @@ class ZSFC {
         for (int i = 0; i < NDIMS; ++i) { m_size_ *= (std::get<1>(m_index_box_)[i] - std::get<0>(m_index_box_)[i]); }
     };
 
-    size_t size() const { return m_size_; }
+    size_type size() const { return m_size_; }
 
     void Shift(array_index_type const& offset) {
         std::get<0>(m_index_box_) += offset;
@@ -111,17 +113,13 @@ class ZSFC {
     }
     __host__ __device__ constexpr inline bool in_box(array_index_type const& x) const;
 
-    __host__ __device__ constexpr size_t hash(array_index_type const& idx) const {
+    __host__ __device__ constexpr size_type hash(array_index_type const& idx) const {
         return dot(idx - std::get<0>(m_index_box_), m_strides_);
     }
 
-    template <typename... Args>
-    __host__ __device__ constexpr size_t hash(index_type s0, Args&&... idx) const {
-        return hash(array_index_type{s0, std::forward<Args>(idx)...});
-    }
-
-    template <typename T>
-    std::shared_ptr<T> make_shared(bool fill_san = false) const;
+    __host__ __device__ size_type hash(index_type s0, index_type s1 = 0, index_type s2 = 0, index_type s3 = 0,
+                                       index_type s4 = 0, index_type s5 = 0, index_type s6 = 0, index_type s7 = 0,
+                                       index_type s8 = 0, index_type s9 = 0) const;
 
     template <typename V, typename... Args>
     __host__ __device__ V& Get(V* p, Args&&... args) const {
@@ -133,92 +131,27 @@ class ZSFC {
 #endif
     }
 
-    template <typename TFun>
-    void Foreach(TFun const& f) const;
-
-    template <typename T, typename TRhs>
-    void Fill(T& lhs, TRhs const& rhs) const;
-
-    template <typename T, typename TRhs>
-    void Assign(T& lhs, TRhs const& rhs) const;
+    template <typename TLHS, typename TRHS>
+    void Foreach(TLHS& d, TRHS const& fun) const;
 
     template <typename value_type>
     std::ostream& Print(std::ostream& os, value_type const* v, int indent = 0) const;
 };
 
-template <int NDIMS>
-template <typename T>
-std::shared_ptr<T> ZSFC<NDIMS>::make_shared(bool fill_snan) const {
-    auto res = spMakeShared<T>(size());
-    if (fill_snan) { spMemoryFill(res.get(), std::numeric_limits<T>::signaling_NaN(), size()); }
-    return res;
-};
+template <>
+__host__ __device__ size_type ZSFC<3>::hash(index_type s0, index_type s1, index_type s2, index_type s3, index_type s4,
+                                            index_type s5, index_type s6, index_type s7, index_type s8,
+                                            index_type s9) const {
+    return std::fma(s0, m_strides_[0], -std::get<0>(m_index_box_)[0] * m_strides_[0]) +
+           std::fma(s1, m_strides_[1], -std::get<0>(m_index_box_)[1] * m_strides_[1]) +
+           std::fma(s2, m_strides_[2], -std::get<0>(m_index_box_)[2] * m_strides_[2]);
+}
 
-template <int NDIMS>
+template <>
 template <typename value_type>
-std::ostream& ZSFC<NDIMS>::Print(std::ostream& os, value_type const* v, int indent) const {
+std::ostream& ZSFC<3>::Print(std::ostream& os, value_type const* v, int indent) const {
     os << "Array [" << typeid(value_type).name() << "]: " << m_index_box_ << std::endl;
 
-    Foreach([&](array_index_type const& idx) {
-        if (idx[NDIMS - 1] == std::get<0>(m_index_box_)[NDIMS - 1]) {
-            os << "{" << v[hash(idx)];
-        } else {
-            os << "," << v[hash(idx)];
-        }
-        if (idx[NDIMS - 1] == std::get<1>(m_index_box_)[NDIMS - 1] - 1) { os << "}" << std::endl; }
-    });
-
-    return os;
-}
-
-template <int N>
-template <typename TFun>
-void ZSFC<N>::Foreach(TFun const& fun) const {
-    UNIMPLEMENTED;
-    //    nTuple<index_type, N> idx;
-    //    idx = std::get<0>(inner_box);
-    //
-    //    while (1) {
-    //        fun(idx);
-    //
-    //        ++idx[N - 1];
-    //        for (int rank = N - 1; rank > 0; --rank) {
-    //            if (idx[rank] >= std::get<1>(inner_box)[rank]) {
-    //                idx[rank] = std::get<0>(inner_box)[rank];
-    //                ++idx[rank - 1];
-    //            }
-    //        }
-    //        if (idx[0] >= std::get<1>(inner_box)[0]) break;
-    //    }
-}
-template <>
-template <typename TFun>
-void ZSFC<1>::Foreach(TFun const& fun) const {
-    index_type ib = std::get<0>(m_index_box_)[0];
-    index_type ie = std::get<1>(m_index_box_)[0];
-#pragma omp parallel for
-    for (index_type i = ib; i < ie; ++i) { fun(nTuple<index_type, 1>{i}); }
-}
-template <>
-template <typename TFun>
-void ZSFC<2>::Foreach(TFun const& fun) const {
-    index_type ib = std::get<0>(m_index_box_)[0];
-    index_type ie = std::get<1>(m_index_box_)[0];
-    index_type jb = std::get<0>(m_index_box_)[1];
-    index_type je = std::get<1>(m_index_box_)[1];
-    if (m_array_order_fast_first_) {
-#pragma omp parallel for
-        for (index_type j = jb; j < je; ++j)
-            for (index_type i = ib; i < ie; ++i) { fun(nTuple<index_type, 2>{i, j}); }
-    } else {
-#pragma omp parallel for
-        for (index_type i = ib; i < ie; ++i)
-            for (index_type j = jb; j < je; ++j) { fun(nTuple<index_type, 2>{i, j}); }
-    }
-}
-template <>
-template <typename TFun>
-void ZSFC<3>::Foreach(TFun const& fun) const {
     index_type ib = std::get<0>(m_index_box_)[0];
     index_type ie = std::get<1>(m_index_box_)[0];
     index_type jb = std::get<0>(m_index_box_)[1];
@@ -226,35 +159,103 @@ void ZSFC<3>::Foreach(TFun const& fun) const {
     index_type kb = std::get<0>(m_index_box_)[2];
     index_type ke = std::get<1>(m_index_box_)[2];
 
-    if (m_array_order_fast_first_) {
-#pragma omp parallel for
-        for (index_type k = kb; k < ke; ++k)
-            for (index_type j = jb; j < je; ++j)
-                for (index_type i = ib; i < ie; ++i) { fun(nTuple<index_type, 3>{i, j, k}); }
-
-    } else {
-#pragma omp parallel for
-        for (index_type i = ib; i < ie; ++i)
-            for (index_type j = jb; j < je; ++j)
-                for (index_type k = kb; k < ke; ++k) { fun(nTuple<index_type, 3>{i, j, k}); }
-    }
+    for (index_type i = ib; i < ie; ++i)
+        for (index_type j = jb; j < je; ++j) {
+            os << "{" << std::setw(8) << v[hash(i, j, kb)];
+            for (index_type k = kb + 1; k < ke; ++k) { os << "," << std::setw(8) << v[hash(i, j, k)]; }
+            os << "}" << std::endl;
+        }
+    return os;
 }
 
+// template <int N>
+// template <typename TV, typename TFun>
+// void ZSFC<N>::Foreach(TV* d, TFun const& fun) const {
+//    UNIMPLEMENTED;
+//    //    nTuple<index_type, N> idx;
+//    //    idx = std::get<0>(inner_box);
+//    //
+//    //    while (1) {
+//    //        fun(idx);
+//    //
+//    //        ++idx[N - 1];
+//    //        for (int rank = N - 1; rank > 0; --rank) {
+//    //            if (idx[rank] >= std::get<1>(inner_box)[rank]) {
+//    //                idx[rank] = std::get<0>(inner_box)[rank];
+//    //                ++idx[rank - 1];
+//    //            }
+//    //        }
+//    //        if (idx[0] >= std::get<1>(inner_box)[0]) break;
+//    //    }
+//}
+// template <>
+// template <typename TFun>
+// void ZSFC<1>::Foreach(TV* d, TFun const& fun) const {
+//    index_type ib = std::get<0>(m_index_box_)[0];
+//    index_type ie = std::get<1>(m_index_box_)[0];
+//    //#pragma omp parallel for
+//    for (index_type i = ib; i < ie; ++i) { fun(nTuple<index_type, 1>{i}); }
+//}
+// template <>
+// template <typename TFun>
+// void ZSFC<2>::Foreach(TV* d, TFun const& fun) const {
+//    index_type ib = std::get<0>(m_index_box_)[0];
+//    index_type ie = std::get<1>(m_index_box_)[0];
+//    index_type jb = std::get<0>(m_index_box_)[1];
+//    index_type je = std::get<1>(m_index_box_)[1];
+//    if (m_array_order_fast_first_) {
+//        //#pragma omp parallel for
+//        for (index_type j = jb; j < je; ++j)
+//            for (index_type i = ib; i < ie; ++i) { fun(nTuple<index_type, 2>{i, j}); }
+//    } else {
+//        //#pragma omp parallel for
+//        for (index_type i = ib; i < ie; ++i)
+//            for (index_type j = jb; j < je; ++j) { fun(nTuple<index_type, 2>{i, j}); }
+//    }
+//}
+
 #ifdef __CUDA__
-template <typename T, typename TRhs>
-__global__ void assign(nTuple<index_type, 3> min, nTuple<index_type, 3> max, T lhs, TRhs rhs) {
+template <typename TLHS, typename TRHS>
+__global__ void foreach_device(nTuple<index_type, 3> min, nTuple<index_type, 3> max, TLHS lhs, TRHS rhs) {
     nTuple<index_type, 3> idx{min[0] + blockIdx.x * blockDim.x + threadIdx.x,
                               min[1] + blockIdx.y * blockDim.y + threadIdx.y,
                               min[2] + blockIdx.z * blockDim.z + threadIdx.z};
-    if (idx[0] < max[0] && idx[1] < max[1] && idx[2] < max[2]) { lhs.at(idx) = T::getValue(rhs, idx); }
+    if (idx[0] < max[0] && idx[1] < max[1] && idx[2] < max[2]) { lhs(idx) = rhs(idx); }
 };
 
 #endif
 
 template <>
-template <typename T, typename TRhs>
-void ZSFC<3>::Assign(T& lhs, TRhs const& rhs) const {
-#ifdef __CUDA__
+template <typename TLHS, typename TRHS>
+void ZSFC<3>::Foreach(TLHS& lhs, TRHS const& rhs) const {
+    index_type ib = std::get<0>(m_index_box_)[0];
+    index_type ie = std::get<1>(m_index_box_)[0];
+    index_type jb = std::get<0>(m_index_box_)[1];
+    index_type je = std::get<1>(m_index_box_)[1];
+    index_type kb = std::get<0>(m_index_box_)[2];
+    index_type ke = std::get<1>(m_index_box_)[2];
+
+#ifndef __CUDA__
+    if (m_array_order_fast_first_) {
+#pragma omp parallel for
+        for (index_type k = kb; k < ke; ++k)
+            for (index_type j = jb; j < je; ++j)
+                for (index_type i = ib; i < ie; ++i) {
+                    nTuple<index_type, 3> idx{i, j, k};
+                    lhs(idx) = rhs(idx);
+                }
+
+    } else {
+#pragma omp parallel for
+        for (index_type i = ib; i < ie; ++i)
+            for (index_type j = jb; j < je; ++j)
+                for (index_type k = kb; k < ke; ++k) {
+                    nTuple<index_type, 3> idx{i, j, k};
+                    lhs(idx) = rhs(idx);
+                }
+    }
+#else
+
     dim3 threadsPerBlock{4, 4, 4};
 
     dim3 numBlocks{static_cast<uint>(std::get<1>(m_index_box_)[0] - std::get<0>(m_index_box_)[0] + threadsPerBlock.x) /
@@ -264,96 +265,46 @@ void ZSFC<3>::Assign(T& lhs, TRhs const& rhs) const {
                    static_cast<uint>(std::get<1>(m_index_box_)[2] - std::get<0>(m_index_box_)[2] + threadsPerBlock.z) /
                        threadsPerBlock.z};
 
-    SP_CALL_DEVICE_KERNEL(assign, numBlocks, threadsPerBlock, std::get<0>(m_index_box_), std::get<1>(m_index_box_), lhs,
-                          rhs);
-#else
+    SP_CALL_DEVICE_KERNEL(foreach_device, numBlocks, threadsPerBlock, std::get<0>(m_index_box_),
+                          std::get<1>(m_index_box_), lhs, rhs);
 
-    index_type ib = std::get<0>(m_index_box_)[0];
-    index_type ie = std::get<1>(m_index_box_)[0];
-    index_type jb = std::get<0>(m_index_box_)[1];
-    index_type je = std::get<1>(m_index_box_)[1];
-    index_type kb = std::get<0>(m_index_box_)[2];
-    index_type ke = std::get<1>(m_index_box_)[2];
-    if (m_array_order_fast_first_) {
-#pragma omp parallel for
-        for (index_type k = kb; k < ke; ++k)
-            for (index_type j = jb; j < je; ++j)
-                for (index_type i = ib; i < ie; ++i) {
-                    nTuple<index_type, 3> idx{i, j, k};
-                    lhs.at(idx) = T::getValue(rhs, idx);
-                }
-
-    } else {
-#pragma omp parallel for
-        for (index_type i = ib; i < ie; ++i)
-            for (index_type j = jb; j < je; ++j)
-                for (index_type k = kb; k < ke; ++k) {
-                    nTuple<index_type, 3> idx{i, j, k};
-                    lhs.at(idx) = T::getValue(rhs, idx);
-                }
-    }
 #endif
 }
+
 template <>
 constexpr inline bool ZSFC<3>::in_box(array_index_type const& idx) const {
     return (std::get<0>(m_index_box_)[0] <= idx[0]) && (idx[0] < std::get<1>(m_index_box_)[0]) &&
            (std::get<0>(m_index_box_)[1] <= idx[1]) && (idx[1] < std::get<1>(m_index_box_)[1]) &&
            (std::get<0>(m_index_box_)[2] <= idx[2]) && (idx[2] < std::get<1>(m_index_box_)[2]);
 };
-template <>
-template <typename T, typename TRhs>
-void ZSFC<3>::Fill(T& lhs, TRhs const& rhs) const {
-    spMemoryFill(lhs.get(), rhs, size());
-};
 
-template <>
-template <typename TFun>
-void ZSFC<4>::Foreach(TFun const& fun) const {
-    index_type ib = std::get<0>(m_index_box_)[0];
-    index_type ie = std::get<1>(m_index_box_)[0];
-    index_type jb = std::get<0>(m_index_box_)[1];
-    index_type je = std::get<1>(m_index_box_)[1];
-    index_type kb = std::get<0>(m_index_box_)[2];
-    index_type ke = std::get<1>(m_index_box_)[2];
-    index_type lb = std::get<0>(m_index_box_)[3];
-    index_type le = std::get<1>(m_index_box_)[3];
-
-    if (m_array_order_fast_first_) {
-#pragma omp parallel for
-        for (index_type l = lb; l < le; ++l)
-            for (index_type k = kb; k < ke; ++k)
-                for (index_type j = jb; j < je; ++j)
-                    for (index_type i = ib; i < ie; ++i) fun(nTuple<index_type, 4>{i, j, k, l});
-
-    } else {
-#pragma omp parallel for
-        for (index_type i = ib; i < ie; ++i)
-            for (index_type j = jb; j < je; ++j)
-                for (index_type k = kb; k < ke; ++k)
-                    for (index_type l = lb; l < le; ++l) { fun(nTuple<index_type, 4>{i, j, k, l}); }
-    }
-}
-template <typename TIdx>
-size_type Hash(std::tuple<nTuple<index_type, 2>, nTuple<index_type, 2>> const& box, TIdx const& idx) {
-    return static_cast<size_type>(((idx[1] - std::get<0>(box)[1]) +
-                                   (idx[0] - std::get<0>(box)[0]) * (std::get<1>(box)[1] - std::get<0>(box)[1])));
-}
-template <typename TIdx>
-size_type Hash(std::tuple<nTuple<index_type, 3>, nTuple<index_type, 3>> const& box, TIdx const& idx) {
-    return static_cast<size_type>((idx[2] - std::get<0>(box)[2]) +
-                                  ((idx[1] - std::get<0>(box)[1]) +
-                                   (idx[0] - std::get<0>(box)[0]) * (std::get<1>(box)[1] - std::get<0>(box)[1])) *
-                                      (std::get<1>(box)[2] - std::get<0>(box)[2]));
-}
-template <int N, typename TIdx>
-size_type Hash(std::tuple<nTuple<index_type, N>, nTuple<index_type, N>> const& box, TIdx const& idx) {
-    size_type res = idx[0] - std::get<0>(box)[0];
-    for (int i = 1; i < N; ++i) {
-        res *= (std::get<1>(box)[i - 1] - std::get<0>(box)[i - 1]);
-        res += idx[i] - std::get<0>(box)[i];
-    }
-    return res;
-}
+// template <>
+// template <typename TFun>
+// void ZSFC<4>::Foreach(TFun const& fun) const {
+//    index_type ib = std::get<0>(m_index_box_)[0];
+//    index_type ie = std::get<1>(m_index_box_)[0];
+//    index_type jb = std::get<0>(m_index_box_)[1];
+//    index_type je = std::get<1>(m_index_box_)[1];
+//    index_type kb = std::get<0>(m_index_box_)[2];
+//    index_type ke = std::get<1>(m_index_box_)[2];
+//    index_type lb = std::get<0>(m_index_box_)[3];
+//    index_type le = std::get<1>(m_index_box_)[3];
+//
+//    if (m_array_order_fast_first_) {
+//#pragma omp parallel for
+//        for (index_type l = lb; l < le; ++l)
+//            for (index_type k = kb; k < ke; ++k)
+//                for (index_type j = jb; j < je; ++j)
+//                    for (index_type i = ib; i < ie; ++i) fun(nTuple<index_type, 4>{i, j, k, l});
+//
+//    } else {
+//#pragma omp parallel for
+//        for (index_type i = ib; i < ie; ++i)
+//            for (index_type j = jb; j < je; ++j)
+//                for (index_type k = kb; k < ke; ++k)
+//                    for (index_type l = lb; l < le; ++l) { fun(nTuple<index_type, 4>{i, j, k, l}); }
+//    }
+//}
 
 }  // namespace simpla
 #endif  // SIMPLA_Z_SFC_H

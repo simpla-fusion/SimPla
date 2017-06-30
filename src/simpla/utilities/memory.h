@@ -153,7 +153,7 @@ struct deleter_device_ptr_s {
 }
 
 template <typename T>
-std::shared_ptr<T> spMakeShared(size_t n, int location = MANAGED_MEMORY) {
+std::shared_ptr<T> spMakeShared(T *d, size_t n, int location = MANAGED_MEMORY) {
     T *addr = nullptr;
     spMemoryAlloc(&addr, n, location);
     return std::shared_ptr<T>(addr, simpla::detail::deleter_device_ptr_s(addr, n * sizeof(T), location));

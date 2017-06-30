@@ -20,15 +20,15 @@ int main(int argc, char **argv) {
 
     a.Fill(1);
     b.Fill(2);
-    d.Initialize();
+    d.SetUndefined();
 
-    c = (a) + b * 2;
+    c = a + b * 2;
 
     std::cout << " a = " << a << std::endl;
     std::cout << " b = " << b << std::endl;
     std::cout << " c = " << c << std::endl;
 
-    FE_CMD(c = a + sin(b) * 3 + d);
+    //    FE_CMD(c = a + sin(b) * 3 + d);
 
     std::cout << " d = " << d << std::endl;
 

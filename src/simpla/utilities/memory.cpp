@@ -99,7 +99,7 @@ int MemoryPool::push(void *p, size_t s, int loc) {
         }
         locker_.unlock();
         if (p != nullptr) {
-#ifdef CUDA_FOUND
+#ifdef __CUDA__
             SP_DEVICE_CALL(cudaFree(p));
 #else
             free(p);
@@ -135,7 +135,7 @@ void *MemoryPool::pop(size_t s, int loc) {
 
     if (addr == nullptr) {
         try {
-#ifdef CUDA_FOUND
+#ifdef __CUDA__
             SP_DEVICE_CALL(cudaMallocManaged(&addr, s));
 #else
             addr = malloc(s);
