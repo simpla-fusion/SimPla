@@ -13,9 +13,9 @@
 
 #include "device_common.h"
 
-#include <memory>
 #include <boost/mpl/size_t.hpp>
 #include <cstddef>
+#include <memory>
 
 namespace simpla {
 
@@ -29,46 +29,16 @@ namespace simpla {
 
 enum { MANAGED_MEMORY, HOST_MEMORY, DEVICE_MEMORY };
 
-#ifndef __CUDA__
-
-template <typename T>
-int spMemoryAlloc(T **dest, size_t n, int location = MANAGED_MEMORY) {
-    ASSERT(dest != nullptr);
-    *dest = reinterpret_cast<T *>(malloc(n * sizeof(T)));
-    return SP_SUCCESS;
-}
-
-template <typename T>
-int spMemoryFree(T **dest, size_t n = 0, int loc = HOST_MEMORY) {
-    if (dest == nullptr) { return SP_FAILED; }
-    free(*dest);
-    *dest = nullptr;
-    return SP_SUCCESS;
-};
-
-template <typename T>
-int spMemoryFill(T *dest, T const &src, size_t n) {
-    char *p_dest = reinterpret_cast<char *>(dest);
-    char const *p_src = reinterpret_cast<char const *>(&src);
-    static constexpr int m = sizeof(T);
-#pragma omp parallel for
-    for (int i = 0; i < m * n; ++i) { p_dest[i] = p_src[i % m]; }
-    return SP_SUCCESS;
-}
-
-template <typename T>
-int spMemoryCopy(T *dest, T const *src, size_t n) {
-    //    memcpy((void *)dest, (void *)src, sizeof(T) * n);
-    return SP_SUCCESS;
-};
-
-#else
-
 template <typename T>
 int spMemoryAlloc(T **addr, size_t n, int location = MANAGED_MEMORY) {
+    if (addr == nullptr) { return SP_FAILED; };
+#ifndef __CUDA__
+    *addr = reinterpret_cast<T *>(malloc(n * sizeof(T)));
+#else
     ASSERT(addr != nullptr);
     SP_DEVICE_CALL(cudaMallocManaged(addr, n * sizeof(T)));
     SP_DEVICE_CALL(cudaDeviceSynchronize());
+#endif
     return SP_SUCCESS;
 
     //    switch (location) {
@@ -84,53 +54,24 @@ int spMemoryAlloc(T **addr, size_t n, int location = MANAGED_MEMORY) {
     //    }
 };
 
-inline int spMemoryFree(void **addr, size_t n) {
-    ASSERT(addr != nullptr && *addr != nullptr);
-    SP_DEVICE_CALL(cudaFree(*addr));
+inline int spMemoryFree(void **dest, size_t n) {
+    if (dest == nullptr) { return SP_FAILED; }
+#ifndef __CUDA__
+    free(*dest);
+    *dest = nullptr;
+#else
+    SP_DEVICE_CALL(cudaFree(*dest));
     SP_DEVICE_CALL(cudaDeviceSynchronize());
-    *addr = nullptr;
+#endif
+    *dest = nullptr;
     return SP_SUCCESS;
 };
 
 template <typename T>
 int spMemoryFree(T **addr, size_t n) {
-    spMemoryFree((void **) addr, n * sizeof(T));
+    spMemoryFree((void **)addr, n * sizeof(T));
     return SP_SUCCESS;
 };
-
-namespace detail {
-template <typename T>
-__global__ void spCUDA_Assign(T *dest, T src, size_t n) {
-    size_t s = blockIdx.x * blockDim.x + threadIdx.x;
-    if (s < n) { dest[s] = src * threadIdx.x; };
-}
-template <typename T, typename U>
-__global__ void spCUDA_Copy(T *dest, U const *src, size_t n) {
-    size_t s = blockIdx.x * blockDim.x + threadIdx.x;
-    if (s < n) { dest[s] = src[s]; };
-}
-}
-#define NUM_OF_THREAD 32
-
-template <typename T>
-int spMemoryFill(T *dest, T const &v, size_t n) {
-    SP_CALL_DEVICE_KERNEL(detail::spCUDA_Assign, (n + NUM_OF_THREAD) / NUM_OF_THREAD, NUM_OF_THREAD, dest, v, n);
-    return SP_SUCCESS;
-}
-
-template <typename U, typename V>
-int spMemoryCopy(U *dest, V const *src, size_t n) {
-    SP_CALL_DEVICE_KERNEL(detail::spCUDA_Copy, (n + NUM_OF_THREAD) / NUM_OF_THREAD, NUM_OF_THREAD, dest, src, n);
-    return SP_SUCCESS;
-}
-
-template <typename T>
-int spMemoryCopy(T *dest, T const *src, size_t n) {
-    SP_DEVICE_CALL(cudaMemcpy((void *)dest, (void const *)src, n * sizeof(T), cudaMemcpyDefault));
-    return SP_SUCCESS;
-}
-
-#endif
 
 namespace detail {
 struct deleter_device_ptr_s {
@@ -160,6 +101,56 @@ std::shared_ptr<T> spMakeShared(T *d, size_t n, int location = MANAGED_MEMORY) {
     spMemoryAlloc(&addr, n, location);
     return std::shared_ptr<T>(addr, simpla::detail::deleter_device_ptr_s(addr, n * sizeof(T), location));
 }
+#ifdef __CUDA__
+namespace detail {
+template <typename T>
+__global__ void spCUDA_Assign(T *dest, T src, size_t n) {
+    size_t s = blockIdx.x * blockDim.x + threadIdx.x;
+    if (s < n) { dest[s] = src * threadIdx.x; };
+}
+template <typename T, typename U>
+__global__ void spCUDA_Copy(T *dest, U const *src, size_t n) {
+    size_t s = blockIdx.x * blockDim.x + threadIdx.x;
+    if (s < n) { dest[s] = src[s]; };
+}
+}
+#endif
+#define NUM_OF_THREAD 32
+
+template <typename T>
+int spMemoryFill(T *dest, T const &src, size_t n) {
+#ifndef __CUDA__
+    char *p_dest = reinterpret_cast<char *>(dest);
+    char const *p_src = reinterpret_cast<char const *>(&src);
+    static constexpr int m = sizeof(T);
+#pragma omp parallel for
+    for (int i = 0; i < m * n; ++i) { p_dest[i] = p_src[i % m]; }
+#else
+    SP_CALL_DEVICE_KERNEL(detail::spCUDA_Assign, (n + NUM_OF_THREAD) / NUM_OF_THREAD, NUM_OF_THREAD, dest, src, n);
+#endif
+    return SP_SUCCESS;
+}
+
+template <typename U, typename V>
+int spMemoryCopy(U *dest, V const *src, size_t n) {
+#ifndef __CUDA__
+#else
+    SP_CALL_DEVICE_KERNEL(detail::spCUDA_Copy, (n + NUM_OF_THREAD) / NUM_OF_THREAD, NUM_OF_THREAD, dest, src, n);
+
+#endif
+    return SP_SUCCESS;
+}
+
+template <typename T>
+int spMemoryCopy(T *dest, T const *src, size_t n) {
+#ifndef __CUDA__
+#else
+    SP_DEVICE_CALL(cudaMemcpy((void *)dest, (void const *)src, n * sizeof(T), cudaMemcpyDefault));
+
+#endif
+    return SP_SUCCESS;
+}
+
 }  // namespace simpla
 
 #endif  // CORE_UTILITIES_MEMORY_POOL_H_
