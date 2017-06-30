@@ -128,7 +128,7 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
         return;
     }
 
-    Field<StructuredMesh, int, VERTEX> vertex_tags{this};
+    Field<StructuredMesh, int, VERTEX, 1> vertex_tags{this};
     vertex_tags.Clear();
 
     index_tuple ib, ie;

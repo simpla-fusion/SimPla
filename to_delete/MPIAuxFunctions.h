@@ -32,10 +32,10 @@ void bcast_string(std::string *filename_);
 //                                                                         int   // send m_buffer size;
 //                                                                 >> const &info);
 
-// void reduce(void const *send_data, void *recv_data, size_t count, data::DataType const &data_type,
+// void reduce(void const *send_data, void *recv_data, size_t count, data::DataType const &array_type,
 //            std::string const &op_c);
 //
-// void allreduce(void const *send_data, void *recv_data, size_t count, data::DataType const &data_type,
+// void allreduce(void const *send_data, void *recv_data, size_t count, data::DataType const &array_type,
 //               std::string const &op_c);
 //
 // template <typename T>

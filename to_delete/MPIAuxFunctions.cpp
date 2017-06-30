@@ -58,9 +58,9 @@ namespace parallel {
 //    return op;
 //}
 //
-// void reduce(void const *send_data, void *recv_data, size_t count, data::DataType const &data_type,
+// void reduce(void const *send_data, void *recv_data, size_t count, data::DataType const &array_type,
 //            std::string const &op_c) {
-//    auto m_type = MPIDataType::create(data_type);
+//    auto m_type = MPIDataType::create(array_type);
 //
 //    auto comm = GLOBAL_COMM.comm();
 //    MPI_Barrier(comm);
@@ -68,9 +68,9 @@ namespace parallel {
 //    MPI_Barrier(comm);
 //}
 //
-// void allreduce(void const *send_data, void *recv_data, size_t count, data::DataType const &data_type,
+// void allreduce(void const *send_data, void *recv_data, size_t count, data::DataType const &array_type,
 //               std::string const &op_c) {
-//    auto m_type = MPIDataType::create(data_type);
+//    auto m_type = MPIDataType::create(array_type);
 //
 //    auto comm = GLOBAL_COMM.comm();
 //    MPI_Barrier(comm);

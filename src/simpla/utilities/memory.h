@@ -54,11 +54,7 @@ int spMemoryAlloc(T **addr, size_t n, int location = MANAGED_MEMORY) {
     //    }
 };
 
-<<<<<<< HEAD
-inline int spMemoryFree(void **addr, size_t n = 0, int location = MANAGED_MEMORY) {
-    ASSERT(addr != nullptr && *addr != nullptr);
-    SP_DEVICE_CALL(cudaFree(*addr));
-=======
+
 inline int spMemoryFree(void **dest, size_t n) {
     if (dest == nullptr) { return SP_FAILED; }
 #ifndef __CUDA__
@@ -66,7 +62,6 @@ inline int spMemoryFree(void **dest, size_t n) {
     *dest = nullptr;
 #else
     SP_DEVICE_CALL(cudaFree(*dest));
->>>>>>> af54c36830ba6c1926c78147ee6b18f4d1a8041f
     SP_DEVICE_CALL(cudaDeviceSynchronize());
 #endif
     *dest = nullptr;

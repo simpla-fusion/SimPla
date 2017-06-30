@@ -23,7 +23,7 @@ namespace simpla {
 template <typename...>
 class Expression;
 
-template <typename TM, typename TV, int IFORM, int DOF>
+template <typename TM, typename TV, int ...>
 class Field;
 }
 
