@@ -14,6 +14,8 @@
 #include "device_common.h"
 
 #include <memory>
+#include <boost/mpl/size_t.hpp>
+#include <cstddef>
 
 namespace simpla {
 
@@ -56,7 +58,7 @@ int spMemoryFill(T *dest, T const &src, size_t n) {
 
 template <typename T>
 int spMemoryCopy(T *dest, T const *src, size_t n) {
-    memcpy(dest, src, sizeof(T) * n);
+    //    memcpy((void *)dest, (void *)src, sizeof(T) * n);
     return SP_SUCCESS;
 };
 
@@ -82,7 +84,7 @@ int spMemoryAlloc(T **addr, size_t n, int location = MANAGED_MEMORY) {
     //    }
 };
 
-int spMemoryFree(void **addr, size_t n = 0, int location = MANAGED_MEMORY) {
+inline int spMemoryFree(void **addr, size_t n) {
     ASSERT(addr != nullptr && *addr != nullptr);
     SP_DEVICE_CALL(cudaFree(*addr));
     SP_DEVICE_CALL(cudaDeviceSynchronize());
@@ -91,8 +93,8 @@ int spMemoryFree(void **addr, size_t n = 0, int location = MANAGED_MEMORY) {
 };
 
 template <typename T>
-int spMemoryFree(T **addr, size_t n = 0, int location = MANAGED_MEMORY) {
-    spMemoryFree((void **)addr, n * sizeof(T), location);
+int spMemoryFree(T **addr, size_t n) {
+    spMemoryFree((void **) addr, n * sizeof(T));
     return SP_SUCCESS;
 };
 
@@ -148,7 +150,7 @@ struct deleter_device_ptr_s {
 
     deleter_device_ptr_s &operator=(deleter_device_ptr_s &&) = default;
 
-    inline void operator()(void *ptr) { spMemoryFree(&ptr, m_size_, m_loc_); }
+    inline void operator()(void *ptr) { spMemoryFree(&ptr, m_size_); }
 };
 }
 

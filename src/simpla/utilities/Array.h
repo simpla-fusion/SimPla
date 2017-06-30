@@ -105,6 +105,10 @@ struct Array {
     value_type* get() { return m_holder_.get(); }
     value_type* get() const { return m_holder_.get(); }
 
+    template <typename Other, typename... Args>
+    void Assign(Other const& other, Args&&... args) {
+        at(std::forward<Args>(args)...) = this_type::getValue(other, std::forward<Args>(args)...);
+    };
     void Shift(array_index_type const& offset) { m_sfc_.Shfit(offset); }
 
     this_type operator[](array_index_type const& IX) const {
@@ -126,16 +130,14 @@ struct Array {
 
     this_type& operator=(this_type const& rhs) {
         DoSetUp();
-        m_sfc_.Foreach(*this,
-                       [=] __host__ __device__(array_index_type const& s) { return this_type::getValue(rhs, s); });
+        m_sfc_.Foreach(*this, [=] __host__ __device__(auto const& s) { return this_type::getValue(rhs, s); });
         return (*this);
     }
 
     template <typename TR>
     this_type& operator=(TR const& rhs) {
         DoSetUp();
-        m_sfc_.Foreach(*this,
-                       [=] __host__ __device__(array_index_type const& s) { return this_type::getValue(rhs, s); });
+        m_sfc_.Foreach(*this, [=] __host__ __device__(auto const& s) { return this_type::getValue(rhs, s); });
         return (*this);
     }
 
@@ -162,38 +164,39 @@ struct Array {
         return at(std::forward<Args>(args)...);
     }
 
-    template <typename TFun>
-    __host__ __device__ static constexpr value_type getValue(
-        TFun const& op, array_index_type const& s,
-        ENABLE_IF(simpla::concept::is_callable<TFun(array_index_type const&)>::value)) {
-        return op(s);
-    };
-    __host__ __device__ static constexpr value_type const& getValue(value_type const& v, array_index_type const& s) {
+    //    template <typename... Args>
+    //    __host__ __device__ static constexpr value_type& getValue(this_type& other, Args&&... args) {
+    //        return other.at(std::forward<Args>(args)...);
+    //    }
+    //    template <typename TFun, typename... Args>
+    //    __host__ __device__ static constexpr value_type getValue(
+    //        TFun const& op, Args&&... args, ENABLE_IF(simpla::concept::is_callable<TFun(Args...)>::value)) {
+    //        return op(std::forward<Args>(args)...);
+    //    };
+    template <typename... Args>
+    __host__ __device__ static constexpr value_type const& getValue(value_type const& v, Args&&... args) {
         return v;
     };
 
-    template <typename U, typename RSFC>
-    __host__ __device__ static constexpr U& getValue(Array<U, NDIMS, RSFC> const& other, array_index_type const& idx) {
-        return other.at(idx);
+    template <typename U, typename RSFC, typename... Args>
+    __host__ __device__ static constexpr U const& getValue(Array<U, NDIMS, RSFC> const& other, Args&&... args) {
+        return other.at(std::forward<Args>(args)...);
     };
 
-    __host__ __device__ static constexpr value_type& getValue(this_type& other, array_index_type const& s) {
-        return other.at(s);
-    };
-    __host__ __device__ static constexpr value_type const& getValue(this_type const& other, array_index_type const& s) {
-        return other.at(s);
+    template <typename... Args>
+    __host__ __device__ static constexpr value_type const& getValue(this_type const& other, Args&&... args) {
+        return other.at(std::forward<Args>(args)...);
     };
 
-    template <typename TOP, typename... Others, size_t... IND>
+    template <typename TOP, typename... Others, size_t... IND, typename... Args>
     __host__ __device__ static constexpr auto _invoke_helper(Expression<TOP, Others...> const& expr,
-                                                             std::index_sequence<IND...>, array_index_type const& s) {
-        return TOP::eval(getValue(std::get<IND>(expr.m_args_), s)...);
+                                                             std::index_sequence<IND...>, Args&&... args) {
+        return TOP::eval(getValue(std::get<IND>(expr.m_args_), std::forward<Args>(args)...)...);
     }
 
-    template <typename TOP, typename... Others>
-    __host__ __device__ static constexpr auto getValue(Expression<TOP, Others...> const& expr,
-                                                       array_index_type const& s) {
-        return _invoke_helper(expr, std::index_sequence_for<Others...>(), s);
+    template <typename TOP, typename... Others, typename... Args>
+    __host__ __device__ static constexpr auto getValue(Expression<TOP, Others...> const& expr, Args&&... args) {
+        return _invoke_helper(expr, std::index_sequence_for<Others...>(), std::forward<Args>(args)...);
     }
 };
 

@@ -139,9 +139,9 @@ class ZSFC {
 };
 
 template <>
-__host__ __device__ size_type ZSFC<3>::hash(index_type s0, index_type s1, index_type s2, index_type s3, index_type s4,
-                                            index_type s5, index_type s6, index_type s7, index_type s8,
-                                            index_type s9) const {
+__host__ __device__ inline size_type ZSFC<3>::hash(index_type s0, index_type s1, index_type s2, index_type s3,
+                                                   index_type s4, index_type s5, index_type s6, index_type s7,
+                                                   index_type s8, index_type s9) const {
     return std::fma(s0, m_strides_[0], -std::get<0>(m_index_box_)[0] * m_strides_[0]) +
            std::fma(s1, m_strides_[1], -std::get<0>(m_index_box_)[1] * m_strides_[1]) +
            std::fma(s2, m_strides_[2], -std::get<0>(m_index_box_)[2] * m_strides_[2]);
