@@ -14,7 +14,7 @@
 #include <simpla/utilities/macro.h>
 #include <simpla/utilities/type_traits.h>
 #include <simpla/utilities/Log.h>
-#include <simpla/utilities/sp_def.h>
+#include "../../to_delete/sp_def.h"
 #include <simpla/algebra/all.h>
 #include <simpla/predefine/CalculusPolicy.h>
 using namespace simpla;

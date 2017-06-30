@@ -10,7 +10,7 @@
 #include <simpla/utilities/EntityId.h>
 #include <simpla/utilities/Range.h>
 #include <simpla/utilities/nTuple.h>
-#include <simpla/utilities/sp_def.h>
+#include <simpla/utilities/SPObject.h>
 #include "spParticle.h"
 namespace simpla {
 

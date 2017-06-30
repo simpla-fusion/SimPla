@@ -12,7 +12,7 @@
 #include <vector>
 #include "simpla/engine/all.h"
 #include "simpla/mesh/CoRectMesh.h"
-#include "simpla/utilities/sp_def.h"
+#include "sp_def.h"
 
 namespace simpla {
 namespace geometry {

@@ -2,69 +2,65 @@
 // Created by salmon on 16-12-26.
 //
 
-#include "../../to_delete/CartesianGeometry.h"
-#include "simpla/algebra/CalculusPolicy.h"
 #include "simpla/algebra/all.h"
 
 using namespace simpla;
-struct DummyMesh : public engine::MeshBase {
+struct DummyMesh {
    public:
     //    size_type m_dims_[3];
     //    Real m_lower_[3];
     //    Real m_upper_[3];
     point_type m_dx_{1, 1, 1};
     point_type m_x0_{0, 0, 0};
-    static constexpr unsigned int ndims = 3;
+    static constexpr unsigned int NDIMS = 3;
+
+    typedef EntityId entity_id;
+    template <typename V>
+    using array_type = Array<V, NDIMS, ZSFC<NDIMS>>;
 
     typedef DummyMesh mesh_type;
 
-    explicit DummyMesh(engine::Domain *d) : engine::MeshBase(<#initializer#>) {}
-    ~DummyMesh() override = default;
+    explicit DummyMesh() {}
+    ~DummyMesh() = default;
+
+    template <typename U, int... N>
+    void UpdateArray(nTuple<array_type<U>, N...> &d) const {};
 
     template <typename TFun>
     void Foreach(TFun const &fun, size_type iform = VERTEX, size_type dof = 1) const {}
-    Real volume(EntityId s) const override { return 1.0; }
-    Real dual_volume(EntityId s) const override { return 1.0; }
-    Real inv_volume(EntityId s) const override { return 1.0; }
-    Real inv_dual_volume(EntityId s) const override { return 1.0; }
+    Real volume(EntityId s) const { return 1.0; }
+    Real dual_volume(EntityId s) const { return 1.0; }
+    Real inv_volume(EntityId s) const { return 1.0; }
+    Real inv_dual_volume(EntityId s) const { return 1.0; }
 
-    point_type point(EntityId s) const override {
+    point_type point(EntityId s) const {
         return point_type{static_cast<Real>(s.x), static_cast<Real>(s.y), static_cast<Real>(s.z)};
     }
-    point_type point(EntityId s, point_type const &pr) const override {
+    point_type point(EntityId s, point_type const &pr) const {
         return point_type{static_cast<Real>(s.x) + pr[0], static_cast<Real>(s.y) + pr[1],
                           static_cast<Real>(s.z) + pr[2]};
     };
 
-    point_type map(point_type const &x) const override { return x; }
-    point_type inv_map(point_type const &x) const override { return x; }
-    void SetOrigin(point_type x) override { m_x0_ = x; }
-    void SetDx(point_type dx) override { m_dx_ = dx; }
-    point_type const &GetOrigin() override { return m_x0_; }
-    point_type const &GetDx() override { return m_dx_; };
+    point_type map(point_type const &x) const { return x; }
+    point_type inv_map(point_type const &x) const { return x; }
+    void SetOrigin(point_type x) { m_x0_ = x; }
+    void SetDx(point_type dx) { m_dx_ = dx; }
+    point_type const &GetOrigin() { return m_x0_; }
+    point_type const &GetDx() { return m_dx_; };
 };
-struct DummyDomain : public engine::Domain {
-    DummyDomain() : Domain(<#initializer#>, <#initializer#>) {}
 
-    DummyMesh m_mesh_{this};
-    engine::MeshBase *GetMesh() override { return &m_mesh_; };
-    engine::MeshBase const *GetMesh() const override { return &m_mesh_; };
-};
 int main(int argc, char **argv) {
     index_box_type i_box = {{0, 0, 0}, {2, 4, 3}};
     box_type x_box{{0, 0, 0}, {1, 2, 3}};
-
-    typedef mesh::CartesianCoRectMesh mesh_type;
-    DummyDomain domain;
-    mesh_type m(&domain, x_box, i_box);
-    m.Initialize();
-    Field<mesh_type, Real> f(&domain);
-    Field<mesh_type, Real> g(&domain);
+    typedef DummyMesh mesh_type;
+    DummyMesh m;
+    Field<DummyMesh, Real, VERTEX> f(&m);
+    Field<DummyMesh, Real, VERTEX> g(&m);
 
     f.Clear();
     g.Clear();
 
-    (*f[0])(0, 2, 3) = 1990;
+    f[0](0, 2, 3) = 1990;
     f = 1;
     g = 2;
 
@@ -75,18 +71,17 @@ int main(int argc, char **argv) {
     //    g = [&](EntityId const &s) { return 1.0; };
 
     //    CHECK(f);
-    Field<mesh_type, Real, EDGE> E(&domain);
-    Field<mesh_type, Real, FACE> B(&domain);
-    Field<mesh_type, Real, VERTEX, 3> d(&domain);
-    Field<mesh_type, Real, VERTEX> rho(&domain);
-    Field<mesh_type, Real, VERTEX, 8> v(&domain);
+    Field<mesh_type, Real, EDGE> E(&m);
+    Field<mesh_type, Real, FACE> B(&m);
+    Field<mesh_type, Real, VERTEX, 3> d(&m);
+    Field<mesh_type, Real, VERTEX> rho(&m);
+    Field<mesh_type, Real, VERTEX, 8> v(&m);
     E.Clear();
     rho.Clear();
 
     //    E = [&](point_type const &x) { return x; };
     //    CHECK(E);
     rho = codifferential_derivative(E);
-
     //    E[I] = 2;
 
     //    B[2][I] = (E[0][-1_i, 1_j] * v[0][I] - E[0][J - 1] * v[0][J - 1] + E[1][I] * v[1][I] -

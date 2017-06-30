@@ -7,7 +7,7 @@
 //
 #include <string>
 #include "simpla/data/all.h"
-#include "simpla/engine/SPObject.h"
+#include "simpla/utilities/SPObject.h"
 #include "simpla/engine/Schedule.h"
 namespace simpla {
 namespace application {

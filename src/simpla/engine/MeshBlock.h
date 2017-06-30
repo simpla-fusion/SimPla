@@ -7,7 +7,7 @@
 
 #include <simpla/utilities/EntityId.h>
 #include <simpla/utilities/Range.h>
-#include <simpla/utilities/sp_def.h>
+#include <simpla/utilities/SPObject.h>
 namespace simpla {
 namespace engine {
 

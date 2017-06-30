@@ -8,7 +8,7 @@
 #include <simpla/mesh/RectMesh.h>
 #include <simpla/model/GEqdsk.h>
 #include <simpla/physics/Constants.h>
-#include <simpla/utilities/sp_def.h>
+#include "../../to_delete/sp_def.h"
 #include <iostream>
 
 namespace simpla {

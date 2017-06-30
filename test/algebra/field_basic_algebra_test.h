@@ -19,7 +19,7 @@
 #include <simpla/utilities/type_traits.h>
 #include <simpla/predefine/policy/CalculusPolicy.h>
 #include <simpla/utilities/Log.h>
-#include <simpla/utilities/sp_def.h>
+#include "../../to_delete/sp_def.h"
 using namespace simpla;
 
 template <typename TField>

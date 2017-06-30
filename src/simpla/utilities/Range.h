@@ -13,7 +13,7 @@
 #include <memory>
 
 #include "Log.h"
-#include "sp_def.h"
+#include "SPObject.h"
 
 namespace simpla {
 

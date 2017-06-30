@@ -26,11 +26,14 @@ struct SPObject::pimpl_s {
 
 static boost::hash<boost::uuids::uuid> g_obj_hasher;
 static boost::uuids::random_generator g_uuid_generator;
-SPObject::SPObject(std::string const &s_name) : m_pimpl_(new pimpl_s) {
+SPObject::SPObject() : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_id_ = g_obj_hasher(g_uuid_generator());
-    m_pimpl_->m_name_ = (s_name != "") ? s_name : std::to_string(m_pimpl_->m_id_);
+    //    m_pimpl_->m_name_ = (s_name != "") ? s_name : std::to_string(m_pimpl_->m_id_);
 }
 SPObject::~SPObject() { DoFinalize(); }
+SPObject::SPObject(SPObject const &other) {}
+SPObject::SPObject(SPObject &&other) {}
+void SPObject::swap(SPObject &other) {}
 
 void SPObject::SetGUID(id_type id) { m_pimpl_->m_id_ = id; }
 id_type SPObject::GetGUID() const { return m_pimpl_->m_id_; }

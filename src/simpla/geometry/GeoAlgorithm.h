@@ -8,11 +8,12 @@
 #ifndef GEOMETRY_ALGORITHM_H_
 #define GEOMETRY_ALGORITHM_H_
 
+#include <simpla/SIMPLA_config.h>
 #include <simpla/utilities/integer_sequence.h>
 #include <simpla/utilities/nTuple.ext.h>
 #include <simpla/utilities/nTuple.h>
 
-#include <simpla/utilities/sp_def.h>
+#include <simpla/utilities/SPObject.h>
 #include <cstddef>
 #include <tuple>
 

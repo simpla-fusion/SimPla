@@ -9,7 +9,7 @@
 #define GEQDSK_H_
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/engine/SPObject.h>
+#include <simpla/utilities/SPObject.h>
 #include <simpla/geometry/Chart.h>
 #include <simpla/geometry/GeoObject.h>
 #include <simpla/geometry/Polygon.h>

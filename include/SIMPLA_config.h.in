@@ -49,11 +49,7 @@
 #cmakedefine SIMPLA_INITIALIZE_ARRAY_TO_SIGNALING_NAN
 
 
-#ifdef __cplusplus
-namespace simpla {
-static const unsigned short MAX_DIM_VAL = @SIMPLA_MAXIMUM_DIMENSION@;
-}
-#endif  //__cplusplus
+
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -87,5 +83,19 @@ typedef size_type id_type;
 
 #define SP_SUCCESS 0
 #define SP_FAILED 1
+
+
+
+#ifdef __cplusplus
+
+#include <limits>
+
+namespace simpla {
+static const unsigned short MAX_DIM_VAL = @SIMPLA_MAXIMUM_DIMENSION@;
+typedef Real scalar_type;
+static constexpr Real INIFITY = std::numeric_limits<Real>::infinity();
+static constexpr Real EPSILON = std::numeric_limits<Real>::epsilon();
+}
+#endif  //__cplusplus
 
 #endif  // SIMPLA_CONFIG_H

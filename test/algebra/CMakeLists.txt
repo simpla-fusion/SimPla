@@ -12,7 +12,7 @@ simpla_test(field_aritmetic_test  field_aritmetic_test.cpp)
 add_executable(field_dummy field_dummy.cpp)
 target_link_libraries(field_dummy
         ${HDF5_LIBRARIES} ${MPI_LIBRARIES}
-        toolbox     data mesh engine model physics
+        toolbox
         )
 
 

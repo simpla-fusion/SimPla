@@ -6,7 +6,7 @@
 #define SIMPLA_ATTRIBUTEVIEW_H
 
 #include "MeshBlock.h"
-#include "SPObject.h"
+#include "simpla/utilities/SPObject.h"
 #include "simpla/SIMPLA_config.h"
 #include "simpla/concept/CheckConcept.h"
 #include "simpla/data/all.h"

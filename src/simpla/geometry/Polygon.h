@@ -12,7 +12,7 @@
 #include <simpla/data/all.h>
 #include <simpla/utilities/FancyStream.h>
 #include <simpla/utilities/nTuple.h>
-#include <simpla/utilities/sp_def.h>
+#include <simpla/utilities/SPObject.h>
 namespace simpla {
 namespace geometry {
 /**

@@ -15,8 +15,8 @@
 #include <simpla/utilities/Array.h>
 #include <simpla/utilities/EntityId.h>
 #include <simpla/utilities/FancyStream.h>
+#include <simpla/utilities/SPObject.h>
 #include <simpla/utilities/macro.h>
-#include <simpla/utilities/sp_def.h>
 #include <simpla/utilities/type_traits.h>
 #include "Calculus.h"
 namespace simpla {
@@ -52,13 +52,13 @@ struct calculator {
         return eval(expr, m, tag, S, std::integer_sequence<int, traits::iform<T>::value...>());
     }
 
-    template <typename M, typename V, int I, int D>
-    static auto getValue(Field<M, V, I, D> const& f, mesh_type const& m, int tag, IdxShift S) {
-        return f[EntityIdCoder::m_id_to_sub_index_[(tag & 0b111)] * D + (tag >> 3) % D](S);
+    template <typename M, typename V, int I, int... D>
+    static auto getValue(Field<M, V, I, D...> const& f, mesh_type const& m, int tag, IdxShift S) {
+        return f[EntityIdCoder::m_id_to_sub_index_[(tag & 0b111)]][(tag >> 3)](S);
     };
-    template <typename M, typename V, int I, int D>
-    static auto getValue(Field<M, V, I, D>& f, mesh_type const& m, int tag, IdxShift S) {
-        return f[EntityIdCoder::m_id_to_sub_index_[tag & 0b111] * D + (tag >> 3) % D](S);
+    template <typename M, typename V, int I, int... D>
+    static auto getValue(Field<M, V, I, D...>& f, mesh_type const& m, int tag, IdxShift S) {
+        return f[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]][(tag >> 3)](S);
     };
 
     template <typename TFun>
@@ -607,13 +607,13 @@ struct calculator {
     /// @name general_algebra General algebra
     /// @{
 
-    template <typename V, int I, int D>
-    static V const& getValue(Field<TM, V, I, D> const& f, mesh_type const& m, EntityId s) {
-        return f[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111] * D + (s.w >> 3)](s.x, s.y, s.z);
+    template <typename V, int I, int... D>
+    static V const& getValue(Field<TM, V, I, D...> const& f, mesh_type const& m, EntityId s) {
+        return f[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]][(s.w >> 3)](s.x, s.y, s.z);
     };
-    template <typename V, int I, int D>
-    static V& getValue(Field<TM, V, I, D>& f, mesh_type const& m, EntityId s) {
-        return f[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111] * D + (s.w >> 3)](s.x, s.y, s.z);
+    template <typename V, int I, int... D>
+    static V& getValue(Field<TM, V, I, D...>& f, mesh_type const& m, EntityId s) {
+        return f[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]][(s.w >> 3)](s.x, s.y, s.z);
     };
 
     ///*********************************************************************************************

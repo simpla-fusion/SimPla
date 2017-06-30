@@ -8,7 +8,7 @@
 #ifndef CORE_toolbox_INTEGER_SEQUENCE_H_
 #define CORE_toolbox_INTEGER_SEQUENCE_H_
 
-#include <simpla/utilities/sp_def.h>
+#include <simpla/utilities/SPObject.h>
 #include <stddef.h>
 #include <iostream>
 #include "simpla/concept/CheckConcept.h"

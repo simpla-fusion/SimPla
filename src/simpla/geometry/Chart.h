@@ -8,7 +8,7 @@
 #include <simpla/data/all.h>
 #include <simpla/geometry/GeoObject.h>
 #include <simpla/utilities/Signal.h>
-#include "simpla/engine/SPObject.h"
+#include "simpla/utilities/SPObject.h"
 namespace simpla {
 namespace geometry {
 struct Chart : public SPObject, public data::EnableCreateFromDataTable<Chart> {

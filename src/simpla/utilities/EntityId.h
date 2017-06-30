@@ -17,9 +17,8 @@
 #include <tuple>
 #include "Log.h"
 #include "Range.h"
-#include "nTuple.h"
 #include "nTuple.ext.h"
-#include "sp_def.h"
+#include "nTuple.h"
 #include "type_traits.h"
 namespace simpla {
 // typedef union { struct { u_int8_t w, z, y, x; }; int32_t v; } EntityId32;

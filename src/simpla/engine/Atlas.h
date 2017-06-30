@@ -12,7 +12,7 @@
 #include <simpla/utilities/Log.h>
 #include <simpla/utilities/nTuple.h>
 #include <type_traits>
-#include "SPObject.h"
+#include "simpla/utilities/SPObject.h"
 namespace simpla {
 namespace engine {
 
