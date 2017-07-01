@@ -130,14 +130,18 @@ struct Array {
 
     this_type& operator=(this_type const& rhs) {
         DoSetUp();
-        m_sfc_.Foreach(*this, [=] __host__ __device__(auto const& s) { return this_type::getValue(rhs, s); });
+        m_sfc_.Foreach(*this, [=] __host__ __device__(auto&&... s) {
+            return this_type::getValue(rhs, std::forward<decltype(s)>(s)...);
+        });
         return (*this);
     }
 
     template <typename TR>
     this_type& operator=(TR const& rhs) {
         DoSetUp();
-        m_sfc_.Foreach(*this, [=] __host__ __device__(auto const& s) { return this_type::getValue(rhs, s); });
+        m_sfc_.Foreach(*this, [=] __host__ __device__(auto&&... s) {
+            return this_type::getValue(rhs, std::forward<decltype(s)>(s)...);
+        });
         return (*this);
     }
 
