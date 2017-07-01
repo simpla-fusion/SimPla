@@ -80,7 +80,7 @@ struct Array {
             m_data_ = m_holder_.get();
         }
     }
-
+    void SetSpaceFillingCurve(SFC const& s) { return m_sfc_ = s; }
     SFC const& GetSpaceFillingCurve() const { return m_sfc_; }
 
     int GetNDIMS() const { return NDIMS; }
@@ -89,7 +89,7 @@ struct Array {
     size_type size() const { return m_sfc_.size(); }
     array_index_box_type const& GetIndexBox() const { return m_sfc_.GetIndexBox(); }
 
-    void reset(std::shared_ptr<value_type> const& d) {
+    void reset(std::shared_ptr<value_type> const& d = nullptr) {
         m_holder_ = d;
         m_host_data_ = m_holder_.get();
     }

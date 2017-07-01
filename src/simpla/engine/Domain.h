@@ -59,11 +59,11 @@ class Domain : public SPObject,
 //    design_pattern::Signal<void(this_type *, __VA_ARGS__)> Post##_NAME_;                      \
 //    template <typename... Args>                                                               \
 //    std::shared_ptr<Patch> Do##_NAME_(const std::shared_ptr<Patch> &patch, Args &&... args) { \
-//        Push(patch);                                                                          \
+//        Unpack(patch);                                                                          \
 //        Pre##_NAME_(std::forward<Args>(args)...);                                             \
 //        _NAME_(std::forward<Args>(args)...)                                                   \
 //        Post##_NAME_(std::forward<Args>(args)...);                                            \
-//        return Pop();                                                                    \
+//        return Pack();                                                                    \
 //    };
 
     design_pattern::Signal<void(Domain *, Real)> PreInitialCondition;

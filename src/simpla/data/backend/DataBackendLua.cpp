@@ -213,7 +213,7 @@ size_type DataBackendLua::Foreach(std::function<void(std::string const&, std::sh
     return 0;
 }
 
-// std::shared_ptr<DataEntity> DataBackendLua::Pop(std::string const& url) {
+// std::shared_ptr<DataEntity> DataBackendLua::Pack(std::string const& url) {
 //    auto obj = m_pimpl_->m_lua_obj_.get(url);
 //    if (obj.is_floating_point()) {
 //        return std::make_shared<DataEntityLua<double>>(obj);
@@ -229,7 +229,7 @@ size_type DataBackendLua::Foreach(std::function<void(std::string const&, std::sh
 //        RUNTIME_ERROR << "Parse error! url=" << url << ":" << obj.get_typename() << std::endl;
 //    }
 //};
-// std::shared_ptr<DataEntity> DataBackendLua::Pop(std::string const& url) const {
+// std::shared_ptr<DataEntity> DataBackendLua::Pack(std::string const& url) const {
 //    auto obj = m_pimpl_->m_lua_obj_.get(url);
 //    ASSERT(!obj.empty());
 //    if (obj.is_floating_point()) {

@@ -10,6 +10,7 @@
 #ifndef NTUPLE_H_
 #define NTUPLE_H_
 
+#include <simpla/concept/CheckConcept.h>
 #include "ExpressionTemplate.h"
 #include "type_traits.h"
 #include "utility.h"
@@ -280,6 +281,31 @@ struct nTuple<TV, N0, N...> {
     __host__ __device__ this_type& operator=(TR const& rhs) {
         traits::assign(*this, rhs);
         return (*this);
+    }
+
+   private:
+    template <typename TFun>
+    void _Foreach(TV& v, int* idx, TFun const& fun) {
+        fun(v);
+    }
+    //    ENABLE_IF((is_callable<TFun(int const*, T&)>::value))
+    template <typename TFun, typename T, int M0, int... M>
+    void _Foreach(nTuple<T, M0, M...>& v, int* idx, TFun const& fun) {
+        for (idx[0] = 0; idx[0] < M0; ++idx[0]) { _Foreach(v[idx[0]], idx + 1, fun); }
+    }
+
+   public:
+    template <typename TFun>
+    void foreach (TFun const& fun, ENABLE_IF((concept::is_callable<TFun(int*, TV&)>::value))) {
+        int idx[sizeof...(N) + 1];
+        for (idx[0] = 0; idx[0] < N0; ++idx[0]) {
+            _Foreach(data_[idx[0]], idx + 1, [&](TV& u) { fun(idx, u); });
+        }
+    }
+    template <typename TFun>
+    void foreach (TFun const& fun, ENABLE_IF((concept::is_callable<TFun(TV&)>::value))) {
+        int idx[sizeof...(N) + 1];
+        for (idx[0] = 0; idx[0] < N0; ++idx[0]) { _Foreach(data_[idx[0]], idx + 1, fun); }
     }
 };
 

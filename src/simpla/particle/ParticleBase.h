@@ -36,12 +36,12 @@ class ParticleBase : public engine::Attribute {
 
     auto operator[](EntityId s) const { return at(s); }
     auto operator[](EntityId s) { return at(s); }
-    void Push(const std::shared_ptr<data::DataBlock>& d, const EntityRange& r) override {
+    void Unpack(const std::shared_ptr<data::DataBlock> &d, const EntityRange &r) override {
         if (d != nullptr) { Click(); }
         DoUpdate();
     }
 
-    std::shared_ptr<data::DataBlock> Pop() override {
+    std::shared_ptr<data::DataBlock> Pack() override {
         auto res = std::make_shared<data::DataBlock>();
         DoTearDown();
         return res;

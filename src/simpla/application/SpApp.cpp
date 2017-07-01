@@ -176,7 +176,7 @@ int main(int argc, char **argv) {
 
     VERBOSE << DOUBLELINE << std::endl;
     VERBOSE << "SpApp:";
-    app->Pack(std::cout, 0);
+    app->Serialize(std::cout, 0);
     std::cout << std::endl;
 
     VERBOSE << DOUBLELINE << std::endl;

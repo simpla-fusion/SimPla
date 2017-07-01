@@ -156,8 +156,8 @@ struct Attribute : public SPObject, public AttributeDesc {
 
     void Deregister(AttributeGroup *);
 
-    virtual void Push(const std::shared_ptr<data::DataBlock> &d, const EntityRange &r);
-    virtual std::shared_ptr<data::DataBlock> Pop();
+    virtual void Unpack(const std::shared_ptr<data::DataBlock> &d, const EntityRange &r);
+    virtual std::shared_ptr<data::DataBlock> Pack();
 
     virtual bool isNull() const;
     virtual bool empty() const { return isNull(); };
@@ -208,7 +208,7 @@ struct Attribute : public SPObject, public AttributeDesc {
 //    &d) {
 //        data::data_cast<U>(*d).swap(*this);
 //    };
-//    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> Pop() {
+//    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> Pack() {
 //        return std::make_pair(std::shared_ptr<MeshBlock>(nullptr), data::make_data_entity(*this));
 //    };
 //    template <typename TExpr>

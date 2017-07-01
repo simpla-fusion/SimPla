@@ -394,10 +394,10 @@ auto distance(T const& b, T const& e) {
 }
 
 // template<typename T, typename TI>auto index(std::shared_ptr<T> &v, TI const &s)
-// AUTO_RETURN(v.Pop()[s])
+// AUTO_RETURN(v.Pack()[s])
 //
 // template<typename T, typename TI>auto index(std::shared_ptr<T> const &v, TI const &s)
-// AUTO_RETURN(v.Pop()[s])
+// AUTO_RETURN(v.Pack()[s])
 
 namespace _impl {
 template <int N>
@@ -452,7 +452,7 @@ struct recursive_try_index_aux<0> {
 // template<int N, typename T>
 // struct access
 //{
-//    static constexpr auto Pop(T &v) AUTO_RETURN((v))
+//    static constexpr auto Pack(T &v) AUTO_RETURN((v))
 //
 //    template<typename U> static void set(T &v, U const &u) { v = static_cast<T>(u); }
 //};
@@ -460,31 +460,31 @@ struct recursive_try_index_aux<0> {
 // template<int N, typename ...T>
 // struct access<N, std::tuple<T...>>
 //{
-//    static constexpr auto get(std::tuple<T...> &v) AUTO_RETURN((std::Pop<N>(v)))
+//    static constexpr auto get(std::tuple<T...> &v) AUTO_RETURN((std::Pack<N>(v)))
 //
-//    static constexpr auto get(std::tuple<T...> const &v) AUTO_RETURN((std::Pop<N>(v)))
+//    static constexpr auto get(std::tuple<T...> const &v) AUTO_RETURN((std::Pack<N>(v)))
 //
-//    template<typename U> static void set(std::tuple<T...> &v, U const &u) { Pop(v) = u; }
+//    template<typename U> static void set(std::tuple<T...> &v, U const &u) { Pack(v) = u; }
 //};
 //
 // template<int N, typename T>
 // struct access<N, T *>
 //{
-//    static constexpr auto Pop(T *v) AUTO_RETURN((v[N]))
+//    static constexpr auto Pack(T *v) AUTO_RETURN((v[N]))
 //
-//    static constexpr auto Pop(T const *v) AUTO_RETURN((v[N]))
+//    static constexpr auto Pack(T const *v) AUTO_RETURN((v[N]))
 //
-//    template<typename U> static void set(T *v, U const &u) { Pop(v) = u; }
+//    template<typename U> static void set(T *v, U const &u) { Pack(v) = u; }
 //};
 //
 // template<int N, typename T0, typename T1>
 // struct access<N, std::pair<T0, T1>>
 //{
-//    static constexpr auto Pop(std::pair<T0, T1> &v) AUTO_RETURN((std::get<N>(v)))
+//    static constexpr auto Pack(std::pair<T0, T1> &v) AUTO_RETURN((std::get<N>(v)))
 //
-//    static constexpr auto get(std::pair<T0, T1> const &v) AUTO_RETURN((std::Pop<N>(v)))
+//    static constexpr auto get(std::pair<T0, T1> const &v) AUTO_RETURN((std::Pack<N>(v)))
 //
-//    template<typename U> static void set(std::pair<T0, T1> &v, U const &u) { Pop(v) = u; }
+//    template<typename U> static void set(std::pair<T0, T1> &v, U const &u) { Pack(v) = u; }
 //};
 ////namespace _impl
 ////{
@@ -532,13 +532,13 @@ struct recursive_try_index_aux<0> {
 ////
 ////};
 ////}  // namespace _impl
-// template<int N, typename ...T> auto get(std::tuple<T...> &v) AUTO_RETURN((std::Pop<N>(v)))
+// template<int N, typename ...T> auto get(std::tuple<T...> &v) AUTO_RETURN((std::Pack<N>(v)))
 //
-// template<int ...N, typename T> auto Pop(T &v)
-// AUTO_RETURN((_impl::access_helper<N...>::Pop(v)))
+// template<int ...N, typename T> auto Pack(T &v)
+// AUTO_RETURN((_impl::access_helper<N...>::Pack(v)))
 //
-// template<int ...N, typename T> auto Pop(T const &v)
-// AUTO_RETURN((_impl::access_helper<N...>::Pop(v)))
+// template<int ...N, typename T> auto Pack(T const &v)
+// AUTO_RETURN((_impl::access_helper<N...>::Pack(v)))
 
 template <int, typename...>
 struct unpack_type;

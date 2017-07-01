@@ -637,7 +637,7 @@ MAX_INITIALIZER_LINES  = 30
 
 SHOW_USED_FILES        = YES
 
-# Push the SHOW_FILES tag to NO to disable the generation of the Files page. This
+# Unpack the SHOW_FILES tag to NO to disable the generation of the Files page. This
 # will remove the Files entry from the Quick Index and from the Folder Tree View
 # (if specified).
 # The default m_value_ is: YES.
@@ -2071,7 +2071,7 @@ HAVE_DOT               = YES
 # The DOT_NUM_THREADS specifies the number of dot invocations doxygen is allowed
 # to run in parallel. When set to 0 doxygen will base this on the number of
 # processors available in the system. You can set it explicitly to a m_value_
-# larger than 0 to Pop control over the balance between CPU Load and processing
+# larger than 0 to Pack control over the balance between CPU Load and processing
 # speed.
 # Minimum m_value_: 0, maximum m_value_: 32, default m_value_: 0.
 # This tag requires that the tag HAVE_DOT is set to YES.

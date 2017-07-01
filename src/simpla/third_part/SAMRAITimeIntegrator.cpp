@@ -652,7 +652,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
             }
         m_ctx_->InitialCondition(p.get(), data_time);
 
-        //        m_ctx_->GetMesh()->Push(p.get());
+        //        m_ctx_->GetMesh()->Unpack(p.get());
         //        VERBOSE << "Initialize Mesh : " << m_ctx_->GetMesh()->GetRegisterName() << std::endl;
         //        m_ctx_->GetMesh()->InitializeData(data_time);
         //        for (auto const &item : m_ctx_->GetModel().GetAll()) {
@@ -663,7 +663,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
         //            VERBOSE << "Initialize Domain : " << d.first << std::endl;
         //            d.second->DoInitialCondition(p.get(), data_time);
         //        }
-        //        m_ctx_->GetMesh()->Pop(p.get());
+        //        m_ctx_->GetMesh()->Pack(p.get());
     }
 
     if (d_use_nonuniform_workload) {
@@ -722,7 +722,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI:
     m_ctx_->GetMesh()->Push(p.get());
     m_ctx_->GetMesh()->SetBoundaryCondition(time_now, time_dt);
     m_ctx_->Advance(p.get(), time_now, time_dt);
-    //    m_ctx_->GetMesh()->Push(p.get());
+    //    m_ctx_->GetMesh()->Unpack(p.get());
     //    for (auto &d : m_ctx_->GetAllDomains()) { d.second->DoAdvance(p.get(), time_now, time_dt); }
     m_ctx_->GetMesh()->Pop(p.get());
 }
