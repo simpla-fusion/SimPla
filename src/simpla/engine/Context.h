@@ -74,6 +74,9 @@ class Context : public SPObject, public data::EnableCreateFromDataTable<Context>
     SP_DEFAULT_CONSTRUCT(Context)
     DECLARE_REGISTER_NAME("Context")
 
+    DataPack Pack() const;
+    void UnPack(engine::DataPack &&t);
+
     std::shared_ptr<DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<DataTable> &cfg) override;
 

@@ -30,7 +30,7 @@ REGISTER_CREATOR(Tokamak)
 std::shared_ptr<data::DataTable> Tokamak::Serialize() const {
     auto res = engine::Context::Serialize();
     return res;
-};
+}
 void Tokamak::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     engine::Context::Deserialize(cfg);
 

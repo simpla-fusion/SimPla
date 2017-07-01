@@ -13,8 +13,8 @@ namespace model {
 
 using namespace data;
 
-class Model : public  engine::SPObject, public data::Serializable {
-    SP_OBJECT_HEAD(Model,  engine::SPObject);
+class Model : public engine::SPObject, public data::Serializable {
+    SP_OBJECT_HEAD(Model, engine::SPObject);
 
    public:
     Model();
@@ -24,7 +24,6 @@ class Model : public  engine::SPObject, public data::Serializable {
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
-    using data::Serializable::Serialize;
 
     void Initialize() override;
     void Update() override;
