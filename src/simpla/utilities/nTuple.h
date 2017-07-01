@@ -244,30 +244,30 @@ struct nTuple<TV, N0, N...> {
 
     __host__ __device__ sub_type const& operator[](int s) const { return data_[s]; }
 
-    __host__ __device__ sub_type& at(int s) { return data_[s]; }
+    //    __host__ __device__ value_type& at(int const* s) { return calculator::getValue(*this, s); }
 
-    __host__ __device__ sub_type const& at(int s) const { return data_[s]; }
+    __host__ __device__ auto& at(int s) { return data_[s]; }
 
-    __host__ __device__ value_type& at(int const* s) { return calculator::getValue(*this, s); }
+    __host__ __device__ auto const& at(int s) const { return data_[s]; }
 
     template <typename... Idx>
-    __host__ __device__ auto at(Idx&&... s) {
-        return calculator::getValue(*this, std::forward<Idx>(s)...);
+    __host__ __device__ auto& at(int n0, Idx&&... s) {
+        return data_[n0](std::forward<Idx>(s)...);
     }
 
     template <typename... Idx>
-    __host__ __device__ auto at(Idx&&... s) const {
-        return calculator::getValue(*this, std::forward<Idx>(s)...);
+    __host__ __device__ auto const& at(int n0, Idx&&... s) const {
+        return data_[n0](std::forward<Idx>(s)...);
     }
 
     template <typename... Idx>
-    __host__ __device__ auto operator()(Idx&&... s) {
-        return calculator::getValue(*this, std::forward<Idx>(s)...);
+    __host__ __device__ auto& operator()(Idx&&... s) {
+        return at(std::forward<Idx>(s)...);
     }
 
     template <typename... Idx>
-    __host__ __device__ auto operator()(Idx&&... s) const {
-        return calculator::getValue(*this, std::forward<Idx>(s)...);
+    __host__ __device__ auto const& operator()(Idx&&... s) const {
+        return at(std::forward<Idx>(s)...);
     }
     __host__ __device__ void swap(this_type& other) { traits::swap(*this, other); }
 
