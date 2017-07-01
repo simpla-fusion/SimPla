@@ -10,13 +10,15 @@
 #include <simpla/utilities/memory.h>
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
 #include <cstddef>  // for size_t
 #include <limits>
 #include <tuple>
 #include "../nTuple.h"
+#include "../nTuple.ext.h"
 
 namespace simpla {
-template <typename V,   typename SFC>
+template <typename V, typename SFC>
 struct Array;
 template <int NDIMS>
 class ZSFC {

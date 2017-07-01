@@ -9,39 +9,29 @@
 #include <initializer_list>
 #include <limits>
 #include <memory>
-#include <string>
 #include <tuple>
 
 #include "ExpressionTemplate.h"
-#include "FancyStream.h"
 #include "Log.h"
-#include "Range.h"
 #include "SFC.h"
 #include "memory.h"
-#include "nTuple.h"
 namespace simpla {
-typedef nTuple<index_type, 3> IdxShift;
 
 template <typename V, typename SFC = ZSFC<3>>
-struct Array {
-   private:
-    typedef Array<V, SFC> this_type;
-
+class Array {
    public:
     typedef V value_type;
 
-    static const int ndims = SFC::ndims;
-
    private:
+    typedef Array<value_type, SFC> this_type;
     SFC m_sfc_;
     std::shared_ptr<value_type> m_holder_ = nullptr;
     value_type* m_host_data_ = nullptr;
     value_type* m_data_ = nullptr;
-    static const value_type m_snan_;
-    static const value_type m_null_;
 
    public:
     Array() = default;
+    virtual ~Array() = default;
 
     Array(this_type const& other)
         : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_holder_(other.m_holder_), m_host_data_(other.m_host_data_) {}
@@ -49,21 +39,11 @@ struct Array {
     Array(this_type&& other) noexcept
         : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_holder_(other.m_holder_), m_host_data_(other.m_host_data_) {}
 
-    Array& operator=(this_type&& other) {
-        this_type(std::forward<this_type>(other)).swap(*this);
-        return *this;
-    };
-
-    Array(std::initializer_list<index_type> const& l) : m_sfc_(l) {}
-
-    Array(value_type* d, std::initializer_list<index_type> const& l) : m_data_(d), m_sfc_(l) {}
-
     template <typename... Args>
     explicit Array(Args&&... args) : m_data_(nullptr), m_sfc_(std::forward<Args>(args)...) {}
+
     template <typename... Args>
     explicit Array(value_type* d, Args&&... args) : m_data_(d), m_sfc_(std::forward<Args>(args)...) {}
-
-    virtual ~Array() = default;
 
     void swap(this_type& other) {
         std::swap(m_holder_, other.m_holder_);
@@ -71,6 +51,12 @@ struct Array {
         std::swap(m_data_, other.m_data_);
         m_sfc_.swap(other.m_sfc_);
     }
+
+    Array& operator=(this_type&& other) {
+        this_type(std::forward<this_type>(other)).swap(*this);
+        return *this;
+    };
+
     void DoSetUp() {
         if (m_data_ == nullptr) {
             m_holder_ = spMakeShared<value_type>(m_data_, m_sfc_.size());
@@ -80,12 +66,12 @@ struct Array {
     }
     void SetSpaceFillingCurve(SFC const& s) { return m_sfc_ = s; }
     SFC const& GetSpaceFillingCurve() const { return m_sfc_; }
+    SFC& GetSpaceFillingCurve() { return m_sfc_; }
 
-    int GetNDIMS() const { return ndims; }
+    int GetNDIMS() const { return SFC::ndims; }
     bool empty() const { return m_data_ == nullptr; }
     std::type_info const& value_type_info() const { return typeid(value_type); }
     size_type size() const { return m_sfc_.size(); }
-    auto GetIndexBox() const { return m_sfc_.GetIndexBox(); }
 
     void reset(std::shared_ptr<value_type> const& d = nullptr) {
         m_holder_ = d;
@@ -100,8 +86,8 @@ struct Array {
     std::shared_ptr<value_type>& GetData() { return m_holder_; }
     std::shared_ptr<value_type> const& GetData() const { return m_holder_; }
 
-    value_type* get() { return m_holder_.get(); }
-    value_type* get() const { return m_holder_.get(); }
+    value_type* get() { return m_data_; }
+    value_type* get() const { return m_data_; }
 
     template <typename Other, typename... Args>
     void Assign(Other const& other, Args&&... args) {
@@ -117,7 +103,7 @@ struct Array {
 
     this_type operator[](typename SFC::array_index_type const& IX) const { return Shift(IX); }
 
-    void SetUndefined() { Fill(m_snan_); }
+    void SetUndefined() { Fill(std::numeric_limits<V>::signaling_NaN()); }
     void Clear() { Fill(0); }
     void Fill(value_type v) {
         DoSetUp();
@@ -168,15 +154,6 @@ struct Array {
         return at(std::forward<Args>(args)...);
     }
 
-    //    template <typename... Args>
-    //    __host__ __device__ static constexpr value_type& getValue(this_type& other, Args&&... args) {
-    //        return other.at(std::forward<Args>(args)...);
-    //    }
-    //    template <typename TFun, typename... Args>
-    //    __host__ __device__ static constexpr value_type getValue(
-    //        TFun const& op, Args&&... args, ENABLE_IF(simpla::concept::is_callable<TFun(Args...)>::value)) {
-    //        return op(std::forward<Args>(args)...);
-    //    };
     template <typename... Args>
     __host__ __device__ static constexpr value_type const& getValue(value_type const& v, Args&&... args) {
         return v;
@@ -204,23 +181,12 @@ struct Array {
     }
 };
 
-template <typename V, typename SFC>
-constexpr V Array<V, SFC>::m_snan_ = std::numeric_limits<V>::signaling_NaN();
-template <typename V, typename SFC>
-constexpr V Array<V, SFC>::m_null_ = 0;
-
 namespace traits {
 template <typename... T>
 struct reference<Array<T...>> {
     typedef Array<T...> const& type;
 };
 }
-// template <typename V>
-// nTuple<V, 3> Array<nTuple<V, 3>, SFC>::m_snan_{std::numeric_limits<V>::signaling_NaN(),
-//                                                      std::numeric_limits<V>::signaling_NaN(),
-//                                                      std::numeric_limits<V>::signaling_NaN()};
-// template <typename V>
-// nTuple<V, 3> Array<nTuple<V, 3>, SFC>::m_null_{0, 0, 0};
 
 template <typename... TL>
 std::ostream& operator<<(std::ostream& os, Array<TL...> const& lhs) {
@@ -273,12 +239,12 @@ _SP_DEFINE_ARRAY_BINARY_OPERATOR(&, bitwise_and)
 _SP_DEFINE_ARRAY_BINARY_OPERATOR(|, bitwise_or)
 
 template <typename... TL>
-auto operator<<(Array<TL...> const& lhs, int n) {
+auto operator<<(Array<TL...> const& lhs, unsigned int n) {
     return Expression<simpla::tags::bitwise_left_shift, Array<TL...>, int>(lhs, n);
 };
 
 template <typename... TL>
-auto operator>>(Array<TL...> const& lhs, int n) {
+auto operator>>(Array<TL...> const& lhs, unsigned int n) {
     return Expression<simpla::tags::bitwise_right_shifit, Array<TL...>, int>(lhs, n);
 };
 //_SP_DEFINE_ARRAY_BINARY_OPERATOR(bitwise_left_shift, <<)

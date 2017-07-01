@@ -16,7 +16,6 @@
 #include <simpla/utilities/Log.h>
 #include "../../to_delete/sp_def.h"
 #include <simpla/algebra/all.h>
-#include <simpla/predefine/CalculusPolicy.h>
 using namespace simpla;
 
 template<typename TArray>

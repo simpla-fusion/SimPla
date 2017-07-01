@@ -136,11 +136,10 @@ struct Attribute : public SPObject, public AttributeDesc {
     template <int... DOF, typename TGrp>
     Attribute(int IFORM, std::integer_sequence<int, DOF...>, std::type_info const &t_info, TGrp *grp,
               std::shared_ptr<data::DataTable> cfg)
-        : Attribute(IFORM, 1, t_info, dynamic_cast<AttributeGroup *>(grp), cfg) {}
+        : Attribute(IFORM, 1, t_info, (grp), cfg) {}
     template <int... DOF, typename TGrp, typename... Args>
     Attribute(int IFORM, std::integer_sequence<int, DOF...>, std::type_info const &t_info, TGrp *grp, Args &&... args)
-        : Attribute(IFORM, 1, t_info, dynamic_cast<AttributeGroup *>(grp),
-                    std::make_shared<data::DataTable>(std::forward<Args>(args)...)) {}
+        : Attribute(IFORM, 1, t_info, (grp), std::make_shared<data::DataTable>(std::forward<Args>(args)...)) {}
 
     Attribute(Attribute const &other);
     Attribute(Attribute &&other) noexcept;

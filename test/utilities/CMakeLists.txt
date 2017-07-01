@@ -1,4 +1,5 @@
 simpla_test(ntuple_test ntuple_test.cpp )
+simpla_test(array_test array_test.cpp )
 
 
 add_executable(ntuple_dummy ntuple_dummy.cpp)

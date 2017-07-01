@@ -12,10 +12,10 @@
 #include <cstddef>
 #include <type_traits>
 
+#include <simpla/engine/SPObject.h>
 #include <simpla/utilities/Array.h>
 #include <simpla/utilities/EntityId.h>
 #include <simpla/utilities/FancyStream.h>
-#include <simpla/engine/SPObject.h>
 #include <simpla/utilities/macro.h>
 #include <simpla/utilities/type_traits.h>
 #include "Calculus.h"
@@ -31,6 +31,7 @@ template <typename TM>
 struct calculator {
     typedef TM mesh_type;
     typedef calculator<mesh_type> this_type;
+    typedef nTuple<index_type, 3> IdxShift;
 
     //**********************************************************************************************
     // for element-wise arithmetic operation
