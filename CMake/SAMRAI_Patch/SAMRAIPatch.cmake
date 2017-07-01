@@ -19,7 +19,7 @@
 cmake_minimum_required(VERSION 2.8.8)
 project(SAMRAI C CXX Fortran)
 
-set(KITS algorithm apputils geometry hierarchy mathops mesh patchdata solvers toolbox transfer)
+set(KITS algorithm apputils geometry hierarchy mathops mesh patchdata solvers utilities transfer)
 
 set(DBL_SNAN_IS_BROKEN 1)
 set(FLT_SNAN_IS_BROKEN 1)

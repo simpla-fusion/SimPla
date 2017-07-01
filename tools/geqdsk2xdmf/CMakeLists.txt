@@ -21,7 +21,7 @@ INCLUDE_DIRECTORIES(${MOAB_INCLUDE_DIRS} ${MESHKIT_INCLUDE_DIRS}
 
 FILE(GLOB geqdsk_SRC ./*.cpp)
 ADD_EXECUTABLE(geqdsk_convert geqdsk_convert.cpp)
-TARGET_LINK_LIBRARIES(geqdsk_convert ${OCE_LIBRARIES} ${MOAB_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets concept toolbox data)
+TARGET_LINK_LIBRARIES(geqdsk_convert ${OCE_LIBRARIES} ${MOAB_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets concept utilities data)
 
 
 #ENDIF (BUILD_TOOLS)

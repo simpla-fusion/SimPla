@@ -25,6 +25,10 @@ class StructuredMesh : public engine::MeshBase {
    public:
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
+    typedef EntityId entity_id_type;
+
+    template <typename V>
+    using array_type = Array<V, ZSFC<NDIMS>>;
 
     template <typename... Args>
     explicit StructuredMesh(Args &&... args) : engine::MeshBase(std::forward<Args>(args)...){};
@@ -41,19 +45,20 @@ class StructuredMesh : public engine::MeshBase {
 
     void RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix) override;
 
-    point_type point(EntityId s) const override;
+    point_type point(entity_id_type s) const override;
 
-    point_type local_coordinates(EntityId s, Real const *r) const override;
+    point_type local_coordinates(entity_id_type s, Real const *r) const override;
 
-    template <typename V>
-    using data_type = data::DataMultiArray<V, NDIMS>;
+    ZSFC<NDIMS> GetSpaceFillingCurve(int iform, int nsub = 0) const {
+        return ZSFC<NDIMS>{GetIndexBox(EntityIdCoder::m_sub_index_to_id_[iform][nsub])};
+    }
 
     template <typename V, int IFORM, int... DOF>
-    std::shared_ptr<data_type<V>> make_data() const {
+    std::shared_ptr<array_type<V>> make_data() const {
         auto gw = GetDefaultGhostWidth();
 
         int num_of_subs = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
-        auto res = std::make_shared<data_type<V>>(num_of_subs);
+        auto res = std::make_shared<array_type<V>>(num_of_subs);
         //        for (int i = 0; i < num_of_subs; ++i) {
         //            auto id_box = GetIndexBox(EntityIdCoder::m_sub_index_to_id_[IFORM][i]);
         //            std::get<0>(id_box) -= gw;
@@ -100,7 +105,7 @@ class StructuredMesh : public engine::MeshBase {
             //                if (r.isNull()) {
             //                    lhs = rhs;
             //                } else {
-            //                    r.foreach ([&] __host__ __device__(EntityId s) {
+            //                    r.foreach ([&] __host__ __device__(entity_id_types) {
             //                        if (tag == (s.w & 0b111)) { lhs.Assign(rhs, s.x, s.y, s.z); }
             //                    });
             //                }
@@ -121,7 +126,7 @@ class StructuredMesh : public engine::MeshBase {
             //                if (r.isNull()) {
             //                    lhs = rhs;
             //                } else {
-            //                    r.foreach ([&] __host__ __device__(EntityId s) {
+            //                    r.foreach ([&] __host__ __device__(entity_id_type s) {
             //                        if (tag == (s.w & 0b111)) { lhs.Assign(rhs, s.x, s.y, s.z); }
             //                    });
             //                }
@@ -143,7 +148,7 @@ class StructuredMesh : public engine::MeshBase {
             //                if (r.isNull()) {
             //                    lhs = rhs;
             //                } else {
-            //                    r.foreach ([&] __host__ __device__(EntityId s) {
+            //                    r.foreach ([&] __host__ __device__(entity_id_type s) {
             //                        if (tag == (s.w & 0b111)) { lhs.Assign(rhs, s.x, s.y, s.z); }
             //                    });
             //                }
@@ -165,7 +170,7 @@ class StructuredMesh : public engine::MeshBase {
         //
         //                if (r.isNull()) {
         //                    //                    lhs = [&] __host__ __device__(index_tuple const &idx) {
-        //                    //                        EntityId s;
+        //                    //                        entity_id_type s;
         //                    //                        s.w = static_cast<int16_t>(w);
         //                    //                        s.x = static_cast<int16_t>(idx[0]);
         //                    //                        s.y = static_cast<int16_t>(idx[1]);
@@ -173,7 +178,7 @@ class StructuredMesh : public engine::MeshBase {
         //                    //                        return fun(s);
         //                    //                    };
         //                } else {
-        //                    r.foreach ([&] __host__ __device__(EntityId s) {
+        //                    r.foreach ([&] __host__ __device__(entity_id_type s) {
         //                        if (tag == s.w) {
         //                            s.w = w;
         //                            lhs.Assign(fun(s), s.x, s.y, s.z);
@@ -199,7 +204,7 @@ class StructuredMesh : public engine::MeshBase {
         //
         //                if (r.isNull()) {
         //                    //                    lhs = [&] __host__ __device__(index_tuple const &idx) {
-        //                    //                        EntityId s;
+        //                    //                        entity_id_type s;
         //                    //                        s.w = static_cast<int16_t>(w);
         //                    //                        s.x = static_cast<int16_t>(idx[0]);
         //                    //                        s.y = static_cast<int16_t>(idx[1]);
@@ -207,7 +212,7 @@ class StructuredMesh : public engine::MeshBase {
         //                    //                        return fun(s)[n];
         //                    //                    };
         //                } else {
-        //                    r.foreach ([&] __host__ __device__(EntityId s) {
+        //                    r.foreach ([&] __host__ __device__(entity_id_type s) {
         //                        if (tag == s.w) {
         //                            s.w = w;
         //                            lhs.Assign(fun(s)[n], s.x, s.y, s.z);
@@ -230,7 +235,7 @@ class StructuredMesh : public engine::MeshBase {
         //                int n = (IFORM == VERTEX || IFORM == VOLUME) ? j : i;
         //                if (r.isNull()) {
         //                    //                    f[i * DOF + j] = [&] __host__ __device__(index_tuple const &idx) {
-        //                    //                        EntityId s;
+        //                    //                        entity_id_type s;
         //                    //                        s.w = static_cast<int16_t>(w);
         //                    //                        s.x = static_cast<int16_t>(idx[0]);
         //                    //                        s.y = static_cast<int16_t>(idx[1]);
@@ -238,7 +243,7 @@ class StructuredMesh : public engine::MeshBase {
         //                    //                        return fun(this->point(s))[n];
         //                    //                    };
         //                } else {
-        //                    r.foreach ([&] __host__ __device__(EntityId s) {
+        //                    r.foreach ([&] __host__ __device__(entity_id_type s) {
         //
         //                        if (tag == s.w) {
         //                            s.w = w;
@@ -261,7 +266,7 @@ class StructuredMesh : public engine::MeshBase {
         //                auto &lhs = f[i * DOF + j];
         //                if (r.isNull()) {
         //                    //                    lhs = [&] __host__ __device__(index_tuple const &idx) {
-        //                    //                        EntityId s;
+        //                    //                        entity_id_type s;
         //                    //                        s.w = static_cast<int16_t>(w);
         //                    //                        s.x = static_cast<int16_t>(idx[0]);
         //                    //                        s.y = static_cast<int16_t>(idx[1]);
@@ -269,7 +274,7 @@ class StructuredMesh : public engine::MeshBase {
         //                    //                        return fun(point(s));
         //                    //                    };
         //                } else {
-        //                    r.foreach ([&] __host__ __device__(EntityId s) {
+        //                    r.foreach ([&] __host__ __device__(entity_id_type s) {
         //
         //                        if (tag == s.w) {
         //                            s.w = w;

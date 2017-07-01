@@ -19,7 +19,7 @@ add_executable(step2meshkit main.cpp step2meshkit.cpp)
 
 
 TARGET_LINK_LIBRARIES(step2meshkit ${MeshKit_LIBRARIES} ${MOAB_LIBRARIES} ${HDF5_LIBRARIES} ${MPI_LIBRARIES}
-          mesh   model toolbox data physics simulation netcdf
+          mesh   model utilities data physics simulation netcdf
         )
 
 

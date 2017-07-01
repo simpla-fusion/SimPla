@@ -1,4 +1,4 @@
 FILE(GLOB model_SRC  *.cpp  )
 add_library(model ${model_SRC}  )
-TARGET_LINK_LIBRARIES(model geometry  toolbox data )
+TARGET_LINK_LIBRARIES(model geometry  utilities data )
 

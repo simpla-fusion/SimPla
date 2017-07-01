@@ -25,7 +25,7 @@ class calculator;
 template <typename TM, typename TV, int...>
 class Field;
 template <typename TM, typename TV, int IFORM, int... DOF>
-class Field : public engine::Attribute {  //
+class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {  //
    private:
     typedef Field<TM, TV, IFORM, DOF...> field_type;
     SP_OBJECT_HEAD(field_type, engine::Attribute);
@@ -49,10 +49,10 @@ class Field : public engine::Attribute {  //
     mesh_type const* m_mesh_ = nullptr;
 
    public:
-    template <typename TGrp, typename... Args>
-    explicit Field(TGrp* grp, Args&&... args)
-        : engine::Attribute(IFORM, sizeof...(DOF), typeid(value_type), (grp),
-                            std::make_shared<data::DataTable>(std::forward<Args>(args)...)) {}
+    template <typename... Args>
+    explicit Field(Args&&... args)
+        : base_type(IFORM, std::integer_sequence<int, DOF...>(), typeid(value_type), std::forward<Args>(args)...) {}
+
     Field(this_type const& other)
         : base_type(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_data_(other.m_data_) {}
 
@@ -68,9 +68,18 @@ class Field : public engine::Attribute {  //
 
     bool empty() const override { return m_range_.empty(); }
 
-    void Clear() { m_data_ = 0; }
-    void Fill(value_type v) { m_data_ = v; }
-    void SetUndefined() { m_data_ = std::numeric_limits<value_type>::signaling_NaN(); }
+    void Clear() {
+        DoUpdate();
+        m_data_ = 0;
+    }
+    void Fill(value_type v) {
+        DoUpdate();
+        m_data_ = v;
+    }
+    void SetUndefined() {
+        DoUpdate();
+        m_data_ = std::numeric_limits<value_type>::signaling_NaN();
+    }
 
     auto& data() { return m_data_; }
     auto const& data() const { return m_data_; }
@@ -141,11 +150,8 @@ class Field : public engine::Attribute {  //
         if (m_mesh_ == nullptr) { m_mesh_ = dynamic_cast<mesh_type const*>(engine::Attribute::GetMesh()); }
         ASSERT(m_mesh_ != nullptr);
         m_data_.foreach ([&](int const* idx, array_type& a) {
-            a.SetSpaceFillingCurve(m_mesh_->GetSpaceFillingCurve(IFORM, idx[0]));
+            if (a.empty()) { a.SetSpaceFillingCurve(m_mesh_->GetSpaceFillingCurve(IFORM, idx[0])); }
         });
-        //        if (m_data_ == nullptr) {
-        //            //            m_data_ = m_mesh_->template make_data<value_type, IFORM, DOF>();
-        //        }
     }
 
     void TearDown() override {
@@ -157,7 +163,10 @@ class Field : public engine::Attribute {  //
     void Unpack(const std::shared_ptr<data::DataBlock>& d, const EntityRange& r) override {
         if (d != nullptr) {
             m_range_ = r;
-            m_data_.foreach ([&](int const* idx, array_type& a) {});
+
+            auto multi_array = std::dynamic_pointer_cast<data::DataMultiArray<value_type, NDIMS>>(d);
+            int count = 0;
+            m_data_.foreach ([&](array_type& a) { (*multi_array)[count].swap(a); });
             Click();
         }
         DoUpdate();

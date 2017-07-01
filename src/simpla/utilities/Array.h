@@ -21,6 +21,7 @@ template <typename V, typename SFC = ZSFC<3>>
 class Array {
    public:
     typedef V value_type;
+    typedef typename SFC::array_index_box_type array_index_box_type;
 
    private:
     typedef Array<value_type, SFC> this_type;
@@ -64,9 +65,8 @@ class Array {
             m_data_ = m_holder_.get();
         }
     }
-    void SetSpaceFillingCurve(SFC const& s) { return m_sfc_ = s; }
+    void SetSpaceFillingCurve(SFC const& s) { m_sfc_ = s; }
     SFC const& GetSpaceFillingCurve() const { return m_sfc_; }
-    SFC& GetSpaceFillingCurve() { return m_sfc_; }
 
     int GetNDIMS() const { return SFC::ndims; }
     bool empty() const { return m_data_ == nullptr; }

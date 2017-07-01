@@ -20,7 +20,7 @@
 #include <simpla/utilities/type_traits.h>
 #include "Calculus.h"
 namespace simpla {
-template <typename TM, typename TV, int, int...>
+template <typename TM, typename TV, int...>
 class Field;
 
 /**

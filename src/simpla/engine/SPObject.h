@@ -136,8 +136,8 @@ class SPObject {
 
     void SetName(std::string const &s_name);
     std::string const &GetName() const;
-    DataPack Pack() const;
-    void UnPack(engine::DataPack &&t);
+//    DataPack Pack() const;
+//    void UnPack(engine::DataPack &&t);
     void lock();
     void unlock();
     bool try_lock();

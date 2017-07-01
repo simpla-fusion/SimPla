@@ -314,13 +314,13 @@ std::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(const std::shared
 }
 
 template <typename T, int NDIMS>
-Array<T, NDIMS> create_array(SAMRAI::pdat::ArrayData<T> &p_data, int depth = 0) {
+ Array<T, ZSFC<NDIMS>>create_array(SAMRAI::pdat::ArrayData<T> &p_data, int depth = 0) {
     auto i_lower = p_data.getBox().lower();
     auto i_upper = p_data.getBox().upper();
 
-    typename Array<T, NDIMS>::array_index_box_type i_box{{i_lower[0], i_lower[1], i_lower[2]},
+    typename Array<T, ZSFC<NDIMS>>::array_index_box_type i_box{{i_lower[0], i_lower[1], i_lower[2]},
                                                          {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}};
-    Array<T, NDIMS> res(i_box, true);
+    Array<T, ZSFC<NDIMS>> res(i_box, true);
     res.reset(std::shared_ptr<T>(p_data.getPointer(depth), simpla::tags::do_nothing()));
     res.DoSetUp();
     return res;
@@ -329,7 +329,7 @@ Array<T, NDIMS> create_array(SAMRAI::pdat::ArrayData<T> &p_data, int depth = 0) 
 template <int NDIMS, typename T>
 std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, std::shared_ptr<SAMRAI::hier::PatchData> pd) {
     std::shared_ptr<data::DataMultiArray<T, NDIMS>> res = nullptr;
-    typedef Array<T, NDIMS> array_type;
+    typedef Array<T, ZSFC<NDIMS>> array_type;
 
     switch (IFORM) {
         case VERTEX: {

@@ -10,6 +10,6 @@ ENDFOREACH ()
  #
 ##TARGET_LINK_LIBRARIES(SimPlaLib
 ##        netcdf ${HDF5_LIBRARIES} ${MPI_LIBRARIES} ${TBB_LIBRARIES}
-##          toolbox geometry parallel data mesh engine model physics third_part
+##          utilities geometry parallel data mesh engine model physics third_part
 ##        )
 
