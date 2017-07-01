@@ -44,7 +44,7 @@ class DataBlock : public DataEntity {
 template <typename U, int NDIMS>
 class DataMultiArray : public DataBlock {
    public:
-    typedef simpla::Array<U, NDIMS> array_type;
+    typedef simpla::Array<U> array_type;
     typedef DataMultiArray<U, NDIMS> multi_array_type;
     SP_OBJECT_HEAD(multi_array_type, DataBlock);
 
@@ -65,8 +65,6 @@ class DataMultiArray : public DataBlock {
     size_type GetDepth() const override { return m_data_.size(); }
 
     void SetArray(int depth, array_type d) { array_type(d).swap(m_data_[depth]); }
-
-
 
     array_type *Get(int depth = 0) { return &m_data_[depth]; }
     array_type const *Get(int depth = 0) const { return &m_data_[depth]; }
@@ -89,9 +87,9 @@ class DataMultiArray : public DataBlock {
    private:
     std::vector<array_type> m_data_;
 };
-template <typename U, int NDIMS>
-std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<simpla::Array<U, NDIMS>> const &p) {
-    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityWrapper<simpla::Array<U, NDIMS>>>(p));
+template <typename U>
+std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<simpla::Array<U>> const &p) {
+    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityWrapper<simpla::Array<U>>>(p));
 }
 // template <typename...>
 // class DataBlockAdapter;

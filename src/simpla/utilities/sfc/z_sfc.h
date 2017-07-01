@@ -16,7 +16,7 @@
 #include "../nTuple.h"
 
 namespace simpla {
-template <typename V, int NDIMS, typename SFC>
+template <typename V,   typename SFC>
 struct Array;
 template <int NDIMS>
 class ZSFC {
