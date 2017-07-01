@@ -17,7 +17,6 @@
 #include <simpla/utilities/FancyStream.h>
 #include <simpla/utilities/Range.h>
 #include <simpla/utilities/nTuple.h>
-#include <simpla/utilities/sp_def.h>
 #include "Algebra.h"
 #include "CalculusPolicy.h"
 namespace simpla {

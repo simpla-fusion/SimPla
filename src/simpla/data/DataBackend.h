@@ -10,7 +10,7 @@
 #include <simpla/utilities/Factory.h>
 #include <simpla/utilities/Log.h>
 #include <simpla/utilities/SingletonHolder.h>
-#include <simpla/utilities/SPObject.h>
+#include <simpla/engine/SPObject.h>
 #include <memory>
 #include <regex>
 #include <typeindex>

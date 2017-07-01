@@ -6,7 +6,7 @@
 #define SIMPLA_ATTRIBUTEVIEW_H
 
 #include "MeshBlock.h"
-#include "simpla/utilities/SPObject.h"
+#include "SPObject.h"
 #include "simpla/SIMPLA_config.h"
 #include "simpla/concept/CheckConcept.h"
 #include "simpla/data/all.h"
@@ -127,18 +127,19 @@ class AttributeGroup {
  * deactivate AttributeView
  * @enduml
  */
-struct Attribute : public SPObject, public AttributeDesc, public data::Serializable {
+struct Attribute : public SPObject, public AttributeDesc {
     SP_OBJECT_HEAD(Attribute, SPObject);
 
    public:
     Attribute(int IFORM, int DOF, std::type_info const &t_info, AttributeGroup *grp,
               std::shared_ptr<data::DataTable> p);
-    template <typename TGrp>
-    Attribute(int IFORM, int DOF, std::type_info const &t_info, TGrp *grp, std::shared_ptr<data::DataTable> cfg)
-        : Attribute(IFORM, DOF, t_info, dynamic_cast<AttributeGroup *>(grp), cfg) {}
-    template <typename TGrp, typename... Args>
-    Attribute(int IFORM, int DOF, std::type_info const &t_info, TGrp *grp, Args &&... args)
-        : Attribute(IFORM, DOF, t_info, dynamic_cast<AttributeGroup *>(grp),
+    template <int... DOF, typename TGrp>
+    Attribute(int IFORM, std::integer_sequence<int, DOF...>, std::type_info const &t_info, TGrp *grp,
+              std::shared_ptr<data::DataTable> cfg)
+        : Attribute(IFORM, 1, t_info, dynamic_cast<AttributeGroup *>(grp), cfg) {}
+    template <int... DOF, typename TGrp, typename... Args>
+    Attribute(int IFORM, std::integer_sequence<int, DOF...>, std::type_info const &t_info, TGrp *grp, Args &&... args)
+        : Attribute(IFORM, 1, t_info, dynamic_cast<AttributeGroup *>(grp),
                     std::make_shared<data::DataTable>(std::forward<Args>(args)...)) {}
 
     Attribute(Attribute const &other);
@@ -146,7 +147,7 @@ struct Attribute : public SPObject, public AttributeDesc, public data::Serializa
     ~Attribute() override;
 
     virtual size_type size() const { return 0; }
-
+    void swap(Attribute &) {}
     void Update() override;
 
     const MeshBase *GetMesh() const;

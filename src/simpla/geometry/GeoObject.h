@@ -10,7 +10,7 @@
 
 #include <simpla/utilities/Log.h>
 #include <simpla/utilities/nTuple.h>
-#include <simpla/utilities/SPObject.h>
+#include <simpla/engine/SPObject.h>
 #include <simpla/utilities/type_traits.h>
 #include "GeoAlgorithm.h"
 #include "simpla/data/EnableCreateFromDataTable.h"

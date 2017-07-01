@@ -8,7 +8,7 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/utilities/Log.h>
-#include <simpla/utilities/SPObject.h>
+#include <simpla/engine/SPObject.h>
 #include <typeindex>
 #include <vector>
 #include "DataTraits.h"

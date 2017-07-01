@@ -6,7 +6,7 @@
 #define SIMPLA_MESHCOMMON_H
 
 #include <simpla/utilities/nTuple.h>
-#include <simpla/utilities/SPObject.h>
+#include <simpla/engine/SPObject.h>
 #include <boost/uuid/uuid.hpp>
 
 namespace simpla {

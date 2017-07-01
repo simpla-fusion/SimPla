@@ -8,11 +8,11 @@
 #include <simpla/data/all.h>
 #include <simpla/geometry/GeoObject.h>
 #include <simpla/utilities/Signal.h>
-#include "simpla/utilities/SPObject.h"
+#include "simpla/engine/SPObject.h"
 namespace simpla {
 namespace geometry {
-struct Chart : public SPObject, public data::EnableCreateFromDataTable<Chart> {
-    SP_OBJECT_HEAD(Chart, SPObject)
+struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<Chart> {
+    SP_OBJECT_HEAD(Chart, engine::SPObject)
     SP_DEFAULT_CONSTRUCT(Chart);
     DECLARE_REGISTER_NAME("Chart")
 

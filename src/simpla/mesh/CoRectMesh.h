@@ -5,7 +5,7 @@
 #ifndef SIMPLA_CORECTMESH_H
 #define SIMPLA_CORECTMESH_H
 
-#include <simpla/utilities/SPObject.h>
+#include <simpla/engine/SPObject.h>
 #include <string>
 #include "StructuredMesh.h"
 namespace simpla {

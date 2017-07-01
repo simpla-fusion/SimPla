@@ -12,11 +12,11 @@
 #include <typeinfo>
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/utilities/SPObject.h>
+#include <simpla/engine/SPObject.h>
 #include <simpla/utilities/Signal.h>
 #include <typeindex>
 namespace simpla {
-
+namespace engine {
 #define SP_DECLARE_NAME(_CLASS_NAME_)                                \
     virtual std::string GetClassName() const { return ClassName(); } \
     static std::string ClassName() { return __STRING(_CLASS_NAME_); }
@@ -298,6 +298,7 @@ class SPObject {
 //    bool TryFinalize();
 /** @} */
 #define NULL_ID static_cast<id_type>(-1)
+}  // namespace engine{
 }  // namespace simpla { namespace base
 
 #endif  // SIMPLA_OBJECT_H

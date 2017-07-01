@@ -5,7 +5,7 @@
 #ifndef SIMPLA_MODELSELECT_H
 #define SIMPLA_MODELSELECT_H
 
-#include <simpla/utilities/SPObject.h>
+#include <simpla/engine/SPObject.h>
 #include <functional>
 namespace simpla {
 namespace mesh {

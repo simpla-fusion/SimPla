@@ -10,7 +10,7 @@
 #include <simpla/geometry/GeoObject.h>
 #include <simpla/utilities/EntityId.h>
 #include <memory>
-#include "simpla/utilities/SPObject.h"
+#include "SPObject.h"
 #include "../../../cmake-build-debug/include/simpla/SIMPLA_config.h"
 
 namespace simpla {

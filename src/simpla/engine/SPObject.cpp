@@ -16,6 +16,7 @@
 #include <ostream>
 
 namespace simpla {
+namespace engine {
 struct SPObject::pimpl_s {
     std::mutex m_mutex_;
     size_type m_click_ = 1;
@@ -96,4 +97,5 @@ void SPObject::DoFinalize() {
         ResetTag();
     }
 };
+}  // namespace engine{
 }  // namespace simpla { namespace base

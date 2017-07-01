@@ -4,7 +4,7 @@
 #include "Model.h"
 #include <simpla/geometry/Cube.h>
 #include <simpla/model/GEqdsk.h>
-#include <simpla/utilities/SPObject.h>
+#include <simpla/engine/SPObject.h>
 #include "simpla/engine/Attribute.h"
 #include "simpla/engine/MeshBlock.h"
 namespace simpla {

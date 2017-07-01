@@ -10,7 +10,7 @@
 #include <simpla/geometry/Chart.h>
 #include <simpla/geometry/GeoObject.h>
 #include "Attribute.h"
-#include "simpla/utilities/SPObject.h"
+#include "SPObject.h"
 
 namespace simpla {
 namespace engine {

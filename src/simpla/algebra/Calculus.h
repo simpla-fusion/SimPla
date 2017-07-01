@@ -23,13 +23,13 @@ namespace simpla {
 template <typename...>
 class Expression;
 
-template <typename TM, typename TV, int ...>
+template <typename TM, typename TV, int, int...>
 class Field;
 }
 
 namespace std {
-template <typename TM, typename TV, int IFORM, int DOF>
-struct rank<simpla::Field<TM, TV, IFORM, DOF>> : public std::integral_constant<int, rank<TM>::value> {};
+template <typename TM, typename TV, int IFORM, int... DOF>
+struct rank<simpla::Field<TM, TV, IFORM, DOF...>> : public std::integral_constant<int, sizeof...(DOF)> {};
 
 }  // namespace std{
 

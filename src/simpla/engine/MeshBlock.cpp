@@ -7,7 +7,7 @@
 #include <boost/functional/hash.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
-#include "simpla/utilities/SPObject.h"
+#include "SPObject.h"
 namespace simpla {
 namespace engine {
 

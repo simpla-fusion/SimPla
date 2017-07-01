@@ -7,12 +7,12 @@
 //
 #include <string>
 #include "simpla/data/all.h"
-#include "simpla/utilities/SPObject.h"
+#include "simpla/engine/SPObject.h"
 #include "simpla/engine/Schedule.h"
 namespace simpla {
 namespace application {
-struct SpApp : public SPObject, public data::Serializable {
-    SP_OBJECT_HEAD(SpApp, SPObject);
+struct SpApp : public engine::SPObject, public data::Serializable {
+    SP_OBJECT_HEAD(SpApp, engine::SPObject);
 
    public:
     explicit SpApp(std::string const &s_name = "SpApp");

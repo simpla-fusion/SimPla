@@ -6,15 +6,15 @@
 #define SIMPLA_MODEL_H
 
 #include <simpla/data/Serializable.h>
-#include <simpla/utilities/SPObject.h>
+#include <simpla/engine/SPObject.h>
 #include <simpla/geometry/GeoObject.h>
 namespace simpla {
 namespace model {
 
 using namespace data;
 
-class Model : public SPObject, public data::Serializable {
-    SP_OBJECT_HEAD(Model, SPObject);
+class Model : public  engine::SPObject, public data::Serializable {
+    SP_OBJECT_HEAD(Model,  engine::SPObject);
 
    public:
     Model();
