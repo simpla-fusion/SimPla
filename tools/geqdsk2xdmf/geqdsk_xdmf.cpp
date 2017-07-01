@@ -169,7 +169,7 @@ void Write(std::string const &fname)
 
 //		root.Build();
     std::ofstream ss(fname + ".xmf");
-    ss << dom.Serialize() << std::endl;
+    ss << dom.Pack() << std::endl;
 
 }
 }  // namespace simpla

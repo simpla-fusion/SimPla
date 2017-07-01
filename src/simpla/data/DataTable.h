@@ -56,8 +56,8 @@ class DataTable : public DataEntity {
     //******************************************************************************************************************
     /** Interface DataEntity */
 
-    std::ostream& Serialize(std::ostream& os, int indent) const override;
-    std::istream& Deserialize(std::istream& is) override;
+    std::ostream& Pack(std::ostream& os, int indent) const override;
+    std::istream& Unpack(std::istream& is) override;
 
     bool isTable() const override { return true; }
     std::type_info const& value_type_info() const override { return typeid(DataTable); };

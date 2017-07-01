@@ -23,7 +23,7 @@ struct RectMesh : public StructuredMesh {
     ~RectMesh() override = default;
 
     SP_DEFAULT_CONSTRUCT(RectMesh)
-    DECLARE_REGISTER_NAME("RectMesh");
+    DECLARE_REGISTER_NAME(RectMesh);
 
     void InitializeData(Real time_now) override;
     void SetBoundaryCondition(Real time_now, Real time_dt) override;

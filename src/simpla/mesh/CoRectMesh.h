@@ -22,7 +22,7 @@ struct CoRectMesh : public StructuredMesh {
     ~CoRectMesh() override = default;
 
     SP_DEFAULT_CONSTRUCT(CoRectMesh)
-    DECLARE_REGISTER_NAME("CoRectMesh");
+    DECLARE_REGISTER_NAME(CoRectMesh);
 
     void InitializeData(Real time_now) override;
 

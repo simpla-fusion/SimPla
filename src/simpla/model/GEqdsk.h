@@ -35,7 +35,7 @@ namespace simpla {
  */
 class GEqdsk : public geometry::GeoObject {
     SP_OBJECT_HEAD(GEqdsk, geometry::GeoObject)
-    DECLARE_REGISTER_NAME("GEqdsk");
+    DECLARE_REGISTER_NAME(GEqdsk);
 
    private:
     static constexpr int PhiAxis = 2;
@@ -50,8 +50,8 @@ class GEqdsk : public geometry::GeoObject {
     GEqdsk(std::shared_ptr<geometry::Chart> const &c = nullptr);
     ~GEqdsk();
 
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
+    std::shared_ptr<data::DataTable> Pack() const override;
+    void Unpack(const std::shared_ptr<data::DataTable> &t) override;
 
     virtual bool hasChildren() const override { return true; }
     virtual void Register(std::map<std::string, std::shared_ptr<GeoObject>> &, std::string const &prefix = "") override;

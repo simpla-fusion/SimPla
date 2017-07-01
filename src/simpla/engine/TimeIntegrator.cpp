@@ -10,8 +10,8 @@ namespace engine {
 TimeIntegrator::TimeIntegrator(std::string const& s_name) : Schedule(s_name){};
 TimeIntegrator::~TimeIntegrator() {}
 
-std::shared_ptr<data::DataTable> TimeIntegrator::Serialize() const {
-    auto p = Schedule::Serialize();
+std::shared_ptr<data::DataTable> TimeIntegrator::Pack() const {
+    auto p = Schedule::Pack();
     p->SetValue("Name", GetName());
     p->SetValue("Type", GetRegisterName());
     p->SetValue("TimeBegin", GetTimeNow());
@@ -21,8 +21,8 @@ std::shared_ptr<data::DataTable> TimeIntegrator::Serialize() const {
     return p;
 }
 
-void TimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
-    Schedule::Deserialize(cfg);
+void TimeIntegrator::Unpack(std::shared_ptr<data::DataTable> const& cfg) {
+    Schedule::Unpack(cfg);
     SetTimeNow(cfg->GetValue("TimeBegin", 0.0));
     SetTimeEnd(cfg->GetValue("TimeEnd", 1.0));
     SetTimeStep(cfg->GetValue("TimeStep", 0.5));

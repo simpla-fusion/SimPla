@@ -31,7 +31,7 @@ class DataBackend : public EnableCreateFromDataTable<DataBackend> {
     virtual ~DataBackend() = default;
 
     SP_DEFAULT_CONSTRUCT(DataBackend)
-    DECLARE_REGISTER_NAME("DataBackend")
+    DECLARE_REGISTER_NAME(DataBackend)
 
     static std::shared_ptr<DataBackend> Create(std::string const& uri, std::string const& ext_param);
 

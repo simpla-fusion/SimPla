@@ -18,7 +18,7 @@ class DataBackendHDF5 : public DataBackend {
     explicit DataBackendHDF5(std::string const& uri, std::string const& status = "");
     ~DataBackendHDF5() override;
 
-    DECLARE_REGISTER_NAME("hdf5")
+    DECLARE_REGISTER_NAME(hdf5)
 
     bool isNull() const;
 

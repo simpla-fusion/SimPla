@@ -35,11 +35,11 @@ struct Atlas::pimpl_s {
 Atlas::Atlas(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s){};
 Atlas::~Atlas(){};
 void Atlas::Update() { SPObject::Update(); };
-std::shared_ptr<data::DataTable> Atlas::Serialize() const {
+std::shared_ptr<data::DataTable> Atlas::Pack() const {
     auto res = std::make_shared<data::DataTable>();
     return res;
 };
-void Atlas::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
+void Atlas::Unpack(const std::shared_ptr<data::DataTable> &cfg) {
     if (cfg == nullptr) { return; }
 
     Click();

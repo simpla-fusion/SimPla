@@ -19,11 +19,11 @@ struct SpApp : public engine::SPObject, public data::Serializable {
     virtual ~SpApp();
     SP_DEFAULT_CONSTRUCT(SpApp);
 
-    using data::Serializable::Serialize;
-    using data::Serializable::Deserialize;
+    using data::Serializable::Pack;
+    using data::Serializable::Unpack;
 
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
+    std::shared_ptr<data::DataTable> Pack() const override;
+    void Unpack(const std::shared_ptr<data::DataTable> &cfg) override;
 
     void Initialize() override;
     void Update() override;
@@ -50,11 +50,11 @@ struct SpApp : public engine::SPObject, public data::Serializable {
         _APPLICATION_##_app_name() {}                                                                  \
         _APPLICATION_##_app_name(this_type const &) = delete;                                          \
         virtual ~_APPLICATION_##_app_name() {}                                                         \
-        void Deserialize(std::shared_ptr<data::DataTable>);                                            \
+        void Unpack(std::shared_ptr<data::DataTable>);                                            \
     };                                                                                                 \
     bool _APPLICATION_##_app_name::is_registered =                                                     \
         application::SpApp::RegisterCreator<_APPLICATION_##_app_name>(__STRING(_app_name), _app_desc); \
-    void _APPLICATION_##_app_name::Deserialize(std::shared_ptr<data::DataTable> options)
+    void _APPLICATION_##_app_name::Unpack(std::shared_ptr<data::DataTable> options)
 
 #define SP_REGISITER_APP(_app_name, _app_desc)      \
     bool _APPLICATION_##_app_name##_is_registered = \

@@ -78,14 +78,14 @@ void Schedule::Run() {
     }
 }
 
-std::shared_ptr<data::DataTable> Schedule::Serialize() const {
+std::shared_ptr<data::DataTable> Schedule::Pack() const {
     auto res = std::make_shared<data::DataTable>();
     res->SetValue("OutputURL", GetOutputURL());
     res->SetValue("CheckPointInterval", GetCheckPointInterval());
     return res;
 }
 
-void Schedule::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
+void Schedule::Unpack(const std::shared_ptr<data::DataTable> &cfg) {
     SetContext(Context::Create(cfg->Get("Context")));
     SetCheckPointInterval(static_cast<size_type>(cfg->GetValue("CheckPointInterval", 1)));
     SetOutputURL(cfg->GetValue<std::string>("OutPutPrefix", "") + GetOutputURL());

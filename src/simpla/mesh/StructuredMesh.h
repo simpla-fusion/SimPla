@@ -33,7 +33,7 @@ class StructuredMesh : public engine::MeshBase {
 
     SP_DEFAULT_CONSTRUCT(StructuredMesh);
 
-    DECLARE_REGISTER_NAME("StructuredMesh");
+    DECLARE_REGISTER_NAME(StructuredMesh);
 
     void Update() override;
 

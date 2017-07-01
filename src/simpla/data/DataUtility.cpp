@@ -27,7 +27,7 @@ std::shared_ptr<DataTable> ParseCommandLine(int argc, char **argv) {
     return res;
 };
 
-void SerializeLua(std::shared_ptr<DataEntity> const &d, std::ostream &os, int indent = 0) {
+void PackLua(std::shared_ptr<DataEntity> const &d, std::ostream &os, int indent = 0) {
     if (d == nullptr) {
     } else if (d->isTable()) {
         DataTable const &t = d->cast_as<DataTable>();
@@ -35,7 +35,7 @@ void SerializeLua(std::shared_ptr<DataEntity> const &d, std::ostream &os, int in
         os << "{";
         t.Foreach([&](std::string const &k, std::shared_ptr<DataEntity> const &v) {
             os << std::endl << std::setw(indent + 1) << " " << k << "= ";
-            SerializeLua(v, os, indent + 1);
+            PackLua(v, os, indent + 1);
             os << ",";
         });
 
@@ -46,7 +46,7 @@ void SerializeLua(std::shared_ptr<DataEntity> const &d, std::ostream &os, int in
         //        os << "{";
         //        t.Foreach([&](std::string const &k, std::shared_ptr<DataEntity> const &v) {
         //            os << k << "= ";
-        //            SerializeLua(v, os);
+        //            PackLua(v, os);
         //            os << "," << std::endl;
         //        });
         //        os << "}" << std::endl;
@@ -54,10 +54,10 @@ void SerializeLua(std::shared_ptr<DataEntity> const &d, std::ostream &os, int in
         auto const &t = d->cast_as<DataArray>();
         size_type num = t.size();
         os << "{";
-        SerializeLua(t.Get(0), os, indent + 1);
+        PackLua(t.Get(0), os, indent + 1);
         for (int i = 1; i < num; ++i) {
             os << ",";
-            SerializeLua(t.Get(i), os, indent + 1);
+            PackLua(t.Get(i), os, indent + 1);
         }
         os << "}";
     } else if (d->value_type_info() == typeid(bool)) {
@@ -71,13 +71,13 @@ void SerializeLua(std::shared_ptr<DataEntity> const &d, std::ostream &os, int in
         for (int i = 1; i < ndims; ++i) { os << "x" << blk.GetInnerUpperIndex(0)[i]; }
         os << "}}}\"";
     } else {
-        d->Serialize(os, 0);
+        d->Pack(os, 0);
     }
 }
 
-void Serialize(std::shared_ptr<DataEntity> const &d, std::ostream &os, std::string const &type, int indent) {
+void Pack(std::shared_ptr<DataEntity> const &d, std::ostream &os, std::string const &type, int indent) {
     if (type == "lua") {
-        SerializeLua(d, os, indent);
+        PackLua(d, os, indent);
     } else {
         UNIMPLEMENTED;
     }

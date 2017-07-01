@@ -9,7 +9,7 @@ namespace simpla {
 namespace data {
 // DataEntity::DataEntity() {}
 // DataEntity::~DataEntity() {}
-std::ostream& DataEntity::Serialize(std::ostream& os, int indent) const {
+std::ostream& DataEntity::Pack(std::ostream& os, int indent) const {
     if (isLight()) {
         os << "<Light Data:" << value_type_info().name() << ">";
     } else if (isBlock()) {
@@ -22,7 +22,7 @@ std::ostream& DataEntity::Serialize(std::ostream& os, int indent) const {
     }
     return os;
 };
-std::istream& DataEntity::Deserialize(std::istream& is) { return is; }
+std::istream& DataEntity::Unpack(std::istream& is) { return is; }
 // DataEntity DataEntity::operator[](std::string const& url) {
 //    if (m_holder_ == nullptr) {
 //        m_holder_ = new DataTable;

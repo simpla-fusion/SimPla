@@ -21,22 +21,22 @@ struct Context::pimpl_s {
 
 Context::Context(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
 Context::~Context() {}
-std::shared_ptr<data::DataTable> Context::Serialize() const {
+std::shared_ptr<data::DataTable> Context::Pack() const {
     auto res = std::make_shared<data::DataTable>();
     res->SetValue("Name", GetName());
-    res->Set("Atlas", m_pimpl_->m_atlas_.Serialize());
-    res->Set("Model", m_pimpl_->m_model_.Serialize());
-    if (m_pimpl_->m_mesh_ != nullptr) { res->Set("Mesh", m_pimpl_->m_mesh_->Serialize()); }
-    for (auto const &item : m_pimpl_->m_domains_) { res->Link("Domains/" + item.first, item.second->Serialize()); }
+    res->Set("Atlas", m_pimpl_->m_atlas_.Pack());
+    res->Set("Model", m_pimpl_->m_model_.Pack());
+    if (m_pimpl_->m_mesh_ != nullptr) { res->Set("Mesh", m_pimpl_->m_mesh_->Pack()); }
+    for (auto const &item : m_pimpl_->m_domains_) { res->Link("Domains/" + item.first, item.second->Pack()); }
 
     return res;
 }
-void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
+void Context::Unpack(const std::shared_ptr<DataTable> &cfg) {
     DoInitialize();
     SetName(cfg->GetValue<std::string>("Name", "unnamed"));
 
-    m_pimpl_->m_atlas_.Deserialize(cfg->GetTable("Atlas"));
-    m_pimpl_->m_model_.Deserialize(cfg->GetTable("Model"));
+    m_pimpl_->m_atlas_.Unpack(cfg->GetTable("Atlas"));
+    m_pimpl_->m_model_.Unpack(cfg->GetTable("Model"));
     m_pimpl_->m_mesh_ = MeshBase::Create(cfg->GetTable("Mesh"));
     ASSERT(m_pimpl_->m_mesh_ != nullptr);
     auto t_domain = cfg->GetTable("Domain");
@@ -48,7 +48,7 @@ void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
                 std::string s_type =
                     p_cfg->GetValue<std::string>("Type", "Unknown") + "." + m_pimpl_->m_mesh_->GetRegisterName();
                 auto res = Domain::Create(s_type, m_pimpl_->m_mesh_, p_geo);
-                res->Deserialize(p_cfg);
+                res->Unpack(p_cfg);
                 SetDomain(key, res);
             } else {
                 RUNTIME_ERROR << "illegal domain config!" << std::endl;
@@ -78,7 +78,7 @@ void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
 //            if (type != "") {
 //                type = type + "." + p_mesh->GetRegisterName();
 //                d = Domain::Create(type, p_mesh, geo);
-//                d->Deserialize(t_cfg);
+//                d->Unpack(t_cfg);
 //            }
 //        }
 //        if (d != nullptr) {

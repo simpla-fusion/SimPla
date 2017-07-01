@@ -16,15 +16,15 @@ class DataEntity;
 std::shared_ptr<DataTable> ParseCommandLine(int argc, char **argv);
 
 template <typename U>
-std::shared_ptr<DataTable> const &Serialize(U const &u, ENABLE_IF((std::is_base_of<Serializable, U>::value))) {
-    return u.Serialize();
+std::shared_ptr<DataTable> const &Pack(U const &u, ENABLE_IF((std::is_base_of<Serializable, U>::value))) {
+    return u.Pack();
 }
 template <typename U>
-std::shared_ptr<U> Deserialize(std::shared_ptr<DataTable> const &d,
+std::shared_ptr<U> Unpack(std::shared_ptr<DataTable> const &d,
                                ENABLE_IF((std::is_base_of<EnableCreateFromDataTable<U>, U>::value))) {
     return U::Create(d);
 }
-void Serialize(std::shared_ptr<DataEntity> const &d, std::ostream &os, std::string const &type, int indent = 0);
+void Pack(std::shared_ptr<DataEntity> const &d, std::ostream &os, std::string const &type, int indent = 0);
 std::string AutoIncreaseFileName(std::string filename, std::string const &ext_str);
 
 static std::regex const sub_group_regex(R"(([^/?#]+)/)", std::regex::optimize);

@@ -109,7 +109,7 @@ class EnableCreateFromDataTable : public data::Serializable {
         }
 
         if (res != nullptr && cfg != nullptr && cfg->isTable()) {
-            res->Deserialize(std::dynamic_pointer_cast<data::DataTable>(cfg));
+            res->Unpack(std::dynamic_pointer_cast<data::DataTable>(cfg));
         }
 
         return res;
@@ -119,7 +119,7 @@ class EnableCreateFromDataTable : public data::Serializable {
 #define DECLARE_REGISTER_NAME(_REGISTER_NAME_)                              \
    public:                                                                  \
     std::string GetRegisterName() const override { return RegisterName(); } \
-    static std::string RegisterName() { return _REGISTER_NAME_; }           \
+    static std::string RegisterName() { return __STRING(_REGISTER_NAME_); }           \
     static bool is_registered;
 
 #define REGISTER_CREATOR(_CLASS_NAME_) bool _CLASS_NAME_::is_registered = _CLASS_NAME_::RegisterCreator<_CLASS_NAME_>();

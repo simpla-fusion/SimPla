@@ -41,8 +41,8 @@ struct CartesianCoRectMesh : public CoRectMesh {
 
     void Update() override { CoRectMesh::Update(); }
 
-    std::shared_ptr<data::DataTable> Serialize() const override {
-        auto p = CoRectMesh::Serialize();
+    std::shared_ptr<data::DataTable> Pack() const override {
+        auto p = CoRectMesh::Pack();
         p->template SetValue<std::string>("Type", GetRegisterName());
         return p;
     };

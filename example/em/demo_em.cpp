@@ -18,8 +18,8 @@ static bool _PRE_REGISTERED =
 struct UseCaseEMFluid : public application::SpApp {
     UseCaseEMFluid() {}
     virtual ~UseCaseEMFluid() {}
-    virtual std::shared_ptr<data::DataTable> Serialize() const;
-    virtual void Deserialize(std::shared_ptr<data::DataTable>);
+    virtual std::shared_ptr<data::DataTable> Pack() const;
+    virtual void Unpack(std::shared_ptr<data::DataTable>);
     virtual void Run() { m_schedule_->Run(); };
 
    private:
@@ -27,11 +27,11 @@ struct UseCaseEMFluid : public application::SpApp {
 };
 SP_REGISITER_APP(UseCaseEMFluid, " EM Fluid ");
 
-std::shared_ptr<data::DataTable> UseCaseEMFluid::Serialize() const {
-    return m_schedule_ != nullptr ? m_schedule_->Serialize() : std::make_shared<data::DataTable>();
+std::shared_ptr<data::DataTable> UseCaseEMFluid::Pack() const {
+    return m_schedule_ != nullptr ? m_schedule_->Pack() : std::make_shared<data::DataTable>();
 };
 
-void UseCaseEMFluid::Deserialize(std::shared_ptr<data::DataTable> cfg) {
+void UseCaseEMFluid::Unpack(std::shared_ptr<data::DataTable> cfg) {
     m_schedule_ = engine::Schedule::Create("TimeIntegrator");
 
     auto t = std::dynamic_pointer_cast<engine::TimeIntegrator>(m_schedule_);

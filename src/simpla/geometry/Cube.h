@@ -17,7 +17,7 @@ namespace geometry {
 
 struct Cube : public GeoObject {
     SP_OBJECT_HEAD(Cube, GeoObject)
-    DECLARE_REGISTER_NAME("Cube");
+    DECLARE_REGISTER_NAME(Cube);
 
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 
@@ -31,13 +31,13 @@ struct Cube : public GeoObject {
 
     virtual ~Cube() {}
 
-    std::shared_ptr<data::DataTable> Serialize() const override {
+    std::shared_ptr<data::DataTable> Pack() const override {
         auto p = std::make_shared<data::DataTable>();
         p->SetValue<std::string>("Type", GetRegisterName());
         p->SetValue("Box", m_bound_box_);
         return p;
     };
-    void Deserialize(std::shared_ptr<data::DataTable> const &d) override {
+    void Unpack(std::shared_ptr<data::DataTable> const &d) override {
         if (d->has("Box")) {
             m_bound_box_ = d->GetValue<box_type>("Box");
         } else {

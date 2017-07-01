@@ -34,10 +34,10 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
     explicit MeshBase(std::shared_ptr<geometry::Chart> const &c = nullptr, std::string const &s_name = "");
     ~MeshBase() override;
     SP_DEFAULT_CONSTRUCT(MeshBase);
-    DECLARE_REGISTER_NAME("MeshBase");
+    DECLARE_REGISTER_NAME(MeshBase);
 
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<DataTable> &t) override;
+    std::shared_ptr<data::DataTable> Pack() const override;
+    void Unpack(const std::shared_ptr<DataTable> &t) override;
 
     MeshBase *GetMesh() override { return this; };
     MeshBase const *GetMesh() const override { return this; };

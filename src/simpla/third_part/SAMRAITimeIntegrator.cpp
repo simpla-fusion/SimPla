@@ -828,9 +828,9 @@ void SAMRAITimeIntegrator::Initialize() {
     //    const SAMRAI::tbox::SAMRAI_MPI & mpi(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 }
 void SAMRAITimeIntegrator::Synchronize() { engine::TimeIntegrator::Synchronize(); }
-std::shared_ptr<data::DataTable> SAMRAITimeIntegrator::Serialize() const { return engine::TimeIntegrator::Serialize(); }
-void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
-    engine::TimeIntegrator::Deserialize(cfg);
+std::shared_ptr<data::DataTable> SAMRAITimeIntegrator::Pack() const { return engine::TimeIntegrator::Pack(); }
+void SAMRAITimeIntegrator::Unpack(std::shared_ptr<data::DataTable> const &cfg) {
+    engine::TimeIntegrator::Unpack(cfg);
 }
 void SAMRAITimeIntegrator::TearDown() { engine::TimeIntegrator::TearDown(); }
 void SAMRAITimeIntegrator::Update() {

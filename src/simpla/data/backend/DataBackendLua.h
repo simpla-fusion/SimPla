@@ -22,7 +22,7 @@ class DataBackendLua : public DataBackend {
     DataBackendLua(this_type const& other);
     ~DataBackendLua() override;
 
-    DECLARE_REGISTER_NAME("lua")
+    DECLARE_REGISTER_NAME(lua)
 
     std::ostream& Print(std::ostream& os, int indent) const override;
 

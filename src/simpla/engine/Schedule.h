@@ -21,10 +21,10 @@ class Schedule : public SPObject, public data::EnableCreateFromDataTable<Schedul
     ~Schedule() override;
 
     SP_DEFAULT_CONSTRUCT(Schedule)
-    DECLARE_REGISTER_NAME("Schedule")
+    DECLARE_REGISTER_NAME(Schedule)
 
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
+    std::shared_ptr<data::DataTable> Pack() const override;
+    void Unpack(const std::shared_ptr<data::DataTable> &cfg) override;
 
     void Initialize() override;
     void Finalize() override;

@@ -42,11 +42,11 @@ struct UseCaseAMR : public application::SpApp {
     SP_DEFAULT_CONSTRUCT(UseCaseAMR);
     DECLARE_REGISTER_NAME("UseCaseAMR")
     void Initialize() override;
-    void Deserialize(std::shared_ptr<data::DataTable> cfg) override;
+    void Unpack(std::shared_ptr<data::DataTable> cfg) override;
     void SetUp() override;
 };
 REGISTER_CREATOR(UseCaseAMR);
-void UseCaseAMR::Deserialize(std::shared_ptr<data::DataTable> cfg) {
+void UseCaseAMR::Unpack(std::shared_ptr<data::DataTable> cfg) {
     SetSchedule(engine::Schedule::Create("SAMRAITimeIntegrator"));
     auto schedule = std::dynamic_pointer_cast<engine::TimeIntegrator>(GetSchedule());
     schedule->Initialize();
@@ -74,7 +74,7 @@ void UseCaseAMR::Deserialize(std::shared_ptr<data::DataTable> cfg) {
             return CONTINUE;
         });
 
-    schedule->GetContext().SetDomain("Center", "EMTokamak")->Deserialize(db()->GetValue<std::string>("gfile", "gfile"));
+    schedule->GetContext().SetDomain("Center", "EMTokamak")->Unpack(db()->GetValue<std::string>("gfile", "gfile"));
 
     schedule->SetTime(time_begin);
     schedule->SetTimeStep(time_dt);

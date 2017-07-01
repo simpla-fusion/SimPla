@@ -33,8 +33,8 @@ struct DataEntity {
 
     SP_DEFAULT_CONSTRUCT(DataEntity)
 
-    virtual std::ostream& Serialize(std::ostream& os, int indent) const;
-    virtual std::istream& Deserialize(std::istream& is);
+    virtual std::ostream& Pack(std::ostream& os, int indent) const;
+    virtual std::istream& Unpack(std::istream& is);
 
     virtual bool empty() const { return true; }
     virtual std::type_info const& value_type_info() const { return typeid(void); };
@@ -65,7 +65,7 @@ class DataEntityWithType : public DataEntity {
     virtual value_type* get() { return nullptr; }
     virtual value_type const* get() const { return nullptr; }
 
-    std::ostream& Serialize(std::ostream& os, int indent) const override {
+    std::ostream& Pack(std::ostream& os, int indent) const override {
         if (value_type_info() == typeid(std::string)) {
             os << "\"" << value() << "\"";
         } else {
@@ -95,7 +95,7 @@ struct DataEntityWrapper<U> : public DataEntityWithType<U> {
 
     std::shared_ptr<DataEntity> Duplicate() const override { return std::make_shared<DataEntityWrapper<U>>(*m_data_); };
 
-    std::ostream& Serialize(std::ostream& os, int indent) const override {
+    std::ostream& Pack(std::ostream& os, int indent) const override {
         if (typeid(U) == typeid(std::string)) {
             os << "\"" << value() << "\"";
         } else {

@@ -30,10 +30,10 @@ class Domain : public SPObject,
     ~Domain() override;
 
     SP_DEFAULT_CONSTRUCT(Domain);
-    DECLARE_REGISTER_NAME("Domain")
+    DECLARE_REGISTER_NAME(Domain)
 
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
+    std::shared_ptr<data::DataTable> Pack() const override;
+    void Unpack(const std::shared_ptr<data::DataTable> &t) override;
     std::string GetDomainPrefix() const override;
 
     MeshBase const *GetMesh() const override;
@@ -100,15 +100,19 @@ class Domain : public SPObject,
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
-#define DOMAIN_HEAD(_DOMAIN_NAME_, _MESH_TYPE_)                                                     \
-   public:                                                                                          \
-    template <typename... Args>                                                                     \
-    explicit _DOMAIN_NAME_(Args &&... args) : engine::Domain(std::forward<Args>(args)...) {}        \
-    ~_DOMAIN_NAME_() override = default;                                                            \
-    SP_DEFAULT_CONSTRUCT(_DOMAIN_NAME_);                                                            \
-    DECLARE_REGISTER_NAME(std::string(__STRING(_DOMAIN_NAME_)) + "." + _MESH_TYPE_::RegisterName()) \
-    typedef _MESH_TYPE_ mesh_type;                                                                  \
-    template <int IFORM, int DOF = 1>                                                               \
+#define DOMAIN_HEAD(_DOMAIN_NAME_, _MESH_TYPE_)                                              \
+   public:                                                                                   \
+    template <typename... Args>                                                              \
+    explicit _DOMAIN_NAME_(Args &&... args) : engine::Domain(std::forward<Args>(args)...) {} \
+    ~_DOMAIN_NAME_() override = default;                                                     \
+    SP_DEFAULT_CONSTRUCT(_DOMAIN_NAME_);                                                     \
+    std::string GetRegisterName() const override { return RegisterName(); }                  \
+    static std::string RegisterName() {                                                      \
+        return std::string(__STRING(_DOMAIN_NAME_)) + "." + _MESH_TYPE_::RegisterName();     \
+    }                                                                                        \
+    static bool is_registered;                                                               \
+    typedef _MESH_TYPE_ mesh_type;                                                           \
+    template <int IFORM, int DOF = 1>                                                        \
     using field_type = Field<mesh_type, typename _MESH_TYPE_::scalar_type, IFORM, DOF>;
 
 #define DOMAIN_DECLARE_FIELD(_NAME_, _IFORM_, _DOF_, ...)                                                      \

@@ -70,9 +70,9 @@ class Atlas : public SPObject, public data::Serializable {
     ~Atlas() override;
     SP_DEFAULT_CONSTRUCT(Atlas);
 
-    std::shared_ptr<data::DataTable> Serialize() const override;
+    std::shared_ptr<data::DataTable> Pack() const override;
 
-    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
+    void Unpack(const std::shared_ptr<data::DataTable> &cfg) override;
 
     void Update() override;
 

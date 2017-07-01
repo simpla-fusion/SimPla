@@ -25,7 +25,7 @@ struct SMesh : public StructuredMesh {
     ~SMesh() override = default;
 
     SP_DEFAULT_CONSTRUCT(SMesh)
-    DECLARE_REGISTER_NAME("SMesh");
+    DECLARE_REGISTER_NAME(SMesh);
     void InitializeData(Real time_now) override;
     void SetBoundaryCondition(Real time_now, Real time_dt) override;
 

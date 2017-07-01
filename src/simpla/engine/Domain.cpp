@@ -25,14 +25,14 @@ Domain::Domain(const std::shared_ptr<MeshBase>& m, const std::shared_ptr<geometr
 Domain::~Domain() {}
 std::string Domain::GetDomainPrefix() const { return m_pimpl_->m_domain_geo_prefix_; };
 
-std::shared_ptr<data::DataTable> Domain::Serialize() const {
+std::shared_ptr<data::DataTable> Domain::Pack() const {
     auto p = std::make_shared<data::DataTable>();
     p->SetValue("Type", GetRegisterName());
     p->SetValue("Name", GetName());
     p->SetValue("GeometryObject", m_pimpl_->m_domain_geo_prefix_);
     return p;
 }
-void Domain::Deserialize(const std::shared_ptr<DataTable>& cfg) {
+void Domain::Unpack(const std::shared_ptr<DataTable>& cfg) {
     DoInitialize();
 
     if (cfg == nullptr) { return; }

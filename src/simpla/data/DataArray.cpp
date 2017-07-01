@@ -9,13 +9,13 @@ namespace data {
 
 //DataArray::DataArray() {}
 //DataArray::~DataArray() {}
-std::ostream& DataArray::Serialize(std::ostream& os, int indent) const {
+std::ostream& DataArray::Pack(std::ostream& os, int indent) const {
     size_type ie = size();
     os << "[";
-    Get(0)->Serialize(os, indent + 1);
+    Get(0)->Pack(os, indent + 1);
     for (size_type i = 1; i < ie; ++i) {
         os << " , ";
-        Get(i)->Serialize(os, indent + 1);
+        Get(i)->Pack(os, indent + 1);
         //        if (i % 5 == 0) { os << std::endl; }
     }
     os << "]";

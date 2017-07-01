@@ -76,11 +76,11 @@ id_type MeshBase::GetBlockId() const {
 void MeshBase::InitializeData(Real time_now) { DoUpdate(); }
 void MeshBase::SetBoundaryCondition(Real time_now, Real time_dt) { DoUpdate(); }
 
-std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
+std::shared_ptr<data::DataTable> MeshBase::Pack() const {
     auto p = std::make_shared<data::DataTable>();
     p->SetValue("Type", GetRegisterName());
 
-    if (m_pimpl_->m_chart_ != nullptr) { p->SetValue("Chart", m_pimpl_->m_chart_->Serialize()); }
+    if (m_pimpl_->m_chart_ != nullptr) { p->SetValue("Chart", m_pimpl_->m_chart_->Pack()); }
 
     p->SetValue("PeriodicDimensions", m_pimpl_->m_periodic_dimension_);
     p->SetValue("Dimensions", m_pimpl_->m_dimensions_);
@@ -89,7 +89,7 @@ std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
 
     return p;
 }
-void MeshBase::Deserialize(const std::shared_ptr<DataTable>& cfg) {
+void MeshBase::Unpack(const std::shared_ptr<DataTable>& cfg) {
     m_pimpl_->m_chart_ = cfg->has("Coordinates") ? geometry::Chart::Create(cfg->Get("Coordinates"))
                                                  : geometry::Chart::Create("Cartesian");
     m_pimpl_->m_idx_origin_ = cfg->GetValue<nTuple<int, 3>>("IndexOrigin", nTuple<int, 3>{0, 0, 0});

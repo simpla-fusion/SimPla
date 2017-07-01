@@ -23,7 +23,7 @@ class DataBackendMemory : public DataBackend {
     DataBackendMemory(this_type const& other);
     DataBackendMemory(this_type&& other) noexcept;
 
-    DECLARE_REGISTER_NAME("mem")
+    DECLARE_REGISTER_NAME(mem)
 
     std::shared_ptr<DataBackend> Duplicate() const override;
     std::shared_ptr<DataBackend> CreateNew() const override;

@@ -14,14 +14,14 @@ namespace geometry {
 struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<Chart> {
     SP_OBJECT_HEAD(Chart, engine::SPObject)
     SP_DEFAULT_CONSTRUCT(Chart);
-    DECLARE_REGISTER_NAME("Chart")
+    DECLARE_REGISTER_NAME(Chart)
 
    public:
     explicit Chart(point_type shift = point_type{0, 0, 0}, point_type scale = point_type{1, 1, 1},
                    point_type rotate = point_type{0, 0, 0});
     ~Chart() override;
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
+    std::shared_ptr<data::DataTable> Pack() const override;
+    void Unpack(const std::shared_ptr<data::DataTable> &t) override;
 
     void SetShift(point_type const &x);
     point_type const &GetShift() const;

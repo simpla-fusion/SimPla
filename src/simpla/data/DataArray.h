@@ -26,7 +26,7 @@ struct DataArray : public DataEntity {
     ~DataArray() override = default;
     SP_DEFAULT_CONSTRUCT(DataArray)
 
-    std::ostream& Serialize(std::ostream& os, int indent) const override;
+    std::ostream& Pack(std::ostream& os, int indent) const override;
     bool isArray() const override { return true; }
     /**   DataArray */
     virtual size_type size() const { return 0; };
@@ -51,14 +51,14 @@ struct DataEntityWrapper<void*> : public DataArray {
         for (auto const& item : v) { m_data_.push_back(make_data_entity(item)); }
     };
 
-    std::ostream& Serialize(std::ostream& os, int indent) const override {
+    std::ostream& Pack(std::ostream& os, int indent) const override {
         if (m_data_.size() == 0) { return os; };
         auto it = m_data_.begin();
         os << "[";
-        (*it)->Serialize(os, indent + 1);
+        (*it)->Pack(os, indent + 1);
         for (++it; it != m_data_.end(); ++it) {
             os << ",";
-            (*it)->Serialize(os, indent + 1);
+            (*it)->Pack(os, indent + 1);
         }
         os << "]";
         return os;
@@ -128,7 +128,7 @@ class DataEntityWrapper<U*> : public DataArrayWithType<U> {
     virtual ~DataEntityWrapper() {}
     std::vector<U>& get() { return m_data_; }
     std::vector<U> const& get() const { return m_data_; }
-    std::ostream& Serialize(std::ostream& os, int indent) const override {
+    std::ostream& Pack(std::ostream& os, int indent) const override {
         if (m_data_.size() == 0) { return os; };
         auto it = m_data_.begin();
         os << "[" << *it;

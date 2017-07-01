@@ -32,7 +32,7 @@ struct Cylindrical : public Chart {
     typedef Real scalar_type;
 
     SP_DEFAULT_CONSTRUCT(Cylindrical);
-    DECLARE_REGISTER_NAME("Cylindrical")
+    DECLARE_REGISTER_NAME(Cylindrical)
 
     static constexpr int PhiAxis = 2;
     static constexpr int RAxis = (PhiAxis + 1) % 3;

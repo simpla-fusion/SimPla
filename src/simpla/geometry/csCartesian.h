@@ -26,7 +26,7 @@ struct Cartesian : public Chart {
     typedef Real scalar_type;
 
     SP_DEFAULT_CONSTRUCT(Cartesian);
-    DECLARE_REGISTER_NAME("Cartesian")
+    DECLARE_REGISTER_NAME(Cartesian)
 
     /**
      * metric only diff_scheme the volume of simplex

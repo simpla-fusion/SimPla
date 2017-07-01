@@ -19,8 +19,8 @@ class IdealMHD : public engine::Domain {
    public:
     DOMAIN_HEAD(IdealMHD, TM)
 
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override;
+    std::shared_ptr<data::DataTable> Pack() const override;
+    void Unpack(std::shared_ptr<data::DataTable> const &cfg) override;
 
     void InitialCondition(Real time_now) override;
     void BoundaryCondition(Real time_now, Real dt) override;
@@ -46,13 +46,13 @@ class IdealMHD : public engine::Domain {
 REGISTER_CREATOR_TEMPLATE(IdealMHD, mesh::RectMesh)
 
 template <typename TM>
-std::shared_ptr<data::DataTable> IdealMHD<TM>::Serialize() const {
-    auto res = engine::Domain::Serialize();
+std::shared_ptr<data::DataTable> IdealMHD<TM>::Pack() const {
+    auto res = engine::Domain::Pack();
     return res;
 };
 template <typename TM>
-void IdealMHD<TM>::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
-    engine::Domain::Deserialize(cfg);
+void IdealMHD<TM>::Unpack(std::shared_ptr<data::DataTable> const &cfg) {
+    engine::Domain::Unpack(cfg);
 }
 
 template <typename TM>
