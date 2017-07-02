@@ -146,14 +146,14 @@ void Context::InitialCondition(Patch *patch, Real time_now) {
     }
 
     for (auto &d : GetAllDomains()) { d.second->DoInitialCondition(patch, time_now); }
-    GetMesh()->Pull(nullptr);
+    GetMesh()->Pull(patch);
 }
 
 void Context::Advance(Patch *patch, Real time_now, Real time_dt) {
     DoUpdate();
     GetMesh()->Push(patch);
     for (auto &d : GetAllDomains()) { d.second->DoAdvance(patch, time_now, time_dt); }
-    GetMesh()->Pull(nullptr);
+    GetMesh()->Pull(patch);
 }
 
 // std::map<id_type, std::shared_ptr<Patch>> const &Context::GetPatches() const { return m_pimpl_->m_patches_; }
