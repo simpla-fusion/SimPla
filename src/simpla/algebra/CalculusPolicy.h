@@ -31,6 +31,7 @@ template <typename TM>
 struct calculator {
     typedef TM mesh_type;
     typedef calculator<mesh_type> this_type;
+    typedef nTuple<index_type, 3> IdxShift;
 
     //**********************************************************************************************
     // for element-wise arithmetic operation
@@ -313,8 +314,8 @@ struct calculator {
     //                      ::value && traits::GetIFORM<T>::value == EDGE))
     //    )
     //    {
-    //        return (get_v(m, std::Pop<0>(expr.m_args_), s + EntityIdCoder::DI(I)) -
-    //                get_v(m, std::Pop<0>(expr.m_args_), s - EntityIdCoder::DI(I))
+    //        return (get_v(m, std::Serialize<0>(expr.m_args_), s + EntityIdCoder::DI(I)) -
+    //                get_v(m, std::Serialize<0>(expr.m_args_), s - EntityIdCoder::DI(I))
     //               ) * m.inv_volume(s) * m_p_curl_factor_[(I + 3 -
     //               EntityIdCoder::sub_index(s)) % 3];
     //    }
@@ -332,8 +333,8 @@ struct calculator {
     //    )
     //    {
     //
-    //        return (get_v(m, std::Pop<0>(expr.m_args_), s + EntityIdCoder::DI(I)) -
-    //                get_v(m, std::Pop<0>(expr.m_args_), s - EntityIdCoder::DI(I))
+    //        return (get_v(m, std::Serialize<0>(expr.m_args_), s + EntityIdCoder::DI(I)) -
+    //                get_v(m, std::Serialize<0>(expr.m_args_), s - EntityIdCoder::DI(I))
     //               ) * m.inv_dual_volume(s) * m_p_curl_factor_[(I + 3 -
     //               EntityIdCoder::sub_index(s)) % 3];
     //    }
@@ -627,8 +628,8 @@ struct calculator {
         EntityId Y = (EntityIdCoder::_DJ);
         EntityId Z = (EntityIdCoder::_DK);
 
-        point_type r;  //= std::Pop<1>(idx);
-        EntityId s;    //= std::Pop<0>(idx);
+        point_type r;  //= std::Serialize<1>(idx);
+        EntityId s;    //= std::Serialize<0>(idx);
 
         return getValue(f, m, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) +    //
                getValue(f, m, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) +    //
@@ -764,7 +765,7 @@ struct calculator {
     //    static auto  getValue(std::integral_constant<int, IFORM> const&,  TExpr const& expr,mesh_type const& m,
     //    index_type i,
     //                  index_type j, index_type k, unsigned int n, unsigned int d)  {
-    //        return getValue( expr,m, EntityIdCoder::Pack<IFORM>(i, j, k, n, d));
+    //        return getValue( expr,m, EntityIdCoder::Serialize<IFORM>(i, j, k, n, d));
     //    }
     //    template <typename TField, typename TOP, typename... Args>
     //    void foreach_(mesh_type const& m, TField& self, Range<EntityId> const& r, TOP const& op, Args&&... args) const

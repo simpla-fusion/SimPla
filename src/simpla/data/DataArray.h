@@ -26,7 +26,7 @@ struct DataArray : public DataEntity {
     ~DataArray() override = default;
     SP_DEFAULT_CONSTRUCT(DataArray)
 
-    std::ostream& Pack(std::ostream& os, int indent) const override;
+    std::ostream& Serialize(std::ostream& os, int indent) const override;
     bool isArray() const override { return true; }
     /**   DataArray */
     virtual size_type size() const { return 0; };
@@ -51,14 +51,14 @@ struct DataEntityWrapper<void*> : public DataArray {
         for (auto const& item : v) { m_data_.push_back(make_data_entity(item)); }
     };
 
-    std::ostream& Pack(std::ostream& os, int indent) const override {
+    std::ostream& Serialize(std::ostream& os, int indent) const override {
         if (m_data_.size() == 0) { return os; };
         auto it = m_data_.begin();
         os << "[";
-        (*it)->Pack(os, indent + 1);
+        (*it)->Serialize(os, indent + 1);
         for (++it; it != m_data_.end(); ++it) {
             os << ",";
-            (*it)->Pack(os, indent + 1);
+            (*it)->Serialize(os, indent + 1);
         }
         os << "]";
         return os;
@@ -128,7 +128,7 @@ class DataEntityWrapper<U*> : public DataArrayWithType<U> {
     virtual ~DataEntityWrapper() {}
     std::vector<U>& get() { return m_data_; }
     std::vector<U> const& get() const { return m_data_; }
-    std::ostream& Pack(std::ostream& os, int indent) const override {
+    std::ostream& Serialize(std::ostream& os, int indent) const override {
         if (m_data_.size() == 0) { return os; };
         auto it = m_data_.begin();
         os << "[" << *it;
@@ -200,7 +200,7 @@ struct DataCastTraits<nTuple<U, N>> {
 //    // DataArrayWithType
 //
 //    virtual U GetValue(index_type idx) const { return m_holder_[idx]; }
-//    virtual void Push(size_type idx, U const& v) {
+//    virtual void Deserialize(size_type idx, U const& v) {
 //        ASSERT(size() > idx);
 //        m_holder_[idx] = v;
 //    }
@@ -239,7 +239,7 @@ struct DataCastTraits<nTuple<U, N>> {
 //    // DataArrayWithType
 //    virtual U GetValue(index_type idx) const { return m_holder_[idx]; }
 //
-//    virtual void Push(size_type idx, U const& v) {
+//    virtual void Deserialize(size_type idx, U const& v) {
 //        ASSERT(size() > idx);
 //        m_holder_[idx] = v;
 //    }
@@ -270,13 +270,13 @@ inline std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<char c
 //
 // template <int N, typename... U>
 // void data_entity_from_helper(DataArray const& a, std::tuple<U...>& v, std::integral_constant<int, N>) {
-//    data_entity_from_helper0(*a.Pop(N - 1), std::get<N - 1>(v));
+//    data_entity_from_helper0(*a.Serialize(N - 1), std::get<N - 1>(v));
 //    data_entity_from_helper(a, v, std::integral_constant<int, N - 1>());
 //};
 //
 // template <typename V>
 // void data_entity_to_helper0(V const& src, DataArray& dest, size_type N) {
-//    dest.Push(N - 1, data_entity_traits<V>::to(src));
+//    dest.Deserialize(N - 1, data_entity_traits<V>::to(src));
 //}
 // template <typename... U>
 // void data_entity_to_helper(std::tuple<U...> const& src, DataArray& dest, std::integral_constant<int, 0>){};

@@ -22,8 +22,7 @@ struct MeshBlock::pimpl_s {
 };
 boost::uuids::random_generator MeshBlock::pimpl_s::m_gen_;
 boost::hash<boost::uuids::uuid> MeshBlock::pimpl_s::m_hasher_;
-MeshBlock::MeshBlock(index_box_type const &b, size_type level)
-    : m_pimpl_(new pimpl_s) {
+MeshBlock::MeshBlock(index_box_type const &b, size_type level) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_index_box_ = b;
     m_pimpl_->m_level_ = level;
     m_pimpl_->m_GUID_ = m_pimpl_->m_hasher_(m_pimpl_->m_gen_());
@@ -35,6 +34,9 @@ MeshBlock::MeshBlock(index_box_type const &b, size_type level)
 //    m_pimpl_->m_time_ = other.m_pimpl_->m_time_;
 //}
 MeshBlock::~MeshBlock() {}
+MeshBlock::MeshBlock(MeshBlock const &other) {}
+MeshBlock::MeshBlock(MeshBlock &&other) {}
+void MeshBlock::swap(MeshBlock &) {}
 
 index_tuple MeshBlock::GetGhostWidth() const { return m_pimpl_->m_ghost_width_; };
 index_box_type MeshBlock::GetIndexBox() const { return m_pimpl_->m_index_box_; }

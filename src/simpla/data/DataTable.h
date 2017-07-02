@@ -56,8 +56,8 @@ class DataTable : public DataEntity {
     //******************************************************************************************************************
     /** Interface DataEntity */
 
-    std::ostream& Pack(std::ostream& os, int indent) const override;
-    std::istream& Unpack(std::istream& is) override;
+    std::ostream& Serialize(std::ostream& os, int indent) const override;
+    std::istream& Deserialize(std::istream& is) override;
 
     bool isTable() const override { return true; }
     std::type_info const& value_type_info() const override { return typeid(DataTable); };
@@ -119,8 +119,8 @@ class DataTable : public DataEntity {
 
     //    template <typename U>
     //    U GetValue(std::string const& uri, U const& default_value) {
-    //        Push(uri, make_data_entity(default_value), false);
-    //        return data_cast<U>(*Pop(uri));
+    //        Deserialize(uri, make_data_entity(default_value), false);
+    //        return data_cast<U>(*Serialize(uri));
     //    }
 
     template <typename U>

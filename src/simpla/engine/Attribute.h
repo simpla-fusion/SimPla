@@ -5,12 +5,14 @@
 #ifndef SIMPLA_ATTRIBUTEVIEW_H
 #define SIMPLA_ATTRIBUTEVIEW_H
 
+#include "DataPack.h"
 #include "MeshBlock.h"
 #include "SPObject.h"
 #include "simpla/SIMPLA_config.h"
 #include "simpla/concept/CheckConcept.h"
 #include "simpla/data/all.h"
 #include "simpla/utilities/Signal.h"
+
 namespace simpla {
 namespace engine {
 class Domain;
@@ -97,8 +99,10 @@ class AttributeGroup {
     virtual std::string GetDomainPrefix() const { return ""; }
     virtual MeshBase *GetMesh() = 0;
     virtual MeshBase const *GetMesh() const = 0;
-    virtual void Push(Patch *);
-    virtual void Pop(Patch *);
+
+
+    virtual void Unpack(Patch &&);
+    virtual Patch Pack();
 
    private:
     struct pimpl_s;
@@ -133,14 +137,13 @@ struct Attribute : public SPObject, public AttributeDesc {
    public:
     Attribute(int IFORM, int DOF, std::type_info const &t_info, AttributeGroup *grp,
               std::shared_ptr<data::DataTable> p);
-    template <int... DOF, typename TGrp>
-    Attribute(int IFORM, std::integer_sequence<int, DOF...>, std::type_info const &t_info, TGrp *grp,
-              std::shared_ptr<data::DataTable> cfg)
-        : Attribute(IFORM, 1, t_info, dynamic_cast<AttributeGroup *>(grp), cfg) {}
+    //    template <int... DOF, typename TGrp>
+    //    Attribute(int IFORM, std::integer_sequence<int, DOF...>, std::type_info const &t_info, TGrp *grp,
+    //              std::shared_ptr<data::DataTable> cfg)
+    //        : Attribute(IFORM, 1, t_info, (grp), cfg) {}
     template <int... DOF, typename TGrp, typename... Args>
     Attribute(int IFORM, std::integer_sequence<int, DOF...>, std::type_info const &t_info, TGrp *grp, Args &&... args)
-        : Attribute(IFORM, 1, t_info, dynamic_cast<AttributeGroup *>(grp),
-                    std::make_shared<data::DataTable>(std::forward<Args>(args)...)) {}
+        : Attribute(IFORM, 1, t_info, (grp), std::make_shared<data::DataTable>(std::forward<Args>(args)...)) {}
 
     Attribute(Attribute const &other);
     Attribute(Attribute &&other) noexcept;
@@ -156,8 +159,8 @@ struct Attribute : public SPObject, public AttributeDesc {
 
     void Deregister(AttributeGroup *);
 
-    virtual void Push(const std::shared_ptr<data::DataBlock> &d, const EntityRange &r);
-    virtual std::shared_ptr<data::DataBlock> Pop();
+    void Unpack(DataPack &&d) override;
+    DataPack Pack() override;
 
     virtual bool isNull() const;
     virtual bool empty() const { return isNull(); };
@@ -208,7 +211,7 @@ struct Attribute : public SPObject, public AttributeDesc {
 //    &d) {
 //        data::data_cast<U>(*d).swap(*this);
 //    };
-//    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> Pop() {
+//    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> Serialize() {
 //        return std::make_pair(std::shared_ptr<MeshBlock>(nullptr), data::make_data_entity(*this));
 //    };
 //    template <typename TExpr>

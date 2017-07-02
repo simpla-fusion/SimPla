@@ -9,14 +9,14 @@
 #include "nTuple.h"
 namespace simpla {
 
-#define _SP_DEFINE_ARRAY_BINARY_OPERATOR(_OP_, _NAME_)                                            \
-    template <typename TL, int NL, typename SFC, typename TR, int... NR>                          \
-    auto operator _OP_(Array<TL, NL, SFC> const& lhs, nTuple<TR, NR...> const& rhs) {             \
-        return Expression<simpla::tags::_NAME_, Array<TL, NL, SFC>, nTuple<TR, NR...>>(lhs, rhs); \
-    };                                                                                            \
-    template <typename TL, int... NL, typename TR, int NR, typename SFC>                          \
-    auto operator _OP_(nTuple<TL, NL...> const& lhs, Array<TR, NR, SFC> const& rhs) {             \
-        return Expression<simpla::tags::_NAME_, nTuple<TL, NL...>, Array<TR, NR, SFC>>(lhs, rhs); \
+#define _SP_DEFINE_ARRAY_BINARY_OPERATOR(_OP_, _NAME_)                                      \
+    template <typename... TL, typename TR, int... NR>                                       \
+    auto operator _OP_(Array<TL...> const& lhs, nTuple<TR, NR...> const& rhs) {             \
+        return Expression<simpla::tags::_NAME_, Array<TL...>, nTuple<TR, NR...>>(lhs, rhs); \
+    };                                                                                      \
+    template <typename TL, int... NL, typename... TR>                                       \
+    auto operator _OP_(nTuple<TL, NL...> const& lhs, Array<TR...> const& rhs) {             \
+        return Expression<simpla::tags::_NAME_, nTuple<TL, NL...>, Array<TR...>>(lhs, rhs); \
     };
 
 _SP_DEFINE_ARRAY_BINARY_OPERATOR(+, addition)

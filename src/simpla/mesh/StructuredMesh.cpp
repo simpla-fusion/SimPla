@@ -128,7 +128,7 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
         return;
     }
 
-    Field<StructuredMesh, int, VERTEX, 1> vertex_tags{this};
+    Field<StructuredMesh, int, VERTEX> vertex_tags{this};
     vertex_tags.Clear();
 
     index_tuple ib, ie;
@@ -139,7 +139,7 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
         for (index_type J = ib[1]; J < ie[1]; ++J)
             for (index_type K = ib[2]; K < ie[2]; ++K) {
                 auto x = point(EntityId{static_cast<int16_t>(I), static_cast<int16_t>(J), static_cast<int16_t>(K)});
-                if (!g->CheckInside(x)) { (vertex_tags[0])(I, J, K) = 1; }
+                if (!g->CheckInside(x)) { vertex_tags[0](I, J, K) = 1; }
             }
     //
 

@@ -11,12 +11,14 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>  // for size_t
+#include <iomanip>
 #include <limits>
 #include <tuple>
+#include "../nTuple.ext.h"
 #include "../nTuple.h"
 
 namespace simpla {
-template <typename V, int NDIMS, typename SFC>
+template <typename V, typename SFC>
 struct Array;
 template <int NDIMS>
 class ZSFC {
@@ -50,21 +52,6 @@ class ZSFC {
         DoSetUp();
     }
 
-    this_type& operator=(this_type const& other) {
-        this_type(other).swap(*this);
-        return *this;
-    };
-    this_type& operator=(this_type&& other) noexcept {
-        this_type(other).swap(*this);
-        return *this;
-    };
-    void swap(ZSFC& other) {
-        m_index_box_.swap(m_index_box_);
-        m_strides_.swap(other.m_strides_);
-        std::swap(m_size_, other.m_size_);
-        std::swap(m_array_order_fast_first_, other.m_array_order_fast_first_);
-    }
-
     ZSFC(std::initializer_list<index_type> const& l) {
         for (int i = 0; i < NDIMS; ++i) {
             std::get<0>(m_index_box_)[i] = 0;
@@ -84,6 +71,21 @@ class ZSFC {
     explicit ZSFC(array_index_box_type const& b, bool array_order_fast_first = false)
         : m_index_box_(b), m_array_order_fast_first_(array_order_fast_first) {
         DoSetUp();
+    }
+
+    this_type& operator=(this_type const& other) {
+        this_type(other).swap(*this);
+        return *this;
+    };
+    this_type& operator=(this_type&& other) noexcept {
+        this_type(other).swap(*this);
+        return *this;
+    };
+    void swap(ZSFC& other) {
+        m_index_box_.swap(m_index_box_);
+        m_strides_.swap(other.m_strides_);
+        std::swap(m_size_, other.m_size_);
+        std::swap(m_array_order_fast_first_, other.m_array_order_fast_first_);
     }
 
     void DoSetUp() {

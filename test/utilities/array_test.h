@@ -16,7 +16,6 @@
 #include <simpla/utilities/Log.h>
 #include "../../to_delete/sp_def.h"
 #include <simpla/algebra/all.h>
-#include <simpla/predefine/CalculusPolicy.h>
 using namespace simpla;
 
 template<typename TArray>
@@ -264,13 +263,13 @@ REGISTER_TYPED_TEST_CASE_P(TestArray, assign, index, constant_real, scalarArray)
 //		LOGGER.set_stdout_level(LOG_INFORM);
 //		auto _fdtd_param = GetParam();
 //
-//		xmin = std::Pop<0>(_fdtd_param);
+//		xmin = std::Serialize<0>(_fdtd_param);
 //
-//		xmax = std::Pop<1>(_fdtd_param);
+//		xmax = std::Serialize<1>(_fdtd_param);
 //
-//		topology_dims = std::Pop<2>(_fdtd_param);
+//		topology_dims = std::Serialize<2>(_fdtd_param);
 //
-//		K_real = std::Pop<3>(_fdtd_param);
+//		K_real = std::Serialize<3>(_fdtd_param);
 //
 //		SetDefaultValue(&default_value);
 //

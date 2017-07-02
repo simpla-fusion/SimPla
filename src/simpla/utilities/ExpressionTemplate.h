@@ -6,8 +6,8 @@
 #define SIMPLA_EXPRESSIONTEMPLATE_H
 
 #include <cmath>
+#include <tuple>
 #include "host_define.h"
-#include "tuple.h"
 #include "type_traits.h"
 #include "utility.h"
 namespace simpla {

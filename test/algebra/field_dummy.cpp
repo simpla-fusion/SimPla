@@ -14,9 +14,9 @@ struct DummyMesh {
     point_type m_x0_{0, 0, 0};
     static constexpr unsigned int NDIMS = 3;
 
-    typedef EntityId entity_id;
+    typedef EntityId entity_id_type;
     template <typename V>
-    using array_type = Array<V, NDIMS, ZSFC<NDIMS>>;
+    using array_type = Array<V,  ZSFC<NDIMS>>;
 
     typedef DummyMesh mesh_type;
 

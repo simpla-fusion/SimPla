@@ -131,7 +131,7 @@ void Schedule::Synchronize() {
     //            //            src_data.Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const
     //            &dest_p)
     //            //            {
-    //            //                auto dest_data = d_it->cast_as<data::DataTable>().Pop(key);
+    //            //                auto dest_data = d_it->cast_as<data::DataTable>().Serialize(key);
     //            //                if (dest_data == nullptr) { return; }
     //            //            });
     //        }

@@ -71,7 +71,7 @@ void PackLua(std::shared_ptr<DataEntity> const &d, std::ostream &os, int indent 
         for (int i = 1; i < ndims; ++i) { os << "x" << blk.GetInnerUpperIndex(0)[i]; }
         os << "}}}\"";
     } else {
-        d->Pack(os, 0);
+        d->Serialize(os, 0);
     }
 }
 

@@ -368,7 +368,7 @@ std::string make_msg(Others const &... others) {
 #define THROW_EXCEPTION_OUT_OF_RANGE(_MSG_) \
     { OUT_OF_RANGE << _MESG_ << std::endl; }
 //
-//#define THROW_EXCEPTION_BAD_ALLOC(_SIZE_, _error_)    simpla::logger::Logger(simpla::logger::LOG_ERROR)<<__FILE__<<"["<<__LINE__<<"]: "<< "Can not Pop enough memory! [ "  \
+//#define THROW_EXCEPTION_BAD_ALLOC(_SIZE_, _error_)    simpla::logger::Logger(simpla::logger::LOG_ERROR)<<__FILE__<<"["<<__LINE__<<"]: "<< "Can not Serialize enough memory! [ "  \
 //        << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" << std::endl; throw(_error_);
 //
 #define THROW_EXCEPTION_BAD_ALLOC(_SIZE_)                                                                             \

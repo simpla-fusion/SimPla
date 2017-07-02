@@ -28,12 +28,25 @@ class Domain : public SPObject,
    public:
     explicit Domain(const std::shared_ptr<MeshBase> &m, const std::shared_ptr<geometry::GeoObject> &g);
     ~Domain() override;
+    Domain(Domain const &other);
+    Domain(Domain &&other);
+    void swap(Domain &other);
+    Domain &operator=(this_type const &other) {
+        Domain(other).swap(*this);
+        return *this;
+    }
+    Domain &operator=(this_type &&other) {
+        Domain(other).swap(*this);
+        return *this;
+    }
 
-    SP_DEFAULT_CONSTRUCT(Domain);
     DECLARE_REGISTER_NAME(Domain)
+    data::DataTable Serialize() const override;
+    void Deserialize(const data::DataTable &t) override;
 
-    std::shared_ptr<data::DataTable> Pack() const override;
-    void Unpack(const std::shared_ptr<data::DataTable> &t) override;
+    Patch Pack() override;
+    void Unpack(Patch &&t) override;
+
     std::string GetDomainPrefix() const override;
 
     MeshBase const *GetMesh() const override;
@@ -42,16 +55,13 @@ class Domain : public SPObject,
     engine::Domain *GetDomain() { return this; }
     engine::Domain const *GetDomain() const { return this; }
 
-    void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g);
-    std::shared_ptr<geometry::GeoObject> GetGeoObject() const;
+    void SetGeoObject(const geometry::GeoObject &g);
+    const geometry::GeoObject &GetGeoObject() const;
 
     void Initialize() override;
     void Finalize() override;
     void Update() override;
     void TearDown() override;
-
-    void Push(Patch *) override;
-    void Pop(Patch *) override;
 
     //#define DEF_OPERATION(_NAME_, ...)                                                            \
 //    virtual void _NAME_(__VA_ARGS__) {}                                                       \
@@ -59,11 +69,11 @@ class Domain : public SPObject,
 //    design_pattern::Signal<void(this_type *, __VA_ARGS__)> Post##_NAME_;                      \
 //    template <typename... Args>                                                               \
 //    std::shared_ptr<Patch> Do##_NAME_(const std::shared_ptr<Patch> &patch, Args &&... args) { \
-//        Push(patch);                                                                          \
+//        Deserialize(patch);                                                                          \
 //        Pre##_NAME_(std::forward<Args>(args)...);                                             \
 //        _NAME_(std::forward<Args>(args)...)                                                   \
 //        Post##_NAME_(std::forward<Args>(args)...);                                            \
-//        return Pop();                                                                    \
+//        return Serialize();                                                                    \
 //    };
 
     design_pattern::Signal<void(Domain *, Real)> PreInitialCondition;
@@ -77,9 +87,9 @@ class Domain : public SPObject,
     virtual void BoundaryCondition(Real time_now, Real dt) {}
     virtual void Advance(Real time_now, Real dt) {}
 
-    void DoInitialCondition(Patch *, Real time_now);
-    void DoBoundaryCondition(Patch *, Real time_now, Real dt);
-    void DoAdvance(Patch *, Real time_now, Real dt);
+    Patch DoInitialCondition(Patch &&, Real time_now);
+    Patch DoBoundaryCondition(Patch &&, Real time_now, Real dt);
+    Patch DoAdvance(Patch &&, Real time_now, Real dt);
 
     template <typename T>
     T GetAttribute(std::string const &k, EntityRange const &r) const {

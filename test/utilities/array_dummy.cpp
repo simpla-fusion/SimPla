@@ -13,10 +13,10 @@ using namespace simpla;
 
 int main(int argc, char **argv) {
     index_box_type inner_box{{0, 0, 0}, {4, 5, 5}};
-    Array<double, 3> a(inner_box);
-    Array<double, 3> b(inner_box);
-    Array<double, 3> c(inner_box);
-    Array<double, 3> d(inner_box);
+    Array<double> a(inner_box);
+    Array<double> b(inner_box);
+    Array<double> c(inner_box);
+    Array<double> d(inner_box);
 
     a.Fill(1);
     b.Fill(2);

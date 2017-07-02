@@ -16,10 +16,10 @@ class Serializable {
    public:
     Serializable() = default;
     virtual ~Serializable() = default;
-    virtual std::shared_ptr<DataTable> Pack() const;
-    virtual void Unpack(const std::shared_ptr<DataTable> &t);
-    virtual std::ostream &Pack(std::ostream &os, int indent) const;
-    virtual std::istream &Unpack(std::istream &is);
+    virtual DataTable Serialize() const;
+    virtual void Deserialize(const DataTable &t);
+    virtual std::ostream &Serialize(std::ostream &os, int indent) const;
+    virtual std::istream &Deserialize(std::istream &is);
 };
 std::ostream &operator<<(std::ostream &os, Serializable const &obj);
 std::istream &operator>>(std::istream &is, Serializable &obj);

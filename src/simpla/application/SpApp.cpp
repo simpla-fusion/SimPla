@@ -25,14 +25,14 @@ struct SpApp::pimpl_s {
 };
 SpApp::SpApp(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
 SpApp::~SpApp() {}
-std::shared_ptr<data::DataTable> SpApp::Pack() const {
+DataTable SpApp::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
     if (m_pimpl_->m_schedule_ != nullptr) { res->Set("Schedule", m_pimpl_->m_schedule_->Pack()); }
     if (m_pimpl_->m_context_ != nullptr) { res->Set("Context", m_pimpl_->m_context_->Pack()); }
 
     return res;
 };
-void SpApp::Unpack(const std::shared_ptr<data::DataTable> &cfg) {
+void SpApp::Deserialize(const data::DataTable &cfg) {
     m_pimpl_->m_schedule_ = engine::Schedule::Create(cfg->Get("Schedule"));
     m_pimpl_->m_context_ = engine::Context::Create(cfg->Get("Context"));
 };
@@ -157,10 +157,10 @@ int main(int argc, char **argv) {
     app->Initialize();
 
     if (GLOBAL_COMM.rank() == 0) {
-        app->Unpack(cfg);
+        app->Deserialize(cfg);
 
         std::ostringstream os;
-        data::Pack(app->Pack(), os, "lua");
+        data::Pack(app->Serialize(), os, "lua");
         std::string buffer = os.str();
         parallel::bcast_string(&buffer);
     } else {
@@ -169,14 +169,14 @@ int main(int argc, char **argv) {
         auto t_cfg = std::make_shared<data::DataTable>("lua://");
         t_cfg->backend()->Parser(buffer);
 
-        app->Unpack(t_cfg);
+        app->Deserialize(t_cfg);
     }
 
     app->Update();
 
     VERBOSE << DOUBLELINE << std::endl;
     VERBOSE << "SpApp:";
-    app->Pack(std::cout, 0);
+    app->Serialize(std::cout, 0);
     std::cout << std::endl;
 
     VERBOSE << DOUBLELINE << std::endl;
