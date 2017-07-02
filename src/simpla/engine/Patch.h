@@ -11,7 +11,6 @@
 #include <simpla/utilities/EntityId.h>
 #include <memory>
 #include "SPObject.h"
-#include "../../../cmake-build-debug/include/simpla/SIMPLA_config.h"
 
 namespace simpla {
 

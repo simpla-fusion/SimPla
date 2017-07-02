@@ -23,10 +23,10 @@ namespace simpla {
 
 template <typename>
 class calculator;
-template <typename TM, typename TV, int, int...>
+template <typename TM, typename TV, int...>
 class Field;
 template <typename TM, typename TV, int IFORM, int... DOF>
-class Field : public engine::Attribute {
+class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
    private:
     typedef Field<TM, TV, IFORM, DOF...> field_type;
     SP_OBJECT_HEAD(field_type, engine::Attribute);
@@ -120,7 +120,7 @@ class Field : public engine::Attribute {
     auto const& at(EntityId s) const { return at(s.w, s.x, s.y, s.z); }
     auto& at(EntityId s) { return at(s.w, s.x, s.y, s.z); }
 
-    auto& operator[](EntityId s) { return  at(s); }
+    auto& operator[](EntityId s) { return at(s); }
     auto const& operator[](EntityId s) const { return at(s); }
 
     this_type operator[](EntityRange const& d) const { return this_type(*this, d); }
@@ -173,7 +173,7 @@ class Field : public engine::Attribute {
     template <typename TOther>
     void DeepCopy(TOther const& other) {
         DoUpdate();
-        ASSERT(m_data_ != nullptr && m_data_->size() > 0);
+        //        ASSERT(m_data_ != nullptr && m_data_->size() > 0);
         Clear();
         //        m_data_->DeepCopy(other.data());
     }
@@ -181,8 +181,8 @@ class Field : public engine::Attribute {
     template <typename Other>
     void Assign(Other const& other) {
         DoUpdate();
-        ASSERT(m_mesh_ != nullptr);
-        ASSERT(m_data_ != nullptr && m_data_->size() > 0);
+        //        ASSERT(m_mesh_ != nullptr);
+        //        ASSERT(m_data_ != nullptr && m_data_->size() > 0);
         //        m_mesh_->Assign(*this, m_range_, other);
         //        m_mesh_->Assign(*this, m_mesh_->GetRange(std::string(EntityIFORMName[IFORM]) + "_PATCH_BOUNDARY"), 0);
     }
