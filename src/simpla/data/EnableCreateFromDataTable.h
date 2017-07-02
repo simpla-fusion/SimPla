@@ -116,10 +116,10 @@ class EnableCreateFromDataTable : public data::Serializable {
     }
 };
 
-#define DECLARE_REGISTER_NAME(_REGISTER_NAME_)                              \
-   public:                                                                  \
-    std::string GetRegisterName() const override { return RegisterName(); } \
-    static std::string RegisterName() { return __STRING(_REGISTER_NAME_); }           \
+#define DECLARE_REGISTER_NAME(_REGISTER_NAME_)                                           \
+   public:                                                                               \
+    std::string GetRegisterName() const override { return RegisterName(); }              \
+    static std::string RegisterName() { return std::string(__STRING(_REGISTER_NAME_)); } \
     static bool is_registered;
 
 #define REGISTER_CREATOR(_CLASS_NAME_) bool _CLASS_NAME_::is_registered = _CLASS_NAME_::RegisterCreator<_CLASS_NAME_>();
