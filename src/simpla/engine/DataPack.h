@@ -8,11 +8,13 @@
 namespace simpla {
 namespace engine {
 struct DataPack {
+    DataPack() {}
     template <typename U>
     DataPack(U&& other) {}
 
     template <typename U>
     void swap(U& other) {}
+    void swap(DataPack& other) {}
 };
 }
 }

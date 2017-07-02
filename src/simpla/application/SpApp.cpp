@@ -25,14 +25,14 @@ struct SpApp::pimpl_s {
 };
 SpApp::SpApp(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
 SpApp::~SpApp() {}
-DataTable SpApp::Serialize() const {
+std::shared_ptr<data::DataTable> SpApp::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
-    if (m_pimpl_->m_schedule_ != nullptr) { res->Set("Schedule", m_pimpl_->m_schedule_->Pack()); }
-    if (m_pimpl_->m_context_ != nullptr) { res->Set("Context", m_pimpl_->m_context_->Pack()); }
+    if (m_pimpl_->m_schedule_ != nullptr) { res->Set("Schedule", m_pimpl_->m_schedule_->Serialize()); }
+    if (m_pimpl_->m_context_ != nullptr) { res->Set("Context", m_pimpl_->m_context_->Serialize()); }
 
     return res;
 };
-void SpApp::Deserialize(const data::DataTable &cfg) {
+void SpApp::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     m_pimpl_->m_schedule_ = engine::Schedule::Create(cfg->Get("Schedule"));
     m_pimpl_->m_context_ = engine::Context::Create(cfg->Get("Context"));
 };

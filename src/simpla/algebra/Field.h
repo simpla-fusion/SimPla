@@ -43,8 +43,8 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         field_value_type;
 
    private:
-    typedef typename mesh_type::template data_type<value_type> data_type;
-    typedef Array<value_type, NDIMS> array_type;
+    typedef typename mesh_type::template array_type<value_type> array_type;
+    //    typedef Array<value_type> array_type;
     nTuple<array_type, NUM_OF_SUB, DOF...> m_data_;
     EntityRange m_range_;
     mesh_type const* m_mesh_ = nullptr;
@@ -154,22 +154,24 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         //        m_data_.reset();
         m_mesh_ = nullptr;
     }
-
-    void Push(const std::shared_ptr<data::DataBlock>& d, const EntityRange& r) override {
-        if (d != nullptr) {
-            m_range_ = r;
-            //            m_data_ = std::dynamic_pointer_cast<data_type>(d);
-            Click();
-        }
-        DoUpdate();
-    }
-
-    std::shared_ptr<data::DataBlock> Pop() override {
-        std::shared_ptr<data::DataBlock> res;
-        //        auto res = std::dynamic_pointer_cast<data::DataBlock>(m_data_);
-        DoTearDown();
-        return res;
-    }
+    void Push(engine::DataPack&&) override{};
+    engine::DataPack Pop() override { return engine::DataPack{}; };
+    //
+    //    void Deserialize(const std::shared_ptr<data::DataBlock>& d) override {
+    //        if (d != nullptr) {
+    //            m_range_ = r;
+    //            //            m_data_ = std::dynamic_pointer_cast<data_type>(d);
+    //            Click();
+    //        }
+    //        DoUpdate();
+    //    }
+    //
+    //    std::shared_ptr<data::DataBlock> Serialize() override {
+    //        std::shared_ptr<data::DataBlock> res;
+    //        //        auto res = std::dynamic_pointer_cast<data::DataBlock>(m_data_);
+    //        DoTearDown();
+    //        return res;
+    //    }
     template <typename TOther>
     void DeepCopy(TOther const& other) {
         DoUpdate();

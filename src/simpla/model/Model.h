@@ -22,8 +22,8 @@ class Model : public engine::SPObject, public data::Serializable {
 
     SP_DEFAULT_CONSTRUCT(Model)
 
-    DataTable Serialize() const override;
-    void Deserialize(const DataTable &cfg) override;
+    std::shared_ptr<DataTable> Serialize() const override;
+    void Deserialize(const std::shared_ptr<DataTable> &cfg) override;
 
     void Initialize() override;
     void Update() override;

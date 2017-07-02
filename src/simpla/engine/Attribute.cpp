@@ -61,18 +61,16 @@ void AttributeGroup::RegisterAt(AttributeGroup *other) {
 void AttributeGroup::DeregisterFrom(AttributeGroup *other) {
     for (auto &item : m_pimpl_->m_attributes_) { item.second->Deregister(other); }
 };
-void AttributeGroup::Unpack(Patch &&p) {
+void AttributeGroup::Push(Patch *p) {
     std::string prefix = GetDomainPrefix();
     for (auto &item : GetAllAttributes()) {
         auto k = prefix + "." + std::string(EntityIFORMName[item.second->GetIFORM()]) + "_BODY";
-        auto it = p.m_ranges_.find(k);
-        item.second->Unpack(p.Pop(item.second->GetID()));
+        auto it = p->m_ranges_.find(k);
+        item.second->Push(p->Pop(item.second->GetID()));
     }
 }
-Patch AttributeGroup::Pack() {
-    Patch res;
-    for (auto &item : GetAllAttributes()) { res.Push(item.second->GetID(), item.second->Pack()); }
-    return std::move(res);
+void AttributeGroup::Pull(Patch *p) {
+    for (auto &item : GetAllAttributes()) { p->Push(item.second->GetID(), item.second->Pop()); }
 }
 void AttributeGroup::Attach(Attribute *p) { m_pimpl_->m_attributes_.emplace(p->GetPrefix(), p); }
 void AttributeGroup::Detach(Attribute *p) { m_pimpl_->m_attributes_.erase(p->GetPrefix()); }
@@ -139,9 +137,8 @@ void Attribute::Register(AttributeGroup *attr_b) {
 void Attribute::Deregister(AttributeGroup *attr_b) {
     if (m_pimpl_->m_bundle_.erase(attr_b) > 0) { attr_b->Detach(this); };
 }
-
-void Attribute::Unpack(DataPack &&d) {}
-DataPack Attribute::Pack() { return DataPack{}; }
+void Attribute::Push(DataPack &&) {}
+DataPack Attribute::Pop() { return DataPack{}; }
 
 const MeshBase *Attribute::GetMesh() const { return m_pimpl_->m_mesh_; }
 bool Attribute::isNull() const { return true; }

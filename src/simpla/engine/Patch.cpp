@@ -15,7 +15,7 @@ namespace engine {
 struct Patch::pimpl_s {
     id_type m_id_ = NULL_ID;
     MeshBlock m_block_;
-
+    std::map<id_type, DataPack> m_data_;
     std::map<std::string, EntityRange> m_range_;
     static boost::uuids::random_generator m_gen_;
     static boost::hash<boost::uuids::uuid> m_hasher_;
@@ -43,7 +43,7 @@ bool Patch::empty() const { return m_pimpl_->m_id_ == NULL_ID; };
 
 id_type Patch::GetId() const { return m_pimpl_->m_id_; }
 
-void Patch::SetBlock(const MeshBlock &m) { m.swap(m_pimpl_->m_block_); }
+void Patch::SetBlock(const MeshBlock &m) { MeshBlock(m).swap(m_pimpl_->m_block_); }
 
 const MeshBlock &Patch::GetBlock() const { return m_pimpl_->m_block_; }
 
@@ -51,7 +51,7 @@ std::map<id_type, DataPack> &Patch::GetAllData() { return m_pimpl_->m_data_; };
 
 void Patch::Push(id_type id, DataPack &&d) { d.swap(m_pimpl_->m_data_[id]); }
 DataPack Patch::Pop(id_type const &id) const {
-    DataPack res{};
+    DataPack res;
     auto it = m_pimpl_->m_data_.find(id);
     if (it != m_pimpl_->m_data_.end()) {
         res.swap(it->second);

@@ -24,8 +24,8 @@ class EMFluid : public engine::Domain {
    public:
     DOMAIN_HEAD(EMFluid, TM)
 
-    std::shared_ptr<data::DataTable> Pack() const override;
-    void Unpack(std::shared_ptr<data::DataTable> const& cfg) override;
+    std::shared_ptr<data::DataTable> Serialize() const override;
+    void Deserialize(std::shared_ptr<data::DataTable> const& cfg) override;
 
     void InitialCondition(Real time_now) override;
     void BoundaryCondition(Real time_now, Real dt) override;
@@ -71,7 +71,7 @@ template <typename TM>
 bool EMFluid<TM>::is_registered = engine::Domain::RegisterCreator<EMFluid<TM>>();
 
 template <typename TM>
-std::shared_ptr<data::DataTable> EMFluid<TM>::Pack() const {
+std::shared_ptr<data::DataTable> EMFluid<TM>::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
     res->SetValue<std::string>("Type", "EMFluid<" + TM::RegisterName() + ">");
 
@@ -86,7 +86,7 @@ std::shared_ptr<data::DataTable> EMFluid<TM>::Pack() const {
     return res;
 };
 template <typename TM>
-void EMFluid<TM>::Unpack(std::shared_ptr<data::DataTable> const& cfg) {
+void EMFluid<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     DoInitialize();
     if (cfg == nullptr || cfg->GetTable("Species") == nullptr) { return; }
     auto sp = cfg->GetTable("Species");

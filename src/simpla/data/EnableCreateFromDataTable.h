@@ -109,7 +109,7 @@ class EnableCreateFromDataTable : public data::Serializable {
         }
 
         if (res != nullptr && cfg != nullptr && cfg->isTable()) {
-            res->Unpack(std::dynamic_pointer_cast<data::DataTable>(cfg));
+            res->Deserialize(std::dynamic_pointer_cast<data::DataTable>(cfg));
         }
 
         return res;

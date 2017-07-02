@@ -47,12 +47,12 @@ REGISTER_CREATOR_TEMPLATE(IdealMHD, mesh::RectMesh)
 
 template <typename TM>
 std::shared_ptr<data::DataTable> IdealMHD<TM>::Pack() const {
-    auto res = engine::Domain::Pack();
+    auto res = engine::Domain::Pull(nullptr);
     return res;
 };
 template <typename TM>
 void IdealMHD<TM>::Unpack(std::shared_ptr<data::DataTable> const &cfg) {
-    engine::Domain::Unpack(cfg);
+    engine::Domain::Push(cfg);
 }
 
 template <typename TM>

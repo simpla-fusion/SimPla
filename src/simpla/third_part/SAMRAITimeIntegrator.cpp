@@ -476,10 +476,10 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     //    vardb->printClassData(std::cout);
 }
 void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchFromSAMRAI(SAMRAI::hier::Patch &patch, engine::Patch *p) {
-    p->SetBlock(std::make_shared<engine::MeshBlock>(
+    p->SetBlock(engine::MeshBlock{
         index_box_type{{patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]},
                        {patch.getBox().upper()[0] + 1, patch.getBox().upper()[1] + 1, patch.getBox().upper()[2] + 1}},
-        patch.getPatchLevelNumber()));
+        static_cast<size_type>(patch.getPatchLevelNumber())});
 
     for (auto &item : m_samrai_variables_) {
         auto samrai_id =
@@ -539,9 +539,9 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
                                                                  bool initial_time) {
     if (initial_time) {
         auto p = m_ctx_->GetAtlas().Pop(static_cast<id_type>(patch.getLocalId().getValue()));
-        ConvertPatchFromSAMRAI(patch, p.get());
+        ConvertPatchFromSAMRAI(patch, &p);
 
-        index_tuple gw = p->GetBlock()->GetGhostWidth();
+        index_tuple gw = p.GetBlock().GetGhostWidth();
 
         auto pgeom = std::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
 
@@ -634,23 +634,23 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
                 //                CHECK(face2_box);
                 //                CHECK(volume_box);
 
-                p->m_ranges_[std::string(EntityIFORMName[VERTEX]) + "_PATCH_BOUNDARY"].append(
+                p.m_ranges_[std::string(EntityIFORMName[VERTEX]) + "_PATCH_BOUNDARY"].append(
                     std::make_shared<ContinueRange<EntityId>>(vertex_box, 0));
 
-                p->m_ranges_[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
+                p.m_ranges_[std::string(EntityIFORMName[EDGE]) + "_PATCH_BOUNDARY"]
                     .append(std::make_shared<ContinueRange<EntityId>>(edge0_box, 1))
                     .append(std::make_shared<ContinueRange<EntityId>>(edge1_box, 2))
                     .append(std::make_shared<ContinueRange<EntityId>>(edge2_box, 4));
 
-                p->m_ranges_[std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"]
+                p.m_ranges_[std::string(EntityIFORMName[FACE]) + "_PATCH_BOUNDARY"]
                     .append(std::make_shared<ContinueRange<EntityId>>(face0_box, 6))
                     .append(std::make_shared<ContinueRange<EntityId>>(face1_box, 5))
                     .append(std::make_shared<ContinueRange<EntityId>>(face2_box, 3));
 
-                p->m_ranges_[std::string(EntityIFORMName[VOLUME]) + "_PATCH_BOUNDARY"].append(
+                p.m_ranges_[std::string(EntityIFORMName[VOLUME]) + "_PATCH_BOUNDARY"].append(
                     std::make_shared<ContinueRange<EntityId>>(volume_box, 7));
             }
-        m_ctx_->InitialCondition(p.get(), data_time);
+        m_ctx_->InitialCondition(&p, data_time);
 
         //        m_ctx_->GetMesh()->Deserialize(p.get());
         //        VERBOSE << "Initialize Mesh : " << m_ctx_->GetMesh()->GetRegisterName() << std::endl;
@@ -664,6 +664,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
         //            d.second->DoInitialCondition(p.get(), data_time);
         //        }
         //        m_ctx_->GetMesh()->Serialize(p.get());
+
+        m_ctx_->GetAtlas().Push(std::move(p));
     }
 
     if (d_use_nonuniform_workload) {
@@ -719,12 +721,13 @@ void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI:
     engine::Patch p = m_ctx_->GetAtlas().Pop(static_cast<id_type>(patch.getLocalId().getValue()));
 
     ConvertPatchFromSAMRAI(patch, &p);
-    m_ctx_->GetMesh()->Unpack(p);
+    m_ctx_->GetMesh()->Push(&p);
     m_ctx_->GetMesh()->SetBoundaryCondition(time_now, time_dt);
-    m_ctx_->Advance(p.get(), time_now, time_dt);
+    m_ctx_->Advance(&p, time_now, time_dt);
     //    m_ctx_->GetMesh()->Deserialize(p.get());
     //    for (auto &d : m_ctx_->GetAllDomains()) { d.second->DoAdvance(p.get(), time_now, time_dt); }
-    m_ctx_->GetMesh()->Pack();
+    m_ctx_->GetMesh()->Pull(&p);
+    m_ctx_->GetAtlas().Push(std::move(p));
 }
 
 /**************************************************************************
@@ -756,11 +759,12 @@ void SAMRAIHyperbolicPatchStrategyAdapter::tagGradientDetectorCells(SAMRAI::hier
 void SAMRAIHyperbolicPatchStrategyAdapter::setPhysicalBoundaryConditions(
     SAMRAI::hier::Patch &patch, double fill_time, const SAMRAI::hier::IntVector &ghost_width_to_fill) {
     auto p = m_ctx_->GetAtlas().Pop(static_cast<id_type>(patch.getLocalId().getValue()));
-    ConvertPatchFromSAMRAI(patch, p.get());
-    m_ctx_->GetMesh()->Unpack(p.get());
+    ConvertPatchFromSAMRAI(patch, &p);
+    m_ctx_->GetMesh()->Push(&p);
     m_ctx_->GetMesh()->SetBoundaryCondition(fill_time, 0);
-    for (auto &d : m_ctx_->GetAllDomains()) { d.second->DoBoundaryCondition(p.get(), fill_time, 0); }
-    m_ctx_->GetMesh()->Pack();
+    for (auto &d : m_ctx_->GetAllDomains()) { d.second->DoBoundaryCondition(&p, fill_time, 0); }
+    m_ctx_->GetMesh()->Pull(&p);
+    m_ctx_->GetAtlas().Push(std::move(p));
 }
 
 /**************************************************************************
@@ -828,8 +832,10 @@ void SAMRAITimeIntegrator::Initialize() {
     //    const SAMRAI::tbox::SAMRAI_MPI & mpi(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 }
 void SAMRAITimeIntegrator::Synchronize() { engine::TimeIntegrator::Synchronize(); }
-std::shared_ptr<data::DataTable> SAMRAITimeIntegrator::Pack() const { return engine::TimeIntegrator::Pack(); }
-void SAMRAITimeIntegrator::Unpack(std::shared_ptr<data::DataTable> const &cfg) { engine::TimeIntegrator::Unpack(cfg); }
+std::shared_ptr<data::DataTable> SAMRAITimeIntegrator::Serialize() const { return engine::TimeIntegrator::Serialize(); }
+void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
+    engine::TimeIntegrator::Deserialize(cfg);
+}
 void SAMRAITimeIntegrator::TearDown() { engine::TimeIntegrator::TearDown(); }
 void SAMRAITimeIntegrator::Update() {
     engine::TimeIntegrator::Update();

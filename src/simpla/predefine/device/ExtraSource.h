@@ -22,8 +22,8 @@ class ExtraSource : public engine::Domain {
    public:
     DOMAIN_HEAD(ExtraSource, TM)
 
-    std::shared_ptr<data::DataTable> Pack() const override;
-    void Unpack(std::shared_ptr<data::DataTable> const& cfg) override;
+    std::shared_ptr<data::DataTable> Serialize() const override;
+    void Deserialize(std::shared_ptr<data::DataTable> const& cfg) override;
 
     void InitialCondition(Real time_now) override;
     void BoundaryCondition(Real time_now, Real dt) override;
@@ -36,13 +36,13 @@ template <typename TM>
 bool ExtraSource<TM>::is_registered = engine::Domain::RegisterCreator<ExtraSource<TM>>();
 
 template <typename TM>
-std::shared_ptr<data::DataTable> ExtraSource<TM>::Pack() const {
+std::shared_ptr<data::DataTable> ExtraSource<TM>::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
 
     return res;
 };
 template <typename TM>
-void ExtraSource<TM>::Unpack(std::shared_ptr<data::DataTable> const& cfg) {
+void ExtraSource<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     DoInitialize();
     if (cfg == nullptr || cfg->GetTable("Species") == nullptr) { return; }
 

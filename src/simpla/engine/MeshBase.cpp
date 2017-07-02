@@ -74,25 +74,24 @@ id_type MeshBase::GetBlockId() const { return m_pimpl_->m_mesh_block_.GetGUID();
 void MeshBase::InitializeData(Real time_now) { DoUpdate(); }
 void MeshBase::SetBoundaryCondition(Real time_now, Real time_dt) { DoUpdate(); }
 
-DataTable MeshBase::Serialize() const {
-    DataTable p;
-    p.SetValue("Type", GetRegisterName());
+std::shared_ptr<DataTable> MeshBase::Serialize() const {
+    auto p = std::make_shared<data::DataTable>();
+    p->SetValue("Type", GetRegisterName());
 
-    if (m_pimpl_->m_chart_ != nullptr) { p.SetValue("Chart", m_pimpl_->m_chart_->Pack()); }
+    if (m_pimpl_->m_chart_ != nullptr) { p->SetValue("Chart", m_pimpl_->m_chart_->Serialize()); }
 
-    p.SetValue("PeriodicDimensions", m_pimpl_->m_periodic_dimension_);
-    p.SetValue("Dimensions", m_pimpl_->m_dimensions_);
-    p.SetValue("IndexOrigin", m_pimpl_->m_idx_origin_);
-    p.SetValue("CoarsestCellWidth", m_pimpl_->m_coarsest_cell_width_);
-
-    return std::move(p);
+    p->SetValue("PeriodicDimensions", m_pimpl_->m_periodic_dimension_);
+    p->SetValue("Dimensions", m_pimpl_->m_dimensions_);
+    p->SetValue("IndexOrigin", m_pimpl_->m_idx_origin_);
+    p->SetValue("CoarsestCellWidth", m_pimpl_->m_coarsest_cell_width_);
+    return p;
 }
-void MeshBase::Deserialize(const DataTable& cfg) {
-    m_pimpl_->m_chart_ = cfg.has("Coordinates") ? geometry::Chart::Create(cfg.Get("Coordinates"))
-                                                : geometry::Chart::Create("Cartesian");
-    m_pimpl_->m_idx_origin_ = cfg.GetValue<nTuple<int, 3>>("IndexOrigin", nTuple<int, 3>{0, 0, 0});
-    m_pimpl_->m_dimensions_ = cfg.GetValue<nTuple<int, 3>>("Dimensions", nTuple<int, 3>{1, 1, 1});
-    m_pimpl_->m_periodic_dimension_ = cfg.GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 0});
+void MeshBase::Deserialize(const std::shared_ptr<DataTable>& cfg) {
+    m_pimpl_->m_chart_ = cfg->has("Coordinates") ? geometry::Chart::Create(cfg->Get("Coordinates"))
+                                                 : geometry::Chart::Create("Cartesian");
+    m_pimpl_->m_idx_origin_ = cfg->GetValue<nTuple<int, 3>>("IndexOrigin", nTuple<int, 3>{0, 0, 0});
+    m_pimpl_->m_dimensions_ = cfg->GetValue<nTuple<int, 3>>("Dimensions", nTuple<int, 3>{1, 1, 1});
+    m_pimpl_->m_periodic_dimension_ = cfg->GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 0});
 }
 index_tuple MeshBase::GetGhostWidth(int tag) const { return GetBlock().GetGhostWidth(); }
 
@@ -168,24 +167,23 @@ EntityRange MeshBase::GetPerpendicularBoundaryRange(int IFORM, std::string const
 EntityRange MeshBase::GetGhostRange(int IFORM) const {
     return GetRange("." + std::string(EntityIFORMName[IFORM]) + "_GHOST");
 }
-void MeshBase::Unpack(Patch&& p) {
+void MeshBase::Push(Patch* p) {
     Click();
-    SetBlock(p.GetBlock());
-    p.m_ranges_.swap(m_pimpl_->m_ranges_);
+    SetBlock(p->GetBlock());
+    p->m_ranges_.swap(m_pimpl_->m_ranges_);
 
-    AttributeGroup::Unpack(std::forward<Patch>(p));
+    AttributeGroup::Push((p));
     DoUpdate();
 }
-Patch MeshBase::Pack() {
-    Patch p = AttributeGroup::Pack();
-    p.SetBlock(GetMesh()->GetBlock());
-    p.m_ranges_.swap(m_pimpl_->m_ranges_);
+void MeshBase::Pull(Patch* p) {
+    AttributeGroup::Pull(p);
+    p->SetBlock(GetMesh()->GetBlock());
+    p->m_ranges_.swap(m_pimpl_->m_ranges_);
     Click();
     DoTearDown();
-    return res;
 }
 
 std::map<std::string, EntityRange>& MeshBase::GetRangeDict() { return m_pimpl_->m_ranges_; };
-std::map<std::string, EntityRange> const& MeshBase::GetRangeDict() const { return m_pimpl_->m_patch_->m_ranges_; };
+std::map<std::string, EntityRange> const& MeshBase::GetRangeDict() const { return m_pimpl_->m_ranges_; };
 }  // {namespace engine
 }  // namespace simpla

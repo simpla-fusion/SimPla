@@ -50,8 +50,8 @@ class GEqdsk : public geometry::GeoObject {
     GEqdsk(std::shared_ptr<geometry::Chart> const &c = nullptr);
     ~GEqdsk();
 
-    std::shared_ptr<data::DataTable> Pack() const override;
-    void Unpack(const std::shared_ptr<data::DataTable> &t) override;
+    std::shared_ptr<data::DataTable> Serialize() const override;
+    void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
 
     virtual bool hasChildren() const override { return true; }
     virtual void Register(std::map<std::string, std::shared_ptr<GeoObject>> &, std::string const &prefix = "") override;

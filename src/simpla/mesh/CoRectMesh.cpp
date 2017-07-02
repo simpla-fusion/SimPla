@@ -33,7 +33,7 @@ inline void CoRectMesh::InitializeData(Real time_now) {
         */
     //    m_x0_ = GetChart()->GetOrigin();
     //    m_coarsest_cell_width_ = GetChart()->GetDx();
-    size_tuple m_dims_ = GetBlock()->GetDimensions();
+    size_tuple m_dims_ = GetBlock().GetDimensions();
 
     //    m_volume_[0 /*000*/] = 1;
     //    m_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 1 : m_coarsest_cell_width_[0];

@@ -36,11 +36,11 @@ Atlas::Atlas(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s
 Atlas::~Atlas(){};
 void Atlas::Update() { SPObject::Update(); };
 
-data::DataTable Atlas::Serialize() const {
-    auto res = data::DataTable{};
-    return std::move(res);
+std::shared_ptr<data::DataTable> Atlas::Serialize() const {
+    auto res = std::make_shared<data::DataTable>();
+    return (res);
 };
-void Atlas::Deserialize(const data::DataTable &cfg) { Click(); };
+void Atlas::Deserialize(const std::shared_ptr<data::DataTable> &cfg) { Click(); };
 
 void Atlas::Decompose(size_tuple const &d, int local_id) { Click(); };
 index_box_type Atlas::FitIndexBox(box_type const &b, int level, int flag) const { return index_box_type{}; }
@@ -54,7 +54,7 @@ id_type Atlas::Push(Patch &&p) {
 }
 
 Patch Atlas::Pop(id_type id) {
-    auto res = m_pimpl_->m_patches_.emplace(id, nullptr);
+    auto res = m_pimpl_->m_patches_.emplace(id, Patch{});
     if (res.first->second.empty()) { res.first->second = Patch(id); }
     return res.first->second;
 }

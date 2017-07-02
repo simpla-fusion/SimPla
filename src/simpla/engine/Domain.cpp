@@ -29,18 +29,18 @@ void Domain::swap(Domain& other) { UNIMPLEMENTED; }
 
 std::string Domain::GetDomainPrefix() const { return m_pimpl_->m_domain_geo_prefix_; };
 
-data::DataTable Domain::Serialize() const {
-    data::DataTable p;
-    p.SetValue("Type", GetRegisterName());
-    p.SetValue("Name", GetName());
-    p.SetValue("GeometryObject", m_pimpl_->m_domain_geo_prefix_);
-    return std::move(p);
+std::shared_ptr<DataTable> Domain::Serialize() const {
+    auto p = std::make_shared<DataTable>();
+    p->SetValue("Type", GetRegisterName());
+    p->SetValue("Name", GetName());
+    p->SetValue("GeometryObject", m_pimpl_->m_domain_geo_prefix_);
+    return (p);
 }
-void Domain::Deserialize(const data::DataTable& cfg) {
+void Domain::Deserialize(const std::shared_ptr<DataTable>& cfg) {
     DoInitialize();
     Click();
-    SetName(cfg.GetValue<std::string>("Name", "unnamed"));
-    m_pimpl_->m_domain_geo_prefix_ = cfg.GetValue<std::string>("GeometryObject", "");
+    SetName(cfg->GetValue<std::string>("Name", "unnamed"));
+    m_pimpl_->m_domain_geo_prefix_ = cfg->GetValue<std::string>("GeometryObject", "");
 };
 
 void Domain::Update() {}
@@ -52,46 +52,45 @@ MeshBase* Domain::GetMesh() { return m_pimpl_->m_mesh_.get(); }
 
 void Domain::SetGeoObject(const geometry::GeoObject& g) {
     Click();
-    m_pimpl_->m_geo_object_ = g;
+    //    m_pimpl_->m_geo_object_ = g;
 }
 
-const geometry::GeoObject& Domain::GetGeoObject() const { return m_pimpl_->m_geo_object_; }
+const geometry::GeoObject& Domain::GetGeoObject() const { return *m_pimpl_->m_geo_object_; }
 
-void Domain::Unpack(Patch&& p) {
+void Domain::Push(Patch* patch) {
     Click();
-    AttributeGroup::Unpack(std::forward<Patch>(p));
-    m_pimpl_->m_mesh_->Unpack(std::forward<Patch>(p));
+    AttributeGroup::Push(patch);
+    m_pimpl_->m_mesh_->Push(patch);
 
     DoUpdate();
 }
-Patch Domain::Pack() {
-    Patch p = AttributeGroup::Pack();
-    p.SetBlock(m_pimpl_->m_mesh_->GetBlock());
+void Domain::Pull(Patch* patch) {
+    AttributeGroup::Pull(patch);
+    patch->SetBlock(m_pimpl_->m_mesh_->GetBlock());
     Click();
     DoTearDown();
-    return std::move(p);
 }
 
-Patch Domain::DoInitialCondition(Patch&& patch, Real time_now) {
-    Unpack(std::forward<Patch>(patch));
+void Domain::DoInitialCondition(Patch *patch, Real time_now) {
+    Push(patch);
     PreInitialCondition(this, time_now);
     InitialCondition(time_now);
     PostInitialCondition(this, time_now);
-    return Pack();
+    Pull(patch);
 }
-Patch Domain::DoBoundaryCondition(Patch&& patch, Real time_now, Real dt) {
-    Unpack(std::forward<Patch>(patch));
+void Domain::DoBoundaryCondition(Patch *patch, Real time_now, Real dt) {
+    Push(patch);
     PreBoundaryCondition(this, time_now, dt);
     BoundaryCondition(time_now, dt);
     PostBoundaryCondition(this, time_now, dt);
-    return Pack();
+    Pull(patch);
 }
-Patch Domain::DoAdvance(Patch&& patch, Real time_now, Real dt) {
-    Unpack(std::forward<Patch>(patch));
+void Domain::DoAdvance(Patch *patch, Real time_now, Real dt) {
+    Push(patch);
     PreAdvance(this, time_now, dt);
     Advance(time_now, dt);
     PostAdvance(this, time_now, dt);
-    return Pack();
+    Pull(patch);
 }
 
 }  // namespace engine{

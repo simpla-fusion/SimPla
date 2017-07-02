@@ -100,9 +100,8 @@ class AttributeGroup {
     virtual MeshBase *GetMesh() = 0;
     virtual MeshBase const *GetMesh() const = 0;
 
-
-    virtual void Unpack(Patch &&);
-    virtual Patch Pack();
+    virtual void Push(Patch *);
+    virtual void Pull(Patch *);
 
    private:
     struct pimpl_s;
@@ -159,8 +158,8 @@ struct Attribute : public SPObject, public AttributeDesc {
 
     void Deregister(AttributeGroup *);
 
-    void Unpack(DataPack &&d) override;
-    DataPack Pack() override;
+    virtual void Push(DataPack &&);
+    virtual DataPack Pop();
 
     virtual bool isNull() const;
     virtual bool empty() const { return isNull(); };

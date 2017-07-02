@@ -41,11 +41,11 @@ class Domain : public SPObject,
     }
 
     DECLARE_REGISTER_NAME(Domain)
-    data::DataTable Serialize() const override;
-    void Deserialize(const data::DataTable &t) override;
+    std::shared_ptr<DataTable> Serialize() const override;
+    void Deserialize(const std::shared_ptr<DataTable> &t) override;
 
-    Patch Pack() override;
-    void Unpack(Patch &&t) override;
+    void Pull(Patch *) override;
+    void Push(Patch *t) override;
 
     std::string GetDomainPrefix() const override;
 
@@ -87,9 +87,9 @@ class Domain : public SPObject,
     virtual void BoundaryCondition(Real time_now, Real dt) {}
     virtual void Advance(Real time_now, Real dt) {}
 
-    Patch DoInitialCondition(Patch &&, Real time_now);
-    Patch DoBoundaryCondition(Patch &&, Real time_now, Real dt);
-    Patch DoAdvance(Patch &&, Real time_now, Real dt);
+    void DoInitialCondition(Patch *, Real time_now);
+    void DoBoundaryCondition(Patch *, Real time_now, Real dt);
+    void DoAdvance(Patch *, Real time_now, Real dt);
 
     template <typename T>
     T GetAttribute(std::string const &k, EntityRange const &r) const {

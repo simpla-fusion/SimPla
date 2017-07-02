@@ -35,12 +35,12 @@ class GeoObject : public data::EnableCreateFromDataTable<GeoObject> {
     GeoObject(){};
     ~GeoObject() override = default;
 
-    std::shared_ptr<data::DataTable> Pack() const override {
+    std::shared_ptr<data::DataTable> Serialize() const override {
         auto res = data::Serializable::Serialize();
         res->SetValue<std::string>("Type", GetRegisterName());
         return res;
     };
-    void Unpack(const std::shared_ptr<data::DataTable> &t) override {}
+    void Deserialize(const std::shared_ptr<data::DataTable> &t) override {}
 
     virtual bool hasChildren() const { return false; }
 

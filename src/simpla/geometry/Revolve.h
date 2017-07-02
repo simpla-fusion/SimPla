@@ -27,7 +27,7 @@ class Revolve : public GeoObject {
 
     DECLARE_REGISTER_NAME("Revolve");
 
-    std::shared_ptr<data::DataTable> Pack() const override {
+    std::shared_ptr<data::DataTable> Serialize() const override {
         auto res = data::Serializable::Serialize();
         res->template SetValue<std::string>("Type", "Revolve");
         res->template SetValue<point_type>("Axis", m_axis_);
@@ -35,7 +35,7 @@ class Revolve : public GeoObject {
         res->Set("2DShape", base_obj.Pack());
         return res;
     };
-    void Unpack(const std::shared_ptr<data::DataTable> &cfg) override {}
+    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override {}
 
     virtual box_type GetBoundBox() const override { return box_type{{0, 0, 0}, {1, 2, 3}}; };
 
@@ -71,7 +71,7 @@ class RevolveZ : public GeoObject {
 
     DECLARE_REGISTER_NAME(RevolveZ);
 
-    std::shared_ptr<data::DataTable> Pack() const override {
+    std::shared_ptr<data::DataTable> Serialize() const override {
         auto res = data::Serializable::Serialize();
         res->template SetValue<std::string>("Type", "RevolveZ");
         res->template SetValue("Axis", m_phi_axe_);
@@ -81,7 +81,7 @@ class RevolveZ : public GeoObject {
         res->Set("2DShape", base_obj->Serialize());
         return res;
     };
-    void Unpack(const std::shared_ptr<data::DataTable> &cfg) override {}
+    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override {}
 
     box_type GetBoundBox() const override {
         nTuple<Real, 2> lo, hi;

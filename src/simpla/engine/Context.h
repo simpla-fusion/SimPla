@@ -77,8 +77,8 @@ class Context : public SPObject, public data::EnableCreateFromDataTable<Context>
 //    DataPack Serialize() const;
 //    void UnPack(engine::DataPack &&t);
 
-    std::shared_ptr<DataTable> Pack() const override;
-    void Unpack(const std::shared_ptr<DataTable> &cfg) override;
+    std::shared_ptr<DataTable> Serialize() const override;
+    void Deserialize(const std::shared_ptr<DataTable> &cfg) override;
 
     void Initialize() override;
     void Finalize() override;

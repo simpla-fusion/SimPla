@@ -21,17 +21,17 @@ struct Context::pimpl_s {
 
 Context::Context(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
 Context::~Context() {}
-std::shared_ptr<data::DataTable> Context::Pack() const {
+std::shared_ptr<data::DataTable> Context::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
     res->SetValue("Name", GetName());
     res->Set("Atlas", m_pimpl_->m_atlas_.Serialize());
     res->Set("Model", m_pimpl_->m_model_.Serialize());
-    if (m_pimpl_->m_mesh_ != nullptr) { res->Set("Mesh", m_pimpl_->m_mesh_->Pack()); }
-    for (auto const &item : m_pimpl_->m_domains_) { res->Link("Domains/" + item.first, item.second->Pack()); }
+    if (m_pimpl_->m_mesh_ != nullptr) { res->Set("Mesh", m_pimpl_->m_mesh_->Serialize()); }
+    for (auto const &item : m_pimpl_->m_domains_) { res->Link("Domains/" + item.first, item.second->Serialize()); }
 
     return res;
 }
-void Context::Unpack(const std::shared_ptr<DataTable> &cfg) {
+void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
     DoInitialize();
     SetName(cfg->GetValue<std::string>("Name", "unnamed"));
 
@@ -48,7 +48,7 @@ void Context::Unpack(const std::shared_ptr<DataTable> &cfg) {
                 std::string s_type =
                     p_cfg->GetValue<std::string>("Type", "Unknown") + "." + m_pimpl_->m_mesh_->GetRegisterName();
                 auto res = Domain::Create(s_type, m_pimpl_->m_mesh_, p_geo);
-                res->Unpack(p_cfg);
+                res->Deserialize(p_cfg);
                 SetDomain(key, res);
             } else {
                 RUNTIME_ERROR << "illegal domain config!" << std::endl;
@@ -137,7 +137,7 @@ void Context::InitialCondition(Patch *patch, Real time_now) {
 
     ASSERT(patch != nullptr);
 
-    GetMesh()->Unpack(patch);
+    GetMesh()->Push(patch);
 
     GetMesh()->InitializeData(time_now);
 
@@ -146,14 +146,14 @@ void Context::InitialCondition(Patch *patch, Real time_now) {
     }
 
     for (auto &d : GetAllDomains()) { d.second->DoInitialCondition(patch, time_now); }
-    GetMesh()->Pack();
+    GetMesh()->Pull(nullptr);
 }
 
 void Context::Advance(Patch *patch, Real time_now, Real time_dt) {
     DoUpdate();
-    GetMesh()->Unpack(patch);
+    GetMesh()->Push(patch);
     for (auto &d : GetAllDomains()) { d.second->DoAdvance(patch, time_now, time_dt); }
-    GetMesh()->Pack();
+    GetMesh()->Pull(nullptr);
 }
 
 // std::map<id_type, std::shared_ptr<Patch>> const &Context::GetPatches() const { return m_pimpl_->m_patches_; }

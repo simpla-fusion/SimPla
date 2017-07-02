@@ -21,18 +21,18 @@ class Tokamak : public engine::Context {
     SP_DEFAULT_CONSTRUCT(Tokamak);
     DECLARE_REGISTER_NAME(Tokamak);
 
-    std::shared_ptr<data::DataTable> Pack() const override;
-    void Unpack(std::shared_ptr<data::DataTable> const &cfg) override;
+    std::shared_ptr<data::DataTable> Serialize() const override;
+    void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override;
 };
 
 REGISTER_CREATOR(Tokamak)
 
-std::shared_ptr<data::DataTable> Tokamak::Pack() const {
-    auto res = engine::Context::Pack();
+std::shared_ptr<data::DataTable> Tokamak::Serialize() const {
+    auto res = engine::Context::Serialize();
     return res;
 }
-void Tokamak::Unpack(std::shared_ptr<data::DataTable> const &cfg) {
-    engine::Context::Unpack(cfg);
+void Tokamak::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
+    engine::Context::Deserialize(cfg);
 
     typedef mesh::RectMesh mesh_type;
 

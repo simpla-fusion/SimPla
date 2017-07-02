@@ -17,14 +17,14 @@ struct Model::pimpl_s {
 
 Model::Model() : m_pimpl_(new pimpl_s) {}
 Model::~Model() {}
-DataTable Model::Serialize() const {
+std::shared_ptr<DataTable> Model::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
     for (auto const& item : m_pimpl_->m_g_objs_) {
-        if (item.second != nullptr) { res->Set(item.first, item.second->Pack()); }
+        if (item.second != nullptr) { res->Set(item.first, item.second->Serialize()); }
     }
     return res;
 };
-void Model::Deserialize(const DataTable &cfg) {
+void Model::Deserialize(const std::shared_ptr<DataTable> &cfg) {
     if (cfg == nullptr) { return; }
     cfg->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> const& v) {
         if (v != nullptr) { SetObject(k, geometry::GeoObject::Create(v)); }

@@ -36,11 +36,11 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
     SP_DEFAULT_CONSTRUCT(MeshBase);
     DECLARE_REGISTER_NAME(MeshBase);
 
-    data::DataTable Serialize() const override;
-    void Deserialize(data::DataTable const &t) override;
+    std::shared_ptr<DataTable> Serialize() const override;
+    void Deserialize(const std::shared_ptr<DataTable> &t) override;
 
-    void Unpack(Patch &&) override;
-    Patch Pack() override;
+    void Push(Patch *) override;
+    void Pull(Patch *) override;
 
     MeshBase *GetMesh() override { return this; };
     MeshBase const *GetMesh() const override { return this; };
