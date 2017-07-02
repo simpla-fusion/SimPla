@@ -36,14 +36,14 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
     SP_DEFAULT_CONSTRUCT(MeshBase);
     DECLARE_REGISTER_NAME(MeshBase);
 
-    std::shared_ptr<data::DataTable> Pack() const override;
-    void Unpack(const std::shared_ptr<DataTable> &t) override;
+    data::DataTable Serialize() const override;
+    void Deserialize(data::DataTable const &t) override;
+
+    void Unpack(Patch &&) override;
+    Patch Pack() override;
 
     MeshBase *GetMesh() override { return this; };
     MeshBase const *GetMesh() const override { return this; };
-
-    void Push(Patch *) override;
-    void Pop(Patch *) override;
 
     virtual unsigned int GetNDims() const { return 3; }
 
@@ -66,8 +66,8 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
     index_tuple GetDefaultGhostWidth() const;
     index_tuple GetGhostWidth(int tag = VERTEX) const;
 
-    void SetBlock(std::shared_ptr<MeshBlock>);
-    std::shared_ptr<MeshBlock> GetBlock() const;
+    void SetBlock(const MeshBlock &);
+    const MeshBlock &GetBlock() const;
     id_type GetBlockId() const;
 
     box_type GetBox() const;

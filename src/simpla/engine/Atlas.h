@@ -70,9 +70,9 @@ class Atlas : public SPObject, public data::Serializable {
     ~Atlas() override;
     SP_DEFAULT_CONSTRUCT(Atlas);
 
-    std::shared_ptr<data::DataTable> Pack() const override;
+    DataTable Serialize() const override;
 
-    void Unpack(const std::shared_ptr<data::DataTable> &cfg) override;
+    void Deserialize(const DataTable &cfg) override;
 
     void Update() override;
 
@@ -81,8 +81,8 @@ class Atlas : public SPObject, public data::Serializable {
     index_box_type FitIndexBox(box_type const &b, int level = 0, int flag = 0) const;
 
     size_type DeletePatch(id_type);
-    id_type Push(std::shared_ptr<Patch>);
-    std::shared_ptr<Patch> Pop(id_type id);
+    id_type Push(Patch &&);
+    Patch Pop(id_type id);
 
     //    std::shared_ptr<Patch> RefineBlock(id_type, index_box_type const &);
     //    std::set<std::shared_ptr<Patch>> const &Level(int level = 0) const;

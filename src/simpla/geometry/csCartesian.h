@@ -97,11 +97,11 @@ struct Cartesian : public Chart {
 //         */
 //        point_t1 y;
 //
-//        st::Pack<CartesianXAxis1>(y) = st::get<CartesianXAxis0>(x);
+//        st::Serialize<CartesianXAxis1>(y) = st::get<CartesianXAxis0>(x);
 //
-//        st::get<CartesianYAxis1>(y) = st::Pack<CartesianYAxis0>(x);
+//        st::get<CartesianYAxis1>(y) = st::Serialize<CartesianYAxis0>(x);
 //
-//        st::get<CartesianZAxis1>(y) = st::Pack<CartesianZAxis0>(x);
+//        st::get<CartesianZAxis1>(y) = st::Serialize<CartesianZAxis0>(x);
 //
 //        return std::Move(y);
 //    }
@@ -135,9 +135,9 @@ struct Cartesian : public Chart {
 //
 //        vector_t1 u;
 //
-//        st::get<CartesianXAxis1>(u) = st::Pack<CartesianXAxis0>(v);
-//        st::Pack<CartesianYAxis1>(u) = st::get<CartesianYAxis0>(v);
-//        st::Pack<CartesianZAxis1>(u) = st::get<CartesianZAxis0>(v);
+//        st::get<CartesianXAxis1>(u) = st::Serialize<CartesianXAxis0>(v);
+//        st::Serialize<CartesianYAxis1>(u) = st::get<CartesianYAxis0>(v);
+//        st::Serialize<CartesianZAxis1>(u) = st::get<CartesianZAxis0>(v);
 //
 //        return std::Move(u);
 //    }

@@ -9,8 +9,10 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/engine/Attribute.h>
+#include <simpla/engine/DataPack.h>
 #include <simpla/engine/Domain.h>
 #include <simpla/engine/MeshBlock.h>
+
 #include <simpla/utilities/Array.h>
 #include <simpla/utilities/ExpressionTemplate.h>
 #include <simpla/utilities/FancyStream.h>
@@ -160,28 +162,20 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {  //
         m_mesh_ = nullptr;
     }
 
-    void Unpack(const std::shared_ptr<data::DataBlock>& d, const EntityRange& r) override {
-        if (d != nullptr) {
-            m_range_ = r;
+    void Unpack(engine::DataPack&& d) override {
+        //        if (d != nullptr) {  m_range_ = r;}
 
-            auto multi_array = std::dynamic_pointer_cast<data::DataMultiArray<value_type, NDIMS>>(d);
-            int count = 0;
-            m_data_.foreach ([&](array_type& a) { (*multi_array)[count].swap(a); });
-            Click();
-        }
+        d.swap(m_data_);
+        Click();
         DoUpdate();
     }
 
-    std::shared_ptr<data::DataBlock> Pack() override {
-        std::shared_ptr<data::DataBlock> res;
-        m_data_.foreach ([&](int const* idx, array_type& a) {});
-        DoTearDown();
-        return res;
-    }
+    engine::DataPack Pack() override { return engine::DataPack(m_data_); }
+
     template <typename TOther>
     void DeepCopy(TOther const& other) {
         DoUpdate();
-        m_data_ = other.data();
+        Assign(other);
     }
 
     template <typename Other>

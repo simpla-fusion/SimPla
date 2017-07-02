@@ -119,8 +119,8 @@ class DataTable : public DataEntity {
 
     //    template <typename U>
     //    U GetValue(std::string const& uri, U const& default_value) {
-    //        Unpack(uri, make_data_entity(default_value), false);
-    //        return data_cast<U>(*Pack(uri));
+    //        Deserialize(uri, make_data_entity(default_value), false);
+    //        return data_cast<U>(*Serialize(uri));
     //    }
 
     template <typename U>

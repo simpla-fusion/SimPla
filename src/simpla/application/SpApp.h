@@ -19,11 +19,11 @@ struct SpApp : public engine::SPObject, public data::Serializable {
     virtual ~SpApp();
     SP_DEFAULT_CONSTRUCT(SpApp);
 
-    using data::Serializable::Pack;
-    using data::Serializable::Unpack;
+    using data::Serializable::Serialize;
+    using data::Serializable::Deserialize;
 
-    std::shared_ptr<data::DataTable> Pack() const override;
-    void Unpack(const std::shared_ptr<data::DataTable> &cfg) override;
+    DataTable Serialize() const override;
+    void Deserialize(const data::DataTable &cfg) override;
 
     void Initialize() override;
     void Update() override;

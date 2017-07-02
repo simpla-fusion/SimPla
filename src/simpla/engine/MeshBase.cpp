@@ -14,7 +14,7 @@ namespace simpla {
 namespace engine {
 
 struct MeshBase::pimpl_s {
-    std::shared_ptr<MeshBlock> m_mesh_block_;
+    MeshBlock m_mesh_block_;
     std::shared_ptr<geometry::Chart> m_chart_;
 
     point_type m_origin_ = {1, 1, 1};
@@ -23,7 +23,7 @@ struct MeshBase::pimpl_s {
     index_tuple m_idx_origin_{0, 0, 0};
     index_tuple m_dimensions_{1, 1, 1};
     size_tuple m_periodic_dimension_{0, 0, 0};
-    Patch* m_patch_ = nullptr;
+    std::map<std::string, EntityRange> m_ranges_;
 };
 MeshBase::MeshBase(std::shared_ptr<geometry::Chart> const& c, std::string const& s_name)
     : SPObject(s_name), m_pimpl_(new pimpl_s) {
@@ -63,43 +63,38 @@ index_tuple MeshBase::GetIndexOffset() const { return m_pimpl_->m_idx_origin_; }
 
 void MeshBase::Update() { Tag(); };
 
-void MeshBase::SetBlock(std::shared_ptr<MeshBlock> m) {
+void MeshBase::SetBlock(const MeshBlock& m) {
     m_pimpl_->m_mesh_block_ = m;
     Click();
 }
-std::shared_ptr<MeshBlock> MeshBase::GetBlock() const { return m_pimpl_->m_mesh_block_; }
+const MeshBlock& MeshBase::GetBlock() const { return m_pimpl_->m_mesh_block_; }
 
-id_type MeshBase::GetBlockId() const {
-    return m_pimpl_->m_mesh_block_ == nullptr ? NULL_ID : m_pimpl_->m_mesh_block_->GetGUID();
-}
+id_type MeshBase::GetBlockId() const { return m_pimpl_->m_mesh_block_.GetGUID(); }
 
 void MeshBase::InitializeData(Real time_now) { DoUpdate(); }
 void MeshBase::SetBoundaryCondition(Real time_now, Real time_dt) { DoUpdate(); }
 
-std::shared_ptr<data::DataTable> MeshBase::Pack() const {
-    auto p = std::make_shared<data::DataTable>();
-    p->SetValue("Type", GetRegisterName());
+DataTable MeshBase::Serialize() const {
+    DataTable p;
+    p.SetValue("Type", GetRegisterName());
 
-    if (m_pimpl_->m_chart_ != nullptr) { p->SetValue("Chart", m_pimpl_->m_chart_->Pack()); }
+    if (m_pimpl_->m_chart_ != nullptr) { p.SetValue("Chart", m_pimpl_->m_chart_->Pack()); }
 
-    p->SetValue("PeriodicDimensions", m_pimpl_->m_periodic_dimension_);
-    p->SetValue("Dimensions", m_pimpl_->m_dimensions_);
-    p->SetValue("IndexOrigin", m_pimpl_->m_idx_origin_);
-    p->SetValue("CoarsestCellWidth", m_pimpl_->m_coarsest_cell_width_);
+    p.SetValue("PeriodicDimensions", m_pimpl_->m_periodic_dimension_);
+    p.SetValue("Dimensions", m_pimpl_->m_dimensions_);
+    p.SetValue("IndexOrigin", m_pimpl_->m_idx_origin_);
+    p.SetValue("CoarsestCellWidth", m_pimpl_->m_coarsest_cell_width_);
 
-    return p;
+    return std::move(p);
 }
-void MeshBase::Unpack(const std::shared_ptr<DataTable>& cfg) {
-    m_pimpl_->m_chart_ = cfg->has("Coordinates") ? geometry::Chart::Create(cfg->Get("Coordinates"))
-                                                 : geometry::Chart::Create("Cartesian");
-    m_pimpl_->m_idx_origin_ = cfg->GetValue<nTuple<int, 3>>("IndexOrigin", nTuple<int, 3>{0, 0, 0});
-    m_pimpl_->m_dimensions_ = cfg->GetValue<nTuple<int, 3>>("Dimensions", nTuple<int, 3>{1, 1, 1});
-    m_pimpl_->m_periodic_dimension_ = cfg->GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 0});
+void MeshBase::Deserialize(const DataTable& cfg) {
+    m_pimpl_->m_chart_ = cfg.has("Coordinates") ? geometry::Chart::Create(cfg.Get("Coordinates"))
+                                                : geometry::Chart::Create("Cartesian");
+    m_pimpl_->m_idx_origin_ = cfg.GetValue<nTuple<int, 3>>("IndexOrigin", nTuple<int, 3>{0, 0, 0});
+    m_pimpl_->m_dimensions_ = cfg.GetValue<nTuple<int, 3>>("Dimensions", nTuple<int, 3>{1, 1, 1});
+    m_pimpl_->m_periodic_dimension_ = cfg.GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 0});
 }
-index_tuple MeshBase::GetGhostWidth(int tag) const {
-    auto blk = GetBlock();
-    return blk == nullptr ? index_tuple{0, 0, 0} : blk->GetGhostWidth();
-}
+index_tuple MeshBase::GetGhostWidth(int tag) const { return GetBlock().GetGhostWidth(); }
 
 box_type MeshBase::GetBox() const {
     box_type res;
@@ -150,10 +145,8 @@ point_type MeshBase::global_coordinates(EntityId s, Real const* pr) const {
 
 EntityRange MeshBase::GetRange(std::string const& k) const {
     ASSERT(!isModified());
-    ASSERT(m_pimpl_->m_patch_ != nullptr);
-    auto it = m_pimpl_->m_patch_->m_ranges_.find(k);
-    return (it != m_pimpl_->m_patch_->m_ranges_.end()) ? it->second
-                                                       : EntityRange{std::make_shared<EmptyRangeBase<EntityId>>()};
+    auto it = m_pimpl_->m_ranges_.find(k);
+    return (it != m_pimpl_->m_ranges_.end()) ? it->second : EntityRange{std::make_shared<EmptyRangeBase<EntityId>>()};
 };
 
 EntityRange MeshBase::GetBodyRange(int IFORM, std::string const& k) const {
@@ -175,25 +168,24 @@ EntityRange MeshBase::GetPerpendicularBoundaryRange(int IFORM, std::string const
 EntityRange MeshBase::GetGhostRange(int IFORM) const {
     return GetRange("." + std::string(EntityIFORMName[IFORM]) + "_GHOST");
 }
-void MeshBase::Push(Patch* p) {
+void MeshBase::Unpack(Patch&& p) {
     Click();
-    m_pimpl_->m_patch_ = p;
-    SetBlock(m_pimpl_->m_patch_->GetBlock());
-    AttributeGroup::Push(p);
+    SetBlock(p.GetBlock());
+    p.m_ranges_.swap(m_pimpl_->m_ranges_);
+
+    AttributeGroup::Unpack(std::forward<Patch>(p));
     DoUpdate();
 }
-void MeshBase::Pop(Patch* p) {
-    p->SetBlock(GetMesh()->GetBlock());
-    AttributeGroup::Pop(p);
-    m_pimpl_->m_patch_ = nullptr;
+Patch MeshBase::Pack() {
+    Patch p = AttributeGroup::Pack();
+    p.SetBlock(GetMesh()->GetBlock());
+    p.m_ranges_.swap(m_pimpl_->m_ranges_);
     Click();
     DoTearDown();
+    return res;
 }
 
-std::map<std::string, EntityRange>& MeshBase::GetRangeDict() {
-    ASSERT(m_pimpl_->m_patch_ != nullptr);
-    return m_pimpl_->m_patch_->m_ranges_;
-};
+std::map<std::string, EntityRange>& MeshBase::GetRangeDict() { return m_pimpl_->m_ranges_; };
 std::map<std::string, EntityRange> const& MeshBase::GetRangeDict() const { return m_pimpl_->m_patch_->m_ranges_; };
 }  // {namespace engine
 }  // namespace simpla

@@ -43,8 +43,8 @@ struct Polygon<2> : public data::Serializable {
 
     Polygon(Polygon const &) = delete;
 
-    std::shared_ptr<data::DataTable> Pack() const override {
-        auto res = data::Serializable::Pack();
+    DataTable Serialize() const override {
+        auto res = data::Serializable::Serialize();
         res->SetValue("Type", "Polygon2D");
 
         auto v_array = std::make_shared<data::DataEntityWrapper<point2d_type *>>();
@@ -54,7 +54,7 @@ struct Polygon<2> : public data::Serializable {
         res->Set("data", std::dynamic_pointer_cast<data::DataEntity>(v_array));
         return res;
     };
-    void Unpack(const std::shared_ptr<data::DataTable> &t) override {}
+    void Deserialize(const data::DataTable &t) override {}
 
     std::vector<point2d_type> &data() { return m_polygon_; };
 

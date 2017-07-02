@@ -17,14 +17,14 @@ struct Atlas::pimpl_s {
     typedef typename std::multimap<id_type, id_type>::iterator link_iterator;
     typedef typename std::multimap<id_type, id_type>::const_iterator const_link_iterator;
     typedef std::pair<const_link_iterator, const_link_iterator> multi_links_type;
-    std::map<id_type, std::shared_ptr<Patch>> m_patches_;
+    std::map<id_type, Patch> m_patches_;
     std::multimap<id_type, id_type> m_adjacent_;
     std::multimap<id_type, id_type> m_refine_;
     std::multimap<id_type, id_type> m_coarsen_;
 
     size_type m_level_ = 0;
     size_type m_max_level_ = 3;
-    std::set<std::shared_ptr<Patch>> m_layers_[MAX_NUM_OF_LEVEL];
+    std::set<Patch> m_layers_[MAX_NUM_OF_LEVEL];
 
     size_tuple m_refine_ratio_[MAX_NUM_OF_LEVEL] = {{2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}};
     size_tuple m_smallest_dimensions_{8, 8, 8};
@@ -35,36 +35,29 @@ struct Atlas::pimpl_s {
 Atlas::Atlas(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s){};
 Atlas::~Atlas(){};
 void Atlas::Update() { SPObject::Update(); };
-std::shared_ptr<data::DataTable> Atlas::Pack() const {
-    auto res = std::make_shared<data::DataTable>();
-    return res;
-};
-void Atlas::Unpack(const std::shared_ptr<data::DataTable> &cfg) {
-    if (cfg == nullptr) { return; }
 
-    Click();
+data::DataTable Atlas::Serialize() const {
+    auto res = data::DataTable{};
+    return std::move(res);
 };
+void Atlas::Deserialize(const data::DataTable &cfg) { Click(); };
 
 void Atlas::Decompose(size_tuple const &d, int local_id) { Click(); };
 index_box_type Atlas::FitIndexBox(box_type const &b, int level, int flag) const { return index_box_type{}; }
 
 size_type Atlas::DeletePatch(id_type id) { return m_pimpl_->m_patches_.erase(id); }
 
-id_type Atlas::Push(std::shared_ptr<Patch> p) {
-    if (p != nullptr) {
-        auto res = m_pimpl_->m_patches_.emplace(p->GetId(), p);
-        if (!res.second) { res.first->second->Merge(*p); }
-    }
-    return (p == nullptr) ? NULL_ID : p->GetId();
+id_type Atlas::Push(Patch &&p) {
+    auto res = m_pimpl_->m_patches_.emplace(p.GetId(), p);
+    if (!res.second) { p.swap(res.first->second); }
+    return p.GetId();
 }
 
-std::shared_ptr<Patch> Atlas::Pop(id_type id) {
+Patch Atlas::Pop(id_type id) {
     auto res = m_pimpl_->m_patches_.emplace(id, nullptr);
-    if (res.first->second == nullptr) { res.first->second = std::make_shared<Patch>(id); }
+    if (res.first->second.empty()) { res.first->second = Patch(id); }
     return res.first->second;
 }
-
-// std::set<std::shared_ptr<Patch>> const &Atlas::Level(int level) const { return m_pimpl_->m_layers_[level]; };
 
 size_type Atlas::GetNumOfLevel() const { return m_pimpl_->m_max_level_; }
 size_type Atlas::GetMaxLevel() const { return m_pimpl_->m_max_level_; }

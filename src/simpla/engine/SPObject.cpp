@@ -45,7 +45,7 @@ void SPObject::SetName(std::string const &s_name) {
 }
 std::string const &SPObject::GetName() const { return m_pimpl_->m_name_; }
 
-//DataPack SPObject::Pack() const { return DataPack{}; }
+//DataPack SPObject::Serialize() const { return DataPack{}; }
 //void SPObject::UnPack(engine::DataPack &&t) {}
 
 void SPObject::lock() { m_pimpl_->m_mutex_.lock(); }

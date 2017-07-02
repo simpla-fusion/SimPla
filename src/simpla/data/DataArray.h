@@ -200,7 +200,7 @@ struct DataCastTraits<nTuple<U, N>> {
 //    // DataArrayWithType
 //
 //    virtual U GetValue(index_type idx) const { return m_holder_[idx]; }
-//    virtual void Unpack(size_type idx, U const& v) {
+//    virtual void Deserialize(size_type idx, U const& v) {
 //        ASSERT(size() > idx);
 //        m_holder_[idx] = v;
 //    }
@@ -239,7 +239,7 @@ struct DataCastTraits<nTuple<U, N>> {
 //    // DataArrayWithType
 //    virtual U GetValue(index_type idx) const { return m_holder_[idx]; }
 //
-//    virtual void Unpack(size_type idx, U const& v) {
+//    virtual void Deserialize(size_type idx, U const& v) {
 //        ASSERT(size() > idx);
 //        m_holder_[idx] = v;
 //    }
@@ -270,13 +270,13 @@ inline std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<char c
 //
 // template <int N, typename... U>
 // void data_entity_from_helper(DataArray const& a, std::tuple<U...>& v, std::integral_constant<int, N>) {
-//    data_entity_from_helper0(*a.Pack(N - 1), std::get<N - 1>(v));
+//    data_entity_from_helper0(*a.Serialize(N - 1), std::get<N - 1>(v));
 //    data_entity_from_helper(a, v, std::integral_constant<int, N - 1>());
 //};
 //
 // template <typename V>
 // void data_entity_to_helper0(V const& src, DataArray& dest, size_type N) {
-//    dest.Unpack(N - 1, data_entity_traits<V>::to(src));
+//    dest.Deserialize(N - 1, data_entity_traits<V>::to(src));
 //}
 // template <typename... U>
 // void data_entity_to_helper(std::tuple<U...> const& src, DataArray& dest, std::integral_constant<int, 0>){};

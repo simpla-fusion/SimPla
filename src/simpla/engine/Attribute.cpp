@@ -61,16 +61,18 @@ void AttributeGroup::RegisterAt(AttributeGroup *other) {
 void AttributeGroup::DeregisterFrom(AttributeGroup *other) {
     for (auto &item : m_pimpl_->m_attributes_) { item.second->Deregister(other); }
 };
-void AttributeGroup::Push(Patch *p) {
+void AttributeGroup::Unpack(Patch &&p) {
     std::string prefix = GetDomainPrefix();
     for (auto &item : GetAllAttributes()) {
         auto k = prefix + "." + std::string(EntityIFORMName[item.second->GetIFORM()]) + "_BODY";
-        auto it = p->m_ranges_.find(k);
-        item.second->Unpack(p->Pop(item.second->GetID()), (it == p->m_ranges_.end()) ? EntityRange{} : it->second);
+        auto it = p.m_ranges_.find(k);
+        item.second->Unpack(p.Pop(item.second->GetID()));
     }
 }
-void AttributeGroup::Pop(Patch *p) {
-    for (auto &item : GetAllAttributes()) { p->Push(item.second->GetID(), item.second->Pack()); }
+Patch AttributeGroup::Pack() {
+    Patch res;
+    for (auto &item : GetAllAttributes()) { res.Push(item.second->GetID(), item.second->Pack()); }
+    return std::move(res);
 }
 void AttributeGroup::Attach(Attribute *p) { m_pimpl_->m_attributes_.emplace(p->GetPrefix(), p); }
 void AttributeGroup::Detach(Attribute *p) { m_pimpl_->m_attributes_.erase(p->GetPrefix()); }
@@ -138,8 +140,8 @@ void Attribute::Deregister(AttributeGroup *attr_b) {
     if (m_pimpl_->m_bundle_.erase(attr_b) > 0) { attr_b->Detach(this); };
 }
 
-void Attribute::Unpack(const std::shared_ptr<DataBlock> &d, const EntityRange &r) {}
-std::shared_ptr<data::DataBlock> Attribute::Pack() { return nullptr; }
+void Attribute::Unpack(DataPack &&d) {}
+DataPack Attribute::Pack() { return DataPack{}; }
 
 const MeshBase *Attribute::GetMesh() const { return m_pimpl_->m_mesh_; }
 bool Attribute::isNull() const { return true; }

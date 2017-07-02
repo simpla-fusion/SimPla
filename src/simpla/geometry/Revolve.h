@@ -28,7 +28,7 @@ class Revolve : public GeoObject {
     DECLARE_REGISTER_NAME("Revolve");
 
     std::shared_ptr<data::DataTable> Pack() const override {
-        auto res = data::Serializable::Pack();
+        auto res = data::Serializable::Serialize();
         res->template SetValue<std::string>("Type", "Revolve");
         res->template SetValue<point_type>("Axis", m_axis_);
         res->template SetValue<point_type>("Origin", m_origin_);
@@ -72,13 +72,13 @@ class RevolveZ : public GeoObject {
     DECLARE_REGISTER_NAME(RevolveZ);
 
     std::shared_ptr<data::DataTable> Pack() const override {
-        auto res = data::Serializable::Pack();
+        auto res = data::Serializable::Serialize();
         res->template SetValue<std::string>("Type", "RevolveZ");
         res->template SetValue("Axis", m_phi_axe_);
         res->template SetValue("Origin", m_origin_);
         res->template SetValue("Phi", nTuple<Real, 2>{m_angle_min_, m_angle_max_});
 
-        res->Set("2DShape", base_obj->Pack());
+        res->Set("2DShape", base_obj->Serialize());
         return res;
     };
     void Unpack(const std::shared_ptr<data::DataTable> &cfg) override {}

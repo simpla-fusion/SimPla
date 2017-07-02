@@ -67,8 +67,8 @@ struct CartesianCoRectMesh : public CoRectMesh {
 //
 //    for (int i = 0; i < 3; ++i)
 //    {
-//        c_lower[i] = std::max(c_lower[i], std::Pack<0>(other)[i]);
-//        c_upper[i] = std::min(c_upper[i], std::Pack<1>(other)[i]);
+//        c_lower[i] = std::max(c_lower[i], std::Serialize<0>(other)[i]);
+//        c_upper[i] = std::min(c_upper[i], std::Serialize<1>(other)[i]);
 //
 //        if (c_lower[i] >= c_upper[i]) { overlapped = false; }
 //    }
@@ -92,16 +92,16 @@ struct CartesianCoRectMesh : public CoRectMesh {
 //    switch (status)
 //    {
 //        case SP_ES_ALL : //all valid
-//            std::Pack<0>(res) = m_coords_lower_ - m_coarsest_cell_width_ * m_ghost_width_;
-//            std::Pack<1>(res) = m_coords_upper_ + m_coarsest_cell_width_ * m_ghost_width_;;
+//            std::Serialize<0>(res) = m_coords_lower_ - m_coarsest_cell_width_ * m_ghost_width_;
+//            std::Serialize<1>(res) = m_coords_upper_ + m_coarsest_cell_width_ * m_ghost_width_;;
 //            break;
 //        case SP_ES_LOCAL : //local and valid
-//            std::Pack<0>(res) = m_coords_lower_ + m_coarsest_cell_width_ * m_ghost_width_;;
-//            std::Pack<1>(res) = m_coords_upper_ - m_coarsest_cell_width_ * m_ghost_width_;
+//            std::Serialize<0>(res) = m_coords_lower_ + m_coarsest_cell_width_ * m_ghost_width_;;
+//            std::Serialize<1>(res) = m_coords_upper_ - m_coarsest_cell_width_ * m_ghost_width_;
 //            break;
 //        case SP_ES_OWNED:
-//            std::Pack<0>(res) = m_coords_lower_;
-//            std::Pack<1>(res) = m_coords_upper_;
+//            std::Serialize<0>(res) = m_coords_lower_;
+//            std::Serialize<1>(res) = m_coords_upper_;
 //            break;
 //        case SP_ES_INTERFACE: //SP_ES_INTERFACE
 //        case SP_ES_GHOST : //local and valid
@@ -316,7 +316,7 @@ struct CartesianCoRectMesh : public CoRectMesh {
 //
 //    virtual mesh_id_type id(point_type const &x, int n_id = 0) const
 //    {
-//        return std::Pack<0>(m::point_global_to_local(inv_map(x), n_id));
+//        return std::Serialize<0>(m::point_global_to_local(inv_map(x), n_id));
 //    }
 //
 //

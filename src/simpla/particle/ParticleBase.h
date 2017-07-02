@@ -36,7 +36,7 @@ class ParticleBase : public engine::Attribute {
 
     auto operator[](EntityId s) const { return at(s); }
     auto operator[](EntityId s) { return at(s); }
-    void Unpack(const std::shared_ptr<data::DataBlock> &d, const EntityRange &r) override {
+    void Unpack(engine::DataPack &&d) override {
         if (d != nullptr) { Click(); }
         DoUpdate();
     }
