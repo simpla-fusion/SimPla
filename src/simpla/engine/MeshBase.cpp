@@ -16,14 +16,13 @@ namespace engine {
 struct MeshBase::pimpl_s {
     MeshBlock m_mesh_block_;
     std::shared_ptr<geometry::Chart> m_chart_;
-
     point_type m_origin_ = {1, 1, 1};
     point_type m_coarsest_cell_width_ = {1, 1, 1};
     index_tuple m_ghost_width_{2, 2, 2};
     index_tuple m_idx_origin_{0, 0, 0};
     index_tuple m_dimensions_{1, 1, 1};
     size_tuple m_periodic_dimension_{0, 0, 0};
-    std::map<std::string, EntityRange> m_ranges_;
+    std::shared_ptr<std::map<std::string, EntityRange>> m_ranges_;
 };
 MeshBase::MeshBase(std::shared_ptr<geometry::Chart> const& c, std::string const& s_name)
     : SPObject(s_name), m_pimpl_(new pimpl_s) {
@@ -144,8 +143,8 @@ point_type MeshBase::global_coordinates(EntityId s, Real const* pr) const {
 
 EntityRange MeshBase::GetRange(std::string const& k) const {
     ASSERT(!isModified());
-    auto it = m_pimpl_->m_ranges_.find(k);
-    return (it != m_pimpl_->m_ranges_.end()) ? it->second : EntityRange{std::make_shared<EmptyRangeBase<EntityId>>()};
+    auto it = m_pimpl_->m_ranges_->find(k);
+    return (it != m_pimpl_->m_ranges_->end()) ? it->second : EntityRange{std::make_shared<EmptyRangeBase<EntityId>>()};
 };
 
 EntityRange MeshBase::GetBodyRange(int IFORM, std::string const& k) const {
@@ -167,23 +166,31 @@ EntityRange MeshBase::GetPerpendicularBoundaryRange(int IFORM, std::string const
 EntityRange MeshBase::GetGhostRange(int IFORM) const {
     return GetRange("." + std::string(EntityIFORMName[IFORM]) + "_GHOST");
 }
+EntityRange MeshBase::GetInnerRange(int IFORM) const {
+    return GetRange("." + std::string(EntityIFORMName[IFORM]) + "_INNER");
+}
 void MeshBase::Push(Patch* p) {
     Click();
+    SetRanges(p->GetRanges());
     SetBlock(p->GetBlock());
-    p->m_ranges_.swap(m_pimpl_->m_ranges_);
-
-    AttributeGroup::Push((p));
+    AttributeGroup::Push(p);
     DoUpdate();
 }
 void MeshBase::Pull(Patch* p) {
+    p->SetBlock(GetBlock());
+    p->SetRanges(GetRanges());
     AttributeGroup::Pull(p);
-    p->SetBlock(GetMesh()->GetBlock());
-    p->m_ranges_.swap(m_pimpl_->m_ranges_);
     Click();
     DoTearDown();
 }
 
-std::map<std::string, EntityRange>& MeshBase::GetRangeDict() { return m_pimpl_->m_ranges_; };
-std::map<std::string, EntityRange> const& MeshBase::GetRangeDict() const { return m_pimpl_->m_ranges_; };
+void MeshBase::RegisterRanges(std::shared_ptr<geometry::GeoObject> const& g, std::string const& prefix){};
+
+std::shared_ptr<std::map<std::string, EntityRange>> MeshBase::GetRanges() { return m_pimpl_->m_ranges_; };
+std::shared_ptr<std::map<std::string, EntityRange>> MeshBase::GetRanges() const { return m_pimpl_->m_ranges_; };
+void MeshBase::SetRanges(std::shared_ptr<std::map<std::string, EntityRange>> const& r) {
+    m_pimpl_->m_ranges_ = r;
+    Click();
+};
 }  // {namespace engine
 }  // namespace simpla

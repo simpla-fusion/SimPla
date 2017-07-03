@@ -599,6 +599,12 @@ struct Range<EntityId> {
 
     this_type& append(this_type const& other) { return append(other.m_next_); }
 
+    this_type& append(this_type&& other) {
+        append(other.m_next_);
+        other.reset();
+        return *this;
+    }
+
     this_type& append(std::shared_ptr<base_type> const& other) {
         auto* cursor = &m_next_;
         while ((*cursor) != nullptr) { cursor = &(*cursor)->m_next_; }

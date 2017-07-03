@@ -48,16 +48,25 @@ index_box_type Atlas::FitIndexBox(box_type const &b, int level, int flag) const 
 size_type Atlas::DeletePatch(id_type id) { return m_pimpl_->m_patches_.erase(id); }
 
 id_type Atlas::Push(Patch &&p) {
-    auto res = m_pimpl_->m_patches_.emplace(p.GetId(), p);
-    if (!res.second) { p.swap(res.first->second); }
-    return p.GetId();
+    auto id = p.GetId();
+    m_pimpl_->m_patches_[id].swap(p);
+    //    auto res = m_pimpl_->m_patches_.emplace(p.GetId(), p);
+    //    if (!res.second) { p.swap(res.first->second); }
+    return id;
 }
 
 Patch Atlas::Pop(id_type id) {
-    auto res = m_pimpl_->m_patches_.emplace(id, Patch{});
-    if (res.first->second.empty()) { res.first->second = Patch(id); }
-    return res.first->second;
+    Patch res{id};
+
+    auto it = m_pimpl_->m_patches_.find(id);
+    if (it != m_pimpl_->m_patches_.end()) {
+        res.swap(it->second);
+        m_pimpl_->m_patches_.erase(it);
+    }
+    return std::move(res);
 }
+//    auto res = m_pimpl_->m_patches_.emplace(id, Patch{});
+//    if (res.first->second.empty()) { res.first->second = Patch(id); }
 
 size_type Atlas::GetNumOfLevel() const { return m_pimpl_->m_max_level_; }
 size_type Atlas::GetMaxLevel() const { return m_pimpl_->m_max_level_; }

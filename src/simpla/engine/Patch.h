@@ -11,9 +11,10 @@
 #include "SPObject.h"
 
 namespace simpla {
-
 namespace engine {
 class MeshBlock;
+class DataPack;
+
 class Patch {
     SP_OBJECT_BASE(Patch)
    public:
@@ -24,18 +25,24 @@ class Patch {
     Patch &operator=(this_type const &other);
     this_type &operator=(this_type &&other);
     void swap(Patch &other);
+
     bool empty() const;
 
     id_type GetId() const;
 
     void SetBlock(const MeshBlock &);
     const MeshBlock &GetBlock() const;
-    std::map<id_type, DataPack> &GetAllData();
 
+    std::map<id_type, DataPack> &GetAllData();
     void Push(id_type id, DataPack &&);
     DataPack Pop(id_type const &id) const;
 
-    std::map<std::string, EntityRange> m_ranges_;
+    EntityRange GetRange(const std::string &g) const;
+    EntityRange &GetRange(const std::string &g);
+    EntityRange &AddRange(const std::string &g, EntityRange &&r);
+
+    std::shared_ptr<std::map<std::string, EntityRange>> GetRanges();
+    void SetRanges(std::shared_ptr<std::map<std::string, EntityRange>> const &);
 
    private:
     struct pimpl_s;

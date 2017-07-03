@@ -62,18 +62,18 @@ void AttributeGroup::DeregisterFrom(AttributeGroup *other) {
     for (auto &item : m_pimpl_->m_attributes_) { item.second->Deregister(other); }
 };
 void AttributeGroup::Push(Patch *p) {
-    std::string prefix = GetDomainPrefix();
-    for (auto &item : GetAllAttributes()) {
-        auto k = prefix + "." + std::string(EntityIFORMName[item.second->GetIFORM()]) + "_BODY";
-        auto it = p->m_ranges_.find(k);
-        item.second->Push(p->Pop(item.second->GetID()));
-    }
+    for (auto &item : GetAllAttributes()) { item.second->Push(p->Pop(item.second->GetID())); }
 }
+//    std::string prefix = GetDomainPrefix();
+//    auto k = prefix + "." + std::string(EntityIFORMName[item.second->GetIFORM()]) + "_BODY";
+//        auto it = ;
+
 void AttributeGroup::Pull(Patch *p) {
     for (auto &item : GetAllAttributes()) { p->Push(item.second->GetID(), item.second->Pop()); }
 }
 void AttributeGroup::Attach(Attribute *p) { m_pimpl_->m_attributes_.emplace(p->GetPrefix(), p); }
 void AttributeGroup::Detach(Attribute *p) { m_pimpl_->m_attributes_.erase(p->GetPrefix()); }
+
 std::map<std::string, Attribute *> &AttributeGroup::GetAllAttributes() { return m_pimpl_->m_attributes_; };
 std::map<std::string, Attribute *> const &AttributeGroup::GetAll() const { return m_pimpl_->m_attributes_; };
 bool AttributeGroup::has(std::string const &k) const {

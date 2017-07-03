@@ -92,38 +92,38 @@ index_box_type StructuredMesh::GetIndexBox(int tag) const {
 void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix) {
     Real ratio = g == nullptr ? 1.0 : g->CheckOverlap(GetBox());
 
-    auto &ranges = GetRangeDict();
+    auto ranges = GetRanges();
 
     if (ratio < EPSILON) {  // no overlap
 
-        ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"].append(
+        (*ranges)[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"].append(
             std::make_shared<EmptyRangeBase<EntityId>>());
 
-        ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_BODY"].append(
+        (*ranges)[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_BODY"].append(
             std::make_shared<EmptyRangeBase<EntityId>>());
 
-        ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_BODY"].append(
+        (*ranges)[prefix + "." + std::string(EntityIFORMName[FACE]) + "_BODY"].append(
             std::make_shared<EmptyRangeBase<EntityId>>());
 
-        ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BODY"].append(
+        (*ranges)[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BODY"].append(
             std::make_shared<EmptyRangeBase<EntityId>>());
 
         return;
     } else if (1.0 - ratio < EPSILON) {  // all in
-        ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"].append(
+        (*ranges)[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"].append(
             std::make_shared<ContinueRange<EntityId>>(GetIndexBox(0), 0));
 
-        ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_BODY"]
+        (*ranges)[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_BODY"]
             .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(1), 1))
             .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(2), 2))
             .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(4), 4));
 
-        ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_BODY"]
+        (*ranges)[prefix + "." + std::string(EntityIFORMName[FACE]) + "_BODY"]
             .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(3), 3))
             .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(5), 5))
             .append(std::make_shared<ContinueRange<EntityId>>(GetIndexBox(6), 6));
 
-        ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BODY"].append(
+        (*ranges)[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BODY"].append(
             std::make_shared<ContinueRange<EntityId>>(GetIndexBox(7), 7));
         return;
     }
@@ -312,16 +312,16 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
 
     //    CHECK(prefix) << VERTEX_body->size() << "  " << g->GetBoundBox();
 
-    ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"].append(VERTEX_body);
-    ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_BODY"].append(EDGE_body);
-    ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_BODY"].append(FACE_body);
-    ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BODY"].append(VOLUME_body);
-    ranges[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BOUNDARY"].append(VERTEX_boundary);
-    ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PARA_BOUNDARY"].append(EDGE_PARA_boundary);
-    ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PARA_BOUNDARY"].append(FACE_PARA_boundary);
-    ranges[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PERP_BOUNDARY"].append(EDGE_PERP_boundary);
-    ranges[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PERP_BOUNDARY"].append(FACE_PERP_boundary);
-    ranges[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BOUNDARY"].append(VOLUME_boundary);
+    (*ranges)[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"].append(VERTEX_body);
+    (*ranges)[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_BODY"].append(EDGE_body);
+    (*ranges)[prefix + "." + std::string(EntityIFORMName[FACE]) + "_BODY"].append(FACE_body);
+    (*ranges)[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BODY"].append(VOLUME_body);
+    (*ranges)[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BOUNDARY"].append(VERTEX_boundary);
+    (*ranges)[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PARA_BOUNDARY"].append(EDGE_PARA_boundary);
+    (*ranges)[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PARA_BOUNDARY"].append(FACE_PARA_boundary);
+    (*ranges)[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_PERP_BOUNDARY"].append(EDGE_PERP_boundary);
+    (*ranges)[prefix + "." + std::string(EntityIFORMName[FACE]) + "_PERP_BOUNDARY"].append(FACE_PERP_boundary);
+    (*ranges)[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BOUNDARY"].append(VOLUME_boundary);
 
     //    CHECK(VOLUME_body->size());
 }

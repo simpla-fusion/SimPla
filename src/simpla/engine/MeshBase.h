@@ -80,13 +80,12 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
 
     point_type local_coordinates(EntityId s, point_type const &r) const { return local_coordinates(s, &r[0]); };
     point_type global_coordinates(EntityId s, point_type const &r) const { return global_coordinates(s, &r[0]); };
-    //    virtual point_type point(EntityId s) const = 0;
-    //    virtual point_type point(EntityId id, point_type const &pr) const { return point_type{}; };
-    //
-    //    virtual point_type map(point_type const &x) const = 0;
-    //    virtual point_type inv_map(point_type const &x) const = 0;
 
-    virtual void RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix = ""){};
+    virtual void RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix = "");
+
+    std::shared_ptr<std::map<std::string, EntityRange>> GetRanges();
+    std::shared_ptr<std::map<std::string, EntityRange>> GetRanges() const;
+    void SetRanges(std::shared_ptr<std::map<std::string, EntityRange>> const &r);
 
     EntityRange GetRange(std::string const &k = "") const;
     EntityRange GetBodyRange(int IFORM = VERTEX, std::string const &k = "") const;
@@ -96,8 +95,6 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
 
     EntityRange GetInnerRange(int IFORM = VERTEX) const;
     EntityRange GetGhostRange(int IFORM = VERTEX) const;
-    std::map<std::string, EntityRange> &GetRangeDict();
-    std::map<std::string, EntityRange> const &GetRangeDict() const;
 
     void Update() override;
     virtual void InitializeData(Real time_now);
