@@ -29,19 +29,21 @@ MeshBlock::MeshBlock(index_box_type const &b, size_type level) : MeshBlock() {
     m_pimpl_->m_level_ = level;
     m_pimpl_->m_GUID_ = m_pimpl_->m_hasher_(m_pimpl_->m_gen_());
 };
-// MeshBlock::MeshBlock(MeshBlock const &other) : m_pimpl_(new pimpl_s) {
-//    m_pimpl_->m_level_ = other.m_pimpl_->m_level_;
-//    m_pimpl_->m_GUID_ = other.m_pimpl_->m_GUID_;
-//    m_pimpl_->m_index_box_ = other.m_pimpl_->m_index_box_;
-//    m_pimpl_->m_time_ = other.m_pimpl_->m_time_;
-//}
+
 MeshBlock::~MeshBlock() {}
-MeshBlock::MeshBlock(MeshBlock const &other) {}
-MeshBlock::MeshBlock(MeshBlock &&other) {}
-void MeshBlock::swap(MeshBlock &) {}
+MeshBlock::MeshBlock(MeshBlock const &other) : m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_level_ = other.m_pimpl_->m_level_;
+    m_pimpl_->m_GUID_ = other.m_pimpl_->m_GUID_;
+    m_pimpl_->m_index_box_ = other.m_pimpl_->m_index_box_;
+    m_pimpl_->m_time_ = other.m_pimpl_->m_time_;
+}
+MeshBlock::MeshBlock(MeshBlock &&other) : m_pimpl_(other.m_pimpl_.get()) { other.m_pimpl_.reset(); }
+void MeshBlock::swap(MeshBlock &other) { std::swap(other.m_pimpl_, m_pimpl_); }
 
 index_tuple MeshBlock::GetGhostWidth() const { return m_pimpl_->m_ghost_width_; };
+
 index_box_type MeshBlock::GetIndexBox() const { return m_pimpl_->m_index_box_; }
+
 index_box_type MeshBlock::GetOuterIndexBox() const {
     auto ibox = GetIndexBox();
     std::get<0>(ibox) -= GetGhostWidth();

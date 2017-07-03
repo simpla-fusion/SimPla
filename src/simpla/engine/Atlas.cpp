@@ -63,7 +63,7 @@ Patch Atlas::Pop(id_type id) {
         res.swap(it->second);
         m_pimpl_->m_patches_.erase(it);
     }
-    return std::move(res);
+    return (res);
 }
 //    auto res = m_pimpl_->m_patches_.emplace(id, Patch{});
 //    if (res.first->second.empty()) { res.first->second = Patch(id); }

@@ -25,7 +25,7 @@ Patch::Patch(id_type id) : m_pimpl_(new pimpl_s) {
     static boost::uuids::random_generator m_gen_;
     static boost::hash<boost::uuids::uuid> m_hasher_;
     m_pimpl_->m_id_ = id != NULL_ID ? id : m_hasher_(m_gen_());
-    m_pimpl_->m_ranges_.reset(new std::map<std::string, EntityRange>);
+    m_pimpl_->m_ranges_ = std::make_shared<std::map<std::string, EntityRange>>();
 }
 Patch::~Patch() {}
 Patch::Patch(this_type const &other) : Patch(other.GetId()) {
@@ -83,11 +83,7 @@ EntityRange &Patch::AddRange(const std::string &g, EntityRange &&r) {
     return res;
 }
 
-std::shared_ptr<std::map<std::string, EntityRange>> Patch::GetRanges() {
-    auto res = m_pimpl_->m_ranges_;
-    m_pimpl_->m_ranges_.reset(new std::map<std::string, EntityRange>);
-    return res;
-}
+std::shared_ptr<std::map<std::string, EntityRange>> Patch::GetRanges() { return m_pimpl_->m_ranges_; }
 void Patch::SetRanges(std::shared_ptr<std::map<std::string, EntityRange>> const &r) {
     m_pimpl_->m_ranges_->insert(r->begin(), r->end());
 }
