@@ -53,15 +53,22 @@ struct calculator {
         return eval(expr, m, tag, S, std::integer_sequence<int, traits::iform<T>::value...>());
     }
 
-    template <typename M, typename V, int I, int... D>
-    static auto getValue(Field<M, V, I, D...> const& f, mesh_type const& m, int tag, IdxShift S) {
-        return f[EntityIdCoder::m_id_to_sub_index_[(tag & 0b111)]][(tag >> 3)](S);
+    template <typename M, typename V, int I, int D0, int... D>
+    static auto getValue(Field<M, V, I, D0, D...> const& f, mesh_type const& m, int tag, IdxShift S) {
+        return f[EntityIdCoder::m_id_to_sub_index_[(tag & 0b111)]][(tag >> 3)].Shift(S);
     };
-    template <typename M, typename V, int I, int... D>
-    static auto getValue(Field<M, V, I, D...>& f, mesh_type const& m, int tag, IdxShift S) {
-        return f[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]][(tag >> 3)](S);
+    template <typename M, typename V, int I, int D0, int... D>
+    static auto getValue(Field<M, V, I, D0, D...>& f, mesh_type const& m, int tag, IdxShift S) {
+        return f[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]][(tag >> 3)].Shift(S);
     };
-
+    template <typename M, typename V, int I>
+    static auto getValue(Field<M, V, I> const& f, mesh_type const& m, int tag, IdxShift S) {
+        return f[EntityIdCoder::m_id_to_sub_index_[(tag & 0b111)]].Shift(S);
+    };
+    template <typename M, typename V, int I>
+    static auto getValue(Field<M, V, I>& f, mesh_type const& m, int tag, IdxShift S) {
+        return f[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]].Shift(S);
+    };
     template <typename TFun>
     static auto getValue(TFun const& f, mesh_type const& m, int tag, IdxShift S = IdxShift{0, 0, 0},
                          ENABLE_IF((concept::is_callable<TFun(simpla::EntityId)>::value))) {

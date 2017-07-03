@@ -97,11 +97,12 @@ class Array {
     template <typename... Args>
     this_type Shift(Args&&... args) const {
         this_type res(*this);
-        res.Shift(std::forward<Args>(args)...);
+        res.m_sfc_.Shift(std::forward<Args>(args)...);
         return std::move(res);
     }
 
     this_type operator[](typename SFC::array_index_type const& IX) const { return Shift(IX); }
+    //    this_type operator()(typename SFC::array_index_type const& IX) const { return Shift(IX); }
 
     void SetUndefined() { Fill(std::numeric_limits<V>::signaling_NaN()); }
     void Clear() { Fill(0); }
@@ -125,7 +126,7 @@ class Array {
     template <typename TR>
     this_type& operator=(TR const& rhs) {
         DoSetUp();
-        m_sfc_.Foreach(*this, [=] __host__ __device__(auto&&... s) {
+        m_sfc_.Foreach(*this, [&] __host__ __device__(auto&&... s) {
             return this_type::getValue(rhs, std::forward<decltype(s)>(s)...);
         });
         return (*this);
@@ -154,11 +155,6 @@ class Array {
         return at(std::forward<Args>(args)...);
     }
 
-    template <typename... Args>
-    __host__ __device__ static constexpr value_type const& getValue(value_type const& v, Args&&... args) {
-        return v;
-    };
-
     template <typename U, typename RSFC, typename... Args>
     __host__ __device__ static constexpr U const& getValue(Array<U, RSFC> const& other, Args&&... args) {
         return other.at(std::forward<Args>(args)...);
@@ -178,6 +174,25 @@ class Array {
     template <typename TOP, typename... Others, typename... Args>
     __host__ __device__ static constexpr auto getValue(Expression<TOP, Others...> const& expr, Args&&... args) {
         return _invoke_helper(expr, std::index_sequence_for<Others...>(), std::forward<Args>(args)...);
+    }
+
+   private:
+    template <typename TOP, typename... Args>
+    __host__ __device__ static constexpr auto getValue_help(std::integral_constant<int, 0>, TOP const& v,
+                                                            Args&&... args) {
+        return v;
+    };
+    template <typename TOP, typename... Args>
+    __host__ __device__ static constexpr auto getValue_help(std::integral_constant<int, 1>, TOP const& v,
+                                                            Args&&... args) {
+        return v(std::forward<Args>(args)...);
+    };
+
+   public:
+    template <typename TOP, typename... Args>
+    __host__ __device__ static constexpr auto getValue(TOP const& expr, Args&&... args) {
+        return getValue_help(std::integral_constant < int, std::is_convertible<TOP, value_type>::value ? 0 : 1 > (),
+                             expr, std::forward<Args>(args)...);
     }
 };
 
