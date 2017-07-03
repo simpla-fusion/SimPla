@@ -412,8 +412,6 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     //**************************************************************
     auto attr_desc = m_ctx_->CollectRegisteredAttributes();
     for (auto const &item : attr_desc) {
-        CHECK(item.first);
-
         std::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(item.second);
         if (var == nullptr) { continue; }
 
@@ -463,10 +461,12 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
                         << std::endl;
             }
 
-            if (visit_variable_type != "" && item.second->db()->Check("COORDINATES", true)) {
-                d_visit_writer->registerNodeCoordinates(
-                    vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-            } else if (item.second->GetIFORM() == VERTEX || item.second->GetIFORM() == VOLUME) {
+            //            if (visit_variable_type != "" && item.second->db()->Check("COORDINATES", true)) {
+            //                d_visit_writer->registerNodeCoordinates(
+            //                    vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+            //            } else
+
+            if (item.second->GetIFORM() == VERTEX || item.second->GetIFORM() == VOLUME) {
                 d_visit_writer->registerPlotQuantity(
                     item.second->GetPrefix(), visit_variable_type,
                     vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
@@ -1079,8 +1079,6 @@ Real SAMRAITimeIntegrator::Advance(Real time_dt) {
 }
 void SAMRAITimeIntegrator::CheckPoint() const {
     if (m_pimpl_->visit_data_writer_ != nullptr) {
-        // VERBOSE << "Check Point at Step " << m_pimpl_->m_time_refinement_integrator->getIntegratorStep() <<
-        // std::endl;
         m_pimpl_->visit_data_writer_->writePlotData(m_pimpl_->patch_hierarchy,
                                                     m_pimpl_->m_time_refinement_integrator_->getIntegratorStep(),
                                                     m_pimpl_->m_time_refinement_integrator_->getIntegratorTime());

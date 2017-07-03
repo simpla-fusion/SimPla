@@ -137,8 +137,8 @@ void Attribute::Register(AttributeGroup *attr_b) {
 void Attribute::Deregister(AttributeGroup *attr_b) {
     if (m_pimpl_->m_bundle_.erase(attr_b) > 0) { attr_b->Detach(this); };
 }
-void Attribute::Push(DataPack &&) {}
-DataPack Attribute::Pop() { return DataPack{}; }
+void Attribute::Push(std::shared_ptr<DataBlock>) {}
+std::shared_ptr<DataBlock> Attribute::Pop() { return nullptr; }
 
 const MeshBase *Attribute::GetMesh() const { return m_pimpl_->m_mesh_; }
 bool Attribute::isNull() const { return true; }

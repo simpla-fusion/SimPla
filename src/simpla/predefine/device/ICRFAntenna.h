@@ -31,7 +31,7 @@ class ICRFAntenna : public engine::Domain {
     void BoundaryCondition(Real time_now, Real dt) override;
     void Advance(Real time_now, Real dt) override;
 
-    DOMAIN_DECLARE_FIELD(J, EDGE, 1)
+    Field<TM, Real, EDGE> J{this, "name"_ = "J"};
 
     Vec3 m_amplify_{0, 0, 0};
     Real m_f_ = 1.0;

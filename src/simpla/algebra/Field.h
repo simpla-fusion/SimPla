@@ -160,19 +160,30 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         m_data_.foreach ([&](int const* idx, array_type& a) {
             a.SetSpaceFillingCurve(m_mesh_->GetSpaceFillingCurve(IFORM, idx[0]));
         });
-
-        //        if (m_data_ == nullptr) {
-        //            //            m_data_ = m_mesh_->template make_data<value_type, IFORM, DOF>();
-        //        }
     }
 
     void TearDown() override {
         m_range_.reset();
-        //        m_data_.reset();
         m_mesh_ = nullptr;
+        m_data_.foreach ([&](array_type& a) { a.reset(); });
     }
-    void Push(engine::DataPack&&) override{};
-    engine::DataPack Pop() override { return engine::DataPack{}; };
+    void Push(std::shared_ptr<data::DataBlock> p) override {
+        auto d = std::dynamic_pointer_cast<data::DataMultiArray<value_type, NDIMS>>(p);
+        int count = 0;
+        m_data_.foreach ([&](array_type& a) {
+            a.swap(d->GetArray(count));
+            ++count;
+        });
+    };
+    std::shared_ptr<data::DataBlock> Pop() override {
+        auto res = std::make_shared<data::DataMultiArray<value_type, NDIMS>>(NUM_OF_SUB * GetDOF());
+        int count = 0;
+        m_data_.foreach ([&](array_type& a) {
+            res->GetArray(count).swap(a);
+            ++count;
+        });
+        return res;
+    };
     //
     //    void Deserialize(const std::shared_ptr<data::DataBlock>& d) override {
     //        if (d != nullptr) {
@@ -192,18 +203,15 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     template <typename TOther>
     void DeepCopy(TOther const& other) {
         DoUpdate();
-        //        ASSERT(m_data_ != nullptr && m_data_->size() > 0);
-        Clear();
-        //        m_data_->DeepCopy(other.data());
+        m_data_ = other.data();
     }
 
     template <typename Other>
     void Assign(Other const& other) {
         DoUpdate();
-        //        ASSERT(m_mesh_ != nullptr);
-        //        ASSERT(m_data_ != nullptr && m_data_->size() > 0);
-        //        m_mesh_->Assign(*this, m_range_, other);
-        //        m_mesh_->Assign(*this, m_mesh_->GetRange(std::string(EntityIFORMName[IFORM]) + "_PATCH_BOUNDARY"), 0);
+        ASSERT(m_mesh_ != nullptr);
+        m_mesh_->Assign(*this, m_range_, other);
+        m_mesh_->Assign(*this, m_mesh_->GetRange(std::string(EntityIFORMName[IFORM]) + "_PATCH_BOUNDARY"), 0);
     }
 
 };  // class Field

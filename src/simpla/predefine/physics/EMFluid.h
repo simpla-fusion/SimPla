@@ -31,26 +31,21 @@ class EMFluid : public engine::Domain {
     void BoundaryCondition(Real time_now, Real dt) override;
     void Advance(Real time_now, Real dt) override;
 
-    DOMAIN_DECLARE_FIELD(ne, VOLUME, 1);
-    DOMAIN_DECLARE_FIELD(B0v, VOLUME, 3);
-
-    DOMAIN_DECLARE_FIELD(E0, EDGE, 1);
-    DOMAIN_DECLARE_FIELD(B0, FACE, 1);
-
-    DOMAIN_DECLARE_FIELD(BB, VOLUME, 1);
-
-    DOMAIN_DECLARE_FIELD(Jv, VOLUME, 3);
-    DOMAIN_DECLARE_FIELD(Ev, VOLUME, 3);
-    DOMAIN_DECLARE_FIELD(Bv, VOLUME, 3);
-
-    DOMAIN_DECLARE_FIELD(dE, VOLUME, 3);
-    DOMAIN_DECLARE_FIELD(B, FACE, 1);
-    DOMAIN_DECLARE_FIELD(E, EDGE, 1);
-    DOMAIN_DECLARE_FIELD(J, EDGE, 1);
-
-    DOMAIN_DECLARE_FIELD(dumpE, VOLUME, 3);
-    DOMAIN_DECLARE_FIELD(dumpB, VOLUME, 3);
-    DOMAIN_DECLARE_FIELD(dumpJ, VOLUME, 3);
+    Field<TM, Real, VOLUME> ne{this, "name"_ = "ne"};
+    Field<TM, Real, VOLUME, 3> B0v{this, "name"_ = "B0v"};
+    Field<TM, Real, EDGE> E0{this, "name"_ = "E0"};
+    Field<TM, Real, FACE> B0{this, "name"_ = "B0"};
+    Field<TM, Real, VOLUME> BB{this, "name"_ = "BB"};
+    Field<TM, Real, VOLUME, 3> Jv{this, "name"_ = "Jv"};
+    Field<TM, Real, VOLUME, 3> Ev{this, "name"_ = "Ev"};
+    Field<TM, Real, VOLUME, 3> Bv{this, "name"_ = "Bv"};
+    Field<TM, Real, VOLUME, 3> dE{this, "name"_ = "dE"};
+    Field<TM, Real, FACE> B{this, "name"_ = "B"};
+    Field<TM, Real, EDGE> E{this, "name"_ = "E"};
+    Field<TM, Real, EDGE> J{this, "name"_ = "J"};
+    Field<TM, Real, VOLUME, 3> dumpE{this, "name"_ = "dumpE"};
+    Field<TM, Real, VOLUME, 3> dumpB{this, "name"_ = "dumpB"};
+    Field<TM, Real, VOLUME, 3> dumpJ{this, "name"_ = "dumpJ"};
 
     struct fluid_s {
         Real mass = 1;

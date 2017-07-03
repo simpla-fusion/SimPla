@@ -125,9 +125,8 @@ class Domain : public SPObject,
     template <int IFORM, int DOF = 1>                                                        \
     using field_type = Field<mesh_type, typename _MESH_TYPE_::scalar_type, IFORM, DOF>;
 
-#define DOMAIN_DECLARE_FIELD(_NAME_, _IFORM_, _DOF_, ...)                                                      \
-    Field<mesh_type, typename mesh_type::scalar_type, _IFORM_, _DOF_> _NAME_{this, "name"_ = __STRING(_NAME_), \
-                                                                             __VA_ARGS__};
+#define DOMAIN_DECLARE_FIELD(_NAME_, _IFORM_) \
+    Field<mesh_type, typename mesh_type::scalar_type, _IFORM_> _NAME_{this, "name"_ = __STRING(_NAME_)};
 }
 }
 #endif  // SIMPLA_DOMAIN_H

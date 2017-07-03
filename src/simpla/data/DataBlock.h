@@ -59,29 +59,29 @@ class DataMultiArray : public DataBlock {
     explicit DataMultiArray(unsigned long depth) : m_data_(depth) {}
 
     size_type size() const { return m_data_.size(); }
-    bool empty() const override { return m_data_[0].empty(); }
+    bool empty() const override { return m_data_.size() == 0; }
     std::type_info const &value_type_info() const override { return typeid(value_type); };
     int GetNDIMS() const override { return NDIMS; }
     size_type GetDepth() const override { return m_data_.size(); }
 
-    void SetArray(int depth, array_type d) { array_type(d).swap(m_data_[depth]); }
+    void SetArray(int depth, array_type d) { array_type(d).swap(m_data_.at(depth)); }
 
-    array_type *Get(int depth = 0) { return &m_data_[depth]; }
-    array_type const *Get(int depth = 0) const { return &m_data_[depth]; }
-    array_type &GetArray(int depth = 0) { return m_data_[depth]; }
-    array_type const &GetArray(int depth = 0) const { return m_data_[depth]; }
+    array_type *Get(int depth = 0) { return &m_data_.at(depth); }
+    array_type const *Get(int depth = 0) const { return &m_data_.at(depth); }
+    array_type &GetArray(int depth = 0) { return m_data_.at(depth); }
+    array_type const &GetArray(int depth = 0) const { return m_data_.at(depth); }
 
     auto &at(int depth = 0) { return m_data_.at(depth); }
     auto const &at(int depth = 0) const { return m_data_.at(depth); }
-    array_type &operator[](int depth) { return m_data_[depth]; }
-    array_type const &operator[](int depth) const { return m_data_[depth]; }
+    array_type &operator[](int depth) { return m_data_.at(depth); }
+    array_type const &operator[](int depth) const { return m_data_.at(depth); }
     void DeepCopy(std::shared_ptr<this_type> const &other) {
         if (other == nullptr) { return; }
         if (m_data_.size() < other->size()) { m_data_.resize(other->m_data_.size()); }
-        for (int i = 0; i < m_data_.size(); ++i) { m_data_[i].DeepCopy(other->m_data_[i].get()); }
+        for (int i = 0; i < m_data_.size(); ++i) { m_data_.at(i).DeepCopy(other->m_data_.at(i).get()); }
     }
     void Clear() override {
-        for (int i = 0; i < m_data_.size(); ++i) { m_data_[i].Clear(); };
+        for (int i = 0; i < m_data_.size(); ++i) { m_data_.at(i).Clear(); };
     };
 
    private:

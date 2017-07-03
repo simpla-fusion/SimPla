@@ -9,9 +9,12 @@ namespace simpla {
 namespace mesh {
 REGISTER_CREATOR(SMesh);
 
-point_type SMesh::point(EntityId s) const { return local_coordinates(s, point_type{0, 0, 0}); }
+point_type SMesh::point(EntityId s) const {
+    point_type r{0, 0, 0};
+    return local_coordinates(s, &r[0]);
+}
 
-point_type SMesh::local_coordinates(EntityId s, point_type const &pr) const {
+point_type SMesh::local_coordinates(EntityId s, Real const *pr) const {
     s.w = 0;
     point_type r{
         EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][0] + pr[0],
@@ -96,7 +99,7 @@ Real HexahedronVolume(SMesh const *m, EntityId s) {
 
 void SMesh::InitializeData(Real time_now) {
     StructuredMesh::InitializeData(time_now);
-
+    m_coordinates_.Clear();
     m_coordinates_ = [&](EntityId s) -> point_type { return global_coordinates(s, nullptr); };
 
     m_vertex_volume_.Clear();

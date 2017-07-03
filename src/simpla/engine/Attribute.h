@@ -5,7 +5,6 @@
 #ifndef SIMPLA_ATTRIBUTEVIEW_H
 #define SIMPLA_ATTRIBUTEVIEW_H
 
-#include "DataPack.h"
 #include "MeshBlock.h"
 #include "SPObject.h"
 #include "simpla/SIMPLA_config.h"
@@ -158,8 +157,8 @@ struct Attribute : public SPObject, public AttributeDesc {
 
     void Deregister(AttributeGroup *);
 
-    virtual void Push(DataPack &&);
-    virtual DataPack Pop();
+    virtual void Push(std::shared_ptr<data::DataBlock>);
+    virtual std::shared_ptr<data::DataBlock> Pop();
 
     virtual bool isNull() const;
     virtual bool empty() const { return isNull(); };

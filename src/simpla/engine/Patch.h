@@ -6,6 +6,7 @@
 #define SIMPLA_PATCH_H
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/data/all.h>
 #include <simpla/utilities/EntityId.h>
 #include <memory>
 #include "SPObject.h"
@@ -13,7 +14,6 @@
 namespace simpla {
 namespace engine {
 class MeshBlock;
-class DataPack;
 
 class Patch {
     SP_OBJECT_BASE(Patch)
@@ -33,9 +33,10 @@ class Patch {
     void SetBlock(const MeshBlock &);
     const MeshBlock &GetBlock() const;
 
-    std::map<id_type, DataPack> &GetAllData();
-    void Push(id_type id, DataPack &&);
-    DataPack Pop(id_type const &id) const;
+    std::map<id_type, std::shared_ptr<data::DataBlock>> &GetAllData();
+
+    void Push(id_type id, std::shared_ptr<data::DataBlock>);
+    std::shared_ptr<data::DataBlock> Pop(id_type const &id);
 
     EntityRange GetRange(const std::string &g) const;
     EntityRange &GetRange(const std::string &g);

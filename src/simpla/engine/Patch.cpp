@@ -4,6 +4,7 @@
 
 #include "Patch.h"
 #include <simpla/SIMPLA_config.h>
+#include <simpla/data/all.h>
 #include <simpla/geometry/GeoObject.h>
 #include <boost/functional/hash.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -17,7 +18,7 @@ namespace engine {
 struct Patch::pimpl_s {
     id_type m_id_ = NULL_ID;
     MeshBlock m_block_;
-    std::map<id_type, DataPack> m_data_;
+    std::map<id_type, std::shared_ptr<data::DataBlock>> m_data_;
     std::shared_ptr<std::map<std::string, EntityRange>> m_ranges_;
 };
 
@@ -54,18 +55,15 @@ void Patch::SetBlock(const MeshBlock &m) { MeshBlock(m).swap(m_pimpl_->m_block_)
 
 const MeshBlock &Patch::GetBlock() const { return m_pimpl_->m_block_; }
 
-std::map<id_type, DataPack> &Patch::GetAllData() { return m_pimpl_->m_data_; };
+std::map<id_type, std::shared_ptr<data::DataBlock>> &Patch::GetAllData() { return m_pimpl_->m_data_; };
 
-void Patch::Push(id_type id, DataPack &&d) { d.swap(m_pimpl_->m_data_[id]); }
+void Patch::Push(id_type id, std::shared_ptr<data::DataBlock> d) { m_pimpl_->m_data_[id] = d; }
 
-DataPack Patch::Pop(id_type const &id) const {
-    DataPack res;
+std::shared_ptr<data::DataBlock> Patch::Pop(id_type const &id) {
+    std::shared_ptr<data::DataBlock> res = nullptr;
     auto it = m_pimpl_->m_data_.find(id);
-    if (it != m_pimpl_->m_data_.end()) {
-        res.swap(it->second);
-        m_pimpl_->m_data_.erase(it);
-    }
-    return std::move(res);
+    if (it != m_pimpl_->m_data_.end()) { res = (it->second); }
+    return (res);
 }
 EntityRange Patch::GetRange(const std::string &g) const {
     auto it = m_pimpl_->m_ranges_->find(g);

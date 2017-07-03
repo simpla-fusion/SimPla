@@ -14,7 +14,6 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/utilities/Signal.h>
 #include <typeindex>
-#include "DataPack.h"
 namespace simpla {
 namespace engine {
 #define SP_DECLARE_NAME(_CLASS_NAME_)                                \
