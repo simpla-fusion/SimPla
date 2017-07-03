@@ -123,10 +123,7 @@ namespace engine {
 class SPObject {
     SP_OBJECT_BASE(SPObject)
    public:
-    SPObject();
-    template <typename... Args>
-    SPObject(Args &&... args) : SPObject() {}
-
+    SPObject(std::string const &s_name = "");
     virtual ~SPObject();
     SPObject(SPObject const &other);
     SPObject(SPObject &&other);

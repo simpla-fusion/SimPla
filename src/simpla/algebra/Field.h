@@ -20,6 +20,18 @@
 #include "Algebra.h"
 #include "CalculusPolicy.h"
 namespace simpla {
+namespace _detail {
+template <typename T, T... M>
+struct nProduct;
+template <typename T, T N, T... M>
+struct nProduct<T, N, M...> {
+    static constexpr T value = N * nProduct<T, M...>::value;
+};
+template <typename T>
+struct nProduct<T> {
+    static constexpr T value = 1;
+};
+}
 
 template <typename>
 class calculator;
@@ -55,7 +67,8 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     //    std::forward<Args>(args)...){};
     template <typename TGrp, typename... Args>
     explicit Field(TGrp* grp, Args&&... args)
-        : engine::Attribute(IFORM, sizeof...(DOF), typeid(value_type), dynamic_cast<engine::AttributeGroup*>(grp),
+        : engine::Attribute(IFORM, _detail::nProduct<int, DOF...>::value, typeid(value_type),
+                            dynamic_cast<engine::AttributeGroup*>(grp),
                             std::make_shared<data::DataTable>(std::forward<Args>(args)...)) {}
     Field(this_type const& other)
         : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_data_(other.m_data_) {}
@@ -72,7 +85,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
 
     void Clear() {
         DoUpdate();
-        //        m_data_->Clear();
+        m_data_ = 0;
     }
     auto& data() { return m_data_; }
     auto const& data() const { return m_data_; }
@@ -143,6 +156,10 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         engine::Attribute::Update();
         if (m_mesh_ == nullptr) { m_mesh_ = dynamic_cast<mesh_type const*>(engine::Attribute::GetMesh()); }
         ASSERT(m_mesh_ != nullptr);
+
+        m_data_.foreach ([&](int const* idx, array_type& a) {
+            a.SetSpaceFillingCurve(m_mesh_->GetSpaceFillingCurve(IFORM, idx[0]));
+        });
 
         //        if (m_data_ == nullptr) {
         //            //            m_data_ = m_mesh_->template make_data<value_type, IFORM, DOF>();

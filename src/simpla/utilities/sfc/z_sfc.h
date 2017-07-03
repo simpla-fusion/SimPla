@@ -41,7 +41,7 @@ class ZSFC {
           m_strides_(other.m_strides_),
           m_size_(other.m_size_),
           m_array_order_fast_first_(other.m_array_order_fast_first_) {
-        DoSetUp();
+        //        DoSetUp();
     }
     ZSFC(this_type&& other)
     noexcept
@@ -49,7 +49,7 @@ class ZSFC {
           m_strides_(other.m_strides_),
           m_size_(other.m_size_),
           m_array_order_fast_first_(other.m_array_order_fast_first_) {
-        DoSetUp();
+        //        DoSetUp();
     }
 
     ZSFC(std::initializer_list<index_type> const& l) {
@@ -63,8 +63,8 @@ class ZSFC {
             std::get<1>(m_index_box_)[count] = v;
             ++count;
         }
-        std::get<0>(m_index_box_) = std::get<0>(m_index_box_);
-        std::get<1>(m_index_box_) = std::get<1>(m_index_box_);
+//        std::get<0>(m_index_box_) = std::get<0>(m_index_box_);
+//        std::get<1>(m_index_box_) = std::get<1>(m_index_box_);
         DoSetUp();
     }
 

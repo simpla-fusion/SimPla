@@ -115,7 +115,7 @@ struct Attribute::pimpl_s {
 };
 Attribute::Attribute(int IFORM, int DOF, std::type_info const &t_info, AttributeGroup *grp,
                      std::shared_ptr<DataTable> cfg)
-    : SPObject((cfg != nullptr && cfg->has("name")) ? cfg->GetValue<std::string>("name") : ""),
+    : SPObject((cfg != nullptr && cfg->has("name")) ? cfg->GetValue<std::string>("name") : "unnamed"),
       AttributeDesc(IFORM, DOF, t_info, SPObject::GetName(), cfg),
       m_pimpl_(new pimpl_s) {
     Register(grp);

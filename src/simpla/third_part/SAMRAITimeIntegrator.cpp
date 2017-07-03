@@ -318,12 +318,11 @@ Array<T, ZSFC<NDIMS>> create_array(SAMRAI::pdat::ArrayData<T> &p_data, int depth
     auto i_lower = p_data.getBox().lower();
     auto i_upper = p_data.getBox().upper();
 
-    typename Array<T, ZSFC<NDIMS>>::array_index_box_type i_box{{i_lower[0], i_lower[1], i_lower[2]},
-                                                               {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}};
-    Array<T, ZSFC<NDIMS>> res(i_box, true);
-    res.reset(std::shared_ptr<T>(p_data.getPointer(depth), simpla::tags::do_nothing()));
-    res.DoSetUp();
-    return res;
+    return Array<T, ZSFC<NDIMS>>(
+        p_data.getPointer(depth),
+        typename Array<T, ZSFC<NDIMS>>::array_index_box_type{{i_lower[0], i_lower[1], i_lower[2]},
+                                                             {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}},
+        true);
 };
 
 template <int NDIMS, typename T>
@@ -413,6 +412,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     //**************************************************************
     auto attr_desc = m_ctx_->CollectRegisteredAttributes();
     for (auto const &item : attr_desc) {
+        CHECK(item.first);
+
         std::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(item.second);
         if (var == nullptr) { continue; }
 
@@ -472,8 +473,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
             }
         }
     }
-    //    integrator->printClassData(std::cout);
-    //    vardb->printClassData(std::cout);
+    integrator->printClassData(std::cout);
+    vardb->printClassData(std::cout);
 }
 void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchFromSAMRAI(SAMRAI::hier::Patch &patch, engine::Patch *p) {
     p->SetBlock(engine::MeshBlock{
@@ -1047,7 +1048,9 @@ void SAMRAITimeIntegrator::Update() {
 
     m_pimpl_->grid_geometry->printClassData(std::cout);
     m_pimpl_->hyp_level_integrator->printClassData(std::cout);
-    //    m_pimpl_->m_time_refinement_integrator_->printClassData(std::cout);
+
+    m_pimpl_->m_time_refinement_integrator_->printClassData(std::cout);
+
     MESSAGE << "==================  Context is initialized!  =================" << std::endl;
 };
 void SAMRAITimeIntegrator::Finalize() {

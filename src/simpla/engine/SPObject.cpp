@@ -27,9 +27,9 @@ struct SPObject::pimpl_s {
 
 static boost::hash<boost::uuids::uuid> g_obj_hasher;
 static boost::uuids::random_generator g_uuid_generator;
-SPObject::SPObject() : m_pimpl_(new pimpl_s) {
+SPObject::SPObject(std::string const &s_name) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_id_ = g_obj_hasher(g_uuid_generator());
-    //    m_pimpl_->m_name_ = (s_name != "") ? s_name : std::to_string(m_pimpl_->m_id_);
+    m_pimpl_->m_name_ = (s_name != "") ? s_name : std::to_string(m_pimpl_->m_id_);
 }
 SPObject::~SPObject() { DoFinalize(); }
 SPObject::SPObject(SPObject const &other) {}
@@ -45,8 +45,8 @@ void SPObject::SetName(std::string const &s_name) {
 }
 std::string const &SPObject::GetName() const { return m_pimpl_->m_name_; }
 
-//DataPack SPObject::Serialize() const { return DataPack{}; }
-//void SPObject::UnPack(engine::DataPack &&t) {}
+// DataPack SPObject::Serialize() const { return DataPack{}; }
+// void SPObject::UnPack(engine::DataPack &&t) {}
 
 void SPObject::lock() { m_pimpl_->m_mutex_.lock(); }
 void SPObject::unlock() { m_pimpl_->m_mutex_.unlock(); }
