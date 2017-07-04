@@ -122,10 +122,16 @@ Attribute::Attribute(int IFORM, int DOF, std::type_info const &t_info, Attribute
     m_pimpl_->m_mesh_ = grp->GetMesh();
 };
 
-Attribute::Attribute(Attribute const &other) : AttributeDesc(other), m_pimpl_(new pimpl_s) {}
-Attribute::Attribute(Attribute &&other) noexcept : AttributeDesc(other), m_pimpl_(std::move(other.m_pimpl_)) {}
+Attribute::Attribute(Attribute const &other) : AttributeDesc(other), m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_mesh_ = other.m_pimpl_->m_mesh_;
+    for (auto *grp : other.m_pimpl_->m_bundle_) { Register(grp); }
+}
+Attribute::Attribute(Attribute &&other) noexcept : AttributeDesc(other), m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_mesh_ = other.m_pimpl_->m_mesh_;
+    for (auto *grp : other.m_pimpl_->m_bundle_) { Register(grp); }
+}
 Attribute::~Attribute() {
-    for (auto *b : m_pimpl_->m_bundle_) { Deregister(b); }
+    for (auto *attr : m_pimpl_->m_bundle_) { attr->Detach(this); }
 }
 
 void Attribute::Register(AttributeGroup *attr_b) {
@@ -135,7 +141,10 @@ void Attribute::Register(AttributeGroup *attr_b) {
     }
 }
 void Attribute::Deregister(AttributeGroup *attr_b) {
-    if (m_pimpl_->m_bundle_.erase(attr_b) > 0) { attr_b->Detach(this); };
+    if (attr_b != nullptr) {
+        attr_b->Detach(this);
+        m_pimpl_->m_bundle_.erase(attr_b);
+    }
 }
 void Attribute::Push(std::shared_ptr<DataBlock>) {}
 std::shared_ptr<DataBlock> Attribute::Pop() { return nullptr; }

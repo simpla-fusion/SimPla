@@ -17,6 +17,7 @@
 #include <simpla/utilities/FancyStream.h>
 #include <simpla/utilities/Range.h>
 #include <simpla/utilities/nTuple.h>
+#include <simpla/utilities/type_traits.h>
 #include "Algebra.h"
 #include "CalculusPolicy.h"
 namespace simpla {
@@ -35,8 +36,22 @@ struct nProduct<T> {
 
 template <typename>
 class calculator;
+
 template <typename TM, typename TV, int...>
 class Field;
+
+// namespace traits {
+// template <typename TM, typename TV, int... I>
+// struct reference<Field<TM, TV, I...>> {
+//    typedef const Field<TM, TV, I...>& type;
+//};
+//
+// template <typename TM, typename TV, int... I>
+// struct reference<const Field<TM, TV, I...>> {
+//    typedef const Field<TM, TV, I...>& type;
+//};
+//}
+
 template <typename TM, typename TV, int IFORM, int... DOF>
 class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
    private:
@@ -70,16 +85,18 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         : engine::Attribute(IFORM, _detail::nProduct<int, DOF...>::value, typeid(value_type),
                             dynamic_cast<engine::AttributeGroup*>(grp),
                             std::make_shared<data::DataTable>(std::forward<Args>(args)...)) {}
-    Field(this_type const& other)
-        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_data_(other.m_data_) {}
-
-    Field(this_type&& other)
-        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_data_(other.m_data_) {}
-
-    Field(this_type const& other, EntityRange r)
-        : engine::Attribute(other), m_data_(other.m_data_), m_mesh_(other.m_mesh_), m_range_(std::move(r)) {}
 
     ~Field() override = default;
+
+    Field(this_type const& other)
+        : engine::Attribute(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_data_(other.m_data_) {}
+    Field(this_type&& other)
+        : engine::Attribute(std::forward<engine::Attribute>(other)),
+          m_mesh_(other.m_mesh_),
+          m_range_(other.m_range_),
+          m_data_(other.m_data_) {}
+    Field(this_type const& other, EntityRange r)
+        : engine::Attribute(other), m_data_(other.m_data_), m_mesh_(other.m_mesh_), m_range_(r) {}
 
     size_type size() const override { return m_range_.size(); }
 
@@ -87,27 +104,21 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         DoUpdate();
         m_data_ = 0;
     }
+    void SetUndefined() {
+        DoUpdate();
+        m_data_ = std::numeric_limits<value_type>::signaling_NaN();
+    }
     auto& data() { return m_data_; }
     auto const& data() const { return m_data_; }
     bool empty() const override { return m_range_.empty(); }
 
-    this_type& operator=(this_type const& other) {
-        Assign(other);
-        return *this;
-    }
-
     void swap(this_type& other) {
         engine::Attribute::swap(other);
-        std::swap(m_mesh_, other.m_mesh_);
         m_data_.swap(other.m_data_);
         m_range_.swap(other.m_range_);
+        std::swap(m_mesh_, other.m_mesh_);
     }
 
-    template <typename TR>
-    this_type& operator=(TR const& rhs) {
-        Assign(rhs);
-        return *this;
-    };
     auto& operator[](int n) { return m_data_[n]; }
     auto const& operator[](int n) const { return m_data_[n]; }
 
@@ -206,13 +217,46 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         m_data_ = other.data();
     }
 
-    template <typename Other>
-    void Assign(Other const& other) {
+    this_type& operator=(this_type const& other) {
+        m_data_ = other.m_data_;
+        return *this;
+    }
+    template <typename TR>
+    this_type& operator=(TR const& rhs) {
         DoUpdate();
         ASSERT(m_mesh_ != nullptr);
-        m_mesh_->Assign(*this, m_range_, other);
-        m_mesh_->Assign(*this, m_mesh_->GetRange(std::string(EntityIFORMName[IFORM]) + "_PATCH_BOUNDARY"), 0);
-    }
+        m_mesh_->Assign(*this, m_range_, rhs);
+        //        Assign(m_mesh_->GetRange(std::string(EntityIFORMName[IFORM]) + "_PATCH_BOUNDARY"), 0);
+        return *this;
+    };
+
+    //    template <typename TFun>
+    //    void Assign(EntityRange const& r, TFun const& other,
+    //                ENABLE_IF((std::is_same<std::result_of_t<TFun(EntityId)>, value_type>::value))) {
+    //        f.data().foreach ([&](int const* sub, auto& lhs) {
+    //            int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][sub[0]];
+    //            auto id_box = GetIndexBox(tag);
+    //            int16_t w = static_cast<int16_t>(tag | (sub[1] << 3));
+    //
+    //            if (r.isNull()) {
+    //                lhs = [&] __host__ __device__(auto idx) {
+    //                    entity_id_type s;
+    //                    s.w = static_cast<int16_t>(w);
+    //                    s.x = static_cast<int16_t>(idx[0]);
+    //                    s.y = static_cast<int16_t>(idx[1]);
+    //                    s.z = static_cast<int16_t>(idx[2]);
+    //                    return fun(s);
+    //                };
+    //            } else {
+    //                r.foreach ([&] __host__ __device__(auto s) {
+    //                    if (tag == s.w) {
+    //                        s.w = w;
+    //                        lhs.Assign(fun(s), s.x, s.y, s.z);
+    //                    }
+    //                });
+    //            }
+    //        });
+    //    }
 
 };  // class Field
 

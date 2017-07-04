@@ -40,33 +40,29 @@ class ZSFC {
         : m_index_box_(other.m_index_box_),
           m_strides_(other.m_strides_),
           m_size_(other.m_size_),
-          m_array_order_fast_first_(other.m_array_order_fast_first_) {
-        //        DoSetUp();
-    }
+          m_array_order_fast_first_(other.m_array_order_fast_first_) {}
     ZSFC(this_type&& other)
     noexcept
         : m_index_box_(other.m_index_box_),
           m_strides_(other.m_strides_),
           m_size_(other.m_size_),
-          m_array_order_fast_first_(other.m_array_order_fast_first_) {
-        //        DoSetUp();
-    }
+          m_array_order_fast_first_(other.m_array_order_fast_first_) {}
 
-    ZSFC(std::initializer_list<index_type> const& l) {
-        for (int i = 0; i < NDIMS; ++i) {
-            std::get<0>(m_index_box_)[i] = 0;
-            std::get<1>(m_index_box_)[i] = 1;
-        }
-        int count = 0;
-        for (auto const& v : l) {
-            if (count >= NDIMS) { break; }
-            std::get<1>(m_index_box_)[count] = v;
-            ++count;
-        }
-//        std::get<0>(m_index_box_) = std::get<0>(m_index_box_);
-//        std::get<1>(m_index_box_) = std::get<1>(m_index_box_);
-        DoSetUp();
-    }
+    //    ZSFC(std::initializer_list<index_type> const& l) {
+    //        for (int i = 0; i < NDIMS; ++i) {
+    //            std::get<0>(m_index_box_)[i] = 0;
+    //            std::get<1>(m_index_box_)[i] = 1;
+    //        }
+    //        int count = 0;
+    //        for (auto const& v : l) {
+    //            if (count >= NDIMS) { break; }
+    //            std::get<1>(m_index_box_)[count] = v;
+    //            ++count;
+    //        }
+    //        //        std::get<0>(m_index_box_) = std::get<0>(m_index_box_);
+    //        //        std::get<1>(m_index_box_) = std::get<1>(m_index_box_);
+    //        DoSetUp();
+    //    }
 
     explicit ZSFC(array_index_box_type const& b, bool array_order_fast_first = false)
         : m_index_box_(b), m_array_order_fast_first_(array_order_fast_first) {
@@ -82,7 +78,7 @@ class ZSFC {
         return *this;
     };
     void swap(ZSFC& other) {
-        m_index_box_.swap(m_index_box_);
+        m_index_box_.swap(other.m_index_box_);
         m_strides_.swap(other.m_strides_);
         std::swap(m_size_, other.m_size_);
         std::swap(m_array_order_fast_first_, other.m_array_order_fast_first_);
@@ -114,6 +110,7 @@ class ZSFC {
         DoSetUp();
     }
     __host__ __device__ constexpr inline bool in_box(array_index_type const& x) const;
+    __host__ __device__ constexpr inline bool in_box(index_type x, index_type y, index_type z) const;
 
     __host__ __device__ constexpr size_type hash(array_index_type const& idx) const {
         return dot(idx - std::get<0>(m_index_box_), m_strides_);
@@ -238,24 +235,25 @@ void ZSFC<3>::Foreach(TLHS& lhs, TRHS const& rhs) const {
     index_type ke = std::get<1>(m_index_box_)[2];
 
 #ifndef __CUDA__
-    if (m_array_order_fast_first_) {
-#pragma omp parallel for
-        for (index_type k = kb; k < ke; ++k)
-            for (index_type j = jb; j < je; ++j)
-                for (index_type i = ib; i < ie; ++i) {
-                    nTuple<index_type, 3> idx{i, j, k};
-                    lhs(idx) = rhs(idx);
-                }
-
-    } else {
-#pragma omp parallel for
-        for (index_type i = ib; i < ie; ++i)
-            for (index_type j = jb; j < je; ++j)
-                for (index_type k = kb; k < ke; ++k) {
-                    nTuple<index_type, 3> idx{i, j, k};
-                    lhs(idx) = rhs(idx);
-                }
-    }
+//    if (m_array_order_fast_first_) {
+//        //#pragma omp parallel for
+//        for (index_type k = kb; k < ke; ++k)
+//            for (index_type j = jb; j < je; ++j)
+//                for (index_type i = ib; i < ie; ++i) {
+//                    lhs.Assign(rhs, i, j, k);
+//                    //                    nTuple<index_type, 3> idx{i, j, k};
+//                    //                    lhs.at(idx) = rhs(idx);
+//                }
+//
+//    } else {
+//        //#pragma omp parallel for
+//        for (index_type i = ib; i < ie; ++i)
+//            for (index_type j = jb; j < je; ++j)
+//                for (index_type k = kb; k < ke; ++k) {
+//                    //                    nTuple<index_type, 3> idx{i, j, k};
+//                    lhs.Assign(rhs, i, j, k);  // rhs(idx);
+//                }
+//    }
 #else
 
     dim3 threadsPerBlock{4, 4, 4};
@@ -279,7 +277,12 @@ constexpr inline bool ZSFC<3>::in_box(array_index_type const& idx) const {
            (std::get<0>(m_index_box_)[1] <= idx[1]) && (idx[1] < std::get<1>(m_index_box_)[1]) &&
            (std::get<0>(m_index_box_)[2] <= idx[2]) && (idx[2] < std::get<1>(m_index_box_)[2]);
 };
-
+template <>
+constexpr inline bool ZSFC<3>::in_box(index_type x, index_type y, index_type z) const {
+    return (std::get<0>(m_index_box_)[0] <= x) && (x < std::get<1>(m_index_box_)[0]) &&
+           (std::get<0>(m_index_box_)[1] <= y) && (y < std::get<1>(m_index_box_)[1]) &&
+           (std::get<0>(m_index_box_)[2] <= z) && (z < std::get<1>(m_index_box_)[2]);
+}
 // template <>
 // template <typename TFun>
 // void ZSFC<4>::Foreach(TFun const& fun) const {

@@ -72,7 +72,7 @@ struct calculator {
     template <typename TFun>
     static auto getValue(TFun const& f, mesh_type const& m, int tag, IdxShift S = IdxShift{0, 0, 0},
                          ENABLE_IF((concept::is_callable<TFun(simpla::EntityId)>::value))) {
-        return [&](index_tuple const& idx) {
+        return [=](index_tuple const& idx) {
             EntityId s;
             s.w = static_cast<int16_t>(tag);
             s.x = static_cast<int16_t>(idx[0] + S[0]);

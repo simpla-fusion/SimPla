@@ -89,6 +89,7 @@ index_box_type StructuredMesh::GetIndexBox(int tag) const {
     }
     return res;
 }
+
 void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix) {
     Real ratio = g == nullptr ? 1.0 : g->CheckOverlap(GetBox());
 

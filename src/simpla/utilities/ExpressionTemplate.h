@@ -35,6 +35,22 @@ struct extent<simpla::Expression<TOP, Args...>, N>
 //                    std::remove_cv<Args>::type>::value...>::value> {};
 }
 namespace simpla {
+
+template <typename TM, typename TV, int...>
+class Field;
+
+namespace traits {
+template <typename TM, typename TV, int... I>
+struct reference<Field<TM, TV, I...>> {
+    typedef const Field<TM, TV, I...> &type;
+};
+
+template <typename TM, typename TV, int... I>
+struct reference<const Field<TM, TV, I...>> {
+    typedef const Field<TM, TV, I...> &type;
+};
+}
+
 namespace traits {
 
 template <typename TExpr>

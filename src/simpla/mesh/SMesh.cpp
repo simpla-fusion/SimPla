@@ -146,7 +146,6 @@ void SMesh::InitializeData(Real time_now) {
     m_vertex_dual_volume_ = [&](EntityId s) -> Real {
         return HexahedronVolume(this, EntityId{static_cast<int16_t>(s.x - 1), static_cast<int16_t>(s.y - 1),
                                                static_cast<int16_t>(s.z - 1), 0b111});
-
     };
     m_vertex_inv_dual_volume_ = 1.0 / m_vertex_dual_volume_;
 

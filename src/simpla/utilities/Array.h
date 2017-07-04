@@ -32,13 +32,16 @@ class Array {
 
    public:
     Array() = default;
-    virtual ~Array() = default;
+    virtual ~Array(){};
 
     Array(this_type const& other)
         : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_holder_(other.m_holder_), m_host_data_(other.m_host_data_) {}
 
     Array(this_type&& other) noexcept
-        : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_holder_(other.m_holder_), m_host_data_(other.m_host_data_) {}
+        : m_sfc_(other.m_sfc_),
+          m_data_(other.m_data_),
+          m_holder_(std::shared_ptr<value_type>(other.m_holder_)),
+          m_host_data_(other.m_host_data_) {}
 
     template <typename... Args>
     explicit Array(Args&&... args) : m_data_(nullptr), m_sfc_(std::forward<Args>(args)...) {}
@@ -73,14 +76,12 @@ class Array {
     std::type_info const& value_type_info() const { return typeid(value_type); }
     size_type size() const { return m_sfc_.size(); }
 
-    void reset(std::shared_ptr<value_type> const& d = nullptr) {
-        m_holder_ = d;
-        m_host_data_ = m_holder_.get();
-    }
+    void reset(std::shared_ptr<value_type> const& d = nullptr) { SetData(d); }
 
     void SetData(std::shared_ptr<value_type> const& d) {
         m_holder_ = d;
         m_host_data_ = m_holder_.get();
+        m_data_ = m_host_data_;
     }
 
     std::shared_ptr<value_type>& GetData() { return m_holder_; }
@@ -88,11 +89,6 @@ class Array {
 
     value_type* get() { return m_data_; }
     value_type* get() const { return m_data_; }
-
-    template <typename Other, typename... Args>
-    void Assign(Other const& other, Args&&... args) {
-        at(std::forward<Args>(args)...) = this_type::getValue(other, std::forward<Args>(args)...);
-    };
 
     template <typename... Args>
     this_type Shift(Args&&... args) const {
@@ -194,6 +190,13 @@ class Array {
         return getValue_help(std::integral_constant < int, std::is_convertible<TOP, value_type>::value ? 0 : 1 > (),
                              expr, std::forward<Args>(args)...);
     }
+
+    template <typename Other, typename... Args>
+    void Assign(Other const& other, Args&&... args) {
+        if (m_sfc_.in_box(std::forward<Args>(args)...)) {
+            //            at(std::forward<Args>(args)...) = this_type::getValue(other, std::forward<Args>(args)...);
+        }
+    };
 };
 
 namespace traits {

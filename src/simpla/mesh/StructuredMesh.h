@@ -148,7 +148,8 @@ class StructuredMesh : public engine::MeshBase {
         //                auto id_box = GetIndexBox(IFORM);
         //
         //                auto &lhs = f[i * DOF + j];
-        //                auto rhs = calculator<M>::getValue(expr, *dynamic_cast<M const *>(this), tag | (j << 3));
+        //                auto rhs = calculator<M>::getValue(expr, *dynamic_cast<M const *>(this), tag | (j <<
+        //            3));
         //                if (r.isNull()) {
         //                    lhs = rhs;
         //                } else {
@@ -260,7 +261,7 @@ class StructuredMesh : public engine::MeshBase {
             int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][sub[0]];
             auto id_box = GetIndexBox(tag);
             int16_t w = static_cast<int16_t>(tag | (sub[1] << 3));
-            int n = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 0;
+            int n = sub[(IFORM == VERTEX || IFORM == VOLUME) ? 1 : 0];
             if (r.isNull()) {
                 lhs = [&] __host__ __device__(auto idx) {
                     entity_id_type s;

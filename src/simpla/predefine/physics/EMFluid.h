@@ -197,6 +197,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
         b *= 0.5 * dt / epsilon0;
         c *= 0.5 * dt / epsilon0;
         a += 1;
+
         dE = (Q * a - cross_v(Q, B0v) * b + B0v * (dot_v(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
              (b * b * BB + a * a);
 
@@ -209,6 +210,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
             Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
 
             K = dE * ns * qs * as;
+
             Js += (K + cross_v(K, B0v) * as + B0v * (dot_v(K, B0v) * as * as)) / (BB * as * as + 1);
         }
 
