@@ -496,7 +496,7 @@ _SP_DEFINE_FIELD_COMPOUND_OP(>>)
     };                                                                                     \
     template <typename TM, typename TL, int... NL, typename TR, int... NR>                 \
     bool operator _OP_(Field<TM, TL, NL...> const& lhs, Field<TM, TR, NR...> const& rhs) { \
-        return lhs.data() _OP_ rhs.dat();                                                  \
+        return lhs.data() _OP_ rhs.data();                                                  \
     };
 
 _SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(not_equal_to, tags::logical_or, !=)
