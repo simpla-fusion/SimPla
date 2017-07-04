@@ -137,75 +137,27 @@ auto const& get(nTuple<T, M...> const& expr) {
 }
 }  // namespace traits
 
-struct nTuple_calculator {
-    template <typename T>
-    static T& getValue(T* v, int s) {
-        return v[s];
-    };
-
-    template <typename T>
-    static T const& getValue(T const* v, int s) {
-        return v[s];
-    };
-
-    template <typename T, typename TI, typename... Idx>
-    static auto getValue(T* v, TI s0, Idx&&... idx) {
-        return getValue(v[s0], std::forward<Idx>(idx)...);
-    };
-
-    template <typename T>
-    static T& getValue(T& v) {
-        return v;
-    };
-
-    template <typename T, typename... Idx>
-    static T& getValue(T& v, Idx&&... idx) {
-        return v;
-    };
-
-    template <typename T, typename TI>
-    static T getValue(T* v, TI const* s) {
-        return getValue(v[*s], s + 1);
-    };
-
-    template <typename T, int N0, int... N, typename Idx>
-    static T getValue(nTuple<T, N0, N...>& v, Idx const* idx) {
-        return getValue(v.m_data_[idx[0]], idx + 1);
-    };
-
-    template <typename T, int N0, int... N, typename Idx>
-    static auto getValue(nTuple<T, N0, N...> const& v, Idx const* idx) {
-        return getValue(v.m_data_[idx[0]], idx + 1);
-    };
-
-    template <typename T, int N0, int... N, typename... Idx>
-    static auto getValue(nTuple<T, N0, N...>& v, int s, Idx&&... idx) {
-        return getValue(v.m_data_[s], std::forward<Idx>(idx)...);
-    };
-
-    template <typename T, int N0, int... N, typename... Idx>
-    static auto getValue(nTuple<T, N0, N...> const& v, int s, Idx&&... idx) {
-        return getValue(v.m_data_[s], std::forward<Idx>(idx)...);
-    };
-    //
-    //    template <typename... T, typename... Idx>
-    //    static auto getValue(Expression<tags::_nTuple_cross, T...> const& expr, int s, Idx&&... others) {
-    //        return getValue(std::get<0>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...) *
-    //                   getValue(std::get<1>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) -
-    //               getValue(std::get<0>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) *
-    //                   getValue(std::get<1>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...);
-    //    }
-
-    template <typename TOP, typename... Others, size_t... index, typename... Idx>
-    static auto _invoke_helper(Expression<TOP, Others...> const& expr, std::index_sequence<index...>, Idx&&... s) {
-        return ((expr.m_op_(getValue(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)));
-    }
-
-    template <typename TOP, typename... Others, typename... Idx>
-    static auto getValue(Expression<TOP, Others...> const& expr, Idx&&... s) {
-        return ((_invoke_helper(expr, std::index_sequence_for<Others...>(), std::forward<Idx>(s)...)));
-    }
+namespace calculus {
+template <typename T, int N0, int... N, typename Idx>
+static auto GetValue<nTuple<T, N0, N...>>::eval(nTuple<T, N0, N...>& v, Idx const* idx) {
+    return getValue(v.m_data_[idx[0]], idx + 1);
 };
+
+template <typename T, int N0, int... N, typename Idx>
+static auto GetValue<nTuple<T, N0, N...> const>::eval(nTuple<T, N0, N...> const& v, Idx const* idx) {
+    return getValue(v.m_data_[idx[0]], idx + 1);
+};
+
+template <typename T, int N0, int... N, typename... Idx>
+static auto GetValue<nTuple<T, N0, N...>>::eval(nTuple<T, N0, N...>& v, int s, Idx&&... idx) {
+    return getValue(v.m_data_[s], std::forward<Idx>(idx)...);
+};
+
+template <typename T, int N0, int... N, typename... Idx>
+static auto GetValue<nTuple<T, N0, N...> const>::eval(nTuple<T, N0, N...> const& v, int s, Idx&&... idx) {
+    return getValue(v.m_data_[s], std::forward<Idx>(idx)...);
+};
+}
 namespace _detail {
 
 template <typename TFun, typename TV, int N0>
@@ -241,7 +193,6 @@ template <typename TV, int N0, int... N>
 struct nTuple<TV, N0, N...> {
     typedef nTuple<TV, N0, N...> this_type;
 
-    typedef nTuple_calculator calculator;
     typedef TV value_type;
 
     typedef typename std::conditional<sizeof...(N) == 0, TV, nTuple<TV, N...>>::type sub_type;
@@ -272,8 +223,6 @@ struct nTuple<TV, N0, N...> {
 
     __host__ __device__ sub_type const& operator[](int s) const { return m_data_[s]; }
 
-    //    __host__ __device__ value_type& at(int const* s) { return calculator::getValue(*this, s); }
-
     __host__ __device__ auto& at(int s) { return m_data_[s]; }
 
     __host__ __device__ auto const& at(int s) const { return m_data_[s]; }
@@ -288,25 +237,25 @@ struct nTuple<TV, N0, N...> {
         return m_data_[n0](std::forward<Idx>(s)...);
     }
 
-//    template <typename TI>
-//    __host__ __device__ auto& at(TI const* idx) {
-//        return m_data_[idx[0]](idx + 1);
-//    }
-//
-//    template <typename TI>
-//    __host__ __device__ auto const& at(TI const* idx) const {
-//        return m_data_[idx[0]](idx + 1);
-//    }
-//
-//    template <typename TI, int M>
-//    __host__ __device__ auto& at(nTuple<TI, M> const& idx) {
-//        return at(&idx[0]);
-//    }
-//
-//    template <typename TI, int M>
-//    __host__ __device__ auto const& at(nTuple<TI, M> const& idx) const {
-//        return at(&idx[0]);
-//    }
+    //    template <typename TI>
+    //    __host__ __device__ auto& at(TI const* idx) {
+    //        return m_data_[idx[0]](idx + 1);
+    //    }
+    //
+    //    template <typename TI>
+    //    __host__ __device__ auto const& at(TI const* idx) const {
+    //        return m_data_[idx[0]](idx + 1);
+    //    }
+    //
+    //    template <typename TI, int M>
+    //    __host__ __device__ auto& at(nTuple<TI, M> const& idx) {
+    //        return at(&idx[0]);
+    //    }
+    //
+    //    template <typename TI, int M>
+    //    __host__ __device__ auto const& at(nTuple<TI, M> const& idx) const {
+    //        return at(&idx[0]);
+    //    }
 
     template <typename... Idx>
     __host__ __device__ auto& operator()(Idx&&... s) {
@@ -502,12 +451,10 @@ __host__ __device__ auto dot(TL const& l, TR const& r) {
 
 template <typename T1, typename T2>
 __host__ __device__ auto cross(T1 const& l, T2 const& r) {
-    return traits::make_ntuple(nTuple_calculator::getValue(l, 1) * nTuple_calculator::getValue(r, 2) -
-                                   nTuple_calculator::getValue(l, 2) * nTuple_calculator::getValue(r, 1),
-                               nTuple_calculator::getValue(l, 2) * nTuple_calculator::getValue(r, 0) -
-                                   nTuple_calculator::getValue(l, 0) * nTuple_calculator::getValue(r, 2),
-                               nTuple_calculator::getValue(l, 0) * nTuple_calculator::getValue(r, 1) -
-                                   nTuple_calculator::getValue(l, 1) * nTuple_calculator::getValue(r, 0));
+    return traits::make_ntuple(
+        calculus::getValue(l, 1) * calculus::getValue(r, 2) - calculus::getValue(l, 2) * calculus::getValue(r, 1),
+        calculus::getValue(l, 2) * calculus::getValue(r, 0) - calculus::getValue(l, 0) * calculus::getValue(r, 2),
+        calculus::getValue(l, 0) * calculus::getValue(r, 1) - calculus::getValue(l, 1) * calculus::getValue(r, 0));
 }
 
 // template <typename T>

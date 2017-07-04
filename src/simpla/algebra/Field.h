@@ -262,6 +262,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
             lhs = calculator<mesh_type>::getValue(*m_mesh_, nTuple<index_type, 3>{0, 0, 0}, expr,
                                                   std::forward<decltype(sub)>(sub)...);
         });
+
     }
     //    template <typename TFun>
     //    void Assign(EntityRange const& r, TFun const& fun,

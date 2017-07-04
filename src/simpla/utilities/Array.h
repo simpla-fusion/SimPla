@@ -16,6 +16,17 @@
 #include "SFC.h"
 #include "memory.h"
 namespace simpla {
+namespace calculus {
+template <typename V, typename SFC, typename... Args>
+__host__ __device__ constexpr auto& getValue(Array<V, SFC>& other, Args&&... args) {
+    return other.at(std::forward<Args>(args)...);
+};
+
+template <typename V, typename SFC, typename... Args>
+__host__ __device__ constexpr auto const& getValue(Array<V, SFC> const& other, Args&&... args) {
+    return other.at(std::forward<Args>(args)...);
+};
+}
 
 template <typename V, typename SFC = ZSFC<3>>
 class Array {
@@ -149,57 +160,17 @@ class Array {
         return at(std::forward<Args>(args)...);
     }
 
-    template <typename U, typename RSFC, typename... Args>
-    __host__ __device__ static constexpr U const& getValue(Array<U, RSFC> const& other, Args&&... args) {
-        return other.at(std::forward<Args>(args)...);
-    };
-
-    template <typename... Args>
-    __host__ __device__ static constexpr value_type const& getValue(this_type const& other, Args&&... args) {
-        return other.at(std::forward<Args>(args)...);
-    };
-
-    template <typename TOP, typename... Others, size_t... IND, typename... Args>
-    __host__ __device__ static constexpr auto _invoke_helper(Expression<TOP, Others...> const& expr,
-                                                             std::index_sequence<IND...>, Args&&... args) {
-        return TOP::eval(getValue(std::get<IND>(expr.m_args_), std::forward<Args>(args)...)...);
-    }
-
-    template <typename TOP, typename... Others, typename... Args>
-    __host__ __device__ static constexpr auto getValue(Expression<TOP, Others...> const& expr, Args&&... args) {
-        return _invoke_helper(expr, std::index_sequence_for<Others...>(), std::forward<Args>(args)...);
-    }
-
-   private:
-    template <typename TOP, typename... Args>
-    __host__ __device__ static constexpr auto getValue_help(std::integral_constant<int, 0>, TOP const& v,
-                                                            Args&&... args) {
-        return v;
-    };
-    template <typename TOP, typename... Args>
-    __host__ __device__ static constexpr auto getValue_help(std::integral_constant<int, 1>, TOP const& v,
-                                                            Args&&... args) {
-        return v(std::forward<Args>(args)...);
-    };
-
-   public:
-    template <typename TOP, typename... Args>
-    __host__ __device__ static constexpr auto getValue(TOP const& expr, Args&&... args) {
-        return getValue_help(std::integral_constant < int, std::is_convertible<TOP, value_type>::value ? 0 : 1 > (),
-                             expr, std::forward<Args>(args)...);
-    }
-
-    template <typename Other, typename... Args>
-    void Assign(Other const& other, Args&&... args) {
-        if (m_sfc_.in_box(std::forward<Args>(args)...)) {
-            at(std::forward<Args>(args)...) = getValue(other, std::forward<Args>(args)...);
-        }
-    }
+    //    template <typename Other, typename... Args>
+    //    void Assign(Other const& other, Args&&... args) {
+    //        if (m_sfc_.in_box(std::forward<Args>(args)...)) {
+    //            at(std::forward<Args>(args)...) = calculus::getValue(other, std::forward<Args>(args)...);
+    //        }
+    //    }
 
     template <typename RHS>
     void Assign(RHS const& rhs) {
         m_sfc_.Foreach([&] __host__ __device__(auto&&... s) {
-            at(std::forward<decltype(s)>(s)...) = getValue(rhs, std::forward<decltype(s)>(s)...);
+            at(std::forward<decltype(s)>(s)...) = calculus::getValue(rhs, std::forward<decltype(s)>(s)...);
         });
     }
 };

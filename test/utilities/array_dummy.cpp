@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
 
     a.Fill(1);
     b.Fill(2);
-    d.SetUndefined();
+//    d.SetUndefined();
 
     c = a + b * 2;
 

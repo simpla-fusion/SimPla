@@ -7,15 +7,10 @@
 
 #include <cmath>
 #include <tuple>
-#include "host_define.h"
 #include "type_traits.h"
 #include "utility.h"
 namespace simpla {
-/**
-*  @ingroup calculus
-*  @addtogroup expression_template  Expression Template
-*  @{
-*/
+
 template <typename...>
 class Expression;
 }
@@ -50,6 +45,39 @@ struct reference<const Field<TM, TV, I...>> {
     typedef const Field<TM, TV, I...> &type;
 };
 }
+
+namespace calculus {
+
+// template <typename T>
+// auto &getValue(T &v) {
+//    return v;
+//};
+
+template <typename T, typename... Others>
+auto getValue(T const &v, Others &&... others) {
+    return v;
+};
+
+template <typename T, typename I0, typename... Others>
+auto getValue(T const *v, I0 s, Others &&... others) {
+    return getValue(v[s], std::forward<Others>(others)...);
+};
+
+template <typename T, typename TI>
+auto getValue(T const *v, TI const *s) {
+    return getValue(v[*s], s + 1);
+};
+template <typename TOP, typename... Others, size_t... index, typename... Idx>
+auto _invoke_helper(std::index_sequence<index...>, Expression<TOP, Others...> const &expr, Idx &&... s) {
+    return ((expr.m_op_(getValue(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)));
+}
+
+template <typename TOP, typename... Others, typename... Idx>
+auto getValue(Expression<TOP, Others...> const &expr, Idx &&... s) {
+    return ((_invoke_helper(std::index_sequence_for<Others...>(), expr, std::forward<Idx>(s)...)));
+}
+
+}  // namespace calculus
 
 namespace traits {
 
