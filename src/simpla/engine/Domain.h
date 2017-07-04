@@ -121,9 +121,7 @@ class Domain : public SPObject,
         return std::string(__STRING(_DOMAIN_NAME_)) + "." + _MESH_TYPE_::RegisterName();     \
     }                                                                                        \
     static bool is_registered;                                                               \
-    typedef _MESH_TYPE_ mesh_type;                                                           \
-    template <int IFORM, int DOF = 1>                                                        \
-    using field_type = Field<mesh_type, typename _MESH_TYPE_::scalar_type, IFORM, DOF>;
+    typedef _MESH_TYPE_ mesh_type;
 
 #define DOMAIN_DECLARE_FIELD(_NAME_, _IFORM_) \
     Field<mesh_type, typename mesh_type::scalar_type, _IFORM_> _NAME_{this, "name"_ = __STRING(_NAME_)};

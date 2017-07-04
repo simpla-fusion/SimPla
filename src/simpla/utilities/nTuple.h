@@ -206,7 +206,29 @@ struct nTuple_calculator {
         return ((_invoke_helper(expr, std::index_sequence_for<Others...>(), std::forward<Idx>(s)...)));
     }
 };
+namespace _detail {
 
+template <typename TFun, typename TV, int N0>
+__host__ __device__ void foreach_(nTuple<TV, N0>& m_data_, TFun const& fun) {
+    for (int i = 0; i < N0; ++i) { fun(m_data_[i], i); }
+}
+
+template <typename TFun, typename TV, int N0, int N1>
+__host__ __device__ void foreach_(nTuple<TV, N0, N1>& m_data_, TFun const& fun) {
+    for (int i = 0; i < N0; ++i) {
+        for (int j = 0; j < N1; ++j) { fun(m_data_[i][j], i, j); }
+    }
+}
+
+template <typename TFun, typename TV, int N0, int N1, int N2>
+__host__ __device__ void foreach_(nTuple<TV, N0, N1, N2>& m_data_, TFun const& fun) {
+    for (int i = 0; i < N0; ++i) {
+        for (int j = 0; j < N1; ++j) {
+            for (int k = 0; k < N2; ++k) { fun(m_data_[i][j][k], i, j, k); }
+        }
+    }
+}
+}
 /// n-dimensional primary type
 
 template <typename TV>
@@ -256,35 +278,35 @@ struct nTuple<TV, N0, N...> {
 
     __host__ __device__ auto const& at(int s) const { return m_data_[s]; }
 
-    template <typename... Idx>
-    __host__ __device__ auto& at(int n0, Idx&&... s) {
+    template <typename T0, typename... Idx>
+    __host__ __device__ auto& at(T0 n0, Idx&&... s) {
         return m_data_[n0](std::forward<Idx>(s)...);
     }
 
-    template <typename... Idx>
-    __host__ __device__ auto const& at(int n0, Idx&&... s) const {
+    template <typename T0, typename... Idx>
+    __host__ __device__ auto const& at(T0 n0, Idx&&... s) const {
         return m_data_[n0](std::forward<Idx>(s)...);
     }
 
-    template <typename TI>
-    __host__ __device__ auto& at(TI const* idx) {
-        return m_data_[idx[0]](idx + 1);
-    }
-
-    template <typename TI>
-    __host__ __device__ auto const& at(TI const* idx) const {
-        return m_data_[idx[0]](idx + 1);
-    }
-
-    template <typename TI, int M>
-    __host__ __device__ auto& at(nTuple<TI, M> const& idx) {
-        return at(&idx[0]);
-    }
-
-    template <typename TI, int M>
-    __host__ __device__ auto const& at(nTuple<TI, M> const& idx) const {
-        return at(&idx[0]);
-    }
+//    template <typename TI>
+//    __host__ __device__ auto& at(TI const* idx) {
+//        return m_data_[idx[0]](idx + 1);
+//    }
+//
+//    template <typename TI>
+//    __host__ __device__ auto const& at(TI const* idx) const {
+//        return m_data_[idx[0]](idx + 1);
+//    }
+//
+//    template <typename TI, int M>
+//    __host__ __device__ auto& at(nTuple<TI, M> const& idx) {
+//        return at(&idx[0]);
+//    }
+//
+//    template <typename TI, int M>
+//    __host__ __device__ auto const& at(nTuple<TI, M> const& idx) const {
+//        return at(&idx[0]);
+//    }
 
     template <typename... Idx>
     __host__ __device__ auto& operator()(Idx&&... s) {
@@ -297,29 +319,9 @@ struct nTuple<TV, N0, N...> {
     }
     __host__ __device__ void swap(this_type& other) { traits::swap(*this, other); }
 
-   private:
     template <typename TFun>
-    void _Foreach(TV& v, int* idx, TFun const& fun) {
-        fun(v);
-    }
-    //    ENABLE_IF((is_callable<TFun(int const*, T&)>::value))
-    template <typename TFun, typename T, int M0, int... M>
-    void _Foreach(nTuple<T, M0, M...>& v, int* idx, TFun const& fun) {
-        for (idx[0] = 0; idx[0] < M0; ++idx[0]) { _Foreach(v[idx[0]], idx + 1, fun); }
-    }
-
-   public:
-    template <typename TFun>
-    void foreach (TFun const& fun, ENABLE_IF((concept::is_callable<TFun(int*, TV&)>::value))) {
-        int idx[sizeof...(N) + 1];
-        for (idx[0] = 0; idx[0] < N0; ++idx[0]) {
-            _Foreach(m_data_[idx[0]], idx + 1, [&](TV& u) { fun(idx, u); });
-        }
-    }
-    template <typename TFun>
-    void foreach (TFun const& fun, ENABLE_IF((concept::is_callable<TFun(TV&)>::value))) {
-        int idx[sizeof...(N) + 1];
-        for (idx[0] = 0; idx[0] < N0; ++idx[0]) { _Foreach(m_data_[idx[0]], idx + 1, fun); }
+    __host__ __device__ void foreach (TFun const& fun) {
+        _detail::foreach_(*this, fun);
     }
 
     __host__ __device__ this_type& operator=(this_type const& rhs) {

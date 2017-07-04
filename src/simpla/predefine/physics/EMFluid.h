@@ -51,8 +51,8 @@ class EMFluid : public engine::Domain {
         Real mass = 1;
         Real charge = 1;
         Real ratio = 1;
-        std::shared_ptr<field_type<VOLUME>> n;
-        std::shared_ptr<field_type<VOLUME, 3>> J;
+        std::shared_ptr<Field<mesh_type, Real, VOLUME>> n;
+        std::shared_ptr<Field<mesh_type, Real, VOLUME, 3>> J;
     };
 
     std::map<std::string, std::shared_ptr<fluid_s>> m_fluid_sp_;
@@ -103,8 +103,8 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
     sp->charge = d->GetValue<double>("charge", d->GetValue<double>("Z", 1)) * SI_elementary_charge;
     sp->ratio = d->GetValue<double>("ratio", d->GetValue<double>("ratio", 1));
 
-    sp->n = std::make_shared<field_type<VOLUME>>(this, "name"_ = name + "_n");
-    sp->J = std::make_shared<field_type<VOLUME, 3>>(this, "name"_ = name + "_J");
+    sp->n = std::make_shared<Field<mesh_type, Real, VOLUME>>(this, "name"_ = name + "_n");
+    sp->J = std::make_shared<Field<mesh_type, Real, VOLUME, 3>>(this, "name"_ = name + "_J");
     m_fluid_sp_.emplace(name, sp);
     VERBOSE << "Add particle : {\"" << name << "\", mass = " << sp->mass / SI_proton_mass
             << " [m_p], charge = " << sp->charge / SI_elementary_charge << " [q_e] }" << std::endl;
@@ -125,7 +125,7 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
     Ev.Clear();
     Bv.Clear();
 
-    BB = dot_v(B0v, B0v);
+    BB = dot(B0v, B0v);
 
     for (auto& item : m_fluid_sp_) {
         if (item.second == nullptr) { continue; }
@@ -156,12 +156,12 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     if (m_fluid_sp_.size() > 0) {
         Ev = map_to<VOLUME>(E);
 
-        field_type<VOLUME, 3> Q{this};
-        field_type<VOLUME, 3> K{this};
+        Field<mesh_type, Real, VOLUME, 3> Q{this};
+        Field<mesh_type, Real, VOLUME, 3> K{this};
 
-        field_type<VOLUME> a{this};
-        field_type<VOLUME> b{this};
-        field_type<VOLUME> c{this};
+        Field<mesh_type, Real, VOLUME> a{this};
+        Field<mesh_type, Real, VOLUME> b{this};
+        Field<mesh_type, Real, VOLUME> c{this};
 
         a.Clear();
         b.Clear();
@@ -182,9 +182,9 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
 
             Q -= (0.5 * dt / epsilon0) * Js;
 
-            K = Js + cross_v(Js, B0v) * as + Ev * ns * (qs * 2.0 * as);
+            K = Js + cross(Js, B0v) * as + Ev * ns * (qs * 2.0 * as);
 
-            Js = (K + cross_v(K, B0v) * as + B0v * (dot_v(K, B0v) * as * as)) / (BB * as * as + 1);
+            Js = (K + cross(K, B0v) * as + B0v * (dot_v(K, B0v) * as * as)) / (BB * as * as + 1);
 
             Q -= (0.5 * dt / epsilon0) * Js;
 
@@ -198,8 +198,8 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
         c *= 0.5 * dt / epsilon0;
         a += 1;
 
-        dE = (Q * a - cross_v(Q, B0v) * b + B0v * (dot_v(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
-             (b * b * BB + a * a);
+        dE =
+            (Q * a - cross(Q, B0v) * b + B0v * (dot_v(Q, B0v) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
 
         for (auto& p : m_fluid_sp_) {
             Real ms = p.second->mass;
@@ -211,7 +211,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
 
             K = dE * ns * qs * as;
 
-            Js += (K + cross_v(K, B0v) * as + B0v * (dot_v(K, B0v) * as * as)) / (BB * as * as + 1);
+            Js += (K + cross(K, B0v) * as + B0v * (dot_v(K, B0v) * as * as)) / (BB * as * as + 1);
         }
 
         E += map_to<EDGE>(dE);

@@ -35,64 +35,49 @@ struct calculator {
 
     //**********************************************************************************************
     // for element-wise arithmetic operation
-    template <typename TOP, typename... T, size_t... I>
-    static auto _invoke_helper(Expression<TOP, T...> const& expr, mesh_type const& m, int tag, IdxShift S,
-                               std::index_sequence<I...>) {
-        return expr.m_op_(getValue(std::get<I>(expr.m_args_), m, tag, S)...);
+    template <typename... T, size_t... I, typename... Others>
+    static auto _invoke_helper(std::index_sequence<I...>, mesh_type const& m, Expression<T...> const& expr,
+                               Others&&... others) {
+        return expr.m_op_(getValue(m, std::get<I>(expr.m_args_), std::forward<Others>(others)...)...);
     }
 
-    template <typename TOP, typename... T, int... I>
-    static auto eval(Expression<TOP, T...> const& expr, mesh_type const& m, int tag, IdxShift S,
-                     std::integer_sequence<int, I...>) {
-        return _invoke_helper(expr, m, tag, S, std::make_index_sequence<sizeof...(I)>());
+    template <typename... T, int... I, typename... Others>
+    static auto eval(std::integer_sequence<int, I...>, mesh_type const& m, Expression<T...> const& expr,
+                     Others&&... others) {
+        return _invoke_helper(std::make_index_sequence<sizeof...(I)>(), m, expr, std::forward<Others>(others)...);
     }
 
-    template <typename TOP, typename... T>
-    static auto getValue(Expression<TOP, T...> const& expr, mesh_type const& m, int tag,
-                         IdxShift S = IdxShift{0, 0, 0}) {
-        return eval(expr, m, tag, S, std::integer_sequence<int, traits::iform<T>::value...>());
+    template <typename TOP, typename... T, typename... Others>
+    static auto getValue(mesh_type const& m, Expression<TOP, T...> const& expr, Others&&... others) {
+        return eval(std::integer_sequence<int, traits::iform<T>::value...>(), m, expr, std::forward<Others>(others)...);
     }
+    template <typename T, typename... Others>
+    static T const& getValue(mesh_type const& m, T const& v, Others&&... tags) {
+        return v;
+    }
+    template <typename M, typename V, int... D, typename... Others>
+    static auto getValue(mesh_type const& m, Field<M, V, D...> const& f, IdxShift S, Others&&... tags) {
+        return f.data(std::forward<Others>(tags)...).Shift(S);
+    };
 
-    template <typename M, typename V, int I, int D0, int... D>
-    static auto getValue(Field<M, V, I, D0, D...> const& f, mesh_type const& m, int tag, IdxShift S) {
-        return f[EntityIdCoder::m_id_to_sub_index_[(tag & 0b111)]][(tag >> 3)].Shift(S);
-    };
-    template <typename M, typename V, int I, int D0, int... D>
-    static auto getValue(Field<M, V, I, D0, D...>& f, mesh_type const& m, int tag, IdxShift S) {
-        return f[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]][(tag >> 3)].Shift(S);
-    };
-    template <typename M, typename V, int I>
-    static auto getValue(Field<M, V, I> const& f, mesh_type const& m, int tag, IdxShift S) {
-        return f[EntityIdCoder::m_id_to_sub_index_[(tag & 0b111)]].Shift(S);
-    };
-    template <typename M, typename V, int I>
-    static auto getValue(Field<M, V, I>& f, mesh_type const& m, int tag, IdxShift S) {
-        return f[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]].Shift(S);
-    };
     template <typename TFun>
-    static auto getValue(TFun const& f, mesh_type const& m, int tag, IdxShift S = IdxShift{0, 0, 0},
-                         ENABLE_IF((concept::is_callable<TFun(simpla::EntityId)>::value))) {
-        return [=](index_tuple const& idx) {
+    static auto getValue(mesh_type const& m, TFun const& f, IdxShift S, int N0, int N1) {
+        return [=](index_type x, index_type y, index_type z) {
             EntityId s;
-            s.w = static_cast<int16_t>(tag);
-            s.x = static_cast<int16_t>(idx[0] + S[0]);
-            s.y = static_cast<int16_t>(idx[1] + S[1]);
-            s.z = static_cast<int16_t>(idx[2] + S[2]);
+            s.w = static_cast<int16_t>(N0 | (N1 << 3));
+            s.x = static_cast<int16_t>(x + S[0]);
+            s.y = static_cast<int16_t>(y + S[1]);
+            s.z = static_cast<int16_t>(z + S[2]);
             return f(s);
         };
     };
 
-    template <typename T>
-    static T const& getValue(T const& v, mesh_type const& m, int tag, IdxShift S = IdxShift{0, 0, 0},
-                             ENABLE_IF((std::is_arithmetic<T>::value))) {
-        return v;
-    }
-    template <typename T>
-    static T const& getValue(T const* v, mesh_type const& m, int tag, IdxShift S = IdxShift{0, 0, 0},
-                             ENABLE_IF((std::is_arithmetic<T>::value))) {
-        return v[(((tag & 0b111) == 0) || ((tag & 0b111) == 7)) ? (tag >> 3)
-                                                                : EntityIdCoder::m_id_to_sub_index_[tag & 0b111]];
-    }
+    //    template <typename T>
+    //    static T const& getValue(T const* v, mesh_type const& m, int tag, IdxShift S = IdxShift{0, 0, 0},
+    //                             ENABLE_IF((std::is_arithmetic<T>::value))) {
+    //        return v[(((tag & 0b111) == 0) || ((tag & 0b111) == 7)) ? (tag >> 3)
+    //                                                                : EntityIdCoder::m_id_to_sub_index_[tag & 0b111]];
+    //    }
     //    static auto Volume(mesh_type const& m, int tag, IdxShift S) {
     //        return getValue(m, m.m_volume_, ((tag & 0b111) << 3) | 0b111, S);
     //    }

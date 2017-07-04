@@ -112,15 +112,15 @@ class ZSFC {
     __host__ __device__ constexpr inline bool in_box(array_index_type const& x) const;
     __host__ __device__ constexpr inline bool in_box(index_type x, index_type y, index_type z) const;
 
-    __host__ __device__ constexpr size_type hash(array_index_type const& idx) const {
+    __host__ __device__ constexpr inline size_type hash(array_index_type const& idx) const {
         return dot(idx - std::get<0>(m_index_box_), m_strides_);
     }
 
-    __host__ __device__ constexpr size_type hash(index_type const* idx) const;
+    __host__ __device__ inline size_type hash(index_type const* idx) const;
 
-    __host__ __device__ size_type hash(index_type s0, index_type s1 = 0, index_type s2 = 0, index_type s3 = 0,
-                                       index_type s4 = 0, index_type s5 = 0, index_type s6 = 0, index_type s7 = 0,
-                                       index_type s8 = 0, index_type s9 = 0) const;
+    __host__ __device__ inline size_type hash(index_type s0, index_type s1 = 0, index_type s2 = 0, index_type s3 = 0,
+                                              index_type s4 = 0, index_type s5 = 0, index_type s6 = 0,
+                                              index_type s7 = 0, index_type s8 = 0, index_type s9 = 0) const;
 
     template <typename V, typename... Args>
     __host__ __device__ V& Get(V* p, Args&&... args) const {
@@ -139,7 +139,7 @@ class ZSFC {
     std::ostream& Print(std::ostream& os, value_type const* v, int indent = 0) const;
 };
 template <>
-__host__ __device__ constexpr size_type ZSFC<3>::hash(index_type const* s) const {
+__host__ __device__ inline size_type ZSFC<3>::hash(index_type const* s) const {
     return std::fma(s[0], m_strides_[0], -std::get<0>(m_index_box_)[0] * m_strides_[0]) +
            std::fma(s[1], m_strides_[1], -std::get<0>(m_index_box_)[1] * m_strides_[1]) +
            std::fma(s[2], m_strides_[2], -std::get<0>(m_index_box_)[2] * m_strides_[2]);
@@ -246,13 +246,13 @@ void ZSFC<3>::Foreach(TFun const& fun) const {
         //#pragma omp parallel for
         for (index_type k = kb; k < ke; ++k)
             for (index_type j = jb; j < je; ++j)
-                for (index_type i = ib; i < ie; ++i) { fun(nTuple<index_type, 3>{i, j, k}); }
+                for (index_type i = ib; i < ie; ++i) { fun(i, j, k); }
 
     } else {
         //#pragma omp parallel for
         for (index_type i = ib; i < ie; ++i)
             for (index_type j = jb; j < je; ++j)
-                for (index_type k = kb; k < ke; ++k) { fun(nTuple<index_type, 3>{i, j, k}); }
+                for (index_type k = kb; k < ke; ++k) { fun(i, j, k); }
     }
 #else
 
