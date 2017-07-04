@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
 
         f.Clear();
         g.Clear();
-        f[0](0, 2, 3) = 1990;
+//        f[0](0, 2, 3) = 1990;
         f = 1;
         g = 2;
 

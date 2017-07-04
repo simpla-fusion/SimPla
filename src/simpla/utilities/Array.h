@@ -66,6 +66,9 @@ class Array {
             m_holder_ = spMakeShared<value_type>(m_data_, m_sfc_.size());
             m_host_data_ = m_data_;
             m_data_ = m_holder_.get();
+#ifndef NDEBUG
+            spMemoryFill(m_data_, std::numeric_limits<V>::signaling_NaN(), m_sfc_.size());
+#endif
         }
     }
     void SetSpaceFillingCurve(SFC const& s) { m_sfc_ = s; }
@@ -98,14 +101,13 @@ class Array {
     }
 
     this_type operator[](typename SFC::array_index_type const& IX) const { return Shift(IX); }
-    //    this_type operator()(typename SFC::array_index_type const& IX) const { return Shift(IX); }
 
-    void SetUndefined() { Fill(std::numeric_limits<V>::signaling_NaN()); }
     void Clear() { Fill(0); }
     void Fill(value_type v) {
         DoSetUp();
         spMemoryFill(m_data_, v, m_sfc_.size());
     }
+
     void DeepCopy(value_type const* other) {
         DoSetUp();
         spMemoryCopy(m_data_, other, m_sfc_.size());
@@ -113,18 +115,14 @@ class Array {
 
     this_type& operator=(this_type const& rhs) {
         DoSetUp();
-        m_sfc_.Foreach(*this, [=] __host__ __device__(auto&&... s) {
-            return this_type::getValue(rhs, std::forward<decltype(s)>(s)...);
-        });
+        Assign(rhs);
         return (*this);
     }
 
     template <typename TR>
     this_type& operator=(TR const& rhs) {
         DoSetUp();
-        m_sfc_.Foreach(*this, [&] __host__ __device__(auto&&... s) {
-            return this_type::getValue(rhs, std::forward<decltype(s)>(s)...);
-        });
+        Assign(rhs);
         return (*this);
     }
 
@@ -194,9 +192,16 @@ class Array {
     template <typename Other, typename... Args>
     void Assign(Other const& other, Args&&... args) {
         if (m_sfc_.in_box(std::forward<Args>(args)...)) {
-            //            at(std::forward<Args>(args)...) = this_type::getValue(other, std::forward<Args>(args)...);
+            at(std::forward<Args>(args)...) = getValue(other, std::forward<Args>(args)...);
         }
-    };
+    }
+
+    template <typename RHS>
+    void Assign(RHS const& rhs) {
+        m_sfc_.Foreach([&] __host__ __device__(auto&&... s) {
+            at(std::forward<decltype(s)>(s)...) = getValue(rhs, std::forward<decltype(s)>(s)...);
+        });
+    }
 };
 
 namespace traits {

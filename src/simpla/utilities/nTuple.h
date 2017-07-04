@@ -272,17 +272,6 @@ struct nTuple<TV, N0, N...> {
     }
     __host__ __device__ void swap(this_type& other) { traits::swap(*this, other); }
 
-    __host__ __device__ this_type& operator=(this_type const& rhs) {
-        traits::assign(*this, rhs);
-        return (*this);
-    }
-
-    template <typename TR>
-    __host__ __device__ this_type& operator=(TR const& rhs) {
-        traits::assign(*this, rhs);
-        return (*this);
-    }
-
    private:
     template <typename TFun>
     void _Foreach(TV& v, int* idx, TFun const& fun) {
@@ -306,6 +295,17 @@ struct nTuple<TV, N0, N...> {
     void foreach (TFun const& fun, ENABLE_IF((concept::is_callable<TFun(TV&)>::value))) {
         int idx[sizeof...(N) + 1];
         for (idx[0] = 0; idx[0] < N0; ++idx[0]) { _Foreach(data_[idx[0]], idx + 1, fun); }
+    }
+
+    __host__ __device__ this_type& operator=(this_type const& rhs) {
+        traits::assign(*this, rhs);
+        return (*this);
+    }
+
+    template <typename TR>
+    __host__ __device__ this_type& operator=(TR const& rhs) {
+        traits::assign(*this, rhs);
+        return (*this);
     }
 };
 

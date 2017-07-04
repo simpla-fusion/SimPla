@@ -100,7 +100,9 @@ Real HexahedronVolume(SMesh const *m, EntityId s) {
 void SMesh::InitializeData(Real time_now) {
     StructuredMesh::InitializeData(time_now);
     m_coordinates_.Clear();
-    m_coordinates_ = [&](EntityId s) -> point_type { return global_coordinates(s, nullptr); };
+    m_coordinates_ = [&](EntityId s) -> point_type {
+        return global_coordinates(s, nullptr);
+    };
 
     m_vertex_volume_.Clear();
     m_vertex_inv_volume_.Clear();

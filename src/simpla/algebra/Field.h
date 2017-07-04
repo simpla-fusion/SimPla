@@ -65,9 +65,8 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     static constexpr int NUM_OF_SUB = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
     static constexpr int NDIMS = mesh_type::NDIMS;
 
-    typedef std::conditional_t<sizeof...(DOF) == 0, value_type, nTuple<value_type, DOF...>> cell_tuple;
-    typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME), cell_tuple, nTuple<cell_tuple, 3>>
-        field_value_type;
+    typedef std::conditional_t<sizeof...(DOF) == 0, value_type, nTuple<value_type, DOF...>> ele_type;
+    typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME), ele_type, nTuple<ele_type, 3>> field_value_type;
 
    private:
     typedef typename mesh_type::template array_type<value_type> array_type;
@@ -235,20 +234,21 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
 
     template <typename RHS>
     void Assign(EntityRange const& r, RHS const& rhs, ENABLE_IF((std::is_arithmetic<RHS>::value))) {
-        m_data_.foreach ([&](int const* sub, auto& lhs) {
-            int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][sub[0]];
-            if (r.isNull()) {
-                lhs = rhs;
-            } else {
-                r.foreach ([&] __host__ __device__(auto s) {
-                    if (tag == (s.w & 0b111)) { lhs.Assign(rhs, s.x, s.y, s.z); }
-                });
-            }
-        });
+        m_data_ = rhs;
+        //        if (r.isNull()) {
+        //        } else {
+        //            m_data_.foreach ([&](int const* sub, auto& lhs) {
+        //                int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][sub[0]];
+        //                r.foreach ([&] __host__ __device__(auto s) {
+        //                    if (tag == (s.w & 0b111)) { lhs.Assign(rhs, s.x, s.y, s.z); }
+        // });
+        // });
+        //        }
     }
 
     template <typename... Others>
     void Assign(EntityRange const& r, Expression<Others...> const& expr) {
+        m_data_ = expr;
         //        m_data_.foreach ([&](int const* sub, auto& lhs) {
         //            int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][sub[0]];
         //            auto rhs = calculator<mesh_type>::getValue(expr, *m_mesh_, tag | (sub[1] << 3));
@@ -264,110 +264,110 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     template <typename TFun>
     void Assign(EntityRange const& r, TFun const& fun,
                 ENABLE_IF((std::is_same<std::result_of_t<TFun(EntityId)>, value_type>::value))) {
-        m_data_.foreach ([&](int const* sub, auto& lhs) {
-            int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][sub[0]];
-            int16_t w = static_cast<int16_t>(tag | (sub[1] << 3));
-            if (r.isNull()) {
-                lhs = [&] __host__ __device__(auto idx) {
-                    EntityId s;
-                    s.w = static_cast<int16_t>(w);
-                    s.x = static_cast<int16_t>(idx[0]);
-                    s.y = static_cast<int16_t>(idx[1]);
-                    s.z = static_cast<int16_t>(idx[2]);
-                    return fun(s);
-                };
-            } else {
-                r.foreach ([&] __host__ __device__(auto s) {
-                    if (tag == s.w) {
-                        s.w = w;
-                        lhs.Assign(fun(s), s.x, s.y, s.z);
-                    }
-                });
-            }
-        });
+        //        m_data_.foreach ([&](int const* sub, auto& lhs) {
+        //            int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][sub[0]];
+        //            int16_t w = static_cast<int16_t>(tag | (sub[1] << 3));
+        //            if (r.isNull()) {
+        //                lhs = [&] __host__ __device__(auto idx) {
+        //                    EntityId s;
+        //                    s.w = static_cast<int16_t>(w);
+        //                    s.x = static_cast<int16_t>(idx[0]);
+        //                    s.y = static_cast<int16_t>(idx[1]);
+        //                    s.z = static_cast<int16_t>(idx[2]);
+        //                    return fun(s);
+        //                };
+        //            } else {
+        //                r.foreach ([&] __host__ __device__(auto s) {
+        //                    if (tag == s.w) {
+        //                        s.w = w;
+        //                        lhs.Assign(fun(s), s.x, s.y, s.z);
+        //                    }
+        //                });
+        //            }
+        //        });
     }
 
     template <typename TFun>
     void Assign(EntityRange const& r, TFun const& fun,
                 ENABLE_IF((std::is_same<std::result_of_t<TFun(point_type)>, value_type>::value))) {
-        m_data_.foreach ([&](int const* sub, auto& lhs) {
-            int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][sub[0]];
-            int16_t w = static_cast<int16_t>(tag | (sub[1] << 3));
-            if (r.isNull()) {
-                lhs = [&] __host__ __device__(auto idx) {
-                    EntityId s;
-                    s.w = static_cast<int16_t>(w);
-                    s.x = static_cast<int16_t>(idx[0]);
-                    s.y = static_cast<int16_t>(idx[1]);
-                    s.z = static_cast<int16_t>(idx[2]);
-                    return fun(m_mesh_->point(s));
-                };
-            } else {
-                r.foreach ([&] __host__ __device__(auto s) {
-                    if (tag == s.w) {
-                        s.w = w;
-                        lhs.Assign(fun(m_mesh_->point(s)), s.x, s.y, s.z);
-                    }
-                });
-            }
-        });
+        //        m_data_.foreach ([&](int const* sub, auto& lhs) {
+        //            int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][sub[0]];
+        //            int16_t w = static_cast<int16_t>(tag | (sub[1] << 3));
+        //            if (r.isNull()) {
+        //                lhs = [&] __host__ __device__(auto idx) {
+        //                    EntityId s;
+        //                    s.w = static_cast<int16_t>(w);
+        //                    s.x = static_cast<int16_t>(idx[0]);
+        //                    s.y = static_cast<int16_t>(idx[1]);
+        //                    s.z = static_cast<int16_t>(idx[2]);
+        //                    return fun(m_mesh_->point(s));
+        //                };
+        //            } else {
+        //                r.foreach ([&] __host__ __device__(auto s) {
+        //                    if (tag == s.w) {
+        //                        s.w = w;
+        //                        lhs.Assign(fun(m_mesh_->point(s)), s.x, s.y, s.z);
+        //                    }
+        //                });
+        //            }
+        //        });
     }
 
     template <typename TFun>
     void Assign(EntityRange const& r, TFun const& fun,
                 ENABLE_IF((std::is_same<std::result_of_t<TFun(EntityId)>, field_value_type>::value &&
                            !std::is_same<field_value_type, value_type>::value))) {
-        m_data_.foreach ([&](int const* sub, auto& lhs) {
-            int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][sub[0]];
-            int16_t w = static_cast<int16_t>(tag | (sub[1] << 3));
-
-            int n = sub[(IFORM == VERTEX || IFORM == VOLUME) ? 0 : 1];
-            if (r.isNull()) {
-                lhs = [&] __host__ __device__(auto idx) {
-                    EntityId s;
-                    s.w = static_cast<int16_t>(w);
-                    s.x = static_cast<int16_t>(idx[0]);
-                    s.y = static_cast<int16_t>(idx[1]);
-                    s.z = static_cast<int16_t>(idx[2]);
-                    return fun(s)[n];
-                };
-            } else {
-                r.foreach ([&] __host__ __device__(auto s) {
-                    if (tag == s.w) {
-                        s.w = w;
-                        lhs.Assign(fun(s)[n], s.x, s.y, s.z);
-                    }
-                });
-            }
-        });
+        //        m_data_.foreach ([&](int const* sub, auto& lhs) {
+        //            int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][sub[0]];
+        //            int16_t w = static_cast<int16_t>(tag | (sub[1] << 3));
+        //
+        //            int n = sub[(IFORM == VERTEX || IFORM == VOLUME) ? 0 : 1];
+        //            if (r.isNull()) {
+        //                lhs = [&] __host__ __device__(auto idx) {
+        //                    EntityId s;
+        //                    s.w = static_cast<int16_t>(w);
+        //                    s.x = static_cast<int16_t>(idx[0]);
+        //                    s.y = static_cast<int16_t>(idx[1]);
+        //                    s.z = static_cast<int16_t>(idx[2]);
+        //                    return fun(s)[n];
+        //                };
+        //            } else {
+        //                r.foreach ([&] __host__ __device__(auto s) {
+        //                    if (tag == s.w) {
+        //                        s.w = w;
+        //                        lhs.Assign(fun(s)[n], s.x, s.y, s.z);
+        //                    }
+        //                });
+        //            }
+        //        });
     }
     template <typename TFun>
     void Assign(EntityRange const& r, TFun const& fun,
                 ENABLE_IF((std::is_same<std::result_of_t<TFun(point_type)>, field_value_type>::value &&
                            !std::is_same<field_value_type, value_type>::value))) {
-        m_data_.foreach ([&](int const* sub, auto& lhs) {
-            int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][sub[0]];
-            int16_t w = static_cast<int16_t>(tag | (sub[1] << 3));
-
-            int n = sub[(IFORM == VERTEX || IFORM == VOLUME) ? 0 : 1];
-            if (r.isNull()) {
-                lhs = [&] __host__ __device__(auto idx) {
-                    EntityId s;
-                    s.w = static_cast<int16_t>(w);
-                    s.x = static_cast<int16_t>(idx[0]);
-                    s.y = static_cast<int16_t>(idx[1]);
-                    s.z = static_cast<int16_t>(idx[2]);
-                    return fun(m_mesh_->point(s))[n];
-                };
-            } else {
-                r.foreach ([&] __host__ __device__(auto s) {
-                    if (tag == s.w) {
-                        s.w = w;
-                        lhs.Assign(fun(m_mesh_->point(s))[n], s.x, s.y, s.z);
-                    }
-                });
-            }
-        });
+        //        int16_t w = EntityIdCoder::m_sub_index_to_id_[IFORM][sub[0]];
+        //
+        //        if (r.isNull()) {
+        //            auto sfc = m_mesh_->GetSpaceFillingCurve(IFORM);
+        //            int n = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
+        //            sfc.foreach ([&](auto& idx) {
+        //                EntityId s;
+        //                s.w = static_cast<int16_t>(w);
+        //                s.x = static_cast<int16_t>(idx[0]);
+        //                s.y = static_cast<int16_t>(idx[1]);
+        //                s.z = static_cast<int16_t>(idx[2]);
+        //                auto v = fun(m_mesh_->point(s))[n];
+        //                m_data_[0](idx) =
+        //            });
+        //        } else {
+        //            r.foreach ([&] __host__ __device__(auto s) {
+        //                if (tag == s.w) {
+        //                    s.w = w;
+        //                    lhs.Assign(fun(m_mesh_->point(s))[n], s.x, s.y, s.z);
+        //                }
+        //            });
+        //        }
+        //    });
     }
 };  // class Field
 

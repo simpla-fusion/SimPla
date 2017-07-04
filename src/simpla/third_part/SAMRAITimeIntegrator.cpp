@@ -461,20 +461,18 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
                         << std::endl;
             }
 
-            //            if (visit_variable_type != "" && item.second->db()->Check("COORDINATES", true)) {
-            //                d_visit_writer->registerNodeCoordinates(
-            //                    vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-            //            } else
-
-            if (item.second->GetIFORM() == VERTEX || item.second->GetIFORM() == VOLUME) {
+            if (visit_variable_type != "" && item.second->db()->Check("COORDINATES", true)) {
+                d_visit_writer->registerNodeCoordinates(
+                    vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+            } else if (item.second->GetIFORM() == VERTEX || item.second->GetIFORM() == VOLUME) {
                 d_visit_writer->registerPlotQuantity(
                     item.second->GetPrefix(), visit_variable_type,
                     vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
             }
         }
     }
-    integrator->printClassData(std::cout);
-    vardb->printClassData(std::cout);
+//    integrator->printClassData(std::cout);
+//    vardb->printClassData(std::cout);
 }
 void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchFromSAMRAI(SAMRAI::hier::Patch &patch, engine::Patch *p) {
     p->SetBlock(engine::MeshBlock{

@@ -130,8 +130,8 @@ class ZSFC {
 #endif
     }
 
-    template <typename TLHS, typename TRHS>
-    void Foreach(TLHS& d, TRHS const& fun) const;
+    template <typename TFun>
+    void Foreach(const TFun& fun) const;
 
     template <typename value_type>
     std::ostream& Print(std::ostream& os, value_type const* v, int indent = 0) const;
@@ -214,19 +214,19 @@ std::ostream& ZSFC<3>::Print(std::ostream& os, value_type const* v, int indent) 
 //}
 
 #ifdef __CUDA__
-template <typename TLHS, typename TRHS>
-__global__ void foreach_device(nTuple<index_type, 3> min, nTuple<index_type, 3> max, TLHS lhs, TRHS rhs) {
+template <typename TFUN>
+__global__ void foreach_device(nTuple<index_type, 3> min, nTuple<index_type, 3> max, TFUN fun) {
     nTuple<index_type, 3> idx{min[0] + blockIdx.x * blockDim.x + threadIdx.x,
                               min[1] + blockIdx.y * blockDim.y + threadIdx.y,
                               min[2] + blockIdx.z * blockDim.z + threadIdx.z};
-    if (idx[0] < max[0] && idx[1] < max[1] && idx[2] < max[2]) { lhs(idx) = rhs(idx); }
+    if (idx[0] < max[0] && idx[1] < max[1] && idx[2] < max[2]) { fun(idx); }
 };
 
 #endif
 
 template <>
-template <typename TLHS, typename TRHS>
-void ZSFC<3>::Foreach(TLHS& lhs, TRHS const& rhs) const {
+template <typename TFun>
+void ZSFC<3>::Foreach(TFun const& fun) const {
     index_type ib = std::get<0>(m_index_box_)[0];
     index_type ie = std::get<1>(m_index_box_)[0];
     index_type jb = std::get<0>(m_index_box_)[1];
@@ -235,25 +235,18 @@ void ZSFC<3>::Foreach(TLHS& lhs, TRHS const& rhs) const {
     index_type ke = std::get<1>(m_index_box_)[2];
 
 #ifndef __CUDA__
-//    if (m_array_order_fast_first_) {
-//        //#pragma omp parallel for
-//        for (index_type k = kb; k < ke; ++k)
-//            for (index_type j = jb; j < je; ++j)
-//                for (index_type i = ib; i < ie; ++i) {
-//                    lhs.Assign(rhs, i, j, k);
-//                    //                    nTuple<index_type, 3> idx{i, j, k};
-//                    //                    lhs.at(idx) = rhs(idx);
-//                }
-//
-//    } else {
-//        //#pragma omp parallel for
-//        for (index_type i = ib; i < ie; ++i)
-//            for (index_type j = jb; j < je; ++j)
-//                for (index_type k = kb; k < ke; ++k) {
-//                    //                    nTuple<index_type, 3> idx{i, j, k};
-//                    lhs.Assign(rhs, i, j, k);  // rhs(idx);
-//                }
-//    }
+    if (m_array_order_fast_first_) {
+        //#pragma omp parallel for
+        for (index_type k = kb; k < ke; ++k)
+            for (index_type j = jb; j < je; ++j)
+                for (index_type i = ib; i < ie; ++i) { fun(nTuple<index_type, 3>{i, j, k}); }
+
+    } else {
+        //#pragma omp parallel for
+        for (index_type i = ib; i < ie; ++i)
+            for (index_type j = jb; j < je; ++j)
+                for (index_type k = kb; k < ke; ++k) { fun(nTuple<index_type, 3>{i, j, k}); }
+    }
 #else
 
     dim3 threadsPerBlock{4, 4, 4};
@@ -266,7 +259,7 @@ void ZSFC<3>::Foreach(TLHS& lhs, TRHS const& rhs) const {
                        threadsPerBlock.z};
 
     SP_CALL_DEVICE_KERNEL(foreach_device, numBlocks, threadsPerBlock, std::get<0>(m_index_box_),
-                          std::get<1>(m_index_box_), lhs, rhs);
+                          std::get<1>(m_index_box_), fun);
 
 #endif
 }
