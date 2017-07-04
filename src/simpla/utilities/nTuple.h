@@ -170,22 +170,22 @@ struct nTuple_calculator {
 
     template <typename T, int N0, int... N, typename Idx>
     static T getValue(nTuple<T, N0, N...>& v, Idx const* idx) {
-        return getValue(v.data_[idx[0]], idx + 1);
+        return getValue(v.m_data_[idx[0]], idx + 1);
     };
 
     template <typename T, int N0, int... N, typename Idx>
     static auto getValue(nTuple<T, N0, N...> const& v, Idx const* idx) {
-        return getValue(v.data_[idx[0]], idx + 1);
+        return getValue(v.m_data_[idx[0]], idx + 1);
     };
 
     template <typename T, int N0, int... N, typename... Idx>
     static auto getValue(nTuple<T, N0, N...>& v, int s, Idx&&... idx) {
-        return getValue(v.data_[s], std::forward<Idx>(idx)...);
+        return getValue(v.m_data_[s], std::forward<Idx>(idx)...);
     };
 
     template <typename T, int N0, int... N, typename... Idx>
     static auto getValue(nTuple<T, N0, N...> const& v, int s, Idx&&... idx) {
-        return getValue(v.data_[s], std::forward<Idx>(idx)...);
+        return getValue(v.m_data_[s], std::forward<Idx>(idx)...);
     };
     //
     //    template <typename... T, typename... Idx>
@@ -224,13 +224,13 @@ struct nTuple<TV, N0, N...> {
 
     typedef typename std::conditional<sizeof...(N) == 0, TV, nTuple<TV, N...>>::type sub_type;
 
-    sub_type data_[N0];
+    sub_type m_data_[N0];
 
     __host__ __device__ nTuple() = default;
     __host__ __device__ ~nTuple() = default;
 
     __host__ __device__ nTuple(simpla::traits::nested_initializer_list_t<value_type, sizeof...(N) + 1> l) {
-        simpla::traits::assign_nested_initializer_list<N0, N...>::apply(data_, l);
+        simpla::traits::assign_nested_initializer_list<N0, N...>::apply(m_data_, l);
     }
 
     template <typename... U>
@@ -238,27 +238,52 @@ struct nTuple<TV, N0, N...> {
         traits::assign(*this, expr);
     }
 
-    //    nTuple_(this_type const &other) = delete;
-    //    nTuple_(this_type &&other) = delete;
+    __host__ __device__ nTuple(this_type const& other) {
+        for (int i = 0; i < N0; ++i) { m_data_[i] = other.m_data_[i]; }
+    };
+    __host__ __device__ nTuple(this_type&& other) {
+        for (int i = 0; i < N0; ++i) { std::swap(m_data_[i], other.m_data_[i]); }
+    };
+    ;
 
-    __host__ __device__ sub_type& operator[](int s) { return data_[s]; }
+    __host__ __device__ sub_type& operator[](int s) { return m_data_[s]; }
 
-    __host__ __device__ sub_type const& operator[](int s) const { return data_[s]; }
+    __host__ __device__ sub_type const& operator[](int s) const { return m_data_[s]; }
 
     //    __host__ __device__ value_type& at(int const* s) { return calculator::getValue(*this, s); }
 
-    __host__ __device__ auto& at(int s) { return data_[s]; }
+    __host__ __device__ auto& at(int s) { return m_data_[s]; }
 
-    __host__ __device__ auto const& at(int s) const { return data_[s]; }
+    __host__ __device__ auto const& at(int s) const { return m_data_[s]; }
 
     template <typename... Idx>
     __host__ __device__ auto& at(int n0, Idx&&... s) {
-        return data_[n0](std::forward<Idx>(s)...);
+        return m_data_[n0](std::forward<Idx>(s)...);
     }
 
     template <typename... Idx>
     __host__ __device__ auto const& at(int n0, Idx&&... s) const {
-        return data_[n0](std::forward<Idx>(s)...);
+        return m_data_[n0](std::forward<Idx>(s)...);
+    }
+
+    template <typename TI>
+    __host__ __device__ auto& at(TI const* idx) {
+        return m_data_[idx[0]](idx + 1);
+    }
+
+    template <typename TI>
+    __host__ __device__ auto const& at(TI const* idx) const {
+        return m_data_[idx[0]](idx + 1);
+    }
+
+    template <typename TI, int M>
+    __host__ __device__ auto& at(nTuple<TI, M> const& idx) {
+        return at(&idx[0]);
+    }
+
+    template <typename TI, int M>
+    __host__ __device__ auto const& at(nTuple<TI, M> const& idx) const {
+        return at(&idx[0]);
     }
 
     template <typename... Idx>
@@ -288,13 +313,13 @@ struct nTuple<TV, N0, N...> {
     void foreach (TFun const& fun, ENABLE_IF((concept::is_callable<TFun(int*, TV&)>::value))) {
         int idx[sizeof...(N) + 1];
         for (idx[0] = 0; idx[0] < N0; ++idx[0]) {
-            _Foreach(data_[idx[0]], idx + 1, [&](TV& u) { fun(idx, u); });
+            _Foreach(m_data_[idx[0]], idx + 1, [&](TV& u) { fun(idx, u); });
         }
     }
     template <typename TFun>
     void foreach (TFun const& fun, ENABLE_IF((concept::is_callable<TFun(TV&)>::value))) {
         int idx[sizeof...(N) + 1];
-        for (idx[0] = 0; idx[0] < N0; ++idx[0]) { _Foreach(data_[idx[0]], idx + 1, fun); }
+        for (idx[0] = 0; idx[0] < N0; ++idx[0]) { _Foreach(m_data_[idx[0]], idx + 1, fun); }
     }
 
     __host__ __device__ this_type& operator=(this_type const& rhs) {
@@ -558,7 +583,7 @@ __host__ __device__ auto cross(T1 const& l, T2 const& r) {
 //
 // template <typename T, int... M>
 // std::ostream& operator<<(std::ostream& os, nTuple<T, M...> const& v) {
-//    return _detail::printNd_(os, v.data_, integer_sequence<int, M...>());
+//    return _detail::printNd_(os, v.m_data_, integer_sequence<int, M...>());
 //}
 //
 // template <typename T, int... M>

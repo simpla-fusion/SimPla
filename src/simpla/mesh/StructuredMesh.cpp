@@ -140,7 +140,7 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
         for (index_type J = ib[1]; J < ie[1]; ++J)
             for (index_type K = ib[2]; K < ie[2]; ++K) {
                 auto x = point(EntityId{static_cast<int16_t>(I), static_cast<int16_t>(J), static_cast<int16_t>(K)});
-                if (!g->CheckInside(x)) { vertex_tags[0](I, J, K) = 1; }
+                if (!g->CheckInside(x)) { vertex_tags(0, I, J, K) = 1; }
             }
     //
 
@@ -211,14 +211,14 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
             for (index_type K = ib[2]; K < ie[2]; ++K) {
                 EntityId s = {static_cast<int16_t>(I), static_cast<int16_t>(J), static_cast<int16_t>(K), 0};
 
-                int volume_tags = ((vertex_tags[0](I + 0, J + 0, K + 0)) << 0) |  //
-                                  ((vertex_tags[0](I + 1, J + 0, K + 0)) << 1) |  //
-                                  ((vertex_tags[0](I + 0, J + 1, K + 0)) << 2) |  //
-                                  ((vertex_tags[0](I + 1, J + 1, K + 0)) << 3) |  //
-                                  ((vertex_tags[0](I + 0, J + 0, K + 1)) << 4) |  //
-                                  ((vertex_tags[0](I + 1, J + 0, K + 1)) << 5) |  //
-                                  ((vertex_tags[0](I + 0, J + 1, K + 1)) << 6) |  //
-                                  ((vertex_tags[0](I + 1, J + 1, K + 1)) << 7);
+                int volume_tags = ((vertex_tags(0, I + 0, J + 0, K + 0)) << 0) |  //
+                                  ((vertex_tags(0, I + 1, J + 0, K + 0)) << 1) |  //
+                                  ((vertex_tags(0, I + 0, J + 1, K + 0)) << 2) |  //
+                                  ((vertex_tags(0, I + 1, J + 1, K + 0)) << 3) |  //
+                                  ((vertex_tags(0, I + 0, J + 0, K + 1)) << 4) |  //
+                                  ((vertex_tags(0, I + 1, J + 0, K + 1)) << 5) |  //
+                                  ((vertex_tags(0, I + 0, J + 1, K + 1)) << 6) |  //
+                                  ((vertex_tags(0, I + 1, J + 1, K + 1)) << 7);
                 //
                 if (volume_tags == 0) {
                     /**

@@ -126,7 +126,7 @@ class Array {
         return (*this);
     }
 
-    std::ostream& Print(std::ostream& os, int indent = 0) const { return m_sfc_.Print(os, m_holder_.get(), indent); }
+    std::ostream& Print(std::ostream& os, int indent = 0) const { return m_sfc_.Print(os, m_data_, indent); }
 
     __host__ __device__ value_type& operator[](size_type s) { return m_data_[s]; }
 

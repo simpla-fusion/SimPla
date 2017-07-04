@@ -3,7 +3,7 @@
 //
 
 #include "simpla/algebra/all.h"
-#include "simpla/mesh/SMesh.h"
+#include "simpla/mesh/CoRectMesh.h"
 using namespace simpla;
 // struct DummyMesh : public RectM {
 //   public:
@@ -59,23 +59,27 @@ int main(int argc, char **argv) {
     index_box_type i_box = {{0, 0, 0}, {2, 4, 3}};
     box_type x_box{{0, 0, 0}, {1, 2, 3}};
     {
-        mesh::SMesh m;
-        typedef mesh::SMesh mesh_type;
+        typedef mesh::CoRectMesh mesh_type;
+        engine::MeshBlock blk(i_box, 0);
+        mesh_type m;
+        m.SetBlock(blk);
 
         Field<mesh_type, Real, VERTEX> f(&m);
         Field<mesh_type, Real, VERTEX> g(&m);
 
         f.Clear();
         g.Clear();
-//        f[0](0, 2, 3) = 1990;
+        //        f[0](0, 2, 3) = 1990;
         f = 1;
         g = 2;
 
-        f = f + g * 2;
-        f = -g * 0.2;
+        f = -f * 0.2 + g * 2;
+        CHECK(f.data());
 
-        //    f = [&](point_type const &x) { return x[1] + x[2]; };
-        //    g = [&](EntityId const &s) { return 1.0; };
+        f = [&](point_type const &x) { return x[1] + x[2]; };
+        g = [&](EntityId const &s) { return 1.0; };
+
+        CHECK(f.data());
 
         //    CHECK(f);
         //    Field<mesh_type, Real, EDGE> E(&m);

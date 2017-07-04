@@ -130,15 +130,13 @@ std::istream& input(std::istream& is, nTuple<T, N0, N...>& tv) {
 
 namespace _detail {
 template <typename T, int... N>
-std::ostream& printNd_(std::ostream& os, T const& d, std::integer_sequence<int, N...> const&,
-                       ENABLE_IF((!is_indexable<T>::value))) {
+std::ostream& printNd_(std::ostream& os, T const& d, std::integer_sequence<int, N...> const&) {
     os << d;
     return os;
 }
 
 template <typename T, int M, int... N>
-std::ostream& printNd_(std::ostream& os, T const& d, std::integer_sequence<int, M, N...> const&,
-                       ENABLE_IF((is_indexable<T>::value))) {
+std::ostream& printNd_(std::ostream& os, nTuple<T, M, N...> const& d, std::integer_sequence<int, M, N...> const&) {
     os << "[";
     printNd_(os, d[0], std::integer_sequence<int, N...>());
     for (int i = 1; i < M; ++i) {
@@ -166,7 +164,7 @@ std::istream& input(std::istream& is, nTuple<T, M0, M...>& a) {
 
 template <typename T, int... M>
 std::ostream& operator<<(std::ostream& os, nTuple<T, M...> const& v) {
-    _detail::printNd_(os, v.data_, std::integer_sequence<int, M...>());
+    _detail::printNd_(os, v, std::integer_sequence<int, M...>());
     return os;
 }
 

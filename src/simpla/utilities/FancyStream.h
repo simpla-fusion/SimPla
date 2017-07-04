@@ -215,7 +215,7 @@ std::ostream &operator<<(std::ostream &os, std::multimap<TX, TY, Others...> cons
 }
 // template <typename T, int... M>
 // std::ostream &operator<<(std::ostream &os, algebra::declare::nTuple_<T, M...> const &v) {
-//    return algebra::_detail::printNd_(os, v.data_, int_sequence<M...>());
+//    return algebra::_detail::printNd_(os, v.m_data_, int_sequence<M...>());
 //}
 namespace _impl {
 template <typename... Args>

@@ -67,7 +67,7 @@ public:
 
     inline container_type const &data() const
     {
-//		EXCEPT(data_ != nullptr);
+//		EXCEPT(m_data_ != nullptr);
         return *data_;
     }
 
@@ -92,7 +92,7 @@ public:
     inline iterator find(key_x_type const &x) const
     {
         iterator jt = data_->upper_bound(x);
-//		if (jt == data_->begin() || (++jt == data_->begin()))
+//		if (jt == m_data_->begin() || (++jt == m_data_->begin()))
 //		{
 //			THROW_EXCEPTION_LOGIC_ERROR << "key entity out of entity_id_range!";
 //		}
@@ -489,17 +489,17 @@ public:
 //	std::vector<value_type> y2_;
 //	value_type yp1_;
 //	value_type yp2_;
-//	void * data_;
+//	void * m_data_;
 //public:
 //
 //	CubicSplineInterpolation() :
-//			data_(nullptr)
+//			m_data_(nullptr)
 //	{
 //	}
 //
 //	CubicSplineInterpolation(value_type const & yp1 = 1.0e99,
 //			value_type const & yp2 = 1.0e99) :
-//			yp1_(yp1), yp2_(yp2), data_(nullptr)
+//			yp1_(yp1), yp2_(yp2), m_data_(nullptr)
 //	{
 //
 //	}
@@ -509,7 +509,7 @@ public:
 //		y2_.swap(r.y2_);
 //		std::swap(yp1_, r.yp1_);
 //		std::swap(yp2_, r.yp2_);
-//		std::swap(data_, r.data_);
+//		std::swap(m_data_, r.m_data_);
 //	}
 //
 //	/**
@@ -526,10 +526,10 @@ public:
 //	template<typename port_type>
 //	void Sync(port_type const &xy)
 //	{
-//		if (static_cast<void const *>(&xy) == data_)
+//		if (static_cast<void const *>(&xy) == m_data_)
 //			return;
 //
-//		data_ = static_cast<void const *>(&xy);
+//		m_data_ = static_cast<void const *>(&xy);
 //
 //		int i, k;
 //		double p, qn, sig, un;
