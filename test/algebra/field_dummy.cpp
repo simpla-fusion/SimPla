@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
         //        g = [&](EntityId const &s) { return 1.0; };
 
         CHECK(f.data());
-        f = 1;
+
         g = 2;
         f = f * 0.2 + g * 2;
         CHECK(f.data());
