@@ -73,6 +73,11 @@ template <typename T>
 struct reference {
     typedef T type;
 };
+
+template <typename T>
+struct reference<T&&> {
+    typedef T type;
+};
 template <typename T>
 using reference_t = typename reference<T>::type;
 

@@ -247,10 +247,8 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     template <typename RHS>
     void Assign(EntityRange const& r, RHS const& expr) {
         m_data_.foreach ([&](auto& lhs, auto const&... sub) {
-            lhs = CalculusPolicy<mesh_type>::getValue(*m_mesh_, expr, nTuple<index_type, 3>{0, 0, 0}, sub...);
-
+            lhs = CalculusPolicy<mesh_type>::getValue(*m_mesh_, expr, IdxShift{0, 0, 0}, sub...);
         });
-
     }
 
     //    void Assign(EntityRange const& r, value_type const& rhs) {

@@ -248,7 +248,7 @@ struct nTuple<TV, N0, N...> {
         for (int i = 0; i < N0; ++i) { m_data_[i] = other.m_data_[i]; }
     };
     __host__ __device__ nTuple(this_type&& other) {
-        for (int i = 0; i < N0; ++i) { std::swap(m_data_[i], other.m_data_[i]); }
+        for (int i = 0; i < N0; ++i) { m_data_[i] = other.m_data_[i]; }
     };
     ;
 

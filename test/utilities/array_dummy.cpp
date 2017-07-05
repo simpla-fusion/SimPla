@@ -34,7 +34,8 @@ int main(int argc, char **argv) {
 
     //    FE_CMD(c = a + sin(b) * 3 + d);
 
-    c = a[IdxShift{1, 0, 0}] - a[IdxShift{-1, 0, 0}] + a[IdxShift{0, 1, 0}] - a[IdxShift{0, -1, 0}];
+    c = calculus::getValue(a, IdxShift{1, 0, 0}) - calculus::getValue(a, IdxShift{-1, 0, 0}) +
+        calculus::getValue(a, IdxShift{0, 1, 0}) - calculus::getValue(a, IdxShift{0, -1, 0});
     //    nTuple<double, 3> v = {1, 2, 3};
     //    Array<nTuple<double, 3>, 3> e(inner_box);
     //    e = b * v;

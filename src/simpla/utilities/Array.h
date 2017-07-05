@@ -15,23 +15,23 @@
 #include "Log.h"
 #include "SFC.h"
 #include "memory.h"
+#include "nTuple.h"
 #include "type_traits.h"
 namespace simpla {
 template <typename V, typename SFC>
 class Array;
+typedef nTuple<index_type, 3> IdxShift;
 
 namespace calculus {
 template <typename... U, typename... Args>
 struct _IndexHelper<Array<U...>, traits::type_list<Args...>> {
-    static __host__ __device__ auto rvalue(Array<U...> const& array, Args const&... args) { return array.at(args...); };
-
     static __host__ __device__ auto& lvalue(Array<U...>& array, Args const&... args) { return array.at(args...); };
+
+    static __host__ __device__ Array<U...> const& rvalue(Array<U...> const& array) { return array; };
+
+    static __host__ __device__ auto rvalue(Array<U...> const& array, Args const&... args) { return array.at(args...); };
 };
 }
-
-struct IdxShift : public nTuple<index_type, 3> {
-    IdxShift(std::initializer_list<index_type> const& l) : nTuple<index_type, 3>(l) {}
-};
 
 template <typename V, typename SFC = ZSFC<3>>
 class Array {
@@ -59,7 +59,7 @@ class Array {
           m_holder_(std::shared_ptr<value_type>(other.m_holder_)),
           m_host_data_(other.m_host_data_) {}
 
-    Array(this_type const& other, IdxShift const& s) : Array(other) { Shift(s); }
+    Array(this_type const& other, IdxShift s) : Array(other) { Shift(s); }
 
     template <typename... Args>
     explicit Array(Args&&... args) : m_data_(nullptr), m_sfc_(std::forward<Args>(args)...) {}
@@ -115,20 +115,12 @@ class Array {
     void Shift(Args&&... args) {
         m_sfc_.Shift(std::forward<Args>(args)...);
     }
-    template <typename... Args>
-    this_type ShiftReference(Args&&... args) const {
-        this_type res(*this);
-        res.Shift(std::forward<Args>(args)...);
-        return res;
-    }
 
-    this_type operator[](IdxShift const& IX) const { return ShiftReference(IX); }
-
-    void Clear() { Fill(0); }
     void Fill(value_type v) {
         DoSetUp();
         spMemoryFill(m_data_, v, m_sfc_.size());
     }
+    void Clear() { Fill(0); }
     void SetUndefined() { Fill(std::numeric_limits<value_type>::signaling_NaN()); }
 
     void DeepCopy(value_type const* other) {
@@ -154,6 +146,8 @@ class Array {
     __host__ __device__ value_type& operator[](size_type s) { return m_data_[s]; }
 
     __host__ __device__ value_type const& operator[](size_type s) const { return m_data_[s]; }
+
+    this_type at(IdxShift const& idx) const { return this_type(*this, idx); }
 
     template <typename... Args>
     __host__ __device__ value_type& at(Args&&... args) {

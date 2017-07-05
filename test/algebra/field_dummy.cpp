@@ -67,20 +67,20 @@ int main(int argc, char **argv) {
         Field<mesh_type, Real, VERTEX> f(&m);
         Field<mesh_type, Real, VERTEX> g(&m);
 
-        f.Clear();
-        g.Clear();
+        f.SetUndefined();
+        g.SetUndefined();
         //        f[0](0, 2, 3) = 1990;
-        f = 1;
-        g = 2;
 
-        f = -f * 0.2 + g * 2;
         CHECK(f.data());
 
         f = [&](index_type x, index_type y, index_type z) { return x + y + z; };
         //        g = [&](EntityId const &s) { return 1.0; };
 
         CHECK(f.data());
-
+        f = 1;
+        g = 2;
+        f = g * 2;  // * 0.2 + g * 2;
+        CHECK(f.data());
         //    CHECK(f);
         //    Field<mesh_type, Real, EDGE> E(&m);
         //    Field<mesh_type, Real, FACE> B(&m);
