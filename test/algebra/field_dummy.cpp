@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
         f = -f * 0.2 + g * 2;
         CHECK(f.data());
 
-        f = [&](int n, index_type x, index_type y, index_type z) { return x + y + z; };
+        f = [&](index_type x, index_type y, index_type z) { return x + y + z; };
         //        g = [&](EntityId const &s) { return 1.0; };
 
         CHECK(f.data());

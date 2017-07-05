@@ -47,23 +47,48 @@ struct CalculusPolicy {
     static auto getValue(mesh_type const& m, Expression<TOP, T...> const& expr, Others&&... others) {
         return eval(std::integer_sequence<int, traits::iform<T>::value...>(), m, expr, std::forward<Others>(others)...);
     }
+
+    template <typename... V>
+    static Array<V...>&& getValue(mesh_type const& m, Array<V...> const& f, IdxShift const& S) {
+        return Array<V...>(f, S);
+    };
+
+    template <typename... V, int... DOF, typename... Others>
+    static auto getValue(mesh_type const& m, nTuple<Array<V...>, DOF...> const& f, IdxShift S, int n,
+                         Others&&... others) {
+        return getValue(m, f[n], S, std::forward<Others>(others)...);
+    };
+
+    template <typename M, typename V, int... I, typename... Others>
+    static auto getValue(mesh_type const& m, Field<M, V, I...> const& f, IdxShift S, Others&&... others) {
+        return getValue(m, f.data(), S, std::forward<Others>(others)...);
+    };
+    //    template <typename M, typename V, int IFORM, typename... Others>
+    //    static auto getValue(mesh_type const& m, Field<M, V, IFORM> const& f, IdxShift S, int n0, Others&&... others)
+    //    {
+    //        auto res = f[n0];
+    //        res.Shift(S);
+    //        return res(std::forward<Others>(others)...);
+    //    };
+
     template <typename T, typename... Others>
-    static T const& getValue(mesh_type const& m, T const& v, Others&&... tags) {
+    static auto _getValue(std::integral_constant<bool, true> const& is_arithmetic, mesh_type const& m, T const& v,
+                          Others&&... tags) {
         return v;
     }
-    template <typename M, typename V, int IFORM, int DOF, typename... Others>
-    static auto getValue(mesh_type const& m, Field<M, V, IFORM, DOF> const& f, IdxShift S, int n0, int n1,
-                         Others&&... others) {
-        auto res = f[n0][n1];
-        res.Shift(S);
-        return res(std::forward<Others>(others)...);
-    };
-    template <typename M, typename V, int IFORM, typename... Others>
-    static auto getValue(mesh_type const& m, Field<M, V, IFORM> const& f, IdxShift S, int n0, Others&&... others) {
-        auto res = f[n0];
-        res.Shift(S);
-        return res(std::forward<Others>(others)...);
-    };
+    //    template <typename T, typename... Others>
+    //    static auto _getValue(std::integral_constant<bool, false> const& is_not_arithmetic, mesh_type const& m, T
+    //    const& v,
+    //                          Others&&... tags) {
+    //        return v;
+    //    }
+    template <typename T, typename... Others>
+    static auto getValue(mesh_type const& m, T const& v, Others&&... others) {
+        return v;
+        //        _getValue(std::integral_constant<bool, std::is_arithmetic<T>::value>(), m, v,
+        //        std::forward<Others>(others)...);
+    }
+
     //    template <typename TFun>
     //    static auto getValue(mesh_type const& m, TFun const& f, IdxShift S, int N0, int N1) {
     //        return [=](index_type x, index_type y, index_type z) { return f(N0, N1, x + S[0], y + S[1], z + S[2]); };

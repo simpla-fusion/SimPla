@@ -59,6 +59,8 @@ class Array {
           m_holder_(std::shared_ptr<value_type>(other.m_holder_)),
           m_host_data_(other.m_host_data_) {}
 
+    Array(this_type const& other, IdxShift const& s) : Array(other) { Shift(s); }
+
     template <typename... Args>
     explicit Array(Args&&... args) : m_data_(nullptr), m_sfc_(std::forward<Args>(args)...) {}
 
