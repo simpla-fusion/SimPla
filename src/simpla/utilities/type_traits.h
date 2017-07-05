@@ -12,6 +12,7 @@
 #include "host_define.h"
 
 namespace simpla {
+
 #define ENABLE_IF(_COND_) std::enable_if_t<_COND_, void>* _p = nullptr
 
 // CHECK_OPERATOR(is_indexable, [])
@@ -46,9 +47,6 @@ template <typename T, typename TI = int>
 struct is_indexable : public std::integral_constant<bool, detail::is_indexable<T, TI>::value> {
     typedef typename detail::is_indexable<T, TI>::type type;
 };
-}
-
-namespace simpla {
 
 typedef std::nullptr_t NullType;
 
@@ -63,22 +61,10 @@ struct do_nothing {
 };
 }
 
-namespace _impl {
-template <typename Func, typename Tup, int... index>
-auto invoke_helper(Func&& func, Tup&& tup, std::index_sequence<index...>) {
-    return ((func(std::get<index>(std::forward<Tup>(tup))...)));
-}
-
-}  // namespace _impl
-
-template <typename Func, typename Tup>
-auto invoke(Func&& func, Tup&& tup) {
-    return ((_impl::invoke_helper(std::forward<Func>(func), std::forward<Tup>(tup),
-                                  std::make_index_sequence<std::tuple_size<typename std::decay<Tup>::type>::value>())));
-}
-
 namespace traits {
 
+template <typename... T>
+struct type_list {};
 ////////////////////////////////////////////////////////////////////////
 ///// Property queries of n-dimensional array
 ////////////////////////////////////////////////////////////////////////

@@ -115,7 +115,6 @@ class ZSFC {
     __host__ __device__ constexpr inline size_type hash(array_index_type const& idx) const {
         return dot(idx - std::get<0>(m_index_box_), m_strides_);
     }
-
     __host__ __device__ inline size_type hash(index_type const* idx) const;
 
     __host__ __device__ inline size_type hash(index_type s0, index_type s1 = 0, index_type s2 = 0, index_type s3 = 0,

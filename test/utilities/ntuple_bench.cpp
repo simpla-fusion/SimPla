@@ -6,8 +6,9 @@
 #include <eigen3/Eigen/Core>
 
 using namespace simpla;
+typedef double Real;
 
-static constexpr Real a = 1, b = 2, c = 3;
+static constexpr int a = 1, b = 2, c = 3;
 
 #define EQUATION(_A, _B, _C) (-(_A * a) + (_B * b / c) - _C)
 

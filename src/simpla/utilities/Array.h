@@ -15,19 +15,18 @@
 #include "Log.h"
 #include "SFC.h"
 #include "memory.h"
+#include "type_traits.h"
 namespace simpla {
 template <typename V, typename SFC>
 class Array;
 
 namespace calculus {
-template <typename... U>
-struct _IndexHelper<Array<U...>> {
-    template <typename... Args>
+template <typename... U, typename... Args>
+struct _IndexHelper<Array<U...>, traits::type_list<Args...>> {
     static __host__ __device__ auto rvalue(Array<U...> const& array, Args&&... args) {
         return array.at(std::forward<Args>(args)...);
     };
 
-    template <typename... Args>
     static __host__ __device__ auto& lvalue(Array<U...>& array, Args&&... args) {
         return array.at(std::forward<Args>(args)...);
     };
@@ -115,13 +114,17 @@ class Array {
     value_type* get() const { return m_data_; }
 
     template <typename... Args>
-    this_type Shift(Args&&... args) const {
+    void Shift(Args&&... args) {
+        m_sfc_.Shift(std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    this_type ShiftReference(Args&&... args) const {
         this_type res(*this);
-        res.m_sfc_.Shift(std::forward<Args>(args)...);
-        return std::move(res);
+        res.Shift(std::forward<Args>(args)...);
+        return res;
     }
 
-    this_type operator[](typename SFC::array_index_type const& IX) const { return Shift(IX); }
+    this_type operator[](IdxShift const& IX) const { return ShiftReference(IX); }
 
     void Clear() { Fill(0); }
     void Fill(value_type v) {
@@ -171,48 +174,9 @@ class Array {
         return at(std::forward<Args>(args)...);
     }
 
-    //    template <typename TOP, typename... Others, size_t... IND, typename... Args>
-    //    __host__ __device__ static constexpr auto _invoke_helper(Expression<TOP, Others...> const& expr,
-    //                                                             std::index_sequence<IND...>, Args&&... args) {
-    //        return TOP::eval(getValue(std::get<IND>(expr.m_args_), std::forward<Args>(args)...)...);
-    //    }
-    //
-    //    template <typename TOP, typename... Others, typename... Args>
-    //    __host__ __device__ static constexpr auto getValue(Expression<TOP, Others...> const& expr, Args&&... args) {
-    //        return _invoke_helper(expr, std::index_sequence_for<Others...>(), std::forward<Args>(args)...);
-    //    }
-    //
-    //   private:
-    //    template <typename TOP, typename... Args>
-    //    __host__ __device__ static constexpr auto getValue_help(std::integral_constant<int, 0>, TOP const& v,
-    //                                                            Args&&... args) {
-    //        return v;
-    //    };
-    //    template <typename TOP, typename... Args>
-    //    __host__ __device__ static constexpr auto getValue_help(std::integral_constant<int, 1>, TOP const& v,
-    //                                                            Args&&... args) {
-    //        return v(std::forward<Args>(args)...);
-    //    };
-
-    //   public:
-    //    template <typename TOP, typename... Args>
-    //    __host__ __device__ static constexpr auto getValue(TOP const& expr, Args&&... args) {
-    //        return getValue_help(std::integral_constant < int, std::is_convertible<TOP, value_type>::value ? 0 : 1 >
-    //        (),
-    //                             expr, std::forward<Args>(args)...);
-    //}
-
-    //    template <typename Other, typename... Args>
-    //    void Assign(Other const& other, Args&&... args) {
-    //        if (m_sfc_.in_box(std::forward<Args>(args)...)) {
-    //            at(std::forward<Args>(args)...) = calculus::getValue(other, std::forward<Args>(args)...);
-    //        }
-    //    }
-
     template <typename RHS>
     void Assign(RHS const& rhs) {
         m_sfc_.Foreach([&] __host__ __device__(auto&&... s) {
-            // calculus::Assign(*this, rhs, std::forward<decltype(s)>(s)...);
             at(std::forward<decltype(s)>(s)...) = calculus::getValue(rhs, std::forward<decltype(s)>(s)...);
         });
     }

@@ -163,15 +163,13 @@ __host__ __device__ void foreach_(nTuple<TV, N0, N1, N2>& m_data_, TFun const& f
 
 namespace calculus {
 
-template <typename T, int... N>
-struct _IndexHelper<nTuple<T, N...>> {
-    template <typename... Args>
-    __host__ __device__ auto const& rvalue(nTuple<T, N...> const& ntuple, Args&&... args) {
+template <typename T, int... N, typename... Args>
+struct _IndexHelper<nTuple<T, N...>, traits::type_list<Args...>> {
+    static __host__ __device__ auto const& rvalue(nTuple<T, N...> const& ntuple, Args&&... args) {
         return ntuple.at(std::forward<Args>(args)...);
     };
 
-    template <typename... Args>
-    __host__ __device__ auto& lvalue(nTuple<T, N...>& ntuple, Args&&... args) {
+    static __host__ __device__ auto& lvalue(nTuple<T, N...>& ntuple, Args&&... args) {
         return ntuple.at(std::forward<Args>(args)...);
     };
 };
@@ -266,23 +264,23 @@ struct nTuple<TV, N0, N...> {
 
     template <typename T0, typename... Idx>
     __host__ __device__ auto& at(T0 n0, Idx&&... s) {
-        return m_data_[n0](std::forward<Idx>(s)...);
+        return calculus::getLValue(m_data_[n0], std::forward<Idx>(s)...);
     }
 
     template <typename T0, typename... Idx>
     __host__ __device__ auto const& at(T0 n0, Idx&&... s) const {
-        return m_data_[n0](std::forward<Idx>(s)...);
+        return calculus::getLValue(m_data_[n0], std::forward<Idx>(s)...);
     }
 
-    //    template <typename TI>
-    //    __host__ __device__ auto& at(TI const* idx) {
-    //        return m_data_[idx[0]](idx + 1);
-    //    }
-    //
-    //    template <typename TI>
-    //    __host__ __device__ auto const& at(TI const* idx) const {
-    //        return m_data_[idx[0]](idx + 1);
-    //    }
+    template <typename TI>
+    __host__ __device__ auto& at(TI const* idx) {
+        return calculus::getLValue(m_data_[idx[0]], idx + 1);
+    }
+
+    template <typename TI>
+    __host__ __device__ auto const& at(TI const* idx) const {
+        return calculus::getLValue(m_data_[idx[0]], idx + 1);
+    }
     //
     //    template <typename TI, int M>
     //    __host__ __device__ auto& at(nTuple<TI, M> const& idx) {
@@ -311,13 +309,15 @@ struct nTuple<TV, N0, N...> {
     }
 
     __host__ __device__ this_type& operator=(this_type const& rhs) {
-        calculus::assign(*this, rhs);
+        //        calculus::assign(*this, rhs);
+        for (int i = 0; i < N0; ++i) { m_data_[i] = calculus::getValue(rhs, i); }
         return (*this);
     }
 
     template <typename TR>
     __host__ __device__ this_type& operator=(TR const& rhs) {
-        calculus::assign(*this, rhs);
+        //        calculus::assign(*this, rhs);
+        for (int i = 0; i < N0; ++i) { m_data_[i] = calculus::getValue(rhs, i); }
         return (*this);
     }
 };
