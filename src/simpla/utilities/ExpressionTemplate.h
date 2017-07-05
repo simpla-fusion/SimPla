@@ -161,20 +161,18 @@ struct _IndexHelper<T, traits::type_list<Args...>,
                     std::enable_if_t<std::is_arithmetic<T>::value || std::is_same<std::complex<double>, T>::value ||
                                      std::is_same<std::complex<float>, T>::value>> {
     static T &lvalue(T &v, Args &&... args) { return v; };
-    static T const &lvalue(T const &v, Args &&... args) { return v; };
-    static T const &rvalue(T const &v, Args &&... args) { return v; };
+    static T const &lvalue(T const &v, Args const &... args) { return v; };
+    static T const &rvalue(T const &v, Args const &... args) { return v; };
 };
 
 template <typename T, typename I0, typename... Others>
 struct _IndexHelper<T *, traits::type_list<I0, Others...>> {
-    static auto &lvalue(T *v, I0 const &s, Others &&... others) {
-        return _IndexHelper<std::remove_cv_t<decltype(v[s])>, traits::type_list<Others...>>::lvalue(
-            v[s], std::forward<Others>(others)...);
+    static auto &lvalue(T *v, I0 const &s, Others const &... others) {
+        return _IndexHelper<std::remove_cv_t<decltype(v[s])>, traits::type_list<Others...>>::lvalue(v[s], (others)...);
     };
 
-    static auto const &rvalue(T const *v, I0 const &s, Others &&... others) {
-        return _IndexHelper<std::remove_cv_t<decltype(v[s])>, traits::type_list<Others...>>::rvalue(
-            v[s], std::forward<Others>(others)...);
+    static auto const &rvalue(T const *v, I0 const &s, Others const &... others) {
+        return _IndexHelper<std::remove_cv_t<decltype(v[s])>, traits::type_list<Others...>>::rvalue(v[s], (others)...);
     };
 };
 
@@ -192,42 +190,43 @@ struct _IndexHelper<T *, traits::type_list<I0, Others...>> {
 template <typename TFun, typename... Args>
 struct _IndexHelper<TFun, traits::type_list<Args...>,
                     std::enable_if_t<!std::is_reference<std::result_of_t<TFun(Args...)>>::value>> {
-    static auto rvalue(TFun const &fun, Args &&... args) { return fun(std::forward<Args>(args)...); };
+    static auto rvalue(TFun const &fun, Args const &... args) { return fun((args)...); };
 
-    static auto lvalue(TFun const &fun, Args &&... args) = delete;
+    static auto lvalue(TFun const &fun, Args const &... args) = delete;
 };
 
 template <typename TOP, typename... Others, typename... Args>
 struct _IndexHelper<Expression<TOP, Others...>, traits::type_list<Args...>> {
     template <size_t... index>
-    static auto _invoke_helper(std::index_sequence<index...>, Expression<TOP, Others...> const &expr, Args &&... args) {
-        return expr.m_op_(_IndexHelper<std::decay_t<std::remove_cv_t<decltype(std::get<index>(expr.m_args_))>>,
-                                       traits::type_list<Args...>>::rvalue(std::get<index>(expr.m_args_),
-                                                                           std::forward<Args>(args)...)...);
+    static auto _invoke_helper(std::index_sequence<index...>, Expression<TOP, Others...> const &expr,
+                               Args const &... args) {
+        return expr.m_op_(
+            _IndexHelper<std::decay_t<std::remove_cv_t<decltype(std::get<index>(expr.m_args_))>>,
+                         traits::type_list<Args...>>::rvalue(std::get<index>(expr.m_args_), (args)...)...);
     }
-    static auto rvalue(Expression<TOP, Others...> const &expr, Args &&... args) {
-        return _invoke_helper(std::index_sequence_for<Others...>(), expr, std::forward<Args>(args)...);
+    static auto rvalue(Expression<TOP, Others...> const &expr, Args const &... args) {
+        return _invoke_helper(std::index_sequence_for<Others...>(), expr, (args)...);
     };
 
-    static auto lvalue(Args &&...) = delete;
+    static auto lvalue(Args const &...) = delete;
 };
 
 template <typename T, typename... Args>
-auto getValue(T const &expr, Args &&... args) {
-    return _IndexHelper<std::remove_cv_t<T>, traits::type_list<Args...>>::rvalue(expr, std::forward<Args>(args)...);
+auto getValue(T const &expr, Args const &... args) {
+    return _IndexHelper<std::remove_cv_t<T>, traits::type_list<Args...>>::rvalue(expr, (args)...);
 };
 template <typename T, typename... Args>
-auto &getLValue(T &expr, Args &&... args) {
-    return _IndexHelper<std::remove_cv_t<T>, traits::type_list<Args...>>::lvalue(expr, std::forward<Args>(args)...);
+auto &getLValue(T &expr, Args const &... args) {
+    return _IndexHelper<std::remove_cv_t<T>, traits::type_list<std::decay_t<Args>...>>::lvalue(expr, (args)...);
 };
 
 template <typename T, typename... Args>
-auto const &getValue(T const *expr, Args &&... args) {
-    return _IndexHelper<T *, traits::type_list<Args...>>::rvalue(expr, std::forward<Args>(args)...);
+auto const &getValue(T const *expr, Args const &... args) {
+    return _IndexHelper<T *, traits::type_list<Args...>>::rvalue(expr, (args)...);
 };
 template <typename T, typename... Args>
-auto &getLValue(T *expr, Args &&... args) {
-    return _IndexHelper<T *, traits::type_list<Args...>>::lvalue(expr, std::forward<Args>(args)...);
+auto &getLValue(T *expr, Args const &... args) {
+    return _IndexHelper<T *, traits::type_list<Args...>>::lvalue(expr, (args)...);
 };
 
 // template <typename T, typename TI>
@@ -249,7 +248,7 @@ auto &getLValue(T *expr, Args &&... args) {
 //}
 //
 template <typename LHS, typename RHS, typename... Args>
-void Assign(LHS &lhs, RHS const &rhs, Args &&... args) {
+void Assign(LHS &lhs, RHS const &rhs, Args const &... args) {
     getLValue(lhs, std::forward<Args>(args)...) = getValue(rhs, std::forward<Args>(args)...);
 };
 };

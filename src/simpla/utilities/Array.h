@@ -23,13 +23,9 @@ class Array;
 namespace calculus {
 template <typename... U, typename... Args>
 struct _IndexHelper<Array<U...>, traits::type_list<Args...>> {
-    static __host__ __device__ auto rvalue(Array<U...> const& array, Args&&... args) {
-        return array.at(std::forward<Args>(args)...);
-    };
+    static __host__ __device__ auto rvalue(Array<U...> const& array, Args const&... args) { return array.at(args...); };
 
-    static __host__ __device__ auto& lvalue(Array<U...>& array, Args&&... args) {
-        return array.at(std::forward<Args>(args)...);
-    };
+    static __host__ __device__ auto& lvalue(Array<U...>& array, Args const&... args) { return array.at(args...); };
 };
 }
 
@@ -157,7 +153,6 @@ class Array {
 
     __host__ __device__ value_type const& operator[](size_type s) const { return m_data_[s]; }
 
-
     template <typename... Args>
     __host__ __device__ value_type& at(Args&&... args) {
         return m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
@@ -177,9 +172,7 @@ class Array {
 
     template <typename RHS>
     void Assign(RHS const& rhs) {
-        m_sfc_.Foreach([&] __host__ __device__(auto&&... s) {
-            at(std::forward<decltype(s)>(s)...) = calculus::getValue(rhs, std::forward<decltype(s)>(s)...);
-        });
+        m_sfc_.Foreach([&] __host__ __device__(auto const&... s) { at((s)...) = calculus::getValue(rhs, (s)...); });
     }
 };
 

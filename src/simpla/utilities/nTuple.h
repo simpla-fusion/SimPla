@@ -165,12 +165,12 @@ namespace calculus {
 
 template <typename T, int... N, typename... Args>
 struct _IndexHelper<nTuple<T, N...>, traits::type_list<Args...>> {
-    static __host__ __device__ auto const& rvalue(nTuple<T, N...> const& ntuple, Args&&... args) {
-        return ntuple.at(std::forward<Args>(args)...);
+    static __host__ __device__ auto const& rvalue(nTuple<T, N...> const& ntuple, Args const&... args) {
+        return ntuple.at((args)...);
     };
 
-    static __host__ __device__ auto& lvalue(nTuple<T, N...>& ntuple, Args&&... args) {
-        return ntuple.at(std::forward<Args>(args)...);
+    static __host__ __device__ auto& lvalue(nTuple<T, N...>& ntuple, Args const&... args) {
+        return ntuple.at((args)...);
     };
 };
 
