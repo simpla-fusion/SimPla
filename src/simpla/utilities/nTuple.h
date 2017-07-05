@@ -137,27 +137,6 @@ auto const& get(nTuple<T, M...> const& expr) {
 }
 }  // namespace traits
 
-namespace calculus {
-template <typename T, int N0, int... N, typename Idx>
-static auto GetValue<nTuple<T, N0, N...>>::eval(nTuple<T, N0, N...>& v, Idx const* idx) {
-    return getValue(v.m_data_[idx[0]], idx + 1);
-};
-
-template <typename T, int N0, int... N, typename Idx>
-static auto GetValue<nTuple<T, N0, N...> const>::eval(nTuple<T, N0, N...> const& v, Idx const* idx) {
-    return getValue(v.m_data_[idx[0]], idx + 1);
-};
-
-template <typename T, int N0, int... N, typename... Idx>
-static auto GetValue<nTuple<T, N0, N...>>::eval(nTuple<T, N0, N...>& v, int s, Idx&&... idx) {
-    return getValue(v.m_data_[s], std::forward<Idx>(idx)...);
-};
-
-template <typename T, int N0, int... N, typename... Idx>
-static auto GetValue<nTuple<T, N0, N...> const>::eval(nTuple<T, N0, N...> const& v, int s, Idx&&... idx) {
-    return getValue(v.m_data_[s], std::forward<Idx>(idx)...);
-};
-}
 namespace _detail {
 
 template <typename TFun, typename TV, int N0>
@@ -181,6 +160,60 @@ __host__ __device__ void foreach_(nTuple<TV, N0, N1, N2>& m_data_, TFun const& f
     }
 }
 }
+
+namespace calculus {
+
+template <typename T, int... N, typename... Args>
+struct _IndexHelper<nTuple<T, N...>, traits::type_list<Args...>> {
+    static __host__ __device__ auto const& rvalue(nTuple<T, N...> const& ntuple, Args const&... args) {
+        return ntuple.at((args)...);
+    };
+
+    static __host__ __device__ auto& lvalue(nTuple<T, N...>& ntuple, Args const&... args) {
+        return ntuple.at((args)...);
+    };
+};
+
+namespace _impl {
+
+template <typename TL, typename TR>
+__host__ __device__ void assign_(TL& lhs, TR const& rhs, std::index_sequence<>){};
+
+template <typename TL, typename TR, size_t I0, size_t... I>
+__host__ __device__ void assign_(TL& lhs, TR const& rhs, std::index_sequence<I0, I...>) {
+    lhs[I0] = calculus::get<I0>(rhs);
+    assign_(lhs, rhs, std::index_sequence<I...>());
+};
+template <typename T>
+__host__ __device__ void swap_(T& lhs, T& rhs, std::index_sequence<>){};
+
+template <typename T>
+__host__ __device__ void swap0_(T& lhs, T& rhs, ENABLE_IF((std::rank<T>::value == 0))) {
+    std::swap(lhs, rhs);
+}
+
+template <typename T>
+__host__ __device__ void swap0_(T& lhs, T& rhs, ENABLE_IF((std::rank<T>::value > 0))) {
+    lhs.swap(rhs);
+}
+
+template <typename T, size_t I0, size_t... I>
+__host__ __device__ void swap_(T& lhs, T& rhs, std::index_sequence<I0, I...>) {
+    swap0_(lhs[I0], rhs[I0]);
+    swap_(lhs, rhs, std::index_sequence<I...>());
+};
+
+}  // namespace _impl {
+
+template <typename T>
+__host__ __device__ void swap(T& lhs, T& rhs) {
+    _impl::swap_(lhs, rhs, std::make_index_sequence<std::extent<T>::value>());
+};
+template <typename TL, typename TR>
+__host__ __device__ void assign(TL& lhs, TR const& rhs) {
+    _impl::assign_(lhs, rhs, std::make_index_sequence<std::extent<TL>::value>());
+};
+}  // namespace
 /// n-dimensional primary type
 
 template <typename TV>
@@ -208,7 +241,7 @@ struct nTuple<TV, N0, N...> {
 
     template <typename... U>
     __host__ __device__ nTuple(Expression<U...> const& expr) {
-        traits::assign(*this, expr);
+        calculus::assign(*this, expr);
     }
 
     __host__ __device__ nTuple(this_type const& other) {
@@ -223,29 +256,31 @@ struct nTuple<TV, N0, N...> {
 
     __host__ __device__ sub_type const& operator[](int s) const { return m_data_[s]; }
 
+    //    __host__ __device__ value_type& at(int const* s) { return calculator::getValue(*this, s); }
+
     __host__ __device__ auto& at(int s) { return m_data_[s]; }
 
     __host__ __device__ auto const& at(int s) const { return m_data_[s]; }
 
     template <typename T0, typename... Idx>
     __host__ __device__ auto& at(T0 n0, Idx&&... s) {
-        return m_data_[n0](std::forward<Idx>(s)...);
+        return calculus::getLValue(m_data_[n0], std::forward<Idx>(s)...);
     }
 
     template <typename T0, typename... Idx>
     __host__ __device__ auto const& at(T0 n0, Idx&&... s) const {
-        return m_data_[n0](std::forward<Idx>(s)...);
+        return calculus::getLValue(m_data_[n0], std::forward<Idx>(s)...);
     }
 
-    //    template <typename TI>
-    //    __host__ __device__ auto& at(TI const* idx) {
-    //        return m_data_[idx[0]](idx + 1);
-    //    }
-    //
-    //    template <typename TI>
-    //    __host__ __device__ auto const& at(TI const* idx) const {
-    //        return m_data_[idx[0]](idx + 1);
-    //    }
+    template <typename TI>
+    __host__ __device__ auto& at(TI const* idx) {
+        return calculus::getLValue(m_data_[idx[0]], idx + 1);
+    }
+
+    template <typename TI>
+    __host__ __device__ auto const& at(TI const* idx) const {
+        return calculus::getLValue(m_data_[idx[0]], idx + 1);
+    }
     //
     //    template <typename TI, int M>
     //    __host__ __device__ auto& at(nTuple<TI, M> const& idx) {
@@ -266,7 +301,7 @@ struct nTuple<TV, N0, N...> {
     __host__ __device__ auto const& operator()(Idx&&... s) const {
         return at(std::forward<Idx>(s)...);
     }
-    __host__ __device__ void swap(this_type& other) { traits::swap(*this, other); }
+    __host__ __device__ void swap(this_type& other) { calculus::swap(*this, other); }
 
     template <typename TFun>
     __host__ __device__ void foreach (TFun const& fun) {
@@ -274,13 +309,15 @@ struct nTuple<TV, N0, N...> {
     }
 
     __host__ __device__ this_type& operator=(this_type const& rhs) {
-        traits::assign(*this, rhs);
+        //        calculus::assign(*this, rhs);
+        for (int i = 0; i < N0; ++i) { m_data_[i] = calculus::getValue(rhs, i); }
         return (*this);
     }
 
     template <typename TR>
     __host__ __device__ this_type& operator=(TR const& rhs) {
-        traits::assign(*this, rhs);
+        //        calculus::assign(*this, rhs);
+        for (int i = 0; i < N0; ++i) { m_data_[i] = calculus::getValue(rhs, i); }
         return (*this);
     }
 };
@@ -408,29 +445,29 @@ _SP_DEFINE_NTUPLE_COMPOUND_OP(>>)
 
 #undef _SP_DEFINE_NTUPLE_COMPOUND_OP
 
-#define _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_, _REDUCTION_)                              \
-    template <typename TL, int... NL, typename TR>                                                        \
-    __host__ __device__ bool operator _OP_(nTuple<TL, NL...> const& lhs, TR const& rhs) {                 \
-        return traits::reduction<_REDUCTION_>(Expression<tags::_NAME_, nTuple<TL, NL...>, TR>(lhs, rhs)); \
-    };                                                                                                    \
-    template <typename TL, typename TR, int... NR>                                                        \
-    __host__ __device__ bool operator _OP_(TL const& lhs, nTuple<TR, NR...> const& rhs) {                 \
-        return traits::reduction<_REDUCTION_>(Expression<tags::_NAME_, TL, nTuple<TR, NR...>>(lhs, rhs)); \
-    };                                                                                                    \
-    template <typename TL, int... NL, typename... TR>                                                     \
-    __host__ __device__ bool operator _OP_(nTuple<TL, NL...> const& lhs, Expression<TR...> const& rhs) {  \
-        return traits::reduction<_REDUCTION_>(                                                            \
-            Expression<tags::_NAME_, nTuple<TL, NL...>, Expression<TR...>>(lhs, rhs));                    \
-    };                                                                                                    \
-    template <typename... TL, typename TR, int... NR>                                                     \
-    __host__ __device__ bool operator _OP_(Expression<TL...> const& lhs, nTuple<TR, NR...> const& rhs) {  \
-        return traits::reduction<_REDUCTION_>(                                                            \
-            Expression<tags::_NAME_, Expression<TL...>, nTuple<TR, NR...>>(lhs, rhs));                    \
-    };                                                                                                    \
-    template <typename TL, int... NL, typename TR, int... NR>                                             \
-    __host__ __device__ bool operator _OP_(nTuple<TL, NL...> const& lhs, nTuple<TR, NR...> const& rhs) {  \
-        return traits::reduction<_REDUCTION_>(                                                            \
-            Expression<tags::_NAME_, nTuple<TL, NL...>, nTuple<TR, NR...>>(lhs, rhs));                    \
+#define _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_, _REDUCTION_)                                \
+    template <typename TL, int... NL, typename TR>                                                          \
+    __host__ __device__ bool operator _OP_(nTuple<TL, NL...> const& lhs, TR const& rhs) {                   \
+        return calculus::reduction<_REDUCTION_>(Expression<tags::_NAME_, nTuple<TL, NL...>, TR>(lhs, rhs)); \
+    };                                                                                                      \
+    template <typename TL, typename TR, int... NR>                                                          \
+    __host__ __device__ bool operator _OP_(TL const& lhs, nTuple<TR, NR...> const& rhs) {                   \
+        return calculus::reduction<_REDUCTION_>(Expression<tags::_NAME_, TL, nTuple<TR, NR...>>(lhs, rhs)); \
+    };                                                                                                      \
+    template <typename TL, int... NL, typename... TR>                                                       \
+    __host__ __device__ bool operator _OP_(nTuple<TL, NL...> const& lhs, Expression<TR...> const& rhs) {    \
+        return calculus::reduction<_REDUCTION_>(                                                            \
+            Expression<tags::_NAME_, nTuple<TL, NL...>, Expression<TR...>>(lhs, rhs));                      \
+    };                                                                                                      \
+    template <typename... TL, typename TR, int... NR>                                                       \
+    __host__ __device__ bool operator _OP_(Expression<TL...> const& lhs, nTuple<TR, NR...> const& rhs) {    \
+        return calculus::reduction<_REDUCTION_>(                                                            \
+            Expression<tags::_NAME_, Expression<TL...>, nTuple<TR, NR...>>(lhs, rhs));                      \
+    };                                                                                                      \
+    template <typename TL, int... NL, typename TR, int... NR>                                               \
+    __host__ __device__ bool operator _OP_(nTuple<TL, NL...> const& lhs, nTuple<TR, NR...> const& rhs) {    \
+        return calculus::reduction<_REDUCTION_>(                                                            \
+            Expression<tags::_NAME_, nTuple<TL, NL...>, nTuple<TR, NR...>>(lhs, rhs));                      \
     };
 
 _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(!=, not_equal_to, tags::logical_or)
@@ -446,7 +483,7 @@ _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(<, less, tags::logical_and)
 
 template <typename TL, typename TR>
 __host__ __device__ auto dot(TL const& l, TR const& r) {
-    return traits::reduction<tags::addition>(l * r);
+    return calculus::reduction<tags::addition>(l * r);
 }
 
 template <typename T1, typename T2>

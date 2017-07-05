@@ -15,18 +15,23 @@
 #include "Log.h"
 #include "SFC.h"
 #include "memory.h"
+#include "type_traits.h"
 namespace simpla {
-namespace calculus {
-template <typename V, typename SFC, typename... Args>
-__host__ __device__ constexpr auto& getValue(Array<V, SFC>& other, Args&&... args) {
-    return other.at(std::forward<Args>(args)...);
-};
+template <typename V, typename SFC>
+class Array;
 
-template <typename V, typename SFC, typename... Args>
-__host__ __device__ constexpr auto const& getValue(Array<V, SFC> const& other, Args&&... args) {
-    return other.at(std::forward<Args>(args)...);
+namespace calculus {
+template <typename... U, typename... Args>
+struct _IndexHelper<Array<U...>, traits::type_list<Args...>> {
+    static __host__ __device__ auto rvalue(Array<U...> const& array, Args const&... args) { return array.at(args...); };
+
+    static __host__ __device__ auto& lvalue(Array<U...>& array, Args const&... args) { return array.at(args...); };
 };
 }
+
+struct IdxShift : public nTuple<index_type, 3> {
+    IdxShift(std::initializer_list<index_type> const& l) : nTuple<index_type, 3>(l) {}
+};
 
 template <typename V, typename SFC = ZSFC<3>>
 class Array {
@@ -53,6 +58,8 @@ class Array {
           m_data_(other.m_data_),
           m_holder_(std::shared_ptr<value_type>(other.m_holder_)),
           m_host_data_(other.m_host_data_) {}
+
+    Array(this_type const& other, IdxShift const& s) : Array(other) { Shift(s); }
 
     template <typename... Args>
     explicit Array(Args&&... args) : m_data_(nullptr), m_sfc_(std::forward<Args>(args)...) {}
@@ -105,19 +112,24 @@ class Array {
     value_type* get() const { return m_data_; }
 
     template <typename... Args>
-    this_type Shift(Args&&... args) const {
+    void Shift(Args&&... args) {
+        m_sfc_.Shift(std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    this_type ShiftReference(Args&&... args) const {
         this_type res(*this);
-        res.m_sfc_.Shift(std::forward<Args>(args)...);
-        return std::move(res);
+        res.Shift(std::forward<Args>(args)...);
+        return res;
     }
 
-    this_type operator[](typename SFC::array_index_type const& IX) const { return Shift(IX); }
+    this_type operator[](IdxShift const& IX) const { return ShiftReference(IX); }
 
     void Clear() { Fill(0); }
     void Fill(value_type v) {
         DoSetUp();
         spMemoryFill(m_data_, v, m_sfc_.size());
     }
+    void SetUndefined() { Fill(std::numeric_limits<value_type>::signaling_NaN()); }
 
     void DeepCopy(value_type const* other) {
         DoSetUp();
@@ -160,18 +172,9 @@ class Array {
         return at(std::forward<Args>(args)...);
     }
 
-    //    template <typename Other, typename... Args>
-    //    void Assign(Other const& other, Args&&... args) {
-    //        if (m_sfc_.in_box(std::forward<Args>(args)...)) {
-    //            at(std::forward<Args>(args)...) = calculus::getValue(other, std::forward<Args>(args)...);
-    //        }
-    //    }
-
     template <typename RHS>
     void Assign(RHS const& rhs) {
-        m_sfc_.Foreach([&] __host__ __device__(auto&&... s) {
-            at(std::forward<decltype(s)>(s)...) = calculus::getValue(rhs, std::forward<decltype(s)>(s)...);
-        });
+        m_sfc_.Foreach([&] __host__ __device__(auto const&... s) { at((s)...) = calculus::getValue(rhs, (s)...); });
     }
 };
 
@@ -325,28 +328,29 @@ _SP_DEFINE_ARRAY_COMPOUND_OP(>>)
 
 #undef _SP_DEFINE_ARRAY_COMPOUND_OP
 
-#define _SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_, _REDUCTION_)                                            \
-    template <typename... TL, typename TR>                                                                             \
-    bool operator _OP_(Array<TL...> const& lhs, TR const& rhs) {                                                       \
-        return traits::reduction<_REDUCTION_>(Expression<simpla::tags::_NAME_, Array<TL...>, TR>(lhs, rhs));           \
-    };                                                                                                                 \
-    template <typename TL, typename... TR>                                                                             \
-    bool operator _OP_(TL const& lhs, Array<TR...> const& rhs) {                                                       \
-        return traits::reduction<_REDUCTION_>(Expression<simpla::tags::_NAME_, TL, Array<TR...>>(lhs, rhs));           \
-    };                                                                                                                 \
-    template <typename... TL, typename... TR>                                                                          \
-    bool operator _OP_(Array<TL...> const& lhs, Expression<TR...> const& rhs) {                                        \
-        return traits::reduction<_REDUCTION_>(                                                                         \
-            Expression<simpla::tags::_NAME_, Array<TL...>, Expression<TR...>>(lhs, rhs));                              \
-    };                                                                                                                 \
-    template <typename... TL, typename... TR>                                                                          \
-    bool operator _OP_(Expression<TL...> const& lhs, Array<TR...> const& rhs) {                                        \
-        return traits::reduction<_REDUCTION_>(                                                                         \
-            Expression<simpla::tags::_NAME_, Expression<TL...>, Array<TR...>>(lhs, rhs));                              \
-    };                                                                                                                 \
-    template <typename... TL, typename... TR>                                                                          \
-    bool operator _OP_(Array<TL...> const& lhs, Array<TR...> const& rhs) {                                             \
-        return traits::reduction<_REDUCTION_>(Expression<simpla::tags::_NAME_, Array<TL...>, Array<TR...>>(lhs, rhs)); \
+#define _SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_, _REDUCTION_)                                    \
+    template <typename... TL, typename TR>                                                                     \
+    bool operator _OP_(Array<TL...> const& lhs, TR const& rhs) {                                               \
+        return calculus::reduction<_REDUCTION_>(Expression<simpla::tags::_NAME_, Array<TL...>, TR>(lhs, rhs)); \
+    };                                                                                                         \
+    template <typename TL, typename... TR>                                                                     \
+    bool operator _OP_(TL const& lhs, Array<TR...> const& rhs) {                                               \
+        return calculus::reduction<_REDUCTION_>(Expression<simpla::tags::_NAME_, TL, Array<TR...>>(lhs, rhs)); \
+    };                                                                                                         \
+    template <typename... TL, typename... TR>                                                                  \
+    bool operator _OP_(Array<TL...> const& lhs, Expression<TR...> const& rhs) {                                \
+        return calculus::reduction<_REDUCTION_>(                                                               \
+            Expression<simpla::tags::_NAME_, Array<TL...>, Expression<TR...>>(lhs, rhs));                      \
+    };                                                                                                         \
+    template <typename... TL, typename... TR>                                                                  \
+    bool operator _OP_(Expression<TL...> const& lhs, Array<TR...> const& rhs) {                                \
+        return calculus::reduction<_REDUCTION_>(                                                               \
+            Expression<simpla::tags::_NAME_, Expression<TL...>, Array<TR...>>(lhs, rhs));                      \
+    };                                                                                                         \
+    template <typename... TL, typename... TR>                                                                  \
+    bool operator _OP_(Array<TL...> const& lhs, Array<TR...> const& rhs) {                                     \
+        return calculus::reduction<_REDUCTION_>(                                                               \
+            Expression<simpla::tags::_NAME_, Array<TL...>, Array<TR...>>(lhs, rhs));                           \
     };
 
 _SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(!=, not_equal_to, simpla::tags::logical_or)
