@@ -11,12 +11,14 @@
 #include "host_define.h"
 #include "type_traits.h"
 #include "utility.h"
+
 namespace simpla {
 template <typename...>
 class Expression;
 template <typename TM, typename TV, int...>
 class Field;
 }
+
 namespace std {
 template <typename TOP, typename... Args>
 struct rank<simpla::Expression<TOP, Args...>>
