@@ -3,66 +3,66 @@
 //
 
 #include "simpla/algebra/all.h"
-#include "simpla/mesh/CoRectMesh.h"
+#include "simpla/engine/Attribute.h"
 using namespace simpla;
-// struct DummyMesh : public RectM {
-//   public:
-//    //    size_type m_dims_[3];
-//    //    Real m_lower_[3];
-//    //    Real m_upper_[3];
-//    point_type m_dx_{1, 1, 1};
-//    point_type m_x0_{0, 0, 0};
-//    static constexpr unsigned int NDIMS = 3;
-//
-//    typedef EntityId entity_id_type;
-//    template <typename V>
-//    using array_type = Array<V, ZSFC<NDIMS>>;
-//
-//    typedef DummyMesh mesh_type;
-//
-//    explicit DummyMesh() {}
-//    ~DummyMesh() = default;
-//
-//    template <typename U, int... N>
-//    void UpdateArray(nTuple<array_type<U>, N...> &d) const {};
-//
-//    template <typename TFun>
-//    void Foreach(TFun const &fun, size_type iform = VERTEX, size_type dof = 1) const {}
-//    Real volume(EntityId s) const { return 1.0; }
-//    Real dual_volume(EntityId s) const { return 1.0; }
-//    Real inv_volume(EntityId s) const { return 1.0; }
-//    Real inv_dual_volume(EntityId s) const { return 1.0; }
-//
-//    point_type point(EntityId s) const {
-//        return point_type{static_cast<Real>(s.x), static_cast<Real>(s.y), static_cast<Real>(s.z)};
-//    }
-//    point_type point(EntityId s, point_type const &pr) const {
-//        return point_type{static_cast<Real>(s.x) + pr[0], static_cast<Real>(s.y) + pr[1],
-//                          static_cast<Real>(s.z) + pr[2]};
-//    };
-//
-//    point_type map(point_type const &x) const { return x; }
-//    point_type inv_map(point_type const &x) const { return x; }
-//    void SetOrigin(point_type x) { m_x0_ = x; }
-//    void SetDx(point_type dx) { m_dx_ = dx; }
-//    point_type const &GetOrigin() { return m_x0_; }
-//    point_type const &GetDx() { return m_dx_; };
-//
-//    engine::MeshBase *GetMesh() { return this; };
-//    engine::MeshBase const *GetMesh() const { return this; };
-//
-//    virtual index_box_type GetIndexBox(int tag = VERTEX) const {}
-//    virtual point_type local_coordinates(EntityId s, Real const *r) const {};
-//};
+struct DummyMesh : public engine::MeshBase {
+   public:
+    //    size_type m_dims_[3];
+    //    Real m_lower_[3];
+    //    Real m_upper_[3];
+    point_type m_dx_{1, 1, 1};
+    point_type m_x0_{0, 0, 0};
+    static constexpr unsigned int NDIMS = 3;
+
+    typedef EntityId entity_id_type;
+    template <typename V>
+    using array_type = Array<V, ZSFC<NDIMS>>;
+    index_box_type m_index_box_;
+
+    typedef DummyMesh mesh_type;
+    explicit DummyMesh(index_box_type const &i_box) : m_index_box_(i_box) {}
+    ~DummyMesh() = default;
+
+    ZSFC<3> GetSpaceFillingCurve(int IFORM, int N = 0) const { return ZSFC<3>(m_index_box_); }
+
+    template <typename U, int... N>
+    void UpdateArray(nTuple<array_type<U>, N...> &d) const {};
+
+    template <typename TFun>
+    void Foreach(TFun const &fun, size_type iform = VERTEX, size_type dof = 1) const {}
+    Real volume(EntityId s) const { return 1.0; }
+    Real dual_volume(EntityId s) const { return 1.0; }
+    Real inv_volume(EntityId s) const { return 1.0; }
+    Real inv_dual_volume(EntityId s) const { return 1.0; }
+
+    point_type point(EntityId s) const {
+        return point_type{static_cast<Real>(s.x), static_cast<Real>(s.y), static_cast<Real>(s.z)};
+    }
+    point_type point(EntityId s, point_type const &pr) const {
+        return point_type{static_cast<Real>(s.x) + pr[0], static_cast<Real>(s.y) + pr[1],
+                          static_cast<Real>(s.z) + pr[2]};
+    };
+
+    point_type map(point_type const &x) const { return x; }
+    point_type inv_map(point_type const &x) const { return x; }
+    void SetOrigin(point_type x) { m_x0_ = x; }
+    void SetDx(point_type dx) { m_dx_ = dx; }
+    point_type const &GetOrigin() { return m_x0_; }
+    point_type const &GetDx() { return m_dx_; };
+
+    engine::MeshBase *GetMesh() { return this; };
+    engine::MeshBase const *GetMesh() const { return this; };
+
+    virtual index_box_type GetIndexBox(int tag = VERTEX) const { return m_index_box_; }
+    virtual point_type local_coordinates(EntityId s, Real const *r) const { return point_type{0, 0, 0}; };
+};
 
 int main(int argc, char **argv) {
     index_box_type i_box = {{0, 0, 0}, {2, 4, 3}};
     box_type x_box{{0, 0, 0}, {1, 2, 3}};
     {
-        typedef mesh::CoRectMesh mesh_type;
-        engine::MeshBlock blk(i_box, 0);
-        mesh_type m;
-        m.SetBlock(blk);
+        typedef DummyMesh mesh_type;
+        mesh_type m(i_box);
 
         Field<mesh_type, Real, VERTEX> f(&m);
         Field<mesh_type, Real, VERTEX> g(&m);
@@ -76,8 +76,8 @@ int main(int argc, char **argv) {
         f = -f * 0.2 + g * 2;
         CHECK(f.data());
 
-        //        f = [&](point_type const &x) { return x[1] + x[2]; };
-        //        g = [&](EntityId const &s) { return 1.0; };
+        f = [&](point_type const &x) { return x[1] + x[2]; };
+        g = [&](EntityId const &s) { return 1.0; };
 
         CHECK(f.data());
 

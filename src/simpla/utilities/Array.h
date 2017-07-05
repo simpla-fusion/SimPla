@@ -157,6 +157,7 @@ class Array {
 
     __host__ __device__ value_type const& operator[](size_type s) const { return m_data_[s]; }
 
+
     template <typename... Args>
     __host__ __device__ value_type& at(Args&&... args) {
         return m_data_[m_sfc_.hash(std::forward<Args>(args)...)];

@@ -183,6 +183,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
 
         m_data_.foreach ([&](array_type& a, auto i0, auto&&... idx) {
             a.SetSpaceFillingCurve(m_mesh_->GetSpaceFillingCurve(IFORM, i0));
+            a.DoSetUp();
         });
     }
 
@@ -245,23 +246,23 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
 
     template <typename RHS>
     void Assign(EntityRange const& r, RHS const& expr) {
-        //        m_data_.foreach ([&](auto& lhs, auto&&... sub) {
-        //            auto rhs = calculator<mesh_type>::getValue(*m_mesh_, nTuple<index_type, 3>{0, 0, 0}, expr,
-        //                                                       std::forward<decltype(sub)>(sub)...);
-        //            lhs = rhs;
-        //        });
-    }
-
-    void Assign(EntityRange const& r, value_type const& rhs) {
-        m_data_.foreach ([&](auto& lhs, auto&&... sub) { lhs = rhs; });
-    }
-    template <typename... T>
-    void Assign(EntityRange const& r, Expression<T...> const& expr) {
         m_data_.foreach ([&](auto& lhs, auto&&... sub) {
             lhs = CalculusPolicy<mesh_type>::getValue(*m_mesh_, expr, nTuple<index_type, 3>{0, 0, 0},
                                                       std::forward<decltype(sub)>(sub)...);
+
         });
     }
+
+    //    void Assign(EntityRange const& r, value_type const& rhs) {
+    //        m_data_.foreach ([&](auto& lhs, auto&&... sub) { lhs = rhs; });
+    //    }
+    //    template <typename... T>
+    //    void Assign(EntityRange const& r, Expression<T...> const& expr) {
+    //        m_data_.foreach ([&](auto& lhs, auto&&... sub) {
+    //            lhs = CalculusPolicy<mesh_type>::getValue(*m_mesh_, expr, nTuple<index_type, 3>{0, 0, 0},
+    //                                                      std::forward<decltype(sub)>(sub)...);
+    //        });
+    //    }
     //    template <typename TFun>
     //    void Assign(EntityRange const& r, TFun const& fun,
     //                ENABLE_IF((std::is_same<std::result_of_t<TFun(EntityId)>, value_type>::value))) {

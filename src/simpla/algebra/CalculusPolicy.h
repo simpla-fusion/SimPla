@@ -23,10 +23,6 @@ namespace simpla {
 template <typename TM, typename TV, int...>
 class Field;
 
-/**
- * @ingroup diff_scheme
- * finite volume
- */
 template <typename TM>
 struct CalculusPolicy {
     typedef TM mesh_type;
@@ -55,24 +51,23 @@ struct CalculusPolicy {
     static T const& getValue(mesh_type const& m, T const& v, Others&&... tags) {
         return v;
     }
-    template <typename M, typename V, int... D, typename... Others>
-    static auto getValue(mesh_type const& m, Field<M, V, D...> const& f, IdxShift S, Others&&... tags) {
-        auto res = f(std::forward<Others>(tags)...);
+    template <typename M, typename V, int IFORM, int DOF, typename... Others>
+    static auto getValue(mesh_type const& m, Field<M, V, IFORM, DOF> const& f, IdxShift S, int n0, int n1,
+                         Others&&... others) {
+        auto res = f[n0][n1];
         res.Shift(S);
-        return res;
+        return res(std::forward<Others>(others)...);
     };
-
-    template <typename TFun>
-    static auto getValue(mesh_type const& m, TFun const& f, IdxShift S, int N0, int N1) {
-        return [=](index_type x, index_type y, index_type z) {
-            EntityId s;
-            s.w = static_cast<int16_t>(N0 | (N1 << 3));
-            s.x = static_cast<int16_t>(x + S[0]);
-            s.y = static_cast<int16_t>(y + S[1]);
-            s.z = static_cast<int16_t>(z + S[2]);
-            return f(s);
-        };
+    template <typename M, typename V, int IFORM, typename... Others>
+    static auto getValue(mesh_type const& m, Field<M, V, IFORM> const& f, IdxShift S, int n0, Others&&... others) {
+        auto res = f[n0];
+        res.Shift(S);
+        return res(std::forward<Others>(others)...);
     };
+    //    template <typename TFun>
+    //    static auto getValue(mesh_type const& m, TFun const& f, IdxShift S, int N0, int N1) {
+    //        return [=](index_type x, index_type y, index_type z) { return f(N0, N1, x + S[0], y + S[1], z + S[2]); };
+    //    };
 
     //    template <typename T>
     //    static T const& getValue(T const* v, mesh_type const& m, int tag, IdxShift S = IdxShift{0, 0, 0},
@@ -115,58 +110,49 @@ struct CalculusPolicy {
     //        return getValue(m, expr * m.m_volume_volume_, tag, S);
     //    }
     template <typename... Args>
-    static auto getV(std::integral_constant<int, VERTEX>, mesh_type const& m, Args&&... args) {
+    static auto _getV(std::integral_constant<int, VERTEX>, mesh_type const& m, Args&&... args) {
         return getValue(m, m.m_vertex_volume_, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    static auto getV(std::integral_constant<int, EDGE>, mesh_type const& m, Args&&... args) {
+    static auto _getV(std::integral_constant<int, EDGE>, mesh_type const& m, Args&&... args) {
         return getValue(m, m.m_edge_volume_, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    static auto getV(std::integral_constant<int, FACE>, mesh_type const& m, Args&&... args) {
+    static auto _getV(std::integral_constant<int, FACE>, mesh_type const& m, Args&&... args) {
         return getValue(m.m_face_volume_, m, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    static auto getV(std::integral_constant<int, VOLUME>, mesh_type const& m, Args&&... args) {
+    static auto _getV(std::integral_constant<int, VOLUME>, mesh_type const& m, Args&&... args) {
         return getValue(m, m.m_volume_volume_, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
-    static auto getDualV(std::integral_constant<int, VERTEX>, mesh_type const& m, Args&&... args) {
+    static auto _getDualV(std::integral_constant<int, VERTEX>, mesh_type const& m, Args&&... args) {
         return getValue(m, m.m_vertex_dual_volume_, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    static auto getDualV(std::integral_constant<int, EDGE>, mesh_type const& m, Args&&... args) {
+    static auto _getDualV(std::integral_constant<int, EDGE>, mesh_type const& m, Args&&... args) {
         return getValue(m, m.m_edge_dual_volume_, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    static auto getDualV(std::integral_constant<int, FACE>, mesh_type const& m, Args&&... args) {
+    static auto _getDualV(std::integral_constant<int, FACE>, mesh_type const& m, Args&&... args) {
         return getValue(m, m.m_face_dual_volume_, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    static auto getDualV(std::integral_constant<int, VOLUME>, mesh_type const& m, Args&&... args) {
+    static auto _getDualV(std::integral_constant<int, VOLUME>, mesh_type const& m, Args&&... args) {
         return getValue(m, m.m_volume_dual_volume_, std::forward<Args>(args)...);
     }
 
     template <typename TExpr, typename... Args>
     static auto getDualV(mesh_type const& m, TExpr const& expr, int n, Args&&... args) {
         return getValue(m, expr, n, std::forward<Args>(args)...) *
-               getDualV(std::integral_constant<int, traits::iform<TExpr>::value>(), m, n);
+               _getDualV(std::integral_constant<int, traits::iform<TExpr>::value>(), m, n);
     }
     template <typename TExpr, typename... Args>
     static auto getV(mesh_type const& m, TExpr const& expr, int n, Args&&... args) {
         return getValue(m, expr, n, std::forward<Args>(args)...) *
-               getV(std::integral_constant<int, traits::iform<TExpr>::value>(), m, n);
+               _getV(std::integral_constant<int, traits::iform<TExpr>::value>(), m, n);
     }
-    //
-    //
-    //
-    //
-    //    template <typename TExpr>
-    //    static auto getDualV( TExpr const& expr,mesh_type const& m, int tag, IdxShift S) {
-    //        return getDualV_(m, std::integral_constant<int, traits::iform<TExpr>::value>(), expr, tag, S);
-    //        //        return getValue( expr,m, tag, S) * Volume(m, tag, S);
-    //    }
 
     //******************************************************************************
     // Exterior algebra
