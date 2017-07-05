@@ -32,14 +32,15 @@ int main(int argc, char **argv) {
 
     std::cout << " d = " << d << std::endl;
 
-    //    d.Clear();
-    //    e.Clear();
-    //    c = a(IdxShift{1, 0, 0}) - a(IdxShift{-1, 0, 0}) + a(IdxShift{0, 1, 0}) - a(IdxShift{0, -1, 0});
+    a = [](index_type i, index_type j, index_type k) { return i + j + k; };
+
+    d.Clear();
+    c = a(IdxShift{1, 0, 0}) - a(IdxShift{-1, 0, 0}) + a(IdxShift{0, 1, 0}) - a(IdxShift{0, -1, 0});
     //    nTuple<double, 3> v = {1, 2, 3};
     //    Array<nTuple<double, 3>, 3> e(inner_box);
     //    e = b * v;
-    //
-    //    std::cout << e << std::endl;
 
+    std::cout << c << std::endl;
+    std::cout << a << std::endl;
     std::cout << "DONE" << std::endl;
 }

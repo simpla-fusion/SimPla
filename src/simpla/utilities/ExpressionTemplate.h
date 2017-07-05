@@ -11,13 +11,10 @@
 #include "type_traits.h"
 #include "utility.h"
 namespace simpla {
-/**
-*  @ingroup calculus
-*  @addtogroup expression_template  Expression Template
-*  @{
-*/
 template <typename...>
 class Expression;
+template <typename TM, typename TV, int...>
+class Field;
 }
 namespace std {
 template <typename TOP, typename... Args>
@@ -34,10 +31,8 @@ struct extent<simpla::Expression<TOP, Args...>, N>
 //                    int, simpla::traits::mt_min<int, std::extent<typename
 //                    std::remove_cv<Args>::type>::value...>::value> {};
 }
-namespace simpla {
 
-template <typename TM, typename TV, int...>
-class Field;
+namespace simpla {
 
 namespace traits {
 template <typename TM, typename TV, int... I>
@@ -49,15 +44,16 @@ template <typename TM, typename TV, int... I>
 struct reference<const Field<TM, TV, I...>> {
     typedef const Field<TM, TV, I...> &type;
 };
-}
-
-namespace traits {
 
 template <typename TExpr>
 struct is_expression : public std::false_type {};
 
 template <typename... T>
 struct is_expression<Expression<T...>> : public std::true_type {};
+
+}  // namespace
+
+namespace calculus {
 
 template <int N>
 struct get_s {
@@ -89,6 +85,7 @@ template <int N, typename T>
 __host__ __device__ auto const &get(T const *expr) {
     return expr[N];
 }
+
 template <typename TReduction>
 struct reduction_s {
     template <typename Arg0>
@@ -119,47 +116,7 @@ template <typename TReduction, typename TExpr>
 __device__ __host__ auto reduction(TExpr const &expr) {
     return reduction_s<TReduction>::eval(expr);
 };
-
-namespace _impl {
-
-template <typename TL, typename TR>
-__host__ __device__ void assign_(TL &lhs, TR const &rhs, std::index_sequence<>){};
-
-template <typename TL, typename TR, size_t I0, size_t... I>
-__host__ __device__ void assign_(TL &lhs, TR const &rhs, std::index_sequence<I0, I...>) {
-    lhs[I0] = traits::get<I0>(rhs);
-    assign_(lhs, rhs, std::index_sequence<I...>());
 };
-template <typename T>
-__host__ __device__ void swap_(T &lhs, T &rhs, std::index_sequence<>){};
-
-template <typename T>
-__host__ __device__ void swap0_(T &lhs, T &rhs, ENABLE_IF((std::rank<T>::value == 0))) {
-    std::swap(lhs, rhs);
-}
-
-template <typename T>
-__host__ __device__ void swap0_(T &lhs, T &rhs, ENABLE_IF((std::rank<T>::value > 0))) {
-    lhs.swap(rhs);
-}
-
-template <typename T, size_t I0, size_t... I>
-__host__ __device__ void swap_(T &lhs, T &rhs, std::index_sequence<I0, I...>) {
-    swap0_(lhs[I0], rhs[I0]);
-    swap_(lhs, rhs, std::index_sequence<I...>());
-};
-
-}  // namespace _impl {
-
-template <typename T>
-__host__ __device__ void swap(T &lhs, T &rhs) {
-    _impl::swap_(lhs, rhs, std::make_index_sequence<std::extent<T>::value>());
-};
-template <typename TL, typename TR>
-__host__ __device__ void assign(TL &lhs, TR const &rhs) {
-    _impl::assign_(lhs, rhs, std::make_index_sequence<std::extent<TL>::value>());
-};
-}  // namespace
 
 template <typename TOP, typename... Args>
 struct Expression<TOP, Args...> {
@@ -181,8 +138,118 @@ struct Expression<TOP, Args...> {
 
     template <typename T>
     __host__ __device__ explicit operator T() const {
-        return static_cast<T>(traits::reduction(*this));
+        return static_cast<T>(calculus::reduction(*this));
     }
+};
+
+namespace calculus {
+template <typename T, typename Enable = void>
+struct _IndexHelper;
+template <typename T>
+struct _IndexHelper<T, std::enable_if_t<std::is_arithmetic<T>::value>> {
+    template <typename... Args>
+    static T &lvalue(T &v, Args &&... args) {
+        return v;
+    };
+
+    template <typename... Args>
+    static T const &lvalue(T const &v, Args &&... args) {
+        return v;
+    };
+
+    template <typename... Args>
+    static T rvalue(T const &v, Args &&... args) {
+        return v;
+    };
+};
+
+template <typename T>
+struct _IndexHelper<T *> {
+    template <typename I0, typename... Others>
+    static auto &lvalue(T *v, I0 const &s, Others &&... others) {
+        return _IndexHelper<std::remove_cv_t<decltype(v[s])>>::lvalue(v[s], std::forward<Others>(others)...);
+    };
+
+    template <typename I0, typename... Others>
+    static auto const &rvalue(T const *v, I0 const &s, Others &&... others) {
+        return _IndexHelper<std::remove_cv_t<decltype(v[s])>>::rvalue(v[s], std::forward<Others>(others)...);
+    };
+};
+
+// template <typename TFun>
+// struct _IndexHelper<TFun, std::enable_if_t<!std::is_reference<std::result_of_t<TFun(index_type)>>::value>> {
+//    template <typename... Args>
+//    static auto rvalue(TFun const &fun, Args &&... args) {
+//        return fun(std::forward<Args>(args)...);
+//    };
+//
+//    template <typename... Args>
+//    static auto lvalue(TFun const &fun, Args &&... args) = delete;
+//};
+
+template <typename TFun, typename... Args>
+struct _IndexHelper<TFun(Args...), std::enable_if_t<!std::is_reference<std::result_of_t<TFun(Args...)>>::value>> {
+    static auto rvalue(TFun const &fun, Args &&... args) { return fun(std::forward<Args>(args)...); };
+
+    static auto lvalue(TFun const &fun, Args &&... args) = delete;
+};
+
+template <typename TOP, typename... Others>
+struct _IndexHelper<Expression<TOP, Others...>> {
+    template <size_t... index, typename... Idx>
+    static auto _invoke_helper(Expression<TOP, Others...> const &expr, std::index_sequence<index...>, Idx &&... s) {
+        return expr.m_op_(_IndexHelper<std::decay_t<std::remove_cv_t<decltype(std::get<index>(expr.m_args_))>>>::rvalue(
+            std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...);
+    }
+    template <typename... Args>
+    static auto rvalue(Expression<TOP, Others...> const &expr, Args &&... args) {
+        return _invoke_helper(expr, std::index_sequence_for<Others...>(), std::forward<Args>(args)...);
+    };
+
+    template <typename... Args>
+    static auto lvalue(Args &&...) = delete;
+};
+
+template <typename T, typename... Args>
+auto getValue(T const &expr, Args &&... args) {
+    return _IndexHelper<std::remove_cv_t<T>>::rvalue(expr, std::forward<Args>(args)...);
+};
+template <typename T, typename... Args>
+auto &getLValue(T &expr, Args &&... args) {
+    return _IndexHelper<std::remove_cv_t<T>>::lvalue(expr, std::forward<Args>(args)...);
+};
+
+template <typename T, typename... Args>
+auto getValue(T const *expr, Args &&... args) {
+    return _IndexHelper<T *>::rvalue(expr, std::forward<Args>(args)...);
+};
+template <typename T, typename... Args>
+auto &getLValue(T *expr, Args &&... args) {
+    return _IndexHelper<T *>::lvalue(expr, std::forward<Args>(args)...);
+};
+
+// template <typename T, typename TI>
+// static T getValue(T *v, TI const *s) {
+//    return getValue(v[*s], s + 1);
+//};
+//
+//    template <typename... T, typename... Idx>
+//    static auto getValue(Expression<tags::_nTuple_cross, T...> const& expr, int s, Idx&&... others) {
+//        return getValue(std::get<0>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...) *
+//                   getValue(std::get<1>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) -
+//               getValue(std::get<0>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) *
+//                   getValue(std::get<1>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...);
+//    }
+
+// template <typename TOP, typename... Others, typename... Idx>
+// static auto getValue(Expression<TOP, Others...> const &expr, Idx &&... s) {
+//    return ((_invoke_helper(expr, std::index_sequence_for<Others...>(), std::forward<Idx>(s)...)));
+//}
+//
+template <typename LHS, typename RHS, typename... Args>
+void Assign(LHS &lhs, RHS const &rhs, Args &&... args) {
+    getLValue(lhs, std::forward<Args>(args)...) = getValue(rhs, std::forward<Args>(args)...);
+};
 };
 
 namespace tags {
@@ -347,31 +414,31 @@ _SP_DEFINE_COMPOUND_OP(>>)
 
 #undef _SP_DEFINE_COMPOUND_OP
 
-#define _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_, _REDUCTION_)                                \
-    namespace tags {                                                                                      \
-    struct _NAME_ {                                                                                       \
-        template <typename TL, typename TR>                                                               \
-        __host__ __device__ static constexpr bool eval(TL const &l, TR const &r) {                        \
-            return ((l _OP_ r));                                                                          \
-        }                                                                                                 \
-        template <typename TL, typename TR>                                                               \
-        __host__ __device__ constexpr bool operator()(TL const &l, TR const &r) const {                   \
-            return ((l _OP_ r));                                                                          \
-        }                                                                                                 \
-    };                                                                                                    \
-    }                                                                                                     \
-    template <typename... TL, typename TR>                                                                \
-    __host__ __device__ bool operator _OP_(Expression<TL...> const &lhs, TR const &rhs) {                 \
-        return traits::reduction<_REDUCTION_>(Expression<tags::_NAME_, Expression<TL...>, TR>(lhs, rhs)); \
-    };                                                                                                    \
-    template <typename TL, typename... TR>                                                                \
-    __host__ __device__ bool operator _OP_(TL const &lhs, Expression<TR...> const &rhs) {                 \
-        return traits::reduction<_REDUCTION_>(Expression<tags::_NAME_, TL, Expression<TR...>>(lhs, rhs)); \
-    };                                                                                                    \
-    template <typename... TL, typename... TR>                                                             \
-    __host__ __device__ bool operator _OP_(Expression<TL...> const &lhs, Expression<TR...> const &rhs) {  \
-        return traits::reduction<_REDUCTION_>(                                                            \
-            Expression<tags::_NAME_, Expression<TL...>, Expression<TR...>>(lhs, rhs));                    \
+#define _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_, _REDUCTION_)                                  \
+    namespace tags {                                                                                        \
+    struct _NAME_ {                                                                                         \
+        template <typename TL, typename TR>                                                                 \
+        __host__ __device__ static constexpr bool eval(TL const &l, TR const &r) {                          \
+            return ((l _OP_ r));                                                                            \
+        }                                                                                                   \
+        template <typename TL, typename TR>                                                                 \
+        __host__ __device__ constexpr bool operator()(TL const &l, TR const &r) const {                     \
+            return ((l _OP_ r));                                                                            \
+        }                                                                                                   \
+    };                                                                                                      \
+    }                                                                                                       \
+    template <typename... TL, typename TR>                                                                  \
+    __host__ __device__ bool operator _OP_(Expression<TL...> const &lhs, TR const &rhs) {                   \
+        return calculus::reduction<_REDUCTION_>(Expression<tags::_NAME_, Expression<TL...>, TR>(lhs, rhs)); \
+    };                                                                                                      \
+    template <typename TL, typename... TR>                                                                  \
+    __host__ __device__ bool operator _OP_(TL const &lhs, Expression<TR...> const &rhs) {                   \
+        return calculus::reduction<_REDUCTION_>(Expression<tags::_NAME_, TL, Expression<TR...>>(lhs, rhs)); \
+    };                                                                                                      \
+    template <typename... TL, typename... TR>                                                               \
+    __host__ __device__ bool operator _OP_(Expression<TL...> const &lhs, Expression<TR...> const &rhs) {    \
+        return calculus::reduction<_REDUCTION_>(                                                            \
+            Expression<tags::_NAME_, Expression<TL...>, Expression<TR...>>(lhs, rhs));                      \
     };
 
 _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(!=, not_equal_to, tags::logical_or)
@@ -404,7 +471,7 @@ struct _cross {};
 
 template <typename TL, typename TR>
 __host__ __device__ auto inner_product(TL const &l, TR const &r) {
-    return traits::reduction<tags::addition>(l * r);
+    return calculus::reduction<tags::addition>(l * r);
 }
 template <typename TL, typename TR>
 __host__ __device__ auto dot_v(TL const &l, TR const &r) {

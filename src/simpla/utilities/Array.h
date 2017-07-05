@@ -16,6 +16,27 @@
 #include "SFC.h"
 #include "memory.h"
 namespace simpla {
+template <typename V, typename SFC>
+class Array;
+
+namespace calculus {
+template <typename... U>
+struct _IndexHelper<Array<U...>> {
+    template <typename... Args>
+    static __host__ __device__ auto rvalue(Array<U...> const& array, Args&&... args) {
+        return array.at(std::forward<Args>(args)...);
+    };
+
+    template <typename... Args>
+    static __host__ __device__ auto& lvalue(Array<U...>& array, Args&&... args) {
+        return array.at(std::forward<Args>(args)...);
+    };
+};
+}
+
+struct IdxShift : public nTuple<index_type, 3> {
+    IdxShift(std::initializer_list<index_type> const& l) : nTuple<index_type, 3>(l) {}
+};
 
 template <typename V, typename SFC = ZSFC<3>>
 class Array {
@@ -107,6 +128,7 @@ class Array {
         DoSetUp();
         spMemoryFill(m_data_, v, m_sfc_.size());
     }
+    void SetUndefined() { Fill(std::numeric_limits<value_type>::signaling_NaN()); }
 
     void DeepCopy(value_type const* other) {
         DoSetUp();
@@ -149,57 +171,49 @@ class Array {
         return at(std::forward<Args>(args)...);
     }
 
-    template <typename U, typename RSFC, typename... Args>
-    __host__ __device__ static constexpr U const& getValue(Array<U, RSFC> const& other, Args&&... args) {
-        return other.at(std::forward<Args>(args)...);
-    };
+    //    template <typename TOP, typename... Others, size_t... IND, typename... Args>
+    //    __host__ __device__ static constexpr auto _invoke_helper(Expression<TOP, Others...> const& expr,
+    //                                                             std::index_sequence<IND...>, Args&&... args) {
+    //        return TOP::eval(getValue(std::get<IND>(expr.m_args_), std::forward<Args>(args)...)...);
+    //    }
+    //
+    //    template <typename TOP, typename... Others, typename... Args>
+    //    __host__ __device__ static constexpr auto getValue(Expression<TOP, Others...> const& expr, Args&&... args) {
+    //        return _invoke_helper(expr, std::index_sequence_for<Others...>(), std::forward<Args>(args)...);
+    //    }
+    //
+    //   private:
+    //    template <typename TOP, typename... Args>
+    //    __host__ __device__ static constexpr auto getValue_help(std::integral_constant<int, 0>, TOP const& v,
+    //                                                            Args&&... args) {
+    //        return v;
+    //    };
+    //    template <typename TOP, typename... Args>
+    //    __host__ __device__ static constexpr auto getValue_help(std::integral_constant<int, 1>, TOP const& v,
+    //                                                            Args&&... args) {
+    //        return v(std::forward<Args>(args)...);
+    //    };
 
-    template <typename... Args>
-    __host__ __device__ static constexpr value_type const& getValue(this_type const& other, Args&&... args) {
-        return other.at(std::forward<Args>(args)...);
-    };
+    //   public:
+    //    template <typename TOP, typename... Args>
+    //    __host__ __device__ static constexpr auto getValue(TOP const& expr, Args&&... args) {
+    //        return getValue_help(std::integral_constant < int, std::is_convertible<TOP, value_type>::value ? 0 : 1 >
+    //        (),
+    //                             expr, std::forward<Args>(args)...);
+    //}
 
-    template <typename TOP, typename... Others, size_t... IND, typename... Args>
-    __host__ __device__ static constexpr auto _invoke_helper(Expression<TOP, Others...> const& expr,
-                                                             std::index_sequence<IND...>, Args&&... args) {
-        return TOP::eval(getValue(std::get<IND>(expr.m_args_), std::forward<Args>(args)...)...);
-    }
-
-    template <typename TOP, typename... Others, typename... Args>
-    __host__ __device__ static constexpr auto getValue(Expression<TOP, Others...> const& expr, Args&&... args) {
-        return _invoke_helper(expr, std::index_sequence_for<Others...>(), std::forward<Args>(args)...);
-    }
-
-   private:
-    template <typename TOP, typename... Args>
-    __host__ __device__ static constexpr auto getValue_help(std::integral_constant<int, 0>, TOP const& v,
-                                                            Args&&... args) {
-        return v;
-    };
-    template <typename TOP, typename... Args>
-    __host__ __device__ static constexpr auto getValue_help(std::integral_constant<int, 1>, TOP const& v,
-                                                            Args&&... args) {
-        return v(std::forward<Args>(args)...);
-    };
-
-   public:
-    template <typename TOP, typename... Args>
-    __host__ __device__ static constexpr auto getValue(TOP const& expr, Args&&... args) {
-        return getValue_help(std::integral_constant < int, std::is_convertible<TOP, value_type>::value ? 0 : 1 > (),
-                             expr, std::forward<Args>(args)...);
-    }
-
-    template <typename Other, typename... Args>
-    void Assign(Other const& other, Args&&... args) {
-        if (m_sfc_.in_box(std::forward<Args>(args)...)) {
-            at(std::forward<Args>(args)...) = getValue(other, std::forward<Args>(args)...);
-        }
-    }
+    //    template <typename Other, typename... Args>
+    //    void Assign(Other const& other, Args&&... args) {
+    //        if (m_sfc_.in_box(std::forward<Args>(args)...)) {
+    //            at(std::forward<Args>(args)...) = calculus::getValue(other, std::forward<Args>(args)...);
+    //        }
+    //    }
 
     template <typename RHS>
     void Assign(RHS const& rhs) {
         m_sfc_.Foreach([&] __host__ __device__(auto&&... s) {
-            at(std::forward<decltype(s)>(s)...) = getValue(rhs, std::forward<decltype(s)>(s)...);
+            // calculus::Assign(*this, rhs, std::forward<decltype(s)>(s)...);
+            at(std::forward<decltype(s)>(s)...) = calculus::getValue(rhs, std::forward<decltype(s)>(s)...);
         });
     }
 };
@@ -354,28 +368,29 @@ _SP_DEFINE_ARRAY_COMPOUND_OP(>>)
 
 #undef _SP_DEFINE_ARRAY_COMPOUND_OP
 
-#define _SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_, _REDUCTION_)                                            \
-    template <typename... TL, typename TR>                                                                             \
-    bool operator _OP_(Array<TL...> const& lhs, TR const& rhs) {                                                       \
-        return traits::reduction<_REDUCTION_>(Expression<simpla::tags::_NAME_, Array<TL...>, TR>(lhs, rhs));           \
-    };                                                                                                                 \
-    template <typename TL, typename... TR>                                                                             \
-    bool operator _OP_(TL const& lhs, Array<TR...> const& rhs) {                                                       \
-        return traits::reduction<_REDUCTION_>(Expression<simpla::tags::_NAME_, TL, Array<TR...>>(lhs, rhs));           \
-    };                                                                                                                 \
-    template <typename... TL, typename... TR>                                                                          \
-    bool operator _OP_(Array<TL...> const& lhs, Expression<TR...> const& rhs) {                                        \
-        return traits::reduction<_REDUCTION_>(                                                                         \
-            Expression<simpla::tags::_NAME_, Array<TL...>, Expression<TR...>>(lhs, rhs));                              \
-    };                                                                                                                 \
-    template <typename... TL, typename... TR>                                                                          \
-    bool operator _OP_(Expression<TL...> const& lhs, Array<TR...> const& rhs) {                                        \
-        return traits::reduction<_REDUCTION_>(                                                                         \
-            Expression<simpla::tags::_NAME_, Expression<TL...>, Array<TR...>>(lhs, rhs));                              \
-    };                                                                                                                 \
-    template <typename... TL, typename... TR>                                                                          \
-    bool operator _OP_(Array<TL...> const& lhs, Array<TR...> const& rhs) {                                             \
-        return traits::reduction<_REDUCTION_>(Expression<simpla::tags::_NAME_, Array<TL...>, Array<TR...>>(lhs, rhs)); \
+#define _SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_, _REDUCTION_)                                    \
+    template <typename... TL, typename TR>                                                                     \
+    bool operator _OP_(Array<TL...> const& lhs, TR const& rhs) {                                               \
+        return calculus::reduction<_REDUCTION_>(Expression<simpla::tags::_NAME_, Array<TL...>, TR>(lhs, rhs)); \
+    };                                                                                                         \
+    template <typename TL, typename... TR>                                                                     \
+    bool operator _OP_(TL const& lhs, Array<TR...> const& rhs) {                                               \
+        return calculus::reduction<_REDUCTION_>(Expression<simpla::tags::_NAME_, TL, Array<TR...>>(lhs, rhs)); \
+    };                                                                                                         \
+    template <typename... TL, typename... TR>                                                                  \
+    bool operator _OP_(Array<TL...> const& lhs, Expression<TR...> const& rhs) {                                \
+        return calculus::reduction<_REDUCTION_>(                                                               \
+            Expression<simpla::tags::_NAME_, Array<TL...>, Expression<TR...>>(lhs, rhs));                      \
+    };                                                                                                         \
+    template <typename... TL, typename... TR>                                                                  \
+    bool operator _OP_(Expression<TL...> const& lhs, Array<TR...> const& rhs) {                                \
+        return calculus::reduction<_REDUCTION_>(                                                               \
+            Expression<simpla::tags::_NAME_, Expression<TL...>, Array<TR...>>(lhs, rhs));                      \
+    };                                                                                                         \
+    template <typename... TL, typename... TR>                                                                  \
+    bool operator _OP_(Array<TL...> const& lhs, Array<TR...> const& rhs) {                                     \
+        return calculus::reduction<_REDUCTION_>(                                                               \
+            Expression<simpla::tags::_NAME_, Array<TL...>, Array<TR...>>(lhs, rhs));                           \
     };
 
 _SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(!=, not_equal_to, simpla::tags::logical_or)
