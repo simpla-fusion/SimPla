@@ -12,7 +12,7 @@ simpla_test(field_aritmetic_test  field_aritmetic_test.cpp)
 add_executable(field_dummy field_dummy.cpp)
 target_link_libraries(field_dummy
         netcdf ${HDF5_LIBRARIES} ${MPI_C_LIBRARIES} ${TBB_LIBRARIES}
-        -Wl,--whole-archive utilities geometry  data  parallel mesh engine model
+        -Wl,--whole-archive utilities    data  parallel  engine  model
             -Wl,--no-whole-archive   ${OPENMP_LIBRARIES} ${CUDA_LIBRARIES}
         )
 

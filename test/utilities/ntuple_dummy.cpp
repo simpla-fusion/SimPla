@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
     std::cout << c << std::endl;
 
     std::cout << dot(a, b) << std::endl;
-    std::cout << traits::reduction<tags::addition>(a * b) << std::endl;
+    std::cout << calculus::reduction<tags::addition>(a * b) << std::endl;
 
     nTuple<Real, 2, 3> A{{1.0, 2, 3}, {1.0, 2, 3}};
 
@@ -40,9 +40,9 @@ int main(int argc, char** argv) {
     std::cout << std::boolalpha << (A == B) << std::endl;
     std::cout << std::boolalpha << (A != B) << std::endl;
 
-    std::cout << traits::reduction<tags::addition>(A * B) << std::endl;
+    std::cout << calculus::reduction<tags::addition>(A * B) << std::endl;
     std::cout << dot(A, B) << std::endl;
-    std::cout << traits::reduction<tags::addition>(C) << std::endl;
+    std::cout << calculus::reduction<tags::addition>(C) << std::endl;
 
     //    double a[3] = {1, 2, 3};
     //    double b[3] = {1, 2, 3};

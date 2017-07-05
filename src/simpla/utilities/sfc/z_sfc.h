@@ -6,6 +6,7 @@
 #define SIMPLA_Z_SFC_H
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/utilities/EntityId.h>
 #include <simpla/utilities/device_common.h>
 #include <simpla/utilities/memory.h>
 #include <algorithm>
@@ -112,9 +113,13 @@ class ZSFC {
     __host__ __device__ constexpr inline bool in_box(array_index_type const& x) const;
     __host__ __device__ constexpr inline bool in_box(index_type x, index_type y, index_type z) const;
 
+    __host__ __device__ constexpr inline size_type hash() const { return 0; }
+
     __host__ __device__ constexpr inline size_type hash(array_index_type const& idx) const {
         return dot(idx - std::get<0>(m_index_box_), m_strides_);
     }
+
+    __host__ __device__ inline size_type hash(EntityId s) const { return hash(s.x, s.y, s.z); }
 
     __host__ __device__ inline size_type hash(index_type const* idx) const;
 

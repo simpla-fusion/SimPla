@@ -108,12 +108,12 @@ auto abs(T const& l, ENABLE_IF((std::rank<T>::value == 0))) {
 
 template <typename T>
 auto NProduct(T const& v, ENABLE_IF((std::rank<T>::value == 0))) {
-    return ((traits::reduction<tags::multiplication>(v)));
+    return ((calculus::reduction<tags::multiplication>(v)));
 }
 
 template <typename T>
 auto NSum(T const& v, ENABLE_IF((std::rank<T>::value == 0))) {
-    return ((traits::reduction<tags::addition>(v)));
+    return ((calculus::reduction<tags::addition>(v)));
 }
 
 template <typename T, int N0>
