@@ -44,7 +44,8 @@ struct CalculusPolicy {
 
     template <typename TOP, typename... Args, typename... Others>
     static auto getValue(mesh_type const& m, Expression<TOP, Args...> const& expr, Others&&... others) {
-        return eval(std::integer_sequence<int, traits::iform<Args>::value...>(), m, expr, std::forward<Others>(others)...);
+        return eval(std::integer_sequence<int, traits::iform<Args>::value...>(), m, expr,
+                    std::forward<Others>(others)...);
     }
 
     //    template <typename... V>
@@ -67,8 +68,8 @@ struct CalculusPolicy {
     //                         Others&&... others) {
     //        return getValue(m, f[n0][n1], S, std::forward<Others>(others)...);
     //    };
-    template <typename M, typename V, int I, int... DOF, typename... Others>
-    static auto&& getValue(mesh_type const& m, Field<M, V, I, DOF...> const& f, IdxShift S, Others const&... others) {
+    template <typename M, typename V, int... I, typename... Others>
+    static auto getValue(mesh_type const& m, Field<M, V, I...> const& f, IdxShift S, Others const&... others) {
         auto res = f.data((others)...);
         res.Shift(S);
         return std::move(res);
