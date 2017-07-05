@@ -175,7 +175,7 @@ class Array {
 namespace traits {
 template <typename... T>
 struct reference<Array<T...>> {
-    typedef Array<T...> const& type;
+    typedef Array<T...>  type;
 };
 }
 

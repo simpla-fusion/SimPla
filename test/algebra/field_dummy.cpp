@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
         CHECK(f.data());
         f = 1;
         g = 2;
-        f = g * 2;  // * 0.2 + g * 2;
+        f = f * 0.2 + g * 2;
         CHECK(f.data());
         //    CHECK(f);
         //    Field<mesh_type, Real, EDGE> E(&m);
