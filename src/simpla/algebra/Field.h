@@ -72,13 +72,13 @@ void SetEntity(Field<TM, U, IFORM, DOF...>& lhs, nTuple<V, N...> const& rhs, Ent
 
 template <typename TM, typename U, int IFORM, typename... E>
 void SetEntity(Field<TM, U, IFORM>& lhs, Expression<E...> const& rhs, EntityId s) {
-    SetEntity(lhs, CalculusPolicy<TM>::getValue(*dynamic_cast<TM const*>(lhs.GetMesh()), rhs,
+    SetEntity(lhs, CalculusPolicy<TM>::getValue(*dynamic_cast<TM const*>(lhs.GetMesh()), rhs, IdxShift{0, 0, 0},
                                                 EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], s.x, s.y, s.z),
               s);
 }
 template <typename TM, typename U, int IFORM, int DOF, typename... E>
 void SetEntity(Field<TM, U, IFORM, DOF>& lhs, Expression<E...> const& rhs, EntityId s) {
-    SetEntity(lhs, CalculusPolicy<TM>::getValue(*dynamic_cast<TM const*>(lhs.GetMesh()), rhs,
+    SetEntity(lhs, CalculusPolicy<TM>::getValue(*dynamic_cast<TM const*>(lhs.GetMesh()), rhs, IdxShift{0, 0, 0},
                                                 EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], (s.w >> 3) & 0b111, s.x,
                                                 s.y, s.z),
               s);
@@ -278,11 +278,11 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     template <typename MR, typename UR, int... NR>
     void DeepCopy(Field<MR, UR, NR...> const& other) {
         DoUpdate();
-        m_data_ = other.m_data_;
+        m_data_ = other.data();
     }
 
     this_type& operator=(this_type const& other) {
-        m_data_ = other.m_data_;
+        m_data_ = other.data();
         return *this;
     }
     template <typename TR>

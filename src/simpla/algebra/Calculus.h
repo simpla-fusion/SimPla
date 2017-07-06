@@ -324,22 +324,22 @@ struct value_type<Expression<tags::_p_codifferential_derivative<I>, T>> {
  */
 namespace tags {
 template <int I>
-struct _map_to {};
+struct map_to {};
 };
 namespace traits {
 
 template <int I, typename T, typename... Others>
-struct value_type<Expression<tags::_map_to<I>, T, Others...>> {
+struct value_type<Expression<tags::map_to<I>, T, Others...>> {
     typedef value_type_t<T> type;
 };
 //******************************************************
 template <int I, typename T0>
-struct iform<Expression<tags::_map_to<I>, T0>> : public std::integral_constant<int, I> {};
+struct iform<Expression<tags::map_to<I>, T0>> : public std::integral_constant<int, I> {};
 }  // namespace traits
 
 template <int I, typename T1>
 auto map_to(T1 const& l) {
-    return (Expression<tags::_map_to<I>, const T1>(l));
+    return (Expression<tags::map_to<I>, const T1>(l));
 }
 
 /** @} */

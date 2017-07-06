@@ -37,12 +37,11 @@ void StructuredMesh::Update() {
 */
 
 point_type StructuredMesh::local_coordinates(EntityId s, Real const *pr) const {
-    ASSERT(pr != nullptr);
     point_type r;
 
-    r[0] = pr[0] + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][0];
-    r[1] = pr[1] + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][1];
-    r[2] = pr[2] + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][2];
+    r[0] = ((pr == nullptr) ? 0 : pr[0]) + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][0];
+    r[1] = ((pr == nullptr) ? 0 : pr[1]) + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][1];
+    r[2] = ((pr == nullptr) ? 0 : pr[2]) + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][2];
 
     return point_type{std::fma(static_cast<Real>(s.x), m_dx_[0], r[0] * m_dx_[0] + m_x0_[0]),
                       std::fma(static_cast<Real>(s.y), m_dx_[1], r[1] * m_dx_[1] + m_x0_[1]),

@@ -311,7 +311,7 @@ struct nTuple<TV, N0, N...> {
 
 template <>
 template <typename TR>
-nTuple<double, 3>& nTuple<double, 3>::operator=(TR const& rhs) {
+__host__ __device__ nTuple<double, 3>& nTuple<double, 3>::operator=(TR const& rhs) {
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) { m_data_[i] = calculus::getValue(rhs, i); }
     return (*this);
@@ -319,7 +319,7 @@ nTuple<double, 3>& nTuple<double, 3>::operator=(TR const& rhs) {
 
 template <>
 template <typename TR>
-nTuple<double, 9>& nTuple<double, 9>::operator=(TR const& rhs) {
+__host__ __device__ nTuple<double, 9>& nTuple<double, 9>::operator=(TR const& rhs) {
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) { m_data_[i] = calculus::getValue(rhs, i); }
     return (*this);
