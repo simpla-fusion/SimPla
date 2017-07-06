@@ -49,12 +49,11 @@ struct CalculusPolicy {
     }
 
     template <typename M, typename V, int... I, typename... Others>
-    static auto getValue(mesh_type const& m, Field<M, V, I...> const& f, IdxShift S, Others&&... others) {
-        auto res = f.data(std::forward<Others>(others)...);
-        res.Shift(S);
-        return std::move(res);
+    static auto getValue(mesh_type const& m, Field<M, V, I...> const& f, Others&&... others) {
+        return f.data(std::forward<Others>(others)...);
     };
 
+   private:
     //    template <typename M, typename V, int IFORM, typename... Others>
     //    static auto getValue(mesh_type const& m, Field<M, V, IFORM> const& f, IdxShift S, int n0, Others&&... others)
     //    {
@@ -63,9 +62,23 @@ struct CalculusPolicy {
     //        return res(std::forward<Others>(others)...);
     //    };
 
-    template <typename T, typename... Others>
-    static auto getValue(mesh_type const& m, T const& v, IdxShift S, Others&&... others) {
-        return calculus::getValue(v, std::forward<Others>(others)...);
+    template <typename T, typename... Args>
+    static auto _getValue(std::integral_constant<bool, true> is_invocable, mesh_type const& m, T const& v,
+                          Args&&... args) {
+        return calculus::getValue(v, std::forward<Args>(args)...);
+    }
+    template <typename T, typename... Args>
+    static auto _getValue(std::integral_constant<bool, false> is_not_invocable, mesh_type const& m, T const& v,
+                          Args&&... args) {
+        return v;
+    }
+
+   public:
+    template <typename T, typename... Args>
+    static auto getValue(mesh_type const& m, T const& v, Args&&... args) {
+        return calculus::getValue(v, std::forward<Args>(args)...);
+
+        // calculus::getValue(v, std::forward<Others>(others)...);
     }
 
     //    template <typename TFun>
@@ -73,46 +86,6 @@ struct CalculusPolicy {
     //        return [=](index_type x, index_type y, index_type z) { return f(N0, N1, x + S[0], y + S[1], z + S[2]); };
     //    };
 
-    //    template <typename T>
-    //    static T const& getValue(T const* v, mesh_type const& m, int tag, IdxShift S = IdxShift{0, 0, 0},
-    //                             ENABLE_IF((std::is_arithmetic<T>::value))) {
-    //        return v[(((tag & 0b111) == 0) || ((tag & 0b111) == 7)) ? (tag >> 3)
-    //                                                                : EntityIdCoder::m_id_to_sub_index_[tag & 0b111]];
-    //    }
-    //    static auto Volume(mesh_type const& m, int tag, IdxShift S) {
-    //        return getValue(m, m.m_volume_, ((tag & 0b111) << 3) | 0b111, S);
-    //    }
-    //    static auto IVolume(mesh_type const& m, int tag, IdxShift S) {
-    //        return getValue(m, m.m_inv_volume_, ((tag & 0b111) << 3) | 0b111, S);
-    //    }
-    //    static auto DVolume(mesh_type const& m, int tag, IdxShift S) {
-    //        return getValue(m, m.m_dual_volume_, ((tag & 0b111) << 3) | 0b111, S);
-    //    }
-    //    static auto IDVolume(mesh_type const& m, int tag, IdxShift S) {
-    //        return getValue(m, m.m_inv_dual_volume_, ((tag & 0b111) << 3) | 0b111, S);
-    //    }
-    //
-    //
-    //    template <typename TExpr>
-    //    static auto getV_(mesh_type const& m, std::integral_constant<int, VERTEX>, TExpr const& expr, int tag,
-    //    IdxShift S) {
-    //        return getValue(m, expr * m.m_vertex_volume_, tag, S);
-    //    }
-    //    template <typename TExpr>
-    //    static auto getV_(mesh_type const& m, std::integral_constant<int, EDGE>, TExpr const& expr, int tag, IdxShift
-    //    S) {
-    //        return getValue(m, expr * m.m_edge_volume_, tag, S);
-    //    }
-    //    template <typename TExpr>
-    //    static auto getV_(mesh_type const& m, std::integral_constant<int, FACE>, TExpr const& expr, int tag, IdxShift
-    //    S) {
-    //        return getValue(m, expr * m.m_face_volume_, tag, S);
-    //    }
-    //    template <typename TExpr>
-    //    static auto getV_(mesh_type const& m, std::integral_constant<int, VOLUME>, TExpr const& expr, int tag,
-    //    IdxShift S) {
-    //        return getValue(m, expr * m.m_volume_volume_, tag, S);
-    //    }
     template <typename... Args>
     static auto _getV(std::integral_constant<int, VERTEX>, mesh_type const& m, Args&&... args) {
         return getValue(m, m.m_vertex_volume_, std::forward<Args>(args)...);
@@ -591,14 +564,14 @@ struct CalculusPolicy {
     /// @name general_algebra General algebra
     /// @{
 
-    template <typename V, int I, int... D>
-    static V const& getValue(Field<TM, V, I, D...> const& f, mesh_type const& m, EntityId s) {
-        return f[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]][(s.w >> 3)](s.x, s.y, s.z);
-    };
-    template <typename V, int I, int... D>
-    static V& getValue(Field<TM, V, I, D...>& f, mesh_type const& m, EntityId s) {
-        return f[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]][(s.w >> 3)](s.x, s.y, s.z);
-    };
+    //    template <typename V, int I, int... D>
+    //    static V const& getValue(mesh_type const& m, Field<TM, V, I, D...> const& f, EntityId s) {
+    //        return f[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]][(s.w >> 3)](s.x, s.y, s.z);
+    //    };
+    //    template <typename V, int I, int... D>
+    //    static V& getValue(mesh_type const& m, Field<TM, V, I, D...>& f, EntityId s) {
+    //        return f[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]][(s.w >> 3)](s.x, s.y, s.z);
+    //    };
 
     ///*********************************************************************************************
     /**

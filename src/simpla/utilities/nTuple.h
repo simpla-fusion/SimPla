@@ -240,33 +240,33 @@ struct nTuple<TV, N0, N...> {
     };
     ;
 
-    __host__ __device__ sub_type& operator[](int s) { return m_data_[s]; }
+    __host__ __device__ decltype(auto) operator[](int s) { return m_data_[s]; }
 
-    __host__ __device__ sub_type const& operator[](int s) const { return m_data_[s]; }
+    __host__ __device__ decltype(auto) operator[](int s) const { return m_data_[s]; }
 
     //    __host__ __device__ value_type& at(int const* s) { return calculator::getValue(*this, s); }
 
-    __host__ __device__ auto& at(int s) { return m_data_[s]; }
+    __host__ __device__ decltype(auto) at(int s) { return m_data_[s]; }
 
-    __host__ __device__ auto const& at(int s) const { return m_data_[s]; }
+    __host__ __device__ decltype(auto) at(int s) const { return m_data_[s]; }
 
     template <typename T0, typename... Idx>
-    __host__ __device__ auto& at(T0 n0, Idx&&... s) {
-        return calculus::getLValue(m_data_[n0], std::forward<Idx>(s)...);
+    __host__ __device__ decltype(auto) at(T0 n0, Idx&&... s) {
+        return calculus::getValue(m_data_[n0], std::forward<Idx>(s)...);
     }
 
     template <typename T0, typename... Idx>
-    __host__ __device__ auto const& at(T0 n0, Idx&&... s) const {
+    __host__ __device__ decltype(auto) at(T0 n0, Idx&&... s) const {
         return calculus::getLValue(m_data_[n0], std::forward<Idx>(s)...);
     }
 
     template <typename TI>
-    __host__ __device__ auto& at(TI const* idx) {
+    __host__ __device__ decltype(auto) at(TI const* idx) {
         return calculus::getLValue(m_data_[idx[0]], idx + 1);
     }
 
     template <typename TI>
-    __host__ __device__ auto const& at(TI const* idx) const {
+    __host__ __device__ decltype(auto) at(TI const* idx) const {
         return calculus::getLValue(m_data_[idx[0]], idx + 1);
     }
     //
@@ -281,12 +281,12 @@ struct nTuple<TV, N0, N...> {
     //    }
 
     template <typename... Idx>
-    __host__ __device__ auto& operator()(Idx&&... s) {
+    __host__ __device__ decltype(auto) operator()(Idx&&... s) {
         return at(std::forward<Idx>(s)...);
     }
 
     template <typename... Idx>
-    __host__ __device__ auto const& operator()(Idx&&... s) const {
+    __host__ __device__ decltype(auto) operator()(Idx&&... s) const {
         return at(std::forward<Idx>(s)...);
     }
     __host__ __device__ void swap(this_type& other) { calculus::swap(*this, other); }
@@ -304,11 +304,26 @@ struct nTuple<TV, N0, N...> {
 
     template <typename TR>
     __host__ __device__ this_type& operator=(TR const& rhs) {
-        //        calculus::assign(*this, rhs);
         for (int i = 0; i < N0; ++i) { m_data_[i] = calculus::getValue(rhs, i); }
         return (*this);
     }
 };
+
+template <>
+template <typename TR>
+nTuple<double, 3>& nTuple<double, 3>::operator=(TR const& rhs) {
+#pragma clang loop unroll(full)
+    for (int i = 0; i < 3; ++i) { m_data_[i] = calculus::getValue(rhs, i); }
+    return (*this);
+}
+
+template <>
+template <typename TR>
+nTuple<double, 9>& nTuple<double, 9>::operator=(TR const& rhs) {
+#pragma clang loop unroll(full)
+    for (int i = 0; i < 3; ++i) { m_data_[i] = calculus::getValue(rhs, i); }
+    return (*this);
+}
 
 #define _SP_DEFINE_NTUPLE_BINARY_OPERATOR(_NAME_, _OP_)                                                  \
     template <typename TL, int... NL, typename TR>                                                       \
@@ -357,7 +372,6 @@ _SP_DEFINE_NTUPLE_UNARY_OPERATOR(unary_minus, -)
 _SP_DEFINE_NTUPLE_UNARY_OPERATOR(logical_not, !)
 _SP_DEFINE_NTUPLE_BINARY_OPERATOR(logical_and, &&)
 _SP_DEFINE_NTUPLE_BINARY_OPERATOR(logical_or, ||)
-
 #undef _SP_DEFINE_NTUPLE_BINARY_OPERATOR
 #undef _SP_DEFINE_NTUPLE_UNARY_OPERATOR
 
@@ -404,7 +418,6 @@ _SP_DEFINE_NTUPLE_UNARY_FUNCTION(log10)
 _SP_DEFINE_NTUPLE_UNARY_FUNCTION(sqrt)
 _SP_DEFINE_NTUPLE_BINARY_FUNCTION(atan2)
 _SP_DEFINE_NTUPLE_BINARY_FUNCTION(pow)
-
 #undef _SP_DEFINE_NTUPLE_BINARY_FUNCTION
 #undef _SP_DEFINE_NTUPLE_UNARY_FUNCTION
 
@@ -427,10 +440,7 @@ _SP_DEFINE_NTUPLE_COMPOUND_OP(/)
 _SP_DEFINE_NTUPLE_COMPOUND_OP(%)
 _SP_DEFINE_NTUPLE_COMPOUND_OP(&)
 _SP_DEFINE_NTUPLE_COMPOUND_OP(|)
-_SP_DEFINE_NTUPLE_COMPOUND_OP (^)
-_SP_DEFINE_NTUPLE_COMPOUND_OP(<<)
-_SP_DEFINE_NTUPLE_COMPOUND_OP(>>)
-
+_SP_DEFINE_NTUPLE_COMPOUND_OP (^) _SP_DEFINE_NTUPLE_COMPOUND_OP(<<) _SP_DEFINE_NTUPLE_COMPOUND_OP(>>)
 #undef _SP_DEFINE_NTUPLE_COMPOUND_OP
 
 #define _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_, _REDUCTION_)                                \
@@ -458,19 +468,19 @@ _SP_DEFINE_NTUPLE_COMPOUND_OP(>>)
             Expression<tags::_NAME_, nTuple<TL, NL...>, nTuple<TR, NR...>>(lhs, rhs));                      \
     };
 
-_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(!=, not_equal_to, tags::logical_or)
-_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(==, equal_to, tags::logical_and)
-_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(<=, less_equal, tags::logical_and)
-_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(>=, greater_equal, tags::logical_and)
-_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(>, greater, tags::logical_and)
-_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(<, less, tags::logical_and)
+    _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(!=, not_equal_to, tags::logical_or)
+        _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(==, equal_to, tags::logical_and)
+            _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(<=, less_equal, tags::logical_and)
+                _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(>=, greater_equal, tags::logical_and)
+                    _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(>, greater, tags::logical_and)
+                        _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(<, less, tags::logical_and)
 #undef _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR
 
-//    DEF_BOP(shift_left, <<)
-//    DEF_BOP(shift_right, >>)
+    //    DEF_BOP(shift_left, <<)
+    //    DEF_BOP(shift_right, >>)
 
-template <typename TL, typename TR>
-__host__ __device__ auto dot(TL const& l, TR const& r) {
+    template <typename TL, typename TR>
+    __host__ __device__ auto dot(TL const& l, TR const& r) {
     return calculus::reduction<tags::addition>(l * r);
 }
 
