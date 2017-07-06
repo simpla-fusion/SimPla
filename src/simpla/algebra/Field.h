@@ -130,36 +130,36 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         std::swap(m_mesh_, other.m_mesh_);
     }
 
-    auto& operator[](int n) { return m_data_[n]; }
-    auto const& operator[](int n) const { return m_data_[n]; }
-
     template <typename... Args>
-    auto const& at(Args&&... args) const {
+    decltype(auto) at(Args&&... args) const {
         return m_data_(std::forward<Args>(args)...);
     }
 
     template <typename... Args>
-    auto& at(Args&&... args) {
+    decltype(auto) at(Args&&... args) {
         return m_data_(std::forward<Args>(args)...);
     }
 
     template <typename... Args>
-    auto const& operator()(Args&&... args) const {
+    decltype(auto) operator()(Args&&... args) const {
         return at(std::forward<Args>(args)...);
     }
 
     template <typename... Args>
-    auto& operator()(Args&&... args) {
+    decltype(auto) operator()(Args&&... args) {
         return at(std::forward<Args>(args)...);
     }
 
-    auto const& at(EntityId s) const {
+    decltype(auto) at(EntityId s) const {
         return m_data_(EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], s.w >> 3, s.x, s.y, s.z);
     }
-    auto& at(EntityId s) { return m_data_(EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], s.w >> 3, s.x, s.y, s.z); }
-
-    auto& operator[](EntityId s) { return at(s); }
-    auto const& operator[](EntityId s) const { return at(s); }
+    decltype(auto) at(EntityId s) {
+        return m_data_(EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], s.w >> 3, s.x, s.y, s.z);
+    }
+    decltype(auto) operator[](int n) { return m_data_[n]; }
+    decltype(auto) operator[](int n) const { return m_data_[n]; }
+    decltype(auto) operator[](EntityId s) { return at(s); }
+    decltype(auto) operator[](EntityId s) const { return at(s); }
 
     this_type operator[](EntityRange const& d) const { return this_type(*this, d); }
     this_type operator()(EntityRange const& d) const { return this_type(*this, d); }
@@ -167,12 +167,12 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     //*****************************************************************************************************************
 
     template <typename... Args>
-    auto gather(Args&&... args) const {
+    decltype(auto) gather(Args&&... args) const {
         return CalculusPolicy<mesh_type>::gather(*m_mesh_, *this, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
-    auto scatter(Args&&... args) {
+    decltype(auto) scatter(Args&&... args) {
         return CalculusPolicy<mesh_type>::scatter(*m_mesh_, *this, std::forward<Args>(args)...);
     }
 
@@ -225,10 +225,10 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     //        DoTearDown();
     //        return res;
     //    }
-    template <typename TOther>
-    void DeepCopy(TOther const& other) {
+    template <typename MR, typename UR, int... NR>
+    void DeepCopy(Field<MR, UR, NR...> const& other) {
         DoUpdate();
-        m_data_ = other.data();
+        m_data_ = other.m_data_;
     }
 
     this_type& operator=(this_type const& other) {
@@ -244,11 +244,67 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         return *this;
     };
 
+   private:
+   public:
     template <typename RHS>
-    void Assign(EntityRange const& r, RHS const& expr) {
-        m_data_.foreach ([&](auto& lhs, auto const&... sub) {
-            lhs = CalculusPolicy<mesh_type>::getValue(*m_mesh_, expr, sub..., IdxShift{0, 0, 0});
+    void Assign(EntityRange const& r, RHS const& rhs, ENABLE_IF((std::is_arithmetic<RHS>::value))) {
+        m_data_.foreach (
+            [&](auto& lhs, auto const&... sub) { lhs = CalculusPolicy<mesh_type>::getValue(*m_mesh_, rhs, sub...); });
+    }
+
+    template <typename RHS>
+    void Assign(EntityRange const& r, RHS const& rhs,
+                ENABLE_IF((traits::is_invocable_r<value_type, RHS, EntityId>::value))) {
+        m_data_.foreach ([&](auto& lhs, int n, auto const&... sub) {
+            int16_t w = EntityIdCoder::m_sub_index_to_id_[IFORM][n];
+            lhs = [=](int x, int y, int z) {
+                EntityId s;
+                s.w = w;
+                s.x = x;
+                s.y = y;
+                s.z = z;
+                return rhs(s);
+            };
+
         });
+    }
+
+    template <typename RHS>
+    void Assign(EntityRange const& r, RHS const& rhs,
+                ENABLE_IF((traits::is_invocable_r<nTuple<value_type, DOF...>, RHS, EntityId>::value))) {
+
+        for (int i = 0; i < NUM_OF_SUB; ++i) {
+            m_data_[i]=
+        }
+
+        m_data_.foreach ([&](auto& lhs, int n, auto const&... sub) {
+            int16_t w = EntityIdCoder::m_sub_index_to_id_[IFORM][n];
+            lhs = [=](int x, int y, int z) {
+                EntityId s;
+                s.w = w;
+                s.x = x;
+                s.y = y;
+                s.z = z;
+                return rhs(s);
+            };
+
+        });
+    }
+
+    template <typename RHS>
+    void Assign(EntityRange const& r, RHS const& rhs, ENABLE_IF((traits::is_invocable<RHS, point_type>::value))) {
+        *this = [=](EntityId s) { return rhs(m_mesh_->global_coordinates(s)); };
+    }
+
+    template <typename U, int... RDOF>
+    void Assign(EntityRange const& r, Field<mesh_type, U, IFORM, RDOF...> const& rhs) {
+        m_data_ = rhs.data();
+    }
+
+    template <typename... U>
+    void Assign(EntityRange const& r, Expression<U...> const& rhs) {
+        m_data_.foreach (
+            [&](auto& lhs, auto const&... sub) { lhs = CalculusPolicy<mesh_type>::getValue(*m_mesh_, rhs, sub...); });
     }
 
     //    void Assign(EntityRange const& r, value_type const& rhs) {

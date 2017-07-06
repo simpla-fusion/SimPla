@@ -48,10 +48,10 @@ struct CalculusPolicy {
                     std::forward<Others>(others)...);
     }
 
-    template <typename M, typename V, int... I, typename... Others>
-    static auto getValue(mesh_type const& m, Field<M, V, I...> const& f, Others&&... others) {
-        return f.data(std::forward<Others>(others)...);
-    };
+    //    template <typename M, typename V, int... I, typename... Others>
+    //    static auto getValue(mesh_type const& m, Field<M, V, I...> const& f, Others&&... others) {
+    //        return f.data(std::forward<Others>(others)...);
+    //    };
 
    private:
     //    template <typename M, typename V, int IFORM, typename... Others>
@@ -61,17 +61,16 @@ struct CalculusPolicy {
     //        res.Shift(S);
     //        return res(std::forward<Others>(others)...);
     //    };
-
-    template <typename T, typename... Args>
-    static auto _getValue(std::integral_constant<bool, true> is_invocable, mesh_type const& m, T const& v,
-                          Args&&... args) {
-        return calculus::getValue(v, std::forward<Args>(args)...);
-    }
-    template <typename T, typename... Args>
-    static auto _getValue(std::integral_constant<bool, false> is_not_invocable, mesh_type const& m, T const& v,
-                          Args&&... args) {
-        return v;
-    }
+    //    template <typename T, typename... Args>
+    //    static auto _getValue(std::integral_constant<bool, true> is_invocable, mesh_type const& m, T const& v,
+    //                          Args&&... args) {
+    //        return calculus::getValue(v, std::forward<Args>(args)...);
+    //    }
+    //    template <typename T, typename... Args>
+    //    static auto _getValue(std::integral_constant<bool, false> is_not_invocable, mesh_type const& m, T const& v,
+    //                          Args&&... args) {
+    //        return v;
+    //    }
 
    public:
     template <typename T, typename... Args>

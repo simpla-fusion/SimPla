@@ -65,17 +65,18 @@ struct get_s {
         return expr;
     }
     template <typename T>
-    __host__ __device__ static auto const &eval(T const &expr, ENABLE_IF((std::extent<T>::value > 0))) {
+    __host__ __device__ static decltype(auto) eval(T const &expr, ENABLE_IF((std::extent<T>::value > 0))) {
         return expr[N];
     }
 
     template <typename TOP, typename... Args, size_t... index>
-    __host__ __device__ static auto eval0_(Expression<TOP, Args...> const &expr, std::index_sequence<index...>) {
+    __host__ __device__ static decltype(auto) eval0_(Expression<TOP, Args...> const &expr,
+                                                     std::index_sequence<index...>) {
         return expr.m_op_(get_s<N>::eval(std::get<index>(expr.m_args_))...);
     }
 
     template <typename TOP, typename... Args>
-    __host__ __device__ static auto eval(Expression<TOP, Args...> const &expr) {
+    __host__ __device__ static decltype(auto) eval(Expression<TOP, Args...> const &expr) {
         return eval0_(expr, std::index_sequence_for<Args...>());
     }
 };
@@ -92,26 +93,26 @@ __host__ __device__ auto const &get(T const *expr) {
 template <typename TReduction>
 struct reduction_s {
     template <typename Arg0>
-    __device__ __host__ static auto eval0_(Arg0 const &arg0) {
+    __device__ __host__ static decltype(auto) eval0_(Arg0 const &arg0) {
         return reduction_s<TReduction>::eval(arg0);
     };
 
     template <typename Arg0, typename Arg1, typename... Others>
-    __device__ __host__ static auto eval0_(Arg0 const &arg0, Arg1 const &arg1, Others &&... others) {
+    __device__ __host__ static decltype(auto) eval0_(Arg0 const &arg0, Arg1 const &arg1, Others &&... others) {
         return TReduction::eval(eval0_(arg0), eval0_(arg1, std::forward<Others>(others)...));
     };
 
     template <typename TExpr>
-    __device__ __host__ static auto const &eval1_(TExpr const &expr, std::index_sequence<>) {
+    __device__ __host__ static decltype(auto) eval1_(TExpr const &expr, std::index_sequence<>) {
         return expr;
     }
 
     template <typename TExpr, size_t... I>
-    __device__ __host__ static auto eval1_(TExpr const &expr, std::index_sequence<I...>) {
+    __device__ __host__ static decltype(auto) eval1_(TExpr const &expr, std::index_sequence<I...>) {
         return eval0_(get<I>(expr)...);
     }
     template <typename TExpr>
-    __device__ __host__ static auto eval(TExpr const &expr) {
+    __device__ __host__ static decltype(auto) eval(TExpr const &expr) {
         return eval1_(expr, std::make_index_sequence<std::extent<TExpr>::value>());
     }
 };
@@ -149,25 +150,25 @@ struct _IndexHelper;
 
 template <typename T>
 struct _IndexHelper<T, traits::type_list<>> {
-    static T &lvalue(T &v) { return v; };
-    static T const &rvalue(T const &v) { return v; };
+//    static decltype(auto) value(T &v) { return v; };
+    static decltype(auto) value(T const &v) { return v; };
 };
 
 // template <typename T, typename Arg0>
 // struct _IndexHelper<T *, traits::type_list<Arg0>> {
-//    static auto &lvalue(T *v, Arg0 &&s) { return v[s]; };
-//    static auto const &rvalue(T const *v, Arg0 &&s) { return v[s]; };
+//    static decltype(auto)lvalue(T *v, Arg0 &&s) { return v[s]; };
+//    static decltype(auto)value(T const *v, Arg0 &&s) { return v[s]; };
 //};
 
 template <typename T, typename Arg0, typename... Args>
 struct _IndexHelper<T *, traits::type_list<Arg0, Args...>> {
-    static auto &lvalue(T *v, Arg0 &&arg0, Args &&... args) {
-        return _IndexHelper<std::remove_cv_t<decltype(v[arg0])>, traits::type_list<Args...>>::lvalue(
+    static decltype(auto) value(T *v, Arg0 &&arg0, Args &&... args) {
+        return _IndexHelper<std::remove_cv_t<decltype(v[arg0])>, traits::type_list<Args...>>::value(
             v[arg0], std::forward<Args>(args)...);
     };
 
-    static auto const &rvalue(T const *v, Arg0 &&arg0, Args &&... args) {
-        return _IndexHelper<std::remove_cv_t<decltype(v[arg0])>, traits::type_list<Args...>>::rvalue(
+    static decltype(auto) value(T const *v, Arg0 &&arg0, Args &&... args) {
+        return _IndexHelper<std::remove_cv_t<decltype(v[arg0])>, traits::type_list<Args...>>::value(
             v[arg0], std::forward<Args>(args)...);
     };
 };
@@ -175,22 +176,19 @@ template <typename T, typename Arg0, typename... Args>
 struct _IndexHelper<T, traits::type_list<Arg0, Args...>,
                     std::enable_if_t<std::is_arithmetic<T>::value || std::is_same<T, std::complex<double>>::value ||
                                      std::is_same<T, std::complex<float>>::value>> {
-    static T &lvalue(T &v, Arg0 &&arg0, Args &&... args) { return v; };
-    static T const &lvalue(T const &v, Arg0 &&arg0, Args &&... args) { return v; };
-    static T const &rvalue(T const &v, Arg0 &&arg0, Args &&... args) { return v; };
+    static decltype(auto) value(T &v, Arg0 &&arg0, Args &&... args) { return v; };
+    static decltype(auto) value(T const &v, Arg0 &&arg0, Args &&... args) { return v; };
 };
 
 template <typename TFun, typename Arg0, typename... Args>
 struct _IndexHelper<TFun, traits::type_list<Arg0, Args...>,
                     std::enable_if_t<traits::is_invocable<TFun, Arg0, Args...>::value &&
                                      std::is_reference<traits::invoke_result_t<TFun, Arg0, Args...>>::value>> {
-    static auto &lvalue(TFun &v, Arg0 &&arg0, Args &&... args) {
+    static decltype(auto) value(TFun &v, Arg0 &&arg0, Args &&... args) {
         return v(std::forward<Arg0>(arg0), std::forward<Args>(args)...);
     };
-    static auto const &lvalue(TFun const &v, Arg0 &&arg0, Args &&... args) {
-        return v(std::forward<Arg0>(arg0), std::forward<Args>(args)...);
-    };
-    static auto &rvalue(TFun const &v, Arg0 &&arg0, Args &&... args) {
+
+    static decltype(auto) value(TFun const &v, Arg0 &&arg0, Args &&... args) {
         return v(std::forward<Arg0>(arg0), std::forward<Args>(args)...);
     };
 };
@@ -199,9 +197,8 @@ template <typename TFun, typename Arg0, typename... Args>
 struct _IndexHelper<TFun, traits::type_list<Arg0, Args...>,
                     std::enable_if_t<traits::is_invocable<TFun, Arg0, Args...>::value &&
                                      !std::is_reference<traits::invoke_result_t<TFun, Arg0, Args...>>::value>> {
-    static auto &lvalue(TFun &v, Arg0 &&arg0, Args &&... args) = delete;
-    static auto const &lvalue(TFun const &v, Arg0 &&arg0, Args &&... args) = delete;
-    static auto rvalue(TFun const &v, Arg0 &&arg0, Args &&... args) {
+    static decltype(auto) value(TFun &v, Arg0 &&arg0, Args &&... args) = delete;
+    static decltype(auto) value(TFun const &v, Arg0 &&arg0, Args &&... args) {
         return v(std::forward<Arg0>(arg0), std::forward<Args>(args)...);
     };
 };
@@ -209,37 +206,29 @@ struct _IndexHelper<TFun, traits::type_list<Arg0, Args...>,
 template <typename TOP, typename... Others, typename Arg0, typename... Args>
 struct _IndexHelper<Expression<TOP, Others...>, traits::type_list<Arg0, Args...>> {
     template <size_t... index>
-    static auto _invoke_helper(std::index_sequence<index...>, Expression<TOP, Others...> const &expr, Arg0 &&arg0,
-                               Args &&... args) {
+    static decltype(auto) _invoke_helper(std::index_sequence<index...>, Expression<TOP, Others...> const &expr,
+                                         Arg0 &&arg0, Args &&... args) {
         return expr.m_op_(_IndexHelper<std::decay_t<std::remove_cv_t<decltype(std::get<index>(expr.m_args_))>>,
-                                       traits::type_list<Arg0, Args...>>::rvalue(std::get<index>(expr.m_args_),
-                                                                                 std::forward<Arg0>(arg0),
-                                                                                 std::forward<Args>(args)...)...);
+                                       traits::type_list<Arg0, Args...>>::value(std::get<index>(expr.m_args_),
+                                                                                std::forward<Arg0>(arg0),
+                                                                                std::forward<Args>(args)...)...);
     }
-    static auto rvalue(Expression<TOP, Others...> const &expr, Arg0 &&arg0, Args &&... args) {
+    static decltype(auto) value(Expression<TOP, Others...> const &expr, Arg0 &&arg0, Args &&... args) {
         return _invoke_helper(std::index_sequence_for<Others...>(), expr, std::forward<Arg0>(arg0),
                               std::forward<Args>(args)...);
     };
 
-    static auto lvalue(Arg0 &&arg0, Args &&...) = delete;
+    static decltype(auto) value(Expression<TOP, Others...> &expr, Arg0 &&arg0, Args &&...) = delete;
 };
 
 template <typename T, typename... Args>
-auto getValue(T const &expr, Args &&... args) {
-    return _IndexHelper<std::remove_cv_t<T>, traits::type_list<Args...>>::rvalue(expr, std::forward<Args>(args)...);
-};
-template <typename T, typename... Args>
-auto &getLValue(T &expr, Args &&... args) {
-    return _IndexHelper<std::remove_cv_t<T>, traits::type_list<Args...>>::lvalue(expr, std::forward<Args>(args)...);
+decltype(auto) getValue(T const &expr, Args &&... args) {
+    return _IndexHelper<std::remove_cv_t<T>, traits::type_list<Args...>>::value(expr, std::forward<Args>(args)...);
 };
 
 template <typename T, typename... Args>
-auto const &getValue(T const *expr, Args &&... args) {
-    return _IndexHelper<T *, traits::type_list<Args...>>::rvalue(expr, std::forward<Args>(args)...);
-};
-template <typename T, typename... Args>
-auto &getLValue(T *expr, Args &&... args) {
-    return _IndexHelper<T *, traits::type_list<Args...>>::lvalue(expr, std::forward<Args>(args)...);
+decltype(auto) getValue(T const *expr, Args &&... args) {
+    return _IndexHelper<T *, traits::type_list<Args...>>::value(expr, std::forward<Args>(args)...);
 };
 
 // template <typename T, typename TI>
@@ -248,7 +237,7 @@ auto &getLValue(T *expr, Args &&... args) {
 //};
 //
 //    template <typename... T, typename... Idx>
-//    static auto getValue(Expression<tags::_nTuple_cross, T...> const& expr, int s, Idx&&... others) {
+//    static decltype(auto) getValue(Expression<tags::_nTuple_cross, T...> const& expr, int s, Idx&&... others) {
 //        return getValue(std::get<0>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...) *
 //                   getValue(std::get<1>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) -
 //               getValue(std::get<0>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) *
@@ -256,13 +245,13 @@ auto &getLValue(T *expr, Args &&... args) {
 //    }
 
 // template <typename TOP, typename... Others, typename... Idx>
-// static auto getValue(Expression<TOP, Others...> const &expr, Idx &&... s) {
+// static decltype(auto) getValue(Expression<TOP, Others...> const &expr, Idx &&... s) {
 //    return ((_invoke_helper(expr, std::index_sequence_for<Others...>(), std::forward<Idx>(s)...)));
 //}
 //
 template <typename LHS, typename RHS, typename... Args>
 void Assign(LHS &lhs, RHS const &rhs, Args &&... args) {
-    getLValue(lhs, std::forward<Args>(args)...) = getValue(rhs, std::forward<Args>(args)...);
+    getValue(lhs, std::forward<Args>(args)...) = getValue(rhs, std::forward<Args>(args)...);
 };
 };
 

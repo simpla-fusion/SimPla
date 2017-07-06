@@ -257,17 +257,17 @@ struct nTuple<TV, N0, N...> {
 
     template <typename T0, typename... Idx>
     __host__ __device__ decltype(auto) at(T0 n0, Idx&&... s) const {
-        return calculus::getLValue(m_data_[n0], std::forward<Idx>(s)...);
+        return calculus::getValue(m_data_[n0], std::forward<Idx>(s)...);
     }
 
     template <typename TI>
     __host__ __device__ decltype(auto) at(TI const* idx) {
-        return calculus::getLValue(m_data_[idx[0]], idx + 1);
+        return calculus::getValue(m_data_[idx[0]], idx + 1);
     }
 
     template <typename TI>
     __host__ __device__ decltype(auto) at(TI const* idx) const {
-        return calculus::getLValue(m_data_[idx[0]], idx + 1);
+        return calculus::getValue(m_data_[idx[0]], idx + 1);
     }
     //
     //    template <typename TI, int M>

@@ -31,6 +31,7 @@ struct do_nothing {
 }
 
 namespace traits {
+#if __cplusplus <= 201402L
 
 namespace detail {
 
@@ -50,6 +51,23 @@ struct is_invocable {
    public:
     static constexpr bool value = !std::is_same<check_result, no>::value;
 };
+
+template <typename _Ret, typename _TFun, typename... _Args>
+struct is_invocable_r {
+   private:
+    typedef std::true_type yes;
+    typedef std::false_type no;
+
+    template <typename _U>
+    static auto test(int) -> std::result_of_t<_U(_Args...)>;
+
+    template <typename>
+    static no test(...);
+    typedef decltype(test<_TFun>(0)) check_result;
+
+   public:
+    static constexpr bool value = std::is_same<check_result, _Ret>::value;
+};
 }
 
 template <typename TFun, typename... Args>
@@ -62,7 +80,9 @@ template <typename TFun, typename... Args>
 struct is_invocable : public detail::is_invocable<TFun, Args...> {};
 
 template <typename R, typename TFun, typename... Args>
-struct is_invocable_r : public std::integral_constant<bool, std::is_same<invoke_result_t<TFun, Args...>, R>::value> {};
+struct is_invocable_r : public detail::is_invocable_r<R, TFun, Args...> {};
+
+#endif  // C++17
 //**********************************************************************************************************************
 /**
 * @ref http://en.cppreference.com/w/cpp/types/remove_extent

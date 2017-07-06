@@ -73,14 +73,19 @@ int main(int argc, char **argv) {
 
         CHECK(f.data());
 
-//        f = [&](index_type x, index_type y, index_type z) { return x + y + z; };
+        f[0] = [](index_type x, index_type y, index_type z) -> Real { return x + y + z; };
         //        g = [&](EntityId const &s) { return 1.0; };
-
+        //        f = 1;
         CHECK(f.data());
 
         g = 2;
         f = f * 0.2 + g * 2;
         CHECK(f.data());
+
+        f = [](point_type const &x) { return x[0]; };
+        g = [](EntityId s) -> Real { return s.y; };
+        CHECK(f.data());
+        CHECK(g.data());
         //    CHECK(f);
         //    Field<mesh_type, Real, EDGE> E(&m);
         //    Field<mesh_type, Real, FACE> B(&m);
