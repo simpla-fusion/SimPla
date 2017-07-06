@@ -29,8 +29,7 @@ struct SMesh : public StructuredMesh {
     void InitializeData(Real time_now) override;
     void SetBoundaryCondition(Real time_now, Real time_dt) override;
 
-    point_type point(entity_id_type s) const override;
-    point_type local_coordinates(entity_id_type s, Real const *r) const override;
+    point_type local_coordinates(entity_id_type s, Real const *r = nullptr) const override;
 
     Field<this_type, Real, VERTEX, 3> m_coordinates_{this, "name"_ = "m_coordinates_" /*, "COORDINATES"_*/};
     Field<this_type, Real, VERTEX, 3> m_vertices_{this, "name"_ = "m_vertices_"};

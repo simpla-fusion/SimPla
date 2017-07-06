@@ -9,21 +9,15 @@ namespace simpla {
 namespace mesh {
 REGISTER_CREATOR(SMesh);
 
-point_type SMesh::point(EntityId s) const {
-    point_type r{0, 0, 0};
-    return local_coordinates(s, &r[0]);
-}
-
 point_type SMesh::local_coordinates(EntityId s, Real const *pr) const {
-    s.w = 0;
     point_type r{
-        EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][0] + pr[0],
-        EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][1] + pr[1],
-        EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][2] + pr[2],
+        (EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][0] + (pr == nullptr) ? 0 : pr[0] * m_dx_[0]),
+        (EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][1] + (pr == nullptr) ? 0 : pr[1] * m_dx_[1]),
+        (EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][2] + (pr == nullptr) ? 0 : pr[2] * m_dx_[2]),
     };
-    return point_type{std::fma(static_cast<Real>(s.x), m_dx_[0], r[0] * m_dx_[0]),
-                      std::fma(static_cast<Real>(s.y), m_dx_[1], r[1] * m_dx_[1]),
-                      std::fma(static_cast<Real>(s.z), m_dx_[2], r[2] * m_dx_[2])};
+    return point_type{std::fma(static_cast<Real>(s.x), m_dx_[0], r[0]),
+                      std::fma(static_cast<Real>(s.y), m_dx_[1], r[1]),
+                      std::fma(static_cast<Real>(s.z), m_dx_[2], r[2])};
 }
 
 /**
@@ -100,9 +94,7 @@ Real HexahedronVolume(SMesh const *m, EntityId s) {
 void SMesh::InitializeData(Real time_now) {
     StructuredMesh::InitializeData(time_now);
     m_coordinates_.Clear();
-    m_coordinates_ = [&](EntityId s) -> point_type {
-        return global_coordinates(s, nullptr);
-    };
+    m_coordinates_ = [&](auto &&... s) -> point_type { return global_coordinates(std::forward<decltype(s)>(s)...); };
 
     m_vertex_volume_.Clear();
     m_vertex_inv_volume_.Clear();

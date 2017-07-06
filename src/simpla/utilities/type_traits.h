@@ -16,13 +16,61 @@ namespace simpla {
 #define ENABLE_IF(_COND_) std::enable_if_t<_COND_, void>* _p = nullptr
 
 // CHECK_OPERATOR(is_indexable, [])
+
+typedef std::nullptr_t NullType;
+
+struct EmptyType {};
+
+// template<typename, int ...> struct nTuple;
+
+namespace tags {
+struct do_nothing {
+    template <typename... Args>
+    void operator()(Args&&...) const {}
+};
+}
+
+namespace traits {
+
+namespace detail {
+
+template <typename _TFun, typename... _Args>
+struct is_invocable {
+   private:
+    typedef std::true_type yes;
+    typedef std::false_type no;
+
+    template <typename _U>
+    static auto test(int) -> std::result_of_t<_U(_Args...)>;
+
+    template <typename>
+    static no test(...);
+    typedef decltype(test<_TFun>(0)) check_result;
+
+   public:
+    static constexpr bool value = !std::is_same<check_result, no>::value;
+};
+}
+
+template <typename TFun, typename... Args>
+struct invoke_result : public std::result_of<TFun(Args...)> {};
+
+template <typename TFun, typename... Args>
+using invoke_result_t = typename invoke_result<TFun, Args...>::type;
+
+template <typename TFun, typename... Args>
+struct is_invocable : public detail::is_invocable<TFun, Args...> {};
+
+template <typename R, typename TFun, typename... Args>
+struct is_invocable_r : public std::integral_constant<bool, std::is_same<invoke_result_t<TFun, Args...>, R>::value> {};
+//**********************************************************************************************************************
 /**
- * @ref http://en.cppreference.com/w/cpp/types/remove_extent
- * If T is '''is_indexable''' by '''S''', provides the member typedef type equal to
- * decltyp(T[S])
- * otherwise type is T. Note that if T is a multidimensional array, only the first dimension is
- * removed.
- */
+* @ref http://en.cppreference.com/w/cpp/types/remove_extent
+* If T is '''is_indexable''' by '''S''', provides the member typedef type equal to
+* decltyp(T[S])
+* otherwise type is T. Note that if T is a multidimensional array, only the first dimension is
+* removed.
+*/
 namespace detail {
 
 template <typename _T, typename _TI>
@@ -47,21 +95,6 @@ template <typename T, typename TI = int>
 struct is_indexable : public std::integral_constant<bool, detail::is_indexable<T, TI>::value> {
     typedef typename detail::is_indexable<T, TI>::type type;
 };
-
-typedef std::nullptr_t NullType;
-
-struct EmptyType {};
-
-// template<typename, int ...> struct nTuple;
-
-namespace tags {
-struct do_nothing {
-    template <typename... Args>
-    void operator()(Args&&...) const {}
-};
-}
-
-namespace traits {
 
 template <typename... T>
 struct type_list {};

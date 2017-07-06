@@ -22,14 +22,14 @@
 namespace simpla {
 template <typename T, size_t... N>
 std::ostream &printNd(std::ostream &os, T const &d, std::index_sequence<N...> const &,
-                      ENABLE_IF((!is_indexable<T, size_t>::value))) {
+                      ENABLE_IF((!traits::is_indexable<T, size_t>::value))) {
     os << d;
     return os;
 }
 
 template <typename T, size_t M, size_t... N>
 std::ostream &printNd(std::ostream &os, T const &d, std::index_sequence<M, N...> const &,
-                      ENABLE_IF((is_indexable<T, size_t>::value))) {
+                      ENABLE_IF((traits::is_indexable<T, size_t>::value))) {
     os << "{";
     printNd(os, d[0], std::index_sequence<N...>());
     for (size_t i = 1; i < M; ++i) {

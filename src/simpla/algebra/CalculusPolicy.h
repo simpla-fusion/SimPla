@@ -48,29 +48,9 @@ struct CalculusPolicy {
                     std::forward<Others>(others)...);
     }
 
-    //    template <typename... V>
-    //    static Array<V...>&& getValue(mesh_type const& m, Array<V...> const& f, IdxShift S) {
-    //        return std::move(Array<V...>(f, S));
-    //    };
-    //
-    //    template <typename... V, int... DOF, typename... Others>
-    //    static auto getValue(mesh_type const& m, nTuple<Array<V...>, DOF...> const& f, IdxShift S, int n,
-    //                         Others&&... others) {
-    //        return getValue(m, f[n], S, std::forward<Others>(others)...);
-    //    };
-    //
-    //    template <typename M, typename V, int... I, typename... Others>
-    //    static auto getValue(mesh_type const& m, Field<M, V, I...> const& f, IdxShift S, Others&&... others) {
-    //        return getValue(m, f.data(), S, std::forward<Others>(others)...);
-    //    };
-    //    template <typename M, typename V, int IFORM, int DOF, typename... Others>
-    //    static auto getValue(mesh_type const& m, Field<M, V, IFORM, DOF> const& f, IdxShift S, int n0, int n1,
-    //                         Others&&... others) {
-    //        return getValue(m, f[n0][n1], S, std::forward<Others>(others)...);
-    //    };
     template <typename M, typename V, int... I, typename... Others>
-    static auto getValue(mesh_type const& m, Field<M, V, I...> const& f, IdxShift S, Others const&... others) {
-        auto res = f.data((others)...);
+    static auto getValue(mesh_type const& m, Field<M, V, I...> const& f, IdxShift S, Others&&... others) {
+        auto res = f.data(std::forward<Others>(others)...);
         res.Shift(S);
         return std::move(res);
     };
@@ -84,19 +64,8 @@ struct CalculusPolicy {
     //    };
 
     template <typename T, typename... Others>
-    static auto _getValue(std::integral_constant<bool, true> const& is_arithmetic, mesh_type const& m, T const& v,
-                          Others&&... tags) {
-        return v;
-    }
-    //    template <typename T, typename... Others>
-    //    static auto _getValue(std::integral_constant<bool, false> const& is_not_arithmetic, mesh_type const& m, T
-    //    const& v,
-    //                          Others&&... tags) {
-    //        return v;
-    //    }
-    template <typename T, typename... Others>
-    static auto const& getValue(mesh_type const& m, T const& v, Others&&... others) {
-        return v;
+    static auto getValue(mesh_type const& m, T const& v, IdxShift S, Others&&... others) {
+        return calculus::getValue(v, std::forward<Others>(others)...);
     }
 
     //    template <typename TFun>

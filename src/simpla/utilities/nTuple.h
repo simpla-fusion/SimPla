@@ -162,18 +162,6 @@ __host__ __device__ void foreach_(nTuple<TV, N0, N1, N2>& m_data_, TFun const& f
 }
 
 namespace calculus {
-
-template <typename T, int... N, typename... Args>
-struct _IndexHelper<nTuple<T, N...>, traits::type_list<Args...>> {
-    static __host__ __device__ auto const& rvalue(nTuple<T, N...> const& ntuple, Args const&... args) {
-        return ntuple.at((args)...);
-    };
-
-    static __host__ __device__ auto& lvalue(nTuple<T, N...>& ntuple, Args const&... args) {
-        return ntuple.at((args)...);
-    };
-};
-
 namespace _impl {
 
 template <typename TL, typename TR>
@@ -213,7 +201,7 @@ template <typename TL, typename TR>
 __host__ __device__ void assign(TL& lhs, TR const& rhs) {
     _impl::assign_(lhs, rhs, std::make_index_sequence<std::extent<TL>::value>());
 };
-}  // namespace
+}  // namespace calculus
 /// n-dimensional primary type
 
 template <typename TV>

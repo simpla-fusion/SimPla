@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
 
         CHECK(f.data());
 
-        f = [&](index_type x, index_type y, index_type z) { return x + y + z; };
+//        f = [&](index_type x, index_type y, index_type z) { return x + y + z; };
         //        g = [&](EntityId const &s) { return 1.0; };
 
         CHECK(f.data());

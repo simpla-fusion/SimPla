@@ -22,17 +22,6 @@ template <typename V, typename SFC>
 class Array;
 typedef nTuple<index_type, 3> IdxShift;
 
-namespace calculus {
-template <typename... U, typename... Args>
-struct _IndexHelper<Array<U...>, traits::type_list<Args...>> {
-    static __host__ __device__ auto& lvalue(Array<U...>& array, Args const&... args) { return array.at(args...); };
-
-    static __host__ __device__ Array<U...> const& rvalue(Array<U...> const& array) { return array; };
-
-    static __host__ __device__ auto rvalue(Array<U...> const& array, Args const&... args) { return array.at(args...); };
-};
-}
-
 template <typename V, typename SFC = ZSFC<3>>
 class Array {
    public:

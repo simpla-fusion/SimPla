@@ -104,9 +104,9 @@ box_type MeshBase::GetBox() const {
         point(EntityId{static_cast<int16_t>(hi[0]), static_cast<int16_t>(hi[1]), static_cast<int16_t>(hi[2]), 0});
     return res;
 }
-point_type MeshBase::global_coordinates(EntityId s, Real const* pr) const {
-    return m_pimpl_->m_chart_->map(local_coordinates(s, pr));
-}
+
+point_type MeshBase::map(point_type const& p) const { return m_pimpl_->m_chart_->map(p); }
+
 // index_box_type MeshBase::GetIndexBox(int tag) const {
 //    index_box_type res = GetBlock()->GetIndexBox();
 //    switch (tag) {
