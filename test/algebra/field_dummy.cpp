@@ -81,11 +81,18 @@ int main(int argc, char **argv) {
         g = 2;
         f = f * 0.2 + g * 2;
         CHECK(f.data());
+        Field<mesh_type, Real, EDGE> h(&m);
+        h = nTuple<Real, 3>{1, 2, 3};
+        CHECK(h.data());
 
-        f = [](point_type const &x) { return x[0]; };
-        g = [](EntityId s) -> Real { return s.y; };
-        CHECK(f.data());
-        CHECK(g.data());
+        Field<mesh_type, Real, VOLUME, 3> k(&m);
+        k.Clear();
+        k[0] = nTuple<Real, 3>{1, 2, 3};
+        CHECK(k.data());
+        //        f = [](point_type const &x) { return x[0]; };
+        //        g = [](EntityId s) -> Real { return s.y; };
+        //        CHECK(f.data());
+        //        CHECK(g.data());
         //    CHECK(f);
         //    Field<mesh_type, Real, EDGE> E(&m);
         //    Field<mesh_type, Real, FACE> B(&m);

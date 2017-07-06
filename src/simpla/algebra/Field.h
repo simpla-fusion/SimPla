@@ -224,66 +224,80 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     this_type& operator=(TR const& rhs) {
         DoUpdate();
 
-        Assign(m_range_, rhs);
+        Assign(rhs);
         //        Assign(m_mesh_->GetRange(std::string(EntityIFORMName[IFORM]) + "_PATCH_BOUNDARY", 0), rhs);
         return *this;
     };
-
-    template <typename RHS>
-    void Assign(RHS const& rhs, ENABLE_IF((std::is_arithmetic<RHS>::value))) {
+    template <typename U>
+    void Assign(std::complex<U> const& rhs) {
         m_data_ = rhs;
     }
-
-    template <typename... U>
-    void Assign(Expression<U...> const& rhs) {
-        m_data_.foreach (
-            [&](auto& a, auto const&... sub) { a = CalculusPolicy<mesh_type>::getValue(*m_mesh_, rhs, sub...); });
+    template <typename U>
+    void Assign(nTuple<U, NUM_OF_SUB, DOF...> const& rhs) {
+        m_data_ = rhs;
     }
     template <typename U, int... RDOF>
     void Assign(Field<mesh_type, U, IFORM, RDOF...> const& rhs) {
         m_data_ = rhs.data();
     }
-
-   private:
-    void AssignFunction(std::integral_constant<int, 0>, RHS const& rhs) {
-        m_data_ = [&](int n, int x, int y, int z) {
-            EntityId s;
-            s.w = n;
-            s.x = x;
-            s.y = y;
-            s.z = z;
-            return rhs(s);
-        };
+    template <typename... U>
+    void Assign(Expression<U...> const& rhs) {
+        m_data_.foreach (
+            [&](auto& a, auto const&... sub) { a = CalculusPolicy<mesh_type>::getValue(*m_mesh_, rhs, sub...); });
     }
-    void AssignFunction(std::integral_constant<int, 1>, RHS const& rhs) {
-        m_data_ = [&](int n0, int n1, int x, int y, int z) { return rhs(_pack(std::forward<decltype(s)>(s)...)); };
-    }
-    void AssignFunction(std::integer_sequence<int, VERTX, 0>, RHS const& rhs) {
-        m_data_[0] = [&](int n, auto&&... s) { return rhs(_pack(std::forward<decltype(s)>(s)...)); };
-    }
-
-   public:
     template <typename RHS>
-    void Assign(RHS const& rhs, ENABLE_IF((traits::is_invocable_r<TV, RHS, EntityId>::value))) {
-        m_data_ = [&](auto&&... s) { return rhs(_pack(std::forward<decltype(s)>(s)...)); };
+    void Assign(RHS const& rhs, ENABLE_IF((std::is_arithmetic<RHS>::value))) {
+        m_data_ = rhs;
     }
-
-    template <typename RHS>
-    void Assign(RHS const& rhs, ENABLE_IF((traits::is_invocable<RHS, point_type>::value))) {
-        m_data_ = [&](auto&&... s) { return rhs(m_mesh_->global_coordinates(_pack(std::forward<decltype(s)>(s)...))); };
-    }
-
-    template <typename RHS>
-    void Assign(EntityRange const& r, RHS const& rhs) {
-        if (r.isNull()) {
-            Assign(rhs);
-        } else {
-            //            r.foreach ([&](auto&&... s) {
-            //                this->at(std::forward<decltype(s)>(s)...) =
-            //                    CalculusPolicy<mesh_type>::getValue(*m_mesh_, rhs, std::forward<decltype(s)>(s)...);
-            //            });
-        }
-    }
+    //   private:
+    //    void AssignFunction(std::integral_constant<int, 0>, RHS const& rhs) {
+    //        m_data_ = [&](int n, int x, int y, int z) {
+    //            EntityId s;
+    //            s.w = n;
+    //            s.x = x;
+    //            s.y = y;
+    //            s.z = z;
+    //            return rhs(s);
+    //        };
+    //    }
+    //    void AssignFunction(std::integral_constant<int, 1>, RHS const& rhs) {
+    //        m_data_ = [&](int n0, int n1, int x, int y, int z) { return rhs(_pack(std::forward<decltype(s)>(s)...));
+    //        };
+    //    }
+    //    void AssignFunction(std::integer_sequence<int, VERTX, 0>, RHS const& rhs) {
+    //        m_data_[0] = [&](int n, auto&&... s) { return rhs(_pack(std::forward<decltype(s)>(s)...)); };
+    //    }
+    //
+    //   public:
+    //    void Assign(Entity s, value_type const& v) { getArray(s.w)(s.x, s.y, s.z) = v; }
+    //
+    //    static auto& getArray(nTuple<U, N0>& t, int n) { return t[n & 0b111]; }
+    //
+    //    static auto& getArray(nTuple<U, N0, N...>& t, int n) { return getArray(t[n & 0b111], b >> 3); }
+    //
+    //    template <typename RHS>
+    //    void Assign(RHS const& rhs, ENABLE_IF((traits::is_invocable<RHS, EntityId>::value))) {
+    //        m_data_ = [&](auto&&... s) { return rhs(_pack(std::forward<decltype(s)>(s)...)); };
+    //    }
+    //
+    //    template <typename RHS>
+    //    void Assign(RHS const& rhs, ENABLE_IF((traits::is_invocable<RHS, point_type>::value))) {
+    //        m_data_ = [&](auto&&... s) { return
+    //        rhs(m_mesh_->global_coordinates(_pack(std::forward<decltype(s)>(s)...))); };
+    //    }
+    //
+    //    template <typename RHS>
+    //    void Assign(EntityRange const& r, RHS const& rhs) {
+    //        if (r.isNull()) {
+    //            Assign(rhs);
+    //        } else {
+    //            //            r.foreach ([&](auto&&... s) {
+    //            //                this->at(std::forward<decltype(s)>(s)...) =
+    //            //                    CalculusPolicy<mesh_type>::getValue(*m_mesh_, rhs,
+    //            std::forward<decltype(s)>(s)...);
+    //            //            });
+    //        }
+    //    }
 
 };  // class Field
 
