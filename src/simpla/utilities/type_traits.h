@@ -42,7 +42,7 @@ struct is_invocable {
     typedef std::false_type no;
 
     template <typename _U>
-    static auto test(int) -> std::result_of_t<_U(_Args...)>;
+    static auto test(int) -> typename std::result_of<_U(_Args...)>::type;
 
     template <typename>
     static no test(...);
@@ -59,7 +59,7 @@ struct is_invocable_r {
     typedef std::false_type no;
 
     template <typename _U>
-    static auto test(int) -> std::result_of_t<_U(_Args...)>;
+    static auto test(int) -> typename std::result_of<_U(_Args...)>::type;
 
     template <typename>
     static no test(...);
@@ -77,12 +77,12 @@ template <typename TFun, typename... Args>
 using invoke_result_t = typename invoke_result<TFun, Args...>::type;
 
 template <typename TFun, typename... Args>
-struct is_invocable : public detail::is_invocable<TFun, Args...> {};
+struct is_invocable : public std::integral_constant<bool, detail::is_invocable<TFun, Args...>::value> {};
 
 template <typename R, typename TFun, typename... Args>
-struct is_invocable_r : public detail::is_invocable_r<R, TFun, Args...> {};
+struct is_invocable_r : public std::integral_constant<bool, detail::is_invocable_r<R, TFun, Args...>::value> {};
 
-#endif  // C++17
+#endif
 //**********************************************************************************************************************
 /**
 * @ref http://en.cppreference.com/w/cpp/types/remove_extent

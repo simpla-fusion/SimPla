@@ -19,13 +19,15 @@
 #include <simpla/utilities/macro.h>
 #include <simpla/utilities/type_traits.h>
 #include "Calculus.h"
+#include "Field.h"
+
 namespace simpla {
 template <typename TM, typename TV, int...>
 class Field;
 
-template <typename TM>
+template <typename M>
 struct CalculusPolicy {
-    typedef TM mesh_type;
+    typedef M mesh_type;
     typedef CalculusPolicy<mesh_type> this_type;
 
     //**********************************************************************************************
@@ -52,13 +54,6 @@ struct CalculusPolicy {
     static decltype(auto) getValue(mesh_type const& m, T const& v, Args&&... args) {
         return calculus::getValue(v, std::forward<Args>(args)...);
     }
-
-
-
-    //    template <typename TFun>
-    //    static auto getValue(mesh_type const& m, TFun const& f, IdxShift S, int N0, int N1) {
-    //        return [=](index_type x, index_type y, index_type z) { return f(N0, N1, x + S[0], y + S[1], z + S[2]); };
-    //    };
 
     template <typename... Args>
     static decltype(auto) _getV(std::integral_constant<int, VERTEX>, mesh_type const& m, Args&&... args) {
@@ -728,6 +723,9 @@ struct CalculusPolicy {
     //                 std::forward<Others>(others)...);
     //    }
 };
+
+//********************************************************************************************************************************
+
 /**
  * A radial basis function (RBF) is a real-valued function whose value
  * depends

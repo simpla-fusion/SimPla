@@ -45,9 +45,9 @@ class StructuredMesh : public engine::MeshBase {
 
     void RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix) override;
 
-    point_type point(entity_id_type s) const override;
+    point_type point(entity_id_type s) const;
 
-    point_type local_coordinates(entity_id_type s, Real const *r) const override;
+    point_type local_coordinates(entity_id_type s, Real const *r = nullptr) const override;
 
     ZSFC<NDIMS> GetSpaceFillingCurve(int iform, int nsub = 0) const {
         return ZSFC<NDIMS>{GetIndexBox(EntityIdCoder::m_sub_index_to_id_[iform][nsub])};

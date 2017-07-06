@@ -142,9 +142,13 @@ point_type MeshBase::map(point_type const& p) const { return m_pimpl_->m_chart_-
 //}
 
 EntityRange MeshBase::GetRange(std::string const& k) const {
-    ASSERT(!isModified());
-    auto it = m_pimpl_->m_ranges_->find(k);
-    return (it != m_pimpl_->m_ranges_->end()) ? it->second : EntityRange{std::make_shared<EmptyRangeBase<EntityId>>()};
+    if (m_pimpl_->m_ranges_ == nullptr) {
+        return EntityRange{};
+    } else {
+        auto it = m_pimpl_->m_ranges_->find(k);
+        return (it != m_pimpl_->m_ranges_->end()) ? it->second
+                                                  : EntityRange{std::make_shared<EmptyRangeBase<EntityId>>()};
+    }
 };
 
 EntityRange MeshBase::GetBodyRange(int IFORM, std::string const& k) const {

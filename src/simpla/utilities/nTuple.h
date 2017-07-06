@@ -240,33 +240,33 @@ struct nTuple<TV, N0, N...> {
     };
     ;
 
-    __host__ __device__ decltype(auto) operator[](int s) { return m_data_[s]; }
+    __host__ __device__ auto& operator[](int s) { return m_data_[s]; }
 
-    __host__ __device__ decltype(auto) operator[](int s) const { return m_data_[s]; }
+    __host__ __device__ auto const& operator[](int s) const { return m_data_[s]; }
 
     //    __host__ __device__ value_type& at(int const* s) { return calculator::getValue(*this, s); }
 
-    __host__ __device__ decltype(auto) at(int s) { return m_data_[s]; }
+    __host__ __device__ auto& at(int s) { return m_data_[s]; }
 
-    __host__ __device__ decltype(auto) at(int s) const { return m_data_[s]; }
+    __host__ __device__ auto const& at(int s) const { return m_data_[s]; }
 
-    template <typename T0, typename... Idx>
-    __host__ __device__ decltype(auto) at(T0 n0, Idx&&... s) {
+    template <typename I0, typename... Idx>
+    __host__ __device__ auto& at(I0 n0, Idx&&... s) {
         return calculus::getValue(m_data_[n0], std::forward<Idx>(s)...);
     }
 
-    template <typename T0, typename... Idx>
-    __host__ __device__ decltype(auto) at(T0 n0, Idx&&... s) const {
+    template <typename I0, typename... Idx>
+    __host__ __device__ auto const& at(I0 n0, Idx&&... s) const {
         return calculus::getValue(m_data_[n0], std::forward<Idx>(s)...);
     }
 
     template <typename TI>
-    __host__ __device__ decltype(auto) at(TI const* idx) {
+    __host__ __device__ auto& at(TI const* idx) {
         return calculus::getValue(m_data_[idx[0]], idx + 1);
     }
 
     template <typename TI>
-    __host__ __device__ decltype(auto) at(TI const* idx) const {
+    __host__ __device__ auto const& at(TI const* idx) const {
         return calculus::getValue(m_data_[idx[0]], idx + 1);
     }
     //
@@ -281,13 +281,13 @@ struct nTuple<TV, N0, N...> {
     //    }
 
     template <typename... Idx>
-    __host__ __device__ decltype(auto) operator()(Idx&&... s) {
-        return at(std::forward<Idx>(s)...);
+    __host__ __device__ decltype(auto) operator()(int s0, Idx&&... s) {
+        return at(s0, std::forward<Idx>(s)...);
     }
 
     template <typename... Idx>
-    __host__ __device__ decltype(auto) operator()(Idx&&... s) const {
-        return at(std::forward<Idx>(s)...);
+    __host__ __device__ decltype(auto) operator()(int s0, Idx&&... s) const {
+        return at(s0, std::forward<Idx>(s)...);
     }
     __host__ __device__ void swap(this_type& other) { calculus::swap(*this, other); }
 

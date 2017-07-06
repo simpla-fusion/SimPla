@@ -150,7 +150,7 @@ struct _IndexHelper;
 
 template <typename T>
 struct _IndexHelper<T, traits::type_list<>> {
-//    static decltype(auto) value(T &v) { return v; };
+    //    static decltype(auto) value(T &v) { return v; };
     static decltype(auto) value(T const &v) { return v; };
 };
 
@@ -220,9 +220,8 @@ struct _IndexHelper<Expression<TOP, Others...>, traits::type_list<Arg0, Args...>
 
     static decltype(auto) value(Expression<TOP, Others...> &expr, Arg0 &&arg0, Args &&...) = delete;
 };
-
 template <typename T, typename... Args>
-decltype(auto) getValue(T const &expr, Args &&... args) {
+decltype(auto) getValue(T &expr, Args &&... args) {
     return _IndexHelper<std::remove_cv_t<T>, traits::type_list<Args...>>::value(expr, std::forward<Args>(args)...);
 };
 
