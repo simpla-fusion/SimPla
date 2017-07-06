@@ -31,54 +31,29 @@ struct CalculusPolicy {
     //**********************************************************************************************
     // for element-wise arithmetic operation
     template <size_t... I, typename TOP, typename... Args, typename... Others>
-    static auto _invoke_helper(std::index_sequence<I...>, mesh_type const& m, Expression<TOP, Args...> const& expr,
-                               Others&&... others) {
+    static decltype(auto) _invoke_helper(std::index_sequence<I...>, mesh_type const& m,
+                                         Expression<TOP, Args...> const& expr, Others&&... others) {
         return expr.m_op_(getValue(m, std::get<I>(expr.m_args_), std::forward<Others>(others)...)...);
     }
 
     template <int... I, typename TOP, typename... Args, typename... Others>
-    static auto eval(std::integer_sequence<int, I...>, mesh_type const& m, Expression<TOP, Args...> const& expr,
-                     Others&&... others) {
+    static decltype(auto) eval(std::integer_sequence<int, I...>, mesh_type const& m,
+                               Expression<TOP, Args...> const& expr, Others&&... others) {
         return _invoke_helper(std::make_index_sequence<sizeof...(I)>(), m, expr, std::forward<Others>(others)...);
     }
 
     template <typename TOP, typename... Args, typename... Others>
-    static auto getValue(mesh_type const& m, Expression<TOP, Args...> const& expr, Others&&... others) {
+    static decltype(auto) getValue(mesh_type const& m, Expression<TOP, Args...> const& expr, Others&&... others) {
         return eval(std::integer_sequence<int, traits::iform<Args>::value...>(), m, expr,
                     std::forward<Others>(others)...);
     }
 
-    //    template <typename M, typename V, int... I, typename... Others>
-    //    static auto getValue(mesh_type const& m, Field<M, V, I...> const& f, Others&&... others) {
-    //        return f.data(std::forward<Others>(others)...);
-    //    };
-
-   private:
-    //    template <typename M, typename V, int IFORM, typename... Others>
-    //    static auto getValue(mesh_type const& m, Field<M, V, IFORM> const& f, IdxShift S, int n0, Others&&... others)
-    //    {
-    //        auto res = f[n0];
-    //        res.Shift(S);
-    //        return res(std::forward<Others>(others)...);
-    //    };
-    //    template <typename T, typename... Args>
-    //    static auto _getValue(std::integral_constant<bool, true> is_invocable, mesh_type const& m, T const& v,
-    //                          Args&&... args) {
-    //        return calculus::getValue(v, std::forward<Args>(args)...);
-    //    }
-    //    template <typename T, typename... Args>
-    //    static auto _getValue(std::integral_constant<bool, false> is_not_invocable, mesh_type const& m, T const& v,
-    //                          Args&&... args) {
-    //        return v;
-    //    }
-
-   public:
     template <typename T, typename... Args>
-    static auto getValue(mesh_type const& m, T const& v, Args&&... args) {
+    static decltype(auto) getValue(mesh_type const& m, T const& v, Args&&... args) {
         return calculus::getValue(v, std::forward<Args>(args)...);
-
-        // calculus::getValue(v, std::forward<Others>(others)...);
     }
+
+
 
     //    template <typename TFun>
     //    static auto getValue(mesh_type const& m, TFun const& f, IdxShift S, int N0, int N1) {
@@ -86,46 +61,46 @@ struct CalculusPolicy {
     //    };
 
     template <typename... Args>
-    static auto _getV(std::integral_constant<int, VERTEX>, mesh_type const& m, Args&&... args) {
+    static decltype(auto) _getV(std::integral_constant<int, VERTEX>, mesh_type const& m, Args&&... args) {
         return getValue(m, m.m_vertex_volume_, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    static auto _getV(std::integral_constant<int, EDGE>, mesh_type const& m, Args&&... args) {
+    static decltype(auto) _getV(std::integral_constant<int, EDGE>, mesh_type const& m, Args&&... args) {
         return getValue(m, m.m_edge_volume_, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    static auto _getV(std::integral_constant<int, FACE>, mesh_type const& m, Args&&... args) {
+    static decltype(auto) _getV(std::integral_constant<int, FACE>, mesh_type const& m, Args&&... args) {
         return getValue(m.m_face_volume_, m, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    static auto _getV(std::integral_constant<int, VOLUME>, mesh_type const& m, Args&&... args) {
+    static decltype(auto) _getV(std::integral_constant<int, VOLUME>, mesh_type const& m, Args&&... args) {
         return getValue(m, m.m_volume_volume_, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
-    static auto _getDualV(std::integral_constant<int, VERTEX>, mesh_type const& m, Args&&... args) {
+    static decltype(auto) _getDualV(std::integral_constant<int, VERTEX>, mesh_type const& m, Args&&... args) {
         return getValue(m, m.m_vertex_dual_volume_, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    static auto _getDualV(std::integral_constant<int, EDGE>, mesh_type const& m, Args&&... args) {
+    static decltype(auto) _getDualV(std::integral_constant<int, EDGE>, mesh_type const& m, Args&&... args) {
         return getValue(m, m.m_edge_dual_volume_, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    static auto _getDualV(std::integral_constant<int, FACE>, mesh_type const& m, Args&&... args) {
+    static decltype(auto) _getDualV(std::integral_constant<int, FACE>, mesh_type const& m, Args&&... args) {
         return getValue(m, m.m_face_dual_volume_, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    static auto _getDualV(std::integral_constant<int, VOLUME>, mesh_type const& m, Args&&... args) {
+    static decltype(auto) _getDualV(std::integral_constant<int, VOLUME>, mesh_type const& m, Args&&... args) {
         return getValue(m, m.m_volume_dual_volume_, std::forward<Args>(args)...);
     }
 
     template <typename TExpr, typename... Args>
-    static auto getDualV(mesh_type const& m, TExpr const& expr, int n, Args&&... args) {
+    static decltype(auto) getDualV(mesh_type const& m, TExpr const& expr, int n, Args&&... args) {
         return getValue(m, expr, n, std::forward<Args>(args)...) *
                _getDualV(std::integral_constant<int, traits::iform<TExpr>::value>(), m, n);
     }
     template <typename TExpr, typename... Args>
-    static auto getV(mesh_type const& m, TExpr const& expr, int n, Args&&... args) {
+    static decltype(auto) getV(mesh_type const& m, TExpr const& expr, int n, Args&&... args) {
         return getValue(m, expr, n, std::forward<Args>(args)...) *
                _getV(std::integral_constant<int, traits::iform<TExpr>::value>(), m, n);
     }
@@ -137,8 +112,9 @@ struct CalculusPolicy {
     //! grad<0>
 
     template <typename TExpr, typename... Others>
-    static auto eval(std::integer_sequence<int, VERTEX>, mesh_type const& m,
-                     Expression<tags::_exterior_derivative, TExpr> const& expr, IdxShift S, int n, Others&&... others) {
+    static decltype(auto) eval(std::integer_sequence<int, VERTEX>, mesh_type const& m,
+                               Expression<tags::_exterior_derivative, TExpr> const& expr, IdxShift S, int n,
+                               Others&&... others) {
         auto const& l = std::get<0>(expr.m_args_);
         IdxShift D{0, 0, 0};
         D[n] = 1;
@@ -150,8 +126,9 @@ struct CalculusPolicy {
     //! curl<1>
 
     template <typename TExpr, typename... Others>
-    static auto eval(std::integer_sequence<int, EDGE>, mesh_type const& m,
-                     Expression<tags::_exterior_derivative, TExpr> const& expr, IdxShift S, int n, Others&&... others) {
+    static decltype(auto) eval(std::integer_sequence<int, EDGE>, mesh_type const& m,
+                               Expression<tags::_exterior_derivative, TExpr> const& expr, IdxShift S, int n,
+                               Others&&... others) {
         auto const& l = std::get<0>(expr.m_args_);
 
         IdxShift Y{0, 0, 0};
@@ -169,8 +146,9 @@ struct CalculusPolicy {
 
     //! div<2>
     template <typename TExpr, typename... Others>
-    static auto eval(std::integer_sequence<int, FACE>, mesh_type const& m,
-                     Expression<tags::_exterior_derivative, TExpr> const& expr, IdxShift S, int n, Others&&... others) {
+    static decltype(auto) eval(std::integer_sequence<int, FACE>, mesh_type const& m,
+                               Expression<tags::_exterior_derivative, TExpr> const& expr, IdxShift S, int n,
+                               Others&&... others) {
         auto const& l = std::get<0>(expr.m_args_);
 
         IdxShift X{1, 0, 0};
@@ -188,9 +166,9 @@ struct CalculusPolicy {
 
     //! curl<2>
     template <typename TExpr, typename... Others>
-    static auto eval(std::integer_sequence<int, FACE>, mesh_type const& m,
-                     Expression<tags::_codifferential_derivative, TExpr> const& expr, IdxShift S, int n,
-                     Others&&... others) {
+    static decltype(auto) eval(std::integer_sequence<int, FACE>, mesh_type const& m,
+                               Expression<tags::_codifferential_derivative, TExpr> const& expr, IdxShift S, int n,
+                               Others&&... others) {
         auto const& l = std::get<0>(expr.m_args_);
         IdxShift Y{0, 0, 0};
         IdxShift Z{0, 0, 0};
@@ -208,9 +186,9 @@ struct CalculusPolicy {
     //! div<1>
 
     template <typename TExpr, typename... Others>
-    static auto eval(std::integer_sequence<int, EDGE>, mesh_type const& m,
-                     Expression<tags::_codifferential_derivative, TExpr> const& expr, IdxShift S, int n,
-                     Others&&... others) {
+    static decltype(auto) eval(std::integer_sequence<int, EDGE>, mesh_type const& m,
+                               Expression<tags::_codifferential_derivative, TExpr> const& expr, IdxShift S, int n,
+                               Others&&... others) {
         auto const& l = std::get<0>(expr.m_args_);
 
         IdxShift X{1, 0, 0};
@@ -231,9 +209,9 @@ struct CalculusPolicy {
     //! grad<3>
 
     template <typename TExpr, typename... Others>
-    static auto eval(std::integer_sequence<int, VOLUME>, mesh_type const& m,
-                     Expression<tags::_codifferential_derivative, TExpr> const& expr, IdxShift S, int n,
-                     Others&&... others) {
+    static decltype(auto) eval(std::integer_sequence<int, VOLUME>, mesh_type const& m,
+                               Expression<tags::_codifferential_derivative, TExpr> const& expr, IdxShift S, int n,
+                               Others&&... others) {
         auto const& l = std::get<0>(expr.m_args_);
         IdxShift D{0, 0, 0};
         D[n] = 1;
@@ -246,8 +224,9 @@ struct CalculusPolicy {
     //! *Form<IR> => Form<N-IL>
 
     template <typename TExpr, typename... Others>
-    static auto eval(std::integer_sequence<int, VERTEX>, mesh_type const& m,
-                     Expression<tags::_hodge_star, TExpr> const& expr, IdxShift S, int n, Others&&... others) {
+    static decltype(auto) eval(std::integer_sequence<int, VERTEX>, mesh_type const& m,
+                               Expression<tags::_hodge_star, TExpr> const& expr, IdxShift S, int n,
+                               Others&&... others) {
         auto const& l = std::get<0>(expr.m_args_);
         return (getV(m, l, S + IdxShift{0, 0, 0}, n, std::forward<Others>(others)...) +
                 getV(m, l, S + IdxShift{0, 0, 1}, n, std::forward<Others>(others)...) +
@@ -300,14 +279,14 @@ struct CalculusPolicy {
     ////! map_to
 
     template <int I, typename TExpr, typename... Others>
-    static auto _map_to(std::index_sequence<I, I>, mesh_type const& m, TExpr const& expr, IdxShift S,
-                        Others&&... others) {
+    static decltype(auto) _map_to(std::index_sequence<I, I>, mesh_type const& m, TExpr const& expr, IdxShift S,
+                                  Others&&... others) {
         return getValue(m, expr, S, std::forward<Others>(others)...);
     };
 
     template <typename TExpr, typename... Others>
-    static auto _map_to(std::index_sequence<VERTEX, EDGE>, mesh_type const& m, TExpr const& expr, IdxShift S, int n,
-                        Others&&... others) {
+    static decltype(auto) _map_to(std::index_sequence<VERTEX, EDGE>, mesh_type const& m, TExpr const& expr, IdxShift S,
+                                  int n, Others&&... others) {
         IdxShift D{0, 0, 0};
         D[n] = 1;
 
@@ -317,8 +296,8 @@ struct CalculusPolicy {
     }
 
     template <typename TExpr, typename... Others>
-    static auto _map_to(std::index_sequence<EDGE, VERTEX>, mesh_type const& m, TExpr const& expr, IdxShift S, int n0,
-                        int n, Others&&... others) {
+    static decltype(auto) _map_to(std::index_sequence<EDGE, VERTEX>, mesh_type const& m, TExpr const& expr, IdxShift S,
+                                  int n0, int n, Others&&... others) {
         IdxShift D{0, 0, 0};
 
         D[n] = 1;
@@ -328,8 +307,8 @@ struct CalculusPolicy {
     }
 
     template <typename TExpr, typename... Others>
-    static auto _map_to(std::index_sequence<VERTEX, FACE>, mesh_type const& m, TExpr const& expr, IdxShift S, int n,
-                        Others&&... others) {
+    static decltype(auto) _map_to(std::index_sequence<VERTEX, FACE>, mesh_type const& m, TExpr const& expr, IdxShift S,
+                                  int n, Others&&... others) {
         IdxShift Y{0, 0, 0};
         IdxShift Z{0, 0, 0};
         Y[(n + 1) % 3] = 1;
@@ -342,8 +321,8 @@ struct CalculusPolicy {
     }
 
     template <typename TExpr, typename... Others>
-    static auto _map_to(std::index_sequence<FACE, VERTEX>, mesh_type const& m, TExpr const& expr, IdxShift S, int n0,
-                        int n, Others&&... others) {
+    static decltype(auto) _map_to(std::index_sequence<FACE, VERTEX>, mesh_type const& m, TExpr const& expr, IdxShift S,
+                                  int n0, int n, Others&&... others) {
         IdxShift Y{0, 0, 0};
         IdxShift Z{0, 0, 0};
 
@@ -358,8 +337,8 @@ struct CalculusPolicy {
     }
 
     template <typename TExpr, typename... Others>
-    static auto _map_to(std::index_sequence<VERTEX, VOLUME>, mesh_type const& m, TExpr const& expr, IdxShift S,
-                        Others&&... others) {
+    static decltype(auto) _map_to(std::index_sequence<VERTEX, VOLUME>, mesh_type const& m, TExpr const& expr,
+                                  IdxShift S, Others&&... others) {
         return (getValue(m, expr, S + IdxShift{0, 0, 0}, std::forward<Others>(others)...) +
                 getValue(m, expr, S + IdxShift{0, 0, 1}, std::forward<Others>(others)...) +
                 getValue(m, expr, S + IdxShift{0, 1, 0}, std::forward<Others>(others)...) +
@@ -372,8 +351,8 @@ struct CalculusPolicy {
     }
 
     template <typename TExpr, typename... Others>
-    static auto _map_to(std::index_sequence<VOLUME, VERTEX>, mesh_type const& m, TExpr const& expr, IdxShift S,
-                        Others&&... others) {
+    static decltype(auto) _map_to(std::index_sequence<VOLUME, VERTEX>, mesh_type const& m, TExpr const& expr,
+                                  IdxShift S, Others&&... others) {
         return (getValue(m, expr, S - IdxShift{1, 1, 1}, std::forward<Others>(others)...) +
                 getValue(m, expr, S - IdxShift{1, 1, 0}, std::forward<Others>(others)...) +
                 getValue(m, expr, S - IdxShift{1, 0, 1}, std::forward<Others>(others)...) +
@@ -386,8 +365,8 @@ struct CalculusPolicy {
     }
 
     template <typename TExpr, typename... Others>
-    static auto _map_to(std::index_sequence<VOLUME, FACE>, mesh_type const& m, TExpr const& expr, IdxShift S, int n,
-                        Others&&... others) {
+    static decltype(auto) _map_to(std::index_sequence<VOLUME, FACE>, mesh_type const& m, TExpr const& expr, IdxShift S,
+                                  int n, Others&&... others) {
         IdxShift D{0, 0, 0};
         D[n] = 1;
         return (getValue(m, expr, S - D, std::forward<Others>(others)...) +
@@ -396,8 +375,8 @@ struct CalculusPolicy {
     }
 
     template <typename TExpr, typename... Others>
-    static auto _map_to(mesh_type const& m, TExpr const& expr, IdxShift S, int n0, int n, Others&&... others,
-                        std::index_sequence<FACE, VOLUME>) {
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, IdxShift S, int n0, int n, Others&&... others,
+                                  std::index_sequence<FACE, VOLUME>) {
         IdxShift D{0, 0, 0};
         D[n] = 1;
 
@@ -407,8 +386,8 @@ struct CalculusPolicy {
     }
 
     template <typename TExpr, typename... Others>
-    static auto _map_to(std::index_sequence<VOLUME, EDGE>, mesh_type const& m, TExpr const& expr, IdxShift S, int n,
-                        Others&&... others) {
+    static decltype(auto) _map_to(std::index_sequence<VOLUME, EDGE>, mesh_type const& m, TExpr const& expr, IdxShift S,
+                                  int n, Others&&... others) {
         IdxShift Y{0, 0, 0};
         IdxShift Z{0, 0, 0};
         Y[(n + 1) % 3] = 1;
@@ -422,8 +401,8 @@ struct CalculusPolicy {
     }
 
     template <typename TExpr, typename... Others>
-    static auto _map_to(std::index_sequence<EDGE, VOLUME>, mesh_type const& m, TExpr const& expr, IdxShift S, int n0,
-                        int n, Others&&... others) {
+    static decltype(auto) _map_to(std::index_sequence<EDGE, VOLUME>, mesh_type const& m, TExpr const& expr, IdxShift S,
+                                  int n0, int n, Others&&... others) {
         IdxShift Y{0, 0, 0};
         IdxShift Z{0, 0, 0};
 
@@ -438,8 +417,9 @@ struct CalculusPolicy {
     }
 
     template <typename TExpr, int ISrc, int IDest, typename... Others>
-    static auto eval(std::integer_sequence<int, ISrc>, mesh_type const& m,
-                     Expression<simpla::tags::_map_to<IDest>, TExpr> const& expr, IdxShift S, Others&&... others) {
+    static decltype(auto) eval(std::integer_sequence<int, ISrc>, mesh_type const& m,
+                               Expression<simpla::tags::_map_to<IDest>, TExpr> const& expr, IdxShift S,
+                               Others&&... others) {
         return _map_to(std::index_sequence<ISrc, IDest>(), m, std::get<0>(expr.m_args_), S,
                        std::forward<Others>(others)...);
     }
@@ -447,8 +427,8 @@ struct CalculusPolicy {
     //
     //! Form<IL> ^ Form<IR> => Form<IR+IL>
     template <typename... TExpr, int IL, int IR, typename... Others>
-    static auto eval(std::integer_sequence<int, IL, IR>, mesh_type const& m,
-                     Expression<simpla::tags::_wedge, TExpr...> const& expr, IdxShift S, Others&&... others) {
+    static decltype(auto) eval(std::integer_sequence<int, IL, IR>, mesh_type const& m,
+                               Expression<simpla::tags::_wedge, TExpr...> const& expr, IdxShift S, Others&&... others) {
         return m.inner_product(_map_to(std::index_sequence<IL, IR + IL>(), m, std::get<0>(expr.m_args_), S,
                                        std::forward<Others>(others)...),
                                _map_to(std::index_sequence<IR, IR + IL>(), m, std::get<1>(expr.m_args_), S,
@@ -456,8 +436,9 @@ struct CalculusPolicy {
     }
 
     template <typename... TExpr, typename... Others>
-    static auto eval(std::integer_sequence<int, EDGE, EDGE>, mesh_type const& m,
-                     Expression<simpla::tags::_wedge, TExpr...> const& expr, IdxShift S, int n, Others&&... others) {
+    static decltype(auto) eval(std::integer_sequence<int, EDGE, EDGE>, mesh_type const& m,
+                               Expression<simpla::tags::_wedge, TExpr...> const& expr, IdxShift S, int n,
+                               Others&&... others) {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
@@ -474,8 +455,9 @@ struct CalculusPolicy {
     }
 
     template <typename... TExpr, typename... Others>
-    static auto eval(std::integer_sequence<int, FACE, FACE>, mesh_type const& m,
-                     Expression<simpla::tags::_wedge, TExpr...> const& expr, IdxShift S, int n, Others&&... others) {
+    static decltype(auto) eval(std::integer_sequence<int, FACE, FACE>, mesh_type const& m,
+                               Expression<simpla::tags::_wedge, TExpr...> const& expr, IdxShift S, int n,
+                               Others&&... others) {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
@@ -490,8 +472,9 @@ struct CalculusPolicy {
     }
 
     template <typename... TExpr, typename... Others>
-    static auto eval(std::integer_sequence<int, VERTEX, VERTEX>, mesh_type const& m,
-                     Expression<simpla::tags::_dot, TExpr...> const& expr, IdxShift S, int n0, Others&&... others) {
+    static decltype(auto) eval(std::integer_sequence<int, VERTEX, VERTEX>, mesh_type const& m,
+                               Expression<simpla::tags::_dot, TExpr...> const& expr, IdxShift S, int n0,
+                               Others&&... others) {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
@@ -504,8 +487,9 @@ struct CalculusPolicy {
     }
 
     template <typename... TExpr, typename... Others>
-    static auto eval(std::integer_sequence<int, VOLUME, VOLUME>, mesh_type const& m,
-                     Expression<simpla::tags::_dot, TExpr...> const& expr, IdxShift S, int n0, Others&&... others) {
+    static decltype(auto) eval(std::integer_sequence<int, VOLUME, VOLUME>, mesh_type const& m,
+                               Expression<simpla::tags::_dot, TExpr...> const& expr, IdxShift S, int n0,
+                               Others&&... others) {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
@@ -518,8 +502,8 @@ struct CalculusPolicy {
     }
 
     template <typename... TExpr, typename... Others>
-    static auto eval(std::integer_sequence<int, EDGE, EDGE>, mesh_type const& m,
-                     Expression<simpla::tags::_dot, TExpr...> const& expr, IdxShift S, Others&&... others) {
+    static decltype(auto) eval(std::integer_sequence<int, EDGE, EDGE>, mesh_type const& m,
+                               Expression<simpla::tags::_dot, TExpr...> const& expr, IdxShift S, Others&&... others) {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
@@ -527,17 +511,17 @@ struct CalculusPolicy {
                     std::forward<Others>(others)...);
     }
     template <typename... TExpr, typename... Others>
-    static auto eval(std::integer_sequence<int, FACE, FACE>, mesh_type const& m,
-                     Expression<simpla::tags::_dot, TExpr...> const& expr, IdxShift S, Others&&... others) {
+    static decltype(auto) eval(std::integer_sequence<int, FACE, FACE>, mesh_type const& m,
+                               Expression<simpla::tags::_dot, TExpr...> const& expr, IdxShift S, Others&&... others) {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
         return eval(std::integer_sequence<int, VERTEX>(), m, dot_v(map_to<VERTEX>(l), map_to<VERTEX>(r)), S,
                     std::forward<Others>(others)...);
     }
     template <typename... TExpr, typename... Others>
-    static auto eval(std::integer_sequence<int, VERTEX, VERTEX>, mesh_type const& m,
-                     Expression<simpla::tags::_cross, TExpr...> const& expr, IdxShift S, int n0, int n,
-                     Others&&... others) {
+    static decltype(auto) eval(std::integer_sequence<int, VERTEX, VERTEX>, mesh_type const& m,
+                               Expression<simpla::tags::_cross, TExpr...> const& expr, IdxShift S, int n0, int n,
+                               Others&&... others) {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
@@ -548,9 +532,9 @@ struct CalculusPolicy {
     }
 
     template <typename... TExpr, typename... Others>
-    static auto eval(std::integer_sequence<int, VOLUME, VOLUME>, mesh_type const& m,
-                     Expression<simpla::tags::_cross, TExpr...> const& expr, IdxShift S, int n0, int n,
-                     Others&&... others) {
+    static decltype(auto) eval(std::integer_sequence<int, VOLUME, VOLUME>, mesh_type const& m,
+                               Expression<simpla::tags::_cross, TExpr...> const& expr, IdxShift S, int n0, int n,
+                               Others&&... others) {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
         return getValue(m, l, S, 0, (n + 1) % 3, std::forward<Others>(others)...) *
@@ -578,7 +562,7 @@ struct CalculusPolicy {
      * @brief basic linear interpolate
      */
     template <typename TD, typename TIDX>
-    static auto gather_impl_(mesh_type const& m, TD const& f, TIDX const& idx) {
+    static decltype(auto) gather_impl_(mesh_type const& m, TD const& f, TIDX const& idx) {
         EntityId X = (EntityIdCoder::_DI);
         EntityId Y = (EntityIdCoder::_DJ);
         EntityId Z = (EntityIdCoder::_DK);
@@ -598,30 +582,30 @@ struct CalculusPolicy {
 
    public:
     template <typename TF>
-    constexpr static auto gather(mesh_type const& m, TF const& f, point_type const& r,
-                                 ENABLE_IF((traits::iform<TF>::value == VERTEX))) {
+    constexpr static decltype(auto) gather(mesh_type const& m, TF const& f, point_type const& r,
+                                           ENABLE_IF((traits::iform<TF>::value == VERTEX))) {
         return gather_impl_(m, f, m.point_global_to_local(r, 0));
     }
 
     template <typename TF>
-    constexpr static auto gather(mesh_type const& m, TF const& f, point_type const& r,
-                                 ENABLE_IF((traits::iform<TF>::value == EDGE))) {
+    constexpr static decltype(auto) gather(mesh_type const& m, TF const& f, point_type const& r,
+                                           ENABLE_IF((traits::iform<TF>::value == EDGE))) {
         return traits::field_value_t<TF>{gather_impl_(m, f, m.point_global_to_local(r, 1)),
                                          gather_impl_(m, f, m.point_global_to_local(r, 2)),
                                          gather_impl_(m, f, m.point_global_to_local(r, 4))};
     }
 
     template <typename TF>
-    constexpr static auto gather(mesh_type const& m, TF const& f, point_type const& r,
-                                 ENABLE_IF((traits::iform<TF>::value == FACE))) {
+    constexpr static decltype(auto) gather(mesh_type const& m, TF const& f, point_type const& r,
+                                           ENABLE_IF((traits::iform<TF>::value == FACE))) {
         return traits::field_value_t<TF>{gather_impl_(m, f, m.point_global_to_local(r, 6)),
                                          gather_impl_(m, f, m.point_global_to_local(r, 5)),
                                          gather_impl_(m, f, m.point_global_to_local(r, 3))};
     }
 
     template <typename TF>
-    constexpr static auto gather(mesh_type const& m, TF const& f, point_type const& x,
-                                 ENABLE_IF((traits::iform<TF>::value == VOLUME))) {
+    constexpr static decltype(auto) gather(mesh_type const& m, TF const& f, point_type const& x,
+                                           ENABLE_IF((traits::iform<TF>::value == VOLUME))) {
         return gather_impl_(m, f, m.point_global_to_local(x, 7));
     }
 
@@ -675,23 +659,23 @@ struct CalculusPolicy {
     }
 
     template <typename TV>
-    static auto sample_(mesh_type const& m, EntityId s, TV& v) {
+    static decltype(auto) sample_(mesh_type const& m, EntityId s, TV& v) {
         return v;
     }
 
     template <typename TV, int N>
-    static auto sample_(mesh_type const& m, EntityId s, nTuple<TV, N> const& v) {
+    static decltype(auto) sample_(mesh_type const& m, EntityId s, nTuple<TV, N> const& v) {
         return v[((s.w & 0b111) == 0 || (s.w & 0b111) == 7) ? (s.w >> 3) % N
                                                             : EntityIdCoder::m_id_to_sub_index_[s.w & 0b11]];
     }
 
     template <typename TV>
-    static auto sample(mesh_type const& m, EntityId s, TV const& v) {
+    static decltype(auto) sample(mesh_type const& m, EntityId s, TV const& v) {
         return sample_(m, s, v);
     }
 
     //    template <typename TFun>
-    //    static auto getValue(mesh_type const& m, TFun const& fun,  IdxShift S, int n, Others&&... others,
+    //    static decltype(auto) getValue(mesh_type const& m, TFun const& fun,  IdxShift S, int n, Others&&... others,
     //                         ENABLE_IF(simpla::concept::is_callable<TFun(simpla::EntityId)>::value)) {
     //        return [&](index_tuple const& idx) {
     //            EntityId s;
@@ -704,7 +688,7 @@ struct CalculusPolicy {
     //    }
     //
     //    template <typename TFun>
-    //    static auto getValue(mesh_type const& m, TFun const& fun,  IdxShift S, int n, Others&&... others,
+    //    static decltype(auto) getValue(mesh_type const& m, TFun const& fun,  IdxShift S, int n, Others&&... others,
     //                         ENABLE_IF(simpla::concept::is_callable<TFun(point_type const&)>::value)) {
     //        return [&](index_tuple const& idx) {
     //            EntityId s;
@@ -717,7 +701,8 @@ struct CalculusPolicy {
     //    }
     //
     //    template <int IFORM, typename TExpr>
-    //    static auto  getValue(std::integral_constant<int, IFORM> const&,  TExpr const& expr,mesh_type const& m,
+    //    static decltype(auto)  getValue(std::integral_constant<int, IFORM> const&,  TExpr const& expr,mesh_type const&
+    //    m,
     //    index_type i,
     //                  index_type j, index_type k, unsigned int n, unsigned int d)  {
     //        return getValue( expr,m, EntityIdCoder::Serialize<IFORM>(i, j, k, n, d));
