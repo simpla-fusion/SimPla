@@ -91,6 +91,7 @@ template <typename T, typename TI, TI M, TI... N>
 auto index(T &v, std::integer_sequence<TI, M, N...>, ENABLE_IF((is_indexable<T, TI>::value))) {
     return ((index(v[M], std::integer_sequence<TI, N...>())));
 }
+
 //----------------------------------------------------------------------------------------------------------------------
 
 template <typename>
@@ -283,21 +284,21 @@ std::ostream &seq_print(std::integer_sequence<TInts, N...>, std::ostream &os, TA
 
     for (int i = 0; i < ndims; ++i) { idx[i] = 0; }
 
-//    while (1) {
-//        os << access(d, idx) << ", ";
-//
-//        ++idx[ndims - 1];
-//
-//        for (int rank = ndims - 1; rank > 0; --rank) {
-//            if (idx[rank] >= dims[rank]) {
-//                idx[rank] = 0;
-//                ++(idx[rank - 1]);
-//
-//                if (rank == ndims - 1) { os << "\n"; }
-//            }
-//        }
-//        if (idx[0] >= dims[0]) { break; }
-//    }
+    //    while (1) {
+    //        os << access(d, idx) << ", ";
+    //
+    //        ++idx[ndims - 1];
+    //
+    //        for (int rank = ndims - 1; rank > 0; --rank) {
+    //            if (idx[rank] >= dims[rank]) {
+    //                idx[rank] = 0;
+    //                ++(idx[rank - 1]);
+    //
+    //                if (rank == ndims - 1) { os << "\n"; }
+    //            }
+    //        }
+    //        if (idx[0] >= dims[0]) { break; }
+    //    }
     return os;
 }
 

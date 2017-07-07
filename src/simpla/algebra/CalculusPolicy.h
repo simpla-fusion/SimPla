@@ -31,50 +31,6 @@ struct CalculusPolicy {
     typedef M mesh_type;
     typedef CalculusPolicy<mesh_type> this_type;
 
-    //**********************************************************************************************
-    // for element-wise arithmetic operation
-
-    template <typename U, int IFORM, typename... E>
-    static void SetEntity(Field<M, U, IFORM>& lhs, Expression<E...> const& rhs, EntityId s) {
-        SetEntity(lhs, getValue(*dynamic_cast<M const*>(lhs.GetMesh()), rhs, IdxShift{0, 0, 0},
-                                EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], s.x, s.y, s.z),
-                  s);
-    }
-    template <typename U, int IFORM, int DOF, typename... E>
-    static void SetEntity(Field<M, U, IFORM, DOF>& lhs, Expression<E...> const& rhs, EntityId s) {
-        SetEntity(lhs, getValue(*dynamic_cast<M const*>(lhs.GetMesh()), rhs, IdxShift{0, 0, 0},
-                                EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], (s.w >> 3) & 0b111, s.x, s.y, s.z),
-                  s);
-    }
-
-    template <typename U, int IFORM, int... DOF, typename RHS>
-    static void SetEntity(Field<M, U, IFORM, DOF...>& lhs, RHS const& rhs, EntityId s,
-                          ENABLE_IF((std::is_arithmetic<RHS>::value))) {
-        lhs[s] = rhs;
-    }
-    template <typename U, int IFORM, int... DOF, typename V, int N>
-    static void SetEntity(Field<M, U, IFORM, DOF...>& lhs, nTuple<V, N> const& rhs, EntityId s) {
-        lhs[s] =
-            rhs[(IFORM == VERTEX || IFORM == VOLUME) ? (s.w >> 3) : EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]];
-    }
-    template <typename U, int IFORM, int... DOF, typename RHS>
-    static void SetEntity(Field<M, U, IFORM, DOF...>& lhs, RHS const& rhs, EntityId s,
-                          ENABLE_IF((traits::is_invocable<RHS, point_type>::value))) {
-        SetEntity(lhs, rhs(dynamic_cast<M const*>(lhs.GetMesh())->point(s)), s);
-    }
-
-    template <typename U, int IFORM, int... DOF, typename RHS>
-    static void Fill(Field<M, U, IFORM, DOF...>& lhs, RHS const& rhs, EntityRange r) {
-        if (r.isUndefined()) {
-            M const& m = *dynamic_cast<M const*>(lhs.GetMesh());
-            //            lhs.data().foreach (
-            //                [&](auto& a, auto&&... sub) { a = getValue(m, rhs, std::forward<decltype(sub)>(sub)...);
-            //                });
-        } else if (!r.isNull()) {
-            r.foreach ([&](EntityId s) { SetEntity(lhs, rhs, s); });
-        }
-    }
-
     template <size_t... I, typename TOP, typename... Args, typename... Others>
     static auto _invoke_helper(std::index_sequence<I...>, mesh_type const& m, Expression<TOP, Args...> const& expr,
                                IdxShift S, Others&&... others) {
@@ -754,6 +710,80 @@ struct CalculusPolicy {
     //        foreach_(m, self, m.range(SP_ES_ALL, traits::iform<TField>::value, traits::dof<TField>::value),
     //                 std::forward<Others>(others)...);
     //    }
+
+    //**********************************************************************************************
+    // for element-wise arithmetic operation
+
+    template <typename U, int IFORM, typename... E>
+    static void SetEntity(Field<M, U, IFORM>& lhs, Expression<E...> const& rhs, EntityId s) {
+        SetEntity(lhs, getValue(*dynamic_cast<M const*>(lhs.GetMesh()), rhs, IdxShift{0, 0, 0},
+                                EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], s.x, s.y, s.z),
+                  s);
+    }
+    template <typename U, int IFORM, int DOF, typename... E>
+    static void SetEntity(Field<M, U, IFORM, DOF>& lhs, Expression<E...> const& rhs, EntityId s) {
+        SetEntity(lhs, getValue(*dynamic_cast<M const*>(lhs.GetMesh()), rhs, IdxShift{0, 0, 0},
+                                EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], (s.w >> 3) & 0b111, s.x, s.y, s.z),
+                  s);
+    }
+
+    template <typename U, int IFORM, int... DOF, typename RHS>
+    static void SetEntity(Field<M, U, IFORM, DOF...>& lhs, RHS const& rhs, EntityId s,
+                          ENABLE_IF((std::is_arithmetic<RHS>::value))) {
+        lhs[s] = rhs;
+    }
+    template <typename U, int IFORM, int... DOF, typename V, int N>
+    static void SetEntity(Field<M, U, IFORM, DOF...>& lhs, nTuple<V, N> const& rhs, EntityId s) {
+        lhs[s] =
+            rhs[(IFORM == VERTEX || IFORM == VOLUME) ? (s.w >> 3) : EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]];
+    }
+
+    template <typename U, int IFORM, int... DOF, typename RHS>
+    static void SetEntity(Field<M, U, IFORM, DOF...>& lhs, RHS const& rhs, EntityId s,
+                          ENABLE_IF((traits::is_invocable<RHS, EntityId>::value))) {
+        SetEntity(lhs, rhs(s), s);
+    }
+    template <typename U, int IFORM, int... DOF, typename RHS>
+    static void SetEntity(Field<M, U, IFORM, DOF...>& lhs, RHS const& rhs, EntityId s,
+                          ENABLE_IF((traits::is_invocable<RHS, point_type>::value))) {
+        SetEntity(lhs, rhs(dynamic_cast<M const*>(lhs.GetMesh())->point(s)), s);
+    }
+    template <typename U, int IFORM, int... DOF, typename RHS>
+    static void Fill(Field<M, U, IFORM, DOF...>& lhs, RHS const& rhs) {
+        M const& m = *dynamic_cast<M const*>(lhs.GetMesh());
+        traits::foreach (lhs.data(), [&](auto& a, auto&&... subs) {
+            a = getValue(m, rhs, IdxShift{0, 0, 0}, std::forward<decltype(subs)>(subs)...);
+        });
+    }
+
+    template <typename U, int IFORM, int... DOF, typename RHS>
+    static void Fill(Field<M, U, IFORM, DOF...>& lhs, RHS const& rhs, EntityRange r) {
+        M const& m = *dynamic_cast<M const*>(lhs.GetMesh());
+
+        if (r.isUndefined()) {
+            traits::foreach (lhs.data(), [&](auto& a, int n0, auto&&... subs) {
+                int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][n0] |
+                          (reduction(tags::multiplication(), std::forward<decltype(subs)>(subs)...) << 3);
+
+                int n = (IFORM == VERTEX || IFORM == VOLUME)
+                            ? (reduction(tags::addition(), std::forward<decltype(subs)>(subs)...))
+                            : n0;
+                a = [&](index_type x, index_type y, index_type z) {
+                    EntityId s;
+                    s.w = tag;
+                    s.x = x;
+                    s.y = y;
+                    s.z = z;
+                    return calculus::getValue((getValue(m, rhs, IdxShift{0, 0, 0}, s)), n);
+                };
+            });
+        } else if (!r.isNull()) {
+            r.foreach ([&](EntityId s) {
+                lhs[s] = calculus::getValue(getValue(m, rhs, IdxShift{0, 0, 0}, s),
+                                            (IFORM == VERTEX || IFORM == VOLUME) ? (s.w >> 3) : (s.w & 0b111));
+            });
+        }
+    }
 };
 
 //********************************************************************************************************************************

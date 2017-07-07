@@ -82,12 +82,17 @@ int main(int argc, char **argv) {
         f = f * 0.2 + g * 2;
         CHECK(f.data());
         Field<mesh_type, Real, EDGE> h(&m);
+        h.SetUndefined();
+
         h = nTuple<Real, 3>{1, 2, 3};
         CHECK(h.data());
 
         Field<mesh_type, Real, VOLUME, 3> k(&m);
-        k.Clear();
-        k[0] = nTuple<Real, 3>{1, 2, 3};
+        k.SetUndefined();
+
+        k = [](EntityId s) {
+            return nTuple<Real, 3>{static_cast<Real>(s.x), static_cast<Real>(s.y), static_cast<Real>(s.z)};
+        };
         CHECK(k.data());
         //        f = [](point_type const &x) { return x[0]; };
         //        g = [](EntityId s) -> Real { return s.y; };

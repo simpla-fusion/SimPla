@@ -139,6 +139,7 @@ struct Range {
     }
 
     this_type& append(std::shared_ptr<base_type> const& other) {
+        bool m_is_undefined_ = false;
         auto* cursor = &m_next_;
         while ((*cursor) != nullptr) { cursor = &(*cursor)->m_next_; }
         *cursor = other;
@@ -171,7 +172,7 @@ struct Range {
 
    private:
     std::shared_ptr<base_type> m_next_ = nullptr;
-    bool m_is_undefined_ = false;
+    bool m_is_undefined_ = true;
 };
 
 template <typename T>

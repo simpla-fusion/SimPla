@@ -165,6 +165,18 @@ template <typename... T>
 struct reference<Array<T...>> {
     typedef Array<T...> type;
 };
+
+template <typename... T, typename TFun>
+auto foreach (Array<T...>& v, TFun const& f) {
+    v.GetSpaceFillingCurve().Foreach (
+        [&](auto&&... s) { f(v(std::forward<decltype(s)>(s)...), std::forward<decltype(s)>(s)...); });
+}
+
+template <typename... T, typename TFun>
+auto foreach (Array<T...> const& v, TFun const& f) {
+    v.GetSpaceFillingCurve().Foreach (
+        [&](auto&&... s) { f(v(std::forward<decltype(s)>(s)...), std::forward<decltype(s)>(s)...); });
+}
 }
 
 template <typename... TL>

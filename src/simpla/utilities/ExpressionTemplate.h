@@ -150,13 +150,18 @@ struct _IndexHelper;
 
 template <typename T, typename... Args>
 decltype(auto) getValue(T &expr, Args &&... args) {
-    return _IndexHelper<T, traits::type_list<std::remove_reference_t<Args>...>>::value(expr,
+    return _IndexHelper<T, traits::type_list<std::remove_reference_t<Args>...>>::value((expr),
                                                                                        std::forward<Args>(args)...);
+};
+template <typename T, typename... Args>
+decltype(auto) getValue(T const &expr, Args &&... args) {
+    return _IndexHelper<T const, traits::type_list<std::remove_reference_t<Args>...>>::value(
+        (expr), std::forward<Args>(args)...);
 };
 
 template <typename T>
 struct _IndexHelper<T, traits::type_list<>> {
-    static decltype(auto) value(T &v) { return v; };
+    static decltype(auto) value(T &v) { return (v); };
 };
 
 template <typename T, typename _Arg0, typename... _Args>
@@ -166,7 +171,7 @@ struct _IndexHelper<
                      std::is_same<std::remove_cv_t<T>, std::complex<float>>::value>> {
     template <typename Arg0, typename... Args>
     static decltype(auto) value(T &v, Arg0 &&arg0, Args &&... args) {
-        return v;
+        return (v);
     };
 };
 
@@ -455,6 +460,25 @@ template <typename TL, typename TR>
 __host__ __device__ auto cross_v(TL const &l, TR const &r) {
     return Expression<tags::_cross, const TL, const TR>(l, r);
 }
+
+inline auto reduction(tags::multiplication const &op) { return 0; }
+inline auto reduction(tags::addition const &op) { return 0; };
+inline auto reduction(tags::logical_or const &op) { return false; };
+inline auto reduction(tags::logical_and const &op) { return true; };
+
+template <typename TOP, typename Arg0>
+auto reduction(TOP const &op, Arg0 &&arg0) {
+    return arg0;
+};
+template <typename TOP, typename Arg0, typename Arg1>
+auto reduction(TOP const &op, Arg0 &&arg0, Arg1 &&arg1) {
+    return op(std::forward<Arg0>(arg0), std::forward<Arg1>(arg1));
+};
+
+template <typename TOP, typename Arg0, typename... Args>
+auto reduction(TOP const &op, Arg0 &&arg0, Args &&... args) {
+    return op(std::forward<Arg0>(arg0), reduction(op, std::forward<Args>(args)...));
+};
 
 }  // namespace simpla
 

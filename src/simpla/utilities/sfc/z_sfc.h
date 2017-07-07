@@ -67,7 +67,7 @@ class ZSFC {
 
     explicit ZSFC(array_index_box_type const& b, bool array_order_fast_first = false)
         : m_index_box_(b), m_array_order_fast_first_(array_order_fast_first) {
-        DoSetUp();
+        Update();
     }
 
     this_type& operator=(this_type const& other) {
@@ -85,7 +85,7 @@ class ZSFC {
         std::swap(m_array_order_fast_first_, other.m_array_order_fast_first_);
     }
 
-    void DoSetUp() {
+    void Update() {
         if (m_array_order_fast_first_) {
             m_strides_[0] = 1;
             for (int i = 1; i < NDIMS; ++i) {
@@ -108,7 +108,7 @@ class ZSFC {
     void Shift(array_index_type const& offset) {
         std::get<0>(m_index_box_) += offset;
         std::get<1>(m_index_box_) += offset;
-        DoSetUp();
+        Update();
     }
     __host__ __device__ constexpr inline bool in_box(array_index_type const& x) const;
     __host__ __device__ constexpr inline bool in_box(index_type x, index_type y, index_type z) const;
