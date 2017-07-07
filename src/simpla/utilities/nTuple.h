@@ -17,6 +17,9 @@
 namespace simpla {
 template <typename, int...>
 struct nTuple;
+
+template <typename...>
+struct Expression;
 }  // namespace simpla {
 
 namespace std {

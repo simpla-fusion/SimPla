@@ -21,8 +21,6 @@ typedef std::nullptr_t NullType;
 
 struct EmptyType {};
 
-// template<typename, int ...> struct nTuple;
-
 namespace tags {
 struct do_nothing {
     template <typename... Args>
