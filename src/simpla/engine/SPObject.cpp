@@ -31,7 +31,7 @@ SPObject::SPObject(std::string const &s_name) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_id_ = g_obj_hasher(g_uuid_generator());
     m_pimpl_->m_name_ = (s_name != "") ? s_name : std::to_string(m_pimpl_->m_id_);
 }
-SPObject::~SPObject() { DoFinalize(); }
+SPObject::~SPObject() { Finalize(); }
 SPObject::SPObject(SPObject const &other) {}
 SPObject::SPObject(SPObject &&other) {}
 void SPObject::swap(SPObject &other) {}
@@ -60,42 +60,42 @@ void SPObject::ResetTag() { m_pimpl_->m_click_tag_ = m_pimpl_->m_click_ = 0; }
 bool SPObject::isModified() const { return m_pimpl_->m_click_tag_ != m_pimpl_->m_click_; }
 bool SPObject::isInitialized() const { return m_pimpl_->m_click_tag_ > 0; }
 
-void SPObject::Initialize() {}
-void SPObject::Finalize() {}
-void SPObject::TearDown() {}
-void SPObject::Update() {}
+void SPObject::DoInitialize() {}
+void SPObject::DoFinalize() {}
+void SPObject::DoTearDown() {}
+void SPObject::DoUpdate() {}
 
-void SPObject::DoInitialize() {
+void SPObject::Initialize() {
     if (!isInitialized()) {
         PreInitialize(this);
-        Initialize();
+        DoInitialize();
         PostInitialize(this);
         Click();
         Tag();
     }
 }
 
-void SPObject::DoUpdate() {
+void SPObject::Update() {
     if (isModified()) {
-        DoInitialize();
+        Initialize();
         PreUpdate(this);
-        Update();
+        DoUpdate();
         PostUpdate(this);
         Tag();
     }
 }
-void SPObject::DoTearDown() {
+void SPObject::TearDown() {
     PreTearDown(this);
-    TearDown();
+    DoTearDown();
     PostTearDown(this);
     Tag();
     Click();
 };
-void SPObject::DoFinalize() {
+void SPObject::Finalize() {
     if (isInitialized()) {
-        DoTearDown();
+        TearDown();
         PreFinalize(this);
-        Finalize();
+        DoFinalize();
         PostFinalize(this);
         ResetTag();
     }

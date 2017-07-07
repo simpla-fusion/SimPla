@@ -9,8 +9,8 @@ namespace simpla {
 namespace mesh {
 using namespace algebra;
 
-void StructuredMesh::Update() {
-    engine::MeshBase::Update();
+void StructuredMesh::DoUpdate() {
+    engine::MeshBase::DoUpdate();
     m_dx_ = engine::MeshBase::GetCellWidth();
     m_x0_ = engine::MeshBase::GetOrigin();
 }
@@ -96,17 +96,13 @@ void StructuredMesh::RegisterRanges(std::shared_ptr<geometry::GeoObject> const &
 
     if (ratio < EPSILON) {  // no overlap
 
-        (*ranges)[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"].append(
-            std::make_shared<EmptyRangeBase<EntityId>>());
+        (*ranges)[prefix + "." + std::string(EntityIFORMName[VERTEX]) + "_BODY"].append(nullptr);
 
-        (*ranges)[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_BODY"].append(
-            std::make_shared<EmptyRangeBase<EntityId>>());
+        (*ranges)[prefix + "." + std::string(EntityIFORMName[EDGE]) + "_BODY"].append(nullptr);
 
-        (*ranges)[prefix + "." + std::string(EntityIFORMName[FACE]) + "_BODY"].append(
-            std::make_shared<EmptyRangeBase<EntityId>>());
+        (*ranges)[prefix + "." + std::string(EntityIFORMName[FACE]) + "_BODY"].append(nullptr);
 
-        (*ranges)[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BODY"].append(
-            std::make_shared<EmptyRangeBase<EntityId>>());
+        (*ranges)[prefix + "." + std::string(EntityIFORMName[VOLUME]) + "_BODY"].append(nullptr);
 
         return;
     } else if (1.0 - ratio < EPSILON) {  // all in

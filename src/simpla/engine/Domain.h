@@ -58,10 +58,10 @@ class Domain : public SPObject,
     void SetGeoObject(const geometry::GeoObject &g);
     const geometry::GeoObject &GetGeoObject() const;
 
-    void Initialize() override;
-    void Finalize() override;
-    void Update() override;
-    void TearDown() override;
+    void DoInitialize() override;
+    void DoFinalize() override;
+    void DoUpdate() override;
+    void DoTearDown() override;
 
     //#define DEF_OPERATION(_NAME_, ...)                                                            \
 //    virtual void _NAME_(__VA_ARGS__) {}                                                       \

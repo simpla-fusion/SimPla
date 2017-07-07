@@ -471,8 +471,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
             }
         }
     }
-//    integrator->printClassData(std::cout);
-//    vardb->printClassData(std::cout);
+    //    integrator->printClassData(std::cout);
+    //    vardb->printClassData(std::cout);
 }
 void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchFromSAMRAI(SAMRAI::hier::Patch &patch, engine::Patch *p) {
     p->SetBlock(engine::MeshBlock{
@@ -653,14 +653,14 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
         m_ctx_->InitialCondition(&p, data_time);
 
         //        m_ctx_->GetMesh()->Deserialize(p.get());
-        //        VERBOSE << "Initialize Mesh : " << m_ctx_->GetMesh()->GetRegisterName() << std::endl;
+        //        VERBOSE << "DoInitialize Mesh : " << m_ctx_->GetMesh()->GetRegisterName() << std::endl;
         //        m_ctx_->GetMesh()->InitializeData(data_time);
         //        for (auto const &item : m_ctx_->GetModel().GetAll()) {
         //            m_ctx_->GetMesh()->RegisterRanges(item.second, item.first);
         //        }
         //
         //        for (auto &d : m_ctx_->GetAllDomains()) {
-        //            VERBOSE << "Initialize Domain : " << d.first << std::endl;
+        //            VERBOSE << "DoInitialize Domain : " << d.first << std::endl;
         //            d.second->DoInitialCondition(p.get(), data_time);
         //        }
         //        m_ctx_->GetMesh()->Serialize(p.get());
@@ -819,9 +819,16 @@ SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
     SAMRAI::tbox::SAMRAIManager::shutdown();
     SAMRAI::tbox::SAMRAIManager::finalize();
 }
-void SAMRAITimeIntegrator::Initialize() {
+
+void SAMRAITimeIntegrator::Synchronize() { engine::TimeIntegrator::Synchronize(); }
+std::shared_ptr<data::DataTable> SAMRAITimeIntegrator::Serialize() const { return engine::TimeIntegrator::Serialize(); }
+void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
+    engine::TimeIntegrator::Deserialize(cfg);
+}
+
+void SAMRAITimeIntegrator::DoInitialize() {
     dcomplex a = std::numeric_limits<dcomplex>::signaling_NaN();
-    engine::TimeIntegrator::Initialize();
+    engine::TimeIntegrator::DoInitialize();
     /** Setup SAMRAI::tbox::MPI.      */
     SAMRAI::tbox::SAMRAI_MPI::init(*reinterpret_cast<MPI_Comm const *>(GLOBAL_COMM.comm()));  //
     SAMRAI::tbox::SAMRAIManager::initialize();
@@ -831,14 +838,10 @@ void SAMRAITimeIntegrator::Initialize() {
     //    data::DataTable(std::make_shared<DataBackendSAMRAI>()).swap(*db());
     //    const SAMRAI::tbox::SAMRAI_MPI & mpi(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 }
-void SAMRAITimeIntegrator::Synchronize() { engine::TimeIntegrator::Synchronize(); }
-std::shared_ptr<data::DataTable> SAMRAITimeIntegrator::Serialize() const { return engine::TimeIntegrator::Serialize(); }
-void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
-    engine::TimeIntegrator::Deserialize(cfg);
-}
-void SAMRAITimeIntegrator::TearDown() { engine::TimeIntegrator::TearDown(); }
-void SAMRAITimeIntegrator::Update() {
-    engine::TimeIntegrator::Update();
+
+void SAMRAITimeIntegrator::DoTearDown() { engine::TimeIntegrator::DoTearDown(); }
+void SAMRAITimeIntegrator::DoUpdate() {
+    engine::TimeIntegrator::DoUpdate();
     /** test.3d.input */
     /**
     // Refer to geom::CartesianGridGeometry and its base classes for input
@@ -1051,12 +1054,12 @@ void SAMRAITimeIntegrator::Update() {
 
     MESSAGE << "==================  Context is initialized!  =================" << std::endl;
 };
-void SAMRAITimeIntegrator::Finalize() {
+void SAMRAITimeIntegrator::DoFinalize() {
     m_pimpl_->visit_data_writer_.reset();
     m_pimpl_->m_time_refinement_integrator_.reset();
     m_pimpl_->hyp_level_integrator.reset();
     m_pimpl_->hyperbolic_patch_strategy.reset();
-    engine::TimeIntegrator::Finalize();
+    engine::TimeIntegrator::DoFinalize();
 }
 Real SAMRAITimeIntegrator::Advance(Real time_dt) {
     ASSERT(m_pimpl_->m_time_refinement_integrator_ != nullptr);

@@ -26,10 +26,10 @@ class Schedule : public SPObject, public data::EnableCreateFromDataTable<Schedul
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
 
-    void Initialize() override;
-    void Finalize() override;
-    void Update() override;
-    void TearDown() override;
+    void DoInitialize() override;
+    void DoFinalize() override;
+    void DoUpdate() override;
+    void DoTearDown() override;
 
     virtual void Synchronize();
     virtual void NextStep();

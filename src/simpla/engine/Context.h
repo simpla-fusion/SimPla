@@ -80,10 +80,10 @@ class Context : public SPObject, public data::EnableCreateFromDataTable<Context>
     std::shared_ptr<DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<DataTable> &cfg) override;
 
-    void Initialize() override;
-    void Finalize() override;
-    void Update() override;
-    void TearDown() override;
+    void DoInitialize() override;
+    void DoFinalize() override;
+    void DoUpdate() override;
+    void DoTearDown() override;
 
     Atlas &GetAtlas() const;
     model::Model &GetModel() const;

@@ -21,18 +21,6 @@
 #include "Algebra.h"
 #include "CalculusPolicy.h"
 namespace simpla {
-namespace _detail {
-template <typename T, T... M>
-struct nProduct;
-template <typename T, T N, T... M>
-struct nProduct<T, N, M...> {
-    static constexpr T value = N * nProduct<T, M...>::value;
-};
-template <typename T>
-struct nProduct<T> {
-    static constexpr T value = 1;
-};
-}
 
 template <typename>
 class CalculusPolicy;
@@ -40,87 +28,17 @@ class CalculusPolicy;
 template <typename TM, typename TV, int...>
 class Field;
 
-namespace calculus {
+namespace traits {
+template <typename TM, typename TV, int... I>
+struct reference<Field<TM, TV, I...>> {
+    typedef const Field<TM, TV, I...>& type;
+};
 
-template <typename TM, typename U, int IFORM>
-auto& GetEntity(Field<TM, U, IFORM>& lhs, EntityId s) {
-    return lhs.data()[s.w & 0b111](s.x, s.y, s.z);
+template <typename TM, typename TV, int... I>
+struct reference<const Field<TM, TV, I...>> {
+    typedef const Field<TM, TV, I...>& type;
+};
 }
-template <typename TM, typename U, int IFORM, int DOF>
-auto& GetEntity(Field<TM, U, IFORM, DOF>& lhs, EntityId s) {
-    return lhs.data()[s.w & 0b111][(s.w >> 3) & 0b111](s.x, s.y, s.z);
-}
-template <typename TM, typename U, int IFORM>
-auto const& GetEntity(Field<TM, U, IFORM> const& lhs, EntityId s) {
-    return lhs.data()[s.w & 0b111](s.x, s.y, s.z);
-}
-template <typename TM, typename U, int IFORM, int DOF>
-auto const& GetEntity(Field<TM, U, IFORM, DOF> const& lhs, EntityId s) {
-    return lhs.data()[s.w & 0b111][(s.w >> 3) & 0b111](s.x, s.y, s.z);
-}
-
-template <typename TM, typename U, int IFORM, int... DOF, typename V>
-void SetEntity(Field<TM, U, IFORM, DOF...>& lhs, V const& rhs, EntityId s, ENABLE_IF((std::is_arithmetic<V>::value))) {
-    GetEntity(lhs, s) = rhs;
-}
-
-template <typename TM, typename U, int IFORM, int... DOF, typename V, int... N>
-void SetEntity(Field<TM, U, IFORM, DOF...>& lhs, nTuple<V, N...> const& rhs, EntityId s) {
-    GetEntity(lhs, s) =
-        rhs[(IFORM == VERTEX || IFORM == VOLUME) ? (s.w >> 3) : EntityIdCoder::m_id_to_sub_index_[(s.w & 0b111)]];
-}
-
-template <typename TM, typename U, int IFORM, typename... E>
-void SetEntity(Field<TM, U, IFORM>& lhs, Expression<E...> const& rhs, EntityId s) {
-    SetEntity(lhs, CalculusPolicy<TM>::getValue(*dynamic_cast<TM const*>(lhs.GetMesh()), rhs, IdxShift{0, 0, 0},
-                                                EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], s.x, s.y, s.z),
-              s);
-}
-template <typename TM, typename U, int IFORM, int DOF, typename... E>
-void SetEntity(Field<TM, U, IFORM, DOF>& lhs, Expression<E...> const& rhs, EntityId s) {
-    SetEntity(lhs, CalculusPolicy<TM>::getValue(*dynamic_cast<TM const*>(lhs.GetMesh()), rhs, IdxShift{0, 0, 0},
-                                                EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], (s.w >> 3) & 0b111, s.x,
-                                                s.y, s.z),
-              s);
-}
-
-template <typename TM, typename U, int IFORM, int... DOF, typename RHS>
-void SetEntity(Field<TM, U, IFORM, DOF...>& lhs, RHS const& rhs, EntityId s,
-               ENABLE_IF((traits::is_invocable<RHS, EntityId>::value))) {
-    SetEntity(lhs, rhs(s), s);
-}
-
-template <typename TM, typename U, int IFORM, int... DOF, typename RHS>
-void SetEntity(Field<TM, U, IFORM, DOF...>& lhs, RHS const& rhs, EntityId s,
-               ENABLE_IF((traits::is_invocable<RHS, point_type>::value))) {
-    SetEntity(lhs, rhs(dynamic_cast<TM const*>(lhs.GetMesh())->point(s)), s);
-}
-
-template <typename TM, typename U, int IFORM, int... DOF, typename RHS>
-void SetEntity(Field<TM, U, IFORM, DOF...>& lhs, RHS const& rhs, EntityRange r) {
-    r.foreach ([&](EntityId s) { SetEntity(lhs, rhs, s); });
-}
-
-template <typename TM, typename U, int IFORM, int... DOF, typename RHS>
-void SetEntity(Field<TM, U, IFORM, DOF...>& lhs, RHS const& rhs) {
-    TM const& m = *dynamic_cast<TM const*>(lhs.GetMesh());
-    //    lhs.data().foreach (
-    //        [&](auto& a, auto&&... sub) { a = CalculusPolicy<TM>::getValue(m, rhs,
-    //        std::forward<decltype(sub)>(sub)...); });
-}
-}  // namespace calculus{
-
-// namespace traits {
-// template <typename TM, typename TV, int... I>
-// struct reference<Field<TM, TV, I...>> {
-//    typedef const Field<TM, TV, I...>& type;
-//};
-//
-// template <typename TM, typename TV, int... I>
-// struct reference<const Field<TM, TV, I...>> {
-//    typedef const Field<TM, TV, I...>& type;
-//};
-//}
 
 template <typename TM, typename TV, int IFORM, int... DOF>
 class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
@@ -141,20 +59,15 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
    private:
     typedef typename mesh_type::template array_type<value_type> array_type;
     typedef nTuple<array_type, NUM_OF_SUB, DOF...> data_type;
-    //    typedef Array<value_type> array_type;
     nTuple<array_type, NUM_OF_SUB, DOF...> m_data_;
     EntityRange m_range_;
     mesh_type const* m_mesh_ = nullptr;
 
    public:
-    //    template <typename... Args>
-    //    explicit Field(Args&&... args) : engine::Attribute(IFORM, DOF, typeid(value_type),
-    //    std::forward<Args>(args)...){};
     template <typename TGrp, typename... Args>
     explicit Field(TGrp* grp, Args&&... args)
-        : engine::Attribute(IFORM, _detail::nProduct<int, DOF...>::value, typeid(value_type),
-                            dynamic_cast<engine::AttributeGroup*>(grp),
-                            std::make_shared<data::DataTable>(std::forward<Args>(args)...)) {}
+        : engine::Attribute(IFORM, std::integer_sequence<int, DOF...>(), typeid(value_type),
+                            dynamic_cast<engine::AttributeGroup*>(grp), std::forward<Args>(args)...) {}
 
     ~Field() override = default;
 
@@ -183,11 +96,11 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     }
 
     void Clear() {
-        DoUpdate();
+        Update();
         *this = 0;
     }
     void SetUndefined() {
-        DoUpdate();
+        Update();
         *this = std::numeric_limits<value_type>::signaling_NaN();
     }
 
@@ -202,29 +115,26 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
 
     template <typename... Args>
     auto const& at(Args&&... args) const {
-        return m_data_(std::forward<Args>(args)...);
+        return calculus::getValue(m_data_, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     auto& at(Args&&... args) {
-        return m_data_(std::forward<Args>(args)...);
+        return calculus::getValue(m_data_, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     auto const& operator()(Args&&... args) const {
-        return at(std::forward<Args>(args)...);
+        return calculus::getValue(m_data_, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     auto& operator()(Args&&... args) {
-        return at(std::forward<Args>(args)...);
+        return calculus::getValue(m_data_, std::forward<Args>(args)...);
     }
-    auto& at(EntityId s) { return calculus::GetEntity(*this, s); }
-    auto const& at(EntityId s) const { return calculus::GetEntity(*this, s); }
+
     auto& operator[](int n) { return m_data_[n]; }
     auto const& operator[](int n) const { return m_data_[n]; }
-    auto& operator[](EntityId s) { return at(s); }
-    auto const& operator[](EntityId s) const { return at(s); }
 
     this_type operator[](EntityRange const& d) const { return this_type(*this, d); }
     this_type operator()(EntityRange const& d) const { return this_type(*this, d); }
@@ -241,26 +151,27 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         return CalculusPolicy<mesh_type>::scatter(*m_mesh_, *this, std::forward<Args>(args)...);
     }
 
-    void Update() override {
-        engine::Attribute::Update();
+    void DoUpdate() override {
+        engine::Attribute::DoUpdate();
         if (m_mesh_ == nullptr) { m_mesh_ = dynamic_cast<mesh_type const*>(engine::Attribute::GetMesh()); }
         ASSERT(m_mesh_ != nullptr);
 
-        m_data_.foreach ([&](array_type& a, auto i0, auto&&... idx) {
+        traits::foreach (m_data_, [&](array_type& a, auto i0, auto&&... idx) {
             a.SetSpaceFillingCurve(m_mesh_->GetSpaceFillingCurve(IFORM, i0));
-            a.DoSetUp();
+            a.Update();
         });
     }
 
-    void TearDown() override {
+    void DoTearDown() override {
         m_range_.reset();
         m_mesh_ = nullptr;
-        m_data_.foreach ([&](array_type& a, auto&&... idx) { a.reset(); });
+        traits::foreach (m_data_, [&](array_type& a, auto&&... idx) { a.reset(); });
     }
     void Push(std::shared_ptr<data::DataBlock> p) override {
+        Update();
         auto d = std::dynamic_pointer_cast<data::DataMultiArray<value_type, NDIMS>>(p);
         int count = 0;
-        m_data_.foreach ([&](array_type& a, auto&&... idx) {
+        traits::foreach (m_data_, [&](array_type& a, auto&&... idx) {
             a.swap(d->GetArray(count));
             ++count;
         });
@@ -268,16 +179,17 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     std::shared_ptr<data::DataBlock> Pop() override {
         auto res = std::make_shared<data::DataMultiArray<value_type, NDIMS>>(NUM_OF_SUB * GetDOF());
         int count = 0;
-        m_data_.foreach ([&](array_type& a, auto&&... idx) {
+        traits::foreach (m_data_, [&](array_type& a, auto&&... idx) {
             res->GetArray(count).swap(a);
             ++count;
         });
+        TearDown();
         return res;
     };
 
     template <typename MR, typename UR, int... NR>
     void DeepCopy(Field<MR, UR, NR...> const& other) {
-        DoUpdate();
+        Update();
         m_data_ = other.data();
     }
 
@@ -287,13 +199,11 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     }
     template <typename TR>
     this_type& operator=(TR const& rhs) {
-        DoUpdate();
-        if (m_range_.isNull()) {
-            calculus::SetEntity(*this, rhs);
-        } else {
-            calculus::SetEntity(*this, rhs, m_range_);
-        }
-        calculus::SetEntity(*this, 0, m_mesh_->GetRange(std::string(EntityIFORMName[IFORM]) + "_PATCH_BOUNDARY"));
+        Update();
+
+        CalculusPolicy<TM>::Fill(*this, rhs, m_range_);
+        //      CalculusPolicy<TM>::Fill(*this, 0, m_mesh_->GetRange(std::string(EntityIFORMName[IFORM]) +
+        //        "_PATCH_BOUNDARY"));
 
         return *this;
     };

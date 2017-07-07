@@ -145,10 +145,10 @@ class SPObject {
     bool isModified() const;
     bool isInitialized() const;
 
-    virtual void Initialize();  //!< invoke once, before everything
-    virtual void Update();      //!< repeat invoke, Update object after modified
-    virtual void TearDown();    //!< repeat invoke,
-    virtual void Finalize();    //!< invoke once, after everything
+    virtual void DoInitialize();  //!< invoke once, before everything
+    virtual void DoUpdate();      //!< repeat invoke, Update object after modified
+    virtual void DoTearDown();    //!< repeat invoke,
+    virtual void DoFinalize();    //!< invoke once, after everything
 
     design_pattern::Signal<void(SPObject *)> PreInitialize;
     design_pattern::Signal<void(SPObject *)> PostInitialize;
@@ -160,10 +160,10 @@ class SPObject {
     design_pattern::Signal<void(SPObject *)> PostFinalize;
     design_pattern::Signal<void(SPObject *)> PostChanged;
 
-    void DoInitialize();
-    void DoFinalize();
-    void DoUpdate();
-    void DoTearDown();
+    void Initialize();
+    void Finalize();
+    void Update();
+    void TearDown();
 
    private:
     struct pimpl_s;
@@ -275,9 +275,9 @@ class SPObject {
 //    virtual void PostProcess();
 //
 //    /**
-//     * @brief Finalize object. This function should be invoked _ONLY ONCE_ before Finalize()
+//     * @brief Finalize object. This function should be invoked _ONLY ONCE_ before DoFinalize()
 //     * @startuml
-//     * title  Finalize()
+//     * title  DoFinalize()
 //     * (*) --> if "isInitialized()?" then
 //     *     -->[true] PostProcess()
 //     *     --> "--state "
@@ -290,7 +290,7 @@ class SPObject {
 //     *
 //     */
 //
-//    virtual void Finalize();
+//    virtual void DoFinalize();
 //    bool TryFinalize();
 /** @} */
 #define NULL_ID static_cast<id_type>(-1)

@@ -151,7 +151,7 @@ std::shared_ptr<DataBlock> Attribute::Pop() { return nullptr; }
 
 const MeshBase *Attribute::GetMesh() const { return m_pimpl_->m_mesh_; }
 bool Attribute::isNull() const { return true; }
-void Attribute::Update() { SPObject::Update(); };
+void Attribute::DoUpdate() { SPObject::DoUpdate(); };
 
 }  //{ namespace engine
 }  // namespace simpla

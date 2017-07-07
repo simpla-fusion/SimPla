@@ -60,7 +60,7 @@ void MeshBase::SetDimensions(index_tuple const& d) { m_pimpl_->m_dimensions_ = d
 index_tuple MeshBase::GetDimensions() const { return m_pimpl_->m_dimensions_; }
 index_tuple MeshBase::GetIndexOffset() const { return m_pimpl_->m_idx_origin_; }
 
-void MeshBase::Update() { Tag(); };
+void MeshBase::DoUpdate() { Tag(); };
 
 void MeshBase::SetBlock(const MeshBlock& m) {
     m_pimpl_->m_mesh_block_ = m;
@@ -146,8 +146,7 @@ EntityRange MeshBase::GetRange(std::string const& k) const {
         return EntityRange{};
     } else {
         auto it = m_pimpl_->m_ranges_->find(k);
-        return (it != m_pimpl_->m_ranges_->end()) ? it->second
-                                                  : EntityRange{std::make_shared<EmptyRangeBase<EntityId>>()};
+        return (it != m_pimpl_->m_ranges_->end()) ? it->second : EntityRange{};
     }
 };
 

@@ -87,13 +87,91 @@ struct RangeBase {
 };
 
 template <typename T>
-struct EmptyRangeBase : public RangeBase<T> {
-    SP_OBJECT_HEAD(EmptyRangeBase<T>, RangeBase<T>);
+struct Range {
+    typedef Range<T> this_type;
+    typedef RangeBase<T> base_type;
 
    public:
-    bool is_divisible() const override { return false; }
-    size_type size() const override { return 0; }
-    bool empty() const override { return true; }
+    typedef T value_type;
+
+    explicit Range(std::nullptr_t) : m_next_(nullptr), m_is_undefined_(true) {}
+    Range() : m_next_(nullptr) {}
+    ~Range() = default;
+
+    explicit Range(std::shared_ptr<base_type> const& p) : m_next_(p) {}
+    Range(this_type const& other) : m_next_(other.m_next_) {}
+    Range(this_type&& other) noexcept : m_next_(other.m_next_) {}
+    Range(this_type& other, tags::split const& s) : Range(other.split(s)) {}
+
+    Range& operator=(this_type const& other) {
+        this_type(other).swap(*this);
+        return *this;
+    }
+    Range& operator=(this_type&& other) {
+        this_type(other).swap(*this);
+        return *this;
+    }
+    void reset(std::shared_ptr<base_type> const& p = nullptr) { m_next_ = p; }
+
+    void swap(this_type& other) { std::swap(m_next_, other.m_next_); }
+
+    bool is_divisible() const {  // FIXME: this is not  full functional
+        return m_next_ != nullptr && m_next_->is_divisible();
+    }
+    bool empty() const { return m_next_ == nullptr || m_next_->empty(); }
+    bool isNull() const { return m_next_ == nullptr; }
+    bool isUndefined() const { return m_is_undefined_ && m_next_ == nullptr; }
+    void clear() { m_next_.reset(); }
+
+    this_type split(tags::split const& s = tags::split()) {
+        // FIXME: this is not  full functional
+        this_type res;
+        UNIMPLEMENTED;
+        return std::move(res);
+    }
+
+    this_type& append(this_type const& other) { return append(other.m_next_); }
+
+    this_type& append(this_type&& other) {
+        append(other.m_next_);
+        other.reset();
+        return *this;
+    }
+
+    this_type& append(std::shared_ptr<base_type> const& other) {
+        auto* cursor = &m_next_;
+        while ((*cursor) != nullptr) { cursor = &(*cursor)->m_next_; }
+        *cursor = other;
+        return *this;
+    }
+    size_type size() const {
+        size_type res = 0;
+        for (auto* cursor = &m_next_; *cursor != nullptr; cursor = &((*cursor)->m_next_)) { res += (*cursor)->size(); }
+        return res;
+    }
+    size_type num_of_block() const {
+        size_type count = 0;
+        auto const* cursor = &m_next_;
+        while ((*cursor) != nullptr) {
+            ++count;
+            cursor = &(*cursor)->m_next_;
+        }
+        return count;
+    }
+    template <typename... Args>
+    void foreach (Args&&... args) const {
+        for (auto* cursor = &m_next_; *cursor != nullptr; cursor = &((*cursor)->m_next_)) {
+            (*cursor)->foreach (std::forward<Args>(args)...);
+        }
+    }
+    base_type& self() { return *m_next_; }
+    base_type const& self() const { return *m_next_; }
+    std::shared_ptr<base_type> operator[](int) { return m_next_; }
+    std::shared_ptr<base_type> operator[](int) const { return m_next_; }
+
+   private:
+    std::shared_ptr<base_type> m_next_ = nullptr;
+    bool m_is_undefined_ = false;
 };
 
 template <typename T>
@@ -212,74 +290,75 @@ struct IteratorRange : public RangeBase<typename std::iterator_traits<TIterator>
     iterator m_b_, m_e_;
 };
 
-template <typename T>
-struct Range {
-    typedef Range<T> this_type;
-    typedef RangeBase<T> base_type;
-
-   public:
-    typedef T value_type;
-
-    Range() : m_next_(nullptr) {}
-    ~Range() = default;
-
-    explicit Range(std::shared_ptr<base_type> const& p) : m_next_(p) {}
-    Range(this_type const& other) : m_next_(other.m_next_) {}
-    Range(this_type&& other) noexcept : m_next_(other.m_next_) {}
-    Range(this_type& other, tags::split const& s) : Range(other.split(s)) {}
-
-    Range& operator=(this_type const& other) {
-        this_type(other).swap(*this);
-        return *this;
-    }
-    Range& operator=(this_type&& other) {
-        this_type(other).swap(*this);
-        return *this;
-    }
-    void reset(std::shared_ptr<RangeBase<T>> const& p = nullptr) { m_next_ = p; }
-    bool isNull() const { return m_next_ == nullptr; }
-
-    void swap(this_type& other) { std::swap(m_next_, other.m_next_); }
-
-    bool is_divisible() const {  // FIXME: this is not  full functional
-        return m_next_ != nullptr && m_next_->is_divisible();
-    }
-    bool empty() const { return m_next_ == nullptr || m_next_->empty(); }
-    void clear() { m_next_ = std::make_shared<EmptyRangeBase<value_type>>(); }
-
-    this_type split(tags::split const& s = tags::split()) {
-        // FIXME: this is not  full functional
-        this_type res;
-        UNIMPLEMENTED;
-        return std::move(res);
-    }
-
-    this_type& append(this_type const& other) { return append(other.m_next_); }
-
-    this_type& append(std::shared_ptr<base_type> const& other) {
-        auto& cursor = m_next_;
-        while (cursor != nullptr) { cursor = cursor->m_next_; }
-        cursor = other;
-        return *this;
-    }
-    size_type size() const {
-        size_type res = 0;
-        for (auto* cursor = &m_next_; *cursor != nullptr; cursor = &((*cursor)->m_next_)) { res += (*cursor)->size(); }
-        return res;
-    }
-
-    template <typename... Args>
-    void foreach (Args&&... args) const {
-        for (auto* cursor = &m_next_; *cursor != nullptr; cursor = &((*cursor)->m_next_)) {
-            (*cursor)->foreach (std::forward<Args>(args)...);
-        }
-    }
-    RangeBase<T>& self() { return *m_next_; }
-    RangeBase<T> const& self() const { return *m_next_; }
-
-   private:
-    std::shared_ptr<RangeBase<T>> m_next_ = nullptr;
-};
+// template <typename T>
+// struct Range {
+//    typedef Range<T> this_type;
+//    typedef RangeBase<T> base_type;
+//
+//   public:
+//    typedef T value_type;
+//
+//    Range() : m_next_(nullptr) {}
+//    ~Range() = default;
+//
+//    explicit Range(std::shared_ptr<base_type> const& p) : m_next_(p) {}
+//    Range(this_type const& other) : m_next_(other.m_next_) {}
+//    Range(this_type&& other) noexcept : m_next_(other.m_next_) {}
+//    Range(this_type& other, tags::split const& s) : Range(other.split(s)) {}
+//
+//    Range& operator=(this_type const& other) {
+//        this_type(other).swap(*this);
+//        return *this;
+//    }
+//    Range& operator=(this_type&& other) {
+//        this_type(other).swap(*this);
+//        return *this;
+//    }
+//    void reset(std::shared_ptr<RangeBase<T>> const& p = nullptr) { m_next_ = p; }
+//    bool isNull() const { return m_next_ == nullptr; }
+//
+//    void swap(this_type& other) { std::swap(m_next_, other.m_next_); }
+//
+//    bool is_divisible() const {  // FIXME: this is not  full functional
+//        return m_next_ != nullptr && m_next_->is_divisible();
+//    }
+//    bool empty() const { return m_next_ == nullptr || m_next_->empty(); }
+//    void clear() { m_next_ = std::make_shared<EmptyRangeBase<value_type>>(); }
+//
+//    this_type split(tags::split const& s = tags::split()) {
+//        // FIXME: this is not  full functional
+//        this_type res;
+//        UNIMPLEMENTED;
+//        return std::move(res);
+//    }
+//
+//    this_type& append(this_type const& other) { return append(other.m_next_); }
+//
+//    this_type& append(std::shared_ptr<base_type> const& other) {
+//        auto& cursor = m_next_;
+//        while (cursor != nullptr) { cursor = cursor->m_next_; }
+//        cursor = other;
+//        return *this;
+//    }
+//    size_type size() const {
+//        size_type res = 0;
+//        for (auto* cursor = &m_next_; *cursor != nullptr; cursor = &((*cursor)->m_next_)) { res += (*cursor)->size();
+//        }
+//        return res;
+//    }
+//
+//    template <typename... Args>
+//    void foreach (Args&&... args) const {
+//        for (auto* cursor = &m_next_; *cursor != nullptr; cursor = &((*cursor)->m_next_)) {
+//            (*cursor)->foreach (std::forward<Args>(args)...);
+//        }
+//    }
+//    RangeBase<T>& self() { return *m_next_; }
+//    RangeBase<T> const& self() const { return *m_next_; }
+//
+//   private:
+//    std::shared_ptr<RangeBase<T>> m_next_ = nullptr;
+//};
 
 template <typename T, typename... Args>
 Range<T> make_continue_range(Args&&... args) {

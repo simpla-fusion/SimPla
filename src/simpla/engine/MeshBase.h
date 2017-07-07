@@ -104,7 +104,7 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
     EntityRange GetInnerRange(int IFORM = VERTEX) const;
     EntityRange GetGhostRange(int IFORM = VERTEX) const;
 
-    void Update() override;
+    void DoUpdate() override;
     virtual void InitializeData(Real time_now);
     virtual void SetBoundaryCondition(Real time_now, Real time_dt);
 

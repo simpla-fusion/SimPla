@@ -25,10 +25,10 @@ class Model : public engine::SPObject, public data::Serializable {
     std::shared_ptr<DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<DataTable> &cfg) override;
 
-    void Initialize() override;
-    void Update() override;
-    void TearDown() override;
-    void Finalize() override;
+    void DoInitialize() override;
+    void DoUpdate() override;
+    void DoTearDown() override;
+    void DoFinalize() override;
 
     int GetNDims() const;
 

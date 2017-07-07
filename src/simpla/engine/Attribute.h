@@ -141,7 +141,8 @@ struct Attribute : public SPObject, public AttributeDesc {
     //        : Attribute(IFORM, 1, t_info, (grp), cfg) {}
     template <int... DOF, typename TGrp, typename... Args>
     Attribute(int IFORM, std::integer_sequence<int, DOF...>, std::type_info const &t_info, TGrp *grp, Args &&... args)
-        : Attribute(IFORM, 1, t_info, (grp), std::make_shared<data::DataTable>(std::forward<Args>(args)...)) {}
+        : Attribute(IFORM, traits::nProduct<int, DOF...>::value, t_info, (grp),
+                    std::make_shared<data::DataTable>(std::forward<Args>(args)...)) {}
 
     Attribute(Attribute const &other);
     Attribute(Attribute &&other) noexcept;
@@ -149,7 +150,7 @@ struct Attribute : public SPObject, public AttributeDesc {
 
     virtual size_type size() const { return 0; }
     void swap(Attribute &) {}
-    void Update() override;
+    void DoUpdate() override;
 
     const MeshBase *GetMesh() const;
 
@@ -292,9 +293,9 @@ struct Attribute : public SPObject, public AttributeDesc {
 //        Attribute::UpdatePatch();
 //        array_type::UpdatePatch();
 //    }
-//    virtual void Finalize() {
-//        array_type::Finalize();
-//        Attribute::Finalize();
+//    virtual void DoFinalize() {
+//        array_type::DoFinalize();
+//        Attribute::DoFinalize();
 //    }
 //
 //    virtual void Clear() { array_type::Clear(); }

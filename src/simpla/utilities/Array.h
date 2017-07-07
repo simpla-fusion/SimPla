@@ -68,7 +68,7 @@ class Array {
         return *this;
     };
 
-    void DoSetUp() {
+    void Update() {
         if (m_data_ == nullptr) {
             m_holder_ = spMakeShared<value_type>(m_data_, m_sfc_.size());
             m_host_data_ = m_data_;
@@ -106,37 +106,36 @@ class Array {
     }
 
     void Fill(value_type v) {
-        DoSetUp();
+        Update();
         spMemoryFill(m_data_, v, m_sfc_.size());
     }
     void Clear() { Fill(0); }
     void SetUndefined() { Fill(std::numeric_limits<value_type>::signaling_NaN()); }
 
     void DeepCopy(value_type const* other) {
-        DoSetUp();
+        Update();
         spMemoryCopy(m_data_, other, m_sfc_.size());
     }
 
     this_type& operator=(this_type const& rhs) {
-        DoSetUp();
+        Update();
         Assign(rhs);
         return (*this);
     }
 
     template <typename TR>
     this_type& operator=(TR const& rhs) {
-        DoSetUp();
+        Update();
         Assign(rhs);
         return (*this);
     }
+    this_type operator()(IdxShift const& idx) const { return this_type(*this, idx); }
 
     std::ostream& Print(std::ostream& os, int indent = 0) const { return m_sfc_.Print(os, m_data_, indent); }
 
     __host__ __device__ value_type& operator[](size_type s) { return m_data_[s]; }
 
     __host__ __device__ value_type const& operator[](size_type s) const { return m_data_[s]; }
-
-    this_type at(IdxShift const& idx) const { return this_type(*this, idx); }
 
     template <typename... Args>
     __host__ __device__ value_type& at(Args&&... args) {
@@ -164,7 +163,7 @@ class Array {
 namespace traits {
 template <typename... T>
 struct reference<Array<T...>> {
-    typedef Array<T...>  type;
+    typedef Array<T...> type;
 };
 }
 

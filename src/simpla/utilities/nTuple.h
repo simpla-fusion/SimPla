@@ -135,9 +135,8 @@ template <int N, typename T, int... M>
 auto const& get(nTuple<T, M...> const& expr) {
     return expr[N];
 }
-}  // namespace traits
 
-namespace _detail {
+namespace detail {
 
 template <typename TFun, typename TV, int N0>
 __host__ __device__ void foreach_(nTuple<TV, N0>& m_data_, TFun const& fun) {
@@ -160,49 +159,13 @@ __host__ __device__ void foreach_(nTuple<TV, N0, N1, N2>& m_data_, TFun const& f
     }
 }
 }
-
-namespace calculus {
-namespace _impl {
-
-template <typename TL, typename TR>
-__host__ __device__ void assign_(TL& lhs, TR const& rhs, std::index_sequence<>){};
-
-template <typename TL, typename TR, size_t I0, size_t... I>
-__host__ __device__ void assign_(TL& lhs, TR const& rhs, std::index_sequence<I0, I...>) {
-    lhs[I0] = calculus::get<I0>(rhs);
-    assign_(lhs, rhs, std::index_sequence<I...>());
-};
-template <typename T>
-__host__ __device__ void swap_(T& lhs, T& rhs, std::index_sequence<>){};
-
-template <typename T>
-__host__ __device__ void swap0_(T& lhs, T& rhs, ENABLE_IF((std::rank<T>::value == 0))) {
-    std::swap(lhs, rhs);
+template <typename TFun, typename TV, int... N>
+__host__ __device__ void foreach (nTuple<TV, N...>& m_data_, TFun const& fun) {
+    detail::foreach_(m_data_, fun);
 }
+}  // namespace traits
 
-template <typename T>
-__host__ __device__ void swap0_(T& lhs, T& rhs, ENABLE_IF((std::rank<T>::value > 0))) {
-    lhs.swap(rhs);
-}
-
-template <typename T, size_t I0, size_t... I>
-__host__ __device__ void swap_(T& lhs, T& rhs, std::index_sequence<I0, I...>) {
-    swap0_(lhs[I0], rhs[I0]);
-    swap_(lhs, rhs, std::index_sequence<I...>());
-};
-
-}  // namespace _impl {
-
-template <typename T>
-__host__ __device__ void swap(T& lhs, T& rhs) {
-    _impl::swap_(lhs, rhs, std::make_index_sequence<std::extent<T>::value>());
-};
-template <typename TL, typename TR>
-__host__ __device__ void assign(TL& lhs, TR const& rhs) {
-    _impl::assign_(lhs, rhs, std::make_index_sequence<std::extent<TL>::value>());
-};
-}  // namespace calculus
-/// n-dimensional primary type
+///// n-dimensional primary type
 
 template <typename TV>
 struct nTuple<TV> {
@@ -229,75 +192,20 @@ struct nTuple<TV, N0, N...> {
 
     template <typename... U>
     __host__ __device__ nTuple(Expression<U...> const& expr) {
-        calculus::assign(*this, expr);
+        for (int i = 0; i < N0; ++i) { m_data_[i] = calculus::getValue(expr, i); }
     }
 
     __host__ __device__ nTuple(this_type const& other) {
         for (int i = 0; i < N0; ++i) { m_data_[i] = other.m_data_[i]; }
-    };
+    }
     __host__ __device__ nTuple(this_type&& other) {
         for (int i = 0; i < N0; ++i) { m_data_[i] = other.m_data_[i]; }
-    };
-    ;
-
-    __host__ __device__ auto& operator[](int s) { return m_data_[s]; }
-
-    __host__ __device__ auto const& operator[](int s) const { return m_data_[s]; }
-
-    //    __host__ __device__ value_type& at(int const* s) { return calculator::getValue(*this, s); }
-
-    __host__ __device__ auto& at(int s) { return m_data_[s]; }
-
-    __host__ __device__ auto const& at(int s) const { return m_data_[s]; }
-
-    template <typename I0, typename... Idx>
-    __host__ __device__ auto& at(I0 n0, Idx&&... s) {
-        return calculus::getValue(m_data_[n0], std::forward<Idx>(s)...);
     }
-
-    template <typename I0, typename... Idx>
-    __host__ __device__ auto const& at(I0 n0, Idx&&... s) const {
-        return calculus::getValue(m_data_[n0], std::forward<Idx>(s)...);
-    }
-
-    template <typename TI>
-    __host__ __device__ auto& at(TI const* idx) {
-        return calculus::getValue(m_data_[idx[0]], idx + 1);
-    }
-
-    template <typename TI>
-    __host__ __device__ auto const& at(TI const* idx) const {
-        return calculus::getValue(m_data_[idx[0]], idx + 1);
-    }
-    //
-    //    template <typename TI, int M>
-    //    __host__ __device__ auto& at(nTuple<TI, M> const& idx) {
-    //        return at(&idx[0]);
-    //    }
-    //
-    //    template <typename TI, int M>
-    //    __host__ __device__ auto const& at(nTuple<TI, M> const& idx) const {
-    //        return at(&idx[0]);
-    //    }
-
-    template <typename... Idx>
-    __host__ __device__ decltype(auto) operator()(int s0, Idx&&... s) {
-        return at(s0, std::forward<Idx>(s)...);
-    }
-
-    template <typename... Idx>
-    __host__ __device__ decltype(auto) operator()(int s0, Idx&&... s) const {
-        return at(s0, std::forward<Idx>(s)...);
-    }
-    __host__ __device__ void swap(this_type& other) { calculus::swap(*this, other); }
-
-    template <typename TFun>
-    __host__ __device__ void foreach (TFun const& fun) {
-        _detail::foreach_(*this, fun);
+    __host__ __device__ void swap(this_type& other) {
+        for (int i = 0; i < N0; ++i) { std::swap(m_data_[i], other.m_data_[i]); }
     }
 
     __host__ __device__ this_type& operator=(this_type const& rhs) {
-        //        calculus::assign(*this, rhs);
         for (int i = 0; i < N0; ++i) { m_data_[i] = calculus::getValue(rhs, i); }
         return (*this);
     }
@@ -307,6 +215,10 @@ struct nTuple<TV, N0, N...> {
         for (int i = 0; i < N0; ++i) { m_data_[i] = calculus::getValue(rhs, i); }
         return (*this);
     }
+
+    __host__ __device__ auto& operator[](int s) { return m_data_[s]; }
+
+    __host__ __device__ auto const& operator[](int s) const { return m_data_[s]; }
 };
 
 template <>

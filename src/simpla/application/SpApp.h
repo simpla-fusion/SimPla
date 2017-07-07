@@ -25,11 +25,11 @@ struct SpApp : public engine::SPObject, public data::Serializable {
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
 
-    void Initialize() override;
-    void Update() override;
+    void DoInitialize() override;
+    void DoUpdate() override;
     virtual void Run();
-    void TearDown() override;
-    void Finalize() override;
+    void DoTearDown() override;
+    void DoFinalize() override;
 
     void SetContext(std::shared_ptr<engine::Context> s);
     std::shared_ptr<engine::Context> GetContext() const;

@@ -39,7 +39,7 @@ struct CartesianCoRectMesh : public CoRectMesh {
     SP_DEFAULT_CONSTRUCT(CartesianCoRectMesh);
     DECLARE_REGISTER_NAME("CartesianCoRectMesh");
 
-    void Update() override { CoRectMesh::Update(); }
+    void Update() override { CoRectMesh::DoUpdate(); }
 
     std::shared_ptr<data::DataTable> Pack() const override {
         auto p = CoRectMesh::Pull(nullptr);

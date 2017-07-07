@@ -25,10 +25,10 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override;
 
-    void Initialize() override;
-    void Finalize() override;
-    void Update() override;
-    void TearDown() override;
+    void DoInitialize() override;
+    void DoFinalize() override;
+    void DoUpdate() override;
+    void DoTearDown() override;
 
     void Synchronize() override;
     Real Advance(Real time_dt) override;

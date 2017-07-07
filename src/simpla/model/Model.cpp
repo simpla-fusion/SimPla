@@ -30,10 +30,10 @@ void Model::Deserialize(const std::shared_ptr<DataTable> &cfg) {
         if (v != nullptr) { SetObject(k, geometry::GeoObject::Create(v)); }
     });
 };
-void Model::Initialize() { LOGGER << "Model is initialized " << std::endl; }
-void Model::Finalize() {}
+void Model::DoInitialize() { LOGGER << "Model is initialized " << std::endl; }
+void Model::DoFinalize() {}
 
-void Model::Update() {
+void Model::DoUpdate() {
     auto it = m_pimpl_->m_g_objs_.begin();
     if (it == m_pimpl_->m_g_objs_.end() || it->second == nullptr) { return; }
     m_pimpl_->m_bound_box_ = it->second->GetBoundBox();
@@ -45,7 +45,7 @@ void Model::Update() {
         }
     }
 };
-void Model::TearDown() {}
+void Model::DoTearDown() {}
 int Model::GetNDims() const { return 3; }
 
 box_type const& Model::GetBoundBox() const { return m_pimpl_->m_bound_box_; };

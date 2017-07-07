@@ -148,10 +148,14 @@ namespace calculus {
 template <typename TFun, typename TypeList, typename Enable = void>
 struct _IndexHelper;
 
+template <typename T, typename... Args>
+decltype(auto) getValue(T &expr, Args &&... args) {
+    return _IndexHelper<T, traits::type_list<Args...>>::value(expr, std::forward<Args>(args)...);
+};
+
 template <typename T>
 struct _IndexHelper<T, traits::type_list<>> {
-    //    static decltype(auto) value(T &v) { return v; };
-    static decltype(auto) value(T const &v) { return v; };
+    static decltype(auto) value(T &v) { return v; };
 };
 
 // template <typename T, typename Arg0>
@@ -161,73 +165,49 @@ struct _IndexHelper<T, traits::type_list<>> {
 //};
 
 template <typename T, typename Arg0, typename... Args>
-struct _IndexHelper<T *, traits::type_list<Arg0, Args...>> {
-    static decltype(auto) value(T *v, Arg0 &&arg0, Args &&... args) {
-        return _IndexHelper<std::remove_cv_t<decltype(v[arg0])>, traits::type_list<Args...>>::value(
-            v[arg0], std::forward<Args>(args)...);
-    };
-
-    static decltype(auto) value(T const *v, Arg0 &&arg0, Args &&... args) {
-        return _IndexHelper<std::remove_cv_t<decltype(v[arg0])>, traits::type_list<Args...>>::value(
-            v[arg0], std::forward<Args>(args)...);
-    };
+struct _IndexHelper<
+    T, traits::type_list<Arg0, Args...>,
+    std::enable_if_t<std::is_arithmetic<T>::value || std::is_same<std::remove_cv_t<T>, std::complex<double>>::value ||
+                     std::is_same<std::remove_cv_t<T>, std::complex<float>>::value>> {
+    static decltype(auto) value(T &v, Arg0 &&arg0, Args &&... args) { return v; };
 };
+
 template <typename T, typename Arg0, typename... Args>
 struct _IndexHelper<T, traits::type_list<Arg0, Args...>,
-                    std::enable_if_t<std::is_arithmetic<T>::value || std::is_same<T, std::complex<double>>::value ||
-                                     std::is_same<T, std::complex<float>>::value>> {
-    static decltype(auto) value(T &v, Arg0 &&arg0, Args &&... args) { return v; };
-    static decltype(auto) value(T const &v, Arg0 &&arg0, Args &&... args) { return v; };
-};
-
-template <typename TFun, typename Arg0, typename... Args>
-struct _IndexHelper<TFun, traits::type_list<Arg0, Args...>,
-                    std::enable_if_t<traits::is_invocable<TFun, Arg0, Args...>::value &&
-                                     std::is_reference<traits::invoke_result_t<TFun, Arg0, Args...>>::value>> {
-    static decltype(auto) value(TFun &v, Arg0 &&arg0, Args &&... args) {
-        return v(std::forward<Arg0>(arg0), std::forward<Args>(args)...);
-    };
-
-    static decltype(auto) value(TFun const &v, Arg0 &&arg0, Args &&... args) {
+                    std::enable_if_t<traits::is_invocable<T, Arg0, Args...>::value>> {
+    static decltype(auto) value(T &v, Arg0 &&arg0, Args &&... args) {
         return v(std::forward<Arg0>(arg0), std::forward<Args>(args)...);
     };
 };
 
-template <typename TFun, typename Arg0, typename... Args>
-struct _IndexHelper<TFun, traits::type_list<Arg0, Args...>,
-                    std::enable_if_t<traits::is_invocable<TFun, Arg0, Args...>::value &&
-                                     !std::is_reference<traits::invoke_result_t<TFun, Arg0, Args...>>::value>> {
-    static decltype(auto) value(TFun &v, Arg0 &&arg0, Args &&... args) = delete;
-    static decltype(auto) value(TFun const &v, Arg0 &&arg0, Args &&... args) {
-        return v(std::forward<Arg0>(arg0), std::forward<Args>(args)...);
+template <typename T, typename Arg0, typename... Args>
+struct _IndexHelper<
+    T, traits::type_list<Arg0, Args...>,
+    std::enable_if_t<(!traits::is_invocable<T, Arg0, Args...>::value) && traits::is_indexable<T, Arg0>::value>> {
+    static decltype(auto) value(T &v, Arg0 &&arg0, Args &&... args) {
+        return getValue(v[arg0], std::forward<Args>(args)...);
     };
 };
 
-template <typename TOP, typename... Others, typename Arg0, typename... Args>
-struct _IndexHelper<Expression<TOP, Others...>, traits::type_list<Arg0, Args...>> {
+//
+// template <typename TFun, typename Arg0, typename... Args>
+// struct _IndexHelper<TFun, traits::type_list<Arg0, Args...>,
+//                    std::enable_if_t<traits::is_invocable<TFun, Arg0, Args...>::value>> {
+//    static decltype(auto) value(TFun &v, Arg0 &&arg0, Args &&... args) {
+//        return v(std::forward<Arg0>(arg0), std::forward<Args>(args)...);
+//    };
+//};
+
+template <typename TOP, typename... Others, typename... Args>
+struct _IndexHelper<const Expression<TOP, Others...>, traits::type_list<Args...>> {
     template <size_t... index>
     static decltype(auto) _invoke_helper(std::index_sequence<index...>, Expression<TOP, Others...> const &expr,
-                                         Arg0 &&arg0, Args &&... args) {
-        return expr.m_op_(_IndexHelper<std::decay_t<std::remove_cv_t<decltype(std::get<index>(expr.m_args_))>>,
-                                       traits::type_list<Arg0, Args...>>::value(std::get<index>(expr.m_args_),
-                                                                                std::forward<Arg0>(arg0),
-                                                                                std::forward<Args>(args)...)...);
+                                         Args &&... args) {
+        return expr.m_op_(getValue(std::get<index>(expr.m_args_), std::forward<Args>(args)...)...);
     }
-    static decltype(auto) value(Expression<TOP, Others...> const &expr, Arg0 &&arg0, Args &&... args) {
-        return _invoke_helper(std::index_sequence_for<Others...>(), expr, std::forward<Arg0>(arg0),
-                              std::forward<Args>(args)...);
+    static decltype(auto) value(Expression<TOP, Others...> const &expr, Args &&... args) {
+        return _invoke_helper(std::index_sequence_for<Others...>(), expr, std::forward<Args>(args)...);
     };
-
-    static decltype(auto) value(Expression<TOP, Others...> &expr, Arg0 &&arg0, Args &&...) = delete;
-};
-template <typename T, typename... Args>
-decltype(auto) getValue(T &expr, Args &&... args) {
-    return _IndexHelper<std::remove_cv_t<T>, traits::type_list<Args...>>::value(expr, std::forward<Args>(args)...);
-};
-
-template <typename T, typename... Args>
-decltype(auto) getValue(T const *expr, Args &&... args) {
-    return _IndexHelper<T *, traits::type_list<Args...>>::value(expr, std::forward<Args>(args)...);
 };
 
 // template <typename T, typename TI>

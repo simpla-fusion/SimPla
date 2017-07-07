@@ -39,7 +39,7 @@ class StructuredMesh : public engine::MeshBase {
 
     DECLARE_REGISTER_NAME(StructuredMesh);
 
-    void Update() override;
+    void DoUpdate() override;
 
     index_box_type GetIndexBox(int tag) const override;
 

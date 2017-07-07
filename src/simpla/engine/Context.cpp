@@ -86,14 +86,14 @@ void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
 //            Context::SetDomain(key, d);
 //        }
 //    });
-void Context::Initialize() { SPObject::Initialize(); }
-void Context::Finalize() { SPObject::Finalize(); }
-void Context::TearDown() {
-    SPObject::TearDown();
-    m_pimpl_->m_atlas_.TearDown();
+void Context::DoInitialize() { SPObject::DoInitialize(); }
+void Context::DoFinalize() { SPObject::DoFinalize(); }
+void Context::DoTearDown() {
+    SPObject::DoTearDown();
+    m_pimpl_->m_atlas_.DoTearDown();
 }
-void Context::Update() {
-    SPObject::Update();
+void Context::DoUpdate() {
+    SPObject::DoUpdate();
 
     m_pimpl_->m_atlas_.DoUpdate();
     m_pimpl_->m_model_.DoUpdate();

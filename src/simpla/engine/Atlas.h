@@ -74,7 +74,7 @@ class Atlas : public SPObject, public data::Serializable {
 
     void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
 
-    void Update() override;
+    void DoUpdate() override;
 
     void Decompose(size_tuple const &d, int local_id = -1);
 

@@ -43,10 +43,10 @@ void Domain::Deserialize(const std::shared_ptr<DataTable>& cfg) {
     m_pimpl_->m_domain_geo_prefix_ = cfg->GetValue<std::string>("GeometryObject", "");
 };
 
-void Domain::Update() {}
-void Domain::TearDown() {}
-void Domain::Initialize() {}
-void Domain::Finalize() {}
+void Domain::DoUpdate() {}
+void Domain::DoTearDown() {}
+void Domain::DoInitialize() {}
+void Domain::DoFinalize() {}
 MeshBase const* Domain::GetMesh() const { return m_pimpl_->m_mesh_.get(); }
 MeshBase* Domain::GetMesh() { return m_pimpl_->m_mesh_.get(); }
 

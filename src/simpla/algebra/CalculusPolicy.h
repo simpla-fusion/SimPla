@@ -32,6 +32,64 @@ struct CalculusPolicy {
 
     //**********************************************************************************************
     // for element-wise arithmetic operation
+
+    template <typename U, int IFORM>
+    static auto& GetEntity(Field<M, U, IFORM>& lhs, EntityId s) {
+        return lhs(EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], s.x, s.y, s.z);
+    }
+    template <typename U, int IFORM, int DOF>
+    static auto& GetEntity(Field<M, U, IFORM, DOF>& lhs, EntityId s) {
+        return lhs(EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], (s.w >> 3) & 0b111, s.x, s.y, s.z);
+    }
+
+    template <typename U, int IFORM, int... DOF, typename V>
+    static void SetEntity(Field<M, U, IFORM, DOF...>& lhs, V const& rhs, EntityId s,
+                          ENABLE_IF((std::is_arithmetic<V>::value))) {
+        GetEntity(lhs, s) = rhs;
+    }
+
+    template <typename U, int IFORM, int... DOF, typename V, int... N>
+    static void SetEntity(Field<M, U, IFORM, DOF...>& lhs, nTuple<V, N...> const& rhs, EntityId s) {
+        GetEntity(lhs, s) =
+            rhs[(IFORM == VERTEX || IFORM == VOLUME) ? (s.w >> 3) : EntityIdCoder::m_id_to_sub_index_[(s.w & 0b111)]];
+    }
+
+    template <typename U, int IFORM, typename... E>
+    static void SetEntity(Field<M, U, IFORM>& lhs, Expression<E...> const& rhs, EntityId s) {
+        SetEntity(lhs, getValue(*dynamic_cast<M const*>(lhs.GetMesh()), rhs, IdxShift{0, 0, 0},
+                                EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], s.x, s.y, s.z),
+                  s);
+    }
+    template <typename U, int IFORM, int DOF, typename... E>
+    static void SetEntity(Field<M, U, IFORM, DOF>& lhs, Expression<E...> const& rhs, EntityId s) {
+        SetEntity(lhs, getValue(*dynamic_cast<M const*>(lhs.GetMesh()), rhs, IdxShift{0, 0, 0},
+                                EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], (s.w >> 3) & 0b111, s.x, s.y, s.z),
+                  s);
+    }
+
+    template <typename U, int IFORM, int... DOF, typename RHS>
+    static void SetEntity(Field<M, U, IFORM, DOF...>& lhs, RHS const& rhs, EntityId s,
+                          ENABLE_IF((traits::is_invocable<RHS, EntityId>::value))) {
+        SetEntity(lhs, rhs(s), s);
+    }
+
+    template <typename U, int IFORM, int... DOF, typename RHS>
+    static void SetEntity(Field<M, U, IFORM, DOF...>& lhs, RHS const& rhs, EntityId s,
+                          ENABLE_IF((traits::is_invocable<RHS, point_type>::value))) {
+        SetEntity(lhs, rhs(dynamic_cast<M const*>(lhs.GetMesh())->point(s)), s);
+    }
+
+    template <typename U, int IFORM, int... DOF, typename RHS>
+    static void Fill(Field<M, U, IFORM, DOF...>& lhs, RHS const& rhs, EntityRange r) {
+        if (r.isUndefined()) {
+            M const& m = *dynamic_cast<M const*>(lhs.GetMesh());
+//            lhs.data().foreach (
+//                [&](auto& a, auto&&... sub) { a = getValue(m, rhs, std::forward<decltype(sub)>(sub)...); });
+        } else if (!r.isNull()) {
+            r.foreach ([&](EntityId s) { SetEntity(lhs, rhs, s); });
+        }
+    }
+
     template <size_t... I, typename TOP, typename... Args, typename... Others>
     static auto _invoke_helper(std::index_sequence<I...>, mesh_type const& m, Expression<TOP, Args...> const& expr,
                                IdxShift S, Others&&... others) {
@@ -532,11 +590,11 @@ struct CalculusPolicy {
     /// @{
 
     //    template <typename V, int I, int... D>
-    //    static V const& getValue(mesh_type const& m, Field<TM, V, I, D...> const& f, EntityId s) {
+    //    static V const& getValue(mesh_type const& m, Field<M, V, I, D...> const& f, EntityId s) {
     //        return f[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]][(s.w >> 3)](s.x, s.y, s.z);
     //    };
     //    template <typename V, int I, int... D>
-    //    static V& getValue(mesh_type const& m, Field<TM, V, I, D...>& f, EntityId s) {
+    //    static V& getValue(mesh_type const& m, Field<M, V, I, D...>& f, EntityId s) {
     //        return f[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]][(s.w >> 3)](s.x, s.y, s.z);
     //    };
 
@@ -769,8 +827,8 @@ struct CalculusPolicy {
 //        for (int i = 0; i < DOF; ++i) { f[EntityIdCoder::sw(s, i)] = v; }
 //    }
 
-// template <typename TV, typename TM, int IFORM, int DOF>
-// constexpr Real   calculator<Field<TV, TM, IFORM, DOF>>::m_p_curl_factor[3];
+// template <typename TV, typename M, int IFORM, int DOF>
+// constexpr Real   calculator<Field<TV, M, IFORM, DOF>>::m_p_curl_factor[3];
 }  // namespace simpla { {
 
 #endif /* FDM_H_ */

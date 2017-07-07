@@ -65,13 +65,13 @@ class Particle : public ParticleBase {
     void Update() override {
         if (m_mesh_ == nullptr) { m_mesh_ = dynamic_cast<mesh_type const*>(engine::Attribute::GetMesh()); }
         ASSERT(m_mesh_ != nullptr);
-        ParticleBase::Update();
+        ParticleBase::DoUpdate();
     }
 
     void TearDown() override {
         m_range_.reset();
         m_mesh_ = nullptr;
-        ParticleBase::TearDown();
+        ParticleBase::DoTearDown();
     }
 
 };  // class Particle

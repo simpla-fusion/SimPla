@@ -35,33 +35,40 @@ std::shared_ptr<data::DataTable> SpApp::Serialize() const {
 void SpApp::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     m_pimpl_->m_schedule_ = engine::Schedule::Create(cfg->Get("Schedule"));
     m_pimpl_->m_context_ = engine::Context::Create(cfg->Get("Context"));
+    Click();
 };
-void SpApp::Initialize() {}
-void SpApp::Finalize(){};
-void SpApp::Update() {
+void SpApp::DoInitialize() {}
+void SpApp::DoFinalize(){};
+void SpApp::DoUpdate() {
     ASSERT(m_pimpl_->m_schedule_ != nullptr);
     m_pimpl_->m_schedule_->SetContext(m_pimpl_->m_context_);
-    m_pimpl_->m_schedule_->DoUpdate();
+    m_pimpl_->m_schedule_->Update();
 };
-void SpApp::TearDown() {
+void SpApp::DoTearDown() {
     if (m_pimpl_->m_schedule_ != nullptr) {
-        m_pimpl_->m_schedule_->DoFinalize();
+        m_pimpl_->m_schedule_->Finalize();
         m_pimpl_->m_schedule_.reset();
     }
     if (m_pimpl_->m_context_ != nullptr) {
-        m_pimpl_->m_context_->DoFinalize();
+        m_pimpl_->m_context_->Finalize();
         m_pimpl_->m_context_.reset();
     }
 };
 void SpApp::Run() {
-    DoUpdate();
+    Update();
     if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Run(); }
 };
 
-void SpApp::SetContext(std::shared_ptr<engine::Context> s) { m_pimpl_->m_context_ = s; }
+void SpApp::SetContext(std::shared_ptr<engine::Context> s) {
+    m_pimpl_->m_context_ = s;
+    Click();
+}
 std::shared_ptr<engine::Context> SpApp::GetContext() const { return m_pimpl_->m_context_; }
 
-void SpApp::SetSchedule(std::shared_ptr<engine::Schedule> s) { m_pimpl_->m_schedule_ = s; }
+void SpApp::SetSchedule(std::shared_ptr<engine::Schedule> s) {
+    m_pimpl_->m_schedule_ = s;
+    Click();
+}
 std::shared_ptr<engine::Schedule> SpApp::GetSchedule() const { return m_pimpl_->m_schedule_; }
 
 }  // namespace application{
@@ -168,7 +175,6 @@ int main(int argc, char **argv) {
         parallel::bcast_string(&buffer);
         auto t_cfg = std::make_shared<data::DataTable>("lua://");
         t_cfg->backend()->Parser(buffer);
-
         app->Deserialize(t_cfg);
     }
 

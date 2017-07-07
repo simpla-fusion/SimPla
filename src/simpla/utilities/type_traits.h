@@ -36,51 +36,59 @@ namespace traits {
 namespace detail {
 
 template <typename _TFun, typename... _Args>
-struct is_invocable {
+struct check_invocable {
    private:
     typedef std::true_type yes;
     typedef std::false_type no;
 
     template <typename _U>
-    static auto test(int) -> typename std::result_of<_U(_Args...)>::type;
+    static auto test(int) -> decltype(std::declval<_U>()(std::declval<_Args>()...));
 
     template <typename>
     static no test(...);
-    typedef decltype(test<_TFun>(0)) check_result;
 
    public:
-    static constexpr bool value = !std::is_same<check_result, no>::value;
+    typedef decltype(test<_TFun>(0)) type;
+
+    static constexpr bool value = !std::is_same<type, no>::value;
 };
 
-template <typename _Ret, typename _TFun, typename... _Args>
-struct is_invocable_r {
+template <typename _TFun, typename _Arg>
+struct check_indexable {
    private:
     typedef std::true_type yes;
     typedef std::false_type no;
 
     template <typename _U>
-    static auto test(int) -> typename std::result_of<_U(_Args...)>::type;
+    static auto test(int) -> decltype(std::declval<_U>()[std::declval<_Arg>()]);
 
     template <typename>
     static no test(...);
-    typedef decltype(test<_TFun>(0)) check_result;
 
    public:
-    static constexpr bool value = std::is_same<check_result, _Ret>::value;
+    typedef decltype(test<_TFun>(0)) type;
+
+    static constexpr bool value = !std::is_same<type, no>::value;
 };
 }
 
 template <typename TFun, typename... Args>
-struct invoke_result : public std::result_of<TFun(Args...)> {};
+struct invoke_result {
+    typedef typename detail::check_invocable<TFun, Args...>::type type;
+};
 
 template <typename TFun, typename... Args>
 using invoke_result_t = typename invoke_result<TFun, Args...>::type;
 
 template <typename TFun, typename... Args>
-struct is_invocable : public std::integral_constant<bool, detail::is_invocable<TFun, Args...>::value> {};
+struct is_invocable
+    : public std::integral_constant<
+          bool, !std::is_same<typename detail::check_invocable<TFun, Args...>::type, std::false_type>::value> {};
 
 template <typename R, typename TFun, typename... Args>
-struct is_invocable_r : public std::integral_constant<bool, detail::is_invocable_r<R, TFun, Args...>::value> {};
+struct is_invocable_r
+    : public std::integral_constant<bool,
+                                    std::is_same<typename detail::check_invocable<TFun, Args...>::type, R>::value> {};
 
 #endif
 //**********************************************************************************************************************
@@ -91,29 +99,15 @@ struct is_invocable_r : public std::integral_constant<bool, detail::is_invocable
 * otherwise type is T. Note that if T is a multidimensional array, only the first dimension is
 * removed.
 */
-namespace detail {
 
-template <typename _T, typename _TI>
-struct is_indexable {
-   private:
-    typedef std::true_type yes;
-    typedef std::false_type no;
-
-    template <typename _U>
-    static auto test(int) -> decltype(std::declval<_U>()[std::declval<_TI>()]);
-
-    template <typename>
-    static no test(...);
-    typedef decltype(test<_T>(0)) check_result;
-
-   public:
-    static constexpr bool value = !std::is_same<check_result, no>::value;
-    typedef std::conditional_t<std::is_same<check_result, no>::value, void, check_result> type;
-};
-}
 template <typename T, typename TI = int>
-struct is_indexable : public std::integral_constant<bool, detail::is_indexable<T, TI>::value> {
-    typedef typename detail::is_indexable<T, TI>::type type;
+struct is_indexable : public std::integral_constant<
+                          bool, !std::is_same<typename detail::check_indexable<T, TI>::type, std::false_type>::value> {
+};
+
+template <typename T, typename TI = int>
+struct index_result {
+    typedef typename detail::check_indexable<T, TI>::type type;
 };
 
 template <typename... T>
@@ -646,6 +640,18 @@ template <typename T0, typename... Others>
 T0 min(T0 const& first, Others&&... others) {
     return min(first, min(std::forward<Others>(others)...));
 };
+namespace traits {
+template <typename T, T... M>
+struct nProduct;
+template <typename T, T N, T... M>
+struct nProduct<T, N, M...> {
+    static constexpr T value = N * nProduct<T, M...>::value;
+};
+template <typename T>
+struct nProduct<T> {
+    static constexpr T value = 1;
+};
+}
 
 }  // namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */

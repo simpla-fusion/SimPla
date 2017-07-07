@@ -34,7 +34,7 @@ struct Atlas::pimpl_s {
 
 Atlas::Atlas(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s){};
 Atlas::~Atlas(){};
-void Atlas::Update() { SPObject::Update(); };
+void Atlas::DoUpdate() { SPObject::DoUpdate(); };
 
 std::shared_ptr<data::DataTable> Atlas::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
