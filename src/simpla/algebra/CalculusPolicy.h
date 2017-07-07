@@ -15,6 +15,7 @@
 #include <simpla/engine/SPObject.h>
 #include <simpla/utilities/Array.h>
 #include <simpla/utilities/EntityId.h>
+#include <simpla/utilities/ExpressionTemplate.h>
 #include <simpla/utilities/FancyStream.h>
 #include <simpla/utilities/macro.h>
 #include <simpla/utilities/type_traits.h>
@@ -33,27 +34,6 @@ struct CalculusPolicy {
     //**********************************************************************************************
     // for element-wise arithmetic operation
 
-    template <typename U, int IFORM>
-    static auto& GetEntity(Field<M, U, IFORM>& lhs, EntityId s) {
-        return lhs(EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], s.x, s.y, s.z);
-    }
-    template <typename U, int IFORM, int DOF>
-    static auto& GetEntity(Field<M, U, IFORM, DOF>& lhs, EntityId s) {
-        return lhs(EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], (s.w >> 3) & 0b111, s.x, s.y, s.z);
-    }
-
-    template <typename U, int IFORM, int... DOF, typename V>
-    static void SetEntity(Field<M, U, IFORM, DOF...>& lhs, V const& rhs, EntityId s,
-                          ENABLE_IF((std::is_arithmetic<V>::value))) {
-        GetEntity(lhs, s) = rhs;
-    }
-
-    template <typename U, int IFORM, int... DOF, typename V, int... N>
-    static void SetEntity(Field<M, U, IFORM, DOF...>& lhs, nTuple<V, N...> const& rhs, EntityId s) {
-        GetEntity(lhs, s) =
-            rhs[(IFORM == VERTEX || IFORM == VOLUME) ? (s.w >> 3) : EntityIdCoder::m_id_to_sub_index_[(s.w & 0b111)]];
-    }
-
     template <typename U, int IFORM, typename... E>
     static void SetEntity(Field<M, U, IFORM>& lhs, Expression<E...> const& rhs, EntityId s) {
         SetEntity(lhs, getValue(*dynamic_cast<M const*>(lhs.GetMesh()), rhs, IdxShift{0, 0, 0},
@@ -69,10 +49,14 @@ struct CalculusPolicy {
 
     template <typename U, int IFORM, int... DOF, typename RHS>
     static void SetEntity(Field<M, U, IFORM, DOF...>& lhs, RHS const& rhs, EntityId s,
-                          ENABLE_IF((traits::is_invocable<RHS, EntityId>::value))) {
-        SetEntity(lhs, rhs(s), s);
+                          ENABLE_IF((std::is_arithmetic<RHS>::value))) {
+        lhs[s] = rhs;
     }
-
+    template <typename U, int IFORM, int... DOF, typename V, int N>
+    static void SetEntity(Field<M, U, IFORM, DOF...>& lhs, nTuple<V, N> const& rhs, EntityId s) {
+        lhs[s] =
+            rhs[(IFORM == VERTEX || IFORM == VOLUME) ? (s.w >> 3) : EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]];
+    }
     template <typename U, int IFORM, int... DOF, typename RHS>
     static void SetEntity(Field<M, U, IFORM, DOF...>& lhs, RHS const& rhs, EntityId s,
                           ENABLE_IF((traits::is_invocable<RHS, point_type>::value))) {
@@ -83,8 +67,9 @@ struct CalculusPolicy {
     static void Fill(Field<M, U, IFORM, DOF...>& lhs, RHS const& rhs, EntityRange r) {
         if (r.isUndefined()) {
             M const& m = *dynamic_cast<M const*>(lhs.GetMesh());
-//            lhs.data().foreach (
-//                [&](auto& a, auto&&... sub) { a = getValue(m, rhs, std::forward<decltype(sub)>(sub)...); });
+            //            lhs.data().foreach (
+            //                [&](auto& a, auto&&... sub) { a = getValue(m, rhs, std::forward<decltype(sub)>(sub)...);
+            //                });
         } else if (!r.isNull()) {
             r.foreach ([&](EntityId s) { SetEntity(lhs, rhs, s); });
         }

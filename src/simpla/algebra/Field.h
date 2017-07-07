@@ -136,6 +136,9 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     auto& operator[](int n) { return m_data_[n]; }
     auto const& operator[](int n) const { return m_data_[n]; }
 
+    auto& operator[](EntityId s) { return calculus::getValue(m_data_, s); }
+    auto const& operator[](EntityId s) const { return calculus::getValue(m_data_, s); }
+
     this_type operator[](EntityRange const& d) const { return this_type(*this, d); }
     this_type operator()(EntityRange const& d) const { return this_type(*this, d); }
 

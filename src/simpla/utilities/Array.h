@@ -146,12 +146,12 @@ class Array {
         return m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
     }
     template <typename... Args>
-    __host__ __device__ value_type& operator()(Args&&... args) {
-        return at(std::forward<Args>(args)...);
+    __host__ __device__ value_type& operator()(index_type s0, Args&&... args) {
+        return at(s0, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    __host__ __device__ value_type const& operator()(Args&&... args) const {
-        return at(std::forward<Args>(args)...);
+    __host__ __device__ value_type const& operator()(index_type s0, Args&&... args) const {
+        return at(s0, std::forward<Args>(args)...);
     }
 
     template <typename RHS>

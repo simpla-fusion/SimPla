@@ -150,7 +150,8 @@ struct _IndexHelper;
 
 template <typename T, typename... Args>
 decltype(auto) getValue(T &expr, Args &&... args) {
-    return _IndexHelper<T, traits::type_list<Args...>>::value(expr, std::forward<Args>(args)...);
+    return _IndexHelper<T, traits::type_list<std::remove_reference_t<Args>...>>::value(expr,
+                                                                                       std::forward<Args>(args)...);
 };
 
 template <typename T>
@@ -158,53 +159,44 @@ struct _IndexHelper<T, traits::type_list<>> {
     static decltype(auto) value(T &v) { return v; };
 };
 
-// template <typename T, typename Arg0>
-// struct _IndexHelper<T *, traits::type_list<Arg0>> {
-//    static decltype(auto)lvalue(T *v, Arg0 &&s) { return v[s]; };
-//    static decltype(auto)value(T const *v, Arg0 &&s) { return v[s]; };
-//};
-
-template <typename T, typename Arg0, typename... Args>
+template <typename T, typename _Arg0, typename... _Args>
 struct _IndexHelper<
-    T, traits::type_list<Arg0, Args...>,
+    T, traits::type_list<_Arg0, _Args...>,
     std::enable_if_t<std::is_arithmetic<T>::value || std::is_same<std::remove_cv_t<T>, std::complex<double>>::value ||
                      std::is_same<std::remove_cv_t<T>, std::complex<float>>::value>> {
-    static decltype(auto) value(T &v, Arg0 &&arg0, Args &&... args) { return v; };
+    template <typename Arg0, typename... Args>
+    static decltype(auto) value(T &v, Arg0 &&arg0, Args &&... args) {
+        return v;
+    };
 };
 
-template <typename T, typename Arg0, typename... Args>
-struct _IndexHelper<T, traits::type_list<Arg0, Args...>,
-                    std::enable_if_t<traits::is_invocable<T, Arg0, Args...>::value>> {
+template <typename T, typename _Arg0, typename... _Args>
+struct _IndexHelper<T, traits::type_list<_Arg0, _Args...>,
+                    std::enable_if_t<traits::is_invocable<T, _Arg0, _Args...>::value>> {
+    template <typename Arg0, typename... Args>
     static decltype(auto) value(T &v, Arg0 &&arg0, Args &&... args) {
         return v(std::forward<Arg0>(arg0), std::forward<Args>(args)...);
     };
 };
 
-template <typename T, typename Arg0, typename... Args>
+template <typename T, typename _Arg0, typename... _Args>
 struct _IndexHelper<
-    T, traits::type_list<Arg0, Args...>,
-    std::enable_if_t<(!traits::is_invocable<T, Arg0, Args...>::value) && traits::is_indexable<T, Arg0>::value>> {
+    T, traits::type_list<_Arg0, _Args...>,
+    std::enable_if_t<(!traits::is_invocable<T, _Arg0, _Args...>::value) && traits::is_indexable<T, _Arg0>::value>> {
+    template <typename Arg0, typename... Args>
     static decltype(auto) value(T &v, Arg0 &&arg0, Args &&... args) {
         return getValue(v[arg0], std::forward<Args>(args)...);
     };
 };
 
-//
-// template <typename TFun, typename Arg0, typename... Args>
-// struct _IndexHelper<TFun, traits::type_list<Arg0, Args...>,
-//                    std::enable_if_t<traits::is_invocable<TFun, Arg0, Args...>::value>> {
-//    static decltype(auto) value(TFun &v, Arg0 &&arg0, Args &&... args) {
-//        return v(std::forward<Arg0>(arg0), std::forward<Args>(args)...);
-//    };
-//};
-
-template <typename TOP, typename... Others, typename... Args>
-struct _IndexHelper<const Expression<TOP, Others...>, traits::type_list<Args...>> {
-    template <size_t... index>
+template <typename TOP, typename... Others, typename... _Args>
+struct _IndexHelper<const Expression<TOP, Others...>, traits::type_list<_Args...>> {
+    template <size_t... index, typename... Args>
     static decltype(auto) _invoke_helper(std::index_sequence<index...>, Expression<TOP, Others...> const &expr,
                                          Args &&... args) {
         return expr.m_op_(getValue(std::get<index>(expr.m_args_), std::forward<Args>(args)...)...);
     }
+    template <size_t... index, typename... Args>
     static decltype(auto) value(Expression<TOP, Others...> const &expr, Args &&... args) {
         return _invoke_helper(std::index_sequence_for<Others...>(), expr, std::forward<Args>(args)...);
     };
