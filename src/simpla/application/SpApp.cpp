@@ -10,7 +10,7 @@
 #include "SpApp.h"
 #include <simpla/engine/Context.h>
 #include <simpla/engine/TimeIntegrator.h>
-#include <simpla/geometry/Chart.h>
+#include <simpla/model/Chart.h>
 #include <simpla/parallel/all.h>
 #include <simpla/utilities/Logo.h>
 #include <simpla/utilities/parse_command_line.h>

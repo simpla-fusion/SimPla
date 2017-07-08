@@ -6,7 +6,7 @@
 
 #include "SPObject.h"
 
-#include <simpla/data/DataTable.h>
+//#include <simpla/data/DataTable.h>
 #include <simpla/utilities/Log.h>
 #include <simpla/utilities/type_cast.h>
 #include <boost/functional/hash.hpp>

@@ -36,11 +36,7 @@
 #define TEMPLATE_DISPATCH_DEFAULT(_FUN_NAME_)    TEMPLATE_DISPATCH( _FUN_NAME_ , , )
 
 
-//**********************************
-// modified from google test
-#define SIMPLA_DISALLOW_ASSIGN(_TYPE_)   void operator=(_TYPE_ const &)=delete;
 
-#define SIMPLA_DISALLOW_COPY_AND_ASSIGN(_TYPE_)   _TYPE_(_TYPE_ const &)=delete; SIMPLA_DISALLOW_ASSIGN(_TYPE_)
 
 
 #if __cplusplus < 201402L

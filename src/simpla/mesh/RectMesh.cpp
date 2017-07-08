@@ -115,25 +115,25 @@ void RectMesh::InitializeData(Real time_now) {
 void RectMesh::SetBoundaryCondition(Real time_now, Real time_dt) {
     StructuredMesh::SetBoundaryCondition(time_now, time_dt);
 
-    GetBoundary()->Fill(m_vertex_volume_, 0);
-    GetBoundary()->Fill(m_vertex_dual_volume_, 0);
-    GetBoundary()->Fill(m_vertex_inv_volume_, 0);
-    GetBoundary()->Fill(m_vertex_inv_dual_volume_, 0);
+    FillBoundary(m_vertex_volume_, 0);
+    FillBoundary(m_vertex_dual_volume_, 0);
+    FillBoundary(m_vertex_inv_volume_, 0);
+    FillBoundary(m_vertex_inv_dual_volume_, 0);
 
-    GetBoundary()->Fill(m_edge_volume_, 0);
-    GetBoundary()->Fill(m_edge_dual_volume_, 0);
-    GetBoundary()->Fill(m_edge_inv_volume_, 0);
-    GetBoundary()->Fill(m_edge_inv_dual_volume_, 0);
+    FillBoundary(m_edge_volume_, 0);
+    FillBoundary(m_edge_dual_volume_, 0);
+    FillBoundary(m_edge_inv_volume_, 0);
+    FillBoundary(m_edge_inv_dual_volume_, 0);
 
-    GetBoundary()->Fill(m_face_volume_, 0);
-    GetBoundary()->Fill(m_face_dual_volume_, 0);
-    GetBoundary()->Fill(m_face_inv_volume_, 0);
-    GetBoundary()->Fill(m_face_inv_dual_volume_, 0);
+    FillBoundary(m_face_volume_, 0);
+    FillBoundary(m_face_dual_volume_, 0);
+    FillBoundary(m_face_inv_volume_, 0);
+    FillBoundary(m_face_inv_dual_volume_, 0);
 
-    GetBoundary()->Fill(m_volume_volume_, 0);
-    GetBoundary()->Fill(m_volume_dual_volume_, 0);
-    GetBoundary()->Fill(m_volume_inv_volume_, 0);
-    GetBoundary()->Fill(m_volume_inv_dual_volume_, 0);
+    FillBoundary(m_volume_volume_, 0);
+    FillBoundary(m_volume_dual_volume_, 0);
+    FillBoundary(m_volume_inv_volume_, 0);
+    FillBoundary(m_volume_inv_dual_volume_, 0);
 }
 }  // namespace mesh
 }  // namespace simpla

@@ -6,7 +6,7 @@
 #define SIMPLA_DOMAIN_H
 
 #include <simpla/data/all.h>
-#include <simpla/geometry/GeoObject.h>
+#include <simpla/model/GeoObject.h>
 #include <simpla/utilities/Signal.h>
 #include <memory>
 #include "Attribute.h"

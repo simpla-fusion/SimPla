@@ -7,12 +7,11 @@
 #ifndef SIMPLA_MESH_MESHATLAS_H
 #define SIMPLA_MESH_MESHATLAS_H
 
-#include <simpla/concept/Printable.h>
-#include <simpla/geometry/GeoObject.h>
-#include <simpla/utilities/Log.h>
 #include <simpla/algebra/nTuple.h>
+#include <simpla/model/GeoObject.h>
+#include <simpla/utilities/Log.h>
+#include <simpla/utilities/SPObject.h>
 #include <type_traits>
-#include "SPObject.h"
 namespace simpla {
 namespace engine {
 

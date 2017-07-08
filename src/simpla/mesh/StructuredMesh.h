@@ -8,7 +8,7 @@
 #include <simpla/algebra/Array.h>
 #include <simpla/algebra/all.h>
 #include <simpla/data/all.h>
-#include <simpla/geometry/Chart.h>
+#include <simpla/model/Chart.h>
 
 #include "Mesh.h"
 namespace simpla {

@@ -7,6 +7,7 @@
 #include <simpla/algebra/all.h>
 #include <simpla/data/all.h>
 #include <simpla/engine/all.h>
+#include <simpla/mesh/all.h>
 #include <simpla/parallel/MPIComm.h>
 #include <simpla/utilities/Log.h>
 #include <cmath>

@@ -2,8 +2,8 @@
 // Created by salmon on 17-3-10.
 //
 #include "DataBackendHDF5.h"
-#include <simpla/algebra/Array.h>
-#include <simpla/algebra/nTuple.h>
+#include <simpla/parallel/all.h>
+#include <sys/stat.h>
 #include <regex>
 #include "../DataArray.h"
 #include "../DataBlock.h"
@@ -16,10 +16,6 @@ extern "C" {
 }
 
 #include <H5FDmpio.h>
-#include <simpla/data/DataUtility.h>
-#include <simpla/parallel/all.h>
-#include <sys/stat.h>
-
 namespace simpla {
 namespace data {
 REGISTER_CREATOR(DataBackendHDF5);
@@ -429,7 +425,7 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t g_id, 
             data = reinterpret_cast<char*>(&src->cast_as<DataEntityWrapper<_T_*>>().get()[0]); \
         } else {                                                                               \
             data = new char[sizeof(_T_)];                                                      \
-            *reinterpret_cast<_T_*>(data) = DataCastTraits<_T_>::Get(src);                              \
+            *reinterpret_cast<_T_*>(data) = DataCastTraits<_T_>::Get(src);                     \
         }                                                                                      \
     }
 

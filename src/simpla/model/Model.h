@@ -6,8 +6,8 @@
 #define SIMPLA_MODEL_H
 
 #include <simpla/data/Serializable.h>
-#include <simpla/engine/SPObject.h>
-#include <simpla/geometry/GeoObject.h>
+#include <simpla/utilities/SPObject.h>
+#include "GeoObject.h"
 namespace simpla {
 namespace model {
 

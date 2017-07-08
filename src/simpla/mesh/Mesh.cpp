@@ -2,14 +2,13 @@
 // Created by salmon on 16-11-24.
 //
 #include "Mesh.h"
-#include <simpla/engine/EntityId.h>
-#include <simpla/geometry/Chart.h>
-#include <simpla/geometry/GeoObject.h>
-#include "simpla/engine/Attribute.h"
-#include "simpla/engine/Domain.h"
-#include "simpla/engine/MeshBlock.h"
-#include "simpla/engine/Patch.h"
-#include "simpla/model/Model.h"
+#include <simpla/algebra/EntityId.h>
+#include <simpla/engine/Attribute.h>
+#include <simpla/engine/MeshBlock.h>
+#include <simpla/engine/Patch.h>
+#include <simpla/model/Chart.h>
+#include <simpla/model/GeoObject.h>
+//#include <simpla/model/Model.h>
 namespace simpla {
 
 struct MeshBase::pimpl_s {

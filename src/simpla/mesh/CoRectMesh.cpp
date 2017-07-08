@@ -4,7 +4,7 @@
 
 #include "CoRectMesh.h"
 
-#include <simpla/engine/EntityId.h>
+#include <simpla/algebra/EntityId.h>
 namespace simpla {
 namespace mesh {
 REGISTER_CREATOR(CoRectMesh);

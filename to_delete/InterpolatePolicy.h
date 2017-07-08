@@ -7,7 +7,7 @@
 #ifndef SIMPLA_LINEAR_H
 #define SIMPLA_LINEAR_H
 
-#include <simpla/engine/EntityId.h>
+#include <simpla/algebra/EntityId.h>
 #include <simpla/algebra/ExpressionTemplate.h>
 #include <simpla/utilities/macro.h>
 #include <simpla/algebra/nTuple.h>

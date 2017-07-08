@@ -7,11 +7,11 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/data/Serializable.h>
+#include <simpla/model/Model.h>
 #include <map>
 #include "Atlas.h"
 #include "Domain.h"
 #include "Patch.h"
-#include "simpla/model/Model.h"
 
 namespace simpla {
 namespace engine {

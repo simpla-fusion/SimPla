@@ -3,11 +3,10 @@
 //
 #include "Context.h"
 #include <simpla/data/all.h>
-#include <simpla/geometry/Chart.h>
-#include <simpla/geometry/GeoAlgorithm.h>
+#include <simpla/model/Chart.h>
+#include <simpla/model/GeoAlgorithm.h>
+#include <simpla/mesh/Mesh.h>
 #include "Domain.h"
-#include "simpla/mesh/Mesh.h"
-#include "simpla/model/Model.h"
 namespace simpla {
 namespace engine {
 

@@ -9,7 +9,6 @@
 #include "Attribute.h"
 #include "Context.h"
 #include "Domain.h"
-#include "simpla/mesh/Mesh.h"
 #include "Patch.h"
 #include "Schedule.h"
 #include "TimeIntegrator.h"

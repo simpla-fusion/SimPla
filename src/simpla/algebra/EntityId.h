@@ -9,17 +9,18 @@
 #define SIMPLA_ENTITY_ID_H_
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/utilities/Log.h>
+#include <simpla/utilities/ObjectHead.h>
+#include <simpla/utilities/Range.h>
+#include <simpla/utilities/type_traits.h>
 #include <stddef.h>
 #include <tbb/concurrent_unordered_set.h>
 #include <tbb/tbb.h>
 #include <limits>
 #include <set>
 #include <tuple>
-#include "simpla/utilities/Log.h"
-#include "simpla/utilities/Range.h"
-#include "simpla/algebra/nTuple.ext.h"
-#include "simpla/algebra/nTuple.h"
-#include "simpla/utilities/type_traits.h"
+#include "nTuple.ext.h"
+#include "nTuple.h"
 namespace simpla {
 // typedef union { struct { u_int8_t w, z, y, x; }; int32_t v; } EntityId32;
 enum CenterOnMesh { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3, FIBER = 6 };
@@ -584,24 +585,24 @@ struct _IndexHelper<Array<U...> const, traits::type_list<EntityId>> {
     static auto const& value(Array<U...> const& v, EntityId s) { return v(s.x, s.y, s.z); };
 };
 
-//template <typename T>
-//struct _IndexHelper<T, traits::type_list<EntityId>,
+// template <typename T>
+// struct _IndexHelper<T, traits::type_list<EntityId>,
 //                    std::enable_if_t<traits::is_invocable<T, index_type, index_type, index_type>::value>> {
 //    static auto& value(T& v, EntityId s) { return getValue(v(s.x, s.y, s.z), s); };
 //};
-//template <typename T>
-//struct _IndexHelper<T, traits::type_list<EntityId>,
+// template <typename T>
+// struct _IndexHelper<T, traits::type_list<EntityId>,
 //                    std::enable_if_t<traits::is_invocable<T, int, index_type, index_type, index_type>::value>> {
 //    static auto& value(T& v, EntityId s) { return getValue(v(s.w, s.x, s.y, s.z), s); };
 //};
 //
-//template <typename T>
-//struct _IndexHelper<T, traits::type_list<index_type, index_type, index_type>,
+// template <typename T>
+// struct _IndexHelper<T, traits::type_list<index_type, index_type, index_type>,
 //                    std::enable_if_t<traits::is_invocable<T, >::value>> {
 //    static auto& value(T& v, EntityId s) { return getValue(v(s.x, s.y, s.z), s); };
 //};
-//template <typename T>
-//struct _IndexHelper<T, traits::type_list<EntityId>,
+// template <typename T>
+// struct _IndexHelper<T, traits::type_list<EntityId>,
 //                    std::enable_if_t<traits::is_invocable<T, int, index_type, index_type, index_type>::value>> {
 //    static auto& value(T& v, EntityId s) { return getValue(v(s.w, s.x, s.y, s.z), s); };
 //};
@@ -732,7 +733,7 @@ struct UnorderedRange<EntityId> : public RangeBase<EntityId> {
     bool is_divisible() const override { return false; }
 
     template <typename TFun>
-    void DoForeach(TFun const& body, ENABLE_IF((simpla::concept::is_callable<TFun(EntityId)>::value))) const {
+    void DoForeach(TFun const& body, ENABLE_IF((traits::is_invocable<TFun, EntityId>::value))) const {
         tbb::parallel_for(m_ids_.range(), [&](auto const& r) {
             for (EntityId s : r) { body(s); }
         });

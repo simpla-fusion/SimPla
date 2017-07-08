@@ -5,22 +5,26 @@
 #ifndef SIMPLA_MESHBASE_H
 #define SIMPLA_MESHBASE_H
 
-#include <simpla/concept/Printable.h>
 #include <simpla/data/all.h>
-#include <simpla/geometry/Chart.h>
-#include <simpla/geometry/GeoObject.h>
-#include "simpla/engine/Attribute.h"
-#include "simpla/engine/SPObject.h"
+#include <simpla/engine/Attribute.h>
+#include <simpla/model/Chart.h>
+#include <simpla/model/GeoObject.h>
+#include <simpla/utilities/SPObject.h>
 
 namespace simpla {
-class MeshBase;
 
-template <typename>
-struct CalculusPolicy;
+namespace engine {
+class AttributeGroup;
+class SPObject;
+}
 
+struct MeshBase;
 struct EBMeshBase;
-template <typename>
+template <typename...>
+struct Mesh;
+template <typename...>
 struct EBMesh;
+
 /**
  *  Define:
  *   A bundle is a triple \f$(E, p, B)\f$ where \f$E\f$, \f$B\f$ are sets and \f$p:E \rightarrow B\f$ a map
@@ -46,17 +50,6 @@ class MeshBase : public engine::SPObject,
     void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
 
     void DoUpdate() override;
-
-    virtual void InitializeData(Real time_now);
-    virtual void SetBoundaryCondition(Real time_now, Real time_dt);
-
-    void Push(engine::Patch *) override;
-    void Pull(engine::Patch *) override;
-
-    virtual MeshBase *GetMesh() override;
-    virtual MeshBase const *GetMesh() const override;
-    virtual EBMeshBase const *GetCenter() const;
-    virtual EBMeshBase const *GetBoundary() const;
 
     virtual unsigned int GetNDims() const { return 3; }
 
@@ -102,13 +95,27 @@ class MeshBase : public engine::SPObject,
         return map(local_coordinates(std::forward<Args>(args)...));
     }
 
-    template <typename LHS, typename RHS>
-    void Fill(LHS &lhs, RHS const &rhs) const {
-        //        ASSERT(isA(typeid(simpla::traits::mesh_type_t<LHS>)));
-        //        dynamic_cast<simpla::traits::mesh_type_t<LHS> const *>(this)->DoFill(lhs, rhs);
-    }
+    virtual void InitializeData(Real time_now);
+    virtual void SetBoundaryCondition(Real time_now, Real time_dt);
+
+    void Push(engine::Patch *) override;
+    void Pull(engine::Patch *) override;
+
+    virtual MeshBase *GetMesh() override;
+    virtual MeshBase const *GetMesh() const override;
+    virtual EBMeshBase const *GetCenter() const;
+    virtual EBMeshBase const *GetBoundary() const;
 
     virtual void AddGeometryObject(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix);
+
+    template <typename LHS, typename RHS>
+    void Fill(LHS &lhs, RHS const &rhs) const {
+        FillCenter(lhs, rhs);
+    }
+    template <typename LHS, typename RHS>
+    void FillCenter(LHS &lhs, RHS &&rhs) const;
+    template <typename LHS, typename RHS>
+    void FillBoundary(LHS &lhs, RHS &&rhs) const;
 
    protected:
     struct pimpl_s;
@@ -143,8 +150,28 @@ struct EBMeshBase {
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
+template <typename LHS, typename RHS>
+void MeshBase::FillCenter(LHS &lhs, RHS &&rhs) const {
+    auto center = GetCenter();
+    if (center == nullptr) {
+        dynamic_cast<typename LHS::mesh_type const *>(this)->DoFill(lhs, rhs);
+    } else if (isA(typeid(typename LHS::mesh_type))) {
+        center->Fill(lhs, std::forward<RHS>(rhs));
+    } else {
+        RUNTIME_ERROR << "illegal mesh type!" << std::endl;
+    }
+}
+template <typename LHS, typename RHS>
+void MeshBase::FillBoundary(LHS &lhs, RHS &&rhs) const {
+    auto brdy = GetBoundary();
+    if (brdy != nullptr) { brdy->Fill(lhs, std::forward<RHS>(rhs)); }
+}
+
+template <typename>
+struct CalculusPolicy;
+
 template <typename TM>
-struct EBMesh : public EBMeshBase {
+struct EBMesh<TM> : public EBMeshBase {
     SP_OBJECT_HEAD(EBMesh<TM>, EBMeshBase);
     typedef TM base_mesh_type;
 

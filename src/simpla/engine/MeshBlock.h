@@ -5,9 +5,9 @@
 #ifndef SIMPLA_MESHBLOCK_H
 #define SIMPLA_MESHBLOCK_H
 
-#include <simpla/engine/SPObject.h>
-#include <simpla/engine/EntityId.h>
+#include <simpla/algebra/EntityId.h>
 #include <simpla/utilities/Range.h>
+#include <simpla/utilities/SPObject.h>
 namespace simpla {
 namespace engine {
 

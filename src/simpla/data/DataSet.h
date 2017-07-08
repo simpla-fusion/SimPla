@@ -8,14 +8,12 @@
 #ifndef CORE_DATASET_DATASET_H_
 #define CORE_DATASET_DATASET_H_
 
+#include <simpla/utilities/type_traits.h>
 #include <stddef.h>
 #include <algorithm>
 #include <list>
 #include <memory>
 #include <type_traits>
-
-#include <simpla/concept/CheckConcept.h>
-#include <simpla/utilities/type_traits.h>
 #include "DataSpace.h"
 #include "DataType.h"
 

@@ -5,14 +5,13 @@
 #ifndef SIMPLA_ENABLECREATEFROMDATATABLE_H
 #define SIMPLA_ENABLECREATEFROMDATATABLE_H
 
+#include <simpla/utilities/SingletonHolder.h>
 #include <iomanip>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <string>
 #include "DataTable.h"
-#include "simpla/concept/CheckConcept.h"
-#include "simpla/utilities/SingletonHolder.h"
 namespace simpla {
 namespace data {
 class DataTable;

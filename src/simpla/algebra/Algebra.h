@@ -6,8 +6,7 @@
 #define SIMPLA_ALGEBRACOMMON_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/concept/CheckConcept.h>
-#include <simpla/engine/EntityId.h>
+#include <simpla/algebra/EntityId.h>
 #include <simpla/utilities/integer_sequence.h>
 #include <simpla/utilities/type_traits.h>
 #include <utility>

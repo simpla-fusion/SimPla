@@ -12,15 +12,11 @@
 #include <cstddef>
 #include <type_traits>
 
-#include <simpla/engine/SPObject.h>
-#include <simpla/algebra/Array.h>
-#include <simpla/engine/EntityId.h>
-#include <simpla/algebra/ExpressionTemplate.h>
-#include <simpla/utilities/FancyStream.h>
-#include <simpla/utilities/macro.h>
+#include <simpla/algebra/EntityId.h>
 #include <simpla/utilities/type_traits.h>
+#include "Array.h"
 #include "Calculus.h"
-
+#include "ExpressionTemplate.h"
 namespace simpla {
 
 template <typename M>

@@ -4,8 +4,8 @@
 
 #include <simpla/algebra/all.h>
 #include <simpla/engine/all.h>
-#include <simpla/geometry/Cube.h>
 #include <simpla/mesh/RectMesh.h>
+#include <simpla/model/Cube.h>
 #include <simpla/model/GEqdsk.h>
 #include <simpla/physics/Constants.h>
 #include <iostream>

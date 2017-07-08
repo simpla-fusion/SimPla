@@ -8,7 +8,7 @@
 #define SIMPLA_FIELD_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/data/all.h>
+//#include <simpla/data/all.h>
 #include <simpla/utilities/Range.h>
 #include <simpla/utilities/type_traits.h>
 #include "ExpressionTemplate.h"
@@ -209,25 +209,25 @@ class Field<TM, TV, IFORM, DOF...> : public TM::attribute_type {
         traits::foreach (m_data_, [&](auto& a, auto&&... idx) { a.reset(); });
         base_type::DoTearDown();
     }
-    void Push(std::shared_ptr<data::DataBlock> p) override {
-        base_type::Update();
-        auto d = std::dynamic_pointer_cast<data::DataMultiArray<value_type, NDIMS>>(p);
-        int count = 0;
-        traits::foreach (m_data_, [&](auto& a, auto&&... idx) {
-            a.swap(d->GetArray(count));
-            ++count;
-        });
-    };
-    std::shared_ptr<data::DataBlock> Pop() override {
-        auto res = std::make_shared<data::DataMultiArray<value_type, NDIMS>>(m_data_.size());
-        int count = 0;
-        traits::foreach (m_data_, [&](auto& a, auto&&... idx) {
-            res->GetArray(count).swap(a);
-            ++count;
-        });
-        base_type::TearDown();
-        return res;
-    };
+//    void Push(std::shared_ptr<data::DataBlock> p) override {
+//        base_type::Update();
+//        auto d = std::dynamic_pointer_cast<data::DataMultiArray<value_type, NDIMS>>(p);
+//        int count = 0;
+//        traits::foreach (m_data_, [&](auto& a, auto&&... idx) {
+//            a.swap(d->GetArray(count));
+//            ++count;
+//        });
+//    };
+//    std::shared_ptr<data::DataBlock> Pop() override {
+//        auto res = std::make_shared<data::DataMultiArray<value_type, NDIMS>>(m_data_.size());
+//        int count = 0;
+//        traits::foreach (m_data_, [&](auto& a, auto&&... idx) {
+//            res->GetArray(count).swap(a);
+//            ++count;
+//        });
+//        base_type::TearDown();
+//        return res;
+//    };
 
 };  // class Field
 

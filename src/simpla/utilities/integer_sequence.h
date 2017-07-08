@@ -8,13 +8,10 @@
 #ifndef CORE_toolbox_INTEGER_SEQUENCE_H_
 #define CORE_toolbox_INTEGER_SEQUENCE_H_
 
-#include <simpla/engine/SPObject.h>
 #include <stddef.h>
 #include <iostream>
-#include "simpla/concept/CheckConcept.h"
 
 namespace simpla {
-using namespace concept;
 //////////////////////////////////////////////////////////////////////
 /// integer_sequence
 //////////////////////////////////////////////////////////////////////

@@ -5,12 +5,12 @@
 #ifndef SIMPLA_ATTRIBUTEVIEW_H
 #define SIMPLA_ATTRIBUTEVIEW_H
 
+#include <simpla/SIMPLA_config.h>
+#include <simpla/data/all.h>
+#include <simpla/utilities/Signal.h>
+#include <simpla/utilities/type_traits.h>
+#include <simpla/utilities/SPObject.h>
 #include "MeshBlock.h"
-#include "SPObject.h"
-#include "simpla/SIMPLA_config.h"
-#include "simpla/concept/CheckConcept.h"
-#include "simpla/data/all.h"
-#include "simpla/utilities/Signal.h"
 
 namespace simpla {
 

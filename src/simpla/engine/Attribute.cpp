@@ -9,7 +9,7 @@
 #include "Domain.h"
 #include "MeshBlock.h"
 #include "Patch.h"
-#include "simpla/mesh/Mesh.h"
+//#include "simpla/mesh/Mesh.h"
 namespace simpla {
 namespace engine {
 AttributeDesc::AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, std::string const &s_prefix,

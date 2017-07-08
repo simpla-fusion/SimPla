@@ -6,9 +6,9 @@
 #define SIMPLA_CHART_H
 
 #include <simpla/data/all.h>
-#include <simpla/geometry/GeoObject.h>
+#include <simpla/model/GeoObject.h>
+#include <simpla/utilities/SPObject.h>
 #include <simpla/utilities/Signal.h>
-#include "simpla/engine/SPObject.h"
 namespace simpla {
 namespace geometry {
 struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<Chart> {

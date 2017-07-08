@@ -9,17 +9,17 @@
 #define GEQDSK_H_
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/engine/SPObject.h>
-#include <simpla/geometry/Chart.h>
-#include <simpla/geometry/GeoObject.h>
-#include <simpla/geometry/Polygon.h>
-#include <simpla/geometry/Revolve.h>
-#include <simpla/model/Model.h>
-#include <simpla/utilities/Log.h>
 #include <simpla/algebra/nTuple.h>
+#include <simpla/utilities/Log.h>
+#include <simpla/utilities/ObjectHead.h>
 #include <simpla/utilities/type_traits.h>
 #include <iostream>
 #include <string>
+#include "Chart.h"
+#include "GeoObject.h"
+#include "Model.h"
+#include "Polygon.h"
+#include "Revolve.h"
 namespace simpla {
 
 /**

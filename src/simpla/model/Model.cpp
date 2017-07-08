@@ -2,11 +2,11 @@
 // Created by salmon on 16-6-2.
 //
 #include "Model.h"
-#include <simpla/geometry/Cube.h>
-#include <simpla/model/GEqdsk.h>
-#include <simpla/engine/SPObject.h>
-#include "simpla/engine/Attribute.h"
-#include "simpla/engine/MeshBlock.h"
+#include <simpla/utilities/SPObject.h>
+#include "Cube.h"
+#include "GEqdsk.h"
+//#include "simpla/engine/Attribute.h"
+//#include "simpla/engine/MeshBlock.h"
 namespace simpla {
 namespace model {
 
@@ -24,7 +24,7 @@ std::shared_ptr<DataTable> Model::Serialize() const {
     }
     return res;
 };
-void Model::Deserialize(const std::shared_ptr<DataTable> &cfg) {
+void Model::Deserialize(const std::shared_ptr<DataTable>& cfg) {
     if (cfg == nullptr) { return; }
     cfg->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> const& v) {
         if (v != nullptr) { SetObject(k, geometry::GeoObject::Create(v)); }

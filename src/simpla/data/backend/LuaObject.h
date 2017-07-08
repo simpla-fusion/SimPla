@@ -21,7 +21,6 @@
 #include <tuple>
 #include <utility>
 
-#include <simpla/concept/Printable.h>
 #include <simpla/utilities/Log.h>
 #include <simpla/utilities/type_cast.h>
 #include "LuaObjectExt.h"
@@ -62,7 +61,7 @@ inline void try_lua_rawgeti(lua_State *L, int G_INDX_, int key) {
  *  @class LuaObject
  *  \brief interface to Lua Script
  */
-class LuaObject : public concept::Printable {
+class LuaObject {
     struct LuaState {
         struct lua_s {
             lua_State *m_state_;
@@ -210,10 +209,10 @@ class LuaObject : public concept::Printable {
     inline LuaObject operator[](char const s[]) const { return operator[](std::string(s)); }
     LuaObject operator[](std::string const &s) const { return get(s); };
 
-    LuaObject get(std::string const &s) const  ;
+    LuaObject get(std::string const &s) const;
     //! unsafe fast access, no boundary check, no path information
-    LuaObject get(int s) const ;
-    LuaObject operator[](int s) const  { return get(s); }
+    LuaObject get(int s) const;
+    LuaObject operator[](int s) const { return get(s); }
 
     //! index operator with out_of_range exception
     LuaObject at(size_t const &s) const;
