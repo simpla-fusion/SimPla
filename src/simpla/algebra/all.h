@@ -7,9 +7,11 @@
 
 #include "Algebra.h"
 #include "Array.h"
+#include "ArrayNTuple.h"
 #include "CalculusPolicy.h"
 #include "Field.h"
 #include "nTuple.h"
+#include "nTuple.ext.h"
 /**
  * @addtogroup algebra Algebra System
  **/
