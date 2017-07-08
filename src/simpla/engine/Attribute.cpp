@@ -7,9 +7,9 @@
 #include <set>
 #include <typeindex>
 #include "Domain.h"
-#include "MeshBase.h"
 #include "MeshBlock.h"
 #include "Patch.h"
+#include "simpla/mesh/Mesh.h"
 namespace simpla {
 namespace engine {
 AttributeDesc::AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, std::string const &s_prefix,
@@ -114,7 +114,7 @@ struct Attribute::pimpl_s {
     std::set<AttributeGroup *> m_bundle_;
 };
 Attribute::Attribute(AttributeGroup *grp, int IFORM, int DOF, std::type_info const &t_info,
-                     std::shared_ptr<DataTable> cfg)
+                     std::shared_ptr<data::DataTable> cfg)
     : SPObject((cfg != nullptr && cfg->has("name")) ? cfg->GetValue<std::string>("name") : "unnamed"),
       AttributeDesc(IFORM, DOF, t_info, SPObject::GetName(), cfg),
       m_pimpl_(new pimpl_s) {
@@ -146,8 +146,8 @@ void Attribute::Deregister(AttributeGroup *attr_b) {
         m_pimpl_->m_bundle_.erase(attr_b);
     }
 }
-void Attribute::Push(std::shared_ptr<DataBlock>) {}
-std::shared_ptr<DataBlock> Attribute::Pop() { return nullptr; }
+void Attribute::Push(std::shared_ptr<data::DataBlock>) {}
+std::shared_ptr<data::DataBlock> Attribute::Pop() { return nullptr; }
 
 const MeshBase *Attribute::GetMesh() const { return m_pimpl_->m_mesh_; }
 bool Attribute::isNull() const { return true; }

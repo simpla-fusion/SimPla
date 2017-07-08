@@ -26,7 +26,7 @@ struct CylindricalCoordinates : public Chart {
     SP_DEFAULT_CONSTRUCT(CylindricalCoordinates)
     DECLARE_REGISTER_NAME("CylindricalCoordinates");
 
-    void InitializeData(engine::MeshBase *,Real) const;
+    void InitializeData(engine::Mesh *,Real) const;
 };
 }
 

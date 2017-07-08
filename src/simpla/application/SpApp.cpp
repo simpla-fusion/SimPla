@@ -74,7 +74,7 @@ std::shared_ptr<engine::Schedule> SpApp::GetSchedule() const { return m_pimpl_->
 }  // namespace application{
 }  // namespace simpla{
 // static const bool _every_thing_are_registered = engine::Context::is_registered &&      //
-//                                                engine::MeshBase::is_registered &&     //
+//                                                engine::Mesh::is_registered &&     //
 //                                                engine::Domain::is_registered &&       //
 //                                                geometry::GeoObject::is_registered &&  //
 //                                                geometry::Chart::is_registered;

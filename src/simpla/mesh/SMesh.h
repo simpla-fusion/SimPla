@@ -7,12 +7,12 @@
 
 #include <simpla/algebra/all.h>
 #include <simpla/data/all.h>
-#include "EBMesh.h"
+#include "Mesh.h"
 #include "StructuredMesh.h"
 
 namespace simpla {
 namespace mesh {
-using namespace simpla::engine;
+using namespace simpla::data;
 
 /**
  *  Curvilinear
@@ -26,13 +26,13 @@ struct SMesh : public StructuredMesh {
     explicit SMesh(Args &&... args) : StructuredMesh(std::forward<Args>(args)...){};
     ~SMesh() override = default;
 
-    EBMesh<SMesh> boundary{this};
-
     SP_DEFAULT_CONSTRUCT(SMesh)
     DECLARE_REGISTER_NAME(SMesh);
+
     void InitializeData(Real time_now) override;
     void SetBoundaryCondition(Real time_now, Real time_dt) override;
-
+    template <typename TL, typename TR>
+    void DoFill(TL &lhs, TR const &rhs) const {};
     point_type local_coordinates(entity_id_type s, Real const *r = nullptr) const override;
 
     Field<this_type, Real, VERTEX, 3> m_coordinates_{this, "name"_ = "m_coordinates_" /*, "COORDINATES"_*/};

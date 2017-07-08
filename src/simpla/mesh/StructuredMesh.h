@@ -8,24 +8,24 @@
 #include <simpla/algebra/Array.h>
 #include <simpla/algebra/all.h>
 #include <simpla/data/all.h>
-#include <simpla/engine/MeshBase.h>
 #include <simpla/geometry/Chart.h>
+
+#include "Mesh.h"
 namespace simpla {
 namespace mesh {
-using namespace simpla::data;
-using namespace simpla::algebra;
 
 /**
  *  Structured Mesh
  *  - index space and local coordinates have same origin coordinates
  *
  */
-class StructuredMesh : public engine::MeshBase {
-    SP_OBJECT_HEAD(StructuredMesh, engine::MeshBase)
+class StructuredMesh : public MeshBase {
+    SP_OBJECT_HEAD(StructuredMesh, MeshBase)
    public:
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
     typedef EntityId entity_id_type;
+    typedef engine::Attribute attribute_type;
 
     template <typename V>
     using array_type = Array<V, ZSFC<NDIMS>>;
@@ -34,7 +34,7 @@ class StructuredMesh : public engine::MeshBase {
     using data_type = nTuple<array_type<V>, ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3), DOF...>;
 
     template <typename... Args>
-    explicit StructuredMesh(Args &&... args) : engine::MeshBase(std::forward<Args>(args)...){};
+    explicit StructuredMesh(Args &&... args) : MeshBase(std::forward<Args>(args)...){};
 
     ~StructuredMesh() override = default;
 
@@ -46,7 +46,7 @@ class StructuredMesh : public engine::MeshBase {
 
     index_box_type GetIndexBox(int tag) const override;
 
-    void RegisterRanges(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix) override;
+    void AddGeometryObject(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix) override;
 
     point_type point(entity_id_type s) const;
 
@@ -68,9 +68,9 @@ class StructuredMesh : public engine::MeshBase {
         return res;
     }
 
-    void InitializeData(Real time_now) override { engine::MeshBase::InitializeData(time_now); }
+    void InitializeData(Real time_now) override { MeshBase::InitializeData(time_now); }
     void SetBoundaryCondition(Real time_now, Real time_dt) override {
-        engine::MeshBase::SetBoundaryCondition(time_now, time_dt);
+        MeshBase::SetBoundaryCondition(time_now, time_dt);
     }
 
    protected:
@@ -79,7 +79,7 @@ class StructuredMesh : public engine::MeshBase {
 
    public:
     template <typename TL, typename TR>
-    void Fill(TL &lhs, TR const &rhs) const {
+    void DoFill(TL &lhs, TR const &rhs) const {
         CalculusPolicy<this_type>::Fill<simpla::traits::iform<TL>::value>(*this, lhs.Get(), rhs);
     }
 

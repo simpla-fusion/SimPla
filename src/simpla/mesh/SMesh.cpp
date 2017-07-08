@@ -185,14 +185,14 @@ void SMesh::InitializeData(Real time_now) {
 void SMesh::SetBoundaryCondition(Real time_now, Real time_dt) {
     StructuredMesh::SetBoundaryCondition(time_now, time_dt);
 
-    boundary.Fill(m_vertex_volume_, 0);
-    boundary.Fill(m_vertex_dual_volume_, 0);
-    boundary.Fill(m_edge_volume_, 0);
-    boundary.Fill(m_edge_dual_volume_, 0);
-    boundary.Fill(m_face_volume_, 0);
-    boundary.Fill(m_face_dual_volume_, 0);
-    boundary.Fill(m_volume_volume_, 0);
-    boundary.Fill(m_volume_dual_volume_, 0);
+    GetBoundary()->Fill(m_vertex_volume_, 0);
+    GetBoundary()->Fill(m_vertex_dual_volume_, 0);
+    GetBoundary()->Fill(m_edge_volume_, 0);
+    GetBoundary()->Fill(m_edge_dual_volume_, 0);
+    GetBoundary()->Fill(m_face_volume_, 0);
+    GetBoundary()->Fill(m_face_dual_volume_, 0);
+    GetBoundary()->Fill(m_volume_volume_, 0);
+    GetBoundary()->Fill(m_volume_dual_volume_, 0);
 }
 }
 }

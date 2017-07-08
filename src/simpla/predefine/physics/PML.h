@@ -33,8 +33,8 @@ class PML : public engine::Domain {
     virtual ~PML(){};
 
     mesh_type m_mesh_;
-    std::shared_ptr<MeshBase> GetMesh() { return &m_mesh_; }
-    MeshBase const* GetMesh() const { return &m_mesh_; }
+    std::shared_ptr<Mesh> GetMesh() { return &m_mesh_; }
+    Mesh const* GetMesh() const { return &m_mesh_; }
 
     void SetCenterDomain(geometry::GeoObject const&) {}
 

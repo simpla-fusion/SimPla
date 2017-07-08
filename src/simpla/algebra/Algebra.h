@@ -124,16 +124,13 @@ using field_value_t = typename field_value_type<T>::type;
 //                                     !(is_field<Others...>::value || is_array<Others...>::value)) ||
 //                                        is_nTuple<Others...>::value> {};
 
-CHECK_STATIC_INTEGRAL_CONSTEXPR_DATA_MEMBER(ndims, NDIMS, 1)
-
-CHECK_STATIC_INTEGRAL_CONSTEXPR_DATA_MEMBER(dof, dof, 1)
-
-CHECK_STATIC_INTEGRAL_CONSTEXPR_DATA_MEMBER(iform, iform, VERTEX)
-
-CHECK_STATIC_INTEGRAL_CONSTEXPR_DATA_MEMBER(num_of_sub, num_of_sub, 1)
-
-template <typename T>
-struct iform<const T> : public std::integral_constant<int, iform<T>::value> {};
+// CHECK_STATIC_INTEGRAL_CONSTEXPR_DATA_MEMBER(ndims, NDIMS, 1)
+//
+// CHECK_STATIC_INTEGRAL_CONSTEXPR_DATA_MEMBER(dof, dof, 1)
+//
+// CHECK_STATIC_INTEGRAL_CONSTEXPR_DATA_MEMBER(iform, iform, VERTEX)
+//
+// CHECK_STATIC_INTEGRAL_CONSTEXPR_DATA_MEMBER(num_of_sub, num_of_sub, 1)
 
 // template <typename _T>
 // struct iform_ {

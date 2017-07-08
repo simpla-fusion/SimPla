@@ -1,20 +1,19 @@
 //
 // Created by salmon on 16-11-24.
 //
-#include "MeshBase.h"
+#include "Mesh.h"
+#include <simpla/engine/EntityId.h>
 #include <simpla/geometry/Chart.h>
 #include <simpla/geometry/GeoObject.h>
-#include <simpla/engine/EntityId.h>
 #include "simpla/engine/Attribute.h"
 #include "simpla/engine/Domain.h"
 #include "simpla/engine/MeshBlock.h"
 #include "simpla/engine/Patch.h"
 #include "simpla/model/Model.h"
 namespace simpla {
-namespace engine {
 
 struct MeshBase::pimpl_s {
-    MeshBlock m_mesh_block_;
+    engine::MeshBlock m_mesh_block_;
     std::shared_ptr<geometry::Chart> m_chart_;
     point_type m_origin_ = {1, 1, 1};
     point_type m_coarsest_cell_width_ = {1, 1, 1};
@@ -23,6 +22,9 @@ struct MeshBase::pimpl_s {
     index_tuple m_dimensions_{1, 1, 1};
     size_tuple m_periodic_dimension_{0, 0, 0};
     std::shared_ptr<std::map<std::string, EntityRange>> m_ranges_;
+
+    std::shared_ptr<EBMeshBase> m_center_mesh_;
+    std::shared_ptr<EBMeshBase> m_boundary_mesh_;
 };
 MeshBase::MeshBase(std::shared_ptr<geometry::Chart> const& c, std::string const& s_name)
     : SPObject(s_name), m_pimpl_(new pimpl_s) {
@@ -34,6 +36,10 @@ void MeshBase::SetChart(std::shared_ptr<geometry::Chart> const& c) {
     Click();
 }
 std::shared_ptr<geometry::Chart> MeshBase::GetChart() const { return m_pimpl_->m_chart_; }
+MeshBase* MeshBase::GetMesh() { return this; }
+MeshBase const* MeshBase::GetMesh() const { return this; }
+EBMeshBase const* MeshBase::GetCenter() const { return m_pimpl_->m_center_mesh_.get(); }
+EBMeshBase const* MeshBase::GetBoundary() const { return m_pimpl_->m_boundary_mesh_.get(); }
 
 point_type const& MeshBase::GetCellWidth() const { return m_pimpl_->m_coarsest_cell_width_; }
 point_type const& MeshBase::GetOrigin() const { return m_pimpl_->m_origin_; }
@@ -60,20 +66,20 @@ void MeshBase::SetDimensions(index_tuple const& d) { m_pimpl_->m_dimensions_ = d
 index_tuple MeshBase::GetDimensions() const { return m_pimpl_->m_dimensions_; }
 index_tuple MeshBase::GetIndexOffset() const { return m_pimpl_->m_idx_origin_; }
 
-void MeshBase::DoUpdate() { Tag(); };
+void MeshBase::DoUpdate() { engine::SPObject::DoUpdate(); };
 
-void MeshBase::SetBlock(const MeshBlock& m) {
+void MeshBase::SetBlock(const engine::MeshBlock& m) {
     m_pimpl_->m_mesh_block_ = m;
     Click();
 }
-const MeshBlock& MeshBase::GetBlock() const { return m_pimpl_->m_mesh_block_; }
+const engine::MeshBlock& MeshBase::GetBlock() const { return m_pimpl_->m_mesh_block_; }
 
 id_type MeshBase::GetBlockId() const { return m_pimpl_->m_mesh_block_.GetGUID(); }
 
-void MeshBase::InitializeData(Real time_now) { DoUpdate(); }
-void MeshBase::SetBoundaryCondition(Real time_now, Real time_dt) { DoUpdate(); }
+void MeshBase::InitializeData(Real time_now) { Update(); }
+void MeshBase::SetBoundaryCondition(Real time_now, Real time_dt) { Update(); }
 
-std::shared_ptr<DataTable> MeshBase::Serialize() const {
+std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
     auto p = std::make_shared<data::DataTable>();
     p->SetValue("Type", GetRegisterName());
 
@@ -85,12 +91,13 @@ std::shared_ptr<DataTable> MeshBase::Serialize() const {
     p->SetValue("CoarsestCellWidth", m_pimpl_->m_coarsest_cell_width_);
     return p;
 }
-void MeshBase::Deserialize(const std::shared_ptr<DataTable>& cfg) {
+void MeshBase::Deserialize(const std::shared_ptr<data::DataTable>& cfg) {
     m_pimpl_->m_chart_ = cfg->has("Coordinates") ? geometry::Chart::Create(cfg->Get("Coordinates"))
                                                  : geometry::Chart::Create("Cartesian");
     m_pimpl_->m_idx_origin_ = cfg->GetValue<nTuple<int, 3>>("IndexOrigin", nTuple<int, 3>{0, 0, 0});
     m_pimpl_->m_dimensions_ = cfg->GetValue<nTuple<int, 3>>("Dimensions", nTuple<int, 3>{1, 1, 1});
     m_pimpl_->m_periodic_dimension_ = cfg->GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 0});
+    Update();
 }
 index_tuple MeshBase::GetGhostWidth(int tag) const { return GetBlock().GetGhostWidth(); }
 
@@ -107,7 +114,36 @@ box_type MeshBase::GetBox() const {
 
 point_type MeshBase::map(point_type const& p) const { return m_pimpl_->m_chart_->map(p); }
 
-// index_box_type MeshBase::GetIndexBox(int tag) const {
+void MeshBase::Push(engine::Patch* p) {
+    Click();
+    //    SetRanges(p->GetRanges());
+    SetBlock(p->GetBlock());
+    engine::AttributeGroup::Push(p);
+    DoUpdate();
+}
+void MeshBase::Pull(engine::Patch* p) {
+    p->SetBlock(GetBlock());
+    //    p->SetRanges(GetRanges());
+    engine::AttributeGroup::Pull(p);
+    Click();
+    DoTearDown();
+}
+
+void MeshBase::AddGeometryObject(std::shared_ptr<geometry::GeoObject> const& g, std::string const& prefix){};
+
+struct EBMeshBase::pimpl_s {
+    MeshBase const* m_base_mesh_;
+};
+
+EBMeshBase::EBMeshBase(MeshBase const* m) : m_pimpl_(new pimpl_s) { m_pimpl_->m_base_mesh_ = m; }
+
+MeshBase const* EBMeshBase::GetBaseMesh() const { return m_pimpl_->m_base_mesh_; }
+
+void EBMeshBase::AddGeometryObject(std::shared_ptr<geometry::GeoObject> const& g, std::string const& prefix) {}
+
+bool EBMeshBase::empty() const { return false; }
+
+// index_box_type Mesh::GetIndexBox(int tag) const {
 //    index_box_type res = GetBlock()->GetIndexBox();
 //    switch (tag) {
 //        case 0:
@@ -140,60 +176,43 @@ point_type MeshBase::map(point_type const& p) const { return m_pimpl_->m_chart_-
 //    }
 //    return res;
 //}
-
-EntityRange MeshBase::GetRange(std::string const& k) const {
-    if (m_pimpl_->m_ranges_ == nullptr) {
-        return EntityRange{};
-    } else {
-        auto it = m_pimpl_->m_ranges_->find(k);
-        return (it != m_pimpl_->m_ranges_->end()) ? it->second : EntityRange{};
-    }
-};
-
-EntityRange MeshBase::GetBodyRange(int IFORM, std::string const& k) const {
-    return GetRange(k + "." + std::string(EntityIFORMName[IFORM]) + "_BODY");
-};
-EntityRange MeshBase::GetBoundaryRange(int IFORM, std::string const& k, bool is_parallel) const {
-    auto res =
-        (IFORM == VERTEX || IFORM == VOLUME)
-            ? GetRange(k + "." + std::string(EntityIFORMName[IFORM]) + "_BOUNDARY")
-            : GetRange(k + "." + std::string(EntityIFORMName[IFORM]) + (is_parallel ? "_PARA" : "_PERP") + "_BOUNDARY");
-    return res;
-};
-EntityRange MeshBase::GetParallelBoundaryRange(int IFORM, std::string const& k) const {
-    return GetBoundaryRange(IFORM, k, true);
-}
-EntityRange MeshBase::GetPerpendicularBoundaryRange(int IFORM, std::string const& k) const {
-    return GetBoundaryRange(IFORM, k, false);
-}
-EntityRange MeshBase::GetGhostRange(int IFORM) const {
-    return GetRange("." + std::string(EntityIFORMName[IFORM]) + "_GHOST");
-}
-EntityRange MeshBase::GetInnerRange(int IFORM) const {
-    return GetRange("." + std::string(EntityIFORMName[IFORM]) + "_INNER");
-}
-void MeshBase::Push(Patch* p) {
-    Click();
-    SetRanges(p->GetRanges());
-    SetBlock(p->GetBlock());
-    AttributeGroup::Push(p);
-    DoUpdate();
-}
-void MeshBase::Pull(Patch* p) {
-    p->SetBlock(GetBlock());
-    p->SetRanges(GetRanges());
-    AttributeGroup::Pull(p);
-    Click();
-    DoTearDown();
-}
-
-void MeshBase::RegisterRanges(std::shared_ptr<geometry::GeoObject> const& g, std::string const& prefix){};
-
-std::shared_ptr<std::map<std::string, EntityRange>> MeshBase::GetRanges() { return m_pimpl_->m_ranges_; };
-std::shared_ptr<std::map<std::string, EntityRange>> MeshBase::GetRanges() const { return m_pimpl_->m_ranges_; };
-void MeshBase::SetRanges(std::shared_ptr<std::map<std::string, EntityRange>> const& r) {
-    m_pimpl_->m_ranges_ = r;
-    Click();
-};
-}  // {namespace engine
+//
+// EntityRange Mesh::GetRange(std::string const& k) const {
+//    if (m_pimpl_->m_ranges_ == nullptr) {
+//        return EntityRange{};
+//    } else {
+//        auto it = m_pimpl_->m_ranges_->find(k);
+//        return (it != m_pimpl_->m_ranges_->end()) ? it->second : EntityRange{};
+//    }
+//};
+//
+// EntityRange Mesh::GetBodyRange(int IFORM, std::string const& k) const {
+//    return GetRange(k + "." + std::string(EntityIFORMName[IFORM]) + "_BODY");
+//};
+// EntityRange Mesh::GetBoundaryRange(int IFORM, std::string const& k, bool is_parallel) const {
+//    auto res =
+//        (IFORM == VERTEX || IFORM == VOLUME)
+//            ? GetRange(k + "." + std::string(EntityIFORMName[IFORM]) + "_BOUNDARY")
+//            : GetRange(k + "." + std::string(EntityIFORMName[IFORM]) + (is_parallel ? "_PARA" : "_PERP") +
+//            "_BOUNDARY");
+//    return res;
+//};
+// EntityRange Mesh::GetParallelBoundaryRange(int IFORM, std::string const& k) const {
+//    return GetBoundaryRange(IFORM, k, true);
+//}
+// EntityRange Mesh::GetPerpendicularBoundaryRange(int IFORM, std::string const& k) const {
+//    return GetBoundaryRange(IFORM, k, false);
+//}
+// EntityRange Mesh::GetGhostRange(int IFORM) const {
+//    return GetRange("." + std::string(EntityIFORMName[IFORM]) + "_GHOST");
+//}
+// EntityRange Mesh::GetInnerRange(int IFORM) const {
+//    return GetRange("." + std::string(EntityIFORMName[IFORM]) + "_INNER");
+//}
+// std::shared_ptr<std::map<std::string, EntityRange>> Mesh::GetRanges() { return m_pimpl_->m_ranges_; };
+// std::shared_ptr<std::map<std::string, EntityRange>> Mesh::GetRanges() const { return m_pimpl_->m_ranges_; };
+// void Mesh::SetRanges(std::shared_ptr<std::map<std::string, EntityRange>> const& r) {
+//    m_pimpl_->m_ranges_ = r;
+//    Click();
+//};
 }  // namespace simpla

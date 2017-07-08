@@ -27,26 +27,7 @@ template <typename TM, typename TV, int...>
 class Field;
 }
 
-namespace std {
-template <typename TM, typename TV, int IFORM, int... DOF>
-struct rank<simpla::Field<TM, TV, IFORM, DOF...>> : public std::integral_constant<int, sizeof...(DOF)> {};
-
-}  // namespace std{
-
 namespace simpla {
-namespace traits {
-
-template <typename TM, typename TV, int IFORM, int DOF>
-struct iform<Field<TM, TV, IFORM, DOF>> : public std::integral_constant<int, IFORM> {};
-
-template <typename TM, typename TV, int IFORM, int DOF>
-struct dof<Field<TM, TV, IFORM, DOF>> : public std::integral_constant<int, DOF> {};
-
-template <typename TM, typename TV, int IFORM, int DOF>
-struct value_type<Field<TM, TV, IFORM, DOF>> {
-    typedef TV type;
-};
-}  // namespace traits {
 
 /**
  * @defgroup algebra Algebra
@@ -93,7 +74,8 @@ _SP_DEFINE_EXPR_BINARY_FUNCTION(wedge)
 //_SP_DEFINE_EXPR_BINARY_FUNCTION(dot)
 
 namespace traits {
-
+template <typename T>
+struct iform : public std::integral_constant<int, VERTEX> {};
 //******************************************************
 
 template <typename T>

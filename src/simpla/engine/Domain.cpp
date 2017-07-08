@@ -4,8 +4,8 @@
 
 #include "Domain.h"
 #include "Attribute.h"
-#include "MeshBase.h"
 #include "Patch.h"
+#include "simpla/mesh/Mesh.h"
 
 namespace simpla {
 namespace engine {
@@ -29,14 +29,14 @@ void Domain::swap(Domain& other) { UNIMPLEMENTED; }
 
 std::string Domain::GetDomainPrefix() const { return m_pimpl_->m_domain_geo_prefix_; };
 
-std::shared_ptr<DataTable> Domain::Serialize() const {
-    auto p = std::make_shared<DataTable>();
+std::shared_ptr<data::DataTable> Domain::Serialize() const {
+    auto p = std::make_shared<data::DataTable>();
     p->SetValue("Type", GetRegisterName());
     p->SetValue("Name", GetName());
     p->SetValue("GeometryObject", m_pimpl_->m_domain_geo_prefix_);
     return (p);
 }
-void Domain::Deserialize(const std::shared_ptr<DataTable>& cfg) {
+void Domain::Deserialize(const std::shared_ptr<data::DataTable>& cfg) {
     DoInitialize();
     Click();
     SetName(cfg->GetValue<std::string>("Name", "unnamed"));
@@ -71,21 +71,21 @@ void Domain::Pull(Patch* patch) {
     DoTearDown();
 }
 
-void Domain::DoInitialCondition(Patch *patch, Real time_now) {
+void Domain::DoInitialCondition(Patch* patch, Real time_now) {
     Push(patch);
     PreInitialCondition(this, time_now);
     InitialCondition(time_now);
     PostInitialCondition(this, time_now);
     Pull(patch);
 }
-void Domain::DoBoundaryCondition(Patch *patch, Real time_now, Real dt) {
+void Domain::DoBoundaryCondition(Patch* patch, Real time_now, Real dt) {
     Push(patch);
     PreBoundaryCondition(this, time_now, dt);
     BoundaryCondition(time_now, dt);
     PostBoundaryCondition(this, time_now, dt);
     Pull(patch);
 }
-void Domain::DoAdvance(Patch *patch, Real time_now, Real dt) {
+void Domain::DoAdvance(Patch* patch, Real time_now, Real dt) {
     Push(patch);
     PreAdvance(this, time_now, dt);
     Advance(time_now, dt);

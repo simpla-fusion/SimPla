@@ -27,7 +27,7 @@ struct GyroParticleWithCylindricalCoord
 {
 
     static_assert(std::is_same<typename TM::metric_type, ::simpla::geometry::CylindricalMetric>::value,
-                  "MeshBase is not Cylindrical");
+                  "Mesh is not Cylindrical");
 
 
     typedef TM mesh_type;

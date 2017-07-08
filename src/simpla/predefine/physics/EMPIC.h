@@ -99,9 +99,9 @@ void EMPIC<TM>::init(ConfigParser const &options)
         mesh::select(*m, m->range(EDGE), options["Constraints"]["J"]["RectMesh"].as<box_type>()).swap(J_src_range);
 
     }
-    dt(options["MeshBase"]["dt"].as<Real>(1.0));
+    dt(options["Mesh"]["dt"].as<Real>(1.0));
 
-    time(options["MeshBase"]["time"].as<Real>(0.0));
+    time(options["Mesh"]["time"].as<Real>(0.0));
 
     J1.clear();
     B1.clear();

@@ -139,21 +139,21 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
 }
 template <typename TM>
 void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
-    GetMesh()->boundary.Fill(B, 0);
-    GetMesh()->boundary.Fill(E, 0);
-    GetMesh()->boundary.Fill(J, 0);
-    GetMesh()->boundary.Fill(dumpE, 0);
-    GetMesh()->boundary.Fill(dumpB, 0);
+    GetMesh()->GetBoundary()->Fill(B, 0);
+    GetMesh()->GetBoundary()->Fill(E, 0);
+    GetMesh()->GetBoundary()->Fill(J, 0);
+    GetMesh()->GetBoundary()->Fill(dumpE, 0);
+    GetMesh()->GetBoundary()->Fill(dumpB, 0);
 }
 template <typename TM>
 void EMFluid<TM>::Advance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
 
     B = B - curl(E) * (dt * 0.5);
-    GetMesh()->boundary.Fill(B, 0);
+    GetMesh()->GetBoundary()->Fill(B, 0);
 
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
-    GetMesh()->boundary.Fill(E, 0);
+    GetMesh()->GetBoundary()->Fill(E, 0);
 
     if (m_fluid_sp_.size() > 0) {
         Ev = map_to<VOLUME>(E);
@@ -220,10 +220,10 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     }
 
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
-    GetMesh()->boundary.Fill(E, 0);
+    GetMesh()->GetBoundary()->Fill(E, 0);
 
     B = B - curl(E) * (dt * 0.5);
-    GetMesh()->boundary.Fill(B, 0);
+    GetMesh()->GetBoundary()->Fill(B, 0);
 
     dumpE.DeepCopy(E);
     dumpB.DeepCopy(B);

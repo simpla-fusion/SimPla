@@ -10,10 +10,10 @@
 #include <simpla/utilities/Signal.h>
 #include <memory>
 #include "Attribute.h"
-#include "MeshBase.h"
+
 namespace simpla {
-namespace engine {
 class MeshBase;
+namespace engine {
 class Patch;
 class AttributeGroup;
 
@@ -41,8 +41,8 @@ class Domain : public SPObject,
     }
 
     DECLARE_REGISTER_NAME(Domain)
-    std::shared_ptr<DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<DataTable> &t) override;
+    std::shared_ptr<data::DataTable> Serialize() const override;
+    void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
 
     void Pull(Patch *) override;
     void Push(Patch *t) override;
@@ -91,15 +91,6 @@ class Domain : public SPObject,
     void DoBoundaryCondition(Patch *, Real time_now, Real dt);
     void DoAdvance(Patch *, Real time_now, Real dt);
 
-    template <typename T>
-    T GetAttribute(std::string const &k, EntityRange const &r) const {
-        return T(AttributeGroup::Get(k)->cast_as<T>(), r);
-    };
-
-    template <typename T>
-    T GetAttribute(std::string const &k, std::string const &s) const {
-        return GetAttribute<T>(k, GetMesh()->GetBodyRange(T::iform, s));
-    };
     template <typename T>
     T GetAttribute(std::string const &k) const {
         return T(AttributeGroup::Get(k)->cast_as<T>());

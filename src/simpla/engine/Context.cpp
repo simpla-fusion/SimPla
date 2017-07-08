@@ -6,7 +6,7 @@
 #include <simpla/geometry/Chart.h>
 #include <simpla/geometry/GeoAlgorithm.h>
 #include "Domain.h"
-#include "MeshBase.h"
+#include "simpla/mesh/Mesh.h"
 #include "simpla/model/Model.h"
 namespace simpla {
 namespace engine {
@@ -31,7 +31,7 @@ std::shared_ptr<data::DataTable> Context::Serialize() const {
 
     return res;
 }
-void Context::Deserialize(const std::shared_ptr<DataTable> &cfg) {
+void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     DoInitialize();
     SetName(cfg->GetValue<std::string>("Name", "unnamed"));
 
@@ -142,7 +142,7 @@ void Context::InitialCondition(Patch *patch, Real time_now) {
     GetMesh()->InitializeData(time_now);
 
     for (auto const &item : GetModel().GetAll()) {
-        if (!item.second->hasChildren()) { GetMesh()->RegisterRanges(item.second, item.first); };
+        if (!item.second->hasChildren()) { GetMesh()->AddGeometryObject(item.second, item.first); };
     }
 
     for (auto &d : GetAllDomains()) { d.second->DoInitialCondition(patch, time_now); }
@@ -201,7 +201,7 @@ void Context::Advance(Patch *patch, Real time_now, Real time_dt) {
 //        if (!v->isTable()) { return; }
 //        auto const &t = v->cast_as<data::DataTable>();
 //
-//        std::shared_ptr m(GLOBAL_MESHVIEW_FACTORY.Create(t.GetTable("MeshBase"),
+//        std::shared_ptr m(GLOBAL_MESHVIEW_FACTORY.Create(t.GetTable("Mesh"),
 //                                                         GetModel().AddObject(key,
 //                                                         t.GetTable("Geometry")).first));
 //
@@ -218,7 +218,7 @@ void Context::Advance(Patch *patch, Real time_now, Real time_dt) {
 //    }
 //    std::shared_ptr<geometry::GeoObject> geo = g;
 //    if (geo == nullptr) { geo.reset(GLOBAL_GEO_OBJECT_FACTORY.Create(db()->GetTable("Geometry"))); }
-//    m_pimpl_->m_chart_.reset(GLOBAL_MESHVIEW_FACTORY.Create(db()->GetTable("MeshBase"), geo));
+//    m_pimpl_->m_chart_.reset(GLOBAL_MESHVIEW_FACTORY.Create(db()->GetTable("Mesh"), geo));
 //
 //    m_pimpl_->m_is_initialized_ = true;
 //    LOGGER << "Context is initialized!" << std::endl;
