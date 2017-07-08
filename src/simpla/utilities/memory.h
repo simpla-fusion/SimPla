@@ -54,7 +54,6 @@ int spMemoryAlloc(T **addr, size_t n, int location = MANAGED_MEMORY) {
     //    }
 };
 
-
 inline int spMemoryFree(void **dest, size_t n) {
     if (dest == nullptr) { return SP_FAILED; }
 #ifndef __CUDA__
@@ -127,7 +126,8 @@ int spMemoryFill(T *dest, T const &src, size_t n) {
 #pragma omp parallel for
     for (int i = 0; i < m * n; ++i) { p_dest[i] = p_src[i % m]; }
 #else
-    SP_CALL_DEVICE_KERNEL(detail::spCUDA_Assign, (n + NUM_OF_THREAD) / NUM_OF_THREAD, NUM_OF_THREAD, dest, src, n);
+    SP_CALL_DEVICE_KERNEL(simpla::detail::spCUDA_Assign, (n + NUM_OF_THREAD) / NUM_OF_THREAD, NUM_OF_THREAD, dest, src,
+                          n);
 #endif
     return SP_SUCCESS;
 }
@@ -136,7 +136,8 @@ template <typename U, typename V>
 int spMemoryCopy(U *dest, V const *src, size_t n) {
 #ifndef __CUDA__
 #else
-    SP_CALL_DEVICE_KERNEL(detail::spCUDA_Copy, (n + NUM_OF_THREAD) / NUM_OF_THREAD, NUM_OF_THREAD, dest, src, n);
+    SP_CALL_DEVICE_KERNEL(simpla::detail::spCUDA_Copy, (n + NUM_OF_THREAD) / NUM_OF_THREAD, NUM_OF_THREAD, dest, src,
+                          n);
 
 #endif
     return SP_SUCCESS;

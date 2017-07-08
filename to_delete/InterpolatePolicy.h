@@ -7,14 +7,14 @@
 #ifndef SIMPLA_LINEAR_H
 #define SIMPLA_LINEAR_H
 
-#include <simpla/utilities/EntityId.h>
-#include <simpla/utilities/ExpressionTemplate.h>
+#include <simpla/engine/EntityId.h>
+#include <simpla/algebra/ExpressionTemplate.h>
 #include <simpla/utilities/macro.h>
-#include <simpla/utilities/nTuple.h>
+#include <simpla/algebra/nTuple.h>
 #include <simpla/utilities/type_traits.h>
 
-#include "Algebra.h"
-#include "../../../to_delete/Calculus.h"
+#include "simpla/algebra/Algebra.h"
+#include "Calculus.h"
 
 namespace simpla {
 

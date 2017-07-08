@@ -4,9 +4,12 @@
 
 #ifndef SIMPLA_RECTMESH_H
 #define SIMPLA_RECTMESH_H
+#include <simpla/algebra/CalculusPolicy.h>
 #include <simpla/algebra/all.h>
 #include <simpla/data/all.h>
+#include "EBMesh.h"
 #include "StructuredMesh.h"
+
 namespace simpla {
 namespace mesh {
 using namespace simpla::engine;
@@ -21,6 +24,8 @@ struct RectMesh : public StructuredMesh {
     template <typename... Args>
     explicit RectMesh(Args &&... args) : StructuredMesh(std::forward<Args>(args)...){};
     ~RectMesh() override = default;
+
+    EBMesh<RectMesh> boundary{this};
 
     SP_DEFAULT_CONSTRUCT(RectMesh)
     DECLARE_REGISTER_NAME(RectMesh);

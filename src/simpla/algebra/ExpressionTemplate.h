@@ -5,48 +5,30 @@
 #ifndef SIMPLA_EXPRESSIONTEMPLATE_H
 #define SIMPLA_EXPRESSIONTEMPLATE_H
 
+#include <simpla/utilities/type_traits.h>
 #include <cmath>
 #include <complex>
 #include <tuple>
-#include "host_define.h"
-#include "type_traits.h"
-#include "utility.h"
 
 namespace simpla {
 template <typename...>
 class Expression;
-template <typename TM, typename TV, int...>
-class Field;
 }
 
 namespace std {
+
 template <typename TOP, typename... Args>
-struct rank<simpla::Expression<TOP, Args...>>
-    : public simpla::traits::seq_max<std::index_sequence<rank<Args>::value...>> {};
+struct rank<simpla::Expression<TOP, Args...>> : public std::integral_constant<int, simpla::max(rank<Args>::value...)> {
+};
 
 template <size_t N, typename TOP, typename... Args>
 struct extent<simpla::Expression<TOP, Args...>, N>
-    : public simpla::traits::seq_max<std::index_sequence<extent<Args, N>::value...>> {};
-
-//    template <typename TOP, typename... Args>
-//    struct extent<simpla::Expression<TOP, Args...>>
-//            : public std::integral_constant<
-//                    int, simpla::traits::mt_min<int, std::extent<typename
-//                    std::remove_cv<Args>::type>::value...>::value> {};
+    : public std::integral_constant<int, simpla::max(extent<Args>::value...)> {};
 }
 
 namespace simpla {
 
 namespace traits {
-template <typename TM, typename TV, int... I>
-struct reference<Field<TM, TV, I...>> {
-    typedef const Field<TM, TV, I...> &type;
-};
-
-template <typename TM, typename TV, int... I>
-struct reference<const Field<TM, TV, I...>> {
-    typedef const Field<TM, TV, I...> &type;
-};
 
 template <typename TExpr>
 struct is_expression : public std::false_type {};

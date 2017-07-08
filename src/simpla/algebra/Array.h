@@ -12,11 +12,11 @@
 #include <tuple>
 
 #include "ExpressionTemplate.h"
-#include "Log.h"
+#include "simpla/utilities/Log.h"
 #include "SFC.h"
-#include "memory.h"
+#include "simpla/utilities/memory.h"
 #include "nTuple.h"
-#include "type_traits.h"
+#include "simpla/utilities/type_traits.h"
 namespace simpla {
 template <typename V, typename SFC>
 class Array;

@@ -9,8 +9,8 @@
 #include <simpla/data/all.h>
 #include <simpla/geometry/Chart.h>
 #include <simpla/geometry/GeoObject.h>
-#include "Attribute.h"
-#include "SPObject.h"
+#include "simpla/engine/Attribute.h"
+#include "simpla/engine/SPObject.h"
 
 namespace simpla {
 namespace engine {
@@ -31,6 +31,8 @@ class MeshBase : public SPObject, public AttributeGroup, public data::EnableCrea
     SP_OBJECT_HEAD(MeshBase, SPObject);
 
    public:
+    typedef Attribute attribute_type;
+
     explicit MeshBase(std::shared_ptr<geometry::Chart> const &c = nullptr, std::string const &s_name = "");
     ~MeshBase() override;
     SP_DEFAULT_CONSTRUCT(MeshBase);

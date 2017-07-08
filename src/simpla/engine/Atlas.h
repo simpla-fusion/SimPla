@@ -10,7 +10,7 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/geometry/GeoObject.h>
 #include <simpla/utilities/Log.h>
-#include <simpla/utilities/nTuple.h>
+#include <simpla/algebra/nTuple.h>
 #include <type_traits>
 #include "SPObject.h"
 namespace simpla {

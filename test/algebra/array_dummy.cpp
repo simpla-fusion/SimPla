@@ -2,11 +2,11 @@
 // Created by salmon on 16-12-28.
 //
 
-#include <simpla/utilities/Array.h>
-#include <simpla/utilities/ArrayNTuple.h>
-#include <simpla/utilities/ExpressionTemplate.h>
-#include <simpla/utilities/nTuple.ext.h>
-#include <simpla/utilities/nTuple.h>
+#include <simpla/algebra/Array.h>
+#include <simpla/algebra/ArrayNTuple.h>
+#include <simpla/algebra/ExpressionTemplate.h>
+#include <simpla/algebra/nTuple.ext.h>
+#include <simpla/algebra/nTuple.h>
 #include <iostream>
 
 using namespace simpla;

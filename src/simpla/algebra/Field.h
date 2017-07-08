@@ -8,16 +8,10 @@
 #define SIMPLA_FIELD_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/utilities/Array.h>
-#include <simpla/utilities/EntityId.h>
-#include <simpla/utilities/ExpressionTemplate.h>
-#include <simpla/utilities/FancyStream.h>
+#include <simpla/data/all.h>
 #include <simpla/utilities/Range.h>
-#include <simpla/utilities/nTuple.h>
 #include <simpla/utilities/type_traits.h>
-#include "Attribute.h"
-#include "Domain.h"
-#include "MeshBlock.h"
+#include "ExpressionTemplate.h"
 
 // namespace std {
 //    template <typename TM, typename TV, int IFORM, int... DOF>
@@ -32,6 +26,7 @@ class Field;
 namespace simpla {
 
 namespace traits {
+
 template <typename TM, typename TV, int... I>
 struct reference<Field<TM, TV, I...>> {
     typedef const Field<TM, TV, I...>& type;
@@ -41,34 +36,21 @@ template <typename TM, typename TV, int... I>
 struct reference<const Field<TM, TV, I...>> {
     typedef const Field<TM, TV, I...>& type;
 };
-
-// template <typename T>
-// struct iform : public std::integral_constant<int, VERTEX> {};
-//
-// template <typename T>
-// struct dof : public std::integral_constant<int, 1> {};
-//
-// template <typename TM, typename TV, int IFORM, int DOF>
-// struct iform<Field<TM, TV, IFORM, DOF>> : public std::integral_constant<int, IFORM> {};
-//
-// template <typename TM, typename TV, int IFORM, int DOF>
-// struct dof<Field<TM, TV, IFORM, DOF>> : public std::integral_constant<int, DOF> {};
-//
-// template <typename TM, typename TV, int IFORM, int DOF>
-// struct value_type<Field<TM, TV, IFORM, DOF>> {
-//    typedef TV type;
-//};
-
 }  // namespace traits {
 template <typename TM, typename TV, int IFORM, int... DOF>
-class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
+class Field<TM, TV, IFORM, DOF...> : public TM::attribute_type {
    private:
     typedef Field<TM, TV, IFORM, DOF...> field_type;
-    SP_OBJECT_HEAD(field_type, engine::Attribute);
+
+    typedef typename TM::attribute_type attribute_type;
+    SP_OBJECT_HEAD(field_type, attribute_type);
 
    public:
     typedef TV value_type;
     typedef TM mesh_type;
+
+    typedef typename mesh_type::entity_id_type entity_id_type;
+
     static constexpr int iform = IFORM;
     static constexpr int NUM_OF_SUB = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
     static constexpr int NDIMS = mesh_type::NDIMS;
@@ -84,31 +66,26 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
    public:
     template <typename TGrp, typename... Args>
     explicit Field(TGrp* grp, Args&&... args)
-        : engine::Attribute(IFORM, std::integer_sequence<int, DOF...>(), typeid(value_type),
-                            dynamic_cast<engine::AttributeGroup*>(grp), std::forward<Args>(args)...) {}
+        : base_type(grp, IFORM, std::integer_sequence<int, DOF...>(), typeid(value_type), std::forward<Args>(args)...) {
+    }
 
     ~Field() override = default;
 
-    Field(this_type const& other) : engine::Attribute(other), m_data_(other.m_data_), m_mesh_(other.m_mesh_) {}
+    Field(this_type const& other) : base_type(other), m_data_(other.m_data_), m_mesh_(other.m_mesh_) {}
     Field(this_type&& other)
-        : engine::Attribute(std::forward<engine::Attribute>(other)), m_data_(other.m_data_), m_mesh_(other.m_mesh_) {}
+        : base_type(std::forward<base_type>(other)), m_data_(other.m_data_), m_mesh_(other.m_mesh_) {}
 
-    template <typename OtherMesh, typename... Args>
-    Field(OtherMesh* other_mesh, Field<OtherMesh, TV, IFORM, DOF...> const& other, Args&&... args)
-        : engine::Attribute(IFORM, std::integer_sequence<int, DOF...>(), typeid(value_type),
-                            dynamic_cast<engine::AttributeGroup*>(other_mesh), std::forward<Args>(args)...),
-          m_data_(other.m_data_),
-          m_mesh_(other_mesh) {}
+    Field(this_type const& other, Range<entity_id_type> const& r) : Field(other) {}
 
-    size_type size() const override {
-        return static_cast<size_type>(m_mesh_ == nullptr ? 0 : (m_mesh_->GetNumberOfEntity(IFORM) *
-                                                                reduction_v(tags::multiplication(), 1, DOF...)));
+    std::size_t size() const override {
+        return static_cast<std::size_t>(m_mesh_ == nullptr ? 0 : (m_mesh_->GetNumberOfEntity(IFORM) *
+                                                                  reduction_v(tags::multiplication(), 1, DOF...)));
     }
 
     bool empty() const override { return size() == 0; }
 
     void swap(this_type& other) {
-        engine::Attribute::swap(other);
+        base_type::swap(other);
         m_data_.swap(other.m_data_);
         std::swap(m_mesh_, other.m_mesh_);
     }
@@ -118,26 +95,26 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
 
     template <typename Other>
     void Set(Other&& v) {
-        Update();
-        m_mesh_->template Fill<IFORM>(m_data_, std::forward<Other>(v));
+        base_type::Update();
+        m_mesh_->Fill(*this, std::forward<Other>(v));
     }
 
     template <typename... Args>
     decltype(auto) Get(Args&&... args) {
-        m_mesh_->template GetEntity<IFORM>(m_data_, std::forward<Args>(args)...);
+        m_mesh_->GetEntity(*this, std::forward<Args>(args)...);
     }
     template <typename... Args>
     decltype(auto) Get(Args&&... args) const {
-        m_mesh_->template GetEntity<IFORM>(m_data_, std::forward<Args>(args)...);
+        m_mesh_->GetEntity(*this, std::forward<Args>(args)...);
     }
     template <typename U, typename... Args>
     void Set(U&& v, Args&&... args) {
-        m_mesh_->template SetEntity<IFORM>(m_data_, std::forward<U>(v), std::forward<Args>(args)...);
+        m_mesh_->SetEntity(*this, std::forward<U>(v), std::forward<Args>(args)...);
     }
 
     template <typename MR, typename UR, int... NR>
     void DeepCopy(Field<MR, UR, NR...> const& other) {
-        Update();
+        base_type::Update();
         m_data_ = other.Get();
     }
     void Clear() { Set(0); }
@@ -174,8 +151,13 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     decltype(auto) operator[](int n) { return m_data_[n]; }
     decltype(auto) operator[](int n) const { return m_data_[n]; }
 
-    decltype(auto) operator[](EntityId s) { return Get(s); }
-    decltype(auto) operator[](EntityId s) const { return Get(s); }
+    decltype(auto) operator[](entity_id_type s) { return Get(s); }
+    decltype(auto) operator[](entity_id_type s) const { return Get(s); }
+
+    template <typename OtherMesh>
+    Field<OtherMesh, value_type, IFORM, DOF...> Sub(OtherMesh const* m) const {
+        return Field<OtherMesh, value_type, IFORM, DOF...>(*this, m);
+    }
 
     //*****************************************************************************************************************
 
@@ -190,12 +172,12 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     }
 
     void DoUpdate() override {
-        engine::Attribute::DoUpdate();
-        if (m_mesh_ == nullptr) { m_mesh_ = dynamic_cast<mesh_type const*>(engine::Attribute::GetMesh()); }
+        base_type::DoUpdate();
+        if (m_mesh_ == nullptr) { m_mesh_ = dynamic_cast<mesh_type const*>(attribute_type::GetMesh()); }
         ASSERT(m_mesh_ != nullptr);
 
         traits::foreach (m_data_, [&](auto& a, auto i0, auto&&... idx) {
-            a.SetSpaceFillingCurve(m_mesh_->GetSpaceFillingCurve(EntityIdCoder::m_sub_index_to_id_[IFORM][i0]));
+            a.SetSpaceFillingCurve(m_mesh_->GetSpaceFillingCurve(IFORM, i0));
             a.Update();
         });
     }
@@ -203,9 +185,10 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     void DoTearDown() override {
         m_mesh_ = nullptr;
         traits::foreach (m_data_, [&](auto& a, auto&&... idx) { a.reset(); });
+        base_type::DoTearDown();
     }
     void Push(std::shared_ptr<data::DataBlock> p) override {
-        Update();
+        base_type::Update();
         auto d = std::dynamic_pointer_cast<data::DataMultiArray<value_type, NDIMS>>(p);
         int count = 0;
         traits::foreach (m_data_, [&](auto& a, auto&&... idx) {
@@ -214,13 +197,13 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         });
     };
     std::shared_ptr<data::DataBlock> Pop() override {
-        auto res = std::make_shared<data::DataMultiArray<value_type, NDIMS>>(NUM_OF_SUB * GetDOF());
+        auto res = std::make_shared<data::DataMultiArray<value_type, NDIMS>>(m_data_.size());
         int count = 0;
         traits::foreach (m_data_, [&](auto& a, auto&&... idx) {
             res->GetArray(count).swap(a);
             ++count;
         });
-        TearDown();
+        base_type::TearDown();
         return res;
     };
 

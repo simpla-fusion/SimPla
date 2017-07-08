@@ -7,9 +7,9 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/engine/Attribute.h>
-#include <simpla/utilities/EntityId.h>
+#include <simpla/engine/EntityId.h>
 #include <simpla/utilities/Range.h>
-#include <simpla/utilities/nTuple.h>
+#include <simpla/algebra/nTuple.h>
 #include <simpla/engine/SPObject.h>
 #include "ParticleBase.h"
 #include "spParticle.h"

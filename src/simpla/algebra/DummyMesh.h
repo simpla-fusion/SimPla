@@ -10,11 +10,11 @@
 #include <memory>
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/utilities/ExpressionTemplate.h>
+#include <simpla/algebra/ExpressionTemplate.h>
 #include <simpla/utilities/type_traits.h>
 
 #include "Algebra.h"
-#include "simpla/engine/Field.h"
+#include "Field.h"
 
 namespace simpla {
 

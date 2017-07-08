@@ -22,7 +22,7 @@
 #include <simpla/physics/Constants.h>
 #include <simpla/utilities/FancyStream.h>
 #include <simpla/utilities/Log.h>
-#include <simpla/utilities/nTuple.h>
+#include <simpla/algebra/nTuple.h>
 
 namespace simpla {
 

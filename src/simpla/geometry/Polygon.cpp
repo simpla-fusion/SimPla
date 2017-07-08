@@ -4,7 +4,7 @@
  * @date 2015-11-18.
  */
 #include "Polygon.h"
-#include <simpla/utilities/nTuple.h>
+#include <simpla/algebra/nTuple.h>
 #include "GeoAlgorithm.h"
 namespace simpla {
 namespace geometry {

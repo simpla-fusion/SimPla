@@ -10,8 +10,8 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/utilities/integer_sequence.h>
-#include <simpla/utilities/nTuple.ext.h>
-#include <simpla/utilities/nTuple.h>
+#include <simpla/algebra/nTuple.ext.h>
+#include <simpla/algebra/nTuple.h>
 
 #include <simpla/engine/SPObject.h>
 #include <cstddef>

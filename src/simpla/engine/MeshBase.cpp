@@ -4,11 +4,11 @@
 #include "MeshBase.h"
 #include <simpla/geometry/Chart.h>
 #include <simpla/geometry/GeoObject.h>
-#include <simpla/utilities/EntityId.h>
-#include "Attribute.h"
-#include "Domain.h"
-#include "MeshBlock.h"
-#include "Patch.h"
+#include <simpla/engine/EntityId.h>
+#include "simpla/engine/Attribute.h"
+#include "simpla/engine/Domain.h"
+#include "simpla/engine/MeshBlock.h"
+#include "simpla/engine/Patch.h"
 #include "simpla/model/Model.h"
 namespace simpla {
 namespace engine {

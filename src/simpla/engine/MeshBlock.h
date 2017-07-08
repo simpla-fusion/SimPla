@@ -6,7 +6,7 @@
 #define SIMPLA_MESHBLOCK_H
 
 #include <simpla/engine/SPObject.h>
-#include <simpla/utilities/EntityId.h>
+#include <simpla/engine/EntityId.h>
 #include <simpla/utilities/Range.h>
 namespace simpla {
 namespace engine {

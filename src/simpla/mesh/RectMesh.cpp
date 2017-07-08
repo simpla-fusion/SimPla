@@ -115,25 +115,25 @@ void RectMesh::InitializeData(Real time_now) {
 void RectMesh::SetBoundaryCondition(Real time_now, Real time_dt) {
     StructuredMesh::SetBoundaryCondition(time_now, time_dt);
 
-    m_vertex_volume_[GetRange("VERTEX_PATCH_BOUNDARY")] = 0;
-    m_vertex_dual_volume_[GetRange("VERTEX_PATCH_BOUNDARY")] = 0;
-    m_vertex_inv_volume_[GetRange("VERTEX_PATCH_BOUNDARY")] = 0;
-    m_vertex_inv_dual_volume_[GetRange("VERTEX_PATCH_BOUNDARY")] = 0;
+    boundary.Fill(m_vertex_volume_, 0);
+    boundary.Fill(m_vertex_dual_volume_, 0);
+    boundary.Fill(m_vertex_inv_volume_, 0);
+    boundary.Fill(m_vertex_inv_dual_volume_, 0);
 
-    m_edge_volume_[GetRange("EDGE_PATCH_BOUNDARY")] = 0;
-    m_edge_dual_volume_[GetRange("EDGE_PATCH_BOUNDARY")] = 0;
-    m_edge_inv_volume_[GetRange("EDGE_PATCH_BOUNDARY")] = 0;
-    m_edge_inv_dual_volume_[GetRange("EDGE_PATCH_BOUNDARY")] = 0;
+    boundary.Fill(m_edge_volume_, 0);
+    boundary.Fill(m_edge_dual_volume_, 0);
+    boundary.Fill(m_edge_inv_volume_, 0);
+    boundary.Fill(m_edge_inv_dual_volume_, 0);
 
-    m_face_volume_[GetRange("FACE_PATCH_BOUNDARY")] = 0;
-    m_face_dual_volume_[GetRange("FACE_PATCH_BOUNDARY")] = 0;
-    m_face_inv_volume_[GetRange("FACE_PATCH_BOUNDARY")] = 0;
-    m_face_inv_dual_volume_[GetRange("FACE_PATCH_BOUNDARY")] = 0;
+    boundary.Fill(m_face_volume_, 0);
+    boundary.Fill(m_face_dual_volume_, 0);
+    boundary.Fill(m_face_inv_volume_, 0);
+    boundary.Fill(m_face_inv_dual_volume_, 0);
 
-    m_volume_volume_[GetRange("VOLUME_PATCH_BOUNDARY")] = 0;
-    m_volume_dual_volume_[GetRange("VOLUME_PATCH_BOUNDARY")] = 0;
-    m_volume_inv_volume_[GetRange("VOLUME_PATCH_BOUNDARY")] = 0;
-    m_volume_inv_dual_volume_[GetRange("VOLUME_PATCH_BOUNDARY")] = 0;
+    boundary.Fill(m_volume_volume_, 0);
+    boundary.Fill(m_volume_dual_volume_, 0);
+    boundary.Fill(m_volume_inv_volume_, 0);
+    boundary.Fill(m_volume_inv_dual_volume_, 0);
 }
 }  // namespace mesh
 }  // namespace simpla

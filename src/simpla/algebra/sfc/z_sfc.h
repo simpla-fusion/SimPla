@@ -6,7 +6,7 @@
 #define SIMPLA_Z_SFC_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/utilities/EntityId.h>
+#include <simpla/engine/EntityId.h>
 #include <simpla/utilities/device_common.h>
 #include <simpla/utilities/memory.h>
 #include <algorithm>
@@ -15,8 +15,8 @@
 #include <iomanip>
 #include <limits>
 #include <tuple>
-#include "../nTuple.ext.h"
-#include "../nTuple.h"
+#include "simpla/algebra/nTuple.ext.h"
+#include "simpla/algebra/nTuple.h"
 
 namespace simpla {
 template <typename V, typename SFC>

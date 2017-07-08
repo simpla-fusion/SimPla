@@ -3,9 +3,9 @@
 //
 
 #include <simpla/acc_backend/Backend.h>
-#include <simpla/utilities/ExpressionTemplate.h>
-#include <simpla/utilities/nTuple.ext.h>
-#include <simpla/utilities/nTuple.h>
+#include <simpla/algebra/ExpressionTemplate.h>
+#include <simpla/algebra/nTuple.ext.h>
+#include <simpla/algebra/nTuple.h>
 
 using namespace simpla;
 

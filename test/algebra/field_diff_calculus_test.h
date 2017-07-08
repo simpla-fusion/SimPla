@@ -20,7 +20,7 @@
 #include <gtest/gtest.h>
 #include <simpla/predefine/CalculusPolicy.h>
 
-#include <simpla/mesh/EntityId.h>
+#include <simpla/engine/EntityId.h>
 #include "simpla/algebra/all.h"
 
 using namespace simpla;

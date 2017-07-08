@@ -8,7 +8,9 @@
 #ifndef SP_TYPE_TRAITS_H_
 #define SP_TYPE_TRAITS_H_
 
+#include <initializer_list>
 #include <type_traits>
+#include <utility>
 #include "host_define.h"
 
 namespace simpla {
@@ -275,25 +277,19 @@ struct nested_initializer_list_traits {
 template <typename U>
 struct nested_initializer_list_traits<std::initializer_list<U>> {
     static constexpr int number_of_levels = nested_initializer_list_traits<U>::number_of_levels + 1;
-    static void GetDims(std::initializer_list<U> const& list, size_t* dims) { dims[0] = list.size(); }
+    static void GetDims(std::initializer_list<U> const& list, std::size_t* dims) { dims[0] = list.size(); }
 };
 template <typename U>
 struct nested_initializer_list_traits<std::initializer_list<std::initializer_list<U>>> {
     static constexpr int number_of_levels = nested_initializer_list_traits<U>::number_of_levels + 2;
-    static void GetDims(std::initializer_list<std::initializer_list<U>> const& list, size_t* dims) {
+    static void GetDims(std::initializer_list<std::initializer_list<U>> const& list, std::size_t* dims) {
         dims[0] = list.size();
-        size_t max_length = 0;
+        std::size_t max_length = 0;
         for (auto const& item : list) { max_length = (max_length < item.size()) ? item.size() : max_length; }
         dims[1] = max_length;
     }
 };
-// template <typename U>
-// struct nested_initializer_list_traits<std::initializer_list<std::initializer_list<std::initializer_list<U>>>> {
-//    static constexpr int number_of_levels = nested_initializer_list_traits<U>::number_of_levels + 3;
-//    static void GetDims(std::initializer_list<std::initializer_list<U>> const& list, size_t* dims) {
-//        static_assert(false, "UNIMPLEMENTED!");
-//    }
-//};
+
 template <int... I>
 struct assign_nested_initializer_list;
 
@@ -321,7 +317,7 @@ struct assign_nested_initializer_list<I0, I...> {
 namespace _detail {
 template <bool F>
 struct remove_entent_v;
-}
+}  // namespace _detail
 
 template <typename T, typename I0>
 remove_all_extents_t<T, I0>& get_v(T& v, I0 const* s) {
@@ -358,28 +354,6 @@ struct remove_entent_v<false> {
 };
 }  // namespace _detail{
 
-//**********************************************************************************************************************
-
-// template<typename T>
-// struct value_type { typedef typename std::conditional<std::is_scalar<T>::value, T,
-// std::nullptr_t>::type value_type_info; };
-//
-// template<typename T> struct value_type<std::complex<T>> { typedef std::complex<T> value_type_info; };
-//
-// template<> struct value_type<std::string> { typedef std::string value_type_info; };
-//
-// template<typename _Tp, _Tp ...N> struct value_type<integer_sequence<_Tp, N...> > { typedef
-// _Tp value_type_info; };
-//
-// template<typename T> using value_type_t=typename value_type<T>::value_type_info;
-
-template <typename T>
-struct key_type {
-    typedef int type;
-};
-template <typename T>
-using key_type_t = typename key_type<T>::type;
-
 namespace _impl {
 
 template <int N>
@@ -404,178 +378,6 @@ auto unpack_args(Args&&... args) {
     return ((_impl::unpack_args_helper<N>(std::forward<Args>(args)...)));
 }
 
-template <typename T0>
-auto max(T0 const& first) {
-    return ((first));
-}
-
-template <typename T0, typename... Others>
-auto max(T0 const& first, Others const&... others) {
-    return ((std::max(first, max(others...))));
-}
-
-template <typename T0>
-auto min(T0 const& first) {
-    return ((first));
-}
-
-template <typename T0, typename... Others>
-auto min(T0 const& first, Others const&... others) {
-    return ((std::min(first, min(others...))));
-}
-
-template <typename T>
-auto distance(T const& b, T const& e) {
-    return (((e - b)));
-}
-
-// template<typename T, typename TI>auto index(std::shared_ptr<T> &v, TI const &s)
-// AUTO_RETURN(v.Serialize()[s])
-//
-// template<typename T, typename TI>auto index(std::shared_ptr<T> const &v, TI const &s)
-// AUTO_RETURN(v.Serialize()[s])
-
-namespace _impl {
-template <int N>
-struct recursive_try_index_aux {
-    template <typename T, typename TI>
-    static auto eval(T& v, TI const* s) {
-        return ((recursive_try_index_aux<N - 1>::eval(v[s[0]], s + 1)));
-    }
-};
-
-template <>
-struct recursive_try_index_aux<0> {
-    template <typename T, typename TI>
-    static auto eval(T& v, TI const* s) {
-        return ((v));
-    }
-};
-}  // namespace _impl
-
-// template<typename U, typename TIndex> U const &
-// index(U const *v, TIndex const &i) { return v[i]; };
-//
-// template<typename U, typename TIndex> U const &
-// index(U const &v, TIndex const &i) { return v; };
-//
-//
-// template<typename U, typename TIndex>
-// typename std::remove_extent<U>::value_type_info const &
-// index(U const &v, TIndex const &i, ENABLE_IF(std::is_array<U>::vaule)) { return v[i]; };
-//
-// template<typename U, typename TIndex>
-// U const &
-// index(U const &v, TIndex const &i, ENABLE_IF(std::is_arithmetic<U>::vaule)) { return v; };
-
-// template<typename T, typename TI>
-// auto index(T &v, TI s, ENABLE_IF((!is_indexable<T, TI>::value))) AUTO_RETURN((v))
-//
-// template<typename T, typename TI>
-// auto index(T &v, TI s, ENABLE_IF((is_indexable<T, TI>::value))) AUTO_RETURN((v[s]))
-//
-// template<typename T, typename TI>
-// auto index(T &v, TI *s, ENABLE_IF((is_indexable<T, TI>::value)))
-// AUTO_RETURN((_impl::recursive_try_index_aux<traits::rank<T>::value>::eval(v, s)))
-//
-// template<typename T, typename TI, int N>
-// auto index(T &v, nTuple<TI, N> const &s, ENABLE_IF((is_indexable<T, TI>::value)))
-// AUTO_RETURN((_impl::recursive_try_index_aux<N>::eval(v, s)))
-//
-//
-// template<int N, typename T> struct access;
-//
-// template<int N, typename T>
-// struct access
-//{
-//    static constexpr auto Serialize(T &v) AUTO_RETURN((v))
-//
-//    template<typename U> static void set(T &v, U const &u) { v = static_cast<T>(u); }
-//};
-//
-// template<int N, typename ...T>
-// struct access<N, std::tuple<T...>>
-//{
-//    static constexpr auto get(std::tuple<T...> &v) AUTO_RETURN((std::Serialize<N>(v)))
-//
-//    static constexpr auto get(std::tuple<T...> const &v) AUTO_RETURN((std::Serialize<N>(v)))
-//
-//    template<typename U> static void set(std::tuple<T...> &v, U const &u) { Serialize(v) = u; }
-//};
-//
-// template<int N, typename T>
-// struct access<N, T *>
-//{
-//    static constexpr auto Serialize(T *v) AUTO_RETURN((v[N]))
-//
-//    static constexpr auto Serialize(T const *v) AUTO_RETURN((v[N]))
-//
-//    template<typename U> static void set(T *v, U const &u) { Serialize(v) = u; }
-//};
-//
-// template<int N, typename T0, typename T1>
-// struct access<N, std::pair<T0, T1>>
-//{
-//    static constexpr auto Serialize(std::pair<T0, T1> &v) AUTO_RETURN((std::get<N>(v)))
-//
-//    static constexpr auto get(std::pair<T0, T1> const &v) AUTO_RETURN((std::Serialize<N>(v)))
-//
-//    template<typename U> static void set(std::pair<T0, T1> &v, U const &u) { Serialize(v) = u; }
-//};
-////namespace _impl
-////{
-////
-////template<int ...N> struct access_helper;
-////
-////template<int N0, int ...N>
-////struct access_helper<N0, N...>
-////{
-////
-////    template<typename T>
-////    static constexpr auto get(T const &v)
-/// AUTO_RETURN((access_helper<N...>::get(access_helper<N0>::get((v)))))
-////
-////    template<typename T>
-////    static constexpr auto get(T &v)
-/// AUTO_RETURN((access_helper<N...>::get(access_helper<N0>::get((v)))))
-////
-////    template<typename T, typename U>
-////    static void set(T &v, U const &u) { access_helper<N0, N...>::get(v) = u; }
-////
-////};
-////
-////template<int N>
-////struct access_helper<N>
-////{
-////    template<typename T> static constexpr auto get(T &v) AUTO_RETURN((access<N, T>::get(v)))
-////
-////    template<typename T> static constexpr auto get(T const &v) AUTO_RETURN((access<N,
-/// T>::get(v)))
-////
-////    template<typename T, typename U> static void set(T &v, U const &u) { access<N,
-/// T>::set(v, u); }
-////
-////};
-////
-////template<>
-////struct access_helper<>
-////{
-////    template<typename T> static constexpr T &get(T &v) { return v; }
-////
-////    template<typename T> static constexpr T const &get(T const &v) { return v; }
-////
-////    template<typename T, typename U> static void set(T &v, U const &u) { v = u; }
-////
-////};
-////}  // namespace _impl
-// template<int N, typename ...T> auto get(std::tuple<T...> &v) AUTO_RETURN((std::Serialize<N>(v)))
-//
-// template<int ...N, typename T> auto Serialize(T &v)
-// AUTO_RETURN((_impl::access_helper<N...>::Serialize(v)))
-//
-// template<int ...N, typename T> auto Serialize(T const &v)
-// AUTO_RETURN((_impl::access_helper<N...>::Serialize(v)))
-
 template <int, typename...>
 struct unpack_type;
 
@@ -599,6 +401,24 @@ using unpack_t = typename unpack_type<N, T...>::type;
 
 }  // namespace traits
 
+template <typename Arg0>
+static constexpr auto max(Arg0 const& arg0) {
+    return arg0;
+};
+template <typename Arg0, typename... Args>
+static constexpr auto max(Arg0 const& arg0, Args&&... args) {
+    return arg0 > max(args...) ? arg0 : max(args...);
+};
+
+template <typename Arg0>
+static constexpr auto min(Arg0 const& arg0) {
+    return arg0;
+};
+template <typename Arg0, typename... Args>
+static constexpr auto min(Arg0 const& arg0, Args&&... args) {
+    return arg0 < max(args...) ? arg0 : max(args...);
+};
+
 template <typename T>
 T power2(T const& v) {
     return v * v;
@@ -607,48 +427,6 @@ T power2(T const& v) {
 template <typename T>
 T power3(T const& v) {
     return v * v * v;
-}
-
-template <typename T0>
-T0 max(T0 const& first) {
-    return first;
-};
-
-template <typename T0, typename T1>
-T0 max(T0 const& first, T1 const& second) {
-    return std::max(first, second);
-};
-
-template <typename T0, typename... O>
-T0 max(T0 const& first, O&&... others) {
-    return max(first, max(std::forward<O>(others)...));
-};
-
-template <typename T0>
-T0 min(T0 const& first) {
-    return first;
-};
-
-template <typename T0, typename T1>
-T0 min(T0 const& first, T1 const& second) {
-    return std::min(first, second);
-};
-
-template <typename T0, typename... Others>
-T0 min(T0 const& first, Others&&... others) {
-    return min(first, min(std::forward<Others>(others)...));
-};
-namespace traits {
-template <typename T, T... M>
-struct nProduct;
-template <typename T, T N, T... M>
-struct nProduct<T, N, M...> {
-    static constexpr T value = N * nProduct<T, M...>::value;
-};
-template <typename T>
-struct nProduct<T> {
-    static constexpr T value = 1;
-};
 }
 
 }  // namespace simpla

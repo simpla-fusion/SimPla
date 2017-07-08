@@ -2,7 +2,7 @@
 // Created by salmon on 16-11-27.
 //
 #include <simpla/SIMPLA_config.h>
-#include <simpla/utilities/nTuple.h>
+#include <simpla/algebra/nTuple.h>
 #include <simpla/model/GEqdsk.h>
 
 

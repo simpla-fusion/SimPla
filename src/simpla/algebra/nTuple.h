@@ -10,10 +10,9 @@
 #ifndef NTUPLE_H_
 #define NTUPLE_H_
 
-#include <simpla/concept/CheckConcept.h>
+#include <simpla/utilities/type_traits.h>
 #include "ExpressionTemplate.h"
-#include "type_traits.h"
-#include "utility.h"
+//#include "utility.h"
 namespace simpla {
 template <typename, int...>
 struct nTuple;
@@ -218,6 +217,8 @@ struct nTuple<TV, N0, N...> {
 
     __host__ __device__ nTuple() = default;
     __host__ __device__ ~nTuple() = default;
+
+    constexpr int size() const { return reduction_v(tags::multiplication(), N0, N...); }
 
     __host__ __device__ nTuple(simpla::traits::nested_initializer_list_t<value_type, sizeof...(N) + 1> l) {
         simpla::traits::assign_nested_initializer_list<N0, N...>::apply(m_data_, l);

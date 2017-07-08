@@ -10,8 +10,8 @@
 #include <complex>
 #include <iostream>
 #include "nTuple.h"
-#include "type_traits.h"
-#include "utility.h"
+#include "simpla/utilities/type_traits.h"
+#include "simpla/utilities/utility.h"
 namespace simpla {
 
 // typedef std::complex<Real> Complex;

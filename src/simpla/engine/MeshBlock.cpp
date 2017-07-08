@@ -3,7 +3,7 @@
 //
 
 #include "MeshBlock.h"
-#include <simpla/utilities/EntityId.h>
+#include <simpla/engine/EntityId.h>
 #include <boost/functional/hash.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>

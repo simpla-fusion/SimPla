@@ -11,7 +11,7 @@
 #include <cstddef>
 #include <type_traits>
 
-#include <simpla/utilities/ExpressionTemplate.h>
+#include <simpla/algebra/ExpressionTemplate.h>
 #include <simpla/utilities/Log.h>
 #include <simpla/utilities/integer_sequence.h>
 #include <simpla/utilities/macro.h>

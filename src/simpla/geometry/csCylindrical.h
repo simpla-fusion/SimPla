@@ -9,7 +9,7 @@
 #define CORE_GEOMETRY_CS_CYLINDRICAL_H_
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/utilities/nTuple.h>
+#include <simpla/algebra/nTuple.h>
 
 #include "Chart.h"
 #include "CoordinateSystem.h"

@@ -6,7 +6,7 @@
 #define SIMPLA_DATABLOCK_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/utilities/Array.h>
+#include <simpla/algebra/Array.h>
 #include "DataEntity.h"
 namespace simpla {
 

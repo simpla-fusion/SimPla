@@ -15,11 +15,11 @@
 #include <limits>
 #include <set>
 #include <tuple>
-#include "Log.h"
-#include "Range.h"
-#include "nTuple.ext.h"
-#include "nTuple.h"
-#include "type_traits.h"
+#include "simpla/utilities/Log.h"
+#include "simpla/utilities/Range.h"
+#include "simpla/algebra/nTuple.ext.h"
+#include "simpla/algebra/nTuple.h"
+#include "simpla/utilities/type_traits.h"
 namespace simpla {
 // typedef union { struct { u_int8_t w, z, y, x; }; int32_t v; } EntityId32;
 enum CenterOnMesh { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3, FIBER = 6 };

@@ -7,7 +7,7 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/data/all.h>
-#include <simpla/utilities/EntityId.h>
+#include <simpla/engine/EntityId.h>
 #include <memory>
 #include "SPObject.h"
 

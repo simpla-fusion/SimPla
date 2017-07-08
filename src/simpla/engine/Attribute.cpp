@@ -113,7 +113,7 @@ struct Attribute::pimpl_s {
     MeshBase *m_mesh_;
     std::set<AttributeGroup *> m_bundle_;
 };
-Attribute::Attribute(int IFORM, int DOF, std::type_info const &t_info, AttributeGroup *grp,
+Attribute::Attribute(AttributeGroup *grp, int IFORM, int DOF, std::type_info const &t_info,
                      std::shared_ptr<DataTable> cfg)
     : SPObject((cfg != nullptr && cfg->has("name")) ? cfg->GetValue<std::string>("name") : "unnamed"),
       AttributeDesc(IFORM, DOF, t_info, SPObject::GetName(), cfg),

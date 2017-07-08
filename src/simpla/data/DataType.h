@@ -19,7 +19,7 @@
 #include <vector>
 
 #include <simpla/concept/CheckConcept.h>
-#include <simpla/utilities/nTuple.h>
+#include <simpla/algebra/nTuple.h>
 #include <simpla/utilities/type_cast.h>
 #include <simpla/utilities/type_traits.h>
 

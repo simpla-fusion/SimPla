@@ -7,7 +7,9 @@
 
 #include <simpla/algebra/all.h>
 #include <simpla/data/all.h>
+#include "EBMesh.h"
 #include "StructuredMesh.h"
+
 namespace simpla {
 namespace mesh {
 using namespace simpla::engine;
@@ -23,6 +25,8 @@ struct SMesh : public StructuredMesh {
     template <typename... Args>
     explicit SMesh(Args &&... args) : StructuredMesh(std::forward<Args>(args)...){};
     ~SMesh() override = default;
+
+    EBMesh<SMesh> boundary{this};
 
     SP_DEFAULT_CONSTRUCT(SMesh)
     DECLARE_REGISTER_NAME(SMesh);

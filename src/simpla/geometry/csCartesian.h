@@ -8,7 +8,7 @@
 #ifndef CORE_GEOMETRY_CS_CARTESIAN_H_
 #define CORE_GEOMETRY_CS_CARTESIAN_H_
 
-#include <simpla/utilities/nTuple.h>
+#include <simpla/algebra/nTuple.h>
 #include "Chart.h"
 #include "simpla/utilities/macro.h"
 #include "simpla/utilities/type_cast.h"

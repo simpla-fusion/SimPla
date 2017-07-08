@@ -16,7 +16,7 @@
 #include <memory>
 
 #include "simpla/utilities/SingletonHolder.h"
-#include "simpla/utilities/nTuple.h"
+#include "simpla/algebra/nTuple.h"
 
 namespace simpla {
 namespace parallel {

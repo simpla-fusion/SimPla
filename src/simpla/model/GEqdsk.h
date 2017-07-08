@@ -16,7 +16,7 @@
 #include <simpla/geometry/Revolve.h>
 #include <simpla/model/Model.h>
 #include <simpla/utilities/Log.h>
-#include <simpla/utilities/nTuple.h>
+#include <simpla/algebra/nTuple.h>
 #include <simpla/utilities/type_traits.h>
 #include <iostream>
 #include <string>

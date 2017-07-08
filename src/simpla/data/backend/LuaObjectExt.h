@@ -18,7 +18,7 @@
 #include <utility>
 #include <vector>
 
-#include <simpla/utilities/nTuple.h>
+#include <simpla/algebra/nTuple.h>
 
 extern "C" {
 #include <lauxlib.h>
