@@ -444,8 +444,8 @@ _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(>=, greater_equal, tags::logical_and)
 #undef _SP_DEFINE_EXPR_UNARY_BOOLEAN_OPERATOR
 
 namespace tags {
-struct _dot {};
-struct _cross {};
+struct dot {};
+struct cross {};
 }
 
 template <typename TL, typename TR>
@@ -454,30 +454,30 @@ __host__ __device__ auto inner_product(TL const &l, TR const &r) {
 }
 template <typename TL, typename TR>
 __host__ __device__ auto dot_v(TL const &l, TR const &r) {
-    return Expression<tags::_dot, const TL, const TR>(l, r);
+    return Expression<tags::dot, const TL, const TR>(l, r);
 }
 template <typename TL, typename TR>
 __host__ __device__ auto cross_v(TL const &l, TR const &r) {
-    return Expression<tags::_cross, const TL, const TR>(l, r);
+    return Expression<tags::cross, const TL, const TR>(l, r);
 }
 
-inline auto reduction(tags::multiplication const &op) { return 0; }
-inline auto reduction(tags::addition const &op) { return 0; };
-inline auto reduction(tags::logical_or const &op) { return false; };
-inline auto reduction(tags::logical_and const &op) { return true; };
+auto reduction_v(tags::multiplication const &op) = delete;
+auto reduction_v(tags::addition const &op) = delete;
+auto reduction_v(tags::logical_or const &op) = delete;
+auto reduction_v(tags::logical_and const &op) = delete;
 
 template <typename TOP, typename Arg0>
-auto reduction(TOP const &op, Arg0 &&arg0) {
+auto reduction_v(TOP const &op, Arg0 &&arg0) {
     return arg0;
 };
 template <typename TOP, typename Arg0, typename Arg1>
-auto reduction(TOP const &op, Arg0 &&arg0, Arg1 &&arg1) {
+auto reduction_v(TOP const &op, Arg0 &&arg0, Arg1 &&arg1) {
     return op(std::forward<Arg0>(arg0), std::forward<Arg1>(arg1));
 };
 
 template <typename TOP, typename Arg0, typename... Args>
-auto reduction(TOP const &op, Arg0 &&arg0, Args &&... args) {
-    return op(std::forward<Arg0>(arg0), reduction(op, std::forward<Args>(args)...));
+auto reduction_v(TOP const &op, Arg0 &&arg0, Args &&... args) {
+    return op(std::forward<Arg0>(arg0), reduction_v(op, std::forward<Args>(args)...));
 };
 
 }  // namespace simpla

@@ -166,15 +166,45 @@ template <typename TFun, typename TV, int... N>
 __host__ __device__ void foreach (nTuple<TV, N...>& m_data_, TFun const& fun) {
     detail::foreach_(m_data_, fun);
 }
+template <typename U>
+U& recursive_index(U& v, int s) {
+    return v;
+}
+
+template <typename U, int N0>
+U& recursive_index(nTuple<U, N0>& v, int s) {
+    return v[s % N0];
+}
+template <typename U, int N0>
+U const& recursive_index(nTuple<U, N0> const& v, int s) {
+    return v[s % N0];
+}
+template <typename U, int N0, int N1, int... N>
+U& recursive_index(nTuple<U, N0, N1, N...>& v, int s) {
+    return recursive_index(v[s % N0], s / N0);
+}
+template <typename U, int N0, int N1, int... N>
+U const& recursive_index(nTuple<U, N0, N1, N...> const& v, int s) {
+    return recursive_index(v[s % N0], s / N0);
+}
+
+template <int N0>
+int recursive_calculate_shift(int s0) {
+    return s0;
+};
+template <int N0, int... N, typename... Args>
+int recursive_calculate_shift(int s0, Args&&... args) {
+    return recursive_calculate_shift<N...>(std::forward<Args>(args)...) * N0 + s0;
+};
 }  // namespace traits
 
 ///// n-dimensional primary type
 
-template <typename TV>
-struct nTuple<TV> {
-    typedef TV value_type;
-    typedef TV pod_type;
-};
+// template <typename TV>
+// struct nTuple<TV> {
+//    typedef TV value_type;
+//    typedef TV pod_type;
+//};
 
 template <typename TV, int N0, int... N>
 struct nTuple<TV, N0, N...> {
@@ -355,7 +385,11 @@ _SP_DEFINE_NTUPLE_COMPOUND_OP(/)
 _SP_DEFINE_NTUPLE_COMPOUND_OP(%)
 _SP_DEFINE_NTUPLE_COMPOUND_OP(&)
 _SP_DEFINE_NTUPLE_COMPOUND_OP(|)
-_SP_DEFINE_NTUPLE_COMPOUND_OP (^) _SP_DEFINE_NTUPLE_COMPOUND_OP(<<) _SP_DEFINE_NTUPLE_COMPOUND_OP(>>)
+_SP_DEFINE_NTUPLE_COMPOUND_OP (^)
+
+_SP_DEFINE_NTUPLE_COMPOUND_OP(<<)
+_SP_DEFINE_NTUPLE_COMPOUND_OP(>>)
+
 #undef _SP_DEFINE_NTUPLE_COMPOUND_OP
 
 #define _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_, _REDUCTION_)                                \
@@ -383,19 +417,19 @@ _SP_DEFINE_NTUPLE_COMPOUND_OP (^) _SP_DEFINE_NTUPLE_COMPOUND_OP(<<) _SP_DEFINE_N
             Expression<tags::_NAME_, nTuple<TL, NL...>, nTuple<TR, NR...>>(lhs, rhs));                      \
     };
 
-    _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(!=, not_equal_to, tags::logical_or)
-        _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(==, equal_to, tags::logical_and)
-            _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(<=, less_equal, tags::logical_and)
-                _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(>=, greater_equal, tags::logical_and)
-                    _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(>, greater, tags::logical_and)
-                        _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(<, less, tags::logical_and)
+_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(!=, not_equal_to, tags::logical_or)
+_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(==, equal_to, tags::logical_and)
+_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(<=, less_equal, tags::logical_and)
+_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(>=, greater_equal, tags::logical_and)
+_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(>, greater, tags::logical_and)
+_SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR(<, less, tags::logical_and)
 #undef _SP_DEFINE_NTUPLE_BINARY_BOOLEAN_OPERATOR
 
-    //    DEF_BOP(shift_left, <<)
-    //    DEF_BOP(shift_right, >>)
+//    DEF_BOP(shift_left, <<)
+//    DEF_BOP(shift_right, >>)
 
-    template <typename TL, typename TR>
-    __host__ __device__ auto dot(TL const& l, TR const& r) {
+template <typename TL, typename TR>
+__host__ __device__ auto dot(TL const& l, TR const& r) {
     return calculus::reduction<tags::addition>(l * r);
 }
 
@@ -406,95 +440,6 @@ __host__ __device__ auto cross(T1 const& l, T2 const& r) {
         calculus::getValue(l, 2) * calculus::getValue(r, 0) - calculus::getValue(l, 0) * calculus::getValue(r, 2),
         calculus::getValue(l, 0) * calculus::getValue(r, 1) - calculus::getValue(l, 1) * calculus::getValue(r, 0));
 }
-
-// template <typename T>
-// T vec_dot(nTuple<T, 3> const& l, nTuple<T, 3> const& r) {
-//    return l[0] * r[0] + l[1] * r[1] + l[2] * r[2];
-//}
-//
-// template <typename TL, int... NL, typename TR, int... NR>
-// auto vec_dot(nTuple<TL, NL...> const& l, nTuple<TR, NR...> const& r) {
-//    return abs(l * r);
-//}
-//
-// template <typename T>
-// T vec_dot(nTuple<T, 4> const& l, nTuple<T, 4> const& r) {
-//    return l[0] * r[0] + l[1] * r[1] + l[2] * r[2] + l[3] * r[3];
-//}
-// template <typename T, int N>
-// T vec_dot(nTuple<T, N> const& l, nTuple<T, N> const& r) {
-//    T res = l[0] * r[0];
-//    for (int i = 1; i < N; ++i) { res += l[i] * r[i]; }
-//    return res;
-//}
-
-//
-////
-//// template<typename T, int N0> std::istream &
-//// input(std::istream &is, nTuple <T, N0> &tv)
-////{
-////    for (int i = 0; i < N0 && is; ++i) { is >> tv[i]; }
-////    return (is);
-////}
-////
-//// template<typename T, int N0, int ...N> std::istream &
-//// input(std::istream &is, nTuple<T, N0, N ...> &tv)
-////{
-////    for (int i = 0; i < N0 && is; ++i) { input(is, tv[i]); }
-////    return (is);
-////}
-//
-// namespace _detail {
-// template <typename T, int... N>
-// std::ostream& printNd_(std::ostream& os, T const& d, integer_sequence<int, N...> const&,
-//                       ENABLE_IF((!concept::is_indexable<T>::value))) {
-//    os << d;
-//    return os;
-//}
-//
-// template <typename T, int M, int... N>
-// std::ostream& printNd_(std::ostream& os, T const& d, integer_sequence<int, M, N...> const&,
-//                       ENABLE_IF((concept::is_indexable<T>::value))) {
-//    os << "[";
-//    printNd_(os, d[0], integer_sequence<int, N...>());
-//    for (int i = 1; i < M; ++i) {
-//        os << " , ";
-//        printNd_(os, d[i], integer_sequence<int, N...>());
-//    }
-//    os << "]";
-//
-//    return os;
-//}
-//
-// template <typename T>
-// std::istream& input(std::istream& is, T& a) {
-//    is >> a;
-//    return is;
-//}
-//
-// template <typename T, int M0, int... M>
-// std::istream& input(std::istream& is, nTuple<T, M0, M...>& a) {
-//    for (int n = 0; n < M0; ++n) { _detail::input(is, a[n]); }
-//    return is;
-//}
-//
-//}  // namespace _detail
-//
-// template <typename T, int... M>
-// std::ostream& operator<<(std::ostream& os, nTuple<T, M...> const& v) {
-//    return _detail::printNd_(os, v.m_data_, integer_sequence<int, M...>());
-//}
-//
-// template <typename T, int... M>
-// std::istream& operator>>(std::istream& is, nTuple<T, M...>& a) {
-//    _detail::input(is, a);
-//    return is;
-//}
-// template <typename T, int... M>
-// std::ostream& operator<<(std::ostream& os, std::tuple<nTuple<T, M...>, nTuple<T, M...>> const& v) {
-//    os << "{ " << std::get<0>(v) << " ," << std::get<1>(v) << "}";
-//    return os;
-//};
 
 }  // namespace simpla
 #endif  // NTUPLE_H_

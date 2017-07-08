@@ -8,9 +8,7 @@
 #include <simpla/utilities/Array.h>
 #include <simpla/utilities/nTuple.h>
 #include "Algebra.h"
-#include "Calculus.h"
 #include "CalculusPolicy.h"
-#include "Field.h"
 /**
  * @addtogroup algebra Algebra System
  **/

@@ -2,11 +2,12 @@
 // Created by salmon on 16-12-26.
 //
 
-#include "simpla/algebra/all.h"
-#include "simpla/engine/Attribute.h"
+#include "simpla/algebra/CalculusPolicy.h"
+#include "simpla/engine/Field.h"
 using namespace simpla;
 struct DummyMesh : public engine::MeshBase {
    public:
+    typedef DummyMesh this_type;
     //    size_type m_dims_[3];
     //    Real m_lower_[3];
     //    Real m_upper_[3];
@@ -15,18 +16,15 @@ struct DummyMesh : public engine::MeshBase {
     static constexpr unsigned int NDIMS = 3;
 
     typedef EntityId entity_id_type;
-    template <typename V>
-    using array_type = Array<V, ZSFC<NDIMS>>;
+    template <typename V, int IFORM, int... DOF>
+    using data_type = nTuple<Array<V, ZSFC<NDIMS>>, (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3, DOF...>;
     index_box_type m_index_box_;
 
     typedef DummyMesh mesh_type;
     explicit DummyMesh(index_box_type const &i_box) : m_index_box_(i_box) {}
     ~DummyMesh() = default;
 
-    ZSFC<3> GetSpaceFillingCurve(int IFORM, int N = 0) const { return ZSFC<3>(m_index_box_); }
-
-    template <typename U, int... N>
-    void UpdateArray(nTuple<array_type<U>, N...> &d) const {};
+    ZSFC<3> GetSpaceFillingCurve(int tag) const { return ZSFC<3>(m_index_box_); }
 
     template <typename TFun>
     void Foreach(TFun const &fun, size_type iform = VERTEX, size_type dof = 1) const {}
@@ -55,6 +53,22 @@ struct DummyMesh : public engine::MeshBase {
 
     virtual index_box_type GetIndexBox(int tag = VERTEX) const { return m_index_box_; }
     virtual point_type local_coordinates(EntityId s, Real const *r) const { return point_type{0, 0, 0}; };
+
+    template <int IFORM, typename TL, typename TR>
+    void Fill(TL &lhs, TR const &rhs) const {
+        CalculusPolicy<this_type>::Fill<IFORM>(*this, lhs, rhs);
+    }
+
+    template <int IFORM, typename TL, typename... Args>
+    decltype(auto) GetEntity(TL &lhs, Args &&... args) const {
+        return CalculusPolicy<this_type>::GetEntity<IFORM>(*this, lhs, std::forward<Args>(args)...);
+    }
+
+    size_type GetNumberOfEntity(int IFORM = VERTEX) const {
+        return calculus::reduction<tags::multiplication>(std::get<1>(m_index_box_) - std::get<0>(m_index_box_)) *
+               ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
+    }
+    bool empty() const { return false; }
 };
 
 int main(int argc, char **argv) {
@@ -71,29 +85,29 @@ int main(int argc, char **argv) {
         g.SetUndefined();
         //        f[0](0, 2, 3) = 1990;
 
-        CHECK(f.data());
+        CHECK(f.Get());
 
         f[0] = [](index_type x, index_type y, index_type z) -> Real { return x + y + z; };
         //        g = [&](EntityId const &s) { return 1.0; };
         //        f = 1;
-        CHECK(f.data());
+        CHECK(f.Get());
 
         g = 2;
         f = f * 0.2 + g * 2;
-        CHECK(f.data());
+        CHECK(f.Get());
         Field<mesh_type, Real, EDGE> h(&m);
         h.SetUndefined();
 
-        h = nTuple<Real, 3>{1, 2, 3};
-        CHECK(h.data());
+        //        h = nTuple<Real, 3>{1, 2, 3};
+        CHECK(h.Get());
 
-        Field<mesh_type, Real, VOLUME, 3> k(&m);
-        k.SetUndefined();
-
-        k = [](EntityId s) {
-            return nTuple<Real, 3>{static_cast<Real>(s.x), static_cast<Real>(s.y), static_cast<Real>(s.z)};
-        };
-        CHECK(k.data());
+        //        Field<mesh_type, Real, VOLUME, 3> k(&m);
+        //        k.SetUndefined();
+        //
+        //        k = [](EntityId s) {
+        //            return nTuple<Real, 3>{static_cast<Real>(s.x), static_cast<Real>(s.y), static_cast<Real>(s.z)};
+        //        };
+        //        CHECK(k.Get());
         //        f = [](point_type const &x) { return x[0]; };
         //        g = [](EntityId s) -> Real { return s.y; };
         //        CHECK(f.data());

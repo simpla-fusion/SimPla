@@ -52,7 +52,7 @@ mesh policy concept {#concept_manifold_policy}
 
  Pseudo-Signature  	     | Semantics
 ---------------------------|-----------------------------
-`gather(field_type const &f, coordinate_tuple x  )` 	    | gather m_data from `f` at coordinates `x`.
+`Gather(field_type const &f, coordinate_tuple x  )` 	    | Gather m_data from `f` at coordinates `x`.
 `scatter(field_type &f, coordinate_tuple x ,value_type v)` 	| scatter `v` to field  `f` at coordinates `x`.
   
 

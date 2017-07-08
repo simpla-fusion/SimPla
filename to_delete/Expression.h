@@ -17,7 +17,7 @@
 #include <tuple>
 #include <type_traits>
 #include "simpla/algebra/Algebra.h"
-#include "simpla/algebra/Calculus.h"
+#include "Calculus.h"
 
 namespace simpla {
 namespace algebra {

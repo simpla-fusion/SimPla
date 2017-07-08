@@ -135,13 +135,10 @@ struct Attribute : public SPObject, public AttributeDesc {
    public:
     Attribute(int IFORM, int DOF, std::type_info const &t_info, AttributeGroup *grp,
               std::shared_ptr<data::DataTable> p);
-    //    template <int... DOF, typename TGrp>
-    //    Attribute(int IFORM, std::integer_sequence<int, DOF...>, std::type_info const &t_info, TGrp *grp,
-    //              std::shared_ptr<data::DataTable> cfg)
-    //        : Attribute(IFORM, 1, t_info, (grp), cfg) {}
+
     template <int... DOF, typename TGrp, typename... Args>
     Attribute(int IFORM, std::integer_sequence<int, DOF...>, std::type_info const &t_info, TGrp *grp, Args &&... args)
-        : Attribute(IFORM, traits::nProduct<int, DOF...>::value, t_info, (grp),
+        : Attribute(IFORM, reduction_v(tags::multiplication(), 1, DOF...), t_info, grp,
                     std::make_shared<data::DataTable>(std::forward<Args>(args)...)) {}
 
     Attribute(Attribute const &other);
