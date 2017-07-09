@@ -7,6 +7,7 @@
 
 #include <simpla/data/Serializable.h>
 #include <simpla/utilities/SPObject.h>
+#include <functional>
 #include "GeoObject.h"
 namespace simpla {
 namespace model {
@@ -33,6 +34,9 @@ class Model : public engine::SPObject, public data::EnableCreateFromDataTable<Mo
     int GetNDims() const;
 
     box_type const &GetBoundBox() const;
+
+    void GetAttribute(std::string const &attr_name) const;
+    std::function<nTuple<Real, 3>(point_type const &)> GetVectorAttribute(std::string const &attr_name) const;
 
     void SetObject(std::string const &k, std::shared_ptr<model::GeoObject> const &);
     std::shared_ptr<model::GeoObject> GetObject(std::string const &k) const;

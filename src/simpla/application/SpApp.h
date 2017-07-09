@@ -7,8 +7,10 @@
 //
 #include <simpla/data/all.h>
 #include <simpla/engine/Schedule.h>
+#include <simpla/model/Model.h>
 #include <simpla/utilities/SPObject.h>
 #include <string>
+
 namespace simpla {
 namespace application {
 struct SpApp : public engine::SPObject, public data::Serializable {
@@ -16,7 +18,8 @@ struct SpApp : public engine::SPObject, public data::Serializable {
 
    public:
     explicit SpApp(std::string const &s_name = "SpApp");
-    virtual ~SpApp();
+    virtual ~SpApp() = default;
+
     SP_DEFAULT_CONSTRUCT(SpApp);
 
     using data::Serializable::Serialize;
@@ -30,6 +33,9 @@ struct SpApp : public engine::SPObject, public data::Serializable {
     virtual void Run();
     void DoTearDown() override;
     void DoFinalize() override;
+
+    void SetModel(std::shared_ptr<model::Model> s);
+    std::shared_ptr<model::Model> GetModel() const;
 
     void SetContext(std::shared_ptr<engine::Context> s);
     std::shared_ptr<engine::Context> GetContext() const;

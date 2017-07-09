@@ -22,9 +22,10 @@ namespace application {
 struct SpApp::pimpl_s {
     std::shared_ptr<engine::Schedule> m_schedule_ = nullptr;
     std::shared_ptr<engine::Context> m_context_ = nullptr;
+    std::shared_ptr<model::Model> m_model_ = nullptr;
 };
 SpApp::SpApp(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
-SpApp::~SpApp() {}
+// SpApp::~SpApp() {}
 std::shared_ptr<data::DataTable> SpApp::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
     if (m_pimpl_->m_schedule_ != nullptr) { res->Set("Schedule", m_pimpl_->m_schedule_->Serialize()); }
@@ -35,6 +36,7 @@ std::shared_ptr<data::DataTable> SpApp::Serialize() const {
 void SpApp::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     m_pimpl_->m_schedule_ = engine::Schedule::Create(cfg->Get("Schedule"));
     m_pimpl_->m_context_ = engine::Context::Create(cfg->Get("Context"));
+    m_pimpl_->m_context_ = engine::Context::Create(cfg->Get("Model"));
     Click();
 };
 void SpApp::DoInitialize() {}
@@ -58,6 +60,12 @@ void SpApp::Run() {
     Update();
     if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Run(); }
 };
+
+void SpApp::SetModel(std::shared_ptr<model::Model> s) {
+    m_pimpl_->m_model_ = s;
+    Click();
+}
+std::shared_ptr<model::Model> SpApp::GetModel() const { return m_pimpl_->m_model_; }
 
 void SpApp::SetContext(std::shared_ptr<engine::Context> s) {
     m_pimpl_->m_context_ = s;
