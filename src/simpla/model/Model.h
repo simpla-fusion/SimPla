@@ -25,7 +25,7 @@ class Model : public engine::SPObject, public data::EnableCreateFromDataTable<Mo
     DECLARE_REGISTER_NAME(Model)
 
     std::shared_ptr<DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<DataTable> &cfg) override;
+    void Deserialize(std::shared_ptr<DataTable> cfg) override;
 
     void DoInitialize() override;
     void DoUpdate() override;

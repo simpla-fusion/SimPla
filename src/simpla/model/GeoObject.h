@@ -40,7 +40,7 @@ class GeoObject : public data::EnableCreateFromDataTable<GeoObject> {
         res->SetValue<std::string>("Type", GetRegisterName());
         return res;
     };
-    void Deserialize(const std::shared_ptr<data::DataTable> &t) override {}
+    void Deserialize(std::shared_ptr<data::DataTable> t) override {}
 
     virtual bool hasChildren() const { return false; }
 

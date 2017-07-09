@@ -22,7 +22,7 @@ class Tokamak : public engine::Context {
     DECLARE_REGISTER_NAME(Tokamak);
 
     std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override;
+    void Deserialize(std::shared_ptr<data::DataTable> cfg) override;
 };
 
 REGISTER_CREATOR(Tokamak)
@@ -31,7 +31,7 @@ std::shared_ptr<data::DataTable> Tokamak::Serialize() const {
     auto res = engine::Context::Serialize();
     return res;
 }
-void Tokamak::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
+void Tokamak::Deserialize(std::shared_ptr<data::DataTable> cfg) {
     engine::Context::Deserialize(cfg);
 
     typedef mesh::RectMesh mesh_type;

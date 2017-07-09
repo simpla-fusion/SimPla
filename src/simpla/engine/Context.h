@@ -74,7 +74,7 @@ class Context : public SPObject, public data::EnableCreateFromDataTable<Context>
     DECLARE_REGISTER_NAME(Context)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
+    void Deserialize(std::shared_ptr<data::DataTable> cfg) override;
 
     void DoInitialize() override;
     void DoFinalize() override;

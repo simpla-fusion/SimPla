@@ -35,7 +35,7 @@ class Revolve : public GeoObject {
         res->Set("2DShape", base_obj.Pack());
         return res;
     };
-    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override {}
+    void Deserialize(std::shared_ptr<DataTable> cfg) override {}
 
     virtual box_type GetBoundBox() const override { return box_type{{0, 0, 0}, {1, 2, 3}}; };
 
@@ -81,7 +81,7 @@ class RevolveZ : public GeoObject {
         res->Set("2DShape", base_obj->Serialize());
         return res;
     };
-    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override {}
+    void Deserialize(std::shared_ptr<DataTable> cfg) override {}
 
     box_type GetBoundBox() const override {
         nTuple<Real, 2> lo, hi;

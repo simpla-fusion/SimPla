@@ -24,7 +24,7 @@ class Tokamak : public Model {
     Tokamak &operator=(Tokamak &&) = delete;
 
     std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
+    void Deserialize(std::shared_ptr<DataTable> cfg) override;
     void DoUpdate() override;
 
    private:

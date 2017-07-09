@@ -41,14 +41,14 @@ Context = {
                 H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
             }
         },
---        RFAntenna = {
---            Type = "ICRFAntenna.RectMesh",
---            Variable = { Name = "E", IFORM = 1, DOF = 1, ValueType = "Real" },
---            IsHard = false,
---            Amplify = { 0.0, 0.0, 1.0 },
---            WaveNumber = { 0.0, 0.0, TWOPI / 12.0 },
---            Frequency = 1.0e9
---        },
+        RFAntenna = {
+            Type = "ICRFAntenna.RectMesh",
+            Variable = { Name = "E", IFORM = 1, DOF = 1, ValueType = "Real" },
+            IsHard = false,
+            Amplify = { 0.0, 0.0, 1.0 },
+            WaveNumber = { 0.0, 0.0, TWOPI / 12.0 },
+            Frequency = 1.0e9
+        },
     },
 }
 

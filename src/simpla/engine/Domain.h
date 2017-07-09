@@ -49,7 +49,7 @@ class Domain : public SPObject,
     DECLARE_REGISTER_NAME(Domain)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
+    void Deserialize(std::shared_ptr<data::DataTable> t) override;
 
     void Pull(Patch *) override;
     void Push(Patch *) override;

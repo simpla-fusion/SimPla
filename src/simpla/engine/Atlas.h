@@ -71,7 +71,7 @@ class Atlas : public SPObject, public data::Serializable {
 
     std::shared_ptr<data::DataTable> Serialize() const override;
 
-    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
+    void Deserialize(std::shared_ptr<data::DataTable> cfg) override;
 
     void DoUpdate() override;
 

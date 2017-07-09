@@ -85,7 +85,7 @@ std::shared_ptr<data::DataTable> Schedule::Serialize() const {
     return res;
 }
 
-void Schedule::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
+void Schedule::Deserialize(std::shared_ptr<data::DataTable> cfg) {
     SetContext(Context::Create(cfg->Get("Context")));
     SetCheckPointInterval(static_cast<size_type>(cfg->GetValue("CheckPointInterval", 1)));
     SetOutputURL(cfg->GetValue<std::string>("OutPutPrefix", "") + GetOutputURL());

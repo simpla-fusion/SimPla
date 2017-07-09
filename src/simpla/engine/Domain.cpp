@@ -46,7 +46,7 @@ std::shared_ptr<data::DataTable> Domain::Serialize() const {
     p->SetValue("GeometryObject", m_pimpl_->m_domain_geo_prefix_);
     return (p);
 }
-void Domain::Deserialize(const std::shared_ptr<data::DataTable>& cfg) {
+void Domain::Deserialize(std::shared_ptr<data::DataTable> cfg) {
     Initialize();
     Click();
     SetName(cfg->GetValue<std::string>("Name", "unnamed"));

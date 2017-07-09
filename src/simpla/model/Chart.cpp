@@ -25,7 +25,7 @@ std::shared_ptr<data::DataTable> Chart::Serialize() const {
 
     return p;
 }
-void Chart::Deserialize(const std::shared_ptr<data::DataTable> &p) {
+void Chart::Deserialize(std::shared_ptr<data::DataTable> p) {
     m_pimpl_->m_shift_ = p->GetValue<point_type>("Shift", GetShift());
     m_pimpl_->m_scale_ = p->GetValue<point_type>("Scale", GetScale());
     m_pimpl_->m_rotation_ = p->GetValue<point_type>("Rotation", GetRotation());

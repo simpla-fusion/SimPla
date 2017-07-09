@@ -25,7 +25,7 @@ class ICRFAntenna : public engine::Domain {
     DOMAIN_HEAD(ICRFAntenna, TM)(<#initializer#>)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataTable> const& cfg) override;
+    void Deserialize(std::shared_ptr<DataTable> cfg) override;
 
     void DoInitialCondition(Real time_now) override;
     void DoBoundaryCondition(Real time_now, Real dt) override;
@@ -51,7 +51,7 @@ std::shared_ptr<data::DataTable> ICRFAntenna<TM>::Serialize() const {
     return res;
 };
 template <typename TM>
-void ICRFAntenna<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
+void ICRFAntenna<TM>::Deserialize(std::shared_ptr<DataTable> cfg) {
     DoInitialize();
     engine::Domain::Deserialize(cfg);
     m_amplify_ = cfg->GetValue<Vec3>("Amplify", m_amplify_);

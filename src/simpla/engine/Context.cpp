@@ -26,7 +26,7 @@ std::shared_ptr<data::DataTable> Context::Serialize() const {
 
     return res;
 }
-void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
+void Context::Deserialize(std::shared_ptr<data::DataTable> cfg) {
     DoInitialize();
     SetName(cfg->GetValue<std::string>("Name", "unnamed"));
 

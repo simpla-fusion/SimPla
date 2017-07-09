@@ -33,7 +33,7 @@ std::shared_ptr<data::DataTable> SpApp::Serialize() const {
 
     return res;
 };
-void SpApp::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
+void SpApp::Deserialize(std::shared_ptr<data::DataTable> cfg) {
     m_pimpl_->m_schedule_ = engine::Schedule::Create(cfg->Get("Schedule"));
     m_pimpl_->m_context_ = engine::Context::Create(cfg->Get("Context"));
     m_pimpl_->m_context_ = engine::Context::Create(cfg->Get("Model"));

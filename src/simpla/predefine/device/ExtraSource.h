@@ -23,7 +23,7 @@ class ExtraSource : public engine::Domain {
     DOMAIN_HEAD(ExtraSource, TM)(<#initializer#>)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataTable> const& cfg) override;
+    void Deserialize(std::shared_ptr<DataTable> cfg) override;
 
     void DoInitialCondition(Real time_now) override;
     void DoBoundaryCondition(Real time_now, Real dt) override;
@@ -42,7 +42,7 @@ std::shared_ptr<data::DataTable> ExtraSource<TM>::Serialize() const {
     return res;
 };
 template <typename TM>
-void ExtraSource<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
+void ExtraSource<TM>::Deserialize(std::shared_ptr<DataTable> cfg) {
     DoInitialize();
     if (cfg == nullptr || cfg->GetTable("Species") == nullptr) { return; }
 

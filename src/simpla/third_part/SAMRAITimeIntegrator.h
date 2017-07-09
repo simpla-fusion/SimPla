@@ -23,7 +23,7 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
     DECLARE_REGISTER_NAME(SAMRAITimeIntegrator)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override;
+    void Deserialize(std::shared_ptr<data::DataTable> cfg) override;
 
     void DoInitialize() override;
     void DoFinalize() override;

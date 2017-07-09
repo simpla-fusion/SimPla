@@ -26,7 +26,7 @@ struct SpApp : public engine::SPObject, public data::Serializable {
     using data::Serializable::Deserialize;
 
     std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
+    void Deserialize(std::shared_ptr<data::DataTable> cfg) override;
 
     void DoInitialize() override;
     void DoUpdate() override;

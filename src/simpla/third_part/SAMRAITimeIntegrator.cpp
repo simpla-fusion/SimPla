@@ -816,7 +816,7 @@ SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
 
 void SAMRAITimeIntegrator::Synchronize() { engine::TimeIntegrator::Synchronize(); }
 std::shared_ptr<data::DataTable> SAMRAITimeIntegrator::Serialize() const { return engine::TimeIntegrator::Serialize(); }
-void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
+void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> cfg) {
     engine::TimeIntegrator::Deserialize(cfg);
 }
 
