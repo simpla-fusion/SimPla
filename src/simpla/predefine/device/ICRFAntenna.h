@@ -27,9 +27,9 @@ class ICRFAntenna : public engine::Domain {
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const& cfg) override;
 
-    void InitialCondition(Real time_now) override;
-    void BoundaryCondition(Real time_now, Real dt) override;
-    void Advance(Real time_now, Real dt) override;
+    void DoInitialCondition(Real time_now) override;
+    void DoBoundaryCondition(Real time_now, Real dt) override;
+    void DoAdvance(Real time_now, Real dt) override;
 
     Field<TM, Real, EDGE> J{this, "name"_ = "J"};
 
@@ -62,16 +62,16 @@ void ICRFAntenna<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
 }
 
 template <typename TM>
-void ICRFAntenna<TM>::InitialCondition(Real time_now) {
-    Domain::InitialCondition(time_now);
+void ICRFAntenna<TM>::DoInitialCondition(Real time_now) {
+    Domain::DoInitialCondition(time_now);
 }
 template <typename TM>
-void ICRFAntenna<TM>::BoundaryCondition(Real time_now, Real dt) {
-    Domain::BoundaryCondition(time_now, dt);
+void ICRFAntenna<TM>::DoBoundaryCondition(Real time_now, Real dt) {
+    Domain::DoBoundaryCondition(time_now, dt);
 }
 template <typename TM>
-void ICRFAntenna<TM>::Advance(Real time_now, Real dt) {
-    Domain::Advance(time_now, dt);
+void ICRFAntenna<TM>::DoAdvance(Real time_now, Real dt) {
+    Domain::DoAdvance(time_now, dt);
 
     DEFINE_PHYSICAL_CONST
     J = [&](point_type const& x) -> Vec3 {

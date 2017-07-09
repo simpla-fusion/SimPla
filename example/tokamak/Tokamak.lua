@@ -31,8 +31,8 @@ Context = {
             Model="Tokamak",
             Boundary="Limiter",
             Type = "EMFluid",
-            BoundaryCondition = {Type = "PEC",},
-            InitialCondition = {
+            DoBoundaryCondition = {Type = "PEC",},
+            DoInitialCondition = {
                  ne = "ne",
                  B0v = "B0",
             },

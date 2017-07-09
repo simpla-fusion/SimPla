@@ -25,9 +25,9 @@ class ExtraSource : public engine::Domain {
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const& cfg) override;
 
-    void InitialCondition(Real time_now) override;
-    void BoundaryCondition(Real time_now, Real dt) override;
-    void Advance(Real time_now, Real dt) override;
+    void DoInitialCondition(Real time_now) override;
+    void DoBoundaryCondition(Real time_now, Real dt) override;
+    void DoAdvance(Real time_now, Real dt) override;
 
     std::shared_ptr<Attribute> m_attrr_;
 };
@@ -50,13 +50,13 @@ void ExtraSource<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
 }
 
 template <typename TM>
-void ExtraSource<TM>::InitialCondition(Real time_now) {
-    Domain::InitialCondition(time_now);
+void ExtraSource<TM>::DoInitialCondition(Real time_now) {
+    Domain::DoInitialCondition(time_now);
 }
 template <typename TM>
-void ExtraSource<TM>::BoundaryCondition(Real time_now, Real dt) {}
+void ExtraSource<TM>::DoBoundaryCondition(Real time_now, Real dt) {}
 template <typename TM>
-void ExtraSource<TM>::Advance(Real time_now, Real dt) {
+void ExtraSource<TM>::DoAdvance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
 }
 

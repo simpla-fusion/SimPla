@@ -662,7 +662,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
         //
         //        for (auto &d : m_ctx_->GetAllDomains()) {
         //            VERBOSE << "DoInitialize Domain : " << d.first << std::endl;
-        //            d.second->DoInitialCondition(p.get(), data_time);
+        //            d.second->InitialCondition(p.get(), data_time);
         //        }
         //        m_ctx_->GetBaseMesh()->Serialize(p.get());
 
@@ -726,7 +726,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI:
     m_ctx_->GetBaseMesh()->SetBoundaryCondition(time_now, time_dt);
     m_ctx_->Advance(&p, time_now, time_dt);
     //    m_ctx_->GetBaseMesh()->Deserialize(p.get());
-    //    for (auto &d : m_ctx_->GetAllDomains()) { d.second->DoAdvance(p.get(), time_now, time_dt); }
+    //    for (auto &d : m_ctx_->GetAllDomains()) { d.second->Advance(p.get(), time_now, time_dt); }
     m_ctx_->GetBaseMesh()->Pull(&p);
     m_ctx_->GetAtlas().Push(std::move(p));
 }
@@ -763,7 +763,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setPhysicalBoundaryConditions(
     ConvertPatchFromSAMRAI(patch, &p);
     m_ctx_->GetBaseMesh()->Push(&p);
     m_ctx_->GetBaseMesh()->SetBoundaryCondition(fill_time, 0);
-    for (auto &d : m_ctx_->GetAllDomains()) { d.second->DoBoundaryCondition(&p, fill_time, 0); }
+    for (auto &d : m_ctx_->GetAllDomains()) { d.second->BoundaryCondition(&p, fill_time, 0); }
     m_ctx_->GetBaseMesh()->Pull(&p);
     m_ctx_->GetAtlas().Push(std::move(p));
 }

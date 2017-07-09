@@ -43,7 +43,7 @@ class GEqdsk {
     typedef nTuple<Real, 3> Vec3;
 
     explicit GEqdsk(std::shared_ptr<model::Chart> const &c = nullptr);
-    ~GEqdsk() = default;
+    ~GEqdsk();
 
     void load(std::string const &fname);
     void load_profile(std::string const &fname);

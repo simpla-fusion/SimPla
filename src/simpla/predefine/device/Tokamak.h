@@ -10,7 +10,8 @@
 namespace simpla {
 namespace model {
 
-class Tokamak : public model::Model {
+class Tokamak : public Model {
+    SP_OBJECT_HEAD(Tokamak, Model)
     DECLARE_REGISTER_NAME(Tokamak);
 
    public:

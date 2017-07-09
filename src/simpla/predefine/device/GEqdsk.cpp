@@ -317,7 +317,7 @@ std::ostream &GEqdsk::print(std::ostream &os) {
 
 GEqdsk::GEqdsk(std::shared_ptr<model::Chart> const &c) : m_pimpl_(new pimpl_s) {}
 
-// GEqdsk::~GEqdsk() {}
+GEqdsk::~GEqdsk() {}
 
 std::string const &GEqdsk::description() const { return m_pimpl_->m_desc_; }
 

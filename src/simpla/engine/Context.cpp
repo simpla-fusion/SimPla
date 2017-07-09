@@ -137,14 +137,14 @@ void Context::InitialCondition(Patch *patch, Real time_now) {
 
     GetBaseMesh()->InitializeData(time_now);
 
-    for (auto &d : GetAllDomains()) { d.second->DoInitialCondition(patch, time_now); }
+    for (auto &d : GetAllDomains()) { d.second->InitialCondition(patch, time_now); }
     GetBaseMesh()->Pull(patch);
 }
 
 void Context::Advance(Patch *patch, Real time_now, Real time_dt) {
     DoUpdate();
     GetBaseMesh()->Push(patch);
-    for (auto &d : GetAllDomains()) { d.second->DoAdvance(patch, time_now, time_dt); }
+    for (auto &d : GetAllDomains()) { d.second->Advance(patch, time_now, time_dt); }
     GetBaseMesh()->Pull(patch);
 }
 

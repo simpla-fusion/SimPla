@@ -22,9 +22,9 @@ class IdealMHD : public engine::Domain {
     std::shared_ptr<data::DataTable> Pack() const override;
     void Unpack(std::shared_ptr<data::DataTable> const &cfg) override;
 
-    void InitialCondition(Real time_now) override;
-    void BoundaryCondition(Real time_now, Real dt) override;
-    void Advance(Real time_now, Real dt) override;
+    void DoInitialCondition(Real time_now) override;
+    void DoBoundaryCondition(Real time_now, Real dt) override;
+    void DoAdvance(Real time_now, Real dt) override;
 
     DOMAIN_DECLARE_FIELD(rho, VOLUME, 1);
     DOMAIN_DECLARE_FIELD(rhoU, VOLUME, 1);
@@ -56,11 +56,11 @@ void IdealMHD<TM>::Unpack(std::shared_ptr<data::DataTable> const &cfg) {
 }
 
 template <typename TM>
-void IdealMHD<TM>::InitialCondition(Real time_now) {}
+void IdealMHD<TM>::DoInitialCondition(Real time_now) {}
 template <typename TM>
-void IdealMHD<TM>::BoundaryCondition(Real time_now, Real dt) {}
+void IdealMHD<TM>::DoBoundaryCondition(Real time_now, Real dt) {}
 template <typename TM>
-void IdealMHD<TM>::Advance(Real time_now, Real time_dt) {
+void IdealMHD<TM>::DoAdvance(Real time_now, Real time_dt) {
     E = cross_v(v, B);
     B -= curl(E) * time_dt;
 

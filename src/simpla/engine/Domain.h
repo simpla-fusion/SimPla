@@ -35,7 +35,7 @@ class Domain : public SPObject,
     explicit Domain(const std::shared_ptr<MeshBase> &m, const std::shared_ptr<model::GeoObject> &g);
     ~Domain() override;
     Domain(Domain const &other);
-    Domain(Domain &&other)noexcept;
+    Domain(Domain &&other) noexcept;
     void swap(Domain &other);
     Domain &operator=(this_type const &other) {
         Domain(other).swap(*this);
@@ -52,7 +52,7 @@ class Domain : public SPObject,
     void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
 
     void Pull(Patch *) override;
-    void Push(Patch *t) override;
+    void Push(Patch *) override;
 
     std::string GetDomainPrefix() const override;
 
@@ -95,13 +95,17 @@ class Domain : public SPObject,
     design_pattern::Signal<void(Domain *, Real, Real)> PreAdvance;
     design_pattern::Signal<void(Domain *, Real, Real)> PostAdvance;
 
-    virtual void InitialCondition(Real time_now) {}
-    virtual void BoundaryCondition(Real time_now, Real dt) {}
-    virtual void Advance(Real time_now, Real dt) {}
+    virtual void DoInitialCondition(Real time_now) {}
+    virtual void DoBoundaryCondition(Real time_now, Real dt) {}
+    virtual void DoAdvance(Real time_now, Real dt) {}
 
-    void DoInitialCondition(Patch *, Real time_now);
-    void DoBoundaryCondition(Patch *, Real time_now, Real dt);
-    void DoAdvance(Patch *, Real time_now, Real dt);
+    void InitialCondition(Real time_now);
+    void BoundaryCondition(Real time_now, Real dt);
+    void Advance(Real time_now, Real dt);
+
+    void InitialCondition(Patch *, Real time_now);
+    void BoundaryCondition(Patch *, Real time_now, Real dt);
+    void Advance(Patch *, Real time_now, Real dt);
 
     template <typename T>
     T GetAttribute(std::string const &k) const {

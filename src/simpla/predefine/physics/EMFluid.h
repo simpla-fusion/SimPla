@@ -26,9 +26,9 @@ class EMFluid : public engine::Domain {
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const& cfg) override;
 
-    void InitialCondition(Real time_now) override;
-    void BoundaryCondition(Real time_now, Real dt) override;
-    void Advance(Real time_now, Real dt) override;
+    void DoInitialCondition(Real time_now) override;
+    void DoBoundaryCondition(Real time_now, Real dt) override;
+    void DoAdvance(Real time_now, Real dt) override;
 
     Field<TM, Real, VOLUME> ne{this, "name"_ = "ne"};
     Field<TM, Real, VOLUME, 3> B0v{this, "name"_ = "B0v"};
@@ -91,7 +91,7 @@ void EMFluid<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
         auto t = std::dynamic_pointer_cast<data::DataTable>(v);
         AddSpecies(k, t);
     });
-    m_boundary_geo_obj_prefix_ = cfg->GetValue<std::string>("BoundaryCondition/GeometryObject", "PEC");
+    m_boundary_geo_obj_prefix_ = cfg->GetValue<std::string>("DoBoundaryCondition/GeometryObject", "PEC");
     Click();
 }
 
@@ -113,7 +113,7 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
 }
 
 template <typename TM>
-void EMFluid<TM>::InitialCondition(Real time_now) {
+void EMFluid<TM>::DoInitialCondition(Real time_now) {
     Domain::InitialCondition(time_now);
 
     dumpE.Clear();
@@ -140,7 +140,7 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
     Ev = map_to<VOLUME>(E);
 }
 template <typename TM>
-void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
+void EMFluid<TM>::DoBoundaryCondition(Real time_now, Real dt) {
     FillBoundary(B, 0);
     FillBoundary(E, 0);
     FillBoundary(J, 0);
@@ -148,7 +148,7 @@ void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
     FillBoundary(dumpB, 0);
 }
 template <typename TM>
-void EMFluid<TM>::Advance(Real time_now, Real dt) {
+void EMFluid<TM>::DoAdvance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
 
     B = B - curl(E) * (dt * 0.5);

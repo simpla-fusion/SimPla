@@ -18,8 +18,7 @@ struct Domain::pimpl_s {
 
     std::string m_domain_geo_prefix_;
 };
-Domain::Domain(const std::shared_ptr<MeshBase>& m, const std::shared_ptr<model::GeoObject>& g)
-    : m_pimpl_(new pimpl_s) {
+Domain::Domain(const std::shared_ptr<MeshBase>& m, const std::shared_ptr<model::GeoObject>& g) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_mesh_base_ = m;
     m_pimpl_->m_geo_object_ = g;
     Click();
@@ -88,26 +87,34 @@ void Domain::Pull(Patch* patch) {
     Click();
     TearDown();
 }
-
-void Domain::DoInitialCondition(Patch* patch, Real time_now) {
-    Push(patch);
+void Domain::InitialCondition(Real time_now) {
     PreInitialCondition(this, time_now);
-    InitialCondition(time_now);
+    DoInitialCondition(time_now);
     PostInitialCondition(this, time_now);
-    Pull(patch);
 }
-void Domain::DoBoundaryCondition(Patch* patch, Real time_now, Real dt) {
-    Push(patch);
+void Domain::BoundaryCondition(Real time_now, Real dt) {
     PreBoundaryCondition(this, time_now, dt);
-    BoundaryCondition(time_now, dt);
+    DoBoundaryCondition(time_now, dt);
     PostBoundaryCondition(this, time_now, dt);
+}
+void Domain::Advance(Real time_now, Real dt) {
+    PreAdvance(this, time_now, dt);
+    DoAdvance(time_now, dt);
+    PostAdvance(this, time_now, dt);
+}
+void Domain::InitialCondition(Patch* patch, Real time_now) {
+    Push(patch);
+    InitialCondition(time_now);
     Pull(patch);
 }
-void Domain::DoAdvance(Patch* patch, Real time_now, Real dt) {
+void Domain::BoundaryCondition(Patch* patch, Real time_now, Real dt) {
     Push(patch);
-    PreAdvance(this, time_now, dt);
+    BoundaryCondition(time_now, dt);
+    Pull(patch);
+}
+void Domain::Advance(Patch* patch, Real time_now, Real dt) {
+    Push(patch);
     Advance(time_now, dt);
-    PostAdvance(this, time_now, dt);
     Pull(patch);
 }
 
