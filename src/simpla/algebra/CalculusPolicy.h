@@ -84,8 +84,8 @@ struct CalculusPolicy {
     //        });
     //    }
 
-    template <int IFORM, typename U, int... N, typename RHS>
-    static void Fill(M const& m, nTuple<array<U>, N...>& lhs, RHS const& rhs) {
+    template <typename OtherMesh, typename U, int IFORM, int... N, typename RHS>
+    static void Fill(M const& m, Field<OtherMesh, U, IFORM, N...>& lhs, RHS&& rhs) {
         //        traits::foreach (lhs.Get(), [&](auto& a, int n0, auto&&... subs) {
         //            int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][n0] |
         //                      (reduction_v(tags::multiplication(), 1, std::forward<decltype(subs)>(subs * DOF)...) <<

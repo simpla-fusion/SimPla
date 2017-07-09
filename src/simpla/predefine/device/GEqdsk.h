@@ -15,13 +15,12 @@
 #include <simpla/utilities/type_traits.h>
 #include <iostream>
 #include <string>
-#include "Chart.h"
-#include "GeoObject.h"
-#include "Model.h"
-#include "Polygon.h"
-#include "Revolve.h"
+#include "simpla/model/Chart.h"
+#include "simpla/model/GeoObject.h"
+#include "simpla/model/Model.h"
+#include "simpla/model/Polygon.h"
+#include "simpla/model/Revolve.h"
 namespace simpla {
-
 /**
  * @ingroup model
  * @{
@@ -33,11 +32,8 @@ namespace simpla {
  *  default using cylindrical coordinates \f$R,Z,\phi\f$
  * \note http://w3.pppl.gov/ntcc/TORAY/G_EQDSK.pdf
  */
-class GEqdsk : public geometry::GeoObject {
-    SP_OBJECT_HEAD(GEqdsk, geometry::GeoObject)
-    DECLARE_REGISTER_NAME(GEqdsk);
-
-   private:
+class GEqdsk {
+   public:
     static constexpr int PhiAxis = 2;
     static constexpr int RAxis = (PhiAxis + 1) % 3;
     static constexpr int ZAxis = (PhiAxis + 2) % 3;
@@ -46,15 +42,8 @@ class GEqdsk : public geometry::GeoObject {
     static constexpr int CartesianYAxis = (CartesianZAxis + 2) % 3;
     typedef nTuple<Real, 3> Vec3;
 
-   public:
-    GEqdsk(std::shared_ptr<geometry::Chart> const &c = nullptr);
-    ~GEqdsk();
-
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
-
-    virtual bool hasChildren() const override { return true; }
-    virtual void Register(std::map<std::string, std::shared_ptr<GeoObject>> &, std::string const &prefix = "") override;
+    explicit GEqdsk(std::shared_ptr<model::Chart> const &c = nullptr);
+    ~GEqdsk() = default;
 
     void load(std::string const &fname);
     void load_profile(std::string const &fname);
@@ -62,14 +51,14 @@ class GEqdsk : public geometry::GeoObject {
     std::ostream &print(std::ostream &os);
     std::string const &description() const;
     __host__ __device__ box_type box() const;
-    std::shared_ptr<geometry::Polygon<2>> const &boundary() const;
-    std::shared_ptr<geometry::Polygon<2>> const &limiter() const;
+    std::shared_ptr<model::Polygon<2>> const &boundary() const;
+    std::shared_ptr<model::Polygon<2>> const &limiter() const;
 
     __host__ __device__ bool in_boundary(point_type const &x) const {
-        return boundary()->check_inside(x[RAxis], x[ZAxis]) > 0;
+        return boundary()->check_inside(x[RAxis], x[ZAxis]);
     }
     __host__ __device__ bool in_limiter(point_type const &x) const {
-        return limiter()->check_inside(x[RAxis], x[ZAxis]) > 0;
+        return limiter()->check_inside(x[RAxis], x[ZAxis]);
     }
     __host__ __device__ Real psi(Real R, Real Z) const;
     __host__ __device__ Real psi(point_type const &x) const { return psi(x[RAxis], x[ZAxis]); }
@@ -176,7 +165,6 @@ class GEqdsk : public geometry::GeoObject {
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-}
-// namespace simpla
+}  // namespace simpla
 
 #endif /* GEQDSK_H_ */

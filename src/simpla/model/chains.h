@@ -19,7 +19,7 @@
 #include "primitive.h"
 
 namespace simpla {
-namespace geometry {
+namespace model {
 
 namespace tags {
 struct is_structed;
@@ -169,7 +169,7 @@ struct closure<model::Chains<PrimitiveType, Others...>>
 };
 }  // namespace traits
 
-}  // namespace geometry
+}  // namespace model
 }  // namespace simpla
 
 #endif /* CORE_GEOMETRY_CHAINS_H_ */

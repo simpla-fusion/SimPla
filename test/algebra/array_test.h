@@ -240,7 +240,7 @@ REGISTER_TYPED_TEST_CASE_P(TestArray, assign, index, constant_real, scalarArray)
 //#include <gtest/gtest.h>
 //
 //#include "field.h"
-//#include "../geometry/domain_traits.h"
+//#include "../model/domain_traits.h"
 //using namespace simpla;
 //
 ////#include "../utilities/log.h"
@@ -283,10 +283,10 @@ REGISTER_TYPED_TEST_CASE_P(TestArray, assign, index, constant_real, scalarArray)
 //			}
 //		}
 //
-//		geometry.set_dimensions(topology_dims);
-//		geometry.set_extents(xmin, xmax);
+//		model.set_dimensions(topology_dims);
+//		model.set_extents(xmin, xmax);
 //
-//		geometry.Sync();
+//		model.Sync();
 //
 //	}
 //public:
@@ -297,7 +297,7 @@ REGISTER_TYPED_TEST_CASE_P(TestArray, assign, index, constant_real, scalarArray)
 //	typedef domain_type::iterator iterator;
 //	typedef domain_type::coordinate_tuple coordinate_tuple;
 //
-//	domain_type geometry;
+//	domain_type model;
 //
 //	static constexpr unsigned int NDIMS = domain_type::NDIMS;
 //

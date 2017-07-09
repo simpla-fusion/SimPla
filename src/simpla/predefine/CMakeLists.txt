@@ -2,6 +2,6 @@
 #ADD_SUBDIRECTORY(field_solver)
 #ADD_SUBDIRECTORY(contexts)
 #ADD_SUBDIRECTORY(fokker_planck)
-FILE(GLOB predefine_SRC ./*.cpp )
+FILE(GLOB predefine_SRC ./*/*.cpp )
 #FILE(GLOB data_SRC DataTable.cpp )
 add_library(predefine ${predefine_SRC} )

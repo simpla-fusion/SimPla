@@ -7,7 +7,6 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/data/Serializable.h>
-#include <simpla/model/Model.h>
 #include <map>
 #include "Atlas.h"
 #include "Domain.h"
@@ -74,9 +73,6 @@ class Context : public SPObject, public data::EnableCreateFromDataTable<Context>
     SP_DEFAULT_CONSTRUCT(Context)
     DECLARE_REGISTER_NAME(Context)
 
-    //    DataPack Serialize() const;
-    //    void UnPack(engine::DataPack &&t);
-
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
 
@@ -86,10 +82,9 @@ class Context : public SPObject, public data::EnableCreateFromDataTable<Context>
     void DoTearDown() override;
 
     Atlas &GetAtlas() const;
-    model::Model &GetModel() const;
 
-    void SetMesh(std::shared_ptr<MeshBase> const &m);
-    std::shared_ptr<MeshBase> GetMesh() const;
+    void SetBaseMesh(std::shared_ptr<MeshBase> const &m);
+    std::shared_ptr<MeshBase> GetBaseMesh() const;
 
     void SetDomain(std::string const &k, std::shared_ptr<Domain> const &);
     std::shared_ptr<Domain> GetDomain(std::string const &k) const;

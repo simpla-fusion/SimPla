@@ -17,7 +17,7 @@
 #include "CoordinateSystem.h"
 namespace simpla
 {
-namespace geometry
+namespace model
 {
 namespace bg = boost::geometry;
 
@@ -140,7 +140,7 @@ template<typename CS> auto area(
 	return res;
 
 }
-}  // namespace geometry
+}  // namespace model
 }  // namespace simpla
 
 namespace boost
@@ -149,9 +149,9 @@ namespace geometry
 {
 namespace traits
 {
-namespace sg = simpla::geometry;
-namespace sgm = simpla::geometry::model;
-namespace sgcs = simpla::geometry::coordinate_system;
+namespace sg = simpla::model;
+namespace sgm = simpla::model::model;
+namespace sgcs = simpla::model::coordinate_system;
 
 template<typename CS, typename TAG>
 struct tag<sgm::Primitive<0, CS, TAG> >
@@ -252,12 +252,12 @@ struct point_type<sgm::Primitive<1, CS, sg::tags::simplex> >
 //
 //	static inline coordinate_type Serialize(segment_type const& s)
 //	{
-//		return geometry::get<Dimension>(simpla::traits::Serialize<0>(s));
+//		return model::get<Dimension>(simpla::traits::Serialize<0>(s));
 //	}
 //
 //	static inline void SetValue(segment_type& s, coordinate_type const& entity)
 //	{
-//		geometry::SetValue<Dimension>(simpla::traits::Serialize<0>(s), entity);
+//		model::SetValue<Dimension>(simpla::traits::Serialize<0>(s), entity);
 //	}
 //};
 //
@@ -269,12 +269,12 @@ struct point_type<sgm::Primitive<1, CS, sg::tags::simplex> >
 //
 //	static inline coordinate_type Serialize(segment_type const& s)
 //	{
-//		return geometry::get<Dimension>(simpla::traits::Serialize<1>(s));
+//		return model::get<Dimension>(simpla::traits::Serialize<1>(s));
 //	}
 //
 //	static inline void SetValue(segment_type& s, coordinate_type const& entity)
 //	{
-//		geometry::SetValue<Dimension>(simpla::traits::Serialize<1>(s), entity);
+//		model::SetValue<Dimension>(simpla::traits::Serialize<1>(s), entity);
 //	}
 //};
 
@@ -327,7 +327,7 @@ struct closure<sgm::Polyline<CS, Others ...> >
 {
 	static constexpr closure_selector value =
 			(simpla::mpl::find_type_in_list<
-					simpla::geometry::tags::is_clockwise, Others...>::value) ?
+					simpla::model::tags::is_clockwise, Others...>::value) ?
 					(boost::geometry::closure_selector::closed) :
 					(boost::geometry::closure_selector::open);
 	;
@@ -402,6 +402,6 @@ struct interior_rings<sgm::Polygon<CS>>
 };
 
 } // namespace traits
-} // namespace geometry
+} // namespace model
 } // namespace boost
 #endif // CORE_GEOMETRY_BOOST_GEOMETRY_ADAPTED_H_

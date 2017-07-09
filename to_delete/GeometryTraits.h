@@ -6,7 +6,7 @@
 #define SIMPLA_GEOMETRYTRAITS_H
 
 namespace simpla{
-namespace geometry
+namespace model
 {
 
 

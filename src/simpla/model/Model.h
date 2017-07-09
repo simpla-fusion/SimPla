@@ -13,7 +13,7 @@ namespace model {
 
 using namespace data;
 
-class Model : public engine::SPObject, public data::Serializable {
+class Model : public engine::SPObject, public data::EnableCreateFromDataTable<Model> {
     SP_OBJECT_HEAD(Model, engine::SPObject);
 
    public:
@@ -34,11 +34,11 @@ class Model : public engine::SPObject, public data::Serializable {
 
     box_type const &GetBoundBox() const;
 
-    void SetObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &);
-    std::shared_ptr<geometry::GeoObject> GetObject(std::string const &k) const;
+    void SetObject(std::string const &k, std::shared_ptr<model::GeoObject> const &);
+    std::shared_ptr<model::GeoObject> GetObject(std::string const &k) const;
     size_type DeleteObject(std::string const &);
 
-    std::map<std::string, std::shared_ptr<geometry::GeoObject>> const &GetAll() const;
+    std::map<std::string, std::shared_ptr<model::GeoObject>> const &GetAll() const;
 
    private:
     struct pimpl_s;

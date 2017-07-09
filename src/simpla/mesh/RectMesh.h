@@ -30,16 +30,7 @@ struct RectMesh : public StructuredMesh {
 
     void InitializeData(Real time_now) override;
     void SetBoundaryCondition(Real time_now, Real time_dt) override;
-    template <typename TL, typename TR>
-    void DoFill(TL &lhs, TR const &rhs) const {};
 
-    //    {
-    //        if (GetCenter()->empty()) {
-    //            CalculusPolicy<this_type>::Fill<simpla::traits::iform<TL>::value>(*this, lhs.Get(), rhs);
-    //        } else {
-    //            GetCenter()->Fill(lhs, rhs);
-    //        };
-    //    }
     Field<this_type, Real, VERTEX, 3> m_coordinates_{this, "name"_ = "m_coordinates_" /*, "COORDINATES"_*/};
     Field<this_type, Real, VERTEX, 3> m_vertices_{this, "name"_ = "m_vertices_"};
 

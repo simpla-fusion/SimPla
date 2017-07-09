@@ -7,9 +7,9 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/data/all.h>
+#include <simpla/utilities/SPObject.h>
 #include <simpla/utilities/Signal.h>
 #include <simpla/utilities/type_traits.h>
-#include <simpla/utilities/SPObject.h>
 #include "MeshBlock.h"
 
 namespace simpla {
@@ -53,10 +53,10 @@ struct AttributeDesc : public data::Configurable {
    public:
     AttributeDesc() = default;
     AttributeDesc(AttributeDesc const &);
-    AttributeDesc(AttributeDesc &&other);
+    AttributeDesc(AttributeDesc &&other) noexcept;
     AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, std::string const &s_prefix = "",
                   std::shared_ptr<data::DataTable> const &t_db = nullptr);
-    virtual ~AttributeDesc() = default;
+    ~AttributeDesc() override = default;
 
     virtual std::string GetPrefix() const;
     virtual int GetIFORM() const;
@@ -99,8 +99,10 @@ class AttributeGroup {
     std::map<std::string, Attribute *> const &GetAll() const;
 
     virtual std::string GetDomainPrefix() const { return ""; }
-    virtual MeshBase *GetMesh() = 0;
+
     virtual MeshBase const *GetMesh() const = 0;
+    virtual MeshBase const *GetBoundaryMesh() const { return nullptr; };
+    virtual MeshBase const *GetBodyMesh() const { return nullptr; };
 
     virtual void Push(Patch *);
     virtual void Pull(Patch *);
@@ -204,8 +206,8 @@ struct Attribute : public SPObject, public AttributeDesc {
 //    virtual std::type_info const &value_type_info() const { return typeid(value_type); };  //!< value type
 //    virtual std::type_info const &mesh_type_info() const { return typeid(void); };         //!< mesh type
 //    virtual void Clear() { U::Clear(); }
-//    virtual void SetMesh(Mesh const *){};
-//    virtual Mesh const *GetMesh() const { return nullptr; };
+//    virtual void SetBaseMesh(Mesh const *){};
+//    virtual Mesh const *GetBaseMesh() const { return nullptr; };
 //    virtual void ConvertPatchFromSAMRAI(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const
 //    &d) {
 //        data::data_cast<U>(*d).swap(*this);

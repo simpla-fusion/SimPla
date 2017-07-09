@@ -11,8 +11,8 @@ REGISTER_CREATOR(RectMesh);
 void RectMesh::InitializeData(Real time_now) {
     StructuredMesh::InitializeData(time_now);
 
-    m_coordinates_ = [&](EntityId s) -> point_type { return global_coordinates(s); };
-    m_vertices_ = [&](EntityId s) -> point_type { return global_coordinates(s); };
+    m_coordinates_ = [&](EntityId s) -> point_type { return global_coordinates(s, nullptr); };
+    m_vertices_ = [&](EntityId s) -> point_type { return global_coordinates(s, nullptr); };
     m_vertex_volume_.Clear();
     m_vertex_inv_volume_.Clear();
     m_vertex_dual_volume_.Clear();

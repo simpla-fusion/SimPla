@@ -13,7 +13,7 @@ class Cube : public simpla::geometry::GeoObjectBase {};
 int main{
 
 };
-//#include "../../geometry/model.h"
+//#include "../../model/model.h"
 //
 //#include <gtest/gtest.h>
 //
@@ -22,7 +22,7 @@ int main{
 //
 //#include "../../diff_geometry/diff_scheme/fdm.h"
 //#include "../../diff_geometry/fetl.h"
-//#include "../../diff_geometry/geometry/cartesian.h"
+//#include "../../diff_geometry/model/cartesian.h"
 //#include "../../diff_geometry/interpolator/interpolator.h"
 //#include "../../diff_geometry/topology/structured.h"
 //#include "../utilities/type_traits.h"

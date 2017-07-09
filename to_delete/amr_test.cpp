@@ -8,7 +8,7 @@
 #include <simpla/data/all.h>
 #include <simpla/engine/all.h>
 #include <simpla/geometry/Cube.h>
-#include <simpla/model/GEqdsk.h>
+#include <simpla/predefine/device/GEqdsk.h>
 #include <simpla/utilities/parse_command_line.h>
 #include <iostream>
 #include "simpla/mesh/all.h"

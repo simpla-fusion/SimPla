@@ -13,32 +13,26 @@ namespace simpla {
 
 struct MeshBase::pimpl_s {
     engine::MeshBlock m_mesh_block_;
-    std::shared_ptr<geometry::Chart> m_chart_;
+    std::shared_ptr<model::Chart> m_chart_;
     point_type m_origin_ = {1, 1, 1};
     point_type m_coarsest_cell_width_ = {1, 1, 1};
     index_tuple m_ghost_width_{2, 2, 2};
     index_tuple m_idx_origin_{0, 0, 0};
     index_tuple m_dimensions_{1, 1, 1};
     size_tuple m_periodic_dimension_{0, 0, 0};
-    std::shared_ptr<std::map<std::string, EntityRange>> m_ranges_;
-
-    std::shared_ptr<EBMeshBase> m_center_mesh_;
-    std::shared_ptr<EBMeshBase> m_boundary_mesh_;
 };
-MeshBase::MeshBase(std::shared_ptr<geometry::Chart> const& c, std::string const& s_name)
+MeshBase::MeshBase(std::shared_ptr<model::Chart> const& c, std::string const& s_name)
     : SPObject(s_name), m_pimpl_(new pimpl_s) {
     SetChart(c);
 }
 MeshBase::~MeshBase() {}
-void MeshBase::SetChart(std::shared_ptr<geometry::Chart> const& c) {
+void MeshBase::SetChart(std::shared_ptr<model::Chart> const& c) {
     m_pimpl_->m_chart_ = c;
     Click();
 }
-std::shared_ptr<geometry::Chart> MeshBase::GetChart() const { return m_pimpl_->m_chart_; }
-MeshBase* MeshBase::GetMesh() { return this; }
+std::shared_ptr<model::Chart> MeshBase::GetChart() const { return m_pimpl_->m_chart_; }
+
 MeshBase const* MeshBase::GetMesh() const { return this; }
-EBMeshBase const* MeshBase::GetCenter() const { return m_pimpl_->m_center_mesh_.get(); }
-EBMeshBase const* MeshBase::GetBoundary() const { return m_pimpl_->m_boundary_mesh_.get(); }
 
 point_type const& MeshBase::GetCellWidth() const { return m_pimpl_->m_coarsest_cell_width_; }
 point_type const& MeshBase::GetOrigin() const { return m_pimpl_->m_origin_; }
@@ -91,8 +85,8 @@ std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
     return p;
 }
 void MeshBase::Deserialize(const std::shared_ptr<data::DataTable>& cfg) {
-    m_pimpl_->m_chart_ = cfg->has("Coordinates") ? geometry::Chart::Create(cfg->Get("Coordinates"))
-                                                 : geometry::Chart::Create("Cartesian");
+    m_pimpl_->m_chart_ = cfg->has("Coordinates") ? model::Chart::Create(cfg->Get("Coordinates"))
+                                                 : model::Chart::Create("Cartesian");
     m_pimpl_->m_idx_origin_ = cfg->GetValue<nTuple<int, 3>>("IndexOrigin", nTuple<int, 3>{0, 0, 0});
     m_pimpl_->m_dimensions_ = cfg->GetValue<nTuple<int, 3>>("Dimensions", nTuple<int, 3>{1, 1, 1});
     m_pimpl_->m_periodic_dimension_ = cfg->GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 0});
@@ -104,10 +98,10 @@ box_type MeshBase::GetBox() const {
     box_type res;
     index_tuple lo, hi;
     std::tie(lo, hi) = GetIndexBox(VERTEX);
-    std::get<0>(res) =
-        point(EntityId{static_cast<int16_t>(lo[0]), static_cast<int16_t>(lo[1]), static_cast<int16_t>(lo[2]), 0});
-    std::get<1>(res) =
-        point(EntityId{static_cast<int16_t>(hi[0]), static_cast<int16_t>(hi[1]), static_cast<int16_t>(hi[2]), 0});
+    std::get<0>(res) = point(
+        EntityId{static_cast<int16_t>(lo[0]), static_cast<int16_t>(lo[1]), static_cast<int16_t>(lo[2]), 0}, nullptr);
+    std::get<1>(res) = point(
+        EntityId{static_cast<int16_t>(hi[0]), static_cast<int16_t>(hi[1]), static_cast<int16_t>(hi[2]), 0}, nullptr);
     return res;
 }
 
@@ -115,32 +109,16 @@ point_type MeshBase::map(point_type const& p) const { return m_pimpl_->m_chart_-
 
 void MeshBase::Push(engine::Patch* p) {
     Click();
-    //    SetRanges(p->GetRanges());
     SetBlock(p->GetBlock());
     engine::AttributeGroup::Push(p);
     DoUpdate();
 }
 void MeshBase::Pull(engine::Patch* p) {
     p->SetBlock(GetBlock());
-    //    p->SetRanges(GetRanges());
     engine::AttributeGroup::Pull(p);
     Click();
     DoTearDown();
 }
-
-void MeshBase::AddGeometryObject(std::shared_ptr<geometry::GeoObject> const& g, std::string const& prefix){};
-
-struct EBMeshBase::pimpl_s {
-    MeshBase const* m_base_mesh_;
-};
-
-EBMeshBase::EBMeshBase(MeshBase const* m) : m_pimpl_(new pimpl_s) { m_pimpl_->m_base_mesh_ = m; }
-
-MeshBase const* EBMeshBase::GetBaseMesh() const { return m_pimpl_->m_base_mesh_; }
-
-void EBMeshBase::AddGeometryObject(std::shared_ptr<geometry::GeoObject> const& g, std::string const& prefix) {}
-
-bool EBMeshBase::empty() const { return false; }
 
 // index_box_type Mesh::GetIndexBox(int tag) const {
 //    index_box_type res = GetBlock()->GetIndexBox();

@@ -17,7 +17,7 @@
 #include "simpla/data/Serializable.h"
 
 namespace simpla {
-namespace geometry {
+namespace model {
 template <typename TObj>
 struct GeoObjectAdapter;
 
@@ -69,7 +69,7 @@ class GeoObject : public data::EnableCreateFromDataTable<GeoObject> {
     *          0<res<1  intersection
     *          0   out-side
     */
-    virtual Real CheckOverlap(box_type const &b) const { return geometry::OverlapVolume(GetBoundBox(), b) / Volume(b); }
+    virtual Real CheckOverlap(box_type const &b) const { return model::OverlapVolume(GetBoundBox(), b) / Volume(b); }
     /**
     * @return  check \f$ (x,y,z)\f$ in \f$ M\f$
     *           `in` then 1
@@ -116,7 +116,7 @@ class GeoObject : public data::EnableCreateFromDataTable<GeoObject> {
       *  else > 0
       */
     virtual std::tuple<point_type, point_type, Real> GetNearestPoint(point_type const &x0) const {
-        return geometry::GetNearestPointToBox(GetBoundBox(), x0);
+        return model::GetNearestPointToBox(GetBoundBox(), x0);
     };
 
     virtual std::tuple<point_type, point_type, Real> GetNearestPoint(GeoObject const &other) const {
@@ -130,7 +130,7 @@ class GeoObject : public data::EnableCreateFromDataTable<GeoObject> {
      * @return
      */
     virtual std::tuple<point_type, point_type, Real> GetNearestPoint(point_type const &x0, point_type const &x1) const {
-        return geometry::GetNearestPointToBox(GetBoundBox(), x0, x1);
+        return model::GetNearestPointToBox(GetBoundBox(), x0, x1);
     };
 
     /**
@@ -142,7 +142,7 @@ class GeoObject : public data::EnableCreateFromDataTable<GeoObject> {
      */
     virtual std::tuple<point_type, point_type, Real> GetNearestPoint(point_type const &x0, point_type const &x1,
                                                                      point_type const &x2) const {
-        return geometry::GetNearestPointToBox(GetBoundBox(), x0, x1, x2);
+        return model::GetNearestPointToBox(GetBoundBox(), x0, x1, x2);
     };
 
     /**
@@ -155,7 +155,7 @@ class GeoObject : public data::EnableCreateFromDataTable<GeoObject> {
      */
     virtual std::tuple<point_type, point_type, Real> GetNearestPoint(point_type const &x0, point_type const &x1,
                                                                      point_type const &x2, point_type const &x3) const {
-        return geometry::GetNearestPointToBox(GetBoundBox(), x0, x1, x2, x3);
+        return model::GetNearestPointToBox(GetBoundBox(), x0, x1, x2, x3);
     };
 
     /**
@@ -332,7 +332,7 @@ class GeoObjectNull : public GeoObject {
 }  // namespace engine
 // namespace data {
 // template <typename U>
-// struct data_entity_traits<U, std::enable_if_t<std::is_base_of<geometry::GeoObject, U>::value>> {
+// struct data_entity_traits<U, std::enable_if_t<std::is_base_of<model::GeoObject, U>::value>> {
 //    static U from(DataEntity const &v) { return v.cast_as<DataEntityWrapper<U>>().value(); };
 //    static std::shared_ptr<DataEntity> to(U const &v) {
 //        auto t = std::make_shared<DataTable>();

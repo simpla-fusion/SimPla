@@ -93,8 +93,7 @@ Real HexahedronVolume(SMesh const *m, EntityId s) {
 
 void SMesh::InitializeData(Real time_now) {
     StructuredMesh::InitializeData(time_now);
-    m_coordinates_.Clear();
-    m_coordinates_ = [&](EntityId s) -> point_type { return global_coordinates(s); };
+    m_coordinates_ = [&](EntityId s) -> point_type { return global_coordinates(s, nullptr); };
 
     m_vertex_volume_.Clear();
     m_vertex_inv_volume_.Clear();
@@ -185,14 +184,14 @@ void SMesh::InitializeData(Real time_now) {
 void SMesh::SetBoundaryCondition(Real time_now, Real time_dt) {
     StructuredMesh::SetBoundaryCondition(time_now, time_dt);
 
-    GetBoundary()->Fill(m_vertex_volume_, 0);
-    GetBoundary()->Fill(m_vertex_dual_volume_, 0);
-    GetBoundary()->Fill(m_edge_volume_, 0);
-    GetBoundary()->Fill(m_edge_dual_volume_, 0);
-    GetBoundary()->Fill(m_face_volume_, 0);
-    GetBoundary()->Fill(m_face_dual_volume_, 0);
-    GetBoundary()->Fill(m_volume_volume_, 0);
-    GetBoundary()->Fill(m_volume_dual_volume_, 0);
+    FillBoundary(m_vertex_volume_, 0);
+    FillBoundary(m_vertex_dual_volume_, 0);
+    FillBoundary(m_edge_volume_, 0);
+    FillBoundary(m_edge_dual_volume_, 0);
+    FillBoundary(m_face_volume_, 0);
+    FillBoundary(m_face_dual_volume_, 0);
+    FillBoundary(m_volume_volume_, 0);
+    FillBoundary(m_volume_dual_volume_, 0);
 }
 }
 }

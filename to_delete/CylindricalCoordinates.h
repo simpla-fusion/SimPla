@@ -15,7 +15,7 @@
 #include <vector>
 #include "simpla/geometry/Chart.h"
 namespace simpla {
-namespace geometry {
+namespace model {
 struct CylindricalCoordinates : public Chart {
     SP_OBJECT_HEAD(CylindricalCoordinates, Chart)
 

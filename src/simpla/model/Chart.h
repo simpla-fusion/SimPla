@@ -10,7 +10,7 @@
 #include <simpla/utilities/SPObject.h>
 #include <simpla/utilities/Signal.h>
 namespace simpla {
-namespace geometry {
+namespace model {
 struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<Chart> {
     SP_OBJECT_HEAD(Chart, engine::SPObject)
     SP_DEFAULT_CONSTRUCT(Chart);

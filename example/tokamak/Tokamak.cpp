@@ -6,7 +6,7 @@
 #include <simpla/engine/all.h>
 #include <simpla/mesh/RectMesh.h>
 #include <simpla/model/Cube.h>
-#include <simpla/model/GEqdsk.h>
+#include <simpla/predefine/device/GEqdsk.h>
 #include <simpla/physics/Constants.h>
 #include <iostream>
 
@@ -38,8 +38,7 @@ void Tokamak::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
 
     auto d = GetDomain("Tokamak");
     if (d != nullptr) {
-        auto geqdsk = std::dynamic_pointer_cast<GEqdsk>(GetModel().GetObject("Tokamak"));
-
+        //        auto geqdsk = std::dynamic_pointer_cast<GEqdsk>(GetModel().GetObject("Tokamak"));
         //        d->PreInitialCondition.Connect([=](engine::Domain* self, Real time_now) {
         //            //        if (self->check("ne", typeid(Field<mesh_type, Real, VOLUME>)))
         //            //        {

@@ -22,7 +22,10 @@ class EnableCreateFromDataTable : public data::Serializable {
    public:
     EnableCreateFromDataTable() = default;
     virtual ~EnableCreateFromDataTable() = default;
-    SP_DEFAULT_CONSTRUCT(EnableCreateFromDataTable);
+    EnableCreateFromDataTable(this_type const &other) = delete;
+    EnableCreateFromDataTable(this_type &&other) = delete;
+    this_type &operator=(this_type const &other) = delete;
+    this_type &operator=(this_type &&other) = delete;
 
     virtual std::string GetRegisterName() const { return TObj::RegisterName(); }
 

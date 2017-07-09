@@ -13,7 +13,7 @@
 #include "GeoObject.h"
 
 namespace simpla {
-namespace geometry {
+namespace model {
 
 struct Cube : public GeoObject {
     SP_OBJECT_HEAD(Cube, GeoObject)
@@ -111,7 +111,7 @@ struct Cube : public GeoObject {
 //		model::Primitive<3, CS, tags::Cube> const & poly)
 //{
 //}
-}  // namespace geometry
+}  // namespace model
 }  // namespace simpla
 
 #endif /* CORE_GEOMETRY_CUBE_H_ */

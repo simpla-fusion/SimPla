@@ -6,13 +6,19 @@
 #define SIMPLA_DOMAIN_H
 
 #include <simpla/data/all.h>
-#include <simpla/model/GeoObject.h>
 #include <simpla/utilities/Signal.h>
 #include <memory>
 #include "Attribute.h"
 
 namespace simpla {
+
 class MeshBase;
+template <typename...>
+class EBMesh;
+
+namespace model {
+class GeoObject;
+}
 namespace engine {
 class Patch;
 class AttributeGroup;
@@ -23,24 +29,25 @@ class AttributeGroup;
 class Domain : public SPObject,
                public AttributeGroup,
                public data::EnableCreateFromDataTable<Domain, std::shared_ptr<MeshBase> const &,
-                                                      std::shared_ptr<geometry::GeoObject> const &> {
+                                                      std::shared_ptr<model::GeoObject> const &> {
     SP_OBJECT_HEAD(Domain, SPObject)
    public:
-    explicit Domain(const std::shared_ptr<MeshBase> &m, const std::shared_ptr<geometry::GeoObject> &g);
+    explicit Domain(const std::shared_ptr<MeshBase> &m, const std::shared_ptr<model::GeoObject> &g);
     ~Domain() override;
     Domain(Domain const &other);
-    Domain(Domain &&other);
+    Domain(Domain &&other)noexcept;
     void swap(Domain &other);
     Domain &operator=(this_type const &other) {
         Domain(other).swap(*this);
         return *this;
     }
-    Domain &operator=(this_type &&other) {
+    Domain &operator=(this_type &&other) noexcept {
         Domain(other).swap(*this);
         return *this;
     }
 
     DECLARE_REGISTER_NAME(Domain)
+
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
 
@@ -50,31 +57,36 @@ class Domain : public SPObject,
     std::string GetDomainPrefix() const override;
 
     MeshBase const *GetMesh() const override;
-    MeshBase *GetMesh() override;
+    MeshBase const *GetBodyMesh() const override;
+    MeshBase const *GetBoundaryMesh() const override;
 
+    template <typename TL, typename TR>
+    void Fill(TL &lhs, TR &&rhs) const {
+        FillBody(lhs, std::forward<TR>(rhs));
+    };
+
+    template <typename LHS, typename RHS>
+    void FillBody(LHS &lhs, RHS &&rhs) const {
+        if (GetBodyMesh() != nullptr) {
+            dynamic_cast<typename LHS::mesh_type const *>(GetBodyMesh())->FillBody(lhs, std::forward<RHS>(rhs));
+        }
+    }
+    template <typename LHS, typename RHS>
+    void FillBoundary(LHS &lhs, RHS &&rhs) const {
+        if (GetBoundaryMesh() != nullptr) {
+            dynamic_cast<EBMesh<typename LHS::mesh_type> const *>(GetBodyMesh())->FillBody(lhs, std::forward<RHS>(rhs));
+        }
+    }
     engine::Domain *GetDomain() { return this; }
     engine::Domain const *GetDomain() const { return this; }
 
-    void SetGeoObject(const geometry::GeoObject &g);
-    const geometry::GeoObject &GetGeoObject() const;
+    void SetGeoObject(std::shared_ptr<model::GeoObject> g);
+    const model::GeoObject *GetGeoObject() const;
 
     void DoInitialize() override;
     void DoFinalize() override;
     void DoUpdate() override;
     void DoTearDown() override;
-
-    //#define DEF_OPERATION(_NAME_, ...)                                                            \
-//    virtual void _NAME_(__VA_ARGS__) {}                                                       \
-//    design_pattern::Signal<void(this_type *, __VA_ARGS__)> Pre##_NAME_;                       \
-//    design_pattern::Signal<void(this_type *, __VA_ARGS__)> Post##_NAME_;                      \
-//    template <typename... Args>                                                               \
-//    std::shared_ptr<Patch> Do##_NAME_(const std::shared_ptr<Patch> &patch, Args &&... args) { \
-//        Deserialize(patch);                                                                          \
-//        Pre##_NAME_(std::forward<Args>(args)...);                                             \
-//        _NAME_(std::forward<Args>(args)...)                                                   \
-//        Post##_NAME_(std::forward<Args>(args)...);                                            \
-//        return Serialize();                                                                    \
-//    };
 
     design_pattern::Signal<void(Domain *, Real)> PreInitialCondition;
     design_pattern::Signal<void(Domain *, Real)> PostInitialCondition;

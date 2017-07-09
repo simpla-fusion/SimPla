@@ -15,7 +15,7 @@
  *  - Simple feature access -architecture Part 1: Common architecture
  *  @ref boost::geometry GGL
  */
-namespace simpla { namespace geometry
+namespace simpla { namespace model
 {
 
 namespace tags
@@ -112,9 +112,9 @@ template<int Dimension, typename ...> struct Primitive;
 template<typename CoordinateSystem>
 struct Primitive<0, CoordinateSystem>
 {
-    typedef typename simpla::geometry::traits::coordinate_type<CoordinateSystem>::type value_type;
+    typedef typename simpla::model::traits::coordinate_type<CoordinateSystem>::type value_type;
 
-    static const size_t ndims = simpla::geometry::traits::dimension<
+    static const size_t ndims = simpla::model::traits::dimension<
             CoordinateSystem>::value;
 
     DEF_NTUPLE_OBJECT(CoordinateSystem, value_type, ndims);
@@ -134,9 +134,9 @@ using LineSegment= Primitive<1, CoordinateSystem>;
 template<typename CoordinateSystem>
 struct Vector
 {
-    typedef typename simpla::geometry::traits::coordinate_type<CoordinateSystem>::type value_type;
+    typedef typename simpla::model::traits::coordinate_type<CoordinateSystem>::type value_type;
 
-    static const int ndims = simpla::geometry::traits::dimension<
+    static const int ndims = simpla::model::traits::dimension<
             CoordinateSystem>::value;
 
     DEF_NTUPLE_OBJECT(CoordinateSystem, value_type, ndims);
@@ -157,9 +157,9 @@ OS &operator<<(OS &os, Vector<CoordinateSystem> const &geo)
 template<typename CoordinateSystem>
 struct CoVector
 {
-    typedef typename simpla::geometry::traits::coordinate_type<CoordinateSystem>::type value_type;
+    typedef typename simpla::model::traits::coordinate_type<CoordinateSystem>::type value_type;
 
-    static const size_t ndims = simpla::geometry::traits::dimension<
+    static const size_t ndims = simpla::model::traits::dimension<
             CoordinateSystem>::value;
 
     DEF_NTUPLE_OBJECT(CoordinateSystem, value_type, ndims);
@@ -332,18 +332,18 @@ struct facet<model::Primitive<Dimension, Others...>>
 };
 
 } // namespace traits
-} // namespace geometry
+} // namespace model
 } // namespace simpla
 
 namespace std
 {
 
 template<size_t N, size_t M, typename ... Others>
-auto get(simpla::geometry::model::Primitive<M, Others...> &obj)
+auto get(simpla::model::model::Primitive<M, Others...> &obj)
 AUTO_RETURN((obj[N]))
 
 template<size_t N, size_t M, typename ...Others>
-auto get(simpla::geometry::model::Primitive<M, Others...> const &obj)
+auto get(simpla::model::model::Primitive<M, Others...> const &obj)
 AUTO_RETURN((obj[N]))
 
 }  // namespace std

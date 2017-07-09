@@ -11,7 +11,7 @@
 namespace simpla
 {
 
-namespace geometry
+namespace model
 {
 
 namespace model
@@ -41,7 +41,7 @@ struct coordinate_system<model::Box<CoordinateSystem>>
 };
 
 }  // namespace traits
-}  // namespace geometry
+}  // namespace model
 
 }  // namespace simpla
 

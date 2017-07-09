@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 
-#include "simpla/model/GEqdsk.h"
+#include "simpla/predefine/device/GEqdsk.h"
 
 #include <XdmfArray.h>
 #include <XdmfAttribute.h>

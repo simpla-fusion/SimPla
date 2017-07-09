@@ -118,7 +118,7 @@ void Schedule::Synchronize() {
     //    if (from_level >= atlas.GetNumOfLevel() || to_level >= atlas.GetNumOfLevel()) { return; }
     //    for (auto const &src : atlas.Level(from_level)) {
     //        for (auto const &dest : atlas.Level(from_level)) {
-    //            if (!geometry::CheckOverlap(src->GetIndexBox(), dest->GetIndexBox())) { continue; }
+    //            if (!model::CheckOverlap(src->GetIndexBox(), dest->GetIndexBox())) { continue; }
     //            //            auto s_it = m_pimpl_->m_patches_.find(src->GetGUID());
     //            //            auto d_it = m_pimpl_->m_patches_.find(dest->GetGUID());
     //            //            if (s_it == m_pimpl_->m_patches_.end() || d_it == m_pimpl_->m_patches_.end() || s_it ==

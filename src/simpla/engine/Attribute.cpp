@@ -22,7 +22,7 @@ AttributeDesc::AttributeDesc(AttributeDesc const &other)
       m_iform_(other.m_iform_),
       m_dof_(other.m_dof_),
       m_t_info_(other.m_t_info_){};
-AttributeDesc::AttributeDesc(AttributeDesc &&other)
+AttributeDesc::AttributeDesc(AttributeDesc &&other) noexcept
     : data::Configurable(other),
       m_prefix_(other.m_prefix_),
       m_iform_(other.m_iform_),
@@ -110,7 +110,7 @@ Attribute const *AttributeGroup::Get(std::string const &k) const {
 }
 
 struct Attribute::pimpl_s {
-    MeshBase *m_mesh_;
+    MeshBase const *m_mesh_;
     std::set<AttributeGroup *> m_bundle_;
 };
 Attribute::Attribute(AttributeGroup *grp, int IFORM, int DOF, std::type_info const &t_info,

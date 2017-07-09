@@ -21,12 +21,10 @@
 #include <simpla/physics/Constants.h>
 #include <simpla/utilities/FancyStream.h>
 #include <simpla/utilities/Log.h>
-#include "Model.h"
-#include "Polygon.h"
+#include "simpla/model/Model.h"
+#include "simpla/model/Polygon.h"
 
 namespace simpla {
-
-REGISTER_CREATOR(GEqdsk)
 
 constexpr int GEqdsk::PhiAxis;
 constexpr int GEqdsk::RAxis;
@@ -68,15 +66,13 @@ struct GEqdsk::pimpl_s {
 
     //	inter_type qpsi_;//!< q values on uniform flux grid from axis to boundary
 
-    std::shared_ptr<geometry::Polygon<2>> m_rzbbb_;  //!< R,Z of boundary points in meter
-    std::shared_ptr<geometry::Polygon<2>> m_rzlim_;  //!< R,Z of surrounding limiter contour in meter
+    std::shared_ptr<model::Polygon<2>> m_rzbbb_;  //!< R,Z of boundary points in meter
+    std::shared_ptr<model::Polygon<2>> m_rzlim_;  //!< R,Z of surrounding limiter contour in meter
     std::map<std::string, inter_type> m_profile_;
     void load(std::string const &fname);
     void load_profile(std::string const &fname);
     //    bool flux_surface(Real psi_j, size_t M, point_type *res, Real resoluton = 0.001);
     void write(std::string const &);
-
-    Real m_phi0_ = 0, m_phi1_ = TWOPI;
 };
 
 void GEqdsk::load(std::string const &fname) { m_pimpl_->load(fname); }
@@ -91,8 +87,8 @@ nTuple<size_type, 3> GEqdsk::dimensions() const {
 
 void GEqdsk::pimpl_s::load(std::string const &fname) {
     std::ifstream inFileStream_(fname);
-    m_rzbbb_ = std::make_shared<geometry::Polygon<2>>();
-    m_rzlim_ = std::make_shared<geometry::Polygon<2>>();
+    m_rzbbb_ = std::make_shared<model::Polygon<2>>();
+    m_rzlim_ = std::make_shared<model::Polygon<2>>();
     if (!inFileStream_.is_open()) {
         THROW_EXCEPTION_RUNTIME_ERROR("File " + fname + " is not opend!");
         return;
@@ -319,33 +315,15 @@ std::ostream &GEqdsk::print(std::ostream &os) {
     return os;
 }
 
-GEqdsk::GEqdsk(std::shared_ptr<geometry::Chart> const &c) : m_pimpl_(new pimpl_s), geometry::GeoObject() {}
+GEqdsk::GEqdsk(std::shared_ptr<model::Chart> const &c) : m_pimpl_(new pimpl_s) {}
 
-GEqdsk::~GEqdsk() {}
-std::shared_ptr<data::DataTable> GEqdsk::Serialize() const { return std::make_shared<data::DataTable>(); }
-void GEqdsk::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
-    nTuple<Real, 2> phi = cfg->GetValue("Phi", nTuple<Real, 2>{0, TWOPI});
-
-    m_pimpl_->m_phi0_ = phi[0];
-    m_pimpl_->m_phi1_ = phi[1];
-
-    load(cfg->GetValue<std::string>("gfile", "gfile"));
-}
-void GEqdsk::Register(std::map<std::string, std::shared_ptr<geometry::GeoObject>> &m, std::string const &prefix) {
-    m[prefix + ".Limiter"] =
-        std::make_shared<geometry::RevolveZ>(limiter(), PhiAxis, m_pimpl_->m_phi0_, m_pimpl_->m_phi1_);
-
-    m[prefix + ".Center"] =
-        std::make_shared<geometry::RevolveZ>(boundary(), PhiAxis, m_pimpl_->m_phi0_, m_pimpl_->m_phi1_);
-
-    VERBOSE << "Add GeoObject-Sub [ " << prefix << ".Limiter , " << prefix << ".Center ]" << std::endl;
-}
+// GEqdsk::~GEqdsk() {}
 
 std::string const &GEqdsk::description() const { return m_pimpl_->m_desc_; }
 
-std::shared_ptr<geometry::Polygon<2>> const &GEqdsk::boundary() const { return m_pimpl_->m_rzbbb_; }
+std::shared_ptr<model::Polygon<2>> const &GEqdsk::boundary() const { return m_pimpl_->m_rzbbb_; }
 
-std::shared_ptr<geometry::Polygon<2>> const &GEqdsk::limiter() const { return m_pimpl_->m_rzlim_; }
+std::shared_ptr<model::Polygon<2>> const &GEqdsk::limiter() const { return m_pimpl_->m_rzlim_; }
 
 Real GEqdsk::psi(Real R, Real Z) const { return m_pimpl_->m_psirz_(R, Z); }
 

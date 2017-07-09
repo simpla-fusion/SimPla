@@ -6,7 +6,7 @@
 #define SIMPLA_GEOEXPRESSION_H
 
 namespace simpla {
-namespace geometry {
+namespace model {
 namespace expression {}
 }
 }

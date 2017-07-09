@@ -17,7 +17,7 @@
 #include <tuple>
 
 namespace simpla {
-namespace geometry {
+namespace model {
 
 template <typename U, typename V>
 bool CheckOverlap(std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b0,
@@ -662,7 +662,7 @@ bool box_intersection(TL const& l, TR* r) {
  * @}
  **/
 
-}  // namespace geometry
+}  // namespace model
 }  // namespace simpla
 
 #endif /* GEOMETRY_ALGORITHM_H_ */

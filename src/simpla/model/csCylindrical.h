@@ -16,7 +16,7 @@
 #include "simpla/utilities/macro.h"
 #include "simpla/utilities/type_traits.h"
 namespace simpla {
-namespace geometry {
+namespace model {
 
 /** @ingroup   coordinate_system
  ** @{
@@ -224,7 +224,7 @@ struct Cylindrical : public Chart {
     }
 };
 
-}  // namespace geometry
+}  // namespace model
 }  // namespace simpla
 
 //

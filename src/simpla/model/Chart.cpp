@@ -3,7 +3,7 @@
 //
 #include "Chart.h"
 namespace simpla {
-namespace geometry {
+namespace model {
 struct Chart::pimpl_s {
     point_type m_shift_{0, 0, 0};
     point_type m_rotation_{0, 0, 0};

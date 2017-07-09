@@ -5,5 +5,5 @@
 #include "Cube.h"
 
 namespace simpla {
-namespace geometry {}  // namespace geometry {
+namespace model {}  // namespace model {
 }  // namespace simpla {

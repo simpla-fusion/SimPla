@@ -10,7 +10,7 @@
 
 #include "primitive.h"
 
-namespace simpla { namespace geometry
+namespace simpla { namespace model
 {
 namespace tags
 {
@@ -56,7 +56,7 @@ struct number_of_vertices<
 };
 
 } // namespace traits
-}  //namespace geometry
+}  //namespace model
 }  //namespace simpla
 
 #endif /* CORE_GEOMETRY_PRIMITIVE_EXT_H_ */

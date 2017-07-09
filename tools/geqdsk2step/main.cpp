@@ -3,7 +3,7 @@
 //
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/nTuple.h>
-#include <simpla/model/GEqdsk.h>
+#include <simpla/predefine/device/GEqdsk.h>
 
 
 namespace simpla

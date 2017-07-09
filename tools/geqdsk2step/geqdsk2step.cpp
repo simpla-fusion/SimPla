@@ -94,7 +94,7 @@
 #include <oce/Standard_Real.hxx>
 
 
-#include <simpla/model/GEqdsk.h>
+#include <simpla/predefine/device/GEqdsk.h>
 #include <BRepBuilderAPI_MakePolygon.hxx>
 #include <BRepPrimAPI_MakeRevol.hxx>
 #include <oce/BRepPrimAPI_MakeRevol.hxx>

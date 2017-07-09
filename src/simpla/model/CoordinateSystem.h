@@ -17,7 +17,7 @@
 #include <simpla/utilities/type_traits.h>
 
 namespace simpla {
-namespace geometry {
+namespace model {
 struct Cartesian;
 struct Cylindrical;
 struct Toroidal;
@@ -128,7 +128,7 @@ using covector_type_t = typename vector_type<CS>::type;
 }  // namespace traits
 
 /** @}*/
-}  // namespace geometry
+}  // namespace model
 }  // namespace simpla
 
 #endif /* CORE_GEOMETRY_COORDINATE_SYSTEM_H_ */

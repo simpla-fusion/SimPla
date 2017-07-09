@@ -36,7 +36,7 @@ class PML : public engine::Domain {
     std::shared_ptr<Mesh> GetMesh() { return &m_mesh_; }
     Mesh const* GetMesh() const { return &m_mesh_; }
 
-    void SetCenterDomain(geometry::GeoObject const&) {}
+    void SetCenterDomain(model::GeoObject const&) {}
 
     void AdvanceData(Real data_time, Real dt = 0);
     void SetUp(Real time_now = 0);
@@ -94,11 +94,11 @@ void PML<TM>::SetUp(Real time_now) {
     point_type m_xmin, m_xmax;
     point_type c_xmin, c_xmax;
 
-    //    std::tie(m_xmin, m_xmax) = GetMesh()->box();
+    //    std::tie(m_xmin, m_xmax) = GetBaseMesh()->box();
     //    std::tie(c_xmin, c_xmax) = center_box;
-    //    auto dims = GetMesh()->dimensions();
+    //    auto dims = GetBaseMesh()->dimensions();
     //
-    //    GetMesh()->GetRange(VERTEX, mesh::SP_ES_ALL).foreach ([&](id_type const &s) {
+    //    GetBaseMesh()->GetRange(VERTEX, mesh::SP_ES_ALL).foreach ([&](id_type const &s) {
     //        point_type x = m->point(s);
     //
     //#define DEF(_N_)                                                                            \

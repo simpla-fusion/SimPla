@@ -11,21 +11,36 @@ namespace simpla {
 namespace engine {
 
 struct Domain::pimpl_s {
-    std::shared_ptr<geometry::GeoObject> m_geo_object_;
-    std::shared_ptr<MeshBase> m_mesh_ = nullptr;
+    std::shared_ptr<model::GeoObject> m_geo_object_;
+    std::shared_ptr<MeshBase> m_mesh_base_ = nullptr;
+    std::shared_ptr<MeshBase> m_mesh_body_ = nullptr;
+    std::shared_ptr<MeshBase> m_mesh_boundary_ = nullptr;
+
     std::string m_domain_geo_prefix_;
 };
-Domain::Domain(const std::shared_ptr<MeshBase>& m, const std::shared_ptr<geometry::GeoObject>& g)
-    : SPObject(), m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_mesh_ = m;
+Domain::Domain(const std::shared_ptr<MeshBase>& m, const std::shared_ptr<model::GeoObject>& g)
+    : m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_mesh_base_ = m;
     m_pimpl_->m_geo_object_ = g;
     Click();
 }
 Domain::~Domain() {}
 
-Domain::Domain(Domain const& other) { UNIMPLEMENTED; }
-Domain::Domain(Domain&& other) { UNIMPLEMENTED; }
-void Domain::swap(Domain& other) { UNIMPLEMENTED; }
+Domain::Domain(Domain const& other) : m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_mesh_base_ = other.m_pimpl_->m_mesh_base_;
+    m_pimpl_->m_mesh_body_ = other.m_pimpl_->m_mesh_body_;
+    m_pimpl_->m_mesh_boundary_ = other.m_pimpl_->m_mesh_boundary_;
+    m_pimpl_->m_geo_object_ = other.m_pimpl_->m_geo_object_;
+}
+
+Domain::Domain(Domain&& other) noexcept : m_pimpl_(other.m_pimpl_.get()) { other.m_pimpl_.reset(); }
+
+void Domain::swap(Domain& other) {
+    std::swap(m_pimpl_->m_mesh_base_, other.m_pimpl_->m_mesh_base_);
+    std::swap(m_pimpl_->m_mesh_body_, other.m_pimpl_->m_mesh_body_);
+    std::swap(m_pimpl_->m_mesh_boundary_, other.m_pimpl_->m_mesh_boundary_);
+    std::swap(m_pimpl_->m_geo_object_, other.m_pimpl_->m_geo_object_);
+}
 
 std::string Domain::GetDomainPrefix() const { return m_pimpl_->m_domain_geo_prefix_; };
 
@@ -37,7 +52,7 @@ std::shared_ptr<data::DataTable> Domain::Serialize() const {
     return (p);
 }
 void Domain::Deserialize(const std::shared_ptr<data::DataTable>& cfg) {
-    DoInitialize();
+    Initialize();
     Click();
     SetName(cfg->GetValue<std::string>("Name", "unnamed"));
     m_pimpl_->m_domain_geo_prefix_ = cfg->GetValue<std::string>("GeometryObject", "");
@@ -47,28 +62,31 @@ void Domain::DoUpdate() {}
 void Domain::DoTearDown() {}
 void Domain::DoInitialize() {}
 void Domain::DoFinalize() {}
-MeshBase const* Domain::GetMesh() const { return m_pimpl_->m_mesh_.get(); }
-MeshBase* Domain::GetMesh() { return m_pimpl_->m_mesh_.get(); }
 
-void Domain::SetGeoObject(const geometry::GeoObject& g) {
-    Click();
-    //    m_pimpl_->m_geo_object_ = g;
+MeshBase const* Domain::GetMesh() const { return m_pimpl_->m_mesh_base_.get(); }
+MeshBase const* Domain::GetBodyMesh() const {
+    return m_pimpl_->m_mesh_body_ != nullptr ? m_pimpl_->m_mesh_body_.get() : m_pimpl_->m_mesh_base_.get();
 }
+MeshBase const* Domain::GetBoundaryMesh() const { return m_pimpl_->m_mesh_boundary_.get(); }
 
-const geometry::GeoObject& Domain::GetGeoObject() const { return *m_pimpl_->m_geo_object_; }
+void Domain::SetGeoObject(std::shared_ptr<model::GeoObject> g) {
+    Click();
+    m_pimpl_->m_geo_object_ = g;
+}
+const model::GeoObject* Domain::GetGeoObject() const { return m_pimpl_->m_geo_object_.get(); }
 
 void Domain::Push(Patch* patch) {
     Click();
     AttributeGroup::Push(patch);
-    m_pimpl_->m_mesh_->Push(patch);
+    m_pimpl_->m_mesh_base_->Push(patch);
 
-    DoUpdate();
+    Update();
 }
 void Domain::Pull(Patch* patch) {
     AttributeGroup::Pull(patch);
-    patch->SetBlock(m_pimpl_->m_mesh_->GetBlock());
+    patch->SetBlock(m_pimpl_->m_mesh_base_->GetBlock());
     Click();
-    DoTearDown();
+    TearDown();
 }
 
 void Domain::DoInitialCondition(Patch* patch, Real time_now) {

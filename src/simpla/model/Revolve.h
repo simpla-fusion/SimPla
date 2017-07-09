@@ -10,7 +10,7 @@
 #include "Polygon.h"
 
 namespace simpla {
-namespace geometry {
+namespace model {
 
 template <typename TObj>
 class Revolve : public GeoObject {

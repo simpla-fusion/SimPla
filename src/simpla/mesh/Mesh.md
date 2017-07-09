@@ -24,15 +24,15 @@ The following table lists requirements for a mesh type `M`,
  -----------------------|-------------
  `M( const M& )` 		| Copy constructor.
  `~M()` 				| Destructor.
- `mesh_type`		    | BaseManifold type of geometry, which describes coordinates and Metric
- `mesh_type`		    | Topology structure of geometry,   Topology of grid points
+ `mesh_type`		    | BaseManifold type of model, which describes coordinates and Metric
+ `mesh_type`		    | Topology structure of model,   Topology of grid points
  `coordiantes_type` 	| m_data type of coordinates, i.e. nTuple<3,Real>
  `index_type`			| m_data type of the index of grid points, i.e. unsigned long
- `Domain  domain()`	    | Root domain of geometry
+ `Domain  domain()`	    | Root domain of model
  
 mesh policy concept {#concept_manifold_policy}
 ================================================
-  Poilcies define the behavior of geometry , such as  interpolate or calculus;
+  Poilcies define the behavior of model , such as  interpolate or calculus;
   
  ~~~~~~~~~~~~~{.cpp}
  template <typename BaseManifold > class P;
@@ -57,7 +57,7 @@ mesh policy concept {#concept_manifold_policy}
   
 
  ## Calculus  policy
-  Define calculus operation of  fields on the geometry, such  as algebra or differential calculus.
+  Define calculus operation of  fields on the model, such  as algebra or differential calculus.
   Differential calculus scheme , i.e. FDM,FVM,FEM,DG ....
 
 

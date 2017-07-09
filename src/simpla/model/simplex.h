@@ -11,7 +11,7 @@
 
 namespace simpla
 {
-namespace geometry
+namespace model
 {
 namespace model
 {
@@ -77,7 +77,7 @@ typename traits::volume_type<CS>::type volume(
 		model::Primitive<3, CS, tags::simplex> const & poly)
 {
 }
-}  // namespace geometry
+}  // namespace model
 }  // namespace simpla
 
 #endif /* CORE_GEOMETRY_SIMPLEX_H_ */

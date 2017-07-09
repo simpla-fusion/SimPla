@@ -46,26 +46,12 @@ class StructuredMesh : public MeshBase {
 
     index_box_type GetIndexBox(int tag) const override;
 
-    void AddGeometryObject(std::shared_ptr<geometry::GeoObject> const &g, std::string const &prefix) override;
-
     point_type point(entity_id_type s) const;
 
-    point_type local_coordinates(entity_id_type s, Real const *r = nullptr) const override;
+    point_type local_coordinates(entity_id_type s, Real const *r) const override;
 
     ZSFC<NDIMS> GetSpaceFillingCurve(int iform, int nsub = 0) const {
         return ZSFC<NDIMS>{GetIndexBox(EntityIdCoder::m_sub_index_to_id_[iform][nsub])};
-    }
-
-    EntityRange make_range(int IFORM) const {
-        EntityRange res;
-        int num_of_subs = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
-        for (int i = 0; i < num_of_subs; ++i) {
-            int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][i];
-            auto id_box = GetIndexBox(tag);
-            res.append(std::make_shared<ContinueRange<EntityId>>(id_box, tag));
-        }
-
-        return res;
     }
 
     void InitializeData(Real time_now) override { MeshBase::InitializeData(time_now); }
@@ -78,15 +64,17 @@ class StructuredMesh : public MeshBase {
     point_type m_x0_{0, 0, 0};
 
    public:
-    template <typename TL, typename TR>
-    void DoFill(TL &lhs, TR const &rhs) const {
-        CalculusPolicy<this_type>::Fill<simpla::traits::iform<TL>::value>(*this, lhs.Get(), rhs);
+    template <typename LHS, typename RHS>
+    void FillBody(LHS &lhs, RHS &&rhs) const {
+        CalculusPolicy<this_type>::Fill(*this, lhs, std::forward<RHS>(rhs));
     }
-
+    template <typename LHS, typename RHS>
+    void FillBoundary(LHS &lhs, RHS &&rhs) const {
+        CalculusPolicy<this_type>::Fill(*this, lhs, std::forward<RHS>(rhs));
+    }
     template <typename TL, typename... Args>
     decltype(auto) GetEntity(TL &lhs, Args &&... args) const {
-        return CalculusPolicy<this_type>::GetEntity<simpla::traits::iform<TL>::value>(*this, lhs.Get(),
-                                                                                      std::forward<Args>(args)...);
+        return CalculusPolicy<this_type>::GetEntity(*this, lhs, std::forward<Args>(args)...);
     }
 
     size_type GetNumberOfEntity(int IFORM = VERTEX) const {

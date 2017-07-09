@@ -14,7 +14,7 @@
 #include <simpla/utilities/FancyStream.h>
 #include <simpla/utilities/SPObject.h>
 namespace simpla {
-namespace geometry {
+namespace model {
 /**
  * @ingroup geometry
  * @{
@@ -73,6 +73,6 @@ struct Polygon<2> : public data::Serializable {
     point2d_type m_min_, m_max_;
 };
 /* @} */
-}  // namespace geometry
+}  // namespace model
 }  // namespace simpla
 #endif  // SIMPLA_POLYGON_H

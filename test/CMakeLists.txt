@@ -13,6 +13,6 @@ ENDFOREACH ()
 
 #add_subdirectory(engine)
 #add_subdirectory(algebra)
-#add_subdirectory(geometry)
+#add_subdirectory(model)
 #add_subdirectory(concept)
 #add_subdirectory(data)

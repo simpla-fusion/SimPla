@@ -230,7 +230,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
     SAMRAI::tbox::Dimension d_dim;
 
     /*
-     * We cache pointers to the grid geometry object to set up initial
+     * We cache pointers to the grid model object to set up initial
      * GetDataBlock, SetValue physical boundary conditions, and register plot
      * variables.
      */
@@ -653,18 +653,18 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
             }
         m_ctx_->InitialCondition(&p, data_time);
 
-        //        m_ctx_->GetMesh()->Deserialize(p.get());
-        //        VERBOSE << "DoInitialize Mesh : " << m_ctx_->GetMesh()->GetRegisterName() << std::endl;
-        //        m_ctx_->GetMesh()->InitializeData(data_time);
+        //        m_ctx_->GetBaseMesh()->Deserialize(p.get());
+        //        VERBOSE << "DoInitialize Mesh : " << m_ctx_->GetBaseMesh()->GetRegisterName() << std::endl;
+        //        m_ctx_->GetBaseMesh()->InitializeData(data_time);
         //        for (auto const &item : m_ctx_->GetModel().GetAll()) {
-        //            m_ctx_->GetMesh()->RegisterRanges(item.second, item.first);
+        //            m_ctx_->GetBaseMesh()->RegisterRanges(item.second, item.first);
         //        }
         //
         //        for (auto &d : m_ctx_->GetAllDomains()) {
         //            VERBOSE << "DoInitialize Domain : " << d.first << std::endl;
         //            d.second->DoInitialCondition(p.get(), data_time);
         //        }
-        //        m_ctx_->GetMesh()->Serialize(p.get());
+        //        m_ctx_->GetBaseMesh()->Serialize(p.get());
 
         m_ctx_->GetAtlas().Push(std::move(p));
     }
@@ -722,12 +722,12 @@ void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI:
     engine::Patch p = m_ctx_->GetAtlas().Pop(static_cast<id_type>(patch.getLocalId().getValue()));
 
     ConvertPatchFromSAMRAI(patch, &p);
-    m_ctx_->GetMesh()->Push(&p);
-    m_ctx_->GetMesh()->SetBoundaryCondition(time_now, time_dt);
+    m_ctx_->GetBaseMesh()->Push(&p);
+    m_ctx_->GetBaseMesh()->SetBoundaryCondition(time_now, time_dt);
     m_ctx_->Advance(&p, time_now, time_dt);
-    //    m_ctx_->GetMesh()->Deserialize(p.get());
+    //    m_ctx_->GetBaseMesh()->Deserialize(p.get());
     //    for (auto &d : m_ctx_->GetAllDomains()) { d.second->DoAdvance(p.get(), time_now, time_dt); }
-    m_ctx_->GetMesh()->Pull(&p);
+    m_ctx_->GetBaseMesh()->Pull(&p);
     m_ctx_->GetAtlas().Push(std::move(p));
 }
 
@@ -761,10 +761,10 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setPhysicalBoundaryConditions(
     SAMRAI::hier::Patch &patch, double fill_time, const SAMRAI::hier::IntVector &ghost_width_to_fill) {
     auto p = m_ctx_->GetAtlas().Pop(static_cast<id_type>(patch.getLocalId().getValue()));
     ConvertPatchFromSAMRAI(patch, &p);
-    m_ctx_->GetMesh()->Push(&p);
-    m_ctx_->GetMesh()->SetBoundaryCondition(fill_time, 0);
+    m_ctx_->GetBaseMesh()->Push(&p);
+    m_ctx_->GetBaseMesh()->SetBoundaryCondition(fill_time, 0);
     for (auto &d : m_ctx_->GetAllDomains()) { d.second->DoBoundaryCondition(&p, fill_time, 0); }
-    m_ctx_->GetMesh()->Pull(&p);
+    m_ctx_->GetBaseMesh()->Pull(&p);
     m_ctx_->GetAtlas().Push(std::move(p));
 }
 
@@ -911,8 +911,8 @@ void SAMRAITimeIntegrator::DoUpdate() {
 
     auto &ctx = GetContext();
     auto &atlas = ctx->GetAtlas();
-    auto p_mesh = ctx->GetMesh();
-    unsigned int ndims = static_cast<unsigned int>(ctx->GetMesh()->GetNDims());
+    auto p_mesh = ctx->GetBaseMesh();
+    unsigned int ndims = static_cast<unsigned int>(ctx->GetBaseMesh()->GetNDims());
     bool use_refined_timestepping = true;  // m_samrai_db_->GetValue<bool>("use_refined_timestepping", true);
 
     SAMRAI::tbox::Dimension dim(static_cast<unsigned short>(ndims));
@@ -939,9 +939,11 @@ void SAMRAITimeIntegrator::DoUpdate() {
     nTuple<int, 3> periodic_dimension{0, 0, 0};
     periodic_dimension = p_mesh->GetPeriodicDimension();
     nTuple<double, 3> x_low = p_mesh->point(
-        EntityId{static_cast<int16_t>(i_low[0]), static_cast<int16_t>(i_low[1]), static_cast<int16_t>(i_low[2]), 0});
+        EntityId{static_cast<int16_t>(i_low[0]), static_cast<int16_t>(i_low[1]), static_cast<int16_t>(i_low[2]), 0},
+        nullptr);
     nTuple<double, 3> x_up = p_mesh->point(
-        EntityId{static_cast<int16_t>(i_up[0]), static_cast<int16_t>(i_up[1]), static_cast<int16_t>(i_up[2]), 0});
+        EntityId{static_cast<int16_t>(i_up[0]), static_cast<int16_t>(i_up[1]), static_cast<int16_t>(i_up[2]), 0},
+        nullptr);
 
     CartesianGridGeometry->putIntegerArray("periodic_dimension", &periodic_dimension[0], ndims);
     CartesianGridGeometry->putDoubleArray("x_lo", &x_low[0], ndims);

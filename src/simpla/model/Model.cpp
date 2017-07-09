@@ -4,14 +4,14 @@
 #include "Model.h"
 #include <simpla/utilities/SPObject.h>
 #include "Cube.h"
-#include "GEqdsk.h"
+#include "simpla/predefine/device/GEqdsk.h"
 //#include "simpla/engine/Attribute.h"
 //#include "simpla/engine/MeshBlock.h"
 namespace simpla {
 namespace model {
 
 struct Model::pimpl_s {
-    std::map<std::string, std::shared_ptr<geometry::GeoObject>> m_g_objs_;
+    std::map<std::string, std::shared_ptr<model::GeoObject>> m_g_objs_;
     box_type m_bound_box_{{0, 0, 0}, {0, 0, 0}};
 };
 
@@ -27,7 +27,7 @@ std::shared_ptr<DataTable> Model::Serialize() const {
 void Model::Deserialize(const std::shared_ptr<DataTable>& cfg) {
     if (cfg == nullptr) { return; }
     cfg->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> const& v) {
-        if (v != nullptr) { SetObject(k, geometry::GeoObject::Create(v)); }
+        if (v != nullptr) { SetObject(k, model::GeoObject::Create(v)); }
     });
 };
 void Model::DoInitialize() { LOGGER << "Model is initialized " << std::endl; }
@@ -41,7 +41,7 @@ void Model::DoUpdate() {
     for (; it != m_pimpl_->m_g_objs_.end(); ++it) {
         if (it->second != nullptr) {
             if (it->second->hasChildren()) { continue; }
-            m_pimpl_->m_bound_box_ = geometry::BoundBox(m_pimpl_->m_bound_box_, it->second->GetBoundBox());
+            m_pimpl_->m_bound_box_ = model::BoundBox(m_pimpl_->m_bound_box_, it->second->GetBoundBox());
         }
     }
 };
@@ -50,7 +50,7 @@ int Model::GetNDims() const { return 3; }
 
 box_type const& Model::GetBoundBox() const { return m_pimpl_->m_bound_box_; };
 
-void Model::SetObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
+void Model::SetObject(std::string const& key, std::shared_ptr<model::GeoObject> const& g_obj) {
     if (g_obj != nullptr) {
         VERBOSE << "Add GeoObject [ " << key << " : " << g_obj->GetRegisterName() << " ]" << std::endl;
         m_pimpl_->m_g_objs_[key] = g_obj;
@@ -58,13 +58,13 @@ void Model::SetObject(std::string const& key, std::shared_ptr<geometry::GeoObjec
     }
 }
 
-std::shared_ptr<geometry::GeoObject> Model::GetObject(std::string const& k) const {
+std::shared_ptr<model::GeoObject> Model::GetObject(std::string const& k) const {
     auto it = m_pimpl_->m_g_objs_.find(k);
     return it == m_pimpl_->m_g_objs_.end() ? nullptr : it->second;
 }
 
 size_type Model::DeleteObject(std::string const& key) { return m_pimpl_->m_g_objs_.erase(key); }
-std::map<std::string, std::shared_ptr<geometry::GeoObject>> const& Model::GetAll() const {
+std::map<std::string, std::shared_ptr<model::GeoObject>> const& Model::GetAll() const {
     return m_pimpl_->m_g_objs_;
 };
 
