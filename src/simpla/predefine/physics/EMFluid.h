@@ -21,7 +21,7 @@ class EMFluid : public TM {
     SP_OBJECT_HEAD(EMFluid<TM>, TM)
 
    public:
-    DOMAIN_HEAD(EMFluid, TM)(<#initializer#>)
+    DOMAIN_HEAD(EMFluid, TM)()(<#initializer#>)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const& cfg) override;

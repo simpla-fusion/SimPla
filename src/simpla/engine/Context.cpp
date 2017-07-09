@@ -14,10 +14,12 @@ struct Context::pimpl_s {
     std::map<std::string, std::shared_ptr<Domain>> m_domains_;
     std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
     Atlas m_atlas_;
+    std::shared_ptr<model::Chart> m_chart_;
 };
 
 Context::Context(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
-Context::~Context() {}
+Context::~Context() { m_pimpl_->m_atlas_.Finalize(); }
+
 std::shared_ptr<data::DataTable> Context::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
     res->SetValue("Name", GetName());
@@ -30,6 +32,9 @@ void Context::Deserialize(std::shared_ptr<data::DataTable> cfg) {
     DoInitialize();
     SetName(cfg->GetValue<std::string>("Name", "unnamed"));
 
+    m_pimpl_->m_chart_ =
+        cfg->has("Chart") ? model::Chart::Create(cfg->Get("Chart")) : model::Chart::Create("Cartesian");
+
     m_pimpl_->m_atlas_.Deserialize(cfg->GetTable("Atlas"));
     //    m_pimpl_->m_base_mesh_ = MeshBase::Create(cfg->GetTable("Mesh"));
     auto t_domain = cfg->GetTable("Domain");
@@ -37,10 +42,10 @@ void Context::Deserialize(std::shared_ptr<data::DataTable> cfg) {
         cfg->GetTable("Domain")->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) {
             if (t_cfg != nullptr && t_cfg->isTable()) {
                 auto p_cfg = std::dynamic_pointer_cast<data::DataTable>(t_cfg);
-
                 std::string s_type = p_cfg->GetValue<std::string>("Type", "Unknown");
-                auto res = Domain::Create(s_type, model::GeoObject::Create(p_cfg->GetTable("GeoObject")));
+                auto res = Domain::Create(s_type);
                 res->Deserialize(p_cfg);
+                res->SetGeoObject(model::GeoObject::Create(p_cfg->GetTable("GeoObject")));
                 SetDomain(key, res);
             } else {
                 RUNTIME_ERROR << "illegal domain config!" << std::endl;
@@ -82,16 +87,15 @@ void Context::DoInitialize() { SPObject::DoInitialize(); }
 void Context::DoFinalize() { SPObject::DoFinalize(); }
 void Context::DoTearDown() {
     SPObject::DoTearDown();
-    m_pimpl_->m_atlas_.DoTearDown();
+    m_pimpl_->m_atlas_.TearDown();
 }
 void Context::DoUpdate() {
     SPObject::DoUpdate();
-
-    m_pimpl_->m_atlas_.DoUpdate();
+    m_pimpl_->m_atlas_.Update();
     // TODO: Fix boundary box
     //    m_pimpl_->m_base_mesh_->FitBoundBox(m_pimpl_->m_model_.GetBoundBox());
-    for (auto &d : m_pimpl_->m_domains_) { d.second->DoUpdate(); }
-};
+    for (auto &d : m_pimpl_->m_domains_) { d.second->Update(); }
+}
 
 Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
 
@@ -111,8 +115,9 @@ std::map<std::string, std::shared_ptr<AttributeDesc>> Context::CollectRegistered
     return m_global_attributes_;
 }
 
-std::map<std::string, std::shared_ptr<Domain>> &Context::GetAllDomains() { return m_pimpl_->m_domains_; };
-std::map<std::string, std::shared_ptr<Domain>> const &Context::GetAllDomains() const { return m_pimpl_->m_domains_; };
+std::map<std::string, std::shared_ptr<Domain>> &Context::GetAllDomains() { return m_pimpl_->m_domains_; }
+
+std::map<std::string, std::shared_ptr<Domain>> const &Context::GetAllDomains() const { return m_pimpl_->m_domains_; }
 
 void Context::InitialCondition(Patch *patch, Real time_now) {
     Update();

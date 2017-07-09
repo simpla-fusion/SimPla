@@ -6,7 +6,6 @@
 #include <simpla/engine/all.h>
 #include <simpla/mesh/RectMesh.h>
 #include <simpla/model/Cube.h>
-#include <simpla/predefine/device/GEqdsk.h>
 #include <simpla/physics/Constants.h>
 #include <iostream>
 

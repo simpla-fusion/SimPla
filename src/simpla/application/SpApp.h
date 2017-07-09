@@ -15,12 +15,11 @@ namespace simpla {
 namespace application {
 struct SpApp : public engine::SPObject, public data::Serializable {
     SP_OBJECT_HEAD(SpApp, engine::SPObject);
+    SP_DEFAULT_CONSTRUCT(SpApp);
 
    public:
     explicit SpApp(std::string const &s_name = "SpApp");
-    virtual ~SpApp() = default;
-
-    SP_DEFAULT_CONSTRUCT(SpApp);
+    virtual ~SpApp();
 
     using data::Serializable::Serialize;
     using data::Serializable::Deserialize;

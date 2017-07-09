@@ -23,7 +23,7 @@ struct SMesh : public engine::Domain, public StructuredMesh {
     SP_OBJECT_HEAD(SMesh, StructuredMesh)
 
     template <typename... Args>
-    explicit SMesh(Args &&... args) : engine::Domain(std::forward<Args>(args)...){};
+    explicit SMesh(Args &&... args) : engine::Domain() {};
     ~SMesh() override = default;
 
     SP_DEFAULT_CONSTRUCT(SMesh)

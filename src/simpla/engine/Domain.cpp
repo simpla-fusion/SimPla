@@ -18,7 +18,7 @@ struct Domain::pimpl_s {
 
     std::string m_domain_geo_prefix_;
 };
-Domain::Domain(std::shared_ptr<model::GeoObject> g) : m_pimpl_(new pimpl_s) { SetGeoObject(std::move(g)); }
+Domain::Domain() : m_pimpl_(new pimpl_s) {}
 Domain::~Domain() {}
 
 Domain::Domain(Domain const& other) : m_pimpl_(new pimpl_s) {

@@ -64,8 +64,7 @@ std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
     return p;
 }
 void MeshBase::Deserialize(const std::shared_ptr<data::DataTable>& cfg) {
-    m_pimpl_->m_chart_ =
-        cfg->has("Coordinates") ? model::Chart::Create(cfg->Get("Coordinates")) : model::Chart::Create("Cartesian");
+
     m_pimpl_->m_idx_origin_ = cfg->GetValue<nTuple<int, 3>>("IndexOrigin", nTuple<int, 3>{0, 0, 0});
     m_pimpl_->m_dimensions_ = cfg->GetValue<nTuple<int, 3>>("Dimensions", nTuple<int, 3>{1, 1, 1});
     m_pimpl_->m_periodic_dimension_ = cfg->GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 0});

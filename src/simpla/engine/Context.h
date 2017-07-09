@@ -67,7 +67,7 @@ namespace engine {
 class Context : public SPObject, public data::EnableCreateFromDataTable<Context> {
     SP_OBJECT_HEAD(Context, SPObject)
    public:
-    explicit Context(std::string const &s_name = "");
+    explicit Context(std::string const &s_name = "", std::shared_ptr<model::Model> m = nullptr);
     ~Context() override;
 
     SP_DEFAULT_CONSTRUCT(Context)

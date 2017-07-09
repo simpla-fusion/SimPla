@@ -1,6 +1,6 @@
 --! / bin / lua
-
-TWOPI = 3.141592653589793 * 2.0
+PI = 3.141592653589793
+TWOPI =PI* 2.0
 N_PHI = 100
 
 Model = {
@@ -18,12 +18,13 @@ Model = {
 
 Context = {
     Name ="EMTokamak",
-    Mesh = {
-        Type = "RectMesh",
-        Coordinates = { Type = "Cylindrical" },
+    Chart = {
+        Type = "Cylindrical",
         -- IndexOrigin = { 0, 0, 0 },
         Dimensions = { 32, 32, 32 },
         PeriodicDimension = { 0, 0, 1 },
+        lo={1.4, -1.0, -PI},
+        hi={2.5,  1.0, PI}
     },
     Domain =
     {
@@ -42,7 +43,7 @@ Context = {
             }
         },
         RFAntenna = {
-            Type = "ICRFAntenna.RectMesh",
+            Type = "ICRFAntenna",
             Variable = { Name = "E", IFORM = 1, DOF = 1, ValueType = "Real" },
             IsHard = false,
             Amplify = { 0.0, 0.0, 1.0 },

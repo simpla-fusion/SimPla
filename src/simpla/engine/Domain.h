@@ -6,6 +6,7 @@
 #define SIMPLA_DOMAIN_H
 
 #include <simpla/data/all.h>
+#include <simpla/model/Chart.h>
 #include <simpla/utilities/Signal.h>
 #include <memory>
 #include "Attribute.h"
@@ -25,14 +26,12 @@ struct EBDomain;
 /**
 * @brief
 */
-class Domain : public SPObject,
-               public AttributeGroup,
-               public data::EnableCreateFromDataTable<Domain, std::shared_ptr<model::GeoObject> > {
+class Domain : public SPObject, public AttributeGroup, public data::EnableCreateFromDataTable<Domain> {
     SP_OBJECT_HEAD(Domain, SPObject)
    public:
     typedef engine::Attribute attribute_type;
 
-    explicit Domain(std::shared_ptr<model::GeoObject> g = nullptr);
+    Domain();
     ~Domain() override;
     Domain(Domain const &other);
     Domain(Domain &&other) noexcept;

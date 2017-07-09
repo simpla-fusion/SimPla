@@ -22,7 +22,7 @@ class ICRFAntenna : public engine::Domain {
     SP_OBJECT_HEAD(ICRFAntenna<TM>, engine::Domain)
 
    public:
-    DOMAIN_HEAD(ICRFAntenna, TM)(<#initializer#>)
+    DOMAIN_HEAD(ICRFAntenna, TM)()(<#initializer#>)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<DataTable> cfg) override;

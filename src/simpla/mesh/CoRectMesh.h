@@ -19,7 +19,7 @@ struct CoRectMesh : public engine::Domain, public StructuredMesh {
 
    public:
     template <typename... Args>
-    explicit CoRectMesh(Args &&... args) : engine::Domain(std::forward<Args>(args)...){};
+    explicit CoRectMesh(Args &&... args) : engine::Domain() {};
     ~CoRectMesh() override = default;
 
     SP_DEFAULT_CONSTRUCT(CoRectMesh)

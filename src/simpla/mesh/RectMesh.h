@@ -22,7 +22,7 @@ struct RectMesh : public engine::Domain, public StructuredMesh {
     SP_OBJECT_HEAD(RectMesh, engine::Domain)
 
     template <typename... Args>
-    explicit RectMesh(Args &&... args) : engine::Domain(std::forward<Args>(args)...){};
+    explicit RectMesh(Args &&... args) : engine::Domain() {};
     ~RectMesh() override = default;
 
     SP_DEFAULT_CONSTRUCT(RectMesh)
