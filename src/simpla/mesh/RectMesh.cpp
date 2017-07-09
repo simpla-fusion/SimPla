@@ -8,9 +8,7 @@ namespace simpla {
 namespace mesh {
 REGISTER_CREATOR(RectMesh);
 
-void RectMesh::InitializeData(Real time_now) {
-    StructuredMesh::InitializeData(time_now);
-
+void RectMesh::DoInitialCondition(Real time_now) {
     m_coordinates_ = [&](EntityId s) -> point_type { return global_coordinates(s, nullptr); };
     m_vertices_ = [&](EntityId s) -> point_type { return global_coordinates(s, nullptr); };
     m_vertex_volume_.Clear();
@@ -109,12 +107,10 @@ void RectMesh::InitializeData(Real time_now) {
     };
     m_face_inv_dual_volume_ = 1.0 / m_face_dual_volume_;
 
-    SetBoundaryCondition(0, 0);
+    DoBoundaryCondition(0, 0);
 };
 
-void RectMesh::SetBoundaryCondition(Real time_now, Real time_dt) {
-    StructuredMesh::SetBoundaryCondition(time_now, time_dt);
-
+void RectMesh::DoBoundaryCondition(Real time_now, Real time_dt) {
     FillBoundary(m_vertex_volume_, 0);
     FillBoundary(m_vertex_dual_volume_, 0);
     FillBoundary(m_vertex_inv_volume_, 0);

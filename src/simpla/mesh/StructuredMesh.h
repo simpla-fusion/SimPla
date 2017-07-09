@@ -25,7 +25,6 @@ class StructuredMesh : public MeshBase {
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
     typedef EntityId entity_id_type;
-    typedef engine::Attribute attribute_type;
 
     template <typename V>
     using array_type = Array<V, ZSFC<NDIMS>>;
@@ -40,8 +39,6 @@ class StructuredMesh : public MeshBase {
 
     SP_DEFAULT_CONSTRUCT(StructuredMesh);
 
-    DECLARE_REGISTER_NAME(StructuredMesh);
-
     void DoUpdate() override;
 
     index_box_type GetIndexBox(int tag) const override;
@@ -54,29 +51,11 @@ class StructuredMesh : public MeshBase {
         return ZSFC<NDIMS>{GetIndexBox(EntityIdCoder::m_sub_index_to_id_[iform][nsub])};
     }
 
-    void InitializeData(Real time_now) override { MeshBase::InitializeData(time_now); }
-    void SetBoundaryCondition(Real time_now, Real time_dt) override {
-        MeshBase::SetBoundaryCondition(time_now, time_dt);
-    }
-
    protected:
     point_type m_dx_{1, 1, 1};
     point_type m_x0_{0, 0, 0};
 
    public:
-    template <typename LHS, typename RHS>
-    void FillBody(LHS &lhs, RHS &&rhs) const {
-        CalculusPolicy<this_type>::Fill(*this, lhs, std::forward<RHS>(rhs));
-    }
-    template <typename LHS, typename RHS>
-    void FillBoundary(LHS &lhs, RHS &&rhs) const {
-        CalculusPolicy<this_type>::Fill(*this, lhs, std::forward<RHS>(rhs));
-    }
-    template <typename TL, typename... Args>
-    decltype(auto) GetEntity(TL &lhs, Args &&... args) const {
-        return CalculusPolicy<this_type>::GetEntity(*this, lhs, std::forward<Args>(args)...);
-    }
-
     size_type GetNumberOfEntity(int IFORM = VERTEX) const {
         index_box_type m_index_box_ = GetBlock().GetIndexBox();
         return calculus::reduction<tags::multiplication>(std::get<1>(m_index_box_) - std::get<0>(m_index_box_)) *

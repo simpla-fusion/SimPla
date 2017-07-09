@@ -7,9 +7,9 @@
 
 #include <simpla/algebra/all.h>
 #include <simpla/data/all.h>
+#include <simpla/engine/Domain.h>
 #include "Mesh.h"
 #include "StructuredMesh.h"
-
 namespace simpla {
 namespace mesh {
 using namespace simpla::data;
@@ -18,19 +18,19 @@ using namespace simpla::data;
  *  Curvilinear
  *  metric is not uniform
  */
-struct SMesh : public StructuredMesh {
+struct SMesh : public engine::Domain, public StructuredMesh {
    public:
     SP_OBJECT_HEAD(SMesh, StructuredMesh)
 
     template <typename... Args>
-    explicit SMesh(Args &&... args) : StructuredMesh(std::forward<Args>(args)...){};
+    explicit SMesh(Args &&... args) : engine::Domain(std::forward<Args>(args)...){};
     ~SMesh() override = default;
 
     SP_DEFAULT_CONSTRUCT(SMesh)
     DECLARE_REGISTER_NAME(SMesh);
 
-    void InitializeData(Real time_now) override;
-    void SetBoundaryCondition(Real time_now, Real time_dt) override;
+    void DoInitialCondition(Real time_now) override;
+    void DoBoundaryCondition(Real time_now, Real time_dt) override;
 
     point_type local_coordinates(entity_id_type s, Real const *r) const override;
 

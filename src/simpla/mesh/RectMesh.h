@@ -7,9 +7,9 @@
 #include <simpla/algebra/CalculusPolicy.h>
 #include <simpla/algebra/all.h>
 #include <simpla/data/all.h>
+#include <simpla/engine/Domain.h>
 #include "Mesh.h"
 #include "StructuredMesh.h"
-
 namespace simpla {
 namespace mesh {
 
@@ -17,19 +17,19 @@ using namespace simpla::data;
 /**
  * Axis are perpendicular
  */
-struct RectMesh : public StructuredMesh {
+struct RectMesh : public engine::Domain, public StructuredMesh {
    public:
-    SP_OBJECT_HEAD(RectMesh, StructuredMesh)
+    SP_OBJECT_HEAD(RectMesh, engine::Domain)
 
     template <typename... Args>
-    explicit RectMesh(Args &&... args) : StructuredMesh(std::forward<Args>(args)...){};
+    explicit RectMesh(Args &&... args) : engine::Domain(std::forward<Args>(args)...){};
     ~RectMesh() override = default;
 
     SP_DEFAULT_CONSTRUCT(RectMesh)
     DECLARE_REGISTER_NAME(RectMesh);
 
-    void InitializeData(Real time_now) override;
-    void SetBoundaryCondition(Real time_now, Real time_dt) override;
+    void DoInitialCondition(Real time_now) override;
+    void DoBoundaryCondition(Real time_now, Real time_dt) override;
 
     Field<this_type, Real, VERTEX, 3> m_coordinates_{this, "name"_ = "m_coordinates_" /*, "COORDINATES"_*/};
     Field<this_type, Real, VERTEX, 3> m_vertices_{this, "name"_ = "m_vertices_"};

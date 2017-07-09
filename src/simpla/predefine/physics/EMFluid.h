@@ -17,11 +17,11 @@ using namespace algebra;
 using namespace data;
 
 template <typename TM>
-class EMFluid : public engine::Domain {
-    SP_OBJECT_HEAD(EMFluid<TM>, engine::Domain)
+class EMFluid : public TM {
+    SP_OBJECT_HEAD(EMFluid<TM>, TM)
 
    public:
-    DOMAIN_HEAD(EMFluid, TM)
+    DOMAIN_HEAD(EMFluid, TM)(<#initializer#>)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const& cfg) override;
@@ -30,21 +30,21 @@ class EMFluid : public engine::Domain {
     void DoBoundaryCondition(Real time_now, Real dt) override;
     void DoAdvance(Real time_now, Real dt) override;
 
-    Field<TM, Real, VOLUME> ne{this, "name"_ = "ne"};
-    Field<TM, Real, VOLUME, 3> B0v{this, "name"_ = "B0v"};
-    Field<TM, Real, EDGE> E0{this, "name"_ = "E0"};
-    Field<TM, Real, FACE> B0{this, "name"_ = "B0"};
-    Field<TM, Real, VOLUME> BB{this, "name"_ = "BB"};
-    Field<TM, Real, VOLUME, 3> Jv{this, "name"_ = "Jv"};
-    Field<TM, Real, VOLUME, 3> Ev{this, "name"_ = "Ev"};
-    Field<TM, Real, VOLUME, 3> Bv{this, "name"_ = "Bv"};
-    Field<TM, Real, VOLUME, 3> dE{this, "name"_ = "dE"};
-    Field<TM, Real, FACE> B{this, "name"_ = "B"};
-    Field<TM, Real, EDGE> E{this, "name"_ = "E"};
-    Field<TM, Real, EDGE> J{this, "name"_ = "J"};
-    Field<TM, Real, VOLUME, 3> dumpE{this, "name"_ = "dumpE"};
-    Field<TM, Real, VOLUME, 3> dumpB{this, "name"_ = "dumpB"};
-    Field<TM, Real, VOLUME, 3> dumpJ{this, "name"_ = "dumpJ"};
+    Field<this_type, Real, VOLUME> ne{this, "name"_ = "ne"};
+    Field<this_type, Real, VOLUME, 3> B0v{this, "name"_ = "B0v"};
+    Field<this_type, Real, EDGE> E0{this, "name"_ = "E0"};
+    Field<this_type, Real, FACE> B0{this, "name"_ = "B0"};
+    Field<this_type, Real, VOLUME> BB{this, "name"_ = "BB"};
+    Field<this_type, Real, VOLUME, 3> Jv{this, "name"_ = "Jv"};
+    Field<this_type, Real, VOLUME, 3> Ev{this, "name"_ = "Ev"};
+    Field<this_type, Real, VOLUME, 3> Bv{this, "name"_ = "Bv"};
+    Field<this_type, Real, VOLUME, 3> dE{this, "name"_ = "dE"};
+    Field<this_type, Real, FACE> B{this, "name"_ = "B"};
+    Field<this_type, Real, EDGE> E{this, "name"_ = "E"};
+    Field<this_type, Real, EDGE> J{this, "name"_ = "J"};
+    Field<this_type, Real, VOLUME, 3> dumpE{this, "name"_ = "dumpE"};
+    Field<this_type, Real, VOLUME, 3> dumpB{this, "name"_ = "dumpB"};
+    Field<this_type, Real, VOLUME, 3> dumpJ{this, "name"_ = "dumpJ"};
 
     struct fluid_s {
         Real mass = 1;
@@ -59,8 +59,6 @@ class EMFluid : public engine::Domain {
     std::map<std::string, std::shared_ptr<fluid_s>>& GetSpecies() { return m_fluid_sp_; };
 
     std::string m_boundary_geo_obj_prefix_ = "PEC";
-
-    TM const* GetMesh() const override { return dynamic_cast<TM const*>(engine::Domain::GetMesh()); }
 };
 
 template <typename TM>

@@ -91,8 +91,7 @@ Real HexahedronVolume(SMesh const *m, EntityId s) {
            m->GetChart()->volume(p1, p5, p7, p2) + m->GetChart()->volume(p5, p7, p2, p3);
 }
 
-void SMesh::InitializeData(Real time_now) {
-    StructuredMesh::InitializeData(time_now);
+void SMesh::DoInitialCondition(Real time_now) {
     m_coordinates_ = [&](EntityId s) -> point_type { return global_coordinates(s, nullptr); };
 
     m_vertex_volume_.Clear();
@@ -181,9 +180,7 @@ void SMesh::InitializeData(Real time_now) {
     m_face_inv_dual_volume_ = 1.0 / m_face_dual_volume_;
 };
 
-void SMesh::SetBoundaryCondition(Real time_now, Real time_dt) {
-    StructuredMesh::SetBoundaryCondition(time_now, time_dt);
-
+void SMesh::DoBoundaryCondition(Real time_now, Real time_dt) {
     FillBoundary(m_vertex_volume_, 0);
     FillBoundary(m_vertex_dual_volume_, 0);
     FillBoundary(m_edge_volume_, 0);

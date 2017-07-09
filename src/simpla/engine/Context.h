@@ -83,9 +83,6 @@ class Context : public SPObject, public data::EnableCreateFromDataTable<Context>
 
     Atlas &GetAtlas() const;
 
-    void SetBaseMesh(std::shared_ptr<MeshBase> const &m);
-    std::shared_ptr<MeshBase> GetBaseMesh() const;
-
     void SetDomain(std::string const &k, std::shared_ptr<Domain> const &);
     std::shared_ptr<Domain> GetDomain(std::string const &k) const;
 
@@ -94,6 +91,7 @@ class Context : public SPObject, public data::EnableCreateFromDataTable<Context>
     std::map<std::string, std::shared_ptr<AttributeDesc>> CollectRegisteredAttributes() const;
 
     void InitialCondition(Patch *patch, Real time_now);
+    void BoundaryCondition(Patch *patch, Real time_now, Real time_dt);
     void Advance(Patch *patch, Real time_now, Real time_dt);
 
    private:

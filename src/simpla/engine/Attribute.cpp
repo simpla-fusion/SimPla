@@ -15,19 +15,19 @@ namespace engine {
 AttributeDesc::AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, std::string const &s_prefix,
                              std::shared_ptr<data::DataTable> const &t_db)
     : data::Configurable(t_db), m_prefix_(s_prefix), m_iform_(IFORM), m_dof_(DOF), m_t_info_(t_info) {}
-
-AttributeDesc::AttributeDesc(AttributeDesc const &other)
-    : data::Configurable(other),
-      m_prefix_(other.m_prefix_),
-      m_iform_(other.m_iform_),
-      m_dof_(other.m_dof_),
-      m_t_info_(other.m_t_info_){};
-AttributeDesc::AttributeDesc(AttributeDesc &&other) noexcept
-    : data::Configurable(other),
-      m_prefix_(other.m_prefix_),
-      m_iform_(other.m_iform_),
-      m_dof_(other.m_dof_),
-      m_t_info_(other.m_t_info_){};
+AttributeDesc::~AttributeDesc() {}
+// AttributeDesc::AttributeDesc(AttributeDesc const &other)
+//    : data::Configurable(other),
+//      m_prefix_(other.m_prefix_),
+//      m_iform_(other.m_iform_),
+//      m_dof_(other.m_dof_),
+//      m_t_info_(other.m_t_info_){};
+// AttributeDesc::AttributeDesc(AttributeDesc &&other) noexcept
+//    : data::Configurable(other),
+//      m_prefix_(other.m_prefix_),
+//      m_iform_(other.m_iform_),
+//      m_dof_(other.m_dof_),
+//      m_t_info_(other.m_t_info_){};
 std::string AttributeDesc::GetPrefix() const { return m_prefix_; };
 int AttributeDesc::GetIFORM() const { return m_iform_; };
 int AttributeDesc::GetDOF() const { return m_dof_; };
@@ -119,7 +119,6 @@ Attribute::Attribute(AttributeGroup *grp, int IFORM, int DOF, std::type_info con
       AttributeDesc(IFORM, DOF, t_info, SPObject::GetName(), cfg),
       m_pimpl_(new pimpl_s) {
     Register(grp);
-    m_pimpl_->m_mesh_ = grp->GetMesh();
 };
 
 Attribute::Attribute(Attribute const &other) : AttributeDesc(other), m_pimpl_(new pimpl_s) {

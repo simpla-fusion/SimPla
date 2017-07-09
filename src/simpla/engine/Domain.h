@@ -13,8 +13,6 @@
 namespace simpla {
 
 class MeshBase;
-template <typename...>
-class EBMesh;
 
 namespace model {
 class GeoObject;
@@ -22,17 +20,19 @@ class GeoObject;
 namespace engine {
 class Patch;
 class AttributeGroup;
-
+template <typename TM>
+struct EBDomain;
 /**
 * @brief
 */
 class Domain : public SPObject,
                public AttributeGroup,
-               public data::EnableCreateFromDataTable<Domain, std::shared_ptr<MeshBase> const &,
-                                                      std::shared_ptr<model::GeoObject> const &> {
+               public data::EnableCreateFromDataTable<Domain, std::shared_ptr<model::GeoObject> > {
     SP_OBJECT_HEAD(Domain, SPObject)
    public:
-    explicit Domain(const std::shared_ptr<MeshBase> &m, const std::shared_ptr<model::GeoObject> &g);
+    typedef engine::Attribute attribute_type;
+
+    explicit Domain(std::shared_ptr<model::GeoObject> g = nullptr);
     ~Domain() override;
     Domain(Domain const &other);
     Domain(Domain &&other) noexcept;
@@ -56,9 +56,9 @@ class Domain : public SPObject,
 
     std::string GetDomainPrefix() const override;
 
-    MeshBase const *GetMesh() const override;
-    MeshBase const *GetBodyMesh() const override;
-    MeshBase const *GetBoundaryMesh() const override;
+    virtual MeshBase const *GetMesh() const;
+    virtual MeshBase const *GetBodyMesh() const;
+    virtual MeshBase const *GetBoundaryMesh() const;
 
     template <typename TL, typename TR>
     void Fill(TL &lhs, TR &&rhs) const {
@@ -74,11 +74,10 @@ class Domain : public SPObject,
     template <typename LHS, typename RHS>
     void FillBoundary(LHS &lhs, RHS &&rhs) const {
         if (GetBoundaryMesh() != nullptr) {
-            dynamic_cast<EBMesh<typename LHS::mesh_type> const *>(GetBodyMesh())->FillBody(lhs, std::forward<RHS>(rhs));
+            dynamic_cast<EBDomain<typename LHS::mesh_type> const *>(GetBodyMesh())
+                ->FillBody(lhs, std::forward<RHS>(rhs));
         }
     }
-    engine::Domain *GetDomain() { return this; }
-    engine::Domain const *GetDomain() const { return this; }
 
     void SetGeoObject(std::shared_ptr<model::GeoObject> g);
     const model::GeoObject *GetGeoObject() const;
@@ -107,14 +106,46 @@ class Domain : public SPObject,
     void BoundaryCondition(Patch *, Real time_now, Real dt);
     void Advance(Patch *, Real time_now, Real dt);
 
-    template <typename T>
-    T GetAttribute(std::string const &k) const {
-        return T(AttributeGroup::Get(k)->cast_as<T>());
-    };
-
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
+};
+
+template <typename>
+struct CalculusPolicy;
+
+struct EBDomainBase : public Domain {
+    SP_OBJECT_HEAD(EBDomainBase, Domain);
+    SP_DEFAULT_CONSTRUCT(EBDomainBase);
+
+    explicit EBDomainBase(Domain const *m) : m_base_mesh_(m){};
+    ~EBDomainBase() override = default;
+    virtual Domain const *GetBaseDomain() const { return m_base_mesh_; }
+
+   private:
+    Domain const *m_base_mesh_;
+};
+
+template <typename TM>
+struct EBDomain : public EBDomainBase {
+    SP_OBJECT_HEAD(EBDomain<TM>, EBDomainBase);
+    SP_DEFAULT_CONSTRUCT(EBDomain);
+
+    typedef TM base_mesh_type;
+    static constexpr unsigned int NDIMS = base_mesh_type::NDIMS;
+
+    explicit EBDomain(TM const *m) : EBDomainBase(m){};
+
+    ~EBDomain() override = default;
+
+    //    base_mesh_type const *GetBaseMesh() const override {
+    //        return dynamic_cast<base_mesh_type const *>(base_type::GetBaseMesh());
+    //    }
+
+    template <typename TL, typename TR>
+    void FillBody(TL &lhs, TR &&rhs) const {
+        //        return CalculusPolicy<this_type>::Fill(*this, lhs, std::forward<TR>(rhs));
+    }
 };
 
 #define DOMAIN_HEAD(_DOMAIN_NAME_, _MESH_TYPE_)                                              \

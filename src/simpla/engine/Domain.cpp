@@ -18,11 +18,7 @@ struct Domain::pimpl_s {
 
     std::string m_domain_geo_prefix_;
 };
-Domain::Domain(const std::shared_ptr<MeshBase>& m, const std::shared_ptr<model::GeoObject>& g) : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_mesh_base_ = m;
-    m_pimpl_->m_geo_object_ = g;
-    Click();
-}
+Domain::Domain(std::shared_ptr<model::GeoObject> g) : m_pimpl_(new pimpl_s) { SetGeoObject(std::move(g)); }
 Domain::~Domain() {}
 
 Domain::Domain(Domain const& other) : m_pimpl_(new pimpl_s) {
@@ -70,15 +66,14 @@ MeshBase const* Domain::GetBoundaryMesh() const { return m_pimpl_->m_mesh_bounda
 
 void Domain::SetGeoObject(std::shared_ptr<model::GeoObject> g) {
     Click();
-    m_pimpl_->m_geo_object_ = g;
+    m_pimpl_->m_geo_object_ = std::move(g);
 }
 const model::GeoObject* Domain::GetGeoObject() const { return m_pimpl_->m_geo_object_.get(); }
 
 void Domain::Push(Patch* patch) {
     Click();
     AttributeGroup::Push(patch);
-    m_pimpl_->m_mesh_base_->Push(patch);
-
+    m_pimpl_->m_mesh_base_->SetBlock(patch->GetBlock());
     Update();
 }
 void Domain::Pull(Patch* patch) {

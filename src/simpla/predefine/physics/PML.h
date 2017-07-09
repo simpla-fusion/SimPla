@@ -29,7 +29,7 @@ class PML : public engine::Domain {
     template <int IFORM, int DOF = 1>
     using field_type = Field<mesh_type, scalar_type, IFORM, DOF>;
 
-    explicit PML() : Domain(<#initializer#>, <#initializer#>) {};
+    explicit PML() : Domain(<#initializer#>) {};
     virtual ~PML(){};
 
     mesh_type m_mesh_;

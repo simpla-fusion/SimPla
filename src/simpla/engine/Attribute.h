@@ -52,11 +52,12 @@ class Patch;
 struct AttributeDesc : public data::Configurable {
    public:
     AttributeDesc() = default;
-    AttributeDesc(AttributeDesc const &);
-    AttributeDesc(AttributeDesc &&other) noexcept;
+    AttributeDesc(AttributeDesc const &) = default;
+    AttributeDesc(AttributeDesc &&other) = default;
+    ~AttributeDesc() override;
+
     AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, std::string const &s_prefix = "",
                   std::shared_ptr<data::DataTable> const &t_db = nullptr);
-    ~AttributeDesc() override = default;
 
     virtual std::string GetPrefix() const;
     virtual int GetIFORM() const;
@@ -100,12 +101,11 @@ class AttributeGroup {
 
     virtual std::string GetDomainPrefix() const { return ""; }
 
-    virtual MeshBase const *GetMesh() const = 0;
-    virtual MeshBase const *GetBoundaryMesh() const { return nullptr; };
-    virtual MeshBase const *GetBodyMesh() const { return nullptr; };
-
     virtual void Push(Patch *);
     virtual void Pull(Patch *);
+
+    template <typename T>
+    T GetAttribute(std::string const &k) const;
 
    private:
     struct pimpl_s;
@@ -171,6 +171,10 @@ struct Attribute : public SPObject, public AttributeDesc {
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
+template <typename T>
+T AttributeGroup::GetAttribute(std::string const &k) const {
+    return T(AttributeGroup::Get(k)->cast_as<T>());
+};
 //
 // template <typename, typename Enable = void>
 // class AttributeViewAdapter {};
@@ -264,7 +268,7 @@ struct Attribute : public SPObject, public AttributeDesc {
 //        return std::make_shared<this_type>(std::forward<Args>(args)...);
 //    }
 //
-//    virtual std::shared_ptr<DataBlock> InitializeData(void *p = nullptr) const {
+//    virtual std::shared_ptr<DataBlock> DoInitialCondition(void *p = nullptr) const {
 //        std::shared_ptr<value_type> d(nullptr);
 //        if (p != nullptr) {
 //            d = std::shared_ptr<value_type>(static_cast<value_type *>(p), simpla::tags::do_nothing());

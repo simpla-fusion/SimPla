@@ -655,7 +655,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
 
         //        m_ctx_->GetBaseMesh()->Deserialize(p.get());
         //        VERBOSE << "DoInitialize Mesh : " << m_ctx_->GetBaseMesh()->GetRegisterName() << std::endl;
-        //        m_ctx_->GetBaseMesh()->InitializeData(data_time);
+        //        m_ctx_->GetBaseMesh()->DoInitialCondition(data_time);
         //        for (auto const &item : m_ctx_->GetModel().GetAll()) {
         //            m_ctx_->GetBaseMesh()->RegisterRanges(item.second, item.first);
         //        }
@@ -722,12 +722,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI:
     engine::Patch p = m_ctx_->GetAtlas().Pop(static_cast<id_type>(patch.getLocalId().getValue()));
 
     ConvertPatchFromSAMRAI(patch, &p);
-    m_ctx_->GetBaseMesh()->Push(&p);
-    m_ctx_->GetBaseMesh()->SetBoundaryCondition(time_now, time_dt);
     m_ctx_->Advance(&p, time_now, time_dt);
-    //    m_ctx_->GetBaseMesh()->Deserialize(p.get());
-    //    for (auto &d : m_ctx_->GetAllDomains()) { d.second->Advance(p.get(), time_now, time_dt); }
-    m_ctx_->GetBaseMesh()->Pull(&p);
+    for (auto &d : m_ctx_->GetAllDomains()) { d.second->Advance(&p, time_now, time_dt); }
     m_ctx_->GetAtlas().Push(std::move(p));
 }
 
@@ -761,10 +757,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setPhysicalBoundaryConditions(
     SAMRAI::hier::Patch &patch, double fill_time, const SAMRAI::hier::IntVector &ghost_width_to_fill) {
     auto p = m_ctx_->GetAtlas().Pop(static_cast<id_type>(patch.getLocalId().getValue()));
     ConvertPatchFromSAMRAI(patch, &p);
-    m_ctx_->GetBaseMesh()->Push(&p);
-    m_ctx_->GetBaseMesh()->SetBoundaryCondition(fill_time, 0);
     for (auto &d : m_ctx_->GetAllDomains()) { d.second->BoundaryCondition(&p, fill_time, 0); }
-    m_ctx_->GetBaseMesh()->Pull(&p);
     m_ctx_->GetAtlas().Push(std::move(p));
 }
 
@@ -911,8 +904,7 @@ void SAMRAITimeIntegrator::DoUpdate() {
 
     auto &ctx = GetContext();
     auto &atlas = ctx->GetAtlas();
-    auto p_mesh = ctx->GetBaseMesh();
-    unsigned int ndims = static_cast<unsigned int>(ctx->GetBaseMesh()->GetNDims());
+    unsigned int ndims = 3;                // static_cast<unsigned int>(ctx->GetNDims());
     bool use_refined_timestepping = true;  // m_samrai_db_->GetValue<bool>("use_refined_timestepping", true);
 
     SAMRAI::tbox::Dimension dim(static_cast<unsigned short>(ndims));
@@ -930,6 +922,8 @@ void SAMRAITimeIntegrator::DoUpdate() {
 
     nTuple<int, 3> i_low{0, 0, 0};
     nTuple<int, 3> i_up{0, 0, 0};
+
+    std::shared_ptr<MeshBase> p_mesh;
 
     i_low = p_mesh->GetIndexOffset();
     i_up = i_low + p_mesh->GetDimensions();

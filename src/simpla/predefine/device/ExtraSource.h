@@ -20,7 +20,7 @@ class ExtraSource : public engine::Domain {
     SP_OBJECT_HEAD(ExtraSource<TM>, engine::Domain)
 
    public:
-    DOMAIN_HEAD(ExtraSource, TM)
+    DOMAIN_HEAD(ExtraSource, TM)(<#initializer#>)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const& cfg) override;

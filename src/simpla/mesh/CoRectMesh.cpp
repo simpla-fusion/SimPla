@@ -9,28 +9,28 @@ namespace simpla {
 namespace mesh {
 REGISTER_CREATOR(CoRectMesh);
 
-inline void CoRectMesh::InitializeData(Real time_now) {
-    StructuredMesh::InitializeData(time_now);
+void CoRectMesh::DoInitialCondition(Real time_now) {
+    Update();
     /**
-        *\verbatim
-        *                ^y
-        *               /
-        *        z     /
-        *        ^    /
-        *        |  110-------------111
-        *        |  /|              /|
-        *        | / |             / |
-        *        |/  |            /  |
-        *       100--|----------101  |
-        *        | m |           |   |
-        *        |  010----------|--011
-        *        |  /            |  /
-        *        | /             | /
-        *        |/              |/
-        *       000-------------001---> x
-        *
-        *\endverbatim
-        */
+     *\verbatim
+     *                ^y
+     *               /
+     *        z     /
+     *        ^    /
+     *        |  110-------------111
+     *        |  /|              /|
+     *        | / |             / |
+     *        |/  |            /  |
+     *       100--|----------101  |
+     *        | m |           |   |
+     *        |  010----------|--011
+     *        |  /            |  /
+     *        | /             | /
+     *        |/              |/
+     *       000-------------001---> x
+     *
+     *\endverbatim
+     */
     //    m_x0_ = GetChart()->GetOrigin();
     //    m_coarsest_cell_width_ = GetChart()->GetDx();
     size_tuple m_dims_ = GetBlock().GetDimensions();
