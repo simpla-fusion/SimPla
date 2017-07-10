@@ -47,5 +47,5 @@ SET_TARGET_PROPERTIES(third_part PROPERTIES COMPILE_FLAGS " -xcuda ")
 #        #     ${OCE_LIBRARIES}   ${MeshKit_LIBRARIES} ${MOAB_LIBRARIES}
 #        ${SAMRAI_LIBRARIES} netcdf
 #        ${HDF5_LIBRARIES} ${MPI_LIBRARIES} ${TBB_LIBRARIES}
-#        utilities model parallel data mesh engine model physics SimPlaMAIN
+#        utilities geometry parallel data mesh engine geometry physics SimPlaMAIN
 #        )

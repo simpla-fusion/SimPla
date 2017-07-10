@@ -10,7 +10,7 @@
 #include <functional>
 #include "GeoObject.h"
 namespace simpla {
-namespace model {
+namespace geometry {
 
 using namespace data;
 
@@ -39,17 +39,17 @@ class Model : public engine::SPObject, public data::EnableCreateFromDataTable<Mo
     void GetAttribute(std::string const &attr_name) const;
     std::function<nTuple<Real, 3>(point_type const &)> GetVectorAttribute(std::string const &attr_name) const;
 
-    void SetObject(std::string const &k, std::shared_ptr<model::GeoObject> const &);
-    std::shared_ptr<model::GeoObject> GetObject(std::string const &k) const;
+    void SetObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &);
+    std::shared_ptr<geometry::GeoObject> GetObject(std::string const &k) const;
     size_type DeleteObject(std::string const &);
 
-    std::map<std::string, std::shared_ptr<model::GeoObject>> const &GetAll() const;
+    std::map<std::string, std::shared_ptr<geometry::GeoObject>> const &GetAll() const;
 
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
 }  // namespace engine {
-}  // namespace simpla{namespace model{
+}  // namespace simpla{namespace geometry{
 
 #endif  // SIMPLA_MODEL_H

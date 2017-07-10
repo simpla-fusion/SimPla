@@ -2,8 +2,8 @@
 // Created by salmon on 17-4-5.
 //
 
-#include "DomainBase.h"
-#include <simpla/mesh/MeshBase.h>
+#include "Domain.h"
+#include <simpla/mesh/Mesh.h>
 #include "Attribute.h"
 #include "Patch.h"
 
@@ -11,10 +11,12 @@ namespace simpla {
 namespace engine {
 
 struct DomainBase::pimpl_s {
-    std::shared_ptr<model::GeoObject> m_geo_object_;
-    std::shared_ptr<MeshBase> m_mesh_base_ = nullptr;
-    std::shared_ptr<MeshBase> m_mesh_body_ = nullptr;
-    std::shared_ptr<MeshBase> m_mesh_boundary_ = nullptr;
+    std::shared_ptr<geometry::GeoObject> m_geo_object_;
+    engine::MeshBlock m_mesh_block_;
+
+    //    std::shared_ptr<MeshBase> m_mesh_base_ = nullptr;
+    //    std::shared_ptr<MeshBase> m_mesh_body_ = nullptr;
+    //    std::shared_ptr<MeshBase> m_mesh_boundary_ = nullptr;
 
     std::string m_domain_geo_prefix_;
 };
@@ -22,18 +24,18 @@ DomainBase::DomainBase() : m_pimpl_(new pimpl_s) {}
 DomainBase::~DomainBase() {}
 
 DomainBase::DomainBase(DomainBase const& other) : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_mesh_base_ = other.m_pimpl_->m_mesh_base_;
-    m_pimpl_->m_mesh_body_ = other.m_pimpl_->m_mesh_body_;
-    m_pimpl_->m_mesh_boundary_ = other.m_pimpl_->m_mesh_boundary_;
+    //    m_pimpl_->m_mesh_base_ = other.m_pimpl_->m_mesh_base_;
+    //    m_pimpl_->m_mesh_body_ = other.m_pimpl_->m_mesh_body_;
+    //    m_pimpl_->m_mesh_boundary_ = other.m_pimpl_->m_mesh_boundary_;
     m_pimpl_->m_geo_object_ = other.m_pimpl_->m_geo_object_;
 }
 
 DomainBase::DomainBase(DomainBase&& other) noexcept : m_pimpl_(other.m_pimpl_.get()) { other.m_pimpl_.reset(); }
 
 void DomainBase::swap(DomainBase& other) {
-    std::swap(m_pimpl_->m_mesh_base_, other.m_pimpl_->m_mesh_base_);
-    std::swap(m_pimpl_->m_mesh_body_, other.m_pimpl_->m_mesh_body_);
-    std::swap(m_pimpl_->m_mesh_boundary_, other.m_pimpl_->m_mesh_boundary_);
+    //    std::swap(m_pimpl_->m_mesh_base_, other.m_pimpl_->m_mesh_base_);
+    //    std::swap(m_pimpl_->m_mesh_body_, other.m_pimpl_->m_mesh_body_);
+    //    std::swap(m_pimpl_->m_mesh_boundary_, other.m_pimpl_->m_mesh_boundary_);
     std::swap(m_pimpl_->m_geo_object_, other.m_pimpl_->m_geo_object_);
 }
 
@@ -58,28 +60,31 @@ void DomainBase::DoTearDown() {}
 void DomainBase::DoInitialize() {}
 void DomainBase::DoFinalize() {}
 
-MeshBase const* DomainBase::GetMesh() const { return m_pimpl_->m_mesh_base_.get(); }
-MeshBase const* DomainBase::GetBodyMesh() const {
-    return m_pimpl_->m_mesh_body_ != nullptr ? m_pimpl_->m_mesh_body_.get() : m_pimpl_->m_mesh_base_.get();
-}
-MeshBase const* DomainBase::GetBoundaryMesh() const { return m_pimpl_->m_mesh_boundary_.get(); }
+// MeshBase const* DomainBase::GetMesh() const { return m_pimpl_->m_mesh_base_.get(); }
+// MeshBase const* DomainBase::GetBodyMesh() const {
+//    return m_pimpl_->m_mesh_body_ != nullptr ? m_pimpl_->m_mesh_body_.get() : m_pimpl_->m_mesh_base_.get();
+//}
+// MeshBase const* DomainBase::GetBoundaryMesh() const { return m_pimpl_->m_mesh_boundary_.get(); }
 
-void DomainBase::SetGeoObject(std::shared_ptr<model::GeoObject> g) {
+void DomainBase::SetGeoObject(std::shared_ptr<geometry::GeoObject> g) {
     Click();
     m_pimpl_->m_geo_object_ = std::move(g);
 }
-const model::GeoObject* DomainBase::GetGeoObject() const { return m_pimpl_->m_geo_object_.get(); }
+const geometry::GeoObject* DomainBase::GetGeoObject() const { return m_pimpl_->m_geo_object_.get(); }
 
+void DomainBase::SetBlock(const engine::MeshBlock& blk) { m_pimpl_->m_mesh_block_ = blk; };
+const engine::MeshBlock& DomainBase::GetBlock() const { return m_pimpl_->m_mesh_block_; }
+id_type DomainBase::GetBlockId() const { return m_pimpl_->m_mesh_block_.GetGUID(); }
 void DomainBase::Push(Patch* patch) {
     Click();
+    SetBlock(patch->GetBlock());
     AttributeGroup::Push(patch);
-    m_pimpl_->m_mesh_base_->SetBlock(patch->GetBlock());
     Update();
 }
 void DomainBase::Pull(Patch* patch) {
-    AttributeGroup::Pull(patch);
-    patch->SetBlock(m_pimpl_->m_mesh_base_->GetBlock());
     Click();
+    AttributeGroup::Pull(patch);
+    patch->SetBlock(GetBlock());
     TearDown();
 }
 void DomainBase::InitialCondition(Real time_now) {

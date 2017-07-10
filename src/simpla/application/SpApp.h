@@ -7,7 +7,7 @@
 //
 #include <simpla/data/all.h>
 #include <simpla/engine/Schedule.h>
-#include <simpla/model/Model.h>
+#include <simpla/geometry/Model.h>
 #include <simpla/utilities/SPObject.h>
 #include <string>
 
@@ -19,7 +19,7 @@ struct SpApp : public engine::SPObject, public data::Serializable {
 
    public:
     explicit SpApp(std::string const &s_name = "SpApp");
-    virtual ~SpApp();
+    ~SpApp() override;
 
     using data::Serializable::Serialize;
     using data::Serializable::Deserialize;
@@ -33,8 +33,8 @@ struct SpApp : public engine::SPObject, public data::Serializable {
     void DoTearDown() override;
     void DoFinalize() override;
 
-    void SetModel(std::shared_ptr<model::Model> s);
-    std::shared_ptr<model::Model> GetModel() const;
+    void SetModel(std::shared_ptr<geometry::Model> s);
+    std::shared_ptr<geometry::Model> GetModel() const;
 
     void SetContext(std::shared_ptr<engine::Context> s);
     std::shared_ptr<engine::Context> GetContext() const;

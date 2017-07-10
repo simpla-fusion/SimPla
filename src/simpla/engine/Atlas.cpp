@@ -4,6 +4,7 @@
  */
 
 #include "Atlas.h"
+#include <simpla/SIMPLA_config.h>
 #include "Patch.h"
 //#include "TransitionMap.h"
 //#include "simpla/utilities/BoxUtility.h"

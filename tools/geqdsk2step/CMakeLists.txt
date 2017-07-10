@@ -11,7 +11,7 @@
 #
 #add_executable(geqdsk2step geqdsk2step.cpp main.cpp)
 #
-#TARGET_LINK_LIBRARIES(geqdsk2step ${OCE_LIBRARIES} model)
+#TARGET_LINK_LIBRARIES(geqdsk2step ${OCE_LIBRARIES} geometry)
 
 
 

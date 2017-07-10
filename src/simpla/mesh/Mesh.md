@@ -4,7 +4,11 @@ Manifold (Differential Manifold):
  to a linear space, by a collection (called an atlas) of homeomorphisms called _charts_. The composition of one
  _chart_ with the inverse of another m_chart_ is a function called a _transition map_, and defines a homeomorphism
   of an open subset of the linear space onto another open subset of the linear space.
-  
+ 
+Differential geometry is a mathematical discipline that uses the techniques of differential calculus, integral calculus,
+ linear algebra and multilinear algebra to study problems in geometry. The theory of plane and space curves and surfaces
+ in the three-dimensional Euclidean space formed the basis for development of differential geometry during the 18th 
+ century and the 19th century.
  
  ## Requirements
 
@@ -24,15 +28,15 @@ The following table lists requirements for a mesh type `M`,
  -----------------------|-------------
  `M( const M& )` 		| Copy constructor.
  `~M()` 				| Destructor.
- `mesh_type`		    | BaseManifold type of model, which describes coordinates and Metric
- `mesh_type`		    | Topology structure of model,   Topology of grid points
+ `mesh_type`		    | BaseManifold type of geometry, which describes coordinates and Metric
+ `mesh_type`		    | Topology structure of geometry,   Topology of grid points
  `coordiantes_type` 	| m_data type of coordinates, i.e. nTuple<3,Real>
  `index_type`			| m_data type of the index of grid points, i.e. unsigned long
- `Domain  domain()`	    | Root domain of model
+ `Domain  domain()`	    | Root domain of geometry
  
 mesh policy concept {#concept_manifold_policy}
 ================================================
-  Poilcies define the behavior of model , such as  interpolate or calculus;
+  Poilcies define the behavior of geometry , such as  interpolate or calculus;
   
  ~~~~~~~~~~~~~{.cpp}
  template <typename BaseManifold > class P;
@@ -57,7 +61,7 @@ mesh policy concept {#concept_manifold_policy}
   
 
  ## Calculus  policy
-  Define calculus operation of  fields on the model, such  as algebra or differential calculus.
+  Define calculus operation of  fields on the geometry, such  as algebra or differential calculus.
   Differential calculus scheme , i.e. FDM,FVM,FEM,DG ....
 
 

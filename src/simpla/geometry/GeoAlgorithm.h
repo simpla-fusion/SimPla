@@ -17,7 +17,7 @@
 #include <tuple>
 
 namespace simpla {
-namespace model {
+namespace geometry {
 
 template <typename U, typename V>
 bool CheckOverlap(std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b0,
@@ -549,11 +549,11 @@ bool box_intersection(TL const& l, TR* r) {
 //	return std::Move(u);
 //}
 // template<typename TDict, typename TModel, typename TSurface>
-// void createSurface(TDict const & dict, TModel const & model, TSurface * surf)
+// void createSurface(TDict const & dict, TModel const & geometry, TSurface * surf)
 //{
 //	if (dict["Width"].is_number())
 //	{
-//		createSurface(model, dict["Width"].template as<Real>(), surf);
+//		createSurface(geometry, dict["Width"].template as<Real>(), surf);
 //	}
 //	else
 //	{
@@ -561,7 +561,7 @@ bool box_intersection(TL const& l, TR* r) {
 //	}
 //}
 // template<typename TModel, typename TSurface>
-// void createSurface(TModel const & model, Real width, TSurface * surf)
+// void createSurface(TModel const & geometry, Real width, TSurface * surf)
 //{
 ////
 //////	typedef typename TSurface::plane_type plane_type;
@@ -662,7 +662,7 @@ bool box_intersection(TL const& l, TR* r) {
  * @}
  **/
 
-}  // namespace model
+}  // namespace geometry
 }  // namespace simpla
 
 #endif /* GEOMETRY_ALGORITHM_H_ */

@@ -4,7 +4,7 @@
 #include "StructuredMesh.h"
 #include <simpla/algebra/EntityId.h>
 #include <simpla/algebra/all.h>
-#include <simpla/model/GeoAlgorithm.h>
+#include <simpla/geometry/GeoAlgorithm.h>
 namespace simpla {
 namespace mesh {
 using namespace algebra;
@@ -89,7 +89,7 @@ index_box_type StructuredMesh::GetIndexBox(int tag) const {
     return res;
 }
 
-// void StructuredMesh::SetBoundary(model::GeoObject const &g) {
+// void StructuredMesh::SetBoundary(geometry::GeoObject const &g) {
 //    Real ratio = g == nullptr ? 1.0 : g->CheckOverlap(GetBox());
 //
 //    auto ranges = GetRanges();

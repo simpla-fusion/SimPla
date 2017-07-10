@@ -18,9 +18,9 @@
 namespace simpla { namespace particle
 {
 template<typename P, typename M>
-void reflect(ParticleOld<P, M> &p, model::Surface<M> const &surface)
+void reflect(ParticleOld<P, M> &p, geometry::Surface<M> const &surface)
 {
-    typedef typename model::Surface<M>::value_type constraint_value;
+    typedef typename geometry::Surface<M>::value_type constraint_value;
     typedef typename ParticleOld<P, M>::value_type particle_value;
 
     p.accept(surface.range(),
@@ -32,9 +32,9 @@ void reflect(ParticleOld<P, M> &p, model::Surface<M> const &surface)
 };
 
 template<typename P, typename M>
-void absorb(ParticleOld<P, M> &p, model::Surface<M> const &surface)
+void absorb(ParticleOld<P, M> &p, geometry::Surface<M> const &surface)
 {
-    typedef typename model::Surface<M>::value_type constraint_value;
+    typedef typename geometry::Surface<M>::value_type constraint_value;
     typedef typename ParticleOld<P, M>::value_type particle_value;
 
     p.remove_if(surface.range(),
@@ -48,9 +48,9 @@ void absorb(ParticleOld<P, M> &p, model::Surface<M> const &surface)
 };
 
 template<typename P, typename M, typename ...T, typename Func>
-void transform(ParticleOld<P, M> &p, model::Constraint<M, T...> const &constraint, Func const &func)
+void transform(ParticleOld<P, M> &p, geometry::Constraint<M, T...> const &constraint, Func const &func)
 {
-    typedef typename model::Surface<M>::value_type constraint_value;
+    typedef typename geometry::Surface<M>::value_type constraint_value;
     typedef typename ParticleOld<P, M>::value_type particle_value;
 
     p.remove_if(constraint.range(),

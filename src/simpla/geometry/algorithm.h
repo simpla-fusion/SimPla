@@ -15,9 +15,9 @@
 
 namespace simpla {
 
-namespace model {
+namespace geometry {
 template<typename CS>
-auto area(model::Polyline<CS, tags::is_closed> const &poly)
+auto area(geometry::Polyline<CS, tags::is_closed> const &poly)
 -> decltype(std::declval<typename traits::coordinate_type<CS>::type>() *
             std::declval<typename traits::coordinate_type<CS>::type>())
 {
@@ -25,12 +25,12 @@ auto area(model::Polyline<CS, tags::is_closed> const &poly)
 }
 
 template<typename CS, typename TGeoObject>
-model::Polyline<CS> reflect(model::LineSegment<CS> const &poly, TGeoObject const &obj)
+geometry::Polyline<CS> reflect(geometry::LineSegment<CS> const &poly, TGeoObject const &obj)
 {
 
 }
 
-}// namespace model
+}// namespace geometry
 
 }// namespace simpla
 

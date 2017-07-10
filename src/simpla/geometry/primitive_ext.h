@@ -10,7 +10,7 @@
 
 #include "primitive.h"
 
-namespace simpla { namespace model
+namespace simpla { namespace geometry
 {
 namespace tags
 {
@@ -37,26 +37,26 @@ using Pyramid = Primitive<3, CoordinateSystem, tags::pyramid>;
 
 template<typename CoordinateSystem, typename Tag>
 using Wedge = Primitive<3, CoordinateSystem, tags::wedge>;
-}  // namespace model
+}  // namespace geometry
 
 namespace traits
 {
 
 template<size_t Dimension, typename CoordinateSystem>
 struct number_of_vertices<
-        model::Primitive<Dimension, CoordinateSystem, tags::pyramid>>
+        geometry::Primitive<Dimension, CoordinateSystem, tags::pyramid>>
 {
     static constexpr size_t value = 5;
 };
 template<size_t Dimension, typename CoordinateSystem>
 struct number_of_vertices<
-        model::Primitive<Dimension, CoordinateSystem, tags::wedge>>
+        geometry::Primitive<Dimension, CoordinateSystem, tags::wedge>>
 {
     static constexpr size_t value = 6;
 };
 
 } // namespace traits
-}  //namespace model
+}  //namespace geometry
 }  //namespace simpla
 
 #endif /* CORE_GEOMETRY_PRIMITIVE_EXT_H_ */

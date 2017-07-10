@@ -323,7 +323,7 @@ void select_boundary_by_polylines(Domain<TM...> *domain, TI const & ib,
 //	{
 //		for (auto const & item : vmap)
 //		{
-//			if (point_in_polygon(model.coordinates(item.first))
+//			if (point_in_polygon(geometry.coordinates(item.first))
 //					== (id == 0 || id == 2))
 //			{
 //				domain->id_set().SetValue(item.first);

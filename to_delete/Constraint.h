@@ -10,7 +10,7 @@
 #include <simpla/utilities/Parallel.h>
 #include <simpla/manifold/ManifoldTraits.h>
 
-namespace simpla { namespace model
+namespace simpla { namespace geometry
 {
 namespace _impl
 {
@@ -307,7 +307,7 @@ void create_id_set(TM const &m, TRange const &r0, TSet *res)
 }
 
 
-}} // namespace simpla { namespace model
+}} // namespace simpla { namespace geometry
 
 #endif //SIMPLA_CONSTRAINT_H
 

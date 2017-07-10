@@ -32,8 +32,8 @@ struct DummyAttribute {
     TM const *GetMesh() const { return m_mesh_; }
     TM const *m_mesh_;
 };
-
-struct DummyMesh {
+template <typename THost>
+struct DummyMesh : public MeshBase {
    public:
     typedef DummyMesh this_type;
 

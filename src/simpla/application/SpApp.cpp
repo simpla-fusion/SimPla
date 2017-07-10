@@ -10,7 +10,7 @@
 #include "SpApp.h"
 #include <simpla/engine/Context.h>
 #include <simpla/engine/TimeIntegrator.h>
-#include <simpla/model/Chart.h>
+#include <simpla/geometry/Chart.h>
 #include <simpla/parallel/all.h>
 #include <simpla/utilities/Logo.h>
 #include <simpla/utilities/parse_command_line.h>
@@ -22,7 +22,7 @@ namespace application {
 struct SpApp::pimpl_s {
     std::shared_ptr<engine::Schedule> m_schedule_ = nullptr;
     std::shared_ptr<engine::Context> m_context_ = nullptr;
-    std::shared_ptr<model::Model> m_model_ = nullptr;
+    std::shared_ptr<geometry::Model> m_model_ = nullptr;
 };
 SpApp::SpApp(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
 SpApp::~SpApp() {}
@@ -34,7 +34,7 @@ std::shared_ptr<data::DataTable> SpApp::Serialize() const {
     return res;
 };
 void SpApp::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
-    m_pimpl_->m_model_ = model::Model::Create(cfg->Get("Model"));
+    m_pimpl_->m_model_ = geometry::Model::Create(cfg->Get("Model"));
     m_pimpl_->m_schedule_ = engine::Schedule::Create(cfg->Get("Schedule"));
     m_pimpl_->m_context_ = engine::Context::Create(cfg->Get("Context"));
     Click();
@@ -61,11 +61,11 @@ void SpApp::Run() {
     if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Run(); }
 };
 
-void SpApp::SetModel(std::shared_ptr<model::Model> s) {
+void SpApp::SetModel(std::shared_ptr<geometry::Model> s) {
     m_pimpl_->m_model_ = s;
     Click();
 }
-std::shared_ptr<model::Model> SpApp::GetModel() const { return m_pimpl_->m_model_; }
+std::shared_ptr<geometry::Model> SpApp::GetModel() const { return m_pimpl_->m_model_; }
 
 void SpApp::SetContext(std::shared_ptr<engine::Context> s) {
     m_pimpl_->m_context_ = s;
@@ -84,8 +84,8 @@ std::shared_ptr<engine::Schedule> SpApp::GetSchedule() const { return m_pimpl_->
 // static const bool _every_thing_are_registered = engine::Context::is_registered &&      //
 //                                                engine::MeshBase::is_registered &&     //
 //                                                engine::DomainBase::is_registered &&       //
-//                                                model::GeoObject::is_registered &&  //
-//                                                model::Chart::is_registered;
+//                                                geometry::GeoObject::is_registered &&  //
+//                                                geometry::Chart::is_registered;
 
 int main(int argc, char **argv) {
 #ifndef NDEBUG
@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
 
     parallel::init(argc, argv);
 
-    VERBOSE << model::Chart::ShowDescription() << std::endl;
+    VERBOSE << geometry::Chart::ShowDescription() << std::endl;
     VERBOSE << engine::DomainBase::ShowDescription() << std::endl;
 
     std::string output_file = "h5://SimPlaOutput";

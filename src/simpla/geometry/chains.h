@@ -19,7 +19,7 @@
 #include "primitive.h"
 
 namespace simpla {
-namespace model {
+namespace geometry {
 
 namespace tags {
 struct is_structed;
@@ -114,7 +114,7 @@ struct Chains<Primitive<1, CS, tags::simplex>, Policies...> : public std::vector
 //	DataType m_attr_data_;
 };
 
-}  // namespace model
+}  // namespace geometry
 namespace traits {
 
 template<typename> struct is_chains;
@@ -124,36 +124,36 @@ template<typename> struct closure;
 template<typename> struct point_order;
 
 template<typename ...Others>
-struct is_primitive<model::Chains<Others...>>
+struct is_primitive<geometry::Chains<Others...>>
 {
     static constexpr bool value = false;
 };
 
 template<typename ...Others>
-struct is_chains<model::Chains<Others...>>
+struct is_chains<geometry::Chains<Others...>>
 {
     static constexpr bool value = true;
 };
 
 template<typename PrimitiveType, typename ...Others>
-struct coordinate_system<model::Chains<PrimitiveType, Others...>>
+struct coordinate_system<geometry::Chains<PrimitiveType, Others...>>
 {
     typedef typename coordinate_system<PrimitiveType>::type type;
 };
 template<typename PrimitiveType, typename ...Others>
-struct dimension<model::Chains<PrimitiveType, Others...>>
+struct dimension<geometry::Chains<PrimitiveType, Others...>>
 {
     static constexpr int value = dimension<PrimitiveType>::value;
 };
 
 template<typename PrimitiveType, typename ...Others>
-struct is_structed<model::Chains<PrimitiveType, Others...>>
+struct is_structed<geometry::Chains<PrimitiveType, Others...>>
 {
     static constexpr bool value = mpl::find_type_in_list<tags::is_structed,
             Others...>::value;
 };
 template<typename PrimitiveType, typename ...Others>
-struct point_order<model::Chains<PrimitiveType, Others...>>
+struct point_order<geometry::Chains<PrimitiveType, Others...>>
 {
     static constexpr int value =
             mpl::find_type_in_list<tags::is_clockwise, Others...>::value ?
@@ -162,14 +162,14 @@ struct point_order<model::Chains<PrimitiveType, Others...>>
              0 : -1);
 };
 template<typename PrimitiveType, typename ...Others>
-struct closure<model::Chains<PrimitiveType, Others...>>
+struct closure<geometry::Chains<PrimitiveType, Others...>>
 {
     static constexpr int value =
             mpl::find_type_in_list<tags::is_closed, Others...>::value ? 1 : 0;
 };
 }  // namespace traits
 
-}  // namespace model
+}  // namespace geometry
 }  // namespace simpla
 
 #endif /* CORE_GEOMETRY_CHAINS_H_ */

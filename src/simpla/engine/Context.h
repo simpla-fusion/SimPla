@@ -9,7 +9,7 @@
 #include <simpla/data/Serializable.h>
 #include <map>
 #include "Atlas.h"
-#include "DomainBase.h"
+#include "Domain.h"
 #include "Patch.h"
 
 namespace simpla {

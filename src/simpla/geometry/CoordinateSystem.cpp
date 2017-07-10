@@ -5,8 +5,8 @@
 #include "csCartesian.h"
 #include "csCylindrical.h"
 namespace simpla {
-namespace model {
+namespace geometry {
 REGISTER_CREATOR(Cylindrical)
 //REGISTER_CREATOR(Cartesian)
-}  // namespace model
+}  // namespace geometry
 }  // namespace  simpla

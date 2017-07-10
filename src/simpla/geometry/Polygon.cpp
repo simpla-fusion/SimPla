@@ -7,11 +7,11 @@
 #include <simpla/algebra/nTuple.h>
 #include "GeoAlgorithm.h"
 namespace simpla {
-namespace model {
+namespace geometry {
 
 // int Polygon<2>::box_intersection(point_type *x0, point_type *x1) const
 //{
-//    return model::box_intersection(m_min_, m_max_, x0, x1);
+//    return geometry::box_intersection(m_min_, m_max_, x0, x1);
 //}
 
 Real Polygon<2>::nearest_point(Real *x, Real *y) const {
@@ -95,7 +95,7 @@ void Polygon<2>::deploy() {
     m_min_ = m_polygon_.front();
     m_max_ = m_polygon_.front();
 
-    for (auto const &p : m_polygon_) { model::extent_box(&m_min_, &m_max_, &p[0]); }
+    for (auto const &p : m_polygon_) { geometry::extent_box(&m_min_, &m_max_, &p[0]); }
 }
 
 bool Polygon<2>::check_inside(Real x, Real y) const {
@@ -119,4 +119,4 @@ bool Polygon<2>::check_inside(Real x, Real y) const {
     }
 }
 }
-}  // namespace simpla//namespace  model
+}  // namespace simpla//namespace  geometry

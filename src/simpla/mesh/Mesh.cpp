@@ -1,19 +1,19 @@
 //
 // Created by salmon on 16-11-24.
 //
-#include "MeshBase.h"
+#include "Mesh.h"
 #include <simpla/algebra/EntityId.h>
 #include <simpla/engine/Attribute.h>
 #include <simpla/engine/MeshBlock.h>
 #include <simpla/engine/Patch.h>
-#include <simpla/model/Chart.h>
-#include <simpla/model/GeoObject.h>
-//#include <simpla/model/Model.h>
+#include <simpla/geometry/Chart.h>
+#include <simpla/geometry/GeoObject.h>
 namespace simpla {
+namespace mesh {
 
 struct MeshBase::pimpl_s {
     engine::MeshBlock m_mesh_block_;
-    std::shared_ptr<model::Chart> m_chart_;
+    std::shared_ptr<geometry::Chart> m_chart_;
     point_type m_origin_ = {1, 1, 1};
     point_type m_coarsest_cell_width_ = {1, 1, 1};
     index_tuple m_ghost_width_{2, 2, 2};
@@ -21,12 +21,12 @@ struct MeshBase::pimpl_s {
     index_tuple m_dimensions_{1, 1, 1};
     size_tuple m_periodic_dimension_{0, 0, 0};
 };
-MeshBase::MeshBase(std::shared_ptr<model::Chart> const& c, std::string const& s_name) : m_pimpl_(new pimpl_s) {
+MeshBase::MeshBase(std::shared_ptr<geometry::Chart> const& c, std::string const& s_name) : m_pimpl_(new pimpl_s) {
     SetChart(c);
 }
 MeshBase::~MeshBase() {}
-void MeshBase::SetChart(std::shared_ptr<model::Chart> const& c) { m_pimpl_->m_chart_ = c; }
-std::shared_ptr<model::Chart> MeshBase::GetChart() const { return m_pimpl_->m_chart_; }
+void MeshBase::SetChart(std::shared_ptr<geometry::Chart> const& c) { m_pimpl_->m_chart_ = c; }
+std::shared_ptr<geometry::Chart> MeshBase::GetChart() const { return m_pimpl_->m_chart_; }
 
 point_type const& MeshBase::GetCellWidth() const { return m_pimpl_->m_coarsest_cell_width_; }
 point_type const& MeshBase::GetOrigin() const { return m_pimpl_->m_origin_; }
@@ -64,7 +64,6 @@ std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
     return p;
 }
 void MeshBase::Deserialize(const std::shared_ptr<data::DataTable>& cfg) {
-
     m_pimpl_->m_idx_origin_ = cfg->GetValue<nTuple<int, 3>>("IndexOrigin", nTuple<int, 3>{0, 0, 0});
     m_pimpl_->m_dimensions_ = cfg->GetValue<nTuple<int, 3>>("Dimensions", nTuple<int, 3>{1, 1, 1});
     m_pimpl_->m_periodic_dimension_ = cfg->GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 0});
@@ -156,4 +155,5 @@ point_type MeshBase::map(point_type const& p) const { return m_pimpl_->m_chart_-
 //    m_pimpl_->m_ranges_ = r;
 //    Click();
 //};
+}  // namespace mesh
 }  // namespace simpla

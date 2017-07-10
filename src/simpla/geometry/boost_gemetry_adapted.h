@@ -17,7 +17,7 @@
 #include "CoordinateSystem.h"
 namespace simpla
 {
-namespace model
+namespace geometry
 {
 namespace bg = boost::geometry;
 
@@ -66,8 +66,8 @@ namespace detail
 {
 
 template<typename CS>
-model::Point<CS> cross_product(const model::Point<CS>& p1,
-		const model::Point<CS>& p2)
+geometry::Point<CS> cross_product(const geometry::Point<CS>& p1,
+		const geometry::Point<CS>& p2)
 {
 	double x = bg::get<0>(p1);
 	double y = bg::get<1>(p1);
@@ -75,14 +75,14 @@ model::Point<CS> cross_product(const model::Point<CS>& p1,
 	double u = bg::get<0>(p2);
 	double v = bg::get<1>(p2);
 	double w = bg::get<2>(p2);
-	return model::Point<CS>( { y * w - z * v, z * u - x * w, x * v - y * u });
+	return geometry::Point<CS>( { y * w - z * v, z * u - x * w, x * v - y * u });
 }
 template<typename CS>
-model::Point<CS> cross_product(const bg::model::segment<model::Point<CS>>& p1,
-		const bg::model::segment<model::Point<CS>>& p2)
+geometry::Point<CS> cross_product(const bg::model::segment<geometry::Point<CS>>& p1,
+		const bg::model::segment<geometry::Point<CS>>& p2)
 {
-	model::Point<CS> v1(p1.second);
-	model::Point<CS> v2(p2.second);
+	geometry::Point<CS> v1(p1.second);
+	geometry::Point<CS> v2(p2.second);
 	bg::subtract_point(v1, p1.first);
 	bg::subtract_point(v2, p2.first);
 
@@ -90,17 +90,17 @@ model::Point<CS> cross_product(const bg::model::segment<model::Point<CS>>& p1,
 }
 
 template<typename CS>
-auto area(model::Polyline<CS, tags::is_closed> const & polygon)
+auto area(geometry::Polyline<CS, tags::is_closed> const & polygon)
 ->decltype(std::declval<typename traits::coordinate_type<CS>::type>()*
 		std::declval<typename traits::coordinate_type<CS>::type>())
 {
 	if (polygon.size() < 3)
 		return 0;
-	bg::model::segment<model::Point<CS>> v1(polygon[1], polygon[0]);
-	bg::model::segment<model::Point<CS>> v2(polygon[2], polygon[0]);
+	bg::model::segment<geometry::Point<CS>> v1(polygon[1], polygon[0]);
+	bg::model::segment<geometry::Point<CS>> v2(polygon[2], polygon[0]);
 	// Compute the cross product for the first pair of points, to handle
 	// shapes that are not convex.
-	model::Point<CS> n1 = cross_product(v1, v2);
+	geometry::Point<CS> n1 = cross_product(v1, v2);
 	double normSquared = bg::dot_product(n1, n1);
 	if (normSquared > 0)
 	{
@@ -110,8 +110,8 @@ auto area(model::Polyline<CS, tags::is_closed> const & polygon)
 	double result = 0.0;
 	for (size_t i = 1; i < polygon.size(); ++i)
 	{
-		bg::model::segment<model::Point<CS> > v1(polygon[0], polygon[i - 1]);
-		bg::model::segment<model::Point<CS> > v2(polygon[0], polygon[i]);
+		bg::model::segment<geometry::Point<CS> > v1(polygon[0], polygon[i - 1]);
+		bg::model::segment<geometry::Point<CS> > v2(polygon[0], polygon[i]);
 
 		result += bg::dot_product(cross_product(v1, v2), n1);
 	}
@@ -121,14 +121,14 @@ auto area(model::Polyline<CS, tags::is_closed> const & polygon)
 }  // namespace detail
 
 template<typename CS> auto area(
-		model::Polygon<CS> const & geo)->typename std::enable_if<
+		geometry::Polygon<CS> const & geo)->typename std::enable_if<
 		traits::dimension<CS>::value == 2, Real>::type
 {
 	boost::geometry::area(geo);
 }
 
 template<typename CS> auto area(
-		model::Polygon<CS> const & geo)->typename std::enable_if<
+		geometry::Polygon<CS> const & geo)->typename std::enable_if<
 		traits::dimension<CS>::value != 2, Real>::type
 {
 	Real res = detail::area(geo.outer());
@@ -140,7 +140,7 @@ template<typename CS> auto area(
 	return res;
 
 }
-}  // namespace model
+}  // namespace geometry
 }  // namespace simpla
 
 namespace boost
@@ -149,9 +149,9 @@ namespace geometry
 {
 namespace traits
 {
-namespace sg = simpla::model;
-namespace sgm = simpla::model::model;
-namespace sgcs = simpla::model::coordinate_system;
+namespace sg = simpla::geometry;
+namespace sgm = simpla::geometry::model;
+namespace sgcs = simpla::geometry::coordinate_system;
 
 template<typename CS, typename TAG>
 struct tag<sgm::Primitive<0, CS, TAG> >
@@ -252,12 +252,12 @@ struct point_type<sgm::Primitive<1, CS, sg::tags::simplex> >
 //
 //	static inline coordinate_type Serialize(segment_type const& s)
 //	{
-//		return model::get<Dimension>(simpla::traits::Serialize<0>(s));
+//		return geometry::get<Dimension>(simpla::traits::Serialize<0>(s));
 //	}
 //
 //	static inline void SetValue(segment_type& s, coordinate_type const& entity)
 //	{
-//		model::SetValue<Dimension>(simpla::traits::Serialize<0>(s), entity);
+//		geometry::SetValue<Dimension>(simpla::traits::Serialize<0>(s), entity);
 //	}
 //};
 //
@@ -269,12 +269,12 @@ struct point_type<sgm::Primitive<1, CS, sg::tags::simplex> >
 //
 //	static inline coordinate_type Serialize(segment_type const& s)
 //	{
-//		return model::get<Dimension>(simpla::traits::Serialize<1>(s));
+//		return geometry::get<Dimension>(simpla::traits::Serialize<1>(s));
 //	}
 //
 //	static inline void SetValue(segment_type& s, coordinate_type const& entity)
 //	{
-//		model::SetValue<Dimension>(simpla::traits::Serialize<1>(s), entity);
+//		geometry::SetValue<Dimension>(simpla::traits::Serialize<1>(s), entity);
 //	}
 //};
 
@@ -327,7 +327,7 @@ struct closure<sgm::Polyline<CS, Others ...> >
 {
 	static constexpr closure_selector value =
 			(simpla::mpl::find_type_in_list<
-					simpla::model::tags::is_clockwise, Others...>::value) ?
+					simpla::geometry::tags::is_clockwise, Others...>::value) ?
 					(boost::geometry::closure_selector::closed) :
 					(boost::geometry::closure_selector::open);
 	;
@@ -402,6 +402,6 @@ struct interior_rings<sgm::Polygon<CS>>
 };
 
 } // namespace traits
-} // namespace model
+} // namespace geometry
 } // namespace boost
 #endif // CORE_GEOMETRY_BOOST_GEOMETRY_ADAPTED_H_

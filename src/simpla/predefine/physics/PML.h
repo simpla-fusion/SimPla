@@ -36,7 +36,7 @@ class PML : public engine::DomainBase {
     std::shared_ptr<Mesh> GetMesh() { return &m_mesh_; }
     Mesh const* GetMesh() const { return &m_mesh_; }
 
-    void SetCenterDomain(model::GeoObject const&) {}
+    void SetCenterDomain(geometry::GeoObject const&) {}
 
     void AdvanceData(Real data_time, Real dt = 0);
     void SetUp(Real time_now = 0);

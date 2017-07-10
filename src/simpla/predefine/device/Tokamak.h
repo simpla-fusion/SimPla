@@ -5,10 +5,10 @@
 #ifndef SIMPLA_TOKAMAK_H
 #define SIMPLA_TOKAMAK_H
 
+#include <simpla/geometry/Model.h>
 #include "GEqdsk.h"
-#include "simpla/model/Model.h"
 namespace simpla {
-namespace model {
+namespace geometry {
 
 class Tokamak : public Model {
     SP_OBJECT_HEAD(Tokamak, Model)
@@ -32,6 +32,6 @@ class Tokamak : public Model {
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
-}  // namespace model{
+}  // namespace geometry{
 }  // namespace simpla
 #endif  // SIMPLA_TOKAMAK_H

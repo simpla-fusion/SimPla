@@ -15,7 +15,7 @@
  *  - Simple feature access -architecture Part 1: Common architecture
  *  @ref boost::geometry GGL
  */
-namespace simpla { namespace model
+namespace simpla { namespace geometry
 {
 
 namespace tags
@@ -112,9 +112,9 @@ template<int Dimension, typename ...> struct Primitive;
 template<typename CoordinateSystem>
 struct Primitive<0, CoordinateSystem>
 {
-    typedef typename simpla::model::traits::coordinate_type<CoordinateSystem>::type value_type;
+    typedef typename simpla::geometry::traits::coordinate_type<CoordinateSystem>::type value_type;
 
-    static const size_t ndims = simpla::model::traits::dimension<
+    static const size_t ndims = simpla::geometry::traits::dimension<
             CoordinateSystem>::value;
 
     DEF_NTUPLE_OBJECT(CoordinateSystem, value_type, ndims);
@@ -134,9 +134,9 @@ using LineSegment= Primitive<1, CoordinateSystem>;
 template<typename CoordinateSystem>
 struct Vector
 {
-    typedef typename simpla::model::traits::coordinate_type<CoordinateSystem>::type value_type;
+    typedef typename simpla::geometry::traits::coordinate_type<CoordinateSystem>::type value_type;
 
-    static const int ndims = simpla::model::traits::dimension<
+    static const int ndims = simpla::geometry::traits::dimension<
             CoordinateSystem>::value;
 
     DEF_NTUPLE_OBJECT(CoordinateSystem, value_type, ndims);
@@ -157,9 +157,9 @@ OS &operator<<(OS &os, Vector<CoordinateSystem> const &geo)
 template<typename CoordinateSystem>
 struct CoVector
 {
-    typedef typename simpla::model::traits::coordinate_type<CoordinateSystem>::type value_type;
+    typedef typename simpla::geometry::traits::coordinate_type<CoordinateSystem>::type value_type;
 
-    static const size_t ndims = simpla::model::traits::dimension<
+    static const size_t ndims = simpla::geometry::traits::dimension<
             CoordinateSystem>::value;
 
     DEF_NTUPLE_OBJECT(CoordinateSystem, value_type, ndims);
@@ -252,98 +252,98 @@ OS &operator<<(OS &os, Primitive<Dimension, CoordinateSystem, Tag> const &geo)
 
 #undef DEF_NTUPLE_OBJECT
 }
-// namespace model
+// namespace geometry
 
 namespace traits
 {
 
 template<size_t Dimension, typename ...Others>
-struct is_primitive<model::Primitive<Dimension, Others...>>
+struct is_primitive<geometry::Primitive<Dimension, Others...>>
 {
     static constexpr bool value = true;
 };
 
 template<size_t Dimension, typename ...Others>
-struct is_chains<model::Primitive<Dimension, Others...>>
+struct is_chains<geometry::Primitive<Dimension, Others...>>
 {
     static constexpr bool value = false;
 };
 
 template<size_t Dimension, typename CoordinateSystem, typename Tag>
-struct coordinate_system<model::Primitive<Dimension, CoordinateSystem, Tag>>
+struct coordinate_system<geometry::Primitive<Dimension, CoordinateSystem, Tag>>
 {
     typedef CoordinateSystem type;
 };
 
 template<size_t Dimension, typename CoordinateSystem, typename Tag>
-struct dimension<model::Primitive<Dimension, CoordinateSystem, Tag>>
+struct dimension<geometry::Primitive<Dimension, CoordinateSystem, Tag>>
 {
     static constexpr size_t value = Dimension;
 };
 
 template<size_t Dimension, typename CoordinateSystem, typename Tag>
-struct tag<model::Primitive<Dimension, CoordinateSystem, Tag>>
+struct tag<geometry::Primitive<Dimension, CoordinateSystem, Tag>>
 {
     typedef Tag type;
 };
 
 template<size_t Dimension, typename CoordinateSystem, typename Tag>
-struct point_type<model::Primitive<Dimension, CoordinateSystem, Tag>>
+struct point_type<geometry::Primitive<Dimension, CoordinateSystem, Tag>>
 {
-    typedef model::Primitive<0, CoordinateSystem, Tag> type;
+    typedef geometry::Primitive<0, CoordinateSystem, Tag> type;
 };
 
 template<size_t Dimension, typename CoordinateSystem, typename Tag>
-struct value_type<model::Primitive<Dimension, CoordinateSystem, Tag>>
+struct value_type<geometry::Primitive<Dimension, CoordinateSystem, Tag>>
 {
-    typedef model::Primitive<Dimension, CoordinateSystem, Tag> geo;
+    typedef geometry::Primitive<Dimension, CoordinateSystem, Tag> geo;
 
     typedef decltype(std::declval<geo>()[0]) type;
 };
 template<typename CoordinateSystem>
-struct number_of_points<model::Primitive<0, CoordinateSystem>>
+struct number_of_points<geometry::Primitive<0, CoordinateSystem>>
 {
     static constexpr size_t value = 1;
 };
 template<typename CoordinateSystem>
-struct number_of_points<model::Primitive<1, CoordinateSystem>>
+struct number_of_points<geometry::Primitive<1, CoordinateSystem>>
 {
     static constexpr size_t value = 2;
 };
 
 template<size_t Dimension, typename ...Others>
-struct peak<model::Primitive<Dimension, Others...>>
+struct peak<geometry::Primitive<Dimension, Others...>>
 {
     typedef typename facet<
-            typename ridge<model::Primitive<Dimension, Others...> >::type>::type type;
+            typename ridge<geometry::Primitive<Dimension, Others...> >::type>::type type;
 };
 
 template<size_t Dimension, typename ...Others>
-struct ridge<model::Primitive<Dimension, Others...>>
+struct ridge<geometry::Primitive<Dimension, Others...>>
 {
     typedef typename facet<
-            typename facet<model::Primitive<Dimension, Others...> >::type>::type type;
+            typename facet<geometry::Primitive<Dimension, Others...> >::type>::type type;
 };
 
 template<size_t Dimension, typename ...Others>
-struct facet<model::Primitive<Dimension, Others...>>
+struct facet<geometry::Primitive<Dimension, Others...>>
 {
-    typedef model::Primitive<Dimension - 1, Others...> type;
+    typedef geometry::Primitive<Dimension - 1, Others...> type;
 };
 
 } // namespace traits
-} // namespace model
+} // namespace geometry
 } // namespace simpla
 
 namespace std
 {
 
 template<size_t N, size_t M, typename ... Others>
-auto get(simpla::model::model::Primitive<M, Others...> &obj)
+auto get(simpla::geometry::model::Primitive<M, Others...> &obj)
 AUTO_RETURN((obj[N]))
 
 template<size_t N, size_t M, typename ...Others>
-auto get(simpla::model::model::Primitive<M, Others...> const &obj)
+auto get(simpla::geometry::model::Primitive<M, Others...> const &obj)
 AUTO_RETURN((obj[N]))
 
 }  // namespace std

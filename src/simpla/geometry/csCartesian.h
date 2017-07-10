@@ -13,7 +13,7 @@
 #include "simpla/utilities/macro.h"
 #include "simpla/utilities/type_cast.h"
 namespace simpla {
-namespace model {
+namespace geometry {
 
 /**
  * @ingroup  coordinate_system

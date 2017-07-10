@@ -15,7 +15,7 @@
 #include "sp_def.h"
 
 namespace simpla {
-namespace model {
+namespace geometry {
 struct Cartesian : public Chart {
     Cartesian() {}
 };
@@ -34,7 +34,7 @@ struct CartesianCoRectMesh : public CoRectMesh {
 
     template <typename... Args>
     explicit CartesianCoRectMesh(std::string const &s_name, Args &&... args)
-        : CoRectMesh(s_name, std::make_shared<model::Cartesian>(std::forward<Args>(args)...)) {}
+        : CoRectMesh(s_name, std::make_shared<geometry::Cartesian>(std::forward<Args>(args)...)) {}
     ~CartesianCoRectMesh() override = default;
     SP_DEFAULT_CONSTRUCT(CartesianCoRectMesh);
     DECLARE_REGISTER_NAME("CartesianCoRectMesh");
@@ -331,7 +331,7 @@ struct CartesianCoRectMesh : public CoRectMesh {
 //
 //        std::tie(x0, x1) = b;
 //
-//        if (model::box_intersection(b0, b1, &x0, &x1))
+//        if (geometry::box_intersection(b0, b1, &x0, &x1))
 //        {
 //            return std::make_tuple(m::unpack_index(id(x0)),
 //                                   m::unpack_index(id(x1) + (m::_DA << 1)));

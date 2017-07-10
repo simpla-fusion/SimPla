@@ -6,11 +6,11 @@
 #define SIMPLA_CHART_H
 
 #include <simpla/data/all.h>
-#include <simpla/model/GeoObject.h>
+#include <simpla/geometry/GeoObject.h>
 #include <simpla/utilities/SPObject.h>
 #include <simpla/utilities/Signal.h>
 namespace simpla {
-namespace model {
+namespace geometry {
 struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<Chart> {
     SP_OBJECT_HEAD(Chart, engine::SPObject)
     SP_DEFAULT_CONSTRUCT(Chart);

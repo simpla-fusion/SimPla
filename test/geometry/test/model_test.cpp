@@ -116,9 +116,9 @@ TYPED_TEST_P(TestModel,SelectByNGP){
 //
 //	x= min-100;
 //
-//	std::tie(dest,std::ignore)=model.coordinates_global_to_local(x);
+//	std::tie(dest,std::ignore)=geometry.coordinates_global_to_local(x);
 //
-//	auto range2=model.SelectByNGP( TestFixture::iform, x);
+//	auto range2=geometry.SelectByNGP( TestFixture::iform, x);
 //
 //	count =0;
 //

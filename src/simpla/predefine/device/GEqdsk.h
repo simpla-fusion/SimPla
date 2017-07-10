@@ -10,16 +10,16 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/nTuple.h>
+#include <simpla/geometry/Chart.h>
+#include <simpla/geometry/GeoObject.h>
+#include <simpla/geometry/Model.h>
+#include <simpla/geometry/Polygon.h>
+#include <simpla/geometry/Revolve.h>
 #include <simpla/utilities/Log.h>
 #include <simpla/utilities/ObjectHead.h>
 #include <simpla/utilities/type_traits.h>
 #include <iostream>
 #include <string>
-#include "simpla/model/Chart.h"
-#include "simpla/model/GeoObject.h"
-#include "simpla/model/Model.h"
-#include "simpla/model/Polygon.h"
-#include "simpla/model/Revolve.h"
 namespace simpla {
 /**
  * @ingroup model
@@ -42,7 +42,7 @@ class GEqdsk {
     static constexpr int CartesianYAxis = (CartesianZAxis + 2) % 3;
     typedef nTuple<Real, 3> Vec3;
 
-    explicit GEqdsk(std::shared_ptr<model::Chart> const &c = nullptr);
+    explicit GEqdsk(std::shared_ptr<geometry::Chart> const &c = nullptr);
     ~GEqdsk();
 
     void load(std::string const &fname);
@@ -51,8 +51,8 @@ class GEqdsk {
     std::ostream &print(std::ostream &os);
     std::string const &description() const;
     __host__ __device__ box_type box() const;
-    std::shared_ptr<model::Polygon<2>> const &boundary() const;
-    std::shared_ptr<model::Polygon<2>> const &limiter() const;
+    std::shared_ptr<geometry::Polygon<2>> const &boundary() const;
+    std::shared_ptr<geometry::Polygon<2>> const &limiter() const;
 
     __host__ __device__ bool in_boundary(point_type const &x) const {
         return boundary()->check_inside(x[RAxis], x[ZAxis]);

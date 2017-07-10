@@ -3,7 +3,7 @@
 //
 #include "Cube.h"
 namespace simpla {
-namespace model {
+namespace geometry {
 REGISTER_CREATOR(Cube)
 }
 }

@@ -5,9 +5,12 @@
 #ifndef SIMPLA_MESHBLOCK_H
 #define SIMPLA_MESHBLOCK_H
 
-#include <simpla/algebra/EntityId.h>
-#include <simpla/utilities/Range.h>
-#include <simpla/utilities/SPObject.h>
+#include <simpla/SIMPLA_config.h>
+#include <simpla/algebra/nTuple.ext.h>
+#include <simpla/algebra/nTuple.h>
+#include <simpla/utilities/ObjectHead.h>
+#include <memory>
+
 namespace simpla {
 namespace engine {
 
@@ -19,17 +22,11 @@ class MeshBlock {
     ~MeshBlock();
 
     MeshBlock(MeshBlock const &other);
-    MeshBlock(MeshBlock &&other);
+    MeshBlock(MeshBlock &&other) noexcept;
     void swap(MeshBlock &);
 
-    MeshBlock &operator=(MeshBlock const &other) {
-        MeshBlock(other).swap(*this);
-        return *this;
-    }
-    MeshBlock &operator=(MeshBlock &&other) {
-        MeshBlock(other).swap(*this);
-        return *this;
-    }
+    MeshBlock &operator=(MeshBlock const &other);
+    MeshBlock &operator=(MeshBlock &&other) noexcept;
 
     id_type GetGUID() const;
     size_type GetLevel() const;
@@ -43,7 +40,9 @@ class MeshBlock {
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
-};
-}
-}
+};  // class MeshBlock
+
+}  // namespace engine{
+}  // namespace simpla
+
 #endif  // SIMPLA_MESHBLOCK_H

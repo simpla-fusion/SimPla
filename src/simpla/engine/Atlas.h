@@ -7,8 +7,10 @@
 #ifndef SIMPLA_MESH_MESHATLAS_H
 #define SIMPLA_MESH_MESHATLAS_H
 
+#include <simpla/SIMPLA_config.h>
+#include <simpla/algebra/nTuple.ext.h>
 #include <simpla/algebra/nTuple.h>
-#include <simpla/model/GeoObject.h>
+#include <simpla/data/Serializable.h>
 #include <simpla/utilities/Log.h>
 #include <simpla/utilities/SPObject.h>
 #include <type_traits>

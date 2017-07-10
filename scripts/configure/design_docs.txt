@@ -26,7 +26,7 @@ Its long term goal is to provide complete modeling of a fusion device.
  - Different physical models could be tightly and efficiently coupled together. Data are shared in
    memory, and inter-process communications are minimized.
  - Decoupling and reusing physics independent functions, the implementation of new physical theory
-   and model would be much easier.
+   and geometry would be much easier.
  - Decoupling and reusing physics independent functions, the performance could be optimized by
    non-physicists, without any affection on the physical validity. Physicist   can easily take the
     benefit from the rapid growth of HPC.
@@ -62,14 +62,14 @@ The final objective of SimPla is to provide a complete and efficient framework f
  , and listed as:
 * Req(1) Requirements are expressed like this.
 
-.1 Physics model and numerical algorithm
+.1 Physics geometry and numerical algorithm
 -----------------------
 In the tokamak, from edge to core, the physical processes of plasma have different temporal-spatial
 scales and are described by different physical models.
 The physical properties of simulation system are described by physical quantities. Physical quantity
  could be a spatial field, i.e. electric field, magnetic field, density, current, etc. or a phase space
  distribution function. The physical theory about the relation between different physical quantities
- and the temporal evolution of physical quantity are referred to as physical model or physical laws.
+ and the temporal evolution of physical quantity are referred to as physical geometry or physical laws.
  Physical models are usually expressed by group partial differential equations (PDE), i.e. Maxwell
  equations, MHD equations or Vlasov Equations etc. The number of equations in the group should be same
   as the number of unknown physical quantities in the domain.  One physical quantity may follow different
@@ -84,7 +84,7 @@ converted into algebra equations of discrete values.  The method to construct th
  finite volume method (FVM), Particle-in-cell method (PIC) etc. One physical equation may be solved by
   different numerical algorithm, and one numerical algorithm may be applied to different equation.
 
-* Req(2) Supports different physical model, i.e. Maxwell equations, MHD equations or Vlasov Equations etc.
+* Req(2) Supports different physical geometry, i.e. Maxwell equations, MHD equations or Vlasov Equations etc.
 * Req(3) Supports different coordinates system, i.e. Cartesian coordinates, cylindrical coordinates,
 toroidal coordinates and magnetic flus coordinates etc.
 * Req(4) Supports different numerical algorithm, i.e. FDM, FVM, FEM, DG-FEM, PIC, Delta-f etc.
@@ -93,12 +93,12 @@ toroidal coordinates and magnetic flus coordinates etc.
 .2 Flexible and verifiability
 -----------------------
 
-* Req(6) Physical model and numerical algorithm can be verified independently.
-* Req(7) Be flexible to efficiently time_step different scale problems, from one-dimensional slab model to
-three-dimensional global toroidal model.
+* Req(6) Physical geometry and numerical algorithm can be verified independently.
+* Req(7) Be flexible to efficiently time_step different scale problems, from one-dimensional slab geometry to
+three-dimensional global toroidal geometry.
 .3 Module and Integration
 -----------------------
-* Req(8) Different physical model and numerical algorithms shall be coupled in memory;
+* Req(8) Different physical geometry and numerical algorithms shall be coupled in memory;
 * Req(9) Each module can be independent validated;
 * Req(10) Support flexible task flow control;
 * Req(11) Support global (device-scale) multi-module integration;
@@ -138,23 +138,23 @@ The principle design ideas are explained in this section, and listed as:
 2. The physical models and numerical algorithms used in the simulation system shall be comprehensive
 reviewed and verified;
 This decision is reasonable, but the cost for recoding all physical models will be very expensive. We
-need reduce the development cost for the implement of physical model.
+need reduce the development cost for the implement of physical geometry.
 
 * Idea(3) SimPla is a hierarchical framework.
 
-“Hierarchical” means physical model, numerical algorithm and computing implement shall be decoupled.
+“Hierarchical” means physical geometry, numerical algorithm and computing implement shall be decoupled.
 The relationship between physical models and numerical algorithms is not 1:1. One physical equation
  may be solved by different numerical algorithm, and one numerical algorithm may be applied to different
- equation. The advantages of separating the numerical algorithm from physical model are listed as the follows:
+ equation. The advantages of separating the numerical algorithm from physical geometry are listed as the follows:
 1. Code reuse.
 2. Data structure reuse.
-3. Easy to implement one physical model by using different numerical algorithms. This made it easy to
+3. Easy to implement one physical geometry by using different numerical algorithms. This made it easy to
  compare those different numerical algorithms, and is helpful to form a uniformed interface to the
- physical model (despite the used numerical algorithm)
-3. Easy to implement new physical model by code and m_data structure reuse.
+ physical geometry (despite the used numerical algorithm)
+3. Easy to implement new physical geometry by code and m_data structure reuse.
 The separation of computation from numerical algorithms has similar advantages. And, in particular,
 this separation makes it possible to perform the performance optimization on computational at_level without
-affecting the physical model, numerical algorithms and program results.
+affecting the physical geometry, numerical algorithms and program results.
 * Idea(4) Discretization of partial differential equations using a human-readable syntax;
 
 Usually, MHD theory is expressed by a group PDEs. Using C++ expression template technology, we can

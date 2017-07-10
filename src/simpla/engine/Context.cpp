@@ -3,10 +3,10 @@
 //
 #include "Context.h"
 #include <simpla/data/all.h>
-#include <simpla/mesh/MeshBase.h>
-#include <simpla/model/Chart.h>
-#include <simpla/model/GeoAlgorithm.h>
-#include "DomainBase.h"
+#include <simpla/geometry/Chart.h>
+#include <simpla/geometry/GeoAlgorithm.h>
+#include <simpla/mesh/Mesh.h>
+#include "Domain.h"
 namespace simpla {
 namespace engine {
 
@@ -14,7 +14,7 @@ struct Context::pimpl_s {
     std::map<std::string, std::shared_ptr<DomainBase>> m_domains_;
     std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
     Atlas m_atlas_;
-    std::shared_ptr<model::Chart> m_chart_;
+    std::shared_ptr<geometry::Chart> m_chart_;
 };
 
 Context::Context(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
@@ -33,19 +33,19 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     SetName(cfg->GetValue<std::string>("Name", "unnamed"));
 
     m_pimpl_->m_chart_ =
-        cfg->has("Chart") ? model::Chart::Create(cfg->Get("Chart")) : model::Chart::Create("Cartesian");
+        cfg->has("Chart") ? geometry::Chart::Create(cfg->Get("Chart")) : geometry::Chart::Create("Cartesian");
 
     m_pimpl_->m_atlas_.Deserialize(cfg->GetTable("Atlas"));
     //    m_pimpl_->m_base_mesh_ = MeshBase::Create(cfg->GetTable("MeshBase"));
-    auto t_domain = cfg->GetTable("DomainBase");
+    auto t_domain = cfg->GetTable("Domain");
     if (t_domain != nullptr) {
-        cfg->GetTable("DomainBase")->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) {
+        cfg->GetTable("Domain")->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) {
             if (t_cfg != nullptr && t_cfg->isTable()) {
                 auto p_cfg = std::dynamic_pointer_cast<data::DataTable>(t_cfg);
                 std::string s_type = p_cfg->GetValue<std::string>("Type", "Unknown");
                 auto res = DomainBase::Create(s_type);
                 res->Deserialize(p_cfg);
-                res->SetGeoObject(model::GeoObject::Create(p_cfg->GetTable("GeoObject")));
+                res->SetGeoObject(geometry::GeoObject::Create(p_cfg->GetTable("GeoObject")));
                 SetDomain(key, res);
             } else {
                 RUNTIME_ERROR << "illegal domain config!" << std::endl;
@@ -65,7 +65,7 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
 //            d = DomainBase::Create(t, GetBaseMesh(), nullptr);
 //            return;
 //        } else {
-//            std::shared_ptr<model::GeoObject> geo = std::make_shared<model::GeoObjectFull>();
+//            std::shared_ptr<geometry::GeoObject> geo = std::make_shared<geometry::GeoObjectFull>();
 //
 //            auto t_cfg = std::dynamic_pointer_cast<data::DataTable>(t);
 //            geo = GetGeoObject(t_cfg->GetValue<std::string>("Model", ""));
@@ -117,7 +117,9 @@ std::map<std::string, std::shared_ptr<AttributeDesc>> Context::CollectRegistered
 
 std::map<std::string, std::shared_ptr<DomainBase>> &Context::GetAllDomains() { return m_pimpl_->m_domains_; }
 
-std::map<std::string, std::shared_ptr<DomainBase>> const &Context::GetAllDomains() const { return m_pimpl_->m_domains_; }
+std::map<std::string, std::shared_ptr<DomainBase>> const &Context::GetAllDomains() const {
+    return m_pimpl_->m_domains_;
+}
 
 void Context::InitialCondition(Patch *patch, Real time_now) {
     Update();
@@ -146,7 +148,8 @@ void Context::Advance(Patch *patch, Real time_now, Real time_dt) {
 //    ASSERT(!IsInitialized());
 //    m_pimpl_->m_workers_.erase(k);
 //}
-// std::shared_ptr<DomainBase> Context::GetWorker(std::string const &d_name) const { return m_pimpl_->m_workers_.at(d_name);
+// std::shared_ptr<DomainBase> Context::GetWorker(std::string const &d_name) const { return
+// m_pimpl_->m_workers_.at(d_name);
 // }
 //
 // std::map<std::string, std::shared_ptr<Attribute>> const &Context::GetAllAttributes() const {
@@ -192,7 +195,7 @@ void Context::Advance(Patch *patch, Real time_now, Real time_dt) {
 //        }
 //        workers_t->Link(item.first, worker_res.first->second->db());
 //    }
-//    std::shared_ptr<model::GeoObject> geo = g;
+//    std::shared_ptr<geometry::GeoObject> geo = g;
 //    if (geo == nullptr) { geo.reset(GLOBAL_GEO_OBJECT_FACTORY.Create(db()->GetTable("Geometry"))); }
 //    m_pimpl_->m_chart_.reset(GLOBAL_MESHVIEW_FACTORY.Create(db()->GetTable("MeshBase"), geo));
 //

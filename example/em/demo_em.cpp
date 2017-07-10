@@ -109,14 +109,14 @@ void UseCaseEMFluid::Unpack(std::shared_ptr<data::DataTable> cfg) {
 //    }
 //
 //    if (options["Constraints"]["PEC"]) {
-//        mesh::Modeler model(center_mesh.get());
+//        mesh::Modeler geometry(center_mesh.get());
 //        std::function<Real(point_type const &)> shape_fun;
 //        options["Constraints"]["PEC"]["Shape"].as(&shape_fun);
 //
-//        model.add(options["Constraints"]["PEC"]["Box"].as<box_type>(), shape_fun);
+//        geometry.add(options["Constraints"]["PEC"]["Box"].as<box_type>(), shape_fun);
 //
-//        center_domain->face_boundary = model.surface(FACE);
-//        center_domain->edge_boundary = model.surface(EDGE);
+//        center_domain->face_boundary = geometry.surface(FACE);
+//        center_domain->edge_boundary = geometry.surface(EDGE);
 //
 //        options["Constraints"]["J"]["Value"].as(&center_domain->J_src_fun);
 //    }

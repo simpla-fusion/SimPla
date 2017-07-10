@@ -8,8 +8,8 @@
 #define SIMPLA_FIELD_H
 
 #include <simpla/SIMPLA_config.h>
-//#include <simpla/data/all.h>
-#include <simpla/engine/Attribute.h>
+#include <simpla/data/all.h>
+#include <simpla/engine/Domain.h>
 #include <simpla/utilities/Range.h>
 #include <simpla/utilities/type_traits.h>
 #include "ExpressionTemplate.h"
@@ -61,21 +61,22 @@ struct value_type<Field<TM, TV, IFORM, DOF>> {
     typedef TV type;
 };
 }  // namespace traits {
+
 template <typename TM, typename TV, int IFORM, int... DOF>
 class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
    private:
     typedef Field<TM, TV, IFORM, DOF...> field_type;
 
-    typedef engine::Attribute attribute_type;
+   public:
+    typedef TV value_type;
+    typedef TM domain_type;
+    typedef typename engine::domain_traits<TM>::attribute_type attribute_type;
+    typedef typename engine::domain_traits<TM>::entity_id_type entity_id_type;
+    typedef typename engine::domain_traits<TM>::template array_type<value_type> array_type;
 
     SP_OBJECT_HEAD(field_type, attribute_type);
 
-   public:
-    typedef TV value_type;
-    typedef TM mesh_type;
-
-    typedef EntityId entity_id_type;
-
+    static constexpr int NDIMS = engine::domain_traits<TM>::NDIMS;
     static constexpr int iform = IFORM;
     static constexpr int NUM_OF_SUB = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
 
@@ -83,28 +84,28 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     typedef std::conditional_t<NUM_OF_SUB == 1, ele_type, nTuple<ele_type, NUM_OF_SUB>> field_value_type;
 
    private:
-    typedef nTuple<Array<value_type>, NUM_OF_SUB, DOF...> data_type;
+    typedef nTuple<array_type, NUM_OF_SUB, DOF...> data_type;
     data_type m_data_;
-    mesh_type const* m_mesh_ = nullptr;
+    domain_type const* m_domain_ = nullptr;
 
    public:
     template <typename... Args>
-    explicit Field(mesh_type* grp, Args&&... args)
-        : m_mesh_(grp),
+    explicit Field(domain_type* grp, Args&&... args)
+        : m_domain_(grp),
           base_type(grp, IFORM, std::integer_sequence<int, DOF...>(), typeid(value_type), std::forward<Args>(args)...) {
     }
 
     ~Field() override = default;
 
-    Field(this_type const& other) : base_type(other), m_data_(other.m_data_), m_mesh_(other.m_mesh_) {}
+    Field(this_type const& other) : base_type(other), m_data_(other.m_data_), m_domain_(other.m_domain_) {}
     Field(this_type&& other)
-        : base_type(std::forward<base_type>(other)), m_data_(other.m_data_), m_mesh_(other.m_mesh_) {}
+        : base_type(std::forward<base_type>(other)), m_data_(other.m_data_), m_domain_(other.m_domain_) {}
 
     Field(this_type const& other, Range<entity_id_type> const& r) : Field(other) {}
 
     std::size_t size() const override {
-        return static_cast<std::size_t>(m_mesh_ == nullptr ? 0 : (m_mesh_->GetNumberOfEntity(IFORM) *
-                                                                  reduction_v(tags::multiplication(), 1, DOF...)));
+        return static_cast<std::size_t>(m_domain_ == nullptr ? 0 : (m_domain_->GetNumberOfEntity(IFORM) *
+                                                                    reduction_v(tags::multiplication(), 1, DOF...)));
     }
 
     bool empty() const override { return size() == 0; }
@@ -112,7 +113,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     void swap(this_type& other) {
         base_type::swap(other);
         m_data_.swap(other.m_data_);
-        std::swap(m_mesh_, other.m_mesh_);
+        std::swap(m_domain_, other.m_domain_);
     }
 
     auto& Get() { return m_data_; }
@@ -121,20 +122,20 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     template <typename Other>
     void Set(Other&& v) {
         base_type::Update();
-        m_mesh_->Fill(*this, std::forward<Other>(v));
+        m_domain_->Fill(*this, std::forward<Other>(v));
     }
 
     template <typename... Args>
     decltype(auto) Get(Args&&... args) {
-        m_mesh_->GetEntity(*this, std::forward<Args>(args)...);
+        m_domain_->GetEntity(*this, std::forward<Args>(args)...);
     }
     template <typename... Args>
     decltype(auto) Get(Args&&... args) const {
-        m_mesh_->GetEntity(*this, std::forward<Args>(args)...);
+        m_domain_->GetEntity(*this, std::forward<Args>(args)...);
     }
     template <typename U, typename... Args>
     void Set(U&& v, Args&&... args) {
-        m_mesh_->SetEntity(*this, std::forward<U>(v), std::forward<Args>(args)...);
+        m_domain_->SetEntity(*this, std::forward<U>(v), std::forward<Args>(args)...);
     }
 
     template <typename MR, typename UR, int... NR>
@@ -188,26 +189,26 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
 
     template <typename... Args>
     decltype(auto) gather(Args&&... args) const {
-        return m_mesh_->gather(*this, std::forward<Args>(args)...);
+        return m_domain_->gather(*this, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     decltype(auto) scatter(Args&&... args) {
-        return m_mesh_->scatter(*this, std::forward<Args>(args)...);
+        return m_domain_->scatter(*this, std::forward<Args>(args)...);
     }
 
     void DoUpdate() override {
         base_type::DoUpdate();
-        ASSERT(m_mesh_ != nullptr);
+        ASSERT(m_domain_ != nullptr);
 
         traits::foreach (m_data_, [&](auto& a, auto i0, auto&&... idx) {
-            a.SetSpaceFillingCurve(m_mesh_->GetSpaceFillingCurve(IFORM, i0));
+            a.SetSpaceFillingCurve(m_domain_->GetSpaceFillingCurve(IFORM, i0));
             a.Update();
         });
     }
 
     void DoTearDown() override {
-        m_mesh_ = nullptr;
+        m_domain_ = nullptr;
         traits::foreach (m_data_, [&](auto& a, auto&&... idx) { a.reset(); });
         base_type::DoTearDown();
     }

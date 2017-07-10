@@ -4,6 +4,9 @@
 
 #ifndef SIMPLA_SPOBJECTHEAD_H
 #define SIMPLA_SPOBJECTHEAD_H
+
+#include <typeinfo>
+
 namespace simpla {
 #define SP_DECLARE_NAME(_CLASS_NAME_)                                \
     virtual std::string GetClassName() const { return ClassName(); } \

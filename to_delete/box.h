@@ -11,7 +11,7 @@
 namespace simpla
 {
 
-namespace model
+namespace geometry
 {
 
 namespace model
@@ -28,20 +28,20 @@ OS &operator<<(OS & os, Box<CoordinateSystem> const & geo)
 	os << geo.as_ntuple();
 	return os;
 }
-}  // namespace model
+}  // namespace geometry
 namespace traits
 {
 template<typename > struct coordinate_system;
 template<typename > struct dimension;
 template<typename > struct tag;
 template<typename CoordinateSystem>
-struct coordinate_system<model::Box<CoordinateSystem>>
+struct coordinate_system<geometry::Box<CoordinateSystem>>
 {
 	typedef CoordinateSystem type;
 };
 
 }  // namespace traits
-}  // namespace model
+}  // namespace geometry
 
 }  // namespace simpla
 

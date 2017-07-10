@@ -230,7 +230,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
     SAMRAI::tbox::Dimension d_dim;
 
     /*
-     * We cache pointers to the grid model object to set up initial
+     * We cache pointers to the grid geometry object to set up initial
      * GetDataBlock, SetValue physical boundary conditions, and register plot
      * variables.
      */
