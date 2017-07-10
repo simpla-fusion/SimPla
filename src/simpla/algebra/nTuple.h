@@ -218,7 +218,7 @@ struct nTuple<TV, N0, N...> {
     __host__ __device__ nTuple() = default;
     __host__ __device__ ~nTuple() = default;
 
-    constexpr int size() const { return reduction_v(tags::multiplication(), N0, N...); }
+    static constexpr int size()   { return reduction_v(tags::multiplication(), N0, N...); }
 
     __host__ __device__ nTuple(simpla::traits::nested_initializer_list_t<value_type, sizeof...(N) + 1> l) {
         simpla::traits::assign_nested_initializer_list<N0, N...>::apply(m_data_, l);

@@ -8,7 +8,6 @@
 #include <simpla/algebra/all.h>
 #include <simpla/data/all.h>
 #include <simpla/engine/Domain.h>
-#include "../../../to_delete/Mesh.h"
 #include "StructuredMesh.h"
 namespace simpla {
 namespace mesh {

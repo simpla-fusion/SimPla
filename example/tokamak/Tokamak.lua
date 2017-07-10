@@ -32,7 +32,7 @@ Context = {
             Model = "Tokamak",
             Name = "Tokamak",
             Boundary = "Limiter",
-            Type = "Domain<RectMesh,EMFluid>",
+            Type = "Domain<RectMesh,FVM,EMFluid>",
             DoBoundaryCondition = { Type = "PEC", },
             DoInitialCondition = {
                 ne = "ne",
@@ -45,7 +45,7 @@ Context = {
         },
         RFAntenna = {
             Name = "ICRF",
-            Type = "Domain<RectMesh,ICRFAntenna>",
+            Type = "Domain<RectMesh,FVM,ICRFAntenna>",
             Variable = { Name = "E", IFORM = 1, DOF = 1, ValueType = "Real" },
             IsHard = false,
             Amplify = { 0.0, 0.0, 1.0 },

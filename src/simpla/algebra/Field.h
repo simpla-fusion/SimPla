@@ -9,11 +9,10 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/data/all.h>
-#include <simpla/engine/Domain.h>
+#include <simpla/engine/Attribute.h>
 #include <simpla/utilities/Range.h>
 #include <simpla/utilities/type_traits.h>
 #include "ExpressionTemplate.h"
-
 // namespace std {
 //    template <typename TM, typename TV, int IFORM, int... DOF>
 //    struct rank<simpla::Field<TM, TV, IFORM, DOF...>> : public std::integral_constant<int, sizeof...(DOF)> {};
@@ -70,13 +69,11 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
    public:
     typedef TV value_type;
     typedef TM domain_type;
-    typedef typename engine::domain_traits<TM>::attribute_type attribute_type;
-    typedef typename engine::domain_traits<TM>::entity_id_type entity_id_type;
-    typedef typename engine::domain_traits<TM>::template array_type<value_type> array_type;
+    typedef typename engine::Attribute attribute_type;
+    typedef Array<value_type> array_type;
 
     SP_OBJECT_HEAD(field_type, attribute_type);
 
-    static constexpr int NDIMS = engine::domain_traits<TM>::NDIMS;
     static constexpr int iform = IFORM;
     static constexpr int NUM_OF_SUB = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
 
@@ -101,11 +98,10 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     Field(this_type&& other)
         : base_type(std::forward<base_type>(other)), m_data_(other.m_data_), m_domain_(other.m_domain_) {}
 
-    Field(this_type const& other, Range<entity_id_type> const& r) : Field(other) {}
 
     std::size_t size() const override {
-        return static_cast<std::size_t>(m_domain_ == nullptr ? 0 : (m_domain_->GetNumberOfEntity(IFORM) *
-                                                                    reduction_v(tags::multiplication(), 1, DOF...)));
+        return static_cast<std::size_t>(
+            m_domain_ == nullptr ? 0 : (m_domain_->GetNumberOfEntity(IFORM) * data_type::size()));
     }
 
     bool empty() const override { return size() == 0; }
@@ -177,8 +173,8 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     decltype(auto) operator[](int n) { return m_data_[n]; }
     decltype(auto) operator[](int n) const { return m_data_[n]; }
 
-    decltype(auto) operator[](entity_id_type s) { return Get(s); }
-    decltype(auto) operator[](entity_id_type s) const { return Get(s); }
+    decltype(auto) operator[](EntityId s) { return Get(s); }
+    decltype(auto) operator[](EntityId s) const { return Get(s); }
 
     template <typename OtherMesh>
     Field<OtherMesh, value_type, IFORM, DOF...> Sub(OtherMesh const* m) const {

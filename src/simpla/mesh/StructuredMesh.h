@@ -23,7 +23,8 @@ class StructuredMesh {
    public:
     static constexpr unsigned int NDIMS = 3;
     typedef EntityId entity_id_type;
-
+    template <typename U>
+    using array_type = Array<U, ZSFC<3>>;
     StructuredMesh();
     ~StructuredMesh();
     StructuredMesh(StructuredMesh const &) = delete;
@@ -80,17 +81,7 @@ class StructuredMesh {
 };
 }  // namespace mesh {
 
-namespace engine {
 
-template <typename TM>
-struct domain_traits<TM, std::enable_if_t<std::is_base_of<mesh::StructuredMesh, TM>::value>> {
-    static constexpr int NDIMS = 3;
-    typedef EntityId entity_id_type;
-    typedef engine::Attribute attribute_type;
-    template <typename U>
-    using array_type = Array<U, ZSFC<NDIMS>>;
-};
-}  // namespace engine{
 }  // namespace simpla {
 
 #endif  // SIMPLA_STRUCTUREDMESH_H

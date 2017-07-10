@@ -9,8 +9,8 @@
 #include <simpla/predefine/physics/EMFluid.h>
 namespace simpla {
 
-static bool all_required_module_are_registered = engine::Domain<mesh::RectMesh, ICRFAntenna>::is_registered &&
-                                                 engine::Domain<mesh::RectMesh, EMFluid>::is_registered;
+static bool all_required_module_are_registered = engine::Domain<mesh::RectMesh, FVM, ICRFAntenna>::is_registered &&
+                                                 engine::Domain<mesh::RectMesh, FVM, EMFluid>::is_registered;
 //
 // class Tokamak : public engine::Context {
 //    SP_OBJECT_HEAD(Tokamak, engine::Context)

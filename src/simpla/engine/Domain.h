@@ -22,15 +22,6 @@ namespace engine {
 class Patch;
 class AttributeGroup;
 
-template <typename TM, typename Enable = void>
-struct domain_traits {
-    //    static constexpr int NDIMS = 3;
-    //    typedef EntityId entity_id_type;
-    //    typedef Attribute attribute_type;
-    //    template <typename U>
-    //    using array_type = Array<U, ZSFC<NDIMS>>;
-};
-
 class DomainBase : public SPObject, public AttributeGroup, public data::EnableCreateFromDataTable<DomainBase> {
     SP_OBJECT_HEAD(DomainBase, SPObject)
    public:
@@ -106,7 +97,7 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
     SP_OBJECT_HEAD(host_type, DomainBase);
 
    public:
-    using DomainBase::attribute_type;
+    typedef DomainBase::attribute_type attribute_type;
 
     Domain() : Policies<this_type>(this)... {}
     ~Domain() override{};
@@ -181,18 +172,13 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
     };
 
     template <typename TL, typename TR>
-    void Fill(TL &lhs, TR &&rhs) const {
-
-    };
-
-    template <typename TL, typename TR>
     void FillBody(TL &lhs, TR &&rhs) const {
-
+        this->Fill(lhs, std::forward<TR>(rhs));
     };
 
     template <typename TL, typename TR>
     void FillBoundary(TL &lhs, TR &&rhs) const {
-
+        this->Fill(lhs, std::forward<TR>(rhs));
     };
 
 };  // class Domain
