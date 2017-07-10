@@ -147,7 +147,7 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
    private:
     template <template <typename> class _C0>
     void _invoke_Serialize(data::DataTable *cfg) const {
-        cfg->Link(_C0<this_type>::Serialize());
+        cfg->Set(_C0<this_type>::Serialize());
     }
     template <template <typename> class _C0, template <typename> class _C1, template <typename> class... _COthers>
     void _invoke_Serialize(data::DataTable *cfg) const {
