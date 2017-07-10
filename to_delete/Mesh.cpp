@@ -12,10 +12,7 @@ namespace simpla {
 namespace mesh {
 
 struct MeshBase::pimpl_s {
-    engine::MeshBlock m_mesh_block_;
-    std::shared_ptr<geometry::Chart> m_chart_;
     point_type m_origin_ = {1, 1, 1};
-    point_type m_coarsest_cell_width_ = {1, 1, 1};
     index_tuple m_ghost_width_{2, 2, 2};
     index_tuple m_idx_origin_{0, 0, 0};
     index_tuple m_dimensions_{1, 1, 1};
@@ -25,10 +22,7 @@ MeshBase::MeshBase(std::shared_ptr<geometry::Chart> const& c, std::string const&
     SetChart(c);
 }
 MeshBase::~MeshBase() {}
-void MeshBase::SetChart(std::shared_ptr<geometry::Chart> const& c) { m_pimpl_->m_chart_ = c; }
-std::shared_ptr<geometry::Chart> MeshBase::GetChart() const { return m_pimpl_->m_chart_; }
 
-point_type const& MeshBase::GetCellWidth() const { return m_pimpl_->m_coarsest_cell_width_; }
 point_type const& MeshBase::GetOrigin() const { return m_pimpl_->m_origin_; }
 
 void MeshBase::SetPeriodicDimension(size_tuple const& x) { m_pimpl_->m_periodic_dimension_ = x; }
@@ -37,30 +31,23 @@ size_tuple const& MeshBase::GetPeriodicDimension() const { return m_pimpl_->m_pe
 void MeshBase::SetDefaultGhostWidth(index_tuple const& g) { m_pimpl_->m_ghost_width_ = g; }
 index_tuple MeshBase::GetDefaultGhostWidth() const { return m_pimpl_->m_ghost_width_; }
 
-void MeshBase::FitBoundBox(box_type const& b) {
-    m_pimpl_->m_coarsest_cell_width_ = (std::get<1>(b) - std::get<0>(b)) / m_pimpl_->m_dimensions_;
-    m_pimpl_->m_origin_ = std::get<0>(b) - m_pimpl_->m_idx_origin_ * m_pimpl_->m_coarsest_cell_width_;
-}
+//void MeshBase::FitBoundBox(box_type const& b) {
+//    m_pimpl_->m_coarsest_cell_width_ = (std::get<1>(b) - std::get<0>(b)) / m_pimpl_->m_dimensions_;
+//    m_pimpl_->m_origin_ = std::get<0>(b) - m_pimpl_->m_idx_origin_ * m_pimpl_->m_coarsest_cell_width_;
+//}
 
 void MeshBase::SetDimensions(index_tuple const& d) { m_pimpl_->m_dimensions_ = d; }
 index_tuple MeshBase::GetDimensions() const { return m_pimpl_->m_dimensions_; }
 index_tuple MeshBase::GetIndexOffset() const { return m_pimpl_->m_idx_origin_; }
 
-void MeshBase::SetBlock(const engine::MeshBlock& m) { m_pimpl_->m_mesh_block_ = m; }
-const engine::MeshBlock& MeshBase::GetBlock() const { return m_pimpl_->m_mesh_block_; }
-
-id_type MeshBase::GetBlockId() const { return m_pimpl_->m_mesh_block_.GetGUID(); }
-
 std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
     auto p = std::make_shared<data::DataTable>();
     //    p->SetValue("Type", GetRegisterName());
 
-    if (m_pimpl_->m_chart_ != nullptr) { p->SetValue("Chart", m_pimpl_->m_chart_->Serialize()); }
-
     p->SetValue("PeriodicDimensions", m_pimpl_->m_periodic_dimension_);
     p->SetValue("Dimensions", m_pimpl_->m_dimensions_);
     p->SetValue("IndexOrigin", m_pimpl_->m_idx_origin_);
-    p->SetValue("CoarsestCellWidth", m_pimpl_->m_coarsest_cell_width_);
+
     return p;
 }
 void MeshBase::Deserialize(const std::shared_ptr<data::DataTable>& cfg) {

@@ -9,12 +9,6 @@ namespace simpla {
 namespace mesh {
 using namespace algebra;
 
-void StructuredMesh::DoUpdate() {
-    MeshBase::DoUpdate();
-    m_dx_ = MeshBase::GetCellWidth();
-    m_x0_ = MeshBase::GetOrigin();
-}
-
 /**
 *\verbatim
 *                ^s (dl)
@@ -36,7 +30,7 @@ void StructuredMesh::DoUpdate() {
 *\endverbatim
 */
 
-point_type StructuredMesh::local_coordinates(EntityId s, Real const *pr) const {
+point_type StructuredMesh::local_coordinates(EntityId s, Real const* pr) const {
     point_type r{0, 0, 0};
 
     r[0] = ((pr == nullptr) ? 0 : pr[0]) + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][0];
@@ -49,7 +43,7 @@ point_type StructuredMesh::local_coordinates(EntityId s, Real const *pr) const {
 }
 
 point_type StructuredMesh::point(EntityId s) const {
-    auto const *r = EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111];
+    auto const* r = EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111];
     return point_type{std::fma(static_cast<Real>(s.x), m_dx_[0], r[0] * m_dx_[0] + m_x0_[0]),
                       std::fma(static_cast<Real>(s.y), m_dx_[1], r[1] * m_dx_[1] + m_x0_[1]),
                       std::fma(static_cast<Real>(s.z), m_dx_[2], r[2] * m_dx_[2] + m_x0_[2])};
@@ -89,6 +83,41 @@ index_box_type StructuredMesh::GetIndexBox(int tag) const {
     return res;
 }
 
+struct StructuredMesh::pimpl_s {
+    engine::MeshBlock m_block_;
+    std::shared_ptr<geometry::Chart> m_chart_;
+};
+StructuredMesh::StructuredMesh() : m_pimpl_(new pimpl_s) {}
+StructuredMesh::~StructuredMesh() {}
+
+void StructuredMesh::SetChart(std::shared_ptr<geometry::Chart> const& c) { m_pimpl_->m_chart_ = c; };
+geometry::Chart const* StructuredMesh::GetChart() const { return m_pimpl_->m_chart_.get(); };
+
+void StructuredMesh::SetBlock(const engine::MeshBlock& blk) { m_pimpl_->m_block_ = blk; }
+const engine::MeshBlock& StructuredMesh::GetBlock() const { return m_pimpl_->m_block_; }
+
+id_type StructuredMesh::GetBlockId() const { return m_pimpl_->m_block_.GetGUID(); }
+
+point_type StructuredMesh::GetCellWidth() const {
+    return m_pimpl_->m_chart_->GetCellWidth(m_pimpl_->m_block_.GetLevel());
+}
+point_type StructuredMesh::GetOrigin() const { return m_pimpl_->m_chart_->GetOrigin(); }
+size_tuple StructuredMesh::GetDimensions() const { return m_pimpl_->m_block_.GetDimensions(); }
+index_tuple StructuredMesh::GetIndexOrigin() const { return m_pimpl_->m_block_.GetIndexOrigin(); }
+index_tuple StructuredMesh::GetGhostWidth(int tag) const { return m_pimpl_->m_block_.GetGhostWidth(); }
+
+box_type StructuredMesh::GetBox() const {
+    box_type res;
+//    index_tuple lo, hi;
+//    std::tie(lo, hi) = GetIndexBox(VERTEX);
+//    std::get<0>(res) = point(
+//        EntityId{static_cast<int16_t>(lo[0]), static_cast<int16_t>(lo[1]), static_cast<int16_t>(lo[2]), 0}, nullptr);
+//    std::get<1>(res) = point(
+//        EntityId{static_cast<int16_t>(hi[0]), static_cast<int16_t>(hi[1]), static_cast<int16_t>(hi[2]), 0}, nullptr);
+    return res;
+}
+
+point_type StructuredMesh::map(point_type const& p) const { return m_pimpl_->m_chart_->map(p); }
 // void StructuredMesh::SetBoundary(geometry::GeoObject const &g) {
 //    Real ratio = g == nullptr ? 1.0 : g->CheckOverlap(GetBox());
 //

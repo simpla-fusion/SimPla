@@ -8,9 +8,8 @@
 #include <simpla/algebra/Array.h>
 #include <simpla/algebra/all.h>
 #include <simpla/data/all.h>
+#include <simpla/engine/Attribute.h>
 #include <simpla/geometry/Chart.h>
-
-#include "Mesh.h"
 namespace simpla {
 namespace mesh {
 
@@ -19,33 +18,46 @@ namespace mesh {
  *  - index space and local coordinates have same origin coordinates
  *
  */
-class StructuredMesh : public MeshBase {
-    SP_OBJECT_HEAD(StructuredMesh, MeshBase)
+class StructuredMesh {
+    SP_OBJECT_BASE(StructuredMesh)
    public:
     static constexpr unsigned int NDIMS = 3;
-    typedef Real scalar_type;
     typedef EntityId entity_id_type;
 
-    template <typename V>
-    using array_type = Array<V, ZSFC<NDIMS>>;
+    StructuredMesh();
+    ~StructuredMesh();
+    StructuredMesh(StructuredMesh const &) = delete;
+    StructuredMesh(StructuredMesh &&) = delete;
+    StructuredMesh &operator=(StructuredMesh const &) = delete;
+    StructuredMesh &operator=(StructuredMesh &&) = delete;
 
-    template <typename V, int IFORM, int... DOF>
-    using data_type = nTuple<array_type<V>, ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3), DOF...>;
+    point_type map(point_type const &p) const;
 
-    template <typename... Args>
-    explicit StructuredMesh(Args &&... args) : MeshBase(std::forward<Args>(args)...){};
+    void SetChart(std::shared_ptr<geometry::Chart> const &);
+    geometry::Chart const *GetChart() const;
 
-    ~StructuredMesh() override = default;
+    void SetBlock(const engine::MeshBlock &);
+    const engine::MeshBlock &GetBlock() const;
+    id_type GetBlockId() const;
 
-    SP_DEFAULT_CONSTRUCT(StructuredMesh);
+    point_type GetCellWidth() const;
+    point_type GetOrigin() const;
+    box_type GetBox() const;
 
-    void DoUpdate() override;
+    index_tuple GetIndexOrigin() const;
+    size_tuple GetDimensions() const;
 
-    index_box_type GetIndexBox(int tag) const override;
+    index_tuple GetGhostWidth(int tag = VERTEX) const;
+
+    index_box_type GetIndexBox(int tag) const;
 
     point_type point(entity_id_type s) const;
 
-    point_type local_coordinates(entity_id_type s, Real const *r) const override;
+    virtual point_type local_coordinates(entity_id_type s, Real const *r) const;
+    template <typename... Args>
+    point_type global_coordinates(Args &&... args) const {
+        return map(local_coordinates(std::forward<Args>(args)...));
+    }
 
     ZSFC<NDIMS> GetSpaceFillingCurve(int iform, int nsub = 0) const {
         return ZSFC<NDIMS>{GetIndexBox(EntityIdCoder::m_sub_index_to_id_[iform][nsub])};
@@ -61,8 +73,24 @@ class StructuredMesh : public MeshBase {
         return calculus::reduction<tags::multiplication>(std::get<1>(m_index_box_) - std::get<0>(m_index_box_)) *
                ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
     }
+
+   private:
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 }  // namespace mesh {
+
+namespace engine {
+
+template <typename TM>
+struct domain_traits<TM, std::enable_if_t<std::is_base_of<mesh::StructuredMesh, TM>::value>> {
+    static constexpr int NDIMS = 3;
+    typedef EntityId entity_id_type;
+    typedef engine::Attribute attribute_type;
+    template <typename U>
+    using array_type = Array<U, ZSFC<NDIMS>>;
+};
+}  // namespace engine{
 }  // namespace simpla {
 
 #endif  // SIMPLA_STRUCTUREDMESH_H

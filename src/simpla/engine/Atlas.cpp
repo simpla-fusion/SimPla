@@ -5,6 +5,7 @@
 
 #include "Atlas.h"
 #include <simpla/SIMPLA_config.h>
+#include <simpla/geometry/Chart.h>
 #include "Patch.h"
 //#include "TransitionMap.h"
 //#include "simpla/utilities/BoxUtility.h"
@@ -34,6 +35,9 @@ struct Atlas::pimpl_s {
 
     box_type m_box_{{0, 0, 0}, {32, 32, 32}};
     index_tuple m_periodic_dimension_{1, 1, 1};
+    point_type m_coarsest_cell_width_ = {1, 1, 1};
+
+    std::shared_ptr<geometry::Chart> m_chart_ = nullptr;
 };
 
 Atlas::Atlas(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s){};
@@ -42,9 +46,31 @@ void Atlas::DoUpdate() { SPObject::DoUpdate(); };
 
 std::shared_ptr<data::DataTable> Atlas::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
+
+    res->SetValue("PeriodicDimension", GetPeriodicDimension());
+    res->SetValue("IndexOrigin", std::get<0>(GetIndexBox()));
+    res->SetValue("Dimensions", GetDimensions());
+    res->SetValue("lo", std::get<0>(GetBox()));
+    res->SetValue("hi", std::get<1>(GetBox()));
     return (res);
 };
-void Atlas::Deserialize(const std::shared_ptr<data::DataTable> &cfg) { Click(); };
+void Atlas::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
+    if (cfg == nullptr) { return; }
+
+    SetChart(geometry::Chart::Create(cfg->Get("Chart")));
+
+    SetBox(box_type{cfg->GetValue<point_type>("lo", point_type{0, 0, 0}),
+                    cfg->GetValue<point_type>("hi", point_type{1, 1, 1})});
+    index_box_type idx_box;
+    std::get<0>(idx_box) = cfg->GetValue<nTuple<int, 3>>("IndexOrigin", nTuple<int, 3>{0, 0, 0});
+    std::get<1>(idx_box) = cfg->GetValue<nTuple<int, 3>>("Dimensions", nTuple<int, 3>{1, 1, 1});
+    SetIndexBox(idx_box);
+    index_tuple periodic_dim{0, 0, 0};
+    periodic_dim = cfg->GetValue<nTuple<int, 3>>("IndexOrigin", nTuple<int, 3>{0, 0, 0});
+    SetPeriodicDimension(periodic_dim);
+
+    Click();
+};
 
 void Atlas::Decompose(size_tuple const &d, int local_id) { Click(); };
 index_box_type Atlas::FitIndexBox(box_type const &b, int level, int flag) const { return index_box_type{}; }
@@ -99,7 +125,12 @@ size_tuple Atlas::GetDimensions() const {
     d = std::get<1>(m_pimpl_->m_index_box_) - std::get<0>(m_pimpl_->m_index_box_);
     return d;
 }
-
+void Atlas::SetChart(std::shared_ptr<geometry::Chart> const &c) { m_pimpl_->m_chart_ = c; }
+std::shared_ptr<geometry::Chart> Atlas::GetChart() { return m_pimpl_->m_chart_; }
+void Atlas::SetPeriodicDimension(index_tuple const &b) { m_pimpl_->m_periodic_dimension_ = b; }
+index_tuple const &Atlas::GetPeriodicDimension() { return m_pimpl_->m_periodic_dimension_; }
+void Atlas::SetIndexBox(index_box_type const &b) { m_pimpl_->m_index_box_ = b; };
+void Atlas::SetBox(box_type const &b) const { m_pimpl_->m_box_ = b; }
 index_box_type Atlas::GetIndexBox() const { return m_pimpl_->m_index_box_; }
 box_type Atlas::GetBox() const { return m_pimpl_->m_box_; }
 index_tuple Atlas::GetPeriodicDimension() const { return m_pimpl_->m_periodic_dimension_; }

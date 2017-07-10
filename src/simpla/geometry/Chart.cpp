@@ -48,5 +48,7 @@ point_type Chart::inv_map(point_type const &x) const {
     // FIXME: add rotation
     return (x - m_pimpl_->m_shift_) / m_pimpl_->m_scale_;
 }
+point_type Chart::GetOrigin() const { return m_pimpl_->m_shift_; }
+point_type Chart::GetCellWidth(int level) const { return m_pimpl_->m_scale_; }
 }
 }

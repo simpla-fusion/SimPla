@@ -33,7 +33,7 @@ Patch::Patch(this_type const &other) : Patch(other.GetId()) {
     m_pimpl_->m_data_ = other.m_pimpl_->m_data_;
     m_pimpl_->m_ranges_ = other.m_pimpl_->m_ranges_;
 }
-Patch::Patch(this_type &&other) : m_pimpl_(other.m_pimpl_.get()) { other.m_pimpl_.reset(); }
+Patch::Patch(this_type &&other) noexcept : m_pimpl_(other.m_pimpl_.get()) { other.m_pimpl_.reset(); }
 
 void Patch::swap(Patch &other) { std::swap(m_pimpl_, other.m_pimpl_); }
 
@@ -41,7 +41,7 @@ Patch &Patch::operator=(Patch const &other) {
     Patch(other).swap(*this);
     return *this;
 }
-Patch &Patch::operator=(Patch &&other) {
+Patch &Patch::operator=(Patch &&other) noexcept {
     Patch(other).swap(*this);
     return *this;
 }

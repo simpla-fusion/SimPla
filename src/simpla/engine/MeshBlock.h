@@ -28,10 +28,11 @@ class MeshBlock {
     MeshBlock &operator=(MeshBlock const &other);
     MeshBlock &operator=(MeshBlock &&other) noexcept;
 
+    int GetLevel() const;
     id_type GetGUID() const;
-    size_type GetLevel() const;
+
     size_tuple GetDimensions() const;
-    index_tuple GetOffset() const;
+    index_tuple GetIndexOrigin() const;
     index_tuple GetGhostWidth() const;
     index_box_type GetIndexBox() const;
     index_box_type GetOuterIndexBox() const;

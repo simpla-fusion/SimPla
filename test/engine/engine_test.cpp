@@ -6,7 +6,7 @@
 
 #include <simpla/algebra/Field.h>
 #include <simpla/data/all.h>
-#include <simpla/mesh/Mesh.h>
+#include "../../to_delete/Mesh.h"
 #include <simpla/mesh/SMesh.h>
 #include <simpla/mesh/StructuredMesh.h>
 #include <simpla/predefine/physics/EMFluid.h>

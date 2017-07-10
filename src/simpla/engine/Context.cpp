@@ -5,7 +5,7 @@
 #include <simpla/data/all.h>
 #include <simpla/geometry/Chart.h>
 #include <simpla/geometry/GeoAlgorithm.h>
-#include <simpla/mesh/Mesh.h>
+#include "../../../to_delete/Mesh.h"
 #include "Domain.h"
 namespace simpla {
 namespace engine {
@@ -32,8 +32,8 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     DoInitialize();
     SetName(cfg->GetValue<std::string>("Name", "unnamed"));
 
-    m_pimpl_->m_chart_ =
-        cfg->has("Chart") ? geometry::Chart::Create(cfg->Get("Chart")) : geometry::Chart::Create("Cartesian");
+    //    m_pimpl_->m_chart_ =
+    //        cfg->has("Chart") ? geometry::Chart::Create(cfg->Get("Chart")) : geometry::Chart::Create("Cartesian");
 
     m_pimpl_->m_atlas_.Deserialize(cfg->GetTable("Atlas"));
     //    m_pimpl_->m_base_mesh_ = MeshBase::Create(cfg->GetTable("MeshBase"));
@@ -46,6 +46,7 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
                 auto res = DomainBase::Create(s_type);
                 res->Deserialize(p_cfg);
                 res->SetGeoObject(geometry::GeoObject::Create(p_cfg->GetTable("GeoObject")));
+                res->SetChart(m_pimpl_->m_atlas_.GetChart());
                 SetDomain(key, res);
             } else {
                 RUNTIME_ERROR << "illegal domain config!" << std::endl;

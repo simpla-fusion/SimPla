@@ -21,9 +21,9 @@ class Patch {
     explicit Patch(id_type id = NULL_ID);
     virtual ~Patch();
     Patch(this_type const &other);
-    Patch(this_type &&other);
+    Patch(this_type &&other) noexcept;
     Patch &operator=(this_type const &other);
-    this_type &operator=(this_type &&other);
+    this_type &operator=(this_type &&other) noexcept;
     void swap(Patch &other);
 
     bool empty() const;

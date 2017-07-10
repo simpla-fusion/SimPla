@@ -3,17 +3,18 @@
 //
 
 #include "Domain.h"
-#include <simpla/mesh/Mesh.h>
+#include <simpla/geometry/Chart.h>
+#include <simpla/geometry/GeoObject.h>
+#include "../../../to_delete/Mesh.h"
 #include "Attribute.h"
 #include "Patch.h"
-
 namespace simpla {
 namespace engine {
 
 struct DomainBase::pimpl_s {
     std::shared_ptr<geometry::GeoObject> m_geo_object_;
     engine::MeshBlock m_mesh_block_;
-
+    std::shared_ptr<geometry::Chart> m_chart_;
     //    std::shared_ptr<MeshBase> m_mesh_base_ = nullptr;
     //    std::shared_ptr<MeshBase> m_mesh_body_ = nullptr;
     //    std::shared_ptr<MeshBase> m_mesh_boundary_ = nullptr;
@@ -66,11 +67,17 @@ void DomainBase::DoFinalize() {}
 //}
 // MeshBase const* DomainBase::GetBoundaryMesh() const { return m_pimpl_->m_mesh_boundary_.get(); }
 
-void DomainBase::SetGeoObject(std::shared_ptr<geometry::GeoObject> g) {
+void DomainBase::SetGeoObject(const std::shared_ptr<geometry::GeoObject>& g) {
     Click();
-    m_pimpl_->m_geo_object_ = std::move(g);
+    m_pimpl_->m_geo_object_ = (g);
 }
 const geometry::GeoObject* DomainBase::GetGeoObject() const { return m_pimpl_->m_geo_object_.get(); }
+
+void DomainBase::SetChart(std::shared_ptr<geometry::Chart> const& c) {
+    Click();
+    m_pimpl_->m_chart_ = c;
+}
+const geometry::Chart* DomainBase::GetChart() const { return m_pimpl_->m_chart_.get(); }
 
 void DomainBase::SetBlock(const engine::MeshBlock& blk) { m_pimpl_->m_mesh_block_ = blk; };
 const engine::MeshBlock& DomainBase::GetBlock() const { return m_pimpl_->m_mesh_block_; }

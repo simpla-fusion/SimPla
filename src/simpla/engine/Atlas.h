@@ -11,6 +11,7 @@
 #include <simpla/algebra/nTuple.ext.h>
 #include <simpla/algebra/nTuple.h>
 #include <simpla/data/Serializable.h>
+#include <simpla/geometry/Chart.h>
 #include <simpla/utilities/Log.h>
 #include <simpla/utilities/SPObject.h>
 #include <type_traits>
@@ -104,7 +105,16 @@ class Atlas : public SPObject, public data::Serializable {
     size_tuple GetSmallestDimensions() const;
 
     size_tuple GetDimensions() const;
+
+    void SetChart(std::shared_ptr<geometry::Chart> const &);
+    std::shared_ptr<geometry::Chart> GetChart();
+
+    void SetPeriodicDimension(index_tuple const &t);
+    index_tuple const &GetPeriodicDimension();
+
+    void SetIndexBox(index_box_type const &);
     index_box_type GetIndexBox() const;
+    void SetBox(box_type const &) const;
     box_type GetBox() const;
     index_tuple GetPeriodicDimension() const;
 

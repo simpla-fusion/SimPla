@@ -22,6 +22,15 @@ namespace engine {
 class Patch;
 class AttributeGroup;
 
+template <typename TM, typename Enable = void>
+struct domain_traits {
+    //    static constexpr int NDIMS = 3;
+    //    typedef EntityId entity_id_type;
+    //    typedef Attribute attribute_type;
+    //    template <typename U>
+    //    using array_type = Array<U, ZSFC<NDIMS>>;
+};
+
 class DomainBase : public SPObject, public AttributeGroup, public data::EnableCreateFromDataTable<DomainBase> {
     SP_OBJECT_HEAD(DomainBase, SPObject)
    public:
@@ -55,8 +64,11 @@ class DomainBase : public SPObject, public AttributeGroup, public data::EnableCr
     void Pull(Patch *) override;
     void Push(Patch *) override;
 
-    void SetGeoObject(std::shared_ptr<geometry::GeoObject> g);
+    void SetGeoObject(const std::shared_ptr<geometry::GeoObject> &g);
     const geometry::GeoObject *GetGeoObject() const;
+
+    void SetChart(std::shared_ptr<geometry::Chart> const &g);
+    const geometry::Chart *GetChart() const;
 
     void DoInitialize() override;
     void DoFinalize() override;
@@ -157,12 +169,16 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
 
    public:
     std::shared_ptr<data::DataTable> Serialize() const override {
-        auto res = DomainBase::Serialize();
+        auto res = std::make_shared<data::DataTable>();
         _invoke_Serialize<Policies...>(res.get());
+        res->Set(DomainBase::Serialize());
         return res;
     };
 
-    void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override { _invoke_Deserialize<Policies...>(cfg); };
+    void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override {
+        _invoke_Deserialize<Policies...>(cfg);
+        DomainBase::Deserialize(cfg);
+    };
 
     template <typename TL, typename TR>
     void Fill(TL &lhs, TR &&rhs) const {
@@ -183,15 +199,6 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
 
 template <template <typename> class... Policies>
 bool Domain<Policies...>::is_registered = DomainBase::RegisterCreator<Domain<Policies...>>();
-
-template <typename TM>
-struct domain_traits {
-    static constexpr int NDIMS = 3;
-    typedef EntityId entity_id_type;
-    typedef Attribute attribute_type;
-    template <typename U>
-    using array_type = Array<U, ZSFC<NDIMS>>;
-};
 
 #define DOMAIN_POLICY_HEAD(_NAME_)                                      \
    public:                                                              \

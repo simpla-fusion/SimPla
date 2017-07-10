@@ -1,6 +1,6 @@
 --! / bin / lua
 PI = 3.141592653589793
-TWOPI =PI* 2.0
+TWOPI = PI * 2.0
 N_PHI = 100
 
 Model = {
@@ -17,25 +17,26 @@ Model = {
 }
 
 Context = {
-    Name ="EMTokamak",
-    Chart = {
-        Type = "Cylindrical",
-        -- IndexOrigin = { 0, 0, 0 },
+    Name = "EMTokamak",
+    Atlas = {
+        Chart = { Type = "Cylindrical" },
+        IndexOrigin = { 0, 0, 0 },
         Dimensions = { 32, 32, 32 },
         PeriodicDimension = { 0, 0, 1 },
-        lo={1.4, -1.0, -PI},
-        hi={2.5,  1.0, PI}
+        lo = { 1.4, -1.0, -PI },
+        hi = { 2.5, 1.0, PI }
     },
     Domain =
     {
-        Tokamak= {
-            Model="Tokamak",
-            Boundary="Limiter",
+        Tokamak = {
+            Model = "Tokamak",
+            Name = "Tokamak",
+            Boundary = "Limiter",
             Type = "Domain<RectMesh,EMFluid>",
-            DoBoundaryCondition = {Type = "PEC",},
+            DoBoundaryCondition = { Type = "PEC", },
             DoInitialCondition = {
-                 ne = "ne",
-                 B0v = "B0",
+                ne = "ne",
+                B0v = "B0",
             },
             Species = {
                 ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
@@ -43,6 +44,7 @@ Context = {
             }
         },
         RFAntenna = {
+            Name = "ICRF",
             Type = "Domain<RectMesh,ICRFAntenna>",
             Variable = { Name = "E", IFORM = 1, DOF = 1, ValueType = "Real" },
             IsHard = false,

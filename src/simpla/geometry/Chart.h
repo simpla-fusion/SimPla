@@ -32,6 +32,10 @@ struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<C
     void SetRotation(point_type const &x);
     point_type const &GetRotation() const;
 
+    virtual point_type GetOrigin() const;
+
+    virtual point_type GetCellWidth(int level = 0) const;
+
     virtual point_type map(point_type const &) const;
 
     virtual point_type inv_map(point_type const &) const;

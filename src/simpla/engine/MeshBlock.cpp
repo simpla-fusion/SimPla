@@ -61,14 +61,14 @@ index_box_type MeshBlock::GetOuterIndexBox() const {
 }
 index_box_type MeshBlock::GetInnerIndexBox() const { return GetIndexBox(); }
 
-index_tuple MeshBlock::GetOffset() const { return std::get<0>(m_pimpl_->m_index_box_); }
+index_tuple MeshBlock::GetIndexOrigin() const { return std::get<0>(m_pimpl_->m_index_box_); }
 
 size_tuple MeshBlock::GetDimensions() const {
     return std::get<1>(m_pimpl_->m_index_box_) - std::get<0>(m_pimpl_->m_index_box_);
 }
 
 id_type MeshBlock::GetGUID() const { return m_pimpl_->m_GUID_; }
-size_type MeshBlock::GetLevel() const { return m_pimpl_->m_level_; }
+int MeshBlock::GetLevel() const { return m_pimpl_->m_level_; }
 
 }  // namespace engine {
 }  // namespace simpla {
