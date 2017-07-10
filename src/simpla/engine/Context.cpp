@@ -24,7 +24,7 @@ std::shared_ptr<data::DataTable> Context::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
     res->SetValue("Name", GetName());
     res->Set("Atlas", m_pimpl_->m_atlas_.Serialize());
-    for (auto const &item : m_pimpl_->m_domains_) { res->Link("Domains/" + item.first, item.second->Serialize()); }
+    for (auto const &item : m_pimpl_->m_domains_) { res->Link("Domain/" + item.first, item.second->Serialize()); }
 
     return res;
 }

@@ -55,7 +55,6 @@ class EMFluid {
 template <typename TM>
 std::shared_ptr<data::DataTable> EMFluid<TM>::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
-    res->SetValue<std::string>("Type", "EMFluid<" + TM::RegisterName() + ">");
 
     for (auto& item : m_fluid_sp_) {
         auto t = std::make_shared<data::DataTable>();

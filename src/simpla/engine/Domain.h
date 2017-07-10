@@ -157,7 +157,7 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
 
    public:
     std::shared_ptr<data::DataTable> Serialize() const override {
-        auto res = std::make_shared<data::DataTable>();
+        auto res = DomainBase::Serialize();
         _invoke_Serialize<Policies...>(res.get());
         return res;
     };
