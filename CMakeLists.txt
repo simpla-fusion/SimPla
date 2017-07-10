@@ -15,7 +15,7 @@ SET(CMAKE_CXX_FLAGS " -fPIC --std=c++14 ")
 
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics -ftemplate-backtrace-limit=0 -funroll-loops  -fno-limit-debug-info  ")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Winconsistent-missing-override -fcolor-diagnostics -ftemplate-backtrace-limit=0 -funroll-loops  -fno-limit-debug-info  ")
     SET(CMAKE_Fortran_COMPILER gfortran)
 elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
 

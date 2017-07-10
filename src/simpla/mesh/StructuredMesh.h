@@ -10,7 +10,7 @@
 #include <simpla/data/all.h>
 #include <simpla/model/Chart.h>
 
-#include "Mesh.h"
+#include "MeshBase.h"
 namespace simpla {
 namespace mesh {
 

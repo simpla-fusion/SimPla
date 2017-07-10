@@ -74,8 +74,10 @@ _SP_DEFINE_EXPR_BINARY_FUNCTION(wedge)
 //_SP_DEFINE_EXPR_BINARY_FUNCTION(dot)
 
 namespace traits {
+template <typename...>
+struct iform;
 template <typename T>
-struct iform : public std::integral_constant<int, VERTEX> {};
+struct iform<T> : public std::integral_constant<int, VERTEX> {};
 //******************************************************
 
 template <typename T>

@@ -9,49 +9,40 @@
 
 #include "simpla/SIMPLA_config.h"
 #include "simpla/algebra/all.h"
-#include "simpla/engine/all.h"
 #include "simpla/physics/PhysicalConstants.h"
 
 namespace simpla {
 using namespace algebra;
 using namespace data;
 
-template <typename TM>
-class EMFluid : public TM {
-    SP_OBJECT_HEAD(EMFluid<TM>, TM)
+template <typename THost>
+class EMFluid {
+    //    typedef EMFluid<THost> this_type;
 
-   public:
-    DOMAIN_HEAD(EMFluid, TM)()(<#initializer#>)
+    DOMAIN_POLICY_HEAD(EMFluid);
 
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataTable> const& cfg) override;
-
-    void DoInitialCondition(Real time_now) override;
-    void DoBoundaryCondition(Real time_now, Real dt) override;
-    void DoAdvance(Real time_now, Real dt) override;
-
-    Field<this_type, Real, VOLUME> ne{this, "name"_ = "ne"};
-    Field<this_type, Real, VOLUME, 3> B0v{this, "name"_ = "B0v"};
-    Field<this_type, Real, EDGE> E0{this, "name"_ = "E0"};
-    Field<this_type, Real, FACE> B0{this, "name"_ = "B0"};
-    Field<this_type, Real, VOLUME> BB{this, "name"_ = "BB"};
-    Field<this_type, Real, VOLUME, 3> Jv{this, "name"_ = "Jv"};
-    Field<this_type, Real, VOLUME, 3> Ev{this, "name"_ = "Ev"};
-    Field<this_type, Real, VOLUME, 3> Bv{this, "name"_ = "Bv"};
-    Field<this_type, Real, VOLUME, 3> dE{this, "name"_ = "dE"};
-    Field<this_type, Real, FACE> B{this, "name"_ = "B"};
-    Field<this_type, Real, EDGE> E{this, "name"_ = "E"};
-    Field<this_type, Real, EDGE> J{this, "name"_ = "J"};
-    Field<this_type, Real, VOLUME, 3> dumpE{this, "name"_ = "dumpE"};
-    Field<this_type, Real, VOLUME, 3> dumpB{this, "name"_ = "dumpB"};
-    Field<this_type, Real, VOLUME, 3> dumpJ{this, "name"_ = "dumpJ"};
+    Field<host_type, Real, VOLUME> ne{m_host_, "name"_ = "ne"};
+    Field<host_type, Real, VOLUME, 3> B0v{m_host_, "name"_ = "B0v"};
+    Field<host_type, Real, EDGE> E0{m_host_, "name"_ = "E0"};
+    Field<host_type, Real, FACE> B0{m_host_, "name"_ = "B0"};
+    Field<host_type, Real, VOLUME> BB{m_host_, "name"_ = "BB"};
+    Field<host_type, Real, VOLUME, 3> Jv{m_host_, "name"_ = "Jv"};
+    Field<host_type, Real, VOLUME, 3> Ev{m_host_, "name"_ = "Ev"};
+    Field<host_type, Real, VOLUME, 3> Bv{m_host_, "name"_ = "Bv"};
+    Field<host_type, Real, VOLUME, 3> dE{m_host_, "name"_ = "dE"};
+    Field<host_type, Real, FACE> B{m_host_, "name"_ = "B"};
+    Field<host_type, Real, EDGE> E{m_host_, "name"_ = "E"};
+    Field<host_type, Real, EDGE> J{m_host_, "name"_ = "J"};
+    Field<host_type, Real, VOLUME, 3> dumpE{m_host_, "name"_ = "dumpE"};
+    Field<host_type, Real, VOLUME, 3> dumpB{m_host_, "name"_ = "dumpB"};
+    Field<host_type, Real, VOLUME, 3> dumpJ{m_host_, "name"_ = "dumpJ"};
 
     struct fluid_s {
         Real mass = 1;
         Real charge = 1;
         Real ratio = 1;
-        std::shared_ptr<Field<this_type, Real, VOLUME>> n;
-        std::shared_ptr<Field<this_type, Real, VOLUME, 3>> J;
+        std::shared_ptr<Field<host_type, Real, VOLUME>> n;
+        std::shared_ptr<Field<host_type, Real, VOLUME, 3>> J;
     };
 
     std::map<std::string, std::shared_ptr<fluid_s>> m_fluid_sp_;
@@ -60,9 +51,6 @@ class EMFluid : public TM {
 
     std::string m_boundary_geo_obj_prefix_ = "PEC";
 };
-
-template <typename TM>
-bool EMFluid<TM>::is_registered = engine::DomainBase::RegisterCreator<EMFluid<TM>>();
 
 template <typename TM>
 std::shared_ptr<data::DataTable> EMFluid<TM>::Serialize() const {
@@ -81,7 +69,6 @@ std::shared_ptr<data::DataTable> EMFluid<TM>::Serialize() const {
 };
 template <typename TM>
 void EMFluid<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
-    DoInitialize();
     if (cfg == nullptr || cfg->GetTable("Species") == nullptr) { return; }
     auto sp = cfg->GetTable("Species");
     sp->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> v) {
@@ -89,21 +76,19 @@ void EMFluid<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
         auto t = std::dynamic_pointer_cast<data::DataTable>(v);
         AddSpecies(k, t);
     });
-    m_boundary_geo_obj_prefix_ = cfg->GetValue<std::string>("DoBoundaryCondition/GeometryObject", "PEC");
-    Click();
+    m_boundary_geo_obj_prefix_ = cfg->GetValue<std::string>("BoundaryCondition/GeometryObject", "PEC");
 }
 
 template <typename TM>
 std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string const& name,
                                                                      std::shared_ptr<data::DataTable> const& d) {
-    Click();
     auto sp = std::make_shared<fluid_s>();
     sp->mass = d->GetValue<double>("mass", d->GetValue<double>("mass", 1)) * SI_proton_mass;
     sp->charge = d->GetValue<double>("charge", d->GetValue<double>("Z", 1)) * SI_elementary_charge;
     sp->ratio = d->GetValue<double>("ratio", d->GetValue<double>("ratio", 1));
 
-    sp->n = std::make_shared<Field<this_type, Real, VOLUME>>(this, "name"_ = name + "_n");
-    sp->J = std::make_shared<Field<this_type, Real, VOLUME, 3>>(this, "name"_ = name + "_J");
+    sp->n = std::make_shared<Field<host_type, Real, VOLUME>>(m_host_, "name"_ = name + "_n");
+    sp->J = std::make_shared<Field<host_type, Real, VOLUME, 3>>(m_host_, "name"_ = name + "_J");
     m_fluid_sp_.emplace(name, sp);
     VERBOSE << "Add particle : {\"" << name << "\", mass = " << sp->mass / SI_proton_mass
             << " [m_p], charge = " << sp->charge / SI_elementary_charge << " [q_e] }" << std::endl;
@@ -111,9 +96,7 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
 }
 
 template <typename TM>
-void EMFluid<TM>::DoInitialCondition(Real time_now) {
-    Domain::InitialCondition(time_now);
-
+void EMFluid<TM>::InitialCondition(Real time_now) {
     dumpE.Clear();
     dumpB.Clear();
     dumpJ.Clear();
@@ -138,32 +121,32 @@ void EMFluid<TM>::DoInitialCondition(Real time_now) {
     Ev = map_to<VOLUME>(E);
 }
 template <typename TM>
-void EMFluid<TM>::DoBoundaryCondition(Real time_now, Real dt) {
-    FillBoundary(B, 0);
-    FillBoundary(E, 0);
-    FillBoundary(J, 0);
-    FillBoundary(dumpE, 0);
-    FillBoundary(dumpB, 0);
+void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
+    m_host_->FillBoundary(B, 0);
+    m_host_->FillBoundary(E, 0);
+    m_host_->FillBoundary(J, 0);
+    m_host_->FillBoundary(dumpE, 0);
+    m_host_->FillBoundary(dumpB, 0);
 }
 template <typename TM>
-void EMFluid<TM>::DoAdvance(Real time_now, Real dt) {
+void EMFluid<TM>::Advance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
 
     B = B - curl(E) * (dt * 0.5);
-    FillBoundary(B, 0);
+    m_host_->FillBoundary(B, 0);
 
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
-    FillBoundary(E, 0);
+    m_host_->FillBoundary(E, 0);
 
     if (m_fluid_sp_.size() > 0) {
         Ev = map_to<VOLUME>(E);
 
-        Field<this_type, Real, VOLUME, 3> Q{this};
-        Field<this_type, Real, VOLUME, 3> K{this};
+        Field<host_type, Real, VOLUME, 3> Q{m_host_};
+        Field<host_type, Real, VOLUME, 3> K{m_host_};
 
-        Field<this_type, Real, VOLUME> a{this};
-        Field<this_type, Real, VOLUME> b{this};
-        Field<this_type, Real, VOLUME> c{this};
+        Field<host_type, Real, VOLUME> a{m_host_};
+        Field<host_type, Real, VOLUME> b{m_host_};
+        Field<host_type, Real, VOLUME> c{m_host_};
 
         a.Clear();
         b.Clear();
@@ -220,10 +203,10 @@ void EMFluid<TM>::DoAdvance(Real time_now, Real dt) {
     }
 
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
-    FillBoundary(E, 0);
+    m_host_->FillBoundary(E, 0);
 
     B = B - curl(E) * (dt * 0.5);
-    FillBoundary(B, 0);
+    m_host_->FillBoundary(B, 0);
 
     dumpE.DeepCopy(E);
     dumpB.DeepCopy(B);

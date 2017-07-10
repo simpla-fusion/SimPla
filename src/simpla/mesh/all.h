@@ -6,7 +6,7 @@
 #define SIMPLA_MESH_ALL_H
 
 #include "CoRectMesh.h"
-#include "Mesh.h"
+#include "MeshBase.h"
 #include "SMesh.h"
 #include "StructuredMesh.h"
 namespace simpla {

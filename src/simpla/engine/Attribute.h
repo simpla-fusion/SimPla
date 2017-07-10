@@ -75,6 +75,7 @@ struct AttributeDesc : public data::Configurable {
 
 class AttributeGroup {
    public:
+    typedef Attribute attribute_type;
     AttributeGroup();
     virtual ~AttributeGroup();
 
@@ -210,8 +211,8 @@ T AttributeGroup::GetAttribute(std::string const &k) const {
 //    virtual std::type_info const &value_type_info() const { return typeid(value_type); };  //!< value type
 //    virtual std::type_info const &mesh_type_info() const { return typeid(void); };         //!< mesh type
 //    virtual void Clear() { U::Clear(); }
-//    virtual void SetBaseMesh(Mesh const *){};
-//    virtual Mesh const *GetBaseMesh() const { return nullptr; };
+//    virtual void SetBaseMesh(MeshBase const *){};
+//    virtual MeshBase const *GetBaseMesh() const { return nullptr; };
 //    virtual void ConvertPatchFromSAMRAI(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const
 //    &d) {
 //        data::data_cast<U>(*d).swap(*this);
@@ -245,11 +246,11 @@ T AttributeGroup::GetAttribute(std::string const &k) const {
 //    typedef Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)> array_type;
 //    typedef DataAttribute<TV, IFORM, DOF> data_attr_type;
 //    SP_OBJECT_HEAD(data_attr_type, Attribute);
-//    CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, Mesh)
+//    CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, MeshBase)
 //    typedef TV value_type;
 //    static constexpr int GetIFORM = IFORM;
 //    static constexpr int GetDOF = DOF;
-//    typedef Mesh mesh_type;
+//    typedef MeshBase mesh_type;
 //
 //    template <typename TM, typename... Args>
 //    DataAttribute(TM *w, Args &&... args)
@@ -268,7 +269,7 @@ T AttributeGroup::GetAttribute(std::string const &k) const {
 //        return std::make_shared<this_type>(std::forward<Args>(args)...);
 //    }
 //
-//    virtual std::shared_ptr<DataBlock> DoInitialCondition(void *p = nullptr) const {
+//    virtual std::shared_ptr<DataBlock> InitialCondition(void *p = nullptr) const {
 //        std::shared_ptr<value_type> d(nullptr);
 //        if (p != nullptr) {
 //            d = std::shared_ptr<value_type>(static_cast<value_type *>(p), simpla::tags::do_nothing());
@@ -288,7 +289,7 @@ T AttributeGroup::GetAttribute(std::string const &k) const {
 //    static std::shared_ptr<this_type> make_shared(Args &&... args) {
 //        return std::make_shared<this_type>(std::forward<Args>(args)...);
 //    }
-//    static std::shared_ptr<this_type> make_shared(Mesh *c, std::initializer_list<data::KeyValue> const &param) {
+//    static std::shared_ptr<this_type> make_shared(MeshBase *c, std::initializer_list<data::KeyValue> const &param) {
 //        return std::make_shared<this_type>(c, param);
 //    }
 //    virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return array_type::Print(os, indent); }

@@ -3,7 +3,7 @@
 //
 #include "Context.h"
 #include <simpla/data/all.h>
-#include <simpla/mesh/Mesh.h>
+#include <simpla/mesh/MeshBase.h>
 #include <simpla/model/Chart.h>
 #include <simpla/model/GeoAlgorithm.h>
 #include "DomainBase.h"
@@ -36,7 +36,7 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
         cfg->has("Chart") ? model::Chart::Create(cfg->Get("Chart")) : model::Chart::Create("Cartesian");
 
     m_pimpl_->m_atlas_.Deserialize(cfg->GetTable("Atlas"));
-    //    m_pimpl_->m_base_mesh_ = MeshBase::Create(cfg->GetTable("Mesh"));
+    //    m_pimpl_->m_base_mesh_ = MeshBase::Create(cfg->GetTable("MeshBase"));
     auto t_domain = cfg->GetTable("DomainBase");
     if (t_domain != nullptr) {
         cfg->GetTable("DomainBase")->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) {
@@ -54,7 +54,7 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     }
     Click();
 }
-//    auto m_cfg = cfg->GetTable("Mesh");
+//    auto m_cfg = cfg->GetTable("MeshBase");
 //    m_cfg->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t) {
 //    });
 //    auto d_cfg = cfg->GetTable("Domains");
@@ -69,7 +69,7 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
 //
 //            auto t_cfg = std::dynamic_pointer_cast<data::DataTable>(t);
 //            geo = GetGeoObject(t_cfg->GetValue<std::string>("Model", ""));
-//            auto s_mesh = t_cfg->GetValue<std::string>("Mesh", "Default");
+//            auto s_mesh = t_cfg->GetValue<std::string>("MeshBase", "Default");
 //            auto p_mesh = m_pimpl_->m_base_mesh_[s_mesh];
 //            std::string type = t_cfg->GetValue<std::string>("Type", "");
 //            if (type != "") {
@@ -177,7 +177,7 @@ void Context::Advance(Patch *patch, Real time_now, Real time_dt) {
 //        if (!v->isTable()) { return; }
 //        auto const &t = v->cast_as<data::DataTable>();
 //
-//        std::shared_ptr m(GLOBAL_MESHVIEW_FACTORY.Create(t.GetTable("Mesh"),
+//        std::shared_ptr m(GLOBAL_MESHVIEW_FACTORY.Create(t.GetTable("MeshBase"),
 //                                                         GetModel().AddObject(key,
 //                                                         t.GetTable("Geometry")).first));
 //
@@ -194,7 +194,7 @@ void Context::Advance(Patch *patch, Real time_now, Real time_dt) {
 //    }
 //    std::shared_ptr<model::GeoObject> geo = g;
 //    if (geo == nullptr) { geo.reset(GLOBAL_GEO_OBJECT_FACTORY.Create(db()->GetTable("Geometry"))); }
-//    m_pimpl_->m_chart_.reset(GLOBAL_MESHVIEW_FACTORY.Create(db()->GetTable("Mesh"), geo));
+//    m_pimpl_->m_chart_.reset(GLOBAL_MESHVIEW_FACTORY.Create(db()->GetTable("MeshBase"), geo));
 //
 //    m_pimpl_->m_is_initialized_ = true;
 //    LOGGER << "Context is initialized!" << std::endl;

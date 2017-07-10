@@ -19,11 +19,6 @@ class SPObject;
 }
 
 struct MeshBase;
-struct EBMeshBase;
-template <typename...>
-struct Mesh;
-template <typename...>
-struct EBMesh;
 
 /**
  *  Define:

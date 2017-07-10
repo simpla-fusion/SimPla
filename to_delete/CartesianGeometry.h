@@ -46,7 +46,7 @@ struct CartesianCoRectMesh : public CoRectMesh {
         p->template SetValue<std::string>("Type", GetRegisterName());
         return p;
     };
-};  // struct  Mesh
+};  // struct  MeshBase
 
 }  // namespace  mesh
 }  // namespace simpla

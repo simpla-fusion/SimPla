@@ -30,6 +30,9 @@ struct Atlas::pimpl_s {
     size_tuple m_smallest_dimensions_{8, 8, 8};
     size_tuple m_largest_dimensions_{64, 64, 64};
     index_box_type m_index_box_{{0, 0, 0}, {32, 32, 32}};
+
+    box_type m_box_{{0, 0, 0}, {32, 32, 32}};
+    index_tuple m_periodic_dimension_{1, 1, 1};
 };
 
 Atlas::Atlas(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s){};
@@ -97,6 +100,8 @@ size_tuple Atlas::GetDimensions() const {
 }
 
 index_box_type Atlas::GetIndexBox() const { return m_pimpl_->m_index_box_; }
+box_type Atlas::GetBox() const { return m_pimpl_->m_box_; }
+index_tuple Atlas::GetPeriodicDimension() const { return m_pimpl_->m_periodic_dimension_; }
 
 // size_type Atlas::size(int level) const { return m_backend_->m_layer_[level].size(); }
 // void Atlas::max_level(int ml) { m_backend_->m_max_level_ = ml; }

@@ -27,7 +27,7 @@ struct EBDomain;
 class DomainBase : public SPObject, public AttributeGroup, public data::EnableCreateFromDataTable<DomainBase> {
     SP_OBJECT_HEAD(DomainBase, SPObject)
    public:
-    typedef engine::Attribute attribute_type;
+    using AttributeGroup::attribute_type;
 
     DomainBase();
     ~DomainBase() override;
@@ -64,16 +64,16 @@ class DomainBase : public SPObject, public AttributeGroup, public data::EnableCr
 
     template <typename LHS, typename RHS>
     void FillBody(LHS &lhs, RHS &&rhs) const {
-        if (GetBodyMesh() != nullptr) {
-            dynamic_cast<typename LHS::mesh_type const *>(GetBodyMesh())->FillBody(lhs, std::forward<RHS>(rhs));
-        }
+//        if (GetBodyMesh() != nullptr) {
+//            dynamic_cast<typename LHS::mesh_type const *>(GetBodyMesh())->FillBody(lhs, std::forward<RHS>(rhs));
+//        }
     }
     template <typename LHS, typename RHS>
     void FillBoundary(LHS &lhs, RHS &&rhs) const {
-        if (GetBoundaryMesh() != nullptr) {
-            dynamic_cast<EBDomain<typename LHS::mesh_type> const *>(GetBodyMesh())
-                ->FillBody(lhs, std::forward<RHS>(rhs));
-        }
+//        if (GetBoundaryMesh() != nullptr) {
+////            dynamic_cast<EBDomain<typename LHS::mesh_type> const *>(GetBodyMesh())
+////                ->FillBody(lhs, std::forward<RHS>(rhs));
+//        }
     }
 
     void SetGeoObject(std::shared_ptr<model::GeoObject> g);
@@ -107,7 +107,6 @@ class DomainBase : public SPObject, public AttributeGroup, public data::EnableCr
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-
 
 #define DOMAIN_HEAD(_DOMAIN_NAME_, _MESH_TYPE_)                                                  \
    public:                                                                                       \

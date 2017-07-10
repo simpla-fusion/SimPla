@@ -103,6 +103,8 @@ class Atlas : public SPObject, public data::Serializable {
 
     size_tuple GetDimensions() const;
     index_box_type GetIndexBox() const;
+    box_type GetBox() const;
+    index_tuple GetPeriodicDimension() const;
 
    private:
     struct pimpl_s;

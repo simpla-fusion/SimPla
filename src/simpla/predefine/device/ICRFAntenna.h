@@ -15,23 +15,13 @@
 namespace simpla {
 using namespace algebra;
 using namespace data;
-using namespace engine;
 
-template <typename TM>
-class ICRFAntenna : public engine::DomainBase {
-    SP_OBJECT_HEAD(ICRFAntenna<TM>, engine::Domain)
+template <typename THost>
+class ICRFAntenna {
+    DOMAIN_POLICY_HEAD(ICRFAntenna);
 
    public:
-    DOMAIN_HEAD(ICRFAntenna, TM)()(<#initializer#>)
-
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<DataTable> cfg) override;
-
-    void DoInitialCondition(Real time_now) override;
-    void DoBoundaryCondition(Real time_now, Real dt) override;
-    void DoAdvance(Real time_now, Real dt) override;
-
-    Field<TM, Real, EDGE> J{this, "name"_ = "J"};
+    Field<host_type, Real, EDGE> J{m_host_, "name"_ = "J"};
 
     Vec3 m_amplify_{0, 0, 0};
     Real m_f_ = 1.0;
@@ -39,11 +29,8 @@ class ICRFAntenna : public engine::DomainBase {
 };
 
 template <typename TM>
-bool ICRFAntenna<TM>::is_registered = engine::DomainBase::RegisterCreator<ICRFAntenna<TM>>();
-
-template <typename TM>
 std::shared_ptr<data::DataTable> ICRFAntenna<TM>::Serialize() const {
-    auto res = engine::DomainBase::Serialize();
+    auto res = std::make_shared<data::DataTable>();
     res->SetValue("Amplify", m_amplify_);
     res->SetValue("Frequency", m_f_);
     res->SetValue("WaveNumber", m_k_);
@@ -51,28 +38,18 @@ std::shared_ptr<data::DataTable> ICRFAntenna<TM>::Serialize() const {
     return res;
 };
 template <typename TM>
-void ICRFAntenna<TM>::Deserialize(std::shared_ptr<DataTable> cfg) {
-    DoInitialize();
-    engine::DomainBase::Deserialize(cfg);
+void ICRFAntenna<TM>::Deserialize(std::shared_ptr<DataTable> const& cfg) {
     m_amplify_ = cfg->GetValue<Vec3>("Amplify", m_amplify_);
     m_f_ = cfg->GetValue<Real>("Frequency", m_f_);
     m_k_ = cfg->GetValue<Vec3>("WaveNumber", m_k_);
-
-    Click();
 }
 
 template <typename TM>
-void ICRFAntenna<TM>::DoInitialCondition(Real time_now) {
-    DomainBase::DoInitialCondition(time_now);
-}
+void ICRFAntenna<TM>::InitialCondition(Real time_now) {}
 template <typename TM>
-void ICRFAntenna<TM>::DoBoundaryCondition(Real time_now, Real dt) {
-    DomainBase::DoBoundaryCondition(time_now, dt);
-}
+void ICRFAntenna<TM>::BoundaryCondition(Real time_now, Real dt) {}
 template <typename TM>
-void ICRFAntenna<TM>::DoAdvance(Real time_now, Real dt) {
-    DomainBase::DoAdvance(time_now, dt);
-
+void ICRFAntenna<TM>::Advance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
     J = [&](point_type const& x) -> Vec3 {
         Vec3 res;

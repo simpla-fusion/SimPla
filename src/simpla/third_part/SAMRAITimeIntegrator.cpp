@@ -654,8 +654,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
         m_ctx_->InitialCondition(&p, data_time);
 
         //        m_ctx_->GetBaseMesh()->Deserialize(p.get());
-        //        VERBOSE << "DoInitialize Mesh : " << m_ctx_->GetBaseMesh()->GetRegisterName() << std::endl;
-        //        m_ctx_->GetBaseMesh()->DoInitialCondition(data_time);
+        //        VERBOSE << "DoInitialize MeshBase : " << m_ctx_->GetBaseMesh()->GetRegisterName() << std::endl;
+        //        m_ctx_->GetBaseMesh()->InitialCondition(data_time);
         //        for (auto const &item : m_ctx_->GetModel().GetAll()) {
         //            m_ctx_->GetBaseMesh()->RegisterRanges(item.second, item.first);
         //        }
@@ -816,7 +816,7 @@ SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
 
 void SAMRAITimeIntegrator::Synchronize() { engine::TimeIntegrator::Synchronize(); }
 std::shared_ptr<data::DataTable> SAMRAITimeIntegrator::Serialize() const { return engine::TimeIntegrator::Serialize(); }
-void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> cfg) {
+void SAMRAITimeIntegrator::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     engine::TimeIntegrator::Deserialize(cfg);
 }
 
@@ -923,21 +923,23 @@ void SAMRAITimeIntegrator::DoUpdate() {
     nTuple<int, 3> i_low{0, 0, 0};
     nTuple<int, 3> i_up{0, 0, 0};
 
-    std::shared_ptr<MeshBase> p_mesh;
-
-    i_low = p_mesh->GetIndexOffset();
-    i_up = i_low + p_mesh->GetDimensions();
+    std::tie(i_low, i_up) = atlas.GetIndexBox();
 
     SAMRAI::tbox::DatabaseBox box{SAMRAI::tbox::Dimension(3), &i_low[0], &i_up[0]};
     CartesianGridGeometry->putDatabaseBox("domain_boxes_0", box);
     nTuple<int, 3> periodic_dimension{0, 0, 0};
-    periodic_dimension = p_mesh->GetPeriodicDimension();
-    nTuple<double, 3> x_low = p_mesh->point(
-        EntityId{static_cast<int16_t>(i_low[0]), static_cast<int16_t>(i_low[1]), static_cast<int16_t>(i_low[2]), 0},
-        nullptr);
-    nTuple<double, 3> x_up = p_mesh->point(
-        EntityId{static_cast<int16_t>(i_up[0]), static_cast<int16_t>(i_up[1]), static_cast<int16_t>(i_up[2]), 0},
-        nullptr);
+    periodic_dimension = atlas.GetPeriodicDimension();
+    nTuple<double, 3> x_low, x_up;
+
+    std::tie(x_low, x_up) = atlas.GetBox();
+
+    //    p_mesh->point(
+    //        EntityId{static_cast<int16_t>(i_low[0]), static_cast<int16_t>(i_low[1]), static_cast<int16_t>(i_low[2]),
+    //        0},
+    //        nullptr);
+    //    p_mesh->point(
+    //        EntityId{static_cast<int16_t>(i_up[0]), static_cast<int16_t>(i_up[1]), static_cast<int16_t>(i_up[2]), 0},
+    //        nullptr);
 
     CartesianGridGeometry->putIntegerArray("periodic_dimension", &periodic_dimension[0], ndims);
     CartesianGridGeometry->putDoubleArray("x_lo", &x_low[0], ndims);

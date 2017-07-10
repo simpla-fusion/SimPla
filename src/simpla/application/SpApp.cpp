@@ -25,7 +25,7 @@ struct SpApp::pimpl_s {
     std::shared_ptr<model::Model> m_model_ = nullptr;
 };
 SpApp::SpApp(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
- SpApp::~SpApp() {}
+SpApp::~SpApp() {}
 std::shared_ptr<data::DataTable> SpApp::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
     if (m_pimpl_->m_schedule_ != nullptr) { res->Set("Schedule", m_pimpl_->m_schedule_->Serialize()); }
@@ -34,7 +34,7 @@ std::shared_ptr<data::DataTable> SpApp::Serialize() const {
     return res;
 };
 void SpApp::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
-    m_pimpl_->m_model_ = engine::Context::Create(cfg->Get("Model"));
+    m_pimpl_->m_model_ = model::Model::Create(cfg->Get("Model"));
     m_pimpl_->m_schedule_ = engine::Schedule::Create(cfg->Get("Schedule"));
     m_pimpl_->m_context_ = engine::Context::Create(cfg->Get("Context"));
     Click();
@@ -82,7 +82,7 @@ std::shared_ptr<engine::Schedule> SpApp::GetSchedule() const { return m_pimpl_->
 }  // namespace application{
 }  // namespace simpla{
 // static const bool _every_thing_are_registered = engine::Context::is_registered &&      //
-//                                                engine::Mesh::is_registered &&     //
+//                                                engine::MeshBase::is_registered &&     //
 //                                                engine::DomainBase::is_registered &&       //
 //                                                model::GeoObject::is_registered &&  //
 //                                                model::Chart::is_registered;
@@ -90,9 +90,13 @@ std::shared_ptr<engine::Schedule> SpApp::GetSchedule() const { return m_pimpl_->
 int main(int argc, char **argv) {
 #ifndef NDEBUG
     logger::set_stdout_level(1000);
+
 #endif
 
     parallel::init(argc, argv);
+
+    VERBOSE << model::Chart::ShowDescription() << std::endl;
+    VERBOSE << engine::DomainBase::ShowDescription() << std::endl;
 
     std::string output_file = "h5://SimPlaOutput";
 

@@ -9,6 +9,7 @@
 
 #include <simpla/SIMPLA_config.h>
 //#include <simpla/data/all.h>
+#include <simpla/engine/Attribute.h>
 #include <simpla/utilities/Range.h>
 #include <simpla/utilities/type_traits.h>
 #include "ExpressionTemplate.h"
@@ -40,15 +41,17 @@ template <typename TM, typename TV, int... I>
 struct reference<const Field<TM, TV, I...>> {
     typedef const Field<TM, TV, I...>& type;
 };
-
-template <typename TM, typename TV, int IFORM, int DOF>
-struct iform<Field<TM, TV, IFORM, DOF>> : public std::integral_constant<int, IFORM> {};
+template <typename...>
+struct iform;
+template <typename TM, typename TV, int IFORM, int... DOF>
+struct iform<Field<TM, TV, IFORM, DOF...>> : public std::integral_constant<int, IFORM> {};
 
 template <typename TF>
 struct dof : public std::integral_constant<int, 1> {};
 
-template <typename TM, typename TV, int IFORM, int DOF>
-struct dof<Field<TM, TV, IFORM, DOF>> : public std::integral_constant<int, DOF> {};
+template <typename TM, typename TV, int IFORM, int... DOF>
+struct dof<Field<TM, TV, IFORM, DOF...>>
+    : public std::integral_constant<int, reduction_v(tags::multiplication(), 1, DOF...)> {};
 
 template <typename>
 struct value_type;
@@ -59,11 +62,11 @@ struct value_type<Field<TM, TV, IFORM, DOF>> {
 };
 }  // namespace traits {
 template <typename TM, typename TV, int IFORM, int... DOF>
-class Field<TM, TV, IFORM, DOF...> : public TM::attribute_type {
+class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
    private:
     typedef Field<TM, TV, IFORM, DOF...> field_type;
 
-    typedef typename TM::attribute_type attribute_type;
+    typedef engine::Attribute attribute_type;
 
     SP_OBJECT_HEAD(field_type, attribute_type);
 
@@ -71,24 +74,24 @@ class Field<TM, TV, IFORM, DOF...> : public TM::attribute_type {
     typedef TV value_type;
     typedef TM mesh_type;
 
-    typedef typename mesh_type::entity_id_type entity_id_type;
+    typedef EntityId entity_id_type;
 
     static constexpr int iform = IFORM;
     static constexpr int NUM_OF_SUB = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
-    static constexpr int NDIMS = mesh_type::NDIMS;
 
     typedef std::conditional_t<sizeof...(DOF) == 0, value_type, nTuple<value_type, DOF...>> ele_type;
     typedef std::conditional_t<NUM_OF_SUB == 1, ele_type, nTuple<ele_type, NUM_OF_SUB>> field_value_type;
 
    private:
-    typedef typename mesh_type::template data_type<value_type, IFORM, DOF...> data_type;
+    typedef nTuple<Array<value_type>, NUM_OF_SUB, DOF...> data_type;
     data_type m_data_;
     mesh_type const* m_mesh_ = nullptr;
 
    public:
-    template <typename TGrp, typename... Args>
-    explicit Field(TGrp* grp, Args&&... args)
-        : base_type(grp, IFORM, std::integer_sequence<int, DOF...>(), typeid(value_type), std::forward<Args>(args)...) {
+    template <typename... Args>
+    explicit Field(mesh_type* grp, Args&&... args)
+        : m_mesh_(grp),
+          base_type(grp, IFORM, std::integer_sequence<int, DOF...>(), typeid(value_type), std::forward<Args>(args)...) {
     }
 
     ~Field() override = default;
@@ -195,7 +198,6 @@ class Field<TM, TV, IFORM, DOF...> : public TM::attribute_type {
 
     void DoUpdate() override {
         base_type::DoUpdate();
-        if (m_mesh_ == nullptr) { m_mesh_ = dynamic_cast<mesh_type const*>(attribute_type::GetMesh()); }
         ASSERT(m_mesh_ != nullptr);
 
         traits::foreach (m_data_, [&](auto& a, auto i0, auto&&... idx) {
@@ -209,25 +211,25 @@ class Field<TM, TV, IFORM, DOF...> : public TM::attribute_type {
         traits::foreach (m_data_, [&](auto& a, auto&&... idx) { a.reset(); });
         base_type::DoTearDown();
     }
-//    void Push(std::shared_ptr<data::DataBlock> p) override {
-//        base_type::Update();
-//        auto d = std::dynamic_pointer_cast<data::DataMultiArray<value_type, NDIMS>>(p);
-//        int count = 0;
-//        traits::foreach (m_data_, [&](auto& a, auto&&... idx) {
-//            a.swap(d->GetArray(count));
-//            ++count;
-//        });
-//    };
-//    std::shared_ptr<data::DataBlock> Pop() override {
-//        auto res = std::make_shared<data::DataMultiArray<value_type, NDIMS>>(m_data_.size());
-//        int count = 0;
-//        traits::foreach (m_data_, [&](auto& a, auto&&... idx) {
-//            res->GetArray(count).swap(a);
-//            ++count;
-//        });
-//        base_type::TearDown();
-//        return res;
-//    };
+    //    void Push(std::shared_ptr<data::DataBlock> p) override {
+    //        base_type::Update();
+    //        auto d = std::dynamic_pointer_cast<data::DataMultiArray<value_type, NDIMS>>(p);
+    //        int count = 0;
+    //        traits::foreach (m_data_, [&](auto& a, auto&&... idx) {
+    //            a.swap(d->GetArray(count));
+    //            ++count;
+    //        });
+    //    };
+    //    std::shared_ptr<data::DataBlock> Pop() override {
+    //        auto res = std::make_shared<data::DataMultiArray<value_type, NDIMS>>(m_data_.size());
+    //        int count = 0;
+    //        traits::foreach (m_data_, [&](auto& a, auto&&... idx) {
+    //            res->GetArray(count).swap(a);
+    //            ++count;
+    //        });
+    //        base_type::TearDown();
+    //        return res;
+    //    };
 
 };  // class Field
 

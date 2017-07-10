@@ -3,7 +3,7 @@
 //
 
 #include "DomainBase.h"
-#include <simpla/mesh/Mesh.h>
+#include <simpla/mesh/MeshBase.h>
 #include "Attribute.h"
 #include "Patch.h"
 
