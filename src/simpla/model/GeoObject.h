@@ -9,8 +9,8 @@
 #define CORE_GEOMETRY_GEO_OBJECT_H_
 
 #include <simpla/algebra/nTuple.h>
-#include <simpla/utilities/SPObject.h>
 #include <simpla/utilities/Log.h>
+#include <simpla/utilities/SPObject.h>
 #include <simpla/utilities/type_traits.h>
 #include "GeoAlgorithm.h"
 #include "simpla/data/EnableCreateFromDataTable.h"
@@ -40,7 +40,7 @@ class GeoObject : public data::EnableCreateFromDataTable<GeoObject> {
         res->SetValue<std::string>("Type", GetRegisterName());
         return res;
     };
-    void Deserialize(std::shared_ptr<data::DataTable> t) override {}
+    void Deserialize(std::shared_ptr<data::DataTable> const &t) override {}
 
     virtual bool hasChildren() const { return false; }
 

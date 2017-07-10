@@ -17,7 +17,7 @@ namespace simpla {
 class MeshBase;
 
 namespace engine {
-class Domain;
+class DomainBase;
 class Attribute;
 class Patch;
 

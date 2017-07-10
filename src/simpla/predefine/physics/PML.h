@@ -19,7 +19,7 @@ using namespace engine;
  *  @brief absorb boundary condition, PML
  */
 template <typename TChart>
-class PML : public engine::Domain {
+class PML : public engine::DomainBase {
     SP_OBJECT_HEAD(PML<TChart>, engine::Worker);
 
    public:

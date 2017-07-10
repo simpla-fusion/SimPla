@@ -21,7 +21,7 @@ class Tokamak : public engine::Context {
     DECLARE_REGISTER_NAME(Tokamak);
 
     std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataTable> cfg) override;
+    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
 };
 
 REGISTER_CREATOR(Tokamak)
@@ -30,7 +30,7 @@ std::shared_ptr<data::DataTable> Tokamak::Serialize() const {
     auto res = engine::Context::Serialize();
     return res;
 }
-void Tokamak::Deserialize(std::shared_ptr<data::DataTable> cfg) {
+void Tokamak::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     engine::Context::Deserialize(cfg);
 
     typedef mesh::RectMesh mesh_type;
@@ -38,7 +38,7 @@ void Tokamak::Deserialize(std::shared_ptr<data::DataTable> cfg) {
     auto d = GetDomain("Tokamak");
     if (d != nullptr) {
         //        auto geqdsk = std::dynamic_pointer_cast<GEqdsk>(GetModel().GetObject("Tokamak"));
-        //        d->PreInitialCondition.Connect([=](engine::Domain* self, Real time_now) {
+        //        d->PreInitialCondition.Connect([=](engine::DomainBase* self, Real time_now) {
         //            //        if (self->check("ne", typeid(Field<mesh_type, Real, VOLUME>)))
         //            //        {
         //            //        auto& ne = self->Get("ne")->cast_as<Field<mesh_type, Real, VOLUME>>();

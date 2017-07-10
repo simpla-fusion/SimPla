@@ -50,8 +50,8 @@ class EMFluid : public TM {
         Real mass = 1;
         Real charge = 1;
         Real ratio = 1;
-        std::shared_ptr<Field<mesh_type, Real, VOLUME>> n;
-        std::shared_ptr<Field<mesh_type, Real, VOLUME, 3>> J;
+        std::shared_ptr<Field<this_type, Real, VOLUME>> n;
+        std::shared_ptr<Field<this_type, Real, VOLUME, 3>> J;
     };
 
     std::map<std::string, std::shared_ptr<fluid_s>> m_fluid_sp_;
@@ -62,7 +62,7 @@ class EMFluid : public TM {
 };
 
 template <typename TM>
-bool EMFluid<TM>::is_registered = engine::Domain::RegisterCreator<EMFluid<TM>>();
+bool EMFluid<TM>::is_registered = engine::DomainBase::RegisterCreator<EMFluid<TM>>();
 
 template <typename TM>
 std::shared_ptr<data::DataTable> EMFluid<TM>::Serialize() const {
@@ -102,8 +102,8 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
     sp->charge = d->GetValue<double>("charge", d->GetValue<double>("Z", 1)) * SI_elementary_charge;
     sp->ratio = d->GetValue<double>("ratio", d->GetValue<double>("ratio", 1));
 
-    sp->n = std::make_shared<Field<mesh_type, Real, VOLUME>>(this, "name"_ = name + "_n");
-    sp->J = std::make_shared<Field<mesh_type, Real, VOLUME, 3>>(this, "name"_ = name + "_J");
+    sp->n = std::make_shared<Field<this_type, Real, VOLUME>>(this, "name"_ = name + "_n");
+    sp->J = std::make_shared<Field<this_type, Real, VOLUME, 3>>(this, "name"_ = name + "_J");
     m_fluid_sp_.emplace(name, sp);
     VERBOSE << "Add particle : {\"" << name << "\", mass = " << sp->mass / SI_proton_mass
             << " [m_p], charge = " << sp->charge / SI_elementary_charge << " [q_e] }" << std::endl;
@@ -158,12 +158,12 @@ void EMFluid<TM>::DoAdvance(Real time_now, Real dt) {
     if (m_fluid_sp_.size() > 0) {
         Ev = map_to<VOLUME>(E);
 
-        Field<mesh_type, Real, VOLUME, 3> Q{this};
-        Field<mesh_type, Real, VOLUME, 3> K{this};
+        Field<this_type, Real, VOLUME, 3> Q{this};
+        Field<this_type, Real, VOLUME, 3> K{this};
 
-        Field<mesh_type, Real, VOLUME> a{this};
-        Field<mesh_type, Real, VOLUME> b{this};
-        Field<mesh_type, Real, VOLUME> c{this};
+        Field<this_type, Real, VOLUME> a{this};
+        Field<this_type, Real, VOLUME> b{this};
+        Field<this_type, Real, VOLUME> c{this};
 
         a.Clear();
         b.Clear();

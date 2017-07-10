@@ -13,7 +13,7 @@
 
 namespace simpla {
 namespace engine {
-class Domain;
+class DomainBase;
 class MeshAttributeVisitorBase;
 
 template <typename T>
@@ -46,7 +46,7 @@ struct TransitionMap {
     //    virtual void push_forward(HeavyData const &src, HeavyData *dest) const =0;
     //    virtual void pull_back(HeavyData const &src, HeavyData *dest) const =0;
 
-    virtual void Apply(Domain const &from, Domain &to) const = 0;
+    virtual void Apply(DomainBase const &from, DomainBase &to) const = 0;
 };
 //
 //template <typename M, typename N>

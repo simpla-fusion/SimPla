@@ -18,7 +18,7 @@ using namespace data;
 using namespace engine;
 
 template <typename TM>
-class ICRFAntenna : public engine::Domain {
+class ICRFAntenna : public engine::DomainBase {
     SP_OBJECT_HEAD(ICRFAntenna<TM>, engine::Domain)
 
    public:
@@ -39,11 +39,11 @@ class ICRFAntenna : public engine::Domain {
 };
 
 template <typename TM>
-bool ICRFAntenna<TM>::is_registered = engine::Domain::RegisterCreator<ICRFAntenna<TM>>();
+bool ICRFAntenna<TM>::is_registered = engine::DomainBase::RegisterCreator<ICRFAntenna<TM>>();
 
 template <typename TM>
 std::shared_ptr<data::DataTable> ICRFAntenna<TM>::Serialize() const {
-    auto res = engine::Domain::Serialize();
+    auto res = engine::DomainBase::Serialize();
     res->SetValue("Amplify", m_amplify_);
     res->SetValue("Frequency", m_f_);
     res->SetValue("WaveNumber", m_k_);
@@ -53,7 +53,7 @@ std::shared_ptr<data::DataTable> ICRFAntenna<TM>::Serialize() const {
 template <typename TM>
 void ICRFAntenna<TM>::Deserialize(std::shared_ptr<DataTable> cfg) {
     DoInitialize();
-    engine::Domain::Deserialize(cfg);
+    engine::DomainBase::Deserialize(cfg);
     m_amplify_ = cfg->GetValue<Vec3>("Amplify", m_amplify_);
     m_f_ = cfg->GetValue<Real>("Frequency", m_f_);
     m_k_ = cfg->GetValue<Vec3>("WaveNumber", m_k_);
@@ -63,15 +63,15 @@ void ICRFAntenna<TM>::Deserialize(std::shared_ptr<DataTable> cfg) {
 
 template <typename TM>
 void ICRFAntenna<TM>::DoInitialCondition(Real time_now) {
-    Domain::DoInitialCondition(time_now);
+    DomainBase::DoInitialCondition(time_now);
 }
 template <typename TM>
 void ICRFAntenna<TM>::DoBoundaryCondition(Real time_now, Real dt) {
-    Domain::DoBoundaryCondition(time_now, dt);
+    DomainBase::DoBoundaryCondition(time_now, dt);
 }
 template <typename TM>
 void ICRFAntenna<TM>::DoAdvance(Real time_now, Real dt) {
-    Domain::DoAdvance(time_now, dt);
+    DomainBase::DoAdvance(time_now, dt);
 
     DEFINE_PHYSICAL_CONST
     J = [&](point_type const& x) -> Vec3 {

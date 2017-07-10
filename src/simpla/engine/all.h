@@ -8,7 +8,7 @@
 #include "Atlas.h"
 #include "Attribute.h"
 #include "Context.h"
-#include "Domain.h"
+#include "DomainBase.h"
 #include "Patch.h"
 #include "Schedule.h"
 #include "TimeIntegrator.h"

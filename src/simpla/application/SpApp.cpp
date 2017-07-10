@@ -33,7 +33,7 @@ std::shared_ptr<data::DataTable> SpApp::Serialize() const {
 
     return res;
 };
-void SpApp::Deserialize(std::shared_ptr<data::DataTable> cfg) {
+void SpApp::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     m_pimpl_->m_model_ = engine::Context::Create(cfg->Get("Model"));
     m_pimpl_->m_schedule_ = engine::Schedule::Create(cfg->Get("Schedule"));
     m_pimpl_->m_context_ = engine::Context::Create(cfg->Get("Context"));
@@ -83,7 +83,7 @@ std::shared_ptr<engine::Schedule> SpApp::GetSchedule() const { return m_pimpl_->
 }  // namespace simpla{
 // static const bool _every_thing_are_registered = engine::Context::is_registered &&      //
 //                                                engine::Mesh::is_registered &&     //
-//                                                engine::Domain::is_registered &&       //
+//                                                engine::DomainBase::is_registered &&       //
 //                                                model::GeoObject::is_registered &&  //
 //                                                model::Chart::is_registered;
 

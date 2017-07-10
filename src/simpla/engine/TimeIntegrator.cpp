@@ -21,7 +21,7 @@ std::shared_ptr<data::DataTable> TimeIntegrator::Serialize() const {
     return p;
 }
 
-void TimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> cfg) {
+void TimeIntegrator::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     Schedule::Deserialize(cfg);
     SetTimeNow(cfg->GetValue("TimeBegin", 0.0));
     SetTimeEnd(cfg->GetValue("TimeEnd", 1.0));
@@ -51,7 +51,7 @@ Real TimeIntegrator::Advance(Real time_dt) {
 //            auto res = m_pimpl_->m_ctx_->GetPatches()->GetTable(std::to_string(id));
 //            if (res == nullptr) { res = std::make_shared<data::DataTable>(); }
 //            v.second->ConvertPatchFromSAMRAI(mblk, res);
-//            LOGGER << " Domain [ " << std::setw(10) << std::left << v.second->name() << " ] is applied on "
+//            LOGGER << " DomainBase [ " << std::setw(10) << std::left << v.second->name() << " ] is applied on "
 //                   << mblk->GetIndexBox() << " id= " << id << std::endl;
 //            v.second->Run(dt);
 //            auto t = v.second->Serialize().second;

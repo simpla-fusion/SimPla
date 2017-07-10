@@ -24,7 +24,7 @@ std::shared_ptr<DataTable> Model::Serialize() const {
     }
     return res;
 };
-void Model::Deserialize(std::shared_ptr<DataTable> cfg) {
+void Model::Deserialize(const std::shared_ptr<DataTable> &cfg) {
     if (cfg == nullptr) { return; }
     cfg->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> const& v) {
         if (v != nullptr) { SetObject(k, model::GeoObject::Create(v)); }

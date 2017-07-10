@@ -16,7 +16,7 @@ using namespace data;
 using namespace engine;
 
 template <typename TM>
-class ExtraSource : public engine::Domain {
+class ExtraSource : public engine::DomainBase {
     SP_OBJECT_HEAD(ExtraSource<TM>, engine::Domain)
 
    public:
@@ -33,7 +33,7 @@ class ExtraSource : public engine::Domain {
 };
 
 template <typename TM>
-bool ExtraSource<TM>::is_registered = engine::Domain::RegisterCreator<ExtraSource<TM>>();
+bool ExtraSource<TM>::is_registered = engine::DomainBase::RegisterCreator<ExtraSource<TM>>();
 
 template <typename TM>
 std::shared_ptr<data::DataTable> ExtraSource<TM>::Serialize() const {
@@ -51,7 +51,7 @@ void ExtraSource<TM>::Deserialize(std::shared_ptr<DataTable> cfg) {
 
 template <typename TM>
 void ExtraSource<TM>::DoInitialCondition(Real time_now) {
-    Domain::DoInitialCondition(time_now);
+    DomainBase::DoInitialCondition(time_now);
 }
 template <typename TM>
 void ExtraSource<TM>::DoBoundaryCondition(Real time_now, Real dt) {}

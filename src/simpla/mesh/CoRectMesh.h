@@ -5,7 +5,7 @@
 #ifndef SIMPLA_CORECTMESH_H
 #define SIMPLA_CORECTMESH_H
 
-#include <simpla/engine/Domain.h>
+#include <simpla/engine/DomainBase.h>
 #include <simpla/utilities/ObjectHead.h>
 #include <string>
 #include "StructuredMesh.h"
@@ -14,12 +14,12 @@ namespace mesh {
 /**
  * Axis are perpendicular and spacing is constant
  */
-struct CoRectMesh : public engine::Domain, public StructuredMesh {
+struct CoRectMesh : public engine::DomainBase, public StructuredMesh {
     SP_OBJECT_HEAD(CoRectMesh, engine::Domain)
 
    public:
     template <typename... Args>
-    explicit CoRectMesh(Args &&... args) : engine::Domain() {};
+    explicit CoRectMesh(Args &&... args) : engine::DomainBase() {};
     ~CoRectMesh() override = default;
 
     SP_DEFAULT_CONSTRUCT(CoRectMesh)

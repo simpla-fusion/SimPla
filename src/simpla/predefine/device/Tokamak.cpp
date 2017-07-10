@@ -13,7 +13,7 @@ Tokamak::Tokamak() : m_pimpl_(new pimpl_s) {}
 
 std::shared_ptr<data::DataTable> Tokamak::Serialize() const { return std::make_shared<data::DataTable>(); }
 
-void Tokamak::Deserialize(std::shared_ptr<DataTable> cfg) {
+void Tokamak::Deserialize(const std::shared_ptr<DataTable> &cfg) {
     model::Model::Deserialize(cfg);
 
     nTuple<Real, 2> phi = cfg->GetValue("Phi", nTuple<Real, 2>{0, TWOPI});

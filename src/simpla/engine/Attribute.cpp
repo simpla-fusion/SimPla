@@ -6,7 +6,7 @@
 #include <simpla/data/DataBlock.h>
 #include <set>
 #include <typeindex>
-#include "Domain.h"
+#include "DomainBase.h"
 #include "MeshBlock.h"
 #include "Patch.h"
 //#include "simpla/mesh/Mesh.h"

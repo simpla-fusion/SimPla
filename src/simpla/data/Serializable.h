@@ -17,7 +17,7 @@ class Serializable {
     Serializable() = default;
     virtual ~Serializable() = default;
     virtual std::shared_ptr<DataTable> Serialize() const;
-    virtual void Deserialize(std::shared_ptr<DataTable> t);
+    virtual void Deserialize(const std::shared_ptr<DataTable> &t);
     virtual std::ostream &Serialize(std::ostream &os, int indent) const;
     virtual std::istream &Deserialize(std::istream &is);
 };

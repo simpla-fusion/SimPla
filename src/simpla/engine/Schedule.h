@@ -24,7 +24,7 @@ class Schedule : public SPObject, public data::EnableCreateFromDataTable<Schedul
     DECLARE_REGISTER_NAME(Schedule)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataTable> cfg) override;
+    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
 
     void DoInitialize() override;
     void DoFinalize() override;

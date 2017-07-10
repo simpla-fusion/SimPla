@@ -9,7 +9,7 @@
 #include <simpla/data/Serializable.h>
 #include <map>
 #include "Atlas.h"
-#include "Domain.h"
+#include "DomainBase.h"
 #include "Patch.h"
 
 namespace simpla {
@@ -67,14 +67,14 @@ namespace engine {
 class Context : public SPObject, public data::EnableCreateFromDataTable<Context> {
     SP_OBJECT_HEAD(Context, SPObject)
    public:
-    explicit Context(std::string const &s_name = "", std::shared_ptr<model::Model> m = nullptr);
+    explicit Context(const std::string &s_name = "");
     ~Context() override;
 
     SP_DEFAULT_CONSTRUCT(Context)
     DECLARE_REGISTER_NAME(Context)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataTable> cfg) override;
+    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
 
     void DoInitialize() override;
     void DoFinalize() override;
@@ -83,11 +83,11 @@ class Context : public SPObject, public data::EnableCreateFromDataTable<Context>
 
     Atlas &GetAtlas() const;
 
-    void SetDomain(std::string const &k, std::shared_ptr<Domain> const &);
-    std::shared_ptr<Domain> GetDomain(std::string const &k) const;
+    void SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &);
+    std::shared_ptr<DomainBase> GetDomain(std::string const &k) const;
 
-    std::map<std::string, std::shared_ptr<Domain>> &GetAllDomains();
-    std::map<std::string, std::shared_ptr<Domain>> const &GetAllDomains() const;
+    std::map<std::string, std::shared_ptr<DomainBase>> &GetAllDomains();
+    std::map<std::string, std::shared_ptr<DomainBase>> const &GetAllDomains() const;
     std::map<std::string, std::shared_ptr<AttributeDesc>> CollectRegisteredAttributes() const;
 
     void InitialCondition(Patch *patch, Real time_now);

@@ -7,7 +7,7 @@
 #include <simpla/algebra/CalculusPolicy.h>
 #include <simpla/algebra/all.h>
 #include <simpla/data/all.h>
-#include <simpla/engine/Domain.h>
+#include <simpla/engine/DomainBase.h>
 #include "Mesh.h"
 #include "StructuredMesh.h"
 namespace simpla {
@@ -17,12 +17,12 @@ using namespace simpla::data;
 /**
  * Axis are perpendicular
  */
-struct RectMesh : public engine::Domain, public StructuredMesh {
+struct RectMesh : public engine::DomainBase, public StructuredMesh {
    public:
     SP_OBJECT_HEAD(RectMesh, engine::Domain)
 
     template <typename... Args>
-    explicit RectMesh(Args &&... args) : engine::Domain() {};
+    explicit RectMesh(Args &&... args) : engine::DomainBase() {};
     ~RectMesh() override = default;
 
     SP_DEFAULT_CONSTRUCT(RectMesh)

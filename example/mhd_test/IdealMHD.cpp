@@ -13,7 +13,7 @@ using namespace data;
 using namespace engine;
 
 template <typename TM>
-class IdealMHD : public engine::Domain {
+class IdealMHD : public engine::DomainBase {
     SP_OBJECT_HEAD(IdealMHD<TM>, engine::Domain)
 
    public:
@@ -47,12 +47,12 @@ REGISTER_CREATOR_TEMPLATE(IdealMHD, mesh::RectMesh)
 
 template <typename TM>
 std::shared_ptr<data::DataTable> IdealMHD<TM>::Pack() const {
-    auto res = engine::Domain::Pull(nullptr);
+    auto res = engine::DomainBase::Pull(nullptr);
     return res;
 };
 template <typename TM>
 void IdealMHD<TM>::Unpack(std::shared_ptr<data::DataTable> const &cfg) {
-    engine::Domain::Push(cfg);
+    engine::DomainBase::Push(cfg);
 }
 
 template <typename TM>

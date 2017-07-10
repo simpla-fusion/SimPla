@@ -21,7 +21,7 @@ struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<C
                    point_type rotate = point_type{0, 0, 0});
     ~Chart() override;
     std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataTable> t) override;
+    void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
 
     void SetShift(point_type const &x);
     point_type const &GetShift() const;

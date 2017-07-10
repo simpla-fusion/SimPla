@@ -54,7 +54,7 @@ struct Polygon<2> : public data::Serializable {
         res->Set("data", std::dynamic_pointer_cast<data::DataEntity>(v_array));
         return res;
     };
-    void Deserialize(std::shared_ptr<data::DataTable> t) override {}
+    void Deserialize(const std::shared_ptr<data::DataTable> &t) override {}
 
     std::vector<point2d_type> &data() { return m_polygon_; };
 

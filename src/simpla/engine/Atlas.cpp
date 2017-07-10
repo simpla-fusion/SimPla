@@ -40,7 +40,7 @@ std::shared_ptr<data::DataTable> Atlas::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
     return (res);
 };
-void Atlas::Deserialize(std::shared_ptr<data::DataTable> cfg) { Click(); };
+void Atlas::Deserialize(const std::shared_ptr<data::DataTable> &cfg) { Click(); };
 
 void Atlas::Decompose(size_tuple const &d, int local_id) { Click(); };
 index_box_type Atlas::FitIndexBox(box_type const &b, int level, int flag) const { return index_box_type{}; }
