@@ -22,7 +22,6 @@ int main(int argc, char **argv) {
 
     b = [](index_type i, index_type j, index_type k) { return i * j * k; };
 
-    d.SetUndefined();
 
     c = a + b * 2;
 

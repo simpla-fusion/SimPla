@@ -319,10 +319,9 @@ Array<T, ZSFC<NDIMS>> create_array(SAMRAI::pdat::ArrayData<T> &p_data, int depth
     auto i_lower = p_data.getBox().lower();
     auto i_upper = p_data.getBox().upper();
 
-    return Array<T, ZSFC<NDIMS>>(ZSFC<NDIMS>(index_box_type{{i_lower[0], i_lower[1], i_lower[2]},
-                                                            {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}},
-                                             true),
-                                 p_data.getPointer(depth));
+    return Array<T, ZSFC<NDIMS>>(
+        p_data.getPointer(depth),
+        index_box_type{{i_lower[0], i_lower[1], i_lower[2]}, {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}}, true);
     ;
 };
 

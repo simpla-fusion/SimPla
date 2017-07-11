@@ -6,17 +6,16 @@
 #define SIMPLA_ARRAY_H
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/utilities/Log.h>
+#include <simpla/utilities/memory.h>
+#include <simpla/utilities/type_traits.h>
 #include <initializer_list>
 #include <limits>
 #include <memory>
 #include <tuple>
-
 #include "ExpressionTemplate.h"
 #include "SFC.h"
 #include "nTuple.h"
-#include "simpla/utilities/Log.h"
-#include "simpla/utilities/memory.h"
-#include "simpla/utilities/type_traits.h"
 namespace simpla {
 template <typename V, typename SFC>
 class Array;
@@ -50,7 +49,11 @@ class Array {
 
     Array(this_type const& other, IdxShift s) : Array(other) { Shift(s); }
 
-    explicit Array(SFC const& sfc, value_type* d = nullptr) : m_data_(d), m_sfc_(sfc) {}
+    template <typename... Args>
+    explicit Array(value_type* d, Args&&... args) : m_data_(d), m_sfc_(std::forward<Args>(args)...) {}
+
+//    template <typename... Args>
+//    explicit Array(Args&&... args) : m_sfc_(std::forward<Args>(args)...) {}
 
     void swap(this_type& other) {
         std::swap(m_holder_, other.m_holder_);
@@ -160,7 +163,9 @@ class Array {
 
     template <typename RHS>
     void Assign(RHS const& rhs) {
-        m_sfc_.Foreach([&] __host__ __device__(auto const&... s) { at((s)...) = calculus::getValue(rhs, (s)...); });
+        m_sfc_.Foreach([&] __host__ __device__(auto&&... s) {
+            at(std::forward<decltype(s)>(s)...) = calculus::getValue(rhs, std::forward<decltype(s)>(s)...);
+        });
     }
 };
 

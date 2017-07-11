@@ -57,6 +57,8 @@ struct iform<Field<TM, TV, IFORM>> : public std::integral_constant<int, IFORM> {
 
 template <typename TM, typename TV, int IFORM, int... DOF>
 struct iform<Field<TM, TV, IFORM, DOF...>> : public std::integral_constant<int, IFORM> {};
+template <typename TOP, typename... Args>
+struct iform<Expression<TOP, Args...>> : public std::integral_constant<int, max(iform<Args>::value...)> {};
 
 template <typename TF>
 struct dof : public std::integral_constant<int, 1> {};
@@ -68,8 +70,8 @@ struct dof<Field<TM, TV, IFORM, DOF...>>
 template <typename>
 struct value_type;
 
-template <typename TM, typename TV, int IFORM, int DOF>
-struct value_type<Field<TM, TV, IFORM, DOF>> {
+template <typename TM, typename TV, int... DOF>
+struct value_type<Field<TM, TV, DOF...>> {
     typedef TV type;
 };
 }  // namespace traits {

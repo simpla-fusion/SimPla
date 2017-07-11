@@ -124,7 +124,10 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
     Domain &operator=(Domain const &) = delete;
     Domain &operator=(Domain &&) = delete;
 
-   public:
+    const geometry::Chart *GetChart() const override { return DomainBase::GetChart(); };
+
+    const engine::MeshBlock &GetBlock() const override { return DomainBase::GetBlock(); };
+
     void DoInitialCondition(Real time_now) override;
     void DoBoundaryCondition(Real time_now, Real dt) override;
     void DoAdvance(Real time_now, Real dt) override;

@@ -22,10 +22,9 @@ class StructuredMesh {
    public:
     static constexpr unsigned int NDIMS = 3;
     typedef EntityId entity_id_type;
-    template <typename U>
-    using array_type = Array<U, ZSFC<3>>;
-    StructuredMesh();
-    ~StructuredMesh();
+
+    StructuredMesh() = default;
+    virtual ~StructuredMesh() = default;
     StructuredMesh(StructuredMesh const &) = delete;
     StructuredMesh(StructuredMesh &&) = delete;
     StructuredMesh &operator=(StructuredMesh const &) = delete;
@@ -33,12 +32,9 @@ class StructuredMesh {
 
     point_type map(point_type const &p) const;
 
-    void SetChart(std::shared_ptr<geometry::Chart> const &);
-    geometry::Chart const *GetChart() const;
+    virtual const geometry::Chart *GetChart() const = 0;
 
-    void SetBlock(const engine::MeshBlock &);
-    const engine::MeshBlock &GetBlock() const;
-    id_type GetBlockId() const;
+    virtual const engine::MeshBlock &GetBlock() const = 0;
 
     point_type GetCellWidth() const;
     point_type GetOrigin() const;
@@ -74,10 +70,6 @@ class StructuredMesh {
         return calculus::reduction<tags::multiplication>(std::get<1>(m_index_box_) - std::get<0>(m_index_box_)) *
                ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
     }
-
-   private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 }  // namespace mesh {
 

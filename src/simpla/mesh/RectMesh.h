@@ -102,7 +102,7 @@ void RectMesh<THost>::InitialCondition(Real time_now) {
         *\endverbatim
         */
 
-    auto chart = GetChart();
+    auto chart = m_host_->GetChart();
     m_vertex_volume_ = 1.0;
     m_vertex_inv_volume_ = 1.0;
     m_vertex_dual_volume_ = [&](EntityId s) -> Real {

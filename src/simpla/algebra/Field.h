@@ -108,7 +108,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     void SetUndefined() { Set(std::numeric_limits<value_type>::signaling_NaN()); }
 
     this_type& operator=(this_type const& other) {
-        m_data_ = other.Get();
+        Set(other);
         return *this;
     }
     template <typename TR>

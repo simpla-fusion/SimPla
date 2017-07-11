@@ -90,28 +90,11 @@ index_box_type StructuredMesh::GetIndexBox(int tag) const {
     return res;
 }
 
-struct StructuredMesh::pimpl_s {
-    engine::MeshBlock m_block_;
-    std::shared_ptr<geometry::Chart> m_chart_;
-};
-StructuredMesh::StructuredMesh() : m_pimpl_(new pimpl_s) {}
-StructuredMesh::~StructuredMesh() {}
-
-void StructuredMesh::SetChart(std::shared_ptr<geometry::Chart> const& c) { m_pimpl_->m_chart_ = c; };
-geometry::Chart const* StructuredMesh::GetChart() const { return m_pimpl_->m_chart_.get(); };
-
-void StructuredMesh::SetBlock(const engine::MeshBlock& blk) { m_pimpl_->m_block_ = blk; }
-const engine::MeshBlock& StructuredMesh::GetBlock() const { return m_pimpl_->m_block_; }
-
-id_type StructuredMesh::GetBlockId() const { return m_pimpl_->m_block_.GetGUID(); }
-
-point_type StructuredMesh::GetCellWidth() const {
-    return m_pimpl_->m_chart_->GetCellWidth(m_pimpl_->m_block_.GetLevel());
-}
-point_type StructuredMesh::GetOrigin() const { return m_pimpl_->m_chart_->GetOrigin(); }
-size_tuple StructuredMesh::GetDimensions() const { return m_pimpl_->m_block_.GetDimensions(); }
-index_tuple StructuredMesh::GetIndexOrigin() const { return m_pimpl_->m_block_.GetIndexOrigin(); }
-index_tuple StructuredMesh::GetGhostWidth(int tag) const { return m_pimpl_->m_block_.GetGhostWidth(); }
+point_type StructuredMesh::GetCellWidth() const { return GetChart()->GetCellWidth(GetBlock().GetLevel()); }
+point_type StructuredMesh::GetOrigin() const { return GetChart()->GetOrigin(); }
+size_tuple StructuredMesh::GetDimensions() const { return GetBlock().GetDimensions(); }
+index_tuple StructuredMesh::GetIndexOrigin() const { return GetBlock().GetIndexOrigin(); }
+index_tuple StructuredMesh::GetGhostWidth(int tag) const { return GetBlock().GetGhostWidth(); }
 
 box_type StructuredMesh::GetBox() const {
     box_type res;
@@ -126,7 +109,7 @@ box_type StructuredMesh::GetBox() const {
     return res;
 }
 
-point_type StructuredMesh::map(point_type const& p) const { return m_pimpl_->m_chart_->map(p); }
+point_type StructuredMesh::map(point_type const& p) const { return GetChart()->map(p); }
 // void StructuredMesh::SetBoundary(geometry::GeoObject const &g) {
 //    Real ratio = g == nullptr ? 1.0 : g->CheckOverlap(GetBox());
 //

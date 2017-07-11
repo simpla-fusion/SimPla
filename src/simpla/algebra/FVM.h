@@ -26,34 +26,6 @@ struct FVM {
     typedef THost domain_type;
     static constexpr unsigned int NDIMS = 3;
 
-    //**********************************************************************************************
-    // for element-wise arithmetic operation
-
-    template <int IFORM, typename... E>
-    auto GetEntity(Expression<E...> const& rhs, EntityId s) const {
-        return getValue(rhs, IdxShift{0, 0, 0}, EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], s.x, s.y, s.z);
-    }
-
-    template <int IFORM, typename RHS>
-    auto GetEntity(RHS const& rhs, EntityId s, ENABLE_IF((std::is_arithmetic<RHS>::value))) const {
-        return rhs;
-    }
-    template <int IFORM, typename V, int N1>
-    auto GetEntity(nTuple<V, N1> const& rhs, EntityId s) const {
-        return rhs[(IFORM == VERTEX || IFORM == VOLUME) ? (s.w >> 3) : EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]];
-    }
-
-    template <int IFORM, typename RHS>
-    decltype(auto) GetEntity(RHS const& rhs, EntityId s,
-                             ENABLE_IF((traits::is_invocable<RHS, EntityId>::value))) const {
-        return GetEntity(rhs(s), s);
-    }
-    template <int IFORM, typename RHS>
-    decltype(auto) GetEntity(RHS const& rhs, EntityId s,
-                             ENABLE_IF((traits::is_invocable<RHS, point_type>::value))) const {
-        return GetEntity(rhs(m_host_->point(s)), s);
-    }
-
     template <size_t... I, typename TOP, typename... Args, typename... Others>
     auto _invoke_helper(std::index_sequence<I...>, Expression<TOP, Args...> const& expr, IdxShift S,
                         Others&&... others) const {
@@ -68,7 +40,7 @@ struct FVM {
 
     template <typename TOP, typename... Args, typename... Others>
     auto getValue(Expression<TOP, Args...> const& expr, IdxShift S, Others&&... others) const {
-        return eval(std::integer_sequence<int, traits::iform<Args>::value...>(), expr, S,
+        return eval(std::integer_sequence<int, simpla::traits::iform<Args>::value...>(), expr, S,
                     std::forward<Others>(others)...);
     }
 
@@ -280,7 +252,6 @@ struct FVM {
     //    }
 
     ////***************************************************************************************************
-    //
     ////! map_to
 
     template <int I, typename TExpr, typename... Others>
@@ -530,13 +501,111 @@ struct FVM {
                    getValue(r, S, 0, (n + 1) % 3, std::forward<Others>(others)...);
     }
 
-    template <typename U, int IFORM, int... N, typename RHS>
-    void Fill(Field<THost, U, IFORM, N...>& lhs, RHS&& rhs) const {
+    //**********************************************************************************************
+    // for element-wise arithmetic operation
+
+    //    template <int IFORM, typename... E>
+    //    auto GetEntity(Expression<E...> const& rhs, EntityId s) const {
+    //        return getValue(rhs, IdxShift{0, 0, 0}, EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], s.x, s.y, s.z);
+    //    }
+    //
+    template <int IFORM, typename V, int N1>
+    auto GetEntity(nTuple<V, N1> const& rhs, EntityId s) const {
+        return rhs[(IFORM == VERTEX || IFORM == VOLUME) ? (s.w >> 3) : EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]];
+    }
+
+    template <int IFORM, typename RHS>
+    auto GetEntity(RHS const& rhs, EntityId s, ENABLE_IF((std::is_arithmetic<RHS>::value))) const {
+        return rhs;
+    }
+
+    template <int IFORM, typename RHS>
+    decltype(auto) GetEntity(RHS const& rhs, EntityId s,
+                             ENABLE_IF((traits::is_invocable<RHS, EntityId>::value))) const {
+        return GetEntity<IFORM>(rhs(s), s);
+    }
+    template <int IFORM, typename RHS>
+    decltype(auto) GetEntity(RHS const& rhs, EntityId s,
+                             ENABLE_IF((traits::is_invocable<RHS, point_type>::value))) const {
+        return GetEntity<IFORM>(rhs(m_host_->point(s)), s);
+    }
+
+    template <typename U, int IFORM, int... N, typename... RHSExpr>
+    void Fill(Field<THost, U, IFORM, N...>& lhs, Expression<RHSExpr...> const& rhs) const {
         traits::foreach (lhs.Get(), [&](auto& a, int n0, auto&&... subs) {
-            getValue(std::forward<RHS>(rhs), IdxShift{0, 0, 0}, std::forward<decltype(subs)>(subs)...);
+            a = getValue((rhs), IdxShift{0, 0, 0}, EntityIdCoder::m_sub_index_to_id_[IFORM][n0],
+                         std::forward<decltype(subs)>(subs)...);
         });
     }
 
+    template <typename U, int IFORM, int... N, typename RHS>
+    void Fill(Field<THost, U, IFORM, N...>& lhs, RHS const& rhs, ENABLE_IF((std::is_arithmetic<RHS>::value))) const {
+        lhs.Get() = rhs;
+        traits::foreach (lhs.Get(), [&](auto& a, auto&&... subs) {
+            a = getValue((rhs), IdxShift{0, 0, 0}, std::forward<decltype(subs)>(subs)...);
+        });
+    }
+
+    template <typename U, int... N, typename RHS>
+    void Fill(Field<THost, U, VERTEX, N...>& lhs, nTuple<RHS, N...> const& rhs) const {
+        lhs.Get()[0] = rhs;
+    }
+
+    template <typename U, int... N, typename RHS>
+    void Fill(Field<THost, U, VOLUME, N...>& lhs, nTuple<RHS, N...> const& rhs) const {
+        lhs.Get()[0] = rhs;
+    }
+
+    template <typename U, int... N, typename RHS>
+    void Fill(Field<THost, U, EDGE, N...>& lhs, nTuple<RHS, 3, N...> const& rhs) const {
+        lhs.Get() = rhs;
+    }
+
+    template <typename U, int... N, typename RHS>
+    void Fill(Field<THost, U, FACE, N...>& lhs, nTuple<RHS, 3, N...> const& rhs) const {
+        lhs.Get() = rhs;
+    }
+
+    template <typename U, int... NL, typename V, int... NR>
+    void Fill(Field<THost, U, NL...>& lhs, Field<THost, V, NR...> const& rhs) const {
+        lhs.Get() = rhs;
+    }
+
+    template <typename U, int IFORM, int... N, typename RHS>
+    void Fill(Field<THost, U, IFORM, N...>& lhs, RHS const& rhs,
+              ENABLE_IF((traits::is_invocable<RHS, EntityId>::value))) const {
+        traits::foreach (lhs.Get(), [&](auto& a, int n0, auto&&... subs) {
+            int16_t tag = static_cast<int16_t>(
+                EntityIdCoder::m_sub_index_to_id_[IFORM][n0] |
+                (reduction_v(tags::multiplication(), 1, std::forward<decltype(subs)>(subs)...) << 3));
+            a = [&](index_type x, index_type y, index_type z) {
+                EntityId s;
+                s.w = tag;
+                s.x = static_cast<int16_t>(x);
+                s.y = static_cast<int16_t>(y);
+                s.z = static_cast<int16_t>(z);
+                return GetEntity<IFORM>(rhs(s), s);
+            };
+        });
+    }
+
+    template <typename U, int IFORM, int... N, typename RHS>
+    void Fill(Field<THost, U, IFORM, N...>& lhs, RHS const& rhs,
+              ENABLE_IF((traits::is_invocable<RHS, point_type>::value))) const {
+        traits::foreach (lhs.Get(), [&](auto& a, int n0, auto&&... subs) {
+            int16_t tag = static_cast<int16_t>(
+                EntityIdCoder::m_sub_index_to_id_[IFORM][n0] |
+                (reduction_v(tags::multiplication(), 1, std::forward<decltype(subs)>(subs)...) << 3));
+            a = [&](index_type x, index_type y, index_type z) {
+                EntityId s;
+                s.w = tag;
+                s.x = static_cast<int16_t>(x);
+                s.y = static_cast<int16_t>(y);
+                s.z = static_cast<int16_t>(z);
+                return GetEntity<IFORM>(rhs(m_host_->point(s)), s);
+            };
+        });
+    }
     //    ///*********************************************************************************************
     //    /// @name general_algebra General algebra
     //    /// @{
