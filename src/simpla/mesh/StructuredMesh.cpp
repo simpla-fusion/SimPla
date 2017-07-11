@@ -29,6 +29,13 @@ using namespace algebra;
 *
 *\endverbatim
 */
+point_type StructuredMesh::local_coordinates(int tag, index_type x, index_type y, index_type z) const {
+    Real const* r = EntityIdCoder::m_id_to_coordinates_shift_[tag];
+
+    return point_type{std::fma(static_cast<Real>(x), m_dx_[0], r[0] * m_dx_[0] + m_x0_[0]),
+                      std::fma(static_cast<Real>(y), m_dx_[1], r[1] * m_dx_[1] + m_x0_[1]),
+                      std::fma(static_cast<Real>(z), m_dx_[2], r[2] * m_dx_[2] + m_x0_[2])};
+}
 
 point_type StructuredMesh::local_coordinates(EntityId s, Real const* pr) const {
     point_type r{0, 0, 0};
@@ -108,12 +115,14 @@ index_tuple StructuredMesh::GetGhostWidth(int tag) const { return m_pimpl_->m_bl
 
 box_type StructuredMesh::GetBox() const {
     box_type res;
-//    index_tuple lo, hi;
-//    std::tie(lo, hi) = GetIndexBox(VERTEX);
-//    std::get<0>(res) = point(
-//        EntityId{static_cast<int16_t>(lo[0]), static_cast<int16_t>(lo[1]), static_cast<int16_t>(lo[2]), 0}, nullptr);
-//    std::get<1>(res) = point(
-//        EntityId{static_cast<int16_t>(hi[0]), static_cast<int16_t>(hi[1]), static_cast<int16_t>(hi[2]), 0}, nullptr);
+    //    index_tuple lo, hi;
+    //    std::tie(lo, hi) = GetIndexBox(VERTEX);
+    //    std::get<0>(res) = point(
+    //        EntityId{static_cast<int16_t>(lo[0]), static_cast<int16_t>(lo[1]), static_cast<int16_t>(lo[2]), 0},
+    //        nullptr);
+    //    std::get<1>(res) = point(
+    //        EntityId{static_cast<int16_t>(hi[0]), static_cast<int16_t>(hi[1]), static_cast<int16_t>(hi[2]), 0},
+    //        nullptr);
     return res;
 }
 

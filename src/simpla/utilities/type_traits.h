@@ -774,7 +774,7 @@ EXAMPLE:
         static constexpr bool value = false;                                                                 \
     };                                                                                                       \
     template <typename _T, typename _TRet, typename... _Args>                                                \
-    struct _CHECKER_NAME_<_T, _TRet(_Args...)> {                                                             \
+    struct _CHECKER_NAME_<_T, _TRet, _Args...> {                                                             \
        private:                                                                                              \
         typedef std::true_type yes;                                                                          \
         typedef std::false_type no;                                                                          \

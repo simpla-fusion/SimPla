@@ -88,35 +88,25 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     ~Field() override = default;
 
     Field(this_type const& other) : base_type(other), m_data_(other.m_data_), m_host_(other.m_host_) {}
-    Field(this_type&& other)
+
+    Field(this_type&& other) noexcept
         : base_type(std::forward<base_type>(other)), m_data_(other.m_data_), m_host_(other.m_host_) {}
 
     template <typename OtherMesh>
     Field(domain_type* m, Field<OtherMesh, value_type, IFORM, DOF...>& other)
         : base_type(other), m_host_(m), m_data_(other.m_data_) {}
 
-    void DoUpdate() override {
-        base_type::DoUpdate();
+    void DoInitialize() override {
         base_type::PushData(&m_data_);
         traits::foreach (m_data_, [&](auto& a, auto i0, auto&&... idx) {
-            if (a.empty()) {
+            if (a.isNull()) {
                 a.SetSpaceFillingCurve(m_host_->GetSpaceFillingCurve(IFORM, i0));
-                a.Update();
+                a.Initialize();
             }
         });
     }
 
-    void DoTearDown() override {
-        base_type::PopData(&m_data_);
-        base_type::DoTearDown();
-    }
-
-    std::size_t size() const {
-        return static_cast<std::size_t>(m_host_ == nullptr ? 0
-                                                           : (m_host_->GetNumberOfEntity(IFORM) * data_type::size()));
-    }
-
-    bool empty() const override { return size() == 0; }
+    void DoFinalize() override { base_type::PopData(&m_data_); }
 
     void swap(this_type& other) {
         base_type::swap(other);
@@ -129,7 +119,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
 
     template <typename Other>
     void Set(Other&& v) {
-        base_type::Update();
+        Update();
         m_host_->Fill(*this, std::forward<Other>(v));
     }
 
@@ -153,7 +143,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
 
     template <typename MR, typename UR, int... NR>
     void DeepCopy(Field<MR, UR, NR...> const& other) {
-        base_type::Update();
+        Update();
         m_data_ = other.Get();
     }
     void Clear() { Set(0); }
@@ -204,26 +194,6 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     decltype(auto) scatter(Args&&... args) {
         return m_host_->scatter(*this, std::forward<Args>(args)...);
     }
-
-    //    void Push(std::shared_ptr<data::DataBlock> p) override {
-    //        base_type::Update();
-    //        auto d = std::dynamic_pointer_cast<data::DataMultiArray<value_type, NDIMS>>(p);
-    //        int count = 0;
-    //        traits::foreach (m_data_, [&](auto& a, auto&&... idx) {
-    //            a.swap(d->GetArray(count));
-    //            ++count;
-    //        });
-    //    };
-    //    std::shared_ptr<data::DataBlock> Pop() override {
-    //        auto res = std::make_shared<data::DataMultiArray<value_type, NDIMS>>(m_data_.size());
-    //        int count = 0;
-    //        traits::foreach (m_data_, [&](auto& a, auto&&... idx) {
-    //            res->GetArray(count).swap(a);
-    //            ++count;
-    //        });
-    //        base_type::TearDown();
-    //        return res;
-    //    };
 
 };  // class Field
 

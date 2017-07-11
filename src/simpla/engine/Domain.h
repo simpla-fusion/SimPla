@@ -150,16 +150,21 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
 
 #define DEFINE_INVOKE_HELPER(_FUN_NAME_)                                                                           \
     CHECK_MEMBER_FUNCTION(has_mem_fun_##_FUN_NAME_, _FUN_NAME_)                                                    \
-    template <template <typename> class _T0, typename this_type, typename... Args>                                 \
-    void _invoke_##_FUN_NAME_(this_type *self, std::true_type const &, Args &&... args) {                          \
-        _T0<this_type>::_FUN_NAME_(std::forward<Args>(args)...);                                                   \
+    template <typename this_type, typename... Args>                                                                \
+    void _invoke_##_FUN_NAME_(std::true_type const &, this_type *self, Args &&... args) {                          \
+        self->_FUN_NAME_(std::forward<Args>(args)...);                                                             \
     }                                                                                                              \
-    template <template <typename> class _T0, typename this_type, typename... Args>                                 \
+    template <typename this_type, typename... Args>                                                                \
     void _invoke_##_FUN_NAME_(std::false_type const &, this_type *self, Args &&... args) {}                        \
     template <template <typename> class _T0, typename this_type, typename... Args>                                 \
+    void _try_invoke_##_FUN_NAME_(this_type const *self, Args &&... args) {                                        \
+        _invoke_##_FUN_NAME_(has_mem_fun_##_FUN_NAME_<_T0<this_type> const, void, Args...>(),                      \
+                             dynamic_cast<_T0<this_type> const *>(self), std::forward<Args>(args)...);             \
+    }                                                                                                              \
+    template <template <typename> class _T0, typename this_type, typename... Args>                                 \
     void _try_invoke_##_FUN_NAME_(this_type *self, Args &&... args) {                                              \
-        _invoke_##_FUN_NAME_<_T0>(has_mem_fun_##_FUN_NAME_<_T0<this_type>, void, Args...>(), self,                      \
-                             std::forward<Args>(args)...);                                                         \
+        _invoke_##_FUN_NAME_(has_mem_fun_##_FUN_NAME_<_T0<this_type>, void, Args...>(),                            \
+                             dynamic_cast<_T0<this_type> *>(self), std::forward<Args>(args)...);                   \
     }                                                                                                              \
     template <template <typename> class _T0, template <typename> class _T1, template <typename> class... _TOthers, \
               typename this_type, typename... Args>                                                                \

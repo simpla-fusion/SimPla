@@ -57,8 +57,10 @@ struct RectMesh : public StructuredMesh {
 
 template <typename THost>
 void RectMesh<THost>::InitialCondition(Real time_now) {
-    m_coordinates_ = [&](EntityId s) -> point_type { return global_coordinates(s, nullptr); };
-    m_vertices_ = [&](EntityId s) -> point_type { return global_coordinates(s, nullptr); };
+    //    m_coordinates_ = [&](auto&&... s) -> point_type { return global_coordinates(std::forward<decltype(s)>(s)...);
+    //    };
+    //    m_vertices_ = [&](auto&&... s) -> point_type { return global_coordinates(0, std::forward<decltype(s)>(s)...);
+    //    };
     m_vertex_volume_.Clear();
     m_vertex_inv_volume_.Clear();
     m_vertex_dual_volume_.Clear();

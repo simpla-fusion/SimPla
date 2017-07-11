@@ -53,6 +53,7 @@ class StructuredMesh {
 
     point_type point(entity_id_type s) const;
 
+    point_type local_coordinates(int tag, index_type x, index_type y, index_type z) const;
     virtual point_type local_coordinates(entity_id_type s, Real const *r) const;
     template <typename... Args>
     point_type global_coordinates(Args &&... args) const {

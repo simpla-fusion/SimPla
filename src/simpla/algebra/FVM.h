@@ -26,29 +26,13 @@ struct FVM {
 
     typedef THost domain_type;
     static constexpr unsigned int NDIMS = 3;
-    template <typename V>
-    using array = Array<V, ZSFC<NDIMS>>;
 
     //**********************************************************************************************
     // for element-wise arithmetic operation
 
-    template <int IFORM, typename U, int... N, typename... Args>
-    decltype(auto) GetEntity(nTuple<array<U>, N...>& lhs, Args&&... args) const {
-        return calculus::getValue(lhs, std::forward<Args>(args)...);
-    }
-
     template <int IFORM, typename... E>
     auto GetEntity(Expression<E...> const& rhs, EntityId s) const {
         return getValue(rhs, IdxShift{0, 0, 0}, EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], s.x, s.y, s.z);
-    }
-
-    template <int IFORM, typename U, int... N>
-    decltype(auto) GetEntity(nTuple<array<U>, N...>& lhs, EntityId s) const {
-        return traits::recursive_index(lhs[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]], s.w >> 3)(s.x, s.y, s.z);
-    }
-    template <int IFORM, typename U, int... N>
-    decltype(auto) GetEntity(nTuple<array<U>, N...> const& lhs, EntityId s) const {
-        return traits::recursive_index(lhs[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]], s.w >> 3)(s.x, s.y, s.z);
     }
 
     template <int IFORM, typename RHS>
@@ -69,47 +53,6 @@ struct FVM {
     decltype(auto) GetEntity(RHS const& rhs, EntityId s,
                              ENABLE_IF((traits::is_invocable<RHS, point_type>::value))) const {
         return GetEntity(rhs(m_host_->point(s)), s);
-    }
-
-    template <int IFORM, typename U, int... N, typename RHS, typename... Args>
-    void SetEntity(nTuple<array<U>, N...>& lhs, RHS&& rhs, Args&&... args) const {
-        GetEntity<IFORM>(lhs, std::forward<Args>(args)...) =
-            GetEntity<IFORM>(std::forward<RHS>(rhs), std::forward<Args>(args)...);
-    }
-    //    template <typename U, int IFORM, int... DOF, typename RHS>
-    //     void Fill( nTuple<array<U>,N...>& lhs, RHS const& rhs)const{
-    //        traits::foreach (lhs.Get(), [&](auto& a, auto&&... subs)const{
-    //            a = getValue(rhs, IdxShift{0, 0, 0}, std::forward<decltype(subs)>(subs)...);
-    //        });
-    //    }
-
-    template <typename OtherMesh, typename U, int IFORM, int... N, typename RHS>
-    void Fill(Field<OtherMesh, U, IFORM, N...>& lhs, RHS&& rhs) const {
-        //        traits::foreach (lhs.Get(), [&](auto& a, int n0, auto&&... subs) {
-        //            int tag = EntityIdCoder::m_sub_index_to_id_[IFORM][n0] |
-        //                      (reduction_v(tags::multiplication(), 1, std::forward<decltype(subs)>(subs * DOF)...) <<
-        //                      3);
-        //
-        //            int n = (IFORM == VERTEX || IFORM == VOLUME)
-        //                        ? (reduction_v(tags::addition(), 0, std::forward<decltype(subs)>(subs)...))
-        //                        : n0;
-        //            a = [&](index_type x, index_type y, index_type z) {
-        //                EntityId s;
-        //                s.w = tag;
-        //                s.x = x;
-        //                s.y = y;
-        //                s.z = z;
-        //                return calculus::getValue((getValue(rhs, IdxShift{0, 0, 0}, s)), n);
-        //            };
-        //        });
-
-        //        else if (!r.isNull()) {
-        //            r.foreach ([&](EntityId s) {
-        //                lhs[s] = calculus::getValue(getValue(rhs, IdxShift{0, 0, 0}, s),
-        //                                            (IFORM == VERTEX || IFORM == VOLUME) ? (s.w >> 3) : (s.w &
-        //                                            0b111));
-        //            });
-        //        }
     }
 
     template <size_t... I, typename TOP, typename... Args, typename... Others>
@@ -586,6 +529,13 @@ struct FVM {
                    getValue(r, S, 0, (n + 2) % 3, std::forward<Others>(others)...) -
                getValue(l, S, 0, (n + 2) % 3, std::forward<Others>(others)...) *
                    getValue(r, S, 0, (n + 1) % 3, std::forward<Others>(others)...);
+    }
+
+    template <typename U, int IFORM, int... N, typename RHS>
+    void Fill(Field<THost, U, IFORM, N...>& lhs, RHS&& rhs) const {
+        traits::foreach (lhs.Get(), [&](auto& a, int n0, auto&&... subs) {
+            getValue(std::forward<RHS>(rhs), IdxShift{0, 0, 0}, std::forward<decltype(subs)>(subs)...);
+        });
     }
 
     //    ///*********************************************************************************************

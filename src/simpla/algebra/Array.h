@@ -64,21 +64,12 @@ class Array {
         return *this;
     };
 
-    void Update() {
-        if (m_data_ == nullptr) {
-            m_holder_ = spMakeShared<value_type>(m_data_, m_sfc_.size());
-            m_host_data_ = m_data_;
-            m_data_ = m_holder_.get();
-#ifndef NDEBUG
-            spMemoryFill(m_data_, std::numeric_limits<V>::signaling_NaN(), m_sfc_.size());
-#endif
-        }
-    }
     void SetSpaceFillingCurve(SFC const& s) { m_sfc_ = s; }
     SFC const& GetSpaceFillingCurve() const { return m_sfc_; }
 
     int GetNDIMS() const { return SFC::ndims; }
     bool empty() const { return m_data_ == nullptr; }
+    bool isNull() const { return m_data_ == nullptr; }
     std::type_info const& value_type_info() const { return typeid(value_type); }
     size_type size() const { return m_sfc_.size(); }
 
@@ -101,12 +92,28 @@ class Array {
         m_sfc_.Shift(std::forward<Args>(args)...);
     }
 
+    void Update() {
+        if (m_data_ == nullptr) {
+            m_holder_ = spMakeShared<value_type>(m_data_, m_sfc_.size());
+            m_host_data_ = m_data_;
+            m_data_ = m_holder_.get();
+        }
+    }
+
+    void Initialize() {
+        Update();
+#ifndef NDEBUG
+        Fill(std::numeric_limits<V>::signaling_NaN());
+#else
+        Fill(0);
+#endif
+    }
+
     void Fill(value_type v) {
         Update();
         spMemoryFill(m_data_, v, m_sfc_.size());
     }
     void Clear() { Fill(0); }
-    void SetUndefined() { Fill(std::numeric_limits<value_type>::signaling_NaN()); }
 
     void DeepCopy(value_type const* other) {
         Update();
@@ -125,6 +132,7 @@ class Array {
         Assign(rhs);
         return (*this);
     }
+
     this_type operator()(IdxShift const& idx) const { return this_type(*this, idx); }
 
     std::ostream& Print(std::ostream& os, int indent = 0) const { return m_sfc_.Print(os, m_data_, indent); }

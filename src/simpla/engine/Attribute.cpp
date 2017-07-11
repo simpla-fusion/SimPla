@@ -50,7 +50,9 @@ struct AttributeGroup::pimpl_s {
 };
 
 AttributeGroup::AttributeGroup() : m_pimpl_(new pimpl_s) {}
-AttributeGroup::~AttributeGroup() {}
+AttributeGroup::~AttributeGroup() {
+    for (auto &item : m_pimpl_->m_attributes_) { item.second->Deregister(this); }
+}
 void AttributeGroup::RegisterDescription(std::map<std::string, std::shared_ptr<AttributeDesc>> *m) {
     for (auto &item : m_pimpl_->m_attributes_) { (*m)[item.first] = item.second->GetDescription(); }
 };
@@ -64,9 +66,6 @@ void AttributeGroup::DeregisterFrom(AttributeGroup *other) {
 void AttributeGroup::Push(Patch *p) {
     for (auto &item : GetAllAttributes()) { item.second->Push(p->Pop(item.second->GetID())); }
 }
-//    std::string prefix = GetDomainPrefix();
-//    auto k = prefix + "." + std::string(EntityIFORMName[item.second->GetIFORM()]) + "_BODY";
-//        auto it = ;
 
 void AttributeGroup::Pull(Patch *p) {
     for (auto &item : GetAllAttributes()) { p->Push(item.second->GetID(), item.second->Pop()); }
@@ -111,7 +110,6 @@ Attribute const *AttributeGroup::Get(std::string const &k) const {
 
 struct Attribute::pimpl_s {
     std::set<AttributeGroup *> m_bundle_;
-    bool m_is_initialized_ = false;
     std::shared_ptr<data::DataBlock> m_data_block_ = nullptr;
 };
 Attribute::Attribute(AttributeGroup *grp, int IFORM, int DOF, std::type_info const &t_info,
@@ -122,17 +120,33 @@ Attribute::Attribute(AttributeGroup *grp, int IFORM, int DOF, std::type_info con
     Register(grp);
 };
 
-Attribute::Attribute(Attribute const &other) : AttributeDesc(other), m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_is_initialized_ = other.m_pimpl_->m_is_initialized_;
+Attribute::Attribute(Attribute const &other) : SPObject(other), AttributeDesc(other), m_pimpl_(new pimpl_s) {
     for (auto *grp : other.m_pimpl_->m_bundle_) { Register(grp); }
+    Initialize();
 }
-Attribute::Attribute(Attribute &&other) noexcept : AttributeDesc(std::move(other)), m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_is_initialized_ = other.m_pimpl_->m_is_initialized_;
-    for (auto *grp : other.m_pimpl_->m_bundle_) { Register(grp); }
-    other.TearDown();
+Attribute::Attribute(Attribute &&other) noexcept
+    : SPObject(std::move(other)), AttributeDesc(std::move(other)), m_pimpl_(std::move(other.m_pimpl_)) {
+    for (auto *grp : m_pimpl_->m_bundle_) {
+        grp->Detach(&other);
+        grp->Attach(this);
+    }
 }
 Attribute::~Attribute() {
-    for (auto *attr : m_pimpl_->m_bundle_) { attr->Detach(this); }
+    for (auto *grp : m_pimpl_->m_bundle_) { grp->Detach(this); }
+}
+void Attribute::swap(Attribute &other) {
+    SPObject::swap(other);
+    AttributeDesc::swap(other);
+    std::swap(m_pimpl_->m_data_block_, other.m_pimpl_->m_data_block_);
+
+    for (auto *grp : m_pimpl_->m_bundle_) {
+        grp->Detach(this);
+        grp->Attach(&other);
+    }
+    for (auto *grp : other.m_pimpl_->m_bundle_) {
+        grp->Detach(&other);
+        grp->Attach(this);
+    }
 }
 
 void Attribute::Register(AttributeGroup *attr_b) {
@@ -147,14 +161,18 @@ void Attribute::Deregister(AttributeGroup *attr_b) {
         m_pimpl_->m_bundle_.erase(attr_b);
     }
 }
-void Attribute::Push(std::shared_ptr<data::DataBlock> d) { m_pimpl_->m_data_block_ = d; }
-std::shared_ptr<data::DataBlock> Attribute::Pop() { return std::move(m_pimpl_->m_data_block_); }
+void Attribute::Push(std::shared_ptr<data::DataBlock> d) {
+    m_pimpl_->m_data_block_ = std::move(d);
+    Initialize();
+}
+std::shared_ptr<data::DataBlock> Attribute::Pop() {
+    Finalize();
+    return std::move(m_pimpl_->m_data_block_);
+}
 data::DataBlock *Attribute::GetDataBlock() { return m_pimpl_->m_data_block_.get(); }
 data::DataBlock const *Attribute::GetDataBlock() const { return m_pimpl_->m_data_block_.get(); }
-void Attribute::swap(Attribute &) {}
-// bool Attribute::isInitialized() const { return m_pimpl_->m_is_initialized_; }
-bool Attribute::isNull() const { return true; }
-void Attribute::DoUpdate() { SPObject::DoUpdate(); };
+
+bool Attribute::isNull() const { return m_pimpl_->m_data_block_ == nullptr; }
 
 }  //{ namespace engine
 }  // namespace simpla

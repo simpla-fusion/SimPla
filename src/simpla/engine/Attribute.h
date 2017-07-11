@@ -154,8 +154,6 @@ struct Attribute : public SPObject, public AttributeDesc {
     Attribute &operator=(Attribute &&other) = delete;
     ~Attribute() override;
 
-    void DoUpdate() override;
-
     void Register(AttributeGroup *);
     void Deregister(AttributeGroup *);
 
@@ -165,7 +163,7 @@ struct Attribute : public SPObject, public AttributeDesc {
     virtual void Push(std::shared_ptr<data::DataBlock>);
     virtual std::shared_ptr<data::DataBlock> Pop();
 
-    virtual void swap(Attribute &);
+    virtual void swap(Attribute &other);
 
     virtual bool isNull() const;
     virtual bool empty() const { return isNull(); };
@@ -184,16 +182,22 @@ template <typename U, typename... Others, int... N>
 void Attribute::PushData(nTuple<Array<U, Others...>, N...> *d) {
     typedef Array<U, Others...> array_type;
     auto *blk = dynamic_cast<data::DataMultiArray<array_type> *>(GetDataBlock());
-    int count = 0;
-    traits::foreach (*d, [&](array_type &a, auto &&... idx) {
-        array_type(*blk->Get(count)).swap(a);
-        ++count;
-    });
+    if (blk != nullptr) {
+        int count = 0;
+        traits::foreach (*d, [&](array_type &a, auto &&... idx) {
+            array_type(*blk->Get(count)).swap(a);
+            ++count;
+        });
+    }
 };
 template <typename U, typename... Others, int... N>
 void Attribute::PopData(nTuple<Array<U, Others...>, N...> *d) {
     typedef Array<U, Others...> array_type;
     auto *blk = dynamic_cast<data::DataMultiArray<array_type> *>(GetDataBlock());
+    if (blk == nullptr) {
+        Push(std::make_shared<data::DataMultiArray<array_type>>(d->size()));
+        blk = dynamic_cast<data::DataMultiArray<array_type> *>(GetDataBlock());
+    }
     int count = 0;
     traits::foreach (*d, [&](array_type &a, auto &&... idx) {
         array_type(a).swap(*blk->Get(count));

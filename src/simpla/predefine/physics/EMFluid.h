@@ -97,18 +97,18 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
 
 template <typename TM>
 void EMFluid<TM>::InitialCondition(Real time_now) {
-    dumpE.Clear();
-    dumpB.Clear();
-    dumpJ.Clear();
-    E.Clear();
-    B.Clear();
-    J.Clear();
+    dumpE.Initialize();
+    dumpB.Initialize();
+    dumpJ.Initialize();
+    E.Initialize();
+    B.Initialize();
+    J.Initialize();
 
-    Ev.Clear();
-    Bv.Clear();
+    Ev.Initialize();
+    Bv.Initialize();
 
-    B0v.Update();
-    ne.Update();
+    B0v.Initialize();
+    ne.Initialize();
 
     BB = dot(B0v, B0v);
 
