@@ -167,9 +167,9 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
 
             Q -= (0.5 * dt / epsilon0) * Js;
 
-            K = Js + cross_v(Js, B0v) * as + Ev * ns * (qs * 2.0 * as);
+            K = Js + cross(Js, B0v) * as + Ev * ns * (qs * 2.0 * as);
 
-            Js = (K + cross_v(K, B0v) * as + B0v * (dot_v(K, B0v) * as * as)) / (BB * as * as + 1);
+            Js = (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
 
             Q -= (0.5 * dt / epsilon0) * Js;
 
@@ -183,8 +183,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
         c *= 0.5 * dt / epsilon0;
         a += 1;
 
-        dE = (Q * a - cross_v(Q, B0v) * b + B0v * (dot_v(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
-             (b * b * BB + a * a);
+        dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
 
         for (auto& p : m_fluid_sp_) {
             Real ms = p.second->mass;
@@ -196,10 +195,10 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
 
             K = dE * ns * qs * as;
 
-            Js += (K + cross_v(K, B0v) * as + B0v * (dot_v(K, B0v) * as * as)) / (BB * as * as + 1);
+            Js += (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
         }
 
-        E += map_to<EDGE>(dE);
+        E = E + map_to<EDGE>(dE);
     }
 
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
