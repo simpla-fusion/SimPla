@@ -10,19 +10,20 @@
 #include <simpla/utilities/integer_sequence.h>
 #include <simpla/utilities/type_traits.h>
 #include <utility>
-namespace simpla {
-
-namespace traits {
-template <typename T>
-struct is_primary_field : public std::false_type {};
-template <typename TM, typename TV, int IFORM, int DOF>
-class Field;
-template <typename TM, typename TV, int IFORM, int DOF>
-struct is_primary_field<Field<TM, TV, IFORM, DOF>> : public std::true_type {};
-
-template <typename>
-struct num_of_dimension : public std::integral_constant<int, 3> {};
-
+// namespace simpla {
+//
+// template <typename TM, typename TV, int...>
+// class Field;
+// namespace traits {
+// template <typename T>
+// struct is_primary_field : public std::false_type {};
+//
+// template <typename TM, typename TV, int IFORM, int... DOF>
+// struct is_primary_field<Field<TM, TV, IFORM, DOF...>> : public std::true_type {};
+//
+// template <typename>
+// struct num_of_dimension : public std::integral_constant<int, 3> {};
+//
 // CHECK_MEMBER_TYPE(value_type, value_type)
 //
 // template <typename T>
@@ -78,28 +79,28 @@ struct num_of_dimension : public std::integral_constant<int, 3> {};
 // struct reference<const T[N]> {
 //    typedef T const* type;
 //};
-
+//
 //**************************************************************************************************
-
-template <typename T>
-struct field_value_type {
-   private:
-    typedef std::true_type yes;
-    typedef std::false_type no;
-
-    template <typename U>
-    static auto test(int) -> typename U::field_value_type;
-    template <typename>
-    static no test(...);
-    typedef decltype(test<T>(0)) check_result;
-
-   public:
-    typedef std::conditional_t<std::is_same<check_result, no>::value, value_type_t<T>, check_result> type;
-};
-
-template <typename T>
-using field_value_t = typename field_value_type<T>::type;
-
+//
+// template <typename T>
+// struct field_value_type {
+//   private:
+//    typedef std::true_type yes;
+//    typedef std::false_type no;
+//
+//    template <typename U>
+//    static auto test(int) -> typename U::field_value_type;
+//    template <typename>
+//    static no test(...);
+//    typedef decltype(test<T>(0)) check_result;
+//
+//   public:
+//    typedef std::conditional_t<std::is_same<check_result, no>::value, value_type_t<T>, check_result> type;
+//};
+//
+// template <typename T>
+// using field_value_t = typename field_value_type<T>::type;
+//
 // CHECK_BOOLEAN_TYPE_MEMBER(is_array, is_array)
 // CHECK_BOOLEAN_TYPE_MEMBER(is_field, is_field)
 //// CHECK_BOOLEAN_TYPE_MEMBER(is_nTuple, is_nTuple)
@@ -199,9 +200,9 @@ using field_value_t = typename field_value_type<T>::type;
 // template <typename First, typename... Others>
 // struct is_scalar<First, Others...>
 //    : public std::integral_constant<bool, is_scalar<First>::value && is_scalar<Others...>::value> {};
-
-}  // namespace traits
-
+//
+//}  // namespace traits
+//
 // template <typename T, int... N>
 // using nTuple = algebra::declare::nTuple_<T, N...>;
 //
@@ -216,6 +217,5 @@ using field_value_t = typename field_value_type<T>::type;
 //
 // template <typename T, int N, bool is_slow_first = true>
 // using Array = algebra::declare::Array_<T, N, is_slow_first>;
-
-}  // namespace simpla
+//}  // namespace simpla
 #endif  // SIMPLA_ALGEBRACOMMON_H

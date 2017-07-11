@@ -16,48 +16,6 @@
 namespace simpla {
 template <typename TM, typename TV, int...>
 class Field;
-}  // namespace simpla
-
-namespace std {
-template <typename TM, typename TV, int IFORM, int... DOF>
-struct rank<simpla::Field<TM, TV, IFORM, DOF...>> : public std::integral_constant<int, sizeof...(DOF)> {};
-
-}  // namespace std{
-
-namespace simpla {
-
-namespace traits {
-
-template <typename TM, typename TV, int... I>
-struct reference<Field<TM, TV, I...>> {
-    typedef const Field<TM, TV, I...>& type;
-};
-
-template <typename TM, typename TV, int... I>
-struct reference<const Field<TM, TV, I...>> {
-    typedef const Field<TM, TV, I...>& type;
-};
-template <typename...>
-struct iform;
-template <typename TM, typename TV, int IFORM, int... DOF>
-struct iform<Field<TM, TV, IFORM, DOF...>> : public std::integral_constant<int, IFORM> {};
-
-template <typename TF>
-struct dof : public std::integral_constant<int, 1> {};
-
-template <typename TM, typename TV, int IFORM, int... DOF>
-struct dof<Field<TM, TV, IFORM, DOF...>>
-    : public std::integral_constant<int, reduction_v(tags::multiplication(), 1, DOF...)> {};
-
-template <typename>
-struct value_type;
-
-template <typename TM, typename TV, int IFORM, int DOF>
-struct value_type<Field<TM, TV, IFORM, DOF>> {
-    typedef TV type;
-};
-}  // namespace traits {
-
 template <typename TM, typename TV, int IFORM, int... DOF>
 class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
    private:

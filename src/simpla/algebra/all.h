@@ -8,10 +8,11 @@
 #include "Algebra.h"
 #include "Array.h"
 #include "ArrayNTuple.h"
+#include "Calculus.h"
 #include "FVM.h"
 #include "Field.h"
-#include "nTuple.h"
 #include "nTuple.ext.h"
+#include "nTuple.h"
 /**
  * @addtogroup algebra Algebra System
  **/

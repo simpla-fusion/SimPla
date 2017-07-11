@@ -17,19 +17,62 @@
 #include <simpla/utilities/macro.h>
 #include <simpla/utilities/type_traits.h>
 
-#include "Algebra.h"
-
 namespace simpla {
 template <typename...>
 class Expression;
 
 template <typename TM, typename TV, int...>
 class Field;
-}
+
+}  // namespace simpla
+
+namespace std {
+template <typename TM, typename TV, int IFORM, int... DOF>
+struct rank<simpla::Field<TM, TV, IFORM, DOF...>> : public std::integral_constant<int, sizeof...(DOF)> {};
+}  // namespace std{
 
 namespace simpla {
 
+namespace traits {
 
+template <typename TM, typename TV, int... I>
+struct reference<Field<TM, TV, I...>> {
+    typedef const Field<TM, TV, I...>& type;
+};
+
+template <typename TM, typename TV, int... I>
+struct reference<const Field<TM, TV, I...>> {
+    typedef const Field<TM, TV, I...>& type;
+};
+template <typename, typename Enable = void>
+struct iform;
+template <typename T>
+struct iform<const T> : public std::integral_constant<int, iform<T>::value> {};
+
+template <typename T>
+struct iform<T, std::enable_if_t<std::is_arithmetic<T>::value>> : public std::integral_constant<int, VERTEX> {};
+
+template <typename TM, typename TV, int IFORM>
+struct iform<Field<TM, TV, IFORM>> : public std::integral_constant<int, IFORM> {};
+
+template <typename TM, typename TV, int IFORM, int... DOF>
+struct iform<Field<TM, TV, IFORM, DOF...>> : public std::integral_constant<int, IFORM> {};
+
+template <typename TF>
+struct dof : public std::integral_constant<int, 1> {};
+
+template <typename TM, typename TV, int IFORM, int... DOF>
+struct dof<Field<TM, TV, IFORM, DOF...>>
+    : public std::integral_constant<int, reduction_v(tags::multiplication(), 1, DOF...)> {};
+
+template <typename>
+struct value_type;
+
+template <typename TM, typename TV, int IFORM, int DOF>
+struct value_type<Field<TM, TV, IFORM, DOF>> {
+    typedef TV type;
+};
+}  // namespace traits {
 
 /**
  * @defgroup algebra Algebra
@@ -76,10 +119,7 @@ _SP_DEFINE_EXPR_BINARY_FUNCTION(wedge)
 //_SP_DEFINE_EXPR_BINARY_FUNCTION(dot)
 
 namespace traits {
-template <typename...>
-struct iform;
-template <typename T>
-struct iform<T> : public std::integral_constant<int, VERTEX> {};
+
 //******************************************************
 
 template <typename T>
@@ -128,7 +168,6 @@ template <typename T0, typename T1>
 struct value_type<Expression<tags::dot, T0, T1>> {
     typedef std::result_of_t<tags::multiplication(value_type_t<T0>, value_type_t<T1>)> type;
 };
-//******************************************************
 
 }  // namespace traits
 
@@ -137,68 +176,6 @@ auto inner_product(TL const& lhs, TR const& rhs,
                    ENABLE_IF((traits::dimension<TL>::value + traits::dimension<TR>::value > 0))) {
     return (wedge(lhs, hodge_star(rhs)));
 }
-
-// template <typename TL, typename TR>
-// auto cross(TL const& lhs, TR const& rhs,
-//           ENABLE_IF((traits::is_field<TL, TR>::value) &&
-//                     (traits::iform<TL>::value == EDGE && traits::iform<TR>::value == EDGE))) {
-//    return ((wedge(lhs, rhs)));
-//}
-//
-// template <typename TL, typename TR>
-// auto cross(TL const& lhs, TR const& rhs,
-//           ENABLE_IF((traits::is_field<TL, TR>::value) &&
-//                     (traits::iform<TL>::value == FACE && traits::iform<TR>::value == FACE))) {
-//    return (hodge_star(wedge(hodge_star(lhs), hodge_star(rhs))));
-//}
-
-// template <typename TL, typename TR>
-// auto dot(TL const& lhs, TR const& rhs,
-//         ENABLE_IF((traits::is_field<TL, TR>::value) &&
-//                   (traits::iform<TL>::value == VERTEX || traits::iform<TL>::value == VOLUME ||
-//                    traits::iform<TR>::value == VERTEX || traits::iform<TR>::value == VOLUME))) {
-//    return ((Expression<tags::dot, const TL, const TR>(lhs, rhs)));
-//};
-//
-// template <typename TL, typename TR>
-// auto cross(TL const& l, TR const& r, ENABLE_IF(!(traits::is_field<TL, TR>::value))) {
-//    return ((Expression<tags::nTuple_cross, const TL, const TR>(l, r)));
-//}
-// template <typename TL, typename TR>
-// auto dot(TL const& lhs, TR const& rhs, ENABLE_IF(!(traits::is_field<TL, TR>::value) &&
-//                                                 !(std::is_arithmetic<TL>::value && std::is_arithmetic<TR>::value))) {
-//    return Expression<tags::nTuple_dot, const TL, const TR>(lhs, rhs);
-//}
-// template <typename TL, typename TR>
-// auto dot(TL const& lhs, TR const& rhs, ENABLE_IF((std::is_arithmetic<TL>::value && std::is_arithmetic<TR>::value))) {
-//    return lhs * rhs;
-//}
-// template<typename  T>
-//  auto operator*(T const &f) AUTO_RETURN((hodge_star(f)))
-//
-// template<int ndims, typename TL, typename ...T>
-//  auto iv(nTuple<TL, ndims> const &v, Field<T...> const &f)
-// AUTO_RETURN((interior_product(v, f)))
-//
-// template<typename ...T1, typename ... T2>
-//  auto operator^(Field<T1...> const &lhs, Field<T2...> const &rhs)
-// AUTO_RETURN((wedge(lhs, rhs)))
-
-// template<typename TL, typename ... TR>  auto
-// dot(nTuple<TL, 3> const &v, Field<TR...> const &f)
-// AUTO_RETURN((interior_product(v, f)))
-//
-// template<typename ...TL, typename TR>  auto
-// dot(Field<TL...> const &f, nTuple<TR, 3> const &v)
-// AUTO_RETURN((interior_product(v, f)));
-//
-// template<typename ... TL, typename TR>  auto
-// cross(nTuple<TR, 3> const &v, Field<TL...> const &f)
-// AUTO_RETURN((interior_product(v, hodge_star(f))));
-//
-// template<typename ... T, typename TL>  auto
-// cross(Field<T...> const &f, nTuple<TL, 3> const &v)
-// AUTO_RETURN((interior_product(v, f)));
 
 /**
  * @defgroup dif_calculus_form Differential calculus on forms
@@ -224,17 +201,6 @@ struct grad {};
 struct curl {};
 struct diverge {};
 }  // namespace tags
-
-// template<int I, typename T1> auto // Expression<tags::p_exterior_derivative<I>,
-// const T1>
-// p_exterior_derivative(T1 const &l)
-// AUTO_RETURN((Expression<tags::p_exterior_derivative<I>, const T1>(l)))
-//
-//
-// template<int I, typename T1> auto
-// //Expression<tags::p_codifferential_derivative<I>, const T1>
-// p_codifferential_derivative(T1 const &l) AUTO_RETURN(
-//        (Expression<tags::p_codifferential_derivative<I>, const T1>(l)))
 
 namespace traits {
 
@@ -408,7 +374,7 @@ auto curl(T const& f, std::integral_constant<int, VOLUME> const&) {
 }
 template <typename T>
 auto curl(T const& f) {
-    return curl(f, traits::iform<T>());
+    return curl(f, traits::iform<std::remove_cv_t<T>>());
 }
 
 template <int I, typename U>
