@@ -40,12 +40,14 @@ class DataBlock : public DataEntity {
     virtual void Clear() { UNIMPLEMENTED; };
     virtual void Copy(DataBlock const &other) { UNIMPLEMENTED; };
 };
+template <typename... Others>
+class DataMultiArray;
 
-template <typename U, int NDIMS>
-class DataMultiArray : public DataBlock {
+template <typename U, typename... Others>
+class DataMultiArray<simpla::Array<U, Others...>> : public DataBlock {
    public:
-    typedef simpla::Array<U> array_type;
-    typedef DataMultiArray<U, NDIMS> multi_array_type;
+    typedef Array<U, Others...> array_type;
+    typedef DataMultiArray<array_type> multi_array_type;
     SP_OBJECT_HEAD(multi_array_type, DataBlock);
 
     typedef U value_type;
@@ -61,7 +63,6 @@ class DataMultiArray : public DataBlock {
     size_type size() const { return m_data_.size(); }
     bool empty() const override { return m_data_.size() == 0; }
     std::type_info const &value_type_info() const override { return typeid(value_type); };
-    int GetNDIMS() const override { return NDIMS; }
     size_type GetDepth() const override { return m_data_.size(); }
 
     void SetArray(int depth, array_type d) { array_type(d).swap(m_data_.at(depth)); }

@@ -319,23 +319,23 @@ Array<T, ZSFC<NDIMS>> create_array(SAMRAI::pdat::ArrayData<T> &p_data, int depth
     auto i_lower = p_data.getBox().lower();
     auto i_upper = p_data.getBox().upper();
 
-    return Array<T, ZSFC<NDIMS>>(
-        p_data.getPointer(depth),
-        typename Array<T, ZSFC<NDIMS>>::array_index_box_type{{i_lower[0], i_lower[1], i_lower[2]},
-                                                             {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}},
-        true);
+    return Array<T, ZSFC<NDIMS>>(ZSFC<NDIMS>(index_box_type{{i_lower[0], i_lower[1], i_lower[2]},
+                                                            {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}},
+                                             true),
+                                 p_data.getPointer(depth));
+    ;
 };
 
 template <int NDIMS, typename T>
 std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, std::shared_ptr<SAMRAI::hier::PatchData> pd) {
-    std::shared_ptr<data::DataMultiArray<T, NDIMS>> res = nullptr;
     typedef Array<T, ZSFC<NDIMS>> array_type;
+    std::shared_ptr<data::DataMultiArray<array_type>> res = nullptr;
 
     switch (IFORM) {
         case VERTEX: {
             auto p_data = std::dynamic_pointer_cast<SAMRAI::pdat::NodeData<T>>(pd);
             int depth = p_data->getDepth();
-            res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth);
+            res = std::make_shared<data::DataMultiArray<array_type>>(depth);
             for (int d = 0; d < depth; ++d) {
                 create_array<T, NDIMS>(p_data->getArrayData(), d).swap(res->GetArray(d));
             }
@@ -344,7 +344,7 @@ std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, std::shared_
         case EDGE: {
             auto p_data = std::dynamic_pointer_cast<SAMRAI::pdat::EdgeData<T>>(pd);
             int depth = p_data->getDepth();
-            res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth * 3);
+            res = std::make_shared<data::DataMultiArray<array_type>>(depth * 3);
             for (int axis = 0; axis < 3; ++axis) {
                 for (int d = 0; d < depth; ++d) {
                     create_array<T, NDIMS>(p_data->getArrayData(axis), d).swap(res->GetArray(axis * depth + d));
@@ -355,7 +355,7 @@ std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, std::shared_
         case FACE: {
             auto p_data = std::dynamic_pointer_cast<SAMRAI::pdat::SideData<T>>(pd);
             int depth = p_data->getDepth();
-            res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth * 3);
+            res = std::make_shared<data::DataMultiArray<array_type>>(depth * 3);
             for (int axis = 0; axis < 3; ++axis) {
                 for (int d = 0; d < depth; ++d) {
                     create_array<T, NDIMS>(p_data->getArrayData(axis), d).swap(res->GetArray(axis * depth + d));
@@ -366,7 +366,7 @@ std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, std::shared_
         case VOLUME: {
             auto p_data = std::dynamic_pointer_cast<SAMRAI::pdat::CellData<T>>(pd);
             int depth = p_data->getDepth();
-            res = std::make_shared<data::DataMultiArray<T, NDIMS>>(depth);
+            res = std::make_shared<data::DataMultiArray<array_type>>(depth);
             for (int d = 0; d < depth; ++d) {
                 create_array<T, NDIMS>(p_data->getArrayData(), d).swap(res->GetArray(d));
             }
@@ -654,7 +654,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
         m_ctx_->InitialCondition(&p, data_time);
 
         //        m_ctx_->GetBaseMesh()->Deserialize(p.get());
-        //        VERBOSE << "DoInitialize MeshBase : " << m_ctx_->GetBaseMesh()->GetRegisterName() << std::endl;
+        //        VERBOSE << "DoInitialize MeshBase : " << m_ctx_->GetBaseMesh()->GetRegisterName() <<
+        //        std::endl;
         //        m_ctx_->GetBaseMesh()->InitialCondition(data_time);
         //        for (auto const &item : m_ctx_->GetModel().GetAll()) {
         //            m_ctx_->GetBaseMesh()->RegisterRanges(item.second, item.first);
@@ -934,11 +935,13 @@ void SAMRAITimeIntegrator::DoUpdate() {
     std::tie(x_low, x_up) = atlas.GetBox();
 
     //    p_mesh->point(
-    //        EntityId{static_cast<int16_t>(i_low[0]), static_cast<int16_t>(i_low[1]), static_cast<int16_t>(i_low[2]),
+    //        EntityId{static_cast<int16_t>(i_low[0]), static_cast<int16_t>(i_low[1]),
+    //        static_cast<int16_t>(i_low[2]),
     //        0},
     //        nullptr);
     //    p_mesh->point(
-    //        EntityId{static_cast<int16_t>(i_up[0]), static_cast<int16_t>(i_up[1]), static_cast<int16_t>(i_up[2]), 0},
+    //        EntityId{static_cast<int16_t>(i_up[0]), static_cast<int16_t>(i_up[1]),
+    //        static_cast<int16_t>(i_up[2]), 0},
     //        nullptr);
 
     CartesianGridGeometry->putIntegerArray("periodic_dimension", &periodic_dimension[0], ndims);
@@ -1046,10 +1049,10 @@ void SAMRAITimeIntegrator::DoUpdate() {
 
     m_pimpl_->m_time_refinement_integrator_->initializeHierarchy();
 
-//    m_pimpl_->grid_geometry->printClassData(std::cout);
-//    m_pimpl_->hyp_level_integrator->printClassData(std::cout);
-//
-//    m_pimpl_->m_time_refinement_integrator_->printClassData(std::cout);
+    //    m_pimpl_->grid_geometry->printClassData(std::cout);
+    //    m_pimpl_->hyp_level_integrator->printClassData(std::cout);
+    //
+    //    m_pimpl_->m_time_refinement_integrator_->printClassData(std::cout);
 
     MESSAGE << "==================  Context is initialized!  =================" << std::endl;
 };
@@ -1093,7 +1096,8 @@ void SAMRAITimeIntegrator::Dump() const {
     //    }
 }
 bool SAMRAITimeIntegrator::Done() const {
-    // m_pimpl_->m_time_refinement_integrator != nullptr ? !m_pimpl_->m_time_refinement_integrator->stepsRemaining():;
+    // m_pimpl_->m_time_refinement_integrator != nullptr ?
+    // !m_pimpl_->m_time_refinement_integrator->stepsRemaining():;
     return engine::TimeIntegrator::Done();
 }
 }  // namespace simpla

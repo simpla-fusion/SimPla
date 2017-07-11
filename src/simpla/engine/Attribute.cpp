@@ -112,6 +112,7 @@ Attribute const *AttributeGroup::Get(std::string const &k) const {
 struct Attribute::pimpl_s {
     std::set<AttributeGroup *> m_bundle_;
     bool m_is_initialized_ = false;
+    std::shared_ptr<data::DataBlock> m_data_block_ = nullptr;
 };
 Attribute::Attribute(AttributeGroup *grp, int IFORM, int DOF, std::type_info const &t_info,
                      std::shared_ptr<data::DataTable> cfg)
@@ -146,11 +147,12 @@ void Attribute::Deregister(AttributeGroup *attr_b) {
         m_pimpl_->m_bundle_.erase(attr_b);
     }
 }
-void Attribute::Push(std::shared_ptr<data::DataBlock> d) {}
-std::shared_ptr<data::DataBlock> Attribute::Pop() { return nullptr; }
-
+void Attribute::Push(std::shared_ptr<data::DataBlock> d) { m_pimpl_->m_data_block_ = d; }
+std::shared_ptr<data::DataBlock> Attribute::Pop() { return std::move(m_pimpl_->m_data_block_); }
+data::DataBlock *Attribute::GetDataBlock() { return m_pimpl_->m_data_block_.get(); }
+data::DataBlock const *Attribute::GetDataBlock() const { return m_pimpl_->m_data_block_.get(); }
 void Attribute::swap(Attribute &) {}
-//bool Attribute::isInitialized() const { return m_pimpl_->m_is_initialized_; }
+// bool Attribute::isInitialized() const { return m_pimpl_->m_is_initialized_; }
 bool Attribute::isNull() const { return true; }
 void Attribute::DoUpdate() { SPObject::DoUpdate(); };
 

@@ -77,44 +77,43 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
    private:
     typedef nTuple<array_type, NUM_OF_SUB, DOF...> data_type;
     data_type m_data_;
-    domain_type const* m_domain_ = nullptr;
+    domain_type const* m_host_ = nullptr;
 
    public:
     template <typename... Args>
     explicit Field(domain_type* grp, Args&&... args)
         : base_type(grp, IFORM, std::integer_sequence<int, DOF...>(), typeid(value_type), std::forward<Args>(args)...),
-          m_domain_(grp) {}
+          m_host_(grp) {}
 
     ~Field() override = default;
 
-    Field(this_type const& other) : base_type(other), m_data_(other.m_data_), m_domain_(other.m_domain_) {}
+    Field(this_type const& other) : base_type(other), m_data_(other.m_data_), m_host_(other.m_host_) {}
     Field(this_type&& other)
-        : base_type(std::forward<base_type>(other)), m_data_(other.m_data_), m_domain_(other.m_domain_) {}
+        : base_type(std::forward<base_type>(other)), m_data_(other.m_data_), m_host_(other.m_host_) {}
 
     template <typename OtherMesh>
     Field(domain_type* m, Field<OtherMesh, value_type, IFORM, DOF...>& other)
-        : base_type(other), m_domain_(m), m_data_(other.m_data_) {}
+        : base_type(other), m_host_(m), m_data_(other.m_data_) {}
 
     void DoUpdate() override {
         base_type::DoUpdate();
-        ASSERT(m_domain_ != nullptr);
+        base_type::PushData(&m_data_);
         traits::foreach (m_data_, [&](auto& a, auto i0, auto&&... idx) {
             if (a.empty()) {
-                a.SetSpaceFillingCurve(m_domain_->GetSpaceFillingCurve(IFORM, i0));
+                a.SetSpaceFillingCurve(m_host_->GetSpaceFillingCurve(IFORM, i0));
                 a.Update();
             }
         });
     }
 
     void DoTearDown() override {
-        m_domain_ = nullptr;
-        traits::foreach (m_data_, [&](auto& a, auto&&... idx) { a.reset(); });
+        base_type::PopData(&m_data_);
         base_type::DoTearDown();
     }
 
     std::size_t size() const {
-        return static_cast<std::size_t>(
-            m_domain_ == nullptr ? 0 : (m_domain_->GetNumberOfEntity(IFORM) * data_type::size()));
+        return static_cast<std::size_t>(m_host_ == nullptr ? 0
+                                                           : (m_host_->GetNumberOfEntity(IFORM) * data_type::size()));
     }
 
     bool empty() const override { return size() == 0; }
@@ -122,7 +121,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     void swap(this_type& other) {
         base_type::swap(other);
         m_data_.swap(other.m_data_);
-        std::swap(m_domain_, other.m_domain_);
+        std::swap(m_host_, other.m_host_);
     }
 
     auto& Get() { return m_data_; }
@@ -131,20 +130,25 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     template <typename Other>
     void Set(Other&& v) {
         base_type::Update();
-        m_domain_->Fill(*this, std::forward<Other>(v));
+        m_host_->Fill(*this, std::forward<Other>(v));
     }
 
     template <typename... Args>
-    decltype(auto) Get(Args&&... args) {
-        m_domain_->GetEntity(*this, std::forward<Args>(args)...);
+    decltype(auto) Get(index_type i0, Args&&... args) {
+        return calculus::getValue(m_data_, i0, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    decltype(auto) Get(Args&&... args) const {
-        m_domain_->GetEntity(*this, std::forward<Args>(args)...);
+    decltype(auto) Get(index_type i0, Args&&... args) const {
+        return calculus::getValue(m_data_, i0, std::forward<Args>(args)...);
     }
+
+    decltype(auto) Get(EntityId s) { return m_host_->GetEntity(*this, s); }
+
+    decltype(auto) Get(EntityId s) const { return m_host_->GetEntity(*this, s); }
+
     template <typename U, typename... Args>
     void Set(U&& v, Args&&... args) {
-        m_domain_->SetEntity(*this, std::forward<U>(v), std::forward<Args>(args)...);
+        m_host_->SetEntity(*this, std::forward<U>(v), std::forward<Args>(args)...);
     }
 
     template <typename MR, typename UR, int... NR>
@@ -167,7 +171,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
 
     template <typename... Args>
     decltype(auto) at(Args&&... args) {
-        return Get(*this, std::forward<Args>(args)...);
+        return Get(std::forward<Args>(args)...);
     }
     template <typename... Args>
     decltype(auto) at(Args&&... args) const {
@@ -176,11 +180,11 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
 
     template <typename... Args>
     decltype(auto) operator()(Args&&... args) {
-        return Get(*this, std::forward<Args>(args)...);
+        return Get(std::forward<Args>(args)...);
     }
     template <typename... Args>
     decltype(auto) operator()(Args&&... args) const {
-        return Get(*this, std::forward<Args>(args)...);
+        return Get(std::forward<Args>(args)...);
     }
 
     decltype(auto) operator[](int n) { return m_data_[n]; }
@@ -193,12 +197,12 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
 
     template <typename... Args>
     decltype(auto) gather(Args&&... args) const {
-        return m_domain_->gather(*this, std::forward<Args>(args)...);
+        return m_host_->gather(*this, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     decltype(auto) scatter(Args&&... args) {
-        return m_domain_->scatter(*this, std::forward<Args>(args)...);
+        return m_host_->scatter(*this, std::forward<Args>(args)...);
     }
 
     //    void Push(std::shared_ptr<data::DataBlock> p) override {

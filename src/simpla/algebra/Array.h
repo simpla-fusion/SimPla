@@ -12,10 +12,10 @@
 #include <tuple>
 
 #include "ExpressionTemplate.h"
-#include "simpla/utilities/Log.h"
 #include "SFC.h"
-#include "simpla/utilities/memory.h"
 #include "nTuple.h"
+#include "simpla/utilities/Log.h"
+#include "simpla/utilities/memory.h"
 #include "simpla/utilities/type_traits.h"
 namespace simpla {
 template <typename V, typename SFC>
@@ -50,11 +50,7 @@ class Array {
 
     Array(this_type const& other, IdxShift s) : Array(other) { Shift(s); }
 
-    template <typename... Args>
-    explicit Array(Args&&... args) : m_data_(nullptr), m_sfc_(std::forward<Args>(args)...) {}
-
-    template <typename... Args>
-    explicit Array(value_type* d, Args&&... args) : m_data_(d), m_sfc_(std::forward<Args>(args)...) {}
+    explicit Array(SFC const& sfc, value_type* d = nullptr) : m_data_(d), m_sfc_(sfc) {}
 
     void swap(this_type& other) {
         std::swap(m_holder_, other.m_holder_);
@@ -168,13 +164,13 @@ struct reference<Array<T...>> {
 
 template <typename... T, typename TFun>
 auto foreach (Array<T...>& v, TFun const& f) {
-    v.GetSpaceFillingCurve().Foreach (
+    v.GetSpaceFillingCurve().Foreach(
         [&](auto&&... s) { f(v(std::forward<decltype(s)>(s)...), std::forward<decltype(s)>(s)...); });
 }
 
 template <typename... T, typename TFun>
 auto foreach (Array<T...> const& v, TFun const& f) {
-    v.GetSpaceFillingCurve().Foreach (
+    v.GetSpaceFillingCurve().Foreach(
         [&](auto&&... s) { f(v(std::forward<decltype(s)>(s)...), std::forward<decltype(s)>(s)...); });
 }
 }
