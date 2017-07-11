@@ -17,9 +17,13 @@ using namespace data;
 
 template <typename THost>
 class EMFluid {
-    //    typedef EMFluid<THost> this_type;
-
     DOMAIN_POLICY_HEAD(EMFluid);
+
+    void Serialize(data::DataTable* res) const;
+    void Deserialize(std::shared_ptr<data::DataTable> const& cfg);
+    void InitialCondition(Real time_now);
+    void BoundaryCondition(Real time_now, Real time_dt);
+    void Advance(Real time_now, Real dt);
 
     Field<host_type, Real, VOLUME> ne{m_host_, "name"_ = "ne"};
     Field<host_type, Real, VOLUME, 3> B0v{m_host_, "name"_ = "B0v"};
@@ -53,9 +57,7 @@ class EMFluid {
 };
 
 template <typename TM>
-std::shared_ptr<data::DataTable> EMFluid<TM>::Serialize() const {
-    auto res = std::make_shared<data::DataTable>();
-
+void EMFluid<TM>::Serialize(data::DataTable* res) const {
     for (auto& item : m_fluid_sp_) {
         auto t = std::make_shared<data::DataTable>();
         t->SetValue<double>("mass", item.second->mass / SI_proton_mass);
@@ -64,7 +66,6 @@ std::shared_ptr<data::DataTable> EMFluid<TM>::Serialize() const {
 
         res->Set("Species/" + item.first, t);
     }
-    return res;
 };
 template <typename TM>
 void EMFluid<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {

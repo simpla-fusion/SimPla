@@ -25,7 +25,6 @@ struct FVM {
     DOMAIN_POLICY_HEAD(FVM);
 
     typedef THost domain_type;
-    typedef FVM<domain_type> this_type;
     static constexpr unsigned int NDIMS = 3;
     template <typename V>
     using array = Array<V, ZSFC<NDIMS>>;
@@ -777,18 +776,6 @@ struct FVM {
     //    }
 };
 
-template <typename THost>
-void FVM<THost>::InitialCondition(Real time_now) {}
-template <typename THost>
-void FVM<THost>::BoundaryCondition(Real time_now, Real time_dt) {}
-template <typename THost>
-void FVM<THost>::Advance(Real time_now, Real time_dt) {}
-template <typename THost>
-std::shared_ptr<simpla::data::DataTable> FVM<THost>::Serialize() const {
-    return std::make_shared<simpla::data::DataTable>();
-}
-template <typename THost>
-void FVM<THost>::Deserialize(std::shared_ptr<simpla::data::DataTable> const& cfg) {}
 //********************************************************************************************************************************
 
 /**

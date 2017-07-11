@@ -16,10 +16,11 @@ namespace mesh {
  */
 template <typename THost>
 struct CoRectMesh : public StructuredMesh {
-    SP_OBJECT_HEAD(CoRectMesh, StructuredMesh)
     DOMAIN_POLICY_HEAD(CoRectMesh);
 
    public:
+    void InitialCondition(Real time_now);
+
     Real m_vertex_volume_[1] = {1.0};
     Real m_vertex_inv_volume_[1] = {1.0};
     Real m_vertex_dual_volume_[1] = {1.0};
@@ -41,14 +42,6 @@ struct CoRectMesh : public StructuredMesh {
     Real m_face_inv_dual_volume_[3] = {1, 1, 1};
 
 };  // struct  MeshBase
-
-template <typename THost>
-std::shared_ptr<data::DataTable> CoRectMesh<THost>::Serialize() const {
-    return std::make_shared<data::DataTable>();
-}
-
-template <typename THost>
-void CoRectMesh<THost>::Deserialize(std::shared_ptr<data::DataTable> const &cfg){};
 
 template <typename THost>
 void CoRectMesh<THost>::InitialCondition(Real time_now) {
@@ -117,12 +110,6 @@ void CoRectMesh<THost>::InitialCondition(Real time_now) {
     //    m_inv_dual_volume_[6 /*110*/] = m_inv_volume_[1];
     //    m_inv_dual_volume_[7 /*111*/] = m_inv_volume_[0];
 }
-
-template <typename THost>
-void CoRectMesh<THost>::BoundaryCondition(Real time_now, Real time_dt) {}
-
-template <typename THost>
-void CoRectMesh<THost>::Advance(Real time_now, Real time_dt) {}
 
 }  // namespace  mesh
 }  // namespace simpla

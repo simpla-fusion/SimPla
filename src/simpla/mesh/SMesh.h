@@ -19,13 +19,10 @@ using namespace simpla::data;
  */
 template <typename THost>
 struct SMesh : public StructuredMesh {
-    SP_OBJECT_HEAD(SMesh, StructuredMesh)
-
     DOMAIN_POLICY_HEAD(SMesh);
 
-    //    void InitialCondition(Real time_now);
-    //    void BoundaryCondition(Real time_now, Real time_dt);
-    //    void Advance(Real time_now, Real time_dt);
+    void InitialCondition(Real time_now);
+    void BoundaryCondition(Real time_now, Real time_dt);
 
    public:
     point_type local_coordinates(entity_id_type s, Real const *r) const override;
@@ -66,14 +63,6 @@ point_type SMesh<THost>::local_coordinates(EntityId s, Real const *pr) const {
                       std::fma(static_cast<Real>(s.y), m_dx_[1], r[1]),
                       std::fma(static_cast<Real>(s.z), m_dx_[2], r[2])};
 }
-
-template <typename THost>
-std::shared_ptr<data::DataTable> SMesh<THost>::Serialize() const {
-    return std::make_shared<data::DataTable>();
-}
-
-template <typename THost>
-void SMesh<THost>::Deserialize(std::shared_ptr<data::DataTable> const &cfg){};
 
 /**
 *\verbatim
@@ -249,8 +238,6 @@ void SMesh<THost>::BoundaryCondition(Real time_now, Real time_dt) {
     m_host_->FillBoundary(m_volume_dual_volume_, 0);
 }
 
-template <typename THost>
-void SMesh<THost>::Advance(Real time_now, Real time_dt) {}
 }  // namespace mesh {
 }  // namespace simpla {
 #endif  // SIMPLA_SMESH_H

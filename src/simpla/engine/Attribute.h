@@ -149,20 +149,20 @@ struct Attribute : public SPObject, public AttributeDesc {
 
     Attribute(Attribute const &other);
     Attribute(Attribute &&other) noexcept;
+
+    Attribute &operator=(Attribute const &other) = delete;
+    Attribute &operator=(Attribute &&other) = delete;
     ~Attribute() override;
 
-    virtual size_type size() const { return 0; }
-    void swap(Attribute &) {}
     void DoUpdate() override;
 
-    const MeshBase *GetMesh() const;
-
     void Register(AttributeGroup *);
-
     void Deregister(AttributeGroup *);
 
     virtual void Push(std::shared_ptr<data::DataBlock>);
     virtual std::shared_ptr<data::DataBlock> Pop();
+
+    virtual void swap(Attribute &);
 
     virtual bool isNull() const;
     virtual bool empty() const { return isNull(); };

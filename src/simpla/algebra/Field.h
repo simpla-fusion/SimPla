@@ -10,23 +10,20 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/data/all.h>
 #include <simpla/engine/Attribute.h>
-#include <simpla/utilities/Range.h>
 #include <simpla/utilities/type_traits.h>
 #include "ExpressionTemplate.h"
-// namespace std {
-//    template <typename TM, typename TV, int IFORM, int... DOF>
-//    struct rank<simpla::Field<TM, TV, IFORM, DOF...>> : public std::integral_constant<int, sizeof...(DOF)> {};
-//}  // namespace std{
 
 namespace simpla {
 template <typename TM, typename TV, int...>
 class Field;
 }  // namespace simpla
+
 namespace std {
 template <typename TM, typename TV, int IFORM, int... DOF>
 struct rank<simpla::Field<TM, TV, IFORM, DOF...>> : public std::integral_constant<int, sizeof...(DOF)> {};
 
 }  // namespace std{
+
 namespace simpla {
 
 namespace traits {
@@ -77,9 +74,6 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     static constexpr int iform = IFORM;
     static constexpr int NUM_OF_SUB = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
 
-    typedef std::conditional_t<sizeof...(DOF) == 0, value_type, nTuple<value_type, DOF...>> ele_type;
-    typedef std::conditional_t<NUM_OF_SUB == 1, ele_type, nTuple<ele_type, NUM_OF_SUB>> field_value_type;
-
    private:
     typedef nTuple<array_type, NUM_OF_SUB, DOF...> data_type;
     data_type m_data_;
@@ -88,9 +82,8 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
    public:
     template <typename... Args>
     explicit Field(domain_type* grp, Args&&... args)
-        : m_domain_(grp),
-          base_type(grp, IFORM, std::integer_sequence<int, DOF...>(), typeid(value_type), std::forward<Args>(args)...) {
-    }
+        : base_type(grp, IFORM, std::integer_sequence<int, DOF...>(), typeid(value_type), std::forward<Args>(args)...),
+          m_domain_(grp) {}
 
     ~Field() override = default;
 
@@ -98,8 +91,28 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     Field(this_type&& other)
         : base_type(std::forward<base_type>(other)), m_data_(other.m_data_), m_domain_(other.m_domain_) {}
 
+    template <typename OtherMesh>
+    Field(domain_type* m, Field<OtherMesh, value_type, IFORM, DOF...>& other)
+        : base_type(other), m_domain_(m), m_data_(other.m_data_) {}
 
-    std::size_t size() const override {
+    void DoUpdate() override {
+        base_type::DoUpdate();
+        ASSERT(m_domain_ != nullptr);
+        traits::foreach (m_data_, [&](auto& a, auto i0, auto&&... idx) {
+            if (a.empty()) {
+                a.SetSpaceFillingCurve(m_domain_->GetSpaceFillingCurve(IFORM, i0));
+                a.Update();
+            }
+        });
+    }
+
+    void DoTearDown() override {
+        m_domain_ = nullptr;
+        traits::foreach (m_data_, [&](auto& a, auto&&... idx) { a.reset(); });
+        base_type::DoTearDown();
+    }
+
+    std::size_t size() const {
         return static_cast<std::size_t>(
             m_domain_ == nullptr ? 0 : (m_domain_->GetNumberOfEntity(IFORM) * data_type::size()));
     }
@@ -176,11 +189,6 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     decltype(auto) operator[](EntityId s) { return Get(s); }
     decltype(auto) operator[](EntityId s) const { return Get(s); }
 
-    template <typename OtherMesh>
-    Field<OtherMesh, value_type, IFORM, DOF...> Sub(OtherMesh const* m) const {
-        return Field<OtherMesh, value_type, IFORM, DOF...>(*this, m);
-    }
-
     //*****************************************************************************************************************
 
     template <typename... Args>
@@ -193,21 +201,6 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         return m_domain_->scatter(*this, std::forward<Args>(args)...);
     }
 
-    void DoUpdate() override {
-        base_type::DoUpdate();
-        ASSERT(m_domain_ != nullptr);
-
-        traits::foreach (m_data_, [&](auto& a, auto i0, auto&&... idx) {
-            a.SetSpaceFillingCurve(m_domain_->GetSpaceFillingCurve(IFORM, i0));
-            a.Update();
-        });
-    }
-
-    void DoTearDown() override {
-        m_domain_ = nullptr;
-        traits::foreach (m_data_, [&](auto& a, auto&&... idx) { a.reset(); });
-        base_type::DoTearDown();
-    }
     //    void Push(std::shared_ptr<data::DataBlock> p) override {
     //        base_type::Update();
     //        auto d = std::dynamic_pointer_cast<data::DataMultiArray<value_type, NDIMS>>(p);

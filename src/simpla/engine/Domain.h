@@ -124,53 +124,18 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
     Domain &operator=(Domain const &) = delete;
     Domain &operator=(Domain &&) = delete;
 
-   private:
-#define DEFINE_INVOKE_HELPER(_FUN_NAME_)                                                                           \
-    template <template <typename> class _T0, typename... Args>                                                     \
-    void _invoke_##_FUN_NAME_(Args &&... args) {                                                                   \
-        _T0<this_type>::_FUN_NAME_(std::forward<Args>(args)...);                                                   \
-    }                                                                                                              \
-    template <template <typename> class _T0, template <typename> class _T1, template <typename> class... _TOthers, \
-              typename... Args>                                                                                    \
-    void _invoke_##_FUN_NAME_(Args &&... args) {                                                                   \
-        _invoke_##_FUN_NAME_<_T0>(std::forward<Args>(args)...);                                                    \
-        _invoke_##_FUN_NAME_<_T1, _TOthers...>(std::forward<Args>(args)...);                                       \
-    }
-
-    DEFINE_INVOKE_HELPER(InitialCondition)
-    DEFINE_INVOKE_HELPER(BoundaryCondition)
-    DEFINE_INVOKE_HELPER(Advance)
-    DEFINE_INVOKE_HELPER(Deserialize)
-#undef DEFINE_INVOKE_HELPER
    public:
-    void DoInitialCondition(Real time_now) override { _invoke_InitialCondition<Policies...>(time_now); }
-    void DoBoundaryCondition(Real time_now, Real dt) override { _invoke_BoundaryCondition<Policies...>(time_now, dt); }
-    void DoAdvance(Real time_now, Real dt) override { _invoke_Advance<Policies...>(time_now, dt); }
+    void DoInitialCondition(Real time_now) override;
+    void DoBoundaryCondition(Real time_now, Real dt) override;
+    void DoAdvance(Real time_now, Real dt) override;
 
-   private:
-    template <template <typename> class _C0>
-    void _invoke_Serialize(data::DataTable *cfg) const {
-        cfg->Set(_C0<this_type>::Serialize());
-    }
-    template <template <typename> class _C0, template <typename> class _C1, template <typename> class... _COthers>
-    void _invoke_Serialize(data::DataTable *cfg) const {
-        _invoke_Serialize<_C0>(cfg);
-        _invoke_Serialize<_C1, _COthers...>(cfg);
-    }
+    void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override;
+    std::shared_ptr<data::DataTable> Serialize() const override;
 
-   public:
-    std::shared_ptr<data::DataTable> Serialize() const override {
-        auto res = std::make_shared<data::DataTable>();
-        _invoke_Serialize<Policies...>(res.get());
-        res->Set(DomainBase::Serialize());
-        return res;
+    template <typename TL, typename TR>
+    void FillOnce(TL &lhs, TR &&rhs) const {
+        if (!lhs.is_initialized()) { this->Fill(lhs, std::forward<TR>(rhs)); }
     };
-
-    void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override {
-        _invoke_Deserialize<Policies...>(cfg);
-        DomainBase::Deserialize(cfg);
-    };
-
     template <typename TL, typename TR>
     void FillBody(TL &lhs, TR &&rhs) const {
         this->Fill(lhs, std::forward<TR>(rhs));
@@ -183,25 +148,76 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
 
 };  // class Domain
 
+#define DEFINE_INVOKE_HELPER(_FUN_NAME_)                                                                           \
+    CHECK_MEMBER_FUNCTION(has_mem_fun_##_FUN_NAME_, _FUN_NAME_)                                                    \
+    template <template <typename> class _T0, typename this_type, typename... Args>                                 \
+    void _invoke_##_FUN_NAME_(this_type *self, std::true_type const &, Args &&... args) {                          \
+        _T0<this_type>::_FUN_NAME_(std::forward<Args>(args)...);                                                   \
+    }                                                                                                              \
+    template <template <typename> class _T0, typename this_type, typename... Args>                                 \
+    void _invoke_##_FUN_NAME_(std::false_type const &, this_type *self, Args &&... args) {}                        \
+    template <template <typename> class _T0, typename this_type, typename... Args>                                 \
+    void _try_invoke_##_FUN_NAME_(this_type *self, Args &&... args) {                                              \
+        _invoke_##_FUN_NAME_<_T0>(has_mem_fun_##_FUN_NAME_<_T0<this_type>, void, Args...>(), self,                      \
+                             std::forward<Args>(args)...);                                                         \
+    }                                                                                                              \
+    template <template <typename> class _T0, template <typename> class _T1, template <typename> class... _TOthers, \
+              typename this_type, typename... Args>                                                                \
+    void _try_invoke_##_FUN_NAME_(this_type *self, Args &&... args) {                                              \
+        _try_invoke_##_FUN_NAME_<_T0>(self, std::forward<Args>(args)...);                                          \
+        _try_invoke_##_FUN_NAME_<_T1, _TOthers...>(self, std::forward<Args>(args)...);                             \
+    }
+
+DEFINE_INVOKE_HELPER(InitialCondition)
+DEFINE_INVOKE_HELPER(BoundaryCondition)
+DEFINE_INVOKE_HELPER(Advance)
+DEFINE_INVOKE_HELPER(Deserialize)
+DEFINE_INVOKE_HELPER(Serialize)
+
+#undef DEFINE_INVOKE_HELPER
+
+template <template <typename> class... Policies>
+void Domain<Policies...>::DoInitialCondition(Real time_now) {
+    _try_invoke_InitialCondition<Policies...>(this, time_now);
+}
+template <template <typename> class... Policies>
+void Domain<Policies...>::DoBoundaryCondition(Real time_now, Real dt) {
+    _try_invoke_BoundaryCondition<Policies...>(this, time_now, dt);
+}
+template <template <typename> class... Policies>
+void Domain<Policies...>::DoAdvance(Real time_now, Real dt) {
+    _try_invoke_Advance<Policies...>(this, time_now, dt);
+}
+template <template <typename> class... Policies>
+std::shared_ptr<data::DataTable> Domain<Policies...>::Serialize() const {
+    auto res = DomainBase::Serialize();
+    _try_invoke_Serialize<Policies...>(this, res.get());
+    return res;
+};
+
+template <template <typename> class... Policies>
+void Domain<Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
+    _try_invoke_Deserialize<Policies...>(this, cfg);
+    DomainBase::Deserialize(cfg);
+};
+
 template <template <typename> class... Policies>
 bool Domain<Policies...>::is_registered = DomainBase::RegisterCreator<Domain<Policies...>>();
 
-#define DOMAIN_POLICY_HEAD(_NAME_)                                      \
-   public:                                                              \
-    typedef THost host_type;                                            \
-    host_type *m_host_ = nullptr;                                       \
-    _NAME_(host_type *h) noexcept : m_host_(h) {}                       \
-    virtual ~_NAME_() = default;                                        \
-    _NAME_(_NAME_ const &other) = delete;                               \
-    _NAME_(_NAME_ &&other) = delete;                                    \
-    _NAME_ &operator=(_NAME_ const &other) = delete;                    \
-    _NAME_ &operator=(_NAME_ &&other) = delete;                         \
-    static std::string RegisterName() { return __STRING(_NAME_); }      \
-    void InitialCondition(Real time_now);                               \
-    void BoundaryCondition(Real time_now, Real time_dt);                \
-    void Advance(Real time_now, Real time_dt);                          \
-    virtual std::shared_ptr<simpla::data::DataTable> Serialize() const; \
-    virtual void Deserialize(std::shared_ptr<simpla::data::DataTable> const &cfg);
+#define DOMAIN_POLICY_HEAD(_NAME_)                   \
+   private:                                          \
+    typedef THost host_type;                         \
+    typedef _NAME_<THost> this_type;                 \
+                                                     \
+   public:                                           \
+    host_type *m_host_ = nullptr;                    \
+    _NAME_(host_type *h) noexcept : m_host_(h) {}    \
+    virtual ~_NAME_() = default;                     \
+    _NAME_(_NAME_ const &other) = delete;            \
+    _NAME_(_NAME_ &&other) = delete;                 \
+    _NAME_ &operator=(_NAME_ const &other) = delete; \
+    _NAME_ &operator=(_NAME_ &&other) = delete;      \
+    static std::string RegisterName() { return __STRING(_NAME_); }
 
 #define DOMAIN_HEAD(_DOMAIN_NAME_, _MESH_TYPE_)                                                  \
    public:                                                                                       \

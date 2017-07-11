@@ -19,7 +19,6 @@ namespace mesh {
  *
  */
 class StructuredMesh {
-    SP_OBJECT_BASE(StructuredMesh)
    public:
     static constexpr unsigned int NDIMS = 3;
     typedef EntityId entity_id_type;
@@ -80,7 +79,6 @@ class StructuredMesh {
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
 }  // namespace mesh {
-
 
 }  // namespace simpla {
 

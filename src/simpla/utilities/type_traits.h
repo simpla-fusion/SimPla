@@ -768,12 +768,13 @@ EXAMPLE:
     using _CHECKER_NAME_##_t = typename _CHECKER_NAME_<_Args...>::type;
 
 #define CHECK_MEMBER_FUNCTION(_CHECKER_NAME_, _FUN_NAME_)                                                    \
+    namespace _detail {                                                                                      \
     template <typename...>                                                                                   \
-    struct _detail_##_CHECKER_NAME_ {                                                                        \
+    struct _CHECKER_NAME_ {                                                                                  \
         static constexpr bool value = false;                                                                 \
     };                                                                                                       \
     template <typename _T, typename _TRet, typename... _Args>                                                \
-    struct _detail_##_CHECKER_NAME_<_T, _TRet(_Args...)> {                                                   \
+    struct _CHECKER_NAME_<_T, _TRet(_Args...)> {                                                             \
        private:                                                                                              \
         typedef std::true_type yes;                                                                          \
         typedef std::false_type no;                                                                          \
@@ -795,8 +796,9 @@ EXAMPLE:
        public:                                                                                               \
         static constexpr bool value = std::is_same<decltype(test<_T>(0)), _TRet>::value;                     \
     };                                                                                                       \
+    } /* namespace _detail*/                                                                                 \
     template <typename... _Args>                                                                             \
-    struct _CHECKER_NAME_ : public std::integral_constant<bool, _detail_##_CHECKER_NAME_<_Args...>::value> {};
+    struct _CHECKER_NAME_ : public std::integral_constant<bool, _detail::_CHECKER_NAME_<_Args...>::value> {};
 
 /**
  * @brief

@@ -110,8 +110,8 @@ Attribute const *AttributeGroup::Get(std::string const &k) const {
 }
 
 struct Attribute::pimpl_s {
-    MeshBase const *m_mesh_;
     std::set<AttributeGroup *> m_bundle_;
+    bool m_is_initialized_ = false;
 };
 Attribute::Attribute(AttributeGroup *grp, int IFORM, int DOF, std::type_info const &t_info,
                      std::shared_ptr<data::DataTable> cfg)
@@ -122,12 +122,13 @@ Attribute::Attribute(AttributeGroup *grp, int IFORM, int DOF, std::type_info con
 };
 
 Attribute::Attribute(Attribute const &other) : AttributeDesc(other), m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_mesh_ = other.m_pimpl_->m_mesh_;
+    m_pimpl_->m_is_initialized_ = other.m_pimpl_->m_is_initialized_;
     for (auto *grp : other.m_pimpl_->m_bundle_) { Register(grp); }
 }
-Attribute::Attribute(Attribute &&other) noexcept : AttributeDesc(other), m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_mesh_ = other.m_pimpl_->m_mesh_;
+Attribute::Attribute(Attribute &&other) noexcept : AttributeDesc(std::move(other)), m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_is_initialized_ = other.m_pimpl_->m_is_initialized_;
     for (auto *grp : other.m_pimpl_->m_bundle_) { Register(grp); }
+    other.TearDown();
 }
 Attribute::~Attribute() {
     for (auto *attr : m_pimpl_->m_bundle_) { attr->Detach(this); }
@@ -145,10 +146,11 @@ void Attribute::Deregister(AttributeGroup *attr_b) {
         m_pimpl_->m_bundle_.erase(attr_b);
     }
 }
-void Attribute::Push(std::shared_ptr<data::DataBlock>) {}
+void Attribute::Push(std::shared_ptr<data::DataBlock> d) {}
 std::shared_ptr<data::DataBlock> Attribute::Pop() { return nullptr; }
 
-const MeshBase *Attribute::GetMesh() const { return m_pimpl_->m_mesh_; }
+void Attribute::swap(Attribute &) {}
+//bool Attribute::isInitialized() const { return m_pimpl_->m_is_initialized_; }
 bool Attribute::isNull() const { return true; }
 void Attribute::DoUpdate() { SPObject::DoUpdate(); };
 

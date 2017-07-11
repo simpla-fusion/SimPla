@@ -17,9 +17,11 @@ using namespace simpla::data;
  */
 template <typename THost>
 struct RectMesh : public StructuredMesh {
-   public:
-    SP_OBJECT_HEAD(RectMesh, StructuredMesh)
     DOMAIN_POLICY_HEAD(RectMesh);
+
+   public:
+    void InitialCondition(Real time_now);
+    void BoundaryCondition(Real time_now, Real time_dt);
 
     Field<host_type, Real, VERTEX, 3> m_coordinates_{m_host_, "name"_ = "m_coordinates_" /*, "COORDINATES"_*/};
     Field<host_type, Real, VERTEX, 3> m_vertices_{m_host_, "name"_ = "m_vertices_"};
@@ -52,14 +54,6 @@ struct RectMesh : public StructuredMesh {
 //                      std::fma(static_cast<Real>(s.y), m_dx_[1], r[1]),
 //                      std::fma(static_cast<Real>(s.z), m_dx_[2], r[2])};
 //}
-
-template <typename THost>
-std::shared_ptr<data::DataTable> RectMesh<THost>::Serialize() const {
-    return std::make_shared<data::DataTable>();
-}
-
-template <typename THost>
-void RectMesh<THost>::Deserialize(std::shared_ptr<data::DataTable> const &cfg){};
 
 template <typename THost>
 void RectMesh<THost>::InitialCondition(Real time_now) {
@@ -184,8 +178,6 @@ void RectMesh<THost>::BoundaryCondition(Real time_now, Real time_dt) {
     m_host_->FillBoundary(m_volume_inv_volume_, 0);
     m_host_->FillBoundary(m_volume_inv_dual_volume_, 0);
 }
-template <typename THost>
-void RectMesh<THost>::Advance(Real time_now, Real time_dt) {}
 
 }  // namespace mesh {
 }  // namespace simpla {

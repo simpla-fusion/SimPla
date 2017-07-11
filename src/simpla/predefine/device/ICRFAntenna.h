@@ -21,6 +21,10 @@ class ICRFAntenna {
     DOMAIN_POLICY_HEAD(ICRFAntenna);
 
    public:
+    void Serialize(data::DataTable* res) const;
+    void Deserialize(std::shared_ptr<DataTable> const& cfg);
+    void Advance(Real time_now, Real dt);
+
     Field<host_type, Real, EDGE> J{m_host_, "name"_ = "J"};
 
     Vec3 m_amplify_{0, 0, 0};
@@ -29,13 +33,10 @@ class ICRFAntenna {
 };
 
 template <typename TM>
-std::shared_ptr<data::DataTable> ICRFAntenna<TM>::Serialize() const {
-    auto res = std::make_shared<data::DataTable>();
+void ICRFAntenna<TM>::Serialize(data::DataTable* res) const {
     res->SetValue("Amplify", m_amplify_);
     res->SetValue("Frequency", m_f_);
     res->SetValue("WaveNumber", m_k_);
-
-    return res;
 };
 template <typename TM>
 void ICRFAntenna<TM>::Deserialize(std::shared_ptr<DataTable> const& cfg) {
@@ -44,10 +45,6 @@ void ICRFAntenna<TM>::Deserialize(std::shared_ptr<DataTable> const& cfg) {
     m_k_ = cfg->GetValue<Vec3>("WaveNumber", m_k_);
 }
 
-template <typename TM>
-void ICRFAntenna<TM>::InitialCondition(Real time_now) {}
-template <typename TM>
-void ICRFAntenna<TM>::BoundaryCondition(Real time_now, Real dt) {}
 template <typename TM>
 void ICRFAntenna<TM>::Advance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
