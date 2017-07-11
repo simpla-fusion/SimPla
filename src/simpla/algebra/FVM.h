@@ -533,8 +533,7 @@ struct FVM {
     template <typename U, int IFORM, int... N, typename... RHSExpr>
     void Fill(Field<THost, U, IFORM, N...>& lhs, Expression<RHSExpr...> const& rhs) const {
         traits::foreach (lhs.Get(), [&](auto& a, int n0, auto&&... subs) {
-            a = getValue((rhs), IdxShift{0, 0, 0}, EntityIdCoder::m_sub_index_to_id_[IFORM][n0],
-                         std::forward<decltype(subs)>(subs)...);
+            a = getValue((rhs), IdxShift{0, 0, 0}, n0, std::forward<decltype(subs)>(subs)...);
         });
     }
 
