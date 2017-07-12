@@ -13,6 +13,7 @@ namespace engine {
 
 struct DomainBase::pimpl_s {
     std::shared_ptr<engine::Model> m_model_;
+    std::shared_ptr<std::map<std::string, Range<EntityId>>> m_ranges_;
 
     geometry::Chart const* m_chart_;
     MeshBlock m_mesh_block_;
@@ -50,6 +51,12 @@ void DomainBase::DoUpdate() {}
 void DomainBase::DoTearDown() {}
 void DomainBase::DoInitialize() {}
 void DomainBase::DoFinalize() {}
+
+void DomainBase::SetRanges(std::shared_ptr<std::map<std::string, Range<EntityId>>> const& r) {
+    m_pimpl_->m_ranges_ = r;
+};
+std::map<std::string, Range<EntityId>>* DomainBase::GetRanges() { return m_pimpl_->m_ranges_.get(); };
+std::map<std::string, Range<EntityId>> const* DomainBase::GetRanges() const { return m_pimpl_->m_ranges_.get(); };
 
 void DomainBase::SetChart(const geometry::Chart* c) {
     Click();

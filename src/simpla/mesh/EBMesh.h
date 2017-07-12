@@ -20,44 +20,67 @@ struct EBMesh {
 
    public:
     void InitialCondition(Real time_now);
-
-    std::map<std::string, Range<EntityId>> m_ranges_;
+    virtual std::map<std::string, Range<EntityId>> *GetRanges() = 0;
+    virtual std::map<std::string, Range<EntityId>> const *GetRanges() = 0;
 
     template <typename TL, typename TR>
-    void FillRange(std::string const &k, TL &lhs, TR &&rhs) const {
-        auto it = m_ranges_.find(k + std::to_string(traits::iform<TL>::value));
-        if (it != m_ranges_.end()) {
-            m_host_->Fill(it->second, lhs, std::forward<TR>(rhs));
-        } else {
-            m_host_->Fill(lhs, std::forward<TR>(rhs));
+    void FillRange(TL &lhs, TR &&rhs, std::string const &k = "") const {
+        bool is_done = false;
+        if (m_ranges_ != nullptr && k != "") {
+            auto it = m_ranges_->find(k + std::to_string(traits::iform<TL>::value));
+            if (it != m_ranges_->end()) {
+                m_host_->Fill(it->second, lhs, std::forward<TR>(rhs));
+                is_done = true;
+            }
         }
-    };
+        if (!is_done &&k = "BODY_") { m_host_->Fill(lhs, std::forward<TR>(rhs)); }
+    }
 };
 
 template <typename THost>
 void EBMesh<THost>::InitialCondition(Real time_now) {
-    auto g = m_host_->GetModel()->GetBoundary();
+    if (m_host_->GetModel() == nullptr || m_host_->GetModel()->GetBoundary() == nullptr || GetRanges() == nullptr) {
+        return;
+    }
 
-    if (g == nullptr) { return; }
+    auto g = m_host_->GetModel()->GetBoundary();
+    auto &range = *m_host_->GetRanges();
 
     Real ratio = g == nullptr ? 1.0 : g->CheckOverlap(m_host_->GetBox());
 
-    if (1.0 - ratio < EPSILON) {  // all in
-        //        m_ranges_["BODY_0"].append(std::make_shared<ContinueRange<EntityId>>(m_host_->GetIndexBox(0), 0));
-        //
-        //        m_ranges_["BODY_1"]
-        //            .append(std::make_shared<ContinueRange<EntityId>>(m_host_->GetIndexBox(1), 1))
-        //            .append(std::make_shared<ContinueRange<EntityId>>(m_host_->GetIndexBox(2), 2))
-        //            .append(std::make_shared<ContinueRange<EntityId>>(m_host_->GetIndexBox(4), 4));
-        //
-        //        m_ranges_["BODY_2"]
-        //            .append(std::make_shared<ContinueRange<EntityId>>(m_host_->GetIndexBox(3), 3))
-        //            .append(std::make_shared<ContinueRange<EntityId>>(m_host_->GetIndexBox(5), 5))
-        //            .append(std::make_shared<ContinueRange<EntityId>>(m_host_->GetIndexBox(6), 6));
-        //
-        //        m_ranges_["BODY_3"].append(std::make_shared<ContinueRange<EntityId>>(m_host_->GetIndexBox(7), 7));
+    if (ratio < EPSILON) {
+        range["BODY_0"].append(nullptr);
+        range["BODY_1"].append(nullptr);
+        range["BODY_2"].append(nullptr);
+        range["BODY_3"].append(nullptr);
+        range["BOUNDARY_0"].append(nullptr);
+        range["BOUNDARY_3"].append(nullptr);
+
+        range["PARA_BOUNDARY_1"].append(nullptr);
+        range["PARA_BOUNDARY_2"].append(nullptr);
+
+        range["PERP_BOUNDARY_1"].append(nullptr);
+        range["PERP_BOUNDARY_2"].append(nullptr);
         return;
     }
+    //    if (1.0 - ratio < EPSILON) {  // all in
+    //        // range["BODY_0"].append(std::make_shared<ContinueRange<EntityId>>(m_host_->GetIndexBox(0),
+    //        0));
+    //        //
+    //        //        range["BODY_1"]
+    //        //            .append(std::make_shared<ContinueRange<EntityId>>(m_host_->GetIndexBox(1), 1))
+    //        //            .append(std::make_shared<ContinueRange<EntityId>>(m_host_->GetIndexBox(2), 2))
+    //        //            .append(std::make_shared<ContinueRange<EntityId>>(m_host_->GetIndexBox(4), 4));
+    //        //
+    //        //        range["BODY_2"]
+    //        //            .append(std::make_shared<ContinueRange<EntityId>>(m_host_->GetIndexBox(3), 3))
+    //        //            .append(std::make_shared<ContinueRange<EntityId>>(m_host_->GetIndexBox(5), 5))
+    //        //            .append(std::make_shared<ContinueRange<EntityId>>(m_host_->GetIndexBox(6), 6));
+    //        //
+    //        // range["BODY_3"].append(std::make_shared<ContinueRange<EntityId>>(m_host_->GetIndexBox(7),
+    //        7));
+    //        return;
+    //    }
     Field<host_type, int, VERTEX> vertex_tags{m_host_};
 
     vertex_tags = [&](point_type const &x) { return g->CheckInside(x) ? 1 : 0; };
@@ -233,19 +256,19 @@ void EBMesh<THost>::InitialCondition(Real time_now) {
                 }
             }
 
-    m_ranges_["BODY_0"].append(VERTEX_body);
-    m_ranges_["BODY_1"].append(EDGE_body);
-    m_ranges_["BODY_2"].append(FACE_body);
-    m_ranges_["BODY_3"].append(VOLUME_body);
+    range["BODY_0"].append(VERTEX_body);
+    range["BODY_1"].append(EDGE_body);
+    range["BODY_2"].append(FACE_body);
+    range["BODY_3"].append(VOLUME_body);
 
-    m_ranges_["BOUNDARY_0"].append(VERTEX_boundary);
-    m_ranges_["BOUNDARY_3"].append(VOLUME_boundary);
+    range["BOUNDARY_0"].append(VERTEX_boundary);
+    range["BOUNDARY_3"].append(VOLUME_boundary);
 
-    m_ranges_["PARA_BOUNDARY_1"].append(EDGE_PARA_boundary);
-    m_ranges_["PARA_BOUNDARY_2"].append(FACE_PARA_boundary);
+    range["PARA_BOUNDARY_1"].append(EDGE_PARA_boundary);
+    range["PARA_BOUNDARY_2"].append(FACE_PARA_boundary);
 
-    m_ranges_["PERP_BOUNDARY_1"].append(EDGE_PERP_boundary);
-    m_ranges_["PERP_BOUNDARY_2"].append(FACE_PERP_boundary);
+    range["PERP_BOUNDARY_1"].append(EDGE_PERP_boundary);
+    range["PERP_BOUNDARY_2"].append(FACE_PERP_boundary);
 }
 }  // namespace mesh
 }  // namespace simpla

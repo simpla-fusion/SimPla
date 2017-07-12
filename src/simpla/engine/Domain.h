@@ -45,6 +45,10 @@ class DomainBase : public SPObject, public AttributeGroup, public data::EnableCr
     virtual DomainBase *GetDomain() { return this; }
     virtual DomainBase const *GetDomain() const { return this; }
 
+    void SetRanges(std::shared_ptr<std::map<std::string, Range<EntityId>>> const &);
+    std::map<std::string, Range<EntityId>> *GetRanges() override;
+    std::map<std::string, Range<EntityId>> const *GetRanges() override;
+
     void SetBlock(const MeshBlock &);
     virtual const MeshBlock &GetBlock() const;
     virtual id_type GetBlockId() const;
@@ -128,6 +132,9 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
     DomainBase *GetDomain() override { return this; }
     DomainBase const *GetDomain() const override { return this; }
 
+    std::map<std::string, Range<EntityId>> *GetRanges() override { return DomainBase::GetRanges(); };
+    std::map<std::string, Range<EntityId>> const *GetRanges() override { return DomainBase::GetRanges(); };
+
     void DoInitialCondition(Real time_now) override;
     void DoBoundaryCondition(Real time_now, Real dt) override;
     void DoAdvance(Real time_now, Real dt) override;
@@ -136,7 +143,7 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
     std::shared_ptr<data::DataTable> Serialize() const override;
 
     template <typename TL, typename TR>
-    void FillRange(std::string const &k, TL &lhs, TR &&rhs) const;
+    void FillRange(TL &lhs, TR &&rhs, std::string const &k = "") const;
 
     template <typename TL, typename TR>
     void FillBody(TL &lhs, TR &&rhs) const;
@@ -182,6 +189,9 @@ DEFINE_INVOKE_HELPER(Advance)
 DEFINE_INVOKE_HELPER(Deserialize)
 DEFINE_INVOKE_HELPER(Serialize)
 DEFINE_INVOKE_HELPER(FillRange)
+DEFINE_INVOKE_HELPER(Push)
+DEFINE_INVOKE_HELPER(Pull)
+
 #undef DEFINE_INVOKE_HELPER
 
 template <template <typename> class... Policies>
@@ -209,22 +219,23 @@ void Domain<Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &cf
 };
 template <template <typename> class... Policies>
 template <typename LHS, typename RHS>
-void Domain<Policies...>::FillRange(std::string const &k, LHS &lhs, RHS &&rhs) const {
-    _try_invoke_FillRange<Policies...>(this, k, lhs, std::forward<RHS>(rhs));
+void Domain<Policies...>::FillRange(LHS &lhs, RHS &&rhs, std::string const &k) const {
+    _try_invoke_FillRange<Policies...>(this, lhs, std::forward<RHS>(rhs), k);
 };
 template <template <typename> class... Policies>
 template <typename LHS, typename RHS>
 void Domain<Policies...>::FillBody(LHS &lhs, RHS &&rhs) const {
-    auto num = _try_invoke_FillRange<Policies...>(this, "BODY_", lhs, std::forward<RHS>(rhs));
-    if (num == 0) { this->Fill(lhs, std::forward<RHS>(rhs)); }
+    if (_try_invoke_FillRange<Policies...>(this, lhs, std::forward<RHS>(rhs), "BODY_") == 0) {
+        this->Fill(lhs, std::forward<RHS>(rhs));
+    }
 };
 
 template <template <typename> class... Policies>
 template <typename LHS, typename RHS>
 void Domain<Policies...>::FillBoundary(LHS &lhs, RHS &&rhs) const {
-    auto n = _try_invoke_FillRange<Policies...>(this, "BOUNDARY_", lhs, std::forward<RHS>(rhs)) +
-             _try_invoke_FillRange<Policies...>(this, "PARA_BOUNDARY_", lhs, std::forward<RHS>(rhs)) +
-             _try_invoke_FillRange<Policies...>(this, "PERP_BOUNDARY_", lhs, std::forward<RHS>(rhs));
+    auto n = _try_invoke_FillRange<Policies...>(this, lhs, std::forward<RHS>(rhs), "BOUNDARY_") +
+             _try_invoke_FillRange<Policies...>(this, lhs, std::forward<RHS>(rhs), "PARA_BOUNDARY_") +
+             _try_invoke_FillRange<Policies...>(this, lhs, std::forward<RHS>(rhs), "PERP_BOUNDARY_");
 };
 
 #define DOMAIN_POLICY_HEAD(_NAME_)                   \
