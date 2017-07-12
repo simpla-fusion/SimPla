@@ -43,14 +43,15 @@ class Model : public engine::SPObject, public data::EnableCreateFromDataTable<Mo
 
     void SetObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &);
     std::shared_ptr<geometry::GeoObject> GetObject(std::string const &k) const;
+    virtual std::shared_ptr<geometry::GeoObject> GetBoundary() const { return GetObject("Boundary"); }
+
     size_type DeleteObject(std::string const &);
 
     std::map<std::string, std::shared_ptr<geometry::GeoObject>> const &GetAll() const;
 
     template <typename TD, typename TV, int IFORM, int... N>
     void LoadProfile(std::string const &k, Field<TD, TV, IFORM, N...> *f) const {
-        int n =
-            ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * simpla::reduction_v(tags::multiplication(), 1, N...);
+        int n = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * simpla::reduction_v(tags::multiplication(), 1, N...);
         if (n == 1) {
             auto fun = GetAttribute(k);
             if (fun) { *f = fun; }

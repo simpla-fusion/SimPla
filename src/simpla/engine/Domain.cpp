@@ -13,6 +13,7 @@ namespace engine {
 
 struct DomainBase::pimpl_s {
     std::shared_ptr<engine::Model> m_model_;
+
     geometry::Chart const* m_chart_;
     MeshBlock m_mesh_block_;
 };

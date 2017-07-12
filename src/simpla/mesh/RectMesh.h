@@ -150,25 +150,25 @@ void RectMesh<THost>::InitialCondition(Real time_now) {
 
 template <typename THost>
 void RectMesh<THost>::BoundaryCondition(Real time_now, Real time_dt) {
-    m_host_->FillBoundary(m_vertex_volume_, 0);
-    m_host_->FillBoundary(m_vertex_dual_volume_, 0);
-    m_host_->FillBoundary(m_vertex_inv_volume_, 0);
-    m_host_->FillBoundary(m_vertex_inv_dual_volume_, 0);
+    m_host_->FillRange("PATCH_BOUNDARY_", m_vertex_volume_, 0);
+    m_host_->FillRange("PATCH_BOUNDARY_", m_vertex_dual_volume_, 0);
+    m_host_->FillRange("PATCH_BOUNDARY_", m_vertex_inv_volume_, 0);
+    m_host_->FillRange("PATCH_BOUNDARY_", m_vertex_inv_dual_volume_, 0);
 
-    m_host_->FillBoundary(m_edge_volume_, 0);
-    m_host_->FillBoundary(m_edge_dual_volume_, 0);
-    m_host_->FillBoundary(m_edge_inv_volume_, 0);
-    m_host_->FillBoundary(m_edge_inv_dual_volume_, 0);
+    m_host_->FillRange("PATCH_BOUNDARY_", m_edge_volume_, 0);
+    m_host_->FillRange("PATCH_BOUNDARY_", m_edge_dual_volume_, 0);
+    m_host_->FillRange("PATCH_BOUNDARY_", m_edge_inv_volume_, 0);
+    m_host_->FillRange("PATCH_BOUNDARY_", m_edge_inv_dual_volume_, 0);
 
-    m_host_->FillBoundary(m_face_volume_, 0);
-    m_host_->FillBoundary(m_face_dual_volume_, 0);
-    m_host_->FillBoundary(m_face_inv_volume_, 0);
-    m_host_->FillBoundary(m_face_inv_dual_volume_, 0);
+    m_host_->FillRange("PATCH_BOUNDARY_", m_face_volume_, 0);
+    m_host_->FillRange("PATCH_BOUNDARY_", m_face_dual_volume_, 0);
+    m_host_->FillRange("PATCH_BOUNDARY_", m_face_inv_volume_, 0);
+    m_host_->FillRange("PATCH_BOUNDARY_", m_face_inv_dual_volume_, 0);
 
-    m_host_->FillBoundary(m_volume_volume_, 0);
-    m_host_->FillBoundary(m_volume_dual_volume_, 0);
-    m_host_->FillBoundary(m_volume_inv_volume_, 0);
-    m_host_->FillBoundary(m_volume_inv_dual_volume_, 0);
+    m_host_->FillRange("PATCH_BOUNDARY_", m_volume_volume_, 0);
+    m_host_->FillRange("PATCH_BOUNDARY_", m_volume_dual_volume_, 0);
+    m_host_->FillRange("PATCH_BOUNDARY_", m_volume_inv_volume_, 0);
+    m_host_->FillRange("PATCH_BOUNDARY_", m_volume_inv_dual_volume_, 0);
 }
 
 }  // namespace mesh {

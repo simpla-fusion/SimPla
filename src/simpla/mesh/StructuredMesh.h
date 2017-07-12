@@ -66,6 +66,8 @@ class StructuredMesh {
         return ZSFC<NDIMS>{GetIndexBox(EntityIdCoder::m_sub_index_to_id_[iform][nsub])};
     }
 
+    void Initialize();
+
    public:
     size_type GetNumberOfEntity(int IFORM = VERTEX) const {
         index_box_type m_index_box_ = GetBlock().GetIndexBox();
@@ -74,7 +76,6 @@ class StructuredMesh {
     }
 };
 }  // namespace mesh {
-
 }  // namespace simpla {
 
 #endif  // SIMPLA_STRUCTUREDMESH_H
