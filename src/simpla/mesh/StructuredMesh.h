@@ -31,9 +31,9 @@ class StructuredMesh {
     StructuredMesh &operator=(StructuredMesh &&) = delete;
 
     point_type map(point_type const &p) const;
+    point_type inv_map(point_type const &p) const;
 
     virtual const geometry::Chart *GetChart() const = 0;
-
     virtual const engine::MeshBlock &GetBlock() const = 0;
 
     point_type GetCellWidth() const;
@@ -49,8 +49,12 @@ class StructuredMesh {
 
     point_type point(entity_id_type s) const;
 
-    point_type local_coordinates(int tag, index_type x, index_type y, index_type z) const;
-    virtual point_type local_coordinates(entity_id_type s, Real const *r) const;
+    virtual point_type local_coordinates(index_type x, index_type y, index_type z, Real const *r) const;
+
+    point_type local_coordinates(index_type x, index_type y, index_type z, int tag = 0) const;
+
+    point_type local_coordinates(entity_id_type s, Real const *r) const;
+
     template <typename... Args>
     point_type global_coordinates(Args &&... args) const {
         return map(local_coordinates(std::forward<Args>(args)...));
@@ -59,10 +63,6 @@ class StructuredMesh {
     ZSFC<NDIMS> GetSpaceFillingCurve(int iform, int nsub = 0) const {
         return ZSFC<NDIMS>{GetIndexBox(EntityIdCoder::m_sub_index_to_id_[iform][nsub])};
     }
-
-   protected:
-    point_type m_dx_{1, 1, 1};
-    point_type m_x0_{0, 0, 0};
 
    public:
     size_type GetNumberOfEntity(int IFORM = VERTEX) const {

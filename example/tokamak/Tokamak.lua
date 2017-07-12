@@ -23,8 +23,8 @@ Context = {
         IndexOrigin = { 0, 0, 0 },
         Dimensions = { 32, 32, 32 },
         PeriodicDimension = { 0, 0, 1 },
-        lo = { 1.4, -1.0, -PI },
-        hi = { 2.5, 1.0, PI }
+        lo = { 1.4, -1.0, -PI/2 },
+        hi = { 2.5, 1.0, PI/2 }
     },
     Domain =
     {

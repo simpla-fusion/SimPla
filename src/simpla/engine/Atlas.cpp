@@ -52,6 +52,7 @@ std::shared_ptr<data::DataTable> Atlas::Serialize() const {
     res->SetValue("Dimensions", GetDimensions());
     res->SetValue("lo", std::get<0>(GetBox()));
     res->SetValue("hi", std::get<1>(GetBox()));
+    res->SetValue("Chart", GetChart()->Serialize());
     return (res);
 };
 void Atlas::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
@@ -69,6 +70,8 @@ void Atlas::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     periodic_dim = cfg->GetValue<nTuple<int, 3>>("IndexOrigin", nTuple<int, 3>{0, 0, 0});
     SetPeriodicDimension(periodic_dim);
 
+    m_pimpl_->m_chart_->SetShift(std::get<0>(GetBox()));
+    m_pimpl_->m_chart_->SetScale((std::get<1>(GetBox()) - std::get<0>(GetBox())) / GetDimensions());
     Click();
 };
 
@@ -126,7 +129,8 @@ size_tuple Atlas::GetDimensions() const {
     return d;
 }
 void Atlas::SetChart(std::shared_ptr<geometry::Chart> const &c) { m_pimpl_->m_chart_ = c; }
-std::shared_ptr<geometry::Chart> Atlas::GetChart() { return m_pimpl_->m_chart_; }
+const geometry::Chart *Atlas::GetChart() const { return m_pimpl_->m_chart_.get(); }
+
 void Atlas::SetPeriodicDimension(index_tuple const &b) { m_pimpl_->m_periodic_dimension_ = b; }
 index_tuple const &Atlas::GetPeriodicDimension() { return m_pimpl_->m_periodic_dimension_; }
 void Atlas::SetIndexBox(index_box_type const &b) { m_pimpl_->m_index_box_ = b; };

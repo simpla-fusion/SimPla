@@ -248,13 +248,13 @@ void ZSFC<3>::Foreach(TFun const& fun) const {
 
 #ifndef __CUDA__
     if (m_array_order_fast_first_) {
-        //#pragma omp parallel for
+#pragma omp parallel for
         for (index_type k = kb; k < ke; ++k)
             for (index_type j = jb; j < je; ++j)
                 for (index_type i = ib; i < ie; ++i) { fun(i, j, k); }
 
     } else {
-        //#pragma omp parallel for
+#pragma omp parallel for
         for (index_type i = ib; i < ie; ++i)
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k) { fun(i, j, k); }

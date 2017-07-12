@@ -29,32 +29,23 @@ using namespace algebra;
 *
 *\endverbatim
 */
-point_type StructuredMesh::local_coordinates(int tag, index_type x, index_type y, index_type z) const {
-    Real const* r = EntityIdCoder::m_id_to_coordinates_shift_[tag];
-
-    return point_type{std::fma(static_cast<Real>(x), m_dx_[0], r[0] * m_dx_[0] + m_x0_[0]),
-                      std::fma(static_cast<Real>(y), m_dx_[1], r[1] * m_dx_[1] + m_x0_[1]),
-                      std::fma(static_cast<Real>(z), m_dx_[2], r[2] * m_dx_[2] + m_x0_[2])};
+point_type StructuredMesh::local_coordinates(index_type x, index_type y, index_type z, int tag) const {
+    return local_coordinates(x, y, z, EntityIdCoder::m_id_to_coordinates_shift_[tag]);
 }
-
+point_type StructuredMesh::local_coordinates(index_type x, index_type y, index_type z, Real const* r) const {
+    return point_type{static_cast<Real>(x) + r[0], static_cast<Real>(y) + r[1], static_cast<Real>(z) + r[2]};
+}
 point_type StructuredMesh::local_coordinates(EntityId s, Real const* pr) const {
-    point_type r{0, 0, 0};
+    Real r[3];
 
-    r[0] = ((pr == nullptr) ? 0 : pr[0]) + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][0];
-    r[1] = ((pr == nullptr) ? 0 : pr[1]) + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][1];
-    r[2] = ((pr == nullptr) ? 0 : pr[2]) + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][2];
+    r[0] = pr[0] + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][0];
+    r[1] = pr[1] + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][1];
+    r[2] = pr[2] + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][2];
 
-    return point_type{std::fma(static_cast<Real>(s.x), m_dx_[0], r[0] * m_dx_[0] + m_x0_[0]),
-                      std::fma(static_cast<Real>(s.y), m_dx_[1], r[1] * m_dx_[1] + m_x0_[1]),
-                      std::fma(static_cast<Real>(s.z), m_dx_[2], r[2] * m_dx_[2] + m_x0_[2])};
+    return local_coordinates(s.x, s.y, s.z, r);
 }
 
-point_type StructuredMesh::point(EntityId s) const {
-    auto const* r = EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111];
-    return point_type{std::fma(static_cast<Real>(s.x), m_dx_[0], r[0] * m_dx_[0] + m_x0_[0]),
-                      std::fma(static_cast<Real>(s.y), m_dx_[1], r[1] * m_dx_[1] + m_x0_[1]),
-                      std::fma(static_cast<Real>(s.z), m_dx_[2], r[2] * m_dx_[2] + m_x0_[2])};
-};
+point_type StructuredMesh::point(EntityId s) const { return local_coordinates(s.x, s.y, s.z, s.w & 0b111); };
 
 index_box_type StructuredMesh::GetIndexBox(int tag) const {
     index_box_type res = GetBlock().GetIndexBox();
@@ -110,6 +101,8 @@ box_type StructuredMesh::GetBox() const {
 }
 
 point_type StructuredMesh::map(point_type const& p) const { return GetChart()->map(p); }
+point_type StructuredMesh::inv_map(point_type const& p) const { return GetChart()->inv_map(p); }
+
 // void StructuredMesh::SetBoundary(geometry::GeoObject const &g) {
 //    Real ratio = g == nullptr ? 1.0 : g->CheckOverlap(GetBox());
 //

@@ -25,7 +25,7 @@ struct SMesh : public StructuredMesh {
     void BoundaryCondition(Real time_now, Real time_dt);
 
    public:
-    point_type local_coordinates(entity_id_type s, Real const *r) const override;
+    //    point_type local_coordinates(index_type x, index_type y, index_type z, Real const *r) const override;
 
     Field<host_type, Real, VERTEX, 3> m_coordinates_{m_host_, "name"_ = "m_coordinates_" /*, "COORDINATES"_*/};
     Field<host_type, Real, VERTEX, 3> m_vertices_{m_host_, "name"_ = "m_vertices_"};
@@ -51,18 +51,11 @@ struct SMesh : public StructuredMesh {
     Field<host_type, Real, FACE> m_face_hodge_{m_host_, "name"_ = "m_face_hodge_"};
     Field<host_type, Real, VOLUME> m_volume_hodge_{m_host_, "name"_ = "m_volume_hodge_"};
 };
-
-template <typename THost>
-point_type SMesh<THost>::local_coordinates(EntityId s, Real const *pr) const {
-    point_type r{
-        (EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][0] + ((pr == nullptr) ? 0 : (pr[0] * m_dx_[0]))),
-        (EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][1] + ((pr == nullptr) ? 0 : (pr[1] * m_dx_[1]))),
-        (EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][2] + ((pr == nullptr) ? 0 : (pr[2] * m_dx_[2]))),
-    };
-    return point_type{std::fma(static_cast<Real>(s.x), m_dx_[0], r[0]),
-                      std::fma(static_cast<Real>(s.y), m_dx_[1], r[1]),
-                      std::fma(static_cast<Real>(s.z), m_dx_[2], r[2])};
-}
+//
+// template <typename THost>
+// point_type SMesh<THost>::local_coordinates(index_type x, index_type y, index_type z, Real const *r) const {
+//    return point_type{static_cast<Real>(x) + r[0], static_cast<Real>(y) + r[1], static_cast<Real>(z) + r[2]};
+//}
 
 /**
 *\verbatim

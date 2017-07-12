@@ -264,8 +264,8 @@ struct FVM {
         IdxShift D{0, 0, 0};
         D[n] = 1;
 
-        return (getValue(expr, S, 0, std::forward<Others>(others)...) +
-                getValue(expr, S + D, 0, std::forward<Others>(others)...)) *
+        return (getValue(expr, S, 0, n, std::forward<Others>(others)...) +
+                getValue(expr, S + D, 0, n, std::forward<Others>(others)...)) *
                0.5;
     }
 
@@ -286,10 +286,10 @@ struct FVM {
         IdxShift Z{0, 0, 0};
         Y[(n + 1) % 3] = 1;
         Z[(n + 2) % 3] = 1;
-        return (getValue(expr, S, 0, std::forward<Others>(others)...) +
-                getValue(expr, S + Y, 0, std::forward<Others>(others)...) +
-                getValue(expr, S + Z, 0, std::forward<Others>(others)...) +
-                getValue(expr, S + Y + Z, 0, std::forward<Others>(others)...)) *
+        return (getValue(expr, S, 0, n, std::forward<Others>(others)...) +
+                getValue(expr, S + Y, 0, n, std::forward<Others>(others)...) +
+                getValue(expr, S + Z, 0, n, std::forward<Others>(others)...) +
+                getValue(expr, S + Y + Z, 0, n, std::forward<Others>(others)...)) *
                0.25;
     }
 
@@ -339,14 +339,14 @@ struct FVM {
     auto _map_to(std::index_sequence<VOLUME, FACE>, TExpr const& expr, IdxShift S, int n, Others&&... others) const {
         IdxShift D{0, 0, 0};
         D[n] = 1;
-        return (getValue(expr, S - D, std::forward<Others>(others)...) +
-                getValue(expr, S, std::forward<Others>(others)...)) *
+        return (getValue(expr, S - D, 0, n, std::forward<Others>(others)...) +
+                getValue(expr, S, 0, n, std::forward<Others>(others)...)) *
                0.5;
     }
 
     template <typename TExpr, typename... Others>
-    auto _map_to(TExpr const& expr, IdxShift S, int n0, int n, Others&&... others,
-                 std::index_sequence<FACE, VOLUME>) const {
+    auto _map_to(std::index_sequence<FACE, VOLUME>, TExpr const& expr, IdxShift S, int n0, int n,
+                 Others&&... others) const {
         IdxShift D{0, 0, 0};
         D[n] = 1;
 
@@ -362,10 +362,10 @@ struct FVM {
         Y[(n + 1) % 3] = 1;
         Z[(n + 2) % 3] = 1;
 
-        return (getValue(expr, S - Y, std::forward<Others>(others)...) +
-                getValue(expr, S - Z, std::forward<Others>(others)...) +
-                getValue(expr, S - Y - Z, std::forward<Others>(others)...) +
-                getValue(expr, S, std::forward<Others>(others)...)) *
+        return (getValue(expr, S - Y, 0, n, std::forward<Others>(others)...) +
+                getValue(expr, S - Z, 0, n, std::forward<Others>(others)...) +
+                getValue(expr, S - Y - Z, 0, n, std::forward<Others>(others)...) +
+                getValue(expr, S, 0, n, std::forward<Others>(others)...)) *
                0.25;
     }
 
@@ -509,11 +509,23 @@ struct FVM {
     //        return getValue(rhs, IdxShift{0, 0, 0}, EntityIdCoder::m_id_to_sub_index_[s.w & 0b111], s.x, s.y, s.z);
     //    }
     //
+    template <int IFORM, typename RHS>
+    auto GetEntity(RHS const& rhs, int n, ENABLE_IF((std::is_arithmetic<RHS>::value))) const {
+        return rhs;
+    }
     template <int IFORM, typename V, int N1>
-    auto GetEntity(nTuple<V, N1> const& rhs, EntityId s) const {
-        return rhs[(IFORM == VERTEX || IFORM == VOLUME) ? (s.w >> 3) : EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]];
+    auto GetEntity(nTuple<V, N1> const& rhs, int n) const {
+        return rhs[n];
     }
 
+    template <int IFORM, typename V, int N1>
+    auto GetEntity(nTuple<V, N1> const& rhs, EntityId s, ENABLE_IF((IFORM == VERTEX || IFORM == VOLUME))) const {
+        return rhs[(s.w >> 3)];
+    }
+    template <int IFORM, typename V, int N1>
+    auto GetEntity(nTuple<V, N1> const& rhs, EntityId s, ENABLE_IF(!(IFORM == VERTEX || IFORM == VOLUME))) const {
+        return rhs[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]];
+    }
     template <int IFORM, typename RHS>
     auto GetEntity(RHS const& rhs, EntityId s, ENABLE_IF((std::is_arithmetic<RHS>::value))) const {
         return rhs;
@@ -592,19 +604,28 @@ struct FVM {
     void Fill(Field<THost, U, IFORM, N...>& lhs, RHS const& rhs,
               ENABLE_IF((traits::is_invocable<RHS, point_type>::value))) const {
         traits::foreach (lhs.Get(), [&](auto& a, int n0, auto&&... subs) {
-            int16_t tag = static_cast<int16_t>(
-                EntityIdCoder::m_sub_index_to_id_[IFORM][n0] |
-                (reduction_v(tags::multiplication(), 1, std::forward<decltype(subs)>(subs)...) << 3));
+            int16_t tag = static_cast<int16_t>(EntityIdCoder::m_sub_index_to_id_[IFORM][n0]);
+            int n = (IFORM == VERTEX || IFORM == VOLUME)
+                        ? (reduction_v(tags::multiplication(), 1, std::forward<decltype(subs)>(subs)...))
+                        : n0;
             a = [&](index_type x, index_type y, index_type z) {
-                EntityId s;
-                s.w = tag;
-                s.x = static_cast<int16_t>(x);
-                s.y = static_cast<int16_t>(y);
-                s.z = static_cast<int16_t>(z);
-                return GetEntity<IFORM>(rhs(m_host_->point(s)), s);
+                return GetEntity<IFORM>(rhs(m_host_->local_coordinates(x, y, z, tag)), n);
             };
         });
     }
+
+    template <typename U, int IFORM, int... N, typename RHS>
+    void Fill(Field<THost, U, IFORM, N...>& lhs, RHS const& rhs,
+              ENABLE_IF((traits::is_invocable<RHS, index_type, index_type, index_type, int>::value))) const {
+        traits::foreach (lhs.Get(), [&](auto& a, int n0, auto&&... subs) {
+            int16_t tag = static_cast<int16_t>(EntityIdCoder::m_sub_index_to_id_[IFORM][n0]);
+            int n = (IFORM == VERTEX || IFORM == VOLUME)
+                        ? (reduction_v(tags::multiplication(), 1, std::forward<decltype(subs)>(subs)...))
+                        : n0;
+            a = [&](index_type x, index_type y, index_type z) { return GetEntity<IFORM>(rhs(x, y, z, tag), n); };
+        });
+    }
+
     //    ///*********************************************************************************************
     //    /// @name general_algebra General algebra
     //    /// @{

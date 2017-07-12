@@ -23,7 +23,7 @@ struct RectMesh : public StructuredMesh {
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real time_dt);
 
-    Field<host_type, Real, VERTEX, 3> m_coordinates_{m_host_, "name"_ = "m_coordinates_" /*, "COORDINATES"_*/};
+    Field<host_type, Real, VERTEX, 3> m_coordinates_{m_host_, "name"_ = "m_coordinates_", "COORDINATES"_};
     Field<host_type, Real, VERTEX, 3> m_vertices_{m_host_, "name"_ = "m_vertices_"};
 
     Field<host_type, Real, VERTEX> m_vertex_volume_{m_host_, "name"_ = "m_vertex_volume_"};
@@ -57,10 +57,8 @@ struct RectMesh : public StructuredMesh {
 
 template <typename THost>
 void RectMesh<THost>::InitialCondition(Real time_now) {
-    //    m_coordinates_ = [&](auto&&... s) -> point_type { return global_coordinates(std::forward<decltype(s)>(s)...);
-    //    };
-    //    m_vertices_ = [&](auto&&... s) -> point_type { return global_coordinates(0, std::forward<decltype(s)>(s)...);
-    //    };
+    m_coordinates_ = [&](point_type const &x) -> point_type { return map(x); };
+    m_vertices_ = [&](point_type const &x) -> point_type { return (x); };
     m_vertex_volume_.Initialize();
     m_vertex_inv_volume_.Initialize();
     m_vertex_dual_volume_.Initialize();
@@ -105,17 +103,13 @@ void RectMesh<THost>::InitialCondition(Real time_now) {
     auto chart = m_host_->GetChart();
     m_vertex_volume_ = 1.0;
     m_vertex_inv_volume_ = 1.0;
-    m_vertex_dual_volume_ = [&](EntityId s) -> Real {
-        return chart->volume(point(EntityId{static_cast<int16_t>(s.x - 1), static_cast<int16_t>(s.y - 1),
-                                            static_cast<int16_t>(s.z - 1), 0b111}),
-                             point(EntityId{s.x, s.y, s.z, 0b111}));
+    m_vertex_dual_volume_ = [&](index_type x, index_type y, index_type z, int tag) -> Real {
+        return chart->volume(global_coordinates(x - 1, y - 1, z - 1, 0b111), global_coordinates(x, y, z, 0b111));
     };
     m_vertex_inv_dual_volume_ = 1.0 / m_vertex_dual_volume_;
 
-    m_volume_volume_ = [&](EntityId s) -> Real {
-        return chart->volume(point(EntityId{s.x, s.y, s.z, 0b0}),
-                             point(EntityId{static_cast<int16_t>(s.x + 1), static_cast<int16_t>(s.y + 1),
-                                            static_cast<int16_t>(s.z + 1), 0b0}));
+    m_volume_volume_ = [&](index_type x, index_type y, index_type z, int tag) -> Real {
+        return chart->volume(global_coordinates(x, y, z, 0b0), global_coordinates(x + 1, y + 1, z + 1, 0b0));
     };
     m_volume_inv_volume_ = 1.0 / m_volume_volume_;
     m_volume_dual_volume_ = 1.0;

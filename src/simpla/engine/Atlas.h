@@ -107,7 +107,7 @@ class Atlas : public SPObject, public data::Serializable {
     size_tuple GetDimensions() const;
 
     void SetChart(std::shared_ptr<geometry::Chart> const &);
-    std::shared_ptr<geometry::Chart> GetChart();
+    const geometry::Chart *GetChart() const;
 
     void SetPeriodicDimension(index_tuple const &t);
     index_tuple const &GetPeriodicDimension();

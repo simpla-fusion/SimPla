@@ -58,7 +58,7 @@ class DomainBase : public SPObject, public AttributeGroup, public data::EnableCr
     void SetGeoObject(const std::shared_ptr<geometry::GeoObject> &g);
     const geometry::GeoObject *GetGeoObject() const;
 
-    void SetChart(std::shared_ptr<geometry::Chart> const &g);
+    void SetChart(const geometry::Chart *g);
     const geometry::Chart *GetChart() const;
 
     void DoInitialize() override;
