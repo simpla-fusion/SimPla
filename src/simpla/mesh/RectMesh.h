@@ -115,39 +115,35 @@ void RectMesh<THost>::InitialCondition(Real time_now) {
     m_volume_dual_volume_ = 1.0;
     m_volume_inv_dual_volume_ = 1.0;
 
-    m_edge_volume_ = [&](EntityId s) -> Real {
-        return chart->length(point(EntityId{s.x, s.y, s.z, 0b0}),
-                             point(EntityId{static_cast<int16_t>(s.x + ((s.w & 0b111) == 0b001 ? 1 : 0)),
-                                            static_cast<int16_t>(s.y + ((s.w & 0b111) == 0b010 ? 1 : 0)),
-                                            static_cast<int16_t>(s.z + ((s.w & 0b111) == 0b100 ? 1 : 0)), 0b0}),
-                             EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]);
+    m_edge_volume_ = [&](index_type x, index_type y, index_type z, int w) -> Real {
+        return chart->length(
+            global_coordinates(x, y, z, 0b0),
+            global_coordinates(x + (w == 0b001 ? 1 : 0), y + (w == 0b010 ? 1 : 0), z + (w == 0b100 ? 1 : 0), 0b0),
+            EntityIdCoder::m_id_to_sub_index_[w]);
     };
     m_edge_inv_volume_ = 1.0 / m_edge_volume_;
 
-    m_edge_dual_volume_ = [&](EntityId s) -> Real {
-        return chart->area(point(EntityId{static_cast<int16_t>(s.x - ((s.w & 0b111) != 0b001 ? 1 : 0)),
-                                          static_cast<int16_t>(s.y - ((s.w & 0b111) != 0b010 ? 1 : 0)),
-                                          static_cast<int16_t>(s.z - ((s.w & 0b111) != 0b100 ? 1 : 0)), 0b111}),
-                           point(EntityId{s.x, s.y, s.z, 0b111}), EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]);
+    m_edge_dual_volume_ = [&](index_type x, index_type y, index_type z, int w) -> Real {
+        return chart->area(
+            global_coordinates(x - (w != 0b001 ? 1 : 0), y - (w != 0b010 ? 1 : 0), z - (w != 0b100 ? 1 : 0), 0b111),
+            global_coordinates(x, y, z, 0b111), EntityIdCoder::m_id_to_sub_index_[w]);
     };
     m_edge_inv_dual_volume_ = 1.0 / m_edge_dual_volume_;
 
-    m_face_volume_ = [&](EntityId s) -> Real {
-        return chart->area(point(EntityId{s.x, s.y, s.z, 0b0}),
-                           point(EntityId{static_cast<int16_t>(s.x + ((s.w & 0b111) != 0b110 ? 1 : 0)),
-                                          static_cast<int16_t>(s.y + ((s.w & 0b111) != 0b101 ? 1 : 0)),
-                                          static_cast<int16_t>(s.z + ((s.w & 0b111) != 0b011 ? 1 : 0)), 0b0}),
-                           EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]);
+    m_face_volume_ = [&](index_type x, index_type y, index_type z, int w) -> Real {
+        return chart->area(
+            global_coordinates(x, y, z, 0b0),
+            global_coordinates(x + (w != 0b110 ? 1 : 0), y + (w != 0b101 ? 1 : 0), z + (w != 0b011 ? 1 : 0), 0b0),
+            EntityIdCoder::m_id_to_sub_index_[w]);
 
     };
 
     m_face_inv_volume_ = 1.0 / m_face_volume_;
 
-    m_face_dual_volume_ = [&](EntityId s) -> Real {
-        return chart->length(point(EntityId{static_cast<int16_t>(s.x - ((s.w & 0b111) == 0b110 ? 1 : 0)),
-                                            static_cast<int16_t>(s.y - ((s.w & 0b111) == 0b101 ? 1 : 0)),
-                                            static_cast<int16_t>(s.z - ((s.w & 0b111) == 0b011 ? 1 : 0)), 0b111}),
-                             point(EntityId{s.x, s.y, s.z, 0b111}), EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]);
+    m_face_dual_volume_ = [&](index_type x, index_type y, index_type z, int w) -> Real {
+        return chart->length(
+            global_coordinates(x - (w == 0b110 ? 1 : 0), y - (w == 0b101 ? 1 : 0), z - (w == 0b011 ? 1 : 0), 0b111),
+            global_coordinates(x, y, z, 0b111), EntityIdCoder::m_id_to_sub_index_[w]);
     };
     m_face_inv_dual_volume_ = 1.0 / m_face_dual_volume_;
 };
