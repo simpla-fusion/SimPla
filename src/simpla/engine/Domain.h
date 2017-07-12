@@ -46,8 +46,8 @@ class DomainBase : public SPObject, public AttributeGroup, public data::EnableCr
     virtual DomainBase const *GetDomain() const { return this; }
 
     void SetRanges(std::shared_ptr<std::map<std::string, Range<EntityId>>> const &);
-    std::map<std::string, Range<EntityId>> *GetRanges() override;
-    std::map<std::string, Range<EntityId>> const *GetRanges() override;
+    virtual std::map<std::string, Range<EntityId>> *GetRanges();
+    virtual std::map<std::string, Range<EntityId>> const *GetRanges() const;
 
     void SetBlock(const MeshBlock &);
     virtual const MeshBlock &GetBlock() const;
@@ -133,7 +133,7 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
     DomainBase const *GetDomain() const override { return this; }
 
     std::map<std::string, Range<EntityId>> *GetRanges() override { return DomainBase::GetRanges(); };
-    std::map<std::string, Range<EntityId>> const *GetRanges() override { return DomainBase::GetRanges(); };
+    std::map<std::string, Range<EntityId>> const *GetRanges() const override { return DomainBase::GetRanges(); };
 
     void DoInitialCondition(Real time_now) override;
     void DoBoundaryCondition(Real time_now, Real dt) override;

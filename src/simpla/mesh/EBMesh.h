@@ -21,19 +21,19 @@ struct EBMesh {
    public:
     void InitialCondition(Real time_now);
     virtual std::map<std::string, Range<EntityId>> *GetRanges() = 0;
-    virtual std::map<std::string, Range<EntityId>> const *GetRanges() = 0;
+    virtual std::map<std::string, Range<EntityId>> const *GetRanges() const = 0;
 
     template <typename TL, typename TR>
     void FillRange(TL &lhs, TR &&rhs, std::string const &k = "") const {
         bool is_done = false;
-        if (m_ranges_ != nullptr && k != "") {
-            auto it = m_ranges_->find(k + std::to_string(traits::iform<TL>::value));
-            if (it != m_ranges_->end()) {
+        if (GetRanges() != nullptr && k != "") {
+            auto it = GetRanges()->find(k + std::to_string(traits::iform<TL>::value));
+            if (it != GetRanges()->end()) {
                 m_host_->Fill(it->second, lhs, std::forward<TR>(rhs));
                 is_done = true;
             }
         }
-        if (!is_done &&k = "BODY_") { m_host_->Fill(lhs, std::forward<TR>(rhs)); }
+        if (!is_done && k == "BODY_") { m_host_->Fill(lhs, std::forward<TR>(rhs)); }
     }
 };
 
