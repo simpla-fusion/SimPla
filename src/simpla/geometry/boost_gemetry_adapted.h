@@ -150,7 +150,7 @@ namespace geometry
 namespace traits
 {
 namespace sg = simpla::geometry;
-namespace sgm = simpla::geometry::model;
+namespace sgm = simpla:: engine::Model;
 namespace sgcs = simpla::geometry::coordinate_system;
 
 template<typename CS, typename TAG>

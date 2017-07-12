@@ -339,11 +339,11 @@ namespace std
 {
 
 template<size_t N, size_t M, typename ... Others>
-auto get(simpla::geometry::model::Primitive<M, Others...> &obj)
+auto get(simpla:: engine::Model::Primitive<M, Others...> &obj)
 AUTO_RETURN((obj[N]))
 
 template<size_t N, size_t M, typename ...Others>
-auto get(simpla::geometry::model::Primitive<M, Others...> const &obj)
+auto get(simpla:: engine::Model::Primitive<M, Others...> const &obj)
 AUTO_RETURN((obj[N]))
 
 }  // namespace std

@@ -12,7 +12,7 @@
 #include <simpla/algebra/nTuple.h>
 #include <simpla/geometry/Chart.h>
 #include <simpla/geometry/GeoObject.h>
-#include <simpla/geometry/Model.h>
+#include <simpla/engine/Model.h>
 #include <simpla/geometry/Polygon.h>
 #include <simpla/geometry/Revolve.h>
 #include <simpla/utilities/Log.h>
@@ -68,6 +68,8 @@ class GEqdsk {
     __host__ __device__ Real profile(std::string const &name, point_type const &x) const {
         return profile(name, psi(x[RAxis], x[ZAxis]));
     }
+    std::function<Real(point_type const &x)> GetAttribute(std::string const &) const;
+
     __host__ __device__ point_type magnetic_axis() const;
     __host__ __device__ nTuple<size_type, 3> dimensions() const;
     Real B0() const;
@@ -121,7 +123,7 @@ class GEqdsk {
     //        Real Z = x[ZAxis];
     //        Real Phi = x[PhiAxis];
     //
-    //        return R * profile("pprim", psi(R, Z)) + profile("ffprim", psi(R, Z)) / R;
+    //        return R * profile("pprim", psi(R, Z)) + GetAttribute("ffprim", psi(R, Z)) / R;
     //    }
 
     /**

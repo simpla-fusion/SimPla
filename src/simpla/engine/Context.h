@@ -64,14 +64,13 @@ namespace engine {
 /**
  * Context is a container of Model,Atlas,Domains
  */
-class Context : public SPObject, public data::EnableCreateFromDataTable<Context> {
+class Context : public SPObject, public data::Serializable {
     SP_OBJECT_HEAD(Context, SPObject)
    public:
     explicit Context(const std::string &s_name = "");
     ~Context() override;
 
     SP_DEFAULT_CONSTRUCT(Context)
-    DECLARE_REGISTER_NAME(Context)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;

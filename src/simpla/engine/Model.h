@@ -5,13 +5,14 @@
 #ifndef SIMPLA_MODEL_H
 #define SIMPLA_MODEL_H
 
+#include <simpla/algebra/Field.h>
 #include <simpla/data/Serializable.h>
-#include <simpla/utilities/SPObject.h>
+#include <simpla/engine/SPObject.h>
 #include <functional>
-#include "GeoObject.h"
+#include "simpla/geometry/GeoObject.h"
 namespace simpla {
-namespace geometry {
 
+namespace engine {
 using namespace data;
 
 class Model : public engine::SPObject, public data::EnableCreateFromDataTable<Model> {
@@ -32,12 +33,13 @@ class Model : public engine::SPObject, public data::EnableCreateFromDataTable<Mo
     void DoTearDown() override;
     void DoFinalize() override;
 
-    int GetNDims() const;
-
     box_type const &GetBoundBox() const;
 
-    void GetAttribute(std::string const &attr_name) const;
-    std::function<nTuple<Real, 3>(point_type const &)> GetVectorAttribute(std::string const &attr_name) const;
+    typedef std::function<Real(point_type const &)> attr_fun;
+    typedef std::function<Vec3(point_type const &)> vec_attr_fun;
+
+    virtual attr_fun GetAttribute(std::string const &attr_name) const { return nullptr; };
+    virtual vec_attr_fun GetAttributeVector(std::string const &attr_name) const { return nullptr; };
 
     void SetObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &);
     std::shared_ptr<geometry::GeoObject> GetObject(std::string const &k) const;
@@ -45,11 +47,24 @@ class Model : public engine::SPObject, public data::EnableCreateFromDataTable<Mo
 
     std::map<std::string, std::shared_ptr<geometry::GeoObject>> const &GetAll() const;
 
+    template <typename TD, typename TV, int IFORM, int... N>
+    void LoadProfile(std::string const &k, Field<TD, TV, IFORM, N...> *f) const {
+        int n =
+            ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * simpla::reduction_v(tags::multiplication(), 1, N...);
+        if (n == 1) {
+            auto fun = GetAttribute(k);
+            if (fun) { *f = fun; }
+        } else {
+            auto fun = GetAttributeVector(k);
+            if (fun) { *f = fun; }
+        }
+    };
+
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-}  // namespace engine {
+}  // namespace geometry {
 }  // namespace simpla{namespace geometry{
 
 #endif  // SIMPLA_MODEL_H

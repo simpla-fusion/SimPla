@@ -32,9 +32,7 @@ using namespace algebra;
 point_type StructuredMesh::local_coordinates(index_type x, index_type y, index_type z, int tag) const {
     return local_coordinates(x, y, z, EntityIdCoder::m_id_to_coordinates_shift_[tag]);
 }
-point_type StructuredMesh::local_coordinates(index_type x, index_type y, index_type z, Real const* r) const {
-    return point_type{static_cast<Real>(x) + r[0], static_cast<Real>(y) + r[1], static_cast<Real>(z) + r[2]};
-}
+
 point_type StructuredMesh::local_coordinates(EntityId s, Real const* pr) const {
     Real r[3];
 

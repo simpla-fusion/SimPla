@@ -49,7 +49,9 @@ class StructuredMesh {
 
     point_type point(entity_id_type s) const;
 
-    virtual point_type local_coordinates(index_type x, index_type y, index_type z, Real const *r) const;
+    point_type local_coordinates(index_type x, index_type y, index_type z, Real const *r) const {
+        return GetChart()->local_coordinates(x, y, z, r);
+    }
 
     point_type local_coordinates(index_type x, index_type y, index_type z, int tag = 0) const;
 

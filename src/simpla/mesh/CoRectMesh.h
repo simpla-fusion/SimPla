@@ -66,8 +66,8 @@ void CoRectMesh<THost>::InitialCondition(Real time_now) {
      *
      *\endverbatim
      */
-    //    m_x0_ = GetChart()->GetOrigin();
-    //    m_coarsest_cell_width_ = GetChart()->GetDx();
+    //    m_x0_ = GetBaseChart()->GetOrigin();
+    //    m_coarsest_cell_width_ = GetBaseChart()->GetDx();
     size_tuple m_dims_ = GetBlock().GetDimensions();
 
     //    m_volume_[0 /*000*/] = 1;

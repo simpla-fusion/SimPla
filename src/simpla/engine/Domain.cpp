@@ -3,61 +3,46 @@
 //
 
 #include "Domain.h"
+#include <simpla/engine/Model.h>
 #include <simpla/geometry/Chart.h>
 #include <simpla/geometry/GeoObject.h>
-#include "../../../to_delete/Mesh.h"
 #include "Attribute.h"
 #include "Patch.h"
 namespace simpla {
 namespace engine {
 
 struct DomainBase::pimpl_s {
-    std::shared_ptr<geometry::GeoObject> m_geo_object_;
-    engine::MeshBlock m_mesh_block_;
+    std::shared_ptr<engine::Model> m_model_;
     geometry::Chart const* m_chart_;
-    //    std::shared_ptr<MeshBase> m_mesh_base_ = nullptr;
-    //    std::shared_ptr<MeshBase> m_mesh_body_ = nullptr;
-    //    std::shared_ptr<MeshBase> m_mesh_boundary_ = nullptr;
-
-    std::string m_domain_geo_prefix_;
+    MeshBlock m_mesh_block_;
 };
 DomainBase::DomainBase() : m_pimpl_(new pimpl_s) {}
 DomainBase::~DomainBase() {}
 
 DomainBase::DomainBase(DomainBase const& other) : m_pimpl_(new pimpl_s) {
-    //    m_pimpl_->m_mesh_base_ = other.m_pimpl_->m_mesh_base_;
-    //    m_pimpl_->m_mesh_body_ = other.m_pimpl_->m_mesh_body_;
-    //    m_pimpl_->m_mesh_boundary_ = other.m_pimpl_->m_mesh_boundary_;
-    m_pimpl_->m_geo_object_ = other.m_pimpl_->m_geo_object_;
+    m_pimpl_->m_model_ = other.m_pimpl_->m_model_;
+    m_pimpl_->m_chart_ = other.m_pimpl_->m_chart_;
+    m_pimpl_->m_mesh_block_ = other.m_pimpl_->m_mesh_block_;
 }
 
 DomainBase::DomainBase(DomainBase&& other) noexcept : m_pimpl_(other.m_pimpl_.get()) { other.m_pimpl_.reset(); }
 
 void DomainBase::swap(DomainBase& other) {
-    //    std::swap(m_pimpl_->m_mesh_base_, other.m_pimpl_->m_mesh_base_);
-    //    std::swap(m_pimpl_->m_mesh_body_, other.m_pimpl_->m_mesh_body_);
-    //    std::swap(m_pimpl_->m_mesh_boundary_, other.m_pimpl_->m_mesh_boundary_);
-    std::swap(m_pimpl_->m_geo_object_, other.m_pimpl_->m_geo_object_);
+    std::swap(m_pimpl_->m_model_, other.m_pimpl_->m_model_);
     std::swap(m_pimpl_->m_chart_, other.m_pimpl_->m_chart_);
-    std::swap(m_pimpl_->m_domain_geo_prefix_, other.m_pimpl_->m_domain_geo_prefix_);
     std::swap(m_pimpl_->m_mesh_block_, other.m_pimpl_->m_mesh_block_);
 }
-
-std::string DomainBase::GetDomainPrefix() const { return m_pimpl_->m_domain_geo_prefix_; };
 
 std::shared_ptr<data::DataTable> DomainBase::Serialize() const {
     auto p = std::make_shared<data::DataTable>();
     p->SetValue("Type", GetRegisterName());
-    p->SetValue("Name", GetName());
-    p->SetValue("GeometryObject", m_pimpl_->m_domain_geo_prefix_);
-    p->SetValue("Chart", m_pimpl_->m_chart_->Serialize());
+    p->SetValue("Model", GetModel()->Serialize());
     return (p);
 }
 void DomainBase::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     Initialize();
     Click();
-    SetName(cfg->GetValue<std::string>("Name", "unnamed"));
-    m_pimpl_->m_domain_geo_prefix_ = cfg->GetValue<std::string>("GeometryObject", "");
+    m_pimpl_->m_model_ = engine::Model::Create(cfg->Get("Model"));
 };
 
 void DomainBase::DoUpdate() {}
@@ -65,27 +50,24 @@ void DomainBase::DoTearDown() {}
 void DomainBase::DoInitialize() {}
 void DomainBase::DoFinalize() {}
 
-// MeshBase const* DomainBase::GetMesh() const { return m_pimpl_->m_mesh_base_.get(); }
-// MeshBase const* DomainBase::GetBodyMesh() const {
-//    return m_pimpl_->m_mesh_body_ != nullptr ? m_pimpl_->m_mesh_body_.get() : m_pimpl_->m_mesh_base_.get();
-//}
-// MeshBase const* DomainBase::GetBoundaryMesh() const { return m_pimpl_->m_mesh_boundary_.get(); }
-
-void DomainBase::SetGeoObject(const std::shared_ptr<geometry::GeoObject>& g) {
-    Click();
-    m_pimpl_->m_geo_object_ = (g);
-}
-const geometry::GeoObject* DomainBase::GetGeoObject() const { return m_pimpl_->m_geo_object_.get(); }
-
 void DomainBase::SetChart(const geometry::Chart* c) {
     Click();
     m_pimpl_->m_chart_ = c;
 }
 const geometry::Chart* DomainBase::GetChart() const { return m_pimpl_->m_chart_; }
 
+void DomainBase::SetModel(const std::shared_ptr<engine::Model>& g) {
+    m_pimpl_->m_model_ = g;
+    Click();
+}
+const engine::Model* DomainBase::GetModel() const { return m_pimpl_->m_model_.get(); }
+
 void DomainBase::SetBlock(const engine::MeshBlock& blk) { m_pimpl_->m_mesh_block_ = blk; };
+
 const engine::MeshBlock& DomainBase::GetBlock() const { return m_pimpl_->m_mesh_block_; }
+
 id_type DomainBase::GetBlockId() const { return m_pimpl_->m_mesh_block_.GetGUID(); }
+
 void DomainBase::Push(Patch* patch) {
     Click();
     SetBlock(patch->GetBlock());

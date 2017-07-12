@@ -13,7 +13,7 @@
 #include <simpla/data/Serializable.h>
 #include <simpla/geometry/Chart.h>
 #include <simpla/utilities/Log.h>
-#include <simpla/utilities/SPObject.h>
+#include <simpla/engine/SPObject.h>
 #include <type_traits>
 namespace simpla {
 namespace engine {

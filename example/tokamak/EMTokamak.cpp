@@ -6,11 +6,14 @@
 #include <simpla/engine/all.h>
 #include <simpla/mesh/RectMesh.h>
 #include <simpla/predefine/device/ICRFAntenna.h>
+#include <simpla/predefine/device/Tokamak.h>
 #include <simpla/predefine/physics/EMFluid.h>
 namespace simpla {
 
 static bool all_required_module_are_registered = engine::Domain<mesh::RectMesh, FVM, ICRFAntenna>::is_registered &&
-                                                 engine::Domain<mesh::RectMesh, FVM, EMFluid>::is_registered;
+                                                 engine::Domain<mesh::RectMesh, FVM, EMFluid>::is_registered &&
+                                                 Tokamak::is_registered;
+
 //
 // class Tokamak : public engine::Context {
 //    SP_OBJECT_HEAD(Tokamak, engine::Context)
@@ -43,7 +46,8 @@ static bool all_required_module_are_registered = engine::Domain<mesh::RectMesh, 
 //        //            //        auto& ne = self->Get("ne")->cast_as<Field<mesh_type, Real, VOLUME>>();
 //        //            auto ne = self->GetAttribute<Field<mesh_type, Real, VOLUME>>("ne", "Tokamak.Center");
 //        //            ne.Clear();
-//        //            ne = [=] __host__ __device__(point_type const& x) -> Real { return geqdsk->profile("ne", x[0],
+//        //            ne = [=] __host__ __device__(point_type const& x) -> Real { return geqdsk->GetAttribute("ne",
+//        x[0],
 //        //            x[1]); };
 //        //            //        }
 //        //            //

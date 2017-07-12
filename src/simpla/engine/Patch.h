@@ -8,7 +8,7 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/EntityId.h>
 #include <simpla/data/all.h>
-#include <simpla/utilities/SPObject.h>
+#include <simpla/engine/SPObject.h>
 #include <memory>
 
 namespace simpla {

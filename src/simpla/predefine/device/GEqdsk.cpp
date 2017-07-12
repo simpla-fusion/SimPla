@@ -21,7 +21,7 @@
 #include <simpla/physics/Constants.h>
 #include <simpla/utilities/FancyStream.h>
 #include <simpla/utilities/Log.h>
-#include "simpla/geometry/Model.h"
+#include "simpla/engine/Model.h"
 #include "simpla/geometry/Polygon.h"
 
 namespace simpla {
@@ -330,6 +330,16 @@ Real GEqdsk::psi(Real R, Real Z) const { return m_pimpl_->m_psirz_(R, Z); }
 nTuple<Real, 2> GEqdsk::grad_psi(Real R, Real Z) const { return m_pimpl_->m_psirz_.grad(R, Z); }
 
 Real GEqdsk::profile(std::string const &name, Real p_psi) const { return m_pimpl_->m_profile_[name](p_psi); }
+
+std::function<Real(point_type const &x)> GEqdsk::GetAttribute(std::string const &k_name) const {
+    std::function<Real(point_type const &x)> res = nullptr;
+    auto it = m_pimpl_->m_profile_.find(k_name);
+    if (it != m_pimpl_->m_profile_.end()) {
+        auto &fun = it->second;
+        res = [&](point_type const &x) { return fun(psi(x)); };
+    }
+    return res;
+}
 
 point_type GEqdsk::magnetic_axis() const {
     point_type res;

@@ -48,8 +48,11 @@
 
 #cmakedefine SIMPLA_INITIALIZE_ARRAY_TO_SIGNALING_NAN
 
+#cmakedefine SIMPLA_OUTPUT_SUFFIX  "@SIMPLA_OUTPUT_SUFFIX@"
 
-
+#ifndef SIMPLA_OUTPUT_SUFFIX
+#define SIMPLA_OUTPUT_SUFFIX SIMPLA
+#endif
 
 #include <stdint.h>
 #include <stdlib.h>

@@ -14,16 +14,14 @@
 #include "Attribute.h"
 
 namespace simpla {
-
-namespace geometry {
-class GeoObject;
-}
 namespace engine {
 class Patch;
 class AttributeGroup;
+class Model;
 
 class DomainBase : public SPObject, public AttributeGroup, public data::EnableCreateFromDataTable<DomainBase> {
     SP_OBJECT_HEAD(DomainBase, SPObject)
+    DECLARE_REGISTER_NAME(DomainBase)
    public:
     using AttributeGroup::attribute_type;
 
@@ -41,25 +39,18 @@ class DomainBase : public SPObject, public AttributeGroup, public data::EnableCr
         return *this;
     }
 
-    DECLARE_REGISTER_NAME(DomainBase)
-
-    std::string GetDomainPrefix() const override;
-
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const &t) override;
 
     void SetBlock(const MeshBlock &);
-    const MeshBlock &GetBlock() const;
-    id_type GetBlockId() const;
+    virtual const MeshBlock &GetBlock() const;
+    virtual id_type GetBlockId() const;
 
-    void Pull(Patch *) override;
-    void Push(Patch *) override;
+    void SetModel(const std::shared_ptr<Model> &g);
+    const Model *GetModel() const;
 
-    void SetGeoObject(const std::shared_ptr<geometry::GeoObject> &g);
-    const geometry::GeoObject *GetGeoObject() const;
-
-    void SetChart(const geometry::Chart *g);
     const geometry::Chart *GetChart() const;
+    void SetChart(const geometry::Chart *g);
 
     void DoInitialize() override;
     void DoFinalize() override;
@@ -80,6 +71,9 @@ class DomainBase : public SPObject, public AttributeGroup, public data::EnableCr
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real dt);
     void Advance(Real time_now, Real dt);
+
+    void Pull(Patch *) override;
+    void Push(Patch *) override;
 
     void InitialCondition(Patch *, Real time_now);
     void BoundaryCondition(Patch *, Real time_now, Real dt);
@@ -128,6 +122,8 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
 
     const engine::MeshBlock &GetBlock() const override { return DomainBase::GetBlock(); };
 
+    id_type GetBlockId() const override { return DomainBase::GetBlockId(); };
+
     void DoInitialCondition(Real time_now) override;
     void DoBoundaryCondition(Real time_now, Real dt) override;
     void DoAdvance(Real time_now, Real dt) override;
@@ -141,12 +137,12 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
     };
     template <typename TL, typename TR>
     void FillBody(TL &lhs, TR &&rhs) const {
-//        this->Fill(lhs, std::forward<TR>(rhs));
+        //        this->Fill(lhs, std::forward<TR>(rhs));
     };
 
     template <typename TL, typename TR>
     void FillBoundary(TL &lhs, TR &&rhs) const {
-//        this->Fill(lhs, std::forward<TR>(rhs));
+        //        this->Fill(lhs, std::forward<TR>(rhs));
     };
 
 };  // class Domain

@@ -29,6 +29,14 @@ class EnableCreateFromDataTable : public data::Serializable {
 
     virtual std::string GetRegisterName() const { return TObj::RegisterName(); }
 
+    std::shared_ptr<DataTable> Serialize() const override {
+        auto res = std::make_shared<data::DataTable>();
+        res->SetValue("Type", GetRegisterName());
+        return res;
+    }
+
+    void Deserialize(const std::shared_ptr<DataTable> &t) override{};
+
     struct ObjectFactory {
         std::map<std::string, std::function<TObj *(Args const &...)>> m_factory_;
     };

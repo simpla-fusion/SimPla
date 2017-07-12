@@ -7,8 +7,8 @@
 //
 #include <simpla/data/all.h>
 #include <simpla/engine/Schedule.h>
-#include <simpla/geometry/Model.h>
-#include <simpla/utilities/SPObject.h>
+#include <simpla/engine/Model.h>
+#include <simpla/engine/SPObject.h>
 #include <string>
 
 namespace simpla {
@@ -33,8 +33,8 @@ struct SpApp : public engine::SPObject, public data::Serializable {
     void DoTearDown() override;
     void DoFinalize() override;
 
-    void SetModel(std::shared_ptr<geometry::Model> s);
-    std::shared_ptr<geometry::Model> GetModel() const;
+    void SetModel(std::shared_ptr< engine::Model> s);
+    std::shared_ptr< engine::Model> GetModel() const;
 
     void SetContext(std::shared_ptr<engine::Context> s);
     std::shared_ptr<engine::Context> GetContext() const;

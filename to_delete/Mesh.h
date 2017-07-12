@@ -9,7 +9,7 @@
 #include <simpla/engine/Attribute.h>
 #include <simpla/geometry/Chart.h>
 #include <simpla/geometry/GeoObject.h>
-#include <simpla/utilities/SPObject.h>
+#include <simpla/engine/SPObject.h>
 namespace simpla {
 namespace mesh {
 

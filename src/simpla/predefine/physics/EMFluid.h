@@ -7,10 +7,10 @@
 #ifndef SIMPLA_EM_FLUID_H
 #define SIMPLA_EM_FLUID_H
 
-#include "simpla/SIMPLA_config.h"
-#include "simpla/algebra/all.h"
-#include "simpla/physics/PhysicalConstants.h"
-
+#include <simpla/SIMPLA_config.h>
+#include <simpla/algebra/all.h>
+#include <simpla/engine/Model.h>
+#include <simpla/physics/PhysicalConstants.h>
 namespace simpla {
 using namespace algebra;
 using namespace data;
@@ -106,6 +106,9 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
 
     Ev.Initialize();
     Bv.Initialize();
+
+    m_host_->GetModel()->LoadProfile("ne", &ne);
+    m_host_->GetModel()->LoadProfile("B0", &B0v);
 
     B0v.Initialize();
     ne.Initialize();

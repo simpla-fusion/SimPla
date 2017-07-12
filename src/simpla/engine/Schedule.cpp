@@ -2,14 +2,12 @@
 // Created by salmon on 17-4-5.
 //
 #include "Schedule.h"
-//#include <simpla/parallel/all.h>
-#include <simpla/utilities/Logo.h>
+#include <simpla/data/all.h>
 #include <map>
 #include <string>
 #include "Atlas.h"
 #include "Attribute.h"
 #include "Context.h"
-#include "simpla/data/all.h"
 
 namespace simpla {
 namespace engine {
@@ -29,7 +27,7 @@ Schedule::~Schedule(){};
 
 std::shared_ptr<Context> Schedule::SetContext(std::shared_ptr<Context> const &ctx) {
     m_pimpl_->m_ctx_ = ctx;
-    SetOutputURL(m_pimpl_->m_ctx_->GetName() + ".SaveData");
+    SetOutputURL(m_pimpl_->m_ctx_->GetName() + "." + SIMPLA_OUTPUT_SUFFIX);
     return m_pimpl_->m_ctx_;
 }
 
@@ -86,7 +84,6 @@ std::shared_ptr<data::DataTable> Schedule::Serialize() const {
 }
 
 void Schedule::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
-    SetContext(Context::Create(cfg->Get("Context")));
     SetCheckPointInterval(static_cast<size_type>(cfg->GetValue("CheckPointInterval", 1)));
     SetOutputURL(cfg->GetValue<std::string>("OutPutPrefix", "") + GetOutputURL());
 }

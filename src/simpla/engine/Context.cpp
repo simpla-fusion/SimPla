@@ -3,9 +3,9 @@
 //
 #include "Context.h"
 #include <simpla/data/all.h>
+#include <simpla/engine/Model.h>
 #include <simpla/geometry/Chart.h>
 #include <simpla/geometry/GeoAlgorithm.h>
-#include "../../../to_delete/Mesh.h"
 #include "Domain.h"
 namespace simpla {
 namespace engine {
@@ -13,8 +13,8 @@ namespace engine {
 struct Context::pimpl_s {
     std::map<std::string, std::shared_ptr<DomainBase>> m_domains_;
     std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
-    Atlas m_atlas_;
     std::shared_ptr<geometry::Chart> m_chart_;
+    Atlas m_atlas_;
 };
 
 Context::Context(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
@@ -22,6 +22,7 @@ Context::~Context() { m_pimpl_->m_atlas_.Finalize(); }
 
 std::shared_ptr<data::DataTable> Context::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
+
     res->SetValue("Name", GetName());
     res->Set("Atlas", m_pimpl_->m_atlas_.Serialize());
     for (auto const &item : m_pimpl_->m_domains_) { res->Link("Domain/" + item.first, item.second->Serialize()); }
@@ -30,13 +31,11 @@ std::shared_ptr<data::DataTable> Context::Serialize() const {
 }
 void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     DoInitialize();
-    SetName(cfg->GetValue<std::string>("Name", "unnamed"));
 
-    //    m_pimpl_->m_chart_ =
-    //        cfg->has("Chart") ? geometry::Chart::Create(cfg->Get("Chart")) : geometry::Chart::Create("Cartesian");
+    SetName(cfg->GetValue<std::string>("Name", "unamed"));
 
     m_pimpl_->m_atlas_.Deserialize(cfg->GetTable("Atlas"));
-    //    m_pimpl_->m_base_mesh_ = MeshBase::Create(cfg->GetTable("MeshBase"));
+
     auto t_domain = cfg->GetTable("Domain");
     if (t_domain != nullptr) {
         cfg->GetTable("Domain")->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) {
@@ -44,9 +43,8 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
                 auto p_cfg = std::dynamic_pointer_cast<data::DataTable>(t_cfg);
                 std::string s_type = p_cfg->GetValue<std::string>("Type", "Unknown");
                 auto res = DomainBase::Create(s_type);
-                res->Deserialize(p_cfg);
-                res->SetGeoObject(geometry::GeoObject::Create(p_cfg->GetTable("GeoObject")));
                 res->SetChart(m_pimpl_->m_atlas_.GetChart());
+                 res->Deserialize(p_cfg);
                 SetDomain(key, res);
             } else {
                 RUNTIME_ERROR << "illegal domain config!" << std::endl;
@@ -198,7 +196,7 @@ void Context::Advance(Patch *patch, Real time_now, Real time_dt) {
 //    }
 //    std::shared_ptr<geometry::GeoObject> geo = g;
 //    if (geo == nullptr) { geo.reset(GLOBAL_GEO_OBJECT_FACTORY.Create(db()->GetTable("Geometry"))); }
-//    m_pimpl_->m_chart_.reset(GLOBAL_MESHVIEW_FACTORY.Create(db()->GetTable("MeshBase"), geo));
+//    m_pimpl_->m_base_chart_.reset(GLOBAL_MESHVIEW_FACTORY.Create(db()->GetTable("MeshBase"), geo));
 //
 //    m_pimpl_->m_is_initialized_ = true;
 //    LOGGER << "Context is initialized!" << std::endl;

@@ -7,7 +7,7 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/data/all.h>
-#include <simpla/utilities/SPObject.h>
+#include <simpla/engine/SPObject.h>
 #include <simpla/utilities/Signal.h>
 #include <simpla/utilities/type_traits.h>
 #include "MeshBlock.h"

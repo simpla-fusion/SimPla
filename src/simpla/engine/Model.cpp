@@ -2,13 +2,11 @@
 // Created by salmon on 16-6-2.
 //
 #include "Model.h"
-#include <simpla/utilities/SPObject.h>
-#include "Cube.h"
-#include "simpla/predefine/device/GEqdsk.h"
-//#include "simpla/engine/Attribute.h"
-//#include "simpla/engine/MeshBlock.h"
+#include <simpla/engine/SPObject.h>
+#include <simpla/geometry/GeoObject.h>
 namespace simpla {
-namespace geometry {
+namespace engine {
+bool Model::is_registered = Model::RegisterCreator<Model>("Model");
 
 struct Model::pimpl_s {
     std::map<std::string, std::shared_ptr<geometry::GeoObject>> m_g_objs_;
@@ -18,17 +16,20 @@ struct Model::pimpl_s {
 Model::Model() : m_pimpl_(new pimpl_s) {}
 Model::~Model() {}
 std::shared_ptr<DataTable> Model::Serialize() const {
-    auto res = std::make_shared<data::DataTable>();
+    auto res = data::EnableCreateFromDataTable<Model>::Serialize();
     for (auto const& item : m_pimpl_->m_g_objs_) {
         if (item.second != nullptr) { res->Set(item.first, item.second->Serialize()); }
     }
     return res;
 };
-void Model::Deserialize(const std::shared_ptr<DataTable> &cfg) {
+void Model::Deserialize(const std::shared_ptr<DataTable>& cfg) {
     if (cfg == nullptr) { return; }
-    cfg->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> const& v) {
-        if (v != nullptr) { SetObject(k, geometry::GeoObject::Create(v)); }
-    });
+    auto t = cfg->GetTable("GeoObjects");
+    if (t != nullptr) {
+        t->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> const& v) {
+            if (v != nullptr) { SetObject(k, geometry::GeoObject::Create(v)); }
+        });
+    }
 };
 void Model::DoInitialize() { LOGGER << "Model is initialized " << std::endl; }
 void Model::DoFinalize() {}
@@ -46,7 +47,7 @@ void Model::DoUpdate() {
     }
 };
 void Model::DoTearDown() {}
-int Model::GetNDims() const { return 3; }
+// int Model::GetNDims() const { return 3; }
 
 box_type const& Model::GetBoundBox() const { return m_pimpl_->m_bound_box_; };
 
