@@ -17,12 +17,8 @@
 #ifndef LOG_H_
 #define LOG_H_
 
-//#include <simpla/concept/CheckConcept.h>
-//#include <simpla/utilities/type_cast.h>
-
 #include <stddef.h>
 #include <cfenv>
-
 //#include <bitset>
 #include <iostream>
 #include <memory>

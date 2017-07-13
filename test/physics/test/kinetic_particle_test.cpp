@@ -5,7 +5,7 @@
  * @author salmon
  */
 
-#include <gtest/gtest.h>
+#include <gtest/gtest.h"
 #include "../kinetic_Particle.h"
 #include "../simple_Particle.h"
 #include "rect_mesh.h"

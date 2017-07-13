@@ -8,7 +8,7 @@
 #ifndef FIELD_IO_TEST_H_
 #define FIELD_IO_TEST_H_
 
-#include <gtest/gtest.h>
+#include <gtest/gtest.h"
 
 #include "../../toolbox/utilities/Log.h"
 #include "../../toolbox/IO.h"

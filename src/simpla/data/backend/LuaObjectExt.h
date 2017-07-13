@@ -8,7 +8,7 @@
 #ifndef CORE_UTILITIES_LUA_OBJECT_EXT_H_
 #define CORE_UTILITIES_LUA_OBJECT_EXT_H_
 
-#include <stddef.h>
+#include <cstddef>
 #include <complex>
 #include <list>
 #include <map>
@@ -18,7 +18,7 @@
 #include <utility>
 #include <vector>
 
-#include <simpla/algebra/nTuple.h>
+#include "simpla/algebra/nTuple.h"
 
 extern "C" {
 #include <lauxlib.h>

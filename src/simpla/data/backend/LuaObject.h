@@ -10,7 +10,7 @@
 #ifndef TOOLBOX_LUA_OBJECT_H_
 #define TOOLBOX_LUA_OBJECT_H_
 
-#include <stddef.h>
+#include <cstddef>
 #include <algorithm>
 #include <functional>
 #include <iostream>
@@ -21,8 +21,8 @@
 #include <tuple>
 #include <utility>
 
-#include <simpla/utilities/Log.h>
-#include <simpla/utilities/type_cast.h>
+#include "simpla/utilities/Log.h"
+#include "simpla/utilities/type_cast.h"
 #include "LuaObjectExt.h"
 
 extern "C" {

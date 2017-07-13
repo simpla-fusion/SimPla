@@ -8,13 +8,13 @@
 #ifndef CORE_GEOMETRY_COORDINATE_SYSTEM_H_
 #define CORE_GEOMETRY_COORDINATE_SYSTEM_H_
 
-#include <simpla/SIMPLA_config.h>
+#include "simpla/SIMPLA_config.h"
 
-#include <stddef.h>
+#include <cstddef>
 #include <cstdbool>
 #include <type_traits>
 
-#include <simpla/utilities/type_traits.h>
+#include "simpla/utilities/type_traits.h"
 
 namespace simpla {
 namespace geometry {

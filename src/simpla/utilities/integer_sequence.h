@@ -8,7 +8,7 @@
 #ifndef CORE_toolbox_INTEGER_SEQUENCE_H_
 #define CORE_toolbox_INTEGER_SEQUENCE_H_
 
-#include <stddef.h>
+#include <cstddef>
 #include <iostream>
 
 namespace simpla {

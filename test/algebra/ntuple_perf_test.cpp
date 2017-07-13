@@ -5,13 +5,13 @@
  *      Author: salmon
  */
 
-#include <gtest/gtest.h>
+#include <gtest/gtest.h"
 
 #include <iostream>
 #include <type_traits>
 #include <typeinfo>
 #include <utility>
-#include <simpla/algebra/nTuple.h>
+#include "simpla/algebra/nTuple.h"
 
 using namespace simpla;
 

@@ -5,7 +5,7 @@
 #ifndef SIMPLA_TIMEINTEGRATOR_H
 #define SIMPLA_TIMEINTEGRATOR_H
 
-#include <simpla/SIMPLA_config.h>
+#include "simpla/SIMPLA_config.h"
 #include <memory>
 #include "Schedule.h"
 #include "simpla/data/Serializable.h"

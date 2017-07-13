@@ -8,7 +8,7 @@
 #ifndef KINETIC_PARTICLE_TEST_H_
 #define KINETIC_PARTICLE_TEST_H_
 
-#include <gtest/gtest.h>
+#include <gtest/gtest.h"
 #include "../kinetic_Particle.h"
 #include "../../physics/ParticleEngine.h"
 #include "rect_mesh.h"

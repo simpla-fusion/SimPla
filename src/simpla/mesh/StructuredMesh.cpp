@@ -2,9 +2,9 @@
 // Created by salmon on 17-4-25.
 //
 #include "StructuredMesh.h"
-#include <simpla/algebra/EntityId.h>
-#include <simpla/algebra/algebra.h>
-#include <simpla/geometry/GeoAlgorithm.h>
+#include "simpla/algebra/Algebra.h"
+#include "simpla/algebra/EntityId.h"
+#include "simpla/geometry/GeoAlgorithm.h"
 namespace simpla {
 namespace mesh {
 using namespace algebra;

@@ -5,8 +5,8 @@
 #ifndef SIMPLA_TOKAMAK_H
 #define SIMPLA_TOKAMAK_H
 
-#include <simpla/engine/Model.h>
-#include <simpla/engine/SPObject.h>
+#include "simpla/engine/Model.h"
+#include "simpla/engine/SPObject.h"
 #include "GEqdsk.h"
 namespace simpla {
 

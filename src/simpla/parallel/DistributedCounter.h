@@ -7,7 +7,7 @@
 #ifndef SIMPLA_DISTRIBUTEDCOUNTER_H
 #define SIMPLA_DISTRIBUTEDCOUNTER_H
 
-#include <simpla/SIMPLA_config.h>
+#include "simpla/SIMPLA_config.h"
 
 #include <atomic>
 #include <memory>

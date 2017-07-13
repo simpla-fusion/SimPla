@@ -2,8 +2,8 @@
 // Created by salmon on 17-1-12.
 //
 
-#include <gtest/gtest.h>
-#include <simpla/algebra/algebra.h>
+#include <gtest/gtest.h"
+#include "simpla/algebra/algebra.h"
 
 using namespace simpla;
 using namespace algebra;

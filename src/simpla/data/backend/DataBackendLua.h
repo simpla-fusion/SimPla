@@ -4,7 +4,7 @@
 
 #ifndef SIMPLA_LUADATABASE_H
 #define SIMPLA_LUADATABASE_H
-#include <simpla/SIMPLA_config.h>
+#include "simpla/SIMPLA_config.h"
 #include <memory>
 #include <ostream>
 #include <string>

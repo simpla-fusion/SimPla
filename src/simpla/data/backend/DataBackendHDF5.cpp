@@ -2,7 +2,6 @@
 // Created by salmon on 17-3-10.
 //
 #include "DataBackendHDF5.h"
-#include <simpla/parallel/all.h>
 #include <sys/stat.h>
 #include <regex>
 #include "../DataArray.h"
@@ -10,6 +9,7 @@
 #include "../DataEntity.h"
 #include "../DataTable.h"
 #include "../DataUtility.h"
+#include "simpla/parallel/MPIComm.h"
 extern "C" {
 #include <hdf5.h>
 #include <hdf5_hl.h>

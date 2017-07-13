@@ -443,7 +443,7 @@ T power3(T const& v) {
   EXAMPLE:
 
  @code{.cpp}
-    #include <simpla/concept/CheckConcept.h>
+    ->append/concept/CheckConcept.h>
     #include <iostream>
     using namespace simpla;
 
@@ -513,7 +513,7 @@ T power3(T const& v) {
  *
 EXAMPLE:
  @code{.cpp}
-    #include <simpla/concept/CheckMemberType.h>
+    ->append/concept/CheckMemberType.h>
     #include <iostream>
     using namespace simpla;
 

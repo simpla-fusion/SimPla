@@ -5,12 +5,12 @@
 #ifndef SIMPLA_PARTICLEBASE_H
 #define SIMPLA_PARTICLEBASE_H
 
-#include <simpla/SIMPLA_config.h>
-#include <simpla/engine/Attribute.h>
-#include <simpla/algebra/EntityId.h>
-#include <simpla/utilities/Range.h>
-#include <simpla/algebra/nTuple.h>
-#include <simpla/engine/SPObject.h>
+#include "simpla/SIMPLA_config.h"
+#include "simpla/engine/Attribute.h"
+#include "simpla/algebra/EntityId.h"
+#include "simpla/utilities/Range.h"
+#include "simpla/algebra/nTuple.h"
+#include "simpla/engine/SPObject.h"
 #include "spParticle.h"
 namespace simpla {
 

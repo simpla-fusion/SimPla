@@ -8,8 +8,8 @@
 #ifndef CORE_GEOMETRY_CUBE_H_
 #define CORE_GEOMETRY_CUBE_H_
 
-#include <simpla/SIMPLA_config.h>
-#include <simpla/engine/SPObject.h>
+#include "simpla/SIMPLA_config.h"
+#include "simpla/engine/SPObject.h"
 #include "GeoObject.h"
 
 namespace simpla {

@@ -2,10 +2,10 @@
 // Created by salmon on 17-6-22.
 //
 
-#include <simpla/acc_backend/Backend.h>
-#include <simpla/algebra/ExpressionTemplate.h>
-#include <simpla/algebra/nTuple.ext.h>
-#include <simpla/algebra/nTuple.h>
+#include "simpla/acc_backend/Backend.h"
+#include "simpla/algebra/ExpressionTemplate.h"
+#include "simpla/algebra/nTuple.ext.h"
+#include "simpla/algebra/nTuple.h"
 
 using namespace simpla;
 

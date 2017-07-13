@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 
-#include <gtest/gtest.h>
+#include <gtest/gtest.h"
 #include "log.h"
 using namespace simpla;
 

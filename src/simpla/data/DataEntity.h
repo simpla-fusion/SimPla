@@ -5,9 +5,9 @@
 #ifndef SIMPLA_DATAENTITY_H
 #define SIMPLA_DATAENTITY_H
 
-#include <simpla/SIMPLA_config.h>
-#include <simpla/utilities/Log.h>
-#include <simpla/utilities/ObjectHead.h>
+#include "simpla/SIMPLA_config.h"
+#include "simpla/utilities/Log.h"
+#include "simpla/utilities/ObjectHead.h"
 #include <typeindex>
 #include <vector>
 #include "DataTraits.h"

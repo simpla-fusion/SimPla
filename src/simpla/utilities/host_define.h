@@ -10,8 +10,8 @@
 #define __device__
 #define __managed__
 #else
-#include </usr/local/cuda/include/driver_types.h>
-#include </usr/local/cuda/include/device_launch_parameters.h>
 #include </usr/local/cuda/include/cuda_runtime_api.h>
+#include </usr/local/cuda/include/device_launch_parameters.h>
+#include </usr/local/cuda/include/driver_types.h>
 #endif
 #endif  // SIMPLA_HOST_DEFINE_H

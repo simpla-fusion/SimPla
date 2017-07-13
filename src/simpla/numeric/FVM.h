@@ -11,12 +11,11 @@
 #include <complex>
 #include <cstddef>
 #include <type_traits>
-
-#include <simpla/algebra/EntityId.h>
-#include <simpla/engine/Domain.h>
-#include <simpla/utilities/type_traits.h>
-#include "Calculus.h"
-#include "ExpressionTemplate.h"
+#include "simpla/algebra/Calculus.h"
+#include "simpla/algebra/EntityId.h"
+#include "simpla/algebra/ExpressionTemplate.h"
+#include "simpla/engine/Domain.h"
+#include "simpla/utilities/type_traits.h"
 namespace simpla {
 
 template <typename THost>

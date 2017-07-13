@@ -8,19 +8,19 @@
 #ifndef SIMPLA_ENTITY_ID_H_
 #define SIMPLA_ENTITY_ID_H_
 
-#include <simpla/SIMPLA_config.h>
-#include <simpla/utilities/Log.h>
-#include <simpla/utilities/ObjectHead.h>
-#include <simpla/utilities/Range.h>
-#include <simpla/utilities/type_traits.h>
-#include <stddef.h>
 #include <tbb/concurrent_unordered_set.h>
 #include <tbb/tbb.h>
+#include <cstddef>
 #include <limits>
 #include <set>
 #include <tuple>
 #include "nTuple.ext.h"
 #include "nTuple.h"
+#include "simpla/SIMPLA_config.h"
+#include "simpla/utilities/Log.h"
+#include "simpla/utilities/ObjectHead.h"
+#include "simpla/utilities/Range.h"
+#include "simpla/utilities/type_traits.h"
 namespace simpla {
 // typedef union { struct { u_int8_t w, z, y, x; }; int32_t v; } EntityId32;
 enum CenterOnMesh { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3, FIBER = 6 };

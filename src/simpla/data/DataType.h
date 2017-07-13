@@ -8,18 +8,18 @@
 #ifndef DATA_TYPE_H_
 #define DATA_TYPE_H_
 
-#include <simpla/SIMPLA_config.h>
+#include "simpla/SIMPLA_config.h"
 
-#include <stddef.h>
+#include <cstddef>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <typeindex>
 #include <vector>
 
-#include <simpla/algebra/nTuple.h>
-#include <simpla/utilities/type_cast.h>
-#include <simpla/utilities/type_traits.h>
+#include "simpla/algebra/nTuple.h"
+#include "simpla/utilities/type_cast.h"
+#include "simpla/utilities/type_traits.h"
 
 namespace simpla {
 namespace data {

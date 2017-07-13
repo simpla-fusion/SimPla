@@ -8,16 +8,16 @@
 #ifndef GEQDSK_H_
 #define GEQDSK_H_
 
-#include <simpla/SIMPLA_config.h>
-#include <simpla/algebra/nTuple.h>
-#include <simpla/geometry/Chart.h>
-#include <simpla/geometry/GeoObject.h>
-#include <simpla/engine/Model.h>
-#include <simpla/geometry/Polygon.h>
-#include <simpla/geometry/Revolve.h>
-#include <simpla/utilities/Log.h>
-#include <simpla/utilities/ObjectHead.h>
-#include <simpla/utilities/type_traits.h>
+#include "simpla/SIMPLA_config.h"
+#include "simpla/algebra/nTuple.h"
+#include "simpla/geometry/Chart.h"
+#include "simpla/geometry/GeoObject.h"
+#include "simpla/engine/Model.h"
+#include "simpla/geometry/Polygon.h"
+#include "simpla/geometry/Revolve.h"
+#include "simpla/utilities/Log.h"
+#include "simpla/utilities/ObjectHead.h"
+#include "simpla/utilities/type_traits.h"
 #include <iostream>
 #include <string>
 namespace simpla {

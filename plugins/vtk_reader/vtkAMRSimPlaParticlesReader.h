@@ -24,8 +24,8 @@
 #ifndef VTKAMRENZOPARTICLESREADER_H_
 #define VTKAMRENZOPARTICLESREADER_H_
 
-#include <vtkAMRBaseParticlesReader.h>
-#include <bits/unique_ptr.h>
+#include <vtkAMRBaseParticlesReader.h"
+#include <bits/unique_ptr.h"
 
 
 class vtkPolyData;

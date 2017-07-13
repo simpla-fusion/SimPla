@@ -5,11 +5,11 @@
  *      Author: salmon
  */
 
-#include <gtest/gtest.h>
+#include <gtest/gtest.h"
 
-#include <simpla/algebra/nTuple.ext.h>
-#include <simpla/algebra/nTuple.h>
-#include <simpla/utilities/type_traits.h>
+#include "simpla/algebra/nTuple.ext.h"
+#include "simpla/algebra/nTuple.h"
+#include "simpla/utilities/type_traits.h"
 #include <complex>
 #include <iostream>
 #include <typeinfo>

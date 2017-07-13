@@ -1,8 +1,8 @@
 //
 // Created by salmon on 17-1-12.
 //
-#include <gtest/gtest.h>
-#include <simpla/concept/CheckConcept.h>
+#include <gtest/gtest.h"
+#include "simpla/concept/CheckConcept.h"
 
 struct Foo {
     typedef double value_type;

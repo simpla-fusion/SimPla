@@ -8,9 +8,9 @@
 #ifndef PRETTY_STREAM_H_
 #define PRETTY_STREAM_H_
 
-#include <simpla/utilities/type_traits.h>
-#include <simpla/utilities/utility.h>
-#include <stddef.h>
+#include "simpla/utilities/type_traits.h"
+#include "simpla/utilities/utility.h"
+#include <cstddef>
 #include <complex>
 #include <iomanip>
 #include <list>

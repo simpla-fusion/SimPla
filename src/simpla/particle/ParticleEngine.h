@@ -9,7 +9,7 @@
 #define PARTICLE_ENGINE_H_
 
 #include "ParticleInterface.h"
-#include <stddef.h>
+#include <cstddef>
 #include "../toolbox/DataTypeExt.h"
 
 namespace simpla { namespace particle

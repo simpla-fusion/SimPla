@@ -7,7 +7,7 @@
 #ifndef SIMPLA_PARALLELRANDOMGENERATOR_H
 #define SIMPLA_PARALLELRANDOMGENERATOR_H
 
-#include <simpla/SIMPLA_config.h>
+#include "simpla/SIMPLA_config.h"
 
 #include <atomic>
 #include <memory>

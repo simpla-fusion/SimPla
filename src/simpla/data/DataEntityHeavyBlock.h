@@ -5,11 +5,11 @@
 #ifndef SIMPLA_DATAENTITYHEAVY_H
 #define SIMPLA_DATAENTITYHEAVY_H
 
-#include <simpla/SIMPLA_config.h>
-#include <simpla/algebra/Array.h>
-#include <simpla/concept/Printable.h>
-#include <simpla/engine/SPObjectHead.h>
-#include <simpla/utilities/Log.h>
+#include "simpla/SIMPLA_config.h"
+#include "simpla/algebra/Array.h"
+#include "simpla/concept/Printable.h"
+#include "simpla/engine/SPObjectHead.h"
+#include "simpla/utilities/Log.h"
 #include <typeindex>
 #include <vector>
 #include "DataEntity.h"

@@ -5,10 +5,10 @@
 #ifndef SIMPLA_ARRAY_H
 #define SIMPLA_ARRAY_H
 
-#include <simpla/SIMPLA_config.h>
-#include <simpla/utilities/Log.h>
-#include <simpla/utilities/memory.h>
-#include <simpla/utilities/type_traits.h>
+#include "simpla/SIMPLA_config.h"
+#include "simpla/utilities/Log.h"
+#include "simpla/utilities/memory.h"
+#include "simpla/utilities/type_traits.h"
 #include <initializer_list>
 #include <limits>
 #include <memory>

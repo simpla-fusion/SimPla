@@ -5,7 +5,7 @@
 #ifndef SIMPLA_PARTICLEINTERPOLATE_H
 #define SIMPLA_PARTICLEINTERPOLATE_H
 
-#include <math.h>
+#include <math.h"
 #include "ParticleInterface.h"
 #include "BucketContainer.h"
 #include "../sp_def.h"

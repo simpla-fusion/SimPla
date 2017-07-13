@@ -8,7 +8,7 @@
 #ifndef CORE_GEOMETRY_CHAINS_H_
 #define CORE_GEOMETRY_CHAINS_H_
 
-#include <stddef.h>
+#include <cstddef>
 #include <cstdbool>
 #include <map>
 #include <vector>

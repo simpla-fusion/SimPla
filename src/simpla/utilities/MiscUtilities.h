@@ -8,7 +8,7 @@
 #ifndef UTILITIES_H_
 #define UTILITIES_H_
 
-#include <stddef.h>
+#include <cstddef>
 #include <cstdbool>
 #include <cstdio>
 #include <functional>
@@ -16,7 +16,7 @@
 #include <sstream>
 #include <string>
 
-#include <simpla/utilities/type_cast.h>
+#include "simpla/utilities/type_cast.h"
 
 /**
  *  @ingroup    utilities

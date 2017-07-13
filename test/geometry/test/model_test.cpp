@@ -4,7 +4,7 @@
  *  created on: 2014-3-12
  *      Author: salmon
  */
-#include <gtest/gtest.h>
+#include <gtest/gtest.h"
 
 #include "model.h"
 

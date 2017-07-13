@@ -5,7 +5,7 @@
 #ifndef SIMPLA_REVOLVE_H
 #define SIMPLA_REVOLVE_H
 
-#include <simpla/physics/Constants.h>
+#include "simpla/physics/Constants.h"
 #include "GeoObject.h"
 #include "Polygon.h"
 

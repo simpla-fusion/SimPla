@@ -2,10 +2,10 @@
 // Created by salmon on 17-7-2.
 //
 
-#include <gtest/gtest.h>
+#include <gtest/gtest.h"
 
-#include <simpla/algebra/Array.h>
-#include <simpla/algebra/sfc/z_sfc.h>
+#include "simpla/algebra/Array.h"
+#include "simpla/algebra/sfc/z_sfc.h"
 #include <complex>
 #include <iostream>
 #include <typeinfo>

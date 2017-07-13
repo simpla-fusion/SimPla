@@ -5,7 +5,7 @@
 #ifndef SIMPLA_DATAENTITYFACTROY_H
 #define SIMPLA_DATAENTITYFACTROY_H
 
-#include <simpla/algebra/nTuple.h>
+#include "simpla/algebra/nTuple.h"
 #include <memory>
 #include <string>
 

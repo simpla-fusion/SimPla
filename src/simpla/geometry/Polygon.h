@@ -9,9 +9,9 @@
 
 #include <vector>
 
-#include <simpla/algebra/nTuple.h>
-#include <simpla/data/data.h>
-#include <simpla/engine/SPObject.h>
+#include "simpla/algebra/nTuple.h"
+#include "simpla/data/Data.h"
+#include "simpla/engine/SPObject.h"
 namespace simpla {
 namespace geometry {
 /**

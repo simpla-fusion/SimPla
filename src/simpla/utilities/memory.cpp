@@ -7,9 +7,7 @@
 
 #include "memory.h"
 
-#include <simpla/SIMPLA_config.h>
-#include <simpla/utilities/SingletonHolder.h>
-#include <stddef.h>
+#include <cstddef>
 #include <cstring>
 #include <map>
 #include <mutex>
@@ -18,6 +16,8 @@
 #include "Log.h"
 #include "SingletonHolder.h"
 #include "device_common.h"
+#include "simpla/SIMPLA_config.h"
+#include "simpla/utilities/SingletonHolder.h"
 
 namespace simpla {
 class MemoryPool {

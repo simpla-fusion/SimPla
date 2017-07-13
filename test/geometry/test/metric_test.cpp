@@ -4,7 +4,7 @@
  * @date 2015-11-04.
  */
 
-#include <gtest/gtest.h>
+#include <gtest/gtest.h"
 
 #include "simpla/algebra/nTuple.h"
 #include "../../toolbox/utilities/Log.h"

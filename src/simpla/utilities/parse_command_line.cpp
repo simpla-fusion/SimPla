@@ -6,9 +6,8 @@
  */
 
 #include "parse_command_line.h"
-
-#include <stddef.h>
 #include <algorithm>
+#include <cstddef>
 
 namespace simpla {
 std::string trim(std::string const &s) {

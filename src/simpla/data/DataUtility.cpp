@@ -2,11 +2,10 @@
 // Created by salmon on 17-3-9.
 //
 #include "DataUtility.h"
-#include "../../../to_delete/MPIAuxFunctions.h"
-#include <simpla/parallel/MPIComm.h>
-#include <simpla/utilities/Logo.h>
-#include <simpla/utilities/MiscUtilities.h>
-#include <simpla/utilities/parse_command_line.h>
+#include "simpla/parallel/MPIComm.h"
+#include "simpla/utilities/Logo.h"
+#include "simpla/utilities/MiscUtilities.h"
+#include "simpla/utilities/parse_command_line.h"
 #include "DataArray.h"
 #include "DataBlock.h"
 #include "DataEntity.h"

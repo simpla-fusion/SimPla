@@ -8,10 +8,10 @@
 #ifndef FACTORY_H_
 #define FACTORY_H_
 
-#include <simpla/SIMPLA_config.h>
-#include <simpla/utilities/Log.h>
-#include <simpla/utilities/macro.h>
-#include <simpla/utilities/type_traits.h>
+#include "simpla/SIMPLA_config.h"
+#include "simpla/utilities/Log.h"
+#include "simpla/utilities/macro.h"
+#include "simpla/utilities/type_traits.h"
 #include <functional>
 #include <iostream>
 #include <map>

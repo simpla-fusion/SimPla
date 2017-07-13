@@ -5,7 +5,7 @@
 #ifndef SIMPLA_BOXUTILITY_H
 #define SIMPLA_BOXUTILITY_H
 
-#include <simpla/SIMPLA_config.h>
+#include "simpla/SIMPLA_config.h"
 #include <tuple>
 #include <type_traits>
 

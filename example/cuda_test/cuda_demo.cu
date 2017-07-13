@@ -3,11 +3,11 @@
 //
 //
 //
-#include <thrust/device_vector.h>
-#include <thrust/functional.h>
-#include <thrust/generate.h>
-#include <thrust/host_vector.h>
-#include <thrust/reduce.h>
+#include <thrust/device_vector.h"
+#include <thrust/functional.h"
+#include <thrust/generate.h"
+#include <thrust/host_vector.h"
+#include <thrust/reduce.h"
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>

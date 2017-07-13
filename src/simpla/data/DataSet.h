@@ -8,14 +8,14 @@
 #ifndef CORE_DATASET_DATASET_H_
 #define CORE_DATASET_DATASET_H_
 
-#include <simpla/utilities/type_traits.h>
-#include <stddef.h>
 #include <algorithm>
+#include <cstddef>
 #include <list>
 #include <memory>
 #include <type_traits>
 #include "DataSpace.h"
 #include "DataType.h"
+#include "simpla/utilities/type_traits.h"
 
 namespace simpla {
 namespace data {

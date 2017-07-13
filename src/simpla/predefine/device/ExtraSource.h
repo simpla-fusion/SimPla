@@ -7,7 +7,7 @@
 
 #include "simpla/SIMPLA_config.h"
 #include "simpla/algebra/algebra.h"
-#include "simpla/engine/engine.h"
+#include "simpla/engine/Engine.h"
 #include "simpla/physics/PhysicalConstants.h"
 
 namespace simpla {

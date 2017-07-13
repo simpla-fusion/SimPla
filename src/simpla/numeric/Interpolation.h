@@ -8,9 +8,9 @@
 #ifndef INTERPOLATION_H_
 #define INTERPOLATION_H_
 
-#include <simpla/SIMPLA_config.h>
-#include <simpla/utilities/Log.h>
-#include <simpla/algebra/nTuple.h>
+#include "simpla/SIMPLA_config.h"
+#include "simpla/utilities/Log.h"
+#include "simpla/algebra/nTuple.h"
 #include <vector>
 #include <cmath>
 #include <algorithm>

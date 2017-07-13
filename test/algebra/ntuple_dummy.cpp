@@ -1,10 +1,10 @@
 //
 // Created by salmon on 16-12-26.
 //
-#include <simpla/SIMPLA_config.h>
+#include "simpla/SIMPLA_config.h"
 
-#include <simpla/algebra/nTuple.h>
-#include <simpla/algebra/nTuple.ext.h>
+#include "simpla/algebra/nTuple.h"
+#include "simpla/algebra/nTuple.ext.h"
 
 #include <complex>
 #include <iostream>

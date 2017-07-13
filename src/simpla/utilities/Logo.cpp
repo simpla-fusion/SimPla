@@ -3,7 +3,7 @@
  * @author salmon
  * @date 2015-10-21.
  */
-#include <simpla/SIMPLA_config.h>
+#include "simpla/SIMPLA_config.h"
 
 #include <cstdlib>
 #include <iomanip>

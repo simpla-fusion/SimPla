@@ -7,7 +7,7 @@
 
 #include "distributed_array.h"
 
-#include <gtest/gtest.h>
+#include <gtest/gtest.h"
 #include <algorithm>
 #include <iostream>
 

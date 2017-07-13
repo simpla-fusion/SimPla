@@ -7,10 +7,10 @@
 #ifndef SIMPLA_FIELD_H
 #define SIMPLA_FIELD_H
 
-#include <simpla/SIMPLA_config.h>
-#include <simpla/data/data.h>
-#include <simpla/engine/Attribute.h>
-#include <simpla/utilities/type_traits.h>
+#include "simpla/SIMPLA_config.h"
+#include "simpla/data/Data.h"
+#include "simpla/engine/Attribute.h"
+#include "simpla/utilities/type_traits.h"
 #include "ExpressionTemplate.h"
 
 namespace simpla {
@@ -49,6 +49,8 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
 
     Field(this_type&& other) noexcept
         : base_type(std::forward<base_type>(other)), m_data_(other.m_data_), m_host_(other.m_host_) {}
+
+    Field& operator=(this_type&& other) = delete;
 
     template <typename OtherMesh>
     Field(domain_type* m, Field<OtherMesh, value_type, IFORM, DOF...>& other)

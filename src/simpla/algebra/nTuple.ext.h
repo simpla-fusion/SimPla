@@ -5,7 +5,7 @@
 #ifndef SIMPLA_NTUPLE_EXT_H
 #define SIMPLA_NTUPLE_EXT_H
 
-#include <simpla/SIMPLA_config.h>
+#include "simpla/SIMPLA_config.h"
 #include <cmath>
 #include <complex>
 #include <iostream>

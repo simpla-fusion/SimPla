@@ -8,17 +8,17 @@
 #ifndef FIELD_BASIC_ALGEBRA_TEST_H_
 #define FIELD_BASIC_ALGEBRA_TEST_H_
 
-#include <stddef.h>
+#include <cstddef>
 #include <memory>
 #include <random>
 
-#include <gtest/gtest.h>
+#include <gtest/gtest.h"
 
-#include <simpla/algebra/algebra.h>
-#include <simpla/utilities/macro.h>
-#include <simpla/utilities/type_traits.h>
-#include <simpla/predefine/policy/CalculusPolicy.h>
-#include <simpla/utilities/Log.h>
+#include "simpla/algebra/algebra.h"
+#include "simpla/utilities/macro.h"
+#include "simpla/utilities/type_traits.h"
+#include "simpla/predefine/policy/CalculusPolicy.h"
+#include "simpla/utilities/Log.h"
 #include "../../to_delete/sp_def.h"
 using namespace simpla;
 

@@ -8,10 +8,10 @@
 #ifndef CORE_DATASET_DATASPACE_H_
 #define CORE_DATASET_DATASPACE_H_
 
-#include <simpla/SIMPLA_config.h>
+#include "simpla/SIMPLA_config.h"
 
-#include <simpla/algebra/nTuple.h>
-#include <simpla/utilities/Log.h>
+#include "simpla/algebra/nTuple.h"
+#include "simpla/utilities/Log.h"
 #include <cstdbool>
 #include <memory>
 #include <vector>

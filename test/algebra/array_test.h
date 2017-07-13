@@ -5,17 +5,17 @@
 #ifndef SIMPLA_ARRAY_TEST_H
 #define SIMPLA_ARRAY_TEST_H
 
-#include <stddef.h>
+#include <cstddef>
 #include <memory>
 #include <random>
 
-#include <gtest/gtest.h>
+#include <gtest/gtest.h"
 
-#include <simpla/utilities/macro.h>
-#include <simpla/utilities/type_traits.h>
-#include <simpla/utilities/Log.h>
+#include "simpla/utilities/macro.h"
+#include "simpla/utilities/type_traits.h"
+#include "simpla/utilities/Log.h"
 #include "../../to_delete/sp_def.h"
-#include <simpla/algebra/algebra.h>
+#include "simpla/algebra/algebra.h"
 using namespace simpla;
 
 template<typename TArray>

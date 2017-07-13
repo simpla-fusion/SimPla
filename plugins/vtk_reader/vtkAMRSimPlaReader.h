@@ -24,15 +24,15 @@
 #define VTKIOAMR_EXPORT __attribute__((visibility("default")))
 
 /* AutoInit dependencies.  */
-#include <vtkFiltersAMRModule.h>
-#include <vtkAMRBaseReader.h>
+#include <vtkFiltersAMRModule.h"
+#include <vtkAMRBaseReader.h"
 
 #include <map>     // For STL map
 #include <string>  // For std::string
 
 
 #include <vtksys/SystemTools.hxx>
-#include <bits/unique_ptr.h>
+#include <bits/unique_ptr.h"
 
 #include <vector> // for STL vector
 #include <string> // for STL string

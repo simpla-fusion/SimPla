@@ -12,14 +12,14 @@
  PURPOSE.  See the above copyright notice for more information.
 
  =========================================================================*/
-#include <vtkAMRSimPlaParticlesReader.h>
-#include <vtkObjectFactory.h>
-#include <vtkPolyData.h>
-#include <vtkCellArray.h>
-#include <vtkDataArraySelection.h>
-#include <vtkPointData.h>
-#include <vtkIntArray.h>
-#include <vtkDataArray.h>
+#include <vtkAMRSimPlaParticlesReader.h"
+#include <vtkObjectFactory.h"
+#include <vtkPolyData.h"
+#include <vtkCellArray.h"
+#include <vtkDataArraySelection.h"
+#include <vtkPointData.h"
+#include <vtkIntArray.h"
+#include <vtkDataArray.h"
 
 #include <cassert>
 #include <vector>
@@ -28,7 +28,7 @@
 
 #define H5_USE_16_API
 
-#include <hdf5.h>    // for the HDF data loading engine
+#include <hdf5.h"    // for the HDF data loading engine
 
 
 //------------------------------------------------------------------------------

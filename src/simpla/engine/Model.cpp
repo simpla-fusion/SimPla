@@ -2,8 +2,8 @@
 // Created by salmon on 16-6-2.
 //
 #include "Model.h"
-#include <simpla/engine/SPObject.h>
-#include <simpla/geometry/GeoObject.h>
+#include "simpla/engine/SPObject.h"
+#include "simpla/geometry/GeoObject.h"
 namespace simpla {
 namespace engine {
 bool Model::is_registered = Model::RegisterCreator<Model>("Model");

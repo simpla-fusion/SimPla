@@ -5,11 +5,11 @@
 #ifndef SIMPLA_STRUCTUREDMESH_H
 #define SIMPLA_STRUCTUREDMESH_H
 
-#include <simpla/algebra/Array.h>
-#include <simpla/algebra/algebra.h>
-#include <simpla/data/data.h>
-#include <simpla/engine/Attribute.h>
-#include <simpla/geometry/Chart.h>
+#include "simpla/algebra/Array.h"
+#include "simpla/algebra/nTuple.h"
+#include "simpla/data/Data.h"
+#include "simpla/engine/Attribute.h"
+#include "simpla/geometry/Chart.h"
 namespace simpla {
 namespace mesh {
 

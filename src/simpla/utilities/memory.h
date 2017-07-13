@@ -9,7 +9,7 @@
 #ifndef CORE_UTILITIES_MEMORY_POOL_H_
 #define CORE_UTILITIES_MEMORY_POOL_H_
 
-#include <simpla/SIMPLA_config.h>
+#include "simpla/SIMPLA_config.h"
 
 #include "device_common.h"
 

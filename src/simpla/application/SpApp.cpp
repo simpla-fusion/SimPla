@@ -8,12 +8,12 @@
  */
 
 #include "SpApp.h"
-#include <simpla/engine/Context.h>
-#include <simpla/engine/TimeIntegrator.h>
-#include <simpla/geometry/Chart.h>
-#include <simpla/parallel/all.h>
-#include <simpla/utilities/Logo.h>
-#include <simpla/utilities/parse_command_line.h>
+#include "simpla/engine/Context.h"
+#include "simpla/engine/TimeIntegrator.h"
+#include "simpla/parallel/MPIComm.h"
+#include "simpla/parallel/Parallel.h"
+#include "simpla/utilities/Logo.h"
+#include "simpla/utilities/parse_command_line.h"
 
 using namespace simpla;
 

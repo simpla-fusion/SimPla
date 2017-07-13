@@ -5,10 +5,10 @@
 #ifndef SIMPLA_PATCH_H
 #define SIMPLA_PATCH_H
 
-#include <simpla/SIMPLA_config.h>
-#include <simpla/algebra/EntityId.h>
-#include <simpla/data/data.h>
-#include <simpla/engine/SPObject.h>
+#include "simpla/SIMPLA_config.h"
+#include "simpla/algebra/EntityId.h"
+#include "simpla/data/Data.h"
+#include "simpla/engine/SPObject.h"
 #include <memory>
 
 namespace simpla {

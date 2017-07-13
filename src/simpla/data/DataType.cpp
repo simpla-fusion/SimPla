@@ -4,7 +4,7 @@
  *  Created on: 2014-12-18
  *      Author: salmon
  */
-#include <simpla/SIMPLA_config.h>
+#include "simpla/SIMPLA_config.h"
 
 #include "DataType.h"
 

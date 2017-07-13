@@ -5,7 +5,7 @@
 #ifndef SIMPLA_ENABLECREATEFROMDATATABLE_H
 #define SIMPLA_ENABLECREATEFROMDATATABLE_H
 
-#include <simpla/utilities/SingletonHolder.h>
+#include "simpla/utilities/SingletonHolder.h"
 #include <iomanip>
 #include <iostream>
 #include <map>

@@ -4,12 +4,31 @@
 
 #ifndef SIMPLA_ALGEBRACOMMON_H
 #define SIMPLA_ALGEBRACOMMON_H
-
-#include <simpla/SIMPLA_config.h>
-#include <simpla/algebra/EntityId.h>
-#include <simpla/utilities/integer_sequence.h>
-#include <simpla/utilities/type_traits.h>
 #include <utility>
+#include "Algebra.h"
+#include "Array.h"
+#include "ArrayNTuple.h"
+#include "Calculus.h"
+#include "simpla/numeric/FVM.h"
+#include "Field.h"
+#include "nTuple.ext.h"
+#include "nTuple.h"
+#include "simpla/SIMPLA_config.h"
+/**
+ * @addtogroup algebra Algebra System
+ **/
+namespace simpla {
+namespace algebra {
+/**
+ * @brief algebra
+ *    Algebra system
+ *    - scalar ,nTuple, Array,Field
+ *    - type convert scarlar => nTuple => Array => Field
+ *    TODO:
+ *    - Array<nTuple>= Array<Scalar>*nTuple
+ */
+}  // namespace algebra{
+}  // namespace simpla{
 // namespace simpla {
 //
 // template <typename TM, typename TV, int...>

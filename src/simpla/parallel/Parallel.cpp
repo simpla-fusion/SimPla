@@ -5,11 +5,11 @@
  * @author salmon
  */
 #include <mpi.h>
-#include <simpla/SIMPLA_config.h>
-#include <simpla/utilities/parse_command_line.h>
+#include "simpla/SIMPLA_config.h"
+#include "simpla/utilities/parse_command_line.h"
 
 #ifdef MPI_FOUND
-#include <simpla/utilities/SingletonHolder.h>
+#include "simpla/utilities/SingletonHolder.h"
 #include "MPIComm.h"
 #endif
 

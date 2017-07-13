@@ -5,7 +5,7 @@
 #ifndef SIMPLA_SPPARTICLE_H
 #define SIMPLA_SPPARTICLE_H
 
-#include <simpla/SIMPLA_config.h>
+#include "simpla/SIMPLA_config.h"
 
 #define SP_MAX_SIZE_IN_CELL 256
 

@@ -8,15 +8,13 @@
 #ifndef MPI_COMM_H_
 #define MPI_COMM_H_
 
-#include <simpla/SIMPLA_config.h>
-
-#include <stddef.h>
 #include <algorithm>
 #include <cstdbool>
+#include <cstddef>
 #include <memory>
-
-#include "simpla/utilities/SingletonHolder.h"
+#include "simpla/SIMPLA_config.h"
 #include "simpla/algebra/nTuple.h"
+#include "simpla/utilities/SingletonHolder.h"
 
 namespace simpla {
 namespace parallel {

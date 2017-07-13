@@ -4,7 +4,7 @@
  * @date    2014-7-13  AM8:06:32
  * @author salmon
  */
-#include <gtest/gtest.h>
+#include <gtest/gtest.h"
 #include <iostream>
 #include "properties.h"
 using namespace simpla;

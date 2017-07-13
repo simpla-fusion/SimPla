@@ -9,9 +9,9 @@
 
 #include <memory>
 
-#include <simpla/SIMPLA_config.h>
-#include <simpla/algebra/ExpressionTemplate.h>
-#include <simpla/utilities/type_traits.h>
+#include "simpla/SIMPLA_config.h"
+#include "simpla/algebra/ExpressionTemplate.h"
+#include "simpla/utilities/type_traits.h"
 
 #include "Algebra.h"
 #include "Field.h"

@@ -4,8 +4,8 @@
  * @date 2015-12-10.
  */
 #include "LuaObject.h"
-#include <simpla/utilities/FancyStream.h>
-#include <simpla/algebra/nTuple.h>
+#include "simpla/utilities/FancyStream.h"
+#include "simpla/algebra/nTuple.h"
 #include "LuaObjectExt.h"
 
 namespace simpla {

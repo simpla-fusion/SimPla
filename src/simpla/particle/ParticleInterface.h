@@ -5,7 +5,7 @@
 #ifndef SIMPLA_PARTICLECOMMON_H
 #define SIMPLA_PARTICLECOMMON_H
 
-#include <stddef.h>
+#include <cstddef>
 #include "../sp_def.h"
 #include "../toolbox/DataTypeExt.h"
 

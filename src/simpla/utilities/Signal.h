@@ -5,7 +5,7 @@
 #ifndef SIMPLA_SIGNAL_H
 #define SIMPLA_SIGNAL_H
 
-#include <simpla/utilities/Log.h>
+#include "simpla/utilities/Log.h"
 #include <functional>
 #include <map>
 #include <set>

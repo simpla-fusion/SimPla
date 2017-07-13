@@ -3,7 +3,7 @@
  * @author salmon
  * @date 16-5-27 - 上午8:21
  *  */
-#include <gtest/gtest.h>
+#include <gtest/gtest.h"
 //#include <iostream>
 #include "../integer_sequence.h"
 //#include "../PrettyStream.h"

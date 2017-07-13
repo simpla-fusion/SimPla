@@ -2,12 +2,12 @@
 // Created by salmon on 17-1-6.
 //
 
-#include <gtest/gtest.h>
-#include <simpla/SIMPLA_config.h>
-#include <simpla/algebra/algebra.h>
-#include <simpla/data/data.h>
-#include <simpla/utilities/SingletonHolder.h>
-#include <simpla/utilities/FancyStream.h>
+#include <gtest/gtest.h"
+#include "simpla/SIMPLA_config.h"
+#include "simpla/algebra/algebra.h"
+#include "simpla/data/Data.h"
+#include "simpla/utilities/SingletonHolder.h"
+#include "simpla/utilities/FancyStream.h"
 #include <complex>
 #include <iostream>
 
