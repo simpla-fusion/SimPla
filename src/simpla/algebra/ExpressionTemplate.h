@@ -5,10 +5,10 @@
 #ifndef SIMPLA_EXPRESSIONTEMPLATE_H
 #define SIMPLA_EXPRESSIONTEMPLATE_H
 
-#include "simpla/utilities/type_traits.h"
 #include <cmath>
 #include <complex>
 #include <tuple>
+#include "simpla/utilities/type_traits.h"
 
 namespace simpla {
 template <typename...>

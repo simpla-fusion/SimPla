@@ -16,6 +16,24 @@
 #include "ExpressionTemplate.h"
 
 namespace simpla {
+
+namespace traits {
+
+template <typename T>
+T& GetValue(T& expr, int tag) {
+    return expr;
+}
+
+template <typename T, int... N>
+decltype(auto) GetValue(nTuple<T, N...> const& expr, int tag) {
+    return GetValue(expr[tag & 0b111], tag >> 3);
+}
+template <typename T, typename... O, typename... Args>
+decltype(auto) GetValue(Array<T, O...> const& expr, Args&&... args) {
+    return;
+}
+}
+
 template <typename TM, typename TV, int...>
 class Field;
 template <typename TM, typename TV, int IFORM, int... DOF>
@@ -82,25 +100,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     template <typename Other>
     void Set(Other&& v) {
         Update();
-        m_host_->FillBody(*this, std::forward<Other>(v));
-    }
-
-    template <typename... Args>
-    decltype(auto) Get(index_type i0, Args&&... args) {
-        return calculus::getValue(m_data_, i0, std::forward<Args>(args)...);
-    }
-    template <typename... Args>
-    decltype(auto) Get(index_type i0, Args&&... args) const {
-        return calculus::getValue(m_data_, i0, std::forward<Args>(args)...);
-    }
-
-    decltype(auto) Get(EntityId s) { return m_host_->GetEntity(*this, s); }
-
-    decltype(auto) Get(EntityId s) const { return m_host_->GetEntity(*this, s); }
-
-    template <typename U, typename... Args>
-    void Set(U&& v, Args&&... args) {
-        m_host_->SetEntity(*this, std::forward<U>(v), std::forward<Args>(args)...);
+        m_host_->Fill(*this, std::forward<Other>(v));
     }
 
     template <typename MR, typename UR, int... NR>
@@ -109,7 +109,6 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         m_data_ = other.Get();
     }
     void Clear() { Set(0); }
-    void SetUndefined() { Set(std::numeric_limits<value_type>::signaling_NaN()); }
 
     this_type& operator=(this_type const& other) {
         Set(other);
@@ -122,28 +121,48 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     };
 
     template <typename... Args>
-    decltype(auto) at(Args&&... args) {
-        return Get(std::forward<Args>(args)...);
+    auto& Get(index_type i0, Args&&... args) {
+        return calculus::getValue(m_data_, i0, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    decltype(auto) at(Args&&... args) const {
-        return Get(std::forward<Args>(args)...);
+    auto const& Get(index_type i0, Args&&... args) const {
+        return calculus::getValue(m_data_, i0, std::forward<Args>(args)...);
+    }
+
+    //    template <typename U, typename... Args>
+    //    void Set(U&& v, Args&&... args) {
+    //        m_host_->GetEntity(*this, std::forward<U>(v), std::forward<Args>(args)...);
+    //    }
+
+    template <typename... Args>
+    auto& at(index_type n0, Args&&... args) {
+        return Get(n0, std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    auto const& at(index_type n0, Args&&... args) const {
+        return Get(n0, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
-    decltype(auto) operator()(Args&&... args) {
-        return Get(std::forward<Args>(args)...);
+    auto& operator()(index_type n0, Args&&... args) {
+        return Get(n0, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    decltype(auto) operator()(Args&&... args) const {
-        return Get(std::forward<Args>(args)...);
+    auto const& operator()(index_type n0, Args&&... args) const {
+        return Get(n0, std::forward<Args>(args)...);
     }
 
-    decltype(auto) operator[](int n) { return m_data_[n]; }
-    decltype(auto) operator[](int n) const { return m_data_[n]; }
+    auto& operator[](int n) { return m_data_[n]; }
+    auto const& operator[](int n) const { return m_data_[n]; }
 
-    decltype(auto) operator[](EntityId s) { return Get(s); }
-    decltype(auto) operator[](EntityId s) const { return Get(s); }
+    auto& operator[](EntityId s) {
+        return traits::recursive_index(m_data_[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]], s.w >> 3)(s.x, s.y,
+                                                                                                          s.z);
+    }
+    auto const& operator[](EntityId s) const {
+        return traits::recursive_index(m_data_[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]], s.w >> 3)(s.x, s.y,
+                                                                                                          s.z);
+    }
 
     //*****************************************************************************************************************
 

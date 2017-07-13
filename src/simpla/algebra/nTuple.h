@@ -191,6 +191,7 @@ U const& recursive_index(nTuple<U, N0, N1, N...> const& v, int s) {
     return recursive_index(v[s % N0], s / N0);
 }
 
+
 template <int N0>
 int recursive_calculate_shift(int s0) {
     return s0;
