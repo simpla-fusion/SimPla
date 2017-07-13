@@ -5,10 +5,14 @@
 #ifndef SIMPLA_SCHEDULE_H
 #define SIMPLA_SCHEDULE_H
 
+#include "simpla/SIMPLA_config.h"
+
 #include <memory>
-#include "Attribute.h"
 
 #include "simpla/data/Data.h"
+
+#include "Attribute.h"
+
 namespace simpla {
 namespace engine {
 class Context;

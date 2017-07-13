@@ -12,7 +12,7 @@
 #include "simpla/engine/Model.h"
 #include "simpla/physics/PhysicalConstants.h"
 namespace simpla {
-using namespace algebra;
+
 using namespace data;
 
 template <typename THost>

@@ -9,12 +9,14 @@
 #define GEOMETRY_ALGORITHM_H_
 
 #include "simpla/SIMPLA_config.h"
-#include "simpla/algebra/nTuple.ext.h"
-#include "simpla/algebra/nTuple.h"
-#include "simpla/engine/SPObject.h"
-#include "simpla/utilities/integer_sequence.h"
+
 #include <cstddef>
 #include <tuple>
+
+#include "simpla/algebra/nTuple.ext.h"
+#include "simpla/algebra/nTuple.h"
+#include "simpla/utilities/Log.h"
+#include "simpla/utilities/integer_sequence.h"
 
 namespace simpla {
 namespace geometry {

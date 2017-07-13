@@ -6,7 +6,7 @@
 #include "simpla/algebra/algebra.h"
 
 using namespace simpla;
-using namespace algebra;
+
 
 struct DummyMesh {
     typedef size_type entity_id;

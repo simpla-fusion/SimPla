@@ -5,18 +5,23 @@
 #ifndef SIMPLA_MODEL_H
 #define SIMPLA_MODEL_H
 
+#include "simpla/SIMPLA_config.h"
+
+#include <functional>
+
 #include "simpla/algebra/Field.h"
 #include "simpla/data/Serializable.h"
-#include "simpla/engine/SPObject.h"
-#include <functional>
 #include "simpla/geometry/GeoObject.h"
+
+#include "SPObject.h"
+
 namespace simpla {
 
 namespace engine {
 using namespace data;
 
-class Model : public engine::SPObject, public data::EnableCreateFromDataTable<Model> {
-    SP_OBJECT_HEAD(Model, engine::SPObject);
+class Model : public SPObject, public data::EnableCreateFromDataTable<Model> {
+    SP_OBJECT_HEAD(Model, SPObject);
 
    public:
     Model();

@@ -8,18 +8,21 @@
 #ifndef CORE_GEOMETRY_PRIMITIVE_H_
 #define CORE_GEOMETRY_PRIMITIVE_H_
 
+#include "simpla/SIMPLA_config.h"
+
 #include "simpla/utilities/type_traits.h"
+
 #include "CoordinateSystem.h"
+
 /**
  *  @ref OpenGIS® Implementation Standard for Geographic information
  *  - Simple feature access -architecture Part 1: Common architecture
  *  @ref boost::geometry GGL
  */
-namespace simpla { namespace geometry
-{
+namespace simpla {
+namespace geometry {
 
-namespace tags
-{
+namespace tags {
 ///  dimension 0,1,2,3...
 struct simplex;
 
@@ -46,41 +49,52 @@ struct pyramid;
 
 }  // namespace tags
 
-namespace traits
-{
+namespace traits {
 
-template<typename> struct coordinate_system;
-template<typename> struct dimension;
-template<typename> struct tag;
+template <typename>
+struct coordinate_system;
+template <typename>
+struct dimension;
+template <typename>
+struct tag;
 
-template<typename> struct peak;
-template<typename> struct ridge;
-template<typename> struct facet;
+template <typename>
+struct peak;
+template <typename>
+struct ridge;
+template <typename>
+struct facet;
 
-template<typename> struct point_type;
-template<typename> struct vector_type;
-template<typename> struct length_type;
-template<typename CS> struct area_type
-{
+template <typename>
+struct point_type;
+template <typename>
+struct vector_type;
+template <typename>
+struct length_type;
+template <typename CS>
+struct area_type {
     typedef typename length_type<CS>::type l_type;
     typedef decltype(std::declval<l_type>() * std::declval<l_type>()) type;
 };
-template<typename CS> struct volume_type
-{
+template <typename CS>
+struct volume_type {
     typedef typename length_type<CS>::type l_type;
     typedef typename area_type<CS>::type a_type;
     typedef decltype(std::declval<a_type>() * std::declval<l_type>()) type;
 };
 
-template<typename> struct value_type;
-template<typename> struct number_of_points;
+template <typename>
+struct value_type;
+template <typename>
+struct number_of_points;
 
-template<typename> struct is_chains;
-template<typename> struct is_primitive;
+template <typename>
+struct is_chains;
+template <typename>
+struct is_primitive;
 
 }  // namespace traits
-namespace model
-{
+namespace model {
 /**
  *  @brief CoordinateSystem or geometric primitive , geometric primitive
  *  representing a single, connected, homogeneous element of space
@@ -92,38 +106,43 @@ namespace model
  * Primitive<2> is triangle (simplex<2>) , rectangle, etc...
  * Primitive<3> is tetrahedron (simplex<3>) , cube , etc...
  */
-template<int Dimension, typename ...> struct Primitive;
+template <int Dimension, typename...>
+struct Primitive;
 
-#define DEF_NTUPLE_OBJECT(_COORD_SYS_, _T_, _NUM_)                                      \
- nTuple<_T_, _NUM_> m_data_;                                                          \
- inline operator nTuple<_T_, _NUM_>()const{ return m_data_; }                              \
- nTuple<_T_, _NUM_> const & as_ntuple()const{return m_data_;}                            \
- nTuple<_T_, _NUM_>   & as_ntuple() {return m_data_;}                                    \
- inline _T_ & operator [](size_t n){ return m_data_[n]; }                             \
- inline _T_ const & operator [](size_t n) const{ return m_data_[n]; }                 \
- template<size_t N> inline _T_ & get(){return m_data_[N]; }                           \
- template<size_t N> inline constexpr _T_ const& get() const  { return m_data_[N]; }
+#define DEF_NTUPLE_OBJECT(_COORD_SYS_, _T_, _NUM_)                      \
+    nTuple<_T_, _NUM_> m_data_;                                         \
+    inline operator nTuple<_T_, _NUM_>() const { return m_data_; }      \
+    nTuple<_T_, _NUM_> const &as_ntuple() const { return m_data_; }     \
+    nTuple<_T_, _NUM_> &as_ntuple() { return m_data_; }                 \
+    inline _T_ &operator[](size_t n) { return m_data_[n]; }             \
+    inline _T_ const &operator[](size_t n) const { return m_data_[n]; } \
+    template <size_t N>                                                 \
+    inline _T_ &get() {                                                 \
+        return m_data_[N];                                              \
+    }                                                                   \
+    template <size_t N>                                                 \
+    inline constexpr _T_ const &get() const {                           \
+        return m_data_[N];                                              \
+    }
 
 /**
  * @brief Point topological 0-dimensional 'geometric primitive' ,
  *   representing a position
  * @note The boundary of a point is the empty set. [ISO 19107]
  */
-template<typename CoordinateSystem>
-struct Primitive<0, CoordinateSystem>
-{
+template <typename CoordinateSystem>
+struct Primitive<0, CoordinateSystem> {
     typedef typename simpla::geometry::traits::coordinate_type<CoordinateSystem>::type value_type;
 
-    static const size_t ndims = simpla::geometry::traits::dimension<
-            CoordinateSystem>::value;
+    static const size_t ndims = simpla::geometry::traits::dimension<CoordinateSystem>::value;
 
     DEF_NTUPLE_OBJECT(CoordinateSystem, value_type, ndims);
 };
 
-template<typename CoordinateSystem>
-using Point= Primitive<0, CoordinateSystem>;
-template<typename CoordinateSystem>
-using LineSegment= Primitive<1, CoordinateSystem>;
+template <typename CoordinateSystem>
+using Point = Primitive<0, CoordinateSystem>;
+template <typename CoordinateSystem>
+using LineSegment = Primitive<1, CoordinateSystem>;
 
 /**
  * @brief Vector In geometry, Vector represents the first derivative of 'curve',
@@ -131,21 +150,17 @@ using LineSegment= Primitive<1, CoordinateSystem>;
  * at the point \f$P\f$
  * In code,Vector is the difference type of Point Vector = Point - Point
  */
-template<typename CoordinateSystem>
-struct Vector
-{
+template <typename CoordinateSystem>
+struct Vector {
     typedef typename simpla::geometry::traits::coordinate_type<CoordinateSystem>::type value_type;
 
-    static const int ndims = simpla::geometry::traits::dimension<
-            CoordinateSystem>::value;
+    static const int ndims = simpla::geometry::traits::dimension<CoordinateSystem>::value;
 
     DEF_NTUPLE_OBJECT(CoordinateSystem, value_type, ndims);
-
 };
 
-template<typename OS, typename CoordinateSystem>
-OS &operator<<(OS &os, Vector<CoordinateSystem> const &geo)
-{
+template <typename OS, typename CoordinateSystem>
+OS &operator<<(OS &os, Vector<CoordinateSystem> const &geo) {
     os << geo.as_ntuple();
     return os;
 }
@@ -154,98 +169,80 @@ OS &operator<<(OS &os, Vector<CoordinateSystem> const &geo)
  * @brief CoVector is a linear map from  'vector space'
  *
  */
-template<typename CoordinateSystem>
-struct CoVector
-{
+template <typename CoordinateSystem>
+struct CoVector {
     typedef typename simpla::geometry::traits::coordinate_type<CoordinateSystem>::type value_type;
 
-    static const size_t ndims = simpla::geometry::traits::dimension<
-            CoordinateSystem>::value;
+    static const size_t ndims = simpla::geometry::traits::dimension<CoordinateSystem>::value;
 
     DEF_NTUPLE_OBJECT(CoordinateSystem, value_type, ndims);
 };
 
-template<typename OS, typename CoordinateSystem>
-OS &operator<<(OS &os, CoVector<CoordinateSystem> const &geo)
-{
+template <typename OS, typename CoordinateSystem>
+OS &operator<<(OS &os, CoVector<CoordinateSystem> const &geo) {
     os << geo.as_ntuple();
     return os;
 }
 
-template<typename CS>
-LineSegment<CS> operator-(Point<CS> const &x1, Point<CS> const &x0)
-{
+template <typename CS>
+LineSegment<CS> operator-(Point<CS> const &x1, Point<CS> const &x0) {
     return LineSegment<CS>(x0, x1);
 }
 
-template<typename CS>
-Point<CS> operator+(Point<CS> const &x0, Vector<CS> const &v)
-{
+template <typename CS>
+Point<CS> operator+(Point<CS> const &x0, Vector<CS> const &v) {
     return Point<CS>(x0.as_ntuple() + v.as_ntuple());
 }
 
-template<typename CS>
-Vector<CS> operator*(Vector<CS> const &x1, Real a)
-{
+template <typename CS>
+Vector<CS> operator*(Vector<CS> const &x1, Real a) {
     Vector<CS> res;
     res.as_ntuple() = (x1.as_ntuple() * a);
     return std::move(res);
 }
 
-template<typename CS, typename T2>
-Vector<CS> cross(Vector<CS> const &x1, T2 const &v)
-{
+template <typename CS, typename T2>
+Vector<CS> cross(Vector<CS> const &x1, T2 const &v) {
     Vector<CS> res;
     res.as_ntuple() = cross(x1.as_ntuple(), v);
     return std::move(res);
 }
 
-template<typename CS>
-auto cross(Vector<CS> const &v0, Vector<CS> const &v1)
-AUTO_RETURN(inner_product(v0.as_ntuple(), v1.as_ntuple()))
+template <typename CS>
+auto cross(Vector<CS> const &v0, Vector<CS> const &v1) AUTO_RETURN(inner_product(v0.as_ntuple(), v1.as_ntuple()))
 
-/**
- * THIS is INCOMPLETE!!!
- */
-template<typename CoordinateSystem, typename CoordinateType, size_t ...N>
-struct Tensor
-{
+    /**
+     * THIS is INCOMPLETE!!!
+     */
+    template <typename CoordinateSystem, typename CoordinateType, size_t... N>
+    struct Tensor {
     nTuple<CoordinateType, N...> m_data_;
 
-    inline operator nTuple<CoordinateType, N...>()
-    {
-        return m_data_;
-    }
+    inline operator nTuple<CoordinateType, N...>() { return m_data_; }
 
-    inline auto operator[](size_t n)
-    AUTO_RETURN (m_data_[n])
+    inline auto operator[](size_t n) AUTO_RETURN(m_data_[n])
 
-    inline auto operator[](size_t n) const
-    AUTO_RETURN (m_data_[n])
+        inline auto
+        operator[](size_t n) const AUTO_RETURN(m_data_[n])
 
-    template<size_t M>
-    inline auto get()
-    AUTO_RETURN (m_data_[M])
+            template <size_t M>
+            inline auto get() AUTO_RETURN(m_data_[M])
 
-    template<size_t M>
-    inline auto get() const
-    AUTO_RETURN (m_data_[M])
+                template <size_t M>
+                inline auto get() const AUTO_RETURN(m_data_[M])
 };
 
-template<size_t Dimension, typename CoordinateSystem, typename Tag>
-struct Primitive<Dimension, CoordinateSystem, Tag>
-{
+template <size_t Dimension, typename CoordinateSystem, typename Tag>
+struct Primitive<Dimension, CoordinateSystem, Tag> {
     typedef Primitive<Dimension, CoordinateSystem, Tag> this_type;
     typedef typename traits::point_type<this_type>::type vertex_type;
-    static constexpr size_t number_of_points = traits::number_of_points<
-            this_type>::value;
+    static constexpr size_t number_of_points = traits::number_of_points<this_type>::value;
 
     DEF_NTUPLE_OBJECT(CoordinateSystem, vertex_type, number_of_points);
 };
 
-template<typename OS, size_t Dimension, typename CoordinateSystem, typename Tag>
-OS &operator<<(OS &os, Primitive<Dimension, CoordinateSystem, Tag> const &geo)
-{
+template <typename OS, size_t Dimension, typename CoordinateSystem, typename Tag>
+OS &operator<<(OS &os, Primitive<Dimension, CoordinateSystem, Tag> const &geo) {
     os << geo.as_ntuple();
     return os;
 }
@@ -254,97 +251,79 @@ OS &operator<<(OS &os, Primitive<Dimension, CoordinateSystem, Tag> const &geo)
 }
 // namespace geometry
 
-namespace traits
-{
+namespace traits {
 
-template<size_t Dimension, typename ...Others>
-struct is_primitive<geometry::Primitive<Dimension, Others...>>
-{
+template <size_t Dimension, typename... Others>
+struct is_primitive<geometry::Primitive<Dimension, Others...>> {
     static constexpr bool value = true;
 };
 
-template<size_t Dimension, typename ...Others>
-struct is_chains<geometry::Primitive<Dimension, Others...>>
-{
+template <size_t Dimension, typename... Others>
+struct is_chains<geometry::Primitive<Dimension, Others...>> {
     static constexpr bool value = false;
 };
 
-template<size_t Dimension, typename CoordinateSystem, typename Tag>
-struct coordinate_system<geometry::Primitive<Dimension, CoordinateSystem, Tag>>
-{
+template <size_t Dimension, typename CoordinateSystem, typename Tag>
+struct coordinate_system<geometry::Primitive<Dimension, CoordinateSystem, Tag>> {
     typedef CoordinateSystem type;
 };
 
-template<size_t Dimension, typename CoordinateSystem, typename Tag>
-struct dimension<geometry::Primitive<Dimension, CoordinateSystem, Tag>>
-{
+template <size_t Dimension, typename CoordinateSystem, typename Tag>
+struct dimension<geometry::Primitive<Dimension, CoordinateSystem, Tag>> {
     static constexpr size_t value = Dimension;
 };
 
-template<size_t Dimension, typename CoordinateSystem, typename Tag>
-struct tag<geometry::Primitive<Dimension, CoordinateSystem, Tag>>
-{
+template <size_t Dimension, typename CoordinateSystem, typename Tag>
+struct tag<geometry::Primitive<Dimension, CoordinateSystem, Tag>> {
     typedef Tag type;
 };
 
-template<size_t Dimension, typename CoordinateSystem, typename Tag>
-struct point_type<geometry::Primitive<Dimension, CoordinateSystem, Tag>>
-{
+template <size_t Dimension, typename CoordinateSystem, typename Tag>
+struct point_type<geometry::Primitive<Dimension, CoordinateSystem, Tag>> {
     typedef geometry::Primitive<0, CoordinateSystem, Tag> type;
 };
 
-template<size_t Dimension, typename CoordinateSystem, typename Tag>
-struct value_type<geometry::Primitive<Dimension, CoordinateSystem, Tag>>
-{
+template <size_t Dimension, typename CoordinateSystem, typename Tag>
+struct value_type<geometry::Primitive<Dimension, CoordinateSystem, Tag>> {
     typedef geometry::Primitive<Dimension, CoordinateSystem, Tag> geo;
 
     typedef decltype(std::declval<geo>()[0]) type;
 };
-template<typename CoordinateSystem>
-struct number_of_points<geometry::Primitive<0, CoordinateSystem>>
-{
+template <typename CoordinateSystem>
+struct number_of_points<geometry::Primitive<0, CoordinateSystem>> {
     static constexpr size_t value = 1;
 };
-template<typename CoordinateSystem>
-struct number_of_points<geometry::Primitive<1, CoordinateSystem>>
-{
+template <typename CoordinateSystem>
+struct number_of_points<geometry::Primitive<1, CoordinateSystem>> {
     static constexpr size_t value = 2;
 };
 
-template<size_t Dimension, typename ...Others>
-struct peak<geometry::Primitive<Dimension, Others...>>
-{
-    typedef typename facet<
-            typename ridge<geometry::Primitive<Dimension, Others...> >::type>::type type;
+template <size_t Dimension, typename... Others>
+struct peak<geometry::Primitive<Dimension, Others...>> {
+    typedef typename facet<typename ridge<geometry::Primitive<Dimension, Others...>>::type>::type type;
 };
 
-template<size_t Dimension, typename ...Others>
-struct ridge<geometry::Primitive<Dimension, Others...>>
-{
-    typedef typename facet<
-            typename facet<geometry::Primitive<Dimension, Others...> >::type>::type type;
+template <size_t Dimension, typename... Others>
+struct ridge<geometry::Primitive<Dimension, Others...>> {
+    typedef typename facet<typename facet<geometry::Primitive<Dimension, Others...>>::type>::type type;
 };
 
-template<size_t Dimension, typename ...Others>
-struct facet<geometry::Primitive<Dimension, Others...>>
-{
+template <size_t Dimension, typename... Others>
+struct facet<geometry::Primitive<Dimension, Others...>> {
     typedef geometry::Primitive<Dimension - 1, Others...> type;
 };
 
-} // namespace traits
-} // namespace geometry
-} // namespace simpla
+}  // namespace traits
+}  // namespace geometry
+}  // namespace simpla
 
-namespace std
-{
+namespace std {
 
-template<size_t N, size_t M, typename ... Others>
-auto get(simpla:: engine::Model::Primitive<M, Others...> &obj)
-AUTO_RETURN((obj[N]))
+template <size_t N, size_t M, typename... Others>
+auto get(simpla::engine::Model::Primitive<M, Others...> &obj) AUTO_RETURN((obj[N]))
 
-template<size_t N, size_t M, typename ...Others>
-auto get(simpla:: engine::Model::Primitive<M, Others...> const &obj)
-AUTO_RETURN((obj[N]))
+    template <size_t N, size_t M, typename... Others>
+    auto get(simpla::engine::Model::Primitive<M, Others...> const &obj) AUTO_RETURN((obj[N]))
 
 }  // namespace std
 #endif /* CORE_GEOMETRY_PRIMITIVE_H_ */

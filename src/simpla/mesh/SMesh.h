@@ -4,10 +4,12 @@
 
 #ifndef SIMPLA_SMESH_H
 #define SIMPLA_SMESH_H
+#include "simpla/SIMPLA_config.h"
 
-#include "simpla/algebra/algebra.h"
+#include "simpla/algebra/Algebra.h"
 #include "simpla/data/Data.h"
 #include "simpla/engine/Domain.h"
+
 #include "StructuredMesh.h"
 namespace simpla {
 namespace mesh {

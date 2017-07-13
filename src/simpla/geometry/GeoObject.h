@@ -8,13 +8,16 @@
 #ifndef CORE_GEOMETRY_GEO_OBJECT_H_
 #define CORE_GEOMETRY_GEO_OBJECT_H_
 
+#include "simpla/SIMPLA_config.h"
+
 #include "simpla/algebra/nTuple.h"
+#include "simpla/data/EnableCreateFromDataTable.h"
+#include "simpla/data/Serializable.h"
 #include "simpla/engine/SPObject.h"
 #include "simpla/utilities/Log.h"
 #include "simpla/utilities/type_traits.h"
+
 #include "GeoAlgorithm.h"
-#include "simpla/data/EnableCreateFromDataTable.h"
-#include "simpla/data/Serializable.h"
 
 namespace simpla {
 namespace geometry {
@@ -195,9 +198,9 @@ class GeoObject : public engine::SPObject, public data::EnableCreateFromDataTabl
     //    };
 };
 //
-//class GeoObjectNull;
+// class GeoObjectNull;
 //
-//class GeoObjectFull : public GeoObject {
+// class GeoObjectFull : public GeoObject {
 //    SP_OBJECT_HEAD(GeoObjectFull, GeoObject)
 //
 //   public:
@@ -240,7 +243,7 @@ class GeoObject : public engine::SPObject, public data::EnableCreateFromDataTabl
 //    bool CheckInside(const point_type &x) const override { return 1; };
 //};
 //
-//class GeoObjectNull : public GeoObject {
+// class GeoObjectNull : public GeoObject {
 //    SP_OBJECT_HEAD(GeoObjectNull, GeoObject)
 //
 //   public:

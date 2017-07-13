@@ -12,6 +12,5 @@
 #include "Patch.h"
 #include "Schedule.h"
 #include "TimeIntegrator.h"
-/**
- */
+
 #endif  // SIMPLA_ENGINE_ALL_H

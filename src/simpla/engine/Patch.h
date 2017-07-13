@@ -6,10 +6,13 @@
 #define SIMPLA_PATCH_H
 
 #include "simpla/SIMPLA_config.h"
+
+#include <memory>
+
 #include "simpla/algebra/EntityId.h"
 #include "simpla/data/Data.h"
-#include "simpla/engine/SPObject.h"
-#include <memory>
+
+#include "SPObject.h"
 
 namespace simpla {
 namespace engine {

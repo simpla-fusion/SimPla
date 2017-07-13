@@ -8,10 +8,8 @@
 #ifndef PRETTY_STREAM_H_
 #define PRETTY_STREAM_H_
 
-#include "simpla/utilities/type_traits.h"
-#include "simpla/utilities/utility.h"
-#include <cstddef>
 #include <complex>
+#include <cstddef>
 #include <iomanip>
 #include <list>
 #include <map>
@@ -19,6 +17,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "simpla/utilities/type_traits.h"
+#include "simpla/utilities/utility.h"
 namespace simpla {
 template <typename T, size_t... N>
 std::ostream &printNd(std::ostream &os, T const &d, std::index_sequence<N...> const &,

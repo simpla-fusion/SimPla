@@ -2,10 +2,14 @@
 // Created by salmon on 17-4-5.
 //
 
+#include "simpla/SIMPLA_config.h"
+
 #include "Domain.h"
+
 #include "simpla/engine/Model.h"
 #include "simpla/geometry/Chart.h"
 #include "simpla/geometry/GeoObject.h"
+
 #include "Attribute.h"
 #include "Patch.h"
 namespace simpla {

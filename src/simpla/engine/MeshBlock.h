@@ -6,10 +6,12 @@
 #define SIMPLA_MESHBLOCK_H
 
 #include "simpla/SIMPLA_config.h"
+
+#include <memory>
+
 #include "simpla/algebra/nTuple.ext.h"
 #include "simpla/algebra/nTuple.h"
 #include "simpla/utilities/ObjectHead.h"
-#include <memory>
 
 namespace simpla {
 namespace engine {

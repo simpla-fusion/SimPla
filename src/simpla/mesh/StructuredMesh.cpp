@@ -7,7 +7,6 @@
 #include "simpla/geometry/GeoAlgorithm.h"
 namespace simpla {
 namespace mesh {
-using namespace algebra;
 
 /**
 *\verbatim

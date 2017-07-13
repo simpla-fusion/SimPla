@@ -8,31 +8,28 @@
 #ifndef KSP_CG_H_
 #define KSP_CG_H_
 
-#include "fetl/fetl.h"
-#include "../toolbox/utilities/Log.h"
 #include <iostream>
+#include "simpla/algebra/Field.h"
+#include "simpla/utilities/Log.h"
 
-namespace simpla
-{
+namespace simpla {
 
 /**@ingroup numeric*/
-namespace linear_solver
-{
+namespace linear_solver {
 
-template<typename TM, unsigned int IFORM, typename F1, typename F3> //
-void ksp_cg(Field <TM, IFORM, F1> const &Ax, Field <TM, IFORM, F3> &x, size_t max_iterative_num = 1000,
-            double residual = 1.0e-10)
-{
-//	if (!CheckEquationHasVariable(Ax, x_))
-//	{
-//		THROW_EXCEPTION_LOGIC_ERROR << "Unsolvable Equation!";
-//	}
+template <typename TM, typename TV, unsigned int IFORM>  //
+void ksp_cg(Field<TM, TV, IFORM> const &Ax, Field<TM, IFORM, F3> &x, size_t max_iterative_num = 1000,
+            double residual = 1.0e-10) {
+    //	if (!CheckEquationHasVariable(Ax, x_))
+    //	{
+    //		THROW_EXCEPTION_LOGIC_ERROR << "Unsolvable Equation!";
+    //	}
 
     typedef decltype(x[0]) ValueType;
 
-    typename Field<TM, IFORM, F1>::Mesh const &mesh = x.mesh;
+    typename Field<TM, TV, IFORM>::Mesh const &mesh = x.mesh;
 
-    Field <TM, IFORM, F3> r(mesh), Ap(mesh), p(mesh), b(mesh);
+    Field<TM, TV, IFORM, F3> r(mesh), Ap(mesh), p(mesh), b(mesh);
 
     INFORM << "KSP_CG Solver: Start";
 
@@ -47,8 +44,7 @@ void ksp_cg(Field <TM, IFORM, F1> const &Ax, Field <TM, IFORM, F3> &x, size_t ma
 
     rsold = InnerProduct(r, r);
 
-    for (int k = 0; k < max_iterative_num; ++k)
-    {
+    for (int k = 0; k < max_iterative_num; ++k) {
         x.swap(p);
         Ap = Ax;
         p.swap(x);
@@ -58,19 +54,15 @@ void ksp_cg(Field <TM, IFORM, F1> const &Ax, Field <TM, IFORM, F3> &x, size_t ma
 
         rsnew = InnerProduct(r, r);
 
-        if (rsnew < residual)
-        {
-            break;
-        }
+        if (rsnew < residual) { break; }
         p = r + rsnew / rsold * p;
         rsold = rsnew;
     }
 
     INFORM << "KSP_CG Solver: DONE! ";
 
-// [ Residual = " 	<< rsnew / static_cast<double>(num_of_ele) << ", iterate " << k	<< " times]
+    // [ Residual = " 	<< rsnew / static_cast<double>(num_of_ele) << ", iterate " << k	<< " times]
 }
-
 }
 // namespace linear_solver
 }

@@ -7,6 +7,8 @@
 #ifndef SIMPLA_POLYGON_H
 #define SIMPLA_POLYGON_H
 
+#include "simpla/SIMPLA_config.h"
+
 #include <vector>
 
 #include "simpla/algebra/nTuple.h"

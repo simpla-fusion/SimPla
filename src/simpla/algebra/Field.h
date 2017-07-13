@@ -8,9 +8,11 @@
 #define SIMPLA_FIELD_H
 
 #include "simpla/SIMPLA_config.h"
+
 #include "simpla/data/Data.h"
 #include "simpla/engine/Attribute.h"
 #include "simpla/utilities/type_traits.h"
+
 #include "ExpressionTemplate.h"
 
 namespace simpla {

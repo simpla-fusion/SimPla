@@ -9,12 +9,14 @@
 #define CORE_GEOMETRY_CS_CYLINDRICAL_H_
 
 #include "simpla/SIMPLA_config.h"
+
 #include "simpla/algebra/nTuple.h"
+#include "simpla/utilities/macro.h"
+#include "simpla/utilities/type_traits.h"
 
 #include "Chart.h"
 #include "CoordinateSystem.h"
-#include "simpla/utilities/macro.h"
-#include "simpla/utilities/type_traits.h"
+
 namespace simpla {
 namespace geometry {
 

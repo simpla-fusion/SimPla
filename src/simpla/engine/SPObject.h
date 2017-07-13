@@ -6,14 +6,16 @@
 
 #ifndef SIMPLA_OBJECT_H
 #define SIMPLA_OBJECT_H
-
 #include "simpla/SIMPLA_config.h"
-#include "simpla/utilities/ObjectHead.h"
-#include "simpla/utilities/Signal.h"
+
 #include <memory>
 #include <mutex>
 #include <typeindex>
 #include <typeinfo>
+
+#include "simpla/utilities/ObjectHead.h"
+#include "simpla/utilities/Signal.h"
+
 namespace simpla {
 namespace engine {
 

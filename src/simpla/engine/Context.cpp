@@ -1,11 +1,15 @@
 //
 // Created by salmon on 17-2-16.
 //
+#include "simpla/SIMPLA_config.h"
+
 #include "Context.h"
+
 #include "simpla/data/Data.h"
 #include "simpla/engine/Model.h"
 #include "simpla/geometry/Chart.h"
 #include "simpla/geometry/GeoAlgorithm.h"
+
 #include "Domain.h"
 namespace simpla {
 namespace engine {
@@ -44,7 +48,7 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
                 std::string s_type = p_cfg->GetValue<std::string>("Type", "Unknown");
                 auto res = DomainBase::Create(s_type);
                 res->SetChart(m_pimpl_->m_atlas_.GetChart());
-                 res->Deserialize(p_cfg);
+                res->Deserialize(p_cfg);
                 SetDomain(key, res);
             } else {
                 RUNTIME_ERROR << "illegal domain config!" << std::endl;

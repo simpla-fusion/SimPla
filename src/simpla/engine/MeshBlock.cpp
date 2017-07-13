@@ -1,13 +1,17 @@
 //
 // Created by salmon on 17-3-1.
 //
+#include "simpla/SIMPLA_config.h"
 
-#include "MeshBlock.h"
-#include "simpla/algebra/EntityId.h"
-#include "simpla/engine/SPObject.h"
 #include <boost/functional/hash.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+
+#include "simpla/algebra/EntityId.h"
+
+#include "MeshBlock.h"
+#include "SPObject.h"
+
 namespace simpla {
 namespace engine {
 

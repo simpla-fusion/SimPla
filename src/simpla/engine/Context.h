@@ -6,8 +6,11 @@
 #define SIMPLA_CONTEXT_H
 
 #include "simpla/SIMPLA_config.h"
-#include "simpla/data/Serializable.h"
+
 #include <map>
+
+#include "simpla/data/Serializable.h"
+
 #include "Atlas.h"
 #include "Domain.h"
 #include "Patch.h"

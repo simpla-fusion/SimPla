@@ -3,9 +3,14 @@
  * @author salmon
  * @date 2015-11-18.
  */
-#include "Polygon.h"
+
+#include "simpla/SIMPLA_config.h"
+
 #include "simpla/algebra/nTuple.h"
+
 #include "GeoAlgorithm.h"
+#include "Polygon.h"
+
 namespace simpla {
 namespace geometry {
 

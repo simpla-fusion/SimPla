@@ -5,6 +5,8 @@
 #ifndef SIMPLA_STRUCTUREDMESH_H
 #define SIMPLA_STRUCTUREDMESH_H
 
+#include "simpla/SIMPLA_config.h"
+
 #include "simpla/algebra/Array.h"
 #include "simpla/algebra/nTuple.h"
 #include "simpla/data/Data.h"

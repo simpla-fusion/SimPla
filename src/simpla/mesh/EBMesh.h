@@ -5,8 +5,10 @@
 #ifndef SIMPLA_EBMESH_H
 #define SIMPLA_EBMESH_H
 
-#include "simpla/algebra/EntityId.h"
+#include "simpla/SIMPLA_config.h"
+
 #include "simpla/algebra/Algebra.h"
+#include "simpla/algebra/EntityId.h"
 #include "simpla/data/Data.h"
 #include "simpla/engine/Domain.h"
 #include "simpla/utilities/Range.h"

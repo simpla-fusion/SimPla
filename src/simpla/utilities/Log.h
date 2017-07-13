@@ -17,6 +17,9 @@
 #ifndef LOG_H_
 #define LOG_H_
 
+#include "simpla/SIMPLA_config.h"
+
+
 #include <stddef.h>
 #include <cfenv>
 //#include <bitset>

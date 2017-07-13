@@ -14,7 +14,6 @@
 #include "simpla/algebra/Calculus.h"
 #include "simpla/algebra/EntityId.h"
 #include "simpla/algebra/ExpressionTemplate.h"
-#include "simpla/engine/Domain.h"
 #include "simpla/utilities/type_traits.h"
 namespace simpla {
 

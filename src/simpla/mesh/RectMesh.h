@@ -4,10 +4,15 @@
 
 #ifndef SIMPLA_RECTMESH_H
 #define SIMPLA_RECTMESH_H
-#include "StructuredMesh.h"
+
+#include "simpla/SIMPLA_config.h"
+
 #include "simpla/algebra/Algebra.h"
 #include "simpla/data/Data.h"
 #include "simpla/engine/Domain.h"
+
+#include "StructuredMesh.h"
+
 namespace simpla {
 namespace mesh {
 

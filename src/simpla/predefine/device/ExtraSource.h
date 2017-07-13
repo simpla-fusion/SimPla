@@ -11,7 +11,7 @@
 #include "simpla/physics/PhysicalConstants.h"
 
 namespace simpla {
-using namespace algebra;
+
 using namespace data;
 using namespace engine;
 

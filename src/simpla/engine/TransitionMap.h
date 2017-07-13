@@ -5,10 +5,14 @@
 #ifndef SIMPLA_TRANSITIONMAP_H
 #define SIMPLA_TRANSITIONMAP_H
 
+#include "simpla/SIMPLA_config.h"
+
+#include <type_traits>
+
 #include "simpla/algebra/nTuple.h"
 #include "simpla/utilities/FancyStream.h"
 #include "simpla/utilities/Log.h"
-#include <type_traits>
+
 #include "MeshBlock.h"
 
 namespace simpla {
@@ -49,8 +53,8 @@ struct TransitionMap {
     virtual void Apply(DomainBase const &from, DomainBase &to) const = 0;
 };
 //
-//template <typename M, typename N>
-//struct TransitionMapView<M, N> : public TransitionMap {
+// template <typename M, typename N>
+// struct TransitionMapView<M, N> : public TransitionMap {
 //    typedef M l_mesh_type;
 //    typedef M r_mesh_type;
 //

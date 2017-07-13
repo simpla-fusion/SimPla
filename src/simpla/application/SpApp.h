@@ -4,12 +4,14 @@
 
 #ifndef SIMPLA_APPLICATION_H
 #define SIMPLA_APPLICATION_H
-//
+
+#include "simpla/SIMPLA_config.h"
+
+#include <string>
 #include "simpla/data/Data.h"
-#include "simpla/engine/Schedule.h"
 #include "simpla/engine/Model.h"
 #include "simpla/engine/SPObject.h"
-#include <string>
+#include "simpla/engine/Schedule.h"
 
 namespace simpla {
 namespace application {
@@ -33,8 +35,8 @@ struct SpApp : public engine::SPObject, public data::Serializable {
     void DoTearDown() override;
     void DoFinalize() override;
 
-    void SetModel(std::shared_ptr< engine::Model> s);
-    std::shared_ptr< engine::Model> GetModel() const;
+    void SetModel(std::shared_ptr<engine::Model> s);
+    std::shared_ptr<engine::Model> GetModel() const;
 
     void SetContext(std::shared_ptr<engine::Context> s);
     std::shared_ptr<engine::Context> GetContext() const;

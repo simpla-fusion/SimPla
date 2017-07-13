@@ -4,16 +4,17 @@
  * @date 2015-12-16.
  */
 
+#include "simpla/SIMPLA_config.h"
+
 #include "SPObject.h"
 
-//->append/data/DataTable.h>
-#include "simpla/utilities/Log.h"
-#include "simpla/utilities/type_cast.h"
 #include <boost/functional/hash.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <iomanip>
 #include <ostream>
+#include "simpla/utilities/Log.h"
+#include "simpla/utilities/type_cast.h"
 
 namespace simpla {
 namespace engine {

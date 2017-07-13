@@ -1,9 +1,16 @@
 //
 // Created by salmon on 17-3-17.
 //
+
+#include "simpla/SIMPLA_config.h"
+
 #include "TimeIntegrator.h"
-#include "Context.h"
+
 #include "simpla/data/Data.h"
+
+#include "Context.h"
+#include "TimeIntegrator.h"
+
 namespace simpla {
 namespace engine {
 
@@ -21,7 +28,7 @@ std::shared_ptr<data::DataTable> TimeIntegrator::Serialize() const {
     return p;
 }
 
-void TimeIntegrator::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
+void TimeIntegrator::Deserialize(const std::shared_ptr<data::DataTable>& cfg) {
     Schedule::Deserialize(cfg);
     SetTimeNow(cfg->GetValue("TimeBegin", 0.0));
     SetTimeEnd(cfg->GetValue("TimeEnd", 1.0));

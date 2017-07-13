@@ -13,7 +13,7 @@
 #include <cmath>
 
 namespace simpla {
-using namespace algebra;
+
 using namespace data;
 
 template <typename THost>

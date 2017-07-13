@@ -4,14 +4,17 @@
 
 #ifndef SIMPLA_NTUPLE_EXT_H
 #define SIMPLA_NTUPLE_EXT_H
-
 #include "simpla/SIMPLA_config.h"
+
 #include <cmath>
 #include <complex>
 #include <iostream>
-#include "nTuple.h"
+
 #include "simpla/utilities/type_traits.h"
 #include "simpla/utilities/utility.h"
+
+#include "nTuple.h"
+
 namespace simpla {
 
 // typedef std::complex<Real> Complex;

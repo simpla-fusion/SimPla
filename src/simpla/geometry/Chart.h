@@ -5,10 +5,13 @@
 #ifndef SIMPLA_CHART_H
 #define SIMPLA_CHART_H
 
+#include "simpla/SIMPLA_config.h"
+
 #include "simpla/data/Data.h"
 #include "simpla/engine/SPObject.h"
 #include "simpla/geometry/GeoObject.h"
 #include "simpla/utilities/Signal.h"
+
 namespace simpla {
 namespace geometry {
 struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<Chart> {
