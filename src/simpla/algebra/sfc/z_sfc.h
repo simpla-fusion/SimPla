@@ -6,17 +6,18 @@
 #define SIMPLA_Z_SFC_H
 
 #include "simpla/SIMPLA_config.h"
-#include "simpla/algebra/EntityId.h"
-#include "simpla/utilities/device_common.h"
-#include "simpla/utilities/memory.h"
+
 #include <algorithm>
 #include <cmath>
 #include <cstddef>  // for size_t
 #include <iomanip>
 #include <limits>
 #include <tuple>
+#include "simpla/algebra/EntityId.h"
 #include "simpla/algebra/nTuple.ext.h"
 #include "simpla/algebra/nTuple.h"
+#include "simpla/utilities/device_common.h"
+#include "simpla/utilities/memory.h"
 
 namespace simpla {
 template <typename V, typename SFC>
@@ -104,7 +105,7 @@ class ZSFC {
     };
 
     size_type size() const { return m_size_; }
-
+    index_box_type GetIndexBox() const { return m_index_box_; }
     void Shift(array_index_type const& offset) {
         std::get<0>(m_index_box_) += offset;
         std::get<1>(m_index_box_) += offset;
@@ -137,12 +138,13 @@ class ZSFC {
 #endif
     }
 
-    template <typename TFun>
-    void Foreach(const TFun& fun) const;
+    template <typename TFun, typename... Args>
+    void Foreach(const TFun& fun, Args&&... args) const;
 
     template <typename value_type>
     std::ostream& Print(std::ostream& os, value_type const* v, int indent = 0) const;
 };
+
 template <>
 __host__ __device__ inline size_type ZSFC<3>::hash(index_type const* s) const {
     return std::fma(s[0], m_strides_[0], -std::get<0>(m_index_box_)[0] * m_strides_[0]) +
@@ -225,6 +227,49 @@ std::ostream& ZSFC<3>::Print(std::ostream& os, value_type const* v, int indent) 
 //    }
 //}
 
+namespace traits {
+
+inline index_box_type overlap() {
+    return index_box_type{{std::numeric_limits<index_type>::min(), std::numeric_limits<index_type>::min(),
+                           std::numeric_limits<index_type>::min()},
+                          {std::numeric_limits<index_type>::max(), std::numeric_limits<index_type>::max(),
+                           std::numeric_limits<index_type>::max()}};
+}
+template <typename T>
+index_box_type overlap(T const& a) {
+    return overlap();
+}
+template <typename U>
+index_box_type overlap(Array<U, ZSFC<3>> const& a) {
+    return a.GetSpaceFillingCurve().GetIndexBox();
+}
+template <typename U>
+index_box_type overlap(Array<U, ZSFC<3>>& a) {
+    return a.GetSpaceFillingCurve().GetIndexBox();
+}
+inline index_box_type overlap(index_box_type const& a) { return a; }
+inline index_box_type overlap(index_box_type const& b0, index_box_type const& b1) {
+    return index_box_type{
+        {std::max(std::get<0>(b0)[0], std::get<0>(b1)[0]), std::max(std::get<0>(b0)[1], std::get<0>(b1)[1]),
+         std::max(std::get<0>(b0)[2], std::get<0>(b1)[2])},
+        {std::min(std::get<1>(b0)[0], std::get<1>(b1)[0]), std::min(std::get<1>(b0)[1], std::get<1>(b1)[1]),
+         std::min(std::get<1>(b0)[2], std::get<1>(b1)[2])}};
+}
+
+template <size_t... index, typename... Args>
+index_box_type _overlap(std::index_sequence<index...>, std::tuple<Args...> const& expr) {
+    return overlap(std::get<index>(expr)...);
+}
+template <typename TOP, typename... Args>
+index_box_type overlap(Expression<TOP, Args...> const& expr) {
+    return _overlap(std::index_sequence_for<Args...>(), expr.m_args_);
+}
+template <typename Arg0, typename Arg1, typename... Others>
+index_box_type overlap(Arg0 const& first, Arg1 const& arg1, Others&&... others) {
+    return overlap(overlap(first), overlap(overlap(arg1), std::forward<Others>(others)...));
+}
+}  // namespace traits {
+
 #ifdef __CUDA__
 template <typename TFUN>
 __global__ void foreach_device(nTuple<index_type, 3> min, nTuple<index_type, 3> max, TFUN fun) {
@@ -235,29 +280,39 @@ __global__ void foreach_device(nTuple<index_type, 3> min, nTuple<index_type, 3> 
 };
 
 #endif
-
 template <>
-template <typename TFun>
-void ZSFC<3>::Foreach(TFun const& fun) const {
-    index_type ib = std::get<0>(m_index_box_)[0];
-    index_type ie = std::get<1>(m_index_box_)[0];
-    index_type jb = std::get<0>(m_index_box_)[1];
-    index_type je = std::get<1>(m_index_box_)[1];
-    index_type kb = std::get<0>(m_index_box_)[2];
-    index_type ke = std::get<1>(m_index_box_)[2];
+template <typename TFun, typename... Args>
+void ZSFC<3>::Foreach(const TFun& fun, Args&&... args) const {
+    index_box_type idx_box = traits::overlap(std::forward<Args>(args)...);
+    index_type ib = std::get<0>(idx_box)[0];
+    index_type ie = std::get<1>(idx_box)[0];
+    index_type jb = std::get<0>(idx_box)[1];
+    index_type je = std::get<1>(idx_box)[1];
+    index_type kb = std::get<0>(idx_box)[2];
+    index_type ke = std::get<1>(idx_box)[2];
 
+    CHECK(m_index_box_);
+    CHECK(idx_box);
 #ifndef __CUDA__
     if (m_array_order_fast_first_) {
 #pragma omp parallel for
         for (index_type k = kb; k < ke; ++k)
             for (index_type j = jb; j < je; ++j)
-                for (index_type i = ib; i < ie; ++i) { fun(i, j, k); }
+                for (index_type i = ib; i < ie; ++i) {
+                    fun(std::forward<Args>(args)..., i, j, k);
+
+                    //                    lhs(i, j, k) = calculus::getValue(rhs, i, j, k);
+                }
 
     } else {
 #pragma omp parallel for
         for (index_type i = ib; i < ie; ++i)
             for (index_type j = jb; j < je; ++j)
-                for (index_type k = kb; k < ke; ++k) { fun(i, j, k); }
+                for (index_type k = kb; k < ke; ++k) {
+                    fun(std::forward<Args>(args)..., i, j, k);
+
+                    //                    lhs(i, j, k) = calculus::getValue(rhs, i, j, k);
+                }
     }
 #else
 

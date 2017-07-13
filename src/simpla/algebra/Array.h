@@ -166,9 +166,14 @@ class Array {
 
     template <typename RHS>
     void Assign(RHS const& rhs) {
-        m_sfc_.Foreach([&] __host__ __device__(auto&&... s) {
-            at(std::forward<decltype(s)>(s)...) = calculus::getValue(rhs, std::forward<decltype(s)>(s)...);
-        });
+        m_sfc_.Foreach(
+            [&] __host__ __device__(auto& a, auto&& b, auto&&... s) {
+                a.at(std::forward<decltype(s)>(s)...) =
+                    calculus::getValue(std::forward<decltype(b)>(b), std::forward<decltype(s)>(s)...);
+            },
+            *this, rhs);
+
+        //        m_sfc_.Assign(*this, rhs);
     }
 };
 

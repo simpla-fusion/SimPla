@@ -202,7 +202,7 @@ struct FVM {
         SY[(n + 1) % 3] = 1;
         SZ[(n + 2) % 3] = 1;
 
-        return ((getV(l, S + SZ, IY) - getV(l, S, IY)) - (getV(l, S + SY, IX) - getV(l, S, IX))) *
+        return ((getV(l, S + SZ, IY) - getV(l, S, IY)) - (getV(l, S + SY, IZ) - getV(l, S, IZ))) *
                getValue(m_host_->m_face_inv_volume_, S, tag);
     }
 
