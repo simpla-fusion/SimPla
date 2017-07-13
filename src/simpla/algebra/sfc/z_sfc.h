@@ -50,6 +50,9 @@ class ZSFC {
           m_size_(other.m_size_),
           m_array_order_fast_first_(other.m_array_order_fast_first_) {}
 
+    template <typename RHS>
+    this_type Overlap(RHS const& rhs) const;
+
     //    ZSFC(std::initializer_list<index_type> const& l) {
     //        for (int i = 0; i < NDIMS; ++i) {
     //            std::get<0>(m_index_box_)[i] = 0;
@@ -273,7 +276,11 @@ index_box_type overlap(Expression<TOP, Args...> const& expr) {
 }
 
 }  // namespace traits {
-
+template <>
+template <typename RHS>
+ZSFC<3> ZSFC<3>::Overlap(RHS const& rhs) const {
+    return ZSFC<3>(detail::overlap(m_index_box_, rhs));
+};
 #ifdef __CUDA__
 template <typename TFUN>
 __global__ void foreach_device(nTuple<index_type, 3> min, nTuple<index_type, 3> max, TFUN fun) {
@@ -287,13 +294,12 @@ __global__ void foreach_device(nTuple<index_type, 3> min, nTuple<index_type, 3> 
 template <>
 template <typename TFun, typename... Args>
 void ZSFC<3>::Foreach(const TFun& fun, Args&&... args) const {
-    index_box_type idx_box = detail::overlap(std::forward<Args>(args)...);
-    index_type ib = std::get<0>(idx_box)[0];
-    index_type ie = std::get<1>(idx_box)[0];
-    index_type jb = std::get<0>(idx_box)[1];
-    index_type je = std::get<1>(idx_box)[1];
-    index_type kb = std::get<0>(idx_box)[2];
-    index_type ke = std::get<1>(idx_box)[2];
+    index_type ib = std::get<0>(m_index_box_)[0];
+    index_type ie = std::get<1>(m_index_box_)[0];
+    index_type jb = std::get<0>(m_index_box_)[1];
+    index_type je = std::get<1>(m_index_box_)[1];
+    index_type kb = std::get<0>(m_index_box_)[2];
+    index_type ke = std::get<1>(m_index_box_)[2];
 
 #ifndef __CUDA__
     if (m_array_order_fast_first_) {

@@ -12,6 +12,8 @@
 
 #include "simpla/SIMPLA_config.h"
 
+#include <cassert>
+
 #include "simpla/utilities/type_traits.h"
 
 #include "ExpressionTemplate.h"
@@ -191,7 +193,6 @@ U const& recursive_index(nTuple<U, N0, N1, N...> const& v, int s) {
     return recursive_index(v[s % N0], s / N0);
 }
 
-
 template <int N0>
 int recursive_calculate_shift(int s0) {
     return s0;
@@ -255,9 +256,15 @@ struct nTuple<TV, N0, N...> {
         return (*this);
     }
 
-    __host__ __device__ auto& operator[](int s) { return m_data_[s]; }
+    __host__ __device__ auto& operator[](int s) {
+        assert(s < N0 && s >= 0);
+        return m_data_[s];
+    }
 
-    __host__ __device__ auto const& operator[](int s) const { return m_data_[s]; }
+    __host__ __device__ auto const& operator[](int s) const {
+        assert(s < N0 && s >= 0);
+        return m_data_[s];
+    }
 };
 
 template <>

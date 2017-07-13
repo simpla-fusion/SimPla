@@ -100,17 +100,17 @@ struct FVM {
     }
 
     template <typename U, int IFORM, int... N, typename RHS>
-    void Fill(Field<THost, U, IFORM, N...>& lhs, RHS&& rhs) const {
+    void Fill(Field<THost, U, IFORM, N...>& lhs, RHS const& rhs) const {
         st::foreach (lhs.Get(), [&](auto& a, int n0, auto&&... subs) {
             auto tag = static_cast<int16_t>(
                 EntityIdCoder::m_sub_index_to_id_[IFORM][n0] |
                 (st::recursive_calculate_shift<1, N...>(0, std::forward<decltype(subs)>(subs)...) << 3));
-            a = getValue(std::forward<RHS>(rhs), IdxShift{0, 0, 0}, tag);
+            a = getValue((rhs), IdxShift{0, 0, 0}, tag);
         });
     }
 
     template <typename U, int IFORM, int... N, typename RHS, typename TRange>
-    void Fill(Field<THost, U, IFORM, N...>& lhs, RHS&& rhs, TRange const& r) const {
+    void Fill(Field<THost, U, IFORM, N...>& lhs, RHS const& rhs, TRange const& r) const {
         st::foreach (   //
             lhs.Get(),  //
             [&](auto& a, int n0, auto&&... subs) {
@@ -120,8 +120,7 @@ struct FVM {
 
                 r.foreach ([&](EntityId s) {
                     if ((s.w & 0b111) == (tag & 0b111)) {
-                        a(s.x, s.y, s.z) =
-                            calculus::getValue(getValue(std::forward<RHS>(rhs), IdxShift{0, 0, 0}, tag), s.x, s.y, s.z);
+                        a(s.x, s.y, s.z) = calculus::getValue(getValue((rhs), IdxShift{0, 0, 0}, tag), s.x, s.y, s.z);
                     }
                 });
             });
@@ -343,44 +342,39 @@ struct FVM {
     template <typename TExpr>
     auto _map_to(std::index_sequence<VERTEX, EDGE>, TExpr const& expr, IdxShift S, int tag) const {
         int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
-        IdxShift SD{0, 0, 0};
-        SD[n] = 1;
-        int ID = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[VERTEX][n];
+        int IX = (((tag << 3) * 3) + n) >> 3;
+        IdxShift SX{0, 0, 0};
+        SX[n] = 1;
 
-        return (getValue(expr, S, ID) + getValue(expr, S + SD, ID)) * 0.5;
+        return (getValue(expr, S, IX) + getValue(expr, S + SX, IX)) * 0.5;
     }
 
     template <typename TExpr>
     auto _map_to(std::index_sequence<EDGE, VERTEX>, TExpr const& expr, IdxShift S, int tag) const {
-        int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
-        IdxShift SD{0, 0, 0};
-        SD[n] = 1;
-        int ID = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][n];
-        return (getValue(expr, S - SD, ID) + getValue(expr, S, ID)) * 0.5;
+        int n = (tag << 3) % 3;
+        int IX = (((tag << 3) / 3) >> 3) | EntityIdCoder::m_sub_index_to_id_[EDGE][n];
+        IdxShift SX{0, 0, 0};
+        SX[n] = 1;
+        return (getValue(expr, S - SX, IX) + getValue(expr, S, IX)) * 0.5;
     }
 
     template <typename TExpr>
     auto _map_to(std::index_sequence<VERTEX, FACE>, TExpr const& expr, IdxShift S, int tag) const {
         int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
-
-        int IV = (tag & (~0b111));
+        int IX = (((tag << 3) * 3 + n) >> 3);
         IdxShift SY{0, 0, 0};
         IdxShift SZ{0, 0, 0};
         SY[(n + 1) % 3] = 1;
         SZ[(n + 2) % 3] = 1;
-        return (getValue(expr, S, IV) + getValue(expr, S + SY, IV) + getValue(expr, S + SZ, IV) +
-                getValue(expr, S + SY + SZ, IV)) *
+        return (getValue(expr, S, IX) + getValue(expr, S + SY, IX) + getValue(expr, S + SZ, IX) +
+                getValue(expr, S + SY + SZ, IX)) *
                0.25;
     }
 
     template <typename TExpr>
     auto _map_to(std::index_sequence<FACE, VERTEX>, TExpr const& expr, IdxShift S, int tag) const {
-        int n = tag << 3;
-        // EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
-
-        int IX = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][(n + 0) % 3];
-        int IY = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][(n + 1) % 3];
-        int IZ = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][(n + 2) % 3];
+        int n = (tag << 3) % 3;
+        int IX = (((tag << 3) / 3) >> 3) | EntityIdCoder::m_sub_index_to_id_[FACE][(n + 0) % 3];
         IdxShift SY{0, 0, 0};
         IdxShift SZ{0, 0, 0};
         SY[(n + 1) % 3] = 1;
@@ -414,27 +408,26 @@ struct FVM {
     template <typename TExpr>
     auto _map_to(std::index_sequence<VOLUME, FACE>, TExpr const& expr, IdxShift S, int tag) const {
         int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
-        int ID = (tag | (0b111));
+        int IX = 0b111 | (((n << 3) * 3 + n) >> 3);
+
         IdxShift SD{0, 0, 0};
         SD[n] = 1;
-        return (getValue(expr, S - SD, ID) + getValue(expr, S, ID)) * 0.5;
+        return (getValue(expr, S - SD, IX) + getValue(expr, S, IX)) * 0.5;
     }
 
     template <typename TExpr>
     auto _map_to(std::index_sequence<FACE, VOLUME>, TExpr const& expr, IdxShift S, int tag) const {
         int n = (tag << 3) % 3;
-        int ID = (((tag << 3) / 3) >> 3) | EntityIdCoder::m_sub_index_to_id_[FACE][n];
-        IdxShift SD{0, 0, 0};
-        SD[n % 3] = 1;
-
-        return (getValue(expr, S, ID) + getValue(expr, S + SD, ID)) * 0.5;
+        int IX = (((tag << 3) / 3) >> 3) | EntityIdCoder::m_sub_index_to_id_[FACE][n];
+        IdxShift SX{0, 0, 0};
+        SX[n] = 1;
+        return (getValue(expr, S, IX) + getValue(expr, S + SX, IX)) * 0.5;
     }
 
     template <typename TExpr>
     auto _map_to(std::index_sequence<VOLUME, EDGE>, TExpr const& expr, IdxShift S, int tag) const {
         int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
-
-        int IX = (tag | (~0b111));
+        int IX = 0b111 | (((n >> 3) * 3 + n) << 3);
 
         IdxShift SY{0, 0, 0};
         IdxShift SZ{0, 0, 0};
@@ -472,6 +465,7 @@ struct FVM {
     template <typename... TExpr, int IL, int IR>
     auto eval(std::integer_sequence<int, IL, IR>, Expression<tags::wedge, TExpr...> const& expr, IdxShift S,
               int tag) const {
+        FIXME;
         return m_host_->inner_product(_map_to(std::index_sequence<IL, IR + IL>(), std::get<0>(expr.m_args_), S, tag),
                                       _map_to(std::index_sequence<IR, IR + IL>(), std::get<1>(expr.m_args_), S, tag));
     }
@@ -479,54 +473,62 @@ struct FVM {
     template <typename... TExpr>
     auto eval(std::integer_sequence<int, EDGE, EDGE>, Expression<tags::wedge, TExpr...> const& expr, IdxShift S,
               int tag) const {
+        // FIXME: only correct for Cartesian coordinates
+        FIXME;
+
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
         int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
 
-        IdxShift Y{0, 0, 0};
-        IdxShift Z{0, 0, 0};
-        Y[(n + 1) % 3] = 1;
-        Z[(n + 2) % 3] = 1;
+        int IX = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 0) % 3];
+        int IY = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 1) % 3];
+        int IZ = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 2) % 3];
 
-        return (getValue(l, S, (n + 2) % 3 | tag) + getValue(l, S + Y, (n + 2) % 3 | tag)) *
-               (getValue(l, S, (n + 1) % 3 | tag) + getValue(l, S + Z, (n + 1) % 3 | tag)) * 0.25;
+        IdxShift SY{0, 0, 0};
+        IdxShift SZ{0, 0, 0};
+        SY[(n + 1) % 3] = 1;
+        SZ[(n + 2) % 3] = 1;
+
+        return (getValue(l, S, IY) + getValue(l, S + SZ, IY)) * (getValue(r, S, IY) + getValue(r, S + SY, IZ)) * 0.25 -
+               (getValue(r, S, IY) + getValue(r, S + SZ, IY)) * (getValue(l, S, IY) + getValue(l, S + SY, IZ)) * 0.25;
     }
 
     template <typename... TExpr>
-    auto eval(std::integer_sequence<int, FACE, FACE>, Expression<tags::wedge, TExpr...> const& expr, IdxShift S,
+    auto eval(std::integer_sequence<int, EDGE, FACE>, Expression<tags::wedge, TExpr...> const& expr, IdxShift S,
               int tag) const {
+        FIXME;
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
-        int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
 
-        IdxShift Y{0, 0, 0};
-        IdxShift Z{0, 0, 0};
-        Y[(n + 1) % 3] = 1;
-        Z[(n + 2) % 3] = 1;
-        return getValue(l, S + Z, tag) * getValue(r, S + Y, tag) - getValue(l, S + Z, tag) * getValue(r, S + Y, tag);
+        int IX = (~0b111) | (((tag << 3) * 3 + 0) >> 3);
+        int IY = (~0b111) | (((tag << 3) * 3 + 1) >> 3);
+        int IZ = (~0b111) | (((tag << 3) * 3 + 2) >> 3);
+
+        return _map_to(std::integer_sequence<int, EDGE, VOLUME>(), l, S, IX) *
+                   _map_to(std::integer_sequence<int, FACE, VOLUME>(), r, S, IX) +
+               _map_to(std::integer_sequence<int, EDGE, VOLUME>(), l, S, IY) *
+                   _map_to(std::integer_sequence<int, FACE, VOLUME>(), r, S, IY) +
+               _map_to(std::integer_sequence<int, EDGE, VOLUME>(), l, S, IZ) *
+                   _map_to(std::integer_sequence<int, FACE, VOLUME>(), r, S, IZ);
     }
 
     template <typename... TExpr>
-    auto eval(std::integer_sequence<int, VERTEX, VERTEX>, Expression<tags::dot, TExpr...> const& expr, IdxShift S,
+    auto eval(std::integer_sequence<int, FACE, EDGE>, Expression<tags::wedge, TExpr...> const& expr, IdxShift S,
               int tag) const {
+        FIXME;
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
-        int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
 
-        return getValue(l, S, 0 | tag) * getValue(r, S, 0 | tag) + getValue(l, S, 1, tag) * getValue(r, S, 1, tag) +
-               getValue(l, S, 2 | tag) * getValue(r, S, 2 | tag);
-    }
+        int IX = (~0b111) | (((tag << 3) * 3 + 0) >> 3);
+        int IY = (~0b111) | (((tag << 3) * 3 + 1) >> 3);
+        int IZ = (~0b111) | (((tag << 3) * 3 + 2) >> 3);
 
-    template <typename... TExpr>
-    auto eval(std::integer_sequence<int, VOLUME, VOLUME>, Expression<tags::dot, TExpr...> const& expr, IdxShift S,
-              int tag) const {
-        auto const& l = std::get<0>(expr.m_args_);
-        auto const& r = std::get<1>(expr.m_args_);
-        int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
-
-        return getValue(l, S, 0 | 0 | tag) * getValue(r, S, 0 | 0 | tag) +
-               getValue(l, S, 0 | 1 | tag) * getValue(r, S, 0 | 1 | tag) +
-               getValue(l, S, 0 | 2 | tag) * getValue(r, S, 0 | 2 | tag);
+        return _map_to(std::integer_sequence<int, FACE, VOLUME>(), l, S, IX) *
+                   _map_to(std::integer_sequence<int, EDGE, VOLUME>(), r, S, IX) +
+               _map_to(std::integer_sequence<int, FACE, VOLUME>(), l, S, IY) *
+                   _map_to(std::integer_sequence<int, EDGE, VOLUME>(), r, S, IY) +
+               _map_to(std::integer_sequence<int, FACE, VOLUME>(), l, S, IZ) *
+                   _map_to(std::integer_sequence<int, EDGE, VOLUME>(), r, S, IZ);
     }
 
     template <typename... TExpr>
@@ -534,25 +536,55 @@ struct FVM {
               int tag) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
-
-        return eval(std::integer_sequence<int, VERTEX>(), dot_v(map_to<VERTEX>(l), map_to<VERTEX>(r)), S, tag);
+        return getValue(wedge(l, hodgestar(r)), S, tag);
     }
     template <typename... TExpr>
     auto eval(std::integer_sequence<int, FACE, FACE>, Expression<tags::dot, TExpr...> const& expr, IdxShift S,
               int tag) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
-        return eval(std::integer_sequence<int, VERTEX>(), dot_v(map_to<VERTEX>(l), map_to<VERTEX>(r)), S, tag);
+        return getValue(wedge(l, hodgestar(r)), S, tag);
     }
+
+    template <typename... TExpr>
+    auto eval(std::integer_sequence<int, VERTEX, VERTEX>, Expression<tags::dot, TExpr...> const& expr, IdxShift S,
+              int tag) const {
+        auto const& l = std::get<0>(expr.m_args_);
+        auto const& r = std::get<1>(expr.m_args_);
+
+        int IX = ((tag << 3) * 3 + 0) >> 3;
+        int IY = ((tag << 3) * 3 + 1) >> 3;
+        int IZ = ((tag << 3) * 3 + 2) >> 3;
+
+        return getValue(l, S, IX) * getValue(r, S, IX) + getValue(l, S, IY) * getValue(r, S, IY) +
+               getValue(l, S, IZ) * getValue(r, S, IZ);
+    }
+
+    template <typename... TExpr>
+    auto eval(std::integer_sequence<int, VOLUME, VOLUME>, Expression<tags::dot, TExpr...> const& expr, IdxShift S,
+              int tag) const {
+        auto const& l = std::get<0>(expr.m_args_);
+        auto const& r = std::get<1>(expr.m_args_);
+        int IX = (((tag << 3) * 3 + 0) >> 3) | 0b111;
+        int IY = (((tag << 3) * 3 + 1) >> 3) | 0b111;
+        int IZ = (((tag << 3) * 3 + 2) >> 3) | 0b111;
+
+        return getValue(l, S, IX) * getValue(r, S, IX) + getValue(l, S, IY) * getValue(r, S, IY) +
+               getValue(l, S, IZ) * getValue(r, S, IZ);
+    }
+
     template <typename... TExpr>
     auto eval(std::integer_sequence<int, VERTEX, VERTEX>, Expression<tags::cross, TExpr...> const& expr, IdxShift S,
               int tag) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
-        int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
+        int n = (tag << 3) % 3;
 
-        return getValue(l, S, 0 | ((n + 1) % 3) | tag) * getValue(r, S, 0 | ((n + 2) % 3) | tag) -
-               getValue(l, S, 0 | ((n + 2) % 3) | tag) * getValue(r, S, 0 | ((n + 1) % 3) | tag);
+        int IX = ((((tag << 3) / 3) * 3 + (n + 0) % 3) >> 3);
+        int IY = ((((tag << 3) / 3) * 3 + (n + 1) % 3) >> 3);
+        int IZ = ((((tag << 3) / 3) * 3 + (n + 2) % 3) >> 3);
+
+        return getValue(l, S, IY) * getValue(r, S, IZ) - getValue(l, S, IZ) * getValue(r, S, IY);
     }
 
     template <typename... TExpr>
@@ -560,10 +592,13 @@ struct FVM {
               int tag) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
-        int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
+        int n = (tag << 3) % 3;
 
-        return getValue(l, S, 0 | (n + 1) % 3 | tag) * getValue(r, S, 0 | (n + 2) % 3 | tag) -
-               getValue(l, S, 0 | (n + 2) % 3 | tag) * getValue(r, S, 0 | (n + 1) % 3 | tag);
+        int IX = ((((tag << 3) / 3) * 3 + (n + 0) % 3) >> 3) | 0b111;
+        int IY = ((((tag << 3) / 3) * 3 + (n + 1) % 3) >> 3) | 0b111;
+        int IZ = ((((tag << 3) / 3) * 3 + (n + 2) % 3) >> 3) | 0b111;
+
+        return getValue(l, S, IY) * getValue(r, S, IZ) - getValue(l, S, IZ) * getValue(r, S, IY);
     }
 };  // class FVM
 //    //**********************************************************************************************
