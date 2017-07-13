@@ -1,4 +1,4 @@
---! / bin / lua
+--!/bin/lua
 PI = 3.141592653589793
 TWOPI = PI * 2.0
 N_PHI = 100
@@ -37,12 +37,10 @@ Context = {
             WaveNumber = { 0.0, 0.0, TWOPI / 12.0 },
             Frequency = 1.0e9,
             Model = {
-                GeoObects = {
-                    Boundary = {
-                        Type = "Cube",
-                        lo = { 2.2, -0.1, -TWOPI / 8 },
-                        hi = { 2.25, 0.1, TWOPI / 8 }
-                    }
+                Boundary = {
+                    Type = "Cube",
+                    lo = { 2.2, -0.1, -TWOPI / 8 },
+                    hi = { 2.25, 0.1, TWOPI / 8 }
                 }
             },
         },

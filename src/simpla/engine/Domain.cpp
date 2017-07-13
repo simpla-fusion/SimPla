@@ -13,10 +13,10 @@ namespace engine {
 
 struct DomainBase::pimpl_s {
     std::shared_ptr<engine::Model> m_model_;
-    std::shared_ptr<std::map<std::string, Range<EntityId>>> m_ranges_;
-
     geometry::Chart const* m_chart_;
+
     MeshBlock m_mesh_block_;
+    std::shared_ptr<std::map<std::string, Range<EntityId>>> m_ranges_;
 };
 DomainBase::DomainBase() : m_pimpl_(new pimpl_s) {}
 DomainBase::~DomainBase() {}
@@ -25,14 +25,16 @@ DomainBase::DomainBase(DomainBase const& other) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_model_ = other.m_pimpl_->m_model_;
     m_pimpl_->m_chart_ = other.m_pimpl_->m_chart_;
     m_pimpl_->m_mesh_block_ = other.m_pimpl_->m_mesh_block_;
+    m_pimpl_->m_ranges_ = other.m_pimpl_->m_ranges_;
 }
 
-DomainBase::DomainBase(DomainBase&& other) noexcept : m_pimpl_(other.m_pimpl_.get()) { other.m_pimpl_.reset(); }
+DomainBase::DomainBase(DomainBase&& other) noexcept : m_pimpl_(std::move(other.m_pimpl_)) {}
 
 void DomainBase::swap(DomainBase& other) {
     std::swap(m_pimpl_->m_model_, other.m_pimpl_->m_model_);
     std::swap(m_pimpl_->m_chart_, other.m_pimpl_->m_chart_);
     std::swap(m_pimpl_->m_mesh_block_, other.m_pimpl_->m_mesh_block_);
+    std::swap(m_pimpl_->m_ranges_, other.m_pimpl_->m_ranges_);
 }
 
 std::shared_ptr<data::DataTable> DomainBase::Serialize() const {
@@ -52,11 +54,19 @@ void DomainBase::DoTearDown() {}
 void DomainBase::DoInitialize() {}
 void DomainBase::DoFinalize() {}
 
-void DomainBase::SetRanges(std::shared_ptr<std::map<std::string, Range<EntityId>>> const& r) {
-    m_pimpl_->m_ranges_ = r;
+void DomainBase::SetRange(std::string const& k, Range<EntityId> const& r) {
+    Click();
+    (*m_pimpl_->m_ranges_)[k] = r;
 };
-std::map<std::string, Range<EntityId>>* DomainBase::GetRanges() { return m_pimpl_->m_ranges_.get(); };
-std::map<std::string, Range<EntityId>> const* DomainBase::GetRanges() const { return m_pimpl_->m_ranges_.get(); };
+Range<EntityId>* DomainBase::GetRange(std::string const& k) { return &(*m_pimpl_->m_ranges_)[(k)]; };
+Range<EntityId> const* DomainBase::GetRange(std::string const& k) const {
+    Range<EntityId> const* res = nullptr;
+    if (m_pimpl_->m_ranges_ != nullptr) {
+        auto it = m_pimpl_->m_ranges_->find(k);
+        if (it != m_pimpl_->m_ranges_->end()) { res = &it->second; }
+    }
+    return res;
+};
 
 void DomainBase::SetChart(const geometry::Chart* c) {
     Click();
@@ -79,13 +89,14 @@ id_type DomainBase::GetBlockId() const { return m_pimpl_->m_mesh_block_.GetGUID(
 void DomainBase::Push(Patch* patch) {
     Click();
     SetBlock(patch->GetBlock());
+    m_pimpl_->m_ranges_ = patch->GetRanges();
     AttributeGroup::Push(patch);
     Update();
 }
 void DomainBase::Pull(Patch* patch) {
-    Click();
     AttributeGroup::Pull(patch);
     patch->SetBlock(GetBlock());
+    patch->SetRanges(m_pimpl_->m_ranges_);
     TearDown();
 }
 void DomainBase::InitialCondition(Real time_now) {

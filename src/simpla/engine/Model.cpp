@@ -24,14 +24,12 @@ std::shared_ptr<DataTable> Model::Serialize() const {
 };
 void Model::Deserialize(const std::shared_ptr<DataTable>& cfg) {
     if (cfg == nullptr) { return; }
-    auto t = cfg->GetTable("GeoObjects");
-    if (t != nullptr) {
-        t->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> const& v) {
-            if (v != nullptr) { SetObject(k, geometry::GeoObject::Create(v)); }
-        });
-    }
+
+    cfg->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> const& v) {
+        if (v != nullptr) { SetObject(k, geometry::GeoObject::Create(v)); }
+    });
 };
-void Model::DoInitialize() { LOGGER << "Model is initialized " << std::endl; }
+void Model::DoInitialize() {}
 void Model::DoFinalize() {}
 
 void Model::DoUpdate() {

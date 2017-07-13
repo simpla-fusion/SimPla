@@ -42,12 +42,9 @@ class DomainBase : public SPObject, public AttributeGroup, public data::EnableCr
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const &t) override;
 
-    virtual DomainBase *GetDomain() { return this; }
-    virtual DomainBase const *GetDomain() const { return this; }
-
-    void SetRanges(std::shared_ptr<std::map<std::string, Range<EntityId>>> const &);
-    virtual std::map<std::string, Range<EntityId>> *GetRanges();
-    virtual std::map<std::string, Range<EntityId>> const *GetRanges() const;
+    void SetRange(std::string const &, Range<EntityId> const &);
+    virtual Range<EntityId> *GetRange(std::string const &k);
+    virtual Range<EntityId> const *GetRange(std::string const &k) const;
 
     void SetBlock(const MeshBlock &);
     virtual const MeshBlock &GetBlock() const;
@@ -120,20 +117,13 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
    public:
     static std::string RegisterName() { return "Domain<" + _RegisterName<Policies...>() + ">"; }
 
+    const geometry::Chart *GetChart() const override { return DomainBase::GetChart(); };
+    const engine::MeshBlock &GetBlock() const override { return DomainBase::GetBlock(); };
+
     Domain(const Domain &) = delete;
     Domain(Domain &&) = delete;
     Domain &operator=(Domain const &) = delete;
     Domain &operator=(Domain &&) = delete;
-
-    const geometry::Chart *GetChart() const override { return DomainBase::GetChart(); };
-    const engine::MeshBlock &GetBlock() const override { return DomainBase::GetBlock(); };
-    id_type GetBlockId() const override { return DomainBase::GetBlockId(); };
-
-    DomainBase *GetDomain() override { return this; }
-    DomainBase const *GetDomain() const override { return this; }
-
-    std::map<std::string, Range<EntityId>> *GetRanges() override { return DomainBase::GetRanges(); };
-    std::map<std::string, Range<EntityId>> const *GetRanges() const override { return DomainBase::GetRanges(); };
 
     void DoInitialCondition(Real time_now) override;
     void DoBoundaryCondition(Real time_now, Real dt) override;
@@ -141,6 +131,9 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
 
     void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override;
     std::shared_ptr<data::DataTable> Serialize() const override;
+
+    template <typename... Args>
+    void TryFill(Args &&... args) const;
 
     template <typename TL, typename TR>
     void FillRange(TL &lhs, TR &&rhs, std::string const &k = "") const;
@@ -158,12 +151,12 @@ bool Domain<Policies...>::is_registered = DomainBase::RegisterCreator<Domain<Pol
 #define DEFINE_INVOKE_HELPER(_FUN_NAME_)                                                                           \
     CHECK_MEMBER_FUNCTION(has_mem_fun_##_FUN_NAME_, _FUN_NAME_)                                                    \
     template <typename this_type, typename... Args>                                                                \
-    int _invoke_##_FUN_NAME_(std::true_type const &, this_type *self, Args &&... args) {                           \
+    int _invoke_##_FUN_NAME_(std::true_type const &has_function, this_type *self, Args &&... args) {               \
         self->_FUN_NAME_(std::forward<Args>(args)...);                                                             \
         return 1;                                                                                                  \
     }                                                                                                              \
     template <typename this_type, typename... Args>                                                                \
-    int _invoke_##_FUN_NAME_(std::false_type const &, this_type *self, Args &&... args) {                          \
+    int _invoke_##_FUN_NAME_(std::false_type const &has_not_function, this_type *self, Args &&... args) {          \
         return 0;                                                                                                  \
     }                                                                                                              \
     template <template <typename> class _T0, typename this_type, typename... Args>                                 \
@@ -181,6 +174,15 @@ bool Domain<Policies...>::is_registered = DomainBase::RegisterCreator<Domain<Pol
     int _try_invoke_##_FUN_NAME_(this_type *self, Args &&... args) {                                               \
         return _try_invoke_##_FUN_NAME_<_T0>(self, std::forward<Args>(args)...) +                                  \
                _try_invoke_##_FUN_NAME_<_T1, _TOthers...>(self, std::forward<Args>(args)...);                      \
+    }                                                                                                              \
+    template <template <typename> class _T0, template <typename> class _T1, template <typename> class... _TOthers, \
+              typename this_type, typename... Args>                                                                \
+    int _try_invoke_once_##_FUN_NAME_(this_type *self, Args &&... args) {                                          \
+        if (_try_invoke_##_FUN_NAME_<_T0>(self, std::forward<Args>(args)...) == 0) {                               \
+            return _try_invoke_##_FUN_NAME_<_T1, _TOthers...>(self, std::forward<Args>(args)...);                  \
+        } else {                                                                                                   \
+            return 1;                                                                                              \
+        }                                                                                                          \
     }
 
 DEFINE_INVOKE_HELPER(InitialCondition)
@@ -188,10 +190,7 @@ DEFINE_INVOKE_HELPER(BoundaryCondition)
 DEFINE_INVOKE_HELPER(Advance)
 DEFINE_INVOKE_HELPER(Deserialize)
 DEFINE_INVOKE_HELPER(Serialize)
-DEFINE_INVOKE_HELPER(FillRange)
-DEFINE_INVOKE_HELPER(Push)
-DEFINE_INVOKE_HELPER(Pull)
-
+// DEFINE_INVOKE_HELPER(Fill)
 #undef DEFINE_INVOKE_HELPER
 
 template <template <typename> class... Policies>
@@ -220,22 +219,27 @@ void Domain<Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &cf
 template <template <typename> class... Policies>
 template <typename LHS, typename RHS>
 void Domain<Policies...>::FillRange(LHS &lhs, RHS &&rhs, std::string const &k) const {
-    _try_invoke_FillRange<Policies...>(this, lhs, std::forward<RHS>(rhs), k);
+    bool is_done = false;
+    auto r = GetRange(k + "_" + std::to_string(LHS::iform));
+
+    if (r != nullptr) {
+        this->Fill(lhs, std::forward<RHS>(rhs), *r);
+    } else {
+        this->Fill(lhs, std::forward<RHS>(rhs));
+    }
 };
 template <template <typename> class... Policies>
 template <typename LHS, typename RHS>
 void Domain<Policies...>::FillBody(LHS &lhs, RHS &&rhs) const {
-    if (_try_invoke_FillRange<Policies...>(this, lhs, std::forward<RHS>(rhs), "BODY_") == 0) {
-        this->Fill(lhs, std::forward<RHS>(rhs));
-    }
+    FillRange(lhs, std::forward<RHS>(rhs), "BODY");
 };
 
 template <template <typename> class... Policies>
 template <typename LHS, typename RHS>
 void Domain<Policies...>::FillBoundary(LHS &lhs, RHS &&rhs) const {
-    auto n = _try_invoke_FillRange<Policies...>(this, lhs, std::forward<RHS>(rhs), "BOUNDARY_") +
-             _try_invoke_FillRange<Policies...>(this, lhs, std::forward<RHS>(rhs), "PARA_BOUNDARY_") +
-             _try_invoke_FillRange<Policies...>(this, lhs, std::forward<RHS>(rhs), "PERP_BOUNDARY_");
+    FillRange(lhs, std::forward<RHS>(rhs), "BOUNDARY");
+    FillRange(lhs, std::forward<RHS>(rhs), "PARA_BOUNDARY");
+    FillRange(lhs, std::forward<RHS>(rhs), "PERP_BOUNDARY");
 };
 
 #define DOMAIN_POLICY_HEAD(_NAME_)                   \
