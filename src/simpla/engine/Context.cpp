@@ -2,7 +2,7 @@
 // Created by salmon on 17-2-16.
 //
 #include "Context.h"
-#include <simpla/data/all.h>
+#include <simpla/data/data.h>
 #include <simpla/engine/Model.h>
 #include <simpla/geometry/Chart.h>
 #include <simpla/geometry/GeoAlgorithm.h>

@@ -2,7 +2,7 @@
 // Created by salmon on 16-12-26.
 //
 
-#include "simpla/algebra/all.h"
+#include "simpla/algebra/algebra.h"
 #include "simpla/mesh/DummyMesh.h"
 
 using namespace simpla;

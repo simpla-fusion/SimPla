@@ -2,7 +2,7 @@
 // Created by salmon on 17-4-5.
 //
 #include "Schedule.h"
-#include <simpla/data/all.h>
+#include <simpla/data/data.h>
 #include <map>
 #include <string>
 #include "Atlas.h"

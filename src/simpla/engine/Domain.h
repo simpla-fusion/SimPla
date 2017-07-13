@@ -7,7 +7,7 @@
 
 #include <simpla/algebra/Array.h>
 #include <simpla/algebra/sfc/z_sfc.h>
-#include <simpla/data/all.h>
+#include <simpla/data/data.h>
 #include <simpla/geometry/Chart.h>
 #include <simpla/utilities/Signal.h>
 #include <memory>

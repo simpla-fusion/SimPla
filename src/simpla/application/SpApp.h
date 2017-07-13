@@ -5,7 +5,7 @@
 #ifndef SIMPLA_APPLICATION_H
 #define SIMPLA_APPLICATION_H
 //
-#include <simpla/data/all.h>
+#include <simpla/data/data.h>
 #include <simpla/engine/Schedule.h>
 #include <simpla/engine/Model.h>
 #include <simpla/engine/SPObject.h>

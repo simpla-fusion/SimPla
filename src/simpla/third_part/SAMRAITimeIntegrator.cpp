@@ -4,10 +4,9 @@
 #include "SAMRAITimeIntegrator.h"
 // Headers for SimPla
 #include <simpla/SIMPLA_config.h>
-#include <simpla/algebra/all.h>
-#include <simpla/data/all.h>
-#include <simpla/engine/all.h>
-#include <simpla/mesh/all.h>
+#include <simpla/algebra/algebra.h>
+#include <simpla/data/data.h>
+#include <simpla/engine/engine.h>
 #include <simpla/parallel/MPIComm.h>
 #include <simpla/utilities/Log.h>
 #include <cmath>

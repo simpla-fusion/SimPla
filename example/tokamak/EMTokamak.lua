@@ -18,7 +18,7 @@ Context = {
     Domain =
     {
         Tokamak = {
-            Type = "Domain<RectMesh,EBMesh,FVM,EMFluid>",
+            Type = "EMFluid", -- "Domain<RectMesh,EBMesh,FVM,EMFluid>",
             Species = {
                 ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
                 H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
@@ -30,7 +30,7 @@ Context = {
             },
         },
         RFAntenna = {
-            Type = "Domain<RectMesh,EBMesh,FVM,ICRFAntenna>",
+            Type = "ICRFAntenna",-- "Domain<RectMesh,EBMesh,FVM,ICRFAntenna>",
             Variable = { Name = "E" },
             IsHard = false,
             Amplify = { 0.0, 0.0, 1.0 },

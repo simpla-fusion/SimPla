@@ -6,8 +6,8 @@
 #define SIMPLA_EBMESH_H
 
 #include <simpla/algebra/EntityId.h>
-#include <simpla/algebra/all.h>
-#include <simpla/data/all.h>
+#include <simpla/algebra/algebra.h>
+#include <simpla/data/data.h>
 #include <simpla/engine/Domain.h>
 #include <simpla/utilities/Range.h>
 

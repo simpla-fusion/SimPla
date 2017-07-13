@@ -9,8 +9,8 @@
 #define CORE_GEOMETRY_GEO_OBJECT_H_
 
 #include <simpla/algebra/nTuple.h>
-#include <simpla/utilities/Log.h>
 #include <simpla/engine/SPObject.h>
+#include <simpla/utilities/Log.h>
 #include <simpla/utilities/type_traits.h>
 #include "GeoAlgorithm.h"
 #include "simpla/data/EnableCreateFromDataTable.h"
@@ -26,8 +26,8 @@ struct GeoObjectAdapter;
  *
  *  PlaceHolder Geometric object
  */
-class GeoObject : public data::EnableCreateFromDataTable<GeoObject> {
-    SP_OBJECT_BASE(GeoObject)
+class GeoObject : public engine::SPObject, public data::EnableCreateFromDataTable<GeoObject> {
+    SP_OBJECT_HEAD(GeoObject, engine::SPObject)
     SP_DEFAULT_CONSTRUCT(GeoObject)
     DECLARE_REGISTER_NAME(GeoObject);
 
@@ -194,89 +194,89 @@ class GeoObject : public data::EnableCreateFromDataTable<GeoObject> {
     //        return CheckInside_invoke_helper(p_tuple, make_index_sequence<sizeof...(Others)>());
     //    };
 };
-
-class GeoObjectNull;
-
-class GeoObjectFull : public GeoObject {
-    SP_OBJECT_HEAD(GeoObjectFull, GeoObject)
-
-   public:
-    GeoObjectFull(){};
-    ~GeoObjectFull() override = default;
-    SP_DEFAULT_CONSTRUCT(GeoObjectFull)
-
-    DECLARE_REGISTER_NAME("FULL");
-
-    box_type GetBoundBox() const override {
-        static constexpr auto r_infinity = std::numeric_limits<Real>::infinity();
-        return box_type{{-r_infinity, -r_infinity, -r_infinity}, {r_infinity, r_infinity, r_infinity}};
-    };
-    bool isNull() const override { return false; };
-
-    bool isFull() const override { return true; };
-
-    bool isSolid() const override { return true; };
-
-    bool isSurface() const override { return true; };
-
-    bool isCurve() const override { return true; };
-
-    bool equal(GeoObject const &other) const override { return other.isA<GeoObjectFull>(); }
-
-    Real GetDistanceTo(point_type const &x) const override { return -1; }
-
-    std::shared_ptr<GeoObject> Boundary() const override {
-        return std::dynamic_pointer_cast<GeoObject>(std::make_shared<GeoObjectNull>());
-    }
-
-    /**    */
-    Real CheckOverlap(box_type const &b) const override { return 1.0; }
-
-    /**
-    * @return  check \f$ (x,y,z)\f$ in \f$ M\f$
-    *           `in` then 1
-    *           `out` then 0
-    */
-    bool CheckInside(const point_type &x) const override { return 1; };
-};
-
-class GeoObjectNull : public GeoObject {
-    SP_OBJECT_HEAD(GeoObjectNull, GeoObject)
-
-   public:
-    GeoObjectNull(){};
-    ~GeoObjectNull() override = default;
-    SP_DEFAULT_CONSTRUCT(GeoObjectNull)
-
-    DECLARE_REGISTER_NAME("NULL");
-
-    box_type GetBoundBox() const override { return box_type{{0, 0, 0}, {0, 0, 0}}; };
-
-    bool isNull() const override { return true; };
-
-    bool isFull() const override { return false; };
-
-    bool isSolid() const override { return true; };
-
-    bool isSurface() const override { return true; };
-
-    bool isCurve() const override { return true; };
-
-    bool equal(GeoObject const &other) const override { return other.isA<GeoObjectFull>(); }
-
-    Real GetDistanceTo(point_type const &x) const override { return std::numeric_limits<Real>::infinity(); }
-
-    std::shared_ptr<GeoObject> Boundary() const override { return std::make_shared<GeoObjectNull>(); }
-
-    Real CheckOverlap(box_type const &b) const override { return 0; }
-
-    /**
-    * @return  check \f$ (x,y,z)\f$ in \f$ M\f$
-    *           `in` then 1
-    *           `out` then 0
-    */
-    bool CheckInside(const point_type &x) const override { return 0; };
-};
+//
+//class GeoObjectNull;
+//
+//class GeoObjectFull : public GeoObject {
+//    SP_OBJECT_HEAD(GeoObjectFull, GeoObject)
+//
+//   public:
+//    GeoObjectFull(){};
+//    ~GeoObjectFull() override = default;
+//    SP_DEFAULT_CONSTRUCT(GeoObjectFull)
+//
+//    DECLARE_REGISTER_NAME("FULL");
+//
+//    box_type GetBoundBox() const override {
+//        static constexpr auto r_infinity = std::numeric_limits<Real>::infinity();
+//        return box_type{{-r_infinity, -r_infinity, -r_infinity}, {r_infinity, r_infinity, r_infinity}};
+//    };
+//    bool isNull() const override { return false; };
+//
+//    bool isFull() const override { return true; };
+//
+//    bool isSolid() const override { return true; };
+//
+//    bool isSurface() const override { return true; };
+//
+//    bool isCurve() const override { return true; };
+//
+//    bool equal(GeoObject const &other) const override { return other.isA<GeoObjectFull>(); }
+//
+//    Real GetDistanceTo(point_type const &x) const override { return -1; }
+//
+//    std::shared_ptr<GeoObject> Boundary() const override {
+//        return std::dynamic_pointer_cast<GeoObject>(std::make_shared<GeoObjectNull>());
+//    }
+//
+//    /**    */
+//    Real CheckOverlap(box_type const &b) const override { return 1.0; }
+//
+//    /**
+//    * @return  check \f$ (x,y,z)\f$ in \f$ M\f$
+//    *           `in` then 1
+//    *           `out` then 0
+//    */
+//    bool CheckInside(const point_type &x) const override { return 1; };
+//};
+//
+//class GeoObjectNull : public GeoObject {
+//    SP_OBJECT_HEAD(GeoObjectNull, GeoObject)
+//
+//   public:
+//    GeoObjectNull(){};
+//    ~GeoObjectNull() override = default;
+//    SP_DEFAULT_CONSTRUCT(GeoObjectNull)
+//
+//    DECLARE_REGISTER_NAME("NULL");
+//
+//    box_type GetBoundBox() const override { return box_type{{0, 0, 0}, {0, 0, 0}}; };
+//
+//    bool isNull() const override { return true; };
+//
+//    bool isFull() const override { return false; };
+//
+//    bool isSolid() const override { return true; };
+//
+//    bool isSurface() const override { return true; };
+//
+//    bool isCurve() const override { return true; };
+//
+//    bool equal(GeoObject const &other) const override { return other.isA<GeoObjectFull>(); }
+//
+//    Real GetDistanceTo(point_type const &x) const override { return std::numeric_limits<Real>::infinity(); }
+//
+//    std::shared_ptr<GeoObject> Boundary() const override { return std::make_shared<GeoObjectNull>(); }
+//
+//    Real CheckOverlap(box_type const &b) const override { return 0; }
+//
+//    /**
+//    * @return  check \f$ (x,y,z)\f$ in \f$ M\f$
+//    *           `in` then 1
+//    *           `out` then 0
+//    */
+//    bool CheckInside(const point_type &x) const override { return 0; };
+//};
 
 //
 // template <typename U>

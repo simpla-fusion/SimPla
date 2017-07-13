@@ -6,7 +6,7 @@
 #define SIMPLA_ATTRIBUTEVIEW_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/data/all.h>
+#include <simpla/data/data.h>
 #include <simpla/engine/SPObject.h>
 #include <simpla/utilities/Signal.h>
 #include <simpla/utilities/type_traits.h>

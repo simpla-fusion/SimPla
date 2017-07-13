@@ -14,7 +14,7 @@
 
 #include <gtest/gtest.h>
 
-#include <simpla/algebra/all.h>
+#include <simpla/algebra/algebra.h>
 #include <simpla/utilities/macro.h>
 #include <simpla/utilities/type_traits.h>
 #include <simpla/predefine/policy/CalculusPolicy.h>

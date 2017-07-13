@@ -4,7 +4,7 @@
 
 #include "Patch.h"
 #include <simpla/SIMPLA_config.h>
-#include <simpla/data/all.h>
+#include <simpla/data/data.h>
 #include <boost/functional/hash.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>

@@ -135,5 +135,9 @@ class EnableCreateFromDataTable : public data::Serializable {
 #define REGISTER_CREATOR(_CLASS_NAME_) bool _CLASS_NAME_::is_registered = _CLASS_NAME_::RegisterCreator<_CLASS_NAME_>();
 
 }  // namespace data{
+template <typename T>
+static bool RegisterCreator(std::string const &name) {
+    return T::template RegisterCreator<T>(name);
+}
 }  // namespace simpla{
 #endif  // SIMPLA_ENABLECREATEFROMDATATABLE_H

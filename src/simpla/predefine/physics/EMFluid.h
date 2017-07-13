@@ -8,7 +8,7 @@
 #define SIMPLA_EM_FLUID_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/algebra/all.h>
+#include <simpla/algebra/algebra.h>
 #include <simpla/engine/Model.h>
 #include <simpla/physics/PhysicalConstants.h>
 namespace simpla {

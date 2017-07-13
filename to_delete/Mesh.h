@@ -5,7 +5,7 @@
 #ifndef SIMPLA_MESHBASE_H
 #define SIMPLA_MESHBASE_H
 
-#include <simpla/data/all.h>
+#include <simpla/data/data.h>
 #include <simpla/engine/Attribute.h>
 #include <simpla/geometry/Chart.h>
 #include <simpla/geometry/GeoObject.h>

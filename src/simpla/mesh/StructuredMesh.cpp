@@ -3,7 +3,7 @@
 //
 #include "StructuredMesh.h"
 #include <simpla/algebra/EntityId.h>
-#include <simpla/algebra/all.h>
+#include <simpla/algebra/algebra.h>
 #include <simpla/geometry/GeoAlgorithm.h>
 namespace simpla {
 namespace mesh {

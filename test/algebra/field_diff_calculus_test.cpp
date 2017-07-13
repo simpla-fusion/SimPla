@@ -6,7 +6,7 @@
  */
 #include "field_diff_calculus_test.h"
 #include <gtest/gtest.h>
-#include <simpla/algebra/all.h>
+#include <simpla/algebra/algebra.h>
 #include <simpla/physics/Constants.h>
 #include <simpla/predefine/CartesianGeometry.h>
 

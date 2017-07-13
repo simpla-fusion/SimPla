@@ -6,8 +6,8 @@
 #define SIMPLA_STRUCTUREDMESH_H
 
 #include <simpla/algebra/Array.h>
-#include <simpla/algebra/all.h>
-#include <simpla/data/all.h>
+#include <simpla/algebra/algebra.h>
+#include <simpla/data/data.h>
 #include <simpla/engine/Attribute.h>
 #include <simpla/geometry/Chart.h>
 namespace simpla {

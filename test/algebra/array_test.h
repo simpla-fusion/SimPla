@@ -15,7 +15,7 @@
 #include <simpla/utilities/type_traits.h>
 #include <simpla/utilities/Log.h>
 #include "../../to_delete/sp_def.h"
-#include <simpla/algebra/all.h>
+#include <simpla/algebra/algebra.h>
 using namespace simpla;
 
 template<typename TArray>

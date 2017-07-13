@@ -5,7 +5,7 @@
 #ifndef SIMPLA_CHART_H
 #define SIMPLA_CHART_H
 
-#include <simpla/data/all.h>
+#include <simpla/data/data.h>
 #include <simpla/engine/SPObject.h>
 #include <simpla/geometry/GeoObject.h>
 #include <simpla/utilities/Signal.h>

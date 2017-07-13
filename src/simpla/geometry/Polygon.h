@@ -10,7 +10,7 @@
 #include <vector>
 
 #include <simpla/algebra/nTuple.h>
-#include <simpla/data/all.h>
+#include <simpla/data/data.h>
 #include <simpla/engine/SPObject.h>
 namespace simpla {
 namespace geometry {

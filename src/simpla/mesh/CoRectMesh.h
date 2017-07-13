@@ -5,7 +5,7 @@
 #ifndef SIMPLA_CORECTMESH_H
 #define SIMPLA_CORECTMESH_H
 
-#include <simpla/data/all.h>
+#include <simpla/data/data.h>
 #include <simpla/engine/Domain.h>
 #include <string>
 #include "StructuredMesh.h"

@@ -6,8 +6,8 @@
 #define SIMPLA_ICRFANTENNA_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/algebra/all.h>
-#include <simpla/engine/all.h>
+#include <simpla/algebra/algebra.h>
+#include <simpla/engine/engine.h>
 #include <simpla/physics/PhysicalConstants.h>
 
 #include <cmath>

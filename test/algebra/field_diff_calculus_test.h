@@ -21,7 +21,7 @@
 #include <simpla/predefine/CalculusPolicy.h>
 
 #include <simpla/algebra/EntityId.h>
-#include "simpla/algebra/all.h"
+#include "simpla/algebra/algebra.h"
 
 using namespace simpla;
 using namespace simpla::algebra;

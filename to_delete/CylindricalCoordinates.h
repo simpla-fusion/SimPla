@@ -6,9 +6,9 @@
 #define SIMPLA_CYLINDRICALGEOMETRY_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/algebra/all.h>
-#include <simpla/data/all.h>
-#include <simpla/engine/all.h>
+#include <simpla/algebra/algebra.h>
+#include <simpla/data/data.h>
+#include <simpla/engine/engine.h>
 #include <simpla/utilities/FancyStream.h>
 
 #include <iomanip>

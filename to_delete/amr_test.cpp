@@ -3,10 +3,10 @@
 //
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/algebra/all.h>
+#include <simpla/algebra/algebra.h>
 #include <simpla/application/SpApp.h>
-#include <simpla/data/all.h>
-#include <simpla/engine/all.h>
+#include <simpla/data/data.h>
+#include <simpla/engine/engine.h>
 #include <simpla/geometry/Cube.h>
 #include <simpla/predefine/device/GEqdsk.h>
 #include <simpla/utilities/parse_command_line.h>

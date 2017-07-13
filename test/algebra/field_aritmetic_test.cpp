@@ -3,7 +3,7 @@
 //
 
 #include <gtest/gtest.h>
-#include <simpla/algebra/all.h>
+#include <simpla/algebra/algebra.h>
 
 using namespace simpla;
 using namespace algebra;

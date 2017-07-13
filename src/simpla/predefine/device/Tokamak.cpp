@@ -2,7 +2,7 @@
 // Created by salmon on 17-7-9.
 //
 #include "Tokamak.h"
-#include <simpla/data/all.h>
+#include <simpla/data/data.h>
 namespace simpla {
 
 bool Tokamak::is_registered = engine::Model::RegisterCreator<Tokamak>("Tokamak");
