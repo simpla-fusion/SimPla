@@ -28,8 +28,8 @@ struct FVM {
     static constexpr unsigned int NDIMS = 3;
 
     template <typename TM, typename TV, int... N>
-    decltype(auto) getValue(Field<TV, TV, N...> const& v, IdxShift S, int tag) const {
-        return getValue(v.Get(), S, tag);
+    decltype(auto) getValue(Field<TM, TV, N...> const& v, IdxShift S, int tag) const {
+        return st::recursive_index(v[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]], tag >> 3)(S);
     }
     template <typename... T>
     decltype(auto) getValue(Array<T...> const& v, IdxShift S, int tag) const {
@@ -37,11 +37,11 @@ struct FVM {
     }
     template <typename TV, int... N>
     decltype(auto) getValue(nTuple<TV, N...> const& v, IdxShift S, int tag) const {
-        return getValue(st::recursive_index(v[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]], tag >> 3), S, 0);
+        return st::recursive_index(v[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]], tag >> 3);
     }
     template <typename TV, int... N>
     decltype(auto) getValue(nTuple<TV, N...>& v, IdxShift S, int tag) const {
-        return getValue(st::recursive_index(v[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]], tag >> 3), S, 0);
+        return st::recursive_index(v[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]], tag >> 3);
     }
     template <size_t... I, typename TOP, typename... Args>
     decltype(auto) _invoke_helper(std::index_sequence<I...> i, Expression<TOP, Args...> const& expr, IdxShift S,
