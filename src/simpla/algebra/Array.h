@@ -99,15 +99,14 @@ class Array {
     }
 
     void Update() {
-        if (m_data_ == nullptr) {
-            m_holder_ = spMakeShared<value_type>(m_data_, m_sfc_.size());
-            m_host_data_ = m_data_;
-            m_data_ = m_holder_.get();
-        }
+        if (m_data_ == nullptr) { Initialize(); }
     }
 
     void Initialize() {
-        Update();
+        m_holder_ = spMakeShared<value_type>(m_data_, m_sfc_.size());
+        m_host_data_ = m_data_;
+        m_data_ = m_holder_.get();
+
 #ifndef NDEBUG
         Fill(std::numeric_limits<V>::signaling_NaN());
 #else
