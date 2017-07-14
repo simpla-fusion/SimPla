@@ -191,6 +191,7 @@ void Attribute::PushData(nTuple<Array<U, Others...>, N...> *d) {
             ++count;
         });
     }
+    Tag();
 };
 template <typename U, typename... Others, int... N>
 void Attribute::PopData(nTuple<Array<U, Others...>, N...> *d) {
@@ -206,6 +207,7 @@ void Attribute::PopData(nTuple<Array<U, Others...>, N...> *d) {
         a.reset();
         ++count;
     });
+    ResetTag();
 };
 
 template <typename T>

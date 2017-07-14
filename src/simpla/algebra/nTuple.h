@@ -175,7 +175,10 @@ template <typename U>
 U& recursive_index(U& v, int s) {
     return v;
 }
-
+template <typename U>
+U const& recursive_index(U const& v, int s) {
+    return v;
+}
 template <typename U, int N0>
 U& recursive_index(nTuple<U, N0>& v, int s) {
     return v[s % N0];

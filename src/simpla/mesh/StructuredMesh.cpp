@@ -28,19 +28,7 @@ namespace mesh {
 *
 *\endverbatim
 */
-point_type StructuredMesh::local_coordinates(index_type x, index_type y, index_type z, int tag) const {
-    return local_coordinates(x, y, z, EntityIdCoder::m_id_to_coordinates_shift_[tag]);
-}
-point_type StructuredMesh::local_coordinates(EntityId s, Real const* pr) const {
-    Real r[3];
 
-    r[0] = pr[0] + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][0];
-    r[1] = pr[1] + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][1];
-    r[2] = pr[2] + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][2];
-
-    return local_coordinates(s.x, s.y, s.z, r);
-}
-point_type StructuredMesh::point(EntityId s) const { return local_coordinates(s.x, s.y, s.z, s.w & 0b111); };
 point_type StructuredMesh::GetCellWidth() const { return GetChart()->GetCellWidth(GetBlock().GetLevel()); }
 point_type StructuredMesh::GetOrigin() const { return GetChart()->GetOrigin(); }
 point_type StructuredMesh::map(point_type const& p) const { return GetChart()->map(p); }

@@ -49,15 +49,24 @@ class StructuredMesh {
 
     index_box_type GetIndexBox(int tag) const;
 
-    point_type point(entity_id_type s) const;
+    point_type point(entity_id_type s) const { return local_coordinates(s.x, s.y, s.z, s.w & 0b111); };
 
-    point_type local_coordinates(index_type x, index_type y, index_type z, Real const *r) const {
+    point_type local_coordinates(index_type x, index_type y, index_type z, Real const r[3]) const {
         return GetChart()->local_coordinates(x, y, z, r);
     }
 
-    point_type local_coordinates(index_type x, index_type y, index_type z, int tag = 0) const;
+    point_type local_coordinates(index_type x, index_type y, index_type z, int tag = 0) const {
+        return GetChart()->local_coordinates(x, y, z, EntityIdCoder::m_id_to_coordinates_shift_[tag & 0b111]);
+    }
+    point_type local_coordinates(entity_id_type s, Real const *pr) const {
+        Real r[3];
 
-    point_type local_coordinates(entity_id_type s, Real const *r) const;
+        r[0] = pr[0] + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][0];
+        r[1] = pr[1] + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][1];
+        r[2] = pr[2] + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][2];
+
+        return GetChart()->local_coordinates(s.x, s.y, s.z, r);
+    }
 
     template <typename... Args>
     point_type global_coordinates(Args &&... args) const {
@@ -67,8 +76,6 @@ class StructuredMesh {
     ZSFC<NDIMS> GetSpaceFillingCurve(int iform, int nsub = 0) const {
         return ZSFC<NDIMS>{GetIndexBox(EntityIdCoder::m_sub_index_to_id_[iform][nsub])};
     }
-
-    void Initialize();
 
    public:
     size_type GetNumberOfEntity(int IFORM = VERTEX) const {

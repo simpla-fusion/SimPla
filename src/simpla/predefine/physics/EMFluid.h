@@ -107,6 +107,9 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
     Ev.Initialize();
     Bv.Initialize();
 
+    ne.Clear();
+    B0v.Clear();
+
     m_host_->GetModel()->LoadProfile("ne", &ne);
     m_host_->GetModel()->LoadProfile("B0", &B0v);
 

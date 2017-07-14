@@ -27,7 +27,7 @@ struct RectMesh : public StructuredMesh {
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real time_dt);
 
-    Field<host_type, Real, VERTEX, 3> m_coordinates_{m_host_, "name"_ = "m_coordinates_"/*, "COORDINATES"_*/};
+    Field<host_type, Real, VERTEX, 3> m_coordinates_{m_host_, "name"_ = "m_coordinates_", "COORDINATES"_};
     Field<host_type, Real, VERTEX, 3> m_vertices_{m_host_, "name"_ = "m_vertices_"};
 
     Field<host_type, Real, VERTEX> m_vertex_volume_{m_host_, "name"_ = "m_vertex_volume_"};
@@ -50,8 +50,8 @@ struct RectMesh : public StructuredMesh {
 
 template <typename THost>
 void RectMesh<THost>::InitialCondition(Real time_now) {
-    m_coordinates_ = [&](point_type const &x) -> point_type { return map(x); };
-    m_vertices_ = [&](point_type const &x) -> point_type { return (x); };
+    m_coordinates_ = [&](point_type const &x) { return map(x); };
+    m_vertices_ = [&](point_type const &x) { return (x); };
     m_vertex_volume_.Initialize();
     m_vertex_inv_volume_.Initialize();
     m_vertex_dual_volume_.Initialize();
@@ -73,25 +73,25 @@ void RectMesh<THost>::InitialCondition(Real time_now) {
     m_face_inv_dual_volume_.Initialize();
 
     /**
-        *\verbatim
-        *                ^y (dl)
-        *               /
-        *   (dz) z     /
-        *        ^    /
-        *        |  110-------------111
-        *        |  /|              /|
-        *        | / |             / |
-        *        |/  |            /  |
-        *       100--|----------101  |
-        *        | m |           |   |
-        *        |  010----------|--011
-        *        |  /            |  /
-        *        | /             | /
-        *        |/              |/
-        *       000-------------001---> x (dr)
-        *
-        *\endverbatim
-        */
+     *\verbatim
+     *                ^y (dl)
+     *               /
+     *   (dz) z     /
+     *        ^    /
+     *        |  110-------------111
+     *        |  /|              /|
+     *        | / |             / |
+     *        |/  |            /  |
+     *       100--|----------101  |
+     *        | m |           |   |
+     *        |  010----------|--011
+     *        |  /            |  /
+     *        | /             | /
+     *        |/              |/
+     *       000-------------001---> x (dr)
+     *
+     *\endverbatim
+     */
 
     auto chart = m_host_->GetChart();
     m_vertex_volume_ = 1.0;

@@ -141,8 +141,8 @@ class ZSFC {
 #endif
     }
 
-    template <typename TFun, typename... Args>
-    void Foreach(const TFun& fun, Args&&... args) const;
+    template <typename TFun>
+    void Foreach(const TFun& fun) const;
 
     template <typename value_type>
     std::ostream& Print(std::ostream& os, value_type const* v, int indent = 0) const;
@@ -292,8 +292,8 @@ __global__ void foreach_device(nTuple<index_type, 3> min, nTuple<index_type, 3> 
 
 #endif
 template <>
-template <typename TFun, typename... Args>
-void ZSFC<3>::Foreach(const TFun& fun, Args&&... args) const {
+template <typename TFun>
+void ZSFC<3>::Foreach(const TFun& fun) const {
     index_type ib = std::get<0>(m_index_box_)[0];
     index_type ie = std::get<1>(m_index_box_)[0];
     index_type jb = std::get<0>(m_index_box_)[1];
@@ -306,21 +306,13 @@ void ZSFC<3>::Foreach(const TFun& fun, Args&&... args) const {
 #pragma omp parallel for
         for (index_type k = kb; k < ke; ++k)
             for (index_type j = jb; j < je; ++j)
-                for (index_type i = ib; i < ie; ++i) {
-                    fun(std::forward<Args>(args)..., i, j, k);
-
-                    //                    lhs(i, j, k) = calculus::getValue(rhs, i, j, k);
-                }
+                for (index_type i = ib; i < ie; ++i) { fun(i, j, k); }
 
     } else {
 #pragma omp parallel for
         for (index_type i = ib; i < ie; ++i)
             for (index_type j = jb; j < je; ++j)
-                for (index_type k = kb; k < ke; ++k) {
-                    fun(std::forward<Args>(args)..., i, j, k);
-
-                    //                    lhs(i, j, k) = calculus::getValue(rhs, i, j, k);
-                }
+                for (index_type k = kb; k < ke; ++k) { fun(i, j, k); }
     }
 #else
 

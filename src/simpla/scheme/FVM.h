@@ -11,10 +11,14 @@
 #include <complex>
 #include <cstddef>
 #include <type_traits>
+
+#include "simpla/algebra/Array.h"
 #include "simpla/algebra/Calculus.h"
 #include "simpla/algebra/EntityId.h"
 #include "simpla/algebra/ExpressionTemplate.h"
+#include "simpla/engine/Engine.h"
 #include "simpla/utilities/type_traits.h"
+
 namespace simpla {
 namespace scheme {
 
@@ -27,26 +31,42 @@ struct FVM {
     typedef THost domain_type;
     static constexpr unsigned int NDIMS = 3;
 
+    //    template <int IFORM, typename TV, typename... Args>
+    //    decltype(auto) getEntity(std::integral_constant<int, IFORM>, TV const& v, int tag, Args&&... args) const {
+    //        return getEntity<IFORM>(calculus::getValue(v, std::forward<Args>(args)..., tag), tag,
+    //                                std::forward<Args>(args)...);
+    //    }
+    //
+    //    template <typename TV, int... N, typename... Args>
+    //    decltype(auto) getEntity(std::integral_constant<int, VERTEX>, nTuple<TV, N...> const& v, int tag,
+    //                             Args&&... args) const {
+    //        return st::recursive_index(v, tag << 3);
+    //    }
+    //    template <typename TV, int... N, typename... Args>
+    //    decltype(auto) getEntity(std::integral_constant<int, EDGE>, nTuple<TV, N...> const& v, int tag,
+    //                             Args&&... args) const {
+    //        return st::recursive_index(v[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]], tag << 3);
+    //    }
+    //    template <typename TV, int... N, typename... Args>
+    //    decltype(auto) getEntity(std::integral_constant<int, FACE>, nTuple<TV, N...> const& v, int tag,
+    //                             Args&&... args) const {
+    //        return st::recursive_index(v[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]], tag << 3);
+    //    }
+    //    template <typename TV, int... N, typename... Args>
+    //    decltype(auto) getEntity(std::integral_constant<int, VOLUME>, nTuple<TV, N...> const& v, int tag,
+    //                             Args&&... args) const {
+    //        return st::recursive_index(v, tag << 3);
+    //    }
+
     template <typename TM, typename TV, int... N>
-    decltype(auto) getValue(Field<TM, TV, N...> const& v, IdxShift S, int tag) const {
-        return st::recursive_index(v[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]], tag >> 3)(S);
+    decltype(auto) getArray(Field<TM, TV, N...> const& v, IdxShift S, int tag) const {
+        return st::recursive_index(v[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]], tag << 3)(S);
     }
-    template <typename... T>
-    decltype(auto) getValue(Array<T...> const& v, IdxShift S, int tag) const {
-        return Array<T...>(v, S);
-    }
-    template <typename TV, int... N>
-    decltype(auto) getValue(nTuple<TV, N...> const& v, IdxShift S, int tag) const {
-        return st::recursive_index(v[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]], tag >> 3);
-    }
-    template <typename TV, int... N>
-    decltype(auto) getValue(nTuple<TV, N...>& v, IdxShift S, int tag) const {
-        return st::recursive_index(v[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]], tag >> 3);
-    }
+
     template <size_t... I, typename TOP, typename... Args>
     decltype(auto) _invoke_helper(std::index_sequence<I...> i, Expression<TOP, Args...> const& expr, IdxShift S,
                                   int tag) const {
-        return expr.m_op_(getValue(std::get<I>(expr.m_args_), S, tag)...);
+        return expr.m_op_(getArray(std::get<I>(expr.m_args_), S, tag)...);
     }
 
     template <int... I, typename TOP, typename... Args>
@@ -56,41 +76,47 @@ struct FVM {
     }
 
     template <typename TOP, typename... Args>
-    decltype(auto) getValue(Expression<TOP, Args...> const& expr, IdxShift S, int tag) const {
+    decltype(auto) getArray(Expression<TOP, Args...> const& expr, IdxShift S, int tag) const {
         return eval(std::integer_sequence<int, st::iform<Args>::value...>(), expr, S, tag);
     }
 
    private:
     template <int N, typename TExpr>
-    auto const& _getValue(std::integral_constant<int, N>, TExpr const& expr, IdxShift S, int tag) const {
+    auto const& _getArray(std::integral_constant<int, N>, TExpr const& expr, IdxShift S, int tag) const {
         return expr;
     }
 
     template <typename TExpr>
-    auto _getValue(std::integral_constant<int, 0b00010>, TExpr const& expr, IdxShift S, int tag) const {
+    auto _getArray(std::integral_constant<int, 0b00010>, TExpr const& expr, IdxShift S, int tag) const {
+        int n = ((tag & 0b111) == 0 || (tag & 0b111) == 0b111) ? (tag << 3)
+                                                               : EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
         return [=](index_type x, index_type y, index_type z) {
-            return getValue(expr(m_host_->local_coordinates(x + S[0], y + S[1], z + S[2], tag)), S, tag);
+            return st::recursive_index(expr(m_host_->local_coordinates(x + S[0], y + S[1], z + S[2], tag)), n);
         };
     }
 
     template <typename TExpr>
-    auto _getValue(std::integral_constant<int, 0b00100>, TExpr const& expr, IdxShift S, int tag) const {
+    auto _getArray(std::integral_constant<int, 0b00100>, TExpr const& expr, IdxShift S, int tag) const {
+        int n = ((tag & 0b111) == 0 || (tag & 0b111) == 0b111) ? (tag << 3)
+                                                               : EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
         return [=](index_type x, index_type y, index_type z) {
-            return getValue(expr(x + S[0], y + S[1], z + S[2]), S, tag);
+            return st::recursive_index(expr(x + S[0], y + S[1], z + S[2]), n);
         };
     }
 
     template <typename TExpr>
-    auto _getValue(std::integral_constant<int, 0b01000>, TExpr const& expr, IdxShift S, int tag) const {
+    auto _getArray(std::integral_constant<int, 0b01000>, TExpr const& expr, IdxShift S, int tag) const {
+        int n = ((tag & 0b111) == 0 || (tag & 0b111) == 0b111) ? (tag << 3)
+                                                               : EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
         return [=](index_type x, index_type y, index_type z) {
-            return getValue(expr(x + S[0], y + S[1], z + S[2], tag), S, tag);
+            return st::recursive_index(expr(x + S[0], y + S[1], z + S[2], tag), n);
         };
     }
 
    public:
     template <typename TExpr>
-    auto getValue(TExpr const& expr, IdxShift S, int tag) const {
-        return _getValue(
+    auto getArray(TExpr const& expr, IdxShift S, int tag) const {
+        return _getArray(
             std::integral_constant<
                 int,
                 (st::is_invocable<TExpr, point_type const&>::value /*                     */ ? 0b0010 : 0) |
@@ -105,7 +131,7 @@ struct FVM {
             auto tag = static_cast<int16_t>(
                 EntityIdCoder::m_sub_index_to_id_[IFORM][n0] |
                 (st::recursive_calculate_shift<1, N...>(0, std::forward<decltype(subs)>(subs)...) << 3));
-            a = getValue((rhs), IdxShift{0, 0, 0}, tag);
+            a = getArray((rhs), IdxShift{0, 0, 0}, tag);
         });
     }
 
@@ -118,53 +144,57 @@ struct FVM {
                     EntityIdCoder::m_sub_index_to_id_[IFORM][n0] |
                     (st::recursive_calculate_shift<1, N...>(0, std::forward<decltype(subs)>(subs)...) << 3));
 
+                int n = ((tag & 0b111) == 0 || (tag & 0b111) == 0b111) ? (tag << 3)
+                                                                       : EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
+
                 r.foreach ([&](EntityId s) {
-                    if ((s.w & 0b111) == (tag & 0b111)) {
-                        a(s.x, s.y, s.z) = calculus::getValue(getValue((rhs), IdxShift{0, 0, 0}, tag), s.x, s.y, s.z);
+                    if (s.w == tag) {
+                        a(s.x, s.y, s.z) = st::recursive_index(
+                            calculus::getValue(getArray((rhs), IdxShift{0, 0, 0}, tag), s.x, s.y, s.z), n);
                     }
                 });
             });
     }
 
     auto _getV(std::integral_constant<int, VERTEX>, IdxShift S, int tag) const {
-        return getValue(m_host_->m_vertex_volume_, S, tag);
+        return getArray(m_host_->m_vertex_volume_, S, tag);
     }
 
     auto _getV(std::integral_constant<int, EDGE>, IdxShift S, int tag) const {
-        return getValue(m_host_->m_edge_volume_, S, tag);
+        return getArray(m_host_->m_edge_volume_, S, tag);
     }
 
     auto _getV(std::integral_constant<int, FACE>, IdxShift S, int tag) const {
-        return getValue(m_host_->m_face_volume_, S, tag);
+        return getArray(m_host_->m_face_volume_, S, tag);
     }
 
     auto _getV(std::integral_constant<int, VOLUME>, IdxShift S, int tag) const {
-        return getValue(m_host_->m_volume_volume_, S, tag);
+        return getArray(m_host_->m_volume_volume_, S, tag);
     }
 
     auto _getDualV(std::integral_constant<int, VERTEX>, IdxShift S, int tag) const {
-        return getValue(m_host_->m_vertex_dual_volume_, S, tag);
+        return getArray(m_host_->m_vertex_dual_volume_, S, tag);
     }
 
     auto _getDualV(std::integral_constant<int, EDGE>, IdxShift S, int tag) const {
-        return getValue(m_host_->m_edge_dual_volume_, S, tag);
+        return getArray(m_host_->m_edge_dual_volume_, S, tag);
     }
 
     auto _getDualV(std::integral_constant<int, FACE>, IdxShift S, int tag) const {
-        return getValue(m_host_->m_face_dual_volume_, S, tag);
+        return getArray(m_host_->m_face_dual_volume_, S, tag);
     }
 
     auto _getDualV(std::integral_constant<int, VOLUME>, IdxShift S, int tag) const {
-        return getValue(m_host_->m_volume_dual_volume_, S, tag);
+        return getArray(m_host_->m_volume_dual_volume_, S, tag);
     }
 
     template <typename TExpr>
     auto getDualV(TExpr const& expr, IdxShift S, int tag) const {
-        return getValue(expr, S, tag) * _getDualV(std::integral_constant<int, st::iform<TExpr>::value>(), S, tag);
+        return getArray(expr, S, tag) * _getDualV(std::integral_constant<int, st::iform<TExpr>::value>(), S, tag);
     }
     template <typename TExpr>
     auto getV(TExpr const& expr, IdxShift S, int tag) const {
-        return getValue(expr, S, tag) * _getV(std::integral_constant<int, st::iform<TExpr>::value>(), S, tag);
+        return getArray(expr, S, tag) * _getV(std::integral_constant<int, st::iform<TExpr>::value>(), S, tag);
     }
 
     //******************************************************************************
@@ -181,7 +211,7 @@ struct FVM {
         int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
         D[n] = 1;
         return (getV(l, S + D, tag & (~0b111)) - getV(l, S, tag & (~0b111))) *
-               getValue(m_host_->m_edge_inv_volume_, S, tag);
+               getArray(m_host_->m_edge_inv_volume_, S, tag);
     }
 
     //! curl<1>
@@ -202,7 +232,7 @@ struct FVM {
         SZ[(n + 2) % 3] = 1;
 
         return ((getV(l, S + SZ, IY) - getV(l, S, IY)) - (getV(l, S + SY, IZ) - getV(l, S, IZ))) *
-               getValue(m_host_->m_face_inv_volume_, S, tag);
+               getArray(m_host_->m_face_inv_volume_, S, tag);
     }
 
     //! div<2>
@@ -221,7 +251,7 @@ struct FVM {
 
         return ((getV(l, S + SX, IX) - getV(l, S, IX)) + (getV(l, S + SY, IY) - getV(l, S, IY)) +
                 (getV(l, S + SZ, IZ) - getV(l, S, IZ))) *
-               getValue(m_host_->m_volume_inv_volume_, S, tag);
+               getArray(m_host_->m_volume_inv_volume_, S, tag);
     }
 
     //! curl<2>
@@ -241,7 +271,7 @@ struct FVM {
         SZ[(n + 2) % 3] = 1;
 
         return ((getDualV(l, S, IY) - getDualV(l, S - SZ, IY)) - (getDualV(l, S, IZ) - getDualV(l, S - SY, IZ))) *
-               (-getValue(m_host_->m_edge_inv_dual_volume_, S, tag));
+               (-getArray(m_host_->m_edge_inv_dual_volume_, S, tag));
     }
 
     //! div<1>
@@ -263,7 +293,7 @@ struct FVM {
         return ((getDualV(l, S, IX) - getDualV(l, S - SX, IX)) +  //
                 (getDualV(l, S, IY) - getDualV(l, S - SY, IY)) +  //
                 (getDualV(l, S, IZ) - getDualV(l, S - SZ, IZ))) *
-               (-getValue(m_host_->m_vertex_inv_dual_volume_, S, tag));
+               (-getArray(m_host_->m_vertex_inv_dual_volume_, S, tag));
 
         ;
     }
@@ -279,7 +309,7 @@ struct FVM {
         SD[n] = 1;
         int ID = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[VOLUME][n];
 
-        return (getV(l, S, ID) - getV(l, S - SD, ID)) * (-getValue(m_host_->m_face_inv_volume_, S, tag));
+        return (getV(l, S, ID) - getV(l, S - SD, ID)) * (-getArray(m_host_->m_face_inv_volume_, S, tag));
     }
 
     //! *Form<IR> => Form<N-IL>
@@ -293,7 +323,7 @@ struct FVM {
                 getV(l, S + IdxShift{0, 1, 0}, I0) + getV(l, S + IdxShift{0, 1, 1}, I0) +
                 getV(l, S + IdxShift{1, 0, 0}, I0) + getV(l, S + IdxShift{1, 0, 1}, I0) +
                 getV(l, S + IdxShift{1, 1, 0}, I0) + getV(l, S + IdxShift{1, 1, 1}, I0)) *
-               getValue(m_host_->m_volume_inv_volume_, S, tag) * 0.125;
+               getArray(m_host_->m_volume_inv_volume_, S, tag) * 0.125;
     };
     ////***************************************************************************************************
     //! p_curl<1>
@@ -336,7 +366,7 @@ struct FVM {
 
     template <int I, typename TExpr>
     auto _map_to(std::index_sequence<I, I>, TExpr const& expr, IdxShift S, int tag) const {
-        return getValue(expr, S, tag);
+        return getArray(expr, S, tag);
     };
 
     template <typename TExpr>
@@ -346,7 +376,7 @@ struct FVM {
         IdxShift SX{0, 0, 0};
         SX[n] = 1;
 
-        return (getValue(expr, S, IX) + getValue(expr, S + SX, IX)) * 0.5;
+        return (getArray(expr, S, IX) + getArray(expr, S + SX, IX)) * 0.5;
     }
 
     template <typename TExpr>
@@ -355,7 +385,7 @@ struct FVM {
         int IX = (((tag << 3) / 3) >> 3) | EntityIdCoder::m_sub_index_to_id_[EDGE][n];
         IdxShift SX{0, 0, 0};
         SX[n] = 1;
-        return (getValue(expr, S - SX, IX) + getValue(expr, S, IX)) * 0.5;
+        return (getArray(expr, S - SX, IX) + getArray(expr, S, IX)) * 0.5;
     }
 
     template <typename TExpr>
@@ -366,8 +396,8 @@ struct FVM {
         IdxShift SZ{0, 0, 0};
         SY[(n + 1) % 3] = 1;
         SZ[(n + 2) % 3] = 1;
-        return (getValue(expr, S, IX) + getValue(expr, S + SY, IX) + getValue(expr, S + SZ, IX) +
-                getValue(expr, S + SY + SZ, IX)) *
+        return (getArray(expr, S, IX) + getArray(expr, S + SY, IX) + getArray(expr, S + SZ, IX) +
+                getArray(expr, S + SY + SZ, IX)) *
                0.25;
     }
 
@@ -380,28 +410,28 @@ struct FVM {
         SY[(n + 1) % 3] = 1;
         SZ[(n + 2) % 3] = 1;
 
-        return (getValue(expr, S - SY - SZ, IX) + getValue(expr, S - SY, IX) + getValue(expr, S - SZ, IX) +
-                getValue(expr, S, IX)) *
+        return (getArray(expr, S - SY - SZ, IX) + getArray(expr, S - SY, IX) + getArray(expr, S - SZ, IX) +
+                getArray(expr, S, IX)) *
                0.25;
     }
 
     template <typename TExpr>
     auto _map_to(std::index_sequence<VERTEX, VOLUME>, TExpr const& expr, IdxShift S, int tag) const {
         tag = tag & (~0b111);
-        return (getValue(expr, S + IdxShift{0, 0, 0}, tag) + getValue(expr, S + IdxShift{0, 0, 1}, tag) +
-                getValue(expr, S + IdxShift{0, 1, 0}, tag) + getValue(expr, S + IdxShift{0, 1, 1}, tag) +
-                getValue(expr, S + IdxShift{1, 0, 0}, tag) + getValue(expr, S + IdxShift{1, 0, 1}, tag) +
-                getValue(expr, S + IdxShift{1, 1, 0}, tag) + getValue(expr, S + IdxShift{1, 1, 1}, tag)) *
+        return (getArray(expr, S + IdxShift{0, 0, 0}, tag) + getArray(expr, S + IdxShift{0, 0, 1}, tag) +
+                getArray(expr, S + IdxShift{0, 1, 0}, tag) + getArray(expr, S + IdxShift{0, 1, 1}, tag) +
+                getArray(expr, S + IdxShift{1, 0, 0}, tag) + getArray(expr, S + IdxShift{1, 0, 1}, tag) +
+                getArray(expr, S + IdxShift{1, 1, 0}, tag) + getArray(expr, S + IdxShift{1, 1, 1}, tag)) *
                0.125;
     }
 
     template <typename TExpr>
     auto _map_to(std::index_sequence<VOLUME, VERTEX>, TExpr const& expr, IdxShift S, int tag) const {
         tag = tag | (0b111);
-        return (getValue(expr, S - IdxShift{1, 1, 1}, tag) + getValue(expr, S - IdxShift{1, 1, 0}, tag) +
-                getValue(expr, S - IdxShift{1, 0, 1}, tag) + getValue(expr, S - IdxShift{1, 0, 0}, tag) +
-                getValue(expr, S - IdxShift{0, 1, 1}, tag) + getValue(expr, S - IdxShift{0, 1, 0}, tag) +
-                getValue(expr, S - IdxShift{0, 0, 1}, tag) + getValue(expr, S, tag)) *
+        return (getArray(expr, S - IdxShift{1, 1, 1}, tag) + getArray(expr, S - IdxShift{1, 1, 0}, tag) +
+                getArray(expr, S - IdxShift{1, 0, 1}, tag) + getArray(expr, S - IdxShift{1, 0, 0}, tag) +
+                getArray(expr, S - IdxShift{0, 1, 1}, tag) + getArray(expr, S - IdxShift{0, 1, 0}, tag) +
+                getArray(expr, S - IdxShift{0, 0, 1}, tag) + getArray(expr, S, tag)) *
                0.125;
     }
 
@@ -412,7 +442,7 @@ struct FVM {
 
         IdxShift SD{0, 0, 0};
         SD[n] = 1;
-        return (getValue(expr, S - SD, IX) + getValue(expr, S, IX)) * 0.5;
+        return (getArray(expr, S - SD, IX) + getArray(expr, S, IX)) * 0.5;
     }
 
     template <typename TExpr>
@@ -421,7 +451,7 @@ struct FVM {
         int IX = (((tag << 3) / 3) >> 3) | EntityIdCoder::m_sub_index_to_id_[FACE][n];
         IdxShift SX{0, 0, 0};
         SX[n] = 1;
-        return (getValue(expr, S, IX) + getValue(expr, S + SX, IX)) * 0.5;
+        return (getArray(expr, S, IX) + getArray(expr, S + SX, IX)) * 0.5;
     }
 
     template <typename TExpr>
@@ -434,8 +464,8 @@ struct FVM {
         SY[(n + 1) % 3] = 1;
         SZ[(n + 2) % 3] = 1;
 
-        return (getValue(expr, S - SY, IX) + getValue(expr, S - SZ, IX) + getValue(expr, S - SY - SZ, IX) +
-                getValue(expr, S, IX)) *
+        return (getArray(expr, S - SY, IX) + getArray(expr, S - SZ, IX) + getArray(expr, S - SY - SZ, IX) +
+                getArray(expr, S, IX)) *
                0.25;
     }
 
@@ -449,8 +479,8 @@ struct FVM {
         SY[(n + 1) % 3] = 1;
         SZ[(n + 2) % 3] = 1;
 
-        return (getValue(expr, S, IX) + getValue(expr, S + SZ, IX) + getValue(expr, S + SY, IX) +
-                getValue(expr, S + SY + SZ, IX)) *
+        return (getArray(expr, S, IX) + getArray(expr, S + SZ, IX) + getArray(expr, S + SY, IX) +
+                getArray(expr, S + SY + SZ, IX)) *
                0.25;
     }
 
@@ -489,8 +519,8 @@ struct FVM {
         SY[(n + 1) % 3] = 1;
         SZ[(n + 2) % 3] = 1;
 
-        return (getValue(l, S, IY) + getValue(l, S + SZ, IY)) * (getValue(r, S, IY) + getValue(r, S + SY, IZ)) * 0.25 -
-               (getValue(r, S, IY) + getValue(r, S + SZ, IY)) * (getValue(l, S, IY) + getValue(l, S + SY, IZ)) * 0.25;
+        return (getArray(l, S, IY) + getArray(l, S + SZ, IY)) * (getArray(r, S, IY) + getArray(r, S + SY, IZ)) * 0.25 -
+               (getArray(r, S, IY) + getArray(r, S + SZ, IY)) * (getArray(l, S, IY) + getArray(l, S + SY, IZ)) * 0.25;
     }
 
     template <typename... TExpr>
@@ -536,14 +566,14 @@ struct FVM {
               int tag) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
-        return getValue(wedge(l, hodgestar(r)), S, tag);
+        return getArray(wedge(l, hodgestar(r)), S, tag);
     }
     template <typename... TExpr>
     auto eval(std::integer_sequence<int, FACE, FACE>, Expression<tags::dot, TExpr...> const& expr, IdxShift S,
               int tag) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
-        return getValue(wedge(l, hodgestar(r)), S, tag);
+        return getArray(wedge(l, hodgestar(r)), S, tag);
     }
 
     template <typename... TExpr>
@@ -556,8 +586,8 @@ struct FVM {
         int IY = ((tag << 3) * 3 + 1) >> 3;
         int IZ = ((tag << 3) * 3 + 2) >> 3;
 
-        return getValue(l, S, IX) * getValue(r, S, IX) + getValue(l, S, IY) * getValue(r, S, IY) +
-               getValue(l, S, IZ) * getValue(r, S, IZ);
+        return getArray(l, S, IX) * getArray(r, S, IX) + getArray(l, S, IY) * getArray(r, S, IY) +
+               getArray(l, S, IZ) * getArray(r, S, IZ);
     }
 
     template <typename... TExpr>
@@ -569,8 +599,8 @@ struct FVM {
         int IY = (((tag << 3) * 3 + 1) >> 3) | 0b111;
         int IZ = (((tag << 3) * 3 + 2) >> 3) | 0b111;
 
-        return getValue(l, S, IX) * getValue(r, S, IX) + getValue(l, S, IY) * getValue(r, S, IY) +
-               getValue(l, S, IZ) * getValue(r, S, IZ);
+        return getArray(l, S, IX) * getArray(r, S, IX) + getArray(l, S, IY) * getArray(r, S, IY) +
+               getArray(l, S, IZ) * getArray(r, S, IZ);
     }
 
     template <typename... TExpr>
@@ -584,7 +614,7 @@ struct FVM {
         int IY = ((((tag << 3) / 3) * 3 + (n + 1) % 3) >> 3);
         int IZ = ((((tag << 3) / 3) * 3 + (n + 2) % 3) >> 3);
 
-        return getValue(l, S, IY) * getValue(r, S, IZ) - getValue(l, S, IZ) * getValue(r, S, IY);
+        return getArray(l, S, IY) * getArray(r, S, IZ) - getArray(l, S, IZ) * getArray(r, S, IY);
     }
 
     template <typename... TExpr>
@@ -598,7 +628,7 @@ struct FVM {
         int IY = ((((tag << 3) / 3) * 3 + (n + 1) % 3) >> 3) | 0b111;
         int IZ = ((((tag << 3) / 3) * 3 + (n + 2) % 3) >> 3) | 0b111;
 
-        return getValue(l, S, IY) * getValue(r, S, IZ) - getValue(l, S, IZ) * getValue(r, S, IY);
+        return getArray(l, S, IY) * getArray(r, S, IZ) - getArray(l, S, IZ) * getArray(r, S, IY);
     }
 };  // class FVM
 //    //**********************************************************************************************
@@ -611,18 +641,18 @@ struct FVM {
 //
 //    template <typename... E, typename... Args>
 //    auto GetEntity(Expression<E...> const& rhs, int tag, int tag) const {
-//        return GetEntity(calculus::getValue(rhs, std::forward<Args>(args)...), tag);
+//        return GetEntity(calculus::getArray(rhs, std::forward<Args>(args)...), tag);
 //    }
 //
 //    template <typename V, int N0, int... N, typename... Args>
 //    auto const& GetEntity(nTuple<V, N0, N...> const& rhs, int tag, int tag) const {
-//        return calculus::getValue(
+//        return calculus::getArray(
 //            st::recursive_index<N...>(rhs[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]], tag >> 3),
 //            std::forward<Args>(args)...);
 //    }
 //    template <typename V, int N0, int... N, typename... Args>
 //    auto& GetEntity(nTuple<V, N0, N...>& rhs, int tag, int tag) const {
-//        return calculus::getValue(
+//        return calculus::getArray(
 //            st::recursive_index<N...>(rhs[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]], tag >> 3),
 //            std::forward<Args>(args)...);
 //    }
@@ -651,7 +681,7 @@ struct FVM {
 //    const {
 //        lhs.Get() = rhs;
 //        st::foreach (lhs.Get(), [&](auto& a, auto&&... subs) {
-//            a = getValue((rhs), IdxShift{0, 0, 0}, std::forward<decltype(subs)>(subs)...);
+//            a = getArray((rhs), IdxShift{0, 0, 0}, std::forward<decltype(subs)>(subs)...);
 //        });
 //    }
 //
@@ -685,11 +715,11 @@ struct FVM {
 //    /// @{
 //
 //    //    template <typename V, int I, int... D>
-//    //     V const& getValue( Field<M, V, I, D...> const& f, EntityId s)const{
+//    //     V const& getArray( Field<M, V, I, D...> const& f, EntityId s)const{
 //    //        return f[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]][(s.w >> 3)](s.x, s.y, s.z);
 //    //    };
 //    //    template <typename V, int I, int... D>
-//    //     V& getValue( Field<M, V, I, D...>& f, EntityId s)const{
+//    //     V& getArray( Field<M, V, I, D...>& f, EntityId s)const{
 //    //        return f[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]][(s.w >> 3)](s.x, s.y, s.z);
 //    //    };
 //
@@ -707,14 +737,14 @@ struct FVM {
 //        point_type r;  //= std::Serialize<1>(idx);
 //        EntityId s;    //= std::Serialize<0>(idx);
 //
-//        return getValue(f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) +    //
-//               getValue(f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) +    //
-//               getValue(f, (s + X) + Z) * (r[0]) * (1.0 - r[1]) * (r[2]) +    //
-//               getValue(f, (s + X)) * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]) +  //
-//               getValue(f, (s + Y) + Z) * (1.0 - r[0]) * (r[1]) * (r[2]) +    //
-//               getValue(f, (s + Y)) * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]) +  //
-//               getValue(f, s + Z) * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]) +    //
-//               getValue(f, s) * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+//        return getArray(f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) +    //
+//               getArray(f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) +    //
+//               getArray(f, (s + X) + Z) * (r[0]) * (1.0 - r[1]) * (r[2]) +    //
+//               getArray(f, (s + X)) * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]) +  //
+//               getArray(f, (s + Y) + Z) * (1.0 - r[0]) * (r[1]) * (r[2]) +    //
+//               getArray(f, (s + Y)) * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]) +  //
+//               getArray(f, s + Z) * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]) +    //
+//               getArray(f, s) * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
 //    }
 //
 //   public:
@@ -755,14 +785,14 @@ struct FVM {
 //        point_type r = std::get<1>(idx);
 //        EntityId s = std::get<0>(idx);
 //
-//        getValue(f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
-//        getValue(f, (s + X) + Y) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
-//        getValue(f, (s + X) + Z) += v * (r[0]) * (1.0 - r[1]) * (r[2]);
-//        getValue(f, s + X) += v * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
-//        getValue(f, (s + Y) + Z) += v * (1.0 - r[0]) * (r[1]) * (r[2]);
-//        getValue(f, s + Y) += v * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]);
-//        getValue(f, s + Z) += v * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]);
-//        getValue(f, s) += v * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+//        getArray(f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
+//        getArray(f, (s + X) + Y) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
+//        getArray(f, (s + X) + Z) += v * (r[0]) * (1.0 - r[1]) * (r[2]);
+//        getArray(f, s + X) += v * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+//        getArray(f, (s + Y) + Z) += v * (1.0 - r[0]) * (r[1]) * (r[2]);
+//        getArray(f, s + Y) += v * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]);
+//        getArray(f, s + Z) += v * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]);
+//        getArray(f, s) += v * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
 //    }
 //
 //    template <typename TF, typename TX, typename TV>
@@ -814,7 +844,7 @@ struct FVM {
 //    }
 
 //    template <typename TFun>
-//     auto getValue( TFun const& fun,  IdxShift S, int tag,
+//     auto getArray( TFun const& fun,  IdxShift S, int tag,
 //                         ENABLE_IF(simpla::concept::is_callable<TFun(simpla::EntityId)>::value))const{
 //        return [&](index_tuple const& idx)const{
 //            EntityId s;
@@ -827,7 +857,7 @@ struct FVM {
 //    }
 //
 //    template <typename TFun>
-//     auto getValue( TFun const& fun,  IdxShift S, int tag,
+//     auto getArray( TFun const& fun,  IdxShift S, int tag,
 //                         ENABLE_IF(simpla::concept::is_callable<TFun(point_type const&)>::value))const{
 //        return [&](index_tuple const& idx)const{
 //            EntityId s;
@@ -840,16 +870,16 @@ struct FVM {
 //    }
 //
 //    template <int IFORM, typename TExpr>
-//     auto  getValue(std::integral_constant<int, IFORM> const&,  TExpr const& expr,
+//     auto  getArray(std::integral_constant<int, IFORM> const&,  TExpr const& expr,
 //    m,
 //    index_type i,
 //                  index_type j, index_type k, unsigned int n, unsigned int d)  {
-//        return getValue( expr,EntityIdCoder::Serialize<IFORM>(i, j, k, n, d));
+//        return getArray( expr,EntityIdCoder::Serialize<IFORM>(i, j, k, n, d));
 //    }
 //    template <typename TField, typename TOP, typename... Args>
 //    void foreach_( TField& self, Range<EntityId> const& r, TOP const& op, int tag) const
 //    {
-//        r.foreach ([&](EntityId s)  { op(getValue(self, s), getValue(std::forward<Others>(others), s)...);
+//        r.foreach ([&](EntityId s)  { op(getArray(self, s), getArray(std::forward<Others>(others), s)...);
 //        });
 //    }
 //    template <typename... Args>

@@ -48,8 +48,7 @@ struct Cylindrical : public Chart {
     /**
      *  from local coordinates to global Cartesian coordinates
      */
-    point_type map(point_type const &y) const override {
-        auto uvw = Chart::map(y);
+    point_type map(point_type const &uvw) const override {
         return point_type{uvw[RAxis] * std::cos(uvw[PhiAxis]), uvw[RAxis] * std::sin(uvw[PhiAxis]), uvw[ZAxis]};
     }
 
@@ -58,8 +57,7 @@ struct Cylindrical : public Chart {
      * @param uvw
      * @return
      */
-    point_type inv_map(point_type const &xyz) const override {
-        point_type r = Chart::inv_map(xyz);
+    point_type inv_map(point_type const &r) const override {
         point_type uvw;
         uvw[PhiAxis] = std::atan2(r[1], r[0]);
         uvw[RAxis] = std::hypot(r[0], r[1]);
