@@ -48,8 +48,8 @@ void ICRFAntenna<TM>::Deserialize(std::shared_ptr<DataTable> const& cfg) {
 template <typename TM>
 void ICRFAntenna<TM>::Advance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
-    J = [&](point_type const& x) -> Vec3 {
-        Vec3 res;
+    J = [=](point_type const& x) {
+        nTuple<Real, 3> res;
         res = m_amplify_ * std::sin(m_k_[0] * x[0] + m_k_[1] * x[1] + m_k_[2] * x[2] + TWOPI * m_f_ * time_now);
         return res;
     };
