@@ -475,7 +475,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     //    vardb->printClassData(std::cout);
 }
 void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchFromSAMRAI(SAMRAI::hier::Patch &patch, engine::Patch *p) {
-    p->SetBlock(engine::MeshBlock{
+    p->SetMeshBlock(engine::MeshBlock{
         index_box_type{{patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]},
                        {patch.getBox().upper()[0] + 1, patch.getBox().upper()[1] + 1, patch.getBox().upper()[2] + 1}},
         static_cast<size_type>(patch.getPatchLevelNumber())});
@@ -486,8 +486,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchFromSAMRAI(SAMRAI::hier::
 
         if (!patch.checkAllocated(samrai_id)) { patch.allocatePatchData(samrai_id); }
 
-        p->Push(item.first->GetID(),
-                simpla::detail::create_simpla_datablock<NDIMS>(item.first, patch.getPatchData(samrai_id)));
+        p->SetDataBlock(item.first->GetID(),
+                        simpla::detail::create_simpla_datablock<NDIMS>(item.first, patch.getPatchData(samrai_id)));
     }
 }
 void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchToSAMRAI(SAMRAI::hier::Patch &patch, engine::Patch *p) {
@@ -541,7 +541,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
 
         ConvertPatchFromSAMRAI(patch, &p);
 
-        index_tuple gw = p.GetBlock().GetGhostWidth();
+        index_tuple gw = p.GetMeshBlock().GetGhostWidth();
 
         auto pgeom = std::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
 
@@ -624,7 +624,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
                             break;
                     }
                 }
-                //                CHECK(p->GetBlock()->GetIndexBox());
+                //                CHECK(p->GetMeshBlock()->GetIndexBox());
                 //                CHECK(vertex_box);
                 //                CHECK(edge0_box);
                 //                CHECK(edge1_box);
@@ -634,21 +634,24 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
                 //                CHECK(face2_box);
                 //                CHECK(volume_box);
 
-                p.GetRange("PATCH_BOUNDARY_" + std::to_string(VERTEX))
+                simpla::engine::DomainBase d(nullptr);
+                d.Push(&p);
+                d.GetRange("PATCH_BOUNDARY_" + std::to_string(VERTEX))
                     .append(std::make_shared<ContinueRange<EntityId>>(vertex_box, 0));
 
-                p.GetRange("PATCH_BOUNDARY_" + std::to_string(EDGE))
+                d.GetRange("PATCH_BOUNDARY_" + std::to_string(EDGE))
                     .append(std::make_shared<ContinueRange<EntityId>>(edge0_box, 1))
                     .append(std::make_shared<ContinueRange<EntityId>>(edge1_box, 2))
                     .append(std::make_shared<ContinueRange<EntityId>>(edge2_box, 4));
 
-                p.GetRange("PATCH_BOUNDARY_" + std::to_string(FACE))
+                d.GetRange("PATCH_BOUNDARY_" + std::to_string(FACE))
                     .append(std::make_shared<ContinueRange<EntityId>>(face0_box, 6))
                     .append(std::make_shared<ContinueRange<EntityId>>(face1_box, 5))
                     .append(std::make_shared<ContinueRange<EntityId>>(face2_box, 3));
 
-                p.GetRange("PATCH_BOUNDARY_" + std::to_string(VOLUME))
+                d.GetRange("PATCH_BOUNDARY_" + std::to_string(VOLUME))
                     .append(std::make_shared<ContinueRange<EntityId>>(volume_box, 7));
+                d.Pull(&p);
             }
         m_ctx_->InitialCondition(&p, data_time);
 

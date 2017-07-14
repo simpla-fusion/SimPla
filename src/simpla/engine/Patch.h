@@ -17,7 +17,11 @@
 namespace simpla {
 namespace engine {
 class MeshBlock;
-
+class PatchDataPack {
+   public:
+    PatchDataPack() = default;
+    virtual ~PatchDataPack() = default;
+};
 class Patch {
     SP_OBJECT_BASE(Patch)
    public:
@@ -33,20 +37,14 @@ class Patch {
 
     id_type GetId() const;
 
-    void SetBlock(const MeshBlock &);
-    const MeshBlock &GetBlock() const;
+    void SetMeshBlock(const MeshBlock &);
+    const MeshBlock &GetMeshBlock() const;
 
-    std::map<id_type, std::shared_ptr<data::DataBlock>> &GetAllData();
+    void SetDataBlock(id_type id, std::shared_ptr<data::DataBlock>);
+    std::shared_ptr<data::DataBlock> GetDataBlock(id_type const &id);
 
-    void Push(id_type id, std::shared_ptr<data::DataBlock>);
-    std::shared_ptr<data::DataBlock> Pop(id_type const &id);
-
-    EntityRange GetRange(const std::string &g) const;
-    EntityRange &GetRange(const std::string &g);
-    EntityRange &AddRange(const std::string &g, EntityRange &&r);
-
-    std::shared_ptr<std::map<std::string, EntityRange>> GetRanges();
-    void SetRanges(std::shared_ptr<std::map<std::string, EntityRange>> const &);
+    void SetPack(const std::string &g, std::shared_ptr<PatchDataPack> p);
+    std::shared_ptr<PatchDataPack> GetPack(const std::string &g);
 
    private:
     struct pimpl_s;

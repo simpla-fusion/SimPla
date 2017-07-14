@@ -64,11 +64,11 @@ void AttributeGroup::DeregisterFrom(AttributeGroup *other) {
     for (auto &item : m_pimpl_->m_attributes_) { item.second->Deregister(other); }
 };
 void AttributeGroup::Push(Patch *p) {
-    for (auto &item : GetAllAttributes()) { item.second->Push(p->Pop(item.second->GetID())); }
+    for (auto &item : GetAllAttributes()) { item.second->Push(p->GetDataBlock(item.second->GetID())); }
 }
 
 void AttributeGroup::Pull(Patch *p) {
-    for (auto &item : GetAllAttributes()) { p->Push(item.second->GetID(), item.second->Pop()); }
+    for (auto &item : GetAllAttributes()) { p->SetDataBlock(item.second->GetID(), item.second->Pop()); }
 }
 void AttributeGroup::Attach(Attribute *p) { m_pimpl_->m_attributes_.emplace(p->GetPrefix(), p); }
 void AttributeGroup::Detach(Attribute *p) { m_pimpl_->m_attributes_.erase(p->GetPrefix()); }

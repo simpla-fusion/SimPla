@@ -27,8 +27,8 @@ class MeshBlock {
     MeshBlock(MeshBlock &&other) noexcept;
     void swap(MeshBlock &);
 
-    MeshBlock &operator=(MeshBlock const &other);
-    MeshBlock &operator=(MeshBlock &&other) noexcept;
+//    MeshBlock &operator=(MeshBlock const &other);
+//    MeshBlock &operator=(MeshBlock &&other) noexcept;
 
     int GetLevel() const;
     id_type GetGUID() const;

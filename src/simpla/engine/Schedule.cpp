@@ -126,9 +126,9 @@ void Schedule::Synchronize() {
     //            //            if (s_it == m_pimpl_->m_patches_.end() || d_it == m_pimpl_->m_patches_.end() || s_it ==
     //            d_it)
     //            //            { continue; }
-    //            //            LOGGER << "Synchronize From " << m_pimpl_->m_atlas_.GetBlock(src)->GetIndexBox() << " to
+    //            //            LOGGER << "Synchronize From " << m_pimpl_->m_atlas_.GetMeshBlock(src)->GetIndexBox() << " to
     //            "
-    //            //                   << m_pimpl_->m_atlas_.GetBlock(dest)->GetIndexBox() << " " << std::endl;
+    //            //                   << m_pimpl_->m_atlas_.GetMeshBlock(dest)->GetIndexBox() << " " << std::endl;
     //            //            auto &src_data = s_it->cast_as<data::DataTable>();
     //            //            src_data.Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const
     //            &dest_p)

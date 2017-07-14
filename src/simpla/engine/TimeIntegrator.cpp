@@ -52,7 +52,7 @@ Real TimeIntegrator::Advance(Real time_dt) {
 //    if (level >= m_pimpl_->m_ctx_->GetAtlas().GetNumOfLevels()) { return m_pimpl_->m_time_; }
 //    auto &atlas = m_pimpl_->m_ctx_->GetAtlas();
 //    for (auto const &id : atlas.GetBlockList(level)) {
-//        auto mblk = atlas.GetBlock(id);
+//        auto mblk = atlas.GetMeshBlock(id);
 //        for (auto &v : m_pimpl_->m_ctx_->GetAllDomains()) {
 //            if (!v.second->GetGeoObject()->CheckOverlap(mblk->GetBoundBox())) { continue; }
 //            auto res = m_pimpl_->m_ctx_->GetPatches()->GetTable(std::to_string(id));

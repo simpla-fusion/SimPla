@@ -44,14 +44,14 @@ MeshBlock::MeshBlock(MeshBlock const &other) : m_pimpl_(new pimpl_s) {
 MeshBlock::MeshBlock(MeshBlock &&other) noexcept : m_pimpl_(other.m_pimpl_.get()) { other.m_pimpl_.reset(); }
 void MeshBlock::swap(MeshBlock &other) { std::swap(other.m_pimpl_, m_pimpl_); }
 
-MeshBlock &MeshBlock::operator=(MeshBlock const &other) {
-    MeshBlock(other).swap(*this);
-    return *this;
-}
-MeshBlock &MeshBlock::operator=(MeshBlock &&other) noexcept {
-    MeshBlock(other).swap(*this);
-    return *this;
-}
+//MeshBlock &MeshBlock::operator=(MeshBlock const &other) {
+//    MeshBlock(other).swap(*this);
+//    return *this;
+//}
+//MeshBlock &MeshBlock::operator=(MeshBlock &&other) noexcept {
+//    MeshBlock(other).swap(*this);
+//    return *this;
+//}
 
 index_tuple MeshBlock::GetGhostWidth() const { return m_pimpl_->m_ghost_width_; };
 

@@ -27,7 +27,7 @@ class Atlas{
      Patch * Pop(index_box_type,int level)
      void Push(Patch *)
      id_type AddBlock(index_box_type,int level)
-     index_box_type  GetBlock(id_type)
+     index_box_type  GetMeshBlock(id_type)
 }
 note top of Atlas
   <latex>  \mathcal{G}_{\alpha}\supseteq \bigcup_{m}  \mathcal{O}_{\alpha,m}^0 ,</latex>
@@ -141,7 +141,7 @@ class Chart{
       void Register(AttributeGroup*);
       void Detach(Attribute *attr);
       void Attach(Attribute *attr);
-      void Push(Patch );
+      void SetDataBlock(Patch );
       Patch Pop();
  }
  AttributeGroup o-- "*" Attribute
@@ -173,7 +173,7 @@ class Chart{
     else (outside)
       : do sth.;
     endif
-      : Pop Patch from Domain;
+      : GetDataBlock Patch from Domain;
   repeat while (more Domain?)
  repeat while (more MeshBlock ?)
  end

@@ -20,16 +20,19 @@
 namespace simpla {
 namespace engine {
 class Patch;
+class PatchDataPack;
 class AttributeGroup;
 class Model;
 
-class DomainBase : public SPObject, public AttributeGroup, public data::EnableCreateFromDataTable<DomainBase> {
+class DomainBase : public SPObject,
+                   public AttributeGroup,
+                   public data::EnableCreateFromDataTable<DomainBase, const geometry::Chart *> {
     SP_OBJECT_HEAD(DomainBase, SPObject)
     DECLARE_REGISTER_NAME(DomainBase)
    public:
     using AttributeGroup::attribute_type;
 
-    DomainBase();
+    DomainBase(const geometry::Chart *);
     ~DomainBase() override;
     DomainBase(DomainBase const &other);
     DomainBase(DomainBase &&other) noexcept;
@@ -42,23 +45,21 @@ class DomainBase : public SPObject, public AttributeGroup, public data::EnableCr
         DomainBase(other).swap(*this);
         return *this;
     }
+    const geometry::Chart *GetChart() const { return m_chart_; }
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const &t) override;
 
     void SetRange(std::string const &, Range<EntityId> const &);
-    virtual Range<EntityId> *GetRange(std::string const &k);
-    virtual Range<EntityId> const *GetRange(std::string const &k) const;
+    virtual Range<EntityId> &GetRange(std::string const &k);
+    virtual Range<EntityId> const &GetRange(std::string const &k) const;
 
     void SetBlock(const MeshBlock &);
     virtual const MeshBlock &GetBlock() const;
     virtual id_type GetBlockId() const;
 
-    void SetModel(const std::shared_ptr<Model> &g);
-    const Model *GetModel() const;
-
-    const geometry::Chart *GetChart() const;
-    void SetChart(const geometry::Chart *g);
+    const Model &GetModel() const;
+    Model &GetModel();
 
     void DoInitialize() override;
     void DoFinalize() override;
@@ -88,8 +89,10 @@ class DomainBase : public SPObject, public AttributeGroup, public data::EnableCr
     void Advance(Patch *, Real time_now, Real dt);
 
    private:
+    const geometry::Chart *m_chart_;
+    MeshBlock m_mesh_block_;
     struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
+    std::shared_ptr<pimpl_s> m_pimpl_;
 };  // class DomainBase
 
 template <template <typename> class... Policies>
@@ -101,7 +104,7 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
    public:
     typedef DomainBase::attribute_type attribute_type;
 
-    Domain() : Policies<this_type>(this)... {}
+    Domain(geometry::Chart const *c) : DomainBase(c), Policies<this_type>(this)... {}
     ~Domain() override{};
 
     static bool is_registered;
@@ -223,11 +226,10 @@ void Domain<Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &cf
 template <template <typename> class... Policies>
 template <typename LHS, typename RHS>
 void Domain<Policies...>::FillRange(LHS &lhs, RHS &&rhs, std::string const &k) const {
-    bool is_done = false;
     auto r = GetRange(k + "_" + std::to_string(LHS::iform));
 
-    if (r != nullptr) {
-        this->Fill(lhs, std::forward<RHS>(rhs), *r);
+    if (r.isNull()) {
+        this->Fill(lhs, std::forward<RHS>(rhs), r);
     } else {
         this->Fill(lhs, std::forward<RHS>(rhs));
     }
@@ -241,9 +243,9 @@ void Domain<Policies...>::FillBody(LHS &lhs, RHS &&rhs) const {
 template <template <typename> class... Policies>
 template <typename LHS, typename RHS>
 void Domain<Policies...>::FillBoundary(LHS &lhs, RHS &&rhs) const {
-//    FillRange(lhs, std::forward<RHS>(rhs), "BOUNDARY");
-//    FillRange(lhs, std::forward<RHS>(rhs), "PARA_BOUNDARY");
-//    FillRange(lhs, std::forward<RHS>(rhs), "PERP_BOUNDARY");
+    //    FillRange(lhs, std::forward<RHS>(rhs), "BOUNDARY");
+    //    FillRange(lhs, std::forward<RHS>(rhs), "PARA_BOUNDARY");
+    //    FillRange(lhs, std::forward<RHS>(rhs), "PERP_BOUNDARY");
 };
 
 #define DOMAIN_POLICY_HEAD(_NAME_)                   \

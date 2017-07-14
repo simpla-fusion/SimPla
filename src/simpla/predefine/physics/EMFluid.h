@@ -113,8 +113,8 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
     ne.Initialize();
     B0v.Initialize();
 
-    m_host_->GetModel()->LoadProfile("ne", &ne);
-    m_host_->GetModel()->LoadProfile("B0", &B0v);
+    m_host_->GetModel().LoadProfile("ne", &ne);
+    m_host_->GetModel().LoadProfile("B0", &B0v);
 
     BB = dot(B0v, B0v);
 
