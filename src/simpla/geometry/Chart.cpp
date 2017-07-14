@@ -5,12 +5,11 @@
 namespace simpla {
 namespace geometry {
 
-Chart::Chart(point_type shift, point_type scale, point_type rotate) : SPObject() {
+Chart::Chart(point_type shift, point_type scale, point_type rotate) {
     SetOrigin(shift);
     SetScale(scale);
     SetRotation(rotate);
 }
-Chart::~Chart(){};
 
 std::shared_ptr<data::DataTable> Chart::Serialize() const {
     auto p = std::make_shared<data::DataTable>();

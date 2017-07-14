@@ -26,6 +26,7 @@ class ICRFAntenna {
     void Advance(Real time_now, Real dt);
 
     Field<host_type, Real, EDGE> J{m_host_, "name"_ = "J"};
+    Field<host_type, Real, VOLUME, 3> Jv{m_host_, "name"_ = "Jv"};
 
     Vec3 m_amplify_{0, 0, 0};
     Real m_f_ = 1.0;
@@ -48,10 +49,11 @@ void ICRFAntenna<TM>::Deserialize(std::shared_ptr<DataTable> const& cfg) {
 template <typename TM>
 void ICRFAntenna<TM>::Advance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
-    J = [=](point_type const& x) {
-        nTuple<Real, 3> res;
-        res = m_amplify_ * std::sin(m_k_[0] * x[0] + m_k_[1] * x[1] + m_k_[2] * x[2] + TWOPI * m_f_ * time_now);
-        return res;
+    J = [=](point_type const& x) -> nTuple<Real, 3> {
+        return m_amplify_ * std::sin(m_k_[0] * x[0] + m_k_[1] * x[1] + m_k_[2] * x[2] + TWOPI * m_f_ * time_now);
+    };
+    Jv = [=](point_type const& x) -> nTuple<Real, 3> {
+        return m_amplify_ * std::sin(m_k_[0] * x[0] + m_k_[1] * x[1] + m_k_[2] * x[2] + TWOPI * m_f_ * time_now);
     };
 }
 

@@ -53,6 +53,7 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
                 auto p_cfg = std::dynamic_pointer_cast<data::DataTable>(t_cfg);
                 std::string s_type = p_cfg->GetValue<std::string>("Type", "Unknown");
                 auto res = DomainBase::Create(s_type);
+                res->SetName(key);
                 res->SetChart(m_pimpl_->m_chart_.get());
                 res->Deserialize(p_cfg);
                 SetDomain(key, res);

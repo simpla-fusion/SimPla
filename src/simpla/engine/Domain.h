@@ -241,9 +241,9 @@ void Domain<Policies...>::FillBody(LHS &lhs, RHS &&rhs) const {
 template <template <typename> class... Policies>
 template <typename LHS, typename RHS>
 void Domain<Policies...>::FillBoundary(LHS &lhs, RHS &&rhs) const {
-    FillRange(lhs, std::forward<RHS>(rhs), "BOUNDARY");
-    FillRange(lhs, std::forward<RHS>(rhs), "PARA_BOUNDARY");
-    FillRange(lhs, std::forward<RHS>(rhs), "PERP_BOUNDARY");
+//    FillRange(lhs, std::forward<RHS>(rhs), "BOUNDARY");
+//    FillRange(lhs, std::forward<RHS>(rhs), "PARA_BOUNDARY");
+//    FillRange(lhs, std::forward<RHS>(rhs), "PERP_BOUNDARY");
 };
 
 #define DOMAIN_POLICY_HEAD(_NAME_)                   \

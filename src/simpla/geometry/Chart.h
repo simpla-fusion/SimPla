@@ -22,7 +22,7 @@ struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<C
    public:
     explicit Chart(point_type shift = point_type{0, 0, 0}, point_type scale = point_type{1, 1, 1},
                    point_type rotate = point_type{0, 0, 0});
-    ~Chart() override;
+    ~Chart() override = default;
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
 

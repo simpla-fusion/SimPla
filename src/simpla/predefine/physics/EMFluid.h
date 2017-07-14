@@ -110,11 +110,11 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
     ne.Clear();
     B0v.Clear();
 
+    ne.Initialize();
+    B0v.Initialize();
+
     m_host_->GetModel()->LoadProfile("ne", &ne);
     m_host_->GetModel()->LoadProfile("B0", &B0v);
-
-    B0v.Initialize();
-    ne.Initialize();
 
     BB = dot(B0v, B0v);
 
@@ -131,8 +131,9 @@ void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
     m_host_->FillBoundary(B, 0);
     m_host_->FillBoundary(E, 0);
     m_host_->FillBoundary(J, 0);
-    m_host_->FillBoundary(dumpE, 0);
-    m_host_->FillBoundary(dumpB, 0);
+    //    m_host_->FillBoundary(dumpE, 0);
+    //    m_host_->FillBoundary(dumpB, 0);
+    //    m_host_->FillBoundary(dumpJ, 0);
 }
 template <typename TM>
 void EMFluid<TM>::Advance(Real time_now, Real dt) {

@@ -463,7 +463,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
             if (visit_variable_type != "" && item.second->db()->Check("COORDINATES", true)) {
                 d_visit_writer->registerNodeCoordinates(
                     vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-            } else if (item.second->GetIFORM() == VERTEX || item.second->GetIFORM() == VOLUME) {
+            } else if ((item.second->GetIFORM() == VERTEX || item.second->GetIFORM() == VOLUME) &&
+                       !item.second->db()->Check("TEMP", true)) {
                 d_visit_writer->registerPlotQuantity(
                     item.second->GetPrefix(), visit_variable_type,
                     vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
