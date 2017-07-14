@@ -28,6 +28,7 @@ std::shared_ptr<data::DataTable> Context::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
 
     res->SetValue("Name", GetName());
+    res->SetValue("Chart", GetChart()->Serialize());
     res->Set("Atlas", m_pimpl_->m_atlas_.Serialize());
     for (auto const &item : m_pimpl_->m_domains_) { res->Link("Domain/" + item.first, item.second->Serialize()); }
 
@@ -39,6 +40,11 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     SetName(cfg->GetValue<std::string>("Name", "unamed"));
 
     m_pimpl_->m_atlas_.Deserialize(cfg->GetTable("Atlas"));
+    m_pimpl_->m_chart_ = geometry::Chart::Create(cfg->GetTable("Chart"));
+
+    m_pimpl_->m_chart_->SetOrigin(std::get<0>(m_pimpl_->m_atlas_.GetBox()));
+    m_pimpl_->m_chart_->SetScale((std::get<1>(m_pimpl_->m_atlas_.GetBox()) - std::get<0>(m_pimpl_->m_atlas_.GetBox())) /
+                                 m_pimpl_->m_atlas_.GetDimensions());
 
     auto t_domain = cfg->GetTable("Domain");
     if (t_domain != nullptr) {
@@ -47,7 +53,7 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
                 auto p_cfg = std::dynamic_pointer_cast<data::DataTable>(t_cfg);
                 std::string s_type = p_cfg->GetValue<std::string>("Type", "Unknown");
                 auto res = DomainBase::Create(s_type);
-                res->SetChart(m_pimpl_->m_atlas_.GetChart());
+                res->SetChart(m_pimpl_->m_chart_.get());
                 res->Deserialize(p_cfg);
                 SetDomain(key, res);
             } else {
@@ -102,6 +108,9 @@ void Context::DoUpdate() {
 
 Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
 
+void Context::SetChart(std::shared_ptr<geometry::Chart> const &c) { m_pimpl_->m_chart_ = c; }
+geometry::Chart const *Context::GetChart() const { return m_pimpl_->m_chart_.get(); }
+
 void Context::SetDomain(std::string const &s_name, std::shared_ptr<DomainBase> const &d) {
     m_pimpl_->m_domains_[s_name] = d;
 }
@@ -113,7 +122,6 @@ std::shared_ptr<DomainBase> Context::GetDomain(std::string const &k) const {
 
 std::map<std::string, std::shared_ptr<AttributeDesc>> Context::CollectRegisteredAttributes() const {
     std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
-    //    m_pimpl_->m_base_mesh_->RegisterDescription(&m_global_attributes_);
     for (auto const &item : GetAllDomains()) { item.second->RegisterDescription(&m_global_attributes_); }
     return m_global_attributes_;
 }

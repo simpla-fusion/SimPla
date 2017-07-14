@@ -26,24 +26,20 @@ struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<C
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
 
-    void SetShift(point_type const &x);
-    point_type const &GetShift() const;
+    void SetOrigin(point_type const &x);
+    point_type const &GetOrigin() const;
 
     void SetScale(point_type const &x);
     point_type const &GetScale() const;
+    point_type GetCellWidth(int level = 0) const;
 
     void SetRotation(point_type const &x);
-
     point_type const &GetRotation() const;
-
-    point_type GetOrigin() const;
-
-    point_type GetCellWidth(int level = 0) const;
 
     template <typename TR>
     point_type local_coordinates(TR const &x) const {
-        return point_type{std::fma(x[0], m_scale_[0], m_shift_[0]), std::fma(x[1], m_scale_[1], m_shift_[1]),
-                          std::fma(x[2], m_scale_[2], m_shift_[2])};
+        return point_type{std::fma(x[0], m_scale_[0], m_origin_[0]), std::fma(x[1], m_scale_[1], m_origin_[1]),
+                          std::fma(x[2], m_scale_[2], m_origin_[2])};
     }
 
     template <typename TR>
@@ -58,7 +54,7 @@ struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<C
 
     template <typename TR>
     std::tuple<index_tuple, point_type> invert_local_coordinates(TR const &x) const {
-        point_type r = (x - m_shift_) / m_scale_;
+        point_type r = (x - m_origin_) / m_scale_;
         index_tuple idx = r + 0.5;
         r -= idx;
         return std::make_tuple(idx, r);
@@ -94,7 +90,7 @@ struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<C
     virtual Real inner_product(point_type const &uvw, vector_type const &v0, vector_type const &v1) const = 0;
 
    private:
-    point_type m_shift_{0, 0, 0};
+    point_type m_origin_{0, 0, 0};
     point_type m_rotation_{0, 0, 0};
     point_type m_scale_{1, 1, 1};
 };

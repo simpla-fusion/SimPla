@@ -85,6 +85,9 @@ class Context : public SPObject, public data::Serializable {
 
     Atlas &GetAtlas() const;
 
+    void SetChart(std::shared_ptr<geometry::Chart> const &);
+    geometry::Chart const *GetChart() const;
+
     void SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &);
     std::shared_ptr<DomainBase> GetDomain(std::string const &k) const;
 
