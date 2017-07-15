@@ -634,24 +634,24 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
                 //                CHECK(face2_box);
                 //                CHECK(volume_box);
 
-                simpla::engine::DomainBase d(nullptr);
-                d.Push(&p);
-                d.GetRange("PATCH_BOUNDARY_" + std::to_string(VERTEX))
-                    .append(std::make_shared<ContinueRange<EntityId>>(vertex_box, 0));
-
-                d.GetRange("PATCH_BOUNDARY_" + std::to_string(EDGE))
-                    .append(std::make_shared<ContinueRange<EntityId>>(edge0_box, 1))
-                    .append(std::make_shared<ContinueRange<EntityId>>(edge1_box, 2))
-                    .append(std::make_shared<ContinueRange<EntityId>>(edge2_box, 4));
-
-                d.GetRange("PATCH_BOUNDARY_" + std::to_string(FACE))
-                    .append(std::make_shared<ContinueRange<EntityId>>(face0_box, 6))
-                    .append(std::make_shared<ContinueRange<EntityId>>(face1_box, 5))
-                    .append(std::make_shared<ContinueRange<EntityId>>(face2_box, 3));
-
-                d.GetRange("PATCH_BOUNDARY_" + std::to_string(VOLUME))
-                    .append(std::make_shared<ContinueRange<EntityId>>(volume_box, 7));
-                d.Pull(&p);
+//                simpla::engine::DomainBase d("", nullptr);
+//                d.Push(&p);
+//                d.GetRange("PATCH_BOUNDARY_" + std::to_string(VERTEX))
+//                    .append(std::make_shared<ContinueRange<EntityId>>(vertex_box, 0));
+//
+//                d.GetRange("PATCH_BOUNDARY_" + std::to_string(EDGE))
+//                    .append(std::make_shared<ContinueRange<EntityId>>(edge0_box, 1))
+//                    .append(std::make_shared<ContinueRange<EntityId>>(edge1_box, 2))
+//                    .append(std::make_shared<ContinueRange<EntityId>>(edge2_box, 4));
+//
+//                d.GetRange("PATCH_BOUNDARY_" + std::to_string(FACE))
+//                    .append(std::make_shared<ContinueRange<EntityId>>(face0_box, 6))
+//                    .append(std::make_shared<ContinueRange<EntityId>>(face1_box, 5))
+//                    .append(std::make_shared<ContinueRange<EntityId>>(face2_box, 3));
+//
+//                d.GetRange("PATCH_BOUNDARY_" + std::to_string(VOLUME))
+//                    .append(std::make_shared<ContinueRange<EntityId>>(volume_box, 7));
+//                d.Pull(&p);
             }
         m_ctx_->InitialCondition(&p, data_time);
 

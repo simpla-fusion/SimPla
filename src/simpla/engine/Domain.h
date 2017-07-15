@@ -26,13 +26,13 @@ class Model;
 
 class DomainBase : public SPObject,
                    public AttributeGroup,
-                   public data::EnableCreateFromDataTable<DomainBase, const geometry::Chart *> {
+                   public data::EnableCreateFromDataTable<DomainBase, std::string, const geometry::Chart *> {
     SP_OBJECT_HEAD(DomainBase, SPObject)
     DECLARE_REGISTER_NAME(DomainBase)
    public:
     using AttributeGroup::attribute_type;
 
-    DomainBase(const geometry::Chart *);
+    DomainBase(std::string const &s_name, const geometry::Chart *);
     ~DomainBase() override;
     DomainBase(DomainBase const &other);
     DomainBase(DomainBase &&other) noexcept;
@@ -104,7 +104,7 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
    public:
     typedef DomainBase::attribute_type attribute_type;
 
-    Domain(geometry::Chart const *c) : DomainBase(c), Policies<this_type>(this)... {}
+    Domain(std::string const &s_name, geometry::Chart const *c) : DomainBase(s_name, c), Policies<this_type>(this)... {}
     ~Domain() override{};
 
     static bool is_registered;

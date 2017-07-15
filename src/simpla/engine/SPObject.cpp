@@ -66,16 +66,18 @@ void SPObject::DoUpdate() {}
 
 void SPObject::Initialize() {
     if (!isInitialized()) {
+        VERBOSE << "Initialize \t:" << GetName() << "[" << GetTypeName() << "]" << std::endl;
         PreInitialize(this);
         DoInitialize();
         PostInitialize(this);
         Click();
     }
 }
-
 void SPObject::Update() {
     Initialize();
     if (isModified()) {
+        VERBOSE << "Update    \t:" << GetName() << "[" << GetTypeName() << "]" << std::endl;
+
         PreUpdate(this);
         DoUpdate();
         PostUpdate(this);
@@ -84,6 +86,8 @@ void SPObject::Update() {
 }
 void SPObject::TearDown() {
     if (isInitialized()) {
+        VERBOSE << "TearDown  \t:" << GetName() << "[" << GetTypeName() << "]" << std::endl;
+
         PreTearDown(this);
         DoTearDown();
         PostTearDown(this);
@@ -92,6 +96,7 @@ void SPObject::TearDown() {
 };
 void SPObject::Finalize() {
     if (isInitialized()) {
+        VERBOSE << "Finalize  \t:" << GetName() << "[" << GetTypeName() << "]" << std::endl;
         TearDown();
         PreFinalize(this);
         DoFinalize();

@@ -36,7 +36,9 @@ namespace simpla {
     U_ const &cast_as() const {                                                                      \
         return *dynamic_cast<U_ const *>(this);                                                      \
     }                                                                                                \
-    virtual std::type_info const &GetTypeInfo() const { return typeid(_BASE_CLASS_NAME_); }
+    virtual std::type_info const &GetTypeInfo() const { return typeid(_BASE_CLASS_NAME_); }          \
+    static std::string sGetTypeName() { return __STRING(_BASE_CLASS_NAME_); }                        \
+    virtual std::string GetTypeName() const { return sGetTypeName(); }
 
 /**
  * @brief define the common part of the derived class
@@ -47,6 +49,8 @@ namespace simpla {
         return typeid(_CLASS_NAME_) == info || _BASE_CLASS_NAME_::isA(info);            \
     }                                                                                   \
     std::type_info const &GetTypeInfo() const override { return typeid(_CLASS_NAME_); } \
+    static std::string sGetTypeName() { return __STRING(_CLASS_NAME_); }                \
+    virtual std::string GetTypeName() const override { return sGetTypeName(); }         \
                                                                                         \
    private:                                                                             \
     typedef _BASE_CLASS_NAME_ base_type;                                                \

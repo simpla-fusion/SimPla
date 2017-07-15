@@ -37,7 +37,7 @@ std::shared_ptr<data::DataTable> Context::Serialize() const {
 void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     DoInitialize();
 
-    SetName(cfg->GetValue<std::string>("Name", "unamed"));
+    //    SetName(cfg->GetValue<std::string>("Name", "unamed"));
 
     m_pimpl_->m_atlas_.Deserialize(cfg->GetTable("Atlas"));
     m_pimpl_->m_chart_ = geometry::Chart::Create(cfg->GetTable("Chart"));
@@ -52,8 +52,7 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
             if (t_cfg != nullptr && t_cfg->isTable()) {
                 auto p_cfg = std::dynamic_pointer_cast<data::DataTable>(t_cfg);
                 std::string s_type = p_cfg->GetValue<std::string>("Type", "Unknown");
-                auto res = DomainBase::Create(s_type, GetChart());
-                res->SetName(key);
+                auto res = DomainBase::Create(s_type, key, GetChart());
                 res->Deserialize(p_cfg);
                 SetDomain(key, res);
             } else {

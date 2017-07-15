@@ -19,7 +19,7 @@ struct DomainBase::pimpl_s : public PatchDataPack {
     MeshBlock m_mesh_block_;
     std::map<std::string, Range<EntityId>> m_ranges_;
 };
-DomainBase::DomainBase(const geometry::Chart* c) : m_chart_(c) {}
+DomainBase::DomainBase(std::string const& s_name, const geometry::Chart* c) : SPObject(s_name), m_chart_(c) {}
 DomainBase::~DomainBase() {}
 
 DomainBase::DomainBase(DomainBase const& other) : m_pimpl_(other.m_pimpl_) {}
@@ -27,6 +27,7 @@ DomainBase::DomainBase(DomainBase const& other) : m_pimpl_(other.m_pimpl_) {}
 DomainBase::DomainBase(DomainBase&& other) noexcept : m_pimpl_(std::move(other.m_pimpl_)) {}
 
 void DomainBase::swap(DomainBase& other) {
+    SPObject::swap(other);
     std::swap(m_chart_, other.m_chart_);
     std::swap(m_pimpl_, other.m_pimpl_);
 }

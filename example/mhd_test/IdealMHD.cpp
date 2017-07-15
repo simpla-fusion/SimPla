@@ -17,7 +17,7 @@ class IdealMHD : public engine::DomainBase {
     SP_OBJECT_HEAD(IdealMHD<TM>, engine::Domain)
 
    public:
-    DOMAIN_HEAD(IdealMHD, TM)()(<#initializer#>)
+    DOMAIN_HEAD(IdealMHD, TM)(, <#initializer#>)()(<#initializer#>)
 
     std::shared_ptr<data::DataTable> Pack() const override;
     void Unpack(std::shared_ptr<data::DataTable> const &cfg) override;
