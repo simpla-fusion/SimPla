@@ -18,15 +18,10 @@
 
 namespace simpla {
 namespace engine {
+#define NULL_ID static_cast<id_type>(-1)
 
-/**
- * @addtogroup concept
- * @{
- */
 
-/**
- * @brief  define the common part of the base class
- */
+
 
 /**
  *
@@ -59,18 +54,22 @@ namespace engine {
  *
  *
   @startuml
-         state initialized         {
-           state prepared         {
-                state locked{
-                }
-            }
-            }
+        state null{
+        }
+        state initialized {
+        }
+        state modified {
+        }
+        state ready{
+        }
+
         null -->   initialized: Initialize
-        initialized --> prepared     : PreProcess
-        prepared --> locked    : lock
-        locked  -->  prepared  : unlock
-        prepared --> initialized     : PostProcess
-        initialized --> null     : Finalize
+        initialized --> modified : Click
+        modified --> ready    : Tag/Update
+        ready  -->  modified  : Click
+        ready --> initialized: TearDown
+        modified --> null     : ResetTag/Finalize
+
     @enduml
 
 
@@ -79,15 +78,16 @@ namespace engine {
 class SPObject {
     SP_OBJECT_BASE(SPObject)
    public:
-    SPObject(std::string const &s_name = "");
+    explicit SPObject(std::string const &s_name = "");
     virtual ~SPObject();
     SPObject(SPObject const &other);
-    SPObject(SPObject &&other);
+    SPObject(SPObject &&other) noexcept;
     void swap(SPObject &other);
-    void SetGUID(id_type id);
-    id_type GetGUID() const;
 
-    void SetName(std::string const &s_name);
+    SPObject &operator=(SPObject const &other) = delete;
+    SPObject &operator=(SPObject &&other) noexcept = delete;
+
+    id_type GetGUID() const;
     std::string const &GetName() const;
 
     void lock();
@@ -99,6 +99,7 @@ class SPObject {
     void ResetTag();
     size_type GetTagCount() const;
     size_type GetClickCount() const;
+
     bool isModified() const;
     bool isInitialized() const;
 
@@ -115,7 +116,6 @@ class SPObject {
     design_pattern::Signal<void(SPObject *)> PostTearDown;
     design_pattern::Signal<void(SPObject *)> PreFinalize;
     design_pattern::Signal<void(SPObject *)> PostFinalize;
-    design_pattern::Signal<void(SPObject *)> PostChanged;
 
     void Initialize();
     void Finalize();
@@ -250,7 +250,6 @@ class SPObject {
 //    virtual void DoFinalize();
 //    bool TryFinalize();
 /** @} */
-#define NULL_ID static_cast<id_type>(-1)
 }  // namespace engine{
 }  // namespace simpla { namespace base
 

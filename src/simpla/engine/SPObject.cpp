@@ -20,7 +20,7 @@ namespace simpla {
 namespace engine {
 struct SPObject::pimpl_s {
     std::mutex m_mutex_;
-    size_type m_click_ = 1;
+    size_type m_click_ = 0;
     size_type m_click_tag_ = 0;
     id_type m_id_ = NULL_ID;
     std::string m_name_;
@@ -28,26 +28,23 @@ struct SPObject::pimpl_s {
 
 static boost::hash<boost::uuids::uuid> g_obj_hasher;
 static boost::uuids::random_generator g_uuid_generator;
+
 SPObject::SPObject(std::string const &s_name) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_id_ = g_obj_hasher(g_uuid_generator());
-    m_pimpl_->m_name_ = (s_name != "") ? s_name : std::to_string(m_pimpl_->m_id_);
+    m_pimpl_->m_name_ = (!s_name.empty()) ? s_name : std::to_string(m_pimpl_->m_id_);
 }
 SPObject::~SPObject() { Finalize(); }
-SPObject::SPObject(SPObject const &other) {}
-SPObject::SPObject(SPObject &&other) {}
-void SPObject::swap(SPObject &other) {}
-
-void SPObject::SetGUID(id_type id) { m_pimpl_->m_id_ = id; }
-id_type SPObject::GetGUID() const { return m_pimpl_->m_id_; }
-
-void SPObject::SetName(std::string const &s_name) {
-    m_pimpl_->m_name_ = s_name;
-    Click();
+SPObject::SPObject(SPObject const &other) : m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_click_ = other.m_pimpl_->m_click_;
+    m_pimpl_->m_click_tag_ = other.m_pimpl_->m_click_tag_;
+    m_pimpl_->m_id_ = other.m_pimpl_->m_id_;
+    m_pimpl_->m_name_ = other.m_pimpl_->m_name_;
 }
-std::string const &SPObject::GetName() const { return m_pimpl_->m_name_; }
+SPObject::SPObject(SPObject &&other) noexcept : m_pimpl_(std::move(other.m_pimpl_)) {}
+void SPObject::swap(SPObject &other) { std::swap(m_pimpl_, other.m_pimpl_); }
 
-// DataPack SPObject::Serialize() const { return DataPack{}; }
-// void SPObject::UnPack(engine::DataPack &&t) {}
+id_type SPObject::GetGUID() const { return m_pimpl_->m_id_; }
+std::string const &SPObject::GetName() const { return m_pimpl_->m_name_; }
 
 void SPObject::lock() { m_pimpl_->m_mutex_.lock(); }
 void SPObject::unlock() { m_pimpl_->m_mutex_.unlock(); }
@@ -55,9 +52,10 @@ bool SPObject::try_lock() { return m_pimpl_->m_mutex_.try_lock(); }
 
 size_type SPObject::GetTagCount() const { return m_pimpl_->m_click_tag_; }
 size_type SPObject::GetClickCount() const { return m_pimpl_->m_click_; }
+
 void SPObject::Click() { ++m_pimpl_->m_click_; }
 void SPObject::Tag() { m_pimpl_->m_click_tag_ = m_pimpl_->m_click_; }
-void SPObject::ResetTag() { m_pimpl_->m_click_tag_ = m_pimpl_->m_click_ = 0; }
+void SPObject::ResetTag() { m_pimpl_->m_click_tag_ = (m_pimpl_->m_click_ = 0); }
 bool SPObject::isModified() const { return m_pimpl_->m_click_tag_ != m_pimpl_->m_click_; }
 bool SPObject::isInitialized() const { return m_pimpl_->m_click_tag_ > 0; }
 
@@ -72,13 +70,12 @@ void SPObject::Initialize() {
         DoInitialize();
         PostInitialize(this);
         Click();
-        Tag();
     }
 }
 
 void SPObject::Update() {
+    Initialize();
     if (isModified()) {
-        Initialize();
         PreUpdate(this);
         DoUpdate();
         PostUpdate(this);
@@ -86,11 +83,12 @@ void SPObject::Update() {
     }
 }
 void SPObject::TearDown() {
-    PreTearDown(this);
-    DoTearDown();
-    PostTearDown(this);
-    Tag();
-    Click();
+    if (isInitialized()) {
+        PreTearDown(this);
+        DoTearDown();
+        PostTearDown(this);
+        Click();
+    }
 };
 void SPObject::Finalize() {
     if (isInitialized()) {
