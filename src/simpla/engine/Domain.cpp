@@ -52,26 +52,26 @@ void DomainBase::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     Click();
 };
 
-void DomainBase::DoUpdate() {}
-void DomainBase::DoTearDown() {}
-void DomainBase::DoInitialize() {
+void DomainBase::DoUpdate() {
     if (m_pimpl_->m_pack_ == nullptr) { m_pimpl_->m_pack_ = std::make_shared<pack_s>(); }
 }
+void DomainBase::DoTearDown() {}
+void DomainBase::DoInitialize() {}
 void DomainBase::DoFinalize() { m_pimpl_->m_pack_.reset(); }
 
 void DomainBase::SetRange(std::string const& k, Range<EntityId> const& r) {
-    ASSERT(m_pimpl_->m_pack_ != nullptr);
+    Update();
     m_pimpl_->m_pack_->m_ranges_[k] = r;
     Click();
 };
-Range<EntityId>& DomainBase::GetRange(std::string const& k) { return m_pimpl_->m_pack_->m_ranges_[k]; };
+Range<EntityId>& DomainBase::GetRange(std::string const& k) {
+    Update();
+    return m_pimpl_->m_pack_->m_ranges_[k];
+};
 Range<EntityId> DomainBase::GetRange(std::string const& k) const {
+    ASSERT(m_pimpl_->m_pack_ != nullptr);
     auto it = m_pimpl_->m_pack_->m_ranges_.find(k);
-    if (it == m_pimpl_->m_pack_->m_ranges_.end()) {
-        return Range<EntityId>{};
-    } else {
-        return it->second;
-    }
+    return (it == m_pimpl_->m_pack_->m_ranges_.end()) ? Range<EntityId>{} : it->second;
 };
 
 void DomainBase::SetBlock(const engine::MeshBlock& blk) { MeshBlock(blk).swap(m_mesh_block_); };
@@ -82,6 +82,7 @@ void DomainBase::Push(Patch* patch) {
     if (m_pimpl_->m_pack_ == nullptr) {
         m_pimpl_->m_pack_ = std::dynamic_pointer_cast<pack_s>(patch->GetPack(GetName()));
     }
+
     SetBlock(patch->GetMeshBlock());
     AttributeGroup::Push(patch);
     Initialize();

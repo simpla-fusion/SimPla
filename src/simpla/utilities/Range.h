@@ -171,13 +171,12 @@ struct Range {
    public:
     typedef T value_type;
 
-    explicit Range(std::nullptr_t) : m_next_(nullptr), m_is_undefined_(true) {}
-    Range() : m_next_(nullptr) {}
+    Range() : m_next_(nullptr), m_is_null_(true) {}
     ~Range() = default;
 
-    explicit Range(std::shared_ptr<base_type> const& p) : m_next_(p) {}
-    Range(this_type const& other) : m_next_(other.m_next_) {}
-    Range(this_type&& other) noexcept : m_next_(other.m_next_) {}
+    explicit Range(std::shared_ptr<base_type> const& p) : m_next_(p), m_is_null_(false) {}
+    Range(this_type const& other) : m_next_(other.m_next_), m_is_null_(other.m_is_null_) {}
+    Range(this_type&& other) noexcept : m_next_(other.m_next_), m_is_null_(other.m_is_null_) {}
     Range(this_type& other, tags::split const& s) : Range(other.split(s)) {}
 
     Range& operator=(this_type const& other) {
@@ -190,15 +189,20 @@ struct Range {
     }
     void reset(std::shared_ptr<base_type> const& p = nullptr) { m_next_ = p; }
 
-    void swap(this_type& other) { std::swap(m_next_, other.m_next_); }
+    void swap(this_type& other) {
+        std::swap(m_next_, other.m_next_);
+        std::swap(m_is_null_, other.m_is_null_);
+    }
 
     bool is_divisible() const {  // FIXME: this is not  full functional
         return m_next_ != nullptr && m_next_->is_divisible();
     }
-    bool empty() const { return m_next_ == nullptr || m_next_->empty(); }
-    bool isNull() const { return m_next_ == nullptr; }
-    bool isUndefined() const { return m_is_undefined_ && m_next_ == nullptr; }
-    void clear() { m_next_.reset(); }
+    bool empty() const { return m_next_ == nullptr; }
+    bool isNull() const { return m_is_null_; }
+    void clear() {
+        m_next_.reset();
+        m_is_null_ = true;
+    }
 
     this_type split(tags::split const& s = tags::split()) {
         // FIXME: this is not  full functional
@@ -216,7 +220,7 @@ struct Range {
     }
 
     this_type& append(std::shared_ptr<base_type> const& other) {
-        bool m_is_undefined_ = false;
+        m_is_null_ = false;
         auto* cursor = &m_next_;
         while ((*cursor) != nullptr) { cursor = &(*cursor)->m_next_; }
         *cursor = other;
@@ -249,7 +253,7 @@ struct Range {
 
    private:
     std::shared_ptr<base_type> m_next_ = nullptr;
-    bool m_is_undefined_ = true;
+    bool m_is_null_ = true;
 };
 
 template <typename T>

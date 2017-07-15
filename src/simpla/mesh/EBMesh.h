@@ -25,7 +25,12 @@ struct EBMesh {
 
     template <typename LHS, typename RHS>
     void FillBody(LHS &lhs, RHS &&rhs) const {
-        m_host_->FillRange(lhs, std::forward<RHS>(rhs), m_host_->GetName() + "_BODY");
+        auto r = m_host_->GetRange(m_host_->GetName() + "_BODY");
+        if (r.isNull()) {
+            m_host_->Fill(lhs, std::forward<RHS>(rhs));
+        } else {
+            m_host_->Fill(lhs, std::forward<RHS>(rhs), r);
+        }
     };
 
     template <typename LHS, typename RHS>
@@ -43,7 +48,9 @@ void EBMesh<THost>::InitialCondition(Real time_now) {
 
     Real ratio = g->CheckOverlap(m_host_->GetBox());
 
-    if (ratio < EPSILON) {
+    if (1 - ratio < EPSILON) {
+        return;
+    } else if (ratio < EPSILON) {
         m_host_->GetRange(m_host_->GetName() + "_BODY_0").append(nullptr);
         m_host_->GetRange(m_host_->GetName() + "_BODY_1").append(nullptr);
         m_host_->GetRange(m_host_->GetName() + "_BODY_2").append(nullptr);

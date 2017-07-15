@@ -8,7 +8,9 @@
 #define SIMPLA_EM_FLUID_H
 
 #include "simpla/SIMPLA_config.h"
+
 #include "simpla/algebra/Algebra.h"
+#include "simpla/engine/Domain.h"
 #include "simpla/engine/Model.h"
 #include "simpla/physics/PhysicalConstants.h"
 namespace simpla {
@@ -136,11 +138,11 @@ template <typename TM>
 void EMFluid<TM>::Advance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
 
-    B = B - curl(E) * (dt * 0.5);
-    m_host_->FillBoundary(B, 0);
-
-    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
-    m_host_->FillBoundary(E, 0);
+//    B = B - curl(E) * (dt * 0.5);
+//    m_host_->FillBoundary(B, 0);
+//
+//    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
+//    m_host_->FillBoundary(E, 0);
 
     if (m_fluid_sp_.size() > 0) {
         Ev = map_to<VOLUME>(E);
@@ -205,12 +207,11 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
         E = E + map_to<EDGE>(dE);
     }
 
-    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
-    m_host_->FillBoundary(E, 0);
-
-    B = B - curl(E) * (dt * 0.5);
-    m_host_->FillBoundary(B, 0);
-
+//    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
+//    m_host_->FillBoundary(E, 0);
+//
+//    B = B - curl(E) * (dt * 0.5);
+//    m_host_->FillBoundary(B, 0);
 
     dumpE.DeepCopy(E);
     dumpB.DeepCopy(B);
