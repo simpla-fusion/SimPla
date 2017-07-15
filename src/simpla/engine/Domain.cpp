@@ -37,8 +37,8 @@ void DomainBase::swap(DomainBase& other) {
     SPObject::swap(other);
     std::swap(m_pimpl_, other.m_pimpl_);
     std::swap(m_chart_, other.m_chart_);
+    std::swap(m_model_, other.m_model_);
     m_mesh_block_.swap(other.m_mesh_block_);
-    m_model_.swap(other.m_model_);
 }
 
 std::shared_ptr<data::DataTable> DomainBase::Serialize() const {
@@ -48,7 +48,7 @@ std::shared_ptr<data::DataTable> DomainBase::Serialize() const {
     return (p);
 }
 void DomainBase::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
-    m_model_.Deserialize(cfg->GetTable("Model"));
+    m_model_ = engine::Model::Create(cfg->GetTable("Model"));
     Click();
 };
 
@@ -64,10 +64,15 @@ void DomainBase::SetRange(std::string const& k, Range<EntityId> const& r) {
     m_pimpl_->m_pack_->m_ranges_[k] = r;
     Click();
 };
-Range<EntityId>& DomainBase::GetRange(std::string const& k) {
-    return m_pimpl_->m_pack_->m_ranges_[GetName() + "_" + k];
+Range<EntityId>& DomainBase::GetRange(std::string const& k) { return m_pimpl_->m_pack_->m_ranges_[k]; };
+Range<EntityId> DomainBase::GetRange(std::string const& k) const {
+    auto it = m_pimpl_->m_pack_->m_ranges_.find(k);
+    if (it == m_pimpl_->m_pack_->m_ranges_.end()) {
+        return Range<EntityId>{};
+    } else {
+        return it->second;
+    }
 };
-Range<EntityId> const& DomainBase::GetRange(std::string const& k) const { return m_pimpl_->m_pack_->m_ranges_.at(k); };
 
 void DomainBase::SetBlock(const engine::MeshBlock& blk) { MeshBlock(blk).swap(m_mesh_block_); };
 const engine::MeshBlock& DomainBase::GetBlock() const { return m_mesh_block_; }
@@ -84,20 +89,23 @@ void DomainBase::Push(Patch* patch) {
 void DomainBase::Pull(Patch* patch) {
     patch->SetMeshBlock(GetBlock());
     AttributeGroup::Pull(patch);
-    patch->SetPack(GetName(), std::dynamic_pointer_cast<PatchDataPack>(m_pimpl_->m_pack_));
+    patch->SetPack(std::dynamic_pointer_cast<PatchDataPack>(m_pimpl_->m_pack_), GetName());
     Finalize();
 }
 void DomainBase::InitialCondition(Real time_now) {
+    VERBOSE << "InitialCondition   \t:" << GetName() << std::endl;
     PreInitialCondition(this, time_now);
     DoInitialCondition(time_now);
     PostInitialCondition(this, time_now);
 }
 void DomainBase::BoundaryCondition(Real time_now, Real dt) {
+    VERBOSE << "Boundary Condition \t:" << GetName() << std::endl;
     PreBoundaryCondition(this, time_now, dt);
     DoBoundaryCondition(time_now, dt);
     PostBoundaryCondition(this, time_now, dt);
 }
 void DomainBase::Advance(Real time_now, Real dt) {
+    VERBOSE << "Advance            \t:" << GetName() << std::endl;
     PreAdvance(this, time_now, dt);
     DoAdvance(time_now, dt);
     PostAdvance(this, time_now, dt);

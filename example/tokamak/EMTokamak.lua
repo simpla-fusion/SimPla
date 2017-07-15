@@ -20,18 +20,18 @@ Context = {
 
     Domain =
     {
---        Tokamak = {
---            Type = "EMFluid", -- "Domain<RectMesh,EBMesh,FVM,EMFluid>",
-----            Species = {
-----                ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
-----                H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
-----            },
---            Model = {
---                Type = "Tokamak",
---                gfile = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900",
---                Phi = { -TWOPI / 4, TWOPI / 4 },
+        Tokamak = {
+            Type = "EMFluid", -- "Domain<RectMesh,EBMesh,FVM,EMFluid>",
+--            Species = {
+--                ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
+--                H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
 --            },
---        },
+            Model = {
+                Type = "Tokamak",
+                gfile = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900",
+                Phi = { -TWOPI / 4, TWOPI / 4 },
+            },
+        },
         RFAntenna = {
             Type = "ICRFAntenna",-- "Domain<RectMesh,EBMesh,FVM,ICRFAntenna>",
             Variable = { Name = "E" },

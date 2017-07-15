@@ -19,14 +19,17 @@ struct Patch::pimpl_s {
     id_type m_id_ = NULL_ID;
     std::map<id_type, std::shared_ptr<data::DataBlock>> m_data_;
     std::map<std::string, std::shared_ptr<PatchDataPack>> m_packs_;
+
+    std::shared_ptr<PatchDataPack> m_pack_ = nullptr;
 };
 
 Patch::Patch(id_type id) : m_pimpl_(new pimpl_s) { m_pimpl_->m_id_ = id; }
-Patch::~Patch() {}
+Patch::~Patch() = default;  //{}
 Patch::Patch(this_type const &other) : Patch(other.GetId()) {
     MeshBlock(other.GetMeshBlock()).swap(m_pimpl_->m_block_);
     m_pimpl_->m_data_ = other.m_pimpl_->m_data_;
     m_pimpl_->m_packs_ = other.m_pimpl_->m_packs_;
+    m_pimpl_->m_pack_ = other.m_pimpl_->m_pack_;
 }
 Patch::Patch(this_type &&other) noexcept : m_pimpl_(other.m_pimpl_.get()) { other.m_pimpl_.reset(); }
 
@@ -56,16 +59,16 @@ std::shared_ptr<data::DataBlock> Patch::GetDataBlock(id_type const &id) {
     if (it != m_pimpl_->m_data_.end()) { res = (it->second); }
     return (res);
 }
-std::shared_ptr<PatchDataPack> Patch::GetPack(const std::string &g) {
-    auto it = m_pimpl_->m_packs_.find(g);
-    if (it != m_pimpl_->m_packs_.end()) {
-        return it->second;
-    } else {
-        return nullptr;
-    }
-}
 
-void Patch::SetPack(const std::string &g, std::shared_ptr<PatchDataPack> p) { m_pimpl_->m_packs_[g] = p; }
+std::shared_ptr<PatchDataPack> Patch::GetPack(const std::string &g) { return m_pimpl_->m_pack_; }
+//    auto it = m_pimpl_->m_packs_.find(g);
+//    if (it != m_pimpl_->m_packs_.end()) {
+//        return it->second;
+//    } else {
+//        return nullptr;
+//    }
+
+void Patch::SetPack(std::shared_ptr<PatchDataPack> p, const std::string &g) { m_pimpl_->m_pack_ = p; }
 
 //
 // void Patch::PushRange(std::shared_ptr<std::map<std::string, EntityRange>> const &r) { m_pack_->m_range_ = r; };

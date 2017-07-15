@@ -53,14 +53,14 @@ class DomainBase : public SPObject,
 
     void SetRange(std::string const &, Range<EntityId> const &);
     virtual Range<EntityId> &GetRange(std::string const &k);
-    virtual Range<EntityId> const &GetRange(std::string const &k) const;
+    virtual Range <EntityId> GetRange(std::string const &k) const;
 
     void SetBlock(const MeshBlock &blk);
     virtual const MeshBlock &GetBlock() const;
     virtual id_type GetBlockId() const;
 
-    const Model &GetModel() const { return m_model_; }
-    Model &GetModel() { return m_model_; }
+    const Model &GetModel() const { return *m_model_; }
+    Model &GetModel() { return *m_model_; }
 
     void DoInitialize() override;
     void DoFinalize() override;
@@ -93,7 +93,7 @@ class DomainBase : public SPObject,
     MeshBlock m_mesh_block_;
 
     const geometry::Chart *m_chart_;
-    engine::Model m_model_;
+    std::shared_ptr<engine::Model> m_model_;
 
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
@@ -150,11 +150,11 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
     template <typename TL, typename TR>
     void FillRange(TL &lhs, TR &&rhs, std::string const &k = "") const;
 
-    template <typename TL, typename TR>
-    void FillBody(TL &lhs, TR &&rhs) const;
-
-    template <typename TL, typename TR>
-    void FillBoundary(TL &lhs, TR &&rhs) const;
+//    template <typename TL, typename TR>
+//    void FillBody(TL &lhs, TR &&rhs) const;
+//
+//    template <typename TL, typename TR>
+//    void FillBoundary(TL &lhs, TR &&rhs) const;
 };  // class Domain
 
 template <template <typename> class... Policies>
@@ -202,7 +202,7 @@ DEFINE_INVOKE_HELPER(BoundaryCondition)
 DEFINE_INVOKE_HELPER(Advance)
 DEFINE_INVOKE_HELPER(Deserialize)
 DEFINE_INVOKE_HELPER(Serialize)
-// DEFINE_INVOKE_HELPER(Fill)
+
 #undef DEFINE_INVOKE_HELPER
 
 template <template <typename> class... Policies>
@@ -231,26 +231,13 @@ void Domain<Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &cf
 template <template <typename> class... Policies>
 template <typename LHS, typename RHS>
 void Domain<Policies...>::FillRange(LHS &lhs, RHS &&rhs, std::string const &k) const {
-    //    auto r = GetRange(GetName() + "_" +k + "_" + std::to_string(LHS::iform));
-    //
-    //    if (r.isNull()) {
-    //        this->Fill(lhs, std::forward<RHS>(rhs), r);
-    //    } else {
-    //        this->Fill(lhs, std::forward<RHS>(rhs));
-    //    }
-};
-template <template <typename> class... Policies>
-template <typename LHS, typename RHS>
-void Domain<Policies...>::FillBody(LHS &lhs, RHS &&rhs) const {
-    FillRange(lhs, std::forward<RHS>(rhs), "BODY");
-};
+    auto r = GetRange(k + "_" + std::to_string(LHS::iform));
 
-template <template <typename> class... Policies>
-template <typename LHS, typename RHS>
-void Domain<Policies...>::FillBoundary(LHS &lhs, RHS &&rhs) const {
-    FillRange(lhs, std::forward<RHS>(rhs), "BOUNDARY");
-    FillRange(lhs, std::forward<RHS>(rhs), "PARA_BOUNDARY");
-    FillRange(lhs, std::forward<RHS>(rhs), "PERP_BOUNDARY");
+    if (r.isNull()) {
+        this->Fill(lhs, std::forward<RHS>(rhs), r);
+    } else {
+        this->Fill(lhs, std::forward<RHS>(rhs));
+    }
 };
 
 #define DOMAIN_POLICY_HEAD(_NAME_)                   \

@@ -100,15 +100,12 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
     dumpE.Initialize();
     dumpB.Initialize();
     dumpJ.Initialize();
-    E.Initialize();
-    B.Initialize();
-    J.Initialize();
+    E.Clear();
+    B.Clear();
+    J.Clear();
 
-    Ev.Initialize();
-    Bv.Initialize();
-
-    ne.Clear();
-    B0v.Clear();
+    Ev.Clear();
+    Bv.Clear();
 
     ne.Initialize();
     B0v.Initialize();
@@ -213,6 +210,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
 
     B = B - curl(E) * (dt * 0.5);
     m_host_->FillBoundary(B, 0);
+
 
     dumpE.DeepCopy(E);
     dumpB.DeepCopy(B);

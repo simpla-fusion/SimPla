@@ -100,10 +100,7 @@ void SpApp::Config(int argc, char **argv) {
                         << ": application name" << std::endl
                         << std::endl
                         << std::endl
-                        << std::endl
-                        << geometry::Chart::ShowDescription() << std::endl
-                        << engine::Model::ShowDescription() << std::endl
-                        << engine::DomainBase::ShowDescription() << std::endl;
+                        << std::endl;
 
                 TheEnd(0);
                 return TERMINATE;
@@ -165,6 +162,10 @@ int main(int argc, char **argv) {
 #endif
 
     parallel::init(argc, argv);
+
+    MESSAGE << geometry::Chart::ShowDescription() << std::endl
+            << engine::Model::ShowDescription() << std::endl
+            << engine::DomainBase::ShowDescription() << std::endl;
 
     GLOBAL_COMM.barrier();
 
