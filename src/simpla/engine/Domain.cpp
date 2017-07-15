@@ -22,16 +22,20 @@ struct DomainBase::pimpl_s {
     std::shared_ptr<pack_s> m_pack_;
 };
 
-DomainBase::DomainBase(std::string const& s_name, const geometry::Chart* c)
-    : SPObject(s_name), m_pimpl_(new pimpl_s), m_chart_(c) {}
+DomainBase::DomainBase(const geometry::Chart* c, const Model* m) : m_pimpl_(new pimpl_s), m_chart_(c), m_model_(m) {}
 
 DomainBase::~DomainBase() = default;
 
-DomainBase::DomainBase(DomainBase const& other) : SPObject(other), m_pimpl_(new pimpl_s) {
+DomainBase::DomainBase(DomainBase const& other)
+    : SPObject(other), m_pimpl_(new pimpl_s), m_chart_(other.m_chart_), m_model_(other.m_model_) {
     m_pimpl_->m_pack_ = other.m_pimpl_->m_pack_;
 }
 
-DomainBase::DomainBase(DomainBase&& other) noexcept : SPObject(std::move(other)), m_pimpl_(std::move(other.m_pimpl_)) {}
+DomainBase::DomainBase(DomainBase&& other) noexcept
+    : SPObject(std::move(other)),
+      m_pimpl_(std::move(other.m_pimpl_)),
+      m_chart_(other.m_chart_),
+      m_model_(other.m_model_) {}
 
 void DomainBase::swap(DomainBase& other) {
     SPObject::swap(other);
@@ -44,13 +48,9 @@ void DomainBase::swap(DomainBase& other) {
 std::shared_ptr<data::DataTable> DomainBase::Serialize() const {
     auto p = std::make_shared<data::DataTable>();
     p->SetValue("Type", GetRegisterName());
-    p->SetValue("Model", GetModel().Serialize());
     return (p);
 }
-void DomainBase::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
-    m_model_ = engine::Model::Create(cfg->GetTable("Model"));
-    Click();
-};
+void DomainBase::Deserialize(std::shared_ptr<data::DataTable> const& cfg) { Click(); };
 
 void DomainBase::DoUpdate() {
     if (m_pimpl_->m_pack_ == nullptr) { m_pimpl_->m_pack_ = std::make_shared<pack_s>(); }

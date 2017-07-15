@@ -20,9 +20,6 @@ namespace simpla {
 namespace engine {
 #define NULL_ID static_cast<id_type>(-1)
 
-
-
-
 /**
  *
  *  @brief every thing is an Object
@@ -88,6 +85,7 @@ class SPObject {
     SPObject &operator=(SPObject &&other) noexcept = delete;
 
     id_type GetGUID() const;
+    void SetName(std::string const &);
     std::string const &GetName() const;
 
     void lock();

@@ -43,7 +43,7 @@ struct EBMesh {
 
 template <typename THost>
 void EBMesh<THost>::InitialCondition(Real time_now) {
-    auto g = m_host_->GetModel().GetBoundary();
+    auto g = m_host_->GetModel()->GetBoundary();
     if (g == nullptr) { return; }
 
     Real ratio = g->CheckOverlap(m_host_->GetBox());

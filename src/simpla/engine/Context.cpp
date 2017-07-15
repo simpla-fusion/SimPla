@@ -18,6 +18,8 @@ struct Context::pimpl_s {
     std::map<std::string, std::shared_ptr<DomainBase>> m_domains_;
     std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
     std::shared_ptr<geometry::Chart> m_chart_;
+    std::map<std::string, std::shared_ptr<Model>> m_models_;
+
     Atlas m_atlas_;
 };
 
@@ -31,6 +33,7 @@ std::shared_ptr<data::DataTable> Context::Serialize() const {
     res->SetValue("Chart", GetChart()->Serialize());
     res->Set("Atlas", m_pimpl_->m_atlas_.Serialize());
     for (auto const &item : m_pimpl_->m_domains_) { res->Link("Domain/" + item.first, item.second->Serialize()); }
+    for (auto const &item : m_pimpl_->m_models_) { res->Link("Model/" + item.first, item.second->Serialize()); }
 
     return res;
 }
@@ -46,15 +49,21 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     m_pimpl_->m_chart_->SetScale((std::get<1>(m_pimpl_->m_atlas_.GetBox()) - std::get<0>(m_pimpl_->m_atlas_.GetBox())) /
                                  m_pimpl_->m_atlas_.GetDimensions());
 
+    auto t_model = cfg->GetTable("Model");
+    if (t_model != nullptr) {
+        t_model->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) {
+            m_pimpl_->m_models_[key] = Model::Create(std::dynamic_pointer_cast<data::DataTable>(t_cfg));
+        });
+    }
+
     auto t_domain = cfg->GetTable("Domain");
     if (t_domain != nullptr) {
-        cfg->GetTable("Domain")->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) {
+        t_domain->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) {
             if (t_cfg != nullptr && t_cfg->isTable()) {
                 auto p_cfg = std::dynamic_pointer_cast<data::DataTable>(t_cfg);
-                std::string s_type = p_cfg->GetValue<std::string>("Type", "Unknown");
-                auto res = DomainBase::Create(s_type, key, GetChart());
-                res->Deserialize(p_cfg);
-                SetDomain(key, res);
+                auto const *s_model = m_pimpl_->m_models_.at(p_cfg->GetValue<std::string>("Model", "Unknown")).get();
+                m_pimpl_->m_domains_[key] = DomainBase::Create(p_cfg, GetChart(), s_model);
+                m_pimpl_->m_domains_[key]->SetName(key);
             } else {
                 RUNTIME_ERROR << "illegal domain config!" << std::endl;
             }

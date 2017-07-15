@@ -112,8 +112,8 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
     ne.Initialize();
     B0v.Initialize();
 
-    m_host_->GetModel().LoadProfile("ne", &ne);
-    m_host_->GetModel().LoadProfile("B0", &B0v);
+    m_host_->GetModel()->LoadProfile("ne", &ne);
+    m_host_->GetModel()->LoadProfile("B0", &B0v);
 
     BB = dot(B0v, B0v);
 
@@ -138,11 +138,11 @@ template <typename TM>
 void EMFluid<TM>::Advance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
 
-//    B = B - curl(E) * (dt * 0.5);
-//    m_host_->FillBoundary(B, 0);
-//
-//    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
-//    m_host_->FillBoundary(E, 0);
+    //    B = B - curl(E) * (dt * 0.5);
+    //    m_host_->FillBoundary(B, 0);
+    //
+    //    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
+    //    m_host_->FillBoundary(E, 0);
 
     if (m_fluid_sp_.size() > 0) {
         Ev = map_to<VOLUME>(E);
@@ -207,11 +207,11 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
         E = E + map_to<EDGE>(dE);
     }
 
-//    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
-//    m_host_->FillBoundary(E, 0);
-//
-//    B = B - curl(E) * (dt * 0.5);
-//    m_host_->FillBoundary(B, 0);
+    //    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
+    //    m_host_->FillBoundary(E, 0);
+    //
+    //    B = B - curl(E) * (dt * 0.5);
+    //    m_host_->FillBoundary(B, 0);
 
     dumpE.DeepCopy(E);
     dumpB.DeepCopy(B);

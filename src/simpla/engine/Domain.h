@@ -27,13 +27,13 @@ class Model;
 
 class DomainBase : public SPObject,
                    public AttributeGroup,
-                   public data::EnableCreateFromDataTable<DomainBase, std::string, const geometry::Chart *> {
+                   public data::EnableCreateFromDataTable<DomainBase, const geometry::Chart *, const Model *> {
     SP_OBJECT_HEAD(DomainBase, SPObject)
     DECLARE_REGISTER_NAME(DomainBase)
    public:
     using AttributeGroup::attribute_type;
 
-    DomainBase(std::string const &s_name, const geometry::Chart *);
+    DomainBase(const geometry::Chart *c = nullptr, const Model *m = nullptr);
     ~DomainBase() override;
     DomainBase(DomainBase const &other);
     DomainBase(DomainBase &&other) noexcept;
@@ -46,21 +46,19 @@ class DomainBase : public SPObject,
         DomainBase(other).swap(*this);
         return *this;
     }
-    const geometry::Chart *GetChart() const { return m_chart_; }
+    virtual const geometry::Chart *GetChart() const { return m_chart_; }
+    virtual const Model *GetModel() const { return m_model_; }
+
+    void SetBlock(const MeshBlock &blk);
+    virtual const MeshBlock &GetBlock() const;
+    virtual id_type GetBlockId() const;
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const &t) override;
 
     void SetRange(std::string const &, Range<EntityId> const &);
     virtual Range<EntityId> &GetRange(std::string const &k);
-    virtual Range <EntityId> GetRange(std::string const &k) const;
-
-    void SetBlock(const MeshBlock &blk);
-    virtual const MeshBlock &GetBlock() const;
-    virtual id_type GetBlockId() const;
-
-    const Model &GetModel() const { return *m_model_; }
-    Model &GetModel() { return *m_model_; }
+    virtual Range<EntityId> GetRange(std::string const &k) const;
 
     void DoInitialize() override;
     void DoFinalize() override;
@@ -92,8 +90,8 @@ class DomainBase : public SPObject,
    private:
     MeshBlock m_mesh_block_;
 
-    const geometry::Chart *m_chart_;
-    std::shared_ptr<engine::Model> m_model_;
+    geometry::Chart const *m_chart_;
+    engine::Model const *m_model_;
 
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
@@ -109,7 +107,7 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
    public:
     typedef DomainBase::attribute_type attribute_type;
 
-    Domain(std::string const &s_name, geometry::Chart const *c) : DomainBase(s_name, c), Policies<this_type>(this)... {}
+    Domain(geometry::Chart const *c, const Model *m) : DomainBase(c, m), Policies<this_type>(this)... {}
     ~Domain() override = default;
 
     static bool is_registered;
@@ -129,6 +127,7 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
    public:
     static std::string RegisterName() { return "Domain<" + _RegisterName<Policies...>() + ">"; }
 
+    const Model *GetModel() const override { return DomainBase::GetModel(); }
     const geometry::Chart *GetChart() const override { return DomainBase::GetChart(); };
     const engine::MeshBlock &GetBlock() const override { return DomainBase::GetBlock(); };
 
@@ -150,11 +149,11 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
     template <typename TL, typename TR>
     void FillRange(TL &lhs, TR &&rhs, std::string const &k = "") const;
 
-//    template <typename TL, typename TR>
-//    void FillBody(TL &lhs, TR &&rhs) const;
-//
-//    template <typename TL, typename TR>
-//    void FillBoundary(TL &lhs, TR &&rhs) const;
+    //    template <typename TL, typename TR>
+    //    void FillBody(TL &lhs, TR &&rhs) const;
+    //
+    //    template <typename TL, typename TR>
+    //    void FillBoundary(TL &lhs, TR &&rhs) const;
 };  // class Domain
 
 template <template <typename> class... Policies>

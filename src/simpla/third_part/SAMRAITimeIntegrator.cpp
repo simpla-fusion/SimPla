@@ -634,7 +634,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
 //                CHECK(face2_box);
 //                CHECK(volume_box);
 
-                simpla::engine::DomainBase d("", nullptr);
+                simpla::engine::DomainBase d;
                 d.Push(&p);
                 d.GetRange("PATCH_BOUNDARY_" + std::to_string(VERTEX))
                     .append(std::make_shared<ContinueRange<EntityId>>(vertex_box, 0));

@@ -47,6 +47,7 @@ SPObject::SPObject(SPObject &&other) noexcept : m_pimpl_(std::move(other.m_pimpl
 void SPObject::swap(SPObject &other) { std::swap(m_pimpl_, other.m_pimpl_); }
 
 id_type SPObject::GetGUID() const { return m_pimpl_->m_id_; }
+void SPObject::SetName(std::string const &s) { m_pimpl_->m_name_ = s; };
 std::string const &SPObject::GetName() const { return m_pimpl_->m_name_; }
 
 void SPObject::lock() { m_pimpl_->m_mutex_.lock(); }
