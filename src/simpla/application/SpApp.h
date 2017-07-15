@@ -26,6 +26,7 @@ struct SpApp : public engine::SPObject, public data::Serializable {
     using data::Serializable::Serialize;
     using data::Serializable::Deserialize;
 
+    void Config(int argc,char ** argv);
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
 
@@ -35,11 +36,8 @@ struct SpApp : public engine::SPObject, public data::Serializable {
     void DoTearDown() override;
     void DoFinalize() override;
 
-    void SetModel(std::shared_ptr<engine::Model> s);
-    std::shared_ptr<engine::Model> GetModel() const;
-
-    void SetContext(std::shared_ptr<engine::Context> s);
-    std::shared_ptr<engine::Context> GetContext() const;
+    engine::Context &GetContext();
+    engine::Context const &GetContext() const;
 
     void SetSchedule(std::shared_ptr<engine::Schedule> s);
     std::shared_ptr<engine::Schedule> GetSchedule() const;

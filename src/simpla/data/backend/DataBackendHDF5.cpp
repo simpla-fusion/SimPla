@@ -537,7 +537,7 @@ void DataBackendHDF5::Delete(std::string const& uri) {
 
 // size_type DataBackendHDF5::Foreach(
 //    std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& fun) const {
-//    auto res = get_table_from_h5(m_pimpl_->m_g_id_, uri, false);
+//    auto res = get_table_from_h5(m_pack_->m_g_id_, uri, false);
 //    if (res.first == -1 || res.second == "") { return 0; }
 //    if (H5Aexists(res.first, res.second.c_str())) {
 //        H5_ERROR(H5Adelete(res.first, res.second.c_str()));
@@ -553,7 +553,7 @@ void DataBackendHDF5::Delete(std::string const& uri) {
 // herr_t attr_info(hid_t location_id /*in*/, const char* attr_name /*in*/, const H5A_info_t* ainfo /*in*/,
 //                 void* op_data /*in,out*/) {
 //    auto const& op = *reinterpret_cast<attr_op*>(op_data);
-//    op.m_op_(std::string(attr_name), DataBackendHDF5::pimpl_s::HDF5Get(location_id, std::string(attr_name)));
+//    op.m_op_(std::string(attr_name), DataBackendHDF5::pack_s::HDF5Get(location_id, std::string(attr_name)));
 //}
 size_type DataBackendHDF5::Foreach(
     std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& fun) const {

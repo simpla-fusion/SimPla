@@ -73,7 +73,7 @@ REGISTER_CREATOR(SAMRAITimeIntegrator)
 class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatchStrategy {
     SP_OBJECT_BASE(SAMRAIHyperbolicPatchStrategyAdapter)
    public:
-    SAMRAIHyperbolicPatchStrategyAdapter(std::shared_ptr<engine::Context> ctx,
+    SAMRAIHyperbolicPatchStrategyAdapter(engine::Context *ctx,
                                          std::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom);
 
     /**
@@ -220,7 +220,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
 
    private:
     static constexpr int NDIMS = 3;
-    std::shared_ptr<engine::Context> m_ctx_;
+    engine::Context *m_ctx_;
     /*
      * The object GetPrefix is used for error/warning reporting and also as a
      * string label for restart database entries.
@@ -251,13 +251,13 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
 };
 
 SAMRAIHyperbolicPatchStrategyAdapter::SAMRAIHyperbolicPatchStrategyAdapter(
-    std::shared_ptr<engine::Context> ctx, std::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom)
+    engine::Context *ctx, std::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom)
     : d_dim(3),
       d_grid_geometry(grid_geom),
       d_use_nonuniform_workload(false),
       d_nghosts(d_dim, 4),
       d_fluxghosts(d_dim, 1),
-      m_ctx_(std::move(ctx)) {
+      m_ctx_(ctx) {
     TBOX_ASSERT(grid_geom);
 }
 
@@ -634,24 +634,24 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
                 //                CHECK(face2_box);
                 //                CHECK(volume_box);
 
-//                simpla::engine::DomainBase d("", nullptr);
-//                d.Push(&p);
-//                d.GetRange("PATCH_BOUNDARY_" + std::to_string(VERTEX))
-//                    .append(std::make_shared<ContinueRange<EntityId>>(vertex_box, 0));
-//
-//                d.GetRange("PATCH_BOUNDARY_" + std::to_string(EDGE))
-//                    .append(std::make_shared<ContinueRange<EntityId>>(edge0_box, 1))
-//                    .append(std::make_shared<ContinueRange<EntityId>>(edge1_box, 2))
-//                    .append(std::make_shared<ContinueRange<EntityId>>(edge2_box, 4));
-//
-//                d.GetRange("PATCH_BOUNDARY_" + std::to_string(FACE))
-//                    .append(std::make_shared<ContinueRange<EntityId>>(face0_box, 6))
-//                    .append(std::make_shared<ContinueRange<EntityId>>(face1_box, 5))
-//                    .append(std::make_shared<ContinueRange<EntityId>>(face2_box, 3));
-//
-//                d.GetRange("PATCH_BOUNDARY_" + std::to_string(VOLUME))
-//                    .append(std::make_shared<ContinueRange<EntityId>>(volume_box, 7));
-//                d.Pull(&p);
+                //                simpla::engine::DomainBase d("", nullptr);
+                //                d.Push(&p);
+                //                d.GetRange("PATCH_BOUNDARY_" + std::to_string(VERTEX))
+                //                    .append(std::make_shared<ContinueRange<EntityId>>(vertex_box, 0));
+                //
+                //                d.GetRange("PATCH_BOUNDARY_" + std::to_string(EDGE))
+                //                    .append(std::make_shared<ContinueRange<EntityId>>(edge0_box, 1))
+                //                    .append(std::make_shared<ContinueRange<EntityId>>(edge1_box, 2))
+                //                    .append(std::make_shared<ContinueRange<EntityId>>(edge2_box, 4));
+                //
+                //                d.GetRange("PATCH_BOUNDARY_" + std::to_string(FACE))
+                //                    .append(std::make_shared<ContinueRange<EntityId>>(face0_box, 6))
+                //                    .append(std::make_shared<ContinueRange<EntityId>>(face1_box, 5))
+                //                    .append(std::make_shared<ContinueRange<EntityId>>(face2_box, 3));
+                //
+                //                d.GetRange("PATCH_BOUNDARY_" + std::to_string(VOLUME))
+                //                    .append(std::make_shared<ContinueRange<EntityId>>(volume_box, 7));
+                //                d.Pull(&p);
             }
         m_ctx_->InitialCondition(&p, data_time);
 
@@ -905,7 +905,7 @@ void SAMRAITimeIntegrator::DoUpdate() {
     }
      */
 
-    auto &ctx = GetContext();
+    auto *ctx = GetContext();
     auto &atlas = ctx->GetAtlas();
     unsigned int ndims = 3;                // static_cast<unsigned int>(ctx->GetNDims());
     bool use_refined_timestepping = true;  // m_samrai_db_->GetValue<bool>("use_refined_timestepping", true);
@@ -1051,10 +1051,10 @@ void SAMRAITimeIntegrator::DoUpdate() {
 
     m_pimpl_->m_time_refinement_integrator_->initializeHierarchy();
 
-    //    m_pimpl_->grid_geometry->printClassData(std::cout);
-    //    m_pimpl_->hyp_level_integrator->printClassData(std::cout);
+    //    m_pack_->grid_geometry->printClassData(std::cout);
+    //    m_pack_->hyp_level_integrator->printClassData(std::cout);
     //
-    //    m_pimpl_->m_time_refinement_integrator_->printClassData(std::cout);
+    //    m_pack_->m_time_refinement_integrator_->printClassData(std::cout);
 
     MESSAGE << "==================  Context is initialized!  =================" << std::endl;
 };
@@ -1068,12 +1068,12 @@ void SAMRAITimeIntegrator::DoFinalize() {
 Real SAMRAITimeIntegrator::Advance(Real time_dt) {
     ASSERT(m_pimpl_->m_time_refinement_integrator_ != nullptr);
 
-    // SetTimeNow(m_pimpl_->m_time_refinement_integrator->getIntegratorTime());
+    // SetTimeNow(m_pack_->m_time_refinement_integrator->getIntegratorTime());
     Real loop_time = GetTimeNow();
     Real loop_time_end = std::min(loop_time + time_dt, GetTimeEnd());
     Real loop_dt = time_dt;
     while ((loop_time < loop_time_end) &&
-           (loop_dt > 0)) {  //&& m_pimpl_->m_time_refinement_integrator->stepsRemaining() > 0
+           (loop_dt > 0)) {  //&& m_pack_->m_time_refinement_integrator->stepsRemaining() > 0
         Real dt_new = m_pimpl_->m_time_refinement_integrator_->advanceHierarchy(loop_dt, false);
         loop_dt = std::min(dt_new, loop_time_end - loop_time);
         loop_time += loop_dt;
@@ -1090,16 +1090,16 @@ void SAMRAITimeIntegrator::CheckPoint() const {
     }
 }
 void SAMRAITimeIntegrator::Dump() const {
-    //    if (m_pimpl_->visit_data_writer != nullptr) {
+    //    if (m_pack_->visit_data_writer != nullptr) {
     //        VERBOSE << "Dump : Step = " << GetNumberOfStep() << std::end;
-    //        m_pimpl_->visit_data_writer->writePlotData(m_pimpl_->patch_hierarchy,
-    //        m_pimpl_->m_time_refinement_integrator->getIntegratorStep(),
-    //                                         m_pimpl_->m_time_refinement_integrator->getIntegratorTime());
+    //        m_pack_->visit_data_writer->writePlotData(m_pack_->patch_hierarchy,
+    //        m_pack_->m_time_refinement_integrator->getIntegratorStep(),
+    //                                         m_pack_->m_time_refinement_integrator->getIntegratorTime());
     //    }
 }
 bool SAMRAITimeIntegrator::Done() const {
-    // m_pimpl_->m_time_refinement_integrator != nullptr ?
-    // !m_pimpl_->m_time_refinement_integrator->stepsRemaining():;
+    // m_pack_->m_time_refinement_integrator != nullptr ?
+    // !m_pack_->m_time_refinement_integrator->stepsRemaining():;
     return engine::TimeIntegrator::Done();
 }
 }  // namespace simpla

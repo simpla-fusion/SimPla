@@ -16,6 +16,7 @@
 #include "simpla/utilities/Signal.h"
 
 #include "Attribute.h"
+#include "Model.h"
 
 namespace simpla {
 namespace engine {
@@ -54,12 +55,12 @@ class DomainBase : public SPObject,
     virtual Range<EntityId> &GetRange(std::string const &k);
     virtual Range<EntityId> const &GetRange(std::string const &k) const;
 
-    void SetBlock(const MeshBlock &);
+    void SetBlock(const MeshBlock &blk);
     virtual const MeshBlock &GetBlock() const;
     virtual id_type GetBlockId() const;
 
-    const Model &GetModel() const;
-    Model &GetModel();
+    const Model &GetModel() const { return m_model_; }
+    Model &GetModel() { return m_model_; }
 
     void DoInitialize() override;
     void DoFinalize() override;
@@ -89,10 +90,14 @@ class DomainBase : public SPObject,
     void Advance(Patch *, Real time_now, Real dt);
 
    private:
-    const geometry::Chart *m_chart_;
     MeshBlock m_mesh_block_;
+
+    const geometry::Chart *m_chart_;
+    engine::Model m_model_;
+
     struct pimpl_s;
-    std::shared_ptr<pimpl_s> m_pimpl_;
+    std::unique_ptr<pimpl_s> m_pimpl_;
+
 };  // class DomainBase
 
 template <template <typename> class... Policies>
@@ -105,7 +110,7 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
     typedef DomainBase::attribute_type attribute_type;
 
     Domain(std::string const &s_name, geometry::Chart const *c) : DomainBase(s_name, c), Policies<this_type>(this)... {}
-    ~Domain() override{};
+    ~Domain() override = default;
 
     static bool is_registered;
     std::string GetRegisterName() const override { return RegisterName(); }
@@ -226,13 +231,13 @@ void Domain<Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &cf
 template <template <typename> class... Policies>
 template <typename LHS, typename RHS>
 void Domain<Policies...>::FillRange(LHS &lhs, RHS &&rhs, std::string const &k) const {
-    auto r = GetRange(k + "_" + std::to_string(LHS::iform));
-
-    if (r.isNull()) {
-        this->Fill(lhs, std::forward<RHS>(rhs), r);
-    } else {
-        this->Fill(lhs, std::forward<RHS>(rhs));
-    }
+    //    auto r = GetRange(GetName() + "_" +k + "_" + std::to_string(LHS::iform));
+    //
+    //    if (r.isNull()) {
+    //        this->Fill(lhs, std::forward<RHS>(rhs), r);
+    //    } else {
+    //        this->Fill(lhs, std::forward<RHS>(rhs));
+    //    }
 };
 template <template <typename> class... Policies>
 template <typename LHS, typename RHS>
@@ -243,9 +248,9 @@ void Domain<Policies...>::FillBody(LHS &lhs, RHS &&rhs) const {
 template <template <typename> class... Policies>
 template <typename LHS, typename RHS>
 void Domain<Policies...>::FillBoundary(LHS &lhs, RHS &&rhs) const {
-    //    FillRange(lhs, std::forward<RHS>(rhs), "BOUNDARY");
-    //    FillRange(lhs, std::forward<RHS>(rhs), "PARA_BOUNDARY");
-    //    FillRange(lhs, std::forward<RHS>(rhs), "PERP_BOUNDARY");
+    FillRange(lhs, std::forward<RHS>(rhs), "BOUNDARY");
+    FillRange(lhs, std::forward<RHS>(rhs), "PARA_BOUNDARY");
+    FillRange(lhs, std::forward<RHS>(rhs), "PERP_BOUNDARY");
 };
 
 #define DOMAIN_POLICY_HEAD(_NAME_)                   \

@@ -23,35 +23,23 @@ struct Schedule::pimpl_s {
     size_type m_dump_interval_ = 0;
     std::string m_output_url_ = "unknown";
 
-    std::shared_ptr<Context> m_ctx_;
+    Context *m_ctx_ = nullptr;
 };
 
 Schedule::Schedule(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s){};
 
-Schedule::~Schedule(){};
+Schedule::~Schedule() = default;
 
-std::shared_ptr<Context> Schedule::SetContext(std::shared_ptr<Context> const &ctx) {
-    m_pimpl_->m_ctx_ = ctx;
-    SetOutputURL(m_pimpl_->m_ctx_->GetName() + "." + SIMPLA_OUTPUT_SUFFIX);
-    return m_pimpl_->m_ctx_;
-}
-
-std::shared_ptr<Context> const &Schedule::GetContext() const { return m_pimpl_->m_ctx_; }
-
-std::shared_ptr<Context> &Schedule::GetContext() { return m_pimpl_->m_ctx_; }
+void Schedule::SetContext(engine::Context *c) { m_pimpl_->m_ctx_ = c; };
+const Context *Schedule::GetContext() const { return m_pimpl_->m_ctx_; }
+Context *Schedule::GetContext() { return m_pimpl_->m_ctx_; }
 
 size_type Schedule::GetNumberOfStep() const { return m_pimpl_->m_step_; }
-
 void Schedule::SetMaxStep(size_type s) { m_pimpl_->m_max_step_ = s; }
-
 size_type Schedule::GetMaxStep() const { return m_pimpl_->m_max_step_; }
-
 void Schedule::SetCheckPointInterval(size_type s) { m_pimpl_->m_check_point_interval_ = s; }
-
 size_type Schedule::GetCheckPointInterval() const { return m_pimpl_->m_check_point_interval_; }
-
 void Schedule::SetDumpInterval(size_type s) { m_pimpl_->m_dump_interval_ = s; }
-
 size_type Schedule::GetDumpInterval() const { return m_pimpl_->m_dump_interval_; }
 
 void Schedule::NextStep() { ++m_pimpl_->m_step_; }
@@ -90,24 +78,23 @@ std::shared_ptr<data::DataTable> Schedule::Serialize() const {
 
 void Schedule::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     SetCheckPointInterval(static_cast<size_type>(cfg->GetValue("CheckPointInterval", 1)));
-    SetOutputURL(cfg->GetValue<std::string>("OutPutPrefix", "") + GetOutputURL());
+    SetOutputURL(cfg->GetValue<std::string>("OutputURL", m_pimpl_->m_output_url_));
 }
 
 void Schedule::DoInitialize() {
-    m_pimpl_->m_ctx_->DoInitialize();
+    if (m_pimpl_->m_ctx_ != nullptr) { m_pimpl_->m_ctx_->DoInitialize(); }
     SPObject::DoInitialize();
 }
 
 void Schedule::DoFinalize() {
-    m_pimpl_->m_ctx_->Finalize();
-    m_pimpl_->m_ctx_.reset();
+    if (m_pimpl_->m_ctx_ != nullptr) { m_pimpl_->m_ctx_->Finalize(); }
     SPObject::DoFinalize();
 }
 
 void Schedule::DoUpdate() {
     SPObject::DoUpdate();
     ASSERT(m_pimpl_->m_ctx_ != nullptr);
-    m_pimpl_->m_ctx_->Update();
+    if (m_pimpl_->m_ctx_ != nullptr) { m_pimpl_->m_ctx_->Update(); }
 }
 
 void Schedule::DoTearDown() {
@@ -121,14 +108,15 @@ void Schedule::Synchronize() {
     //    for (auto const &src : atlas.Level(from_level)) {
     //        for (auto const &dest : atlas.Level(from_level)) {
     //            if (!geometry::CheckOverlap(src->GetIndexBox(), dest->GetIndexBox())) { continue; }
-    //            //            auto s_it = m_pimpl_->m_patches_.find(src->GetGUID());
-    //            //            auto d_it = m_pimpl_->m_patches_.find(dest->GetGUID());
-    //            //            if (s_it == m_pimpl_->m_patches_.end() || d_it == m_pimpl_->m_patches_.end() || s_it ==
+    //            //            auto s_it = m_pack_->m_patches_.find(src->GetGUID());
+    //            //            auto d_it = m_pack_->m_patches_.find(dest->GetGUID());
+    //            //            if (s_it == m_pack_->m_patches_.end() || d_it == m_pack_->m_patches_.end() || s_it ==
     //            d_it)
     //            //            { continue; }
-    //            //            LOGGER << "Synchronize From " << m_pimpl_->m_atlas_.GetMeshBlock(src)->GetIndexBox() << " to
+    //            //            LOGGER << "Synchronize From " << m_pack_->m_atlas_.GetMeshBlock(src)->GetIndexBox() <<
+    //            " to
     //            "
-    //            //                   << m_pimpl_->m_atlas_.GetMeshBlock(dest)->GetIndexBox() << " " << std::endl;
+    //            //                   << m_pack_->m_atlas_.GetMeshBlock(dest)->GetIndexBox() << " " << std::endl;
     //            //            auto &src_data = s_it->cast_as<data::DataTable>();
     //            //            src_data.Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const
     //            &dest_p)

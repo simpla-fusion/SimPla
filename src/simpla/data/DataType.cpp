@@ -136,7 +136,7 @@ std::string DataType::name() const
 bool DataType::is_valid() const
 {
     return pimpl_ != nullptr;
-//    return m_pimpl_->m_t_index_ != std::value_type_index(typeid(void));
+//    return m_pack_->m_t_index_ != std::value_type_index(typeid(void));
 }
 
 int DataType::ele_size_in_byte() const

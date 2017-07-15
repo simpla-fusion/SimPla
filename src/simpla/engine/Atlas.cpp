@@ -82,7 +82,7 @@ size_type Atlas::DeletePatch(id_type id) { return m_pimpl_->m_patches_.erase(id)
 id_type Atlas::Push(Patch &&p) {
     auto id = p.GetId();
     m_pimpl_->m_patches_[id].swap(p);
-    //    auto res = m_pimpl_->m_patches_.emplace(p.GetId(), p);
+    //    auto res = m_pack_->m_patches_.emplace(p.GetId(), p);
     //    if (!res.second) { p.swap(res.first->second); }
     return id;
 }
@@ -97,7 +97,7 @@ Patch Atlas::Pop(id_type id) {
     }
     return (res);
 }
-//    auto res = m_pimpl_->m_patches_.emplace(id, Patch{});
+//    auto res = m_pack_->m_patches_.emplace(id, Patch{});
 //    if (res.first->second.empty()) { res.first->second = Patch(id); }
 
 size_type Atlas::GetNumOfLevel() const { return m_pimpl_->m_max_level_; }

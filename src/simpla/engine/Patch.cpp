@@ -16,11 +16,12 @@ namespace simpla {
 namespace engine {
 struct Patch::pimpl_s {
     MeshBlock m_block_;
+    id_type m_id_ = NULL_ID;
     std::map<id_type, std::shared_ptr<data::DataBlock>> m_data_;
     std::map<std::string, std::shared_ptr<PatchDataPack>> m_packs_;
 };
 
-Patch::Patch(id_type id) : m_pimpl_(new pimpl_s) {}
+Patch::Patch(id_type id) : m_pimpl_(new pimpl_s) { m_pimpl_->m_id_ = id; }
 Patch::~Patch() {}
 Patch::Patch(this_type const &other) : Patch(other.GetId()) {
     MeshBlock(other.GetMeshBlock()).swap(m_pimpl_->m_block_);
@@ -40,13 +41,13 @@ Patch &Patch::operator=(Patch &&other) noexcept {
     return *this;
 }
 
-id_type Patch::GetId() const { return m_pimpl_->m_block_.GetGUID(); }
+id_type Patch::GetId() const { return m_pimpl_->m_id_; }
 
 void Patch::SetMeshBlock(const MeshBlock &m) { MeshBlock(m).swap(m_pimpl_->m_block_); }
 
 const MeshBlock &Patch::GetMeshBlock() const { return m_pimpl_->m_block_; }
 
-//std::map<id_type, std::shared_ptr<data::DataBlock>> &Patch::GetAllData() { return m_pimpl_->m_data_; };
+// std::map<id_type, std::shared_ptr<data::DataBlock>> &Patch::GetAllData() { return m_pack_->m_data_; };
 
 void Patch::SetDataBlock(id_type id, std::shared_ptr<data::DataBlock> d) { m_pimpl_->m_data_[id] = d; }
 std::shared_ptr<data::DataBlock> Patch::GetDataBlock(id_type const &id) {
@@ -67,8 +68,8 @@ std::shared_ptr<PatchDataPack> Patch::GetPack(const std::string &g) {
 void Patch::SetPack(const std::string &g, std::shared_ptr<PatchDataPack> p) { m_pimpl_->m_packs_[g] = p; }
 
 //
-// void Patch::PushRange(std::shared_ptr<std::map<std::string, EntityRange>> const &r) { m_pimpl_->m_range_ = r; };
-// std::shared_ptr<std::map<std::string, EntityRange>> Patch::PopRange() { return m_pimpl_->m_range_; };
+// void Patch::PushRange(std::shared_ptr<std::map<std::string, EntityRange>> const &r) { m_pack_->m_range_ = r; };
+// std::shared_ptr<std::map<std::string, EntityRange>> Patch::PopRange() { return m_pack_->m_range_; };
 
 }  // namespace engine {
 }  // namespace simpla {

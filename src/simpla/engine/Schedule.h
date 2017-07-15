@@ -41,9 +41,9 @@ class Schedule : public SPObject, public data::EnableCreateFromDataTable<Schedul
 
     void Run();
 
-    std::shared_ptr<Context> SetContext(std::shared_ptr<Context> const &ctx);
-    std::shared_ptr<Context> const &GetContext() const;
-    std::shared_ptr<Context> &GetContext();
+    void SetContext(engine::Context *);
+    const Context *GetContext() const;
+    Context *GetContext();
 
     void SetOutputURL(std::string const &url);
     std::string const &GetOutputURL() const;

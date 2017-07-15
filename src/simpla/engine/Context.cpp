@@ -78,7 +78,7 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
 //            auto t_cfg = std::dynamic_pointer_cast<data::DataTable>(t);
 //            geo = GetGeoObject(t_cfg->GetValue<std::string>("Model", ""));
 //            auto s_mesh = t_cfg->GetValue<std::string>("MeshBase", "Default");
-//            auto p_mesh = m_pimpl_->m_base_mesh_[s_mesh];
+//            auto p_mesh = m_pack_->m_base_mesh_[s_mesh];
 //            std::string type = t_cfg->GetValue<std::string>("Type", "");
 //            if (type != "") {
 //                type = type + "." + p_mesh->GetRegisterName();
@@ -101,7 +101,7 @@ void Context::DoUpdate() {
     SPObject::DoUpdate();
     m_pimpl_->m_atlas_.Update();
     // TODO: Fix boundary box
-    //    m_pimpl_->m_base_mesh_->FitBoundBox(m_pimpl_->m_model_.GetBoundBox());
+    //    m_pack_->m_base_mesh_->FitBoundBox(m_pack_->m_model_.GetBoundBox());
     for (auto &d : m_pimpl_->m_domains_) { d.second->Update(); }
 }
 
@@ -144,38 +144,38 @@ void Context::Advance(Patch *patch, Real time_now, Real time_dt) {
     for (auto &d : GetAllDomains()) { d.second->Advance(patch, time_now, time_dt); }
 }
 
-// std::map<id_type, std::shared_ptr<Patch>> const &Context::GetPatches() const { return m_pimpl_->m_patches_; }
+// std::map<id_type, std::shared_ptr<Patch>> const &Context::GetPatches() const { return m_pack_->m_patches_; }
 //
 // bool Context::RegisterWorker(std::string const &d_name, std::shared_ptr<DomainBase> const &p) {
 //    ASSERT(!IsInitialized());
 //
-//    auto res = m_pimpl_->m_workers_.emplace(d_name, p);
+//    auto res = m_pack_->m_workers_.emplace(d_name, p);
 //    if (!res.second) { res.first->second = p; }
 //    db()->Deserialize("Workers/" + d_name, res.first->second->db());
 //    return res.second;
 //}
 // void Context::DeregisterWorker(std::string const &k) {
 //    ASSERT(!IsInitialized());
-//    m_pimpl_->m_workers_.erase(k);
+//    m_pack_->m_workers_.erase(k);
 //}
 // std::shared_ptr<DomainBase> Context::GetWorker(std::string const &d_name) const { return
-// m_pimpl_->m_workers_.at(d_name);
+// m_pack_->m_workers_.at(d_name);
 // }
 //
 // std::map<std::string, std::shared_ptr<Attribute>> const &Context::GetAllAttributes() const {
-//    return m_pimpl_->m_global_attributes_;
+//    return m_pack_->m_global_attributes_;
 //};
 //
 // bool Context::RegisterAttribute(std::string const &key, std::shared_ptr<Attribute> const &v) {
 //    ASSERT(!IsInitialized());
-//    return m_pimpl_->m_global_attributes_.emplace(key, v).second;
+//    return m_pack_->m_global_attributes_.emplace(key, v).second;
 //}
 // void Context::DeregisterAttribute(std::string const &key) {
 //    ASSERT(!IsInitialized());
-//    m_pimpl_->m_global_attributes_.erase(key);
+//    m_pack_->m_global_attributes_.erase(key);
 //}
 // std::shared_ptr<Attribute> const &Context::GetAttribute(std::string const &key) const {
-//    return m_pimpl_->m_global_attributes_.at(key);
+//    return m_pack_->m_global_attributes_.at(key);
 //}
 //    GetModel().InitializeConditionPatch();
 //    GetAtlas().InitializeConditionPatch();
@@ -194,11 +194,11 @@ void Context::Advance(Patch *patch, Real time_now, Real time_dt) {
 //                                                         GetModel().AddObject(key,
 //                                                         t.GetTable("Geometry")).first));
 //
-//        m_pimpl_->m_domains_.emplace(key, std::make_shared<DomainBase>(t.GetTable("DomainBase"), m));
+//        m_pack_->m_domains_.emplace(key, std::make_shared<DomainBase>(t.GetTable("DomainBase"), m));
 //
 //    });
 //    for (auto const &item : GetModel().GetAllAttributes()) {
-//        auto worker_res = m_pimpl_->m_domains_.emplace(item.first, nullptr);
+//        auto worker_res = m_pack_->m_domains_.emplace(item.first, nullptr);
 //        if (worker_res.first->second == nullptr) {
 //            worker_res.first->second = std::make_shared<DomainBase>(workers_t->GetTable(item.first), nullptr,
 //            item.second);
@@ -207,20 +207,20 @@ void Context::Advance(Patch *patch, Real time_now, Real time_dt) {
 //    }
 //    std::shared_ptr<geometry::GeoObject> geo = g;
 //    if (geo == nullptr) { geo.reset(GLOBAL_GEO_OBJECT_FACTORY.Create(db()->GetTable("Geometry"))); }
-//    m_pimpl_->m_base_chart_.reset(GLOBAL_MESHVIEW_FACTORY.Create(db()->GetTable("MeshBase"), geo));
+//    m_pack_->m_base_chart_.reset(GLOBAL_MESHVIEW_FACTORY.Create(db()->GetTable("MeshBase"), geo));
 //
-//    m_pimpl_->m_is_initialized_ = true;
+//    m_pack_->m_is_initialized_ = true;
 //    LOGGER << "Context is initialized!" << std::endl;
 
 //    if (level >= GetAtlas().GetNumOfLevels()) { return; }
 //
 //    for (auto const &g_item : GetModel().GetAllAttributes()) {
-//        auto w = m_pimpl_->m_workers_.find(g_item.first);
-//        if (w == m_pimpl_->m_workers_.end()) { continue; }
+//        auto w = m_pack_->m_workers_.find(g_item.first);
+//        if (w == m_pack_->m_workers_.end()) { continue; }
 //        for (auto const &mblk : GetAtlas().Level(level)) {
 //            if (!g_item.second->CheckOverlap(mblk->GetBoundBox())) { continue; }
 //
-//            auto p = m_pimpl_->m_patches_[mblk->GetGUID()];
+//            auto p = m_pack_->m_patches_[mblk->GetGUID()];
 //            if (p == nullptr) {
 //                p = std::make_shared<Patch>();
 //                //                p->PushMeshBlock(mblk);
@@ -229,7 +229,7 @@ void Context::Advance(Patch *patch, Real time_now, Real time_dt) {
 //            LOGGER << " DomainBase [ " << std::setw(10) << std::left << w->second->name() << " ] is applied on "
 //                   << mblk->GetIndexBox() << " GeoObject id= " << g_item.first << std::endl;
 //            w->second->AdvanceData(time_now, dt);
-//            m_pimpl_->m_patches_[mblk->GetGUID()] = w->second->ConvertPatchToSAMRAI();
+//            m_pack_->m_patches_[mblk->GetGUID()] = w->second->ConvertPatchToSAMRAI();
 //        }
 //    }
 

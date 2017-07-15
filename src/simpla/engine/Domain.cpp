@@ -14,22 +14,31 @@
 namespace simpla {
 namespace engine {
 
-struct DomainBase::pimpl_s : public PatchDataPack {
-    engine::Model m_model_;
-    MeshBlock m_mesh_block_;
+struct pack_s : public PatchDataPack {
     std::map<std::string, Range<EntityId>> m_ranges_;
 };
-DomainBase::DomainBase(std::string const& s_name, const geometry::Chart* c) : SPObject(s_name), m_chart_(c) {}
-DomainBase::~DomainBase() {}
 
-DomainBase::DomainBase(DomainBase const& other) : m_pimpl_(other.m_pimpl_) {}
+struct DomainBase::pimpl_s {
+    std::shared_ptr<pack_s> m_pack_;
+};
 
-DomainBase::DomainBase(DomainBase&& other) noexcept : m_pimpl_(std::move(other.m_pimpl_)) {}
+DomainBase::DomainBase(std::string const& s_name, const geometry::Chart* c)
+    : SPObject(s_name), m_pimpl_(new pimpl_s), m_chart_(c) {}
+
+DomainBase::~DomainBase() = default;
+
+DomainBase::DomainBase(DomainBase const& other) : SPObject(other), m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_pack_ = other.m_pimpl_->m_pack_;
+}
+
+DomainBase::DomainBase(DomainBase&& other) noexcept : SPObject(std::move(other)), m_pimpl_(std::move(other.m_pimpl_)) {}
 
 void DomainBase::swap(DomainBase& other) {
     SPObject::swap(other);
-    std::swap(m_chart_, other.m_chart_);
     std::swap(m_pimpl_, other.m_pimpl_);
+    std::swap(m_chart_, other.m_chart_);
+    m_mesh_block_.swap(other.m_mesh_block_);
+    m_model_.swap(other.m_model_);
 }
 
 std::shared_ptr<data::DataTable> DomainBase::Serialize() const {
@@ -39,44 +48,43 @@ std::shared_ptr<data::DataTable> DomainBase::Serialize() const {
     return (p);
 }
 void DomainBase::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
-    Initialize();
+    m_model_.Deserialize(cfg->GetTable("Model"));
     Click();
-    m_pimpl_->m_model_.Deserialize(cfg->GetTable("Model"));
 };
 
 void DomainBase::DoUpdate() {}
 void DomainBase::DoTearDown() {}
 void DomainBase::DoInitialize() {
-    if (m_pimpl_ == nullptr) { m_pimpl_ = std::make_shared<pimpl_s>(); }
+    if (m_pimpl_->m_pack_ == nullptr) { m_pimpl_->m_pack_ = std::make_shared<pack_s>(); }
 }
-void DomainBase::DoFinalize() { m_pimpl_.reset(); }
+void DomainBase::DoFinalize() { m_pimpl_->m_pack_.reset(); }
 
 void DomainBase::SetRange(std::string const& k, Range<EntityId> const& r) {
-    Update();
-    m_pimpl_->m_ranges_[k] = r;
+    ASSERT(m_pimpl_->m_pack_ != nullptr);
+    m_pimpl_->m_pack_->m_ranges_[k] = r;
     Click();
 };
-Range<EntityId>& DomainBase::GetRange(std::string const& k) { return m_pimpl_->m_ranges_[(k)]; };
-Range<EntityId> const& DomainBase::GetRange(std::string const& k) const { return m_pimpl_->m_ranges_.at(k); };
-
-const engine::Model& DomainBase::GetModel() const { return m_pimpl_->m_model_; }
-engine::Model& DomainBase::GetModel() { return m_pimpl_->m_model_; }
+Range<EntityId>& DomainBase::GetRange(std::string const& k) {
+    return m_pimpl_->m_pack_->m_ranges_[GetName() + "_" + k];
+};
+Range<EntityId> const& DomainBase::GetRange(std::string const& k) const { return m_pimpl_->m_pack_->m_ranges_.at(k); };
 
 void DomainBase::SetBlock(const engine::MeshBlock& blk) { MeshBlock(blk).swap(m_mesh_block_); };
 const engine::MeshBlock& DomainBase::GetBlock() const { return m_mesh_block_; }
 id_type DomainBase::GetBlockId() const { return m_mesh_block_.GetGUID(); }
 
 void DomainBase::Push(Patch* patch) {
-    Click();
-    m_pimpl_ = std::dynamic_pointer_cast<pimpl_s>(patch->GetPack(GetName()));
-    Initialize();
+    if (m_pimpl_->m_pack_ == nullptr) {
+        m_pimpl_->m_pack_ = std::dynamic_pointer_cast<pack_s>(patch->GetPack(GetName()));
+    }
     SetBlock(patch->GetMeshBlock());
     AttributeGroup::Push(patch);
+    Initialize();
 }
 void DomainBase::Pull(Patch* patch) {
-    AttributeGroup::Pull(patch);
     patch->SetMeshBlock(GetBlock());
-    patch->SetPack(GetName(), std::dynamic_pointer_cast<PatchDataPack>(m_pimpl_));
+    AttributeGroup::Pull(patch);
+    patch->SetPack(GetName(), std::dynamic_pointer_cast<PatchDataPack>(m_pimpl_->m_pack_));
     Finalize();
 }
 void DomainBase::InitialCondition(Real time_now) {

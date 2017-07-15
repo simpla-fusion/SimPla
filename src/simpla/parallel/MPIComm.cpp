@@ -85,7 +85,7 @@ size_type MPIComm::generate_object_id() {
 void const *MPIComm::comm() const { return reinterpret_cast<void *>(&m_pimpl_->m_comm_); }
 //
 // MPI_Info MPIComm::info() {
-//    assert(m_pimpl_ != nullptr);
+//    assert(m_pack_ != nullptr);
 //    return MPI_INFO_NULL;
 //}
 

@@ -262,7 +262,7 @@ void DataSpace::select_points(size_type num, const size_type *tags)
 //                {
 //                    for (size_type j = 0; j < ndims; ++j)
 //                    {
-//                        m_pimpl_->m_selected_points_[i * ndims + j] = tags[(i - head) * ndims + j];
+//                        m_pack_->m_selected_points_[i * ndims + j] = tags[(i - head) * ndims + j];
 //                    }
 //                }
 //            }
@@ -277,13 +277,13 @@ DataSpace &DataSpace::select_hyperslab(size_type const *start,
 {
     if (!is_valid()) { RUNTIME_ERROR << ("data_space is invalid!"); }
 
-//    if (start != nullptr) { std::get<2>(m_pimpl_->m_d_shape_) = start; }
+//    if (start != nullptr) { std::get<2>(m_pack_->m_d_shape_) = start; }
 //
-//    if (_stride != nullptr) { std::get<3>(m_pimpl_->m_d_shape_) *= _stride; }
+//    if (_stride != nullptr) { std::get<3>(m_pack_->m_d_shape_) *= _stride; }
 //
-//    if (count != nullptr) { std::get<4>(m_pimpl_->m_d_shape_) = count; }
+//    if (count != nullptr) { std::get<4>(m_pack_->m_d_shape_) = count; }
 //
-//    if (_block != nullptr) { std::get<5>(m_pimpl_->m_d_shape_) *= _block; }
+//    if (_block != nullptr) { std::get<5>(m_pack_->m_d_shape_) *= _block; }
 
     return *this;
 
@@ -466,7 +466,7 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //
 //}
 //
-//void data_space::pimpl_s::decompose()
+//void data_space::pack_s::decompose()
 //{
 //
 ////	local_shape_.dimensions = global_shape_.dimensions;
