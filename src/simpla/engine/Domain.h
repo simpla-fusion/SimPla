@@ -33,8 +33,8 @@ class DomainBase : public SPObject, public data::EnableCreateFromDataTable<Domai
 
     DomainBase(MeshBase *m, const Model *model);
     ~DomainBase() override;
-    DomainBase(DomainBase const &other);
-    DomainBase(DomainBase &&other) noexcept;
+    DomainBase(DomainBase const &other) = delete;
+    DomainBase(DomainBase &&other) noexcept = delete;
     DomainBase &operator=(this_type const &other) = delete;
     DomainBase &operator=(this_type &&other) noexcept = delete;
 
@@ -111,7 +111,8 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
 
     template <typename TL, typename TR>
     void FillRange(TL &lhs, TR &&rhs, std::string const &k = "") const {
-        GetMesh()->FillRange(lhs, std::forward<TR>(rhs), GetName() + "_" + k);
+        auto r = GetMesh()->GetRange(GetName() + "_" + k + "_" + std::to_string(TL::IFORM));
+        GetMesh()->FillRange(lhs, std::forward<TR>(rhs), r);
     };
 
     template <typename TL, typename TR>
@@ -124,7 +125,27 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
         GetMesh()->FillRange(lhs, std::forward<TR>(rhs), GetName() + "_BOUNDARY");
     };
 };  // class Domain
+template <typename TM, template <typename> class... Policies>
+void Domain<TM, Policies...>::DoInitialCondition(Real time_now) {
+    GetMesh()->AddObject(GetBoundary());
+};
+template <typename TM, template <typename> class... Policies>
+void Domain<TM, Policies...>::DoBoundaryCondition(Real time_now, Real dt){
 
+};
+template <typename TM, template <typename> class... Policies>
+void Domain<TM, Policies...>::DoAdvance(Real time_now, Real dt){
+
+};
+template <typename TM, template <typename> class... Policies>
+void Domain<TM, Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &cfg){};
+
+template <typename TM, template <typename> class... Policies>
+std::shared_ptr<data::DataTable> Domain<TM, Policies...>::Serialize() const {
+    auto res = DomainBase::Serialize();
+
+    return res;
+};
 #define DOMAIN_POLICY_HEAD(_NAME_)                   \
    private:                                          \
     typedef THost host_type;                         \

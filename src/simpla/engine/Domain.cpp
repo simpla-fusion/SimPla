@@ -20,12 +20,13 @@ DomainBase::DomainBase(MeshBase* msh, const Model* model) : m_mesh_(msh), m_mode
 
 DomainBase::~DomainBase() = default;
 
-DomainBase::DomainBase(DomainBase const& other) : SPObject(other), m_mesh_(other.m_mesh_), m_model_(other.m_model_) {}
-
-DomainBase::DomainBase(DomainBase&& other) noexcept
-    : SPObject(std::move(other)), m_mesh_(other.m_mesh_), m_model_(other.m_model_) {}
-
-//void DomainBase::swap(DomainBase& other) {
+// DomainBase::DomainBase(DomainBase const& other) : SPObject(other), m_mesh_(other.m_mesh_), m_model_(other.m_model_)
+// {}
+//
+// DomainBase::DomainBase(DomainBase&& other) noexcept
+//    : SPObject(std::move(other)), m_mesh_(other.m_mesh_), m_model_(other.m_model_) {}
+//
+// void DomainBase::swap(DomainBase& other) {
 //    SPObject::swap(other);
 //    std::swap(m_model_, other.m_model_);
 //    std::swap(m_mesh_, other.m_mesh_);
@@ -54,6 +55,7 @@ Range<EntityId> DomainBase::GetRange(std::string const& k) const { return GetMes
 
 void DomainBase::InitialCondition(Real time_now) {
     VERBOSE << "InitialCondition   \t:" << GetName() << std::endl;
+    GetMesh()->AddObject(GetName(), GetBoundary());
     PreInitialCondition(this, time_now);
     DoInitialCondition(time_now);
     PostInitialCondition(this, time_now);
