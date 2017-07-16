@@ -31,9 +31,7 @@ struct EBMesh {
     template <typename LHS, typename RHS>
     void FillBoundary(LHS &lhs, RHS &&rhs) const {
         m_host_->FillRange(lhs, std::forward<RHS>(rhs), m_host_->GetName() + "_BOUNDARY");
-
         m_host_->FillRange(lhs, std::forward<RHS>(rhs), m_host_->GetName() + "_PARA_BOUNDARY");
-
         m_host_->FillRange(lhs, std::forward<RHS>(rhs), m_host_->GetName() + "_PERP_BOUNDARY");
     };
 };

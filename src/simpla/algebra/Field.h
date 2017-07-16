@@ -60,7 +60,8 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
    public:
     template <typename... Args>
     explicit Field(domain_type* grp, Args&&... args)
-        : base_type(grp, IFORM, std::integer_sequence<int, DOF...>(), typeid(value_type), std::forward<Args>(args)...),
+        : base_type(grp->GetMesh(), IFORM, std::integer_sequence<int, DOF...>(), typeid(value_type),
+                    std::forward<Args>(args)...),
           m_host_(grp) {}
 
     ~Field() override = default;
@@ -80,7 +81,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         base_type::PushData(&m_data_);
         traits::foreach (m_data_, [&](auto& a, auto i0, auto&&... idx) {
             if (a.isNull()) {
-//                a.SetSpaceFillingCurve(m_host_->GetSpaceFillingCurve(IFORM, i0));
+                a.SetSpaceFillingCurve(m_host_->GetMesh()->GetSpaceFillingCurve(IFORM, i0));
                 a.Initialize();
             }
         });
@@ -100,7 +101,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     template <typename Other>
     void Set(Other&& v) {
         Update();
-//        m_host_->FillBody(*this, std::forward<Other>(v));
+        m_host_->FillBody(*this, std::forward<Other>(v));
     }
 
     template <typename MR, typename UR, int... NR>

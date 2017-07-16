@@ -30,22 +30,24 @@ struct RectMesh : public StructuredMesh {
     Field<host_type, Real, VERTEX, 3> m_coordinates_{m_host_, "name"_ = "m_coordinates_", "COORDINATES"_};
     //    Field<domain_type, Real, VERTEX, 3> m_vertices_{m_host_, "name"_ = "m_vertices_","TEMP"_};
 
-    Field<host_type, Real, VERTEX> m_vertex_volume_{m_host_, "name"_ = "m_vertex_volume_"/*, "TEMP"_*/};
-    Field<host_type, Real, VERTEX> m_vertex_inv_volume_{m_host_, "name"_ = "m_vertex_inv_volume_"/*, "TEMP"_*/};
-    Field<host_type, Real, VERTEX> m_vertex_dual_volume_{m_host_, "name"_ = "m_vertex_dual_volume_"/*, "TEMP"_*/};
-    Field<host_type, Real, VERTEX> m_vertex_inv_dual_volume_{m_host_, "name"_ = "m_vertex_inv_dual_volume_"/*, "TEMP"_*/};
-    Field<host_type, Real, VOLUME> m_volume_volume_{m_host_, "name"_ = "m_volume_volume_"/*, "TEMP"_*/};
-    Field<host_type, Real, VOLUME> m_volume_inv_volume_{m_host_, "name"_ = "m_volume_inv_volume_"/*, "TEMP"_*/};
-    Field<host_type, Real, VOLUME> m_volume_dual_volume_{m_host_, "name"_ = "m_volume_dual_volume_"/*, "TEMP"_*/};
-    Field<host_type, Real, VOLUME> m_volume_inv_dual_volume_{m_host_, "name"_ = "m_volume_inv_dual_volume_"/*, "TEMP"_*/};
-    Field<host_type, Real, EDGE> m_edge_volume_{m_host_, "name"_ = "m_edge_volume_"/*, "TEMP"_*/};
-    Field<host_type, Real, EDGE> m_edge_inv_volume_{m_host_, "name"_ = "m_edge_inv_volume_"/*, "TEMP"_*/};
-    Field<host_type, Real, EDGE> m_edge_dual_volume_{m_host_, "name"_ = "m_edge_dual_volume_"/*, "TEMP"_*/};
-    Field<host_type, Real, EDGE> m_edge_inv_dual_volume_{m_host_, "name"_ = "m_edge_inv_dual_volume_"/*, "TEMP"_*/};
-    Field<host_type, Real, FACE> m_face_volume_{m_host_, "name"_ = "m_face_volume_"/*, "TEMP"_*/};
-    Field<host_type, Real, FACE> m_face_inv_volume_{m_host_, "name"_ = "m_face_inv_volume_"/*, "TEMP"_*/};
-    Field<host_type, Real, FACE> m_face_dual_volume_{m_host_, "name"_ = "m_face_dual_volume_"/*, "TEMP"_*/};
-    Field<host_type, Real, FACE> m_face_inv_dual_volume_{m_host_, "name"_ = "m_face_inv_dual_volume_"/*, "TEMP"_*/};
+    Field<host_type, Real, VERTEX> m_vertex_volume_{m_host_, "name"_ = "m_vertex_volume_" /*, "TEMP"_*/};
+    Field<host_type, Real, VERTEX> m_vertex_inv_volume_{m_host_, "name"_ = "m_vertex_inv_volume_" /*, "TEMP"_*/};
+    Field<host_type, Real, VERTEX> m_vertex_dual_volume_{m_host_, "name"_ = "m_vertex_dual_volume_" /*, "TEMP"_*/};
+    Field<host_type, Real, VERTEX> m_vertex_inv_dual_volume_{m_host_,
+                                                             "name"_ = "m_vertex_inv_dual_volume_" /*, "TEMP"_*/};
+    Field<host_type, Real, VOLUME> m_volume_volume_{m_host_, "name"_ = "m_volume_volume_" /*, "TEMP"_*/};
+    Field<host_type, Real, VOLUME> m_volume_inv_volume_{m_host_, "name"_ = "m_volume_inv_volume_" /*, "TEMP"_*/};
+    Field<host_type, Real, VOLUME> m_volume_dual_volume_{m_host_, "name"_ = "m_volume_dual_volume_" /*, "TEMP"_*/};
+    Field<host_type, Real, VOLUME> m_volume_inv_dual_volume_{m_host_,
+                                                             "name"_ = "m_volume_inv_dual_volume_" /*, "TEMP"_*/};
+    Field<host_type, Real, EDGE> m_edge_volume_{m_host_, "name"_ = "m_edge_volume_" /*, "TEMP"_*/};
+    Field<host_type, Real, EDGE> m_edge_inv_volume_{m_host_, "name"_ = "m_edge_inv_volume_" /*, "TEMP"_*/};
+    Field<host_type, Real, EDGE> m_edge_dual_volume_{m_host_, "name"_ = "m_edge_dual_volume_" /*, "TEMP"_*/};
+    Field<host_type, Real, EDGE> m_edge_inv_dual_volume_{m_host_, "name"_ = "m_edge_inv_dual_volume_" /*, "TEMP"_*/};
+    Field<host_type, Real, FACE> m_face_volume_{m_host_, "name"_ = "m_face_volume_" /*, "TEMP"_*/};
+    Field<host_type, Real, FACE> m_face_inv_volume_{m_host_, "name"_ = "m_face_inv_volume_" /*, "TEMP"_*/};
+    Field<host_type, Real, FACE> m_face_dual_volume_{m_host_, "name"_ = "m_face_dual_volume_" /*, "TEMP"_*/};
+    Field<host_type, Real, FACE> m_face_inv_dual_volume_{m_host_, "name"_ = "m_face_inv_dual_volume_" /*, "TEMP"_*/};
 };
 
 template <typename THost>
@@ -93,23 +95,23 @@ void RectMesh<THost>::InitialCondition(Real time_now) {
      *\endverbatim
      */
 
-    auto chart = m_host_->GetChart();
+    auto const &chart = m_host_->GetChart();
     m_vertex_volume_ = 1.0;
     m_vertex_inv_volume_ = 1.0;
     m_vertex_dual_volume_ = [&](index_type x, index_type y, index_type z, int tag) -> Real {
-        return chart->volume(local_coordinates(x - 1, y - 1, z - 1, 0b111), local_coordinates(x, y, z, 0b111));
+        return chart.volume(local_coordinates(x - 1, y - 1, z - 1, 0b111), local_coordinates(x, y, z, 0b111));
     };
     m_vertex_inv_dual_volume_ = 1.0 / m_vertex_dual_volume_;
 
     m_volume_volume_ = [&](index_type x, index_type y, index_type z, int tag) -> Real {
-        return chart->volume(local_coordinates(x, y, z, 0b0), local_coordinates(x + 1, y + 1, z + 1, 0b0));
+        return chart.volume(local_coordinates(x, y, z, 0b0), local_coordinates(x + 1, y + 1, z + 1, 0b0));
     };
     m_volume_inv_volume_ = 1.0 / m_volume_volume_;
     m_volume_dual_volume_ = 1.0;
     m_volume_inv_dual_volume_ = 1.0;
 
     m_edge_volume_ = [&](index_type x, index_type y, index_type z, int w) -> Real {
-        return chart->length(
+        return chart.length(
             local_coordinates(x, y, z, 0b0),
             local_coordinates(x + (w == 0b001 ? 1 : 0), y + (w == 0b010 ? 1 : 0), z + (w == 0b100 ? 1 : 0), 0b0),
             EntityIdCoder::m_id_to_sub_index_[w]);
@@ -117,14 +119,14 @@ void RectMesh<THost>::InitialCondition(Real time_now) {
     m_edge_inv_volume_ = 1.0 / m_edge_volume_;
 
     m_edge_dual_volume_ = [&](index_type x, index_type y, index_type z, int w) -> Real {
-        return chart->area(
+        return chart.area(
             local_coordinates(x - (w != 0b001 ? 1 : 0), y - (w != 0b010 ? 1 : 0), z - (w != 0b100 ? 1 : 0), 0b111),
             local_coordinates(x, y, z, 0b111), EntityIdCoder::m_id_to_sub_index_[w]);
     };
     m_edge_inv_dual_volume_ = 1.0 / m_edge_dual_volume_;
 
     m_face_volume_ = [&](index_type x, index_type y, index_type z, int w) -> Real {
-        return chart->area(
+        return chart.area(
             local_coordinates(x, y, z, 0b0),
             local_coordinates(x + (w != 0b110 ? 1 : 0), y + (w != 0b101 ? 1 : 0), z + (w != 0b011 ? 1 : 0), 0b0),
             EntityIdCoder::m_id_to_sub_index_[w]);
@@ -134,7 +136,7 @@ void RectMesh<THost>::InitialCondition(Real time_now) {
     m_face_inv_volume_ = 1.0 / m_face_volume_;
 
     m_face_dual_volume_ = [&](index_type x, index_type y, index_type z, int w) -> Real {
-        return chart->length(
+        return chart.length(
             local_coordinates(x - (w == 0b110 ? 1 : 0), y - (w == 0b101 ? 1 : 0), z - (w == 0b011 ? 1 : 0), 0b111),
             local_coordinates(x, y, z, 0b111), EntityIdCoder::m_id_to_sub_index_[w]);
     };

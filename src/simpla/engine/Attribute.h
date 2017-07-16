@@ -83,7 +83,7 @@ class AttributeGroup {
     AttributeGroup &operator=(AttributeGroup const &other) = delete;
     AttributeGroup &operator=(AttributeGroup &&other) = delete;
 
-    virtual void RegisterDescription(std::map<std::string, std::shared_ptr<AttributeDesc>> *);
+    virtual void RegisterDescription(std::map<std::string, std::shared_ptr<AttributeDesc>> *) const;
     virtual void RegisterAt(AttributeGroup *);
     virtual void DeregisterFrom(AttributeGroup *);
 

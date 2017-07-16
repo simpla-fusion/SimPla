@@ -3,12 +3,12 @@
 //
 
 #include "Attribute.h"
-#include "simpla/data/DataBlock.h"
 #include <set>
 #include <typeindex>
 #include "Domain.h"
 #include "MeshBlock.h"
 #include "Patch.h"
+#include "simpla/data/DataBlock.h"
 //#include "simpla/mesh/MeshBase.h"
 namespace simpla {
 namespace engine {
@@ -53,7 +53,7 @@ AttributeGroup::AttributeGroup() : m_pimpl_(new pimpl_s) {}
 AttributeGroup::~AttributeGroup() {
     for (auto &item : m_pimpl_->m_attributes_) { item.second->Deregister(this); }
 }
-void AttributeGroup::RegisterDescription(std::map<std::string, std::shared_ptr<AttributeDesc>> *m) {
+void AttributeGroup::RegisterDescription(std::map<std::string, std::shared_ptr<AttributeDesc>> *m) const {
     for (auto &item : m_pimpl_->m_attributes_) { (*m)[item.first] = item.second->GetDescription(); }
 };
 

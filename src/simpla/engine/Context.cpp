@@ -150,7 +150,7 @@ std::shared_ptr<DomainBase> Context::GetDomain(std::string const &k) const {
 
 std::map<std::string, std::shared_ptr<AttributeDesc>> Context::CollectRegisteredAttributes() const {
     std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
-    for (auto const &item : GetAllDomains()) { item.second->RegisterDescription(&m_global_attributes_); }
+    GetMesh()->RegisterDescription(&m_global_attributes_);
     return m_global_attributes_;
 }
 

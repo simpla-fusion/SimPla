@@ -52,10 +52,12 @@ MeshBase::~MeshBase() = default;
 std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
     auto p = std::make_shared<data::DataTable>();
     p->SetValue("Type", GetRegisterName());
+    p->SetValue("Chart", GetChart().Serialize());
+
     return (p);
 }
 void MeshBase::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
-    m_chart_ = geometry::Chart::Create(cfg->GetTable("Chart"));
+    m_chart_ = geometry::Chart::Create(cfg->Get("Chart"));
 
     Click();
 };
