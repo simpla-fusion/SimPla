@@ -1,16 +1,20 @@
 //
 // Created by salmon on 16-10-24.
 //
+
+#include "simpla/SIMPLA_config.h"
+
 #include "SAMRAITimeIntegrator.h"
 // Headers for SimPla
 #include <cmath>
 #include <map>
 #include <memory>
 #include <string>
-#include "simpla/SIMPLA_config.h"
+
 #include "simpla/algebra/Algebra.h"
 #include "simpla/data/Data.h"
 #include "simpla/engine/Engine.h"
+#include "simpla/engine/Mesh.h"
 #include "simpla/parallel/MPIComm.h"
 #include "simpla/utilities/Log.h"
 // Headers for SAMRAI
@@ -624,17 +628,17 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
                             break;
                     }
                 }
-//                CHECK(p->GetMeshBlock()->GetIndexBox());
-//                CHECK(vertex_box);
-//                CHECK(edge0_box);
-//                CHECK(edge1_box);
-//                CHECK(edge2_box);
-//                CHECK(face0_box);
-//                CHECK(face1_box);
-//                CHECK(face2_box);
-//                CHECK(volume_box);
+                //                CHECK(p->GetMeshBlock()->GetIndexBox());
+                //                CHECK(vertex_box);
+                //                CHECK(edge0_box);
+                //                CHECK(edge1_box);
+                //                CHECK(edge2_box);
+                //                CHECK(face0_box);
+                //                CHECK(face1_box);
+                //                CHECK(face2_box);
+                //                CHECK(volume_box);
 
-                simpla::engine::DomainBase d;
+                auto &d = *m_ctx_->GetMesh();
                 d.Push(&p);
                 d.GetRange("PATCH_BOUNDARY_" + std::to_string(VERTEX))
                     .append(std::make_shared<ContinueRange<EntityId>>(vertex_box, 0));
@@ -653,8 +657,10 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
                     .append(std::make_shared<ContinueRange<EntityId>>(volume_box, 7));
                 d.Pull(&p);
             }
-        m_ctx_->InitialCondition(&p, data_time);
-
+        //        m_ctx_->InitialCondition(&p, data_time);
+        m_ctx_->GetMesh()->Push(&p);
+        for (auto &d : m_ctx_->GetAllDomains()) { d.second->InitialCondition(data_time); }
+        m_ctx_->GetMesh()->Pull(&p);
         //        m_ctx_->GetBaseMesh()->Deserialize(p.get());
         //        VERBOSE << "DoInitialize MeshBase : " << m_ctx_->GetBaseMesh()->GetRegisterName() <<
         //        std::endl;
@@ -723,10 +729,10 @@ void SAMRAIHyperbolicPatchStrategyAdapter::computeFluxesOnPatch(SAMRAI::hier::Pa
 void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, double time_now,
                                                                          double time_dt, bool at_syncronization) {
     engine::Patch p = m_ctx_->GetAtlas().Pop(static_cast<id_type>(patch.getLocalId().getValue()));
-
     ConvertPatchFromSAMRAI(patch, &p);
-    m_ctx_->Advance(&p, time_now, time_dt);
-    for (auto &d : m_ctx_->GetAllDomains()) { d.second->Advance(&p, time_now, time_dt); }
+    m_ctx_->GetMesh()->Push(&p);
+    for (auto &d : m_ctx_->GetAllDomains()) { d.second->Advance(time_now, time_dt); }
+    m_ctx_->GetMesh()->Pull(&p);
     m_ctx_->GetAtlas().Push(std::move(p));
 }
 
@@ -760,7 +766,9 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setPhysicalBoundaryConditions(
     SAMRAI::hier::Patch &patch, double fill_time, const SAMRAI::hier::IntVector &ghost_width_to_fill) {
     auto p = m_ctx_->GetAtlas().Pop(static_cast<id_type>(patch.getLocalId().getValue()));
     ConvertPatchFromSAMRAI(patch, &p);
-    for (auto &d : m_ctx_->GetAllDomains()) { d.second->BoundaryCondition(&p, fill_time, 0); }
+    m_ctx_->GetMesh()->Push(&p);
+    for (auto &d : m_ctx_->GetAllDomains()) { d.second->BoundaryCondition(fill_time, 0); }
+    m_ctx_->GetMesh()->Pull(&p);
     m_ctx_->GetAtlas().Push(std::move(p));
 }
 
@@ -1053,7 +1061,6 @@ void SAMRAITimeIntegrator::DoUpdate() {
 
     //    m_pack_->grid_geometry->printClassData(std::cout);
     //    m_pack_->hyp_level_integrator->printClassData(std::cout);
-    //
     //    m_pack_->m_time_refinement_integrator_->printClassData(std::cout);
 
     MESSAGE << "==================  Context is initialized!  =================" << std::endl;

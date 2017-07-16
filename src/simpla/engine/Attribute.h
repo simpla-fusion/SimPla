@@ -15,9 +15,6 @@
 #include "SPObject.h"
 
 namespace simpla {
-
-class MeshBase;
-
 namespace engine {
 class DomainBase;
 class Attribute;

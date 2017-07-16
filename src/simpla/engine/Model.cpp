@@ -18,7 +18,7 @@ struct Model::pimpl_s {
 };
 
 Model::Model() : m_pimpl_(new pimpl_s) {}
-Model::~Model() {}
+Model::~Model() = default;
 std::shared_ptr<DataTable> Model::Serialize() const {
     auto res = data::EnableCreateFromDataTable<Model>::Serialize();
     for (auto const& item : m_pimpl_->m_g_objs_) {
@@ -49,7 +49,6 @@ void Model::DoUpdate() {
     }
 };
 void Model::DoTearDown() {}
-// int Model::GetNDims() const { return 3; }
 
 box_type const& Model::GetBoundBox() const { return m_pimpl_->m_bound_box_; };
 
@@ -61,9 +60,9 @@ void Model::SetObject(std::string const& key, std::shared_ptr<geometry::GeoObjec
     }
 }
 
-std::shared_ptr<geometry::GeoObject> Model::GetObject(std::string const& k) const {
+const geometry::GeoObject* Model::GetObject(std::string const& k) const {
     auto it = m_pimpl_->m_g_objs_.find(k);
-    return it == m_pimpl_->m_g_objs_.end() ? nullptr : it->second;
+    return it == m_pimpl_->m_g_objs_.end() ? nullptr : it->second.get();
 }
 
 size_type Model::DeleteObject(std::string const& key) { return m_pimpl_->m_g_objs_.erase(key); }

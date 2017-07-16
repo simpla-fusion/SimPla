@@ -68,7 +68,7 @@ std::shared_ptr<PatchDataPack> Patch::GetPack(const std::string &g) { return m_p
 //        return nullptr;
 //    }
 
-void Patch::SetPack(std::shared_ptr<PatchDataPack> p, const std::string &g) { m_pimpl_->m_pack_ = p; }
+void Patch::SetPack(const std::string &g, std::shared_ptr<PatchDataPack> p) { m_pimpl_->m_pack_ = p; }
 
 //
 // void Patch::PushRange(std::shared_ptr<std::map<std::string, EntityRange>> const &r) { m_pack_->m_range_ = r; };

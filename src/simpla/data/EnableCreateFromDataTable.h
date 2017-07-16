@@ -5,13 +5,13 @@
 #ifndef SIMPLA_ENABLECREATEFROMDATATABLE_H
 #define SIMPLA_ENABLECREATEFROMDATATABLE_H
 
-#include "simpla/utilities/SingletonHolder.h"
 #include <iomanip>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <string>
 #include "DataTable.h"
+#include "simpla/utilities/SingletonHolder.h"
 namespace simpla {
 namespace data {
 class DataTable;
@@ -27,7 +27,7 @@ class EnableCreateFromDataTable : public data::Serializable {
     this_type &operator=(this_type const &other) = delete;
     this_type &operator=(this_type &&other) = delete;
 
-    virtual std::string GetRegisterName() const { return TObj::RegisterName(); }
+    virtual std::string GetRegisterName() const { return typeid(TObj).name(); }
 
     std::shared_ptr<DataTable> Serialize() const override {
         auto res = std::make_shared<data::DataTable>();

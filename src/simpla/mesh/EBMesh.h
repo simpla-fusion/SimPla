@@ -25,25 +25,22 @@ struct EBMesh {
 
     template <typename LHS, typename RHS>
     void FillBody(LHS &lhs, RHS &&rhs) const {
-        auto r = m_host_->GetRange(m_host_->GetName() + "_BODY");
-        if (r.isNull()) {
-            m_host_->Fill(lhs, std::forward<RHS>(rhs));
-        } else {
-            m_host_->Fill(lhs, std::forward<RHS>(rhs), r);
-        }
+        m_host_->FillRange(lhs, std::forward<RHS>(rhs), m_host_->GetName() + "_BODY");
     };
 
     template <typename LHS, typename RHS>
     void FillBoundary(LHS &lhs, RHS &&rhs) const {
         m_host_->FillRange(lhs, std::forward<RHS>(rhs), m_host_->GetName() + "_BOUNDARY");
+
         m_host_->FillRange(lhs, std::forward<RHS>(rhs), m_host_->GetName() + "_PARA_BOUNDARY");
+
         m_host_->FillRange(lhs, std::forward<RHS>(rhs), m_host_->GetName() + "_PERP_BOUNDARY");
     };
 };
 
 template <typename THost>
 void EBMesh<THost>::InitialCondition(Real time_now) {
-    auto g = m_host_->GetModel()->GetBoundary();
+    auto g = m_host_->GetBoundary();
     if (g == nullptr) { return; }
 
     Real ratio = g->CheckOverlap(m_host_->GetBox());

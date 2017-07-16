@@ -29,10 +29,10 @@ namespace mesh {
 *\endverbatim
 */
 
-point_type StructuredMesh::GetCellWidth() const { return GetChart()->GetCellWidth(GetBlock().GetLevel()); }
-point_type StructuredMesh::GetOrigin() const { return GetChart()->GetOrigin(); }
-point_type StructuredMesh::map(point_type const& p) const { return GetChart()->map(p); }
-point_type StructuredMesh::inv_map(point_type const& p) const { return GetChart()->inv_map(p); }
+point_type StructuredMesh::GetCellWidth() const { return GetChart().GetCellWidth(GetBlock().GetLevel()); }
+point_type StructuredMesh::GetOrigin() const { return GetChart().GetOrigin(); }
+point_type StructuredMesh::map(point_type const& p) const { return GetChart().map(p); }
+point_type StructuredMesh::inv_map(point_type const& p) const { return GetChart().inv_map(p); }
 size_tuple StructuredMesh::GetDimensions() const { return GetBlock().GetDimensions(); }
 index_tuple StructuredMesh::GetIndexOrigin() const { return GetBlock().GetIndexOrigin(); }
 index_tuple StructuredMesh::GetGhostWidth(int tag) const { return GetBlock().GetGhostWidth(); }

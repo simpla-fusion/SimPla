@@ -43,7 +43,7 @@ class Patch {
     void SetDataBlock(id_type id, std::shared_ptr<data::DataBlock>);
     std::shared_ptr<data::DataBlock> GetDataBlock(id_type const &id);
 
-    void SetPack(std::shared_ptr<PatchDataPack> p, const std::string &g = "");
+    void SetPack(const std::string &g, std::shared_ptr<PatchDataPack> p);
     std::shared_ptr<PatchDataPack> GetPack(const std::string &g = "");
 
    private:

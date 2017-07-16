@@ -85,21 +85,37 @@ class Context : public SPObject, public data::Serializable {
 
     Atlas &GetAtlas() const;
 
-    void SetChart(std::shared_ptr<geometry::Chart> const &);
-    geometry::Chart const *GetChart() const;
+    std::shared_ptr<MeshBase> CreateMesh(const std::shared_ptr<data::DataTable> &cfg);
 
-    void SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &);
+    template <typename T>
+    std::shared_ptr<T> CreateMesh() {
+        auto res = std::make_shared<T>();
+        SetMesh(res);
+        return res;
+    };
+    MeshBase const *GetMesh() const;
+    MeshBase *GetMesh();
+
+    void SetModel(std::string const &k, std::shared_ptr<Model> const &) const;
+    Model const *GetModel(std::string const &k) const;
+
+    std::shared_ptr<DomainBase> CreateDomain(std::string const &k, std::shared_ptr<data::DataTable> const &);
+    template <typename TD>
+    std::shared_ptr<TD> CreateDomain(std::string const &k, Model const *m) {
+        auto res = std::make_shared<TD>(GetMesh(), m);
+        SetDomain(k, std::dynamic_pointer_cast<DomainBase>(res));
+        res->SetName(k);
+        return res;
+    };
     std::shared_ptr<DomainBase> GetDomain(std::string const &k) const;
 
     std::map<std::string, std::shared_ptr<DomainBase>> &GetAllDomains();
     std::map<std::string, std::shared_ptr<DomainBase>> const &GetAllDomains() const;
     std::map<std::string, std::shared_ptr<AttributeDesc>> CollectRegisteredAttributes() const;
 
-    void InitialCondition(Patch *patch, Real time_now);
-    void BoundaryCondition(Patch *patch, Real time_now, Real time_dt);
-    void Advance(Patch *patch, Real time_now, Real time_dt);
-
    private:
+    void SetMesh(std::shared_ptr<MeshBase> const &);
+    void SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &);
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };

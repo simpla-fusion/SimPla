@@ -7,13 +7,17 @@ N_PHI = 100
 
 Context = {
     Name = "EMTokamak",
-    Chart = { Type = "Cylindrical" },
+
     Atlas = {
         IndexOrigin = { 0, 0, 0 },
         Dimensions = { 32, 32, 32 },
-        PeriodicDimension = { 0, 0, 1 },
         lo = { 1.4, -1.0, -PI / 2 },
         hi = { 2.5, 1.0, PI / 2 }
+    },
+    Mesh = {
+        Type = "EBRectMesh",
+        Chart = "Cylindrical",
+        PeriodicDimension = { 0, 0, 1 },
     },
     Model =
     {
@@ -36,16 +40,16 @@ Context = {
             Model = "Tokamak",
             Boundary = "Limiter",
         },
-        Boundary = {
-            Type = "EMFluid", -- "Domain<RectMesh,EBMesh,FVM,EMFluid>",
-            --            Species = {
-            --                ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
-            --                H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
-            Model = "Tokamak",
-            Boundary = "Boundary",
-        },
+--        Boundary = {
+--            Type = "EMFluid", -- "Domain<RectMesh,EBMesh,FVM,EMFluid>",
+--            --            Species = {
+--            --                ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
+--            --                H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
+--            Model = "Tokamak",
+--            Boundary = "Boundary",
+--        },
         ICRF = {
-            Type = "Antenna", -- "Domain<RectMesh,EBMesh,FVM,ICRFAntenna>",
+            Type = "ICRFAntenna", -- "Domain<RectMesh,EBMesh,FVM,ICRFAntenna>",
             Model = "RFAntenna",
             IsHard = false,
             Amplify = { 0.0, 0.0, 1.0 },

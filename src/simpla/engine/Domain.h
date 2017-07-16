@@ -24,41 +24,34 @@ class Patch;
 class PatchDataPack;
 class AttributeGroup;
 class Model;
+class MeshBase;
 
 class DomainBase : public SPObject,
                    public AttributeGroup,
-                   public data::EnableCreateFromDataTable<DomainBase, const geometry::Chart *, const Model *> {
+                   public data::EnableCreateFromDataTable<DomainBase, MeshBase *, const Model *> {
     SP_OBJECT_HEAD(DomainBase, SPObject)
-    DECLARE_REGISTER_NAME(DomainBase)
    public:
     using AttributeGroup::attribute_type;
+    DECLARE_REGISTER_NAME(DomainBase)
 
-    DomainBase(const geometry::Chart *c = nullptr, const Model *m = nullptr);
+    DomainBase(MeshBase *m, const Model *model);
     ~DomainBase() override;
     DomainBase(DomainBase const &other);
     DomainBase(DomainBase &&other) noexcept;
-    void swap(DomainBase &other);
-    DomainBase &operator=(this_type const &other) {
-        DomainBase(other).swap(*this);
-        return *this;
-    }
-    DomainBase &operator=(this_type &&other) noexcept {
-        DomainBase(other).swap(*this);
-        return *this;
-    }
-    virtual const geometry::Chart *GetChart() const { return m_chart_; }
-    virtual const Model *GetModel() const { return m_model_; }
+    DomainBase &operator=(this_type const &other) = delete;
+    DomainBase &operator=(this_type &&other) noexcept = delete;
 
-    void SetBlock(const MeshBlock &blk);
-    virtual const MeshBlock &GetBlock() const;
-    virtual id_type GetBlockId() const;
+    virtual const geometry::GeoObject *GetBoundary() const { return m_boundary_; }
+    virtual const Model *GetModel() const { return m_model_; }
+    virtual MeshBase *GetMesh() { return m_mesh_; }
+    virtual const MeshBase *GetMesh() const { return m_mesh_; }
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const &t) override;
 
     void SetRange(std::string const &, Range<EntityId> const &);
-    virtual Range<EntityId> &GetRange(std::string const &k);
-    virtual Range<EntityId> GetRange(std::string const &k) const;
+    Range<EntityId> &GetRange(std::string const &k);
+    Range<EntityId> GetRange(std::string const &k) const;
 
     void DoInitialize() override;
     void DoFinalize() override;
@@ -80,56 +73,31 @@ class DomainBase : public SPObject,
     void BoundaryCondition(Real time_now, Real dt);
     void Advance(Real time_now, Real dt);
 
-    void Pull(Patch *) override;
-    void Push(Patch *) override;
-
-    void InitialCondition(Patch *, Real time_now);
-    void BoundaryCondition(Patch *, Real time_now, Real dt);
-    void Advance(Patch *, Real time_now, Real dt);
-
    private:
-    MeshBlock m_mesh_block_;
-
-    geometry::Chart const *m_chart_;
+    MeshBase *m_mesh_;
     engine::Model const *m_model_;
-
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
+    geometry::GeoObject const *m_boundary_;
 
 };  // class DomainBase
 
-template <template <typename> class... Policies>
-class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
-    typedef Domain<Policies...> host_type;
+template <typename TM, template <typename> class... Policies>
+class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
+    typedef Domain<TM, Policies...> domain_type;
 
-    SP_OBJECT_HEAD(host_type, DomainBase);
+    SP_OBJECT_HEAD(domain_type, DomainBase);
+    DECLARE_REGISTER_NAME(Domain)
+
+    typedef TM mesh_type;
 
    public:
     typedef DomainBase::attribute_type attribute_type;
 
-    Domain(geometry::Chart const *c, const Model *m) : DomainBase(c, m), Policies<this_type>(this)... {}
+    Domain(MeshBase *msh, const Model *model) : DomainBase(msh, model), Policies<this_type>(this)... {}
     ~Domain() override = default;
 
-    static bool is_registered;
-    std::string GetRegisterName() const override { return RegisterName(); }
-
-   private:
-    template <template <typename> class _T0>
-    static std::string _RegisterName() {
-        return _T0<this_type>::RegisterName();
-    }
-
-    template <template <typename> class _T0, template <typename> class _T1, template <typename> class... _TOthers>
-    static std::string _RegisterName() {
-        return _T0<this_type>::RegisterName() + "," + _RegisterName<_T1, _TOthers...>();
-    }
-
-   public:
-    static std::string RegisterName() { return "Domain<" + _RegisterName<Policies...>() + ">"; }
-
     const Model *GetModel() const override { return DomainBase::GetModel(); }
-    const geometry::Chart *GetChart() const override { return DomainBase::GetChart(); };
-    const engine::MeshBlock &GetBlock() const override { return DomainBase::GetBlock(); };
+    const mesh_type *GetMesh() const override { return dynamic_cast<mesh_type const *>(DomainBase::GetMesh()); }
+    mesh_type *GetMesh() override { return dynamic_cast<mesh_type *>(DomainBase::GetMesh()); }
 
     Domain(const Domain &) = delete;
     Domain(Domain &&) = delete;
@@ -149,15 +117,15 @@ class Domain : public DomainBase, public Policies<Domain<Policies...>>... {
     template <typename TL, typename TR>
     void FillRange(TL &lhs, TR &&rhs, std::string const &k = "") const;
 
-    //    template <typename TL, typename TR>
-    //    void FillBody(TL &lhs, TR &&rhs) const;
-    //
-    //    template <typename TL, typename TR>
-    //    void FillBoundary(TL &lhs, TR &&rhs) const;
+    template <typename TL, typename TR>
+    void FillBody(TL &lhs, TR &&rhs) const {};
+
+    template <typename TL, typename TR>
+    void FillBoundary(TL &lhs, TR &&rhs) const {};
 };  // class Domain
 
-template <template <typename> class... Policies>
-bool Domain<Policies...>::is_registered = DomainBase::RegisterCreator<Domain<Policies...>>();
+// template <typename TM, template <typename> class... Policies>
+// bool Domain<TM, Policies...>::is_registered = DomainBase::RegisterCreator<Domain<TM, Policies...>>();
 
 #define DEFINE_INVOKE_HELPER(_FUN_NAME_)                                                                           \
     CHECK_MEMBER_FUNCTION(has_mem_fun_##_FUN_NAME_, _FUN_NAME_)                                                    \
@@ -204,32 +172,32 @@ DEFINE_INVOKE_HELPER(Serialize)
 
 #undef DEFINE_INVOKE_HELPER
 
-template <template <typename> class... Policies>
-void Domain<Policies...>::DoInitialCondition(Real time_now) {
+template <typename TM, template <typename> class... Policies>
+void Domain<TM, Policies...>::DoInitialCondition(Real time_now) {
     _try_invoke_InitialCondition<Policies...>(this, time_now);
 }
-template <template <typename> class... Policies>
-void Domain<Policies...>::DoBoundaryCondition(Real time_now, Real dt) {
+template <typename TM, template <typename> class... Policies>
+void Domain<TM, Policies...>::DoBoundaryCondition(Real time_now, Real dt) {
     _try_invoke_BoundaryCondition<Policies...>(this, time_now, dt);
 }
-template <template <typename> class... Policies>
-void Domain<Policies...>::DoAdvance(Real time_now, Real dt) {
+template <typename TM, template <typename> class... Policies>
+void Domain<TM, Policies...>::DoAdvance(Real time_now, Real dt) {
     _try_invoke_Advance<Policies...>(this, time_now, dt);
 }
-template <template <typename> class... Policies>
-std::shared_ptr<data::DataTable> Domain<Policies...>::Serialize() const {
+template <typename TM, template <typename> class... Policies>
+std::shared_ptr<data::DataTable> Domain<TM, Policies...>::Serialize() const {
     auto res = DomainBase::Serialize();
     _try_invoke_Serialize<Policies...>(this, res.get());
     return res;
 };
-template <template <typename> class... Policies>
-void Domain<Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
+template <typename TM, template <typename> class... Policies>
+void Domain<TM, Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
     _try_invoke_Deserialize<Policies...>(this, cfg);
     DomainBase::Deserialize(cfg);
 };
-template <template <typename> class... Policies>
+template <typename TM, template <typename> class... Policies>
 template <typename LHS, typename RHS>
-void Domain<Policies...>::FillRange(LHS &lhs, RHS &&rhs, std::string const &k) const {
+void Domain<TM, Policies...>::FillRange(LHS &lhs, RHS &&rhs, std::string const &k) const {
     auto r = GetRange(k + "_" + std::to_string(LHS::iform));
 
     if (r.isNull()) {

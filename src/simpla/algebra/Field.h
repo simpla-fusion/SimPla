@@ -80,7 +80,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         base_type::PushData(&m_data_);
         traits::foreach (m_data_, [&](auto& a, auto i0, auto&&... idx) {
             if (a.isNull()) {
-                a.SetSpaceFillingCurve(m_host_->GetSpaceFillingCurve(IFORM, i0));
+//                a.SetSpaceFillingCurve(m_host_->GetSpaceFillingCurve(IFORM, i0));
                 a.Initialize();
             }
         });
@@ -100,7 +100,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     template <typename Other>
     void Set(Other&& v) {
         Update();
-        m_host_->FillBody(*this, std::forward<Other>(v));
+//        m_host_->FillBody(*this, std::forward<Other>(v));
     }
 
     template <typename MR, typename UR, int... NR>
