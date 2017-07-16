@@ -21,45 +21,32 @@ struct EBMesh {
     DOMAIN_POLICY_HEAD(EBMesh);
 
    public:
-    void InitialCondition(Real time_now);
-
-    template <typename LHS, typename RHS>
-    void FillBody(LHS &lhs, RHS &&rhs) const {
-        m_host_->FillRange(lhs, std::forward<RHS>(rhs), m_host_->GetName() + "_BODY");
-    };
-
-    template <typename LHS, typename RHS>
-    void FillBoundary(LHS &lhs, RHS &&rhs) const {
-        m_host_->FillRange(lhs, std::forward<RHS>(rhs), m_host_->GetName() + "_BOUNDARY");
-        m_host_->FillRange(lhs, std::forward<RHS>(rhs), m_host_->GetName() + "_PARA_BOUNDARY");
-        m_host_->FillRange(lhs, std::forward<RHS>(rhs), m_host_->GetName() + "_PERP_BOUNDARY");
-    };
+    void SetBoundary(std::string const &prefix, geometry::GeoObject const *g) override;
 };
 
 template <typename THost>
-void EBMesh<THost>::InitialCondition(Real time_now) {
-    auto g = m_host_->GetBoundary();
+void EBMesh<THost>::SetBoundary(std::string const &prefix, geometry::GeoObject const *g) {
     if (g == nullptr) { return; }
 
     Real ratio = g->CheckOverlap(m_host_->GetBox());
 
-    if (1 - ratio < EPSILON) {
-        return;
-    } else if (ratio < EPSILON) {
-        m_host_->GetRange(m_host_->GetName() + "_BODY_0").append(nullptr);
-        m_host_->GetRange(m_host_->GetName() + "_BODY_1").append(nullptr);
-        m_host_->GetRange(m_host_->GetName() + "_BODY_2").append(nullptr);
-        m_host_->GetRange(m_host_->GetName() + "_BODY_3").append(nullptr);
-        m_host_->GetRange(m_host_->GetName() + "_BOUNDARY_0").append(nullptr);
-        m_host_->GetRange(m_host_->GetName() + "_BOUNDARY_3").append(nullptr);
+    if (ratio < EPSILON) {
+        m_host_->GetRange(prefix + "_BODY_0").append(nullptr);
+        m_host_->GetRange(prefix + "_BODY_1").append(nullptr);
+        m_host_->GetRange(prefix + "_BODY_2").append(nullptr);
+        m_host_->GetRange(prefix + "_BODY_3").append(nullptr);
+        m_host_->GetRange(prefix + "_BOUNDARY_0").append(nullptr);
+        m_host_->GetRange(prefix + "_BOUNDARY_3").append(nullptr);
 
-        m_host_->GetRange(m_host_->GetName() + "_PARA_BOUNDARY_1").append(nullptr);
-        m_host_->GetRange(m_host_->GetName() + "_PARA_BOUNDARY_2").append(nullptr);
+        m_host_->GetRange(prefix + "_PARA_BOUNDARY_1").append(nullptr);
+        m_host_->GetRange(prefix + "_PARA_BOUNDARY_2").append(nullptr);
 
-        m_host_->GetRange(m_host_->GetName() + "_PERP_BOUNDARY_1").append(nullptr);
-        m_host_->GetRange(m_host_->GetName() + "_PERP_BOUNDARY_2").append(nullptr);
-        return;
+        m_host_->GetRange(prefix + "_PERP_BOUNDARY_1").append(nullptr);
+        m_host_->GetRange(prefix + "_PERP_BOUNDARY_2").append(nullptr);
     }
+
+    if (1 - ratio < EPSILON || ratio < EPSILON) { return; }
+
     //    if (1.0 - ratio < EPSILON) {  // all in
     //        // range["BODY_0"].append(std::make_shared<ContinueRange<EntityId>>(m_host_->GetIndexBox(0),
     //        0));
@@ -253,19 +240,19 @@ void EBMesh<THost>::InitialCondition(Real time_now) {
                 }
             }
 
-    m_host_->GetRange(m_host_->GetName() + "_BODY_0").append(VERTEX_body);
-    m_host_->GetRange(m_host_->GetName() + "_BODY_1").append(EDGE_body);
-    m_host_->GetRange(m_host_->GetName() + "_BODY_2").append(FACE_body);
-    m_host_->GetRange(m_host_->GetName() + "_BODY_3").append(VOLUME_body);
+    m_host_->GetRange(prefix + "_BODY_0").append(VERTEX_body);
+    m_host_->GetRange(prefix + "_BODY_1").append(EDGE_body);
+    m_host_->GetRange(prefix + "_BODY_2").append(FACE_body);
+    m_host_->GetRange(prefix + "_BODY_3").append(VOLUME_body);
 
-    m_host_->GetRange(m_host_->GetName() + "_BOUNDARY_0").append(VERTEX_boundary);
-    m_host_->GetRange(m_host_->GetName() + "_BOUNDARY_3").append(VOLUME_boundary);
+    m_host_->GetRange(prefix + "_BOUNDARY_0").append(VERTEX_boundary);
+    m_host_->GetRange(prefix + "_BOUNDARY_3").append(VOLUME_boundary);
 
-    m_host_->GetRange(m_host_->GetName() + "_PARA_BOUNDARY_1").append(EDGE_PARA_boundary);
-    m_host_->GetRange(m_host_->GetName() + "_PARA_BOUNDARY_2").append(FACE_PARA_boundary);
+    m_host_->GetRange(prefix + "_PARA_BOUNDARY_1").append(EDGE_PARA_boundary);
+    m_host_->GetRange(prefix + "_PARA_BOUNDARY_2").append(FACE_PARA_boundary);
 
-    m_host_->GetRange(m_host_->GetName() + "_PERP_BOUNDARY_1").append(EDGE_PERP_boundary);
-    m_host_->GetRange(m_host_->GetName() + "_PERP_BOUNDARY_2").append(FACE_PERP_boundary);
+    m_host_->GetRange(prefix + "_PERP_BOUNDARY_1").append(EDGE_PERP_boundary);
+    m_host_->GetRange(prefix + "_PERP_BOUNDARY_2").append(FACE_PERP_boundary);
 }
 }  // namespace mesh
 }  // namespace simpla

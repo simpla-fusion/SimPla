@@ -38,6 +38,8 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
     virtual this_type *GetMesh() { return this; }
     virtual this_type const *GetMesh() const { return this; }
 
+    virtual void SetBoundary(std::string const &prefix, geometry::GeoObject const *g){};
+
     void SetBlock(const MeshBlock &blk);
     virtual const MeshBlock &GetBlock() const;
     virtual id_type GetBlockId() const;
@@ -90,6 +92,8 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     const engine::MeshBlock &GetBlock() const override { return MeshBase::GetBlock(); }
     this_type *GetMesh() override { return this; }
     this_type const *GetMesh() const override { return this; }
+
+    void SetBoundary(std::string const &prefix, geometry::GeoObject const *g) override;
 
     void DoInitialCondition(Real time_now) override;
     void DoBoundaryCondition(Real time_now, Real dt) override;
@@ -149,6 +153,7 @@ DEFINE_INVOKE_HELPER(BoundaryCondition)
 DEFINE_INVOKE_HELPER(Advance)
 DEFINE_INVOKE_HELPER(Deserialize)
 DEFINE_INVOKE_HELPER(Serialize)
+DEFINE_INVOKE_HELPER(AddGetObject)
 
 #undef DEFINE_INVOKE_HELPER
 
@@ -175,6 +180,8 @@ void Mesh<TM, Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &
     _try_invoke_Deserialize<Policies...>(this, cfg);
     MeshBase::Deserialize(cfg);
 };
+template <typename TM, template <typename> class... Policies>
+void Mesh<TM, Policies...>::SetBoundary(std::string const &prefix, geometry::GeoObject const *g){};
 
 template <typename TM, template <typename> class... Policies>
 template <typename LHS, typename RHS>
@@ -182,9 +189,9 @@ void Mesh<TM, Policies...>::FillRange(LHS &lhs, RHS &&rhs, std::string const &k)
     auto r = GetRange(k + "_" + std::to_string(LHS::iform));
 
     if (r.isNull()) {
-        this->Fill(lhs, std::forward<RHS>(rhs), r);
+        this->Calculate(lhs, std::forward<RHS>(rhs), r);
     } else {
-        this->Fill(lhs, std::forward<RHS>(rhs));
+        this->Calculate(lhs, std::forward<RHS>(rhs));
     }
 };
 }  // namespace mesh
