@@ -43,9 +43,9 @@ void Maxwell<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {}
 
 template <typename TM>
 void Maxwell<TM>::InitialCondition(Real time_now) {
-    dumpE.Initialize();
-    dumpB.Initialize();
-    dumpJ.Initialize();
+    dumpE.Clear();
+    dumpB.Clear();
+    dumpJ.Clear();
     E.Clear();
     B.Clear();
     J.Clear();
@@ -72,9 +72,13 @@ void Maxwell<TM>::Advance(Real time_now, Real dt) {
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
     m_host_->FillBoundary(E, 0);
 
-    dumpE.DeepCopy(E);
-    dumpB.DeepCopy(B);
-    dumpJ.DeepCopy(J);
+    //    dumpE.DeepCopy(E);
+    //    dumpB.DeepCopy(B);
+    //    dumpJ.DeepCopy(J);
+
+    dumpE[0] = E.Get();
+    dumpB[0] = B.Get();
+    dumpJ[0] = J.Get();
 }
 
 }  // namespace simpla  {

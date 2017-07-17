@@ -108,7 +108,8 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
 
     template <typename TL, typename TR>
     void Fill(TL &lhs, TR &&rhs) const {
-        FillBody(lhs, std::forward<TR>(rhs));
+        GetMesh()->Fill(lhs, std::forward<TR>(rhs));
+        //        FillBody(lhs, std::forward<TR>(rhs));
     };
 
     template <typename TL, typename TR, typename... Others>
