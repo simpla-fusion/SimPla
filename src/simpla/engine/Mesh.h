@@ -136,6 +136,7 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
 
 // template <typename TM, template <typename> class... Policies>
 // bool Domain<TM, Policies...>::is_registered = DomainBase::RegisterCreator<Domain<TM, Policies...>>();
+namespace mesh_detail {
 
 #define DEFINE_INVOKE_HELPER(_FUN_NAME_)                                                                           \
     CHECK_MEMBER_FUNCTION(has_mem_fun_##_FUN_NAME_, _FUN_NAME_)                                                    \
@@ -183,42 +184,42 @@ DEFINE_INVOKE_HELPER(SetGeoObject)
 DEFINE_INVOKE_HELPER(Calculate)
 
 #undef DEFINE_INVOKE_HELPER
-
+}  // namespace mesh_detail
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::DoInitialCondition(Real time_now) {
-    _try_invoke_InitialCondition<Policies...>(this, time_now);
+    mesh_detail::_try_invoke_InitialCondition<Policies...>(this, time_now);
 }
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::DoBoundaryCondition(Real time_now, Real dt) {
-    _try_invoke_BoundaryCondition<Policies...>(this, time_now, dt);
+    mesh_detail::_try_invoke_BoundaryCondition<Policies...>(this, time_now, dt);
 }
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::DoAdvance(Real time_now, Real dt) {
-    _try_invoke_Advance<Policies...>(this, time_now, dt);
+    mesh_detail::_try_invoke_Advance<Policies...>(this, time_now, dt);
 }
 template <typename TM, template <typename> class... Policies>
 std::shared_ptr<data::DataTable> Mesh<TM, Policies...>::Serialize() const {
     auto res = MeshBase::Serialize();
-    _try_invoke_Serialize<Policies...>(this, res.get());
+    mesh_detail::_try_invoke_Serialize<Policies...>(this, res.get());
     return res;
 };
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
-    _try_invoke_Deserialize<Policies...>(this, cfg);
+    mesh_detail::_try_invoke_Deserialize<Policies...>(this, cfg);
     MeshBase::Deserialize(cfg);
 };
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::AddGeoObject(std::string const &prefix, geometry::GeoObject const *g) {
-    _try_invoke_SetGeoObject<Policies...>(this, prefix, g);
+    mesh_detail::_try_invoke_SetGeoObject<Policies...>(this, prefix, g);
 };
 
 template <typename TM, template <typename> class... Policies>
 template <typename LHS, typename RHS>
 void Mesh<TM, Policies...>::FillRange(LHS &lhs, RHS &&rhs, Range<EntityId> r, bool full_fill_if_range_is_null) const {
     if (r.isNull() && full_fill_if_range_is_null) {
-        _try_invoke_once_Calculate<Policies...>(this, lhs, std::forward<RHS>(rhs));
+        mesh_detail::_try_invoke_once_Calculate<Policies...>(this, lhs, std::forward<RHS>(rhs));
     } else {
-        _try_invoke_once_Calculate<Policies...>(this, lhs, std::forward<RHS>(rhs), r);
+        mesh_detail::_try_invoke_once_Calculate<Policies...>(this, lhs, std::forward<RHS>(rhs), r);
     }
 };
 

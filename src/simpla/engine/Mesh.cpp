@@ -58,7 +58,7 @@ std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
 }
 void MeshBase::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     m_chart_ = geometry::Chart::Create(cfg->Get("Chart"));
-
+    SetName(cfg->GetValue("Name", GetRegisterName()));
     Click();
 };
 

@@ -19,7 +19,6 @@
 
 #include "simpla/SIMPLA_config.h"
 
-
 #include <stddef.h>
 #include <cfenv>
 //#include <bitset>
@@ -509,6 +508,20 @@ std::string make_msg(Others const &... others) {
     std::cout << std::setfill(' ') << std::setw(40) << __STRING(_MSG_) << " = 0x" << std::setw(20) \
               << std::setfill('0') << std::hex << (_MSG_) << std::dec << std::endl
 
+#ifndef NDEBUG
+#define SP_CMD(_CMD_)                                                                          \
+    {                                                                                          \
+        std::feclearexcept(FE_ALL_EXCEPT);                                                     \
+        _CMD_;                                                                                 \
+        int _error = std::fetestexcept(FE_ALL_EXCEPT);                                         \
+        std::feclearexcept(FE_ALL_EXCEPT);                                                     \
+        if (_error & FE_INVALID) {                                                             \
+            RUNTIME_ERROR << "FE_INVALID is raised! [" << __STRING(_CMD_) << "]" << std::endl; \
+        }                                                                                      \
+    }
+#else
+#define SP_CMD(_CMD_) _CMD_
+#endif
 /** @} */
 
 /** @} defgroup Logging*/

@@ -126,27 +126,100 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
         GetMesh()->FillBoundary(lhs, std::forward<TR>(rhs), GetName());
     };
 };  // class Domain
+// template <typename TM, template <typename> class... Policies>
+// void Domain<TM, Policies...>::DoInitialCondition(Real time_now) {
+////    GetMesh()->AddGeoObject(GetName(), GetBoundary());
+//};
+// template <typename TM, template <typename> class... Policies>
+// void Domain<TM, Policies...>::DoBoundaryCondition(Real time_now, Real dt){
+//
+//};
+// template <typename TM, template <typename> class... Policies>
+// void Domain<TM, Policies...>::DoAdvance(Real time_now, Real dt){
+//
+//};
+// template <typename TM, template <typename> class... Policies>
+// void Domain<TM, Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &cfg){};
+//
+// template <typename TM, template <typename> class... Policies>
+// std::shared_ptr<data::DataTable> Domain<TM, Policies...>::Serialize() const {
+//    auto res = DomainBase::Serialize();
+//
+//    return res;
+//};
+namespace domain_detail {
+#define DEFINE_INVOKE_HELPER(_FUN_NAME_)                                                                           \
+    CHECK_MEMBER_FUNCTION(has_mem_fun_##_FUN_NAME_, _FUN_NAME_)                                                    \
+    template <typename this_type, typename... Args>                                                                \
+    int _invoke_##_FUN_NAME_(std::true_type const &has_function, this_type *self, Args &&... args) {               \
+        self->_FUN_NAME_(std::forward<Args>(args)...);                                                             \
+        return 1;                                                                                                  \
+    }                                                                                                              \
+    template <typename this_type, typename... Args>                                                                \
+    int _invoke_##_FUN_NAME_(std::false_type const &has_not_function, this_type *self, Args &&... args) {          \
+        return 0;                                                                                                  \
+    }                                                                                                              \
+    template <template <typename> class _T0, typename this_type, typename... Args>                                 \
+    int _try_invoke_##_FUN_NAME_(this_type const *self, Args &&... args) {                                         \
+        return _invoke_##_FUN_NAME_(has_mem_fun_##_FUN_NAME_<_T0<this_type> const, void, Args...>(),               \
+                                    dynamic_cast<_T0<this_type> const *>(self), std::forward<Args>(args)...);      \
+    }                                                                                                              \
+    template <template <typename> class _T0, typename this_type, typename... Args>                                 \
+    int _try_invoke_##_FUN_NAME_(this_type *self, Args &&... args) {                                               \
+        return _invoke_##_FUN_NAME_(has_mem_fun_##_FUN_NAME_<_T0<this_type>, void, Args...>(),                     \
+                                    dynamic_cast<_T0<this_type> *>(self), std::forward<Args>(args)...);            \
+    }                                                                                                              \
+    template <template <typename> class _T0, template <typename> class _T1, template <typename> class... _TOthers, \
+              typename this_type, typename... Args>                                                                \
+    int _try_invoke_##_FUN_NAME_(this_type *self, Args &&... args) {                                               \
+        return _try_invoke_##_FUN_NAME_<_T0>(self, std::forward<Args>(args)...) +                                  \
+               _try_invoke_##_FUN_NAME_<_T1, _TOthers...>(self, std::forward<Args>(args)...);                      \
+    }                                                                                                              \
+    template <template <typename> class _T0, template <typename> class _T1, template <typename> class... _TOthers, \
+              typename this_type, typename... Args>                                                                \
+    int _try_invoke_once_##_FUN_NAME_(this_type *self, Args &&... args) {                                          \
+        if (_try_invoke_##_FUN_NAME_<_T0>(self, std::forward<Args>(args)...) == 0) {                               \
+            return _try_invoke_##_FUN_NAME_<_T1, _TOthers...>(self, std::forward<Args>(args)...);                  \
+        } else {                                                                                                   \
+            return 1;                                                                                              \
+        }                                                                                                          \
+    }
+
+DEFINE_INVOKE_HELPER(InitialCondition)
+DEFINE_INVOKE_HELPER(BoundaryCondition)
+DEFINE_INVOKE_HELPER(Advance)
+DEFINE_INVOKE_HELPER(Deserialize)
+DEFINE_INVOKE_HELPER(Serialize)
+DEFINE_INVOKE_HELPER(Calculate)
+
+#undef DEFINE_INVOKE_HELPER
+
+}  // namespace domain_detail
+
 template <typename TM, template <typename> class... Policies>
 void Domain<TM, Policies...>::DoInitialCondition(Real time_now) {
-    GetMesh()->AddGeoObject(GetName(), GetBoundary());
-};
+    domain_detail::_try_invoke_InitialCondition<Policies...>(this, time_now);
+}
 template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::DoBoundaryCondition(Real time_now, Real dt){
-
-};
+void Domain<TM, Policies...>::DoBoundaryCondition(Real time_now, Real dt) {
+    domain_detail::_try_invoke_BoundaryCondition<Policies...>(this, time_now, dt);
+}
 template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::DoAdvance(Real time_now, Real dt){
-
-};
-template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &cfg){};
-
+void Domain<TM, Policies...>::DoAdvance(Real time_now, Real dt) {
+    domain_detail::_try_invoke_Advance<Policies...>(this, time_now, dt);
+}
 template <typename TM, template <typename> class... Policies>
 std::shared_ptr<data::DataTable> Domain<TM, Policies...>::Serialize() const {
     auto res = DomainBase::Serialize();
-
+    domain_detail::_try_invoke_Serialize<Policies...>(this, res.get());
     return res;
 };
+template <typename TM, template <typename> class... Policies>
+void Domain<TM, Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
+    domain_detail::_try_invoke_Deserialize<Policies...>(this, cfg);
+    DomainBase::Deserialize(cfg);
+};
+
 #define DOMAIN_POLICY_HEAD(_NAME_)                   \
    private:                                          \
     typedef THost host_type;                         \
