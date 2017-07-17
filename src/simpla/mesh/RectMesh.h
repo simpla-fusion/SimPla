@@ -22,32 +22,30 @@ using namespace simpla::data;
  */
 template <typename THost>
 struct RectMesh : public StructuredMesh {
-    DOMAIN_POLICY_HEAD(RectMesh);
+    MESH_POLICY_HEAD(RectMesh);
 
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real time_dt);
 
     Field<host_type, Real, VERTEX, 3> m_coordinates_{m_host_, "name"_ = "m_coordinates_", "COORDINATES"_};
-    //    Field<domain_type, Real, VERTEX, 3> m_vertices_{m_host_, "name"_ = "m_vertices_","TEMP"_};
+    //    Field<mesh_type, Real, VERTEX, 3> m_vertices_{m_host_, "name"_ = "m_vertices_","TEMP"_};
 
-    Field<host_type, Real, VERTEX> m_vertex_volume_{m_host_, "name"_ = "m_vertex_volume_" /*, "TEMP"_*/};
-    Field<host_type, Real, VERTEX> m_vertex_inv_volume_{m_host_, "name"_ = "m_vertex_inv_volume_" /*, "TEMP"_*/};
-    Field<host_type, Real, VERTEX> m_vertex_dual_volume_{m_host_, "name"_ = "m_vertex_dual_volume_" /*, "TEMP"_*/};
-    Field<host_type, Real, VERTEX> m_vertex_inv_dual_volume_{m_host_,
-                                                             "name"_ = "m_vertex_inv_dual_volume_" /*, "TEMP"_*/};
-    Field<host_type, Real, VOLUME> m_volume_volume_{m_host_, "name"_ = "m_volume_volume_" /*, "TEMP"_*/};
-    Field<host_type, Real, VOLUME> m_volume_inv_volume_{m_host_, "name"_ = "m_volume_inv_volume_" /*, "TEMP"_*/};
-    Field<host_type, Real, VOLUME> m_volume_dual_volume_{m_host_, "name"_ = "m_volume_dual_volume_" /*, "TEMP"_*/};
-    Field<host_type, Real, VOLUME> m_volume_inv_dual_volume_{m_host_,
-                                                             "name"_ = "m_volume_inv_dual_volume_" /*, "TEMP"_*/};
-    Field<host_type, Real, EDGE> m_edge_volume_{m_host_, "name"_ = "m_edge_volume_" /*, "TEMP"_*/};
-    Field<host_type, Real, EDGE> m_edge_inv_volume_{m_host_, "name"_ = "m_edge_inv_volume_" /*, "TEMP"_*/};
-    Field<host_type, Real, EDGE> m_edge_dual_volume_{m_host_, "name"_ = "m_edge_dual_volume_" /*, "TEMP"_*/};
-    Field<host_type, Real, EDGE> m_edge_inv_dual_volume_{m_host_, "name"_ = "m_edge_inv_dual_volume_" /*, "TEMP"_*/};
-    Field<host_type, Real, FACE> m_face_volume_{m_host_, "name"_ = "m_face_volume_" /*, "TEMP"_*/};
-    Field<host_type, Real, FACE> m_face_inv_volume_{m_host_, "name"_ = "m_face_inv_volume_" /*, "TEMP"_*/};
-    Field<host_type, Real, FACE> m_face_dual_volume_{m_host_, "name"_ = "m_face_dual_volume_" /*, "TEMP"_*/};
-    Field<host_type, Real, FACE> m_face_inv_dual_volume_{m_host_, "name"_ = "m_face_inv_dual_volume_" /*, "TEMP"_*/};
+    Field<host_type, Real, VERTEX> m_vertex_volume_{m_host_, "name"_ = "m_vertex_volume_", "TEMP"_};
+    Field<host_type, Real, VERTEX> m_vertex_inv_volume_{m_host_, "name"_ = "m_vertex_inv_volume_", "TEMP"_};
+    Field<host_type, Real, VERTEX> m_vertex_dual_volume_{m_host_, "name"_ = "m_vertex_dual_volume_", "TEMP"_};
+    Field<host_type, Real, VERTEX> m_vertex_inv_dual_volume_{m_host_, "name"_ = "m_vertex_inv_dual_volume_", "TEMP"_};
+    Field<host_type, Real, VOLUME> m_volume_volume_{m_host_, "name"_ = "m_volume_volume_", "TEMP"_};
+    Field<host_type, Real, VOLUME> m_volume_inv_volume_{m_host_, "name"_ = "m_volume_inv_volume_", "TEMP"_};
+    Field<host_type, Real, VOLUME> m_volume_dual_volume_{m_host_, "name"_ = "m_volume_dual_volume_", "TEMP"_};
+    Field<host_type, Real, VOLUME> m_volume_inv_dual_volume_{m_host_, "name"_ = "m_volume_inv_dual_volume_", "TEMP"_};
+    Field<host_type, Real, EDGE> m_edge_volume_{m_host_, "name"_ = "m_edge_volume_", "TEMP"_};
+    Field<host_type, Real, EDGE> m_edge_inv_volume_{m_host_, "name"_ = "m_edge_inv_volume_", "TEMP"_};
+    Field<host_type, Real, EDGE> m_edge_dual_volume_{m_host_, "name"_ = "m_edge_dual_volume_", "TEMP"_};
+    Field<host_type, Real, EDGE> m_edge_inv_dual_volume_{m_host_, "name"_ = "m_edge_inv_dual_volume_", "TEMP"_};
+    Field<host_type, Real, FACE> m_face_volume_{m_host_, "name"_ = "m_face_volume_", "TEMP"_};
+    Field<host_type, Real, FACE> m_face_inv_volume_{m_host_, "name"_ = "m_face_inv_volume_", "TEMP"_};
+    Field<host_type, Real, FACE> m_face_dual_volume_{m_host_, "name"_ = "m_face_dual_volume_", "TEMP"_};
+    Field<host_type, Real, FACE> m_face_inv_dual_volume_{m_host_, "name"_ = "m_face_inv_dual_volume_", "TEMP"_};
 };
 
 template <typename THost>

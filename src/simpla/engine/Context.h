@@ -113,6 +113,13 @@ class Context : public SPObject, public data::Serializable {
     std::map<std::string, std::shared_ptr<DomainBase>> const &GetAllDomains() const;
     std::map<std::string, std::shared_ptr<AttributeDesc>> CollectRegisteredAttributes() const;
 
+    void Pull(Patch *p);
+    void Push(Patch *p);
+
+    void InitialCondition(Real time_now);
+    void BoundaryCondition(Real time_now, Real dt);
+    void Advance(Real time_now, Real dt);
+
    private:
     void SetMesh(std::shared_ptr<MeshBase> const &);
     void SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &);

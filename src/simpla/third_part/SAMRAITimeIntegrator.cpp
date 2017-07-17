@@ -658,9 +658,9 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
                 d.Pull(&p);
             }
         //        m_ctx_->InitialCondition(&p, data_time);
-        m_ctx_->GetMesh()->Push(&p);
-        for (auto &d : m_ctx_->GetAllDomains()) { d.second->InitialCondition(data_time); }
-        m_ctx_->GetMesh()->Pull(&p);
+        m_ctx_->Push(&p);
+        m_ctx_->InitialCondition(data_time);
+        m_ctx_->Pull(&p);
         //        m_ctx_->GetBaseMesh()->Deserialize(p.get());
         //        VERBOSE << "DoInitialize MeshBase : " << m_ctx_->GetBaseMesh()->GetRegisterName() <<
         //        std::endl;
@@ -730,9 +730,9 @@ void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI:
                                                                          double time_dt, bool at_syncronization) {
     engine::Patch p = m_ctx_->GetAtlas().Pop(static_cast<id_type>(patch.getLocalId().getValue()));
     ConvertPatchFromSAMRAI(patch, &p);
-    m_ctx_->GetMesh()->Push(&p);
-    for (auto &d : m_ctx_->GetAllDomains()) { d.second->Advance(time_now, time_dt); }
-    m_ctx_->GetMesh()->Pull(&p);
+    m_ctx_->Push(&p);
+    m_ctx_->Advance(time_now, time_dt);
+    m_ctx_->Pull(&p);
     m_ctx_->GetAtlas().Push(std::move(p));
 }
 
@@ -766,9 +766,9 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setPhysicalBoundaryConditions(
     SAMRAI::hier::Patch &patch, double fill_time, const SAMRAI::hier::IntVector &ghost_width_to_fill) {
     auto p = m_ctx_->GetAtlas().Pop(static_cast<id_type>(patch.getLocalId().getValue()));
     ConvertPatchFromSAMRAI(patch, &p);
-    m_ctx_->GetMesh()->Push(&p);
-    for (auto &d : m_ctx_->GetAllDomains()) { d.second->BoundaryCondition(fill_time, 0); }
-    m_ctx_->GetMesh()->Pull(&p);
+    m_ctx_->Push(&p);
+    m_ctx_->BoundaryCondition(fill_time, 0);
+    m_ctx_->Pull(&p);
     m_ctx_->GetAtlas().Push(std::move(p));
 }
 

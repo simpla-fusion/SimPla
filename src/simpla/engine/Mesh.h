@@ -8,6 +8,7 @@
 #include "Attribute.h"
 #include "SPObject.h"
 #include "simpla/data/EnableCreateFromDataTable.h"
+#include "simpla/geometry/GeoObject.h"
 
 namespace simpla {
 namespace geometry {
@@ -38,7 +39,7 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
     virtual this_type *GetMesh() { return this; }
     virtual this_type const *GetMesh() const { return this; }
 
-    virtual void SetBoundary(std::string const &prefix, geometry::GeoObject const *g){};
+    virtual void AddGeoObject(std::string const &prefix, geometry::GeoObject const *g){};
 
     void SetBlock(const MeshBlock &blk);
     virtual const MeshBlock &GetBlock() const;
@@ -86,14 +87,15 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
 
     typedef Mesh<TChart, Policies...> this_type;
     Mesh() : Policies<this_type>(this)... {};
-    ~Mesh() = default;
-    const TChart &GetChart() const override { return m_chart_; };
+    ~Mesh() override = default;
+
     TChart &GetChart() override { return m_chart_; };
+    const TChart &GetChart() const override { return m_chart_; };
+
     const engine::MeshBlock &GetBlock() const override { return MeshBase::GetBlock(); }
+
     this_type *GetMesh() override { return this; }
     this_type const *GetMesh() const override { return this; }
-
-    void SetBoundary(std::string const &prefix, geometry::GeoObject const *g) override;
 
     void DoInitialCondition(Real time_now) override;
     void DoBoundaryCondition(Real time_now, Real dt) override;
@@ -101,8 +103,32 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
 
     void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override;
     std::shared_ptr<data::DataTable> Serialize() const override;
+
+    void AddGeoObject(std::string const &prefix, geometry::GeoObject const *g) override;
+
     template <typename TL, typename TR>
-    void FillRange(TL &lhs, TR &&rhs, std::string const &k = "") const;
+    void Fill(TL &lhs, TR &&rhs) const {
+        FillRange(lhs, std::forward<TR>(rhs), Range<EntityId>{}, true);
+    };
+
+    template <typename TL, typename TR>
+    void FillRange(TL &lhs, TR &&rhs, Range<EntityId> r = Range<EntityId>{},
+                   bool full_fill_if_range_is_null = false) const;
+
+    template <typename TL, typename TR>
+    void FillRange(TL &lhs, TR &&rhs, std::string const &k = "", bool full_fill_if_range_is_null = false) const {
+        FillRange(lhs, std::forward<TR>(rhs), GetRange(k), full_fill_if_range_is_null);
+    };
+
+    template <typename TL, typename TR>
+    void FillBody(TL &lhs, TR &&rhs, std::string prefix = "") const {
+        FillRange(lhs, std::forward<TR>(rhs), prefix + "_BODY_" + std::to_string(TL::iform), true);
+    };
+
+    template <typename TL, typename TR>
+    void FillBoundary(TL &lhs, TR &&rhs, std::string prefix = "") const {
+        FillRange(lhs, std::forward<TR>(rhs), prefix + "_BOUNDARY_" + std::to_string(TL::iform), false);
+    };
 
    private:
     TChart m_chart_;
@@ -153,7 +179,8 @@ DEFINE_INVOKE_HELPER(BoundaryCondition)
 DEFINE_INVOKE_HELPER(Advance)
 DEFINE_INVOKE_HELPER(Deserialize)
 DEFINE_INVOKE_HELPER(Serialize)
-DEFINE_INVOKE_HELPER(AddGetObject)
+DEFINE_INVOKE_HELPER(SetGeoObject)
+DEFINE_INVOKE_HELPER(Calculate)
 
 #undef DEFINE_INVOKE_HELPER
 
@@ -181,19 +208,35 @@ void Mesh<TM, Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &
     MeshBase::Deserialize(cfg);
 };
 template <typename TM, template <typename> class... Policies>
-void Mesh<TM, Policies...>::SetBoundary(std::string const &prefix, geometry::GeoObject const *g){};
+void Mesh<TM, Policies...>::AddGeoObject(std::string const &prefix, geometry::GeoObject const *g) {
+    _try_invoke_SetGeoObject<Policies...>(this, prefix, g);
+};
 
 template <typename TM, template <typename> class... Policies>
 template <typename LHS, typename RHS>
-void Mesh<TM, Policies...>::FillRange(LHS &lhs, RHS &&rhs, std::string const &k) const {
-    auto r = GetRange(k + "_" + std::to_string(LHS::iform));
-
-    if (r.isNull()) {
-        this->Calculate(lhs, std::forward<RHS>(rhs), r);
+void Mesh<TM, Policies...>::FillRange(LHS &lhs, RHS &&rhs, Range<EntityId> r, bool full_fill_if_range_is_null) const {
+    if (r.isNull() && full_fill_if_range_is_null) {
+        _try_invoke_once_Calculate<Policies...>(this, lhs, std::forward<RHS>(rhs));
     } else {
-        this->Calculate(lhs, std::forward<RHS>(rhs));
+        _try_invoke_once_Calculate<Policies...>(this, lhs, std::forward<RHS>(rhs), r);
     }
 };
+
+#define MESH_POLICY_HEAD(_NAME_)                     \
+   private:                                          \
+    typedef THost host_type;                         \
+    typedef _NAME_<THost> this_type;                 \
+                                                     \
+   public:                                           \
+    host_type *m_host_ = nullptr;                    \
+    _NAME_(host_type *h) noexcept : m_host_(h) {}    \
+    virtual ~_NAME_() = default;                     \
+    _NAME_(_NAME_ const &other) = delete;            \
+    _NAME_(_NAME_ &&other) = delete;                 \
+    _NAME_ &operator=(_NAME_ const &other) = delete; \
+    _NAME_ &operator=(_NAME_ &&other) = delete;      \
+    static std::string RegisterName() { return __STRING(_NAME_); }
+
 }  // namespace mesh
 
 }  // namespace simpla{

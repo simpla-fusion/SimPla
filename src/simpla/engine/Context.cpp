@@ -160,6 +160,21 @@ std::map<std::string, std::shared_ptr<DomainBase>> const &Context::GetAllDomains
     return m_pimpl_->m_domains_;
 }
 
+void Context::Pull(Patch *p) { GetMesh()->Pull(p); };
+void Context::Push(Patch *p) { GetMesh()->Push(p); };
+
+void Context::InitialCondition(Real time_now) {
+    GetMesh()->InitialCondition(time_now);
+    for (auto &d : GetAllDomains()) { d.second->InitialCondition(time_now); }
+}
+void Context::BoundaryCondition(Real time_now, Real dt) {
+    GetMesh()->BoundaryCondition(time_now, dt);
+    for (auto &d : GetAllDomains()) { d.second->BoundaryCondition(time_now, dt); }
+}
+void Context::Advance(Real time_now, Real dt) {
+    GetMesh()->Advance(time_now, dt);
+    for (auto &d : GetAllDomains()) { d.second->Advance(time_now, dt); }
+}
 // std::map<id_type, std::shared_ptr<Patch>> const &Context::GetPatches() const { return m_pack_->m_patches_; }
 //
 // bool Context::RegisterWorker(std::string const &d_name, std::shared_ptr<DomainBase> const &p) {

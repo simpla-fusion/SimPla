@@ -291,15 +291,15 @@ REGISTER_TYPED_TEST_CASE_P(TestArray, assign, index, constant_real, scalarArray)
 //	}
 //public:
 //
-//	typedef Bundle domain_type;
+//	typedef Bundle mesh_type;
 //	typedef Real value_type;
-//	typedef domain_type::scalar_type scalar_type;
-//	typedef domain_type::iterator iterator;
-//	typedef domain_type::coordinate_tuple coordinate_tuple;
+//	typedef mesh_type::scalar_type scalar_type;
+//	typedef mesh_type::iterator iterator;
+//	typedef mesh_type::coordinate_tuple coordinate_tuple;
 //
-//	domain_type geometry;
+//	mesh_type geometry;
 //
-//	static constexpr unsigned int NDIMS = domain_type::NDIMS;
+//	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
 //
 //	nTuple<NDIMS, Real> xmin;
 //

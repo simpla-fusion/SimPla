@@ -18,7 +18,7 @@ using namespace engine;
 template <typename TM>
 class ExtraSource {
    public:
-    DOMAIN_POLICY_HEAD(ExtraSource);
+    MESH_POLICY_HEAD(ExtraSource);
 
     void Serialize(data::DataTable* res) const;
     void Deserialize(std::shared_ptr<DataTable> const& cfg);

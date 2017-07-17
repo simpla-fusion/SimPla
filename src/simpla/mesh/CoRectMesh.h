@@ -16,7 +16,7 @@ namespace mesh {
  */
 template <typename THost>
 struct CoRectMesh : public StructuredMesh {
-    DOMAIN_POLICY_HEAD(CoRectMesh);
+    MESH_POLICY_HEAD(CoRectMesh);
 
    public:
     void InitialCondition(Real time_now);

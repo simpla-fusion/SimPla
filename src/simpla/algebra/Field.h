@@ -43,7 +43,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
 
    public:
     typedef TV value_type;
-    typedef TM domain_type;
+    typedef TM mesh_type;
     typedef typename engine::Attribute attribute_type;
     typedef Array<value_type> array_type;
 
@@ -55,11 +55,11 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
    private:
     typedef nTuple<array_type, NUM_OF_SUB, DOF...> data_type;
     data_type m_data_;
-    domain_type const* m_host_ = nullptr;
+    mesh_type const* m_host_ = nullptr;
 
    public:
     template <typename... Args>
-    explicit Field(domain_type* grp, Args&&... args)
+    explicit Field(mesh_type* grp, Args&&... args)
         : base_type(grp->GetMesh(), IFORM, std::integer_sequence<int, DOF...>(), typeid(value_type),
                     std::forward<Args>(args)...),
           m_host_(grp) {}
@@ -74,7 +74,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     Field& operator=(this_type&& other) = delete;
 
     template <typename OtherMesh>
-    Field(domain_type* m, Field<OtherMesh, value_type, IFORM, DOF...>& other)
+    Field(mesh_type* m, Field<OtherMesh, value_type, IFORM, DOF...>& other)
         : base_type(other), m_host_(m), m_data_(other.m_data_) {}
 
     void DoInitialize() override {
@@ -101,7 +101,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     template <typename Other>
     void Set(Other&& v) {
         Update();
-        m_host_->FillBody(*this, std::forward<Other>(v));
+        m_host_->Fill(*this, std::forward<Other>(v));
     }
 
     template <typename MR, typename UR, int... NR>

@@ -43,7 +43,6 @@ void Model::DoUpdate() {
     ++it;
     for (; it != m_pimpl_->m_g_objs_.end(); ++it) {
         if (it->second != nullptr) {
-            if (it->second->hasChildren()) { continue; }
             m_pimpl_->m_bound_box_ = geometry::BoundBox(m_pimpl_->m_bound_box_, it->second->GetBoundBox());
         }
     }
@@ -56,7 +55,6 @@ void Model::SetObject(std::string const& key, std::shared_ptr<geometry::GeoObjec
     if (g_obj != nullptr) {
         VERBOSE << "Add GeoObject [ " << key << " : " << g_obj->GetRegisterName() << " ]" << std::endl;
         m_pimpl_->m_g_objs_[key] = g_obj;
-        if (g_obj->hasChildren()) { g_obj->Register(m_pimpl_->m_g_objs_, key); }
     }
 }
 

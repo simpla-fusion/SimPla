@@ -29,13 +29,13 @@ struct GeoObjectAdapter;
  *
  *  PlaceHolder Geometric object
  */
-class GeoObject : public engine::SPObject, public data::EnableCreateFromDataTable<GeoObject> {
-    SP_OBJECT_HEAD(GeoObject, engine::SPObject)
+class GeoObject : public data::EnableCreateFromDataTable<GeoObject> {
+    SP_OBJECT_BASE(GeoObject)
     SP_DEFAULT_CONSTRUCT(GeoObject)
     DECLARE_REGISTER_NAME(GeoObject);
 
    public:
-    GeoObject(){};
+    GeoObject() = default;
     ~GeoObject() override = default;
 
     std::shared_ptr<data::DataTable> Serialize() const override {
@@ -45,9 +45,8 @@ class GeoObject : public engine::SPObject, public data::EnableCreateFromDataTabl
     };
     void Deserialize(std::shared_ptr<data::DataTable> const &t) override {}
 
-    virtual bool hasChildren() const { return false; }
-
-    virtual void Register(std::map<std::string, std::shared_ptr<GeoObject> > &, std::string const &prefix = ""){};
+//    virtual bool hasChildren() const { return false; }
+//    virtual void Register(std::map<std::string, std::shared_ptr<GeoObject> > &, std::string const &prefix = ""){};
 
     virtual box_type GetBoundBox() const { return box_type{{0, 0, 0}, {1, 1, 1}}; };
 

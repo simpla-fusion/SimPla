@@ -55,7 +55,7 @@ Range<EntityId> DomainBase::GetRange(std::string const& k) const { return GetMes
 
 void DomainBase::InitialCondition(Real time_now) {
     VERBOSE << "InitialCondition   \t:" << GetName() << std::endl;
-    GetMesh()->AddObject(GetName(), GetBoundary());
+    GetMesh()->AddGeoObject(GetName(), GetBoundary());
     PreInitialCondition(this, time_now);
     DoInitialCondition(time_now);
     PostInitialCondition(this, time_now);

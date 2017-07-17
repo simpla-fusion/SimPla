@@ -304,7 +304,7 @@ struct FVM {
     //     constexpr Real m_p_curl_factor_[3] = {0, 1, -1};
     //    template<typename TOP, typename T>   st::value_type_t
     //    <Expression<TOP, T>>
-    //    GetValue(domain_type const &Expression<TOP, T> const &expr,
+    //    GetValue(mesh_type const &Expression<TOP, T> const &expr,
     //    EntityId const &s,
     //    ENABLE_IF((std::is_same<TOP, tags::p_exterior_derivative < 0>>
     //                      ::value && st::GetIFORM<T>::value == EDGE))
@@ -321,7 +321,7 @@ struct FVM {
     //      st::value_type_t
     //    <Expression<tags::p_codifferential_derivative < I>, T>>
     //    GetValue(
-    //    domain_type const &m,
+    //    mesh_type const &m,
     //    Expression<tags::p_codifferential_derivative < I>, T
     //    > const &expr,
     //    EntityId const &s,
@@ -899,7 +899,7 @@ struct FVM {
 //    }
 
 //    template <int DOF, typename... U>
-//     void Assign( Field<domain_type, U...>& f, EntityId
+//     void Assign( Field<mesh_type, U...>& f, EntityId
 //    s,
 //                       nTuple<U, DOF> const& v)  {
 //        for (int i = 0; i < DOF; ++i)const{ f[EntityIdCoder::sw(s, i)] = v[i]; }
@@ -924,7 +924,7 @@ struct FVM {
 //    }
 //
 //    template <typename V, int IFORM, int DOF, int... I, typename U>
-//     void Assign( Field<domain_type, V, IFORM, DOF, I...>& f,
+//     void Assign( Field<mesh_type, V, IFORM, DOF, I...>& f,
 //                       EntityId s, U const& v)const{
 //        for (int i = 0; i < DOF; ++i)const{ f[EntityIdCoder::sw(s, i)] = v; }
 //    }

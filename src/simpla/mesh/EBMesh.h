@@ -18,17 +18,19 @@ namespace mesh {
 
 template <typename THost>
 struct EBMesh {
-    DOMAIN_POLICY_HEAD(EBMesh);
+    MESH_POLICY_HEAD(EBMesh);
 
    public:
-    void SetBoundary(std::string const &prefix, geometry::GeoObject const *g) override;
+    void SetGeoObject(std::string const &prefix, geometry::GeoObject const *g);
 };
 
 template <typename THost>
-void EBMesh<THost>::SetBoundary(std::string const &prefix, geometry::GeoObject const *g) {
+void EBMesh<THost>::SetGeoObject(std::string const &prefix, geometry::GeoObject const *g) {
     if (g == nullptr) { return; }
 
-    Real ratio = g->CheckOverlap(m_host_->GetBox());
+    Real ratio = g->CheckOverlap(
+            m_host_->GetBox()
+    );
 
     if (ratio < EPSILON) {
         m_host_->GetRange(prefix + "_BODY_0").append(nullptr);

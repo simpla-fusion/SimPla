@@ -18,7 +18,7 @@ using namespace data;
 
 template <typename THost>
 class ICRFAntenna {
-    DOMAIN_POLICY_HEAD(ICRFAntenna);
+    MESH_POLICY_HEAD(ICRFAntenna);
 
    public:
     void Serialize(data::DataTable* res) const;

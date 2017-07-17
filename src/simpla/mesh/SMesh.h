@@ -21,7 +21,7 @@ using namespace simpla::data;
  */
 template <typename THost>
 struct SMesh : public StructuredMesh {
-    DOMAIN_POLICY_HEAD(SMesh);
+    MESH_POLICY_HEAD(SMesh);
 
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real time_dt);

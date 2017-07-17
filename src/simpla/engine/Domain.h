@@ -71,9 +71,9 @@ class DomainBase : public SPObject, public data::EnableCreateFromDataTable<Domai
     void Advance(Real time_now, Real dt);
 
    private:
-    MeshBase *m_mesh_;
-    engine::Model const *m_model_;
-    geometry::GeoObject const *m_boundary_;
+    MeshBase *m_mesh_ = nullptr;
+    engine::Model const *m_model_ = nullptr;
+    geometry::GeoObject const *m_boundary_ = nullptr;
 
 };  // class DomainBase
 
@@ -106,28 +106,29 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
     void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override;
     std::shared_ptr<data::DataTable> Serialize() const override;
 
-    template <typename... Args>
-    void TryFill(Args &&... args) const;
-
     template <typename TL, typename TR>
-    void FillRange(TL &lhs, TR &&rhs, std::string const &k = "") const {
-        auto r = GetMesh()->GetRange(GetName() + "_" + k + "_" + std::to_string(TL::IFORM));
-        GetMesh()->FillRange(lhs, std::forward<TR>(rhs), r);
+    void Fill(TL &lhs, TR &&rhs) const {
+        FillBody(lhs, std::forward<TR>(rhs));
+    };
+
+    template <typename TL, typename TR, typename... Others>
+    void FillRange(TL &lhs, TR &&rhs, Others &&... others) const {
+        GetMesh()->FillRange(lhs, std::forward<TR>(rhs), std::forward<Others>(others)...);
     };
 
     template <typename TL, typename TR>
     void FillBody(TL &lhs, TR &&rhs) const {
-        GetMesh()->FillRange(lhs, std::forward<TR>(rhs), GetName() + "_BODY");
+        GetMesh()->FillBody(lhs, std::forward<TR>(rhs), GetName());
     };
 
     template <typename TL, typename TR>
     void FillBoundary(TL &lhs, TR &&rhs) const {
-        GetMesh()->FillRange(lhs, std::forward<TR>(rhs), GetName() + "_BOUNDARY");
+        GetMesh()->FillBoundary(lhs, std::forward<TR>(rhs), GetName());
     };
 };  // class Domain
 template <typename TM, template <typename> class... Policies>
 void Domain<TM, Policies...>::DoInitialCondition(Real time_now) {
-    GetMesh()->AddObject(GetBoundary());
+    GetMesh()->AddGeoObject(GetName(), GetBoundary());
 };
 template <typename TM, template <typename> class... Policies>
 void Domain<TM, Policies...>::DoBoundaryCondition(Real time_now, Real dt){
