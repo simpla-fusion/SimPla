@@ -21,11 +21,11 @@ struct EBMesh {
     SP_ENGINE_POLICY_HEAD(EBMesh);
 
    public:
-    void SetGeoObject(std::string const &prefix, geometry::GeoObject const *g);
+    void SetEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g);
 };
 
 template <typename THost>
-void EBMesh<THost>::SetGeoObject(std::string const &prefix, geometry::GeoObject const *g) {
+void EBMesh<THost>::SetEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g) {
     if (g == nullptr) { return; }
 
     Real ratio = g->CheckOverlap(
@@ -69,7 +69,7 @@ void EBMesh<THost>::SetGeoObject(std::string const &prefix, geometry::GeoObject 
     //    }
     Field<host_type, int, VERTEX> vertex_tags{m_host_};
 
-    vertex_tags = [&](point_type const &x) { return g->CheckInside(x) ? 1 : 0; };
+    vertex_tags = [&](point_type const &x) { return g->CheckInside(x) ? 0 : 1; };
 
     index_tuple ib, ie;
     std::tie(ib, ie) = m_host_->GetIndexBox(VERTEX);

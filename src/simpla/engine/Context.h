@@ -98,7 +98,7 @@ class Context : public SPObject, public data::Serializable {
     MeshBase *GetMesh();
 
     void SetModel(std::string const &k, std::shared_ptr<Model> const &) const;
-    Model const *GetModel(std::string const &k) const;
+    std::shared_ptr<Model> GetModel(std::string const &k) const;
 
     std::shared_ptr<DomainBase> CreateDomain(std::string const &k, std::shared_ptr<data::DataTable> const &);
     template <typename TD>
@@ -112,7 +112,6 @@ class Context : public SPObject, public data::Serializable {
 
     std::map<std::string, std::shared_ptr<DomainBase>> &GetAllDomains();
     std::map<std::string, std::shared_ptr<DomainBase>> const &GetAllDomains() const;
-    std::map<std::string, std::shared_ptr<AttributeDesc>> CollectRegisteredAttributes() const;
 
     void Pull(Patch *p);
     void Push(Patch *p);

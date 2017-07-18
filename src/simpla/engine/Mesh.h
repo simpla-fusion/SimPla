@@ -44,7 +44,7 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
     virtual this_type *GetMesh() { return this; }
     virtual this_type const *GetMesh() const { return this; }
 
-    virtual void AddGeoObject(std::string const &prefix, geometry::GeoObject const *g){};
+    virtual void AddEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g){};
 
     void SetBlock(const MeshBlock &blk);
     virtual const MeshBlock &GetBlock() const;
@@ -109,7 +109,7 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override;
     std::shared_ptr<data::DataTable> Serialize() const override;
 
-    void AddGeoObject(std::string const &prefix, geometry::GeoObject const *g) override;
+    void AddEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g) override;
 
     template <typename TL, typename TR>
     void Fill(TL &lhs, TR &&rhs) const {
@@ -140,7 +140,7 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
 };
 
 namespace _detail {
-DEFINE_INVOKE_HELPER(SetGeoObject)
+DEFINE_INVOKE_HELPER(SetEmbeddedBoundary)
 DEFINE_INVOKE_HELPER(Calculate)
 }
 
@@ -168,8 +168,9 @@ void Mesh<TM, Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &
     MeshBase::Deserialize(cfg);
 };
 template <typename TM, template <typename> class... Policies>
-void Mesh<TM, Policies...>::AddGeoObject(std::string const &prefix, geometry::GeoObject const *g) {
-    _detail::_try_invoke_SetGeoObject<Policies...>(this, prefix, g);
+void Mesh<TM, Policies...>::AddEmbeddedBoundary(std::string const &prefix,
+                                                const std::shared_ptr<geometry::GeoObject> &g) {
+    _detail::_try_invoke_SetEmbeddedBoundary<Policies...>(this, prefix, g);
 };
 
 template <typename TM, template <typename> class... Policies>

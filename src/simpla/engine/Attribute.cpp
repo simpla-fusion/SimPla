@@ -16,87 +16,84 @@ AttributeDesc::AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, s
                              std::shared_ptr<data::DataTable> const &t_db)
     : data::Configurable(t_db), m_prefix_(s_prefix), m_iform_(IFORM), m_dof_(DOF), m_t_info_(t_info) {}
 
-    AttributeDesc::~AttributeDesc() = default;
+AttributeDesc::~AttributeDesc() = default;
 
 std::string AttributeDesc::GetPrefix() const { return m_prefix_; };
 int AttributeDesc::GetIFORM() const { return m_iform_; };
 int AttributeDesc::GetDOF() const { return m_dof_; };
 std::type_info const &AttributeDesc::value_type_info() const { return m_t_info_; };
 
-id_type AttributeDesc::GetID() const {
+id_type AttributeDesc::GetDescID() const {
     static std::hash<std::string> s_hasher;
     return s_hasher(GetPrefix() +                       //
                     "." + value_type_info().name() +    //
                     "." + std::to_string(GetIFORM()) +  //
                     "." + std::to_string(GetDOF()));
 }
+const AttributeDesc &AttributeDesc::GetDescription() const { return *this; };
 
-std::shared_ptr<AttributeDesc> AttributeDesc::GetDescription() const {
-    return std::make_shared<AttributeDesc>(GetIFORM(), GetDOF(), value_type_info(), GetPrefix(), db());
-};
+AttributeGroup::AttributeGroup() = default;
 
-struct AttributeGroup::pimpl_s {
-    std::map<std::string, Attribute *> m_attributes_;
-};
-
-AttributeGroup::AttributeGroup() : m_pimpl_(new pimpl_s) {}
 AttributeGroup::~AttributeGroup() {
-    for (auto &item : m_pimpl_->m_attributes_) { item.second->Deregister(this); }
+    for (auto *item : m_attributes_) { item->Deregister(this); }
 }
-void AttributeGroup::RegisterDescription(std::map<std::string, std::shared_ptr<AttributeDesc>> *m) const {
-    for (auto &item : m_pimpl_->m_attributes_) { (*m)[item.first] = item.second->GetDescription(); }
-};
 
-void AttributeGroup::RegisterAt(AttributeGroup *other) {
-    for (auto &item : m_pimpl_->m_attributes_) { item.second->Register(other); }
-};
-void AttributeGroup::DeregisterFrom(AttributeGroup *other) {
-    for (auto &item : m_pimpl_->m_attributes_) { item.second->Deregister(other); }
-};
 void AttributeGroup::Push(Patch *p) {
-    for (auto &item : GetAllAttributes()) { item.second->Push(p->GetDataBlock(item.second->GetID())); }
+    for (auto *item : m_attributes_) { item->Push(p->GetDataBlock(item->GetDescID())); }
 }
 
 void AttributeGroup::Pull(Patch *p) {
-    for (auto &item : GetAllAttributes()) { p->SetDataBlock(item.second->GetID(), item.second->Pop()); }
+    for (auto *item : m_attributes_) { p->SetDataBlock(item->GetDescID(), item->Pop()); }
 }
-void AttributeGroup::Attach(Attribute *p) { m_pimpl_->m_attributes_.emplace(p->GetPrefix(), p); }
-void AttributeGroup::Detach(Attribute *p) { m_pimpl_->m_attributes_.erase(p->GetPrefix()); }
 
-std::map<std::string, Attribute *> &AttributeGroup::GetAllAttributes() { return m_pimpl_->m_attributes_; };
-std::map<std::string, Attribute *> const &AttributeGroup::GetAll() const { return m_pimpl_->m_attributes_; };
-bool AttributeGroup::has(std::string const &k) const {
-    return m_pimpl_->m_attributes_.find(k) != m_pimpl_->m_attributes_.end();
-}
-bool AttributeGroup::check(std::string const &k, std::type_info const &t_info) const {
-    auto it = m_pimpl_->m_attributes_.find(k);
-    return (it != m_pimpl_->m_attributes_.end() && it->second->isA(t_info));
-}
-Attribute *AttributeGroup::Get(std::string const &k) {
-    auto it = m_pimpl_->m_attributes_.find(k);
-    Attribute *res = nullptr;
-    if (it != m_pimpl_->m_attributes_.end()) {
-        res = it->second;
-    } else {
-        VERBOSE << "Can not find field [" << k << "] in [";
-        for (auto const &item : m_pimpl_->m_attributes_) { VERBOSE << item.first << ","; }
-        VERBOSE << std::endl;
-    }
+void AttributeGroup::Attach(Attribute *p) { m_attributes_.emplace(p); }
+void AttributeGroup::Detach(Attribute *p) { m_attributes_.erase(p); }
 
-    return res;
-}
-Attribute const *AttributeGroup::Get(std::string const &k) const {
-    auto it = m_pimpl_->m_attributes_.find(k);
-    Attribute *res = nullptr;
-    if (it != m_pimpl_->m_attributes_.end()) { res = it->second; }
-    if (res == nullptr) {
-        VERBOSE << "Can not find field [" << k << "] in [";
-        for (auto const &item : m_pimpl_->m_attributes_) { VERBOSE << item.first << ","; }
-        VERBOSE << std::endl;
-    }
-
-    return res;
-}
+// void AttributeGroup::RegisterDescription(std::map<std::string, std::shared_ptr<AttributeDesc>> *m) const {
+//    for (auto &item : m_pimpl_->m_attributes_) { (*m)[item.first] = item.second->GetDescription(); }
+//};
+//
+// void AttributeGroup::RegisterAt(AttributeGroup *other) {
+//    for (auto *item : m_pimpl_->m_attributes_) { item->Register(other); }
+//};
+// void AttributeGroup::DeregisterFrom(AttributeGroup *other) {
+//    for (auto *item : m_pimpl_->m_attributes_) { item->Deregister(other); }
+//};
+//
+// std::map<std::string, Attribute *> &AttributeGroup::GetAllAttributes() { return m_pimpl_->m_attributes_; };
+// std::map<std::string, Attribute *> const &AttributeGroup::GetAll() const { return m_pimpl_->m_attributes_; };
+// bool AttributeGroup::has(std::string const &k) const {
+//    return m_pimpl_->m_attributes_.find(k) != m_pimpl_->m_attributes_.end();
+//}
+// bool AttributeGroup::check(std::string const &k, std::type_info const &t_info) const {
+//    auto it = m_pimpl_->m_attributes_.find(k);
+//    return (it != m_pimpl_->m_attributes_.end() && it->second->isA(t_info));
+//}
+// Attribute *AttributeGroup::Get(std::string const &k) {
+//    auto it = m_pimpl_->m_attributes_.find(k);
+//    Attribute *res = nullptr;
+//    if (it != m_pimpl_->m_attributes_.end()) {
+//        res = it->second;
+//    } else {
+//        VERBOSE << "Can not find field [" << k << "] in [";
+//        for (auto const &item : m_pimpl_->m_attributes_) { VERBOSE << item.first << ","; }
+//        VERBOSE << std::endl;
+//    }
+//
+//    return res;
+//}
+// Attribute const *AttributeGroup::Get(std::string const &k) const {
+//    auto it = m_pimpl_->m_attributes_.find(k);
+//    Attribute *res = nullptr;
+//    if (it != m_pimpl_->m_attributes_.end()) { res = it->second; }
+//    if (res == nullptr) {
+//        VERBOSE << "Can not find field [" << k << "] in [";
+//        for (auto const &item : m_pimpl_->m_attributes_) { VERBOSE << item.first << ","; }
+//        VERBOSE << std::endl;
+//    }
+//
+//    return res;
+//}
 
 struct Attribute::pimpl_s {
     std::set<AttributeGroup *> m_bundle_;

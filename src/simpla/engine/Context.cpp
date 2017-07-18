@@ -68,7 +68,7 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
                 auto p_cfg = std::dynamic_pointer_cast<data::DataTable>(t_cfg);
 
                 m_pimpl_->m_domains_[key] =
-                    DomainBase::Create(p_cfg, GetMesh(), GetModel(p_cfg->GetValue<std::string>("Model", "Unknown")));
+                    DomainBase::Create(p_cfg, GetMesh(), GetModel(p_cfg->GetValue<std::string>("Model", "")));
 
                 m_pimpl_->m_domains_[key]->SetName(key);
 
@@ -134,7 +134,10 @@ MeshBase const *Context::GetMesh() const { return m_pimpl_->m_mesh_.get(); }
 MeshBase *Context::GetMesh() { return m_pimpl_->m_mesh_.get(); }
 
 void Context::SetModel(std::string const &k, std::shared_ptr<Model> const &m) const { m_pimpl_->m_models_[k] = m; }
-Model const *Context::GetModel(std::string const &k) const { return m_pimpl_->m_models_.at(k).get(); };
+std::shared_ptr<Model> Context::GetModel(std::string const &k) const {
+    auto it = m_pimpl_->m_models_.find(k);
+    return it == m_pimpl_->m_models_.end() ? nullptr : it->second;
+}
 
 std::shared_ptr<DomainBase> Context::CreateDomain(std::string const &k, std::shared_ptr<data::DataTable> const &t) {
     auto res = DomainBase::Create(t, GetMesh(), GetModel(t->GetValue<std::string>("Model", k)));
@@ -148,11 +151,11 @@ std::shared_ptr<DomainBase> Context::GetDomain(std::string const &k) const {
     return (it == m_pimpl_->m_domains_.end()) ? nullptr : it->second;
 }
 
-std::map<std::string, std::shared_ptr<AttributeDesc>> Context::CollectRegisteredAttributes() const {
-    std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
-    GetMesh()->RegisterDescription(&m_global_attributes_);
-    return m_global_attributes_;
-}
+// std::map<std::string, std::shared_ptr<AttributeDesc>> Context::CollectRegisteredAttributes() const {
+//    std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
+//    GetMesh()->RegisterDescription(&m_global_attributes_);
+//    return m_global_attributes_;
+//}
 
 std::map<std::string, std::shared_ptr<DomainBase>> &Context::GetAllDomains() { return m_pimpl_->m_domains_; }
 

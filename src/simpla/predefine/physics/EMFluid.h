@@ -54,8 +54,6 @@ class EMFluid {
     std::map<std::string, std::shared_ptr<fluid_s>> m_fluid_sp_;
     std::shared_ptr<fluid_s> AddSpecies(std::string const& name, std::shared_ptr<data::DataTable> const& d);
     std::map<std::string, std::shared_ptr<fluid_s>>& GetSpecies() { return m_fluid_sp_; };
-
-    std::string m_boundary_geo_obj_prefix_ = "PEC";
 };
 
 template <typename TM>
@@ -78,7 +76,6 @@ void EMFluid<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
         auto t = std::dynamic_pointer_cast<data::DataTable>(v);
         AddSpecies(k, t);
     });
-    m_boundary_geo_obj_prefix_ = cfg->GetValue<std::string>("BoundaryCondition/GeometryObject", "PEC");
 }
 
 template <typename TM>
@@ -112,9 +109,11 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
     ne.Initialize();
     B0v.Initialize();
 
-    m_host_->GetModel()->LoadProfile("ne", &ne);
-    m_host_->GetModel()->LoadProfile("B0", &B0v);
-
+    auto m = m_host_->GetModel();
+    if (m != nullptr) {
+        m->LoadProfile("ne", &ne);
+        m->LoadProfile("B0", &B0v);
+    }
     BB = dot(B0v, B0v);
 
     for (auto& item : m_fluid_sp_) {

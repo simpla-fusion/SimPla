@@ -41,9 +41,7 @@ void ICRFAntenna<TM>::Serialize(data::DataTable* res) const {
 };
 
 template <typename TM>
-void ICRFAntenna<TM>::InitialCondition(Real time_now) {
-    J.Clear();
-}
+void ICRFAntenna<TM>::InitialCondition(Real time_now) {}
 template <typename TM>
 void ICRFAntenna<TM>::Deserialize(std::shared_ptr<DataTable> const& cfg) {
     m_amplify_ = cfg->GetValue<Vec3>("Amplify", m_amplify_);
@@ -54,13 +52,12 @@ void ICRFAntenna<TM>::Deserialize(std::shared_ptr<DataTable> const& cfg) {
 template <typename TM>
 void ICRFAntenna<TM>::Advance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
-    //    J = 9;
-    //    SP_CMD((J = [=](point_type const& x) -> nTuple<Real, 3> {
-    //        //        nTuple<Real, 3> res =
-    //        //            m_amplify_ * std::sin(m_k_[0] * x[0] + m_k_[1] * x[1] + m_k_[2] * x[2] + TWOPI * m_f_ *
-    //        time_now);
-    //        return nTuple<Real, 3>{0, 0, 1};
-    //    }));
+
+    SP_CMD((J = [=](point_type const& x) -> nTuple<Real, 3> {
+        nTuple<Real, 3> res =
+            m_amplify_ * std::sin(m_k_[0] * x[0] + m_k_[1] * x[1] + m_k_[2] * x[2] + TWOPI * m_f_ * time_now);
+        return res;
+    }));
 }
 
 }  // namespace simpla;

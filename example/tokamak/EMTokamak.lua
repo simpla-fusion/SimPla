@@ -26,13 +26,6 @@ Context = {
             gfile = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900",
             Phi = { -TWOPI / 4, TWOPI / 4 },
         },
-        RFAntenna = {
-            Boundary = {
-                Type = "Cube",
-                lo = { 1.2, -0.5, -TWOPI / 8 },
-                hi = { 2.25, 0.5, TWOPI / 8 }
-            },
-        },
     },
     Domains = {
         Limiter = {
@@ -40,17 +33,23 @@ Context = {
             Model = "Tokamak",
             Boundary = "Limiter",
         },
---        Boundary = {
---            Type = "EMFluid", -- "Domain<RectMesh,EBMesh,FVM,EMFluid>",
---            --            Species = {
---            --                ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
---            --                H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
---            Model = "Tokamak",
---            Boundary = "Boundary",
---        },
+        Boundary = {
+            Type = "EMFluid", -- "Domain<RectMesh,EBMesh,FVM,EMFluid>",
+            --            Species = {
+            --                ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
+            --                H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
+            Model = "Tokamak",
+            Boundary = "Boundary",
+        },
         ICRF = {
             Type = "ICRFAntenna", -- "Domain<RectMesh,EBMesh,FVM,ICRFAntenna>",
-            Model = "RFAntenna",
+
+            Boundary =  {
+                Type = "Cube",
+                lo = { 1.2, -0.5, -TWOPI / 8 },
+                hi = { 2.25, 0.5, TWOPI / 8 }
+            },
+
             IsHard = false,
             Amplify = { 0.0, 0.0, 1.0 },
             WaveNumber = { 0.0, 0.0, TWOPI / 12.0 },

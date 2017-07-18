@@ -98,8 +98,8 @@ struct FVM {
             expr, S, tag);
     }
 
-    template <typename U, int IFORM, int... N, typename RHS>
-    void Calculate(Field<THost, U, IFORM, N...>& lhs, RHS const& rhs) const {
+    template <typename M, typename U, int IFORM, int... N, typename RHS>
+    void Calculate(Field<M, U, IFORM, N...>& lhs, RHS const& rhs) const {
         st::foreach (lhs.Get(),  //
                      [&](auto& a, int n0, auto&&... subs) {
                          auto tag = static_cast<int16_t>(
@@ -109,8 +109,10 @@ struct FVM {
                      });
     }
 
-    template <typename U, int IFORM, int... N, typename RHS, typename TRange>
-    void Calculate(Field<THost, U, IFORM, N...>& lhs, RHS const& rhs, TRange const& r) const {
+    template <typename M, typename U, int IFORM, int... N, typename RHS>
+    void Calculate(Field<M, U, IFORM, N...>& lhs, RHS const& rhs, Range<EntityId> const& r) const {
+        if (r.isNull()) { return; }
+
         st::foreach (lhs.Get(),  //
                      [&](auto& a, int n0, auto&&... subs) {
                          auto tag = static_cast<int16_t>(

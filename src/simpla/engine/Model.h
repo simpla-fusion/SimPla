@@ -47,7 +47,7 @@ class Model : public SPObject, public data::EnableCreateFromDataTable<Model> {
     virtual vec_attr_fun GetAttributeVector(std::string const &attr_name) const { return nullptr; };
 
     void SetObject(std::string const &k, std::shared_ptr<geometry::GeoObject> const &);
-    const geometry::GeoObject * GetObject(std::string const &k) const;
+    std::shared_ptr<geometry::GeoObject> GetGeoObject(std::string const &k) const;
     size_type DeleteObject(std::string const &);
 
     std::map<std::string, std::shared_ptr<geometry::GeoObject>> const &GetAll() const;

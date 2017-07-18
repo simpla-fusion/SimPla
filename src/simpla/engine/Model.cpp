@@ -58,9 +58,9 @@ void Model::SetObject(std::string const& key, std::shared_ptr<geometry::GeoObjec
     }
 }
 
-const geometry::GeoObject* Model::GetObject(std::string const& k) const {
+std::shared_ptr<geometry::GeoObject> Model::GetGeoObject(std::string const &k) const {
     auto it = m_pimpl_->m_g_objs_.find(k);
-    return it == m_pimpl_->m_g_objs_.end() ? nullptr : it->second.get();
+    return it == m_pimpl_->m_g_objs_.end() ? nullptr : it->second;
 }
 
 size_type Model::DeleteObject(std::string const& key) { return m_pimpl_->m_g_objs_.erase(key); }

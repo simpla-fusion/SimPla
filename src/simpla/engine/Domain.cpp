@@ -16,18 +16,24 @@
 namespace simpla {
 namespace engine {
 
-DomainBase::DomainBase(MeshBase* msh, const Model* model) : m_mesh_(msh), m_model_(model) {}
+DomainBase::DomainBase(MeshBase* msh, std::shared_ptr<Model> const& model) : m_mesh_(msh), m_model_(model) {}
 
 DomainBase::~DomainBase() = default;
 
 std::shared_ptr<data::DataTable> DomainBase::Serialize() const {
     auto p = std::make_shared<data::DataTable>();
     p->SetValue("Type", GetRegisterName());
+    if (GetBoundary() != nullptr) { p->SetValue("Boundary", GetBoundary()->Serialize()); }
     return (p);
 }
 void DomainBase::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
-    ASSERT(m_model_ != nullptr);
-    m_boundary_ = m_model_->GetObject(cfg->GetValue<std::string>("Boundary", "Boundary"));
+    auto g_cfg = cfg->Get("Boundary");
+    if (g_cfg->isTable()) {
+        m_boundary_ = geometry::GeoObject::Create(cfg->Get("Boundary"));
+    } else if (m_model_ != nullptr && g_cfg->isA(typeid(std::string))) {
+        m_boundary_ = m_model_->GetGeoObject(g_cfg->cast_as<std::string>());
+    }
+
     Click();
 };
 
@@ -38,7 +44,7 @@ void DomainBase::DoFinalize() {}
 
 void DomainBase::InitialCondition(Real time_now) {
     VERBOSE << "InitialCondition   \t:" << GetName() << std::endl;
-    GetMesh()->AddGeoObject(GetName(), GetBoundary());
+    GetMesh()->AddEmbeddedBoundary(GetName(), GetBoundary());
     PreInitialCondition(this, time_now);
     DoInitialCondition(time_now);
     PostInitialCondition(this, time_now);

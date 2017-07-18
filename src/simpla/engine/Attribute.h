@@ -51,8 +51,10 @@ class Patch;
 struct AttributeDesc : public data::Configurable {
    public:
     AttributeDesc() = default;
-    AttributeDesc(AttributeDesc const &) = default;
-    AttributeDesc(AttributeDesc &&other) = default;
+    AttributeDesc(AttributeDesc const &other)
+        : m_prefix_(other.m_prefix_), m_iform_(other.m_iform_), m_dof_(other.m_dof_), m_t_info_(other.m_t_info_){};
+    AttributeDesc(AttributeDesc &&other)
+        : m_prefix_(other.m_prefix_), m_iform_(other.m_iform_), m_dof_(other.m_dof_), m_t_info_(other.m_t_info_){};
     ~AttributeDesc() override;
 
     AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, std::string const &s_prefix = "",
@@ -62,8 +64,8 @@ struct AttributeDesc : public data::Configurable {
     virtual int GetIFORM() const;
     virtual int GetDOF() const;
     virtual std::type_info const &value_type_info() const;
-    virtual id_type GetID() const;
-    virtual std::shared_ptr<AttributeDesc> GetDescription() const;
+    virtual id_type GetDescID() const;
+    virtual const AttributeDesc &GetDescription() const;
 
    private:
     std::string m_prefix_ = "";
@@ -83,33 +85,33 @@ class AttributeGroup {
     AttributeGroup &operator=(AttributeGroup const &other) = delete;
     AttributeGroup &operator=(AttributeGroup &&other) = delete;
 
-    virtual void RegisterDescription(std::map<std::string, std::shared_ptr<AttributeDesc>> *) const;
-    virtual void RegisterAt(AttributeGroup *);
-    virtual void DeregisterFrom(AttributeGroup *);
-
-    void Detach(Attribute *attr);
-    void Attach(Attribute *attr);
-
-    bool has(std::string const &k) const;
-    bool check(std::string const &k, std::type_info const &t_info) const;
-
-    Attribute *Get(std::string const &k);
-    Attribute const *Get(std::string const &k) const;
-
-    std::map<std::string, Attribute *> &GetAllAttributes();
-    std::map<std::string, Attribute *> const &GetAll() const;
-
-    virtual std::string GetDomainPrefix() const { return ""; }
+    std::set<Attribute *> &GetAttributes() { return m_attributes_; }
+    std::set<Attribute *> const &GetAttributes() const { return m_attributes_; }
 
     virtual void Push(Patch *);
     virtual void Pull(Patch *);
 
-    template <typename T>
-    T GetAttribute(std::string const &k) const;
+    void Detach(Attribute *attr);
+    void Attach(Attribute *attr);
+
+    std::set<AttributeDesc> GetDescriptions() const;
+
+    //    virtual void RegisterAt(AttributeGroup *);
+    //    virtual void DeregisterFrom(AttributeGroup *);
+    //    virtual void RegisterDescription(std::map<std::string, std::shared_ptr<AttributeDesc>> *) const;
+    //    bool has(std::string const &k) const;
+    //    bool check(std::string const &k, std::type_info const &t_info) const;
+    //
+    //    Attribute *Get(std::string const &k);
+    //    Attribute const *Get(std::string const &k) const;
+    //    std::map<std::string, Attribute *> const &GetAll() const;
+    //    virtual std::string GetDomainPrefix() const { return ""; }
+    //
+    //    template <typename T>
+    //    T GetAttribute(std::string const &k) const;
 
    private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
+    std::set<Attribute *> m_attributes_;
 };
 
 /**
@@ -207,10 +209,10 @@ void Attribute::PopData(nTuple<Array<U, Others...>, N...> *d) {
     ResetTag();
 };
 
-template <typename T>
-T AttributeGroup::GetAttribute(std::string const &k) const {
-    return T(AttributeGroup::Get(k)->cast_as<T>());
-};
+//template <typename T>
+//T AttributeGroup::GetAttribute(std::string const &k) const {
+//    return T(AttributeGroup::Get(k)->cast_as<T>());
+//};
 //
 // template <typename, typename Enable = void>
 // class AttributeViewAdapter {};
