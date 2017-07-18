@@ -32,6 +32,7 @@ struct MeshBase::pimpl_s {
 MeshBase::MeshBase() : m_pimpl_(new pimpl_s) {}
 
 MeshBase::~MeshBase() = default;
+index_box_type MeshBase::GetIndexBox(int tag) const { return GetBlock().GetIndexBox(); }
 
 box_type MeshBase::GetBox() const {
     auto id_box = GetBlock().GetIndexBox();

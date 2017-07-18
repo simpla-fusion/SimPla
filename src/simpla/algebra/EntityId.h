@@ -16,10 +16,10 @@
 #include <limits>
 #include <set>
 #include <tuple>
-
 #include "simpla/utilities/Log.h"
 #include "simpla/utilities/ObjectHead.h"
 #include "simpla/utilities/Range.h"
+#include "simpla/utilities/memory.h"
 #include "simpla/utilities/type_traits.h"
 
 #include "nTuple.ext.h"
@@ -711,40 +711,52 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
     int m_w_ = 1;
     index_tuple m_min_, m_max_, m_grain_size_;
 };
-struct EntityIdHasher {
-    size_t operator()(const EntityId& key) const { return static_cast<size_t>(key.v); }
-};
+
 template <>
 struct UnorderedRange<EntityId> : public RangeBase<EntityId> {
     SP_OBJECT_HEAD(UnorderedRange<EntityId>, RangeBase<EntityId>)
 
    public:
-    UnorderedRange() {}
-    ~UnorderedRange() {}
+    UnorderedRange() = default;
+    ~UnorderedRange() = default;
     std::shared_ptr<base_type> split(tags::split const& proportion) override {
         UNIMPLEMENTED;
         return (nullptr);
     }
 
-    void swap(this_type& other) { std::swap(m_ids_, other.m_ids_); }
-    void Insert(EntityId s) { m_ids_.insert(s); }
+    void swap(this_type& other) {
+        std::swap(m_holder_, other.m_holder_);
+        std::swap(m_ids_, other.m_ids_);
+        std::swap(m_size_, other.m_size_);
+    }
 
-    auto& data() { return m_ids_; }
-    auto const& data() const { return m_ids_; }
-    bool empty() const override { return m_ids_.empty(); }
-    size_t size() const override { return m_ids_.size(); }
+    EntityId* get() { return m_ids_; }
+    EntityId const* get() const { return m_ids_; }
+    bool empty() const override { return m_ids_ == nullptr || m_size_ == 0; }
+    size_t size() const override { return m_size_; }
+
+    void reset(size_t s, std::shared_ptr<EntityId> const& d = nullptr) {
+        m_size_ = s;
+        m_holder_ = (d != nullptr) ? d : spMakeShared<EntityId>(nullptr, m_size_);
+        m_ids_ = m_holder_.get();
+    }
+
     bool is_divisible() const override { return false; }
 
     template <typename TFun>
     void DoForeach(TFun const& body, ENABLE_IF((traits::is_invocable<TFun, EntityId>::value))) const {
-        tbb::parallel_for(m_ids_.range(), [&](auto const& r) {
-            for (EntityId s : r) { body(s); }
-        });
+        if (empty()) { return; }
+#ifdef __CUDA__
+#else
+#pragma omp parallel for
+        for (size_t i = 0; i < m_size_; ++i) { body(m_ids_[i]); }
+#endif
     }
 
    private:
-    //    std::set<EntityId> m_ids_;
-    tbb::concurrent_unordered_set<EntityId, EntityIdHasher> m_ids_;
+    std::shared_ptr<EntityId> m_holder_ = nullptr;
+    EntityId* m_ids_ = nullptr;
+    size_t m_size_ = 0;
 };
 
 }  // namespace simpla

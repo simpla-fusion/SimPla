@@ -46,6 +46,7 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
 
     virtual void AddEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g){};
 
+    virtual index_box_type GetIndexBox(int tag = 0) const;
     virtual box_type GetBox() const;
 
     void SetBlock(const MeshBlock &blk);

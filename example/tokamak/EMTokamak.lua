@@ -7,7 +7,6 @@ N_PHI = 100
 
 Context = {
     Name = "EMTokamak",
-
     Atlas = {
         IndexOrigin = { 0, 0, 0 },
         Dimensions = { 32, 32, 32 },
@@ -35,21 +34,21 @@ Context = {
         },
         PlasmaCenter = {
             Type = "EMFluid", -- "Domain<RectMesh,EBMesh,FVM,EMFluid>",
-            --            Species = {
-            --                ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
-            --                H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
+            Species = {
+                ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
+                H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
+            },
             Model = "Tokamak",
             Boundary = "Plasma",
         },
         ICRF = {
             Type = "ICRFAntenna", -- "Domain<RectMesh,EBMesh,FVM,ICRFAntenna>",
 
-            Boundary =  {
+            Boundary = {
                 Type = "Cube",
                 lo = { 1.2, -0.5, -TWOPI / 8 },
                 hi = { 2.25, 0.5, TWOPI / 8 }
             },
-
             IsHard = false,
             Amplify = { 0.0, 0.0, 1.0 },
             WaveNumber = { 0.0, 0.0, TWOPI / 12.0 },

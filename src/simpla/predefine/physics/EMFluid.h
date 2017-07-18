@@ -97,7 +97,6 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
 
 template <typename TM>
 void EMFluid<TM>::InitialCondition(Real time_now) {
-
     E.Clear();
     B.Clear();
     J.Clear();
@@ -135,76 +134,73 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     //    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
     //    m_host_->FillBoundary(E, 0);
 
-    if (m_fluid_sp_.size() > 0) {
-        Ev = map_to<VOLUME>(E);
+    if (m_fluid_sp_.size() <= 0) { return; }
+    Ev = map_to<VOLUME>(E);
 
-        Field<host_type, Real, VOLUME, 3> Q{m_host_};
-        Field<host_type, Real, VOLUME, 3> K{m_host_};
+    Field<host_type, Real, VOLUME, 3> Q{m_host_};
+    Field<host_type, Real, VOLUME, 3> K{m_host_};
 
-        Field<host_type, Real, VOLUME> a{m_host_};
-        Field<host_type, Real, VOLUME> b{m_host_};
-        Field<host_type, Real, VOLUME> c{m_host_};
+    Field<host_type, Real, VOLUME> a{m_host_};
+    Field<host_type, Real, VOLUME> b{m_host_};
+    Field<host_type, Real, VOLUME> c{m_host_};
 
-        a.Clear();
-        b.Clear();
-        c.Clear();
+    a.Clear();
+    b.Clear();
+    c.Clear();
 
-        Q.Clear();
-        K.Clear();
+    Q.Clear();
+    K.Clear();
 
-        dE.Clear();
+    dE.Clear();
 
-        for (auto& p : m_fluid_sp_) {
-            Real ms = p.second->mass;
-            Real qs = p.second->charge;
-            auto& ns = *p.second->n;
-            auto& Js = *p.second->J;
+    for (auto& p : m_fluid_sp_) {
+        Real ms = p.second->mass;
+        Real qs = p.second->charge;
+        auto& ns = *p.second->n;
+        auto& Js = *p.second->J;
 
-            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
+        Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
 
-            Q -= (0.5 * dt / epsilon0) * Js;
+        Q -= (0.5 * dt / epsilon0) * Js;
 
-            K = Js + cross(Js, B0v) * as + Ev * ns * (qs * 2.0 * as);
+        K = Js + cross(Js, B0v) * as + Ev * ns * (qs * 2.0 * as);
 
-            Js = (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
+        Js = (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
 
-            Q -= (0.5 * dt / epsilon0) * Js;
+        Q -= (0.5 * dt / epsilon0) * Js;
 
-            a += qs * ns * (as / (BB * as * as + 1));
-            b += qs * ns * (as * as / (BB * as * as + 1));
-            c += qs * ns * (as * as * as / (BB * as * as + 1));
-        }
-
-        a *= 0.5 * dt / epsilon0;
-        b *= 0.5 * dt / epsilon0;
-        c *= 0.5 * dt / epsilon0;
-        a += 1;
-
-        dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
-
-        for (auto& p : m_fluid_sp_) {
-            Real ms = p.second->mass;
-            Real qs = p.second->charge;
-            auto& ns = *p.second->n;
-            auto& Js = *p.second->J;
-
-            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
-
-            K = dE * ns * qs * as;
-
-            Js += (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
-        }
-
-        E = E + map_to<EDGE>(dE);
+        a += qs * ns * (as / (BB * as * as + 1));
+        b += qs * ns * (as * as / (BB * as * as + 1));
+        c += qs * ns * (as * as * as / (BB * as * as + 1));
     }
+
+    a *= 0.5 * dt / epsilon0;
+    b *= 0.5 * dt / epsilon0;
+    c *= 0.5 * dt / epsilon0;
+    a += 1;
+
+    dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
+
+    for (auto& p : m_fluid_sp_) {
+        Real ms = p.second->mass;
+        Real qs = p.second->charge;
+        auto& ns = *p.second->n;
+        auto& Js = *p.second->J;
+
+        Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
+
+        K = dE * ns * qs * as;
+
+        Js += (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
+    }
+
+    E = E + map_to<EDGE>(dE);
 
     //    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
     //    m_host_->FillBoundary(E, 0);
     //
     //    B = B - curl(E) * (dt * 0.5);
     //    m_host_->FillBoundary(B, 0);
-
-
 }
 
 }  // namespace simpla  {
