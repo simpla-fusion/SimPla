@@ -469,8 +469,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
             }
         }
     }
-    //    integrator->printClassData(std::cout);
-    //    vardb->printClassData(std::cout);
+        integrator->printClassData(std::cout);
+        vardb->printClassData(std::cout);
 }
 void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchFromSAMRAI(SAMRAI::hier::Patch &patch, engine::Patch *p) {
     p->SetMeshBlock(engine::MeshBlock{

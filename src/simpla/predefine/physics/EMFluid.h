@@ -97,9 +97,7 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
 
 template <typename TM>
 void EMFluid<TM>::InitialCondition(Real time_now) {
-    dumpE.Initialize();
-    dumpB.Initialize();
-    dumpJ.Initialize();
+
     E.Clear();
     B.Clear();
     J.Clear();
@@ -126,9 +124,6 @@ void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
     m_host_->FillBoundary(B, 0);
     m_host_->FillBoundary(E, 0);
     m_host_->FillBoundary(J, 0);
-    //    m_host_->FillBoundary(dumpE, 0);
-    //    m_host_->FillBoundary(dumpB, 0);
-    //    m_host_->FillBoundary(dumpJ, 0);
 }
 template <typename TM>
 void EMFluid<TM>::Advance(Real time_now, Real dt) {
@@ -209,9 +204,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     //    B = B - curl(E) * (dt * 0.5);
     //    m_host_->FillBoundary(B, 0);
 
-    dumpE.DeepCopy(E);
-    dumpB.DeepCopy(B);
-    dumpJ.DeepCopy(J);
+
 }
 
 }  // namespace simpla  {
