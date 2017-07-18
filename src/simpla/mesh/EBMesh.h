@@ -18,7 +18,7 @@ namespace mesh {
 
 template <typename THost>
 struct EBMesh {
-    MESH_POLICY_HEAD(EBMesh);
+    SP_ENGINE_POLICY_HEAD(EBMesh);
 
    public:
     void SetGeoObject(std::string const &prefix, geometry::GeoObject const *g);

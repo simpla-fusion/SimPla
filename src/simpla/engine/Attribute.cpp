@@ -15,19 +15,9 @@ namespace engine {
 AttributeDesc::AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, std::string const &s_prefix,
                              std::shared_ptr<data::DataTable> const &t_db)
     : data::Configurable(t_db), m_prefix_(s_prefix), m_iform_(IFORM), m_dof_(DOF), m_t_info_(t_info) {}
-AttributeDesc::~AttributeDesc() {}
-// AttributeDesc::AttributeDesc(AttributeDesc const &other)
-//    : data::Configurable(other),
-//      m_prefix_(other.m_prefix_),
-//      m_iform_(other.m_iform_),
-//      m_dof_(other.m_dof_),
-//      m_t_info_(other.m_t_info_){};
-// AttributeDesc::AttributeDesc(AttributeDesc &&other) noexcept
-//    : data::Configurable(other),
-//      m_prefix_(other.m_prefix_),
-//      m_iform_(other.m_iform_),
-//      m_dof_(other.m_dof_),
-//      m_t_info_(other.m_t_info_){};
+
+    AttributeDesc::~AttributeDesc() = default;
+
 std::string AttributeDesc::GetPrefix() const { return m_prefix_; };
 int AttributeDesc::GetIFORM() const { return m_iform_; };
 int AttributeDesc::GetDOF() const { return m_dof_; };
@@ -161,13 +151,13 @@ void Attribute::Deregister(AttributeGroup *attr_b) {
         m_pimpl_->m_bundle_.erase(attr_b);
     }
 }
-void Attribute::Push(std::shared_ptr<data::DataBlock> d) {
-    m_pimpl_->m_data_block_ = std::move(d);
+void Attribute::Push(const std::shared_ptr<DataBlock> &d) {
+    m_pimpl_->m_data_block_ = d;
     Initialize();
 }
 std::shared_ptr<data::DataBlock> Attribute::Pop() {
     Finalize();
-    return std::move(m_pimpl_->m_data_block_);
+    return m_pimpl_->m_data_block_;
 }
 data::DataBlock *Attribute::GetDataBlock() { return m_pimpl_->m_data_block_.get(); }
 data::DataBlock const *Attribute::GetDataBlock() const { return m_pimpl_->m_data_block_.get(); }

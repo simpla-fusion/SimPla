@@ -18,7 +18,7 @@ using namespace data;
 
 template <typename THost>
 class ICRFAntenna {
-    MESH_POLICY_HEAD(ICRFAntenna);
+    SP_ENGINE_POLICY_HEAD(ICRFAntenna);
 
    public:
     void Serialize(data::DataTable* res) const;
@@ -54,12 +54,13 @@ void ICRFAntenna<TM>::Deserialize(std::shared_ptr<DataTable> const& cfg) {
 template <typename TM>
 void ICRFAntenna<TM>::Advance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
-
-    SP_CMD((J = [=](point_type const& x) -> nTuple<Real, 3> {
-        //        nTuple<Real, 3> res =
-        //            m_amplify_ * std::sin(m_k_[0] * x[0] + m_k_[1] * x[1] + m_k_[2] * x[2] + TWOPI * m_f_ * time_now);
-        return nTuple<Real, 3>{0, 0, 1};
-    }));
+    //    J = 9;
+    //    SP_CMD((J = [=](point_type const& x) -> nTuple<Real, 3> {
+    //        //        nTuple<Real, 3> res =
+    //        //            m_amplify_ * std::sin(m_k_[0] * x[0] + m_k_[1] * x[1] + m_k_[2] * x[2] + TWOPI * m_f_ *
+    //        time_now);
+    //        return nTuple<Real, 3>{0, 0, 1};
+    //    }));
 }
 
 }  // namespace simpla;

@@ -26,7 +26,7 @@ namespace st = simpla::traits;
 
 template <typename THost>
 struct FVM {
-    DOMAIN_POLICY_HEAD(FVM);
+    SP_ENGINE_POLICY_HEAD(FVM);
 
     typedef THost domain_type;
     static constexpr unsigned int NDIMS = 3;

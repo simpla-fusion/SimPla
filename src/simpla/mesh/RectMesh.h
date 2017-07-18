@@ -22,7 +22,7 @@ using namespace simpla::data;
  */
 template <typename THost>
 struct RectMesh : public StructuredMesh {
-    MESH_POLICY_HEAD(RectMesh);
+    SP_ENGINE_POLICY_HEAD(RectMesh);
 
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real time_dt);

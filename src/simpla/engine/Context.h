@@ -14,6 +14,7 @@
 #include "Atlas.h"
 #include "Domain.h"
 #include "Patch.h"
+#include "SPObject.h"
 
 namespace simpla {
 namespace engine {

@@ -159,7 +159,7 @@ struct Attribute : public SPObject, public AttributeDesc {
     data::DataBlock *GetDataBlock();
     data::DataBlock const *GetDataBlock() const;
 
-    virtual void Push(std::shared_ptr<data::DataBlock>);
+    virtual void Push(const std::shared_ptr<data::DataBlock> &);
     virtual std::shared_ptr<data::DataBlock> Pop();
 
     virtual void swap(Attribute &other);

@@ -268,6 +268,16 @@ struct nTuple<TV, N0, N...> {
         assert(s < N0 && s >= 0);
         return m_data_[s];
     }
+
+    template <typename... Idx>
+    __host__ __device__ auto const& at(Idx&&... idx) const {
+        return calculus::getValue(m_data_, std::forward<Idx>(idx)...);
+    }
+
+    template <typename... Idx>
+    __host__ __device__ auto& at(Idx&&... idx) {
+        return calculus::getValue(m_data_, std::forward<Idx>(idx)...);
+    }
 };
 
 template <>

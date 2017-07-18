@@ -77,6 +77,17 @@ class StructuredMesh {
         return ZSFC<NDIMS>{GetIndexBox(EntityIdCoder::m_sub_index_to_id_[iform][nsub])};
     }
 
+    template <typename U>
+    using array_type = Array<U, ZSFC<NDIMS>>;
+
+    template <typename U, int IFORM, int... N>
+    using data_type = nTuple<Array<U, ZSFC<NDIMS>>, (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3, N...>;
+
+    template <int IFORM, typename U, int... N>
+    void initialize_data(nTuple<array_type<U>, N...> *d) const {
+        traits::foreach (*d, [&](auto &a, int n0, auto &&... idx) { a.reset(GetSpaceFillingCurve(IFORM, n0)); });
+    };
+
    public:
     size_type GetNumberOfEntity(int IFORM = VERTEX) const {
         index_box_type m_index_box_ = GetBlock().GetIndexBox();

@@ -37,16 +37,9 @@ size_tuple StructuredMesh::GetDimensions() const { return GetBlock().GetDimensio
 index_tuple StructuredMesh::GetIndexOrigin() const { return GetBlock().GetIndexOrigin(); }
 index_tuple StructuredMesh::GetGhostWidth(int tag) const { return GetBlock().GetGhostWidth(); }
 box_type StructuredMesh::GetBox() const {
-    box_type res;
-    //    index_tuple lo, hi;
-    //    std::tie(lo, hi) = GetIndexBox(VERTEX);
-    //    std::get<0>(res) = point(
-    //        EntityId{static_cast<int16_t>(lo[0]), static_cast<int16_t>(lo[1]), static_cast<int16_t>(lo[2]), 0},
-    //        nullptr);
-    //    std::get<1>(res) = point(
-    //        EntityId{static_cast<int16_t>(hi[0]), static_cast<int16_t>(hi[1]), static_cast<int16_t>(hi[2]), 0},
-    //        nullptr);
-    return res;
+    index_tuple lo, hi;
+    std::tie(lo, hi) = GetIndexBox(VERTEX);
+    return std::make_tuple(local_coordinates(lo[0], lo[1], lo[2], 0), local_coordinates(hi[0], hi[1], hi[2], 0));
 }
 index_box_type StructuredMesh::GetIndexBox(int tag) const {
     index_box_type res = GetBlock().GetIndexBox();

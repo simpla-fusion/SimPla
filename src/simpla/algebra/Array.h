@@ -70,7 +70,34 @@ class Array {
         return *this;
     };
 
-    void SetSpaceFillingCurve(SFC const& s) { m_sfc_ = s; }
+    value_type* get() { return m_data_; }
+    value_type* get() const { return m_data_; }
+
+    void reset(value_type* d = nullptr) {
+        m_data_ = d;
+        m_holder_.reset();
+        m_host_data_ = nullptr;
+    }
+    void reset(std::shared_ptr<value_type> const& d) {
+        m_holder_ = d;
+        m_host_data_ = nullptr;
+        m_data_ = m_holder_.get();
+    }
+
+    template <typename... Args>
+    void reset(SFC const& s, Args&&... args) {
+        m_sfc_ = s;
+        reset(std::forward<Args>(args)...);
+    }
+
+    //    void reset(std::shared_ptr<value_type> const& d = nullptr) { SetData(d); }
+    //
+    //    void SetData(std::shared_ptr<value_type> const& d) {
+    //        m_holder_ = d;
+    //        m_host_data_ = m_holder_.get();
+    //        m_data_ = m_host_data_;
+    //    }
+
     SFC const& GetSpaceFillingCurve() const { return m_sfc_; }
 
     int GetNDIMS() const { return SFC::ndims; }
@@ -79,19 +106,8 @@ class Array {
     std::type_info const& value_type_info() const { return typeid(value_type); }
     size_type size() const { return m_sfc_.size(); }
 
-    void reset(std::shared_ptr<value_type> const& d = nullptr) { SetData(d); }
-
-    void SetData(std::shared_ptr<value_type> const& d) {
-        m_holder_ = d;
-        m_host_data_ = m_holder_.get();
-        m_data_ = m_host_data_;
-    }
-
     std::shared_ptr<value_type>& GetData() { return m_holder_; }
     std::shared_ptr<value_type> const& GetData() const { return m_holder_; }
-
-    value_type* get() { return m_data_; }
-    value_type* get() const { return m_data_; }
 
     template <typename... Args>
     void Shift(Args&&... args) {

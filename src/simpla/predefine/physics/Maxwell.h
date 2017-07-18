@@ -18,7 +18,7 @@ using namespace data;
 
 template <typename THost>
 class Maxwell {
-    DOMAIN_POLICY_HEAD(Maxwell);
+    SP_ENGINE_POLICY_HEAD(Maxwell);
 
     void Serialize(data::DataTable* res) const;
     void Deserialize(std::shared_ptr<data::DataTable> const& cfg);
@@ -51,7 +51,7 @@ void Maxwell<TM>::InitialCondition(Real time_now) {
     J.Clear();
 }
 template <typename TM>
-void Maxwell<TM>::BoundaryCondition(Real time_now, Real dt) {
+void Maxwell<TM>::BoundaryCondition(Real time_now, Real time_dt) {
     m_host_->FillBoundary(B, 0);
     m_host_->FillBoundary(E, 0);
     m_host_->FillBoundary(J, 0);
@@ -79,6 +79,7 @@ void Maxwell<TM>::Advance(Real time_now, Real dt) {
     dumpE[0] = E.Get();
     dumpB[0] = B.Get();
     dumpJ[0] = J.Get();
+    J.Clear();
 }
 
 }  // namespace simpla  {

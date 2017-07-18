@@ -5,14 +5,19 @@
 #ifndef SIMPLA_MESH_H
 #define SIMPLA_MESH_H
 
+#include "simpla/SIMPLA_config.h"
+
+#include "simpla/data/EnableCreateFromDataTable.h"
+
 #include "Attribute.h"
 #include "SPObject.h"
-#include "simpla/data/EnableCreateFromDataTable.h"
-#include "simpla/geometry/GeoObject.h"
+
+#include "PoliciesCommon.h"
 
 namespace simpla {
 namespace geometry {
 struct Chart;
+struct GeoObject;
 }
 namespace engine {
 class MeshBlock;
@@ -121,12 +126,12 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     };
 
     template <typename TL, typename TR>
-    void FillBody(TL &lhs, TR &&rhs, std::string prefix = "") const {
+    void FillBody(TL &lhs, TR &&rhs, std::string const &prefix = "") const {
         FillRange(lhs, std::forward<TR>(rhs), prefix + "_BODY_" + std::to_string(TL::iform), true);
     };
 
     template <typename TL, typename TR>
-    void FillBoundary(TL &lhs, TR &&rhs, std::string prefix = "") const {
+    void FillBoundary(TL &lhs, TR &&rhs, std::string const &prefix = "") const {
         FillRange(lhs, std::forward<TR>(rhs), prefix + "_BOUNDARY_" + std::to_string(TL::iform), false);
     };
 
@@ -134,112 +139,50 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     TChart m_chart_;
 };
 
-// template <typename TM, template <typename> class... Policies>
-// bool Domain<TM, Policies...>::is_registered = DomainBase::RegisterCreator<Domain<TM, Policies...>>();
-namespace mesh_detail {
-
-#define DEFINE_INVOKE_HELPER(_FUN_NAME_)                                                                           \
-    CHECK_MEMBER_FUNCTION(has_mem_fun_##_FUN_NAME_, _FUN_NAME_)                                                    \
-    template <typename this_type, typename... Args>                                                                \
-    int _invoke_##_FUN_NAME_(std::true_type const &has_function, this_type *self, Args &&... args) {               \
-        self->_FUN_NAME_(std::forward<Args>(args)...);                                                             \
-        return 1;                                                                                                  \
-    }                                                                                                              \
-    template <typename this_type, typename... Args>                                                                \
-    int _invoke_##_FUN_NAME_(std::false_type const &has_not_function, this_type *self, Args &&... args) {          \
-        return 0;                                                                                                  \
-    }                                                                                                              \
-    template <template <typename> class _T0, typename this_type, typename... Args>                                 \
-    int _try_invoke_##_FUN_NAME_(this_type const *self, Args &&... args) {                                         \
-        return _invoke_##_FUN_NAME_(has_mem_fun_##_FUN_NAME_<_T0<this_type> const, void, Args...>(),               \
-                                    dynamic_cast<_T0<this_type> const *>(self), std::forward<Args>(args)...);      \
-    }                                                                                                              \
-    template <template <typename> class _T0, typename this_type, typename... Args>                                 \
-    int _try_invoke_##_FUN_NAME_(this_type *self, Args &&... args) {                                               \
-        return _invoke_##_FUN_NAME_(has_mem_fun_##_FUN_NAME_<_T0<this_type>, void, Args...>(),                     \
-                                    dynamic_cast<_T0<this_type> *>(self), std::forward<Args>(args)...);            \
-    }                                                                                                              \
-    template <template <typename> class _T0, template <typename> class _T1, template <typename> class... _TOthers, \
-              typename this_type, typename... Args>                                                                \
-    int _try_invoke_##_FUN_NAME_(this_type *self, Args &&... args) {                                               \
-        return _try_invoke_##_FUN_NAME_<_T0>(self, std::forward<Args>(args)...) +                                  \
-               _try_invoke_##_FUN_NAME_<_T1, _TOthers...>(self, std::forward<Args>(args)...);                      \
-    }                                                                                                              \
-    template <template <typename> class _T0, template <typename> class _T1, template <typename> class... _TOthers, \
-              typename this_type, typename... Args>                                                                \
-    int _try_invoke_once_##_FUN_NAME_(this_type *self, Args &&... args) {                                          \
-        if (_try_invoke_##_FUN_NAME_<_T0>(self, std::forward<Args>(args)...) == 0) {                               \
-            return _try_invoke_##_FUN_NAME_<_T1, _TOthers...>(self, std::forward<Args>(args)...);                  \
-        } else {                                                                                                   \
-            return 1;                                                                                              \
-        }                                                                                                          \
-    }
-
-DEFINE_INVOKE_HELPER(InitialCondition)
-DEFINE_INVOKE_HELPER(BoundaryCondition)
-DEFINE_INVOKE_HELPER(Advance)
-DEFINE_INVOKE_HELPER(Deserialize)
-DEFINE_INVOKE_HELPER(Serialize)
+namespace _detail {
 DEFINE_INVOKE_HELPER(SetGeoObject)
 DEFINE_INVOKE_HELPER(Calculate)
+}
 
-#undef DEFINE_INVOKE_HELPER
-}  // namespace mesh_detail
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::DoInitialCondition(Real time_now) {
-    mesh_detail::_try_invoke_InitialCondition<Policies...>(this, time_now);
+    traits::_try_invoke_InitialCondition<Policies...>(this, time_now);
 }
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::DoBoundaryCondition(Real time_now, Real dt) {
-    mesh_detail::_try_invoke_BoundaryCondition<Policies...>(this, time_now, dt);
+    traits::_try_invoke_BoundaryCondition<Policies...>(this, time_now, dt);
 }
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::DoAdvance(Real time_now, Real dt) {
-    mesh_detail::_try_invoke_Advance<Policies...>(this, time_now, dt);
+    traits::_try_invoke_Advance<Policies...>(this, time_now, dt);
 }
 template <typename TM, template <typename> class... Policies>
 std::shared_ptr<data::DataTable> Mesh<TM, Policies...>::Serialize() const {
     auto res = MeshBase::Serialize();
-    mesh_detail::_try_invoke_Serialize<Policies...>(this, res.get());
+    traits::_try_invoke_Serialize<Policies...>(this, res.get());
     return res;
 };
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
-    mesh_detail::_try_invoke_Deserialize<Policies...>(this, cfg);
+    traits::_try_invoke_Deserialize<Policies...>(this, cfg);
     MeshBase::Deserialize(cfg);
 };
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::AddGeoObject(std::string const &prefix, geometry::GeoObject const *g) {
-    mesh_detail::_try_invoke_SetGeoObject<Policies...>(this, prefix, g);
+    _detail::_try_invoke_SetGeoObject<Policies...>(this, prefix, g);
 };
 
 template <typename TM, template <typename> class... Policies>
 template <typename LHS, typename RHS>
 void Mesh<TM, Policies...>::FillRange(LHS &lhs, RHS &&rhs, Range<EntityId> r, bool full_fill_if_range_is_null) const {
     if (r.isNull() && full_fill_if_range_is_null) {
-        mesh_detail::_try_invoke_once_Calculate<Policies...>(this, lhs, std::forward<RHS>(rhs));
+        _detail::_try_invoke_once_Calculate<Policies...>(this, lhs, std::forward<RHS>(rhs));
     } else {
-        mesh_detail::_try_invoke_once_Calculate<Policies...>(this, lhs, std::forward<RHS>(rhs), r);
+        _detail::_try_invoke_once_Calculate<Policies...>(this, lhs, std::forward<RHS>(rhs), r);
     }
 };
 
-#define MESH_POLICY_HEAD(_NAME_)                     \
-   private:                                          \
-    typedef THost host_type;                         \
-    typedef _NAME_<THost> this_type;                 \
-                                                     \
-   public:                                           \
-    host_type *m_host_ = nullptr;                    \
-    _NAME_(host_type *h) noexcept : m_host_(h) {}    \
-    virtual ~_NAME_() = default;                     \
-    _NAME_(_NAME_ const &other) = delete;            \
-    _NAME_(_NAME_ &&other) = delete;                 \
-    _NAME_ &operator=(_NAME_ const &other) = delete; \
-    _NAME_ &operator=(_NAME_ &&other) = delete;      \
-    static std::string RegisterName() { return __STRING(_NAME_); }
-
 }  // namespace mesh
-
 }  // namespace simpla{
 
 #endif  // SIMPLA_MESH_H

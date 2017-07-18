@@ -6,7 +6,6 @@
 #define SIMPLA_EXTRASOURCE_H
 
 #include "simpla/SIMPLA_config.h"
-#include "simpla/algebra/algebra.h"
 #include "simpla/engine/Engine.h"
 #include "simpla/physics/PhysicalConstants.h"
 
@@ -18,7 +17,7 @@ using namespace engine;
 template <typename TM>
 class ExtraSource {
    public:
-    MESH_POLICY_HEAD(ExtraSource);
+    SP_ENGINE_POLICY_HEAD(ExtraSource);
 
     void Serialize(data::DataTable* res) const;
     void Deserialize(std::shared_ptr<DataTable> const& cfg);

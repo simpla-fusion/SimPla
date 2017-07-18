@@ -19,7 +19,7 @@ using namespace data;
 
 template <typename THost>
 class EMFluid {
-    DOMAIN_POLICY_HEAD(EMFluid);
+    SP_ENGINE_POLICY_HEAD(EMFluid);
 
     void Serialize(data::DataTable* res) const;
     void Deserialize(std::shared_ptr<data::DataTable> const& cfg);

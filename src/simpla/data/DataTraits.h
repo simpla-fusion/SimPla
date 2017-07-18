@@ -5,13 +5,14 @@
 #ifndef SIMPLA_DATAENTITYFACTROY_H
 #define SIMPLA_DATAENTITYFACTROY_H
 
-#include "simpla/algebra/nTuple.h"
 #include <memory>
 #include <string>
+#include "simpla/algebra/nTuple.h"
 
 namespace simpla {
 namespace data {
 class DataEntity;
+}  // namespace data {
 /**
  *  PUT and POST are both unsafe methods. However, PUT is idempotent, while POST is not.
  *
@@ -41,6 +42,5 @@ struct is_light_data<char const*> : public std::integral_constant<bool, true> {}
 
 }  // namespace traits {
 
-}  // namespace data {
 }  // namespace simpla {
 #endif  // SIMPLA_DATAENTITYFACTROY_H

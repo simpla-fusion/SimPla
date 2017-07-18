@@ -53,8 +53,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     static constexpr int NUM_OF_SUB = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
 
    private:
-    typedef nTuple<array_type, NUM_OF_SUB, DOF...> data_type;
-    data_type m_data_;
+    nTuple<array_type, NUM_OF_SUB, DOF...> m_data_;
     mesh_type const* m_host_ = nullptr;
 
    public:
@@ -78,13 +77,11 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         : base_type(other), m_host_(m), m_data_(other.m_data_) {}
 
     void DoInitialize() override {
-        base_type::PushData(&m_data_);
-        traits::foreach (m_data_, [&](auto& a, auto i0, auto&&... idx) {
-            if (a.isNull()) {
-                a.SetSpaceFillingCurve(m_host_->GetMesh()->GetSpaceFillingCurve(IFORM, i0));
-                a.Initialize();
-            }
-        });
+        if (base_type::isNull()) {
+            m_host_->GetMesh()->template initialize_data<IFORM>(&m_data_);
+        } else {
+            base_type::PushData(&m_data_);
+        }
     }
 
     void DoFinalize() override { base_type::PopData(&m_data_); }
@@ -102,7 +99,6 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     void Set(Other&& v) {
         Update();
         m_host_->Fill(*this, std::forward<Other>(v));
-
     }
 
     template <typename MR, typename UR, int... NR>
@@ -124,11 +120,11 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
 
     template <typename... Args>
     auto& Get(index_type i0, Args&&... args) {
-        return calculus::getValue(m_data_, i0, std::forward<Args>(args)...);
+        return m_data_.at(i0, std::forward<Args>(args)...);
     }
     template <typename... Args>
     auto const& Get(index_type i0, Args&&... args) const {
-        return calculus::getValue(m_data_, i0, std::forward<Args>(args)...);
+        return m_data_.at(i0, std::forward<Args>(args)...);
     }
 
     //    template <typename U, typename... Args>
