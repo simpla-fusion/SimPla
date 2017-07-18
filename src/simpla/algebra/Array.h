@@ -119,22 +119,25 @@ class Array {
     }
 
     void Initialize() {
-        m_holder_ = spMakeShared<value_type>(m_data_, m_sfc_.size());
-        m_host_data_ = m_data_;
-        m_data_ = m_holder_.get();
+        if (m_data_ == nullptr) {
+            m_holder_ = spMakeShared<value_type>(m_data_, m_sfc_.size());
+            m_host_data_ = m_data_;
+            m_data_ = m_holder_.get();
 
 #ifndef NDEBUG
-        Fill(std::numeric_limits<V>::signaling_NaN());
+            Fill(std::numeric_limits<V>::signaling_NaN());
 #else
-        Fill(0);
+            Fill(0);
 #endif
+        }
     }
+    void Finalize() { reset(); }
 
     void Fill(value_type v) {
         Update();
         spMemoryFill(m_data_, v, m_sfc_.size());
     }
-    void Clear() { Fill(0); }
+    void Clear() { spMemoryClear(m_data_, m_sfc_.size()); }
 
     void DeepCopy(value_type const* other) {
         Update();

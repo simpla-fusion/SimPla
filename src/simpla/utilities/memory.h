@@ -116,15 +116,23 @@ __global__ void spCUDA_Copy(T *dest, U const *src, size_t n) {
 }
 #endif
 #define NUM_OF_THREAD 32
+template <typename T>
+int spMemoryClear(T *dest, size_t n) {
+    //#ifndef __CUDA__
+    memset(dest, 0, n * sizeof(T));
+    //#else
+    //    SP_CALL_DEVICE_KERNEL(simpla::detail::spCUDA_Assign, (n + NUM_OF_THREAD) / NUM_OF_THREAD, NUM_OF_THREAD, dest,
+    //    0,
+    //                          n);
+    //#endif
+    return SP_SUCCESS;
+}
 
 template <typename T>
 int spMemoryFill(T *dest, T const &src, size_t n) {
 #ifndef __CUDA__
-    char *p_dest = reinterpret_cast<char *>(dest);
-    char const *p_src = reinterpret_cast<char const *>(&src);
-    static constexpr int m = sizeof(T);
 #pragma omp parallel for
-    for (int i = 0; i < m * n; ++i) { p_dest[i] = p_src[i % m]; }
+    for (int i = 0; i < n; ++i) { dest[i] = src; }
 #else
     SP_CALL_DEVICE_KERNEL(simpla::detail::spCUDA_Assign, (n + NUM_OF_THREAD) / NUM_OF_THREAD, NUM_OF_THREAD, dest, src,
                           n);

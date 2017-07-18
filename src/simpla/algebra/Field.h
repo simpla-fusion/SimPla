@@ -82,9 +82,14 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         } else {
             base_type::PushData(&m_data_);
         }
+
+        traits::foreach (m_data_, [&](auto& a, auto&&... s) { a.Initialize(); });
     }
 
-    void DoFinalize() override { base_type::PopData(&m_data_); }
+    void DoFinalize() override {
+        base_type::PopData(&m_data_);
+        traits::foreach (m_data_, [&](auto& a, auto&&... s) { a.Finalize(); });
+    }
 
     void swap(this_type& other) {
         base_type::swap(other);
@@ -106,7 +111,9 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         Update();
         m_data_ = other.Get();
     }
-    void Clear() { Set(0); }
+    void Clear() {
+        traits::foreach (m_data_, [&](auto& a, auto&&... s) { a.Clear(); });
+    }
 
     this_type& operator=(this_type const& other) {
         Set(other);

@@ -22,8 +22,6 @@ std::shared_ptr<UnorderedRange<EntityId>> make_range(
 void CreateEBMesh(engine::MeshBase *m_host_, geometry::GeoObject const *g, std::string const &prefix) {
     if (g == nullptr) { return; }
 
-    VERBOSE << "Add Embedded Boundary [" << prefix << "]" << std::endl;
-
     Array<int, ZSFC<3>> vertex_tags{nullptr, m_host_->GetIndexBox(0b0)};
 
     vertex_tags = [&](index_type x, index_type y, index_type z) {
