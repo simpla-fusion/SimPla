@@ -29,6 +29,7 @@ class EMFluid {
 
     Field<host_type, Real, VOLUME> ne{m_host_, "name"_ = "ne"};
     Field<host_type, Real, VOLUME, 3> B0v{m_host_, "name"_ = "B0v"};
+
     Field<host_type, Real, EDGE> E0{m_host_, "name"_ = "E0"};
     Field<host_type, Real, FACE> B0{m_host_, "name"_ = "B0"};
     Field<host_type, Real, VOLUME> BB{m_host_, "name"_ = "BB"};
@@ -106,14 +107,10 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
     Ev.Clear();
     Bv.Clear();
 
-    ne.Initialize();
-    B0v.Initialize();
+    ne.Clear();
 
-    auto m = m_host_->GetModel();
-    if (m != nullptr) {
-        m->LoadProfile("ne", &ne);
-        m->LoadProfile("B0", &B0v);
-    }
+    if (m_host_->GetModel() != nullptr) { m_host_->GetModel()->LoadProfile("ne", &ne); }
+
     BB = dot(B0v, B0v);
 
     for (auto& item : m_fluid_sp_) {

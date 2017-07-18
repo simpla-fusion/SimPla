@@ -59,7 +59,7 @@ void Tokamak::DoUpdate() {
                              std::make_shared<geometry::RevolveZ>(m_pimpl_->geqdsk.limiter(), m_pimpl_->geqdsk.PhiAxis,
                                                                   m_pimpl_->m_phi0_, m_pimpl_->m_phi1_));
 
-    engine::Model::SetObject("Center",
+    engine::Model::SetObject("Plasma",
                              std::make_shared<geometry::RevolveZ>(m_pimpl_->geqdsk.boundary(), m_pimpl_->geqdsk.PhiAxis,
                                                                   m_pimpl_->m_phi0_, m_pimpl_->m_phi1_));
 

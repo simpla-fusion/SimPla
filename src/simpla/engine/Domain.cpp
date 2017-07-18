@@ -30,8 +30,8 @@ void DomainBase::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     auto g_cfg = cfg->Get("Boundary");
     if (g_cfg->isTable()) {
         m_boundary_ = geometry::GeoObject::Create(cfg->Get("Boundary"));
-    } else if (m_model_ != nullptr && g_cfg->isA(typeid(std::string))) {
-        m_boundary_ = m_model_->GetGeoObject(g_cfg->cast_as<std::string>());
+    } else if (m_model_ != nullptr) {
+        m_boundary_ = m_model_->GetGeoObject(cfg->GetValue<std::string>("Boundary", "Boundary"));
     }
 
     Click();
@@ -43,6 +43,8 @@ void DomainBase::DoInitialize() {}
 void DomainBase::DoFinalize() {}
 
 void DomainBase::InitialCondition(Real time_now) {
+    if (GetBoundary() != nullptr && GetBoundary()->CheckOverlap(GetMesh()->GetBox()) < EPSILON) { return; }
+
     VERBOSE << "InitialCondition   \t:" << GetName() << std::endl;
     GetMesh()->AddEmbeddedBoundary(GetName(), GetBoundary());
     PreInitialCondition(this, time_now);

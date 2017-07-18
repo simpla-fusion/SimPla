@@ -33,6 +33,12 @@ MeshBase::MeshBase() : m_pimpl_(new pimpl_s) {}
 
 MeshBase::~MeshBase() = default;
 
+box_type MeshBase::GetBox() const {
+    auto id_box = GetBlock().GetIndexBox();
+    return box_type{GetChart().local_coordinates(std::get<0>(id_box)),
+                    GetChart().local_coordinates(std::get<1>(id_box))};
+};
+
 // MeshBase::MeshBase(MeshBase const& other) : SPObject(other), m_pimpl_(new pimpl_s),
 // m_mesh_block_(other.m_mesh_block_) {
 //    m_pimpl_->m_pack_ = other.m_pimpl_->m_pack_;

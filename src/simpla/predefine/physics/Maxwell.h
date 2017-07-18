@@ -26,6 +26,8 @@ class Maxwell {
     void BoundaryCondition(Real time_now, Real time_dt);
     void Advance(Real time_now, Real dt);
 
+    Field<host_type, Real, VOLUME, 3> B0v{m_host_, "name"_ = "B0v"};
+
     Field<host_type, Real, FACE> B{m_host_, "name"_ = "B"};
     Field<host_type, Real, EDGE> E{m_host_, "name"_ = "E"};
     Field<host_type, Real, EDGE> J{m_host_, "name"_ = "J"};
@@ -49,6 +51,10 @@ void Maxwell<TM>::InitialCondition(Real time_now) {
     E.Clear();
     B.Clear();
     J.Clear();
+
+    B0v.Clear();
+
+    if (m_host_->GetModel() != nullptr) { m_host_->GetModel()->LoadProfile("B0", &B0v); }
 }
 template <typename TM>
 void Maxwell<TM>::BoundaryCondition(Real time_now, Real time_dt) {

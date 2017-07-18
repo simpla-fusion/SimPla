@@ -33,13 +33,13 @@ Context = {
             Model = "Tokamak",
             Boundary = "Limiter",
         },
-        Boundary = {
+        PlasmaCenter = {
             Type = "EMFluid", -- "Domain<RectMesh,EBMesh,FVM,EMFluid>",
             --            Species = {
             --                ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
             --                H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
             Model = "Tokamak",
-            Boundary = "Boundary",
+            Boundary = "Plasma",
         },
         ICRF = {
             Type = "ICRFAntenna", -- "Domain<RectMesh,EBMesh,FVM,ICRFAntenna>",

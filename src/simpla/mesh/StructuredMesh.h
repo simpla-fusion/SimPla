@@ -40,7 +40,6 @@ class StructuredMesh {
 
     point_type GetCellWidth() const;
     point_type GetOrigin() const;
-    box_type GetBox() const;
 
     index_tuple GetIndexOrigin() const;
     size_tuple GetDimensions() const;

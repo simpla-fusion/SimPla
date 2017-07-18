@@ -28,9 +28,9 @@ template <typename THost>
 void EBMesh<THost>::SetEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g) {
     if (g == nullptr) { return; }
 
-    Real ratio = g->CheckOverlap(
-            m_host_->GetBox()
-    );
+    VERBOSE << "Add Embedded Boundary [" << prefix << "]" << std::endl;
+
+    Real ratio = g->CheckOverlap(m_host_->GetBox());
 
     if (ratio < EPSILON) {
         m_host_->GetRange(prefix + "_BODY_0").append(nullptr);
