@@ -16,6 +16,7 @@ std::shared_ptr<UnorderedRange<EntityId>> make_range(
     tbb::concurrent_unordered_set<EntityId, detail::EntityIdHasher> const &t) {
     auto res = std::make_shared<UnorderedRange<EntityId>>();
     res->reset(t.size(), nullptr);
+    std::copy(t.begin(), t.end(), res->get());
     return res;
 }
 void CreateEBMesh(engine::MeshBase *m_host_, geometry::GeoObject const *g, std::string const &prefix) {
@@ -53,16 +54,16 @@ void CreateEBMesh(engine::MeshBase *m_host_, geometry::GeoObject const *g, std::
     *\endverbatim
     */
 
-    Array<int, ZSFC<3>> volume_tags{nullptr, m_host_->GetIndexBox(0b111)};
-
-    volume_tags = ((vertex_tags(IdxShift{0, 0, 0})) << 0) |  //
-                  ((vertex_tags(IdxShift{1, 0, 0})) << 1) |  //
-                  ((vertex_tags(IdxShift{0, 1, 0})) << 2) |  //
-                  ((vertex_tags(IdxShift{1, 1, 0})) << 3) |  //
-                  ((vertex_tags(IdxShift{0, 0, 1})) << 4) |  //
-                  ((vertex_tags(IdxShift{1, 0, 1})) << 5) |  //
-                  ((vertex_tags(IdxShift{0, 1, 1})) << 6) |  //
-                  ((vertex_tags(IdxShift{1, 1, 1})) << 7);
+    //    Array<int, ZSFC<3>> volume_tags{nullptr, m_host_->GetIndexBox(0b111)};
+    //
+    //    volume_tags = ((vertex_tags(IdxShift{0, 0, 0})) << 0) |  //
+    //                  ((vertex_tags(IdxShift{1, 0, 0})) << 1) |  //
+    //                  ((vertex_tags(IdxShift{0, 1, 0})) << 2) |  //
+    //                  ((vertex_tags(IdxShift{1, 1, 0})) << 3) |  //
+    //                  ((vertex_tags(IdxShift{0, 0, 1})) << 4) |  //
+    //                  ((vertex_tags(IdxShift{1, 0, 1})) << 5) |  //
+    //                  ((vertex_tags(IdxShift{0, 1, 1})) << 6) |  //
+    //                  ((vertex_tags(IdxShift{1, 1, 1})) << 7);
 
     tbb::concurrent_unordered_set<EntityId, detail::EntityIdHasher> VERTEX_body;
     tbb::concurrent_unordered_set<EntityId, detail::EntityIdHasher> EDGE_body;
@@ -102,11 +103,18 @@ void CreateEBMesh(engine::MeshBase *m_host_, geometry::GeoObject const *g, std::
     static const EntityId s6 = {0, 1, 1, 0};
     static const EntityId s7 = {1, 1, 1, 0};
 
-    volume_tags.GetSpaceFillingCurve().Foreach([&](auto I, auto J, auto K) {
-
-        int tag = volume_tags(I, J, K);
+    ZSFC<3>(m_host_->GetIndexBox(0b111)).Foreach([&](auto I, auto J, auto K) {
 
         EntityId s = {static_cast<int16_t>(I), static_cast<int16_t>(J), static_cast<int16_t>(K), 0};
+
+        int tag = ((vertex_tags(I + 0, J + 0, K + 0)) << 0) |  //
+                  ((vertex_tags(I + 1, J + 0, K + 0)) << 1) |  //
+                  ((vertex_tags(I + 0, J + 1, K + 0)) << 2) |  //
+                  ((vertex_tags(I + 1, J + 1, K + 0)) << 3) |  //
+                  ((vertex_tags(I + 0, J + 0, K + 1)) << 4) |  //
+                  ((vertex_tags(I + 1, J + 0, K + 1)) << 5) |  //
+                  ((vertex_tags(I + 0, J + 1, K + 1)) << 6) |  //
+                  ((vertex_tags(I + 1, J + 1, K + 1)) << 7);
 
         //
         if (tag == 0) {
