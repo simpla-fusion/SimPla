@@ -141,6 +141,17 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     void FillBoundary(TL &lhs, TR &&rhs, std::string const &prefix = "") const {
         FillRange(lhs, std::forward<TR>(rhs), prefix + "_BOUNDARY_" + std::to_string(TL::iform), false);
     };
+
+    Field<host_type, int, VOLUME> m_refinement_tags_{m_host_, "name"_ = "_refinement_tags_", "IS_NOT_OWNED"};
+    Field<host_type, Real, VOLUME> m_workload_{m_host_, "name"_ = "_workload_", "IS_NOT_OWNED"};
+
+    void TagRefinementCells(Range<EntityId> const &r);
+};
+template <typename TM, template <typename> class... Policies>
+void Mesh<TM, Policies...>::TagRefinementCells(Range<EntityId> const &r) {
+    r.foreach ([&](EntityId s) {
+        if (m_refinement_tags_[0].in_box(s.x, s.y, s.z)) { m_refinement_tags_[0](s.x, s.y, s.z) = 1; }
+    });
 };
 
 namespace _detail {

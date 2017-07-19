@@ -113,18 +113,23 @@ __global__ void spCUDA_Copy(T *dest, U const *src, size_t n) {
     size_t s = blockIdx.x * blockDim.x + threadIdx.x;
     if (s < n) { dest[s] = src[s]; };
 }
+
+template <typename T>
+__global__ void spCUDA_Clear(T *dest, T src, size_t n) {
+    size_t s = blockIdx.x * blockDim.x + threadIdx.x;
+    if (s < n) { dest[s] = src * threadIdx.x; };
+}
 }
 #endif
 #define NUM_OF_THREAD 32
 template <typename T>
 int spMemoryClear(T *dest, size_t n) {
-    //#ifndef __CUDA__
+#ifndef __CUDA__
     memset(dest, 0, n * sizeof(T));
-    //#else
-    //    SP_CALL_DEVICE_KERNEL(simpla::detail::spCUDA_Assign, (n + NUM_OF_THREAD) / NUM_OF_THREAD, NUM_OF_THREAD, dest,
-    //    0,
-    //                          n);
-    //#endif
+#else
+    cudaMemset(dest, 0, n * sizeof(T));
+//    SP_CALL_DEVICE_KERNEL(simpla::detail::spCUDA_Assign, (n + NUM_OF_THREAD) / NUM_OF_THREAD, NUM_OF_THREAD, dest, 0, n);
+#endif
     return SP_SUCCESS;
 }
 
@@ -154,6 +159,7 @@ int spMemoryCopy(U *dest, V const *src, size_t n) {
 template <typename T>
 int spMemoryCopy(T *dest, T const *src, size_t n) {
 #ifndef __CUDA__
+    memcpy(dest, src, n * sizeof(T));
 #else
     SP_DEVICE_CALL(cudaMemcpy((void *)dest, (void const *)src, n * sizeof(T), cudaMemcpyDefault));
 

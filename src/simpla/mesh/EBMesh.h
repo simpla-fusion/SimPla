@@ -22,9 +22,19 @@ struct EBMesh {
 
    public:
     void SetEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g);
+    void UpdateTags(Range<EntityId> const &ids);
 
 };
+void UpdateTags(Range<EntityId> const &ids) {
+    if (m_tags_.isNull()) { return; }
+    m_tags_.Clear();
 
+    if (m_host_->GetMesh()->GetBlock().GetLevel() > 0) { return; }
+
+    m_host_->GetMesh()->GetRange(m_host_->GetName() + "_BOUNDARY_3").foreach ([&](EntityId s) {
+        if (m_tags_[0].in_box(s.x, s.y, s.z)) { m_tags_[0](s.x, s.y, s.z) = 1; }
+    });
+}
 namespace detail {
 void CreateEBMesh(engine::MeshBase *m_host_, geometry::GeoObject const *g, std::string const &prefix = "");
 }

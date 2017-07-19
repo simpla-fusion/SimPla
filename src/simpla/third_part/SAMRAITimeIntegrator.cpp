@@ -415,9 +415,10 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     //**************************************************************
 
     for (auto const *item : m_ctx_->GetMesh()->GetAttributes()) {
-        if (item->GetPrefix()[0] == '_') { continue; }
-
-        if (m_samrai_variables_.find(item->GetDescID()) != m_samrai_variables_.end()) { continue; }
+        if (item->db()->Check("IS_NOT_OWNED", true) ||
+            m_samrai_variables_.find(item->GetDescID()) != m_samrai_variables_.end()) {
+            continue;
+        }
 
         auto var = simpla::detail::create_samrai_variable(item->GetDescription());
 
@@ -472,8 +473,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
         }
     }
-    integrator->printClassData(std::cout);
-    vardb->printClassData(std::cout);
+    //    integrator->printClassData(std::cout);
+    //    vardb->printClassData(std::cout);
 }
 void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchFromSAMRAI(SAMRAI::hier::Patch &patch, engine::Patch *p) {
     p->SetMeshBlock(engine::MeshBlock{
@@ -482,8 +483,6 @@ void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchFromSAMRAI(SAMRAI::hier::
         static_cast<size_type>(patch.getPatchLevelNumber())});
 
     for (auto &item : m_samrai_variables_) {
-        if (item.second.first.GetPrefix()[0] == '_') { continue; }
-
         auto samrai_id = SAMRAI::hier::VariableDatabase::getDatabase()->mapVariableAndContextToIndex(item.second.second,
                                                                                                      getDataContext());
 
@@ -698,7 +697,6 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
  *
  *************************************************************************
  */
-
 double SAMRAIHyperbolicPatchStrategyAdapter::computeStableDtOnPatch(SAMRAI::hier::Patch &patch, bool initial_time,
                                                                     double dt_time) {
     //    auto pgeom =

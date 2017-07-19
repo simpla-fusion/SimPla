@@ -44,7 +44,6 @@ class EMFluid {
     Field<host_type, Real, VOLUME, 3> dumpB{m_host_, "name"_ = "dumpB"};
     Field<host_type, Real, VOLUME, 3> dumpJ{m_host_, "name"_ = "dumpJ"};
 
-    Field<host_type, int, VOLUME> m_tags_{m_host_, "name"_ = "_refinement_tags_"};
 
     void TagRefinementCells(Real time_now);
 
@@ -101,6 +100,7 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
 
 template <typename TM>
 void EMFluid<TM>::TagRefinementCells(Real time_now) {
+    if (m_tags_.isNull()) { return; }
     m_tags_.Clear();
 
     if (m_host_->GetMesh()->GetBlock().GetLevel() > 0) { return; }
