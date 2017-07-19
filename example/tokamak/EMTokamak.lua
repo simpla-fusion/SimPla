@@ -47,8 +47,8 @@ Context = {
 --
 --            Boundary = {
 --                Type = "Cube",
---                lo = { 1.2, -0.5, -TWOPI / 8 },
---                hi = { 2.25, 0.5, TWOPI / 8 }
+--                lo = { 1.5, -0.5, -TWOPI / 8 },
+--                hi = { 2.0, 0.5, TWOPI / 8 }
 --            },
 --            IsHard = false,
 --            Amplify = { 0.0, 0.0, 1.0 },

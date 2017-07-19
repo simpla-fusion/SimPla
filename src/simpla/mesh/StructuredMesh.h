@@ -32,14 +32,8 @@ class StructuredMesh {
     StructuredMesh &operator=(StructuredMesh const &) = delete;
     StructuredMesh &operator=(StructuredMesh &&) = delete;
 
-    point_type map(point_type const &p) const;
-    point_type inv_map(point_type const &p) const;
-
     virtual const geometry::Chart *GetChart() const = 0;
     virtual const engine::MeshBlock &GetBlock() const = 0;
-
-    point_type GetCellWidth() const;
-    point_type GetOrigin() const;
 
     index_tuple GetIndexOrigin() const;
     size_tuple GetDimensions() const;
@@ -69,7 +63,7 @@ class StructuredMesh {
 
     template <typename... Args>
     point_type global_coordinates(Args &&... args) const {
-        return map(local_coordinates(std::forward<Args>(args)...));
+        return GetChart()->map(local_coordinates(std::forward<Args>(args)...));
     }
 
     ZSFC<NDIMS> GetSpaceFillingCurve(int iform, int nsub = 0) const {

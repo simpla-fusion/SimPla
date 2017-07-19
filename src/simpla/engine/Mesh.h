@@ -7,10 +7,11 @@
 
 #include "simpla/SIMPLA_config.h"
 
-#include "simpla/data/EnableCreateFromDataTable.h"
-
 #include "Attribute.h"
 #include "SPObject.h"
+#include "simpla/algebra/Field.h"
+#include "simpla/data/Data.h"
+#include "simpla/data/EnableCreateFromDataTable.h"
 
 #include "PoliciesCommon.h"
 
@@ -22,6 +23,7 @@ struct GeoObject;
 namespace engine {
 class MeshBlock;
 class Patch;
+using namespace simpla::data;
 
 struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCreateFromDataTable<MeshBase> {
     SP_OBJECT_HEAD(MeshBase, SPObject)
@@ -116,8 +118,6 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override;
     std::shared_ptr<data::DataTable> Serialize() const override;
 
-    void AddEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g) override;
-
     template <typename TL, typename TR>
     void Fill(TL &lhs, TR &&rhs) const {
         FillRange(lhs, std::forward<TR>(rhs), Range<EntityId>{}, true);
@@ -142,16 +142,20 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
         FillRange(lhs, std::forward<TR>(rhs), prefix + "_BOUNDARY_" + std::to_string(TL::iform), false);
     };
 
-    Field<host_type, int, VOLUME> m_refinement_tags_{m_host_, "name"_ = "_refinement_tags_", "IS_NOT_OWNED"};
-    Field<host_type, Real, VOLUME> m_workload_{m_host_, "name"_ = "_workload_", "IS_NOT_OWNED"};
+    Field<this_type, int, VOLUME> m_refinement_tags_{this, "name"_ = "_refinement_tags_", "IS_NOT_OWNED"_};
+    Field<this_type, Real, VOLUME> m_workload_{this, "name"_ = "_workload_", "IS_NOT_OWNED"_};
 
     void TagRefinementCells(Range<EntityId> const &r);
+
+    void AddEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g) override;
 };
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::TagRefinementCells(Range<EntityId> const &r) {
-    r.foreach ([&](EntityId s) {
-        if (m_refinement_tags_[0].in_box(s.x, s.y, s.z)) { m_refinement_tags_[0](s.x, s.y, s.z) = 1; }
-    });
+    if (!m_refinement_tags_.isNull()) {
+        r.foreach ([&](EntityId s) {
+            if (m_refinement_tags_[0].in_box(s.x, s.y, s.z)) { m_refinement_tags_[0](s.x, s.y, s.z) = 1; }
+        });
+    }
 };
 
 namespace _detail {

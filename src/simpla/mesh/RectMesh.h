@@ -50,7 +50,7 @@ struct RectMesh : public StructuredMesh {
 
 template <typename THost>
 void RectMesh<THost>::InitialCondition(Real time_now) {
-    m_coordinates_ = [&](point_type const &x) { return map(x); };
+    m_coordinates_ = [&](point_type const &x) { return GetChart()->map(x); };
     //    m_vertices_ = [&](point_type const &x) { return (x); };
     m_vertex_volume_.Initialize();
     m_vertex_inv_volume_.Initialize();

@@ -163,8 +163,16 @@ std::map<std::string, std::shared_ptr<DomainBase>> const &Context::GetAllDomains
     return m_pimpl_->m_domains_;
 }
 
-void Context::Pull(Patch *p) { GetMesh()->Pull(p); };
-void Context::Push(Patch *p) { GetMesh()->Push(p); };
+void Context::Pull(Patch *p) {
+    GetMesh()->Pull(p);
+    VERBOSE << "Pull Level:" << GetMesh()->GetBlock().GetLevel() << " Id:" << p->GetId()
+            << " Box:" << GetMesh()->GetBox(0) << std::endl;
+};
+void Context::Push(Patch *p) {
+    GetMesh()->Push(p);
+    VERBOSE << "Push Level:" << GetMesh()->GetBlock().GetLevel() << " Id:" << p->GetId()
+            << " Box:" << GetMesh()->GetBox(0) << std::endl;
+};
 
 void Context::InitialCondition(Real time_now) {
     GetMesh()->InitialCondition(time_now);

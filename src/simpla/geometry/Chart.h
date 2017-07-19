@@ -35,7 +35,7 @@ struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<C
     void SetScale(point_type const &x);
     point_type const &GetScale() const;
 
-    point_type GetCellWidth(int level = 0) const;
+    point_type GetCellWidth(size_type level = 0) const;
 
     void SetRotation(point_type const &x);
     point_type const &GetRotation() const;
@@ -97,7 +97,6 @@ struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<C
     size_type m_level_ = 0;
     point_type m_origin_{0, 0, 0};
     point_type m_rotation_{0, 0, 0};
-    point_type m_scale0_{1, 1, 1};
     point_type m_scale_{1, 1, 1};
 };
 }

@@ -25,6 +25,7 @@ class ICRFAntenna {
     void Deserialize(std::shared_ptr<DataTable> const& cfg);
     void Advance(Real time_now, Real dt);
     void InitialCondition(Real time_now);
+    void TagRefinementCells(Real time_now);
 
     Field<host_type, Real, EDGE> J{m_host_, "name"_ = "J"};
 
@@ -32,7 +33,11 @@ class ICRFAntenna {
     Real m_f_ = 1.0;
     Vec3 m_k_{0, 0, 0};
 };
-
+template <typename TM>
+void ICRFAntenna<TM>::TagRefinementCells(Real time_now) {
+    if (m_host_->GetMesh()->GetBlock().GetLevel() > 0) { return; }
+    m_host_->GetMesh()->TagRefinementCells(m_host_->GetMesh()->GetRange(m_host_->GetName() + "_BOUNDARY_3"));
+}
 template <typename TM>
 void ICRFAntenna<TM>::Serialize(data::DataTable* res) const {
     res->SetValue("Amplify", m_amplify_);

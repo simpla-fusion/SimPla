@@ -43,6 +43,9 @@ Patch &Patch::operator=(Patch &&other) noexcept {
     Patch(other).swap(*this);
     return *this;
 }
+bool Patch::empty() const { return m_pimpl_->m_id_ = NULL_ID; }
+
+void Patch::SetId(id_type id) { m_pimpl_->m_id_ = id; }
 
 id_type Patch::GetId() const { return m_pimpl_->m_id_; }
 

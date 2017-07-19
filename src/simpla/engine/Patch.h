@@ -34,7 +34,7 @@ class Patch {
     void swap(Patch &other);
 
     bool empty() const;
-
+    void SetId(id_type);
     id_type GetId() const;
 
     void SetMeshBlock(const MeshBlock &);

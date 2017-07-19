@@ -44,7 +44,6 @@ class EMFluid {
     Field<host_type, Real, VOLUME, 3> dumpB{m_host_, "name"_ = "dumpB"};
     Field<host_type, Real, VOLUME, 3> dumpJ{m_host_, "name"_ = "dumpJ"};
 
-
     void TagRefinementCells(Real time_now);
 
     struct fluid_s {
@@ -100,14 +99,8 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
 
 template <typename TM>
 void EMFluid<TM>::TagRefinementCells(Real time_now) {
-    if (m_tags_.isNull()) { return; }
-    m_tags_.Clear();
-
     if (m_host_->GetMesh()->GetBlock().GetLevel() > 0) { return; }
-
-    m_host_->GetMesh()->GetRange(m_host_->GetName() + "_BOUNDARY_3").foreach ([&](EntityId s) {
-        if (m_tags_[0].in_box(s.x, s.y, s.z)) { m_tags_[0](s.x, s.y, s.z) = 1; }
-    });
+    m_host_->GetMesh()->TagRefinementCells(m_host_->GetMesh()->GetRange(m_host_->GetName() + "_BOUNDARY_3"));
 }
 template <typename TM>
 void EMFluid<TM>::InitialCondition(Real time_now) {

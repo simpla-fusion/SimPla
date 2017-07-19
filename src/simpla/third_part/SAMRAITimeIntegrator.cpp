@@ -539,7 +539,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setupLoadBalancer(SAMRAI::algs::Hyper
 void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::Patch &patch, double data_time,
                                                                  bool initial_time) {
     if (initial_time) {
-        simpla::engine::Patch p = m_ctx_->GetAtlas().Pop(static_cast<id_type>(patch.getLocalId().getValue()));
+        simpla::engine::Patch p = m_ctx_->GetAtlas().Pop(
+            static_cast<id_type>((patch.getLocalId().getValue() << 3) | patch.getPatchLevelNumber()));
 
         ConvertPatchFromSAMRAI(patch, &p);
 

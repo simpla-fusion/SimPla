@@ -64,7 +64,8 @@ struct FVM {
         int n = ((tag & 0b111) == 0 || (tag & 0b111) == 0b111) ? (tag << 3)
                                                                : EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
         return [=](index_type x, index_type y, index_type z) {
-            return st::recursive_index(expr(m_host_->local_coordinates(x + S[0], y + S[1], z + S[2], tag)), n);
+            return st::recursive_index(expr(m_host_->GetMesh()->local_coordinates(x + S[0], y + S[1], z + S[2], tag)),
+                                       n);
         };
     }
 
