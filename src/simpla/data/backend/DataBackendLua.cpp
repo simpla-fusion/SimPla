@@ -195,11 +195,15 @@ std::shared_ptr<DataEntity> DataBackendLua::Get(int key) const {
 //    return 1;
 //}
 void DataBackendLua::Set(std::string const& key, std::shared_ptr<DataEntity> const& v, bool overwrite) {
+    UNIMPLEMENTED;
     //    DataBackendLua::pack_s::set_data_to_lua(m_pack_->m_lua_obj_, key, v, overwrite);
 }
 
 void DataBackendLua::Add(std::string const& key, std::shared_ptr<DataEntity> const& v) { UNIMPLEMENTED; }
-void DataBackendLua::Delete(std::string const& key) { UNIMPLEMENTED; }
+int DataBackendLua::Delete(std::string const& key) {
+    UNIMPLEMENTED;
+    return 0;
+}
 size_type DataBackendLua::size() const { return m_pimpl_->m_lua_obj_.size(); }
 
 size_type DataBackendLua::Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {

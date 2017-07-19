@@ -22,17 +22,11 @@ struct Schedule::pimpl_s {
     size_type m_check_point_interval_ = 1;
     size_type m_dump_interval_ = 0;
     std::string m_output_url_ = "unknown";
-
-    Context *m_ctx_ = nullptr;
 };
 
-Schedule::Schedule(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s){};
+Schedule::Schedule() : m_pimpl_(new pimpl_s){};
 
 Schedule::~Schedule() = default;
-
-void Schedule::SetContext(engine::Context *c) { m_pimpl_->m_ctx_ = c; };
-const Context *Schedule::GetContext() const { return m_pimpl_->m_ctx_; }
-Context *Schedule::GetContext() { return m_pimpl_->m_ctx_; }
 
 size_type Schedule::GetNumberOfStep() const { return m_pimpl_->m_step_; }
 void Schedule::SetMaxStep(size_type s) { m_pimpl_->m_max_step_ = s; }
@@ -70,35 +64,37 @@ void Schedule::Run() {
 }
 
 std::shared_ptr<data::DataTable> Schedule::Serialize() const {
-    auto res = std::make_shared<data::DataTable>();
-    res->SetValue("OutputURL", GetOutputURL());
+    auto res = data::EnableCreateFromDataTable<Schedule>::Serialize();
+
     res->SetValue("CheckPointInterval", GetCheckPointInterval());
+
+    if (m_data_io_ != nullptr) { res->SetValue("IOPort", m_data_io_->Serialize()); }
     return res;
 }
 
 void Schedule::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     SetCheckPointInterval(static_cast<size_type>(cfg->GetValue("CheckPointInterval", 1)));
-    SetOutputURL(cfg->GetValue<std::string>("OutputURL", m_pimpl_->m_output_url_));
+
+    m_data_io_ = data::DataIOPort::Create(cfg->GetValue<std::string>("IOPort", ""));
 }
 
 void Schedule::DoInitialize() {
-    if (m_pimpl_->m_ctx_ != nullptr) { m_pimpl_->m_ctx_->DoInitialize(); }
+    m_ctx_->DoInitialize();
     SPObject::DoInitialize();
 }
 
 void Schedule::DoFinalize() {
-    if (m_pimpl_->m_ctx_ != nullptr) { m_pimpl_->m_ctx_->Finalize(); }
+    m_ctx_->Finalize();
     SPObject::DoFinalize();
 }
 
 void Schedule::DoUpdate() {
     SPObject::DoUpdate();
-    ASSERT(m_pimpl_->m_ctx_ != nullptr);
-    if (m_pimpl_->m_ctx_ != nullptr) { m_pimpl_->m_ctx_->Update(); }
+    m_ctx_->Update();
 }
 
 void Schedule::DoTearDown() {
-    if (m_pimpl_->m_ctx_ != nullptr) { m_pimpl_->m_ctx_->DoTearDown(); }
+    m_ctx_->DoTearDown();
     SPObject::DoTearDown();
 }
 

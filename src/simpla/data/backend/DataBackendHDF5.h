@@ -35,7 +35,7 @@ class DataBackendHDF5 : public DataBackend {
     std::shared_ptr<DataEntity> Get(std::string const& URI) const override;
     void Set(std::string const& URI, std::shared_ptr<DataEntity> const&, bool overwrite = true) override;
     void Add(std::string const& URI, std::shared_ptr<DataEntity> const&) override;
-    void Delete(std::string const& URI) override;
+    int Delete(std::string const &URI) override;
     size_type size() const override;
     size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const override;
 

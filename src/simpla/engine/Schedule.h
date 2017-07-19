@@ -14,6 +14,9 @@
 #include "Attribute.h"
 
 namespace simpla {
+namespace data {
+class DataIOPort;
+}
 namespace engine {
 class Context;
 class Atlas;
@@ -21,7 +24,7 @@ class Schedule : public SPObject, public data::EnableCreateFromDataTable<Schedul
     SP_OBJECT_HEAD(Schedule, SPObject);
 
    public:
-    explicit Schedule(std::string const &s_name = "");
+    explicit Schedule();
     ~Schedule() override;
 
     SP_DEFAULT_CONSTRUCT(Schedule)
@@ -35,18 +38,9 @@ class Schedule : public SPObject, public data::EnableCreateFromDataTable<Schedul
     void DoUpdate() override;
     void DoTearDown() override;
 
-    virtual void Synchronize();
-    virtual void NextStep();
-    virtual bool Done() const;
-
-    void Run();
-
-    void SetContext(engine::Context *);
-    const Context *GetContext() const;
-    Context *GetContext();
-
-    void SetOutputURL(std::string const &url);
-    std::string const &GetOutputURL() const;
+    void SetContext(std::shared_ptr<Context> const &c) { m_ctx_ = c; }
+    const std::shared_ptr<Context> GetContext() const { return m_ctx_; }
+    std::shared_ptr<Context> GetContext() { return m_ctx_; }
 
     virtual void CheckPoint() const;
     virtual void Dump() const;
@@ -55,6 +49,12 @@ class Schedule : public SPObject, public data::EnableCreateFromDataTable<Schedul
     void SetMaxStep(size_type s);
     size_type GetMaxStep() const;
 
+    virtual void Synchronize();
+    virtual void NextStep();
+    virtual bool Done() const;
+
+    void Run();
+
     void SetCheckPointInterval(size_type s = 0);
     size_type GetCheckPointInterval() const;
 
@@ -62,6 +62,9 @@ class Schedule : public SPObject, public data::EnableCreateFromDataTable<Schedul
     size_type GetDumpInterval() const;
 
    private:
+    std::shared_ptr<Context> m_ctx_ = nullptr;
+    std::shared_ptr<DataIOPort> m_data_io_ = nullptr;
+
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };

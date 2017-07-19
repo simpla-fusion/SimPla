@@ -84,7 +84,9 @@ class StructuredMesh {
 
     template <int IFORM, typename U, int... N>
     void initialize_data(nTuple<array_type<U>, N...> *d) const {
-        traits::foreach (*d, [&](auto &a, int n0, auto &&... idx) { a.reset(GetSpaceFillingCurve(IFORM, n0)); });
+        traits::foreach (*d, [&](auto &a, int n0, auto &&... idx) {
+            a.reset(GetIndexBox(EntityIdCoder::m_sub_index_to_id_[IFORM][n0]));
+        });
     };
 
    public:

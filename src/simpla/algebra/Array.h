@@ -73,21 +73,29 @@ class Array {
     value_type* get() { return m_data_; }
     value_type* get() const { return m_data_; }
 
-    void reset(value_type* d = nullptr) {
+    template <typename... Args>
+    void reset(value_type* d, Args&&... args) {
         m_data_ = d;
         m_holder_.reset();
         m_host_data_ = nullptr;
+        m_sfc_.reset(std::forward<Args>(args)...);
     }
-    void reset(std::shared_ptr<value_type> const& d) {
+    template <typename... Args>
+    void reset(std::shared_ptr<value_type> const& d, Args&&... args) {
         m_holder_ = d;
         m_host_data_ = nullptr;
         m_data_ = m_holder_.get();
+        m_sfc_.reset(std::forward<Args>(args)...);
     }
 
     template <typename... Args>
-    void reset(SFC const& s, Args&&... args) {
-        m_sfc_ = s;
-        reset(std::forward<Args>(args)...);
+    void reset(Args&&... args) {
+        m_sfc_.reset(std::forward<Args>(args)...);
+        if (m_sfc_.empty()) {
+            m_data_ = nullptr;
+            m_holder_.reset();
+            m_host_data_ = nullptr;
+        }
     }
 
     //    void reset(std::shared_ptr<value_type> const& d = nullptr) { SetData(d); }

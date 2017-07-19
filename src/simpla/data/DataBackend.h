@@ -75,7 +75,7 @@ class DataBackend : public EnableCreateFromDataTable<DataBackend> {
     /**
      * @brief  delete entities selected by uri
      */
-    virtual void Delete(std::string const& uri) = 0;
+    virtual int Delete(std::string const &uri) = 0;
 
     /**
      * @brief Get the number of entities in this table

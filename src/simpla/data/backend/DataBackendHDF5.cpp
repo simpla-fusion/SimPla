@@ -525,14 +525,18 @@ void DataBackendHDF5::Add(std::string const& uri, std::shared_ptr<DataEntity> co
     if (res.first == -1 || res.second == "") { return; }
     pimpl_s::HDF5Add(this, res.first, res.second, src);
 }
-void DataBackendHDF5::Delete(std::string const& uri) {
+int DataBackendHDF5::Delete(std::string const& uri) {
     auto res = pimpl_s::HDf5GetTable(this, m_pimpl_->m_g_id_, uri, false);
-    if (res.first == -1 || res.second == "") { return; }
+    if (res.first == -1 || res.second == "") { return 0; }
+    int count = 0;
     if (H5Aexists(res.first, res.second.c_str())) {
         H5Adelete(res.first, res.second.c_str());
+        ++count;
     } else if (H5Lexists(res.first, res.second.c_str(), H5P_DEFAULT) != 0) {
         H5_ERROR(H5Ldelete(res.first, res.second.c_str(), H5P_DEFAULT));
+        ++count;
     }
+    return count;
 }
 
 // size_type DataBackendHDF5::Foreach(

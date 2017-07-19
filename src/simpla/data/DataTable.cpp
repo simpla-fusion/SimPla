@@ -110,7 +110,7 @@ std::shared_ptr<DataTable> DataTable::GetTable(std::string const& uri) const {
     }
 }
 
-void DataTable::Delete(std::string const& uri) { m_backend_->Delete(uri); };
+int DataTable::Delete(std::string const &uri) { return m_backend_->Delete(uri); };
 void DataTable::Set(std::shared_ptr<DataTable> const& other, bool overwrite) {
     if (other != nullptr) Set(*other, overwrite);
 }

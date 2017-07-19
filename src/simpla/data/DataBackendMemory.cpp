@@ -96,7 +96,8 @@ void DataBackendMemory::Set(std::string const& uri, std::shared_ptr<DataEntity> 
     //        auto& dest_table = res.first->second->cast_as<DataTable>();
     //        auto const& src_table = v->cast_as<DataTable>();
     //        src_table.Foreach(
-    //            [&](std::string const& k, std::shared_ptr<DataEntity> const& v) { dest_table.Deserialize(k, v, overwrite);
+    //            [&](std::string const& k, std::shared_ptr<DataEntity> const& v) { dest_table.Deserialize(k, v,
+    //            overwrite);
     //            });
     //    } else if (v->isArray() && v->cast_as<DataArray>().isA(typeid(DataArrayWrapper<void>))) {
     //        auto dest_array = std::make_shared<DataArrayWrapper<void>>();
@@ -119,9 +120,9 @@ void DataBackendMemory::Add(std::string const& uri, std::shared_ptr<DataEntity> 
     }
     std::dynamic_pointer_cast<DataArray>(res.first->second)->Add(v);
 }
-void DataBackendMemory::Delete(std::string const& uri) {
+int DataBackendMemory::Delete(std::string const& uri) {
     auto res = m_pimpl_->get_table(const_cast<DataBackendMemory*>(this), uri, true);
-    res.first->m_pimpl_->m_table_.erase(res.second);
+    return res.first->m_pimpl_->m_table_.erase(res.second);
 }
 
 size_type DataBackendMemory::Foreach(

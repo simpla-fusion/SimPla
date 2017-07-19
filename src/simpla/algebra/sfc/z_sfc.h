@@ -88,6 +88,18 @@ class ZSFC {
         std::swap(m_size_, other.m_size_);
         std::swap(m_array_order_fast_first_, other.m_array_order_fast_first_);
     }
+    bool empty() const { return m_size_ == 0; }
+    void reset() {
+        std::get<0>(m_index_box_) = 0;
+        std::get<1>(m_index_box_) = 0;
+        m_strides_ = 0;
+        m_size_ = 0;
+    }
+
+    void reset(index_box_type const& b) {
+        m_index_box_ = b;
+        Update();
+    }
 
     void Update() {
         if (m_array_order_fast_first_) {
