@@ -26,11 +26,15 @@ struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<C
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
 
+    void SetLevel(size_type level);
+    size_type GetLevel() const;
+
     void SetOrigin(point_type const &x);
     point_type const &GetOrigin() const;
 
     void SetScale(point_type const &x);
     point_type const &GetScale() const;
+
     point_type GetCellWidth(int level = 0) const;
 
     void SetRotation(point_type const &x);
@@ -90,8 +94,10 @@ struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<C
     virtual Real inner_product(point_type const &uvw, vector_type const &v0, vector_type const &v1) const = 0;
 
    private:
+    size_type m_level_ = 0;
     point_type m_origin_{0, 0, 0};
     point_type m_rotation_{0, 0, 0};
+    point_type m_scale0_{1, 1, 1};
     point_type m_scale_{1, 1, 1};
 };
 }

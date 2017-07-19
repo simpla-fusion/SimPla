@@ -18,11 +18,6 @@ AttributeDesc::AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, s
 
 AttributeDesc::~AttributeDesc() = default;
 
-std::string AttributeDesc::GetPrefix() const { return m_prefix_; };
-int AttributeDesc::GetIFORM() const { return m_iform_; };
-int AttributeDesc::GetDOF() const { return m_dof_; };
-std::type_info const &AttributeDesc::value_type_info() const { return m_t_info_; };
-
 id_type AttributeDesc::GetDescID() const {
     static std::hash<std::string> s_hasher;
     return s_hasher(GetPrefix() +                       //
@@ -48,6 +43,16 @@ void AttributeGroup::Pull(Patch *p) {
 
 void AttributeGroup::Attach(Attribute *p) { m_attributes_.emplace(p); }
 void AttributeGroup::Detach(Attribute *p) { m_attributes_.erase(p); }
+void AttributeGroup::RegisterAttributes() {
+    m_register_desc_.clear();
+    for (auto const *item : m_attributes_) {
+        m_register_desc_[item->GetName()] = std::make_shared<AttributeDesc>(item->GetDescription());
+    }
+}
+std::shared_ptr<AttributeDesc> AttributeGroup::GetAttributeDescription(std::string const &k) {
+    auto it = m_register_desc_.find(k);
+    return it != m_register_desc_.end() ? it->second : nullptr;
+}
 
 // void AttributeGroup::RegisterDescription(std::map<std::string, std::shared_ptr<AttributeDesc>> *m) const {
 //    for (auto &item : m_pimpl_->m_attributes_) { (*m)[item.first] = item.second->GetDescription(); }

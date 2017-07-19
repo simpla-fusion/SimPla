@@ -71,13 +71,18 @@ class DomainBase : public SPObject,
     design_pattern::Signal<void(DomainBase *, Real, Real)> PreAdvance;
     design_pattern::Signal<void(DomainBase *, Real, Real)> PostAdvance;
 
+    design_pattern::Signal<void(DomainBase *, Real)> PreTagRefinementCells;
+    design_pattern::Signal<void(DomainBase *, Real)> PostTagRefinementCells;
+
     virtual void DoInitialCondition(Real time_now) {}
     virtual void DoBoundaryCondition(Real time_now, Real dt) {}
     virtual void DoAdvance(Real time_now, Real dt) {}
+    virtual void DoTagRefinementCells(Real time_now) {}
 
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real dt);
     void Advance(Real time_now, Real dt);
+    void TagRefinementCells(Real time_now);
 
    private:
     MeshBase *m_mesh_ = nullptr;
@@ -113,6 +118,8 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
     void DoBoundaryCondition(Real time_now, Real dt) override;
 
     void DoAdvance(Real time_now, Real dt) override;
+
+    void DoTagRefinementCells(Real time_now) override;
 
     void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override;
 
@@ -156,6 +163,11 @@ void Domain<TM, Policies...>::DoAdvance(Real time_now, Real dt) {
 }
 
 template <typename TM, template <typename> class... Policies>
+void Domain<TM, Policies...>::DoTagRefinementCells(Real time_now) {
+    traits::_try_invoke_TagRefinementCells<Policies...>(this, time_now);
+}
+
+template <typename TM, template <typename> class... Policies>
 std::shared_ptr<data::DataTable> Domain<TM, Policies...>::Serialize() const {
     auto res = DomainBase::Serialize();
     traits::_try_invoke_Serialize<Policies...>(this, res.get());
@@ -166,7 +178,6 @@ template <typename TM, template <typename> class... Policies>
 void Domain<TM, Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
     DomainBase::Deserialize(cfg);
     traits::_try_invoke_Deserialize<Policies...>(this, cfg);
-
 };
 }  // namespace engine
 }  // namespace simpla

@@ -29,15 +29,15 @@ struct MeshBase::pimpl_s {
     std::shared_ptr<pack_s> m_pack_;
 };
 
-MeshBase::MeshBase() : m_pimpl_(new pimpl_s) {}
+MeshBase::MeshBase(std::shared_ptr<geometry::Chart> const& c) : m_pimpl_(new pimpl_s), m_chart_(c) {}
 
 MeshBase::~MeshBase() = default;
 index_box_type MeshBase::GetIndexBox(int tag) const { return GetBlock().GetIndexBox(); }
 
-box_type MeshBase::GetBox() const {
-    auto id_box = GetBlock().GetIndexBox();
-    return box_type{GetChart().local_coordinates(std::get<0>(id_box)),
-                    GetChart().local_coordinates(std::get<1>(id_box))};
+box_type MeshBase::GetBox(int tag) const {
+    auto id_box = GetIndexBox(tag);
+    return box_type{GetChart()->local_coordinates(std::get<0>(id_box)),
+                    GetChart()->local_coordinates(std::get<1>(id_box))};
 };
 
 // MeshBase::MeshBase(MeshBase const& other) : SPObject(other), m_pimpl_(new pimpl_s),
@@ -59,7 +59,7 @@ box_type MeshBase::GetBox() const {
 std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
     auto p = std::make_shared<data::DataTable>();
     p->SetValue("Type", GetRegisterName());
-    p->SetValue("Chart", GetChart().Serialize());
+    p->SetValue("Chart", GetChart()->Serialize());
 
     return (p);
 }
@@ -70,11 +70,17 @@ void MeshBase::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
 };
 
 void MeshBase::DoUpdate() {
+    SPObject::DoUpdate();
     if (m_pimpl_->m_pack_ == nullptr) { m_pimpl_->m_pack_ = std::make_shared<pack_s>(); }
+    m_chart_->SetLevel(m_mesh_block_.GetLevel());
+    AttributeGroup::RegisterAttributes();
 }
-void MeshBase::DoTearDown() {}
-void MeshBase::DoInitialize() {}
-void MeshBase::DoFinalize() { m_pimpl_->m_pack_.reset(); }
+void MeshBase::DoTearDown() { m_chart_->SetLevel(0); }
+void MeshBase::DoInitialize() { m_chart_->SetLevel(m_mesh_block_.GetLevel()); }
+void MeshBase::DoFinalize() {
+    m_pimpl_->m_pack_.reset();
+    m_chart_->SetLevel(0);
+}
 
 void MeshBase::SetBlock(const engine::MeshBlock& blk) { MeshBlock(blk).swap(m_mesh_block_); };
 const engine::MeshBlock& MeshBase::GetBlock() const { return m_mesh_block_; }
@@ -82,16 +88,21 @@ id_type MeshBase::GetBlockId() const { return m_mesh_block_.GetGUID(); }
 
 void MeshBase::Push(Patch* patch) {
     SetBlock(patch->GetMeshBlock());
+
+    m_chart_->SetLevel(GetBlock().GetLevel());
+
     AttributeGroup::Push(patch);
     if (m_pimpl_->m_pack_ == nullptr) {
         m_pimpl_->m_pack_ = std::dynamic_pointer_cast<pack_s>(patch->GetPack(GetName()));
     }
-    Initialize();
+    Update();
+    ASSERT(GetBlock().GetLevel() == m_chart_->GetLevel());
 }
 void MeshBase::Pull(Patch* patch) {
     patch->SetMeshBlock(GetBlock());
     AttributeGroup::Pull(patch);
     patch->SetPack(GetName(), std::dynamic_pointer_cast<PatchDataPack>(m_pimpl_->m_pack_));
+
     Finalize();
 }
 void MeshBase::SetRange(std::string const& k, Range<EntityId> const& r) {
@@ -104,7 +115,7 @@ Range<EntityId>& MeshBase::GetRange(std::string const& k) {
     return m_pimpl_->m_pack_->m_ranges_[k];
 };
 Range<EntityId> MeshBase::GetRange(std::string const& k) const {
-    ASSERT(m_pimpl_->m_pack_ != nullptr);
+    if (m_pimpl_->m_pack_ == nullptr) { return Range<EntityId>{}; };
     auto it = m_pimpl_->m_pack_->m_ranges_.find(k);
     return (it == m_pimpl_->m_pack_->m_ranges_.end()) ? Range<EntityId>{} : it->second;
 };
@@ -121,6 +132,11 @@ void MeshBase::Advance(Real time_now, Real dt) {
     VERBOSE << "Advance            \t:" << GetName() << std::endl;
     DoAdvance(time_now, dt);
 }
+void MeshBase::TagRefinementCells(Real time_now) {
+    VERBOSE << "TagRefinementCells            \t:" << GetName() << std::endl;
+    DoTagRefinementCells(time_now);
+}
+
 void MeshBase::InitialCondition(Patch* patch, Real time_now) {
     Push(patch);
     InitialCondition(time_now);

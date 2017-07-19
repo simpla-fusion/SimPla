@@ -28,7 +28,7 @@ struct Atlas::pimpl_s {
     std::multimap<id_type, id_type> m_coarsen_;
 
     size_type m_level_ = 0;
-    size_type m_max_level_ = 3;
+    size_type m_max_level_ = 2;
     std::set<Patch> m_layers_[MAX_NUM_OF_LEVEL];
 
     size_tuple m_refine_ratio_[MAX_NUM_OF_LEVEL] = {{2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}};
@@ -68,7 +68,7 @@ void Atlas::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     std::get<1>(idx_box) = cfg->GetValue<nTuple<int, 3>>("Dimensions", nTuple<int, 3>{1, 1, 1});
     SetIndexBox(idx_box);
     index_tuple periodic_dim{0, 0, 0};
-    periodic_dim = cfg->GetValue<nTuple<int, 3>>("IndexOrigin", nTuple<int, 3>{0, 0, 0});
+    periodic_dim = cfg->GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 0});
     SetPeriodicDimension(periodic_dim);
 
     Click();

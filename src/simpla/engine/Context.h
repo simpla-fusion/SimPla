@@ -119,6 +119,7 @@ class Context : public SPObject, public data::Serializable {
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real dt);
     void Advance(Real time_now, Real dt);
+    void TagRefinementCells(Real time_now);
 
    private:
     void SetMesh(std::shared_ptr<MeshBase> const &);

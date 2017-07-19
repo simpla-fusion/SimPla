@@ -60,10 +60,11 @@ struct AttributeDesc : public data::Configurable {
     AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, std::string const &s_prefix = "",
                   std::shared_ptr<data::DataTable> const &t_db = nullptr);
 
-    virtual std::string GetPrefix() const;
-    virtual int GetIFORM() const;
-    virtual int GetDOF() const;
-    virtual std::type_info const &value_type_info() const;
+    virtual std::string GetPrefix() const { return m_prefix_; }
+    virtual int GetIFORM() const { return m_iform_; };
+    virtual int GetDOF() const { return m_dof_; };
+    virtual std::type_info const &value_type_info() const { return m_t_info_; };
+
     virtual id_type GetDescID() const;
     virtual const AttributeDesc &GetDescription() const;
 
@@ -94,7 +95,10 @@ class AttributeGroup {
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
 
-    std::set<AttributeDesc> GetDescriptions() const;
+    void RegisterAttributes();
+
+    std::shared_ptr<AttributeDesc> GetAttributeDescription(std::string const &k);
+    const std::set<AttributeDesc> GetDescriptions() const;
 
     //    virtual void RegisterAt(AttributeGroup *);
     //    virtual void DeregisterFrom(AttributeGroup *);
@@ -112,6 +116,7 @@ class AttributeGroup {
 
    private:
     std::set<Attribute *> m_attributes_;
+    std::map<std::string, std::shared_ptr<AttributeDesc>> m_register_desc_;
 };
 
 /**
@@ -209,8 +214,8 @@ void Attribute::PopData(nTuple<Array<U, Others...>, N...> *d) {
     ResetTag();
 };
 
-//template <typename T>
-//T AttributeGroup::GetAttribute(std::string const &k) const {
+// template <typename T>
+// T AttributeGroup::GetAttribute(std::string const &k) const {
 //    return T(AttributeGroup::Get(k)->cast_as<T>());
 //};
 //

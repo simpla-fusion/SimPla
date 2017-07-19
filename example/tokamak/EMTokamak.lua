@@ -11,12 +11,13 @@ Context = {
         IndexOrigin = { 0, 0, 0 },
         Dimensions = { 32, 32, 32 },
         lo = { 1.4, -1.0, -PI / 2 },
-        hi = { 2.5, 1.0, PI / 2 }
+        hi = { 2.5, 1.0, PI / 2 },
+        PeriodicDimension = { 0, 0,0 },
+
     },
     Mesh = {
         Type = "EBRectMesh",
         Chart = "Cylindrical",
-        PeriodicDimension = { 0, 0, 1 },
     },
     Model =
     {
@@ -27,11 +28,11 @@ Context = {
         },
     },
     Domains = {
-        Limiter = {
-            Type = "Maxwell",
-            Model = "Tokamak",
-            Boundary = "Limiter",
-        },
+--        Limiter = {
+--            Type = "Maxwell",
+--            Model = "Tokamak",
+--            Boundary = "Limiter",
+--        },
         PlasmaCenter = {
             Type = "EMFluid", -- "Domain<RectMesh,EBMesh,FVM,EMFluid>",
             Species = {
@@ -41,19 +42,19 @@ Context = {
             Model = "Tokamak",
             Boundary = "Plasma",
         },
-        ICRF = {
-            Type = "ICRFAntenna", -- "Domain<RectMesh,EBMesh,FVM,ICRFAntenna>",
-
-            Boundary = {
-                Type = "Cube",
-                lo = { 1.2, -0.5, -TWOPI / 8 },
-                hi = { 2.25, 0.5, TWOPI / 8 }
-            },
-            IsHard = false,
-            Amplify = { 0.0, 0.0, 1.0 },
-            WaveNumber = { 0.0, 0.0, TWOPI / 12.0 },
-            Frequency = 1.0e9,
-        },
+--        ICRF = {
+--            Type = "ICRFAntenna", -- "Domain<RectMesh,EBMesh,FVM,ICRFAntenna>",
+--
+--            Boundary = {
+--                Type = "Cube",
+--                lo = { 1.2, -0.5, -TWOPI / 8 },
+--                hi = { 2.25, 0.5, TWOPI / 8 }
+--            },
+--            IsHard = false,
+--            Amplify = { 0.0, 0.0, 1.0 },
+--            WaveNumber = { 0.0, 0.0, TWOPI / 12.0 },
+--            Frequency = 1.0e9,
+--        },
     }
 }
 

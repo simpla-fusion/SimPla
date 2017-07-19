@@ -43,25 +43,39 @@ void DomainBase::DoInitialize() {}
 void DomainBase::DoFinalize() {}
 
 void DomainBase::InitialCondition(Real time_now) {
-    if (GetBoundary() != nullptr && GetBoundary()->CheckOverlap(GetMesh()->GetBox()) < EPSILON) { return; }
+    Update();
+    if (GetBoundary() != nullptr && GetBoundary()->CheckOverlap(GetMesh()->GetBox(0)) < EPSILON) { return; }
 
-    VERBOSE << "InitialCondition   \t:" << GetName() << std::endl;
+    VERBOSE << "InitialCondition   \t:" << GetName() << "Level:" << GetMesh()->GetBlock().GetLevel()
+            << " Box:" << GetMesh()->GetBox(0) << std::endl;
     GetMesh()->AddEmbeddedBoundary(GetName(), GetBoundary());
     PreInitialCondition(this, time_now);
     DoInitialCondition(time_now);
     PostInitialCondition(this, time_now);
 }
 void DomainBase::BoundaryCondition(Real time_now, Real dt) {
-    VERBOSE << "Boundary Condition \t:" << GetName() << std::endl;
+    Update();
+    VERBOSE << "Boundary Condition \t:" << GetName() << "Level:" << GetMesh()->GetBlock().GetLevel()
+            << " Box:" << GetMesh()->GetBox(0) << std::endl;
     PreBoundaryCondition(this, time_now, dt);
     DoBoundaryCondition(time_now, dt);
     PostBoundaryCondition(this, time_now, dt);
 }
 void DomainBase::Advance(Real time_now, Real dt) {
-    VERBOSE << "Advance            \t:" << GetName() << std::endl;
+    Update();
+    VERBOSE << "Advance            \t:" << GetName() << "Level:" << GetMesh()->GetBlock().GetLevel()
+            << " Box:" << GetMesh()->GetBox(0) << std::endl;
     PreAdvance(this, time_now, dt);
     DoAdvance(time_now, dt);
     PostAdvance(this, time_now, dt);
+}
+void DomainBase::TagRefinementCells(Real time_now) {
+    Update();
+    VERBOSE << "TagRefinementCells  \t:" << GetName() << "Level:" << GetMesh()->GetBlock().GetLevel()
+            << " Box:" << GetMesh()->GetBox(0) << std::endl;
+    PreTagRefinementCells(this, time_now);
+    DoTagRefinementCells(time_now);
+    PostTagRefinementCells(this, time_now);
 }
 
 }  // namespace engine{

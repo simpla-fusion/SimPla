@@ -97,7 +97,10 @@ class Array {
             m_host_data_ = nullptr;
         }
     }
-
+    template <typename... Args>
+    bool in_box(Args&&... args) const {
+        return m_sfc_.in_box(std::forward<Args>(args)...);
+    }
     //    void reset(std::shared_ptr<value_type> const& d = nullptr) { SetData(d); }
     //
     //    void SetData(std::shared_ptr<value_type> const& d) {

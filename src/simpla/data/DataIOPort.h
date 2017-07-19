@@ -17,7 +17,7 @@ class DataIOPort : public EnableCreateFromDataTable<DataIOPort> {
 
    public:
     explicit DataIOPort(std::string uri = "");
-    ~DataIOPort() override = default;
+    ~DataIOPort() override;
 
     SP_DEFAULT_CONSTRUCT(DataIOPort)
     DECLARE_REGISTER_NAME(DataIOPort)
@@ -36,6 +36,10 @@ class DataIOPort : public EnableCreateFromDataTable<DataIOPort> {
     std::shared_ptr<DataEntity> Get(std::string const &uri) const;
     void Set(std::string const &uri, std::shared_ptr<DataEntity> const &);
     void Add(std::string const &uri, std::shared_ptr<DataEntity> const &);
+    
+    void Set(std::shared_ptr<DataTable> const &);
+    void Add(std::shared_ptr<DataTable> const &);
+
     int Delete(std::string const &uri);
 
     template <typename... Args>
@@ -50,7 +54,7 @@ class DataIOPort : public EnableCreateFromDataTable<DataIOPort> {
 
     template <typename T, typename... Args>
     T Get(Args &&... args) const {
-        return Get(std::forward<Args>(args)...)->cast_as<T>();
+        return Get(std::forward<Args>(args)...)->template cast_as<T>();
     }
 
    private:

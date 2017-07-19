@@ -12,9 +12,10 @@ struct DataIOPort::pimpl_s {
     std::shared_ptr<DataTable> m_data_ = nullptr;
 };
 
-DataIOPort::DataIOPort(std::string uri = "") : m_pimpl_(new pimpl_s) {
+DataIOPort::DataIOPort(std::string uri) : m_pimpl_(new pimpl_s) {
     if (!uri.empty()) { m_pimpl_->m_data_ = std::make_shared<DataTable>(uri); }
 }
+DataIOPort::~DataIOPort(){};
 
 void DataIOPort::Flush() {}
 
@@ -34,6 +35,9 @@ std::shared_ptr<DataEntity> DataIOPort::Get(std::string const &uri) const { retu
 void DataIOPort::Set(std::string const &uri, std::shared_ptr<DataEntity> const &d) { m_pimpl_->m_data_->Set(uri, d); }
 void DataIOPort::Add(std::string const &uri, std::shared_ptr<DataEntity> const &d) { m_pimpl_->m_data_->Add(uri, d); }
 int DataIOPort::Delete(std::string const &uri) { return m_pimpl_->m_data_->Delete(uri); }
+
+void DataIOPort::Set(std::shared_ptr<DataTable> const &) { UNIMPLEMENTED; }
+void DataIOPort::Add(std::shared_ptr<DataTable> const &) { UNIMPLEMENTED; };
 
 id_type DataIOPort::TryGet(std::string const &uri, std::shared_ptr<DataEntity> *d) const {
     // FIXME:  Just workaround!
@@ -64,6 +68,5 @@ bool DataIOPort::Check(id_type) const {
     // FIXME:  Just workaround!
     return true;
 }
-}
-}
-}
+}  // namespace data
+}  // namespace simpla

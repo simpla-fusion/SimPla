@@ -49,8 +49,8 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
 
     CreateMesh(cfg->GetTable("Mesh"));
 
-    GetMesh()->GetChart().SetOrigin(std::get<0>(m_pimpl_->m_atlas_.GetBox()));
-    GetMesh()->GetChart().SetScale(
+    GetMesh()->GetChart()->SetOrigin(std::get<0>(m_pimpl_->m_atlas_.GetBox()));
+    GetMesh()->GetChart()->SetScale(
         (std::get<1>(m_pimpl_->m_atlas_.GetBox()) - std::get<0>(m_pimpl_->m_atlas_.GetBox())) /
         m_pimpl_->m_atlas_.GetDimensions());
 
@@ -178,6 +178,13 @@ void Context::Advance(Real time_now, Real dt) {
     GetMesh()->Advance(time_now, dt);
     for (auto &d : GetAllDomains()) { d.second->Advance(time_now, dt); }
 }
+
+void Context::TagRefinementCells(Real time_now) {
+    GetMesh()->TagRefinementCells(time_now);
+
+    for (auto &d : GetAllDomains()) { d.second->TagRefinementCells(time_now); }
+}
+
 // std::map<id_type, std::shared_ptr<Patch>> const &Context::GetPatches() const { return m_pack_->m_patches_; }
 //
 // bool Context::RegisterWorker(std::string const &d_name, std::shared_ptr<DomainBase> const &p) {

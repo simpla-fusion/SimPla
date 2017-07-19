@@ -42,13 +42,18 @@ MeshBlock::MeshBlock(MeshBlock const &other) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_time_ = other.m_pimpl_->m_time_;
 }
 MeshBlock::MeshBlock(MeshBlock &&other) noexcept : m_pimpl_(other.m_pimpl_.get()) { other.m_pimpl_.reset(); }
-void MeshBlock::swap(MeshBlock &other) { std::swap(other.m_pimpl_, m_pimpl_); }
+void MeshBlock::swap(MeshBlock &other) {
+    std::swap(m_pimpl_->m_level_, other.m_pimpl_->m_level_);
+    std::swap(m_pimpl_->m_GUID_, other.m_pimpl_->m_GUID_);
+    std::swap(m_pimpl_->m_index_box_, other.m_pimpl_->m_index_box_);
+    std::swap(m_pimpl_->m_time_, other.m_pimpl_->m_time_);
+}
 
-//MeshBlock &MeshBlock::operator=(MeshBlock const &other) {
+// MeshBlock &MeshBlock::operator=(MeshBlock const &other) {
 //    MeshBlock(other).swap(*this);
 //    return *this;
 //}
-//MeshBlock &MeshBlock::operator=(MeshBlock &&other) noexcept {
+// MeshBlock &MeshBlock::operator=(MeshBlock &&other) noexcept {
 //    MeshBlock(other).swap(*this);
 //    return *this;
 //}
@@ -72,7 +77,7 @@ size_tuple MeshBlock::GetDimensions() const {
 }
 
 id_type MeshBlock::GetGUID() const { return m_pimpl_->m_GUID_; }
-int MeshBlock::GetLevel() const { return m_pimpl_->m_level_; }
+size_type MeshBlock::GetLevel() const { return m_pimpl_->m_level_; }
 
 }  // namespace engine {
 }  // namespace simpla {

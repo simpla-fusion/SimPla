@@ -8,12 +8,12 @@
 #include <map>
 #include <string>
 
-#include "simpla/data/Data.h"
-
 #include "Atlas.h"
 #include "Attribute.h"
 #include "Context.h"
-
+#include "Mesh.h"
+#include "simpla/data/Data.h"
+#include "simpla/data/DataIOPort.h"
 namespace simpla {
 namespace engine {
 struct Schedule::pimpl_s {
@@ -21,7 +21,6 @@ struct Schedule::pimpl_s {
     size_type m_max_step_ = 0;
     size_type m_check_point_interval_ = 1;
     size_type m_dump_interval_ = 0;
-    std::string m_output_url_ = "unknown";
 };
 
 Schedule::Schedule() : m_pimpl_(new pimpl_s){};
@@ -40,11 +39,13 @@ void Schedule::NextStep() { ++m_pimpl_->m_step_; }
 
 bool Schedule::Done() const { return m_pimpl_->m_max_step_ == 0 ? false : m_pimpl_->m_step_ >= m_pimpl_->m_max_step_; }
 
-void Schedule::SetOutputURL(std::string const &url) { m_pimpl_->m_output_url_ = url; };
-
-std::string const &Schedule::GetOutputURL() const { return m_pimpl_->m_output_url_; }
-
-void Schedule::CheckPoint() const { UNIMPLEMENTED; }
+void Schedule::CheckPoint() const {
+    auto t = m_ctx_->GetAtlas().Serialize();
+    t->SetValue("Step", m_pimpl_->m_step_);
+    t->SetValue("Mesh", m_ctx_->GetMesh()->Serialize());
+    m_data_io_->Set(t);
+    m_data_io_->Flush();
+}
 
 void Schedule::Dump() const { UNIMPLEMENTED; }
 
@@ -65,17 +66,14 @@ void Schedule::Run() {
 
 std::shared_ptr<data::DataTable> Schedule::Serialize() const {
     auto res = data::EnableCreateFromDataTable<Schedule>::Serialize();
-
     res->SetValue("CheckPointInterval", GetCheckPointInterval());
-
-    if (m_data_io_ != nullptr) { res->SetValue("IOPort", m_data_io_->Serialize()); }
+    if (m_data_io_ != nullptr) { res->SetValue("DataIOPort", m_data_io_->Serialize()); }
     return res;
 }
 
 void Schedule::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     SetCheckPointInterval(static_cast<size_type>(cfg->GetValue("CheckPointInterval", 1)));
-
-    m_data_io_ = data::DataIOPort::Create(cfg->GetValue<std::string>("IOPort", ""));
+    m_data_io_ = std::make_shared<data::DataIOPort>(cfg->GetValue<std::string>("DataIOPort", ""));
 }
 
 void Schedule::DoInitialize() {

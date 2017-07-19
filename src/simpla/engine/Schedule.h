@@ -38,9 +38,9 @@ class Schedule : public SPObject, public data::EnableCreateFromDataTable<Schedul
     void DoUpdate() override;
     void DoTearDown() override;
 
-    void SetContext(std::shared_ptr<Context> const &c) { m_ctx_ = c; }
-    const std::shared_ptr<Context> GetContext() const { return m_ctx_; }
-    std::shared_ptr<Context> GetContext() { return m_ctx_; }
+    void SetContext(Context *c) { m_ctx_ = c; }
+    const Context *GetContext() const { return m_ctx_; }
+    Context *GetContext() { return m_ctx_; }
 
     virtual void CheckPoint() const;
     virtual void Dump() const;
@@ -62,8 +62,8 @@ class Schedule : public SPObject, public data::EnableCreateFromDataTable<Schedul
     size_type GetDumpInterval() const;
 
    private:
-    std::shared_ptr<Context> m_ctx_ = nullptr;
-    std::shared_ptr<DataIOPort> m_data_io_ = nullptr;
+    Context *m_ctx_ = nullptr;
+    std::shared_ptr<data::DataIOPort> m_data_io_ = nullptr;
 
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;

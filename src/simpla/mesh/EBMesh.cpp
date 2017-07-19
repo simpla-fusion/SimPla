@@ -25,7 +25,7 @@ void CreateEBMesh(engine::MeshBase *m_host_, geometry::GeoObject const *g, std::
     Array<int, ZSFC<3>> vertex_tags{nullptr, m_host_->GetIndexBox(0b0)};
 
     vertex_tags = [&](index_type x, index_type y, index_type z) {
-        return g->CheckInside(m_host_->GetChart().local_coordinates(
+        return g->CheckInside(m_host_->GetChart()->local_coordinates(
                    point_type{static_cast<Real>(x), static_cast<Real>(y), static_cast<Real>(z)}))
                    ? 0
                    : 1;

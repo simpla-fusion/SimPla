@@ -22,7 +22,9 @@ struct EBMesh {
 
    public:
     void SetEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g);
+
 };
+
 namespace detail {
 void CreateEBMesh(engine::MeshBase *m_host_, geometry::GeoObject const *g, std::string const &prefix = "");
 }

@@ -30,7 +30,7 @@ class MeshBlock {
 //    MeshBlock &operator=(MeshBlock const &other);
 //    MeshBlock &operator=(MeshBlock &&other) noexcept;
 
-    int GetLevel() const;
+    size_type GetLevel() const;
     id_type GetGUID() const;
 
     size_tuple GetDimensions() const;

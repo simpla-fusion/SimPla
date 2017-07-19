@@ -126,8 +126,6 @@ class ZSFC {
         std::get<1>(m_index_box_) += offset;
         Update();
     }
-    __host__ __device__ constexpr inline bool in_box(array_index_type const& x) const;
-    __host__ __device__ constexpr inline bool in_box(index_type x, index_type y, index_type z) const;
 
     __host__ __device__ constexpr inline size_type hash() const { return 0; }
 
@@ -142,6 +140,13 @@ class ZSFC {
     __host__ __device__ inline size_type hash(index_type s0, index_type s1 = 0, index_type s2 = 0, index_type s3 = 0,
                                               index_type s4 = 0, index_type s5 = 0, index_type s6 = 0,
                                               index_type s7 = 0, index_type s8 = 0, index_type s9 = 0) const;
+
+    __host__ __device__ constexpr inline bool in_box(array_index_type const& x) const;
+
+    __host__ __device__ constexpr inline bool in_box(index_type s0, index_type s1 = 0, index_type s2 = 0,
+                                                     index_type s3 = 0, index_type s4 = 0, index_type s5 = 0,
+                                                     index_type s6 = 0, index_type s7 = 0, index_type s8 = 0,
+                                                     index_type s9 = 0) const;
 
     template <typename V, typename... Args>
     __host__ __device__ V& Get(V* p, Args&&... args) const {
@@ -175,6 +180,21 @@ __host__ __device__ inline size_type ZSFC<3>::hash(index_type s0, index_type s1,
             (s2 - std::get<0>(m_index_box_)[2]) * m_strides_[2]) %
            m_size_;
 }
+template <>
+__host__ __device__ inline constexpr bool ZSFC<3>::in_box(index_type s0, index_type s1, index_type s2, index_type s3,
+                                                          index_type s4, index_type s5, index_type s6, index_type s7,
+                                                          index_type s8, index_type s9) const {
+    return (std::get<0>(m_index_box_)[0] <= s0) && (s0 < std::get<1>(m_index_box_)[0]) &&
+           (std::get<0>(m_index_box_)[1] <= s1) && (s1 < std::get<1>(m_index_box_)[1]) &&
+           (std::get<0>(m_index_box_)[2] <= s2) && (s2 < std::get<1>(m_index_box_)[2]);
+}
+
+template <>
+__host__ __device__ constexpr inline bool ZSFC<3>::in_box(array_index_type const& idx) const {
+    return (std::get<0>(m_index_box_)[0] <= idx[0]) && (idx[0] < std::get<1>(m_index_box_)[0]) &&
+           (std::get<0>(m_index_box_)[1] <= idx[1]) && (idx[1] < std::get<1>(m_index_box_)[1]) &&
+           (std::get<0>(m_index_box_)[2] <= idx[2]) && (idx[2] < std::get<1>(m_index_box_)[2]);
+};
 
 template <>
 template <typename value_type>
@@ -343,18 +363,12 @@ void ZSFC<3>::Foreach(const TFun& fun) const {
 #endif
 }
 
-template <>
-constexpr inline bool ZSFC<3>::in_box(array_index_type const& idx) const {
-    return (std::get<0>(m_index_box_)[0] <= idx[0]) && (idx[0] < std::get<1>(m_index_box_)[0]) &&
-           (std::get<0>(m_index_box_)[1] <= idx[1]) && (idx[1] < std::get<1>(m_index_box_)[1]) &&
-           (std::get<0>(m_index_box_)[2] <= idx[2]) && (idx[2] < std::get<1>(m_index_box_)[2]);
-};
-template <>
-constexpr inline bool ZSFC<3>::in_box(index_type x, index_type y, index_type z) const {
-    return (std::get<0>(m_index_box_)[0] <= x) && (x < std::get<1>(m_index_box_)[0]) &&
-           (std::get<0>(m_index_box_)[1] <= y) && (y < std::get<1>(m_index_box_)[1]) &&
-           (std::get<0>(m_index_box_)[2] <= z) && (z < std::get<1>(m_index_box_)[2]);
-}
+// template <>
+// constexpr inline bool ZSFC<3>::in_box(index_type x, index_type y, index_type z) const {
+//    return (std::get<0>(m_index_box_)[0] <= x) && (x < std::get<1>(m_index_box_)[0]) &&
+//           (std::get<0>(m_index_box_)[1] <= y) && (y < std::get<1>(m_index_box_)[1]) &&
+//           (std::get<0>(m_index_box_)[2] <= z) && (z < std::get<1>(m_index_box_)[2]);
+//}
 // template <>
 // template <typename TFun>
 // void ZSFC<4>::Foreach(TFun const& fun) const {

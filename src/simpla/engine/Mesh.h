@@ -29,7 +29,7 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
    public:
     using AttributeGroup::attribute_type;
 
-    MeshBase();
+    MeshBase(std::shared_ptr<geometry::Chart> const &c = nullptr);
     ~MeshBase() override;
 
     MeshBase(MeshBase const &other) = delete;
@@ -38,8 +38,9 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
     MeshBase &operator=(this_type const &other) = delete;
     MeshBase &operator=(this_type &&other) noexcept = delete;
 
-    virtual const geometry::Chart &GetChart() const = 0;
-    virtual geometry::Chart &GetChart() = 0;
+    void SetChart(std::shared_ptr<geometry::Chart> const &c) { m_chart_ = c; };
+    virtual const geometry::Chart *GetChart() const { return m_chart_.get(); };
+    virtual geometry::Chart *GetChart() { return m_chart_.get(); };
 
     virtual this_type *GetMesh() { return this; }
     virtual this_type const *GetMesh() const { return this; }
@@ -47,7 +48,7 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
     virtual void AddEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g){};
 
     virtual index_box_type GetIndexBox(int tag = 0) const;
-    virtual box_type GetBox() const;
+    virtual box_type GetBox(int tag = 0) const;
 
     void SetBlock(const MeshBlock &blk);
     virtual const MeshBlock &GetBlock() const;
@@ -64,10 +65,12 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
     virtual void DoInitialCondition(Real time_now) {}
     virtual void DoBoundaryCondition(Real time_now, Real dt) {}
     virtual void DoAdvance(Real time_now, Real dt) {}
+    virtual void DoTagRefinementCells(Real time_now) {}
 
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real dt);
     void Advance(Real time_now, Real dt);
+    void TagRefinementCells(Real time_now);
 
     void Pull(Patch *p) override;
     void Push(Patch *p) override;
@@ -97,10 +100,10 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     Mesh() : Policies<this_type>(this)... {};
     ~Mesh() override = default;
 
-    TChart &GetChart() override { return m_chart_; };
-    const TChart &GetChart() const override { return m_chart_; };
-
     const engine::MeshBlock &GetBlock() const override { return MeshBase::GetBlock(); }
+
+    const TChart *GetChart() const override { return dynamic_cast<TChart const *>(MeshBase::GetChart()); };
+    TChart *GetChart() override { return dynamic_cast<TChart *>(MeshBase::GetChart()); };
 
     this_type *GetMesh() override { return this; }
     this_type const *GetMesh() const override { return this; }
@@ -108,6 +111,7 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     void DoInitialCondition(Real time_now) override;
     void DoBoundaryCondition(Real time_now, Real dt) override;
     void DoAdvance(Real time_now, Real dt) override;
+    void DoTagRefinementCells(Real time_now) override;
 
     void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override;
     std::shared_ptr<data::DataTable> Serialize() const override;
@@ -137,9 +141,6 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     void FillBoundary(TL &lhs, TR &&rhs, std::string const &prefix = "") const {
         FillRange(lhs, std::forward<TR>(rhs), prefix + "_BOUNDARY_" + std::to_string(TL::iform), false);
     };
-
-   private:
-    TChart m_chart_;
 };
 
 namespace _detail {
@@ -159,6 +160,12 @@ template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::DoAdvance(Real time_now, Real dt) {
     traits::_try_invoke_Advance<Policies...>(this, time_now, dt);
 }
+
+template <typename TM, template <typename> class... Policies>
+void Mesh<TM, Policies...>::DoTagRefinementCells(Real time_now) {
+    traits::_try_invoke_TagRefinementCells<Policies...>(this, time_now);
+}
+
 template <typename TM, template <typename> class... Policies>
 std::shared_ptr<data::DataTable> Mesh<TM, Policies...>::Serialize() const {
     auto res = MeshBase::Serialize();

@@ -35,7 +35,7 @@ class StructuredMesh {
     point_type map(point_type const &p) const;
     point_type inv_map(point_type const &p) const;
 
-    virtual const geometry::Chart &GetChart() const = 0;
+    virtual const geometry::Chart *GetChart() const = 0;
     virtual const engine::MeshBlock &GetBlock() const = 0;
 
     point_type GetCellWidth() const;
@@ -51,11 +51,11 @@ class StructuredMesh {
     point_type point(entity_id_type s) const { return local_coordinates(s.x, s.y, s.z, s.w & 0b111); };
 
     point_type local_coordinates(index_type x, index_type y, index_type z, Real const r[3]) const {
-        return GetChart().local_coordinates(x, y, z, r);
+        return GetChart()->local_coordinates(x, y, z, r);
     }
 
     point_type local_coordinates(index_type x, index_type y, index_type z, int tag = 0) const {
-        return GetChart().local_coordinates(x, y, z, EntityIdCoder::m_id_to_coordinates_shift_[tag & 0b111]);
+        return GetChart()->local_coordinates(x, y, z, EntityIdCoder::m_id_to_coordinates_shift_[tag & 0b111]);
     }
     point_type local_coordinates(entity_id_type s, Real const *pr) const {
         Real r[3];
@@ -64,7 +64,7 @@ class StructuredMesh {
         r[1] = pr[1] + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][1];
         r[2] = pr[2] + EntityIdCoder::m_id_to_coordinates_shift_[s.w & 0b111][2];
 
-        return GetChart().local_coordinates(s.x, s.y, s.z, r);
+        return GetChart()->local_coordinates(s.x, s.y, s.z, r);
     }
 
     template <typename... Args>

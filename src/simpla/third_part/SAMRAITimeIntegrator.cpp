@@ -415,6 +415,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     //**************************************************************
 
     for (auto const *item : m_ctx_->GetMesh()->GetAttributes()) {
+        if (item->GetPrefix()[0] == '_') { continue; }
+
         if (m_samrai_variables_.find(item->GetDescID()) != m_samrai_variables_.end()) { continue; }
 
         auto var = simpla::detail::create_samrai_variable(item->GetDescription());
@@ -428,49 +430,50 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         SAMRAI::algs::HyperbolicLevelIntegrator::HYP_VAR_TYPE v_type =
             SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP;
         SAMRAI::hier::IntVector ghosts = d_nghosts;
-        std::string coarsen_name = "NO_REFINE";
-        std::string refine_name = "NO_REFINE";
+        std::string coarsen_name = "";
+        std::string refine_name = "";
 
-        if (item->db()->Check("COORDINATES", true) || item->db()->Check("INPUT", true)) {
-            v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT;
-        }
+        if (item->db()->Check("COORDINATES", true)) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
+        if (item->db()->Check("INPUT", true)) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
         if (item->db()->Check("FLUX", true)) {
             ghosts = d_fluxghosts;
             v_type = SAMRAI::algs::HyperbolicLevelIntegrator::FLUX;
             coarsen_name = "CONSERVATIVE_COARSEN";
-            refine_name = "NO_REFINE";
+            refine_name = "";
         }
-        if (item->db()->Check("INPUT", true)) {
-            coarsen_name = "NO_REFINE";
-            refine_name = "NO_REFINE";
-        }
-        integrator->registerVariable(var, ghosts, v_type, d_grid_geometry, "", coarsen_name);
-        if (item->GetPrefix()[0] != '_') {
-            std::string visit_variable_type;
-            if ((item->GetIFORM() == VERTEX || item->GetIFORM() == VOLUME) && (item->GetDOF() == 1)) {
-                visit_variable_type = "SCALAR";
-            } else if (((item->GetIFORM() == EDGE || item->GetIFORM() == FACE) && (item->GetDOF() == 1)) ||
-                       ((item->GetIFORM() == VERTEX || item->GetIFORM() == VOLUME) && (item->GetDOF() == 3))) {
-                visit_variable_type = "VECTOR";
-            } else if (((item->GetIFORM() == VERTEX || item->GetIFORM() == VOLUME) && item->GetDOF() == 9) ||
-                       ((item->GetIFORM() == EDGE || item->GetIFORM() == FACE) && item->GetDOF() == 3)) {
-                visit_variable_type = "TENSOR";
-            } else {
-                WARNING << "Can not register attribute [" << item->GetPrefix() << "] to VisIt writer !" << std::endl;
-            }
 
-            if (visit_variable_type != "" && item->db()->Check("COORDINATES", true)) {
-                d_visit_writer->registerNodeCoordinates(
-                    vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-            } else if ((item->GetIFORM() == VERTEX || item->GetIFORM() == VOLUME) && !item->db()->Check("TEMP", true)) {
-                d_visit_writer->registerPlotQuantity(
-                    item->GetPrefix(), visit_variable_type,
-                    vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-            }
+        //        if ((item->GetTypeInfo() != typeid(double)) || item->db()->Check("TEMP", true)) {
+        //            v_type = SAMRAI::algs::HyperbolicLevelIntegrator::TEMPORARY;
+        //            coarsen_name = "";
+        //            refine_name = "";
+        //        }
+
+        integrator->registerVariable(var, ghosts, v_type, d_grid_geometry, coarsen_name, refine_name);
+
+        std::string visit_variable_type;
+        if ((item->GetIFORM() == VERTEX || item->GetIFORM() == VOLUME) && (item->GetDOF() == 1)) {
+            visit_variable_type = "SCALAR";
+        } else if (((item->GetIFORM() == EDGE || item->GetIFORM() == FACE) && (item->GetDOF() == 1)) ||
+                   ((item->GetIFORM() == VERTEX || item->GetIFORM() == VOLUME) && (item->GetDOF() == 3))) {
+            visit_variable_type = "VECTOR";
+        } else if (((item->GetIFORM() == VERTEX || item->GetIFORM() == VOLUME) && item->GetDOF() == 9) ||
+                   ((item->GetIFORM() == EDGE || item->GetIFORM() == FACE) && item->GetDOF() == 3)) {
+            visit_variable_type = "TENSOR";
+        } else {
+            WARNING << "Can not register attribute [" << item->GetPrefix() << "] to VisIt writer !" << std::endl;
+        }
+        //        v_type != SAMRAI::algs::HyperbolicLevelIntegrator::TEMPORARY
+        if (visit_variable_type != "" && item->db()->Check("COORDINATES", true)) {
+            d_visit_writer->registerNodeCoordinates(
+                vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+        } else if ((item->GetIFORM() == VERTEX || item->GetIFORM() == VOLUME)) {
+            d_visit_writer->registerPlotQuantity(
+                item->GetPrefix(), visit_variable_type,
+                vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
         }
     }
-        integrator->printClassData(std::cout);
-        vardb->printClassData(std::cout);
+    integrator->printClassData(std::cout);
+    vardb->printClassData(std::cout);
 }
 void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchFromSAMRAI(SAMRAI::hier::Patch &patch, engine::Patch *p) {
     p->SetMeshBlock(engine::MeshBlock{
@@ -479,6 +482,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::ConvertPatchFromSAMRAI(SAMRAI::hier::
         static_cast<size_type>(patch.getPatchLevelNumber())});
 
     for (auto &item : m_samrai_variables_) {
+        if (item.second.first.GetPrefix()[0] == '_') { continue; }
+
         auto samrai_id = SAMRAI::hier::VariableDatabase::getDatabase()->mapVariableAndContextToIndex(item.second.second,
                                                                                                      getDataContext());
 
@@ -719,7 +724,6 @@ void SAMRAIHyperbolicPatchStrategyAdapter::computeFluxesOnPatch(SAMRAI::hier::Pa
  * difference with the fluxes calculated in computeFluxesOnPatch().
  *
  **************************************************************************/
-
 void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, double time_now,
                                                                          double time_dt, bool at_syncronization) {
     engine::Patch p = m_ctx_->GetAtlas().Pop(static_cast<id_type>(patch.getLocalId().getValue()));
@@ -753,8 +757,25 @@ void SAMRAIHyperbolicPatchStrategyAdapter::tagRichardsonExtrapolationCells(
  */
 
 void SAMRAIHyperbolicPatchStrategyAdapter::tagGradientDetectorCells(SAMRAI::hier::Patch &patch, double regrid_time,
-                                                                    bool initial_error, int tag_indx,
-                                                                    bool uses_richardson_extrapolation_too) {}
+                                                                    bool initial_error, int tag_index,
+                                                                    bool uses_richardson_extrapolation_too) {
+    NULL_USE(regrid_time);
+    NULL_USE(initial_error);
+    NULL_USE(uses_richardson_extrapolation_too);
+
+    auto p = m_ctx_->GetAtlas().Pop(static_cast<id_type>(patch.getLocalId().getValue()));
+    ConvertPatchFromSAMRAI(patch, &p);
+
+    auto desc = m_ctx_->GetMesh()->GetAttributeDescription("_refinement_tags_");
+    if (desc != nullptr) {
+        p.SetDataBlock(desc->GetDescID(),
+                       simpla::detail::create_simpla_datablock<NDIMS>(*desc, patch.getPatchData(tag_index)));
+        m_ctx_->Push(&p);
+        m_ctx_->TagRefinementCells(regrid_time);
+        m_ctx_->Pull(&p);
+        m_ctx_->GetAtlas().Push(std::move(p));
+    }
+}
 
 void SAMRAIHyperbolicPatchStrategyAdapter::setPhysicalBoundaryConditions(
     SAMRAI::hier::Patch &patch, double fill_time, const SAMRAI::hier::IntVector &ghost_width_to_fill) {
@@ -812,6 +833,8 @@ struct SAMRAITimeIntegrator::pimpl_s {
     int viz_dump_interval = 1;
 
     unsigned int ndims = 3;
+
+    std::string m_output_URL_ = "";
 };
 SAMRAITimeIntegrator::SAMRAITimeIntegrator() : m_pimpl_(new pimpl_s) {}
 SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
@@ -823,6 +846,7 @@ void SAMRAITimeIntegrator::Synchronize() { engine::TimeIntegrator::Synchronize()
 std::shared_ptr<data::DataTable> SAMRAITimeIntegrator::Serialize() const { return engine::TimeIntegrator::Serialize(); }
 void SAMRAITimeIntegrator::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     engine::TimeIntegrator::Deserialize(cfg);
+    m_pimpl_->m_output_URL_ = cfg->GetValue<std::string>("OutputURL", GetName() + ".simpla");
 }
 
 void SAMRAITimeIntegrator::DoInitialize() {
@@ -1047,15 +1071,15 @@ void SAMRAITimeIntegrator::DoUpdate() {
         gridding_algorithm));
 
     m_pimpl_->visit_data_writer_.reset(
-        new SAMRAI::appu::VisItDataWriter(dim, "SimPLA VisIt Writer", GetOutputURL(), 1));
+        new SAMRAI::appu::VisItDataWriter(dim, "SimPLA VisIt Writer", m_pimpl_->m_output_URL_, 1));
 
     m_pimpl_->hyperbolic_patch_strategy->registerVisItDataWriter(m_pimpl_->visit_data_writer_);
 
     m_pimpl_->m_time_refinement_integrator_->initializeHierarchy();
 
-    //    m_pack_->grid_geometry->printClassData(std::cout);
-    //    m_pack_->hyp_level_integrator->printClassData(std::cout);
-    //    m_pack_->m_time_refinement_integrator_->printClassData(std::cout);
+    m_pimpl_->grid_geometry->printClassData(std::cout);
+    m_pimpl_->hyp_level_integrator->printClassData(std::cout);
+    m_pimpl_->m_time_refinement_integrator_->printClassData(std::cout);
 
     MESSAGE << "==================  Context is initialized!  =================" << std::endl;
 };

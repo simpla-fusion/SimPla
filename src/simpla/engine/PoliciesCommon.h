@@ -62,6 +62,8 @@ namespace traits {
 DEFINE_INVOKE_HELPER(InitialCondition)
 DEFINE_INVOKE_HELPER(BoundaryCondition)
 DEFINE_INVOKE_HELPER(Advance)
+DEFINE_INVOKE_HELPER(TagRefinementCells)
+
 DEFINE_INVOKE_HELPER(Deserialize)
 DEFINE_INVOKE_HELPER(Serialize)
 
