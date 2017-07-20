@@ -149,7 +149,7 @@ void Context::Pull(Patch *p) {
 };
 void Context::Push(Patch *p) {
     GetMesh()->Push(p);
-    //    VERBOSE << "Push Level:" << GetMesh()->GetBlock().GetLevel() << " Id:" << p->GetId() << " Box:" <<
+    //    VERBOSE << "SetPatch Level:" << GetMesh()->GetBlock().GetLevel() << " Id:" << p->GetId() << " Box:" <<
     //    GetMesh()->GetBox(0) << std::endl;
 };
 
@@ -252,7 +252,7 @@ void Context::TagRefinementCells(Real time_now) {
 //                p = std::make_shared<Patch>();
 //                //                p->PushMeshBlock(mblk);
 //            }
-//            w->second->PullPatch(p);
+//            w->second->GetPatch(p);
 //            LOGGER << " DomainBase [ " << std::setw(10) << std::left << w->second->name() << " ] is applied on "
 //                   << mblk->GetIndexBox() << " GeoObject id= " << g_item.first << std::endl;
 //            w->second->AdvanceData(time_now, dt);

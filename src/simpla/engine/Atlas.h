@@ -17,6 +17,7 @@
 #include "simpla/geometry/Chart.h"
 #include "simpla/utilities/Log.h"
 
+#include "Patch.h"
 #include "SPObject.h"
 
 namespace simpla {
@@ -60,7 +61,6 @@ namespace engine {
  * @enduml
  */
 
-class MeshBlock;
 class Patch;
 /**
  * @brief
@@ -82,16 +82,15 @@ class Atlas : public SPObject, public data::Serializable {
 
     void DoUpdate() override;
 
-    //    void Decompose(size_tuple const &d, int local_id = -1);
-    //    index_box_type FitIndexBox(box_type const &b, int level = 0, int flag = 0) const;
-
     size_type DeletePatch(id_type);
-    id_type Push(id_type id, Patch &&);
-    Patch Pop(id_type id);
-
-    //    std::shared_ptr<Patch> RefineBlock(id_type, index_box_type const &);
-    //    std::set<std::shared_ptr<Patch>> const &Level(int level = 0) const;
-    //    void Foreach(std::function<void(std::shared_ptr<MeshBlock>)> const &fun, int level = 0) const;
+    id_type SetPatch(id_type id, Patch &&);
+    Patch GetPatch(id_type id) const;
+    Patch GetPatch(id_type id);
+    template <typename... Args>
+    Patch GetPatch(id_type id, Args &&... args) {
+        if (GetPatch(id) == nullptr) { SetPatch(id, Patch{std::forward<Args>(args)...}); }
+        return GetPatch(id);
+    };
 
     int GetNumOfLevel() const;
 
@@ -112,60 +111,11 @@ class Atlas : public SPObject, public data::Serializable {
 
     void SetCoarsestDimensions(nTuple<int, 3> const &);
     nTuple<int, 3> GetCoarsestDimensions() const;
-    //    void SetIndexBox(index_box_type const &);
-    //    index_box_type GetIndexBox() const;
-    //    void SetBox(box_type const &) const;
-    //    box_type GetBox() const;
 
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-//    virtual void Load(const data::DataTable &);
-//    virtual void Save(data::DataTable *) const;
-//    size_type size(int level) const;
-//    void max_level(int);
-//    int max_level() const;
-//    bool has(id_type id) const;
-//    RectMesh *find(id_type id);
-//    RectMesh const *find(id_type id) const;
-//    RectMesh *at(id_type id);
-//    RectMesh const *at(id_type id) const;
-//    RectMesh const *Connect(std::shared_ptr<RectMesh> const &p_m, RectMesh const *hint = nullptr);
-//    void link(id_type src, id_type dest){};
-//
-//    //    std::SetValue<id_type> &level(int l);
-//    //
-//    //    std::SetValue<id_type> const &level(int l) const;
-//    template <typename TM, typename... Args>
-//    RectMesh const *add(Args &&... args) {
-//        return dynamic_cast<TM const *>(Connect(std::make_shared<TM>(std::forward<Args>(args)...), nullptr));
-//    };
-//
-////    template <typename... Args>
-////    MeshBlock const *create(int inc_level, MeshBlock const *hint, Args &&... args) {
-////        return insert(hint->create(inc_level, std::forward<Args>(args)...), hint);
-////    };
-//
-//    template <typename... Args>
-//    RectMesh const *create(int inc, id_type h, Args &&... args) {
-//        create(inc, at(h), std::forward<Args>(args)...);
-//    };
-//
-//    template <typename... Args>
-//    RectMesh const *clone(Args &&... args) {
-//        create(0, std::forward<Args>(args)...);
-//    };
-//
-//    template <typename... Args>
-//    RectMesh const *refine(Args &&... args) {
-//        create(1, std::forward<Args>(args)...);
-//    };
-//
-//    template <typename... Args>
-//    RectMesh const *coarsen(Args &&... args) {
-//        create(-1, std::forward<Args>(args)...);
-//    };
 }
 }  // namespace simpla{namespace mesh_as{
 

@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
         //        k = [](EntityId s) {
         //            return nTuple<Real, 3>{static_cast<Real>(s.x), static_cast<Real>(s.y), static_cast<Real>(s.z)};
         //        };
-        //        CHECK(k.Get());
+        //        CHECK(k.GetPatch());
         //        f = [](point_type const &x) { return x[0]; };
         //        g = [](EntityId s) -> Real { return s.y; };
         //        CHECK(f.data());

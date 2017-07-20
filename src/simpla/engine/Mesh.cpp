@@ -21,7 +21,7 @@
 namespace simpla {
 namespace engine {
 
-struct pack_s : public PatchDataPack {
+struct pack_s : public PatchDataCache {
     std::map<std::string, Range<EntityId>> m_ranges_;
 };
 
@@ -106,7 +106,7 @@ void MeshBase::Push(Patch* patch) {
 
     AttributeGroup::Push(patch);
     if (m_pimpl_->m_pack_ == nullptr) {
-        m_pimpl_->m_pack_ = std::dynamic_pointer_cast<pack_s>(patch->GetPack(GetName()));
+        m_pimpl_->m_pack_ = std::dynamic_pointer_cast<pack_s>(patch->GetDataCache(GetName()));
     }
     Update();
     ASSERT(GetBlock().GetLevel() == m_chart_->GetLevel());
@@ -114,7 +114,7 @@ void MeshBase::Push(Patch* patch) {
 void MeshBase::Pull(Patch* patch) {
     patch->SetMeshBlock(GetBlock());
     AttributeGroup::Pull(patch);
-    patch->SetPack(GetName(), std::dynamic_pointer_cast<PatchDataPack>(m_pimpl_->m_pack_));
+    patch->SetDataCache(GetName(), std::dynamic_pointer_cast<PatchDataCache>(m_pimpl_->m_pack_));
 
     Finalize();
 }

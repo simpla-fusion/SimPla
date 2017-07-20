@@ -74,7 +74,7 @@ std::shared_ptr<AttributeDesc> AttributeGroup::GetAttributeDescription(std::stri
 //    auto it = m_pimpl_->m_attributes_.find(k);
 //    return (it != m_pimpl_->m_attributes_.end() && it->second->isA(t_info));
 //}
-// Attribute *AttributeGroup::Get(std::string const &k) {
+// Attribute *AttributeGroup::GetPatch(std::string const &k) {
 //    auto it = m_pimpl_->m_attributes_.find(k);
 //    Attribute *res = nullptr;
 //    if (it != m_pimpl_->m_attributes_.end()) {
@@ -87,7 +87,7 @@ std::shared_ptr<AttributeDesc> AttributeGroup::GetAttributeDescription(std::stri
 //
 //    return res;
 //}
-// Attribute const *AttributeGroup::Get(std::string const &k) const {
+// Attribute const *AttributeGroup::GetPatch(std::string const &k) const {
 //    auto it = m_pimpl_->m_attributes_.find(k);
 //    Attribute *res = nullptr;
 //    if (it != m_pimpl_->m_attributes_.end()) { res = it->second; }

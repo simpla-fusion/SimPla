@@ -257,7 +257,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
     SAMRAI::hier::IntVector d_nghosts;
     SAMRAI::hier::IntVector d_fluxghosts;
 
-    simpla::engine::Patch PullPatch(SAMRAI::hier::Patch &patch);
+    engine::Patch * GetPatch(SAMRAI::hier::Patch &patch);
     void PushPatch(engine::Patch &&p);
 };
 
@@ -484,15 +484,14 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     //    integrator->printClassData(std::cout);
     //    vardb->printClassData(std::cout);
 }
-simpla::engine::Patch SAMRAIHyperbolicPatchStrategyAdapter::PullPatch(SAMRAI::hier::Patch &patch) {
+engine::Patch * SAMRAIHyperbolicPatchStrategyAdapter::GetPatch(SAMRAI::hier::Patch &patch) {
     id_type patch_id = static_cast<id_type>((patch.getLocalId().getValue() << 3) | patch.getPatchLevelNumber());
 
-    engine::Patch p = GetAtlas()->Pop(patch_id);
-
-    p.SetMeshBlock(engine::MeshBlock{
+    auto *p = GetAtlas()->GetPatch(
+        patch_id,
         index_box_type{{patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]},
                        {patch.getBox().upper()[0] + 1, patch.getBox().upper()[1] + 1, patch.getBox().upper()[2] + 1}},
-        static_cast<size_type>(patch.getPatchLevelNumber()), patch.getGlobalId().getOwnerRank()});
+        static_cast<size_type>(patch.getPatchLevelNumber()), patch.getGlobalId().getOwnerRank());
 
     for (auto &item : m_samrai_variables_) {
         auto samrai_id = SAMRAI::hier::VariableDatabase::getDatabase()->mapVariableAndContextToIndex(item.second.second,
@@ -500,13 +499,13 @@ simpla::engine::Patch SAMRAIHyperbolicPatchStrategyAdapter::PullPatch(SAMRAI::hi
 
         if (!patch.checkAllocated(samrai_id)) { patch.allocatePatchData(samrai_id); }
 
-        p.SetDataBlock(item.first, simpla::detail::create_simpla_datablock<NDIMS>(item.second.first,
-                                                                                  patch.getPatchData(samrai_id)));
+        p->SetDataBlock(item.first, simpla::detail::create_simpla_datablock<NDIMS>(item.second.first,
+                                                                                   patch.getPatchData(samrai_id)));
     }
-    return std::move(p);
+    return (p);
 }
 void SAMRAIHyperbolicPatchStrategyAdapter::PushPatch(engine::Patch &&p) {
-    GetAtlas()->Push(p.GetId(), std::forward<engine::Patch>(p));
+    GetAtlas()->SetPatch(p.GetId(), std::move(p));
 }
 /** Set up parameters for nonuniform load balancing, if used. */
 void SAMRAIHyperbolicPatchStrategyAdapter::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
@@ -544,7 +543,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setupLoadBalancer(SAMRAI::algs::Hyper
 void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::Patch &patch, double data_time,
                                                                  bool initial_time) {
     if (initial_time) {
-        simpla::engine::Patch p = PullPatch(patch);
+        simpla::engine::Patch p = GetPatch(patch);
 
         index_tuple gw{4, 4, 4};  // = p.GetMeshBlock().GetGhostWidth();
 
@@ -728,12 +727,12 @@ void SAMRAIHyperbolicPatchStrategyAdapter::computeFluxesOnPatch(SAMRAI::hier::Pa
 void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, double time_now,
                                                                          double time_dt, bool at_syncronization) {
     id_type patch_id = static_cast<id_type>((patch.getLocalId().getValue() << 3) | patch.getPatchLevelNumber());
-    engine::Patch p = GetAtlas()->Pop(patch_id);
-    PullPatch(patch);
+    engine::Patch p = GetAtlas()->GetPatch(patch_id);
+        GetPatch(patch);
     m_ctx_->Push(&p);
     m_ctx_->Advance(time_now, time_dt);
     m_ctx_->Pull(&p);
-    GetAtlas()->Push(0, std::move(p));
+    GetAtlas()->SetPatch(0, std::move(p));
 }
 
 /**************************************************************************
@@ -765,8 +764,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::tagGradientDetectorCells(SAMRAI::hier
     NULL_USE(initial_error);
     NULL_USE(uses_richardson_extrapolation_too);
 
-    auto p = m_atlas_->Pop(static_cast<id_type>(patch.getLocalId().getValue()));
-    PullPatch(patch);
+    auto p = m_atlas_->GetPatch(static_cast<id_type>(patch.getLocalId().getValue()));
+        GetPatch(patch);
 
     auto desc = m_ctx_->GetMesh()->GetAttributeDescription("_refinement_tags_");
     if (desc != nullptr) {
@@ -775,18 +774,18 @@ void SAMRAIHyperbolicPatchStrategyAdapter::tagGradientDetectorCells(SAMRAI::hier
         m_ctx_->Push(&p);
         m_ctx_->TagRefinementCells(regrid_time);
         m_ctx_->Pull(&p);
-        m_atlas_->Push(0, std::move(p));
+        m_atlas_->SetPatch(0, std::move(p));
     }
 }
 
 void SAMRAIHyperbolicPatchStrategyAdapter::setPhysicalBoundaryConditions(
     SAMRAI::hier::Patch &patch, double fill_time, const SAMRAI::hier::IntVector &ghost_width_to_fill) {
-    auto p = m_atlas_->Pop(static_cast<id_type>(patch.getLocalId().getValue()));
-    PullPatch(patch);
+    auto p = m_atlas_->GetPatch(static_cast<id_type>(patch.getLocalId().getValue()));
+    GetPatch(patch);
     m_ctx_->Push(&p);
     m_ctx_->BoundaryCondition(fill_time, 0);
     m_ctx_->Pull(&p);
-    m_atlas_->Push(0, std::move(p));
+    m_atlas_->SetPatch(0, std::move(p));
 }
 
 /**************************************************************************

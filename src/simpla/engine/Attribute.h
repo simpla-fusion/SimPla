@@ -106,8 +106,8 @@ class AttributeGroup {
     //    bool has(std::string const &k) const;
     //    bool check(std::string const &k, std::type_info const &t_info) const;
     //
-    //    Attribute *Get(std::string const &k);
-    //    Attribute const *Get(std::string const &k) const;
+    //    Attribute *GetPatch(std::string const &k);
+    //    Attribute const *GetPatch(std::string const &k) const;
     //    std::map<std::string, Attribute *> const &GetAll() const;
     //    virtual std::string GetDomainPrefix() const { return ""; }
     //
@@ -216,7 +216,7 @@ void Attribute::PopData(nTuple<Array<U, Others...>, N...> *d) {
 
 // template <typename T>
 // T AttributeGroup::GetAttribute(std::string const &k) const {
-//    return T(AttributeGroup::Get(k)->cast_as<T>());
+//    return T(AttributeGroup::GetPatch(k)->cast_as<T>());
 //};
 //
 // template <typename, typename Enable = void>
@@ -255,7 +255,7 @@ void Attribute::PopData(nTuple<Array<U, Others...>, N...> *d) {
 //    virtual void Clear() { U::Clear(); }
 //    virtual void SetBaseMesh(MeshBase const *){};
 //    virtual MeshBase const *GetBaseMesh() const { return nullptr; };
-//    virtual void PullPatch(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const
+//    virtual void GetPatch(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const
 //    &d) {
 //        data::data_cast<U>(*d).swap(*this);
 //    };

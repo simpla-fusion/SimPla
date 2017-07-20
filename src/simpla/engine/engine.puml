@@ -134,7 +134,7 @@ class Chart{
       void SetMesh(Mesh *);
       {abstract} int GetIFORM()const;
       {abstract} int GetDOF()const
-      Push(DataBlock);
+      SetPatch(DataBlock);
       DataBlock Pop();
  }
  class AttributeGroup {
@@ -142,7 +142,7 @@ class Chart{
       void Detach(Attribute *attr);
       void Attach(Attribute *attr);
       void SetDataBlock(Patch );
-      Patch Pop();
+      Patch GetPatch();
  }
  AttributeGroup o-- "*" Attribute
 

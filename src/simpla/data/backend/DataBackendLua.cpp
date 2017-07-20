@@ -101,19 +101,19 @@ std::shared_ptr<DataEntity> DataBackendLua::Get(int key) const {
 //    } else if (v->isArray()) {
 //        LuaObject b = lobj.get(key);
 //        auto const db = std::dynamic_pointer_cast<DataArray>(v);
-//        for (int s = 0, se = static_cast<int>(db->size()); s < se; ++s) { set_data_to_lua(b, s, db->Get(s)); }
+//        for (int s = 0, se = static_cast<int>(db->size()); s < se; ++s) { set_data_to_lua(b, s, db->GetPatch(s)); }
 //    } else if (v->value_type_info() == typeid(bool)) {
-//        lobj.set(key, DataCastTraits<bool>::Get(v));
+//        lobj.set(key, DataCastTraits<bool>::GetPatch(v));
 //    } else if (v->value_type_info() == typeid(int)) {
-//        lobj.set(key, DataCastTraits<int>::Get(v));
+//        lobj.set(key, DataCastTraits<int>::GetPatch(v));
 //    } else if (v->value_type_info() == typeid(id_type)) {
-//        lobj.set(key, static_cast<int>(DataCastTraits<id_type>::Get(v)));
+//        lobj.set(key, static_cast<int>(DataCastTraits<id_type>::GetPatch(v)));
 //    } else if (v->value_type_info() == typeid(double)) {
-//        lobj.set(key, DataCastTraits<double>::Get(v));
+//        lobj.set(key, DataCastTraits<double>::GetPatch(v));
 //    } else if (v->value_type_info() == typeid(float)) {
-//        lobj.set(key, DataCastTraits<float>::Get(v));
+//        lobj.set(key, DataCastTraits<float>::GetPatch(v));
 //    } else if (v->value_type_info() == typeid(std::string)) {
-//        lobj.set(key, DataCastTraits<std::string>::Get(v));
+//        lobj.set(key, DataCastTraits<std::string>::GetPatch(v));
 //    } else {
 //        RUNTIME_ERROR << "illegal data type for Lua :" << v->value_type_info().name() << std::endl;
 //    }
@@ -131,15 +131,15 @@ std::shared_ptr<DataEntity> DataBackendLua::Get(int key) const {
 //    } else if (v->isArray()) {
 //        auto const& db = v->cast_as<DataArray>();
 //        auto b = lobj.new_table(key, db.size(), 0);
-//        for (int s = 0, se = static_cast<int>(db.size()); s < se; ++s) { add_data_to_lua(b, db.Get(s)); }
+//        for (int s = 0, se = static_cast<int>(db.size()); s < se; ++s) { add_data_to_lua(b, db.GetPatch(s)); }
 //    } else if (v->value_type_info() == typeid(bool)) {
-//        lobj.set(key, DataCastTraits<bool>::Get(v));
+//        lobj.set(key, DataCastTraits<bool>::GetPatch(v));
 //    } else if (v->value_type_info() == typeid(int)) {
-//        lobj.set(key, DataCastTraits<int>::Get(v));
+//        lobj.set(key, DataCastTraits<int>::GetPatch(v));
 //    } else if (v->value_type_info() == typeid(double)) {
-//        lobj.set(key, DataCastTraits<double>::Get(v));
+//        lobj.set(key, DataCastTraits<double>::GetPatch(v));
 //    } else if (v->value_type_info() == typeid(std::string)) {
-//        lobj.set(key, DataCastTraits<std::string>::Get(v));
+//        lobj.set(key, DataCastTraits<std::string>::GetPatch(v));
 //    } else {
 //        RUNTIME_ERROR << "illegal data type for Lua :" << v->value_type_info().name() << std::endl;
 //    }
@@ -153,15 +153,15 @@ std::shared_ptr<DataEntity> DataBackendLua::Get(int key) const {
 //    } else if (v->isArray()) {
 //        auto const& db = dynamic_cast<DataArray const&>(*v);
 //        auto b = lobj.new_table("", db.size(), 0);
-//        for (int s = 0, se = static_cast<int>(db.size()); s < se; ++s) { add_data_to_lua(b, db.Get(s)); }
+//        for (int s = 0, se = static_cast<int>(db.size()); s < se; ++s) { add_data_to_lua(b, db.GetPatch(s)); }
 //    } else if (v->value_type_info() == typeid(bool)) {
-//        lobj.add(DataCastTraits<bool>::Get(v));
+//        lobj.add(DataCastTraits<bool>::GetPatch(v));
 //    } else if (v->value_type_info() == typeid(int)) {
-//        lobj.add(DataCastTraits<int>::Get(v));
+//        lobj.add(DataCastTraits<int>::GetPatch(v));
 //    } else if (v->value_type_info() == typeid(double)) {
-//        lobj.add(DataCastTraits<double>::Get(v));
+//        lobj.add(DataCastTraits<double>::GetPatch(v));
 //    } else if (v->value_type_info() == typeid(std::string)) {
-//        lobj.add(DataCastTraits<std::string>::Get(v));
+//        lobj.add(DataCastTraits<std::string>::GetPatch(v));
 //    } else {
 //        RUNTIME_ERROR << "illegal data type for Lua :" << v->value_type_info().name() << std::endl;
 //    }
@@ -180,15 +180,15 @@ std::shared_ptr<DataEntity> DataBackendLua::Get(int key) const {
 //    } else if (v->isArray()) {
 //        auto const& db = dynamic_cast<DataArray const&>(*v);
 //        auto b = lobj.new_table(key, db.size(), 0);
-//        for (int s = 0, se = static_cast<int>(db.size()); s < se; ++s) { add_data_to_lua(b, db.Get(s)); }
+//        for (int s = 0, se = static_cast<int>(db.size()); s < se; ++s) { add_data_to_lua(b, db.GetPatch(s)); }
 //    } else if (v->value_type_info() == typeid(bool)) {
-//        lobj.set(key, DataCastTraits<bool>::Get(v));
+//        lobj.set(key, DataCastTraits<bool>::GetPatch(v));
 //    } else if (v->value_type_info() == typeid(int)) {
-//        lobj.set(key, DataCastTraits<int>::Get(v));
+//        lobj.set(key, DataCastTraits<int>::GetPatch(v));
 //    } else if (v->value_type_info() == typeid(double)) {
-//        lobj.set(key, DataCastTraits<double>::Get(v));
+//        lobj.set(key, DataCastTraits<double>::GetPatch(v));
 //    } else if (v->value_type_info() == typeid(std::string)) {
-//        lobj.set(key, DataCastTraits<std::string>::Get(v));
+//        lobj.set(key, DataCastTraits<std::string>::GetPatch(v));
 //    } else {
 //        RUNTIME_ERROR << "illegal data type for Lua :" << v->value_type_info().name() << std::endl;
 //    }

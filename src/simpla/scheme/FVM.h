@@ -657,35 +657,35 @@ struct FVM {
 //    template <typename U, int IFORM, int... N, typename RHS>
 //    void Fill(Field<THost, U, IFORM, N...>& lhs, RHS const& rhs, ENABLE_IF((std::is_arithmetic<RHS>::value)))
 //    const {
-//        lhs.Get() = rhs;
-//        st::foreach (lhs.Get(), [&](auto& a, auto&&... subs) {
+//        lhs.GetPatch() = rhs;
+//        st::foreach (lhs.GetPatch(), [&](auto& a, auto&&... subs) {
 //            a = getArray((rhs), IdxShift{0, 0, 0}, std::forward<decltype(subs)>(subs)...);
 //        });
 //    }
 //
 //    template <typename U, int... N, typename RHS>
 //    void Fill(Field<THost, U, VERTEX, N...>& lhs, nTuple<RHS, N...> const& rhs) const {
-//        lhs.Get()[0] = rhs;
+//        lhs.GetPatch()[0] = rhs;
 //    }
 //
 //    template <typename U, int... N, typename RHS>
 //    void Fill(Field<THost, U, VOLUME, N...>& lhs, nTuple<RHS, N...> const& rhs) const {
-//        lhs.Get()[0] = rhs;
+//        lhs.GetPatch()[0] = rhs;
 //    }
 //
 //    template <typename U, int... N, typename RHS>
 //    void Fill(Field<THost, U, EDGE, N...>& lhs, nTuple<RHS, 3, N...> const& rhs) const {
-//        lhs.Get() = rhs;
+//        lhs.GetPatch() = rhs;
 //    }
 //
 //    template <typename U, int... N, typename RHS>
 //    void Fill(Field<THost, U, FACE, N...>& lhs, nTuple<RHS, 3, N...> const& rhs) const {
-//        lhs.Get() = rhs;
+//        lhs.GetPatch() = rhs;
 //    }
 //
 //    template <typename U, int... NL, typename V, int... NR>
 //    void Fill(Field<THost, U, NL...>& lhs, Field<THost, V, NR...> const& rhs) const {
-//        lhs.Get() = rhs;
+//        lhs.GetPatch() = rhs;
 //    }
 
 //    ///*********************************************************************************************

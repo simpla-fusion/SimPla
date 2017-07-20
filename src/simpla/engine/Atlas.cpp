@@ -72,29 +72,27 @@ void Atlas::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     Click();
 };
 
-// void Atlas::Decompose(size_tuple const &d, int local_id) { Click(); };
-// index_box_type Atlas::FitIndexBox(box_type const &b, int level, int flag) const { return index_box_type{}; }
-
 size_type Atlas::DeletePatch(id_type id) { return m_pimpl_->m_patches_.erase(id); }
 
-id_type Atlas::Push(id_type id, Patch &&p) {
+id_type Atlas::SetPatch(id_type id, Patch &&p) {
     auto res = m_pimpl_->m_patches_.emplace(id, std::forward<Patch>(p));
     if (!res.second) { res.first->second.swap(p); }
     return id;
 }
 
-Patch Atlas::Pop(id_type id) {
-    Patch res{id};
-
+Patch Atlas::GetPatch(id_type id) {
+    Patch *res = nullptr;
     auto it = m_pimpl_->m_patches_.find(id);
-    if (it != m_pimpl_->m_patches_.end()) {
-        res.swap(it->second);
-        m_pimpl_->m_patches_.erase(it);
-    }
-    return std::move(res);
+    if (it != m_pimpl_->m_patches_.end()) { res = &it->second; }
+    return res;
 }
-//    auto res = m_pack_->m_patches_.emplace(id, Patch{});
-//    if (res.first->second.empty()) { res.first->second = Patch(id); }
+
+Patch Atlas::GetPatch(id_type id) const {
+    Patch const *res = nullptr;
+    auto it = m_pimpl_->m_patches_.find(id);
+    if (it != m_pimpl_->m_patches_.end()) { res = &it->second; }
+    return res;
+}
 
 int Atlas::GetNumOfLevel() const { return m_pimpl_->m_max_level_; }
 int Atlas::GetMaxLevel() const { return m_pimpl_->m_max_level_; }

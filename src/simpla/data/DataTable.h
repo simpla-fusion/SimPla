@@ -119,10 +119,10 @@ class DataTable : public DataEntity {
 
     //    template <typename U, typename V>
     //    bool GetValue(std::string const& uri, V* v) const {
-    //        auto res = Get(uri);
+    //        auto res = GetPatch(uri);
     //        bool success = false;
     //        if (res != nullptr) {
-    //            *v = DataCastTraits<U>::Get(res);
+    //            *v = DataCastTraits<U>::GetPatch(res);
     //            success = true;
     //        }
     //        return success;
