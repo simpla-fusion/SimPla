@@ -42,6 +42,10 @@ class Schedule : public SPObject, public data::EnableCreateFromDataTable<Schedul
     const Context *GetContext() const { return m_ctx_; }
     Context *GetContext() { return m_ctx_; }
 
+    void SetAtlas(Atlas *a) { m_atlas_ = a; }
+    const Atlas *GetAtlas() const { return m_atlas_; }
+    Atlas *GetAtlas() { return m_atlas_; }
+
     virtual void CheckPoint() const;
     virtual void Dump() const;
 
@@ -63,8 +67,8 @@ class Schedule : public SPObject, public data::EnableCreateFromDataTable<Schedul
 
    private:
     Context *m_ctx_ = nullptr;
+    Atlas *m_atlas_ = nullptr;
     std::shared_ptr<data::DataIOPort> m_data_io_ = nullptr;
-
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };

@@ -57,7 +57,7 @@ Real TimeIntegrator::Advance(Real time_dt) {
 //            if (!v.second->GetGeoObject()->CheckOverlap(mblk->GetBoundBox())) { continue; }
 //            auto res = m_pack_->m_ctx_->GetPatches()->GetTable(std::to_string(id));
 //            if (res == nullptr) { res = std::make_shared<data::DataTable>(); }
-//            v.second->ConvertPatchFromSAMRAI(mblk, res);
+//            v.second->PullPatch(mblk, res);
 //            LOGGER << " DomainBase [ " << std::setw(10) << std::left << v.second->name() << " ] is applied on "
 //                   << mblk->GetIndexBox() << " id= " << id << std::endl;
 //            v.second->Run(dt);

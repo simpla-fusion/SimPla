@@ -9,35 +9,43 @@
 
 #include "simpla/SIMPLA_config.h"
 
+#include "SpApp.h"
+#include "simpla/engine/Atlas.h"
 #include "simpla/engine/Context.h"
+#include "simpla/engine/Domain.h"
 #include "simpla/engine/TimeIntegrator.h"
+#include "simpla/geometry/Chart.h"
 #include "simpla/parallel/MPIComm.h"
 #include "simpla/parallel/Parallel.h"
 #include "simpla/utilities/Log.h"
 #include "simpla/utilities/Logo.h"
 #include "simpla/utilities/parse_command_line.h"
 
-#include "SpApp.h"
-
 namespace simpla {
 namespace application {
 struct SpApp::pimpl_s {
     std::shared_ptr<engine::Schedule> m_schedule_ = nullptr;
     engine::Context m_context_;
+    engine::Atlas m_atlas_;
 };
 SpApp::SpApp(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
 SpApp::~SpApp() = default;
 std::shared_ptr<data::DataTable> SpApp::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
     if (m_pimpl_->m_schedule_ != nullptr) { res->Set("Schedule", m_pimpl_->m_schedule_->Serialize()); }
-    res->Set("Context", m_pimpl_->m_context_.Serialize());
 
+    res->Set("Context", m_pimpl_->m_context_.Serialize());
+    res->Set("Atlas", m_pimpl_->m_atlas_.Serialize());
+//    ctx->data::Serializable::Serialize(std::cout, 0);
+//    GetAtlas()->data::Serializable::Serialize(std::cout, 0);
     return res;
 };
 void SpApp::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     m_pimpl_->m_context_.Deserialize(cfg->GetTable("Context"));
+    m_pimpl_->m_atlas_.Deserialize(cfg->GetTable("Atlas"));
     m_pimpl_->m_schedule_ = engine::Schedule::Create(cfg->Get("Schedule"));
     m_pimpl_->m_schedule_->SetContext(&m_pimpl_->m_context_);
+    m_pimpl_->m_schedule_->SetAtlas(&m_pimpl_->m_atlas_);
 
     Click();
 };
@@ -112,8 +120,10 @@ void SpApp::Config(int argc, char **argv) {
     MESSAGE << ShowLogo() << std::endl;
 
     auto cfg = std::make_shared<data::DataTable>();
-    cfg->Set("Schedule", input_file_cfg->Get("Schedule"));
+
     cfg->Set("Context", input_file_cfg->Get("Context"));
+    cfg->Set("Atlas", input_file_cfg->Get("Atlas"));
+    cfg->Set("Schedule", input_file_cfg->Get("Schedule"));
     cfg->Set(cmd_line_cfg, true);
 
     Deserialize(cfg);

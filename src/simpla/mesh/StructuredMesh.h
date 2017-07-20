@@ -40,7 +40,7 @@ class StructuredMesh {
 
     index_tuple GetGhostWidth(int tag = VERTEX) const;
 
-    index_box_type GetIndexBox(int tag) const;
+    virtual index_box_type GetIndexBox(int tag) const;
 
     point_type point(entity_id_type s) const { return local_coordinates(s.x, s.y, s.z, s.w & 0b111); };
 

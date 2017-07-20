@@ -11,14 +11,14 @@
 
 #include "simpla/data/Serializable.h"
 
-#include "Atlas.h"
-#include "Domain.h"
-#include "Patch.h"
 #include "SPObject.h"
 
 namespace simpla {
 namespace engine {
-
+class Model;
+class Patch;
+class DomainBase;
+class MeshBase;
 /**
  * @brief
  *
@@ -84,16 +84,7 @@ class Context : public SPObject, public data::Serializable {
     void DoUpdate() override;
     void DoTearDown() override;
 
-    Atlas &GetAtlas() const;
-
-    std::shared_ptr<MeshBase> CreateMesh(const std::shared_ptr<data::DataTable> &cfg);
-
-    template <typename T>
-    std::shared_ptr<T> CreateMesh() {
-        auto res = std::make_shared<T>();
-        SetMesh(res);
-        return res;
-    };
+    void SetMesh(std::shared_ptr<MeshBase> const &);
     MeshBase const *GetMesh() const;
     MeshBase *GetMesh();
 
@@ -122,7 +113,6 @@ class Context : public SPObject, public data::Serializable {
     void TagRefinementCells(Real time_now);
 
    private:
-    void SetMesh(std::shared_ptr<MeshBase> const &);
     void SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &);
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;

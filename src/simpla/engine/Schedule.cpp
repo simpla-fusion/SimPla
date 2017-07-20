@@ -24,7 +24,6 @@ struct Schedule::pimpl_s {
 };
 
 Schedule::Schedule() : m_pimpl_(new pimpl_s){};
-
 Schedule::~Schedule() = default;
 
 size_type Schedule::GetNumberOfStep() const { return m_pimpl_->m_step_; }
@@ -40,7 +39,7 @@ void Schedule::NextStep() { ++m_pimpl_->m_step_; }
 bool Schedule::Done() const { return m_pimpl_->m_max_step_ == 0 ? false : m_pimpl_->m_step_ >= m_pimpl_->m_max_step_; }
 
 void Schedule::CheckPoint() const {
-    auto t = m_ctx_->GetAtlas().Serialize();
+    auto t = GetAtlas()->Serialize();
     t->SetValue("Step", m_pimpl_->m_step_);
     t->SetValue("Mesh", m_ctx_->GetMesh()->Serialize());
     m_data_io_->Set(t);
@@ -66,7 +65,11 @@ void Schedule::Run() {
 
 std::shared_ptr<data::DataTable> Schedule::Serialize() const {
     auto res = data::EnableCreateFromDataTable<Schedule>::Serialize();
+
     res->SetValue("CheckPointInterval", GetCheckPointInterval());
+
+    res->Set("Atlas", GetAtlas()->Serialize());
+
     if (m_data_io_ != nullptr) { res->SetValue("DataIOPort", m_data_io_->Serialize()); }
     return res;
 }
@@ -102,8 +105,8 @@ void Schedule::Synchronize() {
     //    for (auto const &src : atlas.Level(from_level)) {
     //        for (auto const &dest : atlas.Level(from_level)) {
     //            if (!geometry::CheckOverlap(src->GetIndexBox(), dest->GetIndexBox())) { continue; }
-    //            //            auto s_it = m_pack_->m_patches_.find(src->GetGUID());
-    //            //            auto d_it = m_pack_->m_patches_.find(dest->GetGUID());
+    //            //            auto s_it = m_pack_->m_patches_.find(src->GetID());
+    //            //            auto d_it = m_pack_->m_patches_.find(dest->GetID());
     //            //            if (s_it == m_pack_->m_patches_.end() || d_it == m_pack_->m_patches_.end() || s_it ==
     //            d_it)
     //            //            { continue; }

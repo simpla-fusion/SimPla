@@ -29,15 +29,17 @@ struct MeshBase::pimpl_s {
     std::shared_ptr<pack_s> m_pack_;
 };
 
-MeshBase::MeshBase(std::shared_ptr<geometry::Chart> const& c) : m_pimpl_(new pimpl_s), m_chart_(c) {}
+MeshBase::MeshBase(std::shared_ptr<geometry::Chart> const& c, index_box_type const& b)
+    : m_pimpl_(new pimpl_s), m_chart_(c), m_mesh_block_(b) {}
 
 MeshBase::~MeshBase() = default;
+
 index_box_type MeshBase::GetIndexBox(int tag) const { return GetBlock().GetIndexBox(); }
 
 box_type MeshBase::GetBox(int tag) const {
     auto id_box = GetIndexBox(tag);
-    return box_type{GetChart()->local_coordinates(std::get<0>(id_box)),
-                    GetChart()->local_coordinates(std::get<1>(id_box))};
+    return box_type{GetChart()->local_coordinates(std::get<0>(id_box), tag),
+                    GetChart()->local_coordinates(std::get<1>(id_box), tag)};
 };
 
 // MeshBase::MeshBase(MeshBase const& other) : SPObject(other), m_pimpl_(new pimpl_s),
@@ -64,8 +66,19 @@ std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
     return (p);
 }
 void MeshBase::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
-    m_chart_ = geometry::Chart::Create(cfg->Get("Chart"));
     SetName(cfg->GetValue("Name", GetRegisterName()));
+
+    m_chart_ = geometry::Chart::Create(cfg->Get("Chart"));
+
+    nTuple<int, 3> dims{1, 1, 1};
+    dims = cfg->GetValue<nTuple<int, 3>>("Dimensions", dims);
+
+    auto lo = cfg->GetValue<point_type>("Box/lo", point_type{0, 0, 0});
+    auto hi = cfg->GetValue<point_type>("Box/hi", point_type{1, 1, 1});
+    m_chart_->SetOrigin(lo);
+    m_chart_->SetScale((hi - lo) / dims);
+
+    MeshBlock(index_box_type{{0, 0, 0}, {dims[0], dims[1], dims[2]}}, 0, 0).swap(m_mesh_block_);
     Click();
 };
 
@@ -84,7 +97,7 @@ void MeshBase::DoFinalize() {
 
 void MeshBase::SetBlock(const engine::MeshBlock& blk) { MeshBlock(blk).swap(m_mesh_block_); };
 const engine::MeshBlock& MeshBase::GetBlock() const { return m_mesh_block_; }
-id_type MeshBase::GetBlockId() const { return m_mesh_block_.GetGUID(); }
+id_type MeshBase::GetBlockId() const { return m_mesh_block_.GetID(); }
 
 void MeshBase::Push(Patch* patch) {
     SetBlock(patch->GetMeshBlock());

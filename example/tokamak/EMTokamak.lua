@@ -3,23 +3,22 @@ PI = 3.141592653589793
 TWOPI = PI * 2.0
 N_PHI = 100
 
-
+Atlas = {
+    PeriodicDimension = { 0, 0, 0 },
+    CoarsestDimensions={64, 64, 32},
+    MaxLevel=1;
+}
 
 Context = {
     Name = "EMTokamak",
-    Atlas = {
-        IndexOrigin = { 0, 0, 0 },
-        Dimensions = { 64, 64, 32 },
-        PeriodicDimension = { 0, 0,0 },
-        lo = { 1.4, -1.0, -PI  },
-        hi = { 2.5, 1.0, PI  },
 
-    },
     Mesh = {
         Type = "EBRectMesh",
         Chart = "Cylindrical",
-
-
+        Box = {
+            lo = { 1.4, -1.0, -PI },
+            hi = { 2.5, 1.0, PI },
+        },
     },
     Model =
     {
@@ -29,11 +28,11 @@ Context = {
         },
     },
     Domains = {
---        Limiter = {
---            Type = "Maxwell",
---            Model = "Tokamak",
---            Boundary = "Limiter",
---        },
+        --        Limiter = {
+        --            Type = "Maxwell",
+        --            Model = "Tokamak",
+        --            Boundary = "Limiter",
+        --        },
         PlasmaCenter = {
             Type = "EMFluid", -- "Domain<RectMesh,EBMesh,FVM,EMFluid>",
             Species = {
@@ -43,21 +42,23 @@ Context = {
             Model = "Tokamak",
             Boundary = "Plasma",
         },
---        ICRF = {
---            Type = "ICRFAntenna", -- "Domain<RectMesh,EBMesh,FVM,ICRFAntenna>",
---
---            Boundary = {
---                Type = "Cube",
---                lo = { 1.5, -0.5, -TWOPI / 8 },
---                hi = { 2.0, 0.5, TWOPI / 8 }
---            },
---            IsHard = false,
---            Amplify = { 0.0, 0.0, 1.0 },
---            WaveNumber = { 0.0, 0.0, TWOPI / 12.0 },
---            Frequency = 1.0e9,
---        },
+        --        ICRF = {
+        --            Type = "ICRFAntenna", -- "Domain<RectMesh,EBMesh,FVM,ICRFAntenna>",
+        --
+        --            Boundary = {
+        --                Type = "Cube",
+        --                lo = { 1.5, -0.5, -TWOPI / 8 },
+        --                hi = { 2.0, 0.5, TWOPI / 8 }
+        --            },
+        --            IsHard = false,
+        --            Amplify = { 0.0, 0.0, 1.0 },
+        --            WaveNumber = { 0.0, 0.0, TWOPI / 12.0 },
+        --            Frequency = 1.0e9,
+        --        },
     }
 }
+
+
 
 Schedule = {
     Type = "SAMRAITimeIntegrator",
@@ -67,4 +68,7 @@ Schedule = {
     TimeStep = 1.0e-11,
     CheckPointInterval = 1,
     UpdateOrder = { "RFAntenna", "Tokamak" }
+
+
+
 }

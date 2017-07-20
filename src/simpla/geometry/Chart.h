@@ -45,9 +45,10 @@ struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<C
         return point_type{std::fma(x[0], m_scale_[0], m_origin_[0]), std::fma(x[1], m_scale_[1], m_origin_[1]),
                           std::fma(x[2], m_scale_[2], m_origin_[2])};
     }
-
-    template <typename TR>
-    point_type local_coordinates(index_tuple x, TR const &r) const {
+    point_type local_coordinates(index_tuple x, int tag) const {
+        return local_coordinates(x, EntityIdCoder::m_id_to_coordinates_shift_[tag]);
+    }
+    point_type local_coordinates(index_tuple x, Real const *r) const {
         return local_coordinates(point_type{x[0] + r[0], x[1] + r[1], x[2] + r[2]});
     }
 

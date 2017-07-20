@@ -20,22 +20,19 @@ struct Context::pimpl_s {
     std::map<std::string, std::shared_ptr<Model>> m_models_;
     std::shared_ptr<MeshBase> m_mesh_;
 
-    Atlas m_atlas_;
-
     std::map<std::string, std::shared_ptr<DomainBase>> m_domains_;
     std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
 };
 
 Context::Context(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
 
-Context::~Context() { m_pimpl_->m_atlas_.Finalize(); }
+Context::~Context() {}
 
 std::shared_ptr<data::DataTable> Context::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
 
     res->SetValue("Name", GetName());
     res->SetValue("Mesh", GetMesh()->Serialize());
-    res->Set("Atlas", m_pimpl_->m_atlas_.Serialize());
     for (auto const &item : m_pimpl_->m_domains_) { res->Link("Domain/" + item.first, item.second->Serialize()); }
     for (auto const &item : m_pimpl_->m_models_) { res->Link("Model/" + item.first, item.second->Serialize()); }
 
@@ -45,16 +42,10 @@ std::shared_ptr<data::DataTable> Context::Serialize() const {
 void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     DoInitialize();
 
-    m_pimpl_->m_atlas_.Deserialize(cfg->GetTable("Atlas"));
-
-    CreateMesh(cfg->GetTable("Mesh"));
-
-    GetMesh()->GetChart()->SetOrigin(std::get<0>(m_pimpl_->m_atlas_.GetBox()));
-    GetMesh()->GetChart()->SetScale(
-        (std::get<1>(m_pimpl_->m_atlas_.GetBox()) - std::get<0>(m_pimpl_->m_atlas_.GetBox())) /
-        m_pimpl_->m_atlas_.GetDimensions());
+    m_pimpl_->m_mesh_ = MeshBase::Create(cfg->GetTable("Mesh"));
 
     auto t_model = cfg->GetTable("Model");
+
     if (t_model != nullptr) {
         t_model->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) {
             m_pimpl_->m_models_[key] = Model::Create(std::dynamic_pointer_cast<data::DataTable>(t_cfg));
@@ -111,24 +102,12 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
 //    });
 void Context::DoInitialize() { SPObject::DoInitialize(); }
 void Context::DoFinalize() { SPObject::DoFinalize(); }
-void Context::DoTearDown() {
-    SPObject::DoTearDown();
-    m_pimpl_->m_atlas_.TearDown();
-}
+void Context::DoTearDown() { SPObject::DoTearDown(); }
 void Context::DoUpdate() {
     SPObject::DoUpdate();
-    m_pimpl_->m_atlas_.Update();
-    // TODO: Fix boundary box
-    //    m_pack_->m_base_mesh_->FitBoundBox(m_pack_->m_model_.GetBoundBox());
     for (auto &d : m_pimpl_->m_domains_) { d.second->Update(); }
 }
 
-Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
-
-std::shared_ptr<MeshBase> Context::CreateMesh(const std::shared_ptr<data::DataTable> &cfg) {
-    m_pimpl_->m_mesh_ = MeshBase::Create(cfg);
-    return m_pimpl_->m_mesh_;
-}
 void Context::SetMesh(std::shared_ptr<MeshBase> const &m) { m_pimpl_->m_mesh_ = m; }
 MeshBase const *Context::GetMesh() const { return m_pimpl_->m_mesh_.get(); }
 MeshBase *Context::GetMesh() { return m_pimpl_->m_mesh_.get(); }
@@ -165,13 +144,13 @@ std::map<std::string, std::shared_ptr<DomainBase>> const &Context::GetAllDomains
 
 void Context::Pull(Patch *p) {
     GetMesh()->Pull(p);
-    VERBOSE << "Pull Level:" << GetMesh()->GetBlock().GetLevel() << " Id:" << p->GetId()
-            << " Box:" << GetMesh()->GetBox(0) << std::endl;
+    //    VERBOSE << "Pull Level:" << GetMesh()->GetBlock().GetLevel() << " Id:" << p->GetId() << " Box:" <<
+    //    GetMesh()->GetBox(0) << std::endl;
 };
 void Context::Push(Patch *p) {
     GetMesh()->Push(p);
-    VERBOSE << "Push Level:" << GetMesh()->GetBlock().GetLevel() << " Id:" << p->GetId()
-            << " Box:" << GetMesh()->GetBox(0) << std::endl;
+    //    VERBOSE << "Push Level:" << GetMesh()->GetBlock().GetLevel() << " Id:" << p->GetId() << " Box:" <<
+    //    GetMesh()->GetBox(0) << std::endl;
 };
 
 void Context::InitialCondition(Real time_now) {
@@ -189,7 +168,6 @@ void Context::Advance(Real time_now, Real dt) {
 
 void Context::TagRefinementCells(Real time_now) {
     GetMesh()->TagRefinementCells(time_now);
-
     for (auto &d : GetAllDomains()) { d.second->TagRefinementCells(time_now); }
 }
 
@@ -269,16 +247,16 @@ void Context::TagRefinementCells(Real time_now) {
 //        for (auto const &mblk : GetAtlas().Level(level)) {
 //            if (!g_item.second->CheckOverlap(mblk->GetBoundBox())) { continue; }
 //
-//            auto p = m_pack_->m_patches_[mblk->GetGUID()];
+//            auto p = m_pack_->m_patches_[mblk->GetID()];
 //            if (p == nullptr) {
 //                p = std::make_shared<Patch>();
 //                //                p->PushMeshBlock(mblk);
 //            }
-//            w->second->ConvertPatchFromSAMRAI(p);
+//            w->second->PullPatch(p);
 //            LOGGER << " DomainBase [ " << std::setw(10) << std::left << w->second->name() << " ] is applied on "
 //                   << mblk->GetIndexBox() << " GeoObject id= " << g_item.first << std::endl;
 //            w->second->AdvanceData(time_now, dt);
-//            m_pack_->m_patches_[mblk->GetGUID()] = w->second->ConvertPatchToSAMRAI();
+//            m_pack_->m_patches_[mblk->GetID()] = w->second->PushPatch();
 //        }
 //    }
 

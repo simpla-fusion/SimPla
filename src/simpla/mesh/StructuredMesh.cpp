@@ -29,10 +29,6 @@ namespace mesh {
 *\endverbatim
 */
 
-size_tuple StructuredMesh::GetDimensions() const { return GetBlock().GetDimensions(); }
-index_tuple StructuredMesh::GetIndexOrigin() const { return GetBlock().GetIndexOrigin(); }
-index_tuple StructuredMesh::GetGhostWidth(int tag) const { return GetBlock().GetGhostWidth(); }
-
 index_box_type StructuredMesh::GetIndexBox(int tag) const {
     index_box_type res = GetBlock().GetIndexBox();
     switch (tag) {

@@ -641,7 +641,7 @@ Particle<P, M, V002>::update(Args &&...args)
 {
     if (!this->is_valid()) { RUNTIME_ERROR << "Particle is not valid! [" << getClassName() << "]" << std::endl; }
     logger::Logger __logger(logger::LOG_VERBOSE);
-    __logger << "CMD:\t" << "ConvertPatchFromSAMRAI   [" << getClassName() << "]";
+    __logger << "CMD:\t" << "PullPatch   [" << getClassName() << "]";
 
 /**
  *   |<-----------------------------     valid   --------------------------------->|

@@ -255,7 +255,7 @@ void Attribute::PopData(nTuple<Array<U, Others...>, N...> *d) {
 //    virtual void Clear() { U::Clear(); }
 //    virtual void SetBaseMesh(MeshBase const *){};
 //    virtual MeshBase const *GetBaseMesh() const { return nullptr; };
-//    virtual void ConvertPatchFromSAMRAI(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const
+//    virtual void PullPatch(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const
 //    &d) {
 //        data::data_cast<U>(*d).swap(*this);
 //    };

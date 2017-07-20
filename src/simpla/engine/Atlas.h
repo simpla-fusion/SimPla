@@ -72,7 +72,7 @@ class Patch;
 class Atlas : public SPObject, public data::Serializable {
     SP_OBJECT_HEAD(Atlas, SPObject)
    public:
-    explicit Atlas(std::string const &s_name = "");
+    Atlas();
     ~Atlas() override;
     SP_DEFAULT_CONSTRUCT(Atlas);
 
@@ -82,42 +82,40 @@ class Atlas : public SPObject, public data::Serializable {
 
     void DoUpdate() override;
 
-    void Decompose(size_tuple const &d, int local_id = -1);
-
-    index_box_type FitIndexBox(box_type const &b, int level = 0, int flag = 0) const;
+    //    void Decompose(size_tuple const &d, int local_id = -1);
+    //    index_box_type FitIndexBox(box_type const &b, int level = 0, int flag = 0) const;
 
     size_type DeletePatch(id_type);
-    id_type Push(Patch &&);
+    id_type Push(id_type id, Patch &&);
     Patch Pop(id_type id);
 
     //    std::shared_ptr<Patch> RefineBlock(id_type, index_box_type const &);
     //    std::set<std::shared_ptr<Patch>> const &Level(int level = 0) const;
     //    void Foreach(std::function<void(std::shared_ptr<MeshBlock>)> const &fun, int level = 0) const;
 
-    size_type GetNumOfLevel() const;
+    int GetNumOfLevel() const;
 
-    void SetMaxLevel(size_type l = 1);
-    size_type GetMaxLevel() const;
+    void SetMaxLevel(int l = 1);
+    int GetMaxLevel() const;
 
-    void SetRefineRatio(size_tuple const &v, size_type level = 0);
-    size_tuple GetRefineRatio(int l) const;
+    void SetRefineRatio(nTuple<int, 3> const &v, int level = 0);
+    nTuple<int, 3> GetRefineRatio(int l) const;
 
-    void SetLargestDimensions(size_tuple const &d);
-    size_tuple GetLargestDimensions() const;
+    void SetLargestPatchDimensions(nTuple<int, 3> const &d);
+    nTuple<int, 3> GetLargestPatchDimensions() const;
 
-    void SetSmallestDimensions(size_tuple const &d);
-    size_tuple GetSmallestDimensions() const;
+    void SetSmallestPatchDimensions(nTuple<int, 3> const &d);
+    nTuple<int, 3> GetSmallestPatchDimensions() const;
 
-    size_tuple GetDimensions() const;
+    void SetPeriodicDimension(nTuple<int, 3> const &t);
+    nTuple<int, 3> const &GetPeriodicDimension() const;
 
-    void SetPeriodicDimension(index_tuple const &t);
-    index_tuple const &GetPeriodicDimension();
-
-    void SetIndexBox(index_box_type const &);
-    index_box_type GetIndexBox() const;
-    void SetBox(box_type const &) const;
-    box_type GetBox() const;
-    index_tuple GetPeriodicDimension() const;
+    void SetCoarsestDimensions(nTuple<int, 3> const &);
+    nTuple<int, 3> GetCoarsestDimensions() const;
+    //    void SetIndexBox(index_box_type const &);
+    //    index_box_type GetIndexBox() const;
+    //    void SetBox(box_type const &) const;
+    //    box_type GetBox() const;
 
    private:
     struct pimpl_s;

@@ -31,7 +31,8 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
    public:
     using AttributeGroup::attribute_type;
 
-    MeshBase(std::shared_ptr<geometry::Chart> const &c = nullptr);
+    MeshBase(std::shared_ptr<geometry::Chart> const &c = nullptr,
+             index_box_type const &b = index_box_type{{0, 0, 0}, {1, 1, 1}});
     ~MeshBase() override;
 
     MeshBase(MeshBase const &other) = delete;
@@ -48,9 +49,6 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
     virtual this_type const *GetMesh() const { return this; }
 
     virtual void AddEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g){};
-
-    void SetMaxRefinementLevel(int v) { m_max_refinement_level_ = v; }
-    int GetMaxRefinementLevel() const { return m_max_refinement_level_; }
 
     virtual index_box_type GetIndexBox(int tag = 0) const;
     virtual box_type GetBox(int tag = 0) const;
@@ -89,9 +87,9 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
     Range<EntityId> GetRange(std::string const &k) const;
 
    private:
-    MeshBlock m_mesh_block_;
+    MeshBlock m_mesh_block_{index_box_type{{0, 0, 0}, {1, 1, 1}}};
     std::shared_ptr<geometry::Chart> m_chart_ = nullptr;
-    int m_max_refinement_level_ = 1;
+
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
@@ -106,6 +104,8 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     ~Mesh() override = default;
 
     const engine::MeshBlock &GetBlock() const override { return MeshBase::GetBlock(); }
+
+    index_box_type GetIndexBox(int tag) const override { return MeshBase::GetIndexBox(tag); };
 
     const TChart *GetChart() const override { return dynamic_cast<TChart const *>(MeshBase::GetChart()); };
     TChart *GetChart() override { return dynamic_cast<TChart *>(MeshBase::GetChart()); };
@@ -155,7 +155,7 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
 };
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::TagRefinementCells(Range<EntityId> const &r) {
-    if (!m_refinement_tags_.isNull() && GetBlock().GetLevel() < GetMaxRefinementLevel()) {
+    if (!m_refinement_tags_.isNull()) {
         r.foreach ([&](EntityId s) {
             if (m_refinement_tags_[0].in_box(s.x, s.y, s.z)) { m_refinement_tags_[0](s.x, s.y, s.z) = 1; }
         });
@@ -182,6 +182,7 @@ void Mesh<TM, Policies...>::DoAdvance(Real time_now, Real dt) {
 
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::DoTagRefinementCells(Real time_now) {
+    m_refinement_tags_.Clear();
     traits::_try_invoke_TagRefinementCells<Policies...>(this, time_now);
 }
 

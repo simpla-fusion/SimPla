@@ -5,12 +5,12 @@
 #ifndef SIMPLA_DATATABLE_H_
 #define SIMPLA_DATATABLE_H_
 
-#include "simpla/SIMPLA_config.h"
-#include "simpla/utilities/ObjectHead.h"
 #include <memory>
 #include "DataArray.h"
 #include "DataEntity.h"
 #include "DataTraits.h"
+#include "simpla/SIMPLA_config.h"
+#include "simpla/utilities/ObjectHead.h"
 namespace simpla {
 namespace data {
 template <typename U, typename Enable = void>
@@ -75,7 +75,7 @@ class DataTable : public DataEntity {
 
     void Set(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr, bool overwrite = true);
     void Add(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr);
-    int Delete(std::string const &uri);
+    int Delete(std::string const& uri);
     size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
 
     /** Interface DataBackend End */
@@ -116,6 +116,17 @@ class DataTable : public DataEntity {
     U GetValue(std::string const& uri, U const& default_value) const {
         return DataCastTraits<U>::Get(Get(uri), default_value);
     }
+
+    //    template <typename U, typename V>
+    //    bool GetValue(std::string const& uri, V* v) const {
+    //        auto res = Get(uri);
+    //        bool success = false;
+    //        if (res != nullptr) {
+    //            *v = DataCastTraits<U>::Get(res);
+    //            success = true;
+    //        }
+    //        return success;
+    //    }
 
     //    template <typename U>
     //    U GetValue(std::string const& uri, U const& default_value) {

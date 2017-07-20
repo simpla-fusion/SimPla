@@ -24,7 +24,7 @@ struct Patch::pimpl_s {
 };
 
 Patch::Patch(id_type id) : m_pimpl_(new pimpl_s) { m_pimpl_->m_id_ = id; }
-Patch::~Patch() = default;  //{}
+Patch::~Patch() {}
 Patch::Patch(this_type const &other) : Patch(other.GetId()) {
     MeshBlock(other.GetMeshBlock()).swap(m_pimpl_->m_block_);
     m_pimpl_->m_data_ = other.m_pimpl_->m_data_;
