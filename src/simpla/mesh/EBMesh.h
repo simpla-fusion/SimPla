@@ -22,7 +22,6 @@ struct EBMesh {
 
    public:
     void SetEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g);
-
 };
 
 namespace detail {
@@ -35,8 +34,9 @@ void EBMesh<THost>::SetEmbeddedBoundary(std::string const &prefix, const std::sh
     VERBOSE << "Add Embedded Boundary [" << prefix << "]" << std::endl;
 
     Real ratio = g->CheckOverlap(m_host_->GetBox());
-
-    if (ratio < EPSILON) {
+    if (1 - ratio < EPSILON) {
+        return;
+    } else if (ratio < EPSILON) {
         m_host_->GetRange(prefix + "_BODY_0").append(nullptr);
         m_host_->GetRange(prefix + "_BODY_1").append(nullptr);
         m_host_->GetRange(prefix + "_BODY_2").append(nullptr);
@@ -49,11 +49,9 @@ void EBMesh<THost>::SetEmbeddedBoundary(std::string const &prefix, const std::sh
 
         m_host_->GetRange(prefix + "_PERP_BOUNDARY_1").append(nullptr);
         m_host_->GetRange(prefix + "_PERP_BOUNDARY_2").append(nullptr);
+    } else {
+        detail::CreateEBMesh(m_host_, g.get(), prefix);
     }
-
-    if (1 - ratio < EPSILON || ratio < EPSILON) { return; }
-
-    detail::CreateEBMesh(m_host_, g.get(), prefix);
 }
 }  // namespace mesh
 }  // namespace simpla

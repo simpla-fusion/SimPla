@@ -99,7 +99,6 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
 
 template <typename TM>
 void EMFluid<TM>::TagRefinementCells(Real time_now) {
-    if (m_host_->GetMesh()->GetBlock().GetLevel() > 0) { return; }
     m_host_->GetMesh()->TagRefinementCells(m_host_->GetMesh()->GetRange(m_host_->GetName() + "_BOUNDARY_3"));
 }
 template <typename TM>
@@ -115,6 +114,7 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
 
     if (m_host_->GetModel() != nullptr) { m_host_->GetModel()->LoadProfile("ne", &ne); }
 
+    return;
     BB = dot(B0v, B0v);
 
     for (auto& item : m_fluid_sp_) {
@@ -133,6 +133,7 @@ void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
 }
 template <typename TM>
 void EMFluid<TM>::Advance(Real time_now, Real dt) {
+    return;
     DEFINE_PHYSICAL_CONST
 
     //    B = B - curl(E) * (dt * 0.5);
@@ -166,7 +167,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
         auto& ns = *p.second->n;
         auto& Js = *p.second->J;
 
-        Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
+        auto as = static_cast<Real>((dt * qs) / (2.0 * ms));
 
         Q -= (0.5 * dt / epsilon0) * Js;
 
@@ -194,7 +195,7 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
         auto& ns = *p.second->n;
         auto& Js = *p.second->J;
 
-        Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
+        auto as = static_cast<Real>((dt * qs) / (2.0 * ms));
 
         K = dE * ns * qs * as;
 

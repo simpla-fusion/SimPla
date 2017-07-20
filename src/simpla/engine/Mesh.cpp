@@ -133,7 +133,7 @@ void MeshBase::Advance(Real time_now, Real dt) {
     DoAdvance(time_now, dt);
 }
 void MeshBase::TagRefinementCells(Real time_now) {
-    VERBOSE << "TagRefinementCells            \t:" << GetName() << std::endl;
+    VERBOSE << "TagRefinementCells \t:" << GetName() << std::endl;
     DoTagRefinementCells(time_now);
 }
 

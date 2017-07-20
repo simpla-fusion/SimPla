@@ -9,22 +9,23 @@ Context = {
     Name = "EMTokamak",
     Atlas = {
         IndexOrigin = { 0, 0, 0 },
-        Dimensions = { 32, 32, 32 },
-        lo = { 1.4, -1.0, -PI / 2 },
-        hi = { 2.5, 1.0, PI / 2 },
+        Dimensions = { 64, 64, 32 },
         PeriodicDimension = { 0, 0,0 },
+        lo = { 1.4, -1.0, -PI  },
+        hi = { 2.5, 1.0, PI  },
 
     },
     Mesh = {
         Type = "EBRectMesh",
         Chart = "Cylindrical",
+
+
     },
     Model =
     {
         Tokamak = {
             Type = "Tokamak",
             gfile = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900",
-            Phi = { -TWOPI / 4, TWOPI / 4 },
         },
     },
     Domains = {

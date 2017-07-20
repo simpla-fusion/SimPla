@@ -49,6 +49,9 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
 
     virtual void AddEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g){};
 
+    void SetMaxRefinementLevel(int v) { m_max_refinement_level_ = v; }
+    int GetMaxRefinementLevel() const { return m_max_refinement_level_; }
+
     virtual index_box_type GetIndexBox(int tag = 0) const;
     virtual box_type GetBox(int tag = 0) const;
 
@@ -88,7 +91,7 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
    private:
     MeshBlock m_mesh_block_;
     std::shared_ptr<geometry::Chart> m_chart_ = nullptr;
-
+    int m_max_refinement_level_ = 1;
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
@@ -121,6 +124,7 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     template <typename TL, typename TR>
     void Fill(TL &lhs, TR &&rhs) const {
         FillRange(lhs, std::forward<TR>(rhs), Range<EntityId>{}, true);
+        //        FillRange(lhs, 0, "PATCH_BOUNDARY_" + std::to_string(TL::iform), false);
     };
 
     template <typename TL, typename TR>
@@ -151,7 +155,7 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
 };
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::TagRefinementCells(Range<EntityId> const &r) {
-    if (!m_refinement_tags_.isNull()) {
+    if (!m_refinement_tags_.isNull() && GetBlock().GetLevel() < GetMaxRefinementLevel()) {
         r.foreach ([&](EntityId s) {
             if (m_refinement_tags_[0].in_box(s.x, s.y, s.z)) { m_refinement_tags_[0](s.x, s.y, s.z) = 1; }
         });

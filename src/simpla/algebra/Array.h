@@ -178,10 +178,12 @@ class Array {
 
     template <typename... Args>
     __host__ __device__ value_type& at(Args&&... args) {
+        ASSERT(m_sfc_.in_box(std::forward<Args>(args)...));
         return m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
     }
     template <typename... Args>
     __host__ __device__ value_type const& at(Args&&... args) const {
+        ASSERT(m_sfc_.in_box(std::forward<Args>(args)...));
         return m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
     }
     template <typename... Args>
@@ -198,6 +200,13 @@ class Array {
         m_sfc_.Overlap(rhs).Foreach([&] __host__ __device__(auto&&... s) {
             this->at(std::forward<decltype(s)>(s)...) = calculus::getValue(rhs, std::forward<decltype(s)>(s)...);
         });
+    }
+
+    template <typename RHS, typename... Args>
+    void Assign(RHS const& rhs, Args&&... args) {
+        if (GetSpaceFillingCurve().in_box(std::forward<Args>(args)...)) {
+            at(std::forward<Args>(args)...) = calculus::getValue(rhs, std::forward<Args>(args)...);
+        }
     }
 };
 
