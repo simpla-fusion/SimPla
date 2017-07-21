@@ -35,7 +35,7 @@ class ICRFAntenna {
 };
 template <typename TM>
 void ICRFAntenna<TM>::TagRefinementCells(Real time_now) {
-    m_host_->GetMesh()->TagRefinementCells(m_host_->GetMesh()->GetRange(m_host_->GetName() + "_BOUNDARY_3"));
+//    m_host_->GetMesh()->TagRefinementCells(m_host_->GetMesh()->GetRange(m_host_->GetName() + "_BOUNDARY_3"));
 }
 template <typename TM>
 void ICRFAntenna<TM>::Serialize(data::DataTable* res) const {

@@ -156,7 +156,7 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
 };
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::TagRefinementCells(Range<EntityId> const &r) {
-    if (!m_refinement_tags_.isNull()) {
+    if (!m_refinement_tags_.isNull() && !r.isNull()) {
         r.foreach ([&](EntityId s) {
             if (m_refinement_tags_[0].in_box(s.x, s.y, s.z)) { m_refinement_tags_[0](s.x, s.y, s.z) = 1; }
         });
