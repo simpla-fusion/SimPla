@@ -44,8 +44,8 @@ class DomainBase : public SPObject,
 
     DomainBase &operator=(this_type &&other) noexcept = delete;
 
-    void SetBoundary(const std::shared_ptr<geometry::GeoObject> &b) { m_boundary_ = b; }
-    std::shared_ptr<geometry::GeoObject> GetBoundary() const { return m_boundary_; }
+    void SetGeoBody(const std::shared_ptr<geometry::GeoObject> &b) { m_geo_body_ = b; }
+    std::shared_ptr<geometry::GeoObject> GetGeoBody() const { return m_geo_body_; }
 
     void SetModel(std::shared_ptr<engine::Model> const &m) { m_model_ = m; }
     std::shared_ptr<Model> GetModel() const { return m_model_; }
@@ -83,7 +83,7 @@ class DomainBase : public SPObject,
    private:
     MeshBase *m_mesh_ = nullptr;
     std::shared_ptr<engine::Model> m_model_ = nullptr;
-    std::shared_ptr<geometry::GeoObject> m_boundary_ = nullptr;
+    std::shared_ptr<geometry::GeoObject> m_geo_body_ = nullptr;
 
 };  // class DomainBase
 

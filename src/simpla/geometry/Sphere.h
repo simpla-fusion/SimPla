@@ -44,7 +44,7 @@ struct Sphere : public GeoObject {
     };
 
     bool CheckInside(point_type const &x) const override {
-        return (x - m_origin_) * (x - m_origin_) - m_radius_ * m_radius_ < 0;
+        return dot((x - m_origin_), (x - m_origin_)) - m_radius_ * m_radius_ < 0;
     }
 };
 }  // namespace geometry{

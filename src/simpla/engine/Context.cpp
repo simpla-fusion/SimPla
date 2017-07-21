@@ -123,9 +123,9 @@ void Context::DoUpdate() {
     //    auto ib = GetAllDomains().begin();
     //    auto ie = GetAllDomains().end();
     //
-    //    box_type bound_box = ib->second->GetBoundary()->GetBoundBox();
+    //    box_type bound_box = ib->second->GetGeoBody()->GetBoundBox();
     //    ++ib;
-    //    for (; ib != ie; ++ib) { bound_box = geometry::expand(bound_box, ib->second->GetBoundary()->GetBoundBox()); }
+    //    for (; ib != ie; ++ib) { bound_box = geometry::expand(bound_box, ib->second->GetGeoBody()->GetBoundBox()); }
     //    auto bound_box = GetBoundBox();
     //    return index_box_type{std::get<0>(GetMesh()->GetChart()->invert_local_coordinates(std::get<0>(bound_box))),
     //                          std::get<0>(GetMesh()->GetChart()->invert_local_coordinates(std::get<1>(bound_box)))};

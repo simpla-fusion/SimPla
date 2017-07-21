@@ -37,8 +37,8 @@ Context = {
     Domains = {
         Limiter = {
             Type = "Maxwell",
-            Model = "Tokamak",
---            Boundary = "Limiter",
+--            Model = "Tokamak",
+--            Body = "Limiter",
         },
 --        PlasmaCenter = {
 --            Type = "EMFluid", -- "Domain<RectMesh,EBMesh,FVM,EMFluid>",
@@ -47,16 +47,22 @@ Context = {
 --                H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
 --            },
 --            Model = "Tokamak",
---            Boundary = "Plasma",
+--            Body = "Plasma",
 --        },
         ICRF = {
             Type = "ICRFAntenna", -- "Domain<RectMesh,EBMesh,FVM,ICRFAntenna>",
 
-            Boundary = {
-                Type = "Cube",
-                lo = { 1.5, -0.5, -TWOPI / 8 },
-                hi = { 2.0, 0.5, TWOPI / 8 }
+            Body = {
+--                Type = "Cube",
+--                lo = { 1.5, -0.5, -TWOPI / 8 },
+--                hi = { 2.0, 0.5, TWOPI / 8 },
+
+                Type="Sphere",
+                Origin={1.3,0,0 },
+                Radius=0.1
             },
+
+
             IsHard = false,
             Amplify = { 0.0, 0.0, 1.0 },
             WaveNumber = { 0.0, 0.0, TWOPI / 12.0 },

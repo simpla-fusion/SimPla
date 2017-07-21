@@ -23,14 +23,14 @@ DomainBase::~DomainBase() = default;
 std::shared_ptr<data::DataTable> DomainBase::Serialize() const {
     auto p = std::make_shared<data::DataTable>();
     p->SetValue("Type", GetRegisterName());
-    if (GetBoundary() != nullptr) { p->SetValue("Boundary", GetBoundary()->Serialize()); }
+    if (GetGeoBody() != nullptr) { p->SetValue("Boundary", GetGeoBody()->Serialize()); }
     return (p);
 }
 void DomainBase::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
-    if (cfg->isTable("Boundary")) {
-        m_boundary_ = geometry::GeoObject::Create(cfg->Get("Boundary"));
+    if (cfg->isTable("Body")) {
+        m_geo_body_ = geometry::GeoObject::Create(cfg->Get("Body"));
     } else if (m_model_ != nullptr) {
-        m_boundary_ = m_model_->GetGeoObject(cfg->GetValue<std::string>("Boundary", ""));
+        m_geo_body_ = m_model_->GetGeoObject(cfg->GetValue<std::string>("Body", ""));
     }
     Click();
 };
@@ -42,9 +42,9 @@ void DomainBase::DoFinalize() {}
 
 void DomainBase::InitialCondition(Real time_now) {
     Update();
-    if (GetBoundary() != nullptr) {
-        if (GetBoundary()->CheckOverlap(GetMesh()->GetBox(0)) > EPSILON) {
-            GetMesh()->AddEmbeddedBoundary(GetName(), GetBoundary());
+    if (GetGeoBody() != nullptr) {
+        if (GetGeoBody()->CheckOverlap(GetMesh()->GetBox(0)) > EPSILON) {
+            GetMesh()->AddEmbeddedBoundary(GetName(), GetGeoBody());
 
         } else {
             return;
