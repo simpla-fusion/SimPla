@@ -19,7 +19,10 @@ namespace engine {
 class MeshBlock {
     SP_OBJECT_BASE(MeshBlock)
    public:
-    explicit MeshBlock(index_box_type b = index_box_type{{0, 0, 0}, {1, 1, 1}}, size_type level = 0, int owner = 0);
+    static constexpr int MAX_LEVEL_NUMBER = 8;
+    static constexpr int MAX_LOCAL_ID_NUMBER = std::numeric_limits<int>::max() / 2;
+
+    explicit MeshBlock(index_box_type b, int id = 0, int level = 0, int owner = 0);
     ~MeshBlock();
 
     MeshBlock(MeshBlock const &other);
@@ -40,16 +43,20 @@ class MeshBlock {
     };
 
     int GetOwnerRank() const { return m_owner_; }
-    size_type GetLevel() const { return m_level_; }
+    int GetLevel() const { return m_level_; }
+    int GetLocalID() const { return m_local_id_; }
+
+    id_type GetGUID() const;
+
     index_box_type GetIndexBox() const { return m_index_box_; }
 
-    id_type GetID() const { return m_id_; }
+    static id_type hash_id(int id = 0, int level = 0, int owner = 0);
 
    private:
     int m_owner_ = 0;
-    size_type m_level_ = 0;
+    int m_level_ = 0;
+    int m_local_id_ = 0;
     index_box_type m_index_box_{{0, 0, 0}, {1, 1, 1}};
-    id_type m_id_;
 };  // class MeshBlock
 
 }  // namespace engine{

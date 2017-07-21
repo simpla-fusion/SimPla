@@ -14,7 +14,7 @@
 namespace simpla {
 namespace engine {
 
-TimeIntegrator::TimeIntegrator(std::string const& s_name) : Schedule() {};
+TimeIntegrator::TimeIntegrator(std::string const& s_name) : Schedule(){};
 TimeIntegrator::~TimeIntegrator() {}
 
 std::shared_ptr<data::DataTable> TimeIntegrator::Serialize() const {
@@ -33,7 +33,7 @@ void TimeIntegrator::Deserialize(const std::shared_ptr<data::DataTable>& cfg) {
     SetTimeNow(cfg->GetValue("TimeBegin", 0.0));
     SetTimeEnd(cfg->GetValue("TimeEnd", 1.0));
     SetTimeStep(cfg->GetValue("TimeStep", 0.5));
-    SetMaxStep(cfg->GetValue<size_type>("MaxStep", 0));
+    SetMaxStep(cfg->GetValue<size_type>("MaxStep", 0UL));
 };
 void TimeIntegrator::Synchronize() { Schedule::Synchronize(); }
 

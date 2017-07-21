@@ -12,7 +12,7 @@
 #include "Context.h"
 #include "Domain.h"
 #include "Mesh.h"
-
+#include "simpla/geometry/BoxUtilities.h"
 namespace simpla {
 namespace engine {
 
@@ -22,6 +22,9 @@ struct Context::pimpl_s {
 
     std::map<std::string, std::shared_ptr<DomainBase>> m_domains_;
     std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
+
+    index_box_type m_bound_index_box_{{0, 0, 0}, {1, 1, 1}};
+    box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 };
 
 Context::Context(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
@@ -68,6 +71,10 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
             }
         });
     }
+    std::get<0>(m_pimpl_->m_bound_box_) = cfg->GetValue("Mesh/Box/lo", point_type{0, 0, 0});
+    std::get<1>(m_pimpl_->m_bound_box_) = cfg->GetValue("Mesh/Box/hi", point_type{0, 0, 0});
+    std::get<1>(m_pimpl_->m_bound_index_box_) = cfg->GetValue("Mesh/Dimensions", nTuple<int, 3>{1, 1, 1});
+
     Click();
 }
 
@@ -100,12 +107,28 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
 //            Context::SetDomain(key, d);
 //        }
 //    });
+
+box_type Context::GetBoundBox() const { return m_pimpl_->m_bound_box_; }
+index_box_type Context::GetIndexBox() const { return m_pimpl_->m_bound_index_box_; }
 void Context::DoInitialize() { SPObject::DoInitialize(); }
 void Context::DoFinalize() { SPObject::DoFinalize(); }
 void Context::DoTearDown() { SPObject::DoTearDown(); }
 void Context::DoUpdate() {
     SPObject::DoUpdate();
+
+    GetMesh()->GetChart()->SetOrigin(std::get<0>(GetBoundBox()));
     for (auto &d : m_pimpl_->m_domains_) { d.second->Update(); }
+
+    //    auto scale = GetMesh()->GetChart()->GetScale();
+    //    auto ib = GetAllDomains().begin();
+    //    auto ie = GetAllDomains().end();
+    //
+    //    box_type bound_box = ib->second->GetBoundary()->GetBoundBox();
+    //    ++ib;
+    //    for (; ib != ie; ++ib) { bound_box = geometry::expand(bound_box, ib->second->GetBoundary()->GetBoundBox()); }
+    //    auto bound_box = GetBoundBox();
+    //    return index_box_type{std::get<0>(GetMesh()->GetChart()->invert_local_coordinates(std::get<0>(bound_box))),
+    //                          std::get<0>(GetMesh()->GetChart()->invert_local_coordinates(std::get<1>(bound_box)))};
 }
 
 void Context::SetMesh(std::shared_ptr<MeshBase> const &m) { m_pimpl_->m_mesh_ = m; }
@@ -142,16 +165,8 @@ std::map<std::string, std::shared_ptr<DomainBase>> const &Context::GetAllDomains
     return m_pimpl_->m_domains_;
 }
 
-void Context::Pull(Patch *p) {
-    GetMesh()->Pull(p);
-    //    VERBOSE << "Pull Level:" << GetMesh()->GetBlock().GetLevel() << " Id:" << p->GetId() << " Box:" <<
-    //    GetMesh()->GetBox(0) << std::endl;
-};
-void Context::Push(Patch *p) {
-    GetMesh()->Push(p);
-    //    VERBOSE << "SetPatch Level:" << GetMesh()->GetBlock().GetLevel() << " Id:" << p->GetId() << " Box:" <<
-    //    GetMesh()->GetBox(0) << std::endl;
-};
+void Context::Pull(Patch *p) { GetMesh()->Pull(p); };
+void Context::Push(Patch *p) { GetMesh()->Push(p); };
 
 void Context::InitialCondition(Real time_now) {
     GetMesh()->InitialCondition(time_now);

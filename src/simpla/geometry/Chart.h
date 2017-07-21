@@ -26,8 +26,8 @@ struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<C
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
 
-    void SetLevel(size_type level);
-    size_type GetLevel() const;
+    void SetLevel(int level);
+    int GetLevel() const;
 
     void SetOrigin(point_type const &x);
     point_type const &GetOrigin() const;
@@ -35,7 +35,7 @@ struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<C
     void SetScale(point_type const &x);
     point_type const &GetScale() const;
 
-    point_type GetCellWidth(size_type level = 0) const;
+    point_type GetCellWidth(int level = 0) const;
 
     void SetRotation(point_type const &x);
     point_type const &GetRotation() const;
@@ -45,11 +45,15 @@ struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<C
         return point_type{std::fma(x[0], m_scale_[0], m_origin_[0]), std::fma(x[1], m_scale_[1], m_origin_[1]),
                           std::fma(x[2], m_scale_[2], m_origin_[2])};
     }
-    point_type local_coordinates(index_tuple x, int tag) const {
+    point_type local_coordinates(index_tuple const &x, int tag) const {
         return local_coordinates(x, EntityIdCoder::m_id_to_coordinates_shift_[tag]);
     }
-    point_type local_coordinates(index_tuple x, Real const *r) const {
+    point_type local_coordinates(index_tuple const &x, Real const *r) const {
         return local_coordinates(point_type{x[0] + r[0], x[1] + r[1], x[2] + r[2]});
+    }
+
+    point_type local_coordinates(index_type x, index_type y, index_type z, int const &tag) const {
+        return local_coordinates(x, y, z, EntityIdCoder::m_id_to_coordinates_shift_[tag]);
     }
 
     template <typename TR>
@@ -95,7 +99,7 @@ struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<C
     virtual Real inner_product(point_type const &uvw, vector_type const &v0, vector_type const &v1) const = 0;
 
    private:
-    size_type m_level_ = 0;
+    int m_level_ = 0;
     point_type m_origin_{0, 0, 0};
     point_type m_rotation_{0, 0, 0};
     point_type m_scale_{1, 1, 1};

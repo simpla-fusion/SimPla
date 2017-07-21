@@ -17,6 +17,14 @@ std::tuple<nTuple<T, N...>, nTuple<T, N...>> expand_gw(std::tuple<nTuple<T, N...
     return std::make_tuple(lo, hi);
 };
 
+template <typename T, int... N>
+auto expand(std::tuple<nTuple<T, N...>, nTuple<T, N...>> const &left,
+           std::tuple<nTuple<T, N...>, nTuple<T, N...>> const &right) {
+    nTuple<T, N...> lo = min(std::get<0>(left) - std::get<0>(right));
+    nTuple<T, N...> hi = max(std::get<0>(left) - std::get<0>(right));
+    return std::forward_as_tuple(lo, hi);
+};
+
 template <typename T>
 using Point3 = nTuple<T, 3>;
 template <typename T>

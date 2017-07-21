@@ -81,6 +81,7 @@ class DataTable : public DataEntity {
     /** Interface DataBackend End */
     //******************************************************************************************************************
     bool has(std::string const& uri) const { return Get(uri) != nullptr; }
+    bool isTable(std::string const& uri) const { return has(uri) && Get(uri)->isTable(); }
 
     template <typename U>
     bool Check(std::string const& key, U const& u = true) const {
@@ -116,6 +117,10 @@ class DataTable : public DataEntity {
     U GetValue(std::string const& uri, U const& default_value) const {
         return DataCastTraits<U>::Get(Get(uri), default_value);
     }
+//    template <typename U, typename... Args>
+//    U GetValue(std::string const& uri, Args&&... args) const {
+//        return DataCastTraits<U>::Get(Get(uri), U{std::forward<Args>(args)...});
+//    }
 
     //    template <typename U, typename V>
     //    bool GetValue(std::string const& uri, V* v) const {

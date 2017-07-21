@@ -88,6 +88,9 @@ class Context : public SPObject, public data::Serializable {
     MeshBase const *GetMesh() const;
     MeshBase *GetMesh();
 
+    box_type GetBoundBox() const;
+    index_box_type GetIndexBox() const;
+
     void SetModel(std::string const &k, std::shared_ptr<Model> const &) const;
     std::shared_ptr<Model> GetModel(std::string const &k) const;
 

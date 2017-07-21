@@ -32,7 +32,7 @@ void EBMesh<THost>::SetEmbeddedBoundary(std::string const &prefix, const std::sh
     if (g == nullptr) { return; }
 
     VERBOSE << "Add Embedded Boundary [" << prefix << "]"
-            << "Patch : Level=" << m_host_->GetMesh()->GetBlock().GetLevel() << " "
+            << "Patch : Level=" << m_host_->GetMesh()->GetBlock()->GetLevel() << " "
             << m_host_->GetMesh()->GetIndexBox(0) << std::endl;
 
     Real ratio = g->CheckOverlap(m_host_->GetBox(0));

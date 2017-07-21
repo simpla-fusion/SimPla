@@ -27,11 +27,10 @@ std::shared_ptr<data::DataTable> DomainBase::Serialize() const {
     return (p);
 }
 void DomainBase::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
-    auto g_cfg = cfg->Get("Boundary");
-    if (g_cfg->isTable()) {
+    if (cfg->isTable("Boundary")) {
         m_boundary_ = geometry::GeoObject::Create(cfg->Get("Boundary"));
     } else if (m_model_ != nullptr) {
-        m_boundary_ = m_model_->GetGeoObject(cfg->GetValue<std::string>("Boundary", "Boundary"));
+        m_boundary_ = m_model_->GetGeoObject(cfg->GetValue<std::string>("Boundary", ""));
     }
 
     Click();
@@ -46,7 +45,7 @@ void DomainBase::InitialCondition(Real time_now) {
     Update();
     if (GetBoundary() != nullptr && GetBoundary()->CheckOverlap(GetMesh()->GetBox(0)) < EPSILON) { return; }
 
-//    VERBOSE << "InitialCondition   \t:" << GetName() << std::endl;
+    VERBOSE << "InitialCondition   \t:" << GetName() << std::endl;
     GetMesh()->AddEmbeddedBoundary(GetName(), GetBoundary());
     PreInitialCondition(this, time_now);
     DoInitialCondition(time_now);
@@ -54,21 +53,21 @@ void DomainBase::InitialCondition(Real time_now) {
 }
 void DomainBase::BoundaryCondition(Real time_now, Real dt) {
     Update();
-//    VERBOSE << "Boundary Condition \t:" << GetName() << std::endl;
+    VERBOSE << "Boundary Condition \t:" << GetName() << std::endl;
     PreBoundaryCondition(this, time_now, dt);
     DoBoundaryCondition(time_now, dt);
     PostBoundaryCondition(this, time_now, dt);
 }
 void DomainBase::Advance(Real time_now, Real dt) {
     Update();
-//    VERBOSE << "Advance            \t:" << GetName() << std::endl;
+    VERBOSE << "Advance            \t:" << GetName() << std::endl;
     PreAdvance(this, time_now, dt);
     DoAdvance(time_now, dt);
     PostAdvance(this, time_now, dt);
 }
 void DomainBase::TagRefinementCells(Real time_now) {
     Update();
-//    VERBOSE << "TagRefinementCells  \t:" << GetName() << std::endl;
+    VERBOSE << "TagRefinementCells  \t:" << GetName() << std::endl;
     PreTagRefinementCells(this, time_now);
     DoTagRefinementCells(time_now);
     PostTagRefinementCells(this, time_now);

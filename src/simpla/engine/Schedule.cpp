@@ -80,8 +80,8 @@ void Schedule::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
 }
 
 void Schedule::DoInitialize() {
-    m_ctx_->DoInitialize();
     SPObject::DoInitialize();
+    m_ctx_->DoInitialize();
 }
 
 void Schedule::DoFinalize() {

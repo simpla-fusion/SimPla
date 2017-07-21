@@ -70,7 +70,6 @@ class DomainBase : public SPObject,
     design_pattern::Signal<void(DomainBase *, Real, Real)> PostBoundaryCondition;
     design_pattern::Signal<void(DomainBase *, Real, Real)> PreAdvance;
     design_pattern::Signal<void(DomainBase *, Real, Real)> PostAdvance;
-
     design_pattern::Signal<void(DomainBase *, Real)> PreTagRefinementCells;
     design_pattern::Signal<void(DomainBase *, Real)> PostTagRefinementCells;
 

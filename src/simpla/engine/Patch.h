@@ -22,9 +22,6 @@ class Patch {
    public:
     explicit Patch(MeshBlock const &blk);
     explicit Patch(MeshBlock &&blk);
-
-    template <typename... Args>
-    explicit Patch(Args &&... args) : m_block_(std::forward<Args>(args)...){};
     virtual ~Patch();
 
     Patch(this_type const &other);
@@ -34,10 +31,8 @@ class Patch {
 
     void swap(Patch &other);
 
-    id_type GetId() const { return GetMeshBlock().GetID(); }
-
     void SetMeshBlock(const MeshBlock &);
-    const MeshBlock &GetMeshBlock() const;
+    const MeshBlock * GetMeshBlock() const;
 
     void SetDataBlock(id_type id, std::shared_ptr<data::DataBlock> const &);
     std::shared_ptr<data::DataBlock> GetDataBlock(id_type const &id);

@@ -62,13 +62,15 @@ namespace engine {
  */
 
 class Patch;
+class MeshBlock;
+
 /**
- * @brief
- *  - Define topology relation between  mesh blocks
- *  - Atlas is defined in a dimensionless topology space , without metric information
- *  - '''Origin''' is the origin point of continue topology space and discrete index space
- *  - '''dx''' is the resolution ratio  of discrete mesh, x = i * dx + r where 0<= r < dx
- */
+* @brief
+*  - Define topology relation between  mesh blocks
+*  - Atlas is defined in a dimensionless topology space , without metric information
+*  - '''Origin''' is the origin point of continue topology space and discrete index space
+*  - '''dx''' is the resolution ratio  of discrete mesh, x = i * dx + r where 0<= r < dx
+*/
 class Atlas : public SPObject, public data::Serializable {
     SP_OBJECT_HEAD(Atlas, SPObject)
    public:
@@ -77,20 +79,15 @@ class Atlas : public SPObject, public data::Serializable {
     SP_DEFAULT_CONSTRUCT(Atlas);
 
     std::shared_ptr<data::DataTable> Serialize() const override;
-
     void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
 
     void DoUpdate() override;
 
     size_type DeletePatch(id_type);
-    id_type SetPatch(id_type id, Patch &&);
-    Patch GetPatch(id_type id) const;
-    Patch GetPatch(id_type id);
-    template <typename... Args>
-    Patch GetPatch(id_type id, Args &&... args) {
-        if (GetPatch(id) == nullptr) { SetPatch(id, Patch{std::forward<Args>(args)...}); }
-        return GetPatch(id);
-    };
+    id_type SetPatch(Patch &&);
+    Patch *GetPatch(id_type id);
+    Patch *GetPatch(MeshBlock const &);
+    Patch const *GetPatch(id_type id) const;
 
     int GetNumOfLevel() const;
 
@@ -106,11 +103,11 @@ class Atlas : public SPObject, public data::Serializable {
     void SetSmallestPatchDimensions(nTuple<int, 3> const &d);
     nTuple<int, 3> GetSmallestPatchDimensions() const;
 
-    void SetPeriodicDimension(nTuple<int, 3> const &t);
-    nTuple<int, 3> const &GetPeriodicDimension() const;
+    void SetPeriodicDimensions(nTuple<int, 3> const &t);
+    nTuple<int, 3> const &GetPeriodicDimensions() const;
 
-    void SetCoarsestDimensions(nTuple<int, 3> const &);
-    nTuple<int, 3> GetCoarsestDimensions() const;
+    void SetCoarsestIndexBox(index_box_type const &t);
+    index_box_type const &GetCoarsestIndexBox() const;
 
    private:
     struct pimpl_s;

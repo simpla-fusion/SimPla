@@ -21,7 +21,7 @@
 namespace simpla {
 namespace engine {
 
-struct pack_s : public PatchDataCache {
+struct pack_s : public Patch::DataPack_s {
     std::map<std::string, Range<EntityId>> m_ranges_;
 };
 
@@ -30,11 +30,11 @@ struct MeshBase::pimpl_s {
 };
 
 MeshBase::MeshBase(std::shared_ptr<geometry::Chart> const& c, index_box_type const& b)
-    : m_pimpl_(new pimpl_s), m_chart_(c), m_mesh_block_(b) {}
+    : m_pimpl_(new pimpl_s), m_chart_(c), m_mesh_block_(b, 0, 0, 0) {}
 
 MeshBase::~MeshBase() = default;
 
-index_box_type MeshBase::GetIndexBox(int tag) const { return GetBlock().GetIndexBox(); }
+index_box_type MeshBase::GetIndexBox(int tag) const { return GetBlock()->GetIndexBox(); }
 
 box_type MeshBase::GetBox(int tag) const {
     auto id_box = GetIndexBox(tag);
@@ -68,17 +68,21 @@ std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
 void MeshBase::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     SetName(cfg->GetValue("Name", GetRegisterName()));
 
-    m_chart_ = geometry::Chart::Create(cfg->Get("Chart"));
-
-    nTuple<int, 3> dims{1, 1, 1};
-    dims = cfg->GetValue<nTuple<int, 3>>("Dimensions", dims);
-
     auto lo = cfg->GetValue<point_type>("Box/lo", point_type{0, 0, 0});
     auto hi = cfg->GetValue<point_type>("Box/hi", point_type{1, 1, 1});
+
+    auto dims = cfg->GetValue<nTuple<int, 3>>("Dimensions", nTuple<int, 3>{1, 1, 1});
+
+    if (cfg->isTable("Chart")) {
+        m_chart_ = geometry::Chart::Create(cfg->Get("Chart/Type"));
+
+    } else {
+        m_chart_ = geometry::Chart::Create(cfg->Get("Chart"));
+    }
     m_chart_->SetOrigin(lo);
     m_chart_->SetScale((hi - lo) / dims);
 
-    MeshBlock(index_box_type{{0, 0, 0}, {dims[0], dims[1], dims[2]}}, 0, 0).swap(m_mesh_block_);
+    if (cfg->isTable("Chart")) { m_chart_->Deserialize(cfg->GetTable("Chart")); }
     Click();
 };
 
@@ -96,25 +100,25 @@ void MeshBase::DoFinalize() {
 }
 
 void MeshBase::SetBlock(const engine::MeshBlock& blk) { MeshBlock(blk).swap(m_mesh_block_); };
-const engine::MeshBlock& MeshBase::GetBlock() const { return m_mesh_block_; }
-id_type MeshBase::GetBlockId() const { return m_mesh_block_.GetID(); }
+const MeshBlock* MeshBase::GetBlock() const { return &m_mesh_block_; }
 
 void MeshBase::Push(Patch* patch) {
-    SetBlock(patch->GetMeshBlock());
+    VERBOSE << " Patch Level:" << patch->GetMeshBlock()->GetLevel() << " ID: " << patch->GetMeshBlock()->GetLocalID()
+            << " Block:" << patch->GetMeshBlock()->GetIndexBox() << std::endl;
 
-    m_chart_->SetLevel(GetBlock().GetLevel());
+    SetBlock(*patch->GetMeshBlock());
+
+    m_chart_->SetLevel(GetBlock()->GetLevel());
 
     AttributeGroup::Push(patch);
-    if (m_pimpl_->m_pack_ == nullptr) {
-        m_pimpl_->m_pack_ = std::dynamic_pointer_cast<pack_s>(patch->GetDataCache(GetName()));
-    }
+    if (m_pimpl_->m_pack_ == nullptr) { m_pimpl_->m_pack_ = std::dynamic_pointer_cast<pack_s>(patch->GetDataPack()); }
     Update();
-    ASSERT(GetBlock().GetLevel() == m_chart_->GetLevel());
+    ASSERT(GetBlock()->GetLevel() == m_chart_->GetLevel());
 }
 void MeshBase::Pull(Patch* patch) {
-    patch->SetMeshBlock(GetBlock());
+    patch->SetMeshBlock(*GetBlock());
     AttributeGroup::Pull(patch);
-    patch->SetDataCache(GetName(), std::dynamic_pointer_cast<PatchDataCache>(m_pimpl_->m_pack_));
+    patch->SetDataPack(m_pimpl_->m_pack_);
 
     Finalize();
 }

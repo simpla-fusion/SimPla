@@ -5,34 +5,41 @@ N_PHI = 100
 
 Atlas = {
     PeriodicDimension = { 0, 0, 0 },
-    CoarsestDimensions={64, 64, 32},
-    MaxLevel=1;
+    SmallestPatchDimensions={8,8,8},
+    LargestPatchDimensions ={64,64,64},
+    MaxLevel = 2;
 }
 
 Context = {
     Name = "EMTokamak",
-
     Mesh = {
         Type = "EBRectMesh",
-        Chart = "Cylindrical",
-        Box = {
-            lo = { 1.4, -1.0, -PI },
-            hi = { 2.5, 1.0, PI },
+        Chart =
+        {
+            Type = "Cylindrical",
+--            Origin = { 0.0, 0.0, 0.0 },
+--            Scale = { 1.0 / 64.0, 1.0 / 64.0, PI / 32 }, --Coarsest Cell Width
         },
+        Box = {
+            lo = { 1.2, -1.0, -PI / 2.0 },
+            hi = { 2.5, 1.0, PI / 2.0 }
+        },
+        Dimensions = { 64, 64, 32 }
     },
     Model =
     {
         Tokamak = {
             Type = "Tokamak",
             gfile = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900",
+            Phi = { -TWOPI / 4, TWOPI / 4 },
         },
     },
     Domains = {
-        --        Limiter = {
-        --            Type = "Maxwell",
-        --            Model = "Tokamak",
-        --            Boundary = "Limiter",
-        --        },
+        Limiter = {
+            Type = "Maxwell",
+            Model = "Tokamak",
+--            Boundary = "Limiter",
+        },
         PlasmaCenter = {
             Type = "EMFluid", -- "Domain<RectMesh,EBMesh,FVM,EMFluid>",
             Species = {
@@ -68,7 +75,4 @@ Schedule = {
     TimeStep = 1.0e-11,
     CheckPointInterval = 1,
     UpdateOrder = { "RFAntenna", "Tokamak" }
-
-
-
 }

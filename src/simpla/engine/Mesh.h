@@ -54,8 +54,7 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
     virtual box_type GetBox(int tag = 0) const;
 
     void SetBlock(const MeshBlock &blk);
-    virtual const MeshBlock &GetBlock() const;
-    virtual id_type GetBlockId() const;
+    virtual const MeshBlock *GetBlock() const;
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const &t) override;
@@ -103,7 +102,7 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     Mesh() : Policies<this_type>(this)... {};
     ~Mesh() override = default;
 
-    const engine::MeshBlock &GetBlock() const override { return MeshBase::GetBlock(); }
+    const MeshBlock *GetBlock() const override { return MeshBase::GetBlock(); }
 
     index_box_type GetIndexBox(int tag) const override { return MeshBase::GetIndexBox(tag); };
 
@@ -182,7 +181,7 @@ void Mesh<TM, Policies...>::DoAdvance(Real time_now, Real dt) {
 
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::DoTagRefinementCells(Real time_now) {
-    m_refinement_tags_.Clear();
+    //  m_refinement_tags_.Clear();
     traits::_try_invoke_TagRefinementCells<Policies...>(this, time_now);
 }
 
@@ -200,6 +199,7 @@ void Mesh<TM, Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::AddEmbeddedBoundary(std::string const &prefix,
                                                 const std::shared_ptr<geometry::GeoObject> &g) {
+    if (g == nullptr) { return; }
     _detail::_try_invoke_SetEmbeddedBoundary<Policies...>(this, prefix, g);
 };
 
