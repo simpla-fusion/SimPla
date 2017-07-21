@@ -29,8 +29,7 @@ struct MeshBase::pimpl_s {
     std::shared_ptr<pack_s> m_pack_;
 };
 
-MeshBase::MeshBase(std::shared_ptr<geometry::Chart> const& c, index_box_type const& b)
-    : m_pimpl_(new pimpl_s), m_chart_(c), m_mesh_block_(b, 0, 0, 0) {}
+MeshBase::MeshBase() : m_pimpl_(new pimpl_s) {}
 
 MeshBase::~MeshBase() = default;
 
@@ -61,8 +60,6 @@ box_type MeshBase::GetBox(int tag) const {
 std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
     auto p = std::make_shared<data::DataTable>();
     p->SetValue("Type", GetRegisterName());
-    p->SetValue("Chart", GetChart()->Serialize());
-
     return (p);
 }
 void MeshBase::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
@@ -71,32 +68,26 @@ void MeshBase::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     auto lo = cfg->GetValue<point_type>("Box/lo", point_type{0, 0, 0});
     auto hi = cfg->GetValue<point_type>("Box/hi", point_type{1, 1, 1});
 
-    auto dims = cfg->GetValue<nTuple<int, 3>>("Dimensions", nTuple<int, 3>{1, 1, 1});
+    nTuple<int, 3> dims = cfg->GetValue("Dimensions", nTuple<int, 3>{1, 1, 1});
 
-    if (cfg->isTable("Chart")) {
-        m_chart_ = geometry::Chart::Create(cfg->Get("Chart/Type"));
+    GetChart()->SetOrigin(lo);
+    GetChart()->SetScale((hi - lo) / (dims + 1));
 
-    } else {
-        m_chart_ = geometry::Chart::Create(cfg->Get("Chart"));
-    }
-    m_chart_->SetOrigin(lo);
-    m_chart_->SetScale((hi - lo) / dims);
-
-    if (cfg->isTable("Chart")) { m_chart_->Deserialize(cfg->GetTable("Chart")); }
+    GetChart()->Deserialize(cfg->GetTable("Chart"));
     Click();
 };
 
 void MeshBase::DoUpdate() {
     SPObject::DoUpdate();
     if (m_pimpl_->m_pack_ == nullptr) { m_pimpl_->m_pack_ = std::make_shared<pack_s>(); }
-    m_chart_->SetLevel(m_mesh_block_.GetLevel());
+    GetChart()->SetLevel(m_mesh_block_.GetLevel());
     AttributeGroup::RegisterAttributes();
 }
-void MeshBase::DoTearDown() { m_chart_->SetLevel(0); }
-void MeshBase::DoInitialize() { m_chart_->SetLevel(m_mesh_block_.GetLevel()); }
+void MeshBase::DoTearDown() { GetChart()->SetLevel(0); }
+void MeshBase::DoInitialize() { GetChart()->SetLevel(m_mesh_block_.GetLevel()); }
 void MeshBase::DoFinalize() {
     m_pimpl_->m_pack_.reset();
-    m_chart_->SetLevel(0);
+    GetChart()->SetLevel(0);
 }
 
 void MeshBase::SetBlock(const engine::MeshBlock& blk) { MeshBlock(blk).swap(m_mesh_block_); };
@@ -108,11 +99,11 @@ void MeshBase::Push(Patch* patch) {
     //            << " Block:" << patch->GetMeshBlock()->GetIndexBox() << std::endl;
 
     SetBlock(*patch->GetMeshBlock());
-    m_chart_->SetLevel(GetBlock()->GetLevel());
+    GetChart()->SetLevel(GetBlock()->GetLevel());
     AttributeGroup::Push(patch);
     if (m_pimpl_->m_pack_ == nullptr) { m_pimpl_->m_pack_ = std::dynamic_pointer_cast<pack_s>(patch->GetDataPack()); }
     Update();
-    ASSERT(GetBlock()->GetLevel() == m_chart_->GetLevel());
+    ASSERT(GetBlock()->GetLevel() == GetChart()->GetLevel());
 }
 void MeshBase::Pull(Patch* patch) {
     patch->SetMeshBlock(*GetBlock());

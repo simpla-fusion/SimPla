@@ -31,8 +31,7 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
    public:
     using AttributeGroup::attribute_type;
 
-    MeshBase(std::shared_ptr<geometry::Chart> const &c = nullptr,
-             index_box_type const &b = index_box_type{{0, 0, 0}, {1, 1, 1}});
+    MeshBase();
     ~MeshBase() override;
 
     MeshBase(MeshBase const &other) = delete;
@@ -41,9 +40,8 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
     MeshBase &operator=(this_type const &other) = delete;
     MeshBase &operator=(this_type &&other) noexcept = delete;
 
-    void SetChart(std::shared_ptr<geometry::Chart> const &c) { m_chart_ = c; };
-    virtual const geometry::Chart *GetChart() const { return m_chart_.get(); };
-    virtual geometry::Chart *GetChart() { return m_chart_.get(); };
+    virtual geometry::Chart *GetChart() = 0;
+    virtual geometry::Chart const *GetChart() const = 0;
 
     virtual this_type *GetMesh() { return this; }
     virtual this_type const *GetMesh() const { return this; }
@@ -68,6 +66,7 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
     virtual void DoBoundaryCondition(Real time_now, Real dt) {}
     virtual void DoAdvance(Real time_now, Real dt) {}
     virtual void DoTagRefinementCells(Real time_now) {}
+    virtual void TagRefinementRange(Range<EntityId> const &r){};
 
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real dt);
@@ -87,7 +86,6 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
 
    private:
     MeshBlock m_mesh_block_{index_box_type{{0, 0, 0}, {1, 1, 1}}};
-    std::shared_ptr<geometry::Chart> m_chart_ = nullptr;
 
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
@@ -95,24 +93,29 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
 
 template <typename TChart, template <typename> class... Policies>
 class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
+    typedef Mesh<TChart, Policies...> this_type;
+
    public:
     DECLARE_REGISTER_NAME(Mesh)
 
-    typedef Mesh<TChart, Policies...> this_type;
+    typedef Mesh<TChart, Policies...> mesh_type;
+    typedef TChart chart_type;
+
+    chart_type m_chart_;
+
     Mesh() : Policies<this_type>(this)... {};
     ~Mesh() override = default;
 
     void DoUpdate() override;
 
+    chart_type *GetChart() override { return &m_chart_; }
+    chart_type const *GetChart() const override { return &m_chart_; }
+    this_type *GetMesh() override { return this; }
+    this_type const *GetMesh() const override { return this; }
+
     const MeshBlock *GetBlock() const override { return MeshBase::GetBlock(); }
 
     index_box_type GetIndexBox(int tag) const override { return MeshBase::GetIndexBox(tag); };
-
-    const TChart *GetChart() const override { return dynamic_cast<TChart const *>(MeshBase::GetChart()); };
-    TChart *GetChart() override { return dynamic_cast<TChart *>(MeshBase::GetChart()); };
-
-    this_type *GetMesh() override { return this; }
-    this_type const *GetMesh() const override { return this; }
 
     void DoInitialCondition(Real time_now) override;
     void DoBoundaryCondition(Real time_now, Real dt) override;
@@ -147,15 +150,15 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
         FillRange(lhs, std::forward<TR>(rhs), prefix + "_BOUNDARY_" + std::to_string(TL::iform), false);
     };
 
-    Field<this_type, int, VOLUME> m_refinement_tags_{this, "name"_ = "_refinement_tags_", "IS_NOT_OWNED"_};
-    Field<this_type, Real, VOLUME> m_workload_{this, "name"_ = "_workload_", "IS_NOT_OWNED"_};
+    Field<mesh_type, int, VOLUME> m_refinement_tags_{this, "name"_ = "_refinement_tags_", "IS_NOT_OWNED"_};
+    Field<mesh_type, Real, VOLUME> m_workload_{this, "name"_ = "_workload_", "IS_NOT_OWNED"_};
 
-    void TagRefinementCells(Range<EntityId> const &r);
+    void TagRefinementRange(Range<EntityId> const &r) override;
 
     void AddEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g) override;
 };
 template <typename TM, template <typename> class... Policies>
-void Mesh<TM, Policies...>::TagRefinementCells(Range<EntityId> const &r) {
+void Mesh<TM, Policies...>::TagRefinementRange(Range<EntityId> const &r) {
     if (!m_refinement_tags_.isNull() && !r.isNull()) {
         r.foreach ([&](EntityId s) {
             if (m_refinement_tags_[0].in_box(s.x, s.y, s.z)) { m_refinement_tags_[0](s.x, s.y, s.z) = 1; }
@@ -187,20 +190,20 @@ void Mesh<TM, Policies...>::DoAdvance(Real time_now, Real dt) {
 
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::DoTagRefinementCells(Real time_now) {
-    //  m_refinement_tags_.Clear();
     traits::_try_invoke_TagRefinementCells<Policies...>(this, time_now);
 }
 
 template <typename TM, template <typename> class... Policies>
 std::shared_ptr<data::DataTable> Mesh<TM, Policies...>::Serialize() const {
     auto res = MeshBase::Serialize();
+    res->Set("Chart", m_chart_.Serialize());
     traits::_try_invoke_Serialize<Policies...>(this, res.get());
     return res;
 };
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
-    traits::_try_invoke_Deserialize<Policies...>(this, cfg);
     MeshBase::Deserialize(cfg);
+    traits::_try_invoke_Deserialize<Policies...>(this, cfg);
 };
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::AddEmbeddedBoundary(std::string const &prefix,

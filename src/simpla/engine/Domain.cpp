@@ -32,7 +32,6 @@ void DomainBase::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     } else if (m_model_ != nullptr) {
         m_boundary_ = m_model_->GetGeoObject(cfg->GetValue<std::string>("Boundary", ""));
     }
-
     Click();
 };
 
@@ -43,9 +42,15 @@ void DomainBase::DoFinalize() {}
 
 void DomainBase::InitialCondition(Real time_now) {
     Update();
-    if (GetBoundary() != nullptr && GetBoundary()->CheckOverlap(GetMesh()->GetBox(0)) < EPSILON) { return; }
+    if (GetBoundary() != nullptr) {
+        if (GetBoundary()->CheckOverlap(GetMesh()->GetBox(0)) > EPSILON) {
+            GetMesh()->AddEmbeddedBoundary(GetName(), GetBoundary());
 
-    GetMesh()->AddEmbeddedBoundary(GetName(), GetBoundary());
+        } else {
+            return;
+        }
+    }
+
     PreInitialCondition(this, time_now);
     DoInitialCondition(time_now);
     PostInitialCondition(this, time_now);
@@ -65,6 +70,8 @@ void DomainBase::Advance(Real time_now, Real dt) {
 void DomainBase::TagRefinementCells(Real time_now) {
     Update();
     PreTagRefinementCells(this, time_now);
+    GetMesh()->TagRefinementRange(GetMesh()->GetRange(GetName() + "_BOUNDARY_3"));
+
     DoTagRefinementCells(time_now);
     PostTagRefinementCells(this, time_now);
 }

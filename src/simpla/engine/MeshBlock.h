@@ -22,7 +22,7 @@ class MeshBlock {
     static constexpr int MAX_LEVEL_NUMBER = 8;
     static constexpr int MAX_LOCAL_ID_NUMBER = std::numeric_limits<int>::max() / 2;
 
-    explicit MeshBlock(index_box_type b, int id = 0, int level = 0, int owner = 0);
+    explicit MeshBlock(index_box_type b = {{0, 0, 0}, {1, 1, 1}}, int id = 0, int level = 0, int owner = 0);
     ~MeshBlock();
 
     MeshBlock(MeshBlock const &other);

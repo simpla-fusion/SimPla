@@ -57,11 +57,8 @@ class DomainBase : public SPObject,
     void Deserialize(std::shared_ptr<data::DataTable> const &t) override;
 
     void DoInitialize() override;
-
     void DoFinalize() override;
-
     void DoUpdate() override;
-
     void DoTearDown() override;
 
     design_pattern::Signal<void(DomainBase *, Real)> PreInitialCondition;

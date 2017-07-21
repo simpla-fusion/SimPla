@@ -5,7 +5,7 @@ N_PHI = 100
 
 Atlas = {
     PeriodicDimension = { 0, 0, 0 },
-    SmallestPatchDimensions={8,8,8},
+    SmallestPatchDimensions={8,8,1},
     LargestPatchDimensions ={64,64,64},
     MaxLevel = 2;
 }
@@ -24,7 +24,7 @@ Context = {
             lo = { 1.2, -1.0, -PI / 2.0 },
             hi = { 2.5, 1.0, PI / 2.0 }
         },
-        Dimensions = { 64, 64, 32 }
+        Dimensions = { 64, 64, 8 }
     },
     Model =
     {
@@ -40,15 +40,15 @@ Context = {
             Model = "Tokamak",
 --            Boundary = "Limiter",
         },
-        PlasmaCenter = {
-            Type = "EMFluid", -- "Domain<RectMesh,EBMesh,FVM,EMFluid>",
-            Species = {
-                ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
-                H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
-            },
-            Model = "Tokamak",
-            Boundary = "Plasma",
-        },
+--        PlasmaCenter = {
+--            Type = "EMFluid", -- "Domain<RectMesh,EBMesh,FVM,EMFluid>",
+--            Species = {
+--                ele = { Z = -1.0, mass = 1.0 / 1836, ratio = 1.0 },
+--                H = { Z = 1.0, mass = 1.0, ratio = 1.0 },
+--            },
+--            Model = "Tokamak",
+--            Boundary = "Plasma",
+--        },
         ICRF = {
             Type = "ICRFAntenna", -- "Domain<RectMesh,EBMesh,FVM,ICRFAntenna>",
 

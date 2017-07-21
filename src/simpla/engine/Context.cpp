@@ -185,7 +185,7 @@ void Context::Advance(Real time_now, Real dt) {
 }
 
 void Context::TagRefinementCells(Real time_now) {
-//    VERBOSE << "TagRefinementCells  \t:" << GetName() << std::endl;
+//    VERBOSE << "TagRefinementRange  \t:" << GetName() << std::endl;
     GetMesh()->TagRefinementCells(time_now);
     for (auto &d : GetAllDomains()) { d.second->TagRefinementCells(time_now); }
 }

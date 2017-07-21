@@ -44,7 +44,7 @@ class EMFluid {
     Field<host_type, Real, VOLUME, 3> dumpB{m_host_, "name"_ = "dumpB"};
     Field<host_type, Real, VOLUME, 3> dumpJ{m_host_, "name"_ = "dumpJ"};
 
-    void TagRefinementCells(Real time_now);
+//    void TagRefinementCells(Real time_now);
 
     struct fluid_s {
         Real mass = 1;
@@ -96,11 +96,11 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
             << " [m_p], charge = " << sp->charge / SI_elementary_charge << " [q_e] }" << std::endl;
     return sp;
 }
-
-template <typename TM>
-void EMFluid<TM>::TagRefinementCells(Real time_now) {
-    m_host_->GetMesh()->TagRefinementCells(m_host_->GetMesh()->GetRange(m_host_->GetName() + "_BOUNDARY_3"));
-}
+//
+//template <typename TM>
+//void EMFluid<TM>::TagRefinementCells(Real time_now) {
+//    m_host_->GetMesh()->TagRefinementCells(m_host_->GetMesh()->GetRange(m_host_->GetName() + "_BOUNDARY_3"));
+//}
 template <typename TM>
 void EMFluid<TM>::InitialCondition(Real time_now) {
     E.Clear();
