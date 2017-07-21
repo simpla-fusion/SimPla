@@ -102,6 +102,8 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     Mesh() : Policies<this_type>(this)... {};
     ~Mesh() override = default;
 
+    void DoUpdate() override;
+
     const MeshBlock *GetBlock() const override { return MeshBase::GetBlock(); }
 
     index_box_type GetIndexBox(int tag) const override { return MeshBase::GetIndexBox(tag); };
@@ -160,7 +162,11 @@ void Mesh<TM, Policies...>::TagRefinementCells(Range<EntityId> const &r) {
         });
     }
 };
-
+template <typename TM, template <typename> class... Policies>
+void Mesh<TM, Policies...>::DoUpdate() {
+    MeshBase::DoUpdate();
+    if (!m_refinement_tags_.isNull()) { m_refinement_tags_.Clear(); }
+};
 namespace _detail {
 DEFINE_INVOKE_HELPER(SetEmbeddedBoundary)
 DEFINE_INVOKE_HELPER(Calculate)

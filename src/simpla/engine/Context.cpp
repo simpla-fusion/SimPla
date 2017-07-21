@@ -169,19 +169,23 @@ void Context::Pull(Patch *p) { GetMesh()->Pull(p); };
 void Context::Push(Patch *p) { GetMesh()->Push(p); };
 
 void Context::InitialCondition(Real time_now) {
+//    VERBOSE << "InitialCondition   \t:" << GetName() << std::endl;
     GetMesh()->InitialCondition(time_now);
     for (auto &d : GetAllDomains()) { d.second->InitialCondition(time_now); }
 }
 void Context::BoundaryCondition(Real time_now, Real dt) {
+//    VERBOSE << "Boundary Condition \t:" << GetName() << std::endl;
     GetMesh()->BoundaryCondition(time_now, dt);
     for (auto &d : GetAllDomains()) { d.second->BoundaryCondition(time_now, dt); }
 }
 void Context::Advance(Real time_now, Real dt) {
+//    VERBOSE << "Advance            \t:" << GetName() << std::endl;
     GetMesh()->Advance(time_now, dt);
     for (auto &d : GetAllDomains()) { d.second->Advance(time_now, dt); }
 }
 
 void Context::TagRefinementCells(Real time_now) {
+//    VERBOSE << "TagRefinementCells  \t:" << GetName() << std::endl;
     GetMesh()->TagRefinementCells(time_now);
     for (auto &d : GetAllDomains()) { d.second->TagRefinementCells(time_now); }
 }

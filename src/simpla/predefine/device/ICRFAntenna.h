@@ -35,7 +35,6 @@ class ICRFAntenna {
 };
 template <typename TM>
 void ICRFAntenna<TM>::TagRefinementCells(Real time_now) {
-    if (m_host_->GetMesh()->GetBlock()->GetLevel() > 0) { return; }
     m_host_->GetMesh()->TagRefinementCells(m_host_->GetMesh()->GetRange(m_host_->GetName() + "_BOUNDARY_3"));
 }
 template <typename TM>

@@ -103,13 +103,12 @@ void MeshBase::SetBlock(const engine::MeshBlock& blk) { MeshBlock(blk).swap(m_me
 const MeshBlock* MeshBase::GetBlock() const { return &m_mesh_block_; }
 
 void MeshBase::Push(Patch* patch) {
-    VERBOSE << " Patch Level:" << patch->GetMeshBlock()->GetLevel() << " ID: " << patch->GetMeshBlock()->GetLocalID()
-            << " Block:" << patch->GetMeshBlock()->GetIndexBox() << std::endl;
+    //    VERBOSE << " Patch Level:" << patch->GetMeshBlock()->GetLevel() << " ID: " <<
+    //    patch->GetMeshBlock()->GetLocalID()
+    //            << " Block:" << patch->GetMeshBlock()->GetIndexBox() << std::endl;
 
     SetBlock(*patch->GetMeshBlock());
-
     m_chart_->SetLevel(GetBlock()->GetLevel());
-
     AttributeGroup::Push(patch);
     if (m_pimpl_->m_pack_ == nullptr) { m_pimpl_->m_pack_ = std::dynamic_pointer_cast<pack_s>(patch->GetDataPack()); }
     Update();
@@ -137,22 +136,10 @@ Range<EntityId> MeshBase::GetRange(std::string const& k) const {
     return (it == m_pimpl_->m_pack_->m_ranges_.end()) ? Range<EntityId>{} : it->second;
 };
 
-void MeshBase::InitialCondition(Real time_now) {
-    VERBOSE << "InitialCondition   \t:" << GetName() << std::endl;
-    DoInitialCondition(time_now);
-}
-void MeshBase::BoundaryCondition(Real time_now, Real dt) {
-    VERBOSE << "Boundary Condition \t:" << GetName() << std::endl;
-    DoBoundaryCondition(time_now, dt);
-}
-void MeshBase::Advance(Real time_now, Real dt) {
-    VERBOSE << "Advance            \t:" << GetName() << std::endl;
-    DoAdvance(time_now, dt);
-}
-void MeshBase::TagRefinementCells(Real time_now) {
-    VERBOSE << "TagRefinementCells \t:" << GetName() << std::endl;
-    DoTagRefinementCells(time_now);
-}
+void MeshBase::InitialCondition(Real time_now) { DoInitialCondition(time_now); }
+void MeshBase::BoundaryCondition(Real time_now, Real dt) { DoBoundaryCondition(time_now, dt); }
+void MeshBase::Advance(Real time_now, Real dt) { DoAdvance(time_now, dt); }
+void MeshBase::TagRefinementCells(Real time_now) { DoTagRefinementCells(time_now); }
 
 void MeshBase::InitialCondition(Patch* patch, Real time_now) {
     Push(patch);
