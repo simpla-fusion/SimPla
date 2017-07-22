@@ -11,8 +11,8 @@
 #include "simpla/SIMPLA_config.h"
 
 #include "simpla/algebra/nTuple.h"
-#include "simpla/data/EnableCreateFromDataTable.h"
 #include "simpla/data/Serializable.h"
+#include "simpla/engine/EnableCreateFromDataTable.h"
 #include "simpla/engine/SPObject.h"
 #include "simpla/utilities/Log.h"
 #include "simpla/utilities/type_traits.h"
@@ -27,8 +27,8 @@ namespace geometry {
  *
  *  PlaceHolder Geometric object
  */
-class GeoObject : public data::EnableCreateFromDataTable<GeoObject> {
-    SP_OBJECT_HEAD(GeoObject, data::EnableCreateFromDataTable<GeoObject>)
+class GeoObject : public engine::EnableCreateFromDataTable<GeoObject> {
+    SP_OBJECT_HEAD(GeoObject, engine::EnableCreateFromDataTable<GeoObject>)
     SP_DEFAULT_CONSTRUCT(GeoObject)
 
    public:

@@ -64,13 +64,14 @@ void Schedule::Run() {
 }
 
 std::shared_ptr<data::DataTable> Schedule::Serialize() const {
-    auto res = data::EnableCreateFromDataTable<Schedule>::Serialize();
+    auto res = base_type::Serialize();
     res->SetValue("CheckPointInterval", GetCheckPointInterval());
     if (m_data_io_ != nullptr) { res->SetValue("DataIOPort", m_data_io_->Serialize()); }
     return res;
 }
 
 void Schedule::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
+    base_type::Deserialize(cfg);
     SetCheckPointInterval(static_cast<size_type>(cfg->GetValue("CheckPointInterval", 1)));
     m_data_io_ = std::make_shared<data::DataIOPort>(cfg->GetValue<std::string>("DataIOPort", ""));
 }

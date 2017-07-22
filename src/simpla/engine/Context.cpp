@@ -4,7 +4,7 @@
 #include "simpla/SIMPLA_config.h"
 
 #include "simpla/data/Data.h"
-#include "simpla/data/EnableCreateFromDataTable.h"
+#include "EnableCreateFromDataTable.h"
 #include "simpla/engine/Model.h"
 #include "simpla/geometry/Chart.h"
 #include "simpla/geometry/GeoAlgorithm.h"

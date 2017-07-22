@@ -10,12 +10,12 @@
 #include <map>
 #include <memory>
 #include <string>
-#include "DataTable.h"
+#include "simpla/data/DataTable.h"
 #include "simpla/engine/SPObject.h"
 #include "simpla/utilities/SingletonHolder.h"
 namespace simpla {
-namespace data {
-class DataTable;
+namespace engine {
+
 template <typename TObj, typename... Args>
 class EnableCreateFromDataTable : public engine::SPObject, public data::Serializable {
     typedef EnableCreateFromDataTable<TObj> EnableCreateFromDataTable_type;
@@ -32,13 +32,13 @@ class EnableCreateFromDataTable : public engine::SPObject, public data::Serializ
 
     //    std::string GetRegisterName() const override { return typeid(TObj).name(); }
 
-    std::shared_ptr<DataTable> Serialize() const override {
+    std::shared_ptr<data::DataTable> Serialize() const override {
         auto res = std::make_shared<data::DataTable>();
         res->SetValue("Type", TObj::GetFancyTypeName_s());
         return res;
     }
 
-    void Deserialize(const std::shared_ptr<DataTable> &t) override{};
+    void Deserialize(const std::shared_ptr<data::DataTable> &t) override{};
 
     struct ObjectFactory {
         std::map<std::string, std::function<TObj *(Args const &...)>> m_factory_;
@@ -103,7 +103,7 @@ class EnableCreateFromDataTable : public engine::SPObject, public data::Serializ
 
    public:
     template <typename... U>
-    static std::shared_ptr<TObj> Create(std::shared_ptr<DataEntity> const &cfg, U &&... args) {
+    static std::shared_ptr<TObj> Create(std::shared_ptr<data::DataEntity> const &cfg, U &&... args) {
         std::shared_ptr<TObj> res = nullptr;
         std::string s_type;
         if (cfg == nullptr) {

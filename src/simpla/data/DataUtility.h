@@ -5,11 +5,11 @@
 #ifndef SIMPLA_DATAUTILITY_H
 #define SIMPLA_DATAUTILITY_H
 
-#include "simpla/utilities/Log.h"
 #include <iomanip>
 #include <regex>
 #include <string>
-#include "EnableCreateFromDataTable.h"
+#include "simpla/engine/EnableCreateFromDataTable.h"
+#include "simpla/utilities/Log.h"
 namespace simpla {
 namespace data {
 class DataEntity;
@@ -21,7 +21,7 @@ std::shared_ptr<DataTable> const &Pack(U const &u, ENABLE_IF((std::is_base_of<Se
 }
 template <typename U>
 std::shared_ptr<U> Unpack(std::shared_ptr<DataTable> const &d,
-                               ENABLE_IF((std::is_base_of<EnableCreateFromDataTable<U>, U>::value))) {
+                          ENABLE_IF((std::is_base_of<engine::EnableCreateFromDataTable<U>, U>::value))) {
     return U::Create(d);
 }
 void Pack(std::shared_ptr<DataEntity> const &d, std::ostream &os, std::string const &type, int indent = 0);

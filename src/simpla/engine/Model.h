@@ -20,8 +20,8 @@ namespace simpla {
 namespace engine {
 using namespace data;
 
-class Model : public data::EnableCreateFromDataTable<Model> {
-    SP_OBJECT_HEAD(Model, data::EnableCreateFromDataTable<Model>);
+class Model : public engine::EnableCreateFromDataTable<Model> {
+    SP_OBJECT_HEAD(Model, engine::EnableCreateFromDataTable<Model>);
 
    public:
     Model();

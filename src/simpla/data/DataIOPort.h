@@ -6,14 +6,14 @@
 #define SIMPLA_DATAIOPORT_H
 
 #include "DataArray.h"
-#include "EnableCreateFromDataTable.h"
+#include "simpla/engine/EnableCreateFromDataTable.h"
 #include "simpla/utilities/ObjectHead.h"
 
 namespace simpla {
 namespace data {
 
-class DataIOPort : public EnableCreateFromDataTable<DataIOPort> {
-    SP_OBJECT_HEAD(DataIOPort, EnableCreateFromDataTable<DataIOPort>);
+class DataIOPort : public engine::EnableCreateFromDataTable<DataIOPort> {
+    SP_OBJECT_HEAD(DataIOPort, engine::EnableCreateFromDataTable<DataIOPort>);
 
    public:
     explicit DataIOPort(std::string uri = "");

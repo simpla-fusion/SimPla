@@ -8,10 +8,10 @@
 #include "simpla/SIMPLA_config.h"
 
 #include "Attribute.h"
+#include "EnableCreateFromDataTable.h"
 #include "SPObject.h"
 #include "simpla/algebra/Field.h"
 #include "simpla/data/Data.h"
-#include "simpla/data/EnableCreateFromDataTable.h"
 
 #include "PoliciesCommon.h"
 
@@ -25,8 +25,8 @@ class MeshBlock;
 class Patch;
 using namespace simpla::data;
 
-struct MeshBase : public AttributeGroup, public data::EnableCreateFromDataTable<MeshBase> {
-    SP_OBJECT_HEAD(MeshBase, data::EnableCreateFromDataTable<MeshBase>)
+struct MeshBase : public AttributeGroup, public engine::EnableCreateFromDataTable<MeshBase> {
+    SP_OBJECT_HEAD(MeshBase, engine::EnableCreateFromDataTable<MeshBase>)
    public:
     using AttributeGroup::attribute_type;
 
