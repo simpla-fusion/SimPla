@@ -19,8 +19,6 @@ struct Chart : public engine::SPObject, public data::Serializable {
     SP_DEFAULT_CONSTRUCT(Chart);
 
    public:
-
-
    public:
     explicit Chart(point_type shift = point_type{0, 0, 0}, point_type scale = point_type{1, 1, 1},
                    point_type rotate = point_type{0, 0, 0});
@@ -100,6 +98,18 @@ struct Chart : public engine::SPObject, public data::Serializable {
     virtual Real volume(point_type const &p0, point_type const &p1) const = 0;
 
     virtual Real inner_product(point_type const &uvw, vector_type const &v0, vector_type const &v1) const = 0;
+
+   private:
+    template <size_t... I, typename PointS>
+    auto _volume(std::integer_sequence<size_t, I...> _, PointS const &points) const {
+        return volume(map(std::get<I>(points))...);
+    }
+
+   public:
+    template <typename... P>
+    auto volume(std::tuple<P...> const &points) const {
+        return _volume(std::index_sequence_for<P...>(), points);
+    }
 
    private:
     template <size_t... I, typename PointS>

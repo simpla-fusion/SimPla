@@ -6,6 +6,7 @@
 // Created by salmon on 17-7-16.
 //
 
+#include <simpla/geometry/BoxUtilities.h>
 #include "simpla/SIMPLA_config.h"
 
 #include "Mesh.h"
@@ -37,11 +38,8 @@ std::shared_ptr<geometry::GeoObject> MeshBase::GetGeoBody() const { return GetCh
 Real MeshBase::CheckOverlap(const geometry::GeoObject* g) const {
     Real res = 0;
     if (g != nullptr) {
-        auto id_box = GetIndexBox(0);
-        box_type b{GetChart()->global_coordinates(std::get<0>(id_box), 0),
-                   GetChart()->global_coordinates(std::get<1>(id_box), 0)};
-
-        //        res = geometry::OverlapVolume(g->GetBoundBox(), b) / Volume(b);
+        auto b = GetBox(0);
+        res = GetChart()->volume(geometry::intersection(g->GetBoundBox(), b)) / GetChart()->volume(b);
     }
     return res;
 }
