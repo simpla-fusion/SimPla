@@ -26,22 +26,17 @@ class Model;
 
 class MeshBase;
 
-class DomainBase : public SPObject,
-                   public data::EnableCreateFromDataTable<DomainBase, MeshBase *, std::shared_ptr<Model>> {
-    SP_OBJECT_HEAD(DomainBase, SPObject)
+class DomainBase : public data::EnableCreateFromDataTable<DomainBase, MeshBase *, std::shared_ptr<Model>> {
+    typedef data::EnableCreateFromDataTable<DomainBase, MeshBase *, std::shared_ptr<Model>> creator_type;
+    SP_OBJECT_HEAD(DomainBase, creator_type)
    public:
-    DECLARE_REGISTER_NAME(DomainBase)
-
     explicit DomainBase(MeshBase *m, std::shared_ptr<Model> const &model = nullptr);
 
     ~DomainBase() override;
 
     DomainBase(DomainBase const &other) = delete;
-
     DomainBase(DomainBase &&other) noexcept = delete;
-
     DomainBase &operator=(this_type const &other) = delete;
-
     DomainBase &operator=(this_type &&other) noexcept = delete;
 
     void SetGeoBody(const std::shared_ptr<geometry::GeoObject> &b) { m_geo_body_ = b; }
@@ -92,7 +87,6 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
     typedef Domain<TM, Policies...> domain_type;
 
     SP_OBJECT_HEAD(domain_type, DomainBase);
-    DECLARE_REGISTER_NAME(Domain)
 
     typedef TM mesh_type;
 

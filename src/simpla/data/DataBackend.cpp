@@ -14,9 +14,9 @@
 #include "backend/DataBackendLua.h"
 namespace simpla {
 namespace data {
-bool DataBackend::s_RegisterDataBackends_ = DataBackendMemory::is_registered &&  //
-                                            DataBackendHDF5::is_registered &&    //
-                                            DataBackendLua::is_registered;
+bool DataBackend::s_RegisterDataBackends_ = DataBackendMemory::_is_registered &&  //
+                                            DataBackendHDF5::_is_registered &&    //
+                                            DataBackendLua::_is_registered;
 
 /**
 *   https://tools.ietf.org/html/rfc3986#page-50

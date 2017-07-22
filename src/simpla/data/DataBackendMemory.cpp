@@ -12,7 +12,7 @@
 
 namespace simpla {
 namespace data {
-REGISTER_CREATOR(DataBackendMemory);
+REGISTER_CREATOR(DataBackendMemory, mem);
 
 struct DataBackendMemory::pimpl_s {
     typedef std::map<std::string, std::shared_ptr<DataEntity>> table_type;

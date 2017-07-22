@@ -70,7 +70,7 @@ The physical properties of simulation system are described by physical quantitie
   as the number of unknown physical quantities in the domain.  One physical quantity may follow different
    physical models in different spatial domains. At the boundary of adjacent domains, physical models
    are coupled to each other through their common physical quantities.
-The physical equations may be expressed on different coordinates systems, i.e. Cartesian coordinates,
+The physical equations may be expressed on different coordinates systems, i.e. csCartesian coordinates,
 cylindrical coordinates, toroidal coordinates and magnetic flus coordinates etc.
 To numerically solve physical equations, the physical quantities are approximately represented by
 values on discrete space points (get_mesh), and equations of continuous quantities are approximately
@@ -80,7 +80,7 @@ converted into algebra equations of discrete values.  The method to construct th
   different numerical algorithm, and one numerical algorithm may be applied to different equation.
 
 * Req(2) Supports different physical geometry, i.e. Maxwell equations, MHD equations or Vlasov Equations etc.
-* Req(3) Supports different coordinates system, i.e. Cartesian coordinates, cylindrical coordinates,
+* Req(3) Supports different coordinates system, i.e. csCartesian coordinates, cylindrical coordinates,
 toroidal coordinates and magnetic flus coordinates etc.
 * Req(4) Supports different numerical algorithm, i.e. FDM, FVM, FEM, DG-FEM, PIC, Delta-f etc.
 * Req(5) Automatize or simplify the conversion from physical equation to numerical algorithm;

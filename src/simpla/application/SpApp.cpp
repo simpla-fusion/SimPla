@@ -36,8 +36,8 @@ std::shared_ptr<data::DataTable> SpApp::Serialize() const {
 
     res->Set("Context", m_pimpl_->m_context_.Serialize());
     res->Set("Atlas", m_pimpl_->m_atlas_.Serialize());
-//    ctx->data::Serializable::Serialize(std::cout, 0);
-//    GetAtlas()->data::Serializable::Serialize(std::cout, 0);
+    //    ctx->data::Serializable::Serialize(std::cout, 0);
+    //    GetAtlas()->data::Serializable::Serialize(std::cout, 0);
     return res;
 };
 void SpApp::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
@@ -173,9 +173,7 @@ int main(int argc, char **argv) {
 
     parallel::init(argc, argv);
 
-    MESSAGE << geometry::Chart::ShowDescription() << std::endl
-            << engine::Model::ShowDescription() << std::endl
-            << engine::DomainBase::ShowDescription() << std::endl;
+    MESSAGE << engine::Model::ShowDescription() << std::endl << engine::DomainBase::ShowDescription() << std::endl;
 
     GLOBAL_COMM.barrier();
 

@@ -14,15 +14,18 @@
 
 namespace simpla {
 namespace geometry {
-struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<Chart> {
+struct Chart : public engine::SPObject, public data::Serializable {
     SP_OBJECT_HEAD(Chart, engine::SPObject)
     SP_DEFAULT_CONSTRUCT(Chart);
-    DECLARE_REGISTER_NAME(Chart)
+
+   public:
+
 
    public:
     explicit Chart(point_type shift = point_type{0, 0, 0}, point_type scale = point_type{1, 1, 1},
                    point_type rotate = point_type{0, 0, 0});
     ~Chart() override = default;
+
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
 
@@ -97,6 +100,29 @@ struct Chart : public engine::SPObject, public data::EnableCreateFromDataTable<C
     virtual Real volume(point_type const &p0, point_type const &p1) const = 0;
 
     virtual Real inner_product(point_type const &uvw, vector_type const &v0, vector_type const &v1) const = 0;
+
+   private:
+    template <size_t... I, typename PointS>
+    auto _MapToBase(std::integer_sequence<size_t, I...> _, PointS const &points) const {
+        return std::make_tuple(map(std::get<I>(points))...);
+    }
+    template <size_t... I, typename PointS>
+    auto _InvMapFromBase(std::integer_sequence<size_t, I...> _, PointS const &points) const {
+        return std::make_tuple(inv_map(std::get<I>(points))...);
+    }
+
+   public:
+    template <typename... P>
+    auto MapToBase(std::tuple<P...> const &points) const {
+        return _MapToBase(std::index_sequence_for<P...>(), points);
+    }
+    template <typename... P>
+    auto InvMapFromBase(std::tuple<P...> const &points) const {
+        return _InvMapFromBase(std::index_sequence_for<P...>(), points);
+    }
+
+    virtual std::shared_ptr<GeoObject> BoundBox(box_type const &b) const;
+    virtual std::shared_ptr<GeoObject> BoundBox(index_box_type const &b) const;
 
    private:
     int m_level_ = 0;

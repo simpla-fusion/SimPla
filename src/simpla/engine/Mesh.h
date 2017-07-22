@@ -25,9 +25,8 @@ class MeshBlock;
 class Patch;
 using namespace simpla::data;
 
-struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCreateFromDataTable<MeshBase> {
-    SP_OBJECT_HEAD(MeshBase, SPObject)
-    DECLARE_REGISTER_NAME(MeshBase)
+struct MeshBase : public AttributeGroup, public data::EnableCreateFromDataTable<MeshBase> {
+    SP_OBJECT_HEAD(MeshBase, data::EnableCreateFromDataTable<MeshBase>)
    public:
     using AttributeGroup::attribute_type;
 
@@ -40,22 +39,24 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
     MeshBase &operator=(this_type const &other) = delete;
     MeshBase &operator=(this_type &&other) noexcept = delete;
 
+    std::shared_ptr<data::DataTable> Serialize() const override;
+    void Deserialize(std::shared_ptr<data::DataTable> const &t) override;
+
     virtual geometry::Chart *GetChart() = 0;
     virtual geometry::Chart const *GetChart() const = 0;
 
     virtual this_type *GetMesh() { return this; }
     virtual this_type const *GetMesh() const { return this; }
 
-    virtual void AddEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g){};
+    virtual void AddEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g){};
+    virtual std::shared_ptr<geometry::GeoObject> GetGeoBody() const;
+    virtual Real CheckOverlap(const geometry::GeoObject *) const;
 
     virtual index_box_type GetIndexBox(int tag = 0) const;
     virtual box_type GetBox(int tag = 0) const;
 
     void SetBlock(const MeshBlock &blk);
     virtual const MeshBlock *GetBlock() const;
-
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataTable> const &t) override;
 
     void DoInitialize() override;
     void DoFinalize() override;
@@ -93,11 +94,9 @@ struct MeshBase : public SPObject, public AttributeGroup, public data::EnableCre
 
 template <typename TChart, template <typename> class... Policies>
 class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
-    typedef Mesh<TChart, Policies...> this_type;
+    SP_OBJECT_HEAD(Mesh, MeshBase);
 
    public:
-    DECLARE_REGISTER_NAME(Mesh)
-
     typedef Mesh<TChart, Policies...> mesh_type;
     typedef TChart chart_type;
 
@@ -105,6 +104,9 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
 
     Mesh() : Policies<this_type>(this)... {};
     ~Mesh() override = default;
+
+    void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override;
+    std::shared_ptr<data::DataTable> Serialize() const override;
 
     void DoUpdate() override;
 
@@ -121,9 +123,6 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     void DoBoundaryCondition(Real time_now, Real dt) override;
     void DoAdvance(Real time_now, Real dt) override;
     void DoTagRefinementCells(Real time_now) override;
-
-    void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override;
-    std::shared_ptr<data::DataTable> Serialize() const override;
 
     template <typename TL, typename TR>
     void Fill(TL &lhs, TR &&rhs) const {
@@ -142,7 +141,7 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
 
     template <typename TL, typename TR>
     void FillBody(TL &lhs, TR &&rhs, std::string const &prefix = "") const {
-        FillRange(lhs, std::forward<TR>(rhs), prefix + "_BODY_" + std::to_string(TL::iform), true);
+        FillRange(lhs, std::forward<TR>(rhs), prefix + "_BODY_" + std::to_string(TL::iform), false);
     };
 
     template <typename TL, typename TR>
@@ -155,7 +154,9 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
 
     void TagRefinementRange(Range<EntityId> const &r) override;
 
-    void AddEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g) override;
+    void AddEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g) override;
+
+    std::shared_ptr<geometry::GeoObject> GetGeoBody() const override { return base_type::GetGeoBody(); }
 };
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::TagRefinementRange(Range<EntityId> const &r) {
@@ -195,27 +196,26 @@ void Mesh<TM, Policies...>::DoTagRefinementCells(Real time_now) {
 
 template <typename TM, template <typename> class... Policies>
 std::shared_ptr<data::DataTable> Mesh<TM, Policies...>::Serialize() const {
-    auto res = MeshBase::Serialize();
+    auto res = base_type::Serialize();
     res->Set("Chart", m_chart_.Serialize());
     traits::_try_invoke_Serialize<Policies...>(this, res.get());
     return res;
 };
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
-    MeshBase::Deserialize(cfg);
+    base_type::Deserialize(cfg);
     traits::_try_invoke_Deserialize<Policies...>(this, cfg);
 };
 template <typename TM, template <typename> class... Policies>
-void Mesh<TM, Policies...>::AddEmbeddedBoundary(std::string const &prefix,
-                                                const std::shared_ptr<geometry::GeoObject> &g) {
-    if (g == nullptr) { return; }
+void Mesh<TM, Policies...>::AddEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g) {
+    if (MeshBase::CheckOverlap(g) < EPSILON) { return; }
     _detail::_try_invoke_SetEmbeddedBoundary<Policies...>(this, prefix, g);
 };
 
 template <typename TM, template <typename> class... Policies>
 template <typename LHS, typename RHS>
 void Mesh<TM, Policies...>::FillRange(LHS &lhs, RHS &&rhs, Range<EntityId> r, bool full_fill_if_range_is_null) const {
-    if (r.isNull() && full_fill_if_range_is_null) {
+    if (r.isFull() || (r.isNull() && full_fill_if_range_is_null)) {
         _detail::_try_invoke_once_Calculate<Policies...>(this, lhs, std::forward<RHS>(rhs));
     } else {
         _detail::_try_invoke_once_Calculate<Policies...>(this, lhs, std::forward<RHS>(rhs), r);

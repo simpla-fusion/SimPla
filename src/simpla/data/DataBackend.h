@@ -5,17 +5,17 @@
 #ifndef SIMPLA_DATABACKEND_H
 #define SIMPLA_DATABACKEND_H
 
-#include "simpla/SIMPLA_config.h"
-#include "simpla/utilities/Factory.h"
-#include "simpla/utilities/Log.h"
-#include "simpla/utilities/ObjectHead.h"
-#include "simpla/utilities/SingletonHolder.h"
 #include <memory>
 #include <regex>
 #include <typeindex>
 #include <typeinfo>
 #include <vector>
 #include "EnableCreateFromDataTable.h"
+#include "simpla/SIMPLA_config.h"
+#include "simpla/utilities/Factory.h"
+#include "simpla/utilities/Log.h"
+#include "simpla/utilities/ObjectHead.h"
+#include "simpla/utilities/SingletonHolder.h"
 
 namespace simpla {
 namespace data {
@@ -23,14 +23,13 @@ namespace data {
 class DataEntity;
 class DataTable;
 class DataBackend : public EnableCreateFromDataTable<DataBackend> {
-    SP_OBJECT_BASE(DataBackend);
+    SP_OBJECT_HEAD(DataBackend, EnableCreateFromDataTable<DataBackend>);
 
    public:
     DataBackend() = default;
     virtual ~DataBackend() = default;
 
     SP_DEFAULT_CONSTRUCT(DataBackend)
-    DECLARE_REGISTER_NAME(DataBackend)
 
     static std::shared_ptr<DataBackend> Create(std::string const& uri, std::string const& ext_param);
 
@@ -75,7 +74,7 @@ class DataBackend : public EnableCreateFromDataTable<DataBackend> {
     /**
      * @brief  delete entities selected by uri
      */
-    virtual int Delete(std::string const &uri) = 0;
+    virtual int Delete(std::string const& uri) = 0;
 
     /**
      * @brief Get the number of entities in this table

@@ -17,13 +17,12 @@ class DataBackendMemory : public DataBackend {
 
    public:
     DataBackendMemory();
-    DataBackendMemory(std::string const& uri, std::string const& status = "");
+
+    explicit DataBackendMemory(std::string const& uri, std::string const& status = "");
     ~DataBackendMemory() override;
 
     DataBackendMemory(this_type const& other);
     DataBackendMemory(this_type&& other) noexcept;
-
-    DECLARE_REGISTER_NAME(mem)
 
     std::shared_ptr<DataBackend> Duplicate() const override;
     std::shared_ptr<DataBackend> CreateNew() const override;
@@ -34,9 +33,9 @@ class DataBackendMemory : public DataBackend {
     std::shared_ptr<DataEntity> Get(std::string const& URI) const override;
     void Set(std::string const& URI, std::shared_ptr<DataEntity> const&, bool overwrite = true) override;
     void Add(std::string const& URI, std::shared_ptr<DataEntity> const&) override;
-    int Delete(std::string const &URI) override;
+    int Delete(std::string const& URI) override;
     size_type size() const override;
-    size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const override;
+    size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& _) const override;
 
    private:
     struct pimpl_s;

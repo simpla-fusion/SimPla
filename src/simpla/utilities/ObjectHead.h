@@ -37,25 +37,26 @@ namespace simpla {
         return *dynamic_cast<U_ const *>(this);                                                      \
     }                                                                                                \
     virtual std::type_info const &GetTypeInfo() const { return typeid(_BASE_CLASS_NAME_); }          \
-    static std::string sGetTypeName() { return __STRING(_BASE_CLASS_NAME_); }                        \
-    virtual std::string GetTypeName() const { return sGetTypeName(); }
+    static std::string GetFancyTypeName_s() { return __STRING(_BASE_CLASS_NAME_); }                  \
+    virtual std::string GetFancyTypeName() const { return GetFancyTypeName_s(); }
 
 /**
  * @brief define the common part of the derived class
  */
-#define SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_CLASS_NAME_)                                 \
-   public:                                                                              \
-    bool isA(std::type_info const &info) const override {                               \
-        return typeid(_CLASS_NAME_) == info || _BASE_CLASS_NAME_::isA(info);            \
-    }                                                                                   \
-    std::type_info const &GetTypeInfo() const override { return typeid(_CLASS_NAME_); } \
-    static std::string sGetTypeName() { return __STRING(_CLASS_NAME_); }                \
-    virtual std::string GetTypeName() const override { return sGetTypeName(); }         \
-                                                                                        \
-   private:                                                                             \
-    typedef _BASE_CLASS_NAME_ base_type;                                                \
-    typedef _CLASS_NAME_ this_type;                                                     \
-                                                                                        \
+#define SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_CLASS_NAME_)                                    \
+   public:                                                                                 \
+    bool isA(std::type_info const &info) const override {                                  \
+        return typeid(_CLASS_NAME_) == info || _BASE_CLASS_NAME_::isA(info);               \
+    }                                                                                      \
+    std::type_info const &GetTypeInfo() const override { return typeid(_CLASS_NAME_); }    \
+    static std::string GetFancyTypeName_s() { return __STRING(_CLASS_NAME_); }             \
+    virtual std::string GetFancyTypeName() const override { return GetFancyTypeName_s(); } \
+    static bool _is_registered;                                                            \
+                                                                                           \
+   private:                                                                                \
+    typedef _BASE_CLASS_NAME_ base_type;                                                   \
+    typedef _CLASS_NAME_ this_type;                                                        \
+                                                                                           \
    public:
 }
 #endif  // SIMPLA_SPOBJECTHEAD_H

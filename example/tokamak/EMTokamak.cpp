@@ -14,7 +14,7 @@
 #include "simpla/scheme/FVM.h"
 namespace simpla {
 
-typedef engine::Mesh<geometry::Cylindrical, mesh::RectMesh, mesh::EBMesh, scheme::FVM> mesh_type;
+typedef engine::Mesh<geometry::csCylindrical, mesh::RectMesh, mesh::EBMesh, scheme::FVM> mesh_type;
 
 static bool _required_module_are_registered_ =                                 //
     RegisterCreator<Tokamak>("Tokamak") &&                                     //

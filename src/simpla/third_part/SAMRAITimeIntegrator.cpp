@@ -72,7 +72,7 @@
 
 namespace simpla {
 
-REGISTER_CREATOR(SAMRAITimeIntegrator)
+REGISTER_CREATOR(SAMRAITimeIntegrator, SAMRAITimeIntegrator)
 
 class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatchStrategy {
     SP_OBJECT_BASE(SAMRAIHyperbolicPatchStrategyAdapter)
@@ -828,9 +828,9 @@ SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
     SAMRAI::tbox::SAMRAIManager::finalize();
 }
 void SAMRAITimeIntegrator::Synchronize() { engine::TimeIntegrator::Synchronize(); }
-std::shared_ptr<data::DataTable> SAMRAITimeIntegrator::Serialize() const { return engine::TimeIntegrator::Serialize(); }
+std::shared_ptr<data::DataTable> SAMRAITimeIntegrator::Serialize() const { return base_type::Serialize(); }
 void SAMRAITimeIntegrator::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
-    engine::TimeIntegrator::Deserialize(cfg);
+    base_type::Deserialize(cfg);
     m_pimpl_->m_output_URL_ = cfg->GetValue<std::string>("OutputURL", GetName() + ".simpla");
 }
 void SAMRAITimeIntegrator::DoInitialize() {
@@ -1042,9 +1042,7 @@ void SAMRAITimeIntegrator::DoUpdate() {
     m_pimpl_->grid_geometry->printClassData(std::cout);
     m_pimpl_->hyp_level_integrator->printClassData(std::cout);
 
-
     m_pimpl_->m_time_refinement_integrator_->initializeHierarchy();
-
 
     m_pimpl_->m_time_refinement_integrator_->printClassData(std::cout);
 

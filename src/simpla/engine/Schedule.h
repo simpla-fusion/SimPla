@@ -20,15 +20,14 @@ class DataIOPort;
 namespace engine {
 class Context;
 class Atlas;
-class Schedule : public SPObject, public data::EnableCreateFromDataTable<Schedule> {
-    SP_OBJECT_HEAD(Schedule, SPObject);
+class Schedule : public data::EnableCreateFromDataTable<Schedule> {
+    SP_OBJECT_HEAD(Schedule, data::EnableCreateFromDataTable<Schedule>);
 
    public:
     explicit Schedule();
     ~Schedule() override;
 
     SP_DEFAULT_CONSTRUCT(Schedule)
-    DECLARE_REGISTER_NAME(Schedule)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;

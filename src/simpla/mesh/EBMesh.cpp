@@ -208,6 +208,8 @@ void CreateEBMesh(engine::MeshBase *m_host_, geometry::GeoObject const *g, std::
             }
         });
 
+    CHECK(VOLUME_body.size());
+
     m_host_->GetRange(prefix + "_BODY_0").append(make_range(VERTEX_body));
     m_host_->GetRange(prefix + "_BODY_1").append(make_range(EDGE_body));
     m_host_->GetRange(prefix + "_BODY_2").append(make_range(FACE_body));

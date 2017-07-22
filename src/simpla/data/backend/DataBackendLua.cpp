@@ -9,7 +9,7 @@
 #include "LuaObject.h"
 namespace simpla {
 namespace data {
-REGISTER_CREATOR(DataBackendLua);
+REGISTER_CREATOR(DataBackendLua, lua);
 
 struct DataBackendLua::pimpl_s {
     LuaObject m_lua_obj_;

@@ -18,12 +18,12 @@
 
 namespace simpla {
 namespace geometry {
-struct Cartesian;
-struct Cylindrical;
-struct Toroidal;
-struct Spherical;
-struct MagneticFLux;
-struct Polar;
+struct csCartesian;
+struct csCylindrical;
+struct csToroidal;
+struct csSpherical;
+struct csMagneticFLux;
+struct csPolar;
 /** @ingroup geometry
  *  @{
  */
@@ -61,11 +61,11 @@ struct dimension {
 };
 
 template <>
-struct dimension<Polar> {
+struct dimension<csPolar> {
     static constexpr int value = 2;
 };
 template <>
-struct dimension<Cartesian> {
+struct dimension<csCartesian> {
     static constexpr int value = 3;
 };
 
@@ -81,12 +81,12 @@ struct is_homogeneous {
     static constexpr bool value = true;
 };
 template <>
-struct is_homogeneous<Toroidal> {
+struct is_homogeneous<csToroidal> {
     static constexpr bool value = false;
 };
 
 template <>
-struct is_homogeneous<MagneticFLux> {
+struct is_homogeneous<csMagneticFLux> {
     static constexpr bool value = false;
 };
 

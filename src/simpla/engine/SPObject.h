@@ -88,6 +88,7 @@ class SPObject {
     void SetName(std::string const &);
     std::string const &GetName() const;
 
+
     void lock();
     void unlock();
     bool try_lock();

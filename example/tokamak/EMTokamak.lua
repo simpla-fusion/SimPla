@@ -21,8 +21,8 @@ Context = {
 --            Scale = { 1.0 / 64.0, 1.0 / 64.0, PI / 32 }, --Coarsest Cell Width
         },
         Box = {
-            lo = { 1.2, -1.0, -PI / 2.0 },
-            hi = { 2.5, 1.0, PI / 2.0 }
+            lo = { 1.2, -1.0, -PI / 4.0 },
+            hi = { 2.5, 1.0, PI / 4.0 }
         },
         Dimensions = { 64, 64, 8 }
     },
@@ -31,7 +31,7 @@ Context = {
         Tokamak = {
             Type = "Tokamak",
             gfile = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900",
-            Phi = { -TWOPI / 4, TWOPI / 4 },
+            Phi = { -PI / 4, PI / 4 },
         },
     },
     Domains = {

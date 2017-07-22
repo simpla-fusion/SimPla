@@ -4,11 +4,11 @@
 
 #ifndef SIMPLA_LUADATABASE_H
 #define SIMPLA_LUADATABASE_H
-#include "simpla/SIMPLA_config.h"
 #include <memory>
 #include <ostream>
 #include <string>
 #include "../DataBackend.h"
+#include "simpla/SIMPLA_config.h"
 
 namespace simpla {
 namespace data {
@@ -22,11 +22,9 @@ class DataBackendLua : public DataBackend {
     DataBackendLua(this_type const& other);
     ~DataBackendLua() override;
 
-    DECLARE_REGISTER_NAME(lua)
-
     std::ostream& Print(std::ostream& os, int indent) const override;
 
-    void Parser(std::string const&) override;
+    void Parser(std::string const& s) override;
 
     void Connect(std::string const& authority, std::string const& path, std::string const& query = "",
                  std::string const& fragment = "") override;
@@ -40,7 +38,7 @@ class DataBackendLua : public DataBackend {
     std::shared_ptr<DataEntity> Get(int key) const;
     void Set(std::string const& URI, std::shared_ptr<DataEntity> const&, bool overwrite = true) override;
     void Add(std::string const& URI, std::shared_ptr<DataEntity> const&) override;
-    int Delete(std::string const &URI) override;
+    int Delete(std::string const& URI) override;
     size_type size() const override;
     size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const override;
 

@@ -2,6 +2,8 @@
 // Created by salmon on 17-5-29.
 //
 #include "Chart.h"
+#include "Cube.h"
+
 namespace simpla {
 namespace geometry {
 
@@ -13,7 +15,7 @@ Chart::Chart(point_type shift, point_type scale, point_type rotate) {
 
 std::shared_ptr<data::DataTable> Chart::Serialize() const {
     auto p = std::make_shared<data::DataTable>();
-    p->SetValue("Type", GetRegisterName());
+    p->SetValue("Type", GetFancyTypeName());
     p->SetValue("Level", GetLevel());
     p->SetValue("Origin", GetOrigin());
     p->SetValue("Scale", GetScale());
@@ -52,5 +54,11 @@ void Chart::SetLevel(int level) {
     m_level_ = level;
 };
 int Chart::GetLevel() const { return m_level_; }
-}
-}
+
+std::shared_ptr<GeoObject> Chart::BoundBox(box_type const &b) const { return std::make_shared<Cube>(MapToBase(b)); }
+std::shared_ptr<GeoObject> Chart::BoundBox(index_box_type const &b) const {
+    return std::make_shared<Cube>(
+        std::make_tuple(global_coordinates(std::get<0>(b)), global_coordinates(std::get<0>(b))));
+};
+}  // namespace geometry {
+}  // namespace simpla {

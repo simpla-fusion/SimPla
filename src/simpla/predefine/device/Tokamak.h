@@ -5,14 +5,13 @@
 #ifndef SIMPLA_TOKAMAK_H
 #define SIMPLA_TOKAMAK_H
 
+#include "GEqdsk.h"
 #include "simpla/engine/Model.h"
 #include "simpla/engine/SPObject.h"
-#include "GEqdsk.h"
 namespace simpla {
 
 class Tokamak : public engine::Model {
     SP_OBJECT_HEAD(Tokamak, engine::Model)
-    DECLARE_REGISTER_NAME(Tokamak);
 
    public:
     Tokamak();

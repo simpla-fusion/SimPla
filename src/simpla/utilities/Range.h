@@ -171,12 +171,12 @@ struct Range {
    public:
     typedef T value_type;
 
-    Range() : m_next_(nullptr), m_is_null_(true) {}
+    Range() : m_next_(nullptr), m_is_full_(false) {}
     ~Range() = default;
 
-    explicit Range(std::shared_ptr<base_type> const& p) : m_next_(p), m_is_null_(false) {}
-    Range(this_type const& other) : m_next_(other.m_next_), m_is_null_(other.m_is_null_) {}
-    Range(this_type&& other) noexcept : m_next_(other.m_next_), m_is_null_(other.m_is_null_) {}
+    explicit Range(std::shared_ptr<base_type> const& p) : m_next_(p), m_is_full_(false) {}
+    Range(this_type const& other) : m_next_(other.m_next_), m_is_full_(other.m_is_full_) {}
+    Range(this_type&& other) noexcept : m_next_(other.m_next_), m_is_full_(other.m_is_full_) {}
     Range(this_type& other, tags::split const& s) : Range(other.split(s)) {}
 
     Range& operator=(this_type const& other) {
@@ -191,17 +191,23 @@ struct Range {
 
     void swap(this_type& other) {
         std::swap(m_next_, other.m_next_);
-        std::swap(m_is_null_, other.m_is_null_);
+        std::swap(m_is_full_, other.m_is_full_);
     }
 
     bool is_divisible() const {  // FIXME: this is not  full functional
         return m_next_ != nullptr && m_next_->is_divisible();
     }
     bool empty() const { return m_next_ == nullptr; }
-    bool isNull() const { return m_is_null_; }
+    bool isNull() const { return m_next_ == nullptr; }
+
+    void SetFull() {
+        m_is_full_ = true;
+        m_next_.reset();
+    }
+    bool isFull() const { return m_is_full_; }
     void clear() {
         m_next_.reset();
-        m_is_null_ = true;
+        m_is_full_ = false;
     }
 
     this_type split(tags::split const& s = tags::split()) {
@@ -214,21 +220,28 @@ struct Range {
     this_type& append(this_type const& other) { return append(other.m_next_); }
 
     this_type& append(this_type&& other) {
-        append(other.m_next_);
+        if (!isFull()) { append(other.m_next_); }
         other.reset();
         return *this;
     }
 
     this_type& append(std::shared_ptr<base_type> const& other) {
-        m_is_null_ = false;
-        auto* cursor = &m_next_;
-        while ((*cursor) != nullptr) { cursor = &(*cursor)->m_next_; }
-        *cursor = other;
+        if (!isFull()) {
+            auto* cursor = &m_next_;
+            while ((*cursor) != nullptr) { cursor = &(*cursor)->m_next_; }
+            *cursor = other;
+        }
         return *this;
     }
     size_type size() const {
         size_type res = 0;
-        for (auto* cursor = &m_next_; *cursor != nullptr; cursor = &((*cursor)->m_next_)) { res += (*cursor)->size(); }
+        if (isFull()) {
+            res = std::numeric_limits<size_type>::max();
+        } else {
+            for (auto* cursor = &m_next_; *cursor != nullptr; cursor = &((*cursor)->m_next_)) {
+                res += (*cursor)->size();
+            }
+        }
         return res;
     }
     size_type num_of_block() const {
@@ -242,6 +255,7 @@ struct Range {
     }
     template <typename... Args>
     void foreach (Args&&... args) const {
+        ASSERT(!isFull());
         for (auto* cursor = &m_next_; *cursor != nullptr; cursor = &((*cursor)->m_next_)) {
             (*cursor)->foreach (std::forward<Args>(args)...);
         }
@@ -253,7 +267,7 @@ struct Range {
 
    private:
     std::shared_ptr<base_type> m_next_ = nullptr;
-    bool m_is_null_ = true;
+    bool m_is_full_ = false;
 };
 
 template <typename T>

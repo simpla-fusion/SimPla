@@ -18,7 +18,7 @@ extern "C" {
 #include <H5FDmpio.h>
 namespace simpla {
 namespace data {
-REGISTER_CREATOR(DataBackendHDF5);
+REGISTER_CREATOR(DataBackendHDF5, hdf5);
 
 #define H5_ERROR(_FUN_)                                                               \
     if ((_FUN_) < 0) {                                                                \

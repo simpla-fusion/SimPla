@@ -11,27 +11,30 @@
 #include <memory>
 #include <string>
 #include "DataTable.h"
+#include "simpla/engine/SPObject.h"
 #include "simpla/utilities/SingletonHolder.h"
 namespace simpla {
 namespace data {
 class DataTable;
 template <typename TObj, typename... Args>
-class EnableCreateFromDataTable : public data::Serializable {
-    typedef EnableCreateFromDataTable<TObj> this_type;
+class EnableCreateFromDataTable : public engine::SPObject, public data::Serializable {
+    typedef EnableCreateFromDataTable<TObj> EnableCreateFromDataTable_type;
+
+    SP_OBJECT_HEAD(EnableCreateFromDataTable_type, engine::SPObject);
 
    public:
-    EnableCreateFromDataTable() = default;
-    virtual ~EnableCreateFromDataTable() = default;
+    explicit EnableCreateFromDataTable() = default;
+    ~EnableCreateFromDataTable() override = default;
     EnableCreateFromDataTable(this_type const &other) = delete;
     EnableCreateFromDataTable(this_type &&other) = delete;
     this_type &operator=(this_type const &other) = delete;
     this_type &operator=(this_type &&other) = delete;
 
-    virtual std::string GetRegisterName() const { return typeid(TObj).name(); }
+    //    std::string GetRegisterName() const override { return typeid(TObj).name(); }
 
     std::shared_ptr<DataTable> Serialize() const override {
         auto res = std::make_shared<data::DataTable>();
-        res->SetValue("Type", GetRegisterName());
+        res->SetValue("Type", TObj::GetFancyTypeName_s());
         return res;
     }
 
@@ -47,13 +50,13 @@ class EnableCreateFromDataTable : public data::Serializable {
     static std::string ShowDescription(std::string const &k = "") {
         auto const &f = SingletonHolder<ObjectFactory>::instance().m_factory_;
         std::string res;
-        if (k != "") {
+        if (!k.empty()) {
             auto it = f.find(k);
             if (it != f.end()) { res = it->first; }
         }
-        if (res == "") {
+        if (res.empty()) {
             std::ostringstream os;
-            os << std::endl << "Registered " << TObj::RegisterName() << " Creator:" << std::endl;
+            os << std::endl << "Registered " << TObj::GetFancyTypeName_s() << " Creator:" << std::endl;
             for (auto const &item : f) { os << " " << item.first << std::endl; }
             res = os.str();
         }
@@ -64,12 +67,12 @@ class EnableCreateFromDataTable : public data::Serializable {
     };
     template <typename U>
     static bool RegisterCreator(std::string const &k_hint = "") noexcept {
-        return RegisterCreator(k_hint != "" ? k_hint : U::RegisterName(),
+        return RegisterCreator(!k_hint.empty() ? k_hint : U::GetFancyTypeName_s(),
                                [](Args const &... args) { return new U(args...); });
     };
     template <typename... U>
     static std::shared_ptr<TObj> Create(std::string const &k, U const &... args) {
-        if (k == "") { return nullptr; }
+        if (k.empty()) { return nullptr; }
         if (k.find("://") != std::string::npos) { return Create(std::make_shared<data::DataTable>(k), args...); }
         auto const &f = SingletonHolder<ObjectFactory>::instance().m_factory_;
         std::shared_ptr<TObj> res = nullptr;
@@ -77,11 +80,11 @@ class EnableCreateFromDataTable : public data::Serializable {
 
         if (it != f.end()) {
             res.reset(it->second(args...));
-            LOGGER << TObj::RegisterName() << "::" << it->first << "  is created!" << std::endl;
+            LOGGER << TObj::GetFancyTypeName_s() << "::" << it->first << "  is created!" << std::endl;
         } else {
             std::ostringstream os;
             os << "Can not find Creator " << k << std::endl;
-            os << std::endl << "Register " << TObj::RegisterName() << " Creator:" << std::endl;
+            os << std::endl << "Register " << TObj::GetFancyTypeName_s() << " Creator:" << std::endl;
             for (auto const &item : f) { os << item.first << std::endl; }
             WARNING << os.str();
         }
@@ -90,11 +93,11 @@ class EnableCreateFromDataTable : public data::Serializable {
 
    private:
     template <typename... U>
-    static std::shared_ptr<TObj> _CreateIfNotAbstract(std::integral_constant<bool, true>, U &&... args) {
+    static std::shared_ptr<TObj> _CreateIfNotAbstract(std::integral_constant<bool, true> _, U &&... args) {
         return std::make_shared<TObj>(std::forward<U>(args)...);
     }
     template <typename... U>
-    static std::shared_ptr<TObj> _CreateIfNotAbstract(std::integral_constant<bool, false>, U &&... args) {
+    static std::shared_ptr<TObj> _CreateIfNotAbstract(std::integral_constant<bool, false> _, U &&... args) {
         return nullptr;
     }
 
@@ -102,7 +105,7 @@ class EnableCreateFromDataTable : public data::Serializable {
     template <typename... U>
     static std::shared_ptr<TObj> Create(std::shared_ptr<DataEntity> const &cfg, U &&... args) {
         std::shared_ptr<TObj> res = nullptr;
-        std::string s_type = "";
+        std::string s_type;
         if (cfg == nullptr) {
         } else if (cfg->value_type_info() == typeid(std::string)) {
             s_type = data::DataCastTraits<std::string>::Get(cfg);
@@ -111,7 +114,7 @@ class EnableCreateFromDataTable : public data::Serializable {
             s_type = t->GetValue<std::string>("Type", "");
         }
 
-        if (s_type != "") {
+        if (!s_type.empty()) {
             res = Create(s_type, args...);
         } else {
             res = _CreateIfNotAbstract(std::integral_constant<bool, !std::is_abstract<TObj>::value>(),
@@ -126,13 +129,8 @@ class EnableCreateFromDataTable : public data::Serializable {
     }
 };
 
-#define DECLARE_REGISTER_NAME(_REGISTER_NAME_)                                           \
-   public:                                                                               \
-    std::string GetRegisterName() const override { return RegisterName(); }              \
-    static std::string RegisterName() { return std::string(__STRING(_REGISTER_NAME_)); } \
-    static bool is_registered;
-
-#define REGISTER_CREATOR(_CLASS_NAME_) bool _CLASS_NAME_::is_registered = _CLASS_NAME_::RegisterCreator<_CLASS_NAME_>();
+#define REGISTER_CREATOR(_CLASS_NAME_, _REGISTER_NAME_) \
+    bool _CLASS_NAME_::_is_registered = _CLASS_NAME_::RegisterCreator<_CLASS_NAME_>(__STRING(_REGISTER_NAME_));
 
 }  // namespace data{
 template <typename T>

@@ -4,6 +4,6 @@
 #include "Cube.h"
 namespace simpla {
 namespace geometry {
-REGISTER_CREATOR(Cube)
+REGISTER_CREATOR(Cube, Cube)
 }
 }

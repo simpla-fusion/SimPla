@@ -4,8 +4,7 @@
 #include "Tokamak.h"
 #include "simpla/data/Data.h"
 namespace simpla {
-
-bool Tokamak::is_registered = engine::Model::RegisterCreator<Tokamak>("Tokamak");
+REGISTER_CREATOR(Tokamak, Tokamak)
 
 struct Tokamak::pimpl_s {
     GEqdsk geqdsk;
@@ -15,9 +14,6 @@ Tokamak::Tokamak() : m_pimpl_(new pimpl_s) {}
 
 std::shared_ptr<data::DataTable> Tokamak::Serialize() const {
     auto res = base_type::Serialize();
-
-    res->SetValue("Type", "Tokamak");
-
     return res;
 }
 
@@ -44,7 +40,7 @@ engine::Model::attr_fun Tokamak::GetAttribute(std::string const &attr_name) cons
 
     return res;
 };
-    engine::Model::vec_attr_fun Tokamak::GetAttributeVector(std::string const &attr_name) const {
+engine::Model::vec_attr_fun Tokamak::GetAttributeVector(std::string const &attr_name) const {
     vec_attr_fun res = nullptr;
     if (attr_name == "B0") {
         res = [&](point_type const &x) { return m_pimpl_->geqdsk.B(x); };

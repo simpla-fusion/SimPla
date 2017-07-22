@@ -21,8 +21,6 @@
 
 namespace simpla {
 namespace geometry {
-template <typename TObj>
-struct GeoObjectAdapter;
 
 /**
  * @ingroup geometry
@@ -30,23 +28,18 @@ struct GeoObjectAdapter;
  *  PlaceHolder Geometric object
  */
 class GeoObject : public data::EnableCreateFromDataTable<GeoObject> {
-    SP_OBJECT_BASE(GeoObject)
+    SP_OBJECT_HEAD(GeoObject, data::EnableCreateFromDataTable<GeoObject>)
     SP_DEFAULT_CONSTRUCT(GeoObject)
-    DECLARE_REGISTER_NAME(GeoObject);
 
    public:
     GeoObject() = default;
     ~GeoObject() override = default;
 
-    std::shared_ptr<data::DataTable> Serialize() const override {
-        auto res = data::Serializable::Serialize();
-        res->SetValue<std::string>("Type", GetRegisterName());
-        return res;
-    };
-    void Deserialize(std::shared_ptr<data::DataTable> const &t) override {}
+    std::shared_ptr<data::DataTable> Serialize() const override { return base_type::Serialize(); };
+    void Deserialize(std::shared_ptr<data::DataTable> const &t) override { base_type::Deserialize(t); }
 
-//    virtual bool hasChildren() const { return false; }
-//    virtual void Register(std::map<std::string, std::shared_ptr<GeoObject> > &, std::string const &prefix = ""){};
+    //    virtual bool hasChildren() const { return false; }
+    //    virtual void Register(std::map<std::string, std::shared_ptr<GeoObject> > &, std::string const &prefix = ""){};
 
     virtual box_type GetBoundBox() const { return box_type{{0, 0, 0}, {1, 1, 1}}; };
 

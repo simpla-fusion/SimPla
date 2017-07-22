@@ -482,7 +482,7 @@ struct FVM {
     template <typename... TExpr>
     auto eval(std::integer_sequence<int, EDGE, EDGE> _, Expression<tags::wedge, TExpr...> const& expr, IdxShift S,
               int tag) const {
-        // FIXME: only correct for Cartesian coordinates
+        // FIXME: only correct for csCartesian coordinates
         FIXME;
 
         auto const& l = std::get<0>(expr.m_args_);

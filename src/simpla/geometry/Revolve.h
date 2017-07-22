@@ -28,11 +28,8 @@ class Revolve : public GeoObject {
 
     ~Revolve() override = default;
 
-    DECLARE_REGISTER_NAME("Revolve");
-
     std::shared_ptr<data::DataTable> Serialize() const override {
-        auto res = data::Serializable::Serialize();
-        res->template SetValue<std::string>("Type", "Revolve");
+        auto res = base_type::Serialize();
         res->template SetValue<point_type>("Axis", m_axis_);
         res->template SetValue<point_type>("Origin", m_origin_);
         res->Set("2DShape", base_obj.Pack());
@@ -72,11 +69,8 @@ class RevolveZ : public GeoObject {
         : base_obj(other.base_obj), m_origin_(other.m_origin_), m_phi_axe_(other.m_phi_axe_) {}
     ~RevolveZ() override = default;
 
-    DECLARE_REGISTER_NAME(RevolveZ);
-
     std::shared_ptr<data::DataTable> Serialize() const override {
-        auto res = data::Serializable::Serialize();
-        res->template SetValue<std::string>("Type", "RevolveZ");
+        auto res = base_type::Serialize();
         res->template SetValue("Axis", m_phi_axe_);
         res->template SetValue("Origin", m_origin_);
         res->template SetValue("Phi", nTuple<Real, 2>{m_angle_min_, m_angle_max_});

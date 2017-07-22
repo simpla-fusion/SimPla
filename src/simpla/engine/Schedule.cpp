@@ -65,11 +65,7 @@ void Schedule::Run() {
 
 std::shared_ptr<data::DataTable> Schedule::Serialize() const {
     auto res = data::EnableCreateFromDataTable<Schedule>::Serialize();
-
     res->SetValue("CheckPointInterval", GetCheckPointInterval());
-
-    res->Set("Atlas", GetAtlas()->Serialize());
-
     if (m_data_io_ != nullptr) { res->SetValue("DataIOPort", m_data_io_->Serialize()); }
     return res;
 }
@@ -79,26 +75,10 @@ void Schedule::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     m_data_io_ = std::make_shared<data::DataIOPort>(cfg->GetValue<std::string>("DataIOPort", ""));
 }
 
-void Schedule::DoInitialize() {
-    SPObject::DoInitialize();
-    m_ctx_->DoInitialize();
-}
-
-void Schedule::DoFinalize() {
-    m_ctx_->Finalize();
-    SPObject::DoFinalize();
-}
-
-void Schedule::DoUpdate() {
-    SPObject::DoUpdate();
-    m_ctx_->Update();
-}
-
-void Schedule::DoTearDown() {
-    m_ctx_->DoTearDown();
-    SPObject::DoTearDown();
-}
-
+void Schedule::DoInitialize() { SPObject::DoInitialize(); }
+void Schedule::DoFinalize() { SPObject::DoFinalize(); }
+void Schedule::DoUpdate() { SPObject::DoUpdate(); }
+void Schedule::DoTearDown() { SPObject::DoTearDown(); }
 void Schedule::Synchronize() {
     //    auto &atlas = GetContext()->GetAtlas();
     //    if (from_level >= atlas.GetNumOfLevel() || to_level >= atlas.GetNumOfLevel()) { return; }

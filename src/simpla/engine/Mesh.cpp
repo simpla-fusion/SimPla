@@ -32,6 +32,19 @@ struct MeshBase::pimpl_s {
 MeshBase::MeshBase() : m_pimpl_(new pimpl_s) {}
 
 MeshBase::~MeshBase() = default;
+std::shared_ptr<geometry::GeoObject> MeshBase::GetGeoBody() const { return GetChart()->BoundBox(GetIndexBox()); };
+
+Real MeshBase::CheckOverlap(const geometry::GeoObject* g) const {
+    Real res = 0;
+    if (g != nullptr) {
+        auto id_box = GetIndexBox(0);
+        box_type b{GetChart()->global_coordinates(std::get<0>(id_box), 0),
+                   GetChart()->global_coordinates(std::get<1>(id_box), 0)};
+
+        //        res = geometry::OverlapVolume(g->GetBoundBox(), b) / Volume(b);
+    }
+    return res;
+}
 
 index_box_type MeshBase::GetIndexBox(int tag) const { return GetBlock()->GetIndexBox(); }
 
@@ -57,13 +70,9 @@ box_type MeshBase::GetBox(int tag) const {
 //    m_mesh_block_.swap(other.m_mesh_block_);
 //}
 
-std::shared_ptr<data::DataTable> MeshBase::Serialize() const {
-    auto p = std::make_shared<data::DataTable>();
-    p->SetValue("Type", GetRegisterName());
-    return (p);
-}
+std::shared_ptr<data::DataTable> MeshBase::Serialize() const { return base_type::Serialize(); }
 void MeshBase::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
-    SetName(cfg->GetValue("Name", GetRegisterName()));
+    base_type::Deserialize(cfg);
 
     auto lo = cfg->GetValue<point_type>("Box/lo", point_type{0, 0, 0});
     auto hi = cfg->GetValue<point_type>("Box/hi", point_type{1, 1, 1});

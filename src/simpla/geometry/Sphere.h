@@ -14,7 +14,6 @@ namespace geometry {
 
 struct Sphere : public GeoObject {
     SP_OBJECT_HEAD(Sphere, GeoObject)
-    DECLARE_REGISTER_NAME(Sphere);
     Real m_radius_ = 1;
     point_type m_origin_{0, 0, 0};
 
@@ -24,14 +23,15 @@ struct Sphere : public GeoObject {
     ~Sphere() override = default;
 
     std::shared_ptr<data::DataTable> Serialize() const override {
-        auto p = std::make_shared<data::DataTable>();
-        p->SetValue<std::string>("Type", GetRegisterName());
+        auto p = base_type::Serialize();
+
         p->SetValue("Origin", m_origin_);
         p->SetValue("Radius", m_radius_);
 
         return p;
     };
     void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override {
+        base_type::Deserialize(cfg);
         m_origin_ = cfg->GetValue("Origin", m_origin_);
         m_radius_ = cfg->GetValue("Radius", m_radius_);
     }

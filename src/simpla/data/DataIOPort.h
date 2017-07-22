@@ -13,14 +13,13 @@ namespace simpla {
 namespace data {
 
 class DataIOPort : public EnableCreateFromDataTable<DataIOPort> {
-    SP_OBJECT_BASE(DataIOPort);
+    SP_OBJECT_HEAD(DataIOPort, EnableCreateFromDataTable<DataIOPort>);
 
    public:
     explicit DataIOPort(std::string uri = "");
     ~DataIOPort() override;
 
     SP_DEFAULT_CONSTRUCT(DataIOPort)
-    DECLARE_REGISTER_NAME(DataIOPort)
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
@@ -36,7 +35,7 @@ class DataIOPort : public EnableCreateFromDataTable<DataIOPort> {
     std::shared_ptr<DataEntity> Get(std::string const &uri) const;
     void Set(std::string const &uri, std::shared_ptr<DataEntity> const &);
     void Add(std::string const &uri, std::shared_ptr<DataEntity> const &);
-    
+
     void Set(std::shared_ptr<DataTable> const &);
     void Add(std::shared_ptr<DataTable> const &);
 

@@ -24,7 +24,6 @@ struct TimeIntegrator : public Schedule {
     explicit TimeIntegrator(std::string const &s_name = "TimeIntegrator");
     ~TimeIntegrator() override;
     SP_DEFAULT_CONSTRUCT(TimeIntegrator);
-    DECLARE_REGISTER_NAME("TimeIntegrator")
 
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;

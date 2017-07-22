@@ -5,6 +5,6 @@
 #include "Sphere.h"
 namespace simpla {
 namespace geometry {
-REGISTER_CREATOR(Sphere)
+REGISTER_CREATOR(Sphere, Sphere)
 }
 }

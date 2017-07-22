@@ -20,15 +20,14 @@ namespace simpla {
 namespace engine {
 using namespace data;
 
-class Model : public SPObject, public data::EnableCreateFromDataTable<Model> {
-    SP_OBJECT_HEAD(Model, SPObject);
+class Model : public data::EnableCreateFromDataTable<Model> {
+    SP_OBJECT_HEAD(Model, data::EnableCreateFromDataTable<Model>);
 
    public:
     Model();
     ~Model() override;
 
     SP_DEFAULT_CONSTRUCT(Model)
-    DECLARE_REGISTER_NAME(Model)
 
     std::shared_ptr<DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<DataTable> &cfg) override;
