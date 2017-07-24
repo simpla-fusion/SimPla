@@ -15,7 +15,6 @@
 #include <cassert>
 
 #include "simpla/utilities/type_traits.h"
-
 #include "ExpressionTemplate.h"
 
 //#include "utility.h"

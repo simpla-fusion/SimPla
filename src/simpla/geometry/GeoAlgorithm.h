@@ -16,8 +16,8 @@
 #include "simpla/algebra/nTuple.ext.h"
 #include "simpla/algebra/nTuple.h"
 #include "simpla/utilities/Log.h"
+#include "simpla/utilities/SPDefines.h"
 #include "simpla/utilities/integer_sequence.h"
-
 namespace simpla {
 namespace geometry {
 
@@ -66,56 +66,49 @@ std::tuple<simpla::nTuple<U, N>, simpla::nTuple<U, N>> BoundBox(
     }
     return std::move(res);
 };
-/**
- * @ingroup geometry
- * @{
- * @defgroup geo_algorithm Geometric Algorithm
- * @{
- */
-
-template <typename T, typename T1>
-bool in_box(T1 const& p0, T1 const& p1, simpla::nTuple<T, 2> const& x0) {
-    return (x0[0] >= p0[0]) && (x0[1] >= p0[1]) && (x0[0] < p1[0]) && (x0[1] < p1[1]);
-}
-
-template <typename T0, typename T1>
-bool in_box(std::tuple<T1, T1> const& b, T0 const& x0) {
-    return (x0[0] >= std::get<0>(b)[0]) && (x0[1] >= std::get<0>(b)[1]) && (x0[2] >= std::get<0>(b)[2]) &&
-           (x0[0] < std::get<1>(b)[0]) && (x0[1] < std::get<1>(b)[1]) && (x0[2] < std::get<1>(b)[2]);
-}
-
-template <typename T0, typename T1>
-std::tuple<point_type, point_type, Real> GetNearestPointToBox(std::tuple<T1, T1> const& b, T0 const& x0) {
-    UNIMPLEMENTED;
-    return std::make_tuple(x0,
-                           point_type{std::numeric_limits<Real>::quiet_NaN(), std::numeric_limits<Real>::quiet_NaN(),
-                                      std::numeric_limits<Real>::quiet_NaN()},
-                           std::numeric_limits<Real>::quiet_NaN());
-}
-
-template <typename T0, typename... Args>
-std::tuple<point_type, point_type, Real> GetNearestPointToBox(T0 const& b, Args&&... args) {
-    UNIMPLEMENTED;
-    return std::make_tuple(point_type{std::numeric_limits<Real>::quiet_NaN(), std::numeric_limits<Real>::quiet_NaN(),
-                                      std::numeric_limits<Real>::quiet_NaN()},
-                           point_type{std::numeric_limits<Real>::quiet_NaN(), std::numeric_limits<Real>::quiet_NaN(),
-                                      std::numeric_limits<Real>::quiet_NaN()},
-                           std::numeric_limits<Real>::quiet_NaN());
-}
-
-template <typename T0, typename T1, typename T2, typename T3>
-std::tuple<Real, Vec3> GetNearestPointToPlane(T0 const& x0, T1 const& p0, T2 const& p1, T3 const& p2) {
-    Vec3 n;
-
-    n = cross(p1 - p0, p2 - p1);
-
-    n /= dot(n, n);
-
-    return std::make_tuple(dot(p0 - x0, n), std::move(n));
-}
+///**
+// * @ingroup geometry
+// * @{
+// * @defgroup geo_algorithm Geometric Algorithm
+// * @{
+// */
+//
+//template <typename T, typename T1>
+//bool in_box(T1 const& p0, T1 const& p1, simpla::nTuple<T, 2> const& x0) {
+//    return (x0[0] >= p0[0]) && (x0[1] >= p0[1]) && (x0[0] < p1[0]) && (x0[1] < p1[1]);
+//}
+//
+//template <typename T0, typename T1>
+//bool in_box(std::tuple<T1, T1> const& b, T0 const& x0) {
+//    return (x0[0] >= std::get<0>(b)[0]) && (x0[1] >= std::get<0>(b)[1]) && (x0[2] >= std::get<0>(b)[2]) &&
+//           (x0[0] < std::get<1>(b)[0]) && (x0[1] < std::get<1>(b)[1]) && (x0[2] < std::get<1>(b)[2]);
+//}
+//
+//template <typename T0, typename T1>
+//std::tuple<Real, point_type, point_type> NearestPointToBox(std::tuple<T1, T1> const& b, T0 const& x0) {
+//    UNIMPLEMENTED;
+//    return std::make_tuple(SNaN, x0, point_type{SNaN, SNaN, SNaN});
+//}
+//
+//template <typename T0, typename... Args>
+//std::tuple<Real, point_type, point_type> NearestPointToBox(T0 const& b, Args&&... args) {
+//    UNIMPLEMENTED;
+//    return std::make_tuple(SNaN, point_type{SNaN, SNaN, SNaN}, point_type{SNaN, SNaN, SNaN});
+//}
+//
+//template <typename T0, typename T1, typename T2, typename T3>
+//std::tuple<Real, Vec3> NearestPointToPlane(T0 const& x0, T1 const& p0, T2 const& p1, T3 const& p2) {
+//    Vec3 n;
+//
+//    n = cross(p1 - p0, p2 - p1);
+//
+//    n /= dot(n, n);
+//
+//    return std::make_tuple(dot(p0 - x0, n), std::move(n));
+//}
 
 template <typename T0, typename T1, typename T2>
-Real GetNearestPointToLineSegment(T0 const& p0, T1 const& p1, T2 const& x) {
+Real NearestPointToLineSegment(T0 const& p0, T1 const& p1, T2 const& x) {
     Vec3 u, v;
 
     u = x - *p0;
@@ -135,7 +128,7 @@ Real GetNearestPointToLineSegment(T0 const& p0, T1 const& p1, T2 const& x) {
 }
 
 template <typename T0, typename T1, typename TP>
-Real GetNearestPointToPolygon(T0 const& p0, T1 const& p1, TP* x) {
+Real NearestPointToPolygon(T0 const& p0, T1 const& p1, TP* x) {
     Real dist2 = 0.0;
     UNIMPLEMENTED;
     TP p2 = *x;
@@ -215,7 +208,7 @@ std::tuple<Real, Real> GetNearestLineToLine(T0 const& P0, T1 const& P1, T2 const
         // two lines are parallel
         s = 0;
 
-        t = GetNearestPointToLineSegment(P0, Q0, Q1);
+        t = NearestPointToLineSegment(P0, Q0, Q1);
     } else {
         s = (b * e - c * d) / (a * c - b * b);
 
@@ -246,8 +239,8 @@ std::tuple<Real, Real> GetNearestLineToLine(T0 const& P0, T1 const& P1, T2 const
  *
  */
 template <typename T0, typename T1, typename T2, typename T3>
-std::tuple<Real, Real, Real> GetNearestPointToPlane(T0 const& P0, T1 const& Q0, T2 const& Q1, T3 const& Q2,
-                                                    int flag = 0) {}
+std::tuple<Real, Real, Real> NearestPointToPlane(T0 const& P0, T1 const& Q0, T2 const& Q1, T3 const& Q2, int flag = 0) {
+}
 
 /**
  *

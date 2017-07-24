@@ -19,6 +19,7 @@
 #include "simpla/utilities/Log.h"
 #include "simpla/utilities/ObjectHead.h"
 #include "simpla/utilities/Range.h"
+#include "simpla/utilities/SPDefines.h"
 #include "simpla/utilities/memory.h"
 #include "simpla/utilities/type_traits.h"
 

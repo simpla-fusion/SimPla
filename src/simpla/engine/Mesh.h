@@ -49,10 +49,9 @@ struct MeshBase : public AttributeGroup, public engine::EnableCreateFromDataTabl
     virtual this_type const *GetMesh() const { return this; }
 
     virtual void AddEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g){};
-    virtual std::shared_ptr<geometry::GeoObject> GetGeoBody() const;
     virtual Real CheckOverlap(const geometry::GeoObject *) const;
 
-    virtual index_box_type GetIndexBox(int tag = 0) const;
+    virtual index_box_type IndexBox(int tag = 0) const;
     virtual box_type GetBox(int tag = 0) const;
 
     void SetBlock(const MeshBlock &blk);
@@ -117,7 +116,7 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
 
     const MeshBlock *GetBlock() const override { return MeshBase::GetBlock(); }
 
-    index_box_type GetIndexBox(int tag) const override { return MeshBase::GetIndexBox(tag); };
+    index_box_type IndexBox(int tag) const override { return MeshBase::IndexBox(tag); };
 
     void DoInitialCondition(Real time_now) override;
     void DoBoundaryCondition(Real time_now, Real dt) override;
@@ -155,8 +154,6 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     void TagRefinementRange(Range<EntityId> const &r) override;
 
     void AddEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g) override;
-
-    std::shared_ptr<geometry::GeoObject> GetGeoBody() const override { return base_type::GetGeoBody(); }
 };
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::TagRefinementRange(Range<EntityId> const &r) {

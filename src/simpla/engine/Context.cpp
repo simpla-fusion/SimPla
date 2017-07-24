@@ -108,25 +108,25 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
 //        }
 //    });
 
-box_type Context::GetBoundBox() const { return m_pimpl_->m_bound_box_; }
-index_box_type Context::GetIndexBox() const { return m_pimpl_->m_bound_index_box_; }
+box_type Context::BoundingBox() const { return m_pimpl_->m_bound_box_; }
+index_box_type Context::IndexBox() const { return m_pimpl_->m_bound_index_box_; }
 void Context::DoInitialize() { SPObject::DoInitialize(); }
 void Context::DoFinalize() { SPObject::DoFinalize(); }
 void Context::DoTearDown() { SPObject::DoTearDown(); }
 void Context::DoUpdate() {
     SPObject::DoUpdate();
 
-    GetMesh()->GetChart()->SetOrigin(std::get<0>(GetBoundBox()));
+    GetMesh()->GetChart()->SetOrigin(std::get<0>(BoundingBox()));
     for (auto &d : m_pimpl_->m_domains_) { d.second->Update(); }
 
     //    auto scale = GetMesh()->GetChart()->GetScale();
     //    auto ib = GetAllDomains().begin();
     //    auto ie = GetAllDomains().end();
     //
-    //    box_type bound_box = ib->second->GetGeoBody()->GetBoundBox();
+    //    box_type bound_box = ib->second->GetGeoBody()->BoundingBox();
     //    ++ib;
-    //    for (; ib != ie; ++ib) { bound_box = geometry::expand(bound_box, ib->second->GetGeoBody()->GetBoundBox()); }
-    //    auto bound_box = GetBoundBox();
+    //    for (; ib != ie; ++ib) { bound_box = geometry::expand(bound_box, ib->second->GetGeoBody()->BoundingBox()); }
+    //    auto bound_box = BoundingBox();
     //    return index_box_type{std::get<0>(GetMesh()->GetChart()->invert_local_coordinates(std::get<0>(bound_box))),
     //                          std::get<0>(GetMesh()->GetChart()->invert_local_coordinates(std::get<1>(bound_box)))};
 }
@@ -260,7 +260,7 @@ void Context::TagRefinementCells(Real time_now) {
 //        auto w = m_pack_->m_workers_.find(g_item.first);
 //        if (w == m_pack_->m_workers_.end()) { continue; }
 //        for (auto const &mblk : GetAtlas().Level(level)) {
-//            if (!g_item.second->CheckOverlap(mblk->GetBoundBox())) { continue; }
+//            if (!g_item.second->CheckOverlap(mblk->BoundingBox())) { continue; }
 //
 //            auto p = m_pack_->m_patches_[mblk->GetID()];
 //            if (p == nullptr) {
@@ -269,7 +269,7 @@ void Context::TagRefinementCells(Real time_now) {
 //            }
 //            w->second->GetPatch(p);
 //            LOGGER << " DomainBase [ " << std::setw(10) << std::left << w->second->name() << " ] is applied on "
-//                   << mblk->GetIndexBox() << " GeoObject id= " << g_item.first << std::endl;
+//                   << mblk->IndexBox() << " GeoObject id= " << g_item.first << std::endl;
 //            w->second->AdvanceData(time_now, dt);
 //            m_pack_->m_patches_[mblk->GetID()] = w->second->PushPatch();
 //        }

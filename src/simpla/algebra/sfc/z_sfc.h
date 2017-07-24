@@ -120,7 +120,7 @@ class ZSFC {
     };
 
     size_type size() const { return m_size_; }
-    index_box_type GetIndexBox() const { return m_index_box_; }
+    index_box_type IndexBox() const { return m_index_box_; }
     void Shift(array_index_type const& offset) {
         std::get<0>(m_index_box_) += offset;
         std::get<1>(m_index_box_) += offset;
@@ -274,7 +274,7 @@ index_box_type overlap(T const& a) {
 }
 template <typename U>
 index_box_type overlap(Array<U, ZSFC<3>> const& a) {
-    return a.GetSpaceFillingCurve().GetIndexBox();
+    return a.GetSpaceFillingCurve().IndexBox();
 }
 
 inline index_box_type overlap(index_box_type const& a) { return a; }

@@ -20,6 +20,9 @@ template <typename THost>
 struct EBMesh {
     SP_ENGINE_POLICY_HEAD(EBMesh);
 
+    std::map<id_type, Real> m_volume_;
+    std::map<id_type, Real> m_dual_volume_;
+
    public:
     void SetEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g);
 };
@@ -32,8 +35,8 @@ void EBMesh<THost>::SetEmbeddedBoundary(std::string const &prefix, const geometr
     if (g == nullptr) { return; }
 
     VERBOSE << "Add Embedded Boundary [" << prefix << "]"
-            << "Patch : Level=" << m_host_->GetMesh()->GetBlock()->GetLevel() << " "
-            << m_host_->GetMesh()->GetIndexBox(0) << std::endl;
+            << "Patch : Level=" << m_host_->GetMesh()->GetBlock()->GetLevel() << " " << m_host_->GetMesh()->IndexBox(0)
+            << std::endl;
 
     Real ratio = m_host_->GetMesh()->CheckOverlap(g);
     if (ratio < EPSILON) {

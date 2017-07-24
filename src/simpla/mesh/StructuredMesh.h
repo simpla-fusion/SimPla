@@ -34,10 +34,10 @@ class StructuredMesh {
 
     virtual const geometry::Chart *GetChart() const = 0;
     virtual const engine::MeshBlock *GetBlock() const = 0;
-    virtual index_box_type GetIndexBox(int tag) const;
+    virtual index_box_type IndexBox(int tag) const;
 
     ZSFC<NDIMS> GetSpaceFillingCurve(int iform, int nsub = 0) const {
-        return ZSFC<NDIMS>{GetIndexBox(EntityIdCoder::m_sub_index_to_id_[iform][nsub])};
+        return ZSFC<NDIMS>{IndexBox(EntityIdCoder::m_sub_index_to_id_[iform][nsub])};
     }
 
     template <typename U>
@@ -46,13 +46,13 @@ class StructuredMesh {
     template <int IFORM, typename U, int... N>
     void initialize_data(nTuple<array_type<U>, N...> *d) const {
         traits::foreach (*d, [&](auto &a, int n0, auto &&... idx) {
-            a.reset(GetIndexBox(EntityIdCoder::m_sub_index_to_id_[IFORM][n0]));
+            a.reset(IndexBox(EntityIdCoder::m_sub_index_to_id_[IFORM][n0]));
         });
     };
 
    public:
     size_type GetNumberOfEntity(int IFORM = VERTEX) const {
-        index_box_type m_index_box_ = GetBlock()->GetIndexBox();
+        index_box_type m_index_box_ = GetBlock()->IndexBox();
         return calculus::reduction<tags::multiplication>(std::get<1>(m_index_box_) - std::get<0>(m_index_box_)) *
                ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
     }

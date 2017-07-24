@@ -41,6 +41,15 @@ struct Chart : public engine::SPObject, public data::Serializable {
     void SetRotation(point_type const &x);
     point_type const &GetRotation() const;
 
+    template <typename... Args>
+    point_type uvw(Args &&... args) const {
+        return local_coordinates(std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    point_type xyz(Args &&... args) const {
+        return global_coordinates(std::forward<Args>(args)...);
+    }
+
     template <typename TR>
     point_type local_coordinates(TR const &x) const {
         return point_type{std::fma(x[0], m_scale_[0], m_origin_[0]), std::fma(x[1], m_scale_[1], m_origin_[1]),
