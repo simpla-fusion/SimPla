@@ -36,7 +36,8 @@ Real MeshBase::CheckOverlap(const geometry::GeoObject* g) const {
         auto b = GetBox(0);
         res = geometry::Measure(geometry::Overlap(g->BoundingBox(), b)) / geometry::Measure(b);
     }
-    return res;
+//    return res;
+    return 0.5;
 }
 
 index_box_type MeshBase::IndexBox(int tag) const { return GetBlock()->IndexBox(); }

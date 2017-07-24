@@ -1,10 +1,5 @@
 //
-<<<<<<< HEAD
 // Created by salmon on 17-7-22.
-//
-
-=======
-// Created by salmon on 17-7-24.
 //
 
 #include "GeoObjectOCC.h"
@@ -13,6 +8,7 @@
 #include <BRepAlgoAPI_Section.hxx>
 #include <BRepBndLib.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
+#include <BRepBuilderAPI_MakeVertex.hxx>
 #include <BRepExtrema_DistShapeShape.hxx>
 #include <BRepTools.hxx>
 #include <BRep_Builder.hxx>
@@ -44,6 +40,8 @@ REGISTER_CREATOR(GeoObjectOCC, occ)
 
 struct GeoObjectOCC::pimpl_s {
     std::string m_file_;
+    std::string m_label_;
+
     std::shared_ptr<TopoDS_Shape> m_occ_shape_;
     box_type m_bound_box_{{0, 0, 0}, {0, 0, 0}};
 };
@@ -53,23 +51,29 @@ GeoObjectOCC::~GeoObjectOCC(){};
 std::shared_ptr<data::DataTable> GeoObjectOCC::Serialize() const {
     auto res = GeoObject::Serialize();
     res->SetValue("File", m_pimpl_->m_file_);
+    res->SetValue("Label", m_pimpl_->m_label_);
+
     return res;
 };
 void GeoObjectOCC::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
     GeoObject::Deserialize(cfg);
-    Load(cfg->GetValue("File", m_pimpl_->m_file_));
+    Load(cfg->GetValue("File", m_pimpl_->m_file_), cfg->GetValue("Label", m_pimpl_->m_label_));
+
     Update();
 };
-void GeoObjectOCC::Load(std::string const &file_name) {
+void GeoObjectOCC::Load(std::string const &file_name, std::string const &label) {
     m_pimpl_->m_file_ = file_name;
+    m_pimpl_->m_label_ = label;
     m_pimpl_->m_occ_shape_.reset(new TopoDS_Shape);
 
     STEPControl_Reader reader;
     if (reader.ReadFile(file_name.c_str()) != IFSelect_RetDone) {
         RUNTIME_ERROR << "Real STEP file failed!" << std::endl;
     } else {
-        reader.TransferRoots();
-        *m_pimpl_->m_occ_shape_ = reader.OneShape();
+        //        reader.TransferRoots();
+        CHECK(reader.TransferList(reader.GiveList(label.c_str())));
+        *m_pimpl_->m_occ_shape_ = reader.Shape();
+        CHECK(m_pimpl_->m_occ_shape_->ShapeType());
     }
 };
 void GeoObjectOCC::DoUpdate() {
@@ -81,12 +85,15 @@ void GeoObjectOCC::DoUpdate() {
 }
 box_type GeoObjectOCC::BoundingBox() const { return m_pimpl_->m_bound_box_; };
 bool GeoObjectOCC::CheckInside(point_type const &x) const {
-
-
-    return false;
-
+    //    VERBOSE << m_pimpl_->m_bound_box_ << (x) << std::endl;
+    gp_Pnt p(x[0], x[1], x[2]);
+    //    gp_Pnt p(0,0,0);
+    BRepBuilderAPI_MakeVertex vertex(p);
+    BRepExtrema_DistShapeShape dist(vertex, *m_pimpl_->m_occ_shape_);
+    dist.Perform();
+    CHECK(dist.Value()) << dist.InnerSolution();
+    return dist.InnerSolution();
 };
 
 }  // namespace geometry
 }  // namespace simpla
->>>>>>> 7990e27040760bef8a4dea5879338d1bd2be126e

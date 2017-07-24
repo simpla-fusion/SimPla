@@ -34,7 +34,7 @@ class EnableCreateFromDataTable : public engine::SPObject, public data::Serializ
 
     std::shared_ptr<data::DataTable> Serialize() const override {
         auto res = std::make_shared<data::DataTable>();
-        res->SetValue("Type", TObj::GetFancyTypeName_s());
+        res->SetValue("Type", GetFancyTypeName());
         return res;
     }
 

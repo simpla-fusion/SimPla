@@ -53,9 +53,11 @@ Context = {
             Type = "ICRFAntenna", -- "Domain<RectMesh,EBMesh,FVM,ICRFAntenna>",
 
             Body = {
-                Type = "Cube",
-                lo = { 1.5, -0.5, -TWOPI / 8 },
-                hi = { 2.0, 0.5, TWOPI / 8 },
+                Type="occ",
+                File="/home/salmon/workspace/SimPla/example/tokamak/cube.step"
+--                Type = "Cube",
+--                lo = { 1.5, -0.5, -TWOPI / 8 },
+--                hi = { 2.0, 0.5, TWOPI / 8 },
 
 --                Type="Sphere",
 --                Origin={1.3,0,0 },

@@ -105,6 +105,7 @@ void UpdateRanges(engine::MeshBase *m_host_, std::string const &prefix, Array<in
                   ((vertex_tags(I + 0, J + 1, K + 1)) << 6) |  //
                   ((vertex_tags(I + 1, J + 1, K + 1)) << 7);
 
+        CHECK(tag);
         //
         if (tag == 0b11111111) {
             /**
@@ -213,21 +214,18 @@ void UpdateRanges(engine::MeshBase *m_host_, std::string const &prefix, Array<in
     m_host_->GetRange(prefix + "_PERP_BOUNDARY_1").append(make_range(EDGE_PERP_boundary));
     m_host_->GetRange(prefix + "_PERP_BOUNDARY_2").append(make_range(FACE_PERP_boundary));
 }
-
-void CreateEBMesh(engine::MeshBase *m_host_, std::string const &prefix,
-                  std::function<bool(index_type, index_type, index_type)> const &fun) {
-    if (!fun) { return; }
+void CreateEBMesh(engine::MeshBase *m_host_, geometry::GeoObject const *g, std::string const &prefix) {
+    if (g == nullptr) { return; }
 
     Array<int, ZSFC<3>> vertex_tags{nullptr, geometry::Expand(m_host_->IndexBox(0b0), index_tuple{3, 3, 3})};
 
-    vertex_tags = fun;
-    //    auto const *chart = m_host_->GetChart();
-    //    vertex_tags = [&](index_type x, index_type y, index_type z) {
-    //        return g->CheckInside(chart->xyz(point_type{static_cast<Real>(x), static_cast<Real>(y),
-    //        static_cast<Real>(z)}))
-    //                   ? 1
-    //                   : 0;
-    //    };
+    //    vertex_tags = fun;
+    auto const *chart = m_host_->GetChart();
+    vertex_tags = [&](index_type x, index_type y, index_type z) {
+        return g->CheckInside(chart->xyz(point_type{static_cast<Real>(x), static_cast<Real>(y), static_cast<Real>(z)}))
+                   ? 1
+                   : 0;
+    };
 
     UpdateRanges(m_host_, prefix, vertex_tags);
 }
