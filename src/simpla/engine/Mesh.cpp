@@ -2,10 +2,6 @@
 // Created by salmon on 17-7-16.
 //
 
-//
-// Created by salmon on 17-7-16.
-//
-
 #include <simpla/geometry/BoxUtilities.h>
 #include "simpla/SIMPLA_config.h"
 
@@ -33,21 +29,20 @@ struct MeshBase::pimpl_s {
 MeshBase::MeshBase() : m_pimpl_(new pimpl_s) {}
 
 MeshBase::~MeshBase() = default;
-std::shared_ptr<geometry::GeoObject> MeshBase::GetGeoBody() const { return GetChart()->BoundBox(GetIndexBox()); };
 
 Real MeshBase::CheckOverlap(const geometry::GeoObject* g) const {
     Real res = 0;
     if (g != nullptr) {
         auto b = GetBox(0);
-        res = GetChart()->volume(geometry::intersection(g->GetBoundBox(), b)) / GetChart()->volume(b);
+        res = geometry::Measure(geometry::Overlap(g->BoundingBox(), b)) / geometry::Measure(b);
     }
     return res;
 }
 
-index_box_type MeshBase::GetIndexBox(int tag) const { return GetBlock()->GetIndexBox(); }
+index_box_type MeshBase::IndexBox(int tag) const { return GetBlock()->IndexBox(); }
 
 box_type MeshBase::GetBox(int tag) const {
-    auto id_box = GetIndexBox(tag);
+    auto id_box = IndexBox(tag);
     return box_type{GetChart()->local_coordinates(std::get<0>(id_box), tag),
                     GetChart()->local_coordinates(std::get<1>(id_box), tag)};
 };
@@ -103,7 +98,7 @@ const MeshBlock* MeshBase::GetBlock() const { return &m_mesh_block_; }
 void MeshBase::Push(Patch* patch) {
     //    VERBOSE << " Patch Level:" << patch->GetMeshBlock()->GetLevel() << " ID: " <<
     //    patch->GetMeshBlock()->GetLocalID()
-    //            << " Block:" << patch->GetMeshBlock()->GetIndexBox() << std::endl;
+    //            << " Block:" << patch->GetMeshBlock()->IndexBox() << std::endl;
 
     SetBlock(*patch->GetMeshBlock());
     GetChart()->SetLevel(GetBlock()->GetLevel());

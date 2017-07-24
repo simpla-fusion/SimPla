@@ -37,7 +37,7 @@ class Model : public engine::EnableCreateFromDataTable<Model> {
     void DoTearDown() override;
     void DoFinalize() override;
 
-    box_type const &GetBoundBox() const;
+    box_type const &BoundingBox() const;
 
     typedef std::function<Real(point_type const &)> attr_fun;
     typedef std::function<Vec3(point_type const &)> vec_attr_fun;

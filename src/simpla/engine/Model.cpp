@@ -7,6 +7,7 @@
 #include "Model.h"
 
 #include "SPObject.h"
+#include "simpla/engine/EnableCreateFromDataTable.h"
 
 namespace simpla {
 namespace engine {
@@ -40,17 +41,17 @@ void Model::DoFinalize() {}
 void Model::DoUpdate() {
     auto it = m_pimpl_->m_g_objs_.begin();
     if (it == m_pimpl_->m_g_objs_.end() || it->second == nullptr) { return; }
-    m_pimpl_->m_bound_box_ = it->second->GetBoundBox();
+    m_pimpl_->m_bound_box_ = it->second->BoundingBox();
     ++it;
     for (; it != m_pimpl_->m_g_objs_.end(); ++it) {
         if (it->second != nullptr) {
-            m_pimpl_->m_bound_box_ = geometry::BoundBox(m_pimpl_->m_bound_box_, it->second->GetBoundBox());
+            m_pimpl_->m_bound_box_ = geometry::Union(m_pimpl_->m_bound_box_, it->second->BoundingBox());
         }
     }
 };
 void Model::DoTearDown() {}
 
-box_type const& Model::GetBoundBox() const { return m_pimpl_->m_bound_box_; };
+box_type const& Model::BoundingBox() const { return m_pimpl_->m_bound_box_; };
 
 void Model::SetObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
     if (g_obj != nullptr) {

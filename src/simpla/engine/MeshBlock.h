@@ -48,7 +48,7 @@ class MeshBlock {
 
     id_type GetGUID() const;
 
-    index_box_type GetIndexBox() const { return m_index_box_; }
+    index_box_type IndexBox() const { return m_index_box_; }
 
     static id_type hash_id(int id = 0, int level = 0, int owner = 0);
 

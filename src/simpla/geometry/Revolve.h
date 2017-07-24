@@ -37,7 +37,7 @@ class Revolve : public GeoObject {
     };
     void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override {}
 
-    virtual box_type GetBoundBox() const override { return box_type{{0, 0, 0}, {1, 2, 3}}; };
+    virtual box_type BoundingBox() const override { return box_type{{0, 0, 0}, {1, 2, 3}}; };
 
     bool CheckInside(point_type const &x) const override { return base_obj.CheckInside(MapTo2d(x)); };
 
@@ -80,9 +80,9 @@ class RevolveZ : public GeoObject {
     };
     void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override {}
 
-    box_type GetBoundBox() const override {
+    box_type BoundingBox() const override {
         nTuple<Real, 2> lo, hi;
-        std::tie(lo, hi) = base_obj->GetBoundBox();
+        std::tie(lo, hi) = base_obj->BoundingBox();
         box_type res;
         std::get<0>(res)[m_phi_axe_] = m_angle_min_;
         std::get<1>(res)[m_phi_axe_] = m_angle_max_;

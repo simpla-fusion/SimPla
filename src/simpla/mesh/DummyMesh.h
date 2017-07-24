@@ -78,7 +78,7 @@ struct DummyMesh : public MeshBase {
     this_type *GetMesh() { return this; };
     this_type const *GetMesh() const { return this; };
 
-    virtual index_box_type GetIndexBox(int tag = VERTEX) const { return m_index_box_; }
+    virtual index_box_type IndexBox(int tag = VERTEX) const { return m_index_box_; }
     virtual point_type local_coordinates(EntityId s, Real const *r) const { return point_type{0, 0, 0}; };
 
     template <typename TL, typename TR>

@@ -29,8 +29,8 @@ namespace mesh {
 *\endverbatim
 */
 
-index_box_type StructuredMesh::GetIndexBox(int tag) const {
-    index_box_type res = GetBlock()->GetIndexBox();
+index_box_type StructuredMesh::IndexBox(int tag) const {
+    index_box_type res = GetBlock()->IndexBox();
     switch (tag) {
         case 0:
             std::get<1>(res) += 1;

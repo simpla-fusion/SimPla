@@ -85,16 +85,16 @@ void Schedule::Synchronize() {
     //    if (from_level >= atlas.GetNumOfLevel() || to_level >= atlas.GetNumOfLevel()) { return; }
     //    for (auto const &src : atlas.Level(from_level)) {
     //        for (auto const &dest : atlas.Level(from_level)) {
-    //            if (!geometry::CheckOverlap(src->GetIndexBox(), dest->GetIndexBox())) { continue; }
+    //            if (!geometry::CheckOverlap(src->IndexBox(), dest->IndexBox())) { continue; }
     //            //            auto s_it = m_pack_->m_patches_.find(src->GetID());
     //            //            auto d_it = m_pack_->m_patches_.find(dest->GetID());
     //            //            if (s_it == m_pack_->m_patches_.end() || d_it == m_pack_->m_patches_.end() || s_it ==
     //            d_it)
     //            //            { continue; }
-    //            //            LOGGER << "Synchronize From " << m_pack_->m_atlas_.GetMeshBlock(src)->GetIndexBox() <<
+    //            //            LOGGER << "Synchronize From " << m_pack_->m_atlas_.GetMeshBlock(src)->IndexBox() <<
     //            " to
     //            "
-    //            //                   << m_pack_->m_atlas_.GetMeshBlock(dest)->GetIndexBox() << " " << std::endl;
+    //            //                   << m_pack_->m_atlas_.GetMeshBlock(dest)->IndexBox() << " " << std::endl;
     //            //            auto &src_data = s_it->cast_as<data::DataTable>();
     //            //            src_data.Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const
     //            &dest_p)

@@ -36,7 +36,7 @@ struct Sphere : public GeoObject {
         m_radius_ = cfg->GetValue("Radius", m_radius_);
     }
 
-    box_type GetBoundBox() const override {
+    box_type BoundingBox() const override {
         box_type b;
         std::get<0>(b) = m_origin_ - m_radius_;
         std::get<1>(b) = m_origin_ + m_radius_;

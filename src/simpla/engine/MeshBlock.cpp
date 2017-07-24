@@ -50,12 +50,12 @@ id_type MeshBlock::GetGUID() const { return hash_id(m_local_id_, m_level_, m_own
 //}
 // index_tuple MeshBlock::GetGhostWidth() const { return m_ghost_width_; };
 // index_box_type MeshBlock::GetOuterIndexBox() const {
-//    auto ibox = GetIndexBox();
+//    auto ibox = IndexBox();
 //    std::get<0>(ibox) -= GetGhostWidth();
 //    std::get<1>(ibox) += GetGhostWidth();
 //    return std::move(ibox);
 //}
-// index_box_type MeshBlock::GetInnerIndexBox() const { return GetIndexBox(); }
+// index_box_type MeshBlock::GetInnerIndexBox() const { return IndexBox(); }
 //
 // index_tuple MeshBlock::GetIndexOrigin() const { return std::get<0>(m_index_box_); }
 //
