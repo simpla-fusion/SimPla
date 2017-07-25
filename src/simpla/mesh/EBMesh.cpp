@@ -220,8 +220,18 @@ void TagCutVertices(engine::MeshBase const *m_host_, Array<int, ZSFC<3>> *vertex
 };
 
 void CreateEBMesh(engine::MeshBase *m_host_, std::string const &prefix, geometry::GeoObject const *g) {
-    Array<int, ZSFC<3>> vertex_tags{
-        nullptr, geometry::Expand(std::get<1>(m_host_->GetMesh()->CheckOverlap(g)), index_tuple{3, 3, 3})};
+    auto idx_box = geometry::Expand(std::get<1>(m_host_->GetMesh()->CheckOverlap(g)), index_tuple{3, 3, 3});
+    Array<int, ZSFC<3>> vertex_tags{nullptr, idx_box};
+
+    std::vector<Real> intersection_points;
+    for (int dir = 0; dir < 3; ++dir) {
+        index_tuple i0 = std::get<0>(idx_box);
+
+        i0[dir] = 0;
+        auto c = m_host_->GetMesh()->GetAxisCurve(i0, 0);
+    }
+
+    geometry::curve_intersection_surface(g, c, &intersection_points);
 
     if (g->isA(typeid(geometry::GeoObjectOCC))) {
         TagCutVertices(m_host_, &vertex_tags, dynamic_cast<geometry::GeoObjectOCC const *>(g));
