@@ -42,31 +42,30 @@ void DomainBase::DoFinalize() {}
 
 void DomainBase::InitialCondition(Real time_now) {
     Update();
-    if (GetMesh()->CheckOverlap(GetGeoBody().get()) < EPSILON) { return; }
+    if (std::get<0>(GetMesh()->CheckOverlap(GetGeoBody().get())) < EPSILON) { return; }
     PreInitialCondition(this, time_now);
     DoInitialCondition(time_now);
     PostInitialCondition(this, time_now);
 }
 void DomainBase::BoundaryCondition(Real time_now, Real dt) {
     Update();
-    if (GetMesh()->CheckOverlap(GetGeoBody().get()) < EPSILON) { return; }
+    if (std::get<0>(GetMesh()->CheckOverlap(GetGeoBody().get())) < EPSILON) { return; }
     PreBoundaryCondition(this, time_now, dt);
     DoBoundaryCondition(time_now, dt);
     PostBoundaryCondition(this, time_now, dt);
 }
 void DomainBase::Advance(Real time_now, Real dt) {
     Update();
-    if (GetMesh()->CheckOverlap(GetGeoBody().get()) < EPSILON) { return; }
+    if (std::get<0>(GetMesh()->CheckOverlap(GetGeoBody().get())) < EPSILON) { return; }
     PreAdvance(this, time_now, dt);
     DoAdvance(time_now, dt);
     PostAdvance(this, time_now, dt);
 }
 void DomainBase::TagRefinementCells(Real time_now) {
     Update();
-    if (GetMesh()->CheckOverlap(GetGeoBody().get()) < EPSILON) { return; }
+    if (std::get<0>(GetMesh()->CheckOverlap(GetGeoBody().get())) < EPSILON) { return; }
     PreTagRefinementCells(this, time_now);
     GetMesh()->TagRefinementRange(GetMesh()->GetRange(GetName() + "_BOUNDARY_3"));
-
     DoTagRefinementCells(time_now);
     PostTagRefinementCells(this, time_now);
 }

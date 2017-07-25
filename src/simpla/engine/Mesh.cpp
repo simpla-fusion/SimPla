@@ -30,13 +30,13 @@ MeshBase::MeshBase() : m_pimpl_(new pimpl_s) {}
 
 MeshBase::~MeshBase() = default;
 
-Real MeshBase::CheckOverlap(const geometry::GeoObject* g) const {
-    Real res = 0;
+std::tuple<Real, index_box_type> MeshBase::CheckOverlap(const geometry::GeoObject* g) const {
+    Real ratio = 0;
     if (g != nullptr) {
         auto b = GetBox(0);
-        res = geometry::Measure(geometry::Overlap(g->BoundingBox(), b)) / geometry::Measure(b);
+        ratio = geometry::Measure(geometry::Overlap(g->BoundingBox(), b)) / geometry::Measure(b);
     }
-    return res;
+    return std::make_tuple(ratio, IndexBox(0b0));
 }
 
 index_box_type MeshBase::IndexBox(int tag) const { return GetBlock()->IndexBox(); }

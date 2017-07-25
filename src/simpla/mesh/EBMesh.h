@@ -28,7 +28,7 @@ struct EBMesh {
 };
 
 namespace detail {
-void CreateEBMesh(engine::MeshBase *m_host_, geometry::GeoObject const *g, std::string const &prefix = "");
+void CreateEBMesh(engine::MeshBase *m_host_, std::string const &prefix, geometry::GeoObject const *g);
 }
 template <typename THost>
 void EBMesh<THost>::SetEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g) {
@@ -38,22 +38,15 @@ void EBMesh<THost>::SetEmbeddedBoundary(std::string const &prefix, const geometr
             << "Patch : Level=" << m_host_->GetMesh()->GetBlock()->GetLevel() << " " << m_host_->GetMesh()->IndexBox(0)
             << std::endl;
 
-    Real ratio = m_host_->GetMesh()->CheckOverlap(g);
+    Real ratio = std::get<0>(m_host_->GetMesh()->CheckOverlap(g));
     if (ratio < EPSILON) {
     } else if (ratio < 1 - EPSILON) {
-        detail::CreateEBMesh(m_host_, g, prefix);
+        detail::CreateEBMesh(m_host_, prefix, g);
     } else {
         m_host_->GetRange(prefix + "_BODY_0").SetFull();
         m_host_->GetRange(prefix + "_BODY_1").SetFull();
         m_host_->GetRange(prefix + "_BODY_2").SetFull();
         m_host_->GetRange(prefix + "_BODY_3").SetFull();
-
-        //        m_host_->GetRange(prefix + "_BOUNDARY_0").append(nullptr);
-        //        m_host_->GetRange(prefix + "_BOUNDARY_3").append(nullptr);
-        //        m_host_->GetRange(prefix + "_PARA_BOUNDARY_1").append(nullptr);
-        //        m_host_->GetRange(prefix + "_PARA_BOUNDARY_2").append(nullptr);
-        //        m_host_->GetRange(prefix + "_PERP_BOUNDARY_1").append(nullptr);
-        //        m_host_->GetRange(prefix + "_PERP_BOUNDARY_2").append(nullptr);
     }
 }
 }  // namespace mesh

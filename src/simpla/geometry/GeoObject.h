@@ -72,13 +72,13 @@ class GeoObject : public engine::EnableCreateFromDataTable<GeoObject> {
     */
     virtual bool CheckInside(const point_type &x) const { return CheckInSide(BoundingBox(), x); };
 
-    virtual std::tuple<Real, point_type, point_type> Distance(point_type const &x) const {
+    virtual std::tuple<Real, point_type, point_type> ClosestPoint(point_type const &x) const {
         return std::tuple<Real, point_type, point_type>{0, x, x};
     }
-    //    virtual std::tuple<Real, point_type, point_type> Distance(box_type const &b) const {
+    //    virtual std::tuple<Real, point_type, point_type> ClosestPoint(box_type const &b) const {
     //        return NearestPoint(BoundingBox(), b);
     //    }
-    //    virtual std::tuple<Real, point_type, point_type> Distance(GeoObject const &other) const {
+    //    virtual std::tuple<Real, point_type, point_type> ClosestPoint(GeoObject const &other) const {
     //        return NearestPoint(BoundingBox(), other.BoundingBox());
     //    }
 };

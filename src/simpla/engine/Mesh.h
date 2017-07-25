@@ -49,10 +49,11 @@ struct MeshBase : public AttributeGroup, public engine::EnableCreateFromDataTabl
     virtual this_type const *GetMesh() const { return this; }
 
     virtual void AddEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g){};
-    virtual Real CheckOverlap(const geometry::GeoObject *) const;
 
-    virtual index_box_type IndexBox(int tag = 0) const;
-    virtual box_type GetBox(int tag = 0) const;
+    virtual index_box_type IndexBox(int tag) const;
+    virtual box_type GetBox(int tag) const;
+
+    virtual std::tuple<Real, index_box_type> CheckOverlap(geometry::GeoObject const *) const;
 
     void SetBlock(const MeshBlock &blk);
     virtual const MeshBlock *GetBlock() const;
@@ -205,7 +206,6 @@ void Mesh<TM, Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &
 };
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::AddEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g) {
-    if (MeshBase::CheckOverlap(g) < EPSILON) { return; }
     _detail::_try_invoke_SetEmbeddedBoundary<Policies...>(this, prefix, g);
 };
 

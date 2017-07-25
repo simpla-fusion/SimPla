@@ -940,7 +940,7 @@ void SAMRAITimeIntegrator::DoUpdate() {
 
     CartesianGridGeometry->putIntegerArray("periodic_dimension", &GetAtlas()->GetPeriodicDimensions()[0], ndims);
 
-    auto x_box = GetContext()->GetMesh()->GetBox();
+    auto x_box = GetContext()->GetMesh()->GetBox(0);
     CartesianGridGeometry->putDoubleArray("x_lo", &std::get<0>(x_box)[0], ndims);
     CartesianGridGeometry->putDoubleArray("x_up", &std::get<1>(x_box)[0], ndims);
 
