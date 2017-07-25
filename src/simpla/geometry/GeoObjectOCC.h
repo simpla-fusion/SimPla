@@ -1,6 +1,5 @@
 //
-// Created by salmon on 17-7-24.
-//
+// Created by salmon on 17-7-22.
 
 #ifndef SIMPLA_GEOOBJECTOCC_H
 #define SIMPLA_GEOOBJECTOCC_H
@@ -18,7 +17,7 @@ struct GeoObjectOCC : public GeoObject {
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const &d) override;
 
-    void Load(std::string const &);
+    void Load(std::string const &, std::string const &label = "");
     void DoUpdate() override;
 
     box_type BoundingBox() const override;
