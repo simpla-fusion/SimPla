@@ -24,63 +24,79 @@
 namespace simpla {
 namespace geometry {
 
-enum GeometryType { SP_NULL_GEO, SP_SOLID, SP_CURVE, SP_SURFACE, SP_POINT };
 /**
  * @ingroup geometry
  *
- *  PlaceHolder Geometric object
+ *  Abstract class GeoObject is the root class of all geometric objects.
+ *
+ *  @startuml
+ *  class GeoObject{
+ *  }
+ *
+ *  class Transform <TGeo0,TGeo1>{
+ *  }
+ *
+ *   GeoObject<|--Vertex
+ *   GeoObject<|--Curve
+ *   GeoObject<|--Surface
+ *   GeoObject<|--Solid
+ *
+ *   Curve <|-- Line
+ *   Curve <|-- Conic
+ *   Curve <|-- BoundedCurve
+ *
+ *   BoundedCurve <|-- BezierCurve
+ *   BoundedCurve <|-- BSplineCurve
+ *   BoundedCurve <|-- TrimmedCurve
+ *
+ *   Conic <|-- Circle/Arc
+ *   Conic <|-- Ellipse
+ *   Conic <|-- Hyperbola
+ *   Conic <|-- Parabola
+ *
+ *   Surface <|-- Plane
+ *
+ *   Solid <|-- ElementarySolid
+ *   ElementarySolid <|-- Cube
+ *   ElementarySolid <|-- Sphere
+ *
+ *   Surface <|-- TransformCurveCurve
+ *   Solid   <|-- TransformSurfaceCurve
+ *   Vertex  <|-- IntersectionCurveSurface
+ *   Surface <|-- IntersectionSurfaceSolid
+ *   Solid   <|-- IntersectionSolidSolid
+ *
+ *  @enduml
  */
 class GeoObject : public engine::EnableCreateFromDataTable<GeoObject> {
     SP_OBJECT_HEAD(GeoObject, engine::EnableCreateFromDataTable<GeoObject>)
-    SP_DEFAULT_CONSTRUCT(GeoObject)
 
    public:
     GeoObject() = default;
     ~GeoObject() override = default;
 
+    //    GeoObject(this_type const &other) = default;
+    //    GeoObject(this_type &&other) = default;
+    //    this_type &operator=(this_type const &other) = default;
+    //    this_type &operator=(this_type &&other) = default;
+
     std::shared_ptr<data::DataTable> Serialize() const override { return base_type::Serialize(); };
+
     void Deserialize(std::shared_ptr<data::DataTable> const &t) override { base_type::Deserialize(t); }
 
-    bool operator==(GeoObject const &other) const { return equal(other); }
+    virtual int Dimension() const { return 3; };
 
-    virtual int GetGeoType() const { return SP_SOLID; }
+    virtual Real Measure() const;
 
-    virtual bool isNull() const { return true; };
-    virtual bool isFull() const { return false; };
+    virtual std::shared_ptr<GeoObject> Boundary() const { return nullptr; };
 
-    virtual bool equal(GeoObject const &other) const { return this == &other; }
+    /// The axis-aligned minimum bounding box (or AABB) , Cartesian
+    virtual box_type BoundingBox() const;
 
-    virtual Real measure() const { return Measure(BoundingBox()); };
+    virtual bool CheckInside(point_type const &x) const { return false; };
 
-    virtual box_type BoundingBox() const { return box_type{{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}; }
-
-    /**
-    * @brief
-    * @param b
-    * @return  volume(*this & b)/ volume(*this)
-    *         1   all in
-    *          0<res<1  intersection
-    *          0   out-side
-    */
-    virtual Real CheckOverlap(box_type const &b) const { return Measure(Overlap(BoundingBox(), b)) / measure(); }
-
-    virtual Real CheckOverlap(GeoObject const &other) const { return CheckOverlap(other.BoundingBox()); }
-    /**
-    * @return  check \f$ (x,y,z)\f$ in \f$ M\f$
-    *           `in` then 1
-    *           `out` then 0
-    */
-    virtual bool CheckInside(const point_type &x) const { return CheckInSide(BoundingBox(), x); };
-
-    virtual std::tuple<Real, point_type, point_type> ClosestPoint(point_type const &x) const {
-        return std::tuple<Real, point_type, point_type>{0, x, x};
-    }
-    //    virtual std::tuple<Real, point_type, point_type> ClosestPoint(box_type const &b) const {
-    //        return NearestPoint(BoundingBox(), b);
-    //    }
-    //    virtual std::tuple<Real, point_type, point_type> ClosestPoint(GeoObject const &other) const {
-    //        return NearestPoint(BoundingBox(), other.BoundingBox());
-    //    }
+    /// arbitrarily oriented minimum bounding box  (or OBB)
+    //    virtual std::tuple<point_type, vector_type, vector_type, vector_type> OrientedBoundingBox() const;
 };
 
 }  // namespace geometry

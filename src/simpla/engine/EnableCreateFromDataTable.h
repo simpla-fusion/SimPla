@@ -25,11 +25,10 @@ class EnableCreateFromDataTable : public engine::SPObject, public data::Serializ
    public:
     explicit EnableCreateFromDataTable() = default;
     ~EnableCreateFromDataTable() override = default;
-    EnableCreateFromDataTable(this_type const &other) = delete;
-    EnableCreateFromDataTable(this_type &&other) = delete;
-    this_type &operator=(this_type const &other) = delete;
-    this_type &operator=(this_type &&other) = delete;
-
+    //    EnableCreateFromDataTable(this_type const &other) = delete;
+    //    EnableCreateFromDataTable(this_type &&other) = delete;
+    //    this_type &operator=(this_type const &other) = delete;
+    //    this_type &operator=(this_type &&other) = delete;
     //    std::string GetRegisterName() const override { return typeid(TObj).name(); }
 
     std::shared_ptr<data::DataTable> Serialize() const override {

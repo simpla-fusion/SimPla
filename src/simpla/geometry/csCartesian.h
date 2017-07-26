@@ -14,7 +14,7 @@
 #include "simpla/utilities/type_cast.h"
 namespace simpla {
 namespace geometry {
-
+class Curve;
 /**
  * @ingroup  coordinate_system
  * @{
@@ -26,6 +26,7 @@ struct csCartesian : public Chart {
     typedef Real scalar_type;
 
     SP_DEFAULT_CONSTRUCT(csCartesian);
+    std::shared_ptr<Curve> GetAxisCurve(point_type const &x, int dir) const override;
 
     /**
      * metric only diff_scheme the volume of simplex
@@ -56,90 +57,5 @@ struct csCartesian : public Chart {
 /** @}*/
 }
 }  // namespace simpla
-
-//
-// template<typename, typename> struct map;
-//
-//
-// template<int ZAXIS0, int ZAXIS1>
-// struct map<coordinate_system::csCartesian<3, ZAXIS0>,
-//        coordinate_system::csCartesian<3, ZAXIS1> >
-//{
-//
-//    static constexpr int CartesianZAxis0 = (ZAXIS0) % 3;
-//    static constexpr int CartesianYAxis0 = (CartesianZAxis0 + 2) % 3;
-//    static constexpr int CartesianXAxis0 = (CartesianZAxis0 + 1) % 3;
-//    typedef gt::point_type<coordinate_system::csCartesian<3, ZAXIS0> > point_t0;
-//    typedef gt::vector_type<coordinate_system::csCartesian<3, ZAXIS0> > vector_t0;
-//    typedef gt::covector_type<coordinate_system::csCartesian<3, ZAXIS0> > covector_t0;
-//
-//    static constexpr int CartesianZAxis1 = (ZAXIS1) % 3;
-//    static constexpr int CartesianYAxis1 = (CartesianZAxis1 + 2) % 3;
-//    static constexpr int CartesianXAxis1 = (CartesianZAxis1 + 1) % 3;
-//    typedef gt::point_type<coordinate_system::csCartesian<3, ZAXIS1> > point_t1;
-//    typedef gt::vector_type<coordinate_system::csCartesian<3, ZAXIS1> > vector_t1;
-//    typedef gt::covector_type<coordinate_system::csCartesian<3, ZAXIS1> > covector_t1;
-//
-//    static point_t1 eval(point_t0 const &x)
-//    {
-//        /**
-//         *  @note
-//         * coordinates transforam
-//         *
-//         *  \f{eqnarray*}{
-//         *		x & = & r\cos\phi\\
-//             *		y & = & r\sin\phi\\
-//             *		z & = & Z
-//         *  \f}
-//         *
-//         */
-//        point_t1 y;
-//
-//        st::Serialize<CartesianXAxis1>(y) = st::get<CartesianXAxis0>(x);
-//
-//        st::get<CartesianYAxis1>(y) = st::Serialize<CartesianYAxis0>(x);
-//
-//        st::get<CartesianZAxis1>(y) = st::Serialize<CartesianZAxis0>(x);
-//
-//        return std::Move(y);
-//    }
-//
-//    point_t1 operator()(point_t0 const &x) const
-//    {
-//        return eval(x);
-//    }
-//
-//    template<typename TFun>
-//    auto pull_back(point_t0 const &x0, TFun const &fun)
-//    AUTO_RETURN ((fun(this->operator()(x0))))
-//
-//    template<typename TRect>
-//    TRect pull_back(point_t0 const &x0,
-//                    std::function<TRect(point_t0 const &)> const &fun)
-//    {
-//        return fun(this->operator()(x0));
-//    }
-//
-//    /**
-//     *
-//     *   push_forward vector from csCylindrical  to csCartesian
-//     * @_fdtd_param R  \f$ v=v_{r}\partial_{r}+v_{Z}\partial_{Z}+v_{\theta}/r\partial_{\theta} \f$
-//     * @_fdtd_param CartesianZAxis
-//     * @return  \f$ \left(x,y,z\right),u=u_{x}\partial_{x}+u_{y}\partial_{y}+u_{z}\partial_{z} \f$
-//     *
-//     */
-//    vector_t1 push_forward(point_t0 const &x0, vector_t0 const &v)
-//    {
-//
-//        vector_t1 u;
-//
-//        st::get<CartesianXAxis1>(u) = st::Serialize<CartesianXAxis0>(v);
-//        st::Serialize<CartesianYAxis1>(u) = st::get<CartesianYAxis0>(v);
-//        st::Serialize<CartesianZAxis1>(u) = st::get<CartesianZAxis0>(v);
-//
-//        return std::Move(u);
-//    }
-//
-//};
 
 #endif /* CORE_GEOMETRY_CS_CARTESIAN_H_ */

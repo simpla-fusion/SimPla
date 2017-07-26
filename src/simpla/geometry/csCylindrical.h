@@ -12,6 +12,7 @@
 
 #include "simpla/algebra/nTuple.ext.h"
 #include "simpla/algebra/nTuple.h"
+#include "simpla/utilities/SPDefines.h"
 
 #include "simpla/utilities/macro.h"
 #include "simpla/utilities/type_traits.h"
@@ -21,6 +22,7 @@
 
 namespace simpla {
 namespace geometry {
+class Curve;
 
 /** @ingroup   coordinate_system
  ** @{
@@ -44,6 +46,7 @@ struct csCylindrical : public Chart {
     template <typename... Args>
     explicit csCylindrical(Args &&... args) : Chart(std::forward<Args>(args)...) {}
     ~csCylindrical() override = default;
+    std::shared_ptr<Curve> GetAxisCurve(point_type const &x, int dir) const override;
 
    public:
     /**

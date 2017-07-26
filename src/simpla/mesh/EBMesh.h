@@ -28,7 +28,7 @@ struct EBMesh {
 };
 
 namespace detail {
-void CreateEBMesh(engine::MeshBase *m_host_, std::string const &prefix, geometry::GeoObject const *g);
+void CreateEBMesh(engine::MeshBase *p_mesh, std::string const &prefix, geometry::GeoObject const *g);
 }
 template <typename THost>
 void EBMesh<THost>::SetEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g) {

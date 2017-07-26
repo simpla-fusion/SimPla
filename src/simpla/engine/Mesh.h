@@ -24,7 +24,7 @@ namespace engine {
 class MeshBlock;
 class Patch;
 using namespace simpla::data;
-
+class Curve;
 struct MeshBase : public AttributeGroup, public engine::EnableCreateFromDataTable<MeshBase> {
     SP_OBJECT_HEAD(MeshBase, engine::EnableCreateFromDataTable<MeshBase>)
    public:
@@ -52,6 +52,7 @@ struct MeshBase : public AttributeGroup, public engine::EnableCreateFromDataTabl
 
     virtual index_box_type IndexBox(int tag) const;
     virtual box_type GetBox(int tag) const;
+    box_type BoundingBox(int tag) const { return GetBox(tag); }
 
     virtual std::tuple<Real, index_box_type> CheckOverlap(geometry::GeoObject const *) const;
 

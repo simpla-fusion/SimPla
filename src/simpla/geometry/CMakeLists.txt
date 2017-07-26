@@ -1,7 +1,7 @@
 
 
 FILE(GLOB model_SRC  *.cpp  )
-add_library(model ${model_SRC}  )
+add_library(model ${model_SRC} Face.h Surface.h)
 
 
 TARGET_LINK_LIBRARIES(model    utilities data ${OCE_LIBRARIES} )

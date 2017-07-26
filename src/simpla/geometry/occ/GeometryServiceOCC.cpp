@@ -2,9 +2,7 @@
 // Created by salmon on 17-7-22.
 //
 
-#include "GeoObjectOCC.h"
-
-
+#include "GeometryServiceOCC.h"
 
 #include <BRepAdaptor_Surface.hxx>
 #include <BRepAlgoAPI_Section.hxx>
@@ -48,6 +46,16 @@ struct GeoObjectOCC::pimpl_s {
     box_type m_bound_box_{{0, 0, 0}, {0, 0, 0}};
 };
 GeoObjectOCC::GeoObjectOCC() : m_pimpl_(new pimpl_s){};
+
+GeoObjectOCC::GeoObjectOCC(GeoObject const &g) : GeoObjectOCC() {
+    if (!g.isA(typeid(GeoObjectOCC))) {
+        UNIMPLEMENTED;
+    } else {
+        m_pimpl_->m_occ_shape_ = dynamic_cast<GeoObjectOCC const &>(g).m_pimpl_->m_occ_shape_;
+        Update();
+    }
+};
+
 GeoObjectOCC::~GeoObjectOCC(){};
 
 std::shared_ptr<data::DataTable> GeoObjectOCC::Serialize() const {
