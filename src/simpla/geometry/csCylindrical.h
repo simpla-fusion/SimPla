@@ -63,7 +63,7 @@ struct csCylindrical : public Chart {
      */
     point_type inv_map(point_type const &r) const override {
         point_type uvw;
-        uvw[PhiAxis] = std::atan2(r[0], r[1]);
+        uvw[PhiAxis] = std::atan2(r[1], r[0]);
         uvw[RAxis] = std::hypot(r[0], r[1]);
         uvw[ZAxis] = r[2];
         return uvw;

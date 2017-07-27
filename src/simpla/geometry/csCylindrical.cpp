@@ -12,27 +12,23 @@ std::shared_ptr<GeoObject> csCylindrical::BoundBox(index_box_type const &b) cons
 };
 
 std::shared_ptr<Curve> csCylindrical::GetAxisCurve(index_tuple const &idx, int dir) const {
-    vector_type z_axis{0, 0, 0}, r_axis{0, 0, 0};
-
-    point_type x = local_coordinates(idx);
-
-    z_axis[ZAxis] = 1;
-    r_axis[RAxis] = 1;
-    Curve *res;
-    switch (dir) {
-        case PhiAxis:
-            res = new Circle(GetOrigin(), x[RAxis], z_axis, r_axis);
-            break;
-        case ZAxis:
+    point_type u = local_coordinates(idx);
+    point_type x = global_coordinates(idx);
+    vector_type z_axis{0, 0, 1};
+    vector_type r_axis{std::cos(u[PhiAxis]), std::sin(u[PhiAxis]), 0};
+    Curve *res = nullptr;
+    switch (dir%3) {
+        case PhiAxis: {
+            point_type o = {0, 0, x[2]};
+            res = new Circle(o, u[RAxis], z_axis, r_axis);
+        } break;
+        case ZAxis: {
             res = new Line(x, z_axis);
-            break;
-        case RAxis:
+        } break;
+        case RAxis: {
+            res = new Line(x, r_axis);
+        } break;
         default:
-            point_type v{0, 0, 0};
-            v[(ZAxis + 0) % 3] = 0;
-            v[(ZAxis + 1) % 3] = x[RAxis] * std::cos(x[PhiAxis]);
-            v[(ZAxis + 2) % 3] = x[RAxis] * std::sin(x[PhiAxis]);
-            res = new Line(x, v);
             break;
     }
 

@@ -69,8 +69,12 @@ constexpr inline std::tuple<nTuple<T, N>, nTuple<T, N>> Expand(std::tuple<nTuple
 
 template <typename T>
 constexpr inline bool CheckInSide(std::tuple<nTuple<T, 3>, nTuple<T, 3>> const &b, nTuple<T, 3> const &p) {
-    return (p[0] >= std::get<0>(b)[0]) && (p[1] >= std::get<0>(b)[1]) && (p[2] >= std::get<0>(b)[2]) &&
-           (p[0] <= std::get<1>(b)[0]) && (p[1] <= std::get<1>(b)[1]) && (p[2] <= std::get<1>(b)[2]);
+    return (p[0] >= std::get<0>(b)[0]) &&  //
+           (p[1] >= std::get<0>(b)[1]) &&  //
+           (p[2] >= std::get<0>(b)[2]) &&  //
+           (p[0] < std::get<1>(b)[0]) &&   //
+           (p[1] < std::get<1>(b)[1]) &&   //
+           (p[2] < std::get<1>(b)[2]);
 }
 
 //

@@ -18,17 +18,12 @@ namespace geometry {
 void CutCell(Chart *chart, index_box_type const &m_idx_box, point_type const &r, GeoObject const *g,
              Range<EntityId> body_ranges[4], Range<EntityId> boundary_ranges[4], std::map<EntityId, Real> cut_cell[4],
              Array<Real> edge_fraction[3], Array<Real> *cell_tags) {
-    auto g_box = g->BoundingBox();
-
-    index_box_type g_idx_box{std::get<0>(chart->invert_local_coordinates(std::get<0>(g_box))),
-                             std::get<0>(chart->invert_local_coordinates(std::get<1>(g_box)))};
-
     auto const &scale = chart->GetScale();
-    Real tol = std::sqrt(dot(scale, scale) * 0.25);
+    Real tol = std::sqrt(dot(scale, scale) * 0.01);
 
     BRepIntCurveSurface_Inter m_inter_;
 
-    m_inter_.Load(*geometry::occ_cast<TopoDS_Shape>(*g), tol);
+    m_inter_.Load(*geometry::occ_cast<TopoDS_Shape>(*g), 0.0001);
 
     //    Array<int, ZSFC<3>> vertex_tags(nullptr, m_idx_box);
     //    vertex_tags.Clear();
@@ -38,24 +33,39 @@ void CutCell(Chart *chart, index_box_type const &m_idx_box, point_type const &r,
         index_tuple lo{0, 0, 0}, hi{0, 0, 0};
         std::tie(lo, hi) = m_idx_box;
         hi[dir] = lo[dir] + 1;
-
+        size_type count = 0;
         for (index_type i = lo[0]; i < hi[0]; ++i)
             for (index_type j = lo[1]; j < hi[1]; ++j)
                 for (index_type k = lo[2]; k < hi[2]; ++k) {
                     Handle(Geom_Curve) c = geometry::detail::OCCCast<Geom_Curve, Curve>::eval(
                         *chart->GetAxisCurve(index_tuple{i, j, k}, dir));
                     m_inter_.Init(c);
-
                     for (; m_inter_.More(); m_inter_.Next()) {
                         point_type x{m_inter_.Pnt().X(), m_inter_.Pnt().Y(), m_inter_.Pnt().Z()};
 
-                        auto l_coor = chart->invert_global_coordinates(x);
+                        ++count;
 
-                        cell_tags->Set(dir, std::get<0>(l_coor));
+                        index_tuple idx{0, 0, 0};
+                        point_type r{0, 0, 0};
+                        std::tie(idx, r) = chart->invert_global_coordinates(x);
 
-                        std::cout << index_tuple{i, j, k} << "~" << std::get<0>(l_coor) << "  "
-                                  << chart->local_coordinates(i, j, k, 0b0) << chart->inv_map(x) << "~" << x
-                                  << std::endl;
+                        //                        cell_tags->Set(count, idx);
+                        std::cout << "DIR:" << dir << "\t" << m_idx_box << "\t" << index_tuple{i, j, k} << "\t" << idx;
+                        if (!(CheckInSide(m_idx_box, idx))) {
+                            std::cout << std::endl;
+//                            continue;
+                        } else {
+                            std::cout << "\t" << (x) << "\t" << chart->inv_map(x) << std::endl;
+                        }
+                        //                        edge_fraction[dir].Set(r[dir], idx);
+                        cell_tags->Set(count, idx);
+                        idx[(dir + 1) % 3] -= 1;
+                        cell_tags->Set(count, idx);
+                        idx[(dir + 2) % 3] -= 1;
+                        cell_tags->Set(count, idx);
+                        idx[(dir + 1) % 3] += 1;
+                        cell_tags->Set(count, idx);
+
                         //                        index_tuple id{i, j, k};
                         //                        id[dir] = std::get<0>(l_coor)[dir];
                         //                        cell_tags[0].Set(dir + 1, id);
@@ -65,7 +75,6 @@ void CutCell(Chart *chart, index_box_type const &m_idx_box, point_type const &r,
                         //                        cell_tags[0].Set(dir + 1, id);
                         //                        id[(dir + 1) % 3] = idx[(dir + 1) % 3];
                         //                        cell_tags[0].Set(dir + 1, id);
-
                         //                        if (m_inter_.State() == TopAbs_IN) {
                         //                            s0 = std::max(std::get<0>(l_coor)[dir],
                         //                            std::get<0>(m_idx_box)[dir]);
@@ -88,20 +97,20 @@ void CutCell(Chart *chart, index_box_type const &m_idx_box, point_type const &r,
                         //                        } else {
                         //                            s1 = std::min(std::get<0>(l_coor)[dir],
                         //                            std::get<1>(m_idx_box)[dir]);
-                        //                            //                            ASSERT(s1 > s0);
-                        //                            //                            for (index_type s = s0; s < s1; ++s)
-                        //                            {
-                        //                            //                                idx[dir] = s;
-                        //                            //                                m_volume_tag_[0](idx) = 1;
-                        //                            //                            }
+                        //                            ASSERT(s1 > s0);
+                        //                            for (index_type s = s0; s < s1; ++s) {
+                        //                                idx[dir] = s;
+                        //                                m_volume_tag_[0](idx) = 1;
+                        //                            }
                         //                        }
                         //
-                        //                        //                        VERBOSE << "s0:" << s0 << " s1:" << s1 <<
-                        //                        std::endl;
+                        //                        VERBOSE << "s0:" << s0 << " s1:" << s1 << std::endl;
                         //
                         //                        if (x[dir] > std::get<1>(m_idx_box)[dir]) { break; }
                     }
                 }
+
+        std::cout << "Count :" << count << " Dir:" << dir << " box:" << m_idx_box << std::endl;
     }
 }
 

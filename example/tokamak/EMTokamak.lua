@@ -24,7 +24,7 @@ Context = {
             lo = { 1.2, -1.0, -PI / 4.0 },
             hi = { 2.5, 1.0, PI / 4.0 }
         },
-        Dimensions = { 64, 64, 8 }
+        Dimensions = { 64, 64, 32 }
     },
     --    Model =
     --    {

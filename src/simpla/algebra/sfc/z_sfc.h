@@ -130,12 +130,12 @@ class ZSFC {
     __host__ __device__ constexpr inline index_type hash() const { return 0; }
 
     __host__ __device__ constexpr inline index_type hash(array_index_type const& idx) const {
-        return dot(idx - std::get<0>(m_index_box_), m_strides_);
+        return hash(idx[0], idx[1], idx[2]);
     }
 
     __host__ __device__ inline index_type hash(EntityId s) const { return hash(s.x, s.y, s.z); }
 
-    __host__ __device__ inline index_type hash(index_type const* idx) const;
+    __host__ __device__ inline index_type hash(index_type const* idx) const { return hash(idx[0], idx[1], idx[2]); }
 
     __host__ __device__ inline index_type hash(index_type s0, index_type s1 = 0, index_type s2 = 0, index_type s3 = 0,
                                                index_type s4 = 0, index_type s5 = 0, index_type s6 = 0,
@@ -165,13 +165,6 @@ class ZSFC {
     std::ostream& Print(std::ostream& os, value_type const* v, int indent = 0) const;
 };
 
-template <>
-__host__ __device__ inline index_type ZSFC<3>::hash(index_type const* s) const {
-    return ((s[0] - std::get<0>(m_index_box_)[0]) * m_strides_[0] +
-            (s[1] - std::get<0>(m_index_box_)[1]) * m_strides_[1] +
-            (s[2] - std::get<0>(m_index_box_)[2]) * m_strides_[2]) %
-           m_size_;
-};
 template <>
 __host__ __device__ inline index_type ZSFC<3>::hash(index_type s0, index_type s1, index_type s2, index_type s3,
                                                     index_type s4, index_type s5, index_type s6, index_type s7,
@@ -329,13 +322,13 @@ void ZSFC<3>::Foreach(const TFun& fun) const {
 
 #ifndef __CUDA__
     if (m_array_order_fast_first_) {
-//#pragma omp parallel for
+        //#pragma omp parallel for
         for (index_type k = kb; k < ke; ++k)
             for (index_type j = jb; j < je; ++j)
                 for (index_type i = ib; i < ie; ++i) { fun(i, j, k); }
 
     } else {
-//#pragma omp parallel for
+        //#pragma omp parallel for
         for (index_type i = ib; i < ie; ++i)
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k) { fun(i, j, k); }

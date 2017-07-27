@@ -58,8 +58,14 @@ struct Chart : public engine::SPObject, public data::Serializable {
         return point_type{std::fma(x[0], m_scale_[0], m_origin_[0]), std::fma(x[1], m_scale_[1], m_origin_[1]),
                           std::fma(x[2], m_scale_[2], m_origin_[2])};
     }
-    point_type local_coordinates(index_tuple const &x, int tag) const {
+    point_type local_coordinates(index_tuple const &x, int tag = 0b0) const {
         return local_coordinates(x, EntityIdCoder::m_id_to_coordinates_shift_[tag]);
+    }
+    point_type local_coordinates(std::tuple<index_tuple, point_type> const &r) const {
+        return local_coordinates(std::get<0>(r), &std::get<1>(r)[0]);
+    }
+    point_type local_coordinates(index_tuple const &x, point_type const &r) const {
+        return local_coordinates(x, &r[0]);
     }
     point_type local_coordinates(index_tuple const &x, Real const *r) const {
         return local_coordinates(point_type{x[0] + r[0], x[1] + r[1], x[2] + r[2]});
@@ -77,7 +83,7 @@ struct Chart : public engine::SPObject, public data::Serializable {
     template <typename TR>
     std::tuple<index_tuple, point_type> invert_local_coordinates(TR const &x) const {
         point_type r = (x - m_origin_) / m_scale_;
-        index_tuple idx = r + 0.5;
+        index_tuple idx{static_cast<index_type>(r[0]), static_cast<index_type>(r[1]), static_cast<index_type>(r[2])};
         r -= idx;
         return std::make_tuple(idx, r);
     }
