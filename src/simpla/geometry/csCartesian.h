@@ -26,7 +26,7 @@ struct csCartesian : public Chart {
     typedef Real scalar_type;
 
     SP_DEFAULT_CONSTRUCT(csCartesian);
-    std::shared_ptr<Curve> GetAxisCurve(point_type const &x, int dir) const override;
+    std::shared_ptr<Curve> GetAxisCurve(index_tuple const &x, int dir) const override;
 
     /**
      * metric only diff_scheme the volume of simplex

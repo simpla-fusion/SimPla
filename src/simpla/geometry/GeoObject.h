@@ -80,9 +80,9 @@ class GeoObject : public engine::EnableCreateFromDataTable<GeoObject> {
     //    this_type &operator=(this_type const &other) = default;
     //    this_type &operator=(this_type &&other) = default;
 
-    std::shared_ptr<data::DataTable> Serialize() const override { return base_type::Serialize(); };
+    std::shared_ptr<data::DataTable> Serialize() const override;
 
-    void Deserialize(std::shared_ptr<data::DataTable> const &t) override { base_type::Deserialize(t); }
+    void Deserialize(std::shared_ptr<data::DataTable> const &t) override;
 
     virtual int Dimension() const { return 3; };
 
@@ -93,7 +93,7 @@ class GeoObject : public engine::EnableCreateFromDataTable<GeoObject> {
     /// The axis-aligned minimum bounding box (or AABB) , Cartesian
     virtual box_type BoundingBox() const;
 
-    virtual bool CheckInside(point_type const &x) const { return false; };
+    virtual bool CheckInside(point_type const &x) const;
 
     /// arbitrarily oriented minimum bounding box  (or OBB)
     //    virtual std::tuple<point_type, vector_type, vector_type, vector_type> OrientedBoundingBox() const;

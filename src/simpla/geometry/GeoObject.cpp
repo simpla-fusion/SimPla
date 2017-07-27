@@ -7,13 +7,24 @@
 namespace simpla {
 namespace geometry {
 
+box_type GeoObject::BoundingBox() const { return box_type{{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}; }
+
 Real GeoObject::Measure() const {
     auto b = BoundingBox();
     return (std::get<1>(b)[0] - std::get<0>(b)[0]) * (std::get<1>(b)[1] - std::get<0>(b)[1]) *
            (std::get<1>(b)[2] - std::get<0>(b)[2]);
 };
 
-box_type GeoObject::BoundingBox() const { return box_type{{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}; }
+bool GeoObject::CheckInside(point_type const &x) const { return CheckInSide(BoundingBox(), x); }
+
+std::shared_ptr<data::DataTable> GeoObject::Serialize() const {
+    auto res = engine::EnableCreateFromDataTable<GeoObject>::Serialize();
+    return res;
+}
+
+void GeoObject::Deserialize(std::shared_ptr<data::DataTable> const &t) {
+    engine::EnableCreateFromDataTable<GeoObject>::Deserialize(t);
+}
 
 // Real GeoObject::CheckOverlap(box_type const &b) const { return Measure(Overlap(BoundingBox(), b)) / measure(); }
 //

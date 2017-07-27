@@ -8,10 +8,10 @@
 
 namespace simpla {
 namespace geometry {
-std::shared_ptr<Curve> csCartesian::GetAxisCurve(point_type const &x, int dir) const {
+std::shared_ptr<Curve> csCartesian::GetAxisCurve(index_tuple const &x, int dir) const {
     vector_type v{0, 0, 0};
     v[dir] = 1;
-    return std::shared_ptr<Curve>(new Line{x, v});
+    return std::shared_ptr<Curve>(new Line{global_coordinates(x), v});
 }
 }  // namespace geometry
 }  // namespace simpla

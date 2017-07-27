@@ -13,8 +13,9 @@
 namespace simpla {
 namespace geometry {
 
-void CutCell(Chart *chart, index_box_type const &m_idx_box, point_type const &r, geometry::GeoObject const *g,
-             Range<EntityId> body_ranges[4], std::map<EntityId, Real> cut_cell[4]) {
+void CutCell(Chart *chart, index_box_type const &m_idx_box, point_type const &r, GeoObject const *g,
+             Range<EntityId> body_ranges[4], Range<EntityId> boundary_ranges[4], std::map<EntityId, Real> cut_cell[4],
+             Array<Real> edge_fraction[3], Array<Real> *cell_tags) {
     box_type m_box{chart->global_coordinates(std::get<0>(m_idx_box)),
                    chart->global_coordinates(std::get<1>(m_idx_box))};
 
@@ -30,39 +31,43 @@ void CutCell(Chart *chart, index_box_type const &m_idx_box, point_type const &r,
 
     m_inter_.Load(*geometry::occ_cast<TopoDS_Shape>(*g), tol);
 
-    Array<int, ZSFC<3>> vertex_tags(nullptr, m_idx_box);
-    vertex_tags.Clear();
-    std::map<EntityId, Real> m_edge_fraction;
+    //    Array<int, ZSFC<3>> vertex_tags(nullptr, m_idx_box);
+    //    vertex_tags.Clear();
+    //    std::map<EntityId, Real> m_edge_fraction;
 
     for (int dir = 0; dir < 3; ++dir) {
         std::vector<Real> res;
         res.clear();
         index_tuple lo{0, 0, 0}, hi{0, 0, 0};
         std::tie(lo, hi) = m_idx_box;
-        lo[dir] = std::min(std::get<0>(g_idx_box)[dir], std::get<0>(m_idx_box)[dir]);
         hi[dir] = lo[dir] + 1;
-        //        hi[dir] = std::max(std::get<1>(g_idx_box)[dir], std::get<1>(m_idx_box)[dir]);
 
         for (index_type i = lo[0]; i < hi[0]; ++i)
             for (index_type j = lo[1]; j < hi[1]; ++j)
-                for (index_type k = lo[0]; k < hi[2]; ++k) {
-                    point_type x0 = chart->local_coordinates(index_tuple{i, j, k}, 0b0);
-                    m_inter_.Init(Handle(Geom_Curve)(geometry::occ_cast<Geom_Curve>(chart->GetAxisCurve(x0, dir))));
-                    if (m_inter_.Transition() != IntCurveSurface_In) { continue; }
-                    bool in_box = false;
-                    bool in_side = false;
-
+                for (index_type k = lo[2]; k < hi[2]; ++k) {
+                    Handle(Geom_Curve) c = geometry::detail::OCCCast<Geom_Curve, Curve>::eval(
+                        *chart->GetAxisCurve(index_tuple{i, j, k}, dir));
+                    m_inter_.Init(c);
                     index_tuple idx{i, j, k};
-
                     index_type s0 = lo[dir], s1 = lo[dir];
-
                     for (; m_inter_.More(); m_inter_.Next()) {
                         point_type x{m_inter_.Pnt().X(), m_inter_.Pnt().Y(), m_inter_.Pnt().Z()};
-                        in_side = !in_side;
 
-                        auto l_coor = chart->invert_local_coordinates(x);
+                        auto l_coor = chart->invert_global_coordinates(x);
 
-                        if (in_side) { s0 = std::max(std::get<0>(l_coor)[dir], std::get<0>(m_idx_box)[dir]); }
+                        index_tuple id{i, j, k};
+                        id[dir] = std::get<0>(l_coor)[dir];
+                        cell_tags[0].Set(dir + 1, id);
+                        id[(dir + 1) % 3] = idx[(dir + 1) % 3] - 1;
+                        cell_tags[0].Set(dir + 1, id);
+                        id[(dir + 2) % 3] = idx[(dir + 2) % 3] - 1;
+                        cell_tags[0].Set(dir + 1, id);
+                        id[(dir + 1) % 3] = idx[(dir + 1) % 3];
+                        cell_tags[0].Set(dir + 1, id);
+
+                        if (m_inter_.State() == TopAbs_IN) {
+                            s0 = std::max(std::get<0>(l_coor)[dir], std::get<0>(m_idx_box)[dir]);
+                        }
 
                         if (x[dir] < std::get<0>(m_box)[dir]) { continue; }
 
@@ -71,38 +76,27 @@ void CutCell(Chart *chart, index_box_type const &m_idx_box, point_type const &r,
                         q.y = static_cast<int16_t>(std::get<0>(l_coor)[1]);
                         q.z = static_cast<int16_t>(std::get<0>(l_coor)[2]);
                         q.w = static_cast<int16_t>(EntityIdCoder::m_sub_index_to_id_[EDGE][dir]);
+                        index_tuple idx{i, j, k};
+                        idx[dir] = std::get<0>(l_coor)[dir];
+                        edge_fraction[dir].Set(std::get<1>(l_coor)[dir], idx);
 
-                        m_edge_fraction[q] = std::get<1>(l_coor)[dir];
-
-                        if (in_side) {
-                            m_edge_fraction[q] *= -1;
+                        if (m_inter_.State() == TopAbs_IN) {
+                            edge_fraction[dir].Set(-std::get<1>(l_coor)[dir], idx);
                         } else {
                             s1 = std::min(std::get<0>(l_coor)[dir], std::get<1>(m_idx_box)[dir]);
-                            ASSERT(s1 > s0);
-                            for (index_type s = s0; s < s1; ++s) {
-                                idx[dir] = s;
-                                vertex_tags(idx) = 1;
-                            }
+                            //                            ASSERT(s1 > s0);
+                            //                            for (index_type s = s0; s < s1; ++s) {
+                            //                                idx[dir] = s;
+                            //                                m_volume_tag_[0](idx) = 1;
+                            //                            }
                         }
+
+                        //                        VERBOSE << "s0:" << s0 << " s1:" << s1 << std::endl;
 
                         if (x[dir] > std::get<1>(m_idx_box)[dir]) { break; }
                     }
                 }
     }
-    //    Array<int, ZSFC<3>> vertex_tags{nullptr, idx_box};
-    //    if (g->isA(typeid(geometry::GeoObjectOCC))) {
-    //        TagCutVertices(chart, &vertex_tags, dynamic_cast<geometry::GeoObjectOCC const *>(g));
-    //    } else {
-    //        auto const *chart = chart->GetChart();
-    //        vertex_tags = [&](index_type x, index_type y, index_type z) {
-    //            return g->CheckInside(
-    //                       chart->xyz(point_type{static_cast<Real>(x), static_cast<Real>(y), static_cast<Real>(z)}))
-    //                       ? 1
-    //                       : 0;
-    //        };
-    //    }
-    //
-    UpdateRanges(chart, prefix, vertex_tags);
 }
 
 }  //    namespace geometry{

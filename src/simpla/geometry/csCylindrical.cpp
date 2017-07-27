@@ -2,7 +2,7 @@
 // Created by salmon on 17-7-22.
 //
 #include "csCylindrical.h"
-
+#include "Curve.h"
 namespace simpla {
 namespace geometry {
 
@@ -11,8 +11,10 @@ std::shared_ptr<GeoObject> csCylindrical::BoundBox(index_box_type const &b) cons
     return BoundBox(std::make_tuple(local_coordinates(std::get<0>(b)), local_coordinates(std::get<0>(b))));
 };
 
-std::shared_ptr<Curve> csCylindrical::GetAxisCurve(point_type const &x, int dir) const {
+std::shared_ptr<Curve> csCylindrical::GetAxisCurve(index_tuple const &idx, int dir) const {
     vector_type z_axis{0, 0, 0}, r_axis{0, 0, 0};
+
+    point_type x = local_coordinates(idx);
 
     z_axis[ZAxis] = 1;
     r_axis[RAxis] = 1;

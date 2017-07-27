@@ -11,6 +11,7 @@
 #include <Standard_Transient.hxx>
 #include <TopoDS_Shape.hxx>
 #include "../Curve.h"
+#include "GeoObjectOCC.h"
 class TopoDS_Shape;
 namespace simpla {
 namespace geometry {
@@ -21,23 +22,32 @@ struct OCCCast {
     static TDest* eval(TSrc const& s) { return nullptr; }
 };
 
-gp_Pnt point(point_type const& p0) { return gp_Pnt(p0[0], p0[1], p0[2]); }
-gp_Dir dir(vector_type const& p0) { return gp_Dir(p0[0], p0[1], p0[2]); }
+gp_Pnt point(point_type const& p0) { return gp_Pnt{p0[0], p0[1], p0[2]}; }
+gp_Dir dir(vector_type const& p0) { return gp_Dir{p0[0], p0[1], p0[2]}; }
 
 template <>
-Geom_Curve* OCCCast<Geom_Curve, geometry::Curve>::eval(geometry::Curve const& c) {
+TopoDS_Shape* OCCCast<TopoDS_Shape, GeoObject>::eval(GeoObject const& g) {
+    auto* res = new TopoDS_Shape;
+    if (g.isA(typeid(GeoObjectOCC))) {
+        *res = dynamic_cast<GeoObjectOCC const&>(g).GetShape();
+    } else {
+        *res = GeoObjectOCC(g).GetShape();
+    }
+    return res;
+}
+template <>
+Geom_Curve* OCCCast<Geom_Curve, Curve>::eval(Curve const& c) {
+    Geom_Curve* res = nullptr;
     if (c.isA(typeid(Circle))) {
         auto const& l = dynamic_cast<Circle const&>(c);
-        return new Geom_Circle(gp_Ax2(point(l.Origin()), dir(l.Normal()), dir(l.XAxis())), l.Radius());
+        res = new Geom_Circle(gp_Ax2(point(l.Origin()), dir(l.Normal()), dir(l.XAxis())), l.Radius());
     } else if (c.isA(typeid(Line))) {
         auto const& l = dynamic_cast<Line const&>(c);
-        auto p0 = l.Start();
-        auto p1 = l.End();
-        return new Geom_Line(point(p0), dir(p1 - p0));
+        res = new Geom_Line(point(l.Start()), dir(l.End() - l.Start()));
     } else {
         UNIMPLEMENTED;
-        return nullptr;
     }
+    return res;
 };
 
 }  // namespace detail{

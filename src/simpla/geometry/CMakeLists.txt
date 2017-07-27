@@ -1,6 +1,6 @@
 
 
-FILE(GLOB model_SRC  *.cpp  )
+FILE(GLOB_RECURSE model_SRC  *.cpp  )
 add_library(model ${model_SRC} Face.h Surface.h)
 
 

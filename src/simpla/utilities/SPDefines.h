@@ -11,6 +11,8 @@ namespace simpla {
 
 static constexpr Real SNaN = std::numeric_limits<Real>::signaling_NaN();
 
+template <typename T, int...>
+class nTuple;
 // typedef std::complex<Real> Complex;
 
 template <typename T, int N>

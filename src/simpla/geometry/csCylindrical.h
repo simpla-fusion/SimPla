@@ -46,7 +46,7 @@ struct csCylindrical : public Chart {
     template <typename... Args>
     explicit csCylindrical(Args &&... args) : Chart(std::forward<Args>(args)...) {}
     ~csCylindrical() override = default;
-    std::shared_ptr<Curve> GetAxisCurve(point_type const &x, int dir) const override;
+    std::shared_ptr<Curve> GetAxisCurve(index_tuple const &x, int dir) const override;
 
    public:
     /**
@@ -63,7 +63,7 @@ struct csCylindrical : public Chart {
      */
     point_type inv_map(point_type const &r) const override {
         point_type uvw;
-        uvw[PhiAxis] = std::atan2(r[1], r[0]);
+        uvw[PhiAxis] = std::atan2(r[0], r[1]);
         uvw[RAxis] = std::hypot(r[0], r[1]);
         uvw[ZAxis] = r[2];
         return uvw;

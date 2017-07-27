@@ -148,7 +148,10 @@ class Array {
         Update();
         spMemoryFill(m_data_, v, m_sfc_.size());
     }
-    void Clear() { spMemoryClear(m_data_, m_sfc_.size()); }
+    void Clear() {
+        Update();
+        spMemoryClear(m_data_, m_sfc_.size());
+    }
 
     void DeepCopy(value_type const* other) {
         Update();
@@ -193,6 +196,19 @@ class Array {
     template <typename... Args>
     __host__ __device__ value_type const& operator()(index_type s0, Args&&... args) const {
         return at(s0, std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    void Set(value_type const& v, Args&&... args) {
+        if (m_sfc_.in_box(std::forward<Args>(args)...)) { m_data_[m_sfc_.hash(std::forward<Args>(args)...)] = v; }
+    }
+
+    template <typename... Args>
+    value_type Get(Args&&... args) const {
+        if (m_sfc_.in_box(std::forward<Args>(args)...)) {
+            return m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
+        } else {
+            return std::numeric_limits<value_type>::signaling_NaN();
+        }
     }
 
     template <typename RHS>
