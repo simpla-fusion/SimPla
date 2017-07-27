@@ -43,7 +43,7 @@ Geom_Curve* OCCCast<Geom_Curve, Curve>::eval(Curve const& c) {
         res = new Geom_Circle(gp_Ax2(point(l.Origin()), dir(l.Normal()), dir(l.XAxis())), l.Radius());
     } else if (c.isA(typeid(Line))) {
         auto const& l = dynamic_cast<Line const&>(c);
-        res = new Geom_Line(point(l.Start()), dir(l.End() - l.Start()));
+        res = new Geom_Line(point(l.Origin()), dir(l.Direction()));
     } else {
         UNIMPLEMENTED;
     }

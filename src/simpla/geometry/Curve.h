@@ -83,19 +83,17 @@ struct Arc : public Conic {
 
 struct Line : public Curve {
     SP_OBJECT_HEAD(Line, Curve);
-    Line(point_type p0, point_type p1) : m_p0_(std::move(p0)), m_p1_(std::move(p1)){};
+    Line(point_type p0, vector_type v) : m_p0_(std::move(p0)), m_v_(std::move(v)){};
     Line() = default;
     ~Line() override = default;
 
-    Real Measure() const final { return std::sqrt(dot(m_p1_ - m_p0_, m_p1_ - m_p0_)); };
-
-    void Start(point_type const &p0) { m_p0_ = p0; }
-    point_type const &Start() const { return m_p0_; }
-    void End(point_type const &p1) { m_p1_ = p1; }
-    point_type const &End() const { return m_p1_; }
+    void Origin(point_type const &p0) { m_p0_ = p0; }
+    point_type const &Origin() const { return m_p0_; }
+    void Direction(vector_type const &v) { m_v_ = v; }
+    vector_type const &Direction() const { return m_v_; }
 
    private:
-    point_type m_p0_{0, 0, 0}, m_p1_{1, 0, 0};
+    point_type m_p0_{0, 0, 0}, m_v_{1, 0, 0};
 };
 
 }  // namespace geometry
