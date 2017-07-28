@@ -15,9 +15,7 @@
 namespace simpla {
 namespace geometry {
 
-void CutCell(Chart *chart, index_box_type m_idx_box, GeoObject const *g, Range<EntityId> *body_ranges,
-             Range<EntityId> *boundary_ranges, std::map<EntityId, Real> *cut_cell, Array<Real> *edge_fraction,
-             Array<Real> *vertex_tags) {
+void CutCell(Chart *chart, index_box_type m_idx_box, GeoObject const *g, Array<Real> *vertex_tags) {
     auto const &scale = chart->GetScale();
     Real tol = std::sqrt(dot(scale, scale) * 0.01);
     std::get<1>(m_idx_box) += 1;
@@ -29,7 +27,7 @@ void CutCell(Chart *chart, index_box_type m_idx_box, GeoObject const *g, Range<E
     //    vertex_tags.Clear();
     //    std::map<EntityId, Real> m_edge_fraction;
 
-    for (int dir = 2; dir < 3; ++dir) {
+    for (int dir = 0; dir < 3; ++dir) {
         index_tuple lo{0, 0, 0}, hi{0, 0, 0};
         std::tie(lo, hi) = m_idx_box;
         hi[dir] = lo[dir] + 1;
@@ -66,64 +64,62 @@ void CutCell(Chart *chart, index_box_type m_idx_box, GeoObject const *g, Range<E
                         //    std::cout << "\t" << (x) << "\t" << chart->inv_map(x) <<
                         //    std::endl;
                         // }
-                        edge_fraction[dir].Set(r[dir], idx);
-                        //                        vertex_tags->Set(1, idx);
-                        //                        idx[(dir + 1) % 3] -= 1;
-                        //                        vertex_tags->Set(1, idx);
-                        //                        idx[(dir + 2) % 3] -= 1;
-                        //                        vertex_tags->Set(1, idx);
-                        //                        idx[(dir + 1) % 3] += 1;
-                        //                        vertex_tags->Set(1, idx);
-                        //                        index_tuple id{i, j, k};
-                        //                        id[dir] = std::get<0>(l_coor)[dir];
-                        //                        vertex_tags[0].Set(dir + 1, id);
-                        //                        id[(dir + 1) % 3] = idx[(dir + 1) % 3] - 1;
-                        //                        vertex_tags[0].Set(dir + 1, id);
-                        //                        id[(dir + 2) % 3] = idx[(dir + 2) % 3] - 1;
-                        //                        vertex_tags[0].Set(dir + 1, id);
-                        //                        id[(dir + 1) % 3] = idx[(dir + 1) % 3];
-                        //                        vertex_tags[0].Set(dir + 1, id);
-                        //                        if (m_inter_.State() == TopAbs_IN) {
-                        //                            s0 = std::max(std::get<0>(l_coor)[dir],
-                        //                            std::get<0>(m_idx_box)[dir]);
-                        //                        }
+                        //   edge_fraction[dir].Set(r[dir], idx);
+                        //   vertex_tags->Set(1, idx);
+                        //   idx[(dir + 1) % 3] -= 1;
+                        //   vertex_tags->Set(1, idx);
+                        //   idx[(dir + 2) % 3] -= 1;
+                        //   vertex_tags->Set(1, idx);
+                        //   idx[(dir + 1) % 3] += 1;
+                        //   vertex_tags->Set(1, idx);
+                        //   index_tuple id{i, j, k};
+                        //   id[dir] = std::get<0>(l_coor)[dir];
+                        //   vertex_tags[0].Set(dir + 1, id);
+                        //   id[(dir + 1) % 3] = idx[(dir + 1) % 3] - 1;
+                        //   vertex_tags[0].Set(dir + 1, id);
+                        //   id[(dir + 2) % 3] = idx[(dir + 2) % 3] - 1;
+                        //   vertex_tags[0].Set(dir + 1, id);
+                        //   id[(dir + 1) % 3] = idx[(dir + 1) % 3];
+                        //   vertex_tags[0].Set(dir + 1, id);
+                        //   if (m_inter_.State() == TopAbs_IN) {
+                        //       s0 = std::max(std::get<0>(l_coor)[dir],
+                        //       std::get<0>(m_idx_box)[dir]);
+                        //   }
                         //
-                        //                        if (x[dir] < std::get<0>(m_box)[dir]) { continue; }
+                        //   if (x[dir] < std::get<0>(m_box)[dir]) { continue; }
                         //
-                        //                        EntityId q;
-                        //                        q.x = static_cast<int16_t>(std::get<0>(l_coor)[0]);
-                        //                        q.y = static_cast<int16_t>(std::get<0>(l_coor)[1]);
-                        //                        q.z = static_cast<int16_t>(std::get<0>(l_coor)[2]);
-                        //                        q.w =
-                        //                        static_cast<int16_t>(EntityIdCoder::m_sub_index_to_id_[EDGE][dir]);
-                        //                        index_tuple idx{i, j, k};
-                        //                        idx[dir] = std::get<0>(l_coor)[dir];
-                        //                        edge_fraction[dir].Set(std::get<1>(l_coor)[dir], idx);
+                        //   EntityId q;
+                        //   q.x = static_cast<int16_t>(std::get<0>(l_coor)[0]);
+                        //   q.y = static_cast<int16_t>(std::get<0>(l_coor)[1]);
+                        //   q.z = static_cast<int16_t>(std::get<0>(l_coor)[2]);
+                        //   q.w =
+                        //   static_cast<int16_t>(EntityIdCoder::m_sub_index_to_id_[EDGE][dir]);
+                        //   index_tuple idx{i, j, k};
+                        //   idx[dir] = std::get<0>(l_coor)[dir];
+                        //   edge_fraction[dir].Set(std::get<1>(l_coor)[dir], idx);
                         //
-
+                        vertex_tags[0].Set(2, idx);
                         if (is_inside) {
                             s0 = idx[dir];
-                            vertex_tags[0].Set(2, idx);
                         } else {
                             s1 = idx[dir];
-
-                            vertex_tags[0].Set(2, idx);
                             s0 = std::max(std::get<0>(m_idx_box)[dir], s0);
                             s1 = std::min(std::get<1>(m_idx_box)[dir], s1);
 
+                            VERBOSE << "s0 " << s0 << " s1 " << s1 << std::endl;
                             for (index_type s = s0 + 1; s <= s1; ++s) {
                                 index_tuple id = idx;
                                 id[dir] = s;
                                 vertex_tags[0].Set(1, id);
                             }
                         }
-                        //
                         //                        VERBOSE << "s0:" << s0 << " s1:" << s1 << std::endl;
-                        //
                         //                        if (x[dir] > std::get<1>(m_idx_box)[dir]) { break; }
                     }
+                    if (is_inside) {
+                        std::cout << "status " << std::boolalpha << (is_inside) << " " << m_idx_box << std::endl;
+                    }
                 }
-
     }
 }
 
