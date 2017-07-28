@@ -28,7 +28,7 @@ struct Chart : public engine::SPObject, public data::Serializable {
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
 
-    virtual std::shared_ptr<Curve> GetAxisCurve(index_tuple const &x, int dir) const = 0;
+    virtual std::shared_ptr<Curve> GetAxisCurve(point_type const &x, int dir) const = 0;
 
     void SetLevel(int level);
     int GetLevel() const;

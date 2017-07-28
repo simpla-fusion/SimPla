@@ -46,7 +46,7 @@ struct csCylindrical : public Chart {
     template <typename... Args>
     explicit csCylindrical(Args &&... args) : Chart(std::forward<Args>(args)...) {}
     ~csCylindrical() override = default;
-    std::shared_ptr<Curve> GetAxisCurve(index_tuple const &x, int dir) const override;
+    std::shared_ptr<Curve> GetAxisCurve(point_type const &x, int dir) const override;
 
    public:
     /**

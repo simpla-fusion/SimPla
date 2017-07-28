@@ -8,7 +8,7 @@
 #include "../GeoObject.h"
 
 class TopoDS_Shape;
-
+class Bnd_Box;
 namespace simpla {
 namespace geometry {
 struct GeoObjectOCC : public GeoObject {
@@ -29,6 +29,7 @@ struct GeoObjectOCC : public GeoObject {
     void DoUpdate() override;
 
     TopoDS_Shape const &GetShape() const;
+    Bnd_Box const &GetOCCBoundingBox() const;
 
     box_type BoundingBox() const override;
     bool CheckInside(point_type const &x) const override;

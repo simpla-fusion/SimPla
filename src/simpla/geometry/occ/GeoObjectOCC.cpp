@@ -27,6 +27,8 @@ struct GeoObjectOCC::pimpl_s {
     Real m_measure_ = SNaN;
     TopoDS_Shape m_occ_shape_;
     box_type m_bounding_box_{{0, 0, 0}, {0, 0, 0}};
+
+    Bnd_Box m_occ_box_;
 };
 GeoObjectOCC::GeoObjectOCC() : m_pimpl_(new pimpl_s){};
 
@@ -46,6 +48,7 @@ GeoObjectOCC::GeoObjectOCC(GeoObjectOCC const &g) : GeoObjectOCC() {
 GeoObjectOCC::~GeoObjectOCC(){};
 
 TopoDS_Shape const &GeoObjectOCC::GetShape() const { return m_pimpl_->m_occ_shape_; }
+Bnd_Box const &GeoObjectOCC::GetOCCBoundingBox() const { return m_pimpl_->m_occ_box_; }
 
 TopoDS_Shape ReadSTEP(std::string const &file_name) {
     STEPControl_Reader reader;
@@ -121,11 +124,10 @@ void GeoObjectOCC::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
 
 void GeoObjectOCC::Load(std::string const &file_name) { m_pimpl_->m_occ_shape_ = LoadShape(file_name); };
 void GeoObjectOCC::DoUpdate() {
-    Bnd_Box box;
-    BRepBndLib::Add(m_pimpl_->m_occ_shape_, box);
-    box.Get(std::get<0>(m_pimpl_->m_bounding_box_)[0], std::get<0>(m_pimpl_->m_bounding_box_)[1],
-            std::get<0>(m_pimpl_->m_bounding_box_)[2], std::get<1>(m_pimpl_->m_bounding_box_)[0],
-            std::get<1>(m_pimpl_->m_bounding_box_)[1], std::get<1>(m_pimpl_->m_bounding_box_)[2]);
+    BRepBndLib::Add(m_pimpl_->m_occ_shape_, m_pimpl_->m_occ_box_);
+    m_pimpl_->m_occ_box_.Get(std::get<0>(m_pimpl_->m_bounding_box_)[0], std::get<0>(m_pimpl_->m_bounding_box_)[1],
+                             std::get<0>(m_pimpl_->m_bounding_box_)[2], std::get<1>(m_pimpl_->m_bounding_box_)[0],
+                             std::get<1>(m_pimpl_->m_bounding_box_)[1], std::get<1>(m_pimpl_->m_bounding_box_)[2]);
 }
 
 box_type GeoObjectOCC::BoundingBox() const { return m_pimpl_->m_bounding_box_; };
