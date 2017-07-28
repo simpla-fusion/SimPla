@@ -1039,12 +1039,12 @@ void SAMRAITimeIntegrator::DoUpdate() {
 
     m_pimpl_->hyperbolic_patch_strategy->registerVisItDataWriter(m_pimpl_->visit_data_writer_);
 
-    m_pimpl_->grid_geometry->printClassData(std::cout);
-    m_pimpl_->hyp_level_integrator->printClassData(std::cout);
+//    m_pimpl_->grid_geometry->printClassData(std::cout);
+//    m_pimpl_->hyp_level_integrator->printClassData(std::cout);
 
     m_pimpl_->m_time_refinement_integrator_->initializeHierarchy();
 
-    m_pimpl_->m_time_refinement_integrator_->printClassData(std::cout);
+//    m_pimpl_->m_time_refinement_integrator_->printClassData(std::cout);
 
     MESSAGE << "==================  Context is initialized!  =================" << std::endl;
 };

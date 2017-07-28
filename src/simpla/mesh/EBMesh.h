@@ -49,8 +49,8 @@ void EBMesh<THost>::SetEmbeddedBoundary(std::string const &prefix, const geometr
     m_vertex_tag_.Clear();
     m_edge_tag_.Clear();
 
-    geometry::CutCell(m_host_->GetMesh()->GetChart(), m_host_->GetMesh()->IndexBox(0b0), point_type{0, 0, 0}, g,
-                      body_ranges, boundary_ranges, cut_cell, &m_edge_tag_.Get()[0], &m_volume_tag_.Get()[0]);
+    geometry::CutCell(m_host_->GetMesh()->GetChart(), m_host_->GetMesh()->IndexBox(0b0), g, body_ranges,
+                      boundary_ranges, cut_cell, &m_edge_tag_.Get()[0], &m_vertex_tag_.Get()[0]);
     m_edge_tag_d_[0] = m_edge_tag_.Get();
     //    Real ratio = std::get<0>(m_host_->GetMesh()->CheckOverlap(g));
     //    if (ratio < EPSILON) {

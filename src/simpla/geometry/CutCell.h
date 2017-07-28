@@ -14,9 +14,9 @@ namespace geometry {
 
 class Chart;
 class GeoObject;
-void CutCell(Chart *chart, index_box_type const &m_idx_box, point_type const &r, GeoObject const *g,
-             Range<EntityId> body_ranges[4], Range<EntityId> boundary_ranges[4], std::map<EntityId, Real> cut_cell[4],
-             Array<Real> edge_fraction[3], Array<Real> *vertex_tags);
+void CutCell(Chart *chart, index_box_type m_idx_box, GeoObject const *g, Range<EntityId> *body_ranges,
+             Range<EntityId> *boundary_ranges, std::map<EntityId, Real> *cut_cell, Array<Real> *edge_fraction,
+             Array<Real> *vertex_tags);
 
 }  //    namespace geometry{
 

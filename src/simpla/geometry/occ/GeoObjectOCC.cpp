@@ -6,23 +6,26 @@
 
 #include <BRepBndLib.hxx>
 #include <BRepBuilderAPI_MakeVertex.hxx>
+#include <BRepBuilderAPI_Transform.hxx>
 #include <BRepExtrema_DistShapeShape.hxx>
 #include <Bnd_Box.hxx>
 #include <Interface_Static.hxx>
 #include <STEPControl_Reader.hxx>
+#include <StlAPI_Reader.hxx>
 #include <TColStd_HSequenceOfTransient.hxx>
 #include <TopoDS_Shape.hxx>
+#include <gp_Quaternion.hxx>
+
 #include "simpla/utilities/SPDefines.h"
 
 namespace simpla {
 namespace geometry {
+
 REGISTER_CREATOR(GeoObjectOCC, occ)
 
 struct GeoObjectOCC::pimpl_s {
-    std::string m_file_;
-    std::string m_label_;
     Real m_measure_ = SNaN;
-    std::shared_ptr<TopoDS_Shape> m_occ_shape_;
+    TopoDS_Shape m_occ_shape_;
     box_type m_bounding_box_{{0, 0, 0}, {0, 0, 0}};
 };
 GeoObjectOCC::GeoObjectOCC() : m_pimpl_(new pimpl_s){};
@@ -42,71 +45,98 @@ GeoObjectOCC::GeoObjectOCC(GeoObjectOCC const &g) : GeoObjectOCC() {
 
 GeoObjectOCC::~GeoObjectOCC(){};
 
+TopoDS_Shape const &GeoObjectOCC::GetShape() const { return m_pimpl_->m_occ_shape_; }
+
+TopoDS_Shape ReadSTEP(std::string const &file_name) {
+    STEPControl_Reader reader;
+
+    IFSelect_ReturnStatus stat = reader.ReadFile(file_name.c_str());
+
+    ASSERT(stat == IFSelect_RetDone);  // ExcMessage("Error in reading file!"));
+
+    Standard_Boolean failsonly = Standard_False;
+    IFSelect_PrintCount mode = IFSelect_ItemsByEntity;
+    reader.PrintCheckLoad(failsonly, mode);
+
+    Standard_Integer nRoots = reader.TransferRoots();
+    // selects all IGES entities (including non visible ones) in the
+    // file and puts them into a list called MyList,
+
+    ASSERT(nRoots > 0);  //, 262 ExcMessage("Read nothing from file."));
+    VERBOSE << "STEP Object is loaded from " << file_name << std::endl;
+    return reader.OneShape();
+}
+TopoDS_Shape ReadSTL(std::string const &file_name) {
+    StlAPI_Reader reader;
+    TopoDS_Shape shape;
+    reader.Read(shape, file_name.c_str());
+    return shape;
+}
+
+TopoDS_Shape TransformShape(TopoDS_Shape const &shape, Real scale, point_type const &location,
+                            nTuple<Real, 4> const &rotate) {
+    // Handle STEP Scale here.
+    gp_Pnt origin{location[0], location[1], location[2]};
+    gp_Quaternion rot_v{rotate[0], rotate[1], rotate[2], rotate[3]};
+    gp_Trsf transf;
+    transf.SetScale(origin, scale);
+    //    transf.SetRotation(rot_v);
+    BRepBuilderAPI_Transform trans(shape, transf);
+
+    return trans.Shape();
+}
+
+TopoDS_Shape LoadShape(std::string const &file_name) {
+    TopoDS_Shape res;
+    std::string ext = file_name.substr(file_name.rfind('.') + 1);
+    if (ext == "step" || ext == "stp") {
+        res = ReadSTEP(file_name);
+    } else if (ext == "stl") {
+        res = ReadSTL(file_name);
+    }
+    return res;
+};
+
+void GeoObjectOCC::Transform(Real scale, point_type const &location, nTuple<Real, 4> const &rotate) {
+    TopoDS_Shape tmp = m_pimpl_->m_occ_shape_;
+    m_pimpl_->m_occ_shape_ = TransformShape(tmp, scale, location, rotate);
+}
 std::shared_ptr<data::DataTable> GeoObjectOCC::Serialize() const {
     auto res = GeoObject::Serialize();
-    res->SetValue("File", m_pimpl_->m_file_);
-    res->SetValue("Label", m_pimpl_->m_label_);
 
     return res;
 };
 void GeoObjectOCC::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
     GeoObject::Deserialize(cfg);
-    Load(cfg->GetValue("File", m_pimpl_->m_file_), cfg->GetValue("Label", m_pimpl_->m_label_));
+
+    m_pimpl_->m_occ_shape_ =
+        TransformShape(LoadShape(cfg->GetValue<std::string>("File", "")),
+                       cfg->GetValue<Real>("Scale", 1.0e-3),  // default length unit is "m", STEP length unit is "mm"
+                       cfg->GetValue("Location", point_type{0, 0, 0}),  //
+                       cfg->GetValue("Rotation", nTuple<Real, 4>{0, 0, 0, 0}));
 
     Update();
+    VERBOSE << " [ Bounding Box :" << m_pimpl_->m_bounding_box_ << "]" << std::endl;
 };
 
-TopoDS_Shape GeoObjectOCC::GetShape() const { return *m_pimpl_->m_occ_shape_; }
-
-void GeoObjectOCC::Load(std::string const &file_name, std::string const &label) {
-    m_pimpl_->m_file_ = file_name;
-    m_pimpl_->m_label_ = label;
-    m_pimpl_->m_occ_shape_.reset(new TopoDS_Shape);
-
-    STEPControl_Reader reader;
-
-    auto success = reader.ReadFile(file_name.c_str());
-    if (!Interface_Static::SetIVal("xstep.cascade.unit", 1000)) {
-        RUNTIME_ERROR << "Set Value xstep.cascade.unit fail!" << std::endl;
-    };
-
-    if (success != IFSelect_RetDone) {
-        RUNTIME_ERROR << "Real STEP file failed!" << std::endl;
-    } else {
-        if (label.empty()) {
-            reader.TransferRoots();
-            *m_pimpl_->m_occ_shape_ = reader.OneShape();
-        } else {
-            int num = reader.TransferList(reader.GiveList(label.c_str()));
-
-            if (num == 0) {
-                OUT_OF_RANGE << "STEP object:" << file_name << ":" << label << " is not found! ["
-                             << "] " << std::endl;
-            }
-            *m_pimpl_->m_occ_shape_ = reader.Shape();
-        }
-    }
-    Update();
-    VERBOSE << "STEP Object is loaded from " << file_name << " [ Bounding Box :" << m_pimpl_->m_bounding_box_ << "]"
-            << std::endl;
-};
+void GeoObjectOCC::Load(std::string const &file_name) { m_pimpl_->m_occ_shape_ = LoadShape(file_name); };
 void GeoObjectOCC::DoUpdate() {
     Bnd_Box box;
-    BRepBndLib::Add(*m_pimpl_->m_occ_shape_, box);
+    BRepBndLib::Add(m_pimpl_->m_occ_shape_, box);
     box.Get(std::get<0>(m_pimpl_->m_bounding_box_)[0], std::get<0>(m_pimpl_->m_bounding_box_)[1],
             std::get<0>(m_pimpl_->m_bounding_box_)[2], std::get<1>(m_pimpl_->m_bounding_box_)[0],
             std::get<1>(m_pimpl_->m_bounding_box_)[1], std::get<1>(m_pimpl_->m_bounding_box_)[2]);
 }
 
 box_type GeoObjectOCC::BoundingBox() const { return m_pimpl_->m_bounding_box_; };
+
 bool GeoObjectOCC::CheckInside(point_type const &x) const {
     //    VERBOSE << m_pimpl_->m_bounding_box_ << (x) << std::endl;
     gp_Pnt p(x[0], x[1], x[2]);
     //    gp_Pnt p(0,0,0);
     BRepBuilderAPI_MakeVertex vertex(p);
-    BRepExtrema_DistShapeShape dist(vertex, *m_pimpl_->m_occ_shape_);
+    BRepExtrema_DistShapeShape dist(vertex, m_pimpl_->m_occ_shape_);
     dist.Perform();
-    CHECK(dist.Value()) << dist.InnerSolution();
     return dist.InnerSolution();
 };
 }

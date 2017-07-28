@@ -82,10 +82,27 @@ struct Chart : public engine::SPObject, public data::Serializable {
 
     template <typename TR>
     std::tuple<index_tuple, point_type> invert_local_coordinates(TR const &x) const {
-        point_type r = (x - m_origin_) / m_scale_;
-        index_tuple idx{static_cast<index_type>(r[0]), static_cast<index_type>(r[1]), static_cast<index_type>(r[2])};
-        r -= idx;
-        return std::make_tuple(idx, r);
+        //        point_type r = (x - m_origin_) / m_scale_;
+        //        index_tuple idx{static_cast<index_type>(r[0]), static_cast<index_type>(r[1]),
+        //        static_cast<index_type>(r[2])};
+        //        r -= idx;
+
+        // NOTE: require 0 < r < 1- epsilon
+        static constexpr Real epsilon = 1.0e-8;
+        point_type r{0, 0, 0};
+        index_tuple id{0, 0, 0};
+        r[0] = (x[0] - m_origin_[0]) / m_scale_[0] + epsilon;
+        r[1] = (x[1] - m_origin_[1]) / m_scale_[1] + epsilon;
+        r[2] = (x[2] - m_origin_[2]) / m_scale_[2] + epsilon;
+        id[0] = static_cast<index_type>(floor(r[0]));
+        id[1] = static_cast<index_type>(floor(r[1]));
+        id[2] = static_cast<index_type>(floor(r[2]));
+
+        r[0] = std::fdim(r[0] - epsilon, id[0]);
+        r[1] = std::fdim(r[1] - epsilon, id[1]);
+        r[2] = std::fdim(r[2] - epsilon, id[2]);
+
+        return std::make_tuple(id, r);
     }
 
     template <typename TR>

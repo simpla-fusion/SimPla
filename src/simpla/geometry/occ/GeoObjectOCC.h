@@ -23,10 +23,12 @@ struct GeoObjectOCC : public GeoObject {
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const &d) override;
 
-    void Load(std::string const &, std::string const &label = "");
+    void Load(std::string const &);
+    void Transform(Real scale, point_type const &location = point_type{0, 0, 0},
+                   nTuple<Real, 4> const &rotate = nTuple<Real, 4>{0, 0, 0, 0});
     void DoUpdate() override;
 
-    TopoDS_Shape GetShape() const;
+    TopoDS_Shape const &GetShape() const;
 
     box_type BoundingBox() const override;
     bool CheckInside(point_type const &x) const override;

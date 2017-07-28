@@ -5,7 +5,7 @@ N_PHI = 100
 
 Atlas = {
     PeriodicDimension = { 0, 0, 0 },
-    SmallestPatchDimensions = { 8, 8, 1 },
+    SmallestPatchDimensions = { 8, 4, 8 },
     LargestPatchDimensions = { 64, 64, 64 },
     MaxLevel = 2;
 }
@@ -24,7 +24,7 @@ Context = {
             lo = { 1.2, -1.0, -PI / 4.0 },
             hi = { 2.5, 1.0, PI / 4.0 }
         },
-        Dimensions = { 64, 64, 32 }
+        Dimensions = { 128, 64, 128 }
     },
     --    Model =
     --    {
@@ -55,7 +55,8 @@ Context = {
             Body =
             {
                 Type = "occ",
-                File = "/home/salmon/workspace/SimPla/example/tokamak/cube.step",
+                File = "/home/salmon/workspace/SimPla/example/tokamak/sphere.step",
+                Location = { 1.8, 0, 0 },
                 --                Type = "Cube",
                 --                lo = { 1.5, -0.5, -TWOPI / 8 },
                 --                hi = { 2.0, 0.5, TWOPI / 8 },
