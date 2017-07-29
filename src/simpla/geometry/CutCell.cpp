@@ -20,10 +20,14 @@ void CutCell(Chart *chart, index_box_type m_idx_box, GeoObject const *g, Array<R
     auto const &scale = chart->GetScale();
     Real tol = std::sqrt(dot(scale, scale) * 0.01);
     std::get<1>(m_idx_box) += 1;
-    auto bnd_box = g->BoundingBox();
+    box_type bnd_box = g->BoundingBox();
+    vector_type length = std::get<1>(bnd_box) - std::get<0>(bnd_box);
+    std::get<0>(bnd_box) -= 0.03 * length;
+    std::get<1>(bnd_box) += 0.03 * length;
+
     gp_Pnt xlo{std::get<0>(bnd_box)[0], std::get<0>(bnd_box)[1], std::get<0>(bnd_box)[2]};
     gp_Pnt xhi{std::get<1>(bnd_box)[0], std::get<1>(bnd_box)[1], std::get<1>(bnd_box)[2]};
-    CHECK(bnd_box);
+
     BRepPrimAPI_MakeBox makeBox(xlo, xhi);
     makeBox.Build();
     auto box = makeBox.Shell();
@@ -41,69 +45,82 @@ void CutCell(Chart *chart, index_box_type m_idx_box, GeoObject const *g, Array<R
         index_tuple lo{0, 0, 0}, hi{0, 0, 0};
         std::tie(lo, hi) = m_idx_box;
         hi[dir] = lo[dir] + 1;
-        size_type count = 0;
         for (index_type i = lo[0]; i < hi[0]; ++i)
             for (index_type j = lo[1]; j < hi[1]; ++j)
                 for (index_type k = lo[2]; k < hi[2]; ++k) {
-                    point_type x0 = chart->global_coordinates(i, j, k, 0b0);
-
+                    //                    point_type x_begin = chart->global_coordinates(i, j, k, 0b0);
                     // start point is on the bounding box
-                    {
-                        index_tuple idx{i, j, k};
+                    //                    {
+                    //                        index_tuple idx{i, j, k};
+                    //
+                    //                        index_type s0 = idx[dir];
+                    //                        Handle(Geom_Curve) c =
+                    //                            geometry::detail::OCCCast<Geom_Curve,
+                    //                            Curve>::eval(*chart->GetAxisCurve(x_begin, dir));
+                    //
+                    //                        m_box_inter_.Init(c);
+                    //
+                    //                        // if curve do not intersect with bounding box then continue to next curve
+                    //                        if (!m_box_inter_.More()) { continue; }
+                    //
+                    //                        bool is_first = true;
+                    //                        // search min intersection point
+                    //                        while (m_box_inter_.More()) {
+                    //                            index_tuple i1{0, 0, 0};
+                    //                            point_type x1{m_box_inter_.Pnt().X(), m_box_inter_.Pnt().Y(),
+                    //                            m_box_inter_.Pnt().Z()};
+                    //                            std::tie(i1, std::ignore) = chart->invert_global_coordinates(x1);
+                    //
+                    //                            if (is_first || i1[dir] < s0) {
+                    //                                s0 = i1[dir];
+                    //                                x_begin = x1;
+                    //                                is_first = false;
+                    //                            }
+                    //                            m_box_inter_.Next();
+                    //                        }
+                    //                    }
 
-                        index_type s0 = idx[dir];
-                        Handle(Geom_Curve) c =
-                            geometry::detail::OCCCast<Geom_Curve, Curve>::eval(*chart->GetAxisCurve(x0, dir));
-
-                        m_box_inter_.Init(c);
-
-                        // if curve do not intersect with bounding box then continue to next curve
-                        if (!m_box_inter_.More()) { continue; }
-
-                        bool is_first = true;
-                        // search min intersection point
-                        while (m_box_inter_.More()) {
-                            index_tuple i1{0, 0, 0};
-                            point_type x1{m_box_inter_.Pnt().X(), m_box_inter_.Pnt().Y(), m_box_inter_.Pnt().Z()};
-                            std::tie(i1, std::ignore) = chart->invert_global_coordinates(x1);
-
-                            if (is_first || i1[dir] < s0) {
-                                s0 = i1[dir];
-                                x0 = x1;
-                                is_first = false;
-                            }
-                            m_box_inter_.Next();
-                        }
-                    }
-
-                    // 2. new curve start from bounding box
+                    point_type x_begin = chart->global_coordinates(i, j, k, 0b0);
                     Handle(Geom_Curve) c =
-                        geometry::detail::OCCCast<Geom_Curve, Curve>::eval(*chart->GetAxisCurve(x0, dir));
+                        geometry::detail::OCCCast<Geom_Curve, Curve>::eval(*chart->GetAxisCurve(x_begin, dir));
+
                     m_body_inter_.Init(c);
 
-                    if (m_body_inter_.More()) { std::cout << "==============" << std::endl; }
-                    bool is_first = true;
-                    index_type s0 = 0;
-                    while (m_body_inter_.More()) {
-                        ++count;
+                    std::vector<Real> intersection_points;
+                    for (; m_body_inter_.More(); m_body_inter_.Next()) {
+                        intersection_points.push_back(m_body_inter_.W());
+                    }
 
-                        point_type x0{m_body_inter_.Pnt().X(), m_body_inter_.Pnt().Y(), m_body_inter_.Pnt().Z()};
-                        std::cout << (x0) << " status:" << m_body_inter_.Transition() << std::endl;
+                    std::sort(intersection_points.begin(), intersection_points.end());
+
+                    for (size_t n = 0; n < intersection_points.size(); n += 2) {
+                        gp_Pnt p0 = c->Value(intersection_points[n]);
+                        gp_Pnt p1 = c->Value(intersection_points[n + 1]);
+
+                        point_type x0{p0.X(), p0.Y(), p0.Z()};
+
                         index_tuple i0{0, 0, 0};
                         point_type r0{0, 0, 0};
                         std::tie(i0, r0) = chart->invert_global_coordinates(x0);
 
-                        if (!is_first && m_body_inter_.Transition() == IntCurveSurface_Out) {
-                            for (index_type s = s0; s <= i0[dir]; ++s) {
-                                index_tuple id{i, j, k};
-                                id[dir] = s;
-                                vertex_tags[0].Set(1, id);
-                            }
+                        point_type x1{p1.X(), p1.Y(), p1.Z()};
+                        index_tuple i1{0, 0, 0};
+                        point_type r1{0, 0, 0};
+                        std::tie(i1, r1) = chart->invert_global_coordinates(x1);
+
+                        VERBOSE << "Insert " << i0[dir] << "~" << i1[dir] << " [" << intersection_points[n] << "~"
+                                << intersection_points[n + 1] << "]" << std::endl;
+
+                        index_type s0 = std::max(i0[dir], std::get<0>(m_idx_box)[dir]);
+                        index_type s1 = std::min(i1[dir], std::get<1>(m_idx_box)[dir]);
+
+                        for (index_type s = i0[dir]; s <= i1[dir]; ++s) {
+                            index_tuple id{i, j, k};
+                            id[dir] = s;
+                            vertex_tags[0].Set(dir + 1, id);
                         }
-                        s0 = i0[dir];
-                        m_body_inter_.Next();
-                        is_first = false;
                     }
+                    VERBOSE << "==================" << std::endl;
 
                     // std::cout << index_tuple{i, j, k} << "~" << idx << "~" << r <<
                     // std::endl;

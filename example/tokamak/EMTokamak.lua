@@ -55,8 +55,8 @@ Context = {
             Body =
             {
                 Type = "occ",
-                File = "/home/salmon/workspace/SimPla/example/tokamak/sphere.step",
-                Location = { 1.8, 0, 0 },
+                File = "/home/salmon/workspace/SimPla/example/tokamak/test.step",
+                Location = { 1.8, 0, -0.05},
                 --                Type = "Cube",
                 --                lo = { 1.5, -0.5, -TWOPI / 8 },
                 --                hi = { 2.0, 0.5, TWOPI / 8 },

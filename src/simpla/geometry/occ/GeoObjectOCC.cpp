@@ -62,11 +62,9 @@ TopoDS_Shape ReadSTEP(std::string const &file_name) {
     reader.PrintCheckLoad(failsonly, mode);
 
     Standard_Integer nRoots = reader.TransferRoots();
-    // selects all IGES entities (including non visible ones) in the
-    // file and puts them into a list called MyList,
 
     ASSERT(nRoots > 0);  //, 262 ExcMessage("Read nothing from file."));
-    VERBOSE << "STEP Object is loaded from " << file_name << std::endl;
+    VERBOSE << "STEP Object is loaded from " << file_name << "[" << nRoots << "]" << std::endl;
     return reader.OneShape();
 }
 TopoDS_Shape ReadSTL(std::string const &file_name) {
