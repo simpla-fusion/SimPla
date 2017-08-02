@@ -5,51 +5,27 @@
 #ifndef SIMPLA_OCCSHAPE_H
 #define SIMPLA_OCCSHAPE_H
 
-#include <GeomAdaptor_Curve.hxx>
-#include <Geom_Circle.hxx>
-#include <Geom_Line.hxx>
-#include <Standard_Transient.hxx>
-#include <TopoDS_Shape.hxx>
-#include "../Curve.h"
+
 #include "GeoObjectOCC.h"
 class TopoDS_Shape;
+class Geom_Curve;
+class Geom_Surface;
 namespace simpla {
 namespace geometry {
-
+class Surface;
+class Curve;
 namespace detail {
 template <typename TDest, typename TSrc, typename Enable = void>
 struct OCCCast {
     static TDest* eval(TSrc const& s) { return nullptr; }
 };
 
-gp_Pnt point(point_type const& p0) { return gp_Pnt{p0[0], p0[1], p0[2]}; }
-gp_Dir dir(vector_type const& p0) { return gp_Dir{p0[0], p0[1], p0[2]}; }
-
 template <>
-TopoDS_Shape* OCCCast<TopoDS_Shape, GeoObject>::eval(GeoObject const& g) {
-    auto* res = new TopoDS_Shape;
-    if (g.isA(typeid(GeoObjectOCC))) {
-        *res = dynamic_cast<GeoObjectOCC const&>(g).GetShape();
-    } else {
-        *res = GeoObjectOCC(g).GetShape();
-    }
-    return res;
-}
+TopoDS_Shape* OCCCast<TopoDS_Shape, GeoObject>::eval(GeoObject const& g);
 template <>
-Geom_Curve* OCCCast<Geom_Curve, Curve>::eval(Curve const& c) {
-    Geom_Curve* res = nullptr;
-    if (c.isA(typeid(Circle))) {
-        auto const& l = dynamic_cast<Circle const&>(c);
-        res = new Geom_Circle(gp_Ax2(point(l.Origin()), dir(l.Normal()), dir(l.XAxis())), l.Radius());
-    } else if (c.isA(typeid(Line))) {
-        auto const& l = dynamic_cast<Line const&>(c);
-        res = new Geom_Line(point(l.Origin()), dir(l.Direction()));
-    } else {
-        UNIMPLEMENTED;
-    }
-    return res;
-};
-
+Geom_Curve* OCCCast<Geom_Curve, Curve>::eval(Curve const& c);
+template <>
+Geom_Surface* OCCCast<Geom_Surface, Surface>::eval(Surface const& c);
 }  // namespace detail{
 template <typename TDest, typename TSrc>
 TDest* occ_cast(TSrc const& g) {

@@ -4,10 +4,12 @@
 
 #include "CutCell.h"
 
-#include <BRepIntCurveSurface_Inter.hxx>
-
 #include <simpla/algebra/nTuple.ext.h>
+#include <BRepIntCurveSurface_Inter.hxx>
 #include <BRepPrimAPI_MakeBox.hxx>
+#include <GeomAdaptor_Curve.hxx>
+#include <Geom_Curve.hxx>
+#include <TopoDS_Shape.hxx>
 
 #include "BoxUtilities.h"
 #include "Chart.h"
@@ -108,9 +110,6 @@ void CutCell(Chart *chart, index_box_type m_idx_box, GeoObject const *g, Array<R
                         point_type r1{0, 0, 0};
                         std::tie(i1, r1) = chart->invert_global_coordinates(x1);
 
-                        VERBOSE << "Insert " << i0[dir] << "~" << i1[dir] << " [" << intersection_points[n] << "~"
-                                << intersection_points[n + 1] << "]" << std::endl;
-
                         index_type s0 = std::max(i0[dir], std::get<0>(m_idx_box)[dir]);
                         index_type s1 = std::min(i1[dir], std::get<1>(m_idx_box)[dir]);
 
@@ -120,7 +119,6 @@ void CutCell(Chart *chart, index_box_type m_idx_box, GeoObject const *g, Array<R
                             vertex_tags[0].Set(dir + 1, id);
                         }
                     }
-                    VERBOSE << "==================" << std::endl;
 
                     // std::cout << index_tuple{i, j, k} << "~" << idx << "~" << r <<
                     // std::endl;
