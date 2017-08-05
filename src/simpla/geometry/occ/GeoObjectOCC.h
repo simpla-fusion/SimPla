@@ -18,6 +18,8 @@ struct GeoObjectOCC : public GeoObject {
     GeoObjectOCC();
     GeoObjectOCC(GeoObjectOCC const &);
     GeoObjectOCC(GeoObject const &);
+    GeoObjectOCC(TopoDS_Shape const &);
+
     ~GeoObjectOCC() override;
 
     std::shared_ptr<data::DataTable> Serialize() const override;

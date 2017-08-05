@@ -44,6 +44,10 @@ GeoObjectOCC::GeoObjectOCC(GeoObjectOCC const &g) : GeoObjectOCC() {
     m_pimpl_->m_occ_shape_ = dynamic_cast<GeoObjectOCC const &>(g).m_pimpl_->m_occ_shape_;
     Update();
 };
+GeoObjectOCC::GeoObjectOCC(TopoDS_Shape const &shape) : GeoObjectOCC() {
+    m_pimpl_->m_occ_shape_ = shape;
+    Update();
+}
 
 GeoObjectOCC::~GeoObjectOCC(){};
 
