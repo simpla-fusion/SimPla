@@ -15,6 +15,8 @@
 #include "SPObject.h"
 
 namespace simpla {
+template <typename V, typename SFC>
+class Array;
 namespace engine {
 class DomainBase;
 class Attribute;
@@ -174,45 +176,45 @@ struct Attribute : public SPObject, public AttributeDesc {
     virtual bool isNull() const;
     virtual bool empty() const { return isNull(); };
 
-    template <typename U, typename... Others, int... N>
-    void PushData(nTuple<Array<U, Others...>, N...> *d);
-    template <typename U, typename... Others, int... N>
-    void PopData(nTuple<Array<U, Others...>, N...> *d);
+//    template <typename U, typename... Others, int... N>
+//    void PushData(nTuple<Array<U, Others...>, N...> *d);
+//    template <typename U, typename... Others, int... N>
+//    void PopData(nTuple<Array<U, Others...>, N...> *d);
 
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-
-template <typename U, typename... Others, int... N>
-void Attribute::PushData(nTuple<Array<U, Others...>, N...> *d) {
-    typedef Array<U, Others...> array_type;
-    auto *blk = dynamic_cast<data::DataMultiArray<array_type> *>(GetDataBlock());
-    if (blk != nullptr) {
-        int count = 0;
-        traits::foreach (*d, [&](array_type &a, auto &&... idx) {
-            array_type(*blk->Get(count)).swap(a);
-            ++count;
-        });
-    }
-    Tag();
-};
-template <typename U, typename... Others, int... N>
-void Attribute::PopData(nTuple<Array<U, Others...>, N...> *d) {
-    typedef Array<U, Others...> array_type;
-    auto *blk = dynamic_cast<data::DataMultiArray<array_type> *>(GetDataBlock());
-    if (blk == nullptr) {
-        Push(std::make_shared<data::DataMultiArray<array_type>>(d->size()));
-        blk = dynamic_cast<data::DataMultiArray<array_type> *>(GetDataBlock());
-    }
-    int count = 0;
-    traits::foreach (*d, [&](array_type &a, auto &&... idx) {
-        array_type(a).swap(*blk->Get(count));
-        a.reset();
-        ++count;
-    });
-    ResetTag();
-};
+//
+//template <typename U, typename... Others, int... N>
+//void Attribute::PushData(nTuple<Array<U, Others...>, N...> *d) {
+//    typedef Array<U, Others...> array_type;
+//    auto *blk = dynamic_cast<data::DataMultiArray<array_type> *>(GetDataBlock());
+//    if (blk != nullptr) {
+//        int count = 0;
+//        traits::foreach (*d, [&](array_type &a, auto &&... idx) {
+//            array_type(*blk->Get(count)).swap(a);
+//            ++count;
+//        });
+//    }
+//    Tag();
+//};
+//template <typename U, typename... Others, int... N>
+//void Attribute::PopData(nTuple<Array<U, Others...>, N...> *d) {
+//    typedef Array<U, Others...> array_type;
+//    auto *blk = dynamic_cast<data::DataMultiArray<array_type> *>(GetDataBlock());
+//    if (blk == nullptr) {
+//        Push(std::make_shared<data::DataMultiArray<array_type>>(d->size()));
+//        blk = dynamic_cast<data::DataMultiArray<array_type> *>(GetDataBlock());
+//    }
+//    int count = 0;
+//    traits::foreach (*d, [&](array_type &a, auto &&... idx) {
+//        array_type(a).swap(*blk->Get(count));
+//        a.reset();
+//        ++count;
+//    });
+//    ResetTag();
+//};
 
 // template <typename T>
 // T AttributeGroup::GetAttribute(std::string const &k) const {

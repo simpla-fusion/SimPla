@@ -377,27 +377,26 @@ template <int N, typename... Args>
 auto unpack_args(Args&&... args) {
     return ((_impl::unpack_args_helper<N>(std::forward<Args>(args)...)));
 }
+template <size_t, typename...>
+struct type_list_N;
 
-template <int, typename...>
-struct unpack_type;
-
-template <int N>
-struct unpack_type<N> {
+template <size_t N>
+struct type_list_N<N> {
     typedef std::nullptr_t type;
 };
 
 template <typename First, typename... Others>
-struct unpack_type<0, First, Others...> {
+struct type_list_N<0, First, Others...> {
     typedef First type;
 };
 
-template <int N, typename First, typename... Others>
-struct unpack_type<N, First, Others...> {
-    typedef typename unpack_type<N - 1, Others...>::type type;
+template <size_t N, typename First, typename... Others>
+struct type_list_N<N, First, Others...> {
+    typedef typename type_list_N<N - 1, Others...>::type type;
 };
 
-template <int N, typename... T>
-using unpack_t = typename unpack_type<N, T...>::type;
+template <size_t N, typename... T>
+using type_list_N_t = typename type_list_N<N, T...>::type;
 
 }  // namespace traits
 

@@ -5,21 +5,18 @@
 #ifndef SIMPLA_PARTICLE_H
 #define SIMPLA_PARTICLE_H
 
-#include "simpla/SIMPLA_config.h"
-#include "simpla/engine/Attribute.h"
-#include "simpla/algebra/EntityId.h"
-#include "simpla/utilities/Range.h"
-#include "simpla/algebra/nTuple.h"
-#include "simpla/engine/SPObject.h"
 #include "ParticleBase.h"
-#include "spParticle.h"
+#include "simpla/SIMPLA_config.h"
+#include "simpla/algebra/EntityId.h"
+#include "simpla/algebra/nTuple.h"
+#include "simpla/engine/Attribute.h"
 namespace simpla {
 
-template <typename TM, int DOF = 6>
-class Particle : public ParticleBase {
+template <typename TM, typename TV = Real, int DOF = 4>
+class Particle : public engine::Attribute, public ParticleBase {
    private:
-    typedef Particle<TM, DOF> field_type;
-    SP_OBJECT_HEAD(field_type, ParticleBase);
+    typedef Particle<TM, Real, DOF> particle_type;
+    SP_OBJECT_HEAD(particle_type, engine::Attribute);
 
    public:
     typedef TM mesh_type;
@@ -27,52 +24,57 @@ class Particle : public ParticleBase {
 
     static constexpr int NDIMS = mesh_type::NDIMS;
 
-    typedef std::true_type prefer_pass_by_reference;
-    typedef std::false_type is_expression;
-    typedef std::false_type is_field;
-    typedef std::true_type is_particle;
-
    private:
-    mesh_type const* m_mesh_ = nullptr;
+    mesh_type const* m_host_ = nullptr;
     EntityRange m_range_;
+    std::shared_ptr<ParticleBase> m_data_;
 
    public:
     template <typename... Args>
-    explicit Particle(Args&&... args) : ParticleBase(DOF, std::forward<Args>(args)...){};
-
-    Particle(this_type const& other) : ParticleBase(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_) {}
-
-    Particle(this_type&& other) : ParticleBase(other), m_mesh_(other.m_mesh_), m_range_(other.m_range_) {}
-
-    Particle(this_type const& other, EntityRange const& r) : ParticleBase(other), m_mesh_(other.m_mesh_), m_range_(r) {}
+    explicit Particle(mesh_type* grp, Args&&... args)
+        : base_type(grp->GetMesh(), FIBER, std::integer_sequence<int, DOF>(), typeid(Real),
+                    std::forward<Args>(args)...),
+          m_host_(grp) {}
 
     ~Particle() override = default;
+
+    explicit Particle(this_type const& other) : base_type(other), m_data_(other.m_data_), m_host_(other.m_host_) {}
+
+    explicit Particle(this_type&& other) noexcept
+        : base_type(std::forward<base_type>(other)), m_data_(other.m_data_), m_host_(other.m_host_) {}
+
+    Particle& operator=(this_type&& other) = delete;
 
     this_type operator[](EntityRange const& d) const { return this_type(*this, d); }
 
     void swap(this_type& other) {
         m_range_.swap(other.m_range_);
-        std::swap(m_mesh_, other.m_mesh_);
+        std::swap(m_host_, other.m_host_);
         ParticleBase::swap(other);
     }
-    this_type& operator=(this_type const& other) {
-        this_type(other).swap(*this);
-        return *this;
+    void DoInitialize() override {
+        if (base_type::isNull()) {
+            m_host_->GetMesh()->template initialize_data<IFORM>(&m_data_);
+        } else {
+            base_type::PushData(&m_data_);
+        }
+
+        traits::foreach (m_data_, [&](auto& a, auto&&... s) { a.Initialize(); });
     }
 
-    //*****************************************************************************************************************
-
-    void Update() override {
-        if (m_mesh_ == nullptr) { m_mesh_ = dynamic_cast<mesh_type const*>(engine::Attribute::GetMesh()); }
-        ASSERT(m_mesh_ != nullptr);
-        ParticleBase::DoUpdate();
+    void DoFinalize() override {
+        base_type::PopData(&m_data_);
+        traits::foreach (m_data_, [&](auto& a, auto&&... s) { a.Finalize(); });
     }
 
-    void TearDown() override {
-        m_range_.reset();
-        m_mesh_ = nullptr;
-        ParticleBase::DoTearDown();
+    void swap(this_type& other) {
+        base_type::swap(other);
+        m_data_.swap(other.m_data_);
+        std::swap(m_host_, other.m_host_);
     }
+
+    auto& Get() { return m_data_; }
+    auto const& Get() const { return m_data_; }
 
 };  // class Particle
 }  // namespace simpla{

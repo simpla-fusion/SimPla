@@ -36,6 +36,7 @@ decltype(auto) GetValue(Array<T, O...> const& expr, Args&&... args) {
 
 template <typename TM, typename TV, int...>
 class Field;
+
 template <typename TM, typename TV, int IFORM, int... DOF>
 class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
    private:
@@ -80,17 +81,42 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         if (base_type::isNull()) {
             m_host_->GetMesh()->template initialize_data<IFORM>(&m_data_);
         } else {
-            base_type::PushData(&m_data_);
+            PushData(&m_data_);
         }
 
         traits::foreach (m_data_, [&](auto& a, auto&&... s) { a.Initialize(); });
     }
 
     void DoFinalize() override {
-        base_type::PopData(&m_data_);
+        PopData(&m_data_);
         traits::foreach (m_data_, [&](auto& a, auto&&... s) { a.Finalize(); });
     }
 
+    void PushData(nTuple<array_type, NUM_OF_SUB, DOF...>* d) {
+        auto* blk = dynamic_cast<data::DataMultiArray<array_type>*>(GetDataBlock());
+        if (blk != nullptr) {
+            int count = 0;
+            traits::foreach (*d, [&](array_type& a, auto&&... idx) {
+                array_type(*blk->Get(count)).swap(a);
+                ++count;
+            });
+        }
+        Tag();
+    };
+    void PopData(nTuple<array_type, NUM_OF_SUB, DOF...>* d) {
+        auto* blk = dynamic_cast<data::DataMultiArray<array_type>*>(GetDataBlock());
+        if (blk == nullptr) {
+            Push(std::make_shared<data::DataMultiArray<array_type>>(d->size()));
+            blk = dynamic_cast<data::DataMultiArray<array_type>*>(GetDataBlock());
+        }
+        int count = 0;
+        traits::foreach (*d, [&](array_type& a, auto&&... idx) {
+            array_type(a).swap(*blk->Get(count));
+            a.reset();
+            ++count;
+        });
+        ResetTag();
+    };
     void swap(this_type& other) {
         base_type::swap(other);
         m_data_.swap(other.m_data_);

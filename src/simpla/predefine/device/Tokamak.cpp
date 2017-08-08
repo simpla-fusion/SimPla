@@ -2,6 +2,7 @@
 // Created by salmon on 17-7-9.
 //
 #include "Tokamak.h"
+#include <simpla/data/Data.h>
 #include <simpla/geometry/occ/GeoObjectOCC.h>
 
 #include <BRepBuilderAPI_MakeEdge.hxx>
@@ -11,8 +12,6 @@
 #include <BRepPrimAPI_MakeRevol.hxx>
 #include <GeomAPI_Interpolate.hxx>
 #include <TColgp_HArray1OfPnt.hxx>
-
-#include "simpla/data/Data.h"
 
 namespace simpla {
 REGISTER_CREATOR(Tokamak, Tokamak)
