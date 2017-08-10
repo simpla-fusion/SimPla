@@ -3,7 +3,6 @@
 //
 
 #include "Particle.h"
-#include "ParticleInitialLoad.h"
 #include "simpla/algebra/EntityId.h"
 #include "simpla/algebra/nTuple.h"
 #include "simpla/engine/Mesh.h"
@@ -15,10 +14,11 @@ struct ParticlePool : public data::DataBlock {};
 struct ParticleBase::pimpl_s {
     static constexpr int MAX_NUMBER_OF_PARTICLE_ATTRIBUTES = 10;
     engine::MeshBase const* m_mesh_;
-    size_type m_size_ = 0;
+    size_type m_max_size_ = 0;
     int m_dof_ = 3;
     ParticlePool* m_pool_ = nullptr;
 
+    id_type* m_tag_;
     Real* m_data_[MAX_NUMBER_OF_PARTICLE_ATTRIBUTES];
 };
 ParticleBase::ParticleBase(engine::MeshBase const* m, int DOF) : m_pimpl_(new pimpl_s) {
@@ -42,9 +42,10 @@ void ParticleBase::PushData(data::DataBlock* dblk) {
 
 void ParticleBase::PopData(data::DataBlock* dblk) { m_pimpl_->m_pool_ = nullptr; }
 int ParticleBase::GetNumberOfAttributes() const { return m_pimpl_->m_mesh_->GetNDIMS() + m_pimpl_->m_dof_; }
+size_type ParticleBase::GetMaxSize() const { return m_pimpl_->m_max_size_; }
 std::shared_ptr<ParticleBase::Bucket> ParticleBase::GetBucket(id_type s) { return nullptr; }
 std::shared_ptr<ParticleBase::Bucket> ParticleBase::GetBucket(id_type s) const { return nullptr; }
-std::shared_ptr<Bucket> ParticleBase::AddBucket(id_type s, size_type num) {}
+std::shared_ptr<ParticleBase::Bucket> ParticleBase::AddBucket(id_type s, size_type num) { return nullptr; }
 void ParticleBase::RemoveBucket(id_type s) {}
 size_type ParticleBase::Count(id_type s) const {
     size_type res = 0;
@@ -54,8 +55,14 @@ size_type ParticleBase::Count(id_type s) const {
     }
     return res;
 }
+void ParticleUpdateTag(size_type num, id_type* tag, Real** r);
+void ParticleSort(size_type num, int num_of_attr, id_type const* tag_in, id_type* tag_out, Real** in, Real** out);
+void ParticleBase::Sort() {
+    ParticleUpdateTag(GetMaxSize(), m_pimpl_->m_tag_, m_pimpl_->m_data_);
 
-void ParticleBase::Sort() { UNIMPLEMENTED; }
+    ParticleSort(GetMaxSize(), GetNumberOfAttributes(), m_pimpl_->m_tag_, m_pimpl_->m_tag_, m_pimpl_->m_data_,
+                 m_pimpl_->m_data_);
+}
 void ParticleBase::DeepSort() { UNIMPLEMENTED; }
 
 void ParticleBase::DoInitialize() { UNIMPLEMENTED; }
@@ -76,7 +83,7 @@ void ParticleBase::InitialLoad(int const* rnd_dist_type, size_type rnd_offset) {
     } else {
         for (int i = 0; i < GetNumberOfAttributes(); ++i) { dist_type[i] = rnd_dist_type[i]; }
     }
-    ParticleInitialLoad(m_pimpl_->m_data_, m_pimpl_->m_size_, 2 * ndims, dist_type, rnd_offset);
+    ParticleInitialLoad(m_pimpl_->m_data_, m_pimpl_->m_max_size_, 2 * ndims, dist_type, rnd_offset);
 }
 
 }  // namespace simpla {

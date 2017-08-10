@@ -27,6 +27,7 @@ class ParticleBase {
     virtual void PopData(data::DataBlock* dblk);
 
     int GetNumberOfAttributes() const;
+    size_type GetMaxSize() const;
 
     struct Bucket {
         std::shared_ptr<Bucket> next = nullptr;

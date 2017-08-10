@@ -2,7 +2,6 @@
 // Created by salmon on 16-9-6.
 //
 
-#include "ParticleInitialLoad.h"
 #include </usr/local/cuda/include/curand_kernel.h>
 #include <simpla/utilities/host_define.h>
 #include "../../../../../../../usr/local/cuda/include/cuda_runtime.h"
@@ -300,6 +299,7 @@ __global__ void spRandomDistributionNormalKernel(struct curandStateScrambledSobo
     state[total_thread_id] = local_state;
 }
 #endif  // __CUDA__
+enum { SP_RAND_UNIFORM = 0x1, SP_RAND_NORMAL = 0x10 };
 
 int ParticleInitialLoad(Real **data, size_type num, int n_dof, int const *dist_types, size_type random_seed_offset) {
     int error_code = SP_SUCCESS;

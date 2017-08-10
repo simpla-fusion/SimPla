@@ -6,7 +6,6 @@
 #include "simpla/engine/Mesh.h"
 #include "simpla/geometry/csCartesian.h"
 #include "simpla/mesh/RectMesh.h"
-#include "simpla/particle/ParticleInitialLoad.h"
 #include "simpla/scheme/FVM.h"
 using namespace simpla;
 using namespace simpla::data;
