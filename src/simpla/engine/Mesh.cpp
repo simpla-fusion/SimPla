@@ -30,6 +30,8 @@ MeshBase::MeshBase() : m_pimpl_(new pimpl_s) {}
 
 MeshBase::~MeshBase() = default;
 
+int MeshBase::GetNDIMS() const { return 3; }
+
 std::tuple<Real, index_box_type> MeshBase::CheckOverlap(const geometry::GeoObject* g) const {
     Real ratio = 0;
     if (g != nullptr) {

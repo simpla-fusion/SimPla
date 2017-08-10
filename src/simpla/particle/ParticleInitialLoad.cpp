@@ -301,7 +301,7 @@ __global__ void spRandomDistributionNormalKernel(struct curandStateScrambledSobo
 }
 #endif  // __CUDA__
 
-int ParticleInitialLoad(Real **data, size_type num, int n_dims, int const *dist_types, size_type random_seed_offset) {
+int ParticleInitialLoad(Real **data, size_type num, int n_dof, int const *dist_types, size_type random_seed_offset) {
     int error_code = SP_SUCCESS;
 
     struct curandStateScrambledSobol64 *devSobol64States;
@@ -320,29 +320,29 @@ int ParticleInitialLoad(Real **data, size_type num, int n_dims, int const *dist_
     CURAND_CALL(curandGetScrambleConstants64(&hostScrambleConstants64));
 
     /* Allocate memory for 3 states per thread (x, y, z), each state to get a unique dimension */
-    SP_DEVICE_CALL(cudaMalloc((void **)&(devSobol64States), n_threads * n_dims * sizeof(curandStateScrambledSobol64)));
+    SP_DEVICE_CALL(cudaMalloc((void **)&(devSobol64States), n_threads * n_dof * sizeof(curandStateScrambledSobol64)));
 
     /* Allocate memory and copy 3 sets of vectors per thread to the detail */
 
     SP_DEVICE_CALL(
-        cudaMalloc((void **)&(devDirectionVectors64), n_threads * n_dims * VECTOR_SIZE * sizeof(long long int)));
+        cudaMalloc((void **)&(devDirectionVectors64), n_threads * n_dof * VECTOR_SIZE * sizeof(long long int)));
 
     SP_DEVICE_CALL(cudaMemcpy(devDirectionVectors64, hostVectors64,
-                              n_threads * n_dims * VECTOR_SIZE * sizeof(long long int), cudaMemcpyHostToDevice));
+                              n_threads * n_dof * VECTOR_SIZE * sizeof(long long int), cudaMemcpyHostToDevice));
 
     /* Allocate memory and copy 6 scramble constants (one constant per dimension)
        per thread to the detail */
 
-    SP_DEVICE_CALL(cudaMalloc((void **)&(devScrambleConstants64), n_threads * n_dims * sizeof(long long int)));
+    SP_DEVICE_CALL(cudaMalloc((void **)&(devScrambleConstants64), n_threads * n_dof * sizeof(long long int)));
 
     SP_DEVICE_CALL(cudaMemcpy(devScrambleConstants64, hostScrambleConstants64,
-                              n_threads * n_dims * sizeof(long long int), cudaMemcpyHostToDevice));
+                              n_threads * n_dof * sizeof(long long int), cudaMemcpyHostToDevice));
 
     /* Initialize the states */
     SP_CALL_DEVICE_KERNEL(spRandomGeneratorSobolSetupKernel, n_threads / VECTOR_SIZE, VECTOR_SIZE,
-                          devDirectionVectors64, devScrambleConstants64, n_dims, random_seed_offset, devSobol64States);
+                          devDirectionVectors64, devScrambleConstants64, n_dof, random_seed_offset, devSobol64States);
 
-    for (int n = 0; n < n_dims; ++n) {
+    for (int n = 0; n < n_dof; ++n) {
         switch (dist_types[n]) {
             case SP_RAND_NORMAL:  //
 

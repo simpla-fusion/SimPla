@@ -7,26 +7,52 @@
 
 #include <simpla/algebra/Field.h>
 #include "simpla/SIMPLA_config.h"
-#include "simpla/algebra/EntityId.h"
-#include "simpla/algebra/nTuple.h"
+
 #include "simpla/engine/Attribute.h"
 
-#include "ParticlePool.h"
-
 namespace simpla {
-
-class ParticleBase : public engine::SPObject {
-    SP_OBJECT_HEAD(ParticleBase, engine::SPObject);
-
+namespace engine {
+struct MeshBase;
+}
+class ParticleBase {
    public:
-
-
+    explicit ParticleBase(engine::MeshBase const* m = nullptr, int DOF = 3);
+    virtual ~ParticleBase();
     SP_DEFAULT_CONSTRUCT(ParticleBase);
+    virtual std::shared_ptr<data::DataTable> GetProperties() const { return nullptr; };
+    virtual std::shared_ptr<data::DataTable> Serialize() const;
+    virtual void Deserialize(const std::shared_ptr<data::DataTable>& t);
+
+    virtual void PushData(data::DataBlock* dblk);
+    virtual void PopData(data::DataBlock* dblk);
+
+    int GetNumberOfAttributes() const;
+
+    struct Bucket {
+        std::shared_ptr<Bucket> next = nullptr;
+        size_type count = 0;
+        int* tag = nullptr;
+        Real** data = nullptr;
+    };
+    std::shared_ptr<Bucket> GetBucket(id_type s = NULL_ID);
+    std::shared_ptr<Bucket> AddBucket(id_type s, size_type num);
+    void RemoveBucket(id_type s);
+    std::shared_ptr<Bucket> GetBucket(id_type s = NULL_ID) const;
+
+    virtual void DoInitialize();
+    void InitialLoad(int const* rnd_type = nullptr, size_type rnd_offset = 0);
+
+    size_type Count(id_type s = NULL_ID) const;
+    void Sort();
+    void DeepSort();
+
+   private:
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
 template <typename TM>
-class Particle : public engine::Attribute, public ParticleBase {
-   private:
+class Particle : public ParticleBase, public engine::Attribute, public data::Serializable {
     SP_OBJECT_HEAD(Particle<TM>, engine::Attribute);
 
    public:
@@ -36,12 +62,12 @@ class Particle : public engine::Attribute, public ParticleBase {
 
    private:
     mesh_type const* m_host_ = nullptr;
-    ParticlePool* m_data_ = nullptr;
 
    public:
     template <typename... Args>
     Particle(mesh_type* grp, int DOF, Args&&... args)
-        : base_type(grp->GetMesh(), FIBER, DOF, typeid(Real),
+        : ParticleBase(grp->GetMesh(), DOF),
+          base_type(grp->GetMesh(), FIBER, DOF, typeid(Real),
                     std::make_shared<data::DataTable>(std::forward<Args>(args)...)),
           m_host_(grp) {}
 
@@ -49,20 +75,20 @@ class Particle : public engine::Attribute, public ParticleBase {
 
     SP_DEFAULT_CONSTRUCT(Particle);
 
+    std::shared_ptr<data::DataTable> GetProperties() const override { return engine::Attribute::db(); }
+
+    std::shared_ptr<data::DataTable> Serialize() const override { return ParticleBase::Serialize(); }
+
+    void Deserialize(const std::shared_ptr<data::DataTable>& t) override { ParticleBase::Deserialize(t); }
+
     void DoInitialize() override {
-        ASSERT(GetDataBlock()->isA(typeid(ParticlePool)));
-        m_data_ = dynamic_cast<ParticlePool*>(GetDataBlock());
+        if (base_type::isNull()) {
+            ParticleBase::DoInitialize();
+        } else {
+            ParticleBase::PushData(GetDataBlock());
+        }
     }
-
-    void DoFinalize() override { m_data_ = nullptr; }
-    size_type GetSize() const { return m_data_->GetSize(); }
-    auto Get() { return m_data_->GetAttributes(); }
-    auto Get() const { return m_data_->GetAttributes(); }
-
-    void Sort() {
-        ASSERT(m_data_ != nullptr);
-        m_data_->Sort();
-    }
+    void DoFinalize() override { ParticleBase::PopData(GetDataBlock()); }
 
 };  // class Particle
 }  // namespace simpla{

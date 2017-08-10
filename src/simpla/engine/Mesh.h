@@ -42,6 +42,8 @@ struct MeshBase : public AttributeGroup, public engine::EnableCreateFromDataTabl
     std::shared_ptr<data::DataTable> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataTable> const &t) override;
 
+    int GetNDIMS() const;
+
     virtual geometry::Chart *GetChart() = 0;
     virtual geometry::Chart const *GetChart() const = 0;
 

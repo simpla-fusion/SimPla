@@ -16,10 +16,10 @@ int main(int argc, char** argv) {
 
     Particle<DummyMesh> p(&m, 4, "m"_ = 1.0, "q"_ = -1.0);
 
-    int rnd_type[6] = {SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_UNIFORM,
-                       SP_RAND_NORMAL,  SP_RAND_NORMAL,  SP_RAND_NORMAL};
-
-    //    ParticleInitialLoad(p.Get(), p.GetSize(), 6, rnd_type, 0);
     p.db()->Serialize(std::cout, 0);
+    std::cout << std::endl;
+    p.Initialize();
+    p.InitialLoad();
+    p.Sort();
     //  p.Load(200);
 }
