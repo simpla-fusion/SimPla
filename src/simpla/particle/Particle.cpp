@@ -44,6 +44,8 @@ void ParticleBase::PopData(data::DataBlock* dblk) { m_pimpl_->m_pool_ = nullptr;
 int ParticleBase::GetNumberOfAttributes() const { return m_pimpl_->m_mesh_->GetNDIMS() + m_pimpl_->m_dof_; }
 std::shared_ptr<ParticleBase::Bucket> ParticleBase::GetBucket(id_type s) { return nullptr; }
 std::shared_ptr<ParticleBase::Bucket> ParticleBase::GetBucket(id_type s) const { return nullptr; }
+std::shared_ptr<Bucket> ParticleBase::AddBucket(id_type s, size_type num) {}
+void ParticleBase::RemoveBucket(id_type s) {}
 size_type ParticleBase::Count(id_type s) const {
     size_type res = 0;
     if (s == NULL_ID) {
@@ -54,7 +56,13 @@ size_type ParticleBase::Count(id_type s) const {
 }
 
 void ParticleBase::Sort() { UNIMPLEMENTED; }
+void ParticleBase::DeepSort() { UNIMPLEMENTED; }
+
 void ParticleBase::DoInitialize() { UNIMPLEMENTED; }
+
+enum { SP_RAND_UNIFORM = 0x1, SP_RAND_NORMAL = 0x10 };
+
+int ParticleInitialLoad(Real**, size_type num, int n_dof, int const* dist_types, size_type random_seed_offset);
 
 void ParticleBase::InitialLoad(int const* rnd_dist_type, size_type rnd_offset) {
     int dist_type[GetNumberOfAttributes()];
