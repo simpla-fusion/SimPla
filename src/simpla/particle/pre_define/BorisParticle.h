@@ -7,26 +7,11 @@
 #ifndef SIMPLA_PIC_BORIS_H
 #define SIMPLA_PIC_BORIS_H
 
+namespace simpla {
+namespace particle {
 
-#include "simpla/particle/obsolete/ParticleOld.h"
-#include "simpla/particle/obsolete/ParticleEngine.h"
-#include "../../toolbox/type_traits.h"
-
-
-namespace simpla { namespace particle { namespace engine
-{
-
-
-struct BorisYeeCXXWrap
-{
-
-
-    SP_DEFINE_PARTICLE(point_s,
-                       Vec3, x,
-                       Vec3, v,
-                       Real, f,
-                       Real, w
-    );
+struct BorisYeeCXXWrap {
+    SP_DEFINE_PARTICLE(point_s, Vec3, x, Vec3, v, Real, f, Real, w);
 
     virtual Properties &properties() = 0;
 
@@ -38,26 +23,19 @@ struct BorisYeeCXXWrap
 
     DEFINE_PROPERTIES(Real, temperature);
 
-
-    void deploy()
-    {
+    void deploy() {
         m_mass_ = properties()["mass"].template as<Real>(1.0);
         m_charge_ = properties()["charge"].template as<Real>(1.0);
         m_temperature_ = properties()["temperature"].template as<Real>(1.0);
-
     }
-
 
     point_type project(point_s const &z) const { return z.x; }
 
-    template<typename TE, typename TB>
-    void push(point_s *p0, Real dt, TE const &E1, TB const &B0) const
-    {
-
+    template <typename TE, typename TB>
+    void push(point_s *p0, Real dt, TE const &E1, TB const &B0) const {
         auto E = E1(project(*p0));
 
         auto B = B0(project(*p0));
-
 
         Real cmr = m_charge_ / m_mass_;
 
@@ -77,26 +55,8 @@ struct BorisYeeCXXWrap
 
         p0->x += p0->v * dt * 0.5;
     }
-
-    template<typename ...Others>
-    void gather(Real *res, point_s const &p, point_type const &x0, Others &&...) const
-    {
-        CHECK(x0);
-    }
-
-    template<typename ...Others>
-    void gather(Vec3 *res, point_s const &p, point_type const &x0, Others &&...) const
-    {
-        CHECK(x0);
-    }
 };
+}
+}  // namespace simpla { namespace particle
 
-}}}//namespace simpla { namespace particle { namespace engine
-namespace simpla { namespace particle
-{
-template<typename TM> using BorisParticle =  DefaultParticle<engine::BorisYeeCXXWrap, TM>;
-
-}}//namespace simpla { namespace particle
-
-
-#endif //SIMPLA_PIC_BORIS_H
+#endif  // SIMPLA_PIC_BORIS_H

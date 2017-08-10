@@ -6,34 +6,29 @@
 #include "simpla/algebra/EntityId.h"
 #include "simpla/algebra/nTuple.h"
 #include "simpla/engine/Mesh.h"
-
 namespace simpla {
 
+class ParticleEngineBase;
 struct ParticlePool : public data::DataBlock {};
 
 struct ParticleBase::pimpl_s {
     static constexpr int MAX_NUMBER_OF_PARTICLE_ATTRIBUTES = 10;
     engine::MeshBase const* m_mesh_;
+    size_type m_num_pic_ = 100;
     size_type m_max_size_ = 0;
-    int m_dof_ = 3;
+    int m_num_of_attr_ = 3;
     ParticlePool* m_pool_ = nullptr;
-
     id_type* m_tag_;
     Real* m_data_[MAX_NUMBER_OF_PARTICLE_ATTRIBUTES];
 };
-ParticleBase::ParticleBase(engine::MeshBase const* m, int DOF) : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_mesh_ = m;
-    m_pimpl_->m_dof_ = DOF;
-}
+ParticleBase::ParticleBase(engine::MeshBase const* m) : m_pimpl_(new pimpl_s) { m_pimpl_->m_mesh_ = m; }
 ParticleBase::~ParticleBase() {}
 std::shared_ptr<data::DataTable> ParticleBase::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
-    res->Set("Properties", GetProperties());
     return res;
 }
 void ParticleBase::Deserialize(const std::shared_ptr<data::DataTable>& t) {
     if (t == nullptr) { return; }
-    GetProperties()->Set(t->GetTable("Properties"));
 }
 void ParticleBase::PushData(data::DataBlock* dblk) {
     ASSERT(dblk->isA(typeid(ParticlePool)));
@@ -41,7 +36,12 @@ void ParticleBase::PushData(data::DataBlock* dblk) {
 }
 
 void ParticleBase::PopData(data::DataBlock* dblk) { m_pimpl_->m_pool_ = nullptr; }
-int ParticleBase::GetNumberOfAttributes() const { return m_pimpl_->m_mesh_->GetNDIMS() + m_pimpl_->m_dof_; }
+void ParticleBase::SetNumberOfAttributes(int n) { m_pimpl_->m_num_of_attr_ = n; }
+int ParticleBase::GetNumberOfAttributes() const { return m_pimpl_->m_num_of_attr_; }
+
+void ParticleBase::SetNumPIC(size_type n) { m_pimpl_->m_num_pic_ = n; }
+size_type ParticleBase::GetNumPIC() { return m_pimpl_->m_num_pic_; }
+
 size_type ParticleBase::GetMaxSize() const { return m_pimpl_->m_max_size_; }
 std::shared_ptr<ParticleBase::Bucket> ParticleBase::GetBucket(id_type s) { return nullptr; }
 std::shared_ptr<ParticleBase::Bucket> ParticleBase::GetBucket(id_type s) const { return nullptr; }
@@ -55,8 +55,14 @@ size_type ParticleBase::Count(id_type s) const {
     }
     return res;
 }
+//*********************************************************************************************************************
+enum { SP_RAND_UNIFORM = 0x1, SP_RAND_NORMAL = 0x10 };
+
+int ParticleInitialLoad(Real**, size_type num, int n_dof, int const* dist_types, size_type random_seed_offset);
 void ParticleUpdateTag(size_type num, id_type* tag, Real** r);
 void ParticleSort(size_type num, int num_of_attr, id_type const* tag_in, id_type* tag_out, Real** in, Real** out);
+//*********************************************************************************************************************
+
 void ParticleBase::Sort() {
     ParticleUpdateTag(GetMaxSize(), m_pimpl_->m_tag_, m_pimpl_->m_data_);
 
@@ -66,10 +72,6 @@ void ParticleBase::Sort() {
 void ParticleBase::DeepSort() { UNIMPLEMENTED; }
 
 void ParticleBase::DoInitialize() { UNIMPLEMENTED; }
-
-enum { SP_RAND_UNIFORM = 0x1, SP_RAND_NORMAL = 0x10 };
-
-int ParticleInitialLoad(Real**, size_type num, int n_dof, int const* dist_types, size_type random_seed_offset);
 
 void ParticleBase::InitialLoad(int const* rnd_dist_type, size_type rnd_offset) {
     int dist_type[GetNumberOfAttributes()];
@@ -81,7 +83,7 @@ void ParticleBase::InitialLoad(int const* rnd_dist_type, size_type rnd_offset) {
         for (int i = ndims; i < 2 * ndims; ++i) { dist_type[i] = SP_RAND_NORMAL; }
 
     } else {
-        for (int i = 0; i < GetNumberOfAttributes(); ++i) { dist_type[i] = rnd_dist_type[i]; }
+        for (int i = 0; i < 2 * ndims; ++i) { dist_type[i] = rnd_dist_type[i]; }
     }
     ParticleInitialLoad(m_pimpl_->m_data_, m_pimpl_->m_max_size_, 2 * ndims, dist_type, rnd_offset);
 }

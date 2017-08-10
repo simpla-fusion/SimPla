@@ -8,15 +8,7 @@
 #define SIMPLA_GUIDINGCENTER_H
 
 
-#include "simpla/geometry/FVMStructured.h"
-#include "simpla/geometry/LinearInterpolator.h"
 
-#include "simpla/particle/obsolete/ParticleOld.h"
-#include "simpla/particle/obsolete/ParticleAdapter.h"
-#include "simpla/particle/obsolete/ParticleEngine.h"
-#include "simpla/particle/obsolete/ParticleGenerator.h"
-#include "simpla/particle/obsolete/ParticleConstraint.h"
-#include "simpla/particle/obsolete/ParticleTracker.h"
 #include "simpla/geometry/csCartesian.h"
 #include "simpla/geometry/csCylindrical.h"
 
@@ -117,19 +109,5 @@ struct GuidingCenterEngine<geometry::CylindricalMetric>
     };
 };
 }}}//namespace simpla { namespace particle { namespace engine
-namespace simpla { namespace particle
-{
-template<typename TM> using GuidingCenterParticle =
-ParticleOld<particle::engine::GuidingCenterEngine<typename TM::metric_type>, TM,
-        manifold::policy::FiniteVolume,
-        manifold::policy::LinearInterpolator
->;
-
-template<typename TM> using GuidingCenterTrackingParticle =
-ParticleOld<enable_tracking<particle::engine::GuidingCenterEngine<typename TM::metric_type>>, TM,
-        manifold::policy::FiniteVolume,
-        manifold::policy::LinearInterpolator
->;
-}}
 
 #endif //SIMPLA_GUIDINGCENTER_H

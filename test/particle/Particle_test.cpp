@@ -13,7 +13,13 @@ typedef engine::Mesh<geometry::csCartesian, mesh::RectMesh, scheme::FVM> DummyMe
 int main(int argc, char** argv) {
     DummyMesh m;
 
-    Particle<DummyMesh> p(&m, 4, "m"_ = 1.0, "q"_ = -1.0);
+    Particle<DummyMesh> p{&m, "engine"_ = "Boris", "m"_ = 1.0, "q"_ = -1.0};
+
+    Field<DummyMesh, Real, EDGE> E{&m, "name"_ = "E"};
+    Field<DummyMesh, Real, FACE> B{&m, "name"_ = "B"};
+    Field<DummyMesh, Real, VOLUME, 3> J{&m, "name"_ = "J"};
+    Field<DummyMesh, Real, VOLUME> rho{&m, "name"_ = "B"};
+    Field<DummyMesh, Real, FACE> FLUX{&m, "name"_ = "FLUX"};
 
     p.db()->Serialize(std::cout, 0);
     std::cout << std::endl;

@@ -251,6 +251,8 @@
 //};
 
 namespace simpla {
+
+
 /* Number of 64-bit vectors per dimension */
 #define VECTOR_SIZE 64
 
