@@ -11,9 +11,9 @@
 #include "simpla/geometry/LinearInterpolator.h"
 
 #include "../../toolbox/DataTypeExt.h"
-#include "simpla/particle/ParticleOld.h"
-#include "simpla/particle/ParticleContainer.h"
-#include "simpla/particle/ParticleEngine.h"
+#include "simpla/particle/obsolete/ParticleOld.h"
+#include "simpla/particle/obsolete/ParticleContainer.h"
+#include "simpla/particle/obsolete/ParticleEngine.h"
 #include "simpla/geometry/csCylindrical.h"
 #include "../../manifold/pre_define/PreDefine.h"
 

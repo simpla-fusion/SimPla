@@ -5,6 +5,8 @@
 #ifndef SIMPLA_CONFIGURABLE_H
 #define SIMPLA_CONFIGURABLE_H
 
+#include <memory>
+#include <string>
 #include "DataTable.h"
 namespace simpla {
 namespace data {
@@ -12,8 +14,17 @@ class Configurable {
    public:
     explicit Configurable(std::shared_ptr<data::DataTable> const& t = nullptr)
         : m_db_((t != nullptr) ? (t) : std::make_shared<data::DataTable>()) {}
-    explicit Configurable(std::string const& s_name) : Configurable() { m_db_->SetValue("name", s_name); }
-    explicit Configurable(Configurable const& other) : m_db_(other.m_db_) {}
+
+    Configurable(Configurable const& other) = default;
+    Configurable(Configurable&& other) noexcept = default;
+    Configurable& operator=(Configurable const& other) {
+        Configurable(other).swap(*this);
+        return *this;
+    };
+    Configurable& operator=(Configurable&& other) noexcept {
+        Configurable(other).swap(*this);
+        return *this;
+    }
     virtual ~Configurable() = default;
 
     virtual void swap(Configurable& other) { std::swap(m_db_, other.m_db_); }
@@ -23,7 +34,7 @@ class Configurable {
     std::string name() const { return db()->GetValue<std::string>("name", ""); }
 
    private:
-    std::shared_ptr<data::DataTable> m_db_;
+    std::shared_ptr<data::DataTable> m_db_ = nullptr;
 };
 }
 }

@@ -38,7 +38,7 @@ template <typename TM, typename TV, int...>
 class Field;
 
 template <typename TM, typename TV, int IFORM, int... DOF>
-class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
+class Field<TM, TV, IFORM, DOF...> : public engine::SPObject, public engine::Attribute {
    private:
     typedef Field<TM, TV, IFORM, DOF...> field_type;
 
@@ -91,6 +91,9 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         PopData(&m_data_);
         traits::foreach (m_data_, [&](auto& a, auto&&... s) { a.Finalize(); });
     }
+
+    void Initialize() override { engine::SPObject::Initialize(); };
+    void Finalize() override { engine::SPObject::Finalize(); };
 
     void PushData(nTuple<array_type, NUM_OF_SUB, DOF...>* d) {
         auto* blk = dynamic_cast<data::DataMultiArray<array_type>*>(GetDataBlock());

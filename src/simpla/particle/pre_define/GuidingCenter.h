@@ -11,12 +11,12 @@
 #include "simpla/geometry/FVMStructured.h"
 #include "simpla/geometry/LinearInterpolator.h"
 
-#include "simpla/particle/ParticleOld.h"
-#include "simpla/particle/ParticleAdapter.h"
-#include "simpla/particle/ParticleEngine.h"
-#include "simpla/particle/ParticleGenerator.h"
-#include "simpla/particle/ParticleConstraint.h"
-#include "simpla/particle/ParticleTracker.h"
+#include "simpla/particle/obsolete/ParticleOld.h"
+#include "simpla/particle/obsolete/ParticleAdapter.h"
+#include "simpla/particle/obsolete/ParticleEngine.h"
+#include "simpla/particle/obsolete/ParticleGenerator.h"
+#include "simpla/particle/obsolete/ParticleConstraint.h"
+#include "simpla/particle/obsolete/ParticleTracker.h"
 #include "simpla/geometry/csCartesian.h"
 #include "simpla/geometry/csCylindrical.h"
 

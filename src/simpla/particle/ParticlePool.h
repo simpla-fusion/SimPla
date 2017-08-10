@@ -11,10 +11,11 @@
 #include <unordered_map>
 #include <vector>
 #include "simpla/SIMPLA_config.h"
+#include "simpla/data/DataBlock.h"
 #include "simpla/utilities/type_traits.h"
 namespace simpla {
 
-struct ParticlePool {
+struct ParticlePool : public data::DataBlock {
     ParticlePool();
     ~ParticlePool();
 
@@ -38,6 +39,13 @@ struct ParticlePool {
     };
     Bucket *GetBucket(id_type s);
     Bucket const *GetBucket(id_type s) const;
+
+    size_type GetSize() const;
+
+    void Sort();
+    void DeepSort();
+    Real **GetAttributes();
+    Real const **GetAttributes() const;
 
    private:
     struct pimpl_s;

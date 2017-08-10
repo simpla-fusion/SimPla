@@ -25,7 +25,13 @@ ParticlePool::~ParticlePool() = default;
 void ParticlePool::AddDOF(std::string const &s_name, std::type_info const &t_info, size_t t_size, void *ptr){};
 void ParticlePool::Initialize(){};
 
-ParticlePool::Bucket *ParticlePool::GetBucket(id_type s);
-ParticlePool::Bucket const *ParticlePool::GetBucket(id_type s) const;
+ParticlePool::Bucket *ParticlePool::GetBucket(id_type s) { return nullptr; };
+ParticlePool::Bucket const *ParticlePool::GetBucket(id_type s) const { return nullptr; };
+
+void ParticlePool::Sort() {}
+void ParticlePool::DeepSort() {}
+Real **ParticlePool::GetAttributes() { return nullptr; }
+Real const **ParticlePool::GetAttributes() const { return nullptr; }
+size_type ParticlePool::GetSize() const { return 0; }
 
 }  // namespace simpla{

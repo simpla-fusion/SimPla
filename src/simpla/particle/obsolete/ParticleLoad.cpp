@@ -1,7 +1,7 @@
 //
 // Created by salmon on 17-6-8.
 //
-#include "Particle.h"
+#include "simpla/particle/Particle.h"
 #include "spParticle.h"
 namespace simpla {
 
