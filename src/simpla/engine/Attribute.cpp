@@ -106,20 +106,18 @@ struct Attribute::pimpl_s {
 };
 Attribute::Attribute(AttributeGroup *grp, int IFORM, int DOF, std::type_info const &t_info,
                      std::shared_ptr<data::DataTable> cfg)
-    : AttributeDesc(IFORM, DOF, t_info,
-                    ((cfg != nullptr && cfg->has("name")) ? cfg->GetValue<std::string>("name")
-                                                          : std::to_string(reinterpret_cast<long>(this))),
-                    cfg),
+    : SPObject((cfg != nullptr && cfg->has("name")) ? cfg->GetValue<std::string>("name") : "unnamed"),
+      AttributeDesc(IFORM, DOF, t_info, SPObject::GetName(), cfg),
       m_pimpl_(new pimpl_s) {
     Register(grp);
 };
 
-Attribute::Attribute(Attribute const &other) : AttributeDesc(other), m_pimpl_(new pimpl_s) {
+Attribute::Attribute(Attribute const &other) : SPObject(other), AttributeDesc(other), m_pimpl_(new pimpl_s) {
     for (auto *grp : other.m_pimpl_->m_bundle_) { Register(grp); }
     Initialize();
 }
 Attribute::Attribute(Attribute &&other) noexcept
-    : AttributeDesc(std::move(other)), m_pimpl_(std::move(other.m_pimpl_)) {
+    : SPObject(std::move(other)), AttributeDesc(std::move(other)), m_pimpl_(std::move(other.m_pimpl_)) {
     for (auto *grp : m_pimpl_->m_bundle_) {
         grp->Detach(&other);
         grp->Attach(this);
@@ -129,6 +127,7 @@ Attribute::~Attribute() {
     for (auto *grp : m_pimpl_->m_bundle_) { grp->Detach(this); }
 }
 void Attribute::swap(Attribute &other) {
+    SPObject::swap(other);
     AttributeDesc::swap(other);
     std::swap(m_pimpl_->m_data_block_, other.m_pimpl_->m_data_block_);
 

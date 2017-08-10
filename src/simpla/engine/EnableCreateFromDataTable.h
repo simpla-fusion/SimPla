@@ -18,16 +18,12 @@ namespace engine {
 
 template <typename TObj, typename... Args>
 class EnableCreateFromDataTable : public engine::SPObject, public data::Serializable {
-
     SP_OBJECT_HEAD(EnableCreateFromDataTable<TObj>, engine::SPObject);
 
    public:
     explicit EnableCreateFromDataTable() = default;
     ~EnableCreateFromDataTable() override = default;
-    EnableCreateFromDataTable(this_type const &other) = delete;
-    EnableCreateFromDataTable(this_type &&other) = delete;
-    this_type &operator=(this_type const &other) = delete;
-    this_type &operator=(this_type &&other) = delete;
+    SP_DEFAULT_CONSTRUCT(EnableCreateFromDataTable);
 
     std::shared_ptr<data::DataTable> Serialize() const override {
         auto res = std::make_shared<data::DataTable>();

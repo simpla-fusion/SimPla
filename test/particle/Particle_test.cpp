@@ -14,7 +14,7 @@ typedef engine::Mesh<geometry::csCartesian, mesh::RectMesh, scheme::FVM> DummyMe
 int main(int argc, char** argv) {
     DummyMesh m;
 
-    Particle<DummyMesh, 4> p(&m, "m"_ = 1.0, "q"_ = -1.0);
+    Particle<DummyMesh> p(&m, 4, "m"_ = 1.0, "q"_ = -1.0);
 
     int rnd_type[6] = {SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_UNIFORM,
                        SP_RAND_NORMAL,  SP_RAND_NORMAL,  SP_RAND_NORMAL};

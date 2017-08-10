@@ -26,7 +26,7 @@ class Model;
 
 class MeshBase;
 
-class DomainBase : public engine::EnableCreateFromDataTable<DomainBase, MeshBase *, std::shared_ptr<Model>> {
+class DomainBase : public EnableCreateFromDataTable<DomainBase, MeshBase *, std::shared_ptr<Model>> {
     typedef engine::EnableCreateFromDataTable<DomainBase, MeshBase *, std::shared_ptr<Model>> creator_type;
     SP_OBJECT_HEAD(DomainBase, creator_type)
    public:

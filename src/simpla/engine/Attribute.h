@@ -12,6 +12,7 @@
 #include "simpla/utilities/type_traits.h"
 
 #include "MeshBlock.h"
+#include "SPObject.h"
 
 namespace simpla {
 template <typename V, typename SFC>
@@ -50,24 +51,17 @@ class Patch;
 //};
 
 struct AttributeDesc : public data::Configurable {
-    SP_OBJECT_BASE(AttributeDesc);
-
    public:
     AttributeDesc() = default;
     AttributeDesc(AttributeDesc const &other)
         : m_prefix_(other.m_prefix_), m_iform_(other.m_iform_), m_dof_(other.m_dof_), m_t_info_(other.m_t_info_){};
-    AttributeDesc(AttributeDesc &&other) noexcept
-        : m_prefix_(std::move(other.m_prefix_)),
-          m_iform_(std::move(other.m_iform_)),
-          m_dof_(std::move(other.m_dof_)),
-          m_t_info_(std::move(other.m_t_info_)){};
+    AttributeDesc(AttributeDesc &&other)
+        : m_prefix_(other.m_prefix_), m_iform_(other.m_iform_), m_dof_(other.m_dof_), m_t_info_(other.m_t_info_){};
     ~AttributeDesc() override;
-    AttributeDesc &operator=(AttributeDesc const &other) = delete;
-    AttributeDesc &operator=(AttributeDesc &&other) = delete;
 
     AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, std::string const &s_prefix = "",
                   std::shared_ptr<data::DataTable> const &t_db = nullptr);
-    virtual std::string GetName() const { return m_prefix_; }
+
     virtual std::string GetPrefix() const { return m_prefix_; }
     virtual int GetIFORM() const { return m_iform_; };
     virtual int GetDOF() const { return m_dof_; };
@@ -106,7 +100,7 @@ class AttributeGroup {
     void RegisterAttributes();
 
     std::shared_ptr<AttributeDesc> GetAttributeDescription(std::string const &k);
-//    const std::set<AttributeDesc> GetDescriptions() const;
+    const std::set<AttributeDesc> GetDescriptions() const;
 
     //    virtual void RegisterAt(AttributeGroup *);
     //    virtual void DeregisterFrom(AttributeGroup *);
@@ -149,8 +143,8 @@ class AttributeGroup {
  * deactivate AttributeView
  * @enduml
  */
-struct Attribute : public AttributeDesc {
-    SP_OBJECT_HEAD(Attribute, AttributeDesc);
+struct Attribute : public SPObject, public AttributeDesc {
+    SP_OBJECT_HEAD(Attribute, SPObject);
 
    public:
     Attribute(AttributeGroup *grp, int IFORM, int DOF, std::type_info const &t_info,
@@ -182,21 +176,18 @@ struct Attribute : public AttributeDesc {
     virtual bool isNull() const;
     virtual bool empty() const { return isNull(); };
 
-    virtual void Initialize(){};
-    virtual void Finalize(){};
-
-    //    template <typename U, typename... Others, int... N>
-    //    void PushData(nTuple<Array<U, Others...>, N...> *d);
-    //    template <typename U, typename... Others, int... N>
-    //    void PopData(nTuple<Array<U, Others...>, N...> *d);
+//    template <typename U, typename... Others, int... N>
+//    void PushData(nTuple<Array<U, Others...>, N...> *d);
+//    template <typename U, typename... Others, int... N>
+//    void PopData(nTuple<Array<U, Others...>, N...> *d);
 
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
 //
-// template <typename U, typename... Others, int... N>
-// void Attribute::PushData(nTuple<Array<U, Others...>, N...> *d) {
+//template <typename U, typename... Others, int... N>
+//void Attribute::PushData(nTuple<Array<U, Others...>, N...> *d) {
 //    typedef Array<U, Others...> array_type;
 //    auto *blk = dynamic_cast<data::DataMultiArray<array_type> *>(GetDataBlock());
 //    if (blk != nullptr) {
@@ -208,8 +199,8 @@ struct Attribute : public AttributeDesc {
 //    }
 //    Tag();
 //};
-// template <typename U, typename... Others, int... N>
-// void Attribute::PopData(nTuple<Array<U, Others...>, N...> *d) {
+//template <typename U, typename... Others, int... N>
+//void Attribute::PopData(nTuple<Array<U, Others...>, N...> *d) {
 //    typedef Array<U, Others...> array_type;
 //    auto *blk = dynamic_cast<data::DataMultiArray<array_type> *>(GetDataBlock());
 //    if (blk == nullptr) {

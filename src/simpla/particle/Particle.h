@@ -15,13 +15,19 @@
 
 namespace simpla {
 
-class ParticleBase : public engine::EnableCreateFromDataTable<ParticleBase> {};
+class ParticleBase : public engine::SPObject {
+    SP_OBJECT_HEAD(ParticleBase, engine::SPObject);
+
+   public:
+
+
+    SP_DEFAULT_CONSTRUCT(ParticleBase);
+};
 
 template <typename TM>
-class Particle : public engine::Attribute, public engine::EnableCreateFromDataTable<ParticleBase> {
+class Particle : public engine::Attribute, public ParticleBase {
    private:
-    typedef Particle<TM> particle_type;
-    SP_OBJECT_HEAD(particle_type, engine::Attribute);
+    SP_OBJECT_HEAD(Particle<TM>, engine::Attribute);
 
    public:
     typedef TM mesh_type;
@@ -41,10 +47,7 @@ class Particle : public engine::Attribute, public engine::EnableCreateFromDataTa
 
     ~Particle() override = default;
 
-    Particle(this_type const& other) = delete;
-    Particle(this_type&& other) noexcept = delete;
-    this_type& operator=(this_type const& other) = delete;
-    this_type& operator=(this_type&& other) = delete;
+    SP_DEFAULT_CONSTRUCT(Particle);
 
     void DoInitialize() override {
         ASSERT(GetDataBlock()->isA(typeid(ParticlePool)));
