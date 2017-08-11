@@ -136,16 +136,6 @@
 namespace simpla {
 #define SP_OUTER_PATCH 10
 
-std::shared_ptr<data::DataBlock> ConvertDataBlock(std::shared_ptr<SAMRAI::hier::PatchData> const &p) { return nullptr; }
-std::shared_ptr<data::DataBlock> ConvertDataBlock(SAMRAI::hier::PatchData const &p) { return nullptr; }
-std::shared_ptr<SAMRAI::hier::PatchData> ConvertDataBlock(data::DataBlock const &p) { return nullptr; }
-std::shared_ptr<SAMRAI::hier::PatchData> ConvertDataBlock(std::shared_ptr<data::DataBlock> const &p) { return nullptr; }
-
-struct spPatchDataInterface {
-    virtual std::shared_ptr<data::DataBlock> PopDataBlock() const = 0;
-    virtual void PushDataBlock(std::shared_ptr<data::DataBlock> const &blk) = 0;
-};
-
 template <typename TV, int IFORM>
 struct spPatchData;
 template <typename TV, int IFORM>
@@ -184,7 +174,7 @@ struct SAMRAIDataTraits {
 }  // namespace traits {
 
 template <typename TV, int IFORM>
-struct spPatchData : public traits::SAMRAIDataTraits<TV, IFORM>::data_type, public spPatchDataInterface {
+struct spPatchData : public traits::SAMRAIDataTraits<TV, IFORM>::data_type {
    private:
     typedef typename traits::SAMRAIDataTraits<TV, IFORM>::data_type base_type;
     typedef spPatchData<TV, IFORM> this_type;
@@ -205,13 +195,10 @@ struct spPatchData : public traits::SAMRAIDataTraits<TV, IFORM>::data_type, publ
     //    void copy2(SAMRAI::hier::PatchData &dst, const SAMRAI::hier::BoxOverlap &overlap) const override {
     //        base_type::copy2(dst, overlap);
     //    };
-
-    std::shared_ptr<data::DataBlock> PopDataBlock() const override { return ConvertDataBlock(*this); }
-    void PushDataBlock(std::shared_ptr<data::DataBlock> const &blk) override {}
 };
 
 template <typename TV>
-struct spPatchData<TV, FIBER> : public SAMRAI::hier::PatchData, public spPatchDataInterface {
+struct spPatchData<TV, FIBER> : public SAMRAI::hier::PatchData {
    private:
     static constexpr int IFORM = FIBER;
     typedef spPatchData<TV, IFORM> this_type;
@@ -260,8 +247,7 @@ struct spPatchData<TV, FIBER> : public SAMRAI::hier::PatchData, public spPatchDa
         return 0;
     }
 
-    std::shared_ptr<data::DataBlock> PopDataBlock() const override { return nullptr; }
-    void PushDataBlock(std::shared_ptr<data::DataBlock> const &blk) override {}
+    std::shared_ptr<data::DataBlock> PopDataBlock() const { return nullptr; }
 
    private:
     int m_depth_ = 0;
@@ -544,6 +530,189 @@ struct spVariable : public SAMRAI::hier::Variable {
     int m_depth_ = 0;
     bool m_fine_boundary_represents_var_ = false;
 };
+
+namespace detail {
+template <typename T>
+std::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(const engine::AttributeDesc &attr) {
+    SAMRAI::tbox::Dimension d_dim(3);
+
+    std::shared_ptr<SAMRAI::hier::Variable> res;
+    switch (attr.GetIFORM()) {
+        case VERTEX:
+            res = std::make_shared<SAMRAI::pdat::NodeVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+            break;
+        case EDGE:
+            res = std::make_shared<SAMRAI::pdat::EdgeVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+            break;
+        case FACE:
+            res = std::make_shared<SAMRAI::pdat::SideVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+            break;
+        case VOLUME:
+            res = std::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+            break;
+        case FIBER:
+            res = std::make_shared<spVariable<T, FIBER>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+            break;
+        default:
+            break;
+
+            //        case VERTEX:
+            //            res = std::make_shared<spVariable<T, VERTEX>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+            //            break;
+            //        case EDGE:
+            //            res = std::make_shared<spVariable<T, EDGE>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+            //            break;
+            //        case FACE:
+            //            res = std::make_shared<spVariable<T, FACE>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+            //            break;
+            //        case VOLUME:
+            //            res = std::make_shared<spVariable<T, VOLUME>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+            //            break;
+            //        case FIBER:
+            //            res = std::make_shared<spVariable<T, FIBER>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+            //            break;
+            //        default:
+            //            break;
+    }
+    return res;
+}
+
+std::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(const engine::AttributeDesc &attr) {
+    std::shared_ptr<SAMRAI::hier::Variable> res = nullptr;
+    //    SAMRAI::tbox::Dimension d_dim(3);
+    //    if (attr.GetIFORM() == FIBER) {
+    //        res = std::make_shared<spVariable<Real, FIBER>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+    //    } else
+    if (attr.value_type_info() == (typeid(float))) {
+        res = create_samrai_variable_t<float>(attr);
+    } else if (attr.value_type_info() == (typeid(double))) {
+        res = create_samrai_variable_t<double>(attr);
+    } else if (attr.value_type_info() == (typeid(int))) {
+        res = create_samrai_variable_t<int>(attr);
+    } else {
+        RUNTIME_ERROR << " attr [" << attr.GetPrefix() << "] is not supported!" << std::endl;
+    }
+    return res;
+}
+
+template <typename T, int NDIMS>
+Array<T, ZSFC<NDIMS>> create_array(SAMRAI::pdat::ArrayData<T> &p_data, int depth = 0) {
+    auto i_lower = p_data.getBox().lower();
+    auto i_upper = p_data.getBox().upper();
+
+    return Array<T, ZSFC<NDIMS>>(
+        p_data.getPointer(depth),
+        index_box_type{{i_lower[0], i_lower[1], i_lower[2]}, {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}}, true);
+    ;
+};
+
+template <typename T>
+bool ConvertDataBlock_(std::shared_ptr<SAMRAI::pdat::CellData<T>> pd, std::shared_ptr<data::DataBlock> *res) {
+    if (pd == nullptr) { return false; }
+    static const int NDIMS = 3;
+    typedef Array<T, ZSFC<3>> array_type;
+
+    int depth = pd->getDepth();
+    auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth);
+    for (int d = 0; d < depth; ++d) { create_array<T, NDIMS>(pd->getArrayData(), d).swap(mArray->GetArray(d)); }
+    *res = std::dynamic_pointer_cast<data::DataBlock>(mArray);
+    return true;
+}
+
+template <typename T>
+bool ConvertDataBlock_(std::shared_ptr<SAMRAI::pdat::NodeData<T>> pd, std::shared_ptr<data::DataBlock> *res) {
+    if (pd == nullptr) { return false; }
+    static const int NDIMS = 3;
+    typedef Array<T, ZSFC<NDIMS>> array_type;
+
+    int depth = pd->getDepth();
+    auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth);
+    for (int d = 0; d < depth; ++d) { create_array<T, NDIMS>(pd->getArrayData(), d).swap(mArray->GetArray(d)); }
+
+    *res = std::dynamic_pointer_cast<data::DataBlock>(mArray);
+    return true;
+}
+template <typename T>
+bool ConvertDataBlock_(std::shared_ptr<SAMRAI::pdat::EdgeData<T>> pd, std::shared_ptr<data::DataBlock> *res) {
+    if (pd == nullptr) { return false; }
+    static const int NDIMS = 3;
+    typedef Array<T, ZSFC<3>> array_type;
+
+    int depth = pd->getDepth();
+    auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth * 3);
+    for (int axis = 0; axis < 3; ++axis) {
+        for (int d = 0; d < depth; ++d) {
+            create_array<T, NDIMS>(pd->getArrayData(axis), d).swap(mArray->GetArray(axis * depth + d));
+        }
+    }
+    *res = std::dynamic_pointer_cast<data::DataBlock>(mArray);
+    return true;
+}
+template <typename T>
+bool ConvertDataBlock_(std::shared_ptr<SAMRAI::pdat::FaceData<T>> pd, std::shared_ptr<data::DataBlock> *res) {
+    if (pd == nullptr) { return false; }
+    static const int NDIMS = 3;
+    typedef Array<T, ZSFC<3>> array_type;
+
+    int depth = pd->getDepth();
+    auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth * 3);
+    for (int axis = 0; axis < 3; ++axis) {
+        for (int d = 0; d < depth; ++d) {
+            create_array<T, NDIMS>(pd->getArrayData(axis), d).swap(mArray->GetArray(axis * depth + d));
+        }
+    }
+    *res = std::dynamic_pointer_cast<data::DataBlock>(mArray);
+    return true;
+}
+template <typename T>
+bool ConvertDataBlock_(std::shared_ptr<SAMRAI::pdat::SideData<T>> pd, std::shared_ptr<data::DataBlock> *res) {
+    if (pd == nullptr) { return false; }
+    static const int NDIMS = 3;
+    typedef Array<T, ZSFC<NDIMS>> array_type;
+
+    int depth = pd->getDepth();
+    auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth * 3);
+    for (int axis = 0; axis < 3; ++axis) {
+        for (int d = 0; d < depth; ++d) {
+            create_array<T, NDIMS>(pd->getArrayData(axis), d).swap(mArray->GetArray(axis * depth + d));
+        }
+    }
+    *res = std::dynamic_pointer_cast<data::DataBlock>(mArray);
+    return true;
+}
+//
+std::shared_ptr<data::DataBlock> ConvertDataBlock(std::shared_ptr<SAMRAI::hier::PatchData> pd) {
+    std::shared_ptr<data::DataBlock> res(nullptr);
+
+    bool success = ConvertDataBlock_(std::dynamic_pointer_cast<SAMRAI::pdat::CellData<double>>(pd), &res) ||
+                   ConvertDataBlock_(std::dynamic_pointer_cast<SAMRAI::pdat::CellData<float>>(pd), &res) ||
+                   ConvertDataBlock_(std::dynamic_pointer_cast<SAMRAI::pdat::CellData<int>>(pd), &res) ||
+
+                   ConvertDataBlock_(std::dynamic_pointer_cast<SAMRAI::pdat::NodeData<double>>(pd), &res) ||
+                   ConvertDataBlock_(std::dynamic_pointer_cast<SAMRAI::pdat::NodeData<float>>(pd), &res) ||
+                   ConvertDataBlock_(std::dynamic_pointer_cast<SAMRAI::pdat::NodeData<int>>(pd), &res) ||
+
+                   ConvertDataBlock_(std::dynamic_pointer_cast<SAMRAI::pdat::EdgeData<double>>(pd), &res) ||
+                   ConvertDataBlock_(std::dynamic_pointer_cast<SAMRAI::pdat::EdgeData<float>>(pd), &res) ||
+                   ConvertDataBlock_(std::dynamic_pointer_cast<SAMRAI::pdat::EdgeData<int>>(pd), &res) ||
+
+                   ConvertDataBlock_(std::dynamic_pointer_cast<SAMRAI::pdat::FaceData<double>>(pd), &res) ||
+                   ConvertDataBlock_(std::dynamic_pointer_cast<SAMRAI::pdat::FaceData<float>>(pd), &res) ||
+                   ConvertDataBlock_(std::dynamic_pointer_cast<SAMRAI::pdat::FaceData<int>>(pd), &res) ||
+
+                   ConvertDataBlock_(std::dynamic_pointer_cast<SAMRAI::pdat::SideData<double>>(pd), &res) ||
+                   ConvertDataBlock_(std::dynamic_pointer_cast<SAMRAI::pdat::SideData<float>>(pd), &res) ||
+                   ConvertDataBlock_(std::dynamic_pointer_cast<SAMRAI::pdat::SideData<int>>(pd), &res);
+
+    return res;
+}
+std::shared_ptr<SAMRAI::hier::PatchData> ConvertDataBlock(std::shared_ptr<data::DataBlock> pd) {
+    std::shared_ptr<SAMRAI::hier::PatchData> res = nullptr;
+
+    return res;
+}
+
+}  // namespace detail
 
 // template <>
 // struct spPatchDataFactory<Real, FIBER> : public SAMRAI::hier::PatchDataFactory {
@@ -930,166 +1099,6 @@ SAMRAIHyperbolicPatchStrategyAdapter::SAMRAIHyperbolicPatchStrategyAdapter(
 
 SAMRAIHyperbolicPatchStrategyAdapter::~SAMRAIHyperbolicPatchStrategyAdapter() = default;
 
-namespace detail {
-template <typename T>
-std::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(const engine::AttributeDesc &attr) {
-    SAMRAI::tbox::Dimension d_dim(3);
-
-    std::shared_ptr<SAMRAI::hier::Variable> res;
-    switch (attr.GetIFORM()) {
-        //        case VERTEX:
-        //            res = std::make_shared<SAMRAI::pdat::NodeVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
-        //            break;
-        //        case EDGE:
-        //            res = std::make_shared<SAMRAI::pdat::EdgeVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
-        //            break;
-        //        case FACE:
-        //            res = std::make_shared<SAMRAI::pdat::SideVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
-        //            break;
-        //        case VOLUME:
-        //            res = std::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
-        //            break;
-        //        default:
-        //            break;
-
-        case VERTEX:
-            res = std::make_shared<spVariable<T, VERTEX>>(d_dim, attr.GetPrefix(), attr.GetDOF());
-            break;
-        case EDGE:
-            res = std::make_shared<spVariable<T, EDGE>>(d_dim, attr.GetPrefix(), attr.GetDOF());
-            break;
-        case FACE:
-            res = std::make_shared<spVariable<T, FACE>>(d_dim, attr.GetPrefix(), attr.GetDOF());
-            break;
-        case VOLUME:
-            res = std::make_shared<spVariable<T, VOLUME>>(d_dim, attr.GetPrefix(), attr.GetDOF());
-            break;
-        case FIBER:
-            res = std::make_shared<spVariable<T, FIBER>>(d_dim, attr.GetPrefix(), attr.GetDOF());
-            break;
-        default:
-            break;
-    }
-    return res;
-}
-
-std::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(const engine::AttributeDesc &attr) {
-    std::shared_ptr<SAMRAI::hier::Variable> res = nullptr;
-    //    SAMRAI::tbox::Dimension d_dim(3);
-    //    if (attr.GetIFORM() == FIBER) {
-    //        res = std::make_shared<spVariable<Real, FIBER>>(d_dim, attr.GetPrefix(), attr.GetDOF());
-    //    } else
-    if (attr.value_type_info() == (typeid(float))) {
-        res = create_samrai_variable_t<float>(attr);
-    } else if (attr.value_type_info() == (typeid(double))) {
-        res = create_samrai_variable_t<double>(attr);
-    } else if (attr.value_type_info() == (typeid(int))) {
-        res = create_samrai_variable_t<int>(attr);
-    } else {
-        RUNTIME_ERROR << " attr [" << attr.GetPrefix() << "] is not supported!" << std::endl;
-    }
-    return res;
-}
-//
-// template <typename T, int NDIMS>
-// Array<T, ZSFC<NDIMS>> create_array(SAMRAI::pdat::ArrayData<T> &p_data, int depth = 0) {
-//    auto i_lower = p_data.getBox().lower();
-//    auto i_upper = p_data.getBox().upper();
-//
-//    return Array<T, ZSFC<NDIMS>>(
-//        p_data.getPointer(depth),
-//        index_box_type{{i_lower[0], i_lower[1], i_lower[2]}, {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}}, true);
-//    ;
-//};
-//
-// template <int NDIMS, typename T>
-// std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, std::shared_ptr<SAMRAI::hier::PatchData> pd) {
-//    typedef Array<T, ZSFC<NDIMS>> array_type;
-//    std::shared_ptr<data::DataBlock> res = nullptr;
-//
-//    switch (IFORM) {
-//        case VERTEX: {
-//            auto p_data = std::dynamic_pointer_cast<SAMRAI::pdat::NodeData<T>>(pd);
-//            int depth = p_data->getDepth();
-//            auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth);
-//            for (int d = 0; d < depth; ++d) {
-//                create_array<T, NDIMS>(p_data->getArrayData(), d).swap(mArray->GetArray(d));
-//            }
-//
-//            res = std::dynamic_pointer_cast<data::DataBlock>(mArray);
-//            break;
-//        }
-//        case EDGE: {
-//            auto p_data = std::dynamic_pointer_cast<SAMRAI::pdat::EdgeData<T>>(pd);
-//            int depth = p_data->getDepth();
-//            auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth * 3);
-//            for (int axis = 0; axis < 3; ++axis) {
-//                for (int d = 0; d < depth; ++d) {
-//                    create_array<T, NDIMS>(p_data->getArrayData(axis), d).swap(mArray->GetArray(axis * depth + d));
-//                }
-//            }
-//            res = std::dynamic_pointer_cast<data::DataBlock>(mArray);
-//            break;
-//        }
-//        case FACE: {
-//            auto p_data = std::dynamic_pointer_cast<SAMRAI::pdat::SideData<T>>(pd);
-//            int depth = p_data->getDepth();
-//            auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth * 3);
-//            for (int axis = 0; axis < 3; ++axis) {
-//                for (int d = 0; d < depth; ++d) {
-//                    create_array<T, NDIMS>(p_data->getArrayData(axis), d).swap(mArray->GetArray(axis * depth + d));
-//                }
-//            }
-//            res = std::dynamic_pointer_cast<data::DataBlock>(mArray);
-//            break;
-//        }
-//        case VOLUME: {
-//            auto p_data = std::dynamic_pointer_cast<SAMRAI::pdat::CellData<T>>(pd);
-//            int depth = p_data->getDepth();
-//            auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth);
-//            for (int d = 0; d < depth; ++d) {
-//                create_array<T, NDIMS>(p_data->getArrayData(), d).swap(mArray->GetArray(d));
-//            }
-//            res = std::dynamic_pointer_cast<data::DataBlock>(mArray);
-//            break;
-//        }
-//        case FIBER: {
-//            auto p_data = std::dynamic_pointer_cast<spPatchData<T, FIBER>>(pd);
-//            ASSERT(p_data != nullptr);
-//            res = p_data->GetDataBlock();
-//            break;
-//        }
-//        default: {
-//            UNIMPLEMENTED;
-//            break;
-//        }
-//    }
-//    return res;
-//}
-//
-// template <int NDIMS>
-// std::shared_ptr<data::DataBlock> create_simpla_datablock(const engine::AttributeDesc &desc,
-//                                                         std::shared_ptr<SAMRAI::hier::PatchData> pd) {
-//    std::shared_ptr<data::DataBlock> res(nullptr);
-//    if (desc.value_type_info() == (typeid(float))) {
-//        res = create_simpla_datablock<NDIMS, float>(desc.GetIFORM(), pd);
-//    } else if (desc.value_type_info() == (typeid(double))) {
-//        res = create_simpla_datablock<NDIMS, double>(desc.GetIFORM(), pd);
-//    } else if (desc.value_type_info() == (typeid(int))) {
-//        res = create_simpla_datablock<NDIMS, int>(desc.GetIFORM(), pd);
-//    } else {
-//        RUNTIME_ERROR << "Unsupported m_value_ value_type_info" << std::endl;
-//    }
-//    return res;
-//}
-// std::shared_ptr<SAMRAI::hier::PatchData> convert_from_data_block(const engine::AttributeDesc &desc,
-//                                                                 std::shared_ptr<data::DataBlock> t) {
-//    //    UNIMPLEMENTED;
-//    return nullptr;
-//}
-
-}  // namespace detail
-
 void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrator *integrator) {
     ASSERT(integrator != nullptr);
     SAMRAI::hier::VariableDatabase *vardb = SAMRAI::hier::VariableDatabase::getDatabase();
@@ -1187,17 +1196,17 @@ void SAMRAIHyperbolicPatchStrategyAdapter::PopPatch(SAMRAI::hier::Patch &patch, 
                                                                                                      getDataContext());
         if (patch.checkAllocated(samrai_id)) {
             // patch.allocatePatchData(samrai_id);
-            p->SetDataBlock(item.first, ConvertDataBlock(patch.getPatchData(samrai_id)));
+            p->SetDataBlock(item.first, detail::ConvertDataBlock(patch.getPatchData(samrai_id)));
         }
     }
 }
 void SAMRAIHyperbolicPatchStrategyAdapter::PushPatch(engine::Patch *p, SAMRAI::hier::Patch &patch) {
-    for (auto &item : m_samrai_variables_) {
-        auto samrai_id = SAMRAI::hier::VariableDatabase::getDatabase()->mapVariableAndContextToIndex(item.second.second,
-                                                                                                     getDataContext());
-
-        patch.setPatchData(samrai_id, ConvertDataBlock(p->GetDataBlock(item.first)));
-    }
+//    for (auto &item : m_samrai_variables_) {
+//        auto samrai_id = SAMRAI::hier::VariableDatabase::getDatabase()->mapVariableAndContextToIndex(item.second.second,
+//                                                                                                     getDataContext());
+//
+//        patch.setPatchData(samrai_id, detail::ConvertDataBlock(p->GetDataBlock(item.first)));
+//    }
 }
 
 void SAMRAIHyperbolicPatchStrategyAdapter::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
@@ -1424,7 +1433,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::tagGradientDetectorCells(SAMRAI::hier
     PopPatch(patch, p);
     auto desc = m_ctx_->GetMesh()->GetAttributeDescription("_refinement_tags_");
     if (desc != nullptr) {
-        p->SetDataBlock(desc->GetDescID(), ConvertDataBlock(patch.getPatchData(tag_index)));
+        p->SetDataBlock(desc->GetDescID(), detail::ConvertDataBlock(patch.getPatchData(tag_index)));
         m_ctx_->Push(p);
         m_ctx_->TagRefinementCells(regrid_time);
         m_ctx_->Pop(p);
@@ -1624,83 +1633,83 @@ void SAMRAITimeIntegrator::DoUpdate() {
         m_pimpl_->grid_geometry->addTimeInterpolateOperator(typeid(spVariable<Real, FIBER>).name(),
                                                             std::make_shared<spParticleLinearTimeInterpolateOp>());
 
-        // Coarsening Operators
-        g->addCoarsenOperator(typeid(spVariable<dcomplex, VERTEX>).name(),
-                              std::make_shared<SAMRAI::pdat::NodeComplexInjection>());
-        g->addCoarsenOperator(typeid(spVariable<double, VERTEX>).name(),
-                              std::make_shared<SAMRAI::pdat::NodeDoubleInjection>());
-        g->addCoarsenOperator(typeid(spVariable<float, VERTEX>).name(),
-                              std::make_shared<SAMRAI::pdat::NodeFloatInjection>());
-        g->addCoarsenOperator(typeid(spVariable<int, VERTEX>).name(),
-                              std::make_shared<SAMRAI::pdat::NodeIntegerInjection>());
-        g->addCoarsenOperator(typeid(spVariable<double, SP_OUTER_PATCH + VERTEX>).name(),
-                              std::make_shared<SAMRAI::pdat::OuternodeDoubleInjection>());
-
-        // Refinement Operators
-        g->addRefineOperator(typeid(spVariable<dcomplex, VOLUME>).name(),
-                             std::make_shared<SAMRAI::pdat::CellComplexConstantRefine>());
-        g->addRefineOperator(typeid(spVariable<double, VOLUME>).name(),
-                             std::make_shared<SAMRAI::pdat::CellDoubleConstantRefine>());
-        g->addRefineOperator(typeid(spVariable<float, VOLUME>).name(),
-                             std::make_shared<SAMRAI::pdat::CellFloatConstantRefine>());
-        g->addRefineOperator(typeid(spVariable<int, VOLUME>).name(),
-                             std::make_shared<SAMRAI::pdat::CellIntegerConstantRefine>());
-        g->addRefineOperator(typeid(spVariable<dcomplex, EDGE>).name(),
-                             std::make_shared<SAMRAI::pdat::EdgeComplexConstantRefine>());
-        g->addRefineOperator(typeid(spVariable<double, EDGE>).name(),
-                             std::make_shared<SAMRAI::pdat::EdgeDoubleConstantRefine>());
-        g->addRefineOperator(typeid(spVariable<float, EDGE>).name(),
-                             std::make_shared<SAMRAI::pdat::EdgeFloatConstantRefine>());
-        g->addRefineOperator(typeid(spVariable<int, EDGE>).name(),
-                             std::make_shared<SAMRAI::pdat::EdgeIntegerConstantRefine>());
-        g->addRefineOperator(typeid(spVariable<dcomplex, FACE>).name(),
-                             std::make_shared<SAMRAI::pdat::FaceComplexConstantRefine>());
-        g->addRefineOperator(typeid(spVariable<double, FACE>).name(),
-                             std::make_shared<SAMRAI::pdat::FaceDoubleConstantRefine>());
-        g->addRefineOperator(typeid(spVariable<float, FACE>).name(),
-                             std::make_shared<SAMRAI::pdat::FaceFloatConstantRefine>());
-        g->addRefineOperator(typeid(spVariable<int, FACE>).name(),
-                             std::make_shared<SAMRAI::pdat::FaceIntegerConstantRefine>());
-        g->addRefineOperator(typeid(spVariable<dcomplex, SP_OUTER_PATCH + FACE>).name(),
-                             std::make_shared<SAMRAI::pdat::OuterfaceComplexConstantRefine>());
-        g->addRefineOperator(typeid(spVariable<double, SP_OUTER_PATCH + FACE>).name(),
-                             std::make_shared<SAMRAI::pdat::OuterfaceDoubleConstantRefine>());
-        g->addRefineOperator(typeid(spVariable<float, SP_OUTER_PATCH + FACE>).name(),
-                             std::make_shared<SAMRAI::pdat::OuterfaceFloatConstantRefine>());
-        g->addRefineOperator(typeid(spVariable<int, SP_OUTER_PATCH + FACE>).name(),
-                             std::make_shared<SAMRAI::pdat::OuterfaceIntegerConstantRefine>());
-
-        // Time Interpolation Operators
-        g->addTimeInterpolateOperator(typeid(spVariable<dcomplex, VOLUME>).name(),
-                                      std::make_shared<SAMRAI::pdat::CellComplexLinearTimeInterpolateOp>());
-        g->addTimeInterpolateOperator(typeid(spVariable<double, VOLUME>).name(),
-                                      std::make_shared<SAMRAI::pdat::CellDoubleLinearTimeInterpolateOp>());
-        g->addTimeInterpolateOperator(typeid(spVariable<float, VOLUME>).name(),
-                                      std::make_shared<SAMRAI::pdat::CellFloatLinearTimeInterpolateOp>());
-        g->addTimeInterpolateOperator(typeid(spVariable<dcomplex, EDGE>).name(),
-                                      std::make_shared<SAMRAI::pdat::EdgeComplexLinearTimeInterpolateOp>());
-        g->addTimeInterpolateOperator(typeid(spVariable<double, EDGE>).name(),
-                                      std::make_shared<SAMRAI::pdat::EdgeDoubleLinearTimeInterpolateOp>());
-        g->addTimeInterpolateOperator(typeid(spVariable<float, EDGE>).name(),
-                                      std::make_shared<SAMRAI::pdat::EdgeFloatLinearTimeInterpolateOp>());
-        g->addTimeInterpolateOperator(typeid(spVariable<dcomplex, FACE>).name(),
-                                      std::make_shared<SAMRAI::pdat::FaceComplexLinearTimeInterpolateOp>());
-        g->addTimeInterpolateOperator(typeid(spVariable<double, FACE>).name(),
-                                      std::make_shared<SAMRAI::pdat::FaceDoubleLinearTimeInterpolateOp>());
-        g->addTimeInterpolateOperator(typeid(spVariable<float, FACE>).name(),
-                                      std::make_shared<SAMRAI::pdat::FaceFloatLinearTimeInterpolateOp>());
-        g->addTimeInterpolateOperator(typeid(spVariable<dcomplex, VERTEX>).name(),
-                                      std::make_shared<SAMRAI::pdat::NodeComplexLinearTimeInterpolateOp>());
-        g->addTimeInterpolateOperator(typeid(spVariable<double, VERTEX>).name(),
-                                      std::make_shared<SAMRAI::pdat::NodeDoubleLinearTimeInterpolateOp>());
-        g->addTimeInterpolateOperator(typeid(spVariable<float, VERTEX>).name(),
-                                      std::make_shared<SAMRAI::pdat::NodeFloatLinearTimeInterpolateOp>());
-        g->addTimeInterpolateOperator(typeid(spVariable<dcomplex, SP_OUTER_PATCH + FACE>).name(),
-                                      std::make_shared<SAMRAI::pdat::OuterfaceComplexLinearTimeInterpolateOp>());
-        g->addTimeInterpolateOperator(typeid(spVariable<double, SP_OUTER_PATCH + FACE>).name(),
-                                      std::make_shared<SAMRAI::pdat::OuterfaceDoubleLinearTimeInterpolateOp>());
-        g->addTimeInterpolateOperator(typeid(spVariable<float, SP_OUTER_PATCH + FACE>).name(),
-                                      std::make_shared<SAMRAI::pdat::OuterfaceFloatLinearTimeInterpolateOp>());
+        //        // Coarsening Operators
+        //        g->addCoarsenOperator(typeid(spVariable<dcomplex, VERTEX>).name(),
+        //                              std::make_shared<SAMRAI::pdat::NodeComplexInjection>());
+        //        g->addCoarsenOperator(typeid(spVariable<double, VERTEX>).name(),
+        //                              std::make_shared<SAMRAI::pdat::NodeDoubleInjection>());
+        //        g->addCoarsenOperator(typeid(spVariable<float, VERTEX>).name(),
+        //                              std::make_shared<SAMRAI::pdat::NodeFloatInjection>());
+        //        g->addCoarsenOperator(typeid(spVariable<int, VERTEX>).name(),
+        //                              std::make_shared<SAMRAI::pdat::NodeIntegerInjection>());
+        //        g->addCoarsenOperator(typeid(spVariable<double, SP_OUTER_PATCH + VERTEX>).name(),
+        //                              std::make_shared<SAMRAI::pdat::OuternodeDoubleInjection>());
+        //
+        //        // Refinement Operators
+        //        g->addRefineOperator(typeid(spVariable<dcomplex, VOLUME>).name(),
+        //                             std::make_shared<SAMRAI::pdat::CellComplexConstantRefine>());
+        //        g->addRefineOperator(typeid(spVariable<double, VOLUME>).name(),
+        //                             std::make_shared<SAMRAI::pdat::CellDoubleConstantRefine>());
+        //        g->addRefineOperator(typeid(spVariable<float, VOLUME>).name(),
+        //                             std::make_shared<SAMRAI::pdat::CellFloatConstantRefine>());
+        //        g->addRefineOperator(typeid(spVariable<int, VOLUME>).name(),
+        //                             std::make_shared<SAMRAI::pdat::CellIntegerConstantRefine>());
+        //        g->addRefineOperator(typeid(spVariable<dcomplex, EDGE>).name(),
+        //                             std::make_shared<SAMRAI::pdat::EdgeComplexConstantRefine>());
+        //        g->addRefineOperator(typeid(spVariable<double, EDGE>).name(),
+        //                             std::make_shared<SAMRAI::pdat::EdgeDoubleConstantRefine>());
+        //        g->addRefineOperator(typeid(spVariable<float, EDGE>).name(),
+        //                             std::make_shared<SAMRAI::pdat::EdgeFloatConstantRefine>());
+        //        g->addRefineOperator(typeid(spVariable<int, EDGE>).name(),
+        //                             std::make_shared<SAMRAI::pdat::EdgeIntegerConstantRefine>());
+        //        g->addRefineOperator(typeid(spVariable<dcomplex, FACE>).name(),
+        //                             std::make_shared<SAMRAI::pdat::FaceComplexConstantRefine>());
+        //        g->addRefineOperator(typeid(spVariable<double, FACE>).name(),
+        //                             std::make_shared<SAMRAI::pdat::FaceDoubleConstantRefine>());
+        //        g->addRefineOperator(typeid(spVariable<float, FACE>).name(),
+        //                             std::make_shared<SAMRAI::pdat::FaceFloatConstantRefine>());
+        //        g->addRefineOperator(typeid(spVariable<int, FACE>).name(),
+        //                             std::make_shared<SAMRAI::pdat::FaceIntegerConstantRefine>());
+        //        g->addRefineOperator(typeid(spVariable<dcomplex, SP_OUTER_PATCH + FACE>).name(),
+        //                             std::make_shared<SAMRAI::pdat::OuterfaceComplexConstantRefine>());
+        //        g->addRefineOperator(typeid(spVariable<double, SP_OUTER_PATCH + FACE>).name(),
+        //                             std::make_shared<SAMRAI::pdat::OuterfaceDoubleConstantRefine>());
+        //        g->addRefineOperator(typeid(spVariable<float, SP_OUTER_PATCH + FACE>).name(),
+        //                             std::make_shared<SAMRAI::pdat::OuterfaceFloatConstantRefine>());
+        //        g->addRefineOperator(typeid(spVariable<int, SP_OUTER_PATCH + FACE>).name(),
+        //                             std::make_shared<SAMRAI::pdat::OuterfaceIntegerConstantRefine>());
+        //
+        //        // Time Interpolation Operators
+        //        g->addTimeInterpolateOperator(typeid(spVariable<dcomplex, VOLUME>).name(),
+        //                                      std::make_shared<SAMRAI::pdat::CellComplexLinearTimeInterpolateOp>());
+        //        g->addTimeInterpolateOperator(typeid(spVariable<double, VOLUME>).name(),
+        //                                      std::make_shared<SAMRAI::pdat::CellDoubleLinearTimeInterpolateOp>());
+        //        g->addTimeInterpolateOperator(typeid(spVariable<float, VOLUME>).name(),
+        //                                      std::make_shared<SAMRAI::pdat::CellFloatLinearTimeInterpolateOp>());
+        //        g->addTimeInterpolateOperator(typeid(spVariable<dcomplex, EDGE>).name(),
+        //                                      std::make_shared<SAMRAI::pdat::EdgeComplexLinearTimeInterpolateOp>());
+        //        g->addTimeInterpolateOperator(typeid(spVariable<double, EDGE>).name(),
+        //                                      std::make_shared<SAMRAI::pdat::EdgeDoubleLinearTimeInterpolateOp>());
+        //        g->addTimeInterpolateOperator(typeid(spVariable<float, EDGE>).name(),
+        //                                      std::make_shared<SAMRAI::pdat::EdgeFloatLinearTimeInterpolateOp>());
+        //        g->addTimeInterpolateOperator(typeid(spVariable<dcomplex, FACE>).name(),
+        //                                      std::make_shared<SAMRAI::pdat::FaceComplexLinearTimeInterpolateOp>());
+        //        g->addTimeInterpolateOperator(typeid(spVariable<double, FACE>).name(),
+        //                                      std::make_shared<SAMRAI::pdat::FaceDoubleLinearTimeInterpolateOp>());
+        //        g->addTimeInterpolateOperator(typeid(spVariable<float, FACE>).name(),
+        //                                      std::make_shared<SAMRAI::pdat::FaceFloatLinearTimeInterpolateOp>());
+        //        g->addTimeInterpolateOperator(typeid(spVariable<dcomplex, VERTEX>).name(),
+        //                                      std::make_shared<SAMRAI::pdat::NodeComplexLinearTimeInterpolateOp>());
+        //        g->addTimeInterpolateOperator(typeid(spVariable<double, VERTEX>).name(),
+        //                                      std::make_shared<SAMRAI::pdat::NodeDoubleLinearTimeInterpolateOp>());
+        //        g->addTimeInterpolateOperator(typeid(spVariable<float, VERTEX>).name(),
+        //                                      std::make_shared<SAMRAI::pdat::NodeFloatLinearTimeInterpolateOp>());
+        //        g->addTimeInterpolateOperator(typeid(spVariable<dcomplex, SP_OUTER_PATCH + FACE>).name(),
+        //                                      std::make_shared<SAMRAI::pdat::OuterfaceComplexLinearTimeInterpolateOp>());
+        //        g->addTimeInterpolateOperator(typeid(spVariable<double, SP_OUTER_PATCH + FACE>).name(),
+        //                                      std::make_shared<SAMRAI::pdat::OuterfaceDoubleLinearTimeInterpolateOp>());
+        //        g->addTimeInterpolateOperator(typeid(spVariable<float, SP_OUTER_PATCH + FACE>).name(),
+        //                                      std::make_shared<SAMRAI::pdat::OuterfaceFloatLinearTimeInterpolateOp>());
     }
     //---------------------------------
 
