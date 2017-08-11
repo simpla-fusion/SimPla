@@ -58,6 +58,61 @@
 #include "SAMRAI/pdat/NodeVariable.h"
 #include "SAMRAI/pdat/SparseDataVariable.h"
 
+#include "SAMRAI/pdat/CellComplexConstantRefine.h"
+#include "SAMRAI/pdat/CellComplexLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/CellDoubleConstantRefine.h"
+#include "SAMRAI/pdat/CellDoubleLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/CellFloatConstantRefine.h"
+#include "SAMRAI/pdat/CellFloatLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/CellIntegerConstantRefine.h"
+#include "SAMRAI/pdat/CellVariable.h"
+#include "SAMRAI/pdat/EdgeComplexConstantRefine.h"
+#include "SAMRAI/pdat/EdgeComplexLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/EdgeDoubleConstantRefine.h"
+#include "SAMRAI/pdat/EdgeDoubleLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/EdgeFloatConstantRefine.h"
+#include "SAMRAI/pdat/EdgeFloatLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/EdgeIntegerConstantRefine.h"
+#include "SAMRAI/pdat/EdgeVariable.h"
+#include "SAMRAI/pdat/FaceComplexConstantRefine.h"
+#include "SAMRAI/pdat/FaceComplexLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/FaceDoubleConstantRefine.h"
+#include "SAMRAI/pdat/FaceDoubleLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/FaceFloatConstantRefine.h"
+#include "SAMRAI/pdat/FaceFloatLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/FaceIntegerConstantRefine.h"
+#include "SAMRAI/pdat/FaceVariable.h"
+#include "SAMRAI/pdat/NodeComplexInjection.h"
+#include "SAMRAI/pdat/NodeComplexLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/NodeDoubleInjection.h"
+#include "SAMRAI/pdat/NodeDoubleLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/NodeFloatInjection.h"
+#include "SAMRAI/pdat/NodeFloatLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/NodeIntegerInjection.h"
+#include "SAMRAI/pdat/NodeVariable.h"
+#include "SAMRAI/pdat/OuterfaceComplexConstantRefine.h"
+#include "SAMRAI/pdat/OuterfaceComplexLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/OuterfaceDoubleConstantRefine.h"
+#include "SAMRAI/pdat/OuterfaceDoubleLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/OuterfaceFloatConstantRefine.h"
+#include "SAMRAI/pdat/OuterfaceFloatLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/OuterfaceIntegerConstantRefine.h"
+#include "SAMRAI/pdat/OuterfaceVariable.h"
+#include "SAMRAI/pdat/OuternodeDoubleInjection.h"
+#include "SAMRAI/pdat/OuternodeVariable.h"
+#include "SAMRAI/pdat/OutersideComplexLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/OutersideDoubleLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/OutersideFloatLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/OutersideVariable.h"
+#include "SAMRAI/pdat/SideComplexConstantRefine.h"
+#include "SAMRAI/pdat/SideComplexLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/SideDoubleConstantRefine.h"
+#include "SAMRAI/pdat/SideDoubleLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/SideFloatConstantRefine.h"
+#include "SAMRAI/pdat/SideFloatLinearTimeInterpolateOp.h"
+#include "SAMRAI/pdat/SideIntegerConstantRefine.h"
+#include "SAMRAI/pdat/SideVariable.h"
+
 #include "SAMRAI/tbox/BalancedDepthFirstTree.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/Dimension.h"
@@ -79,22 +134,98 @@
 #include "SAMRAI/pdat/SideVariable.h"
 
 namespace simpla {
+#define SP_OUTER_PATCH 10
 
-struct spParticlePatchData : public SAMRAI::hier::PatchData {
+std::shared_ptr<data::DataBlock> ConvertDataBlock(std::shared_ptr<SAMRAI::hier::PatchData> const &p) { return nullptr; }
+std::shared_ptr<data::DataBlock> ConvertDataBlock(SAMRAI::hier::PatchData const &p) { return nullptr; }
+std::shared_ptr<SAMRAI::hier::PatchData> ConvertDataBlock(data::DataBlock const &p) { return nullptr; }
+std::shared_ptr<SAMRAI::hier::PatchData> ConvertDataBlock(std::shared_ptr<data::DataBlock> const &p) { return nullptr; }
+
+struct spPatchDataInterface {
+    virtual std::shared_ptr<data::DataBlock> PopDataBlock() const = 0;
+    virtual void PushDataBlock(std::shared_ptr<data::DataBlock> const &blk) = 0;
+};
+
+template <typename TV, int IFORM>
+struct spPatchData;
+template <typename TV, int IFORM>
+struct spPatchDataFactory;
+template <typename TV, int IFORM>
+struct spVariable;
+
+namespace traits {
+template <typename TV, int IFORM>
+struct SAMRAIDataTraits {
+    typedef std::conditional_t<IFORM == VERTEX, SAMRAI::pdat::NodeData<TV>,                                      //
+                               std::conditional_t<IFORM == EDGE, SAMRAI::pdat::EdgeData<TV>,                     //
+                                                  std::conditional_t<IFORM == FACE, SAMRAI::pdat::FaceData<TV>,  //
+                                                                     SAMRAI::pdat::CellData<TV>>>>
+        data_type;
+
+    typedef std::conditional_t<
+        IFORM == VERTEX, SAMRAI::pdat::NodeDataFactory<TV>,                                      //
+        std::conditional_t<IFORM == EDGE, SAMRAI::pdat::EdgeDataFactory<TV>,                     //
+                           std::conditional_t<IFORM == FACE, SAMRAI::pdat::FaceDataFactory<TV>,  //
+                                              SAMRAI::pdat::CellDataFactory<TV>>>>
+        factory_type;
+
+    typedef std::conditional_t<IFORM == VERTEX, SAMRAI::pdat::NodeVariable<TV>,                                      //
+                               std::conditional_t<IFORM == EDGE, SAMRAI::pdat::EdgeVariable<TV>,                     //
+                                                  std::conditional_t<IFORM == FACE, SAMRAI::pdat::FaceVariable<TV>,  //
+                                                                     SAMRAI::pdat::CellVariable<TV>>>>
+        variable_type;
+
+    typedef std::conditional_t<IFORM == VERTEX, SAMRAI::pdat::OuternodeData<TV>,                                      //
+                               std::conditional_t<IFORM == EDGE, SAMRAI::pdat::OuteredgeData<TV>,                     //
+                                                  std::conditional_t<IFORM == FACE, SAMRAI::pdat::OuterfaceData<TV>,  //
+                                                                     void>>>
+        outer_data_type;
+};
+}  // namespace traits {
+
+template <typename TV, int IFORM>
+struct spPatchData : public traits::SAMRAIDataTraits<TV, IFORM>::data_type, public spPatchDataInterface {
+   private:
+    typedef typename traits::SAMRAIDataTraits<TV, IFORM>::data_type base_type;
+    typedef spPatchData<TV, IFORM> this_type;
+
    public:
-    spParticlePatchData(const SAMRAI::hier::Box &box, int depth, const SAMRAI::hier::IntVector &ghosts)
-        : SAMRAI::hier::PatchData(box, ghosts), m_depth_(depth), m_data_block_(new ParticleDataBlock(depth)) {}
-    ~spParticlePatchData() override {}
+    spPatchData(const SAMRAI::hier::Box &box, int depth, const SAMRAI::hier::IntVector &ghosts)
+        : base_type(box, depth, ghosts) {}
+    ~spPatchData() override {}
+
+    //    void copy(const SAMRAI::hier::PatchData &src) override { base_type::copy(src); };
+    //
+    //    void copy2(SAMRAI::hier::PatchData &dst) const override { base_type::copy2(dst); };
+    //
+    //    void copy(const SAMRAI::hier::PatchData &src, const SAMRAI::hier::BoxOverlap &overlap) override {
+    //        base_type::copy(src, overlap);
+    //    };
+    //
+    //    void copy2(SAMRAI::hier::PatchData &dst, const SAMRAI::hier::BoxOverlap &overlap) const override {
+    //        base_type::copy2(dst, overlap);
+    //    };
+
+    std::shared_ptr<data::DataBlock> PopDataBlock() const override { return ConvertDataBlock(*this); }
+    void PushDataBlock(std::shared_ptr<data::DataBlock> const &blk) override {}
+};
+
+template <typename TV>
+struct spPatchData<TV, FIBER> : public SAMRAI::hier::PatchData, public spPatchDataInterface {
+   private:
+    static constexpr int IFORM = FIBER;
+    typedef spPatchData<TV, IFORM> this_type;
+
+   public:
+    spPatchData(const SAMRAI::hier::Box &box, int depth, const SAMRAI::hier::IntVector &ghosts)
+        : SAMRAI::hier::PatchData(box, ghosts), m_depth_(depth) {}
+    ~spPatchData() override {}
 
     virtual void copy(const SAMRAI::hier::PatchData &src) override {
-        auto const &p = dynamic_cast<spParticlePatchData const &>(src);
-        m_data_block_ = p.m_data_block_;
+        auto const &p = dynamic_cast<this_type const &>(src);
     };
 
-    virtual void copy2(SAMRAI::hier::PatchData &dst) const override {
-        auto &p = dynamic_cast<spParticlePatchData &>(dst);
-        p.m_data_block_ = m_data_block_;
-    };
+    virtual void copy2(SAMRAI::hier::PatchData &dst) const override { dst.copy(*this); };
 
     virtual void copy(const SAMRAI::hier::PatchData &src, const SAMRAI::hier::BoxOverlap &overlap) override{
         //        UNIMPLEMENTED;
@@ -123,22 +254,355 @@ struct spParticlePatchData : public SAMRAI::hier::PatchData {
         UNIMPLEMENTED;
     }
     int getDepth() const { return m_depth_; }
-    std::shared_ptr<data::DataBlock> GetDataBlock() const { return m_data_block_; }
-    void SetDataBlock(std::shared_ptr<data::DataBlock> const &blk) { m_data_block_ = blk; }
+
+    static size_t getSizeOfData(const SAMRAI::hier::Box &box, int depth, const SAMRAI::hier::IntVector &ghosts) {
+        UNIMPLEMENTED;
+        return 0;
+    }
+
+    std::shared_ptr<data::DataBlock> PopDataBlock() const override { return nullptr; }
+    void PushDataBlock(std::shared_ptr<data::DataBlock> const &blk) override {}
 
    private:
     int m_depth_ = 0;
-    std::shared_ptr<data::DataBlock> m_data_block_;
 };
-/**
- * Class NodeFloatInjection implements constant
- * averaging (i.e., injection) for node-centered float patch data defined
- * over a  mesh.  It is derived from the hier::CoarsenOperator base
- * class.  The numerical operations for theaveraging use FORTRAN numerical
- * routines.
- *
- * @see hier::CoarsenOperator
- */
+
+template <typename TV>
+struct spPatchDataFactory<TV, VERTEX> : public SAMRAI::pdat::NodeDataFactory<TV> {
+    typedef SAMRAI::pdat::NodeDataFactory<TV> base_type;
+    using base_type::getDepth;
+    using base_type::getGhostCellWidth;
+    using base_type::fineBoundaryRepresentsVariable;
+    static constexpr int IFORM = VERTEX;
+
+    spPatchDataFactory(int depth, const SAMRAI::hier::IntVector &ghosts, bool fine_boundary_represents_var)
+        : SAMRAI::pdat::NodeDataFactory<TV>(depth, ghosts, fine_boundary_represents_var) {}
+
+    ~spPatchDataFactory() override {}
+
+    virtual std::shared_ptr<SAMRAI::hier::PatchDataFactory> cloneFactory(
+        const SAMRAI::hier::IntVector &ghosts) override {
+        return std::make_shared<spPatchDataFactory<TV, IFORM>>(getDepth(), ghosts, fineBoundaryRepresentsVariable());
+    };
+
+    virtual std::shared_ptr<SAMRAI::hier::PatchData> allocate(const SAMRAI::hier::Patch &patch) const override {
+        return std::make_shared<spPatchData<TV, IFORM>>(patch.getBox(), getDepth(), getGhostCellWidth());
+    };
+
+    virtual size_t getSizeOfMemory(const SAMRAI::hier::Box &box) const override {
+        const size_t obj = SAMRAI::tbox::MemoryUtilities::align(sizeof(spPatchData<TV, IFORM>));
+        const size_t data = spPatchData<TV, IFORM>::getSizeOfData(box, getDepth(), getGhostCellWidth());
+        return obj + data;
+    };
+
+    virtual bool validCopyTo(const std::shared_ptr<SAMRAI::hier::PatchDataFactory> &dst_pdf) const override {
+        bool valid_copy = false;
+
+        /*
+         * Valid options are NodeData and OuternodeData.
+         */
+        if (!valid_copy) {
+            auto ndf = std::dynamic_pointer_cast<spPatchDataFactory<TV, IFORM>>(dst_pdf);
+            if (ndf) { valid_copy = true; }
+        }
+
+        //        if (!valid_copy) {
+        //            std::shared_ptr<OuternodeDataFactory<TYPE>> ondf(
+        //                std::dynamic_pointer_cast<OuternodeDataFactory<TYPE>, hier::PatchDataFactory>(dst_pdf));
+        //            if (ondf) { valid_copy = true; }
+        //        }
+
+        return valid_copy;
+    };
+};
+
+template <typename TV>
+struct spPatchDataFactory<TV, VOLUME> : public SAMRAI::pdat::CellDataFactory<TV> {
+    typedef SAMRAI::pdat::CellDataFactory<TV> base_type;
+    using base_type::getDepth;
+    using base_type::getGhostCellWidth;
+    using base_type::fineBoundaryRepresentsVariable;
+    static constexpr int IFORM = VOLUME;
+
+    spPatchDataFactory(int depth, const SAMRAI::hier::IntVector &ghosts, bool fine_boundary_represents_var)
+        : base_type(depth, ghosts) {}
+
+    ~spPatchDataFactory() override {}
+
+    virtual std::shared_ptr<SAMRAI::hier::PatchDataFactory> cloneFactory(
+        const SAMRAI::hier::IntVector &ghosts) override {
+        return std::make_shared<spPatchDataFactory<TV, IFORM>>(getDepth(), ghosts, fineBoundaryRepresentsVariable());
+    };
+
+    virtual std::shared_ptr<SAMRAI::hier::PatchData> allocate(const SAMRAI::hier::Patch &patch) const override {
+        return std::make_shared<spPatchData<TV, IFORM>>(patch.getBox(), getDepth(), getGhostCellWidth());
+    };
+
+    virtual size_t getSizeOfMemory(const SAMRAI::hier::Box &box) const override {
+        const size_t obj = SAMRAI::tbox::MemoryUtilities::align(sizeof(spPatchData<TV, IFORM>));
+        const size_t data = spPatchData<TV, IFORM>::getSizeOfData(box, getDepth(), getGhostCellWidth());
+        return obj + data;
+    };
+
+    virtual bool validCopyTo(const std::shared_ptr<SAMRAI::hier::PatchDataFactory> &dst_pdf) const override {
+        bool valid_copy = false;
+
+        /*
+         * Valid options are NodeData and OuternodeData.
+         */
+        if (!valid_copy) {
+            auto ndf = std::dynamic_pointer_cast<spPatchDataFactory<TV, IFORM>>(dst_pdf);
+            if (ndf) { valid_copy = true; }
+        }
+
+        //        if (!valid_copy) {
+        //            std::shared_ptr<OuternodeDataFactory<TYPE>> ondf(
+        //                std::dynamic_pointer_cast<OuternodeDataFactory<TYPE>, hier::PatchDataFactory>(dst_pdf));
+        //            if (ondf) { valid_copy = true; }
+        //        }
+
+        return valid_copy;
+    };
+};
+
+template <typename TV>
+struct spPatchDataFactory<TV, EDGE> : public SAMRAI::pdat::EdgeDataFactory<TV> {
+    typedef SAMRAI::pdat::EdgeDataFactory<TV> base_type;
+    static constexpr int IFORM = EDGE;
+
+    using base_type::getDepth;
+    using base_type::getGhostCellWidth;
+    using base_type::fineBoundaryRepresentsVariable;
+
+    spPatchDataFactory(int depth, const SAMRAI::hier::IntVector &ghosts, bool fine_boundary_represents_var)
+        : base_type(depth, ghosts, fine_boundary_represents_var) {}
+
+    ~spPatchDataFactory() override {}
+
+    virtual std::shared_ptr<SAMRAI::hier::PatchDataFactory> cloneFactory(
+        const SAMRAI::hier::IntVector &ghosts) override {
+        return std::make_shared<spPatchDataFactory<TV, IFORM>>(getDepth(), ghosts, fineBoundaryRepresentsVariable());
+    };
+
+    virtual std::shared_ptr<SAMRAI::hier::PatchData> allocate(const SAMRAI::hier::Patch &patch) const override {
+        return std::make_shared<spPatchData<TV, IFORM>>(patch.getBox(), getDepth(), getGhostCellWidth());
+    };
+
+    virtual size_t getSizeOfMemory(const SAMRAI::hier::Box &box) const override {
+        const size_t obj = SAMRAI::tbox::MemoryUtilities::align(sizeof(spPatchData<TV, IFORM>));
+        const size_t data = spPatchData<TV, IFORM>::getSizeOfData(box, getDepth(), getGhostCellWidth());
+        return obj + data;
+    };
+
+    virtual bool validCopyTo(const std::shared_ptr<SAMRAI::hier::PatchDataFactory> &dst_pdf) const override {
+        bool valid_copy = false;
+
+        /*
+         * Valid options are NodeData and OuternodeData.
+         */
+        if (!valid_copy) {
+            auto ndf = std::dynamic_pointer_cast<spPatchDataFactory<TV, IFORM>>(dst_pdf);
+            if (ndf) { valid_copy = true; }
+        }
+
+        //        if (!valid_copy) {
+        //            std::shared_ptr<OuternodeDataFactory<TYPE>> ondf(
+        //                std::dynamic_pointer_cast<OuternodeDataFactory<TYPE>, hier::PatchDataFactory>(dst_pdf));
+        //            if (ondf) { valid_copy = true; }
+        //        }
+
+        return valid_copy;
+    };
+};
+
+template <typename TV>
+struct spPatchDataFactory<TV, FACE> : public SAMRAI::pdat::FaceDataFactory<TV> {
+    typedef SAMRAI::pdat::FaceDataFactory<TV> base_type;
+    static constexpr int IFORM = FACE;
+
+    using base_type::getDepth;
+    using base_type::getGhostCellWidth;
+    using base_type::fineBoundaryRepresentsVariable;
+
+    spPatchDataFactory(int depth, const SAMRAI::hier::IntVector &ghosts, bool fine_boundary_represents_var)
+        : base_type(depth, ghosts, fine_boundary_represents_var) {}
+
+    ~spPatchDataFactory() override {}
+
+    virtual std::shared_ptr<SAMRAI::hier::PatchDataFactory> cloneFactory(
+        const SAMRAI::hier::IntVector &ghosts) override {
+        return std::make_shared<spPatchDataFactory<TV, IFORM>>(getDepth(), ghosts, fineBoundaryRepresentsVariable());
+    };
+
+    virtual std::shared_ptr<SAMRAI::hier::PatchData> allocate(const SAMRAI::hier::Patch &patch) const override {
+        return std::make_shared<spPatchData<TV, IFORM>>(patch.getBox(), getDepth(), getGhostCellWidth());
+    };
+
+    virtual size_t getSizeOfMemory(const SAMRAI::hier::Box &box) const override {
+        const size_t obj = SAMRAI::tbox::MemoryUtilities::align(sizeof(spPatchData<TV, IFORM>));
+        const size_t data = spPatchData<TV, IFORM>::getSizeOfData(box, getDepth(), getGhostCellWidth());
+        return obj + data;
+    };
+
+    virtual bool validCopyTo(const std::shared_ptr<SAMRAI::hier::PatchDataFactory> &dst_pdf) const override {
+        bool valid_copy = false;
+
+        /*
+         * Valid options are NodeData and OuternodeData.
+         */
+        if (!valid_copy) {
+            auto ndf = std::dynamic_pointer_cast<spPatchDataFactory<TV, IFORM>>(dst_pdf);
+            if (ndf) { valid_copy = true; }
+        }
+
+        //        if (!valid_copy) {
+        //            std::shared_ptr<OuternodeDataFactory<TYPE>> ondf(
+        //                std::dynamic_pointer_cast<OuternodeDataFactory<TYPE>, hier::PatchDataFactory>(dst_pdf));
+        //            if (ondf) { valid_copy = true; }
+        //        }
+
+        return valid_copy;
+    };
+};
+
+template <typename TV, int IFORM>
+struct spPatchDataFactory : public SAMRAI::hier::PatchDataFactory {
+    spPatchDataFactory(int depth, const SAMRAI::hier::IntVector &ghosts, bool fine_boundary_represents_var)
+        : SAMRAI::hier::PatchDataFactory(ghosts),
+          m_dof_(depth),
+          m_fine_boundary_represents_var_(fine_boundary_represents_var) {}
+    ~spPatchDataFactory() override {}
+
+    virtual std::shared_ptr<SAMRAI::hier::PatchDataFactory> cloneFactory(
+        const SAMRAI::hier::IntVector &ghosts) override {
+        return std::make_shared<spPatchDataFactory<TV, IFORM>>(m_dof_, ghosts, m_fine_boundary_represents_var_);
+    };
+
+    virtual std::shared_ptr<SAMRAI::hier::PatchData> allocate(const SAMRAI::hier::Patch &patch) const override {
+        return std::make_shared<spPatchData<TV, IFORM>>(patch.getBox(), m_dof_, getGhostCellWidth());
+    };
+
+    virtual std::shared_ptr<SAMRAI::hier::BoxGeometry> getBoxGeometry(const SAMRAI::hier::Box &box) const override {
+        return std::make_shared<SAMRAI::pdat::CellGeometry>(box, d_ghosts);
+    };
+
+    virtual size_t getSizeOfMemory(const SAMRAI::hier::Box &box) const override {
+        const size_t obj = SAMRAI::tbox::MemoryUtilities::align(sizeof(spPatchData<TV, IFORM>));
+        const size_t data = spPatchData<TV, IFORM>::getSizeOfData(box, m_dof_, d_ghosts);
+        return obj + data;
+    };
+
+    virtual bool fineBoundaryRepresentsVariable() const override { return m_fine_boundary_represents_var_; };
+
+    virtual bool dataLivesOnPatchBorder() const override { return false; };
+
+    virtual bool validCopyTo(const std::shared_ptr<SAMRAI::hier::PatchDataFactory> &dst_pdf) const override {
+        bool valid_copy = false;
+
+        /*
+         * Valid options are NodeData and OuternodeData.
+         */
+        if (!valid_copy) {
+            std::shared_ptr<spPatchDataFactory<TV, IFORM>> ndf(
+                std::dynamic_pointer_cast<spPatchDataFactory<TV, IFORM>, SAMRAI::hier::PatchDataFactory>(dst_pdf));
+            if (ndf) { valid_copy = true; }
+        }
+
+        //        if (!valid_copy) {
+        //            std::shared_ptr<OuternodeDataFactory<TYPE>> ondf(
+        //                std::dynamic_pointer_cast<OuternodeDataFactory<TYPE>, hier::PatchDataFactory>(dst_pdf));
+        //            if (ondf) { valid_copy = true; }
+        //        }
+
+        return valid_copy;
+    };
+
+   private:
+    int m_dof_ = 0;
+    bool m_fine_boundary_represents_var_ = true;
+};
+
+template <typename TV, int IFORM>
+struct spVariable : public SAMRAI::hier::Variable {
+   public:
+    spVariable(const SAMRAI::tbox::Dimension &dim, const std::string &name, int depth = 1,
+               bool fine_boundary_represents_var = true)
+        : SAMRAI::hier::Variable(name, std::make_shared<spPatchDataFactory<TV, IFORM>>(
+                                           depth, SAMRAI::hier::IntVector::getZero(dim), fine_boundary_represents_var)),
+          m_depth_(depth),
+          m_fine_boundary_represents_var_(fine_boundary_represents_var){};
+
+    ~spVariable() override {}
+
+    bool fineBoundaryRepresentsVariable() const override { return m_fine_boundary_represents_var_; }
+
+    bool dataLivesOnPatchBorder() const override { return false; }
+
+    int getDepth() const { return m_depth_; }
+
+   private:
+    int m_depth_ = 0;
+    bool m_fine_boundary_represents_var_ = false;
+};
+
+// template <>
+// struct spPatchDataFactory<Real, FIBER> : public SAMRAI::hier::PatchDataFactory {
+//    spPatchDataFactory(int depth, const SAMRAI::hier::IntVector &ghosts, bool fine_boundary_represents_var = true)
+//        : SAMRAI::hier::PatchDataFactory(ghosts),
+//          m_depth_(depth),
+//          m_fine_boundary_represents_var_(fine_boundary_represents_var) {}
+//    ~spPatchDataFactory() override {}
+//
+//    virtual std::shared_ptr<SAMRAI::hier::PatchDataFactory> cloneFactory(
+//        const SAMRAI::hier::IntVector &ghosts) override {
+//        return std::make_shared<spPatchDataFactory<Real, FIBER>>(getDepth(), ghosts,
+//        fineBoundaryRepresentsVariable());
+//    };
+//
+//    virtual std::shared_ptr<SAMRAI::hier::PatchData> allocate(const SAMRAI::hier::Patch &patch) const override {
+//        return std::make_shared<spPatchData<Real, FIBER>>(patch.getBox(), getDepth(), getGhostCellWidth());
+//    };
+//
+//    virtual std::shared_ptr<SAMRAI::hier::BoxGeometry> getBoxGeometry(const SAMRAI::hier::Box &box) const override {
+//        return std::make_shared<SAMRAI::pdat::CellGeometry>(box, d_ghosts);
+//    };
+//    int getDepth() const { return m_depth_; }
+//
+//    virtual size_t getSizeOfMemory(const SAMRAI::hier::Box &box) const override { return 0; };
+//
+//    virtual bool fineBoundaryRepresentsVariable() const override { return m_fine_boundary_represents_var_; };
+//
+//    virtual bool dataLivesOnPatchBorder() const override { return false; };
+//
+//    virtual bool validCopyTo(const std::shared_ptr<SAMRAI::hier::PatchDataFactory> &dst_pdf) const override {
+//        return true;
+//    };
+//
+//   private:
+//    int m_depth_ = 0;
+//    int m_pic_ = 100;
+//    bool m_fine_boundary_represents_var_ = false;
+//};
+//
+// template <>
+// struct spParticleVariable<Real, FIBER> : public SAMRAI::hier::Variable {
+//   public:
+//    spParticleVariable(const SAMRAI::tbox::Dimension &dim, const std::string &name, int depth = 1)
+//        : SAMRAI::hier::Variable(
+//              name, std::make_shared<spPatchDataFactory<Real, FIBER>>(depth, SAMRAI::hier::IntVector::getZero(dim))),
+//          m_depth_(depth){};
+//
+//    ~spParticleVariable() override {}
+//
+//    bool fineBoundaryRepresentsVariable() const override { return false; }
+//
+//    bool dataLivesOnPatchBorder() const override { return false; }
+//
+//    int getDepth() const { return m_depth_; }
+//
+//   private:
+//    int m_depth_ = 0;
+//};
 
 class spParticleCoarsenRefine : public SAMRAI::hier::CoarsenOperator {
    public:
@@ -181,81 +645,30 @@ class spParticleCoarsenRefine : public SAMRAI::hier::CoarsenOperator {
     };
 };
 
-/**
-* Class ParticleConstantRefine implements constant
-* interpolation for cell-centered float patch data defined over a
-* mesh.  It is derived from the hier::RefineOperator base class.
-* The numerical operations for interpolation use FORTRAN numerical routines.
-*
-* @see hier::RefineOperator
-*/
-
 class spParticleConstantRefine : public SAMRAI::hier::RefineOperator {
    public:
-    /**
-     * Uninteresting default constructor.
-     */
     spParticleConstantRefine() : SAMRAI::hier::RefineOperator("CONSTANT_REFINE") {}
 
-    /**
-     * Uninteresting virtual destructor.
-     */
     virtual ~spParticleConstantRefine() {}
 
-    /**
-     * The priority of cell-centered float constant interpolation is 0.
-     * It will be performed before any user-defined interpolation operations.
-     */
     int getOperatorPriority() const { return 0; }
 
-    /**
-     * The stencil width of the constant interpolation operator is the vector
-     * of zeros.  That is, its stencil does not extend outside the fine box.
-     */
     SAMRAI::hier::IntVector getStencilWidth(const SAMRAI::tbox::Dimension &dim) const {
         return SAMRAI::hier::IntVector::getZero(dim);
     }
 
-    /**
-     * Refine the source component on the coarse patch to the destination
-     * component on the fine patch using the cell-centered float constant
-     * interpolation operator.  Interpolation is performed on the intersection
-     * of the destination patch and the boxes contained in fine_overlap.
-     * It is assumed that the coarse patch contains sufficient data for the
-     * stencil width of the refinement operator.
-     *
-     * @pre dynamic_cast<const CellOverlap *>(&fine_overlap) != 0
-     */
     void refine(SAMRAI::hier::Patch &fine, const SAMRAI::hier::Patch &coarse, const int dst_component,
                 const int src_component, const SAMRAI::hier::BoxOverlap &fine_overlap,
                 const SAMRAI::hier::IntVector &ratio) const {
         UNIMPLEMENTED;
     }
 
-    /**
-     * Refine the source component on the coarse patch to the destination
-     * component on the fine patch using the cell-centered float constant
-     * interpolation operator.  Interpolation is performed on the intersection
-     * of the destination patch and the fine box.   It is assumed that the
-     * coarse patch contains sufficient data for the stencil width of the
-     * refinement operator.  This differs from the above refine() method
-     * only in that it operates on a single fine box instead of a BoxOverlap.
-     */
     void refine(SAMRAI::hier::Patch &fine, const SAMRAI::hier::Patch &coarse, const int dst_component,
                 const int src_component, const SAMRAI::hier::Box &fine_box,
                 const SAMRAI::hier::IntVector &ratio) const {
         UNIMPLEMENTED;
     }
 };
-
-/**
- * Class CellDoubleLinearTimeInterpolateOp implements standard
- * linear time interpolation for cell-centered double patch data.
- * It is derived from the hier::TimeInterpolateOperator base class.
- * The interpolation uses FORTRAN numerical routines.
- *
- * @see hier::TimeInterpolateOperator
- */
 
 class spParticleLinearTimeInterpolateOp : public SAMRAI::hier::TimeInterpolateOperator {
    public:
@@ -295,63 +708,6 @@ class spParticleLinearTimeInterpolateOp : public SAMRAI::hier::TimeInterpolateOp
     }
 };
 
-struct spParticlePatchDataFactory : public SAMRAI::hier::PatchDataFactory {
-    spParticlePatchDataFactory(int depth, const SAMRAI::hier::IntVector &ghosts,
-                               bool fine_boundary_represents_var = true)
-        : SAMRAI::hier::PatchDataFactory(ghosts),
-          m_depth_(depth),
-          m_fine_boundary_represents_var_(fine_boundary_represents_var) {}
-    ~spParticlePatchDataFactory() override {}
-
-    virtual std::shared_ptr<SAMRAI::hier::PatchDataFactory> cloneFactory(
-        const SAMRAI::hier::IntVector &ghosts) override {
-        return std::make_shared<spParticlePatchDataFactory>(getDepth(), ghosts, fineBoundaryRepresentsVariable());
-    };
-
-    virtual std::shared_ptr<SAMRAI::hier::PatchData> allocate(const SAMRAI::hier::Patch &patch) const override {
-        return std::make_shared<spParticlePatchData>(patch.getBox(), getDepth(), getGhostCellWidth());
-    };
-
-    virtual std::shared_ptr<SAMRAI::hier::BoxGeometry> getBoxGeometry(const SAMRAI::hier::Box &box) const override {
-        return std::make_shared<SAMRAI::pdat::CellGeometry>(box, d_ghosts);
-    };
-    int getDepth() const { return m_depth_; }
-
-    virtual size_t getSizeOfMemory(const SAMRAI::hier::Box &box) const override { return 0; };
-
-    virtual bool fineBoundaryRepresentsVariable() const override { return m_fine_boundary_represents_var_; };
-
-    virtual bool dataLivesOnPatchBorder() const override { return false; };
-
-    virtual bool validCopyTo(const std::shared_ptr<SAMRAI::hier::PatchDataFactory> &dst_pdf) const override {
-        return true;
-    };
-
-   private:
-    int m_depth_ = 0;
-    int m_pic_ = 100;
-    bool m_fine_boundary_represents_var_ = false;
-};
-
-struct spParticleVariable : public SAMRAI::hier::Variable {
-   public:
-    spParticleVariable(const SAMRAI::tbox::Dimension &dim, const std::string &name, int depth = 1)
-        : SAMRAI::hier::Variable(
-              name, std::make_shared<spParticlePatchDataFactory>(depth, SAMRAI::hier::IntVector::getZero(dim))),
-          m_dof_(depth){};
-
-    ~spParticleVariable() override {}
-
-    bool fineBoundaryRepresentsVariable() const override { return false; }
-
-    bool dataLivesOnPatchBorder() const override { return false; }
-
-    int getDepth() const { return m_dof_; }
-
-   private:
-    int m_dof_ = 0;
-};
-
 struct spParticleVisDerivedDataStrategy : public SAMRAI::appu::VisDerivedDataStrategy {
     spParticleVisDerivedDataStrategy() {}
     ~spParticleVisDerivedDataStrategy() override {}
@@ -367,113 +723,6 @@ struct spParticleVisDerivedDataStrategy : public SAMRAI::appu::VisDerivedDataStr
         UNIMPLEMENTED;
         return true;
     };
-};
-
-namespace traits {
-template <typename TV, int IFORM>
-struct SAMRAIDataTraits {
-    typedef std::conditional_t<IFORM == VERTEX, SAMRAI::pdat::NodeData<TV>,                                      //
-                               std::conditional_t<IFORM == EDGE, SAMRAI::pdat::EdgeData<TV>,                     //
-                                                  std::conditional_t<IFORM == FACE, SAMRAI::pdat::SideData<TV>,  //
-                                                                     SAMRAI::pdat::CellData<TV>>>>
-        data_type;
-};
-}  // namespace traits {
-
-template <typename TV, int IFORM>
-struct spFieldPatchData : public traits::SAMRAIDataTraits<TV, IFORM>::data_type {
-    typedef typename traits::SAMRAIDataTraits<TV, IFORM>::data_type base_type;
-
-    explicit spFieldPatchData(const SAMRAI::hier::Box &box, int depth, const SAMRAI::hier::IntVector &ghosts)
-        : base_type(box, depth, ghosts) {}
-
-    ~spFieldPatchData() override = default;
-
-    std::shared_ptr<data::DataBlock> GetDataBlock() const { return m_data_block_; }
-    void SetDataBlock(std::shared_ptr<data::DataBlock> const &blk) { m_data_block_ = blk; }
-
-   private:
-    std::shared_ptr<data::DataBlock> m_data_block_;
-};
-
-template <typename TV, int IFORM>
-struct spFieldPatchDataFactory : public SAMRAI::hier::PatchDataFactory {
-    spFieldPatchDataFactory(int depth, const SAMRAI::hier::IntVector &ghosts, bool fine_boundary_represents_var)
-        : SAMRAI::hier::PatchDataFactory(ghosts),
-          m_dof_(depth),
-          m_fine_boundary_represents_var_(fine_boundary_represents_var) {}
-    ~spFieldPatchDataFactory() override {}
-
-    virtual std::shared_ptr<SAMRAI::hier::PatchDataFactory> cloneFactory(
-        const SAMRAI::hier::IntVector &ghosts) override {
-        return std::make_shared<spFieldPatchDataFactory<TV, IFORM>>(m_dof_, ghosts, m_fine_boundary_represents_var_);
-    };
-
-    virtual std::shared_ptr<SAMRAI::hier::PatchData> allocate(const SAMRAI::hier::Patch &patch) const override {
-        return std::make_shared<spFieldPatchData<TV, IFORM>>(patch.getBox(), m_dof_, getGhostCellWidth());
-    };
-
-    virtual std::shared_ptr<SAMRAI::hier::BoxGeometry> getBoxGeometry(const SAMRAI::hier::Box &box) const override {
-        return std::make_shared<SAMRAI::pdat::CellGeometry>(box, d_ghosts);
-    };
-
-    virtual size_t getSizeOfMemory(const SAMRAI::hier::Box &box) const override {
-        const size_t obj = SAMRAI::tbox::MemoryUtilities::align(sizeof(spFieldPatchData<TV, IFORM>));
-        const size_t data = spFieldPatchData<TV, IFORM>::getSizeOfData(box, m_dof_, d_ghosts);
-        return obj + data;
-    };
-
-    virtual bool fineBoundaryRepresentsVariable() const override { return m_fine_boundary_represents_var_; };
-
-    virtual bool dataLivesOnPatchBorder() const override { return false; };
-
-    virtual bool validCopyTo(const std::shared_ptr<SAMRAI::hier::PatchDataFactory> &dst_pdf) const override {
-        bool valid_copy = false;
-
-        /*
-         * Valid options are NodeData and OuternodeData.
-         */
-        if (!valid_copy) {
-            std::shared_ptr<spFieldPatchDataFactory<TV, IFORM>> ndf(
-                std::dynamic_pointer_cast<spFieldPatchDataFactory<TV, IFORM>, SAMRAI::hier::PatchDataFactory>(dst_pdf));
-            if (ndf) { valid_copy = true; }
-        }
-
-        //        if (!valid_copy) {
-        //            std::shared_ptr<OuternodeDataFactory<TYPE>> ondf(
-        //                std::dynamic_pointer_cast<OuternodeDataFactory<TYPE>, hier::PatchDataFactory>(dst_pdf));
-        //            if (ondf) { valid_copy = true; }
-        //        }
-
-        return valid_copy;
-    };
-
-   private:
-    int m_dof_ = 0;
-    bool m_fine_boundary_represents_var_ = true;
-};
-
-template <typename TV, int IFORM>
-struct spFieldVariable : public SAMRAI::hier::Variable {
-   public:
-    spFieldVariable(const SAMRAI::tbox::Dimension &dim, const std::string &name, int depth = 1,
-                    bool fine_boundary_represents_var = true)
-        : SAMRAI::hier::Variable(
-              name, std::make_shared<spFieldPatchDataFactory<TV, IFORM>>(depth, SAMRAI::hier::IntVector::getZero(dim))),
-          m_dof_(depth),
-          m_fine_boundary_represents_var_(fine_boundary_represents_var){};
-
-    ~spFieldVariable() override {}
-
-    bool fineBoundaryRepresentsVariable() const override { return false; }
-
-    bool dataLivesOnPatchBorder() const override { return false; }
-
-    int getDepth() const { return m_dof_; }
-
-   private:
-    int m_dof_ = 0;
-    bool m_fine_boundary_represents_var_ = false;
 };
 
 REGISTER_CREATOR(SAMRAITimeIntegrator, SAMRAITimeIntegrator)
@@ -655,7 +904,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
     /*
      * Data items used for nonuniform Load balance, if used.
      */
-    std::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_workload_variable;
+    std::shared_ptr<spVariable<double, VOLUME>> d_workload_variable;
     int d_workload_data_id = 0;
     bool d_use_nonuniform_workload;
     std::map<id_type, std::pair<engine::AttributeDesc, std::shared_ptr<SAMRAI::hier::Variable>>> m_samrai_variables_;
@@ -688,17 +937,35 @@ std::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(const engine::A
 
     std::shared_ptr<SAMRAI::hier::Variable> res;
     switch (attr.GetIFORM()) {
+        //        case VERTEX:
+        //            res = std::make_shared<SAMRAI::pdat::NodeVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+        //            break;
+        //        case EDGE:
+        //            res = std::make_shared<SAMRAI::pdat::EdgeVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+        //            break;
+        //        case FACE:
+        //            res = std::make_shared<SAMRAI::pdat::SideVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+        //            break;
+        //        case VOLUME:
+        //            res = std::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+        //            break;
+        //        default:
+        //            break;
+
         case VERTEX:
-            res = std::make_shared<SAMRAI::pdat::NodeVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+            res = std::make_shared<spVariable<T, VERTEX>>(d_dim, attr.GetPrefix(), attr.GetDOF());
             break;
         case EDGE:
-            res = std::make_shared<SAMRAI::pdat::EdgeVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+            res = std::make_shared<spVariable<T, EDGE>>(d_dim, attr.GetPrefix(), attr.GetDOF());
             break;
         case FACE:
-            res = std::make_shared<SAMRAI::pdat::SideVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+            res = std::make_shared<spVariable<T, FACE>>(d_dim, attr.GetPrefix(), attr.GetDOF());
             break;
         case VOLUME:
-            res = std::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+            res = std::make_shared<spVariable<T, VOLUME>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+            break;
+        case FIBER:
+            res = std::make_shared<spVariable<T, FIBER>>(d_dim, attr.GetPrefix(), attr.GetDOF());
             break;
         default:
             break;
@@ -708,10 +975,11 @@ std::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(const engine::A
 
 std::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(const engine::AttributeDesc &attr) {
     std::shared_ptr<SAMRAI::hier::Variable> res = nullptr;
-    SAMRAI::tbox::Dimension d_dim(3);
-    if (attr.GetIFORM() == FIBER) {
-        res = std::make_shared<spParticleVariable>(d_dim, attr.GetPrefix(), attr.GetDOF());
-    } else if (attr.value_type_info() == (typeid(float))) {
+    //    SAMRAI::tbox::Dimension d_dim(3);
+    //    if (attr.GetIFORM() == FIBER) {
+    //        res = std::make_shared<spVariable<Real, FIBER>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+    //    } else
+    if (attr.value_type_info() == (typeid(float))) {
         res = create_samrai_variable_t<float>(attr);
     } else if (attr.value_type_info() == (typeid(double))) {
         res = create_samrai_variable_t<double>(attr);
@@ -722,103 +990,103 @@ std::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(const engine::Att
     }
     return res;
 }
-
-template <typename T, int NDIMS>
-Array<T, ZSFC<NDIMS>> create_array(SAMRAI::pdat::ArrayData<T> &p_data, int depth = 0) {
-    auto i_lower = p_data.getBox().lower();
-    auto i_upper = p_data.getBox().upper();
-
-    return Array<T, ZSFC<NDIMS>>(
-        p_data.getPointer(depth),
-        index_box_type{{i_lower[0], i_lower[1], i_lower[2]}, {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}}, true);
-    ;
-};
-
-template <int NDIMS, typename T>
-std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, std::shared_ptr<SAMRAI::hier::PatchData> pd) {
-    typedef Array<T, ZSFC<NDIMS>> array_type;
-    std::shared_ptr<data::DataBlock> res = nullptr;
-
-    switch (IFORM) {
-        case VERTEX: {
-            auto p_data = std::dynamic_pointer_cast<SAMRAI::pdat::NodeData<T>>(pd);
-            int depth = p_data->getDepth();
-            auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth);
-            for (int d = 0; d < depth; ++d) {
-                create_array<T, NDIMS>(p_data->getArrayData(), d).swap(mArray->GetArray(d));
-            }
-
-            res = std::dynamic_pointer_cast<data::DataBlock>(mArray);
-            break;
-        }
-        case EDGE: {
-            auto p_data = std::dynamic_pointer_cast<SAMRAI::pdat::EdgeData<T>>(pd);
-            int depth = p_data->getDepth();
-            auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth * 3);
-            for (int axis = 0; axis < 3; ++axis) {
-                for (int d = 0; d < depth; ++d) {
-                    create_array<T, NDIMS>(p_data->getArrayData(axis), d).swap(mArray->GetArray(axis * depth + d));
-                }
-            }
-            res = std::dynamic_pointer_cast<data::DataBlock>(mArray);
-            break;
-        }
-        case FACE: {
-            auto p_data = std::dynamic_pointer_cast<SAMRAI::pdat::SideData<T>>(pd);
-            int depth = p_data->getDepth();
-            auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth * 3);
-            for (int axis = 0; axis < 3; ++axis) {
-                for (int d = 0; d < depth; ++d) {
-                    create_array<T, NDIMS>(p_data->getArrayData(axis), d).swap(mArray->GetArray(axis * depth + d));
-                }
-            }
-            res = std::dynamic_pointer_cast<data::DataBlock>(mArray);
-            break;
-        }
-        case VOLUME: {
-            auto p_data = std::dynamic_pointer_cast<SAMRAI::pdat::CellData<T>>(pd);
-            int depth = p_data->getDepth();
-            auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth);
-            for (int d = 0; d < depth; ++d) {
-                create_array<T, NDIMS>(p_data->getArrayData(), d).swap(mArray->GetArray(d));
-            }
-            res = std::dynamic_pointer_cast<data::DataBlock>(mArray);
-            break;
-        }
-        case FIBER: {
-            auto p_data = std::dynamic_pointer_cast<spParticlePatchData>(pd);
-            ASSERT(p_data != nullptr);
-            res = p_data->GetDataBlock();
-            break;
-        }
-        default: {
-            UNIMPLEMENTED;
-            break;
-        }
-    }
-    return res;
-}
-
-template <int NDIMS>
-std::shared_ptr<data::DataBlock> create_simpla_datablock(const engine::AttributeDesc &desc,
-                                                         std::shared_ptr<SAMRAI::hier::PatchData> pd) {
-    std::shared_ptr<data::DataBlock> res(nullptr);
-    if (desc.value_type_info() == (typeid(float))) {
-        res = create_simpla_datablock<NDIMS, float>(desc.GetIFORM(), pd);
-    } else if (desc.value_type_info() == (typeid(double))) {
-        res = create_simpla_datablock<NDIMS, double>(desc.GetIFORM(), pd);
-    } else if (desc.value_type_info() == (typeid(int))) {
-        res = create_simpla_datablock<NDIMS, int>(desc.GetIFORM(), pd);
-    } else {
-        RUNTIME_ERROR << "Unsupported m_value_ value_type_info" << std::endl;
-    }
-    return res;
-}
-std::shared_ptr<SAMRAI::hier::PatchData> convert_from_data_block(const engine::AttributeDesc &desc,
-                                                                 std::shared_ptr<data::DataBlock> t) {
-    //    UNIMPLEMENTED;
-    return nullptr;
-}
+//
+// template <typename T, int NDIMS>
+// Array<T, ZSFC<NDIMS>> create_array(SAMRAI::pdat::ArrayData<T> &p_data, int depth = 0) {
+//    auto i_lower = p_data.getBox().lower();
+//    auto i_upper = p_data.getBox().upper();
+//
+//    return Array<T, ZSFC<NDIMS>>(
+//        p_data.getPointer(depth),
+//        index_box_type{{i_lower[0], i_lower[1], i_lower[2]}, {i_upper[0] + 1, i_upper[1] + 1, i_upper[2] + 1}}, true);
+//    ;
+//};
+//
+// template <int NDIMS, typename T>
+// std::shared_ptr<data::DataBlock> create_simpla_datablock(int IFORM, std::shared_ptr<SAMRAI::hier::PatchData> pd) {
+//    typedef Array<T, ZSFC<NDIMS>> array_type;
+//    std::shared_ptr<data::DataBlock> res = nullptr;
+//
+//    switch (IFORM) {
+//        case VERTEX: {
+//            auto p_data = std::dynamic_pointer_cast<SAMRAI::pdat::NodeData<T>>(pd);
+//            int depth = p_data->getDepth();
+//            auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth);
+//            for (int d = 0; d < depth; ++d) {
+//                create_array<T, NDIMS>(p_data->getArrayData(), d).swap(mArray->GetArray(d));
+//            }
+//
+//            res = std::dynamic_pointer_cast<data::DataBlock>(mArray);
+//            break;
+//        }
+//        case EDGE: {
+//            auto p_data = std::dynamic_pointer_cast<SAMRAI::pdat::EdgeData<T>>(pd);
+//            int depth = p_data->getDepth();
+//            auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth * 3);
+//            for (int axis = 0; axis < 3; ++axis) {
+//                for (int d = 0; d < depth; ++d) {
+//                    create_array<T, NDIMS>(p_data->getArrayData(axis), d).swap(mArray->GetArray(axis * depth + d));
+//                }
+//            }
+//            res = std::dynamic_pointer_cast<data::DataBlock>(mArray);
+//            break;
+//        }
+//        case FACE: {
+//            auto p_data = std::dynamic_pointer_cast<SAMRAI::pdat::SideData<T>>(pd);
+//            int depth = p_data->getDepth();
+//            auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth * 3);
+//            for (int axis = 0; axis < 3; ++axis) {
+//                for (int d = 0; d < depth; ++d) {
+//                    create_array<T, NDIMS>(p_data->getArrayData(axis), d).swap(mArray->GetArray(axis * depth + d));
+//                }
+//            }
+//            res = std::dynamic_pointer_cast<data::DataBlock>(mArray);
+//            break;
+//        }
+//        case VOLUME: {
+//            auto p_data = std::dynamic_pointer_cast<SAMRAI::pdat::CellData<T>>(pd);
+//            int depth = p_data->getDepth();
+//            auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth);
+//            for (int d = 0; d < depth; ++d) {
+//                create_array<T, NDIMS>(p_data->getArrayData(), d).swap(mArray->GetArray(d));
+//            }
+//            res = std::dynamic_pointer_cast<data::DataBlock>(mArray);
+//            break;
+//        }
+//        case FIBER: {
+//            auto p_data = std::dynamic_pointer_cast<spPatchData<T, FIBER>>(pd);
+//            ASSERT(p_data != nullptr);
+//            res = p_data->GetDataBlock();
+//            break;
+//        }
+//        default: {
+//            UNIMPLEMENTED;
+//            break;
+//        }
+//    }
+//    return res;
+//}
+//
+// template <int NDIMS>
+// std::shared_ptr<data::DataBlock> create_simpla_datablock(const engine::AttributeDesc &desc,
+//                                                         std::shared_ptr<SAMRAI::hier::PatchData> pd) {
+//    std::shared_ptr<data::DataBlock> res(nullptr);
+//    if (desc.value_type_info() == (typeid(float))) {
+//        res = create_simpla_datablock<NDIMS, float>(desc.GetIFORM(), pd);
+//    } else if (desc.value_type_info() == (typeid(double))) {
+//        res = create_simpla_datablock<NDIMS, double>(desc.GetIFORM(), pd);
+//    } else if (desc.value_type_info() == (typeid(int))) {
+//        res = create_simpla_datablock<NDIMS, int>(desc.GetIFORM(), pd);
+//    } else {
+//        RUNTIME_ERROR << "Unsupported m_value_ value_type_info" << std::endl;
+//    }
+//    return res;
+//}
+// std::shared_ptr<SAMRAI::hier::PatchData> convert_from_data_block(const engine::AttributeDesc &desc,
+//                                                                 std::shared_ptr<data::DataBlock> t) {
+//    //    UNIMPLEMENTED;
+//    return nullptr;
+//}
 
 }  // namespace detail
 
@@ -889,6 +1157,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         //                    << "] to VisIt writer !" << std::endl;
         //        }
         //        v_type != SAMRAI::algs::HyperbolicLevelIntegrator::TEMPORARY
+
         if (visit_variable_type != "" && item->db()->Check("COORDINATES", true)) {
             d_visit_writer->registerNodeCoordinates(
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
@@ -903,7 +1172,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         }
     }
     //    integrator->printClassData(std::cout);
-    //    vardb->printClassData(std::cout);
+    vardb->printClassData(std::cout);
 }
 
 engine::Patch *SAMRAIHyperbolicPatchStrategyAdapter::GetPatch(SAMRAI::hier::Patch &patch) {
@@ -916,14 +1185,20 @@ void SAMRAIHyperbolicPatchStrategyAdapter::PopPatch(SAMRAI::hier::Patch &patch, 
     for (auto &item : m_samrai_variables_) {
         auto samrai_id = SAMRAI::hier::VariableDatabase::getDatabase()->mapVariableAndContextToIndex(item.second.second,
                                                                                                      getDataContext());
-
-        if (!patch.checkAllocated(samrai_id)) { patch.allocatePatchData(samrai_id); }
-
-        p->SetDataBlock(item.first, simpla::detail::create_simpla_datablock<NDIMS>(item.second.first,
-                                                                                   patch.getPatchData(samrai_id)));
+        if (patch.checkAllocated(samrai_id)) {
+            // patch.allocatePatchData(samrai_id);
+            p->SetDataBlock(item.first, ConvertDataBlock(patch.getPatchData(samrai_id)));
+        }
     }
 }
-void SAMRAIHyperbolicPatchStrategyAdapter::PushPatch(engine::Patch *p, SAMRAI::hier::Patch &patch) {}
+void SAMRAIHyperbolicPatchStrategyAdapter::PushPatch(engine::Patch *p, SAMRAI::hier::Patch &patch) {
+    for (auto &item : m_samrai_variables_) {
+        auto samrai_id = SAMRAI::hier::VariableDatabase::getDatabase()->mapVariableAndContextToIndex(item.second.second,
+                                                                                                     getDataContext());
+
+        patch.setPatchData(samrai_id, ConvertDataBlock(p->GetDataBlock(item.first)));
+    }
+}
 
 void SAMRAIHyperbolicPatchStrategyAdapter::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
                                                              SAMRAI::mesh::GriddingAlgorithm *gridding_algorithm) {
@@ -933,7 +1208,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setupLoadBalancer(SAMRAI::algs::Hyper
         auto load_balancer =
             std::dynamic_pointer_cast<SAMRAI::mesh::CascadePartitioner>(gridding_algorithm->getLoadBalanceStrategy());
         if (load_balancer) {
-            d_workload_variable.reset(new SAMRAI::pdat::CellVariable<double>(d_dim, "workload_variable", 1));
+            d_workload_variable.reset(new spVariable<double, VOLUME>(d_dim, "workload_variable", 1));
             d_workload_data_id =
                 vardb->registerVariableAndContext(d_workload_variable, vardb->getContext("WORKLOAD"), zero_vec);
             load_balancer->setWorkloadPatchDataIndex(d_workload_data_id);
@@ -1090,9 +1365,10 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
 
     if (d_use_nonuniform_workload) {
         if (!patch.checkAllocated(d_workload_data_id)) { patch.allocatePatchData(d_workload_data_id); }
-        std::shared_ptr<SAMRAI::pdat::CellData<double>> workload_data(
-            std::dynamic_pointer_cast<SAMRAI::pdat::CellData<double>, SAMRAI::hier::PatchData>(
-                patch.getPatchData(d_workload_data_id)));
+
+        auto workload_data =
+            std::dynamic_pointer_cast<spPatchData<double, VOLUME>>(patch.getPatchData(d_workload_data_id));
+
         TBOX_ASSERT(workload_data);
 
         const SAMRAI::hier::Box &box = patch.getBox();
@@ -1148,8 +1424,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::tagGradientDetectorCells(SAMRAI::hier
     PopPatch(patch, p);
     auto desc = m_ctx_->GetMesh()->GetAttributeDescription("_refinement_tags_");
     if (desc != nullptr) {
-        p->SetDataBlock(desc->GetDescID(),
-                        simpla::detail::create_simpla_datablock<NDIMS>(*desc, patch.getPatchData(tag_index)));
+        p->SetDataBlock(desc->GetDescID(), ConvertDataBlock(patch.getPatchData(tag_index)));
         m_ctx_->Push(p);
         m_ctx_->TagRefinementCells(regrid_time);
         m_ctx_->Pop(p);
@@ -1338,15 +1613,95 @@ void SAMRAITimeIntegrator::DoUpdate() {
 
     m_pimpl_->grid_geometry.reset(
         new SAMRAI::geom::CartesianGridGeometry(dim, "CartesianGeometry", cfgCartesianGridGeometry));
+    {
+        auto g = m_pimpl_->grid_geometry;
+        m_pimpl_->grid_geometry->addCoarsenOperator(typeid(spVariable<Real, FIBER>).name(),
+                                                    std::make_shared<spParticleCoarsenRefine>());
 
-    m_pimpl_->grid_geometry->addCoarsenOperator(typeid(spParticleVariable).name(),
-                                                std::make_shared<spParticleCoarsenRefine>());
+        m_pimpl_->grid_geometry->addRefineOperator(typeid(spVariable<Real, FIBER>).name(),
+                                                   std::make_shared<spParticleConstantRefine>());
 
-    m_pimpl_->grid_geometry->addRefineOperator(typeid(spParticleVariable).name(),
-                                               std::make_shared<spParticleConstantRefine>());
+        m_pimpl_->grid_geometry->addTimeInterpolateOperator(typeid(spVariable<Real, FIBER>).name(),
+                                                            std::make_shared<spParticleLinearTimeInterpolateOp>());
 
-    m_pimpl_->grid_geometry->addTimeInterpolateOperator(typeid(spParticleVariable).name(),
-                                                        std::make_shared<spParticleLinearTimeInterpolateOp>());
+        // Coarsening Operators
+        g->addCoarsenOperator(typeid(spVariable<dcomplex, VERTEX>).name(),
+                              std::make_shared<SAMRAI::pdat::NodeComplexInjection>());
+        g->addCoarsenOperator(typeid(spVariable<double, VERTEX>).name(),
+                              std::make_shared<SAMRAI::pdat::NodeDoubleInjection>());
+        g->addCoarsenOperator(typeid(spVariable<float, VERTEX>).name(),
+                              std::make_shared<SAMRAI::pdat::NodeFloatInjection>());
+        g->addCoarsenOperator(typeid(spVariable<int, VERTEX>).name(),
+                              std::make_shared<SAMRAI::pdat::NodeIntegerInjection>());
+        g->addCoarsenOperator(typeid(spVariable<double, SP_OUTER_PATCH + VERTEX>).name(),
+                              std::make_shared<SAMRAI::pdat::OuternodeDoubleInjection>());
+
+        // Refinement Operators
+        g->addRefineOperator(typeid(spVariable<dcomplex, VOLUME>).name(),
+                             std::make_shared<SAMRAI::pdat::CellComplexConstantRefine>());
+        g->addRefineOperator(typeid(spVariable<double, VOLUME>).name(),
+                             std::make_shared<SAMRAI::pdat::CellDoubleConstantRefine>());
+        g->addRefineOperator(typeid(spVariable<float, VOLUME>).name(),
+                             std::make_shared<SAMRAI::pdat::CellFloatConstantRefine>());
+        g->addRefineOperator(typeid(spVariable<int, VOLUME>).name(),
+                             std::make_shared<SAMRAI::pdat::CellIntegerConstantRefine>());
+        g->addRefineOperator(typeid(spVariable<dcomplex, EDGE>).name(),
+                             std::make_shared<SAMRAI::pdat::EdgeComplexConstantRefine>());
+        g->addRefineOperator(typeid(spVariable<double, EDGE>).name(),
+                             std::make_shared<SAMRAI::pdat::EdgeDoubleConstantRefine>());
+        g->addRefineOperator(typeid(spVariable<float, EDGE>).name(),
+                             std::make_shared<SAMRAI::pdat::EdgeFloatConstantRefine>());
+        g->addRefineOperator(typeid(spVariable<int, EDGE>).name(),
+                             std::make_shared<SAMRAI::pdat::EdgeIntegerConstantRefine>());
+        g->addRefineOperator(typeid(spVariable<dcomplex, FACE>).name(),
+                             std::make_shared<SAMRAI::pdat::FaceComplexConstantRefine>());
+        g->addRefineOperator(typeid(spVariable<double, FACE>).name(),
+                             std::make_shared<SAMRAI::pdat::FaceDoubleConstantRefine>());
+        g->addRefineOperator(typeid(spVariable<float, FACE>).name(),
+                             std::make_shared<SAMRAI::pdat::FaceFloatConstantRefine>());
+        g->addRefineOperator(typeid(spVariable<int, FACE>).name(),
+                             std::make_shared<SAMRAI::pdat::FaceIntegerConstantRefine>());
+        g->addRefineOperator(typeid(spVariable<dcomplex, SP_OUTER_PATCH + FACE>).name(),
+                             std::make_shared<SAMRAI::pdat::OuterfaceComplexConstantRefine>());
+        g->addRefineOperator(typeid(spVariable<double, SP_OUTER_PATCH + FACE>).name(),
+                             std::make_shared<SAMRAI::pdat::OuterfaceDoubleConstantRefine>());
+        g->addRefineOperator(typeid(spVariable<float, SP_OUTER_PATCH + FACE>).name(),
+                             std::make_shared<SAMRAI::pdat::OuterfaceFloatConstantRefine>());
+        g->addRefineOperator(typeid(spVariable<int, SP_OUTER_PATCH + FACE>).name(),
+                             std::make_shared<SAMRAI::pdat::OuterfaceIntegerConstantRefine>());
+
+        // Time Interpolation Operators
+        g->addTimeInterpolateOperator(typeid(spVariable<dcomplex, VOLUME>).name(),
+                                      std::make_shared<SAMRAI::pdat::CellComplexLinearTimeInterpolateOp>());
+        g->addTimeInterpolateOperator(typeid(spVariable<double, VOLUME>).name(),
+                                      std::make_shared<SAMRAI::pdat::CellDoubleLinearTimeInterpolateOp>());
+        g->addTimeInterpolateOperator(typeid(spVariable<float, VOLUME>).name(),
+                                      std::make_shared<SAMRAI::pdat::CellFloatLinearTimeInterpolateOp>());
+        g->addTimeInterpolateOperator(typeid(spVariable<dcomplex, EDGE>).name(),
+                                      std::make_shared<SAMRAI::pdat::EdgeComplexLinearTimeInterpolateOp>());
+        g->addTimeInterpolateOperator(typeid(spVariable<double, EDGE>).name(),
+                                      std::make_shared<SAMRAI::pdat::EdgeDoubleLinearTimeInterpolateOp>());
+        g->addTimeInterpolateOperator(typeid(spVariable<float, EDGE>).name(),
+                                      std::make_shared<SAMRAI::pdat::EdgeFloatLinearTimeInterpolateOp>());
+        g->addTimeInterpolateOperator(typeid(spVariable<dcomplex, FACE>).name(),
+                                      std::make_shared<SAMRAI::pdat::FaceComplexLinearTimeInterpolateOp>());
+        g->addTimeInterpolateOperator(typeid(spVariable<double, FACE>).name(),
+                                      std::make_shared<SAMRAI::pdat::FaceDoubleLinearTimeInterpolateOp>());
+        g->addTimeInterpolateOperator(typeid(spVariable<float, FACE>).name(),
+                                      std::make_shared<SAMRAI::pdat::FaceFloatLinearTimeInterpolateOp>());
+        g->addTimeInterpolateOperator(typeid(spVariable<dcomplex, VERTEX>).name(),
+                                      std::make_shared<SAMRAI::pdat::NodeComplexLinearTimeInterpolateOp>());
+        g->addTimeInterpolateOperator(typeid(spVariable<double, VERTEX>).name(),
+                                      std::make_shared<SAMRAI::pdat::NodeDoubleLinearTimeInterpolateOp>());
+        g->addTimeInterpolateOperator(typeid(spVariable<float, VERTEX>).name(),
+                                      std::make_shared<SAMRAI::pdat::NodeFloatLinearTimeInterpolateOp>());
+        g->addTimeInterpolateOperator(typeid(spVariable<dcomplex, SP_OUTER_PATCH + FACE>).name(),
+                                      std::make_shared<SAMRAI::pdat::OuterfaceComplexLinearTimeInterpolateOp>());
+        g->addTimeInterpolateOperator(typeid(spVariable<double, SP_OUTER_PATCH + FACE>).name(),
+                                      std::make_shared<SAMRAI::pdat::OuterfaceDoubleLinearTimeInterpolateOp>());
+        g->addTimeInterpolateOperator(typeid(spVariable<float, SP_OUTER_PATCH + FACE>).name(),
+                                      std::make_shared<SAMRAI::pdat::OuterfaceFloatLinearTimeInterpolateOp>());
+    }
     //---------------------------------
 
     auto cfgPatchHierarchy = std::make_shared<SAMRAI::tbox::MemoryDatabase>("cfgPatchHierarchy");
