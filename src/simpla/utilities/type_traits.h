@@ -11,6 +11,7 @@
 #include <initializer_list>
 #include <type_traits>
 #include <utility>
+#include "Log.h"
 #include "host_define.h"
 
 namespace simpla {
@@ -841,6 +842,7 @@ EXAMPLE:
     struct _NAME_ : public std::integral_constant<bool, detail::_NAME_<T...>::value> {};
 
 // CHECK_OPERATOR(is_callable, ())
+
 
 }  // namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */

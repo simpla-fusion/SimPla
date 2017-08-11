@@ -33,7 +33,7 @@ struct GeoObjectOCC::pimpl_s {
 GeoObjectOCC::GeoObjectOCC() : m_pimpl_(new pimpl_s){};
 
 GeoObjectOCC::GeoObjectOCC(GeoObject const &g) : GeoObjectOCC() {
-    if (!g.isA(typeid(GeoObjectOCC))) {
+    if (dynamic_cast<GeoObjectOCC const *>(&g) == nullptr) {
         UNIMPLEMENTED;
     } else {
         m_pimpl_->m_occ_shape_ = dynamic_cast<GeoObjectOCC const &>(g).m_pimpl_->m_occ_shape_;

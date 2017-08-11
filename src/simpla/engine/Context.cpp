@@ -29,7 +29,7 @@ struct Context::pimpl_s {
 
 Context::Context(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
 
-Context::~Context() {}
+Context::~Context() = default;
 
 std::shared_ptr<data::DataTable> Context::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
@@ -58,9 +58,9 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     auto t_domain = cfg->GetTable("Domains");
     if (t_domain != nullptr) {
         t_domain->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) {
-            if (t_cfg != nullptr && t_cfg->isTable()) {
-                auto p_cfg = std::dynamic_pointer_cast<data::DataTable>(t_cfg);
 
+            auto p_cfg = std::dynamic_pointer_cast<data::DataTable>(t_cfg);
+            if (p_cfg != nullptr) {
                 m_pimpl_->m_domains_[key] =
                     DomainBase::Create(p_cfg, GetMesh(), GetModel(p_cfg->GetValue<std::string>("Model", "")));
 

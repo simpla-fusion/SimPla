@@ -5,9 +5,9 @@
 #ifndef SIMPLA_DATABLOCK_H
 #define SIMPLA_DATABLOCK_H
 
+#include "DataEntity.h"
 #include "simpla/SIMPLA_config.h"
 #include "simpla/algebra/Array.h"
-#include "DataEntity.h"
 namespace simpla {
 
 namespace data {
@@ -24,7 +24,6 @@ class DataBlock : public DataEntity {
     SP_DEFAULT_CONSTRUCT(DataBlock);
 
     bool empty() const override { return true; }
-    bool isBlock() const override { return true; }
     std::type_info const &value_type_info() const override { return typeid(Real); };
     virtual int GetNDIMS() const { return 0; }
     virtual size_type GetDepth() const { return 1; }

@@ -315,7 +315,7 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t loc_id
                                        std::shared_ptr<DataTable> const& src, bool overwrite) {
     hid_t gid = OpenGroup(loc_id, key, overwrite);
 
-    src->cast_as<DataTable>().Foreach(
+    src->Foreach(
         [&](std::string const& k, std::shared_ptr<data::DataEntity> const& v) { HDF5Set(self, gid, k, v, overwrite); });
     H5_ERROR(H5Gclose(gid));
     return;
@@ -388,9 +388,9 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t g_id, 
 
     if (is_exist && !overwrite) { return; }
 
-    if (src->isTable()) {
+    if (std::dynamic_pointer_cast<DataTable>(src) != nullptr) {
         HDF5Set(self, g_id, key, std::dynamic_pointer_cast<DataTable>(src), overwrite);
-    } else if (src->isBlock()) {
+    } else if (std::dynamic_pointer_cast<DataBlock>(src) != nullptr) {
         HDF5Set(self, g_id, key, std::dynamic_pointer_cast<DataBlock>(src), overwrite);
     } else if (src->value_type_info() == typeid(std::string) && src->isLight()) {
         std::string const& s_str = DataCastTraits<std::string>::Get(src);
@@ -404,29 +404,29 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t g_id, 
         H5Aclose(a_id);
     } else if (src->value_type_info() == typeid(std::string) && !src->isLight()) {
         UNIMPLEMENTED;
-    } else if (src->isArray() && src->cast_as<DataArray>().isA(typeid(data::DataEntityWrapper<void*>))) {
+    } else if (dynamic_cast<data::DataEntityWrapper<void*> const*>(src.get()) != nullptr) {
         HDF5Set(self, g_id, key, std::dynamic_pointer_cast<DataArray>(src), overwrite);
     } else {
         hid_t d_type = -1;
         hid_t d_space;
         char* data = nullptr;
-        if (src->isArray()) {
-            hsize_t s = src->cast_as<DataArray>().size();
-            d_space = H5Screate_simple(1, &s, NULL);
+        if (dynamic_cast<DataArray*>(src.get()) != nullptr) {
+            hsize_t s = std::dynamic_pointer_cast<DataArray>(src)->size();
+            d_space = H5Screate_simple(1, &s, nullptr);
         } else {
             d_space = H5Screate(H5S_SCALAR);
         }
 
         if (false) {}
-#define DEC_TYPE(_T_, _H5_T_)                                                                  \
-    else if (src->value_type_info() == typeid(_T_)) {                                          \
-        d_type = _H5_T_;                                                                       \
-        if (src->isArray()) {                                                                  \
-            data = reinterpret_cast<char*>(&src->cast_as<DataEntityWrapper<_T_*>>().get()[0]); \
-        } else {                                                                               \
-            data = new char[sizeof(_T_)];                                                      \
-            *reinterpret_cast<_T_*>(data) = DataCastTraits<_T_>::Get(src);                     \
-        }                                                                                      \
+#define DEC_TYPE(_T_, _H5_T_)                                                                                   \
+    else if (src->value_type_info() == typeid(_T_)) {                                                           \
+        d_type = _H5_T_;                                                                                        \
+        if (std::dynamic_pointer_cast<DataEntityWrapper<_T_*>>(src) != nullptr) {                               \
+            data = reinterpret_cast<char*>(&std::dynamic_pointer_cast<DataEntityWrapper<_T_*>>(src)->get()[0]); \
+        } else {                                                                                                \
+            data = new char[sizeof(_T_)];                                                                       \
+            *reinterpret_cast<_T_*>(data) = DataCastTraits<_T_>::Get(src);                                      \
+        }                                                                                                       \
     }
 
         //        DEC_TYPE(bool, H5T_NATIVE_HBOOL)
@@ -445,15 +445,15 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t g_id, 
             H5Awrite(a_id, d_type, data);
             H5Aclose(a_id);
         }
-        if (!src->isArray()) { delete data; }
+        if (std::dynamic_pointer_cast<DataArray>(src) == nullptr) { delete data; }
     }
 }
 
 void DataBackendHDF5::pimpl_s::HDF5Add(DataBackendHDF5 const* self, hid_t g_id, std::string const& key,
                                        std::shared_ptr<DataEntity> const& src) {
-    if (src->isTable()) {
+    if (dynamic_cast<DataTable const*>(src.get()) != nullptr) {
         HDF5Set(self, g_id, key, std::dynamic_pointer_cast<DataTable>(src), true);
-    } else if (src->isBlock()) {
+    } else if (dynamic_cast<DataBlock const*>(src.get()) != nullptr) {
         HDF5Add(self, g_id, key, std::dynamic_pointer_cast<DataBlock>(src));
     } else {
         HDF5Set(self, g_id, key, src, true);
@@ -469,7 +469,7 @@ DataBackendHDF5::DataBackendHDF5(DataBackendHDF5&& other) noexcept : m_pimpl_(st
 DataBackendHDF5::DataBackendHDF5(std::string const& uri, std::string const& status) : DataBackendHDF5() {
     Connect(uri, status);
 }
-DataBackendHDF5::~DataBackendHDF5() {}
+DataBackendHDF5::~DataBackendHDF5() = default;
 
 void DataBackendHDF5::Connect(std::string const& authority, std::string const& path, std::string const& query,
                               std::string const& fragment) {
@@ -525,10 +525,10 @@ void DataBackendHDF5::Add(std::string const& uri, std::shared_ptr<DataEntity> co
     if (res.first == -1 || res.second == "") { return; }
     pimpl_s::HDF5Add(this, res.first, res.second, src);
 }
-int DataBackendHDF5::Delete(std::string const& uri) {
+size_type DataBackendHDF5::Delete(std::string const& uri) {
     auto res = pimpl_s::HDf5GetTable(this, m_pimpl_->m_g_id_, uri, false);
     if (res.first == -1 || res.second == "") { return 0; }
-    int count = 0;
+    size_type count = 0;
     if (H5Aexists(res.first, res.second.c_str())) {
         H5Adelete(res.first, res.second.c_str());
         ++count;

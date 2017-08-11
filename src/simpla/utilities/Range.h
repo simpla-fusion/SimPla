@@ -151,10 +151,10 @@ struct RangeBase {
 
     template <typename TFun, typename... Args>
     void foreach (TFun const& fun, Args && ... args) const {
-        if (isA(typeid(continue_type))) {
-            this->cast_as<continue_type>().DoForeach(fun, std::forward<Args>(args)...);
-        } else if (isA(typeid(unordered_type))) {
-            this->cast_as<unordered_type>().DoForeach(fun, std::forward<Args>(args)...);
+        if (dynamic_cast<continue_type const*>(this) != nullptr) {
+            dynamic_cast<continue_type const*>(this)->DoForeach(fun, std::forward<Args>(args)...);
+        } else if (dynamic_cast<unordered_type const*>(this) != nullptr) {
+            dynamic_cast<unordered_type const*>(this)->DoForeach(fun, std::forward<Args>(args)...);
         } else {
             foreach_override([&](value_type& v) { fun(v, std::forward<Args>(args)...); });
         }

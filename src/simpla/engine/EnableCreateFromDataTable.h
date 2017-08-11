@@ -102,7 +102,7 @@ class EnableCreateFromDataTable : public engine::SPObject, public data::Serializ
         if (cfg == nullptr) {
         } else if (cfg->value_type_info() == typeid(std::string)) {
             s_type = data::DataCastTraits<std::string>::Get(cfg);
-        } else if (cfg->isTable()) {
+        } else if (dynamic_cast<data::DataTable const *>(cfg.get()) != nullptr) {
             auto t = std::dynamic_pointer_cast<data::DataTable>(cfg);
             s_type = t->GetValue<std::string>("Type", "");
         }
@@ -114,7 +114,7 @@ class EnableCreateFromDataTable : public engine::SPObject, public data::Serializ
                                        std::forward<U>(args)...);
         }
 
-        if (res != nullptr && cfg != nullptr && cfg->isTable()) {
+        if (res != nullptr && dynamic_cast<data::DataTable const *>(cfg.get()) != nullptr) {
             res->Deserialize(std::dynamic_pointer_cast<data::DataTable>(cfg));
         }
 

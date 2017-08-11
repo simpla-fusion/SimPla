@@ -9,15 +9,23 @@ namespace simpla {
 namespace data {
 // DataEntity::DataEntity() {}
 // DataEntity::~DataEntity() {}
+
+bool DataEntity::isNull() const {
+    return dynamic_cast<DataTable const*>(this) == nullptr &&  //
+           dynamic_cast<DataArray const*>(this) == nullptr &&  //
+           dynamic_cast<DataBlock const*>(this) == nullptr &&  //
+           (!isLight());
+}
+
 std::ostream& DataEntity::Serialize(std::ostream& os, int indent) const {
     if (isLight()) {
         os << "<Light Data:" << value_type_info().name() << ">";
-    } else if (isBlock()) {
-        os << "<Block:" << value_type_info().name() << "," << std::boolalpha << this->cast_as<DataBlock>().empty()
-           << ">";
-    } else if (isTable()) {
+    } else if (dynamic_cast<DataBlock const*>(this) != nullptr) {
+        os << "<Block:" << value_type_info().name() << "," << std::boolalpha
+           << dynamic_cast<DataBlock const*>(this)->empty() << ">";
+    } else if (dynamic_cast<DataTable const*>(this) != nullptr) {
         os << "<Table:" << value_type_info().name() << ">";
-    } else if (isArray()) {
+    } else if (dynamic_cast<DataArray const*>(this) != nullptr) {
         os << "<Array:" << value_type_info().name() << ">";
     }
     return os;

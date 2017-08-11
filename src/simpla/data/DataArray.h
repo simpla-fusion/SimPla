@@ -4,9 +4,9 @@
 
 #ifndef SIMPLA_DATAARRAY_H
 #define SIMPLA_DATAARRAY_H
+#include <functional>
 #include "DataEntity.h"
 #include "DataTraits.h"
-#include <functional>
 
 namespace simpla {
 namespace data {
@@ -27,7 +27,6 @@ struct DataArray : public DataEntity {
     SP_DEFAULT_CONSTRUCT(DataArray)
 
     std::ostream& Serialize(std::ostream& os, int indent) const override;
-    bool isArray() const override { return true; }
     /**   DataArray */
     virtual size_type size() const { return 0; };
     virtual std::shared_ptr<DataEntity> Get(index_type idx) const { return std::make_shared<DataEntity>(); }
@@ -160,14 +159,14 @@ class DataEntityWrapper<U*> : public DataArrayWithType<U> {
 template <typename U, int N>
 struct DataCastTraits<nTuple<U, N>> {
     static nTuple<U, N> Get(std::shared_ptr<DataEntity> const& p) {
-        ASSERT(p != nullptr && p->isA<DataEntityWrapper<U*>>());
-        auto const& a = p->cast_as<DataEntityWrapper<U*>>();
+        ASSERT(dynamic_cast<DataEntityWrapper<U*> const*>(p.get()) != nullptr);
+        auto a = std::dynamic_pointer_cast<DataEntityWrapper<U*>>(p);
         nTuple<U, N> res;
-        for (int i = 0; i < N; ++i) { res[i] = i < a.size() ? DataCastTraits<U>::Get(a.Get(i)) : 0; }
+        for (int i = 0; i < N; ++i) { res[i] = i < a->size() ? DataCastTraits<U>::Get(a->Get(i)) : 0; }
         return std::move(res);
     }
     static nTuple<U, N> Get(std::shared_ptr<DataEntity> const& p, nTuple<U, N> const& default_value) {
-        return (p != nullptr && p->isArray()) ? Get(p) : default_value;
+        return (dynamic_cast<DataArray const*>(p.get()) != nullptr) ? Get(p) : default_value;
     }
 };
 

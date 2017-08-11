@@ -200,7 +200,7 @@ void DataBackendLua::Set(std::string const& key, std::shared_ptr<DataEntity> con
 }
 
 void DataBackendLua::Add(std::string const& key, std::shared_ptr<DataEntity> const& v) { UNIMPLEMENTED; }
-int DataBackendLua::Delete(std::string const& key) {
+size_type DataBackendLua::Delete(std::string const &key) {
     UNIMPLEMENTED;
     return 0;
 }

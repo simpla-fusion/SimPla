@@ -44,7 +44,7 @@ class EMFluid {
     Field<host_type, Real, VOLUME, 3> dumpB{m_host_, "name"_ = "dumpB"};
     Field<host_type, Real, VOLUME, 3> dumpJ{m_host_, "name"_ = "dumpJ"};
 
-//    void TagRefinementCells(Real time_now);
+    //    void TagRefinementCells(Real time_now);
 
     struct fluid_s {
         Real mass = 1;
@@ -75,15 +75,15 @@ void EMFluid<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     if (cfg == nullptr || cfg->GetTable("Species") == nullptr) { return; }
     auto sp = cfg->GetTable("Species");
     sp->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> v) {
-        if (!v->isTable()) { return; }
-        auto t = std::dynamic_pointer_cast<data::DataTable>(v);
-        AddSpecies(k, t);
+        AddSpecies(k, std::dynamic_pointer_cast<data::DataTable>(v));
     });
 }
 
 template <typename TM>
 std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string const& name,
                                                                      std::shared_ptr<data::DataTable> const& d) {
+    if (d == nullptr) { return nullptr; }
+
     auto sp = std::make_shared<fluid_s>();
     sp->mass = d->GetValue<double>("mass", d->GetValue<double>("mass", 1)) * SI_proton_mass;
     sp->charge = d->GetValue<double>("charge", d->GetValue<double>("Z", 1)) * SI_elementary_charge;
@@ -97,8 +97,8 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
     return sp;
 }
 //
-//template <typename TM>
-//void EMFluid<TM>::TagRefinementCells(Real time_now) {
+// template <typename TM>
+// void EMFluid<TM>::TagRefinementCells(Real time_now) {
 //    m_host_->GetMesh()->TagRefinementCells(m_host_->GetMesh()->GetRange(m_host_->GetName() + "_BOUNDARY_3"));
 //}
 template <typename TM>

@@ -65,10 +65,12 @@ void PICBoris<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     if (cfg == nullptr || cfg->GetTable("Species") == nullptr) { return; }
     auto sp = cfg->GetTable("Species");
     sp->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> v) {
-        if (!v->isTable()) { return; }
+
         auto t = std::dynamic_pointer_cast<data::DataTable>(v);
-        t->SetValue("name", k);
-        AddSpecies(k, t);
+        if (t != nullptr) {
+            t->SetValue("name", k);
+            AddSpecies(k, t);
+        }
     });
 }
 

@@ -32,11 +32,7 @@ std::shared_ptr<data::DataTable> ParticleBase::Serialize() const {
 void ParticleBase::Deserialize(const std::shared_ptr<data::DataTable>& t) {
     if (t == nullptr) { return; }
 }
-void ParticleBase::PushData(data::DataBlock* dblk) {
-    ASSERT(dblk->isA(typeid(ParticleDataBlock)));
-    m_pimpl_->m_data_block_ = dynamic_cast<ParticleDataBlock*>(dblk);
-}
-
+void ParticleBase::PushData(data::DataBlock* dblk) { m_pimpl_->m_data_block_ = dynamic_cast<ParticleDataBlock*>(dblk); }
 void ParticleBase::PopData(data::DataBlock* dblk) { m_pimpl_->m_data_block_ = nullptr; }
 void ParticleBase::SetNumberOfAttributes(int n) { m_pimpl_->m_num_of_attr_ = n; }
 int ParticleBase::GetNumberOfAttributes() const { return m_pimpl_->m_num_of_attr_; }

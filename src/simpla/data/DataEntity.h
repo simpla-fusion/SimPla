@@ -5,13 +5,13 @@
 #ifndef SIMPLA_DATAENTITY_H
 #define SIMPLA_DATAENTITY_H
 
-#include "simpla/SIMPLA_config.h"
-#include "simpla/utilities/Log.h"
-#include "simpla/utilities/ObjectHead.h"
 #include <typeindex>
 #include <vector>
 #include "DataTraits.h"
 #include "Serializable.h"
+#include "simpla/SIMPLA_config.h"
+#include "simpla/utilities/Log.h"
+#include "simpla/utilities/ObjectHead.h"
 namespace simpla {
 namespace data {
 template <typename, typename Enable = void>
@@ -38,11 +38,7 @@ struct DataEntity {
     virtual bool empty() const { return true; }
     virtual std::type_info const& value_type_info() const { return typeid(void); };
     virtual bool isLight() const { return false; }
-    virtual bool isBlock() const { return false; }
-    virtual bool isTable() const { return false; }
-    virtual bool isArray() const { return false; }
-    virtual bool isNull() const { return !(isBlock() || isLight() || isTable() || isArray()); }
-
+    virtual bool isNull() const;
     virtual std::shared_ptr<DataEntity> Duplicate() const { return nullptr; };
 };
 
@@ -136,12 +132,12 @@ std::shared_ptr<DataEntity> make_data_entity(Args&&... args) {
 template <typename U>
 struct DataCastTraits {
     static U Get(std::shared_ptr<DataEntity> const& p) {
-        ASSERT(p != nullptr && p->isA<DataEntityWrapper<U>>());
-        return p->cast_as<DataEntityWrapper<U>>().value();
+        ASSERT(dynamic_cast<DataEntityWrapper<U> const*>(p.get()) != nullptr);
+        return std::dynamic_pointer_cast<DataEntityWrapper<U>>(p)->value();
     }
     static U Get(std::shared_ptr<DataEntity> const& p, U const& default_value) {
-        ASSERT(p == nullptr || p->isA<DataEntityWrapper<U>>());
-        return p == nullptr ? default_value : p->cast_as<DataEntityWrapper<U>>().value();
+        ASSERT(p == nullptr || dynamic_cast<DataEntityWrapper<U> const*>(p.get()) != nullptr);
+        return p == nullptr ? default_value : std::dynamic_pointer_cast<DataEntityWrapper<U>>(p)->value();
     }
 };
 template <typename U>

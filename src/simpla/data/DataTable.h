@@ -59,8 +59,6 @@ class DataTable : public DataEntity {
     std::ostream& Serialize(std::ostream& os, int indent) const override;
     std::istream& Deserialize(std::istream& is) override;
 
-    bool isTable() const override { return true; }
-    std::type_info const& value_type_info() const override { return typeid(DataTable); };
     std::shared_ptr<DataEntity> Duplicate() const override;
     //******************************************************************************************************************
     /** Interface DataBackend */
@@ -75,13 +73,13 @@ class DataTable : public DataEntity {
 
     void Set(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr, bool overwrite = true);
     void Add(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr);
-    int Delete(std::string const& uri);
+    size_type Delete(std::string const& uri);
     size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
 
     /** Interface DataBackend End */
     //******************************************************************************************************************
     bool has(std::string const& uri) const { return Get(uri) != nullptr; }
-    bool isTable(std::string const& uri) const { return has(uri) && Get(uri)->isTable(); }
+    bool isTable(std::string const& uri) const { return dynamic_cast<DataTable const*>(Get(uri).get()) != nullptr; }
 
     template <typename U>
     bool Check(std::string const& key, U const& u = true) const {
@@ -117,10 +115,10 @@ class DataTable : public DataEntity {
     U GetValue(std::string const& uri, U const& default_value) const {
         return DataCastTraits<U>::Get(Get(uri), default_value);
     }
-//    template <typename U, typename... Args>
-//    U GetValue(std::string const& uri, Args&&... args) const {
-//        return DataCastTraits<U>::Get(Get(uri), U{std::forward<Args>(args)...});
-//    }
+    //    template <typename U, typename... Args>
+    //    U GetValue(std::string const& uri, Args&&... args) const {
+    //        return DataCastTraits<U>::Get(Get(uri), U{std::forward<Args>(args)...});
+    //    }
 
     //    template <typename U, typename V>
     //    bool GetValue(std::string const& uri, V* v) const {

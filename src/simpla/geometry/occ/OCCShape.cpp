@@ -20,7 +20,7 @@ gp_Dir dir(vector_type const& p0) { return gp_Dir{p0[0], p0[1], p0[2]}; }
 template <>
 TopoDS_Shape* OCCCast<TopoDS_Shape, GeoObject>::eval(GeoObject const& g) {
     auto* res = new TopoDS_Shape;
-    if (g.isA(typeid(GeoObjectOCC))) {
+    if (dynamic_cast<GeoObjectOCC const*>(&g) != nullptr) {
         *res = dynamic_cast<GeoObjectOCC const&>(g).GetShape();
     } else {
         *res = GeoObjectOCC(g).GetShape();
@@ -30,10 +30,10 @@ TopoDS_Shape* OCCCast<TopoDS_Shape, GeoObject>::eval(GeoObject const& g) {
 template <>
 Geom_Curve* OCCCast<Geom_Curve, Curve>::eval(Curve const& c) {
     Geom_Curve* res = nullptr;
-    if (c.isA(typeid(Circle))) {
+    if (dynamic_cast<Circle const*>(&c) != nullptr) {
         auto const& l = dynamic_cast<Circle const&>(c);
         res = new Geom_Circle(gp_Ax2(point(l.Origin()), dir(l.Normal()), dir(l.XAxis())), l.Radius());
-    } else if (c.isA(typeid(Line))) {
+    } else if (dynamic_cast<Line const*>(&c) != nullptr) {
         auto const& l = dynamic_cast<Line const&>(c);
         res = new Geom_Line(point(l.Origin()), dir(l.Direction()));
     } else {
