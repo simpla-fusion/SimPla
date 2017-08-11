@@ -37,7 +37,7 @@ void AttributeGroup::Push(Patch *p) {
     for (auto *item : m_attributes_) { item->Push(p->GetDataBlock(item->GetDescID())); }
 }
 
-void AttributeGroup::Pull(Patch *p) {
+void AttributeGroup::Pop(Patch *p) {
     for (auto *item : m_attributes_) { p->SetDataBlock(item->GetDescID(), item->Pop()); }
 }
 

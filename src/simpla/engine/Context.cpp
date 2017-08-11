@@ -165,7 +165,7 @@ std::map<std::string, std::shared_ptr<DomainBase>> const &Context::GetAllDomains
     return m_pimpl_->m_domains_;
 }
 
-void Context::Pull(Patch *p) { GetMesh()->Pull(p); };
+void Context::Pop(Patch *p) { GetMesh()->Pop(p); };
 void Context::Push(Patch *p) { GetMesh()->Push(p); };
 
 void Context::InitialCondition(Real time_now) {

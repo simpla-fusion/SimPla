@@ -67,9 +67,9 @@ void ParticleBase::Sort() {
     ParticleSort(GetMaxSize(), GetNumberOfAttributes(), m_pimpl_->m_tag_, m_pimpl_->m_tag_, m_pimpl_->m_data_,
                  m_pimpl_->m_data_);
 }
-void ParticleBase::DeepSort() { UNIMPLEMENTED; }
+void ParticleBase::DeepSort() {}
 
-void ParticleBase::DoInitialize() { UNIMPLEMENTED; }
+void ParticleBase::DoInitialize() {}
 
 void ParticleBase::InitialLoad(int const* rnd_dist_type, size_type rnd_offset) {
     int dist_type[GetNumberOfAttributes()];

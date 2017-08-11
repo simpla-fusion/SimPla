@@ -56,8 +56,8 @@ Context = {
             {
                 Type = "occ",
                 File = "/home/salmon/workspace/SimPla/example/tokamak/cube.step",
-                Location = { 1.8, 0, -0.01 },
-                Scale = 0.5
+                Location = { 1.6, -0.250, -0.20 },
+                Scale = 1.0e-3
                 --                Type = "Cube",
                 --                lo = { 1.5, -0.5, -TWOPI / 8 },
                 --                hi = { 2.0, 0.5, TWOPI / 8 },

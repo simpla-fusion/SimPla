@@ -92,7 +92,7 @@ class AttributeGroup {
     std::set<Attribute *> const &GetAttributes() const { return m_attributes_; }
 
     virtual void Push(Patch *);
-    virtual void Pull(Patch *);
+    virtual void Pop(Patch *);
 
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);

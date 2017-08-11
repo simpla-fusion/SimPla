@@ -77,7 +77,7 @@ struct MeshBase : public AttributeGroup, public engine::EnableCreateFromDataTabl
     void Advance(Real time_now, Real dt);
     void TagRefinementCells(Real time_now);
 
-    void Pull(Patch *p) override;
+    void Pop(Patch *p) override;
     void Push(Patch *p) override;
 
     void InitialCondition(Patch *patch, Real time_now);

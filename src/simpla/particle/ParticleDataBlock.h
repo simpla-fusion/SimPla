@@ -10,7 +10,7 @@
 namespace simpla {
 struct ParticleDataBlock : public data::DataBlock {
     SP_OBJECT_HEAD(ParticleDataBlock, data::DataBlock);
-    ParticleDataBlock(int DOF) : m_dof_(DOF) {}
+    ParticleDataBlock(int DOF = 0) : m_dof_(DOF) {}
     ~ParticleDataBlock() override = default;
 
    private:

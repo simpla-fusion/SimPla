@@ -107,7 +107,7 @@ class Context : public SPObject, public data::Serializable {
     std::map<std::string, std::shared_ptr<DomainBase>> &GetAllDomains();
     std::map<std::string, std::shared_ptr<DomainBase>> const &GetAllDomains() const;
 
-    void Pull(Patch *p);
+    void Pop(Patch *p);
     void Push(Patch *p);
 
     void InitialCondition(Real time_now);

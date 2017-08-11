@@ -109,9 +109,9 @@ void MeshBase::Push(Patch* patch) {
     Update();
     ASSERT(GetBlock()->GetLevel() == GetChart()->GetLevel());
 }
-void MeshBase::Pull(Patch* patch) {
+void MeshBase::Pop(Patch *patch) {
     patch->SetMeshBlock(*GetBlock());
-    AttributeGroup::Pull(patch);
+    AttributeGroup::Pop(patch);
     patch->SetDataPack(m_pimpl_->m_pack_);
 
     Finalize();
@@ -139,17 +139,17 @@ void MeshBase::TagRefinementCells(Real time_now) { DoTagRefinementCells(time_now
 void MeshBase::InitialCondition(Patch* patch, Real time_now) {
     Push(patch);
     InitialCondition(time_now);
-    Pull(patch);
+    Pop(patch);
 }
 void MeshBase::BoundaryCondition(Patch* patch, Real time_now, Real dt) {
     Push(patch);
     BoundaryCondition(time_now, dt);
-    Pull(patch);
+    Pop(patch);
 }
 void MeshBase::Advance(Patch* patch, Real time_now, Real dt) {
     Push(patch);
     Advance(time_now, dt);
-    Pull(patch);
+    Pop(patch);
 }
 
 }  // namespace engine{
