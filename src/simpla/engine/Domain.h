@@ -57,23 +57,29 @@ class DomainBase : public EnableCreateFromDataTable<DomainBase, MeshBase *, std:
     void DoTearDown() override;
 
     design_pattern::Signal<void(DomainBase *, Real)> PreInitialCondition;
-    design_pattern::Signal<void(DomainBase *, Real)> PostInitialCondition;
-    design_pattern::Signal<void(DomainBase *, Real, Real)> PreBoundaryCondition;
-    design_pattern::Signal<void(DomainBase *, Real, Real)> PostBoundaryCondition;
-    design_pattern::Signal<void(DomainBase *, Real, Real)> PreAdvance;
-    design_pattern::Signal<void(DomainBase *, Real, Real)> PostAdvance;
-    design_pattern::Signal<void(DomainBase *, Real)> PreTagRefinementCells;
-    design_pattern::Signal<void(DomainBase *, Real)> PostTagRefinementCells;
-
     virtual void DoInitialCondition(Real time_now) {}
-    virtual void DoBoundaryCondition(Real time_now, Real dt) {}
-    virtual void DoAdvance(Real time_now, Real dt) {}
-    virtual void DoTagRefinementCells(Real time_now) {}
-
+    design_pattern::Signal<void(DomainBase *, Real)> PostInitialCondition;
     void InitialCondition(Real time_now);
-    void BoundaryCondition(Real time_now, Real dt);
-    void Advance(Real time_now, Real dt);
+
+    design_pattern::Signal<void(DomainBase *, Real)> PreTagRefinementCells;
+    virtual void DoTagRefinementCells(Real time_now) {}
+    design_pattern::Signal<void(DomainBase *, Real)> PostTagRefinementCells;
     void TagRefinementCells(Real time_now);
+
+    design_pattern::Signal<void(DomainBase *, Real, Real)> PreBoundaryCondition;
+    virtual void DoBoundaryCondition(Real time_now, Real dt) {}
+    design_pattern::Signal<void(DomainBase *, Real, Real)> PostBoundaryCondition;
+    void BoundaryCondition(Real time_now, Real time_dt);
+
+    design_pattern::Signal<void(DomainBase *, Real, Real)> PreComputeFluxes;
+    virtual void DoComputeFluxes(Real time_now, Real dt) {}
+    design_pattern::Signal<void(DomainBase *, Real, Real)> PostComputeFluxes;
+    void ComputeFluxes(Real time_now, Real time_dt);
+
+    design_pattern::Signal<void(DomainBase *, Real, Real)> PreAdvance;
+    virtual void DoAdvance(Real time_now, Real dt) {}
+    design_pattern::Signal<void(DomainBase *, Real, Real)> PostAdvance;
+    void Advance(Real time_now, Real time_dt);
 
    private:
     MeshBase *m_mesh_ = nullptr;

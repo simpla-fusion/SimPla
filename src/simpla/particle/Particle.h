@@ -28,8 +28,8 @@ class ParticleBase {
     void SetNumberOfAttributes(int n);
     int GetNumberOfAttributes() const;
 
-    void SetNumPIC(size_type n);
-    size_type GetNumPIC();
+    void SetNumberOfPIC(size_type n);
+    size_type GetNumberOfPIC();
 
     size_type GetMaxSize() const;
 
@@ -110,7 +110,8 @@ class ParticleBase {
 
 template <typename TM>
 class Particle : public ParticleBase, public engine::Attribute, public data::Serializable {
-    SP_OBJECT_HEAD(Particle<TM>, engine::Attribute);
+    typedef Particle<TM> particle_type;
+    SP_OBJECT_HEAD(particle_type, engine::Attribute);
 
    public:
     typedef TM mesh_type;
@@ -121,14 +122,15 @@ class Particle : public ParticleBase, public engine::Attribute, public data::Ser
     mesh_type const* m_host_ = nullptr;
 
    public:
-    template <typename... Args>
-    explicit Particle(mesh_type* grp, Args&&... args)
-        : ParticleBase(grp->GetMesh()),
-          base_type(grp->GetMesh(), FIBER, 0, typeid(Real),
-                    std::make_shared<data::DataTable>(std::forward<Args>(args)...)),
-          m_host_(grp) {
-        ParticleBase::SetNumPIC(db()->template GetValue<int>("NumPIC", 100));
+    Particle(mesh_type* grp, int DOF, std::shared_ptr<data::DataTable> const& d)
+        : ParticleBase(grp->GetMesh()), base_type(grp->GetMesh(), FIBER, DOF, typeid(Real), d), m_host_(grp) {
+        ParticleBase::SetNumberOfAttributes(DOF);
+        ParticleBase::SetNumberOfPIC(db()->template GetValue<int>("NumPIC", 100));
     }
+
+    template <typename... Args>
+    Particle(mesh_type* grp, int DOF, Args&&... args)
+        : Particle(grp, DOF, std::make_shared<data::DataTable>(std::forward<Args>(args)...)) {}
 
     ~Particle() override = default;
 
@@ -153,6 +155,7 @@ class Particle : public ParticleBase, public engine::Attribute, public data::Ser
             ParticleBase::PushData(GetDataBlock());
         }
     }
+
     void DoFinalize() override { ParticleBase::PopData(GetDataBlock()); }
 
 };  // class Particle

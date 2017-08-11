@@ -3,9 +3,11 @@
 //
 
 #include "Particle.h"
+#include "ParticleDataBlock.h"
 #include "simpla/algebra/EntityId.h"
 #include "simpla/algebra/nTuple.h"
 #include "simpla/engine/Mesh.h"
+
 namespace simpla {
 
 class ParticleEngineBase;
@@ -17,7 +19,7 @@ struct ParticleBase::pimpl_s {
     size_type m_num_pic_ = 100;
     size_type m_max_size_ = 0;
     int m_num_of_attr_ = 3;
-    ParticlePool* m_pool_ = nullptr;
+    ParticleDataBlock* m_data_block_ = nullptr;
     id_type* m_tag_;
     Real* m_data_[MAX_NUMBER_OF_PARTICLE_ATTRIBUTES];
 };
@@ -31,16 +33,16 @@ void ParticleBase::Deserialize(const std::shared_ptr<data::DataTable>& t) {
     if (t == nullptr) { return; }
 }
 void ParticleBase::PushData(data::DataBlock* dblk) {
-    ASSERT(dblk->isA(typeid(ParticlePool)));
-    m_pimpl_->m_pool_ = dynamic_cast<ParticlePool*>(dblk);
+    ASSERT(dblk->isA(typeid(ParticleDataBlock)));
+    m_pimpl_->m_data_block_ = dynamic_cast<ParticleDataBlock*>(dblk);
 }
 
-void ParticleBase::PopData(data::DataBlock* dblk) { m_pimpl_->m_pool_ = nullptr; }
+void ParticleBase::PopData(data::DataBlock* dblk) { m_pimpl_->m_data_block_ = nullptr; }
 void ParticleBase::SetNumberOfAttributes(int n) { m_pimpl_->m_num_of_attr_ = n; }
 int ParticleBase::GetNumberOfAttributes() const { return m_pimpl_->m_num_of_attr_; }
 
-void ParticleBase::SetNumPIC(size_type n) { m_pimpl_->m_num_pic_ = n; }
-size_type ParticleBase::GetNumPIC() { return m_pimpl_->m_num_pic_; }
+void ParticleBase::SetNumberOfPIC(size_type n) { m_pimpl_->m_num_pic_ = n; }
+size_type ParticleBase::GetNumberOfPIC() { return m_pimpl_->m_num_pic_; }
 
 size_type ParticleBase::GetMaxSize() const { return m_pimpl_->m_max_size_; }
 std::shared_ptr<ParticleBase::Bucket> ParticleBase::GetBucket(id_type s) { return nullptr; }

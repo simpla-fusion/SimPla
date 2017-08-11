@@ -3,8 +3,8 @@
 //
 #include "simpla/SIMPLA_config.h"
 
-#include "simpla/data/Data.h"
 #include "EnableCreateFromDataTable.h"
+#include "simpla/data/Data.h"
 #include "simpla/engine/Model.h"
 #include "simpla/geometry/Chart.h"
 #include "simpla/geometry/GeoAlgorithm.h"
@@ -176,6 +176,11 @@ void Context::BoundaryCondition(Real time_now, Real dt) {
     GetMesh()->BoundaryCondition(time_now, dt);
     for (auto &d : GetAllDomains()) { d.second->BoundaryCondition(time_now, dt); }
 }
+
+void Context::ComputeFluxes(Real time_now, Real dt) {
+    for (auto &d : GetAllDomains()) { d.second->ComputeFluxes(time_now, dt); }
+}
+
 void Context::Advance(Real time_now, Real dt) {
     GetMesh()->Advance(time_now, dt);
     for (auto &d : GetAllDomains()) { d.second->Advance(time_now, dt); }

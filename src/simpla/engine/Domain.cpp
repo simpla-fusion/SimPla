@@ -54,6 +54,15 @@ void DomainBase::BoundaryCondition(Real time_now, Real dt) {
     DoBoundaryCondition(time_now, dt);
     PostBoundaryCondition(this, time_now, dt);
 }
+
+void DomainBase::ComputeFluxes(Real time_now, Real dt) {
+    Update();
+    if (std::get<0>(GetMesh()->CheckOverlap(GetGeoBody().get())) < EPSILON) { return; }
+    PreComputeFluxes(this, time_now, dt);
+    DoComputeFluxes(time_now, dt);
+    PostComputeFluxes(this, time_now, dt);
+}
+
 void DomainBase::Advance(Real time_now, Real dt) {
     Update();
     if (std::get<0>(GetMesh()->CheckOverlap(GetGeoBody().get())) < EPSILON) { return; }

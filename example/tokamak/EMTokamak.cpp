@@ -11,6 +11,7 @@
 #include "simpla/predefine/device/Tokamak.h"
 #include "simpla/predefine/physics/EMFluid.h"
 #include "simpla/predefine/physics/Maxwell.h"
+#include "simpla/predefine/physics/PICBoris.h"
 #include "simpla/scheme/FVM.h"
 namespace simpla {
 
@@ -21,6 +22,7 @@ static bool _required_module_are_registered_ =                                 /
     RegisterCreator<mesh_type>("EBRectMesh") &&                                //
     RegisterCreator<engine::Domain<mesh_type, ICRFAntenna>>("ICRFAntenna") &&  //
     RegisterCreator<engine::Domain<mesh_type, EMFluid>>("EMFluid") &&          //
+    RegisterCreator<engine::Domain<mesh_type, PICBoris>>("PICBoris") &&        //
     RegisterCreator<engine::Domain<mesh_type, Maxwell>>("Maxwell");
 
 }  // namespace simpla {

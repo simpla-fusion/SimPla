@@ -55,8 +55,9 @@ Context = {
             Body =
             {
                 Type = "occ",
-                File = "/home/salmon/workspace/SimPla/example/tokamak/test.step",
-                Location = { 1.8, 0, -0.05},
+                File = "/home/salmon/workspace/SimPla/example/tokamak/cube.step",
+                Location = { 1.8, 0, -0.01 },
+                Scale = 0.5
                 --                Type = "Cube",
                 --                lo = { 1.5, -0.5, -TWOPI / 8 },
                 --                hi = { 2.0, 0.5, TWOPI / 8 },
@@ -70,6 +71,22 @@ Context = {
             WaveNumber = { 0.0, 0.0, TWOPI / 12.0 },
             Frequency = 1.0e9,
         },
+        Plasma = {
+            Type="PICBoris",
+            Species={
+                ele={
+                    M=1.0,
+                    Z=-1.0/1836.0,
+                    ratio=1.0
+                },
+                H={
+                    M=1.0,
+                    Z=1.0,
+                    ratio=0.5
+                },
+            }
+
+        }
     }
 }
 
