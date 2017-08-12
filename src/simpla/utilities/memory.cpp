@@ -4,6 +4,7 @@
  *  Created on: 2014-11-14
  *      Author: salmon
  */
+#include "simpla/SIMPLA_config.h"
 
 #include "memory.h"
 
@@ -16,7 +17,6 @@
 #include "Log.h"
 #include "SingletonHolder.h"
 #include "device_common.h"
-#include "simpla/SIMPLA_config.h"
 #include "simpla/utilities/SingletonHolder.h"
 
 namespace simpla {

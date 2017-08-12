@@ -16,7 +16,6 @@
 #include "simpla/algebra/EntityId.h"
 #include "simpla/algebra/nTuple.ext.h"
 #include "simpla/algebra/nTuple.h"
-#include "simpla/utilities/device_common.h"
 #include "simpla/utilities/memory.h"
 
 namespace simpla {

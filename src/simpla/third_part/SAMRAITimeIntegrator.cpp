@@ -902,9 +902,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::PushPatch(engine::Patch *p, SAMRAI::h
     for (auto &item : m_samrai_variables_) {
         auto samrai_id = SAMRAI::hier::VariableDatabase::getDatabase()->mapVariableAndContextToIndex(item.second.second,
                                                                                                      getDataContext());
-        //        auto dst = patch.getPatchData(samrai_id);
-        //        if (detail::ConvertDataBlock(p->GetDataBlock(item.first), dst.get())) { patch.setPatchData(samrai_id,
-        //        dst); };
+        auto dst = patch.getPatchData(samrai_id);
+        if (detail::ConvertDataBlock(p->GetDataBlock(item.first), dst.get())) { patch.setPatchData(samrai_id, dst); };
     }
 }
 
