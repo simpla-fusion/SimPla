@@ -42,6 +42,7 @@ class Configurable {
     void SetProperty(std::string const& uri, U const& value) {
         m_db_.SetValue(uri, value);
     }
+    bool CheckProperty(std::string const& uri) const { return m_db_.Check(uri, true); }
 
    private:
     data::DataTable m_db_{};

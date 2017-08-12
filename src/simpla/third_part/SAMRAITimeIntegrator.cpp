@@ -567,7 +567,7 @@ std::shared_ptr<SAMRAI::hier::Variable> ConvertVariable_(const engine::Attribute
             break;
         case FIBER:
             res = std::make_shared<spParticleVariable>(d_dim, attr.GetPrefix(), attr.GetDOF(),
-                                                       attr.db().GetValue<int>("NumberOfPIC", 100));
+                                                       attr.GetProperty<int>("NumberOfPIC", 100));
             break;
         default:
             break;
@@ -808,7 +808,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     //**************************************************************
 
     for (auto const *item : m_ctx_->GetMesh()->GetAttributes()) {
-        if (item->db().Check("IS_NOT_OWNED", true) ||
+        if (item->CheckProperty("IS_NOT_OWNED") ||
             m_samrai_variables_.find(item->GetDescID()) != m_samrai_variables_.end()) {
             continue;
         }
@@ -827,9 +827,9 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         std::string coarsen_name = "";
         std::string refine_name = "";
 
-        if (item->db().Check("COORDINATES", true)) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
-        if (item->db().Check("INPUT", true)) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
-        if (item->db().Check("FLUX", true)) {
+        if (item->CheckProperty("COORDINATES")) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
+        if (item->CheckProperty("INPUT")) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
+        if (item->CheckProperty("FLUX")) {
             ghosts = d_fluxghosts;
             v_type = SAMRAI::algs::HyperbolicLevelIntegrator::FLUX;
             coarsen_name = "CONSERVATIVE_COARSEN";
@@ -841,7 +841,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
             refine_name = "NO_REFINE";
         }
 
-        //        if ((item->GetTypeInfo() != typeid(double)) || item->db().Check("TEMP", true)) {
+        //        if ((item->GetTypeInfo() != typeid(double)) || item->CheckProperty("TEMP")) {
         //            v_type = SAMRAI::algs::HyperbolicLevelIntegrator::TEMPORARY;
         //            coarsen_name = "";
         //            refine_name = "";
@@ -867,7 +867,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         //        }
         //        v_type != SAMRAI::algs::HyperbolicLevelIntegrator::TEMPORARY
 
-        if (visit_variable_type != "" && item->db().Check("COORDINATES", true)) {
+        if (visit_variable_type != "" && item->CheckProperty("COORDINATES")) {
             d_visit_writer->registerNodeCoordinates(
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
         } else if ((item->GetIFORM() == VERTEX || item->GetIFORM() == VOLUME)) {
