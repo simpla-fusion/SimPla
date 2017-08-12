@@ -189,6 +189,7 @@ class DataTable : public DataEntity {
     //        SetValue(first);
     //        SetValue(std::forward<Others>(others)...);
     //    };
+    void SetValue(std::string const& uri, DataTable const& v) { Set(uri, (v)); };
 
     template <typename U>
     void SetValue(std::string const& uri, U const& v) {

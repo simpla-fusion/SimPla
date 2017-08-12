@@ -46,12 +46,12 @@ class PICBoris {
 
     std::map<std::string, std::shared_ptr<Particle<THost>>> m_particle_sp_;
     std::shared_ptr<Particle<THost>> AddSpecies(std::string const& name, data::DataTable const& d);
-    template <typename... Args>
-    std::shared_ptr<Particle<THost>> AddSpecies(std::string const& name, Args&&... args) {
-        data::DataTable t;
-//        t.Assign(std::forward<Args>(args)...);
-        return AddSpecies(name, t);
-    };
+    //    template <typename... Args>
+    //    std::shared_ptr<Particle<THost>> AddSpecies(std::string const& name, Args&&... args) {
+    //        data::DataTable t;
+    ////        t.Assign(std::forward<Args>(args)...);
+    //        return AddSpecies(name, t);
+    //    };
 
     std::map<std::string, std::shared_ptr<Particle<THost>>>& GetSpecies() { return m_particle_sp_; };
 };
@@ -76,7 +76,7 @@ void PICBoris<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
         auto t = std::dynamic_pointer_cast<data::DataTable>(v);
         if (t != nullptr) {
             t->SetValue("name", k);
-            AddSpecies(k, t);
+            AddSpecies(k, *t);
         }
     });
 }
@@ -85,14 +85,14 @@ template <typename TM>
 std::shared_ptr<Particle<TM>> PICBoris<TM>::AddSpecies(std::string const& name, data::DataTable const& d) {
     auto sp = std::make_shared<Particle<TM>>(m_host_, d);
     sp->SetDOF(7);
-    sp->db()->SetValue("mass", d.GetValue<double>("mass", d.GetValue<double>("mass", 1)) * SI_proton_mass);
-    sp->db()->SetValue("charge", d.GetValue<double>("charge", d.GetValue<double>("Z", 1)) * SI_elementary_charge);
+    sp->SetProperty("mass", d.GetValue<double>("mass", d.GetValue<double>("mass", 1)) * SI_proton_mass);
+    sp->SetProperty("charge", d.GetValue<double>("charge", d.GetValue<double>("Z", 1)) * SI_elementary_charge);
     //    sp->ratio = d.GetValue<double>("ratio", d.GetValue<double>("ratio", 1));
 
     m_particle_sp_.emplace(name, sp);
     VERBOSE << "Add particle : {\" Name=" << name
-            << "\", mass = " << sp->db()->template GetValue<double>("mass") / SI_proton_mass
-            << " [m_p], charge = " << sp->db()->template GetValue<double>("charge") / SI_elementary_charge << " [q_e] }"
+            << "\", mass = " << sp->template GetProperty<double>("mass") / SI_proton_mass
+            << " [m_p], charge = " << sp->template GetProperty<double>("charge") / SI_elementary_charge << " [q_e] }"
             << std::endl;
     return sp;
 }

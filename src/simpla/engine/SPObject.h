@@ -122,7 +122,7 @@ class SPObject {
 
    private:
     struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
+    pimpl_s *m_pimpl_;
 };
 
 // unsigned int state() const { return m_state_; }

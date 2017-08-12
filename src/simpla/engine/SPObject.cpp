@@ -32,7 +32,10 @@ static boost::hash<boost::uuids::uuid> g_obj_hasher;
 static boost::uuids::random_generator g_uuid_generator;
 
 SPObject::SPObject() : m_pimpl_(new pimpl_s) { m_pimpl_->m_id_ = g_obj_hasher(g_uuid_generator()); }
-SPObject::~SPObject() { Finalize(); }
+SPObject::~SPObject() {
+    Finalize();
+    delete m_pimpl_;
+}
 SPObject::SPObject(SPObject const &other) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_id_ = other.m_pimpl_->m_id_;
     m_pimpl_->m_name_ = other.m_pimpl_->m_name_;
