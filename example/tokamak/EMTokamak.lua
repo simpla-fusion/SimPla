@@ -71,22 +71,22 @@ Context = {
             WaveNumber = { 0.0, 0.0, TWOPI / 12.0 },
             Frequency = 1.0e9,
         },
---        Plasma = {
---            Type="PICBoris",
---            Species={
---                ele={
---                    M=1.0,
---                    Z=-1.0/1836.0,
---                    ratio=1.0
---                },
---                H={
---                    M=1.0,
---                    Z=1.0,
---                    ratio=0.5
---                },
---            }
---
---        }
+        Plasma = {
+            Type="PICBoris",
+            Species={
+                D={
+                    M=2.0,
+                    Z=-1.0,
+                    ratio=1.0
+                },
+                H={
+                    M=1.0,
+                    Z=1.0,
+                    ratio=0.5
+                },
+            }
+
+        }
     }
 }
 

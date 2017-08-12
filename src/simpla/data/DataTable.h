@@ -13,10 +13,9 @@
 #include "simpla/utilities/ObjectHead.h"
 namespace simpla {
 namespace data {
-template <typename U, typename Enable = void>
-class DataTableWrapper {};
+
 class DataBackend;
-class KeyValue;
+
 /** @ingroup data */
 /**
  * @brief  a @ref DataEntity tree, a key-value table of @ref DataEntity, which is similar as Group
@@ -29,9 +28,31 @@ class DataTable : public DataEntity {
     std::shared_ptr<DataBackend> m_backend_;
 
    public:
+    explicit DataTable(std::shared_ptr<DataBackend> const& p);
+    DataTable(std::string const& uri, std::string const& param = "");
+
     DataTable();
     DataTable(const DataTable&);
     DataTable(DataTable&&) noexcept;
+    template <typename V>
+    DataTable(std::string const& key, V const& v) : DataTable() {
+        SetValue(key, v);
+    };
+
+    //    template <typename U>
+    //    DataTable(std::string const& key, std::initializer_list<U> const& u) {
+    //        Set(key, make_data_entity(u));
+    //    }
+    //    template <typename U>
+    //    DataTable(std::string const& key, std::initializer_list<std::initializer_list<U>> const& u) {
+    //        Set(key, make_data_entity(u));
+    //    }
+    //    template <typename U>
+    //    DataTable(std::string const& key, std::initializer_list<std::initializer_list<std::initializer_list<U>>>
+    //    const& u) {
+    //        Set(key, make_data_entity(u));
+    //    }
+
     virtual ~DataTable();
 
     DataTable& operator=(const DataTable& other) {
@@ -43,16 +64,8 @@ class DataTable : public DataEntity {
         return *this;
     }
 
-    DataTable(std::string const& uri, std::string const& param = "");
-    explicit DataTable(std::shared_ptr<DataBackend> const& p);
-
-    DataTable(std::initializer_list<KeyValue> const& l);
-
-    template <typename... Others>
-    explicit DataTable(KeyValue const& v, Others&&... others) : DataTable() {
-        SetValue(v, std::forward<Others>(others)...);
-    }
     void swap(DataTable&);
+
     //******************************************************************************************************************
     /** Interface DataEntity */
 
@@ -71,8 +84,26 @@ class DataTable : public DataEntity {
 
     std::shared_ptr<DataEntity> Get(std::string const& uri) const;
 
-    void Set(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr, bool overwrite = true);
-    void Add(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr);
+    void Set(std::string const& uri, std::shared_ptr<DataEntity> const& p);
+    void Set(std::string const& uri, DataEntity const& p);
+    void Set(DataTable const& other);
+    void Set(std::shared_ptr<DataTable> const& v) {
+        if (v != nullptr) { Set(*v); };
+    };
+    void Assign(){};
+    void Assign(std::string const& uri) { SetValue(uri, true); };
+    void Assign(DataTable const& v) { Set(v); };
+    void Assign(std::shared_ptr<DataTable> const& v) {
+        if (v != nullptr) { Set(*v); };
+    };
+
+    template <typename First, typename Second, typename... Others>
+    void Assign(First&& first, Second&& second, Others&&... args) {
+        Assign(std::forward<First>(first));
+        Assign(std::forward<Second>(second), std::forward<Others>(args)...);
+    }
+
+    void Add(std::string const& uri, std::shared_ptr<DataEntity> const& p);
     size_type Delete(std::string const& uri);
     size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
 
@@ -98,10 +129,6 @@ class DataTable : public DataEntity {
     DataTable& Link(std::string const& uri, DataTable const& other);
     DataTable& Link(std::string const& uri, std::shared_ptr<DataEntity> const& p);
 
-    void Set(std::shared_ptr<DataTable> const& other, bool overwrite = true);
-
-    void Set(DataTable const& other, bool overwrite = true);
-    void Set(std::string const& uri, DataEntity const& p, bool overwrite = true);
     void Add(std::string const& uri, DataEntity const& p);
 
     std::shared_ptr<DataTable> GetTable(std::string const& uri) const;
@@ -136,17 +163,16 @@ class DataTable : public DataEntity {
     //        Deserialize(uri, make_data_entity(default_value), false);
     //        return data_cast<U>(*Serialize(uri));
     //    }
-
-    template <typename U>
-    DataTable& operator=(U const& u) {
-        SetValue(u);
-        return *this;
-    }
-    template <typename U>
-    DataTable& operator=(std::initializer_list<U> const& u) {
-        SetValue(u);
-        return *this;
-    }
+    //    template <typename U>
+    //    DataTable& operator=(U const& u) {
+    //        SetValue(u);
+    //        return *this;
+    //    }
+    //    template <typename U>
+    //    DataTable& operator=(std::initializer_list<U> const& u) {
+    //        SetValue(u);
+    //        return *this;
+    //    }
     //    template <typename U>
     //    void SetValue(std::pair<std::string, U> const& item) {
     //        SetValue(item.first, item.second);
@@ -155,18 +181,18 @@ class DataTable : public DataEntity {
     //    void SetValue(std::initializer_list<std::pair<std::string, U>> const& other) {
     //        for (auto const& item : other) { SetValue(item.first, item.second); }
     //    }
-    void SetValue(){};
-    void SetValue(KeyValue const& other);
-    void SetValue(std::initializer_list<KeyValue> const& other);
-    template <typename... Others>
-    void SetValue(KeyValue const& first, Others&&... others) {
-        SetValue(first);
-        SetValue(std::forward<Others>(others)...);
-    };
+    //    void SetValue(){};
+    //    void SetValue(KeyValue const& other);
+    //    void SetValue(std::initializer_list<KeyValue> const& other);
+    //    template <typename... Others>
+    //    void SetValue(KeyValue const& first, Others&&... others) {
+    //        SetValue(first);
+    //        SetValue(std::forward<Others>(others)...);
+    //    };
 
     template <typename U>
-    void SetValue(std::string const& uri, U const& v, bool overwrite = false) {
-        Set(uri, make_data_entity(v), overwrite);
+    void SetValue(std::string const& uri, U const& v) {
+        Set(uri, make_data_entity(v));
     };
 
     template <typename U>
@@ -204,12 +230,34 @@ class DataTable : public DataEntity {
         Add(make_data_entity(std::initializer_list<U>{}));
     };
 };
-template <typename... Others>
-std::shared_ptr<DataEntity> make_data_entity(KeyValue const& first, Others&&... others) {
-    auto res = std::make_shared<DataTable>();
-    res->SetValue(first, std::forward<Others>(others)...);
-    return res;
-}
+
+struct KeyHolder {
+    KeyHolder(char const* c) : m_key_(c) {}
+    KeyHolder(std::string const& s) : m_key_(s) {}
+    ~KeyHolder() = default;
+
+    template <typename U>
+    DataTable operator=(U const& v) {
+        DataTable res;
+        res.SetValue(m_key_, v);
+        return std::move(res);
+    }
+
+    operator DataTable() const {
+        DataTable res;
+        res.SetValue(m_key_, true);
+        return std::move(res);
+    }
+    std::string m_key_;
+};
+inline KeyHolder operator"" _(const char* c, std::size_t n) { return KeyHolder{std::string(c)}; }
+
+// template <typename... Others>
+// std::shared_ptr<DataEntity> make_data_entity(KeyValue const& first, Others&&... others) {
+//    auto res = std::make_shared<DataTable>();
+//    res->SetValue(first, std::forward<Others>(others)...);
+//    return res;
+//}
 
 }  // namespace data
 }  // namespace simpla

@@ -28,7 +28,7 @@ struct SpApp::pimpl_s {
     engine::Context m_context_;
     engine::Atlas m_atlas_;
 };
-SpApp::SpApp(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
+SpApp::SpApp(std::string const &s_name) : m_pimpl_(new pimpl_s) { SPObject::SetName(s_name); }
 SpApp::~SpApp() = default;
 std::shared_ptr<data::DataTable> SpApp::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
@@ -124,7 +124,7 @@ void SpApp::Config(int argc, char **argv) {
     cfg->Set("Context", input_file_cfg->Get("Context"));
     cfg->Set("Atlas", input_file_cfg->Get("Atlas"));
     cfg->Set("Schedule", input_file_cfg->Get("Schedule"));
-    cfg->Set(cmd_line_cfg, true);
+    cfg->Set(*cmd_line_cfg);
 
     Deserialize(cfg);
 }

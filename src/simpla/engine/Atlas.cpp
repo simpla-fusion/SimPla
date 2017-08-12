@@ -45,7 +45,7 @@ struct Atlas::pimpl_s {
     index_box_type m_coarsest_index_box_{{0, 0, 0}, {1, 1, 1}};
 };
 
-Atlas::Atlas() : SPObject("Atlas"), m_pimpl_(new pimpl_s){};
+Atlas::Atlas() : m_pimpl_(new pimpl_s) { SPObject::SetName("Atlas"); };
 Atlas::~Atlas() = default;
 void Atlas::DoUpdate() { SPObject::DoUpdate(); };
 

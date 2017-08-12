@@ -16,7 +16,7 @@
 #include "simpla/engine/Engine.h"
 #include "simpla/engine/Mesh.h"
 #include "simpla/parallel/MPIComm.h"
-#include "simpla/particle/ParticleDataBlock.h"
+#include "simpla/particle/ParticleData.h"
 #include "simpla/utilities/Log.h"
 
 // Headers for SAMRAI
@@ -135,15 +135,15 @@
 
 namespace simpla {
 
-template <typename TV>
 struct spParticlePatchData : public SAMRAI::hier::PatchData {
    private:
     static constexpr int IFORM = FIBER;
-    typedef spParticlePatchData<TV> this_type;
+    typedef spParticlePatchData this_type;
 
    public:
-    spParticlePatchData(const SAMRAI::hier::Box &box, int depth, const SAMRAI::hier::IntVector &ghosts)
-        : SAMRAI::hier::PatchData(box, ghosts), m_depth_(depth) {}
+    spParticlePatchData(const SAMRAI::hier::Box &box, int depth, const SAMRAI::hier::IntVector &ghosts,
+                        size_type number_of_pic = 100)
+        : SAMRAI::hier::PatchData(box, ghosts), m_depth_(depth), m_number_of_pic_(number_of_pic) {}
     ~spParticlePatchData() override {}
 
     virtual void copy(const SAMRAI::hier::PatchData &src) override {
@@ -184,28 +184,34 @@ struct spParticlePatchData : public SAMRAI::hier::PatchData {
         UNIMPLEMENTED;
         return 0;
     }
-    std::shared_ptr<data::DataBlock> PopDataBlock() { return nullptr; };
-    void PushDataBlock(std::shared_ptr<data::DataBlock>){};
+    std::shared_ptr<data::DataBlock> PopDataBlock() { return m_data_block_; };
+    void PushDataBlock(std::shared_ptr<data::DataBlock> blk) {
+        m_data_block_ = std::dynamic_pointer_cast<ParticleData>(blk);
+    };
+    size_type GetNumberOfPIC() const { return m_number_of_pic_; }
+    void SetNumberOfPIC(size_type n) { m_number_of_pic_ = n; }
+
+    int GetDepth() const { return m_depth_; }
+    int GetNumberOfParticle() const { return m_depth_ * m_number_of_pic_; }
 
    private:
     int m_depth_ = 0;
+    size_type m_number_of_pic_ = 100;
+    std::shared_ptr<ParticleData> m_data_block_ = nullptr;
 };
 
-template <typename TV>
 struct spParticlePatchDataFactory : public SAMRAI::hier::PatchDataFactory {
-    spParticlePatchDataFactory(int depth, const SAMRAI::hier::IntVector &ghosts, bool fine_boundary_represents_var)
-        : SAMRAI::hier::PatchDataFactory(ghosts),
-          m_dof_(depth),
-          m_fine_boundary_represents_var_(fine_boundary_represents_var) {}
+    spParticlePatchDataFactory(int depth, const SAMRAI::hier::IntVector &ghosts, size_type number_of_pic = 100)
+        : SAMRAI::hier::PatchDataFactory(ghosts), m_dof_(depth), m_number_of_pic_(number_of_pic) {}
     ~spParticlePatchDataFactory() override {}
 
     virtual std::shared_ptr<SAMRAI::hier::PatchDataFactory> cloneFactory(
         const SAMRAI::hier::IntVector &ghosts) override {
-        return std::make_shared<spParticlePatchDataFactory<TV>>(m_dof_, ghosts, m_fine_boundary_represents_var_);
+        return std::make_shared<spParticlePatchDataFactory>(m_dof_, ghosts, GetNumberOfPIC());
     };
 
     virtual std::shared_ptr<SAMRAI::hier::PatchData> allocate(const SAMRAI::hier::Patch &patch) const override {
-        return std::make_shared<spParticlePatchData<TV>>(patch.getBox(), m_dof_, getGhostCellWidth());
+        return std::make_shared<spParticlePatchData>(patch.getBox(), m_dof_, getGhostCellWidth(), GetNumberOfPIC());
     };
 
     virtual std::shared_ptr<SAMRAI::hier::BoxGeometry> getBoxGeometry(const SAMRAI::hier::Box &box) const override {
@@ -213,12 +219,12 @@ struct spParticlePatchDataFactory : public SAMRAI::hier::PatchDataFactory {
     };
 
     virtual size_t getSizeOfMemory(const SAMRAI::hier::Box &box) const override {
-        const size_t obj = SAMRAI::tbox::MemoryUtilities::align(sizeof(spParticlePatchData<TV>));
-        const size_t data = spParticlePatchData<TV>::getSizeOfData(box, m_dof_, d_ghosts);
+        const size_t obj = SAMRAI::tbox::MemoryUtilities::align(sizeof(spParticlePatchData));
+        const size_t data = spParticlePatchData::getSizeOfData(box, m_dof_, d_ghosts);
         return obj + data;
     };
 
-    virtual bool fineBoundaryRepresentsVariable() const override { return m_fine_boundary_represents_var_; };
+    virtual bool fineBoundaryRepresentsVariable() const override { return true; };
 
     virtual bool dataLivesOnPatchBorder() const override { return false; };
 
@@ -229,8 +235,8 @@ struct spParticlePatchDataFactory : public SAMRAI::hier::PatchDataFactory {
          * Valid options are NodeData and OuternodeData.
          */
         if (!valid_copy) {
-            std::shared_ptr<spParticlePatchDataFactory<TV>> ndf(
-                std::dynamic_pointer_cast<spParticlePatchDataFactory<TV>, SAMRAI::hier::PatchDataFactory>(dst_pdf));
+            std::shared_ptr<spParticlePatchDataFactory> ndf(
+                std::dynamic_pointer_cast<spParticlePatchDataFactory, SAMRAI::hier::PatchDataFactory>(dst_pdf));
             if (ndf) { valid_copy = true; }
         }
 
@@ -243,34 +249,37 @@ struct spParticlePatchDataFactory : public SAMRAI::hier::PatchDataFactory {
         return valid_copy;
     };
 
+    size_type GetNumberOfPIC() const { return m_number_of_pic_; }
+    void SetNumberOfPIC(size_type n) { m_number_of_pic_ = n; }
+
    private:
     int m_dof_ = 0;
-    bool m_fine_boundary_represents_var_ = true;
+    size_type m_number_of_pic_ = 100;
 };
 
-template <typename TV>
 struct spParticleVariable : public SAMRAI::hier::Variable {
    public:
     spParticleVariable(const SAMRAI::tbox::Dimension &dim, const std::string &name, int depth = 1,
-                       bool fine_boundary_represents_var = true)
-        : SAMRAI::hier::Variable(name, std::make_shared<spParticlePatchDataFactory<TV>>(
-                                           depth, SAMRAI::hier::IntVector::getZero(dim), fine_boundary_represents_var)),
+                       size_type NumberOfPIC = 100)
+        : SAMRAI::hier::Variable(name, std::make_shared<spParticlePatchDataFactory>(
+                                           depth, SAMRAI::hier::IntVector::getZero(dim), NumberOfPIC)),
           m_depth_(depth),
-          m_fine_boundary_represents_var_(fine_boundary_represents_var){};
+          m_NumberOfPIC_(NumberOfPIC){};
 
     ~spParticleVariable() override {}
 
-    bool fineBoundaryRepresentsVariable() const override { return m_fine_boundary_represents_var_; }
+    bool fineBoundaryRepresentsVariable() const override { return true; }
 
     bool dataLivesOnPatchBorder() const override { return false; }
 
     int getDepth() const { return m_depth_; }
+    size_type GetNumberOfPIC() const { return m_NumberOfPIC_; }
+    void SetNumberOfPIC(size_type n) { m_NumberOfPIC_ = n; }
 
    private:
     int m_depth_ = 0;
-    bool m_fine_boundary_represents_var_ = false;
+    size_type m_NumberOfPIC_ = 100;
 };
-template <typename TV>
 class spParticleCoarsenRefine : public SAMRAI::hier::CoarsenOperator {
    public:
     /**
@@ -311,7 +320,6 @@ class spParticleCoarsenRefine : public SAMRAI::hier::CoarsenOperator {
         UNIMPLEMENTED;
     };
 };
-template <typename TV>
 class spParticleConstantRefine : public SAMRAI::hier::RefineOperator {
    public:
     spParticleConstantRefine() : SAMRAI::hier::RefineOperator("CONSTANT_REFINE") {}
@@ -336,7 +344,6 @@ class spParticleConstantRefine : public SAMRAI::hier::RefineOperator {
         UNIMPLEMENTED;
     }
 };
-template <typename TV>
 class spParticleLinearTimeInterpolateOp : public SAMRAI::hier::TimeInterpolateOperator {
    public:
     spParticleLinearTimeInterpolateOp() : SAMRAI::hier::TimeInterpolateOperator() {}
@@ -349,23 +356,22 @@ class spParticleLinearTimeInterpolateOp : public SAMRAI::hier::TimeInterpolateOp
         UNIMPLEMENTED;
     }
 };
-template <typename TV>
-struct spParticleVisDerivedDataStrategy : public SAMRAI::appu::VisDerivedDataStrategy {
-    spParticleVisDerivedDataStrategy() {}
-    ~spParticleVisDerivedDataStrategy() override {}
-    bool packDerivedDataIntoDoubleBuffer(double *buffer, const SAMRAI::hier::Patch &patch,
-                                         const SAMRAI::hier::Box &region, const std::string &variable_name,
-                                         int depth_index, double simulation_time) const override {
-        UNIMPLEMENTED;
-        return true;
-    };
-    bool packMixedDerivedDataIntoDoubleBuffer(double *buffer, std::vector<double> &mixbuffer,
-                                              const SAMRAI::hier::Patch &patch, const SAMRAI::hier::Box &region,
-                                              const std::string &variable_name, int depth_index) const override {
-        UNIMPLEMENTED;
-        return true;
-    };
-};
+// struct spParticleVisDerivedDataStrategy : public SAMRAI::appu::VisDerivedDataStrategy {
+//    spParticleVisDerivedDataStrategy() {}
+//    ~spParticleVisDerivedDataStrategy() override {}
+//    bool packDerivedDataIntoDoubleBuffer(double *buffer, const SAMRAI::hier::Patch &patch,
+//                                         const SAMRAI::hier::Box &region, const std::string &variable_name,
+//                                         int depth_index, double simulation_time) const override {
+//        UNIMPLEMENTED;
+//        return true;
+//    };
+//    bool packMixedDerivedDataIntoDoubleBuffer(double *buffer, std::vector<double> &mixbuffer,
+//                                              const SAMRAI::hier::Patch &patch, const SAMRAI::hier::Box &region,
+//                                              const std::string &variable_name, int depth_index) const override {
+//        UNIMPLEMENTED;
+//        return true;
+//    };
+//};
 
 namespace detail {
 
@@ -453,8 +459,8 @@ bool ConvertDataBlock(SAMRAI::pdat::SideData<T> *src, std::shared_ptr<data::Data
     *dst = std::dynamic_pointer_cast<data::DataBlock>(mArray);
     return true;
 }
-template <typename T>
-bool ConvertDataBlock(spParticlePatchData<T> *src, std::shared_ptr<data::DataBlock> *dst) {
+
+bool ConvertDataBlock(spParticlePatchData *src, std::shared_ptr<data::DataBlock> *dst) {
     if (src == nullptr) { return false; }
     *dst = src->PopDataBlock();
     return true;
@@ -481,7 +487,7 @@ bool ConvertDataBlock(SAMRAI::hier::PatchData *src, std::shared_ptr<data::DataBl
            ConvertDataBlock(dynamic_cast<SAMRAI::pdat::SideData<float> *>(src), dst) ||
            ConvertDataBlock(dynamic_cast<SAMRAI::pdat::SideData<int> *>(src), dst) ||
 
-           ConvertDataBlock(dynamic_cast<spParticlePatchData<Real> *>(src), dst);
+           ConvertDataBlock(dynamic_cast<spParticlePatchData *>(src), dst);
 }
 
 template <typename T>
@@ -509,36 +515,36 @@ bool ConvertDataBlock(std::shared_ptr<data::DataBlock> src, SAMRAI::pdat::SideDa
     if (dst == nullptr) { return false; };
     return true;
 }
-template <typename T>
-bool ConvertDataBlock(std::shared_ptr<data::DataBlock> src, spParticlePatchData<T> *dst) {
+
+bool ConvertDataBlock(std::shared_ptr<data::DataBlock> src, spParticlePatchData *dst) {
     if (dst == nullptr) { return false; };
     dst->PushDataBlock(src);
     return true;
 }
 
 bool ConvertDataBlock(std::shared_ptr<data::DataBlock> src, SAMRAI::hier::PatchData *dst) {
-    return false;
-    //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::CellData<double> *>(dst)) ||
-    //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::CellData<float> *>(dst)) ||
-    //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::CellData<int> *>(dst)) ||
-    //
-    //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::NodeData<double> *>(dst)) ||
-    //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::NodeData<float> *>(dst)) ||
-    //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::NodeData<int> *>(dst)) ||
-    //
-    //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::EdgeData<double> *>(dst)) ||
-    //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::EdgeData<float> *>(dst)) ||
-    //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::EdgeData<int> *>(dst)) ||
-    //
-    //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::FaceData<double> *>(dst)) ||
-    //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::FaceData<float> *>(dst)) ||
-    //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::FaceData<int> *>(dst)) ||
-    //
-    //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::SideData<double> *>(dst)) ||
-    //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::SideData<float> *>(dst)) ||
-    //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::SideData<int> *>(dst)) ||
-    //
-    //           ConvertDataBlock(src, dynamic_cast<spPatchDataInterface *>(dst));
+    return
+        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::CellData<double> *>(dst)) ||
+        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::CellData<float> *>(dst)) ||
+        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::CellData<int> *>(dst)) ||
+        //
+        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::NodeData<double> *>(dst)) ||
+        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::NodeData<float> *>(dst)) ||
+        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::NodeData<int> *>(dst)) ||
+        //
+        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::EdgeData<double> *>(dst)) ||
+        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::EdgeData<float> *>(dst)) ||
+        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::EdgeData<int> *>(dst)) ||
+        //
+        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::FaceData<double> *>(dst)) ||
+        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::FaceData<float> *>(dst)) ||
+        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::FaceData<int> *>(dst)) ||
+        //
+        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::SideData<double> *>(dst)) ||
+        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::SideData<float> *>(dst)) ||
+        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::SideData<int> *>(dst)) ||
+        //
+        ConvertDataBlock(src, dynamic_cast<spParticlePatchData *>(dst));
 }
 
 template <typename T>
@@ -559,9 +565,10 @@ std::shared_ptr<SAMRAI::hier::Variable> ConvertVariable_(const engine::Attribute
         case VOLUME:
             res = std::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
             break;
-        //        case FIBER:
-        //            res = std::make_shared<spParticleVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
-        //            break;
+        case FIBER:
+            res = std::make_shared<spParticleVariable>(d_dim, attr.GetPrefix(), attr.GetDOF(),
+                                                       attr.db().GetValue<int>("NumberOfPIC", 100));
+            break;
         default:
             break;
     }
@@ -583,15 +590,13 @@ std::shared_ptr<SAMRAI::hier::Variable> ConvertVariable(const engine::AttributeD
     return res;
 }
 
-void RegisterOperators(SAMRAI::geom::GridGeometry *g){
-    //    g->addCoarsenOperator(typeid(spParticleVariable<Real>).name(),
-    //    std::make_shared<spParticleCoarsenRefine<Real>>());
-    //
-    //    g->addRefineOperator(typeid(spParticleVariable<Real>).name(),
-    //    std::make_shared<spParticleConstantRefine<Real>>());
-    //
-    //    g->addTimeInterpolateOperator(typeid(spParticleVariable<Real>).name(),
-    //                                  std::make_shared<spParticleLinearTimeInterpolateOp<Real>>());
+void RegisterOperators(SAMRAI::geom::GridGeometry *g) {
+    g->addCoarsenOperator(typeid(spParticleVariable).name(), std::make_shared<spParticleCoarsenRefine>());
+
+    g->addRefineOperator(typeid(spParticleVariable).name(), std::make_shared<spParticleConstantRefine>());
+
+    g->addTimeInterpolateOperator(typeid(spParticleVariable).name(),
+                                  std::make_shared<spParticleLinearTimeInterpolateOp>());
 };
 }  //    namespace detail{
 
@@ -765,10 +770,9 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
     std::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geometry = nullptr;
     std::shared_ptr<SAMRAI::appu::VisItDataWriter> d_visit_writer = nullptr;
 
-    //    spParticleVisDerivedDataStrategy<Real> d_particle_writer_;
     /*
-     * Data items used for nonuniform Load balance, if used.
-     */
+    * Data items used for nonuniform Load balance, if used.
+    */
     std::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_workload_variable;
     int d_workload_data_id = 0;
     bool d_use_nonuniform_workload;
@@ -804,7 +808,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     //**************************************************************
 
     for (auto const *item : m_ctx_->GetMesh()->GetAttributes()) {
-        if (item->db()->Check("IS_NOT_OWNED", true) ||
+        if (item->db().Check("IS_NOT_OWNED", true) ||
             m_samrai_variables_.find(item->GetDescID()) != m_samrai_variables_.end()) {
             continue;
         }
@@ -823,9 +827,9 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         std::string coarsen_name = "";
         std::string refine_name = "";
 
-        if (item->db()->Check("COORDINATES", true)) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
-        if (item->db()->Check("INPUT", true)) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
-        if (item->db()->Check("FLUX", true)) {
+        if (item->db().Check("COORDINATES", true)) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
+        if (item->db().Check("INPUT", true)) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
+        if (item->db().Check("FLUX", true)) {
             ghosts = d_fluxghosts;
             v_type = SAMRAI::algs::HyperbolicLevelIntegrator::FLUX;
             coarsen_name = "CONSERVATIVE_COARSEN";
@@ -837,7 +841,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
             refine_name = "NO_REFINE";
         }
 
-        //        if ((item->GetTypeInfo() != typeid(double)) || item->db()->Check("TEMP", true)) {
+        //        if ((item->GetTypeInfo() != typeid(double)) || item->db().Check("TEMP", true)) {
         //            v_type = SAMRAI::algs::HyperbolicLevelIntegrator::TEMPORARY;
         //            coarsen_name = "";
         //            refine_name = "";
@@ -863,18 +867,20 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         //        }
         //        v_type != SAMRAI::algs::HyperbolicLevelIntegrator::TEMPORARY
 
-        if (visit_variable_type != "" && item->db()->Check("COORDINATES", true)) {
+        if (visit_variable_type != "" && item->db().Check("COORDINATES", true)) {
             d_visit_writer->registerNodeCoordinates(
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
         } else if ((item->GetIFORM() == VERTEX || item->GetIFORM() == VOLUME)) {
             d_visit_writer->registerPlotQuantity(
                 item->GetPrefix(), visit_variable_type,
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-        } else {
-            //            d_visit_writer->registerDerivedPlotQuantity(item->GetPrefix(), visit_variable_type,
-            //            &d_particle_writer_,
-            //                                                        1.0, "CELL", "CLEAN");
         }
+
+        //        else if (item->GetIFORM() == FIBER) {
+        //            d_visit_writer->registerDerivedPlotQuantity(item->GetPrefix(), visit_variable_type,
+        //            &d_particle_writer_,
+        //                                                        1.0, "CELL", "CLEAN");
+        //        }
     }
     //    integrator->printClassData(std::cout);
     vardb->printClassData(std::cout);

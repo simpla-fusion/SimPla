@@ -27,7 +27,7 @@ struct Context::pimpl_s {
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 };
 
-Context::Context(std::string const &s_name) : SPObject(s_name), m_pimpl_(new pimpl_s) {}
+Context::Context(std::string const &s_name) : m_pimpl_(new pimpl_s) { SPObject::SetName(s_name); }
 
 Context::~Context() = default;
 

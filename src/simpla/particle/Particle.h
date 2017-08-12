@@ -14,16 +14,27 @@ namespace simpla {
 namespace engine {
 struct MeshBase;
 }
-class ParticleBase {
+class ParticleBase : public engine::Attribute, public data::Serializable {
+    SP_OBJECT_HEAD(ParticleBase, engine::Attribute)
    public:
-    explicit ParticleBase(engine::MeshBase const* m = nullptr);
-    virtual ~ParticleBase();
-    SP_DEFAULT_CONSTRUCT(ParticleBase);
-    virtual std::shared_ptr<data::DataTable> Serialize() const;
-    virtual void Deserialize(const std::shared_ptr<data::DataTable>& t);
+    template <typename... Args>
+    explicit ParticleBase(engine::MeshBase* grp, Args&&... args)
+        : engine::Attribute(grp, FIBER, 1, typeid(Real), std::forward<Args>(args)...) {
+        Initialize();
+    };
 
-    virtual void PushData(data::DataBlock* dblk);
-    virtual void PopData(data::DataBlock* dblk);
+    ~ParticleBase() override { Finalize(); }
+
+    SP_DEFAULT_CONSTRUCT(ParticleBase);
+
+    void DoInitialize() override;
+    void DoFinalize() override;
+
+    std::shared_ptr<data::DataTable> Serialize() const override;
+    void Deserialize(const std::shared_ptr<data::DataTable>& t) override;
+
+    void Push(std::shared_ptr<data::DataBlock> const& blk) override;
+    std::shared_ptr<data::DataBlock> Pop() override;
 
     void SetNumberOfAttributes(int n);
     int GetNumberOfAttributes() const;
@@ -39,12 +50,12 @@ class ParticleBase {
         int* tag = nullptr;
         Real** data = nullptr;
     };
+
     std::shared_ptr<Bucket> GetBucket(id_type s = NULL_ID);
     std::shared_ptr<Bucket> AddBucket(id_type s, size_type num);
     void RemoveBucket(id_type s);
     std::shared_ptr<Bucket> GetBucket(id_type s = NULL_ID) const;
 
-    virtual void DoInitialize();
     void InitialLoad(int const* rnd_type = nullptr, size_type rnd_offset = 0);
     size_type Count(id_type s = NULL_ID) const;
     void Sort();
@@ -52,7 +63,7 @@ class ParticleBase {
 
    private:
     struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
+    pimpl_s* m_pimpl_ = nullptr;
 };
 
 /** @ingroup physical_object
@@ -109,7 +120,7 @@ class ParticleBase {
 */
 
 template <typename TM>
-class Particle : public ParticleBase, public engine::Attribute, public data::Serializable {
+class Particle : public ParticleBase {
     typedef Particle<TM> particle_type;
     SP_OBJECT_HEAD(particle_type, engine::Attribute);
 
@@ -122,41 +133,13 @@ class Particle : public ParticleBase, public engine::Attribute, public data::Ser
     mesh_type const* m_host_ = nullptr;
 
    public:
-    Particle(mesh_type* grp, int DOF, std::shared_ptr<data::DataTable> const& d)
-        : ParticleBase(grp->GetMesh()), base_type(grp->GetMesh(), FIBER, DOF, typeid(Real), d), m_host_(grp) {
-        ParticleBase::SetNumberOfAttributes(DOF);
-        ParticleBase::SetNumberOfPIC(db()->template GetValue<int>("NumPIC", 100));
-    }
-
     template <typename... Args>
-    Particle(mesh_type* grp, int DOF, Args&&... args)
-        : Particle(grp, DOF, std::make_shared<data::DataTable>(std::forward<Args>(args)...)) {}
+    Particle(mesh_type* grp, Args&&... args)
+        : ParticleBase(grp->GetMesh(), std::forward<Args>(args)...), m_host_(grp) {}
 
     ~Particle() override = default;
 
     SP_DEFAULT_CONSTRUCT(Particle);
-
-    std::shared_ptr<data::DataTable> Serialize() const override {
-        auto res = ParticleBase::Serialize();
-        res->Set("Properties", engine::Attribute::db());
-        return res;
-    }
-
-    void Deserialize(const std::shared_ptr<data::DataTable>& t) override {
-        if (t == nullptr) { return; }
-        engine::Attribute::db()->Set(t->GetTable("Properties"));
-        ParticleBase::Deserialize(t);
-    }
-
-    void DoInitialize() override {
-        if (base_type::isNull()) {
-            ParticleBase::DoInitialize();
-        } else {
-            ParticleBase::PushData(GetDataBlock());
-        }
-    }
-
-    void DoFinalize() override { ParticleBase::PopData(GetDataBlock()); }
 
 };  // class Particle
 }  // namespace simpla{

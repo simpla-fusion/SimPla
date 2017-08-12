@@ -28,7 +28,7 @@ void DataIOPort::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
     if (m_pimpl_->m_data_ == nullptr) {
         m_pimpl_->m_data_ = std::make_shared<DataTable>(cfg->GetValue<std::string>("URI", "mem://"));
     }
-    m_pimpl_->m_data_->Set(cfg);
+    m_pimpl_->m_data_->Set(*cfg);
 };
 
 std::shared_ptr<DataEntity> DataIOPort::Get(std::string const &uri) const { return m_pimpl_->m_data_->Get(uri); }

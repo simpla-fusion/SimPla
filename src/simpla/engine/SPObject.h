@@ -75,7 +75,7 @@ namespace engine {
 class SPObject {
     SP_OBJECT_BASE(SPObject)
    public:
-    explicit SPObject(std::string const &s_name = "");
+    explicit SPObject();
     virtual ~SPObject();
     SPObject(SPObject const &other);
     SPObject(SPObject &&other) noexcept;
@@ -87,7 +87,6 @@ class SPObject {
     id_type GetGUID() const;
     void SetName(std::string const &);
     std::string const &GetName() const;
-
 
     void lock();
     void unlock();

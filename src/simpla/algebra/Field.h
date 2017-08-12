@@ -59,9 +59,9 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
 
    public:
     template <typename... Args>
-    explicit Field(mesh_type* grp, Args&&... args)
-        : base_type(grp->GetMesh(), IFORM, std::integer_sequence<int, DOF...>(), typeid(value_type),
-                    std::forward<Args>(args)...),
+    Field(mesh_type* grp, Args&&... args)
+        : engine::Attribute(grp->GetMesh(), IFORM, reduction_v(tags::multiplication(), 1, DOF...), typeid(value_type),
+                            std::forward<Args>(args)...),
           m_host_(grp) {}
 
     ~Field() override = default;
@@ -76,6 +76,9 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     template <typename OtherMesh>
     Field(mesh_type* m, Field<OtherMesh, value_type, IFORM, DOF...>& other)
         : base_type(other), m_host_(m), m_data_(other.m_data_) {}
+
+    int GetDOF() const override { return reduction_v(tags::multiplication(), 1, DOF...); };
+    void SetDOF(int d) override { RUNTIME_ERROR << "Can not change DOF of Field!" << std::endl; };
 
     void DoInitialize() override {
         if (base_type::isNull()) {

@@ -53,18 +53,33 @@ class Patch;
 struct AttributeDesc : public data::Configurable {
    public:
     AttributeDesc() = default;
+    ~AttributeDesc() override = default;
+
     AttributeDesc(AttributeDesc const &other)
-        : m_prefix_(other.m_prefix_), m_iform_(other.m_iform_), m_dof_(other.m_dof_), m_t_info_(other.m_t_info_){};
-    AttributeDesc(AttributeDesc &&other)
-        : m_prefix_(other.m_prefix_), m_iform_(other.m_iform_), m_dof_(other.m_dof_), m_t_info_(other.m_t_info_){};
-    ~AttributeDesc() override;
+        : data::Configurable(other),
+          m_prefix_(other.m_prefix_),
+          m_iform_(other.m_iform_),
+          m_dof_(other.m_dof_),
+          m_t_info_(other.m_t_info_){};
+    AttributeDesc(AttributeDesc &&other) noexcept
+        : data::Configurable(other),
+          m_prefix_(other.m_prefix_),
+          m_iform_(other.m_iform_),
+          m_dof_(other.m_dof_),
+          m_t_info_(other.m_t_info_){};
 
-    AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, std::string const &s_prefix = "",
-                  std::shared_ptr<data::DataTable> const &t_db = nullptr);
+    template <typename... Args>
+    AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, std::string const &s_prefix, Args &&... args)
+        : m_prefix_(s_prefix), m_iform_(IFORM), m_dof_(DOF), m_t_info_(t_info) {
+        db().Assign(std::forward<Args>(args)...);
+    }
 
-    virtual std::string GetPrefix() const { return m_prefix_; }
-    virtual int GetIFORM() const { return m_iform_; };
+    void SetPrefix(std::string const &s) { m_prefix_ = s; }
+    std::string GetPrefix() const { return m_prefix_; }
+    int GetIFORM() const { return m_iform_; };
+
     virtual int GetDOF() const { return m_dof_; };
+    virtual void SetDOF(int d) { m_dof_ = d; };
     virtual std::type_info const &value_type_info() const { return m_t_info_; };
 
     virtual id_type GetDescID() const;
@@ -143,20 +158,20 @@ class AttributeGroup {
  * deactivate AttributeView
  * @enduml
  */
-struct Attribute : public SPObject, public AttributeDesc {
+struct Attribute : public AttributeDesc, public SPObject {
     SP_OBJECT_HEAD(Attribute, SPObject);
 
    public:
-    Attribute(AttributeGroup *grp, int IFORM, int DOF, std::type_info const &t_info,
-              std::shared_ptr<data::DataTable> p);
+    template <typename... Args>
+    Attribute(AttributeGroup *grp, int IFORM, int DOF, std::type_info const &t_info, Args &&... args)
+        : AttributeDesc(IFORM, DOF, t_info, "", std::forward<Args>(args)...) {
+        SPObject::SetName(db().GetValue<std::string>("name", "unnamed"));
+        AttributeDesc::SetPrefix(db().GetValue<std::string>("name", "unnamed"));
+        Register(grp);
+    };
 
-    template <int... DOF, typename TGrp, typename... Args>
-    Attribute(TGrp *grp, int IFORM, std::integer_sequence<int, DOF...>, std::type_info const &t_info, Args &&... args)
-        : Attribute(grp, IFORM, reduction_v(tags::multiplication(), 1, DOF...), t_info,
-                    std::make_shared<data::DataTable>(std::forward<Args>(args)...)) {}
-
-    Attribute(Attribute const &other);
-    Attribute(Attribute &&other) noexcept;
+    Attribute(Attribute const &other) = delete;
+    Attribute(Attribute &&other) noexcept = delete;
 
     Attribute &operator=(Attribute const &other) = delete;
     Attribute &operator=(Attribute &&other) = delete;
@@ -176,18 +191,13 @@ struct Attribute : public SPObject, public AttributeDesc {
     virtual bool isNull() const;
     virtual bool empty() const { return isNull(); };
 
-//    template <typename U, typename... Others, int... N>
-//    void PushData(nTuple<Array<U, Others...>, N...> *d);
-//    template <typename U, typename... Others, int... N>
-//    void PopData(nTuple<Array<U, Others...>, N...> *d);
-
    private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
+    std::set<AttributeGroup *> m_bundle_{};
+    std::shared_ptr<data::DataBlock> m_data_block_ = nullptr;
 };
 //
-//template <typename U, typename... Others, int... N>
-//void Attribute::PushData(nTuple<Array<U, Others...>, N...> *d) {
+// template <typename U, typename... Others, int... N>
+// void Attribute::PushData(nTuple<Array<U, Others...>, N...> *d) {
 //    typedef Array<U, Others...> array_type;
 //    auto *blk = dynamic_cast<data::DataMultiArray<array_type> *>(GetDataBlock());
 //    if (blk != nullptr) {
@@ -199,8 +209,8 @@ struct Attribute : public SPObject, public AttributeDesc {
 //    }
 //    Tag();
 //};
-//template <typename U, typename... Others, int... N>
-//void Attribute::PopData(nTuple<Array<U, Others...>, N...> *d) {
+// template <typename U, typename... Others, int... N>
+// void Attribute::PopData(nTuple<Array<U, Others...>, N...> *d) {
 //    typedef Array<U, Others...> array_type;
 //    auto *blk = dynamic_cast<data::DataMultiArray<array_type> *>(GetDataBlock());
 //    if (blk == nullptr) {

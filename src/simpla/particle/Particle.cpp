@@ -3,7 +3,7 @@
 //
 
 #include "Particle.h"
-#include "ParticleDataBlock.h"
+#include "ParticleData.h"
 #include "simpla/algebra/EntityId.h"
 #include "simpla/algebra/nTuple.h"
 #include "simpla/engine/Mesh.h"
@@ -19,21 +19,35 @@ struct ParticleBase::pimpl_s {
     size_type m_num_pic_ = 100;
     size_type m_max_size_ = 0;
     int m_num_of_attr_ = 3;
-    ParticleDataBlock* m_data_block_ = nullptr;
+    ParticleData* m_data_block_ = nullptr;
     id_type* m_tag_;
     Real* m_data_[MAX_NUMBER_OF_PARTICLE_ATTRIBUTES];
 };
-ParticleBase::ParticleBase(engine::MeshBase const* m) : m_pimpl_(new pimpl_s) { m_pimpl_->m_mesh_ = m; }
-ParticleBase::~ParticleBase() {}
+void ParticleBase::DoInitialize() {
+    m_pimpl_ = new pimpl_s;
+    engine::Attribute::SetDOF(db().GetValue<int>("DOF", 6));
+}
+void ParticleBase::DoFinalize() {
+    delete m_pimpl_;
+    m_pimpl_ = nullptr;
+}
 std::shared_ptr<data::DataTable> ParticleBase::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
+    res->Set("Properties", engine::Attribute::db());
     return res;
 }
 void ParticleBase::Deserialize(const std::shared_ptr<data::DataTable>& t) {
     if (t == nullptr) { return; }
+    engine::Attribute::db().Set(t->GetTable("Properties"));
 }
-void ParticleBase::PushData(data::DataBlock* dblk) { m_pimpl_->m_data_block_ = dynamic_cast<ParticleDataBlock*>(dblk); }
-void ParticleBase::PopData(data::DataBlock* dblk) { m_pimpl_->m_data_block_ = nullptr; }
+void ParticleBase::Push(std::shared_ptr<data::DataBlock> const& dblk) {
+    engine::Attribute::Push(dblk);
+    m_pimpl_->m_data_block_ = dynamic_cast<ParticleData*>(GetDataBlock());
+}
+std::shared_ptr<data::DataBlock> ParticleBase::Pop() {
+    m_pimpl_->m_data_block_ = nullptr;
+    return engine::Attribute::Pop();
+}
 void ParticleBase::SetNumberOfAttributes(int n) { m_pimpl_->m_num_of_attr_ = n; }
 int ParticleBase::GetNumberOfAttributes() const { return m_pimpl_->m_num_of_attr_; }
 
@@ -68,8 +82,6 @@ void ParticleBase::Sort() {
                  m_pimpl_->m_data_);
 }
 void ParticleBase::DeepSort() {}
-
-void ParticleBase::DoInitialize() {}
 
 void ParticleBase::InitialLoad(int const* rnd_dist_type, size_type rnd_offset) {
     int dist_type[GetNumberOfAttributes()];

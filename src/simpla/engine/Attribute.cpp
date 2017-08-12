@@ -12,11 +12,6 @@
 //#include "simpla/mesh/MeshBase.h"
 namespace simpla {
 namespace engine {
-AttributeDesc::AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, std::string const &s_prefix,
-                             std::shared_ptr<data::DataTable> const &t_db)
-    : data::Configurable(t_db), m_prefix_(s_prefix), m_iform_(IFORM), m_dof_(DOF), m_t_info_(t_info) {}
-
-AttributeDesc::~AttributeDesc() = default;
 
 id_type AttributeDesc::GetDescID() const {
     static std::hash<std::string> s_hasher;
@@ -99,43 +94,30 @@ std::shared_ptr<AttributeDesc> AttributeGroup::GetAttributeDescription(std::stri
 //
 //    return res;
 //}
-
-struct Attribute::pimpl_s {
-    std::set<AttributeGroup *> m_bundle_;
-    std::shared_ptr<data::DataBlock> m_data_block_ = nullptr;
-};
-Attribute::Attribute(AttributeGroup *grp, int IFORM, int DOF, std::type_info const &t_info,
-                     std::shared_ptr<data::DataTable> cfg)
-    : SPObject((cfg != nullptr && cfg->has("name")) ? cfg->GetValue<std::string>("name") : "unnamed"),
-      AttributeDesc(IFORM, DOF, t_info, SPObject::GetName(), cfg),
-      m_pimpl_(new pimpl_s) {
-    Register(grp);
-};
-
-Attribute::Attribute(Attribute const &other) : SPObject(other), AttributeDesc(other), m_pimpl_(new pimpl_s) {
-    for (auto *grp : other.m_pimpl_->m_bundle_) { Register(grp); }
-    Initialize();
-}
-Attribute::Attribute(Attribute &&other) noexcept
-    : SPObject(std::move(other)), AttributeDesc(std::move(other)), m_pimpl_(std::move(other.m_pimpl_)) {
-    for (auto *grp : m_pimpl_->m_bundle_) {
-        grp->Detach(&other);
-        grp->Attach(this);
-    }
-}
+//
+// Attribute::Attribute(Attribute const &other) : SPObject(other), AttributeDesc(other) {
+//    for (auto *grp : other.m_bundle_) { Register(grp); }
+//    Initialize();
+//}
+// Attribute::Attribute(Attribute &&other) noexcept : SPObject(std::move(other)), AttributeDesc(std::move(other)) {
+//    for (auto *grp : m_bundle_) {
+//        grp->Detach(&other);
+//        grp->Attach(this);
+//    }
+//}
 Attribute::~Attribute() {
-    for (auto *grp : m_pimpl_->m_bundle_) { grp->Detach(this); }
+    for (auto *grp : m_bundle_) { grp->Detach(this); }
 }
 void Attribute::swap(Attribute &other) {
     SPObject::swap(other);
     AttributeDesc::swap(other);
-    std::swap(m_pimpl_->m_data_block_, other.m_pimpl_->m_data_block_);
+    std::swap(m_data_block_, other.m_data_block_);
 
-    for (auto *grp : m_pimpl_->m_bundle_) {
+    for (auto *grp : m_bundle_) {
         grp->Detach(this);
         grp->Attach(&other);
     }
-    for (auto *grp : other.m_pimpl_->m_bundle_) {
+    for (auto *grp : other.m_bundle_) {
         grp->Detach(&other);
         grp->Attach(this);
     }
@@ -143,28 +125,28 @@ void Attribute::swap(Attribute &other) {
 
 void Attribute::Register(AttributeGroup *attr_b) {
     if (attr_b != nullptr) {
-        auto res = m_pimpl_->m_bundle_.emplace(attr_b);
+        auto res = m_bundle_.emplace(attr_b);
         if (res.second) { attr_b->Attach(this); }
     }
 }
 void Attribute::Deregister(AttributeGroup *attr_b) {
     if (attr_b != nullptr) {
         attr_b->Detach(this);
-        m_pimpl_->m_bundle_.erase(attr_b);
+        m_bundle_.erase(attr_b);
     }
 }
 void Attribute::Push(const std::shared_ptr<DataBlock> &d) {
-    m_pimpl_->m_data_block_ = d;
+    m_data_block_ = d;
     Initialize();
 }
 std::shared_ptr<data::DataBlock> Attribute::Pop() {
     Finalize();
-    return m_pimpl_->m_data_block_;
+    return m_data_block_;
 }
-data::DataBlock *Attribute::GetDataBlock() { return m_pimpl_->m_data_block_.get(); }
-data::DataBlock const *Attribute::GetDataBlock() const { return m_pimpl_->m_data_block_.get(); }
+data::DataBlock *Attribute::GetDataBlock() { return m_data_block_.get(); }
+data::DataBlock const *Attribute::GetDataBlock() const { return m_data_block_.get(); }
 
-bool Attribute::isNull() const { return m_pimpl_->m_data_block_ == nullptr; }
+bool Attribute::isNull() const { return m_data_block_ == nullptr; }
 
 }  //{ namespace engine
 }  // namespace simpla
