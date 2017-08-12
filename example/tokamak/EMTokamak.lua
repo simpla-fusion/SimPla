@@ -35,11 +35,11 @@ Context = {
     --        },
     --    },
     Domains = {
-        Limiter = {
-            Type = "Maxwell",
-            --            Model = "Tokamak",
-            --            Body = "Limiter",
-        },
+--        Limiter = {
+--            Type = "Maxwell",
+--            --            Model = "Tokamak",
+--            --            Body = "Limiter",
+--        },
         --        PlasmaCenter = {
         --            Type = "EMFluid", -- "Domain<RectMesh,EBMesh,FVM,EMFluid>",
         --            Species = {
@@ -55,8 +55,8 @@ Context = {
             Body =
             {
                 Type = "occ",
-                File = "/home/salmon/workspace/SimPla/example/tokamak/cube.step",
-                Location = { 1.6, -0.250, -0.20 },
+                File = "/home/salmon/workspace/SimPla/example/tokamak/coin.step",
+                Location = { 1.8, -0.0,  0.0 },
                 Scale = 1.0e-3
                 --                Type = "Cube",
                 --                lo = { 1.5, -0.5, -TWOPI / 8 },
@@ -71,22 +71,22 @@ Context = {
             WaveNumber = { 0.0, 0.0, TWOPI / 12.0 },
             Frequency = 1.0e9,
         },
-        Plasma = {
-            Type="PICBoris",
-            Species={
-                ele={
-                    M=1.0,
-                    Z=-1.0/1836.0,
-                    ratio=1.0
-                },
-                H={
-                    M=1.0,
-                    Z=1.0,
-                    ratio=0.5
-                },
-            }
-
-        }
+--        Plasma = {
+--            Type="PICBoris",
+--            Species={
+--                ele={
+--                    M=1.0,
+--                    Z=-1.0/1836.0,
+--                    ratio=1.0
+--                },
+--                H={
+--                    M=1.0,
+--                    Z=1.0,
+--                    ratio=0.5
+--                },
+--            }
+--
+--        }
     }
 }
 

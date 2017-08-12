@@ -180,6 +180,10 @@ void Context::BoundaryCondition(Real time_now, Real dt) {
 void Context::ComputeFluxes(Real time_now, Real dt) {
     for (auto &d : GetAllDomains()) { d.second->ComputeFluxes(time_now, dt); }
 }
+Real Context::ComputeStableDtOnPatch(Real time_now, Real time_dt) {
+    for (auto &d : GetAllDomains()) { time_dt = d.second->ComputeStableDtOnPatch(time_now, time_dt); }
+    return time_dt;
+}
 
 void Context::Advance(Real time_now, Real dt) {
     GetMesh()->Advance(time_now, dt);

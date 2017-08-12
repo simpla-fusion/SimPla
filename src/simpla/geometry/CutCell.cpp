@@ -116,7 +116,7 @@ void CutCell(Chart *chart, index_box_type m_idx_box, GeoObject const *g, Array<R
                         for (index_type s = i0[dir]; s <= i1[dir]; ++s) {
                             index_tuple id{i, j, k};
                             id[dir] = s;
-                            vertex_tags[0].Set(dir + 1, id);
+                            vertex_tags[0].Set(1, id);
                         }
                     }
 

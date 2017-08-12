@@ -74,7 +74,10 @@ class DomainBase : public EnableCreateFromDataTable<DomainBase, MeshBase *, std:
     design_pattern::Signal<void(DomainBase *, Real, Real)> PreComputeFluxes;
     virtual void DoComputeFluxes(Real time_now, Real dt) {}
     design_pattern::Signal<void(DomainBase *, Real, Real)> PostComputeFluxes;
+
     void ComputeFluxes(Real time_now, Real time_dt);
+
+    Real ComputeStableDtOnPatch(Real time_now, Real time_dt) const;
 
     design_pattern::Signal<void(DomainBase *, Real, Real)> PreAdvance;
     virtual void DoAdvance(Real time_now, Real dt) {}

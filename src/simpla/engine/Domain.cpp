@@ -62,6 +62,7 @@ void DomainBase::ComputeFluxes(Real time_now, Real dt) {
     DoComputeFluxes(time_now, dt);
     PostComputeFluxes(this, time_now, dt);
 }
+Real DomainBase::ComputeStableDtOnPatch(Real time_now, Real time_dt) const { return time_dt; }
 
 void DomainBase::Advance(Real time_now, Real dt) {
     Update();

@@ -112,7 +112,8 @@ class Context : public SPObject, public data::Serializable {
 
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real dt);
-    void ComputeFluxes(Real time_now, Real dt);
+    void ComputeFluxes(Real time_now, Real time_dt);
+    Real ComputeStableDtOnPatch(Real time_now, Real time_dt);
     void Advance(Real time_now, Real dt);
     void TagRefinementCells(Real time_now);
 
