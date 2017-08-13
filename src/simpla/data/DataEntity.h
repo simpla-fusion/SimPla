@@ -33,10 +33,14 @@ struct DataEntity {
     virtual bool isLight() const { return false; }
     virtual bool isNull() const;
 
-    template <typename U>
-    operator U() const {
-        return dynamic_cast<DataEntityWrapper<U> const*>(this)->value();
-    }
+    //    template <typename U>
+    //    operator U() const {
+    //        auto p = dynamic_cast<DataEntityWrapper<U> const*>(this);
+    //        if (p == nullptr) {
+    //            BAD_CAST << "Convert " << value_type_info().name() << " to " << typeid(U).name() << std::endl;
+    //        }
+    //        return p->value();
+    //    }
 };
 inline std::ostream& operator<<(std::ostream& os, DataEntity const& v) {
     v.Serialize(os, 0);

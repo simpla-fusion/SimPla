@@ -3,11 +3,11 @@
 //
 #include "simpla/SIMPLA_config.h"
 
-#include "simpla/utilities/Factory.h"
 #include "simpla/data/Data.h"
 #include "simpla/engine/Model.h"
 #include "simpla/geometry/Chart.h"
 #include "simpla/geometry/GeoAlgorithm.h"
+#include "simpla/utilities/Factory.h"
 
 #include "Context.h"
 #include "Domain.h"
@@ -41,18 +41,15 @@ void Context::Serialize(data::DataTable &cfg) const {
 void Context::Deserialize(const DataTable &cfg) {
     DoInitialize();
 
-    m_pimpl_->m_mesh_ = MeshBase::Create(cfg.GetTable("Mesh"));
-
+    m_pimpl_->m_mesh_ = CreateObject<MeshBase>(cfg.Get("Mesh").get());
     cfg.GetTable("Model").Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> t_cfg) {
-        m_pimpl_->m_models_[key] = Model::Create(*t_cfg);
+        m_pimpl_->m_models_[key] = CreateObject<Model>(t_cfg.get());
     });
 
     cfg.GetTable("Domains").Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> t_cfg) {
 
-        auto p_cfg = *std::dynamic_pointer_cast<data::DataTable>(t_cfg);
-
         m_pimpl_->m_domains_[key] =
-            DomainBase::Create(p_cfg, GetMesh(), GetModel(p_cfg.GetValue<std::string>("Model", "")));
+            CreateObject<DomainBase>(t_cfg.get(), GetMesh(), GetModel(cfg.GetValue<std::string>(key + "/Model", "")));
 
         m_pimpl_->m_domains_[key]->SetName(key);
 
@@ -129,7 +126,7 @@ std::shared_ptr<Model> Context::GetModel(std::string const &k) const {
 }
 
 std::shared_ptr<DomainBase> Context::CreateDomain(std::string const &k, const DataTable &t) {
-    auto res = DomainBase::Create(t, GetMesh(), GetModel(t.GetValue<std::string>("Model", k)));
+    auto res = CreateObject<DomainBase>(&t, GetMesh(), GetModel(t.GetValue<std::string>("Model", k)));
     SetDomain(k, res);
     return res;
 };

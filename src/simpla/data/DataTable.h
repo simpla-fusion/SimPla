@@ -6,7 +6,6 @@
 #define SIMPLA_DATATABLE_H_
 #include "simpla/SIMPLA_config.h"
 
-
 #include <memory>
 #include "DataArray.h"
 #include "DataEntity.h"
@@ -193,8 +192,24 @@ std::shared_ptr<DataEntity> make_data_entity(KeyValue const& first, Others&&... 
     res->Set(first, std::forward<Others>(others)...);
     return res;
 }
-
 }  // namespace data
+
+template <typename U, typename... Args>
+std::shared_ptr<U> CreateObject(data::DataEntity const* dataEntity, Args&&... args) {
+    std::shared_ptr<U> res = nullptr;
+    if (dynamic_cast<data::DataEntityWrapper<std::string> const*>(dataEntity) != nullptr) {
+        res = U::Create(dynamic_cast<data::DataEntityWrapper<std::string> const*>(dataEntity)->value(),
+                        std::forward<Args>(args)...);
+    } else if (dynamic_cast<data::DataTable const*>(dataEntity) != nullptr) {
+        auto const* db = dynamic_cast<data::DataTable const*>(dataEntity);
+        res = U::Create(db->GetValue<std::string>("Type", ""), std::forward<Args>(args)...);
+        res->Deserialize(*db);
+    } else {
+        res = U::Create("", std::forward<Args>(args)...);
+    }
+    return res;
+};
+
 }  // namespace simpla
 
 #endif  // SIMPLA_DATATABLE_H_

@@ -41,7 +41,7 @@ void SpApp::Serialize(data::DataTable &cfg) const {
 void SpApp::Deserialize(const data::DataTable &cfg) {
     m_pimpl_->m_context_.Deserialize(cfg.GetTable("Context"));
     m_pimpl_->m_atlas_.Deserialize(cfg.GetTable("Atlas"));
-    m_pimpl_->m_schedule_ = engine::Schedule::Create(*cfg.Get("Schedule"));
+    m_pimpl_->m_schedule_ = CreateObject<engine::Schedule>(&cfg);
     m_pimpl_->m_schedule_->SetContext(&m_pimpl_->m_context_);
     m_pimpl_->m_schedule_->SetAtlas(&m_pimpl_->m_atlas_);
 

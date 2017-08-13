@@ -20,8 +20,8 @@ template <typename THost>
 class PICBoris {
     SP_ENGINE_POLICY_HEAD(PICBoris);
 
-    void Serialize(data::DataTable* res) const;
-    void Deserialize(std::shared_ptr<data::DataTable> const& cfg);
+    void Serialize(DataTable& cfg) const;
+    void Deserialize(const DataTable& cfg);
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real time_dt);
     void Advance(Real time_now, Real dt);
@@ -57,21 +57,18 @@ class PICBoris {
 };
 
 template <typename TM>
-void PICBoris<TM>::Serialize(data::DataTable* res) const {
+void PICBoris<TM>::Serialize(DataTable& cfg) const {
     for (auto& item : m_particle_sp_) {
-        auto t = std::make_shared<data::DataTable>();
-        //        t->SetValue<double>("mass", item.second->mass / SI_proton_mass);
-        //        t->SetValue<double>("Z", item.second->charge / SI_elementary_charge);
-        //        t->SetValue<double>("ratio", item.second->ratio);
+        //        t.SetValue<double>("mass", item.second->mass / SI_proton_mass);
+        //        t.SetValue<double>("Z", item.second->charge / SI_elementary_charge);
+        //        t.SetValue<double>("ratio", item.second->ratio);
 
-        res->Set("Species/" + item.first, t);
+        item.second->Serialize(cfg.GetTable("Species/" + item.first));
     }
 };
 template <typename TM>
-void PICBoris<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
-    if (cfg == nullptr || cfg->GetTable("Species") == nullptr) { return; }
-
-    cfg->GetTable("Species").Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> v) {
+void PICBoris<TM>::Deserialize(const DataTable& cfg) {
+    cfg.GetTable("Species").Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> v) {
         auto t = std::dynamic_pointer_cast<data::DataTable>(v);
         if (t != nullptr) {
             t->SetValue("name", k);
