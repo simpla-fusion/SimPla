@@ -20,8 +20,8 @@ class DataIOPort;
 namespace engine {
 class Context;
 class Atlas;
-class Schedule : public engine::EnableCreateFromDataTable<Schedule> {
-    SP_OBJECT_HEAD(Schedule, engine::EnableCreateFromDataTable<Schedule>);
+class Schedule : public engine::SPObject, public data::Serializable, public Factory<Schedule> {
+    SP_OBJECT_HEAD(Schedule, engine::SPObject);
 
    public:
     explicit Schedule();

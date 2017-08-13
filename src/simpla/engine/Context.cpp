@@ -3,7 +3,7 @@
 //
 #include "simpla/SIMPLA_config.h"
 
-#include "EnableCreateFromDataTable.h"
+#include "simpla/utilities/Factory.h"
 #include "simpla/data/Data.h"
 #include "simpla/engine/Model.h"
 #include "simpla/geometry/Chart.h"

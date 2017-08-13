@@ -65,9 +65,9 @@ box_type MeshBase::GetBox(int tag) const {
 //    m_mesh_block_.swap(other.m_mesh_block_);
 //}
 
-void MeshBase::Serialize(data::DataTable& t_db) const { return base_type::Serialize(t_db); }
+void MeshBase::Serialize(data::DataTable& t_db) const {}
 void MeshBase::Deserialize(const DataTable& cfg) {
-    base_type::Deserialize(cfg);
+//    base_type::Deserialize(cfg);
 
     auto lo = cfg.GetValue<point_type>("Box/lo", point_type{0, 0, 0});
     auto hi = cfg.GetValue<point_type>("Box/hi", point_type{1, 1, 1});

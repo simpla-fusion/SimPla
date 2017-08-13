@@ -12,7 +12,7 @@
 #include "DataTable.h"
 #include "backend/DataBackendHDF5.h"
 #include "backend/DataBackendLua.h"
-#include "simpla/engine/EnableCreateFromDataTable.h"
+#include "simpla/utilities/Factory.h"
 namespace simpla {
 namespace data {
 
@@ -100,7 +100,7 @@ std::shared_ptr<DataBackend> DataBackend::Create(std::string const &uri, std::st
     }
 
     VERBOSE << "Create New Data Backend [ " << scheme << " : " << authority << path << " ]" << std::endl;
-    auto res = engine::EnableCreateFromDataTable<DataBackend>::Create(scheme);
+    auto res = base_type::Create(scheme);
     ASSERT(res != nullptr);
     res->Connect(authority, path, query, fragment);
     return res;

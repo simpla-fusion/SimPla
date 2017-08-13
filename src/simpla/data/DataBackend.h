@@ -11,7 +11,6 @@
 #include <typeinfo>
 #include <vector>
 #include "simpla/SIMPLA_config.h"
-#include "simpla/engine/EnableCreateFromDataTable.h"
 #include "simpla/utilities/Factory.h"
 #include "simpla/utilities/Log.h"
 #include "simpla/utilities/ObjectHead.h"
@@ -22,8 +21,8 @@ namespace data {
 
 class DataEntity;
 class DataTable;
-class DataBackend : public EnableCreateFromDataTable<DataBackend> {
-    SP_OBJECT_HEAD(DataBackend, EnableCreateFromDataTable<DataBackend>);
+class DataBackend : public Factory<DataBackend> {
+    SP_OBJECT_HEAD(DataBackend, Factory<DataBackend>);
 
    public:
     DataBackend() = default;

@@ -1,10 +1,11 @@
 //
 // Created by salmon on 17-7-19.
 //
-
 #include "simpla/SIMPLA_config.h"
 
 #include "DataIOPort.h"
+
+#include "DataTable.h"
 #include "simpla/engine/SPObject.h"
 namespace simpla {
 namespace data {
@@ -19,14 +20,14 @@ DataIOPort::~DataIOPort(){};
 
 void DataIOPort::Flush() {}
 
-void DataIOPort::Serialize(data::DataTable &cfg) const {};
-void DataIOPort::Deserialize(const DataTable &cfg) {
-    EnableCreateFromDataTable<DataIOPort>::Deserialize(cfg);
-    if (m_pimpl_->m_data_ == nullptr) {
-        m_pimpl_->m_data_ = std::make_shared<DataTable>(cfg.GetValue<std::string>("URI", "mem://"));
-    }
-    m_pimpl_->m_data_->Set(cfg);
-};
+// void DataIOPort::Serialize(data::DataTable &cfg) const {};
+// void DataIOPort::Deserialize(const DataTable &cfg) {
+////    Factroy<DataIOPort>::Deserialize(cfg);
+////    if (m_pimpl_->m_data_ == nullptr) {
+////        m_pimpl_->m_data_ = std::make_shared<DataTable>(cfg.GetValue<std::string>("URI", "mem://"));
+////    }
+////    m_pimpl_->m_data_->Set(cfg);
+//};
 
 std::shared_ptr<DataEntity> DataIOPort::Get(std::string const &uri) const { return m_pimpl_->m_data_->Get(uri); }
 void DataIOPort::Set(std::string const &uri, std::shared_ptr<DataEntity> const &d) { m_pimpl_->m_data_->Set(uri, d); }

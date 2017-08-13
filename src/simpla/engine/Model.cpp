@@ -7,7 +7,7 @@
 #include "Model.h"
 
 #include "SPObject.h"
-#include "simpla/engine/EnableCreateFromDataTable.h"
+#include "simpla/utilities/Factory.h"
 
 namespace simpla {
 namespace engine {
@@ -21,13 +21,13 @@ struct Model::pimpl_s {
 Model::Model() : m_pimpl_(new pimpl_s) {}
 Model::~Model() = default;
 void Model::Serialize(data::DataTable& cfg) const {
-    base_type::Serialize(cfg);
+//    base_type::Serialize(cfg);
     for (auto const& item : m_pimpl_->m_g_objs_) {
         if (item.second != nullptr) { item.second->Serialize(cfg.GetTable(item.first)); }
     }
 };
 void Model::Deserialize(const DataTable& cfg) {
-    base_type::Deserialize(cfg);
+//    base_type::Deserialize(cfg);
 
     cfg.Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> v) {
         if (v != nullptr) { SetObject(k, geometry::GeoObject::Create(*v)); }

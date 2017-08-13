@@ -14,14 +14,14 @@
 #include "simpla/geometry/GeoObject.h"
 
 #include "SPObject.h"
-
+#include "simpla/utilities/Factory.h"
 namespace simpla {
 
 namespace engine {
 using namespace data;
 
-class Model : public engine::EnableCreateFromDataTable<Model> {
-    SP_OBJECT_HEAD(Model, engine::EnableCreateFromDataTable<Model>);
+class Model : public SPObject, public data::Serializable, public Factory<Model> {
+    SP_OBJECT_HEAD(Model, SPObject);
 
    public:
     Model();

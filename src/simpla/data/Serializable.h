@@ -8,15 +8,15 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include "DataTable.h"
 namespace simpla {
 namespace data {
-class DataTable;
 
 class Serializable {
    public:
     Serializable() = default;
     virtual ~Serializable() = default;
-    virtual void Serialize(data::DataTable &t_db) const;
+    virtual void Serialize(DataTable &t_db) const;
     virtual void Deserialize(const DataTable &tdb);
     virtual std::ostream &Serialize(std::ostream &os, int indent) const;
     virtual std::istream &Deserialize(std::istream &is);

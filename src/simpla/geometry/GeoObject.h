@@ -13,8 +13,8 @@
 #include "simpla/algebra/nTuple.ext.h"
 #include "simpla/algebra/nTuple.h"
 #include "simpla/data/Serializable.h"
-#include "simpla/engine/EnableCreateFromDataTable.h"
 #include "simpla/engine/SPObject.h"
+#include "simpla/utilities/Factory.h"
 #include "simpla/utilities/Log.h"
 #include "simpla/utilities/SPDefines.h"
 #include "simpla/utilities/type_traits.h"
@@ -68,8 +68,8 @@ namespace geometry {
  *
  *  @enduml
  */
-class GeoObject : public engine::EnableCreateFromDataTable<GeoObject> {
-    SP_OBJECT_HEAD(GeoObject, engine::EnableCreateFromDataTable<GeoObject>)
+class GeoObject : public engine::SPObject, public data::Serializable, public Factory<GeoObject> {
+    SP_OBJECT_HEAD(GeoObject, engine::SPObject)
 
    public:
     GeoObject() = default;

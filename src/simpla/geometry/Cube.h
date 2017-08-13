@@ -9,6 +9,8 @@
 #define CORE_GEOMETRY_CUBE_H_
 
 #include "simpla/SIMPLA_config.h"
+#include "simpla/data/DataTable.h"
+#include "simpla/data/Serializable.h"
 
 #include "GeoObject.h"
 

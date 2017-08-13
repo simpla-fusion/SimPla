@@ -6,14 +6,15 @@
 #define SIMPLA_DATAIOPORT_H
 
 #include "DataArray.h"
-#include "simpla/engine/EnableCreateFromDataTable.h"
+#include "simpla/utilities/Factory.h"
 #include "simpla/utilities/ObjectHead.h"
+#include "DataTable.h"
 
 namespace simpla {
 namespace data {
 
-class DataIOPort : public engine::EnableCreateFromDataTable<DataIOPort> {
-    SP_OBJECT_HEAD(DataIOPort, engine::EnableCreateFromDataTable<DataIOPort>);
+class DataIOPort : public Factory<DataIOPort> {
+    SP_OBJECT_HEAD(DataIOPort, Factory<DataIOPort>);
 
    public:
     explicit DataIOPort(std::string uri = "");
@@ -21,8 +22,8 @@ class DataIOPort : public engine::EnableCreateFromDataTable<DataIOPort> {
 
     SP_DEFAULT_CONSTRUCT(DataIOPort)
 
-    void Serialize(data::DataTable &cfg) const override;
-    void Deserialize(const DataTable &cfg) override;
+//    void Serialize(data::DataTable &cfg) const override;
+//    void Deserialize(const DataTable &cfg) override;
 
     id_type TryGet(std::string const &uri, std::shared_ptr<DataEntity> *) const;
     id_type TrySet(std::string const &uri, std::shared_ptr<DataEntity> const &);

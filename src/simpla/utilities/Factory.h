@@ -1,57 +1,122 @@
-/**
- * @file factory.h
- *
- *  created on: 2014-6-13
- *      Author: salmon
- */
+//
+// Created by salmon on 17-4-12.
+//
 
-#ifndef FACTORY_H_
-#define FACTORY_H_
+#ifndef SIMPLA_FACTORY_H
+#define SIMPLA_FACTORY_H
 
-#include "simpla/SIMPLA_config.h"
-#include "simpla/utilities/Log.h"
-#include "simpla/utilities/macro.h"
-#include "simpla/utilities/type_traits.h"
-#include <functional>
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <memory>
-
+#include <string>
+#include "Log.h"
+#include "ObjectHead.h"
+#include "SingletonHolder.h"
 namespace simpla {
-namespace design_pattern {
-/**
- *  @ingroup design_pattern
- * @addtogroup factory Factory
- * @{
- *  \note  Modern C++ Design, Andrei Alexandrescu , Addison Wesley 2001  Charpt 8
- */
-template <typename TKey, typename TRes, typename... Args>
-struct Factory : public std::map<TKey, std::function<TRes*(Args...)>> {
-    typedef std::function<TRes*(Args...)> create_fun_callback;
-    typedef std::map<TKey, create_fun_callback> base_type;
-
+template <typename TObj, typename... Args>
+class Factory {
+    SP_OBJECT_BASE(Factory)
    public:
-    Factory() {}
-    virtual ~Factory() {}
+    Factory() = default;
+    virtual ~Factory() = default;
 
-    TRes* Create(TKey const& id, Args... args) const {
-        auto it = this->find(id);
-        return (it == this->end()) ? nullptr : it->second(args...);
+    struct ObjectFactory {
+        std::map<std::string, std::function<TObj *(Args const &...)>> m_factory_;
+    };
+    static bool HasCreator(std::string const &k) {
+        auto const &f = SingletonHolder<ObjectFactory>::instance().m_factory_;
+        return f.find(k) != f.end();
+    }
+    static std::string ShowDescription(std::string const &k = "") {
+        auto const &f = SingletonHolder<ObjectFactory>::instance().m_factory_;
+        std::string res;
+        if (!k.empty()) {
+            auto it = f.find(k);
+            if (it != f.end()) { res = it->first; }
+        }
+        if (res.empty()) {
+            std::ostringstream os;
+            os << std::endl << "Registered " << TObj::GetFancyTypeName_s() << " Creator:" << std::endl;
+            for (auto const &item : f) { os << " " << item.first << std::endl; }
+            res = os.str();
+        }
+        return res;
+    };
+    static bool RegisterCreator(std::string const &k, std::function<TObj *(Args const &...)> const &fun) noexcept {
+        return SingletonHolder<ObjectFactory>::instance().m_factory_.emplace(k, fun).second;
+    };
+    template <typename U>
+    static bool RegisterCreator(std::string const &k_hint = "") noexcept {
+        return RegisterCreator(!k_hint.empty() ? k_hint : U::GetFancyTypeName_s(),
+                               [](Args const &... args) { return new U(args...); });
+    };
+
+   private:
+    template <typename... U>
+    static std::shared_ptr<TObj> _CreateIfNotAbstract(std::integral_constant<bool, true> _, U &&... args) {
+        return std::make_shared<TObj>(std::forward<U>(args)...);
+    }
+    template <typename... U>
+    static std::shared_ptr<TObj> _CreateIfNotAbstract(std::integral_constant<bool, false> _, U &&... args) {
+        return nullptr;
     }
 
-    template <typename U>
-    bool Register(TKey const& k, ENABLE_IF((std::is_base_of<TRes, U>::value))) {
-        auto res = this->emplace(k, [&](Args&&... args) -> TRes* { return new U(std::forward<Args>(args)...); }).second;
-        if (res) { LOGGER << "Creator [ " << k << " ] is registered!" << std::endl; }
+   public:
+    template <typename... U>
+    static std::shared_ptr<TObj> Create(std::string const &k, U &&... args) {
+        if (k.empty()) { return nullptr; }
+        //        if (k.find("://") != std::string::npos) { return Create_(data::DataTable(k), args...); }
+        auto const &f = SingletonHolder<ObjectFactory>::instance().m_factory_;
+        std::shared_ptr<TObj> res = nullptr;
+        auto it = f.find(k);
 
+        if (it != f.end()) {
+            res.reset(it->second(std::forward<U>(args)...));
+            LOGGER << TObj::GetFancyTypeName_s() << "::" << it->first << "  is created!" << std::endl;
+        } else {
+            res = _CreateIfNotAbstract(std::integral_constant<bool, !std::is_abstract<TObj>::value>(),
+                                       std::forward<U>(args)...);
+
+            if (res == nullptr) {
+                std::ostringstream os;
+                os << "Can not find Creator " << k << std::endl;
+                os << std::endl << "Register " << TObj::GetFancyTypeName_s() << " Creator:" << std::endl;
+                for (auto const &item : f) { os << item.first << std::endl; }
+                WARNING << os.str();
+            }
+        }
         return res;
     }
 
-    void Unregister(TKey const& k) { this->erase(k); }
+    //    template <typename... U>
+    //    static std::shared_ptr<TObj> Create_(data::DataTable const &cfg, U &&... args) {
+    //        std::shared_ptr<TObj> res = Create(cfg.GetValue<std::string>("Type", ""), std::forward<U>(args)...);
+    //        if (res != nullptr) { res->Deserialize(cfg); }
+    //        return res;
+    //    }
+    //
+    //    template <typename... U>
+    //    static std::shared_ptr<TObj> Create(data::DataEntity const &cfg, U &&... args) {
+    //        std::shared_ptr<TObj> res = nullptr;
+    //
+    //        if (dynamic_cast<data::DataTable const *>(&cfg) != nullptr) {
+    //            res = Create_(dynamic_cast<data::DataTable const &>(cfg), std::forward<U>(args)...);
+    //        } else {
+    //            auto p = dynamic_cast<data::DataEntityWrapper<std::string> const *>(&cfg);
+    //            res = Create((p != nullptr) ? p->value() : "", std::forward<U>(args)...);
+    //        }
+    //
+    //        return res;
+    //    }
 };
 
-/** @} */
-}  // namespace design_patter{
-}  // namespace simpla
+#define REGISTER_CREATOR(_CLASS_NAME_, _REGISTER_NAME_) \
+    bool _CLASS_NAME_::_is_registered = _CLASS_NAME_::RegisterCreator<_CLASS_NAME_>(__STRING(_REGISTER_NAME_));
 
-#endif /* FACTORY_H_ */
+}  // namespace data{
+template <typename T>
+static bool RegisterCreator(std::string const &name) {
+    return T::template RegisterCreator<T>(name);
+}  // namespace simpla{
+#endif  // SIMPLA_FACTORY_H

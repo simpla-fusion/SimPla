@@ -65,15 +65,15 @@ void Schedule::Run() {
 }
 
 void Schedule::Serialize(data::DataTable &cfg) const {
-    base_type::Serialize(cfg);
+//    base_type::Serialize(cfg);
     cfg.SetValue("CheckPointInterval", GetCheckPointInterval());
-    if (m_data_io_ != nullptr) { m_data_io_->Serialize(cfg.GetTable("DataIOPort")); }
+//    if (m_data_io_ != nullptr) { m_data_io_->Serialize(cfg.GetTable("DataIOPort")); }
 }
 
 void Schedule::Deserialize(const DataTable &cfg) {
-    base_type::Deserialize(cfg);
+//    base_type::Deserialize(cfg);
     SetCheckPointInterval(static_cast<size_type>(cfg.GetValue("CheckPointInterval", 1)));
-    m_data_io_ = std::make_shared<data::DataIOPort>(cfg.GetValue<std::string>("DataIOPort", ""));
+//    m_data_io_ = std::make_shared<data::DataIOPort>(cfg.GetValue<std::string>("DataIOPort", ""));
 }
 
 void Schedule::DoInitialize() { SPObject::DoInitialize(); }

@@ -16,11 +16,9 @@ Real GeoObject::Measure() const {
 
 bool GeoObject::CheckInside(point_type const &x) const { return CheckInSide(BoundingBox(), x); }
 
-void GeoObject::Serialize(data::DataTable &cfg) const { engine::EnableCreateFromDataTable<GeoObject>::Serialize(cfg); }
+void GeoObject::Serialize(data::DataTable &cfg) const {}
 
-void GeoObject::Deserialize(const data::DataTable &cfg) {
-    engine::EnableCreateFromDataTable<GeoObject>::Deserialize(cfg);
-}
+void GeoObject::Deserialize(const data::DataTable &cfg) {}
 
 // Real GeoObject::CheckOverlap(box_type const &b) const { return Measure(Overlap(BoundingBox(), b)) / measure(); }
 //

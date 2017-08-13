@@ -23,18 +23,6 @@ struct DataArray : public DataEntity {
 
     std::shared_ptr<DataEntity> Duplicate() const override = 0;
 
-    std::ostream& Serialize(std::ostream& os, int indent) const override {
-        if (size() == 0) { return os; };
-
-        os << "[";
-        Get(0)->Serialize(os, indent + 1);
-        for (size_type i = 0, ie = size(); i < ie; ++i) {
-            os << ",";
-            Get(i)->Serialize(os, indent + 1);
-        }
-        os << "]";
-        return os;
-    }
     /**   DataArray */
     virtual size_type size() const = 0;
     virtual void resize(size_type s = 0) = 0;
@@ -61,14 +49,21 @@ struct DataArrayWrapper<void, void> : public DataArray {
     DataArrayWrapper& operator=(DataArrayWrapper const& other) = delete;
     DataArrayWrapper& operator=(DataArrayWrapper&& other) = delete;
 
-    template <typename U>
-    DataArrayWrapper(std::initializer_list<U> const& v) {
-        for (auto const& item : v) { m_data_.push_back(make_data_entity(item)); }
-    };
     std::shared_ptr<DataEntity> Duplicate() const override {
         return std::dynamic_pointer_cast<DataEntity>(std::make_shared<this_type>(*this));
     }
+    std::ostream& Serialize(std::ostream& os, int indent) const override {
+        if (size() == 0) { return os; };
 
+        os << "[";
+        m_data_[0]->Serialize(os, indent + 1);
+        for (size_type i = 1, ie = size(); i < ie; ++i) {
+            os << ",";
+            m_data_[i]->Serialize(os, indent + 1);
+        }
+        os << "]";
+        return os;
+    }
     auto& get() { return m_data_; }
     auto const& get() const { return m_data_; }
 
@@ -111,8 +106,14 @@ class DataArrayWrapper<U> : public DataArray {
 
     DataArrayWrapper(std::initializer_list<U> const& l) : m_data_(l){};
 
-    template <typename... Args>
-    explicit DataArrayWrapper(Args&&... args) : m_data_(std::forward<Args>(args)...) {}
+    std::ostream& Serialize(std::ostream& os, int indent) const override {
+        if (size() == 0) { return os; };
+
+        os << "[" << m_data_[0];
+        for (size_type i = 1, ie = size(); i < ie; ++i) { os << "," << m_data_[i]; }
+        os << "]";
+        return os;
+    }
 
     DataArrayWrapper(DataArrayWrapper const& other) : m_data_(other.m_data_){};
     DataArrayWrapper(DataArrayWrapper&& other) = delete;
@@ -174,17 +175,26 @@ class DataArrayWrapper<U> : public DataArray {
 template <typename U>
 std::shared_ptr<DataArrayWrapper<U>> make_data_entity(std::initializer_list<U> const& u,
                                                       ENABLE_IF(traits::is_light_data<U>::value)) {
-    return std::make_shared<DataArrayWrapper<U>>(u);
+    auto res = std::make_shared<DataArrayWrapper<U>>();
+    for (auto const& item : u) { res->Add(item); }
+    return res;
+}
+
+
+inline std::shared_ptr<DataArrayWrapper<std::string>> make_data_entity(std::initializer_list<const char*> const& u) {
+    auto res = std::make_shared<DataArrayWrapper<std::string>>();
+    for (auto const& item : u) { res->Add(std::string(item)); }
+    return res;
 }
 template <typename U>
 std::shared_ptr<DataArrayWrapper<>> make_data_entity(std::initializer_list<U> const& u,
-                                                      ENABLE_IF(!traits::is_light_data<U>::value)) {
+                                                     ENABLE_IF(!traits::is_light_data<U>::value)) {
     auto res = std::make_shared<DataArrayWrapper<>>();
     for (auto const& item : u) { res->Add(make_data_entity(item)); }
     return res;
 }
 
-//inline std::shared_ptr<DataArrayWrapper<std::string>> make_data_entity(std::initializer_list<char const*> const& u) {
+// inline std::shared_ptr<DataArrayWrapper<std::string>> make_data_entity(std::initializer_list<char const*> const& u) {
 //    auto res = std::make_shared<DataArrayWrapper<std::string>>();
 //    for (auto const item : u) { res->Add(std::string(item)); }
 //    return res;

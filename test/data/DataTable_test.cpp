@@ -28,7 +28,7 @@ TEST(DataTable, memory) {
     db.SetValue("h", {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}});
     db.SetValue("i", {"abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
     db.SetValue("j", {"abc"_ = {"abc"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
-    db.SetValue("b.a", 5);
+    db.SetValue("b/a", 5);
     db.SetValue("/b/sub/1/2/3/4/d/123456", {1, 2, 3});
     db.SetValue("/b/sub/e", {1, 2, 3, 4});
     db.AddValue("/b/sub/c", {5, 6, 7, 8});

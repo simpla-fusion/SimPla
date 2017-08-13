@@ -16,8 +16,9 @@
 #include <TopoDS_Shape.hxx>
 #include <gp_Quaternion.hxx>
 
+#include "simpla/data/DataTable.h"
+#include "simpla/data/Serializable.h"
 #include "simpla/utilities/SPDefines.h"
-
 namespace simpla {
 namespace geometry {
 

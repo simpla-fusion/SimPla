@@ -8,10 +8,13 @@
 #include <iomanip>
 #include <regex>
 #include <string>
-#include "simpla/engine/EnableCreateFromDataTable.h"
+#include "simpla/data/Serializable.h"
+#include "simpla/utilities/Factory.h"
 #include "simpla/utilities/Log.h"
+#include "simpla/utilities/type_traits.h"
 namespace simpla {
 namespace data {
+class DataTable;
 class DataEntity;
 std::shared_ptr<DataTable> ParseCommandLine(int argc, char **argv);
 
@@ -20,8 +23,7 @@ std::shared_ptr<DataTable> const &Pack(U const &u, ENABLE_IF((std::is_base_of<Se
     return u.Pack();
 }
 template <typename U>
-std::shared_ptr<U> Unpack(std::shared_ptr<DataTable> const &d,
-                          ENABLE_IF((std::is_base_of<engine::EnableCreateFromDataTable<U>, U>::value))) {
+std::shared_ptr<U> Unpack(std::shared_ptr<DataTable> const &d, ENABLE_IF((std::is_base_of<Factory<U>, U>::value))) {
     return U::Create(d);
 }
 void Pack(std::shared_ptr<DataEntity> const &d, std::ostream &os, std::string const &type, int indent = 0);

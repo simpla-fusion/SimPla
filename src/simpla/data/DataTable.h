@@ -4,12 +4,13 @@
 
 #ifndef SIMPLA_DATATABLE_H_
 #define SIMPLA_DATATABLE_H_
+#include "simpla/SIMPLA_config.h"
+
 
 #include <memory>
 #include "DataArray.h"
 #include "DataEntity.h"
 #include "DataTraits.h"
-#include "simpla/SIMPLA_config.h"
 #include "simpla/utilities/ObjectHead.h"
 namespace simpla {
 namespace data {
