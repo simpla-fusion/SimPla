@@ -26,8 +26,8 @@ class Tokamak : public engine::Model {
 
     void LoadGFile(std::string const &);
 
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
+    void Serialize(data::DataTable &cfg) const override;
+    void Deserialize(const data::DataTable &cfg) override;
 
     engine::Model::attr_fun GetAttribute(std::string const &attr_name) const override;
     engine::Model::vec_attr_fun GetAttributeVector(std::string const &attr_name) const override;

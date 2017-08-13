@@ -46,7 +46,7 @@ template <typename T>
 struct iform<const T> : public std::integral_constant<int, iform<T>::value> {};
 
 template <typename T>
-struct iform<T, std::enable_if_t<std::is_arithmetic<T>::value>> : public std::integral_constant<int, VERTEX> {};
+struct iform<T, std::enable_if_t<std::is_arithmetic<T>::value>> : public std::integral_constant<int, NODE> {};
 
 template <typename TM, typename TV, int IFORM>
 struct iform<Field<TM, TV, IFORM>> : public std::integral_constant<int, IFORM> {};
@@ -160,7 +160,7 @@ struct value_type<Expression<tags::cross, T0, T1>> {
 //******************************************************
 
 template <typename T0, typename T1>
-struct iform<Expression<tags::dot, T0, T1>> : public std::integral_constant<int, VERTEX> {};
+struct iform<Expression<tags::dot, T0, T1>> : public std::integral_constant<int, NODE> {};
 
 template <typename T0, typename T1>
 struct value_type<Expression<tags::dot, T0, T1>> {
@@ -314,12 +314,12 @@ auto map_to(T1 const& l) {
  *
  */
 template <typename T>
-auto grad(T const& f, std::integral_constant<int, VERTEX>) {
+auto grad(T const& f, std::integral_constant<int, NODE>) {
     return ((exterior_derivative(f)));
 }
 
 template <typename T>
-auto grad(T const& f, std::integral_constant<int, VOLUME>) {
+auto grad(T const& f, std::integral_constant<int, CELL>) {
     return (((codifferential_derivative(-f))));
 }
 
@@ -364,11 +364,11 @@ auto curl(T const& f, std::integral_constant<int, FACE> const&) {
 }
 
 template <typename T>
-auto curl(T const& f, std::integral_constant<int, VERTEX> const&) {
+auto curl(T const& f, std::integral_constant<int, NODE> const&) {
     return Expression<tags::curl, const T>(f);
 }
 template <typename T>
-auto curl(T const& f, std::integral_constant<int, VOLUME> const&) {
+auto curl(T const& f, std::integral_constant<int, CELL> const&) {
     return Expression<tags::curl, const T>(f);
 }
 template <typename T>

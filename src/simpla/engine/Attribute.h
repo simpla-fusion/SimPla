@@ -50,19 +50,19 @@ class Patch;
 //    DEFAULT_ATTRIBUTE_TAG = GLOBAL
 //};
 
-struct AttributeDesc : public data::Configurable {
+struct AttributeDesc : public data::Properties {
    public:
     AttributeDesc() = default;
     ~AttributeDesc() override = default;
 
     AttributeDesc(AttributeDesc const &other)
-        : data::Configurable(other),
+        : data::Properties(other),
           m_prefix_(other.m_prefix_),
           m_iform_(other.m_iform_),
           m_dof_(other.m_dof_),
           m_t_info_(other.m_t_info_){};
     AttributeDesc(AttributeDesc &&other) noexcept
-        : data::Configurable(other),
+        : data::Properties(other),
           m_prefix_(other.m_prefix_),
           m_iform_(other.m_iform_),
           m_dof_(other.m_dof_),
@@ -71,7 +71,7 @@ struct AttributeDesc : public data::Configurable {
     template <typename... Args>
     AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, std::string const &s_prefix, Args &&... args)
         : m_prefix_(s_prefix), m_iform_(IFORM), m_dof_(DOF), m_t_info_(t_info) {
-        db().Assign(std::forward<Args>(args)...);
+//        db().Set(std::forward<Args>(args)...);
     }
 
     void SetPrefix(std::string const &s) { m_prefix_ = s; }
@@ -137,6 +137,9 @@ class AttributeGroup {
 };
 
 /**
+ *
+ * Attribute
+ *
  * @startuml
  * title Life cycle
  * actor Main
@@ -157,6 +160,8 @@ class AttributeGroup {
  * AttributeT-->Main: return DataBlock
  * deactivate AttributeView
  * @enduml
+ *
+ *
  */
 struct Attribute : public AttributeDesc, public SPObject {
     SP_OBJECT_HEAD(Attribute, SPObject);
@@ -287,17 +292,17 @@ struct Attribute : public AttributeDesc, public SPObject {
 //    }
 //};
 //
-// template <typename TV, typename TM, int IFORM = VERTEX, int DOF = 1>
+// template <typename TV, typename TM, int IFORM = NODE, int DOF = 1>
 // using FieldAttribute = Field<TV, TM, IFORM, DOF>;
 //
-// template <typename TV = Real, int IFORM = VERTEX, int DOF = 1>
-// using DataAttribute = AttributeViewAdapter<Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 :
+// template <typename TV = Real, int IFORM = NODE, int DOF = 1>
+// using DataAttribute = AttributeViewAdapter<Array<TV, 3 + (((IFORM == NODE || IFORM == CELL) && DOF == 1) ? 0 :
 // 1)>>;
 //
-// template <typename TV, int IFORM = VERTEX, int DOF = 1>
+// template <typename TV, int IFORM = NODE, int DOF = 1>
 // struct DataAttribute : public Attribute,
-//                       public Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)> {
-//    typedef Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)> array_type;
+//                       public Array<TV, 3 + (((IFORM == NODE || IFORM == CELL) && DOF == 1) ? 0 : 1)> {
+//    typedef Array<TV, 3 + (((IFORM == NODE || IFORM == CELL) && DOF == 1) ? 0 : 1)> array_type;
 //    typedef DataAttribute<TV, IFORM, DOF> data_attr_type;
 //    SP_OBJECT_HEAD(data_attr_type, Attribute);
 //    CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, MeshBase)

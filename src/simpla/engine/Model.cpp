@@ -20,19 +20,17 @@ struct Model::pimpl_s {
 
 Model::Model() : m_pimpl_(new pimpl_s) {}
 Model::~Model() = default;
-std::shared_ptr<DataTable> Model::Serialize() const {
-    auto res = base_type::Serialize();
+void Model::Serialize(data::DataTable& cfg) const {
+    base_type::Serialize(cfg);
     for (auto const& item : m_pimpl_->m_g_objs_) {
-        if (item.second != nullptr) { res->Set(item.first, item.second->Serialize()); }
+        if (item.second != nullptr) { item.second->Serialize(cfg.GetTable(item.first)); }
     }
-    return res;
 };
-void Model::Deserialize(const std::shared_ptr<DataTable>& cfg) {
+void Model::Deserialize(const DataTable& cfg) {
     base_type::Deserialize(cfg);
-    if (cfg == nullptr) { return; }
 
-    cfg->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> const& v) {
-        if (v != nullptr) { SetObject(k, geometry::GeoObject::Create(v)); }
+    cfg.Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> v) {
+        if (v != nullptr) { SetObject(k, geometry::GeoObject::Create(*v)); }
     });
 };
 void Model::DoInitialize() {}

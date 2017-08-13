@@ -16,13 +16,10 @@ Real GeoObject::Measure() const {
 
 bool GeoObject::CheckInside(point_type const &x) const { return CheckInSide(BoundingBox(), x); }
 
-std::shared_ptr<data::DataTable> GeoObject::Serialize() const {
-    auto res = engine::EnableCreateFromDataTable<GeoObject>::Serialize();
-    return res;
-}
+void GeoObject::Serialize(data::DataTable &cfg) const { engine::EnableCreateFromDataTable<GeoObject>::Serialize(cfg); }
 
-void GeoObject::Deserialize(std::shared_ptr<data::DataTable> const &t) {
-    engine::EnableCreateFromDataTable<GeoObject>::Deserialize(t);
+void GeoObject::Deserialize(const data::DataTable &cfg) {
+    engine::EnableCreateFromDataTable<GeoObject>::Deserialize(cfg);
 }
 
 // Real GeoObject::CheckOverlap(box_type const &b) const { return Measure(Overlap(BoundingBox(), b)) / measure(); }

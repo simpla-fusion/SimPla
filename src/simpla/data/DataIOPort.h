@@ -21,8 +21,8 @@ class DataIOPort : public engine::EnableCreateFromDataTable<DataIOPort> {
 
     SP_DEFAULT_CONSTRUCT(DataIOPort)
 
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
+    void Serialize(data::DataTable &cfg) const override;
+    void Deserialize(const DataTable &cfg) override;
 
     id_type TryGet(std::string const &uri, std::shared_ptr<DataEntity> *) const;
     id_type TrySet(std::string const &uri, std::shared_ptr<DataEntity> const &);
@@ -36,8 +36,8 @@ class DataIOPort : public engine::EnableCreateFromDataTable<DataIOPort> {
     void Set(std::string const &uri, std::shared_ptr<DataEntity> const &);
     void Add(std::string const &uri, std::shared_ptr<DataEntity> const &);
 
-    void Set(std::shared_ptr<DataTable> const &);
-    void Add(std::shared_ptr<DataTable> const &);
+    void Set(const DataTable &);
+    void Add(const DataTable &);
 
     int Delete(std::string const &uri);
 

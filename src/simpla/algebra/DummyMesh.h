@@ -36,7 +36,7 @@ class DummyMesh : public engine::MeshBase {
     ~DummyMesh() = default;
 
     template <typename TFun>
-    void Foreach(TFun const &fun, size_type iform = VERTEX, size_type dof = 1) const {}
+    void Foreach(TFun const &fun, size_type iform = NODE, size_type dof = 1) const {}
 
     template <typename V, size_type IFORM, size_type DOF>
     V &getValue(Field<V, mesh_type, IFORM, DOF> &f, EntityId const &s) const {

@@ -21,8 +21,8 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
     ~SAMRAITimeIntegrator() override;
     SP_DEFAULT_CONSTRUCT(SAMRAITimeIntegrator)
 
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
+    void Serialize(data::DataTable &cfg) const override;
+    void Deserialize(const data::DataTable &cfg) override;
 
     void DoInitialize() override;
     void DoFinalize() override;

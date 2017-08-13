@@ -27,7 +27,7 @@
 #include "nTuple.h"
 namespace simpla {
 // typedef union { struct { u_int8_t w, z, y, x; }; int32_t v; } EntityId32;
-enum CenterOnMesh { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3, FIBER = 6 };
+enum TypeOfCenterOnMesh { NODE = 0, EDGE = 1, FACE = 2, CELL = 3, FIBER = 6 };
 enum TypeOfValue {
     SCALAR = 1,
     VECTOR = 3,
@@ -47,7 +47,7 @@ enum TypeOfValue {
     UNORDERED = 10000
 };
 
-static const char EntityIFORMName[][10] = {"VERTEX", "EDGE", "FACE", "VOLUME"};
+static const char EntityIFORMName[][10] = {"NODE", "EDGE", "FACE", "CELL"};
 typedef union {
     struct {
         int16_t x, y, z, w;
@@ -100,10 +100,10 @@ struct EntityIdCoder {
 
     static constexpr int m_sub_index_to_id_[4][3] = {
         //
-        {0, 0, 0}, /*VERTEX*/
+        {0, 0, 0}, /*NODE*/
         {1, 2, 4}, /*EDGE*/
         {6, 5, 3}, /*FACE*/
-        {7, 7, 7}  /*VOLUME*/
+        {7, 7, 7}  /*CELL*/
 
     };
 
@@ -147,7 +147,7 @@ struct EntityIdCoder {
         1,  // VETEX
         3,  // EDGE
         3,  // FACE
-        1   // VOLUME
+        1   // CELL
     };
     static constexpr int m_id_to_num_of_ele_in_cell_[] = {
 
@@ -324,7 +324,7 @@ struct EntityIdCoder {
 
     static constexpr int m_adjacent_cell_num_[4 /* to GetIFORM*/][8 /* node id*/] =
 
-        {  // VERTEX
+        {  // NODE
             {/* 000*/ 1,
              /* 001*/ 2,
              /* 010*/ 2,
@@ -354,7 +354,7 @@ struct EntityIdCoder {
              /* 110*/ 1,
              /* 111*/ 6},
 
-            // VOLUME
+            // CELL
             {/* 000*/ 8,
              /* 001*/ 4,
              /* 010*/ 4,
@@ -369,7 +369,7 @@ struct EntityIdCoder {
     static constexpr EntityId m_adjacent_cell_matrix_[4 /* to GetIFORM*/][NUM_OF_NODE_ID /* node id*/]
                                                      [MAX_NUM_OF_ADJACENT_CELL /*id shift*/] = {
 
-                                                         {// To VERTEX
+                                                         {// To NODE
 
                                                           {_DA},                  /* 000*/
                                                           {_DA - _DI, _DA + _DI}, /* 001*/
@@ -502,7 +502,7 @@ struct EntityIdCoder {
                                                           }},
 
                                                          {{
-                                                              // TO VOLUME   /* 000*/
+                                                              // TO CELL   /* 000*/
                                                               _DA - _DI - _DJ - _DK,  //
                                                               _DA - _DI + _DJ - _DK,  //
                                                               _DA - _DI - _DJ + _DK,  //

@@ -39,8 +39,8 @@ struct MeshBase : public AttributeGroup, public engine::EnableCreateFromDataTabl
     MeshBase &operator=(this_type const &other) = delete;
     MeshBase &operator=(this_type &&other) noexcept = delete;
 
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataTable> const &t) override;
+    void Serialize(data::DataTable &t_db) const override;
+    void Deserialize(const DataTable &t_db) override;
 
     int GetNDIMS() const;
 
@@ -108,8 +108,8 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     Mesh() : Policies<this_type>(this)... {};
     ~Mesh() override = default;
 
-    void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override;
-    std::shared_ptr<data::DataTable> Serialize() const override;
+    void Deserialize(data::DataTable const &cfg) override;
+    void Serialize(data::DataTable &) const override;
 
     void DoUpdate() override;
 
@@ -152,8 +152,8 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
         FillRange(lhs, std::forward<TR>(rhs), prefix + "_BOUNDARY_" + std::to_string(TL::iform), false);
     };
 
-    Field<mesh_type, int, VOLUME> m_refinement_tags_{this, "name"_ = "_refinement_tags_", "IS_NOT_OWNED"_};
-    Field<mesh_type, Real, VOLUME> m_workload_{this, "name"_ = "_workload_", "IS_NOT_OWNED"_};
+    Field<mesh_type, int, CELL> m_refinement_tags_{this, "name"_ = "_refinement_tags_", "IS_NOT_OWNED"_};
+    Field<mesh_type, Real, CELL> m_workload_{this, "name"_ = "_workload_", "IS_NOT_OWNED"_};
 
     void TagRefinementRange(Range<EntityId> const &r) override;
 
@@ -196,14 +196,13 @@ void Mesh<TM, Policies...>::DoTagRefinementCells(Real time_now) {
 }
 
 template <typename TM, template <typename> class... Policies>
-std::shared_ptr<data::DataTable> Mesh<TM, Policies...>::Serialize() const {
-    auto res = base_type::Serialize();
-    res->Set("Chart", m_chart_.Serialize());
-    traits::_try_invoke_Serialize<Policies...>(this, res.get());
-    return res;
+void Mesh<TM, Policies...>::Serialize(data::DataTable &cfg) const {
+    base_type::Serialize(cfg);
+    m_chart_.Serialize(cfg.GetTable("Chart"));
+    traits::_try_invoke_Serialize<Policies...>(this, cfg);
 };
 template <typename TM, template <typename> class... Policies>
-void Mesh<TM, Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
+void Mesh<TM, Policies...>::Deserialize(const DataTable &cfg) {
     base_type::Deserialize(cfg);
     traits::_try_invoke_Deserialize<Policies...>(this, cfg);
 };

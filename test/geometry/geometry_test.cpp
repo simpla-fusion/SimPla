@@ -263,7 +263,7 @@ int main{
 //	auto & geometry= TestFixture::geometry;
 //	static constexpr size_t GetIFORM=TestFixture::GetIFORM;
 //
-//	auto vertex_domain = make_domain<VERTEX>(geometry);
+//	auto vertex_domain = make_domain<NODE>(geometry);
 //	auto domain = make_domain<TestFixture::GetIFORM>(geometry);
 //
 //	auto f = make_field<Real>(domain );
@@ -335,9 +335,9 @@ int main{
 // REGISTER_TYPED_TEST_CASE_P(TestModel, SelectByNGP, SelectByRectangle,
 //		SelectByPolylines, SelectByMaterial);
 //
-// typedef testing::Types<std::integral_constant<size_t, VERTEX>,
+// typedef testing::Types<std::integral_constant<size_t, NODE>,
 //		std::integral_constant<size_t, EDGE>,
 //		std::integral_constant<size_t, FACE>,
-//		std::integral_constant<size_t, VOLUME> > ParamList;
+//		std::integral_constant<size_t, CELL> > ParamList;
 //
 // INSTANTIATE_TYPED_TEST_CASE_P(SimPla, TestModel, ParamList);

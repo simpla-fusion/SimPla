@@ -37,26 +37,25 @@ struct DataBackendHDF5::pimpl_s {
 
     static std::pair<hid_t, std::string> HDf5GetTable(DataBackendHDF5 const* self, hid_t root, std::string const& uri,
                                                       bool return_if_not_exist = false);
-    static std::shared_ptr<DataEntity> HDF5Get(DataBackendHDF5 const* self, hid_t loc_id,
-                                               std::string const& name = ".");
+    static std::shared_ptr<DataEntity> HDF5Get(DataBackendHDF5 const* self, hid_t loc_id, std::string const& key = ".");
 
-    static std::shared_ptr<DataEntity> HDF5AttrCast(hid_t a_id);
+    static std::shared_ptr<DataEntity> HDF5AttrCast(hid_t attr_id);
 
     static std::pair<std::string, std::shared_ptr<DataEntity>> HDF5GetAttrByIndex(DataBackendHDF5 const* self,
                                                                                   hid_t loc_id, int i);
 
-    static void HDF5Set(DataBackendHDF5 const* self, hid_t loc_id, std::string const& name,
+    static void HDF5Set(DataBackendHDF5 const* self, hid_t loc_id, std::string const& key,
                         std::shared_ptr<DataEntity> const&, bool overwrite = true);
-    static void HDF5Set(DataBackendHDF5 const* self, hid_t loc_id, std::string const& name,
+    static void HDF5Set(DataBackendHDF5 const* self, hid_t loc_id, std::string const& key,
                         std::shared_ptr<DataTable> const&, bool overwrite = true);
-    static void HDF5Set(DataBackendHDF5 const* self, hid_t loc_id, std::string const& name,
+    static void HDF5Set(DataBackendHDF5 const* self, hid_t loc_id, std::string const& key,
                         std::shared_ptr<DataArray> const&, bool overwrite = true);
-    static void HDF5Set(DataBackendHDF5 const* self, hid_t loc_id, std::string const& name,
+    static void HDF5Set(DataBackendHDF5 const* self, hid_t loc_id, std::string const& key,
                         std::shared_ptr<DataBlock> const&, bool overwrite = true);
 
-    static void HDF5Add(DataBackendHDF5 const* self, hid_t loc_id, std::string const& name,
+    static void HDF5Add(DataBackendHDF5 const* self, hid_t loc_id, std::string const& key,
                         std::shared_ptr<DataBlock> const&);
-    static void HDF5Add(DataBackendHDF5 const* self, hid_t loc_id, std::string const& name,
+    static void HDF5Add(DataBackendHDF5 const* self, hid_t loc_id, std::string const& key,
                         std::shared_ptr<DataEntity> const&);
 };
 
@@ -78,7 +77,7 @@ std::shared_ptr<DataEntity> read_attr(hid_t attr_id, hid_t d_type) {
 
 std::pair<std::string, std::shared_ptr<DataEntity>> DataBackendHDF5::pimpl_s::HDF5GetAttrByIndex(
     DataBackendHDF5 const* self, hid_t loc_id, int i) {
-    ssize_t num = H5Aget_name_by_idx(loc_id, ".", H5_INDEX_NAME, H5_ITER_INC, i, NULL, 0, H5P_DEFAULT);
+    ssize_t num = H5Aget_name_by_idx(loc_id, ".", H5_INDEX_NAME, H5_ITER_INC, i, nullptr, 0, H5P_DEFAULT);
     char buffer[num + 1];
     H5_ERROR(H5Aget_name_by_idx(loc_id, ".", H5_INDEX_NAME, H5_ITER_INC, i, buffer, static_cast<size_t>(num + 1),
                                 H5P_DEFAULT));
@@ -208,42 +207,45 @@ std::shared_ptr<DataEntity> DataBackendHDF5::pimpl_s::HDF5AttrCast(hid_t attr_id
 
     H5Tclose(d_type);
     H5Sclose(d_space);
-    return res == nullptr ? std::make_shared<DataEntity>() : res;
+    return res;
 }
 template <typename U>
-std::shared_ptr<DataBlock> HDF5ReadDataSet(DataBackendHDF5 const* self, hid_t loc_id, std::string const& name) {}
+std::shared_ptr<DataBlock> HDF5ReadDataSet(DataBackendHDF5 const* self, hid_t loc_id, std::string const& name) {
+    UNIMPLEMENTED;
+    return nullptr;
+}
 std::shared_ptr<DataEntity> DataBackendHDF5::pimpl_s::HDF5Get(DataBackendHDF5 const* self, hid_t loc_id,
-                                                              std::string const& name) {
-    if (H5Lexists(loc_id, name.c_str(), H5P_DEFAULT) == 0) { return std::make_shared<DataEntity>(); }
+                                                              std::string const& key) {
+    if (H5Lexists(loc_id, key.c_str(), H5P_DEFAULT) == 0) { return nullptr; }
     std::shared_ptr<DataEntity> res = nullptr;
-    if (H5Oexists_by_name(loc_id, name.c_str(), H5P_DEFAULT) != 0) {
+    if (H5Oexists_by_name(loc_id, key.c_str(), H5P_DEFAULT) != 0) {
         H5O_info_t g_info;
-        H5_ERROR(H5Oget_info_by_name(loc_id, name.c_str(), &g_info, H5P_DEFAULT));
+        H5_ERROR(H5Oget_info_by_name(loc_id, key.c_str(), &g_info, H5P_DEFAULT));
         switch (g_info.type) {
             case H5O_TYPE_GROUP: {
                 auto t_backend = std::make_shared<DataBackendHDF5>();
                 t_backend->m_pimpl_->m_f_id_ = self->m_pimpl_->m_f_id_;
-                t_backend->m_pimpl_->m_g_id_ = H5Gopen(loc_id, name.c_str(), H5P_DEFAULT);
+                t_backend->m_pimpl_->m_g_id_ = H5Gopen(loc_id, key.c_str(), H5P_DEFAULT);
                 res = std::make_shared<DataTable>(t_backend);
                 break;
             }
             case H5O_TYPE_DATASET: {
-                hid_t d_id = H5Dopen(loc_id, name.c_str(), H5P_DEFAULT);
+                hid_t d_id = H5Dopen(loc_id, key.c_str(), H5P_DEFAULT);
 
                 break;
             }
             default:
                 break;
         }
-    } else if (H5Aexists(loc_id, name.c_str()) != 0) {
-        hid_t a_id = H5Aopen(loc_id, name.c_str(), H5P_DEFAULT);
+    } else if (H5Aexists(loc_id, key.c_str()) != 0) {
+        hid_t a_id = H5Aopen(loc_id, key.c_str(), H5P_DEFAULT);
         auto v = pimpl_s::HDF5AttrCast(a_id);
         H5Aclose(a_id);
     }
     //    else {
-    //        RUNTIME_ERROR << "Object does not exist! [" << name << "]" << std::endl;
+    //        RUNTIME_ERROR << "Object does not exist! [" << key << "]" << std::endl;
     //    }
-    return res == nullptr ? std::make_shared<DataEntity>() : res;
+    return res;
 }
 
 hid_t GetHDF5DataType(std::type_info const& t_info) {
@@ -316,7 +318,7 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t loc_id
     hid_t gid = OpenGroup(loc_id, key, overwrite);
 
     src->Foreach(
-        [&](std::string const& k, std::shared_ptr<data::DataEntity> const& v) { HDF5Set(self, gid, k, v, overwrite); });
+        [&](std::string const& k, std::shared_ptr<data::DataEntity> v) { HDF5Set(self, gid, k, v, overwrite); });
     H5_ERROR(H5Gclose(gid));
     return;
 };
@@ -364,9 +366,9 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t loc_id
         m_stride[i] = static_cast<hsize_t>(1);
         m_block[i] = static_cast<hsize_t>(1);
     }
-    hid_t m_space = H5Screate_simple(ndims, &m_shape[0], NULL);
+    hid_t m_space = H5Screate_simple(ndims, &m_shape[0], nullptr);
     H5_ERROR(H5Sselect_hyperslab(m_space, H5S_SELECT_SET, &m_start[0], &m_stride[0], &m_count[0], &m_block[0]));
-    hid_t f_space = H5Screate_simple(ndims, &m_count[0], NULL);
+    hid_t f_space = H5Screate_simple(ndims, &m_count[0], nullptr);
     hid_t dset;
     hid_t d_type = GetHDF5DataType(src->value_type_info());
     H5_ERROR(dset = H5Dcreate(loc_id, key.c_str(), d_type, f_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
@@ -392,8 +394,8 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t g_id, 
         HDF5Set(self, g_id, key, std::dynamic_pointer_cast<DataTable>(src), overwrite);
     } else if (std::dynamic_pointer_cast<DataBlock>(src) != nullptr) {
         HDF5Set(self, g_id, key, std::dynamic_pointer_cast<DataBlock>(src), overwrite);
-    } else if (src->value_type_info() == typeid(std::string) && src->isLight()) {
-        std::string const& s_str = DataCastTraits<std::string>::Get(src);
+    } else if (std::dynamic_pointer_cast<DataEntityWrapper<std::string>>(src) != nullptr) {
+        std::string const& s_str = std::dynamic_pointer_cast<DataEntityWrapper<std::string>>(src)->value();
         hid_t m_type = H5Tcopy(H5T_C_S1);
         H5Tset_size(m_type, s_str.size());
         H5Tset_strpad(m_type, H5T_STR_NULLTERM);
@@ -402,9 +404,7 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t g_id, 
         H5Awrite(a_id, m_type, s_str.c_str());
         H5Tclose(m_type);
         H5Aclose(a_id);
-    } else if (src->value_type_info() == typeid(std::string) && !src->isLight()) {
-        UNIMPLEMENTED;
-    } else if (dynamic_cast<data::DataEntityWrapper<void*> const*>(src.get()) != nullptr) {
+    } else if (std::dynamic_pointer_cast<data::DataArray>(src) != nullptr) {
         HDF5Set(self, g_id, key, std::dynamic_pointer_cast<DataArray>(src), overwrite);
     } else {
         hid_t d_type = -1;
@@ -418,15 +418,15 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t g_id, 
         }
 
         if (false) {}
-#define DEC_TYPE(_T_, _H5_T_)                                                                                   \
-    else if (src->value_type_info() == typeid(_T_)) {                                                           \
-        d_type = _H5_T_;                                                                                        \
-        if (std::dynamic_pointer_cast<DataEntityWrapper<_T_*>>(src) != nullptr) {                               \
-            data = reinterpret_cast<char*>(&std::dynamic_pointer_cast<DataEntityWrapper<_T_*>>(src)->get()[0]); \
-        } else {                                                                                                \
-            data = new char[sizeof(_T_)];                                                                       \
-            *reinterpret_cast<_T_*>(data) = DataCastTraits<_T_>::Get(src);                                      \
-        }                                                                                                       \
+#define DEC_TYPE(_T_, _H5_T_)                                                                                 \
+    else if (src->value_type_info() == typeid(_T_)) {                                                         \
+        d_type = _H5_T_;                                                                                      \
+        if (std::dynamic_pointer_cast<DataArrayWrapper<_T_>>(src) != nullptr) {                               \
+            data = reinterpret_cast<char*>(&std::dynamic_pointer_cast<DataArrayWrapper<_T_>>(src)->get()[0]); \
+        } else {                                                                                              \
+            data = new char[sizeof(_T_)];                                                                     \
+            *reinterpret_cast<_T_*>(data) = std::dynamic_pointer_cast<DataEntityWrapper<_T_>>(src)->value();  \
+        }                                                                                                     \
     }
 
         //        DEC_TYPE(bool, H5T_NATIVE_HBOOL)
@@ -511,23 +511,23 @@ std::shared_ptr<DataEntity> DataBackendHDF5::Get(std::string const& uri) const {
     auto res = pimpl_s::HDf5GetTable(this, m_pimpl_->m_g_id_, uri, true);
     return (res.first == -1) ? nullptr : pimpl_s::HDF5Get(this, res.first, res.second);
 }
-void DataBackendHDF5::Set(std::string const& uri, std::shared_ptr<DataEntity> const& src, bool overwrite) {
+void DataBackendHDF5::Set(std::string const& uri, const std::shared_ptr<DataEntity>& src) {
     if (src == nullptr) { return; }
     ASSERT(m_pimpl_->m_g_id_ != -1);
     auto res = pimpl_s::HDf5GetTable(this, m_pimpl_->m_g_id_, uri, false);
-    if (res.second == "") { return; }
+    if (res.second.empty()) { return; }
     ASSERT(res.first != -1);
-    pimpl_s::HDF5Set(this, m_pimpl_->m_g_id_, res.second, src, overwrite);
+    pimpl_s::HDF5Set(this, m_pimpl_->m_g_id_, res.second, src);
 }
-void DataBackendHDF5::Add(std::string const& uri, std::shared_ptr<DataEntity> const& src) {
+void DataBackendHDF5::Add(std::string const& uri, const std::shared_ptr<DataEntity>& src) {
     if (src == nullptr) { return; }
     auto res = pimpl_s::HDf5GetTable(this, m_pimpl_->m_g_id_, uri, false);
-    if (res.first == -1 || res.second == "") { return; }
+    if (res.first == -1 || res.second.empty()) { return; }
     pimpl_s::HDF5Add(this, res.first, res.second, src);
 }
 size_type DataBackendHDF5::Delete(std::string const& uri) {
     auto res = pimpl_s::HDf5GetTable(this, m_pimpl_->m_g_id_, uri, false);
-    if (res.first == -1 || res.second == "") { return 0; }
+    if (res.first == -1 || res.second.empty()) { return 0; }
     size_type count = 0;
     if (H5Aexists(res.first, res.second.c_str())) {
         H5Adelete(res.first, res.second.c_str());
@@ -542,7 +542,7 @@ size_type DataBackendHDF5::Delete(std::string const& uri) {
 // size_type DataBackendHDF5::Foreach(
 //    std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& fun) const {
 //    auto res = get_table_from_h5(m_pack_->m_g_id_, uri, false);
-//    if (res.first == -1 || res.second == "") { return 0; }
+//    if (res.first == -1 || res.second.empty()) { return 0; }
 //    if (H5Aexists(res.first, res.second.c_str())) {
 //        H5_ERROR(H5Adelete(res.first, res.second.c_str()));
 //        return 1;

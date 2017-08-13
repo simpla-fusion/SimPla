@@ -31,15 +31,10 @@ void ParticleBase::DoFinalize() {
     delete m_pimpl_;
     m_pimpl_ = nullptr;
 }
-std::shared_ptr<data::DataTable> ParticleBase::Serialize() const {
-    auto res = std::make_shared<data::DataTable>();
-    res->Set("Properties", engine::Attribute::db());
-    return res;
+void ParticleBase::Serialize(data::DataTable& cfg) const {
+    cfg.GetTable("Properties").SetTable(engine::Attribute::db());
 }
-void ParticleBase::Deserialize(const std::shared_ptr<data::DataTable>& t) {
-    if (t == nullptr) { return; }
-    engine::Attribute::db().Set(t->GetTable("Properties"));
-}
+void ParticleBase::Deserialize(const data::DataTable& cfg) { engine::Attribute::db().Set(cfg.GetTable("Properties")); }
 void ParticleBase::Push(std::shared_ptr<data::DataBlock> const& dblk) {
     engine::Attribute::Push(dblk);
     m_pimpl_->m_data_block_ = dynamic_cast<ParticleData*>(GetDataBlock());

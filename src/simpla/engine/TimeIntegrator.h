@@ -25,8 +25,8 @@ struct TimeIntegrator : public Schedule {
     ~TimeIntegrator() override;
     SP_DEFAULT_CONSTRUCT(TimeIntegrator);
 
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
+    void Serialize(data::DataTable &cfg) const override;
+    void Deserialize(const data::DataTable &cfg) override;
 
     void Synchronize() override;
     void NextStep() override;

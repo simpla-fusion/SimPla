@@ -5,7 +5,7 @@
 #ifndef SIMPLA_DATA_ALL_H
 #define SIMPLA_DATA_ALL_H
 
-#include "Configurable.h"
+#include "Properties.h"
 #include "DataArray.h"
 #include "DataBackend.h"
 #include "DataBlock.h"

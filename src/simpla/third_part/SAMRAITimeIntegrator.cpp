@@ -356,22 +356,6 @@ class spParticleLinearTimeInterpolateOp : public SAMRAI::hier::TimeInterpolateOp
         UNIMPLEMENTED;
     }
 };
-// struct spParticleVisDerivedDataStrategy : public SAMRAI::appu::VisDerivedDataStrategy {
-//    spParticleVisDerivedDataStrategy() {}
-//    ~spParticleVisDerivedDataStrategy() override {}
-//    bool packDerivedDataIntoDoubleBuffer(double *buffer, const SAMRAI::hier::Patch &patch,
-//                                         const SAMRAI::hier::Box &region, const std::string &variable_name,
-//                                         int depth_index, double simulation_time) const override {
-//        UNIMPLEMENTED;
-//        return true;
-//    };
-//    bool packMixedDerivedDataIntoDoubleBuffer(double *buffer, std::vector<double> &mixbuffer,
-//                                              const SAMRAI::hier::Patch &patch, const SAMRAI::hier::Box &region,
-//                                              const std::string &variable_name, int depth_index) const override {
-//        UNIMPLEMENTED;
-//        return true;
-//    };
-//};
 
 namespace detail {
 
@@ -553,7 +537,7 @@ std::shared_ptr<SAMRAI::hier::Variable> ConvertVariable_(const engine::Attribute
 
     std::shared_ptr<SAMRAI::hier::Variable> res;
     switch (attr.GetIFORM()) {
-        case VERTEX:
+        case NODE:
             res = std::make_shared<SAMRAI::pdat::NodeVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
             break;
         case EDGE:
@@ -562,7 +546,7 @@ std::shared_ptr<SAMRAI::hier::Variable> ConvertVariable_(const engine::Attribute
         case FACE:
             res = std::make_shared<SAMRAI::pdat::SideVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
             break;
-        case VOLUME:
+        case CELL:
             res = std::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
             break;
         case FIBER:
@@ -851,12 +835,12 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
 
         std::string visit_variable_type = "SCALAR";
         ;
-        if ((item->GetIFORM() == VERTEX || item->GetIFORM() == VOLUME) && (item->GetDOF() == 1)) {
+        if ((item->GetIFORM() == NODE || item->GetIFORM() == CELL) && (item->GetDOF() == 1)) {
             visit_variable_type = "SCALAR";
         } else if (((item->GetIFORM() == EDGE || item->GetIFORM() == FACE) && (item->GetDOF() == 1)) ||
-                   ((item->GetIFORM() == VERTEX || item->GetIFORM() == VOLUME) && (item->GetDOF() == 3))) {
+                   ((item->GetIFORM() == NODE || item->GetIFORM() == CELL) && (item->GetDOF() == 3))) {
             visit_variable_type = "VECTOR";
-        } else if (((item->GetIFORM() == VERTEX || item->GetIFORM() == VOLUME) && item->GetDOF() == 9) ||
+        } else if (((item->GetIFORM() == NODE || item->GetIFORM() == CELL) && item->GetDOF() == 9) ||
                    ((item->GetIFORM() == EDGE || item->GetIFORM() == FACE) && item->GetDOF() == 3)) {
             visit_variable_type = "TENSOR";
         }
@@ -870,7 +854,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         if (visit_variable_type != "" && item->CheckProperty("COORDINATES")) {
             d_visit_writer->registerNodeCoordinates(
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-        } else if ((item->GetIFORM() == VERTEX || item->GetIFORM() == VOLUME)) {
+        } else if ((item->GetIFORM() == NODE || item->GetIFORM() == CELL)) {
             d_visit_writer->registerPlotQuantity(
                 item->GetPrefix(), visit_variable_type,
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
@@ -1037,7 +1021,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
 
                 auto &d = *m_ctx_->GetMesh();
                 d.Push(p);
-                d.GetRange("PATCH_BOUNDARY_" + std::to_string(VERTEX))
+                d.GetRange("PATCH_BOUNDARY_" + std::to_string(NODE))
                     .append(std::make_shared<ContinueRange<EntityId>>(vertex_box, 0));
 
                 d.GetRange("PATCH_BOUNDARY_" + std::to_string(EDGE))
@@ -1050,7 +1034,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
                     .append(std::make_shared<ContinueRange<EntityId>>(face1_box, 5))
                     .append(std::make_shared<ContinueRange<EntityId>>(face2_box, 3));
 
-                d.GetRange("PATCH_BOUNDARY_" + std::to_string(VOLUME))
+                d.GetRange("PATCH_BOUNDARY_" + std::to_string(CELL))
                     .append(std::make_shared<ContinueRange<EntityId>>(volume_box, 7));
                 d.Pop(p);
             }
@@ -1210,11 +1194,11 @@ SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
 
 void SAMRAITimeIntegrator::Synchronize() { engine::TimeIntegrator::Synchronize(); }
 
-std::shared_ptr<data::DataTable> SAMRAITimeIntegrator::Serialize() const { return base_type::Serialize(); }
+void SAMRAITimeIntegrator::Serialize(data::DataTable &cfg) const { base_type::Serialize(cfg); }
 
-void SAMRAITimeIntegrator::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
+void SAMRAITimeIntegrator::Deserialize(const data::DataTable &cfg) {
     base_type::Deserialize(cfg);
-    m_pimpl_->m_output_URL_ = cfg->GetValue<std::string>("OutputURL", GetName() + ".simpla");
+    m_pimpl_->m_output_URL_ = cfg.GetValue<std::string>("OutputURL", GetName() + ".simpla");
 }
 
 void SAMRAITimeIntegrator::DoInitialize() {

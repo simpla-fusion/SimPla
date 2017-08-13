@@ -36,9 +36,9 @@ class DataBackendLua : public DataBackend {
 
     std::shared_ptr<DataEntity> Get(std::string const& URI) const override;
     std::shared_ptr<DataEntity> Get(int key) const;
-    void Set(std::string const& URI, std::shared_ptr<DataEntity> const&, bool overwrite = true) override;
-    void Add(std::string const& URI, std::shared_ptr<DataEntity> const&) override;
-    size_type Delete(std::string const &URI) override;
+    void Set(std::string const& URI, const std::shared_ptr<DataEntity>&) override;
+    void Add(std::string const& URI, const std::shared_ptr<DataEntity>&) override;
+    size_type Delete(std::string const& URI) override;
     size_type size() const override;
     size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const override;
 

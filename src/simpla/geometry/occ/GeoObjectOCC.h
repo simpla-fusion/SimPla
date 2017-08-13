@@ -22,8 +22,8 @@ struct GeoObjectOCC : public GeoObject {
 
     ~GeoObjectOCC() override;
 
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataTable> const &d) override;
+    void Serialize(data::DataTable &cfg) const override;
+    void Deserialize(const data::DataTable &d) override;
 
     void Load(std::string const &);
     void Transform(Real scale, point_type const &location = point_type{0, 0, 0},

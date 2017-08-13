@@ -30,18 +30,17 @@ struct Cube : public GeoObject {
 
     virtual ~Cube() {}
 
-    std::shared_ptr<data::DataTable> Serialize() const override {
-        auto p = base_type::Serialize();
-        p->SetValue("Box", m_bound_box_);
-        return p;
+    void Serialize(data::DataTable &cfg) const override {
+        base_type::Serialize(cfg);
+        cfg.SetValue("Box", m_bound_box_);
     };
-    void Deserialize(std::shared_ptr<data::DataTable> const &d) override {
-        base_type::Deserialize(d);
-        if (d->has("Box")) {
-            m_bound_box_ = d->GetValue<box_type>("Box");
+    void Deserialize(const data::DataTable &cfg) override {
+        base_type::Deserialize(cfg);
+        if (cfg.has("Box")) {
+            m_bound_box_ = cfg.GetValue<box_type>("Box");
         } else {
-            std::get<0>(m_bound_box_) = d->GetValue<nTuple<Real, 3>>("lo", std::get<0>(m_bound_box_));
-            std::get<1>(m_bound_box_) = d->GetValue<nTuple<Real, 3>>("hi", std::get<1>(m_bound_box_));
+            std::get<0>(m_bound_box_) = cfg.GetValue<nTuple<Real, 3>>("lo", std::get<0>(m_bound_box_));
+            std::get<1>(m_bound_box_) = cfg.GetValue<nTuple<Real, 3>>("hi", std::get<1>(m_bound_box_));
         }
     }
 

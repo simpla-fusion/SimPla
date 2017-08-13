@@ -64,7 +64,7 @@ TEST_P(TestKineticParticle,Add)
 
 //	INFORM << "Add particle DONE " << p.size() << std::endl;
 //
-//	EXPECT_EQ(p.size(), geometry.get_local_memory_size(VERTEX) * pic);
+//	EXPECT_EQ(p.size(), geometry.get_local_memory_size(NODE) * pic);
 
 	sync(&p);
 
@@ -144,7 +144,7 @@ TEST_P(TestKineticParticle, scatter_n)
 //	LuaObject cfg;
 //	cfg.ParseString(cfg_str);
 //
-//	field<manifold_type,VERTEX,scalar_type> n0(geometry);
+//	field<manifold_type,NODE,scalar_type> n0(geometry);
 //
 //	pool_type ion(geometry,cfg["ion"]);
 //	ion.SetParticleSorting(enable_sorting);
@@ -173,7 +173,7 @@ TEST_P(TestKineticParticle, scatter_n)
 //
 //	Real pic =cfg["ion"]["PIC"].template as<Real>();
 //
-//	for(auto s:geometry.select(VERTEX))
+//	for(auto s:geometry.select(NODE))
 //	{
 //		auto x =geometry.get_coordinates(s);
 //		n0[s]=q* n0_cfg(x[0],x[1],x[2]).template as<Real>();
@@ -212,7 +212,7 @@ TEST_P(TestKineticParticle, scatter_n)
 //
 //	Real average=0.0;
 //
-//	for(auto s:geometry.select(VERTEX))
+//	for(auto s:geometry.select(NODE))
 //	{
 //		auto expect=J0[s];
 //

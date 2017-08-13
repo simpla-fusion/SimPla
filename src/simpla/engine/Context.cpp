@@ -31,58 +31,45 @@ Context::Context(std::string const &s_name) : m_pimpl_(new pimpl_s) { SPObject::
 
 Context::~Context() = default;
 
-std::shared_ptr<data::DataTable> Context::Serialize() const {
-    auto res = std::make_shared<data::DataTable>();
-
-    res->SetValue("Name", GetName());
-    res->SetValue("Mesh", GetMesh()->Serialize());
-    for (auto const &item : m_pimpl_->m_domains_) { res->Link("Domain/" + item.first, item.second->Serialize()); }
-    for (auto const &item : m_pimpl_->m_models_) { res->Link("Model/" + item.first, item.second->Serialize()); }
-
-    return res;
+void Context::Serialize(data::DataTable &cfg) const {
+    cfg.SetValue("Name", GetName());
+    GetMesh()->Serialize(cfg.GetTable("Mesh"));
+    for (auto const &item : m_pimpl_->m_domains_) { item.second->Serialize(cfg.GetTable("Domain/" + item.first)); }
+    for (auto const &item : m_pimpl_->m_models_) { item.second->Serialize(cfg.GetTable("Model/" + item.first)); }
 }
 
-void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
+void Context::Deserialize(const DataTable &cfg) {
     DoInitialize();
 
-    m_pimpl_->m_mesh_ = MeshBase::Create(cfg->GetTable("Mesh"));
+    m_pimpl_->m_mesh_ = MeshBase::Create(cfg.GetTable("Mesh"));
 
-    auto t_model = cfg->GetTable("Model");
+    cfg.GetTable("Model").Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> t_cfg) {
+        m_pimpl_->m_models_[key] = Model::Create(*t_cfg);
+    });
 
-    if (t_model != nullptr) {
-        t_model->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) {
-            m_pimpl_->m_models_[key] = Model::Create(std::dynamic_pointer_cast<data::DataTable>(t_cfg));
-        });
-    }
+    cfg.GetTable("Domains").Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> t_cfg) {
 
-    auto t_domain = cfg->GetTable("Domains");
-    if (t_domain != nullptr) {
-        t_domain->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t_cfg) {
+        auto p_cfg = *std::dynamic_pointer_cast<data::DataTable>(t_cfg);
 
-            auto p_cfg = std::dynamic_pointer_cast<data::DataTable>(t_cfg);
-            if (p_cfg != nullptr) {
-                m_pimpl_->m_domains_[key] =
-                    DomainBase::Create(p_cfg, GetMesh(), GetModel(p_cfg->GetValue<std::string>("Model", "")));
+        m_pimpl_->m_domains_[key] =
+            DomainBase::Create(p_cfg, GetMesh(), GetModel(p_cfg.GetValue<std::string>("Model", "")));
 
-                m_pimpl_->m_domains_[key]->SetName(key);
+        m_pimpl_->m_domains_[key]->SetName(key);
 
-            } else {
-                RUNTIME_ERROR << "illegal domain config!" << std::endl;
-            }
-        });
-    }
-    std::get<0>(m_pimpl_->m_bound_box_) = cfg->GetValue("Mesh/Box/lo", point_type{0, 0, 0});
-    std::get<1>(m_pimpl_->m_bound_box_) = cfg->GetValue("Mesh/Box/hi", point_type{0, 0, 0});
-    std::get<1>(m_pimpl_->m_bound_index_box_) = cfg->GetValue("Mesh/Dimensions", nTuple<int, 3>{1, 1, 1});
+    });
+
+    std::get<0>(m_pimpl_->m_bound_box_) = cfg.GetValue("Mesh/Box/lo", point_type{0, 0, 0});
+    std::get<1>(m_pimpl_->m_bound_box_) = cfg.GetValue("Mesh/Box/hi", point_type{0, 0, 0});
+    std::get<1>(m_pimpl_->m_bound_index_box_) = cfg.GetValue("Mesh/Dimensions", nTuple<int, 3>{1, 1, 1});
 
     Click();
 }
 
-//    auto m_cfg = cfg->GetTable("MeshBase");
-//    m_cfg->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t) {
+//    auto m_cfg = cfg.GetTable("MeshBase");
+//    m_cfg.Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t) {
 //    });
-//    auto d_cfg = cfg->GetTable("Domains");
-//    d_cfg->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t) {
+//    auto d_cfg = cfg.GetTable("Domains");
+//    d_cfg.Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &t) {
 //        std::shared_ptr<DomainBase> d = nullptr;
 //
 //        if (!t->isTable()) {
@@ -92,10 +79,10 @@ void Context::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
 //            std::shared_ptr<geometry::GeoObject> geo = std::make_shared<geometry::GeoObjectFull>();
 //
 //            auto t_cfg = std::dynamic_pointer_cast<data::DataTable>(t);
-//            geo = GetGeoObject(t_cfg->GetValue<std::string>("Model", ""));
-//            auto s_mesh = t_cfg->GetValue<std::string>("MeshBase", "Default");
+//            geo = GetGeoObject(t_cfg.GetValue<std::string>("Model", ""));
+//            auto s_mesh = t_cfg.GetValue<std::string>("MeshBase", "Default");
 //            auto p_mesh = m_pack_->m_base_mesh_[s_mesh];
-//            std::string type = t_cfg->GetValue<std::string>("Type", "");
+//            std::string type = t_cfg.GetValue<std::string>("Type", "");
 //            if (type != "") {
 //                type = type + "." + p_mesh->GetRegisterName();
 //                d = DomainBase::Create(type, p_mesh, geo);
@@ -141,8 +128,8 @@ std::shared_ptr<Model> Context::GetModel(std::string const &k) const {
     return it == m_pimpl_->m_models_.end() ? nullptr : it->second;
 }
 
-std::shared_ptr<DomainBase> Context::CreateDomain(std::string const &k, std::shared_ptr<data::DataTable> const &t) {
-    auto res = DomainBase::Create(t, GetMesh(), GetModel(t->GetValue<std::string>("Model", k)));
+std::shared_ptr<DomainBase> Context::CreateDomain(std::string const &k, const DataTable &t) {
+    auto res = DomainBase::Create(t, GetMesh(), GetModel(t.GetValue<std::string>("Model", k)));
     SetDomain(k, res);
     return res;
 };

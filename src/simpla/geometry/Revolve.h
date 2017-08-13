@@ -28,14 +28,13 @@ class Revolve : public GeoObject {
 
     ~Revolve() override = default;
 
-    std::shared_ptr<data::DataTable> Serialize() const override {
-        auto res = base_type::Serialize();
-        res->template SetValue<point_type>("Axis", m_axis_);
-        res->template SetValue<point_type>("Origin", m_origin_);
-        res->Set("2DShape", base_obj.Pack());
-        return res;
+    void Serialize(data::DataTable &cfg) const override {
+        base_type::Serialize(cfg);
+        cfg.template SetValue<point_type>("Axis", m_axis_);
+        cfg.template SetValue<point_type>("Origin", m_origin_);
+        cfg.Set("2DShape", base_obj.Pack());
     };
-    void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override {}
+    void Deserialize(const data::DataTable &cfg) override {}
 
     virtual box_type BoundingBox() const override { return box_type{{0, 0, 0}, {1, 2, 3}}; };
 
@@ -69,16 +68,15 @@ class RevolveZ : public GeoObject {
         : base_obj(other.base_obj), m_origin_(other.m_origin_), m_phi_axe_(other.m_phi_axe_) {}
     ~RevolveZ() override = default;
 
-    std::shared_ptr<data::DataTable> Serialize() const override {
-        auto res = base_type::Serialize();
-        res->template SetValue("Axis", m_phi_axe_);
-        res->template SetValue("Origin", m_origin_);
-        res->template SetValue("Phi", nTuple<Real, 2>{m_angle_min_, m_angle_max_});
+    void Serialize(data::DataTable &cfg) const override {
+        base_type::Serialize(cfg);
+        cfg.template SetValue("Axis", m_phi_axe_);
+        cfg.template SetValue("Origin", m_origin_);
+        cfg.template SetValue("Phi", nTuple<Real, 2>{m_angle_min_, m_angle_max_});
 
-        res->Set("2DShape", base_obj->Serialize());
-        return res;
+        base_obj->Serialize(cfg.GetTable("2DShape"));
     };
-    void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override {}
+    void Deserialize(const data::DataTable &cfg) override {}
 
     box_type BoundingBox() const override {
         nTuple<Real, 2> lo, hi;

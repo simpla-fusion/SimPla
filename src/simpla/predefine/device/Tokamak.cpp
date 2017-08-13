@@ -22,18 +22,15 @@ struct Tokamak::pimpl_s {
 };
 Tokamak::Tokamak() : m_pimpl_(new pimpl_s) {}
 
-std::shared_ptr<data::DataTable> Tokamak::Serialize() const {
-    auto res = base_type::Serialize();
-    return res;
-}
+void Tokamak::Serialize(data::DataTable &cfg) const { base_type::Serialize(cfg); }
 
-void Tokamak::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
-    nTuple<Real, 2> phi = cfg->GetValue("Phi", nTuple<Real, 2>{0, TWOPI});
+void Tokamak::Deserialize(const data::DataTable &cfg) {
+    nTuple<Real, 2> phi = cfg.GetValue("Phi", nTuple<Real, 2>{0, TWOPI});
 
     m_pimpl_->m_phi0_ = phi[0];
     m_pimpl_->m_phi1_ = phi[1];
 
-    LoadGFile(cfg->GetValue<std::string>("gfile", "gfile"));
+    LoadGFile(cfg.GetValue<std::string>("gfile", "gfile"));
 
     Update();
 }

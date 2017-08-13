@@ -20,7 +20,7 @@ typedef testing::Types<                //
     Field<mesh_type, Real, VERTEX, 3>  //   ,
                                        //    Field<mesh_type, Real, EDGE, 3>,    //
                                        //    Field<mesh_type, Real, FACE, 3>,    //
-                                       //    Field<mesh_type, Real, VOLUME, 3>   //
+                                       //    Field<mesh_type, Real, CELL, 3>   //
     >
     TypeParamList;
 

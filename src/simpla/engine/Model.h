@@ -29,8 +29,8 @@ class Model : public engine::EnableCreateFromDataTable<Model> {
 
     SP_DEFAULT_CONSTRUCT(Model)
 
-    std::shared_ptr<DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<DataTable> &cfg) override;
+    void Serialize(data::DataTable &cfg) const override;
+    void Deserialize(const DataTable &cfg) override;
 
     void DoInitialize() override;
     void DoUpdate() override;
@@ -53,7 +53,7 @@ class Model : public engine::EnableCreateFromDataTable<Model> {
 
     template <typename TD, typename TV, int IFORM, int... N>
     void LoadProfile(std::string const &k, Field<TD, TV, IFORM, N...> *f) const {
-        int n = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * simpla::reduction_v(tags::multiplication(), 1, N...);
+        int n = ((IFORM == NODE || IFORM == CELL) ? 1 : 3) * simpla::reduction_v(tags::multiplication(), 1, N...);
         if (n == 1) {
             auto fun = GetAttribute(k);
             if (fun) { *f = fun; }

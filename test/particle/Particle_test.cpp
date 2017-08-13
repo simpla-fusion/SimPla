@@ -17,8 +17,8 @@ int main(int argc, char** argv) {
 
     Field<DummyMesh, Real, EDGE> E{&m, "name"_ = "E"};
     Field<DummyMesh, Real, FACE> B{&m, "name"_ = "B"};
-    Field<DummyMesh, Real, VOLUME, 3> J{&m, "name"_ = "J"};
-    Field<DummyMesh, Real, VOLUME> rho{&m, "name"_ = "B"};
+    Field<DummyMesh, Real, CELL, 3> J{&m, "name"_ = "J"};
+    Field<DummyMesh, Real, CELL> rho{&m, "name"_ = "B"};
     Field<DummyMesh, Real, FACE> FLUX{&m, "name"_ = "FLUX"};
 
     p.db()->Serialize(std::cout, 0);

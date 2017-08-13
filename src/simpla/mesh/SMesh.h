@@ -29,17 +29,17 @@ struct SMesh : public StructuredMesh {
    public:
     //    point_type local_coordinates(index_type x, index_type y, index_type z, Real const *r) const override;
 
-    Field<host_type, Real, VERTEX, 3> m_coordinates_{m_host_, "name"_ = "m_coordinates_" /*, "COORDINATES"_*/};
-    Field<host_type, Real, VERTEX, 3> m_vertices_{m_host_, "name"_ = "m_vertices_"};
+    Field<host_type, Real, NODE, 3> m_coordinates_{m_host_, "name"_ = "m_coordinates_" /*, "COORDINATES"_*/};
+    Field<host_type, Real, NODE, 3> m_vertices_{m_host_, "name"_ = "m_vertices_"};
 
-    Field<host_type, Real, VERTEX> m_vertex_volume_{m_host_, "name"_ = "m_vertex_volume_"};
-    Field<host_type, Real, VERTEX> m_vertex_inv_volume_{m_host_, "name"_ = "m_vertex_inv_volume_"};
-    Field<host_type, Real, VERTEX> m_vertex_dual_volume_{m_host_, "name"_ = "m_vertex_dual_volume_"};
-    Field<host_type, Real, VERTEX> m_vertex_inv_dual_volume_{m_host_, "name"_ = "m_vertex_inv_dual_volume_"};
-    Field<host_type, Real, VOLUME> m_volume_volume_{m_host_, "name"_ = "m_volume_volume_"};
-    Field<host_type, Real, VOLUME> m_volume_inv_volume_{m_host_, "name"_ = "m_volume_inv_volume_"};
-    Field<host_type, Real, VOLUME> m_volume_dual_volume_{m_host_, "name"_ = "m_volume_dual_volume_"};
-    Field<host_type, Real, VOLUME> m_volume_inv_dual_volume_{m_host_, "name"_ = "m_volume_inv_dual_volume_"};
+    Field<host_type, Real, NODE> m_vertex_volume_{m_host_, "name"_ = "m_vertex_volume_"};
+    Field<host_type, Real, NODE> m_vertex_inv_volume_{m_host_, "name"_ = "m_vertex_inv_volume_"};
+    Field<host_type, Real, NODE> m_vertex_dual_volume_{m_host_, "name"_ = "m_vertex_dual_volume_"};
+    Field<host_type, Real, NODE> m_vertex_inv_dual_volume_{m_host_, "name"_ = "m_vertex_inv_dual_volume_"};
+    Field<host_type, Real, CELL> m_volume_volume_{m_host_, "name"_ = "m_volume_volume_"};
+    Field<host_type, Real, CELL> m_volume_inv_volume_{m_host_, "name"_ = "m_volume_inv_volume_"};
+    Field<host_type, Real, CELL> m_volume_dual_volume_{m_host_, "name"_ = "m_volume_dual_volume_"};
+    Field<host_type, Real, CELL> m_volume_inv_dual_volume_{m_host_, "name"_ = "m_volume_inv_dual_volume_"};
     Field<host_type, Real, EDGE> m_edge_volume_{m_host_, "name"_ = "m_edge_volume_"};
     Field<host_type, Real, EDGE> m_edge_inv_volume_{m_host_, "name"_ = "m_edge_inv_volume_"};
     Field<host_type, Real, EDGE> m_edge_dual_volume_{m_host_, "name"_ = "m_edge_dual_volume_"};
@@ -48,10 +48,10 @@ struct SMesh : public StructuredMesh {
     Field<host_type, Real, FACE> m_face_inv_volume_{m_host_, "name"_ = "m_face_inv_volume_"};
     Field<host_type, Real, FACE> m_face_dual_volume_{m_host_, "name"_ = "m_face_dual_volume_"};
     Field<host_type, Real, FACE> m_face_inv_dual_volume_{m_host_, "name"_ = "m_face_inv_dual_volume_"};
-    Field<host_type, Real, VERTEX> m_vertex_hodge_{m_host_, "name"_ = "m_vertex_hodge_"};
+    Field<host_type, Real, NODE> m_vertex_hodge_{m_host_, "name"_ = "m_vertex_hodge_"};
     Field<host_type, Real, EDGE> m_edge_hodge_{m_host_, "name"_ = "m_edge_hodge_"};
     Field<host_type, Real, FACE> m_face_hodge_{m_host_, "name"_ = "m_face_hodge_"};
-    Field<host_type, Real, VOLUME> m_volume_hodge_{m_host_, "name"_ = "m_volume_hodge_"};
+    Field<host_type, Real, CELL> m_volume_hodge_{m_host_, "name"_ = "m_volume_hodge_"};
 };
 //
 // template <typename THost>

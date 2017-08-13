@@ -2,7 +2,7 @@
 // Created by salmon on 17-7-26.
 //
 
-#include "CutCell.h"
+#include "../CutCell.h"
 
 #include <simpla/algebra/nTuple.ext.h>
 #include <BRepIntCurveSurface_Inter.hxx>
@@ -11,10 +11,11 @@
 #include <Geom_Curve.hxx>
 #include <TopoDS_Shape.hxx>
 
-#include "BoxUtilities.h"
-#include "Chart.h"
-#include "GeoObject.h"
-#include "occ/OCCShape.h"
+#include "../BoxUtilities.h"
+#include "../Chart.h"
+#include "../GeoObject.h"
+
+#include "OCCShape.h"
 namespace simpla {
 namespace geometry {
 

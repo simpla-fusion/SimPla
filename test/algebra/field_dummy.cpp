@@ -14,8 +14,8 @@ int main(int argc, char **argv) {
         typedef DummyMesh mesh_type;
         mesh_type m(i_box);
 
-        Field<mesh_type, Real, VERTEX> f(&m);
-        Field<mesh_type, Real, VERTEX> g(&m);
+        Field<mesh_type, Real, NODE> f(&m);
+        Field<mesh_type, Real, NODE> g(&m);
 
         f.SetUndefined();
         g.SetUndefined();
@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
         //        h = nTuple<Real, 3>{1, 2, 3};
         CHECK(h.Get());
 
-        //        Field<mesh_type, Real, VOLUME, 3> k(&m);
+        //        Field<mesh_type, Real, CELL, 3> k(&m);
         //        k.SetUndefined();
         //
         //        k = [](EntityId s) {
@@ -51,9 +51,9 @@ int main(int argc, char **argv) {
         //    CHECK(f);
         //    Field<mesh_type, Real, EDGE> E(&m);
         //    Field<mesh_type, Real, FACE> B(&m);
-        //    Field<mesh_type, Real, VERTEX, 3> d(&m);
-        //    Field<mesh_type, Real, VERTEX> rho(&m);
-        //    Field<mesh_type, Real, VERTEX, 8> v(&m);
+        //    Field<mesh_type, Real, NODE, 3> d(&m);
+        //    Field<mesh_type, Real, NODE> rho(&m);
+        //    Field<mesh_type, Real, NODE, 8> v(&m);
         //    E.Clear();
         //    rho.Clear();
 

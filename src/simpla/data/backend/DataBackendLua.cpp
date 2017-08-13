@@ -50,7 +50,7 @@ std::shared_ptr<DataBackend> DataBackendLua::CreateNew() const { return std::mak
 
 template <typename U>
 std::shared_ptr<DataEntity> DataBackendLua::pimpl_s::make_data_array_lua(LuaObject const& lobj) {
-    auto res = std::make_shared<DataEntityWrapper<U*>>();
+    auto res = std::make_shared<DataArrayWrapper<U>>();
     for (auto const& item : lobj) { res->Add(item.second.as<U>()); }
     return std::dynamic_pointer_cast<DataEntity>(res);
 }
@@ -194,13 +194,13 @@ std::shared_ptr<DataEntity> DataBackendLua::Get(int key) const {
 //    }
 //    return 1;
 //}
-void DataBackendLua::Set(std::string const& key, std::shared_ptr<DataEntity> const& v, bool overwrite) {
+void DataBackendLua::Set(std::string const& key, const std::shared_ptr<DataEntity>& v) {
     UNIMPLEMENTED;
     //    DataBackendLua::pack_s::set_data_to_lua(m_pack_->m_lua_obj_, key, v, overwrite);
 }
 
-void DataBackendLua::Add(std::string const& key, std::shared_ptr<DataEntity> const& v) { UNIMPLEMENTED; }
-size_type DataBackendLua::Delete(std::string const &key) {
+void DataBackendLua::Add(std::string const& key, const std::shared_ptr<DataEntity>& v) { UNIMPLEMENTED; }
+size_type DataBackendLua::Delete(std::string const& key) {
     UNIMPLEMENTED;
     return 0;
 }

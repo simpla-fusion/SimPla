@@ -44,18 +44,17 @@ struct Polygon<2> : public data::Serializable {
 
     Polygon(Polygon const &) = delete;
 
-    std::shared_ptr<data::DataTable> Serialize() const override {
-        auto res = data::Serializable::Serialize();
-        res->SetValue("Type", "Polygon2D");
+    void Serialize(data::DataTable &cfg) const override {
+        data::Serializable::Serialize(cfg);
+        cfg.SetValue("Type", "Polygon2D");
 
-        auto v_array = std::make_shared<data::DataEntityWrapper<point2d_type *>>();
+        auto v_array = std::make_shared<data::DataArrayWrapper<point2d_type>>();
 
         for (size_type s = 0, se = m_polygon_.size(); s < se; ++s) { v_array->Add(m_polygon_[s]); }
 
-        res->Set("data", std::dynamic_pointer_cast<data::DataEntity>(v_array));
-        return res;
+        cfg.Set("data", std::dynamic_pointer_cast<data::DataEntity>(v_array));
     };
-    void Deserialize(const std::shared_ptr<data::DataTable> &t) override {}
+    void Deserialize(const data::DataTable &t) override {}
 
     std::vector<point2d_type> &data() { return m_polygon_; };
 

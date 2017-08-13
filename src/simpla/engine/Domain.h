@@ -48,8 +48,8 @@ class DomainBase : public EnableCreateFromDataTable<DomainBase, MeshBase *, std:
     virtual const MeshBase *GetMesh() const { return m_mesh_; }
     virtual MeshBase *GetMesh() { return m_mesh_; }
 
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataTable> const &t) override;
+    void Serialize(data::DataTable &cfg) const override;
+    void Deserialize(const DataTable &t) override;
 
     void DoInitialize() override;
     void DoFinalize() override;
@@ -113,16 +113,11 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
     virtual mesh_type *GetMesh() override { return dynamic_cast<mesh_type *>(DomainBase::GetMesh()); }
 
     void DoInitialCondition(Real time_now) override;
-
     void DoBoundaryCondition(Real time_now, Real dt) override;
-
     void DoAdvance(Real time_now, Real dt) override;
-
     void DoTagRefinementCells(Real time_now) override;
-
-    void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override;
-
-    std::shared_ptr<data::DataTable> Serialize() const override;
+    void Deserialize(const DataTable &cfg) override;
+    void Serialize(data::DataTable &cfg) const override;
 
     template <typename TL, typename TR>
     void Fill(TL &lhs, TR &&rhs) const {
@@ -167,14 +162,13 @@ void Domain<TM, Policies...>::DoTagRefinementCells(Real time_now) {
 }
 
 template <typename TM, template <typename> class... Policies>
-std::shared_ptr<data::DataTable> Domain<TM, Policies...>::Serialize() const {
-    auto res = DomainBase::Serialize();
-    traits::_try_invoke_Serialize<Policies...>(this, res.get());
-    return res;
+void Domain<TM, Policies...>::Serialize(data::DataTable &cfg) const {
+    DomainBase::Serialize(cfg);
+    traits::_try_invoke_Serialize<Policies...>(this, cfg);
 };
 
 template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::Deserialize(std::shared_ptr<data::DataTable> const &cfg) {
+void Domain<TM, Policies...>::Deserialize(const DataTable &cfg) {
     DomainBase::Deserialize(cfg);
     traits::_try_invoke_Deserialize<Policies...>(this, cfg);
 };

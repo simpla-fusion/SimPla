@@ -80,9 +80,9 @@ class GeoObject : public engine::EnableCreateFromDataTable<GeoObject> {
     //    this_type &operator=(this_type const &other) = default;
     //    this_type &operator=(this_type &&other) = default;
 
-    std::shared_ptr<data::DataTable> Serialize() const override;
+    void Serialize(data::DataTable &cfg) const override;
 
-    void Deserialize(std::shared_ptr<data::DataTable> const &t) override;
+    void Deserialize(const data::DataTable &cfg) override;
 
     virtual int Dimension() const { return 3; };
 

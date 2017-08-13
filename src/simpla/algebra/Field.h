@@ -51,7 +51,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     SP_OBJECT_HEAD(field_type, attribute_type);
 
     static constexpr int iform = IFORM;
-    static constexpr int NUM_OF_SUB = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
+    static constexpr int NUM_OF_SUB = (IFORM == NODE || IFORM == CELL) ? 1 : 3;
 
    private:
     nTuple<array_type, NUM_OF_SUB, DOF...> m_data_;

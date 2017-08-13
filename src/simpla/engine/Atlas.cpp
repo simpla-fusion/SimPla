@@ -49,34 +49,29 @@ Atlas::Atlas() : m_pimpl_(new pimpl_s) { SPObject::SetName("Atlas"); };
 Atlas::~Atlas() = default;
 void Atlas::DoUpdate() { SPObject::DoUpdate(); };
 
-std::shared_ptr<data::DataTable> Atlas::Serialize() const {
-    auto res = data::Serializable::Serialize();
+void Atlas::Serialize(data::DataTable &cfg) const {
+    data::Serializable::Serialize(cfg);
 
-    res->SetValue("PeriodicDimension", GetPeriodicDimensions());
-    res->SetValue("CoarsestIndexBox", GetCoarsestIndexBox());
+    cfg.SetValue("PeriodicDimension", GetPeriodicDimensions());
+    cfg.SetValue("CoarsestIndexBox", GetCoarsestIndexBox());
 
-    res->SetValue("MaxLevel", GetMaxLevel());
-    res->SetValue("RefineRatio", GetRefineRatio(0));
-    res->SetValue("LargestPatchDimensions", GetLargestPatchDimensions());
-    res->SetValue("SmallestPatchDimensions", GetSmallestPatchDimensions());
-
-    return (res);
+    cfg.SetValue("MaxLevel", GetMaxLevel());
+    cfg.SetValue("RefineRatio", GetRefineRatio(0));
+    cfg.SetValue("LargestPatchDimensions", GetLargestPatchDimensions());
+    cfg.SetValue("SmallestPatchDimensions", GetSmallestPatchDimensions());
 };
-void Atlas::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
-    if (cfg == nullptr) { return; }
+void Atlas::Deserialize(const data::DataTable &cfg) {
+    m_pimpl_->m_periodic_dimensions_ = cfg.GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 0});
+    //    std::get<0>(m_pimpl_->m_coarsest_index_box_) = cfg.GetValue("CoarsestIndexBox/lo", nTuple<int, 3>{0, 0, 0});
+    std::get<1>(m_pimpl_->m_coarsest_index_box_) = cfg.GetValue("Dimensions", nTuple<int, 3>{1, 1, 1});
+    m_pimpl_->m_max_level_ = cfg.GetValue<int>("MaxLevel", 1);
 
-    m_pimpl_->m_periodic_dimensions_ = cfg->GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 0});
-    //    std::get<0>(m_pimpl_->m_coarsest_index_box_) = cfg->GetValue("CoarsestIndexBox/lo", nTuple<int, 3>{0, 0, 0});
-    std::get<1>(m_pimpl_->m_coarsest_index_box_) = cfg->GetValue("Dimensions", nTuple<int, 3>{1, 1, 1});
-    m_pimpl_->m_max_level_ = cfg->GetValue<int>("MaxLevel", 1);
-
-    m_pimpl_->m_smallest_dimensions_ =
-        cfg->GetValue<nTuple<int, 3>>("SmallestPatchDimensions", nTuple<int, 3>{4, 4, 4});
+    m_pimpl_->m_smallest_dimensions_ = cfg.GetValue<nTuple<int, 3>>("SmallestPatchDimensions", nTuple<int, 3>{4, 4, 4});
 
     m_pimpl_->m_largest_dimensions_ =
-        cfg->GetValue<nTuple<int, 3>>("LargestPatchDimensions", nTuple<int, 3>{128, 128, 128});
+        cfg.GetValue<nTuple<int, 3>>("LargestPatchDimensions", nTuple<int, 3>{128, 128, 128});
 
-    m_pimpl_->m_refine_ratio_[0] = cfg->GetValue<nTuple<int, 3>>("RefineRatio", nTuple<int, 3>{2, 2, 2});
+    m_pimpl_->m_refine_ratio_[0] = cfg.GetValue<nTuple<int, 3>>("RefineRatio", nTuple<int, 3>{2, 2, 2});
 
     Click();
 };

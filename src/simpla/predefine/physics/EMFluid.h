@@ -21,28 +21,28 @@ template <typename THost>
 class EMFluid {
     SP_ENGINE_POLICY_HEAD(EMFluid);
 
-    void Serialize(data::DataTable* res) const;
-    void Deserialize(std::shared_ptr<data::DataTable> const& cfg);
+    void Serialize(DataTable& res) const;
+    void Deserialize(const DataTable& cfg);
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real time_dt);
     void Advance(Real time_now, Real dt);
 
-    Field<host_type, Real, VOLUME> ne{m_host_, "name"_ = "ne"};
-    Field<host_type, Real, VOLUME, 3> B0v{m_host_, "name"_ = "B0v"};
+    Field<host_type, Real, CELL> ne{m_host_, "name"_ = "ne"};
+    Field<host_type, Real, CELL, 3> B0v{m_host_, "name"_ = "B0v"};
 
     Field<host_type, Real, EDGE> E0{m_host_, "name"_ = "E0"};
     Field<host_type, Real, FACE> B0{m_host_, "name"_ = "B0"};
-    Field<host_type, Real, VOLUME> BB{m_host_, "name"_ = "BB"};
-    Field<host_type, Real, VOLUME, 3> Jv{m_host_, "name"_ = "Jv"};
-    Field<host_type, Real, VOLUME, 3> Ev{m_host_, "name"_ = "Ev"};
-    Field<host_type, Real, VOLUME, 3> Bv{m_host_, "name"_ = "Bv"};
-    Field<host_type, Real, VOLUME, 3> dE{m_host_, "name"_ = "dE"};
+    Field<host_type, Real, CELL> BB{m_host_, "name"_ = "BB"};
+    Field<host_type, Real, CELL, 3> Jv{m_host_, "name"_ = "Jv"};
+    Field<host_type, Real, CELL, 3> Ev{m_host_, "name"_ = "Ev"};
+    Field<host_type, Real, CELL, 3> Bv{m_host_, "name"_ = "Bv"};
+    Field<host_type, Real, CELL, 3> dE{m_host_, "name"_ = "dE"};
     Field<host_type, Real, FACE> B{m_host_, "name"_ = "B"};
     Field<host_type, Real, EDGE> E{m_host_, "name"_ = "E"};
     Field<host_type, Real, EDGE> J{m_host_, "name"_ = "J"};
-    Field<host_type, Real, VOLUME, 3> dumpE{m_host_, "name"_ = "dumpE"};
-    Field<host_type, Real, VOLUME, 3> dumpB{m_host_, "name"_ = "dumpB"};
-    Field<host_type, Real, VOLUME, 3> dumpJ{m_host_, "name"_ = "dumpJ"};
+    Field<host_type, Real, CELL, 3> dumpE{m_host_, "name"_ = "dumpE"};
+    Field<host_type, Real, CELL, 3> dumpB{m_host_, "name"_ = "dumpB"};
+    Field<host_type, Real, CELL, 3> dumpJ{m_host_, "name"_ = "dumpJ"};
 
     //    void TagRefinementCells(Real time_now);
 
@@ -50,8 +50,8 @@ class EMFluid {
         Real mass = 1;
         Real charge = 1;
         Real ratio = 1;
-        std::shared_ptr<Field<host_type, Real, VOLUME>> n;
-        std::shared_ptr<Field<host_type, Real, VOLUME, 3>> J;
+        std::shared_ptr<Field<host_type, Real, CELL>> n;
+        std::shared_ptr<Field<host_type, Real, CELL, 3>> J;
     };
 
     std::map<std::string, std::shared_ptr<fluid_s>> m_fluid_sp_;
@@ -60,21 +60,17 @@ class EMFluid {
 };
 
 template <typename TM>
-void EMFluid<TM>::Serialize(data::DataTable* res) const {
+void EMFluid<TM>::Serialize(DataTable& res) const {
     for (auto& item : m_fluid_sp_) {
-        auto t = std::make_shared<data::DataTable>();
-        t->SetValue<double>("mass", item.second->mass / SI_proton_mass);
-        t->SetValue<double>("Z", item.second->charge / SI_elementary_charge);
-        t->SetValue<double>("ratio", item.second->ratio);
-
-        res->Set("Species/" + item.first, t);
+        auto t = res.GetTable("Species/" + item.first);
+        t.template SetValue<double>("mass", item.second->mass / SI_proton_mass);
+        t.template SetValue<double>("Z", item.second->charge / SI_elementary_charge);
+        t.template SetValue<double>("ratio", item.second->ratio);
     }
 };
 template <typename TM>
-void EMFluid<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
-    if (cfg == nullptr || cfg->GetTable("Species") == nullptr) { return; }
-    auto sp = cfg->GetTable("Species");
-    sp->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> v) {
+void EMFluid<TM>::Deserialize(const DataTable& cfg) {
+    cfg.GetTable("Species").Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> v) {
         AddSpecies(k, std::dynamic_pointer_cast<data::DataTable>(v));
     });
 }
@@ -89,8 +85,8 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
     sp->charge = d->GetValue<double>("charge", d->GetValue<double>("Z", 1)) * SI_elementary_charge;
     sp->ratio = d->GetValue<double>("ratio", d->GetValue<double>("ratio", 1));
 
-    sp->n = std::make_shared<Field<host_type, Real, VOLUME>>(m_host_, "name"_ = name + "_n");
-    sp->J = std::make_shared<Field<host_type, Real, VOLUME, 3>>(m_host_, "name"_ = name + "_J");
+    sp->n = std::make_shared<Field<host_type, Real, CELL>>(m_host_, "name"_ = name + "_n");
+    sp->J = std::make_shared<Field<host_type, Real, CELL, 3>>(m_host_, "name"_ = name + "_J");
     m_fluid_sp_.emplace(name, sp);
     VERBOSE << "Add particle : {\"" << name << "\", mass = " << sp->mass / SI_proton_mass
             << " [m_p], charge = " << sp->charge / SI_elementary_charge << " [q_e] }" << std::endl;
@@ -123,7 +119,7 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
         *item.second->n = ne * item.second->ratio;
         item.second->J->Clear();
     }
-    Ev = map_to<VOLUME>(E);
+    Ev = map_to<CELL>(E);
 }
 template <typename TM>
 void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
@@ -143,14 +139,14 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     //    m_host_->FillBoundary(E, 0);
 
     if (m_fluid_sp_.size() <= 0) { return; }
-    Ev = map_to<VOLUME>(E);
+    Ev = map_to<CELL>(E);
 
-    Field<host_type, Real, VOLUME, 3> Q{m_host_};
-    Field<host_type, Real, VOLUME, 3> K{m_host_};
+    Field<host_type, Real, CELL, 3> Q{m_host_};
+    Field<host_type, Real, CELL, 3> K{m_host_};
 
-    Field<host_type, Real, VOLUME> a{m_host_};
-    Field<host_type, Real, VOLUME> b{m_host_};
-    Field<host_type, Real, VOLUME> c{m_host_};
+    Field<host_type, Real, CELL> a{m_host_};
+    Field<host_type, Real, CELL> b{m_host_};
+    Field<host_type, Real, CELL> c{m_host_};
 
     a.Clear();
     b.Clear();

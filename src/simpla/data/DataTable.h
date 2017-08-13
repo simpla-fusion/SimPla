@@ -28,43 +28,15 @@ class DataTable : public DataEntity {
     std::shared_ptr<DataBackend> m_backend_;
 
    public:
+    DataTable();
+    ~DataTable() override = default;
+
     explicit DataTable(std::shared_ptr<DataBackend> const& p);
     DataTable(std::string const& uri, std::string const& param = "");
 
-    DataTable();
     DataTable(const DataTable&);
     DataTable(DataTable&&) noexcept;
-    template <typename V>
-    DataTable(std::string const& key, V const& v) : DataTable() {
-        SetValue(key, v);
-    };
-
-    //    template <typename U>
-    //    DataTable(std::string const& key, std::initializer_list<U> const& u) {
-    //        Set(key, make_data_entity(u));
-    //    }
-    //    template <typename U>
-    //    DataTable(std::string const& key, std::initializer_list<std::initializer_list<U>> const& u) {
-    //        Set(key, make_data_entity(u));
-    //    }
-    //    template <typename U>
-    //    DataTable(std::string const& key, std::initializer_list<std::initializer_list<std::initializer_list<U>>>
-    //    const& u) {
-    //        Set(key, make_data_entity(u));
-    //    }
-
-    virtual ~DataTable();
-
-    DataTable& operator=(const DataTable& other) {
-        this_type(other).swap(*this);
-        return *this;
-    }
-    DataTable& operator=(DataTable&& other) noexcept {
-        this_type(other).swap(*this);
-        return *this;
-    }
-
-    void swap(DataTable&);
+    void swap(DataTable& other);
 
     //******************************************************************************************************************
     /** Interface DataEntity */
@@ -72,8 +44,9 @@ class DataTable : public DataEntity {
     std::ostream& Serialize(std::ostream& os, int indent) const override;
     std::istream& Deserialize(std::istream& is) override;
 
-    std::shared_ptr<DataEntity> Duplicate() const override;
-    //******************************************************************************************************************
+    std::shared_ptr<DataEntity> Duplicate() const override {
+        return std::dynamic_pointer_cast<DataEntity>(std::make_shared<this_type>(*this));
+    }  //******************************************************************************************************************
     /** Interface DataBackend */
 
     std::shared_ptr<DataBackend> backend() const { return m_backend_; }
@@ -82,114 +55,61 @@ class DataTable : public DataEntity {
     bool isNull() const override;
     size_type size() const;
 
+    void Set(std::string const& uri, const std::shared_ptr<DataEntity>& src);
+    void Add(std::string const& uri, const std::shared_ptr<DataEntity>& p);
+    std::shared_ptr<DataEntity> Get(std::string const& uri);
     std::shared_ptr<DataEntity> Get(std::string const& uri) const;
-
-    void Set(std::string const& uri, std::shared_ptr<DataEntity> const& p);
-    void Set(std::string const& uri, DataEntity const& p);
-    void Set(DataTable const& other);
-    void Set(std::shared_ptr<DataTable> const& v) {
-        if (v != nullptr) { Set(*v); };
-    };
-    void Assign(){};
-    void Assign(std::string const& uri) { SetValue(uri, true); };
-    void Assign(DataTable const& v) { Set(v); };
-    void Assign(std::shared_ptr<DataTable> const& v) {
-        if (v != nullptr) { Set(*v); };
-    };
-
-    template <typename First, typename Second, typename... Others>
-    void Assign(First&& first, Second&& second, Others&&... args) {
-        Assign(std::forward<First>(first));
-        Assign(std::forward<Second>(second), std::forward<Others>(args)...);
-    }
-
-    void Add(std::string const& uri, std::shared_ptr<DataEntity> const& p);
     size_type Delete(std::string const& uri);
+
+    void SetTable(DataTable const& other);
+    DataTable& GetTable(std::string const& uri);
+    const DataTable& GetTable(std::string const& uri) const;
+
+    void Set(std::string const& uri, bool flag = true) { Set(uri, make_data_entity(flag)); };
+
+    //    void Assign(){};
+    //    void Assign(std::string const& uri) { SetValue(uri, true); };
+    //    void Assign(DataTable const& v) { Set(v); };
+    //
+    //    template <typename First, typename Second, typename... Others>
+    //    void Assign(First&& first, Second&& second, Others&&... args) {
+    //        Assign(std::forward<First>(first));
+    //        Assign(std::forward<Second>(second), std::forward<Others>(args)...);
+    //    }
+
     size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
 
     /** Interface DataBackend End */
     //******************************************************************************************************************
     bool has(std::string const& uri) const { return Get(uri) != nullptr; }
-    bool isTable(std::string const& uri) const { return dynamic_cast<DataTable const*>(Get(uri).get()) != nullptr; }
+    bool isTable(std::string const& uri) const { return std::dynamic_pointer_cast<DataTable>(Get(uri)) != nullptr; }
+    bool isArray(std::string const& uri) const { return std::dynamic_pointer_cast<DataArray>(Get(uri)) != nullptr; }
 
     template <typename U>
     bool Check(std::string const& key, U const& u = true) const {
-        auto p = Get(key);
-        return (p != nullptr) && (p->value_type_info() == typeid(U)) && (DataCastTraits<U>::Get(p) == u);
+        auto p = std::dynamic_pointer_cast<DataEntityWrapper<U>>(Get(key));
+        return (p != nullptr) && p->value() == u;
+    }
+    template <typename U>
+    bool CheckType(std::string const& uri) const {
+        return std::dynamic_pointer_cast<DataEntityWrapper<U>>(Get(uri)) != nullptr;
     }
     bool Check(std::string const& key) const { return Check(key, true); }
 
     template <typename U>
-    bool CheckType(std::string const& uri) const {
-        auto r = Get(uri);
-        return r != nullptr && r->value_type_info() == typeid(U);
-    }
-
-    void Link(std::shared_ptr<DataEntity> const& other);
-    DataTable& Link(std::string const& uri, DataTable const& other);
-    DataTable& Link(std::string const& uri, std::shared_ptr<DataEntity> const& p);
-
-    void Add(std::string const& uri, DataEntity const& p);
-
-    std::shared_ptr<DataTable> GetTable(std::string const& uri) const;
-
-    template <typename U>
     U GetValue(std::string const& uri) const {
-        return DataCastTraits<U>::Get(Get(uri));
+        auto res = std::dynamic_pointer_cast<DataEntityWrapper<U>>(Get(uri));
+        if (res == nullptr) { OUT_OF_RANGE << "Can not find entity [" << uri << "]" << std::endl; }
+        return res->value();
     }
 
     template <typename U>
     U GetValue(std::string const& uri, U const& default_value) const {
-        return DataCastTraits<U>::Get(Get(uri), default_value);
+        auto res = std::dynamic_pointer_cast<DataEntityWrapper<U>>(Get(uri));
+        return res == nullptr ? default_value : res->value();
     }
-    //    template <typename U, typename... Args>
-    //    U GetValue(std::string const& uri, Args&&... args) const {
-    //        return DataCastTraits<U>::Get(Get(uri), U{std::forward<Args>(args)...});
-    //    }
 
-    //    template <typename U, typename V>
-    //    bool GetValue(std::string const& uri, V* v) const {
-    //        auto res = GetPatch(uri);
-    //        bool success = false;
-    //        if (res != nullptr) {
-    //            *v = DataCastTraits<U>::GetPatch(res);
-    //            success = true;
-    //        }
-    //        return success;
-    //    }
-
-    //    template <typename U>
-    //    U GetValue(std::string const& uri, U const& default_value) {
-    //        Deserialize(uri, make_data_entity(default_value), false);
-    //        return data_cast<U>(*Serialize(uri));
-    //    }
-    //    template <typename U>
-    //    DataTable& operator=(U const& u) {
-    //        SetValue(u);
-    //        return *this;
-    //    }
-    //    template <typename U>
-    //    DataTable& operator=(std::initializer_list<U> const& u) {
-    //        SetValue(u);
-    //        return *this;
-    //    }
-    //    template <typename U>
-    //    void SetValue(std::pair<std::string, U> const& item) {
-    //        SetValue(item.first, item.second);
-    //    }
-    //    template <typename U>
-    //    void SetValue(std::initializer_list<std::pair<std::string, U>> const& other) {
-    //        for (auto const& item : other) { SetValue(item.first, item.second); }
-    //    }
-    //    void SetValue(){};
-    //    void SetValue(KeyValue const& other);
-    //    void SetValue(std::initializer_list<KeyValue> const& other);
-    //    template <typename... Others>
-    //    void SetValue(KeyValue const& first, Others&&... others) {
-    //        SetValue(first);
-    //        SetValue(std::forward<Others>(others)...);
-    //    };
-    void SetValue(std::string const& uri, DataTable const& v) { Set(uri, (v)); };
+    void SetValue(std::string const& uri, DataTable const& v) { GetTable(uri).SetTable(v); };
 
     template <typename U>
     void SetValue(std::string const& uri, U const& v) {
@@ -220,15 +140,6 @@ class DataTable : public DataEntity {
     template <typename U>
     void AddValue(std::string const& uri, std::initializer_list<std::initializer_list<U>> const& u) {
         Add(uri, make_data_entity(u));
-    };
-    template <typename U>
-    void AddValue(U const& u) {
-        Add("", make_data_entity({u}));
-    };
-
-    template <typename U>
-    void AddArray() {
-        Add(make_data_entity(std::initializer_list<U>{}));
     };
 };
 

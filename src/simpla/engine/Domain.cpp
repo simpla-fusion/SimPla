@@ -20,17 +20,16 @@ DomainBase::DomainBase(MeshBase* msh, std::shared_ptr<Model> const& model) : m_m
 
 DomainBase::~DomainBase() = default;
 
-std::shared_ptr<data::DataTable> DomainBase::Serialize() const {
-    auto p = base_type::Serialize();
-    if (GetGeoBody() != nullptr) { p->SetValue("Body", GetGeoBody()->Serialize()); }
-    return (p);
+void DomainBase::Serialize(data::DataTable& cfg) const {
+    base_type::Serialize(cfg);
+    if (GetGeoBody() != nullptr) { GetGeoBody()->Serialize(cfg.GetTable("Body")); }
 }
-void DomainBase::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
+void DomainBase::Deserialize(const DataTable& cfg) {
     base_type::Deserialize(cfg);
-    if (cfg->isTable("Body")) {
-        m_geo_body_ = geometry::GeoObject::Create(cfg->Get("Body"));
+    if (cfg.isTable("Body")) {
+        m_geo_body_ = geometry::GeoObject::Create(*cfg.Get("Body"));
     } else if (m_model_ != nullptr) {
-        m_geo_body_ = m_model_->GetGeoObject(cfg->GetValue<std::string>("Body", ""));
+        m_geo_body_ = m_model_->GetGeoObject(cfg.GetValue<std::string>("Body", ""));
     }
     Click();
 };

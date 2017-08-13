@@ -59,8 +59,8 @@ void PackLua(std::shared_ptr<DataEntity> const &d, std::ostream &os, int indent 
             PackLua(t->Get(i), os, indent + 1);
         }
         os << "}";
-    } else if (d->value_type_info() == typeid(bool)) {
-        os << (DataCastTraits<bool>::Get(d) ? "true" : "false");
+    } else if (std::dynamic_pointer_cast<DataEntityWrapper<bool>>(d) != nullptr) {
+        os << (std::dynamic_pointer_cast<DataEntityWrapper<bool>>(d)->value() ? "true" : "false");
     } else if (dynamic_cast<DataBlock const *>(d.get()) != nullptr) {
         auto blk = std::dynamic_pointer_cast<DataBlock>(d);
         int ndims = blk->GetNDIMS();

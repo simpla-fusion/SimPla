@@ -19,16 +19,13 @@ DataIOPort::~DataIOPort(){};
 
 void DataIOPort::Flush() {}
 
-std::shared_ptr<data::DataTable> DataIOPort::Serialize() const {
-    auto res = EnableCreateFromDataTable<DataIOPort>::Serialize();
-    return res;
-};
-void DataIOPort::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
+void DataIOPort::Serialize(data::DataTable &cfg) const {};
+void DataIOPort::Deserialize(const DataTable &cfg) {
     EnableCreateFromDataTable<DataIOPort>::Deserialize(cfg);
     if (m_pimpl_->m_data_ == nullptr) {
-        m_pimpl_->m_data_ = std::make_shared<DataTable>(cfg->GetValue<std::string>("URI", "mem://"));
+        m_pimpl_->m_data_ = std::make_shared<DataTable>(cfg.GetValue<std::string>("URI", "mem://"));
     }
-    m_pimpl_->m_data_->Set(*cfg);
+    m_pimpl_->m_data_->Set(cfg);
 };
 
 std::shared_ptr<DataEntity> DataIOPort::Get(std::string const &uri) const { return m_pimpl_->m_data_->Get(uri); }
@@ -36,8 +33,8 @@ void DataIOPort::Set(std::string const &uri, std::shared_ptr<DataEntity> const &
 void DataIOPort::Add(std::string const &uri, std::shared_ptr<DataEntity> const &d) { m_pimpl_->m_data_->Add(uri, d); }
 int DataIOPort::Delete(std::string const &uri) { return m_pimpl_->m_data_->Delete(uri); }
 
-void DataIOPort::Set(std::shared_ptr<DataTable> const &) { UNIMPLEMENTED; }
-void DataIOPort::Add(std::shared_ptr<DataTable> const &) { UNIMPLEMENTED; };
+void DataIOPort::Set(const DataTable &) { UNIMPLEMENTED; }
+void DataIOPort::Add(const DataTable &) { UNIMPLEMENTED; };
 
 id_type DataIOPort::TryGet(std::string const &uri, std::shared_ptr<DataEntity> *d) const {
     // FIXME:  Just workaround!

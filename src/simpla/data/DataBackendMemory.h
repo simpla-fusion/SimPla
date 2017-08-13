@@ -27,13 +27,13 @@ class DataBackendMemory : public DataBackend {
     std::shared_ptr<DataBackend> Duplicate() const override;
     std::shared_ptr<DataBackend> CreateNew() const override;
     void Flush() override;
-    std::ostream& Print(std::ostream& os, int indent = 0) const override;
+    std::ostream& Print(std::ostream& os, int indent) const override;
     bool isNull() const;  //!< is not initialized
 
     std::shared_ptr<DataEntity> Get(std::string const& URI) const override;
-    void Set(std::string const& URI, std::shared_ptr<DataEntity> const&, bool overwrite = true) override;
-    void Add(std::string const& URI, std::shared_ptr<DataEntity> const&) override;
-    size_type Delete(std::string const &URI) override;
+    void Set(std::string const& URI, const std::shared_ptr<DataEntity>&) override;
+    void Add(std::string const& URI, const std::shared_ptr<DataEntity>&) override;
+    size_type Delete(std::string const& URI) override;
     size_type size() const override;
     size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& _) const override;
 

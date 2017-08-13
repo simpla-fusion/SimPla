@@ -44,7 +44,7 @@ struct DummyMesh : public MeshBase {
     typedef EntityId entity_id_type;
     typedef DummyAttribute<DummyMesh> attribute_type;
     template <typename V, int IFORM, int... DOF>
-    using data_type = nTuple<Array<V, ZSFC<NDIMS>>, (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3, DOF...>;
+    using data_type = nTuple<Array<V, ZSFC<NDIMS>>, (IFORM == NODE || IFORM == CELL) ? 1 : 3, DOF...>;
     index_box_type m_index_box_;
 
     typedef DummyMesh mesh_type;
@@ -54,7 +54,7 @@ struct DummyMesh : public MeshBase {
     ZSFC<3> GetSpaceFillingCurve(int IFORM, int sub = 0) const { return ZSFC<3>(m_index_box_); }
 
     template <typename TFun>
-    void Foreach(TFun const &fun, size_type iform = VERTEX, size_type dof = 1) const {}
+    void Foreach(TFun const &fun, size_type iform = NODE, size_type dof = 1) const {}
     Real volume(EntityId s) const { return 1.0; }
     Real dual_volume(EntityId s) const { return 1.0; }
     Real inv_volume(EntityId s) const { return 1.0; }
@@ -78,7 +78,7 @@ struct DummyMesh : public MeshBase {
     this_type *GetMesh() { return this; };
     this_type const *GetMesh() const { return this; };
 
-    virtual index_box_type IndexBox(int tag = VERTEX) const { return m_index_box_; }
+    virtual index_box_type IndexBox(int tag = NODE) const { return m_index_box_; }
     virtual point_type local_coordinates(EntityId s, Real const *r) const { return point_type{0, 0, 0}; };
 
     template <typename TL, typename TR>
@@ -92,9 +92,9 @@ struct DummyMesh : public MeshBase {
                                                                               std::forward<Args>(args)...);
     }
 
-    size_type GetNumberOfEntity(int IFORM = VERTEX) const {
+    size_type GetNumberOfEntity(int IFORM = NODE) const {
         return calculus::reduction<tags::multiplication>(std::get<1>(m_index_box_) - std::get<0>(m_index_box_)) *
-               ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
+               ((IFORM == NODE || IFORM == CELL) ? 1 : 3);
     }
     bool empty() const { return false; }
 };

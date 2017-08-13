@@ -76,8 +76,8 @@ class Context : public SPObject, public data::Serializable {
 
     SP_DEFAULT_CONSTRUCT(Context)
 
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
+    void Serialize(data::DataTable &cfg) const override;
+    void Deserialize(const data::DataTable &cfg) override;
 
     void DoInitialize() override;
     void DoFinalize() override;
@@ -94,7 +94,7 @@ class Context : public SPObject, public data::Serializable {
     void SetModel(std::string const &k, std::shared_ptr<Model> const &) const;
     std::shared_ptr<Model> GetModel(std::string const &k) const;
 
-    std::shared_ptr<DomainBase> CreateDomain(std::string const &k, std::shared_ptr<data::DataTable> const &);
+    std::shared_ptr<DomainBase> CreateDomain(std::string const &k, const data::DataTable &);
     template <typename TD>
     std::shared_ptr<TD> CreateDomain(std::string const &k, Model const *m) {
         auto res = std::make_shared<TD>(GetMesh(), m);

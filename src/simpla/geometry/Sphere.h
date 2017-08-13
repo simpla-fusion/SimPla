@@ -22,18 +22,16 @@ struct Sphere : public GeoObject {
 
     ~Sphere() override = default;
 
-    std::shared_ptr<data::DataTable> Serialize() const override {
-        auto p = base_type::Serialize();
+    void Serialize(data::DataTable &cfg) const override {
+        base_type::Serialize(cfg);
 
-        p->SetValue("Origin", m_origin_);
-        p->SetValue("Radius", m_radius_);
-
-        return p;
+        cfg.SetValue("Origin", m_origin_);
+        cfg.SetValue("Radius", m_radius_);
     };
-    void Deserialize(std::shared_ptr<data::DataTable> const &cfg) override {
+    void Deserialize(const data::DataTable &cfg) override {
         base_type::Deserialize(cfg);
-        m_origin_ = cfg->GetValue("Origin", m_origin_);
-        m_radius_ = cfg->GetValue("Radius", m_radius_);
+        m_origin_ = cfg.GetValue("Origin", m_origin_);
+        m_radius_ = cfg.GetValue("Radius", m_radius_);
     }
 
     box_type BoundingBox() const override {

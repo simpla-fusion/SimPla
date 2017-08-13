@@ -54,11 +54,14 @@ class DataMultiArray<simpla::Array<U, Others...>> : public DataBlock {
     DataMultiArray() = default;
     ~DataMultiArray() override = default;
 
-    DataMultiArray(this_type const &other) {}
-    DataMultiArray(this_type &&other) {}
+    DataMultiArray(this_type const &other) { UNIMPLEMENTED; }
+    DataMultiArray(this_type &&other) { UNIMPLEMENTED; }
 
     explicit DataMultiArray(unsigned long depth) : m_data_(depth) {}
 
+    std::shared_ptr<DataEntity> Duplicate() const override {
+        return std::dynamic_pointer_cast<DataEntity>(std::make_shared<this_type>(*this));
+    }
     size_type size() const { return m_data_.size(); }
     bool empty() const override { return m_data_.size() == 0; }
     std::type_info const &value_type_info() const override { return typeid(value_type); };
@@ -136,11 +139,11 @@ std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<simpla::Array<U>> c
 //    virtual void Clear() { U::Clear(); }
 //};
 
-// template<typename V, int IFORM = VERTEX, int DOF = 1, bool SLOW_FIRST = false>
+// template<typename V, int IFORM = NODE, int DOF = 1, bool SLOW_FIRST = false>
 // using DataBlockArray=
 // DataBlockAdapter<
 //        Array < V,
-//        SIMPLA_MAXIMUM_DIMENSION + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1), SLOW_FIRST>>;
+//        SIMPLA_MAXIMUM_DIMENSION + (((IFORM == NODE || IFORM == CELL) && DOF == 1) ? 0 : 1), SLOW_FIRST>>;
 //
 // template<typename TV, int IFORM, int DOF = 1>
 // class DataBlockArray : public DataBlock, public data::DataEntityNDArray<TV>

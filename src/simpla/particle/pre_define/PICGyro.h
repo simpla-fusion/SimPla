@@ -53,13 +53,13 @@ private:
     mesh_type &m_mesh_;
 
 public:
-    typedef traits::field_t<scalar_type, mesh_type, VERTEX> scalar_field;
+    typedef traits::field_t<scalar_type, mesh_type, NODE> scalar_field;
 
     typedef traits::field_t<scalar_type, mesh_type, EDGE> E_field;
 
     typedef traits::field_t<scalar_type, mesh_type, FACE> B_field;
 
-    typedef traits::field_t<scalar_type, mesh_type, VERTEX> n_field;
+    typedef traits::field_t<scalar_type, mesh_type, NODE> n_field;
 
 
     scalar_field n0;

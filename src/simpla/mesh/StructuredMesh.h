@@ -51,10 +51,10 @@ class StructuredMesh {
     };
 
    public:
-    size_type GetNumberOfEntity(int IFORM = VERTEX) const {
+    size_type GetNumberOfEntity(int IFORM = NODE) const {
         index_box_type m_index_box_ = GetBlock()->IndexBox();
         return calculus::reduction<tags::multiplication>(std::get<1>(m_index_box_) - std::get<0>(m_index_box_)) *
-               ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
+               ((IFORM == NODE || IFORM == CELL) ? 1 : 3);
     }
 };
 }  // namespace mesh {

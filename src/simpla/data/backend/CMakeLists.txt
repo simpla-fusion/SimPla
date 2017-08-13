@@ -1,5 +1,16 @@
+#FIND_PACKAGE(XDMF)
 
-#FILE(GLOB data_backend_SRC ./*.cpp)
-#
-#add_library(data_backend ${data_backend_SRC})
-#target_link_libraries(data_backend ${LUA_LIBRARIES} parallel utilities  ${HDF5_LIBRARIES} ${MPI_LIBRARIES}  )
+SET(HDF5_PREFER_PARALLEL OFF)
+SET(HDF5_USE_STATIC_LIBRARIES OFF)
+FIND_PACKAGE(HDF5 1.8 COMPONENTS C HL REQUIRED)
+
+FIND_PACKAGE(Lua 5.3 REQUIRED)
+IF (LUA_FOUND)
+    MESSAGE(STATUS "Lua version: ${LUA_INCLUDE_DIR} ")
+ENDIF (LUA_FOUND)
+
+FILE(GLOB data_backend_SRC ./*.cpp)
+
+add_library(data_backend ${data_backend_SRC})
+target_include_directories(data_backend BEFORE PRIVATE ${HDF5_INCLUDE_DIRS} ${LUA_INCLUDE_DIR} ${MPI_C_INCLUDE_PATH})
+target_link_libraries(data_backend  parallel utilities ${LUA_LIBRARIES} ${HDF5_LIBRARIES} ${MPI_LIBRARIES}  )

@@ -29,8 +29,8 @@ class Schedule : public engine::EnableCreateFromDataTable<Schedule> {
 
     SP_DEFAULT_CONSTRUCT(Schedule)
 
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<data::DataTable> &cfg) override;
+    void Serialize(data::DataTable &cfg) const override;
+    void Deserialize(const data::DataTable &cfg) override;
 
     void DoInitialize() override;
     void DoFinalize() override;

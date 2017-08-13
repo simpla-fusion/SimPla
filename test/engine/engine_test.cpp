@@ -21,7 +21,7 @@ struct DummyWorker {
     ~DummyWorker() = default;
     static std::string TypeName() { return "DummyWorker"; }
 
-    Field<THost, Real, VERTEX> foo{m_host_, "name"_ = "foo"};
+    Field<THost, Real, NODE> foo{m_host_, "name"_ = "foo"};
 };
 template <typename THost>
 struct DummyMesh : public simpla::mesh::StructuredMesh {

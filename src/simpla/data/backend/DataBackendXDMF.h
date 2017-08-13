@@ -1,22 +1,26 @@
 //
-// Created by salmon on 17-3-10.
+// Created by salmon on 17-8-13.
 //
 
-#ifndef SIMPLA_DATABACKENDHDF5_H
-#define SIMPLA_DATABACKENDHDF5_H
-#include "../DataBackend.h"
+#ifndef SIMPLA_DATABACKENDXDMF_H
+#define SIMPLA_DATABACKENDXDMF_H
 
+#include "../DataBackend.h"
 namespace simpla {
 namespace data {
-class DataBackendHDF5 : public DataBackend {
-    SP_OBJECT_HEAD(DataBackendHDF5, DataBackend);
+
+class DataBackendXDMF : public DataBackend {
+    SP_OBJECT_HEAD(DataBackendXDMF, DataBackend);
 
    public:
-    DataBackendHDF5();
-    DataBackendHDF5(DataBackendHDF5 const&);
-    DataBackendHDF5(DataBackendHDF5&&) noexcept;
-    explicit DataBackendHDF5(std::string const& uri, std::string const& status = "");
-    ~DataBackendHDF5() override;
+    DataBackendXDMF();
+    ~DataBackendXDMF() override;
+    explicit DataBackendXDMF(std::string const& uri, std::string const& status = "");
+
+    DataBackendXDMF(DataBackendXDMF const&) = delete;
+    DataBackendXDMF(DataBackendXDMF&&) noexcept = delete;
+    DataBackendXDMF& operator=(DataBackendXDMF const&) = delete;
+    DataBackendXDMF& operator=(DataBackendXDMF&&) noexcept = delete;
 
     bool isNull() const;
 
@@ -29,7 +33,6 @@ class DataBackendHDF5 : public DataBackend {
     std::shared_ptr<DataBackend> CreateNew() const override;
 
     void Flush() override;
-
     std::shared_ptr<DataEntity> Get(std::string const& URI) const override;
     void Set(std::string const& URI, const std::shared_ptr<DataEntity>&) override;
     void Add(std::string const& URI, const std::shared_ptr<DataEntity>&) override;
@@ -39,9 +42,10 @@ class DataBackendHDF5 : public DataBackend {
 
    private:
     struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
-};
+    pimpl_s* m_pimpl_ = nullptr;
 
-}  // namespace data{
-}  // namespace simpla{
-#endif  // SIMPLA_DATABACKENDHDF5_H
+};  // class DataBackendXDMF {
+}  // namespace data
+}  // namespace simpla
+
+#endif  // SIMPLA_DATABACKENDXDMF_H

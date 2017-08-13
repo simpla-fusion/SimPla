@@ -25,8 +25,8 @@ struct Chart : public engine::SPObject, public data::Serializable {
                    point_type rotate = point_type{0, 0, 0});
     ~Chart() override = default;
 
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<data::DataTable> &t) override;
+    void Serialize(data::DataTable &cfg) const override;
+    void Deserialize(const data::DataTable &cfg) override;
 
     virtual std::shared_ptr<Curve> GetAxisCurve(point_type const &x, int dir) const = 0;
 

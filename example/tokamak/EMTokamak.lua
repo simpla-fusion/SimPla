@@ -56,7 +56,7 @@ Context = {
             {
                 Type = "occ",
                 File = "/home/salmon/workspace/SimPla/example/tokamak/coin.step",
-                Location = { 1.8, -0.0,  0.0 },
+                Location = { 1.8, -0.0,  0.1 },
                 Scale = 1.0e-3
                 --                Type = "Cube",
                 --                lo = { 1.5, -0.5, -TWOPI / 8 },

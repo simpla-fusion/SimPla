@@ -28,22 +28,20 @@ struct SpApp::pimpl_s {
     engine::Context m_context_;
     engine::Atlas m_atlas_;
 };
-SpApp::SpApp(std::string const &s_name) : m_pimpl_(new pimpl_s) { SPObject::SetName(s_name); }
+SpApp::SpApp(std::string const &s_name) : m_pimpl_(new pimpl_s) {}
 SpApp::~SpApp() = default;
-std::shared_ptr<data::DataTable> SpApp::Serialize() const {
-    auto res = std::make_shared<data::DataTable>();
-    if (m_pimpl_->m_schedule_ != nullptr) { res->Set("Schedule", m_pimpl_->m_schedule_->Serialize()); }
+void SpApp::Serialize(data::DataTable &cfg) const {
+    if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Serialize(cfg.GetTable("Schedule")); }
 
-    res->Set("Context", m_pimpl_->m_context_.Serialize());
-    res->Set("Atlas", m_pimpl_->m_atlas_.Serialize());
+    m_pimpl_->m_context_.Serialize(cfg.GetTable("Context"));
+    m_pimpl_->m_atlas_.Serialize(cfg.GetTable("Atlas"));
     //    ctx->data::Serializable::Serialize(std::cout, 0);
     //    GetAtlas()->data::Serializable::Serialize(std::cout, 0);
-    return res;
 };
-void SpApp::Deserialize(const std::shared_ptr<data::DataTable> &cfg) {
-    m_pimpl_->m_context_.Deserialize(cfg->GetTable("Context"));
-    m_pimpl_->m_atlas_.Deserialize(cfg->GetTable("Atlas"));
-    m_pimpl_->m_schedule_ = engine::Schedule::Create(cfg->Get("Schedule"));
+void SpApp::Deserialize(const data::DataTable &cfg) {
+    m_pimpl_->m_context_.Deserialize(cfg.GetTable("Context"));
+    m_pimpl_->m_atlas_.Deserialize(cfg.GetTable("Atlas"));
+    m_pimpl_->m_schedule_ = engine::Schedule::Create(*cfg.Get("Schedule"));
     m_pimpl_->m_schedule_->SetContext(&m_pimpl_->m_context_);
     m_pimpl_->m_schedule_->SetAtlas(&m_pimpl_->m_atlas_);
 
@@ -54,9 +52,9 @@ void SpApp::Config(int argc, char **argv) {
     std::string output_file = "h5://SimPlaOutput";
 
     std::string conf_file(argv[0]);
-    std::string conf_prologue = "";
-    std::string conf_epilogue = "";
-    std::string app_name = "";
+    std::string conf_prologue;
+    std::string conf_epilogue;
+    std::string app_name;
     conf_file += ".lua";
 
     auto cmd_line_cfg = std::make_shared<data::DataTable>();
@@ -126,7 +124,7 @@ void SpApp::Config(int argc, char **argv) {
     cfg->Set("Schedule", input_file_cfg->Get("Schedule"));
     cfg->Set(*cmd_line_cfg);
 
-    Deserialize(cfg);
+    Deserialize(*cfg);
 }
 
 void SpApp::DoInitialize() {
@@ -183,7 +181,9 @@ int main(int argc, char **argv) {
     if (GLOBAL_COMM.rank() == 0) {
         app.Config(argc, argv);
         std::ostringstream os;
-        data::Pack(app.Serialize(), os, "lua");
+        auto t_db = std::make_shared<data::DataTable>();
+        app.Serialize(*t_db);
+        data::Pack(t_db, os, "lua");
         std::string buffer = os.str();
         parallel::bcast_string(&buffer);
     } else {
@@ -191,7 +191,7 @@ int main(int argc, char **argv) {
         parallel::bcast_string(&buffer);
         auto t_cfg = std::make_shared<data::DataTable>("lua://");
         t_cfg->backend()->Parser(buffer);
-        app.Deserialize(t_cfg);
+        app.Deserialize(*t_cfg);
     }
 
     app.Update();

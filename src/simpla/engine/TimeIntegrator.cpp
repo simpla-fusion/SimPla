@@ -14,25 +14,24 @@
 namespace simpla {
 namespace engine {
 
-TimeIntegrator::TimeIntegrator(std::string const& s_name) : Schedule(){};
+TimeIntegrator::TimeIntegrator(std::string const &s_name) : Schedule(){};
 TimeIntegrator::~TimeIntegrator() {}
 
-std::shared_ptr<data::DataTable> TimeIntegrator::Serialize() const {
-    auto p = Schedule::Serialize();
-    p->SetValue("Name", GetName());
-    p->SetValue("TimeBegin", GetTimeNow());
-    p->SetValue("TimeEnd", GetTimeEnd());
-    p->SetValue("TimeStep", GetTimeStep());
-    p->SetValue("MaxStep", GetMaxStep());
-    return p;
+void TimeIntegrator::Serialize(data::DataTable &cfg) const {
+    Schedule::Serialize(cfg);
+    cfg.SetValue("Name", GetName());
+    cfg.SetValue("TimeBegin", GetTimeNow());
+    cfg.SetValue("TimeEnd", GetTimeEnd());
+    cfg.SetValue("TimeStep", GetTimeStep());
+    cfg.SetValue("MaxStep", GetMaxStep());
 }
 
-void TimeIntegrator::Deserialize(const std::shared_ptr<data::DataTable>& cfg) {
+void TimeIntegrator::Deserialize(const data::DataTable &cfg) {
     Schedule::Deserialize(cfg);
-    SetTimeNow(cfg->GetValue("TimeBegin", 0.0));
-    SetTimeEnd(cfg->GetValue("TimeEnd", 1.0));
-    SetTimeStep(cfg->GetValue("TimeStep", 0.5));
-    SetMaxStep(cfg->GetValue<size_type>("MaxStep", 0UL));
+    SetTimeNow(cfg.GetValue("TimeBegin", 0.0));
+    SetTimeEnd(cfg.GetValue("TimeEnd", 1.0));
+    SetTimeStep(cfg.GetValue("TimeStep", 0.5));
+    SetMaxStep(cfg.GetValue<size_type>("MaxStep", 0UL));
 };
 void TimeIntegrator::Synchronize() { Schedule::Synchronize(); }
 

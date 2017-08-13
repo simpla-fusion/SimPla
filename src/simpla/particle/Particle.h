@@ -30,8 +30,8 @@ class ParticleBase : public engine::Attribute, public data::Serializable {
     void DoInitialize() override;
     void DoFinalize() override;
 
-    std::shared_ptr<data::DataTable> Serialize() const override;
-    void Deserialize(const std::shared_ptr<data::DataTable>& t) override;
+    void Serialize(data::DataTable& cfg) const override;
+    void Deserialize(const data::DataTable& cfg) override;
 
     void Push(std::shared_ptr<data::DataBlock> const& blk) override;
     std::shared_ptr<data::DataBlock> Pop() override;

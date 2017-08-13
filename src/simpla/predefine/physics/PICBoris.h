@@ -30,13 +30,13 @@ class PICBoris {
 
     Particle<host_type> ele{m_host_, "name"_ = "ele", "DOF"_ = 6};
 
-    Field<host_type, Real, VOLUME> ne{m_host_, "name"_ = "ne"};
-    Field<host_type, Real, VOLUME, 3> B0v{m_host_, "name"_ = "B0v"};
+    Field<host_type, Real, CELL> ne{m_host_, "name"_ = "ne"};
+    Field<host_type, Real, CELL, 3> B0v{m_host_, "name"_ = "B0v"};
 
     Field<host_type, Real, EDGE> E0{m_host_, "name"_ = "E0"};
     Field<host_type, Real, FACE> B0{m_host_, "name"_ = "B0"};
-    Field<host_type, Real, VOLUME> BB{m_host_, "name"_ = "BB"};
-    Field<host_type, Real, VOLUME, 3> Jv{m_host_, "name"_ = "Jv"};
+    Field<host_type, Real, CELL> BB{m_host_, "name"_ = "BB"};
+    Field<host_type, Real, CELL, 3> Jv{m_host_, "name"_ = "Jv"};
 
     Field<host_type, Real, FACE> B{m_host_, "name"_ = "B"};
     Field<host_type, Real, EDGE> E{m_host_, "name"_ = "E"};
@@ -70,9 +70,8 @@ void PICBoris<TM>::Serialize(data::DataTable* res) const {
 template <typename TM>
 void PICBoris<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {
     if (cfg == nullptr || cfg->GetTable("Species") == nullptr) { return; }
-    auto sp = cfg->GetTable("Species");
-    sp->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> v) {
 
+    cfg->GetTable("Species").Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> v) {
         auto t = std::dynamic_pointer_cast<data::DataTable>(v);
         if (t != nullptr) {
             t->SetValue("name", k);

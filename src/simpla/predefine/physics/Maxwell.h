@@ -26,14 +26,14 @@ class Maxwell {
     void BoundaryCondition(Real time_now, Real time_dt);
     void Advance(Real time_now, Real dt);
 
-    Field<host_type, Real, VOLUME, 3> B0v{m_host_, "name"_ = "B0v"};
+    Field<host_type, Real, CELL, 3> B0v{m_host_, "name"_ = "B0v"};
 
     Field<host_type, Real, FACE> B{m_host_, "name"_ = "B"};
     Field<host_type, Real, EDGE> E{m_host_, "name"_ = "E"};
     Field<host_type, Real, EDGE> J{m_host_, "name"_ = "J"};
-    Field<host_type, Real, VOLUME, 3> dumpE{m_host_, "name"_ = "dumpE"};
-    Field<host_type, Real, VOLUME, 3> dumpB{m_host_, "name"_ = "dumpB"};
-    Field<host_type, Real, VOLUME, 3> dumpJ{m_host_, "name"_ = "dumpJ"};
+    Field<host_type, Real, CELL, 3> dumpE{m_host_, "name"_ = "dumpE"};
+    Field<host_type, Real, CELL, 3> dumpB{m_host_, "name"_ = "dumpB"};
+    Field<host_type, Real, CELL, 3> dumpJ{m_host_, "name"_ = "dumpJ"};
 
     std::string m_boundary_geo_obj_prefix_ = "PEC";
 };

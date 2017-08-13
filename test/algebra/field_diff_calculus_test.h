@@ -128,7 +128,7 @@ class FETLTest
 
 TEST_P(FETLTest, grad0) {
     typedef EntityIdCoder M;
-    field_type<VERTEX> f0{m};
+    field_type<NODE> f0{m};
     field_type<EDGE> f1(m);
     field_type<EDGE> f1b(m);
 
@@ -137,7 +137,7 @@ TEST_P(FETLTest, grad0) {
     f1b.clear();
 
     f0.assign([&](point_type const& x) { return std::sin(q(x)); });
-    //    m->Range(VERTEX, mesh::SP_ES_ALL).foreach();
+    //    m->Range(NODE, mesh::SP_ES_ALL).foreach();
 
     f1 = grad(f0);
 
@@ -179,7 +179,7 @@ TEST_P(FETLTest, grad3) {
 
     field_type<FACE> f2(m);
     field_type<FACE> f2b(m);
-    field_type<VOLUME> f3(m);
+    field_type<CELL> f3(m);
 
     f3.clear();
     f2.clear();
@@ -226,8 +226,8 @@ TEST_P(FETLTest, diverge1) {
     typedef EntityIdCoder M;
 
     field_type<EDGE> f1(m);
-    field_type<VERTEX> f0(m);
-    field_type<VERTEX> f0b(m);
+    field_type<NODE> f0(m);
+    field_type<NODE> f0b(m);
 
     f0.clear();
     f0b.clear();
@@ -264,15 +264,15 @@ TEST_P(FETLTest, diverge1) {
                                               << std::endl;
     });
 
-    EXPECT_LE(std::sqrt(variance /= m_p->range(mesh::SP_ES_NOT_SHARED, VERTEX).size()), error);
-    EXPECT_LE(abs(average /= m_p->range(mesh::SP_ES_NOT_SHARED, VERTEX).size()), error);
+    EXPECT_LE(std::sqrt(variance /= m_p->range(mesh::SP_ES_NOT_SHARED, NODE).size()), error);
+    EXPECT_LE(abs(average /= m_p->range(mesh::SP_ES_NOT_SHARED, NODE).size()), error);
 }
 
 TEST_P(FETLTest, diverge2) {
     typedef EntityIdCoder M;
     field_type<FACE> f2(m);
-    field_type<VOLUME> f3(m);
-    field_type<VOLUME> f3b(m);
+    field_type<CELL> f3(m);
+    field_type<CELL> f3b(m);
     f3.clear();
     f3b.clear();
     f2.clear();
@@ -502,7 +502,7 @@ TEST_P(FETLTest, curl2) {
 }
 
 TEST_P(FETLTest, identity_curl_grad_f0_eq_0) {
-    field_type<VERTEX> f0(m);
+    field_type<NODE> f0(m);
     field_type<EDGE> f1(m);
     field_type<FACE> f2a(m);
     field_type<FACE> f2b(m);
@@ -538,7 +538,7 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0) {
 }
 
 TEST_P(FETLTest, identity_curl_grad_f3_eq_0) {
-    field_type<VOLUME> f3(m);
+    field_type<CELL> f3(m);
     field_type<EDGE> f1a(m);
     field_type<EDGE> f1b(m);
     field_type<FACE> f2(m);
@@ -577,8 +577,8 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0) {
 TEST_P(FETLTest, identity_div_curl_f1_eq0) {
     field_type<EDGE> f1(m);
     field_type<FACE> f2(m);
-    field_type<VERTEX> f0a(m);
-    field_type<VERTEX> f0b(m);
+    field_type<NODE> f0a(m);
+    field_type<NODE> f0b(m);
 
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -605,15 +605,15 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0) {
         variance_a += abs(f0a[s] * f0a[s]);
     });
 
-    ASSERT_LE(std::sqrt(variance_b / m_p->range(mesh::SP_ES_OWNED, VERTEX).size()), error);
-    ASSERT_LE(std::sqrt(variance_a / m_p->range(mesh::SP_ES_OWNED, VERTEX).size()), error);
+    ASSERT_LE(std::sqrt(variance_b / m_p->range(mesh::SP_ES_OWNED, NODE).size()), error);
+    ASSERT_LE(std::sqrt(variance_a / m_p->range(mesh::SP_ES_OWNED, NODE).size()), error);
 }
 
 TEST_P(FETLTest, identity_div_curl_f2_eq0) {
     field_type<EDGE> f1(m);
     field_type<FACE> f2(m);
-    field_type<VOLUME> f3a(m);
-    field_type<VOLUME> f3b(m);
+    field_type<CELL> f3a(m);
+    field_type<CELL> f3b(m);
 
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -641,8 +641,8 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0) {
         variance_b += abs(f3b[s] * f3b[s]);
     });
 
-    EXPECT_LE(std::sqrt(variance_b / m_p->range(mesh::SP_ES_OWNED, VOLUME).size()), error);
-    ASSERT_LE(std::sqrt(variance_a / m_p->range(mesh::SP_ES_OWNED, VOLUME).size()), error);
+    EXPECT_LE(std::sqrt(variance_b / m_p->range(mesh::SP_ES_OWNED, CELL).size()), error);
+    ASSERT_LE(std::sqrt(variance_a / m_p->range(mesh::SP_ES_OWNED, CELL).size()), error);
 }
 
 #endif /* CORE_FIELD_VECTOR_CALCULUS_TEST_H_ */

@@ -51,13 +51,13 @@ class PML : public engine::DomainBase {
     field_type<FACE> X20{m_mesh_}, X21{m_mesh_}, X22{m_mesh_};
 
     // alpha
-    field_type<VERTEX> a0{m_mesh_};
-    field_type<VERTEX> a1{m_mesh_};
-    field_type<VERTEX> a2{m_mesh_};
+    field_type<NODE> a0{m_mesh_};
+    field_type<NODE> a1{m_mesh_};
+    field_type<NODE> a2{m_mesh_};
     // sigma
-    field_type<VERTEX> s0{m_mesh_};
-    field_type<VERTEX> s1{m_mesh_};
-    field_type<VERTEX> s2{m_mesh_};
+    field_type<NODE> s0{m_mesh_};
+    field_type<NODE> s1{m_mesh_};
+    field_type<NODE> s2{m_mesh_};
 
     field_type<EDGE> dX1{m_mesh_};
     field_type<FACE> dX2{m_mesh_};
@@ -98,7 +98,7 @@ void PML<TM>::SetUp(Real time_now) {
     //    std::tie(c_xmin, c_xmax) = center_box;
     //    auto dims = GetBaseMesh()->dimensions();
     //
-    //    GetBaseMesh()->GetRange(VERTEX, mesh::SP_ES_ALL).foreach ([&](id_type const &s) {
+    //    GetBaseMesh()->GetRange(NODE, mesh::SP_ES_ALL).foreach ([&](id_type const &s) {
     //        point_type x = m->point(s);
     //
     //#define DEF(_N_)                                                                            \

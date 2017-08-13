@@ -27,11 +27,11 @@ struct EBMesh {
    public:
     void SetEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g);
 
-    Field<host_type, Real, VERTEX> m_vertex_tag_{m_host_, "name"_ = "vertex_tag"};
+    Field<host_type, Real, NODE> m_vertex_tag_{m_host_, "name"_ = "vertex_tag"};
     //    Field<host_type, Real, EDGE> m_edge_tag_{m_host_, "name"_ = "edge_tag"};
-    //    Field<host_type, Real, VERTEX, 3> m_edge_tag_d_{m_host_, "name"_ = "edge_tag_d"};
+    //    Field<host_type, Real, NODE, 3> m_edge_tag_d_{m_host_, "name"_ = "edge_tag_d"};
     //    Field<host_type, Real, FACE> m_face_tag_{m_host_, "name"_ = "face_tag"};
-    Field<host_type, Real, VOLUME> m_volume_tag_{m_host_, "name"_ = "volume_tag"};
+    Field<host_type, Real, CELL> m_volume_tag_{m_host_, "name"_ = "volume_tag"};
 };
 
 template <typename THost>

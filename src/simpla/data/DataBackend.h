@@ -62,7 +62,7 @@ class DataBackend : public engine::EnableCreateFromDataTable<DataBackend> {
      * @brief  put v to uri,
      * @return
      */
-    virtual void Set(std::string const& uri, std::shared_ptr<DataEntity> const& v, bool overwrite = true) = 0;
+    virtual void Set(std::string const& uri, const std::shared_ptr<DataEntity>& v) = 0;
 
     /**
      * @brief  add v to uri,
@@ -70,7 +70,7 @@ class DataBackend : public engine::EnableCreateFromDataTable<DataBackend> {
      *          else if uri is not an array then throw runtim error
      * @return
      */
-    virtual void Add(std::string const& uri, std::shared_ptr<DataEntity> const&) = 0;
+    virtual void Add(std::string const& uri, const std::shared_ptr<DataEntity>& v) = 0;
     /**
      * @brief  delete entities selected by uri
      */

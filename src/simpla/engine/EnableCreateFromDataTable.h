@@ -25,13 +25,9 @@ class EnableCreateFromDataTable : public engine::SPObject, public data::Serializ
     ~EnableCreateFromDataTable() override = default;
     SP_DEFAULT_CONSTRUCT(EnableCreateFromDataTable);
 
-    std::shared_ptr<data::DataTable> Serialize() const override {
-        auto res = std::make_shared<data::DataTable>();
-        res->SetValue("Type", GetFancyTypeName());
-        return res;
-    }
+    void Serialize(data::DataTable &t_db) const override { t_db.SetValue("Type", GetFancyTypeName()); }
 
-    void Deserialize(const std::shared_ptr<data::DataTable> &t) override{};
+    void Deserialize(const data::DataTable &tdb) override{};
 
     struct ObjectFactory {
         std::map<std::string, std::function<TObj *(Args const &...)>> m_factory_;
@@ -63,26 +59,6 @@ class EnableCreateFromDataTable : public engine::SPObject, public data::Serializ
         return RegisterCreator(!k_hint.empty() ? k_hint : U::GetFancyTypeName_s(),
                                [](Args const &... args) { return new U(args...); });
     };
-    template <typename... U>
-    static std::shared_ptr<TObj> Create(std::string const &k, U const &... args) {
-        if (k.empty()) { return nullptr; }
-        if (k.find("://") != std::string::npos) { return Create(std::make_shared<data::DataTable>(k), args...); }
-        auto const &f = SingletonHolder<ObjectFactory>::instance().m_factory_;
-        std::shared_ptr<TObj> res = nullptr;
-        auto it = f.find(k);
-
-        if (it != f.end()) {
-            res.reset(it->second(args...));
-            LOGGER << TObj::GetFancyTypeName_s() << "::" << it->first << "  is created!" << std::endl;
-        } else {
-            std::ostringstream os;
-            os << "Can not find Creator " << k << std::endl;
-            os << std::endl << "Register " << TObj::GetFancyTypeName_s() << " Creator:" << std::endl;
-            for (auto const &item : f) { os << item.first << std::endl; }
-            WARNING << os.str();
-        }
-        return res;
-    }
 
    private:
     template <typename... U>
@@ -96,26 +72,47 @@ class EnableCreateFromDataTable : public engine::SPObject, public data::Serializ
 
    public:
     template <typename... U>
-    static std::shared_ptr<TObj> Create(std::shared_ptr<data::DataEntity> const &cfg, U &&... args) {
+    static std::shared_ptr<TObj> Create(std::string const &k, U &&... args) {
+        if (k.empty()) { return nullptr; }
+        if (k.find("://") != std::string::npos) { return Create_(data::DataTable(k), args...); }
+        auto const &f = SingletonHolder<ObjectFactory>::instance().m_factory_;
         std::shared_ptr<TObj> res = nullptr;
-        std::string s_type;
-        if (cfg == nullptr) {
-        } else if (cfg->value_type_info() == typeid(std::string)) {
-            s_type = data::DataCastTraits<std::string>::Get(cfg);
-        } else if (dynamic_cast<data::DataTable const *>(cfg.get()) != nullptr) {
-            auto t = std::dynamic_pointer_cast<data::DataTable>(cfg);
-            s_type = t->GetValue<std::string>("Type", "");
-        }
+        auto it = f.find(k);
 
-        if (!s_type.empty()) {
-            res = Create(s_type, args...);
+        if (it != f.end()) {
+            res.reset(it->second(std::forward<U>(args)...));
+            LOGGER << TObj::GetFancyTypeName_s() << "::" << it->first << "  is created!" << std::endl;
         } else {
             res = _CreateIfNotAbstract(std::integral_constant<bool, !std::is_abstract<TObj>::value>(),
                                        std::forward<U>(args)...);
-        }
 
-        if (res != nullptr && dynamic_cast<data::DataTable const *>(cfg.get()) != nullptr) {
-            res->Deserialize(std::dynamic_pointer_cast<data::DataTable>(cfg));
+            if (res == nullptr) {
+                std::ostringstream os;
+                os << "Can not find Creator " << k << std::endl;
+                os << std::endl << "Register " << TObj::GetFancyTypeName_s() << " Creator:" << std::endl;
+                for (auto const &item : f) { os << item.first << std::endl; }
+                WARNING << os.str();
+            }
+        }
+        return res;
+    }
+
+    template <typename... U>
+    static std::shared_ptr<TObj> Create_(data::DataTable const &cfg, U &&... args) {
+        std::shared_ptr<TObj> res = Create(cfg.GetValue<std::string>("Type", ""), std::forward<U>(args)...);
+        if (res != nullptr) { res->Deserialize(cfg); }
+        return res;
+    }
+
+    template <typename... U>
+    static std::shared_ptr<TObj> Create(data::DataEntity const &cfg, U &&... args) {
+        std::shared_ptr<TObj> res = nullptr;
+
+        if (dynamic_cast<data::DataTable const *>(&cfg) != nullptr) {
+            res = Create_(dynamic_cast<data::DataTable const &>(cfg), std::forward<U>(args)...);
+        } else {
+            auto p = dynamic_cast<data::DataEntityWrapper<std::string> const *>(&cfg);
+            res = Create((p != nullptr) ? p->value() : "", std::forward<U>(args)...);
         }
 
         return res;

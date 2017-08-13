@@ -13,20 +13,17 @@ Chart::Chart(point_type shift, point_type scale, point_type rotate) {
     SetRotation(rotate);
 }
 
-std::shared_ptr<data::DataTable> Chart::Serialize() const {
-    auto p = std::make_shared<data::DataTable>();
-    p->SetValue("Type", GetFancyTypeName());
-    p->SetValue("Level", GetLevel());
-    p->SetValue("Origin", GetOrigin());
-    p->SetValue("Scale", GetScale());
-    p->SetValue("Rotation", GetRotation());
-
-    return p;
+void Chart::Serialize(data::DataTable &cfg) const {
+    cfg.SetValue("Type", GetFancyTypeName());
+    cfg.SetValue("Level", GetLevel());
+    cfg.SetValue("Origin", GetOrigin());
+    cfg.SetValue("Scale", GetScale());
+    cfg.SetValue("Rotation", GetRotation());
 }
-void Chart::Deserialize(const std::shared_ptr<data::DataTable> &p) {
-    m_origin_ = p->GetValue<point_type>("Origin", m_origin_);
-    m_scale_ = p->GetValue<point_type>("Scale", m_scale_);
-    m_rotation_ = p->GetValue<point_type>("Rotation", m_rotation_);
+void Chart::Deserialize(const data::DataTable &cfg) {
+    m_origin_ = cfg.GetValue<point_type>("Origin", m_origin_);
+    m_scale_ = cfg.GetValue<point_type>("Scale", m_scale_);
+    m_rotation_ = cfg.GetValue<point_type>("Rotation", m_rotation_);
 };
 
 void Chart::SetOrigin(point_type const &x) { m_origin_ = x; }
