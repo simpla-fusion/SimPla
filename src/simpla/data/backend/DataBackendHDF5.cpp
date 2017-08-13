@@ -8,7 +8,7 @@
 #include "../DataBlock.h"
 #include "../DataEntity.h"
 #include "../DataTable.h"
-#include "../DataUtility.h"
+#include "DataUtility.h"
 #include "simpla/parallel/MPIComm.h"
 extern "C" {
 #include <hdf5.h>

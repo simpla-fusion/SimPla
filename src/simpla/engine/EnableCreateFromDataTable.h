@@ -11,14 +11,12 @@
 #include <memory>
 #include <string>
 #include "simpla/data/DataTable.h"
-#include "simpla/engine/SPObject.h"
 #include "simpla/utilities/SingletonHolder.h"
 namespace simpla {
-namespace engine {
-
+namespace data {
 template <typename TObj, typename... Args>
-class EnableCreateFromDataTable : public engine::SPObject, public data::Serializable {
-    SP_OBJECT_HEAD(EnableCreateFromDataTable<TObj>, engine::SPObject);
+class EnableCreateFromDataTable : public data::Serializable {
+    SP_OBJECT_BASE(EnableCreateFromDataTable<TObj>);
 
    public:
     explicit EnableCreateFromDataTable() = default;
@@ -126,6 +124,6 @@ class EnableCreateFromDataTable : public engine::SPObject, public data::Serializ
 template <typename T>
 static bool RegisterCreator(std::string const &name) {
     return T::template RegisterCreator<T>(name);
-}
+}  // namespace data{
 }  // namespace simpla{
 #endif  // SIMPLA_ENABLECREATEFROMDATATABLE_H

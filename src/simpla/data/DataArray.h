@@ -172,19 +172,23 @@ class DataArrayWrapper<U> : public DataArray {
 };
 
 template <typename U>
-std::shared_ptr<DataArrayWrapper<U>> make_data_entity(std::initializer_list<U> const& u) {
+std::shared_ptr<DataArrayWrapper<U>> make_data_entity(std::initializer_list<U> const& u,
+                                                      ENABLE_IF(traits::is_light_data<U>::value)) {
     return std::make_shared<DataArrayWrapper<U>>(u);
 }
 template <typename U>
-std::shared_ptr<DataArrayWrapper<U>> make_data_entity(std::initializer_list<std::initializer_list<U>> const& u) {
-    return std::make_shared<DataArrayWrapper<U>>(u);
-}
-
-inline std::shared_ptr<DataArrayWrapper<std::string>> make_data_entity(std::initializer_list<char const*> const& u) {
-    auto res = std::make_shared<DataArrayWrapper<std::string>>();
-    for (auto const item : u) { res->Add(std::string(item)); }
+std::shared_ptr<DataArrayWrapper<>> make_data_entity(std::initializer_list<U> const& u,
+                                                      ENABLE_IF(!traits::is_light_data<U>::value)) {
+    auto res = std::make_shared<DataArrayWrapper<>>();
+    for (auto const& item : u) { res->Add(make_data_entity(item)); }
     return res;
 }
+
+//inline std::shared_ptr<DataArrayWrapper<std::string>> make_data_entity(std::initializer_list<char const*> const& u) {
+//    auto res = std::make_shared<DataArrayWrapper<std::string>>();
+//    for (auto const item : u) { res->Add(std::string(item)); }
+//    return res;
+//}
 
 // template <typename U, int N>
 // struct DataCastTraits<nTuple<U, N>> {

@@ -8,7 +8,7 @@
 #include "DataArray.h"
 #include "DataEntity.h"
 #include "DataTable.h"
-#include "DataUtility.h"
+#include "simpla/data/backend/DataUtility.h"
 
 namespace simpla {
 namespace data {
@@ -75,7 +75,7 @@ size_type DataBackendMemory::size() const { return m_pimpl_->m_table_.size(); }
 
 std::shared_ptr<DataEntity> DataBackendMemory::Get(std::string const& url) const {
     std::shared_ptr<DataEntity> res = nullptr;
-    auto t = m_pimpl_->get_table(const_cast<DataBackendMemory*>(this), url, true);
+    auto t = m_pimpl_->get_table(const_cast<DataBackendMemory*>(this), url, false);
     if (t.first != nullptr && !t.second.empty()) {
         auto it = t.first->m_pimpl_->m_table_.find(t.second);
         if (it != t.first->m_pimpl_->m_table_.end()) { res = it->second; }

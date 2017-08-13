@@ -77,6 +77,12 @@ struct DataEntityWrapper<V> : public DataEntity {
     std::shared_ptr<DataEntity> Duplicate() const override {
         return std::dynamic_pointer_cast<DataEntity>(std::make_shared<this_type>(*this));
     }
+
+    std::ostream& Serialize(std::ostream& os, int indent) const override {
+        os << *m_data_;
+        return os;
+    }
+
     std::type_info const& value_type_info() const override { return typeid(value_type); }
     bool isLight() const override { return true; }
     value_type& value() { return *m_data_; };

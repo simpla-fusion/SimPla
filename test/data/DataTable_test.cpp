@@ -2,21 +2,20 @@
 // Created by salmon on 17-1-6.
 //
 
-#include <gtest/gtest.h"
-#include "simpla/SIMPLA_config.h"
-#include "simpla/algebra/algebra.h"
-#include "simpla/data/Data.h"
-#include "simpla/utilities/SingletonHolder.h"
-#include "simpla/utilities/FancyStream.h"
+#include <gtest/gtest.h>
 #include <complex>
 #include <iostream>
+#include "simpla/SIMPLA_config.h"
+#include "simpla/data/Data.h"
+#include "simpla/utilities/FancyStream.h"
+#include "simpla/utilities/SingletonHolder.h"
 
 using namespace simpla;
 using namespace simpla::data;
 TEST(DataTable, memory) {
     logger::set_stdout_level(1000);
 
-    LOGGER << "Registered DataBackend: " << GLOBAL_DATA_BACKEND_FACTORY.GetBackendList() << std::endl;
+//    LOGGER << "Registered DataBackend: " << GLOBAL_DATA_BACKEND_FACTORY.GetBackendList() << std::endl;
 
     DataTable db;
 
@@ -57,14 +56,14 @@ TEST(DataTable, memory) {
 TEST(DataTable, lua) {
     logger::set_stdout_level(1000);
 
-    LOGGER << "Registered DataBackend: " << GLOBAL_DATA_BACKEND_FACTORY.GetBackendList() << std::endl;
-    DataTable db( "/home/salmon/workspace/SimPla/test/data/test.lua");
+//    LOGGER << "Registered DataBackend: " << GLOBAL_DATA_BACKEND_FACTORY.GetBackendList() << std::endl;
+    DataTable db("/home/salmon/workspace/SimPla/test/data/test.lua");
     LOGGER << "lua:// " << *db.Get("Context") << std::endl;
-//    db.SetValue("box", {{1, 2, 3}, {4, 5, 6}});
-//    LOGGER << "box  = " << db.GetValue<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
+    //    db.SetValue("box", {{1, 2, 3}, {4, 5, 6}});
+    //    LOGGER << "box  = " << db.GetValue<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
 }
 
-//TEST(DataTable, samrai) {
+// TEST(DataTable, samrai) {
 //    logger::set_stdout_level(1000);
 //
 //    LOGGER << "Registered DataBackend: " << GLOBAL_DATA_BACKEND_FACTORY.GetBackendList() << std::endl;
@@ -82,7 +81,7 @@ TEST(DataTable, lua) {
 TEST(DataTable, hdf5) {
     logger::set_stdout_level(1000);
 
-    LOGGER << "Registered DataBackend: " << GLOBAL_DATA_BACKEND_FACTORY.GetBackendList() << std::endl;
+//    LOGGER << "Registered DataBackend: " << GLOBAL_DATA_BACKEND_FACTORY.GetBackendList() << std::endl;
     DataTable db("test.h5", "w");
     db.SetValue("pi", 3.1415926);
     db.SetValue("a", "just a test");

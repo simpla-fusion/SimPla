@@ -1,6 +1,3 @@
-
-
-
 add_subdirectory(backend)
 
 FILE(GLOB data_SRC  *.cpp  )

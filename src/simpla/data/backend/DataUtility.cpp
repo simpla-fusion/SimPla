@@ -2,10 +2,10 @@
 // Created by salmon on 17-3-9.
 //
 #include "DataUtility.h"
-#include "DataArray.h"
-#include "DataBlock.h"
-#include "DataEntity.h"
-#include "DataTable.h"
+#include "simpla/data/DataArray.h"
+#include "simpla/data/DataBlock.h"
+#include "simpla/data/DataEntity.h"
+#include "simpla/data/DataTable.h"
 #include "simpla/parallel/MPIComm.h"
 #include "simpla/utilities/Logo.h"
 #include "simpla/utilities/MiscUtilities.h"

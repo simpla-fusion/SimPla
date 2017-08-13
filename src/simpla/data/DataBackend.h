@@ -22,8 +22,8 @@ namespace data {
 
 class DataEntity;
 class DataTable;
-class DataBackend : public engine::EnableCreateFromDataTable<DataBackend> {
-    SP_OBJECT_HEAD(DataBackend, engine::EnableCreateFromDataTable<DataBackend>);
+class DataBackend : public EnableCreateFromDataTable<DataBackend> {
+    SP_OBJECT_HEAD(DataBackend, EnableCreateFromDataTable<DataBackend>);
 
    public:
     DataBackend() = default;
