@@ -60,7 +60,7 @@ DataBackendMemory::DataBackendMemory(const DataBackendMemory& other) : m_pimpl_(
 DataBackendMemory::DataBackendMemory(DataBackendMemory&& other) noexcept : m_pimpl_(new pimpl_s) {
     std::map<std::string, std::shared_ptr<DataEntity>>(other.m_pimpl_->m_table_).swap(m_pimpl_->m_table_);
 };
-DataBackendMemory::~DataBackendMemory() {}
+DataBackendMemory::~DataBackendMemory() = default;
 
 std::shared_ptr<DataBackend> DataBackendMemory::CreateNew() const { return std::make_shared<DataBackendMemory>(); }
 

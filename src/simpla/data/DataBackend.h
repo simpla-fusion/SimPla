@@ -21,7 +21,7 @@ namespace data {
 
 class DataEntity;
 class DataTable;
-class DataBackend : public Factory<DataBackend> {
+class DataBackend : public Factory<DataBackend>, public std::enable_shared_from_this<DataBackend> {
     SP_OBJECT_HEAD(DataBackend, Factory<DataBackend>);
 
    public:

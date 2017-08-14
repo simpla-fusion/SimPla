@@ -1,4 +1,5 @@
-#FIND_PACKAGE(XDMF)
+FIND_PACKAGE(VTK)
+MESSAGE("-- VTK version: ${VTK_VERSION}")
 
 SET(HDF5_PREFER_PARALLEL OFF)
 SET(HDF5_USE_STATIC_LIBRARIES OFF)
@@ -12,5 +13,5 @@ ENDIF (LUA_FOUND)
 FILE(GLOB data_backend_SRC ./*.cpp)
 
 add_library(data_backend ${data_backend_SRC})
-target_include_directories(data_backend BEFORE PRIVATE ${HDF5_INCLUDE_DIRS} ${LUA_INCLUDE_DIR} ${MPI_C_INCLUDE_PATH})
-target_link_libraries(data_backend  parallel utilities ${LUA_LIBRARIES} ${HDF5_LIBRARIES} ${MPI_LIBRARIES}  )
+target_include_directories(data_backend BEFORE PRIVATE ${HDF5_INCLUDE_DIRS} ${LUA_INCLUDE_DIR} ${MPI_C_INCLUDE_PATH} ${VTK_INCLUDE_DIR})
+target_link_libraries(data_backend parallel utilities ${LUA_LIBRARIES} ${HDF5_LIBRARIES} ${MPI_LIBRARIES} ${VTK_LIBRARIES})

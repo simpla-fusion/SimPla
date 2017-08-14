@@ -1,26 +1,26 @@
 //
-// Created by salmon on 17-8-13.
+// Created by salmon on 17-8-14.
 //
 
-#ifndef SIMPLA_DATABACKENDXDMF_H
-#define SIMPLA_DATABACKENDXDMF_H
+#ifndef SIMPLA_DATABACKENDVTK_H
+#define SIMPLA_DATABACKENDVTK_H
+
+#include "simpla/SIMPLA_config.h"
 
 #include "../DataBackend.h"
+#include "simpla/utilities/ObjectHead.h"
 namespace simpla {
 namespace data {
 
-class DataBackendXDMF : public DataBackend {
-    SP_OBJECT_HEAD(DataBackendXDMF, DataBackend);
+class DataBackendVTK : public DataBackend {
+    SP_OBJECT_HEAD(DataBackendVTK, DataBackend);
 
    public:
-    DataBackendXDMF();
-    ~DataBackendXDMF() override;
-    explicit DataBackendXDMF(std::string const& uri, std::string const& status = "");
-
-    DataBackendXDMF(DataBackendXDMF const&) = delete;
-    DataBackendXDMF(DataBackendXDMF&&) noexcept = delete;
-    DataBackendXDMF& operator=(DataBackendXDMF const&) = delete;
-    DataBackendXDMF& operator=(DataBackendXDMF&&) noexcept = delete;
+    DataBackendVTK();
+    DataBackendVTK(DataBackendVTK const&);
+    DataBackendVTK(DataBackendVTK&&) noexcept;
+    explicit DataBackendVTK(std::string const& uri, std::string const& status = "");
+    ~DataBackendVTK() override;
 
     bool isNull() const;
 
@@ -33,6 +33,7 @@ class DataBackendXDMF : public DataBackend {
     std::shared_ptr<DataBackend> CreateNew() const override;
 
     void Flush() override;
+
     std::shared_ptr<DataEntity> Get(std::string const& URI) const override;
     void Set(std::string const& URI, const std::shared_ptr<DataEntity>&) override;
     void Add(std::string const& URI, const std::shared_ptr<DataEntity>&) override;
@@ -40,15 +41,11 @@ class DataBackendXDMF : public DataBackend {
     size_type size() const override;
     size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const override;
 
-    virtual DataBackendXDMF* GetRoot();
-    virtual DataBackendXDMF const* GetRoot() const;
-
    private:
     struct pimpl_s;
     pimpl_s* m_pimpl_ = nullptr;
+};
 
-};  // class DataBackendXDMF {
 }  // namespace data
 }  // namespace simpla
-
-#endif  // SIMPLA_DATABACKENDXDMF_H
+#endif  // SIMPLA_DATABACKENDVTK_H
