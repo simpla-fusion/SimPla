@@ -27,9 +27,9 @@ struct Context::pimpl_s {
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 };
 
-Context::Context(std::string const &s_name) : m_pimpl_(new pimpl_s) { SPObject::SetName(s_name); }
-
-Context::~Context() = default;
+Context::Context() : m_pimpl_(new pimpl_s) {}
+Context::~Context() { delete m_pimpl_; }
+std::shared_ptr<Context> Context::New() { return std::shared_ptr<Context>(new Context); }
 
 void Context::Serialize(data::DataTable &cfg) const {
     cfg.SetValue("Name", GetName());
@@ -44,15 +44,14 @@ void Context::Deserialize(const DataTable &cfg) {
     m_pimpl_->m_mesh_ = CreateObject<MeshBase>(cfg.Get("Mesh").get());
     cfg.GetTable("Model").Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> t_cfg) {
         m_pimpl_->m_models_[key] = CreateObject<Model>(t_cfg.get());
+        return 1;
     });
 
     cfg.GetTable("Domains").Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> t_cfg) {
-
         m_pimpl_->m_domains_[key] =
             CreateObject<DomainBase>(t_cfg.get(), GetMesh(), GetModel(cfg.GetValue<std::string>(key + "/Model", "")));
-
         m_pimpl_->m_domains_[key]->SetName(key);
-
+        return 1;
     });
 
     std::get<0>(m_pimpl_->m_bound_box_) = cfg.GetValue("Mesh/Box/lo", point_type{0, 0, 0});
@@ -149,8 +148,8 @@ std::map<std::string, std::shared_ptr<DomainBase>> const &Context::GetAllDomains
     return m_pimpl_->m_domains_;
 }
 
-void Context::Pop(Patch *p) { GetMesh()->Pop(p); };
-void Context::Push(Patch *p) { GetMesh()->Push(p); };
+void Context::Pop(const std::shared_ptr<Patch> &p) { GetMesh()->Pop(p); };
+void Context::Push(const std::shared_ptr<Patch> &p) { GetMesh()->Push(p); };
 
 void Context::InitialCondition(Real time_now) {
     GetMesh()->InitialCondition(time_now);

@@ -10,6 +10,8 @@
 #include "simpla/algebra/nTuple.h"
 
 namespace simpla {
+template <typename TV, int N0, int... N>
+struct nTuple<TV, N0, N...>;
 namespace data {
 class DataEntity;
 }  // namespace data {
@@ -35,6 +37,10 @@ template <typename U>
 struct is_light_data
     : public std::integral_constant<bool, std::is_arithmetic<U>::value || std::is_same<U, bool>::value> {};
 
+template <typename U, int... N>
+struct is_light_data<nTuple<U, N...>> : public std::true_type {};
+template <typename... U>
+struct is_light_data<std::tuple<U...>> : public std::true_type {};
 template <>
 struct is_light_data<std::string> : public std::integral_constant<bool, true> {};
 template <>

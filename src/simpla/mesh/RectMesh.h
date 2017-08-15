@@ -50,7 +50,7 @@ struct RectMesh : public StructuredMesh {
 
 template <typename THost>
 void RectMesh<THost>::InitialCondition(Real time_now) {
-    auto const *chart = m_host_->GetChart();
+    auto chart = m_host_->GetChart();
 
     m_coordinates_ = [&](index_type x, index_type y, index_type z) { return chart->global_coordinates(x, y, z, 0b0); };
     //    m_vertices_ = [&](point_type const &x) { return (x); };

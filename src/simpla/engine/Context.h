@@ -68,16 +68,8 @@ class MeshBase;
 /**
  * Context is a container of Model,Atlas,Domains
  */
-class Context : public SPObject, public data::Serializable {
-    SP_OBJECT_HEAD(Context, SPObject)
-   public:
-    explicit Context(const std::string &s_name = "");
-    ~Context() override;
-
-    SP_DEFAULT_CONSTRUCT(Context)
-
-    void Serialize(data::DataTable &cfg) const override;
-    void Deserialize(const data::DataTable &cfg) override;
+class Context : public SPObject {
+    SP_OBJECT_DECLARE_MEMBERS(Context, SPObject)
 
     void DoInitialize() override;
     void DoFinalize() override;
@@ -97,7 +89,7 @@ class Context : public SPObject, public data::Serializable {
     std::shared_ptr<DomainBase> CreateDomain(std::string const &k, const data::DataTable &);
     template <typename TD>
     std::shared_ptr<TD> CreateDomain(std::string const &k, Model const *m) {
-        auto res = std::make_shared<TD>(GetMesh(), m);
+        auto res = TD::New(GetMesh(), m);
         SetDomain(k, std::dynamic_pointer_cast<DomainBase>(res));
         res->SetName(k);
         return res;
@@ -107,8 +99,8 @@ class Context : public SPObject, public data::Serializable {
     std::map<std::string, std::shared_ptr<DomainBase>> &GetAllDomains();
     std::map<std::string, std::shared_ptr<DomainBase>> const &GetAllDomains() const;
 
-    void Pop(Patch *p);
-    void Push(Patch *p);
+    void Pop(const std::shared_ptr<Patch> &p);
+    void Push(const std::shared_ptr<Patch> &p);
 
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real dt);
@@ -119,8 +111,6 @@ class Context : public SPObject, public data::Serializable {
 
    private:
     void SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &);
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 }  // namespace engine{
 }  // namespace simpla{

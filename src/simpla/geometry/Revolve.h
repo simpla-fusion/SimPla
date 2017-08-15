@@ -55,7 +55,7 @@ class Revolve : public GeoObject {
 
 template <typename TObj>
 std::shared_ptr<GeoObject> revolve(TObj const &obj, int phi_axis = 2) {
-    return std::dynamic_pointer_cast<GeoObject>(std::make_shared<Revolve<TObj>>(obj, phi_axis));
+    return std::dynamic_pointer_cast<GeoObject>(Revolve<TObj>::New(obj, phi_axis));
 }
 
 class RevolveZ : public GeoObject {

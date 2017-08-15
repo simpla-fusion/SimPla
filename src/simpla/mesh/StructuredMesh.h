@@ -32,8 +32,8 @@ class StructuredMesh {
     StructuredMesh &operator=(StructuredMesh const &) = delete;
     StructuredMesh &operator=(StructuredMesh &&) = delete;
 
-    virtual const geometry::Chart *GetChart() const = 0;
-    virtual const engine::MeshBlock *GetBlock() const = 0;
+    virtual std::shared_ptr<const geometry::Chart> GetChart() const = 0;
+    virtual std::shared_ptr<const engine::MeshBlock> GetBlock() const = 0;
     virtual index_box_type IndexBox(int tag) const;
 
     ZSFC<NDIMS> GetSpaceFillingCurve(int iform, int nsub = 0) const {

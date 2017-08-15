@@ -22,7 +22,7 @@ struct DummyAttribute {
     virtual void swap(this_type &other) { std::swap(m_mesh_, other.m_mesh_); }
 
     virtual void Push(std::shared_ptr<data::DataBlock> p) {}
-    virtual std::shared_ptr<data::DataBlock> Pop() { return std::make_shared<data::DataBlock>(); }
+    virtual std::shared_ptr<data::DataBlock> Pop() { return data::DataBlock::New(); }
     virtual void DoUpdate() {}
     virtual void DoTearDown() {}
     void Update() { DoUpdate(); };

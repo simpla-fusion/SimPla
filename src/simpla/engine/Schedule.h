@@ -20,30 +20,20 @@ class DataIOPort;
 namespace engine {
 class Context;
 class Atlas;
-class Schedule : public engine::SPObject, public data::Serializable, public Factory<Schedule> {
-    SP_OBJECT_HEAD(Schedule, engine::SPObject);
+class Schedule : public engine::SPObject, public Factory<Schedule> {
+    SP_OBJECT_DECLARE_MEMBERS(Schedule, SPObject)
 
    public:
-    explicit Schedule();
-    ~Schedule() override;
-
-    SP_DEFAULT_CONSTRUCT(Schedule)
-
-    void Serialize(data::DataTable &cfg) const override;
-    void Deserialize(const data::DataTable &cfg) override;
-
     void DoInitialize() override;
     void DoFinalize() override;
     void DoUpdate() override;
     void DoTearDown() override;
 
-    void SetContext(Context *c) { m_ctx_ = c; }
-    const Context *GetContext() const { return m_ctx_; }
-    Context *GetContext() { return m_ctx_; }
+    void SetContext(const std::shared_ptr<Context> &c) { m_ctx_ = c; }
+    std::shared_ptr<Context> GetContext() const { return m_ctx_; }
 
-    void SetAtlas(Atlas *a) { m_atlas_ = a; }
-    const Atlas *GetAtlas() const { return m_atlas_; }
-    Atlas *GetAtlas() { return m_atlas_; }
+    void SetAtlas(const std::shared_ptr<Atlas> &a) { m_atlas_ = a; }
+    std::shared_ptr<Atlas> GetAtlas() const { return m_atlas_; }
 
     virtual void CheckPoint() const;
     virtual void Dump() const;
@@ -65,11 +55,9 @@ class Schedule : public engine::SPObject, public data::Serializable, public Fact
     size_type GetDumpInterval() const;
 
    private:
-    Context *m_ctx_ = nullptr;
-    Atlas *m_atlas_ = nullptr;
+    std::shared_ptr<Context> m_ctx_ = nullptr;
+    std::shared_ptr<Atlas> m_atlas_ = nullptr;
     std::shared_ptr<data::DataIOPort> m_data_io_ = nullptr;
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
 }  // namespace engine{

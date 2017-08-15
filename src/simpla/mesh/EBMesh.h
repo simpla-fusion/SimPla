@@ -25,7 +25,7 @@ struct EBMesh {
     std::map<id_type, Real> m_dual_volume_;
 
    public:
-    void SetEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g);
+    void SetEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g);
 
     Field<host_type, Real, NODE> m_vertex_tag_{m_host_, "name"_ = "vertex_tag"};
     //    Field<host_type, Real, EDGE> m_edge_tag_{m_host_, "name"_ = "edge_tag"};
@@ -35,7 +35,7 @@ struct EBMesh {
 };
 
 template <typename THost>
-void EBMesh<THost>::SetEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g) {
+void EBMesh<THost>::SetEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g) {
     if (g == nullptr) { return; }
 
     VERBOSE << "Add Embedded Boundary [" << prefix << "]"

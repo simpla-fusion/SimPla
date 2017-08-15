@@ -13,10 +13,14 @@
 #include <typeindex>
 #include <typeinfo>
 
+#include "simpla/data/Serializable.h"
 #include "simpla/utilities/ObjectHead.h"
 #include "simpla/utilities/Signal.h"
 
 namespace simpla {
+namespace data {
+class DataTable;
+}
 namespace engine {
 #define NULL_ID static_cast<id_type>(-1)
 
@@ -72,17 +76,21 @@ namespace engine {
 
  **/
 
-class SPObject {
+class SPObject : public data::Serializable, public std::enable_shared_from_this<SPObject> {
     SP_OBJECT_BASE(SPObject)
-   public:
-    explicit SPObject();
-    virtual ~SPObject();
-    SPObject(SPObject const &other);
-    SPObject(SPObject &&other) noexcept;
-    void swap(SPObject &other);
 
-    SPObject &operator=(SPObject const &other) = delete;
-    SPObject &operator=(SPObject &&other) noexcept = delete;
+   protected:
+    SPObject();
+
+   public:
+    virtual ~SPObject();
+    static std::shared_ptr<SPObject> New();
+
+    void Serialize(data::DataTable &cfg) const override;
+    void Deserialize(const data::DataTable &cfg) override;
+
+    const data::DataTable &db() const;
+    data::DataTable &db();
 
     id_type GetGUID() const;
     void SetName(std::string const &);
@@ -124,16 +132,24 @@ class SPObject {
     struct pimpl_s;
     pimpl_s *m_pimpl_;
 };
+#define SP_OBJECT_DECLARE_MEMBERS(_CLASS_NAME_, _BASE_)            \
+    SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_)                           \
+   protected:                                                      \
+    _CLASS_NAME_();                                                \
+                                                                   \
+   public:                                                         \
+    ~_CLASS_NAME_() override;                                      \
+    SP_DEFAULT_CONSTRUCT(_CLASS_NAME_);                            \
+    static std::shared_ptr<_CLASS_NAME_> New();                    \
+    void Serialize(simpla::data::DataTable &cfg) const override;   \
+    void Deserialize(simpla::data::DataTable const &cfg) override; \
+                                                                   \
+   private:                                                        \
+    struct pimpl_s;                                                \
+    pimpl_s *m_pimpl_;                                             \
+                                                                   \
+   public:
 
-// unsigned int state() const { return m_state_; }
-//    bool isNull() const { return m_state_ == NULL_STATE; }
-//    bool isInitialized() const { return m_state_ >= INITIALIZED; }
-//    bool isPrepared() const { return m_state_ >= PREPARED; }
-//    bool isLocked() const { return m_state_ == LOCKED; }
-//    bool isValid() const { return m_state_ == PREPARED; }
-//
-//    unsigned int NextState();
-//    unsigned int PrevState();
 //
 //    /**
 //     * @brief Initial setup.

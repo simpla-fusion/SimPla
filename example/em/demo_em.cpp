@@ -41,7 +41,7 @@ void UseCaseEMFluid::Unpack(std::shared_ptr<data::DataTable> cfg) {
     t->SetTimeStep(0.1);
 
     auto domain = t->GetContext()->GetDomain("Center");
-    domain->SetGeoObject(std::make_shared<geometry::Cube>(box_type{{-0.1, 0.2, 0.0}, {1.2, 1.3, 1.4}}));
+    domain->SetGeoObject(geometry::Cube::New(box_type{{-0.1, 0.2, 0.0}, {1.2, 1.3, 1.4}}));
     domain->SetChart("CartesianGeometry");
     domain->SetWorker("EMFluid");
     domain->AddBoundaryCondition("PEC");

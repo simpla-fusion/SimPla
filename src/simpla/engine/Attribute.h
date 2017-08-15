@@ -50,29 +50,32 @@ class Patch;
 //    DEFAULT_ATTRIBUTE_TAG = GLOBAL
 //};
 
-struct AttributeDesc : public data::Properties {
+struct AttributeDesc {
    public:
     AttributeDesc() = default;
-    ~AttributeDesc() override = default;
+    ~AttributeDesc() = default;
 
     AttributeDesc(AttributeDesc const &other)
-        : data::Properties(other),
-          m_prefix_(other.m_prefix_),
+        : m_prefix_(other.m_prefix_),
           m_iform_(other.m_iform_),
           m_dof_(other.m_dof_),
-          m_t_info_(other.m_t_info_){};
+          m_t_info_(other.m_t_info_),
+          m_db_(other.m_db_){};
     AttributeDesc(AttributeDesc &&other) noexcept
-        : data::Properties(other),
-          m_prefix_(other.m_prefix_),
+        : m_prefix_(other.m_prefix_),
           m_iform_(other.m_iform_),
           m_dof_(other.m_dof_),
-          m_t_info_(other.m_t_info_){};
+          m_t_info_(other.m_t_info_),
+          m_db_(other.m_db_){};
 
     template <typename... Args>
     AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, std::string const &s_prefix, Args &&... args)
-        : m_prefix_(s_prefix), m_iform_(IFORM), m_dof_(DOF), m_t_info_(t_info) {
-//        db().Set(std::forward<Args>(args)...);
+        : m_prefix_(s_prefix), m_iform_(IFORM), m_dof_(DOF), m_t_info_(t_info), m_db_(data::DataTable::New()) {
+        Properties().Set(std::forward<Args>(args)...);
     }
+
+    data::DataTable &Properties() { return *m_db_; }
+    data::DataTable const &Properties() const { return *m_db_; }
 
     void SetPrefix(std::string const &s) { m_prefix_ = s; }
     std::string GetPrefix() const { return m_prefix_; }
@@ -90,6 +93,7 @@ struct AttributeDesc : public data::Properties {
     int m_iform_ = 0;
     int m_dof_ = 1;
     std::type_info const &m_t_info_ = typeid(void);
+    std::shared_ptr<data::DataTable> m_db_;
 };
 
 class AttributeGroup {
@@ -106,16 +110,16 @@ class AttributeGroup {
     std::set<Attribute *> &GetAttributes() { return m_attributes_; }
     std::set<Attribute *> const &GetAttributes() const { return m_attributes_; }
 
-    virtual void Push(Patch *);
-    virtual void Pop(Patch *);
+    virtual void Push(const std::shared_ptr<Patch> &);
+    virtual void Pop(const std::shared_ptr<Patch> &);
 
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
 
     void RegisterAttributes();
 
-    std::shared_ptr<AttributeDesc> GetAttributeDescription(std::string const &k);
-    const std::set<AttributeDesc> GetDescriptions() const;
+    std::shared_ptr<data::DataTable> GetAttributeDescription(std::string const &k);
+    const std::set<data::DataTable> GetDescriptions() const;
 
     //    virtual void RegisterAt(AttributeGroup *);
     //    virtual void DeregisterFrom(AttributeGroup *);
@@ -133,7 +137,7 @@ class AttributeGroup {
 
    private:
     std::set<Attribute *> m_attributes_;
-    std::map<std::string, std::shared_ptr<AttributeDesc>> m_register_desc_;
+    std::shared_ptr<data::DataTable> m_register_desc_ = nullptr;
 };
 
 /**
@@ -163,42 +167,43 @@ class AttributeGroup {
  *
  *
  */
-struct Attribute : public AttributeDesc, public SPObject {
-    SP_OBJECT_HEAD(Attribute, SPObject);
+struct Attribute : public SPObject {
+    SP_OBJECT_HEAD(Attribute, SPObject)
 
-   public:
+   protected:
+    Attribute();
     template <typename... Args>
-    Attribute(AttributeGroup *grp, int IFORM, int DOF, std::type_info const &t_info, Args &&... args)
-        : AttributeDesc(IFORM, DOF, t_info, "", std::forward<Args>(args)...) {
-        SPObject::SetName(db().GetValue<std::string>("name", "unnamed"));
-        AttributeDesc::SetPrefix(db().GetValue<std::string>("name", "unnamed"));
-        Register(grp);
+    Attribute(Args &&... args) : Attribute() {
+        db().SetValue(std::forward<Args>(args)...);
     };
 
-    Attribute(Attribute const &other) = delete;
-    Attribute(Attribute &&other) noexcept = delete;
+   private:
+    struct pimpl_s;
+    pimpl_s *m_pimpl_;
 
-    Attribute &operator=(Attribute const &other) = delete;
-    Attribute &operator=(Attribute &&other) = delete;
+   public:
     ~Attribute() override;
+    SP_DEFAULT_CONSTRUCT(Attribute);
 
-    void Register(AttributeGroup *);
-    void Deregister(AttributeGroup *);
+    void Serialize(simpla::data::DataTable &cfg) const override;
+    void Deserialize(simpla::data::DataTable const &cfg) override;
 
-    data::DataBlock *GetDataBlock();
-    data::DataBlock const *GetDataBlock() const;
+    virtual std::type_info const &value_type_info() const = 0;
+    virtual int GetIFORM() const = 0;
+    virtual int GetDOF() const = 0;
+    virtual void SetDOF(int d) = 0;
+
+    void Register(AttributeGroup *p = nullptr);
+    void Deregister(AttributeGroup *p = nullptr);
+
+    std::shared_ptr<data::DataBlock> GetDataBlock();
+    std::shared_ptr<const data::DataBlock> GetDataBlock() const;
 
     virtual void Push(const std::shared_ptr<data::DataBlock> &);
     virtual std::shared_ptr<data::DataBlock> Pop();
 
-    virtual void swap(Attribute &other);
-
     virtual bool isNull() const;
     virtual bool empty() const { return isNull(); };
-
-   private:
-    std::set<AttributeGroup *> m_bundle_{};
-    std::shared_ptr<data::DataBlock> m_data_block_ = nullptr;
 };
 //
 // template <typename U, typename... Others, int... N>

@@ -19,7 +19,8 @@
 namespace simpla {
 namespace geometry {
 
-void CutCell(Chart *chart, index_box_type m_idx_box, GeoObject const *g, Array<Real> *vertex_tags) {
+void CutCell(std::shared_ptr<Chart> const &chart, index_box_type m_idx_box, const std::shared_ptr<GeoObject> &g,
+             Array<Real> *vertex_tags) {
     auto const &scale = chart->GetScale();
     Real tol = std::sqrt(dot(scale, scale) * 0.01);
     std::get<1>(m_idx_box) += 1;

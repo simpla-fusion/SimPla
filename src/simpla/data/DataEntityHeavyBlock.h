@@ -5,15 +5,15 @@
 #ifndef SIMPLA_DATAENTITYHEAVY_H
 #define SIMPLA_DATAENTITYHEAVY_H
 
+#include <typeindex>
+#include <vector>
+#include "DataEntity.h"
+#include "DataTraits.h"
 #include "simpla/SIMPLA_config.h"
 #include "simpla/algebra/Array.h"
 #include "simpla/concept/Printable.h"
 #include "simpla/engine/SPObjectHead.h"
 #include "simpla/utilities/Log.h"
-#include <typeindex>
-#include <vector>
-#include "DataEntity.h"
-#include "DataTraits.h"
 namespace simpla {
 namespace data {
 
@@ -51,11 +51,11 @@ struct DataEntityWrapper<Array<U, N>> : public DataEntity, public Array<U, N> {
 };
 template <typename U>
 std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<U> const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {
-    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityWrapper<U>>(u));
+    return DataEntityWrapper<U>::New(u);
 }
 template <typename U, int N>
 std::shared_ptr<DataEntity> make_data_entity(Array<U, N> const& u) {
-    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityWrapper<Array<U, N>>>(u));
+    return DataEntityWrapper<Array<U, N>>::New(u);
 }
 }  // namespace data {
 }  // namespace simpla {

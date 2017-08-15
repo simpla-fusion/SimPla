@@ -15,30 +15,20 @@
 namespace simpla {
 namespace engine {
 
-MeshBlock::MeshBlock(index_box_type b, int id, int level, int owner)
-    : m_owner_(owner), m_level_(level), m_local_id_(id), m_index_box_(std::move(b)) {}
+MeshBlock::MeshBlock(index_box_type b, int id, int level, int global_rank)
+    : m_global_rank_(global_rank), m_level_(level), m_local_id_(id), m_index_box_(std::move(b)) {}
 
 MeshBlock::~MeshBlock() = default;
-MeshBlock::MeshBlock(MeshBlock const &other) = default;
-//    : m_owner_(other.m_owner_), m_level_(other.m_level_), m_id_(other.m_id_), m_index_box_(other.m_index_box_) {}
 
-MeshBlock::MeshBlock(MeshBlock &&other) noexcept
-    : m_owner_(other.m_owner_),
-      m_level_(other.m_level_),
-      m_local_id_(other.m_local_id_),
-      m_index_box_(std::move(other.m_index_box_)) {}
+std::shared_ptr<MeshBlock> MeshBlock::New(index_box_type const &box, int id, int level, int global_rank) {
+    return std::shared_ptr<MeshBlock>(new MeshBlock(box, id, level, global_rank));
+};
 
-void MeshBlock::swap(MeshBlock &other) {
-    std::swap(m_owner_, other.m_owner_);
-    std::swap(m_level_, other.m_level_);
-    std::swap(m_local_id_, other.m_local_id_);
-    m_index_box_.swap(other.m_index_box_);
-}
 id_type MeshBlock::hash_id(int id, int level, int owner) {
     return static_cast<id_type>((owner * MAX_LEVEL_NUMBER + level) * MAX_LOCAL_ID_NUMBER) + id;
 }
 
-id_type MeshBlock::GetGUID() const { return hash_id(m_local_id_, m_level_, m_owner_); }
+id_type MeshBlock::GetGUID() const { return hash_id(m_local_id_, m_level_, m_global_rank_); }
 
 // MeshBlock &MeshBlock::operator=(MeshBlock const &other) {
 //    MeshBlock(other).swap(*this);

@@ -77,13 +77,15 @@ class DataMultiArray<simpla::Array<U, Others...>> : public DataBlock {
 
     typedef U value_type;
 
-    DataMultiArray() = default;
+   protected:
+    explicit DataMultiArray(unsigned long depth) : m_data_(depth) {}
+
+   public:
     ~DataMultiArray() override = default;
 
-    DataMultiArray(this_type const &other) { UNIMPLEMENTED; }
-    DataMultiArray(this_type &&other) { UNIMPLEMENTED; }
-
-    explicit DataMultiArray(unsigned long depth) : m_data_(depth) {}
+    static std::shared_ptr<DataMultiArray> New(unsigned long depth) {
+        return std::shared_ptr<DataMultiArray>(new DataMultiArray(depth));
+    }
 
     size_type size() const { return m_data_.size(); }
     std::type_info const &value_type_info() const override { return typeid(value_type); };
@@ -114,7 +116,7 @@ class DataMultiArray<simpla::Array<U, Others...>> : public DataBlock {
 };
 template <typename U>
 std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<simpla::Array<U>> const &p) {
-    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityWrapper<simpla::Array<U>>>(p));
+    return DataEntityWrapper<simpla::Array<U>>::New(p);
 }
 // template <typename...>
 // class DataBlockAdapter;

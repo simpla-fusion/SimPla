@@ -26,25 +26,28 @@ struct SPObject::pimpl_s {
 
     bool m_is_initialized_ = false;
     std::string m_name_;
+
+    std::shared_ptr<data::DataTable> m_db_ = nullptr;
 };
 
 static boost::hash<boost::uuids::uuid> g_obj_hasher;
 static boost::uuids::random_generator g_uuid_generator;
 
-SPObject::SPObject() : m_pimpl_(new pimpl_s) { m_pimpl_->m_id_ = g_obj_hasher(g_uuid_generator()); }
+SPObject::SPObject() : m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_id_ = g_obj_hasher(g_uuid_generator());
+    m_pimpl_->m_db_ = data::DataTable::New();
+}
 SPObject::~SPObject() {
     Finalize();
     delete m_pimpl_;
 }
-SPObject::SPObject(SPObject const &other) : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_id_ = other.m_pimpl_->m_id_;
-    m_pimpl_->m_name_ = other.m_pimpl_->m_name_;
-    m_pimpl_->m_click_ = other.m_pimpl_->m_click_;
-    m_pimpl_->m_click_tag_ = other.m_pimpl_->m_click_tag_;
-    m_pimpl_->m_is_initialized_ = other.m_pimpl_->m_is_initialized_;
-}
-SPObject::SPObject(SPObject &&other) noexcept : m_pimpl_(std::move(other.m_pimpl_)) {}
-void SPObject::swap(SPObject &other) { std::swap(m_pimpl_, other.m_pimpl_); }
+std::shared_ptr<SPObject> SPObject::New() { return std::shared_ptr<SPObject>(new SPObject); }
+
+const data::DataTable &SPObject::db() const { return *m_pimpl_->m_db_; }
+data::DataTable &SPObject::db() { return *m_pimpl_->m_db_; }
+
+void SPObject::Serialize(data::DataTable &cfg) const {}
+void SPObject::Deserialize(const data::DataTable &cfg) {}
 
 id_type SPObject::GetGUID() const { return m_pimpl_->m_id_; }
 void SPObject::SetName(std::string const &s) { m_pimpl_->m_name_ = s; };

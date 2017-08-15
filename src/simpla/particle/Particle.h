@@ -9,29 +9,35 @@
 #include "simpla/SIMPLA_config.h"
 
 #include "simpla/engine/Attribute.h"
+#include "simpla/engine/Mesh.h"
 
 namespace simpla {
 namespace engine {
 struct MeshBase;
 }
-class ParticleBase : public engine::Attribute, public data::Serializable {
-    SP_OBJECT_HEAD(ParticleBase, engine::Attribute)
-   public:
+class ParticleBase : public engine::Attribute {
+    SP_OBJECT_DECLARE_MEMBERS(ParticleBase, engine::Attribute);
+
+   protected:
     template <typename... Args>
-    explicit ParticleBase(engine::MeshBase* grp, Args&&... args)
-        : engine::Attribute(grp, FIBER, 1, typeid(Real), std::forward<Args>(args)...) {
+    explicit ParticleBase(engine::MeshBase* grp, Args&&... args) : engine::Attribute(std::forward<Args>(args)...) {
+        Register(dynamic_cast<engine::AttributeGroup*>(grp));
         Initialize();
     };
 
-    ~ParticleBase() override { Finalize(); }
+   public:
+    template <typename... Args>
+    static std::shared_ptr<ParticleBase> New(Args&&... args) {
+        return std::shared_ptr<ParticleBase>(new ParticleBase(std::forward<Args>(args)...));
+    }
 
-    SP_DEFAULT_CONSTRUCT(ParticleBase);
+    std::type_info const& value_type_info() const override { return typeid(Real); };
+    int GetIFORM() const override { return FIBER; };
+    int GetDOF() const override { return db().GetValue<int>("DOF", 1); };
+    void SetDOF(int d) override { db().SetValue<int>("DOF", d); };
 
     void DoInitialize() override;
     void DoFinalize() override;
-
-    void Serialize(data::DataTable& cfg) const override;
-    void Deserialize(const data::DataTable& cfg) override;
 
     void Push(std::shared_ptr<data::DataBlock> const& blk) override;
     std::shared_ptr<data::DataBlock> Pop() override;
@@ -60,10 +66,6 @@ class ParticleBase : public engine::Attribute, public data::Serializable {
     size_type Count(id_type s = NULL_ID) const;
     void Sort();
     void DeepSort();
-
-   private:
-    struct pimpl_s;
-    pimpl_s* m_pimpl_ = nullptr;
 };
 
 /** @ingroup physical_object
@@ -121,8 +123,7 @@ class ParticleBase : public engine::Attribute, public data::Serializable {
 
 template <typename TM>
 class Particle : public ParticleBase {
-    typedef Particle<TM> particle_type;
-    SP_OBJECT_HEAD(particle_type, engine::Attribute);
+    SP_OBJECT_DECLARE_MEMBERS(Particle, ParticleBase);
 
    public:
     typedef TM mesh_type;
@@ -132,14 +133,16 @@ class Particle : public ParticleBase {
    private:
     mesh_type const* m_host_ = nullptr;
 
-   public:
+   protected:
     template <typename... Args>
     Particle(mesh_type* grp, Args&&... args)
         : ParticleBase(grp->GetMesh(), std::forward<Args>(args)...), m_host_(grp) {}
 
-    ~Particle() override = default;
-
-    SP_DEFAULT_CONSTRUCT(Particle);
+   public:
+    template <typename... Args>
+    static std::shared_ptr<Particle> New(Args&&... args) {
+        return std::shared_ptr<Particle>(new Particle(std::forward<Args>(args)...));
+    }
 
 };  // class Particle
 }  // namespace simpla{

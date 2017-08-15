@@ -26,9 +26,9 @@ struct MeshBase::pimpl_s {
     std::shared_ptr<pack_s> m_pack_;
 };
 
-MeshBase::MeshBase() : m_pimpl_(new pimpl_s) {}
+MeshBase::MeshBase() : m_pimpl_(new pimpl_s), m_mesh_block_(MeshBlock::New({index_box_type{{0, 0, 0}, {1, 1, 1}}})) {}
 
-MeshBase::~MeshBase() = default;
+MeshBase::~MeshBase() { delete m_pimpl_; };
 
 int MeshBase::GetNDIMS() const { return 3; }
 
@@ -67,7 +67,7 @@ box_type MeshBase::GetBox(int tag) const {
 
 void MeshBase::Serialize(data::DataTable& t_db) const {}
 void MeshBase::Deserialize(const DataTable& cfg) {
-//    base_type::Deserialize(cfg);
+    //    base_type::Deserialize(cfg);
 
     auto lo = cfg.GetValue<point_type>("Box/lo", point_type{0, 0, 0});
     auto hi = cfg.GetValue<point_type>("Box/hi", point_type{1, 1, 1});
@@ -84,33 +84,34 @@ void MeshBase::Deserialize(const DataTable& cfg) {
 void MeshBase::DoUpdate() {
     SPObject::DoUpdate();
     if (m_pimpl_->m_pack_ == nullptr) { m_pimpl_->m_pack_ = std::make_shared<pack_s>(); }
-    GetChart()->SetLevel(m_mesh_block_.GetLevel());
+    GetChart()->SetLevel(m_mesh_block_->GetLevel());
     AttributeGroup::RegisterAttributes();
 }
 void MeshBase::DoTearDown() { GetChart()->SetLevel(0); }
-void MeshBase::DoInitialize() { GetChart()->SetLevel(m_mesh_block_.GetLevel()); }
+void MeshBase::DoInitialize() { GetChart()->SetLevel(m_mesh_block_->GetLevel()); }
 void MeshBase::DoFinalize() {
     m_pimpl_->m_pack_.reset();
     GetChart()->SetLevel(0);
 }
 
-void MeshBase::SetBlock(const engine::MeshBlock& blk) { MeshBlock(blk).swap(m_mesh_block_); };
-const MeshBlock* MeshBase::GetBlock() const { return &m_mesh_block_; }
+void MeshBase::SetBlock(const std::shared_ptr<MeshBlock>& blk) { m_mesh_block_ = blk; };
+std::shared_ptr<const MeshBlock> MeshBase::GetBlock() const { return m_mesh_block_; }
+std::shared_ptr<MeshBlock> MeshBase::GetBlock() { return m_mesh_block_; }
 
-void MeshBase::Push(Patch* patch) {
+void MeshBase::Push(const std::shared_ptr<Patch>& patch) {
     //    VERBOSE << " Patch Level:" << patch->GetMeshBlock()->GetLevel() << " ID: " <<
     //    patch->GetMeshBlock()->GetLocalID()
     //            << " Block:" << patch->GetMeshBlock()->IndexBox() << std::endl;
 
-    SetBlock(*patch->GetMeshBlock());
+    SetBlock(patch->GetMeshBlock());
     GetChart()->SetLevel(GetBlock()->GetLevel());
     AttributeGroup::Push(patch);
     if (m_pimpl_->m_pack_ == nullptr) { m_pimpl_->m_pack_ = std::dynamic_pointer_cast<pack_s>(patch->GetDataPack()); }
     Update();
     ASSERT(GetBlock()->GetLevel() == GetChart()->GetLevel());
 }
-void MeshBase::Pop(Patch* patch) {
-    patch->SetMeshBlock(*GetBlock());
+void MeshBase::Pop(const std::shared_ptr<Patch>& patch) {
+    patch->SetMeshBlock(GetBlock());
     AttributeGroup::Pop(patch);
     patch->SetDataPack(m_pimpl_->m_pack_);
 
@@ -136,17 +137,17 @@ void MeshBase::BoundaryCondition(Real time_now, Real dt) { DoBoundaryCondition(t
 void MeshBase::Advance(Real time_now, Real dt) { DoAdvance(time_now, dt); }
 void MeshBase::TagRefinementCells(Real time_now) { DoTagRefinementCells(time_now); }
 
-void MeshBase::InitialCondition(Patch* patch, Real time_now) {
+void MeshBase::InitialCondition(const std::shared_ptr<Patch>& patch, Real time_now) {
     Push(patch);
     InitialCondition(time_now);
     Pop(patch);
 }
-void MeshBase::BoundaryCondition(Patch* patch, Real time_now, Real dt) {
+void MeshBase::BoundaryCondition(const std::shared_ptr<Patch>& patch, Real time_now, Real dt) {
     Push(patch);
     BoundaryCondition(time_now, dt);
     Pop(patch);
 }
-void MeshBase::Advance(Patch* patch, Real time_now, Real dt) {
+void MeshBase::Advance(const std::shared_ptr<Patch>& patch, Real time_now, Real dt) {
     Push(patch);
     Advance(time_now, dt);
     Pop(patch);

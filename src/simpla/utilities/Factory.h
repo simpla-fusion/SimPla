@@ -63,11 +63,11 @@ class Factory {
 
    private:
     template <typename... U>
-    static std::shared_ptr<TObj> _CreateIfNotAbstract(std::integral_constant<bool, true> _, U &&... args) {
+    static std::shared_ptr<TObj> _TryCreate(std::integral_constant<bool, true> _, U &&... args) {
         return std::make_shared<TObj>(std::forward<U>(args)...);
     }
     template <typename... U>
-    static std::shared_ptr<TObj> _CreateIfNotAbstract(std::integral_constant<bool, false> _, U &&... args) {
+    static std::shared_ptr<TObj> _TryCreate(std::integral_constant<bool, false> _, U &&... args) {
         return nullptr;
     }
 
@@ -84,8 +84,8 @@ class Factory {
             res = it->second(std::forward<U>(args)...);
             LOGGER << TObj::GetFancyTypeName_s() << "::" << it->first << "  is created!" << std::endl;
         } else {
-            res = _CreateIfNotAbstract(std::integral_constant<bool, !std::is_abstract<TObj>::value>(),
-                                       std::forward<U>(args)...);
+            res = _TryCreate(std::integral_constant<bool, std::is_constructible<TObj, Args...>::value>(),
+                             std::forward<U>(args)...);
 
             if (res == nullptr) {
                 std::ostringstream os;

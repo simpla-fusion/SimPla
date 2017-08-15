@@ -20,17 +20,8 @@ namespace simpla {
 namespace engine {
 using namespace data;
 
-class Model : public SPObject, public data::Serializable, public Factory<Model> {
-    SP_OBJECT_HEAD(Model, SPObject);
-
-   public:
-    Model();
-    ~Model() override;
-
-    SP_DEFAULT_CONSTRUCT(Model)
-
-    void Serialize(data::DataTable &cfg) const override;
-    void Deserialize(const DataTable &cfg) override;
+class Model : public SPObject, public Factory<Model> {
+    SP_OBJECT_DECLARE_MEMBERS(Model, SPObject)
 
     void DoInitialize() override;
     void DoUpdate() override;
@@ -62,10 +53,6 @@ class Model : public SPObject, public data::Serializable, public Factory<Model> 
             if (fun) { *f = fun; }
         }
     };
-
-   private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 }  // namespace geometry {
 }  // namespace simpla{namespace geometry{

@@ -71,23 +71,15 @@ class MeshBlock;
 *  - '''Origin''' is the origin point of continue topology space and discrete index space
 *  - '''dx''' is the resolution ratio  of discrete mesh, x = i * dx + r where 0<= r < dx
 */
-class Atlas : public SPObject, public data::Serializable {
-    SP_OBJECT_HEAD(Atlas, SPObject)
+class Atlas : public SPObject {
+    SP_OBJECT_DECLARE_MEMBERS(Atlas, SPObject)
+
    public:
-    Atlas();
-    ~Atlas() override;
-    SP_DEFAULT_CONSTRUCT(Atlas);
-
-    void Serialize(data::DataTable &cfg) const override;
-    void Deserialize(const data::DataTable &cfg) override;
-
-    void DoUpdate() override;
-
     size_type DeletePatch(id_type);
-    id_type SetPatch(Patch &&);
-    Patch *GetPatch(id_type id);
-    Patch *GetPatch(MeshBlock const &);
-    Patch const *GetPatch(id_type id) const;
+    id_type SetPatch(const std::shared_ptr<Patch> &p);
+    std::shared_ptr<Patch> GetPatch(id_type id);
+    std::shared_ptr<Patch> GetPatch(const std::shared_ptr<MeshBlock> &mblk);
+    std::shared_ptr<const Patch> GetPatch(id_type id) const;
 
     int GetNumOfLevel() const;
 
@@ -108,10 +100,6 @@ class Atlas : public SPObject, public data::Serializable {
 
     void SetCoarsestIndexBox(index_box_type const &t);
     index_box_type const &GetCoarsestIndexBox() const;
-
-   private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 }
 }  // namespace simpla{namespace mesh_as{

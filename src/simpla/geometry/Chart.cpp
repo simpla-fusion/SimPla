@@ -6,12 +6,12 @@
 
 namespace simpla {
 namespace geometry {
-
 Chart::Chart(point_type shift, point_type scale, point_type rotate) {
     SetOrigin(shift);
     SetScale(scale);
     SetRotation(rotate);
 }
+Chart::~Chart() = default;
 
 void Chart::Serialize(data::DataTable &cfg) const {
     cfg.SetValue("Type", GetFancyTypeName());
@@ -52,10 +52,9 @@ void Chart::SetLevel(int level) {
 };
 int Chart::GetLevel() const { return m_level_; }
 
-std::shared_ptr<GeoObject> Chart::BoundBox(box_type const &b) const { return std::make_shared<Cube>(MapToBase(b)); }
+std::shared_ptr<GeoObject> Chart::BoundBox(box_type const &b) const { return Cube::New(MapToBase(b)); }
 std::shared_ptr<GeoObject> Chart::BoundBox(index_box_type const &b) const {
-    return std::make_shared<Cube>(
-        std::make_tuple(global_coordinates(std::get<0>(b)), global_coordinates(std::get<0>(b))));
+    return Cube::New(std::make_tuple(global_coordinates(std::get<0>(b)), global_coordinates(std::get<0>(b))));
 };
 }  // namespace geometry {
 }  // namespace simpla {

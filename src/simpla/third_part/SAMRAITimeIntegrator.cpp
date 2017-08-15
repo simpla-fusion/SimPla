@@ -377,7 +377,7 @@ bool ConvertDataBlock(SAMRAI::pdat::CellData<T> *src, std::shared_ptr<data::Data
     typedef Array<T, ZSFC<3>> array_type;
 
     int depth = src->getDepth();
-    auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth);
+    auto mArray = data::DataMultiArray<array_type>::New(depth);
     for (int d = 0; d < depth; ++d) { create_array<T, NDIMS>(src->getArrayData(), d).swap(mArray->GetArray(d)); }
     *dst = std::dynamic_pointer_cast<data::DataBlock>(mArray);
     return true;
@@ -389,7 +389,7 @@ bool ConvertDataBlock(SAMRAI::pdat::NodeData<T> *src, std::shared_ptr<data::Data
     typedef Array<T, ZSFC<NDIMS>> array_type;
 
     int depth = src->getDepth();
-    auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth);
+    auto mArray = data::DataMultiArray<array_type>::New(depth);
     for (int d = 0; d < depth; ++d) { create_array<T, NDIMS>(src->getArrayData(), d).swap(mArray->GetArray(d)); }
 
     *dst = std::dynamic_pointer_cast<data::DataBlock>(mArray);
@@ -402,7 +402,7 @@ bool ConvertDataBlock(SAMRAI::pdat::EdgeData<T> *src, std::shared_ptr<data::Data
     typedef Array<T, ZSFC<3>> array_type;
 
     int depth = src->getDepth();
-    auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth * 3);
+    auto mArray = data::DataMultiArray<array_type>::New(depth * 3);
     for (int axis = 0; axis < 3; ++axis) {
         for (int d = 0; d < depth; ++d) {
             create_array<T, NDIMS>(src->getArrayData(axis), d).swap(mArray->GetArray(axis * depth + d));
@@ -418,7 +418,7 @@ bool ConvertDataBlock(SAMRAI::pdat::FaceData<T> *src, std::shared_ptr<data::Data
     typedef Array<T, ZSFC<3>> array_type;
 
     int depth = src->getDepth();
-    auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth * 3);
+    auto mArray = data::DataMultiArray<array_type>::New(depth * 3);
     for (int axis = 0; axis < 3; ++axis) {
         for (int d = 0; d < depth; ++d) {
             create_array<T, NDIMS>(src->getArrayData(axis), d).swap(mArray->GetArray(axis * depth + d));
@@ -434,7 +434,7 @@ bool ConvertDataBlock(SAMRAI::pdat::SideData<T> *src, std::shared_ptr<data::Data
     typedef Array<T, ZSFC<NDIMS>> array_type;
 
     int depth = src->getDepth();
-    auto mArray = std::make_shared<data::DataMultiArray<array_type>>(depth * 3);
+    auto mArray = data::DataMultiArray<array_type>::New(depth * 3);
     for (int axis = 0; axis < 3; ++axis) {
         for (int d = 0; d < depth; ++d) {
             create_array<T, NDIMS>(src->getArrayData(axis), d).swap(mArray->GetArray(axis * depth + d));
@@ -532,26 +532,28 @@ bool ConvertDataBlock(std::shared_ptr<data::DataBlock> src, SAMRAI::hier::PatchD
 }
 
 template <typename T>
-std::shared_ptr<SAMRAI::hier::Variable> ConvertVariable_(const engine::AttributeDesc &attr) {
+std::shared_ptr<SAMRAI::hier::Variable> ConvertVariable_(const data::DataTable &attr) {
     SAMRAI::tbox::Dimension d_dim(3);
 
     std::shared_ptr<SAMRAI::hier::Variable> res;
-    switch (attr.GetIFORM()) {
+    auto name = attr.GetValue<std::string>("name");
+    int dof = attr.GetValue<int>("DOF");
+    int iform = attr.GetValue<int>("IFORM");
+    switch (iform) {
         case NODE:
-            res = std::make_shared<SAMRAI::pdat::NodeVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+            res = std::make_shared<SAMRAI::pdat::NodeVariable<T>>(d_dim, name, dof);
             break;
         case EDGE:
-            res = std::make_shared<SAMRAI::pdat::EdgeVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+            res = std::make_shared<SAMRAI::pdat::EdgeVariable<T>>(d_dim, name, dof);
             break;
         case FACE:
-            res = std::make_shared<SAMRAI::pdat::SideVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+            res = std::make_shared<SAMRAI::pdat::SideVariable<T>>(d_dim, name, dof);
             break;
         case CELL:
-            res = std::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, attr.GetPrefix(), attr.GetDOF());
+            res = std::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, name, dof);
             break;
         case FIBER:
-            res = std::make_shared<spParticleVariable>(d_dim, attr.GetPrefix(), attr.GetDOF(),
-                                                       attr.GetProperty<int>("NumberOfPIC", 100));
+            res = std::make_shared<spParticleVariable>(d_dim, name, dof, attr.GetValue<int>("NumberOfPIC", 100));
             break;
         default:
             break;
@@ -559,17 +561,17 @@ std::shared_ptr<SAMRAI::hier::Variable> ConvertVariable_(const engine::Attribute
     return res;
 }
 
-std::shared_ptr<SAMRAI::hier::Variable> ConvertVariable(const engine::AttributeDesc &attr) {
+std::shared_ptr<SAMRAI::hier::Variable> ConvertVariable(const data::DataTable &attr) {
     std::shared_ptr<SAMRAI::hier::Variable> res = nullptr;
-
-    if (attr.value_type_info() == (typeid(float))) {
+    size_t type_hash = attr.GetValue<size_t>("ValueTypeHash");
+    if (type_hash == std::type_index(typeid(float)).hash_code()) {
         res = ConvertVariable_<float>(attr);
-    } else if (attr.value_type_info() == (typeid(double))) {
+    } else if (type_hash == std::type_index(typeid(double)).hash_code()) {
         res = ConvertVariable_<double>(attr);
-    } else if (attr.value_type_info() == (typeid(int))) {
+    } else if (type_hash == std::type_index(typeid(int)).hash_code()) {
         res = ConvertVariable_<int>(attr);
     } else {
-        RUNTIME_ERROR << " attr [" << attr.GetPrefix() << "] is not supported!" << std::endl;
+        RUNTIME_ERROR << " Can not create variable [" << attr << "]" << std::endl;
     }
     return res;
 }
@@ -589,7 +591,7 @@ REGISTER_CREATOR(SAMRAITimeIntegrator, SAMRAITimeIntegrator)
 class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatchStrategy {
     SP_OBJECT_BASE(SAMRAIHyperbolicPatchStrategyAdapter)
    public:
-    SAMRAIHyperbolicPatchStrategyAdapter(engine::Context *ctx, engine::Atlas *atlas,
+    SAMRAIHyperbolicPatchStrategyAdapter(std::shared_ptr<engine::Context> ctx, std::shared_ptr<engine::Atlas> atlas,
                                          std::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom);
 
     /**
@@ -729,16 +731,16 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
 
     //    void Dispatch(SAMRAI::hier::Patch &patch);
 
-    engine::Context *GetContext() { return m_ctx_; }
-    engine::Context const *GetContext() const { return m_ctx_; }
+    std::shared_ptr<engine::Context> GetContext() { return m_ctx_; }
+    std::shared_ptr<const engine::Context> GetContext() const { return m_ctx_; }
 
-    engine::Atlas *GetAtlas() { return m_atlas_; }
-    engine::Atlas const *GetAtlas() const { return m_atlas_; }
+    std::shared_ptr<engine::Atlas> GetAtlas() { return m_atlas_; }
+    std::shared_ptr<const engine::Atlas> GetAtlas() const { return m_atlas_; }
 
    private:
     static constexpr int NDIMS = 3;
-    engine::Context *m_ctx_;
-    engine::Atlas *m_atlas_;
+    std::shared_ptr<engine::Context> m_ctx_;
+    std::shared_ptr<engine::Atlas> m_atlas_;
     /*
      * The object GetPrefix is used for error/warning reporting and also as a
      * string label for restart database entries.
@@ -760,17 +762,19 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
     std::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_workload_variable;
     int d_workload_data_id = 0;
     bool d_use_nonuniform_workload;
-    std::map<id_type, std::pair<engine::AttributeDesc, std::shared_ptr<SAMRAI::hier::Variable>>> m_samrai_variables_;
+    std::map<id_type, std::pair<std::shared_ptr<data::DataTable>, std::shared_ptr<SAMRAI::hier::Variable>>>
+        m_samrai_variables_;
     SAMRAI::hier::IntVector d_nghosts;
     SAMRAI::hier::IntVector d_fluxghosts;
 
-    engine::Patch *GetPatch(SAMRAI::hier::Patch &patch);
-    void PopPatch(SAMRAI::hier::Patch &patch, engine::Patch *p);
-    void PushPatch(engine::Patch *p, SAMRAI::hier::Patch &patch);
+    std::shared_ptr<engine::Patch> GetPatch(SAMRAI::hier::Patch &patch);
+    void PopPatch(SAMRAI::hier::Patch &patch, const std::shared_ptr<engine::Patch> &p);
+    void PushPatch(const std::shared_ptr<engine::Patch> &p, SAMRAI::hier::Patch &patch);
 };
 
 SAMRAIHyperbolicPatchStrategyAdapter::SAMRAIHyperbolicPatchStrategyAdapter(
-    engine::Context *ctx, engine::Atlas *atlas, std::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom)
+    std::shared_ptr<engine::Context> ctx, std::shared_ptr<engine::Atlas> atlas,
+    std::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom)
     : d_dim(3),
       d_grid_geometry(grid_geom),
       d_use_nonuniform_workload(false),
@@ -791,15 +795,17 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     SAMRAI::hier::IntVector d_fluxghosts{d_dim, 1};
     //**************************************************************
 
-    for (auto const *item : m_ctx_->GetMesh()->GetAttributes()) {
-        if (item->CheckProperty("IS_NOT_OWNED") ||
-            m_samrai_variables_.find(item->GetDescID()) != m_samrai_variables_.end()) {
+    for (auto *item : m_ctx_->GetMesh()->GetAttributes()) {
+        if (item->db().Check("IS_NOT_OWNED") ||
+            m_samrai_variables_.find(item->db().GetValue<id_type>("DescID")) != m_samrai_variables_.end()) {
             continue;
         }
 
-        auto var = simpla::detail::ConvertVariable(item->GetDescription());
+        auto var = simpla::detail::ConvertVariable(item->db());
 
-        m_samrai_variables_.emplace(item->GetDescID(), std::make_pair(engine::AttributeDesc(*item), var));
+        m_samrai_variables_.emplace(
+            item->db().GetValue<id_type>("DescID"),
+            std::make_pair(std::dynamic_pointer_cast<data::DataTable>(item->db().shared_from_this()), var));
 
         /*** NOTE:
         *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
@@ -811,9 +817,9 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         std::string coarsen_name = "";
         std::string refine_name = "";
 
-        if (item->CheckProperty("COORDINATES")) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
-        if (item->CheckProperty("INPUT")) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
-        if (item->CheckProperty("FLUX")) {
+        if (item->db().Check("COORDINATES")) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
+        if (item->db().Check("INPUT")) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
+        if (item->db().Check("FLUX")) {
             ghosts = d_fluxghosts;
             v_type = SAMRAI::algs::HyperbolicLevelIntegrator::FLUX;
             coarsen_name = "CONSERVATIVE_COARSEN";
@@ -825,7 +831,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
             refine_name = "NO_REFINE";
         }
 
-        //        if ((item->GetTypeInfo() != typeid(double)) || item->CheckProperty("TEMP")) {
+        //        if ((item->GetTypeInfo() != typeid(double)) || item->db().Check("TEMP")) {
         //            v_type = SAMRAI::algs::HyperbolicLevelIntegrator::TEMPORARY;
         //            coarsen_name = "";
         //            refine_name = "";
@@ -851,12 +857,12 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         //        }
         //        v_type != SAMRAI::algs::HyperbolicLevelIntegrator::TEMPORARY
 
-        if (visit_variable_type != "" && item->CheckProperty("COORDINATES")) {
+        if (visit_variable_type != "" && item->db().Check("COORDINATES")) {
             d_visit_writer->registerNodeCoordinates(
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
         } else if ((item->GetIFORM() == NODE || item->GetIFORM() == CELL)) {
             d_visit_writer->registerPlotQuantity(
-                item->GetPrefix(), visit_variable_type,
+                item->db().GetValue<std::string>("name"), visit_variable_type,
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
         }
 
@@ -870,14 +876,15 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     vardb->printClassData(std::cout);
 }
 
-engine::Patch *SAMRAIHyperbolicPatchStrategyAdapter::GetPatch(SAMRAI::hier::Patch &patch) {
-    return GetAtlas()->GetPatch(engine::MeshBlock{
+std::shared_ptr<engine::Patch> SAMRAIHyperbolicPatchStrategyAdapter::GetPatch(SAMRAI::hier::Patch &patch) {
+    return GetAtlas()->GetPatch(engine::MeshBlock::New(
         index_box_type{{patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]},
                        {patch.getBox().upper()[0] + 1, patch.getBox().upper()[1] + 1, patch.getBox().upper()[2] + 1}},
-        patch.getLocalId().getValue(), patch.getPatchLevelNumber(), patch.getGlobalId().getOwnerRank()});
+        patch.getLocalId().getValue(), patch.getPatchLevelNumber(), patch.getGlobalId().getOwnerRank()));
 }
 
-void SAMRAIHyperbolicPatchStrategyAdapter::PopPatch(SAMRAI::hier::Patch &patch, engine::Patch *p) {
+void SAMRAIHyperbolicPatchStrategyAdapter::PopPatch(SAMRAI::hier::Patch &patch,
+                                                    const std::shared_ptr<engine::Patch> &p) {
     for (auto &item : m_samrai_variables_) {
         auto samrai_id = SAMRAI::hier::VariableDatabase::getDatabase()->mapVariableAndContextToIndex(item.second.second,
                                                                                                      getDataContext());
@@ -888,7 +895,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::PopPatch(SAMRAI::hier::Patch &patch, 
         if (detail::ConvertDataBlock(addr.get(), &blk)) { p->SetDataBlock(item.first, blk); }
     }
 }
-void SAMRAIHyperbolicPatchStrategyAdapter::PushPatch(engine::Patch *p, SAMRAI::hier::Patch &patch) {
+void SAMRAIHyperbolicPatchStrategyAdapter::PushPatch(const std::shared_ptr<engine::Patch> &p,
+                                                     SAMRAI::hier::Patch &patch) {
     for (auto &item : m_samrai_variables_) {
         auto samrai_id = SAMRAI::hier::VariableDatabase::getDatabase()->mapVariableAndContextToIndex(item.second.second,
                                                                                                      getDataContext());
@@ -923,7 +931,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setupLoadBalancer(SAMRAI::algs::Hyper
 void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::Patch &patch, double data_time,
                                                                  bool initial_time) {
     if (initial_time) {
-        simpla::engine::Patch *p = GetPatch(patch);
+        auto p = GetPatch(patch);
         PopPatch(patch, p);
 
         index_tuple gw{4, 4, 4};  // = p.GetMeshBlock()->GetGhostWidth();
@@ -1077,7 +1085,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
 
 double SAMRAIHyperbolicPatchStrategyAdapter::computeStableDtOnPatch(SAMRAI::hier::Patch &patch, bool time_now,
                                                                     double time_dt) {
-    auto *p = GetPatch(patch);
+    auto p = GetPatch(patch);
     PopPatch(patch, p);
     m_ctx_->Push(p);
     time_dt = m_ctx_->ComputeStableDtOnPatch(time_now, time_dt);
@@ -1088,7 +1096,7 @@ double SAMRAIHyperbolicPatchStrategyAdapter::computeStableDtOnPatch(SAMRAI::hier
 
 void SAMRAIHyperbolicPatchStrategyAdapter::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, double time_now,
                                                                 double time_dt) {
-    auto *p = GetPatch(patch);
+    auto p = GetPatch(patch);
     PopPatch(patch, p);
     m_ctx_->Push(p);
     m_ctx_->ComputeFluxes(time_now, time_dt);
@@ -1098,7 +1106,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::computeFluxesOnPatch(SAMRAI::hier::Pa
 
 void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, double time_now,
                                                                          double time_dt, bool at_syncronization) {
-    auto *p = GetPatch(patch);
+    auto p = GetPatch(patch);
     PopPatch(patch, p);
     m_ctx_->Push(p);
     m_ctx_->Advance(time_now, time_dt);
@@ -1119,13 +1127,13 @@ void SAMRAIHyperbolicPatchStrategyAdapter::tagGradientDetectorCells(SAMRAI::hier
     NULL_USE(initial_error);
     NULL_USE(uses_richardson_extrapolation_too);
 
-    auto *p = GetPatch(patch);
+    auto p = GetPatch(patch);
     PopPatch(patch, p);
     auto desc = m_ctx_->GetMesh()->GetAttributeDescription("_refinement_tags_");
     if (desc != nullptr) {
         std::shared_ptr<data::DataBlock> blk = nullptr;
         if (detail::ConvertDataBlock(patch.getPatchData(tag_index).get(), &blk)) {
-            p->SetDataBlock(desc->GetDescID(), blk);
+            p->SetDataBlock(desc->GetValue<id_type>("DescID"), blk);
         }
 
         m_ctx_->Push(p);
@@ -1137,7 +1145,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::tagGradientDetectorCells(SAMRAI::hier
 
 void SAMRAIHyperbolicPatchStrategyAdapter::setPhysicalBoundaryConditions(
     SAMRAI::hier::Patch &patch, double fill_time, const SAMRAI::hier::IntVector &ghost_width_to_fill) {
-    auto *p = GetPatch(patch);
+    auto p = GetPatch(patch);
     PopPatch(patch, p);
     m_ctx_->Push(p);
     m_ctx_->BoundaryCondition(fill_time, 0);

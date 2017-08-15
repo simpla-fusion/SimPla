@@ -22,13 +22,20 @@ class Curve;
  *  Metric of  Cartesian topology_coordinate system
  */
 struct csCartesian : public Chart {
-    SP_OBJECT_HEAD(csCartesian, Chart)
+    SP_OBJECT_DECLARE_MEMBERS(csCartesian, Chart)
+   protected:
+    template <typename... Args>
+    explicit csCartesian(Args &&... args) : base_type(std::forward<Args>(args)...) {}
+
+   public:
+    template <typename... Args>
+    static std::shared_ptr<this_type> New(Args &&... args) {
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
+    }
+
    public:
     typedef Real scalar_type;
-    template <typename... Args>
-    explicit csCartesian(Args &&... args) : Chart(std::forward<Args>(args)...) {}
-    ~csCartesian() override = default;
-    SP_DEFAULT_CONSTRUCT(csCartesian);
+
     std::shared_ptr<Curve> GetAxisCurve(point_type const &x, int dir) const override;
 
     /**

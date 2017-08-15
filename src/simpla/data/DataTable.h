@@ -103,10 +103,11 @@ class DataTable : public DataEntity {
     /** Interface DataBackend End */
 
     template <typename U>
-    bool Check(std::string const& uri, U const& u = true) const {
+    bool Check(std::string const& uri, U const& u) const {
         auto p = Get(uri);
         return p->Check(u);
     }
+    bool Check(std::string const& uri) const { return Check(uri, true); }
     template <typename U>
     bool isA(std::string const& uri) const {
         auto p = Get(uri);

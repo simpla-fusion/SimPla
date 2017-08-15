@@ -64,7 +64,7 @@ struct FVM {
         int n = ((tag & 0b111) == 0 || (tag & 0b111) == 0b111) ? (tag << 3)
                                                                : EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
 
-        auto* chart = m_host_->GetMesh()->GetChart();
+        auto chart = m_host_->GetMesh()->GetChart();
         return [=](index_type x, index_type y, index_type z) {
             return st::recursive_index(expr(chart->local_coordinates(x + S[0], y + S[1], z + S[2], tag)), n);
         };
@@ -183,8 +183,8 @@ struct FVM {
     //! grad<0>
 
     template <typename TExpr>
-    auto eval(std::integer_sequence<int, NODE> _, Expression<tags::exterior_derivative, TExpr> const& expr,
-              IdxShift S, int tag) const {
+    auto eval(std::integer_sequence<int, NODE> _, Expression<tags::exterior_derivative, TExpr> const& expr, IdxShift S,
+              int tag) const {
         auto const& l = std::get<0>(expr.m_args_);
         IdxShift D{0, 0, 0};
         int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];

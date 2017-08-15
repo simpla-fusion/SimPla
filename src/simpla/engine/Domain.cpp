@@ -21,16 +21,16 @@ DomainBase::DomainBase(MeshBase* msh, std::shared_ptr<Model> const& model) : m_m
 DomainBase::~DomainBase() = default;
 
 void DomainBase::Serialize(data::DataTable& cfg) const {
-    //    base_type::Serialize(cfg);
+    base_type::Serialize(cfg);
     if (GetGeoBody() != nullptr) { GetGeoBody()->Serialize(cfg.GetTable("Body")); }
 }
 void DomainBase::Deserialize(const DataTable& cfg) {
-    //    base_type::Deserialize(cfg);
-    if (cfg.isTable("Body")) {
-        m_geo_body_ = CreateObject<geometry::GeoObject>(cfg.Get("Body").get());
-    } else if (m_model_ != nullptr) {
-        m_geo_body_ = m_model_->GetGeoObject(cfg.GetValue<std::string>("Body", ""));
-    }
+    base_type::Deserialize(cfg);
+
+    m_geo_body_ = CreateObject<geometry::GeoObject>(cfg.Get("Body").get());
+    //    if (cfg.isTable("Body")) {  } else if (m_model_ != nullptr) {
+    //        m_geo_body_ = m_model_->GetGeoObject(cfg.GetValue<std::string>("Body", ""));
+    //    }
     Click();
 };
 

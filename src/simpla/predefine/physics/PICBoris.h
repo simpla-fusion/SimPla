@@ -74,21 +74,22 @@ void PICBoris<TM>::Deserialize(const DataTable& cfg) {
             t->SetValue("name", k);
             AddSpecies(k, *t);
         }
+        return 1;
     });
 }
 
 template <typename TM>
 std::shared_ptr<Particle<TM>> PICBoris<TM>::AddSpecies(std::string const& name, data::DataTable const& d) {
-    auto sp = std::make_shared<Particle<TM>>(m_host_, d);
+    auto sp = Particle<TM>::New(m_host_, d);
     sp->SetDOF(7);
-    sp->SetProperty("mass", d.GetValue<double>("mass", d.GetValue<double>("mass", 1)) * SI_proton_mass);
-    sp->SetProperty("charge", d.GetValue<double>("charge", d.GetValue<double>("Z", 1)) * SI_elementary_charge);
+    sp->db().SetValue("mass", d.GetValue<double>("mass", d.GetValue<double>("mass", 1)) * SI_proton_mass);
+    sp->db().SetValue("charge", d.GetValue<double>("charge", d.GetValue<double>("Z", 1)) * SI_elementary_charge);
     //    sp->ratio = d.GetValue<double>("ratio", d.GetValue<double>("ratio", 1));
 
     m_particle_sp_.emplace(name, sp);
     VERBOSE << "Add particle : {\" Name=" << name
-            << "\", mass = " << sp->template GetProperty<double>("mass") / SI_proton_mass
-            << " [m_p], charge = " << sp->template GetProperty<double>("charge") / SI_elementary_charge << " [q_e] }"
+            << "\", mass = " << sp->db().template GetValue<double>("mass") / SI_proton_mass
+            << " [m_p], charge = " << sp->db().template GetValue<double>("charge") / SI_elementary_charge << " [q_e] }"
             << std::endl;
     return sp;
 }

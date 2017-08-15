@@ -18,11 +18,11 @@ namespace simpla {
 namespace geometry {
 
 struct Cube : public GeoObject {
-    SP_OBJECT_HEAD(Cube, GeoObject)
+    SP_OBJECT_DECLARE_MEMBERS(Cube, GeoObject)
 
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 
-    Cube() : GeoObject() {}
+   protected:
     Cube(std::initializer_list<std::initializer_list<Real>> const &v)
         : m_bound_box_(point_type(*v.begin()), point_type(*(v.begin() + 1))) {}
 
@@ -30,20 +30,10 @@ struct Cube : public GeoObject {
     Cube(V const *l, U const *h) : m_bound_box_(box_type({l[0], l[1], l[2]}, {h[0], h[1], h[2]})){};
     Cube(box_type const &b) : m_bound_box_(b) {}
 
-    virtual ~Cube() {}
-
-    void Serialize(data::DataTable &cfg) const override {
-        base_type::Serialize(cfg);
-        cfg.SetValue("Box", m_bound_box_);
-    };
-    void Deserialize(const data::DataTable &cfg) override {
-        base_type::Deserialize(cfg);
-        if (cfg.has("Box")) {
-            m_bound_box_ = cfg.GetValue<box_type>("Box");
-        } else {
-            std::get<0>(m_bound_box_) = cfg.GetValue<nTuple<Real, 3>>("lo", std::get<0>(m_bound_box_));
-            std::get<1>(m_bound_box_) = cfg.GetValue<nTuple<Real, 3>>("hi", std::get<1>(m_bound_box_));
-        }
+   public:
+    template <typename... Args>
+    static std::shared_ptr<Cube> New(Args &&... args) {
+        return std::shared_ptr<Cube>(new Cube(std::forward<Args>(args)...));
     }
 
     box_type BoundingBox() const override { return m_bound_box_; };

@@ -15,20 +15,11 @@
 
 namespace simpla {
 namespace application {
-struct SpApp : public engine::SPObject, public data::Serializable {
-    SP_OBJECT_HEAD(SpApp, engine::SPObject);
-    SP_DEFAULT_CONSTRUCT(SpApp);
+struct SpApp : public engine::SPObject {
+    SP_OBJECT_DECLARE_MEMBERS(SpApp, engine::SPObject);
 
    public:
-    explicit SpApp(std::string const &s_name = "SpApp");
-    ~SpApp() override;
-
-    using data::Serializable::Serialize;
-    using data::Serializable::Deserialize;
-
-    void Config(int argc,char ** argv);
-    void Serialize(data::DataTable &cfg) const override;
-    void Deserialize(const data::DataTable &cfg) override;
+    void Config(int argc, char **argv);
 
     void DoInitialize() override;
     void DoUpdate() override;
@@ -36,15 +27,10 @@ struct SpApp : public engine::SPObject, public data::Serializable {
     void DoTearDown() override;
     void DoFinalize() override;
 
-    engine::Context &GetContext();
-    engine::Context const &GetContext() const;
+    std::shared_ptr<engine::Context> GetContext() const;
 
-    void SetSchedule(std::shared_ptr<engine::Schedule> s);
+    void SetSchedule(const std::shared_ptr<engine::Schedule> &s);
     std::shared_ptr<engine::Schedule> GetSchedule() const;
-
-   private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 }  // namespace application{
 

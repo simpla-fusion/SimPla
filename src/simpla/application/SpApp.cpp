@@ -7,6 +7,7 @@
  *    This is an example of EM plasma
  */
 
+#include <simpla/data/db/DataUtility.h>
 #include "simpla/SIMPLA_config.h"
 
 #include "SpApp.h"
@@ -25,25 +26,28 @@ namespace simpla {
 namespace application {
 struct SpApp::pimpl_s {
     std::shared_ptr<engine::Schedule> m_schedule_ = nullptr;
-    engine::Context m_context_;
-    engine::Atlas m_atlas_;
+    std::shared_ptr<engine::Context> m_context_ = nullptr;
+    std::shared_ptr<engine::Atlas> m_atlas_ = nullptr;
 };
-SpApp::SpApp(std::string const &s_name) : m_pimpl_(new pimpl_s) {}
-SpApp::~SpApp() = default;
+SpApp::SpApp() : m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_context_ = engine::Context::New();
+    m_pimpl_->m_atlas_ = engine::Atlas::New();
+}
+SpApp::~SpApp() { delete m_pimpl_; };
 void SpApp::Serialize(data::DataTable &cfg) const {
     if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Serialize(cfg.GetTable("Schedule")); }
 
-    m_pimpl_->m_context_.Serialize(cfg.GetTable("Context"));
-    m_pimpl_->m_atlas_.Serialize(cfg.GetTable("Atlas"));
+    m_pimpl_->m_context_->Serialize(cfg.GetTable("Context"));
+    m_pimpl_->m_atlas_->Serialize(cfg.GetTable("Atlas"));
     //    ctx->data::Serializable::Serialize(std::cout, 0);
     //    GetAtlas()->data::Serializable::Serialize(std::cout, 0);
 };
 void SpApp::Deserialize(const data::DataTable &cfg) {
-    m_pimpl_->m_context_.Deserialize(cfg.GetTable("Context"));
-    m_pimpl_->m_atlas_.Deserialize(cfg.GetTable("Atlas"));
+    m_pimpl_->m_context_->Deserialize(cfg.GetTable("Context"));
+    m_pimpl_->m_atlas_->Deserialize(cfg.GetTable("Atlas"));
     m_pimpl_->m_schedule_ = CreateObject<engine::Schedule>(&cfg);
-    m_pimpl_->m_schedule_->SetContext(&m_pimpl_->m_context_);
-    m_pimpl_->m_schedule_->SetAtlas(&m_pimpl_->m_atlas_);
+    m_pimpl_->m_schedule_->SetContext(m_pimpl_->m_context_);
+    m_pimpl_->m_schedule_->SetAtlas(m_pimpl_->m_atlas_);
 
     Click();
 };
@@ -57,13 +61,13 @@ void SpApp::Config(int argc, char **argv) {
     std::string app_name;
     conf_file += ".lua";
 
-    auto cmd_line_cfg = std::make_shared<data::DataTable>();
-    auto input_file_cfg = std::make_shared<data::DataTable>();
+    auto cmd_line_cfg = data::DataTable::New();
+    auto input_file_cfg = data::DataTable::New();
 
     simpla::parse_cmd_line(  //
         argc, argv, [&](std::string const &opt, std::string const &value) -> int {
             if (opt == "i" || opt == "input") {
-                input_file_cfg.reset(new data::DataTable(value));
+                input_file_cfg = data::DataTable::New(value);
             } else if (opt == "o" || opt == "output") {
                 cmd_line_cfg->SetValue("OutputPath", value);
             } else if (opt == "log") {
@@ -79,7 +83,8 @@ void SpApp::Config(int argc, char **argv) {
                 TheEnd(0);
                 return TERMINATE;
             } else if (opt == "h" || opt == "help") {
-                MESSAGE << ShowLogo() << std::endl
+                MESSAGE << std::endl
+                        << ShowLogo() << std::endl
                         << " Usage: " << argv[0] << "   <options> ..." << std::endl
                         << std::endl
                         << " Options:" << std::endl
@@ -115,9 +120,9 @@ void SpApp::Config(int argc, char **argv) {
             }
             return CONTINUE;
         });
-    MESSAGE << ShowLogo() << std::endl;
+    MESSAGE << std::endl << ShowLogo() << std::endl;
 
-    auto cfg = std::make_shared<data::DataTable>();
+    auto cfg = data::DataTable::New();
 
     cfg->Set("Context", input_file_cfg->Get("Context"));
     cfg->Set("Atlas", input_file_cfg->Get("Atlas"));
@@ -128,22 +133,22 @@ void SpApp::Config(int argc, char **argv) {
 }
 
 void SpApp::DoInitialize() {
-    m_pimpl_->m_context_.Initialize();
+    m_pimpl_->m_context_->Initialize();
     if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Initialize(); }
 }
 void SpApp::DoFinalize() {
-    m_pimpl_->m_context_.Finalize();
+    m_pimpl_->m_context_->Finalize();
     if (m_pimpl_->m_schedule_ != nullptr) {
         m_pimpl_->m_schedule_->Finalize();
         m_pimpl_->m_schedule_.reset();
     }
 };
 void SpApp::DoUpdate() {
-    m_pimpl_->m_context_.Update();
+    m_pimpl_->m_context_->Update();
     if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Update(); };
 };
 void SpApp::DoTearDown() {
-    m_pimpl_->m_context_.TearDown();
+    m_pimpl_->m_context_->TearDown();
     if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->TearDown(); }
 };
 void SpApp::Run() {
@@ -151,10 +156,9 @@ void SpApp::Run() {
     if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Run(); }
 };
 
-engine::Context &SpApp::GetContext() { return m_pimpl_->m_context_; }
-engine::Context const &SpApp::GetContext() const { return m_pimpl_->m_context_; }
+std::shared_ptr<engine::Context> SpApp::GetContext() const { return m_pimpl_->m_context_; }
 
-void SpApp::SetSchedule(std::shared_ptr<engine::Schedule> s) {
+void SpApp::SetSchedule(const std::shared_ptr<engine::Schedule> &s) {
     m_pimpl_->m_schedule_ = s;
     Click();
 }
@@ -171,47 +175,49 @@ int main(int argc, char **argv) {
 
     parallel::init(argc, argv);
 
-    MESSAGE << engine::Model::ShowDescription() << std::endl << engine::DomainBase::ShowDescription() << std::endl;
+    MESSAGE << std::endl
+            << engine::Model::ShowDescription() << std::endl
+            << engine::DomainBase::ShowDescription() << std::endl;
 
     GLOBAL_COMM.barrier();
 
-    application::SpApp app;
-    app.Initialize();
+    auto app = application::SpApp::New();
+    app->Initialize();
 
     if (GLOBAL_COMM.rank() == 0) {
-        app.Config(argc, argv);
+        app->Config(argc, argv);
         std::ostringstream os;
-        auto t_db = std::make_shared<data::DataTable>();
-        app.Serialize(*t_db);
+        auto t_db = data::DataTable::New();
+        app->Serialize(*t_db);
         data::Pack(t_db, os, "lua");
         std::string buffer = os.str();
         parallel::bcast_string(&buffer);
     } else {
         std::string buffer;
         parallel::bcast_string(&buffer);
-        auto t_cfg = std::make_shared<data::DataTable>("lua://");
-        t_cfg->database()->Parser(buffer);
-        app.Deserialize(*t_cfg);
+        auto t_cfg = data::DataTable::New("lua://");
+        t_cfg->Set(buffer, nullptr);
+        app->Deserialize(*t_cfg);
     }
 
-    app.Update();
+    app->Update();
 
     VERBOSE << DOUBLELINE << std::endl;
     VERBOSE << "SpApp:";
-    app.Serialize(std::cout, 0);
+    //    app->Serialize(std::cout, 0);
     std::cout << std::endl;
 
     VERBOSE << DOUBLELINE << std::endl;
     GLOBAL_COMM.barrier();
 
     TheStart();
-    app.Run();
+    app->Run();
     TheEnd();
 
     GLOBAL_COMM.barrier();
     VERBOSE << DOUBLELINE << std::endl;
 
-    app.Finalize();
+    app->Finalize();
 
     parallel::close();
     logger::close();

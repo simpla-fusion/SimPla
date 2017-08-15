@@ -14,7 +14,8 @@ namespace geometry {
 
 class Chart;
 class GeoObject;
-void CutCell(Chart *chart, index_box_type m_idx_box, GeoObject const *g, Array<Real> *vertex_tags);
+void CutCell(std::shared_ptr<Chart> const &chart, index_box_type m_idx_box, const std::shared_ptr<GeoObject> &g,
+             Array <Real> *vertex_tags);
 
 }  //    namespace geometry{
 

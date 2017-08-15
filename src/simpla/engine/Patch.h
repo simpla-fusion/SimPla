@@ -19,33 +19,29 @@ namespace engine {
 
 class Patch {
     SP_OBJECT_BASE(Patch)
+   protected:
+    explicit Patch(std::shared_ptr<MeshBlock> const &blk);
+
    public:
-    explicit Patch(MeshBlock const &blk);
-    explicit Patch(MeshBlock &&blk);
     virtual ~Patch();
+    SP_DEFAULT_CONSTRUCT(Patch);
+    static std::shared_ptr<Patch> New(std::shared_ptr<MeshBlock> const &);
 
-    Patch(this_type const &other);
-    Patch(this_type &&other) noexcept;
-    Patch &operator=(this_type const &other);
-    this_type &operator=(this_type &&other) noexcept;
-
-    void swap(Patch &other);
-
-    void SetMeshBlock(const MeshBlock &);
-    const MeshBlock * GetMeshBlock() const;
+    void SetMeshBlock(const std::shared_ptr<MeshBlock> &);
+    std::shared_ptr<MeshBlock> GetMeshBlock() const;
 
     void SetDataBlock(id_type id, std::shared_ptr<data::DataBlock> const &);
     std::shared_ptr<data::DataBlock> GetDataBlock(id_type const &id);
 
     struct DataPack_s {
-        DataPack_s() = default;
-        virtual ~DataPack_s() = default;
+        DataPack_s(){};
+        virtual ~DataPack_s(){};
     };
     void SetDataPack(std::shared_ptr<DataPack_s> const &p) { m_pack_ = p; }
     std::shared_ptr<DataPack_s> GetDataPack() { return m_pack_; }
 
    private:
-    MeshBlock m_block_;
+    std::shared_ptr<MeshBlock> m_block_;
     std::map<id_type, std::shared_ptr<data::DataBlock>> m_data_;
     std::shared_ptr<DataPack_s> m_pack_ = nullptr;
 };

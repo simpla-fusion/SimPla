@@ -24,7 +24,21 @@ struct Schedule::pimpl_s {
 };
 
 Schedule::Schedule() : m_pimpl_(new pimpl_s){};
-Schedule::~Schedule() = default;
+Schedule::~Schedule() { delete m_pimpl_; };
+std::shared_ptr<Schedule> Schedule::New() { return std::shared_ptr<Schedule>(new Schedule()); }
+void Schedule::Serialize(data::DataTable &cfg) const {
+    base_type::Serialize(cfg);
+
+    //
+    cfg.SetValue("CheckPointInterval", GetCheckPointInterval());
+    //    if (m_data_io_ != nullptr) { m_data_io_->Serialize(cfg.GetTable("DataIOPort")); }
+}
+
+void Schedule::Deserialize(const DataTable &cfg) {
+    base_type::Deserialize(cfg);
+    SetCheckPointInterval(static_cast<size_type>(db().GetValue<int>("CheckPointInterval", 1)));
+    //    m_data_io_ = std::make_shared<data::DataIOPort>(cfg.GetValue<std::string>("DataIOPort", ""));
+}
 
 size_type Schedule::GetNumberOfStep() const { return m_pimpl_->m_step_; }
 void Schedule::SetMaxStep(size_type s) { m_pimpl_->m_max_step_ = s; }
@@ -39,12 +53,12 @@ void Schedule::NextStep() { ++m_pimpl_->m_step_; }
 bool Schedule::Done() const { return m_pimpl_->m_max_step_ == 0 ? false : m_pimpl_->m_step_ >= m_pimpl_->m_max_step_; }
 
 void Schedule::CheckPoint() const {
-//    data::DataTable t_cfg;
-//    GetAtlas()->Serialize(t_cfg);
-//    t_cfg.SetValue("Step", m_pimpl_->m_step_);
-//    m_ctx_->GetMesh()->Serialize(t_cfg.GetTable("Mesh"));
-//    m_data_io_->Set(t);
-//    m_data_io_->Flush();
+    //    data::DataTable t_cfg;
+    //    GetAtlas()->Serialize(t_cfg);
+    //    t_cfg.SetValue("Step", m_pimpl_->m_step_);
+    //    m_ctx_->GetMesh()->Serialize(t_cfg.GetTable("Mesh"));
+    //    m_data_io_->Set(t);
+    //    m_data_io_->Flush();
 }
 
 void Schedule::Dump() const { UNIMPLEMENTED; }
@@ -62,18 +76,6 @@ void Schedule::Run() {
 
         VERBOSE << " [ STEP:" << std::setw(5) << m_pimpl_->m_step_ - 1 << " STOP  ] " << std::endl;
     }
-}
-
-void Schedule::Serialize(data::DataTable &cfg) const {
-//    base_type::Serialize(cfg);
-    cfg.SetValue("CheckPointInterval", GetCheckPointInterval());
-//    if (m_data_io_ != nullptr) { m_data_io_->Serialize(cfg.GetTable("DataIOPort")); }
-}
-
-void Schedule::Deserialize(const DataTable &cfg) {
-//    base_type::Deserialize(cfg);
-    SetCheckPointInterval(static_cast<size_type>(cfg.GetValue("CheckPointInterval", 1)));
-//    m_data_io_ = std::make_shared<data::DataIOPort>(cfg.GetValue<std::string>("DataIOPort", ""));
 }
 
 void Schedule::DoInitialize() { SPObject::DoInitialize(); }

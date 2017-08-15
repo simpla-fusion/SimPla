@@ -71,7 +71,7 @@ void EMFluid<TM>::Serialize(DataTable& res) const {
 template <typename TM>
 void EMFluid<TM>::Deserialize(const DataTable& cfg) {
     cfg.GetTable("Species").Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> v) {
-        AddSpecies(k, std::dynamic_pointer_cast<data::DataTable>(v));
+        return AddSpecies(k, std::dynamic_pointer_cast<data::DataTable>(v)) != nullptr ? 1 : 0;
     });
 }
 

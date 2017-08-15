@@ -20,10 +20,13 @@ class Context;
 struct TimeIntegrator : public Schedule {
     SP_OBJECT_HEAD(TimeIntegrator, Schedule);
 
+   protected:
+    TimeIntegrator();
+
    public:
-    explicit TimeIntegrator(std::string const &s_name = "TimeIntegrator");
     ~TimeIntegrator() override;
     SP_DEFAULT_CONSTRUCT(TimeIntegrator);
+    static std::shared_ptr<TimeIntegrator> New();
 
     void Serialize(data::DataTable &cfg) const override;
     void Deserialize(const data::DataTable &cfg) override;

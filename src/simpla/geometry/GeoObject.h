@@ -68,31 +68,14 @@ namespace geometry {
  *
  *  @enduml
  */
-class GeoObject : public engine::SPObject, public data::Serializable, public Factory<GeoObject> {
-    SP_OBJECT_HEAD(GeoObject, engine::SPObject)
-
-   public:
-    GeoObject() = default;
-    ~GeoObject() override = default;
-
-    //    GeoObject(this_type const &other) = default;
-    //    GeoObject(this_type &&other) = default;
-    //    this_type &operator=(this_type const &other) = default;
-    //    this_type &operator=(this_type &&other) = default;
-
-    void Serialize(data::DataTable &cfg) const override;
-
-    void Deserialize(const data::DataTable &cfg) override;
+class GeoObject : public engine::SPObject, public Factory<GeoObject> {
+    SP_OBJECT_DECLARE_MEMBERS(GeoObject, engine::SPObject)
 
     virtual int Dimension() const { return 3; };
-
     virtual Real Measure() const;
-
     virtual std::shared_ptr<GeoObject> Boundary() const { return nullptr; };
-
     /// The axis-aligned minimum bounding box (or AABB) , Cartesian
     virtual box_type BoundingBox() const;
-
     virtual bool CheckInside(point_type const &x) const;
 
     /// arbitrarily oriented minimum bounding box  (or OBB)

@@ -48,8 +48,6 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     typedef typename engine::Attribute attribute_type;
     typedef Array<value_type> array_type;
 
-    SP_OBJECT_HEAD(field_type, attribute_type);
-
     static constexpr int iform = IFORM;
     static constexpr int NUM_OF_SUB = (IFORM == NODE || IFORM == CELL) ? 1 : 3;
 
@@ -57,32 +55,33 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     nTuple<array_type, NUM_OF_SUB, DOF...> m_data_;
     mesh_type const* m_host_ = nullptr;
 
+    SP_OBJECT_HEAD(Field, engine::Attribute);
+
    public:
     template <typename... Args>
-    Field(mesh_type* grp, Args&&... args)
-        : engine::Attribute(grp->GetMesh(), IFORM, reduction_v(tags::multiplication(), 1, DOF...), typeid(value_type),
-                            std::forward<Args>(args)...),
-          m_host_(grp) {}
-
+    Field(mesh_type* grp, Args&&... args) : engine::Attribute(std::forward<Args>(args)...), m_host_(grp) {
+        Register(dynamic_cast<engine::AttributeGroup*>(grp));
+    }
     ~Field() override = default;
 
-    Field(this_type const& other) : base_type(other), m_data_(other.m_data_), m_host_(other.m_host_) {}
+    Field(Field const& other) = delete;
+    Field(Field&& other) = delete;
 
-    Field(this_type&& other) noexcept
-        : base_type(std::forward<base_type>(other)), m_data_(other.m_data_), m_host_(other.m_host_) {}
-
-    Field& operator=(this_type&& other) = delete;
-
-    template <typename OtherMesh>
-    Field(mesh_type* m, Field<OtherMesh, value_type, IFORM, DOF...>& other)
-        : base_type(other), m_host_(m), m_data_(other.m_data_) {}
-
+    template <typename... Args>
+    static std::shared_ptr<this_type> New(Args&&... args) {
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
+    }
+    std::type_info const& value_type_info() const override { return typeid(value_type); };
+    int GetIFORM() const override { return IFORM; };
     int GetDOF() const override { return reduction_v(tags::multiplication(), 1, DOF...); };
     void SetDOF(int d) override { RUNTIME_ERROR << "Can not change DOF of Field!" << std::endl; };
 
+    std::shared_ptr<mesh_type const> mesh() const {
+        return std::dynamic_pointer_cast<const mesh_type>(m_host_->GetMesh());
+    }
     void DoInitialize() override {
         if (base_type::isNull()) {
-            m_host_->GetMesh()->template initialize_data<IFORM>(&m_data_);
+            mesh()->template initialize_data<IFORM>(&m_data_);
         } else {
             PushData(&m_data_);
         }
@@ -96,7 +95,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     }
 
     void PushData(nTuple<array_type, NUM_OF_SUB, DOF...>* d) {
-        auto* blk = dynamic_cast<data::DataMultiArray<array_type>*>(GetDataBlock());
+        auto blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
         if (blk != nullptr) {
             int count = 0;
             traits::foreach (*d, [&](array_type& a, auto&&... idx) {
@@ -107,10 +106,10 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         Tag();
     };
     void PopData(nTuple<array_type, NUM_OF_SUB, DOF...>* d) {
-        auto* blk = dynamic_cast<data::DataMultiArray<array_type>*>(GetDataBlock());
+        auto blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
         if (blk == nullptr) {
-            Push(std::make_shared<data::DataMultiArray<array_type>>(d->size()));
-            blk = dynamic_cast<data::DataMultiArray<array_type>*>(GetDataBlock());
+            Push(data::DataMultiArray<array_type>::New(d->size()));
+            blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
         }
         int count = 0;
         traits::foreach (*d, [&](array_type& a, auto&&... idx) {
@@ -120,11 +119,11 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         });
         ResetTag();
     };
-    void swap(this_type& other) {
-        base_type::swap(other);
-        m_data_.swap(other.m_data_);
-        std::swap(m_host_, other.m_host_);
-    }
+    //    void swap(this_type& other) {
+    //        base_type::swap(other);
+    //        m_data_.swap(other.m_data_);
+    //        std::swap(m_host_, other.m_host_);
+    //    }
 
     auto& Get() { return m_data_; }
     auto const& Get() const { return m_data_; }

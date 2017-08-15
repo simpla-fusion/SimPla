@@ -11,30 +11,13 @@
 namespace simpla {
 
 class Tokamak : public engine::Model {
-    SP_OBJECT_HEAD(Tokamak, engine::Model)
+    SP_OBJECT_DECLARE_MEMBERS(Tokamak, engine::Model)
 
    public:
-    Tokamak();
-    ~Tokamak() override = default;
-
-    Tokamak(Tokamak const &) = delete;
-    Tokamak(Tokamak &&) = delete;
-    Tokamak &operator=(Tokamak const &) = delete;
-    Tokamak &operator=(Tokamak &&) = delete;
-
     void DoUpdate() override;
-
     void LoadGFile(std::string const &);
-
-    void Serialize(data::DataTable &cfg) const override;
-    void Deserialize(const data::DataTable &cfg) override;
-
     engine::Model::attr_fun GetAttribute(std::string const &attr_name) const override;
     engine::Model::vec_attr_fun GetAttributeVector(std::string const &attr_name) const override;
-
-   private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
 }  // namespace simpla

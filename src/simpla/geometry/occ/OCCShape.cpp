@@ -23,7 +23,8 @@ TopoDS_Shape* OCCCast<TopoDS_Shape, GeoObject>::eval(GeoObject const& g) {
     if (dynamic_cast<GeoObjectOCC const*>(&g) != nullptr) {
         *res = dynamic_cast<GeoObjectOCC const&>(g).GetShape();
     } else {
-        *res = GeoObjectOCC(g).GetShape();
+        auto p = GeoObjectOCC::New(g);
+        *res = p->GetShape();
     }
     return res;
 }

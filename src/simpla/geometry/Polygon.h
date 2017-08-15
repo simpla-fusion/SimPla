@@ -11,6 +11,7 @@
 
 #include <vector>
 
+#include "GeoObject.h"
 #include "simpla/algebra/nTuple.h"
 #include "simpla/data/Data.h"
 #include "simpla/engine/SPObject.h"
@@ -28,33 +29,14 @@ class Polygon;
  *  @brief 2D polygon
  */
 template <>
-struct Polygon<2> : public data::Serializable {
+struct Polygon<2> : public GeoObject {
+    SP_OBJECT_DECLARE_MEMBERS(Polygon, GeoObject)
+   public:
     typedef nTuple<Real, 2> point2d_type;
-
-    SP_OBJECT_BASE(Polygon<2>);
 
     std::vector<point2d_type> m_polygon_;
     std::vector<Real> constant_;
     std::vector<Real> multiple_;
-
-   public:
-    Polygon() {}
-
-    ~Polygon() {}
-
-    Polygon(Polygon const &) = delete;
-
-    void Serialize(data::DataTable &cfg) const override {
-        data::Serializable::Serialize(cfg);
-        cfg.SetValue("Type", "Polygon2D");
-
-        auto v_array = std::make_shared<data::DataArrayWrapper<point2d_type>>();
-
-        for (size_type s = 0, se = m_polygon_.size(); s < se; ++s) { v_array->Add(m_polygon_[s]); }
-
-        cfg.Set("data", std::dynamic_pointer_cast<data::DataEntity>(v_array));
-    };
-    void Deserialize(const data::DataTable &t) override {}
 
     std::vector<point2d_type> &data() { return m_polygon_; };
 
@@ -67,7 +49,9 @@ struct Polygon<2> : public data::Serializable {
     Real nearest_point(Real *x, Real *y) const;
     bool check_inside(Real x, Real y) const;
 
-    std::tuple<point2d_type, point2d_type> BoundingBox() const { return std::move(std::make_tuple(m_min_, m_max_)); };
+    std::tuple<point_type, point_type> BoundingBox() const override {
+        return std::move(std::make_tuple(point_type{m_min_[0], m_min_[1], 0}, point_type{m_max_[0], m_max_[1], 1}));
+    };
 
    private:
     point2d_type m_min_, m_max_;

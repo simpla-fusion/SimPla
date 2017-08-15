@@ -25,30 +25,30 @@ class MeshBlock;
 class Patch;
 using namespace simpla::data;
 class Curve;
-struct MeshBase : public engine::SPObject, public data::Serializable, public AttributeGroup, public Factory<MeshBase> {
+struct MeshBase : public engine::SPObject, public AttributeGroup, public Factory<MeshBase> {
     SP_OBJECT_HEAD(MeshBase, SPObject)
-   public:
-    using AttributeGroup::attribute_type;
-
+   protected:
     MeshBase();
+
+   public:
     ~MeshBase() override;
+    SP_DEFAULT_CONSTRUCT(MeshBase);
+    void Serialize(data::DataTable &cfg) const override;
+    void Deserialize(const data::DataTable &cfg) override;
 
-    MeshBase(MeshBase const &other) = delete;
-    MeshBase(MeshBase &&other) noexcept = delete;
-    void swap(MeshBase &other) = delete;
-    MeshBase &operator=(this_type const &other) = delete;
-    MeshBase &operator=(this_type &&other) noexcept = delete;
-
-    void Serialize(data::DataTable &t_db) const override;
-    void Deserialize(const DataTable &t_db) override;
+    using AttributeGroup::attribute_type;
 
     int GetNDIMS() const;
 
-    virtual geometry::Chart *GetChart() = 0;
-    virtual geometry::Chart const *GetChart() const = 0;
+    virtual std::shared_ptr<geometry::Chart> GetChart() = 0;
+    virtual std::shared_ptr<const geometry::Chart> GetChart() const = 0;
 
-    virtual this_type *GetMesh() { return this; }
-    virtual this_type const *GetMesh() const { return this; }
+    virtual std::shared_ptr<MeshBase> GetMesh() {
+        return std::dynamic_pointer_cast<MeshBase>(this->shared_from_this());
+    }
+    virtual std::shared_ptr<const MeshBase> GetMesh() const {
+        return std::dynamic_pointer_cast<MeshBase const>(this->shared_from_this());
+    }
 
     virtual void AddEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g){};
 
@@ -58,8 +58,9 @@ struct MeshBase : public engine::SPObject, public data::Serializable, public Att
 
     virtual std::tuple<Real, index_box_type> CheckOverlap(geometry::GeoObject const *) const;
 
-    void SetBlock(const MeshBlock &blk);
-    virtual const MeshBlock *GetBlock() const;
+    virtual void SetBlock(const std::shared_ptr<MeshBlock> &blk);
+    virtual std::shared_ptr<const MeshBlock> GetBlock() const;
+    virtual std::shared_ptr<MeshBlock> GetBlock();
 
     void DoInitialize() override;
     void DoFinalize() override;
@@ -77,48 +78,51 @@ struct MeshBase : public engine::SPObject, public data::Serializable, public Att
     void Advance(Real time_now, Real dt);
     void TagRefinementCells(Real time_now);
 
-    void Pop(Patch *p) override;
-    void Push(Patch *p) override;
+    void Pop(const std::shared_ptr<Patch> &p) override;
+    void Push(const std::shared_ptr<Patch> &p) override;
 
-    void InitialCondition(Patch *patch, Real time_now);
-    void BoundaryCondition(Patch *patch, Real time_now, Real dt);
-    void Advance(Patch *patch, Real time_now, Real dt);
+    void InitialCondition(const std::shared_ptr<Patch> &patch, Real time_now);
+    void BoundaryCondition(const std::shared_ptr<Patch> &patch, Real time_now, Real dt);
+    void Advance(const std::shared_ptr<Patch> &patch, Real time_now, Real dt);
 
     void SetRange(std::string const &, Range<EntityId> const &);
     Range<EntityId> &GetRange(std::string const &k);
     Range<EntityId> GetRange(std::string const &k) const;
 
    private:
-    MeshBlock m_mesh_block_{index_box_type{{0, 0, 0}, {1, 1, 1}}};
+    std::shared_ptr<MeshBlock> m_mesh_block_ = nullptr;
 
     struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
+    pimpl_s *m_pimpl_;
 };
 
 template <typename TChart, template <typename> class... Policies>
 class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     SP_OBJECT_HEAD(Mesh, MeshBase);
 
+   protected:
+    Mesh() : Policies<this_type>(this)... {};
+
+   public:
+    ~Mesh() override = default;
+    SP_DEFAULT_CONSTRUCT(Mesh);
+    static std::shared_ptr<this_type> New() { return std::shared_ptr<this_type>(new this_type); };
+
    public:
     typedef Mesh<TChart, Policies...> mesh_type;
     typedef TChart chart_type;
 
-    chart_type m_chart_;
-
-    Mesh() : Policies<this_type>(this)... {};
-    ~Mesh() override = default;
-
+    std::shared_ptr<chart_type> m_chart_;
     void Deserialize(data::DataTable const &cfg) override;
-    void Serialize(data::DataTable &) const override;
+    void Serialize(data::DataTable &cfg) const override;
 
     void DoUpdate() override;
 
-    chart_type *GetChart() override { return &m_chart_; }
-    chart_type const *GetChart() const override { return &m_chart_; }
-    this_type *GetMesh() override { return this; }
-    this_type const *GetMesh() const override { return this; }
+    std::shared_ptr<geometry::Chart> GetChart() override { return m_chart_; }
+    std::shared_ptr<geometry::Chart const> GetChart() const override { return m_chart_; }
 
-    const MeshBlock *GetBlock() const override { return MeshBase::GetBlock(); }
+    std::shared_ptr<MeshBlock> GetBlock() override { return MeshBase::GetBlock(); }
+    std::shared_ptr<const MeshBlock> GetBlock() const override { return MeshBase::GetBlock(); }
 
     index_box_type IndexBox(int tag) const override { return MeshBase::IndexBox(tag); };
 
@@ -198,7 +202,7 @@ void Mesh<TM, Policies...>::DoTagRefinementCells(Real time_now) {
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::Serialize(data::DataTable &cfg) const {
     base_type::Serialize(cfg);
-    m_chart_.Serialize(cfg.GetTable("Chart"));
+    m_chart_->Serialize(cfg.GetTable("Chart"));
     traits::_try_invoke_Serialize<Policies...>(this, cfg);
 };
 template <typename TM, template <typename> class... Policies>

@@ -19,10 +19,19 @@ struct ParticleBase::pimpl_s {
     size_type m_num_pic_ = 100;
     size_type m_max_size_ = 0;
     int m_num_of_attr_ = 3;
-    ParticleData* m_data_block_ = nullptr;
+    std::shared_ptr<ParticleData> m_data_block_ = nullptr;
     id_type* m_tag_;
     Real* m_data_[MAX_NUMBER_OF_PARTICLE_ATTRIBUTES];
 };
+
+ParticleBase::ParticleBase() : m_pimpl_(new pimpl_s) { Initialize(); }
+
+ParticleBase::~ParticleBase() {
+    Finalize();
+    delete m_pimpl_;
+}
+std::shared_ptr<ParticleBase> ParticleBase::New() { return std::shared_ptr<ParticleBase>(new ParticleBase); }
+
 void ParticleBase::DoInitialize() {
     m_pimpl_ = new pimpl_s;
     engine::Attribute::SetDOF(db().GetValue<int>("DOF", 6));
@@ -37,7 +46,7 @@ void ParticleBase::Serialize(data::DataTable& cfg) const {
 void ParticleBase::Deserialize(const data::DataTable& cfg) { engine::Attribute::db().Set(cfg.GetTable("Properties")); }
 void ParticleBase::Push(std::shared_ptr<data::DataBlock> const& dblk) {
     engine::Attribute::Push(dblk);
-    m_pimpl_->m_data_block_ = dynamic_cast<ParticleData*>(GetDataBlock());
+    m_pimpl_->m_data_block_ = std::dynamic_pointer_cast<ParticleData>(GetDataBlock());
 }
 std::shared_ptr<data::DataBlock> ParticleBase::Pop() {
     m_pimpl_->m_data_block_ = nullptr;

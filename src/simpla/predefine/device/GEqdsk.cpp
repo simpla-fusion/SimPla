@@ -16,13 +16,13 @@
 #include <utility>
 
 #include "simpla/algebra/nTuple.h"
+#include "simpla/engine/Model.h"
+#include "simpla/geometry/Polygon.h"
 #include "simpla/numeric/Interpolation.h"
 #include "simpla/numeric/find_root.h"
 #include "simpla/physics/Constants.h"
 #include "simpla/utilities/FancyStream.h"
 #include "simpla/utilities/Log.h"
-#include "simpla/engine/Model.h"
-#include "simpla/geometry/Polygon.h"
 
 namespace simpla {
 
@@ -87,8 +87,8 @@ nTuple<size_type, 3> GEqdsk::dimensions() const {
 
 void GEqdsk::pimpl_s::load(std::string const &fname) {
     std::ifstream inFileStream_(fname);
-    m_rzbbb_ = std::make_shared<geometry::Polygon<2>>();
-    m_rzlim_ = std::make_shared<geometry::Polygon<2>>();
+    m_rzbbb_ = geometry::Polygon<2>::New();
+    m_rzlim_ = geometry::Polygon<2>::New();
     if (!inFileStream_.is_open()) {
         THROW_EXCEPTION_RUNTIME_ERROR("File " + fname + " is not opend!");
         return;

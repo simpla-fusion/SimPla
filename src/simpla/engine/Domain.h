@@ -21,37 +21,21 @@
 namespace simpla {
 namespace engine {
 class Patch;
-
 class Model;
-
 class MeshBase;
 
-class DomainBase : public engine::SPObject,
-                   public data::Serializable,
-                   public Factory<DomainBase, MeshBase *, std::shared_ptr<Model>> {
+class DomainBase : public SPObject, public Factory<DomainBase, MeshBase *, std::shared_ptr<Model>> {
     typedef Factory<DomainBase, MeshBase *, std::shared_ptr<Model>> creator_type;
-    SP_OBJECT_HEAD(DomainBase, engine::SPObject)
-   public:
+    SP_OBJECT_HEAD(DomainBase, SPObject)
+   protected:
     explicit DomainBase(MeshBase *m, std::shared_ptr<Model> const &model = nullptr);
 
+   public:
     ~DomainBase() override;
-
-    DomainBase(DomainBase const &other) = delete;
-    DomainBase(DomainBase &&other) noexcept = delete;
-    DomainBase &operator=(this_type const &other) = delete;
-    DomainBase &operator=(this_type &&other) noexcept = delete;
-
-    void SetGeoBody(const std::shared_ptr<geometry::GeoObject> &b) { m_geo_body_ = b; }
-    std::shared_ptr<geometry::GeoObject> GetGeoBody() const { return m_geo_body_; }
-
-    void SetModel(std::shared_ptr<engine::Model> const &m) { m_model_ = m; }
-    std::shared_ptr<Model> GetModel() const { return m_model_; }
-
-    virtual const MeshBase *GetMesh() const { return m_mesh_; }
-    virtual MeshBase *GetMesh() { return m_mesh_; }
+    SP_DEFAULT_CONSTRUCT(DomainBase);
 
     void Serialize(data::DataTable &cfg) const override;
-    void Deserialize(const DataTable &t) override;
+    void Deserialize(const data::DataTable &cfg) override;
 
     void DoInitialize() override;
     void DoFinalize() override;
@@ -86,8 +70,17 @@ class DomainBase : public engine::SPObject,
     design_pattern::Signal<void(DomainBase *, Real, Real)> PostAdvance;
     void Advance(Real time_now, Real time_dt);
 
+    void SetGeoBody(const std::shared_ptr<geometry::GeoObject> &b) { m_geo_body_ = b; }
+    std::shared_ptr<geometry::GeoObject> GetGeoBody() const { return m_geo_body_; }
+
+    void SetModel(std::shared_ptr<engine::Model> const &m) { m_model_ = m; }
+    std::shared_ptr<Model> GetModel() const { return m_model_; }
+
+    virtual std::shared_ptr<const MeshBase> GetMesh() const { return m_mesh_; }
+    virtual std::shared_ptr<MeshBase> GetMesh() { return m_mesh_; }
+
    private:
-    MeshBase *m_mesh_ = nullptr;
+    std::shared_ptr<MeshBase> m_mesh_ = nullptr;
     std::shared_ptr<engine::Model> m_model_ = nullptr;
     std::shared_ptr<geometry::GeoObject> m_geo_body_ = nullptr;
 
@@ -95,31 +88,34 @@ class DomainBase : public engine::SPObject,
 
 template <typename TM, template <typename> class... Policies>
 class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
-    typedef Domain<TM, Policies...> domain_type;
-
-    SP_OBJECT_HEAD(domain_type, DomainBase);
-
     typedef TM mesh_type;
+    SP_OBJECT_HEAD(Domain, DomainBase);
 
-   public:
+   protected:
     template <typename... Args>
     explicit Domain(Args &&... args) : DomainBase(std::forward<Args>(args)...), Policies<this_type>(this)... {}
+
+   public:
     ~Domain() override = default;
+    SP_DEFAULT_CONSTRUCT(Domain);
 
-    Domain(const Domain &) = delete;
-    Domain(Domain &&) = delete;
-    Domain &operator=(Domain const &) = delete;
-    Domain &operator=(Domain &&) = delete;
+    template <typename... Args>
+    static std::shared_ptr<this_type> New(Args &&... args) {
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
+    }
 
-    virtual const mesh_type *GetMesh() const override { return dynamic_cast<mesh_type const *>(DomainBase::GetMesh()); }
-    virtual mesh_type *GetMesh() override { return dynamic_cast<mesh_type *>(DomainBase::GetMesh()); }
+    void Serialize(data::DataTable &cfg) const override;
+    void Deserialize(const DataTable &cfg) override;
 
     void DoInitialCondition(Real time_now) override;
     void DoBoundaryCondition(Real time_now, Real dt) override;
     void DoAdvance(Real time_now, Real dt) override;
     void DoTagRefinementCells(Real time_now) override;
-    void Deserialize(const DataTable &cfg) override;
-    void Serialize(data::DataTable &cfg) const override;
+
+    std::shared_ptr<const mesh_type> mesh() const {
+        return std::dynamic_pointer_cast<mesh_type const>(DomainBase::GetMesh());
+    }
+    std::shared_ptr<mesh_type> mesh() { return std::dynamic_pointer_cast<mesh_type>(DomainBase::GetMesh()); }
 
     template <typename TL, typename TR>
     void Fill(TL &lhs, TR &&rhs) const {
@@ -128,17 +124,17 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
 
     template <typename TL, typename TR, typename... Others>
     void FillRange(TL &lhs, TR &&rhs, Others &&... others) const {
-        GetMesh()->FillRange(lhs, std::forward<TR>(rhs), std::forward<Others>(others)...);
+        mesh()->FillRange(lhs, std::forward<TR>(rhs), std::forward<Others>(others)...);
     };
 
     template <typename TL, typename TR>
     void FillBody(TL &lhs, TR &&rhs) const {
-        GetMesh()->FillBody(lhs, std::forward<TR>(rhs), GetName());
+        mesh()->FillBody(lhs, std::forward<TR>(rhs), GetName());
     };
 
     template <typename TL, typename TR>
     void FillBoundary(TL &lhs, TR &&rhs) const {
-        GetMesh()->FillBoundary(lhs, std::forward<TR>(rhs), GetName());
+        mesh()->FillBoundary(lhs, std::forward<TR>(rhs), GetName());
     };
 
 };  // class Domain

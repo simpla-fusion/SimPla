@@ -6,6 +6,12 @@
 namespace simpla {
 namespace geometry {
 
+GeoObject::GeoObject() = default;
+GeoObject::~GeoObject() = default;
+std::shared_ptr<GeoObject> GeoObject::New() { return std::shared_ptr<GeoObject>(new GeoObject); }
+void GeoObject::Serialize(data::DataTable &cfg) const { base_type::Serialize(cfg); }
+void GeoObject::Deserialize(const data::DataTable &cfg) { base_type::Deserialize(cfg); }
+
 box_type GeoObject::BoundingBox() const { return box_type{{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}; }
 
 Real GeoObject::Measure() const {
@@ -15,10 +21,6 @@ Real GeoObject::Measure() const {
 };
 
 bool GeoObject::CheckInside(point_type const &x) const { return CheckInSide(BoundingBox(), x); }
-
-void GeoObject::Serialize(data::DataTable &cfg) const {}
-
-void GeoObject::Deserialize(const data::DataTable &cfg) {}
 
 // Real GeoObject::CheckOverlap(box_type const &b) const { return Measure(Overlap(BoundingBox(), b)) / measure(); }
 //

@@ -13,17 +13,16 @@ namespace simpla {
 namespace geometry {
 struct GeoObjectOCC : public GeoObject {
    public:
-    SP_OBJECT_HEAD(GeoObjectOCC, GeoObject)
-
-    GeoObjectOCC();
-    GeoObjectOCC(GeoObjectOCC const &);
+    SP_OBJECT_DECLARE_MEMBERS(GeoObjectOCC, GeoObject)
+   protected:
     GeoObjectOCC(GeoObject const &);
     GeoObjectOCC(TopoDS_Shape const &);
 
-    ~GeoObjectOCC() override;
-
-    void Serialize(data::DataTable &cfg) const override;
-    void Deserialize(const data::DataTable &d) override;
+   public:
+    template <typename... Args>
+    static std::shared_ptr<GeoObjectOCC> New(Args &&... args) {
+        return std::shared_ptr<GeoObjectOCC>(new GeoObjectOCC(std::forward<Args>(args)...));
+    }
 
     void Load(std::string const &);
     void Transform(Real scale, point_type const &location = point_type{0, 0, 0},
@@ -35,10 +34,6 @@ struct GeoObjectOCC : public GeoObject {
 
     box_type BoundingBox() const override;
     bool CheckInside(point_type const &x) const override;
-
-   private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
 }  // namespace geometry

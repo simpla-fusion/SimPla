@@ -11,7 +11,6 @@
 #include "DataEntity.h"
 #include "DataTable.h"
 #include "DataTraits.h"
-#include "Properties.h"
 #include "Serializable.h"
 
 namespace simpla {

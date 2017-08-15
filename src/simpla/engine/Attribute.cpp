@@ -13,40 +13,27 @@
 namespace simpla {
 namespace engine {
 
-id_type AttributeDesc::GetDescID() const {
-    static std::hash<std::string> s_hasher;
-    return s_hasher(GetPrefix() +                       //
-                    "." + value_type_info().name() +    //
-                    "." + std::to_string(GetIFORM()) +  //
-                    "." + std::to_string(GetDOF()));
-}
-const AttributeDesc &AttributeDesc::GetDescription() const { return *this; };
-
 AttributeGroup::AttributeGroup() = default;
 
 AttributeGroup::~AttributeGroup() {
     for (auto *item : m_attributes_) { item->Deregister(this); }
 }
 
-void AttributeGroup::Push(Patch *p) {
-    for (auto *item : m_attributes_) { item->Push(p->GetDataBlock(item->GetDescID())); }
+void AttributeGroup::Push(const std::shared_ptr<Patch> &p) {
+    for (auto *item : m_attributes_) { item->Push(p->GetDataBlock(item->db().GetValue<id_type>("DescID", NULL_ID))); }
 }
 
-void AttributeGroup::Pop(Patch *p) {
-    for (auto *item : m_attributes_) { p->SetDataBlock(item->GetDescID(), item->Pop()); }
+void AttributeGroup::Pop(const std::shared_ptr<Patch> &p) {
+    for (auto *item : m_attributes_) { p->SetDataBlock(item->db().GetValue<id_type>("DescID", NULL_ID), item->Pop()); }
 }
 
 void AttributeGroup::Attach(Attribute *p) { m_attributes_.emplace(p); }
 void AttributeGroup::Detach(Attribute *p) { m_attributes_.erase(p); }
 void AttributeGroup::RegisterAttributes() {
-    m_register_desc_.clear();
-    for (auto const *item : m_attributes_) {
-        m_register_desc_[item->GetName()] = std::make_shared<AttributeDesc>(item->GetDescription());
-    }
+    for (auto *item : m_attributes_) { m_register_desc_->Set(item->GetName(), item->db().shared_from_this()); }
 }
-std::shared_ptr<AttributeDesc> AttributeGroup::GetAttributeDescription(std::string const &k) {
-    auto it = m_register_desc_.find(k);
-    return it != m_register_desc_.end() ? it->second : nullptr;
+std::shared_ptr<data::DataTable> AttributeGroup::GetAttributeDescription(std::string const &k) {
+    return std::dynamic_pointer_cast<data::DataTable>(m_register_desc_->Get(k));
 }
 
 // void AttributeGroup::RegisterDescription(std::map<std::string, std::shared_ptr<AttributeDesc>> *m) const {
@@ -105,48 +92,52 @@ std::shared_ptr<AttributeDesc> AttributeGroup::GetAttributeDescription(std::stri
 //        grp->Attach(this);
 //    }
 //}
-Attribute::~Attribute() {
-    for (auto *grp : m_bundle_) { grp->Detach(this); }
-}
-void Attribute::swap(Attribute &other) {
-    SPObject::swap(other);
-    AttributeDesc::swap(other);
-    std::swap(m_data_block_, other.m_data_block_);
+struct Attribute::pimpl_s {
+    std::set<AttributeGroup *> m_bundle_{};
+    std::shared_ptr<data::DataBlock> m_data_block_ = nullptr;
+};
 
-    for (auto *grp : m_bundle_) {
-        grp->Detach(this);
-        grp->Attach(&other);
-    }
-    for (auto *grp : other.m_bundle_) {
-        grp->Detach(&other);
-        grp->Attach(this);
-    }
+Attribute::Attribute() : m_pimpl_(new pimpl_s) {}
+Attribute::~Attribute() {
+    for (auto *grp : m_pimpl_->m_bundle_) { grp->Detach(this); }
+    delete m_pimpl_;
 }
+
+void Attribute::Serialize(data::DataTable &cfg) const { base_type::Serialize(cfg); }
+void Attribute::Deserialize(const data::DataTable &cfg) { base_type::Deserialize(cfg); }
 
 void Attribute::Register(AttributeGroup *attr_b) {
-    if (attr_b != nullptr) {
-        auto res = m_bundle_.emplace(attr_b);
+    if (attr_b == nullptr) {
+        static std::hash<std::string> s_hasher;
+        auto id = s_hasher(db().GetValue<std::string>("name", "unnamed") +  //
+                           "." + value_type_info().name() +                 //
+                           "." + std::to_string(GetIFORM()) +               //
+                           "." + std::to_string(GetDOF()));
+        db().SetValue("DescId", id);
+        for (auto *item : m_pimpl_->m_bundle_) { Register(item); }
+    } else {
+        auto res = m_pimpl_->m_bundle_.emplace(attr_b);
         if (res.second) { attr_b->Attach(this); }
     }
 }
 void Attribute::Deregister(AttributeGroup *attr_b) {
     if (attr_b != nullptr) {
         attr_b->Detach(this);
-        m_bundle_.erase(attr_b);
+        m_pimpl_->m_bundle_.erase(attr_b);
     }
 }
 void Attribute::Push(const std::shared_ptr<DataBlock> &d) {
-    m_data_block_ = d;
+    m_pimpl_->m_data_block_ = d;
     Initialize();
 }
 std::shared_ptr<data::DataBlock> Attribute::Pop() {
     Finalize();
-    return m_data_block_;
+    return m_pimpl_->m_data_block_;
 }
-data::DataBlock *Attribute::GetDataBlock() { return m_data_block_.get(); }
-data::DataBlock const *Attribute::GetDataBlock() const { return m_data_block_.get(); }
+std::shared_ptr<DataBlock> Attribute::GetDataBlock() { return m_pimpl_->m_data_block_; }
+std::shared_ptr<const DataBlock> Attribute::GetDataBlock() const { return m_pimpl_->m_data_block_; }
 
-bool Attribute::isNull() const { return m_data_block_ == nullptr; }
+bool Attribute::isNull() const { return m_pimpl_ == nullptr || m_pimpl_->m_data_block_ == nullptr; }
 
 }  //{ namespace engine
 }  // namespace simpla
