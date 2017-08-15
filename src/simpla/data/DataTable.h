@@ -128,7 +128,7 @@ class DataTable : public DataEntity {
     }
 
     void SetValue(std::string const& uri, DataTable const& v) { GetTable(uri).SetTable(v); };
-
+    void SetValue(DataTable const& kv) { Set(kv); }
     void SetValue(KeyValue const& kv) { Set(kv.first, kv.second); }
     template <typename... Others>
     void SetValue(KeyValue const& kv, Others&&... others) {

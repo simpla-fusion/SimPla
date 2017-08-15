@@ -43,7 +43,7 @@ void ICRFAntenna<TM>::Serialize(data::DataTable* res) const {
 
 template <typename TM>
 void ICRFAntenna<TM>::InitialCondition(Real time_now) {
-    m_host_->mesh()->SetEmbeddedBoundary(m_host_->GetName(), m_host_->GetGeoBody());
+    m_host_->GetMesh()->SetEmbeddedBoundary(m_host_->GetName(), m_host_->GetGeoBody());
 }
 template <typename TM>
 void ICRFAntenna<TM>::Deserialize(std::shared_ptr<DataTable> const& cfg) {

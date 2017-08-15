@@ -34,6 +34,7 @@ SpApp::SpApp() : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_atlas_ = engine::Atlas::New();
 }
 SpApp::~SpApp() { delete m_pimpl_; };
+std::shared_ptr<SpApp> SpApp::New() { return std::shared_ptr<SpApp>(new SpApp); }
 void SpApp::Serialize(data::DataTable &cfg) const {
     if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Serialize(cfg.GetTable("Schedule")); }
 
@@ -172,10 +173,11 @@ int main(int argc, char **argv) {
 #ifndef NDEBUG
     logger::set_stdout_level(1000);
 #endif
-
+    ASSERT(data::DataBase::s_num_of_pre_registered_ > 0);
     parallel::init(argc, argv);
 
     MESSAGE << std::endl
+            << data::DataBase::ShowDescription() << std::endl
             << engine::Model::ShowDescription() << std::endl
             << engine::DomainBase::ShowDescription() << std::endl;
 

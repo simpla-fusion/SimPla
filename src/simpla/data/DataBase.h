@@ -82,7 +82,6 @@ class DataBase : public Factory<DataBase>, public std::enable_shared_from_this<D
 
     virtual std::ostream& Print(std::ostream& os, int indent) const { return os; }
 
-   private:
     static int s_num_of_pre_registered_;
 
 };  // class DataBase {

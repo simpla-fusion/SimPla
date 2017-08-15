@@ -32,18 +32,13 @@ ParticleBase::~ParticleBase() {
 }
 std::shared_ptr<ParticleBase> ParticleBase::New() { return std::shared_ptr<ParticleBase>(new ParticleBase); }
 
-void ParticleBase::DoInitialize() {
-    m_pimpl_ = new pimpl_s;
-    engine::Attribute::SetDOF(db().GetValue<int>("DOF", 6));
-}
+void ParticleBase::DoInitialize() { m_pimpl_ = new pimpl_s; }
 void ParticleBase::DoFinalize() {
     delete m_pimpl_;
     m_pimpl_ = nullptr;
 }
-void ParticleBase::Serialize(data::DataTable& cfg) const {
-    cfg.GetTable("Properties").SetTable(engine::Attribute::db());
-}
-void ParticleBase::Deserialize(const data::DataTable& cfg) { engine::Attribute::db().Set(cfg.GetTable("Properties")); }
+void ParticleBase::Serialize(data::DataTable& cfg) const { base_type::Serialize(cfg); }
+void ParticleBase::Deserialize(const data::DataTable& cfg) { base_type::Deserialize(cfg); }
 void ParticleBase::Push(std::shared_ptr<data::DataBlock> const& dblk) {
     engine::Attribute::Push(dblk);
     m_pimpl_->m_data_block_ = std::dynamic_pointer_cast<ParticleData>(GetDataBlock());

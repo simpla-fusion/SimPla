@@ -20,6 +20,8 @@ struct Model::pimpl_s {
 
 Model::Model() : m_pimpl_(new pimpl_s) {}
 Model::~Model() { delete m_pimpl_; };
+std::shared_ptr<Model> Model::New() { return std::shared_ptr<Model>(new Model); }
+
 void Model::Serialize(data::DataTable& cfg) const {
     base_type::Serialize(cfg);
     for (auto const& item : m_pimpl_->m_g_objs_) {

@@ -76,12 +76,9 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     int GetDOF() const override { return reduction_v(tags::multiplication(), 1, DOF...); };
     void SetDOF(int d) override { RUNTIME_ERROR << "Can not change DOF of Field!" << std::endl; };
 
-    std::shared_ptr<mesh_type const> mesh() const {
-        return std::dynamic_pointer_cast<const mesh_type>(m_host_->GetMesh());
-    }
     void DoInitialize() override {
         if (base_type::isNull()) {
-            mesh()->template initialize_data<IFORM>(&m_data_);
+            m_host_->GetMesh()->template initialize_data<IFORM>(&m_data_);
         } else {
             PushData(&m_data_);
         }
