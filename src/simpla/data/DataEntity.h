@@ -15,32 +15,62 @@ namespace simpla {
 namespace data {
 template <typename, typename Enable = void>
 class DataEntityWrapper {};
-struct DataEntity {
+
+enum DataEntityType { DB_NULL = 0, DB_LIGHT = 1, DB_BLOCK = 2, DB_ARRAY = 3, DB_TABLE = 4 };
+
+struct DataEntity : public std::enable_shared_from_this<DataEntity> {
     SP_OBJECT_BASE(DataEntity);
 
+   private:
+    std::shared_ptr<DataEntity> m_parent_ = nullptr;
+
+   protected:
+    explicit DataEntity(std::shared_ptr<DataEntity> const& parent = nullptr);
+
    public:
-    DataEntity() = default;
+    SP_DEFAULT_CONSTRUCT(DataEntity)
     virtual ~DataEntity() = default;
 
-    SP_DEFAULT_CONSTRUCT(DataEntity)
+    template <typename U>
+    static std::shared_ptr<DataEntity> New(U const& v);
+    virtual std::type_info const& value_type_info() const { return typeid(void); };
+    virtual int GetTypeId() const;
+    virtual DataEntity* GetParent();
+    virtual DataEntity const* GetParent() const;
+    virtual DataEntity* GetRoot();
+    virtual DataEntity const* GetRoot() const;
 
-    virtual std::shared_ptr<DataEntity> Duplicate() const = 0;
     virtual std::ostream& Serialize(std::ostream& os, int indent) const;
     virtual std::istream& Deserialize(std::istream& is);
 
-    virtual bool empty() const { return true; }
-    virtual std::type_info const& value_type_info() const { return typeid(void); };
-    virtual bool isLight() const { return false; }
     virtual bool isNull() const;
+    virtual bool isBlock() const;
+    virtual bool isTable() const;
+    virtual bool isArray() const;
+    virtual bool isLight() const;
+    virtual size_type Count() const { return 0; }
 
-    //    template <typename U>
-    //    operator U() const {
-    //        auto p = dynamic_cast<DataEntityWrapper<U> const*>(this);
-    //        if (p == nullptr) {
-    //            BAD_CAST << "Convert " << value_type_info().name() << " to " << typeid(U).name() << std::endl;
-    //        }
-    //        return p->value();
-    //    }
+    template <typename U>
+    bool Check(U const& u = true) const {
+        auto p = dynamic_cast<DataEntityWrapper<U> const*>(this);
+        return (p != nullptr) && p->value() == u;
+    }
+    template <typename U>
+    bool isA() const {
+        return dynamic_cast<DataEntityWrapper<U> const*>(this) != nullptr || dynamic_cast<U const*>(this) != nullptr;
+    }
+    template <typename U>
+    U as() const {
+        auto const* p = dynamic_cast<DataEntityWrapper<U> const*>(this);
+        if (p == nullptr) { BAD_CAST << "Can not convert to type[" << typeid(U).name() << "]" << std::endl; }
+        return p->value();
+    }
+
+    template <typename U>
+    U as(U const& default_value) const {
+        auto p = dynamic_cast<DataEntityWrapper<U> const*>(this);
+        return p == nullptr ? default_value : p->value();
+    }
 };
 inline std::ostream& operator<<(std::ostream& os, DataEntity const& v) {
     v.Serialize(os, 0);
@@ -55,94 +85,40 @@ template <typename V>
 struct DataEntityWrapper<V> : public DataEntity {
     SP_OBJECT_HEAD(DataEntityWrapper<V>, DataEntity);
     typedef V value_type;
-    value_type* m_data_ = nullptr;
-    bool m_owen_ = true;
-
-   public:
-    DataEntityWrapper() = default;
-    ~DataEntityWrapper() override {
-        if (m_owen_) { delete m_data_; }
-    };
-    explicit DataEntityWrapper(value_type const& d) : m_data_(new V(d)), m_owen_(true) {}
-    explicit DataEntityWrapper(value_type const* d) : m_data_(new V(*d)), m_owen_(true) {}
-    explicit DataEntityWrapper(value_type* d) : m_data_(d), m_owen_(false) {}
-    DataEntityWrapper(const this_type& other)
-        : m_data_((other.m_owen_) ? (new value_type(other.value())) : other.m_data_), m_owen_(other.m_owen_){};
-    DataEntityWrapper(this_type&& other) noexcept : m_data_(other.m_data_), m_owen_(other.m_owen_) {
-        other.m_data_ = nullptr;
-        other.m_owen_ = false;
-    };
-    template <typename U>
-    DataEntityWrapper& operator=(const U& other) {
-        *m_data_ = static_cast<value_type>(other);
-        return *this;
-    };
-    std::shared_ptr<DataEntity> Duplicate() const override {
-        return std::dynamic_pointer_cast<DataEntity>(std::make_shared<this_type>(*this));
-    }
-
-    std::ostream& Serialize(std::ostream& os, int indent) const override {
-        os << *m_data_;
-        return os;
-    }
-
-    std::type_info const& value_type_info() const override { return typeid(value_type); }
-    bool isLight() const override { return true; }
-    value_type& value() { return *m_data_; };
-    value_type const& value() const { return *m_data_; };
-    value_type* get() { return m_data_; }
-};
-
-template <>
-struct DataEntityWrapper<std::string> : public DataEntity {
-    SP_OBJECT_HEAD(DataEntityWrapper<std::string>, DataEntity);
-    typedef std::string value_type;
     value_type m_data_;
 
-   public:
+   protected:
     DataEntityWrapper() = default;
-    ~DataEntityWrapper() override{};
-    explicit DataEntityWrapper(value_type const& s) : m_data_(s) {}
-    explicit DataEntityWrapper(value_type const* s) : m_data_(*s) {}
+    explicit DataEntityWrapper(value_type const& d) : m_data_(d) {}
 
-    DataEntityWrapper(const this_type& other) : m_data_(other.m_data_){};
-    DataEntityWrapper(this_type&& other) noexcept : m_data_(other.m_data_){};
-    template <typename U>
-    DataEntityWrapper& operator=(const U& other) {
-        m_data_ = static_cast<value_type>(other);
-        return *this;
-    };
-    std::shared_ptr<DataEntity> Duplicate() const override {
-        return std::dynamic_pointer_cast<DataEntity>(std::make_shared<this_type>(*this));
-    }
+   public:
+    ~DataEntityWrapper() override = default;
+
+    std::type_info const& value_type_info() const override { return typeid(value_type); };
+
+    bool isLight() const override { return true; }
+    size_type Count() const override { return 1; }
+
+    static std::shared_ptr<this_type> New(value_type const& d) { return std::shared_ptr<this_type>(new this_type(d)); }
 
     std::ostream& Serialize(std::ostream& os, int indent) const override {
         os << m_data_;
         return os;
     }
 
-    std::type_info const& value_type_info() const override { return typeid(value_type); }
-    bool isLight() const override { return true; }
-    value_type& value() { return m_data_; };
-    value_type const& value() const { return m_data_; };
-    char const* get() const { return m_data_.c_str(); }
+    value_type value() const { return m_data_; };
 };
-template <typename U>
-std::shared_ptr<DataEntityWrapper<U>> make_data_entity(U const& u) {
-    return std::make_shared<DataEntityWrapper<U>>(u);
-}
-inline std::shared_ptr<DataEntityWrapper<std::string>> make_data_entity(char const* c) {
-    return std::make_shared<DataEntityWrapper<std::string>>(std::string(c));
-}
 
 template <typename U>
-U data_cast(DataEntity const& p) {
-    return dynamic_cast<DataEntityWrapper<U> const&>(p).value();
+std::shared_ptr<DataEntity> DataEntity::New(U const& v) {
+    return DataEntityWrapper<U>::New(v);
 }
 template <typename U>
-U data_cast(DataEntity const& p, U const& default_value) {
-    auto const* tp = dynamic_cast<DataEntityWrapper<U> const*>(&p);
-    return (tp == nullptr) ? default_value : tp->value();
+std::shared_ptr<DataEntityWrapper<U>> make_data_entity(U const& u, ENABLE_IF(traits::is_light_data<U>::value)) {
+    return DataEntityWrapper<U>::New(u);
+}
+inline std::shared_ptr<DataEntityWrapper<std::string>> make_data_entity(char const* u) {
+    return DataEntityWrapper<std::string>::New(std::string(u));
 }
 
 }  // namespace data {

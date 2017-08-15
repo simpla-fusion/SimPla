@@ -13,6 +13,7 @@
 #include "Log.h"
 #include "ObjectHead.h"
 #include "SingletonHolder.h"
+#include "type_traits.h"
 namespace simpla {
 template <typename TObj, typename... Args>
 class Factory {
@@ -22,7 +23,7 @@ class Factory {
     virtual ~Factory() = default;
 
     struct ObjectFactory {
-        std::map<std::string, std::function<TObj *(Args const &...)>> m_factory_;
+        std::map<std::string, std::function<std::shared_ptr<TObj>(Args const &...)>> m_factory_;
     };
     static bool HasCreator(std::string const &k) {
         auto const &f = SingletonHolder<ObjectFactory>::instance().m_factory_;
@@ -43,13 +44,21 @@ class Factory {
         }
         return res;
     };
-    static bool RegisterCreator(std::string const &k, std::function<TObj *(Args const &...)> const &fun) noexcept {
+    static bool RegisterCreator(std::string const &k,
+                                std::function<std::shared_ptr<TObj>(Args const &...)> const &fun) noexcept {
         return SingletonHolder<ObjectFactory>::instance().m_factory_.emplace(k, fun).second;
     };
     template <typename U>
-    static bool RegisterCreator(std::string const &k_hint = "") noexcept {
+    static bool RegisterCreator(std::string const &k_hint = "",
+                                ENABLE_IF((std::is_constructible<U, Args...>::value))) noexcept {
         return RegisterCreator(!k_hint.empty() ? k_hint : U::GetFancyTypeName_s(),
-                               [](Args const &... args) { return new U(args...); });
+                               [](Args const &... args) { return std::make_shared<U>(args...); });
+    };
+    template <typename U>
+    static bool RegisterCreator(std::string const &k_hint = "",
+                                ENABLE_IF((!std::is_constructible<U, Args...>::value))) noexcept {
+        return RegisterCreator(!k_hint.empty() ? k_hint : U::GetFancyTypeName_s(),
+                               [](Args const &... args) { return U::New(args...); });
     };
 
    private:
@@ -72,7 +81,7 @@ class Factory {
         auto it = f.find(k);
 
         if (it != f.end()) {
-            res.reset(it->second(std::forward<U>(args)...));
+            res = it->second(std::forward<U>(args)...);
             LOGGER << TObj::GetFancyTypeName_s() << "::" << it->first << "  is created!" << std::endl;
         } else {
             res = _CreateIfNotAbstract(std::integral_constant<bool, !std::is_abstract<TObj>::value>(),

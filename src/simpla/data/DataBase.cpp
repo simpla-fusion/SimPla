@@ -2,23 +2,18 @@
 // Created by salmon on 17-3-9.
 //
 
-#include "DataBackend.h"
+#include "DataBase.h"
 #include <iomanip>
 #include <string>
 
 #include <regex>
-#include "DataBackendMemory.h"
 #include "DataEntity.h"
 #include "DataTable.h"
-#include "backend/DataBackendHDF5.h"
-#include "backend/DataBackendLua.h"
+
+#include "simpla/data/db/DataBaseMemory.h"
 #include "simpla/utilities/Factory.h"
 namespace simpla {
 namespace data {
-
-bool DataBackend::s_RegisterDataBackends_ = DataBackendMemory::_is_registered &&  //
-                                            DataBackendHDF5::_is_registered &&    //
-                                            DataBackendLua::_is_registered;
 
 /**
 *   https://tools.ietf.org/html/rfc3986#page-50
@@ -71,8 +66,8 @@ bool DataBackend::s_RegisterDataBackends_ = DataBackendMemory::_is_registered &&
 *   */
 static std::regex uri_regex(R"(^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?)");
 static std::regex file_extension_regex(R"(^(.*)(\.([[:alnum:]]+))$)");
-std::shared_ptr<DataBackend> DataBackend::Create(std::string const &uri, std::string const &ext_param) {
-    if (uri.empty() || uri == "mem://") { return std::make_shared<DataBackendMemory>(); }
+std::shared_ptr<DataBase> DataBase::New(std::string const &uri) {
+    if (uri.empty() || uri == "mem://") { return DataBaseMemory::New(); }
 
     std::string scheme;
     std::string path = uri;
@@ -100,7 +95,7 @@ std::shared_ptr<DataBackend> DataBackend::Create(std::string const &uri, std::st
     }
 
     VERBOSE << "Create New Data Backend [ " << scheme << " : " << authority << path << " ]" << std::endl;
-    auto res = base_type::Create(scheme);
+    auto res = Factory<DataBase>::Create(scheme);
     ASSERT(res != nullptr);
     res->Connect(authority, path, query, fragment);
     return res;

@@ -11,9 +11,9 @@ namespace data {
 void Serializable::Serialize(data::DataTable &t_db) const {};
 void Serializable::Deserialize(const DataTable &) {}
 std::ostream &Serializable::Serialize(std::ostream &os, int indent) const {
-    data::DataTable tb;
-    Serialize(tb);
-    return tb.Serialize(os, indent);
+    auto tb = data::DataTable::New();
+    Serialize(*tb);
+    return tb->Serialize(os, indent);
 }
 std::istream &Serializable::Deserialize(std::istream &is) { return is; }
 std::ostream &operator<<(std::ostream &os, Serializable const &obj) { return obj.Serialize(os, 0); }

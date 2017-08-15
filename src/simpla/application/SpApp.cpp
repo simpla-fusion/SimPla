@@ -190,7 +190,7 @@ int main(int argc, char **argv) {
         std::string buffer;
         parallel::bcast_string(&buffer);
         auto t_cfg = std::make_shared<data::DataTable>("lua://");
-        t_cfg->backend()->Parser(buffer);
+        t_cfg->database()->Parser(buffer);
         app.Deserialize(*t_cfg);
     }
 

@@ -23,7 +23,6 @@ class DataBlock : public DataEntity {
     ~DataBlock() override = default;
     SP_DEFAULT_CONSTRUCT(DataBlock);
 
-    bool empty() const override { return true; }
     std::type_info const &value_type_info() const override { return typeid(Real); };
     virtual int GetNDIMS() const { return 0; }
     virtual size_type GetDepth() const { return 1; }
@@ -59,11 +58,7 @@ class DataMultiArray<simpla::Array<U, Others...>> : public DataBlock {
 
     explicit DataMultiArray(unsigned long depth) : m_data_(depth) {}
 
-    std::shared_ptr<DataEntity> Duplicate() const override {
-        return std::dynamic_pointer_cast<DataEntity>(std::make_shared<this_type>(*this));
-    }
     size_type size() const { return m_data_.size(); }
-    bool empty() const override { return m_data_.size() == 0; }
     std::type_info const &value_type_info() const override { return typeid(value_type); };
     size_type GetDepth() const override { return m_data_.size(); }
 

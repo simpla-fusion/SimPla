@@ -131,14 +131,14 @@ index_box_type const &Atlas::GetCoarsestIndexBox() const { return m_pimpl_->m_co
 //            d = std::get<1>(m_pimpl_->m_index_box_) - std::get<0>(m_pimpl_->m_index_box_);
 //            return d;
 //        }
-// size_type Atlas::size(int level) const { return m_backend_->m_layer_[level].size(); }
-// void Atlas::max_level(int ml) { m_backend_->m_max_level_ = ml; }
-// int Atlas::max_level() const { return m_backend_->m_max_level_; }
-// bool Atlas::has(id_type id) const { return m_backend_->m_nodes_.find(id) != m_backend_->m_nodes_.end(); };
+// size_type Atlas::size(int level) const { return m_database_->m_layer_[level].size(); }
+// void Atlas::max_level(int ml) { m_database_->m_max_level_ = ml; }
+// int Atlas::max_level() const { return m_database_->m_max_level_; }
+// bool Atlas::has(id_type id) const { return m_database_->m_nodes_.find(id) != m_database_->m_nodes_.end(); };
 //
 // RectMesh *Atlas::find(id_type id) {
-//    auto it = m_backend_->m_nodes_.find(id);
-//    if (it != m_backend_->m_nodes_.end()) {
+//    auto it = m_database_->m_nodes_.find(id);
+//    if (it != m_database_->m_nodes_.end()) {
 //        return it->second.get();
 //    } else {
 //        return nullptr;
@@ -146,17 +146,17 @@ index_box_type const &Atlas::GetCoarsestIndexBox() const { return m_pimpl_->m_co
 //}
 //
 // RectMesh const *Atlas::find(id_type id) const {
-//    auto it = m_backend_->m_nodes_.find(id);
-//    if (it != m_backend_->m_nodes_.end()) {
+//    auto it = m_database_->m_nodes_.find(id);
+//    if (it != m_database_->m_nodes_.end()) {
 //        return it->second.get();
 //    } else {
 //        return nullptr;
 //    }
 //}
 //
-// RectMesh *Atlas::at(id_type id) { return (m_backend_->m_nodes_.at(id)).get(); };
+// RectMesh *Atlas::at(id_type id) { return (m_database_->m_nodes_.at(id)).get(); };
 //
-// RectMesh const *Atlas::at(id_type id) const { return (m_backend_->m_nodes_.at(id)).get(); };
+// RectMesh const *Atlas::at(id_type id) const { return (m_database_->m_nodes_.at(id)).get(); };
 //
 // RectMesh const *Atlas::Connect(std::shared_ptr<RectMesh> const &p_m, RectMesh const *hint) {
 ////    m_pimpl_->m_nodes_.emplace(std::make_pair(p_m->id(), p_m));

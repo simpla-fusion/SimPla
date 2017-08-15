@@ -17,7 +17,7 @@ namespace data {
 // std::regex match_path_regex=std::regex (R"(^(/?([/\S]+/)*)?([^/]+)?$)", std::regex::optimize);
 
 std::shared_ptr<DataTable> ParseCommandLine(int argc, char **argv) {
-    auto res = std::make_shared<DataTable>();
+    auto res = DataTable::New();
 
     parse_cmd_line(argc, argv, [&](std::string const &opt, std::string const &value) -> int {
         res->SetValue(opt, value);
@@ -36,6 +36,7 @@ void PackLua(std::shared_ptr<DataEntity> const &d, std::ostream &os, int indent 
             os << std::endl << std::setw(indent + 1) << " " << k << "= ";
             PackLua(v, os, indent + 1);
             os << ",";
+            return 1;
         });
 
         os << std::endl
@@ -51,7 +52,7 @@ void PackLua(std::shared_ptr<DataEntity> const &d, std::ostream &os, int indent 
         //        os << "}" << std::endl;
     } else if (dynamic_cast<DataArray const *>(d.get()) != nullptr) {
         auto t = std::dynamic_pointer_cast<DataArray>(d);
-        size_type num = t->size();
+        size_type num = t->Count();
         os << "{";
         PackLua(t->Get(0), os, indent + 1);
         for (int i = 1; i < num; ++i) {

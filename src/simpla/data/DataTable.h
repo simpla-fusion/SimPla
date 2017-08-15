@@ -14,7 +14,7 @@
 namespace simpla {
 namespace data {
 
-class DataBackend;
+class DataBase;
 class KeyValue;
 
 class KeyValue : public std::pair<std::string, std::shared_ptr<DataEntity>> {
@@ -63,66 +63,55 @@ inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue{std
  */
 class DataTable : public DataEntity {
     SP_OBJECT_HEAD(DataTable, DataEntity);
-    std::shared_ptr<DataBackend> m_backend_;
+    std::shared_ptr<DataBase> m_database_;
+
+   protected:
+    explicit DataTable(std::shared_ptr<DataEntity> const& parent = nullptr,
+                       std::shared_ptr<DataBase> const& db = nullptr);
 
    public:
-    DataTable();
+    SP_DEFAULT_CONSTRUCT(DataTable);
     ~DataTable() override = default;
+    //******************************************************************************************************************
+    /** Interface DataBackend */
+    std::shared_ptr<DataBase> database() const { return m_database_; }
 
-    explicit DataTable(std::shared_ptr<DataBackend> const& p);
-    DataTable(std::string const& uri, std::string const& param = "");
+    static std::shared_ptr<DataTable> New(std::string const& uri);
+    static std::shared_ptr<DataTable> New(std::shared_ptr<DataBase> const& db = nullptr);
 
-    DataTable(const DataTable&);
-    DataTable(DataTable&&) noexcept;
-    void swap(DataTable& other);
-
+    int Flush();
     //******************************************************************************************************************
     /** Interface DataEntity */
+    //    std::ostream& Serialize(std::ostream& os, int indent) const override;
+    //    std::istream& Deserialize(std::istream& is) override;
 
-    std::ostream& Serialize(std::ostream& os, int indent) const override;
-    std::istream& Deserialize(std::istream& is) override;
+    bool has(std::string const& uri) const { return Get(uri) != nullptr; }
 
-    std::shared_ptr<DataEntity> Duplicate() const override {
-        return std::dynamic_pointer_cast<DataEntity>(std::make_shared<this_type>(*this));
-    }  //******************************************************************************************************************
-    /** Interface DataBackend */
-
-    std::shared_ptr<DataBackend> backend() const { return m_backend_; }
-
-    void Flush();
-    bool isNull() const override;
-    size_type size() const;
-
-    void Set(std::string const& uri, const std::shared_ptr<DataEntity>& src);
-    void Add(std::string const& uri, const std::shared_ptr<DataEntity>& p);
-    std::shared_ptr<DataEntity> Get(std::string const& uri);
+    bool isNull(std::string const& url = "") const;
+    size_type Count(std::string const& uri = "") const;
     std::shared_ptr<DataEntity> Get(std::string const& uri) const;
-    size_type Delete(std::string const& uri);
+    int Set(std::string const& uri, const std::shared_ptr<DataEntity>& v);
+    int Add(std::string const& uri, const std::shared_ptr<DataEntity>& v);
+    int Delete(std::string const& uri);
+    int Foreach(std::function<int(std::string const&, std::shared_ptr<DataEntity>)> const& f) const;
 
     void Set(DataTable const& other) { SetTable(other); }
-
     void SetTable(DataTable const& other);
     DataTable& GetTable(std::string const& uri);
     const DataTable& GetTable(std::string const& uri) const;
 
-    size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
-
     /** Interface DataBackend End */
-    //******************************************************************************************************************
-    bool has(std::string const& uri) const { return Get(uri) != nullptr; }
-    bool isTable(std::string const& uri) const { return std::dynamic_pointer_cast<DataTable>(Get(uri)) != nullptr; }
-    bool isArray(std::string const& uri) const { return std::dynamic_pointer_cast<DataArray>(Get(uri)) != nullptr; }
 
     template <typename U>
-    bool Check(std::string const& key, U const& u = true) const {
-        auto p = std::dynamic_pointer_cast<DataEntityWrapper<U>>(Get(key));
-        return (p != nullptr) && p->value() == u;
+    bool Check(std::string const& uri, U const& u = true) const {
+        auto p = Get(uri);
+        return p->Check(u);
     }
     template <typename U>
-    bool CheckType(std::string const& uri) const {
-        return std::dynamic_pointer_cast<DataEntityWrapper<U>>(Get(uri)) != nullptr;
+    bool isA(std::string const& uri) const {
+        auto p = Get(uri);
+        return p != nullptr && p->isA<U>();
     }
-    bool Check(std::string const& key) const { return Check(key, true); }
 
     template <typename U>
     U GetValue(std::string const& uri) const {
@@ -182,13 +171,13 @@ class DataTable : public DataEntity {
 };
 
 inline std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<KeyValue> const& u) {
-    auto res = std::make_shared<DataTable>();
+    auto res = DataTable::New();
     for (KeyValue const& v : u) { res->Set(v.first, v.second); }
     return std::dynamic_pointer_cast<DataEntity>(res);
 }
 template <typename... Others>
 std::shared_ptr<DataEntity> make_data_entity(KeyValue const& first, Others&&... others) {
-    auto res = std::make_shared<DataTable>();
+    auto res = DataTable::New();
     res->Set(first, std::forward<Others>(others)...);
     return res;
 }

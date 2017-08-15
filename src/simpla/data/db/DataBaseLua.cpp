@@ -1,7 +1,7 @@
 //
 // Created by salmon on 17-3-2.
 //
-#include "DataBackendLua.h"
+#include "DataBaseLua.h"
 #include "../DataArray.h"
 #include "../DataEntity.h"
 #include "../DataTable.h"
@@ -9,9 +9,9 @@
 #include "LuaObject.h"
 namespace simpla {
 namespace data {
-REGISTER_CREATOR(DataBackendLua, lua);
+REGISTER_CREATOR(DataBaseLua, lua);
 
-struct DataBackendLua::pimpl_s {
+struct DataBaseLua::pimpl_s {
     LuaObject m_lua_obj_;
 
     //    static int add_data_to_lua(LuaObject& lobj, std::shared_ptr<DataEntity> const& v);
@@ -27,40 +27,37 @@ struct DataBackendLua::pimpl_s {
     std::shared_ptr<DataEntity> make_data_array_lua(LuaObject const& lobj);
     std::shared_ptr<DataEntity> make_data_entity_lua(LuaObject const& lobj);
 };
-DataBackendLua::DataBackendLua() : m_pimpl_(new pimpl_s) { m_pimpl_->m_lua_obj_.init(); }
-DataBackendLua::DataBackendLua(DataBackendLua const& other) : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_lua_obj_ = other.m_pimpl_->m_lua_obj_;
-};
-DataBackendLua::~DataBackendLua() {}
-std::ostream& DataBackendLua::Print(std::ostream& os, int indent) const {
-    return m_pimpl_->m_lua_obj_.Print(os, indent);
-}
+DataBaseLua::DataBaseLua() : m_pimpl_(new pimpl_s) { m_pimpl_->m_lua_obj_.init(); }
 
-bool DataBackendLua::isNull() const { return m_pimpl_->m_lua_obj_.is_null(); }
-void DataBackendLua::Flush() {}
-void DataBackendLua::Parser(std::string const& str) { m_pimpl_->m_lua_obj_.parse_string(str); }
+DataBaseLua::~DataBaseLua() { delete m_pimpl_; }
+std::shared_ptr<DataBaseLua> DataBaseLua::New() { return std::shared_ptr<DataBaseLua>(new DataBaseLua); }
 
-void DataBackendLua::Connect(std::string const& authority, std::string const& path, std::string const& query,
-                             std::string const& fragment) {
+// std::ostream& DataBaseLua::Print(std::ostream& os, int indent) const { return m_pimpl_->m_lua_obj_.Print(os, indent);
+// }
+
+int DataBaseLua::Flush() { return SP_SUCCESS; }
+// void DataBaseLua::Parser(std::string const& str) { m_pimpl_->m_lua_obj_.parse_string(str); }
+
+int DataBaseLua::Connect(std::string const& authority, std::string const& path, std::string const& query,
+                         std::string const& fragment) {
     m_pimpl_->m_lua_obj_.parse_file(path);
+    return SP_SUCCESS;
 }
-void DataBackendLua::Disconnect() {}
-std::shared_ptr<DataBackend> DataBackendLua::Duplicate() const { return std::make_shared<DataBackendLua>(*this); }
-std::shared_ptr<DataBackend> DataBackendLua::CreateNew() const { return std::make_shared<DataBackendLua>(); }
+int DataBaseLua::Disconnect() { return SP_SUCCESS; }
 
 template <typename U>
-std::shared_ptr<DataEntity> DataBackendLua::pimpl_s::make_data_array_lua(LuaObject const& lobj) {
-    auto res = std::make_shared<DataArrayWrapper<U>>();
+std::shared_ptr<DataEntity> DataBaseLua::pimpl_s::make_data_array_lua(LuaObject const& lobj) {
+    auto res = DataArrayWrapper<U>::New();
     for (auto const& item : lobj) { res->Add(item.second.as<U>()); }
     return std::dynamic_pointer_cast<DataEntity>(res);
 }
-std::shared_ptr<DataEntity> DataBackendLua::pimpl_s::make_data_entity_lua(LuaObject const& lobj) {
+std::shared_ptr<DataEntity> DataBaseLua::pimpl_s::make_data_entity_lua(LuaObject const& lobj) {
     std::shared_ptr<DataEntity> res = nullptr;
 
     if (lobj.is_table()) {
-        auto p = std::make_unique<DataBackendLua>();
+        auto p = DataBaseLua::New();
         p->m_pimpl_->m_lua_obj_ = lobj;
-        res = std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>(std::move(p)));
+        res = DataTable::New(p);
     } else if (lobj.is_array()) {
         auto a = *lobj.begin();
         if (a.second.is_integer()) {
@@ -83,14 +80,11 @@ std::shared_ptr<DataEntity> DataBackendLua::pimpl_s::make_data_entity_lua(LuaObj
     }
     return res;
 }
-std::shared_ptr<DataEntity> DataBackendLua::Get(std::string const& key) const {
+std::shared_ptr<DataEntity> DataBaseLua::Get(std::string const& key) const {
     return m_pimpl_->make_data_entity_lua(m_pimpl_->m_lua_obj_.get(key));
 };
-std::shared_ptr<DataEntity> DataBackendLua::Get(int key) const {
-    return m_pimpl_->make_data_entity_lua(m_pimpl_->m_lua_obj_.get(key));
-}
 
-// int DataBackendLua::pack_s::set_data_to_lua(LuaObject& lobj, int key, std::shared_ptr<DataEntity> const& v,
+// int DataBaseLua::pack_s::set_data_to_lua(LuaObject& lobj, int key, std::shared_ptr<DataEntity> const& v,
 //                                             bool overwrite) {
 //    if (key == lobj.size()) { return add_data_to_lua(lobj, v); }
 //
@@ -119,7 +113,7 @@ std::shared_ptr<DataEntity> DataBackendLua::Get(int key) const {
 //    }
 //    return 1;
 //}
-// int DataBackendLua::pack_s::set_data_to_lua(LuaObject& lobj, std::string const& key,
+// int DataBaseLua::pack_s::set_data_to_lua(LuaObject& lobj, std::string const& key,
 //                                             std::shared_ptr<DataEntity> const& v, bool overwrite) {
 //    ASSERT(lobj.is_table() || lobj.is_global());
 //    if (lobj.has(key) && !overwrite) { return 0; }
@@ -145,7 +139,7 @@ std::shared_ptr<DataEntity> DataBackendLua::Get(int key) const {
 //    }
 //    return 1;
 //}
-// int DataBackendLua::pack_s::add_data_to_lua(LuaObject& lobj, std::shared_ptr<DataEntity> const& v) {
+// int DataBaseLua::pack_s::add_data_to_lua(LuaObject& lobj, std::shared_ptr<DataEntity> const& v) {
 //    if (v->isTable()) {
 //        auto const& db = dynamic_cast<DataTable const&>(*v);
 //        auto b = lobj.new_table("", 0, db.size());
@@ -168,7 +162,7 @@ std::shared_ptr<DataEntity> DataBackendLua::Get(int key) const {
 //    return 1;
 //}
 //
-// int DataBackendLua::pack_s::add_data_to_lua(LuaObject& lobj, std::string const& key,
+// int DataBaseLua::pack_s::add_data_to_lua(LuaObject& lobj, std::string const& key,
 //                                             std::shared_ptr<DataEntity> const& v) {
 //    ASSERT(lobj.is_table() || lobj.is_global());
 //
@@ -194,30 +188,36 @@ std::shared_ptr<DataEntity> DataBackendLua::Get(int key) const {
 //    }
 //    return 1;
 //}
-void DataBackendLua::Set(std::string const& key, const std::shared_ptr<DataEntity>& v) {
-    UNIMPLEMENTED;
-    //    DataBackendLua::pack_s::set_data_to_lua(m_pack_->m_lua_obj_, key, v, overwrite);
+int DataBaseLua::Set(std::string const& uri, const std::shared_ptr<DataEntity>& v) {
+    if (v == nullptr) { m_pimpl_->m_lua_obj_.parse_string(uri); }
+    return 1;
 }
 
-void DataBackendLua::Add(std::string const& key, const std::shared_ptr<DataEntity>& v) { UNIMPLEMENTED; }
-size_type DataBackendLua::Delete(std::string const& key) {
+int DataBaseLua::Add(std::string const& key, const std::shared_ptr<DataEntity>& v) {
     UNIMPLEMENTED;
     return 0;
 }
-size_type DataBackendLua::size() const { return m_pimpl_->m_lua_obj_.size(); }
+int DataBaseLua::Delete(std::string const& key) {
+    UNIMPLEMENTED;
+    return 0;
+}
+size_type DataBaseLua::Count(std::string const& uri) const { return uri.empty() ? m_pimpl_->m_lua_obj_.size() : 0; }
 
-size_type DataBackendLua::Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
+int DataBaseLua::Foreach(std::function<int(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
+    int counter = 0;
     if (m_pimpl_->m_lua_obj_.is_global()) {
         UNSUPPORTED;
     } else {
         for (auto const& item : m_pimpl_->m_lua_obj_) {
-            if (item.first.is_string()) { f(item.first.as<std::string>(), this->Get(item.first.as<std::string>())); }
+            if (item.first.is_string()) {
+                counter += f(item.first.as<std::string>(), this->Get(item.first.as<std::string>()));
+            }
         };
     }
-    return 0;
+    return counter;
 }
 
-// std::shared_ptr<DataEntity> DataBackendLua::Serialize(std::string const& url) {
+// std::shared_ptr<DataEntity> DataBaseLua::Serialize(std::string const& url) {
 //    auto obj = m_pack_->m_lua_obj_.get(url);
 //    if (obj.is_floating_point()) {
 //        return std::make_shared<DataEntityLua<double>>(obj);
@@ -226,14 +226,14 @@ size_type DataBackendLua::Foreach(std::function<void(std::string const&, std::sh
 //    } else if (obj.is_string()) {
 //        return std::make_shared<DataEntityLua<std::string>>(obj);
 //    } else if (obj.is_table()) {
-//        auto backend = std::make_shared<DataBackendLua>();
-//        backend->m_pack_->m_lua_obj_ = obj;
-//        return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>(backend));
+//        auto database = std::make_shared<DataBaseLua>();
+//        database->m_pack_->m_lua_obj_ = obj;
+//        return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>(database));
 //    } else {
 //        RUNTIME_ERROR << "Parse error! url=" << url << ":" << obj.get_typename() << std::endl;
 //    }
 //};
-// std::shared_ptr<DataEntity> DataBackendLua::Serialize(std::string const& url) const {
+// std::shared_ptr<DataEntity> DataBaseLua::Serialize(std::string const& url) const {
 //    auto obj = m_pack_->m_lua_obj_.get(url);
 //    ASSERT(!obj.empty());
 //    if (obj.is_floating_point()) {
@@ -243,9 +243,9 @@ size_type DataBackendLua::Foreach(std::function<void(std::string const&, std::sh
 //    } else if (obj.is_string()) {
 //        return std::make_shared<DataEntityLua<std::string>>(obj);
 //    } else if (obj.is_table()) {
-//        auto backend = std::make_shared<DataBackendLua>();
-//        backend->m_pack_->m_lua_obj_ = obj;
-//        return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>(backend));
+//        auto database = std::make_shared<DataBaseLua>();
+//        database->m_pack_->m_lua_obj_ = obj;
+//        return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>(database));
 //    } else {
 //        RUNTIME_ERROR << "Parse error! url=" << url << std::endl;
 //    }

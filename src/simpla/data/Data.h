@@ -5,15 +5,13 @@
 #ifndef SIMPLA_DATA_ALL_H
 #define SIMPLA_DATA_ALL_H
 
-#include "Properties.h"
 #include "DataArray.h"
-#include "DataBackend.h"
+#include "DataBase.h"
 #include "DataBlock.h"
 #include "DataEntity.h"
 #include "DataTable.h"
 #include "DataTraits.h"
-#include "simpla/data/backend/DataUtility.h"
-#include "simpla/utilities/Factory.h"
+#include "Properties.h"
 #include "Serializable.h"
 
 namespace simpla {

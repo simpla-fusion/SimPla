@@ -14,7 +14,7 @@ struct DataIOPort::pimpl_s {
 };
 
 DataIOPort::DataIOPort(std::string uri) : m_pimpl_(new pimpl_s) {
-    if (!uri.empty()) { m_pimpl_->m_data_ = std::make_shared<DataTable>(uri); }
+    if (!uri.empty()) { m_pimpl_->m_data_ = DataTable::New(uri); }
 }
 DataIOPort::~DataIOPort(){};
 
