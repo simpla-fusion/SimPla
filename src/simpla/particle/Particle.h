@@ -133,12 +133,11 @@ class Particle : public ParticleBase {
    private:
     mesh_type const* m_host_ = nullptr;
 
-   protected:
+   public:
     template <typename... Args>
     Particle(mesh_type* grp, Args&&... args)
         : ParticleBase(grp->GetMesh(), std::forward<Args>(args)...), m_host_(grp) {}
 
-   public:
     template <typename... Args>
     static std::shared_ptr<Particle> New(Args&&... args) {
         return std::shared_ptr<Particle>(new Particle(std::forward<Args>(args)...));

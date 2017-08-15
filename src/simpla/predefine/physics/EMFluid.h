@@ -62,7 +62,7 @@ class EMFluid {
 template <typename TM>
 void EMFluid<TM>::Serialize(DataTable& res) const {
     for (auto& item : m_fluid_sp_) {
-        auto t = res.GetTable("Species/" + item.first);
+        auto &t = res.GetTable("Species/" + item.first);
         t.template SetValue<double>("mass", item.second->mass / SI_proton_mass);
         t.template SetValue<double>("Z", item.second->charge / SI_elementary_charge);
         t.template SetValue<double>("ratio", item.second->ratio);
