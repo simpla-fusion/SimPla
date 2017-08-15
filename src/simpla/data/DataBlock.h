@@ -16,12 +16,15 @@ namespace data {
  */
 
 class DataBlock : public DataEntity {
-    SP_OBJECT_HEAD(DataBlock, DataEntity);
+    SP_OBJECT_HEAD(DataBlock, DataEntity)
+   protected:
+    explicit DataBlock(std::shared_ptr<DataEntity> const &parent = nullptr);
 
    public:
-    DataBlock() = default;
     ~DataBlock() override = default;
-    SP_DEFAULT_CONSTRUCT(DataBlock);
+    SP_DEFAULT_CONSTRUCT(DataBlock)
+
+    static std::shared_ptr<DataBlock> New(std::shared_ptr<DataEntity> const &parent = nullptr);
 
     std::type_info const &value_type_info() const override { return typeid(Real); };
     virtual int GetNDIMS() const { return 0; }
@@ -37,7 +40,31 @@ class DataBlock : public DataEntity {
 
     virtual void Clear() { UNIMPLEMENTED; };
     virtual void Copy(DataBlock const &other) { UNIMPLEMENTED; };
+    virtual void Copy2(DataBlock &other) const { other.Copy(*this); };
+    virtual void Copy(DataBlock const &other, index_box_type const &box) { UNIMPLEMENTED; };
+    virtual void Copy(DataBlock &other, index_box_type const &box) const { other.Copy(*this, box); };
 };
+
+template <typename T>
+struct DataBlockWrapper : public DataBlock {
+    SP_OBJECT_HEAD(DataBlockWrapper<T>, DataBlock);
+
+   protected:
+    explicit DataBlockWrapper(std::shared_ptr<DataEntity> const &parent = nullptr) : DataBlock(parent){};
+
+   public:
+    ~DataBlockWrapper() override = default;
+    SP_DEFAULT_CONSTRUCT(DataBlockWrapper)
+
+    static std::shared_ptr<this_type> New(std::shared_ptr<DataEntity> const &parent = nullptr) {
+        return std::shared_ptr<this_type>(new this_type(parent));
+    };
+
+   private:
+    typedef T data_type;
+    std::shared_ptr<data_type> m_data_;
+};
+
 template <typename... Others>
 class DataMultiArray;
 

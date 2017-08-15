@@ -9,14 +9,16 @@ namespace data {
 
 DataArray::DataArray(std::shared_ptr<DataEntity> const& parent) : DataEntity(parent) {}
 
+std::shared_ptr<DataArray> DataArray::New(std::shared_ptr<DataEntity> const& parent) {
+    return DataArrayDefault::New(parent);
+};
+
 int DataArray::Foreach(std::function<int(std::shared_ptr<DataEntity>)> const& fun) const {
     int res = 0;
     for (size_type i = 0, ie = Count(); i < ie; ++i) { res += fun(Get(i)); }
     return res;
 };
-std::shared_ptr<DataArray> DataArray::New(std::shared_ptr<DataEntity> const& parent) {
-    return DataArrayDefault::New(parent);
-};
+
 // std::ostream& DataArray::Serialize(std::ostream& os, int indent) const {
 //    size_type ie = Count();
 //    os << "[";
