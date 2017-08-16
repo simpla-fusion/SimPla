@@ -21,7 +21,6 @@ struct Context::pimpl_s {
     std::shared_ptr<MeshBase> m_mesh_;
 
     std::map<std::string, std::shared_ptr<DomainBase>> m_domains_;
-    std::map<std::string, std::shared_ptr<AttributeDesc>> m_global_attributes_;
 
     index_box_type m_bound_index_box_{{0, 0, 0}, {1, 1, 1}};
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
@@ -29,35 +28,41 @@ struct Context::pimpl_s {
 
 Context::Context() : m_pimpl_(new pimpl_s) {}
 Context::~Context() { delete m_pimpl_; }
-std::shared_ptr<Context> Context::New() { return std::shared_ptr<Context>(new Context); }
 
-void Context::Serialize(data::DataTable &cfg) const {
-    cfg.SetValue("Name", GetName());
-    GetMesh()->Serialize(cfg.GetTable("Mesh"));
-    for (auto const &item : m_pimpl_->m_domains_) { item.second->Serialize(cfg.GetTable("Domain/" + item.first)); }
-    for (auto const &item : m_pimpl_->m_models_) { item.second->Serialize(cfg.GetTable("Model/" + item.first)); }
+void Context::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const {
+    base_type::Serialize(cfg);
+    auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
+    if (tdb != nullptr) {
+        tdb->SetValue("Name", GetName());
+        GetMesh()->Serialize(tdb->Get("Mesh"));
+        for (auto const &item : m_pimpl_->m_domains_) { item.second->Serialize(tdb->Get("Domain/" + item.first)); }
+        for (auto const &item : m_pimpl_->m_models_) { item.second->Serialize(tdb->Get("Model/" + item.first)); }
+    }
 }
 
-void Context::Deserialize(const DataTable &cfg) {
+void Context::Deserialize(std::shared_ptr<const data::DataEntity> const &cfg) {
     DoInitialize();
 
-    m_pimpl_->m_mesh_ = CreateObject<MeshBase>(cfg.Get("Mesh").get());
-    cfg.GetTable("Model").Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> t_cfg) {
-        m_pimpl_->m_models_[key] = CreateObject<Model>(t_cfg.get());
-        return 1;
-    });
+    base_type::Deserialize(cfg);
+    auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
+    if (tdb != nullptr) {
+        m_pimpl_->m_mesh_ = MeshBase::New(tdb->Get("Mesh"));
+        tdb->GetTable("Model").Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> t_cfg) {
+            m_pimpl_->m_models_[key] = Model::New(t_cfg);
+            return 1;
+        });
 
-    cfg.GetTable("Domains").Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> t_cfg) {
-        m_pimpl_->m_domains_[key] =
-            CreateObject<DomainBase>(t_cfg.get(), GetMesh(), GetModel(cfg.GetValue<std::string>(key + "/Model", "")));
-        m_pimpl_->m_domains_[key]->SetName(key);
-        return 1;
-    });
+        tdb->GetTable("Domains").Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> t_cfg) {
+            m_pimpl_->m_domains_[key] =
+                DomainBase::New(t_cfg, GetMesh(), GetModel(tdb->GetValue<std::string>(key + "/Model", "")));
+            m_pimpl_->m_domains_[key]->SetName(key);
+            return 1;
+        });
 
-    std::get<0>(m_pimpl_->m_bound_box_) = cfg.GetValue("Mesh/Box/lo", point_type{0, 0, 0});
-    std::get<1>(m_pimpl_->m_bound_box_) = cfg.GetValue("Mesh/Box/hi", point_type{0, 0, 0});
-    std::get<1>(m_pimpl_->m_bound_index_box_) = cfg.GetValue("Mesh/Dimensions", nTuple<int, 3>{1, 1, 1});
-
+        std::get<0>(m_pimpl_->m_bound_box_) = tdb->GetValue("Mesh/Box/lo", point_type{0, 0, 0});
+        std::get<1>(m_pimpl_->m_bound_box_) = tdb->GetValue("Mesh/Box/hi", point_type{0, 0, 0});
+        std::get<1>(m_pimpl_->m_bound_index_box_) = tdb->GetValue("Mesh/Dimensions", nTuple<int, 3>{1, 1, 1});
+    }
     Click();
 }
 
@@ -124,8 +129,8 @@ std::shared_ptr<Model> Context::GetModel(std::string const &k) const {
     return it == m_pimpl_->m_models_.end() ? nullptr : it->second;
 }
 
-std::shared_ptr<DomainBase> Context::CreateDomain(std::string const &k, const DataTable &t) {
-    auto res = CreateObject<DomainBase>(&t, GetMesh(), GetModel(t.GetValue<std::string>("Model", k)));
+std::shared_ptr<DomainBase> Context::CreateDomain(std::string const &k, const std::shared_ptr<DataEntity> &t) {
+    auto res = DomainBase::New(&t, GetMesh());
     SetDomain(k, res);
     return res;
 };

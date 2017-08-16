@@ -9,9 +9,9 @@
 
 #include <memory>
 
-#include "simpla/data/Data.h"
-
 #include "Attribute.h"
+#include "SPObject.h"
+#include "simpla/data/Data.h"
 
 namespace simpla {
 namespace data {
@@ -20,7 +20,7 @@ class DataIOPort;
 namespace engine {
 class Context;
 class Atlas;
-class Schedule : public engine::SPObject, public Factory<Schedule> {
+class Schedule : public engine::SPObject {
     SP_OBJECT_DECLARE_MEMBERS(Schedule, SPObject)
 
    public:

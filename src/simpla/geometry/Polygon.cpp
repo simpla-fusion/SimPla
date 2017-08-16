@@ -16,18 +16,17 @@ namespace geometry {
 Polygon<2>::Polygon() {}
 Polygon<2>::~Polygon() {}
 
-std::shared_ptr<Polygon<2>> Polygon<2>::New() { return std::shared_ptr<Polygon<2>>(new Polygon<2>); }
-void Polygon<2>::Serialize(data::DataTable &cfg) const {
-    data::Serializable::Serialize(cfg);
-    cfg.SetValue("Type", "Polygon2D");
-
-    auto v_array = data::DataArrayWrapper<point2d_type>::New();
-
-    for (size_type s = 0, se = m_polygon_.size(); s < se; ++s) { v_array->Add(m_polygon_[s]); }
-
-    cfg.Set("data", std::dynamic_pointer_cast<data::DataEntity>(v_array));
+void Polygon<2>::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const {
+    base_type::Serialize(cfg);
+    auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
+    if (tdb != nullptr) {
+        tdb->SetValue("Type", "Polygon2D");
+        auto v_array = data::DataArrayWrapper<point2d_type>::New();
+        for (size_type s = 0, se = m_polygon_.size(); s < se; ++s) { v_array->Add(m_polygon_[s]); }
+        tdb->Set("data", std::dynamic_pointer_cast<data::DataEntity>(v_array));
+    }
 };
-void Polygon<2>::Deserialize(const data::DataTable &t) {}
+void Polygon<2>::Deserialize(std::shared_ptr<const data::DataEntity> const &cfg) { base_type::Deserialize(cfg); }
 
 // int Polygon<2>::box_intersection(point_type *x0, point_type *x1) const
 //{

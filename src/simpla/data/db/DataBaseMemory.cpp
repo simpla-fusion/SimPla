@@ -46,9 +46,7 @@ std::pair<DataBaseMemory*, std::string> DataBaseMemory::pimpl_s::get_table(DataB
 };
 
 DataBaseMemory::DataBaseMemory() : m_pimpl_(new pimpl_s) {}
-DataBaseMemory::~DataBaseMemory() = default;
-
-std::shared_ptr<DataBaseMemory> DataBaseMemory::New() { return std::shared_ptr<DataBaseMemory>(new DataBaseMemory); }
+DataBaseMemory::~DataBaseMemory() { delete m_pimpl_; };
 
 int DataBaseMemory::Connect(std::string const& authority, std::string const& path, std::string const& query,
                             std::string const& fragment) {

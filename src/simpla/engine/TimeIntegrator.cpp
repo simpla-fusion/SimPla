@@ -16,23 +16,28 @@ namespace engine {
 
 TimeIntegrator::TimeIntegrator() = default;
 TimeIntegrator::~TimeIntegrator() = default;
-std::shared_ptr<TimeIntegrator> TimeIntegrator::New() { return std::shared_ptr<TimeIntegrator>(new TimeIntegrator); }
 
-void TimeIntegrator::Serialize(data::DataTable &cfg) const {
+void TimeIntegrator::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const {
     base_type::Serialize(cfg);
-    cfg.SetValue("Name", GetName());
-    cfg.SetValue("TimeBegin", GetTimeNow());
-    cfg.SetValue("TimeEnd", GetTimeEnd());
-    cfg.SetValue("TimeStep", GetTimeStep());
-    cfg.SetValue("MaxStep", GetMaxStep());
+    auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
+    if (tdb != nullptr) {
+        tdb->SetValue("Name", GetName());
+        tdb->SetValue("TimeBegin", GetTimeNow());
+        tdb->SetValue("TimeEnd", GetTimeEnd());
+        tdb->SetValue("TimeStep", GetTimeStep());
+        tdb->SetValue("MaxStep", GetMaxStep());
+    }
 }
 
-void TimeIntegrator::Deserialize(const data::DataTable &cfg) {
+void TimeIntegrator::Deserialize(std::shared_ptr<const data::DataEntity> const &cfg) {
     base_type::Deserialize(cfg);
-    SetTimeNow(cfg.GetValue("TimeBegin", 0.0));
-    SetTimeEnd(cfg.GetValue("TimeEnd", 1.0));
-    SetTimeStep(cfg.GetValue("TimeStep", 0.5));
-    SetMaxStep(cfg.GetValue<size_type>("MaxStep", 0UL));
+    auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
+    if (tdb != nullptr) {
+        SetTimeNow(tdb->GetValue("TimeBegin", 0.0));
+        SetTimeEnd(tdb->GetValue("TimeEnd", 1.0));
+        SetTimeStep(tdb->GetValue("TimeStep", 0.5));
+        SetMaxStep(tdb->GetValue<size_type>("MaxStep", 0UL));
+    }
 };
 void TimeIntegrator::Synchronize() { Schedule::Synchronize(); }
 

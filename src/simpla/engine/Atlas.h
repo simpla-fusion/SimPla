@@ -13,7 +13,6 @@
 
 #include "simpla/algebra/nTuple.ext.h"
 #include "simpla/algebra/nTuple.h"
-#include "simpla/data/Serializable.h"
 #include "simpla/geometry/Chart.h"
 #include "simpla/utilities/Log.h"
 

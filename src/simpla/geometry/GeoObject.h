@@ -12,7 +12,6 @@
 
 #include "simpla/algebra/nTuple.ext.h"
 #include "simpla/algebra/nTuple.h"
-#include "simpla/data/Serializable.h"
 #include "simpla/engine/SPObject.h"
 #include "simpla/utilities/Factory.h"
 #include "simpla/utilities/Log.h"
@@ -68,8 +67,10 @@ namespace geometry {
  *
  *  @enduml
  */
-class GeoObject : public engine::SPObject, public Factory<GeoObject> {
+class GeoObject : public engine::SPObject {
     SP_OBJECT_DECLARE_MEMBERS(GeoObject, engine::SPObject)
+
+    static std::shared_ptr<GeoObject> New(std::shared_ptr<const data::DataEntity> const &);
 
     virtual int Dimension() const { return 3; };
     virtual Real Measure() const;

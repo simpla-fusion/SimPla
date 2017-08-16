@@ -17,6 +17,7 @@
 
 namespace simpla {
 namespace engine {
+REGISTER_CREATOR(MeshBase, Mesh);
 
 struct pack_s : public Patch::DataPack_s {
     std::map<std::string, Range<EntityId>> m_ranges_;
@@ -29,6 +30,24 @@ struct MeshBase::pimpl_s {
 MeshBase::MeshBase() : m_pimpl_(new pimpl_s), m_mesh_block_(MeshBlock::New({index_box_type{{0, 0, 0}, {1, 1, 1}}})) {}
 
 MeshBase::~MeshBase() { delete m_pimpl_; };
+
+void MeshBase::Serialize(std::shared_ptr<data::DataEntity> const& cfg) const { base_type::Serialize(cfg); }
+void MeshBase::Deserialize(std::shared_ptr<const data::DataEntity> const& cfg) {
+    base_type::Deserialize(cfg);
+    auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
+    if (tdb != nullptr) {
+        auto lo = tdb->GetValue<point_type>("Box/lo", point_type{0, 0, 0});
+        auto hi = tdb->GetValue<point_type>("Box/hi", point_type{1, 1, 1});
+
+        nTuple<int, 3> dims = tdb->GetValue("Dimensions", nTuple<int, 3>{1, 1, 1});
+
+        GetChart()->SetOrigin(lo);
+        GetChart()->SetScale((hi - lo) / (dims + 1));
+
+        GetChart()->Deserialize(tdb->Get("Chart"));
+    }
+    Click();
+};
 
 int MeshBase::GetNDIMS() const { return 3; }
 
@@ -64,22 +83,6 @@ box_type MeshBase::GetBox(int tag) const {
 //
 //    m_mesh_block_.swap(other.m_mesh_block_);
 //}
-
-void MeshBase::Serialize(data::DataTable& t_db) const {}
-void MeshBase::Deserialize(const DataTable& cfg) {
-    //    base_type::Deserialize(cfg);
-
-    auto lo = cfg.GetValue<point_type>("Box/lo", point_type{0, 0, 0});
-    auto hi = cfg.GetValue<point_type>("Box/hi", point_type{1, 1, 1});
-
-    nTuple<int, 3> dims = cfg.GetValue("Dimensions", nTuple<int, 3>{1, 1, 1});
-
-    GetChart()->SetOrigin(lo);
-    GetChart()->SetScale((hi - lo) / (dims + 1));
-
-    GetChart()->Deserialize(cfg.GetTable("Chart"));
-    Click();
-};
 
 void MeshBase::DoUpdate() {
     SPObject::DoUpdate();

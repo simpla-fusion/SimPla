@@ -14,16 +14,9 @@ namespace simpla {
 * class SAMRAITimeIntegrator
 */
 struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
-    SP_OBJECT_HEAD(SAMRAITimeIntegrator, engine::TimeIntegrator);
+    SP_OBJECT_DECLARE_MEMBERS(SAMRAITimeIntegrator, engine::TimeIntegrator);
 
    public:
-    SAMRAITimeIntegrator();
-    ~SAMRAITimeIntegrator() override;
-    SP_DEFAULT_CONSTRUCT(SAMRAITimeIntegrator)
-
-    void Serialize(data::DataTable &cfg) const override;
-    void Deserialize(const data::DataTable &cfg) override;
-
     void DoInitialize() override;
     void DoFinalize() override;
     void DoUpdate() override;
@@ -35,10 +28,6 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
 
     void CheckPoint() const override;
     void Dump() const override;
-
-   private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
 }  // namespace simpla{

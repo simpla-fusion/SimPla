@@ -21,15 +21,18 @@ namespace simpla {
 namespace data {
 class DataEntity;
 class DataBase : public Factory<DataBase>, public std::enable_shared_from_this<DataBase> {
-    SP_OBJECT_HEAD(DataBase, Factory<DataBase>);
+    SP_OBJECT_BASE(DataBase);
 
    protected:
     DataBase() = default;
 
    public:
     ~DataBase() override = default;
-
     SP_DEFAULT_CONSTRUCT(DataBase)
+    template <typename... Args>
+    static std::shared_ptr<DataBase> New(Args&&... args) {
+        return Factory<DataBase>::Create(std::forward<Args>(args)...);
+    }
 
     static std::shared_ptr<DataBase> New(std::string const& uri);
 
@@ -86,21 +89,24 @@ class DataBase : public Factory<DataBase>, public std::enable_shared_from_this<D
     static int s_num_of_pre_registered_;
 
 };  // class DataBase {
-
 #define SP_DATABASE_DECLARE_MEMBERS(_CLASS_NAME_)                                                             \
-    SP_OBJECT_HEAD(_CLASS_NAME_, DataBase);                                                                   \
-                                                                                                              \
+    SP_OBJECT_HEAD(_CLASS_NAME_, DataBase)                                                                    \
    protected:                                                                                                 \
     _CLASS_NAME_();                                                                                           \
                                                                                                               \
    public:                                                                                                    \
     ~_CLASS_NAME_() override;                                                                                 \
-    _CLASS_NAME_(_CLASS_NAME_ const& other) = delete;                                                         \
-    _CLASS_NAME_(_CLASS_NAME_&& other) = delete;                                                              \
-    _CLASS_NAME_& operator=(_CLASS_NAME_ const& other) = delete;                                              \
-    _CLASS_NAME_& operator=(_CLASS_NAME_&& other) = delete;                                                   \
+    SP_DEFAULT_CONSTRUCT(_CLASS_NAME_);                                                                       \
+    template <typename... Args>                                                                               \
+    static std::shared_ptr<_CLASS_NAME_> New(Args&&... args) {                                                \
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));                        \
+    };                                                                                                        \
                                                                                                               \
-    static std::shared_ptr<_CLASS_NAME_> New();                                                               \
+   private:                                                                                                   \
+    struct pimpl_s;                                                                                           \
+    pimpl_s* m_pimpl_;                                                                                        \
+                                                                                                              \
+   public:                                                                                                    \
     int Connect(std::string const& authority, std::string const& path, std::string const& query,              \
                 std::string const& fragment) override;                                                        \
     int Disconnect() override;                                                                                \

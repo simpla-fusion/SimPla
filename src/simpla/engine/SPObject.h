@@ -13,7 +13,9 @@
 #include <typeindex>
 #include <typeinfo>
 
-#include "simpla/data/Serializable.h"
+#include "simpla/data/DataEntity.h"
+#include "simpla/data/DataTable.h"
+#include "simpla/utilities/Factory.h"
 #include "simpla/utilities/ObjectHead.h"
 #include "simpla/utilities/Signal.h"
 
@@ -76,7 +78,7 @@ namespace engine {
 
  **/
 
-class SPObject : public data::Serializable, public std::enable_shared_from_this<SPObject> {
+class SPObject : public Factory<SPObject>, public std::enable_shared_from_this<SPObject> {
     SP_OBJECT_BASE(SPObject)
 
    protected:
@@ -84,14 +86,35 @@ class SPObject : public data::Serializable, public std::enable_shared_from_this<
 
    public:
     virtual ~SPObject();
-    static std::shared_ptr<SPObject> New();
+    virtual void Serialize(const std::shared_ptr<data::DataEntity> &cfg) const;
+    virtual void Deserialize(const std::shared_ptr<const data::DataEntity> &cfg);
 
-    void Serialize(data::DataTable &cfg) const override;
-    void Deserialize(const data::DataTable &cfg) override;
+    template <typename... Args>
+    static std::shared_ptr<SPObject> New(std::string const &s_type, Args &&... args) {
+        return Factory<SPObject>::Create(s_type, std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    static std::shared_ptr<SPObject> New(std::shared_ptr<data::DataEntity> const &v, Args &&... args) {
+        std::shared_ptr<SPObject> res = nullptr;
+        if (std::dynamic_pointer_cast<data::DataEntityWrapper<std::string>>(v) != nullptr) {
+            res = New(std::dynamic_pointer_cast<data::DataEntityWrapper<std::string>>(v)->value(),
+                      std::forward<Args>(args)...);
+        } else if (std::dynamic_pointer_cast<data::DataTable>(v) != nullptr) {
+            auto tdb = std::dynamic_pointer_cast<data::DataTable>(v);
+            res = New(std::dynamic_pointer_cast<data::DataTable>(v)->GetValue<std::string>("Tag", "Information"), tdb,
+                      std::forward<Args>(args)...);
+        }
+        return res;
+    }
+
+    template <typename U, typename... Args>
+    static std::shared_ptr<U> NewAs(Args &&... args) {
+        return std::dynamic_pointer_cast<U>(New(std::forward<Args>(args)...));
+    }
 
     const data::DataTable &db() const;
     data::DataTable &db();
-
     id_type GetGUID() const;
     void SetName(std::string const &);
     std::string const &GetName() const;
@@ -99,13 +122,11 @@ class SPObject : public data::Serializable, public std::enable_shared_from_this<
     void lock();
     void unlock();
     bool try_lock();
-
     void Tag();
     void Click();
     void ResetTag();
     size_type GetTagCount() const;
     size_type GetClickCount() const;
-
     bool isModified() const;
     bool isInitialized() const;
 
@@ -132,24 +153,42 @@ class SPObject : public data::Serializable, public std::enable_shared_from_this<
     struct pimpl_s;
     pimpl_s *m_pimpl_;
 };
-#define SP_OBJECT_DECLARE_MEMBERS(_CLASS_NAME_, _BASE_)            \
-    SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_)                           \
-   protected:                                                      \
-    _CLASS_NAME_();                                                \
-                                                                   \
-   public:                                                         \
-    ~_CLASS_NAME_() override;                                      \
-    SP_DEFAULT_CONSTRUCT(_CLASS_NAME_);                            \
-    static std::shared_ptr<_CLASS_NAME_> New();                    \
-    void Serialize(simpla::data::DataTable &cfg) const override;   \
-    void Deserialize(simpla::data::DataTable const &cfg) override; \
-                                                                   \
-   private:                                                        \
-    struct pimpl_s;                                                \
-    pimpl_s *m_pimpl_;                                             \
-                                                                   \
-   public:
 
+std::ostream &operator<<(std::ostream &os, SPObject const &obj);
+std::istream &operator<<(std::istream &os, SPObject &obj);
+
+std::ostream &operator<<(std::ostream &os, std::shared_ptr<const SPObject> const &obj);
+std::istream &operator<<(std::istream &os, std::shared_ptr<SPObject> const &obj);
+
+#define SP_OBJECT_DECLARE_MEMBERS(_CLASS_NAME_, _BASE_)                                                               \
+    SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_)                                                                              \
+   protected:                                                                                                         \
+    _CLASS_NAME_();                                                                                                   \
+                                                                                                                      \
+   public:                                                                                                            \
+    ~_CLASS_NAME_() override;                                                                                         \
+    SP_DEFAULT_CONSTRUCT(_CLASS_NAME_);                                                                               \
+    template <typename... Args>                                                                                       \
+    static std::shared_ptr<_CLASS_NAME_> New(Args &&... args) {                                                       \
+        return _TryCreate<_CLASS_NAME_>(std::is_constructible<_CLASS_NAME_, Args...>(), std::forward<Args>(args)...); \
+    };                                                                                                                \
+    void Serialize(std::shared_ptr<simpla::data::DataEntity> const &cfg) const override;                              \
+    void Deserialize(std::shared_ptr<simpla::data::DataEntity const> const &cfg) override;                            \
+                                                                                                                      \
+   private:                                                                                                           \
+    struct pimpl_s;                                                                                                   \
+    pimpl_s *m_pimpl_ = nullptr;                                                                                      \
+                                                                                                                      \
+    template <typename U, typename... Args>                                                                           \
+    static std::shared_ptr<U> _TryCreate(std::integral_constant<bool, true> _, Args &&... args) {                     \
+        return std::shared_ptr<U>(new U(std::forward<Args>(args)...));                                                \
+    }                                                                                                                 \
+    template <typename U, typename... Args>                                                                           \
+    static std::shared_ptr<U> _TryCreate(std::integral_constant<bool, false> _, Args &&... args) {                    \
+        return nullptr;                                                                                               \
+    }                                                                                                                 \
+                                                                                                                      \
+   public:                                                                                                            \
 //
 //    /**
 //     * @brief Initial setup.

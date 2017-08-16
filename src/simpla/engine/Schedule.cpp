@@ -13,7 +13,6 @@
 #include "Context.h"
 #include "Mesh.h"
 #include "simpla/data/Data.h"
-#include "simpla/data/DataIOPort.h"
 namespace simpla {
 namespace engine {
 struct Schedule::pimpl_s {
@@ -25,19 +24,17 @@ struct Schedule::pimpl_s {
 
 Schedule::Schedule() : m_pimpl_(new pimpl_s){};
 Schedule::~Schedule() { delete m_pimpl_; };
-std::shared_ptr<Schedule> Schedule::New() { return std::shared_ptr<Schedule>(new Schedule()); }
-void Schedule::Serialize(data::DataTable &cfg) const {
+void Schedule::Serialize(const std::shared_ptr<data::DataEntity> &cfg) const {
     base_type::Serialize(cfg);
-
-    //
-    cfg.SetValue("CheckPointInterval", GetCheckPointInterval());
-    //    if (m_data_io_ != nullptr) { m_data_io_->Serialize(cfg.GetTable("DataIOPort")); }
+    auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
+    if (tdb != nullptr) { tdb->SetValue("CheckPointInterval", GetCheckPointInterval()); }
+    //    if (m_data_io_ != nullptr) { m_data_io_->Serialize(cfg->GetTable("DataIOPort")); }
 }
 
-void Schedule::Deserialize(const DataTable &cfg) {
+void Schedule::Deserialize(const std::shared_ptr<const data::DataEntity> &cfg) {
     base_type::Deserialize(cfg);
     SetCheckPointInterval(static_cast<size_type>(db().GetValue<int>("CheckPointInterval", 1)));
-    //    m_data_io_ = std::make_shared<data::DataIOPort>(cfg.GetValue<std::string>("DataIOPort", ""));
+    //    m_data_io_ = std::make_shared<data::DataIOPort>(cfg->GetValue<std::string>("DataIOPort", ""));
 }
 
 size_type Schedule::GetNumberOfStep() const { return m_pimpl_->m_step_; }
@@ -55,8 +52,8 @@ bool Schedule::Done() const { return m_pimpl_->m_max_step_ == 0 ? false : m_pimp
 void Schedule::CheckPoint() const {
     //    data::DataTable t_cfg;
     //    GetAtlas()->Serialize(t_cfg);
-    //    t_cfg.SetValue("Step", m_pimpl_->m_step_);
-    //    m_ctx_->GetMesh()->Serialize(t_cfg.GetTable("Mesh"));
+    //    t_cfg->SetValue("Step", m_pimpl_->m_step_);
+    //    m_ctx_->GetMesh()->Serialize(t_cfg->GetTable("Mesh"));
     //    m_data_io_->Set(t);
     //    m_data_io_->Flush();
 }

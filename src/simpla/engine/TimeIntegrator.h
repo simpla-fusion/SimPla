@@ -9,8 +9,6 @@
 
 #include <memory>
 
-#include "simpla/data/Serializable.h"
-
 #include "Schedule.h"
 
 namespace simpla {
@@ -18,19 +16,9 @@ namespace engine {
 class Context;
 
 struct TimeIntegrator : public Schedule {
-    SP_OBJECT_HEAD(TimeIntegrator, Schedule);
-
-   protected:
-    TimeIntegrator();
+    SP_OBJECT_DECLARE_MEMBERS(TimeIntegrator, Schedule);
 
    public:
-    ~TimeIntegrator() override;
-    SP_DEFAULT_CONSTRUCT(TimeIntegrator);
-    static std::shared_ptr<TimeIntegrator> New();
-
-    void Serialize(data::DataTable &cfg) const override;
-    void Deserialize(const data::DataTable &cfg) override;
-
     void Synchronize() override;
     void NextStep() override;
     bool Done() const override { return m_time_now_ >= m_time_end_ || Schedule::Done(); }

@@ -17,7 +17,8 @@
 namespace simpla {
 template <typename TObj, typename... Args>
 class Factory {
-    SP_OBJECT_BASE(Factory)
+    typedef Factory this_type;
+
    public:
     Factory() = default;
     virtual ~Factory() = default;
@@ -71,7 +72,7 @@ class Factory {
         return nullptr;
     }
 
-   public:
+   protected:
     template <typename... U>
     static std::shared_ptr<TObj> Create(std::string const &k, U &&... args) {
         if (k.empty()) { return nullptr; }
@@ -84,8 +85,7 @@ class Factory {
             res = it->second(std::forward<U>(args)...);
             LOGGER << TObj::GetFancyTypeName_s() << "::" << it->first << "  is created!" << std::endl;
         } else {
-            res = _TryCreate(std::integral_constant<bool, std::is_constructible<TObj, Args...>::value>(),
-                             std::forward<U>(args)...);
+            res = _TryCreate(std::is_constructible<TObj, Args...>(), std::forward<U>(args)...);
 
             if (res == nullptr) {
                 std::ostringstream os;

@@ -22,13 +22,17 @@ struct Tokamak::pimpl_s {
 };
 Tokamak::Tokamak() : m_pimpl_(new pimpl_s) {}
 Tokamak::~Tokamak() { delete m_pimpl_; }
-std::shared_ptr<Tokamak> Tokamak::New() { return std::shared_ptr<Tokamak>(new Tokamak); }
-void Tokamak::Serialize(data::DataTable &cfg) const { base_type::Serialize(cfg); }
-void Tokamak::Deserialize(const data::DataTable &cfg) {
-    nTuple<Real, 2> phi = cfg.GetValue("Phi", nTuple<Real, 2>{0, TWOPI});
-    m_pimpl_->m_phi0_ = phi[0];
-    m_pimpl_->m_phi1_ = phi[1];
-    LoadGFile(cfg.GetValue<std::string>("gfile", "gfile"));
+void Tokamak::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const { base_type::Serialize(cfg); }
+
+void Tokamak::Deserialize(std::shared_ptr<const data::DataEntity> const &cfg) {
+    base_type::Deserialize(cfg);
+    auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
+    if (tdb != nullptr) {
+        nTuple<Real, 2> phi = tdb->GetValue("Phi", nTuple<Real, 2>{0, TWOPI});
+        m_pimpl_->m_phi0_ = phi[0];
+        m_pimpl_->m_phi1_ = phi[1];
+        LoadGFile(tdb->GetValue<std::string>("gfile", "gfile"));
+    }
     Update();
 }
 engine::Model::attr_fun Tokamak::GetAttribute(std::string const &attr_name) const {

@@ -9,8 +9,6 @@
 
 #include <map>
 
-#include "simpla/data/Serializable.h"
-
 #include "SPObject.h"
 
 namespace simpla {
@@ -86,7 +84,7 @@ class Context : public SPObject {
     void SetModel(std::string const &k, std::shared_ptr<Model> const &) const;
     std::shared_ptr<Model> GetModel(std::string const &k) const;
 
-    std::shared_ptr<DomainBase> CreateDomain(std::string const &k, const data::DataTable &);
+    std::shared_ptr<DomainBase> CreateDomain(std::string const &k, const std::shared_ptr<data::DataEntity> &);
     template <typename TD>
     std::shared_ptr<TD> CreateDomain(std::string const &k, Model const *m) {
         auto res = TD::New(GetMesh(), m);

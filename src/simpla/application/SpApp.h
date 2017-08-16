@@ -16,7 +16,7 @@
 namespace simpla {
 namespace application {
 struct SpApp : public engine::SPObject {
-    SP_OBJECT_DECLARE_MEMBERS(SpApp, engine::SPObject);
+    SP_OBJECT_DECLARE_MEMBERS(SpApp, engine::SPObject)
 
    public:
     void Config(int argc, char **argv);

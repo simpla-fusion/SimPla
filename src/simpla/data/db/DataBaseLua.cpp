@@ -28,9 +28,7 @@ struct DataBaseLua::pimpl_s {
     std::shared_ptr<DataEntity> make_data_entity_lua(LuaObject const& lobj);
 };
 DataBaseLua::DataBaseLua() : m_pimpl_(new pimpl_s) { m_pimpl_->m_lua_obj_.init(); }
-
 DataBaseLua::~DataBaseLua() { delete m_pimpl_; }
-std::shared_ptr<DataBaseLua> DataBaseLua::New() { return std::shared_ptr<DataBaseLua>(new DataBaseLua); }
 
 // std::ostream& DataBaseLua::Print(std::ostream& os, int indent) const { return m_pimpl_->m_lua_obj_.Print(os, indent);
 // }

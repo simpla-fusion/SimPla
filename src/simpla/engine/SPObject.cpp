@@ -8,11 +8,14 @@
 
 #include "SPObject.h"
 
+#include <simpla/data/DataTable.h>
 #include <boost/functional/hash.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <iomanip>
 #include <ostream>
+
+#include "simpla/data/db/DataBaseStdIO.h"
 #include "simpla/utilities/Log.h"
 #include "simpla/utilities/type_cast.h"
 
@@ -41,13 +44,12 @@ SPObject::~SPObject() {
     Finalize();
     delete m_pimpl_;
 }
-std::shared_ptr<SPObject> SPObject::New() { return std::shared_ptr<SPObject>(new SPObject); }
 
 const data::DataTable &SPObject::db() const { return *m_pimpl_->m_db_; }
 data::DataTable &SPObject::db() { return *m_pimpl_->m_db_; }
 
-void SPObject::Serialize(data::DataTable &cfg) const {}
-void SPObject::Deserialize(const data::DataTable &cfg) {}
+void SPObject::Serialize(const std::shared_ptr<data::DataEntity> &cfg) const {}
+void SPObject::Deserialize(const std::shared_ptr<const data::DataEntity> &cfg) {}
 
 id_type SPObject::GetGUID() const { return m_pimpl_->m_id_; }
 void SPObject::SetName(std::string const &s) { m_pimpl_->m_name_ = s; };
@@ -111,5 +113,32 @@ void SPObject::Finalize() {
         //        VERBOSE << "Finalize  \t:" << GetName() << "[" << GetTypeName() << "]" << std::endl;
     }
 };
+
+std::ostream &operator<<(std::ostream &os, SPObject const &obj) {
+    auto db = data::DataTable::New("stdio");
+    std::dynamic_pointer_cast<data::DataBaseStdIO>(db->database())->SetStream(os);
+    obj.Serialize(db);
+    return os;
+}
+std::istream &operator>>(std::istream &is, SPObject &obj) {
+    auto db = data::DataTable::New("stdio");
+    std::dynamic_pointer_cast<data::DataBaseStdIO>(db->database())->SetStream(is);
+    obj.Deserialize(db);
+    return is;
+}
+
+std::ostream &operator<<(std::ostream &os, std::shared_ptr<const SPObject> const &obj) {
+    if (obj != nullptr) {
+        os << *obj;
+    } else {
+        os << "<NULL OBJECT>";
+    }
+    return os;
+}
+std::istream &operator<<(std::istream &is, std::shared_ptr<SPObject> const &obj) {
+    if (obj != nullptr) { is >> *obj; }
+    return is;
+}
+
 }  // namespace engine{
 }  // namespace simpla { namespace base

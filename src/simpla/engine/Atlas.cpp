@@ -43,32 +43,38 @@ struct Atlas::pimpl_s {
 
 Atlas::Atlas() : m_pimpl_(new pimpl_s) { SPObject::SetName("Atlas"); };
 Atlas::~Atlas() { delete m_pimpl_; }
-std::shared_ptr<Atlas> Atlas::New() { return std::shared_ptr<Atlas>(new Atlas); }
 
-void Atlas::Serialize(data::DataTable &cfg) const {
-    data::Serializable::Serialize(cfg);
+void Atlas::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const {
+    base_type::Serialize(cfg);
+    auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
+    if (tdb != nullptr) {
+        tdb->SetValue("PeriodicDimension", GetPeriodicDimensions());
+        tdb->SetValue("CoarsestIndexBox", GetCoarsestIndexBox());
 
-    cfg.SetValue("PeriodicDimension", GetPeriodicDimensions());
-    cfg.SetValue("CoarsestIndexBox", GetCoarsestIndexBox());
-
-    cfg.SetValue("MaxLevel", GetMaxLevel());
-    cfg.SetValue("RefineRatio", GetRefineRatio(0));
-    cfg.SetValue("LargestPatchDimensions", GetLargestPatchDimensions());
-    cfg.SetValue("SmallestPatchDimensions", GetSmallestPatchDimensions());
+        tdb->SetValue("MaxLevel", GetMaxLevel());
+        tdb->SetValue("RefineRatio", GetRefineRatio(0));
+        tdb->SetValue("LargestPatchDimensions", GetLargestPatchDimensions());
+        tdb->SetValue("SmallestPatchDimensions", GetSmallestPatchDimensions());
+    }
 };
-void Atlas::Deserialize(const data::DataTable &cfg) {
-    m_pimpl_->m_periodic_dimensions_ = cfg.GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 0});
-    //    std::get<0>(m_pimpl_->m_coarsest_index_box_) = cfg.GetValue("CoarsestIndexBox/lo", nTuple<int, 3>{0, 0, 0});
-    std::get<1>(m_pimpl_->m_coarsest_index_box_) = cfg.GetValue("Dimensions", nTuple<int, 3>{1, 1, 1});
-    m_pimpl_->m_max_level_ = cfg.GetValue<int>("MaxLevel", 1);
+void Atlas::Deserialize(std::shared_ptr<const data::DataEntity> const &cfg) {
+    base_type::Deserialize(cfg);
+    auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
+    if (tdb != nullptr) {
+        m_pimpl_->m_periodic_dimensions_ = tdb->GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 0});
+        //    std::get<0>(m_pimpl_->m_coarsest_index_box_) =tdb->GetValue("CoarsestIndexBox/lo", nTuple<int, 3>{0, 0,
+        //    0});
+        std::get<1>(m_pimpl_->m_coarsest_index_box_) = tdb->GetValue("Dimensions", nTuple<int, 3>{1, 1, 1});
+        m_pimpl_->m_max_level_ = tdb->GetValue<int>("MaxLevel", 1);
 
-    m_pimpl_->m_smallest_dimensions_ = cfg.GetValue<nTuple<int, 3>>("SmallestPatchDimensions", nTuple<int, 3>{4, 4, 4});
+        m_pimpl_->m_smallest_dimensions_ =
+            tdb->GetValue<nTuple<int, 3>>("SmallestPatchDimensions", nTuple<int, 3>{4, 4, 4});
 
-    m_pimpl_->m_largest_dimensions_ =
-        cfg.GetValue<nTuple<int, 3>>("LargestPatchDimensions", nTuple<int, 3>{128, 128, 128});
+        m_pimpl_->m_largest_dimensions_ =
+            tdb->GetValue<nTuple<int, 3>>("LargestPatchDimensions", nTuple<int, 3>{128, 128, 128});
 
-    m_pimpl_->m_refine_ratio_[0] = cfg.GetValue<nTuple<int, 3>>("RefineRatio", nTuple<int, 3>{2, 2, 2});
-
+        m_pimpl_->m_refine_ratio_[0] = tdb->GetValue<nTuple<int, 3>>("RefineRatio", nTuple<int, 3>{2, 2, 2});
+    }
     Click();
 };
 

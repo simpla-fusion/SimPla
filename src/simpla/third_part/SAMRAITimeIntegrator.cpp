@@ -1202,11 +1202,12 @@ SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
 
 void SAMRAITimeIntegrator::Synchronize() { engine::TimeIntegrator::Synchronize(); }
 
-void SAMRAITimeIntegrator::Serialize(data::DataTable &cfg) const { base_type::Serialize(cfg); }
+void SAMRAITimeIntegrator::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const { base_type::Serialize(cfg); }
 
-void SAMRAITimeIntegrator::Deserialize(const data::DataTable &cfg) {
+void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<const data::DataEntity> const &cfg) {
     base_type::Deserialize(cfg);
-    m_pimpl_->m_output_URL_ = cfg.GetValue<std::string>("OutputURL", GetName() + ".simpla");
+    auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
+    if (tdb != nullptr) { m_pimpl_->m_output_URL_ = tdb->GetValue<std::string>("OutputURL", GetName() + ".simpla"); }
 }
 
 void SAMRAITimeIntegrator::DoInitialize() {

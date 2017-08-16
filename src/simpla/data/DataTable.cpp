@@ -30,8 +30,8 @@ int DataTable::Flush() { return m_database_->Flush(); }
 
 bool DataTable::isNull(std::string const& uri) const { return m_database_ == nullptr || m_database_->isNull(uri); }
 size_type DataTable::Count(std::string const& uri) const { return m_database_->Count(uri); }
-
-std::shared_ptr<DataEntity> DataTable::Get(std::string const& path) const { return m_database_->Get(path); };
+std::shared_ptr<DataEntity> DataTable::Get(std::string const& path) { return m_database_->Get(path); };
+std::shared_ptr<const DataEntity> DataTable::Get(std::string const& path) const { return m_database_->Get(path); };
 int DataTable::Set(std::string const& uri, const std::shared_ptr<DataEntity>& p) {
     auto dst = std::dynamic_pointer_cast<DataTable>(Get(uri));
     auto src = std::dynamic_pointer_cast<DataTable>(p);
@@ -113,7 +113,7 @@ DataTable& DataTable::GetTable(std::string const& uri) {
 }
 
 const DataTable& DataTable::GetTable(std::string const& uri) const {
-    auto res = std::dynamic_pointer_cast<DataTable>(Get(uri));
+    auto res = std::dynamic_pointer_cast<const DataTable>(Get(uri));
     if (res == nullptr) { OUT_OF_RANGE << "[" << uri << "] is not a table!" << std::endl; }
     return *res;
 }

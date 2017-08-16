@@ -14,11 +14,6 @@ namespace simpla {
 namespace data {
 class DataBaseMemory : public DataBase {
     SP_DATABASE_DECLARE_MEMBERS(DataBaseMemory)
-
-   private:
-    struct pimpl_s;
-    pimpl_s* m_pimpl_ = nullptr;
-
 };  // class DataBase {
 }  // namespace data {
 }  // namespace simpla{

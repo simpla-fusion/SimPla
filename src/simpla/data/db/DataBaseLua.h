@@ -17,10 +17,6 @@ class DataEntity;
 
 class DataBaseLua : public DataBase {
     SP_DATABASE_DECLARE_MEMBERS(DataBaseLua)
-
-   private:
-    struct pimpl_s;
-    pimpl_s *m_pimpl_ = nullptr;
 };
 }  // { namespace data {
 }  // namespace simpla

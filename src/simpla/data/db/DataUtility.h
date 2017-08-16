@@ -8,7 +8,6 @@
 #include <iomanip>
 #include <regex>
 #include <string>
-#include "simpla/data/Serializable.h"
 #include "simpla/utilities/Factory.h"
 #include "simpla/utilities/Log.h"
 #include "simpla/utilities/type_traits.h"
@@ -19,7 +18,7 @@ class DataEntity;
 std::shared_ptr<DataTable> ParseCommandLine(int argc, char **argv);
 
 template <typename U>
-std::shared_ptr<DataTable> const &Pack(U const &u, ENABLE_IF((std::is_base_of<Serializable, U>::value))) {
+std::shared_ptr<DataTable> const &Pack(U const &u, ENABLE_IF((std::is_base_of<DataEntity, U>::value))) {
     return u.Pack();
 }
 template <typename U>

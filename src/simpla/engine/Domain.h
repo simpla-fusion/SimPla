@@ -24,19 +24,12 @@ class Patch;
 class Model;
 class MeshBase;
 
-class DomainBase : public SPObject, public Factory<DomainBase, MeshBase *, std::shared_ptr<Model>> {
-    typedef Factory<DomainBase, MeshBase *, std::shared_ptr<Model>> creator_type;
-    SP_OBJECT_HEAD(DomainBase, SPObject)
+class DomainBase : public SPObject {
+    SP_OBJECT_DECLARE_MEMBERS(DomainBase, SPObject)
    protected:
-    explicit DomainBase(MeshBase *m, std::shared_ptr<Model> const &model = nullptr);
+    explicit DomainBase(std::shared_ptr<MeshBase> const &m, std::shared_ptr<Model> const &model = nullptr);
 
    public:
-    ~DomainBase() override;
-    SP_DEFAULT_CONSTRUCT(DomainBase);
-
-    void Serialize(data::DataTable &cfg) const override;
-    void Deserialize(const data::DataTable &cfg) override;
-
     void DoInitialize() override;
     void DoFinalize() override;
     void DoUpdate() override;
@@ -89,24 +82,13 @@ class DomainBase : public SPObject, public Factory<DomainBase, MeshBase *, std::
 template <typename TM, template <typename> class... Policies>
 class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
     typedef TM mesh_type;
-    SP_OBJECT_HEAD(Domain, DomainBase);
+    SP_OBJECT_DECLARE_MEMBERS(Domain, DomainBase);
 
    protected:
     template <typename... Args>
     explicit Domain(Args &&... args) : DomainBase(std::forward<Args>(args)...), Policies<this_type>(this)... {}
 
    public:
-    ~Domain() override = default;
-    SP_DEFAULT_CONSTRUCT(Domain);
-
-    template <typename... Args>
-    static std::shared_ptr<this_type> New(Args &&... args) {
-        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
-    }
-
-    void Serialize(data::DataTable &cfg) const override;
-    void Deserialize(const DataTable &cfg) override;
-
     void DoInitialCondition(Real time_now) override;
     void DoBoundaryCondition(Real time_now, Real dt) override;
     void DoAdvance(Real time_now, Real dt) override;
@@ -160,13 +142,13 @@ void Domain<TM, Policies...>::DoTagRefinementCells(Real time_now) {
 }
 
 template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::Serialize(data::DataTable &cfg) const {
+void Domain<TM, Policies...>::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const {
     DomainBase::Serialize(cfg);
     traits::_try_invoke_Serialize<Policies...>(this, cfg);
 };
 
 template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::Deserialize(const DataTable &cfg) {
+void Domain<TM, Policies...>::Deserialize(std::shared_ptr<const data::DataEntity> const &cfg)  {
     DomainBase::Deserialize(cfg);
     traits::_try_invoke_Deserialize<Policies...>(this, cfg);
 };

@@ -16,21 +16,22 @@
 namespace simpla {
 namespace engine {
 
-DomainBase::DomainBase(MeshBase* msh, std::shared_ptr<Model> const& model) : m_mesh_(msh), m_model_(model) {}
+DomainBase::DomainBase(std::shared_ptr<MeshBase> const& msh, std::shared_ptr<Model> const& model)
+    : m_mesh_(msh), m_model_(model) {}
 
 DomainBase::~DomainBase() = default;
 
-void DomainBase::Serialize(data::DataTable& cfg) const {
+void DomainBase::Serialize(std::shared_ptr<data::DataEntity> const& cfg) const {
     base_type::Serialize(cfg);
-    if (GetGeoBody() != nullptr) { GetGeoBody()->Serialize(cfg.GetTable("Body")); }
+    auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
+    if (tdb != nullptr) {
+        if (GetGeoBody() != nullptr) { GetGeoBody()->Serialize(tdb->Get("Body")); }
+    }
 }
-void DomainBase::Deserialize(const DataTable& cfg) {
+void DomainBase::Deserialize(const std::shared_ptr<const data::DataEntity>& cfg) {
     base_type::Deserialize(cfg);
-
-    m_geo_body_ = CreateObject<geometry::GeoObject>(cfg.Get("Body").get());
-    //    if (cfg.isTable("Body")) {  } else if (m_model_ != nullptr) {
-    //        m_geo_body_ = m_model_->GetGeoObject(cfg.GetValue<std::string>("Body", ""));
-    //    }
+    auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
+    if (tdb != nullptr) { m_geo_body_ = geometry::GeoObject::New(tdb->Get("Body")); }
     Click();
 };
 

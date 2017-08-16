@@ -17,7 +17,6 @@
 #include <gp_Quaternion.hxx>
 
 #include "simpla/data/DataTable.h"
-#include "simpla/data/Serializable.h"
 #include "simpla/utilities/SPDefines.h"
 namespace simpla {
 namespace geometry {
@@ -104,16 +103,17 @@ void GeoObjectOCC::Transform(Real scale, point_type const &location, nTuple<Real
     TopoDS_Shape tmp = m_pimpl_->m_occ_shape_;
     m_pimpl_->m_occ_shape_ = TransformShape(tmp, scale, location, rotate);
 }
-void GeoObjectOCC::Serialize(data::DataTable &cfg) const { GeoObject::Serialize(cfg); };
-void GeoObjectOCC::Deserialize(const data::DataTable &cfg) {
-    GeoObject::Deserialize(cfg);
-
-    m_pimpl_->m_occ_shape_ =
-        TransformShape(LoadShape(cfg.GetValue<std::string>("File", "")),
-                       cfg.GetValue<Real>("Scale", 1.0e-3),  // default length unit is "m", STEP length unit is "mm"
-                       cfg.GetValue("Location", point_type{0, 0, 0}),  //
-                       cfg.GetValue("Rotation", nTuple<Real, 4>{0, 0, 0, 0}));
-
+void GeoObjectOCC::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const { base_type::Serialize(cfg); };
+void GeoObjectOCC::Deserialize(std::shared_ptr<const data::DataEntity> const &cfg) {
+    base_type::Deserialize(cfg);
+    auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
+    if (tdb != nullptr) {
+        m_pimpl_->m_occ_shape_ = TransformShape(
+            LoadShape(tdb->GetValue<std::string>("File", "")),
+            tdb->GetValue<Real>("Scale", 1.0e-3),            // default length unit is "m", STEP length unit is "mm"
+            tdb->GetValue("Location", point_type{0, 0, 0}),  //
+            tdb->GetValue("Rotation", nTuple<Real, 4>{0, 0, 0, 0}));
+    }
     Update();
     VERBOSE << " [ Bounding Box :" << m_pimpl_->m_bounding_box_ << "]" << std::endl;
 };

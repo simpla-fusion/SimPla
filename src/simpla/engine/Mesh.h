@@ -25,17 +25,10 @@ class MeshBlock;
 class Patch;
 using namespace simpla::data;
 class Curve;
-struct MeshBase : public engine::SPObject, public AttributeGroup, public Factory<MeshBase> {
-    SP_OBJECT_HEAD(MeshBase, SPObject)
-   protected:
-    MeshBase();
+struct MeshBase : public engine::SPObject, public AttributeGroup {
+    SP_OBJECT_DECLARE_MEMBERS(MeshBase, SPObject)
 
    public:
-    ~MeshBase() override;
-    SP_DEFAULT_CONSTRUCT(MeshBase);
-    void Serialize(data::DataTable &cfg) const override;
-    void Deserialize(const data::DataTable &cfg) override;
-
     using AttributeGroup::attribute_type;
 
     int GetNDIMS() const;
@@ -91,30 +84,16 @@ struct MeshBase : public engine::SPObject, public AttributeGroup, public Factory
 
    private:
     std::shared_ptr<MeshBlock> m_mesh_block_ = nullptr;
-
-    struct pimpl_s;
-    pimpl_s *m_pimpl_;
 };
 
 template <typename TChart, template <typename> class... Policies>
 class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
-    SP_OBJECT_HEAD(Mesh, MeshBase);
-
-   protected:
-    Mesh() : Policies<this_type>(this)... {};
-
-   public:
-    ~Mesh() override = default;
-    SP_DEFAULT_CONSTRUCT(Mesh);
-    static std::shared_ptr<this_type> New() { return std::shared_ptr<this_type>(new this_type); };
-
+    SP_OBJECT_DECLARE_MEMBERS(Mesh, MeshBase)
    public:
     typedef Mesh<TChart, Policies...> mesh_type;
     typedef TChart chart_type;
 
     std::shared_ptr<chart_type> m_chart_;
-    void Deserialize(data::DataTable const &cfg) override;
-    void Serialize(data::DataTable &cfg) const override;
 
     void DoUpdate() override;
 
@@ -163,6 +142,10 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
 
     void AddEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g) override;
 };
+
+template <typename TM, template <typename> class... Policies>
+Mesh<TM, Policies...>::Mesh() : Policies<this_type>(this)... {};
+
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::TagRefinementRange(Range<EntityId> const &r) {
     if (!m_refinement_tags_.isNull() && !r.isNull()) {
@@ -180,7 +163,18 @@ namespace _detail {
 DEFINE_INVOKE_HELPER(SetEmbeddedBoundary)
 DEFINE_INVOKE_HELPER(Calculate)
 }
-
+template <typename TM, template <typename> class... Policies>
+void Mesh<TM, Policies...>::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const {
+    base_type::Serialize(cfg);
+    auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
+    if (tdb != nullptr) { m_chart_->Serialize(tdb->Get("Chart")); }
+    traits::_try_invoke_Serialize<Policies...>(this, cfg);
+};
+template <typename TM, template <typename> class... Policies>
+void Mesh<TM, Policies...>::Deserialize(std::shared_ptr<const data::DataEntity> const &cfg) {
+    base_type::Deserialize(cfg);
+    traits::_try_invoke_Deserialize<Policies...>(this, cfg);
+};
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::DoInitialCondition(Real time_now) {
     traits::_try_invoke_InitialCondition<Policies...>(this, time_now);
@@ -199,17 +193,6 @@ void Mesh<TM, Policies...>::DoTagRefinementCells(Real time_now) {
     traits::_try_invoke_TagRefinementCells<Policies...>(this, time_now);
 }
 
-template <typename TM, template <typename> class... Policies>
-void Mesh<TM, Policies...>::Serialize(data::DataTable &cfg) const {
-    base_type::Serialize(cfg);
-    m_chart_->Serialize(cfg.GetTable("Chart"));
-    traits::_try_invoke_Serialize<Policies...>(this, cfg);
-};
-template <typename TM, template <typename> class... Policies>
-void Mesh<TM, Policies...>::Deserialize(const DataTable &cfg) {
-    base_type::Deserialize(cfg);
-    traits::_try_invoke_Deserialize<Policies...>(this, cfg);
-};
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::AddEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g) {
     _detail::_try_invoke_SetEmbeddedBoundary<Policies...>(this, prefix, g);

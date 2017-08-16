@@ -28,12 +28,6 @@ struct csCartesian : public Chart {
     explicit csCartesian(Args &&... args) : base_type(std::forward<Args>(args)...) {}
 
    public:
-    template <typename... Args>
-    static std::shared_ptr<this_type> New(Args &&... args) {
-        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
-    }
-
-   public:
     typedef Real scalar_type;
 
     std::shared_ptr<Curve> GetAxisCurve(point_type const &x, int dir) const override;

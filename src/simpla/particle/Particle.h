@@ -26,11 +26,6 @@ class ParticleBase : public engine::Attribute {
     };
 
    public:
-    template <typename... Args>
-    static std::shared_ptr<ParticleBase> New(Args&&... args) {
-        return std::shared_ptr<ParticleBase>(new ParticleBase(std::forward<Args>(args)...));
-    }
-
     std::type_info const& value_type_info() const override { return typeid(Real); };
     int GetIFORM() const override { return FIBER; };
     int GetDOF() const override { return db().GetValue<int>("DOF", 1); };
@@ -137,11 +132,6 @@ class Particle : public ParticleBase {
     template <typename... Args>
     Particle(mesh_type* grp, Args&&... args)
         : ParticleBase(grp->GetMesh(), std::forward<Args>(args)...), m_host_(grp) {}
-
-    template <typename... Args>
-    static std::shared_ptr<Particle> New(Args&&... args) {
-        return std::shared_ptr<Particle>(new Particle(std::forward<Args>(args)...));
-    }
 
 };  // class Particle
 }  // namespace simpla{

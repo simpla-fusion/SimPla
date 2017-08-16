@@ -12,18 +12,12 @@ class Bnd_Box;
 namespace simpla {
 namespace geometry {
 struct GeoObjectOCC : public GeoObject {
-   public:
     SP_OBJECT_DECLARE_MEMBERS(GeoObjectOCC, GeoObject)
    protected:
     GeoObjectOCC(GeoObject const &);
     GeoObjectOCC(TopoDS_Shape const &);
 
    public:
-    template <typename... Args>
-    static std::shared_ptr<GeoObjectOCC> New(Args &&... args) {
-        return std::shared_ptr<GeoObjectOCC>(new GeoObjectOCC(std::forward<Args>(args)...));
-    }
-
     void Load(std::string const &);
     void Transform(Real scale, point_type const &location = point_type{0, 0, 0},
                    nTuple<Real, 4> const &rotate = nTuple<Real, 4>{0, 0, 0, 0});

@@ -10,7 +10,6 @@
 
 #include "simpla/SIMPLA_config.h"
 #include "simpla/data/DataTable.h"
-#include "simpla/data/Serializable.h"
 
 #include "GeoObject.h"
 
@@ -31,11 +30,6 @@ struct Cube : public GeoObject {
     Cube(box_type const &b) : m_bound_box_(b) {}
 
    public:
-    template <typename... Args>
-    static std::shared_ptr<Cube> New(Args &&... args) {
-        return std::shared_ptr<Cube>(new Cube(std::forward<Args>(args)...));
-    }
-
     box_type BoundingBox() const override { return m_bound_box_; };
 
     virtual bool CheckInside(point_type const &x) const override {

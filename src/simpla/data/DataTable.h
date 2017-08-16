@@ -89,7 +89,8 @@ class DataTable : public DataEntity {
 
     bool isNull(std::string const& url = "") const;
     size_type Count(std::string const& uri = "") const;
-    std::shared_ptr<DataEntity> Get(std::string const& uri) const;
+    std::shared_ptr<DataEntity> Get(std::string const& uri);
+    std::shared_ptr<const DataEntity> Get(std::string const& uri) const;
     int Set(std::string const& uri, const std::shared_ptr<DataEntity>& v);
     int Add(std::string const& uri, const std::shared_ptr<DataEntity>& v);
     int Delete(std::string const& uri);
@@ -116,14 +117,14 @@ class DataTable : public DataEntity {
 
     template <typename U>
     U GetValue(std::string const& uri) const {
-        auto res = std::dynamic_pointer_cast<DataEntityWrapper<U>>(Get(uri));
+        auto res = std::dynamic_pointer_cast<const DataEntityWrapper<U>>(Get(uri));
         if (res == nullptr) { OUT_OF_RANGE << "Can not find entity [" << uri << "]" << std::endl; }
         return res->value();
     }
 
     template <typename U>
     U GetValue(std::string const& uri, U const& default_value) const {
-        auto res = std::dynamic_pointer_cast<DataEntityWrapper<U>>(Get(uri));
+        auto res = std::dynamic_pointer_cast<const DataEntityWrapper<U>>(Get(uri));
         return res == nullptr ? default_value : res->value();
     }
 
@@ -184,21 +185,21 @@ std::shared_ptr<DataEntity> make_data_entity(KeyValue const& first, Others&&... 
 }
 }  // namespace data
 
-template <typename U, typename... Args>
-std::shared_ptr<U> CreateObject(data::DataEntity const* dataEntity, Args&&... args) {
-    std::shared_ptr<U> res = nullptr;
-    if (dynamic_cast<data::DataEntityWrapper<std::string> const*>(dataEntity) != nullptr) {
-        res = U::Create(dynamic_cast<data::DataEntityWrapper<std::string> const*>(dataEntity)->value(),
-                        std::forward<Args>(args)...);
-    } else if (dynamic_cast<data::DataTable const*>(dataEntity) != nullptr) {
-        auto const* db = dynamic_cast<data::DataTable const*>(dataEntity);
-        res = U::Create(db->GetValue<std::string>("Type", ""), std::forward<Args>(args)...);
-        res->Deserialize(*db);
-    } else {
-        res = U::Create("", std::forward<Args>(args)...);
-    }
-    return res;
-};
+// template <typename U, typename... Args>
+// std::shared_ptr<U> CreateObject(data::DataEntity const* dataEntity, Args&&... args) {
+//    std::shared_ptr<U> res = nullptr;
+//    if (dynamic_cast<data::DataEntityWrapper<std::string> const*>(dataEntity) != nullptr) {
+//        res = U::Create(dynamic_cast<data::DataEntityWrapper<std::string> const*>(dataEntity)->value(),
+//                        std::forward<Args>(args)...);
+//    } else if (dynamic_cast<data::DataTable const*>(dataEntity) != nullptr) {
+//        auto const* db = dynamic_cast<data::DataTable const*>(dataEntity);
+//        res = U::Create(db->GetValue<std::string>("Type", ""), std::forward<Args>(args)...);
+//        res->Deserialize(*db);
+//    } else {
+//        res = U::Create("", std::forward<Args>(args)...);
+//    }
+//    return res;
+//};
 
 }  // namespace simpla
 

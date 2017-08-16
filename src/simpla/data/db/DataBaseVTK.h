@@ -12,10 +12,6 @@ namespace data {
 
 class DataBaseVTK : public DataBase {
     SP_DATABASE_DECLARE_MEMBERS(DataBaseVTK);
-
-   private:
-    struct pimpl_s;
-    pimpl_s* m_pimpl_ = nullptr;
 };
 
 }  // namespace data

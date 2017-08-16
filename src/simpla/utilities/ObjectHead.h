@@ -43,4 +43,8 @@ namespace simpla {
                                                                                            \
    public:
 }
+
+
+
+
 #endif  // SIMPLA_SPOBJECTHEAD_H

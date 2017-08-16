@@ -15,18 +15,14 @@
 namespace simpla {
 namespace geometry {
 class Curve;
-struct Chart : public engine::SPObject, public Factory<Chart> {
-    SP_OBJECT_HEAD(Chart, engine::SPObject)
+struct Chart : public engine::SPObject {
+    SP_OBJECT_DECLARE_MEMBERS(Chart, engine::SPObject)
    protected:
     explicit Chart(point_type shift = point_type{0, 0, 0}, point_type scale = point_type{1, 1, 1},
                    point_type rotate = point_type{0, 0, 0});
 
    public:
-    ~Chart() override;
-    SP_DEFAULT_CONSTRUCT(Chart);
-
-    void Serialize(simpla::data::DataTable &cfg) const override;
-    void Deserialize(simpla::data::DataTable const &cfg) override;
+    static std::shared_ptr<Chart> New(std::shared_ptr<const data::DataEntity> const &);
 
     virtual std::shared_ptr<Curve> GetAxisCurve(point_type const &x, int dir) const { return nullptr; };
 

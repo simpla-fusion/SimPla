@@ -12,18 +12,32 @@ Chart::Chart(point_type shift, point_type scale, point_type rotate) {
     SetRotation(rotate);
 }
 Chart::~Chart() = default;
-
-void Chart::Serialize(data::DataTable &cfg) const {
-    cfg.SetValue("Type", GetFancyTypeName());
-    cfg.SetValue("Level", GetLevel());
-    cfg.SetValue("Origin", GetOrigin());
-    cfg.SetValue("Scale", GetScale());
-    cfg.SetValue("Rotation", GetRotation());
+std::shared_ptr<Chart> Chart::New(std::shared_ptr<const data::DataEntity> const &cfg) {
+    auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
+    std::shared_ptr<Chart> res = nullptr;
+    if (tdb != nullptr) {
+        res = New(tdb->GetValue<std::string>("Type"));
+        res->Deserialize(tdb);
+    }
+    return res;
 }
-void Chart::Deserialize(const data::DataTable &cfg) {
-    m_origin_ = cfg.GetValue<point_type>("Origin", m_origin_);
-    m_scale_ = cfg.GetValue<point_type>("Scale", m_scale_);
-    m_rotation_ = cfg.GetValue<point_type>("Rotation", m_rotation_);
+void Chart::Serialize(const std::shared_ptr<data::DataEntity> &cfg) const {
+    auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
+    if (tdb != nullptr) {
+        tdb->SetValue("Type", GetFancyTypeName());
+        tdb->SetValue("Level", GetLevel());
+        tdb->SetValue("Origin", GetOrigin());
+        tdb->SetValue("Scale", GetScale());
+        tdb->SetValue("Rotation", GetRotation());
+    }
+}
+void Chart::Deserialize(const std::shared_ptr<const data::DataEntity> &cfg) {
+    auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
+    if (tdb != nullptr) {
+        m_origin_ = tdb->GetValue<point_type>("Origin", m_origin_);
+        m_scale_ = tdb->GetValue<point_type>("Scale", m_scale_);
+        m_rotation_ = tdb->GetValue<point_type>("Rotation", m_rotation_);
+    }
 };
 
 void Chart::SetOrigin(point_type const &x) { m_origin_ = x; }

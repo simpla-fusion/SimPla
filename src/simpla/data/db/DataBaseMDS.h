@@ -10,9 +10,6 @@ namespace simpla {
 namespace data {
 class DataBaseMDS : public DataBase {
     SP_DATABASE_DECLARE_MEMBERS(DataBaseMDS);
-   private:
-    struct pimpl_s;
-    pimpl_s* m_pimpl_ = nullptr;
 };
 
 }  // namespace data{

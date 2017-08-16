@@ -50,52 +50,6 @@ class Patch;
 //    DEFAULT_ATTRIBUTE_TAG = GLOBAL
 //};
 
-struct AttributeDesc {
-   public:
-    AttributeDesc() = default;
-    ~AttributeDesc() = default;
-
-    AttributeDesc(AttributeDesc const &other)
-        : m_prefix_(other.m_prefix_),
-          m_iform_(other.m_iform_),
-          m_dof_(other.m_dof_),
-          m_t_info_(other.m_t_info_),
-          m_db_(other.m_db_){};
-    AttributeDesc(AttributeDesc &&other) noexcept
-        : m_prefix_(other.m_prefix_),
-          m_iform_(other.m_iform_),
-          m_dof_(other.m_dof_),
-          m_t_info_(other.m_t_info_),
-          m_db_(other.m_db_){};
-
-    template <typename... Args>
-    AttributeDesc(int IFORM, int DOF, std::type_info const &t_info, std::string const &s_prefix, Args &&... args)
-        : m_prefix_(s_prefix), m_iform_(IFORM), m_dof_(DOF), m_t_info_(t_info), m_db_(data::DataTable::New()) {
-        Properties().Set(std::forward<Args>(args)...);
-    }
-
-    data::DataTable &Properties() { return *m_db_; }
-    data::DataTable const &Properties() const { return *m_db_; }
-
-    void SetPrefix(std::string const &s) { m_prefix_ = s; }
-    std::string GetPrefix() const { return m_prefix_; }
-    int GetIFORM() const { return m_iform_; };
-
-    virtual int GetDOF() const { return m_dof_; };
-    virtual void SetDOF(int d) { m_dof_ = d; };
-    virtual std::type_info const &value_type_info() const { return m_t_info_; };
-
-    virtual id_type GetDescID() const;
-    virtual const AttributeDesc &GetDescription() const;
-
-   private:
-    std::string m_prefix_ = "";
-    int m_iform_ = 0;
-    int m_dof_ = 1;
-    std::type_info const &m_t_info_ = typeid(void);
-    std::shared_ptr<data::DataTable> m_db_;
-};
-
 class AttributeGroup {
    public:
     typedef Attribute attribute_type;
@@ -168,26 +122,15 @@ class AttributeGroup {
  *
  */
 struct Attribute : public SPObject {
-    SP_OBJECT_HEAD(Attribute, SPObject)
+    SP_OBJECT_DECLARE_MEMBERS(Attribute, SPObject)
 
    protected:
-    Attribute();
     template <typename... Args>
-    Attribute(Args &&... args) : Attribute() {
+    explicit Attribute(Args &&... args) : Attribute() {
         db().SetValue(std::forward<Args>(args)...);
     };
 
-   private:
-    struct pimpl_s;
-    pimpl_s *m_pimpl_;
-
    public:
-    ~Attribute() override;
-    SP_DEFAULT_CONSTRUCT(Attribute);
-
-    void Serialize(simpla::data::DataTable &cfg) const override;
-    void Deserialize(simpla::data::DataTable const &cfg) override;
-
     virtual std::type_info const &value_type_info() const = 0;
     virtual int GetIFORM() const = 0;
     virtual int GetDOF() const = 0;

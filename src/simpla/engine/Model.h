@@ -10,7 +10,6 @@
 #include <functional>
 
 #include "simpla/algebra/Field.h"
-#include "simpla/data/Serializable.h"
 #include "simpla/geometry/GeoObject.h"
 
 #include "SPObject.h"
@@ -20,7 +19,7 @@ namespace simpla {
 namespace engine {
 using namespace data;
 
-class Model : public SPObject, public Factory<Model> {
+class Model : public SPObject {
     SP_OBJECT_DECLARE_MEMBERS(Model, SPObject)
 
     void DoInitialize() override;

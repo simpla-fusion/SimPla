@@ -5,10 +5,11 @@
 #include "DataBaseMDS.h"
 namespace simpla {
 namespace data {
+REGISTER_CREATOR(DataBaseMDS, mds);
+
 struct DataBaseMDS::pimpl_s {};
 DataBaseMDS::DataBaseMDS() : m_pimpl_(new pimpl_s) {}
 DataBaseMDS::~DataBaseMDS() { delete m_pimpl_; }
-std::shared_ptr<DataBaseMDS> DataBaseMDS::New() { return std::shared_ptr<DataBaseMDS>(new DataBaseMDS); }
 
 int DataBaseMDS::Connect(std::string const& authority, std::string const& path, std::string const& query,
                          std::string const& fragment) {

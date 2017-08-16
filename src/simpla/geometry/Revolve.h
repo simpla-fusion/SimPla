@@ -14,28 +14,16 @@
 
 namespace simpla {
 namespace geometry {
-
+template <int NDIMS>
+class Polygon;
 template <typename TObj>
 class Revolve : public GeoObject {
-    SP_OBJECT_HEAD(Revolve<TObj>, GeoObject)
+    SP_OBJECT_DECLARE_MEMBERS(Revolve<TObj>, GeoObject)
+   protected:
+    Revolve(TObj const &obj, int ZAxis = 2) : base_obj(obj) { m_axis_[ZAxis] = 1; }
+    Revolve(TObj const &obj, point_type origin, point_type axis) : base_obj(obj), m_axis_(axis), m_origin_(origin) {}
 
    public:
-    Revolve(TObj const &obj, int ZAxis = 2) : base_obj(obj), GeoObject() { m_axis_[ZAxis] = 1; }
-    Revolve(TObj const &obj, point_type origin, point_type axis)
-        : base_obj(obj), m_axis_(axis), m_origin_(origin), GeoObject() {}
-    Revolve(this_type const &other)
-        : base_obj(other.base_obj), m_origin_(other.m_origin_), m_axis_(other.m_axis_), GeoObject() {}
-
-    ~Revolve() override = default;
-
-    void Serialize(data::DataTable &cfg) const override {
-        base_type::Serialize(cfg);
-        cfg.template SetValue<point_type>("Axis", m_axis_);
-        cfg.template SetValue<point_type>("Origin", m_origin_);
-        cfg.Set("2DShape", base_obj.Pack());
-    };
-    void Deserialize(const data::DataTable &cfg) override {}
-
     virtual box_type BoundingBox() const override { return box_type{{0, 0, 0}, {1, 2, 3}}; };
 
     bool CheckInside(point_type const &x) const override { return base_obj.CheckInside(MapTo2d(x)); };
@@ -52,6 +40,20 @@ class Revolve : public GeoObject {
 
     TObj const &base_obj;
 };
+template <typename TObj>
+void Revolve<TObj>::Serialize(const std::shared_ptr<data::DataEntity> &cfg) const {
+    base_type::Serialize(cfg);
+    auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
+    if (tdb != nullptr) {
+        tdb->template SetValue<point_type>("Axis", m_axis_);
+        tdb->template SetValue<point_type>("Origin", m_origin_);
+        tdb->Set("2DShape", base_obj.Pack());
+    }
+};
+template <typename TObj>
+void Revolve<TObj>::Deserialize(const std::shared_ptr<const data::DataEntity> &cfg) {
+    base_type::Deserialize(cfg);
+}
 
 template <typename TObj>
 std::shared_ptr<GeoObject> revolve(TObj const &obj, int phi_axis = 2) {
@@ -59,25 +61,12 @@ std::shared_ptr<GeoObject> revolve(TObj const &obj, int phi_axis = 2) {
 }
 
 class RevolveZ : public GeoObject {
-    SP_OBJECT_HEAD(RevolveZ, GeoObject)
-
-   public:
+    SP_OBJECT_DECLARE_MEMBERS(RevolveZ, GeoObject)
+   protected:
     RevolveZ(std::shared_ptr<Polygon<2>> const &obj, int phi_axis, Real phi0, Real phi1, point_type origin = {0, 0, 0})
         : m_origin_(origin), base_obj(obj), m_phi_axe_(phi_axis), m_angle_min_(phi0), m_angle_max_(phi1) {}
-    RevolveZ(this_type const &other)
-        : base_obj(other.base_obj), m_origin_(other.m_origin_), m_phi_axe_(other.m_phi_axe_) {}
-    ~RevolveZ() override = default;
 
-    void Serialize(data::DataTable &cfg) const override {
-        base_type::Serialize(cfg);
-        cfg.template SetValue("Axis", m_phi_axe_);
-        cfg.template SetValue("Origin", m_origin_);
-        cfg.template SetValue("Phi", nTuple<Real, 2>{m_angle_min_, m_angle_max_});
-
-        base_obj->Serialize(cfg.GetTable("2DShape"));
-    };
-    void Deserialize(const data::DataTable &cfg) override {}
-
+   public:
     box_type BoundingBox() const override {
         nTuple<Real, 2> lo, hi;
         std::tie(lo, hi) = base_obj->BoundingBox();

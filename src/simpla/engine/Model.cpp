@@ -20,18 +20,24 @@ struct Model::pimpl_s {
 
 Model::Model() : m_pimpl_(new pimpl_s) {}
 Model::~Model() { delete m_pimpl_; };
-void Model::Serialize(data::DataTable& cfg) const {
+void Model::Serialize(const std::shared_ptr<data::DataEntity>& cfg) const {
     base_type::Serialize(cfg);
-    for (auto const& item : m_pimpl_->m_g_objs_) {
-        if (item.second != nullptr) { item.second->Serialize(cfg.GetTable(item.first)); }
+    auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
+    if (tdb != nullptr) {
+        for (auto const& item : m_pimpl_->m_g_objs_) {
+            if (item.second != nullptr) { item.second->Serialize(tdb->Get(item.first)); }
+        }
     }
 };
-void Model::Deserialize(const DataTable& cfg) {
+void Model::Deserialize(const std::shared_ptr<const data::DataEntity>& cfg) {
     base_type::Deserialize(cfg);
-    cfg.Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> v) {
-        if (v != nullptr) { SetObject(k, CreateObject<geometry::GeoObject>(v.get())); }
-        return (v != nullptr) ? 1 : 0;
-    });
+    auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
+    if (tdb != nullptr) {
+        tdb->Foreach([&](std::string const& k, std::shared_ptr<const data::DataEntity> v) {
+            if (v != nullptr) { SetObject(k, geometry::GeoObject::New(v)); }
+            return (v != nullptr) ? 1 : 0;
+        });
+    }
 };
 void Model::DoInitialize() {}
 void Model::DoFinalize() {}

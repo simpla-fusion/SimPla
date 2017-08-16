@@ -469,7 +469,6 @@ int DataBaseHDF5::pimpl_s::HDF5Add(DataBaseHDF5 const* self, hid_t g_id, std::st
 }
 DataBaseHDF5::DataBaseHDF5() : m_pimpl_(new pimpl_s) {}
 DataBaseHDF5::~DataBaseHDF5() { delete m_pimpl_; };
-std::shared_ptr<DataBaseHDF5> DataBaseHDF5::New() { return std::shared_ptr<DataBaseHDF5>(new DataBaseHDF5); }
 
 int DataBaseHDF5::Connect(std::string const& authority, std::string const& path, std::string const& query,
                           std::string const& fragment) {

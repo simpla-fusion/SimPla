@@ -39,12 +39,6 @@ struct csCylindrical : public Chart {
     explicit csCylindrical(Args &&... args) : base_type(std::forward<Args>(args)...) {}
 
    public:
-    template <typename... Args>
-    static std::shared_ptr<this_type> New(Args &&... args) {
-        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
-    }
-
-   public:
     typedef Real scalar_type;
 
     static constexpr int PhiAxis = 2;

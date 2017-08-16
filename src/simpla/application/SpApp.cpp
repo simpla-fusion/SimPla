@@ -34,21 +34,27 @@ SpApp::SpApp() : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_atlas_ = engine::Atlas::New();
 }
 SpApp::~SpApp() { delete m_pimpl_; };
-void SpApp::Serialize(data::DataTable &cfg) const {
-    if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Serialize(cfg.GetTable("Schedule")); }
+void SpApp::Serialize(const std::shared_ptr<data::DataEntity> &cfg) const {
+    base_type::Serialize(cfg);
 
-    m_pimpl_->m_context_->Serialize(cfg.GetTable("Context"));
-    m_pimpl_->m_atlas_->Serialize(cfg.GetTable("Atlas"));
-    //    ctx->data::Serializable::Serialize(std::cout, 0);
-    //    GetAtlas()->data::Serializable::Serialize(std::cout, 0);
+    auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
+    if (tdb != nullptr) {
+        if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Serialize(tdb->Get("Schedule")); }
+
+        m_pimpl_->m_context_->Serialize(tdb->Get("Context"));
+        m_pimpl_->m_atlas_->Serialize(tdb->Get("Atlas"));
+    }
 };
-void SpApp::Deserialize(const data::DataTable &cfg) {
-    m_pimpl_->m_context_->Deserialize(cfg.GetTable("Context"));
-    m_pimpl_->m_atlas_->Deserialize(cfg.GetTable("Atlas"));
-    m_pimpl_->m_schedule_ = CreateObject<engine::Schedule>(&cfg);
-    m_pimpl_->m_schedule_->SetContext(m_pimpl_->m_context_);
-    m_pimpl_->m_schedule_->SetAtlas(m_pimpl_->m_atlas_);
-
+void SpApp::Deserialize(const std::shared_ptr<const data::DataEntity> &cfg) {
+    base_type::Deserialize(cfg);
+    auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
+    if (tdb != nullptr) {
+        m_pimpl_->m_context_->Deserialize(tdb->Get("Context"));
+        m_pimpl_->m_atlas_->Deserialize(tdb->Get("Atlas"));
+        m_pimpl_->m_schedule_ = engine::Schedule::New(&cfg);
+        m_pimpl_->m_schedule_->SetContext(m_pimpl_->m_context_);
+        m_pimpl_->m_schedule_->SetAtlas(m_pimpl_->m_atlas_);
+    }
     Click();
 };
 
@@ -129,7 +135,7 @@ void SpApp::Config(int argc, char **argv) {
     cfg->Set("Schedule", input_file_cfg->Get("Schedule"));
     cfg->Set(*cmd_line_cfg);
 
-    Deserialize(*cfg);
+    Deserialize(cfg);
 }
 
 void SpApp::DoInitialize() {
@@ -176,8 +182,8 @@ int main(int argc, char **argv) {
     parallel::init(argc, argv);
 
     MESSAGE << std::endl
-            << engine::Model::ShowDescription() << std::endl
-            << engine::DomainBase::ShowDescription() << std::endl;
+            << data::DataBase::ShowDescription() << std::endl
+            << engine::SPObject::ShowDescription() << std::endl;
 
     GLOBAL_COMM.barrier();
 
@@ -188,7 +194,7 @@ int main(int argc, char **argv) {
         app->Config(argc, argv);
         std::ostringstream os;
         auto t_db = data::DataTable::New();
-        app->Serialize(*t_db);
+        app->Serialize(t_db);
         data::Pack(t_db, os, "lua");
         std::string buffer = os.str();
         parallel::bcast_string(&buffer);
@@ -197,7 +203,7 @@ int main(int argc, char **argv) {
         parallel::bcast_string(&buffer);
         auto t_cfg = data::DataTable::New("lua://");
         t_cfg->Set(buffer, nullptr);
-        app->Deserialize(*t_cfg);
+        app->Deserialize(t_cfg);
     }
 
     app->Update();

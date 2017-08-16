@@ -14,10 +14,6 @@ namespace simpla {
 namespace data {
 class DataBaseHDF5 : public DataBase {
     SP_DATABASE_DECLARE_MEMBERS(DataBaseHDF5)
-
-   private:
-    struct pimpl_s;
-    pimpl_s* m_pimpl_ = nullptr;
 };
 
 }  // namespace data{
