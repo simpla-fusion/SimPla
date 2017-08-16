@@ -90,7 +90,7 @@ class Factory {
             if (res == nullptr) {
                 std::ostringstream os;
                 os << "Can not find Creator " << k << std::endl;
-                os << std::endl << "Register " << TObj::GetFancyTypeName_s() << " Creator:" << std::endl;
+                os << std::endl << "Registered " << TObj::GetFancyTypeName_s() << " Creator:" << std::endl;
                 for (auto const &item : f) { os << item.first << std::endl; }
                 WARNING << os.str();
             }

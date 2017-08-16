@@ -47,6 +47,7 @@ GeoObjectOCC::GeoObjectOCC(TopoDS_Shape const &shape) : GeoObjectOCC() {
 }
 
 GeoObjectOCC::~GeoObjectOCC(){};
+std::shared_ptr<GeoObjectOCC> GeoObjectOCC::New() { return std::shared_ptr<GeoObjectOCC>(new GeoObjectOCC); }
 
 TopoDS_Shape const &GeoObjectOCC::GetShape() const { return m_pimpl_->m_occ_shape_; }
 Bnd_Box const &GeoObjectOCC::GetOCCBoundingBox() const { return m_pimpl_->m_occ_box_; }

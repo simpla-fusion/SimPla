@@ -36,12 +36,8 @@ struct MeshBase : public engine::SPObject, public AttributeGroup {
     virtual std::shared_ptr<geometry::Chart> GetChart() = 0;
     virtual std::shared_ptr<const geometry::Chart> GetChart() const = 0;
 
-    virtual std::shared_ptr<MeshBase> GetMesh() {
-        return std::dynamic_pointer_cast<MeshBase>(this->shared_from_this());
-    }
-    virtual std::shared_ptr<const MeshBase> GetMesh() const {
-        return std::dynamic_pointer_cast<MeshBase const>(this->shared_from_this());
-    }
+    virtual this_type *GetMesh() { return this; }
+    virtual this_type const *GetMesh() const { return this; }
 
     virtual void AddEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g){};
 
@@ -102,6 +98,9 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
 
     std::shared_ptr<MeshBlock> GetBlock() override { return MeshBase::GetBlock(); }
     std::shared_ptr<const MeshBlock> GetBlock() const override { return MeshBase::GetBlock(); }
+
+    this_type *GetMesh() override { return this; }
+    this_type const *GetMesh() const override { return this; }
 
     index_box_type IndexBox(int tag) const override { return MeshBase::IndexBox(tag); };
 

@@ -67,7 +67,7 @@ namespace data {
 static std::regex uri_regex(R"(^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?)");
 static std::regex file_extension_regex(R"(^(.*)(\.([[:alnum:]]+))$)");
 std::shared_ptr<DataBase> DataBase::New(std::string const &uri) {
-    if (uri.empty() || uri == "mem://") { return DataBaseMemory::New(); }
+    if (uri.empty()) { return nullptr; }
 
     std::string scheme;
     std::string path = uri;

@@ -199,6 +199,7 @@ int DataBaseLua::Delete(std::string const& key) {
     UNIMPLEMENTED;
     return 0;
 }
+bool DataBaseLua::isNull(std::string const& uri) const { return m_pimpl_->m_lua_obj_.is_nil(); }
 size_type DataBaseLua::Count(std::string const& uri) const { return uri.empty() ? m_pimpl_->m_lua_obj_.size() : 0; }
 
 int DataBaseLua::Foreach(std::function<int(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {

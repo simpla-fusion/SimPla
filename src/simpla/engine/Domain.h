@@ -69,8 +69,8 @@ class DomainBase : public SPObject {
     void SetModel(std::shared_ptr<engine::Model> const &m) { m_model_ = m; }
     std::shared_ptr<Model> GetModel() const { return m_model_; }
 
-    virtual std::shared_ptr<const MeshBase> GetMesh() const { return m_mesh_; }
-    virtual std::shared_ptr<MeshBase> GetMesh() { return m_mesh_; }
+    virtual const MeshBase *GetMesh() const { return m_mesh_.get(); }
+    virtual MeshBase *GetMesh() { return m_mesh_.get(); }
 
    private:
     std::shared_ptr<MeshBase> m_mesh_ = nullptr;
@@ -94,10 +94,8 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
     void DoAdvance(Real time_now, Real dt) override;
     void DoTagRefinementCells(Real time_now) override;
 
-    std::shared_ptr<const mesh_type> mesh() const {
-        return std::dynamic_pointer_cast<mesh_type const>(DomainBase::GetMesh());
-    }
-    std::shared_ptr<mesh_type> mesh() { return std::dynamic_pointer_cast<mesh_type>(DomainBase::GetMesh()); }
+    mesh_type const *GetMesh() const override { return dynamic_cast<mesh_type const *>(DomainBase::GetMesh()); }
+    mesh_type *GetMesh() override { return dynamic_cast<mesh_type *>(DomainBase::GetMesh()); }
 
     template <typename TL, typename TR>
     void Fill(TL &lhs, TR &&rhs) const {
@@ -106,17 +104,17 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
 
     template <typename TL, typename TR, typename... Others>
     void FillRange(TL &lhs, TR &&rhs, Others &&... others) const {
-        mesh()->FillRange(lhs, std::forward<TR>(rhs), std::forward<Others>(others)...);
+        GetMesh()->FillRange(lhs, std::forward<TR>(rhs), std::forward<Others>(others)...);
     };
 
     template <typename TL, typename TR>
     void FillBody(TL &lhs, TR &&rhs) const {
-        mesh()->FillBody(lhs, std::forward<TR>(rhs), GetName());
+        GetMesh()->FillBody(lhs, std::forward<TR>(rhs), GetName());
     };
 
     template <typename TL, typename TR>
     void FillBoundary(TL &lhs, TR &&rhs) const {
-        mesh()->FillBoundary(lhs, std::forward<TR>(rhs), GetName());
+        GetMesh()->FillBoundary(lhs, std::forward<TR>(rhs), GetName());
     };
 
 };  // class Domain
