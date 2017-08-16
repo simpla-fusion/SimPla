@@ -23,7 +23,6 @@
 #include "simpla/utilities/parse_command_line.h"
 
 namespace simpla {
-namespace application {
 struct SpApp::pimpl_s {
     std::shared_ptr<engine::Schedule> m_schedule_ = nullptr;
     std::shared_ptr<engine::Context> m_context_ = nullptr;
@@ -51,7 +50,7 @@ void SpApp::Deserialize(const std::shared_ptr<const data::DataEntity> &cfg) {
     if (tdb != nullptr) {
         m_pimpl_->m_context_->Deserialize(tdb->Get("Context"));
         m_pimpl_->m_atlas_->Deserialize(tdb->Get("Atlas"));
-        m_pimpl_->m_schedule_ = engine::Schedule::New(&cfg);
+        m_pimpl_->m_schedule_ = engine::Schedule::New(cfg);
         m_pimpl_->m_schedule_->SetContext(m_pimpl_->m_context_);
         m_pimpl_->m_schedule_->SetAtlas(m_pimpl_->m_atlas_);
     }
@@ -170,7 +169,6 @@ void SpApp::SetSchedule(const std::shared_ptr<engine::Schedule> &s) {
 }
 std::shared_ptr<engine::Schedule> SpApp::GetSchedule() const { return m_pimpl_->m_schedule_; }
 
-}  // namespace application{
 }  // namespace simpla{
 
 using namespace simpla;
@@ -187,7 +185,7 @@ int main(int argc, char **argv) {
 
     GLOBAL_COMM.barrier();
 
-    auto app = application::SpApp::New();
+    auto app = SpApp::New();
     app->Initialize();
 
     if (GLOBAL_COMM.rank() == 0) {

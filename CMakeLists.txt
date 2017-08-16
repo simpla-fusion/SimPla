@@ -91,10 +91,6 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 
 LINK_DIRECTORIES(/usr/local/cuda/lib64)
-#workaround for CLion 1.0.x
-FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
-add_executable(all_clion ${clion_all_headers} src/dummy.cpp src/dummy.h)
-
 
 add_subdirectory(src/simpla)
 add_subdirectory(test)

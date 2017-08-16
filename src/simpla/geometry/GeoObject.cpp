@@ -11,15 +11,7 @@ GeoObject::GeoObject() = default;
 GeoObject::~GeoObject() = default;
 void GeoObject::Serialize(const std::shared_ptr<data::DataEntity> &cfg) const { base_type::Serialize(cfg); }
 void GeoObject::Deserialize(const std::shared_ptr<const data::DataEntity> &cfg) { base_type::Deserialize(cfg); }
-std::shared_ptr<GeoObject> GeoObject::New(std::shared_ptr<const data::DataEntity> const &cfg) {
-    auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
-    std::shared_ptr<GeoObject> res = nullptr;
-    if (tdb != nullptr) {
-        res = New(tdb->GetValue<std::string>("Type"));
-        res->Deserialize(tdb);
-    }
-    return res;
-}
+
 box_type GeoObject::BoundingBox() const { return box_type{{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}; }
 
 Real GeoObject::Measure() const {

@@ -1,6 +1,6 @@
 
 
-FILE(GLOB model_SRC  *.cpp  )
+FILE(GLOB model_SRC  *.cpp *.h  )
 add_library(model ${model_SRC})
 
 add_subdirectory(occ)

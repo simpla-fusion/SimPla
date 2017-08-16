@@ -17,7 +17,7 @@
 namespace simpla {
 template <typename TObj, typename... Args>
 class Factory {
-    typedef Factory this_type;
+    SP_OBJECT_BASE(Factory)
 
    public:
     Factory() = default;

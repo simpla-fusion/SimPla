@@ -1,6 +1,6 @@
 
 
-FILE(GLOB utilities_SRC ./*.cpp )
+FILE(GLOB utilities_SRC *.cpp *.h )
 add_library(utilities ${utilities_SRC} )
 target_link_libraries(utilities ${LUA_LIBRARIES}  )
 

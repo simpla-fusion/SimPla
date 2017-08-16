@@ -9,7 +9,6 @@
 #include <Standard_Transient.hxx>
 #include <TopoDS_Shape.hxx>
 #include "../Curve.h"
-#include "../Surface.h"
 
 namespace simpla {
 namespace geometry {

@@ -16,7 +16,7 @@
 #INCLUDE_DIRECTORIES(${MOAB_INCLUDE_DIRS} ${MESHKIT_INCLUDE_DIRS})
 
 
-FILE(GLOB mesh_SRC ./*.cpp)
+FILE(GLOB mesh_SRC  *.cpp *.h )
 add_library(mesh ${mesh_SRC} )
 
 TARGET_LINK_LIBRARIES(mesh  utilities)

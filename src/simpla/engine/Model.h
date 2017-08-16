@@ -21,6 +21,7 @@ using namespace data;
 
 class Model : public SPObject {
     SP_OBJECT_DECLARE_MEMBERS(Model, SPObject)
+    static constexpr char const *TagName() { return "Model"; }
 
     void DoInitialize() override;
     void DoUpdate() override;

@@ -27,6 +27,7 @@ using namespace simpla::data;
 class Curve;
 struct MeshBase : public engine::SPObject, public AttributeGroup {
     SP_OBJECT_DECLARE_MEMBERS(MeshBase, SPObject)
+    static constexpr char const *TagName() { return "Mesh"; }
 
    public:
     using AttributeGroup::attribute_type;

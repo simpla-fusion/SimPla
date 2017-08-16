@@ -11,7 +11,6 @@
 
 namespace simpla {
 namespace engine {
-REGISTER_CREATOR(Model, Model)
 
 struct Model::pimpl_s {
     std::map<std::string, std::shared_ptr<geometry::GeoObject>> m_g_objs_;
@@ -20,6 +19,7 @@ struct Model::pimpl_s {
 
 Model::Model() : m_pimpl_(new pimpl_s) {}
 Model::~Model() { delete m_pimpl_; };
+
 void Model::Serialize(const std::shared_ptr<data::DataEntity>& cfg) const {
     base_type::Serialize(cfg);
     auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);

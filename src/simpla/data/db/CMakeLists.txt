@@ -14,7 +14,7 @@ IF (LUA_FOUND)
     MESSAGE(STATUS "Lua version: ${LUA_INCLUDE_DIR} ")
 ENDIF (LUA_FOUND)
 
-FILE(GLOB data_backend_SRC ./*.cpp)
+FILE(GLOB data_backend_SRC  *.cpp *.h )
 
 add_library(data_backend ${data_backend_SRC})
 target_include_directories(data_backend BEFORE PRIVATE

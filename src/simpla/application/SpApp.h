@@ -14,7 +14,6 @@
 #include "simpla/engine/Schedule.h"
 
 namespace simpla {
-namespace application {
 struct SpApp : public engine::SPObject {
     SP_OBJECT_DECLARE_MEMBERS(SpApp, engine::SPObject)
 
@@ -32,7 +31,6 @@ struct SpApp : public engine::SPObject {
     void SetSchedule(const std::shared_ptr<engine::Schedule> &s);
     std::shared_ptr<engine::Schedule> GetSchedule() const;
 };
-}  // namespace application{
 
 #define SP_APP(_app_name, _app_desc)                                                                   \
     struct _APPLICATION_##_app_name : public application::SpApp {                                      \

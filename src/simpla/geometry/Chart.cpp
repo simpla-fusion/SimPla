@@ -12,15 +12,7 @@ Chart::Chart(point_type shift, point_type scale, point_type rotate) {
     SetRotation(rotate);
 }
 Chart::~Chart() = default;
-std::shared_ptr<Chart> Chart::New(std::shared_ptr<const data::DataEntity> const &cfg) {
-    auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
-    std::shared_ptr<Chart> res = nullptr;
-    if (tdb != nullptr) {
-        res = New(tdb->GetValue<std::string>("Type"));
-        res->Deserialize(tdb);
-    }
-    return res;
-}
+
 void Chart::Serialize(const std::shared_ptr<data::DataEntity> &cfg) const {
     auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
     if (tdb != nullptr) {

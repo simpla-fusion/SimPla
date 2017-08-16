@@ -69,8 +69,7 @@ namespace geometry {
  */
 class GeoObject : public engine::SPObject {
     SP_OBJECT_DECLARE_MEMBERS(GeoObject, engine::SPObject)
-
-    static std::shared_ptr<GeoObject> New(std::shared_ptr<const data::DataEntity> const &);
+    static constexpr char const *TagName() { return "GeoObject"; }
 
     virtual int Dimension() const { return 3; };
     virtual Real Measure() const;

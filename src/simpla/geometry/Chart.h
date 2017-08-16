@@ -17,13 +17,13 @@ namespace geometry {
 class Curve;
 struct Chart : public engine::SPObject {
     SP_OBJECT_DECLARE_MEMBERS(Chart, engine::SPObject)
+    static constexpr char const *TagName() { return "Chart"; }
+
    protected:
     explicit Chart(point_type shift = point_type{0, 0, 0}, point_type scale = point_type{1, 1, 1},
                    point_type rotate = point_type{0, 0, 0});
 
    public:
-    static std::shared_ptr<Chart> New(std::shared_ptr<const data::DataEntity> const &);
-
     virtual std::shared_ptr<Curve> GetAxisCurve(point_type const &x, int dir) const { return nullptr; };
 
     void SetLevel(int level);

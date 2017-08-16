@@ -1,4 +1,4 @@
-FILE(GLOB model_occ_SRC  *.cpp  )
+FILE(GLOB model_occ_SRC  *.cpp *.h  )
 add_library(model_occ ${model_occ_SRC}  )
 
 target_include_directories(model_occ BEFORE PRIVATE ${OCE_INCLUDE_DIRS})

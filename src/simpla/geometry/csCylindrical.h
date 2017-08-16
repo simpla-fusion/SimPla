@@ -13,12 +13,10 @@
 #include "simpla/algebra/nTuple.ext.h"
 #include "simpla/algebra/nTuple.h"
 #include "simpla/utilities/SPDefines.h"
-
 #include "simpla/utilities/macro.h"
 #include "simpla/utilities/type_traits.h"
 
 #include "Chart.h"
-#include "CoordinateSystem.h"
 
 namespace simpla {
 namespace geometry {

@@ -17,7 +17,6 @@
 
 namespace simpla {
 namespace engine {
-REGISTER_CREATOR(MeshBase, Mesh);
 
 struct pack_s : public Patch::DataPack_s {
     std::map<std::string, Range<EntityId>> m_ranges_;

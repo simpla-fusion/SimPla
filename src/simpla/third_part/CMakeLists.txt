@@ -6,7 +6,7 @@ IF (SAMRAI_FOUND)
     MESSAGE("-- SAMRAI Version: " ${SAMRAI_VERSION})
 ENDIF (SAMRAI_FOUND)
 
-FILE(GLOB third_part_SRC *.cpp)
+FILE(GLOB third_part_SRC *.cpp *.h )
 add_library(third_part ${third_part_SRC})
 TARGET_LINK_LIBRARIES(third_part  ${SAMRAI_LIBRARIES}  )
 TARGET_INCLUDE_DIRECTORIES(third_part BEFORE PRIVATE  ${SAMRAI_INCLUDE_DIRS})

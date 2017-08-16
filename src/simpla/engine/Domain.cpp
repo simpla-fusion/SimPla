@@ -18,9 +18,7 @@ namespace engine {
 
 DomainBase::DomainBase(std::shared_ptr<MeshBase> const& msh, std::shared_ptr<Model> const& model)
     : m_mesh_(msh), m_model_(model) {}
-
-DomainBase::~DomainBase() = default;
-
+DomainBase::~DomainBase() {}
 void DomainBase::Serialize(std::shared_ptr<data::DataEntity> const& cfg) const {
     base_type::Serialize(cfg);
     auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);

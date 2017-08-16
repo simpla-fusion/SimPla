@@ -3,7 +3,7 @@
 #ADD_SUBDIRECTORY(contexts)
 #ADD_SUBDIRECTORY(fokker_planck)
 
-FILE(GLOB_RECURSE predefine_SRC *.cpp )
+FILE(GLOB_RECURSE predefine_SRC *.cpp *.h  )
 add_library(predefine ${predefine_SRC} )
 target_include_directories(predefine BEFORE PRIVATE ${OCE_INCLUDE_DIRS})
 target_link_libraries(predefine  ${OCE_LIBRARIES}  )

@@ -26,6 +26,8 @@ class MeshBase;
 
 class DomainBase : public SPObject {
     SP_OBJECT_DECLARE_MEMBERS(DomainBase, SPObject)
+    static constexpr char const *TagName() { return "Domain"; }
+
    protected:
     explicit DomainBase(std::shared_ptr<MeshBase> const &m, std::shared_ptr<Model> const &model = nullptr);
 
@@ -146,7 +148,7 @@ void Domain<TM, Policies...>::Serialize(std::shared_ptr<data::DataEntity> const 
 };
 
 template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::Deserialize(std::shared_ptr<const data::DataEntity> const &cfg)  {
+void Domain<TM, Policies...>::Deserialize(std::shared_ptr<const data::DataEntity> const &cfg) {
     DomainBase::Deserialize(cfg);
     traits::_try_invoke_Deserialize<Policies...>(this, cfg);
 };

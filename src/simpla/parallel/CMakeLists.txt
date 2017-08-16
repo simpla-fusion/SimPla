@@ -1,5 +1,5 @@
 #FILE(GLOB parallel_SRC./*.cpp)
-SET(parallel_SRC   MPIComm.cpp Parallel.cpp)
+SET(parallel_SRC  MPIComm.h MPIComm.cpp Parallel.cpp)
 add_library(parallel ${parallel_SRC})
 target_link_libraries(parallel ${MPI_LIBRARIES})
 target_include_directories(parallel BEFORE PRIVATE  ${MPI_C_INCLUDE_PATH})

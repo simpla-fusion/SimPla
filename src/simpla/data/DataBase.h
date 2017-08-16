@@ -21,7 +21,7 @@ namespace simpla {
 namespace data {
 class DataEntity;
 class DataBase : public Factory<DataBase>, public std::enable_shared_from_this<DataBase> {
-    SP_OBJECT_BASE(DataBase);
+    SP_OBJECT_HEAD(DataBase, Factory<DataBase>);
 
    protected:
     DataBase() = default;
