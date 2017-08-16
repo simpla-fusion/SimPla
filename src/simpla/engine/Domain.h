@@ -120,7 +120,22 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
     };
 
 };  // class Domain
+template <typename TM, template <typename> class... Policies>
+Domain<TM, Policies...>::Domain() : Policies<this_type>(this)... {};
+template <typename TM, template <typename> class... Policies>
+Domain<TM, Policies...>::~Domain(){};
 
+template <typename TM, template <typename> class... Policies>
+void Domain<TM, Policies...>::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const {
+    DomainBase::Serialize(cfg);
+    traits::_try_invoke_Serialize<Policies...>(this, cfg);
+};
+
+template <typename TM, template <typename> class... Policies>
+void Domain<TM, Policies...>::Deserialize(std::shared_ptr<const data::DataEntity> const &cfg) {
+    DomainBase::Deserialize(cfg);
+    traits::_try_invoke_Deserialize<Policies...>(this, cfg);
+};
 template <typename TM, template <typename> class... Policies>
 void Domain<TM, Policies...>::DoInitialCondition(Real time_now) {
     simpla::traits::_try_invoke_InitialCondition<Policies...>(this, time_now);
@@ -141,17 +156,6 @@ void Domain<TM, Policies...>::DoTagRefinementCells(Real time_now) {
     traits::_try_invoke_TagRefinementCells<Policies...>(this, time_now);
 }
 
-template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const {
-    DomainBase::Serialize(cfg);
-    traits::_try_invoke_Serialize<Policies...>(this, cfg);
-};
-
-template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::Deserialize(std::shared_ptr<const data::DataEntity> const &cfg) {
-    DomainBase::Deserialize(cfg);
-    traits::_try_invoke_Deserialize<Policies...>(this, cfg);
-};
 }  // namespace engine
 }  // namespace simpla
 #endif  // SIMPLA_DOMAINBASE_H

@@ -47,14 +47,14 @@ void Context::Deserialize(std::shared_ptr<const data::DataEntity> const &cfg) {
     auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
     if (tdb != nullptr) {
         m_pimpl_->m_mesh_ = MeshBase::New(tdb->Get("Mesh"));
-        tdb->GetTable("Model").Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> t_cfg) {
+        tdb->GetTable("Model").Foreach([&](std::string const &key, std::shared_ptr<const data::DataEntity> t_cfg) {
             m_pimpl_->m_models_[key] = Model::New(t_cfg);
             return 1;
         });
 
-        tdb->GetTable("Domains").Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> t_cfg) {
-            m_pimpl_->m_domains_[key] =
-                DomainBase::New(t_cfg, GetMesh(), GetModel(tdb->GetValue<std::string>(key + "/Model", "")));
+        tdb->GetTable("Domains").Foreach([&](std::string const &key, std::shared_ptr<const data::DataEntity> t_cfg) {
+            m_pimpl_->m_domains_[key] = DomainBase::New(t_cfg);
+            // GetMesh(), GetModel(tdb->GetValue<std::string>(key + "/Model", ""))
             m_pimpl_->m_domains_[key]->SetName(key);
             return 1;
         });
@@ -120,17 +120,18 @@ void Context::DoUpdate() {
 }
 
 void Context::SetMesh(std::shared_ptr<MeshBase> const &m) { m_pimpl_->m_mesh_ = m; }
-MeshBase const *Context::GetMesh() const { return m_pimpl_->m_mesh_.get(); }
-MeshBase *Context::GetMesh() { return m_pimpl_->m_mesh_.get(); }
+std::shared_ptr<const MeshBase> Context::GetMesh() const { return m_pimpl_->m_mesh_; }
+std::shared_ptr<MeshBase> Context::GetMesh() { return m_pimpl_->m_mesh_; }
 
 void Context::SetModel(std::string const &k, std::shared_ptr<Model> const &m) const { m_pimpl_->m_models_[k] = m; }
-std::shared_ptr<Model> Context::GetModel(std::string const &k) const {
+std::shared_ptr<const Model> Context::GetModel(std::string const &k) const {
     auto it = m_pimpl_->m_models_.find(k);
     return it == m_pimpl_->m_models_.end() ? nullptr : it->second;
 }
 
 std::shared_ptr<DomainBase> Context::CreateDomain(std::string const &k, const std::shared_ptr<DataEntity> &t) {
-    auto res = DomainBase::New(&t, GetMesh());
+    auto res = DomainBase::New(GetMesh());
+    res->Deserialize(t);
     SetDomain(k, res);
     return res;
 };

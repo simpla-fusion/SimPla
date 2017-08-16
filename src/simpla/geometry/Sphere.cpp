@@ -6,7 +6,8 @@
 namespace simpla {
 namespace geometry {
 REGISTER_CREATOR(Sphere, Sphere)
-
+Sphere::Sphere() {}
+Sphere::~Sphere() {}
 void Sphere::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const {
     base_type::Serialize(cfg);
     auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);

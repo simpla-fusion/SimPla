@@ -147,6 +147,9 @@ template <typename TM, template <typename> class... Policies>
 Mesh<TM, Policies...>::Mesh() : Policies<this_type>(this)... {};
 
 template <typename TM, template <typename> class... Policies>
+Mesh<TM, Policies...>::~Mesh() {}
+
+template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::TagRefinementRange(Range<EntityId> const &r) {
     if (!m_refinement_tags_.isNull() && !r.isNull()) {
         r.foreach ([&](EntityId s) {
@@ -166,7 +169,7 @@ DEFINE_INVOKE_HELPER(Calculate)
 template <typename TM, template <typename> class... Policies>
 void Mesh<TM, Policies...>::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const {
     base_type::Serialize(cfg);
-    auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
+    auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
     if (tdb != nullptr) { m_chart_->Serialize(tdb->Get("Chart")); }
     traits::_try_invoke_Serialize<Policies...>(this, cfg);
 };

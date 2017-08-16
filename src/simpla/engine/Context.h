@@ -75,14 +75,14 @@ class Context : public SPObject {
     void DoTearDown() override;
 
     void SetMesh(std::shared_ptr<MeshBase> const &);
-    MeshBase const *GetMesh() const;
-    MeshBase *GetMesh();
+    std::shared_ptr<const MeshBase> GetMesh() const;
+    std::shared_ptr<MeshBase> GetMesh();
 
     box_type BoundingBox() const;
     index_box_type IndexBox() const;
 
     void SetModel(std::string const &k, std::shared_ptr<Model> const &) const;
-    std::shared_ptr<Model> GetModel(std::string const &k) const;
+    std::shared_ptr<const Model> GetModel(std::string const &k) const;
 
     std::shared_ptr<DomainBase> CreateDomain(std::string const &k, const std::shared_ptr<data::DataEntity> &);
     template <typename TD>

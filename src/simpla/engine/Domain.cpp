@@ -15,7 +15,7 @@
 
 namespace simpla {
 namespace engine {
-
+DomainBase::DomainBase() {}
 DomainBase::DomainBase(std::shared_ptr<MeshBase> const& msh, std::shared_ptr<Model> const& model)
     : m_mesh_(msh), m_model_(model) {}
 DomainBase::~DomainBase() {}
