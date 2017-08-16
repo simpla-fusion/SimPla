@@ -134,19 +134,17 @@ class Particle : public ParticleBase {
         : ParticleBase(grp->GetMesh(), std::forward<Args>(args)...), m_host_(grp) {}
 
 };  // class Particle
-
+template <typename TM>
+Particle<TM>::Particle(){};
 template <typename TM>
 Particle<TM>::~Particle(){};
+
 template <typename TM>
-std::shared_ptr<Particle<TM>> Particle<TM>::New() {
-    return std::shared_ptr<Particle<TM>>(new std::shared_ptr<Particle<TM>>);
-}
-template <typename TM>
-void Particle<TM>::Serialize(simpla::data::DataTable& cfg) const {
+void Particle<TM>::Serialize(std::shared_ptr<simpla::data::DataEntity> const& cfg) const {
     base_type::Serialize(cfg);
 }
 template <typename TM>
-void Particle<TM>::Deserialize(simpla::data::DataTable const& cfg) {
+void Particle<TM>::Deserialize(std::shared_ptr<const simpla::data::DataEntity> const& cfg) {
     base_type::Deserialize(cfg);
 }
 }  // namespace simpla{
