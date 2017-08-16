@@ -24,6 +24,7 @@ struct Schedule::pimpl_s {
 
 Schedule::Schedule() : m_pimpl_(new pimpl_s){};
 Schedule::~Schedule() { delete m_pimpl_; };
+
 void Schedule::Serialize(const std::shared_ptr<data::DataEntity> &cfg) const {
     base_type::Serialize(cfg);
     auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);

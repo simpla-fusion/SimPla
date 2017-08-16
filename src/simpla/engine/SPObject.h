@@ -88,38 +88,13 @@ class SPObject : public Factory<SPObject>, public std::enable_shared_from_this<S
    public:
     virtual ~SPObject();
 
-    virtual void Serialize(const std::shared_ptr<data::DataEntity> &cfg) const;
-    virtual void Deserialize(const std::shared_ptr<const data::DataEntity> &cfg);
-
-    template <typename U>
-    static bool RegisterCreator(std::string const &k_hint) {
-        return base_type::RegisterCreator<U>(std::string(U::TagName()) + "." + k_hint);
-    }
-
-    template <typename... Args>
-    static std::shared_ptr<SPObject> New(std::string const &s_type, Args &&... args) {
-        return Factory<SPObject>::Create(s_type, std::forward<Args>(args)...);
-    }
-
-    template <typename... Args>
-    static std::shared_ptr<SPObject> New(std::shared_ptr<const data::DataEntity> const &v, Args &&... args) {
-        std::shared_ptr<SPObject> res = nullptr;
-        if (std::dynamic_pointer_cast<const data::DataEntityWrapper<std::string>>(v) != nullptr) {
-            res = New(std::dynamic_pointer_cast<const data::DataEntityWrapper<std::string>>(v)->value(),
-                      std::forward<Args>(args)...);
-        } else if (std::dynamic_pointer_cast<const data::DataTable>(v) != nullptr) {
-            auto tdb = std::dynamic_pointer_cast<const data::DataTable>(v);
-            res = New(std::dynamic_pointer_cast<const data::DataTable>(v)->GetValue<std::string>("Tag", "Information"),
-                      tdb, std::forward<Args>(args)...);
-        }
+    virtual void Serialize(std::shared_ptr<data::DataEntity> const &cfg) const;
+    virtual void Deserialize(std::shared_ptr<const data::DataEntity> const &cfg);
+    static std::shared_ptr<SPObject> New(std::shared_ptr<const data::DataEntity> const &v) {
+        auto res = base_type::Create(std::string(TagName()) + "." + v->as<std::string>(""));
+        res->Deserialize(v);
         return res;
-    }
-
-    template <typename U, typename... Args>
-    static std::shared_ptr<U> NewAs(Args &&... args) {
-        return std::dynamic_pointer_cast<U>(New(std::forward<Args>(args)...));
-    }
-
+    };
     const data::DataTable &db() const;
     data::DataTable &db();
     id_type GetGUID() const;
@@ -175,10 +150,7 @@ std::istream &operator<<(std::istream &os, std::shared_ptr<SPObject> const &obj)
    public:                                                                                              \
     ~_CLASS_NAME_() override;                                                                           \
     SP_DEFAULT_CONSTRUCT(_CLASS_NAME_);                                                                 \
-    template <typename... Args>                                                                         \
-    static std::shared_ptr<_CLASS_NAME_> New(Args &&... args) {                                         \
-        return _TryCreate<_CLASS_NAME_>(std::is_abstract<_CLASS_NAME_>(), std::forward<Args>(args)...); \
-    };                                                                                                  \
+                                                                                                        \
     void Serialize(std::shared_ptr<simpla::data::DataEntity> const &cfg) const override;                \
     void Deserialize(std::shared_ptr<simpla::data::DataEntity const> const &cfg) override;              \
                                                                                                         \
@@ -192,10 +164,15 @@ std::istream &operator<<(std::istream &os, std::shared_ptr<SPObject> const &obj)
     }                                                                                                   \
     template <typename U, typename... Args>                                                             \
     static std::shared_ptr<U> _TryCreate(std::integral_constant<bool, true> _, Args &&... args) {       \
-        return nullptr;                                                                                 \
+        return std::dynamic_pointer_cast<_CLASS_NAME_>(base_type::Create(std::forward<Args>(args)...));    \
     }                                                                                                   \
                                                                                                         \
    public:                                                                                              \
+    template <typename... Args>                                                                         \
+    static std::shared_ptr<_CLASS_NAME_> New(Args &&... args) {                                         \
+        return _TryCreate<_CLASS_NAME_>(std::is_abstract<_CLASS_NAME_>(), std::forward<Args>(args)...); \
+    };
+
 //
 //    /**
 //     * @brief Initial setup.

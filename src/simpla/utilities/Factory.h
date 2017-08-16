@@ -18,6 +18,7 @@ namespace simpla {
 template <typename TObj, typename... Args>
 class Factory {
     SP_OBJECT_BASE(Factory)
+    static constexpr char const *TagName() { return "Entity"; }
 
    public:
     Factory() = default;
@@ -120,8 +121,9 @@ class Factory {
     //    }
 };
 
-#define REGISTER_CREATOR(_CLASS_NAME_, _REGISTER_NAME_) \
-    bool _CLASS_NAME_::_is_registered = _CLASS_NAME_::RegisterCreator<_CLASS_NAME_>(__STRING(_REGISTER_NAME_));
+#define REGISTER_CREATOR(_CLASS_NAME_, _REGISTER_NAME_)                              \
+    bool _CLASS_NAME_::_is_registered = _CLASS_NAME_::RegisterCreator<_CLASS_NAME_>( \
+        std::string(_CLASS_NAME_::TagName()) + "." __STRING(_REGISTER_NAME_));
 
 }  // namespace data{
 template <typename T>

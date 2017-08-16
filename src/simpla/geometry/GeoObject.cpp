@@ -9,6 +9,7 @@ namespace geometry {
 
 GeoObject::GeoObject() = default;
 GeoObject::~GeoObject() = default;
+
 void GeoObject::Serialize(const std::shared_ptr<data::DataEntity> &cfg) const { base_type::Serialize(cfg); }
 void GeoObject::Deserialize(const std::shared_ptr<const data::DataEntity> &cfg) { base_type::Deserialize(cfg); }
 

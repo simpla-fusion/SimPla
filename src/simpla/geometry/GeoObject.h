@@ -69,7 +69,10 @@ namespace geometry {
  */
 class GeoObject : public engine::SPObject {
     SP_OBJECT_DECLARE_MEMBERS(GeoObject, engine::SPObject)
+   protected:
     static constexpr char const *TagName() { return "GeoObject"; }
+
+   public:
 
     virtual int Dimension() const { return 3; };
     virtual Real Measure() const;
