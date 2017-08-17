@@ -16,7 +16,7 @@
 namespace simpla {
 namespace data {
 
-DataTable::DataTable(std::shared_ptr<DataBase> const& db) : m_database_(db) { ASSERT(m_database_ != nullptr); };
+DataTable::DataTable(std::shared_ptr<DataBase> const& db) : m_database_(db != nullptr ? db : DataBase::New()){};
 
 DataTable::DataTable(std::string const& uri) : DataTable(DataBase::New(uri)){};
 

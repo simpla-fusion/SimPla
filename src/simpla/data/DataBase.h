@@ -29,12 +29,8 @@ class DataBase : public Factory<DataBase>, public std::enable_shared_from_this<D
    public:
     ~DataBase() override = default;
     SP_DEFAULT_CONSTRUCT(DataBase)
-    template <typename... Args>
-    static std::shared_ptr<DataBase> New(Args&&... args) {
-        return Factory<DataBase>::Create(std::forward<Args>(args)...);
-    }
 
-    static std::shared_ptr<DataBase> New(std::string const& uri);
+    static std::shared_ptr<DataBase> New(std::string const& uri = "");
 
     virtual int Connect(std::string const& authority, std::string const& path, std::string const& query,
                         std::string const& fragment) = 0;

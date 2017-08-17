@@ -56,7 +56,6 @@ TEST(DataTable, memory) {
 
 TEST(DataTable, lua) {
     logger::set_stdout_level(1000);
-    CHECK(data::DataBase::s_num_of_pre_registered_);
     auto db = DataTable::New("/home/salmon/workspace/SimPla/test/data/test.lua");
 
     LOGGER << "lua:// " << *db << std::endl;
