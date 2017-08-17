@@ -37,22 +37,16 @@ int DataTable::Set(std::string const& uri, const std::shared_ptr<DataEntity>& p)
     }
     return 1;
 };
-int DataTable::Add(std::string const& uri, std::shared_ptr<DataEntity> const& p) {
-    auto dst = std::dynamic_pointer_cast<DataArray>(Get(uri));
-    auto src = std::dynamic_pointer_cast<DataArray>(p);
-    if (dst != nullptr && src != nullptr) {
-        //        if (dst->value_type_info() == src->value_type_info() || dst->value_type_info() == typeid(void)) {
-        //            dst->Add(p);
-        //        } else {
-        //            auto t_array = std::make_shared<DataArrayWrapper<>>();
-        //            t_array->Add(Get(uri));
-        //            t_array->Add(p);
-        //            m_database_->Set(uri, t_array);
-        //        }
+int DataTable::Add(std::string const& uri, std::shared_ptr<DataEntity> const& src) {
+    auto dst = Get(uri);
+    if (auto p = std::dynamic_pointer_cast<DataArray>(dst)) {
+        p->Add(src);
+    } else if (auto p = std::dynamic_pointer_cast<DataLight>(dst)) {
+        m_database_->Set(uri, p->asArray());
     } else {
         auto t_array = DataArray::New();
         t_array->Add(p);
-        m_database_->Set(uri, t_array);
+        m_database_->Set(uri, p);
     }
 
     return 1;

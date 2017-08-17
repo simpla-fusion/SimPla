@@ -156,7 +156,8 @@ std::ostream &ContainerOutPut3(std::ostream &os, TI const &ib, TI const &ie, TFU
     }
     return os;
 }
-
+}  // namespace simpla
+namespace std {
 template <typename T>
 std::ostream &operator<<(std::ostream &os, const std::complex<T> &tv) {
     os << "{" << tv.real() << "," << tv.imag() << "}";
@@ -239,7 +240,7 @@ std::ostream &operator<<(std::ostream &os, std::tuple<T, Args...> const &v) {
 
     return os;
 };
-
+}  // namespace std{
 //
 // template<typename T, typename ...Others>
 // std::ostream &Print(std::ostream &os, T const &first, Others &&... others)
@@ -258,6 +259,5 @@ std::ostream &operator<<(std::ostream &os, std::tuple<T, Args...> const &v) {
 //}
 
 /** @}*/
-}  // namespace simpla
 
 #endif /* PRETTY_STREAM_H_ */

@@ -181,11 +181,22 @@ template <typename U>
 std::shared_ptr<DataArray> make_data_entity(U const* u, size_type n) {
     return DataArrayT<U>::New(u, n);
 }
-
+inline std::shared_ptr<DataArrayT<std::string>> make_data_entity(std::initializer_list<char const*> const& u) {
+    return DataArrayT<std::string>::New(u);
+}
 template <typename U>
-std::shared_ptr<DataArray> make_data_entity(std::initializer_list<U> const& u) {
-    return std::conditional_t < traits::is_light_data<U>::value || std::is_same<char const*, U>::value, DataArrayT<U>,
-           DataArrayT<void>> ::New(u);
+std::shared_ptr<DataArrayT<U>> make_data_entity(std::initializer_list<U> const& u,
+                                                ENABLE_IF((traits::is_light_data<U>::value))) {
+    auto p = DataArrayT<U>::New();
+    for (auto const& item : u) { p->Add((item)); }
+    return p;
+}
+template <typename U>
+std::shared_ptr<DataArrayT<void>> make_data_entity(std::initializer_list<U> const& u,
+                                                   ENABLE_IF((!traits::is_light_data<U>::value))) {
+    auto p = DataArrayT<void>::New();
+    for (auto const& item : u) { p->Add(make_data_entity(item)); }
+    return p;
 }
 
 template <typename U>
