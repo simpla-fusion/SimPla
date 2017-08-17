@@ -45,13 +45,7 @@ class DataBase : public Factory<DataBase>, public std::enable_shared_from_this<D
       * @brief Get the number of entities in this table
       * @return
       */
-    virtual bool isNull(std::string const& url) const = 0;
-
-    /**
-      * @brief Get the number of entities in this table
-      * @return
-      */
-    virtual size_type Count(std::string const& url) const = 0;
+    virtual bool isNull() const = 0;
 
     /**
      * @brief Get entities that are selected by the '''uri''',
@@ -107,9 +101,8 @@ class DataBase : public Factory<DataBase>, public std::enable_shared_from_this<D
     int Connect(std::string const& authority, std::string const& path, std::string const& query,              \
                 std::string const& fragment) override;                                                        \
     int Disconnect() override;                                                                                \
+    bool isNull() const override;                                                                             \
     int Flush() override;                                                                                     \
-    bool isNull(std::string const& url) const override;                                                       \
-    size_type Count(std::string const& uri) const override;                                                   \
     std::shared_ptr<DataEntity> Get(std::string const& uri) const override;                                   \
     int Set(std::string const& uri, const std::shared_ptr<DataEntity>& v) override;                           \
     int Add(std::string const& uri, const std::shared_ptr<DataEntity>& v) override;                           \

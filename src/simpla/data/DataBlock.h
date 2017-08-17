@@ -17,107 +17,137 @@ namespace data {
 
 class DataBlock : public DataEntity {
     SP_OBJECT_HEAD(DataBlock, DataEntity)
+
+    struct pimpl_s;
+    pimpl_s *m_pimpl_ = nullptr;
+
    protected:
-    explicit DataBlock(std::shared_ptr<DataEntity> const &parent = nullptr);
+    DataBlock();
+    DataBlock(int ndims, index_type const *lo, index_type const *hi);
 
    public:
-    ~DataBlock() override = default;
+    ~DataBlock() override;
     SP_DEFAULT_CONSTRUCT(DataBlock)
 
-    static std::shared_ptr<DataBlock> New(std::shared_ptr<DataEntity> const &parent = nullptr);
+    template <typename U, typename... Args>
+    static std::shared_ptr<DataBlock> New(Args &&... args);
 
-    std::type_info const &value_type_info() const override { return typeid(Real); };
-    virtual int GetNDIMS() const { return 0; }
-    virtual size_type GetDepth() const { return 1; }
+    std::type_info const &value_type_info() const override = 0;
+    virtual size_type value_type_size() const = 0;
 
-    virtual index_type const *GetInnerLowerIndex(int depth) const { return nullptr; }
-    virtual index_type const *GetInnerUpperIndex(int depth) const { return nullptr; }
-    virtual index_type const *GetOuterLowerIndex(int depth) const { return nullptr; }
-    virtual index_type const *GetOuterUpperIndex(int depth) const { return nullptr; }
+    virtual void const *GetPointer() const { return nullptr; }
+    virtual void *GetPointer() { return nullptr; }
+    size_type size_in_byte() const { return value_type_size() * size(); }
+    size_type size() const;
 
-    virtual void const *GetPointer(int depth) const { return nullptr; }
-    virtual void *GetPointer(int depth) { return nullptr; }
+    int GetNDIMS() const;
+    int GetIndexBox(index_type *lo, index_type *hi) const;
 
-    virtual void Clear() { UNIMPLEMENTED; };
-    virtual void Copy(DataBlock const &other) { UNIMPLEMENTED; };
-    virtual void Copy2(DataBlock &other) const { other.Copy(*this); };
-    virtual void Copy(DataBlock const &other, index_box_type const &box) { UNIMPLEMENTED; };
-    virtual void Copy(DataBlock &other, index_box_type const &box) const { other.Copy(*this, box); };
+    virtual int Clear();
+    virtual int Copy(DataBlock const &other);
+    virtual int Copy2(DataBlock &other) const;
+    virtual int Copy(DataBlock const &other, index_box_type const &box);
+    virtual int Copy2(DataBlock &other, index_box_type const &box) const;
 };
 
-template <typename T>
-struct DataBlockWrapper : public DataBlock {
-    SP_OBJECT_HEAD(DataBlockWrapper<T>, DataBlock);
+template <typename V>
+struct DataBlockT : public DataBlock {
+    SP_OBJECT_HEAD(DataBlockT<V>, DataBlock);
+    typedef V value_type;
 
    protected:
-    explicit DataBlockWrapper(std::shared_ptr<DataEntity> const &parent = nullptr) : DataBlock(parent){};
+    explicit DataBlockT() = default;
+    template <typename... Args>
+    explicit DataBlockT(value_type *d, Args &&... args) : DataBlock(std::forward<Args>(args)...), m_data_(d){};
+    template <typename... Args>
+    explicit DataBlockT(std::shared_ptr<V> const &d, Args &&... args)
+        : DataBlock(std::forward<Args>(args)...), m_data_(d){};
 
    public:
-    ~DataBlockWrapper() override = default;
-    SP_DEFAULT_CONSTRUCT(DataBlockWrapper)
+    ~DataBlockT() override = default;
 
-    static std::shared_ptr<this_type> New(std::shared_ptr<DataEntity> const &parent = nullptr) {
-        return std::shared_ptr<this_type>(new this_type(parent));
+    SP_DEFAULT_CONSTRUCT(DataBlockT)
+
+    template <typename... Args>
+    static std::shared_ptr<this_type> New(Args &&... args) {
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
+    };
+
+    void const *GetPointer() const override { return m_data_.get(); }
+    void *GetPointer() override { return m_data_.get(); }
+
+    int Clear() override {
+        UNIMPLEMENTED;
+        return 0;
+    };
+    int Copy(this_type const &other) override {
+        UNIMPLEMENTED;
+        return 0;
+    };
+    int Copy(this_type const &other, index_box_type const &box) override {
+        UNIMPLEMENTED;
+        return 0;
     };
 
    private:
-    typedef T data_type;
-    std::shared_ptr<data_type> m_data_;
+    std::shared_ptr<value_type> m_data_;
 };
 
-template <typename... Others>
-class DataMultiArray;
-
-template <typename U, typename... Others>
-class DataMultiArray<simpla::Array<U, Others...>> : public DataBlock {
-   public:
-    typedef Array<U, Others...> array_type;
-    typedef DataMultiArray<array_type> multi_array_type;
-    SP_OBJECT_HEAD(multi_array_type, DataBlock);
-
-    typedef U value_type;
-
-   protected:
-    explicit DataMultiArray(unsigned long depth) : m_data_(depth) {}
-
-   public:
-    ~DataMultiArray() override = default;
-
-    static std::shared_ptr<DataMultiArray> New(unsigned long depth) {
-        return std::shared_ptr<DataMultiArray>(new DataMultiArray(depth));
-    }
-
-    size_type size() const { return m_data_.size(); }
-    std::type_info const &value_type_info() const override { return typeid(value_type); };
-    size_type GetDepth() const override { return m_data_.size(); }
-
-    void SetArray(int depth, array_type d) { array_type(d).swap(m_data_.at(depth)); }
-
-    array_type *Get(int depth = 0) { return &m_data_.at(depth); }
-    array_type const *Get(int depth = 0) const { return &m_data_.at(depth); }
-    array_type &GetArray(int depth = 0) { return m_data_.at(depth); }
-    array_type const &GetArray(int depth = 0) const { return m_data_.at(depth); }
-
-    auto &at(int depth = 0) { return m_data_.at(depth); }
-    auto const &at(int depth = 0) const { return m_data_.at(depth); }
-    array_type &operator[](int depth) { return m_data_.at(depth); }
-    array_type const &operator[](int depth) const { return m_data_.at(depth); }
-    void DeepCopy(std::shared_ptr<this_type> const &other) {
-        if (other == nullptr) { return; }
-        if (m_data_.size() < other->size()) { m_data_.resize(other->m_data_.size()); }
-        for (int i = 0; i < m_data_.size(); ++i) { m_data_.at(i).DeepCopy(other->m_data_.at(i).get()); }
-    }
-    void Clear() override {
-        for (int i = 0; i < m_data_.size(); ++i) { m_data_.at(i).Clear(); };
-    };
-
-   private:
-    std::vector<array_type> m_data_;
+template <typename U, typename... Args>
+std::shared_ptr<DataBlock> DataBlock::New(Args &&... args) {
+    return DataBlockT<U>::New(std::forward<Args>(args)...);
 };
-template <typename U>
-std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<simpla::Array<U>> const &p) {
-    return DataEntityWrapper<simpla::Array<U>>::New(p);
-}
+//
+// template <typename... Others>
+// class DataMultiArray;
+//
+// template <typename U, typename... Others>
+// class DataMultiArray<simpla::Array<U, Others...>> : public DataBlock {
+//   public:
+//    typedef Array<U, Others...> array_type;
+//    typedef DataMultiArray<array_type> multi_array_type;
+//    SP_OBJECT_HEAD(multi_array_type, DataBlock);
+//
+//    typedef U value_type;
+//
+//   protected:
+//    explicit DataMultiArray(unsigned long depth) : m_data_(depth) {}
+//
+//   public:
+//    ~DataMultiArray() override = default;
+//
+//    static std::shared_ptr<DataMultiArray> New(unsigned long depth) {
+//        return std::shared_ptr<DataMultiArray>(new DataMultiArray(depth));
+//    }
+//
+//    size_type size() const { return m_data_.size(); }
+//    std::type_info const &value_type_info() const override { return typeid(value_type); };
+//    size_type GetDepth() const override { return m_data_.size(); }
+//
+//    void SetArray(int depth, array_type d) { array_type(d).swap(m_data_.at(depth)); }
+//
+//    array_type *Get(int depth = 0) { return &m_data_.at(depth); }
+//    array_type const *Get(int depth = 0) const { return &m_data_.at(depth); }
+//    array_type &GetArray(int depth = 0) { return m_data_.at(depth); }
+//    array_type const &GetArray(int depth = 0) const { return m_data_.at(depth); }
+//
+//    auto &at(int depth = 0) { return m_data_.at(depth); }
+//    auto const &at(int depth = 0) const { return m_data_.at(depth); }
+//    array_type &operator[](int depth) { return m_data_.at(depth); }
+//    array_type const &operator[](int depth) const { return m_data_.at(depth); }
+//    void DeepCopy(std::shared_ptr<this_type> const &other) {
+//        if (other == nullptr) { return; }
+//        if (m_data_.size() < other->size()) { m_data_.resize(other->m_data_.size()); }
+//        for (int i = 0; i < m_data_.size(); ++i) { m_data_.at(i).DeepCopy(other->m_data_.at(i).get()); }
+//    }
+//    void Clear() override {
+//        for (int i = 0; i < m_data_.size(); ++i) { m_data_.at(i).Clear(); };
+//    };
+//
+//   private:
+//    std::vector<array_type> m_data_;
+//};
+
 // template <typename...>
 // class DataBlockAdapter;
 //

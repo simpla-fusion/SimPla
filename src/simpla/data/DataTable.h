@@ -82,18 +82,20 @@ class DataTable : public DataEntity {
     std::shared_ptr<DataBase> m_database_;
 
    protected:
-    explicit DataTable(std::shared_ptr<DataEntity> const& parent = nullptr,
-                       std::shared_ptr<DataBase> const& db = nullptr);
+    explicit DataTable(std::shared_ptr<DataBase> const& db = nullptr);
+    explicit DataTable(std::string const& uri);
 
    public:
     SP_DEFAULT_CONSTRUCT(DataTable);
     ~DataTable() override = default;
+
+    template <typename... Args>
+    static std::shared_ptr<DataTable> New(Args&&... args) {
+        return std::shared_ptr<DataTable>(new DataTable(std::forward<Args>(args)...));
+    };
     //******************************************************************************************************************
     /** Interface DataBackend */
     std::shared_ptr<DataBase> database() const { return m_database_; }
-
-    static std::shared_ptr<DataTable> New(std::string const& uri);
-    static std::shared_ptr<DataTable> New(std::shared_ptr<DataBase> const& db = nullptr);
 
     int Flush();
     //******************************************************************************************************************
@@ -103,8 +105,9 @@ class DataTable : public DataEntity {
 
     bool has(std::string const& uri) const { return Get(uri) != nullptr; }
 
-    bool isNull(std::string const& url = "") const;
-    size_type Count(std::string const& uri = "") const;
+    bool isNull() const;
+    size_type Count() const;
+
     std::shared_ptr<DataEntity> Get(std::string const& uri);
     std::shared_ptr<const DataEntity> Get(std::string const& uri) const;
     int Set(std::string const& uri, const std::shared_ptr<DataEntity>& v);
@@ -133,15 +136,15 @@ class DataTable : public DataEntity {
 
     template <typename U>
     U GetValue(std::string const& uri) const {
-        auto res = std::dynamic_pointer_cast<const DataEntityWrapper<U>>(Get(uri));
+        auto res = std::dynamic_pointer_cast<const DataLight>(Get(uri));
         if (res == nullptr) { OUT_OF_RANGE << "Can not find entity [" << uri << "]" << std::endl; }
-        return res->value();
+        return res->as<U>();
     }
 
     template <typename U>
     U GetValue(std::string const& uri, U const& default_value) const {
-        auto res = std::dynamic_pointer_cast<const DataEntityWrapper<U>>(Get(uri));
-        return res == nullptr ? default_value : res->value();
+        auto res = std::dynamic_pointer_cast<const DataLight>(Get(uri));
+        return res == nullptr ? default_value : res->as<U>();
     }
 
     void SetValue(std::string const& uri, DataTable const& v) { GetTable(uri).SetTable(v); };
@@ -204,8 +207,8 @@ std::shared_ptr<DataEntity> make_data_entity(KeyValue const& first, Others&&... 
 // template <typename U, typename... Args>
 // std::shared_ptr<U> CreateObject(data::DataEntity const* dataEntity, Args&&... args) {
 //    std::shared_ptr<U> res = nullptr;
-//    if (dynamic_cast<data::DataEntityWrapper<std::string> const*>(dataEntity) != nullptr) {
-//        res = U::Create(dynamic_cast<data::DataEntityWrapper<std::string> const*>(dataEntity)->value(),
+//    if (dynamic_cast<data::DataLight<std::string> const*>(dataEntity) != nullptr) {
+//        res = U::Create(dynamic_cast<data::DataLight<std::string> const*>(dataEntity)->value(),
 //                        std::forward<Args>(args)...);
 //    } else if (dynamic_cast<data::DataTable const*>(dataEntity) != nullptr) {
 //        auto const* db = dynamic_cast<data::DataTable const*>(dataEntity);

@@ -60,18 +60,17 @@ void PackLua(std::shared_ptr<DataEntity> const &d, std::ostream &os, int indent 
             PackLua(t->Get(i), os, indent + 1);
         }
         os << "}";
-    } else if (std::dynamic_pointer_cast<DataEntityWrapper<bool>>(d) != nullptr) {
-        os << (std::dynamic_pointer_cast<DataEntityWrapper<bool>>(d)->value() ? "true" : "false");
-    } else if (dynamic_cast<DataBlock const *>(d.get()) != nullptr) {
-        auto blk = std::dynamic_pointer_cast<DataBlock>(d);
+    } else if (auto p = std::dynamic_pointer_cast<DataLight const>(d)) {
+        os << std::boolalpha << (p->as<bool>());
+    } else if (auto blk = std::dynamic_pointer_cast<DataBlock const>(d)) {
         int ndims = blk->GetNDIMS();
-        os << "\"{ Dimensions = { {" << blk->GetInnerLowerIndex(0)[0];
-        for (int i = 1; i < ndims; ++i) { os << "x" << blk->GetInnerLowerIndex(0)[i]; }
-        os << "} , {" << blk->GetInnerUpperIndex(0)[0];
-        for (int i = 1; i < ndims; ++i) { os << "x" << blk->GetInnerUpperIndex(0)[i]; }
-        os << "}}}\"";
+//        os << "\"{ Dimensions = { {" << blk->GetInnerLowerIndex(0)[0];
+//        for (int i = 1; i < ndims; ++i) { os << "x" << blk->GetInnerLowerIndex(0)[i]; }
+//        os << "} , {" << blk->GetInnerUpperIndex(0)[0];
+//        for (int i = 1; i < ndims; ++i) { os << "x" << blk->GetInnerUpperIndex(0)[i]; }
+//        os << "}}}\"";
     } else {
-        d->Serialize(os, 0);
+//        d->Serialize(os, 0);
     }
 }
 

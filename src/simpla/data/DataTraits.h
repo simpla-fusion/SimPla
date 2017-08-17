@@ -16,11 +16,11 @@ namespace data {
 class DataEntity;
 }  // namespace data {
 
-
 namespace traits {
 template <typename U>
 struct is_light_data
-    : public std::integral_constant<bool, std::is_arithmetic<U>::value || std::is_same<U, bool>::value> {};
+    : public std::integral_constant<
+          bool, std::is_arithmetic<U>::value || std::is_same<U, bool>::value || std::is_same<U, char>::value> {};
 
 template <typename U, int... N>
 struct is_light_data<nTuple<U, N...>> : public std::true_type {};

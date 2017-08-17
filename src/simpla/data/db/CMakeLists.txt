@@ -24,7 +24,9 @@ target_include_directories(data_backend BEFORE PRIVATE
         ${XDMF_INCLUDE_DIRS}
         #${VTK_INCLUDE_DIR}
         )
-target_link_libraries(data_backend parallel utilities
+target_link_libraries(data_backend
+        parallel utilities
+
         ${LUA_LIBRARIES}
         ${HDF5_LIBRARIES}
         ${MPI_LIBRARIES}

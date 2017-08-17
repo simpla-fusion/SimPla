@@ -12,19 +12,27 @@ namespace simpla {
 namespace data {
 struct DataArray : public DataEntity {
     SP_OBJECT_HEAD(DataArray, DataEntity)
+
+    struct pimpl_s;
+    pimpl_s* m_pimpl_ = nullptr;
+
    protected:
-    explicit DataArray(std::shared_ptr<DataEntity> const& parent = nullptr);
+    DataArray() = default;
 
    public:
     ~DataArray() override = default;
     SP_DEFAULT_CONSTRUCT(DataArray)
 
-    static std::shared_ptr<DataArray> New(std::shared_ptr<DataEntity> const& parent = nullptr);
+    static std::shared_ptr<DataArray> New();
 
-    int Accept(DataEntityVisitor const&) const override { return 0; };
+    template <typename... Args>
+    static std::shared_ptr<DataArray> New(Args&&... args);
 
-    size_type Count() const override = 0;
+    virtual bool isEmpty() const = 0;
+    virtual size_type Count() const = 0;
     virtual size_type Resize(size_type s) = 0;
+    virtual void Clear() = 0;
+
     virtual std::shared_ptr<DataEntity> Get(size_type idx) const = 0;
     virtual int Set(size_type idx, std::shared_ptr<DataEntity> const&) = 0;
     virtual int Add(std::shared_ptr<DataEntity> const&) = 0;
@@ -33,81 +41,68 @@ struct DataArray : public DataEntity {
     virtual int Foreach(std::function<int(std::shared_ptr<DataEntity>)> const& fun) const;
 };
 
-struct DataArrayDefault : public DataArray {
-    SP_OBJECT_HEAD(DataArrayDefault, DataArray)
-   protected:
-    explicit DataArrayDefault(std::shared_ptr<DataEntity> const& parent = nullptr);
-
-   public:
-    ~DataArrayDefault() override = default;
-    SP_DEFAULT_CONSTRUCT(DataArrayDefault);
-
-    static std::shared_ptr<this_type> New(std::shared_ptr<DataEntity> const& parent = nullptr);
-
-    size_type Count() const override;
-    size_type Resize(size_type s) override;
-    std::shared_ptr<DataEntity> Get(size_type idx) const override;
-    int Set(size_type idx, std::shared_ptr<DataEntity> const&) override;
-    int Add(std::shared_ptr<DataEntity> const&) override;
-    int Delete(size_type idx) override;
-
-   private:
-    std::vector<std::shared_ptr<DataEntity>> m_data_;
-};
-template <typename V, typename Enable = void>
-struct DataArrayWrapper {};
-
 template <typename V>
-class DataArrayWrapper<V, std::enable_if_t<traits::is_light_data<V>::value>> : public DataArray {
-    typedef DataArrayWrapper<V> this_type;
+class DataArrayT : public DataArray {
+    typedef DataArrayT<V> this_type;
     typedef V value_type;
     std::vector<value_type> m_data_;
 
    protected:
-    explicit DataArrayWrapper(std::shared_ptr<DataEntity> const& parent = nullptr) : DataArray(parent) {}
+    DataArrayT() = default;
+    template <typename U>
+    DataArrayT(std::initializer_list<U> const& u) {
+        m_data_.reserve(u.size());
+        for (auto const& item : u) { m_data_.push_back(static_cast<value_type>(item)); }
+    }
+    template <typename U>
+    DataArrayT(U const* u, size_type n) : m_data_(n) {
+        for (int i = 0; i < n; ++i) { m_data_[i] = u[i]; }
+    }
 
    public:
-    ~DataArrayWrapper() override = default;
+    ~DataArrayT() override = default;
+    SP_DEFAULT_CONSTRUCT(DataArrayT);
 
-    SP_DEFAULT_CONSTRUCT(DataArrayWrapper);
+    template <typename... Args>
+    static std::shared_ptr<this_type> New(Args&&... args) {
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
+    };
 
     std::type_info const& value_type_info() const override { return typeid(value_type); };
 
-    std::vector<value_type>& data() { return m_data_; }
-    std::vector<value_type> const& data() const { return m_data_; }
-    static std::shared_ptr<this_type> New(std::shared_ptr<DataEntity> const& parent = nullptr) {
-        return std::shared_ptr<this_type>(new this_type(parent));
-    };
+    bool isEmpty() const override { return m_data_.empty(); }
 
     size_type Count() const override { return m_data_.size(); }
-    size_type Resize(size_type s = 0) override {
+
+    size_type Resize(size_type s) override {
         m_data_.resize(s);
         return s;
     }
+    void Clear() override { m_data_.clear(); }
 
     std::shared_ptr<DataEntity> Get(size_type idx) const override { return DataEntity::New(m_data_[idx]); }
 
     int Set(size_type idx, std::shared_ptr<DataEntity> const& v) override {
-        bool success = true;
-        if (std::dynamic_pointer_cast<DataEntityWrapper<value_type>>(v) != nullptr) {
-            m_data_.at(idx) = std::dynamic_pointer_cast<DataEntityWrapper<value_type>>(v)->value();
-        } else {
-            success = false;
+        int count = 0;
+        if (auto p = std::dynamic_pointer_cast<DataLight>(v)) {
+            m_data_.at(idx) = p->as<value_type>();
+            count = 1;
         }
-        return success;
+        return count;
     }
     int Add(std::shared_ptr<DataEntity> const& v) override {
-        bool success = true;
-        if (std::dynamic_pointer_cast<DataArrayWrapper<value_type>>(v) != nullptr) {
-            auto p_array = std::dynamic_pointer_cast<DataArrayWrapper<value_type>>(v);
-            for (size_type i = 0, ie = p_array->Count(); i < ie; ++i) { m_data_.push_back(p_array->GetValue(i)); }
-        } else if (std::dynamic_pointer_cast<DataEntityWrapper<value_type>>(v) != nullptr) {
-            m_data_.push_back(std::dynamic_pointer_cast<DataEntityWrapper<value_type>>(v)->value());
-        } else {
-            success = false;
+        int count = 0;
+        if (auto p = std::dynamic_pointer_cast<DataArrayT<value_type>>(v)) {
+            count = static_cast<int>(p->Count());
+            for (int i = 0; i < count; ++i) { m_data_.push_back(p->GetValue(i)); }
+        } else if (auto p = std::dynamic_pointer_cast<DataLight>(v)) {
+            m_data_.push_back(p->as<value_type>());
+            count = 1;
         }
-        return success;
+        return count;
     }
+    void Add(value_type const& v) { m_data_.push_back(v); }
+
     int Delete(size_type idx) override {
         m_data_.erase(m_data_.begin() + idx);
         return 1;
@@ -119,35 +114,97 @@ class DataArrayWrapper<V, std::enable_if_t<traits::is_light_data<V>::value>> : p
         if (Count() < idx) { m_data_.resize(idx); }
         m_data_[idx] = v;
     }
-    void Add(value_type const& v) { m_data_.push_back(v); }
 
-    value_type* get() { return &m_data_[0]; }
-    value_type const* get() const { return &m_data_[0]; }
+    std::vector<value_type>& data() { return m_data_; }
+    std::vector<value_type> const& data() const { return m_data_; }
 };
+template <>
+class DataArrayT<void> : public DataArray {
+    typedef DataArrayT<void> this_type;
+    std::vector<std::shared_ptr<DataEntity>> m_data_;
+
+   protected:
+    DataArrayT() = default;
+    template <typename U>
+    DataArrayT(std::initializer_list<U> const& u);
+
+   public:
+    ~DataArrayT() override = default;
+    SP_DEFAULT_CONSTRUCT(DataArrayT);
+
+    template <typename... Args>
+    static std::shared_ptr<this_type> New(Args&&... args) {
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
+    };
+
+    std::type_info const& value_type_info() const override { return typeid(void); };
+
+    bool isEmpty() const override { return m_data_.empty(); }
+
+    size_type Count() const override { return m_data_.size(); }
+
+    size_type Resize(size_type s) override {
+        m_data_.resize(s);
+        return s;
+    }
+    void Clear() override { m_data_.clear(); }
+
+    std::shared_ptr<DataEntity> Get(size_type idx) const override { return m_data_[idx]; }
+
+    int Set(size_type idx, std::shared_ptr<DataEntity> const& v) override {
+        bool success = true;
+        if (std::dynamic_pointer_cast<DataLight>(v) != nullptr) {
+            m_data_.at(idx) = v;
+        } else {
+            success = false;
+        }
+        return success;
+    }
+    int Add(std::shared_ptr<DataEntity> const& v) override {
+        m_data_.push_back(v);
+        return SP_SUCCESS;
+    }
+    int Delete(size_type idx) override {
+        m_data_.erase(m_data_.begin() + idx);
+        return 1;
+    }
+};
+inline std::shared_ptr<DataArray> DataArray::New() { return DataArrayT<void>::New(); }
 
 template <typename U>
-std::shared_ptr<DataArrayWrapper<U>> make_data_entity(std::initializer_list<U> const& u,
-                                                      ENABLE_IF(traits::is_light_data<U>::value)) {
-    auto res = DataArrayWrapper<U>::New();
-    for (auto const& item : u) { res->Add(item); }
-    return res;
+DataArrayT<void>::DataArrayT(std::initializer_list<U> const& u) {
+    m_data_.reserve(u.size());
+    for (auto const& item : u) { m_data_.push_back(DataEntity::New(item)); }
 }
 
-inline std::shared_ptr<DataArrayWrapper<std::string>> make_data_entity(std::initializer_list<const char*> const& u) {
-    auto res = DataArrayWrapper<std::string>::New();
-    for (auto const& item : u) { res->Add(std::string(item)); }
-    return res;
+template <typename U>
+std::shared_ptr<DataArray> make_data_entity(U const* u, size_type n) {
+    return DataArrayT<U>::New(u, n);
+}
+
+template <typename U>
+std::shared_ptr<DataArray> make_data_entity(std::initializer_list<U> const& u) {
+    return std::conditional_t < traits::is_light_data<U>::value || std::is_same<char const*, U>::value, DataArrayT<U>,
+           DataArrayT<void>> ::New(u);
+}
+
+template <typename U>
+std::shared_ptr<DataArray> make_data_entity(std::initializer_list<std::initializer_list<U>> const& u) {
+    return DataArrayT<void>::New(u);
 }
 template <typename U>
-std::shared_ptr<DataArray> make_data_entity(std::initializer_list<U> const& u,
-                                            ENABLE_IF(!traits::is_light_data<U>::value)) {
-    auto res = DataArray::New();
-    for (auto const& item : u) { res->Add(make_data_entity(item)); }
-    return res;
+std::shared_ptr<DataArray> make_data_entity(
+    std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
+    return DataArrayT<void>::New(u);
 }
 
-// inline std::shared_ptr<DataArrayWrapper<std::string>> make_data_entity(std::initializer_list<char const*> const& u) {
-//    auto res = std::make_shared<DataArrayWrapper<std::string>>();
+//
+// inline std::shared_ptr<DataArrayT<std::string>> make_data_entity(std::initializer_list<const char*> const& u) {
+//    return DataArrayT<std::string>::New(u);
+//}
+//
+// inline std::shared_ptr<DataArrayT<std::string>> make_data_entity(std::initializer_list<char const*> const& u) {
+//    auto res = std::make_shared<DataArrayT<std::string>>();
 //    for (auto const item : u) { res->Add(std::string(item)); }
 //    return res;
 //}
@@ -155,8 +212,8 @@ std::shared_ptr<DataArray> make_data_entity(std::initializer_list<U> const& u,
 // template <typename U, int N>
 // struct DataCastTraits<nTuple<U, N>> {
 //    static nTuple<U, N> Get(std::shared_ptr<DataEntity> const& p) {
-//        ASSERT(dynamic_cast<DataEntityWrapper<U*> const*>(p.get()) != nullptr);
-//        auto a = std::dynamic_pointer_cast<DataEntityWrapper<U*>>(p);
+//        ASSERT(dynamic_cast<DataLight<U*> const*>(p.get()) != nullptr);
+//        auto a = std::dynamic_pointer_cast<DataLight<U*>>(p);
 //        nTuple<U, N> res;
 //        for (int i = 0; i < N; ++i) { res[i] = i < a->size() ? DataCastTraits<U>::Get(a->Get(i)) : 0; }
 //        return std::move(res);
@@ -168,17 +225,17 @@ std::shared_ptr<DataArray> make_data_entity(std::initializer_list<U> const& u,
 
 //
 // template <typename U, int N>
-// class DataEntityWrapper<simpla::algebra::declare::nTuple_<U, N>> : public DataArrayWithType<U> {
+// class DataLight<simpla::algebra::declare::nTuple_<U, N>> : public DataArrayWithType<U> {
 //    typedef simpla::algebra::declare::nTuple_<U, N> tuple_type;
-//    SP_OBJECT_HEAD(DataEntityWrapper<tuple_type>, DataArrayWithType<U>);
+//    SP_OBJECT_HEAD(DataLight<tuple_type>, DataArrayWithType<U>);
 //    tuple_type m_holder_;
 //
 //   public:
-//    DataEntityWrapper() {}
-//    DataEntityWrapper(tuple_type const& other) : m_holder_(other) {}
-//    DataEntityWrapper(this_type const& other) : m_holder_(other.m_holder_) {}
-//    DataEntityWrapper(this_type&& other) : m_holder_(other.m_holder_) {}
-//    virtual ~DataEntityWrapper() {}
+//    DataLight() {}
+//    DataLight(tuple_type const& other) : m_holder_(other) {}
+//    DataLight(this_type const& other) : m_holder_(other.m_holder_) {}
+//    DataLight(this_type&& other) : m_holder_(other.m_holder_) {}
+//    virtual DataLight {}
 //    tuple_type& get() { return m_holder_; }
 //    tuple_type const& get() const { return m_holder_; }
 //    // DataEntity
@@ -205,21 +262,21 @@ std::shared_ptr<DataArray> make_data_entity(std::initializer_list<U> const& u,
 //};
 //
 // template <typename U, int N0, int N1, int... N>
-// class DataEntityWrapper<simpla::algebra::declare::nTuple_<U, N0, N1, N...>> : public DataArray {
+// class DataLight<simpla::algebra::declare::nTuple_<U, N0, N1, N...>> : public DataArray {
 //    typedef simpla::algebra::declare::nTuple_<U, N0, N1, N...> tuple_type;
 //    SP_OBJECT_HEAD(tuple_type, DataArray);
 //    tuple_type m_holder_;
 //
 //   public:
-//    DataEntityWrapper() {}
-//    DataEntityWrapper(this_type const& other) : m_holder_(other.m_holder_) {}
-//    DataEntityWrapper(this_type&& other) : m_holder_(other.m_holder_) {}
+//    DataLight() {}
+//    DataLight(this_type const& other) : m_holder_(other.m_holder_) {}
+//    DataLight(this_type&& other) : m_holder_(other.m_holder_) {}
 //
-//    virtual ~DataEntityWrapper() {}
+//    virtual DataLight {}
 //    tuple_type& get() { return m_holder_; }
 //    tuple_type const& get() const { return m_holder_; }
 //    // DataEntity
-//    virtual std::shared_ptr<DataEntity> Duplicate() { return std::make_shared<DataEntityWrapper<U*>>(*this); }
+//    virtual std::shared_ptr<DataEntity> Duplicate() { return std::make_shared<DataLight<U*>>(*this); }
 //    // DataArray
 //    virtual size_type size() const {
 //        UNIMPLEMENTED;
@@ -271,7 +328,7 @@ std::shared_ptr<DataArray> make_data_entity(std::initializer_list<U> const& u,
 //}
 // template <typename... U>
 // std::shared_ptr<DataEntity> make_data_entity(std::tuple<U...> const& v) {
-//    auto p = std::make_shared<DataEntityWrapper<void*>>();
+//    auto p = std::make_shared<DataLight<void*>>();
 //    p->resize(sizeof...(U));
 //    detail::data_entity_to_helper(v, *p, std::integral_constant<int, sizeof...(U)>());
 //    return p;

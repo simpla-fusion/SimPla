@@ -16,20 +16,14 @@
 namespace simpla {
 namespace data {
 
-DataTable::DataTable(std::shared_ptr<DataEntity> const& parent, std::shared_ptr<DataBase> const& db)
-    : DataEntity(parent), m_database_(db) {
-    ASSERT(m_database_ != nullptr);
-};
-std::shared_ptr<DataTable> DataTable::New(std::shared_ptr<DataBase> const& db) {
-    return std::shared_ptr<DataTable>(new DataTable(nullptr, db != nullptr ? db : DataBaseMemory::New()));
-};
+DataTable::DataTable(std::shared_ptr<DataBase> const& db) : m_database_(db) { ASSERT(m_database_ != nullptr); };
 
-std::shared_ptr<DataTable> DataTable::New(std::string const& uri) { return New(DataBase::New(uri)); };
+DataTable::DataTable(std::string const& uri) : DataTable(DataBase::New(uri)){};
 
 int DataTable::Flush() { return m_database_->Flush(); }
 
-bool DataTable::isNull(std::string const& uri) const { return m_database_ == nullptr || m_database_->isNull(uri); }
-size_type DataTable::Count(std::string const& uri) const { return m_database_->Count(uri); }
+bool DataTable::isNull() const { return m_database_ == nullptr; }
+size_type DataTable::Count() const { return 0; }
 std::shared_ptr<DataEntity> DataTable::Get(std::string const& path) { return m_database_->Get(path); };
 std::shared_ptr<const DataEntity> DataTable::Get(std::string const& path) const { return m_database_->Get(path); };
 int DataTable::Set(std::string const& uri, const std::shared_ptr<DataEntity>& p) {

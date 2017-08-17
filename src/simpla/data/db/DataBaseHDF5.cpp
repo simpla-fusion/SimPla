@@ -333,10 +333,10 @@ int DataBaseHDF5::pimpl_s::HDF5Set(DataBaseHDF5 const* self, hid_t loc_id, std::
 }
 int DataBaseHDF5::pimpl_s::HDF5Set(DataBaseHDF5 const* self, hid_t loc_id, std::string const& key,
                                    std::shared_ptr<DataBlock> const& src, bool overwrite) {
-    if (src->isNull()) {
-        LOGGER << "Write Empty DataBlock" << key << std::endl;
-        return 0;
-    }
+    //    if (src->isEmpty()) {
+    //        LOGGER << "Write Empty DataBlock" << key << std::endl;
+    //        return 0;
+    //    }
     bool is_exist = H5Lexists(loc_id, key.c_str(), H5P_DEFAULT) != 0;
     //            H5Oexists_by_name(loc_id, key.c_str(), H5P_DEFAULT) != 0;
     H5O_info_t g_info;
@@ -347,12 +347,16 @@ int DataBaseHDF5::pimpl_s::HDF5Set(DataBaseHDF5 const* self, hid_t loc_id, std::
         H5Ldelete(loc_id, key.c_str(), H5P_DEFAULT);
         is_exist = false;
     }
-
-    index_type const* inner_lower = src->GetInnerLowerIndex(0);
-    index_type const* inner_upper = src->GetInnerUpperIndex(0);
-    index_type const* outer_lower = src->GetOuterLowerIndex(0);
-    index_type const* outer_upper = src->GetOuterUpperIndex(0);
     const int ndims = src->GetNDIMS();
+
+    index_type inner_lower[ndims];
+    index_type inner_upper[ndims];
+    index_type outer_lower[ndims];
+    index_type outer_upper[ndims];
+
+    src->GetIndexBox(inner_lower, inner_upper);
+    src->GetIndexBox(outer_lower, outer_upper);
+
     hsize_t m_shape[ndims];
     hsize_t m_start[ndims];
     hsize_t m_count[ndims];
@@ -371,7 +375,7 @@ int DataBaseHDF5::pimpl_s::HDF5Set(DataBaseHDF5 const* self, hid_t loc_id, std::
     hid_t dset;
     hid_t d_type = GetHDF5DataType(src->value_type_info());
     H5_ERROR(dset = H5Dcreate(loc_id, key.c_str(), d_type, f_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
-    H5_ERROR(H5Dwrite(dset, d_type, m_space, f_space, H5P_DEFAULT, src->GetPointer(0)));
+    H5_ERROR(H5Dwrite(dset, d_type, m_space, f_space, H5P_DEFAULT, src->GetPointer()));
 
     H5_ERROR(H5Dclose(dset));
     if (m_space != H5S_ALL) H5_ERROR(H5Sclose(m_space));
@@ -396,8 +400,8 @@ int DataBaseHDF5::pimpl_s::HDF5Set(DataBaseHDF5 const* self, hid_t g_id, std::st
         HDF5Set(self, g_id, key, std::dynamic_pointer_cast<DataTable>(src), overwrite);
     } else if (std::dynamic_pointer_cast<DataBlock>(src) != nullptr) {
         HDF5Set(self, g_id, key, std::dynamic_pointer_cast<DataBlock>(src), overwrite);
-    } else if (std::dynamic_pointer_cast<DataEntityWrapper<std::string>>(src) != nullptr) {
-        std::string const& s_str = std::dynamic_pointer_cast<DataEntityWrapper<std::string>>(src)->value();
+    } else if (auto p = std::dynamic_pointer_cast<DataLight>(src)) {
+        std::string const& s_str = p->as<std::string>();
         hid_t m_type = H5Tcopy(H5T_C_S1);
         H5Tset_size(m_type, s_str.size());
         H5Tset_strpad(m_type, H5T_STR_NULLTERM);
@@ -420,15 +424,15 @@ int DataBaseHDF5::pimpl_s::HDF5Set(DataBaseHDF5 const* self, hid_t g_id, std::st
         }
 
         if (false) {}
-#define DEC_TYPE(_T_, _H5_T_)                                                                                 \
-    else if (src->value_type_info() == typeid(_T_)) {                                                         \
-        d_type = _H5_T_;                                                                                      \
-        if (std::dynamic_pointer_cast<DataArrayWrapper<_T_>>(src) != nullptr) {                               \
-            data = reinterpret_cast<char*>(&std::dynamic_pointer_cast<DataArrayWrapper<_T_>>(src)->get()[0]); \
-        } else {                                                                                              \
-            data = new char[sizeof(_T_)];                                                                     \
-            *reinterpret_cast<_T_*>(data) = std::dynamic_pointer_cast<DataEntityWrapper<_T_>>(src)->value();  \
-        }                                                                                                     \
+#define DEC_TYPE(_T_, _H5_T_)                                                                     \
+    else if (src->value_type_info() == typeid(_T_)) {                                             \
+        d_type = _H5_T_;                                                                          \
+        if (auto p = std::dynamic_pointer_cast<DataArrayT<_T_>>(src)) {                           \
+            *data = p->data()[0];                                                                 \
+        } else {                                                                                  \
+            data = new char[sizeof(_T_)];                                                         \
+            *reinterpret_cast<_T_*>(data) = std::dynamic_pointer_cast<DataLight>(src)->as<_T_>(); \
+        }                                                                                         \
     }
 
         //        DEC_TYPE(bool, H5T_NATIVE_HBOOL)
@@ -497,11 +501,7 @@ int DataBaseHDF5::Flush() {
     H5_ERROR(H5Fflush(*m_pimpl_->m_f_id_, H5F_SCOPE_GLOBAL));
     return SP_SUCCESS;
 }
-bool DataBaseHDF5::isNull(std::string const& uri) const { return m_pimpl_->m_f_id_ == nullptr; }
-size_type DataBaseHDF5::Count(std::string const& uri) const {
-    UNIMPLEMENTED;
-    return 0;
-}
+bool DataBaseHDF5::isNull() const { return m_pimpl_->m_f_id_ == nullptr; }
 
 std::shared_ptr<DataEntity> DataBaseHDF5::Get(std::string const& uri) const {
     auto res = pimpl_s::HDf5GetTable(this, m_pimpl_->m_g_id_, uri, true);

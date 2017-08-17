@@ -27,12 +27,13 @@ int DataBaseStdIO::Disconnect() {
     m_pimpl_->m_in_ = nullptr;
     return SP_SUCCESS;
 }
+
 int DataBaseStdIO::Flush() {
     *m_pimpl_->m_out_ << std::endl;
     return SP_SUCCESS;
 }
-bool DataBaseStdIO::isNull(std::string const& uri) const { return m_pimpl_->m_out_ == nullptr; }
-size_type DataBaseStdIO::Count(std::string const& url) const { return 0; }
+bool DataBaseStdIO::isNull() const { return m_pimpl_->m_out_ == nullptr; }
+
 std::shared_ptr<DataEntity> DataBaseStdIO::Get(std::string const& URI) const { return nullptr; }
 
 struct VisitorStdOut : public DataEntityVisitor {
@@ -53,9 +54,7 @@ struct VisitorStdOut : public DataEntityVisitor {
         return 1;
     }
 };
-std::ostream& Print(std::ostream& os, std::shared_ptr<DataEntity> const& v, int indent){
-
-};
+std::ostream& Print(std::ostream& os, std::shared_ptr<DataEntity> const& v, int indent) { return os; };
 
 int DataBaseStdIO::Set(std::string const& uri, const std::shared_ptr<DataEntity>& v) {
     *m_pimpl_->m_out_ << uri << "=";

@@ -6,117 +6,103 @@
 #define SIMPLA_DATAENTITY_H
 #include "simpla/SIMPLA_config.h"
 
-#include <simpla/data/db/DataBaseStdIO.h>
+#include <experimental/any>
 #include <typeindex>
 #include <vector>
 #include "DataEntityVisitor.h"
 #include "DataTraits.h"
 #include "simpla/utilities/Log.h"
 #include "simpla/utilities/ObjectHead.h"
+
 namespace simpla {
 namespace data {
-template <typename, typename Enable = void>
-class DataEntityWrapper {};
-
+class DataLight;
 enum DataEntityType { DB_NULL = 0, DB_LIGHT = 1, DB_BLOCK = 2, DB_ARRAY = 3, DB_TABLE = 4 };
-class DataEntityVisitor;
 struct DataEntity : public std::enable_shared_from_this<DataEntity> {
     SP_OBJECT_BASE(DataEntity);
 
-   private:
-    std::shared_ptr<DataEntity> m_parent_ = nullptr;
-
    protected:
-    explicit DataEntity(std::shared_ptr<DataEntity> const& parent = nullptr);
+    DataEntity() = default;
 
    public:
-    SP_DEFAULT_CONSTRUCT(DataEntity)
     virtual ~DataEntity() = default;
+    SP_DEFAULT_CONSTRUCT(DataEntity)
+    template <typename... Args>
+    std::shared_ptr<DataEntity> New(Args&&... args);
 
     template <typename U>
-    static std::shared_ptr<DataEntity> New(U const& v);
+    static std::shared_ptr<DataEntity> New(U&& u);
+
     virtual std::type_info const& value_type_info() const { return typeid(void); };
-    virtual int GetTypeId() const;
-    virtual DataEntity* GetParent();
-    virtual DataEntity const* GetParent() const;
-    virtual DataEntity* GetRoot();
-    virtual DataEntity const* GetRoot() const;
-
-    virtual std::ostream& Serialize(std::ostream& os, int indent) const;
-    virtual std::istream& Deserialize(std::istream& is);
-
-    virtual int Accept(DataEntityVisitor&) const { return 0; };
-
-    virtual bool isNull() const;
-    virtual bool isBlock() const;
-    virtual bool isTable() const;
-    virtual bool isArray() const;
-    virtual bool isLight() const;
-    virtual size_type Count() const { return 0; }
 
     template <typename U>
-    bool Check(U const& u = true) const {
-        auto p = dynamic_cast<DataEntityWrapper<U> const*>(this);
-        return (p != nullptr) && p->value() == u;
-    }
+    bool Check(U const& u = true) const;
+
     template <typename U>
-    bool isA() const {
-        return dynamic_cast<DataEntityWrapper<U> const*>(this) != nullptr || dynamic_cast<U const*>(this) != nullptr;
+    bool isA() const;
+};
+
+struct DataLight : public DataEntity {
+    SP_OBJECT_HEAD(DataLight, DataEntity);
+    std::experimental::any m_data_;
+
+   protected:
+    DataLight() = default;
+    template <typename U>
+    explicit DataLight(U const& d) : m_data_(d) {}
+    template <typename U>
+    explicit DataLight(U&& d) : m_data_(std::forward<U>(d)) {}
+
+   public:
+    ~DataLight() override = default;
+    SP_DECLARE_NAME(DataLight);
+
+    template <typename... Args>
+    static std::shared_ptr<this_type> New(Args&&... args) {
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
     }
+
+    std::type_info const& value_type_info() const override { return m_data_.type(); };
+
+    size_type Count() const { return 1; }
+
+    std::experimental::any value() const { return m_data_; };
+
     template <typename U>
     U as() const {
-        auto const* p = dynamic_cast<DataEntityWrapper<U> const*>(this);
-        if (p == nullptr) { BAD_CAST << "Can not convert to type[" << typeid(U).name() << "]" << std::endl; }
-        return p->value();
-    }
-
-    template <typename U>
-    U as(U const& default_value) const {
-        auto p = dynamic_cast<DataEntityWrapper<U> const*>(this);
-        return p == nullptr ? default_value : p->value();
+        return std::experimental::any_cast<U>(m_data_);
     }
 };
+
+template <typename U>
+bool DataEntity::Check(U const& u) const {
+    auto p = dynamic_cast<DataLight const*>(this);
+    return (p != nullptr) && p->as<U>() == u;
+}
+
+template <typename U>
+bool DataEntity::isA() const {
+    return value_type_info() == typeid(U);
+};
+
+template <typename U>
+std::shared_ptr<DataEntity> DataEntity::New(U&& u) {
+    return DataLight::New(std::forward<U>(u));
+}
+
+template <typename U>
+std::shared_ptr<DataEntity> make_data_entity(U const& u, ENABLE_IF(traits::is_light_data<U>::value)) {
+    return DataLight::New(u);
+}
+inline std::shared_ptr<DataEntity> make_data_entity(char const* u) { return DataLight::New(std::string(u)); }
+
+template <typename... Args>
+std::shared_ptr<DataEntity> DataEntity::New(Args&&... args) {
+    return make_data_entity(std::forward<Args>(args)...);
+}
+
 std::ostream& operator<<(std::ostream& os, DataEntity const& v);
-std::istream& operator<<(std::istream& is, DataEntity& v);
-
-template <typename V>
-struct DataEntityWrapper<V> : public DataEntity {
-    SP_OBJECT_HEAD(DataEntityWrapper<V>, DataEntity);
-    typedef V value_type;
-    value_type m_data_;
-
-   protected:
-    DataEntityWrapper() = default;
-    explicit DataEntityWrapper(value_type const& d) : m_data_(d) {}
-
-   public:
-    ~DataEntityWrapper() override = default;
-
-    static std::shared_ptr<this_type> New(value_type const& d) { return std::shared_ptr<this_type>(new this_type(d)); }
-
-    std::type_info const& value_type_info() const override { return typeid(value_type); };
-
-    int Accept(DataEntityVisitor& visitor) const override { return visitor.visit(m_data_); };
-
-    bool isLight() const override { return true; }
-
-    size_type Count() const override { return 1; }
-
-    value_type value() const { return m_data_; };
-};
-
-template <typename U>
-std::shared_ptr<DataEntity> DataEntity::New(U const& v) {
-    return DataEntityWrapper<U>::New(v);
-}
-template <typename U>
-std::shared_ptr<DataEntityWrapper<U>> make_data_entity(U const& u, ENABLE_IF(traits::is_light_data<U>::value)) {
-    return DataEntityWrapper<U>::New(u);
-}
-inline std::shared_ptr<DataEntityWrapper<std::string>> make_data_entity(char const* u) {
-    return DataEntityWrapper<std::string>::New(std::string(u));
-}
-
+std::istream& operator>>(std::istream& is, DataEntity& v);
 }  // namespace data {
 }  // namespace simpla {
 #endif  // SIMPLA_DATAENTITY_H

@@ -45,7 +45,7 @@ int DataBaseLua::Disconnect() { return SP_SUCCESS; }
 
 template <typename U>
 std::shared_ptr<DataEntity> DataBaseLua::pimpl_s::make_data_array_lua(LuaObject const& lobj) {
-    auto res = DataArrayWrapper<U>::New();
+    auto res = DataArrayT<U>::New();
     for (auto const& item : lobj) { res->Add(item.second.as<U>()); }
     return std::dynamic_pointer_cast<DataEntity>(res);
 }
@@ -199,8 +199,7 @@ int DataBaseLua::Delete(std::string const& key) {
     UNIMPLEMENTED;
     return 0;
 }
-bool DataBaseLua::isNull(std::string const& uri) const { return m_pimpl_->m_lua_obj_.is_nil(); }
-size_type DataBaseLua::Count(std::string const& uri) const { return uri.empty() ? m_pimpl_->m_lua_obj_.size() : 0; }
+bool DataBaseLua::isNull() const { return m_pimpl_->m_lua_obj_.is_nil(); }
 
 int DataBaseLua::Foreach(std::function<int(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
     int counter = 0;

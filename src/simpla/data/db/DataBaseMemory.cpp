@@ -57,10 +57,7 @@ int DataBaseMemory::Flush() { return SP_SUCCESS; };
 
 // std::ostream& DataBaseMemory::Print(std::ostream& os, int indent) const { return os; };
 
-bool DataBaseMemory::isNull(std::string const& uri) const { return m_pimpl_ == nullptr; };
-size_type DataBaseMemory::Count(std::string const& uri) const {
-    return uri.empty() ? m_pimpl_->m_table_.size() : Get(uri)->Count();
-}
+bool DataBaseMemory::isNull() const { return m_pimpl_ == nullptr; };
 
 std::shared_ptr<DataEntity> DataBaseMemory::Get(std::string const& url) const {
     std::shared_ptr<DataEntity> res = nullptr;

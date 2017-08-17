@@ -107,7 +107,7 @@ class Factory {
     //        if (dynamic_cast<data::DataTable const *>(&cfg) != nullptr) {
     //            res = Create_(dynamic_cast<data::DataTable const &>(cfg), std::forward<U>(args)...);
     //        } else {
-    //            auto p = dynamic_cast<data::DataEntityWrapper<std::string> const *>(&cfg);
+    //            auto p = dynamic_cast<data::DataLight<std::string> const *>(&cfg);
     //            res = Create((p != nullptr) ? p->value() : "", std::forward<U>(args)...);
     //        }
     //

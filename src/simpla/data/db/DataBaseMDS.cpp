@@ -17,8 +17,7 @@ int DataBaseMDS::Connect(std::string const& authority, std::string const& path, 
 }
 int DataBaseMDS::Disconnect() { return SP_SUCCESS; }
 int DataBaseMDS::Flush() { return SP_SUCCESS; }
-bool DataBaseMDS::isNull(std::string const& uri) const { return true; }
-size_type DataBaseMDS::Count(std::string const& url) const { return 0; }
+bool DataBaseMDS::isNull() const { return true; }
 std::shared_ptr<DataEntity> DataBaseMDS::Get(std::string const& URI) const { return nullptr; }
 int DataBaseMDS::Set(std::string const& URI, const std::shared_ptr<DataEntity>& v) { return 0; }
 int DataBaseMDS::Add(std::string const& URI, const std::shared_ptr<DataEntity>& v) { return 0; }

@@ -15,7 +15,7 @@ struct DataBackendXDMFRoot : public DataBaseXDMF {
     boost::shared_ptr<XdmfDomain> m_root_ = nullptr;
     void Initialize();
     int Flush();
-    int Set(std::string const& URI, const std::shared_ptr<DataEntity>& entity);
+//    int Set(std::string const& URI, const std::shared_ptr<DataEntity>& entity);
 
    private:
     std::string m_prefix_ = "simpla_unamed";
@@ -65,7 +65,7 @@ DataBaseXDMF::~DataBaseXDMF() {
     delete m_pimpl_;
 }
 
-bool DataBaseXDMF::isNull(std::string const& uri) const { return m_pimpl_->m_self_ == nullptr; }
+bool DataBaseXDMF::isNull() const { return m_pimpl_->m_self_ == nullptr; }
 
 int DataBaseXDMF::Connect(std::string const& authority, std::string const& path, std::string const& query,
                           std::string const& fragment) {
@@ -92,7 +92,6 @@ std::shared_ptr<DataEntity> DataBaseXDMF::Get(std::string const& URI) const {
 int DataBaseXDMF::Set(std::string const& URI, const std::shared_ptr<DataEntity>& entity) { return 0; }
 int DataBaseXDMF::Add(std::string const& URI, const std::shared_ptr<DataEntity>& entity) { return 0; }
 int DataBaseXDMF::Delete(std::string const& URI) { return 0; }
-size_type DataBaseXDMF::Count(std::string const& uri) const { return 0; }
 int DataBaseXDMF::Foreach(std::function<int(std::string const&, std::shared_ptr<DataEntity>)> const& fun) const {
     return 0;
 }
