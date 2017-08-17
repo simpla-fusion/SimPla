@@ -33,7 +33,7 @@ class DataBlock : public DataEntity {
     static std::shared_ptr<DataBlock> New(Args &&... args);
 
     std::type_info const &value_type_info() const override = 0;
-    virtual size_type value_type_size() const = 0;
+    size_type value_type_size() const override = 0;
 
     virtual void const *GetPointer() const { return nullptr; }
     virtual void *GetPointer() { return nullptr; }
