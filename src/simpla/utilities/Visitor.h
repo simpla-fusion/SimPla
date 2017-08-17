@@ -8,12 +8,10 @@
 #ifndef VISITOR_H_
 #define VISITOR_H_
 
-#include <string>
 #include <memory>
-#include "../type_traits.h"
+#include <string>
 
-namespace simpla
-{
+namespace simpla {
 /**
  * @ingroup  design_pattern
  *
@@ -105,28 +103,39 @@ namespace simpla
  *
  */
 struct Acceptor;
+template <typename T>
+class Visitor;
+struct VisitorInterface {
+   protected:
+    VisitorInterface() {}
 
-struct Visitor
-{
+   public:
+    virtual ~VisitorInterface() {}
 
-    Visitor() { }
+    template <typename TObj>
+    void visit(Acceptor &p) {
+        auto *self = dynamic_cast<Visitor<TObj> *>(this);
+        if (self != nullptr) {}
+    }
+    void visit(Acceptor const &p) {}
+    void visit(Acceptor &p) const {}
+    void visit(Acceptor const &p) const {}
+};
+template <typename T>
+class Visitor : public VisitorInterface {
+   protected:
+    Visitor() {}
 
-    virtual ~Visitor() { }
-
-    virtual void visit(Acceptor &p) { }
-
-    virtual void visit(Acceptor const &p) { }
-
-    virtual void visit(Acceptor &p) const { }
-
-    virtual void visit(Acceptor const &p) const { }
+   public:
+    virtual ~Visitor() {}
+    std::shared_ptr<VisitorInterface> New();
 };
 
-struct Acceptor
-{
-    Acceptor() { }
+template <typename TObj>
+struct Acceptor {
+    Acceptor() {}
 
-    virtual ~Acceptor() { }
+    virtual ~Acceptor() {}
 
     virtual void accept(Visitor &visitor) { visitor.visit(*this); }
 
@@ -135,12 +144,7 @@ struct Acceptor
     virtual void accept(Visitor &visitor) const { visitor.visit(*this); }
 
     virtual void accept(Visitor const &visitor) const { visitor.visit(*this); }
-
 };
-
-
-
-
 
 //    template<typename TFUN>
 //    inline void execute(TFUN const &f)
@@ -148,7 +152,7 @@ struct Acceptor
 //        callFunc(f, typename make_int_sequence<sizeof...(Args)>::value_type_info());
 //    }
 //
-//private:
+// private:
 //// Unpack tuple to args...
 ////\note  http://stackoverflow.com/questions/7858817/unpacking-a-tuple-to-call-a-matching-function-pointer
 //
@@ -159,10 +163,7 @@ struct Acceptor
 //        fun(std::Serialize<S>(args_) ...);
 //    }
 
-
-
-
 /** @}*/
-} // namespace simpla
+}  // namespace simpla
 
 #endif /* VISITOR_H_ */

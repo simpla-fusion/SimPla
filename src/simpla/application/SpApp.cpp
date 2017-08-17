@@ -178,7 +178,7 @@ int main(int argc, char **argv) {
 #endif
 
     parallel::init(argc, argv);
-
+    ASSERT(data::DataBase::s_num_of_pre_registered_ > 0);
     MESSAGE << std::endl
             << data::DataBase::ShowDescription() << std::endl
             << engine::SPObject::ShowDescription() << std::endl;

@@ -6,8 +6,10 @@
 #define SIMPLA_DATAENTITY_H
 #include "simpla/SIMPLA_config.h"
 
+#include <simpla/data/db/DataBaseStdIO.h>
 #include <typeindex>
 #include <vector>
+#include "DataEntityVisitor.h"
 #include "DataTraits.h"
 #include "simpla/utilities/Log.h"
 #include "simpla/utilities/ObjectHead.h"
@@ -17,7 +19,7 @@ template <typename, typename Enable = void>
 class DataEntityWrapper {};
 
 enum DataEntityType { DB_NULL = 0, DB_LIGHT = 1, DB_BLOCK = 2, DB_ARRAY = 3, DB_TABLE = 4 };
-
+class DataEntityVisitor;
 struct DataEntity : public std::enable_shared_from_this<DataEntity> {
     SP_OBJECT_BASE(DataEntity);
 
@@ -42,6 +44,8 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
 
     virtual std::ostream& Serialize(std::ostream& os, int indent) const;
     virtual std::istream& Deserialize(std::istream& is);
+
+    virtual int Accept(DataEntityVisitor&) const { return 0; };
 
     virtual bool isNull() const;
     virtual bool isBlock() const;
@@ -72,14 +76,8 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
         return p == nullptr ? default_value : p->value();
     }
 };
-inline std::ostream& operator<<(std::ostream& os, DataEntity const& v) {
-    v.Serialize(os, 0);
-    return os;
-}
-inline std::istream& operator<<(std::istream& is, DataEntity& v) {
-    v.Deserialize(is);
-    return is;
-}
+std::ostream& operator<<(std::ostream& os, DataEntity const& v);
+std::istream& operator<<(std::istream& is, DataEntity& v);
 
 template <typename V>
 struct DataEntityWrapper<V> : public DataEntity {
@@ -94,17 +92,15 @@ struct DataEntityWrapper<V> : public DataEntity {
    public:
     ~DataEntityWrapper() override = default;
 
-    std::type_info const& value_type_info() const override { return typeid(value_type); };
-
-    bool isLight() const override { return true; }
-    size_type Count() const override { return 1; }
-
     static std::shared_ptr<this_type> New(value_type const& d) { return std::shared_ptr<this_type>(new this_type(d)); }
 
-    std::ostream& Serialize(std::ostream& os, int indent) const override {
-        os << m_data_;
-        return os;
-    }
+    std::type_info const& value_type_info() const override { return typeid(value_type); };
+
+    int Accept(DataEntityVisitor& visitor) const override { return visitor.visit(m_data_); };
+
+    bool isLight() const override { return true; }
+
+    size_type Count() const override { return 1; }
 
     value_type value() const { return m_data_; };
 };

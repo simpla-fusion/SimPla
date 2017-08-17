@@ -21,6 +21,8 @@ struct DataArray : public DataEntity {
 
     static std::shared_ptr<DataArray> New(std::shared_ptr<DataEntity> const& parent = nullptr);
 
+    int Accept(DataEntityVisitor const&) const override { return 0; };
+
     size_type Count() const override = 0;
     virtual size_type Resize(size_type s) = 0;
     virtual std::shared_ptr<DataEntity> Get(size_type idx) const = 0;

@@ -83,8 +83,6 @@ class DataBase : public Factory<DataBase>, public std::enable_shared_from_this<D
      */
     virtual int Foreach(std::function<int(std::string const&, std::shared_ptr<DataEntity>)> const&) const = 0;
 
-    virtual std::ostream& Print(std::ostream& os, int indent) const { return os; }
-
     static int s_num_of_pre_registered_;
 
 };  // class DataBase {

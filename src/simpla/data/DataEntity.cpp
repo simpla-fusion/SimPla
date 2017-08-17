@@ -36,6 +36,20 @@ DataEntity const* DataEntity::GetParent() const { return m_parent_.get(); }
 DataEntity* DataEntity::GetRoot() { return GetParent(); }
 DataEntity const* DataEntity::GetRoot() const { return GetParent(); }
 
+std::ostream& operator<<(std::ostream& os, DataEntity const& v) {
+    auto out = DataBaseStdIO::New();
+    out->SetStream(os);
+    out->Set("", const_cast<DataEntity&>(v).shared_from_this());
+    return os;
+}
+std::istream& operator<<(std::istream& is, DataEntity& v) {
+    auto in = DataBaseStdIO::New();
+    in->SetStream(is);
+    auto db = DataTable::New(in);
+    dynamic_cast<DataTable&>(v).Set(*db);
+    return is;
+}
+
 // DataEntity DataEntity::operator[](std::string const& url) {
 //    if (m_holder_ == nullptr) {
 //        m_holder_ = new DataTable;

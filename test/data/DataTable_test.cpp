@@ -42,23 +42,24 @@ TEST(DataTable, memory) {
     db->AddValue("/b/sub/d", 5);
     db->AddValue("/b/sub/d", "wa wa");
     db->AddValue("/b/sub/a", {3, 5, 3, 4});
-    db->AddValue("/b/sub/a", 9);
+    db->AddValue("/b/sub/e", 9);
     LOGGER << "db: " << *db << std::endl;
 
     LOGGER << "a =" << (db->GetValue<bool>("a", false)) << std::endl;
-    LOGGER << "/b/sub/e  = " << db->GetValue<nTuple<int, 4>>("/b/sub/e") << std::endl;
+    //    LOGGER << "/b/sub/e  = " << db->GetValue<nTuple<int, 4>>("/b/sub/e") << std::endl;
     db->SetValue("box", {{1, 2, 3}, {4, 5, 6}});
-    LOGGER << "box  = " << db->GetValue<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
-    LOGGER << "/b/sub/c  = " << db->GetValue<std::tuple<nTuple<int, 4>, nTuple<int, 4>, nTuple<int, 4>>>("/b/sub/c")
-           << std::endl;
+    //    LOGGER << "box  = " << db->GetValue<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
+    //    LOGGER << "/b/sub/c  = " << db->GetValue<std::tuple<nTuple<int, 4>, nTuple<int, 4>, nTuple<int,
+    //    4>>>("/b/sub/c")
+    //           << std::endl;
 }
 
 TEST(DataTable, lua) {
     logger::set_stdout_level(1000);
-
-    //    LOGGER << "Registered DataBase: " << GLOBAL_DATA_BACKEND_FACTORY.GetBackendList() << std::endl;
+    CHECK(data::DataBase::s_num_of_pre_registered_);
     auto db = DataTable::New("/home/salmon/workspace/SimPla/test/data/test.lua");
-    LOGGER << "lua:// " << *db->Get("Context") << std::endl;
+
+    LOGGER << "lua:// " << *db << std::endl;
     //   db->SetValue("box", {{1, 2, 3}, {4, 5, 6}});
     //    LOGGER << "box  = " <<db->GetValue<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
 }

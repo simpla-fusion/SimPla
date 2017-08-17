@@ -173,21 +173,16 @@ void GEqdsk::pimpl_s::load_profile(std::string const &fname) {
     LOGGER << "Load GFile Profiles: [" << fname << "]" << std::endl;
 
     std::ifstream inFileStream_(fname);
-
-    if (!inFileStream_.is_open()) { THROW_EXCEPTION_RUNTIME_ERROR("File " + fname + " is not opend!"); }
-
+    if (!inFileStream_.is_open()) { THROW_EXCEPTION_RUNTIME_ERROR("File " + fname + " is not opened!"); }
     std::string line;
-
     std::getline(inFileStream_, line);
-
     std::vector<std::string> names;
     {
         std::stringstream lineStream(line);
-
         while (lineStream) {
             std::string t;
             lineStream >> t;
-            if (t != "") names.push_back(t);
+            if (t.empty()) names.push_back(t);
         };
     }
 

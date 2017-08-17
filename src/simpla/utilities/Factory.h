@@ -86,13 +86,8 @@ class Factory {
             LOGGER << TObj::GetFancyTypeName_s() << "::" << it->first << "  is created!" << std::endl;
         } else {
             res = _TryCreate(std::is_constructible<TObj, Args...>(), std::forward<U>(args)...);
-
             if (res == nullptr) {
-                std::ostringstream os;
-                os << "Can not find Creator " << k << std::endl;
-                os << std::endl << "Registered " << TObj::GetFancyTypeName_s() << " Creator:" << std::endl;
-                for (auto const &item : f) { os << item.first << std::endl; }
-                WARNING << os.str();
+                RUNTIME_ERROR << "Can not find Creator " << k << std::endl << ShowDescription() << std::endl;
             }
         }
         return res;
