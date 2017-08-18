@@ -7,13 +7,16 @@
 #include "simpla/SIMPLA_config.h"
 
 #include <memory>
+#include "DataArray.h"
 #include "DataEntity.h"
 #include "DataTraits.h"
 #include "simpla/utilities/ObjectHead.h"
 namespace simpla {
 namespace data {
 
+class DataBase;
 class KeyValue;
+
 class KeyValue : public std::pair<std::string, std::shared_ptr<DataEntity>> {
     typedef std::pair<std::string, std::shared_ptr<DataEntity>> base_type;
 
@@ -94,19 +97,21 @@ class DataTable : public DataEntity {
     //******************************************************************************************************************
     /** Interface DataEntity */
 
-    virtual bool isNull() const;
-    virtual size_type Count() const;
-
-    virtual std::shared_ptr<DataEntity> Get(std::string const& key);
-    virtual std::shared_ptr<DataEntity> Get(std::string const& key) const;
-    virtual int Set(std::string const& uri, const std::shared_ptr<DataEntity>& v);
-    virtual int Add(std::string const& uri, const std::shared_ptr<DataEntity>& v);
-    virtual int Delete(std::string const& uri);
-    virtual int Set(const std::shared_ptr<DataTable>& v);
-
-    virtual int Foreach(std::function<int(std::string const&, std::shared_ptr<DataEntity>)> const& f) const;
-
     bool has(std::string const& uri) const { return Get(uri) != nullptr; }
+
+    bool isNull() const;
+    size_type Count() const;
+
+    std::shared_ptr<DataEntity>& Get(std::string const& uri);
+    std::shared_ptr<DataEntity> const& Get(std::string const& uri) const;
+    int Set(std::string const& uri, const std::shared_ptr<DataEntity>& v);
+    int Add(std::string const& uri, const std::shared_ptr<DataEntity>& v);
+    int Delete(std::string const& uri);
+    int Set(const std::shared_ptr<DataTable>& v);
+
+    int Foreach(std::function<int(std::string const&, std::shared_ptr<DataEntity>)> const& f) const;
+
+    /** Interface DataBackend End */
 
     template <typename U>
     bool Check(std::string const& uri, U const& u) const {
