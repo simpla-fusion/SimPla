@@ -36,6 +36,9 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
     virtual size_type value_type_size() const { return 0; };
     template <typename U>
     bool Check(U const& u = true) const;
+
+    std::shared_ptr<DataEntry>& GetEntry() { return m_entry_; }
+    std::shared_ptr<DataEntry> const& GetEntry() { return m_entry_; }
 };
 
 struct DataLight : public DataEntity {

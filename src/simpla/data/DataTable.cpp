@@ -14,29 +14,32 @@
 #include "DataArray.h"
 #include "DataBase.h"
 #include "DataEntity.h"
+#include "DataEntry.h"
 #include "DataTable.h"
-
 namespace simpla {
 namespace data {
 struct DataTable::pimpl_s {
-    std::map<std::string, std::shared_ptr<DataEntity>> m_data_;
+    std::shared_ptr<DataEntry> m_entry_;
 };
 DataTable::DataTable() : m_pimpl_(new pimpl_s){};
 DataTable::~DataTable() { delete m_pimpl_; };
 
-bool DataTable::isNull() const { return m_pimpl_->m_data_.empty(); }
-size_type DataTable::Count() const { return 0; }
-std::shared_ptr<DataEntity>& DataTable::Get(std::string const& path) { return m_pimpl_->m_data_[path]; };
-std::shared_ptr<DataEntity> const& DataTable::Get(std::string const& path) const { return m_pimpl_->m_data_.at(path); };
+bool DataTable::isNull() const { return m_pimpl_->m_entry_ == nullptr; }
+size_type DataTable::Count() const { return m_pimpl_->m_entry_->Count(); }
+std::shared_ptr<DataEntity>& DataTable::Get(std::string const& key) { return m_pimpl_->m_entry_->Get(key); };
+std::shared_ptr<DataEntity> const& DataTable::Get(std::string const& key) const {
+    return m_pimpl_->m_entry_->Get(key);
+};
 int DataTable::Set(std::string const& uri, const std::shared_ptr<DataEntity>& src) {
-    Get(uri) = src;
-    return 1;
+    return m_pimpl_->m_entry_->Set(uri, key);
 };
 int DataTable::Set(std::shared_ptr<DataTable> const& other) {
+    return m_pimpl_->m_entry_->Set(other);
+
     for (auto const& item : other->m_pimpl_->m_data_) { Set(item.first, item.second); }
-    return other->Count();
+    return static_cast<int>(other->Count());
 }
-int DataTable::Delete(std::string const& uri) { return m_pimpl_->m_data_.erase(uri); }
+int DataTable::Delete(std::string const& uri) { return static_cast<int>(m_pimpl_->m_entry_.Delete(uri)); }
 
 int DataTable::Add(std::string const& uri, std::shared_ptr<DataEntity> const& src) {
     auto& p = Get(uri);
