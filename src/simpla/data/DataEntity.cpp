@@ -22,17 +22,17 @@ namespace data {
 //    return os;
 //};
 std::ostream &operator<<(std::ostream &os, DataEntity const &v) {
-    auto out = DataBaseStdIO::New();
-    out->SetStream(os);
-    out->Set("", const_cast<DataEntity &>(v).shared_from_this());
+//    auto out = DataBaseStdIO::New();
+//    out->SetStream(os);
+//    out->Set("", const_cast<DataEntity &>(v).shared_from_this());
     return os;
 }
 
 std::istream &operator<<(std::istream &is, DataEntity &v) {
-    auto in = DataBaseStdIO::New();
-    in->SetStream(is);
-    auto db = DataTable::New(in);
-    dynamic_cast<DataTable &>(v).Set(*db);
+//    auto in = DataBaseStdIO::New();
+//    in->SetStream(is);
+//    auto db = DataTable::New(in);
+//    dynamic_cast<DataTable &>(v).Set(db);
     return is;
 }
 

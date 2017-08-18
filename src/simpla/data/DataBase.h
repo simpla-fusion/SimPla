@@ -54,6 +54,7 @@ class DataBase : public Factory<DataBase>, public std::enable_shared_from_this<D
      * @return
      */
     virtual int Set(std::string const& uri, const std::shared_ptr<DataEntity>& v) = 0;
+    virtual int Set(const std::shared_ptr<DataEntity>& v);
 
     /**
      * @brief  add v to uri,

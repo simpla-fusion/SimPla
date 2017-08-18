@@ -6,6 +6,7 @@
 #include <map>
 #include <regex>
 #include "../DataArray.h"
+#include "../DataBlock.h"
 #include "../DataEntity.h"
 #include "../DataTable.h"
 #include "DataUtility.h"
@@ -76,26 +77,16 @@ int DataBaseMemory::Set(std::string const& uri, const std::shared_ptr<DataEntity
     auto res = tab_res.first->m_pimpl_->m_table_.emplace(tab_res.second, nullptr);
     if (res.first->second == nullptr) { res.first->second = v; }
 
-    //    if (v->isTable()) {
-    //        if (!overwrite && res.first->second != nullptr && !res.first->second->isTable()) {
-    //            return 0;
-    //        } else if (res.first->second == nullptr || !res.first->second->isTable()) {
-    //            res.first->second = std::make_shared<DataTable>(std::make_shared<DataBaseMemory>());
-    //        }
-    //        auto& dest_table = res.first->second->cast_as<DataTable>();
-    //        auto const& src_table = v->cast_as<DataTable>();
-    //        src_table.Foreach(
-    //            [&](std::string const& k, std::shared_ptr<DataEntity> const& v) { dest_table.Deserialize(k, v,
-    //            overwrite);
-    //            });
-    //    } else if (v->isArray() && v->cast_as<DataArray>().isA(typeid(DataArrayWrapper<void>))) {
-    //        auto dest_array = std::make_shared<DataArrayWrapper<void>>();
-    //        auto const& src_array = v->cast_as<DataArray>();
-    //        for (size_type i = 0, ie = src_array.size(); i < ie; ++i) { dest_array->Add(src_array.Serialize(i)); }
-    //        res.first->second = dest_array;
-    //    } else if (res.second || overwrite) {
-    //        res.first->second = v;
-    //    }
+    size_type count = 1;
+    auto dst = std::dynamic_pointer_cast<DataTable>(Get(uri));
+    auto src = std::dynamic_pointer_cast<DataTable>(p);
+
+    if (dst != nullptr && src != nullptr) {
+        dst->SetTable(*src);
+        count = src->Count();
+    } else {
+        Set(uri, p);
+    }
     return 1;
 }
 int DataBaseMemory::Add(std::string const& uri, const std::shared_ptr<DataEntity>& v) {
@@ -110,6 +101,9 @@ int DataBaseMemory::Add(std::string const& uri, const std::shared_ptr<DataEntity
         res.first->second = t_array;
     }
     std::dynamic_pointer_cast<DataArray>(res.first->second)->Add(v);
+
+
+
     return 1;
 }
 int DataBaseMemory::Delete(std::string const& uri) {

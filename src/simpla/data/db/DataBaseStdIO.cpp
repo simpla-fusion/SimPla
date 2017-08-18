@@ -91,14 +91,18 @@ std::ostream& Print(std::ostream& os, std::shared_ptr<const DataArray> const& p,
 }
 std::ostream& Print(std::ostream& os, std::shared_ptr<const DataTable> const& p, int indent) {
     //    os << "<Table[" << p->Count() << "]>";
-    os << "{" << std::endl;
+    os << "{";
+
+    int count = 0;
     p->Foreach([&](std::string const& key, std::shared_ptr<DataEntity> v) {
-        os << std::setw(indent + 1) << key << " = ";
+        if (count > 0) { os << std::endl << std::setw(indent) << " , "; }
+        os << "\"" << key << "\" = ";
         Print(os, v, indent + 1);
-        os << " , ";
+        ++count;
         return 1;
     });
-    os << std::setw(indent) << "}" << std::endl;
+
+    os << "}";
 
     return os;
 }

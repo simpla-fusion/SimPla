@@ -50,14 +50,9 @@ class DataArrayT : public DataArray {
    protected:
     DataArrayT() = default;
     template <typename U>
-    DataArrayT(std::initializer_list<U> const& u) {
-        m_data_.reserve(u.size());
-        for (auto const& item : u) { m_data_.push_back(static_cast<value_type>(item)); }
-    }
+    DataArrayT(std::initializer_list<U> const& u);
     template <typename U>
-    DataArrayT(U const* u, size_type n) : m_data_(n) {
-        for (int i = 0; i < n; ++i) { m_data_[i] = u[i]; }
-    }
+    DataArrayT(U const* u, size_type n);
 
    public:
     ~DataArrayT() override = default;
@@ -98,19 +93,22 @@ class DataArrayT : public DataArray {
         } else if (auto p = std::dynamic_pointer_cast<DataLight>(v)) {
             m_data_.push_back(p->as<value_type>());
             count = 1;
+        } else {
         }
         return count;
     }
-    void Add(value_type const& v) { m_data_.push_back(v); }
+    int Add(value_type const& v) {
+        m_data_.push_back(v);
+        return 1;
+    }
 
     int Delete(size_type idx) override {
         m_data_.erase(m_data_.begin() + idx);
         return 1;
     }
 
-    value_type& GetValue(index_type idx) { return m_data_[idx]; }
-    value_type const& GetValue(index_type idx) const { return m_data_[idx]; }
-    void SetValue(size_type idx, value_type v) {
+    value_type GetValue(index_type idx) const { return m_data_[idx]; }
+    void SetValue(size_type idx, value_type const& v) {
         if (Count() < idx) { m_data_.resize(idx); }
         m_data_[idx] = v;
     }
@@ -118,6 +116,7 @@ class DataArrayT : public DataArray {
     std::vector<value_type>& data() { return m_data_; }
     std::vector<value_type> const& data() const { return m_data_; }
 };
+
 template <>
 class DataArrayT<void> : public DataArray {
     typedef DataArrayT<void> this_type;
@@ -161,21 +160,23 @@ class DataArrayT<void> : public DataArray {
         return success;
     }
     int Add(std::shared_ptr<DataEntity> const& v) override {
-        m_data_.push_back(v);
-        return SP_SUCCESS;
+        int count = 0;
+        if (auto p = std::dynamic_pointer_cast<DataArray>(v)) {
+            count = static_cast<int>(p->Count());
+            for (int i = 0; i < count; ++i) { m_data_.push_back(p->Get(i)); }
+        } else if (v != nullptr) {
+            m_data_.push_back(p);
+            count = 1;
+        }
+        return count;
     }
     int Delete(size_type idx) override {
         m_data_.erase(m_data_.begin() + idx);
         return 1;
     }
 };
-inline std::shared_ptr<DataArray> DataArray::New() { return DataArrayT<void>::New(); }
 
-template <typename U>
-DataArrayT<void>::DataArrayT(std::initializer_list<U> const& u) {
-    m_data_.reserve(u.size());
-    for (auto const& item : u) { m_data_.push_back(DataEntity::New(item)); }
-}
+inline std::shared_ptr<DataArray> DataArray::New() { return DataArrayT<void>::New(); }
 
 template <typename U>
 std::shared_ptr<DataArray> make_data_entity(U const* u, size_type n) {
@@ -209,6 +210,28 @@ std::shared_ptr<DataArray> make_data_entity(
     return DataArrayT<void>::New(u);
 }
 
+template <typename V>
+template <typename U>
+DataArrayT<V>::DataArrayT(U const* u, size_type n) : m_data_(n) {
+    for (int i = 0; i < n; ++i) { m_data_[i] = static_cast<value_type>(u[i]); }
+}
+template <typename V>
+template <typename U>
+DataArrayT<V>::DataArrayT(std::initializer_list<U> const& u) {
+    m_data_.reserve(u.size());
+    for (auto const& item : u) { m_data_.push_back(static_cast<value_type>(item)); }
+}
+template <typename U>
+DataArrayT<void>::DataArrayT(std::initializer_list<U> const& u) {
+    m_data_.reserve(u.size());
+    for (auto const& item : u) { m_data_.push_back(make_data_entity(item)); }
+}
+template <typename V>
+std::shared_ptr<DataArray> DataLightT<V>::asArray() const {
+    auto res = DataArrayT<V>::New();
+    res->Add(m_data_);
+    return res;
+}
 //
 // inline std::shared_ptr<DataArrayT<std::string>> make_data_entity(std::initializer_list<const char*> const& u) {
 //    return DataArrayT<std::string>::New(u);

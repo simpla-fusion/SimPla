@@ -4,113 +4,85 @@
 
 #include "simpla/SIMPLA_config.h"
 
-#include <simpla/data/db/DataBaseMemory.h>
 #include <iomanip>
 #include <regex>
 #include <string>
+
+#include "simpla/utilities/Log.h"
+#include "simpla/utilities/SingletonHolder.h"
+
+#include "DataArray.h"
 #include "DataBase.h"
 #include "DataEntity.h"
 #include "DataTable.h"
-#include "simpla/utilities/Log.h"
-#include "simpla/utilities/SingletonHolder.h"
+
 namespace simpla {
 namespace data {
+struct DataTable::pimpl_s {
+    std::map<std::string, std::shared_ptr<DataEntity>> m_data_;
+};
+DataTable::DataTable() : m_pimpl_(new pimpl_s){};
+DataTable::~DataTable() { delete m_pimpl_; };
 
-DataTable::DataTable(std::shared_ptr<DataBase> const& db) : m_database_(db != nullptr ? db : DataBase::New()){};
-
-DataTable::DataTable(std::string const& uri) : DataTable(DataBase::New(uri)){};
-
-int DataTable::Flush() { return m_database_->Flush(); }
-
-bool DataTable::isNull() const { return m_database_ == nullptr; }
+bool DataTable::isNull() const { return m_pimpl_->m_data_.empty(); }
 size_type DataTable::Count() const { return 0; }
-std::shared_ptr<DataEntity> DataTable::Get(std::string const& path) { return m_database_->Get(path); };
-std::shared_ptr<const DataEntity> DataTable::Get(std::string const& path) const { return m_database_->Get(path); };
-int DataTable::Set(std::string const& uri, const std::shared_ptr<DataEntity>& p) {
-    auto dst = std::dynamic_pointer_cast<DataTable>(Get(uri));
-    auto src = std::dynamic_pointer_cast<DataTable>(p);
-
-    if (dst != nullptr && src != nullptr) {
-        dst->SetTable(*src);
-    } else {
-        m_database_->Set(uri, p);
-    }
+std::shared_ptr<DataEntity>& DataTable::Get(std::string const& path) { return m_pimpl_->m_data_[path]; };
+std::shared_ptr<DataEntity> const& DataTable::Get(std::string const& path) const { return m_pimpl_->m_data_.at(path); };
+int DataTable::Set(std::string const& uri, const std::shared_ptr<DataEntity>& src) {
+    Get(uri) = src;
     return 1;
 };
+int DataTable::Set(std::shared_ptr<DataTable> const& other) {
+    for (auto const& item : other->m_pimpl_->m_data_) { Set(item.first, item.second); }
+    return other->Count();
+}
+int DataTable::Delete(std::string const& uri) { return m_pimpl_->m_data_.erase(uri); }
+
 int DataTable::Add(std::string const& uri, std::shared_ptr<DataEntity> const& src) {
-    auto dst = Get(uri);
-    if (auto p = std::dynamic_pointer_cast<DataArray>(dst)) {
-        p->Add(src);
-    } else if (auto p = std::dynamic_pointer_cast<DataLight>(dst)) {
-        m_database_->Set(uri, p->asArray());
+    auto& p = Get(uri);
+    int count = 0;
+
+    if (p == nullptr && src == nullptr) {
+        p = DataArrayT<void>::New();
+        count = 1;
+    } else if (p == nullptr) {
+        p = src;
+        count = 1;
+    } else if (src == nullptr) {  // DO NOTHING
+    } else if (auto dst = std::dynamic_pointer_cast<DataArrayT<void>>(p)) {
+        count = dst->Add(src);
+    } else if (std::dynamic_pointer_cast<DataArray>(p) != nullptr &&
+               std::dynamic_pointer_cast<DataLight>(src) != nullptr &&
+               p->value_type_info() == src->value_type_info()) {  // dst is DataArrayT<V>
+        count = std::dynamic_pointer_cast<DataArray>(p)->Add(src);
     } else {
-        auto t_array = DataArray::New();
-        t_array->Add(p);
-        m_database_->Set(uri, p);
+        auto res = DataArrayT<void>::New();
+        res->Add(p);
+        count = res->Add(src);
+        p = res;
     }
-
-    return 1;
+    return count;
 };
-
-// std::ostream& DataTable::Serialize(std::ostream& os, int indent) const {
-//    if (Count() == 0) { return os; };
-//    os << "[";
-//    Get(0)->Serialize(os, indent + 1);
-//    for (size_type i = 1, ie = Count(); i < ie; ++i) {
-//        os << ",";
-//        Get(i)->Serialize(os, indent + 1);
+//
+// std::shared_ptr<DataTable> DataTable::GetTable(std::string const& uri) {
+//    auto res = Get(uri);
+//    if (res == nullptr) {
+//        res = DataTable::New();
+//        Set(uri, res);
+//    } else if (std::dynamic_pointer_cast<DataTable>(res) == nullptr) {
+//        OUT_OF_RANGE << "[" << uri << "] is not a table!" << std::endl;
 //    }
-//    os << "]";
-//    return os;
+//    return *std::dynamic_pointer_cast<DataTable>(res);
 //}
-//******************************************************************************************************************
-// void DataTable::Link(std::shared_ptr<DataEntity> const& other) { Link("", other); };
 //
-// DataTable& DataTable::Link(std::string const& uri, DataTable const& other) {
-//    ASSERT(other.m_database_ != nullptr);
-//    DataTable* res = nullptr;
-//
-//    if (uri.empty()) {
-//        m_database_ = other.m_database_;
-//        res = this;
-//    } else {
-//        m_database_->Set(uri, std::make_shared<DataTable>(other.m_database_));
-//        res = dynamic_cast<DataTable*>(Get(uri).get());
-//    }
+// std::shared_ptr<const DataTable> DataTable::GetTable(std::string const& uri) const {
+//    auto res = std::dynamic_pointer_cast<const DataTable>(Get(uri));
+//    if (res == nullptr) { OUT_OF_RANGE << "[" << uri << "] is not a table!" << std::endl; }
 //    return *res;
 //}
 //
-// DataTable& DataTable::Link(std::string const& uri, std::shared_ptr<DataEntity> const& other) {
-//    if (dynamic_cast<DataTable const*>(other.get()) == nullptr) {
-//        RUNTIME_ERROR << "link array or entity to table" << std::endl;
-//    }
-//    return Link(uri, *std::dynamic_pointer_cast<DataTable>(other));
-//}
-// void DataTable::Set(std::string const& uri, const std::shared_ptr<DataEntity>& p) { Set(uri, p.Duplicate()); };
-// void DataTable::Add(std::string const& uri, const std::shared_ptr<DataEntity>& p) { Add(uri, p.Duplicate()); };
+// int DataTable::Delete(std::string const& uri) { return m_database_->Delete(uri); };
 
-DataTable& DataTable::GetTable(std::string const& uri) {
-    auto res = Get(uri);
-    if (res == nullptr) {
-        res = DataTable::New();
-        Set(uri, res);
-    } else if (std::dynamic_pointer_cast<DataTable>(res) == nullptr) {
-        OUT_OF_RANGE << "[" << uri << "] is not a table!" << std::endl;
-    }
-    return *std::dynamic_pointer_cast<DataTable>(res);
-}
-
-const DataTable& DataTable::GetTable(std::string const& uri) const {
-    auto res = std::dynamic_pointer_cast<const DataTable>(Get(uri));
-    if (res == nullptr) { OUT_OF_RANGE << "[" << uri << "] is not a table!" << std::endl; }
-    return *res;
-}
-
-int DataTable::Delete(std::string const& uri) { return m_database_->Delete(uri); };
-
-void DataTable::SetTable(DataTable const& other) {
-    other.Foreach([&](std::string const& k, std::shared_ptr<DataEntity> v) { return Set(k, v); });
-}
 // void DataTable::SetValue(KeyValue const& item) { Set(item.first, item.second, true); }
 //
 // void DataTable::SetValue(std::initializer_list<KeyValue> const& other) {
@@ -118,7 +90,8 @@ void DataTable::SetTable(DataTable const& other) {
 //}
 
 int DataTable::Foreach(std::function<int(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
-    return m_database_->Foreach(f);
+    for (auto const& item : m_pimpl_->m_data_) { f(item.first, item.second); }
+    return Count();
 }
 //
 // std::ostream& DataTable::Serialize(std::ostream& os, int indent) const {
