@@ -40,6 +40,9 @@ int main(int argc, char** argv) {
         auto ctx = schedule->NewContext();
 
         ctx->NewMesh<mesh_type>();
+        ctx->SetModel("Limiter", nullptr);
+        ctx->SetModel("Plasma", nullptr);
+
         ctx->NewDomain<Maxwell>("Limiter");
         ctx->NewDomain<EMFluid>("Plasma");
 
