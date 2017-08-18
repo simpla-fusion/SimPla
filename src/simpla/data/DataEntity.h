@@ -32,8 +32,6 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
     template <typename... Args>
     static std::shared_ptr<DataEntity> New(Args&&... args);
 
-    virtual std::type_info const& value_type_info() const { return typeid(void); };
-    virtual size_type value_type_size() const { return 0; };
     template <typename U>
     bool Check(U const& u = true) const;
 };
@@ -51,8 +49,11 @@ struct DataLight : public DataEntity {
     template <typename U>
     static std::shared_ptr<this_type> New(U const& u);
 
-    std::type_info const& value_type_info() const override = 0;
-    size_type value_type_size() const override = 0;
+    virtual std::type_info const& value_type_info() const override = 0;
+    virtual size_type value_type_size() const override = 0;
+    virtual int Rank() const { return 0; }
+    virtual int Dimensions(size_type* d) const { return Rank(); }
+    virtual int Size() const { return 1; }
     template <typename U>
     U as() const;
     virtual std::experimental::any any() const = 0;

@@ -107,17 +107,18 @@ std::ostream& Print(std::ostream& os, std::shared_ptr<const DataTable> const& p,
     return os;
 }
 std::ostream& Print(std::ostream& os, std::shared_ptr<const DataEntity> const& v, int indent) {
-    if (auto p = std::dynamic_pointer_cast<const DataLight>(v)) {
-        Print(os, p, indent);
-    } else if (auto p = std::dynamic_pointer_cast<const DataArray>(v)) {
-        Print(os, p, indent);
-    } else if (auto p = std::dynamic_pointer_cast<const DataTable>(v)) {
-        Print(os, p, indent);
-    } else if (auto p = std::dynamic_pointer_cast<const DataBlock>(v)) {
-        Print(os, p, indent);
-    } else {
-        os << "< illegal type >";
-    }
+//    if (auto p = std::dynamic_pointer_cast<const DataLight>(v)) {
+//        Print(os, p, indent);
+//    } else if (auto p = std::dynamic_pointer_cast<const DataArray>(v)) {
+//        Print(os, p, indent);
+//    } else if (auto p = std::dynamic_pointer_cast<const DataTable>(v)) {
+//        Print(os, p, indent);
+//    } else if (auto p = std::dynamic_pointer_cast<const DataBlock>(v)) {
+//        Print(os, p, indent);
+//    } else {
+//        os << "< illegal type >";
+//    }
+
     return os;
 };
 
