@@ -2,6 +2,8 @@
 // Created by salmon on 16-11-29.
 //
 
+#include <simpla/parallel/MPIComm.h>
+#include <simpla/third_part/SAMRAITimeIntegrator.h>
 #include "simpla/engine/Engine.h"
 #include "simpla/engine/Mesh.h"
 #include "simpla/geometry/csCylindrical.h"
@@ -26,3 +28,29 @@ static bool _required_module_are_registered_ =                                 /
     RegisterCreator<engine::Domain<mesh_type, Maxwell>>("Maxwell");
 
 }  // namespace simpla {
+
+using namespace simpla;
+
+int main(int argc, char** argv) {
+    auto schedule = SAMRAITimeIntegrator::New();
+
+    auto db = data::DataTable::New();
+
+    if (GLOBAL_COMM.rank() == 0) {
+        auto ctx = schedule->NewContext();
+
+        ctx->NewMesh<mesh_type>();
+        ctx->NewDomain<Maxwell>("Limiter");
+        ctx->NewDomain<EMFluid>("Plasma");
+
+        schedule->Update();
+
+        schedule->Serialize(db);
+        db->sync(SP_MPI_SEND);
+    } else {
+        db->sync(SP_MPI_RECV);
+        schedule->Deserialize(db);
+    }
+
+    schedule->Run();
+}

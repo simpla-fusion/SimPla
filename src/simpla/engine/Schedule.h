@@ -30,6 +30,11 @@ class Schedule : public engine::SPObject {
     void DoUpdate() override;
     void DoTearDown() override;
 
+    template <typename TContext>
+    std::shared_ptr<Context> NewContext() {
+        m_ctx_ = Context::New();
+        return m_ctx_;
+    }
     void SetContext(const std::shared_ptr<Context> &c) { m_ctx_ = c; }
     std::shared_ptr<Context> GetContext() const { return m_ctx_; }
 

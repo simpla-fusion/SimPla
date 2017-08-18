@@ -19,7 +19,7 @@ class DataLight;
 class DataArray;
 template <typename>
 class DataArrayT;
-
+enum { SP_MPI_SEND, SP_MPI_RECV };
 struct DataEntity : public std::enable_shared_from_this<DataEntity> {
     SP_OBJECT_BASE(DataEntity);
 
@@ -34,6 +34,8 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
 
     template <typename U>
     bool Check(U const& u = true) const;
+
+    void sync(int tag);
 };
 
 struct DataLight : public DataEntity {

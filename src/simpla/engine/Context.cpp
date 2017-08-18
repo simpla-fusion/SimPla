@@ -123,15 +123,14 @@ void Context::SetMesh(std::shared_ptr<MeshBase> const &m) { m_pimpl_->m_mesh_ = 
 std::shared_ptr<const MeshBase> Context::GetMesh() const { return m_pimpl_->m_mesh_; }
 std::shared_ptr<MeshBase> Context::GetMesh() { return m_pimpl_->m_mesh_; }
 
-void Context::SetModel(std::string const &k, std::shared_ptr<Model> const &m) const { m_pimpl_->m_models_[k] = m; }
+void Context::SetModel(std::string const &k, std::shared_ptr<Model> const &m) { m_pimpl_->m_models_[k] = m; }
 std::shared_ptr<const Model> Context::GetModel(std::string const &k) const {
     auto it = m_pimpl_->m_models_.find(k);
     return it == m_pimpl_->m_models_.end() ? nullptr : it->second;
 }
 
-std::shared_ptr<DomainBase> Context::CreateDomain(std::string const &k, const std::shared_ptr<DataEntity> &t) {
-    auto res = DomainBase::New(GetMesh());
-    res->Deserialize(t);
+std::shared_ptr<DomainBase> Context::NewDomain(std::string const &k, const std::shared_ptr<DataEntity> &t) {
+    auto res = DomainBase::New(t, GetMesh(), GetModel(k));
     SetDomain(k, res);
     return res;
 };

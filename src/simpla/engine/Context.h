@@ -74,24 +74,33 @@ class Context : public SPObject {
     void DoUpdate() override;
     void DoTearDown() override;
 
+    box_type BoundingBox() const;
+    index_box_type IndexBox() const;
+
+    template <typename TM, typename... Args>
+    std::shared_ptr<TM> NewMesh(Args &&... args) {
+        SetMesh(TM::New(std::forward<Args>(args)...));
+        return GetMesh();
+    };
     void SetMesh(std::shared_ptr<MeshBase> const &);
     std::shared_ptr<const MeshBase> GetMesh() const;
     std::shared_ptr<MeshBase> GetMesh();
 
-    box_type BoundingBox() const;
-    index_box_type IndexBox() const;
-
-    void SetModel(std::string const &k, std::shared_ptr<Model> const &) const;
+    template <typename TM, typename... Args>
+    std::shared_ptr<TM> NewModel(std::string const &k, Args &&... args) {
+        SetModel(k, TM::New(std::forward<Args>(args)...));
+        return GetModel(k);
+    };
+    void SetModel(std::string const &k, std::shared_ptr<Model> const &);
     std::shared_ptr<const Model> GetModel(std::string const &k) const;
 
-    std::shared_ptr<DomainBase> CreateDomain(std::string const &k, const std::shared_ptr<data::DataEntity> &);
     template <typename TD>
-    std::shared_ptr<TD> CreateDomain(std::string const &k, Model const *m) {
-        auto res = TD::New(GetMesh(), m);
-        SetDomain(k, std::dynamic_pointer_cast<DomainBase>(res));
-        res->SetName(k);
-        return res;
+    std::shared_ptr<TD> NewDomain(std::string const &k, std::shared_ptr<Model> const &m = nullptr) {
+        if (m != nullptr) { SetModel(k, m); }
+        SetDomain(k, TD::New(GetMesh(), GetModel(k)));
+        return GetDomain(k);
     };
+    std::shared_ptr<DomainBase> NewDomain(std::string const &k, const std::shared_ptr<data::DataEntity> &);
     std::shared_ptr<DomainBase> GetDomain(std::string const &k) const;
 
     std::map<std::string, std::shared_ptr<DomainBase>> &GetAllDomains();

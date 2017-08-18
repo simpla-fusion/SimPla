@@ -86,11 +86,12 @@ struct MeshBase : public engine::SPObject, public AttributeGroup {
 template <typename TChart, template <typename> class... Policies>
 class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     SP_OBJECT_DECLARE_MEMBERS(Mesh, MeshBase)
+   private:
+    std::shared_ptr<chart_type> m_chart_;
+
    public:
     typedef Mesh<TChart, Policies...> mesh_type;
     typedef TChart chart_type;
-
-    std::shared_ptr<chart_type> m_chart_;
 
     void DoUpdate() override;
 
