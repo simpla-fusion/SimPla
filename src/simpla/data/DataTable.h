@@ -97,8 +97,8 @@ class DataTable : public DataEntity {
     virtual bool isNull() const;
     virtual size_type Count() const;
 
-    virtual std::shared_ptr<DataEntity>& Get(std::string const& key);
-    virtual std::shared_ptr<DataEntity> const& Get(std::string const& key) const;
+    virtual std::shared_ptr<DataEntity> Get(std::string const& key);
+    virtual std::shared_ptr<DataEntity> Get(std::string const& key) const;
     virtual int Set(std::string const& uri, const std::shared_ptr<DataEntity>& v);
     virtual int Add(std::string const& uri, const std::shared_ptr<DataEntity>& v);
     virtual int Delete(std::string const& uri);

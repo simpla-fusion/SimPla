@@ -20,29 +20,24 @@ namespace simpla {
 namespace data {
 struct DataTable::pimpl_s {
     std::shared_ptr<DataEntry> m_entry_;
+    std::map<std::string, std::shared_ptr<DataEntity>> m_data_;
 };
 DataTable::DataTable() : m_pimpl_(new pimpl_s){};
 DataTable::~DataTable() { delete m_pimpl_; };
 
 bool DataTable::isNull() const { return m_pimpl_->m_entry_ == nullptr; }
-size_type DataTable::Count() const { return m_pimpl_->m_entry_->Count(); }
-std::shared_ptr<DataEntity>& DataTable::Get(std::string const& key) { return m_pimpl_->m_entry_->Get(key); };
-std::shared_ptr<DataEntity> const& DataTable::Get(std::string const& key) const {
-    return m_pimpl_->m_entry_->Get(key);
-};
+size_type DataTable::Count() const { return m_pimpl_->m_data_.size(); }
+std::shared_ptr<DataEntity> DataTable::Get(std::string const& uri) { return m_pimpl_->m_data_[uri]; };
+std::shared_ptr<DataEntity> DataTable::Get(std::string const& uri) const { return m_pimpl_->m_data_[uri]; };
 int DataTable::Set(std::string const& uri, const std::shared_ptr<DataEntity>& src) {
-    return m_pimpl_->m_entry_->Set(uri, key);
+    m_pimpl_->m_data_[uri] = src;
+    return 1;
 };
-int DataTable::Set(std::shared_ptr<DataTable> const& other) {
-    return m_pimpl_->m_entry_->Set(other);
-
-    for (auto const& item : other->m_pimpl_->m_data_) { Set(item.first, item.second); }
-    return static_cast<int>(other->Count());
-}
-int DataTable::Delete(std::string const& uri) { return static_cast<int>(m_pimpl_->m_entry_.Delete(uri)); }
+int DataTable::Set(std::shared_ptr<DataTable> const& other) { return m_pimpl_->m_entry_->Set(other); }
+int DataTable::Delete(std::string const& uri) { return static_cast<int>(m_pimpl_->m_data_.erase(uri)); }
 
 int DataTable::Add(std::string const& uri, std::shared_ptr<DataEntity> const& src) {
-    auto& p = Get(uri);
+    auto p = Get(uri);
     int count = 0;
 
     if (p == nullptr && src == nullptr) {

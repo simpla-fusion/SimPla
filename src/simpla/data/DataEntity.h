@@ -19,7 +19,7 @@ class DataLight;
 class DataArray;
 template <typename>
 class DataArrayT;
-enum DataEntityType { DB_NULL = 0, DB_LIGHT = 1, DB_BLOCK = 2, DB_ARRAY = 3, DB_TABLE = 4 };
+
 struct DataEntity : public std::enable_shared_from_this<DataEntity> {
     SP_OBJECT_BASE(DataEntity);
 
@@ -36,9 +36,6 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
     virtual size_type value_type_size() const { return 0; };
     template <typename U>
     bool Check(U const& u = true) const;
-
-    std::shared_ptr<DataEntry>& GetEntry() { return m_entry_; }
-    std::shared_ptr<DataEntry> const& GetEntry() { return m_entry_; }
 };
 
 struct DataLight : public DataEntity {

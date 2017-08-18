@@ -4,30 +4,42 @@
 
 #ifndef SIMPLA_DATAENTRY_H
 #define SIMPLA_DATAENTRY_H
+#import "simpla/SIMPLA_config.h"
 
 #include <memory>
 #include <string>
-#import "simpla/SIMPLA_config.h"
+
+#include "simpla/utilities/ObjectHead.h"
+
 namespace simpla {
 namespace data {
 class DataEntity;
-
+class DataBase;
 struct DataEntry {
    protected:
     DataEntry();
+    struct pimpl_s;
+    pimpl_s* m_pimpl_ = nullptr;
 
    public:
-    std::shared_ptr<DataEntry> New();
-    virtual std::shared_ptr<DataEntry> GetRoot();
+    friend DataBase;
 
-    virtual bool isNull() const;
-    virtual size_type Count() const;
+    ~DataEntry();
+    SP_DEFAULT_CONSTRUCT(DataEntry)
 
-    virtual std::shared_ptr<DataEntity> Get(std::string const& key);
-    virtual std::shared_ptr<DataEntity> Get(std::string const& key) const;
-    virtual int Set(std::string const& uri, const std::shared_ptr<DataEntity>& v);
-    virtual int Add(std::string const& uri, const std::shared_ptr<DataEntity>& v);
-    virtual int Delete(std::string const& uri);
+    virtual std::shared_ptr<DataEntry> Root();
+    virtual std::shared_ptr<DataEntry> Parent();
+    virtual std::shared_ptr<DataEntry> Next() const;
+
+    virtual std::shared_ptr<DataEntry> Child(std::string const& uri) const;
+    virtual std::shared_ptr<DataEntry> Child(index_type s) const;
+
+    virtual int Delete();
+
+    virtual std::shared_ptr<DataEntity> Get();
+    virtual std::shared_ptr<DataEntity> Get() const;
+    virtual int Set(const std::shared_ptr<DataEntity>& v);
+    virtual int Add(const std::shared_ptr<DataEntity>& v);
 };
 }
 }
