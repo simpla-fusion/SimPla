@@ -9,6 +9,7 @@
 #include <memory>
 #include "DataArray.h"
 #include "DataEntity.h"
+#include "DataNode.h"
 #include "DataTraits.h"
 #include "simpla/utilities/ObjectHead.h"
 namespace simpla {
@@ -77,8 +78,8 @@ inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue{std
  *
  */
 
-class DataTable : public DataEntity {
-    SP_OBJECT_HEAD(DataTable, DataEntity);
+class DataTable : public DataNode {
+    SP_OBJECT_HEAD(DataTable, DataNode);
     struct pimpl_s;
     pimpl_s* m_pimpl_;
 
@@ -92,8 +93,19 @@ class DataTable : public DataEntity {
     template <typename... Args>
     static std::shared_ptr<DataTable> New(Args&&... args) {
         return std::shared_ptr<DataTable>(new DataTable(std::forward<Args>(args)...));
-    };
+    }
+    size_type GetNumberOfChildren() const override;
+    std::shared_ptr<DataNode> Child() const override;
 
+    std::shared_ptr<DataEntity> GetValueByName(std::string const& s) const override;
+    int SetValueByName(std::string const& k, std::shared_ptr<DataEntity> v) override;
+    std::shared_ptr<DataEntity> GetValueByIndex(index_type s) const override {
+        return GetValueByName(std::to_string(s));
+    }
+    int SetValueByIndex(index_type idx, std::shared_ptr<DataEntity> const& v) override {
+        return SetValueByName(std::to_string(idx), v);
+    }
+    int AddValue(std::shared_ptr<DataEntity> const& v) override { return SetValueByIndex(GetNumberOfChildren(), v); }
     //******************************************************************************************************************
     /** Interface DataEntity */
 
@@ -108,8 +120,6 @@ class DataTable : public DataEntity {
     int Add(std::string const& uri, const std::shared_ptr<DataEntity>& v);
     int Delete(std::string const& uri);
     int Set(const std::shared_ptr<DataTable>& v);
-
-    int Foreach(std::function<int(std::string const&, std::shared_ptr<DataEntity>)> const& f) const;
 
     /** Interface DataBackend End */
 

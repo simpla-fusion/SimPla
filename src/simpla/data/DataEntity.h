@@ -34,8 +34,6 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
 
     template <typename U>
     bool Check(U const& u = true) const;
-
-    void sync(int tag);
 };
 
 struct DataLight : public DataEntity {
@@ -51,8 +49,8 @@ struct DataLight : public DataEntity {
     template <typename U>
     static std::shared_ptr<this_type> New(U const& u);
 
-    virtual std::type_info const& value_type_info() const override = 0;
-    virtual size_type value_type_size() const override = 0;
+    virtual std::type_info const& value_type_info() const = 0;
+    virtual size_type value_type_size() const = 0;
     virtual int Rank() const { return 0; }
     virtual int Dimensions(size_type* d) const { return Rank(); }
     virtual int Size() const { return 1; }

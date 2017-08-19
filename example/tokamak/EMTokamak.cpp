@@ -33,27 +33,16 @@ using namespace simpla;
 
 int main(int argc, char** argv) {
     auto schedule = SAMRAITimeIntegrator::New();
+    auto ctx = schedule->NewContext();
 
-    auto db = data::DataTable::New();
+    ctx->NewMesh<mesh_type>();
+    ctx->SetModel("Limiter", nullptr);
+    ctx->SetModel("Plasma", nullptr);
 
-    if (GLOBAL_COMM.rank() == 0) {
-        auto ctx = schedule->NewContext();
+    ctx->NewDomain<Maxwell>("Limiter");
+    ctx->NewDomain<EMFluid>("Plasma");
 
-        ctx->NewMesh<mesh_type>();
-        ctx->SetModel("Limiter", nullptr);
-        ctx->SetModel("Plasma", nullptr);
-
-        ctx->NewDomain<Maxwell>("Limiter");
-        ctx->NewDomain<EMFluid>("Plasma");
-
-        schedule->Update();
-
-        schedule->Serialize(db);
-        db->sync(SP_MPI_SEND);
-    } else {
-        db->sync(SP_MPI_RECV);
-        schedule->Deserialize(db);
-    }
+    schedule->Update();
 
     schedule->Run();
 }

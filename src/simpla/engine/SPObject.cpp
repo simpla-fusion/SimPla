@@ -9,6 +9,7 @@
 #include "SPObject.h"
 
 #include <simpla/data/DataTable.h>
+#include <simpla/parallel/MPIComm.h>
 #include <boost/functional/hash.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -43,6 +44,18 @@ SPObject::SPObject() : m_pimpl_(new pimpl_s) {
 SPObject::~SPObject() {
     Finalize();
     delete m_pimpl_;
+}
+static std::shared_ptr<SPObject> SPObject::GlobalNew(std::shared_ptr<const data::DataEntity> const &v) {
+    std::shared_ptr<SPObject> res = nullptr;
+    auto db = engine::DataTable::New();
+    if (GLOBAL_COMM.rank() == 0) {
+        res = New(v);
+        res->Serialize(db);
+        db->Sync();
+    } else {
+        db->Sync();
+        res = New(db);
+    }
 }
 
 const data::DataTable &SPObject::db() const { return *m_pimpl_->m_db_; }

@@ -53,7 +53,8 @@ int DataTable::Add(std::string const& uri, std::shared_ptr<DataEntity> const& sr
         count = dst->Add(src);
     } else if (std::dynamic_pointer_cast<DataArray>(p) != nullptr &&
                std::dynamic_pointer_cast<DataLight>(src) != nullptr &&
-               p->value_type_info() == src->value_type_info()) {  // dst is DataArrayT<V>
+               std::dynamic_pointer_cast<DataArray>(p)->value_type_info() ==
+                   std::dynamic_pointer_cast<DataLight>(src)->value_type_info()) {  // dst is DataArrayT<V>
         count = std::dynamic_pointer_cast<DataArray>(p)->Add(src);
     } else {
         auto res = DataArrayT<void>::New();

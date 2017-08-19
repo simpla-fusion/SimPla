@@ -6,12 +6,12 @@
 #define SIMPLA_DATAARRAY_H
 #include <functional>
 #include "DataEntity.h"
+#include "DataNode.h"
 #include "DataTraits.h"
-
 namespace simpla {
 namespace data {
-struct DataArray : public DataEntity {
-    SP_OBJECT_HEAD(DataArray, DataEntity)
+struct DataArray : public DataNode {
+    SP_OBJECT_HEAD(DataArray, DataNode)
 
     struct pimpl_s;
     pimpl_s* m_pimpl_ = nullptr;
@@ -27,7 +27,7 @@ struct DataArray : public DataEntity {
 
     template <typename... Args>
     static std::shared_ptr<DataArray> New(Args&&... args);
-
+    virtual std::type_info const& value_type_info() const = 0;
     virtual bool isEmpty() const = 0;
     virtual size_type Count() const = 0;
     virtual size_type Resize(size_type s) = 0;

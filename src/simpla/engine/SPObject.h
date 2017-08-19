@@ -99,6 +99,15 @@ class SPObject : public Factory<SPObject>, public std::enable_shared_from_this<S
         res->Deserialize(v);
         return res;
     };
+    static std::shared_ptr<SPObject> GlobalNew(std::shared_ptr<const data::DataEntity> const &v);
+    template <typename TOBJ, typename TFun>
+    static std::shared_ptr<TOBJ> GlobalNewT(TFun const &v);
+
+    template <typename TOBJ>
+    static std::shared_ptr<TOBJ> GlobalNewT(std::shared_ptr<const data::DataEntity> const &v) {
+        return std::dynamic_pointer_cast<TOBJ>(GlobalNew(v));
+    };
+
     const data::DataTable &db() const;
     data::DataTable &db();
     id_type GetGUID() const;
