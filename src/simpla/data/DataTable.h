@@ -97,15 +97,15 @@ class DataTable : public DataNode {
     size_type GetNumberOfChildren() const override;
     std::shared_ptr<DataNode> Child() const override;
 
-    std::shared_ptr<DataEntity> GetValueByName(std::string const& s) const override;
-    int SetValueByName(std::string const& k, std::shared_ptr<DataEntity> v) override;
-    std::shared_ptr<DataEntity> GetValueByIndex(index_type s) const override {
-        return GetValueByName(std::to_string(s));
+    std::shared_ptr<DataNode> GetNodeByName(std::string const& s) const override;
+    int SetNodeByName(std::string const& k, std::shared_ptr<DataNode> v) override;
+    std::shared_ptr<DataNode> GetNodeByIndex(index_type s) const override { return GetNodeByName(std::to_string(s)); }
+    int SetNodeByIndex(index_type idx, std::shared_ptr<DataNode> const& v) override {
+        return SetNodeByName(std::to_string(idx), v);
     }
-    int SetValueByIndex(index_type idx, std::shared_ptr<DataEntity> const& v) override {
-        return SetValueByName(std::to_string(idx), v);
+    int AddValue(std::shared_ptr<DataEntity> const& v) override {
+        return SetNodeByIndex(GetNumberOfChildren(), DataNodeWithKey::New(v));
     }
-    int AddValue(std::shared_ptr<DataEntity> const& v) override { return SetValueByIndex(GetNumberOfChildren(), v); }
     //******************************************************************************************************************
     /** Interface DataEntity */
 

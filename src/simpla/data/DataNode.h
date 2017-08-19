@@ -29,21 +29,27 @@ class DataNode : public std::enable_shared_from_this<DataNode> {
     virtual std::shared_ptr<DataEntity> Value() const { return nullptr; }
 
     virtual int SetValue(std::shared_ptr<DataEntity> const& v) { return 0; }
+    virtual std::shared_ptr<DataNode> GetNodeByIndex(index_type idx) const { return nullptr; }
+    virtual int SetNodeByIndex(index_type idx, std::shared_ptr<DataNode> const& v) { return 0; }
 
-    virtual std::shared_ptr<DataEntity> GetValueByName(std::string const& s) const { return nullptr; }
-    virtual int SetValueByName(std::string const& k, std::shared_ptr<DataEntity> const& v) { return 0; }
-
-    virtual std::shared_ptr<DataEntity> GetValueByIndex(index_type idx) const { return nullptr; }
-    virtual int SetValueByIndex(index_type idx, std::shared_ptr<DataEntity> const& v) { return 0; }
-    virtual int AddValue(std::shared_ptr<DataEntity> const& v) { return SetValueByIndex(-1, v); }
+    virtual std::shared_ptr<DataNode> GetNodeByName(std::string const& idx) const { return nullptr; }
+    virtual int SetNodeByName(std::string const& k, std::shared_ptr<DataNode> const& v) { return 0; }
+    virtual int AddNode(std::shared_ptr<DataNode> const& v) { return SetNodeByIndex(-1, v); }
 };
 class DataNodeWithKey : public DataNode {
     std::string m_key_;
     std::shared_ptr<DataEntity> m_value_;
+    explicit DataNodeWithKey(std::string k, std::shared_ptr<DataEntity> v = nullptr)
+        : m_key_(std::move(k)), m_value_(std::move(v)) {}
+    template <typename... Args>
+    explicit DataNodeWithKey(std::string k, Args&&... args)
+        : m_key_(std::move(k)), m_value_(DataEntity::New(std::forward<Args>(args)...)) {}
 
    public:
-    explicit DataNodeWithKey(std::string k, std::shared_ptr<DataEntity> v = "")
-        : m_key_(std::move(k)), m_value_(std::move(v)) {}
+    template <typename... Args>
+    static std::shared_ptr<DataNodeWithKey> New(Args&&... args) {
+        return std::shared_ptr<DataNodeWithKey>(new std::shared_ptr<DataNodeWithKey>(std::forward<Args>(args)...));
+    };
     ~DataNodeWithKey() override = default;
     SP_DEFAULT_CONSTRUCT(DataNodeWithKey);
 
@@ -54,8 +60,17 @@ class DataNodeWithKey : public DataNode {
 class DataNodeWithOutKey : public DataNode {
     std::shared_ptr<DataEntity> m_value_;
 
-   public:
+   protected:
     explicit DataNodeWithOutKey(std::shared_ptr<DataEntity> v) : m_value_(std::move(v)) {}
+    template <typename... Args>
+    explicit DataNodeWithOutKey(Args&&... args) : m_value_(DataEntity::New(std::forward<Args>(args)...)) {}
+
+   public:
+    template <typename... Args>
+    static std::shared_ptr<DataNodeWithOutKey> New(Args&&... args) {
+        return std::shared_ptr<DataNodeWithOutKey>(
+            new std::shared_ptr<DataNodeWithOutKey>(std::forward<Args>(args)...));
+    };
     ~DataNodeWithOutKey() override = default;
     SP_DEFAULT_CONSTRUCT(DataNodeWithOutKey);
 
