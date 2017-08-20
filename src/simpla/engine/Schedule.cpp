@@ -32,9 +32,10 @@ Schedule::~Schedule() { delete m_pimpl_; };
 
 void Schedule::Serialize(const std::shared_ptr<data::DataNode> &cfg) const {
     base_type::Serialize(cfg);
+    db()->Set(cfg);
     auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
     if (tdb != nullptr) { tdb->SetValue("CheckPointInterval", GetCheckPointInterval()); }
- }
+}
 
 void Schedule::Deserialize(const std::shared_ptr<const data::DataNode> &cfg) {
     base_type::Deserialize(cfg);
@@ -46,10 +47,7 @@ void Schedule::Deserialize(const std::shared_ptr<const data::DataNode> &cfg) {
 size_type Schedule::GetNumberOfStep() const { return m_pimpl_->m_step_; }
 void Schedule::SetMaxStep(size_type s) { m_pimpl_->m_max_step_ = s; }
 size_type Schedule::GetMaxStep() const { return m_pimpl_->m_max_step_; }
-void Schedule::SetCheckPointInterval(size_type s) { m_pimpl_->m_check_point_interval_ = s; }
-size_type Schedule::GetCheckPointInterval() const { return m_pimpl_->m_check_point_interval_; }
-void Schedule::SetDumpInterval(size_type s) { m_pimpl_->m_dump_interval_ = s; }
-size_type Schedule::GetDumpInterval() const { return m_pimpl_->m_dump_interval_; }
+
 
 void Schedule::NextStep() { ++m_pimpl_->m_step_; }
 

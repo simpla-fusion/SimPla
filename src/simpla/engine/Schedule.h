@@ -22,43 +22,30 @@ class Context;
 class Atlas;
 class Schedule : public engine::SPObject {
     SP_OBJECT_HEAD(Schedule, SPObject)
-    static constexpr char const *TagName() { return "Schedule"; }
 
    public:
+    SP_OBJECT_PROPERTY(size_type, SetMaxStep);
+    SP_OBJECT_PROPERTY(size_type, CheckPointInterval);
+    SP_OBJECT_PROPERTY(size_type, DumpInterval);
+
     void DoInitialize() override;
     void DoFinalize() override;
     void DoUpdate() override;
     void DoTearDown() override;
 
-    template <typename TContext>
-    std::shared_ptr<Context> NewContext() {
-        m_ctx_ = Context::New();
-        return m_ctx_;
-    }
     void SetContext(const std::shared_ptr<Context> &c) { m_ctx_ = c; }
     std::shared_ptr<Context> GetContext() const { return m_ctx_; }
-
-    void SetAtlas(const std::shared_ptr<Atlas> &a) { m_atlas_ = a; }
-    std::shared_ptr<Atlas> GetAtlas() const { return m_atlas_; }
 
     virtual void CheckPoint() const;
     virtual void Dump() const;
 
     size_type GetNumberOfStep() const;
-    void SetMaxStep(size_type s);
-    size_type GetMaxStep() const;
 
     virtual void Synchronize();
     virtual void NextStep();
     virtual bool Done() const;
 
     void Run();
-
-    void SetCheckPointInterval(size_type s = 0);
-    size_type GetCheckPointInterval() const;
-
-    void SetDumpInterval(size_type s = 0);
-    size_type GetDumpInterval() const;
 };
 
 }  // namespace engine{

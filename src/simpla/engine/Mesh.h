@@ -87,7 +87,7 @@ template <typename TChart, template <typename> class... Policies>
 class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     SP_OBJECT_HEAD(Mesh, MeshBase)
    private:
-    std::shared_ptr<chart_type> m_chart_;
+    std::shared_ptr<TChart> m_chart_;
 
    public:
     typedef Mesh<TChart, Policies...> mesh_type;
@@ -168,14 +168,14 @@ DEFINE_INVOKE_HELPER(SetEmbeddedBoundary)
 DEFINE_INVOKE_HELPER(Calculate)
 }
 template <typename TM, template <typename> class... Policies>
-void Mesh<TM, Policies...>::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const {
+void Mesh<TM, Policies...>::Serialize(std::shared_ptr<data::DataNode> const &cfg) const {
     base_type::Serialize(cfg);
     auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
     if (tdb != nullptr) { m_chart_->Serialize(tdb->Get("Chart")); }
     traits::_try_invoke_Serialize<Policies...>(this, cfg);
 };
 template <typename TM, template <typename> class... Policies>
-void Mesh<TM, Policies...>::Deserialize(std::shared_ptr<const data::DataEntity> const &cfg) {
+void Mesh<TM, Policies...>::Deserialize(std::shared_ptr<const data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
     traits::_try_invoke_Deserialize<Policies...>(this, cfg);
 };

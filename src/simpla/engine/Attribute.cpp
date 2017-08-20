@@ -103,8 +103,8 @@ Attribute::~Attribute() {
     delete m_pimpl_;
 }
 
-void Attribute::Serialize(const std::shared_ptr<data::DataEntity> &cfg) const { base_type::Serialize(cfg); }
-void Attribute::Deserialize(const std::shared_ptr<const data::DataEntity> &cfg) { base_type::Deserialize(cfg); }
+void Attribute::Serialize(const std::shared_ptr<data::DataNode> &cfg) const { base_type::Serialize(cfg); }
+void Attribute::Deserialize(const std::shared_ptr<const data::DataNode> &cfg) { base_type::Deserialize(cfg); }
 
 void Attribute::Register(AttributeGroup *attr_b) {
     if (attr_b == nullptr) {

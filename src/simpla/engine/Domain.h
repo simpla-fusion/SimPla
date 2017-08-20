@@ -26,7 +26,6 @@ class MeshBase;
 
 class DomainBase : public SPObject {
     SP_OBJECT_HEAD(DomainBase, SPObject)
-    static constexpr char const *TagName() { return "Domain"; }
 
    protected:
     explicit DomainBase(std::shared_ptr<MeshBase> const &m, std::shared_ptr<Model> const &model = nullptr);
@@ -65,8 +64,8 @@ class DomainBase : public SPObject {
     design_pattern::Signal<void(DomainBase *, Real, Real)> PostAdvance;
     void Advance(Real time_now, Real time_dt);
 
-    void SetGeoBody(const std::shared_ptr<geometry::GeoObject> &b) { m_geo_body_ = b; }
-    std::shared_ptr<geometry::GeoObject> GetGeoBody() const { return m_geo_body_; }
+    void SetBoundary(const std::shared_ptr<geometry::GeoObject> &b) { m_geo_body_ = b; }
+    std::shared_ptr<geometry::GeoObject> SetBoundary() const { return m_geo_body_; }
 
     void SetModel(std::shared_ptr<engine::Model> const &m) { m_model_ = m; }
     std::shared_ptr<Model> GetModel() const { return m_model_; }
@@ -84,7 +83,7 @@ class DomainBase : public SPObject {
 template <typename TM, template <typename> class... Policies>
 class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
     typedef TM mesh_type;
-    SP_DEFINE_FANCY_TYPE_NAME(Domain, DomainBase);
+    SP_OBJECT_HEAD(Domain, DomainBase);
 
    protected:
     template <typename... Args>
@@ -126,13 +125,13 @@ template <typename TM, template <typename> class... Policies>
 Domain<TM, Policies...>::~Domain(){};
 
 template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const {
+void Domain<TM, Policies...>::Serialize(std::shared_ptr<data::DataNode> const &cfg) const {
     DomainBase::Serialize(cfg);
     traits::_try_invoke_Serialize<Policies...>(this, cfg);
 };
 
 template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::Deserialize(std::shared_ptr<const data::DataEntity> const &cfg) {
+void Domain<TM, Policies...>::Deserialize(std::shared_ptr<const data::DataNode> const &cfg) {
     DomainBase::Deserialize(cfg);
     traits::_try_invoke_Deserialize<Policies...>(this, cfg);
 };
