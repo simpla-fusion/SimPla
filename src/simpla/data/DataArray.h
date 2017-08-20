@@ -40,7 +40,7 @@ struct DataArray : public DataNode {
         return nullptr;
     };
 
-    virtual size_type GetNumberOfChildren() const { return 0; }
+    virtual size_type GetNumberOfChildren() const override { return 0; }
     virtual std::shared_ptr<DataNode> GetNodeByIndex(index_type idx) const { return nullptr; }
     virtual std::shared_ptr<DataNode> GetNodeByName(std::string const& s) const { return nullptr; }
     /** @} */

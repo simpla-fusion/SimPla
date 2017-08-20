@@ -14,8 +14,60 @@
 #include "simpla/utilities/ObjectHead.h"
 namespace simpla {
 namespace data {
+namespace traits {
+template <typename...>
+struct DataCast;
+
+template <typename... Args>
+std::shared_ptr<DataEntity> data_cast(Args&&... args) {
+    return DataCast<Args...>::cast(std::forward<Args>(args)...);
+}
+
+template <typename U>
+std::shared_ptr<DataEntity> data_cast(std::initializer_list<U> const& args) {
+    return DataCast<std::initializer_list<U>>::cast(args);
+}
+}
 class DataEntity;
-class KeyValue;
+
+class KeyValue : public std::pair<std::string, std::shared_ptr<DataEntity>> {
+    typedef std::pair<std::string, std::shared_ptr<DataEntity>> base_type;
+
+   public:
+    explicit KeyValue(std::string const& k, std::shared_ptr<DataEntity> const& p = nullptr) : base_type(k, p) {}
+    KeyValue(KeyValue const& other) : base_type(other) {}
+    KeyValue(KeyValue&& other) : base_type(other) {}
+    ~KeyValue() = default;
+
+    KeyValue& operator=(KeyValue const& other) {
+        //        base_type::operator=(other);
+        return *this;
+    }
+
+    template <typename U>
+    KeyValue& operator=(U const& u) {
+        second = traits::data_cast(u);
+        return *this;
+    }
+    template <typename U>
+    KeyValue& operator=(std::initializer_list<U> const& u) {
+        second = traits::data_cast(u);
+        return *this;
+    }
+    template <typename U>
+    KeyValue& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
+        second = traits::data_cast(u);
+        return *this;
+    }
+    template <typename U>
+    KeyValue& operator=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
+        second = traits::data_cast(u);
+        return *this;
+    }
+};
+
+inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue{std::string(c), traits::data_cast(true)}; }
+
 class DataNode : public std::enable_shared_from_this<DataNode> {
     SP_OBJECT_BASE(DataNode);
 
@@ -46,6 +98,12 @@ class DataNode : public std::enable_shared_from_this<DataNode> {
     /** @} */
 
     /** @addtogroup{  Value */
+
+    template <typename U>
+    U as() const {
+        return GetValue()->as<U>();
+    }
+
     virtual std::shared_ptr<DataEntity> GetValue() { return nullptr; }
     virtual std::shared_ptr<DataEntity> GetValue() const { return nullptr; }
     virtual int SetValue(std::shared_ptr<DataEntity> const& v) { return 0; }
@@ -85,7 +143,7 @@ class DataNode : public std::enable_shared_from_this<DataNode> {
 
     template <typename U>
     bool Check(std::string const& uri, U const& u) const {
-        auto const& p = GetNode(uri, RECUSIVE);
+        auto p = GetNode(uri, RECUSIVE)->GetValue();
         return p != nullptr && p->Check(u);
     }
     bool Check(std::string const& uri) const { return Check(uri, true); }
@@ -113,56 +171,19 @@ class DataNode : public std::enable_shared_from_this<DataNode> {
         for (auto const& item : u) { SetValue(item); }
     }
 
-    template <typename U>
-    void SetValue(std::string const& uri, U const& v) {
-        GetNode(uri, RECUSIVE | NEW_IF_NOT_EXIST)->SetValue(make_data_entity(v));
+    template <typename... Args>
+    void SetValue(std::string const& uri, Args&&... v) {
+        GetNode(uri, RECUSIVE | NEW_IF_NOT_EXIST)->SetValue(traits::data_cast(std::forward<Args>(v)...));
     };
 
-    template <typename U>
-    void AddValue(std::string const& uri, U const& v) {
-        GetNode(uri, RECUSIVE | NEW_IF_NOT_EXIST | ADD_IF_EXIST)->SetValue(make_data_entity(v));
+    template <typename... Args>
+    void AddValue(std::string const& uri, Args&&... v) {
+        GetNode(uri, RECUSIVE | NEW_IF_NOT_EXIST | ADD_IF_EXIST)->SetValue(traits::data_cast(std::forward<Args>(v)...));
     };
 
     /** @} */
 };
 
-class KeyValue : public std::pair<std::string, std::shared_ptr<DataEntity>> {
-    typedef std::pair<std::string, std::shared_ptr<DataEntity>> base_type;
-
-   public:
-    explicit KeyValue(std::string const& k, std::shared_ptr<DataEntity> const& p = nullptr) : base_type(k, p) {}
-    KeyValue(KeyValue const& other) : base_type(other) {}
-    KeyValue(KeyValue&& other) : base_type(other) {}
-    ~KeyValue() = default;
-
-    KeyValue& operator=(KeyValue const& other) {
-        //        base_type::operator=(other);
-        return *this;
-    }
-
-    template <typename U>
-    KeyValue& operator=(U const& u) {
-        second = make_data_entity(u);
-        return *this;
-    }
-    template <typename U>
-    KeyValue& operator=(std::initializer_list<U> const& u) {
-        second = make_data_entity(u);
-        return *this;
-    }
-    template <typename U>
-    KeyValue& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
-        second = make_data_entity(u);
-        return *this;
-    }
-    template <typename U>
-    KeyValue& operator=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-        second = make_data_entity(u);
-        return *this;
-    }
-};
-
-inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue{std::string(c), make_data_entity(true)}; }
 std::ostream& operator<<(std::ostream, DataNode const&);
 }  // namespace data
 }  // namespace simpla

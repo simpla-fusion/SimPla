@@ -31,7 +31,7 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
     static auto New() { return std::shared_ptr<DataEntity>(new DataEntity); }
 
     virtual std::type_info const& value_type_info() const { return typeid(void); };
-    virtual size_type value_type_size() const {return 0};
+    virtual size_type value_type_size() const { return 0; };
     virtual size_type rank() const { return 0; }
     virtual size_type extents(size_type* d) const { return rank(); }
     virtual size_type size() const { return 0; }
@@ -44,7 +44,11 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
      * @addtogroup experimental
      * @{
      */
-    virtual std::experimental::any any() const override { return std::experimental::any(); }
+    virtual std::experimental::any any() const { return std::experimental::any(); }
+    template <typename U>
+    U as() const {
+        return std::experimental::any_cast<U>(any());
+    }
     template <typename U>
     bool Check(U const& other) const {
         return value_type_info() == typeid(U) && rank() == 0 && std::experimental::any_cast<U>(*this) == other;
