@@ -20,7 +20,7 @@ struct Model::pimpl_s {
 Model::Model() : m_pimpl_(new pimpl_s) {}
 Model::~Model() { delete m_pimpl_; };
 
-void Model::Serialize(const std::shared_ptr<data::DataEntity>& cfg) const {
+void Model::Serialize(const std::shared_ptr<data::DataNode>& cfg) const {
     base_type::Serialize(cfg);
     auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
     if (tdb != nullptr) {
@@ -29,11 +29,11 @@ void Model::Serialize(const std::shared_ptr<data::DataEntity>& cfg) const {
         }
     }
 };
-void Model::Deserialize(const std::shared_ptr<const data::DataEntity>& cfg) {
+void Model::Deserialize(const std::shared_ptr<const data::DataNode>& cfg) {
     base_type::Deserialize(cfg);
     auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
     if (tdb != nullptr) {
-        tdb->Foreach([&](std::string const& k, std::shared_ptr<const data::DataEntity> v) {
+        tdb->Foreach([&](std::string const& k, std::shared_ptr<const data::DataNode> v) {
             if (v != nullptr) { SetObject(k, geometry::GeoObject::New(v)); }
             return (v != nullptr) ? 1 : 0;
         });

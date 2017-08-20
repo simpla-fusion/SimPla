@@ -27,7 +27,7 @@ class DataBlock : public DataEntity {
 
    public:
     ~DataBlock() override;
-    SP_DEFAULT_CONSTRUCT(DataBlock)
+//    SP_DEFAULT_CONSTRUCT(DataBlock)
 
     template <typename U, typename... Args>
     static std::shared_ptr<DataBlock> New(Args &&... args);
@@ -35,8 +35,8 @@ class DataBlock : public DataEntity {
     virtual std::type_info const &value_type_info() const = 0;
     virtual size_type value_type_size() const = 0;
 
-    virtual void const *GetPointer() const { return nullptr; }
-    virtual void *GetPointer() { return nullptr; }
+    virtual void const *data() const { return nullptr; }
+    virtual void *data() { return nullptr; }
     size_type size_in_byte() const { return value_type_size() * size(); }
     size_type size() const;
 
@@ -66,7 +66,7 @@ struct DataBlockT : public DataBlock {
    public:
     ~DataBlockT() override = default;
 
-    SP_DEFAULT_CONSTRUCT(DataBlockT)
+//    SP_DEFAULT_CONSTRUCT(DataBlockT)
 
     template <typename... Args>
     static std::shared_ptr<this_type> New(Args &&... args) {

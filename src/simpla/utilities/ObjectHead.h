@@ -7,7 +7,6 @@
 
 #include <typeinfo>
 
-namespace simpla {
 #define SP_DECLARE_NAME(_CLASS_NAME_)                                \
     virtual std::string GetClassName() const { return ClassName(); } \
     static std::string ClassName() { return __STRING(_CLASS_NAME_); }
@@ -42,9 +41,5 @@ namespace simpla {
     typedef _CLASS_NAME_ this_type;                                                        \
                                                                                            \
    public:
-}
-
-
-
 
 #endif  // SIMPLA_SPOBJECTHEAD_H

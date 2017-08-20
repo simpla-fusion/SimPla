@@ -8,21 +8,18 @@
 #define SIMPLA_OBJECT_H
 #include "simpla/SIMPLA_config.h"
 
+#include <simpla/data/DataTable.h>
 #include <memory>
 #include <mutex>
 #include <typeindex>
 #include <typeinfo>
 
-#include "simpla/data/DataEntity.h"
-#include "simpla/data/DataTable.h"
+#include "simpla/data/DataNode.h"
 #include "simpla/utilities/Factory.h"
 #include "simpla/utilities/ObjectHead.h"
 #include "simpla/utilities/Signal.h"
 
 namespace simpla {
-namespace data {
-class DataTable;
-}
 namespace engine {
 #define NULL_ID static_cast<id_type>(-1)
 
@@ -92,20 +89,20 @@ class SPObject : public Factory<SPObject>, public std::enable_shared_from_this<S
         return Factory<SPObject>::RegisterCreator<U>(std::string(U::TagName()) + "." + k_hint);
     };
 
-    virtual void Serialize(std::shared_ptr<data::DataEntity> const &cfg) const;
-    virtual void Deserialize(std::shared_ptr<const data::DataEntity> const &cfg);
-    static std::shared_ptr<SPObject> New(std::shared_ptr<const data::DataEntity> const &v) {
+    virtual void Serialize(std::shared_ptr<data::DataNode> const &cfg) const;
+    virtual void Deserialize(std::shared_ptr<const data::DataNode> const &cfg);
+    static std::shared_ptr<SPObject> New(std::shared_ptr<const data::DataNode> const &v) {
         auto res = base_type::Create(std::string(TagName()) + "." + v->as<std::string>(""));
         res->Deserialize(v);
         return res;
     };
-    static std::shared_ptr<SPObject> GlobalNew(std::shared_ptr<const data::DataEntity> const &v);
+    static std::shared_ptr<SPObject> NewAndSync(std::shared_ptr<const data::DataNode> const &v);
     template <typename TOBJ, typename TFun>
-    static std::shared_ptr<TOBJ> GlobalNewT(TFun const &v);
+    static std::shared_ptr<TOBJ> NewAndSync(TFun const &v);
 
     template <typename TOBJ>
-    static std::shared_ptr<TOBJ> GlobalNewT(std::shared_ptr<const data::DataEntity> const &v) {
-        return std::dynamic_pointer_cast<TOBJ>(GlobalNew(v));
+    static std::shared_ptr<TOBJ> NewAndSyncT(std::shared_ptr<const data::DataNode> const &v) {
+        return std::dynamic_pointer_cast<TOBJ>(NewAndSync(v));
     };
 
     const data::DataTable &db() const;
@@ -150,10 +147,7 @@ class SPObject : public Factory<SPObject>, public std::enable_shared_from_this<S
 };
 
 std::ostream &operator<<(std::ostream &os, SPObject const &obj);
-std::istream &operator<<(std::istream &os, SPObject &obj);
-
-std::ostream &operator<<(std::ostream &os, std::shared_ptr<const SPObject> const &obj);
-std::istream &operator<<(std::istream &os, std::shared_ptr<SPObject> const &obj);
+std::istream &operator>>(std::istream &is, SPObject &obj);
 
 #define SP_OBJECT_DECLARE_MEMBERS(_CLASS_NAME_, _BASE_)                                                                \
     SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_)                                                                               \
@@ -164,8 +158,8 @@ std::istream &operator<<(std::istream &os, std::shared_ptr<SPObject> const &obj)
     ~_CLASS_NAME_() override;                                                                                          \
     SP_DEFAULT_CONSTRUCT(_CLASS_NAME_);                                                                                \
                                                                                                                        \
-    void Serialize(std::shared_ptr<simpla::data::DataEntity> const &cfg) const override;                               \
-    void Deserialize(std::shared_ptr<simpla::data::DataEntity const> const &cfg) override;                             \
+    void Serialize(std::shared_ptr<simpla::data::DataNode> const &cfg) const override;                                 \
+    void Deserialize(std::shared_ptr<simpla::data::DataNode const> const &cfg) override;                               \
                                                                                                                        \
    private:                                                                                                            \
     struct pimpl_s;                                                                                                    \
@@ -185,7 +179,7 @@ std::istream &operator<<(std::istream &os, std::shared_ptr<SPObject> const &obj)
     static std::shared_ptr<_CLASS_NAME_> New(Args &&... args) {                                                        \
         return _TryCreate<_CLASS_NAME_>(typename std::is_abstract<_CLASS_NAME_>::type(), std::forward<Args>(args)...); \
     };                                                                                                                 \
-    static std::shared_ptr<_CLASS_NAME_> New(std::shared_ptr<const data::DataEntity> v) {                              \
+    static std::shared_ptr<_CLASS_NAME_> New(std::shared_ptr<const data::DataNode> v) {                                \
         auto s_type = v->as<std::string>("");                                                                          \
         if (s_type.empty() && std::dynamic_pointer_cast<const data::DataTable>(v) != nullptr) {                        \
             s_type = std::dynamic_pointer_cast<const data::DataTable>(v)->GetValue<std::string>("Type", "");           \

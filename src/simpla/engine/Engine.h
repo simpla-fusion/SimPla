@@ -7,9 +7,9 @@
 
 #include "Atlas.h"
 #include "Attribute.h"
-#include "Context.h"
 #include "Domain.h"
 #include "Patch.h"
+#include "Scenario.h"
 #include "Schedule.h"
 #include "TimeIntegrator.h"
 

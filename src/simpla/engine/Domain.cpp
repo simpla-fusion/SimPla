@@ -19,14 +19,14 @@ DomainBase::DomainBase() {}
 DomainBase::DomainBase(std::shared_ptr<MeshBase> const& msh, std::shared_ptr<Model> const& model)
     : m_mesh_(msh), m_model_(model) {}
 DomainBase::~DomainBase() {}
-void DomainBase::Serialize(std::shared_ptr<data::DataEntity> const& cfg) const {
+void DomainBase::Serialize(std::shared_ptr<data::DataNode> const& cfg) const {
     base_type::Serialize(cfg);
     auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
     if (tdb != nullptr) {
         if (GetGeoBody() != nullptr) { GetGeoBody()->Serialize(tdb->Get("Body")); }
     }
 }
-void DomainBase::Deserialize(const std::shared_ptr<const data::DataEntity>& cfg) {
+void DomainBase::Deserialize(const std::shared_ptr<const data::DataNode>& cfg) {
     base_type::Deserialize(cfg);
     auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
     if (tdb != nullptr) { m_geo_body_ = geometry::GeoObject::New(tdb->Get("Body")); }

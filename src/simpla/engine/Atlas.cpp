@@ -44,7 +44,7 @@ struct Atlas::pimpl_s {
 Atlas::Atlas() : m_pimpl_(new pimpl_s) { SPObject::SetName("Atlas"); };
 Atlas::~Atlas() { delete m_pimpl_; }
 
-void Atlas::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const {
+void Atlas::Serialize(std::shared_ptr<data::DataNode> const &cfg) const {
     base_type::Serialize(cfg);
     auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
     if (tdb != nullptr) {
@@ -57,7 +57,7 @@ void Atlas::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const {
         tdb->SetValue("SmallestPatchDimensions", GetSmallestPatchDimensions());
     }
 };
-void Atlas::Deserialize(std::shared_ptr<const data::DataEntity> const &cfg) {
+void Atlas::Deserialize(std::shared_ptr<const data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
     auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
     if (tdb != nullptr) {

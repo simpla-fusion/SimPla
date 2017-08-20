@@ -19,6 +19,7 @@
 
 namespace simpla {
 namespace data {
+class DataNode;
 class DataEntity;
 class DataBase : public Factory<DataBase>, public std::enable_shared_from_this<DataBase> {
     SP_OBJECT_HEAD(DataBase, Factory<DataBase>);
@@ -31,6 +32,8 @@ class DataBase : public Factory<DataBase>, public std::enable_shared_from_this<D
     SP_DEFAULT_CONSTRUCT(DataBase)
 
     static std::shared_ptr<DataBase> New(std::string const& uri = "");
+
+    virtual std::shared_ptr<DataNode> Root() = 0;
 
     virtual int Connect(std::string const& authority, std::string const& path, std::string const& query,
                         std::string const& fragment) = 0;
@@ -47,14 +50,14 @@ class DataBase : public Factory<DataBase>, public std::enable_shared_from_this<D
      * @brief Get entities that are selected by the '''uri''',
      * @return if nothing is selected return nullptr
      */
-    virtual std::shared_ptr<DataEntity> Get(std::string const& uri) const = 0;
+    virtual std::shared_ptr<DataNode> Get(std::string const& uri) const = 0;
 
     /**
      * @brief  put v to uri,
      * @return
      */
     virtual int Set(std::string const& uri, const std::shared_ptr<DataEntity>& v) = 0;
-    virtual int Set(const std::shared_ptr<DataEntity>& v);
+    virtual int Set(std::string const& uri, const std::shared_ptr<DataNode>& v) = 0;
 
     /**
      * @brief  add v to uri,
@@ -68,44 +71,37 @@ class DataBase : public Factory<DataBase>, public std::enable_shared_from_this<D
      */
     virtual int Delete(std::string const& uri) = 0;
 
-    /**
-     * @brief '''for_each''' entities in this table
-     * @return
-     */
-    virtual int Foreach(std::function<int(std::string const&, std::shared_ptr<DataEntity>)> const&) const = 0;
-
     static int s_num_of_pre_registered_;
 
 };  // class DataBase {
-#define SP_DATABASE_DECLARE_MEMBERS(_CLASS_NAME_)                                                             \
-    SP_OBJECT_HEAD(_CLASS_NAME_, DataBase)                                                                    \
-   protected:                                                                                                 \
-    _CLASS_NAME_();                                                                                           \
-                                                                                                              \
-   public:                                                                                                    \
-    ~_CLASS_NAME_() override;                                                                                 \
-    SP_DEFAULT_CONSTRUCT(_CLASS_NAME_);                                                                       \
-    template <typename... Args>                                                                               \
-    static std::shared_ptr<_CLASS_NAME_> New(Args&&... args) {                                                \
-        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));                        \
-    };                                                                                                        \
-                                                                                                              \
-   private:                                                                                                   \
-    struct pimpl_s;                                                                                           \
-    pimpl_s* m_pimpl_;                                                                                        \
-                                                                                                              \
-   public:                                                                                                    \
-    int Connect(std::string const& authority, std::string const& path, std::string const& query,              \
-                std::string const& fragment) override;                                                        \
-    int Disconnect() override;                                                                                \
-    bool isNull() const override;                                                                             \
-    int Flush() override;                                                                                     \
-    std::shared_ptr<DataEntity> Get(std::string const& uri) const override;                                   \
-    int Set(std::string const& uri, const std::shared_ptr<DataEntity>& v) override;                           \
-    int Add(std::string const& uri, const std::shared_ptr<DataEntity>& v) override;                           \
-    int Delete(std::string const& uri) override;                                                              \
-    int Foreach(std::function<int(std::string const&, std::shared_ptr<DataEntity>)> const& f) const override; \
-                                                                                                              \
+#define SP_DATABASE_DECLARE_MEMBERS(_CLASS_NAME_)                                                \
+    SP_OBJECT_HEAD(_CLASS_NAME_, DataBase)                                                       \
+   protected:                                                                                    \
+    _CLASS_NAME_();                                                                              \
+                                                                                                 \
+   public:                                                                                       \
+    ~_CLASS_NAME_() override;                                                                    \
+    SP_DEFAULT_CONSTRUCT(_CLASS_NAME_);                                                          \
+    template <typename... Args>                                                                  \
+    static std::shared_ptr<_CLASS_NAME_> New(Args&&... args) {                                   \
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));           \
+    };                                                                                           \
+                                                                                                 \
+   private:                                                                                      \
+    struct pimpl_s;                                                                              \
+    pimpl_s* m_pimpl_;                                                                           \
+                                                                                                 \
+   public:                                                                                       \
+    int Connect(std::string const& authority, std::string const& path, std::string const& query, \
+                std::string const& fragment) override;                                           \
+    int Disconnect() override;                                                                   \
+    bool isNull() const override;                                                                \
+    int Flush() override;                                                                        \
+    std::shared_ptr<DataNode> Get(std::string const& uri) const override;                        \
+    int Set(std::string const& uri, const std::shared_ptr<DataEntity>& v) override;              \
+    int Add(std::string const& uri, const std::shared_ptr<DataEntity>& v) override;              \
+    int Delete(std::string const& uri) override;                                                 \
+                                                                                                 \
    public:
 // class DataBackendFactory : public design_pattern::Factory<std::string, DataBase>, public concept::Printable {
 //    typedef design_pattern::Factory<std::string, DataBase> base_type;

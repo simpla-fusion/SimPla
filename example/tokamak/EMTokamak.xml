@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Scenario Name="EMTokamak">
+    <Mesh>
+        <Chart Type="Cylindrical"/>
+        <Box lo="1.2 1.0 4.0" hi="1.2 1.0 4.0" Dimension="32 32 32"/>
+    </Mesh>
+    <Model Type="GEqdsk" URL="*.geqdsk"/>
+    <Domain Type="ICRFAntenna">
+        <Boundary>
+
+        </Boundary>
+        <Field Name="E">
+        </Field>
+    </Domain>
+    <Domain Name="Plasma" Type="PICBoris">
+        <Particle Name="H">
+
+        </Particle>
+        <Particle Name="ele">
+
+        </Particle>
+
+    </Domain>
+
+    <Schedule>
+
+    </Schedule>
+
+
+</Scenario>

@@ -1,0 +1,44 @@
+{
+  "Scenario": {
+    "Mesh": {
+      "Chart": {
+        "Type": "Cylindrical"
+      },
+      "Box": {
+        "lo": [
+          0,
+          0,
+          0
+        ],
+        "hi": [
+          1,
+          1,
+          1
+        ],
+        "Dimension": [
+          32,
+          32,
+          32
+        ]
+      }
+    },
+    "Domain": [
+      {
+        "Type": "EMFluid",
+        "Name": "Plasma",
+        "Boundary":{}
+      },
+      {
+        "Type": "PIC",
+        "Particle": [
+          {
+            "Name": "H"
+          },
+          {
+            "Name": "ele"
+          }
+        ]
+      }
+    ]
+  }
+}

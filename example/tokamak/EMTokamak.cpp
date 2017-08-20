@@ -32,17 +32,20 @@ static bool _required_module_are_registered_ =                                 /
 using namespace simpla;
 
 int main(int argc, char** argv) {
-    auto schedule = SAMRAITimeIntegrator::New();
-    auto ctx = schedule->NewContext();
+    auto scenario = engine::Scenario::New();
 
-    ctx->NewMesh<mesh_type>();
-    ctx->SetModel("Limiter", nullptr);
-    ctx->SetModel("Plasma", nullptr);
+    scenario->SetMesh(mesh_type::New());
 
-    ctx->NewDomain<Maxwell>("Limiter");
-    ctx->NewDomain<EMFluid>("Plasma");
+    scenario->SetModel("Tokamak", engine::Model::New("lalala.gdsk"));
 
-    schedule->Update();
+    scenario->NewSchedule<SAMRAITimeIntegrator>();
 
-    schedule->Run();
+    scenario->NewDomain<Maxwell>("Limiter");
+    scenario->NewDomain<EMFluid>("Plasma");
+
+    scenario->Update();
+
+    std::cout << *scenario << std::endl;
+
+    //    scenario->Run();
 }

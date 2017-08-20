@@ -1,0 +1,15 @@
+@startuml
+class DataNode{
+    DataTable attributes
+    DataNode sub[]
+}
+
+class DataTable{
+    map<std::string,DataEntity> m_values_
+}
+class DataEntity{
+}
+DataNode *-- DataTable
+DataTable *-- DataEntity
+DataNode *-- DataNode
+@enduml

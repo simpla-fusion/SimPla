@@ -4,20 +4,31 @@
 
 #include "DataNode.h"
 #include <iomanip>
+#include <map>
+#include <vector>
 #include "DataEntity.h"
 
 #include "DataArray.h"
+#include "DataBase.h"
 #include "DataTable.h"
-
 namespace simpla {
 namespace data {
+struct pimpl_s {
+    std::map<std::string, std::shared_ptr<DataEntity>> m_attributes_;
+    std::vector<std::shared_ptr<DataNode>> m_children_;
+};
+DataNode::DataNode() = default;
+DataNode::~DataNode() {}
+std::shared_ptr<DataNode> DataNode::New(std::string const& s) {
+    return s.empty() ? std::shared_ptr<DataNode>(new DataNode()) : data::DataBase::New(s)->Root();
+}
 
-void Print(std::ostream& os, std::shared_ptr<DataEntity> const&, int indent) {}
+std::ostream& Print(std::ostream& os, std::shared_ptr<DataEntity> const& v, int indent = 0) { return os; }
 
-void Print(std::ostream& os, std::shared_ptr<DataNode> const& entry, int indent) {
+std::ostream& Print(std::ostream& os, std::shared_ptr<DataNode> const& entry, int indent) {
     if (auto p = std::dynamic_pointer_cast<data::DataArray>(entry)) {
         os << "[ ";
-        auto it = p->Child();
+        auto it = entry->FirstChild();
         Print(os, it, indent + 1);
         it = it->Next();
         while (it != nullptr) {
@@ -27,7 +38,7 @@ void Print(std::ostream& os, std::shared_ptr<DataNode> const& entry, int indent)
         os << " ]";
     } else if (auto p = std::dynamic_pointer_cast<data::DataTable>(entry)) {
         os << "{ ";
-        auto it = p->Child();
+        auto it = entry->FirstChild();
         os << std::endl << std::setw(indent) << "\"" << it->Key() << "\" = ";
         Print(os, it->Value(), indent + 1);
         while (it != nullptr) {
@@ -39,10 +50,10 @@ void Print(std::ostream& os, std::shared_ptr<DataNode> const& entry, int indent)
     } else {
         Print(os, entry->Value(), indent);
     }
+    return os;
 }
 std::ostream& operator<<(std::ostream const& os, DataNode const& entry) {
-    Print(os, entry.shared_from_this(), 0);
-    return os;
+    return Print(os, entry.shared_from_this(), 0);
 }
 }
 }

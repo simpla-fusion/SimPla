@@ -5,77 +5,73 @@
 #ifndef SIMPLA_DATAENTRY_H
 #define SIMPLA_DATAENTRY_H
 
+#include "simpla/SIMPLA_config.h"
+
 #include <memory>
+#include "DataEntity.h"
+#include "simpla/utilities/Log.h"
+#include "simpla/utilities/ObjectHead.h"
 namespace simpla {
 namespace data {
 class DataEntity;
 class DataNode : public std::enable_shared_from_this<DataNode> {
-   public:
-    DataNode() = default;
-    virtual ~DataNode() = default;
-    SP_DEFAULT_CONSTRUCT(DataNode);
-
-    virtual size_type GetNumberOfChildren() const { return 0; }
-    virtual std::shared_ptr<DataNode> GetNode(std::string const& uri) { return nullptr; }
-    virtual std::shared_ptr<DataNode> GetNode(std::string const& uri) const { return nullptr; }
-
-    virtual std::shared_ptr<DataNode> Root() { return GetNode("/"); }
-    virtual std::shared_ptr<DataNode> Parent() const { return GetNode(".."); }
-
-    virtual std::shared_ptr<DataNode> Child() const { return nullptr; }
-    virtual std::shared_ptr<DataNode> Next() const { return nullptr; }
-
-    virtual std::string Key() const { return ""; }
-    virtual std::shared_ptr<DataEntity> Value() const { return nullptr; }
-
-    virtual int SetValue(std::shared_ptr<DataEntity> const& v) { return 0; }
-    virtual std::shared_ptr<DataNode> GetNodeByIndex(index_type idx) const { return nullptr; }
-    virtual int SetNodeByIndex(index_type idx, std::shared_ptr<DataNode> const& v) { return 0; }
-
-    virtual std::shared_ptr<DataNode> GetNodeByName(std::string const& idx) const { return nullptr; }
-    virtual int SetNodeByName(std::string const& k, std::shared_ptr<DataNode> const& v) { return 0; }
-    virtual int AddNode(std::shared_ptr<DataNode> const& v) { return SetNodeByIndex(-1, v); }
-};
-class DataNodeWithKey : public DataNode {
-    std::string m_key_;
-    std::shared_ptr<DataEntity> m_value_;
-    explicit DataNodeWithKey(std::string k, std::shared_ptr<DataEntity> v = nullptr)
-        : m_key_(std::move(k)), m_value_(std::move(v)) {}
-    template <typename... Args>
-    explicit DataNodeWithKey(std::string k, Args&&... args)
-        : m_key_(std::move(k)), m_value_(DataEntity::New(std::forward<Args>(args)...)) {}
-
-   public:
-    template <typename... Args>
-    static std::shared_ptr<DataNodeWithKey> New(Args&&... args) {
-        return std::shared_ptr<DataNodeWithKey>(new std::shared_ptr<DataNodeWithKey>(std::forward<Args>(args)...));
-    };
-    ~DataNodeWithKey() override = default;
-    SP_DEFAULT_CONSTRUCT(DataNodeWithKey);
-
-    std::shared_ptr<DataEntity> Value() const override { return m_value_; }
-    std::string Key() const override { return m_key_; }
-};
-
-class DataNodeWithOutKey : public DataNode {
-    std::shared_ptr<DataEntity> m_value_;
+    SP_OBJECT_BASE(DataNode);
 
    protected:
-    explicit DataNodeWithOutKey(std::shared_ptr<DataEntity> v) : m_value_(std::move(v)) {}
-    template <typename... Args>
-    explicit DataNodeWithOutKey(Args&&... args) : m_value_(DataEntity::New(std::forward<Args>(args)...)) {}
+    DataNode();
 
    public:
-    template <typename... Args>
-    static std::shared_ptr<DataNodeWithOutKey> New(Args&&... args) {
-        return std::shared_ptr<DataNodeWithOutKey>(
-            new std::shared_ptr<DataNodeWithOutKey>(std::forward<Args>(args)...));
-    };
-    ~DataNodeWithOutKey() override = default;
-    SP_DEFAULT_CONSTRUCT(DataNodeWithOutKey);
+    virtual ~DataNode();
+    SP_DEFAULT_CONSTRUCT(DataNode);
 
-    std::shared_ptr<DataEntity> Value() const override { return m_value_; }
+    static std::shared_ptr<DataNode> New(std::string const& k = "");
+
+    /** @addtogroup{ capacity */
+    virtual bool isNull() { return true; }
+    /** @} */
+    /** @addtogroup{ access */
+    virtual std::shared_ptr<DataNode> Root() { return FindNode("/", true); }
+    virtual std::shared_ptr<DataNode> Parent() const { return FindNode("..", true); }
+
+    virtual std::shared_ptr<DataNode> FirstChild() const { return nullptr; }
+    virtual std::shared_ptr<DataNode> Next() const { return nullptr; }
+
+    virtual std::shared_ptr<DataNode> NewNode(std::string const& uri, bool recursive = false) { return nullptr; };
+
+    virtual std::shared_ptr<DataNode> FindNode(std::string const& uri, bool recursive = false) const {
+        return nullptr;
+    };
+
+    virtual size_type GetNumberOfChildren() const { return 0; }
+    virtual std::shared_ptr<DataNode> GetNodeByIndex(index_type idx) const { return nullptr; }
+    virtual std::shared_ptr<DataNode> GetNodeByName(std::string const& s) const { return nullptr; }
+    /** @} */
+
+    /** @addtogroup{  modify */
+    virtual int SetNodeByIndex(index_type idx, std::shared_ptr<DataNode> const& v) { return 0; }
+    virtual int SetNodeByName(std::string const& k, std::shared_ptr<DataNode> const& v) { return 0; }
+    virtual std::shared_ptr<DataNode> AddNode(std::shared_ptr<DataNode> const& v = nullptr) { return nullptr; }
+    /** @}  */
+
+    /** @addtogroup{ */
+    virtual std::shared_ptr<DataEntity> Value() const { return nullptr; }
+
+    template <typename V>
+    V GetValue(std::string const& k, bool recursive = true) const {
+        auto p = FindNode(k, recursive);
+        if (p == nullptr) { OUT_OF_RANGE; }
+        return p->Value()->as<V>();
+    }
+
+    template <typename V>
+    V GetValue(std::string const& k, V const& default_value, bool recursive = true) const {
+        auto p = FindNode(k, recursive);
+        return p == nullptr ? default_value : p->Value()->as<V>();
+    }
+
+    /** @} */
 };
+
 std::ostream& operator<<(std::ostream, DataNode const&);
 }  // namespace data
 }  // namespace simpla

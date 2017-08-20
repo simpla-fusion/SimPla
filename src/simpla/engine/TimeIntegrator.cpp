@@ -17,7 +17,7 @@ namespace engine {
 TimeIntegrator::TimeIntegrator() = default;
 TimeIntegrator::~TimeIntegrator() = default;
 
-void TimeIntegrator::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const {
+void TimeIntegrator::Serialize(std::shared_ptr<data::DataNode> const &cfg) const {
     base_type::Serialize(cfg);
     auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
     if (tdb != nullptr) {
@@ -29,7 +29,7 @@ void TimeIntegrator::Serialize(std::shared_ptr<data::DataEntity> const &cfg) con
     }
 }
 
-void TimeIntegrator::Deserialize(std::shared_ptr<const data::DataEntity> const &cfg) {
+void TimeIntegrator::Deserialize(std::shared_ptr<const data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
     auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
     if (tdb != nullptr) {

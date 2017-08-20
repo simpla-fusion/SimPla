@@ -59,11 +59,6 @@ class Schedule : public engine::SPObject {
 
     void SetDumpInterval(size_type s = 0);
     size_type GetDumpInterval() const;
-
-   private:
-    std::shared_ptr<Context> m_ctx_ = nullptr;
-    std::shared_ptr<Atlas> m_atlas_ = nullptr;
-    std::shared_ptr<data::DataIOPort> m_data_io_ = nullptr;
 };
 
 }  // namespace engine{

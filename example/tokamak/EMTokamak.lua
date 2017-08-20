@@ -3,14 +3,9 @@ PI = 3.141592653589793
 TWOPI = PI * 2.0
 N_PHI = 100
 
-Atlas = {
-    PeriodicDimension = { 0, 0, 0 },
-    SmallestPatchDimensions = { 8, 4, 8 },
-    LargestPatchDimensions = { 64, 64, 64 },
-    MaxLevel = 2;
-}
 
-Context = {
+
+Scenario = {
     Name = "EMTokamak",
     Mesh = {
         Type = "EBRectMesh",
@@ -22,24 +17,24 @@ Context = {
         },
         Box = {
             lo = { 1.2, -1.0, -PI / 4.0 },
-            hi = { 2.5, 1.0, PI / 4.0 }
+            hi = { 2.5, 1.0, PI / 4.0 },
+            Dimensions = { 64, 64, 64 }
         },
-        Dimensions = { 64, 64, 64 }
     },
-    --    Model =
-    --    {
-    --        Tokamak = {
-    --            Type = "Tokamak",
-    --            gfile = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900",
-    --            Phi = { -PI / 4, PI / 4 },
-    --        },
-    --    },
-    Domains = {
---        Limiter = {
---            Type = "Maxwell",
---            --            Model = "Tokamak",
---            --            Body = "Limiter",
---        },
+    Model = {
+        {
+            Name = "Tokamak",
+            Type = "Tokamak",
+            gfile = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900",
+            Phi = { -PI / 4, PI / 4 },
+        },
+    },
+    Domain = {
+        --        Limiter = {
+        --            Type = "Maxwell",
+        --            --            Model = "Tokamak",
+        --            --            Body = "Limiter",
+        --        },
         --        PlasmaCenter = {
         --            Type = "EMFluid", -- "Domain<RectMesh,EBMesh,FVM,EMFluid>",
         --            Species = {
@@ -49,14 +44,15 @@ Context = {
         --            Model = "Tokamak",
         --            Body = "Plasma",
         --        },
-        ICRF = {
+        {
+            Name = "ICRF",
             Type = "ICRFAntenna", -- "Domain<RectMesh,EBMesh,FVM,ICRFAntenna>",
 
-            Body =
+            Boundary =
             {
                 Type = "occ",
                 File = "/home/salmon/workspace/SimPla/example/tokamak/coin.step",
-                Location = { 1.8, -0.0,  0.1 },
+                Location = { 1.8, -0.0, 0.1 },
                 Scale = 1.0e-3
                 --                Type = "Cube",
                 --                lo = { 1.5, -0.5, -TWOPI / 8 },
@@ -71,33 +67,42 @@ Context = {
             WaveNumber = { 0.0, 0.0, TWOPI / 12.0 },
             Frequency = 1.0e9,
         },
-        Plasma = {
-            Type="PICBoris",
-            Species={
-                D={
-                    M=2.0,
-                    Z=-1.0,
-                    ratio=1.0
+        {
+            Name = "Plasma",
+            Type = "PICBoris",
+            Particle = {
+                {
+                    Name = "D",
+                    M = 2.0,
+                    Z = -1.0,
+                    ratio = 1.0
                 },
-                H={
-                    M=1.0,
-                    Z=1.0,
-                    ratio=0.5
+                {
+                    Name = "H",
+                    M = 1.0,
+                    Z = 1.0,
+                    ratio = 0.5
                 },
             }
-
         }
+    },
+    Atlas = {
+        PeriodicDimension = { 0, 0, 0 },
+        SmallestPatchDimensions = { 8, 4, 8 },
+        LargestPatchDimensions = { 64, 64, 64 },
+        MaxLevel = 2;
+    },
+    Schedule = {
+        Type = "SAMRAITimeIntegrator",
+        OutputURL = "TokamakSaveData",
+        TimeBegin = 0.0,
+        TimeEnd = 5e-9,
+        TimeStep = 1.0e-11,
+        CheckPointInterval = 1,
+        UpdateOrder = { "RFAntenna", "Tokamak" }
     }
 }
 
 
 
-Schedule = {
-    Type = "SAMRAITimeIntegrator",
-    OutputURL = "TokamakSaveData",
-    TimeBegin = 0.0,
-    TimeEnd = 5e-9,
-    TimeStep = 1.0e-11,
-    CheckPointInterval = 1,
-    UpdateOrder = { "RFAntenna", "Tokamak" }
-}
+

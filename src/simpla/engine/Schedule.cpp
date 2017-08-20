@@ -12,7 +12,9 @@
 #include "Attribute.h"
 #include "Context.h"
 #include "Mesh.h"
-#include "simpla/data/Data.h"
+
+#include "simpla/data/DataNode.h"
+
 namespace simpla {
 namespace engine {
 struct Schedule::pimpl_s {
@@ -20,20 +22,23 @@ struct Schedule::pimpl_s {
     size_type m_max_step_ = 0;
     size_type m_check_point_interval_ = 1;
     size_type m_dump_interval_ = 0;
+
+    std::shared_ptr<Context> m_ctx_ = nullptr;
+    std::shared_ptr<Atlas> m_atlas_ = nullptr;
 };
 
 Schedule::Schedule() : m_pimpl_(new pimpl_s){};
 Schedule::~Schedule() { delete m_pimpl_; };
 
-void Schedule::Serialize(const std::shared_ptr<data::DataEntity> &cfg) const {
+void Schedule::Serialize(const std::shared_ptr<data::DataNode> &cfg) const {
     base_type::Serialize(cfg);
     auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
     if (tdb != nullptr) { tdb->SetValue("CheckPointInterval", GetCheckPointInterval()); }
-    //    if (m_data_io_ != nullptr) { m_data_io_->Serialize(cfg->GetTable("DataIOPort")); }
-}
+ }
 
-void Schedule::Deserialize(const std::shared_ptr<const data::DataEntity> &cfg) {
+void Schedule::Deserialize(const std::shared_ptr<const data::DataNode> &cfg) {
     base_type::Deserialize(cfg);
+    m_pimpl_->m_ctx_ = Atlas::New(cfg->NewNode("Atlas"));
     SetCheckPointInterval(static_cast<size_type>(db().GetValue<int>("CheckPointInterval", 1)));
     //    m_data_io_ = std::make_shared<data::DataIOPort>(cfg->GetValue<std::string>("DataIOPort", ""));
 }
@@ -96,7 +101,7 @@ void Schedule::Synchronize() {
     //            "
     //            //                   << m_pack_->m_atlas_.GetMeshBlock(dest)->IndexBox() << " " << std::endl;
     //            //            auto &src_data = s_it->cast_as<data::DataTable>();
-    //            //            src_data.Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const
+    //            //            src_data.Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const
     //            &dest_p)
     //            //            {
     //            //                auto dest_data = d_it->cast_as<data::DataTable>().Serialize(key);

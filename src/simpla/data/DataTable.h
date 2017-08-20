@@ -9,7 +9,6 @@
 #include <memory>
 #include "DataArray.h"
 #include "DataEntity.h"
-#include "DataNode.h"
 #include "DataTraits.h"
 #include "simpla/utilities/ObjectHead.h"
 namespace simpla {
@@ -185,17 +184,6 @@ class DataTable : public DataNode {
     };
 };
 
-inline std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<KeyValue> const& u) {
-    auto res = DataTable::New();
-    for (KeyValue const& v : u) { res->Set(v.first, v.second); }
-    return std::dynamic_pointer_cast<DataEntity>(res);
-}
-template <typename... Others>
-std::shared_ptr<DataEntity> make_data_entity(KeyValue const& first, Others&&... others) {
-    auto res = DataTable::New();
-    res->Set(first, std::forward<Others>(others)...);
-    return res;
-}
 }  // namespace data
 
 // template <typename U, typename... Args>

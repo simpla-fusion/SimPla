@@ -45,7 +45,7 @@ SPObject::~SPObject() {
     Finalize();
     delete m_pimpl_;
 }
-static std::shared_ptr<SPObject> SPObject::GlobalNew(std::shared_ptr<const data::DataEntity> const &v) {
+static std::shared_ptr<SPObject> SPObject::GlobalNew(std::shared_ptr<const data::DataNode> const &v) {
     std::shared_ptr<SPObject> res = nullptr;
     auto db = engine::DataTable::New();
     if (GLOBAL_COMM.rank() == 0) {
@@ -61,8 +61,8 @@ static std::shared_ptr<SPObject> SPObject::GlobalNew(std::shared_ptr<const data:
 const data::DataTable &SPObject::db() const { return *m_pimpl_->m_db_; }
 data::DataTable &SPObject::db() { return *m_pimpl_->m_db_; }
 
-void SPObject::Serialize(const std::shared_ptr<data::DataEntity> &cfg) const {}
-void SPObject::Deserialize(const std::shared_ptr<const data::DataEntity> &cfg) {}
+void SPObject::Serialize(const std::shared_ptr<data::DataNode> &cfg) const {}
+void SPObject::Deserialize(const std::shared_ptr<const data::DataNode> &cfg) {}
 
 id_type SPObject::GetGUID() const { return m_pimpl_->m_id_; }
 void SPObject::SetName(std::string const &s) { m_pimpl_->m_name_ = s; };
@@ -128,15 +128,13 @@ void SPObject::Finalize() {
 };
 
 std::ostream &operator<<(std::ostream &os, SPObject const &obj) {
-    auto db = data::DataTable::New("stdio");
-    std::dynamic_pointer_cast<data::DataBaseStdIO>(db->database())->SetStream(os);
+    auto db = data::DataNode::New();
     obj.Serialize(db);
+    std::cout << *db << std::endl;
     return os;
 }
 std::istream &operator>>(std::istream &is, SPObject &obj) {
-    auto db = data::DataTable::New("stdio");
-    std::dynamic_pointer_cast<data::DataBaseStdIO>(db->database())->SetStream(is);
-    obj.Deserialize(db);
+    obj.Deserialize(data::DataNode::New(std::string(std::istreambuf_iterator<char>(is), {})));
     return is;
 }
 

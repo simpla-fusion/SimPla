@@ -5,7 +5,6 @@
 #ifndef SIMPLA_DATAARRAY_H
 #define SIMPLA_DATAARRAY_H
 #include <functional>
-#include "DataEntity.h"
 #include "DataNode.h"
 #include "DataTraits.h"
 namespace simpla {
@@ -21,217 +20,40 @@ struct DataArray : public DataNode {
 
    public:
     ~DataArray() override = default;
-    SP_DEFAULT_CONSTRUCT(DataArray)
+    //    SP_DEFAULT_CONSTRUCT(DataArray)
 
     static std::shared_ptr<DataArray> New();
 
-    template <typename... Args>
-    static std::shared_ptr<DataArray> New(Args&&... args);
-    virtual std::type_info const& value_type_info() const = 0;
-    virtual bool isEmpty() const = 0;
-    virtual size_type Count() const = 0;
-    virtual size_type Resize(size_type s) = 0;
-    virtual void Clear() = 0;
+    /** @addtogroup{ capacity */
+    virtual bool isNull() { return true; }
+    /** @} */
+    /** @addtogroup{ access */
+    virtual std::shared_ptr<DataNode> Root() { return FindNode("/", true); }
+    virtual std::shared_ptr<DataNode> Parent() const { return FindNode("..", true); }
 
-    virtual std::shared_ptr<DataEntity> Get(size_type idx) const = 0;
-    virtual int Set(size_type idx, std::shared_ptr<DataEntity> const&) = 0;
-    virtual int Add(std::shared_ptr<DataEntity> const&) = 0;
-    virtual int Delete(size_type idx) = 0;
+    virtual std::shared_ptr<DataNode> FirstChild() const { return nullptr; }
+    virtual std::shared_ptr<DataNode> Next() const { return nullptr; }
 
-    virtual int Foreach(std::function<int(std::shared_ptr<DataEntity>)> const& fun) const;
-};
+    virtual std::shared_ptr<DataNode> NewNode(std::string const& uri, bool recursive = false) { return nullptr; };
 
-template <typename V>
-class DataArrayT : public DataArray {
-    typedef DataArrayT<V> this_type;
-    typedef V value_type;
-    std::vector<value_type> m_data_;
-
-   protected:
-    DataArrayT() = default;
-    template <typename U>
-    DataArrayT(std::initializer_list<U> const& u);
-    template <typename U>
-    DataArrayT(U const* u, size_type n);
-
-   public:
-    ~DataArrayT() override = default;
-    SP_DEFAULT_CONSTRUCT(DataArrayT);
-
-    template <typename... Args>
-    static std::shared_ptr<this_type> New(Args&&... args) {
-        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
+    virtual std::shared_ptr<DataNode> FindNode(std::string const& uri, bool recursive = false) const {
+        return nullptr;
     };
 
-    std::type_info const& value_type_info() const override { return typeid(value_type); };
+    virtual size_type GetNumberOfChildren() const { return 0; }
+    virtual std::shared_ptr<DataNode> GetNodeByIndex(index_type idx) const { return nullptr; }
+    virtual std::shared_ptr<DataNode> GetNodeByName(std::string const& s) const { return nullptr; }
+    /** @} */
 
-    bool isEmpty() const override { return m_data_.empty(); }
+    /** @addtogroup{  modify */
+    virtual int SetNodeByIndex(index_type idx, std::shared_ptr<DataNode> const& v) { return 0; }
+    virtual int SetNodeByName(std::string const& k, std::shared_ptr<DataNode> const& v) { return 0; }
+    virtual std::shared_ptr<DataNode> AddNode(std::shared_ptr<DataNode> const& v = nullptr) { return nullptr; }
+    /** @}  */
 
-    size_type Count() const override { return m_data_.size(); }
-
-    size_type Resize(size_type s) override {
-        m_data_.resize(s);
-        return s;
-    }
-    void Clear() override { m_data_.clear(); }
-
-    std::shared_ptr<DataEntity> Get(size_type idx) const override { return DataEntity::New(m_data_[idx]); }
-
-    int Set(size_type idx, std::shared_ptr<DataEntity> const& v) override {
-        int count = 0;
-        if (auto p = std::dynamic_pointer_cast<DataLight>(v)) {
-            m_data_.at(idx) = p->as<value_type>();
-            count = 1;
-        }
-        return count;
-    }
-    int Add(std::shared_ptr<DataEntity> const& v) override {
-        int count = 0;
-        if (auto p = std::dynamic_pointer_cast<DataArrayT<value_type>>(v)) {
-            count = static_cast<int>(p->Count());
-            for (int i = 0; i < count; ++i) { m_data_.push_back(p->GetValue(i)); }
-        } else if (auto p = std::dynamic_pointer_cast<DataLight>(v)) {
-            m_data_.push_back(p->as<value_type>());
-            count = 1;
-        } else {
-        }
-        return count;
-    }
-    int Add(value_type const& v) {
-        m_data_.push_back(v);
-        return 1;
-    }
-
-    int Delete(size_type idx) override {
-        m_data_.erase(m_data_.begin() + idx);
-        return 1;
-    }
-
-    value_type GetValue(index_type idx) const { return m_data_[idx]; }
-    void SetValue(size_type idx, value_type const& v) {
-        if (Count() < idx) { m_data_.resize(idx); }
-        m_data_[idx] = v;
-    }
-
-    std::vector<value_type>& data() { return m_data_; }
-    std::vector<value_type> const& data() const { return m_data_; }
+    /** @addtogroup{ */
 };
 
-template <>
-class DataArrayT<void> : public DataArray {
-    typedef DataArrayT<void> this_type;
-    std::vector<std::shared_ptr<DataEntity>> m_data_;
-
-   protected:
-    DataArrayT() = default;
-    template <typename U>
-    DataArrayT(std::initializer_list<U> const& u);
-
-   public:
-    ~DataArrayT() override = default;
-    SP_DEFAULT_CONSTRUCT(DataArrayT);
-
-    template <typename... Args>
-    static std::shared_ptr<this_type> New(Args&&... args) {
-        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
-    };
-
-    std::type_info const& value_type_info() const override { return typeid(void); };
-
-    bool isEmpty() const override { return m_data_.empty(); }
-
-    size_type Count() const override { return m_data_.size(); }
-
-    size_type Resize(size_type s) override {
-        m_data_.resize(s);
-        return s;
-    }
-    void Clear() override { m_data_.clear(); }
-
-    std::shared_ptr<DataEntity> Get(size_type idx) const override { return m_data_[idx]; }
-
-    int Set(size_type idx, std::shared_ptr<DataEntity> const& v) override {
-        bool success = true;
-        if (std::dynamic_pointer_cast<DataLight>(v) != nullptr) {
-            m_data_.at(idx) = v;
-        } else {
-            success = false;
-        }
-        return success;
-    }
-    int Add(std::shared_ptr<DataEntity> const& v) override {
-        int count = 0;
-        if (auto p = std::dynamic_pointer_cast<DataArray>(v)) {
-            count = static_cast<int>(p->Count());
-            for (int i = 0; i < count; ++i) { m_data_.push_back(p->Get(i)); }
-        } else if (v != nullptr) {
-            m_data_.push_back(p);
-            count = 1;
-        }
-        return count;
-    }
-    int Delete(size_type idx) override {
-        m_data_.erase(m_data_.begin() + idx);
-        return 1;
-    }
-};
-
-inline std::shared_ptr<DataArray> DataArray::New() { return DataArrayT<void>::New(); }
-
-template <typename U>
-std::shared_ptr<DataArray> make_data_entity(U const* u, size_type n) {
-    return DataArrayT<U>::New(u, n);
-}
-inline std::shared_ptr<DataArrayT<std::string>> make_data_entity(std::initializer_list<char const*> const& u) {
-    return DataArrayT<std::string>::New(u);
-}
-template <typename U>
-std::shared_ptr<DataArrayT<U>> make_data_entity(std::initializer_list<U> const& u,
-                                                ENABLE_IF((traits::is_light_data<U>::value))) {
-    auto p = DataArrayT<U>::New();
-    for (auto const& item : u) { p->Add((item)); }
-    return p;
-}
-template <typename U>
-std::shared_ptr<DataArrayT<void>> make_data_entity(std::initializer_list<U> const& u,
-                                                   ENABLE_IF((!traits::is_light_data<U>::value))) {
-    auto p = DataArrayT<void>::New();
-    for (auto const& item : u) { p->Add(make_data_entity(item)); }
-    return p;
-}
-
-template <typename U>
-std::shared_ptr<DataArray> make_data_entity(std::initializer_list<std::initializer_list<U>> const& u) {
-    return DataArrayT<void>::New(u);
-}
-template <typename U>
-std::shared_ptr<DataArray> make_data_entity(
-    std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-    return DataArrayT<void>::New(u);
-}
-
-template <typename V>
-template <typename U>
-DataArrayT<V>::DataArrayT(U const* u, size_type n) : m_data_(n) {
-    for (int i = 0; i < n; ++i) { m_data_[i] = static_cast<value_type>(u[i]); }
-}
-template <typename V>
-template <typename U>
-DataArrayT<V>::DataArrayT(std::initializer_list<U> const& u) {
-    m_data_.reserve(u.size());
-    for (auto const& item : u) { m_data_.push_back(static_cast<value_type>(item)); }
-}
-template <typename U>
-DataArrayT<void>::DataArrayT(std::initializer_list<U> const& u) {
-    m_data_.reserve(u.size());
-    for (auto const& item : u) { m_data_.push_back(make_data_entity(item)); }
-}
-template <typename V>
-std::shared_ptr<DataArray> DataLightT<V>::asArray() const {
-    auto res = DataArrayT<V>::New();
-    res->Add(m_data_);
-    return res;
-}
 //
 // inline std::shared_ptr<DataArrayT<std::string>> make_data_entity(std::initializer_list<const char*> const& u) {
 //    return DataArrayT<std::string>::New(u);
