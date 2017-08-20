@@ -25,7 +25,7 @@ class Model;
 class MeshBase;
 
 class DomainBase : public SPObject {
-    SP_OBJECT_DECLARE_MEMBERS(DomainBase, SPObject)
+    SP_OBJECT_HEAD(DomainBase, SPObject)
     static constexpr char const *TagName() { return "Domain"; }
 
    protected:
@@ -84,7 +84,7 @@ class DomainBase : public SPObject {
 template <typename TM, template <typename> class... Policies>
 class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
     typedef TM mesh_type;
-    SP_OBJECT_DECLARE_MEMBERS(Domain, DomainBase);
+    SP_DEFINE_FANCY_TYPE_NAME(Domain, DomainBase);
 
    protected:
     template <typename... Args>

@@ -16,7 +16,7 @@ namespace simpla {
 namespace geometry {
 class Curve;
 struct Chart : public engine::SPObject {
-    SP_OBJECT_DECLARE_MEMBERS(Chart, engine::SPObject)
+    SP_OBJECT_HEAD(Chart, engine::SPObject)
     static constexpr char const *TagName() { return "Chart"; }
 
    protected:

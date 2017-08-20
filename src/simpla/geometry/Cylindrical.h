@@ -12,7 +12,7 @@ namespace simpla {
 namespace geometry {
 
 struct Cylindrical : public GeoObject {
-    SP_OBJECT_DECLARE_MEMBERS(Cylindrical, GeoObject)
+    SP_OBJECT_HEAD(Cylindrical, GeoObject)
     Real m_radius_ = 1;
     point_type m_axe0_{0, 0, 0};
     point_type m_axe1_{0, 0, 1};

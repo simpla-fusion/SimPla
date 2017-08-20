@@ -17,7 +17,7 @@ namespace simpla {
 namespace geometry {
 
 struct Cube : public GeoObject {
-    SP_OBJECT_DECLARE_MEMBERS(Cube, GeoObject)
+    SP_OBJECT_HEAD(Cube, GeoObject)
 
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 

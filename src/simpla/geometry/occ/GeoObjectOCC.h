@@ -12,7 +12,7 @@ class Bnd_Box;
 namespace simpla {
 namespace geometry {
 struct GeoObjectOCC : public GeoObject {
-    SP_OBJECT_DECLARE_MEMBERS(GeoObjectOCC, GeoObject)
+    SP_OBJECT_HEAD(GeoObjectOCC, GeoObject)
    protected:
     GeoObjectOCC(GeoObject const &);
     GeoObjectOCC(TopoDS_Shape const &);

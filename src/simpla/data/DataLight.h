@@ -10,7 +10,7 @@ namespace simpla {
 namespace data {
 
 struct DataLight : public DataEntity {
-    SP_OBJECT_HEAD(DataLight, DataEntity);
+    SP_DEFINE_FANCY_TYPE_NAME(DataLight, DataEntity);
 
    protected:
     DataLight() = default;
@@ -31,7 +31,7 @@ struct DataLight : public DataEntity {
 
 template <typename V>
 class DataLightT<V> : public DataLight {
-    SP_OBJECT_HEAD(DataLightT, DataLight);
+    SP_DEFINE_FANCY_TYPE_NAME(DataLightT, DataLight);
     typedef V value_type;
     value_type m_data_;
 
@@ -96,7 +96,7 @@ class DataLightT<V> : public DataLight {
 
 template <typename V>
 class DataLightNTuple<V> : public DataLight {
-    SP_OBJECT_HEAD(DataLightNTuple, DataLight);
+    SP_DEFINE_FANCY_TYPE_NAME(DataLightNTuple, DataLight);
     typedef V value_type;
     value_type m_data_;
 

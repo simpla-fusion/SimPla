@@ -14,7 +14,7 @@ namespace simpla {
 * class SAMRAITimeIntegrator
 */
 struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
-    SP_OBJECT_DECLARE_MEMBERS(SAMRAITimeIntegrator, engine::TimeIntegrator);
+    SP_OBJECT_HEAD(SAMRAITimeIntegrator, engine::TimeIntegrator);
 
    public:
     void DoInitialize() override;

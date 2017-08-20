@@ -26,7 +26,7 @@ class Patch;
 using namespace simpla::data;
 class Curve;
 struct MeshBase : public engine::SPObject, public AttributeGroup {
-    SP_OBJECT_DECLARE_MEMBERS(MeshBase, SPObject)
+    SP_OBJECT_HEAD(MeshBase, SPObject)
     static constexpr char const *TagName() { return "Mesh"; }
 
    public:
@@ -85,7 +85,7 @@ struct MeshBase : public engine::SPObject, public AttributeGroup {
 
 template <typename TChart, template <typename> class... Policies>
 class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
-    SP_OBJECT_DECLARE_MEMBERS(Mesh, MeshBase)
+    SP_OBJECT_HEAD(Mesh, MeshBase)
    private:
     std::shared_ptr<chart_type> m_chart_;
 

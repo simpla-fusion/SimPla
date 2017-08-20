@@ -20,7 +20,7 @@ using namespace engine;
  */
 template <typename TChart>
 class PML : public engine::DomainBase {
-    SP_OBJECT_HEAD(PML<TChart>, engine::Worker);
+    SP_DEFINE_FANCY_TYPE_NAME(PML<TChart>, engine::Worker);
 
    public:
     typedef engine::MeshView<TChart> mesh_type;

@@ -18,7 +18,7 @@ template <int NDIMS>
 class Polygon;
 template <typename TObj>
 class Revolve : public GeoObject {
-    SP_OBJECT_DECLARE_MEMBERS(Revolve<TObj>, GeoObject)
+    SP_OBJECT_HEAD(Revolve<TObj>, GeoObject)
    protected:
     Revolve(TObj const &obj, int ZAxis = 2) : base_obj(obj) { m_axis_[ZAxis] = 1; }
     Revolve(TObj const &obj, point_type origin, point_type axis) : base_obj(obj), m_axis_(axis), m_origin_(origin) {}
@@ -61,7 +61,7 @@ std::shared_ptr<GeoObject> revolve(TObj const &obj, int phi_axis = 2) {
 }
 
 class RevolveZ : public GeoObject {
-    SP_OBJECT_DECLARE_MEMBERS(RevolveZ, GeoObject)
+    SP_OBJECT_HEAD(RevolveZ, GeoObject)
    protected:
     RevolveZ(std::shared_ptr<Polygon<2>> const &obj, int phi_axis, Real phi0, Real phi1, point_type origin = {0, 0, 0})
         : m_origin_(origin), base_obj(obj), m_phi_axe_(phi_axis), m_angle_min_(phi0), m_angle_max_(phi1) {}

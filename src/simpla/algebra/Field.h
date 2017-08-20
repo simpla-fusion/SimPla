@@ -55,7 +55,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     nTuple<array_type, NUM_OF_SUB, DOF...> m_data_;
     mesh_type const* m_host_ = nullptr;
 
-    SP_OBJECT_HEAD(Field, engine::Attribute);
+    SP_DEFINE_FANCY_TYPE_NAME(Field, engine::Attribute);
 
    public:
     template <typename... Args>

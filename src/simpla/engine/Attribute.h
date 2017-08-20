@@ -122,7 +122,7 @@ class AttributeGroup {
  *
  */
 struct Attribute : public SPObject {
-    SP_OBJECT_DECLARE_MEMBERS(Attribute, SPObject)
+    SP_OBJECT_HEAD(Attribute, SPObject)
 
    protected:
     template <typename... Args>
@@ -193,7 +193,7 @@ struct Attribute : public SPObject {
 // class AttributeViewAdapter<
 //    U, std::enable_if_t<std::is_copy_constructible<U>::value && traits::has_swap<U, void(U &)>::value>>
 //    : public Attribute, public U {
-//    SP_OBJECT_HEAD(AttributeViewAdapter<U>, Attribute);
+//    SP_DEFINE_FANCY_TYPE_NAME(AttributeViewAdapter<U>, Attribute);
 //
 //    typedef algebra::traits::value_type_t<U> value_type;
 //    typedef typename algebra::traits::mesh_type_t<U> mesh_type;
@@ -252,7 +252,7 @@ struct Attribute : public SPObject {
 //                       public Array<TV, 3 + (((IFORM == NODE || IFORM == CELL) && DOF == 1) ? 0 : 1)> {
 //    typedef Array<TV, 3 + (((IFORM == NODE || IFORM == CELL) && DOF == 1) ? 0 : 1)> array_type;
 //    typedef DataAttribute<TV, IFORM, DOF> data_attr_type;
-//    SP_OBJECT_HEAD(data_attr_type, Attribute);
+//    SP_DEFINE_FANCY_TYPE_NAME(data_attr_type, Attribute);
 //    CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, MeshBase)
 //    typedef TV value_type;
 //    static constexpr int GetIFORM = IFORM;

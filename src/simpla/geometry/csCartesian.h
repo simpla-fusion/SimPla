@@ -22,7 +22,7 @@ class Curve;
  *  Metric of  Cartesian topology_coordinate system
  */
 struct csCartesian : public Chart {
-    SP_OBJECT_DECLARE_MEMBERS(csCartesian, Chart)
+    SP_OBJECT_HEAD(csCartesian, Chart)
    protected:
     template <typename... Args>
     explicit csCartesian(Args &&... args) : base_type(std::forward<Args>(args)...) {}

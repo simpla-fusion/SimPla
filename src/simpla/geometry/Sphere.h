@@ -13,7 +13,7 @@ namespace simpla {
 namespace geometry {
 
 struct Sphere : public GeoObject {
-    SP_OBJECT_DECLARE_MEMBERS(Sphere, GeoObject)
+    SP_OBJECT_HEAD(Sphere, GeoObject)
    private:
     Real m_radius_ = 1;
     point_type m_origin_{0, 0, 0};

@@ -618,7 +618,7 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
    private:
     static constexpr int ndims = 3;
 
-    SP_OBJECT_HEAD(ContinueRange<EntityId>, RangeBase<EntityId>)
+    SP_DEFINE_FANCY_TYPE_NAME(ContinueRange<EntityId>, RangeBase<EntityId>)
 
    public:
     explicit ContinueRange(index_type const* b = nullptr, index_type const* e = nullptr, int w = 0)
@@ -715,7 +715,7 @@ struct ContinueRange<EntityId> : public RangeBase<EntityId> {
 
 template <>
 struct UnorderedRange<EntityId> : public RangeBase<EntityId> {
-    SP_OBJECT_HEAD(UnorderedRange<EntityId>, RangeBase<EntityId>)
+    SP_DEFINE_FANCY_TYPE_NAME(UnorderedRange<EntityId>, RangeBase<EntityId>)
 
    public:
     UnorderedRange() = default;

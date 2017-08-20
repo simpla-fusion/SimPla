@@ -68,7 +68,7 @@ namespace geometry {
  *  @enduml
  */
 class GeoObject : public engine::SPObject {
-    SP_OBJECT_DECLARE_MEMBERS(GeoObject, engine::SPObject)
+    SP_OBJECT_HEAD(GeoObject, engine::SPObject)
 
    public:
     static constexpr char const *TagName() { return "GeoObject"; }

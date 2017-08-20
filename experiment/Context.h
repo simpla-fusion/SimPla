@@ -67,7 +67,7 @@ class MeshBase;
  * Context is a container of Model,Atlas,Domains
  */
 class Context : public SPObject {
-    SP_OBJECT_DECLARE_MEMBERS(Context, SPObject)
+    SP_OBJECT_HEAD(Context, SPObject)
 
     void DoInitialize() override;
     void DoFinalize() override;

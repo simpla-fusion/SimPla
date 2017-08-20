@@ -14,7 +14,7 @@ using namespace engine;
 
 template <typename TM>
 class IdealMHD : public engine::DomainBase {
-    SP_OBJECT_HEAD(IdealMHD<TM>, engine::Domain)
+    SP_DEFINE_FANCY_TYPE_NAME(IdealMHD<TM>, engine::Domain)
 
    public:
     DOMAIN_HEAD(IdealMHD, TM)(, <#initializer#>)()(<#initializer#>)

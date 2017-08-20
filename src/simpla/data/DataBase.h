@@ -22,7 +22,7 @@ namespace data {
 class DataNode;
 class DataEntity;
 class DataBase : public Factory<DataBase>, public std::enable_shared_from_this<DataBase> {
-    SP_OBJECT_HEAD(DataBase, Factory<DataBase>);
+    SP_DEFINE_FANCY_TYPE_NAME(DataBase, Factory<DataBase>);
 
    protected:
     DataBase() = default;
@@ -75,7 +75,7 @@ class DataBase : public Factory<DataBase>, public std::enable_shared_from_this<D
 
 };  // class DataBase {
 #define SP_DATABASE_DECLARE_MEMBERS(_CLASS_NAME_)                                                \
-    SP_OBJECT_HEAD(_CLASS_NAME_, DataBase)                                                       \
+    SP_DEFINE_FANCY_TYPE_NAME(_CLASS_NAME_, DataBase)                                                       \
    protected:                                                                                    \
     _CLASS_NAME_();                                                                              \
                                                                                                  \

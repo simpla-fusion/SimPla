@@ -30,7 +30,7 @@ class Polygon;
  */
 template <>
 struct Polygon<2> : public GeoObject {
-    SP_OBJECT_DECLARE_MEMBERS(Polygon, GeoObject)
+    SP_OBJECT_HEAD(Polygon, GeoObject)
    public:
     typedef nTuple<Real, 2> point2d_type;
 

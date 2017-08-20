@@ -8,7 +8,7 @@
 namespace simpla {
 namespace engine {
 class Information : public SPObject {
-    SP_OBJECT_DECLARE_MEMBERS(Information, SPObject)
+    SP_OBJECT_HEAD(Information, SPObject)
 };
 }  // namespace engine
 }  // namespace simpla

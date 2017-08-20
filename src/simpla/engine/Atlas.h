@@ -71,7 +71,7 @@ class MeshBlock;
 *  - '''dx''' is the resolution ratio  of discrete mesh, x = i * dx + r where 0<= r < dx
 */
 class Atlas : public SPObject {
-    SP_OBJECT_DECLARE_MEMBERS(Atlas, SPObject)
+    SP_OBJECT_HEAD(Atlas, SPObject)
 
    public:
     size_type DeletePatch(id_type);
@@ -82,23 +82,12 @@ class Atlas : public SPObject {
 
     int GetNumOfLevel() const;
 
-    void SetMaxLevel(int l = 1);
-    int GetMaxLevel() const;
-
-    void SetRefineRatio(nTuple<int, 3> const &v, int level = 0);
-    nTuple<int, 3> GetRefineRatio(int l) const;
-
-    void SetLargestPatchDimensions(nTuple<int, 3> const &d);
-    nTuple<int, 3> GetLargestPatchDimensions() const;
-
-    void SetSmallestPatchDimensions(nTuple<int, 3> const &d);
-    nTuple<int, 3> GetSmallestPatchDimensions() const;
-
-    void SetPeriodicDimensions(nTuple<int, 3> const &t);
-    nTuple<int, 3> const &GetPeriodicDimensions() const;
-
-    void SetCoarsestIndexBox(index_box_type const &t);
-    index_box_type const &GetCoarsestIndexBox() const;
+    SP_OBJECT_PROPERTY(int, MaxLevel);
+    SP_OBJECT_PROPERTY(index_tuple, RefineRatio);
+    SP_OBJECT_PROPERTY(index_tuple, LargestPatchDimensions);
+    SP_OBJECT_PROPERTY(index_tuple, SmallestPatchDimensions);
+    SP_OBJECT_PROPERTY(index_tuple, PeriodicDimensions);
+    SP_OBJECT_PROPERTY(index_tuple, CoarsestIndexBox);
 };
 }
 }  // namespace simpla{namespace mesh_as{

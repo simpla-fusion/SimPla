@@ -6,6 +6,7 @@
 #define SIMPLA_SCENARIO_H
 
 #include "SPObject.h"
+#include "Atlas.h"
 
 namespace simpla {
 namespace engine {
@@ -15,7 +16,7 @@ class Schedule;
 class Model;
 
 class Scenario : public SPObject {
-    SP_OBJECT_DECLARE_MEMBERS(Scenario, SPObject)
+    SP_OBJECT_HEAD(Scenario, SPObject)
 
     void DoInitialize() override;
     void DoFinalize() override;

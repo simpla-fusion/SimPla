@@ -16,7 +16,7 @@ namespace data {
  */
 
 class DataBlock : public DataEntity {
-    SP_OBJECT_HEAD(DataBlock, DataEntity)
+    SP_DEFINE_FANCY_TYPE_NAME(DataBlock, DataEntity)
 
     struct pimpl_s;
     pimpl_s *m_pimpl_ = nullptr;
@@ -52,7 +52,7 @@ class DataBlock : public DataEntity {
 
 template <typename V>
 struct DataBlockT : public DataBlock {
-    SP_OBJECT_HEAD(DataBlockT<V>, DataBlock);
+    SP_DEFINE_FANCY_TYPE_NAME(DataBlockT<V>, DataBlock);
     typedef V value_type;
 
    protected:
@@ -106,7 +106,7 @@ std::shared_ptr<DataBlock> DataBlock::New(Args &&... args) {
 //   public:
 //    typedef Array<U, Others...> array_type;
 //    typedef DataMultiArray<array_type> multi_array_type;
-//    SP_OBJECT_HEAD(multi_array_type, DataBlock);
+//    SP_DEFINE_FANCY_TYPE_NAME(multi_array_type, DataBlock);
 //
 //    typedef U value_type;
 //
@@ -165,7 +165,7 @@ std::shared_ptr<DataBlock> DataBlock::New(Args &&... args) {
 //   */
 // template <typename U>
 // class DataBlockAdapter<U> : public DataBlock, public U {
-//    SP_OBJECT_HEAD(DataBlockAdapter<U>, DataBlock);
+//    SP_DEFINE_FANCY_TYPE_NAME(DataBlockAdapter<U>, DataBlock);
 //    typedef algebra::traits::value_type_t<U> value_type;
 //
 //   public:
@@ -207,7 +207,7 @@ std::shared_ptr<DataBlock> DataBlock::New(Args &&... args) {
 //    typedef data::DataEntityNDArray<TV> data_entity_traits;
 //    typedef TV value_type;
 //
-// SP_OBJECT_HEAD(block_array_type, DataBlock);
+// SP_DEFINE_FANCY_TYPE_NAME(block_array_type, DataBlock);
 //
 //    template<typename ...Args>
 //    explicit DataBlockArray(Args &&...args) : DataBlock(), data_entity_traits(std::forward<Args>(args)...) {}

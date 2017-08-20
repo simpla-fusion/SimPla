@@ -10,7 +10,7 @@
 namespace simpla {
 namespace data {
 struct DataArray : public DataNode {
-    SP_OBJECT_HEAD(DataArray, DataNode)
+    SP_DEFINE_FANCY_TYPE_NAME(DataArray, DataNode)
 
     struct pimpl_s;
     pimpl_s* m_pimpl_ = nullptr;
@@ -83,7 +83,7 @@ struct DataArray : public DataNode {
 // template <typename U, int N>
 // class DataLight<simpla::algebra::declare::nTuple_<U, N>> : public DataArrayWithType<U> {
 //    typedef simpla::algebra::declare::nTuple_<U, N> tuple_type;
-//    SP_OBJECT_HEAD(DataLight<tuple_type>, DataArrayWithType<U>);
+//    SP_DEFINE_FANCY_TYPE_NAME(DataLight<tuple_type>, DataArrayWithType<U>);
 //    tuple_type m_holder_;
 //
 //   public:
@@ -120,7 +120,7 @@ struct DataArray : public DataNode {
 // template <typename U, int N0, int N1, int... N>
 // class DataLight<simpla::algebra::declare::nTuple_<U, N0, N1, N...>> : public DataArray {
 //    typedef simpla::algebra::declare::nTuple_<U, N0, N1, N...> tuple_type;
-//    SP_OBJECT_HEAD(tuple_type, DataArray);
+//    SP_DEFINE_FANCY_TYPE_NAME(tuple_type, DataArray);
 //    tuple_type m_holder_;
 //
 //   public:

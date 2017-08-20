@@ -78,7 +78,7 @@ inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue{std
  */
 
 class DataTable : public DataNode {
-    SP_OBJECT_HEAD(DataTable, DataNode);
+    SP_DEFINE_FANCY_TYPE_NAME(DataTable, DataNode);
     struct pimpl_s;
     pimpl_s* m_pimpl_;
 

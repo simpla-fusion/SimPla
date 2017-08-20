@@ -7,8 +7,6 @@
 #include "TimeIntegrator.h"
 
 #include "simpla/data/Data.h"
-
-#include "Context.h"
 #include "TimeIntegrator.h"
 
 namespace simpla {

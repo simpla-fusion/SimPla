@@ -8,7 +8,7 @@
 namespace simpla {
 namespace data {
 class DataNodeXML : public DataNode {
-    SP_OBJECT_HEAD(DataNodeXML, DataNode);
+    SP_DEFINE_FANCY_TYPE_NAME(DataNodeXML, DataNode);
     struct pimpls_s;
     pimpls_s* m_pimpl_ = nullptr;
 

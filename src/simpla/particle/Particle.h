@@ -16,7 +16,7 @@ namespace engine {
 struct MeshBase;
 }
 class ParticleBase : public engine::Attribute {
-    SP_OBJECT_DECLARE_MEMBERS(ParticleBase, engine::Attribute);
+    SP_OBJECT_HEAD(ParticleBase, engine::Attribute);
 
    protected:
     template <typename... Args>
@@ -118,7 +118,7 @@ class ParticleBase : public engine::Attribute {
 
 template <typename TM>
 class Particle : public ParticleBase {
-    SP_OBJECT_DECLARE_MEMBERS(Particle, ParticleBase);
+    SP_OBJECT_HEAD(Particle, ParticleBase);
 
    public:
     typedef TM mesh_type;

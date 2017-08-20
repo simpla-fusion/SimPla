@@ -30,7 +30,7 @@
 /**
  * @brief define the common part of the derived class
  */
-#define SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_CLASS_NAME_)                                    \
+#define SP_DEFINE_FANCY_TYPE_NAME(_CLASS_NAME_, _BASE_CLASS_NAME_)                                    \
    public:                                                                                 \
     static std::string GetFancyTypeName_s() { return __STRING(_CLASS_NAME_); }             \
     virtual std::string GetFancyTypeName() const override { return GetFancyTypeName_s(); } \

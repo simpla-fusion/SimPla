@@ -11,15 +11,15 @@ namespace simpla {
 namespace geometry {
 
 struct Curve : public GeoObject {
-    SP_OBJECT_HEAD(Curve, GeoObject);
+    SP_DEFINE_FANCY_TYPE_NAME(Curve, GeoObject);
     int Dimension() const final { return 1; };
 };
 struct Conic : public Curve {
-    SP_OBJECT_HEAD(Conic, Curve);
+    SP_DEFINE_FANCY_TYPE_NAME(Conic, Curve);
 };
 
 struct Circle : public Conic {
-    SP_OBJECT_HEAD(Circle, Conic);
+    SP_DEFINE_FANCY_TYPE_NAME(Circle, Conic);
 
     Circle() = default;
     ~Circle() override = default;
@@ -48,7 +48,7 @@ struct Circle : public Conic {
     Real m_radius_ = 1;
 };
 struct Arc : public Conic {
-    SP_OBJECT_HEAD(Arc, Conic);
+    SP_DEFINE_FANCY_TYPE_NAME(Arc, Conic);
     Arc() = default;
     ~Arc() override = default;
 
@@ -82,7 +82,7 @@ struct Arc : public Conic {
 };
 
 struct Line : public Curve {
-    SP_OBJECT_HEAD(Line, Curve);
+    SP_DEFINE_FANCY_TYPE_NAME(Line, Curve);
     Line(point_type p0, vector_type v) : m_p0_(std::move(p0)), m_v_(std::move(v)){};
     Line() = default;
     ~Line() override = default;

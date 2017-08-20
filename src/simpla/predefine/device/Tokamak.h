@@ -11,7 +11,7 @@
 namespace simpla {
 
 class Tokamak : public engine::Model {
-    SP_OBJECT_DECLARE_MEMBERS(Tokamak, engine::Model)
+    SP_OBJECT_HEAD(Tokamak, engine::Model)
 
    public:
     void DoUpdate() override;

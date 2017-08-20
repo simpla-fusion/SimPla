@@ -21,7 +21,7 @@ namespace engine {
 class Context;
 class Atlas;
 class Schedule : public engine::SPObject {
-    SP_OBJECT_DECLARE_MEMBERS(Schedule, SPObject)
+    SP_OBJECT_HEAD(Schedule, SPObject)
     static constexpr char const *TagName() { return "Schedule"; }
 
    public:

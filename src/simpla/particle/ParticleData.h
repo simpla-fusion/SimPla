@@ -11,7 +11,7 @@
 
 namespace simpla {
 struct ParticleData : public data::DataBlock {
-    SP_OBJECT_HEAD(ParticleData, data::DataBlock);
+    SP_DEFINE_FANCY_TYPE_NAME(ParticleData, data::DataBlock);
     ParticleData(int DOF = 0, size_type NumberOfPIC = 100) : m_dof_(DOF), m_number_of_pic_(NumberOfPIC) {}
     ~ParticleData() override = default;
 

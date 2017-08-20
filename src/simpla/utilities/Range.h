@@ -272,7 +272,7 @@ struct Range {
 
 template <typename T>
 struct ContinueRange<T> : public RangeBase<T> {
-    SP_OBJECT_HEAD(ContinueRange<T>, RangeBase<T>)
+    SP_DEFINE_FANCY_TYPE_NAME(ContinueRange<T>, RangeBase<T>)
     typedef T value_type;
     static std::string ClassName() { return std::string("ContinueRange<") + typeid(T).name() + ">"; }
 
@@ -298,7 +298,7 @@ struct ContinueRange<T> : public RangeBase<T> {
 
 template <typename T>
 struct UnorderedRange<T> : public RangeBase<T> {
-    SP_OBJECT_HEAD(UnorderedRange<T>, RangeBase<T>)
+    SP_DEFINE_FANCY_TYPE_NAME(UnorderedRange<T>, RangeBase<T>)
     typedef T value_type;
 
    public:
@@ -326,7 +326,7 @@ template <typename TOtherRange>
 struct RangeAdapter : public RangeBase<typename TOtherRange::value_type>, public TOtherRange {
     typedef typename TOtherRange::value_type value_type;
 
-    SP_OBJECT_HEAD(RangeAdapter<TOtherRange>, RangeBase<value_type>)
+    SP_DEFINE_FANCY_TYPE_NAME(RangeAdapter<TOtherRange>, RangeBase<value_type>)
 
     template <typename... Args>
     RangeAdapter(Args&&... args) : TOtherRange(std::forward<Args>(args)...) {}
@@ -355,7 +355,7 @@ struct IteratorRange : public RangeBase<typename std::iterator_traits<TIterator>
 
     typedef typename std::iterator_traits<TIterator>::value_type value_type;
 
-    SP_OBJECT_HEAD(IteratorRange<TIterator>, RangeBase<value_type>)
+    SP_DEFINE_FANCY_TYPE_NAME(IteratorRange<TIterator>, RangeBase<value_type>)
 
    public:
     IteratorRange(iterator const& b, iterator const& e) : m_b_(b), m_e_(e) { ASSERT(std::distance(m_b_, m_e_) >= 0); }

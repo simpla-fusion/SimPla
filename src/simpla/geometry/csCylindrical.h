@@ -31,7 +31,7 @@ class Curve;
  *  RZPhi
  */
 struct csCylindrical : public Chart {
-    SP_OBJECT_DECLARE_MEMBERS(csCylindrical, Chart)
+    SP_OBJECT_HEAD(csCylindrical, Chart)
    protected:
     template <typename... Args>
     explicit csCylindrical(Args &&... args) : base_type(std::forward<Args>(args)...) {}
