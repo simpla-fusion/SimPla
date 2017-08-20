@@ -1,5 +1,5 @@
-FIND_PACKAGE(VTK)
-MESSAGE("-- VTK version: ${VTK_VERSION}")
+#FIND_PACKAGE(VTK)
+#MESSAGE("-- VTK version: ${VTK_VERSION}")
 SET(XML2_DIR ${PROJECT_SOURCE_DIR}/external_project/xdmf)
 SET(XDMF_DIR ${PROJECT_SOURCE_DIR}/external_project/xdmf)
 FIND_PACKAGE(XDMF)

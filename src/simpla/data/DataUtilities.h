@@ -8,7 +8,8 @@
 #include "DataBlock.h"
 #include "DataEntity.h"
 #include "DataLight.h"
-
+#include "DataNode.h"
+#include "DataTable.h"
 namespace simpla {
 namespace data {
 
@@ -36,35 +37,39 @@ std::shared_ptr<DataEntity> make_data_entity(KeyValue const& first, Others&&... 
 }
 
 template <typename U>
-std::shared_ptr<DataArray> make_data_entity(U const* u, size_type n) {
-    return DataArrayT<U>::New(u, n);
+std::shared_ptr<DataLightArray<U>> make_data_entity(U const* u, size_type n) {
+    return DataLightArray<U>::New(u, n);
 }
-inline std::shared_ptr<DataArrayT<std::string>> make_data_entity(std::initializer_list<char const*> const& u) {
-    return DataArrayT<std::string>::New(u);
+inline std::shared_ptr<DataLightArray<std::string>> make_data_entity(std::initializer_list<char const*> const& u) {
+    return DataLightArray<std::string>::New(u);
 }
 template <typename U>
-std::shared_ptr<DataArrayT<U>> make_data_entity(std::initializer_list<U> const& u,
-                                                ENABLE_IF((traits::is_light_data<U>::value))) {
-    auto p = DataArrayT<U>::New();
+std::shared_ptr<DataLightArray<U>> make_data_entity(std::initializer_list<U> const& u,
+                                                    ENABLE_IF((traits::is_light_data<U>::value))) {
+    auto p = DataLightArray<U>::New();
     for (auto const& item : u) { p->Add((item)); }
     return p;
 }
 template <typename U>
-std::shared_ptr<DataArrayT<void>> make_data_entity(std::initializer_list<U> const& u,
-                                                   ENABLE_IF((!traits::is_light_data<U>::value))) {
-    auto p = DataArrayT<void>::New();
+std::shared_ptr<DataArray> make_data_entity(std::initializer_list<U> const& u,
+                                            ENABLE_IF((!traits::is_light_data<U>::value))) {
+    auto p = DataArray::New();
     for (auto const& item : u) { p->Add(make_data_entity(item)); }
     return p;
 }
 
 template <typename U>
 std::shared_ptr<DataArray> make_data_entity(std::initializer_list<std::initializer_list<U>> const& u) {
-    return DataArrayT<void>::New(u);
+    auto p = DataArray::New();
+    for (auto const& item : u) { p->Add(make_data_entity(item)); }
+    return p;
 }
 template <typename U>
 std::shared_ptr<DataArray> make_data_entity(
     std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-    return DataArrayT<void>::New(u);
+    auto p = DataArray::New();
+    for (auto const& item : u) { p->Add(make_data_entity(item)); }
+    return p;
 }
 
 }  // namespace data

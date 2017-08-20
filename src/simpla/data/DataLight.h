@@ -95,18 +95,18 @@ class DataLightT<V> : public DataLight {
 };
 
 template <typename V>
-class DataLightNTuple<V> : public DataLight {
-    SP_DEFINE_FANCY_TYPE_NAME(DataLightNTuple, DataLight);
+class DataLightArray<V> : public DataLight {
+    SP_DEFINE_FANCY_TYPE_NAME(DataLightArray, DataLight);
     typedef V value_type;
     value_type m_data_;
 
    protected:
-    DataLightNTuple() = default;
+    DataLightArray() = default;
     template <typename... Args>
-    explicit DataLightNTuple(Args&&... args) : m_data_(std::forward<Args>(args)...) {}
+    explicit DataLightArray(Args&&... args) : m_data_(std::forward<Args>(args)...) {}
 
    public:
-    ~DataLightNTuple() override = default;
+    ~DataLightArray() override = default;
     //    SP_DEFAULT_CONSTRUCT(DataLightNTuple);
 
     template <typename... Args>

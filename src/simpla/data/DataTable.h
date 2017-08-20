@@ -15,67 +15,7 @@ namespace simpla {
 namespace data {
 
 class DataBase;
-class KeyValue;
-
-class KeyValue : public std::pair<std::string, std::shared_ptr<DataEntity>> {
-    typedef std::pair<std::string, std::shared_ptr<DataEntity>> base_type;
-
-   public:
-    explicit KeyValue(std::string const& k, std::shared_ptr<DataEntity> const& p = nullptr) : base_type(k, p) {}
-    KeyValue(KeyValue const& other) : base_type(other) {}
-    KeyValue(KeyValue&& other) : base_type(other) {}
-    ~KeyValue() = default;
-
-    KeyValue& operator=(KeyValue const& other) {
-        //        base_type::operator=(other);
-        return *this;
-    }
-
-    template <typename U>
-    KeyValue& operator=(U const& u) {
-        second = make_data_entity(u);
-        return *this;
-    }
-    template <typename U>
-    KeyValue& operator=(std::initializer_list<U> const& u) {
-        second = make_data_entity(u);
-        return *this;
-    }
-    template <typename U>
-    KeyValue& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
-        second = make_data_entity(u);
-        return *this;
-    }
-    template <typename U>
-    KeyValue& operator=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-        second = make_data_entity(u);
-        return *this;
-    }
-};
-
-inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue{std::string(c), make_data_entity(true)}; }
 /** @ingroup data */
-/**
- * @brief  a @ref DataEntity tree, a key-value table of @ref DataEntity, which is similar as Group
- * in HDF5,  all node/table are DataEntity.
- * @design_pattern
- *  - Proxy for DataBackend
- *
- *  PUT and POST are both unsafe methods. However, PUT is idempotent, while POST is not.
- *
- *  HTTP/1.1 SPEC
- *  @quota
- *   The POST method is used to request that the origin server accept the entity enclosed in
- *   the request as a new subordinate of the resource identified by the Request-URI in the Request-Line
- *
- *  @quota
- *  The PUT method requests that the enclosed entity be stored under the supplied Request-URI.
- *  If the Request-URI refers to an already existing resource, the enclosed entity SHOULD be considered as a
- *  modified version of the one residing on the origin server. If the Request-URI does not point to an existing
- *  resource, and that URI is capable of being defined as a new resource by the requesting user agent, the origin
- *  server can create the resource with that URI."
- *
- */
 
 class DataTable : public DataNode {
     SP_DEFINE_FANCY_TYPE_NAME(DataTable, DataNode);
@@ -119,69 +59,6 @@ class DataTable : public DataNode {
     int Add(std::string const& uri, const std::shared_ptr<DataEntity>& v);
     int Delete(std::string const& uri);
     int Set(const std::shared_ptr<DataTable>& v);
-
-    /** Interface DataBackend End */
-
-    template <typename U>
-    bool Check(std::string const& uri, U const& u) const {
-        auto const& p = Get(uri);
-        return p->Check(u);
-    }
-    bool Check(std::string const& uri) const { return Check(uri, true); }
-
-    template <typename U>
-    U GetValue(std::string const& uri) const {
-        auto res = std::dynamic_pointer_cast<const DataLight>(Get(uri));
-        if (res == nullptr) { OUT_OF_RANGE << "Can not find entity [" << uri << "]" << std::endl; }
-        return res->as<U>();
-    }
-
-    template <typename U>
-    U GetValue(std::string const& uri, U const& default_value) const {
-        auto res = std::dynamic_pointer_cast<const DataLight>(Get(uri));
-        return res == nullptr ? default_value : res->as<U>();
-    }
-
-    void SetValue(KeyValue const& kv) { Set(kv.first, kv.second); }
-    template <typename... Others>
-    void SetValue(KeyValue const& kv, Others&&... others) {
-        Set(kv.first, kv.second);
-        SetValue(std::forward<Others>(others)...);
-    }
-    void SetValue(std::initializer_list<KeyValue> const& u) {
-        for (auto const& item : u) { SetValue(item); }
-    }
-
-    template <typename U>
-    void SetValue(std::string const& uri, U const& v) {
-        Set(uri, make_data_entity(v));
-    };
-
-    template <typename U>
-    void SetValue(std::string const& uri, std::initializer_list<U> const& u) {
-        Set(uri, make_data_entity(u));
-    };
-    template <typename U>
-    void SetValue(std::string const& uri, std::initializer_list<std::initializer_list<U>> const& u) {
-        Set(uri, make_data_entity(u));
-    };
-    template <typename U>
-    void SetValue(std::string const& uri,
-                  std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-        Set(uri, make_data_entity(u));
-    };
-    template <typename U>
-    void AddValue(std::string const& uri, U const& v) {
-        Add(uri, make_data_entity(v));
-    };
-    template <typename U>
-    void AddValue(std::string const& uri, std::initializer_list<U> const& u) {
-        Add(uri, make_data_entity(u));
-    };
-    template <typename U>
-    void AddValue(std::string const& uri, std::initializer_list<std::initializer_list<U>> const& u) {
-        Add(uri, make_data_entity(u));
-    };
 };
 
 }  // namespace data
