@@ -47,11 +47,16 @@ class DataLightT : public DataLight {
         return value_type_info() == info && m_data_ == *reinterpret_cast<value_type const*>(other);
     }
     std::ostream& Print(std::ostream& os, int indent) const override {
-        os << m_data_;
+        if (typeid(value_type) == typeid(std::string)) {
+            os << "\"" << m_data_ << "\"";
+        } else {
+            os << m_data_;
+        }
         return os;
     }
 
-    value_type value() const { return m_data_; };
+    value_type const& value() const { return m_data_; };
+    value_type& value() { return m_data_; };
 
     std::type_info const& value_type_info() const override { return typeid(value_type); };
     size_type value_type_size() const override { return sizeof(value_type); };

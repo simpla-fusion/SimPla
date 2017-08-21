@@ -63,6 +63,16 @@ std::shared_ptr<DataLightT<U>> make_data_entity(U const& u, ENABLE_IF((traits::i
 inline std::shared_ptr<DataLightT<std::string>> make_data_entity(char const* c) {
     return DataLightT<std::string>::New(std::string(c));
 }
+template <typename U, int N>
+std::shared_ptr<DataLightT<nTuple<U, N>>> make_data_tuple(std::initializer_list<U> const& u) {
+    auto res = DataLightT<nTuple<U, N>>::New();
+    int count = 0;
+    for (auto const& v : u) {
+        res->value()[count] = v;
+        ++count;
+    }
+};
+
 template <typename U>
 std::shared_ptr<DataLight> make_data_entity(std::initializer_list<U> const& u,
                                             ENABLE_IF((traits::is_light_data<U>::value))) {
