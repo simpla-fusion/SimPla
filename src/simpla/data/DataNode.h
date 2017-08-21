@@ -8,19 +8,20 @@
 #include "simpla/SIMPLA_config.h"
 
 #include <memory>
-#include "DataEntity.h"
+#include "DataLight.h"
+#include "DataUtilities.h"
 #include "simpla/utilities/Log.h"
 #include "simpla/utilities/ObjectHead.h"
 namespace simpla {
 namespace data {
 
-class DataEntity;
+class DataLight;
 
-class KeyValue : public std::pair<std::string, std::shared_ptr<DataEntity>> {
-    typedef std::pair<std::string, std::shared_ptr<DataEntity>> base_type;
+class KeyValue : public std::pair<std::string, std::shared_ptr<DataLight>> {
+    typedef std::pair<std::string, std::shared_ptr<DataLight>> base_type;
 
    public:
-    explicit KeyValue(std::string const& k, std::shared_ptr<DataEntity> const& p = nullptr) : base_type(k, p) {}
+    explicit KeyValue(std::string const& k, std::shared_ptr<DataLight> const& p = nullptr) : base_type(k, p) {}
     KeyValue(KeyValue const& other) : base_type(other) {}
     KeyValue(KeyValue&& other) : base_type(other) {}
     ~KeyValue() = default;
@@ -32,27 +33,27 @@ class KeyValue : public std::pair<std::string, std::shared_ptr<DataEntity>> {
 
     template <typename U>
     KeyValue& operator=(U const& u) {
-        second = DataEntity::New(u);
+        second = make_data_entity(u);
         return *this;
     }
     template <typename U>
     KeyValue& operator=(std::initializer_list<U> const& u) {
-        second = DataEntity::New(u);
+        second = make_data_entity(u);
         return *this;
     }
     template <typename U>
     KeyValue& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
-        second = DataEntity::New(u);
+        second = make_data_entity(u);
         return *this;
     }
     template <typename U>
     KeyValue& operator=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-        second = DataEntity::New(u);
+        second = make_data_entity(u);
         return *this;
     }
 };
 
-inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue{std::string(c), DataEntity::New(true)}; }
+inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue{std::string(c), make_data_entity(true)}; }
 
 class DataNode : public std::enable_shared_from_this<DataNode> {
     SP_OBJECT_BASE(DataNode);
@@ -102,7 +103,7 @@ class DataNode : public std::enable_shared_from_this<DataNode> {
 
     template <typename U>
     int SetValue(U const& u) {
-        return SetEntity(std::dynamic_pointer_cast<DataEntity>(DataEntity::New(std::forward<U>(u))));
+        return SetEntity(std::dynamic_pointer_cast<DataEntity>(make_data_entity(u)));
     }
     template <typename U>
     int AddValue(U&& u) {
@@ -125,44 +126,56 @@ class DataNode : public std::enable_shared_from_this<DataNode> {
     U GetValue(URL const& url, U const& default_value) const {
         return GetNode(url, RECURSIVE)->template as<U>(default_value);
     }
-    template <typename U, typename URL>
-    int SetValue(URL const& url, U&& u) {
-        return GetNode(url, RECURSIVE | NEW_IF_NOT_EXIST)->SetEntity(DataEntity::New(std::forward<U>(u)));
-    }
-    template <typename U, typename URL>
-    int SetValue(URL const& url, std::initializer_list<U> const& u) {
-        return GetNode(url, RECURSIVE | NEW_IF_NOT_EXIST)->SetEntity(DataEntity::New(u));
-    }
-    template <typename U, typename URL>
-    int SetValue(URL const& url, std::initializer_list<std::initializer_list<U>> const& u) {
-        return GetNode(url, RECURSIVE | NEW_IF_NOT_EXIST)->SetEntity(DataEntity::New(u));
-    }
-    template <typename U, typename URL>
-    int SetValue(URL const& url, std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-        return GetNode(url, RECURSIVE | NEW_IF_NOT_EXIST)->SetEntity(DataEntity::New(u));
-    }
 
-    template <typename U, typename URL>
+    template <typename URL>
+    int SetValue(URL const& url, std::shared_ptr<DataEntity> const& u) {
+        return GetNode(url, RECURSIVE | NEW_IF_NOT_EXIST)->SetEntity(u);
+    }
+    template <typename URL, typename U>
+    int SetValue(URL const& url, U const& u) {
+        return SetValue(url, make_data_entity((u)));
+    }
+    template <typename URL, typename U>
+    int SetValue(URL const& url, std::initializer_list<U> const& u) {
+        return SetValue(url, make_data_entity(u));
+    }
+    template <typename URL, typename U>
+    int SetValue(URL const& url, std::initializer_list<std::initializer_list<U>> const& u) {
+        return SetValue(url, make_data_entity(u));
+    }
+    template <typename URL, typename U>
+    int SetValue(URL const& url, std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
+        return SetValue(url, make_data_entity(u));
+    }
+    template <typename URL, typename U>
     int AddValue(URL const& url, U&& u) {
         return GetNode(url, RECURSIVE | NEW_IF_NOT_EXIST | ADD_IF_EXIST)
-            ->SetEntity(DataEntity::New(std::forward<U>(u)));
+            ->SetEntity(make_data_entity(std::forward<U>(u)));
     };
-    template <typename U, typename URL>
-    int AddValue(URL const& url, std::initializer_list<U> const& u) {
-        return GetNode(url, RECURSIVE | NEW_IF_NOT_EXIST | ADD_IF_EXIST)->SetEntity(DataEntity::New(u));
+    template <typename URL>
+    int AddValue(URL const& url, std::shared_ptr<DataEntity> const& u) {
+        return GetNode(url, RECURSIVE | NEW_IF_NOT_EXIST | ADD_IF_EXIST)->SetEntity(u);
+    };
+    template <typename URL, typename U>
+    int AddValue(URL const& url, U const& u) {
+        return AddValue(url, make_data_entity(u));
     }
-    template <typename U, typename URL>
+    template <typename URL, typename U>
+    int AddValue(URL const& url, std::initializer_list<U> const& u) {
+        return AddValue(url, make_data_entity(u));
+    }
+    template <typename URL, typename U>
     int AddValue(URL const& url, std::initializer_list<std::initializer_list<U>> const& u,
                  int flag = RECURSIVE | NEW_IF_NOT_EXIST) {
-        return GetNode(url, RECURSIVE | NEW_IF_NOT_EXIST | ADD_IF_EXIST)->SetEntity(DataEntity::New(u));
+        return AddValue(url, make_data_entity(u));
     }
-    template <typename U, typename URL>
+    template <typename URL, typename U>
     int AddValue(URL const& url, std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u,
                  int flag = RECURSIVE | NEW_IF_NOT_EXIST) {
-        return GetNode(url, RECURSIVE | NEW_IF_NOT_EXIST | ADD_IF_EXIST)->SetEntity(DataEntity::New(u));
+        return AddValue(url, make_data_entity(u));
     }
 
-    template <typename U, typename URL>
+    template <typename URL, typename U>
     bool Check(URL const& url, U const& u) const {
         return GetNode(url, RECURSIVE)->GetEntity()->equal(u);
     }

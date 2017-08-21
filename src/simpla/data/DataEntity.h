@@ -9,14 +9,11 @@
 #include <experimental/any>
 #include <typeindex>
 #include <vector>
-#include "DataTraits.h"
 #include "simpla/utilities/Log.h"
 #include "simpla/utilities/ObjectHead.h"
 
 namespace simpla {
 namespace data {
-class DataLight;
-class DataArray;
 
 struct DataEntity : public std::enable_shared_from_this<DataEntity> {
     SP_OBJECT_BASE(DataEntity);
@@ -29,8 +26,6 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
     SP_DEFAULT_CONSTRUCT(DataEntity)
 
     static std::shared_ptr<DataEntity> New() { return std::shared_ptr<DataEntity>(new DataEntity); }
-    template <typename U>
-    static std::shared_ptr<DataEntity> New(U const& u);
 
     virtual std::type_info const& value_type_info() const { return typeid(void); };
     virtual size_type value_type_size() const { return 0; };
@@ -38,14 +33,15 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
     virtual size_type extents(size_type* d) const { return rank(); }
     virtual size_type size() const { return 0; }
 
-    virtual bool value_equal(void const* other) const { return false; }
-    virtual bool equal(DataEntity const& other) const { return false; }
-
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; }
 
+    virtual bool value_equal(void const* other, std::type_info const& info) const { return false; }
+
+    virtual bool equal(DataEntity const& other) const { return false; }
+
     template <typename U>
-    bool equal(U const& other) {
-        return value_type_info() == typeid(U) && value_equal(reinterpret_cast<void const*>(&other));
+    bool equal(U const& other) const {
+        return value_equal(reinterpret_cast<void const*>(&other), typeid(U));
     }
     bool operator==(DataEntity const& other) { return equal(other); }
 

@@ -75,7 +75,7 @@ struct DataBaseMemory::Node : public DataNode {
 
     int DeleteNode(std::string const& uri, int flag) override;
 
-    std::string GetKey() const override { return "KEY"; /*m_it_ == m_end_ ? "KEY" : m_it_->first;*/ }
+    std::string GetKey() const override { return m_it_ == m_end_ ? "NO KEY" : m_it_->first; }
     std::shared_ptr<DataEntity> GetEntity() override { return m_entity_; }
     std::shared_ptr<DataEntity> GetEntity() const override { return m_entity_; }
     int SetEntity(std::shared_ptr<DataEntity> const& v) override {
