@@ -27,22 +27,26 @@ struct DataBaseMemory::Node : public DataNode {
 
    protected:
     Node() = default;
-    Node(std::shared_ptr<Node> parent, iterator b, iterator e) : m_parent_(std::move(parent)), m_it_(b), m_end_(e) {
+    Node(std::shared_ptr<Node> const& parent, iterator b, iterator e)
+        : m_parent_(std::move(parent)), m_it_(b), m_end_(e) {
         m_root_ = std::dynamic_pointer_cast<this_type>(m_parent_.get() == nullptr ? this->shared_from_this()
                                                                                   : m_parent_->Root());
+        m_entity_ = m_it_->second->m_entity_;
     };
-    Node(std::shared_ptr<DataNode> const& parent, const iterator& b, const iterator& e)
-        : m_parent_(std::dynamic_pointer_cast<this_type>(parent)), m_it_(b), m_end_(e) {
-        m_root_ = std::dynamic_pointer_cast<this_type>(m_parent_.get() == nullptr ? this->shared_from_this()
-                                                                                  : m_parent_->Root());
-    };
+    Node(std::shared_ptr<DataEntity> const& v) : m_entity_(v) { m_entity_ = m_it_->second->m_entity_; };
+    //    Node(std::shared_ptr<DataNode> const& parent, const iterator& b, const iterator& e)
+    //        : m_parent_(std::dynamic_pointer_cast<this_type>(parent)), m_it_(b), m_end_(e) {
+    //        m_root_ = std::dynamic_pointer_cast<this_type>(m_parent_.get() == nullptr ? this->shared_from_this()
+    //                                                                                  : m_parent_->Root());
+    //        m_entity_ = m_it_->second;
+    //    };
 
    public:
     ~Node() override = default;
 
     template <typename... Args>
     static std::shared_ptr<this_type> New(Args&&... args) {
-        return std::shared_ptr<this_type>(new Node(std::forward<Args>(args)...));
+        return std::shared_ptr<Node>(new Node(std::forward<Args>(args)...));
     }
     std::shared_ptr<DataNode> Duplicate() const override { return Node::New(m_parent_, m_it_, m_end_); }
 
