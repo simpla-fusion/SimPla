@@ -12,6 +12,7 @@
 #include "DataTraits.h"
 namespace simpla {
 namespace data {
+class KeyValue;
 //
 // namespace traits {
 // inline std::shared_ptr<DataEntity> data_cast(std::shared_ptr<DataEntity> const& u) { return u; }
@@ -63,7 +64,7 @@ std::shared_ptr<DataLightT<U>> make_data_entity(U const& u, ENABLE_IF((traits::i
 inline std::shared_ptr<DataLightT<std::string>> make_data_entity(char const* c) {
     return DataLightT<std::string>::New(std::string(c));
 }
-template <typename U, int N>
+template <int N, typename U>
 std::shared_ptr<DataLightT<nTuple<U, N>>> make_data_tuple(std::initializer_list<U> const& u) {
     auto res = DataLightT<nTuple<U, N>>::New();
     int count = 0;
@@ -71,13 +72,53 @@ std::shared_ptr<DataLightT<nTuple<U, N>>> make_data_tuple(std::initializer_list<
         res->value()[count] = v;
         ++count;
     }
+    return res;
+};
+template <typename U>
+std::shared_ptr<DataLightT<std::vector<U>>> make_data_vector(std::initializer_list<U> const& u) {
+    auto res = DataLightT<std::vector<U>>::New();
+    for (auto const& v : u) { res->value().push_back(v); }
+    return res;
 };
 
 template <typename U>
-std::shared_ptr<DataLight> make_data_entity(std::initializer_list<U> const& u,
-                                            ENABLE_IF((traits::is_light_data<U>::value))) {
-    auto p = DataLight::New();
-    return p;
+std::shared_ptr<DataLight> make_data_entity(std::initializer_list<U> const& u) {
+    std::shared_ptr<DataLight> res = nullptr;
+    switch (u.size()) {
+        case 0:
+            res = DataLight::New();
+            break;
+        case 1:
+            res = make_data_tuple<1>(u);
+            break;
+        case 2:
+            res = make_data_tuple<2>(u);
+            break;
+        case 3:
+            res = make_data_tuple<3>(u);
+            break;
+        case 4:
+            res = make_data_tuple<4>(u);
+            break;
+        case 5:
+            res = make_data_tuple<5>(u);
+            break;
+        case 6:
+            res = make_data_tuple<6>(u);
+            break;
+        case 7:
+            res = make_data_tuple<7>(u);
+            break;
+        case 8:
+            res = make_data_tuple<8>(u);
+            break;
+        case 9:
+            res = make_data_tuple<9>(u);
+            break;
+        default:
+            res = make_data_vector(u);
+    }
+    return res;
 }
 
 template <typename U>
@@ -94,6 +135,45 @@ std::shared_ptr<DataLight> make_data_entity(
     //    for (auto const& item : u) { p->Add(make_data_entity(item)); }
     return p;
 }
+
+class KeyValue : public std::pair<std::string, std::shared_ptr<DataLight>> {
+    typedef std::pair<std::string, std::shared_ptr<DataLight>> base_type;
+
+   public:
+    explicit KeyValue(std::string const& k, std::shared_ptr<DataLight> const& p = nullptr) : base_type(k, p) {}
+    KeyValue(KeyValue const& other) : base_type(other) {}
+    KeyValue(KeyValue&& other) : base_type(other) {}
+    ~KeyValue() = default;
+
+    KeyValue& operator=(KeyValue const& other) {
+        base_type::operator=(other);
+        return *this;
+    }
+
+    template <typename U>
+    KeyValue& operator=(U const& u) {
+        second = make_data_entity(u);
+        return *this;
+    }
+    template <typename U>
+    KeyValue& operator=(std::initializer_list<U> const& u) {
+        second = make_data_entity(u);
+        return *this;
+    }
+    template <typename U>
+    KeyValue& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
+        second = make_data_entity(u);
+        return *this;
+    }
+    template <typename U>
+    KeyValue& operator=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
+        second = make_data_entity(u);
+        return *this;
+    }
+};
+
+inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue{std::string(c), make_data_entity(true)}; }
+
 //}
 }  // namespace data
 }  // namespace simpla

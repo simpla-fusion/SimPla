@@ -19,18 +19,18 @@ TEST(DataTable, memory) {
 
     auto db = DataNode::New();
 
-    db->SetValue("CartesianGeometry", std::string("hello world!"));
-    db->SetValue("d", {1, 2, 3, 4, 5, 56, 6, 6});
-    db->SetValue("g", {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
-    //    db->SetValue("e", {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}});
+    db->GetNode("CartesianGeometry")->SetValue(std::string("hello world!"));
+    db->GetNode("d")->SetValue({1, 2, 3, 4, 5, 56, 6, 6});
+    db->GetNode("g")->SetValue({{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
+    db->GetNode("e")->SetValue({{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}});
     //    db->SetValue({"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
     //                  "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}});
     //    db->SetValue("h", {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}});
     //    db->SetValue("i", {"abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
     //    db->SetValue("j", {"abc"_ = {"abc"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
-    //    db->SetValue("b/a", 5);
-    //    db->SetValue("/b/sub/1/2/3/4/d/123456", {1, 2, 3});
-    //    db->SetValue("/b/sub/e", {1, 2, 3, 4});
+    db->GetNode("b/a")->SetValue(5);
+    db->GetNode("/b/sub/1/2/3/4/d/123456")->SetValue({1, 2, 3});
+    db->GetNode("/b/sub/e")->SetValue({1, 2, 3, 4});
     //
     //    db->AddValue("/b/sub/c", {5, 6, 7, 8});
     //    db->AddValue("/b/sub/c", {1, 5, 3, 4});
