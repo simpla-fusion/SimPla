@@ -19,18 +19,19 @@ TEST(DataTable, memory) {
 
     auto db = DataNode::New();
 
-    db->GetNode("CartesianGeometry")->SetValue(std::string("hello world!"));
-    db->GetNode("d")->SetValue({1, 2, 3, 4, 5, 56, 6, 6});
-    db->GetNode("g")->SetValue({{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
-    db->GetNode("e")->SetValue({{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}});
-    //    db->SetValue({"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
-    //                  "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}});
+    (*db)["CartesianGeometry"] = std::string("hello world!");
+    (*db)["d"] = {1, 2, 3, 4, 5, 56, 6, 6};
+    //    (*db)["g"] = {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}};
+    //    (*db)["e"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
+    //    (*db)["a"] = {"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
+    //                  "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}};
     //    db->SetValue("h", {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}});
     //    db->SetValue("i", {"abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
     //    db->SetValue("j", {"abc"_ = {"abc"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
-    db->GetNode("b/a")->SetValue(5);
-    db->GetNode("/b/sub/1/2/3/4/d/123456")->SetValue({1, 2, 3});
-    db->GetNode("/b/sub/e")->SetValue({1, 2, 3, 4});
+    (*db)["b"]["a"] = (5);
+
+    //    db["/b/sub/1/2/3/4/d/123456"] = {1, 2, 3};
+    //    db["/b/sub/e"] = {1, 2, 3, 4};
     //
     //    db->AddValue("/b/sub/c", {5, 6, 7, 8});
     //    db->AddValue("/b/sub/c", {1, 5, 3, 4});
@@ -47,7 +48,9 @@ TEST(DataTable, memory) {
     //    db->AddValue("/b/sub/a", {3, 5, 3, 4});
     //    db->AddValue("/b/sub/e", 9);
     LOGGER << db->GetNumberOfChildren() << std::endl;
-    LOGGER << "db: " << *db << std::endl;
+    LOGGER << "b/a= " << (*db)["b"]["a"] << std::endl;
+
+    LOGGER << "b/ = " << (*db)["b"] << std::endl;
 
     //    LOGGER << "a =" << (db->GetValue<bool>("a")) << std::endl;
     //    LOGGER << "/b/sub/e  = " << db->GetEntity<nTuple<int, 4>>("/b/sub/e") << std::endl;
@@ -91,7 +94,8 @@ TEST(DataTable, memory) {
 //    db->SetEntity("a", "just a test");
 //    //   db->SetEntity("c", {1.2346, 4.0, 5.0, 6.0, 6.1});
 //    //   db->SetEntity({"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
-//    //                 "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}});
+//    //                 "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !",
+//    "hello!"}});
 //    //   db->SetEntity("h", {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}});
 //    db->SetEntity("i", {"abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
 //    db->SetEntity("j", {"abc"_ = {"abc"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
