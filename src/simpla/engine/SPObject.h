@@ -92,7 +92,7 @@ class SPObject : public Factory<SPObject>, public std::enable_shared_from_this<S
     virtual void Serialize(std::shared_ptr<data::DataNode> const &cfg) const;
     virtual void Deserialize(std::shared_ptr<const data::DataNode> const &cfg);
     static std::shared_ptr<SPObject> New(std::shared_ptr<const data::DataNode> const &v) {
-        auto res = base_type::Create(std::string(TagName()) + "." + v->as<std::string>(""));
+        auto res = base_type::Create(std::string(TagName()) + "." + v->template as<std::string>(""));
         res->Deserialize(v);
         return res;
     };

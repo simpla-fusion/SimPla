@@ -33,49 +33,19 @@ class DataBase : public Factory<DataBase>, public std::enable_shared_from_this<D
 
     static std::shared_ptr<DataBase> New(std::string const& uri = "");
 
-    virtual std::shared_ptr<DataNode> Root() = 0;
-
     virtual int Connect(std::string const& authority, std::string const& path, std::string const& query,
                         std::string const& fragment) = 0;
     virtual int Disconnect() = 0;
     virtual int Flush() = 0;
-
-    /**
-      * @brief Get the number of entities in this table
-      * @return
-      */
     virtual bool isNull() const = 0;
 
-    /**
-     * @brief Get entities that are selected by the '''uri''',
-     * @return if nothing is selected return nullptr
-     */
-    virtual std::shared_ptr<DataNode> Get(std::string const& uri) const = 0;
-
-    /**
-     * @brief  put v to uri,
-     * @return
-     */
-    virtual int Set(std::string const& uri, const std::shared_ptr<DataEntity>& v) = 0;
-    virtual int Set(std::string const& uri, const std::shared_ptr<DataNode>& v) = 0;
-
-    /**
-     * @brief  add v to uri,
-     *          if uri does not exist then create an array
-     *          else if uri is not an array then throw runtim error
-     * @return
-     */
-    virtual int Add(std::string const& uri, const std::shared_ptr<DataEntity>& v) = 0;
-    /**
-     * @brief  delete entities selected by uri
-     */
-    virtual int Delete(std::string const& uri) = 0;
+    virtual std::shared_ptr<DataNode> Root() = 0;
 
     static int s_num_of_pre_registered_;
 
 };  // class DataBase {
 #define SP_DATABASE_DECLARE_MEMBERS(_CLASS_NAME_)                                                \
-    SP_DEFINE_FANCY_TYPE_NAME(_CLASS_NAME_, DataBase)                                                       \
+    SP_DEFINE_FANCY_TYPE_NAME(_CLASS_NAME_, DataBase)                                            \
    protected:                                                                                    \
     _CLASS_NAME_();                                                                              \
                                                                                                  \
@@ -97,10 +67,7 @@ class DataBase : public Factory<DataBase>, public std::enable_shared_from_this<D
     int Disconnect() override;                                                                   \
     bool isNull() const override;                                                                \
     int Flush() override;                                                                        \
-    std::shared_ptr<DataNode> Get(std::string const& uri) const override;                        \
-    int Set(std::string const& uri, const std::shared_ptr<DataEntity>& v) override;              \
-    int Add(std::string const& uri, const std::shared_ptr<DataEntity>& v) override;              \
-    int Delete(std::string const& uri) override;                                                 \
+    std::shared_ptr<DataNode> Root() override;                                                   \
                                                                                                  \
    public:
 // class DataBackendFactory : public design_pattern::Factory<std::string, DataBase>, public concept::Printable {

@@ -28,7 +28,9 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
     virtual ~DataEntity() = default;
     SP_DEFAULT_CONSTRUCT(DataEntity)
 
-    static auto New() { return std::shared_ptr<DataEntity>(new DataEntity); }
+    static std::shared_ptr<DataEntity> New() { return std::shared_ptr<DataEntity>(new DataEntity); }
+    template <typename U>
+    static std::shared_ptr<DataEntity> New(U&& u);
 
     virtual std::type_info const& value_type_info() const { return typeid(void); };
     virtual size_type value_type_size() const { return 0; };
@@ -36,7 +38,13 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
     virtual size_type extents(size_type* d) const { return rank(); }
     virtual size_type size() const { return 0; }
 
+    virtual bool value_equal(void const* other) const { return false; }
     virtual bool equal(DataEntity const& other) const { return false; }
+
+    template <typename U>
+    bool equal(U const& other) {
+        return value_type_info() == typeid(U) && value_equal(reinterpret_cast<void const*>(&other));
+    }
     bool operator==(DataEntity const& other) { return equal(other); }
 
     /**
@@ -50,6 +58,12 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
         return std::experimental::any_cast<U>(any());
     }
     template <typename U>
+    U as(U const& default_value) const {
+        auto res = any();
+
+        return res.empty() ? default_value : std::experimental::any_cast<U>(any());
+    }
+    template <typename U>
     bool Check(U const& other) const {
         return value_type_info() == typeid(U) && rank() == 0 && std::experimental::any_cast<U>(*this) == other;
     }
@@ -58,6 +72,11 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
      */
 };
 
+template <typename U>
+std::shared_ptr<DataEntity> DataEntity::New(U&& u) {
+    return DataEntity::New();
+}
+std::ostream& operator<<(std::ostream& os, DataEntity const&);
 }  // namespace data {
 }  // namespace simpla {
 #endif  // SIMPLA_DATAENTITY_H

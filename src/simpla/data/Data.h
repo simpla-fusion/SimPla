@@ -5,13 +5,12 @@
 #ifndef SIMPLA_DATA_ALL_H
 #define SIMPLA_DATA_ALL_H
 
-#include "DataArray.h"
 #include "DataBase.h"
 #include "DataBlock.h"
 #include "DataEntity.h"
-#include "DataTable.h"
+#include "DataLight.h"
+#include "DataNode.h"
 #include "DataTraits.h"
-
 namespace simpla {
 namespace data {
 /**

@@ -9,25 +9,11 @@
 
 #include <memory>
 #include "DataEntity.h"
-
 #include "simpla/utilities/Log.h"
 #include "simpla/utilities/ObjectHead.h"
 namespace simpla {
 namespace data {
-namespace traits {
-template <typename...>
-struct DataCast;
 
-template <typename... Args>
-std::shared_ptr<DataEntity> data_cast(Args&&... args) {
-    return DataCast<Args...>::cast(std::forward<Args>(args)...);
-}
-
-template <typename U>
-std::shared_ptr<DataEntity> data_cast(std::initializer_list<U> const& args) {
-    return DataCast<std::initializer_list<U>>::cast(args);
-}
-}
 class DataEntity;
 
 class KeyValue : public std::pair<std::string, std::shared_ptr<DataEntity>> {
@@ -40,33 +26,33 @@ class KeyValue : public std::pair<std::string, std::shared_ptr<DataEntity>> {
     ~KeyValue() = default;
 
     KeyValue& operator=(KeyValue const& other) {
-        //        base_type::operator=(other);
+        base_type::operator=(other);
         return *this;
     }
 
     template <typename U>
     KeyValue& operator=(U const& u) {
-        second = traits::data_cast(u);
+        second = DataEntity::New(u);
         return *this;
     }
     template <typename U>
     KeyValue& operator=(std::initializer_list<U> const& u) {
-        second = traits::data_cast(u);
+        second = DataEntity::New(u);
         return *this;
     }
     template <typename U>
     KeyValue& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
-        second = traits::data_cast(u);
+        second = DataEntity::New(u);
         return *this;
     }
     template <typename U>
     KeyValue& operator=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-        second = traits::data_cast(u);
+        second = DataEntity::New(u);
         return *this;
     }
 };
 
-inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue{std::string(c), traits::data_cast(true)}; }
+inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue{std::string(c), DataEntity::New(true)}; }
 
 class DataNode : public std::enable_shared_from_this<DataNode> {
     SP_OBJECT_BASE(DataNode);
@@ -80,111 +66,131 @@ class DataNode : public std::enable_shared_from_this<DataNode> {
 
     static std::shared_ptr<DataNode> New(std::string const& k = "");
 
-    /** @addtogroup{ capacity */
-    virtual bool isNull() { return true; }
-    /** @} */
-    /** @addtogroup{ access */
-    virtual std::shared_ptr<DataNode> Root() { return GetNode("/", RECUSIVE); }
-    virtual std::shared_ptr<DataNode> Parent() const { return GetNode("..", RECUSIVE); }
+    enum { RECURSIVE = 0b01, NEW_IF_NOT_EXIST = 0b010, ADD_IF_EXIST = 0b100, ONLY_TABLE = 0b1000 };
 
+    /** @addtogroup{ Interface */
+    virtual int Flush() { return 0; }
+    virtual bool isNull() const { return true; }
+    virtual bool isArray() const { return false; }
+    virtual bool isTable() const { return false; }
+    virtual bool isEntity() const { return false; }
+
+    virtual size_type GetNumberOfChildren() const { return 0; }
+
+    virtual std::shared_ptr<DataNode> Root() { return DataNode::New(); }
+    virtual std::shared_ptr<DataNode> Parent() const { return DataNode::New(); }
     virtual std::shared_ptr<DataNode> FirstChild() const { return nullptr; }
     virtual std::shared_ptr<DataNode> Next() const { return nullptr; }
 
-    enum { SUB_NODE, RECUSIVE = 0b01, NEW_IF_NOT_EXIST = 0b010, ADD_IF_EXIST = 0b100 };
+    virtual std::shared_ptr<DataNode> GetNode(std::string const& uri = "", int flag = 0) { return New(); }
+    virtual std::shared_ptr<DataNode> GetNode(std::string const& uri = "", int flag = 0) const { return New(); }
+    virtual std::shared_ptr<DataNode> GetNode(index_type s, int flag = 0) { return GetNode(std::to_string(s), flag); };
+    virtual std::shared_ptr<DataNode> GetNode(index_type s, int flag = 0) const {
+        return GetNode(std::to_string(s), flag);
+    };
 
-    virtual std::shared_ptr<DataNode> GetNode(std::string const& uri, int flag) { return nullptr; };
-    virtual std::shared_ptr<DataNode> GetNode(std::string const& uri, int flag) const { return nullptr; };
+    virtual int DeleteNode(std::string const& s, int flag = 0) { return 0; }
+    virtual int DeleteNode(index_type s, int flag = 0) { return DeleteNode(std::to_string(s), flag); };
 
+    virtual std::string GetKey() const { return ""; }
+    virtual std::shared_ptr<DataEntity> GetValue() { return DataEntity::New(); }
+    virtual std::shared_ptr<DataEntity> GetValue() const { return DataEntity::New(); }
+    virtual int SetValue(std::shared_ptr<DataEntity> const& v) { return 0; }
     /** @} */
 
-    /** @addtogroup{  Value */
-
+    template <typename U>
+    int SetValue(U&& u) {
+        return SetValue(std::dynamic_pointer_cast<DataEntity>(DataEntity::New(std::forward<U>(u))));
+    }
+    template <typename U>
+    int AddValue(U&& u) {
+        return GetNode(".", RECURSIVE | ADD_IF_EXIST | NEW_IF_NOT_EXIST)->SetValue(std::forward<U>(u));
+    }
     template <typename U>
     U as() const {
         return GetValue()->as<U>();
     }
 
-    virtual std::shared_ptr<DataEntity> GetValue() { return nullptr; }
-    virtual std::shared_ptr<DataEntity> GetValue() const { return nullptr; }
-    virtual int SetValue(std::shared_ptr<DataEntity> const& v) { return 0; }
-
-    virtual int SetValueByName(std::string const& uri, std::shared_ptr<DataEntity> const& v) {
-        auto p = GetNode(uri, RECUSIVE | NEW_IF_NOT_EXIST);
-        return p == nullptr ? 0 : p->SetValue(v);
-    }
-    virtual int SetValueByIndex(index_type idx, std::shared_ptr<DataEntity> const& v) {
-        return SetValueByName(std::to_string(idx), v);
-    }
-
-    virtual size_type GetNumberOfChildren() const { return 0; }
-
-    virtual std::shared_ptr<DataEntity> GetValueByIndex(index_type idx) const {
-        return GetValueByName(std::to_string(idx), SUB_NODE);
-    }
-    virtual std::shared_ptr<DataEntity> GetValueByName(std::string const& uri, int flag) const {
-        auto p = GetNode(uri, flag);
-        return p == nullptr ? nullptr : p->GetValue();
-    }
-
-    template <typename V>
-    V GetValue(std::string const& k, int flag = RECUSIVE) const {
-        auto p = GetNode(k, RECUSIVE);
-        if (p == nullptr) { OUT_OF_RANGE; }
-        return p->GetValue()->as<V>();
-    }
-
-    template <typename V>
-    V GetValue(std::string const& k, V const& default_value, int flag = RECUSIVE) const {
-        auto p = GetNode(k, RECUSIVE);
-        return p == nullptr ? default_value : p->GetValue()->as<V>();
-    }
-
-    /** Interface DataBackend End */
-
     template <typename U>
-    bool Check(std::string const& uri, U const& u) const {
-        auto p = GetNode(uri, RECUSIVE)->GetValue();
-        return p != nullptr && p->Check(u);
+    U as(U const& default_value) const {
+        return GetValue()->as<U>(default_value);
+    }
+    template <typename URL>
+    std::shared_ptr<DataEntity> GetValue(URL const& url, int flag = RECURSIVE) const {
+        return GetNode(url, flag)->GetValue();
+    }
+    template <typename URL, typename U>
+    int SetValue(URL const& url, U&& u, int flag = RECURSIVE | NEW_IF_NOT_EXIST) {
+        return GetNode(url, flag)->SetValue(DataEntity::New(std::forward<U>(u)));
+    }
+    template <typename URL, typename U>
+    int SetValue(URL const& url, std::initializer_list<U> const& u, int flag = RECURSIVE | NEW_IF_NOT_EXIST) {
+        return GetNode(url, flag)->SetValue(DataEntity::New(u));
+    }
+    template <typename URL, typename U>
+    int SetValue(URL const& url, std::initializer_list<std::initializer_list<U>> const& u,
+                 int flag = RECURSIVE | NEW_IF_NOT_EXIST) {
+        return GetNode(url, flag)->SetValue(DataEntity::New(u));
+    }
+    template <typename URL, typename U>
+    int SetValue(URL const& url, std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u,
+                 int flag = RECURSIVE | NEW_IF_NOT_EXIST) {
+        return GetNode(url, flag)->SetValue(DataEntity::New(u));
+    }
+
+    template <typename URL, typename U>
+    int AddValue(URL const& url, U&& u) {
+        return GetNode(url, RECURSIVE | NEW_IF_NOT_EXIST | ADD_IF_EXIST)->SetValue(DataEntity::New(std::forward<U>(u)));
+    };
+    template <typename URL, typename U>
+    int AddValue(URL const& url, std::initializer_list<U> const& u) {
+        return GetNode(url, RECURSIVE | NEW_IF_NOT_EXIST | ADD_IF_EXIST)->SetValue(DataEntity::New(u));
+    }
+    template <typename URL, typename U>
+    int AddValue(URL const& url, std::initializer_list<std::initializer_list<U>> const& u,
+                 int flag = RECURSIVE | NEW_IF_NOT_EXIST) {
+        return GetNode(url, RECURSIVE | NEW_IF_NOT_EXIST | ADD_IF_EXIST)->SetValue(DataEntity::New(u));
+    }
+    template <typename URL, typename U>
+    int AddValue(URL const& url, std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u,
+                 int flag = RECURSIVE | NEW_IF_NOT_EXIST) {
+        return GetNode(url, RECURSIVE | NEW_IF_NOT_EXIST | ADD_IF_EXIST)->SetValue(DataEntity::New(u));
+    }
+
+    template <typename URL, typename U>
+    bool Check(URL const& url, U const& u) const {
+        return GetNode(url, RECURSIVE)->GetValue()->equal(u);
     }
     bool Check(std::string const& uri) const { return Check(uri, true); }
 
-    template <typename U>
-    U GetValue(std::string const& uri) const {
-        auto res = GetNode(uri, RECUSIVE);
-        if (res == nullptr) { OUT_OF_RANGE << "Can not find entity [" << uri << "]" << std::endl; }
-        return res->as<U>();
-    }
+    int SetValue(KeyValue const& kv) { return SetValue(kv.first, kv.second); }
 
-    template <typename U>
-    U GetValue(std::string const& uri, U const& default_value) const {
-        auto res = GetNode(uri, RECUSIVE);
-        return res == nullptr ? default_value : res->as<U>();
-    }
-
-    void SetValue(KeyValue const& kv) { GetNode(kv.first, RECUSIVE | NEW_IF_NOT_EXIST)->SetValue(kv.second); }
     template <typename... Others>
-    void SetValue(KeyValue const& kv, Others&&... others) {
-        GetNode(kv.first, RECUSIVE | NEW_IF_NOT_EXIST)->SetValue(kv.second);
-        SetValue(std::forward<Others>(others)...);
+    int SetValue(KeyValue const& kv, Others&&... others) {
+        return SetValue(kv) + SetValue(std::forward<Others>(others)...);
     }
-    void SetValue(std::initializer_list<KeyValue> const& u) {
-        for (auto const& item : u) { SetValue(item); }
+    int SetValue(std::initializer_list<KeyValue> const& u) {
+        int count = 0;
+        for (auto const& item : u) { count += static_cast<int>(SetValue(item)); }
+        return count;
     }
-
-    template <typename... Args>
-    void SetValue(std::string const& uri, Args&&... v) {
-        GetNode(uri, RECUSIVE | NEW_IF_NOT_EXIST)->SetValue(traits::data_cast(std::forward<Args>(v)...));
-    };
-
-    template <typename... Args>
-    void AddValue(std::string const& uri, Args&&... v) {
-        GetNode(uri, RECUSIVE | NEW_IF_NOT_EXIST | ADD_IF_EXIST)->SetValue(traits::data_cast(std::forward<Args>(v)...));
-    };
+    int SetValue(std::initializer_list<std::initializer_list<KeyValue>> const& u) {
+        int count = 0;
+        for (auto const& item : u) { count += static_cast<int>(SetValue(item)); }
+        return count;
+    }
+    int SetValue(std::initializer_list<std::initializer_list<std::initializer_list<KeyValue>>> const& u) {
+        int count = 0;
+        for (auto const& item : u) { count += static_cast<int>(SetValue(item)); }
+        return count;
+    }
 
     /** @} */
 };
-
-std::ostream& operator<<(std::ostream, DataNode const&);
+std::shared_ptr<DataNode> RecursiveFindNode(std::shared_ptr<DataNode> const& d, std::string const& uri, int flag = 0);
+std::shared_ptr<const DataNode> RecursiveFindNode(std::shared_ptr<const DataNode> const& d, std::string const& uri,
+                                                  int flag = 0);
+std::ostream& operator<<(std::ostream& , DataNode const&);
 }  // namespace data
 }  // namespace simpla
 

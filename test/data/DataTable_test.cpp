@@ -17,7 +17,7 @@ TEST(DataTable, memory) {
 
     //    LOGGER << "Registered DataBase: " << GLOBAL_DATA_BACKEND_FACTORY.GetBackendList() << std::endl;
 
-    auto db = DataTable::New();
+    auto db = DataNode::New();
 
     db->SetValue("CartesianGeometry", "hello world!");
     db->SetValue("d", {1, 2, 3, 4, 5, 56, 6, 6});

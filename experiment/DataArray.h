@@ -22,36 +22,26 @@ struct DataArray : public DataNode {
     ~DataArray() override = default;
     //    SP_DEFAULT_CONSTRUCT(DataArray)
 
-    static std::shared_ptr<DataArray> New();
+    static std::shared_ptr<this_type> New();
 
-    /** @addtogroup{ capacity */
-    virtual bool isNull() { return true; }
+    /** @addtogroup{ Interface */
+    bool isNull() const override { return true; }
+    size_type GetNumberOfChildren() const override { return 0; }
+
+    std::shared_ptr<DataNode> Root() override { return GetNode("/", RECURSIVE); }
+    std::shared_ptr<DataNode> Parent() const override { return GetNode("..", RECURSIVE); }
+    std::shared_ptr<DataNode> FirstChild() const override { return nullptr; }
+    std::shared_ptr<DataNode> Next() const override { return nullptr; }
+
+    std::shared_ptr<DataNode> GetNode(std::string const& uri, int flag) override { return nullptr; };
+    std::shared_ptr<DataNode> GetNode(std::string const& uri, int flag) const override { return nullptr; };
+    std::shared_ptr<DataNode> GetNode(index_type& s, int flag) override { return nullptr; };
+    std::shared_ptr<DataNode> GetNode(index_type& s, int flag) const override { return nullptr; };
+
+    std::shared_ptr<DataEntity> GetValue() override { return nullptr; }
+    std::shared_ptr<DataEntity> GetValue() const override { return nullptr; }
+    int SetValue(std::shared_ptr<DataEntity> const& v) override { return 0; }
     /** @} */
-    /** @addtogroup{ access */
-    virtual std::shared_ptr<DataNode> Root() { return FindNode("/", true); }
-    virtual std::shared_ptr<DataNode> Parent() const { return FindNode("..", true); }
-
-    virtual std::shared_ptr<DataNode> FirstChild() const { return nullptr; }
-    virtual std::shared_ptr<DataNode> Next() const { return nullptr; }
-
-    virtual std::shared_ptr<DataNode> NewNode(std::string const& uri, bool recursive = false) { return nullptr; };
-
-    virtual std::shared_ptr<DataNode> FindNode(std::string const& uri, bool recursive = false) const {
-        return nullptr;
-    };
-
-    virtual size_type GetNumberOfChildren() const override { return 0; }
-    virtual std::shared_ptr<DataNode> GetNodeByIndex(index_type idx) const { return nullptr; }
-    virtual std::shared_ptr<DataNode> GetNodeByName(std::string const& s) const { return nullptr; }
-    /** @} */
-
-    /** @addtogroup{  modify */
-    virtual int SetNodeByIndex(index_type idx, std::shared_ptr<DataNode> const& v) { return 0; }
-    virtual int SetNodeByName(std::string const& k, std::shared_ptr<DataNode> const& v) { return 0; }
-    virtual std::shared_ptr<DataNode> AddNode(std::shared_ptr<DataNode> const& v = nullptr) { return nullptr; }
-    /** @}  */
-
-    /** @addtogroup{ */
 };
 
 //
