@@ -66,6 +66,8 @@ class DataNode : public std::enable_shared_from_this<DataNode> {
 
     static std::shared_ptr<DataNode> New(std::string const& k = "");
 
+    virtual std::shared_ptr<DataNode> Duplicate() const { return DataNode::New(); }
+
     enum { RECURSIVE = 0b01, NEW_IF_NOT_EXIST = 0b010, ADD_IF_EXIST = 0b100, ONLY_TABLE = 0b1000 };
 
     /** @addtogroup{ Interface */
@@ -190,9 +192,10 @@ class DataNode : public std::enable_shared_from_this<DataNode> {
 
     /** @} */
 };
-std::shared_ptr<DataNode> RecursiveFindNode(std::shared_ptr<DataNode> const& d, std::string const& uri, int flag = 0);
-std::shared_ptr<const DataNode> RecursiveFindNode(std::shared_ptr<const DataNode> const& d, std::string const& uri,
-                                                  int flag = 0);
+std::pair<std::shared_ptr<DataNode>, std::string> RecursiveFindNode(std::shared_ptr<DataNode> const& d,
+                                                                    std::string const& uri, int flag = 0);
+// std::shared_ptr<const DataNode> RecursiveFindNode(std::shared_ptr<const DataNode> const& d, std::string const& uri,
+//                                                  int flag = 0);
 std::ostream& operator<<(std::ostream&, DataNode const&);
 }  // namespace data
 }  // namespace simpla

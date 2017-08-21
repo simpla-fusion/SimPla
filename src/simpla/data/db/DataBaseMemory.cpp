@@ -14,31 +14,36 @@ namespace simpla {
 namespace data {
 REGISTER_CREATOR(DataBaseMemory, mem);
 
-struct DataNodeMemory : public DataNode {
-    SP_DEFINE_FANCY_TYPE_NAME(DataNodeMemory, DataNode)
+struct DataBaseMemory::Node : public DataNode {
+    SP_DEFINE_FANCY_TYPE_NAME(Node, DataNode)
 
-    std::shared_ptr<DataNodeMemory> m_parent_ = nullptr;
-    std::shared_ptr<DataNodeMemory> m_root_ = nullptr;
+    std::shared_ptr<Node> m_parent_ = nullptr;
+    std::shared_ptr<Node> m_root_ = nullptr;
 
-    std::map<std::string, std::shared_ptr<DataNodeMemory>> m_table_;
-    typedef std::map<std::string, std::shared_ptr<DataNodeMemory>>::iterator iterator;
+    std::map<std::string, std::shared_ptr<Node>> m_table_;
+    typedef std::map<std::string, std::shared_ptr<Node>>::iterator iterator;
     iterator m_it_, m_end_;
 
    protected:
-    DataNodeMemory() = default;
-    DataNodeMemory(std::shared_ptr<DataNodeMemory> parent, iterator b, iterator e)
-        : m_parent_(std::move(parent)),
-          m_root_(m_parent_.get() == nullptr ? this->shared_from_this() : m_parent_->Root()),
-          m_it_(b),
-          m_end_(e){};
+    Node() = default;
+    Node(std::shared_ptr<Node> parent, iterator b, iterator e) : m_parent_(std::move(parent)), m_it_(b), m_end_(e) {
+        m_root_ = std::dynamic_pointer_cast<this_type>(m_parent_.get() == nullptr ? this->shared_from_this()
+                                                                                  : m_parent_->Root());
+    };
+    Node(std::shared_ptr<DataNode> const& parent, const iterator& b, const iterator& e)
+        : m_parent_(std::dynamic_pointer_cast<this_type>(parent)), m_it_(b), m_end_(e) {
+        m_root_ = std::dynamic_pointer_cast<this_type>(m_parent_.get() == nullptr ? this->shared_from_this()
+                                                                                  : m_parent_->Root());
+    };
 
    public:
-    ~DataNodeMemory() override = default;
+    ~Node() override = default;
 
     template <typename... Args>
     static std::shared_ptr<this_type> New(Args&&... args) {
-        return std::shared_ptr<DataNodeMemory>(new DataNodeMemory(std::forward<Args>(args)...));
+        return std::shared_ptr<this_type>(new Node(std::forward<Args>(args)...));
     }
+    std::shared_ptr<DataNode> Duplicate() const override { return Node::New(m_parent_, m_it_, m_end_); }
 
     /** @addtogroup{ Interface */
     int Flush() override { return 0; }
@@ -51,10 +56,13 @@ struct DataNodeMemory : public DataNode {
     std::shared_ptr<DataNode> Root() override { return m_root_; }
     std::shared_ptr<DataNode> Parent() const override { return m_parent_; }
     std::shared_ptr<DataNode> FirstChild() const override {
-        return m_table_.empty() ? New() : New(shared_from_this(), m_table_.begin(), m_table_.end());
+        auto self = std::dynamic_pointer_cast<this_type>(const_cast<this_type*>(this)->shared_from_this());
+        return m_table_.empty() ? New() : New(self, self->m_table_.begin(), self->m_table_.end());
     }
     std::shared_ptr<DataNode> Next() const override {
-        return m_it_ == m_end_ ? New() : New(m_parent_, m_it_++, m_end_);
+        iterator it = m_it_;
+        ++it;
+        return m_it_ == m_end_ ? New() : New(m_parent_, it, m_end_);
     }
 
     std::shared_ptr<DataNode> GetNode(std::string const& uri, int flag) override;
@@ -69,7 +77,7 @@ struct DataNodeMemory : public DataNode {
     std::shared_ptr<DataEntity> GetEntity() const override {
         return m_it_ == m_end_ ? DataEntity::New() : m_it_->second->GetEntity();
     }
-    int SetEntity(std::shared_ptr<DataEntity> const &v) override {
+    int SetEntity(std::shared_ptr<DataEntity> const& v) override {
         int count = 0;
         if (m_it_ != m_end_) {
             m_it_->second->GetEntity() = v;
@@ -79,42 +87,42 @@ struct DataNodeMemory : public DataNode {
     }
     /** @} */
 };
-std::shared_ptr<DataNode> DataNodeMemory::GetNode(std::string const& uri, int flag) {
-    std::shared_ptr<DataNodeMemory> res = nullptr;
+std::shared_ptr<DataNode> DataBaseMemory::Node::GetNode(std::string const& uri, int flag) {
+    std::shared_ptr<DataNode> res = nullptr;
 
     if ((flag & RECURSIVE) == 0) {
         if ((flag & NEW_IF_NOT_EXIST) != 0) {
             auto r = m_table_.emplace(uri, New());
-            res = r.first->second;
             if (r.second) {
-                res->m_parent_ = shared_from_this();
-                res->m_it_ = r.first;
-                res->m_end_ = m_table_.end();
+                r.first->second->m_parent_ = std::dynamic_pointer_cast<this_type>(shared_from_this());
+                r.first->second->m_it_ = r.first;
+                r.first->second->m_end_ = m_table_.end();
             }
+            res = r.first->second;
         }
     } else {
-        res = RecursiveFindNode(shared_from_this(), uri, flag);
+        res = RecursiveFindNode(shared_from_this(), uri, flag).first;
     }
     return res;
 };
-std::shared_ptr<DataNode> DataNodeMemory::GetNode(std::string const& uri, int flag) const {
-    std::shared_ptr<DataNodeMemory> res = nullptr;
+std::shared_ptr<DataNode> DataBaseMemory::Node::GetNode(std::string const& uri, int flag) const {
+    std::shared_ptr<DataNode> res = nullptr;
     if ((flag & RECURSIVE) == 0) {
         auto it = m_table_.find(uri);
         res = (it == m_table_.end()) ? DataNode::New() : it->second;
     } else {
-        res = RecursiveFindNode(shared_from_this(), uri, flag);
+        res = RecursiveFindNode(const_cast<this_type*>(this)->shared_from_this(), uri, flag).first;
     }
     return res;
 };
-int DataNodeMemory::DeleteNode(std::string const& uri, int flag) {
+int DataBaseMemory::Node::DeleteNode(std::string const& uri, int flag) {
     int count = 0;
     if ((flag & RECURSIVE) == 0) {
         count = static_cast<int>(m_table_.erase(uri));
     } else {
-        auto node = RecursiveFindNode(shared_from_this(), uri, flag);
+        auto node = RecursiveFindNode(shared_from_this(), uri, flag).first;
         while (node != nullptr) {
-            if (auto p = std::dynamic_pointer_cast<DataNodeMemory>(node->Parent())) {
+            if (auto p = std::dynamic_pointer_cast<Node>(node->Parent())) {
                 count += static_cast<int>(p->m_table_.erase(node->GetKey()));
                 node = p;
             }
@@ -122,15 +130,26 @@ int DataNodeMemory::DeleteNode(std::string const& uri, int flag) {
     }
     return count;
 }
+
+DataBaseMemory::DataBaseMemory() {}
+DataBaseMemory::~DataBaseMemory() {}
+int DataBaseMemory::Connect(std::string const& authority, std::string const& path, std::string const& query,
+                            std::string const& fragment) {
+    return 0;
+}
+int DataBaseMemory::Disconnect() { return 0; }
+bool DataBaseMemory::isNull() const { return false; }
+int DataBaseMemory::Flush() { return 0; }
+std::shared_ptr<DataNode> DataBaseMemory::Root() { return Node::New(); }
 //
-//struct DataBaseMemory::pimpl_s {
+// struct DataBaseMemory::pimpl_s {
 //    typedef std::map<std::string, std::shared_ptr<DataEntity>> table_type;
 //    table_type m_table_;
 //    static std::pair<DataBaseMemory*, std::string> get_table(DataBaseMemory* self, std::string const& uri,
 //                                                             bool return_if_not_exist);
 //};
 //
-//std::pair<DataBaseMemory*, std::string> DataBaseMemory::pimpl_s::get_table(DataBaseMemory* t, std::string const& uri,
+// std::pair<DataBaseMemory*, std::string> DataBaseMemory::pimpl_s::get_table(DataBaseMemory* t, std::string const& uri,
 //                                                                           bool return_if_not_exist) {
 //    return HierarchicalTableForeach(
 //        t, uri,
@@ -154,21 +173,21 @@ int DataNodeMemory::DeleteNode(std::string const& uri, int flag) {
 //        });
 //};
 //
-//DataBaseMemory::DataBaseMemory() : m_pimpl_(new pimpl_s) {}
-//DataBaseMemory::~DataBaseMemory() { delete m_pimpl_; };
+// DataBaseMemory::DataBaseMemory() : m_pimpl_(new pimpl_s) {}
+// DataBaseMemory::~DataBaseMemory() { delete m_pimpl_; };
 //
-//int DataBaseMemory::Connect(std::string const& authority, std::string const& path, std::string const& query,
+// int DataBaseMemory::Connect(std::string const& authority, std::string const& path, std::string const& query,
 //                            std::string const& fragment) {
 //    return SP_SUCCESS;
 //};
-//int DataBaseMemory::Disconnect() { return SP_SUCCESS; };
-//int DataBaseMemory::Flush() { return SP_SUCCESS; };
+// int DataBaseMemory::Disconnect() { return SP_SUCCESS; };
+// int DataBaseMemory::Flush() { return SP_SUCCESS; };
 //
 //// std::ostream& DataBaseMemory::Print(std::ostream& os, int indent) const { return os; };
 //
-//bool DataBaseMemory::isNull() const { return m_pimpl_ == nullptr; };
+// bool DataBaseMemory::isNull() const { return m_pimpl_ == nullptr; };
 //
-//std::shared_ptr<DataEntity> DataBaseMemory::Get(std::string const& url) const {
+// std::shared_ptr<DataEntity> DataBaseMemory::Get(std::string const& url) const {
 //    std::shared_ptr<DataEntity> res = nullptr;
 //    auto t = m_pimpl_->get_table(const_cast<DataBaseMemory*>(this), url, false);
 //    if (t.first != nullptr && !t.second.empty()) {
@@ -179,7 +198,7 @@ int DataNodeMemory::DeleteNode(std::string const& uri, int flag) {
 //    return res;
 //};
 //
-//int DataBaseMemory::Set(std::string const& uri, const std::shared_ptr<DataEntity>& v) {
+// int DataBaseMemory::Set(std::string const& uri, const std::shared_ptr<DataEntity>& v) {
 //    auto tab_res = pimpl_s::get_table((this), uri, true);
 //    if (tab_res.second.empty() || tab_res.first == nullptr) { return 0; }
 //    auto res = tab_res.first->m_pimpl_->m_table_.emplace(tab_res.second, nullptr);
@@ -197,7 +216,7 @@ int DataNodeMemory::DeleteNode(std::string const& uri, int flag) {
 //    }
 //    return 1;
 //}
-//int DataBaseMemory::Add(std::string const& uri, const std::shared_ptr<DataEntity>& v) {
+// int DataBaseMemory::Add(std::string const& uri, const std::shared_ptr<DataEntity>& v) {
 //    auto tab_res = pimpl_s::get_table(this, uri, false);
 //    if (tab_res.second.empty()) { return 0; }
 //    auto res = tab_res.first->m_pimpl_->m_table_.emplace(tab_res.second, DataArray::New());
@@ -212,12 +231,12 @@ int DataNodeMemory::DeleteNode(std::string const& uri, int flag) {
 //
 //    return 1;
 //}
-//int DataBaseMemory::Delete(std::string const& uri) {
+// int DataBaseMemory::Delete(std::string const& uri) {
 //    auto res = m_pimpl_->get_table(this, uri, true);
 //    return (res.first->m_pimpl_->m_table_.erase(res.second));
 //}
 //
-//int DataBaseMemory::Foreach(std::function<int(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
+// int DataBaseMemory::Foreach(std::function<int(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
 //    int counter = 0;
 //    for (auto const& item : m_pimpl_->m_table_) { counter += f(item.first, item.second); }
 //    return counter;

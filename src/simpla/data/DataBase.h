@@ -62,6 +62,8 @@ class DataBase : public Factory<DataBase>, public std::enable_shared_from_this<D
     pimpl_s* m_pimpl_;                                                                           \
                                                                                                  \
    public:                                                                                       \
+    struct Node;                                                                                 \
+                                                                                                 \
     int Connect(std::string const& authority, std::string const& path, std::string const& query, \
                 std::string const& fragment) override;                                           \
     int Disconnect() override;                                                                   \

@@ -3,6 +3,8 @@
 //
 
 #include "DataBaseMDS.h"
+
+#include "../DataNode.h"
 namespace simpla {
 namespace data {
 REGISTER_CREATOR(DataBaseMDS, mds);
@@ -18,12 +20,8 @@ int DataBaseMDS::Connect(std::string const& authority, std::string const& path, 
 int DataBaseMDS::Disconnect() { return SP_SUCCESS; }
 int DataBaseMDS::Flush() { return SP_SUCCESS; }
 bool DataBaseMDS::isNull() const { return true; }
-std::shared_ptr<DataEntity> DataBaseMDS::Get(std::string const& URI) const { return nullptr; }
-int DataBaseMDS::Set(std::string const& URI, const std::shared_ptr<DataEntity>& v) { return 0; }
-int DataBaseMDS::Add(std::string const& URI, const std::shared_ptr<DataEntity>& v) { return 0; }
-int DataBaseMDS::Delete(std::string const& URI) { return 0; }
-int DataBaseMDS::Foreach(std::function<int(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
-    return 0;
-}
+
+std::shared_ptr<DataNode> DataBaseMDS::Root() { return DataNode::New(); }
+
 }  // namespace data {
 }  // namespace simpla {

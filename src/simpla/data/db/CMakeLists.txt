@@ -14,19 +14,16 @@ IF (LUA_FOUND)
     MESSAGE(STATUS "Lua version: ${LUA_INCLUDE_DIR} ")
 ENDIF (LUA_FOUND)
 
-FILE(GLOB data_backend_SRC  *.cpp *.h )
-
-add_library(data_backend ${data_backend_SRC})
-target_include_directories(data_backend BEFORE PRIVATE
+FILE(GLOB database_SRC  *.cpp *.h )
+ADD_LIBRARY(database ${database_SRC})
+target_include_directories(database  BEFORE PRIVATE
         ${HDF5_INCLUDE_DIRS}
         ${LUA_INCLUDE_DIR}
         ${MPI_C_INCLUDE_PATH}
         ${XDMF_INCLUDE_DIRS}
         #${VTK_INCLUDE_DIR}
         )
-target_link_libraries(data_backend
-        parallel utilities
-
+TARGET_LINK_LIBRARIES(database
         ${LUA_LIBRARIES}
         ${HDF5_LIBRARIES}
         ${MPI_LIBRARIES}

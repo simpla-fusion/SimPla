@@ -2,6 +2,8 @@
 // Created by salmon on 17-8-14.
 //
 #include "DataBaseVTK.h"
+
+#include "../DataNode.h"
 //#include <vtkDoubleArray.h>
 //#include <vtkPoints.h>
 //#include <vtkUnstructuredGrid.h>
@@ -24,14 +26,14 @@ bool DataBaseVTK::isNull() const { return false; }
 int DataBaseVTK::Disconnect() { return SP_FAILED; }
 
 int DataBaseVTK::Flush() { return SP_FAILED; }
-
-std::shared_ptr<DataEntity> DataBaseVTK::Get(std::string const& URI) const { return nullptr; }
-int DataBaseVTK::Set(std::string const& URI, const std::shared_ptr<DataEntity>& d) { return SP_FAILED; }
-int DataBaseVTK::Add(std::string const& URI, const std::shared_ptr<DataEntity>& d) { return SP_FAILED; }
-int DataBaseVTK::Delete(std::string const& URI) { return 0; }
-int DataBaseVTK::Foreach(std::function<int(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
-    return 0;
-}
+std::shared_ptr<DataNode> DataBaseVTK::Root() { return DataNode::New(); }
+// std::shared_ptr<DataEntity> DataBaseVTK::Get(std::string const& URI) const { return nullptr; }
+// int DataBaseVTK::Set(std::string const& URI, const std::shared_ptr<DataEntity>& d) { return SP_FAILED; }
+// int DataBaseVTK::Add(std::string const& URI, const std::shared_ptr<DataEntity>& d) { return SP_FAILED; }
+// int DataBaseVTK::Delete(std::string const& URI) { return 0; }
+// int DataBaseVTK::Foreach(std::function<int(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
+//    return 0;
+//}
 //
 // void addParticlesToVTKDataSet(const ParticleData* particles, vtkPoints* pts, vtkUnstructuredGrid* dataSet);
 // void writeParticles(double time, const ParticleData* particles, std::ostringstream& fileName) {
