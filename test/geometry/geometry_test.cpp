@@ -268,7 +268,7 @@ int main{
 //
 //	auto f = make_field<Real>(domain );
 //
-//	geometry.SetValue( geometry.SelectByPoints(vertex_domain, TestFixture::points), "Vacuum");
+//	geometry.SetEntity( geometry.SelectByPoints(vertex_domain, TestFixture::points), "Vacuum");
 //
 //	f.Clear();
 //
@@ -312,7 +312,7 @@ int main{
 //
 //	geometry.Erase( geometry.SelectByPolylines(vertex_domain, TestFixture::points));
 //
-//	geometry.SetValue( geometry.SelectByPolylines(vertex_domain, TestFixture::points), "Plasma");
+//	geometry.SetEntity( geometry.SelectByPolylines(vertex_domain, TestFixture::points), "Plasma");
 //
 //	for (auto s : geometry.SelectByMaterial( domain, "Plasma"))
 //	{

@@ -43,7 +43,7 @@ std::ostream& Print(std::ostream& os, std::shared_ptr<const DataNode> const& ent
             os << "}";
         }
     } else if (entry->isEntity()) {
-        os << *entry->GetValue();
+        os << *entry->GetEntity();
     }
     return os;
 }

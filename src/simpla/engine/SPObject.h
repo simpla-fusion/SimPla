@@ -186,7 +186,7 @@ std::istream &operator>>(std::istream &is, SPObject &obj);
 //    static std::shared_ptr<_CLASS_NAME_> New(std::shared_ptr<const data::DataNode> v) {                                \
 //        auto s_type = v->as<std::string>("");                                                                          \
 //        if (s_type.empty() && std::dynamic_pointer_cast<const data::DataTable>(v) != nullptr) {                        \
-//            s_type = std::dynamic_pointer_cast<const data::DataTable>(v)->GetValue<std::string>("Type", "");           \
+//            s_type = std::dynamic_pointer_cast<const data::DataTable>(v)->GetEntity<std::string>("Type", "");           \
 //        }                                                                                                              \
 //        auto res = base_type::Create(std::string(TagName()) + (s_type.empty() ? "" : ".") + s_type);                   \
 //        res->Deserialize(v);                                                                                           \

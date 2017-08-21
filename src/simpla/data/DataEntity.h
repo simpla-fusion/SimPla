@@ -60,7 +60,6 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
     template <typename U>
     U as(U const& default_value) const {
         auto res = any();
-
         return res.empty() ? default_value : std::experimental::any_cast<U>(any());
     }
     template <typename U>

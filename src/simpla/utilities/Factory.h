@@ -95,7 +95,7 @@ class Factory {
 
     //    template <typename... U>
     //    static std::shared_ptr<TObj> Create_(data::DataTable const &cfg, U &&... args) {
-    //        std::shared_ptr<TObj> res = Create(cfg.GetValue<std::string>("Type", ""), std::forward<U>(args)...);
+    //        std::shared_ptr<TObj> res = Create(cfg.GetEntity<std::string>("Type", ""), std::forward<U>(args)...);
     //        if (res != nullptr) { res->Deserialize(cfg); }
     //        return res;
     //    }

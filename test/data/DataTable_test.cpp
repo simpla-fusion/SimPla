@@ -48,22 +48,22 @@ TEST(DataTable, memory) {
     db->AddValue("/b/sub/e", 9);
     LOGGER << "db: " << *db << std::endl;
 
-    LOGGER << "a =" << (db->GetValue<bool>("a", false)) << std::endl;
-    //    LOGGER << "/b/sub/e  = " << db->GetValue<nTuple<int, 4>>("/b/sub/e") << std::endl;
+    LOGGER << "a =" << (db->GetValue<bool>("a")) << std::endl;
+    //    LOGGER << "/b/sub/e  = " << db->GetEntity<nTuple<int, 4>>("/b/sub/e") << std::endl;
     db->SetValue("box", {{1, 2, 3}, {4, 5, 6}});
-    //    LOGGER << "box  = " << db->GetValue<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
-    //    LOGGER << "/b/sub/c  = " << db->GetValue<std::tuple<nTuple<int, 4>, nTuple<int, 4>, nTuple<int,
+    //    LOGGER << "box  = " << db->GetEntity<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
+    //    LOGGER << "/b/sub/c  = " << db->GetEntity<std::tuple<nTuple<int, 4>, nTuple<int, 4>, nTuple<int,
     //    4>>>("/b/sub/c")
     //           << std::endl;
 }
 //
-//TEST(DataTable, lua) {
+// TEST(DataTable, lua) {
 //    logger::set_stdout_level(1000);
 //    auto db = DataBase::New("/home/salmon/workspace/SimPla/test/data/test.lua");
 //
 //    //    LOGGER << "lua:// " << *db << std::endl;
-//    //   db->SetValue("box", {{1, 2, 3}, {4, 5, 6}});
-//    //    LOGGER << "box  = " <<db->GetValue<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
+//    //   db->SetEntity("box", {{1, 2, 3}, {4, 5, 6}});
+//    //    LOGGER << "box  = " <<db->GetEntity<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
 //}
 //
 // TEST(DataTable, samrai) {
@@ -71,37 +71,37 @@ TEST(DataTable, memory) {
 //
 //    LOGGER << "Registered DataBase: " << GLOBAL_DATA_BACKEND_FACTORY.GetBackendList() << std::endl;
 //    DataTable db("samrai://");
-//    //   db->SetValue("f", {1, 2, 3, 4, 5, 56, 6, 6});
-//    //   db->SetValue("/d/e/f", "Just atest");
-//    //   db->SetValue("/d/e/g", {"a"_ = "la la land", "b"_ = 1235.5});
-//    //   db->SetValue("/d/e/e", 1.23456);
-//   db->SetValue("box", {{1, 2, 3}, {4, 5, 6}});
+//    //   db->SetEntity("f", {1, 2, 3, 4, 5, 56, 6, 6});
+//    //   db->SetEntity("/d/e/f", "Just atest");
+//    //   db->SetEntity("/d/e/g", {"a"_ = "la la land", "b"_ = 1235.5});
+//    //   db->SetEntity("/d/e/e", 1.23456);
+//   db->SetEntity("box", {{1, 2, 3}, {4, 5, 6}});
 //    LOGGER << *db.database() << std::endl;
-//    LOGGER << "box  = " <<db->GetValue<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
+//    LOGGER << "box  = " <<db->GetEntity<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
 //
 //}
 //
-//TEST(DataTable, hdf5) {
+// TEST(DataTable, hdf5) {
 //    logger::set_stdout_level(1000);
 //
 //    //    LOGGER << "Registered DataBase: " << GLOBAL_DATA_BACKEND_FACTORY.GetBackendList() << std::endl;
 //    auto db = DataBase::New("test.h5");
-//    db->SetValue("pi", 3.1415926);
-//    db->SetValue("a", "just a test");
-//    //   db->SetValue("c", {1.2346, 4.0, 5.0, 6.0, 6.1});
-//    //   db->SetValue({"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
+//    db->SetEntity("pi", 3.1415926);
+//    db->SetEntity("a", "just a test");
+//    //   db->SetEntity("c", {1.2346, 4.0, 5.0, 6.0, 6.1});
+//    //   db->SetEntity({"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
 //    //                 "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}});
-//    //   db->SetValue("h", {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}});
-//    db->SetValue("i", {"abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
-//    db->SetValue("j", {"abc"_ = {"abc"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
+//    //   db->SetEntity("h", {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}});
+//    db->SetEntity("i", {"abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
+//    db->SetEntity("j", {"abc"_ = {"abc"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
 //    //   db->AddValue("/b/sub/d", {1, 2});
 //    //   db->AddValue("/b/sub/d", 5);
 //    //   db->AddValue("/b/sub/d", 5);
 //    //   db->AddValue("/b/sub/d", 5);
 //
-//    //   db->SetValue("/b/sub/a", {3, 5, 3, 4});
-//    db->SetValue("/b/sub/b", 9);
+//    //   db->SetEntity("/b/sub/a", {3, 5, 3, 4});
+//    db->SetEntity("/b/sub/b", 9);
 //    LOGGER << "h5:// " << db << std::endl;
-//    db->SetValue("box", {{1, 2, 3}, {4, 5, 6}});
-//    LOGGER << "box  = " << db->GetValue<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
+//    db->SetEntity("box", {{1, 2, 3}, {4, 5, 6}});
+//    LOGGER << "box  = " << db->GetEntity<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
 //}

@@ -63,16 +63,16 @@ struct DataNodeMemory : public DataNode {
     int DeleteNode(std::string const& uri, int flag) override;
 
     std::string GetKey() const override { return m_it_ == m_end_ ? "" : m_it_->first; }
-    std::shared_ptr<DataEntity> GetValue() override {
-        return m_it_ == m_end_ ? DataEntity::New() : m_it_->second->GetValue();
+    std::shared_ptr<DataEntity> GetEntity() override {
+        return m_it_ == m_end_ ? DataEntity::New() : m_it_->second->GetEntity();
     }
-    std::shared_ptr<DataEntity> GetValue() const override {
-        return m_it_ == m_end_ ? DataEntity::New() : m_it_->second->GetValue();
+    std::shared_ptr<DataEntity> GetEntity() const override {
+        return m_it_ == m_end_ ? DataEntity::New() : m_it_->second->GetEntity();
     }
-    int SetValue(std::shared_ptr<DataEntity> const& v) override {
+    int SetEntity(std::shared_ptr<DataEntity> const &v) override {
         int count = 0;
         if (m_it_ != m_end_) {
-            m_it_->second->GetValue() = v;
+            m_it_->second->GetEntity() = v;
             count = 1;
         };
         return count;
