@@ -31,11 +31,13 @@ std::ostream& Print(std::ostream& os, std::shared_ptr<const DataNode> const& ent
         auto it = entry->FirstChild();
         if (it != nullptr) {
             os << std::endl << std::setw(indent) << "\"" << it->GetKey() << "\" = ";
+            std::cout << it->GetKey() << std::endl;
             Print(os, it, indent + 1);
             it = it->Next();
             while (it != nullptr) {
                 os << "," << std::endl << std::setw(indent) << "\"" << it->GetKey() << "\" = ";
                 Print(os, it, indent + 1);
+                it = it->Next();
             }
             if (entry->GetNumberOfChildren() > 1) { os << std::endl << std::setw(indent) << " "; }
             os << "}";

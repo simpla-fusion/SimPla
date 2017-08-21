@@ -31,9 +31,9 @@ struct DataBaseMemory::Node : public DataNode {
         : m_parent_(std::move(parent)), m_it_(b), m_end_(e) {
         m_root_ = std::dynamic_pointer_cast<this_type>(m_parent_.get() == nullptr ? this->shared_from_this()
                                                                                   : m_parent_->Root());
-        m_entity_ = m_it_->second->m_entity_;
+        if (m_it_->second != nullptr) { m_entity_ = m_it_->second->m_entity_; }
     };
-    Node(std::shared_ptr<DataEntity> const& v) : m_entity_(v) { m_entity_ = m_it_->second->m_entity_; };
+    Node(std::shared_ptr<DataEntity> const& v) : m_entity_(v){};
     //    Node(std::shared_ptr<DataNode> const& parent, const iterator& b, const iterator& e)
     //        : m_parent_(std::dynamic_pointer_cast<this_type>(parent)), m_it_(b), m_end_(e) {
     //        m_root_ = std::dynamic_pointer_cast<this_type>(m_parent_.get() == nullptr ? this->shared_from_this()
@@ -87,29 +87,29 @@ struct DataBaseMemory::Node : public DataNode {
 std::shared_ptr<DataNode> DataBaseMemory::Node::GetNode(std::string const& uri, int flag) {
     std::shared_ptr<DataNode> res = nullptr;
 
-    if ((flag & RECURSIVE) == 0) {
-        if ((flag & NEW_IF_NOT_EXIST) != 0) {
-            auto r = m_table_.emplace(uri, New());
-            if (r.second) {
-                r.first->second->m_parent_ = std::dynamic_pointer_cast<this_type>(shared_from_this());
-                r.first->second->m_it_ = r.first;
-                r.first->second->m_end_ = m_table_.end();
-            }
-            res = r.first->second;
-        }
-    } else {
-        res = RecursiveFindNode(shared_from_this(), uri, flag).first;
+    //    if ((flag & RECURSIVE) == 0) {
+    //        if ((flag & NEW_IF_NOT_EXIST) != 0) {
+    auto r = m_table_.emplace(uri, New());
+    if (r.second) {
+        r.first->second->m_parent_ = std::dynamic_pointer_cast<this_type>(shared_from_this());
+        r.first->second->m_it_ = r.first;
+        r.first->second->m_end_ = m_table_.end();
     }
+    res = r.first->second;
+    //        }
+    //    } else {
+    //        res = RecursiveFindNode(shared_from_this(), uri, flag).first;
+    //    }
     return res;
 };
 std::shared_ptr<DataNode> DataBaseMemory::Node::GetNode(std::string const& uri, int flag) const {
     std::shared_ptr<DataNode> res = nullptr;
-    if ((flag & RECURSIVE) == 0) {
-        auto it = m_table_.find(uri);
-        res = (it == m_table_.end()) ? DataNode::New() : it->second;
-    } else {
-        res = RecursiveFindNode(const_cast<this_type*>(this)->shared_from_this(), uri, flag).first;
-    }
+    //    if ((flag & RECURSIVE) == 0) {
+    auto it = m_table_.find(uri);
+    res = (it == m_table_.end()) ? DataNode::New() : it->second;
+    //    } else {
+    //        res = RecursiveFindNode(const_cast<this_type*>(this)->shared_from_this(), uri, flag).first;
+    //    }
     return res;
 };
 int DataBaseMemory::Node::DeleteNode(std::string const& uri, int flag) {
