@@ -94,7 +94,7 @@ class DataNode : public std::enable_shared_from_this<DataNode> {
     virtual int DeleteNode(std::string const& s, int flag = 0) { return 0; }
     virtual int DeleteNode(index_type s, int flag = 0) { return DeleteNode(std::to_string(s), flag); };
 
-    virtual std::string GetKey() const { return ""; }
+    virtual std::string GetKey() const { return "KEY:"; }
     virtual std::shared_ptr<DataEntity> GetEntity() { return DataEntity::New(); }
     virtual std::shared_ptr<DataEntity> GetEntity() const { return DataEntity::New(); }
     virtual int SetEntity(std::shared_ptr<DataEntity> const& v) { return 0; }

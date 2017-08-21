@@ -67,7 +67,7 @@ static std::regex const match_path_regex(R"(^(/?([/\S]+/)*)?([^/]+)?$)", std::re
  * @return
  */
 std::pair<std::shared_ptr<DataNode>, std::string> RecursiveFindNode(std::shared_ptr<DataNode> const& root,
-                                                                    std::string const& uri, int tag) {
+                                                                    std::string const& uri, int flag) {
     std::pair<std::shared_ptr<DataNode>, std::string> res{root, ""};
 
     if (uri.empty()) { return res; }
@@ -78,24 +78,28 @@ std::pair<std::shared_ptr<DataNode>, std::string> RecursiveFindNode(std::shared_
     }
     std::string path = uri_match_result.str(2);
 
-    if (path.empty()) { return res; }
+    if (!path.empty()) {
+        std::smatch sub_match_result;
+        auto t = root;
 
-    std::smatch sub_match_result;
-    auto t = root;
+        for (auto pos = path.cbegin(), end = path.cend();
+             std::regex_search(pos, end, sub_match_result, sub_group_regex); pos = sub_match_result.suffix().first) {
+            std::string k = sub_match_result.str(1);
 
-    for (auto pos = path.cbegin(), end = path.cend(); std::regex_search(pos, end, sub_match_result, sub_group_regex);
-         pos = sub_match_result.suffix().first) {
-        std::string k = sub_match_result.str(1);
-
-        res.first = t->GetNode(k, tag & (~DataNode::RECURSIVE));
-        //        try
-        t = res.first;
-        if (res.first == nullptr) {
-            res.second = sub_match_result.suffix().str() + uri_match_result[3].str();
-            break;
+            res.first = t->GetNode(k, flag & (~DataNode::RECURSIVE));
+            //        try
+            t = res.first;
+            if (res.first == nullptr) {
+                res.second = sub_match_result.suffix().str() + uri_match_result[3].str();
+                break;
+            }
         }
     }
-
+    auto key = uri_match_result.str(3);
+    if (!key.empty()) {
+        res.first = res.first->GetNode(key, flag & (~DataNode::RECURSIVE));
+        res.second = "";
+    }
     return res;
 };
 

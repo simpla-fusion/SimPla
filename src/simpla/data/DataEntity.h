@@ -30,7 +30,7 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
 
     static std::shared_ptr<DataEntity> New() { return std::shared_ptr<DataEntity>(new DataEntity); }
     template <typename U>
-    static std::shared_ptr<DataEntity> New(U&& u);
+    static std::shared_ptr<DataEntity> New(U const& u);
 
     virtual std::type_info const& value_type_info() const { return typeid(void); };
     virtual size_type value_type_size() const { return 0; };
@@ -40,6 +40,8 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
 
     virtual bool value_equal(void const* other) const { return false; }
     virtual bool equal(DataEntity const& other) const { return false; }
+
+    virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; }
 
     template <typename U>
     bool equal(U const& other) {
@@ -71,10 +73,6 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
      */
 };
 
-template <typename U>
-std::shared_ptr<DataEntity> DataEntity::New(U&& u) {
-    return DataEntity::New();
-}
 std::ostream& operator<<(std::ostream& os, DataEntity const&);
 }  // namespace data {
 }  // namespace simpla {

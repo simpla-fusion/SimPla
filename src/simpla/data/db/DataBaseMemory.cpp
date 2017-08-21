@@ -23,6 +23,7 @@ struct DataBaseMemory::Node : public DataNode {
     std::map<std::string, std::shared_ptr<Node>> m_table_;
     typedef std::map<std::string, std::shared_ptr<Node>>::iterator iterator;
     iterator m_it_, m_end_;
+    std::shared_ptr<DataEntity> m_entity_ = nullptr;
 
    protected:
     Node() = default;
@@ -62,7 +63,7 @@ struct DataBaseMemory::Node : public DataNode {
     std::shared_ptr<DataNode> Next() const override {
         iterator it = m_it_;
         ++it;
-        return m_it_ == m_end_ ? New() : New(m_parent_, it, m_end_);
+        return m_it_ == m_end_ ? nullptr : New(m_parent_, it, m_end_);
     }
 
     std::shared_ptr<DataNode> GetNode(std::string const& uri, int flag) override;
@@ -70,20 +71,12 @@ struct DataBaseMemory::Node : public DataNode {
 
     int DeleteNode(std::string const& uri, int flag) override;
 
-    std::string GetKey() const override { return m_it_ == m_end_ ? "" : m_it_->first; }
-    std::shared_ptr<DataEntity> GetEntity() override {
-        return m_it_ == m_end_ ? DataEntity::New() : m_it_->second->GetEntity();
-    }
-    std::shared_ptr<DataEntity> GetEntity() const override {
-        return m_it_ == m_end_ ? DataEntity::New() : m_it_->second->GetEntity();
-    }
+    std::string GetKey() const override { return "KEY"; /*m_it_ == m_end_ ? "KEY" : m_it_->first;*/ }
+    std::shared_ptr<DataEntity> GetEntity() override { return m_entity_; }
+    std::shared_ptr<DataEntity> GetEntity() const override { return m_entity_; }
     int SetEntity(std::shared_ptr<DataEntity> const& v) override {
-        int count = 0;
-        if (m_it_ != m_end_) {
-            m_it_->second->GetEntity() = v;
-            count = 1;
-        };
-        return count;
+        m_entity_ = v;
+        return 1;
     }
     /** @} */
 };

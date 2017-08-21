@@ -5,7 +5,7 @@
 #include <ostream>
 namespace simpla {
 namespace data {
-std::ostream& operator<<(std::ostream& os, DataEntity const&) { return os; }
+std::ostream& operator<<(std::ostream& os, DataEntity const& v) { return v.Print(os, 0); }
 
 }  // namespace data
 }  // namespace simpla

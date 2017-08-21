@@ -19,38 +19,39 @@ TEST(DataTable, memory) {
 
     auto db = DataNode::New();
 
-    db->SetValue("CartesianGeometry", "hello world!");
-    db->SetValue("d", {1, 2, 3, 4, 5, 56, 6, 6});
-    db->SetValue("g", {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
-    db->SetValue("e", {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}});
-    db->SetValue({"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
-                  "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}});
-    db->SetValue("h", {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}});
-    db->SetValue("i", {"abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
-    db->SetValue("j", {"abc"_ = {"abc"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
-    db->SetValue("b/a", 5);
-    db->SetValue("/b/sub/1/2/3/4/d/123456", {1, 2, 3});
-    db->SetValue("/b/sub/e", {1, 2, 3, 4});
+    db->SetValue("CartesianGeometry", std::string("hello world!"));
+    //    db->SetValue("d", {1, 2, 3, 4, 5, 56, 6, 6});
+    //    db->SetValue("g", {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
+    //    db->SetValue("e", {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}});
+    //    db->SetValue({"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
+    //                  "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}});
+    //    db->SetValue("h", {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}});
+    //    db->SetValue("i", {"abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
+    //    db->SetValue("j", {"abc"_ = {"abc"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
+    //    db->SetValue("b/a", 5);
+    //    db->SetValue("/b/sub/1/2/3/4/d/123456", {1, 2, 3});
+    //    db->SetValue("/b/sub/e", {1, 2, 3, 4});
+    //
+    //    db->AddValue("/b/sub/c", {5, 6, 7, 8});
+    //    db->AddValue("/b/sub/c", {1, 5, 3, 4});
+    //    db->AddValue("/b/sub/c", {2, 5, 3, 4});
+    //    db->AddValue("/b/sub/c", {3, 5, 3, 4});
+    //    db->AddValue("/b/sub/c", {4, 5, 3, 4});
+    //
+    //    db->AddValue("/b/sub/d", 1);
+    //    db->AddValue("/b/sub/d", 5);
+    //    db->AddValue("/b/sub/d", 5);
+    //    db->AddValue("/b/sub/d", 5);
+    //
+    //    db->AddValue("/b/sub/d", "wa wa");
+    //    db->AddValue("/b/sub/a", {3, 5, 3, 4});
+    //    db->AddValue("/b/sub/e", 9);
+    LOGGER << db->GetNumberOfChildren() << std::endl;
+    LOGGER << "db: " << db->GetValue<std::string>("CartesianGeometry") << std::endl;
 
-    db->AddValue("/b/sub/c", {5, 6, 7, 8});
-    db->AddValue("/b/sub/c", {1, 5, 3, 4});
-    db->AddValue("/b/sub/c", {2, 5, 3, 4});
-    db->AddValue("/b/sub/c", {3, 5, 3, 4});
-    db->AddValue("/b/sub/c", {4, 5, 3, 4});
-
-    db->AddValue("/b/sub/d", 1);
-    db->AddValue("/b/sub/d", 5);
-    db->AddValue("/b/sub/d", 5);
-    db->AddValue("/b/sub/d", 5);
-
-    db->AddValue("/b/sub/d", "wa wa");
-    db->AddValue("/b/sub/a", {3, 5, 3, 4});
-    db->AddValue("/b/sub/e", 9);
-    LOGGER << "db: " << *db << std::endl;
-
-    LOGGER << "a =" << (db->GetValue<bool>("a")) << std::endl;
+    //    LOGGER << "a =" << (db->GetValue<bool>("a")) << std::endl;
     //    LOGGER << "/b/sub/e  = " << db->GetEntity<nTuple<int, 4>>("/b/sub/e") << std::endl;
-    db->SetValue("box", {{1, 2, 3}, {4, 5, 6}});
+    //    db->SetValue("box", {{1, 2, 3}, {4, 5, 6}});
     //    LOGGER << "box  = " << db->GetEntity<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
     //    LOGGER << "/b/sub/c  = " << db->GetEntity<std::tuple<nTuple<int, 4>, nTuple<int, 4>, nTuple<int,
     //    4>>>("/b/sub/c")
