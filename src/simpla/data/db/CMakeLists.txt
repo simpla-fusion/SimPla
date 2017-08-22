@@ -15,8 +15,19 @@ IF (LUA_FOUND)
 ENDIF (LUA_FOUND)
 
 #FILE(GLOB database_SRC  *.cpp *.h )
-ADD_LIBRARY(database ${database_SRC} DataNodeMemory.cpp DataNodeMemory.h DataBasePreRegister.cpp)
-target_include_directories(database  BEFORE PRIVATE
+
+SET(database_SRC
+        DataNodeMemory.cpp
+        DataNodeMemory.h
+        DataNodeLua.cpp
+        DataNodeLua.h
+        LuaObject.cpp
+        LuaObject.h
+        LuaObjectExt.h
+        DataBasePreRegister.cpp
+        )
+ADD_LIBRARY(database ${database_SRC})
+target_include_directories(database BEFORE PRIVATE
         ${HDF5_INCLUDE_DIRS}
         ${LUA_INCLUDE_DIR}
         ${MPI_C_INCLUDE_PATH}

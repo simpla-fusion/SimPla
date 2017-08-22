@@ -14,8 +14,6 @@ namespace simpla {
 namespace data {
 class DataNodeMemory : public DataNode {
     SP_DATA_NODE_HEAD(DataNodeMemory)
-
-    explicit DataNodeMemory(std::shared_ptr<DataNodeMemory> const& v);
 };  // class DataBase {
 }  // namespace data {
 }  // namespace simpla{

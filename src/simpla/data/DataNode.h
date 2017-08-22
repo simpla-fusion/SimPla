@@ -48,7 +48,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
 
     virtual std::shared_ptr<DataNode> Duplicate() const { return DataNode::New(); }
 
-    virtual std::shared_ptr<DataNode> Root() { return Duplicate(); }
+    virtual std::shared_ptr<DataNode> Root() const { return Duplicate(); }
     virtual std::shared_ptr<DataNode> Parent() const { return Duplicate(); }
     virtual int Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const&) { return 0; }
     virtual int Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const&) const { return 0; }
@@ -316,12 +316,12 @@ std::ostream& operator<<(std::ostream&, DataNode const&);
    protected:                                                                                          \
     _CLASS_NAME_();                                                                                    \
                                                                                                        \
+   public:                                                                                             \
     explicit _CLASS_NAME_(_CLASS_NAME_ const& other) = delete;                                         \
     explicit _CLASS_NAME_(_CLASS_NAME_&& other) = delete;                                              \
     _CLASS_NAME_& operator=(_CLASS_NAME_ const& other) = delete;                                       \
     _CLASS_NAME_& operator=(_CLASS_NAME_&& other) = delete;                                            \
                                                                                                        \
-   public:                                                                                             \
     ~_CLASS_NAME_() override;                                                                          \
                                                                                                        \
     int Connect(std::string const& authority, std::string const& path, std::string const& query,       \
@@ -338,7 +338,7 @@ std::ostream& operator<<(std::ostream&, DataNode const&);
                                                                                                        \
     e_NodeType NodeType() const override;                                                              \
                                                                                                        \
-    std::shared_ptr<DataNode> Root() override;                                                         \
+    std::shared_ptr<DataNode> Root() const override;                                                   \
     std::shared_ptr<DataNode> Parent() const override;                                                 \
                                                                                                        \
     int Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& fun) override;       \

@@ -4,19 +4,20 @@
 
 #ifndef SIMPLA_LUADATABASE_H
 #define SIMPLA_LUADATABASE_H
-#include <memory>
-#include <ostream>
-#include <string>
+
 #include "simpla/SIMPLA_config.h"
-#include "../../../../experiment/DataBase.h"
+
+#include <memory>
+#include <string>
+#include "../DataNode.h"
 
 namespace simpla {
 namespace data {
 
 class DataEntity;
 
-class DataBaseLua : public DataBase {
-    SP_DATABASE_DECLARE_MEMBERS(DataBaseLua)
+class DataNodeLua : public DataNode {
+    SP_DATA_NODE_HEAD(DataNodeLua)
 };
 }  // { namespace data {
 }  // namespace simpla

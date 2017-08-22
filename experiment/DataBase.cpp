@@ -7,7 +7,7 @@
 #include <string>
 
 #include "simpla/data/db/DataBaseHDF5.h"
-#include "simpla/data/db/DataBaseLua.h"
+#include "simpla/data/db/DataNodeLua.h"
 #include "simpla/data/db/DataNodeMemory.h"
 #include "simpla/data/db/DataBaseStdIO.h"
 #include "simpla/utilities/Factory.h"

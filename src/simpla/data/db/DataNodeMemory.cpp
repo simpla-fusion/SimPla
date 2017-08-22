@@ -22,9 +22,6 @@ struct DataNodeMemory::pimpl_s {
 DataNodeMemory::DataNodeMemory() : m_pimpl_(new pimpl_s) {}
 DataNodeMemory::~DataNodeMemory() { delete m_pimpl_; }
 
-DataNodeMemory::DataNodeMemory(std::shared_ptr<DataNodeMemory> const& v) : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_parent_ = v;
-};
 int DataNodeMemory::Connect(std::string const& authority, std::string const& path, std::string const& query,
                             std::string const& fragment) {
     return 0;
@@ -33,14 +30,19 @@ int DataNodeMemory::Disconnect() { return 0; }
 bool DataNodeMemory::isValid() const { return true; }
 int DataNodeMemory::Flush() { return 0; }
 
-std::shared_ptr<DataNode> DataNodeMemory::Duplicate() const { return DataNodeMemory::New(m_pimpl_->m_parent_); }
+std::shared_ptr<DataNode> DataNodeMemory::Duplicate() const {
+    auto res = DataNodeMemory::New();
+    res->m_pimpl_->m_parent_ = m_pimpl_->m_parent_;
+    return res;
+}
 size_type DataNodeMemory::GetNumberOfChildren() const { return m_pimpl_->m_table_.size(); }
 
 /** @addtogroup{ Interface */
 DataNode::e_NodeType DataNodeMemory::NodeType() const { return m_pimpl_->m_node_type; }
 
-std::shared_ptr<DataNode> DataNodeMemory::Root() {
-    return m_pimpl_->m_parent_ != nullptr ? m_pimpl_->m_parent_->Root() : shared_from_this();
+std::shared_ptr<DataNode> DataNodeMemory::Root() const {
+    return m_pimpl_->m_parent_ != nullptr ? m_pimpl_->m_parent_->Root()
+                                          : const_cast<this_type*>(this)->shared_from_this();
 }
 std::shared_ptr<DataNode> DataNodeMemory::Parent() const { return m_pimpl_->m_parent_; }
 
