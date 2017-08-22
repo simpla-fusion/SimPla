@@ -161,7 +161,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
 
     //    template <typename U, typename... Args>
     //    void Set(U&& v, Args&&... args) {
-    //        m_host_->GetEntity(*this, std::forward<U>(v), std::forward<Args>(args)...);
+    //        m_host_->Get(*this, std::forward<U>(v), std::forward<Args>(args)...);
     //    }
 
     template <typename... Args>

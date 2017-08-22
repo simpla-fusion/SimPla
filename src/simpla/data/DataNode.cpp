@@ -16,34 +16,42 @@ DataNode::~DataNode() = default;
 std::shared_ptr<DataNode> DataNode::New(std::string const& s) { return data::DataBase::New(s)->Root(); }
 
 std::ostream& Print(std::ostream& os, std::shared_ptr<const DataNode> const& entry, int indent) {
-    if (entry->isArray()) {
+    if (entry->NodeType() == DataNode::DN_ARRAY) {
         os << "[ ";
-        auto it = entry->FirstChild();
-        Print(os, it, indent + 1);
-        it = it->Next();
-        while (it != nullptr) {
-            os << " , ";
-            Print(os, it, indent);
-        }
-        os << " ]";
-    } else if (entry->isTable()) {
-        os << "{ ";
-        auto it = entry->FirstChild();
-        if (it != nullptr) {
-            os << std::endl << std::setw(indent) << "\"" << it->GetKey() << "\" = ";
-            std::cout << it->GetKey() << std::endl;
-            Print(os, it, indent + 1);
-            it = it->Next();
-            while (it != nullptr) {
-                os << "," << std::endl << std::setw(indent) << "\"" << it->GetKey() << "\" = ";
-                Print(os, it, indent + 1);
-                it = it->Next();
+        bool is_first = true;
+        bool new_line = entry->GetNumberOfChildren() > 1;
+        entry->Foreach([&](auto k, auto v) {
+            if (is_first) {
+                is_first = false;
+            } else {
+                os << " , ";
             }
-            if (entry->GetNumberOfChildren() > 1) { os << std::endl << std::setw(indent) << " "; }
-            os << "}";
-        }
-    } else if (entry->isEntity()) {
-        os << *entry->GetEntity();
+            if (new_line) { os << std::endl << std::setw(indent) << " "; }
+            Print(os, v, indent + 1);
+            return 1;
+        });
+        os << " ]";
+    } else if (entry->NodeType() == DataNode::DN_TABLE) {
+        os << "{ ";
+        bool is_first = true;
+        bool new_line = entry->GetNumberOfChildren() > 1;
+        auto count = entry->Foreach([&](auto k, auto v) {
+            if (is_first) {
+                is_first = false;
+            } else {
+                os << " , ";
+            }
+            if (new_line) { os << std::endl << std::setw(indent) << " "; }
+            os << "\"" << k << "\" = ";
+            Print(os, v, indent + 1);
+            return 1;
+        });
+
+        if (new_line) { os << std::endl << std::setw(indent) << " "; }
+        os << "}";
+
+    } else if (entry->NodeType() == DataNode::DN_ENTITY) {
+        os << *entry->Get();
     }
     return os;
 }
@@ -68,11 +76,18 @@ static std::regex const match_path_regex(R"(^(/?([/\S]+/)*)?([^/]+)?$)", std::re
  * @param return_if_not_exist
  * @return
  */
-std::pair<std::shared_ptr<DataNode>, std::string> RecursiveFindNode(std::shared_ptr<DataNode> const& root,
-                                                                    std::string const& uri, int flag) {
-    std::pair<std::shared_ptr<DataNode>, std::string> res{root, ""};
+std::pair<std::string, std::shared_ptr<DataNode>> RecursiveFindNode(std::shared_ptr<DataNode> root, std::string uri,
+                                                                    int flag) {
+    std::pair<std::string, std::shared_ptr<DataNode>> res{"", root};
 
-    if (uri.empty()) { return res; }
+    if (uri.empty() || uri == ".") { return res; }
+
+    if (uri[0] == '/') {
+        root = root->Root();
+    } else if (uri.substr(0, 3) == "../") {
+        root = root->Parent();
+        uri = uri.substr(3);
+    }
     std::smatch uri_match_result;
 
     if (!std::regex_match(uri, uri_match_result, match_path_regex)) {
@@ -87,20 +102,18 @@ std::pair<std::shared_ptr<DataNode>, std::string> RecursiveFindNode(std::shared_
         for (auto pos = path.cbegin(), end = path.cend();
              std::regex_search(pos, end, sub_match_result, sub_group_regex); pos = sub_match_result.suffix().first) {
             std::string k = sub_match_result.str(1);
-
-            res.first = t->GetNode(k, flag & (~DataNode::RECURSIVE));
-            //        try
-            t = res.first;
-            if (res.first == nullptr) {
-                res.second = sub_match_result.suffix().str() + uri_match_result[3].str();
+            res.second = t->GetNode(k, flag & (~DataNode::RECURSIVE));
+            t = res.second;
+            if (res.second == nullptr) {
+                res.first = sub_match_result.suffix().str() + uri_match_result[3].str();
                 break;
             }
         }
     }
     auto key = uri_match_result.str(3);
     if (!key.empty()) {
-        res.first = res.first->GetNode(key, flag & (~DataNode::RECURSIVE));
-        res.second = "";
+        res.first = "";
+        res.second = res.second->GetNode(key, flag & (~DataNode::RECURSIVE));
     }
     return res;
 };

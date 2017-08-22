@@ -87,7 +87,7 @@ std::shared_ptr<DataNode> DataBaseHDF5::Root() { return DataNode::New(); }
 // std::shared_ptr<DataEntity> read_attr(hid_t attr_id, hid_t d_type) {
 //    U res;
 //    H5Aread(attr_id, d_type, &res);
-//    return make_data_entity(res);
+//    return make_data(res);
 //}
 //
 // std::pair<std::string, std::shared_ptr<DataEntity>> DataBaseHDF5::pimpl_s::HDF5GetAttrByIndex(DataBaseHDF5 const*
@@ -201,7 +201,7 @@ std::shared_ptr<DataNode> DataBaseHDF5::Root() { return DataNode::New(); }
 //        hid_t m_type = H5Tcopy(H5T_C_S1);
 //        H5Tset_size(m_type, sdims);
 //        H5Aread(attr_id, m_type, buffer);
-//        res = make_data_entity<std::string>(std::string(buffer));
+//        res = make_data<std::string>(std::string(buffer));
 //        H5Tclose(m_type);
 //    } else if (type_class == H5T_TIME) {
 //        UNIMPLEMENTED;

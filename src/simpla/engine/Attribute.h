@@ -207,7 +207,7 @@ struct Attribute : public SPObject {
 //
 //    template <typename... Args>
 //    explicit AttributeViewAdapter(AttributeGroup *b, Args &&... args)
-//        : Attribute(b, data::make_data_entity(std::forward<Args>(args)...)) {}
+//        : Attribute(b, data::make_data(std::forward<Args>(args)...)) {}
 //
 //    AttributeViewAdapter(AttributeViewAdapter &&) = delete;
 //    AttributeViewAdapter(AttributeViewAdapter const &) = delete;
@@ -225,7 +225,7 @@ struct Attribute : public SPObject {
 //        data::data_cast<U>(*d).swap(*this);
 //    };
 //    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> Serialize() {
-//        return std::make_pair(std::shared_ptr<MeshBlock>(nullptr), data::make_data_entity(*this));
+//        return std::make_pair(std::shared_ptr<MeshBlock>(nullptr), data::make_data(*this));
 //    };
 //    template <typename TExpr>
 //    this_type &operator=(TExpr const &expr) {

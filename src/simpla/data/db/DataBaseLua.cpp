@@ -70,13 +70,13 @@ std::shared_ptr<DataNode> DataBaseLua::Root() { return DataNode::New(); }
 //            res = make_data_array_lua<std::string>(lobj);
 //        }
 //    } else if (lobj.is_boolean()) {
-//        res = make_data_entity(lobj.as<bool>());
+//        res = make_data(lobj.as<bool>());
 //    } else if (lobj.is_floating_point()) {
-//        res = make_data_entity<double>(lobj.as<double>());
+//        res = make_data<double>(lobj.as<double>());
 //    } else if (lobj.is_integer()) {
-//        res = make_data_entity<int>(lobj.as<int>());
+//        res = make_data<int>(lobj.as<int>());
 //    } else if (lobj.is_string()) {
-//        res = make_data_entity<std::string>(lobj.as<std::string>());
+//        res = make_data<std::string>(lobj.as<std::string>());
 //    } else {
 //        RUNTIME_ERROR << "illegal data type of Lua :" << lobj.get_typename() << std::endl;
 //    }

@@ -54,8 +54,8 @@ class DummyMesh : public engine::MeshBase {
     };
 
     //    template<typename T>  auto
-    //    GetEntity(T &v, EntityId const *s, ENABLE_IF((st::is_indexable<T, EntityId>::value)))
-    //    AUTO_RETURN((GetEntity(v[*s], s + 1)))
+    //    Get(T &v, EntityId const *s, ENABLE_IF((st::is_indexable<T, EntityId>::value)))
+    //    AUTO_RETURN((Get(v[*s], s + 1)))
 
     template <typename T>
     auto getValue(T &v, EntityId const &s0,

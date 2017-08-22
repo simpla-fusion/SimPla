@@ -52,16 +52,15 @@ class KeyValue;
 //    return p;
 //}
 template <typename U>
-std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<U> const& u,
-                                             ENABLE_IF((std::is_base_of<DataEntity, U>::value))) {
+std::shared_ptr<DataEntity> make_data(std::shared_ptr<U> const& u, ENABLE_IF((std::is_base_of<DataEntity, U>::value))) {
     return std::dynamic_pointer_cast<DataEntity>(u);
 }
 template <typename U>
-std::shared_ptr<DataLightT<U>> make_data_entity(U const& u, ENABLE_IF((traits::is_light_data<U>::value))) {
+std::shared_ptr<DataLightT<U>> make_data(U const& u, ENABLE_IF((traits::is_light_data<U>::value))) {
     return DataLightT<U>::New(u);
 }
 
-inline std::shared_ptr<DataLightT<std::string>> make_data_entity(char const* c) {
+inline std::shared_ptr<DataLightT<std::string>> make_data(char const* c) {
     return DataLightT<std::string>::New(std::string(c));
 }
 template <int N, typename U>
@@ -82,7 +81,7 @@ std::shared_ptr<DataLightT<std::vector<U>>> make_data_vector(std::initializer_li
 };
 
 template <typename U>
-std::shared_ptr<DataLight> make_data_entity(std::initializer_list<U> const& u) {
+std::shared_ptr<DataLight> make_data(std::initializer_list<U> const& u) {
     std::shared_ptr<DataLight> res = nullptr;
     switch (u.size()) {
         case 0:
@@ -122,17 +121,16 @@ std::shared_ptr<DataLight> make_data_entity(std::initializer_list<U> const& u) {
 }
 
 template <typename U>
-std::shared_ptr<DataLight> make_data_entity(std::initializer_list<std::initializer_list<U>> const& u,
-                                            ENABLE_IF((traits::is_light_data<U>::value))) {
+std::shared_ptr<DataLight> make_data(std::initializer_list<std::initializer_list<U>> const& u,
+                                     ENABLE_IF((traits::is_light_data<U>::value))) {
     auto p = DataLight::New();
-    //    for (auto const& item : u) { p->Add(make_data_entity(item)); }
+    //    for (auto const& item : u) { p->Add(make_data(item)); }
     return p;
 }
 template <typename U>
-std::shared_ptr<DataLight> make_data_entity(
-    std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
+std::shared_ptr<DataLight> make_data(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
     auto p = DataLight::New();
-    //    for (auto const& item : u) { p->Add(make_data_entity(item)); }
+    //    for (auto const& item : u) { p->Add(make_data(item)); }
     return p;
 }
 
@@ -152,29 +150,59 @@ class KeyValue : public std::pair<std::string, std::shared_ptr<DataLight>> {
 
     template <typename U>
     KeyValue& operator=(U const& u) {
-        second = make_data_entity(u);
+        second = make_data(u);
         return *this;
     }
     template <typename U>
     KeyValue& operator=(std::initializer_list<U> const& u) {
-        second = make_data_entity(u);
+        second = make_data(u);
         return *this;
     }
     template <typename U>
     KeyValue& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
-        second = make_data_entity(u);
+        second = make_data(u);
         return *this;
     }
     template <typename U>
     KeyValue& operator=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-        second = make_data_entity(u);
+        second = make_data(u);
         return *this;
     }
 };
 
-inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue{std::string(c), make_data_entity(true)}; }
+inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue{std::string(c), make_data(true)}; }
 
+// KeyValue const& make_data(KeyValue const& u) { return u; }
+// std::initializer_list<KeyValue> const& make_data(std::initializer_list<KeyValue> const& u) { return u; }
+// std::initializer_list<std::initializer_list<KeyValue>> const& make_data(
+//    std::initializer_list<std::initializer_list<KeyValue>> const& u) {
+//    return u;
 //}
+// std::initializer_list<std::initializer_list<std::initializer_list<KeyValue>>> const& make_data(
+//    std::initializer_list<std::initializer_list<std::initializer_list<KeyValue>>> const& u) {
+//    return u;
+//}
+//    int Set(KeyValue const& kv) { return GetNode(kv.first, RECURSIVE | NEW_IF_NOT_EXIST)->Set(kv.second); }
+//
+//    template <typename... Others>
+//    int Set(KeyValue const& kv, Others&&... others) {
+//        return Set(kv) + Set(std::forward<Others>(others)...);
+//    }
+//    int Set(std::initializer_list<KeyValue> const& u) {
+//        int count = 0;
+//        for (auto const& item : u) { count += (Set(item)); }
+//        return count;
+//    }
+//    int Set(std::initializer_list<std::initializer_list<KeyValue>> const& u) {
+//        int count = 0;
+//        for (auto const& item : u) { count += (Set(item)); }
+//        return count;
+//    }
+//    int Set(std::initializer_list<std::initializer_list<std::initializer_list<KeyValue>>> const& u) {
+//        int count = 0;
+//        for (auto const& item : u) { count += (Set(item)); }
+//        return count;
+//    }
 }  // namespace data
 }  // namespace simpla
 #endif  // SIMPLA_DATAUTILITIES_H

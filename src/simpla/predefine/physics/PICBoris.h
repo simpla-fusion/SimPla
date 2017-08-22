@@ -59,9 +59,9 @@ class PICBoris {
 template <typename TM>
 void PICBoris<TM>::Serialize(DataTable& cfg) const {
     for (auto& item : m_particle_sp_) {
-        //        t.SetEntity<double>("mass", item.second->mass / SI_proton_mass);
-        //        t.SetEntity<double>("Z", item.second->charge / SI_elementary_charge);
-        //        t.SetEntity<double>("ratio", item.second->ratio);
+        //        t.Set<double>("mass", item.second->mass / SI_proton_mass);
+        //        t.Set<double>("Z", item.second->charge / SI_elementary_charge);
+        //        t.Set<double>("ratio", item.second->ratio);
 
         item.second->Serialize(cfg.GetTable("Species/" + item.first));
     }
@@ -84,7 +84,7 @@ std::shared_ptr<Particle<TM>> PICBoris<TM>::AddSpecies(std::string const& name, 
     sp->SetDOF(7);
     sp->db().SetValue("mass", d.GetValue<double>("mass", d.GetValue<double>("mass", 1)) * SI_proton_mass);
     sp->db().SetValue("charge", d.GetValue<double>("charge", d.GetValue<double>("Z", 1)) * SI_elementary_charge);
-    //    sp->ratio = d.GetEntity<double>("ratio", d.GetEntity<double>("ratio", 1));
+    //    sp->ratio = d.Get<double>("ratio", d.Get<double>("ratio", 1));
 
     m_particle_sp_.emplace(name, sp);
     VERBOSE << "Add particle : {\" Name=" << name
