@@ -6,14 +6,35 @@
 #include <iomanip>
 #include <map>
 #include <vector>
-#include "DataBase.h"
+#include "../../../experiment/DataBase.h"
 #include "DataEntity.h"
+#include "simpla/utilities/ParsingURI.h"
+
 namespace simpla {
 namespace data {
 
 DataNode::DataNode() = default;
 DataNode::~DataNode() = default;
-std::shared_ptr<DataNode> DataNode::New(std::string const& s) { return data::DataBase::New(s)->Root(); }
+std::shared_ptr<DataNode> DataNode::New(std::string const& s) {
+    if (DataNode::s_num_of_pre_registered_ == 0) { RUNTIME_ERROR << "No database is registered!" << s << std::endl; }
+    std::string uri = s.empty() ? "mem://" : s;
+
+    std::string scheme;
+    std::string path;
+    std::string authority;
+    std::string query;
+    std::string fragment;
+
+    std::tie(scheme, authority, path, query, fragment) = ParsingURI(uri);
+    auto res = Factory<DataNode>::Create(scheme);
+    ASSERT(res != nullptr);
+    if (SP_SUCCESS != res->Connect(authority, path, query, fragment)) {
+        RUNTIME_ERROR << "Fail to connect  Data Backend [ " << scheme << " : " << authority << path << " ]"
+                      << std::endl;
+    }
+
+    return res;
+};
 
 std::shared_ptr<DataEntity> DataNode::Get() { return DataEntity::New(); }
 std::shared_ptr<DataEntity> DataNode::Get() const { return DataEntity::New(); }

@@ -13,29 +13,85 @@ namespace simpla {
 namespace data {
 REGISTER_CREATOR(DataBaseLua, lua);
 
-struct DataBaseLua::pimpl_s {
+struct DataBaseLua::Node : public DataNode {
+    SP_DEFINE_FANCY_TYPE_NAME(Node, DataNode)
+    e_NodeType m_node_type = DN_NULL;
+    std::shared_ptr<Node> m_parent_ = nullptr;
+    std::map<std::string, std::shared_ptr<Node>> m_table_;
+    std::shared_ptr<DataEntity> m_entity_ = nullptr;
+
     LuaObject m_lua_obj_;
 
-    //    static int add_data_to_lua(LuaObject& lobj, std::shared_ptr<DataEntity> const& v);
-    //    static int add_data_to_lua(LuaObject& lobj, std::string const& key, std::shared_ptr<DataEntity>
-    //    const& v);
-    //    static int set_data_to_lua(LuaObject& lobj, std::string const& key, std::shared_ptr<DataEntity>
-    //    const& v,
-    //                               bool overwrite = true);
-    //    static int set_data_to_lua(LuaObject& lobj, int key, std::shared_ptr<DataEntity> const& v,
-    //                               bool overwrite = true);
+   protected:
+    Node() = default;
+    explicit Node(std::shared_ptr<Node> v) : m_parent_(std::move(v)){};
+    explicit Node(std::shared_ptr<DataEntity> v) : m_entity_(std::move(v)){};
+
+    explicit Node(Node const& other) = delete;
+    explicit Node(Node&& other) = delete;
+    Node& operator=(Node const& other) = delete;
+    Node& operator=(Node&& other) = delete;
+
+   public:
+    ~Node() override = default;
+
+    template <typename... Args>
+    static std::shared_ptr<this_type> New(Args&&... args) {
+        return std::shared_ptr<Node>(new Node(std::forward<Args>(args)...));
+    }
+
+    void Connect(std::string const& authority, std::string const& path, std::string const& query,
+                 std::string const& fragment);
+
+    std::shared_ptr<DataNode> Duplicate() const override { return Node::New(m_parent_); }
+    size_type GetNumberOfChildren() const override { return m_table_.size(); }
+
+    /** @addtogroup{ Interface */
+    int Flush() override { return 0; }
+    e_NodeType NodeType() const override { return m_node_type; }
+
+    std::shared_ptr<DataNode> Root() override { return m_parent_ != nullptr ? m_parent_->Root() : shared_from_this(); }
+    std::shared_ptr<DataNode> Parent() const override { return m_parent_; }
+
+    int Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& fun) override;
+    int Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& fun) const override;
+
+    std::shared_ptr<DataNode> GetNode(std::string const& uri, int flag) override;
+    std::shared_ptr<DataNode> GetNode(std::string const& uri, int flag) const override;
+    std::shared_ptr<DataNode> GetNode(index_type s, int flag) override;
+    std::shared_ptr<DataNode> GetNode(index_type s, int flag) const override;
+    int DeleteNode(std::string const& uri, int flag) override;
+    void Clear() override { m_table_.clear(); }
+
+    std::shared_ptr<DataEntity> Get() override { return m_entity_; }
+    std::shared_ptr<DataEntity> Get() const override { return m_entity_; }
+    int Set(std::shared_ptr<DataEntity> const& v) override;
+    int Add(std::shared_ptr<DataEntity> const& v) override;
+
+    LuaObject m_lua_obj_;
 
     template <typename U>
     std::shared_ptr<DataEntity> make_data_array_lua(LuaObject const& lobj);
     std::shared_ptr<DataEntity> make_data_entity_lua(LuaObject const& lobj);
 };
-DataBaseLua::DataBaseLua() : m_pimpl_(new pimpl_s) { m_pimpl_->m_lua_obj_.init(); }
-DataBaseLua::~DataBaseLua() { delete m_pimpl_; }
 
-// std::ostream& DataBaseLua::Print(std::ostream& os, int indent) const { return m_pimpl_->m_lua_obj_.Print(os, indent);
-// }
-bool DataBaseLua::isNull() const { return false; };
-int DataBaseLua::Flush() { return SP_SUCCESS; }
+struct DataBaseLua::pimpl_s {
+    std::shared_ptr<Node> m_root_ = nullptr;
+};
+DataBaseLua::DataBaseLua() : m_pimpl_(new pimpl_s) {}
+DataBaseLua::~DataBaseLua() { delete m_pimpl_; }
+int DataBaseLua::Connect(std::string const& authority, std::string const& path, std::string const& query,
+                         std::string const& fragment) {
+    m_pimpl_->m_root_ = Node::New();
+    m_pimpl_->m_root_->Connect(authority, path, query, fragment);
+    return 0;
+}
+int DataBaseLua::Disconnect() { return 0; }
+bool DataBaseLua::isNull() const { return false; }
+int DataBaseLua::Flush() { return 0; }
+
+std::shared_ptr<DataNode> DataBaseLua::Root() { return Node::New(); }
+
 // void DataBaseLua::Parser(std::string const& str) { m_pimpl_->m_lua_obj_.parse_string(str); }
 
 int DataBaseLua::Connect(std::string const& authority, std::string const& path, std::string const& query,

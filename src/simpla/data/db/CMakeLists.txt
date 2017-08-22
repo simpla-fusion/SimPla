@@ -14,8 +14,8 @@ IF (LUA_FOUND)
     MESSAGE(STATUS "Lua version: ${LUA_INCLUDE_DIR} ")
 ENDIF (LUA_FOUND)
 
-FILE(GLOB database_SRC  *.cpp *.h )
-ADD_LIBRARY(database ${database_SRC})
+#FILE(GLOB database_SRC  *.cpp *.h )
+ADD_LIBRARY(database ${database_SRC} DataNodeMemory.cpp DataNodeMemory.h DataBasePreRegister.cpp)
 target_include_directories(database  BEFORE PRIVATE
         ${HDF5_INCLUDE_DIRS}
         ${LUA_INCLUDE_DIR}

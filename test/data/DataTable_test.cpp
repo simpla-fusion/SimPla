@@ -64,11 +64,11 @@ TEST(DataTable, memory) {
     //           << std::endl;
 }
 //
-// TEST(DataTable, lua) {
+//TEST(DataTable, lua) {
 //    logger::set_stdout_level(1000);
-//    auto db = DataBase::New("/home/salmon/workspace/SimPla/test/data/test.lua");
+//    auto db = DataNode::New("/home/salmon/workspace/SimPla/test/data/test.lua");
 //
-//    //    LOGGER << "lua:// " << *db << std::endl;
+//    LOGGER << "lua:// " << *db << std::endl;
 //    //   db->Set("box", {{1, 2, 3}, {4, 5, 6}});
 //    //    LOGGER << "box  = " <<db->Get<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
 //}

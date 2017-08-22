@@ -10,6 +10,7 @@
 #include <memory>
 #include "DataLight.h"
 #include "DataUtilities.h"
+#include "simpla/utilities/Factory.h"
 #include "simpla/utilities/Log.h"
 #include "simpla/utilities/ObjectHead.h"
 namespace simpla {
@@ -18,8 +19,9 @@ namespace data {
 class DataEntity;
 class KeyValue;
 
-class DataNode : public std::enable_shared_from_this<DataNode> {
+class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<DataNode> {
     SP_OBJECT_BASE(DataNode);
+    static int s_num_of_pre_registered_;
 
    protected:
     DataNode();
@@ -30,6 +32,11 @@ class DataNode : public std::enable_shared_from_this<DataNode> {
     DataNode(DataNode&& other) = delete;
 
     static std::shared_ptr<DataNode> New(std::string const& uri = "");
+
+    virtual int Connect(std::string const& authority, std::string const& path, std::string const& query,
+                        std::string const& fragment) = 0;
+    virtual int Disconnect() = 0;
+    virtual bool isValid() const { return true; }
 
     enum { RECURSIVE = 0b01, NEW_IF_NOT_EXIST = 0b010, ADD_IF_EXIST = 0b100, ONLY_TABLE = 0b1000 };
     enum e_NodeType { DN_NULL = 0, DN_ENTITY = 1, DN_ARRAY = 2, DN_TABLE = 3 };
@@ -300,6 +307,54 @@ std::pair<std::string, std::shared_ptr<DataNode>> RecursiveFindNode(std::shared_
 // std::shared_ptr<const DataNode> RecursiveFindNode(std::shared_ptr<const DataNode> const& d, std::string const& uri,
 //                                                  int flag = 0);
 std::ostream& operator<<(std::ostream&, DataNode const&);
+
+#define SP_DATA_NODE_HEAD(_CLASS_NAME_)                                                                \
+    SP_DEFINE_FANCY_TYPE_NAME(_CLASS_NAME_, DataNode)                                                  \
+    struct pimpl_s;                                                                                    \
+    pimpl_s* m_pimpl_ = nullptr;                                                                       \
+                                                                                                       \
+   protected:                                                                                          \
+    _CLASS_NAME_();                                                                                    \
+                                                                                                       \
+    explicit _CLASS_NAME_(_CLASS_NAME_ const& other) = delete;                                         \
+    explicit _CLASS_NAME_(_CLASS_NAME_&& other) = delete;                                              \
+    _CLASS_NAME_& operator=(_CLASS_NAME_ const& other) = delete;                                       \
+    _CLASS_NAME_& operator=(_CLASS_NAME_&& other) = delete;                                            \
+                                                                                                       \
+   public:                                                                                             \
+    ~_CLASS_NAME_() override;                                                                          \
+                                                                                                       \
+    int Connect(std::string const& authority, std::string const& path, std::string const& query,       \
+                std::string const& fragment) override;                                                 \
+    int Disconnect() override;                                                                         \
+    bool isValid() const override;                                                                     \
+    int Flush() override;                                                                              \
+    template <typename... Args>                                                                        \
+    static std::shared_ptr<this_type> New(Args&&... args) {                                            \
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));                 \
+    }                                                                                                  \
+    std::shared_ptr<DataNode> Duplicate() const override;                                              \
+    size_type GetNumberOfChildren() const override;                                                    \
+                                                                                                       \
+    e_NodeType NodeType() const override;                                                              \
+                                                                                                       \
+    std::shared_ptr<DataNode> Root() override;                                                         \
+    std::shared_ptr<DataNode> Parent() const override;                                                 \
+                                                                                                       \
+    int Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& fun) override;       \
+    int Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& fun) const override; \
+                                                                                                       \
+    std::shared_ptr<DataNode> GetNode(std::string const& uri, int flag) override;                      \
+    std::shared_ptr<DataNode> GetNode(std::string const& uri, int flag) const override;                \
+    std::shared_ptr<DataNode> GetNode(index_type s, int flag) override;                                \
+    std::shared_ptr<DataNode> GetNode(index_type s, int flag) const override;                          \
+    int DeleteNode(std::string const& uri, int flag) override;                                         \
+    void Clear() override;                                                                             \
+                                                                                                       \
+    std::shared_ptr<DataEntity> Get() override;                                                        \
+    std::shared_ptr<DataEntity> Get() const override;                                                  \
+    int Set(std::shared_ptr<DataEntity> const& v) override;                                            \
+    int Add(std::shared_ptr<DataEntity> const& v) override;
 }  // namespace data
 }  // namespace simpla
 
