@@ -83,7 +83,7 @@ class Factory {
 
         if (it != f.end()) {
             res = it->second(std::forward<U>(args)...);
-            LOGGER << TObj::GetFancyTypeName_s() << "::" << it->first << "  is created!" << std::endl;
+            //            LOGGER << TObj::GetFancyTypeName_s() << "::" << it->first << "  is created!" << std::endl;
         } else {
             res = _TryCreate(std::is_constructible<TObj, Args...>(), std::forward<U>(args)...);
             if (res == nullptr) {

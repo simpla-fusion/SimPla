@@ -15,8 +15,9 @@
 namespace simpla {
 namespace data {
 
-class DataNode;
-typedef std::shared_ptr<DataNode> DataNodeP;
+class DataEntity;
+class KeyValue;
+
 class DataNode : public std::enable_shared_from_this<DataNode> {
     SP_OBJECT_BASE(DataNode);
 
@@ -43,7 +44,7 @@ class DataNode : public std::enable_shared_from_this<DataNode> {
     virtual std::shared_ptr<DataNode> Root() { return Duplicate(); }
     virtual std::shared_ptr<DataNode> Parent() const { return Duplicate(); }
     virtual int Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const&) { return 0; }
-    virtual int Foreach(std::function<int(std::string, std::shared_ptr<const DataNode>)> const&) const { return 0; }
+    virtual int Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const&) const { return 0; }
 
     virtual std::shared_ptr<DataNode> GetNode(std::string const& uri, int flag) { return Duplicate(); }
     virtual std::shared_ptr<DataNode> GetNode(std::string const& uri, int flag) const { return Duplicate(); }
@@ -55,21 +56,106 @@ class DataNode : public std::enable_shared_from_this<DataNode> {
 
     virtual int DeleteNode(std::string const& s, int flag) { return 0; }
     virtual int DeleteNode(index_type s, int flag) { return DeleteNode(std::to_string(s), flag); };
+    virtual void Clear() {}
 
-    virtual std::shared_ptr<DataEntity> Get() { return DataEntity::New(); }
-    virtual std::shared_ptr<DataEntity> Get() const { return DataEntity::New(); }
-    virtual int Set(std::shared_ptr<DataEntity> const& v) { return 0; }
-    virtual int Set(std::shared_ptr<DataNode> const& v) { return 0; }
-    virtual int Add(std::shared_ptr<DataEntity> const& v) { return AddNode()->Set(v); }
-    virtual int Add(std::shared_ptr<DataNode> const& v) { return AddNode()->Set(v); }
+    virtual std::shared_ptr<DataEntity> Get();
+    virtual std::shared_ptr<DataEntity> Get() const;
+    virtual int Set(std::shared_ptr<DataEntity> const& v);
+    virtual int Add(std::shared_ptr<DataEntity> const& v);
+    virtual int Set(std::shared_ptr<DataNode> const& v);
+    virtual int Add(std::shared_ptr<DataNode> const& v);
 
     /** @} */
     DataNode& operator[](std::string const& s) { return *GetNode(s, RECURSIVE | NEW_IF_NOT_EXIST); }
+
+    template <typename U, typename... Args>
+    int SetValue(Args&&... args) {
+        return Set(DataLightT<U>::New(std::forward<Args>(args)...));
+    };
+    template <typename U, typename V>
+    int SetValue(std::initializer_list<V> const& v) {
+        return Set(DataLightT<U>::New(v));
+    }
+
+    template <typename U>
+    int SetValue(std::initializer_list<char const*> const& u) {
+        int count = 0;
+        for (auto const& v : u) { count += SetValue<std::string>(v); }
+        return count;
+    }
+
+    template <typename U, typename V>
+    int SetValue(std::initializer_list<std::initializer_list<V>> const& v) {
+        return Set(DataLightT<U>::New(v));
+    }
+    template <typename U, typename V>
+    int SetValue(std::initializer_list<std::initializer_list<std::initializer_list<V>>> const& v) {
+        return Set(DataLightT<U>::New(v));
+    }
+
+    template <typename U, typename... Args>
+    int AddValue(Args&&... args) {
+        return Add(DataLightT<U>::New(std::forward<Args>(args)...));
+    };
+
+    template <typename U>
+    int AddValue(std::initializer_list<char const*> const& u) {
+        int count = 0;
+        for (auto const& v : u) { count += AddValue<std::string>(v); }
+        return count;
+    }
+
+    template <typename U, typename V>
+    int AddValue(std::initializer_list<V> const& v) {
+        return Add(DataLightT<U>::New(v));
+    }
+    template <typename U, typename V>
+    int AddValue(std::initializer_list<std::initializer_list<V>> const& v) {
+        return Add(DataLightT<U>::New(v));
+    }
+    template <typename U, typename V>
+    int AddValue(std::initializer_list<std::initializer_list<std::initializer_list<V>>> const& v) {
+        return Add(DataLightT<U>::New(v));
+    }
+    template <typename U>
+    U GetValue() const {
+        return Get()->as<U>();
+    };
+    template <typename U>
+    U GetValue(U const& default_value) const {
+        return Get()->as<U>(default_value);
+    };
+    template <typename URL, typename U>
+    bool Check(URL const& url, U const& u) const {
+        return GetNode(url, RECURSIVE)->Get()->equal(u);
+    }
+    bool Check(std::string const& uri) const { return Check(uri, true); }
+
+    template <typename U>
+    U as() const {
+        return GetValue<U>();
+    }
+
+    template <typename U>
+    U as(U const& default_value) const {
+        return GetValue<U>(default_value);
+    }
+
     template <typename U>
     DataNode& operator=(U const& u) {
-        Set(make_data(u));
+        SetValue<U>(u);
         return *this;
     }
+    DataNode& operator=(char const* u) {
+        SetValue<std::string>(u);
+        return *this;
+    }
+
+    DataNode& operator=(std::initializer_list<char const*> const& u) {
+        SetValue<std::string>(u);
+        return *this;
+    }
+
     template <typename U>
     DataNode& operator=(std::initializer_list<U> const& u) {
         Set(make_data(u));
@@ -92,11 +178,21 @@ class DataNode : public std::enable_shared_from_this<DataNode> {
         Add(make_data(u));
         return *this;
     }
+    DataNode& operator+=(char const* u) {
+        AddValue<std::string>(u);
+        return *this;
+    }
+
     template <typename U>
     DataNode& operator+=(std::initializer_list<U> const& u) {
         Add(make_data(u));
         return *this;
     }
+    DataNode& operator+=(std::initializer_list<char const*> const& u) {
+        AddValue<std::string>(u);
+        return *this;
+    }
+
     template <typename U>
     DataNode& operator+=(std::initializer_list<std::initializer_list<U>> const& u) {
         Add(make_data(u));
@@ -108,46 +204,97 @@ class DataNode : public std::enable_shared_from_this<DataNode> {
         return *this;
     }
 
-    template <typename URL, typename U>
-    bool Check(URL const& url, U const& u) const {
-        return GetNode(url, RECURSIVE)->Get()->equal(u);
-    }
-    bool Check(std::string const& uri) const { return Check(uri, true); }
-
+    int Set(KeyValue const& kv);
+    int Add(KeyValue const& kv);
+    int SetValue(KeyValue const& kv);
+    int AddValue(KeyValue const& kv);
     template <typename U>
-    U as() const {
-        return Get()->as<U>();
-    }
-
+    int SetValue(std::initializer_list<KeyValue> const& u);
     template <typename U>
-    U as(U const& default_value) const {
-        return Get()->as<U>(default_value);
-    }
+    int AddValue(std::initializer_list<KeyValue> const& u);
+    DataNode& operator=(KeyValue const& v);
+    DataNode& operator=(std::initializer_list<KeyValue> const& u);
+    DataNode& operator+=(KeyValue const& u);
+    DataNode& operator+=(std::initializer_list<KeyValue> const& u);
     /** @} */
 };
 
-// struct DataNode::iterator {
-//    iterator(DataNode& v) : m_value_(v.shared_from_this()) {}
-//    iterator(iterator const& other) : m_value_(other.m_value_) {}
-//    iterator(iterator&& other) : m_value_(other.m_value_) {}
-//
-//    virtual ~iterator() {}
-//
-//    virtual void Next() {}
-//    virtual bool isEqual(iterator const& other) { return false; }
-//
-//    DataNode operator*() { return *m_value_; }
-//    iterator operator++() {
-//        iterator res(*this);
-//        ++res;
-//        return res;
-//    }
-//    bool operator==(iterator const& other) { return isEqual(other); }
-//    bool operator!=(iterator const& other) { return !isEqual(other); }
-//
-//    std::shared_ptr<DataNode> m_value_;
-//};
+class KeyValue {
+    std::string m_key_;
+    std::shared_ptr<DataNode> m_node_;
 
+   public:
+    explicit KeyValue(std::string const& k, std::shared_ptr<DataEntity> const& v = nullptr)
+        : m_key_(k), m_node_(DataNode::New()) {
+        m_node_->GetNode(m_key_, DataNode::RECURSIVE | DataNode::NEW_IF_NOT_EXIST)->Set(v);
+    }
+    KeyValue(KeyValue const& other) : m_key_(other.m_key_), m_node_(other.m_node_) {}
+    KeyValue(KeyValue&& other) : m_key_(other.m_key_), m_node_(other.m_node_) {}
+    ~KeyValue() = default;
+    std::shared_ptr<DataNode>& GetNode() { return m_node_; }
+    std::shared_ptr<DataNode> const& GetNode() const { return m_node_; }
+
+    KeyValue& operator=(KeyValue const& other) {
+        m_node_ = other.m_node_;
+        return *this;
+    }
+
+    template <typename U>
+    KeyValue& operator=(U const& u) {
+        (*m_node_)[m_key_] = u;
+        return *this;
+    }
+    template <typename U>
+    KeyValue& operator=(std::initializer_list<U> const& u) {
+        m_node_->Clear();
+        (*m_node_)[m_key_] = u;
+        return *this;
+    }
+    template <typename U>
+    KeyValue& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
+        (*m_node_)[m_key_] = u;
+        return *this;
+    }
+    template <typename U>
+    KeyValue& operator=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
+        (*m_node_)[m_key_] = u;
+        return *this;
+    }
+};
+inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue{std::string(c), make_data(true)}; }
+
+inline int DataNode::Set(KeyValue const& kv) { return Set(kv.GetNode()); }
+inline int DataNode::Add(KeyValue const& kv) { return Add(kv.GetNode()); }
+inline int DataNode::SetValue(KeyValue const& kv) { return Set(kv.GetNode()); }
+inline int DataNode::AddValue(KeyValue const& kv) { return Add(kv.GetNode()); }
+template <typename U>
+int DataNode::SetValue(std::initializer_list<KeyValue> const& u) {
+    int count = 0;
+    for (auto const& v : u) { count += Set(v); }
+    return count;
+}
+template <typename U>
+int DataNode::AddValue(std::initializer_list<KeyValue> const& u) {
+    int count = 0;
+    for (auto const& v : u) { count += Set(v); }
+    return count;
+}
+inline DataNode& DataNode::operator=(KeyValue const& v) {
+    Set(v);
+    return *this;
+}
+inline DataNode& DataNode::operator=(std::initializer_list<KeyValue> const& u) {
+    for (auto const& v : u) { Set(v); }
+    return *this;
+}
+inline DataNode& DataNode::operator+=(KeyValue const& u) {
+    Set(u);
+    return *this;
+}
+inline DataNode& DataNode::operator+=(std::initializer_list<KeyValue> const& u) {
+    for (auto const& v : u) { Set(v); }
+    return *this;
+}
 std::pair<std::string, std::shared_ptr<DataNode>> RecursiveFindNode(std::shared_ptr<DataNode> d, std::string uri,
                                                                     int flag = 0);
 // std::shared_ptr<const DataNode> RecursiveFindNode(std::shared_ptr<const DataNode> const& d, std::string const& uri,

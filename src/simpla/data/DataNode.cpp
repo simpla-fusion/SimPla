@@ -15,6 +15,33 @@ DataNode::DataNode() = default;
 DataNode::~DataNode() = default;
 std::shared_ptr<DataNode> DataNode::New(std::string const& s) { return data::DataBase::New(s)->Root(); }
 
+std::shared_ptr<DataEntity> DataNode::Get() { return DataEntity::New(); }
+std::shared_ptr<DataEntity> DataNode::Get() const { return DataEntity::New(); }
+int DataNode::Set(std::shared_ptr<DataEntity> const& v) { return 0; }
+int DataNode::Add(std::shared_ptr<DataEntity> const& v) { return AddNode()->Set(v); }
+int DataNode::Set(std::shared_ptr<DataNode> const& v) {
+    return v->Foreach([&](std::string k, std::shared_ptr<DataNode> node) {
+        int count = 0;
+        if (node->NodeType() == DataNode::DN_ENTITY) {
+            count += GetNode(k, NEW_IF_NOT_EXIST)->Set(node->Get());
+        } else {
+            count += GetNode(k, NEW_IF_NOT_EXIST)->Set(node);
+        }
+        return count;
+    });
+};
+int DataNode::Add(std::shared_ptr<DataNode> const& v) {
+    return v->Foreach([&](std::string k, std::shared_ptr<DataNode> node) {
+        int count = 0;
+        if (node->NodeType() == DataNode::DN_ENTITY) {
+            count += GetNode(k, NEW_IF_NOT_EXIST)->Add(node->Get());
+        } else {
+            count += GetNode(k, NEW_IF_NOT_EXIST)->Add(node);
+        }
+        return count;
+    });
+};
+
 std::ostream& Print(std::ostream& os, std::shared_ptr<const DataNode> const& entry, int indent) {
     if (entry->NodeType() == DataNode::DN_ARRAY) {
         os << "[ ";
@@ -24,9 +51,9 @@ std::ostream& Print(std::ostream& os, std::shared_ptr<const DataNode> const& ent
             if (is_first) {
                 is_first = false;
             } else {
-                os << " , ";
+                os << ", ";
             }
-            if (new_line) { os << std::endl << std::setw(indent) << " "; }
+            if (new_line) { os << std::endl << std::setw(indent + 1) << " "; }
             Print(os, v, indent + 1);
             return 1;
         });
@@ -39,9 +66,9 @@ std::ostream& Print(std::ostream& os, std::shared_ptr<const DataNode> const& ent
             if (is_first) {
                 is_first = false;
             } else {
-                os << " , ";
+                os << ", ";
             }
-            if (new_line) { os << std::endl << std::setw(indent) << " "; }
+            if (new_line) { os << std::endl << std::setw(indent + 1) << " "; }
             os << "\"" << k << "\" = ";
             Print(os, v, indent + 1);
             return 1;

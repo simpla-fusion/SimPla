@@ -49,17 +49,20 @@ struct DataBaseMemory::Node : public DataNode {
     std::shared_ptr<DataNode> Parent() const override { return m_parent_; }
 
     int Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& fun) override;
-    int Foreach(std::function<int(std::string, std::shared_ptr<const DataNode>)> const& fun) const override;
+    int Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& fun) const override;
 
     std::shared_ptr<DataNode> GetNode(std::string const& uri, int flag) override;
     std::shared_ptr<DataNode> GetNode(std::string const& uri, int flag) const override;
     std::shared_ptr<DataNode> GetNode(index_type s, int flag) override;
     std::shared_ptr<DataNode> GetNode(index_type s, int flag) const override;
     int DeleteNode(std::string const& uri, int flag) override;
+    void Clear() override { m_table_.clear(); }
 
-    std::shared_ptr<DataEntity> GetEntity() override { return m_entity_; }
-    std::shared_ptr<DataEntity> GetEntity() const override { return m_entity_; }
-    int SetEntity(std::shared_ptr<DataEntity> const& v) override;
+    std::shared_ptr<DataEntity> Get() override { return m_entity_; }
+    std::shared_ptr<DataEntity> Get() const override { return m_entity_; }
+    int Set(std::shared_ptr<DataEntity> const& v) override;
+    int Add(std::shared_ptr<DataEntity> const& v) override;
+
     /** @} */
 };
 int DataBaseMemory::Node::Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& fun) {
@@ -67,24 +70,26 @@ int DataBaseMemory::Node::Foreach(std::function<int(std::string, std::shared_ptr
     for (auto& item : m_table_) { count += fun(item.first, item.second); }
     return 0;
 }
-int DataBaseMemory::Node::Foreach(std::function<int(std::string, std::shared_ptr<const DataNode>)> const& fun) const {
+int DataBaseMemory::Node::Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& fun) const {
     int count = 0;
     for (auto const& item : m_table_) { count += fun(item.first, item.second); }
     return 0;
 }
-int DataBaseMemory::Node::SetEntity(std::shared_ptr<DataEntity> const& v) {
-    if (m_table_.size() != 0) { RUNTIME_ERROR << "Can not insert entity to Table/Array node!" << std::endl; }
+int DataBaseMemory::Node::Set(std::shared_ptr<DataEntity> const& v) {
+    if (!m_table_.empty()) { RUNTIME_ERROR << "Can not insert entity to Table/Array node!" << std::endl; }
     m_node_type = DN_ENTITY;
     m_entity_ = v;
     return 1;
 }
+int DataBaseMemory::Node::Add(std::shared_ptr<DataEntity> const& v) { return AddNode()->Set(v); }
+
 std::shared_ptr<DataNode> DataBaseMemory::Node::GetNode(std::string const& s, int flag) {
     std::shared_ptr<DataNode> res = nullptr;
     std::string uri = s;
     if ((flag & RECURSIVE) == 0) {
         if (m_entity_ != nullptr) {
             auto n = std::dynamic_pointer_cast<Node>(Duplicate());
-            n->SetEntity(m_entity_);
+            n->Set(m_entity_);
             m_entity_.reset();
             if ((flag & ADD_IF_EXIST) != 0) {
                 m_table_["0"] = n;
@@ -166,7 +171,8 @@ std::shared_ptr<DataNode> DataBaseMemory::Root() { return Node::New(); }
 //                                                             bool return_if_not_exist);
 //};
 //
-// std::pair<DataBaseMemory*, std::string> DataBaseMemory::pimpl_s::get_table(DataBaseMemory* t, std::string const& uri,
+// std::pair<DataBaseMemory*, std::string> DataBaseMemory::pimpl_s::get_table(DataBaseMemory* t, std::string const&
+// uri,
 //                                                                           bool return_if_not_exist) {
 //    return HierarchicalTableForeach(
 //        t, uri,

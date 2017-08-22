@@ -6,6 +6,7 @@
 #define SIMPLA_DATALIGHT_H
 
 #include "DataEntity.h"
+#include "simpla/utilities/FancyStream.h"
 namespace simpla {
 namespace data {
 

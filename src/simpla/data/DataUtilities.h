@@ -120,58 +120,6 @@ std::shared_ptr<DataLight> make_data(std::initializer_list<U> const& u) {
     return res;
 }
 
-template <typename U>
-std::shared_ptr<DataLight> make_data(std::initializer_list<std::initializer_list<U>> const& u,
-                                     ENABLE_IF((traits::is_light_data<U>::value))) {
-    auto p = DataLight::New();
-    //    for (auto const& item : u) { p->Add(make_data(item)); }
-    return p;
-}
-template <typename U>
-std::shared_ptr<DataLight> make_data(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-    auto p = DataLight::New();
-    //    for (auto const& item : u) { p->Add(make_data(item)); }
-    return p;
-}
-
-class KeyValue : public std::pair<std::string, std::shared_ptr<DataLight>> {
-    typedef std::pair<std::string, std::shared_ptr<DataLight>> base_type;
-
-   public:
-    explicit KeyValue(std::string const& k, std::shared_ptr<DataLight> const& p = nullptr) : base_type(k, p) {}
-    KeyValue(KeyValue const& other) : base_type(other) {}
-    KeyValue(KeyValue&& other) : base_type(other) {}
-    ~KeyValue() = default;
-
-    KeyValue& operator=(KeyValue const& other) {
-        base_type::operator=(other);
-        return *this;
-    }
-
-    template <typename U>
-    KeyValue& operator=(U const& u) {
-        second = make_data(u);
-        return *this;
-    }
-    template <typename U>
-    KeyValue& operator=(std::initializer_list<U> const& u) {
-        second = make_data(u);
-        return *this;
-    }
-    template <typename U>
-    KeyValue& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
-        second = make_data(u);
-        return *this;
-    }
-    template <typename U>
-    KeyValue& operator=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-        second = make_data(u);
-        return *this;
-    }
-};
-
-inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue{std::string(c), make_data(true)}; }
-
 // KeyValue const& make_data(KeyValue const& u) { return u; }
 // std::initializer_list<KeyValue> const& make_data(std::initializer_list<KeyValue> const& u) { return u; }
 // std::initializer_list<std::initializer_list<KeyValue>> const& make_data(

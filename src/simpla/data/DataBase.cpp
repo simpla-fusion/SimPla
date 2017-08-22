@@ -28,9 +28,7 @@ std::shared_ptr<DataBase> DataBase::New(std::string const& s) {
     std::tie(scheme, authority, path, query, fragment) = ParsingURI(uri);
     auto res = Factory<DataBase>::Create(scheme);
     ASSERT(res != nullptr);
-    if (SP_SUCCESS == res->Connect(authority, path, query, fragment)) {
-        VERBOSE << "Connect  Data Backend [ " << scheme << " : " << authority << path << " ]" << std::endl;
-    } else {
+    if (SP_SUCCESS != res->Connect(authority, path, query, fragment)) {
         RUNTIME_ERROR << "Fail to connect  Data Backend [ " << scheme << " : " << authority << path << " ]"
                       << std::endl;
     }

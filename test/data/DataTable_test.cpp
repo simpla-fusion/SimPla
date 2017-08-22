@@ -21,8 +21,8 @@ TEST(DataTable, memory) {
 
     (*db)["CartesianGeometry"] = {"hello world!"};
     (*db)["d"] = {1, 2, 3, 4, 5, 56, 6, 6};
-    (*db)["g"] = {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}};
-    (*db)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
+    (*db)["g"].SetValue<nTuple<int, 2, 2, 2>>({{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
+    //    (*db)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
     (*db)["b"]["a"] = (5);
 
     (*db)["/b/sub/1/2/3/4/d/123456"] = {1, 2, 3};
@@ -39,17 +39,19 @@ TEST(DataTable, memory) {
     //    db->AddValue("/b/sub/d", 5);
     //    //
     (*db)["/b/sub/d"] += "wa wa";
+    (*db)["/b/sub/d"] += "la la";
+
     (*db)["/b/sub/a"] += {3, 5, 3, 4};
     (*db)["/b/sub/a"] += {3, 5, 3, 4};
 
     (*db)["/b/sub/e"] = {1, 2, 3, 4};
     (*db)["/b/sub/e"] += 9;
 
-    //    (*db)["a"] = {"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
-    //            "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}};
+    (*db)["a"] += {"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
+                   "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}};
     //    (*db)["h"] = {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}};
-    //    (*db)["i"] = {"abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"};
-    //    (*db)["j"] = {"abc"_ = {"abc"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}};
+    (*db)["i"] = {"default"_, "abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"};
+    (*db)["i"] += {"abc"_ = {"abc1"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}};
     LOGGER << db->GetNumberOfChildren() << std::endl;
     LOGGER << "db: " << (*db) << std::endl;
 
