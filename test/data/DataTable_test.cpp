@@ -13,10 +13,6 @@
 using namespace simpla;
 using namespace simpla::data;
 TEST(DataTable, memory) {
-    logger::set_stdout_level(1000);
-
-    //    LOGGER << "Registered DataBase: " << GLOBAL_DATA_BACKEND_FACTORY.GetBackendList() << std::endl;
-
     auto db = DataNode::New();
 
     *(*db)["CartesianGeometry"] = {"hello world!"};
@@ -57,21 +53,9 @@ TEST(DataTable, memory) {
     EXPECT_EQ(db->GetNode("b/a")->as<int>(), 5);
 
     EXPECT_EQ((*db)["/CartesianGeometry"]->as<std::string>(), "hello world!");
-    //    EXPECT_EQ(((*db)["/Context/CCC"]->as<nTuple<int, 4>>()), (nTuple<int, 4>{1, 3, 4, 5}));
-
-    //    EXPECT_EQ(((*db)["g"]->as<nTuple<int, 2, 2, 2>>()), (nTuple<int, 2, 2, 2>{{{1, 2}, {3, 4}}, {{5, 5}, {6,
-    //    6}}}));
-    //    LOGGER << "a =" << (db->GetValue<bool>("a")) << std::endl;
-    //    LOGGER << "/b/sub/e  = " << db->Get<nTuple<int, 4>>("/b/sub/e") << std::endl;
-    //    db->SetValue("box", {{1, 2, 3}, {4, 5, 6}});
-    //    LOGGER << "box  = " << db->Get<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
-    //    LOGGER << "/b/sub/c  = " << db->Get<std::tuple<nTuple<int, 4>, nTuple<int, 4>, nTuple<int,
-    //    4>>>("/b/sub/c")
-    //           << std::endl;
 }
-//
+
 TEST(DataTable, lua) {
-    logger::set_stdout_level(1000);
     auto db = DataNode::New("lua://");
     db->Parse(
         "PI = 3.141592653589793\n"
