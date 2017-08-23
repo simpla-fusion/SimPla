@@ -37,7 +37,7 @@ TEST(DataTable, memory) {
     *(*db)["/b/sub/d"] += "wa wa";
     *(*db)["/b/sub/d"] += "la la";
 
-    *(*db)["/b/sub/a"] += {3, 5, 3, 4};
+    *(*db)["/b/sub/a"] += {0, 1, 2, 3};
     *(*db)["/b/sub/a"] += {3, 5, 3, 4};
 
     *(*db)["/b/sub/e"] = {1, 2, 3, 4};
@@ -48,9 +48,13 @@ TEST(DataTable, memory) {
     //    *(*db)["h"] = {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}};
     *(*db)["i"] = {"default"_, "abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"};
     *(*db)["i"] += {"abc"_ = {"abc1"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}};
-    LOGGER << db->GetNumberOfChildren() << std::endl;
-    LOGGER << "db: " << (*db) << std::endl;
+    MESSAGE << "db: " << (*db) << std::endl;
+    EXPECT_EQ(db->GetNode("/b/sub/d")->GetNumberOfChildren(), 2);
     EXPECT_EQ(db->GetNode("b/a")->as<int>(), 5);
+    EXPECT_TRUE(db->Check("a/a"));
+    EXPECT_FALSE(db->Check("a/not_debug"));
+
+    EXPECT_EQ((db->GetNode("/b/sub/a/1")->as<nTuple<int, 4>>()), (nTuple<int, 4>{3, 5, 3, 4}));
 
     EXPECT_EQ((*db)["/CartesianGeometry"]->as<std::string>(), "hello world!");
 }
@@ -73,7 +77,7 @@ TEST(DataTable, lua) {
         "    AAA = { c =  3 , d = { c = \"3\", e = { 1, 3, 4, 5 } } },\n"
         "    CCC = { 1, 3, 4, 5 }\n"
         "}");
-    LOGGER << "lua:// " << *(*db)["/Context"] << std::endl;
+    MESSAGE << "lua:// " << *(*db)["/Context"] << std::endl;
     EXPECT_EQ((*db)["/Context/AAA/c"]->as<int>(), 3);
     //    EXPECT_EQ(((*db)["/Context/CCC"]->as<nTuple<int, 4>>()), (nTuple<int, 4>{1, 3, 4, 5}));
 
