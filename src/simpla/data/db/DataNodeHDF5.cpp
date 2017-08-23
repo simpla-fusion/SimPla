@@ -91,9 +91,7 @@ std::shared_ptr<DataNode> DataNodeHDF5::Duplicate() const {
 }
 size_type DataNodeHDF5::GetNumberOfChildren() const {
     size_type num = 0;
-    if (m_pimpl_->m_group_ == -1) {
-        num = 1;
-    } else {
+    if (m_pimpl_->m_group_ > 0) {
         H5G_info_t g_info;
         H5_ERROR(H5Gget_info(m_pimpl_->m_group_, &g_info));
         num += g_info.nlinks;
@@ -530,7 +528,7 @@ int HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataEntity> cons
 int DataNodeHDF5::Set(std::shared_ptr<DataEntity> const& v) {
     int res = 0;
     auto parent = std::dynamic_pointer_cast<DataNodeHDF5>(Parent());
-    if (m_pimpl_->m_group_ == -1 || m_pimpl_->m_key_.empty()) {
+    if (parent == nullptr || m_pimpl_->m_key_.empty()) {
         RUNTIME_ERROR << "Can not set value to group node or unnamed node " << std::endl;
     } else {
         res = HDF5Set(parent->m_pimpl_->m_group_, m_pimpl_->m_key_, v);

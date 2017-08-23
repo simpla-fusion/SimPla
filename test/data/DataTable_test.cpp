@@ -59,7 +59,7 @@ TEST_P(DataBaseTest, io) {
     *(*db)["CartesianGeometry"] = "hello world!";
     *(*db)["b/a"] = 5;
 
-    //    *(*db)["d"] = {1, 2, 3, 4, 5, 56, 6, 6};
+    *(*db)["d"] = {1, 2, 3, 4, 5, 56, 6, 6};
     //    (*db)["g"]->SetValue<nTuple<int, 2, 2, 2>>({{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
     //    *(*db)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
 
