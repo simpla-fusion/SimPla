@@ -80,7 +80,11 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     /**@ } */
 
     /** @} */
-    DataNode& operator[](std::string const& s) { return *GetNode(s, RECURSIVE | NEW_IF_NOT_EXIST); }
+    std::shared_ptr<DataNode> operator[](std::string const& s) { return GetNode(s); }
+    std::shared_ptr<DataNode> operator[](std::string const& s) const { return GetNode(s); }
+
+    std::shared_ptr<DataNode> GetNode(std::string const& uri) { return GetNode(uri, RECURSIVE | NEW_IF_NOT_EXIST); }
+    std::shared_ptr<DataNode> GetNode(std::string const& uri) const { return GetNode(uri, RECURSIVE); }
 
     template <typename U, typename... Args>
     int SetValue(Args&&... args) {
@@ -255,23 +259,25 @@ class KeyValue {
 
     template <typename U>
     KeyValue& operator=(U const& u) {
-        (*m_node_)[m_key_] = u;
+        *m_node_->GetNode(m_key_) = (u);
         return *this;
     }
     template <typename U>
     KeyValue& operator=(std::initializer_list<U> const& u) {
         m_node_->Clear();
-        (*m_node_)[m_key_] = u;
+        *m_node_->GetNode(m_key_) = (u);
         return *this;
     }
     template <typename U>
     KeyValue& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
-        (*m_node_)[m_key_] = u;
+        m_node_->Clear();
+        *m_node_->GetNode(m_key_) = (u);
         return *this;
     }
     template <typename U>
     KeyValue& operator=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-        (*m_node_)[m_key_] = u;
+        m_node_->Clear();
+        *m_node_->GetNode(m_key_) = (u);
         return *this;
     }
 };
