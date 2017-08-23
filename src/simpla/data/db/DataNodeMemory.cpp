@@ -46,10 +46,9 @@ std::shared_ptr<DataNode> DataNodeMemory::Root() const {
 }
 std::shared_ptr<DataNode> DataNodeMemory::Parent() const { return m_pimpl_->m_parent_; }
 
-void DataNodeMemory::Clear() { m_pimpl_->m_table_.clear(); }
-
-std::shared_ptr<DataEntity> DataNodeMemory::Get() { return m_pimpl_->m_entity_; }
 std::shared_ptr<DataEntity> DataNodeMemory::Get() const { return m_pimpl_->m_entity_; }
+
+void DataNodeMemory::Clear() { m_pimpl_->m_table_.clear(); }
 
 int DataNodeMemory::Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& fun) {
     int count = 0;
@@ -130,7 +129,7 @@ int DataNodeMemory::DeleteNode(std::string const& uri, int flag) {
         count = static_cast<int>(m_pimpl_->m_table_.erase(uri));
     } else {
         auto node = RecursiveFindNode(shared_from_this(), uri, RECURSIVE);
-        while (node.second != nullptr) {
+        if (node.second != nullptr) {
             if (auto p = std::dynamic_pointer_cast<DataNodeMemory>(node.second->Parent())) {
                 count += static_cast<int>(p->m_pimpl_->m_table_.erase(node.first));
                 node.second = p;

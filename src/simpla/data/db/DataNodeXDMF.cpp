@@ -1,7 +1,7 @@
 //
 // Created by salmon on 17-8-13.
 //
-#include "DataBaseXDMF.h"
+#include "DataNodeXDMF.h"
 #include <sys/stat.h>
 #include <Xdmf.hpp>
 #include <XdmfDomain.hpp>
@@ -11,8 +11,8 @@
 
 namespace simpla {
 namespace data {
+REGISTER_CREATOR(DataNodeXDMF, xmf);
 
-struct DataBaseXDMF::Node : public DataNode {};
 //
 //// int DataBackendXDMFRoot::Connect(std::string const& authority, std::string const& path, std::string const& query,
 ////                                 std::string const& fragment) {
@@ -41,24 +41,48 @@ struct DataBaseXDMF::Node : public DataNode {};
 //    ++m_counter_;
 //    return 0;
 //}
-// struct DataBaseXDMF::pimpl_s {
-//    std::string m_name_;
-//    std::shared_ptr<DataBaseXDMF> m_parent_ = nullptr;
-//    std::shared_ptr<XdmfItem> m_self_;
-//};
-DataBaseXDMF::DataBaseXDMF() {}
-DataBaseXDMF::~DataBaseXDMF() { Flush(); }
-bool DataBaseXDMF::isNull() const { return false; }
-int DataBaseXDMF::Connect(std::string const& authority, std::string const& path, std::string const& query,
+struct DataNodeXDMF::pimpl_s {
+    std::string m_name_;
+    std::shared_ptr<DataNodeXDMF> m_parent_ = nullptr;
+    std::shared_ptr<XdmfItem> m_self_;
+};
+DataNodeXDMF::DataNodeXDMF() : m_pimpl_(new pimpl_s) {}
+DataNodeXDMF::DataNodeXDMF(pimpl_s* pimpl) : m_pimpl_(pimpl) {}
+DataNodeXDMF::~DataNodeXDMF() { delete m_pimpl_; }
+bool DataNodeXDMF::isValid() const { return true; }
+int DataNodeXDMF::Connect(std::string const& authority, std::string const& path, std::string const& query,
                           std::string const& fragment) {
     //    m_pimpl_->m_parent_->Connect(authority, path, query, fragment);
     return SP_SUCCESS;
 }
 
-int DataBaseXDMF::Disconnect() { return SP_SUCCESS; }
+int DataNodeXDMF::Disconnect() { return SP_SUCCESS; }
 
-int DataBaseXDMF::Flush() { return 0; }
-std::shared_ptr<DataNode> DataBaseXDMF::Root() { return DataNode::New(); }
+int DataNodeXDMF::Flush() { return 0; }
+
+std::shared_ptr<DataNode> DataNodeXDMF::Duplicate() const {}
+size_type DataNodeXDMF::GetNumberOfChildren() const {}
+DataNode::e_NodeType DataNodeXDMF::NodeType() const {}
+std::shared_ptr<DataNode> DataNodeXDMF::Root() const {
+    return Parent() != nullptr ? Parent()->Root() : const_cast<this_type*>(this)->shared_from_this();
+}
+std::shared_ptr<DataNode> DataNodeXDMF::Parent() const { return m_pimpl_->m_parent_; }
+
+int DataNodeXDMF::Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& fun) {}
+int DataNodeXDMF::Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& fun) const {}
+
+std::shared_ptr<DataNode> DataNodeXDMF::GetNode(std::string const& uri, int flag) {}
+std::shared_ptr<DataNode> DataNodeXDMF::GetNode(std::string const& uri, int flag) const {}
+std::shared_ptr<DataNode> DataNodeXDMF::GetNode(index_type s, int flag) {}
+std::shared_ptr<DataNode> DataNodeXDMF::GetNode(index_type s, int flag) const {}
+int DataNodeXDMF::DeleteNode(std::string const& uri, int flag) {}
+void DataNodeXDMF::Clear() {}
+
+std::shared_ptr<DataEntity> DataNodeXDMF::Get() {}
+std::shared_ptr<DataEntity> DataNodeXDMF::Get() const {}
+int DataNodeXDMF::Set(std::shared_ptr<DataEntity> const& v) {}
+int DataNodeXDMF::Add(std::shared_ptr<DataEntity> const& v) {}
+
 ////
 //// std::shared_ptr<DataEntity> DataBaseXDMF::Get(std::string const& URI) const {
 ////    if (URI[0] == '/') {

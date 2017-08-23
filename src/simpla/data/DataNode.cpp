@@ -36,7 +36,6 @@ std::shared_ptr<DataNode> DataNode::New(std::string const& s) {
     return res;
 };
 
-std::shared_ptr<DataEntity> DataNode::Get() { return DataEntity::New(); }
 std::shared_ptr<DataEntity> DataNode::Get() const { return DataEntity::New(); }
 int DataNode::Set(std::shared_ptr<DataEntity> const& v) { return 0; }
 int DataNode::Add(std::shared_ptr<DataEntity> const& v) { return AddNode()->Set(v); }

@@ -11,7 +11,7 @@
 
 namespace simpla {
 namespace data {
-class DataNodeHDF5 : public DataNode {
+struct DataNodeHDF5 : public DataNode {
     SP_DATA_NODE_HEAD(DataNodeHDF5);
 };
 

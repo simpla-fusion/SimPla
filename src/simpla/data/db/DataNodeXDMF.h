@@ -5,13 +5,12 @@
 #ifndef SIMPLA_DATABACKENDXDMF_H
 #define SIMPLA_DATABACKENDXDMF_H
 
-#include "../../../../experiment/DataBase.h"
+#include "../DataNode.h"
 namespace simpla {
 namespace data {
-
-class DataBaseXDMF : public DataBase {
-    SP_DATABASE_DECLARE_MEMBERS(DataBaseXDMF);
-};  // class DataBaseXDMF {
+class DataNodeXDMF : public DataNode {
+    SP_DATA_NODE_HEAD(DataNodeXDMF);
+};  // class DataNodeXDMF {
 }  // namespace data
 }  // namespace simpla
 

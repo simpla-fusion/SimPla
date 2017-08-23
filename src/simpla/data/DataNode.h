@@ -71,7 +71,6 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     virtual int DeleteNode(index_type s, int flag) { return DeleteNode(std::to_string(s), flag); };
     virtual void Clear() {}
 
-    virtual std::shared_ptr<DataEntity> Get();
     virtual std::shared_ptr<DataEntity> Get() const;
     virtual int Set(std::shared_ptr<DataEntity> const& v);
     virtual int Add(std::shared_ptr<DataEntity> const& v);
@@ -365,8 +364,6 @@ std::ostream& operator<<(std::ostream&, DataNode const&);
     std::shared_ptr<DataNode> GetNode(index_type s, int flag) const override;                          \
     int DeleteNode(std::string const& uri, int flag) override;                                         \
     void Clear() override;                                                                             \
-                                                                                                       \
-    std::shared_ptr<DataEntity> Get() override;                                                        \
     std::shared_ptr<DataEntity> Get() const override;                                                  \
     int Set(std::shared_ptr<DataEntity> const& v) override;                                            \
     int Add(std::shared_ptr<DataEntity> const& v) override;
