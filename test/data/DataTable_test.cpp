@@ -54,7 +54,13 @@ TEST(DataTable, memory) {
     *(*db)["i"] += {"abc"_ = {"abc1"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}};
     LOGGER << db->GetNumberOfChildren() << std::endl;
     LOGGER << "db: " << (*db) << std::endl;
+    EXPECT_EQ(db->GetNode("b/a")->as<int>(), 5);
 
+    EXPECT_EQ((*db)["/CartesianGeometry"]->as<std::string>(), "hello world!");
+    //    EXPECT_EQ(((*db)["/Context/CCC"]->as<nTuple<int, 4>>()), (nTuple<int, 4>{1, 3, 4, 5}));
+
+    //    EXPECT_EQ(((*db)["g"]->as<nTuple<int, 2, 2, 2>>()), (nTuple<int, 2, 2, 2>{{{1, 2}, {3, 4}}, {{5, 5}, {6,
+    //    6}}}));
     //    LOGGER << "a =" << (db->GetValue<bool>("a")) << std::endl;
     //    LOGGER << "/b/sub/e  = " << db->Get<nTuple<int, 4>>("/b/sub/e") << std::endl;
     //    db->SetValue("box", {{1, 2, 3}, {4, 5, 6}});
@@ -85,7 +91,7 @@ TEST(DataTable, lua) {
         "}");
     LOGGER << "lua:// " << *(*db)["/Context"] << std::endl;
     EXPECT_EQ((*db)["/Context/AAA/c"]->as<int>(), 3);
-//    EXPECT_EQ(((*db)["/Context/CCC"]->as<nTuple<int, 4>>()), (nTuple<int, 4>{1, 3, 4, 5}));
+    //    EXPECT_EQ(((*db)["/Context/CCC"]->as<nTuple<int, 4>>()), (nTuple<int, 4>{1, 3, 4, 5}));
 
     EXPECT_DOUBLE_EQ((*db)["/Context/c"]->as<double>(), 299792458);
 
