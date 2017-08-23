@@ -62,13 +62,13 @@ int DataNode::Add(std::shared_ptr<DataNode> const& v) {
     });
 };
 
-std::ostream& Print(std::ostream& os, std::shared_ptr<const DataNode> const& entry, int indent) {
-    if (entry == nullptr) { return os; }
-    if (entry->NodeType() == DataNode::DN_ARRAY) {
+std::ostream& Print(std::ostream& os, std::shared_ptr<const DataNode> const& node, int indent) {
+    if (node == nullptr) { return os; }
+    if (node->NodeType() == DataNode::DN_ARRAY) {
         os << "[ ";
         bool is_first = true;
-        bool new_line = entry->GetNumberOfChildren() > 1;
-        entry->Foreach([&](auto k, auto v) {
+        bool new_line = node->GetNumberOfChildren() > 1;
+        node->Foreach([&](auto k, auto v) {
             if (is_first) {
                 is_first = false;
             } else {
@@ -79,11 +79,11 @@ std::ostream& Print(std::ostream& os, std::shared_ptr<const DataNode> const& ent
             return 1;
         });
         os << " ]";
-    } else if (entry->NodeType() == DataNode::DN_TABLE) {
+    } else if (node->NodeType() == DataNode::DN_TABLE) {
         os << "{ ";
         bool is_first = true;
-        bool new_line = entry->GetNumberOfChildren() > 1;
-        auto count = entry->Foreach([&](auto k, auto v) {
+        bool new_line = node->GetNumberOfChildren() > 1;
+        auto count = node->Foreach([&](auto k, auto v) {
             if (is_first) {
                 is_first = false;
             } else {
@@ -98,8 +98,8 @@ std::ostream& Print(std::ostream& os, std::shared_ptr<const DataNode> const& ent
         if (new_line) { os << std::endl << std::setw(indent) << " "; }
         os << "}";
 
-    } else if (entry->NodeType() == DataNode::DN_ENTITY) {
-        os << *entry->Get();
+    } else if (node->NodeType() == DataNode::DN_ENTITY) {
+        os << *node->Get();
     }
     return os;
 }

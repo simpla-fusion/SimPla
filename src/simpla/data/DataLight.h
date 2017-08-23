@@ -19,6 +19,9 @@ struct DataLight : public DataEntity {
    public:
     ~DataLight() override = default;
     static std::shared_ptr<DataLight> New();
+
+    virtual void* GetPointer() { return nullptr; }
+    virtual void const* GetPointer() const { return nullptr; }
 };
 template <typename V>
 class DataLightT : public DataLight {
@@ -58,7 +61,8 @@ class DataLightT : public DataLight {
 
     value_type const& value() const { return m_data_; };
     value_type& value() { return m_data_; };
-
+    void* GetPointer() override { return reinterpret_cast<void*>(&m_data_); }
+    void const* GetPointer() const override { return reinterpret_cast<void const*>(&m_data_); }
     std::type_info const& value_type_info() const override { return typeid(value_type); };
     size_type value_type_size() const override { return sizeof(value_type); };
     size_type rank() const override { return std::rank<value_type>::value; }

@@ -201,7 +201,7 @@ std::shared_ptr<DataNode> DataNodeLua::GetNode(index_type s, int flag) const {
 int DataNodeLua::DeleteNode(std::string const& uri, int flag) { return 0; /*m_pimpl_->m_lua_obj_.erase(uri);*/ }
 void DataNodeLua::Clear() {}
 
-std::shared_ptr<DataEntity> DataNodeLua::Get() { return make_data_entity_lua(m_pimpl_->m_lua_obj_); }
+//std::shared_ptr<DataEntity> DataNodeLua::Get() { return make_data_entity_lua(m_pimpl_->m_lua_obj_); }
 std::shared_ptr<DataEntity> DataNodeLua::Get() const { return make_data_entity_lua(m_pimpl_->m_lua_obj_); }
 int DataNodeLua::Set(std::shared_ptr<DataEntity> const& v) {
     UNIMPLEMENTED;
