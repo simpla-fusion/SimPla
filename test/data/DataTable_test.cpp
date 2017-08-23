@@ -12,9 +12,50 @@
 
 using namespace simpla;
 using namespace simpla::data;
-TEST(DataTable, memory) {
-    auto db = DataNode::New();
+TEST(DataTable, lua) {
+    auto db = DataNode::New("lua://");
+    db->Parse(
+        "PI = 3.141592653589793\n"
+        "Context = {\n"
+        "    c = 299792458.0, -- m/s\n"
+        "    qe = 1.60217656e-19, -- C\n"
+        "    me = 9.10938291e-31, --kg\n"
+        "    mp = 1.672621777e-27, --kg\n"
+        "    mp_me = 1836.15267245, --\n"
+        "    KeV = 1.1604e7, -- K\n"
+        "    Tesla = 1.0, -- Tesla\n"
+        "    TWOPI = PI * 2,\n"
+        "    k_B = 1.3806488e-23, --Boltzmann_constant\n"
+        "    epsilon0 = 8.8542e-12,\n"
+        "    AAA = { c =  3 , d = { c = \"3\", e = { 1, 3, 4, 5 } } },\n"
+        "    CCC = { 1, 3, 4, 5 }\n"
+        "}");
+    MESSAGE << "lua:// " << *(*db)["/Context"] << std::endl;
+    EXPECT_EQ((*db)["/Context/AAA/c"]->as<int>(), 3);
+    //    EXPECT_EQ(((*db)["/Context/CCC"]->as<nTuple<int, 4>>()), (nTuple<int, 4>{1, 3, 4, 5}));
 
+    EXPECT_DOUBLE_EQ((*db)["/Context/c"]->as<double>(), 299792458);
+
+    //   db->Set("box", {{1, 2, 3}, {4, 5, 6}});
+    //    LOGGER << "box  = " <<db->Get<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
+}
+
+class DataBaseTest : public testing::TestWithParam<std::string> {
+   protected:
+    void SetUp() {
+        logger::set_stdout_level(logger::LOG_VERBOSE);
+        m_url = GetParam();
+    }
+    void TearDown() {}
+
+   public:
+    virtual ~DataBaseTest() {}
+
+    std::string m_url;
+};
+
+TEST_P(DataBaseTest, io) {
+    auto db = DataNode::New(m_url);
     *(*db)["CartesianGeometry"] = {"hello world!"};
     *(*db)["d"] = {1, 2, 3, 4, 5, 56, 6, 6};
     (*db)["g"]->SetValue<nTuple<int, 2, 2, 2>>({{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
@@ -48,7 +89,7 @@ TEST(DataTable, memory) {
     //    *(*db)["h"] = {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}};
     *(*db)["i"] = {"default"_, "abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"};
     *(*db)["i"] += {"abc"_ = {"abc1"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}};
-    MESSAGE << "db: " << (*db) << std::endl;
+    MESSAGE << m_url << " : " << (*db) << std::endl;
     EXPECT_EQ(db->GetNode("/b/sub/d")->GetNumberOfChildren(), 2);
     EXPECT_EQ(db->GetNode("b/a")->as<int>(), 5);
     EXPECT_TRUE(db->Check("a/a"));
@@ -58,34 +99,7 @@ TEST(DataTable, memory) {
 
     EXPECT_EQ((*db)["/CartesianGeometry"]->as<std::string>(), "hello world!");
 }
-
-TEST(DataTable, lua) {
-    auto db = DataNode::New("lua://");
-    db->Parse(
-        "PI = 3.141592653589793\n"
-        "Context = {\n"
-        "    c = 299792458.0, -- m/s\n"
-        "    qe = 1.60217656e-19, -- C\n"
-        "    me = 9.10938291e-31, --kg\n"
-        "    mp = 1.672621777e-27, --kg\n"
-        "    mp_me = 1836.15267245, --\n"
-        "    KeV = 1.1604e7, -- K\n"
-        "    Tesla = 1.0, -- Tesla\n"
-        "    TWOPI = PI * 2,\n"
-        "    k_B = 1.3806488e-23, --Boltzmann_constant\n"
-        "    epsilon0 = 8.8542e-12,\n"
-        "    AAA = { c =  3 , d = { c = \"3\", e = { 1, 3, 4, 5 } } },\n"
-        "    CCC = { 1, 3, 4, 5 }\n"
-        "}");
-    MESSAGE << "lua:// " << *(*db)["/Context"] << std::endl;
-    EXPECT_EQ((*db)["/Context/AAA/c"]->as<int>(), 3);
-    //    EXPECT_EQ(((*db)["/Context/CCC"]->as<nTuple<int, 4>>()), (nTuple<int, 4>{1, 3, 4, 5}));
-
-    EXPECT_DOUBLE_EQ((*db)["/Context/c"]->as<double>(), 299792458);
-
-    //   db->Set("box", {{1, 2, 3}, {4, 5, 6}});
-    //    LOGGER << "box  = " <<db->Get<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
-}
+INSTANTIATE_TEST_CASE_P(DataBaseTestP, DataBaseTest, testing::Values("mem://", "test.lua"));
 //
 // TEST(DataTable, samrai) {
 //    logger::set_stdout_level(1000);
@@ -100,30 +114,4 @@ TEST(DataTable, lua) {
 //    LOGGER << *db.database() << std::endl;
 //    LOGGER << "box  = " <<db->Get<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
 //
-//}
-//
-// TEST(DataTable, hdf5) {
-//    logger::set_stdout_level(1000);
-//
-//    //    LOGGER << "Registered DataBase: " << GLOBAL_DATA_BACKEND_FACTORY.GetBackendList() << std::endl;
-//    auto db = DataBase::New("test.h5");
-//    db->Set("pi", 3.1415926);
-//    db->Set("a", "just a test");
-//    //   db->Set("c", {1.2346, 4.0, 5.0, 6.0, 6.1});
-//    //   db->Set({"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
-//    //                 "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !",
-//    "hello!"}});
-//    //   db->Set("h", {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}});
-//    db->Set("i", {"abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
-//    db->Set("j", {"abc"_ = {"abc"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
-//    //   db->AddValue("/b/sub/d", {1, 2});
-//    //   db->AddValue("/b/sub/d", 5);
-//    //   db->AddValue("/b/sub/d", 5);
-//    //   db->AddValue("/b/sub/d", 5);
-//
-//    //   db->Set("/b/sub/a", {3, 5, 3, 4});
-//    db->Set("/b/sub/b", 9);
-//    LOGGER << "h5:// " << db << std::endl;
-//    db->Set("box", {{1, 2, 3}, {4, 5, 6}});
-//    LOGGER << "box  = " << db->Get<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
 //}

@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 #include "field_diff_calculus_test.h"
-#include <gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "simpla/algebra/algebra.h"
 #include "simpla/physics/Constants.h"
 #include "simpla/predefine/CartesianGeometry.h"
@@ -22,8 +22,7 @@ INSTANTIATE_TEST_CASE_P(CartesianGeometry, FETLTest,
 
                                 //                        std::make_tuple(nTuple<Real, 3>{{0, 0,
                                 //                        0}}, nTuple<Real, 3>({1.0, 2.0, 3.0})), //
-                                std::make_tuple(nTuple<Real, 3>({0.0, -2.0, -3.0}),
-                                                nTuple<Real, 3>({1.0, 2.0, 3.0}))
+                                std::make_tuple(nTuple<Real, 3>({0.0, -2.0, -3.0}), nTuple<Real, 3>({1.0, 2.0, 3.0}))
 
                                     ),
 
@@ -42,32 +41,31 @@ INSTANTIATE_TEST_CASE_P(CartesianGeometry, FETLTest,
                                 ));
 
 #else
-INSTANTIATE_TEST_CASE_P(
-    DiffCalculusCylindrical, FETLTest,
+INSTANTIATE_TEST_CASE_P(DiffCalculusCylindrical, FETLTest,
 
-    testing::Combine(
+                        testing::Combine(
 
-        testing::Values(
+                            testing::Values(
 
-            std::make_tuple(nTuple<Real, 3>({1.0, 0, 0}), nTuple<Real, 3>({2.0, 2.0, TWOPI})),
+                                std::make_tuple(nTuple<Real, 3>({1.0, 0, 0}), nTuple<Real, 3>({2.0, 2.0, TWOPI})),
 
-            std::make_tuple(nTuple<Real, 3>({10.0, -2.0, 0.0}),
-                            nTuple<Real, 3>({12.0, 1.0, HALFPI}))
+                                std::make_tuple(nTuple<Real, 3>({10.0, -2.0, 0.0}),
+                                                nTuple<Real, 3>({12.0, 1.0, HALFPI}))
 
-                ),
+                                    ),
 
-        testing::Values(nTuple<size_t, 3>({16, 20, 16}), nTuple<size_t, 3>({16, 1, 1})  //
-                        ,
-                        nTuple<size_t, 3>({40, 1, 50})  //
-                        ,
-                        nTuple<size_t, 3>({17, 20, 1})  //
-                        //                        , nTuple<size_t, 3>({1, 10, 1}) //
-                        //                        , nTuple<size_t, 3>({1, 1, 16}) //
-                        //                        , nTuple<size_t, 3>({1, 20, 20}) //
-                        //
-                        ),
+                            testing::Values(nTuple<size_t, 3>({16, 20, 16}), nTuple<size_t, 3>({16, 1, 1})  //
+                                            ,
+                                            nTuple<size_t, 3>({40, 1, 50})  //
+                                            ,
+                                            nTuple<size_t, 3>({17, 20, 1})  //
+                                            //                        , nTuple<size_t, 3>({1, 10, 1}) //
+                                            //                        , nTuple<size_t, 3>({1, 1, 16}) //
+                                            //                        , nTuple<size_t, 3>({1, 20, 20}) //
+                                            //
+                                            ),
 
-        testing::Values(nTuple<Real, 3>({TWOPI, TWOPI, TWOPI}))
+                            testing::Values(nTuple<Real, 3>({TWOPI, TWOPI, TWOPI}))
 
-            ));
+                                ));
 #endif

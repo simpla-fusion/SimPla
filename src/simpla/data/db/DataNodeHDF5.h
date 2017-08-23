@@ -5,15 +5,14 @@
 #ifndef SIMPLA_DATABACKENDHDF5_H
 #define SIMPLA_DATABACKENDHDF5_H
 
-#include "../../../../experiment/DataBase.h"
-
 #include <string>
+#include "simpla/data/DataNode.h"
 #include "simpla/utilities/ObjectHead.h"
 
 namespace simpla {
 namespace data {
-class DataBaseHDF5 : public DataBase {
-    SP_DATABASE_DECLARE_MEMBERS(DataBaseHDF5)
+class DataNodeHDF5 : public DataNode {
+    SP_DATA_NODE_HEAD(DataNodeHDF5);
 };
 
 }  // namespace data{

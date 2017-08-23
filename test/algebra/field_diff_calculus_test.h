@@ -10,14 +10,14 @@
 
 #include "simpla/SIMPLA_config.h"
 
-#include <cstddef>
 #include <cmath>
 #include <complex>
+#include <cstddef>
 #include <memory>
 #include <random>
 #include <string>
 
-#include <gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "simpla/predefine/CalculusPolicy.h"
 
 #include "simpla/algebra/EntityId.h"
@@ -42,9 +42,8 @@ typedef mesh::CartesianGeometry mesh_type;
 
 //#endif
 
-class FETLTest
-    : public testing::TestWithParam<std::tuple<std::tuple<nTuple<Real, 3>, nTuple<Real, 3>>,
-                                               nTuple<index_type, 3>, nTuple<Real, 3>>> {
+class FETLTest : public testing::TestWithParam<
+                     std::tuple<std::tuple<nTuple<Real, 3>, nTuple<Real, 3>>, nTuple<index_type, 3>, nTuple<Real, 3>>> {
    protected:
     void SetUp() {
         logger::set_stdout_level(logger::LOG_VERBOSE);
@@ -114,9 +113,8 @@ class FETLTest
         //        res = K_real[RAxis] *  x[RAxis] + K_real[ZAxis] *  x[ZAxis] + K_real[PhiAxis] *
         //        x[PhiAxis]  ;
         //#else
-        Real res =
-            K_real[0] * x[0] + K_real[1] * x[1] + K_real[2] * x[2];  // inner_product(K_real, x);
-                                                                     //#endif
+        Real res = K_real[0] * x[0] + K_real[1] * x[1] + K_real[2] * x[2];  // inner_product(K_real, x);
+                                                                            //#endif
         return res;
     }
 
@@ -158,9 +156,8 @@ TEST_P(FETLTest, grad0) {
         f1b[s] = expect;
         variance += abs((f1[s] - expect) * (f1[s] - expect));
         average += (f1[s] - expect);
-        EXPECT_LE(abs(f1[s] - expect), error) << expect << "," << f1[s] << "[" << (s.x >> 1) << ","
-                                              << (s.y >> 1) << "," << (s.z >> 1) << "]"
-                                              << std::endl;
+        EXPECT_LE(abs(f1[s] - expect), error) << expect << "," << f1[s] << "[" << (s.x >> 1) << "," << (s.y >> 1) << ","
+                                              << (s.z >> 1) << "]" << std::endl;
     });
 
     EXPECT_LE(std::sqrt(variance / m_p->range(mesh::SP_ES_NOT_SHARED, EDGE).size()), error);
@@ -206,9 +203,8 @@ TEST_P(FETLTest, grad3) {
         variance += abs((f2[s] - expect) * (f2[s] - expect));
         average += (f2[s] - expect);
 
-        EXPECT_LE(abs(f2[s] - expect), error) << expect << "," << f2[s] << "[" << (s.x >> 1) << ","
-                                              << (s.y >> 1) << "," << (s.z >> 1) << "]"
-                                              << std::endl;
+        EXPECT_LE(abs(f2[s] - expect), error) << expect << "," << f2[s] << "[" << (s.x >> 1) << "," << (s.y >> 1) << ","
+                                              << (s.z >> 1) << "]" << std::endl;
     });
 
     //#ifndef NDEBUG
@@ -259,9 +255,8 @@ TEST_P(FETLTest, diverge1) {
         variance += abs((f0[s] - expect) * (f0[s] - expect));
         average += (f0[s] - expect);
 
-        EXPECT_LE(abs(f0[s] - expect), error) << expect << "," << f0[s] << "[" << (s.x >> 1) << ","
-                                              << (s.y >> 1) << "," << (s.z >> 1) << "]"
-                                              << std::endl;
+        EXPECT_LE(abs(f0[s] - expect), error) << expect << "," << f0[s] << "[" << (s.x >> 1) << "," << (s.y >> 1) << ","
+                                              << (s.z >> 1) << "]" << std::endl;
     });
 
     EXPECT_LE(std::sqrt(variance /= m_p->range(mesh::SP_ES_NOT_SHARED, NODE).size()), error);
@@ -302,16 +297,14 @@ TEST_P(FETLTest, diverge2) {
         //
         //                expect += sin_v / x[RAxis];
         //#else
-        expect = (K_real[0] + K_real[1] + K_real[2]) * cos_v +
-                 (K_imag[0] + K_imag[1] + K_imag[2]) * sin_v;
+        expect = (K_real[0] + K_real[1] + K_real[2]) * cos_v + (K_imag[0] + K_imag[1] + K_imag[2]) * sin_v;
         //#endif
         f3b[s] = expect;
         variance += abs((f3[s] - expect) * (f3[s] - expect));
         average += (f3[s] - expect);
 
-        EXPECT_LE(abs(f3[s] - expect), error) << expect << "," << f3[s] << "[" << (s.x >> 1) << ","
-                                              << (s.y >> 1) << "," << (s.z >> 1) << "]"
-                                              << std::endl;
+        EXPECT_LE(abs(f3[s] - expect), error) << expect << "," << f3[s] << "[" << (s.x >> 1) << "," << (s.y >> 1) << ","
+                                              << (s.z >> 1) << "]" << std::endl;
     });
     variance /= m_p->range(mesh::SP_ES_NOT_SHARED, VOLUME).size();
     average /= m_p->range(mesh::SP_ES_NOT_SHARED, VOLUME).size();
@@ -407,8 +400,7 @@ TEST_P(FETLTest, curl1) {
         //
         //                }
         //#else
-        expect =
-            (K_real[(n + 1) % 3] * E[(n + 2) % 3] - K_real[(n + 2) % 3] * E[(n + 1) % 3]) * cos_v;
+        expect = (K_real[(n + 1) % 3] * E[(n + 2) % 3] - K_real[(n + 2) % 3] * E[(n + 1) % 3]) * cos_v;
         //#endif
 
         f2b[s] = expect;
@@ -478,16 +470,14 @@ TEST_P(FETLTest, curl2) {
         //
         //               }
         //#	else
-        expect =
-            (K_real[(n + 1) % 3] * E[(n + 2) % 3] - K_real[(n + 2) % 3] * E[(n + 1) % 3]) * cos_v;
+        expect = (K_real[(n + 1) % 3] * E[(n + 2) % 3] - K_real[(n + 2) % 3] * E[(n + 1) % 3]) * cos_v;
         //#endif
         f1b[s] = expect;
         variance += abs((f1[s] - expect) * (f1[s] - expect));
         average += (f1[s] - expect);
 
-        EXPECT_LE(abs(f1[s] - expect), error) << expect << "," << f1[s] << "[" << (s.x >> 1) << ","
-                                              << (s.y >> 1) << "," << (s.z >> 1) << "]"
-                                              << std::endl;
+        EXPECT_LE(abs(f1[s] - expect), error) << expect << "," << f1[s] << "[" << (s.x >> 1) << "," << (s.y >> 1) << ","
+                                              << (s.z >> 1) << "]" << std::endl;
     });
     //#ifndef NDEBUG
     //
