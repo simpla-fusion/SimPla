@@ -56,11 +56,12 @@ class DataBaseTest : public testing::TestWithParam<std::string> {
 
 TEST_P(DataBaseTest, io) {
     auto db = DataNode::New(m_url);
-    *(*db)["CartesianGeometry"] = {"hello world!"};
+    *(*db)["CartesianGeometry"] = "hello world!";
+    *(*db)["b/a"] = 5;
+
     //    *(*db)["d"] = {1, 2, 3, 4, 5, 56, 6, 6};
     //    (*db)["g"]->SetValue<nTuple<int, 2, 2, 2>>({{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
     //    *(*db)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
-    *(*db)["b/a"] = (5);
 
     //    *(*db)["/b/sub/1/2/3/4/d/123456"] = {1, 2, 3};
     //
@@ -70,13 +71,8 @@ TEST_P(DataBaseTest, io) {
     //    *(*db)["/b/sub/c"] += {3, 5, 3, 4};
     //    *(*db)["/b/sub/c"] += {4, 5, 3, 4};
 
-    //    db->AddValue("/b/sub/d", 1);
-    //    db->AddValue("/b/sub/d", 5);
-    //    db->AddValue("/b/sub/d", 5);
-    //    db->AddValue("/b/sub/d", 5);
     //    //
-    *(*db)["/b/sub/d"] += "wa wa";
-    *(*db)["/b/sub/d"] += "la la";
+    //    *(*db)["/b/sub/d"] = {"wa wa", "la la"};
 
     //    *(*db)["/b/sub/a"] += {0, 1, 2, 3};
     //    *(*db)["/b/sub/a"] += {3, 5, 3, 4};
@@ -89,9 +85,13 @@ TEST_P(DataBaseTest, io) {
     //    //    *(*db)["h"] = {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}};
     //    *(*db)["i"] = {"default"_, "abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"};
     //    *(*db)["i"] += {"abc"_ = {"abc1"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}};
+
+    db->Flush();
     MESSAGE << m_url << " : " << (*db) << std::endl;
     //    EXPECT_EQ(db->GetNode("/b/sub/d")->GetNumberOfChildren(), 2);
-    //    EXPECT_EQ(db->GetNode("b/a")->as<int>(), 5);
+    EXPECT_EQ(db->GetNode("CartesianGeometry")->as<std::string>(), "hello world!");
+
+    EXPECT_EQ(db->GetNode("b/a")->as<int>(), 5);
     //    EXPECT_TRUE(db->Check("a/a"));
     //    EXPECT_FALSE(db->Check("a/not_debug"));
     //    EXPECT_EQ((db->GetNode("/b/sub/a/1")->as<nTuple<int, 4>>()), (nTuple<int, 4>{3, 5, 3, 4}));

@@ -85,6 +85,29 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     std::shared_ptr<DataNode> GetNode(std::string const& uri) { return GetNode(uri, RECURSIVE | NEW_IF_NOT_EXIST); }
     std::shared_ptr<DataNode> GetNode(std::string const& uri) const { return GetNode(uri, RECURSIVE); }
 
+    template <typename U>
+    int Set(std::initializer_list<U> const& u) {
+        Clear();
+        int count = 0;
+        for (auto const& v : u) { count += Add(make_data(v)); }
+        return count;
+    }
+
+    template <typename U>
+    int Set(std::initializer_list<std::initializer_list<U>> const& u) {
+        Clear();
+        int count = 0;
+        for (auto const& v : u) { count += AddNode()->Set(v); }
+        return count;
+    }
+    template <typename U>
+    int Set(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
+        Clear();
+        int count = 0;
+        for (auto const& v : u) { count += AddNode()->Set(v); }
+        return count;
+    }
+
     template <typename U, typename... Args>
     int SetValue(Args&&... args) {
         return Set(DataLightT<U>::New(std::forward<Args>(args)...));
@@ -175,18 +198,18 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
 
     template <typename U>
     DataNode& operator=(std::initializer_list<U> const& u) {
-        Set(make_data(u));
+        Set(u);
         return *this;
     }
 
     template <typename U>
     DataNode& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
-        Set(make_data(u));
+        Set(u);
         return *this;
     }
     template <typename U>
     DataNode& operator=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-        Set(make_data(u));
+        Set(u);
         return *this;
     }
 

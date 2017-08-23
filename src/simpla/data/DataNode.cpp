@@ -83,7 +83,7 @@ std::ostream& Print(std::ostream& os, std::shared_ptr<const DataNode> const& nod
         os << "{ ";
         bool is_first = true;
         bool new_line = node->GetNumberOfChildren() > 1;
-        auto count = node->Foreach([&](auto k, auto v) {
+        node->Foreach([&](auto k, auto v) {
             if (is_first) {
                 is_first = false;
             } else {
