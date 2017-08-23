@@ -61,9 +61,9 @@ TEST_P(DataBaseTest, io) {
 
     *(*db)["d"] = {1, 2, 3, 4, 5, 56, 6, 6};
     //    (*db)["g"]->SetValue<nTuple<int, 2, 2, 2>>({{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
-    //    *(*db)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
+    *(*db)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
 
-    //    *(*db)["/b/sub/1/2/3/4/d/123456"] = {1, 2, 3};
+    *(*db)["/b/sub/1/2/3/4/d/123456"] = {1, 2, 3};
     //
     //    *(*db)["/b/sub/c"] += {5, 6, 7, 8};
     //    *(*db)["/b/sub/c"] += {1, 5, 3, 4};
