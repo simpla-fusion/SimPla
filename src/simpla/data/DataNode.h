@@ -33,16 +33,22 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
 
     static std::shared_ptr<DataNode> New(std::string const& uri = "");
 
+    enum { RECURSIVE = 0b01, NEW_IF_NOT_EXIST = 0b010, ADD_IF_EXIST = 0b100, ONLY_TABLE = 0b1000 };
+    enum e_NodeType { DN_NULL = 0, DN_ENTITY = 1, DN_ARRAY = 2, DN_TABLE = 3 };
+
+    /** @addtogroup optional @{*/
+    virtual int Parse(std::string const&) { return 0; }
+    virtual std::istream& Parse(std::istream& is) { return is; }
     virtual int Connect(std::string const& authority, std::string const& path, std::string const& query,
                         std::string const& fragment) = 0;
     virtual int Disconnect() = 0;
     virtual bool isValid() const { return true; }
+    virtual int Flush() { return 0; }
+    /**@ } */
 
-    enum { RECURSIVE = 0b01, NEW_IF_NOT_EXIST = 0b010, ADD_IF_EXIST = 0b100, ONLY_TABLE = 0b1000 };
-    enum e_NodeType { DN_NULL = 0, DN_ENTITY = 1, DN_ARRAY = 2, DN_TABLE = 3 };
+    /** @addtogroup required @{*/
 
     /** @addtogroup{ Interface */
-    virtual int Flush() { return 0; }
     virtual e_NodeType NodeType() const { return DN_NULL; }
     virtual size_type GetNumberOfChildren() const { return 0; }
 
@@ -50,8 +56,8 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
 
     virtual std::shared_ptr<DataNode> Root() const { return Duplicate(); }
     virtual std::shared_ptr<DataNode> Parent() const { return Duplicate(); }
-    virtual int Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const&) { return 0; }
-    virtual int Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const&) const { return 0; }
+    virtual int Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& f) { return 0; }
+    virtual int Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& f) const { return 0; }
 
     virtual std::shared_ptr<DataNode> GetNode(std::string const& uri, int flag) { return Duplicate(); }
     virtual std::shared_ptr<DataNode> GetNode(std::string const& uri, int flag) const { return Duplicate(); }
@@ -71,6 +77,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     virtual int Add(std::shared_ptr<DataEntity> const& v);
     virtual int Set(std::shared_ptr<DataNode> const& v);
     virtual int Add(std::shared_ptr<DataNode> const& v);
+    /**@ } */
 
     /** @} */
     DataNode& operator[](std::string const& s) { return *GetNode(s, RECURSIVE | NEW_IF_NOT_EXIST); }
@@ -313,6 +320,8 @@ std::ostream& operator<<(std::ostream&, DataNode const&);
     struct pimpl_s;                                                                                    \
     pimpl_s* m_pimpl_ = nullptr;                                                                       \
                                                                                                        \
+    explicit _CLASS_NAME_(pimpl_s*);                                                                   \
+                                                                                                       \
    protected:                                                                                          \
     _CLASS_NAME_();                                                                                    \
                                                                                                        \
@@ -324,17 +333,17 @@ std::ostream& operator<<(std::ostream&, DataNode const&);
                                                                                                        \
     ~_CLASS_NAME_() override;                                                                          \
                                                                                                        \
-    int Connect(std::string const& authority, std::string const& path, std::string const& query,       \
-                std::string const& fragment) override;                                                 \
-    int Disconnect() override;                                                                         \
-    bool isValid() const override;                                                                     \
-    int Flush() override;                                                                              \
     template <typename... Args>                                                                        \
     static std::shared_ptr<this_type> New(Args&&... args) {                                            \
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));                 \
     }                                                                                                  \
     std::shared_ptr<DataNode> Duplicate() const override;                                              \
     size_type GetNumberOfChildren() const override;                                                    \
+    int Connect(std::string const& authority, std::string const& path, std::string const& query,       \
+                std::string const& fragment) override;                                                 \
+    int Disconnect() override;                                                                         \
+    bool isValid() const override;                                                                     \
+    int Flush() override;                                                                              \
                                                                                                        \
     e_NodeType NodeType() const override;                                                              \
                                                                                                        \

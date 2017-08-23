@@ -14,10 +14,11 @@
 namespace simpla {
 namespace data {
 
-class DataEntity;
-
 class DataNodeLua : public DataNode {
     SP_DATA_NODE_HEAD(DataNodeLua)
+
+    int Parse(std::string const&) override;
+    std::istream& Parse(std::istream& is) override;
 };
 }  // { namespace data {
 }  // namespace simpla

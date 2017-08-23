@@ -16,13 +16,13 @@ REGISTER_CREATOR(DataNodeLua, lua);
 struct DataNodeLua::pimpl_s {
     std::shared_ptr<DataNodeLua> m_parent_ = nullptr;
     LuaObject m_lua_obj_;
+    pimpl_s() {}
+    ~pimpl_s() {}
+    pimpl_s(LuaObject l, std::shared_ptr<DataNodeLua> p) : m_lua_obj_(std::move(l)), m_parent_(std::move(p)) {}
 };
 
-std::shared_ptr<DataNodeLua> make_node(LuaObject const& lobj, std::shared_ptr<DataNodeLua> const& parent = nullptr) {
-    auto res = DataNodeLua::New();
-    res->m_pimpl_->m_lua_obj_ = lobj;
-    res->m_pimpl_->m_parent_ = parent;
-    return res;
+std::shared_ptr<DataNodeLua> make_node(LuaObject lobj, std::shared_ptr<DataNodeLua> const& parent = nullptr) {
+    return DataNodeLua::New(new DataNodeLua::pimpl_s(std::move(lobj), parent));
 }
 
 template <typename T>
@@ -82,7 +82,9 @@ std::shared_ptr<DataEntity> make_data_entity_lua(LuaObject const& lobj) {
         //        auto p = DataNodeLua::New();
         //        p->m_pimpl_->m_lua_obj_ = lobj;
         //        res = DataTable::New(p);
-        RUNTIME_ERROR << "Object is a table" << std::endl;
+        //        RUNTIME_ERROR
+        res = DataEntity::New();
+        WARNING << "Object is a table" << std::endl;
     } else if (lobj.is_array()) {
         auto a = *lobj.begin();
         if (a.second.is_integer()) {
@@ -101,19 +103,31 @@ std::shared_ptr<DataEntity> make_data_entity_lua(LuaObject const& lobj) {
     } else if (lobj.is_string()) {
         res = make_data<std::string>(lobj);
     } else {
-        RUNTIME_ERROR << "illegal data type of Lua :" << lobj.get_typename() << std::endl;
+        res = DataEntity::New();
+        //        RUNTIME_ERROR
+        WARNING << "illegal data type of Lua :" << lobj.get_typename() << std::endl;
     }
     return res;
 }
 
 DataNodeLua::DataNodeLua() : m_pimpl_(new pimpl_s) {}
+DataNodeLua::DataNodeLua(pimpl_s* pimpl) : m_pimpl_(pimpl) {}
 DataNodeLua::~DataNodeLua() { delete m_pimpl_; }
 int DataNodeLua::Connect(std::string const& authority, std::string const& path, std::string const& query,
                          std::string const& fragment) {
-    m_pimpl_->m_lua_obj_.parse_file(path);
-    return 0;
+    if (!path.empty()) m_pimpl_->m_lua_obj_.parse_file(path);
+    return SP_SUCCESS;
 }
 int DataNodeLua::Disconnect() { return 0; }
+
+int DataNodeLua::Parse(std::string const& str) {
+    m_pimpl_->m_lua_obj_.parse_string(str);
+    return SP_SUCCESS;
+};
+std::istream& DataNodeLua::Parse(std::istream& is) {
+    Parse(std::string(std::istreambuf_iterator<char>(is), {}));
+    return is;
+}
 bool DataNodeLua::isValid() const { return true; }
 int DataNodeLua::Flush() { return 0; }
 
@@ -133,7 +147,7 @@ DataNode::e_NodeType DataNodeLua::NodeType() const {
     } else if (!m_pimpl_->m_lua_obj_.is_function()) {
         res = DN_ENTITY;
     } else {
-        BAD_CAST;
+        //        BAD_CAST;
     }
     return res;
 }
@@ -146,26 +160,37 @@ std::shared_ptr<DataNode> DataNodeLua::Parent() const { return m_pimpl_->m_paren
 
 int DataNodeLua::Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& fun) {
     int count = 0;
-    for (auto it = m_pimpl_->m_lua_obj_.begin(), ie = m_pimpl_->m_lua_obj_.end(); it != ie; ++it) {
-        auto p = *it;
+    for (auto p : m_pimpl_->m_lua_obj_) {
         count += fun(p.first.as<std::string>(), make_node(p.second, m_pimpl_->m_parent_));
     }
     return count;
 }
 int DataNodeLua::Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& fun) const {
     int count = 0;
-    for (auto it = m_pimpl_->m_lua_obj_.begin(), ie = m_pimpl_->m_lua_obj_.end(); it != ie; ++it) {
-        auto p = *it;
+    for (auto p : m_pimpl_->m_lua_obj_) {
         count += fun(p.first.as<std::string>(), make_node(p.second, m_pimpl_->m_parent_));
     }
     return count;
 }
 
 std::shared_ptr<DataNode> DataNodeLua::GetNode(std::string const& uri, int flag) {
-    return make_node(m_pimpl_->m_lua_obj_[uri], m_pimpl_->m_parent_);
+    std::shared_ptr<DataNode> res = nullptr;
+    if ((flag & RECURSIVE) == 0) {
+        res = make_node(m_pimpl_->m_lua_obj_[uri], m_pimpl_->m_parent_);
+    } else {
+        res = RecursiveFindNode(shared_from_this(), uri, flag).second;
+    }
+    return res;
 }
 std::shared_ptr<DataNode> DataNodeLua::GetNode(std::string const& uri, int flag) const {
-    return make_node(m_pimpl_->m_lua_obj_[uri], m_pimpl_->m_parent_);
+    std::shared_ptr<DataNode> res = nullptr;
+    if ((flag & RECURSIVE) == 0) {
+        res = make_node(m_pimpl_->m_lua_obj_[uri], m_pimpl_->m_parent_);
+    } else {
+        res =
+            RecursiveFindNode(const_cast<this_type*>(this)->shared_from_this(), uri, flag & (~NEW_IF_NOT_EXIST)).second;
+    }
+    return res;
 }
 std::shared_ptr<DataNode> DataNodeLua::GetNode(index_type s, int flag) {
     return make_node(m_pimpl_->m_lua_obj_[s], m_pimpl_->m_parent_);

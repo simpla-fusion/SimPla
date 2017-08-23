@@ -4,9 +4,9 @@
  * @date 2015-12-10.
  */
 #include "LuaObject.h"
-#include "simpla/utilities/FancyStream.h"
-#include "simpla/algebra/nTuple.h"
 #include "LuaObjectExt.h"
+#include "simpla/algebra/nTuple.h"
+#include "simpla/utilities/FancyStream.h"
 
 namespace simpla {
 
@@ -119,8 +119,8 @@ void LuaObject::parse_file(std::string const &filename, std::string const &statu
 }
 
 void LuaObject::parse_string(std::string const &str) {
+    init();
     auto acc = L_.acc();
-
     LUA_ERROR(luaL_dostring(*acc, str.c_str()))
 }
 
@@ -245,7 +245,7 @@ size_t LuaObject::size() const {
     if (!is_null()) {
         auto acc = L_.acc();
         try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-        res = lua_rawlen(*acc, -1);
+        res = lua_rawlen(*acc, 1);
         lua_pop(*acc, 1);
     }
     return res;

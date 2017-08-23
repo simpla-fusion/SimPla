@@ -66,9 +66,28 @@ TEST(DataTable, memory) {
 //
 TEST(DataTable, lua) {
     logger::set_stdout_level(1000);
-    auto db = DataNode::New("/home/salmon/workspace/SimPla/test/data/test.lua");
-
-    LOGGER << "lua:// " << *db << std::endl;
+    auto db = DataNode::New("lua://");
+    db->Parse(
+        "PI = 3.141592653589793\n"
+        "Context = {\n"
+        "    c = 299792458, -- m/s\n"
+        "    qe = 1.60217656e-19, -- C\n"
+        "    me = 9.10938291e-31, --kg\n"
+        "    mp = 1.672621777e-27, --kg\n"
+        "    mp_me = 1836.15267245, --\n"
+        "    KeV = 1.1604e7, -- K\n"
+        "    Tesla = 1.0, -- Tesla\n"
+        "    TWOPI = PI * 2,\n"
+        "    k_B = 1.3806488e-23, --Boltzmann_constant\n"
+        "    epsilon0 = 8.8542e-12,\n"
+        "    AAA = { c = \"3\", d = { c = \"3\", e = { 1, 3, 4, 5 } } },\n"
+        "    CCC = { 1, 3, 4, 5 }\n"
+        "}");
+    auto p = db->GetNode("Context", 0);
+    CHECK(p->GetNumberOfChildren());
+    LOGGER << "lua:// " << *p << std::endl;
+    auto p1 = db->GetNode("/Context/AAA/c", DataNode::RECURSIVE);
+    LOGGER << "/Context/AAA/c = " << *p1 << std::endl;
     //   db->Set("box", {{1, 2, 3}, {4, 5, 6}});
     //    LOGGER << "box  = " <<db->Get<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
 }

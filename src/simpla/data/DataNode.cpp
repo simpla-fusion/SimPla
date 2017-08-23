@@ -64,6 +64,7 @@ int DataNode::Add(std::shared_ptr<DataNode> const& v) {
 };
 
 std::ostream& Print(std::ostream& os, std::shared_ptr<const DataNode> const& entry, int indent) {
+    if (entry == nullptr) { return os; }
     if (entry->NodeType() == DataNode::DN_ARRAY) {
         os << "[ ";
         bool is_first = true;
@@ -74,7 +75,7 @@ std::ostream& Print(std::ostream& os, std::shared_ptr<const DataNode> const& ent
             } else {
                 os << ", ";
             }
-            if (new_line) { os << std::endl << std::setw(indent + 1) << " "; }
+            if (new_line && v->NodeType() != DataNode::DN_ENTITY) { os << std::endl << std::setw(indent + 1) << " "; }
             Print(os, v, indent + 1);
             return 1;
         });

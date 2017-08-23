@@ -32,9 +32,9 @@ template <typename T>
 struct Converter {
     typedef T value_type;
 
-    static unsigned int from(lua_State *L, unsigned int idx, value_type *v);
+    static unsigned int from(lua_State *L, unsigned int idx, value_type *v){return 0;}
 
-    static unsigned int to(lua_State *L, value_type const &v);
+    static unsigned int to(lua_State *L, value_type const &v){return 0;}
 };
 
 namespace _impl {
