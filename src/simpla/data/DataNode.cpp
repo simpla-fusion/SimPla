@@ -61,49 +61,49 @@ int DataNode::Add(std::shared_ptr<DataNode> const& v) {
         return count;
     });
 };
-
-std::ostream& Print(std::ostream& os, std::shared_ptr<const DataNode> const& node, int indent) {
-    if (node == nullptr) { return os; }
-    if (node->NodeType() == DataNode::DN_ARRAY) {
+std::istream& DataNode::Parse(std::istream& is) { return is; }
+std::ostream& DataNode::Print(std::ostream& os, int indent) const {
+    if (this->NodeType() == DataNode::DN_ARRAY) {
         os << "[ ";
         bool is_first = true;
-        bool new_line = node->GetNumberOfChildren() > 1;
-        node->Foreach([&](auto k, auto v) {
+        bool new_line = this->GetNumberOfChildren() > 1;
+        this->Foreach([&](auto k, auto v) {
             if (is_first) {
                 is_first = false;
             } else {
                 os << ", ";
             }
             if (new_line && v->NodeType() != DataNode::DN_ENTITY) { os << std::endl << std::setw(indent + 1) << " "; }
-            Print(os, v, indent + 1);
+            v->Print(os, indent + 1);
             return 1;
         });
         os << " ]";
-    } else if (node->NodeType() == DataNode::DN_TABLE) {
+    } else if (this->NodeType() == DataNode::DN_TABLE) {
         os << "{ ";
         bool is_first = true;
-        bool new_line = node->GetNumberOfChildren() > 1;
-        node->Foreach([&](auto k, auto v) {
+        bool new_line = this->GetNumberOfChildren() > 1;
+        this->Foreach([&](auto k, auto v) {
             if (is_first) {
                 is_first = false;
             } else {
                 os << ", ";
             }
-            if (new_line) { os << std::endl << std::setw(indent + 1) << " "; }
-            os << "\"" << k << "\" = ";
-            Print(os, v, indent + 1);
+            if (new_line) { os << std::endl << std::setw(indent + 1); }
+            FancyPrint(os, k, indent);
+            os<<" = ";
+            v->Print(os, indent + 1);
             return 1;
         });
 
         if (new_line) { os << std::endl << std::setw(indent) << " "; }
         os << "}";
 
-    } else if (node->NodeType() == DataNode::DN_ENTITY) {
-        os << *node->Get();
+    } else if (this->NodeType() == DataNode::DN_ENTITY) {
+        this->Get()->Print(os, indent + 1);
     }
     return os;
 }
-std::ostream& operator<<(std::ostream& os, DataNode const& entry) { return Print(os, entry.shared_from_this(), 0); }
+std::ostream& operator<<(std::ostream& os, DataNode const& entry) { return entry.Print(os, 0); }
 
 static std::regex const sub_group_regex(R"(([^/?#]+)/)", std::regex::optimize);
 static std::regex const match_path_regex(R"(^(/?([/\S]+/)*)?([^/]+)?$)", std::regex::optimize);

@@ -399,6 +399,19 @@ struct type_list_N<N, First, Others...> {
 template <size_t N, typename... T>
 using type_list_N_t = typename type_list_N<N, T...>::type;
 
+template <typename TI, typename TJ>
+size_type get_value(std::integer_sequence<TI> const& _, TJ* d) {
+    return 0;
+};
+
+template <typename TI, TI N0, TI... N, typename TJ>
+size_type get_value(std::integer_sequence<TI, N0, N...> const& _, TJ* d) {
+    if (d != nullptr) {
+        d[0] = N0;
+        get_value(std::integer_sequence<TI, N...>(), d + 1);
+    }
+    return sizeof...(N);
+};
 }  // namespace traits
 
 template <typename Arg0>
@@ -842,7 +855,6 @@ EXAMPLE:
     struct _NAME_ : public std::integral_constant<bool, detail::_NAME_<T...>::value> {};
 
 // CHECK_OPERATOR(is_callable, ())
-
 
 }  // namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */

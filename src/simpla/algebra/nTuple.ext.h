@@ -15,8 +15,25 @@
 
 #include "nTuple.h"
 
-namespace simpla {
+namespace std {
 
+template <typename V, int... N>
+struct rank<simpla::nTuple<V, N...>> : public integral_constant<size_t, sizeof...(N)> {};
+namespace detail {
+template <unsigned M, int... N>
+struct get_i;
+template <unsigned M>
+struct get_i<M> : public std::integral_constant<int, 0> {};
+template <int N0, int... N>
+struct get_i<0, N0, N...> : public std::integral_constant<int, N0> {};
+template <unsigned M, int N0, int... N>
+struct get_i<M, N0, N...> : public std::integral_constant<int, get_i<M - 1, N...>::value> {};
+}
+template <typename V, int... N, unsigned M>
+struct extent<simpla::nTuple<V, N...>, M> : public integral_constant<size_t, detail::get_i<M, N...>::value> {};
+}  // namespace std {
+
+namespace simpla {
 
 template <typename T>
 T determinant(nTuple<T, 3> const& m) {

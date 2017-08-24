@@ -32,7 +32,7 @@ The following table lists requirements for a mesh type `M`,
 
  Pseudo-Signature  		| Semantics
  -----------------------|-------------
- `M( const M& )` 		| Copy constructor.
+ `M( const M& )` 		| CopyOut constructor.
  `~M()` 				| Destructor.
  `mesh_type`		    | BaseManifold type of geometry, which describes coordinates and Metric
  `mesh_type`		    | Topology structure of geometry,   Topology of grid points
@@ -53,8 +53,8 @@ mesh policy concept {#concept_manifold_policy}
   Pseudo-Signature  	 | Semantics
   -----------------------|-------------
   `P( BaseManifold  & )` | Constructor.
-  `P( P const  & )`	   | Copy constructor.
-  `~P( )` 			   | Copy Destructor.
+  `P( P const  & )`	   | CopyOut constructor.
+  `~P( )` 			   | CopyOut Destructor.
 
  ## Interpolator policy
    Interpolator, map between discrete space and continue space, i.e. Gather & Scatter

@@ -14,8 +14,8 @@
 
 #include <cassert>
 
-#include "simpla/utilities/type_traits.h"
 #include "ExpressionTemplate.h"
+#include "simpla/utilities/type_traits.h"
 
 //#include "utility.h"
 namespace simpla {
@@ -25,20 +25,20 @@ struct nTuple;
 template <typename...>
 struct Expression;
 }  // namespace simpla {
-
-namespace std {
-
-template <typename T, int... I>
-struct rank<simpla::nTuple<T, I...>> : public std::integral_constant<size_t, sizeof...(I)> {};
-
-template <typename V, int I0, int... I>
-struct extent<simpla::nTuple<V, I0, I...>> : public std::integral_constant<size_t, I0> {};
-
-template <typename...>
-struct extents;
-template <typename V, int... I>
-struct extents<simpla::nTuple<V, I...>> : public std::index_sequence<I...> {};
-}  // namespace std {
+//
+// namespace std {
+//
+// template <typename T, int... I>
+// struct rank<simpla::nTuple<T, I...>> : public std::integral_constant<size_t, sizeof...(I)> {};
+//
+// template <typename V, int I0, int... I>
+// struct extent<simpla::nTuple<V, I0, I...>> : public std::integral_constant<size_t, I0> {};
+//
+// template <typename...>
+// struct extents;
+// template <typename V, int... I>
+// struct extents<simpla::nTuple<V, I...>> : public std::index_sequence<I...> {};
+//}  // namespace std {
 
 namespace simpla {
 
@@ -226,7 +226,12 @@ struct nTuple<TV, N0, N...> {
     __host__ __device__ nTuple() = default;
     __host__ __device__ ~nTuple() = default;
 
-    static constexpr int size() { return reduction_v(tags::multiplication(), N0, N...); }
+    static constexpr size_type rank() { return sizeof...(N) + 1; }
+    template <typename I>
+    static constexpr size_type extents(I* d) {
+        return traits::get_value(std::integer_sequence<int, N0, N...>(), d);
+    }
+    static constexpr size_type size() { return static_cast<size_type>(reduction_v(tags::multiplication(), N0, N...)); }
 
     __host__ __device__ nTuple(simpla::traits::nested_initializer_list_t<value_type, sizeof...(N) + 1> l) {
         simpla::traits::assign_nested_initializer_list<N0, N...>::apply(m_data_, l);

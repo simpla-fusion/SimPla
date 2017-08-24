@@ -18,19 +18,18 @@ class DataEntity;
 
 namespace traits {
 template <typename U>
-struct is_light_data
-    : public std::integral_constant<
-          bool, std::is_arithmetic<U>::value || std::is_same<U, bool>::value || std::is_same<U, char>::value> {};
+struct is_light_data : public std::integral_constant<bool, std::is_arithmetic<U>::value> {};
 
-template <typename U, int... N>
-struct is_light_data<nTuple<U, N...>> : public std::true_type {};
-template <typename... U>
-struct is_light_data<std::tuple<U...>> : public std::true_type {};
+// template <typename U, int... N>
+// struct is_light_data<nTuple<U, N...>> : public std::true_type {};
+// template <typename... U>
+// struct is_light_data<std::tuple<U...>> : public std::true_type {};
 template <>
 struct is_light_data<std::string> : public std::integral_constant<bool, true> {};
 template <>
-struct is_light_data<char const*> : public std::integral_constant<bool, true> {};
-
+struct is_light_data<char> : public std::integral_constant<bool, true> {};
+template <>
+struct is_light_data<bool> : public std::integral_constant<bool, true> {};
 }  // namespace traits {
 
 }  // namespace simpla {

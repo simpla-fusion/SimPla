@@ -37,42 +37,11 @@ std::shared_ptr<DataEntity> make_data(LuaObject const& lobj) {
 //    return res;
 //}
 template <typename U>
-std::shared_ptr<DataEntity> make_data_array_lua(LuaObject const& lobj) {
-    std::shared_ptr<DataEntity> res = nullptr;
-    switch (lobj.size()) {
-        case 1:
-            make_data<nTuple<U, 1>>(lobj);
-            break;
-        case 2:
-            make_data<nTuple<U, 2>>(lobj);
-            break;
-        case 3:
-            make_data<nTuple<U, 3>>(lobj);
-            break;
-        case 4:
-            make_data<nTuple<U, 4>>(lobj);
-            break;
-        case 5:
-            make_data<nTuple<U, 5>>(lobj);
-            break;
-        case 6:
-            make_data<nTuple<U, 6>>(lobj);
-            break;
-        case 7:
-            make_data<nTuple<U, 7>>(lobj);
-            break;
-        case 8:
-            make_data<nTuple<U, 8>>(lobj);
-            break;
-        case 9:
-            make_data<nTuple<U, 9>>(lobj);
-            break;
-
-        default:
-            res = make_data_vector<U>(lobj);
-    }
-
-    return std::dynamic_pointer_cast<DataEntity>(res);
+std::shared_ptr<DataLightT<U*>> make_data_array_lua(LuaObject const& lobj) {
+    size_type s = lobj.size();
+    auto d = std::shared_ptr<U>(new U[s]);
+    for (int i = 0; i < s; ++i) { d.get()[i] = lobj[i].as<U>(); }
+    return DataLightT<U*>::New(1, &s, d);
 }
 
 std::shared_ptr<DataEntity> make_data_entity_lua(LuaObject const& lobj) {
@@ -92,7 +61,9 @@ std::shared_ptr<DataEntity> make_data_entity_lua(LuaObject const& lobj) {
         } else if (a.second.is_floating_point()) {
             res = make_data_array_lua<double>(lobj);
         } else if (a.second.is_string()) {
-            res = make_data_array_lua<std::string>(lobj);
+            auto p = DataLightT<std::string*>::New();
+            for (int i = 0, ie = lobj.size(); i < ie; ++i) { p->value().push_back(lobj[i].as<std::string>()); }
+            res = std::dynamic_pointer_cast<DataEntity>(p);
         }
     } else if (lobj.is_boolean()) {
         res = make_data<bool>(lobj);
@@ -201,7 +172,7 @@ std::shared_ptr<DataNode> DataNodeLua::GetNode(index_type s, int flag) const {
 int DataNodeLua::DeleteNode(std::string const& uri, int flag) { return 0; /*m_pimpl_->m_lua_obj_.erase(uri);*/ }
 void DataNodeLua::Clear() {}
 
-//std::shared_ptr<DataEntity> DataNodeLua::Get() { return make_data_entity_lua(m_pimpl_->m_lua_obj_); }
+// std::shared_ptr<DataEntity> DataNodeLua::Get() { return make_data_entity_lua(m_pimpl_->m_lua_obj_); }
 std::shared_ptr<DataEntity> DataNodeLua::Get() const { return make_data_entity_lua(m_pimpl_->m_lua_obj_); }
 int DataNodeLua::Set(std::shared_ptr<DataEntity> const& v) {
     UNIMPLEMENTED;

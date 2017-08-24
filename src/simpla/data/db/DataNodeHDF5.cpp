@@ -31,18 +31,14 @@ struct DataNodeHDF5::pimpl_s {
 
     hid_t m_file_ = -1;
     hid_t m_group_ = -1;
-    hid_t m_attr_ = -1;
-    hid_t m_dataset_ = -1;
 
+    std::shared_ptr<DataEntity> m_entity_ = nullptr;
     std::string m_key_;
-    int m_idx_ = -1;
 };
 
 DataNodeHDF5::DataNodeHDF5() : m_pimpl_(new pimpl_s) {}
 DataNodeHDF5::DataNodeHDF5(pimpl_s* pimpl) : m_pimpl_(pimpl) {}
 DataNodeHDF5::~DataNodeHDF5() {
-    if (m_pimpl_->m_attr_ > -1) { H5_ERROR(H5Aclose(m_pimpl_->m_attr_)); }
-    if (m_pimpl_->m_dataset_ > -1) { H5_ERROR(H5Dclose(m_pimpl_->m_dataset_)); }
     if (m_pimpl_->m_group_ > -1) { H5_ERROR(H5Gclose(m_pimpl_->m_group_)); }
     if (m_pimpl_->m_file_ > -1) { H5_ERROR(H5Fclose(m_pimpl_->m_file_)); }
     delete m_pimpl_;
@@ -81,12 +77,9 @@ bool DataNodeHDF5::isValid() const { return m_pimpl_->m_group_ != -1; }
 
 std::shared_ptr<DataNode> DataNodeHDF5::Duplicate() const {
     auto res = DataNodeHDF5::New();
-    //    res->m_pimpl_->m_file_ = m_pimpl_->m_file_;
     res->m_pimpl_->m_group_ = m_pimpl_->m_group_;
-    res->m_pimpl_->m_attr_ = m_pimpl_->m_attr_;
-    res->m_pimpl_->m_dataset_ = m_pimpl_->m_dataset_;
+    res->m_pimpl_->m_entity_ = m_pimpl_->m_entity_;
     res->m_pimpl_->m_key_ = m_pimpl_->m_key_;
-    res->m_pimpl_->m_idx_ = m_pimpl_->m_idx_;
     return res;
 }
 size_type DataNodeHDF5::GetNumberOfChildren() const {
@@ -106,7 +99,7 @@ DataNode::e_NodeType DataNodeHDF5::NodeType() const {
     auto num = GetNumberOfChildren();
     if (m_pimpl_->m_group_ != -1) {
         res = DN_TABLE;
-    } else if (m_pimpl_->m_dataset_ != -1 || m_pimpl_->m_attr_ != -1 || !m_pimpl_->m_key_.empty()) {
+    } else if (m_pimpl_->m_entity_ != nullptr || !m_pimpl_->m_key_.empty()) {
         res = DN_ENTITY;
     }
     return res;
@@ -115,13 +108,6 @@ std::shared_ptr<DataNode> DataNodeHDF5::Root() const {
     return Parent() != nullptr ? Parent()->Root() : const_cast<this_type*>(this)->shared_from_this();
 }
 std::shared_ptr<DataNode> DataNodeHDF5::Parent() const { return m_pimpl_->m_parent_; }
-
-template <typename U>
-std::shared_ptr<DataEntity> read_attr(hid_t attr_id, hid_t d_type) {
-    U res;
-    H5Aread(attr_id, d_type, &res);
-    return make_data(res);
-}
 
 template <template <typename> class TFun, typename... Args>
 void H5TypeDispatch(hid_t d_type, Args&&... args) {
@@ -177,78 +163,7 @@ void H5TypeDispatch(hid_t d_type, Args&&... args) {
         UNIMPLEMENTED;
     }
 }
-std::shared_ptr<DataBlock> HDF5GetDataSet(hid_t ds_id) {
-    std::shared_ptr<DataBlock> res = nullptr;
-    return res;
-}
-std::shared_ptr<DataEntity> HDF5GetAttr(hid_t attr_id) {
-    std::shared_ptr<DataEntity> res = nullptr;
-    hid_t d_type = H5Aget_type(attr_id);
-    hid_t d_space = H5Aget_space(attr_id);
 
-    H5T_class_t type_class = H5Tget_class(d_type);
-
-    if ((type_class == H5T_INTEGER || type_class == H5T_FLOAT)) {
-        if (H5Tequal(d_type, H5T_NATIVE_CHAR) > 0) {
-            res = read_attr<char>(attr_id, d_type);
-        } else if (H5Tequal(d_type, H5T_NATIVE_SHORT) > 0) {
-            res = read_attr<short>(attr_id, d_type);
-        } else if (H5Tequal(d_type, H5T_NATIVE_INT) > 0) {
-            res = read_attr<int>(attr_id, d_type);
-        } else if (H5Tequal(d_type, H5T_NATIVE_LONG) > 0) {
-            res = read_attr<double>(attr_id, d_type);
-        } else if (H5Tequal(d_type, H5T_NATIVE_LLONG) > 0) {
-            res = read_attr<long long>(attr_id, d_type);
-        } else if (H5Tequal(d_type, H5T_NATIVE_UCHAR) > 0) {
-            res = read_attr<unsigned char>(attr_id, d_type);
-        } else if (H5Tequal(d_type, H5T_NATIVE_USHORT) > 0) {
-            res = read_attr<unsigned short>(attr_id, d_type);
-        } else if (H5Tequal(d_type, H5T_NATIVE_UINT) > 0) {
-            res = read_attr<unsigned int>(attr_id, d_type);
-        } else if (H5Tequal(d_type, H5T_NATIVE_ULONG) > 0) {
-            res = read_attr<unsigned long>(attr_id, d_type);
-        } else if (H5Tequal(d_type, H5T_NATIVE_ULLONG) > 0) {
-            res = read_attr<unsigned long long>(attr_id, d_type);
-        } else if (H5Tequal(d_type, H5T_NATIVE_FLOAT) > 0) {
-            res = read_attr<float>(attr_id, d_type);
-        } else if (H5Tequal(d_type, H5T_NATIVE_DOUBLE) > 0) {
-            res = read_attr<double>(attr_id, d_type);
-        } else if (H5Tequal(d_type, H5T_NATIVE_LDOUBLE) > 0) {
-            res = read_attr<long double>(attr_id, d_type);
-        }
-    } else if (type_class == H5T_ARRAY) {
-        UNIMPLEMENTED;
-    } else if (type_class == H5T_STRING) {
-        size_t sdims = H5Tget_size(d_type);
-        ++sdims;
-        char buffer[sdims];
-        hid_t m_type = H5Tcopy(H5T_C_S1);
-        H5Tset_size(m_type, sdims);
-        H5Aread(attr_id, m_type, buffer);
-        res = make_data<std::string>(std::string(buffer));
-        H5Tclose(m_type);
-    } else if (type_class == H5T_TIME) {
-        UNIMPLEMENTED;
-    } else if (type_class == H5T_BITFIELD) {
-        UNIMPLEMENTED;
-    } else if (type_class == H5T_REFERENCE) {
-        UNIMPLEMENTED;
-    } else if (type_class == H5T_ENUM) {
-        UNIMPLEMENTED;
-    } else if (type_class == H5T_VLEN) {
-        UNIMPLEMENTED;
-    } else if (type_class == H5T_NO_CLASS) {
-        UNIMPLEMENTED;
-    } else if (type_class == H5T_OPAQUE) {
-        UNIMPLEMENTED;
-    } else if (type_class == H5T_COMPOUND) {
-        UNIMPLEMENTED;
-    }
-
-    H5Tclose(d_type);
-    H5Sclose(d_space);
-    return res;
-}
 hid_t GetHDF5DataType(std::type_info const& t_info) {
     hid_t v_type = H5T_NO_CLASS;
 
@@ -294,6 +209,101 @@ hid_t GetHDF5DataType(std::type_info const& t_info) {
     return (v_type);
 }
 
+template <typename U>
+std::shared_ptr<DataEntity> HDF5GetEntityT(hid_t attr_id, hid_t d_type, hid_t d_space, bool is_attribute) {
+    std::shared_ptr<DataEntity> res;
+    if (is_attribute) {
+        switch (H5Sget_simple_extent_type(d_space)) {
+            case H5S_SCALAR: {
+                U v;
+                H5_ERROR(H5Aread(attr_id, d_type, &v));
+                res = make_data(v);
+            } break;
+            case H5S_SIMPLE: {
+            } break;
+            case H5S_NULL:
+            default:
+                res = DataEntity::New();
+        }
+    }
+    return res;
+}
+
+std::shared_ptr<DataEntity> HDF5GetEntity(hid_t obj_id, bool is_attribute) {
+    std::shared_ptr<DataEntity> res = nullptr;
+    hid_t d_type, d_space;
+    if (is_attribute) {
+        d_type = H5Aget_type(obj_id);
+        d_space = H5Aget_space(obj_id);
+    } else {
+        d_type = H5Dget_type(obj_id);
+        d_space = H5Dget_space(obj_id);
+    }
+
+    H5T_class_t type_class = H5Tget_class(d_type);
+
+    if ((type_class == H5T_INTEGER || type_class == H5T_FLOAT)) {
+        if (H5Tequal(d_type, H5T_NATIVE_CHAR) > 0) {
+            res = HDF5GetEntityT<char>(obj_id, d_type, d_space, is_attribute);
+        } else if (H5Tequal(d_type, H5T_NATIVE_SHORT) > 0) {
+            res = HDF5GetEntityT<short>(obj_id, d_type, d_space, is_attribute);
+        } else if (H5Tequal(d_type, H5T_NATIVE_INT) > 0) {
+            res = HDF5GetEntityT<int>(obj_id, d_type, d_space, is_attribute);
+        } else if (H5Tequal(d_type, H5T_NATIVE_LONG) > 0) {
+            res = HDF5GetEntityT<double>(obj_id, d_type, d_space, is_attribute);
+        } else if (H5Tequal(d_type, H5T_NATIVE_LLONG) > 0) {
+            res = HDF5GetEntityT<long long>(obj_id, d_type, d_space, is_attribute);
+        } else if (H5Tequal(d_type, H5T_NATIVE_UCHAR) > 0) {
+            res = HDF5GetEntityT<unsigned char>(obj_id, d_type, d_space, is_attribute);
+        } else if (H5Tequal(d_type, H5T_NATIVE_USHORT) > 0) {
+            res = HDF5GetEntityT<unsigned short>(obj_id, d_type, d_space, is_attribute);
+        } else if (H5Tequal(d_type, H5T_NATIVE_UINT) > 0) {
+            res = HDF5GetEntityT<unsigned int>(obj_id, d_type, d_space, is_attribute);
+        } else if (H5Tequal(d_type, H5T_NATIVE_ULONG) > 0) {
+            res = HDF5GetEntityT<unsigned long>(obj_id, d_type, d_space, is_attribute);
+        } else if (H5Tequal(d_type, H5T_NATIVE_ULLONG) > 0) {
+            res = HDF5GetEntityT<unsigned long long>(obj_id, d_type, d_space, is_attribute);
+        } else if (H5Tequal(d_type, H5T_NATIVE_FLOAT) > 0) {
+            res = HDF5GetEntityT<float>(obj_id, d_type, d_space, is_attribute);
+        } else if (H5Tequal(d_type, H5T_NATIVE_DOUBLE) > 0) {
+            res = HDF5GetEntityT<double>(obj_id, d_type, d_space, is_attribute);
+        } else if (H5Tequal(d_type, H5T_NATIVE_LDOUBLE) > 0) {
+            res = HDF5GetEntityT<long double>(obj_id, d_type, d_space, is_attribute);
+        }
+    } else if (type_class == H5T_ARRAY) {
+        UNIMPLEMENTED;
+    } else if (type_class == H5T_STRING && is_attribute) {
+        size_t sdims = H5Tget_size(d_type);
+        ++sdims;
+        char buffer[sdims];
+        hid_t m_type = H5Tcopy(H5T_C_S1);
+        H5Tset_size(m_type, sdims);
+        H5Aread(obj_id, m_type, buffer);
+        res = make_data<std::string>(std::string(buffer));
+        H5Tclose(m_type);
+    } else if (type_class == H5T_TIME) {
+        UNIMPLEMENTED;
+    } else if (type_class == H5T_BITFIELD) {
+        UNIMPLEMENTED;
+    } else if (type_class == H5T_REFERENCE) {
+        UNIMPLEMENTED;
+    } else if (type_class == H5T_ENUM) {
+        UNIMPLEMENTED;
+    } else if (type_class == H5T_VLEN) {
+        UNIMPLEMENTED;
+    } else if (type_class == H5T_NO_CLASS) {
+        UNIMPLEMENTED;
+    } else if (type_class == H5T_OPAQUE) {
+        UNIMPLEMENTED;
+    } else if (type_class == H5T_COMPOUND) {
+        UNIMPLEMENTED;
+    }
+
+    H5Tclose(d_type);
+    H5Sclose(d_space);
+    return res;
+}
+
 std::shared_ptr<DataNodeHDF5> HDF5GetNode(hid_t grp, std::string const& uri) {
     auto res = DataNodeHDF5::New();
 
@@ -302,19 +312,22 @@ std::shared_ptr<DataNodeHDF5> HDF5GetNode(hid_t grp, std::string const& uri) {
     if (H5Lexists(grp, uri.c_str(), H5P_DEFAULT) > 0 &&
         H5Oget_info_by_name(grp, uri.c_str(), &o_info, H5P_DEFAULT) >= 0) {
         switch (o_info.type) {
-            case H5O_TYPE_DATASET:
-                res->m_pimpl_->m_dataset_ = H5Dopen(grp, uri.c_str(), H5P_DEFAULT);
-                break;
             case H5O_TYPE_GROUP:
                 res->m_pimpl_->m_group_ = H5Gopen(grp, uri.c_str(), H5P_DEFAULT);
                 break;
+            case H5O_TYPE_DATASET: {
+                auto d_id = H5Dopen(grp, uri.c_str(), H5P_DEFAULT);
+                res->m_pimpl_->m_entity_ = HDF5GetEntity(d_id, false);
+                H5Dclose(d_id);
+            } break;
             default:
                 RUNTIME_ERROR << "Undefined data type!" << std::endl;
                 break;
         }
     } else if (H5Aexists(grp, uri.c_str()) != 0) {
-        res->m_pimpl_->m_attr_ = H5Aopen(grp, uri.c_str(), H5P_DEFAULT);
-
+        auto a_id = H5Aopen(grp, uri.c_str(), H5P_DEFAULT);
+        res->m_pimpl_->m_entity_ = HDF5GetEntity(a_id, true);
+        H5Aclose(a_id);
     } else {
         res->m_pimpl_->m_key_ = uri;
     }
@@ -401,16 +414,7 @@ void DataNodeHDF5::Clear() {
 }
 
 std::shared_ptr<DataEntity> DataNodeHDF5::Get() const {
-    std::shared_ptr<DataEntity> res = nullptr;
-    if (m_pimpl_->m_attr_ > -1) {
-        res = HDF5GetAttr(m_pimpl_->m_attr_);
-    } else if (m_pimpl_->m_dataset_ > -1) {
-        res = HDF5GetDataSet(m_pimpl_->m_dataset_);
-    } else {
-        res = DataEntity::New();
-    }
-
-    return res;
+    return (m_pimpl_->m_entity_ != nullptr) ? m_pimpl_->m_entity_ : DataEntity::New();
 }
 
 int HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataEntity> const& entity) {
@@ -437,7 +441,7 @@ int HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataEntity> cons
     } else if (auto p = std::dynamic_pointer_cast<DataLight>(entity)) {
         hid_t d_type = -1;
         hid_t d_space;
-        auto ndims = static_cast<int>(entity->rank());
+        auto ndims = p->rank();
         if (ndims > 0) {
             size_type d[ndims];
             hsize_t h5d[ndims];
@@ -465,7 +469,16 @@ int HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataEntity> cons
 
         if (d_type != -1) {
             auto aid = H5Acreate(g_id, key.c_str(), d_type, d_space, H5P_DEFAULT, H5P_DEFAULT);
-            H5_ERROR(H5Awrite(aid, d_type, p->GetPointer()));
+
+            if (p->isContinue()) {
+                H5_ERROR(H5Awrite(aid, d_type, p->GetPointer()));
+
+            } else {
+                auto* ptr = operator new(p->GetAlignOf());
+                p->CopyOut(ptr);
+                H5_ERROR(H5Awrite(aid, d_type, ptr));
+                operator delete(ptr);
+            }
             H5_ERROR(H5Aclose(aid));
 
         } else {

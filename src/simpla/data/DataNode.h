@@ -37,8 +37,9 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     enum e_NodeType { DN_NULL = 0, DN_ENTITY = 1, DN_ARRAY = 2, DN_TABLE = 3 };
 
     /** @addtogroup optional @{*/
-    virtual int Parse(std::string const&) { return 0; }
-    virtual std::istream& Parse(std::istream& is) { return is; }
+    virtual int Parse(std::string const& s) { return 0; }
+    virtual std::istream& Parse(std::istream& is);
+    virtual std::ostream& Print(std::ostream& os, int indent) const;
     virtual int Connect(std::string const& authority, std::string const& path, std::string const& query,
                         std::string const& fragment) = 0;
     virtual int Disconnect() = 0;
@@ -108,66 +109,59 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
         return count;
     }
 
-    template <typename U, typename... Args>
+    template <typename... Args>
     int SetValue(Args&&... args) {
-        return Set(DataLightT<U>::New(std::forward<Args>(args)...));
+        return Set(DataLight::New(std::forward<Args>(args)...));
     };
-    template <typename U, typename V>
-    int SetValue(std::initializer_list<V> const& v) {
-        return Set(DataLightT<U>::New(v));
+    template <typename U>
+    int SetValue(std::initializer_list<U> const& v) {
+        return Set(DataLight::New(v));
     }
+
+    int SetValue(std::initializer_list<char const*> const& u) { return Set(DataLight::New(u)); }
 
     template <typename U>
-    int SetValue(std::initializer_list<char const*> const& u) {
-        int count = 0;
-        for (auto const& v : u) { count += SetValue<std::string>(v); }
-        return count;
+    int SetValue(std::initializer_list<std::initializer_list<U>> const& v) {
+        return Set(DataLight::New(v));
+    }
+    template <typename U>
+    int SetValue(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& v) {
+        return Set(DataLight::New(v));
     }
 
-    template <typename U, typename V>
-    int SetValue(std::initializer_list<std::initializer_list<V>> const& v) {
-        return Set(DataLightT<U>::New(v));
-    }
-    template <typename U, typename V>
-    int SetValue(std::initializer_list<std::initializer_list<std::initializer_list<V>>> const& v) {
-        return Set(DataLightT<U>::New(v));
-    }
-
-    template <typename U, typename... Args>
+    template <typename... Args>
     int AddValue(Args&&... args) {
-        return Add(DataLightT<U>::New(std::forward<Args>(args)...));
+        return Add(DataLight::New(std::forward<Args>(args)...));
     };
 
     template <typename U>
-    int AddValue(std::initializer_list<char const*> const& u) {
-        int count = 0;
-        for (auto const& v : u) { count += AddValue<std::string>(v); }
-        return count;
+    int AddValue(std::initializer_list<U> const& v) {
+        return Add(DataLight::New(v));
     }
-
-    template <typename U, typename V>
-    int AddValue(std::initializer_list<V> const& v) {
-        return Add(DataLightT<U>::New(v));
+    template <typename U>
+    int AddValue(std::initializer_list<std::initializer_list<U>> const& v) {
+        return Add(DataLight::New(v));
     }
-    template <typename U, typename V>
-    int AddValue(std::initializer_list<std::initializer_list<V>> const& v) {
-        return Add(DataLightT<U>::New(v));
-    }
-    template <typename U, typename V>
-    int AddValue(std::initializer_list<std::initializer_list<std::initializer_list<V>>> const& v) {
-        return Add(DataLightT<U>::New(v));
+    template <typename U>
+    int AddValue(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& v) {
+        return Add(DataLight::New(v));
     }
     template <typename U>
     U GetValue() const {
-        return Get()->as<U>();
+        auto p = std::dynamic_pointer_cast<DataLight>(Get());
+        if (p == nullptr) { BAD_CAST; }
+        return p->as<U>();
     };
     template <typename U>
     U GetValue(U const& default_value) const {
-        return Get()->as<U>(default_value);
+        auto p = std::dynamic_pointer_cast<DataLight>(Get());
+        if (p == nullptr) { BAD_CAST; }
+        return p != nullptr ? p->as<U>() : default_value;
     };
     template <typename URL, typename U>
     bool Check(URL const& url, U const& u) const {
-        return GetNode(url, RECURSIVE)->Get()->equal(u);
+        auto p = std::dynamic_pointer_cast<DataLight>(GetNode(url, RECURSIVE)->Get());
+        return (p != nullptr) && p->isEqualTo(u);
     }
     bool Check(std::string const& uri) const { return Check(uri, true); }
 
@@ -183,64 +177,55 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
 
     template <typename U>
     DataNode& operator=(U const& u) {
-        SetValue<U>(u);
+        SetValue(u);
         return *this;
     }
     DataNode& operator=(char const* u) {
-        SetValue<std::string>(u);
-        return *this;
-    }
-
-    DataNode& operator=(std::initializer_list<char const*> const& u) {
-        SetValue<std::string>(u);
+        SetValue(u);
         return *this;
     }
 
     template <typename U>
     DataNode& operator=(std::initializer_list<U> const& u) {
-        Set(u);
+        SetValue(u);
         return *this;
     }
 
     template <typename U>
     DataNode& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
-        Set(u);
+        SetValue(u);
         return *this;
     }
     template <typename U>
     DataNode& operator=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-        Set(u);
+        SetValue(u);
         return *this;
     }
 
     template <typename U>
     DataNode& operator+=(U const& u) {
-        Add(make_data(u));
-        return *this;
-    }
-    DataNode& operator+=(char const* u) {
-        AddValue<std::string>(u);
+        AddValue(u);
         return *this;
     }
 
     template <typename U>
     DataNode& operator+=(std::initializer_list<U> const& u) {
-        Add(make_data(u));
+        AddValue(u);
         return *this;
     }
     DataNode& operator+=(std::initializer_list<char const*> const& u) {
-        AddValue<std::string>(u);
+        AddValue(u);
         return *this;
     }
 
     template <typename U>
     DataNode& operator+=(std::initializer_list<std::initializer_list<U>> const& u) {
-        Add(make_data(u));
+        AddValue(u);
         return *this;
     }
     template <typename U>
     DataNode& operator+=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-        Add(make_data(u));
+        AddValue(u);
         return *this;
     }
 
