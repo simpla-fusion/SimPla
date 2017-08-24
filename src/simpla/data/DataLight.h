@@ -139,8 +139,8 @@ class DataLightT<V*> : public DataLight {
         return FancyPrint(os, m_data_.get(), m_extents_.size(), &m_extents_[0], indent);
     }
 
-    auto value() const { return m_data_; };
-    auto value() { return m_data_; };
+    auto const& value() const { return m_data_; };
+    auto& value() { return m_data_; };
 
     std::type_info const& value_type_info() const override { return typeid(value_type); };
     size_type value_sizeof() const override { return sizeof(value_type); };
@@ -252,6 +252,7 @@ class DataLightT<std::string*> : public DataLight {
     SP_DEFINE_FANCY_TYPE_NAME(DataLightT, DataLight);
     typedef std::string value_type;
     std::vector<value_type> m_data_;
+    std::vector<size_type> m_extents_;
 
    protected:
     DataLightT() = default;
@@ -451,7 +452,9 @@ U DataLight::as() const {
     U res;
     typedef std::conditional_t<std::rank<U>::value == 0, DataLightT<U>, DataLightT<traits::value_type_t<U>*>> type;
     auto const* p = dynamic_cast<type const*>(this);
-    if (p == nullptr) { BAD_CAST << typeid(type).name() << std::endl; }
+    if (p == nullptr) {
+        FIXME << "Bad Case" << typeid(type).name() << " " << std::rank<U>::value << *this << std::endl;
+    }
     p->CopyOut(res);
     return res;
 }

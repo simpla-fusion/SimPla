@@ -36,14 +36,67 @@ std::shared_ptr<DataEntity> make_data(LuaObject const& lobj) {
 //    for (int i = 0; i < lobj.size(); ++i) { res->value()[i] = lobj[i].as<U>(); }
 //    return res;
 //}
-template <typename U>
-std::shared_ptr<DataLightT<U*>> make_data_array_lua(LuaObject const& lobj) {
-    size_type s = lobj.size();
-    auto d = std::shared_ptr<U>(new U[s]);
-    for (int i = 0; i < s; ++i) { d.get()[i] = lobj[i].as<U>(); }
-    return DataLightT<U*>::New(1, &s, d);
-}
 
+enum { T_NULL = 0, T_INTEGRAL = 0b00001, T_FLOATING = 0b00010, T_STRING = 0b00100, T_BOOLEAN = 0b01000, T_NAN = -1 };
+int get_array_shape(LuaObject const& lobj, int level, size_type* extents) {
+    ASSERT(level < MAX_NDIMS_OF_ARRAY);
+    int type = T_NULL;
+    if (lobj.is_array()) {
+        extents[level] = std::max(extents[level], lobj.size());
+        for (int i = 0; i < lobj.size(); ++i) { type = type | get_array_shape(lobj[i], level + 1, extents); }
+    } else if (lobj.is_string()) {
+        type = type | T_STRING;
+    } else if (lobj.is_integer()) {
+        type = type | T_INTEGRAL;
+    } else if (lobj.is_floating_point()) {
+        type = type | T_FLOATING;
+    } else if (lobj.is_boolean()) {
+        type = type | T_BOOLEAN;
+    } else {
+        type = type | (-1);
+    }
+    return type;
+}
+template <typename U>
+U* get_array_lua(LuaObject const& lobj, U* data, int NDIMS, size_type const* extents) {
+    return data;
+}
+std::shared_ptr<DataLight> make_data_array_lua(LuaObject const& lobj) {
+    std::shared_ptr<DataLight> res = nullptr;
+    int ndims;
+    size_type extents[MAX_NDIMS_OF_ARRAY];
+    int type = get_array_shape(lobj, 0, extents);
+
+    switch (type) {
+        case T_INTEGRAL: {
+            auto p = DataLightT<int*>::New(ndims, extents);
+            get_array_lua(lobj, p->value().get(), ndims, extents);
+            res = p;
+        } break;
+        case T_FLOATING: {
+            auto p = DataLightT<double*>::New(ndims, extents);
+            get_array_lua(lobj, p->value().get(), ndims, extents);
+            res = p;
+        } break;
+        case T_BOOLEAN: {
+            auto p = DataLightT<bool*>::New(ndims, extents);
+            get_array_lua(lobj, p->value().get(), ndims, extents);
+            res = p;
+        } break;
+        case T_STRING: {
+            //            auto p = DataLightT<std::string*>::New(ndims, extents);
+            //            get_array_lua(lobj, &p->value()[0], ndims, extents);
+            //            res = p;
+            FIXME;
+            res = DataLight::New();
+        } break;
+        default:
+            res = DataLight::New();
+            break;
+    }
+
+    return res;
+}
 std::shared_ptr<DataEntity> make_data_entity_lua(LuaObject const& lobj) {
     std::shared_ptr<DataEntity> res = nullptr;
 
@@ -55,16 +108,7 @@ std::shared_ptr<DataEntity> make_data_entity_lua(LuaObject const& lobj) {
         res = DataEntity::New();
         WARNING << "Object is a table" << std::endl;
     } else if (lobj.is_array()) {
-        auto a = *lobj.begin();
-        if (a.second.is_integer()) {
-            res = make_data_array_lua<int>(lobj);
-        } else if (a.second.is_floating_point()) {
-            res = make_data_array_lua<double>(lobj);
-        } else if (a.second.is_string()) {
-            auto p = DataLightT<std::string*>::New();
-            for (int i = 0, ie = lobj.size(); i < ie; ++i) { p->value().push_back(lobj[i].as<std::string>()); }
-            res = std::dynamic_pointer_cast<DataEntity>(p);
-        }
+        res = make_data_array_lua(lobj);
     } else if (lobj.is_boolean()) {
         res = make_data<bool>(lobj);
     } else if (lobj.is_floating_point()) {

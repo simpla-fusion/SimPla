@@ -28,13 +28,15 @@ TEST(DataTable, lua) {
         "    k_B = 1.3806488e-23, --Boltzmann_constant\n"
         "    epsilon0 = 8.8542e-12,\n"
         "    AAA = { c =  3 , d = { c = \"3\", e = { 1, 3, 4, 5 } } },\n"
-        "    CCC = { 1, 3, 4, 5 }\n"
+        "    CCC = { 1, 3, 4, 5 },\n"
+        "    Box={{1,2,3},{3,4,5}}"
         "}");
     MESSAGE << "lua:// " << *(*db)["/Context"] << std::endl;
-    EXPECT_EQ((*db)["/Context/AAA/c"]->as<int>(), 3);
-    //    EXPECT_EQ(((*db)["/Context/CCC"]->as<nTuple<int, 4>>()), (nTuple<int, 4>{1, 3, 4, 5}));
-
-    EXPECT_DOUBLE_EQ((*db)["/Context/c"]->as<double>(), 299792458);
+//    MESSAGE << "Box " << (*db)["Context/Box"]->as<nTuple<int, 2, 3>>() << std::endl;
+    //    EXPECT_EQ((*db)["/Context/AAA/c"]->as<int>(), 3);
+    //    //    EXPECT_EQ(((*db)["/Context/CCC"]->as<nTuple<int, 4>>()), (nTuple<int, 4>{1, 3, 4, 5}));
+    //
+    //    EXPECT_DOUBLE_EQ((*db)["/Context/c"]->as<double>(), 299792458);
 
     //   db->Set("box", {{1, 2, 3}, {4, 5, 6}});
     //    LOGGER << "box  = " <<db->Get<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
@@ -54,7 +56,7 @@ class DataBaseTest : public testing::TestWithParam<std::string> {
     std::string m_url;
 };
 
-TEST_P(DataBaseTest, io) {
+TEST_P(DataBaseTest, light_data) {
     auto db = DataNode::New(m_url);
     *(*db)["CartesianGeometry"] = "hello world!";
     *(*db)["b/a"] = 5;
@@ -95,6 +97,11 @@ TEST_P(DataBaseTest, io) {
     EXPECT_TRUE(db->Check("a/a"));
     EXPECT_FALSE(db->Check("a/not_debug"));
     EXPECT_EQ(((*db)[("/b/sub/a/1")]->as<nTuple<int, 4>>()), (nTuple<int, 4>{3, 5, 3, 4}));
+}
+TEST_P(DataBaseTest, block_data) {
+    auto db = DataNode::New(m_url);
+
+    //
 }
 INSTANTIATE_TEST_CASE_P(DataBaseTestP, DataBaseTest, testing::Values("mem://", "test.h5"));
 //
