@@ -89,7 +89,7 @@ TEST_P(DataBaseTest, io) {
 
     db->Flush();
     MESSAGE << m_url << " : " << (*db) << std::endl;
-    MESSAGE << " " << (*db)["/b/sub/1/2/3/4/d/C"]->template as<nTuple<double, 3, 3> >() << std::endl;
+    //    MESSAGE << " " << (*db)["/b/sub/1/2/3/4/d/C"]->template as<nTuple<double, 3, 3> >() << std::endl;
     //    EXPECT_EQ(db->GetNode("/b/sub/d")->GetNumberOfChildren(), 2);
     //    EXPECT_EQ(db->GetNode("CartesianGeometry")->as<std::string>(), "hello world!");
 
@@ -100,7 +100,7 @@ TEST_P(DataBaseTest, io) {
 
     //    EXPECT_EQ((*db)["CartesianGeometry"]->as<std::string>(), "hello world!");
 }
-INSTANTIATE_TEST_CASE_P(DataBaseTestP, DataBaseTest, testing::Values("mem://"));
+INSTANTIATE_TEST_CASE_P(DataBaseTestP, DataBaseTest, testing::Values("mem://", "test.h5"));
 //
 // TEST(DataTable, samrai) {
 //    logger::set_stdout_level(1000);

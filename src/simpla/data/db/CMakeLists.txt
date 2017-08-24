@@ -25,6 +25,8 @@ SET(database_SRC
         DataNodeHDF5.h
         DataNodeXDMF.cpp
         DataNodeXDMF.cpp
+        DataNodeIMAS.cpp
+        DataNodeIMAS.cpp
         LuaObject.cpp
         LuaObject.h
         LuaObjectExt.h
