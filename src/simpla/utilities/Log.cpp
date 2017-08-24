@@ -109,9 +109,7 @@ void LoggerStreams::push(int level, std::string const &msg) {
 
     prefix << "[" << time_stamp() << "] ";
 
-    //    if (mpi_size_ > 1) {
-    prefix << "[" << mpi_rank_ << "/" << mpi_size_ << "]";
-    //    }
+    if (mpi_size_ > 1) { prefix << "[" << mpi_rank_ << "/" << mpi_size_ << "] "; }
 
     if (level <= m_std_out_level_) {
         switch (level) {
@@ -119,12 +117,15 @@ void LoggerStreams::push(int level, std::string const &msg) {
             case LOG_OUT_RANGE_ERROR:
             case LOG_LOGIC_ERROR:
             case LOG_ERROR:
-                std::cerr << "\e[91;4m" << std::setw(30) << std::left << prefix.str() << msg << surfix << "\e[0m"
-                          << std::endl;
+            case LOG_ERROR_RUNTIME:
+            case LOG_ERROR_BAD_CAST:
+            case LOG_ERROR_LOGICAL:
+                std::cerr << "\e[32;1m" << std::setw(30) << std::left << prefix.str() << "\e[91m" << msg << surfix
+                          << "\e[0m" << std::endl;
                 break;
             case LOG_WARNING:
-                std::cerr << "\e[93m" << std::setw(30) << std::left << prefix.str() << msg << surfix << "\e[0m"
-                          << std::endl;
+                std::cerr << "\e[36;1m" << std::setw(30) << std::left << prefix.str() << "\e[96m" << msg << surfix
+                          << "\e[0m" << std::endl;
                 break;
             case LOG_MESSAGE:
                 std::cout << msg << std::endl;
@@ -163,6 +164,7 @@ Logger::Logger(int lv) : m_level_(lv), current_line_char_count_(0), endl_(true) 
 }
 
 Logger::~Logger() {
+    flush();
     switch (m_level_) {
         case LOG_ERROR_RUNTIME:
             throw(std::runtime_error(this->str()));
@@ -174,7 +176,7 @@ Logger::~Logger() {
         case LOG_ERROR_LOGICAL:
             throw(std::logic_error(this->str()));
         default:
-            flush();
+            break;
     }
 }
 

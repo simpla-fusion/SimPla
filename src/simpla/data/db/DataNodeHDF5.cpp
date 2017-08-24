@@ -445,7 +445,7 @@ int HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataEntity> cons
         H5_ERROR(H5Tclose(m_type));
         H5_ERROR(H5Aclose(aid));
     } else if (auto p = std::dynamic_pointer_cast<DataLightT<std::string*>>(entity)) {
-        FIXME << "Can notwrite string array to a HDF5 attribute!" << std::endl
+        FIXME << "Can not write string array to a HDF5 attribute!" << std::endl
               << "  key =" << key << " = " << *p << std::endl;
     } else if (auto p = std::dynamic_pointer_cast<DataLight>(entity)) {
         hid_t d_type = -1;
