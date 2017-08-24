@@ -134,7 +134,10 @@ std::ostream &FancyPrint(std::ostream &os, std::map<T1, T2> const &p, int indent
 
 template <typename U, typename... Others>
 std::ostream &FancyPrint(std::ostream &os, std::vector<U, Others...> const &d, int indent = 0) {
-    return PrintArray1(os, d.begin(), d.end(), indent);
+    os << "[ ";
+    PrintArray1(os, d.begin(), d.end(), indent);
+    os << " ]";
+    return os;
 }
 
 template <typename U, typename... Others>

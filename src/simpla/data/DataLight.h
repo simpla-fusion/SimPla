@@ -117,18 +117,22 @@ class DataLightT<V*> : public DataLight {
 
    protected:
     DataLightT() = default;
-    DataLightT(int ndims, size_type const* extents, std::shared_ptr<value_type> const& d)
-        : m_extents_(extents, extents + ndims), m_data_(d) {
+    template <typename TI, typename TPtr>
+    DataLightT(int ndims, TI const* extents, TPtr d) : m_extents_(extents, extents + ndims), m_data_(d) {
         if (m_data_ == nullptr) { m_data_.reset(new value_type[size()]); }
     }
-    DataLightT(int ndims, size_type const* extents, value_type* d = nullptr)
-        : DataLightT(ndims, extents, std::shared_ptr<value_type>(d)) {}
+    template <typename TI>
+    DataLightT(int ndims, TI const* extents) : DataLightT(ndims, extents, nullptr) {}
 
    public:
     ~DataLightT() override = default;
     template <typename... Args>
     static std::shared_ptr<this_type> New(Args&&... args) {
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
+    }
+    template <typename TI, typename TPtr>
+    static std::shared_ptr<this_type> New(int ndims, TI const* extents, TPtr d) {
+        return std::shared_ptr<this_type>(new this_type(ndims, extents, d));
     }
 
     std::ostream& Print(std::ostream& os, int indent) const override {

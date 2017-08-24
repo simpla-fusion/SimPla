@@ -79,7 +79,7 @@ void LoggerStreams::push(int level, std::string const &msg) {
 
     std::ostringstream prefix;
 
-    std::string surfix("");
+    std::string surfix;
 
     switch (level) {
         case LOG_FORCE_OUTPUT:
@@ -119,16 +119,18 @@ void LoggerStreams::push(int level, std::string const &msg) {
             case LOG_OUT_RANGE_ERROR:
             case LOG_LOGIC_ERROR:
             case LOG_ERROR:
-                std::cerr << "\e[1;31m" << std::setw(35) << prefix.str() << "\e[1;37m" << msg << "\e[0m" << surfix;
+                std::cerr << "\e[91;4m" << std::setw(30) << std::left << prefix.str() << msg << surfix << "\e[0m"
+                          << std::endl;
                 break;
             case LOG_WARNING:
-                std::cerr << "\e[1;32m" << std::setw(35) << prefix.str() << "\e[1;37m" << msg << "\e[0m" << surfix;
+                std::cerr << "\e[93m" << std::setw(30) << std::left << prefix.str() << msg << surfix << "\e[0m"
+                          << std::endl;
                 break;
             case LOG_MESSAGE:
-                std::cout << msg;
+                std::cout << msg << std::endl;
                 break;
             default:
-                std::cout << std::setw(35) << std::left << prefix.str() << msg << surfix;
+                std::cout << std::setw(30) << std::left << prefix.str() << msg << surfix << std::endl;
         }
     }
 

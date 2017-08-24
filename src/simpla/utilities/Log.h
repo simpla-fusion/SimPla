@@ -211,7 +211,7 @@ inline Logger &done(Logger &self) {
 }
 
 inline Logger &failed(Logger &self) {
-    self.surffix("\e[1;31m[FAILED]\e[1;37m");
+    self.surffix("\e[1;31m[FAILED]\e[0m");
     return self;
 }
 
@@ -245,7 +245,6 @@ template <typename... Others>
 std::string make_msg(Others const &... others) {
     std::ostringstream buffer;
     _make_msg(buffer, (others)...);
-    buffer << "\e[0m";
     return buffer.str();
 }
 /** @} */
@@ -258,14 +257,13 @@ std::string make_msg(Others const &... others) {
  */
 #define SHORT_FILE_LINE_STAMP "[" << (__FILE__) << ":" << (__LINE__) << "] "
 
-#define FILE_LINE_STAMP                                                                                        \
-    "\n\e[0m \e[1;37m From [" << (__FILE__) << ":" << (__LINE__) << ":0: " << (__PRETTY_FUNCTION__) << "] \n " \
-                                                                                                       "\e[1;31m\t"
+#define FILE_LINE_STAMP                                                                       \
+    " From [" << (__FILE__) << ":" << (__LINE__) << ":0: " << (__PRETTY_FUNCTION__) << "] : " \
+                                                                                       " \t"
 #define FILE_LINE_STAMP_STRING \
     ("[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + ":0: " + std::string(__PRETTY_FUNCTION__) + "] ")
-#define MAKE_ERROR_MSG(...)                                                                                         \
-    simpla::logger::make_msg("\n\e[0m \e[1;37m From [", (__FILE__), ":", (__LINE__), ":0: ", (__PRETTY_FUNCTION__), \
-                             "] \n \e[1;31m\t", __VA_ARGS__)
+#define MAKE_ERROR_MSG(...) \
+    simpla::logger::make_msg("From [", (__FILE__), ":", (__LINE__), ":0: ", (__PRETTY_FUNCTION__), "] \t", __VA_ARGS__)
 
 // simpla::logger::make_error_msg( (__FILE__),(__LINE__), (__PRETTY_FUNCTION__),__VA_ARGS__)
 
@@ -290,9 +288,11 @@ std::string make_msg(Others const &... others) {
 #define UNIMPLEMENTED                                   \
     simpla::logger::Logger(simpla::logger::LOG_WARNING) \
         << FILE_LINE_STAMP << "Sorry, this function is not implemented. Try again next year, good luck! " << std::endl
-#define FIXME                                           \
-    simpla::logger::Logger(simpla::logger::LOG_VERBOSE) \
-        << FILE_LINE_STAMP << "Some problems at here, please recheck! " << std::endl
+
+#define TODO simpla::logger::Logger(simpla::logger::LOG_WARNING) << " TODO : " << FILE_LINE_STAMP
+
+#define FIXME simpla::logger::Logger(simpla::logger::LOG_ERROR) << " FIXME: " << FILE_LINE_STAMP
+
 #define DO_NOTHING \
     simpla::logger::Logger(simpla::logger::LOG_WARNING) << FILE_LINE_STAMP << "NOTHING TO DO" << std::endl
 
@@ -412,9 +412,9 @@ std::string make_msg(Others const &... others) {
     }
 
 //#ifndef NDEBUG
-#define CHECK(_MSG_)                                                                                             \
-    std::cerr << "\n\e[0m \e[1;37m From [" << (__FILE__) << ":" << (__LINE__) << ":0: " << (__PRETTY_FUNCTION__) \
-              << "] \n \e[1;31m\t" << __STRING((_MSG_)) << " = " << std::boolalpha << (_MSG_) << "\e[0m" << std::endl
+#define CHECK(_MSG_)                                                                                         \
+    std::cerr << "From [" << (__FILE__) << ":" << (__LINE__) << ":0: " << (__PRETTY_FUNCTION__) << "] \n \t" \
+              << __STRING((_MSG_)) << " = " << std::boolalpha << (_MSG_) << std::endl
 #define SHOW(_MSG_) \
     simpla::logger::Logger(simpla::logger::LOG_VERBOSE) << __STRING(_MSG_) << "\t= " << (_MSG_) << std::endl;
 #define SHOW_HEX(_MSG_)                                 \

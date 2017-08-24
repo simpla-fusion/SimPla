@@ -205,7 +205,7 @@ hid_t GetHDF5DataType(std::type_info const& t_info) {
     else {
         RUNTIME_ERROR << "Unknown m_data type:" << t_info.name();
     }
-
+    //
     return (v_type);
 }
 
@@ -217,9 +217,15 @@ std::shared_ptr<DataEntity> HDF5GetEntityT(hid_t attr_id, hid_t d_type, hid_t d_
             case H5S_SCALAR: {
                 U v;
                 H5_ERROR(H5Aread(attr_id, d_type, &v));
-                res = make_data(v);
+                res = DataLightT<U>::New(v);
             } break;
             case H5S_SIMPLE: {
+                int ndims = H5Sget_simple_extent_ndims(d_space);
+                hsize_t dims[ndims];
+                H5_ERROR(H5Sget_simple_extent_dims(d_space, dims, nullptr));
+                std::shared_ptr<U> data(new U[H5Sget_simple_extent_npoints(d_space)]);
+                H5_ERROR(H5Aread(attr_id, d_type, data.get()));
+                res = DataLightT<U*>::New(ndims, dims, data);
             } break;
             case H5S_NULL:
             default:
@@ -438,6 +444,9 @@ int HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataEntity> cons
         H5_ERROR(H5Awrite(aid, m_type, s_str.c_str()));
         H5_ERROR(H5Tclose(m_type));
         H5_ERROR(H5Aclose(aid));
+    } else if (auto p = std::dynamic_pointer_cast<DataLightT<std::string*>>(entity)) {
+        FIXME << "Can notwrite string array to a HDF5 attribute!" << std::endl
+              << "  key =" << key << " = " << *p << std::endl;
     } else if (auto p = std::dynamic_pointer_cast<DataLight>(entity)) {
         hid_t d_type = -1;
         hid_t d_space;
@@ -482,7 +491,7 @@ int HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataEntity> cons
             H5_ERROR(H5Aclose(aid));
 
         } else {
-            WARNING << "Unsupported  data type! [" << entity->value_type_info().name() << "]" << std::endl;
+            FIXME << "Can not write hdf5 attribute! " << std::endl << key << " = " << *entity << std::endl;
         }
         H5_ERROR(H5Sclose(d_space));
 
