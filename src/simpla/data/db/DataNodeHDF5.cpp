@@ -65,11 +65,10 @@ int DataNodeHDF5::Disconnect() {
     return SP_SUCCESS;
 }
 int DataNodeHDF5::Flush() {
-    auto root = std::dynamic_pointer_cast<DataNodeHDF5>(Root());
-    if (m_pimpl_->m_group_ != -1) {
+    if (m_pimpl_->m_file_ != -1) {
+        H5_ERROR(H5Fflush(m_pimpl_->m_file_, H5F_SCOPE_GLOBAL));
+    } else if (m_pimpl_->m_group_ != -1) {
         H5_ERROR(H5Gflush(m_pimpl_->m_group_));
-    } else {
-        Parent()->Flush();
     }
     return SP_SUCCESS;
 }
@@ -249,7 +248,9 @@ std::shared_ptr<DataEntity> HDF5GetEntity(hid_t obj_id, bool is_attribute) {
     H5T_class_t type_class = H5Tget_class(d_type);
 
     if ((type_class == H5T_INTEGER || type_class == H5T_FLOAT)) {
-        if (H5Tequal(d_type, H5T_NATIVE_CHAR) > 0) {
+        if (H5Tequal(d_type, H5T_NATIVE_HBOOL) > 0) {
+            res = HDF5GetEntityT<bool>(obj_id, d_type, d_space, is_attribute);
+        } else if (H5Tequal(d_type, H5T_NATIVE_CHAR) > 0) {
             res = HDF5GetEntityT<char>(obj_id, d_type, d_space, is_attribute);
         } else if (H5Tequal(d_type, H5T_NATIVE_SHORT) > 0) {
             res = HDF5GetEntityT<short>(obj_id, d_type, d_space, is_attribute);
@@ -277,16 +278,38 @@ std::shared_ptr<DataEntity> HDF5GetEntity(hid_t obj_id, bool is_attribute) {
             res = HDF5GetEntityT<long double>(obj_id, d_type, d_space, is_attribute);
         }
     } else if (type_class == H5T_ARRAY) {
-        UNIMPLEMENTED;
+        FIXME;
     } else if (type_class == H5T_STRING && is_attribute) {
-        size_t sdims = H5Tget_size(d_type);
-        ++sdims;
-        char buffer[sdims];
-        hid_t m_type = H5Tcopy(H5T_C_S1);
-        H5Tset_size(m_type, sdims);
-        H5Aread(obj_id, m_type, buffer);
-        res = make_data<std::string>(std::string(buffer));
-        H5Tclose(m_type);
+        switch (H5Sget_simple_extent_type(d_space)) {
+            case H5S_SCALAR: {
+                size_t sdims = H5Tget_size(d_type);
+                char buffer[sdims + 1];
+                auto m_type = H5Tcopy(H5T_C_S1);
+                H5_ERROR(H5Tset_size(m_type, sdims));
+                H5_ERROR(H5Aread(obj_id, m_type, buffer));
+                H5_ERROR(H5Tclose(m_type));
+                res = DataLightT<std::string>::New(std::string(buffer));
+            } break;
+            case H5S_SIMPLE: {
+                hsize_t num = 0;
+                H5_ERROR(H5Sget_simple_extent_dims(d_space, &num, nullptr));
+                auto** buffer = new char*[num];
+                auto m_type = H5Tcopy(H5T_C_S1);
+                H5_ERROR(H5Tset_size(m_type, H5T_VARIABLE));
+                H5_ERROR(H5Aread(obj_id, m_type, buffer));
+                H5_ERROR(H5Tclose(m_type));
+                auto p = DataLightT<std::string*>::New();
+                for (int i = 0; i < num; ++i) {
+                    p->value().push_back(std::string(buffer[i]));
+                    delete buffer[i];
+                }
+                delete[] buffer;
+                res = p;
+            } break;
+            default:
+                break;
+        }
+
     } else if (type_class == H5T_TIME) {
         UNIMPLEMENTED;
     } else if (type_class == H5T_BITFIELD) {
@@ -312,7 +335,7 @@ std::shared_ptr<DataEntity> HDF5GetEntity(hid_t obj_id, bool is_attribute) {
 
 std::shared_ptr<DataNodeHDF5> HDF5GetNode(hid_t grp, std::string const& uri) {
     auto res = DataNodeHDF5::New();
-
+    res->m_pimpl_->m_key_ = uri;
     H5O_info_t o_info;
 
     if (H5Lexists(grp, uri.c_str(), H5P_DEFAULT) > 0 &&
@@ -324,7 +347,7 @@ std::shared_ptr<DataNodeHDF5> HDF5GetNode(hid_t grp, std::string const& uri) {
             case H5O_TYPE_DATASET: {
                 auto d_id = H5Dopen(grp, uri.c_str(), H5P_DEFAULT);
                 res->m_pimpl_->m_entity_ = HDF5GetEntity(d_id, false);
-                H5Dclose(d_id);
+                H5_ERROR(H5Dclose(d_id));
             } break;
             default:
                 RUNTIME_ERROR << "Undefined data type!" << std::endl;
@@ -333,9 +356,7 @@ std::shared_ptr<DataNodeHDF5> HDF5GetNode(hid_t grp, std::string const& uri) {
     } else if (H5Aexists(grp, uri.c_str()) != 0) {
         auto a_id = H5Aopen(grp, uri.c_str(), H5P_DEFAULT);
         res->m_pimpl_->m_entity_ = HDF5GetEntity(a_id, true);
-        H5Aclose(a_id);
-    } else {
-        res->m_pimpl_->m_key_ = uri;
+        H5_ERROR(H5Aclose(a_id));
     }
     return res;
 }
@@ -358,7 +379,8 @@ std::shared_ptr<DataNode> DataNodeHDF5::GetNode(std::string const& uri, int flag
             };
         }
         if (m_pimpl_->m_group_ <= 0) {
-            RUNTIME_ERROR << "Can not get object [" << uri << "] from null group !" << std::endl;
+            res = DataNodeHDF5::New();
+            FIXME << "Can not get object [" << uri << "] from null group !" << std::endl;
         } else {
             res = HDF5GetNode(m_pimpl_->m_group_, uri);
             res->m_pimpl_->m_parent_ =
@@ -443,10 +465,22 @@ int HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataEntity> cons
         auto aid = H5Acreate(g_id, key.c_str(), m_type, m_space, H5P_DEFAULT, H5P_DEFAULT);
         H5_ERROR(H5Awrite(aid, m_type, s_str.c_str()));
         H5_ERROR(H5Tclose(m_type));
+        H5_ERROR(H5Sclose(m_space));
         H5_ERROR(H5Aclose(aid));
     } else if (auto p = std::dynamic_pointer_cast<DataLightT<std::string*>>(entity)) {
-        FIXME << "Can not write string array to a HDF5 attribute!" << std::endl
-              << "  key =" << key << " = " << *p << std::endl;
+        std::vector<char const*> s_array;
+        for (auto const& v : p->value()) { s_array.push_back(v.c_str()); }
+        hsize_t s = s_array.size();
+        auto m_space = H5Screate_simple(1, &s, nullptr);
+        auto m_type = H5Tcopy(H5T_C_S1);
+        H5_ERROR(H5Tset_size(m_type, H5T_VARIABLE));
+        auto aid = H5Acreate(g_id, key.c_str(), m_type, m_space, H5P_DEFAULT, H5P_DEFAULT);
+        H5_ERROR(H5Awrite(aid, m_type, &s_array[0]));
+        H5_ERROR(H5Tclose(m_type));
+        H5_ERROR(H5Sclose(m_space));
+        H5_ERROR(H5Aclose(aid));
+        //        FIXME << "Can not write string array to a HDF5 attribute!" << std::endl
+        //              << "  key =" << key << " = " << *p << std::endl;
     } else if (auto p = std::dynamic_pointer_cast<DataLight>(entity)) {
         hid_t d_type = -1;
         hid_t d_space;
@@ -551,7 +585,7 @@ int DataNodeHDF5::Set(std::shared_ptr<DataEntity> const& v) {
     int res = 0;
     auto parent = std::dynamic_pointer_cast<DataNodeHDF5>(Parent());
     if (parent == nullptr || m_pimpl_->m_key_.empty()) {
-        RUNTIME_ERROR << "Can not set value to group node or unnamed node " << std::endl;
+        FIXME << "Can not set value to group node or unnamed node [ " << m_pimpl_->m_key_ << " ]" << std::endl;
     } else {
         res = HDF5Set(parent->m_pimpl_->m_group_, m_pimpl_->m_key_, v);
     }

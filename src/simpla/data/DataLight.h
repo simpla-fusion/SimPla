@@ -268,8 +268,8 @@ class DataLightT<std::string*> : public DataLight {
 
     std::ostream& Print(std::ostream& os, int indent) const override { return FancyPrint(os, m_data_, indent); }
 
-    auto value() const { return m_data_; };
-    auto value() { return m_data_; };
+    auto const& value() const { return m_data_; };
+    auto& value() { return m_data_; };
 
     std::type_info const& value_type_info() const override { return typeid(value_type); };
     size_type value_sizeof() const override { return sizeof(value_type); };
