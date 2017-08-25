@@ -59,7 +59,11 @@ struct LoggerStreams {
     }
 
    private:
-    int m_std_out_level_;
+#ifndef NDEBUG
+    int m_std_out_level_ = -1000;
+#else
+    int m_std_out_level_ = 0;
+#endif
     std::ofstream fs;
 };
 
@@ -128,10 +132,10 @@ void LoggerStreams::push(int level, std::string const &msg) {
                           << "\e[0m" << std::endl;
                 break;
             case LOG_MESSAGE:
-                std::cout << msg << std::endl;
+                std::cout << msg << "\e[0m" << std::endl;
                 break;
             default:
-                std::cout << std::setw(30) << std::left << prefix.str() << msg << surfix << std::endl;
+                std::cout << std::setw(30) << std::left << prefix.str() << msg << surfix << "\e[0m" << std::endl;
         }
     }
 

@@ -14,7 +14,7 @@ namespace data {
 REGISTER_CREATOR(DataNodeMemory, mem);
 
 struct DataNodeMemory::pimpl_s {
-    e_NodeType m_node_type = DN_NULL;
+    eNodeType m_node_type = DN_NULL;
     std::shared_ptr<DataNodeMemory> m_parent_ = nullptr;
     std::map<std::string, std::shared_ptr<DataNodeMemory>> m_table_;
     std::shared_ptr<DataEntity> m_entity_ = nullptr;
@@ -38,7 +38,7 @@ std::shared_ptr<DataNode> DataNodeMemory::Duplicate() const {
 size_type DataNodeMemory::GetNumberOfChildren() const { return m_pimpl_->m_table_.size(); }
 
 /** @addtogroup{ Interface */
-DataNode::e_NodeType DataNodeMemory::NodeType() const { return m_pimpl_->m_node_type; }
+DataNode::eNodeType DataNodeMemory::NodeType() const { return m_pimpl_->m_node_type; }
 
 std::shared_ptr<DataNode> DataNodeMemory::Root() const {
     return m_pimpl_->m_parent_ != nullptr ? m_pimpl_->m_parent_->Root()

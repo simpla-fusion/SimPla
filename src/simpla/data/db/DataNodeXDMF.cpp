@@ -62,7 +62,7 @@ int DataNodeXDMF::Flush() { return 0; }
 
 std::shared_ptr<DataNode> DataNodeXDMF::Duplicate() const { return nullptr; }
 size_type DataNodeXDMF::GetNumberOfChildren() const { return 0; }
-DataNode::e_NodeType DataNodeXDMF::NodeType() const { return DN_NULL; }
+DataNode::eNodeType DataNodeXDMF::NodeType() const { return DN_NULL; }
 std::shared_ptr<DataNode> DataNodeXDMF::Root() const {
     return Parent() != nullptr ? Parent()->Root() : const_cast<this_type*>(this)->shared_from_this();
 }

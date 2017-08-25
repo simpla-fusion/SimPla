@@ -15,7 +15,7 @@ int DataNodeIMAS::Disconnect() { return 0; }
 bool DataNodeIMAS::isValid() const { return false; }
 int DataNodeIMAS::Flush() { return 0; }
 
-DataNode::e_NodeType DataNodeIMAS::NodeType() const { return DN_NULL; }
+DataNode::eNodeType DataNodeIMAS::NodeType() const { return DN_NULL; }
 
 std::shared_ptr<DataNode> DataNodeIMAS::Root() const { return nullptr; }
 std::shared_ptr<DataNode> DataNodeIMAS::Parent() const { return nullptr; }

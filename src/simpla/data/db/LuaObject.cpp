@@ -110,7 +110,7 @@ void LuaObject::init() {
 }
 
 void LuaObject::parse_file(std::string const &filename, std::string const &status) {
-    if (filename != "") {
+    if (!filename.empty()) {
         init();
         auto acc = L_.acc();
         LUA_ERROR(luaL_dofile(*acc, filename.c_str()));

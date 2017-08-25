@@ -48,10 +48,12 @@ int DataNodeHDF5::Connect(std::string const& authority, std::string const& path,
                           std::string const& fragment) {
     Disconnect();
 
-    std::string filename = path;  // = AutoIncreaseFileName(authority + "/" + path, ".h5");
+    std::string filename =
+        path.empty() ? "simpla_unnamed.h5" : path;  // = AutoIncreaseFileName(authority + "/" + path, "
+    // .h5");
 
     LOGGER << "Create HDF5 File: [" << filename << "]" << std::endl;
-
+    TODO << "Parser query : [ " << query << " ] and fragment : [ " << fragment << " ]" << std::endl;
     //    mkdir(authority.c_str(), 0777);
     H5_ERROR(m_pimpl_->m_file_ = H5Fcreate(filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT));
     m_pimpl_->m_key_ = "/";
@@ -93,8 +95,8 @@ size_type DataNodeHDF5::GetNumberOfChildren() const {
     }
     return num;
 }
-DataNode::e_NodeType DataNodeHDF5::NodeType() const {
-    DataNode::e_NodeType res = DN_NULL;
+DataNode::eNodeType DataNodeHDF5::NodeType() const {
+    DataNode::eNodeType res = DN_NULL;
     auto num = GetNumberOfChildren();
     if (m_pimpl_->m_group_ != -1) {
         res = DN_TABLE;

@@ -211,7 +211,7 @@ inline Logger &done(Logger &self) {
 }
 
 inline Logger &failed(Logger &self) {
-    self.surffix("\e[1;31m[FAILED]\e[0m");
+    self.surffix("\e[31;1m[FAILED]\e[0m");
     return self;
 }
 
@@ -257,9 +257,8 @@ std::string make_msg(Others const &... others) {
  */
 #define SHORT_FILE_LINE_STAMP "[" << (__FILE__) << ":" << (__LINE__) << "] "
 
-#define FILE_LINE_STAMP                                                                       \
-    " From [" << (__FILE__) << ":" << (__LINE__) << ":0: " << (__PRETTY_FUNCTION__) << "] : " \
-                                                                                       " \t"
+#define FILE_LINE_STAMP "From [ " << (__FILE__) << ":" << (__LINE__) << ":0: " << (__PRETTY_FUNCTION__) << " ] "
+
 #define FILE_LINE_STAMP_STRING \
     ("[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + ":0: " + std::string(__PRETTY_FUNCTION__) + "] ")
 #define MAKE_ERROR_MSG(...) \
@@ -289,9 +288,11 @@ std::string make_msg(Others const &... others) {
     simpla::logger::Logger(simpla::logger::LOG_WARNING) \
         << FILE_LINE_STAMP << "Sorry, this function is not implemented. Try again next year, good luck! " << std::endl
 
-#define TODO simpla::logger::Logger(simpla::logger::LOG_WARNING) << " TODO : " << FILE_LINE_STAMP
+#define TODO \
+    simpla::logger::Logger(simpla::logger::LOG_VERBOSE) << FILE_LINE_STAMP << std::endl << " \e[32;1m[ TODO  ]\e[96m "
 
-#define FIXME simpla::logger::Logger(simpla::logger::LOG_ERROR) << " FIXME: " << FILE_LINE_STAMP
+#define FIXME \
+    simpla::logger::Logger(simpla::logger::LOG_WARNING) << FILE_LINE_STAMP << std::endl << " \e[32;1m[ FIXME ]\e[96m "
 
 #define DO_NOTHING \
     simpla::logger::Logger(simpla::logger::LOG_WARNING) << FILE_LINE_STAMP << "NOTHING TO DO" << std::endl
