@@ -288,11 +288,13 @@ std::string make_msg(Others const &... others) {
     simpla::logger::Logger(simpla::logger::LOG_WARNING) \
         << FILE_LINE_STAMP << "Sorry, this function is not implemented. Try again next year, good luck! " << std::endl
 
-#define TODO \
-    simpla::logger::Logger(simpla::logger::LOG_VERBOSE) << FILE_LINE_STAMP << std::endl << " \e[32;1m[ TODO  ]\e[96m "
+#define TODO                                                                                       \
+    simpla::logger::Logger(simpla::logger::LOG_VERBOSE) << "\e[0m" << FILE_LINE_STAMP << std::endl \
+                                                        << " \e[32;1m[ TODO  ]\e[96m "
 
-#define FIXME \
-    simpla::logger::Logger(simpla::logger::LOG_WARNING) << FILE_LINE_STAMP << std::endl << " \e[32;1m[ FIXME ]\e[96m "
+#define FIXME                                                                                      \
+    simpla::logger::Logger(simpla::logger::LOG_WARNING) << "\e[0m" << FILE_LINE_STAMP << std::endl \
+                                                        << " \e[32;1m[ FIXME ]\e[96m "
 
 #define DO_NOTHING \
     simpla::logger::Logger(simpla::logger::LOG_WARNING) << FILE_LINE_STAMP << "NOTHING TO DO" << std::endl

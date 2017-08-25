@@ -124,12 +124,12 @@ void LoggerStreams::push(int level, std::string const &msg) {
             case LOG_ERROR_RUNTIME:
             case LOG_ERROR_BAD_CAST:
             case LOG_ERROR_LOGICAL:
-                std::cerr << "\e[32;1m" << std::setw(30) << std::left << prefix.str() << "\e[91m" << msg << surfix
-                          << "\e[0m" << std::endl;
+                std::cerr << std::setw(30) << std::left << prefix.str() << "\e[91m" << msg << surfix << "\e[0m"
+                          << std::endl;
                 break;
             case LOG_WARNING:
-                std::cerr << "\e[36;1m" << std::setw(30) << std::left << prefix.str() << "\e[96m" << msg << surfix
-                          << "\e[0m" << std::endl;
+                std::cerr << std::setw(30) << std::left << prefix.str() << "\e[96m" << msg << surfix << "\e[0m"
+                          << std::endl;
                 break;
             case LOG_MESSAGE:
                 std::cout << msg << "\e[0m" << std::endl;

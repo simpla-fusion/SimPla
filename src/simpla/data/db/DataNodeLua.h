@@ -17,6 +17,7 @@ namespace data {
 class DataNodeLua : public DataNode {
     SP_DATA_NODE_HEAD(DataNodeLua)
 
+   public:
     int Parse(std::string const&) override;
     std::istream& Parse(std::istream& is) override;
 };

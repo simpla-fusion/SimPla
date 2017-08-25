@@ -8,7 +8,6 @@
 #include "DataBlock.h"
 #include "DataEntity.h"
 #include "DataLight.h"
-#include "DataNode.h"
 #include "DataTraits.h"
 namespace simpla {
 namespace data {
@@ -51,6 +50,14 @@ class KeyValue;
 //    for (auto const& item : u) { p->Add((item)); }
 //    return p;
 //}
+template <typename U>
+U data_cast(std::shared_ptr<DataEntity> const& ptr) {
+    U res;
+    if (auto p = std::dynamic_pointer_cast<DataLight>(ptr)) { res = p->as<U>(); }
+    if (auto p = std::dynamic_pointer_cast<DataBlockT<traits::value_type_t<U>>>(ptr)) { p->CopyOut(&res); }
+    return res;
+}
+
 template <typename U>
 std::shared_ptr<DataEntity> make_data(std::shared_ptr<U> const& u, ENABLE_IF((std::is_base_of<DataEntity, U>::value))) {
     return std::dynamic_pointer_cast<DataEntity>(u);

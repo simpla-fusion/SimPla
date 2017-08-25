@@ -32,7 +32,6 @@ std::shared_ptr<DataNode> DataNode::New(std::string const& s) {
         RUNTIME_ERROR << "Fail to connect  Data Backend [ " << scheme << " : " << authority << path << " ]"
                       << std::endl;
     }
-
     return res;
 };
 
@@ -90,7 +89,7 @@ std::ostream& DataNode::Print(std::ostream& os, int indent) const {
             }
             if (new_line) { os << std::endl << std::setw(indent + 1); }
             FancyPrint(os, k, indent);
-            os<<" = ";
+            os << " = ";
             v->Print(os, indent + 1);
             return 1;
         });

@@ -105,9 +105,7 @@ DataNode::eNodeType DataNodeHDF5::NodeType() const {
     }
     return res;
 }
-std::shared_ptr<DataNode> DataNodeHDF5::Root() const {
-    return Parent() != nullptr ? Parent()->Root() : const_cast<this_type*>(this)->shared_from_this();
-}
+std::shared_ptr<DataNode> DataNodeHDF5::Root() const { return Parent() != nullptr ? Parent()->Root() : Self(); }
 std::shared_ptr<DataNode> DataNodeHDF5::Parent() const { return m_pimpl_->m_parent_; }
 
 template <template <typename> class TFun, typename... Args>
@@ -365,8 +363,7 @@ std::shared_ptr<DataNodeHDF5> HDF5GetNode(hid_t grp, std::string const& uri) {
 std::shared_ptr<DataNode> DataNodeHDF5::GetNode(std::string const& uri, int flag) {
     std::shared_ptr<DataNodeHDF5> res = nullptr;
     if ((flag & RECURSIVE) != 0) {
-        res = std::dynamic_pointer_cast<DataNodeHDF5>(
-            RecursiveFindNode(const_cast<this_type*>(this)->shared_from_this(), uri, flag).second);
+        res = std::dynamic_pointer_cast<DataNodeHDF5>(RecursiveFindNode(Self(), uri, flag).second);
     } else {
         if (m_pimpl_->m_group_ == -1 && (flag & NEW_IF_NOT_EXIST) != 0) {
             auto p_grp = (m_pimpl_->m_file_ != -1)
@@ -385,8 +382,7 @@ std::shared_ptr<DataNode> DataNodeHDF5::GetNode(std::string const& uri, int flag
             FIXME << "Can not get object [" << uri << "] from null group !" << std::endl;
         } else {
             res = HDF5GetNode(m_pimpl_->m_group_, uri);
-            res->m_pimpl_->m_parent_ =
-                std::dynamic_pointer_cast<DataNodeHDF5>(const_cast<this_type*>(this)->shared_from_this());
+            res->m_pimpl_->m_parent_ = Self();
         }
     }
     return res;
@@ -394,21 +390,13 @@ std::shared_ptr<DataNode> DataNodeHDF5::GetNode(std::string const& uri, int flag
 std::shared_ptr<DataNode> DataNodeHDF5::GetNode(std::string const& uri, int flag) const {
     std::shared_ptr<DataNodeHDF5> res = nullptr;
     if ((flag & RECURSIVE) != 0) {
-        res = std::dynamic_pointer_cast<DataNodeHDF5>(
-            RecursiveFindNode(const_cast<this_type*>(this)->shared_from_this(), uri, flag).second);
+        res = std::dynamic_pointer_cast<DataNodeHDF5>(RecursiveFindNode(Self(), uri, flag).second);
     } else {
-        if (m_pimpl_->m_group_ == -1) {
-            auto p_grp = (m_pimpl_->m_file_ != -1)
-                             ? m_pimpl_->m_file_
-                             : std::dynamic_pointer_cast<DataNodeHDF5>(Parent())->m_pimpl_->m_group_;
-            m_pimpl_->m_group_ = H5Gopen(p_grp, m_pimpl_->m_key_.c_str(), H5P_DEFAULT);
-        }
         if (m_pimpl_->m_group_ <= 0) {
             RUNTIME_ERROR << "Can not get object [" << uri << "] from null group !" << std::endl;
         } else {
             res = HDF5GetNode(m_pimpl_->m_group_, uri);
-            res->m_pimpl_->m_parent_ =
-                std::dynamic_pointer_cast<DataNodeHDF5>(const_cast<this_type*>(this)->shared_from_this());
+            res->m_pimpl_->m_parent_ = Self();
         }
     }
     return res;
@@ -428,7 +416,7 @@ int DataNodeHDF5::DeleteNode(std::string const& uri, int flag) {
             ++count;
         }
     } else {
-        auto r = RecursiveFindNode(shared_from_this(), uri, RECURSIVE);
+        auto r = RecursiveFindNode(Self(), uri, RECURSIVE);
         if (r.second != nullptr && r.second->Parent() != nullptr) {
             r.second->Parent()->DeleteNode(r.first, 0);
             ++count;

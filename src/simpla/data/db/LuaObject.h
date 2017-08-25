@@ -10,8 +10,8 @@
 #ifndef TOOLBOX_LUA_OBJECT_H_
 #define TOOLBOX_LUA_OBJECT_H_
 
-#include <cstddef>
 #include <algorithm>
+#include <cstddef>
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -21,9 +21,9 @@
 #include <tuple>
 #include <utility>
 
+#include "LuaObjectExt.h"
 #include "simpla/utilities/Log.h"
 #include "simpla/utilities/type_cast.h"
-#include "LuaObjectExt.h"
 
 extern "C" {
 
@@ -309,34 +309,37 @@ class LuaObject {
         }
     }
     template <typename T>
-    inline void set(std::string const &name, T const &v) {
-        if (is_null()) { return; }
+    inline int set(std::string const &name, T const &v) {
+        if (is_null()) { return 0; }
         auto acc = L_.acc();
         try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
         _impl::push_to_lua(*acc, v);
         lua_setfield(*acc, -2, name.c_str());
         lua_pop(*acc, 1);
+        return 1;
     }
 
     template <typename T>
-    inline void set(int s, T const &v) {
-        if (is_null()) { return; }
+    inline int set(int s, T const &v) {
+        if (is_null()) { return 0; }
         auto acc = L_.acc();
         try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
         _impl::push_to_lua(*acc, v);
         lua_rawseti(*acc, -2, s + 1);
         lua_pop(*acc, 1);
+        return 1;
     }
 
     template <typename T>
-    inline void add(T const &v) {
-        if (is_null()) { return; }
+    inline int add(T const &v) {
+        if (is_null()) { return 0; }
         auto acc = L_.acc();
         try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
         _impl::push_to_lua(*acc, v);
         size_t len = lua_rawlen(*acc, -1);
         lua_rawseti(*acc, -2, static_cast<int>(len + 1));
         lua_pop(*acc, 1);
+        return 1;
     }
 
     /**
