@@ -181,37 +181,36 @@ std::shared_ptr<DataNodeLua> MakeDataNodeLua(LuaObject const& lobj) {
     if (lobj.is_table()) {
         res->m_pimpl_->m_lua_obj_ = lobj;
     } else if (lobj.is_array()) {
-        //        std::vector<size_type> extents;
-        //        int type = get_array_shape(lobj, 0, extents);
-        //        CHECK(key);
-        //        CHECK(lobj.size());
-        //        CHECK(extents);
-        //        switch (type) {
-        //            case T_INTEGRAL: {
-        //                auto p = DataLightT<int*>::New(extents.size(), &extents[0]);
-        //                get_array_lua(lobj, p->value().get(), 0, extents);
-        //                res->m_pimpl_->m_entity_ = p;
-        //            } break;
-        //            case T_FLOATING: {
-        //                auto p = DataLightT<double*>::New(extents.size(), &extents[0]);
-        //                get_array_lua(lobj, p->value().get(), 0, extents);
-        //                res->m_pimpl_->m_entity_ = p;
-        //            } break;
-        //            case T_BOOLEAN: {
-        //                auto p = DataLightT<bool*>::New(extents.size(), &extents[0]);
-        //                get_array_lua(lobj, p->value().get(), 0, extents);
-        //                res->m_pimpl_->m_entity_ = p;
-        //            } break;
-        //            case T_STRING: {
-        //                //            auto p = DataLightT<std::string*>::New(ndims, extents);
-        //                //            get_array_lua(lobj, &p->value()[0], ndims, extents);
-        //                //            res = p;
-        //                FIXME;
-        //
-        //            } break;
-        //            default:
-        //                break;
-        //        }
+        std::vector<size_type> extents;
+        int type = get_array_shape(lobj, 0, extents);
+        CHECK(lobj.size());
+        CHECK(extents);
+        switch (type) {
+            case T_INTEGRAL: {
+                auto p = DataLightT<int*>::New(extents.size(), &extents[0]);
+                get_array_lua(lobj, p->value().get(), 0, extents);
+                res->m_pimpl_->m_entity_ = p;
+            } break;
+            case T_FLOATING: {
+                auto p = DataLightT<double*>::New(extents.size(), &extents[0]);
+                get_array_lua(lobj, p->value().get(), 0, extents);
+                res->m_pimpl_->m_entity_ = p;
+            } break;
+            case T_BOOLEAN: {
+                auto p = DataLightT<bool*>::New(extents.size(), &extents[0]);
+                get_array_lua(lobj, p->value().get(), 0, extents);
+                res->m_pimpl_->m_entity_ = p;
+            } break;
+            case T_STRING: {
+                //            auto p = DataLightT<std::string*>::New(ndims, extents);
+                //            get_array_lua(lobj, &p->value()[0], ndims, extents);
+                //            res = p;
+                FIXME;
+
+            } break;
+            default:
+                break;
+        }
 
     } else if (lobj.is_boolean()) {
         res->m_pimpl_->m_entity_ = DataLightT<bool>::New(lobj.as<bool>());

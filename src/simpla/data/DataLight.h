@@ -453,8 +453,8 @@ U DataLight::as() const {
     typedef std::conditional_t<std::rank<U>::value == 0, DataLightT<U>, DataLightT<traits::value_type_t<U>*>> type;
     auto const* p = dynamic_cast<type const*>(this);
     if (p == nullptr) {
-        FIXME << "Bad Case" << typeid(U).name() << " <= " << this->value_type_info().name() << this->rank() << ", "
-              << *this << std::endl;
+        FIXME << typeid(U).name() << " <= " << this->value_type_info().name() << " " << this->rank() << ", " << *this
+              << std::endl;
     } else {
         p->CopyOut(&res);
     }
