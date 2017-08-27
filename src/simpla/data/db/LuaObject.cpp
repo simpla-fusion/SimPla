@@ -212,7 +212,7 @@ std::pair<LuaObject, LuaObject> LuaObject::iterator::value() const {
     std::pair<LuaObject, LuaObject> res;
 
     if (key_ == LUA_NOREF || value_ == LUA_NOREF) {
-        LOGIC_ERROR << ("the entity of this iterator is invalid!") << std::endl;
+        //        LOGIC_ERROR << ("the entity of this iterator is invalid!") << std::endl;
     } else {
         auto acc = L_.acc();
         try_lua_rawgeti(*acc, GLOBAL_IDX_, key_);
@@ -389,29 +389,84 @@ DEF_TYPE_CHECK(is_integer, lua_isinteger)
 #undef DEF_TYPE_CHECK
 
 bool LuaObject::is_floating_point() const { return is_number() && !is_integer(); }
+//
+// LuaObject::eLuaType GetArrayShape(lua_State *L, int idx, size_type *rank, size_type *extents) {
+//    LuaObject::eLuaType res = LuaObject::TYPE_NULL;
+//
+//    switch (lua_type(L, idx)) {
+//        case LUA_TFUNCTION:
+//            res = LuaObject::TYPE_FUNCTION;
+//            break;
+//        case LUA_TBOOLEAN:
+//            res = LuaObject::TYPE_BOOLEAN;
+//            break;
+//        case LUA_TNUMBER:
+//            res = (lua_isinteger(L, idx) > 0) ? LuaObject::TYPE_INTEGRAL : LuaObject::TYPE_FLOATING;
+//            break;
+//        case LUA_TSTRING:
+//            res = LuaObject::TYPE_STRING;
+//            break;
+//        case LUA_TTABLE: {
+//            res = LuaObject::TYPE_TABLE;
+//            //            lua_rawgeti(L, idx, 1);
+//            //            if (lua_isinteger(L, -1) > 0 && lua_tointeger(L, -1) == 1) {
+//            //                size_t len = lua_rawlen(L, -1);
+//            //                extents[0] = std::max(extents[0], len);
+//            //                *rank += 1;
+//            //                ASSERT(*rank < MAX_NDIMS_OF_ARRAY);
+//            //                for (int i = 1; i <= len; ++i) {
+//            //                    lua_rawgeti(L, idx, i);
+//            //                    auto sub_type = GetArrayShape(L, lua_gettop(L), rank, extents + 1);
+//            //                    res = (res == sub_type || res == LuaObject::TYPE_NULL) ? sub_type :
+//            //                    LuaObject::TYPE_TABLE;
+//            //                    lua_pop(L, 1);
+//            //                    if (res == LuaObject::TYPE_NULL || res == LuaObject::TYPE_TABLE) { break; }
+//            //                }
+//            //            }
+//            //            lua_pop(L, 1);
+//
+//        } break;
+//        default:
+//            res = LuaObject::TYPE_NULL;
+//            break;
+//    }
+//
+//    return res;
+//}
+// LuaObject::eLuaType LuaObject::get_type(size_type *rank, size_type *extents) const {
+//    eLuaType res = TYPE_NULL;
+//
+//    if (!L_.empty()) {
+//        auto acc = L_.acc();
+//        try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+//        res = GetArrayShape(*acc, lua_gettop(*acc), rank, extents);
+//        lua_pop(*acc, 1);
+//    }
+//    return res;
+//}
 
 bool LuaObject::is_table() const {
     bool res = false;
     if (!L_.empty()) {
         auto acc = L_.acc();
         try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-        res = lua_istable(*acc, -1);
-        //        if (res) { res = res && lua_rawlen(*acc, -1) == 0; }
+        if (lua_istable(*acc, -1)) {
+            lua_rawgeti(*acc, lua_gettop(*acc), 1);
+            if (!(lua_isinteger(*acc, -1) > 0 && lua_tointeger(*acc, -1) == 1)) { res = true; }
+            lua_pop(*acc, 1);
+        }
         lua_pop(*acc, 1);
     }
+    //    auto k = begin().value().first;
+    //    return !k.is_null() && !(k.is_integer() && k.as<int>() == 1);
     return res;
 }
 bool LuaObject::is_array() const {
-    bool res = false;
-    if (!L_.empty()) {
-        auto acc = L_.acc();
-        try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-        res = lua_istable(*acc, -1);
-        if (res) { res = res && lua_rawlen(*acc, -1) > 0; }
-        lua_pop(*acc, 1);
-    }
-    return res;
+    return is_table() && (begin().value().first.is_integer()) && begin().value().first.as<int>() == 1;
 }
+
+size_type LuaObject::get_shape(size_type *rank, size_type *extents) const { return 0; }
+
 std::ostream &operator<<(std::ostream &os, LuaObject const &obj) {
     os << obj.as<std::string>();
     return os;

@@ -176,8 +176,9 @@ class LuaObject {
      */
     bool is_table() const;
     bool is_array() const;
-
     std::string get_typename() const;
+    size_type get_shape(size_type *rank, size_type *extents) const;
+
     void init();
     void parse_file(std::string const &filename, std::string const &status = "");
     void parse_string(std::string const &str);
@@ -241,10 +242,6 @@ class LuaObject {
 
     size_t size() const;
     bool has(std::string const &key) const;
-
-    int rank() const;
-    int extents(size_type *) const;
-    size_type value_type_hash() const;
 
    public:
     LuaObject operator[](char const s[]) const { return operator[](std::string(s)); }

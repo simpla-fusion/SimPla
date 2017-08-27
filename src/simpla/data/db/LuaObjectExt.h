@@ -65,48 +65,45 @@ void push_container_to_lua(lua_State *L, TC const &v) {
     }
 }
 
-//    template <>
-//    struct LuaConverter<double> {
-//        typedef double value_type;
-//        static int from(lua_State *L, int idx, double *v, size_type *rank, size_type *extents) {
-//            int count = 0;
-//            if (lua_isnumber(L, idx) > 0) {
-//                if (v != nullptr) { *v = lua_tonumber(L, idx); }
-//                count = 1;
-//            }
-//
-//            //        else if (lua_istable(L, idx)) {
-//            //            size_t len = lua_rawlen(L, idx);
-//            //            extents[0] = std::max(extents[0], len);
-//            //            *rank += 1;
-//            //            ASSERT(*rank < MAX_NDIMS_OF_ARRAY);
-//            //            for (int i = 1; i <= len; ++i) {
-//            //                lua_rawgeti(L, idx, i);
-//            //                count += from(L, lua_gettop(L), v == nullptr ? nullptr : v + count, rank, extents + 1);
-//            //                lua_pop(L, 1);
-//            //            }
-//            //        } else {
-//            //        }
-//
-//            return count;
-//        }
-//        static int to(lua_State *L, double const *v, size_type ndims = 0, size_type const *extents = nullptr) {
-//            int count = 0;
-//            if (ndims == 0 || extents == nullptr) {
-//                lua_pushnumber(L, *v);
-//                count = 1;
-//            }
-//            //        else {
-//            //            lua_newtable(L);
-//            //            for (size_type i = 0; i < extents[0]; ++i) {
-//            //                lua_pushinteger(L, static_cast<int>(i + 1));
-//            //                count += to(L, v + count, ndims - 1, extents + 1);
-//            //                lua_settable(L, -3);
-//            //            }
-//            //        }
-//            return count;
-//        }
-//    };
+template <>
+struct LuaConverter<double> {
+    typedef double value_type;
+    static int from(lua_State *L, int idx, double *v, size_type *rank, size_type *extents) {
+        int count = 0;
+        if (lua_isnumber(L, idx) > 0) {
+            if (v != nullptr) { *v = lua_tonumber(L, idx); }
+            count = 1;
+        } else if (lua_istable(L, idx)) {
+            size_t len = lua_rawlen(L, idx);
+            extents[0] = std::max(extents[0], len);
+            *rank += 1;
+            ASSERT(*rank < MAX_NDIMS_OF_ARRAY);
+            for (int i = 1; i <= len; ++i) {
+                lua_rawgeti(L, idx, i);
+                count += from(L, lua_gettop(L), v == nullptr ? nullptr : v + count, rank, extents + 1);
+                lua_pop(L, 1);
+            }
+        } else {
+        }
+
+        return count;
+    }
+    static int to(lua_State *L, double const *v, size_type ndims = 0, size_type const *extents = nullptr) {
+        int count = 0;
+        if (ndims == 0 || extents == nullptr) {
+            lua_pushnumber(L, *v);
+            count = 1;
+        } else {
+            lua_newtable(L);
+            for (size_type i = 0; i < extents[0]; ++i) {
+                lua_pushinteger(L, static_cast<int>(i + 1));
+                count += to(L, v + count, ndims - 1, extents + 1);
+                lua_settable(L, -3);
+            }
+        }
+        return count;
+    }
+};
 #define DEF_LUA_TRANS(_TYPE_, _TO_FUN_, _FROM_FUN_, _CHECK_FUN_)                                                      \
     template <>                                                                                                       \
     struct LuaConverter<_TYPE_> {                                                                                     \
@@ -129,7 +126,7 @@ typedef unsigned long ulong;
 typedef unsigned int uint;
 
 DEF_LUA_TRANS(float, lua_pushnumber, lua_tonumber, lua_isnumber)
-DEF_LUA_TRANS(double, lua_pushnumber, lua_tonumber, lua_isnumber)
+// DEF_LUA_TRANS(double, lua_pushnumber, lua_tonumber, lua_isnumber)
 DEF_LUA_TRANS(int, lua_pushinteger, lua_tointeger, lua_isnumber)
 DEF_LUA_TRANS(long, lua_pushinteger, lua_tointeger, lua_isnumber)
 // DEF_LUA_TRANS(ulong, lua_pushinteger, lua_tointeger, lua_isnumber)
