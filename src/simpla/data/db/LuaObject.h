@@ -114,7 +114,7 @@ struct LuaState : public std::enable_shared_from_this<LuaState> {
 */
 class LuaObject : public std::enable_shared_from_this<LuaObject> {
    public:
-    std::shared_ptr<LuaState> L_;
+    std::shared_ptr<LuaState> L_ = nullptr;
 
    private:
     int GLOBAL_REF_IDX_;

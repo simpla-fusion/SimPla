@@ -35,8 +35,8 @@ struct DataFunctionLua : public DataFunction {
     };
 };
 struct DataNodeLua::pimpl_s {
-    std::shared_ptr<DataNodeLua> m_parent_ = nullptr;
     std::shared_ptr<LuaObject> m_lua_obj_ = nullptr;
+    std::shared_ptr<DataNodeLua> m_parent_ = nullptr;
     std::shared_ptr<DataEntity> m_entity_ = nullptr;
     std::string m_key_{"_ROOT_"};
 };
@@ -45,7 +45,12 @@ enum { T_NULL = 0, T_INTEGRAL = 0b00001, T_FLOATING = 0b00010, T_STRING = 0b0010
 
 DataNodeLua::DataNodeLua() : m_pimpl_(new pimpl_s) {}
 DataNodeLua::DataNodeLua(pimpl_s* pimpl) : m_pimpl_(pimpl) {}
-DataNodeLua::~DataNodeLua() { delete m_pimpl_; }
+DataNodeLua::~DataNodeLua() {
+    m_pimpl_->m_parent_.reset();
+    m_pimpl_->m_lua_obj_.reset();
+    m_pimpl_->m_parent_.reset();
+    delete m_pimpl_;
+}
 int DataNodeLua::Connect(std::string const& authority, std::string const& path, std::string const& query,
                          std::string const& fragment) {
     std::string root_s = query.empty() ? "_ROOT_" : query;

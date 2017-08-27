@@ -61,47 +61,44 @@ TEST_P(DataBaseTest, light_data) {
     auto db = DataNode::New(m_url);
     *(*db)["CartesianGeometry"] = "hello world!";
     *(*db)["b/a"] = 5.0;
-    //    *(*db)["d"] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
-    //    *(*db)["Box"] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}};
 
-    //    (*db)["g"]->SetValue<nTuple<int, 2, 2, 2>>({{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
-    //    *(*db)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
+    *(*db)["i"] = {"default"_, "abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"};
 
-    (*db)["/b/sub/1/2/3/4/d/A"]->SetValue({1, 2, 3});
-    (*db)["/b/sub/1/2/3/4/d/C"]->SetValue({{1.0, 2.0, 3.0}, {2.0}, {7.0, 9.0}});
-
-    *(*db)["/b/sub/c"] += {5, 6, 7, 8};
-    *(*db)["/b/sub/c"] += {1, 5, 3, 4};
-    *(*db)["/b/sub/c"] += {2, 5, 3, 4};
-    *(*db)["/b/sub/c"] += {3, 5, 3, 4};
-    *(*db)["/b/sub/c"] += {4, 5, 3, 4};
-
-    //    //
-    *(*db)["/b/sub/d"] = {"wa wa", "la la"};
-
-    *(*db)["/b/sub/a"] = {};
-    *(*db)["/b/sub/a"] += {3, 5, 3, 4};
-    *(*db)["/b/sub/a"] += {3, 5, 3, 4};
-    //    *(*db)["/b/sub/e"] = {};
-    *(*db)["/b/sub/e"] += {1, 2, 3, 4};
-    *(*db)["/b/sub/e"] += 9;
+    *(*db)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
 
     *(*db)["a"] += {"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
                     "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}};
     *(*db)["h"] = {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}};
-    *(*db)["i"] = {"default"_, "abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"};
     *(*db)["j"] = {"abc"_ = {"abc1"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}};
 
-    //    db->Flush();
+    *(*db)["d"] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+    *(*db)["Box"] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}};
+
+    //    *(*db)["/b/sub/d"] = {"wa wa", "la la"};
+    //    (*db)["g"]->SetValue<nTuple<int, 2, 2, 2>>({{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
+    //    (*db)["/b/sub/1/2/3/4/d/A"]->SetValue({1, 2, 3});
+    //    (*db)["/b/sub/1/2/3/4/d/C"]->SetValue({{1.0, 2.0, 3.0}, {2.0}, {7.0, 9.0}});
+    //    *(*db)["/b/sub/c"] += {5, 6, 7, 8};
+    //    *(*db)["/b/sub/c"] += {1, 5, 3, 4};
+    //    *(*db)["/b/sub/c"] += {2, 5, 3, 4};
+    //    *(*db)["/b/sub/c"] += {3, 5, 3, 4};
+    //    *(*db)["/b/sub/c"] += {4, 5, 3, 4};
+    //    *(*db)["/b/sub/a"] = {};
+    //    *(*db)["/b/sub/a"] += {3, 5, 3, 4};
+    //    *(*db)["/b/sub/a"] += {3, 5, 3, 4};
+    //    *(*db)["/b/sub/e"] = {};
+    //    *(*db)["/b/sub/e"] += {1, 2, 3, 4};
+    //    *(*db)["/b/sub/e"] += 9;
+    db->Flush();
     //
-    //    EXPECT_EQ(((*db)["d"]->as<nTuple<Real, 6>>()), (nTuple<Real, 6>{1, 2, 3, 4, 5, 6}));
-    //    EXPECT_EQ(((*db)["Box"]->as<nTuple<Real, 2, 3>>()), (nTuple<Real, 2, 3>{{1, 2, 3}, {4, 5, 6}}));
-    //
+    EXPECT_EQ(((*db)["d"]->as<nTuple<Real, 6>>()), (nTuple<Real, 6>{1, 2, 3, 4, 5, 6}));
+    EXPECT_EQ(((*db)["Box"]->as<nTuple<Real, 2, 3>>()), (nTuple<Real, 2, 3>{{1, 2, 3}, {4, 5, 6}}));
+
     EXPECT_EQ(db->GetNode("CartesianGeometry")->as<std::string>(), "hello world!");
     EXPECT_DOUBLE_EQ(db->GetNode("b/a")->as<double>(), 5);
     EXPECT_TRUE(db->Check("a/a"));
     EXPECT_FALSE(db->Check("a/not_debug"));
-    //    EXPECT_EQ(((*db)[("/b/sub/a/1")]->as<nTuple<int, 4>>()), (nTuple<int, 4>{3, 5, 3, 4}));
+    EXPECT_EQ(((*db)[("/b/sub/a/1")]->as<nTuple<int, 4>>()), (nTuple<int, 4>{3, 5, 3, 4}));
     std::cout << m_url << " : " << (*db) << std::endl;
 }
 TEST_P(DataBaseTest, block_data) {
@@ -110,11 +107,11 @@ TEST_P(DataBaseTest, block_data) {
     //
 }
 INSTANTIATE_TEST_CASE_P(DataBaseTestP, DataBaseTest,
-                        testing::Values("mem://",                 //
-                                        "h5://?rw,a=234,b=6#123"  //
-                                        // "imas://",
-                                        //                                                         "lua://"
-                                        ));
+                        testing::Values(  //
+                                          //                            "mem://",                 //
+                                          //                            "h5://?rw,a=234,b=6#123"  //
+                                          // "imas://",
+                            "lua://"));
 //
 // TEST(DataTable, samrai) {
 //    logger::set_stdout_level(1000);

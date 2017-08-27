@@ -438,8 +438,8 @@ bool LuaObject::is_table() const {
     return res;
 }
 bool LuaObject::is_array() const {
-    return false;
-    //    return is_table() && (begin().value().first.is_integer()) && begin().value().first.as<int>() == 1;
+    return is_table() && begin().value().first != nullptr && (begin().value().first->is_integer()) &&
+           begin().value().first->as<int>() == 1;
 }
 
 int LuaGetNestTableShape(lua_State *L, int idx, size_type *rank, size_type *extents) {
@@ -466,29 +466,29 @@ int LuaGetNestTableShape(lua_State *L, int idx, size_type *rank, size_type *exte
 }
 size_type LuaObject::get_shape(size_type *rank, size_type *extents) const {
     size_type res = 0;
-    //    if (L_!=nullptr) {
-    //        auto acc =L_->acc();
-    //        try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-    //        switch (LuaGetNestTableShape(*acc, lua_gettop(*acc), rank, extents)) {
-    //            case LUA_TSTRING:
-    //                res = typeid(std::string).hash_code();
-    //                break;
-    //            case LUA_TBOOLEAN:
-    //                res = typeid(bool).hash_code();
-    //                break;
-    //            case LUA_NUMTAGS + 1:
-    //                res = typeid(int).hash_code();
-    //                break;
-    //            case LUA_TNUMBER:
-    //                res = typeid(double).hash_code();
-    //                break;
-    //            case LUA_TTABLE:
-    //            case LUA_TNIL:
-    //            default:
-    //                break;
-    //        };
-    //        lua_pop(*acc, 1);
-    //    }
+    if (L_ != nullptr) {
+        auto acc = L_->acc();
+        try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+        switch (LuaGetNestTableShape(*acc, lua_gettop(*acc), rank, extents)) {
+            case LUA_TSTRING:
+                res = typeid(std::string).hash_code();
+                break;
+            case LUA_TBOOLEAN:
+                res = typeid(bool).hash_code();
+                break;
+            case LUA_NUMTAGS + 1:
+                res = typeid(int).hash_code();
+                break;
+            case LUA_TNUMBER:
+                res = typeid(double).hash_code();
+                break;
+            case LUA_TTABLE:
+            case LUA_TNIL:
+            default:
+                break;
+        };
+        lua_pop(*acc, 1);
+    }
     return res;
 }
 
