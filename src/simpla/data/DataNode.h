@@ -149,13 +149,11 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     template <typename U>
     U GetValue() const {
         auto p = std::dynamic_pointer_cast<DataLight>(Get());
-        if (p == nullptr) { BAD_CAST; }
-        return p->as<U>();
+        return p == nullptr ? std::numeric_limits<U>::signaling_NaN() : p->as<U>();
     };
     template <typename U>
     U GetValue(U const& default_value) const {
         auto p = std::dynamic_pointer_cast<DataLight>(Get());
-        if (p == nullptr) { BAD_CAST; }
         return p != nullptr ? p->as<U>() : default_value;
     };
     template <typename URL, typename U>

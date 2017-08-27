@@ -12,41 +12,42 @@
 
 using namespace simpla;
 using namespace simpla::data;
-TEST(DataTable, lua) {
-    auto db = DataNode::New("lua://");
-    db->Parse(
-        "PI = 3.141592653589793  "
-        "_ROOT_={\n"
-        "c = 299792458.0, -- m/s\n"
-        "qe = 1.60217656e-19, -- C\n"
-        "me = 9.10938291e-31, --kg\n"
-        "mp = 1.672621777e-27, --kg\n"
-        "mp_me = 1836.15267245, --\n"
-        "KeV = 1.1604e7, -- K\n"
-        "Tesla = 1.0, -- Tesla\n"
-        "TWOPI =  PI * 2,\n"
-        "k_B = 1.3806488e-23, --Boltzmann_constant\n"
-        "epsilon0 = 8.8542e-12,\n"
-        "AAA = { c =  3 , d = { c = \"3\", e = { 1, 3, 4, 5 } } },\n"
-        "CCC = { 1, 3, 4, 5 },\n"
-        "Box={{1,2,3},{3,4,5}} \n"
-        "}");
-    MESSAGE << "lua:// " << (*db) << std::endl;
-    //    MESSAGE << "Box " << (*db)["Context/Box"]->as<nTuple<int, 2, 3>>() << std::endl;
-    EXPECT_EQ((*db)["Context/AAA/c"]->as<int>(), 3);
-    EXPECT_EQ(((*db)["/Context/CCC"]->as<nTuple<int, 4>>()), (nTuple<int, 4>{1, 3, 4, 5}));
-    //
-    //    EXPECT_DOUBLE_EQ((*db)["/Context/c"]->as<double>(), 299792458);
-
-    //   db->Set("box", {{1, 2, 3}, {4, 5, 6}});
-    //    LOGGER << "box  = " <<db->Get<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
-}
+// TEST(DataTable, lua) {
+//    auto db = DataNode::New("lua://");
+//    db->Parse(
+//        "PI = 3.141592653589793  "
+//        "_ROOT_={\n"
+//        "c = 299792458.0, -- m/s\n"
+//        "qe = 1.60217656e-19, -- C\n"
+//        "me = 9.10938291e-31, --kg\n"
+//        "mp = 1.672621777e-27, --kg\n"
+//        "mp_me = 1836.15267245, --\n"
+//        "KeV = 1.1604e7, -- K\n"
+//        "Tesla = 1.0, -- Tesla\n"
+//        "TWOPI =  PI * 2,\n"
+//        "k_B = 1.3806488e-23, --Boltzmann_constant\n"
+//        "epsilon0 = 8.8542e-12,\n"
+//        "AAA = { c =  3 , d = { c = \"3\", e = { 1, 3, 4, 5 } } },\n"
+//        "CCC = { 1, 3, 4, 5 },\n"
+//        "Box={{1,2,3},{3,4,5}} \n"
+//        "}");
+//    MESSAGE << "lua:// " << (*db) << std::endl;
+//    //    MESSAGE << "Box " << (*db)["Context/Box"]->as<nTuple<int, 2, 3>>() << std::endl;
+//    EXPECT_EQ((*db)["Context/AAA/c"]->as<int>(), 3);
+//    EXPECT_EQ(((*db)["/Context/CCC"]->as<nTuple<int, 4>>()), (nTuple<int, 4>{1, 3, 4, 5}));
+//    //
+//    //    EXPECT_DOUBLE_EQ((*db)["/Context/c"]->as<double>(), 299792458);
+//
+//    //   db->Set("box", {{1, 2, 3}, {4, 5, 6}});
+//    //    LOGGER << "box  = " <<db->Get<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
+//}
 
 class DataBaseTest : public testing::TestWithParam<std::string> {
    protected:
     void SetUp() {
         logger::set_stdout_level(logger::LOG_VERBOSE);
         m_url = GetParam();
+        MESSAGE << " Data URL : \"" << m_url << "\"" << std::endl;
     }
     void TearDown() {}
 
@@ -60,7 +61,7 @@ TEST_P(DataBaseTest, light_data) {
     auto db = DataNode::New(m_url);
     *(*db)["CartesianGeometry"] = "hello world!";
     *(*db)["b/a"] = 5;
-    *(*db)["d"] = {1, 2, 3, 4, 5, 6};
+    *(*db)["d"] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
     //    (*db)["g"]->SetValue<nTuple<int, 2, 2, 2>>({{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
     //    *(*db)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
 
@@ -92,7 +93,7 @@ TEST_P(DataBaseTest, light_data) {
     db->Flush();
 
     MESSAGE << m_url << " : " << (*db) << std::endl;
-    EXPECT_EQ(((*db)["d"]->as<nTuple<int, 6>>()), (nTuple<int, 6>{1, 2, 3, 4, 5, 6}));
+    EXPECT_EQ(((*db)["d"]->as<nTuple<Real, 6>>()), (nTuple<Real, 6>{1, 2, 3, 4, 5, 6}));
     EXPECT_EQ(db->GetNode("CartesianGeometry")->as<std::string>(), "hello world!");
     EXPECT_EQ(db->GetNode("b/a")->as<int>(), 5);
     EXPECT_TRUE(db->Check("a/a"));
@@ -105,10 +106,10 @@ TEST_P(DataBaseTest, block_data) {
     //
 }
 INSTANTIATE_TEST_CASE_P(DataBaseTestP, DataBaseTest,
-                        testing::Values("mem://",                 //
-                                        "h5://?rw,a=234,b=6#123"  //,
-                                        //"lua://"
-                                        ));
+                        testing::Values("mem://",                  //
+                                        "h5://?rw,a=234,b=6#123",  //
+                                                                   //"lua://"
+                                        "imas://"));
 //
 // TEST(DataTable, samrai) {
 //    logger::set_stdout_level(1000);

@@ -31,6 +31,81 @@ struct get_i<M, N0, N...> : public std::integral_constant<int, get_i<M - 1, N...
 }
 template <typename V, int... N, unsigned M>
 struct extent<simpla::nTuple<V, N...>, M> : public integral_constant<size_t, detail::get_i<M, N...>::value> {};
+
+template <typename T, int... N>
+struct numeric_limits<simpla::nTuple<T, N...>> : public __numeric_limits_base {
+    typedef simpla::nTuple<T, N...> _Tp;
+
+    /** The minimum finite value, or for floating types with
+    denormalization, the minimum positive normalized value.  */
+    static const _Tp min() {
+        _Tp res;
+        res = numeric_limits<T>::min();
+        return std::move(res);
+    }
+
+    /** The maximum finite value.  */
+    static const _Tp max() {
+        _Tp res;
+        res = numeric_limits<T>::max();
+        return std::move(res);
+    }
+
+    /** A finite value x such that there is no other finite value y
+    *  where y < x.  */
+    static const constexpr _Tp lowest() noexcept {
+        _Tp res;
+        res = numeric_limits<T>::lowest();
+        return std::move(res);
+    }
+
+    /** The @e machine @e epsilon:  the difference between 1 and the least
+    value greater than 1 that is representable.  */
+    static const _Tp epsilon() {
+        _Tp res;
+        res = numeric_limits<T>::epsilon();
+        return std::move(res);
+    }
+
+    /** The maximum rounding error measurement (see LIA-1).  */
+    static const _Tp round_error() {
+        _Tp res;
+        res = numeric_limits<T>::round_error();
+        return std::move(res);
+    }
+
+    /** The representation of positive infinity, if @c has_infinity.  */
+    static const _Tp infinity() {
+        _Tp res;
+        res = numeric_limits<T>::infinity();
+        return std::move(res);
+    }
+
+    /** The representation of a quiet Not a Number,
+    if @c has_quiet_NaN. */
+    static const _Tp quiet_NaN() {
+        _Tp res;
+        res = numeric_limits<T>::quiet_NaN();
+        return std::move(res);
+    }
+
+    /** The representation of a signaling Not a Number, if
+    @c has_signaling_NaN. */
+    static const _Tp signaling_NaN() {
+        _Tp res;
+        res = numeric_limits<T>::signaling_NaN();
+        return std::move(res);
+    }
+
+    /** The minimum positive denormalized value.  For types where
+    @c has_denorm is false, this is the minimum positive normalized
+    value.  */
+    static const _Tp denorm_min() {
+        _Tp res;
+        res = numeric_limits<T>::denorm_min();
+        return std::move(res);
+    }
+};
 }  // namespace std {
 
 namespace simpla {
