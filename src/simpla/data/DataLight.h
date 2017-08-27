@@ -96,12 +96,12 @@ class DataLightT<V> : public DataLight {
         return sizeof(value_type);
     }
 
-    size_type CopyIn(value_type const& src) {
-        m_data_ = (src);
+    size_type CopyIn(value_type const* src) {
+        m_data_ = (*src);
         return sizeof(value_type);
     }
-    size_type CopyOut(value_type& other) const {
-        other = (m_data_);
+    size_type CopyOut(value_type* other) const {
+        *other = (m_data_);
         return sizeof(value_type);
     }
 
@@ -141,6 +141,8 @@ class DataLightT<V*> : public DataLight {
 
     auto const& value() const { return m_data_; };
     auto& value() { return m_data_; };
+    void* GetPointer() override { return m_data_.get(); }
+    void const* GetPointer() const override { return m_data_.get(); }
 
     std::type_info const& value_type_info() const override { return typeid(value_type); };
     size_type value_sizeof() const override { return sizeof(value_type); };
@@ -236,16 +238,13 @@ class DataLightT<V*> : public DataLight {
     }
 
     template <typename U>
-    size_type CopyOut(U& dst) const {
-        return m_data_ == nullptr ? 0 : _CopyOut(dst, m_data_.get());
+    size_type CopyOut(U* dst) const {
+        return m_data_ == nullptr ? 0 : _CopyOut(*dst, m_data_.get());
     }
     template <typename U>
-    size_type CopyIn(const U& src) {
-        return _CopyIn(m_data_.get(), src);
+    size_type CopyIn(const U* src) {
+        return _CopyIn(m_data_.get(), *src);
     }
-
-    void* GetPointer() override { return m_data_.get(); }
-    void const* GetPointer() const override { return m_data_.get(); }
 };
 template <>
 class DataLightT<std::string*> : public DataLight {
@@ -257,7 +256,7 @@ class DataLightT<std::string*> : public DataLight {
    protected:
     DataLightT() = default;
     DataLightT(std::initializer_list<char const*> const& d) {
-        for (auto const& v : d) { m_data_.push_back(v); }
+        for (auto const& v : d) { m_data_.push_back(std::string(v)); }
     }
 
    public:
@@ -271,6 +270,8 @@ class DataLightT<std::string*> : public DataLight {
 
     auto const& value() const { return m_data_; };
     auto& value() { return m_data_; };
+    void* GetPointer() override { return &m_data_[0]; }
+    void const* GetPointer() const override { return &m_data_[0]; }
 
     std::type_info const& value_type_info() const override { return typeid(value_type); };
     size_type value_sizeof() const override { return sizeof(value_type); };
@@ -359,9 +360,6 @@ class DataLightT<std::string*> : public DataLight {
         if (m_data_.empty()) { m_data_.resize(std::extent<U, 0>::value); }
         return _CopyIn(&m_data_[0], src);
     }
-
-    void* GetPointer() override { return &m_data_[0]; }
-    void const* GetPointer() const override { return &m_data_[0]; }
 };
 
 inline std::shared_ptr<DataLight> make_light(std::string const& u) { return DataLightT<std::string>::New(u); };
@@ -453,7 +451,7 @@ U DataLight::as() const {
     typedef std::conditional_t<std::rank<U>::value == 0, DataLightT<U>, DataLightT<traits::value_type_t<U>*>> type;
     auto const* p = dynamic_cast<type const*>(this);
     if (p == nullptr) {
-        FIXME << typeid(U).name() << " <= " << this->value_type_info().name() << " " << this->rank() << ", " << *this
+        FIXME << typeid(U).name() << " <= " << this->value_type_info().name() << " [" << this->rank() << "], " << *this
               << std::endl;
     } else {
         p->CopyOut(&res);

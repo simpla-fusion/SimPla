@@ -68,32 +68,58 @@ class LuaObject {
             std::mutex m_mutex_;
 
             lua_s() : m_state_(luaL_newstate()) {}
-
             ~lua_s() { lua_close(m_state_); }
+
+            lua_s(lua_s const &) = delete;
+            lua_s(lua_s &&) = delete;
+            lua_s &operator=(lua_s const &) = delete;
+            lua_s &operator=(lua_s &&) = delete;
         };
 
         std::shared_ptr<lua_s> m_l_;
         LuaState() : m_l_(nullptr) {}
-        LuaState(std::shared_ptr<lua_s> const &other) : m_l_(other) {}
-        LuaState(LuaState const &other) : m_l_(other.m_l_) {}
-        ~LuaState() {}
+        explicit LuaState(std::shared_ptr<lua_s> other) : m_l_(std::move(other)) {}
+        LuaState(LuaState const &other) = default;
+        LuaState(LuaState &&other) noexcept = default;
+
+        ~LuaState() = default;
+        LuaState &operator=(LuaState const &other) {
+            LuaState(other).swap(*this);
+            return *this;
+        };
+        LuaState &operator=(LuaState &&other) {
+            LuaState(other).swap(*this);
+            return *this;
+        };
+        void swap(LuaState &other) { std::swap(m_l_, other.m_l_); };
+
         void init() { m_l_ = std::make_shared<lua_s>(); }
         bool empty() const { return m_l_ == nullptr; }
         bool unique() const { return m_l_.unique(); }
         struct accessor {
             std::shared_ptr<lua_s> m_l_;
-            accessor(std::shared_ptr<lua_s> const &l) : m_l_(l) { m_l_->m_mutex_.lock(); }
+            explicit accessor(std::shared_ptr<lua_s> l) : m_l_(std::move(l)) { m_l_->m_mutex_.lock(); }
             ~accessor() { m_l_->m_mutex_.unlock(); }
             lua_State *operator*() { return m_l_->m_state_; }
             std::shared_ptr<lua_s> get() { return m_l_; }
+
+            accessor(accessor const &) = default;
+            accessor(accessor &&) = default;
+            accessor &operator=(accessor const &) = default;
+            accessor &operator=(accessor &&) = default;
         };
 
         struct const_accessor {
             std::shared_ptr<lua_s> m_l_;
-            const_accessor(std::shared_ptr<lua_s> const &l) : m_l_(l) { m_l_->m_mutex_.lock(); }
+            explicit const_accessor(std::shared_ptr<lua_s> l) : m_l_(std::move(l)) { m_l_->m_mutex_.lock(); }
             ~const_accessor() { m_l_->m_mutex_.unlock(); }
             lua_State *operator*() { return m_l_->m_state_; }
             std::shared_ptr<lua_s> get() const { return m_l_; }
+
+            const_accessor(const_accessor const &) = default;
+            const_accessor(const_accessor &&) = default;
+            const_accessor &operator=(const_accessor const &) = default;
+            const_accessor &operator=(const_accessor &&) = default;
         };
 
         accessor acc() { return accessor(m_l_); }
@@ -117,9 +143,13 @@ class LuaObject {
     LuaObject();
     LuaObject(std::shared_ptr<LuaState::lua_s> const &l, int G, int s, std::string const &path = "");
     LuaObject(LuaObject const &other);
-    LuaObject(LuaObject &&r);
+    LuaObject(LuaObject &&r) noexcept;
     LuaObject &operator=(LuaObject const &other) {
         LuaObject(other).swap(*this);
+        return *this;
+    }
+    LuaObject &operator=(LuaObject &&other) noexcept {
+        LuaObject(std::forward<LuaObject>(other)).swap(*this);
         return *this;
     }
 
@@ -127,8 +157,8 @@ class LuaObject {
     ~LuaObject();
     std::string name() const;
     std::ostream &Print(std::ostream &os, int indent = 0) const;
-    inline bool is_null() const { return L_.empty(); }
-    inline bool empty() const { return L_.empty(); }
+    bool is_null() const { return L_.empty(); }
+    bool empty() const { return L_.empty(); }
     operator bool() const { return !L_.empty(); }
     bool is_global() const { return !L_.empty() && self_ == -1; }
     bool is_nil() const;
@@ -166,10 +196,26 @@ class LuaObject {
        public:
         iterator();
         iterator(iterator const &r);
-        iterator(iterator &&r);
-        iterator(LuaState L, unsigned int G, unsigned int p, std::string path);
+        iterator(iterator &&r) noexcept;
+        iterator(LuaState L, int G, int p, std::string path);
         ~iterator();
 
+        iterator &operator=(iterator const &r) {
+            iterator(r).swap(*this);
+            return *this;
+        }
+        iterator &operator=(iterator &&r) noexcept {
+            iterator(r).swap(*this);
+            return *this;
+        }
+        void swap(iterator &other) {
+            L_.swap(other.L_);
+            std::swap(GLOBAL_IDX_, other.GLOBAL_IDX_);
+            std::swap(parent_, other.parent_);
+            std::swap(key_, other.key_);
+            std::swap(value_, other.value_);
+            std::swap(path_, other.path_);
+        }
         bool operator!=(iterator const &r) const { return (r.key_ != key_); }
         std::pair<LuaObject, LuaObject> value() const;
         std::pair<LuaObject, LuaObject> operator*() const { return value(); };
@@ -177,13 +223,7 @@ class LuaObject {
         iterator &operator++() { return Next(); }
     };
 
-    iterator begin() {
-        if (empty()) {
-            return end();
-        } else {
-            return iterator(L_, GLOBAL_REF_IDX_, self_, path_);
-        }
-    }
+    iterator begin() { return (empty()) ? end() : iterator(L_, GLOBAL_REF_IDX_, self_, path_); }
 
     iterator end() { return iterator(); }
     iterator begin() const { return iterator(L_, GLOBAL_REF_IDX_, self_, path_); }
@@ -194,7 +234,7 @@ class LuaObject {
     //    int accept(std::function<void(int, LuaObject &)> const &) const;
 
     template <typename T>
-    inline LuaObject get_child(T const &key) const {
+    LuaObject get_child(T const &key) const {
         if (is_null()) { return LuaObject(); }
         return std::move(at(key));
     }
@@ -202,11 +242,12 @@ class LuaObject {
     size_t size() const;
     bool has(std::string const &key) const;
 
-   private:
-    void push_to_self();
+    int rank() const;
+    int extents(size_type *) const;
+    size_type value_type_hash() const;
 
    public:
-    inline LuaObject operator[](char const s[]) const { return operator[](std::string(s)); }
+    LuaObject operator[](char const s[]) const { return operator[](std::string(s)); }
     LuaObject operator[](std::string const &s) const { return get(s); };
 
     LuaObject get(std::string const &s) const;
@@ -215,7 +256,7 @@ class LuaObject {
     LuaObject operator[](int s) const { return get(s); }
 
     //! index operator with out_of_range exception
-    LuaObject at(size_t const &s) const;
+    //    LuaObject at(size_t const &s) const;
 
     //! safe access, with boundary check, no path information
     LuaObject at(int s) const;
@@ -235,25 +276,17 @@ class LuaObject {
             if (!lua_isfunction(*acc, idx)) {
                 LuaObject(acc.get(), GLOBAL_REF_IDX_, self_, path_).swap(res);
             } else {
-                LUA_ERROR(lua_pcall(*acc, _impl::push_to_lua(*acc, std::forward<Args>(args)...), 1, 0));
+                LUA_ERROR(lua_pcall(*acc, push_to_lua(*acc, std::make_tuple(std::forward<Args>(args)...)), 1, 0));
                 LuaObject(acc.get(), GLOBAL_REF_IDX_, luaL_ref(*acc, GLOBAL_REF_IDX_), path_ + "[ret]").swap(res);
             }
         }
         return std::move(res);
     }
 
-    //        template<typename T, typename ...Args>
-    //        inline T create_object(Args &&... args) const
-    //        {
-    //            if (isNull()) { return std::Move(T()); }
-    //            else { return std::Move(T(*this, std::forward<Args>(args)...)); }
-    //
-    //        }
-
     template <typename T>
-    inline T as() const {
+    T as() const {
         T res;
-        as(&res);
+        if (!as(&res)) { BAD_CAST; }
         return std::move(res);
     }
 
@@ -262,10 +295,10 @@ class LuaObject {
         return as<T>();
     }
 
-    operator std::basic_string<char>() const { return as<std::string>(); }
+    operator std::string() const { return as<std::string>(); }
 
     template <typename... T>
-    inline std::tuple<T...> as_tuple() const {
+    std::tuple<T...> as_tuple() const {
         return std::move(as<std::tuple<T...>>());
     }
 
@@ -287,55 +320,58 @@ class LuaObject {
     }
 
     template <typename T>
-    inline T as(T const &default_value) const {
+    T as(T const &default_value) const {
         T res;
-        if (!as(&res)) {
-            return default_value;
-        } else {
-            return std::move(res);
-        };
+        return as(&res) ? std::move(res) : default_value;
     }
 
     template <typename T>
-    inline bool as(T *res) const {
+    bool as(T *res) const {
+        return get(res, nullptr, nullptr) > 0;
+    }
+    template <typename... Args>
+    int get(Args &&... args) const {
+        int count = 0;
         if (!is_null()) {
             auto acc = L_.acc();
             try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-            auto num = _impl::pop_from_lua(*acc, lua_gettop(*acc), res);
+            count = pop_from_lua(*acc, lua_gettop(*acc), std::forward<Args>(args)...);
             lua_pop(*acc, 1);
-            return num > 0;
-        } else {
-            return false;
         }
+        return count > 0;
     }
-    template <typename T>
-    inline int set(std::string const &name, T const &v) {
-        if (is_null()) { return 0; }
-        auto acc = L_.acc();
-        try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-        _impl::push_to_lua(*acc, v);
-        lua_setfield(*acc, -2, name.c_str());
-        lua_pop(*acc, 1);
-        return 1;
-    }
-
-    template <typename T>
-    inline int set(int s, T const &v) {
-        if (is_null()) { return 0; }
-        auto acc = L_.acc();
-        try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-        _impl::push_to_lua(*acc, v);
-        lua_rawseti(*acc, -2, s + 1);
-        lua_pop(*acc, 1);
-        return 1;
+    template <typename... Args>
+    int set(std::string const &name, Args &&... args) {
+        int count = 0;
+        if (!is_null()) {
+            auto acc = L_.acc();
+            try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+            count = push_to_lua(*acc, std::forward<Args>(args)...);
+            lua_setfield(*acc, -2, name.c_str());
+            lua_pop(*acc, 1);
+        }
+        return count;
     }
 
-    template <typename T>
-    inline int add(T const &v) {
+    template <typename... Args>
+    int set(int s, Args &&... args) {
+        int count = 0;
+        if (!is_null()) {
+            auto acc = L_.acc();
+            try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+            count = push_to_lua(*acc, std::forward<Args>(args)...);
+            lua_rawseti(*acc, -2, s + 1);
+            lua_pop(*acc, 1);
+        }
+        return count;
+    }
+
+    template <typename... Args>
+    int add(Args &&... args) {
         if (is_null()) { return 0; }
         auto acc = L_.acc();
         try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-        _impl::push_to_lua(*acc, v);
+        push_to_lua(*acc, std::forward<Args>(args)...);
         size_t len = lua_rawlen(*acc, -1);
         lua_rawseti(*acc, -2, static_cast<int>(len + 1));
         lua_pop(*acc, 1);
@@ -361,34 +397,5 @@ class LuaObject {
 
 std::ostream &operator<<(std::ostream &os, LuaObject const &obj);
 
-namespace traits {
-
-template <typename TDest>
-struct type_cast<LuaObject, TDest> {
-    static constexpr TDest eval(LuaObject const &v) { return v.as<TDest>(); }
-};
-
-}  // namespace traits
-
-// namespace check
-//{
-//
-// template<typename, typename ...>
-// struct is_callable;
-// template<typename, typename>
-// struct is_indexable;
-//
-// template<typename ...Args>
-// struct is_callable<utilities::LuaObject, Args ...>
-//{
-//    static constexpr bool entity = true;
-//};
-// template<typename Other>
-// struct is_indexable<utilities::LuaObject, Other>
-//{
-//    static constexpr bool entity = true;
-//};
-//
-//}  // namespace check
 }  // namespace simpla
 #endif  // TOOLBOX_LUA_OBJECT_H_

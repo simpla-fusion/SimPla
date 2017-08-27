@@ -29,7 +29,8 @@ LuaObject::LuaObject(LuaObject const &other) {
     }
 }
 
-LuaObject::LuaObject(LuaObject &&r) : L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), self_(r.self_), path_(r.path_) {
+LuaObject::LuaObject(LuaObject &&r) noexcept
+    : L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), self_(r.self_), path_(r.path_) {
     r.self_ = 0;
 }
 
@@ -141,7 +142,7 @@ LuaObject::iterator &LuaObject::iterator::Next() {
         }
 
         int v, k;
-        if (lua_next(*acc, tidx)) {
+        if (lua_next(*acc, tidx) > 0) {
             v = luaL_ref(*acc, GLOBAL_IDX_);
             k = luaL_ref(*acc, GLOBAL_IDX_);
         } else {
@@ -171,18 +172,16 @@ LuaObject::iterator::iterator(iterator const &r) : L_(r.L_), GLOBAL_IDX_(r.GLOBA
     }
 }
 
-LuaObject::iterator::iterator(iterator &&r)
+LuaObject::iterator::iterator(iterator &&r) noexcept
     : L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_), parent_(r.parent_), key_(r.key_), value_(r.value_) {
     r.parent_ = LUA_NOREF;
     r.key_ = LUA_NOREF;
     r.value_ = LUA_NOREF;
 }
 
-LuaObject::iterator::iterator(LuaState L, unsigned int G, unsigned int p, std::string path)
-    : L_(L), GLOBAL_IDX_(G), parent_(p), key_(LUA_NOREF), value_(LUA_NOREF), path_(path + "[iterator]") {
-    if (L_.empty()) {
-        return;
-    } else {
+LuaObject::iterator::iterator(LuaState L, int G, int p, std::string path)
+    : L_(std::move(L)), GLOBAL_IDX_(G), parent_(p), key_(LUA_NOREF), value_(LUA_NOREF), path_(path + "[iterator]") {
+    if (!L_.empty()) {
         auto acc = L_.acc();
         lua_rawgeti(*acc, GLOBAL_IDX_, p);
         bool is_table = lua_istable(*acc, -1);
@@ -279,32 +278,6 @@ LuaObject LuaObject::get(std::string const &s) const {
     return std::move(res);
 }
 
-// LuaObject LuaObject::operator[](std::string const &s) const noexcept {
-//    LuaObject res;
-//
-//    if ((is_table() || is_global())) {
-//        auto acc = L_.acc();
-//
-//        if (is_global()) {
-//            lua_getglobal(*acc, s.c_str());
-//        } else {
-//            try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-//            lua_getfield(*acc, -1, s.c_str());
-//        }
-//
-//        if (lua_isnil(*acc, lua_gettop(*acc))) {
-//            lua_pop(*acc, 1);
-//        } else {
-//            int id = luaL_ref(*acc, GLOBAL_REF_IDX_);
-//
-//            if (!is_global()) { lua_pop(*acc, 1); }
-//
-//            LuaObject(acc.get(), GLOBAL_REF_IDX_, id, path_ + "." + s).swap(res);
-//        }
-//    }
-//    return std::move(res);
-//}
-
 //! unsafe fast access, no boundary check, no path information
 LuaObject LuaObject::get(int s) const {
     LuaObject r;
@@ -325,16 +298,17 @@ LuaObject LuaObject::get(int s) const {
 }
 
 //! index operator with out_of_range exception
-LuaObject LuaObject::at(size_t const &s) const {
-    LuaObject res;
-
-    if ((is_table() || is_global())) {
-        LuaObject(this->operator[](s)).swap(res);
-
-        if (res.is_null()) { throw(std::out_of_range(type_cast<std::string>(s) + "\" is not an element in " + path_)); }
-    }
-    return std::move(res);
-}
+// LuaObject LuaObject::at(size_t const &s) const {
+//    LuaObject res;
+//
+//    if ((is_table() || is_global())) {
+//        LuaObject(this->operator[](s)).swap(res);
+//
+//        if (res.is_null()) { throw(std::out_of_range(type_cast<std::string>(s) + "\" is not an element in " + path_));
+//        }
+//    }
+//    return std::move(res);
+//}
 
 //! safe access, with boundary check, no path information
 LuaObject LuaObject::at(int s) const {
@@ -422,7 +396,7 @@ bool LuaObject::is_table() const {
         auto acc = L_.acc();
         try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
         res = lua_istable(*acc, -1);
-        if (res) { res = res && lua_rawlen(*acc, -1) == 0; }
+        //        if (res) { res = res && lua_rawlen(*acc, -1) == 0; }
         lua_pop(*acc, 1);
     }
     return res;
@@ -442,155 +416,4 @@ std::ostream &operator<<(std::ostream &os, LuaObject const &obj) {
     os << obj.as<std::string>();
     return os;
 }
-//
-// namespace _impl
-//{
-// template<typename T>
-// bool convert_ntuple(LuaObject const &obj, Properties *res) { return false; };
-//
-// template<typename T, size_t N, size_t ...M>
-// bool convert_ntuple(LuaObject const &obj, Properties *res)
-//{
-//    bool success;
-//    Tensor<T, N, M...> v;
-//    success = obj.as(&v);
-//    if (success) (*res) = v;
-//
-//    return success;
-//};
-//
-//
-// template<typename T, size_t ...M>
-// auto _get_nTuple(LuaObject const &obj, LuaObject const &first, int_sequence<M...>, Properties *res)
-//-> typename std::enable_if<(sizeof...(M) >= 3), bool>::type
-//{
-//    return false;
-//};
-//
-// template<typename T, size_t ...M>
-// auto _get_nTuple(LuaObject const &obj, LuaObject const &first, int_sequence<M...>, Properties *res)
-//-> typename std::enable_if<sizeof...(M) < 3, bool>::type
-//{
-//    bool success = false;
-//
-//    if (first.is_number()) { success = convert_ntuple<T, M...>(obj, res); }
-//    else
-//    {
-//        switch (first.size())
-//        {
-//            case 1:
-//                success = _get_nTuple < T > (obj, first[0], int_sequence<M..., 1>(), res);
-//                break;
-//            case 2:
-//                success = _get_nTuple < T > (obj, first[0], int_sequence<M..., 2>(), res);
-//                break;
-//            case 3:
-//                success = _get_nTuple < T > (obj, first[0], int_sequence<M..., 3>(), res);
-//                break;
-//            case 4:
-//                success = _get_nTuple < T > (obj, first[0], int_sequence<M..., 4>(), res);
-//                break;
-//            case 5:
-//                success = _get_nTuple < T > (obj, first[0], int_sequence<M..., 5>(), res);
-//                break;
-//            case 6:
-//                success = _get_nTuple < T > (obj, first[0], int_sequence<M..., 6>(), res);
-//                break;
-//            case 7:
-//                success = _get_nTuple < T > (obj, first[0], int_sequence<M..., 7>(), res);
-//                break;
-//            case 8:
-//                success = _get_nTuple < T > (obj, first[0], int_sequence<M..., 8>(), res);
-//                break;
-//            case 9:
-//                success = _get_nTuple < T > (obj, first[0], int_sequence<M..., 9>(), res);
-//                break;
-//            default:
-//                success = false;
-//        }
-//
-//    }
-//    return success;
-//}
-//
-// template<typename T>
-// bool get_nTuple(LuaObject const &obj, Properties *res)
-//{
-//    return _get_nTuple<T>(obj, obj, int_sequence<>(), res);
-//};
-//
-//
-//}
-//
-// bool LuaObject::as(Properties *res) const
-//{
-//
-//    bool success = true;
-//
-//    if (this->isTable())
-//    {
-//
-//        auto first_item = (*this->begin());
-//
-//        if (first_item.first.as<int>() == 1 &&
-//            (first_item.second.is_number() || first_item.second.is_nTuple())) //is ntuple
-//        {
-//            success = success && _impl::get_nTuple<double>(*this, res);
-//        } else //is list
-//        {
-//            for (auto const &item:*this)
-//            {
-//                auto &v = (*res)[item.first.as<std::string>()];
-//                success = success && item.second.as(&(v));
-//
-//                if (!success)break;
-//            }
-//        }
-//    } else if (this->isBoolean())
-//    {
-//        bool v;
-//
-//        success = success && this->as(&v);
-//
-//        if (success) (*res) = v;
-//    }
-////#if LUA_VERSION_NUM >= 503
-//    else if (this->is_integer())
-//    {
-//        int v;
-//
-//        success = success && this->as(&v);
-//
-//        if (success) (*res) = v;
-//    }
-////#endif
-//    else if (this->is_number())
-//    {
-//        double v;
-//
-//        success = success && this->as(&v);
-//
-//        if (success) (*res) = v;
-//    } else if (this->is_string())
-//    {
-//        std::string v;
-//
-//        success = success && this->as(&v);
-//
-//        if (success) (*res) = v;
-//    } else
-//    {
-//        WARNING << "unknown type can not convert_database_r" << std::endl;
-//        success = false;
-//    }
-//
-//    return success;
-//}
-//
-// bool LuaObject::set(std::string const &key, Properties const &res) const
-//{
-//    // @TODO implement Properties to LuaOjbect convert_database_r
-//    UNIMPLEMENTED;
-//    return false;
-//}
 }

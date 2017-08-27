@@ -5,7 +5,6 @@
 #ifndef SIMPLA_DATA_ALL_H
 #define SIMPLA_DATA_ALL_H
 
-#include "../../../experiment/DataBase.h"
 #include "DataBlock.h"
 #include "DataEntity.h"
 #include "DataLight.h"
