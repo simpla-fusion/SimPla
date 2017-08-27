@@ -218,9 +218,35 @@ std::shared_ptr<DataNode> DataNodeLua::GetNode(std::string const& uri, int flag)
 
     return res;
 }
-std::shared_ptr<DataNode> DataNodeLua::GetNode(index_type s, int flag) { return GetNode(std::to_string(s), flag); }
+std::shared_ptr<DataNode> DataNodeLua::GetNode(index_type s, int flag) {
+    std::shared_ptr<DataNodeLua> res = nullptr;
+
+    if (m_pimpl_->m_lua_obj_ == nullptr && (flag & NEW_IF_NOT_EXIST) != 0) {
+        m_pimpl_->m_lua_obj_ =
+            std::dynamic_pointer_cast<DataNodeLua>(Parent())->m_pimpl_->m_lua_obj_->new_table(m_pimpl_->m_key_);
+    }
+    if (m_pimpl_->m_lua_obj_ == nullptr) {
+        res = DataNodeLua::New();
+        RUNTIME_ERROR << "Can not get object [" << s << "] from null group !" << std::endl;
+    } else {
+        res = LUAGetNode(m_pimpl_->m_lua_obj_->get(s));
+        res->m_pimpl_->m_key_ = std::to_string(s);
+        res->m_pimpl_->m_parent_ = Self();
+    }
+    return res;
+}
 std::shared_ptr<DataNode> DataNodeLua::GetNode(index_type s, int flag) const {
-    return GetNode(std::to_string(s), flag);
+    std::shared_ptr<DataNodeLua> res = nullptr;
+
+    if (m_pimpl_->m_lua_obj_ == nullptr) {
+        res = DataNodeLua::New();
+        RUNTIME_ERROR << "Can not get object [" << s << "] from null group !" << std::endl;
+    } else {
+        res = LUAGetNode(m_pimpl_->m_lua_obj_->get(s));
+        res->m_pimpl_->m_key_ = std::to_string(s);
+        res->m_pimpl_->m_parent_ = Self();
+    }
+    return res;
 }
 int DataNodeLua::DeleteNode(std::string const& uri, int flag) { return 0; /*m_pimpl_->m_lua_obj_->erase(uri);*/ }
 

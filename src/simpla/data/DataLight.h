@@ -29,7 +29,13 @@ struct DataLight : public DataEntity {
     static std::shared_ptr<DataLight> New(Args&&...);
 
     template <typename U>
-    U as() const;
+    size_type as(U* v) const;
+    template <typename U>
+    U as() const {
+        U res;
+        as(&res);
+        return res;
+    }
     template <typename U>
     bool isEqualTo(U const& u) const;
 
@@ -41,6 +47,39 @@ struct DataLight : public DataEntity {
 
     size_type CopyIn(void const* other) override { return 0; }
     size_type CopyOut(void* other) const override { return 0; }
+
+   private:
+    template <typename U, typename V>
+    static void _CopyArrayOut(U& dst, V const& src, ENABLE_IF(std::rank<U>::value == 0)) {
+        dst = src;
+    };
+
+    template <typename U, typename V>
+    static void _CopyArrayOut(U& dst, V const& src, ENABLE_IF((std::rank<U>::value > 0))) {
+        for (int i = 0; i < std::extent<U, 0>::value; ++i) { _CopyArrayOut(dst[i], src[i]); }
+    };
+    template <typename U, typename V>
+    static size_type _CopyArrayIn(V& dst, U const& src, ENABLE_IF(std::rank<U>::value == 0)) {
+        dst = src;
+    };
+
+    template <typename U, typename V>
+    static size_type _CopyArrayIn(V& dst, U const& src, ENABLE_IF((std::rank<U>::value > 1))) {
+        for (int i = 0; i < std::extent<U, 0>::value; ++i) { _CopyArrayIn(dst[i], src[i]); }
+        return std::extent<U, 0>::value;
+    };
+
+    template <typename U, typename V>
+    static bool _isEqualTo(U const& left, V const& right, ENABLE_IF(std::rank<U>::value == 0)) {
+        return left == right;
+    };
+
+    template <typename U, typename V>
+    static bool _isEqualTo(U const& left, V const& right, ENABLE_IF((std::rank<U>::value > 0))) {
+        bool res = true;
+        for (int i = 0; res && i < std::extent<U, 0>::value; ++i) { res = res && _isEqualTo(left[i], right[i]); }
+        return res;
+    };
 };
 template <typename V, typename Enable = void>
 class DataLightT {};
@@ -212,7 +251,7 @@ class DataLightT<V*> : public DataLight {
     static bool _isEqualTo(U const& left, value_type* right, ENABLE_IF((std::rank<U>::value > 1))) {
         bool res = true;
         for (int i = 0; res && i < std::extent<U, 0>::value; ++i) {
-            res = res && _CopyIn(left, right[i]);
+            res = res && _isEqualTo(left, right[i]);
             right += std::extent<U, 0>::value;
         }
         return res;
@@ -453,17 +492,12 @@ std::shared_ptr<DataLight> DataLight::New(Args&&... args) {
     return make_light(std::forward<Args>(args)...);
 }
 template <typename U>
-U DataLight::as() const {
-    U res;
+size_type DataLight::as(U* res) const {
+    int count = 0;
     typedef std::conditional_t<std::rank<U>::value == 0, DataLightT<U>, DataLightT<traits::value_type_t<U>*>> type;
     auto const* p = dynamic_cast<type const*>(this);
-    if (p == nullptr) {
-        FIXME << typeid(U).name() << " <= " << this->value_type_info().name() << " [" << this->rank() << "], " << *this
-              << std::endl;
-    } else {
-        p->CopyOut(&res);
-    }
-    return res;
+    if (p != nullptr) { count = p->CopyOut(res); }
+    return count;
 }
 template <typename U>
 bool DataLight::isEqualTo(U const& u) const {

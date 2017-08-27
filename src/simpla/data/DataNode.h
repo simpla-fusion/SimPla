@@ -85,7 +85,8 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
 
     std::shared_ptr<DataNode> GetNode(std::string const& uri) { return GetNode(uri, RECURSIVE | NEW_IF_NOT_EXIST); }
     std::shared_ptr<DataNode> GetNode(std::string const& uri) const { return GetNode(uri, RECURSIVE); }
-
+    std::shared_ptr<DataNode> GetNode(size_type s) { return GetNode(s, NEW_IF_NOT_EXIST); }
+    std::shared_ptr<DataNode> GetNode(size_type s) const { return GetNode(s, 0); }
     template <typename U>
     int Set(std::initializer_list<U> const& u) {
         Clear();
@@ -148,19 +149,73 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     }
     template <typename U>
     U GetValue() const {
-        auto p = std::dynamic_pointer_cast<DataLight>(Get());
-        return p == nullptr ? std::numeric_limits<U>::signaling_NaN() : p->as<U>();
+        U res = std::numeric_limits<U>::signaling_NaN();
+        auto count = CopyOut(res);
+        ASSERT(count > 0);
+        return res;
     };
     template <typename U>
     U GetValue(U const& default_value) const {
-        auto p = std::dynamic_pointer_cast<DataLight>(Get());
-        return p != nullptr ? p->as<U>() : default_value;
+        U res;
+        return CopyOut(res) > 0 ? res : default_value;
     };
     template <typename URL, typename U>
     bool Check(URL const& url, U const& u) const {
         auto p = std::dynamic_pointer_cast<DataLight>(GetNode(url, RECURSIVE)->Get());
         return (p != nullptr) && p->isEqualTo(u);
     }
+
+    //******************************************************************************************************
+
+    template <typename U>
+    size_type CopyOut(U& dst, ENABLE_IF(std::rank<U>::value == 0)) const {
+        auto p = std::dynamic_pointer_cast<DataLightT<U>>(Get());
+        if (p == nullptr) {
+            dst = p->value();
+        } else {
+            BAD_CAST;
+        }
+        return 1;
+    };
+
+    template <typename U>
+    size_type CopyOut(U& dst, ENABLE_IF((std::rank<U>::value > 0))) const {
+        size_type count = 0;
+        auto p = std::dynamic_pointer_cast<DataLight>(Get());
+//        if (p == nullptr) {
+            for (size_type i = 0; i < std::extent<U, 0>::value; ++i) { count += GetNode(i)->CopyOut(dst[i]); }
+//        }
+//        else {
+//            count = p->CopyOut(&dst);
+//        }
+        return count;
+    };
+    //    template <typename U, typename V>
+    //    static size_type _CopyArrayIn(V& dst, U const& src, ENABLE_IF(std::rank<U>::value == 0)) {
+    //        dst = src;
+    //    };
+    //
+    //    template <typename U, typename V>
+    //    static size_type _CopyArrayIn(V& dst, U const& src, ENABLE_IF((std::rank<U>::value > 1))) {
+    //        for (int i = 0; i < std::extent<U, 0>::value; ++i) { _CopyArrayIn(dst[i], src[i]); }
+    //        return std::extent<U, 0>::value;
+    //    };
+    //
+    //    template <typename U, typename V>
+    //    static bool _isEqualTo(U const& left, V const& right, ENABLE_IF(std::rank<U>::value == 0)) {
+    //        return left == right;
+    //    };
+    //
+    //    template <typename U, typename V>
+    //    static bool _isEqualTo(U const& left, V const& right, ENABLE_IF((std::rank<U>::value > 0))) {
+    //        bool res = true;
+    //        for (int i = 0; res && i < std::extent<U, 0>::value; ++i) { res = res && _isEqualTo(left[i], right[i]); }
+    //        return res;
+    //    };
+
+   public:
+    //******************************************************************************************************
+
     bool Check(std::string const& uri) const { return Check(uri, true); }
 
     template <typename U>
