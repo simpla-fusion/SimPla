@@ -5,8 +5,8 @@
 #include "DataNode.h"
 #include <iomanip>
 #include <map>
-#include <vector>
 #include <regex>
+#include <vector>
 #include "DataEntity.h"
 #include "simpla/utilities/ParsingURI.h"
 
@@ -87,7 +87,7 @@ std::ostream& DataNode::Print(std::ostream& os, int indent) const {
             } else {
                 os << ", ";
             }
-            if (new_line) { os << std::endl << std::setw(indent + 1); }
+            if (new_line) { os << std::endl << std::setw(indent + 1) << " "; }
             FancyPrint(os, k, indent);
             os << " = ";
             v->Print(os, indent + 1);

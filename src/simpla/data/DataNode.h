@@ -32,7 +32,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     DataNode(DataNode&& other) = delete;
 
     enum { RECURSIVE = 0b01, NEW_IF_NOT_EXIST = 0b010, ADD_IF_EXIST = 0b100, ONLY_TABLE = 0b1000 };
-    enum eNodeType { DN_NULL = 0, DN_ENTITY = 1, DN_ARRAY = 2, DN_TABLE = 3, DN_FUNCTION = 4 };
+    enum eNodeType { DN_NULL = 0, DN_ENTITY = 1, DN_TABLE = 2, DN_ARRAY = 3, DN_FUNCTION = 4 };
     enum eDataIOStatus {};
     static std::shared_ptr<DataNode> New(std::string const& uri = "");
 

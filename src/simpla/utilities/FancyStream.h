@@ -95,6 +95,7 @@ std::ostream &FancyPrint(std::ostream &os, T const &d, int indent, ENABLE_IF(std
     os << d;
     return os;
 }
+
 template <typename T>
 std::ostream &FancyPrint(std::ostream &os, T const &d, int indent, ENABLE_IF((std::rank<T>::value > 0))) {
     os << "[";
@@ -108,7 +109,10 @@ std::ostream &FancyPrint(std::ostream &os, T const &d, int indent, ENABLE_IF((st
 
     return os;
 }
-
+inline std::ostream &FancyPrint(std::ostream &os, bool const &d, int indent) {
+    os << std::boolalpha << d;
+    return os;
+}
 inline std::ostream &FancyPrint(std::ostream &os, std::string const &s, int indent) {
     os << "\"" << s << "\"";
     return os;

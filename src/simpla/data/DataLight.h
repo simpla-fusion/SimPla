@@ -74,7 +74,8 @@ class DataLightT<V> : public DataLight {
 
     value_type const& value() const { return m_data_; };
     value_type& value() { return m_data_; };
-
+    auto const* pointer() const { return &m_data_; };
+    auto* pointer() { return &m_data_; };
     void* GetPointer() override { return reinterpret_cast<void*>(&m_data_); }
     void const* GetPointer() const override { return reinterpret_cast<void const*>(&m_data_); }
 
@@ -141,6 +142,9 @@ class DataLightT<V*> : public DataLight {
 
     auto const& value() const { return m_data_; };
     auto& value() { return m_data_; };
+    auto const* pointer() const { return m_data_.get(); };
+    auto* pointer() { return m_data_.get(); };
+
     void* GetPointer() override { return m_data_.get(); }
     void const* GetPointer() const override { return m_data_.get(); }
 
@@ -258,6 +262,7 @@ class DataLightT<std::string*> : public DataLight {
     DataLightT(std::initializer_list<char const*> const& d) {
         for (auto const& v : d) { m_data_.push_back(std::string(v)); }
     }
+    DataLightT(int rank, size_type const* extents) {}
 
    public:
     ~DataLightT() override = default;
@@ -270,6 +275,8 @@ class DataLightT<std::string*> : public DataLight {
 
     auto const& value() const { return m_data_; };
     auto& value() { return m_data_; };
+    auto const* pointer() const { return &m_data_[0]; };
+    auto* pointer() { return &m_data_[0]; };
     void* GetPointer() override { return &m_data_[0]; }
     void const* GetPointer() const override { return &m_data_[0]; }
 

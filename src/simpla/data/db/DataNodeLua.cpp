@@ -107,9 +107,11 @@ DataNode::eNodeType DataNodeLua::NodeType() const {
     eNodeType res = DN_NULL;
     if (m_pimpl_->m_lua_obj_.is_null()) {
         res = m_pimpl_->m_entity_ == nullptr ? DN_NULL : DN_ENTITY;
-    } else if (m_pimpl_->m_lua_obj_.is_array()) {
-        res = DN_ARRAY;
-    } else if (m_pimpl_->m_lua_obj_.is_table()) {
+    }
+    //    else if (m_pimpl_->m_lua_obj_.is_array()) {
+    //        res = DN_ARRAY;
+    //    }
+    else if (m_pimpl_->m_lua_obj_.is_table()) {
         res = DN_TABLE;
     } else if (m_pimpl_->m_lua_obj_.is_function()) {
         res = DN_FUNCTION;
@@ -299,13 +301,13 @@ int DataNodeLua::Set(std::shared_ptr<DataEntity> const& entity) {
         }
 #define DEFINE_MULTIMETHOD(_T_)                                              \
     else if (auto p = std::dynamic_pointer_cast<DataLightT<_T_>>(entity)) {  \
-        count = lobj.set(m_pimpl_->m_key_, p->GetPointer(), 0, nullptr);     \
+        count = lobj.set(m_pimpl_->m_key_, p->pointer(), 0, nullptr);        \
     }                                                                        \
     else if (auto p = std::dynamic_pointer_cast<DataLightT<_T_*>>(entity)) { \
         size_type rank = p->rank();                                          \
         size_type extents[MAX_NDIMS_OF_ARRAY];                               \
         p->extents(extents);                                                 \
-        count = lobj.set(m_pimpl_->m_key_, p->GetPointer(), rank, extents);  \
+        count = lobj.set(m_pimpl_->m_key_, p->pointer(), rank, extents);     \
     }
         DEFINE_MULTIMETHOD(std::string)
         DEFINE_MULTIMETHOD(bool)
