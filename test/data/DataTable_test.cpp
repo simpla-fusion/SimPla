@@ -74,18 +74,20 @@ TEST_P(DataBaseTest, light_data) {
     *(*db)["d"] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
     *(*db)["Box"] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}};
 
-    //    *(*db)["/b/sub/d"] = {"wa wa", "la la"};
-    //    (*db)["g"]->SetValue<nTuple<int, 2, 2, 2>>({{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
-    //    (*db)["/b/sub/1/2/3/4/d/A"]->SetValue({1, 2, 3});
-    //    (*db)["/b/sub/1/2/3/4/d/C"]->SetValue({{1.0, 2.0, 3.0}, {2.0}, {7.0, 9.0}});
+    *(*db)["b/sub/d"] = {"wa wa", "la la"};
+
+    (*db)["g"]->SetValue({{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
+
+    (*db)["b/sub/1/2/3/4/d/A"]->SetValue({1, 2, 3});
+    (*db)["b/sub/1/2/3/4/d/C"]->SetValue({{1.0, 2.0, 3.0}, {2.0}, {7.0, 9.0}});
     //    *(*db)["/b/sub/c"] += {5, 6, 7, 8};
     //    *(*db)["/b/sub/c"] += {1, 5, 3, 4};
     //    *(*db)["/b/sub/c"] += {2, 5, 3, 4};
     //    *(*db)["/b/sub/c"] += {3, 5, 3, 4};
     //    *(*db)["/b/sub/c"] += {4, 5, 3, 4};
-    //    *(*db)["/b/sub/a"] = {};
-    //    *(*db)["/b/sub/a"] += {3, 5, 3, 4};
-    //    *(*db)["/b/sub/a"] += {3, 5, 3, 4};
+    *(*db)["/b/sub/a"] = {};
+    *(*db)["/b/sub/a"] += {3, 5, 3, 4};
+    *(*db)["/b/sub/a"] += {3, 5, 3, 4};
     //    *(*db)["/b/sub/e"] = {};
     //    *(*db)["/b/sub/e"] += {1, 2, 3, 4};
     //    *(*db)["/b/sub/e"] += 9;
@@ -108,7 +110,7 @@ TEST_P(DataBaseTest, block_data) {
 }
 INSTANTIATE_TEST_CASE_P(DataBaseTestP, DataBaseTest,
                         testing::Values(  //
-                                          //                            "mem://",                 //
+                            "mem://",     //
                                           //                            "h5://?rw,a=234,b=6#123"  //
                                           // "imas://",
                             "lua://"));
