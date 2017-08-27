@@ -108,7 +108,7 @@ TEST_P(DataBaseTest, block_data) {
 INSTANTIATE_TEST_CASE_P(DataBaseTestP, DataBaseTest,
                         testing::Values("mem://",                  //
                                         "h5://?rw,a=234,b=6#123",  //
-                                                                   //"lua://"
+                                        "lua://",                  //
                                         "imas://"));
 //
 // TEST(DataTable, samrai) {
