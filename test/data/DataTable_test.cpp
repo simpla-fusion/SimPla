@@ -61,8 +61,8 @@ TEST_P(DataBaseTest, light_data) {
     auto db = DataNode::New(m_url);
     *(*db)["CartesianGeometry"] = "hello world!";
     *(*db)["b/a"] = 5.0;
-    *(*db)["d"] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
-    *(*db)["Box"] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}};
+    //    *(*db)["d"] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+    //    *(*db)["Box"] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}};
 
     //    (*db)["g"]->SetValue<nTuple<int, 2, 2, 2>>({{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
     //    *(*db)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
@@ -92,16 +92,16 @@ TEST_P(DataBaseTest, light_data) {
     *(*db)["i"] = {"default"_, "abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"};
     *(*db)["j"] = {"abc"_ = {"abc1"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}};
 
-    db->Flush();
-
-    EXPECT_EQ(((*db)["d"]->as<nTuple<Real, 6>>()), (nTuple<Real, 6>{1, 2, 3, 4, 5, 6}));
-    EXPECT_EQ(((*db)["Box"]->as<nTuple<Real, 2, 3>>()), (nTuple<Real, 2, 3>{{1, 2, 3}, {4, 5, 6}}));
-
+    //    db->Flush();
+    //
+    //    EXPECT_EQ(((*db)["d"]->as<nTuple<Real, 6>>()), (nTuple<Real, 6>{1, 2, 3, 4, 5, 6}));
+    //    EXPECT_EQ(((*db)["Box"]->as<nTuple<Real, 2, 3>>()), (nTuple<Real, 2, 3>{{1, 2, 3}, {4, 5, 6}}));
+    //
     EXPECT_EQ(db->GetNode("CartesianGeometry")->as<std::string>(), "hello world!");
     EXPECT_DOUBLE_EQ(db->GetNode("b/a")->as<double>(), 5);
     EXPECT_TRUE(db->Check("a/a"));
     EXPECT_FALSE(db->Check("a/not_debug"));
-    EXPECT_EQ(((*db)[("/b/sub/a/1")]->as<nTuple<int, 4>>()), (nTuple<int, 4>{3, 5, 3, 4}));
+    //    EXPECT_EQ(((*db)[("/b/sub/a/1")]->as<nTuple<int, 4>>()), (nTuple<int, 4>{3, 5, 3, 4}));
     std::cout << m_url << " : " << (*db) << std::endl;
 }
 TEST_P(DataBaseTest, block_data) {
@@ -109,11 +109,12 @@ TEST_P(DataBaseTest, block_data) {
 
     //
 }
-INSTANTIATE_TEST_CASE_P(DataBaseTestP, DataBaseTest, testing::Values(
-                                                         // "mem://",
-                                                         // "h5://?rw,a=234,b=6#123",
-                                                         // "imas://",
-                                                         "lua://"));
+INSTANTIATE_TEST_CASE_P(DataBaseTestP, DataBaseTest,
+                        testing::Values("mem://",                 //
+                                        "h5://?rw,a=234,b=6#123"  //
+                                        // "imas://",
+                                        //                                                         "lua://"
+                                        ));
 //
 // TEST(DataTable, samrai) {
 //    logger::set_stdout_level(1000);

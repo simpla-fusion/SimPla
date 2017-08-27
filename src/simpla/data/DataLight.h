@@ -275,8 +275,8 @@ class DataLightT<std::string*> : public DataLight {
 
     auto const& value() const { return m_data_; };
     auto& value() { return m_data_; };
-    auto const* pointer() const { return &m_data_[0]; };
-    auto* pointer() { return &m_data_[0]; };
+    value_type const* pointer() const { return &m_data_[0]; };
+    value_type* pointer() { return &m_data_[0]; };
     void* GetPointer() override { return &m_data_[0]; }
     void const* GetPointer() const override { return &m_data_[0]; }
 
