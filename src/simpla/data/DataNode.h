@@ -85,7 +85,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     std::shared_ptr<DataNode> operator[](std::string const& s) { return GetNode(s); }
     std::shared_ptr<DataNode> operator[](std::string const& s) const { return GetNode(s); }
 
-    std::shared_ptr<DataNode> GetNode(std::string const& uri) { return GetNode(uri, RECURSIVE); }
+    std::shared_ptr<DataNode> GetNode(std::string const& uri) { return GetNode(uri, RECURSIVE | NEW_IF_NOT_EXIST); }
     std::shared_ptr<DataNode> GetNode(std::string const& uri) const { return GetNode(uri, RECURSIVE); }
     std::shared_ptr<DataNode> GetNode(size_type s) { return GetNode(s, NEW_IF_NOT_EXIST); }
     std::shared_ptr<DataNode> GetNode(size_type s) const { return GetNode(s, 0); }

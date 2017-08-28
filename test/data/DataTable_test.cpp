@@ -59,13 +59,14 @@ class DataBaseTest : public testing::TestWithParam<std::string> {
 
 TEST_P(DataBaseTest, light_data) {
     auto db = DataNode::New(m_url);
-    //    *(*db)["CartesianGeometry"] = "hello world!";
-    //    *(*db)["b/a"] = 5.0;
-    //
-    //    *(*db)["i"] = {"default"_, "abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"};
-    //
-    //    *(*db)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
+    *(*db)["CartesianGeometry"] = "hello world!";
+    CHECK(*db);
+    CHECK(db->size());
 
+    //    *(*db)["b/a"] = 5.0;
+    //    *(*db)["i"] = {"default"_, "abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"};
+    //    *(*db)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
+    //
     //    *(*db)["a"] = {"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
     //                   "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}};
     //    *(*db)["h"] = {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}};
@@ -73,7 +74,7 @@ TEST_P(DataBaseTest, light_data) {
     //
     //    *(*db)["d"] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
     //    *(*db)["Box"] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}};
-    //
+
     //    *(*db)["b/sub/d"] = {"wa wa", "la la"};
     //    (*db)["tuple3"]->SetValue({{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
     //    (*db)["b/sub/1/2/3/4/d/A"]->SetValue({1, 2, 3});
@@ -89,33 +90,26 @@ TEST_P(DataBaseTest, light_data) {
     //    *(*db)["/b/sub/e"] = {};
     //    *(*db)["/b/sub/e"] += {1, 2, 3, 4};
     //    *(*db)["/b/sub/e"] += 9;
-    db->Flush();
-    CHECK((*db)["Box"]->size());
-    CHECK((*db)["a"]->size());
-    CHECK((*db)["CartesianGeometry"]->size());
-
-    //
+    //    db->Flush();
+    //    EXPECT_EQ((*db)["a"]->size(), 4);
     //    EXPECT_EQ(((*db)["d"]->as<nTuple<Real, 6>>()), (nTuple<Real, 6>{1, 2, 3, 4, 5, 6}));
     //    EXPECT_EQ(((*db)["Box"]->as<nTuple<Real, 2, 3>>()), (nTuple<Real, 2, 3>{{1, 2, 3}, {4, 5, 6}}));
-    //
     //    EXPECT_EQ(db->GetNode("CartesianGeometry")->as<std::string>(), "hello world!");
     //    EXPECT_DOUBLE_EQ(db->GetNode("b/a")->as<double>(), 5);
     //    EXPECT_TRUE(db->Check("a/a"));
     //    EXPECT_FALSE(db->Check("a/not_debug"));
     //    EXPECT_EQ(((*db)[("/b/sub/a/1")]->as<nTuple<int, 4>>()), (nTuple<int, 4>{3, 5, 3, 4}));
-    std::cout << m_url << " : " << (*db) << std::endl;
+    //    std::cout << m_url << " : " << (*db) << std::endl;
 }
-//TEST_P(DataBaseTest, block_data) {
+// TEST_P(DataBaseTest, block_data) {
 //    auto db = DataNode::New(m_url);
 //}
 INSTANTIATE_TEST_CASE_P(DataBaseTestP, DataBaseTest,
-                        testing::Values(  //
-                            "mem://"      //,
-                            //
-                            //    , "h5://?rw,a=234,b=6#123",
-                            // "imas://",
-                            //"lua://"
-                            ));
+                        testing::Values(               //
+                            "mem://",                  //
+                            "h5://?rw,a=234,b=6#123",  //
+                            "imas://",                 //
+                            "lua://"));
 //
 // TEST(DataTable, samrai) {
 //    logger::set_stdout_level(1000);

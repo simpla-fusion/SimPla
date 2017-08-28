@@ -15,7 +15,7 @@ namespace simpla {
 namespace data {
 
 class DataNodeLua : public DataNode {
-SP_DATA_NODE_HEAD(DataNodeLua)
+    SP_DATA_NODE_HEAD(DataNodeLua)
 
    public:
     int Parse(std::string const&) override;

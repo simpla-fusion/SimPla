@@ -39,6 +39,18 @@ struct DataNodeLua::pimpl_s {
     std::shared_ptr<DataNodeLua> m_parent_ = nullptr;
     std::shared_ptr<DataEntity> m_entity_ = nullptr;
     std::string m_key_{"_ROOT_"};
+    std::shared_ptr<LuaObject> GetLuaObject(int flag = NEW_IF_NOT_EXIST) {
+        if (m_lua_obj_ == nullptr && (flag & NEW_IF_NOT_EXIST) != 0) {
+            if (m_parent_ == nullptr) {
+                auto tmp = LuaObject::New();
+                m_lua_obj_ = tmp->new_table(m_key_);
+            } else {
+                m_lua_obj_ = m_parent_->m_pimpl_->GetLuaObject(flag)->new_table(m_key_);
+            }
+        }
+        if (m_lua_obj_ == nullptr) { RUNTIME_ERROR << "Empty table"; }
+        return m_lua_obj_;
+    }
 };
 
 enum { T_NULL = 0, T_INTEGRAL = 0b00001, T_FLOATING = 0b00010, T_STRING = 0b00100, T_BOOLEAN = 0b01000, T_NAN = -1 };
@@ -53,29 +65,14 @@ DataNodeLua::~DataNodeLua() {
 }
 int DataNodeLua::Connect(std::string const& authority, std::string const& path, std::string const& query,
                          std::string const& fragment) {
-    std::string root_s = query.empty() ? "_ROOT_" : query;
-    m_pimpl_->m_parent_ = DataNodeLua::New();
-    m_pimpl_->m_parent_->m_pimpl_->m_lua_obj_ = LuaObject::New();
-
-    if (!path.empty()) {
-        m_pimpl_->m_parent_->m_pimpl_->m_lua_obj_->parse_file(path);
-        m_pimpl_->m_lua_obj_ = m_pimpl_->m_parent_->m_pimpl_->m_lua_obj_->get(root_s);
-    } else {
-        m_pimpl_->m_lua_obj_ = m_pimpl_->m_parent_->m_pimpl_->m_lua_obj_->new_table(root_s);
-    }
-    m_pimpl_->m_key_ = root_s;
-
+    m_pimpl_->m_key_ = query.empty() ? "_ROOT_" : query;
+    if (!path.empty()) { m_pimpl_->GetLuaObject()->parse_file(path); }
     return SP_SUCCESS;
 }
 int DataNodeLua::Disconnect() { return 0; }
 
 int DataNodeLua::Parse(std::string const& str) {
-    if (m_pimpl_->m_parent_ == nullptr) {
-        m_pimpl_->m_parent_ = DataNodeLua::New();
-        m_pimpl_->m_parent_->m_pimpl_->m_lua_obj_->init();
-    }
-    m_pimpl_->m_parent_->m_pimpl_->m_lua_obj_->parse_string(str);
-    m_pimpl_->m_lua_obj_ = m_pimpl_->m_parent_->m_pimpl_->m_lua_obj_->get("_ROOT_");
+    m_pimpl_->GetLuaObject()->parse_string(str);
     return SP_SUCCESS;
 };
 std::istream& DataNodeLua::Parse(std::istream& is) {
@@ -187,18 +184,9 @@ std::shared_ptr<DataNode> DataNodeLua::GetNode(std::string const& uri, int flag)
     if ((flag & RECURSIVE) != 0) {
         res = std::dynamic_pointer_cast<DataNodeLua>(RecursiveFindNode(shared_from_this(), uri, flag).second);
     } else {
-        if (m_pimpl_->m_lua_obj_ == nullptr && (flag & NEW_IF_NOT_EXIST) != 0) {
-            m_pimpl_->m_lua_obj_ =
-                std::dynamic_pointer_cast<DataNodeLua>(Parent())->m_pimpl_->m_lua_obj_->new_table(m_pimpl_->m_key_);
-        }
-        if (m_pimpl_->m_lua_obj_ == nullptr) {
-            res = DataNodeLua::New();
-            RUNTIME_ERROR << "Can not get object [" << uri << "] from null group !" << std::endl;
-        } else {
-            res = LUAGetNode(m_pimpl_->m_lua_obj_->get(uri));
-            res->m_pimpl_->m_key_ = uri;
-            res->m_pimpl_->m_parent_ = Self();
-        }
+        res = LUAGetNode(m_pimpl_->GetLuaObject(flag)->get(uri));
+        res->m_pimpl_->m_key_ = uri;
+        res->m_pimpl_->m_parent_ = Self();
     }
     return res;
 }
@@ -210,7 +198,7 @@ std::shared_ptr<DataNode> DataNodeLua::GetNode(std::string const& uri, int flag)
         if (m_pimpl_->m_lua_obj_ == nullptr) {
             FIXME << "Can not get object [" << uri << "] from null group !" << std::endl;
         } else {
-            res = LUAGetNode(m_pimpl_->m_lua_obj_->get(uri));
+            res = LUAGetNode(m_pimpl_->GetLuaObject(flag)->get(uri));
             res->m_pimpl_->m_parent_ = Self();
             res->m_pimpl_->m_key_ = uri;
         }
@@ -220,30 +208,18 @@ std::shared_ptr<DataNode> DataNodeLua::GetNode(std::string const& uri, int flag)
 }
 std::shared_ptr<DataNode> DataNodeLua::GetNode(index_type s, int flag) {
     std::shared_ptr<DataNodeLua> res = nullptr;
-
-    if (m_pimpl_->m_lua_obj_ == nullptr && (flag & NEW_IF_NOT_EXIST) != 0) {
-        m_pimpl_->m_lua_obj_ =
-            std::dynamic_pointer_cast<DataNodeLua>(Parent())->m_pimpl_->m_lua_obj_->new_table(m_pimpl_->m_key_);
-    }
-    if (m_pimpl_->m_lua_obj_ == nullptr) {
-        res = DataNodeLua::New();
-        RUNTIME_ERROR << "Can not get object [" << s << "] from null group !" << std::endl;
-    } else {
-        res = LUAGetNode(m_pimpl_->m_lua_obj_->get(s));
-        res->m_pimpl_->m_key_ = std::to_string(s);
-        res->m_pimpl_->m_parent_ = Self();
-    }
+    res = LUAGetNode(m_pimpl_->GetLuaObject(flag)->get(s));
+    res->m_pimpl_->m_key_ = std::to_string(s);
+    res->m_pimpl_->m_parent_ = Self();
     return res;
 }
 std::shared_ptr<DataNode> DataNodeLua::GetNode(index_type s, int flag) const {
     std::shared_ptr<DataNode> res = nullptr;
 
-    if (m_pimpl_->m_lua_obj_ != nullptr) {
-        auto tmp = LUAGetNode(m_pimpl_->m_lua_obj_->get(s));
-        tmp->m_pimpl_->m_key_ = std::to_string(s);
-        tmp->m_pimpl_->m_parent_ = Self();
-        res = tmp;
-    }
+    auto tmp = LUAGetNode(m_pimpl_->GetLuaObject(flag)->get(s));
+    tmp->m_pimpl_->m_key_ = std::to_string(s);
+    tmp->m_pimpl_->m_parent_ = Self();
+    res = tmp;
     return res;
 }
 size_type DataNodeLua::DeleteNode(std::string const& uri, int flag) { return 0; /*m_pimpl_->m_lua_obj_->erase(uri);*/ }
@@ -258,11 +234,8 @@ size_type DataNodeLua::SetEntity(std::shared_ptr<DataEntity> const& entity) {
     if (entity == nullptr) {
         FIXME << " SetEntity value : " << m_pimpl_->m_key_ << " = " << *entity << std::endl;
     } else if (auto parent = std::dynamic_pointer_cast<DataNodeLua>(Parent())) {
-        auto lobj = parent->m_pimpl_->m_lua_obj_;
-        if (auto p = std::dynamic_pointer_cast<DataBlock>(entity)) {
-            count = 0;
-            FIXME << "LUA backend do not support DataBlock ";
-        }
+        auto& lobj = parent->m_pimpl_->m_lua_obj_;
+
 #define DEFINE_MULTIMETHOD(_T_)                                              \
     else if (auto p = std::dynamic_pointer_cast<DataLightT<_T_>>(entity)) {  \
         count = lobj->set(m_pimpl_->m_key_, p->pointer(), 0, nullptr);       \
@@ -273,6 +246,11 @@ size_type DataNodeLua::SetEntity(std::shared_ptr<DataEntity> const& entity) {
         p->extents(extents);                                                 \
         count = lobj->set(m_pimpl_->m_key_, p->pointer(), rank, extents);    \
     }
+
+        if (auto p = std::dynamic_pointer_cast<DataBlock>(entity)) {
+            count = 0;
+            FIXME << "LUA backend do not support DataBlock ";
+        }
         DEFINE_MULTIMETHOD(std::string)
         DEFINE_MULTIMETHOD(bool)
         DEFINE_MULTIMETHOD(float)
