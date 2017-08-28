@@ -185,7 +185,7 @@ class Chart{
 
   @startuml
   actor Main
-  Main -> DomainView : Set U as MeshView
+  Main -> DomainView : SetNode U as MeshView
   activate DomainView
       alt if MeshView=nullptr
            create MeshView
@@ -230,7 +230,7 @@ class Chart{
       DomainView -> MeshView : Update
       activate MeshView
            alt if isFirstTime
-               MeshView -> AttributeView : Set Initialize Value
+               MeshView -> AttributeView : SetEntity Initialize Value
                activate AttributeView
                     AttributeView --> MeshView : Done
                deactivate AttributeView

@@ -38,7 +38,7 @@ inline TV const *printNdArray(std::ostream &os, TV const *v, int rank, TI const 
         for (int s = 0; s < d[0]; ++s) {
             if (s > 0) { os << sep; }
             if (s % ELE_NUM_PER_LINE == 0 && s != 0) { os << std::endl; }
-            if (tab_width > 0) { os << std::setw(10); }
+            if (tab_width > 0) { os << std::setw(10) << " "; }
             os << (*v);
             ++v;
         }
@@ -50,7 +50,7 @@ inline TV const *printNdArray(std::ostream &os, TV const *v, int rank, TI const 
         for (int s = 0; s < d[0]; ++s) {
             if (s > 0) {
                 os << sep;
-                if (rank > 1) { os << std::endl << std::setw(indent); }
+//                if (rank > 1) { os << std::endl << std::setw(indent) << " "; }
             }
             v = printNdArray(os, v, rank - 1, d + 1, s == 0, s == d[0] - 1, left_brace, sep, right_brace, is_slow_first,
                              tab_width, indent + 1);

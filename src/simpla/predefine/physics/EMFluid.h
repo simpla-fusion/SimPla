@@ -88,7 +88,7 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
     sp->n = std::make_shared<Field<host_type, Real, CELL>>(m_host_, "name"_ = name + "_n");
     sp->J = std::make_shared<Field<host_type, Real, CELL, 3>>(m_host_, "name"_ = name + "_J");
     m_fluid_sp_.emplace(name, sp);
-    VERBOSE << "Add particle : {\"" << name << "\", mass = " << sp->mass / SI_proton_mass
+    VERBOSE << "AddEntity particle : {\"" << name << "\", mass = " << sp->mass / SI_proton_mass
             << " [m_p], charge = " << sp->charge / SI_elementary_charge << " [q_e] }" << std::endl;
     return sp;
 }

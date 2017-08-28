@@ -59,7 +59,7 @@ box_type const& Model::BoundingBox() const { return m_pimpl_->m_bound_box_; };
 
 void Model::SetObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
     if (g_obj != nullptr) {
-        VERBOSE << "Add GeoObject [ " << key << " : " << g_obj->GetFancyTypeName() << " ]" << std::endl;
+        VERBOSE << "AddEntity GeoObject [ " << key << " : " << g_obj->GetFancyTypeName() << " ]" << std::endl;
         m_pimpl_->m_g_objs_[key] = g_obj;
     }
 }

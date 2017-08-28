@@ -121,7 +121,7 @@ inline unsigned long count_bits(unsigned long s) {
 //
 // namespace _impl {
 //
-// struct Get {
+// struct GetEntity {
 //    template <typename TL, typename TI>
 //    constexpr auto operator()(TL const &v, TI const s) const {
 //        return ((traits::index(v, s)));
@@ -139,7 +139,7 @@ inline unsigned long count_bits(unsigned long s) {
 //
 // template <typename TC, typename TI>
 // struct index_of<TC, TI> {
-//    typedef typename result_of<_impl::Get(TC, TI)>::value_type_info type;
+//    typedef typename result_of<_impl::GetEntity(TC, TI)>::value_type_info type;
 //};
 //
 //

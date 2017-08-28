@@ -316,7 +316,7 @@ int ParticleInitialLoad(Real **data, size_type num, int n_dof, int const *dist_t
     curandDirectionVectors64_t *hostVectors64;
     unsigned long long int *hostScrambleConstants64;
 
-    /* Get pointers to the 64 bit scrambled direction vectors and constants*/
+    /* GetEntity pointers to the 64 bit scrambled direction vectors and constants*/
     CURAND_CALL(curandGetDirectionVectors64(&hostVectors64, CURAND_SCRAMBLED_DIRECTION_VECTORS_64_JOEKUO6));
 
     CURAND_CALL(curandGetScrambleConstants64(&hostScrambleConstants64));

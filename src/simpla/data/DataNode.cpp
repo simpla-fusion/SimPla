@@ -35,35 +35,25 @@ std::shared_ptr<DataNode> DataNode::New(std::string const& s) {
     return res;
 };
 
-std::shared_ptr<DataEntity> DataNode::Get() const { return DataEntity::New(); }
-int DataNode::Set(std::shared_ptr<DataEntity> const& v) { return 0; }
-int DataNode::Add(std::shared_ptr<DataEntity> const& v) { return AddNode()->Set(v); }
-int DataNode::Set(std::shared_ptr<DataNode> const& v) {
-    return v->Foreach([&](std::string k, std::shared_ptr<DataNode> node) {
-        int count = 0;
+std::shared_ptr<DataEntity> DataNode::GetEntity() const { return DataEntity::New(); }
+size_type DataNode::SetEntity(std::shared_ptr<DataEntity> const& v) { return 0; }
+size_type DataNode::AddEntity(std::shared_ptr<DataEntity> const& v) { return AddNode()->SetEntity(v); }
+size_type DataNode::SetNode(std::shared_ptr<DataNode> const& v) {
+    return v == nullptr ? 0 : v->Foreach([&](std::string k, std::shared_ptr<DataNode> node) {
+        size_type count = 0;
         if (node->NodeType() == DataNode::DN_ENTITY) {
-            count += GetNode(k, NEW_IF_NOT_EXIST)->Set(node->Get());
+            count += GetNode(k, NEW_IF_NOT_EXIST)->SetEntity(node->GetEntity());
         } else {
-            count += GetNode(k, NEW_IF_NOT_EXIST)->Set(node);
+            count += GetNode(k, NEW_IF_NOT_EXIST)->SetNode(node);
         }
         return count;
     });
 };
-int DataNode::Add(std::shared_ptr<DataNode> const& v) {
-    return v->Foreach([&](std::string k, std::shared_ptr<DataNode> node) {
-        int count = 0;
-        if (node->NodeType() == DataNode::DN_ENTITY) {
-            count += GetNode(k, NEW_IF_NOT_EXIST)->Add(node->Get());
-        } else {
-            count += GetNode(k, NEW_IF_NOT_EXIST)->Add(node);
-        }
-        return count;
-    });
-};
+size_type DataNode::AddNode(std::shared_ptr<DataNode> const& v) { return AddNode()->SetNode(v); };
 std::istream& DataNode::Parse(std::istream& is) { return is; }
 std::ostream& DataNode::Print(std::ostream& os, int indent) const {
     if (this->NodeType() == DataNode::DN_ARRAY) {
-        os << "[ ";
+        os << "[";
         bool is_first = true;
         bool new_line = this->GetNumberOfChildren() > 1;
         this->Foreach([&](auto k, auto v) {
@@ -76,7 +66,7 @@ std::ostream& DataNode::Print(std::ostream& os, int indent) const {
             v->Print(os, indent + 1);
             return 1;
         });
-        os << " ]";
+        os << "]";
     } else if (this->NodeType() == DataNode::DN_TABLE) {
         os << "{ ";
         bool is_first = true;
@@ -98,7 +88,7 @@ std::ostream& DataNode::Print(std::ostream& os, int indent) const {
         os << "}";
 
     } else if (this->NodeType() == DataNode::DN_ENTITY) {
-        this->Get()->Print(os, indent + 1);
+        this->GetEntity()->Print(os, indent + 1);
     }
     return os;
 }

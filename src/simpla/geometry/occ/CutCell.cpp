@@ -124,7 +124,7 @@ void CutCell(std::shared_ptr<Chart> const &chart, index_box_type m_idx_box, cons
 
                     // std::cout << index_tuple{i, j, k} << "~" << idx << "~" << r <<
                     // std::endl;
-                    // vertex_tags->Set(count, idx);
+                    // vertex_tags->SetEntity(count, idx);
                     // std::cout << "DIR:" << dir << "\t" << m_idx_box << "\t" <<
                     // index_tuple{i, j, k} << "\t" << idx;
                     // if (!(CheckInSide(m_idx_box, idx))) {
@@ -134,23 +134,23 @@ void CutCell(std::shared_ptr<Chart> const &chart, index_box_type m_idx_box, cons
                     //    std::cout << "\t" << (x) << "\t" << chart->inv_map(x) <<
                     //    std::endl;
                     // }
-                    //   edge_fraction[dir].Set(r[dir], idx);
-                    //   vertex_tags->Set(1, idx);
+                    //   edge_fraction[dir].SetEntity(r[dir], idx);
+                    //   vertex_tags->SetEntity(1, idx);
                     //   idx[(dir + 1) % 3] -= 1;
-                    //   vertex_tags->Set(1, idx);
+                    //   vertex_tags->SetEntity(1, idx);
                     //   idx[(dir + 2) % 3] -= 1;
-                    //   vertex_tags->Set(1, idx);
+                    //   vertex_tags->SetEntity(1, idx);
                     //   idx[(dir + 1) % 3] += 1;
-                    //   vertex_tags->Set(1, idx);
+                    //   vertex_tags->SetEntity(1, idx);
                     //   index_tuple id{i, j, k};
                     //   id[dir] = std::get<0>(l_coor)[dir];
-                    //   vertex_tags[0].Set(dir + 1, id);
+                    //   vertex_tags[0].SetEntity(dir + 1, id);
                     //   id[(dir + 1) % 3] = idx[(dir + 1) % 3] - 1;
-                    //   vertex_tags[0].Set(dir + 1, id);
+                    //   vertex_tags[0].SetEntity(dir + 1, id);
                     //   id[(dir + 2) % 3] = idx[(dir + 2) % 3] - 1;
-                    //   vertex_tags[0].Set(dir + 1, id);
+                    //   vertex_tags[0].SetEntity(dir + 1, id);
                     //   id[(dir + 1) % 3] = idx[(dir + 1) % 3];
-                    //   vertex_tags[0].Set(dir + 1, id);
+                    //   vertex_tags[0].SetEntity(dir + 1, id);
                     //   if (m_body_inter_.State() == TopAbs_IN) {
                     //       s0 = std::max(std::get<0>(l_coor)[dir],
                     //       std::get<0>(m_idx_box)[dir]);
@@ -166,7 +166,7 @@ void CutCell(std::shared_ptr<Chart> const &chart, index_box_type m_idx_box, cons
                     //   static_cast<int16_t>(EntityIdCoder::m_sub_index_to_id_[EDGE][dir]);
                     //   index_tuple idx{i, j, k};
                     //   idx[dir] = std::get<0>(l_coor)[dir];
-                    //   edge_fraction[dir].Set(std::get<1>(l_coor)[dir], idx);
+                    //   edge_fraction[dir].SetEntity(std::get<1>(l_coor)[dir], idx);
                     //
 
                     //                        VERBOSE << "s0:" << s0 << " s1:" << s1 << std::endl;

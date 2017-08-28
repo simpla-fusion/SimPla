@@ -13,7 +13,7 @@
 namespace simpla {
 namespace data {
 class DataNodeMemory : public DataNode {
-    SP_DATA_NODE_HEAD(DataNodeMemory)
+SP_DATA_NODE_HEAD(DataNodeMemory)
 };  // class DataBase {
 }  // namespace data {
 }  // namespace simpla{

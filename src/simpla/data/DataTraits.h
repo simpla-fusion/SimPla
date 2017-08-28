@@ -30,6 +30,9 @@ template <>
 struct is_light_data<char> : public std::integral_constant<bool, true> {};
 template <>
 struct is_light_data<bool> : public std::integral_constant<bool, true> {};
+
+template <typename T, int... N>
+struct is_light_data<nTuple<T, N...>> : public std::integral_constant<bool, is_light_data<T>::value> {};
 }  // namespace traits {
 
 }  // namespace simpla {

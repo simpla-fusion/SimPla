@@ -44,10 +44,10 @@ class DataBlock : public DataEntity {
     int GetIndexBox(index_type *lo, index_type *hi) const;
 
     virtual int Clear();
-    virtual int Copy(DataBlock const &other);
-    virtual int Copy2(DataBlock &other) const;
-    virtual int Copy(DataBlock const &other, index_box_type const &box);
-    virtual int Copy2(DataBlock &other, index_box_type const &box) const;
+    virtual size_type CopyIn(DataBlock const &other);
+    virtual size_type CopyOut(DataBlock &other) const;
+    virtual size_type CopyIn(DataBlock const &other, index_box_type const &box);
+    virtual size_type CopyOut(DataBlock &other, index_box_type const &box) const;
 };
 
 template <typename V>
@@ -80,14 +80,22 @@ struct DataBlockT : public DataBlock {
         UNIMPLEMENTED;
         return 0;
     };
-    int Copy(this_type const &other) override {
+    size_type CopyIn(DataBlock const &other) override {
         UNIMPLEMENTED;
         return 0;
     };
-    int Copy(this_type const &other, index_box_type const &box) override {
+    size_type CopyIn(DataBlock const &other, index_box_type const &box) override {
         UNIMPLEMENTED;
         return 0;
     };
+    template <typename U>
+    size_type CopyOut(U &d) const {
+        return 0;
+    }
+    template <typename U>
+    size_type CopyIn(U const &d) {
+        return 0;
+    }
 
    private:
     std::shared_ptr<value_type> m_data_;
@@ -126,8 +134,8 @@ std::shared_ptr<DataBlock> DataBlock::New(Args &&... args) {
 //
 //    void SetArray(int depth, array_type d) { array_type(d).swap(m_data_.at(depth)); }
 //
-//    array_type *Get(int depth = 0) { return &m_data_.at(depth); }
-//    array_type const *Get(int depth = 0) const { return &m_data_.at(depth); }
+//    array_type *GetEntity(int depth = 0) { return &m_data_.at(depth); }
+//    array_type const *GetEntity(int depth = 0) const { return &m_data_.at(depth); }
 //    array_type &GetArray(int depth = 0) { return m_data_.at(depth); }
 //    array_type const &GetArray(int depth = 0) const { return m_data_.at(depth); }
 //

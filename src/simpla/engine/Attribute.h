@@ -156,7 +156,7 @@ struct Attribute : public SPObject {
 //    if (blk != nullptr) {
 //        int count = 0;
 //        traits::foreach (*d, [&](array_type &a, auto &&... idx) {
-//            array_type(*blk->Get(count)).swap(a);
+//            array_type(*blk->GetEntity(count)).swap(a);
 //            ++count;
 //        });
 //    }
@@ -172,7 +172,7 @@ struct Attribute : public SPObject {
 //    }
 //    int count = 0;
 //    traits::foreach (*d, [&](array_type &a, auto &&... idx) {
-//        array_type(a).swap(*blk->Get(count));
+//        array_type(a).swap(*blk->GetEntity(count));
 //        a.reset();
 //        ++count;
 //    });

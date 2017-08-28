@@ -68,8 +68,12 @@ std::shared_ptr<DataNode> DataNodeXDMF::Root() const {
 }
 std::shared_ptr<DataNode> DataNodeXDMF::Parent() const { return m_pimpl_->m_parent_; }
 
-int DataNodeXDMF::Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& fun) { return 0; }
-int DataNodeXDMF::Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& fun) const { return 0; }
+size_type DataNodeXDMF::Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& fun) {
+    return 0;
+}
+size_type DataNodeXDMF::Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& fun) const {
+    return 0;
+}
 std::shared_ptr<DataNode> DataNodeXDMF::GetNode(std::string const& uri, int flag) { return nullptr; }
 
 std::shared_ptr<DataNode> DataNodeXDMF::GetNode(std::string const& uri, int flag) const { return nullptr; }
@@ -77,12 +81,12 @@ std::shared_ptr<DataNode> DataNodeXDMF::GetNode(index_type s, int flag) { return
 std::shared_ptr<DataNode> DataNodeXDMF::GetNode(index_type s, int flag) const {
     return GetNode(std::to_string(s), flag);
 }
-int DataNodeXDMF::DeleteNode(std::string const& uri, int flag) { return 0; }
+size_type DataNodeXDMF::DeleteNode(std::string const& uri, int flag) { return 0; }
 void DataNodeXDMF::Clear() {}
 
-std::shared_ptr<DataEntity> DataNodeXDMF::Get() const { return nullptr; }
-int DataNodeXDMF::Set(std::shared_ptr<DataEntity> const& v) { return 0; }
-int DataNodeXDMF::Add(std::shared_ptr<DataEntity> const& v) { return 0; }
+std::shared_ptr<DataEntity> DataNodeXDMF::GetEntity() const { return nullptr; }
+size_type DataNodeXDMF::SetEntity(std::shared_ptr<DataEntity> const &v) { return 0; }
+size_type DataNodeXDMF::AddEntity(std::shared_ptr<DataEntity> const &v) { return 0; }
 
 ////
 //// std::shared_ptr<DataEntity> DataBaseXDMF::Get(std::string const& URI) const {

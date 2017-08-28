@@ -41,7 +41,7 @@ void Schedule::Deserialize(const std::shared_ptr<const data::DataNode> &cfg) {
     base_type::Deserialize(cfg);
     m_pimpl_->m_ctx_ = Atlas::New(cfg->NewNode("Atlas"));
     SetCheckPointInterval(static_cast<size_type>(db().GetValue<int>("CheckPointInterval", 1)));
-    //    m_data_io_ = std::make_shared<data::DataIOPort>(cfg->Get<std::string>("DataIOPort", ""));
+    //    m_data_io_ = std::make_shared<data::DataIOPort>(cfg->GetEntity<std::string>("DataIOPort", ""));
 }
 
 size_type Schedule::GetNumberOfStep() const { return m_pimpl_->m_step_; }
@@ -56,9 +56,9 @@ bool Schedule::Done() const { return m_pimpl_->m_max_step_ == 0 ? false : m_pimp
 void Schedule::CheckPoint() const {
     //    data::DataTable t_cfg;
     //    GetAtlas()->Serialize(t_cfg);
-    //    t_cfg->Set("Step", m_pimpl_->m_step_);
+    //    t_cfg->SetEntity("Step", m_pimpl_->m_step_);
     //    m_ctx_->GetMesh()->Serialize(t_cfg->GetTable("Mesh"));
-    //    m_data_io_->Set(t);
+    //    m_data_io_->SetEntity(t);
     //    m_data_io_->Flush();
 }
 

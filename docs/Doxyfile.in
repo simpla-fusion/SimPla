@@ -95,7 +95,7 @@ OUTPUT_LANGUAGE        = English
 
 # If the BRIEF_MEMBER_DESC tag is set to YES doxygen will include brief member
 # descriptions after the members that are listed in the file and class
-# documentation (similar to Javadoc). Set to NO to disable this.
+# documentation (similar to Javadoc). SetEntity to NO to disable this.
 # The default m_value_ is: YES.
 
 BRIEF_MEMBER_DESC      = YES
@@ -190,7 +190,7 @@ QT_AUTOBRIEF           = NO
 # The MULTILINE_CPP_IS_BRIEF GetTag can be set to YES to make doxygen treat a
 # multi-line C++ special comment block (i.e. a block of //! or /// comments) as
 # a brief description. This used to be the default behavior. The new default is
-# to treat a multi-line C++ comment block as a detailed description. Set this
+# to treat a multi-line C++ comment block as a detailed description. SetEntity this
 # tag to YES if you prefer the old behavior instead.
 #
 # Note that setting this tag to YES also means that rational rose comments are
@@ -236,7 +236,7 @@ ALIASES                =
 
 TCL_SUBST              =
 
-# Set the OPTIMIZE_OUTPUT_FOR_C tag to YES if your project consists of C sources
+# SetEntity the OPTIMIZE_OUTPUT_FOR_C tag to YES if your project consists of C sources
 # only. Doxygen will then generate output that is more tailored for C. For
 # instance, some of the names that are used will be different. The list of all
 # members will be omitted, etc.
@@ -244,7 +244,7 @@ TCL_SUBST              =
 
 OPTIMIZE_OUTPUT_FOR_C  = YES
 
-# Set the OPTIMIZE_OUTPUT_JAVA tag to YES if your project consists of Java or
+# SetEntity the OPTIMIZE_OUTPUT_JAVA tag to YES if your project consists of Java or
 # Python sources only. Doxygen will then generate output that is more tailored
 # for that language. For instance, namespaces will be presented as packages,
 # qualified scopes will look different, etc.
@@ -252,13 +252,13 @@ OPTIMIZE_OUTPUT_FOR_C  = YES
 
 OPTIMIZE_OUTPUT_JAVA   = NO
 
-# Set the OPTIMIZE_FOR_FORTRAN GetTag to YES if your project consists of Fortran
+# SetEntity the OPTIMIZE_FOR_FORTRAN GetTag to YES if your project consists of Fortran
 # sources. Doxygen will then generate output that is tailored for Fortran.
 # The default m_value_ is: NO.
 
 OPTIMIZE_FOR_FORTRAN   = NO
 
-# Set the OPTIMIZE_OUTPUT_VHDL tag to YES if your project consists of VHDL
+# SetEntity the OPTIMIZE_OUTPUT_VHDL tag to YES if your project consists of VHDL
 # sources. Doxygen will then generate output that is tailored for VHDL.
 # The default m_value_ is: NO.
 
@@ -317,7 +317,7 @@ BUILTIN_STL_SUPPORT    = YES
 
 CPP_CLI_SUPPORT        = NO
 
-# Set the SIP_SUPPORT tag to YES if your project consists of sip (see:
+# SetEntity the SIP_SUPPORT tag to YES if your project consists of sip (see:
 # http://www.riverbankcomputing.co.uk/software/sip/intro) sources only. Doxygen
 # will parse them like normal C++ but will assume all classes use public instead
 # of private inheritance when no explicit protection keyword is present.
@@ -327,7 +327,7 @@ SIP_SUPPORT            = NO
 
 # For Microsoft's IDL there are propget and propput attributes to indicate
 # getter and setter methods for a property. Setting this option to YES will make
-# doxygen to replace the get and Set methods by a property in the documentation.
+# doxygen to replace the get and SetEntity methods by a property in the documentation.
 # This will only work if the methods are indeed getting or setting a simple
 # type. If this is not the case, or you want to show the methods anyway, you
 # should set this option to NO.
@@ -343,9 +343,9 @@ IDL_PROPERTY_SUPPORT   = YES
 
 DISTRIBUTE_GROUP_DOC   = NO
 
-# Set the SUBGROUPING tag to YES to allow class member groups of the same type
+# SetEntity the SUBGROUPING tag to YES to allow class member groups of the same type
 # (for instance a group of public functions) to be put as a subgroup of that
-# type (e.g. under the Public Functions section). Set it to NO to prevent
+# type (e.g. under the Public Functions section). SetEntity it to NO to prevent
 # subgrouping. Alternatively, this can be done per class using the
 # \nosubgrouping command.
 # The default m_value_ is: YES.
@@ -486,7 +486,7 @@ HIDE_IN_BODY_DOCS      = NO
 
 # The INTERNAL_DOCS tag determines if documentation that is typed after a
 # \internal command is included. If the tag is set to NO then the documentation
-# will be excluded. Set it to YES to include the internal documentation.
+# will be excluded. SetEntity it to YES to include the internal documentation.
 # The default m_value_ is: NO.
 
 INTERNAL_DOCS          = YES
@@ -630,7 +630,7 @@ ENABLED_SECTIONS       =
 
 MAX_INITIALIZER_LINES  = 30
 
-# Set the SHOW_USED_FILES tag to NO to disable the list of files generated at
+# SetEntity the SHOW_USED_FILES tag to NO to disable the list of files generated at
 # the bottom of the documentation of classes and structs. If set to YES the list
 # will mention the files that were used to generate the documentation.
 # The default m_value_ is: YES.
@@ -644,7 +644,7 @@ SHOW_USED_FILES        = YES
 
 SHOW_FILES             = YES
 
-# Set the SHOW_NAMESPACES tag to NO to disable the generation of the Namespaces
+# SetEntity the SHOW_NAMESPACES tag to NO to disable the generation of the Namespaces
 # page. This will remove the Namespaces entry from the Quick Index and from the
 # Folder Tree View (if specified).
 # The default m_value_ is: YES.
@@ -1659,7 +1659,7 @@ LATEX_EXTRA_FILES      =
 PDF_HYPERLINKS         = YES
 
 # If the LATEX_PDFLATEX tag is set to YES, doxygen will use pdflatex to generate
-# the PDF file directly from the LaTeX files. Set this option to YES to get a
+# the PDF file directly from the LaTeX files. SetEntity this option to YES to get a
 # higher quality PDF documentation.
 # The default m_value_ is: YES.
 # This tag requires that the tag GENERATE_LATEX is set to YES.
@@ -1749,7 +1749,7 @@ RTF_HYPERLINKS         = NO
 
 RTF_STYLESHEET_FILE    =
 
-# Set optional variables used in the generation of an RTF document. Syntax is
+# SetEntity optional variables used in the generation of an RTF document. Syntax is
 # similar to doxygen's config file. A template extensions file can be generated
 # using doxygen -e rtf extensionFile.
 # This tag requires that the tag GENERATE_RTF is set to YES.
@@ -2137,7 +2137,7 @@ UML_LOOK               = YES
 # If the UML_LOOK tag is enabled, the fields and methods are shown inside the
 # class node. If there are many fields or methods and many nodes the graph may
 # become too big to be useful. The UML_LIMIT_NUM_FIELDS threshold limits the
-# number of items for each value_type_info to make the size more manageable. Set this to 0
+# number of items for each value_type_info to make the size more manageable. SetEntity this to 0
 # for no limit. Note that the threshold may be exceeded by 50% before the limit
 # is enforced. So when you set the threshold to 10, up to 15 fields may appear,
 # but if the number exceeds 15, the total amount of fields shown is limited to
@@ -2283,7 +2283,7 @@ DOT_GRAPH_MAX_NODES    = 50
 
 MAX_DOT_GRAPH_DEPTH    = 0
 
-# Set the DOT_TRANSPARENT tag to YES to generate images with a transparent
+# SetEntity the DOT_TRANSPARENT tag to YES to generate images with a transparent
 # background. This is disabled by default, because dot on Windows does not seem
 # to support this out of the box.
 #
@@ -2295,7 +2295,7 @@ MAX_DOT_GRAPH_DEPTH    = 0
 
 DOT_TRANSPARENT        = YES
 
-# Set the DOT_MULTI_TARGETS tag to YES allow dot to generate multiple output
+# SetEntity the DOT_MULTI_TARGETS tag to YES allow dot to generate multiple output
 # files in one run (i.e. multiple -o and -T options on the command line). This
 # makes dot run faster, but since only newer versions of dot (>1.8.10) support
 # this, this feature is disabled by default.

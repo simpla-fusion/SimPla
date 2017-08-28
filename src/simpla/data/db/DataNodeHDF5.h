@@ -12,7 +12,7 @@
 namespace simpla {
 namespace data {
 struct DataNodeHDF5 : public DataNode {
-    SP_DATA_NODE_HEAD(DataNodeHDF5);
+SP_DATA_NODE_HEAD(DataNodeHDF5);
 };
 
 }  // namespace data{

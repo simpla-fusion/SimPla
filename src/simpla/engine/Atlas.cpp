@@ -62,7 +62,7 @@ void Atlas::Deserialize(std::shared_ptr<const data::DataNode> const &cfg) {
     auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
     if (tdb != nullptr) {
         m_pimpl_->m_periodic_dimensions_ = tdb->GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 0});
-        //    std::get<0>(m_pimpl_->m_coarsest_index_box_) =tdb->Get("CoarsestIndexBox/lo", nTuple<int, 3>{0, 0,
+        //    std::get<0>(m_pimpl_->m_coarsest_index_box_) =tdb->GetEntity("CoarsestIndexBox/lo", nTuple<int, 3>{0, 0,
         //    0});
         std::get<1>(m_pimpl_->m_coarsest_index_box_) = tdb->GetValue("Dimensions", nTuple<int, 3>{1, 1, 1});
         m_pimpl_->m_max_level_ = tdb->GetValue<int>("MaxLevel", 1);

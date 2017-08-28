@@ -20,17 +20,17 @@ int DataBlock::Clear() {
     UNIMPLEMENTED;
     return SP_SUCCESS;
 };
-int DataBlock::Copy(DataBlock const &other) {
+size_type DataBlock::CopyIn(DataBlock const &other) {
     UNIMPLEMENTED;
     return SP_SUCCESS;
 };
-int DataBlock::Copy2(DataBlock &other) const { return other.Copy(*this); };
+size_type DataBlock::CopyOut(DataBlock &other) const { return other.CopyIn(*this); };
 
-int DataBlock::Copy(DataBlock const &other, index_box_type const &box) {
+size_type DataBlock::CopyIn(DataBlock const &other, index_box_type const &box) {
     UNIMPLEMENTED;
     return SP_SUCCESS;
 };
-int DataBlock::Copy2(DataBlock &other, index_box_type const &box) const { return other.Copy(*this, box); };
+size_type DataBlock::CopyOut(DataBlock &other, index_box_type const &box) const { return other.CopyIn(*this, box); };
 
 }  // namespace data
 }  // namespace simpla

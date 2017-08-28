@@ -750,7 +750,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
 
     /*
      * We cache pointers to the grid geometry object to set up initial
-     * GetDataBlock, Set physical boundary conditions, and register plot
+     * GetDataBlock, SetEntity physical boundary conditions, and register plot
      * variables.
      */
     std::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geometry = nullptr;
@@ -1294,7 +1294,7 @@ void SAMRAITimeIntegrator::DoUpdate() {
      */
 
     unsigned int ndims = 3;                // static_cast<unsigned int>( GetContext()->GetNDims());
-    bool use_refined_timestepping = true;  // m_samrai_db_->Get<bool>("use_refined_timestepping", true);
+    bool use_refined_timestepping = true;  // m_samrai_db_->GetEntity<bool>("use_refined_timestepping", true);
 
     SAMRAI::tbox::Dimension dim(static_cast<unsigned short>(ndims));
 

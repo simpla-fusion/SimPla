@@ -28,58 +28,11 @@ struct DataLight : public DataEntity {
     template <typename... Args>
     static std::shared_ptr<DataLight> New(Args&&...);
 
-    template <typename U>
-    size_type as(U* v) const;
-    template <typename U>
-    U as() const {
-        U res;
-        as(&res);
-        return res;
-    }
-    template <typename U>
-    bool isEqualTo(U const& u) const;
-
     std::type_info const& value_type_info() const override { return typeid(void); };
     size_type value_alignof() const override { return 0; };
     size_type rank() const override { return 0; }
     size_type extents(size_type* d) const override { return rank(); }
     size_type size() const override { return 0; }
-
-    size_type CopyIn(void const* other) override { return 0; }
-    size_type CopyOut(void* other) const override { return 0; }
-
-   private:
-    template <typename U, typename V>
-    static void _CopyArrayOut(U& dst, V const& src, ENABLE_IF(std::rank<U>::value == 0)) {
-        dst = src;
-    };
-
-    template <typename U, typename V>
-    static void _CopyArrayOut(U& dst, V const& src, ENABLE_IF((std::rank<U>::value > 0))) {
-        for (int i = 0; i < std::extent<U, 0>::value; ++i) { _CopyArrayOut(dst[i], src[i]); }
-    };
-    template <typename U, typename V>
-    static size_type _CopyArrayIn(V& dst, U const& src, ENABLE_IF(std::rank<U>::value == 0)) {
-        dst = src;
-    };
-
-    template <typename U, typename V>
-    static size_type _CopyArrayIn(V& dst, U const& src, ENABLE_IF((std::rank<U>::value > 1))) {
-        for (int i = 0; i < std::extent<U, 0>::value; ++i) { _CopyArrayIn(dst[i], src[i]); }
-        return std::extent<U, 0>::value;
-    };
-
-    template <typename U, typename V>
-    static bool _isEqualTo(U const& left, V const& right, ENABLE_IF(std::rank<U>::value == 0)) {
-        return left == right;
-    };
-
-    template <typename U, typename V>
-    static bool _isEqualTo(U const& left, V const& right, ENABLE_IF((std::rank<U>::value > 0))) {
-        bool res = true;
-        for (int i = 0; res && i < std::extent<U, 0>::value; ++i) { res = res && _isEqualTo(left[i], right[i]); }
-        return res;
-    };
 };
 template <typename V, typename Enable = void>
 class DataLightT {};
@@ -127,22 +80,14 @@ class DataLightT<V> : public DataLight {
     size_type size() const override { return 1; }
 
     size_type GetAlignOf() const override { return alignof(value_type); }
-    size_type CopyIn(void const* other) override {
-        m_data_ = *reinterpret_cast<value_type const*>(other);
-        return sizeof(value_type);
-    }
-    size_type CopyOut(void* other) const override {
-        *reinterpret_cast<value_type*>(other) = m_data_;
-        return sizeof(value_type);
-    }
 
-    size_type CopyIn(value_type const* src) {
-        m_data_ = (*src);
-        return sizeof(value_type);
+    size_type CopyIn(value_type const& src) {
+        m_data_ = src;
+        return 1;
     }
-    size_type CopyOut(value_type* other) const {
-        *other = (m_data_);
-        return sizeof(value_type);
+    size_type CopyOut(value_type& other) const {
+        other = m_data_;
+        return 1;
     }
 
     bool isEqualTo(value_type const& other) const { return m_data_ == other; }
@@ -210,83 +155,56 @@ class DataLightT<V*> : public DataLight {
    private:
     template <typename U>
     static size_type _CopyOut(U& dst, value_type const* src, ENABLE_IF(std::rank<U>::value == 0)) {
-        return 0;
+        dst = *src;
+        return 1;
     };
+
     template <typename U>
-    static size_type _CopyOut(U& dst, value_type const* src, ENABLE_IF(std::rank<U>::value == 1)) {
-        for (int i = 0; i < std::extent<U, 0>::value; ++i) { dst[i] = src[i]; }
-        return std::extent<U, 0>::value;
-    };
-    template <typename U>
-    static size_type _CopyOut(U& dst, value_type const* src, ENABLE_IF((std::rank<U>::value > 1))) {
-        for (int i = 0; i < std::extent<U, 0>::value; ++i) { src += _CopyOut(dst[i], src); }
-        return std::extent<U, 0>::value;
+    static size_type _CopyOut(U& dst, value_type const* src, ENABLE_IF((std::rank<U>::value > 0))) {
+        size_type count = 0;
+        for (int i = 0; i < std::extent<U, 0>::value; ++i) { count += _CopyOut(dst[i], src + count); }
+        return count;
     };
     template <typename U>
     static size_type _CopyIn(value_type* dst, U const& src, ENABLE_IF(std::rank<U>::value == 0)) {
-        return 0;
+        *dst = src;
+        return 1;
     };
     template <typename U>
-    static size_type _CopyIn(value_type* dst, U const& src, ENABLE_IF(std::rank<U>::value == 1)) {
-        for (int i = 0; i < std::extent<U, 0>::value; ++i) { dst[i] = src[i]; }
-        return std::extent<U, 0>::value;
-    };
-    template <typename U>
-    static size_type _CopyIn(value_type* dst, U const& src, ENABLE_IF((std::rank<U>::value > 1))) {
-        for (int i = 0; i < std::extent<U, 0>::value; ++i) { dst += _CopyIn(dst, src[i]); }
-        return std::extent<U, 0>::value;
+    static size_type _CopyIn(value_type* dst, U const& src, ENABLE_IF((std::rank<U>::value > 0))) {
+        size_type count = 0;
+        for (int i = 0; i < std::extent<U, 0>::value; ++i) { count += _CopyIn(dst + count, src[i]); }
+        return count;
     };
 
     template <typename U>
-    static bool _isEqualTo(U const& left, value_type* right, ENABLE_IF(std::rank<U>::value == 0)) {
-        return true;
+    static size_type _isEqualTo(U const& left, value_type* right, bool* res, ENABLE_IF(std::rank<U>::value == 0)) {
+        *res = *res && (left == *right);
+        return 1;
     };
+
     template <typename U>
-    static bool _isEqualTo(U const& left, value_type* right, ENABLE_IF(std::rank<U>::value == 1)) {
-        bool res = true;
-        for (int i = 0; i < std::extent<U, 0>::value; ++i) { res = res && (left[i] == right[i]); }
-        return res;
-    };
-    template <typename U>
-    static bool _isEqualTo(U const& left, value_type* right, ENABLE_IF((std::rank<U>::value > 1))) {
-        bool res = true;
-        for (int i = 0; res && i < std::extent<U, 0>::value; ++i) {
-            res = res && _isEqualTo(left, right[i]);
-            right += std::extent<U, 0>::value;
-        }
-        return res;
+    static size_type _isEqualTo(U const& left, value_type* right, bool* res, ENABLE_IF((std::rank<U>::value > 0))) {
+        size_type count = 0;
+        for (int i = 0; i < std::extent<U, 0>::value; ++i) { count += _isEqualTo(left, right[i], res); }
+        return count;
     };
 
    public:
-    size_type CopyOut(void* dst) const override {
-        size_type s = 0;
-        if (m_data_ != nullptr && dst != nullptr) {
-            s = size();
-            memcpy(dst, m_data_.get(), s);
-        }
-        return s;
-    }
-    size_type CopyIn(void const* src) override {
-        size_type s = 0;
-        if (src != nullptr) {
-            s = size();
-            memcpy(m_data_.get(), src, s);
-        }
-        return s;
-    }
-
     template <typename U>
     bool isEqualTo(U const& v) const {
-        return _isEqualTo(v, m_data_.get());
+        bool res = true;
+        _isEqualTo(v, m_data_.get(), &res);
+        return res;
     }
 
     template <typename U>
-    size_type CopyOut(U* dst) const {
-        return m_data_ == nullptr ? 0 : _CopyOut(*dst, m_data_.get());
+    size_type CopyOut(U& dst) const {
+        return m_data_ == nullptr ? 0 : _CopyOut(dst, m_data_.get());
     }
     template <typename U>
-    size_type CopyIn(const U* src) {
-        return _CopyIn(m_data_.get(), *src);
+    size_type CopyIn(const U& src) {
+        return _CopyIn(m_data_.get(), src);
     }
 };
 template <>
@@ -407,7 +325,7 @@ class DataLightT<std::string*> : public DataLight {
         return _CopyIn(&m_data_[0], src);
     }
 };
-
+namespace detail {
 inline std::shared_ptr<DataLight> make_light(std::string const& u) { return DataLightT<std::string>::New(u); };
 inline std::shared_ptr<DataLight> make_light(char const* u) { return DataLightT<std::string>::New(std::string(u)); };
 
@@ -417,94 +335,94 @@ std::shared_ptr<DataLight> make_light(U const& u,
     return DataLightT<U>::New(u);
 };
 template <typename U>
+void get_extents(U const& v, size_type* extents, ENABLE_IF((std::rank<U>::value == 0))) {}
+template <typename U>
+void get_extents(U const& v, size_type* extents, ENABLE_IF((std::rank<U>::value > 0))) {
+    extents[0] = std::extent<U, 0>::value;
+    get_extents(v[0], extents + 1);
+}
+
+template <typename U>
 std::shared_ptr<DataLight> make_light(U const& u, ENABLE_IF((std::rank<U>::value > 0 &&
                                                              traits::is_light_data<traits::value_type_t<U>>::value))) {
-    return DataLightT<traits::value_type_t<U>*>::New(u);
+    auto* extents = new size_type[std::rank<U>::value];
+    get_extents(u, extents);
+    auto res = DataLightT<traits::value_type_t<U>*>::New(std::rank<U>::value, extents);
+    res->CopyIn(u);
+    return res;
 };
-namespace detail {
-template <typename U>
-void var_copy(U* dst){};
-template <typename U, typename First, typename... Others>
-void var_copy(U* dst, First const& first, Others&&... others) {
-    dst[0] = first;
-    var_copy(dst + 1, std::forward<Others>(others)...);
-};
-}
-template <typename U, typename... Others>
-std::shared_ptr<DataLight> make_light(U const& first, U const& second, Others&&... others) {
-    size_type s = 2 + sizeof...(others);
-    auto d = std::shared_ptr<U>(new U[s]);
-    d.get()[0] = first;
-    d.get()[second] = first;
-    detail::var_copy(d.get() + 2, std::forward<Others>(others)...);
-    return DataLightT<U*>::New(1, &s, d);
-};
+
 inline std::shared_ptr<DataLight> make_light(std::initializer_list<char const*> const& u) {
     size_type s = u.size();
-
-    return DataLightT<std::string*>::New(u);
+    auto res = DataLightT<std::string*>::New(1, &s);
+    for (auto const& v : u) { res->value().push_back(std::string(v)); }
+    return res;
 };
+
+template <typename V, typename U>
+size_type CopyND(V* dst, U const& src, size_type* extents) {
+    if (dst != nullptr) { *dst = src; }
+    return 1;
+}
+template <typename V, typename U>
+size_type CopyND(V* dst, std::initializer_list<U> const& src, size_type* extents) {
+    static auto snan = std::numeric_limits<traits::value_type_t<U>>::signaling_NaN();
+
+    size_type count = 0;
+    if (dst == nullptr) { extents[0] = std::max(extents[0], src.size()); }
+
+    for (auto const& v : src) { count += CopyND(dst == nullptr ? nullptr : dst + count, v, extents + 1); }
+
+    if (dst != nullptr) {
+        for (size_type s = src.size(); s < extents[0]; ++s) { count += CopyND(dst + count, snan, extents + 1); }
+    }
+    return count;
+}
+
 template <typename U>
 std::shared_ptr<DataLight> make_light(std::initializer_list<U> const& u) {
-    size_type s = u.size();
-    auto res = DataLightT<U*>::New(1, &s);
-    size_type i = 0;
-    for (auto const& v : u) {
-        res->value().get()[i] = v;
-        ++i;
-    }
+    size_type extents = u.size();
+    auto res = DataLightT<traits::value_type_t<U>*>::New(1, &extents);
+    CopyND(res->pointer(), u, &extents);
     return res;
 };
 template <typename U>
 std::shared_ptr<DataLight> make_light(std::initializer_list<std::initializer_list<U>> const& u) {
+    size_type rank = 2;
     size_type extents[2] = {1, 1};
-    extents[0] = u.size();
-    for (auto const& v : u) {
-        if (extents[1] < v.size()) { extents[1] = v.size(); }
-    }
-    auto res = DataLightT<U*>::New(2, extents);
-    auto* p = res->value().get();
-    auto snan = std::numeric_limits<U>::signaling_NaN();
-    for (auto const& u1 : u) {
-        size_type s = 0;
-        for (auto const& v : u1) {
-            *p = v;
-            ++s;
-            ++p;
-        }
-        for (; s < extents[1]; ++s) {
-            *p = snan;
-            ++p;
-        }
-    }
+    CopyND(static_cast<U*>(nullptr), u, extents);
+    auto res = DataLightT<traits::value_type_t<U>*>::New(rank, extents);
+    CopyND(res->pointer(), u, extents);
     return res;
 };
 template <typename U>
 std::shared_ptr<DataLight> make_light(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
+    size_type rank = 3;
     size_type extents[3] = {1, 1, 1};
-    extents[0] = u.size();
-    auto res = DataLightT<U*>::New(3, extents);
+    detail::CopyND(static_cast<U*>(nullptr), u, extents);
+    auto res = DataLightT<traits::value_type_t<U>*>::New(rank, extents);
+    detail::CopyND(res->pointer(), u, extents);
     return res;
 };
-
+}  // namespace detail
 template <typename... Args>
 std::shared_ptr<DataLight> DataLight::New(Args&&... args) {
-    return make_light(std::forward<Args>(args)...);
+    return detail::make_light(std::forward<Args>(args)...);
 }
-template <typename U>
-size_type DataLight::as(U* res) const {
-    int count = 0;
-    typedef std::conditional_t<std::rank<U>::value == 0, DataLightT<U>, DataLightT<traits::value_type_t<U>*>> type;
-    auto const* p = dynamic_cast<type const*>(this);
-    if (p != nullptr) { count = p->CopyOut(res); }
-    return count;
-}
-template <typename U>
-bool DataLight::isEqualTo(U const& u) const {
-    typedef std::conditional_t<std::rank<U>::value == 0, DataLightT<U>, DataLightT<U*>> type;
-    auto const* p = dynamic_cast<type const*>(this);
-    return (p != nullptr) && p->isEqualTo(u);
-}
+// template <typename U>
+// size_type DataLight::as(U* res) const {
+//    size_type count = 0;
+//    typedef std::conditional_t<std::rank<U>::value == 0, DataLightT<U>, DataLightT<traits::value_type_t<U>*>> type;
+//    auto const* p = dynamic_cast<type const*>(this);
+//    if (p != nullptr) { count = p->CopyOut(*res); }
+//    return count;
+//}
+// template <typename U>
+// bool DataLight::isEqualTo(U const& u) const {
+//    typedef std::conditional_t<std::rank<U>::value == 0, DataLightT<U>, DataLightT<U*>> type;
+//    auto const* p = dynamic_cast<type const*>(this);
+//    return (p != nullptr) && p->isEqualTo(u);
+//}
 
 //
 // template <typename V, int N>

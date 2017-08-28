@@ -405,8 +405,8 @@ std::shared_ptr<DataNode> DataNodeHDF5::GetNode(index_type s, int flag) { return
 std::shared_ptr<DataNode> DataNodeHDF5::GetNode(index_type s, int flag) const {
     return GetNode(std::to_string(s), flag);
 }
-int DataNodeHDF5::DeleteNode(std::string const& uri, int flag) {
-    int count = 0;
+size_type DataNodeHDF5::DeleteNode(std::string const& uri, int flag) {
+    size_type count = 0;
     if ((flag & RECURSIVE) == 0 && m_pimpl_->m_group_ != -1) {
         if (H5Aexists(m_pimpl_->m_group_, uri.c_str()) > 0) {
             H5Adelete(m_pimpl_->m_group_, uri.c_str());
@@ -431,7 +431,7 @@ void DataNodeHDF5::Clear() {
     }
 }
 
-std::shared_ptr<DataEntity> DataNodeHDF5::Get() const {
+std::shared_ptr<DataEntity> DataNodeHDF5::GetEntity() const {
     return (m_pimpl_->m_entity_ != nullptr) ? m_pimpl_->m_entity_ : DataEntity::New();
 }
 
@@ -447,7 +447,7 @@ int HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataEntity> cons
     }
 
     if (auto p = std::dynamic_pointer_cast<DataLightT<std::string>>(entity)) {
-        std::string const& s_str = p->as<std::string>();
+        std::string s_str = p->value();
         auto m_type = H5Tcopy(H5T_C_S1);
         H5_ERROR(H5Tset_size(m_type, s_str.size()));
         H5_ERROR(H5Tset_strpad(m_type, H5T_STR_NULLTERM));
@@ -571,8 +571,8 @@ int HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataEntity> cons
     return count;
 }
 
-int DataNodeHDF5::Set(std::shared_ptr<DataEntity> const& v) {
-    int res = 0;
+size_type DataNodeHDF5::SetEntity(std::shared_ptr<DataEntity> const& v) {
+    size_type res = 0;
     auto parent = std::dynamic_pointer_cast<DataNodeHDF5>(Parent());
     if (parent == nullptr || m_pimpl_->m_key_.empty()) {
         FIXME << "Can not set value to group node or unnamed node [ " << m_pimpl_->m_key_ << " ]" << std::endl;
@@ -581,14 +581,14 @@ int DataNodeHDF5::Set(std::shared_ptr<DataEntity> const& v) {
     }
     return res;
 }
-int DataNodeHDF5::Add(std::shared_ptr<DataEntity> const& v) { return AddNode()->Set(v); }
+size_type DataNodeHDF5::AddEntity(std::shared_ptr<DataEntity> const& v) { return AddNode()->SetEntity(v); }
 
-int DataNodeHDF5::Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& fun) {
+size_type DataNodeHDF5::Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& fun) {
     if (m_pimpl_->m_group_ == -1) { return 0; };
     H5G_info_t g_info;
     H5_ERROR(H5Gget_info(m_pimpl_->m_group_, &g_info));
 
-    int count = 0;
+    size_type count = 0;
     for (hsize_t i = 0; i < g_info.nlinks; ++i) {
         ssize_t num =
             H5Lget_name_by_idx(m_pimpl_->m_group_, ".", H5_INDEX_NAME, H5_ITER_INC, i, nullptr, 0, H5P_DEFAULT);
@@ -611,12 +611,12 @@ int DataNodeHDF5::Foreach(std::function<int(std::string, std::shared_ptr<DataNod
     }
     return count;
 }
-int DataNodeHDF5::Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& fun) const {
+size_type DataNodeHDF5::Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& fun) const {
     if (m_pimpl_->m_group_ == -1) { return 0; };
     H5G_info_t g_info;
     H5_ERROR(H5Gget_info(m_pimpl_->m_group_, &g_info));
 
-    int count = 0;
+    size_type count = 0;
     for (hsize_t i = 0; i < g_info.nlinks; ++i) {
         ssize_t num =
             H5Lget_name_by_idx(m_pimpl_->m_group_, ".", H5_INDEX_NAME, H5_ITER_INC, i, nullptr, 0, H5P_DEFAULT);

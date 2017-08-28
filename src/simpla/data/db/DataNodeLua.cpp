@@ -169,13 +169,13 @@ std::shared_ptr<DataNodeLua> LUAGetNode(std::shared_ptr<LuaObject> const& lobj) 
 
     return res;
 }
-int DataNodeLua::Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& fun) {
-    int count = 0;
+size_type DataNodeLua::Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& fun) {
+    size_type count = 0;
     for (auto p : *m_pimpl_->m_lua_obj_) { count += fun(p.first->as<std::string>(), LUAGetNode(p.second)); }
     return count;
 }
-int DataNodeLua::Foreach(std::function<int(std::string, std::shared_ptr<DataNode>)> const& fun) const {
-    int count = 0;
+size_type DataNodeLua::Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& fun) const {
+    size_type count = 0;
     if (m_pimpl_->m_lua_obj_ != nullptr) {
         for (auto p : *m_pimpl_->m_lua_obj_) { count += fun(p.first->as<std::string>(), LUAGetNode(p.second)); }
     }
@@ -248,17 +248,17 @@ std::shared_ptr<DataNode> DataNodeLua::GetNode(index_type s, int flag) const {
     }
     return res;
 }
-int DataNodeLua::DeleteNode(std::string const& uri, int flag) { return 0; /*m_pimpl_->m_lua_obj_->erase(uri);*/ }
+size_type DataNodeLua::DeleteNode(std::string const& uri, int flag) { return 0; /*m_pimpl_->m_lua_obj_->erase(uri);*/ }
 
 void DataNodeLua::Clear() {}
 
-std::shared_ptr<DataEntity> DataNodeLua::Get() const { return m_pimpl_->m_entity_; }
+std::shared_ptr<DataEntity> DataNodeLua::GetEntity() const { return m_pimpl_->m_entity_; }
 
-int DataNodeLua::Set(std::shared_ptr<DataEntity> const& entity) {
-    int count = 0;
+size_type DataNodeLua::SetEntity(std::shared_ptr<DataEntity> const &entity) {
+    size_type count = 0;
 
     if (entity == nullptr) {
-        FIXME << " Set value : " << m_pimpl_->m_key_ << " = " << *entity << std::endl;
+        FIXME << " SetEntity value : " << m_pimpl_->m_key_ << " = " << *entity << std::endl;
     } else if (auto parent = std::dynamic_pointer_cast<DataNodeLua>(Parent())) {
         auto lobj = parent->m_pimpl_->m_lua_obj_;
         if (auto p = std::dynamic_pointer_cast<DataBlock>(entity)) {
@@ -290,17 +290,17 @@ int DataNodeLua::Set(std::shared_ptr<DataEntity> const& entity) {
     }
     return count;
 }
-int DataNodeLua::Add(std::shared_ptr<DataEntity> const& v) { return AddNode()->Set(v); }
+size_type DataNodeLua::AddEntity(std::shared_ptr<DataEntity> const &v) { return AddNode()->SetEntity(v); }
 
 //
 
 //
-// int DataNodeLua::Set(std::string const& uri, const std::shared_ptr<DataEntity>& v) {
+// int DataNodeLua::SetEntity(std::string const& uri, const std::shared_ptr<DataEntity>& v) {
 //    if (v == nullptr) { m_pimpl_->m_lua_obj_->parse_string(uri); }
 //    return 1;
 //}
 //
-// int DataNodeLua::Add(std::string const& key, const std::shared_ptr<DataEntity>& v) {
+// int DataNodeLua::AddEntity(std::string const& key, const std::shared_ptr<DataEntity>& v) {
 //    UNIMPLEMENTED;
 //    return 0;
 //}
@@ -317,7 +317,7 @@ int DataNodeLua::Add(std::shared_ptr<DataEntity> const& v) { return AddNode()->S
 //    } else {
 //        for (auto const& item : m_pimpl_->m_lua_obj_) {
 //            if (item.first.is_string()) {
-//                counter += f(item.first.as<std::string>(), this->Get(item.first.as<std::string>()));
+//                counter += f(item.first.as<std::string>(), this->GetEntity(item.first.as<std::string>()));
 //            }
 //        };
 //    }

@@ -38,8 +38,8 @@ using namespace simpla::data;
 //    //
 //    //    EXPECT_DOUBLE_EQ((*db)["/Context/c"]->as<double>(), 299792458);
 //
-//    //   db->Set("box", {{1, 2, 3}, {4, 5, 6}});
-//    //    LOGGER << "box  = " <<db->Get<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
+//    //   db->SetEntity("box", {{1, 2, 3}, {4, 5, 6}});
+//    //    LOGGER << "box  = " <<db->GetEntity<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
 //}
 
 class DataBaseTest : public testing::TestWithParam<std::string> {
@@ -59,49 +59,47 @@ class DataBaseTest : public testing::TestWithParam<std::string> {
 
 TEST_P(DataBaseTest, light_data) {
     auto db = DataNode::New(m_url);
-    //    *(*db)["CartesianGeometry"] = "hello world!";
-    //    *(*db)["b/a"] = 5.0;
+    *(*db)["CartesianGeometry"] = "hello world!";
+    *(*db)["b/a"] = 5.0;
 
-    //    *(*db)["i"] = {"default"_, "abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"};
-    //
-    //    *(*db)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
-    //
-    //    *(*db)["a"] += {"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
-    //                    "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !",
-    //                    "hello!"}};
-    //    *(*db)["h"] = {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}};
-    //    *(*db)["j"] = {"abc"_ = {"abc1"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}};
+    *(*db)["i"] = {"default"_, "abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"};
+
+    *(*db)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
+
+    *(*db)["a"] = {"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
+                   "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}};
+    *(*db)["h"] = {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}};
+    *(*db)["j"] = {"abc"_ = {"abc1"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}};
 
     *(*db)["d"] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
     *(*db)["Box"] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}};
+
+    *(*db)["b/sub/d"] = {"wa wa", "la la"};
+    (*db)["tuple3"]->SetValue({{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
     //
-    //    *(*db)["b/sub/d"] = {"wa wa", "la la"};
-    //
-    //    (*db)["g"]->SetValue({{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
-    //
-    //    (*db)["b/sub/1/2/3/4/d/A"]->SetValue({1, 2, 3});
-    //    (*db)["b/sub/1/2/3/4/d/C"]->SetValue({{1.0, 2.0, 3.0}, {2.0}, {7.0, 9.0}});
-    //    //    *(*db)["/b/sub/c"] += {5, 6, 7, 8};
-    //    //    *(*db)["/b/sub/c"] += {1, 5, 3, 4};
-    //    //    *(*db)["/b/sub/c"] += {2, 5, 3, 4};
-    //    //    *(*db)["/b/sub/c"] += {3, 5, 3, 4};
-    //    //    *(*db)["/b/sub/c"] += {4, 5, 3, 4};
-    //    *(*db)["/b/sub/a"] = {};
-    //    *(*db)["/b/sub/a"] += {3, 5, 3, 4};
-    //    *(*db)["/b/sub/a"] += {3, 5, 3, 4};
-    //    *(*db)["/b/sub/e"] = {};
-    //    *(*db)["/b/sub/e"] += {1, 2, 3, 4};
-    //    *(*db)["/b/sub/e"] += 9;
+    (*db)["b/sub/1/2/3/4/d/A"]->SetValue({1, 2, 3});
+    (*db)["b/sub/1/2/3/4/d/C"]->SetValue({{1.0, 2.0, 3.0}, {2.0}, {7.0, 9.0}});
+    *(*db)["/b/sub/c"] += {5, 6, 7, 8};
+    *(*db)["/b/sub/c"] += {1, 5, 3, 4};
+    *(*db)["/b/sub/c"] += {2, 5, 3, 4};
+    *(*db)["/b/sub/c"] += {3, 5, 3, 4};
+    *(*db)["/b/sub/c"] += {4, 5, 3, 4};
+    *(*db)["/b/sub/a"] = {};
+    *(*db)["/b/sub/a"] += {3, 5, 3, 4};
+    *(*db)["/b/sub/a"] += {3, 5, 3, 4};
+    *(*db)["/b/sub/e"] = {};
+    *(*db)["/b/sub/e"] += {1, 2, 3, 4};
+    *(*db)["/b/sub/e"] += 9;
     db->Flush();
     //
     EXPECT_EQ(((*db)["d"]->as<nTuple<Real, 6>>()), (nTuple<Real, 6>{1, 2, 3, 4, 5, 6}));
     EXPECT_EQ(((*db)["Box"]->as<nTuple<Real, 2, 3>>()), (nTuple<Real, 2, 3>{{1, 2, 3}, {4, 5, 6}}));
 
-    //    EXPECT_EQ(db->GetNode("CartesianGeometry")->as<std::string>(), "hello world!");
-    //    EXPECT_DOUBLE_EQ(db->GetNode("b/a")->as<double>(), 5);
-    //    EXPECT_TRUE(db->Check("a/a"));
-    //    EXPECT_FALSE(db->Check("a/not_debug"));
-    //    EXPECT_EQ(((*db)[("/b/sub/a/1")]->as<nTuple<int, 4>>()), (nTuple<int, 4>{3, 5, 3, 4}));
+    EXPECT_EQ(db->GetNode("CartesianGeometry")->as<std::string>(), "hello world!");
+    EXPECT_DOUBLE_EQ(db->GetNode("b/a")->as<double>(), 5);
+    EXPECT_TRUE(db->Check("a/a"));
+    EXPECT_FALSE(db->Check("a/not_debug"));
+    EXPECT_EQ(((*db)[("/b/sub/a/1")]->as<nTuple<int, 4>>()), (nTuple<int, 4>{3, 5, 3, 4}));
     std::cout << m_url << " : " << (*db) << std::endl;
 }
 TEST_P(DataBaseTest, block_data) {
@@ -111,22 +109,22 @@ TEST_P(DataBaseTest, block_data) {
 }
 INSTANTIATE_TEST_CASE_P(DataBaseTestP, DataBaseTest,
                         testing::Values(  //
-                            "mem://",     //
-                                          //                            "h5://?rw,a=234,b=6#123"  //
-                                          // "imas://",
-                            "lua://"));
+                            "mem://", "h5://?rw,a=234,b=6#123"
+                            // "imas://",
+                            // "lua://"
+                            ));
 //
 // TEST(DataTable, samrai) {
 //    logger::set_stdout_level(1000);
 //
 //    LOGGER << "Registered DataBase: " << GLOBAL_DATA_BACKEND_FACTORY.GetBackendList() << std::endl;
 //    DataTable db("samrai://");
-//    //   db->Set("f", {1, 2, 3, 4, 5, 56, 6, 6});
-//    //   db->Set("/d/e/f", "Just atest");
-//    //   db->Set("/d/e/g", {"a"_ = "la la land", "b"_ = 1235.5});
-//    //   db->Set("/d/e/e", 1.23456);
-//   db->Set("box", {{1, 2, 3}, {4, 5, 6}});
+//    //   db->SetEntity("f", {1, 2, 3, 4, 5, 56, 6, 6});
+//    //   db->SetEntity("/d/e/f", "Just atest");
+//    //   db->SetEntity("/d/e/g", {"a"_ = "la la land", "b"_ = 1235.5});
+//    //   db->SetEntity("/d/e/e", 1.23456);
+//   db->SetEntity("box", {{1, 2, 3}, {4, 5, 6}});
 //    LOGGER << *db.database() << std::endl;
-//    LOGGER << "box  = " <<db->Get<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
+//    LOGGER << "box  = " <<db->GetEntity<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
 //
 //}

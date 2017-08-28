@@ -9,7 +9,7 @@
 namespace simpla {
 namespace data {
 class DataNodeXDMF : public DataNode {
-    SP_DATA_NODE_HEAD(DataNodeXDMF);
+SP_DATA_NODE_HEAD(DataNodeXDMF);
 };  // class DataNodeXDMF {
 }  // namespace data
 }  // namespace simpla

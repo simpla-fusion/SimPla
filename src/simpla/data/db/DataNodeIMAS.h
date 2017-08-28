@@ -11,7 +11,7 @@ namespace simpla {
 namespace data {
 
 class DataNodeIMAS : public DataNode {
-    SP_DATA_NODE_HEAD(DataNodeIMAS)
+SP_DATA_NODE_HEAD(DataNodeIMAS)
 };
 }  // { namespace data {
 }  // namespace simpla
