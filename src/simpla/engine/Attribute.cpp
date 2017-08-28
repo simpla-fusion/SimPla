@@ -37,7 +37,7 @@ std::shared_ptr<data::DataTable> AttributeGroup::GetAttributeDescription(std::st
 }
 
 // void AttributeGroup::RegisterDescription(std::map<std::string, std::shared_ptr<AttributeDesc>> *m) const {
-//    for (auto &item : m_pimpl_->m_attributes_) { (*m)[item.first] = item.second->GetDescription(); }
+//    for (auto &item : m_pimpl_->m_attributes_) { (*m)[item.first] = item.m_node_->GetDescription(); }
 //};
 //
 // void AttributeGroup::RegisterAt(AttributeGroup *other) {
@@ -54,13 +54,13 @@ std::shared_ptr<data::DataTable> AttributeGroup::GetAttributeDescription(std::st
 //}
 // bool AttributeGroup::check(std::string const &k, std::type_info const &t_info) const {
 //    auto it = m_pimpl_->m_attributes_.find(k);
-//    return (it != m_pimpl_->m_attributes_.end() && it->second->isA(t_info));
+//    return (it != m_pimpl_->m_attributes_.end() && it->m_node_->isA(t_info));
 //}
 // Attribute *AttributeGroup::GetPatch(std::string const &k) {
 //    auto it = m_pimpl_->m_attributes_.find(k);
 //    Attribute *res = nullptr;
 //    if (it != m_pimpl_->m_attributes_.end()) {
-//        res = it->second;
+//        res = it->m_node_;
 //    } else {
 //        VERBOSE << "Can not find field [" << k << "] in [";
 //        for (auto const &item : m_pimpl_->m_attributes_) { VERBOSE << item.first << ","; }
@@ -72,7 +72,7 @@ std::shared_ptr<data::DataTable> AttributeGroup::GetAttributeDescription(std::st
 // Attribute const *AttributeGroup::GetPatch(std::string const &k) const {
 //    auto it = m_pimpl_->m_attributes_.find(k);
 //    Attribute *res = nullptr;
-//    if (it != m_pimpl_->m_attributes_.end()) { res = it->second; }
+//    if (it != m_pimpl_->m_attributes_.end()) { res = it->m_node_; }
 //    if (res == nullptr) {
 //        VERBOSE << "Can not find field [" << k << "] in [";
 //        for (auto const &item : m_pimpl_->m_attributes_) { VERBOSE << item.first << ","; }

@@ -13,7 +13,10 @@
 namespace simpla {
 namespace data {
 class DataNodeMemory : public DataNode {
-SP_DATA_NODE_HEAD(DataNodeMemory)
+    SP_DATA_NODE_HEAD(DataNodeMemory)
+
+    DataNodeMemory(std::shared_ptr<DataEntity> const &);
+    void Clear() override;
 };  // class DataBase {
 }  // namespace data {
 }  // namespace simpla{

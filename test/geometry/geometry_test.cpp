@@ -53,7 +53,7 @@ int main{
 //		for (int i = 0; i < ndims; ++i)
 //		{
 //			dh[i] = (dims[i] > 1) ?
-//					(extent.second[i] - extent.first[i]) / dims[i] : 0;
+//					(extent.m_node_[i] - extent.first[i]) / dims[i] : 0;
 //		}
 //
 //		points.emplace_back(
@@ -307,7 +307,7 @@ int main{
 //	auto extent = geometry. extents();
 //
 //	TestFixture::points.emplace_back(typename TestFixture::coordinate_tuple(
-//					{	0.3 * extent.second[0], 0.6 * extent.second[1], 0.2 *
+//					{	0.3 * extent.m_node_[0], 0.6 * extent.m_node_[1], 0.2 *
 // extent.first[2]}));
 //
 //	geometry.Erase( geometry.SelectByPolylines(vertex_domain, TestFixture::points));

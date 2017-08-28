@@ -141,7 +141,7 @@ index_box_type const &Atlas::GetCoarsestIndexBox() const { return m_pimpl_->m_co
 // RectMesh *Atlas::find(id_type id) {
 //    auto it = m_database_->m_nodes_.find(id);
 //    if (it != m_database_->m_nodes_.end()) {
-//        return it->second.get();
+//        return it->m_node_.get();
 //    } else {
 //        return nullptr;
 //    }
@@ -150,7 +150,7 @@ index_box_type const &Atlas::GetCoarsestIndexBox() const { return m_pimpl_->m_co
 // RectMesh const *Atlas::find(id_type id) const {
 //    auto it = m_database_->m_nodes_.find(id);
 //    if (it != m_database_->m_nodes_.end()) {
-//        return it->second.get();
+//        return it->m_node_.get();
 //    } else {
 //        return nullptr;
 //    }
@@ -189,12 +189,12 @@ index_box_type const &Atlas::GetCoarsestIndexBox() const { return m_pimpl_->m_co
 //    if (it == m_nodes_.end())
 //    {
 //        return;
-//    } else if (id != it->second->id())
+//    } else if (id != it->m_node_->id())
 //    {
 //        m_nodes_.Finalizie(it);
 //        return;
 //    }
-//    RectMesh const &m = *(it->second);
+//    RectMesh const &m = *(it->m_node_);
 //    assert(m.level() < MAX_NUM_OF_LEVEL);
 //    m_max_level_ = std::max(m_max_level_, m.level());
 //    m_layer_[m.level()].Connect(id);
@@ -268,21 +268,21 @@ index_box_type const &Atlas::GetCoarsestIndexBox() const { return m_pimpl_->m_co
 //
 //
 // std::shared_ptr<TransitionMapBase>
-// Atlas::add_adjacency(MeshBlockId first, MeshBlockId second)
+// Atlas::add_adjacency(MeshBlockId first, MeshBlockId m_node_)
 //{
-//    return add_adjacency(get_block(first), get_block(second));
+//    return add_adjacency(get_block(first), get_block(m_node_));
 //}
 //
 // std::shared_ptr<TransitionMapBase>
-// Atlas::add_adjacency(std::shared_ptr<const RectMesh> first, std::shared_ptr<const RectMesh> second)
+// Atlas::add_adjacency(std::shared_ptr<const RectMesh> first, std::shared_ptr<const RectMesh> m_node_)
 //{
-//    return add_adjacency(std::make_shared<TransitionMapBase>(*first, *second));
+//    return add_adjacency(std::make_shared<TransitionMapBase>(*first, *m_node_));
 //}
 //
 // std::tuple<std::shared_ptr<TransitionMapBase>, std::shared_ptr<TransitionMapBase>>
-// Atlas::add_connection(std::shared_ptr<const RectMesh> first, std::shared_ptr<const RectMesh> second)
+// Atlas::add_connection(std::shared_ptr<const RectMesh> first, std::shared_ptr<const RectMesh> m_node_)
 //{
-//    return std::make_tuple(add_adjacency(first, second), add_adjacency(second, first));
+//    return std::make_tuple(add_adjacency(first, m_node_), add_adjacency(m_node_, first));
 //}
 }  // namespace engine
 }  // namespace simpla{namespace mesh_as{

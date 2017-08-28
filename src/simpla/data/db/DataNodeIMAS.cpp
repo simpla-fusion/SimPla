@@ -23,27 +23,21 @@ int DataNodeIMAS::Connect(std::string const& authority, std::string const& path,
 }
 int DataNodeIMAS::Disconnect() { return 0; }
 bool DataNodeIMAS::isValid() const { return false; }
-int DataNodeIMAS::Flush() { return 0; }
 
 std::shared_ptr<DataNode> DataNodeIMAS::Root() const { return New(); }
 std::shared_ptr<DataNode> DataNodeIMAS::Parent() const { return New(); }
 
-size_type DataNodeIMAS::Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& fun) {
-    return 0;
-}
-size_type DataNodeIMAS::Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& fun) const {
+size_type DataNodeIMAS::Foreach(
+    std::function<size_type(std::string, std::shared_ptr<const DataNode>)> const& fun) const {
     return 0;
 }
 
-std::shared_ptr<DataNode> DataNodeIMAS::GetNode(std::string const& uri, int flag) { return New(); }
-std::shared_ptr<DataNode> DataNodeIMAS::GetNode(std::string const& uri, int flag) const { return New(); }
-std::shared_ptr<DataNode> DataNodeIMAS::GetNode(index_type s, int flag) { return New(); }
-std::shared_ptr<DataNode> DataNodeIMAS::GetNode(index_type s, int flag) const { return New(); }
-size_type DataNodeIMAS::DeleteNode(std::string const& uri, int flag) { return 0; }
-void DataNodeIMAS::Clear() {}
+size_type DataNodeIMAS::Set(std::string const& url, std::shared_ptr<DataEntity> const& v) { return 0; }
+size_type DataNodeIMAS::Add(std::string const& url, std::shared_ptr<DataEntity> const& v) { return 0; }
+size_type DataNodeIMAS::Delete(std::string const& uri) { return 0; }
+std::shared_ptr<const DataNode> DataNodeIMAS::Get(std::string const& uri) const { return New(); }
+
 std::shared_ptr<DataEntity> DataNodeIMAS::GetEntity() const { return DataEntity::New(); }
-size_type DataNodeIMAS::SetEntity(std::shared_ptr<DataEntity> const& v) { return 0; }
-size_type DataNodeIMAS::AddEntity(std::shared_ptr<DataEntity> const& v) { return 0; }
 
 }  // { namespace data {
 }  // namespace simpla

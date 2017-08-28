@@ -38,7 +38,7 @@ class SecondPolicy {
     SecondPolicy(THost* host) : m_self_(host), m_is_register_(m_self_->Register(this)) {}
     virtual ~SecondPolicy() = default;
 
-    std::string GetName() { return "I'm the second"; }
+    std::string GetName() { return "I'm the m_node_"; }
 
     Foo<THost> foo{m_self_};
 };

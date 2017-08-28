@@ -15,7 +15,7 @@
 #include "simpla/utilities/ObjectHead.h"
 namespace simpla {
 namespace data {
-
+#define SP_URL_SPLIT_CHAR '/'
 class DataEntity;
 class KeyValue;
 
@@ -36,96 +36,89 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     enum eDataIOStatus {};
     static std::shared_ptr<DataNode> New(std::string const& uri = "");
 
+    /** @addtogroup required @{*/
+    virtual eNodeType type() const = 0;
+    virtual size_type size() const = 0;
+    virtual std::shared_ptr<DataNode> Duplicate() const = 0;
+    virtual std::shared_ptr<DataEntity> GetEntity() const = 0;
+
+    virtual size_type Set(std::string const& uri, std::shared_ptr<DataEntity> const& v) = 0;
+    virtual size_type Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) = 0;
+    virtual size_type Delete(std::string const& s) = 0;
+    virtual std::shared_ptr<const DataNode> Get(std::string const& uri) const = 0;
+
+    virtual size_type Foreach(
+        std::function<size_type(std::string, std::shared_ptr<const DataNode>)> const& f) const = 0;
+
+    virtual size_type Set(index_type s, std::shared_ptr<DataEntity> const& v) { return Set(std::to_string(s), v); };
+    virtual size_type Add(index_type s, std::shared_ptr<DataEntity> const& v) { return Add(std::to_string(s), v); };
+    virtual size_type Delete(index_type s) { return Delete(std::to_string(s)); };
+    virtual std::shared_ptr<const DataNode> Get(index_type s) const { return Get(std::to_string(s)); };
+
+    /**@ } */
+
     /** @addtogroup optional @{*/
     virtual int Parse(std::string const& s) { return 0; }
     virtual std::istream& Parse(std::istream& is);
     virtual std::ostream& Print(std::ostream& os, int indent) const;
     virtual int Connect(std::string const& authority, std::string const& path, std::string const& query,
-                        std::string const& fragment) = 0;
-    virtual int Disconnect() = 0;
+                        std::string const& fragment) {
+        return 0;
+    };
+    virtual int Disconnect() { return 0; };
     virtual bool isValid() const { return true; }
     virtual int Flush() { return 0; }
-    /**@ } */
 
-    /** @addtogroup required @{*/
-
-    /** @addtogroup{ Interface */
-    virtual eNodeType type() const { return DN_NULL; }
-    virtual size_type size() const { return 0; }
-
-    virtual std::shared_ptr<DataNode> Duplicate() const { return DataNode::New(); }
+    virtual void Clear() {}
 
     virtual std::shared_ptr<DataNode> Root() const { return Duplicate(); }
     virtual std::shared_ptr<DataNode> Parent() const { return Duplicate(); }
-    virtual size_type Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& f) { return 0; }
-    virtual size_type Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& f) const {
-        return 0;
-    }
-
-    virtual std::shared_ptr<DataNode> GetNode(std::string const& uri, int flag) { return Duplicate(); }
-    virtual std::shared_ptr<DataNode> GetNode(std::string const& uri, int flag) const { return Duplicate(); }
-    virtual std::shared_ptr<DataNode> GetNode(index_type s, int flag) { return Duplicate(); };
-    virtual std::shared_ptr<DataNode> GetNode(index_type s, int flag) const { return Duplicate(); };
-
-    virtual size_type SetNode(std::shared_ptr<DataNode> const& v);
-    virtual size_type AddNode(std::shared_ptr<DataNode> const& v);
-
-    virtual std::shared_ptr<DataNode> AddNode() { return GetNode(size(), NEW_IF_NOT_EXIST | ADD_IF_EXIST); };
-    virtual size_type DeleteNode(std::string const& s, int flag) { return 0; }
-    virtual size_type DeleteNode(index_type s, int flag) { return DeleteNode(std::to_string(s), flag); };
-    virtual void Clear() {}
-
-    virtual std::shared_ptr<DataEntity> GetEntity() const;
-    virtual size_type SetEntity(std::shared_ptr<DataEntity> const& v);
-    virtual size_type AddEntity(std::shared_ptr<DataEntity> const& v);
 
     /**@ } */
 
-    /** @} */
-    std::shared_ptr<DataNode> operator[](std::string const& s) { return GetNode(s); }
-    std::shared_ptr<DataNode> operator[](std::string const& s) const { return GetNode(s); }
+    size_type Set(std::shared_ptr<DataNode> const& v);
+    size_type Add(std::shared_ptr<DataNode> const& v);
 
-    std::shared_ptr<DataNode> GetNode(std::string const& uri) { return GetNode(uri, RECURSIVE | NEW_IF_NOT_EXIST); }
-    std::shared_ptr<DataNode> GetNode(std::string const& uri) const { return GetNode(uri, RECURSIVE); }
-    std::shared_ptr<DataNode> GetNode(size_type s) { return GetNode(s, NEW_IF_NOT_EXIST); }
-    std::shared_ptr<DataNode> GetNode(size_type s) const { return GetNode(s, 0); }
-
+    KeyValue operator[](std::string const& s) const { return Get(s); }
+    KeyValue operator[](index_type s) const { return Get(s); }
+    KeyValue operator[](std::string const& s) { return Get(s); }
+    KeyValue operator[](index_type s) { return Get(s); }
     template <typename... Others>
     size_type SetValue(Others&&... args) {
-        return SetEntity(DataLight::New(std::forward<Others>(args)...));
+        return Set("", DataLight::New(std::forward<Others>(args)...));
     };
     template <typename U>
     size_type SetValue(std::initializer_list<U> const& v) {
-        return SetEntity(DataLight::New(v));
+        return Set("", DataLight::New(v));
     }
 
-    size_type SetValue(std::initializer_list<char const*> const& u) { return SetEntity(DataLight::New(u)); }
+    size_type SetValue(std::initializer_list<char const*> const& u) { return Set("", DataLight::New(u)); }
 
     template <typename U>
     size_type SetValue(std::initializer_list<std::initializer_list<U>> const& v) {
-        return SetEntity(DataLight::New(v));
+        return Set("", DataLight::New(v));
     }
     template <typename U>
     size_type SetValue(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& v) {
-        return SetEntity(DataLight::New(v));
+        return Set("", DataLight::New(v));
     }
 
     template <typename... Args>
     size_type AddValue(Args&&... args) {
-        return AddEntity(DataLight::New(std::forward<Args>(args)...));
+        return Add("", DataLight::New(std::forward<Args>(args)...));
     };
 
     template <typename U>
     size_type AddValue(std::initializer_list<U> const& v) {
-        return AddEntity(DataLight::New(v));
+        return Add("", DataLight::New(v));
     }
     template <typename U>
     size_type AddValue(std::initializer_list<std::initializer_list<U>> const& v) {
-        return AddEntity(DataLight::New(v));
+        return Add("", DataLight::New(v));
     }
     template <typename U>
     size_type AddValue(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& v) {
-        return AddEntity(DataLight::New(v));
+        return Add("", DataLight::New(v));
     }
     template <typename U>
     U GetValue(ENABLE_IF((traits::is_light_data<U>::value))) const {
@@ -151,7 +144,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     };
     template <typename URL, typename U>
     bool Check(URL const& url, U const& u) const {
-        auto p = GetNode(url, RECURSIVE);
+        auto p = Get(url);
         return p != nullptr && p->isEqualTo(u);
     }
 
@@ -221,14 +214,10 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
         return *this;
     }
 
-    size_type SetNode(KeyValue const& kv);
-    size_type AddNode(KeyValue const& kv);
-    size_type SetNode(std::initializer_list<KeyValue> const& u);
-    size_type AddNode(std::initializer_list<KeyValue> const& u);
+    size_type Set(KeyValue const& kv);
+    size_type Add(KeyValue const& kv);
     DataNode& operator=(KeyValue const& v);
     DataNode& operator=(std::initializer_list<KeyValue> const& u);
-    DataNode& operator+=(KeyValue const& u);
-    DataNode& operator+=(std::initializer_list<KeyValue> const& u);
     /** @} */
 
     //******************************************************************************************************
@@ -249,14 +238,14 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     size_type _CopyOut(U& dst, std::shared_ptr<const DataNode> const& src, ENABLE_IF((std::rank<U>::value > 0))) const {
         size_type count = 0;
         for (size_type i = 0; i < std::extent<U, 0>::value; ++i) {
-            count += _CopyOut(dst[i], src == nullptr ? nullptr : src->GetNode(i));
+            count += _CopyOut(dst[i], src == nullptr ? nullptr : src->Get(i));
         }
         return count;
     };
 
     template <typename U>
     size_type _CopyIn(std::shared_ptr<DataNode>& dst, U const& src, ENABLE_IF(std::rank<U>::value == 0)) const {
-        return dst == nullptr ? 0 : dst->SetEntity(src);
+        return dst == nullptr ? 0 : dst->Set("", src);
     };
 
     template <typename U>
@@ -264,7 +253,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
         size_type count = 0;
         if (dst != nullptr) {
             for (size_type i = 0; i < std::extent<U, 0>::value; ++i) {
-                count += _CopyIn(dst == nullptr ? dst : dst->GetNode(i, NEW_IF_NOT_EXIST), src[i]);
+                //                count += _CopyIn(dst == nullptr ? dst : dst->Get(i, NEW_IF_NOT_EXIST), src[i]);
             }
         }
         return count;
@@ -280,7 +269,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
                            ENABLE_IF((std::rank<U>::value > 0))) {
         bool res = true;
         for (size_type i = 0; res && i < std::extent<U, 0>::value; ++i) {
-            res = res && right != nullptr && _isEqualTo(left[i], right->GetNode(i));
+            res = res && right != nullptr && _isEqualTo(left[i], right->Get(i));
         }
         return res;
     };
@@ -323,21 +312,20 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     }
     //******************************************************************************************************
 };
+std::pair<std::string, std::shared_ptr<DataNode>> RecursiveFindNode(std::shared_ptr<DataNode> d, std::string uri,
+                                                                    int flag = 0);
 
-class KeyValue {
-    std::string m_key_;
+std::ostream& operator<<(std::ostream&, DataNode const&);
+
+struct KeyValue {
     std::shared_ptr<DataNode> m_node_;
 
-   public:
-    explicit KeyValue(std::string const& k, std::shared_ptr<DataEntity> const& v = nullptr)
-        : m_key_(k), m_node_(DataNode::New()) {
-        m_node_->GetNode(m_key_, DataNode::RECURSIVE | DataNode::NEW_IF_NOT_EXIST)->SetEntity(v);
+    explicit KeyValue(std::string const& k, std::shared_ptr<DataEntity> const& v = nullptr) : m_node_(DataNode::New()) {
+        m_node_->Set(k, v);
     }
-    KeyValue(KeyValue const& other) : m_key_(other.m_key_), m_node_(other.m_node_) {}
-    KeyValue(KeyValue&& other) : m_key_(other.m_key_), m_node_(other.m_node_) {}
+    KeyValue(KeyValue const& other) : m_node_(other.m_node_) {}
+    KeyValue(KeyValue&& other) : m_node_(other.m_node_) {}
     ~KeyValue() = default;
-    std::shared_ptr<DataNode>& GetNode() { return m_node_; }
-    std::shared_ptr<DataNode> const& GetNode() const { return m_node_; }
 
     KeyValue& operator=(KeyValue const& other) {
         m_node_ = other.m_node_;
@@ -346,63 +334,29 @@ class KeyValue {
 
     template <typename U>
     KeyValue& operator=(U const& u) {
-        *m_node_->GetNode(m_key_) = (u);
+        m_node_->SetValue(0, u);
         return *this;
     }
     template <typename U>
     KeyValue& operator=(std::initializer_list<U> const& u) {
         m_node_->Clear();
-        *m_node_->GetNode(m_key_) = (u);
+        m_node_->SetValue(0, u);
         return *this;
     }
     template <typename U>
     KeyValue& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
         m_node_->Clear();
-        *m_node_->GetNode(m_key_) = (u);
+        m_node_->SetValue(0, u);
         return *this;
     }
     template <typename U>
     KeyValue& operator=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
         m_node_->Clear();
-        *m_node_->GetNode(m_key_) = (u);
+        m_node_->SetValue(0, u);
         return *this;
     }
 };
 inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue{std::string(c), make_data(true)}; }
-
-inline size_type DataNode::SetNode(KeyValue const& kv) { return SetNode(kv.GetNode()); }
-inline size_type DataNode::AddNode(KeyValue const& kv) { return AddNode(kv.GetNode()); }
-inline size_type DataNode::SetNode(std::initializer_list<KeyValue> const& u) {
-    size_type count = 0;
-    for (auto const& v : u) { count += SetNode(v); }
-    return count;
-}
-inline size_type DataNode::AddNode(std::initializer_list<KeyValue> const& u) {
-    size_type count = 0;
-    for (auto const& v : u) { count += AddNode(v); }
-    return count;
-}
-inline DataNode& DataNode::operator=(KeyValue const& v) {
-    SetNode(v);
-    return *this;
-}
-inline DataNode& DataNode::operator=(std::initializer_list<KeyValue> const& u) {
-    SetNode(u);
-    return *this;
-}
-inline DataNode& DataNode::operator+=(KeyValue const& u) {
-    AddNode(u);
-    return *this;
-}
-inline DataNode& DataNode::operator+=(std::initializer_list<KeyValue> const& u) {
-    AddNode(u);
-    return *this;
-}
-std::pair<std::string, std::shared_ptr<DataNode>> RecursiveFindNode(std::shared_ptr<DataNode> d, std::string uri,
-                                                                    int flag = 0);
-// std::shared_ptr<const DataNode> RecursiveFindNode(std::shared_ptr<const DataNode> const& d, std::string const& uri,
-//                                                  int flag = 0);
-std::ostream& operator<<(std::ostream&, DataNode const&);
 
 #define SP_DATA_NODE_HEAD(_CLASS_NAME_)                                                                              \
     SP_DEFINE_FANCY_TYPE_NAME(_CLASS_NAME_, DataNode)                                                                \
@@ -426,14 +380,6 @@ std::ostream& operator<<(std::ostream&, DataNode const&);
     static std::shared_ptr<this_type> New(Args&&... args) {                                                          \
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));                               \
     }                                                                                                                \
-    std::shared_ptr<DataNode> Duplicate() const override;                                                            \
-    size_type size() const override;                                                                                 \
-    eNodeType type() const override;                                                                                 \
-    int Connect(std::string const& authority, std::string const& path, std::string const& query,                     \
-                std::string const& fragment) override;                                                               \
-    int Disconnect() override;                                                                                       \
-    bool isValid() const override;                                                                                   \
-    int Flush() override;                                                                                            \
                                                                                                                      \
     std::shared_ptr<_CLASS_NAME_> Self() { return std::dynamic_pointer_cast<this_type>(this->shared_from_this()); }; \
     std::shared_ptr<_CLASS_NAME_> Self() const {                                                                     \
@@ -442,18 +388,21 @@ std::ostream& operator<<(std::ostream&, DataNode const&);
     std::shared_ptr<DataNode> Root() const override;                                                                 \
     std::shared_ptr<DataNode> Parent() const override;                                                               \
                                                                                                                      \
-    size_type Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& fun) override;         \
-    size_type Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& fun) const override;   \
+    eNodeType type() const override;                                                                                 \
+    size_type size() const override;                                                                                 \
                                                                                                                      \
-    std::shared_ptr<DataNode> GetNode(std::string const& uri, int flag) override;                                    \
-    std::shared_ptr<DataNode> GetNode(std::string const& uri, int flag) const override;                              \
-    std::shared_ptr<DataNode> GetNode(index_type s, int flag) override;                                              \
-    std::shared_ptr<DataNode> GetNode(index_type s, int flag) const override;                                        \
-    size_type DeleteNode(std::string const& uri, int flag) override;                                                 \
-    void Clear() override;                                                                                           \
+    std::shared_ptr<DataNode> Duplicate() const override;                                                            \
+                                                                                                                     \
     std::shared_ptr<DataEntity> GetEntity() const override;                                                          \
-    size_type SetEntity(std::shared_ptr<DataEntity> const& v) override;                                              \
-    size_type AddEntity(std::shared_ptr<DataEntity> const& v) override;
+                                                                                                                     \
+    size_type Set(std::string const& uri, std::shared_ptr<DataEntity> const& v) override;                            \
+    size_type Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) override;                            \
+    size_type Delete(std::string const& s) override;                                                                 \
+    std::shared_ptr<const DataNode> Get(std::string const& uri) const override;                                      \
+                                                                                                                     \
+    size_type Foreach(std::function<size_type(std::string, std::shared_ptr<const DataNode>)> const& f) const override;
+
+void Clear() {}
 
 }  // namespace data
 }  // namespace simpla

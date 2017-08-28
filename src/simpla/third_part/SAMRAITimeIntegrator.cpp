@@ -1057,12 +1057,12 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
         //        std::endl;
         //        m_ctx_->GetBaseMesh()->InitialCondition(data_time);
         //        for (auto const &item : m_ctx_->GetModel().GetAll()) {
-        //            m_ctx_->GetBaseMesh()->RegisterRanges(item.second, item.first);
+        //            m_ctx_->GetBaseMesh()->RegisterRanges(item.m_node_, item.first);
         //        }
         //
         //        for (auto &d : m_ctx_->GetAllDomains()) {
         //            VERBOSE << "DoInitialize DomainBase : " << d.first << std::endl;
-        //            d.second->InitialCondition(p.get(), data_time);
+        //            d.m_node_->InitialCondition(p.get(), data_time);
         //        }
         //        m_ctx_->GetBaseMesh()->Serialize(p.get());
     }

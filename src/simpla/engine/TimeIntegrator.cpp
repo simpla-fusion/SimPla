@@ -56,14 +56,14 @@ Real TimeIntegrator::Advance(Real time_dt) {
 //    for (auto const &id : atlas.GetBlockList(level)) {
 //        auto mblk = atlas.GetMeshBlock(id);
 //        for (auto &v : m_pack_->m_ctx_->GetAllDomains()) {
-//            if (!v.second->GetGeoObject()->CheckOverlap(mblk->BoundingBox())) { continue; }
+//            if (!v.m_node_->GetGeoObject()->CheckOverlap(mblk->BoundingBox())) { continue; }
 //            auto res = m_pack_->m_ctx_->GetPatches()->GetTable(std::to_string(id));
 //            if (res == nullptr) { res = std::make_shared<data::DataTable>(); }
-//            v.second->GetPatch(mblk, res);
-//            LOGGER << " DomainBase [ " << std::setw(10) << std::left << v.second->name() << " ] is applied on "
+//            v.m_node_->GetPatch(mblk, res);
+//            LOGGER << " DomainBase [ " << std::setw(10) << std::left << v.m_node_->name() << " ] is applied on "
 //                   << mblk->IndexBox() << " id= " << id << std::endl;
-//            v.second->Run(dt);
-//            auto t = v.second->Serialize().second;
+//            v.m_node_->Run(dt);
+//            auto t = v.m_node_->Serialize().m_node_;
 //            m_pack_->m_ctx_->GetPatches()->Deserialize(std::to_string(id), t);
 //        }
 //    }
@@ -71,19 +71,19 @@ Real TimeIntegrator::Advance(Real time_dt) {
 //    return m_pack_->m_time_;
 //    for (auto const &item : atlas.GetLayer(level)) {
 //        for (auto &v : m_pack_->m_domains_) {
-//            auto b_box = v.second->GetBaseMesh()->inner_bound_box();
-//            if (!geometry::check_overlap(item.second->GetBox(), b_box)) { continue; }
-//            v.second->Dispatch(m_pack_->m_patches_[item.first]);
-//            v.second->Run(dt);
+//            auto b_box = v.m_node_->GetBaseMesh()->inner_bound_box();
+//            if (!geometry::check_overlap(item.m_node_->GetBox(), b_box)) { continue; }
+//            v.m_node_->Dispatch(m_pack_->m_patches_[item.first]);
+//            v.m_node_->Run(dt);
 //        }
 //    }
 //    for (int i = 0; i < m_pack_->m_refine_ratio_; ++i) { Run(dt / m_pack_->m_refine_ratio_, level + 1); }
 //    for (auto const &item : atlas.GetLayer(level)) {
 //        for (auto &v : m_pack_->m_domains_) {
-//            auto b_box = v.second->GetBaseMesh()->GetGeoObject()->BoundingBox();
-//            if (!geometry::check_overlap(item.second->GetBox(), b_box)) { continue; }
-//            v.second->Dispatch(m_pack_->m_patches_[item.first]);
-//            v.second->Run(dt);
+//            auto b_box = v.m_node_->GetBaseMesh()->GetGeoObject()->BoundingBox();
+//            if (!geometry::check_overlap(item.m_node_->GetBox(), b_box)) { continue; }
+//            v.m_node_->Dispatch(m_pack_->m_patches_[item.first]);
+//            v.m_node_->Run(dt);
 //        }
 //    }
 

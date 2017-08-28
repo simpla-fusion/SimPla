@@ -209,7 +209,7 @@ std::pair<std::shared_ptr<LuaObject>, std::shared_ptr<LuaObject>> LuaObject::ite
 //    } else {
 //        for (auto &item : *this) {
 //            ++s;
-//            fun(item.first, item.second);
+//            fun(item.first, item.m_node_);
 //        }
 //    }
 //    return s;

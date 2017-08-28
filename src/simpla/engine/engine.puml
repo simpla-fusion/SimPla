@@ -185,7 +185,7 @@ class Chart{
 
   @startuml
   actor Main
-  Main -> DomainView : SetNode U as MeshView
+  Main -> DomainView : Set U as MeshView
   activate DomainView
       alt if MeshView=nullptr
            create MeshView

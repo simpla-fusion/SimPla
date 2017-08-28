@@ -59,9 +59,9 @@ class PICBoris {
 template <typename TM>
 void PICBoris<TM>::Serialize(DataTable& cfg) const {
     for (auto& item : m_particle_sp_) {
-        //        t.SetEntity<double>("mass", item.second->mass / SI_proton_mass);
-        //        t.SetEntity<double>("Z", item.second->charge / SI_elementary_charge);
-        //        t.SetEntity<double>("ratio", item.second->ratio);
+        //        t.SetEntity<double>("mass", item.m_node_->mass / SI_proton_mass);
+        //        t.SetEntity<double>("Z", item.m_node_->charge / SI_elementary_charge);
+        //        t.SetEntity<double>("ratio", item.m_node_->ratio);
 
         item.second->Serialize(cfg.GetTable("Species/" + item.first));
     }

@@ -62,7 +62,7 @@ class PhysicalConstants {
         //
         //		if (it != q_.end())
         //		{
-        //			return it->second;
+        //			return it->m_node_;
         //		}
         //		else
         //		{
@@ -82,7 +82,7 @@ class PhysicalConstants {
 
     // SI PlaceHolder unit
     double m_;    //<< length [meter]
-    double s_;    //<< time	[second]
+    double s_;    //<< time	[m_node_]
     double kg_;   //<< mass	[kilgram]
     double C_;    //<< electric charge	[coulomb]
     double K_;    //<< temperature [kelvin]

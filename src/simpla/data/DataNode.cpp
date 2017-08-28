@@ -36,21 +36,24 @@ std::shared_ptr<DataNode> DataNode::New(std::string const& s) {
 };
 
 std::shared_ptr<DataEntity> DataNode::GetEntity() const { return DataEntity::New(); }
-size_type DataNode::SetEntity(std::shared_ptr<DataEntity> const& v) { return 0; }
-size_type DataNode::AddEntity(std::shared_ptr<DataEntity> const& v) { return AddNode()->SetEntity(v); }
-size_type DataNode::SetNode(std::shared_ptr<DataNode> const& v) {
-    return v == nullptr ? 0 : v->Foreach([&](std::string k, std::shared_ptr<DataNode> node) {
+size_type DataNode::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v) { return 0; }
+size_type DataNode::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) { return 0; }
+size_type DataNode::Set(std::shared_ptr<DataNode> const& v) {
+    return v == nullptr ? 0 : v->Foreach([&](std::string k, std::shared_ptr<const DataNode> node) {
         size_type count = 0;
         if (node->type() == DataNode::DN_ENTITY) {
-            count += GetNode(k, NEW_IF_NOT_EXIST)->SetEntity(node->GetEntity());
+            count += Set(k, node->GetEntity());
         } else {
-            count += GetNode(k, NEW_IF_NOT_EXIST)->SetNode(node);
+            count += Set(k, node->GetEntity());
         }
         return count;
     });
 };
-size_type DataNode::AddNode(std::shared_ptr<DataNode> const& v) { return AddNode()->SetNode(v); };
-std::istream& DataNode::Parse(std::istream& is) { return is; }
+size_type DataNode::Add(std::shared_ptr<DataNode> const& v) { return 0; };
+std::istream& DataNode::Parse(std::istream& is) {
+    Parse(std::string(std::istreambuf_iterator<char>(is), {}));
+    return is;
+}
 std::ostream& DataNode::Print(std::ostream& os, int indent) const {
     if (this->type() == DataNode::DN_ARRAY) {
         os << "[";
@@ -113,47 +116,67 @@ static std::regex const match_path_regex(R"(^(/?([/\S]+/)*)?([^/]+)?$)", std::re
  * @param return_if_not_exist
  * @return
  */
-std::pair<std::string, std::shared_ptr<DataNode>> RecursiveFindNode(std::shared_ptr<DataNode> root, std::string uri,
-                                                                    int flag) {
-    std::pair<std::string, std::shared_ptr<DataNode>> res{"", root};
+//std::pair<std::string, std::shared_ptr<DataNode>> RecursiveFindNode(std::shared_ptr<DataNode> root, std::string uri,
+//                                                                    int flag) {
+//    std::pair<std::string, std::shared_ptr<DataNode>> res{"", root};
+//
+//    if (uri.empty() || uri == ".") { return res; }
+//
+//    if (uri[0] == '/') {
+//        root = root->Root();
+//    } else if (uri.substr(0, 3) == "../") {
+//        root = root->Parent();
+//        uri = uri.substr(3);
+//    }
+//    std::smatch uri_match_result;
+//
+//    if (!std::regex_match(uri, uri_match_result, match_path_regex)) {
+//        RUNTIME_ERROR << "illegal URI: [" << uri << "]" << std::endl;
+//    }
+//    std::string path = uri_match_result.str(2);
+//
+//    if (!path.empty()) {
+//        std::smatch sub_match_result;
+//        auto t = root;
+//
+//        for (auto pos = path.cbegin(), end = path.cend();
+//             std::regex_search(pos, end, sub_match_result, sub_group_regex); pos = sub_match_result.suffix().first) {
+//            std::string k = sub_match_result.str(1);
+//            res.second = t->Get(k);
+//            t = res.second;
+//            if (res.second == nullptr) {
+//                res.first = sub_match_result.suffix().str() + uri_match_result[3].str();
+//                break;
+//            }
+//        }
+//    }
+//    auto key = uri_match_result.str(3);
+//    if (!key.empty()) {
+//        res.first = "";
+//        res.second = res.second->Get(key);
+//    }
+//    return res;
+//};
 
-    if (uri.empty() || uri == ".") { return res; }
+size_type DataNode::Set(KeyValue const& kv) { return Set(kv.m_node_); }
+size_type DataNode::Add(KeyValue const& kv) { return Add(kv.m_node_); }
 
-    if (uri[0] == '/') {
-        root = root->Root();
-    } else if (uri.substr(0, 3) == "../") {
-        root = root->Parent();
-        uri = uri.substr(3);
-    }
-    std::smatch uri_match_result;
-
-    if (!std::regex_match(uri, uri_match_result, match_path_regex)) {
-        RUNTIME_ERROR << "illegal URI: [" << uri << "]" << std::endl;
-    }
-    std::string path = uri_match_result.str(2);
-
-    if (!path.empty()) {
-        std::smatch sub_match_result;
-        auto t = root;
-
-        for (auto pos = path.cbegin(), end = path.cend();
-             std::regex_search(pos, end, sub_match_result, sub_group_regex); pos = sub_match_result.suffix().first) {
-            std::string k = sub_match_result.str(1);
-            res.second = t->GetNode(k, flag & (~DataNode::RECURSIVE));
-            t = res.second;
-            if (res.second == nullptr) {
-                res.first = sub_match_result.suffix().str() + uri_match_result[3].str();
-                break;
-            }
-        }
-    }
-    auto key = uri_match_result.str(3);
-    if (!key.empty()) {
-        res.first = "";
-        res.second = res.second->GetNode(key, flag & (~DataNode::RECURSIVE));
-    }
-    return res;
-};
+DataNode& DataNode::operator=(KeyValue const& v) {
+    Set(v.m_node_);
+    return *this;
+}
+DataNode& DataNode::operator=(std::initializer_list<KeyValue> const& u) {
+    for (auto const& v : u) { Set(v.m_node_); }
+    return *this;
+}
+//DataNode& DataNode::operator+=(KeyValue const& u) {
+//    Add(u.m_node_);
+//    return *this;
+//}
+//DataNode& DataNode::operator+=(std::initializer_list<KeyValue> const& u) {
+//    for (auto const& v : u) { Add(v.m_node_); }
+//    return *this;
+//}
 
 }  // namespace data {
 }  // namespace simpla {

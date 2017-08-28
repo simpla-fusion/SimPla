@@ -82,11 +82,11 @@ std::shared_ptr<DataLight> make_data(std::initializer_list<U> const& u) {
 //    std::initializer_list<std::initializer_list<std::initializer_list<KeyValue>>> const& u) {
 //    return u;
 //}
-//    int SetNode(KeyValue const& kv) { return GetNode(kv.first, RECURSIVE | NEW_IF_NOT_EXIST)->SetEntity(kv.second); }
+//    int Set(KeyValue const& kv) { return GetNode(kv.first, RECURSIVE | NEW_IF_NOT_EXIST)->SetEntity(kv.m_node_); }
 //
 //    template <typename... Others>
 //    int SetEntity(KeyValue const& kv, Others&&... others) {
-//        return SetNode(kv) + SetEntity(std::forward<Others>(others)...);
+//        return Set(kv) + SetEntity(std::forward<Others>(others)...);
 //    }
 //    int SetEntity(std::initializer_list<KeyValue> const& u) {
 //        int count = 0;
