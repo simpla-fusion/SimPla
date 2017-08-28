@@ -41,7 +41,7 @@ size_type DataNode::AddEntity(std::shared_ptr<DataEntity> const& v) { return Add
 size_type DataNode::SetNode(std::shared_ptr<DataNode> const& v) {
     return v == nullptr ? 0 : v->Foreach([&](std::string k, std::shared_ptr<DataNode> node) {
         size_type count = 0;
-        if (node->NodeType() == DataNode::DN_ENTITY) {
+        if (node->type() == DataNode::DN_ENTITY) {
             count += GetNode(k, NEW_IF_NOT_EXIST)->SetEntity(node->GetEntity());
         } else {
             count += GetNode(k, NEW_IF_NOT_EXIST)->SetNode(node);
@@ -52,25 +52,25 @@ size_type DataNode::SetNode(std::shared_ptr<DataNode> const& v) {
 size_type DataNode::AddNode(std::shared_ptr<DataNode> const& v) { return AddNode()->SetNode(v); };
 std::istream& DataNode::Parse(std::istream& is) { return is; }
 std::ostream& DataNode::Print(std::ostream& os, int indent) const {
-    if (this->NodeType() == DataNode::DN_ARRAY) {
+    if (this->type() == DataNode::DN_ARRAY) {
         os << "[";
         bool is_first = true;
-        bool new_line = this->GetNumberOfChildren() > 1;
+        bool new_line = this->size() > 1;
         this->Foreach([&](auto k, auto v) {
             if (is_first) {
                 is_first = false;
             } else {
                 os << ", ";
             }
-            if (new_line && v->NodeType() != DataNode::DN_ENTITY) { os << std::endl << std::setw(indent + 1) << " "; }
+            if (new_line && v->type() != DataNode::DN_ENTITY) { os << std::endl << std::setw(indent + 1) << " "; }
             v->Print(os, indent + 1);
             return 1;
         });
         os << "]";
-    } else if (this->NodeType() == DataNode::DN_TABLE) {
+    } else if (this->type() == DataNode::DN_TABLE) {
         os << "{ ";
         bool is_first = true;
-        bool new_line = this->GetNumberOfChildren() > 1;
+        bool new_line = this->size() > 1;
         this->Foreach([&](auto k, auto v) {
             if (is_first) {
                 is_first = false;
@@ -87,7 +87,7 @@ std::ostream& DataNode::Print(std::ostream& os, int indent) const {
         if (new_line) { os << std::endl << std::setw(indent) << " "; }
         os << "}";
 
-    } else if (this->NodeType() == DataNode::DN_ENTITY) {
+    } else if (this->type() == DataNode::DN_ENTITY) {
         this->GetEntity()->Print(os, indent + 1);
     }
     return os;

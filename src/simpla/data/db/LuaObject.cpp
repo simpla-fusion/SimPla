@@ -221,7 +221,9 @@ size_t LuaObject::size() const {
     if (!is_null()) {
         auto acc = L_->acc();
         try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-        res = lua_rawlen(*acc, 1);
+        lua_len(*acc, -1);
+        res = lua_tointeger(*acc, -1);
+        lua_pop(*acc, 1);
         lua_pop(*acc, 1);
     }
     return res;
@@ -430,7 +432,7 @@ bool LuaObject::is_table() const {
         try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
         if (lua_istable(*acc, -1)) {
             lua_rawgeti(*acc, lua_gettop(*acc), 1);
-            if (!(lua_isinteger(*acc, -1) > 0 && lua_tointeger(*acc, -1) == 1)) { res = true; }
+            if (lua_isinteger(*acc, -1) == 0) { res = true; }
             lua_pop(*acc, 1);
         }
         lua_pop(*acc, 1);
@@ -438,8 +440,7 @@ bool LuaObject::is_table() const {
     return res;
 }
 bool LuaObject::is_array() const {
-    return is_table() && begin().value().first != nullptr && (begin().value().first->is_integer()) &&
-           begin().value().first->as<int>() == 1;
+    return is_table() && begin().value().first != nullptr && (begin().value().first->is_integer());
 }
 
 int LuaGetNestTableShape(lua_State *L, int idx, size_type *rank, size_type *extents) {

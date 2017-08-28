@@ -96,11 +96,11 @@ std::shared_ptr<DataNode> DataNodeLua::Duplicate() const {
 
     return res;
 }
-size_type DataNodeLua::GetNumberOfChildren() const {
-    return m_pimpl_->m_lua_obj_ == nullptr ? 0 : m_pimpl_->m_lua_obj_->size();
+size_type DataNodeLua::size() const {
+    return m_pimpl_->m_lua_obj_ != nullptr ? m_pimpl_->m_lua_obj_->size() : (m_pimpl_->m_entity_ != nullptr ? 1 : 0);
 }
 
-DataNode::eNodeType DataNodeLua::NodeType() const {
+DataNode::eNodeType DataNodeLua::type() const {
     eNodeType res = DN_NULL;
     if (m_pimpl_->m_lua_obj_ == nullptr) {
         res = m_pimpl_->m_entity_ == nullptr ? DN_NULL : DN_ENTITY;
@@ -236,15 +236,13 @@ std::shared_ptr<DataNode> DataNodeLua::GetNode(index_type s, int flag) {
     return res;
 }
 std::shared_ptr<DataNode> DataNodeLua::GetNode(index_type s, int flag) const {
-    std::shared_ptr<DataNodeLua> res = nullptr;
+    std::shared_ptr<DataNode> res = nullptr;
 
-    if (m_pimpl_->m_lua_obj_ == nullptr) {
-        res = DataNodeLua::New();
-        RUNTIME_ERROR << "Can not get object [" << s << "] from null group !" << std::endl;
-    } else {
-        res = LUAGetNode(m_pimpl_->m_lua_obj_->get(s));
-        res->m_pimpl_->m_key_ = std::to_string(s);
-        res->m_pimpl_->m_parent_ = Self();
+    if (m_pimpl_->m_lua_obj_ != nullptr) {
+        auto tmp = LUAGetNode(m_pimpl_->m_lua_obj_->get(s));
+        tmp->m_pimpl_->m_key_ = std::to_string(s);
+        tmp->m_pimpl_->m_parent_ = Self();
+        res = tmp;
     }
     return res;
 }
@@ -254,7 +252,7 @@ void DataNodeLua::Clear() {}
 
 std::shared_ptr<DataEntity> DataNodeLua::GetEntity() const { return m_pimpl_->m_entity_; }
 
-size_type DataNodeLua::SetEntity(std::shared_ptr<DataEntity> const &entity) {
+size_type DataNodeLua::SetEntity(std::shared_ptr<DataEntity> const& entity) {
     size_type count = 0;
 
     if (entity == nullptr) {
@@ -290,7 +288,7 @@ size_type DataNodeLua::SetEntity(std::shared_ptr<DataEntity> const &entity) {
     }
     return count;
 }
-size_type DataNodeLua::AddEntity(std::shared_ptr<DataEntity> const &v) { return AddNode()->SetEntity(v); }
+size_type DataNodeLua::AddEntity(std::shared_ptr<DataEntity> const& v) { return AddNode()->SetEntity(v); }
 
 //
 

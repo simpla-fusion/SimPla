@@ -61,8 +61,8 @@ int DataNodeXDMF::Disconnect() { return SP_SUCCESS; }
 int DataNodeXDMF::Flush() { return 0; }
 
 std::shared_ptr<DataNode> DataNodeXDMF::Duplicate() const { return nullptr; }
-size_type DataNodeXDMF::GetNumberOfChildren() const { return 0; }
-DataNode::eNodeType DataNodeXDMF::NodeType() const { return DN_NULL; }
+size_type DataNodeXDMF::size() const { return 0; }
+DataNode::eNodeType DataNodeXDMF::type() const { return DN_NULL; }
 std::shared_ptr<DataNode> DataNodeXDMF::Root() const {
     return Parent() != nullptr ? Parent()->Root() : const_cast<this_type*>(this)->shared_from_this();
 }
@@ -85,8 +85,8 @@ size_type DataNodeXDMF::DeleteNode(std::string const& uri, int flag) { return 0;
 void DataNodeXDMF::Clear() {}
 
 std::shared_ptr<DataEntity> DataNodeXDMF::GetEntity() const { return nullptr; }
-size_type DataNodeXDMF::SetEntity(std::shared_ptr<DataEntity> const &v) { return 0; }
-size_type DataNodeXDMF::AddEntity(std::shared_ptr<DataEntity> const &v) { return 0; }
+size_type DataNodeXDMF::SetEntity(std::shared_ptr<DataEntity> const& v) { return 0; }
+size_type DataNodeXDMF::AddEntity(std::shared_ptr<DataEntity> const& v) { return 0; }
 
 ////
 //// std::shared_ptr<DataEntity> DataBaseXDMF::Get(std::string const& URI) const {

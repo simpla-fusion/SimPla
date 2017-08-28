@@ -35,10 +35,10 @@ std::shared_ptr<DataNode> DataNodeMemory::Duplicate() const {
     res->m_pimpl_->m_parent_ = m_pimpl_->m_parent_;
     return res;
 }
-size_type DataNodeMemory::GetNumberOfChildren() const { return m_pimpl_->m_table_.size(); }
+size_type DataNodeMemory::size() const { return m_pimpl_->m_table_.size(); }
 
 /** @addtogroup{ Interface */
-DataNode::eNodeType DataNodeMemory::NodeType() const { return m_pimpl_->m_node_type; }
+DataNode::eNodeType DataNodeMemory::type() const { return m_pimpl_->m_node_type; }
 
 std::shared_ptr<DataNode> DataNodeMemory::Root() const {
     return m_pimpl_->m_parent_ != nullptr ? m_pimpl_->m_parent_->Root()
@@ -60,13 +60,13 @@ size_type DataNodeMemory::Foreach(std::function<size_type(std::string, std::shar
     for (auto const& item : m_pimpl_->m_table_) { count += fun(item.first, item.second); }
     return 0;
 }
-size_type DataNodeMemory::SetEntity(std::shared_ptr<DataEntity> const &v) {
+size_type DataNodeMemory::SetEntity(std::shared_ptr<DataEntity> const& v) {
     if (!m_pimpl_->m_table_.empty()) { RUNTIME_ERROR << "Can not insert entity to Table/Array node!" << std::endl; }
     m_pimpl_->m_node_type = DN_ENTITY;
     m_pimpl_->m_entity_ = v;
     return 1;
 }
-size_type DataNodeMemory::AddEntity(std::shared_ptr<DataEntity> const &v) { return AddNode()->SetEntity(v); }
+size_type DataNodeMemory::AddEntity(std::shared_ptr<DataEntity> const& v) { return AddNode()->SetEntity(v); }
 
 std::shared_ptr<DataNode> DataNodeMemory::GetNode(std::string const& s, int flag) {
     std::shared_ptr<DataNode> res = nullptr;

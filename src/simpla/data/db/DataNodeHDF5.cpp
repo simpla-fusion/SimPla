@@ -83,7 +83,7 @@ std::shared_ptr<DataNode> DataNodeHDF5::Duplicate() const {
     res->m_pimpl_->m_key_ = m_pimpl_->m_key_;
     return res;
 }
-size_type DataNodeHDF5::GetNumberOfChildren() const {
+size_type DataNodeHDF5::size() const {
     size_type num = 0;
     if (m_pimpl_->m_group_ > 0) {
         H5G_info_t g_info;
@@ -95,9 +95,9 @@ size_type DataNodeHDF5::GetNumberOfChildren() const {
     }
     return num;
 }
-DataNode::eNodeType DataNodeHDF5::NodeType() const {
+DataNode::eNodeType DataNodeHDF5::type() const {
     DataNode::eNodeType res = DN_NULL;
-    auto num = GetNumberOfChildren();
+    auto num = size();
     if (m_pimpl_->m_group_ != -1) {
         res = DN_TABLE;
     } else if (m_pimpl_->m_entity_ != nullptr || !m_pimpl_->m_key_.empty()) {

@@ -50,8 +50,8 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     /** @addtogroup required @{*/
 
     /** @addtogroup{ Interface */
-    virtual eNodeType NodeType() const { return DN_NULL; }
-    virtual size_type GetNumberOfChildren() const { return 0; }
+    virtual eNodeType type() const { return DN_NULL; }
+    virtual size_type size() const { return 0; }
 
     virtual std::shared_ptr<DataNode> Duplicate() const { return DataNode::New(); }
 
@@ -70,9 +70,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     virtual size_type SetNode(std::shared_ptr<DataNode> const& v);
     virtual size_type AddNode(std::shared_ptr<DataNode> const& v);
 
-    virtual std::shared_ptr<DataNode> AddNode() {
-        return GetNode(GetNumberOfChildren(), NEW_IF_NOT_EXIST | ADD_IF_EXIST);
-    };
+    virtual std::shared_ptr<DataNode> AddNode() { return GetNode(size(), NEW_IF_NOT_EXIST | ADD_IF_EXIST); };
     virtual size_type DeleteNode(std::string const& s, int flag) { return 0; }
     virtual size_type DeleteNode(index_type s, int flag) { return DeleteNode(std::to_string(s), flag); };
     virtual void Clear() {}
@@ -87,7 +85,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     std::shared_ptr<DataNode> operator[](std::string const& s) { return GetNode(s); }
     std::shared_ptr<DataNode> operator[](std::string const& s) const { return GetNode(s); }
 
-    std::shared_ptr<DataNode> GetNode(std::string const& uri) { return GetNode(uri, RECURSIVE | NEW_IF_NOT_EXIST); }
+    std::shared_ptr<DataNode> GetNode(std::string const& uri) { return GetNode(uri, RECURSIVE); }
     std::shared_ptr<DataNode> GetNode(std::string const& uri) const { return GetNode(uri, RECURSIVE); }
     std::shared_ptr<DataNode> GetNode(size_type s) { return GetNode(s, NEW_IF_NOT_EXIST); }
     std::shared_ptr<DataNode> GetNode(size_type s) const { return GetNode(s, 0); }
@@ -133,7 +131,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     U GetValue(ENABLE_IF((traits::is_light_data<U>::value))) const {
         U res;
         if (CopyOut(res) == 0) {
-            FIXME << "BAD_CAST";
+            //            FIXME << "BAD_CAST";
             res = std::numeric_limits<U>::signaling_NaN();
         }
         return res;
@@ -429,14 +427,13 @@ std::ostream& operator<<(std::ostream&, DataNode const&);
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));                               \
     }                                                                                                                \
     std::shared_ptr<DataNode> Duplicate() const override;                                                            \
-    size_type GetNumberOfChildren() const override;                                                                  \
+    size_type size() const override;                                                                                 \
+    eNodeType type() const override;                                                                                 \
     int Connect(std::string const& authority, std::string const& path, std::string const& query,                     \
                 std::string const& fragment) override;                                                               \
     int Disconnect() override;                                                                                       \
     bool isValid() const override;                                                                                   \
     int Flush() override;                                                                                            \
-                                                                                                                     \
-    eNodeType NodeType() const override;                                                                             \
                                                                                                                      \
     std::shared_ptr<_CLASS_NAME_> Self() { return std::dynamic_pointer_cast<this_type>(this->shared_from_this()); }; \
     std::shared_ptr<_CLASS_NAME_> Self() const {                                                                     \
