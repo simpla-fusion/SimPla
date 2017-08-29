@@ -38,7 +38,9 @@ std::shared_ptr<DataNode> DataNode::New(std::string const& s) {
 size_type DataNode::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v) { return 0; }
 size_type DataNode::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) { return 0; }
 size_type DataNode::Set(std::string const& uri, std::shared_ptr<const DataNode> const& v) {
-    Set(uri, std::shared_ptr<DataEntity>(nullptr));
+    if (auto p = Get(uri)) {
+        if (p->type() == DN_ENTITY) { Delete(uri); }
+    }
     return v == nullptr ? 0 : v->Foreach([&](std::string k, std::shared_ptr<const DataNode> node) {
         size_type count = 0;
         if (node->type() == DataNode::DN_ENTITY) {

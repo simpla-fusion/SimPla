@@ -28,7 +28,7 @@ REGISTER_CREATOR(DataNodeHDF5, h5);
 
 struct DataNodeHDF5::pimpl_s {
     std::shared_ptr<DataNodeHDF5> m_parent_;
-
+    eNodeType m_node_type_;
     hid_t m_file_ = -1;
     hid_t m_group_ = -1;
 
@@ -84,27 +84,27 @@ std::shared_ptr<DataNode> DataNodeHDF5::Duplicate() const {
     return res;
 }
 size_type DataNodeHDF5::size() const {
-    size_type num = 0;
-    if (m_pimpl_->m_group_ > 0) {
-        H5G_info_t g_info;
-        H5_ERROR(H5Gget_info(m_pimpl_->m_group_, &g_info));
-        num += g_info.nlinks;
-        H5O_info_t o_info;
-        H5_ERROR(H5Oget_info(m_pimpl_->m_group_, &o_info));
-        num += o_info.num_attrs;
+    size_type count = 0;
+    switch (m_pimpl_->m_node_type_) {
+        case DN_ENTITY:
+        case DN_FUNCTION:
+            count = 1;
+            break;
+        case DN_TABLE:
+        case DN_ARRAY: {
+            H5G_info_t g_info;
+            H5_ERROR(H5Gget_info(m_pimpl_->m_group_, &g_info));
+            count += g_info.nlinks;
+            H5O_info_t o_info;
+            H5_ERROR(H5Oget_info(m_pimpl_->m_group_, &o_info));
+            count += o_info.num_attrs;
+        } break;
+        default:
+            break;
     }
-    return num;
+    return count;
 }
-DataNode::eNodeType DataNodeHDF5::type() const {
-    DataNode::eNodeType res = DN_NULL;
-    auto num = size();
-    if (m_pimpl_->m_group_ != -1) {
-        res = DN_TABLE;
-    } else if (m_pimpl_->m_entity_ != nullptr || !m_pimpl_->m_key_.empty()) {
-        res = DN_ENTITY;
-    }
-    return res;
-}
+DataNode::eNodeType DataNodeHDF5::type() const { return m_pimpl_->m_node_type_; }
 std::shared_ptr<DataNode> DataNodeHDF5::Root() const { return Parent() != nullptr ? Parent()->Root() : Self(); }
 std::shared_ptr<DataNode> DataNodeHDF5::Parent() const { return m_pimpl_->m_parent_; }
 
@@ -567,14 +567,35 @@ int HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataEntity> cons
 }
 
 size_type DataNodeHDF5::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v) {
-    size_type res = 0;
-    auto parent = std::dynamic_pointer_cast<DataNodeHDF5>(Parent());
-    if (parent == nullptr || m_pimpl_->m_key_.empty()) {
-        FIXME << "Can not set value to group node or unnamed node [ " << m_pimpl_->m_key_ << " ]" << std::endl;
+    //    size_type res = 0;
+    //    auto parent = std::dynamic_pointer_cast<DataNodeHDF5>(Parent());
+    //    if (parent == nullptr || m_pimpl_->m_key_.empty()) {
+    //        FIXME << "Can not set value to group node or unnamed node [ " << m_pimpl_->m_key_ << " ]" << std::endl;
+    //    } else {
+    //        res = HDF5Set(parent->m_pimpl_->m_group_, m_pimpl_->m_key_, v);
+    //    }
+    //    return res;
+
+    size_type count = 0;
+    if (uri.empty()) {
+        m_pimpl_->m_entity_ = v;
+        if (v != nullptr) {
+            m_pimpl_->m_node_type_ = DN_ENTITY;
+
+        } else {
+            m_pimpl_->m_node_type_ = DN_TABLE;
+        }
+        count = 1;
     } else {
-        res = HDF5Set(parent->m_pimpl_->m_group_, m_pimpl_->m_key_, v);
+        auto pos = uri.find(SP_URL_SPLIT_CHAR);
+        if (pos == 0) {
+            count = Root()->Set(uri.substr(1), v);
+        } else {
+            auto res = m_pimpl_->m_table_.emplace(uri.substr(0, pos), New());
+            count = res.first->second->Set(pos == std::string::npos ? "" : uri.substr(pos), v);
+        }
     }
-    return res;
+    return count;
 }
 size_type DataNodeHDF5::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) { return 0; }
 

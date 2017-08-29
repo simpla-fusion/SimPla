@@ -58,7 +58,6 @@ size_type DataNodeMemory::Set(std::string const& uri, std::shared_ptr<DataEntity
         m_pimpl_->m_entity_ = v;
         if (v != nullptr) {
             m_pimpl_->m_node_type = DN_ENTITY;
-
         } else {
             m_pimpl_->m_node_type = DN_TABLE;
         }
