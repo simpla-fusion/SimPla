@@ -221,11 +221,9 @@ size_t LuaObject::size() const {
 
     size_t res = 0;
     auto acc = L_->acc();
-    try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-    lua_len(*acc, lua_gettop(*acc));
-    res = lua_tointeger(*acc, -1);
-    lua_pop(*acc, 1);
-    lua_pop(*acc, 1);
+//    try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+    res = lua_rawlen(*acc, self_);
+//    lua_pop(*acc, 1);
 
     return res;
 }
