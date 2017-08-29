@@ -72,6 +72,7 @@ std::ostream& DataNode::Print(std::ostream& os, int indent) const {
         bool is_first = true;
         bool new_line = this->size() > 1;
         this->Foreach([&](auto k, auto v) {
+            ASSERT(v != nullptr);
             if (is_first) {
                 is_first = false;
             } else {
@@ -87,6 +88,7 @@ std::ostream& DataNode::Print(std::ostream& os, int indent) const {
         bool is_first = true;
         bool new_line = this->size() > 1;
         this->Foreach([&](auto k, auto v) {
+            ASSERT(v != nullptr);
             if (is_first) {
                 is_first = false;
             } else {

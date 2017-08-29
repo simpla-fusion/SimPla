@@ -341,81 +341,43 @@ std::shared_ptr<DataEntity> HDF5GetEntity(hid_t obj_id, bool is_attribute) {
     return res;
 }
 
-std::shared_ptr<DataNodeHDF5> HDF5GetNode(hid_t grp, std::string const& uri) {
-    auto res = DataNodeHDF5::New();
-    res->m_pimpl_->m_key_ = uri;
-    H5O_info_t o_info;
-
-    if (H5Lexists(grp, uri.c_str(), H5P_DEFAULT) > 0 &&
-        H5Oget_info_by_name(grp, uri.c_str(), &o_info, H5P_DEFAULT) >= 0) {
-        switch (o_info.type) {
-            case H5O_TYPE_GROUP:
-                res->m_pimpl_->m_group_ = H5Gopen(grp, uri.c_str(), H5P_DEFAULT);
-                res->m_pimpl_->m_node_type_ = DataNode::DN_TABLE;
-                break;
-            case H5O_TYPE_DATASET: {
-                res->m_pimpl_->m_group_ = -1;
-                res->m_pimpl_->m_node_type_ = DataNode::DN_ENTITY;
-                //                auto d_id = H5Dopen(grp, uri.c_str(), H5P_DEFAULT);
-                //                res = HDF5GetEntity(d_id, false);
-                //                H5_ERROR(H5Dclose(d_id));
-            } break;
-            default:
-                RUNTIME_ERROR << "Undefined data type!" << std::endl;
-                break;
-        }
-    } else if (H5Aexists(grp, uri.c_str()) != 0) {
-        res->m_pimpl_->m_group_ = -1;
-        res->m_pimpl_->m_node_type_ = DataNode::DN_ENTITY;
-
-        //        auto a_id = H5Aopen(grp, uri.c_str(), H5P_DEFAULT);
-        //        res = HDF5GetEntity(a_id, true);
-        //        H5_ERROR(H5Aclose(a_id));
-    }
-    return res;
-}
-// std::shared_ptr<DataNode> DataNodeHDF5::GetNode(std::string const& uri, int flag) {
-//    std::shared_ptr<DataNodeHDF5> res = nullptr;
-//    if ((flag & RECURSIVE) != 0) {
-//        res = std::dynamic_pointer_cast<DataNodeHDF5>(RecursiveFindNode(Self(), uri, flag).second);
-//    } else {
-//        if (m_pimpl_->m_group_ == -1 && (flag & NEW_IF_NOT_EXIST) != 0) {
-//            auto p_grp = (m_pimpl_->m_file_ != -1)
-//                             ? m_pimpl_->m_file_
-//                             : std::dynamic_pointer_cast<DataNodeHDF5>(Parent())->m_pimpl_->m_group_;
-//
-//            if (H5Lexists(p_grp, m_pimpl_->m_key_.c_str(), H5P_DEFAULT) > 0) {
-//                m_pimpl_->m_group_ = H5Gopen(p_grp, m_pimpl_->m_key_.c_str(), H5P_DEFAULT);
-//                ASSERT(m_pimpl_->m_group_ > 0);
-//            } else {
-//                m_pimpl_->m_group_ = H5Gcreate(p_grp, m_pimpl_->m_key_.c_str(), H5P_DEFAULT, H5P_DEFAULT,
-//                H5P_DEFAULT);
-//            };
-//        }
-//        if (m_pimpl_->m_group_ <= 0) {
-//            res = DataNodeHDF5::New();
-//            FIXME << "Can not get object [" << uri << "] from null group !" << std::endl;
-//        } else {
-//            res = HDF5GetNode(m_pimpl_->m_group_, uri);
-//            res->m_pimpl_->m_parent_ = Self();
-//        }
-//    }
-//    return res;
-//}
-
 std::shared_ptr<const DataNode> DataNodeHDF5::Get(std::string const& uri) const {
+    if (uri.empty() || m_pimpl_->m_group_ == -1) { return nullptr; }
     std::shared_ptr<const DataNode> res = nullptr;
 
-    if (uri.empty()) {
-        res = shared_from_this();
+    auto pos = uri.rfind(SP_URL_SPLIT_CHAR);
+    if (uri[0] == SP_URL_SPLIT_CHAR) {
+        res = Root()->Get(uri.substr(1));
+    } else if (pos != std::string::npos) {
+        auto grp = Get(uri.substr(0, pos));
+        res = grp == nullptr ? nullptr : grp->Get(uri.substr(pos + 1));
     } else {
-        auto pos = uri.find(SP_URL_SPLIT_CHAR);
-        if (pos == 0) {
-            res = Root()->Get(uri.substr(1));
-        } else if (auto node = HDF5GetNode(m_pimpl_->m_group_, uri.substr(0, pos))) {
-            node->m_pimpl_->m_parent_ = Self();
-            res = (pos == std::string::npos) ? node : node->Get(uri.substr(pos));
+        auto tmp = DataNodeHDF5::New();
+        tmp->m_pimpl_->m_parent_ = Self();
+        H5O_info_t o_info;
+        if (H5Lexists(m_pimpl_->m_group_, uri.c_str(), H5P_DEFAULT) &&
+            H5Oget_info_by_name(m_pimpl_->m_group_, uri.c_str(), &o_info, H5P_DEFAULT) >= 0) {
+            switch (o_info.type) {
+                case H5O_TYPE_GROUP:
+                    tmp->m_pimpl_->m_group_ = H5Gopen(m_pimpl_->m_group_, uri.c_str(), H5P_DEFAULT);
+                    tmp->m_pimpl_->m_node_type_ = DataNode::DN_TABLE;
+                    break;
+                case H5O_TYPE_DATASET: {
+                    tmp->m_pimpl_->m_group_ = -1;
+                    tmp->m_pimpl_->m_node_type_ = DataNode::DN_ENTITY;
+                    tmp->m_pimpl_->m_key_ = uri;
+                } break;
+                default:
+                    RUNTIME_ERROR << "Undefined data type!" << std::endl;
+                    break;
+            }
+        } else if (H5Aexists(m_pimpl_->m_group_, uri.c_str()) != 0) {
+            tmp->m_pimpl_->m_group_ = -1;
+            tmp->m_pimpl_->m_node_type_ = DataNode::DN_ENTITY;
+            tmp->m_pimpl_->m_key_ = uri;
         }
+
+        res = tmp;
     }
 
     return res;
@@ -648,10 +610,10 @@ size_type DataNodeHDF5::Set(std::string const& uri, std::shared_ptr<DataEntity> 
             count = Root()->Set(uri.substr(1), v);
         } else if (pos != std::string::npos) {
             auto tmp = DataNodeHDF5::New();
-            tmp->m_pimpl_->m_parent_ = std::dynamic_pointer_cast<DataNodeHDF5>(shared_from_this());
+            tmp->m_pimpl_->m_parent_ = Self();
             tmp->m_pimpl_->m_key_ = uri.substr(0, pos);
             m_pimpl_->m_node_type_ = DN_TABLE;
-            count = tmp->Set(uri.substr(pos), v);
+            count = tmp->Set(uri.substr(pos + 1), v);
         } else {
             count = HDF5Set(m_pimpl_->LazyCreatingGroup(), uri, v);
         }
