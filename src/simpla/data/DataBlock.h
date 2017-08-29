@@ -29,8 +29,8 @@ class DataBlock : public DataEntity {
     ~DataBlock() override;
     //    SP_DEFAULT_CONSTRUCT(DataBlock)
 
-    template <typename U, typename... Args>
-    static std::shared_ptr<DataBlock> New(Args &&... args);
+    template <typename U>
+    static std::shared_ptr<DataBlock> New(U const &);
 
     virtual std::type_info const &value_type_info() const override = 0;
     virtual size_type value_alignof() const override = 0;
@@ -101,9 +101,10 @@ struct DataBlockT : public DataBlock {
     std::shared_ptr<value_type> m_data_;
 };
 
-template <typename U, typename... Args>
-std::shared_ptr<DataBlock> DataBlock::New(Args &&... args) {
-    return DataBlockT<U>::New(std::forward<Args>(args)...);
+template <typename U>
+std::shared_ptr<DataBlock> DataBlock::New(U const &) {
+    TODO;
+    return nullptr;
 };
 //
 // template <typename... Others>

@@ -59,46 +59,47 @@ class DataBaseTest : public testing::TestWithParam<std::string> {
 
 TEST_P(DataBaseTest, light_data) {
     auto db = DataNode::New(m_url);
-    *(*db)["CartesianGeometry"] = "hello world!";
-    CHECK(*db);
-    CHECK(db->size());
+    (*db)["CartesianGeometry"] = "hello world!";
+    //    CHECK(*db);
+    //    CHECK(db->size());
 
-    *(*db)["b/a"] = 5.0;
-    *(*db)["i"] = {"default"_, "abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"};
-    *(*db)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
+    (*db)["b/a"] = 5.0;
+    //    (*db)["i"] = {"default"_, "abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"};
+    (*db)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
 
-    *(*db)["a"] = {"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
-                   "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}};
-    *(*db)["h"] = {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}};
-    *(*db)["j"] = {"abc"_ = {"abc1"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}};
+    //    (*db)["a"] = {"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
+    //                  "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}};
+    //    (*db)["h"] = {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}};
+    //    (*db)["j"] = {"abc"_ = {"abc1"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}};
 
-    *(*db)["d"] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
-    *(*db)["Box"] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}};
+    (*db)["d"] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+    (*db)["Box"] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}};
 
-    *(*db)["b/sub/d"] = {"wa wa", "la la"};
-    (*db)["tuple3"]->SetValue({{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
-    (*db)["b/sub/1/2/3/4/d/A"]->SetValue({1, 2, 3});
-    (*db)["b/sub/1/2/3/4/d/C"]->SetValue({{1.0, 2.0, 3.0}, {2.0}, {7.0, 9.0}});
-    *(*db)["/b/sub/c"] += {5, 6, 7, 8};
-    *(*db)["/b/sub/c"] += {1, 5, 3, 4};
-    *(*db)["/b/sub/c"] += {2, 5, 3, 4};
-    *(*db)["/b/sub/c"] += {3, 5, 3, 4};
-    *(*db)["/b/sub/c"] += {4, 5, 3, 4};
-    *(*db)["/b/sub/a"] = {};
-    *(*db)["/b/sub/a"] += {3, 5, 3, 4};
-    *(*db)["/b/sub/a"] += {3, 5, 3, 4};
-    *(*db)["/b/sub/e"] = {};
-    *(*db)["/b/sub/e"] += {1, 2, 3, 4};
-    *(*db)["/b/sub/e"] += 9;
+    (*db)["b/sub/d"] = {"wa wa", "la la"};
+
+    (*db)["/b/sub/c"] += {5, 6, 7, 8};
+    (*db)["/b/sub/c"] += {1, 5, 3, 4};
+    (*db)["/b/sub/c"] += {2, 5, 3, 4};
+    (*db)["/b/sub/c"] += {3, 5, 3, 4};
+    (*db)["/b/sub/c"] += {4, 5, 3, 4};
+    (*db)["/b/sub/a"] += {0, 5, 3, 4};
+    (*db)["/b/sub/a"] += {1, 5, 3, 4};
+    (*db)["/b/sub/e"] += {2, 2, 3, 4};
+    (*db)["/b/sub/e"] += 9;
+
+    db->SetValue("tuple3", {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
+    db->SetValue("b/sub/1/2/3/4/d/A", {1, 2, 3});
+    db->SetValue("b/sub/1/2/3/4/d/C", {{1.0, 2.0, 3.0}, {2.0}, {7.0, 9.0}});
     db->Flush();
-    EXPECT_EQ((*db)["a"]->size(), 4);
-    EXPECT_EQ(((*db)["d"]->as<nTuple<Real, 6>>()), (nTuple<Real, 6>{1, 2, 3, 4, 5, 6}));
-    EXPECT_EQ(((*db)["Box"]->as<nTuple<Real, 2, 3>>()), (nTuple<Real, 2, 3>{{1, 2, 3}, {4, 5, 6}}));
-    EXPECT_EQ(db->GetNode("CartesianGeometry")->as<std::string>(), "hello world!");
-    EXPECT_DOUBLE_EQ(db->GetNode("b/a")->as<double>(), 5);
+    EXPECT_EQ((db->GetValue<nTuple<Real, 6>>("d")), (nTuple<Real, 6>{1, 2, 3, 4, 5, 6}));
+    EXPECT_EQ((db->GetValue<nTuple<Real, 2, 3>>("Box")), (nTuple<Real, 2, 3>{{1, 2, 3}, {4, 5, 6}}));
+    EXPECT_EQ(db->GetValue<std::string>("CartesianGeometry"), "hello world!");
+    EXPECT_DOUBLE_EQ(db->GetValue<double>("b/a"), 5);
     EXPECT_TRUE(db->Check("a/a"));
     EXPECT_FALSE(db->Check("a/not_debug"));
-    EXPECT_EQ(((*db)[("/b/sub/a/1")]->as<nTuple<int, 4>>()), (nTuple<int, 4>{3, 5, 3, 4}));
+    EXPECT_EQ((db->GetValue<nTuple<int, 4>>("/b/sub/a/1")), (nTuple<int, 4>{1, 5, 3, 4}));
+    EXPECT_EQ((db->GetValue<nTuple<int, 2, 4>>("/b/sub/a")), (nTuple<int, 2, 4>{{0, 5, 3, 4}, {1, 5, 3, 4}}));
+    CHECK((db->GetValue<nTuple<int, 2, 4>>("/b/sub/a")));
     std::cout << m_url << " : " << (*db) << std::endl;
 }
 // TEST_P(DataBaseTest, block_data) {

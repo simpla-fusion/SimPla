@@ -35,7 +35,6 @@ std::shared_ptr<DataNode> DataNode::New(std::string const& s) {
     return res;
 };
 
-std::shared_ptr<DataEntity> DataNode::GetEntity() const { return DataEntity::New(); }
 size_type DataNode::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v) { return 0; }
 size_type DataNode::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) { return 0; }
 size_type DataNode::Set(std::shared_ptr<DataNode> const& v) {
@@ -116,7 +115,7 @@ static std::regex const match_path_regex(R"(^(/?([/\S]+/)*)?([^/]+)?$)", std::re
  * @param return_if_not_exist
  * @return
  */
-//std::pair<std::string, std::shared_ptr<DataNode>> RecursiveFindNode(std::shared_ptr<DataNode> root, std::string uri,
+// std::pair<std::string, std::shared_ptr<DataNode>> RecursiveFindNode(std::shared_ptr<DataNode> root, std::string uri,
 //                                                                    int flag) {
 //    std::pair<std::string, std::shared_ptr<DataNode>> res{"", root};
 //
@@ -158,22 +157,11 @@ static std::regex const match_path_regex(R"(^(/?([/\S]+/)*)?([^/]+)?$)", std::re
 //    return res;
 //};
 
-size_type DataNode::Set(KeyValue const& kv) { return Set(kv.m_node_); }
-size_type DataNode::Add(KeyValue const& kv) { return Add(kv.m_node_); }
-
-DataNode& DataNode::operator=(KeyValue const& v) {
-    Set(v.m_node_);
-    return *this;
-}
-DataNode& DataNode::operator=(std::initializer_list<KeyValue> const& u) {
-    for (auto const& v : u) { Set(v.m_node_); }
-    return *this;
-}
-//DataNode& DataNode::operator+=(KeyValue const& u) {
+// DataNode& DataNode::operator+=(KeyValue const& u) {
 //    Add(u.m_node_);
 //    return *this;
 //}
-//DataNode& DataNode::operator+=(std::initializer_list<KeyValue> const& u) {
+// DataNode& DataNode::operator+=(std::initializer_list<KeyValue> const& u) {
 //    for (auto const& v : u) { Add(v.m_node_); }
 //    return *this;
 //}

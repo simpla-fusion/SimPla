@@ -411,11 +411,11 @@ size_type DataNodeHDF5::Delete(std::string const& uri) {
     //            ++count;
     //        }
     //    } else {
-    auto r = RecursiveFindNode(Self(), uri, RECURSIVE);
-    if (r.second != nullptr && r.second->Parent() != nullptr) {
-        r.second->Parent()->Delete(r.first);
-        ++count;
-    }
+    //    auto r = RecursiveFindNode(Self(), uri, RECURSIVE);
+    //    if (r.second != nullptr && r.second->Parent() != nullptr) {
+    //        r.second->Parent()->Delete(r.first);
+    //        ++count;
+    //    }
     //    }
 
     return count;

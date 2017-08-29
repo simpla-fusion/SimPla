@@ -21,7 +21,10 @@ struct DataNodeMemory::pimpl_s {
 };
 DataNodeMemory::DataNodeMemory() : m_pimpl_(new pimpl_s) {}
 DataNodeMemory::~DataNodeMemory() { delete m_pimpl_; }
-DataNodeMemory::DataNodeMemory(std::shared_ptr<DataEntity> const& v) : DataNodeMemory() { m_pimpl_->m_entity_ = v; };
+DataNodeMemory::DataNodeMemory(std::shared_ptr<DataEntity> const& v) : DataNodeMemory() {
+    m_pimpl_->m_entity_ = v;
+    m_pimpl_->m_node_type = DN_ENTITY;
+};
 
 std::shared_ptr<DataNode> DataNodeMemory::Duplicate() const {
     auto res = DataNodeMemory::New();
@@ -82,10 +85,10 @@ size_type DataNodeMemory::Add(std::string const& uri, std::shared_ptr<DataEntity
     } else {
         auto pos = uri.find(SP_URL_SPLIT_CHAR);
         if (pos == 0) {
-            count = Root()->Set(uri.substr(1), v);
+            count = Root()->Add(uri.substr(1), v);
         } else {
             auto res = m_pimpl_->m_table_.emplace(uri.substr(0, pos), New());
-            count = res.first->second->Set(pos == std::string::npos ? "" : uri.substr(pos), v);
+            count = res.first->second->Add(pos == std::string::npos ? "" : uri.substr(pos), v);
         }
     }
     return count;
