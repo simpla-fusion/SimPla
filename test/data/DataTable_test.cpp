@@ -59,8 +59,8 @@ class DataBaseTest : public testing::TestWithParam<std::string> {
 };
 
 TEST_P(DataBaseTest, light_data_sigle_value) {
-    (*db)["CartesianGeometry"] = "hello world!";
-    (*db)["b"] = 5.0;
+    db->SetValue("CartesianGeometry", "hello world!");
+    db->SetValue("b", 5.0);
     db->Flush();
 
     EXPECT_EQ(db->GetValue<std::string>("CartesianGeometry"), "hello world!");
@@ -72,8 +72,8 @@ TEST_P(DataBaseTest, light_data_ntuple) {
     db->SetValue("tuple3", {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
     //    (*db)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
     db->SetValue("tuple1", {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});
-    (*db)["Box"] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}};
-    (*db)["str_tuple"] = {"wa wa", "la la"};
+    db->SetValue("Box", {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}});
+    db->SetValue("str_tuple", {"wa wa", "la la"});
 
     db->SetValue("A", {1, 2, 3});
     db->SetValue("C", {{1.0, 2.0, 3.0}, {2.0}, {7.0, 9.0}});
@@ -90,8 +90,8 @@ TEST_P(DataBaseTest, light_data_ntuple) {
     EXPECT_EQ((db->GetValue<nTuple<int, 2, 4>>("a")), (nTuple<int, 2, 4>{{0, 5, 3, 4}, {1, 5, 3, 4}}));
 }
 TEST_P(DataBaseTest, light_data_multilevel) {
-    (*db)["a/b/sub/1/2/3/4/d"] = 5.0;
-    (*db)["/1/2/3/4/d"] = 5;
+    db->SetValue("a/b/sub/1/2/3/4/d", 5.0);
+    db->SetValue("/1/2/3/4/d", 5);
     db->Flush();
     EXPECT_DOUBLE_EQ((db->GetValue<Real>("a/b/sub/1/2/3/4/d")), 5);
     EXPECT_EQ((db->GetValue<int>("/1/2/3/4/d")), 5);
@@ -105,7 +105,7 @@ TEST_P(DataBaseTest, light_data_keyvalue) {
     //    (*db)["h"] = {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}};
     (*db)["nest"] = {"abc"_ = {"abc1"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}};
     EXPECT_TRUE(db->Check("a/a"));
-    EXPECT_FALSE(db->Check("a/b/sub/1/2/3/4/d/"));
+    EXPECT_FALSE(db->Check("a/not_debug"));
     std::cout << m_url << " : " << (*db) << std::endl;
 }
 
