@@ -178,7 +178,6 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
             dst = std::numeric_limits<U>::signaling_NaN();
         } else if (auto p = std::dynamic_pointer_cast<DataLightT<U>>(src->GetEntity())) {
             dst = p->value();
-
         } else {
             dst = std::numeric_limits<U>::signaling_NaN();
         }
