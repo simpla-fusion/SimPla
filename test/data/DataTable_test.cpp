@@ -65,7 +65,7 @@ TEST_P(DataBaseTest, light_data_sigle_value) {
 
     EXPECT_EQ(db->GetValue<std::string>("CartesianGeometry"), "hello world!");
     EXPECT_DOUBLE_EQ(db->GetValue<double>("b"), 5);
-    std::cout << m_url << " : {" << (*db) << "}" << std::endl;
+    std::cout << m_url << " :  " << (*db) << " " << std::endl;
 }
 
 TEST_P(DataBaseTest, light_data_SetValue_ntuple) {
