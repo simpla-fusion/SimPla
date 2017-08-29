@@ -620,24 +620,24 @@ size_type DataNodeHDF5::Set(std::string const& uri, std::shared_ptr<DataEntity> 
     return count;
 }
 size_type DataNodeHDF5::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) {
-    return base_type::Add(uri, v);
+//    return base_type::Add(uri, v);
 
-    //    if (uri.empty()) { return 0; }
-    //    size_type count = 0;
-    //    auto pos = uri.find(SP_URL_SPLIT_CHAR);
-    //    if (pos == 0) {
-    //        count = Root()->Set(uri.substr(1), v);
-    //    } else if (pos != std::string::npos) {
-    //        auto tmp = DataNodeHDF5::New();
-    //        tmp->m_pimpl_->m_parent_ = std::dynamic_pointer_cast<DataNodeHDF5>(shared_from_this());
-    //        tmp->m_pimpl_->m_key_ = uri.substr(0, pos);
-    //        m_pimpl_->m_node_type_ = DN_TABLE;
-    //        count = tmp->Set(uri.substr(pos), v);
-    //    } else {
-    //        count = HDF5Set(m_pimpl_->LazyCreatingGroup(), uri, v);
-    //    }
-    //
-    //    return count;
+        if (uri.empty()) { return 0; }
+        size_type count = 0;
+        auto pos = uri.find(SP_URL_SPLIT_CHAR);
+        if (pos == 0) {
+            count = Root()->Set(uri.substr(1), v);
+        } else if (pos != std::string::npos) {
+            auto tmp = DataNodeHDF5::New();
+            tmp->m_pimpl_->m_parent_ = std::dynamic_pointer_cast<DataNodeHDF5>(shared_from_this());
+            tmp->m_pimpl_->m_key_ = uri.substr(0, pos);
+            m_pimpl_->m_node_type_ = DN_TABLE;
+            count = tmp->Set(uri.substr(pos), v);
+        } else {
+            count = HDF5Set(m_pimpl_->LazyCreatingGroup(), uri, v);
+        }
+
+        return count;
 }
 
 size_type DataNodeHDF5::Foreach(

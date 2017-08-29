@@ -75,27 +75,29 @@ size_type DataNodeMemory::Set(std::string const& uri, std::shared_ptr<DataEntity
     return count;
 }
 size_type DataNodeMemory::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) {
-    return base_type::Add(uri, v);
-    //    if (!uri.empty()) {
-    //        auto pos = uri.find(SP_URL_SPLIT_CHAR);
-    //        if (pos == 0) {
-    //            count = Root()->Add(uri.substr(1), v);
-    //        } else {
-    //            auto res = m_pimpl_->m_table_.emplace(uri.substr(0, pos), New());
-    //            if (res.second) { res.first->second->m_pimpl_->m_parent_ = Self(); }
-    //            if (pos != std::string::npos) {
-    //                count = res.first->second->Add(uri.substr(pos), v);
-    //            } else {
-    //                if (m_pimpl_->m_entity_ != nullptr) {
-    //                    res.first->second->Set("0", m_pimpl_->m_entity_);
-    //                    m_pimpl_->m_entity_.reset();
-    //                }
-    //                res.first->second->Set(std::to_string(res.first->second->m_pimpl_->m_table_.size()), v);
-    //                res.first->second->m_pimpl_->m_node_type_ = DN_ARRAY;
-    //                count = 1;
-    //            }
-    //        }
-    //    }
+    //    return base_type::Add(uri, v);
+    size_type count = 0;
+    if (!uri.empty()) {
+        auto pos = uri.find(SP_URL_SPLIT_CHAR);
+        if (pos == 0) {
+            count = Root()->Add(uri.substr(1), v);
+        } else {
+            auto res = m_pimpl_->m_table_.emplace(uri.substr(0, pos), New());
+            if (res.second) { res.first->second->m_pimpl_->m_parent_ = Self(); }
+            if (pos != std::string::npos) {
+                count = res.first->second->Add(uri.substr(pos), v);
+            } else {
+                if (m_pimpl_->m_entity_ != nullptr) {
+                    res.first->second->Set("0", m_pimpl_->m_entity_);
+                    m_pimpl_->m_entity_.reset();
+                }
+                res.first->second->Set(std::to_string(res.first->second->m_pimpl_->m_table_.size()), v);
+                res.first->second->m_pimpl_->m_node_type_ = DN_ARRAY;
+                count = 1;
+            }
+        }
+    }
+    return count;
 }
 
 std::shared_ptr<const DataNode> DataNodeMemory::Get(std::string const& uri) const {
