@@ -217,15 +217,16 @@ std::pair<std::shared_ptr<LuaObject>, std::shared_ptr<LuaObject>> LuaObject::ite
 // int LuaObject::accept(std::function<void(int, LuaObject &)> const &) const {}
 
 size_t LuaObject::size() const {
+    if (is_null()) { return 0; }
+
     size_t res = 0;
-    if (!is_null()) {
-        auto acc = L_->acc();
-        try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-        lua_len(*acc, lua_gettop(*acc));
-        res = lua_tointeger(*acc, -1);
-        lua_pop(*acc, 1);
-        lua_pop(*acc, 1);
-    }
+    auto acc = L_->acc();
+    try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+    lua_len(*acc, lua_gettop(*acc));
+    res = lua_tointeger(*acc, -1);
+    lua_pop(*acc, 1);
+    lua_pop(*acc, 1);
+
     return res;
 }
 
