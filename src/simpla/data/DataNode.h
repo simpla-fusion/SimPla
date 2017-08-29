@@ -81,8 +81,8 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
         if (auto p = Get(url)) { res = p->GetEntity(); }
         return res;
     };
-    size_type Set(std::shared_ptr<DataNode> const& v);
-    size_type Add(std::shared_ptr<DataNode> const& v);
+    size_type Set(std::string const& uri, std::shared_ptr<const DataNode> const& v);
+    size_type Add(std::string const& uri, std::shared_ptr<const DataNode> const& v);
 
     ConstKeyValue operator[](std::string const& s) const;
     ConstKeyValue operator[](index_type s) const;
@@ -265,9 +265,10 @@ struct KeyValue {
     std::string m_key_;
     std::shared_ptr<DataNode> m_parent_;
 
-    explicit KeyValue(std::string const& k, std::shared_ptr<DataNode> const& p = nullptr) : m_key_((k)), m_parent_(p) {}
+    explicit KeyValue(std::string const& k, std::shared_ptr<DataNode> const& p = nullptr)
+        : m_key_(k), m_parent_(p == nullptr ? DataNode::New() : p) {}
     template <typename U>
-    KeyValue(std::string const& k, U const& u) : m_key_((k)), m_parent_() {
+    KeyValue(std::string const& k, U const& u) : m_key_((k)), m_parent_(DataNode::New()) {
         this->operator=(u);
     }
 
@@ -310,21 +311,12 @@ struct KeyValue {
         return *this;
     }
 
-    KeyValue& operator=(KeyValue const& other) {
-        m_parent_->Set(other.m_parent_);
-        //        KeyValue(other).swap(*this);
-        return *this;
-    }
     template <typename U>
     KeyValue& operator=(std::initializer_list<U> const& u) {
         m_parent_->SetValue(m_key_, u);
         return *this;
     }
-    template <typename U>
-    KeyValue& operator=(std::initializer_list<KeyValue> const& u) {
-        for (auto const& v : u) { m_parent_->Set(v.m_parent_); }
-        return *this;
-    }
+
     template <typename U>
     KeyValue& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
         m_parent_->SetValue(m_key_, u);
@@ -356,6 +348,15 @@ struct KeyValue {
     template <typename U>
     KeyValue& operator+=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
         m_parent_->AddValue(m_key_, u);
+        return *this;
+    }
+
+    KeyValue& operator=(KeyValue const& other) {
+        m_parent_->Set(m_key_, other.m_parent_);
+        return *this;
+    }
+    KeyValue& operator=(std::initializer_list<KeyValue> const& u) {
+        for (auto const& v : u) { m_parent_->Set(m_key_, v.m_parent_); }
         return *this;
     }
 };

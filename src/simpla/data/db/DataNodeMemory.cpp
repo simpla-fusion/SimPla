@@ -56,7 +56,12 @@ size_type DataNodeMemory::Set(std::string const& uri, std::shared_ptr<DataEntity
     size_type count = 0;
     if (uri.empty()) {
         m_pimpl_->m_entity_ = v;
-        m_pimpl_->m_node_type = DN_ENTITY;
+        if (v != nullptr) {
+            m_pimpl_->m_node_type = DN_ENTITY;
+
+        } else {
+            m_pimpl_->m_node_type = DN_TABLE;
+        }
         count = 1;
     } else {
         auto pos = uri.find(SP_URL_SPLIT_CHAR);

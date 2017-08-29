@@ -37,18 +37,29 @@ std::shared_ptr<DataNode> DataNode::New(std::string const& s) {
 
 size_type DataNode::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v) { return 0; }
 size_type DataNode::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) { return 0; }
-size_type DataNode::Set(std::shared_ptr<DataNode> const& v) {
+size_type DataNode::Set(std::string const& uri, std::shared_ptr<const DataNode> const& v) {
+    Set(uri, std::shared_ptr<DataEntity>(nullptr));
     return v == nullptr ? 0 : v->Foreach([&](std::string k, std::shared_ptr<const DataNode> node) {
         size_type count = 0;
         if (node->type() == DataNode::DN_ENTITY) {
-            count += Set(k, node->GetEntity());
+            count += Set(uri + "/" + k, node->GetEntity());
         } else {
-            count += Set(k, node->GetEntity());
+            count += Set(uri + "/" + k, node);
         }
         return count;
     });
 };
-size_type DataNode::Add(std::shared_ptr<DataNode> const& v) { return 0; };
+size_type DataNode::Add(std::string const& uri, std::shared_ptr<const DataNode> const& v) {
+    return v == nullptr ? 0 : v->Foreach([&](std::string k, std::shared_ptr<const DataNode> node) {
+        size_type count = 0;
+        if (node->type() == DataNode::DN_ENTITY) {
+            count += Add(uri + "/" + k, node->GetEntity());
+        } else {
+            count += Add(uri + "/" + k, node);
+        }
+        return count;
+    });
+};
 std::istream& DataNode::Parse(std::istream& is) {
     Parse(std::string(std::istreambuf_iterator<char>(is), {}));
     return is;

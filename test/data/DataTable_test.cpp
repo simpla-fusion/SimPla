@@ -47,59 +47,65 @@ class DataBaseTest : public testing::TestWithParam<std::string> {
     void SetUp() {
         logger::set_stdout_level(logger::LOG_VERBOSE);
         m_url = GetParam();
-        MESSAGE << " Data URL : \"" << m_url << "\"" << std::endl;
+        db = DataNode::New(m_url);
+        //        MESSAGE << " Data URL : \"" << m_url << "\"" << std::endl;
     }
     void TearDown() {}
 
    public:
     virtual ~DataBaseTest() {}
-
+    std::shared_ptr<DataNode> db = nullptr;
     std::string m_url;
 };
 
-TEST_P(DataBaseTest, light_data) {
-    auto db = DataNode::New(m_url);
+TEST_P(DataBaseTest, light_data_sigle_value) {
     (*db)["CartesianGeometry"] = "hello world!";
-    //    CHECK(*db);
-    //    CHECK(db->size());
+    (*db)["b"] = 5.0;
+    db->Flush();
 
-    (*db)["b/a"] = 5.0;
-    //    (*db)["i"] = {"default"_, "abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"};
+    EXPECT_EQ(db->GetValue<std::string>("CartesianGeometry"), "hello world!");
+    EXPECT_DOUBLE_EQ(db->GetValue<double>("b"), 5);
+    std::cout << m_url << " : " << (*db) << std::endl;
+}
+TEST_P(DataBaseTest, light_data_multilevel) {
+    (*db)["a/b/sub/1/2/3/4/d/"] = 5.0;
+    (*db)["/1/2/3/4/d/"] = 5;
+    db->Flush();
+    EXPECT_DOUBLE_EQ((db->GetValue<Real>("a/b/sub/1/2/3/4/d/")), 5);
+    EXPECT_EQ((db->GetValue<int>("/1/2/3/4/d/")), 5);
+
+    std::cout << m_url << " : " << (*db) << std::endl;
+}
+TEST_P(DataBaseTest, light_data_ntuple) {
+    db->SetValue("tuple3", {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
     (*db)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
-
-    //    (*db)["a"] = {"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
-    //                  "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}};
-    //    (*db)["h"] = {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}};
-    //    (*db)["j"] = {"abc"_ = {"abc1"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}};
-
-    (*db)["d"] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+    db->SetValue("tuple1", {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});
     (*db)["Box"] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}};
+    (*db)["str_tuple"] = {"wa wa", "la la"};
 
-    (*db)["b/sub/d"] = {"wa wa", "la la"};
+    db->SetValue("A", {1, 2, 3});
+    db->SetValue("b/sub/1/2/3/4/d/C", {{1.0, 2.0, 3.0}, {2.0}, {7.0, 9.0}});
 
-    (*db)["/b/sub/c"] += {5, 6, 7, 8};
-    (*db)["/b/sub/c"] += {1, 5, 3, 4};
-    (*db)["/b/sub/c"] += {2, 5, 3, 4};
-    (*db)["/b/sub/c"] += {3, 5, 3, 4};
-    (*db)["/b/sub/c"] += {4, 5, 3, 4};
     (*db)["/b/sub/a"] += {0, 5, 3, 4};
     (*db)["/b/sub/a"] += {1, 5, 3, 4};
-    (*db)["/b/sub/e"] += {2, 2, 3, 4};
-    (*db)["/b/sub/e"] += 9;
 
-    db->SetValue("tuple3", {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
-    db->SetValue("b/sub/1/2/3/4/d/A", {1, 2, 3});
-    db->SetValue("b/sub/1/2/3/4/d/C", {{1.0, 2.0, 3.0}, {2.0}, {7.0, 9.0}});
     db->Flush();
-    EXPECT_EQ((db->GetValue<nTuple<Real, 6>>("d")), (nTuple<Real, 6>{1, 2, 3, 4, 5, 6}));
+
+    EXPECT_EQ((db->GetValue<nTuple<Real, 6>>("tuple1")), (nTuple<Real, 6>{1, 2, 3, 4, 5, 6}));
     EXPECT_EQ((db->GetValue<nTuple<Real, 2, 3>>("Box")), (nTuple<Real, 2, 3>{{1, 2, 3}, {4, 5, 6}}));
-    EXPECT_EQ(db->GetValue<std::string>("CartesianGeometry"), "hello world!");
-    EXPECT_DOUBLE_EQ(db->GetValue<double>("b/a"), 5);
-    EXPECT_TRUE(db->Check("a/a"));
-    EXPECT_FALSE(db->Check("a/not_debug"));
     EXPECT_EQ((db->GetValue<nTuple<int, 4>>("/b/sub/a/1")), (nTuple<int, 4>{1, 5, 3, 4}));
     EXPECT_EQ((db->GetValue<nTuple<int, 2, 4>>("/b/sub/a")), (nTuple<int, 2, 4>{{0, 5, 3, 4}, {1, 5, 3, 4}}));
-    CHECK((db->GetValue<nTuple<int, 2, 4>>("/b/sub/a")));
+    std::cout << m_url << " : " << (*db) << std::endl;
+}
+
+TEST_P(DataBaseTest, light_data_keyvalue) {
+    (*db)["i"] = {"default"_, "abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"};
+    (*db)["a"] = {"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
+                  "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}};
+    (*db)["h"] = {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}};
+    (*db)["nest"] = {"abc"_ = {"abc1"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}};
+    EXPECT_TRUE(db->Check("a/a"));
+    EXPECT_FALSE(db->Check("a/b/sub/1/2/3/4/d/"));
     std::cout << m_url << " : " << (*db) << std::endl;
 }
 // TEST_P(DataBaseTest, block_data) {
