@@ -39,6 +39,7 @@ struct DataNodeLua::pimpl_s {
     std::shared_ptr<DataNodeLua> m_parent_ = nullptr;
     std::shared_ptr<DataEntity> m_entity_ = nullptr;
     std::string m_key_;
+    eNodeType m_node_type_ = DataNode::DN_TABLE;
     std::shared_ptr<LuaObject> LazyLoadingTable(int flag = NEW_IF_NOT_EXIST);
     //    std::shared_ptr<DataEntity> LazyLoadingEntity();
     //    void LazyLoading(int flag = NEW_IF_NOT_EXIST);
@@ -179,59 +180,74 @@ size_type DataNodeLua::Foreach(
 }
 
 std::shared_ptr<const DataNode> DataNodeLua::Get(std::string const& uri) const {
-    std::shared_ptr<const DataNodeLua> res = nullptr;
-    //    if ((flag & RECURSIVE) != 0) {
-    //        res = std::dynamic_pointer_cast<DataNodeLua>(RecursiveFindNode(Self(), uri, flag &
-    //        (~NEW_IF_NOT_EXIST)).second);
-    //    } else {
-    //        if (m_pimpl_->m_lua_obj_ == nullptr) {
-    //            FIXME << "Can not get object [" << uri << "] from null group !" << std::endl;
-    //        } else {
-    //            res = LUAGetNode(m_pimpl_->GetLuaObject(flag)->get(uri));
-    //            res->m_pimpl_->m_parent_ = Self();
-    //            res->m_pimpl_->m_key_ = uri;
-    //        }
-    //    }
+    if (uri.empty()) { return nullptr; }
+
+    std::shared_ptr<const DataNode> res = nullptr;
+
+    auto pos = uri.find(SP_URL_SPLIT_CHAR);
+    if (pos == 0) {
+        res = Root()->Get(uri.substr(1));
+    } else if (pos != std::string::npos) {
+        auto tmp = Get(uri.substr(0, pos));
+        res = tmp == nullptr ? nullptr : tmp->Get(uri.substr(pos + 1));
+    } else if (m_pimpl_->m_lua_obj_ == nullptr) {
+        FIXME << " Get [" << uri << "] from empty table! ";
+        res = nullptr;
+    } else {
+        auto tmp = LUAGetNode(m_pimpl_->m_lua_obj_->get(uri));
+        tmp->m_pimpl_->m_parent_ = Self();
+        tmp->m_pimpl_->m_key_ = uri;
+    };
 
     return res;
 }
 
-size_type DataNodeLua::Set(std::string const &uri, std::shared_ptr<DataEntity> const &entity) {
-    size_type count = 0;
+size_type DataNodeLua::Set(std::string const& uri, std::shared_ptr<DataEntity> const& entity) {
+    if (uri.empty() || entity == nullptr) { return 0; }
 
-    //    if (entity == nullptr) {
-    //        FIXME << " SetEntity value : " << m_pimpl_->m_key_ << " = " << *entity << std::endl;
-    //    } else if (auto parent = std::dynamic_pointer_cast<DataNodeLua>(Parent())) {
-    //        auto& lobj = parent->m_pimpl_->m_lua_obj_;
-    //
-    //#define DEFINE_MULTIMETHOD(_T_)                                              \
-//    else if (auto p = std::dynamic_pointer_cast<DataLightT<_T_>>(entity)) {  \
-//        count = lobj->set(m_pimpl_->m_key_, p->pointer(), 0, nullptr);       \
-//    }                                                                        \
-//    else if (auto p = std::dynamic_pointer_cast<DataLightT<_T_*>>(entity)) { \
-//        size_type rank = p->rank();                                          \
-//        size_type extents[MAX_NDIMS_OF_ARRAY];                               \
-//        p->extents(extents);                                                 \
-//        count = lobj->set(m_pimpl_->m_key_, p->pointer(), rank, extents);    \
-//    }
-    //
-    //        if (auto p = std::dynamic_pointer_cast<DataBlock>(entity)) {
-    //            count = 0;
-    //            FIXME << "LUA backend do not support DataBlock ";
-    //        }
-    //        DEFINE_MULTIMETHOD(std::string)
-    //        DEFINE_MULTIMETHOD(bool)
-    //        DEFINE_MULTIMETHOD(float)
-    //        DEFINE_MULTIMETHOD(double)
-    //        DEFINE_MULTIMETHOD(int)
-    //        DEFINE_MULTIMETHOD(long)
-    //        DEFINE_MULTIMETHOD(unsigned int)
-    //        DEFINE_MULTIMETHOD(unsigned long)
-    //#undef MULTIMETHOD_T_
-    //        else {
-    //            count = 0;
-    //        }
-    //    }
+    size_type count = 0;
+    auto pos = uri.find(SP_URL_SPLIT_CHAR);
+    if (pos == 0) {
+        count = Root()->Set(uri.substr(1), entity);
+    } else if (pos != std::string::npos) {
+        auto tmp = DataNodeLua::New();
+        tmp->m_pimpl_->m_parent_ = Self();
+        tmp->m_pimpl_->m_key_ = uri.substr(0, pos);
+        m_pimpl_->m_node_type_ = DN_TABLE;
+        count = tmp->Set(uri.substr(pos + 1), entity);
+    } else {
+        auto lobj = m_pimpl_->LazyLoadingTable();
+
+#define DEFINE_MULTIMETHOD(_T_)                                              \
+    else if (auto p = std::dynamic_pointer_cast<DataLightT<_T_>>(entity)) {  \
+        count = lobj->set(uri, p->pointer(), 0, nullptr);       \
+    }                                                                        \
+    else if (auto p = std::dynamic_pointer_cast<DataLightT<_T_*>>(entity)) { \
+        size_type rank = p->rank();                                          \
+        size_type extents[MAX_NDIMS_OF_ARRAY];                               \
+        p->extents(extents);                                                 \
+        count = lobj->set(uri, p->pointer(), rank, extents);    \
+    }
+
+        if (auto p = std::dynamic_pointer_cast<DataBlock>(entity)) {
+            count = 0;
+            FIXME << "LUA backend do not support DataBlock ";
+        }
+        DEFINE_MULTIMETHOD(std::string)
+        DEFINE_MULTIMETHOD(bool)
+        DEFINE_MULTIMETHOD(float)
+        DEFINE_MULTIMETHOD(double)
+        DEFINE_MULTIMETHOD(int)
+        DEFINE_MULTIMETHOD(long)
+        DEFINE_MULTIMETHOD(unsigned int)
+        DEFINE_MULTIMETHOD(unsigned long)
+
+        else {
+            count = 0;
+        }
+#undef MULTIMETHOD_T_
+    }
+
     return count;
 }
 size_type DataNodeLua::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) { return 0; }

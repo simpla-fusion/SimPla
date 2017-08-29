@@ -101,19 +101,17 @@ size_type DataNodeMemory::Add(std::string const& uri, std::shared_ptr<DataEntity
 }
 
 std::shared_ptr<const DataNode> DataNodeMemory::Get(std::string const& uri) const {
+    if (uri.empty()) { return nullptr; }
+
     std::shared_ptr<const DataNode> res = nullptr;
 
-    if (uri.empty()) {
-        res = shared_from_this();
+    auto pos = uri.find(SP_URL_SPLIT_CHAR);
+    if (pos == 0) {
+        res = Root()->Get(uri.substr(1));
     } else {
-        auto pos = uri.find(SP_URL_SPLIT_CHAR);
-        if (pos == 0) {
-            res = Root()->Get(uri.substr(1));
-        } else {
-            auto it = m_pimpl_->m_table_.find(uri.substr(0, pos));
-            if (it != m_pimpl_->m_table_.end()) {
-                res = pos == std::string::npos ? it->second : it->second->Get(uri.substr(pos + 1));
-            }
+        auto it = m_pimpl_->m_table_.find(uri.substr(0, pos));
+        if (it != m_pimpl_->m_table_.end()) {
+            res = pos == std::string::npos ? it->second : it->second->Get(uri.substr(pos + 1));
         }
     }
 
