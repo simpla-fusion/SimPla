@@ -45,7 +45,16 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
     virtual bool equal(DataEntity const& other) const { return false; }
     bool operator==(DataEntity const& other) { return equal(other); }
 
-    virtual std::ostream& Print(std::ostream& os, int indent) const { return os; }
+    virtual std::ostream& Print(std::ostream& os, int indent) const {
+        os << "<N/A>";
+        return os;
+    }
+
+    virtual std::shared_ptr<DataEntity> Prepend(std::shared_ptr<DataEntity> const& v) const {
+        return v == nullptr ? const_cast<this_type*>(this)->shared_from_this()
+                            : v->Append(const_cast<this_type*>(this)->shared_from_this());
+    }
+    virtual std::shared_ptr<DataEntity> Append(std::shared_ptr<DataEntity> const& v) const { return DataEntity::New(); }
 
     /**
      * @}

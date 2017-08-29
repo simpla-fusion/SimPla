@@ -32,7 +32,7 @@ size_type DataNodeIMAS::Foreach(
     return 0;
 }
 
-size_type DataNodeIMAS::Set(std::string const& url, std::shared_ptr<DataEntity> const& v) { return 0; }
+size_type DataNodeIMAS::Set(std::string const &url, std::shared_ptr<DataEntity> const &v) { return 0; }
 size_type DataNodeIMAS::Add(std::string const& url, std::shared_ptr<DataEntity> const& v) { return 0; }
 size_type DataNodeIMAS::Delete(std::string const& uri) { return 0; }
 std::shared_ptr<const DataNode> DataNodeIMAS::Get(std::string const& uri) const { return New(); }

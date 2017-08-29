@@ -12,7 +12,7 @@
 namespace simpla {
 namespace data {
 struct DataNodeHDF5 : public DataNode {
-    SP_DATA_NODE_HEAD(DataNodeHDF5);
+SP_DATA_NODE_HEAD(DataNodeHDF5);
 
    public:
     int Connect(std::string const &authority, std::string const &path, std::string const &query,

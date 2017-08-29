@@ -73,7 +73,7 @@ size_type DataNodeXDMF::Foreach(
     return 0;
 }
 
-size_type DataNodeXDMF::Set(std::string const& url, std::shared_ptr<DataEntity> const& v) { return 0; }
+size_type DataNodeXDMF::Set(std::string const &url, std::shared_ptr<DataEntity> const &v) { return 0; }
 size_type DataNodeXDMF::Add(std::string const& url, std::shared_ptr<DataEntity> const& v) { return 0; }
 size_type DataNodeXDMF::Delete(std::string const& uri) { return 0; }
 std::shared_ptr<const DataNode> DataNodeXDMF::Get(std::string const& uri) const { return nullptr; }

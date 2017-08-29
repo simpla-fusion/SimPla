@@ -196,7 +196,7 @@ std::shared_ptr<const DataNode> DataNodeLua::Get(std::string const& uri) const {
     return res;
 }
 
-size_type DataNodeLua::Set(std::string const& uri, std::shared_ptr<DataEntity> const& entity) {
+size_type DataNodeLua::Set(std::string const &uri, std::shared_ptr<DataEntity> const &entity) {
     size_type count = 0;
 
     //    if (entity == nullptr) {

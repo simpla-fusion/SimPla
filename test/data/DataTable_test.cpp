@@ -68,7 +68,7 @@ TEST_P(DataBaseTest, light_data_sigle_value) {
     std::cout << m_url << " : {" << (*db) << "}" << std::endl;
 }
 
-TEST_P(DataBaseTest, light_data_ntuple) {
+TEST_P(DataBaseTest, light_data_SetValue_ntuple) {
     db->SetValue("tuple3", {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
     //    (*db)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
     db->SetValue("tuple1", {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});
@@ -78,17 +78,13 @@ TEST_P(DataBaseTest, light_data_ntuple) {
     db->SetValue("A", {1, 2, 3});
     db->SetValue("C", {{1.0, 2.0, 3.0}, {2.0}, {7.0, 9.0}});
 
-    db->AddValue("a", {0, 5, 3, 4});
-    db->AddValue("a", {1, 5, 3, 4});
-
     db->Flush();
     std::cout << m_url << " : " << (*db) << std::endl;
 
     EXPECT_EQ((db->GetValue<nTuple<Real, 6>>("tuple1")), (nTuple<Real, 6>{1, 2, 3, 4, 5, 6}));
     EXPECT_EQ((db->GetValue<nTuple<Real, 2, 3>>("Box")), (nTuple<Real, 2, 3>{{1, 2, 3}, {4, 5, 6}}));
-    EXPECT_EQ((db->GetValue<nTuple<int, 4>>("a/1")), (nTuple<int, 4>{1, 5, 3, 4}));
-    EXPECT_EQ((db->GetValue<nTuple<int, 2, 4>>("a")), (nTuple<int, 2, 4>{{0, 5, 3, 4}, {1, 5, 3, 4}}));
 }
+
 TEST_P(DataBaseTest, light_data_multilevel) {
     db->SetValue("a/b/sub/1/2/3/4/d", 5.0);
     db->SetValue("/1/2/3/4/d", 5);
@@ -109,6 +105,17 @@ TEST_P(DataBaseTest, light_data_keyvalue) {
     std::cout << m_url << " : " << (*db) << std::endl;
 }
 
+TEST_P(DataBaseTest, light_data_AddValue) {
+    db->AddValue("a", {0, 5, 3, 4});
+    db->AddValue("a", {1, 5, 3, 4});
+
+    db->Flush();
+    std::cout << m_url << " : " << (*db) << std::endl;
+
+    EXPECT_EQ((db->GetValue<nTuple<int, 4>>("a/1", nTuple<int, 4>{0, 0, 0, 0})), (nTuple<int, 4>{1, 5, 3, 4}));
+    EXPECT_EQ((db->GetValue<nTuple<int, 2, 4>>("a", nTuple<int, 2, 4>{{0, 0, 0, 0}, {0, 0, 0, 0}})),
+              (nTuple<int, 2, 4>{{0, 5, 3, 4}, {1, 5, 3, 4}}));
+}
 // TEST_P(DataBaseTest, block_data) {
 //    auto db = DataNode::New(m_url);
 //}
