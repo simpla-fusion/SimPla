@@ -15,7 +15,8 @@ namespace simpla {
 namespace data {
 
 class DataNodeLua : public DataNode {
-SP_DATA_NODE_HEAD(DataNodeLua)
+    SP_DEFINE_FANCY_TYPE_NAME(DataNodeLua, DataNode)
+    SP_DATA_NODE_HEAD(DataNodeLua)
 
    public:
     int Parse(std::string const& s) override;
@@ -23,11 +24,15 @@ SP_DATA_NODE_HEAD(DataNodeLua)
                 std::string const& fragment) override;
     int Disconnect() override;
     bool isValid() const override;
+    SP_DATA_NODE_FUNCTION
+//    size_type Set(size_type s, std::shared_ptr<DataEntity> const& v) override;
+//    size_type Add(size_type s, std::shared_ptr<DataEntity> const& v) override;
+//    size_type Delete(size_type s) override;
+//    std::shared_ptr<const DataNode> Get(size_type s) const override;
 
-    size_type Set(index_type s, std::shared_ptr<DataEntity> const& v) override;
-    size_type Add(index_type s, std::shared_ptr<DataEntity> const& v) override;
-    size_type Delete(index_type s) override;
-    std::shared_ptr<const DataNode> Get(index_type s) const override;
+   private:
+    struct pimpl_s;
+    pimpl_s* m_pimpl_ = nullptr;
 };
 }  // { namespace data {
 }  // namespace simpla

@@ -61,6 +61,8 @@ enum tags {
     LOG_ERROR_BAD_CAST = -11,      //!< LOG_ERROR_RUNTIME
     LOG_ERROR_OUT_OF_RANGE = -12,  //!< LOG_ERROR_RUNTIME
     LOG_ERROR_LOGICAL = -13,       //!< LOG_ERROR_RUNTIME
+    LOG_ERROR_DOMAIN = -14,
+    LOG_ERROR_INVALID_ARGUMENT = -15,
 
     LOG_WARNING = -1,  //!< LOG_WARNING
 
@@ -342,6 +344,11 @@ std::string make_msg(Others const &... others) {
 #define BAD_CAST simpla::logger::Logger(simpla::logger::LOG_ERROR_BAD_CAST) << FILE_LINE_STAMP
 
 #define OUT_OF_RANGE simpla::logger::Logger(simpla::logger::LOG_ERROR_OUT_OF_RANGE) << FILE_LINE_STAMP
+
+#define INVALID_ARGUMENT simpla::logger::Logger(simpla::logger::LOG_ERROR_INVALID_ARGUMENT) << FILE_LINE_STAMP
+
+#define DOMAIN_ERROR simpla::logger::Logger(simpla::logger::LOG_ERROR_DOMAIN) << FILE_LINE_STAMP
+
 #define EXCEPTION_BAD_ALLOC simpla::logger::Logger(simpla::logger::LOG_ERROR_OUT_OF_RANGE) << FILE_LINE_STAMP
 //#define THROW_EXCEPTION(_MSG_) { {logger::Logger(simpla::logger::LOG_ERROR)
 //<<"["<<__FILE__<<":"<<__LINE__<<":"<<

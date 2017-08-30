@@ -12,9 +12,18 @@
 
 namespace simpla {
 namespace data {
-class DataNodeMemory : public DataNode {
-SP_DATA_NODE_HEAD(DataNodeMemory)
-    void Clear() override;
+struct DataNodeMemory : public DataNode {
+    SP_DEFINE_FANCY_TYPE_NAME(DataNodeMemory, DataNode)
+    SP_DATA_NODE_HEAD(DataNodeMemory);
+
+   public:
+    static std::shared_ptr<DataNode> New();
+
+    std::shared_ptr<DataNodeEntity> NewEntity(std::shared_ptr<DataEntity> const& v) const override;
+    std::shared_ptr<DataNodeTable> NewTable() const override;
+    std::shared_ptr<DataNodeArray> NewArray() const override;
+    std::shared_ptr<DataNodeFunction> NewFunction() const override;
+
 };  // class DataBase {
 }  // namespace data {
 }  // namespace simpla{

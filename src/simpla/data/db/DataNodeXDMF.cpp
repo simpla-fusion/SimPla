@@ -47,7 +47,6 @@ struct DataNodeXDMF::pimpl_s {
     std::shared_ptr<XdmfItem> m_self_;
 };
 DataNodeXDMF::DataNodeXDMF() : m_pimpl_(new pimpl_s) {}
-DataNodeXDMF::DataNodeXDMF(pimpl_s* pimpl) : m_pimpl_(pimpl) {}
 DataNodeXDMF::~DataNodeXDMF() { delete m_pimpl_; }
 // bool DataNodeXDMF::isValid() const { return true; }
 // int DataNodeXDMF::Connect(std::string const& authority, std::string const& path, std::string const& query,
@@ -59,27 +58,26 @@ DataNodeXDMF::~DataNodeXDMF() { delete m_pimpl_; }
 // int DataNodeXDMF::Disconnect() { return SP_SUCCESS; }
 //
 // int DataNodeXDMF::Flush() { return 0; }
+std::shared_ptr<DataNode> DataNodeXDMF::NewChild() const { return nullptr; }
 
-std::shared_ptr<DataNode> DataNodeXDMF::Duplicate() const { return nullptr; }
 size_type DataNodeXDMF::size() const { return 0; }
 DataNode::eNodeType DataNodeXDMF::type() const { return DN_NULL; }
-std::shared_ptr<DataNode> DataNodeXDMF::Root() const {
-    return Parent() != nullptr ? Parent()->Root() : const_cast<this_type*>(this)->shared_from_this();
-}
-std::shared_ptr<DataNode> DataNodeXDMF::Parent() const { return m_pimpl_->m_parent_; }
 
 size_type DataNodeXDMF::Foreach(
     std::function<size_type(std::string, std::shared_ptr<const DataNode>)> const& fun) const {
     return 0;
 }
+std::shared_ptr<DataEntity> DataNodeXDMF::GetEntity() const { return nullptr; }
 
-size_type DataNodeXDMF::Set(std::string const &url, std::shared_ptr<DataEntity> const &v) { return 0; }
-size_type DataNodeXDMF::Add(std::string const& url, std::shared_ptr<DataEntity> const& v) { return 0; }
+size_type DataNodeXDMF::Set(std::string const& url, std::shared_ptr<DataNode> const& v) { return 0; }
+size_type DataNodeXDMF::Add(std::string const& url, std::shared_ptr<DataNode> const& v) { return 0; }
 size_type DataNodeXDMF::Delete(std::string const& uri) { return 0; }
 std::shared_ptr<const DataNode> DataNodeXDMF::Get(std::string const& uri) const { return nullptr; }
 
-std::shared_ptr<DataEntity> DataNodeXDMF::GetEntity() const { return nullptr; }
-
+size_type DataNodeXDMF::Set(size_type s, std::shared_ptr<DataNode> const& v) { return 0; }
+size_type DataNodeXDMF::Add(size_type s, std::shared_ptr<DataNode> const& v) { return 0; }
+size_type DataNodeXDMF::Delete(size_type s) { return 0; }
+std::shared_ptr<const DataNode> DataNodeXDMF::Get(size_type s) const { return nullptr; }
 ////
 //// std::shared_ptr<DataEntity> DataBaseXDMF::Get(std::string const& URI) const {
 ////    if (URI[0] == '/') {

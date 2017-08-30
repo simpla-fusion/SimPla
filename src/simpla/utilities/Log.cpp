@@ -179,6 +179,10 @@ Logger::~Logger() {
             throw(std::out_of_range(this->str()));
         case LOG_ERROR_LOGICAL:
             throw(std::logic_error(this->str()));
+        case LOG_ERROR_DOMAIN:
+            throw(std::domain_error(this->str()));
+        case LOG_ERROR_INVALID_ARGUMENT:
+            throw(std::invalid_argument(this->str()));
         default:
             break;
     }

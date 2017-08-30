@@ -13,8 +13,6 @@
 namespace simpla {
 namespace data {
 
-DataNode::DataNode() = default;
-DataNode::~DataNode() = default;
 std::shared_ptr<DataNode> DataNode::New(std::string const& s) {
     if (DataNode::s_num_of_pre_registered_ == 0) { RUNTIME_ERROR << "No database is registered!" << s << std::endl; }
     std::string uri = s.empty() ? "mem://" : s;
@@ -34,60 +32,53 @@ std::shared_ptr<DataNode> DataNode::New(std::string const& s) {
     }
     return res;
 };
-
-size_type DataNode::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v) { return 0; }
-size_type DataNode::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) {
-    auto p = Get(uri);
-    auto res = v->Prepend((p == nullptr) ? nullptr : p->GetEntity());
-    return Set(uri, res == nullptr ? DataEntity::New() : res);
-}
-size_type DataNode::Set(std::string const& uri, std::shared_ptr<const DataNode> const& v) {
-    if (auto p = Get(uri)) {
-        if (p->type() == DN_ENTITY) { Delete(uri); }
-    }
-    return v == nullptr ? 0 : v->Foreach([&](std::string k, std::shared_ptr<const DataNode> node) {
-        size_type count = 0;
-        if (node->type() == DataNode::DN_ENTITY) {
-            count += Set(uri + "/" + k, node->GetEntity());
-        } else {
-            count += Set(uri + "/" + k, node);
-        }
-        return count;
-    });
-};
-size_type DataNode::Add(std::string const& uri, std::shared_ptr<const DataNode> const& v) {
-    return v == nullptr ? 0 : v->Foreach([&](std::string k, std::shared_ptr<const DataNode> node) {
-        size_type count = 0;
-        if (node->type() == DataNode::DN_ENTITY) {
-            count += Add(uri + "/" + k, node->GetEntity());
-        } else {
-            count += Add(uri + "/" + k, node);
-        }
-        return count;
-    });
-};
+// size_type DataNode::Set(std::string const& uri, std::shared_ptr<const DataNode> const& v) {
+//    //    if (auto p = Get(uri)) {
+//    //        if (p->type() == DN_ENTITY) { Delete(uri); }
+//    //    }
+//    //    return v == nullptr ? 0 : v->Foreach([&](std::string k, std::shared_ptr<const DataNode> node) {
+//    //        size_type count = 0;
+//    //        if (node->type() == DataNode::DN_ENTITY) {
+//    //            count += Set(uri + "/" + k, node->GetEntity());
+//    //        } else {
+//    //            count += Set(uri + "/" + k, node);
+//    //        }
+//    //        return count;
+//    //    });
+//    return 0;
+//};
+// size_type DataNode::Add(std::string const& uri, std::shared_ptr<const DataNode> const& v) {
+////    return v == nullptr ? 0 : v->Foreach([&](std::string k, std::shared_ptr<const DataNode> node) {
+////        size_type count = 0;
+////        if (node->type() == DataNode::DN_ENTITY) {
+////            count += Add(uri + "/" + k, node->GetEntity());
+////        } else {
+////            count += Add(uri + "/" + k, node);
+////        }
+////        return count;
+////    });
+//};
 std::istream& DataNode::Parse(std::istream& is) {
     Parse(std::string(std::istreambuf_iterator<char>(is), {}));
     return is;
 }
 std::ostream& DataNode::Print(std::ostream& os, int indent) const {
-    if (this->type() == DataNode::DN_ARRAY) {
-        os << "[";
-        bool is_first = true;
+    if (auto* p = dynamic_cast<DataNodeEntity const*>(this)) {
+        p->GetEntity()->Print(os, indent + 1);
+    } else if (auto* p = dynamic_cast<DataNodeArray const*>(this)) {
         bool new_line = this->size() > 1;
-        this->Foreach([&](auto k, auto v) {
-            ASSERT(v != nullptr);
-            if (is_first) {
-                is_first = false;
-            } else {
+        os << "[";
+        if (p->size() > 0) {
+            p->Get(0)->Print(os, indent + 1);
+            for (size_type i = 1, ie = p->size(); i < ie; ++i) {
+                auto v = p->Get(i);
                 os << ", ";
+                if (new_line && v->type() != DataNode::DN_ENTITY) { os << std::endl << std::setw(indent + 1) << " "; }
+                p->Get(i)->Print(os, indent + 1);
             }
-            if (new_line && v->type() != DataNode::DN_ENTITY) { os << std::endl << std::setw(indent + 1) << " "; }
-            v->Print(os, indent + 1);
-            return 1;
-        });
+        }
         os << "]";
-    } else if (this->type() == DataNode::DN_TABLE) {
+    } else if (auto* p = dynamic_cast<DataNodeTable const*>(this)) {
         os << "{ ";
         bool is_first = true;
         bool new_line = this->size() > 1;
@@ -107,16 +98,81 @@ std::ostream& DataNode::Print(std::ostream& os, int indent) const {
 
         if (new_line) { os << std::endl << std::setw(indent) << " "; }
         os << "}";
-
-    } else if (this->type() == DataNode::DN_ENTITY) {
-        this->GetEntity()->Print(os, indent + 1);
     }
+
     return os;
 }
 std::ostream& operator<<(std::ostream& os, DataNode const& entry) { return entry.Print(os, 0); }
 
-static std::regex const sub_group_regex(R"(([^/?#]+)/)", std::regex::optimize);
-static std::regex const match_path_regex(R"(^(/?([/\S]+/)*)?([^/]+)?$)", std::regex::optimize);
+DataNode::eNodeType DataNode::type() const { return DN_NULL; }
+size_type DataNode::size() const { return 0; }
+std::shared_ptr<DataNode> DataNode::NewChild() const {
+    DOMAIN_ERROR;
+    return nullptr;
+};
+
+std::shared_ptr<DataNodeEntity> DataNode::NewEntity(std::shared_ptr<DataEntity> const& v) const {
+    DOMAIN_ERROR;
+    return nullptr;
+}
+
+std::shared_ptr<DataNodeTable> DataNode::NewTable() const {
+    DOMAIN_ERROR;
+    return nullptr;
+};
+std::shared_ptr<DataNodeArray> DataNode::NewArray() const {
+    DOMAIN_ERROR;
+    return nullptr;
+};
+std::shared_ptr<DataNodeFunction> DataNode::NewFunction() const {
+    DOMAIN_ERROR;
+    return nullptr;
+};
+
+size_type DataNode::Set(std::string const& uri, std::shared_ptr<DataNode> const& v) {
+    DOMAIN_ERROR;
+    return 0;
+}
+size_type DataNode::Add(std::string const& uri, std::shared_ptr<DataNode> const& v) {
+    DOMAIN_ERROR;
+    return 0;
+}
+size_type DataNode::Delete(std::string const& s) {
+    DOMAIN_ERROR;
+    return 0;
+}
+std::shared_ptr<const DataNode> DataNode::Get(std::string const& uri) const {
+    DOMAIN_ERROR;
+    return nullptr;
+}
+size_type DataNode::Foreach(std::function<size_type(std::string, std::shared_ptr<const DataNode>)> const& f) const {
+    DOMAIN_ERROR;
+    return 0;
+}
+size_type DataNode::Set(size_type s, std::shared_ptr<DataNode> const& v) {
+    DOMAIN_ERROR;
+    return 0;
+}
+size_type DataNode::Add(size_type s, std::shared_ptr<DataNode> const& v) {
+    DOMAIN_ERROR;
+    return 0;
+}
+size_type DataNode::Delete(size_type s) {
+    DOMAIN_ERROR;
+    return 0;
+}
+std::shared_ptr<const DataNode> DataNode::Get(size_type s) const {
+    DOMAIN_ERROR;
+    return nullptr;
+}
+
+std::shared_ptr<DataEntity> DataNode::GetEntity() const {
+    DOMAIN_ERROR;
+    return nullptr;
+};
+
+//    static std::regex const sub_group_regex(R"(([^/?#]+)/)", std::regex::optimize);
+// static std::regex const match_path_regex(R"(^(/?([/\S]+/)*)?([^/]+)?$)", std::regex::optimize);
 
 /**
  * @brief Traverse  a hierarchical table base on URI  example: /ab/c/d/e
@@ -134,7 +190,8 @@ static std::regex const match_path_regex(R"(^(/?([/\S]+/)*)?([^/]+)?$)", std::re
  * @param return_if_not_exist
  * @return
  */
-// std::pair<std::string, std::shared_ptr<DataNode>> RecursiveFindNode(std::shared_ptr<DataNode> root, std::string uri,
+// std::pair<std::string, std::shared_ptr<DataNode>> RecursiveFindNode(std::shared_ptr<DataNode> root, std::string
+// uri,
 //                                                                    int flag) {
 //    std::pair<std::string, std::shared_ptr<DataNode>> res{"", root};
 //
@@ -158,7 +215,8 @@ static std::regex const match_path_regex(R"(^(/?([/\S]+/)*)?([^/]+)?$)", std::re
 //        auto t = root;
 //
 //        for (auto pos = path.cbegin(), end = path.cend();
-//             std::regex_search(pos, end, sub_match_result, sub_group_regex); pos = sub_match_result.suffix().first) {
+//             std::regex_search(pos, end, sub_match_result, sub_group_regex); pos =
+//             sub_match_result.suffix().first) {
 //            std::string k = sub_match_result.str(1);
 //            res.second = t->Get(k);
 //            t = res.second;
