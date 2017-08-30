@@ -11,6 +11,7 @@ namespace data {
 class DataNodeXDMF : public DataNode {
     SP_DEFINE_FANCY_TYPE_NAME(DataNodeXDMF, DataNode);
     SP_DATA_NODE_HEAD(DataNodeXDMF);
+
     SP_DATA_NODE_FUNCTION;
 
    private:

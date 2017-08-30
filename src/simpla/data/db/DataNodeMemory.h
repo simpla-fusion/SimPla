@@ -19,10 +19,10 @@ struct DataNodeMemory : public DataNode {
    public:
     static std::shared_ptr<DataNode> New();
 
-    std::shared_ptr<DataNodeEntity> NewEntity(std::shared_ptr<DataEntity> const& v) const override;
-    std::shared_ptr<DataNodeTable> NewTable() const override;
-    std::shared_ptr<DataNodeArray> NewArray() const override;
-    std::shared_ptr<DataNodeFunction> NewFunction() const override;
+    std::shared_ptr<DataNode> CreateEntity(std::shared_ptr<DataEntity> const &v) const override;
+    std::shared_ptr<DataNode> CreateTable() const override;
+    std::shared_ptr<DataNode> CreateArray() const override;
+    std::shared_ptr<DataNode> CreateFunction() const override;
 
 };  // class DataBase {
 }  // namespace data {

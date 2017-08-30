@@ -74,14 +74,14 @@ int DataNodeLua::Parse(std::string const& str) {
 bool DataNodeLua::isValid() const { return m_pimpl_->m_lua_obj_ != nullptr; }
 
 size_type DataNodeLua::size() const { return m_pimpl_->m_lua_obj_ != nullptr ? m_pimpl_->m_lua_obj_->size() : 0; }
-std::shared_ptr<DataNode> DataNodeLua::NewChild() const {
+std::shared_ptr<DataNode> DataNodeLua::CreateChild() const {
     auto p = DataNodeLua::New();
     p->m_parent_ = Self();
     return p;
 }
-// std::shared_ptr<DataNode> DataNodeLua::NewChild(std::string const& k) {
+// std::shared_ptr<DataNode> DataNodeLua::CreateChild(std::string const& k) {
 //    auto p = DataNodeLua::New();
-//    p->m_parent_ = Self();
+//    p->m_node_ = Self();
 //    Set(k, p);
 //    return p;
 //}
@@ -103,8 +103,7 @@ DataNode::eNodeType DataNodeLua::type() const {
     return res;
 }
 
-size_type DataNodeLua::Foreach(
-    std::function<size_type(std::string, std::shared_ptr<const DataNode>)> const& fun) const {
+size_type DataNodeLua::Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& fun) const {
     size_type count = 0;
     ASSERT(m_pimpl_->m_lua_obj_ != nullptr);
     for (auto p : *m_pimpl_->m_lua_obj_) {
@@ -117,7 +116,7 @@ size_type DataNodeLua::Foreach(
     return count;
 }
 
-std::shared_ptr<const DataNode> DataNodeLua::Get(std::string const& uri) const {
+std::shared_ptr<DataNode> DataNodeLua::Get(std::string const& uri) const {
     if (uri.empty()) { return nullptr; }
     if (uri[0] == SP_URL_SPLIT_CHAR) { return Root()->Get(uri.substr(1)); }
 
@@ -194,7 +193,7 @@ size_type DataNodeLua::Add(size_type s, std::shared_ptr<DataNode> const& v) { re
 
 size_type DataNodeLua::Delete(size_type s) { return 0; /*m_pimpl_->m_lua_obj_->erase(uri);*/ }
 
-std::shared_ptr<const DataNode> DataNodeLua::Get(size_type s) const {
+std::shared_ptr<DataNode> DataNodeLua::Get(size_type s) const {
     auto res = DataNodeLua::New();
     res->m_parent_ = Self();
     res->m_pimpl_->m_lua_obj_ = m_pimpl_->m_lua_obj_->get(s);

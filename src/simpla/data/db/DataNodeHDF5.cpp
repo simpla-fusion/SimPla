@@ -41,7 +41,7 @@ DataNodeHDF5::~DataNodeHDF5() {
     if (m_pimpl_->m_file_ > -1) { H5_ERROR(H5Fclose(m_pimpl_->m_file_)); }
     delete m_pimpl_;
 }
-std::shared_ptr<DataNode> DataNodeHDF5::NewChild() const {
+std::shared_ptr<DataNode> DataNodeHDF5::CreateChild() const {
     auto node = DataNodeHDF5::New();
     node->m_parent_ = Self();
     return node;
@@ -335,9 +335,9 @@ std::shared_ptr<DataEntity> HDF5GetEntity(hid_t obj_id, bool is_attribute) {
     return res;
 }
 
-std::shared_ptr<const DataNode> DataNodeHDF5::Get(std::string const& uri) const {
+std::shared_ptr<DataNode> DataNodeHDF5::Get(std::string const& uri) const {
     if (uri.empty() || m_pimpl_->m_group_ == -1) { return nullptr; }
-    std::shared_ptr<const DataNode> res = nullptr;
+    std::shared_ptr<DataNode> res = nullptr;
 
     auto pos = uri.rfind(SP_URL_SPLIT_CHAR);
     if (uri[0] == SP_URL_SPLIT_CHAR) {
@@ -603,7 +603,7 @@ size_type DataNodeHDF5::Set(std::string const& uri, std::shared_ptr<DataNode> co
     //        count = Root()->Set(uri.substr(1), v);
     //    } else if (pos != std::string::npos) {
     //        auto tmp = DataNodeHDF5::New();
-    //        tmp->m_parent_ = Self();
+    //        tmp->m_node_ = Self();
     //        tmp->m_pimpl_->m_key_ = uri.substr(0, pos);
     //        m_pimpl_->m_node_type_ = DN_TABLE;
     //        count = tmp->Set(uri.substr(pos + 1), v);
@@ -623,7 +623,7 @@ size_type DataNodeHDF5::Add(std::string const& uri, std::shared_ptr<DataNode> co
     //        count = Root()->Set(uri.substr(1), v);
     //    } else if (pos != std::string::npos) {
     //        auto tmp = DataNodeHDF5::New();
-    //        tmp->m_parent_ = Self();
+    //        tmp->m_node_ = Self();
     //        tmp->m_pimpl_->m_key_ = uri.substr(0, pos);
     //        m_pimpl_->m_node_type_ = DN_TABLE;
     //        count = tmp->Set(uri.substr(pos), v);
@@ -634,8 +634,7 @@ size_type DataNodeHDF5::Add(std::string const& uri, std::shared_ptr<DataNode> co
     return count;
 }
 
-size_type DataNodeHDF5::Foreach(
-    std::function<size_type(std::string, std::shared_ptr<const DataNode>)> const& fun) const {
+size_type DataNodeHDF5::Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& fun) const {
     if (m_pimpl_->m_group_ == -1) { return 0; };
     H5G_info_t g_info;
     H5_ERROR(H5Gget_info(m_pimpl_->m_group_, &g_info));
@@ -666,7 +665,7 @@ size_type DataNodeHDF5::Foreach(
 size_type DataNodeHDF5::Set(size_type s, std::shared_ptr<DataNode> const& v) { return 0; }
 size_type DataNodeHDF5::Add(size_type s, std::shared_ptr<DataNode> const& v) { return 0; }
 size_type DataNodeHDF5::Delete(size_type s) { return 0; }
-std::shared_ptr<const DataNode> DataNodeHDF5::Get(size_type s) const { return nullptr; }
+std::shared_ptr<DataNode> DataNodeHDF5::Get(size_type s) const { return nullptr; }
 
 }  // namespace data{
 }  // namespace simpla{

@@ -18,11 +18,6 @@ namespace data {
 #define SP_URL_SPLIT_CHAR '/'
 class DataEntity;
 class KeyValue;
-class ConstKeyValue;
-class DataNodeEntity;
-class DataNodeTable;
-class DataNodeArray;
-class DataNodeFunction;
 
 class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<DataNode> {
     SP_OBJECT_BASE(DataNode);
@@ -36,28 +31,31 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     enum eNodeType { DN_NULL = 0, DN_ENTITY = 1, DN_TABLE = 2, DN_ARRAY = 3, DN_FUNCTION = 4 };
 
     static std::shared_ptr<DataNode> New(std::string const& uri = "");
-
+    static std::shared_ptr<DataNode> NewEntity(std::string const& uri, std::shared_ptr<DataEntity> const&);
+    static std::shared_ptr<DataNode> NewTable(std::string const& uri = "");
+    static std::shared_ptr<DataNode> NewArray(std::string const& uri = "");
+    static std::shared_ptr<DataNode> NewFunction(std::string const& uri = "");
     /** @addtogroup required @{*/
     virtual eNodeType type() const;
     virtual size_type size() const;
-    virtual std::shared_ptr<DataNode> NewChild() const;
-    virtual std::shared_ptr<DataNodeEntity> NewEntity(std::shared_ptr<DataEntity> const&) const;
-    virtual std::shared_ptr<DataNodeTable> NewTable() const;
-    virtual std::shared_ptr<DataNodeArray> NewArray() const;
-    virtual std::shared_ptr<DataNodeFunction> NewFunction() const;
+    virtual std::shared_ptr<DataNode> CreateChild() const;
+    virtual std::shared_ptr<DataNode> CreateEntity(std::shared_ptr<DataEntity> const&) const;
+    virtual std::shared_ptr<DataNode> CreateTable() const;
+    virtual std::shared_ptr<DataNode> CreateArray() const;
+    virtual std::shared_ptr<DataNode> CreateFunction() const;
 
     virtual std::shared_ptr<DataEntity> GetEntity() const;
 
     virtual size_type Set(std::string const& uri, std::shared_ptr<DataNode> const& v);
     virtual size_type Add(std::string const& uri, std::shared_ptr<DataNode> const& v);
     virtual size_type Delete(std::string const& s);
-    virtual std::shared_ptr<const DataNode> Get(std::string const& uri) const;
-    virtual size_type Foreach(std::function<size_type(std::string, std::shared_ptr<const DataNode>)> const& f) const;
+    virtual std::shared_ptr<DataNode> Get(std::string const& uri) const;
+    virtual size_type Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& f) const;
 
     virtual size_type Set(size_type s, std::shared_ptr<DataNode> const& v);
     virtual size_type Add(size_type s, std::shared_ptr<DataNode> const& v);
     virtual size_type Delete(size_type s);
-    virtual std::shared_ptr<const DataNode> Get(size_type s) const;
+    virtual std::shared_ptr<DataNode> Get(size_type s) const;
 
     /**@ } */
 
@@ -81,64 +79,53 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     virtual std::shared_ptr<DataNode> GetParent() const { return nullptr; }
 
     /**@ } */
-    std::shared_ptr<DataEntity> GetEntity(std::string const& url) const {
-        std::shared_ptr<DataEntity> res = nullptr;
-        if (auto p = Get(url)) { res = p->GetEntity(); }
-        return res;
-    };
-    //    size_type Set(std::string const& uri, std::shared_ptr<const DataNode> const& v);
-    //    size_type Add(std::string const& uri, std::shared_ptr<const DataNode> const& v);
 
-    ConstKeyValue operator[](std::string const& s) const;
-    ConstKeyValue operator[](index_type s) const;
-    KeyValue operator[](std::string const& s);
-    KeyValue operator[](index_type s);
-
-    template <typename TI, typename U>
-    size_type SetValue(TI const& s, U const& u, ENABLE_IF(traits::is_light_data<U>::value)) {
-        return Set(s, NewEntity(DataLight::New(u)));
+    template <typename U>
+    size_type SetValue(std::string const& s, U const& u, ENABLE_IF(traits::is_light_data<U>::value)) {
+        return Set(s, CreateEntity(DataLight::New(u)));
     };
-    template <typename TI>
-    size_type SetValue(TI const& s, char const* u) {
-        return Set(s, NewEntity(DataLight::New(std::string(u))));
+    size_type SetValue(std::string const& s, char const* u) {
+        return Set(s, CreateEntity(DataLight::New(std::string(u))));
     };
-    template <typename TI, typename U>
-    size_type SetValue(TI const& s, U const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {
-        return Set(s, NewEntity(DataBlock::New(u)));
+    template <typename U>
+    size_type SetValue(std::string const& s, U const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {
+        return Set(s, CreateEntity(DataBlock::New(u)));
     };
-    template <typename TI, typename U>
-    size_type SetValue(TI const& s, std::initializer_list<U> const& v) {
-        return Set(s, NewEntity(DataLight::New(v)));
+    template <typename U>
+    size_type SetValue(std::string const& s, std::initializer_list<U> const& v) {
+        return Set(s, CreateEntity(DataLight::New(v)));
     }
 
-    template <typename TI, typename U>
-    size_type SetValue(TI const& s, std::initializer_list<std::initializer_list<U>> const& v) {
-        return Set(s, NewEntity(DataLight::New(v)));
+    template <typename U>
+    size_type SetValue(std::string const& s, std::initializer_list<std::initializer_list<U>> const& v) {
+        return Set(s, CreateEntity(DataLight::New(v)));
     }
-    template <typename TI, typename U>
-    size_type SetValue(TI const& s, std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& v) {
-        return Set(s, NewEntity(DataLight::New(v)));
+    template <typename U>
+    size_type SetValue(std::string const& s,
+                       std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& v) {
+        return Set(s, CreateEntity(DataLight::New(v)));
     }
 
-    template <typename TI, typename U>
-    size_type AddValue(TI const& s, U const& u, ENABLE_IF(traits::is_light_data<U>::value)) {
-        return Add(s, NewEntity(DataLight::New(u)));
+    template <typename U>
+    size_type AddValue(std::string const& s, U const& u, ENABLE_IF(traits::is_light_data<U>::value)) {
+        return Add(s, CreateEntity(DataLight::New(u)));
     };
-    template <typename TI, typename U>
-    size_type AddValue(TI const& s, U const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {
-        return Add(s, NewEntity(DataBlock::New(u)));
+    template <typename U>
+    size_type AddValue(std::string const& s, U const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {
+        return Add(s, CreateEntity(DataBlock::New(u)));
     };
-    template <typename TI, typename U>
-    size_type AddValue(TI const& s, std::initializer_list<U> const& v) {
-        return Add(s, NewEntity(DataLight::New(v)));
+    template <typename U>
+    size_type AddValue(std::string const& s, std::initializer_list<U> const& v) {
+        return Add(s, CreateEntity(DataLight::New(v)));
     }
-    template <typename TI, typename U>
-    size_type AddValue(TI const& s, std::initializer_list<std::initializer_list<U>> const& v) {
-        return Add(s, NewEntity(DataLight::New(v)));
+    template <typename U>
+    size_type AddValue(std::string const& s, std::initializer_list<std::initializer_list<U>> const& v) {
+        return Add(s, CreateEntity(DataLight::New(v)));
     }
-    template <typename TI, typename U>
-    size_type AddValue(TI const& s, std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& v) {
-        return Add(s, NewEntity(DataLight::New(v)));
+    template <typename U>
+    size_type AddValue(std::string const& s,
+                       std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& v) {
+        return Add(s, CreateEntity(DataLight::New(v)));
     }
     template <typename U>
     U GetValue(std::string const& url, ENABLE_IF((traits::is_light_data<U>::value))) const {
@@ -259,164 +246,61 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     };
 
     //******************************************************************************************************
+    size_type SetValue(std::string const& s, KeyValue const& v);
+    size_type SetValue(std::string const& s, std::initializer_list<KeyValue> const& v);
+    size_type SetValue(std::string const& s, std::initializer_list<std::initializer_list<KeyValue>> const& v);
+    size_type AddValue(std::string const& s, KeyValue const& v);
+    size_type AddValue(std::string const& s, std::initializer_list<KeyValue> const& v);
+    size_type AddValue(std::string const& s, std::initializer_list<std::initializer_list<KeyValue>> const& v);
 };
-std::pair<std::string, std::shared_ptr<DataNode>> RecursiveFindNode(std::shared_ptr<DataNode> d, std::string uri,
-                                                                    int flag = 0);
 
 std::ostream& operator<<(std::ostream&, DataNode const&);
 
 struct KeyValue {
     std::string m_key_;
-    std::shared_ptr<DataNode> m_parent_;
+    std::shared_ptr<DataNode> m_node_;
 
-    explicit KeyValue(std::string const& k, std::shared_ptr<DataNode> const& p = nullptr)
-        : m_key_(k), m_parent_(p == nullptr ? DataNode::New() : p) {}
-    template <typename U>
-    KeyValue(std::string const& k, U const& u) : m_key_((k)), m_parent_(DataNode::New()) {
-        this->operator=(u);
-    }
-
-    KeyValue(KeyValue const& other) : m_key_(other.m_key_), m_parent_(other.m_parent_) {}
-    KeyValue(KeyValue&& other) noexcept : m_key_(other.m_key_), m_parent_(other.m_parent_) {}
-
-    ~KeyValue() = default;
+    KeyValue(std::string k);
+    KeyValue(KeyValue const& other);
+    KeyValue(KeyValue&& other) noexcept;
+    ~KeyValue();
 
     KeyValue& operator=(KeyValue&& other) noexcept = delete;
 
     void swap(KeyValue& other) {
         m_key_.swap(other.m_key_);
-        m_parent_.swap(other.m_parent_);
+        m_node_.swap(other.m_node_);
     }
-
-    std::shared_ptr<const DataNode> operator->() const {
-        return m_parent_ == nullptr ? nullptr : m_parent_->Get(m_key_);
-    }
-
-    template <typename U>
-    U as() const {
-        return m_parent_->GetValue<U>(m_key_);
-    }
-    template <typename U>
-    operator U() const {
-        return as<U>();
-    }
-    template <typename U>
-    U as(U const& default_value) const {
-        return m_parent_->GetValue<U>(m_key_, default_value);
-    }
-    template <typename U>
-    bool operator==(U const& other) const {
-        return m_parent_->Check(m_key_, other);
-    }
+    KeyValue& operator=(KeyValue const& other);
+    KeyValue& operator=(std::initializer_list<KeyValue> const& u);
+    KeyValue& operator=(std::initializer_list<std::initializer_list<KeyValue>> const& other);
+    KeyValue& operator=(std::initializer_list<std::initializer_list<std::initializer_list<KeyValue>>> const& u);
 
     template <typename U>
     KeyValue& operator=(U const& u) {
-        m_parent_->SetValue(m_key_, u);
+        m_node_ = DataNode::NewEntity("", DataLight::New(u));
         return *this;
     }
 
     template <typename U>
     KeyValue& operator=(std::initializer_list<U> const& u) {
-        m_parent_->SetValue(m_key_, u);
+        m_node_ = DataNode::NewEntity("", DataLight::New(u));
         return *this;
     }
 
     template <typename U>
     KeyValue& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
-        m_parent_->SetValue(m_key_, u);
+        m_node_ = DataNode::NewEntity("", DataLight::New(u));
         return *this;
     }
     template <typename U>
     KeyValue& operator=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-        m_parent_->SetValue(m_key_, u);
-        return *this;
-    }
-
-    template <typename U>
-    KeyValue& operator+=(U const& u) {
-        m_parent_->AddValue(m_key_, u);
-        return *this;
-    }
-
-    template <typename U>
-    KeyValue& operator+=(std::initializer_list<U> const& u) {
-        m_parent_->AddValue(m_key_, u);
-        return *this;
-    }
-
-    template <typename U>
-    KeyValue& operator+=(std::initializer_list<std::initializer_list<U>> const& u) {
-        m_parent_->AddValue(m_key_, u);
-        return *this;
-    }
-    template <typename U>
-    KeyValue& operator+=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-        m_parent_->AddValue(m_key_, u);
-        return *this;
-    }
-
-    KeyValue& operator=(KeyValue const& other) {
-        m_parent_->Set(m_key_, other.m_parent_);
-        return *this;
-    }
-    KeyValue& operator=(std::initializer_list<KeyValue> const& u) {
-        for (auto const& v : u) { m_parent_->Set(m_key_, v.m_parent_); }
+        m_node_ = DataNode::NewEntity("", DataLight::New(u));
         return *this;
     }
 };
 
-struct ConstKeyValue {
-    std::string m_key_;
-    std::shared_ptr<const DataNode> m_parent_ = nullptr;
-
-    explicit ConstKeyValue(std::string k, std::shared_ptr<const DataNode> const& p = nullptr)
-        : m_key_(std::move(k)), m_parent_(p) {}
-    ConstKeyValue(ConstKeyValue const& other) : m_key_(other.m_key_), m_parent_(other.m_parent_) {}
-    ConstKeyValue(ConstKeyValue&& other) noexcept : m_key_(other.m_key_), m_parent_(other.m_parent_) {}
-    ~ConstKeyValue() = default;
-    ConstKeyValue& operator=(ConstKeyValue const& other) {
-        ConstKeyValue(other).swap(*this);
-        return *this;
-    }
-    ConstKeyValue& operator=(ConstKeyValue&& other) noexcept {
-        ConstKeyValue(other).swap(*this);
-        return *this;
-    }
-    void swap(ConstKeyValue& other) {
-        m_key_.swap(other.m_key_);
-        m_parent_.swap(other.m_parent_);
-    }
-
-    std::shared_ptr<const DataNode> operator->() const {
-        return m_parent_ == nullptr ? nullptr : m_parent_->Get(m_key_);
-    }
-
-    template <typename U>
-    U as() const {
-        return m_parent_->GetValue<U>(m_key_);
-    }
-    template <typename U>
-    explicit operator U() const {
-        return as<U>();
-    }
-    template <typename U>
-    U as(U const& default_value) const {
-        return m_parent_->GetValue<U>(m_key_, default_value);
-    }
-
-    template <typename U>
-    bool operator==(U const& other) const {
-        return m_parent_->Check(m_key_, other);
-    }
-};
-inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue(std::string(c), true); }
-
-inline ConstKeyValue DataNode::operator[](std::string const& s) const { return ConstKeyValue(s, shared_from_this()); }
-inline ConstKeyValue DataNode::operator[](index_type s) const {
-    return ConstKeyValue(std::to_string(s), shared_from_this());
-}
-inline KeyValue DataNode::operator[](std::string const& s) { return KeyValue(s, shared_from_this()); };
-inline KeyValue DataNode::operator[](index_type s) { return KeyValue(std::to_string(s), shared_from_this()); }
+inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue(std::string(c)); }
 
 #define SP_DATA_NODE_HEAD(_CLASS_NAME_)                                                                              \
    protected:                                                                                                        \
@@ -445,106 +329,24 @@ inline KeyValue DataNode::operator[](index_type s) { return KeyValue(std::to_str
         return std::dynamic_pointer_cast<this_type>(const_cast<this_type*>(this)->GetParent());                      \
     };
 
-#define SP_DATA_NODE_FUNCTION                                                                                          \
-    eNodeType type() const override;                                                                                   \
-    size_type size() const override;                                                                                   \
-                                                                                                                       \
-    std::shared_ptr<DataNode> NewChild() const override;                                                               \
-                                                                                                                       \
-    std::shared_ptr<DataEntity> GetEntity() const override;                                                            \
-                                                                                                                       \
-    size_type Set(std::string const& uri, std::shared_ptr<DataNode> const& v) override;                                \
-    size_type Add(std::string const& uri, std::shared_ptr<DataNode> const& v) override;                                \
-    size_type Delete(std::string const& s) override;                                                                   \
-    std::shared_ptr<const DataNode> Get(std::string const& uri) const override;                                        \
-    size_type Foreach(std::function<size_type(std::string, std::shared_ptr<const DataNode>)> const& f) const override; \
-                                                                                                                       \
-    size_type Set(size_type s, std::shared_ptr<DataNode> const& v) override;                                           \
-    size_type Add(size_type s, std::shared_ptr<DataNode> const& v) override;                                           \
-    size_type Delete(size_type s) override;                                                                            \
-    std::shared_ptr<const DataNode> Get(size_type s) const override;
-
-class DataNodeEntity : public DataNode {
-    SP_DEFINE_FANCY_TYPE_NAME(DataNodeEntity, DataNode)
-   public:
-    DataNode::eNodeType type() const override { return DataNode::DN_ENTITY; }
-    size_type size() const override { return 1; }
-
-    std::shared_ptr<DataEntity> GetEntity() const override = 0;
-    virtual size_type SetEntity(std::shared_ptr<DataEntity> const&) = 0;
-};
-#define SP_DATA_NODE_ENTITY_HEAD(_CLASS_NAME_)              \
-    SP_DEFINE_FANCY_TYPE_NAME(_CLASS_NAME_, DataNodeEntity) \
-    SP_DATA_NODE_HEAD(_CLASS_NAME_)                         \
-   public:                                                  \
-    std::shared_ptr<DataEntity> GetEntity() const override; \
-    size_type SetEntity(std::shared_ptr<DataEntity> const& entity) override;
-
-class DataNodeArray : public DataNode {
-    SP_DEFINE_FANCY_TYPE_NAME(DataNodeArray, DataNode)
-   public:
-    DataNode::eNodeType type() const override { return DataNode::DN_ENTITY; }
-    size_type size() const override = 0;
-
-    std::shared_ptr<DataNode> NewChild() const override = 0;
-
-    size_type Set(size_type s, std::shared_ptr<DataNode> const& v) override = 0;
-    size_type Add(size_type s, std::shared_ptr<DataNode> const& v) override = 0;
-    size_type Delete(size_type s) override = 0;
-    std::shared_ptr<const DataNode> Get(size_type s) const override = 0;
-};
-#define SP_DATA_NODE_ARRAY_HEAD(_CLASS_NAME_)                                \
-    SP_DEFINE_FANCY_TYPE_NAME(_CLASS_NAME_, DataNodeArray)                   \
-    SP_DATA_NODE_HEAD(_CLASS_NAME_)                                          \
-   public:                                                                   \
-    size_type size() const override;                                         \
-                                                                             \
-    std::shared_ptr<DataNode> NewChild() const override;                     \
-                                                                             \
-    size_type Set(size_type s, std::shared_ptr<DataNode> const& v) override; \
-    size_type Add(size_type s, std::shared_ptr<DataNode> const& v) override; \
-    size_type Delete(size_type s) override;                                  \
-    std::shared_ptr<const DataNode> Get(size_type s) const override;
-
-class DataNodeTable : public DataNode {
-    SP_DEFINE_FANCY_TYPE_NAME(DataNodeTable, DataNode)
-   public:
-    DataNode::eNodeType type() const override { return DataNode::DN_TABLE; }
-    size_type size() const override = 0;
-
-    std::shared_ptr<DataNode> NewChild() const override = 0;
-
-    size_type Set(std::string const& uri, std::shared_ptr<DataNode> const& v) override = 0;
-    size_type Add(std::string const& uri, std::shared_ptr<DataNode> const& v) override = 0;
-    size_type Delete(std::string const& uri) override = 0;
-    std::shared_ptr<const DataNode> Get(std::string const& uri) const override = 0;
-    size_type Foreach(std::function<size_type(std::string, std::shared_ptr<const DataNode>)> const& f) const override =
-        0;
-};
-
-#define SP_DATA_NODE_TABLE_HEAD(_CLASS_NAME_)                                           \
-    SP_DEFINE_FANCY_TYPE_NAME(_CLASS_NAME_, DataNodeTable)                              \
-    SP_DATA_NODE_HEAD(_CLASS_NAME_)                                                     \
-                                                                                        \
-   public:                                                                              \
-    size_type size() const override;                                                    \
-    std::shared_ptr<DataNode> NewChild() const override;                                \
-    size_type Set(std::string const& uri, std::shared_ptr<DataNode> const& v) override; \
-    size_type Add(std::string const& uri, std::shared_ptr<DataNode> const& v) override; \
-    size_type Delete(std::string const& uri) override;                                  \
-    std::shared_ptr<const DataNode> Get(std::string const& uri) const override;         \
-    size_type Foreach(std::function<size_type(std::string, std::shared_ptr<const DataNode>)> const& f) const override;
-
-struct DataNodeFunction : public DataNode {
-    SP_DEFINE_FANCY_TYPE_NAME(DataNodeFunction, DataNode)
-   public:
-    DataNode::eNodeType type() const override { return DataNode::DN_FUNCTION; }
-    size_type size() const override { return 0; };
-};
-
-#define SP_DATA_NODE_FUNCTION_HEAD(_CLASS_NAME_)              \
-    SP_DEFINE_FANCY_TYPE_NAME(_CLASS_NAME_, DataNodeFunction) \
-    SP_DATA_NODE_HEAD(_CLASS_NAME_)
+#define SP_DATA_NODE_FUNCTION                                                                                    \
+    eNodeType type() const override;                                                                             \
+    size_type size() const override;                                                                             \
+                                                                                                                 \
+    std::shared_ptr<DataNode> CreateChild() const override;                                                      \
+                                                                                                                 \
+    std::shared_ptr<DataEntity> GetEntity() const override;                                                      \
+                                                                                                                 \
+    size_type Set(std::string const& uri, std::shared_ptr<DataNode> const& v) override;                          \
+    size_type Add(std::string const& uri, std::shared_ptr<DataNode> const& v) override;                          \
+    size_type Delete(std::string const& s) override;                                                             \
+    std::shared_ptr<DataNode> Get(std::string const& uri) const override;                                        \
+    size_type Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& f) const override; \
+                                                                                                                 \
+    size_type Set(size_type s, std::shared_ptr<DataNode> const& v) override;                                     \
+    size_type Add(size_type s, std::shared_ptr<DataNode> const& v) override;                                     \
+    size_type Delete(size_type s) override;                                                                      \
+    std::shared_ptr<DataNode> Get(size_type s) const override;
 
 }  // namespace data
 }  // namespace simpla

@@ -24,6 +24,7 @@ class DataNodeLua : public DataNode {
                 std::string const& fragment) override;
     int Disconnect() override;
     bool isValid() const override;
+
     SP_DATA_NODE_FUNCTION
 //    size_type Set(size_type s, std::shared_ptr<DataEntity> const& v) override;
 //    size_type Add(size_type s, std::shared_ptr<DataEntity> const& v) override;

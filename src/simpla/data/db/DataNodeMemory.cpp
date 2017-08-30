@@ -8,7 +8,7 @@
 #include "../DataBlock.h"
 #include "../DataEntity.h"
 #include "../DataNode.h"
-
+#include "DataNodeExt.h"
 namespace simpla {
 namespace data {
 
@@ -48,7 +48,7 @@ DataNodeArrayMemory::DataNodeArrayMemory() = default;
 DataNodeArrayMemory::~DataNodeArrayMemory() = default;
 
 size_type DataNodeArrayMemory::size() const { return m_data_.size(); }
-std::shared_ptr<DataNode> DataNodeArrayMemory::NewChild() const {
+std::shared_ptr<DataNode> DataNodeArrayMemory::CreateChild() const {
     auto node = DataNodeMemory::New();
     node->m_parent_ = Self();
     return node;
@@ -67,10 +67,19 @@ size_type DataNodeArrayMemory::Delete(size_type s) {
     FIXME;
     return 0;
 }
-std::shared_ptr<const DataNode> DataNodeArrayMemory::Get(size_type s) const { return m_data_.at(s); }
+size_type DataNodeArrayMemory::PushBack(std::shared_ptr<DataNode> const& v) {
+    m_data_.push_back(v);
+    return 1;
+};
+
+std::shared_ptr<DataNode> DataNodeArrayMemory::Get(size_type s) const { return m_data_.at(s); }
 
 struct DataNodeTableMemory : public DataNodeTable {
     SP_DATA_NODE_TABLE_HEAD(DataNodeTableMemory)
+    std::shared_ptr<DataNode> CreateTable() const override;
+    std::shared_ptr<DataNode> CreateArray() const override;
+    std::shared_ptr<DataNode> CreateEntity(std::shared_ptr<DataEntity> const& v) const override;
+    std::shared_ptr<DataEntity> GetEntity() const override;
 
    private:
     std::map<std::string, std::shared_ptr<DataNode>> m_table_;
@@ -78,63 +87,133 @@ struct DataNodeTableMemory : public DataNodeTable {
 DataNodeTableMemory::DataNodeTableMemory() {}
 DataNodeTableMemory::~DataNodeTableMemory() {}
 
-std::shared_ptr<DataNode> DataNodeTableMemory::NewChild() const {
+std::shared_ptr<DataNode> DataNodeTableMemory::CreateChild() const {
     auto res = DataNodeTableMemory::New();
     res->m_parent_ = Self();
+    return res;
+}
+std::shared_ptr<DataNode> DataNodeTableMemory::CreateTable() const {
+    auto res = DataNodeTableMemory::New();
+    res->m_parent_ = Self();
+    return res;
+}
+std::shared_ptr<DataNode> DataNodeTableMemory::CreateArray() const {
+    auto res = DataNodeArrayMemory::New();
+    res->m_parent_ = Self();
+    return res;
+}
+std::shared_ptr<DataNode> DataNodeTableMemory::CreateEntity(std::shared_ptr<DataEntity> const& v) const {
+    auto res = DataNodeEntityMemory::New(v);
+    res->m_parent_ = Self();
+    return res;
+};
+std::shared_ptr<DataEntity> DataNodeTableMemory::GetEntity() const {
+    std::shared_ptr<DataEntity> res = nullptr;
+    if (auto p = dynamic_cast<DataNodeEntityMemory const*>(this)) {
+        res = p->GetEntity();
+    } else {
+        res = DataEntity::New();
+    }
     return res;
 }
 size_type DataNodeTableMemory::size() const { return m_table_.size(); }
 
 size_type DataNodeTableMemory::Set(std::string const& uri, std::shared_ptr<DataNode> const& v) {
+    if (uri.empty() || v == nullptr) { return 0; }
+    if (uri[0] == SP_URL_SPLIT_CHAR) { return Root()->Set(uri.substr(1), v); }
+
     size_type count = 0;
-    if (!uri.empty()) {
-        auto pos = uri.find(SP_URL_SPLIT_CHAR);
-        if (pos == 0) {
-            count = Root()->Set(uri.substr(1), v);
+    size_type tail = 0;
+    auto obj = Self();
+    std::string k = uri;
+    while (obj != nullptr) {
+        tail = k.find(SP_URL_SPLIT_CHAR);
+
+        if (tail == std::string::npos) {
+            obj->m_table_[k] = v;
+            count = 1;
+            break;
         } else {
-            auto p = m_table_.emplace(uri.substr(0, pos), New());
-            if (p.second) { p.first->second->m_parent_ = Self(); }
-            if (pos != std::string::npos) {
-                count = p.first->second->Set(uri.substr(pos + 1), v);
-            } else {
-                //                p.first->second->m_table_.clear();
-                //                p.first->second->m_entity_ = v;
-                //                p.first->second->m_node_type_ = DN_ENTITY;
-                //                count = 1;
-            }
+            obj = std::dynamic_pointer_cast<DataNodeTableMemory>(
+                obj->m_table_.emplace(k.substr(0, tail), NewTable()).first->second);
+            k = k.substr(tail + 1);
         }
     }
+
     return count;
+
+    //    size_type count = 0;
+    //    if (uri.empty()) { return 0; }
+    //    auto pos = uri.find(SP_URL_SPLIT_CHAR);
+    //    if (pos == 0) {
+    //        count = Root()->Set(uri.substr(1), v);
+    //    } else {
+    //        auto p = m_table_.emplace(uri.substr(0, pos), New());
+    //        if (p.second) { p.first->second->m_parent_ = Self(); }
+    //        if (pos != std::string::npos) {
+    //            count = p.first->second->Set(uri.substr(pos + 1), v);
+    //        } else {
+    //            //                p.first->second->m_table_.clear();
+    //            //                p.first->second->m_entity_ = v;
+    //            //                p.first->second->m_node_type_ = DN_ENTITY;
+    //            //                count = 1;
+    //        }
+    //    }
 }
 size_type DataNodeTableMemory::Add(std::string const& uri, std::shared_ptr<DataNode> const& v) {
-    //    return base_type::Add(uri, v);
+    if (uri.empty() || v == nullptr) { return 0; }
+    if (uri[0] == SP_URL_SPLIT_CHAR) { return Root()->Set(uri.substr(1), v); }
+
     size_type count = 0;
-    if (!uri.empty()) {
-        auto pos = uri.find(SP_URL_SPLIT_CHAR);
-        if (pos == 0) {
-            count = Root()->Add(uri.substr(1), v);
+    size_type tail = 0;
+    std::shared_ptr<DataNode> obj = Self();
+    std::string k = uri;
+    while (obj != nullptr) {
+        auto p = std::dynamic_pointer_cast<DataNodeTableMemory>(obj);
+        if (p == nullptr) { break; }
+        tail = k.find(SP_URL_SPLIT_CHAR);
+
+        if (tail == std::string::npos) {
+            obj = p->m_table_.emplace(k, NewArray()).first->second;
+            std::dynamic_pointer_cast<DataNodeArrayMemory>(obj)->PushBack(v);
+            count = 1;
+            break;
         } else {
-            auto res = m_table_.emplace(uri.substr(0, pos), New());
-            if (res.second) { res.first->second->m_parent_ = Self(); }
-            if (pos != std::string::npos) {
-                count = res.first->second->Add(uri.substr(pos), v);
-            } else {
-                //                if (m_entity_ != nullptr) {
-                //                    res.first->second->Set("0", m_entity_);
-                //                    m_entity_.reset();
-                //                }
-                //                res.first->second->Set(std::to_string(res.first->second->m_table_.size()), v);
-                //                res.first->second->m_node_type_ = DN_ARRAY;
-                count = 1;
-            }
+            obj = std::dynamic_pointer_cast<DataNodeTableMemory>(obj)
+                      ->m_table_.emplace(k.substr(0, tail), NewTable())
+                      .first->second;
+            k = k.substr(tail + 1);
         }
     }
     return count;
+    //    return base_type::Add(uri, v);
+    //    size_type count = 0;
+    //    if (!uri.empty()) {
+    //        auto pos = uri.find(SP_URL_SPLIT_CHAR);
+    //        if (pos == 0) {
+    //            count = Root()->Add(uri.substr(1), v);
+    //        } else {
+    //            auto res = m_table_.emplace(uri.substr(0, pos), New());
+    //            if (res.second) { res.first->second->m_parent_ = Self(); }
+    //            if (pos != std::string::npos) {
+    //                count = res.first->second->Add(uri.substr(pos), v);
+    //            } else {
+    //                //                if (m_entity_ != nullptr) {
+    //                //                    res.first->second->Set("0", m_entity_);
+    //                //                    m_entity_.reset();
+    //                //                }
+    //                //                res.first->second->Set(std::to_string(res.first->second->m_table_.size()), v);
+    //                //                res.first->second->m_node_type_ = DN_ARRAY;
+    //                count = 1;
+    //            }
+    //        }
+    //    }
+    //    return count;
 }
-std::shared_ptr<const DataNode> DataNodeTableMemory::Get(std::string const& uri) const {
+std::shared_ptr<DataNode> DataNodeTableMemory::Get(std::string const& uri) const {
     if (uri.empty()) { return nullptr; }
 
-    std::shared_ptr<const DataNode> res = nullptr;
+    std::shared_ptr<DataNode> res = nullptr;
 
     auto pos = uri.find(SP_URL_SPLIT_CHAR);
     if (pos == 0) {
@@ -170,7 +249,7 @@ size_type DataNodeTableMemory::Delete(std::string const& uri) {
     return count;
 }
 size_type DataNodeTableMemory::Foreach(
-    std::function<size_type(std::string, std::shared_ptr<const DataNode>)> const& f) const {
+    std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& f) const {
     size_type count = 0;
     for (auto const& item : m_table_) { count += f(item.first, item.second); }
     return count;
@@ -179,22 +258,22 @@ size_type DataNodeTableMemory::Foreach(
 DataNodeMemory::DataNodeMemory() {}
 DataNodeMemory::~DataNodeMemory() {}
 std::shared_ptr<DataNode> DataNodeMemory::New() { return DataNodeTableMemory::New(); }
-std::shared_ptr<DataNodeEntity> DataNodeMemory::NewEntity(std::shared_ptr<DataEntity> const& v) const {
+std::shared_ptr<DataNode> DataNodeMemory::CreateEntity(std::shared_ptr<DataEntity> const& v) const {
     auto res = DataNodeEntityMemory::New(v);
     res->m_parent_ = Self();
     return res;
 }
-std::shared_ptr<DataNodeTable> DataNodeMemory::NewTable() const {
+std::shared_ptr<DataNode> DataNodeMemory::CreateTable() const {
     auto res = DataNodeTableMemory::New();
     res->m_parent_ = Self();
     return res;
 }
-std::shared_ptr<DataNodeArray> DataNodeMemory::NewArray() const {
+std::shared_ptr<DataNode> DataNodeMemory::CreateArray() const {
     auto res = DataNodeArrayMemory::New();
     res->m_parent_ = Self();
     return res;
 }
-std::shared_ptr<DataNodeFunction> DataNodeMemory::NewFunction() const {
+std::shared_ptr<DataNode> DataNodeMemory::CreateFunction() const {
     auto res = DataNodeFunctionMemory::New();
     res->m_parent_ = Self();
     return res;

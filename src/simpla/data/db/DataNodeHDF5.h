@@ -22,6 +22,7 @@ struct DataNodeHDF5 : public DataNode {
     bool isValid() const override;
     int Flush() override;
     void Clear() override;
+
     SP_DATA_NODE_FUNCTION;
 
    private:

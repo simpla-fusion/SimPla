@@ -96,27 +96,28 @@ TEST_P(DataBaseTest, light_data_multilevel) {
     std::cout << m_url << " : " << (*db) << std::endl;
 }
 TEST_P(DataBaseTest, light_data_keyvalue) {
-    (*db)["i"] = {"default"_, "abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"};
-    (*db)["a"] = {"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
-                  "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}};
+    db->SetValue("i", {"default"_, "abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
+    db->SetValue("a",
+                 {"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
+                  "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}});
     //    (*db)["h"] = {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}};
-    (*db)["nest"] = {"abc"_ = {"abc1"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}};
+    db->SetValue("nest", {"abc"_ = {"abc1"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
     EXPECT_TRUE(db->Check("a/a"));
     EXPECT_FALSE(db->Check("a/not_debug"));
     std::cout << m_url << " : " << (*db) << std::endl;
 }
 
-// TEST_P(DataBaseTest, light_data_AddValue) {
-//    db->AddValue("a", {0, 5, 3, 4});
-//    db->AddValue("a", {1, 5, 3, 4});
-//
-//    db->Flush();
-//    std::cout << m_url << " : " << (*db) << std::endl;
-//
-//    EXPECT_EQ((db->GetValue<nTuple<int, 4>>("a/1", nTuple<int, 4>{0, 0, 0, 0})), (nTuple<int, 4>{1, 5, 3, 4}));
-//    EXPECT_EQ((db->GetValue<nTuple<int, 2, 4>>("a", nTuple<int, 2, 4>{{0, 0, 0, 0}, {0, 0, 0, 0}})),
-//              (nTuple<int, 2, 4>{{0, 5, 3, 4}, {1, 5, 3, 4}}));
-//}
+TEST_P(DataBaseTest, light_data_AddValue) {
+    db->AddValue("a", {0, 5, 3, 4});
+    db->AddValue("a", {1, 5, 3, 4});
+
+    db->Flush();
+    std::cout << m_url << " : " << (*db) << std::endl;
+
+    EXPECT_EQ((db->GetValue<nTuple<int, 4>>("a/1", nTuple<int, 4>{0, 0, 0, 0})), (nTuple<int, 4>{1, 5, 3, 4}));
+    EXPECT_EQ((db->GetValue<nTuple<int, 2, 4>>("a", nTuple<int, 2, 4>{{0, 0, 0, 0}, {0, 0, 0, 0}})),
+              (nTuple<int, 2, 4>{{0, 5, 3, 4}, {1, 5, 3, 4}}));
+}
 // TEST_P(DataBaseTest, block_data) {
 //    auto db = DataNode::New(m_url);
 //}

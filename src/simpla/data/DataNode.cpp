@@ -32,6 +32,53 @@ std::shared_ptr<DataNode> DataNode::New(std::string const& s) {
     }
     return res;
 };
+
+std::shared_ptr<DataNode> DataNode::NewEntity(std::string const& uri, std::shared_ptr<DataEntity> const& v) {
+    return New(uri)->CreateEntity(v);
+}
+std::shared_ptr<DataNode> DataNode::NewTable(std::string const& uri) { return New(uri)->CreateTable(); }
+std::shared_ptr<DataNode> DataNode::NewArray(std::string const& uri) { return New(uri)->CreateArray(); }
+std::shared_ptr<DataNode> DataNode::NewFunction(std::string const& uri) { return New(uri)->CreateFunction(); }
+
+KeyValue::KeyValue(std::string k) : m_key_(std::move(k)), m_node_(DataNode::NewEntity("", DataLight::New(true))) {}
+KeyValue::KeyValue(KeyValue const& other) : m_key_(other.m_key_), m_node_(other.m_node_) {}
+KeyValue::KeyValue(KeyValue&& other) noexcept : m_key_(other.m_key_), m_node_(other.m_node_) {}
+KeyValue::~KeyValue() = default;
+KeyValue& KeyValue::operator=(KeyValue const& other) {
+    m_node_ = DataNode::NewTable();
+    m_node_->Set(other.m_key_, other.m_node_);
+
+    return *this;
+}
+
+template <typename U>
+std::shared_ptr<DataNode> make_node(U const& u) {
+    return DataNode::NewEntity(DataLight::New(u));
+}
+std::shared_ptr<DataNode> make_node(std::initializer_list<KeyValue> const& u) {
+    auto t = DataNode::NewTable();
+    for (auto const& v : u) { t->Set(v.m_key_, v.m_node_); }
+    return t;
+}
+template <typename U>
+std::shared_ptr<DataNode> make_node(std::initializer_list<U> const& u) {
+    auto t = DataNode::NewArray();
+    for (auto const& v : u) { t->Add("", make_node(v)); }
+    return t;
+}
+
+KeyValue& KeyValue::operator=(std::initializer_list<KeyValue> const& u) {
+    m_node_ = make_node(u);
+    return *this;
+}
+KeyValue& KeyValue::operator=(std::initializer_list<std::initializer_list<KeyValue>> const& u) {
+    m_node_ = make_node(u);
+    return *this;
+}
+KeyValue& KeyValue::operator=(std::initializer_list<std::initializer_list<std::initializer_list<KeyValue>>> const& u) {
+    m_node_ = make_node(u);
+    return *this;
+}
 // size_type DataNode::Set(std::string const& uri, std::shared_ptr<const DataNode> const& v) {
 //    //    if (auto p = Get(uri)) {
 //    //        if (p->type() == DN_ENTITY) { Delete(uri); }
@@ -63,41 +110,53 @@ std::istream& DataNode::Parse(std::istream& is) {
     return is;
 }
 std::ostream& DataNode::Print(std::ostream& os, int indent) const {
-    if (auto* p = dynamic_cast<DataNodeEntity const*>(this)) {
-        p->GetEntity()->Print(os, indent + 1);
-    } else if (auto* p = dynamic_cast<DataNodeArray const*>(this)) {
-        bool new_line = this->size() > 1;
-        os << "[";
-        if (p->size() > 0) {
-            p->Get(0)->Print(os, indent + 1);
-            for (size_type i = 1, ie = p->size(); i < ie; ++i) {
-                auto v = p->Get(i);
-                os << ", ";
-                if (new_line && v->type() != DataNode::DN_ENTITY) { os << std::endl << std::setw(indent + 1) << " "; }
-                p->Get(i)->Print(os, indent + 1);
+    switch (type()) {
+        case DN_ENTITY: {
+            GetEntity()->Print(os, indent + 1);
+        } break;
+        case DN_ARRAY: {
+            bool new_line = this->size() > 1;
+            os << "[";
+            if (this->size() > 0) {
+                this->Get(0)->Print(os, indent + 1);
+                for (size_type i = 1, ie = this->size(); i < ie; ++i) {
+                    auto v = this->Get(i);
+                    os << ", ";
+                    if (new_line && v->type() != DataNode::DN_ENTITY) {
+                        os << std::endl << std::setw(indent + 1) << " ";
+                    }
+                    this->Get(i)->Print(os, indent + 1);
+                }
             }
-        }
-        os << "]";
-    } else if (auto* p = dynamic_cast<DataNodeTable const*>(this)) {
-        os << "{ ";
-        bool is_first = true;
-        bool new_line = this->size() > 1;
-        this->Foreach([&](auto k, auto v) {
-            ASSERT(v != nullptr);
-            if (is_first) {
-                is_first = false;
-            } else {
-                os << ", ";
-            }
-            if (new_line) { os << std::endl << std::setw(indent + 1) << " "; }
-            FancyPrint(os, k, indent);
-            os << " = ";
-            v->Print(os, indent + 1);
-            return 1;
-        });
+            os << "]";
+        } break;
+        case DN_TABLE: {
+            os << "{ ";
+            bool is_first = true;
+            bool new_line = this->size() > 1;
+            this->Foreach([&](auto k, auto v) {
+                ASSERT(v != nullptr);
+                if (is_first) {
+                    is_first = false;
+                } else {
+                    os << ", ";
+                }
+                if (new_line) { os << std::endl << std::setw(indent + 1) << " "; }
+                FancyPrint(os, k, indent);
+                os << " = ";
+                v->Print(os, indent + 1);
+                return 1;
+            });
 
-        if (new_line) { os << std::endl << std::setw(indent) << " "; }
-        os << "}";
+            if (new_line) { os << std::endl << std::setw(indent) << " "; }
+            os << "}";
+        } break;
+        case DN_FUNCTION:
+            os << "<FUNCTION>";
+            break;
+        default:
+            os << "<N/A>";
+            break;
     }
 
     return os;
@@ -106,25 +165,25 @@ std::ostream& operator<<(std::ostream& os, DataNode const& entry) { return entry
 
 DataNode::eNodeType DataNode::type() const { return DN_NULL; }
 size_type DataNode::size() const { return 0; }
-std::shared_ptr<DataNode> DataNode::NewChild() const {
+std::shared_ptr<DataNode> DataNode::CreateChild() const {
     DOMAIN_ERROR;
     return nullptr;
 };
 
-std::shared_ptr<DataNodeEntity> DataNode::NewEntity(std::shared_ptr<DataEntity> const& v) const {
+std::shared_ptr<DataNode> DataNode::CreateEntity(std::shared_ptr<DataEntity> const& v) const {
     DOMAIN_ERROR;
     return nullptr;
 }
 
-std::shared_ptr<DataNodeTable> DataNode::NewTable() const {
+std::shared_ptr<DataNode> DataNode::CreateTable() const {
     DOMAIN_ERROR;
     return nullptr;
 };
-std::shared_ptr<DataNodeArray> DataNode::NewArray() const {
+std::shared_ptr<DataNode> DataNode::CreateArray() const {
     DOMAIN_ERROR;
     return nullptr;
 };
-std::shared_ptr<DataNodeFunction> DataNode::NewFunction() const {
+std::shared_ptr<DataNode> DataNode::CreateFunction() const {
     DOMAIN_ERROR;
     return nullptr;
 };
@@ -141,34 +200,49 @@ size_type DataNode::Delete(std::string const& s) {
     DOMAIN_ERROR;
     return 0;
 }
-std::shared_ptr<const DataNode> DataNode::Get(std::string const& uri) const {
+std::shared_ptr<DataNode> DataNode::Get(std::string const& uri) const {
     DOMAIN_ERROR;
     return nullptr;
 }
-size_type DataNode::Foreach(std::function<size_type(std::string, std::shared_ptr<const DataNode>)> const& f) const {
+size_type DataNode::Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& f) const {
     DOMAIN_ERROR;
     return 0;
 }
-size_type DataNode::Set(size_type s, std::shared_ptr<DataNode> const& v) {
-    DOMAIN_ERROR;
-    return 0;
-}
-size_type DataNode::Add(size_type s, std::shared_ptr<DataNode> const& v) {
-    DOMAIN_ERROR;
-    return 0;
-}
-size_type DataNode::Delete(size_type s) {
-    DOMAIN_ERROR;
-    return 0;
-}
-std::shared_ptr<const DataNode> DataNode::Get(size_type s) const {
-    DOMAIN_ERROR;
-    return nullptr;
-}
+size_type DataNode::Set(size_type s, std::shared_ptr<DataNode> const& v) { return Set(std::to_string(s), v); }
+size_type DataNode::Add(size_type s, std::shared_ptr<DataNode> const& v) { return Add(std::to_string(s), v); }
+size_type DataNode::Delete(size_type s) { return Delete(std::to_string(s)); }
+std::shared_ptr<DataNode> DataNode::Get(size_type s) const { return Get(std::to_string(s)); }
 
 std::shared_ptr<DataEntity> DataNode::GetEntity() const {
     DOMAIN_ERROR;
     return nullptr;
+};
+
+size_type DataNode::SetValue(std::string const& url, KeyValue const& v) {
+    return Set(url + "/" + v.m_key_, v.m_node_);
+};
+size_type DataNode::SetValue(std::string const& url, std::initializer_list<KeyValue> const& v) {
+    size_type count = 0;
+    for (auto const& kv : v) { count += SetValue(url, kv); }
+    return count;
+};
+size_type DataNode::SetValue(std::string const& url, std::initializer_list<std::initializer_list<KeyValue>> const& v) {
+    size_type count = 0;
+    for (auto const& kv : v) { count += SetValue(url, kv); }
+    return count;
+};
+size_type DataNode::AddValue(std::string const& url, KeyValue const& v) {
+    return AddValue(url + "/" + v.m_key_, v.m_node_);
+};
+size_type DataNode::AddValue(std::string const& url, std::initializer_list<KeyValue> const& v) {
+    size_type count = 0;
+    for (auto const& kv : v) { count += AddValue(url, kv); }
+    return count;
+};
+size_type DataNode::AddValue(std::string const& url, std::initializer_list<std::initializer_list<KeyValue>> const& v) {
+    size_type count = 0;
+    for (auto const& kv : v) { count += AddValue(url, kv); }
+    return count;
 };
 
 //    static std::regex const sub_group_regex(R"(([^/?#]+)/)", std::regex::optimize);
