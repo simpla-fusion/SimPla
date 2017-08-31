@@ -1,7 +1,6 @@
 //
 // Created by salmon on 17-8-13.
 //
-#include "DataNodeXDMF.h"
 #include <sys/stat.h>
 #include <Xdmf.hpp>
 #include <XdmfDomain.hpp>
@@ -11,6 +10,19 @@
 
 namespace simpla {
 namespace data {
+
+struct DataNodeXDMF : public DataNode {
+    SP_DEFINE_FANCY_TYPE_NAME(DataNodeXDMF, DataNode)
+    SP_DATA_NODE_HEAD(DataNodeXDMF);
+    SP_DATA_NODE_FUNCTION(DataNodeXDMF);
+
+    int Connect(std::string const& authority, std::string const& path, std::string const& query,
+                std::string const& fragment) override;
+    int Disconnect() override;
+    bool isValid() const override;
+
+   private:
+};
 REGISTER_CREATOR(DataNodeXDMF, xmf);
 
 //
@@ -41,32 +53,24 @@ REGISTER_CREATOR(DataNodeXDMF, xmf);
 //    ++m_counter_;
 //    return 0;
 //}
-struct DataNodeXDMF::pimpl_s {
-    std::string m_name_;
-    std::shared_ptr<DataNodeXDMF> m_parent_ = nullptr;
-    std::shared_ptr<XdmfItem> m_self_;
-};
-DataNodeXDMF::DataNodeXDMF() : m_pimpl_(new pimpl_s) {}
-DataNodeXDMF::~DataNodeXDMF() { delete m_pimpl_; }
-// bool DataNodeXDMF::isValid() const { return true; }
-// int DataNodeXDMF::Connect(std::string const& authority, std::string const& path, std::string const& query,
-//                          std::string const& fragment) {
-//    //    m_pimpl_->m_node_->Connect(authority, path, query, fragment);
-//    return SP_SUCCESS;
-//}
-//
-// int DataNodeXDMF::Disconnect() { return SP_SUCCESS; }
-//
-// int DataNodeXDMF::Flush() { return 0; }
-std::shared_ptr<DataNode> DataNodeXDMF::CreateChild() const { return nullptr; }
+
+DataNodeXDMF::DataNodeXDMF(DataNode::eNodeType etype) : DataNode(etype) {}
+DataNodeXDMF::~DataNodeXDMF() = default;
+bool DataNodeXDMF::isValid() const { return true; }
+int DataNodeXDMF::Connect(std::string const& authority, std::string const& path, std::string const& query,
+                          std::string const& fragment) {
+    return SP_SUCCESS;
+}
+
+int DataNodeXDMF::Disconnect() { return SP_SUCCESS; }
+std::shared_ptr<DataNode> DataNodeXDMF::CreateNode(DataNode::eNodeType etype) const { return nullptr; }
 
 size_type DataNodeXDMF::size() const { return 0; }
-DataNode::eNodeType DataNodeXDMF::type() const { return DN_NULL; }
-
+size_type DataNodeXDMF::SetEntity(std::shared_ptr<simpla::data::DataEntity> const& v) { return 0; }
+std::shared_ptr<DataEntity> DataNodeXDMF::GetEntity() const { return nullptr; }
 size_type DataNodeXDMF::Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& fun) const {
     return 0;
 }
-std::shared_ptr<DataEntity> DataNodeXDMF::GetEntity() const { return nullptr; }
 
 size_type DataNodeXDMF::Set(std::string const& url, std::shared_ptr<DataNode> const& v) { return 0; }
 size_type DataNodeXDMF::Add(std::string const& url, std::shared_ptr<DataNode> const& v) { return 0; }

@@ -12,9 +12,11 @@
 
 namespace simpla {
 namespace data {
-
-std::shared_ptr<DataNode> DataNode::New(std::string const& s) {
-    if (DataNode::s_num_of_pre_registered_ == 0) { RUNTIME_ERROR << "No database is registered!" << s << std::endl; }
+DataNode::DataNode(eNodeType etype) : m_type_(etype) {}
+DataNode::~DataNode(){};
+std::shared_ptr<DataNode> DataNode::New(eNodeType e_type, std::string const& s) {
+    //    if (DataNode::s_num_of_pre_registered_ == 0) { RUNTIME_ERROR << "No database is registered!" << s <<
+    //    std::endl; }
     std::string uri = s.empty() ? "mem://" : s;
 
     std::string scheme;
@@ -30,41 +32,38 @@ std::shared_ptr<DataNode> DataNode::New(std::string const& s) {
         RUNTIME_ERROR << "Fail to connect  Data Backend [ " << scheme << " : " << authority << path << " ]"
                       << std::endl;
     }
+    if (e_type != DN_TABLE) { res = res->CreateNode(e_type); }
     return res;
 };
 
-std::shared_ptr<DataNode> DataNode::NewEntity(std::string const& uri, std::shared_ptr<DataEntity> const& v) {
-    return New(uri)->CreateEntity(v);
+KeyValue::KeyValue(std::string k) : m_key_(std::move(k)), m_node_(DataNode::New(DataNode::DN_ENTITY, "")) {
+    m_node_->SetEntity(DataLight::New(true));
 }
-std::shared_ptr<DataNode> DataNode::NewTable(std::string const& uri) { return New(uri)->CreateTable(); }
-std::shared_ptr<DataNode> DataNode::NewArray(std::string const& uri) { return New(uri)->CreateArray(); }
-std::shared_ptr<DataNode> DataNode::NewFunction(std::string const& uri) { return New(uri)->CreateFunction(); }
-
-KeyValue::KeyValue(std::string k) : m_key_(std::move(k)), m_node_(DataNode::NewEntity("", DataLight::New(true))) {}
 KeyValue::KeyValue(KeyValue const& other) : m_key_(other.m_key_), m_node_(other.m_node_) {}
 KeyValue::KeyValue(KeyValue&& other) noexcept : m_key_(other.m_key_), m_node_(other.m_node_) {}
 KeyValue::~KeyValue() = default;
 KeyValue& KeyValue::operator=(KeyValue const& other) {
-    m_node_ = DataNode::NewTable();
+    m_node_ = DataNode::New(DataNode::DN_TABLE, "");
     m_node_->Set(other.m_key_, other.m_node_);
-
     return *this;
 }
 
 template <typename U>
 std::shared_ptr<DataNode> make_node(U const& u) {
-    return DataNode::NewEntity(DataLight::New(u));
+    auto res = DataNode::New(DataNode::DN_ENTITY, "");
+    res->SetEntity(DataLight::New(u));
+    return res;
 }
 std::shared_ptr<DataNode> make_node(std::initializer_list<KeyValue> const& u) {
-    auto t = DataNode::NewTable();
-    for (auto const& v : u) { t->Set(v.m_key_, v.m_node_); }
-    return t;
+    auto res = DataNode::New(DataNode::DN_TABLE, "");
+    for (auto const& v : u) { res->Set(v.m_key_, v.m_node_); }
+    return res;
 }
 template <typename U>
 std::shared_ptr<DataNode> make_node(std::initializer_list<U> const& u) {
-    auto t = DataNode::NewArray();
-    for (auto const& v : u) { t->Add("", make_node(v)); }
-    return t;
+    auto res = DataNode::New(DataNode::DN_ENTITY, "");
+    //    res->SetEntity(DataLightT<U*>::New(u));
+    return res;
 }
 
 KeyValue& KeyValue::operator=(std::initializer_list<KeyValue> const& u) {
@@ -163,30 +162,15 @@ std::ostream& DataNode::Print(std::ostream& os, int indent) const {
 }
 std::ostream& operator<<(std::ostream& os, DataNode const& entry) { return entry.Print(os, 0); }
 
-DataNode::eNodeType DataNode::type() const { return DN_NULL; }
+DataNode::eNodeType DataNode::type() const { return m_type_; }
 size_type DataNode::size() const { return 0; }
-std::shared_ptr<DataNode> DataNode::CreateChild() const {
-    DOMAIN_ERROR;
-    return nullptr;
-};
+std::shared_ptr<DataNode> DataNode::CreateNode(eNodeType e_type) const { return DataNode::New(e_type, ""); };
 
 std::shared_ptr<DataNode> DataNode::CreateEntity(std::shared_ptr<DataEntity> const& v) const {
-    DOMAIN_ERROR;
-    return nullptr;
+    auto res = CreateNode(DN_ENTITY);
+    res->SetEntity(v);
+    return res;
 }
-
-std::shared_ptr<DataNode> DataNode::CreateTable() const {
-    DOMAIN_ERROR;
-    return nullptr;
-};
-std::shared_ptr<DataNode> DataNode::CreateArray() const {
-    DOMAIN_ERROR;
-    return nullptr;
-};
-std::shared_ptr<DataNode> DataNode::CreateFunction() const {
-    DOMAIN_ERROR;
-    return nullptr;
-};
 
 size_type DataNode::Set(std::string const& uri, std::shared_ptr<DataNode> const& v) {
     DOMAIN_ERROR;

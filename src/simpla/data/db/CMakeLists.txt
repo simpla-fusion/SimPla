@@ -19,19 +19,13 @@ ENDIF (LUA_FOUND)
 SET(database_SRC
         DataNodeExt.h
         DataNodeMemory.cpp
-        DataNodeMemory.h
         DataNodeLua.cpp
-        DataNodeLua.h
         DataNodeHDF5.cpp
-        DataNodeHDF5.h
-        DataNodeXDMF.h
         DataNodeXDMF.cpp
-        DataNodeIMAS.h
         DataNodeIMAS.cpp
         LuaObject.cpp
         LuaObject.h
         LuaObjectExt.h
-        DataBasePreRegister.cpp
         )
 ADD_LIBRARY(database ${database_SRC})
 target_include_directories(database BEFORE PRIVATE

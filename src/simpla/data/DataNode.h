@@ -27,29 +27,33 @@ template <typename U>
 bool EqualTo(U const& dst, std::shared_ptr<const DataNode> const& src);
 
 class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<DataNode> {
-    SP_OBJECT_BASE(DataNode);
-    static int s_num_of_pre_registered_;
+    SP_DEFINE_FANCY_TYPE_NAME(DataNode, Factory<DataNode>);
 
-   protected:
    public:
-    std::shared_ptr<DataNode> m_parent_ = nullptr;
-
-    enum { RECURSIVE = 0b01, NEW_IF_NOT_EXIST = 0b010, ADD_IF_EXIST = 0b100, ONLY_TABLE = 0b1000 };
     enum eNodeType { DN_NULL = 0, DN_ENTITY = 1, DN_TABLE = 2, DN_ARRAY = 3, DN_FUNCTION = 4 };
 
-    static std::shared_ptr<DataNode> New(std::string const& uri = "");
-    static std::shared_ptr<DataNode> NewEntity(std::string const& uri, std::shared_ptr<DataEntity> const&);
-    static std::shared_ptr<DataNode> NewTable(std::string const& uri = "");
-    static std::shared_ptr<DataNode> NewArray(std::string const& uri = "");
-    static std::shared_ptr<DataNode> NewFunction(std::string const& uri = "");
+   protected:
+    //    static int s_num_of_pre_registered_;
+    const eNodeType m_type_;
+
+    explicit DataNode(eNodeType etype = DN_TABLE);
+
+   public:
+    ~DataNode() override;
+
+    static std::shared_ptr<DataNode> New(eNodeType e_type = DN_TABLE, std::string const& uri = "");
+    eNodeType type() const;
+
+    std::shared_ptr<DataNode> CreateEntity(std::shared_ptr<DataEntity> const&) const;
+    std::shared_ptr<DataNode> GetRoot() const {
+        return GetParent() == nullptr ? const_cast<DataNode*>(this)->shared_from_this() : GetParent();
+    }
+    void SetParent(std::shared_ptr<DataNode>) {}
+    std::shared_ptr<DataNode> GetParent() const { return nullptr; }
     /** @addtogroup required @{*/
-    virtual eNodeType type() const;
+    virtual std::shared_ptr<DataNode> CreateNode(eNodeType e_type) const;
+
     virtual size_type size() const;
-    virtual std::shared_ptr<DataNode> CreateChild() const;
-    virtual std::shared_ptr<DataNode> CreateEntity(std::shared_ptr<DataEntity> const&) const;
-    virtual std::shared_ptr<DataNode> CreateTable() const;
-    virtual std::shared_ptr<DataNode> CreateArray() const;
-    virtual std::shared_ptr<DataNode> CreateFunction() const;
 
     virtual std::shared_ptr<DataEntity> GetEntity() const;
     virtual size_type SetEntity(const std::shared_ptr<DataEntity>&);
@@ -80,13 +84,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     virtual int Disconnect() { return 0; };
     virtual bool isValid() const { return true; }
     virtual int Flush() { return 0; }
-
     virtual void Clear() {}
-
-    virtual std::shared_ptr<DataNode> GetRoot() const {
-        return GetParent() == nullptr ? const_cast<DataNode*>(this)->shared_from_this() : GetParent();
-    }
-    virtual std::shared_ptr<DataNode> GetParent() const { return nullptr; }
 
     /**@ } */
 
@@ -215,24 +213,28 @@ struct KeyValue {
 
     template <typename U>
     KeyValue& operator=(U const& u) {
-        m_node_ = DataNode::NewEntity("", DataLight::New(u));
+        m_node_ = DataNode::New(DataNode::DN_ENTITY, "");
+        m_node_->SetEntity(DataLight::New(u));
         return *this;
     }
 
     template <typename U>
     KeyValue& operator=(std::initializer_list<U> const& u) {
-        m_node_ = DataNode::NewEntity("", DataLight::New(u));
+        m_node_ = DataNode::New(DataNode::DN_ENTITY, "");
+        m_node_->SetEntity(DataLight::New(u));
         return *this;
     }
 
     template <typename U>
     KeyValue& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
-        m_node_ = DataNode::NewEntity("", DataLight::New(u));
+        m_node_ = DataNode::New(DataNode::DN_ENTITY, "");
+        m_node_->SetEntity(DataLight::New(u));
         return *this;
     }
     template <typename U>
     KeyValue& operator=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-        m_node_ = DataNode::NewEntity("", DataLight::New(u));
+        m_node_ = DataNode::New(DataNode::DN_ENTITY, "");
+        m_node_->SetEntity(DataLight::New(u));
         return *this;
     }
 };
@@ -240,16 +242,7 @@ struct KeyValue {
 inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue(std::string(c)); }
 
 #define SP_DATA_NODE_HEAD(_CLASS_NAME_)                                                                              \
-   protected:                                                                                                        \
-    _CLASS_NAME_();                                                                                                  \
-                                                                                                                     \
    public:                                                                                                           \
-    ~_CLASS_NAME_();                                                                                                 \
-    explicit _CLASS_NAME_(_CLASS_NAME_ const& other) = delete;                                                       \
-    explicit _CLASS_NAME_(_CLASS_NAME_&& other) = delete;                                                            \
-    _CLASS_NAME_& operator=(_CLASS_NAME_ const& other) = delete;                                                     \
-    _CLASS_NAME_& operator=(_CLASS_NAME_&& other) = delete;                                                          \
-                                                                                                                     \
     template <typename... Args>                                                                                      \
     static std::shared_ptr<this_type> New(Args&&... args) {                                                          \
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));                               \
@@ -266,13 +259,24 @@ inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue(std
         return std::dynamic_pointer_cast<this_type>(const_cast<this_type*>(this)->GetParent());                      \
     };
 
-#define SP_DATA_NODE_FUNCTION                                                                                    \
-    eNodeType type() const override;                                                                             \
+#define SP_DATA_NODE_FUNCTION(_CLASS_NAME_)                                                                      \
+   protected:                                                                                                    \
+    explicit _CLASS_NAME_(DataNode::eNodeType etype = DataNode::DN_TABLE);                                       \
+                                                                                                                 \
+   public:                                                                                                       \
+    explicit _CLASS_NAME_(_CLASS_NAME_ const& other) = delete;                                                   \
+    explicit _CLASS_NAME_(_CLASS_NAME_&& other) = delete;                                                        \
+    _CLASS_NAME_& operator=(_CLASS_NAME_ const& other) = delete;                                                 \
+    _CLASS_NAME_& operator=(_CLASS_NAME_&& other) = delete;                                                      \
+                                                                                                                 \
+    ~_CLASS_NAME_() override;                                                                                    \
+                                                                                                                 \
+    std::shared_ptr<DataNode> CreateNode(eNodeType e_type) const override;                                       \
+                                                                                                                 \
     size_type size() const override;                                                                             \
                                                                                                                  \
-    std::shared_ptr<DataNode> CreateChild() const override;                                                      \
-                                                                                                                 \
     std::shared_ptr<DataEntity> GetEntity() const override;                                                      \
+    size_type SetEntity(const std::shared_ptr<DataEntity>&) override;                                            \
                                                                                                                  \
     size_type Set(std::string const& uri, std::shared_ptr<DataNode> const& v) override;                          \
     size_type Add(std::string const& uri, std::shared_ptr<DataNode> const& v) override;                          \
@@ -350,7 +354,7 @@ size_type _CopyFromData(U& dst, std::shared_ptr<const DataNode> const& src, ENAB
 
 template <typename U>
 size_type _CopyToData(std::shared_ptr<DataNode> dst, U const& src, ENABLE_IF(std::rank<U>::value == 0)) {
-    if (dst == nullptr) { return false; }
+    if (dst == nullptr) { return 0; }
     static auto snan = std::numeric_limits<U>::signaling_NaN();
     size_type count = 0;
     switch (src->type()) {

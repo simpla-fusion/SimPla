@@ -128,13 +128,13 @@ void SPObject::Finalize() {
 };
 
 std::ostream &operator<<(std::ostream &os, SPObject const &obj) {
-    auto db = data::DataNode::New();
+    auto db = data::DataNode::New(DN_TABLE, <#initializer#>);
     obj.Serialize(db);
     std::cout << *db << std::endl;
     return os;
 }
 std::istream &operator>>(std::istream &is, SPObject &obj) {
-    obj.Deserialize(data::DataNode::New(std::string(std::istreambuf_iterator<char>(is), {})));
+    obj.Deserialize(data::DataNode::New(DN_TABLE, std::string(std::istreambuf_iterator<char>(is), {})));
     return is;
 }
 

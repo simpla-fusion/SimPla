@@ -47,7 +47,7 @@ class DataBaseTest : public testing::TestWithParam<std::string> {
     void SetUp() {
         logger::set_stdout_level(logger::LOG_VERBOSE);
         m_url = GetParam();
-        db = DataNode::New(m_url);
+        db = DataNode::New(DataNode::DN_TABLE, m_url);
         //        MESSAGE << " Data URL : \"" << m_url << "\"" << std::endl;
     }
     void TearDown() {}
