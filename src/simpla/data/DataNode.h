@@ -170,20 +170,6 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     bool Check(std::string const& uri) const { return Check(uri, true); }
 
     /** @} */
-    //******************************************************************************************************
-    //   public:
-    //    template <typename U>
-    //    size_type CopyOut(U& res) const {
-    //        return CopyFromData(res, shared_from_this());
-    //    };
-    //    template <typename U>
-    //    size_type CopyIn(U const& dst) {
-    //        return CopyToData(shared_from_this(), dst);
-    //    };
-    //    template <typename U>
-    //    bool isEqualTo(U const& dst) const {
-    //        return EqualTo(dst, shared_from_this());
-    //    };
 
     //******************************************************************************************************
     size_type SetValue(std::string const& s, KeyValue const& v);
@@ -200,7 +186,7 @@ struct KeyValue {
     std::string m_key_;
     std::shared_ptr<DataNode> m_node_;
 
-    KeyValue(std::string k);
+    explicit KeyValue(std::string k);
     KeyValue(KeyValue const& other);
     KeyValue(KeyValue&& other) noexcept;
     ~KeyValue();

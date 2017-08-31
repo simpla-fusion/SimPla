@@ -51,13 +51,15 @@ struct DataNodeHDF5 : public DataNode {
     size_type Add(size_type s, std::shared_ptr<DataNode> const& v) override;
     size_type Delete(size_type s) override;
     std::shared_ptr<DataNode> Get(size_type s) const override;
-//    size_type Add(std::shared_ptr<DataNode> const& v) override;
+    //    size_type Add(std::shared_ptr<DataNode> const& v) override;
 
    private:
     hid_t m_file_ = -1;
     hid_t m_group_ = -1;
     std::string m_key_;
 };
+REGISTER_CREATOR(DataNodeHDF5, h5);
+
 DataNodeHDF5::DataNodeHDF5() : DataNode(DN_NULL) {}
 DataNodeHDF5::DataNodeHDF5(DataNode::eNodeType etype) : DataNode(etype) {}
 DataNodeHDF5::~DataNodeHDF5() {
