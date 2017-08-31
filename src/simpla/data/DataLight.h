@@ -23,7 +23,7 @@ struct DataLight : public DataEntity {
 
    public:
     ~DataLight() override = default;
-    static std::shared_ptr<DataLight> New();
+    static std::shared_ptr<DataLight> New() { return std::shared_ptr<DataLight>(new DataLight); }
 
     template <typename... Args>
     static std::shared_ptr<DataLight> New(Args&&...);
@@ -34,6 +34,7 @@ struct DataLight : public DataEntity {
     size_type extents(size_type* d) const override { return rank(); }
     size_type size() const override { return 0; }
 };
+
 template <typename V, typename Enable = void>
 class DataLightT {};
 

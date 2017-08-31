@@ -19,7 +19,7 @@ ENDIF (LUA_FOUND)
 SET(database_SRC
         DataNodeMemory.cpp
 #        DataNodeLua.cpp
-#        DataNodeHDF5.cpp
+         DataNodeHDF5.cpp
 #        DataNodeXDMF.cpp
 #        DataNodeIMAS.cpp
 #        LuaObject.cpp

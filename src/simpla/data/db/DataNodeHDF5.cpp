@@ -26,7 +26,11 @@ namespace data {
 struct DataNodeHDF5 : public DataNode {
     SP_DEFINE_FANCY_TYPE_NAME(DataNodeHDF5, DataNode)
     SP_DATA_NODE_HEAD(DataNodeHDF5);
-    SP_DATA_NODE_FUNCTION(DataNodeHDF5);
+
+   public:
+    explicit DataNodeHDF5(DataNode::eNodeType etype);
+
+    std::shared_ptr<DataNode> CreateNode(eNodeType e_type) const override;
 
     int Connect(std::string const& authority, std::string const& path, std::string const& query,
                 std::string const& fragment) override;
@@ -40,13 +44,18 @@ struct DataNodeHDF5 : public DataNode {
     hid_t m_file_ = -1;
     hid_t m_group_ = -1;
 };
-
+DataNodeHDF5::DataNodeHDF5() : DataNode(DN_NULL) {}
 DataNodeHDF5::DataNodeHDF5(DataNode::eNodeType etype) : DataNode(etype) {}
 DataNodeHDF5::~DataNodeHDF5() {
     if (m_group_ > -1) { H5_ERROR(H5Gclose(m_group_)); }
     if (m_file_ > -1) { H5_ERROR(H5Fclose(m_file_)); }
 }
-std::shared_ptr<DataNode> DataNodeHDF5::CreateNode(eNodeType e_type) const { return DataNodeHDF5::New(e_type); }
+
+std::shared_ptr<DataNode> DataNodeHDF5::CreateNode(eNodeType e_type) const {
+    auto res = DataNodeHDF5::New(e_type);
+    res->SetParent(Self());
+    return res;
+}
 int DataNodeHDF5::Connect(std::string const& authority, std::string const& path, std::string const& query,
                           std::string const& fragment) {
     Disconnect();

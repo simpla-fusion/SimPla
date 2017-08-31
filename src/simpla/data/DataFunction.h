@@ -20,21 +20,7 @@ struct DataFunction : public DataEntity {
     static std::shared_ptr<DataFunction> New(Args&&... args) {
         return std::shared_ptr<DataFunction>(new DataFunction(std::forward<Args>(args)...));
     }
-    std::type_info const& value_type_info() const override { return typeid(void); };
-    size_type value_alignof() const override { return 0; };
-    size_type value_sizeof() const override { return 0; };
 
-    size_type rank() const override { return 0; }
-    size_type extents(size_type* d) const override { return rank(); }
-    size_type size() const override { return 0; }
-
-    bool isContinue() const override { return false; }
-    size_type GetAlignOf() const override { return size() * value_alignof(); }
-    size_type CopyOut(void* dst) const override { return 0; }
-    size_type CopyIn(void const* src) override { return 0; }
-    void* GetPointer() override { return nullptr; }
-    void const* GetPointer() const override { return nullptr; }
-    bool equal(DataEntity const& other) const override { return false; }
     std::ostream& Print(std::ostream& os, int indent) const override {
         os << "<Function>";
         return os;

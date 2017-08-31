@@ -77,32 +77,7 @@ KeyValue& KeyValue::operator=(std::initializer_list<std::initializer_list<std::i
     m_node_ = make_node(u);
     return *this;
 }
-// size_type DataNode::Set(std::string const& uri, std::shared_ptr<const DataNode> const& v) {
-//    //    if (auto p = Get(uri)) {
-//    //        if (p->type() == DN_ENTITY) { Delete(uri); }
-//    //    }
-//    //    return v == nullptr ? 0 : v->Foreach([&](std::string k, std::shared_ptr<const DataNode> node) {
-//    //        size_type count = 0;
-//    //        if (node->type() == DataNode::DN_ENTITY) {
-//    //            count += Set(uri + "/" + k, node->GetEntity());
-//    //        } else {
-//    //            count += Set(uri + "/" + k, node);
-//    //        }
-//    //        return count;
-//    //    });
-//    return 0;
-//};
-// size_type DataNode::Add(std::string const& uri, std::shared_ptr<const DataNode> const& v) {
-////    return v == nullptr ? 0 : v->Foreach([&](std::string k, std::shared_ptr<const DataNode> node) {
-////        size_type count = 0;
-////        if (node->type() == DataNode::DN_ENTITY) {
-////            count += Add(uri + "/" + k, node->GetEntity());
-////        } else {
-////            count += Add(uri + "/" + k, node);
-////        }
-////        return count;
-////    });
-//};
+
 std::istream& DataNode::Parse(std::istream& is) {
     Parse(std::string(std::istreambuf_iterator<char>(is), {}));
     return is;
