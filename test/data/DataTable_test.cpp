@@ -113,9 +113,8 @@ TEST_P(DataBaseTest, light_data_AddValue) {
     db->Flush();
     std::cout << m_url << " : " << (*db) << std::endl;
 
-    EXPECT_EQ((db->GetValue<nTuple<int, 4>>("a/1", nTuple<int, 4>{0, 0, 0, 0})), (nTuple<int, 4>{1, 5, 3, 4}));
-    EXPECT_EQ((db->GetValue<nTuple<int, 2, 4>>("a", nTuple<int, 2, 4>{{0, 0, 0, 0}, {0, 0, 0, 0}})),
-              (nTuple<int, 2, 4>{{0, 5, 3, 4}, {1, 5, 3, 4}}));
+    EXPECT_EQ((db->GetValue<nTuple<int, 4>>("a/1")), (nTuple<int, 4>{1, 5, 3, 4}));
+    EXPECT_EQ((db->GetValue<nTuple<int, 2, 4>>("a")), (nTuple<int, 2, 4>{{0, 5, 3, 4}, {1, 5, 3, 4}}));
 }
 // TEST_P(DataBaseTest, block_data) {
 //    auto db = DataNode::New(m_url);
