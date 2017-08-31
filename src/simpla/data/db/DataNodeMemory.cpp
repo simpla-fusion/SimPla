@@ -17,46 +17,13 @@ struct DataNodeMemory : public DataNode {
 
    public:
     std::shared_ptr<DataNode> CreateNode(eNodeType e_type) const override;
-
-    //    size_type size() const override;
-    //
-    //    std::shared_ptr<DataEntity> GetEntity() const override;
-    //    size_type SetEntity(const std::shared_ptr<DataEntity>&) override;
-    //
-    //    size_type Set(std::string const& uri, std::shared_ptr<DataNode> const& v) override;
-    //    size_type Add(std::string const& uri, std::shared_ptr<DataNode> const& v) override;
-    //    size_type Delete(std::string const& s) override;
-    //    std::shared_ptr<DataNode> Get(std::string const& uri) const override;
-    //    size_type Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& f) const override;
-    //
-    //    size_type Set(size_type s, std::shared_ptr<DataNode> const& v) override;
-    //    size_type Add(size_type s, std::shared_ptr<DataNode> const& v) override;
-    //    size_type Delete(size_type s) override;
-    //    std::shared_ptr<DataNode> Get(size_type s) const override;
 };
 REGISTER_CREATOR(DataNodeMemory, mem);
 
 DataNodeMemory::DataNodeMemory() : DataNode(DN_NULL) {}
 DataNodeMemory::DataNodeMemory(DataNode::eNodeType etype) : DataNode(etype) {}
 DataNodeMemory::~DataNodeMemory() = default;
-//
-// size_type DataNodeMemory::size() const { return 0; }
-//
-// std::shared_ptr<DataEntity> DataNodeMemory::GetEntity() const { return nullptr; }
-// size_type DataNodeMemory::SetEntity(const std::shared_ptr<DataEntity>&) { return 0; }
-//
-// size_type DataNodeMemory::Set(std::string const& uri, std::shared_ptr<DataNode> const& v) { return 0; }
-// size_type DataNodeMemory::Add(std::string const& uri, std::shared_ptr<DataNode> const& v) { return 0; }
-// size_type DataNodeMemory::Delete(std::string const& s) { return 0; }
-// std::shared_ptr<DataNode> DataNodeMemory::Get(std::string const& uri) const { return nullptr; }
-// size_type DataNodeMemory::Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& f) const {
-//    return 0;
-//}
-//
-// size_type DataNodeMemory::Set(size_type s, std::shared_ptr<DataNode> const& v) { return 0; }
-// size_type DataNodeMemory::Add(size_type s, std::shared_ptr<DataNode> const& v) { return 0; }
-// size_type DataNodeMemory::Delete(size_type s) { return 0; }
-//std::shared_ptr<DataNode> DataNodeMemory::Get(size_type s) const { return nullptr; }
+
 struct DataNodeMemoryEntity : public DataNodeMemory {
     SP_DEFINE_FANCY_TYPE_NAME(DataNodeMemoryEntity, DataNodeMemory)
     SP_DATA_NODE_HEAD(DataNodeMemoryEntity)
@@ -93,7 +60,7 @@ struct DataNodeMemoryArray : public DataNodeMemory {
     SP_DATA_NODE_HEAD(DataNodeMemoryArray)
 
    public:
-    size_type size() const override ;
+    size_type size() const override;
     size_type Set(size_type s, std::shared_ptr<DataNode> const& v) override;
     size_type Add(size_type s, std::shared_ptr<DataNode> const& v) override;
     size_type Delete(size_type s) override;
