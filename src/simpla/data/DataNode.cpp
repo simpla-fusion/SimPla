@@ -212,11 +212,10 @@ size_type DataNode::Set(size_type s, std::shared_ptr<DataNode> const& v) { retur
 size_type DataNode::Add(size_type s, std::shared_ptr<DataNode> const& v) { return Add(std::to_string(s), v); }
 size_type DataNode::Delete(size_type s) { return Delete(std::to_string(s)); }
 std::shared_ptr<DataNode> DataNode::Get(size_type s) const { return Get(std::to_string(s)); }
+size_type DataNode::Add(std::shared_ptr<DataNode> const& v) { return Add(size(), v); }
 
-std::shared_ptr<DataEntity> DataNode::GetEntity() const {
-    DOMAIN_ERROR;
-    return nullptr;
-};
+std::shared_ptr<DataEntity> DataNode::GetEntity() const { return nullptr; };
+size_type DataNode::SetEntity(const std::shared_ptr<DataEntity>&) { return 0; }
 
 size_type DataNode::SetValue(std::string const& url, KeyValue const& v) {
     return Set(url + "/" + v.m_key_, v.m_node_);

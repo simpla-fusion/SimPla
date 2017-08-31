@@ -39,7 +39,6 @@ DataNodeFunctionMemory::~DataNodeFunctionMemory() {}
 
 struct DataNodeArrayMemory : public DataNodeArray {
     SP_DATA_NODE_ARRAY_HEAD(DataNodeArrayMemory)
-
    private:
     std::vector<std::shared_ptr<DataNode>> m_data_;
 };
@@ -67,7 +66,8 @@ size_type DataNodeArrayMemory::Delete(size_type s) {
     FIXME;
     return 0;
 }
-size_type DataNodeArrayMemory::PushBack(std::shared_ptr<DataNode> const& v) {
+
+size_type DataNodeArrayMemory::Add(std::shared_ptr<DataNode> const& v) {
     m_data_.push_back(v);
     return 1;
 };
@@ -175,13 +175,10 @@ size_type DataNodeTableMemory::Add(std::string const& uri, std::shared_ptr<DataN
 
         if (tail == std::string::npos) {
             obj = p->m_table_.emplace(k, NewArray()).first->second;
-            std::dynamic_pointer_cast<DataNodeArrayMemory>(obj)->PushBack(v);
-            count = 1;
+            if (auto q = std::dynamic_pointer_cast<DataNodeArrayMemory>(obj)) { count = q->Add(v); }
             break;
         } else {
-            obj = std::dynamic_pointer_cast<DataNodeTableMemory>(obj)
-                      ->m_table_.emplace(k.substr(0, tail), NewTable())
-                      .first->second;
+            obj = p->m_table_.emplace(k.substr(0, tail), NewTable()).first->second;
             k = k.substr(tail + 1);
         }
     }
@@ -212,20 +209,40 @@ size_type DataNodeTableMemory::Add(std::string const& uri, std::shared_ptr<DataN
 }
 std::shared_ptr<DataNode> DataNodeTableMemory::Get(std::string const& uri) const {
     if (uri.empty()) { return nullptr; }
+    if (uri[0] == SP_URL_SPLIT_CHAR) { return Root()->Get(uri.substr(1)); }
 
-    std::shared_ptr<DataNode> res = nullptr;
-
-    auto pos = uri.find(SP_URL_SPLIT_CHAR);
-    if (pos == 0) {
-        res = Root()->Get(uri.substr(1));
-    } else {
-        auto it = m_table_.find(uri.substr(0, pos));
-        if (it != m_table_.end()) {
-            res = pos == std::string::npos ? it->second : it->second->Get(uri.substr(pos + 1));
+    size_type count = 0;
+    size_type tail = 0;
+    std::shared_ptr<DataNode> obj = Self();
+    std::string k = uri;
+    while (obj != nullptr && tail != std::string::npos) {
+        auto p = std::dynamic_pointer_cast<DataNodeTableMemory>(obj);
+        if (p == nullptr) {
+            obj = nullptr;
+            break;
         }
+        tail = k.find(SP_URL_SPLIT_CHAR);
+        auto it = p->m_table_.find(k.substr(0, tail));
+        obj = (it != p->m_table_.end()) ? it->second : nullptr;
+        if (tail != std::string::npos) { k = k.substr(tail + 1); };
     }
+    return obj;
 
-    return res;
+    //    if (uri.empty()) { return nullptr; }
+    //
+    //    std::shared_ptr<DataNode> res = nullptr;
+    //
+    //    auto pos = uri.find(SP_URL_SPLIT_CHAR);
+    //    if (pos == 0) {
+    //        res = Root()->Get(uri.substr(1));
+    //    } else {
+    //        auto it = m_table_.find(uri.substr(0, pos));
+    //        if (it != m_table_.end()) {
+    //            res = pos == std::string::npos ? it->second : it->second->Get(uri.substr(pos + 1));
+    //        }
+    //    }
+    //
+    //    return res;
 };
 size_type DataNodeTableMemory::Delete(std::string const& uri) {
     size_type count = 0;

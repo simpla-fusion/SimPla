@@ -56,6 +56,7 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
     }
     virtual std::shared_ptr<DataEntity> Append(std::shared_ptr<DataEntity> const& v) const { return DataEntity::New(); }
 
+
     /**
      * @}
      */

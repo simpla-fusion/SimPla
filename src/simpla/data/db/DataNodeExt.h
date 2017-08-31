@@ -15,7 +15,7 @@ class DataNodeEntity : public DataNode {
     size_type size() const override { return 1; }
 
     std::shared_ptr<DataEntity> GetEntity() const override = 0;
-    virtual size_type SetEntity(std::shared_ptr<DataEntity> const&) = 0;
+    size_type SetEntity(std::shared_ptr<DataEntity> const&) override = 0;
 };
 #define SP_DATA_NODE_ENTITY_HEAD(_CLASS_NAME_)              \
     SP_DEFINE_FANCY_TYPE_NAME(_CLASS_NAME_, DataNodeEntity) \
@@ -32,11 +32,20 @@ class DataNodeArray : public DataNode {
 
     std::shared_ptr<DataNode> CreateChild() const override = 0;
 
+    size_type Set(std::string const& s, std::shared_ptr<DataNode> const& v) override {
+        return Set(std::stoi(s, nullptr, 10), v);
+    };
+    size_type Add(std::string const& s, std::shared_ptr<DataNode> const& v) override {
+        return Add(std::stoi(s, nullptr, 10), v);
+    };
+    size_type Delete(std::string const& s) override { return Delete(std::stoi(s, nullptr, 10)); };
+    std::shared_ptr<DataNode> Get(std::string const& s) const override { return Get(std::stoi(s, nullptr, 10)); };
+
     size_type Set(size_type s, std::shared_ptr<DataNode> const& v) override = 0;
     size_type Add(size_type s, std::shared_ptr<DataNode> const& v) override = 0;
     size_type Delete(size_type s) override = 0;
     std::shared_ptr<DataNode> Get(size_type s) const override = 0;
-    virtual size_type PushBack(std::shared_ptr<DataNode> const& v) = 0;
+    size_type Add(std::shared_ptr<DataNode> const& v) override = 0;
 };
 #define SP_DATA_NODE_ARRAY_HEAD(_CLASS_NAME_)                                \
     SP_DEFINE_FANCY_TYPE_NAME(_CLASS_NAME_, DataNodeArray)                   \
@@ -50,7 +59,7 @@ class DataNodeArray : public DataNode {
     size_type Add(size_type s, std::shared_ptr<DataNode> const& v) override; \
     size_type Delete(size_type s) override;                                  \
     std::shared_ptr<DataNode> Get(size_type s) const override;               \
-    size_type PushBack(std::shared_ptr<DataNode> const& v) override;
+    size_type Add(std::shared_ptr<DataNode> const& v) override;
 
 class DataNodeTable : public DataNode {
     SP_DEFINE_FANCY_TYPE_NAME(DataNodeTable, DataNode)
