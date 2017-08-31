@@ -35,11 +35,9 @@ std::shared_ptr<DataNode> DataNode::New(eNodeType e_type, std::string const& s) 
     return res->CreateNode(e_type);
 };
 
-KeyValue::KeyValue(std::string k) : m_key_(std::move(k)), m_node_(DataNode::New(DataNode::DN_ENTITY, "")) {
-    m_node_->SetEntity(DataLight::New(true));
-}
+KeyValue::KeyValue(std::string k) : m_key_(std::move(k)), m_node_(DataNode::New(DataLight::New(true))) {}
 KeyValue::KeyValue(KeyValue const& other) = default;
-KeyValue::KeyValue(KeyValue&& other) noexcept  = default;
+KeyValue::KeyValue(KeyValue&& other) noexcept = default;
 KeyValue::~KeyValue() = default;
 KeyValue& KeyValue::operator=(KeyValue const& other) {
     m_node_ = DataNode::New(DataNode::DN_TABLE, "");
@@ -49,9 +47,7 @@ KeyValue& KeyValue::operator=(KeyValue const& other) {
 
 template <typename U>
 std::shared_ptr<DataNode> make_node(U const& u) {
-    auto res = DataNode::New(DataNode::DN_ENTITY, "");
-    res->SetEntity(DataLight::New(u));
-    return res;
+    return DataNode::New(DataLight::New(u));
 }
 std::shared_ptr<DataNode> make_node(std::initializer_list<KeyValue> const& u) {
     auto res = DataNode::New(DataNode::DN_TABLE, "");
@@ -59,12 +55,15 @@ std::shared_ptr<DataNode> make_node(std::initializer_list<KeyValue> const& u) {
     return res;
 }
 template <typename U>
-std::shared_ptr<DataNode> make_node(std::initializer_list<U> const& u) {
-    auto res = DataNode::New(DataNode::DN_ENTITY, "");
-    //    res->SetEntity(DataLightT<U*>::New(u));
+std::shared_ptr<DataNode> make_node(std::initializer_list<U> const& u, ENABLE_IF(traits::is_light_data<U>::value)) {
+    return DataNode::New(DataLight::New(u));
+}
+template <typename U>
+std::shared_ptr<DataNode> make_node(std::initializer_list<U> const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {
+    auto res = DataNode::New()->CreateNode(DataNode::DN_ARRAY);
+    for (auto const& v : u) { res->Add(make_node(v)); }
     return res;
 }
-
 KeyValue& KeyValue::operator=(std::initializer_list<KeyValue> const& u) {
     m_node_ = make_node(u);
     return *this;
@@ -140,12 +139,6 @@ DataNode::eNodeType DataNode::type() const { return m_type_; }
 size_type DataNode::size() const { return 0; }
 std::shared_ptr<DataNode> DataNode::CreateNode(eNodeType e_type) const { return DataNode::New(e_type, ""); };
 
-std::shared_ptr<DataNode> DataNode::CreateEntity(std::shared_ptr<DataEntity> const& v) const {
-    auto res = CreateNode(DN_ENTITY);
-    res->SetEntity(v);
-    return res;
-}
-
 size_type DataNode::Set(std::string const& uri, std::shared_ptr<DataNode> const& v) {
     DOMAIN_ERROR;
     return 0;
@@ -172,11 +165,8 @@ size_type DataNode::Delete(size_type s) { return Delete(std::to_string(s)); }
 std::shared_ptr<DataNode> DataNode::Get(size_type s) const { return Get(std::to_string(s)); }
 size_type DataNode::Add(std::shared_ptr<DataNode> const& v) { return Add(size(), v); }
 
-std::shared_ptr<DataEntity> DataNode::GetEntity() const { return nullptr; };
-size_type DataNode::SetEntity(const std::shared_ptr<DataEntity>&) { return 0; }
-
 size_type DataNode::SetValue(std::string const& url, KeyValue const& v) {
-    return Set(url + "/" + v.m_key_, v.m_node_);
+    return Set(url + SP_URL_SPLIT_CHAR + v.m_key_, v.m_node_);
 };
 size_type DataNode::SetValue(std::string const& url, std::initializer_list<KeyValue> const& v) {
     size_type count = 0;

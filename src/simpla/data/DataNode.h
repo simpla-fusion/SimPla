@@ -35,28 +35,33 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
    protected:
     //    static int s_num_of_pre_registered_;
     const eNodeType m_type_;
+    std::shared_ptr<DataEntity> m_entity_ = nullptr;
 
     explicit DataNode(eNodeType etype = DN_NULL);
+    explicit DataNode(std::shared_ptr<DataEntity> v) : m_type_(DataNode::DN_ENTITY), m_entity_(std::move(v)) {}
 
    public:
     ~DataNode() override;
 
     static std::shared_ptr<DataNode> New(eNodeType e_type = DN_TABLE, std::string const& uri = "");
+    static std::shared_ptr<DataNode> New(std::shared_ptr<DataEntity> v) {
+        return std::shared_ptr<DataNode>(new DataNode(v));
+    }
+
+    std::shared_ptr<DataEntity> GetEntity() const { return m_entity_; }
+
     eNodeType type() const;
 
-    std::shared_ptr<DataNode> CreateEntity(std::shared_ptr<DataEntity> const&) const;
     std::shared_ptr<DataNode> GetRoot() const {
         return GetParent() == nullptr ? const_cast<DataNode*>(this)->shared_from_this() : GetParent();
     }
     void SetParent(std::shared_ptr<DataNode>) {}
     std::shared_ptr<DataNode> GetParent() const { return nullptr; }
     /** @addtogroup required @{*/
+
     virtual std::shared_ptr<DataNode> CreateNode(eNodeType e_type) const;
 
     virtual size_type size() const;
-
-    virtual std::shared_ptr<DataEntity> GetEntity() const;
-    virtual size_type SetEntity(const std::shared_ptr<DataEntity>&);
 
     virtual size_type Set(std::string const& uri, std::shared_ptr<DataNode> const& v);
     virtual size_type Add(std::string const& uri, std::shared_ptr<DataNode> const& v);
@@ -90,50 +95,50 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
 
     template <typename U>
     size_type SetValue(std::string const& s, U const& u, ENABLE_IF(traits::is_light_data<U>::value)) {
-        return Set(s, CreateEntity(DataLight::New(u)));
+        return Set(s, DataNode::New(DataLight::New(u)));
     };
     size_type SetValue(std::string const& s, char const* u) {
-        return Set(s, CreateEntity(DataLight::New(std::string(u))));
+        return Set(s, DataNode::New(DataLight::New(std::string(u))));
     };
     template <typename U>
     size_type SetValue(std::string const& s, U const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {
-        return Set(s, CreateEntity(DataBlock::New(u)));
+        return Set(s, DataNode::New(DataBlock::New(u)));
     };
     template <typename U>
     size_type SetValue(std::string const& s, std::initializer_list<U> const& v) {
-        return Set(s, CreateEntity(DataLight::New(v)));
+        return Set(s, DataNode::New(DataLight::New(v)));
     }
 
     template <typename U>
     size_type SetValue(std::string const& s, std::initializer_list<std::initializer_list<U>> const& v) {
-        return Set(s, CreateEntity(DataLight::New(v)));
+        return Set(s, DataNode::New(DataLight::New(v)));
     }
     template <typename U>
     size_type SetValue(std::string const& s,
                        std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& v) {
-        return Set(s, CreateEntity(DataLight::New(v)));
+        return Set(s, DataNode::New(DataLight::New(v)));
     }
 
     template <typename U>
     size_type AddValue(std::string const& s, U const& u, ENABLE_IF(traits::is_light_data<U>::value)) {
-        return Add(s, CreateEntity(DataLight::New(u)));
+        return Add(s, DataNode::New(DataLight::New(u)));
     };
     template <typename U>
     size_type AddValue(std::string const& s, U const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {
-        return Add(s, CreateEntity(DataBlock::New(u)));
+        return Add(s, DataNode::New(DataBlock::New(u)));
     };
     template <typename U>
     size_type AddValue(std::string const& s, std::initializer_list<U> const& v) {
-        return Add(s, CreateEntity(DataLight::New(v)));
+        return Add(s, DataNode::New(DataLight::New(v)));
     }
     template <typename U>
     size_type AddValue(std::string const& s, std::initializer_list<std::initializer_list<U>> const& v) {
-        return Add(s, CreateEntity(DataLight::New(v)));
+        return Add(s, DataNode::New(DataLight::New(v)));
     }
     template <typename U>
     size_type AddValue(std::string const& s,
                        std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& v) {
-        return Add(s, CreateEntity(DataLight::New(v)));
+        return Add(s, DataNode::New(DataLight::New(v)));
     }
     template <typename U>
     U GetValue(std::string const& url) const {
@@ -213,28 +218,24 @@ struct KeyValue {
 
     template <typename U>
     KeyValue& operator=(U const& u) {
-        m_node_ = DataNode::New(DataNode::DN_ENTITY, "");
-        m_node_->SetEntity(DataLight::New(u));
+        m_node_ = DataNode::New(DataLight::New(u));
         return *this;
     }
 
     template <typename U>
     KeyValue& operator=(std::initializer_list<U> const& u) {
-        m_node_ = DataNode::New(DataNode::DN_ENTITY, "");
-        m_node_->SetEntity(DataLight::New(u));
+        m_node_ = DataNode::New(DataLight::New(u));
         return *this;
     }
 
     template <typename U>
     KeyValue& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
-        m_node_ = DataNode::New(DataNode::DN_ENTITY, "");
-        m_node_->SetEntity(DataLight::New(u));
+        m_node_ = DataNode::New(DataLight::New(u));
         return *this;
     }
     template <typename U>
     KeyValue& operator=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-        m_node_ = DataNode::New(DataNode::DN_ENTITY, "");
-        m_node_->SetEntity(DataLight::New(u));
+        m_node_ = DataNode::New(DataLight::New(u));
         return *this;
     }
 };
@@ -355,20 +356,18 @@ size_type _CopyFromData(U& dst, std::shared_ptr<const DataNode> const& src, ENAB
 };
 
 template <typename U>
-size_type _CopyToData(std::shared_ptr<DataNode> dst, U const& src, ENABLE_IF(std::rank<U>::value == 0)) {
+size_type _CopyToData(std::shared_ptr<DataNode> dst, U const& src, ENABLE_IF(std::rank<U>::value == 1)) {
     if (dst == nullptr) { return 0; }
     static auto snan = std::numeric_limits<U>::signaling_NaN();
     size_type count = 0;
     switch (src->type()) {
-        case DataNode::DN_ENTITY: {
-            count = dst->SetEntity(DataLightT<U>::New(src));
-        } break;
+        break;
         case DataNode::DN_ARRAY: {
             if (dst->size() > 0) {
-                _CopyToData(dst->Get(0), snan);
-                for (size_type i = 1; i < dst->size(); ++i) { count += _CopyToData(dst->Get(i), src); }
+                for (size_type i = 0; i < dst->size(); ++i) { count += dst->Set(i, src[i]); }
             }
         }
+        case DataNode::DN_ENTITY:
         case DataNode::DN_TABLE:
         case DataNode::DN_FUNCTION:
         default:
@@ -466,6 +465,7 @@ template <typename U>
 bool EqualTo(U const& dst, std::shared_ptr<const DataNode> const& src) {
     return detail::_CompareToData(dst, src);
 }
+
 //
 //    template <typename U>
 //    size_type _CopyIn(std::shared_ptr<DataNode>& dst, U const& src, ENABLE_IF(std::rank<U>::value == 0)) const {

@@ -24,30 +24,6 @@ DataNodeMemory::DataNodeMemory() : DataNode(DN_NULL) {}
 DataNodeMemory::DataNodeMemory(DataNode::eNodeType etype) : DataNode(etype) {}
 DataNodeMemory::~DataNodeMemory() = default;
 
-struct DataNodeMemoryEntity : public DataNodeMemory {
-    SP_DEFINE_FANCY_TYPE_NAME(DataNodeMemoryEntity, DataNodeMemory)
-    SP_DATA_NODE_HEAD(DataNodeMemoryEntity)
-
-   protected:
-    explicit DataNodeMemoryEntity(std::shared_ptr<DataEntity> v);
-
-   public:
-    std::shared_ptr<DataEntity> GetEntity() const override;
-    size_type SetEntity(const std::shared_ptr<DataEntity>&) override;
-
-   private:
-    std::shared_ptr<DataEntity> m_entity_ = nullptr;
-};
-DataNodeMemoryEntity::DataNodeMemoryEntity() : DataNodeMemory(DataNode::DN_ENTITY), m_entity_(nullptr) {}
-DataNodeMemoryEntity::DataNodeMemoryEntity(std::shared_ptr<DataEntity> v)
-    : DataNodeMemory(DataNode::DN_ENTITY), m_entity_(std::move(v)) {}
-DataNodeMemoryEntity::~DataNodeMemoryEntity() = default;
-
-std::shared_ptr<DataEntity> DataNodeMemoryEntity::GetEntity() const { return m_entity_; }
-size_type DataNodeMemoryEntity::SetEntity(std::shared_ptr<DataEntity> const& entity) {
-    m_entity_ = entity;
-    return 1;
-};
 struct DataNodeMemoryFunction : public DataNodeMemory {
     SP_DEFINE_FANCY_TYPE_NAME(DataNodeMemoryFunction, DataNodeMemory);
     SP_DATA_NODE_HEAD(DataNodeMemoryFunction)
@@ -220,7 +196,7 @@ std::shared_ptr<DataNode> DataNodeMemory::CreateNode(eNodeType e_type) const {
     std::shared_ptr<DataNode> res = nullptr;
     switch (e_type) {
         case DN_ENTITY:
-            res = DataNodeMemoryEntity::New();
+            res = DataNode::New();
             break;
         case DN_ARRAY:
             res = DataNodeMemoryArray::New();

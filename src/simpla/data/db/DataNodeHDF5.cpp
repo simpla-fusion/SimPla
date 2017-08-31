@@ -39,10 +39,24 @@ struct DataNodeHDF5 : public DataNode {
     bool isValid() const override;
     void Clear() override;
 
+    size_type size() const override;
+
+    size_type Set(std::string const& uri, std::shared_ptr<DataNode> const& v) override;
+    size_type Add(std::string const& uri, std::shared_ptr<DataNode> const& v) override;
+    size_type Delete(std::string const& uri) override;
+    std::shared_ptr<DataNode> Get(std::string const& uri) const override;
+    size_type Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& f) const override;
+
+    size_type Set(size_type s, std::shared_ptr<DataNode> const& v) override;
+    size_type Add(size_type s, std::shared_ptr<DataNode> const& v) override;
+    size_type Delete(size_type s) override;
+    std::shared_ptr<DataNode> Get(size_type s) const override;
+//    size_type Add(std::shared_ptr<DataNode> const& v) override;
+
    private:
-    std::string m_key_;
     hid_t m_file_ = -1;
     hid_t m_group_ = -1;
+    std::string m_key_;
 };
 DataNodeHDF5::DataNodeHDF5() : DataNode(DN_NULL) {}
 DataNodeHDF5::DataNodeHDF5(DataNode::eNodeType etype) : DataNode(etype) {}
@@ -69,7 +83,6 @@ int DataNodeHDF5::Connect(std::string const& authority, std::string const& path,
     //    mkdir(authority.c_str(), 0777);
     H5_ERROR(m_file_ = H5Fcreate(filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT));
     H5_ERROR(m_group_ = H5Gopen(m_file_, "/", H5P_DEFAULT));
-    m_key_ = "/";
     return SP_SUCCESS;
 };
 int DataNodeHDF5::Disconnect() {
@@ -99,10 +112,6 @@ bool DataNodeHDF5::isValid() const { return m_group_ != -1; }
 size_type DataNodeHDF5::size() const {
     size_type count = 0;
     switch (type()) {
-        case DN_ENTITY:
-        case DN_FUNCTION:
-            count = 1;
-            break;
         case DN_TABLE:
         case DN_ARRAY: {
             H5G_info_t g_info;
@@ -112,6 +121,10 @@ size_type DataNodeHDF5::size() const {
             H5_ERROR(H5Oget_info(m_group_, &o_info));
             count += o_info.num_attrs;
         } break;
+        case DN_ENTITY:
+        case DN_FUNCTION:
+            count = 1;
+            break;
         default:
             break;
     }
@@ -407,33 +420,6 @@ size_type DataNodeHDF5::Delete(std::string const& url) {
 }
 void DataNodeHDF5::Clear() {
     if (m_group_ != -1) {}
-}
-size_type DataNodeHDF5::SetEntity(std::shared_ptr<simpla::data::DataEntity> const& v) { return 0; }
-std::shared_ptr<DataEntity> DataNodeHDF5::GetEntity() const {
-    std::shared_ptr<DataEntity> res = nullptr;
-    if (m_group_ != -1) { RUNTIME_ERROR << m_key_ << " is not an entity!"; }
-    if (Parent() != nullptr) {
-        H5O_info_t o_info;
-        auto grp = Parent()->m_group_;
-        if (H5Lexists(grp, m_key_.c_str(), H5P_DEFAULT) > 0 &&
-            H5Oget_info_by_name(grp, m_key_.c_str(), &o_info, H5P_DEFAULT) >= 0) {
-            switch (o_info.type) {
-                case H5O_TYPE_DATASET: {
-                    auto d_id = H5Dopen(m_group_, m_key_.c_str(), H5P_DEFAULT);
-                    res = HDF5GetEntity(d_id, false);
-                    H5_ERROR(H5Dclose(d_id));
-                } break;
-                default:
-                    RUNTIME_ERROR << m_key_ << "is not  dataset / attribute!" << std::endl;
-                    break;
-            }
-        } else if (H5Aexists(grp, m_key_.c_str()) != 0) {
-            auto a_id = H5Aopen(grp, m_key_.c_str(), H5P_DEFAULT);
-            res = HDF5GetEntity(a_id, true);
-            H5_ERROR(H5Aclose(a_id));
-        }
-    }
-    return res;
 }
 
 size_type HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataEntity> const& entity) {
