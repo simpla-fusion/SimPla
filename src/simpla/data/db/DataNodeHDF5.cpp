@@ -359,40 +359,45 @@ std::shared_ptr<DataEntity> HDF5GetEntity(hid_t obj_id, bool is_attribute) {
 }
 
 std::shared_ptr<DataNode> DataNodeHDF5::Get(std::string const& uri) const {
-    if (uri.empty() || m_group_ == -1) { return nullptr; }
-    std::shared_ptr<DataNode> res = nullptr;
+    if (uri.empty()) { return nullptr; }
+    if (uri[0] == SP_URL_SPLIT_CHAR) { return Root()->Get(uri.substr(1)); }
 
-    auto pos = uri.rfind(SP_URL_SPLIT_CHAR);
-    if (uri[0] == SP_URL_SPLIT_CHAR) {
-        res = Root()->Get(uri.substr(1));
-    } else if (pos != std::string::npos) {
-        auto grp = Get(uri.substr(0, pos));
-        res = grp == nullptr ? nullptr : grp->Get(uri.substr(pos + 1));
-    } else {
-        auto tmp = DataNodeHDF5::New();
-        H5O_info_t o_info;
-        if (H5Lexists(m_group_, uri.c_str(), H5P_DEFAULT) &&
-            H5Oget_info_by_name(m_group_, uri.c_str(), &o_info, H5P_DEFAULT) >= 0) {
-            switch (o_info.type) {
-                case H5O_TYPE_GROUP:
-                    tmp->m_group_ = H5Gopen(m_group_, uri.c_str(), H5P_DEFAULT);
-                    break;
-                case H5O_TYPE_DATASET: {
-                    tmp->m_group_ = -1;
-                    tmp->m_key_ = uri;
-                } break;
-                default:
-                    RUNTIME_ERROR << "Undefined data type!" << std::endl;
-                    break;
+    auto obj = const_cast<this_type*>(this)->shared_from_this();
+    std::string k = uri;
+    while (obj != nullptr && !k.empty()) {
+        auto tail = k.find(SP_URL_SPLIT_CHAR);
+        auto sub_key = k.substr(0, tail);
+        k = k.substr(tail + 1);
+
+        if (auto p = std::dynamic_pointer_cast<this_type>(obj)) {
+            H5O_info_t o_info;
+            if (H5Lexists(p->m_group_, sub_key.c_str(), H5P_DEFAULT) &&
+                H5Oget_info_by_name(m_group_, sub_key.c_str(), &o_info, H5P_DEFAULT) >= 0) {
+                switch (o_info.type) {
+                    case H5O_TYPE_GROUP:
+                        obj = p->CreateNode(DN_TABLE);
+                        std::dynamic_pointer_cast<this_type>(obj)->m_group_ =
+                            H5Gopen(p->m_group_, sub_key.c_str(), H5P_DEFAULT);
+                        break;
+                    case H5O_TYPE_DATASET: {
+                        auto d_id = H5Dopen(p->m_group_, sub_key.c_str(), H5P_DEFAULT);
+                        obj = DataNode::New(HDF5GetEntity(d_id, false));
+                        H5_ERROR(H5Dclose(d_id));
+
+                    } break;
+                    default:
+                        RUNTIME_ERROR << "Undefined data type!" << std::endl;
+                        break;
+                }
+            } else if (H5Aexists(m_group_, sub_key.c_str()) != 0) {
+                auto a_id = H5Aopen(p->m_group_, sub_key.c_str(), H5P_DEFAULT);
+                obj = DataNode::New(HDF5GetEntity(a_id, true));
+                H5_ERROR(H5Aclose(a_id));
             }
-        } else if (H5Aexists(m_group_, uri.c_str()) != 0) {
-            tmp->m_group_ = -1;
-            tmp->m_key_ = uri;
         }
-        res = tmp;
     }
 
-    return res;
+    return obj;
 };
 
 size_type DataNodeHDF5::Delete(std::string const& url) {
@@ -424,7 +429,7 @@ void DataNodeHDF5::Clear() {
     if (m_group_ != -1) {}
 }
 
-size_type HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataEntity> const& entity) {
+size_type HDF5SetEntity(hid_t g_id, std::string const& key, std::shared_ptr<DataEntity> const& entity) {
     ASSERT(g_id > 0);
 
     size_type count = 0;
@@ -565,62 +570,101 @@ size_type HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataEntity
     }
     return count;
 }
-// hid_t DataNodeHDF5::pimpl_s::LazyCreatingGroup() {
-//    if (m_group_ == -1) {
-//        //        ASSERT(Parent() != nullptr);
-//        //        auto p_grp = Parent()->LazyCreatingGroup();
-//        //
-//        //        if (H5Lexists(p_grp, m_key_.c_str(), H5P_DEFAULT) > 0) {
-//        //            H5O_info_t o_info;
-//        //            H5_ERROR(H5Oget_info_by_name(p_grp, m_key_.c_str(), &o_info, H5P_DEFAULT));
-//        //            if (o_info.type == H5O_TYPE_GROUP) {
-//        //                m_group_ = H5Gopen(p_grp, m_key_.c_str(), H5P_DEFAULT);
-//        //            } else {
-//        //                RUNTIME_ERROR << m_key_ << " is not a table/group!";
-//        //            }
-//        //        } else {
-//        //            m_group_ = H5Gcreate(p_grp, m_key_.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-//        //        }
-//    }
-//    return m_group_;
-//}
-size_type DataNodeHDF5::Set(std::string const& uri, std::shared_ptr<DataNode> const& v) {
-    if (uri.empty() || v == nullptr) { return 0; }
+
+hid_t HDF5CreateOrOpenGroup(hid_t grp, std::string const& key) {
+    hid_t res;
+    if (H5Lexists(grp, key.c_str(), H5P_DEFAULT) > 0) {
+        H5O_info_t o_info;
+        H5_ERROR(H5Oget_info_by_name(grp, key.c_str(), &o_info, H5P_DEFAULT));
+        if (o_info.type == H5O_TYPE_GROUP) {
+            res = H5Gopen(grp, key.c_str(), H5P_DEFAULT);
+        } else {
+            RUNTIME_ERROR << key << " is  a  dataset!";
+        }
+    } else if (H5Aexists(grp, key.c_str()) > 0) {
+        RUNTIME_ERROR << key << " is  an attribute!";
+    } else {
+        res = H5Gcreate(grp, key.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    }
+    return res;
+}
+size_type HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataNode> const& node) {
+    if (node == nullptr) { return 0; }
 
     size_type count = 0;
-    //    auto pos = uri.find(SP_URL_SPLIT_CHAR);
-    //    if (pos == 0) {
-    //        count = Root()->Set(uri.substr(1), v);
-    //    } else if (pos != std::string::npos) {
-    //        auto tmp = DataNodeHDF5::New();
-    //        tmp->m_node_ = Self();
-    //        tmp->m_key_ = uri.substr(0, pos);
-    //        m_node_type_ = DN_TABLE;
-    //        count = tmp->Set(uri.substr(pos + 1), v);
-    //    } else {
-    //        count = HDF5Set(LazyCreatingGroup(), uri, v);
-    //    }
+    switch (node->type()) {
+        case DataNode::DN_ARRAY:
+        case DataNode::DN_TABLE: {
+            hid_t sub_gid = HDF5CreateOrOpenGroup(g_id, key);
+            count = node->Foreach([&](std::string k, std::shared_ptr<DataNode> n) { return HDF5Set(sub_gid, k, n); });
+        } break;
+        case DataNode::DN_ENTITY:
+            count = HDF5SetEntity(g_id, key, node->GetEntity());
+            break;
+        default:
+            break;
+    }
+    return count;
+}
+size_type HDF5Add(hid_t g_id, std::string const& key, std::shared_ptr<DataNode> const& node) {
+    if (node == nullptr) { return 0; }
+    size_type count = 0;
+    switch (node->type()) {
+        case DataNode::DN_ARRAY:
+        case DataNode::DN_TABLE: {
+            hid_t sub_gid = HDF5CreateOrOpenGroup(g_id, key);
+            count = node->Foreach([&](std::string k, std::shared_ptr<DataNode> n) { return HDF5Set(sub_gid, k, n); });
+        } break;
+        case DataNode::DN_ENTITY:
+            count = HDF5SetEntity(g_id, key, node->GetEntity());
+            break;
+        default:
+            break;
+    }
+    return count;
+}
+size_type DataNodeHDF5::Set(std::string const& uri, std::shared_ptr<DataNode> const& v) {
+    if (uri.empty() || v == nullptr) { return 0; }
+    if (uri[0] == SP_URL_SPLIT_CHAR) { return Root()->Set(uri.substr(1), v); }
 
+    size_type count = 0;
+    auto obj = Self();
+    std::string k = uri;
+    while (obj != nullptr && !k.empty()) {  // assign node
+        size_type tail = k.find(SP_URL_SPLIT_CHAR);
+        if (tail == std::string::npos) {
+            count = HDF5Set(obj->m_group_, k, v);
+            break;
+        } else {
+            // find or create a sub-group
+            auto grp = HDF5CreateOrOpenGroup(obj->m_group_, k.substr(0, tail));
+            obj = std::dynamic_pointer_cast<this_type>(obj->CreateNode(DN_TABLE));
+            obj->m_group_ = grp;
+            k = k.substr(tail + 1);
+        }
+    }
     return count;
 }
 size_type DataNodeHDF5::Add(std::string const& uri, std::shared_ptr<DataNode> const& v) {
-    //    return base_type::Add(uri, v);
+    if (uri.empty() || v == nullptr) { return 0; }
+    if (uri[0] == SP_URL_SPLIT_CHAR) { return Root()->Set(uri.substr(1), v); }
 
-    if (uri.empty()) { return 0; }
     size_type count = 0;
-    //    auto pos = uri.find(SP_URL_SPLIT_CHAR);
-    //    if (pos == 0) {
-    //        count = Root()->Set(uri.substr(1), v);
-    //    } else if (pos != std::string::npos) {
-    //        auto tmp = DataNodeHDF5::New();
-    //        tmp->m_node_ = Self();
-    //        tmp->m_key_ = uri.substr(0, pos);
-    //        m_node_type_ = DN_TABLE;
-    //        count = tmp->Set(uri.substr(pos), v);
-    //    } else {
-    //        count = HDF5Set(LazyCreatingGroup(), uri, v);
-    //    }
-
+    auto obj = Self();
+    std::string k = uri;
+    while (obj != nullptr && !k.empty()) {  // assign node
+        size_type tail = k.find(SP_URL_SPLIT_CHAR);
+        if (tail == std::string::npos) {
+            count = HDF5Add(obj->m_group_, k, v);
+            break;
+        } else {
+            // find or create a sub-group
+            auto grp = HDF5CreateOrOpenGroup(obj->m_group_, k.substr(0, tail));
+            obj = std::dynamic_pointer_cast<this_type>(obj->CreateNode(DN_TABLE));
+            obj->m_group_ = grp;
+            k = k.substr(tail + 1);
+        }
+    }
     return count;
 }
 
@@ -650,10 +694,10 @@ size_type DataNodeHDF5::Foreach(std::function<size_type(std::string, std::shared
     }
     return count;
 }
-size_type DataNodeHDF5::Set(size_type s, std::shared_ptr<DataNode> const& v) { return 0; }
-size_type DataNodeHDF5::Add(size_type s, std::shared_ptr<DataNode> const& v) { return 0; }
-size_type DataNodeHDF5::Delete(size_type s) { return 0; }
-std::shared_ptr<DataNode> DataNodeHDF5::Get(size_type s) const { return nullptr; }
+size_type DataNodeHDF5::Set(size_type s, std::shared_ptr<DataNode> const& v) { return Set(std::to_string(s), v); }
+size_type DataNodeHDF5::Add(size_type s, std::shared_ptr<DataNode> const& v) { return Add(std::to_string(s), v); }
+size_type DataNodeHDF5::Delete(size_type s) { return Delete(std::to_string(s)); }
+std::shared_ptr<DataNode> DataNodeHDF5::Get(size_type s) const { return Get(std::to_string(s)); }
 
 }  // namespace data{
 }  // namespace simpla{

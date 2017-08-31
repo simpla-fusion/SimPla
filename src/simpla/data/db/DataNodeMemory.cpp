@@ -101,14 +101,13 @@ size_type DataNodeMemoryTable::Set(std::string const& uri, std::shared_ptr<DataN
     if (uri[0] == SP_URL_SPLIT_CHAR) { return Root()->Set(uri.substr(1), v); }
 
     size_type count = 0;
-    size_type tail = 0;
     auto obj = Self();
     std::string k = uri;
-    while (obj != nullptr) {
-        tail = k.find(SP_URL_SPLIT_CHAR);
+    while (obj != nullptr && !k.empty()) {
+        size_type tail = k.find(SP_URL_SPLIT_CHAR);
         if (tail == std::string::npos) {
-            obj->m_table_[k] = v;
-            count = 1;
+            obj->m_table_[k] = v;  // insert_or_assign
+            count = v->size();
             break;
         } else {
             obj = std::dynamic_pointer_cast<DataNodeMemoryTable>(
