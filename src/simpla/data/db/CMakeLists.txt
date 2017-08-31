@@ -17,15 +17,14 @@ ENDIF (LUA_FOUND)
 #FILE(GLOB database_SRC  *.cpp *.h )
 
 SET(database_SRC
-        DataNodeExt.h
         DataNodeMemory.cpp
-        DataNodeLua.cpp
-        DataNodeHDF5.cpp
-        DataNodeXDMF.cpp
-        DataNodeIMAS.cpp
-        LuaObject.cpp
-        LuaObject.h
-        LuaObjectExt.h
+#        DataNodeLua.cpp
+#        DataNodeHDF5.cpp
+#        DataNodeXDMF.cpp
+#        DataNodeIMAS.cpp
+#        LuaObject.cpp
+#        LuaObject.h
+#        LuaObjectExt.h
         )
 ADD_LIBRARY(database ${database_SRC})
 target_include_directories(database BEFORE PRIVATE

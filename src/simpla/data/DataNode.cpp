@@ -32,15 +32,14 @@ std::shared_ptr<DataNode> DataNode::New(eNodeType e_type, std::string const& s) 
         RUNTIME_ERROR << "Fail to connect  Data Backend [ " << scheme << " : " << authority << path << " ]"
                       << std::endl;
     }
-    if (e_type != DN_TABLE) { res = res->CreateNode(e_type); }
-    return res;
+    return res->CreateNode(e_type);
 };
 
 KeyValue::KeyValue(std::string k) : m_key_(std::move(k)), m_node_(DataNode::New(DataNode::DN_ENTITY, "")) {
     m_node_->SetEntity(DataLight::New(true));
 }
-KeyValue::KeyValue(KeyValue const& other) : m_key_(other.m_key_), m_node_(other.m_node_) {}
-KeyValue::KeyValue(KeyValue&& other) noexcept : m_key_(other.m_key_), m_node_(other.m_node_) {}
+KeyValue::KeyValue(KeyValue const& other) = default;
+KeyValue::KeyValue(KeyValue&& other) noexcept  = default;
 KeyValue::~KeyValue() = default;
 KeyValue& KeyValue::operator=(KeyValue const& other) {
     m_node_ = DataNode::New(DataNode::DN_TABLE, "");

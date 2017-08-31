@@ -36,7 +36,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     //    static int s_num_of_pre_registered_;
     const eNodeType m_type_;
 
-    explicit DataNode(eNodeType etype = DN_TABLE);
+    explicit DataNode(eNodeType etype = DN_NULL);
 
    public:
     ~DataNode() override;
@@ -243,6 +243,18 @@ inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue(std
 
 #define SP_DATA_NODE_HEAD(_CLASS_NAME_)                                                                              \
    public:                                                                                                           \
+    explicit _CLASS_NAME_(_CLASS_NAME_ const& other) = delete;                                                       \
+    explicit _CLASS_NAME_(_CLASS_NAME_&& other) = delete;                                                            \
+    _CLASS_NAME_& operator=(_CLASS_NAME_ const& other) = delete;                                                     \
+    _CLASS_NAME_& operator=(_CLASS_NAME_&& other) = delete;                                                          \
+                                                                                                                     \
+   protected:                                                                                                        \
+    explicit _CLASS_NAME_();                                                                                         \
+                                                                                                                     \
+   public:                                                                                                           \
+    ~_CLASS_NAME_() override;                                                                                        \
+                                                                                                                     \
+   public:                                                                                                           \
     template <typename... Args>                                                                                      \
     static std::shared_ptr<this_type> New(Args&&... args) {                                                          \
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));                               \
@@ -260,16 +272,6 @@ inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue(std
     };
 
 #define SP_DATA_NODE_FUNCTION(_CLASS_NAME_)                                                                      \
-   protected:                                                                                                    \
-    explicit _CLASS_NAME_(DataNode::eNodeType etype = DataNode::DN_TABLE);                                       \
-                                                                                                                 \
-   public:                                                                                                       \
-    explicit _CLASS_NAME_(_CLASS_NAME_ const& other) = delete;                                                   \
-    explicit _CLASS_NAME_(_CLASS_NAME_&& other) = delete;                                                        \
-    _CLASS_NAME_& operator=(_CLASS_NAME_ const& other) = delete;                                                 \
-    _CLASS_NAME_& operator=(_CLASS_NAME_&& other) = delete;                                                      \
-                                                                                                                 \
-    ~_CLASS_NAME_() override;                                                                                    \
                                                                                                                  \
     std::shared_ptr<DataNode> CreateNode(eNodeType e_type) const override;                                       \
                                                                                                                  \
