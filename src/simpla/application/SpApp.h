@@ -26,7 +26,7 @@ struct SpApp : public engine::SPObject {
     void DoTearDown() override;
     void DoFinalize() override;
 
-    std::shared_ptr<engine::Context> GetContext() const;
+    std::shared_ptr<engine::Scenario> GetContext() const;
 
     void SetSchedule(const std::shared_ptr<engine::Schedule> &s);
     std::shared_ptr<engine::Schedule> GetSchedule() const;

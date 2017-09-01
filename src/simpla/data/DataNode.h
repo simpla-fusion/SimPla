@@ -34,7 +34,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     eNodeType m_type_;
 
    protected:
-    //    static int s_num_of_pre_registered_;
+    static int s_num_of_pre_registered_;
     std::shared_ptr<DataEntity> m_entity_ = nullptr;
 
     explicit DataNode(eNodeType etype = DN_NULL);
@@ -59,6 +59,8 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     /** @addtogroup required @{*/
 
     virtual std::shared_ptr<DataNode> CreateNode(eNodeType e_type) const;
+    virtual std::shared_ptr<DataNode> CreateNode(std::string const& url, eNodeType e_type = DN_TABLE);
+
     virtual std::shared_ptr<DataEntity> GetEntity() const { return m_entity_; }
     virtual void SetEntity(std::shared_ptr<DataEntity> const& e) { m_entity_ = e; }
 
@@ -76,6 +78,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     virtual std::shared_ptr<DataNode> Get(index_type s) const;
 
     virtual size_type Add(std::shared_ptr<DataNode> const& v);
+    virtual size_type Set(std::shared_ptr<DataNode> const& v);
 
     /**@ } */
 

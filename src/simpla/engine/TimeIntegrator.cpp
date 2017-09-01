@@ -6,8 +6,8 @@
 
 #include "TimeIntegrator.h"
 
-#include "simpla/data/Data.h"
 #include "TimeIntegrator.h"
+#include "simpla/data/Data.h"
 
 namespace simpla {
 namespace engine {
@@ -15,9 +15,8 @@ namespace engine {
 TimeIntegrator::TimeIntegrator() = default;
 TimeIntegrator::~TimeIntegrator() = default;
 
-void TimeIntegrator::Serialize(std::shared_ptr<data::DataNode> const &cfg) const {
-    base_type::Serialize(cfg);
-    auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
+void TimeIntegrator::Serialize(std::shared_ptr<data::DataNode> tdb) const {
+    base_type::Serialize(tdb);
     if (tdb != nullptr) {
         tdb->SetValue("Name", GetName());
         tdb->SetValue("TimeBegin", GetTimeNow());
@@ -27,9 +26,8 @@ void TimeIntegrator::Serialize(std::shared_ptr<data::DataNode> const &cfg) const
     }
 }
 
-void TimeIntegrator::Deserialize(std::shared_ptr<const data::DataNode> const &cfg) {
-    base_type::Deserialize(cfg);
-    auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
+void TimeIntegrator::Deserialize(std::shared_ptr<const data::DataNode> tdb) {
+    base_type::Deserialize(tdb);
     if (tdb != nullptr) {
         SetTimeNow(tdb->GetValue("TimeBegin", 0.0));
         SetTimeEnd(tdb->GetValue("TimeEnd", 1.0));
@@ -40,15 +38,15 @@ void TimeIntegrator::Deserialize(std::shared_ptr<const data::DataNode> const &cf
 void TimeIntegrator::Synchronize() { Schedule::Synchronize(); }
 
 void TimeIntegrator::NextStep() {
-    Advance(m_time_step_);
+    Advance(GetTimeStep());
     Schedule::NextStep();
 }
 
 Real TimeIntegrator::Advance(Real time_dt) {
-    if (std::abs(time_dt) < std::numeric_limits<Real>::min()) { time_dt = m_time_step_; }
-    time_dt = std::min(std::min(time_dt, m_time_step_), m_time_end_ - m_time_now_);
-    m_time_now_ += time_dt;
-    return m_time_now_;
+    if (std::abs(time_dt) < std::numeric_limits<Real>::min()) { time_dt = GetTimeStep(); }
+    time_dt = std::min(std::min(time_dt, GetTimeStep()), GetTimeEnd() - GetTimeNow());
+    SetTimeNow(GetTimeNow() + time_dt);
+    return GetTimeNow();
 };
 
 //    if (level >= m_pack_->m_ctx_->GetAtlas().GetNumOfLevels()) { return m_pack_->m_time_; }
@@ -58,7 +56,7 @@ Real TimeIntegrator::Advance(Real time_dt) {
 //        for (auto &v : m_pack_->m_ctx_->GetAllDomains()) {
 //            if (!v.m_node_->GetGeoObject()->CheckOverlap(mblk->BoundingBox())) { continue; }
 //            auto res = m_pack_->m_ctx_->GetPatches()->GetTable(std::to_string(id));
-//            if (res == nullptr) { res = std::make_shared<data::DataTable>(); }
+//            if (res == nullptr) { res = std::make_shared<data::DataNode>(); }
 //            v.m_node_->GetPatch(mblk, res);
 //            LOGGER << " DomainBase [ " << std::setw(10) << std::left << v.m_node_->name() << " ] is applied on "
 //                   << mblk->IndexBox() << " id= " << id << std::endl;

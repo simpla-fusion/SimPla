@@ -22,11 +22,10 @@ struct Tokamak::pimpl_s {
 };
 Tokamak::Tokamak() : m_pimpl_(new pimpl_s) {}
 Tokamak::~Tokamak() { delete m_pimpl_; }
-void Tokamak::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const { base_type::Serialize(cfg); }
+void Tokamak::Serialize(std::shared_ptr<data::DataNode> cfg) const { base_type::Serialize(cfg); }
 
-void Tokamak::Deserialize(std::shared_ptr<const data::DataEntity> const &cfg) {
-    base_type::Deserialize(cfg);
-    auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
+void Tokamak::Deserialize(std::shared_ptr<const data::DataNode> tdb) {
+    base_type::Deserialize(tdb);
     if (tdb != nullptr) {
         nTuple<Real, 2> phi = tdb->GetValue("Phi", nTuple<Real, 2>{0, TWOPI});
         m_pimpl_->m_phi0_ = phi[0];

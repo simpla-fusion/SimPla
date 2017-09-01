@@ -20,20 +20,20 @@ AttributeGroup::~AttributeGroup() {
 }
 
 void AttributeGroup::Push(const std::shared_ptr<Patch> &p) {
-    for (auto *item : m_attributes_) { item->Push(p->GetDataBlock(item->db().GetValue<id_type>("DescID", NULL_ID))); }
+    for (auto *item : m_attributes_) { item->Push(p->GetDataBlock(item->db()->GetValue<id_type>("DescID", NULL_ID))); }
 }
 
 void AttributeGroup::Pop(const std::shared_ptr<Patch> &p) {
-    for (auto *item : m_attributes_) { p->SetDataBlock(item->db().GetValue<id_type>("DescID", NULL_ID), item->Pop()); }
+    for (auto *item : m_attributes_) { p->SetDataBlock(item->db()->GetValue<id_type>("DescID", NULL_ID), item->Pop()); }
 }
 
 void AttributeGroup::Attach(Attribute *p) { m_attributes_.emplace(p); }
 void AttributeGroup::Detach(Attribute *p) { m_attributes_.erase(p); }
 void AttributeGroup::RegisterAttributes() {
-    for (auto *item : m_attributes_) { m_register_desc_->Set(item->GetName(), item->db().shared_from_this()); }
+    for (auto *item : m_attributes_) { m_register_desc_->Set(item->GetName(), item->db()->shared_from_this()); }
 }
-std::shared_ptr<data::DataTable> AttributeGroup::GetAttributeDescription(std::string const &k) {
-    return std::dynamic_pointer_cast<data::DataTable>(m_register_desc_->Get(k));
+std::shared_ptr<data::DataNode> AttributeGroup::GetAttributeDescription(std::string const &k) {
+    return std::dynamic_pointer_cast<data::DataNode>(m_register_desc_->Get(k));
 }
 
 // void AttributeGroup::RegisterDescription(std::map<std::string, std::shared_ptr<AttributeDesc>> *m) const {
@@ -103,17 +103,17 @@ Attribute::~Attribute() {
     delete m_pimpl_;
 }
 
-void Attribute::Serialize(const std::shared_ptr<data::DataNode> &cfg) const { base_type::Serialize(cfg); }
-void Attribute::Deserialize(const std::shared_ptr<const data::DataNode> &cfg) { base_type::Deserialize(cfg); }
+void Attribute::Serialize(std::shared_ptr<data::DataNode> cfg) const { base_type::Serialize(cfg); }
+void Attribute::Deserialize(std::shared_ptr<const data::DataNode> cfg) { base_type::Deserialize(cfg); }
 
 void Attribute::Register(AttributeGroup *attr_b) {
     if (attr_b == nullptr) {
         static std::hash<std::string> s_hasher;
-        auto id = s_hasher(db().GetValue<std::string>("name", "unnamed") +  //
-                           "." + value_type_info().name() +                 //
-                           "." + std::to_string(GetIFORM()) +               //
+        auto id = s_hasher(db()->GetValue<std::string>("name", "unnamed") +  //
+                           "." + value_type_info().name() +                  //
+                           "." + std::to_string(GetIFORM()) +                //
                            "." + std::to_string(GetDOF()));
-        db().SetValue("DescId", id);
+        db()->SetValue("DescId", id);
         for (auto *item : m_pimpl_->m_bundle_) { Register(item); }
     } else {
         auto res = m_pimpl_->m_bundle_.emplace(attr_b);

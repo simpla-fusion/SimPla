@@ -13,9 +13,9 @@
 #include </usr/local/cuda/include/cuda_runtime_api.h>
 #include </usr/local/cuda/include/device_launch_parameters.h>
 #include </usr/local/cuda/include/driver_types.h>
-#define FILE_LINE_STAMP                                                                                        \
-    "\n\e[0m \e[1;37m From [" << (__FILE__) << ":" << (__LINE__) << ":0: " << (__PRETTY_FUNCTION__) << "] \n " \
-                                                                                                       "\e[1;31m\t"
+//#define FILE_LINE_STAMP                                                                                        \
+//    "\n\e[0m \e[1;37m From [" << (__FILE__) << ":" << (__LINE__) << ":0: " << (__PRETTY_FUNCTION__) << "] \n " \
+//                                                                                                       "\e[1;31m\t"
 #define SP_DEVICE_CALL(_CMD_)                                                                                        \
     {                                                                                                                \
         auto err_code = (_CMD_);                                                                                     \

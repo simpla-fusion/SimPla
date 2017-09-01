@@ -10,8 +10,8 @@
 
 #include "Atlas.h"
 #include "Attribute.h"
-#include "Context.h"
 #include "Mesh.h"
+#include "Scenario.h"
 
 #include "simpla/data/DataNode.h"
 
@@ -23,38 +23,37 @@ struct Schedule::pimpl_s {
     size_type m_check_point_interval_ = 1;
     size_type m_dump_interval_ = 0;
 
-    std::shared_ptr<Context> m_ctx_ = nullptr;
+    std::shared_ptr<Scenario> m_ctx_ = nullptr;
     std::shared_ptr<Atlas> m_atlas_ = nullptr;
 };
 
 Schedule::Schedule() : m_pimpl_(new pimpl_s){};
 Schedule::~Schedule() { delete m_pimpl_; };
 
-void Schedule::Serialize(const std::shared_ptr<data::DataNode> &cfg) const {
+void Schedule::Serialize(std::shared_ptr<data::DataNode> cfg) const {
     base_type::Serialize(cfg);
     db()->Set(cfg);
-    auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
+    auto tdb = std::dynamic_pointer_cast<data::DataNode>(cfg);
     if (tdb != nullptr) { tdb->SetValue("CheckPointInterval", GetCheckPointInterval()); }
 }
 
-void Schedule::Deserialize(const std::shared_ptr<const data::DataNode> &cfg) {
+void Schedule::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
     base_type::Deserialize(cfg);
-    m_pimpl_->m_ctx_ = Atlas::New(cfg->NewNode("Atlas"));
-    SetCheckPointInterval(static_cast<size_type>(db().GetValue<int>("CheckPointInterval", 1)));
+    m_pimpl_->m_ctx_ = Atlas::New(cfg->Get("Atlas"));
+    SetCheckPointInterval(static_cast<size_type>(db()->GetValue<int>("CheckPointInterval", 1)));
     //    m_data_io_ = std::make_shared<data::DataIOPort>(cfg->GetEntity<std::string>("DataIOPort", ""));
 }
 
 size_type Schedule::GetNumberOfStep() const { return m_pimpl_->m_step_; }
-void Schedule::SetMaxStep(size_type s) { m_pimpl_->m_max_step_ = s; }
-size_type Schedule::GetMaxStep() const { return m_pimpl_->m_max_step_; }
-
+// void Schedule::SetMaxStep(size_type s) { m_pimpl_->m_max_step_ = s; }
+// size_type Schedule::GetMaxStep() const { return m_pimpl_->m_max_step_; }
 
 void Schedule::NextStep() { ++m_pimpl_->m_step_; }
 
 bool Schedule::Done() const { return m_pimpl_->m_max_step_ == 0 ? false : m_pimpl_->m_step_ >= m_pimpl_->m_max_step_; }
 
 void Schedule::CheckPoint() const {
-    //    data::DataTable t_cfg;
+    //    data::DataNode t_cfg;
     //    GetAtlas()->Serialize(t_cfg);
     //    t_cfg->SetEntity("Step", m_pimpl_->m_step_);
     //    m_ctx_->GetMesh()->Serialize(t_cfg->GetTable("Mesh"));
@@ -98,11 +97,11 @@ void Schedule::Synchronize() {
     //            " to
     //            "
     //            //                   << m_pack_->m_atlas_.GetMeshBlock(dest)->IndexBox() << " " << std::endl;
-    //            //            auto &src_data = s_it->cast_as<data::DataTable>();
+    //            //            auto &src_data = s_it->cast_as<data::DataNode>();
     //            //            src_data.Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const
     //            &dest_p)
     //            //            {
-    //            //                auto dest_data = d_it->cast_as<data::DataTable>().Serialize(key);
+    //            //                auto dest_data = d_it->cast_as<data::DataNode>().Serialize(key);
     //            //                if (dest_data == nullptr) { return; }
     //            //            });
     //        }

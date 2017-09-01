@@ -125,13 +125,13 @@ template <typename TM, template <typename> class... Policies>
 Domain<TM, Policies...>::~Domain(){};
 
 template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::Serialize(std::shared_ptr<data::DataNode> const &cfg) const {
+void Domain<TM, Policies...>::Serialize(std::shared_ptr<data::DataNode> cfg) const {
     DomainBase::Serialize(cfg);
     traits::_try_invoke_Serialize<Policies...>(this, cfg);
 };
 
 template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::Deserialize(std::shared_ptr<const data::DataNode> const &cfg) {
+void Domain<TM, Policies...>::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
     DomainBase::Deserialize(cfg);
     traits::_try_invoke_Deserialize<Policies...>(this, cfg);
 };

@@ -13,8 +13,7 @@ Chart::Chart(point_type shift, point_type scale, point_type rotate) {
 }
 Chart::~Chart() = default;
 
-void Chart::Serialize(const std::shared_ptr<data::DataEntity> &cfg) const {
-    auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
+void Chart::Serialize(std::shared_ptr<data::DataNode> tdb) const {
     if (tdb != nullptr) {
         tdb->SetValue("Type", GetFancyTypeName());
         tdb->SetValue("Level", GetLevel());
@@ -23,8 +22,7 @@ void Chart::Serialize(const std::shared_ptr<data::DataEntity> &cfg) const {
         tdb->SetValue("Rotation", GetRotation());
     }
 }
-void Chart::Deserialize(const std::shared_ptr<const data::DataEntity> &cfg) {
-    auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
+void Chart::Deserialize(std::shared_ptr<const data::DataNode> tdb) {
     if (tdb != nullptr) {
         m_origin_ = tdb->GetValue<point_type>("Origin", m_origin_);
         m_scale_ = tdb->GetValue<point_type>("Scale", m_scale_);

@@ -19,14 +19,14 @@ DomainBase::DomainBase() {}
 DomainBase::DomainBase(std::shared_ptr<MeshBase> const& msh, std::shared_ptr<Model> const& model)
     : m_mesh_(msh), m_model_(model) {}
 DomainBase::~DomainBase() {}
-void DomainBase::Serialize(std::shared_ptr<data::DataNode> const& cfg) const {
+void DomainBase::Serialize(std::shared_ptr<data::DataNode> cfg) const {
     base_type::Serialize(cfg);
 
-    if (SetBoundary() != nullptr) { SetBoundary()->Serialize(cfg->NewNode("Boundary")); }
+    if (SetBoundary() != nullptr) { SetBoundary()->Serialize(cfg->CreateNode("Boundary")); }
 }
-void DomainBase::Deserialize(const std::shared_ptr<const data::DataNode>& cfg) {
+void DomainBase::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
     base_type::Deserialize(cfg);
-    m_geo_body_ = geometry::GeoObject::New(cfg->FindNode("Body"));
+    m_geo_body_ = geometry::GeoObject::New(cfg->Get("Body"));
     Click();
 };
 

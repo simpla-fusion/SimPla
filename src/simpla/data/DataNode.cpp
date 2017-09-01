@@ -12,6 +12,8 @@
 
 namespace simpla {
 namespace data {
+int DataNode::s_num_of_pre_registered_ = 0;
+
 DataNode::DataNode(eNodeType etype) : m_type_(etype) {}
 DataNode::~DataNode() {
     if (isRoot()) { Flush(); }
@@ -105,9 +107,9 @@ std::ostream& DataNode::Print(std::ostream& os, int indent) const {
                 for (size_type i = 1, ie = this->size(); i < ie; ++i) {
                     auto v = this->Get(i);
                     os << ", ";
-//                    if (new_line && v->type() != DataNode::DN_ENTITY) {
-//                        os << std::endl << std::setw(indent + 1) << " ";
-//                    }
+                    //                    if (new_line && v->type() != DataNode::DN_ENTITY) {
+                    //                        os << std::endl << std::setw(indent + 1) << " ";
+                    //                    }
                     this->Get(i)->Print(os, indent + 1);
                 }
             }
@@ -149,6 +151,11 @@ std::ostream& operator<<(std::ostream& os, DataNode const& entry) { return entry
 DataNode::eNodeType DataNode::type() const { return m_type_; }
 size_type DataNode::size() const { return m_entity_ == nullptr ? 0 : 1; }
 std::shared_ptr<DataNode> DataNode::CreateNode(eNodeType e_type) const { return DataNode::New(e_type, ""); };
+std::shared_ptr<DataNode> DataNode::CreateNode(std::string const& url, eNodeType e_type) {
+    auto node = DataNode::New(e_type, "");
+    Set(url, node);
+    return node;
+};
 
 size_type DataNode::Set(std::string const& uri, std::shared_ptr<DataNode> const& v) {
     DOMAIN_ERROR;
@@ -175,6 +182,9 @@ size_type DataNode::Add(index_type s, std::shared_ptr<DataNode> const& v) { retu
 size_type DataNode::Delete(index_type s) { return Delete(std::to_string(s)); }
 std::shared_ptr<DataNode> DataNode::Get(index_type s) const { return Get(std::to_string(s)); }
 size_type DataNode::Add(std::shared_ptr<DataNode> const& v) { return Add(size(), v); }
+size_type DataNode::Set(std::shared_ptr<DataNode> const& v) {
+    return v == nullptr ? 0 : v->Foreach([&](std::string k, std::shared_ptr<DataNode> v) { return Set(k, v); });
+}
 
 size_type DataNode::SetValue(std::string const& url, KeyValue const& kv) { return Set(url, make_node(kv)); };
 size_type DataNode::SetValue(std::string const& url, std::initializer_list<KeyValue> const& kv) {

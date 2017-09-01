@@ -8,7 +8,6 @@
 #define SIMPLA_OBJECT_H
 #include "simpla/SIMPLA_config.h"
 
-#include <simpla/data/DataTable.h>
 #include <memory>
 #include <mutex>
 #include <typeindex>
@@ -89,24 +88,24 @@ class SPObject : public Factory<SPObject>, public std::enable_shared_from_this<S
         return Factory<SPObject>::RegisterCreator<U>(std::string(U::TagName()) + "." + k_hint);
     };
 
-    virtual void Serialize(std::shared_ptr<data::DataNode> const &cfg) const;
-    virtual void Deserialize(std::shared_ptr<const data::DataNode> const &cfg);
-    static std::shared_ptr<SPObject> New(std::shared_ptr<const data::DataNode> const &v) {
-        auto res = base_type::Create(std::string(TagName()) + "." + v->template as<std::string>(""));
+    virtual void Serialize(std::shared_ptr<data::DataNode> cfg) const;
+    virtual void Deserialize(std::shared_ptr<const data::DataNode> cfg);
+    static std::shared_ptr<SPObject> New(std::shared_ptr<const data::DataNode> v) {
+        auto res = base_type::Create(std::string(TagName()) + "." + v->GetValue<std::string>(""));
         res->Deserialize(v);
         return res;
     };
-    static std::shared_ptr<SPObject> NewAndSync(std::shared_ptr<const data::DataNode> const &v);
+    static std::shared_ptr<SPObject> NewAndSync(std::shared_ptr<data::DataNode> v);
     template <typename TOBJ, typename TFun>
     static std::shared_ptr<TOBJ> NewAndSync(TFun const &v);
 
     template <typename TOBJ>
-    static std::shared_ptr<TOBJ> NewAndSyncT(std::shared_ptr<const data::DataNode> const &v) {
+    static std::shared_ptr<TOBJ> NewAndSyncT(std::shared_ptr<data::DataNode> const &v) {
         return std::dynamic_pointer_cast<TOBJ>(NewAndSync(v));
     };
 
-    const data::DataTable &db() const;
-    data::DataTable &db();
+    std::shared_ptr<data::DataNode> db() const;
+    std::shared_ptr<data::DataNode> db();
     id_type GetGUID() const;
     void SetName(std::string const &);
     std::string const &GetName() const;
@@ -149,9 +148,9 @@ class SPObject : public Factory<SPObject>, public std::enable_shared_from_this<S
 std::ostream &operator<<(std::ostream &os, SPObject const &obj);
 std::istream &operator>>(std::istream &is, SPObject &obj);
 
-#define SP_OBJECT_PROPERTY(_TYPE_, _NAME_)                                 \
-    void Set##_NAME_(_TYPE_ _v_) { db().SetValue(__STRING(_NAME_), _v_); } \
-    _TYPE_ Get##_NAME_() const { db().template GetValue<_TYPE_>(__STRING(_NAME_)); }
+#define SP_OBJECT_PROPERTY(_TYPE_, _NAME_)                                  \
+    void Set##_NAME_(_TYPE_ _v_) { db()->SetValue(__STRING(_NAME_), _v_); } \
+    _TYPE_ Get##_NAME_() const { return db()->template GetValue<_TYPE_>(__STRING(_NAME_)); }
 
 #define SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_)                                                                     \
     SP_DEFINE_FANCY_TYPE_NAME(_CLASS_NAME_, _BASE_)                                                              \
@@ -161,8 +160,8 @@ std::istream &operator>>(std::istream &is, SPObject &obj);
    public:                                                                                                       \
     ~_CLASS_NAME_() override;                                                                                    \
                                                                                                                  \
-    void Serialize(std::shared_ptr<simpla::data::DataNode> const &cfg) const override;                           \
-    void Deserialize(std::shared_ptr<simpla::data::DataNode const> const &cfg) override;                         \
+    void Serialize(std::shared_ptr<simpla::data::DataNode> cfg) const override;                                  \
+    void Deserialize(std::shared_ptr<const simpla::data::DataNode> cfg) override;                                \
                                                                                                                  \
    private:                                                                                                      \
     struct pimpl_s;                                                                                              \

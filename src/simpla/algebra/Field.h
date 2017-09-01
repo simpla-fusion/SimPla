@@ -92,28 +92,28 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     }
 
     void PushData(nTuple<array_type, NUM_OF_SUB, DOF...>* d) {
-        auto blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
-        if (blk != nullptr) {
-            int count = 0;
-            traits::foreach (*d, [&](array_type& a, auto&&... idx) {
-                array_type(*blk->Get(count)).swap(a);
-                ++count;
-            });
-        }
-        Tag();
+//        auto blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
+//        if (blk != nullptr) {
+//            int count = 0;
+//            traits::foreach (*d, [&](array_type& a, auto&&... idx) {
+//                array_type(*blk->Get(count)).swap(a);
+//                ++count;
+//            });
+//        }
+//        Tag();
     };
     void PopData(nTuple<array_type, NUM_OF_SUB, DOF...>* d) {
-        auto blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
-        if (blk == nullptr) {
-            Push(data::DataMultiArray<array_type>::New(d->size()));
-            blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
-        }
-        int count = 0;
-        traits::foreach (*d, [&](array_type& a, auto&&... idx) {
-            array_type(a).swap(*blk->Get(count));
-            a.reset();
-            ++count;
-        });
+//        auto blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
+//        if (blk == nullptr) {
+//            Push(data::DataMultiArray<array_type>::New(d->size()));
+//            blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
+//        }
+//        int count = 0;
+//        traits::foreach (*d, [&](array_type& a, auto&&... idx) {
+//            array_type(a).swap(*blk->Get(count));
+//            a.reset();
+//            ++count;
+//        });
         ResetTag();
     };
     //    void swap(this_type& other) {

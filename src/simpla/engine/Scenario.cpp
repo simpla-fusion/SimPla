@@ -25,37 +25,37 @@ struct Scenario::pimpl_s {
 Scenario::Scenario() : m_pimpl_(new pimpl_s) {}
 Scenario::~Scenario() { delete m_pimpl_; }
 
-void Scenario::Serialize(std::shared_ptr<data::DataNode> const &cfg) const {
+void Scenario::Serialize(std::shared_ptr<data::DataNode> cfg) const {
     base_type::Serialize(cfg);
 
-    GetMesh()->Serialize(cfg->NewNode("Mesh"));
-    GetAtlas()->Serialize(cfg->NewNode("Atlas"));
-    GetSchedule()->Serialize(cfg->NewNode("Schedule"));
+    GetMesh()->Serialize(cfg->CreateNode("Mesh"));
+    GetAtlas()->Serialize(cfg->CreateNode("Atlas"));
+    GetSchedule()->Serialize(cfg->CreateNode("Schedule"));
 
-    auto model = cfg->NewNode("Model");
-    for (auto const &item : m_pimpl_->m_models_) { item.second->Serialize(model->NewNode(item.first)); }
+    auto model = cfg->CreateNode("Model");
+    for (auto const &item : m_pimpl_->m_models_) { item.second->Serialize(model->CreateNode(item.first)); }
 
-    auto domain = cfg->NewNode("Domain");
-    for (auto const &item : m_pimpl_->m_domains_) { item.second->Serialize(domain->NewNode(item.first)); }
+    auto domain = cfg->CreateNode("Domain");
+    for (auto const &item : m_pimpl_->m_domains_) { item.second->Serialize(domain->CreateNode(item.first)); }
 }
 
-void Scenario::Deserialize(std::shared_ptr<const data::DataNode> const &cfg) {
+void Scenario::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
     DoInitialize();
     base_type::Deserialize(cfg);
-    SetMesh(MeshBase::New(cfg->FindNode("Mesh")));
-    SetAtlas(Atlas::New(cfg->FindNode("Atlas")));
+    SetMesh(MeshBase::New(cfg->Get("Mesh")));
+    SetAtlas(Atlas::New(cfg->Get("Atlas")));
 
-    if (auto model = cfg->FindNode("Model")) {
-        for (auto p = model->FirstChild(); p != nullptr; p = p->Next()) { SetModel(p->Key(), Model::New(p)); }
+    if (auto model = cfg->Get("Model")) {
+        //        for (auto p = model->FirstChild(); p != nullptr; p = p->Next()) { SetModel(p->Key(), Model::New(p)); }
     }
-    if (auto domain = cfg->FindNode("Domain")) {
-        for (auto p = domain->FirstChild(); p != nullptr; p = p->Next()) {
-            auto key = p->GetValue<std::string>("Name", "");
-            auto m = key.empty() ? nullptr : m_pimpl_->m_models_.at(key);
-            SetDomain(key, DomainBase::New(m_pimpl_->m_mesh_, m));
-        }
+    if (auto domain = cfg->Get("Domain")) {
+        //        for (auto p = domain->FirstChild(); p != nullptr; p = p->Next()) {
+        //            auto key = p->GetValue<std::string>("Name", "");
+        //            auto m = key.empty() ? nullptr : m_pimpl_->m_models_.at(key);
+        //            SetDomain(key, DomainBase::New(m_pimpl_->m_mesh_, m));
+        //        }
     }
-    SetSchedule(Schedule::New(cfg->FindNode("Schedule"), shared_from_this()));
+    SetSchedule(Schedule::New(cfg->Get("Schedule")));
 
     Click();
 }
@@ -89,7 +89,7 @@ std::shared_ptr<DomainBase> Scenario::GetDomain(std::string const &k) const {
     return (it == m_pimpl_->m_domains_.end()) ? nullptr : it->second;
 }
 std::shared_ptr<Schedule> Scenario::NewSchedule(const std::shared_ptr<data::DataNode> &cfg) {
-    auto res = Schedule::New(cfg, shared_from_this());
+    auto res = Schedule::New(cfg);
     SetSchedule(res);
     return res;
 }

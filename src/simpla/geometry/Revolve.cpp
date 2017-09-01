@@ -5,9 +5,9 @@
 namespace simpla {
 namespace geometry {
 
-void RevolveZ::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const {
+void RevolveZ::Serialize(std::shared_ptr<data::DataNode> cfg) const {
     base_type::Serialize(cfg);
-    auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
+    auto tdb = std::dynamic_pointer_cast<data::DataNode>(cfg);
     if (tdb != nullptr) {
         tdb->template SetValue("Axis", m_phi_axe_);
         tdb->template SetValue("Origin", m_origin_);
@@ -16,7 +16,7 @@ void RevolveZ::Serialize(std::shared_ptr<data::DataEntity> const &cfg) const {
         base_obj->Serialize(tdb->Get("2DShape"));
     }
 };
-void RevolveZ::Deserialize(std::shared_ptr<const data::DataEntity> const &cfg) { base_type::Deserialize(cfg); }
+void RevolveZ::Deserialize(std::shared_ptr<const data::DataNode> cfg) { base_type::Deserialize(cfg); }
 
 }  // namespace geometry
 }  // namespace simpla

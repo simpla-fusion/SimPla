@@ -5,8 +5,8 @@
 #ifndef SIMPLA_SCENARIO_H
 #define SIMPLA_SCENARIO_H
 
-#include "SPObject.h"
 #include "Atlas.h"
+#include "SPObject.h"
 
 namespace simpla {
 namespace engine {
@@ -30,7 +30,7 @@ class Scenario : public SPObject {
     std::shared_ptr<MeshBase> GetMesh() const;
 
     void SetModel(std::string const &k, std::shared_ptr<Model> const &);
-    std::shared_ptr<Model> GetModel(std::string const &k) const;
+    std::shared_ptr<const Model> GetModel(std::string const &k) const;
 
     template <typename TD>
     std::shared_ptr<TD> NewDomain(std::string const &k, std::shared_ptr<Model> const &m = nullptr);
@@ -60,7 +60,7 @@ class Scenario : public SPObject {
 };
 
 template <typename TD>
-std::shared_ptr<TD> Scenario::NewDomain(std::string const &k, std::shared_ptr<Model> const &m = nullptr) {
+std::shared_ptr<TD> Scenario::NewDomain(std::string const &k, std::shared_ptr<Model> const &m) {
     if (m != nullptr) { SetModel(k, m); }
     SetDomain(k, TD::New(GetMesh(), GetModel(k)));
     return GetDomain(k);

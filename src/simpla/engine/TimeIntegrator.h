@@ -13,7 +13,6 @@
 
 namespace simpla {
 namespace engine {
-class Context;
 
 struct TimeIntegrator : public Schedule {
     SP_OBJECT_HEAD(TimeIntegrator, Schedule);

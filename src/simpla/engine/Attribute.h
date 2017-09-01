@@ -72,8 +72,8 @@ class AttributeGroup {
 
     void RegisterAttributes();
 
-    std::shared_ptr<data::DataTable> GetAttributeDescription(std::string const &k);
-    const std::set<data::DataTable> GetDescriptions() const;
+    std::shared_ptr<data::DataNode> GetAttributeDescription(std::string const &k);
+    std::shared_ptr<const data::DataNode> GetDescriptions() const;
 
     //    virtual void RegisterAt(AttributeGroup *);
     //    virtual void DeregisterFrom(AttributeGroup *);
@@ -91,7 +91,7 @@ class AttributeGroup {
 
    private:
     std::set<Attribute *> m_attributes_;
-    std::shared_ptr<data::DataTable> m_register_desc_ = nullptr;
+    std::shared_ptr<data::DataNode> m_register_desc_ = nullptr;
 };
 
 /**
@@ -127,7 +127,7 @@ struct Attribute : public SPObject {
    protected:
     template <typename... Args>
     explicit Attribute(Args &&... args) : Attribute() {
-        db().SetValue(std::forward<Args>(args)...);
+        db()->SetValue(std::forward<Args>(args)...);
     };
 
    public:
@@ -220,11 +220,11 @@ struct Attribute : public SPObject {
 //    virtual void Clear() { U::Clear(); }
 //    virtual void SetBaseMesh(MeshBase const *){};
 //    virtual MeshBase const *GetBaseMesh() const { return nullptr; };
-//    virtual void GetPatch(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const
+//    virtual void GetPatch(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataNode> const
 //    &d) {
 //        data::data_cast<U>(*d).swap(*this);
 //    };
-//    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> Serialize() {
+//    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataNode>> Serialize() {
 //        return std::make_pair(std::shared_ptr<MeshBlock>(nullptr), data::make_data(*this));
 //    };
 //    template <typename TExpr>

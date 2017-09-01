@@ -7,13 +7,12 @@
  *    This is an example of EM plasma
  */
 
-#include <simpla/data/db/DataUtility.h>
 #include "simpla/SIMPLA_config.h"
 
 #include "SpApp.h"
 #include "simpla/engine/Atlas.h"
-#include "simpla/engine/Context.h"
 #include "simpla/engine/Domain.h"
+#include "simpla/engine/Scenario.h"
 #include "simpla/engine/TimeIntegrator.h"
 #include "simpla/geometry/Chart.h"
 #include "simpla/parallel/MPIComm.h"
@@ -25,34 +24,33 @@
 namespace simpla {
 struct SpApp::pimpl_s {
     std::shared_ptr<engine::Schedule> m_schedule_ = nullptr;
-    std::shared_ptr<engine::Context> m_context_ = nullptr;
+    std::shared_ptr<engine::Scenario> m_scenario_ = nullptr;
     std::shared_ptr<engine::Atlas> m_atlas_ = nullptr;
 };
 SpApp::SpApp() : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_context_ = engine::Context::New();
+    m_pimpl_->m_scenario_ = engine::Scenario::New();
     m_pimpl_->m_atlas_ = engine::Atlas::New();
 }
 SpApp::~SpApp() { delete m_pimpl_; };
-void SpApp::Serialize(const std::shared_ptr<data::DataEntity> &cfg) const {
+void SpApp::Serialize(std::shared_ptr<data::DataNode> cfg) const {
     base_type::Serialize(cfg);
 
-    auto tdb = std::dynamic_pointer_cast<data::DataTable>(cfg);
+    auto tdb = std::dynamic_pointer_cast<data::DataNode>(cfg);
     if (tdb != nullptr) {
         if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Serialize(tdb->Get("Schedule")); }
 
-        m_pimpl_->m_context_->Serialize(tdb->Get("Context"));
+        m_pimpl_->m_scenario_->Serialize(tdb->Get("Context"));
         m_pimpl_->m_atlas_->Serialize(tdb->Get("Atlas"));
     }
 };
-void SpApp::Deserialize(const std::shared_ptr<const data::DataEntity> &cfg) {
+void SpApp::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
     base_type::Deserialize(cfg);
-    auto tdb = std::dynamic_pointer_cast<const data::DataTable>(cfg);
-    if (tdb != nullptr) {
-        m_pimpl_->m_context_->Deserialize(tdb->Get("Context"));
-        m_pimpl_->m_atlas_->Deserialize(tdb->Get("Atlas"));
-        m_pimpl_->m_schedule_ = engine::Schedule::New(cfg);
-        m_pimpl_->m_schedule_->SetContext(m_pimpl_->m_context_);
-        m_pimpl_->m_schedule_->SetAtlas(m_pimpl_->m_atlas_);
+    if (cfg != nullptr) {
+        m_pimpl_->m_scenario_->Deserialize(cfg->Get("Context"));
+        m_pimpl_->m_atlas_->Deserialize(cfg->Get("Atlas"));
+        m_pimpl_->m_schedule_->Deserialize(cfg);
+        m_pimpl_->m_schedule_->SetScenario(m_pimpl_->m_scenario_);
+        //        m_pimpl_->m_schedule_->SetAtlas(m_pimpl_->m_atlas_);
     }
     Click();
 };
@@ -66,13 +64,13 @@ void SpApp::Config(int argc, char **argv) {
     std::string app_name;
     conf_file += ".lua";
 
-    auto cmd_line_cfg = data::DataTable::New();
-    auto input_file_cfg = data::DataTable::New();
+    auto cmd_line_cfg = data::DataNode::New();
+    auto input_file_cfg = data::DataNode::New();
 
     simpla::parse_cmd_line(  //
         argc, argv, [&](std::string const &opt, std::string const &value) -> int {
             if (opt == "i" || opt == "input") {
-                input_file_cfg = data::DataTable::New(value);
+                input_file_cfg = data::DataNode::New(value);
             } else if (opt == "o" || opt == "output") {
                 cmd_line_cfg->SetValue("OutputPath", value);
             } else if (opt == "log") {
@@ -127,33 +125,33 @@ void SpApp::Config(int argc, char **argv) {
         });
     MESSAGE << std::endl << ShowLogo() << std::endl;
 
-    auto cfg = data::DataTable::New();
+    auto cfg = data::DataNode::New();
 
     cfg->Set("Context", input_file_cfg->Get("Context"));
     cfg->Set("Atlas", input_file_cfg->Get("Atlas"));
     cfg->Set("Schedule", input_file_cfg->Get("Schedule"));
-    cfg->Set(*cmd_line_cfg);
+    cfg->Set(cmd_line_cfg);
 
     Deserialize(cfg);
 }
 
 void SpApp::DoInitialize() {
-    m_pimpl_->m_context_->Initialize();
+    m_pimpl_->m_scenario_->Initialize();
     if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Initialize(); }
 }
 void SpApp::DoFinalize() {
-    m_pimpl_->m_context_->Finalize();
+    m_pimpl_->m_scenario_->Finalize();
     if (m_pimpl_->m_schedule_ != nullptr) {
         m_pimpl_->m_schedule_->Finalize();
         m_pimpl_->m_schedule_.reset();
     }
 };
 void SpApp::DoUpdate() {
-    m_pimpl_->m_context_->Update();
+    m_pimpl_->m_scenario_->Update();
     if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Update(); };
 };
 void SpApp::DoTearDown() {
-    m_pimpl_->m_context_->TearDown();
+    m_pimpl_->m_scenario_->TearDown();
     if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->TearDown(); }
 };
 void SpApp::Run() {
@@ -161,7 +159,7 @@ void SpApp::Run() {
     if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Run(); }
 };
 
-std::shared_ptr<engine::Context> SpApp::GetContext() const { return m_pimpl_->m_context_; }
+std::shared_ptr<engine::Scenario> SpApp::GetContext() const { return m_pimpl_->m_scenario_; }
 
 void SpApp::SetSchedule(const std::shared_ptr<engine::Schedule> &s) {
     m_pimpl_->m_schedule_ = s;
@@ -178,9 +176,8 @@ int main(int argc, char **argv) {
 #endif
 
     parallel::init(argc, argv);
-    ASSERT(data::DataBase::s_num_of_pre_registered_ > 0);
     MESSAGE << std::endl
-            << data::DataBase::ShowDescription() << std::endl
+            << data::DataNode::ShowDescription() << std::endl
             << engine::SPObject::ShowDescription() << std::endl;
 
     GLOBAL_COMM.barrier();
@@ -191,15 +188,15 @@ int main(int argc, char **argv) {
     if (GLOBAL_COMM.rank() == 0) {
         app->Config(argc, argv);
         std::ostringstream os;
-        auto t_db = data::DataTable::New();
+        auto t_db = data::DataNode::New();
         app->Serialize(t_db);
-        data::Pack(t_db, os, "lua");
+//        data::Pack(t_db, os, "lua");
         std::string buffer = os.str();
         parallel::bcast_string(&buffer);
     } else {
         std::string buffer;
         parallel::bcast_string(&buffer);
-        auto t_cfg = data::DataTable::New("lua://");
+        auto t_cfg = data::DataNode::New("lua://");
         t_cfg->Set(buffer, nullptr);
         app->Deserialize(t_cfg);
     }
