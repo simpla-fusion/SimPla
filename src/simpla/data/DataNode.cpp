@@ -13,8 +13,10 @@
 namespace simpla {
 namespace data {
 DataNode::DataNode(eNodeType etype) : m_type_(etype) {}
-DataNode::~DataNode(){};
-std::shared_ptr<DataNode> DataNode::New(eNodeType e_type, std::string const& s) {
+DataNode::~DataNode() {
+    if (isRoot()) { Flush(); }
+};
+std::shared_ptr<DataNode> DataNode::New(std::string const& s) {
     //    if (DataNode::s_num_of_pre_registered_ == 0) { RUNTIME_ERROR << "No database is registered!" << s <<
     //    std::endl; }
     std::string uri = s.empty() ? "mem://" : s;
@@ -34,6 +36,9 @@ std::shared_ptr<DataNode> DataNode::New(eNodeType e_type, std::string const& s) 
     }
     return res;
 };
+std::shared_ptr<DataNode> DataNode::New(eNodeType e_type, std::string const& url) {
+    return New(url)->CreateNode(e_type);
+}
 
 KeyValue::KeyValue(std::string k) : m_key_(std::move(k)), m_node_(DataNode::New(DataLight::New(true))) {}
 KeyValue::KeyValue(KeyValue const& other) = default;
@@ -142,7 +147,7 @@ std::ostream& DataNode::Print(std::ostream& os, int indent) const {
 std::ostream& operator<<(std::ostream& os, DataNode const& entry) { return entry.Print(os, 0); }
 
 DataNode::eNodeType DataNode::type() const { return m_type_; }
-size_type DataNode::size() const { return 0; }
+size_type DataNode::size() const { return m_entity_ == nullptr ? 0 : 1; }
 std::shared_ptr<DataNode> DataNode::CreateNode(eNodeType e_type) const { return DataNode::New(e_type, ""); };
 
 size_type DataNode::Set(std::string const& uri, std::shared_ptr<DataNode> const& v) {

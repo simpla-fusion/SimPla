@@ -17,6 +17,7 @@ ENDIF (LUA_FOUND)
 #FILE(GLOB database_SRC  *.cpp *.h )
 
 SET(database_SRC
+        DataNodeMemory.h
         DataNodeMemory.cpp
         DataNodeLua.cpp
         DataNodeHDF5.cpp
