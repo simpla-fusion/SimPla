@@ -221,9 +221,9 @@ size_t LuaObject::size() const {
 
     size_t res = 0;
     auto acc = L_->acc();
-//    try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-    res = lua_rawlen(*acc, self_);
-//    lua_pop(*acc, 1);
+    try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+    res = lua_rawlen(*acc, lua_gettop(*acc));
+    lua_pop(*acc, 1);
 
     return res;
 }
@@ -368,6 +368,52 @@ DEF_TYPE_CHECK(is_integer, lua_isinteger)
 #undef DEF_TYPE_CHECK
 
 bool LuaObject::is_floating_point() const { return is_number() && !is_integer(); }
+
+LuaObject::eLuaType LuaObject::type() const {
+    eLuaType res = LUA_T_NULL;
+    if (L_ != nullptr) {
+        auto acc = L_->acc();
+        try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+        auto idx = lua_gettop(*acc);
+        int type = lua_type(*acc, idx);
+        switch (type) {
+            case LUA_TBOOLEAN:
+                res = LUA_T_BOOLEAN;
+                break;
+            case LUA_TSTRING:
+                res = LUA_T_STRING;
+                break;
+            case LUA_TNUMBER:
+                res = lua_isinteger(*acc, idx) ? LUA_T_INTEGER : LUA_T_FLOATING;
+                break;
+            case LUA_TFUNCTION:
+                res = LUA_T_FUNCTION;
+                break;
+            case LUA_TLIGHTUSERDATA:
+                res = LUA_T_USERDATA;
+                break;
+            case LUA_TTABLE: {
+                res = LUA_T_TABLE;
+            } break;
+        }
+        lua_pop(*acc, 1);
+    }
+    if (res == LUA_T_TABLE) {
+        auto idx = begin().value().first;
+        if (idx != nullptr && idx->is_integer() && idx->as<int>() == 1) { res = LUA_T_ARRAY; }
+    }
+    return res;
+}
+LuaObject::eLuaType LuaObject::get_array_value_type() const {
+    LuaObject::eLuaType res;
+    res = type();
+    if (res == LUA_T_ARRAY) {
+        auto p = begin().value().second;
+        res = p == nullptr ? LUA_T_NULL : p->get_array_value_type();
+    }
+    return res;
+}
+
 //
 // LuaObject::eLuaType GetArrayShape(lua_State *L, int idx, size_type *rank, size_type *extents) {
 //    LuaObject::eLuaType res = LuaObject::TYPE_NULL;
@@ -429,17 +475,28 @@ bool LuaObject::is_table() const {
     if (L_ != nullptr) {
         auto acc = L_->acc();
         try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-        if (lua_istable(*acc, -1)) {
-            lua_rawgeti(*acc, lua_gettop(*acc), 1);
-            if (lua_isinteger(*acc, -1) == 0) { res = true; }
-            lua_pop(*acc, 1);
-        }
+        res = lua_istable(*acc, -1);
         lua_pop(*acc, 1);
+    }
+    if (res) {
+        auto idx = begin().value().first;
+        if (idx != nullptr && idx->is_integer() && idx->as<int>() == 1) { res = false; }
     }
     return res;
 }
 bool LuaObject::is_array() const {
-    return is_table() && begin().value().first != nullptr && (begin().value().first->is_integer());
+    bool res = false;
+    if (L_ != nullptr) {
+        auto acc = L_->acc();
+        try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+        res = lua_istable(*acc, -1);
+        lua_pop(*acc, 1);
+    }
+    if (res) {
+        auto idx = begin().value().first;
+        if (!(idx != nullptr && idx->as<int>() == 1)) { res = false; }
+    }
+    return res;
 }
 
 int LuaGetNestTableShape(lua_State *L, int idx, size_type *rank, size_type *extents) {

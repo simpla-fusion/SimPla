@@ -62,10 +62,11 @@ TEST_P(DataBaseTest, light_data_sigle_value) {
     db->SetValue("CartesianGeometry", "hello world!");
     db->SetValue("b", 5.0);
     db->Flush();
+    std::cout << m_url << " :  " << (*db) << " " << std::endl;
+
     EXPECT_EQ(db->GetValue<std::string>("CartesianGeometry"), "hello world!");
     EXPECT_DOUBLE_EQ(db->GetValue<double>("b"), 5);
     EXPECT_EQ(db->size(), 2);
-    std::cout << m_url << " :  " << (*db) << " " << std::endl;
 }
 
 TEST_P(DataBaseTest, light_data_SetValue_ntuple) {
@@ -121,9 +122,9 @@ TEST_P(DataBaseTest, light_data_keyvalue) {
 //}
 INSTANTIATE_TEST_CASE_P(DataBaseTestP, DataBaseTest,
                         testing::Values(               //
-//                            "mem://",                  //
-//                            "h5://?rw,a=234,b=6#123",  //
-//                            "imas://",                 //
+                            "mem://",                  //
+                            "h5://?rw,a=234,b=6#123",  //
+                                                       //                            "imas://",                 //
                             "lua://"));
 //
 // TEST(DataTable, samrai) {

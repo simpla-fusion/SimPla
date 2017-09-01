@@ -62,7 +62,7 @@ size_type DataNodeMemory::Set(std::string const& uri, std::shared_ptr<DataNode> 
             count = v->size();
             break;
         } else {
-            obj = std::dynamic_pointer_cast<DataNodeMemory>(
+            obj = std::dynamic_pointer_cast<this_type>(
                 obj->m_table_.emplace(k.substr(0, tail), CreateNode(DN_TABLE)).first->second);
             k = k.substr(tail + 1);
         }
@@ -105,7 +105,7 @@ std::shared_ptr<DataNode> DataNodeMemory::Get(std::string const& uri) const {
             auto it = p->m_table_.find(k.substr(0, tail));
             obj = (it != p->m_table_.end()) ? it->second : nullptr;
         } else {
-            obj = obj->Get(k.substr(0, tail));
+            obj = nullptr;//obj->Get(k.substr(0, tail));
         }
         if (tail != std::string::npos) {
             k = k.substr(tail + 1);

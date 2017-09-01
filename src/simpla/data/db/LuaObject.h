@@ -155,12 +155,28 @@ class LuaObject : public std::enable_shared_from_this<LuaObject> {
     bool is_string() const;
     bool is_integer() const;
     bool is_floating_point() const;
+
+    enum eLuaType {
+        LUA_T_GLOBAL = -1,
+        LUA_T_NULL = 0,
+        LUA_T_BOOLEAN,
+        LUA_T_INTEGER,
+        LUA_T_FLOATING,
+        LUA_T_STRING,
+        LUA_T_TABLE,
+        LUA_T_ARRAY,
+        LUA_T_FUNCTION,
+        LUA_T_USERDATA
+    };
+    eLuaType type() const;
+    eLuaType get_array_value_type() const;
     /**
      *  table : key-value map
      *  array : table without key
      */
     bool is_table() const;
     bool is_array() const;
+
     std::string get_typename() const;
     size_type get_shape(size_type *rank, size_type *extents) const;
 

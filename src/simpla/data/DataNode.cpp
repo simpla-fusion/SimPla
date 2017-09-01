@@ -89,7 +89,8 @@ std::istream& DataNode::Parse(std::istream& is) {
 std::ostream& DataNode::Print(std::ostream& os, int indent) const {
     switch (type()) {
         case DN_ENTITY: {
-            GetEntity()->Print(os, indent + 1);
+            auto entity = GetEntity();
+            if (entity != nullptr) GetEntity()->Print(os, indent + 1);
         } break;
         case DN_ARRAY: {
             bool new_line = this->size() > 1;

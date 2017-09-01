@@ -48,8 +48,6 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
         return std::shared_ptr<DataNode>(new DataNode(v));
     }
 
-    std::shared_ptr<DataEntity> GetEntity() const { return m_entity_; }
-
     eNodeType type() const;
 
     std::shared_ptr<DataNode> GetRoot() const {
@@ -60,6 +58,8 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     /** @addtogroup required @{*/
 
     virtual std::shared_ptr<DataNode> CreateNode(eNodeType e_type) const;
+    virtual std::shared_ptr<DataEntity> GetEntity() const { return m_entity_; }
+    virtual void SetEntity(std::shared_ptr<DataEntity> const& e) { m_entity_ = e; }
 
     virtual size_type size() const;
 
