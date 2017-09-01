@@ -105,9 +105,9 @@ std::ostream& DataNode::Print(std::ostream& os, int indent) const {
                 for (size_type i = 1, ie = this->size(); i < ie; ++i) {
                     auto v = this->Get(i);
                     os << ", ";
-                    if (new_line && v->type() != DataNode::DN_ENTITY) {
-                        os << std::endl << std::setw(indent + 1) << " ";
-                    }
+//                    if (new_line && v->type() != DataNode::DN_ENTITY) {
+//                        os << std::endl << std::setw(indent + 1) << " ";
+//                    }
                     this->Get(i)->Print(os, indent + 1);
                 }
             }

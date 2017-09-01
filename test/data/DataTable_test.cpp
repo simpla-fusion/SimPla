@@ -15,8 +15,7 @@ using namespace simpla::data;
 TEST(DataTable, lua) {
     auto db = DataNode::New("lua://");
     db->Parse(
-        "PI = 3.141592653589793  "
-        "_ROOT_={\n"
+        "PI = 3.141592653589793, \n "
         "c = 299792458.0, -- m/s\n"
         "qe = 1.60217656e-19, -- C\n"
         "me = 9.10938291e-31, --kg\n"
@@ -24,17 +23,21 @@ TEST(DataTable, lua) {
         "mp_me = 1836.15267245, --\n"
         "KeV = 1.1604e7, -- K\n"
         "Tesla = 1.0, -- Tesla\n"
-        "TWOPI =  PI * 2,\n"
+        "TWOPI =  math.pi * 2,\n"
         "k_B = 1.3806488e-23, --Boltzmann_constant\n"
         "epsilon0 = 8.8542e-12,\n"
         "AAA = { c =  3 , d = { c = \"3\", e = { 1, 3, 4, 5 } } },\n"
         "CCC = { 1, 3, 4, 5 },\n"
-        "Box={{1,2,3},{3,4,5}} \n"
-        "}");
+        "Box={{1,2,3},{3,4,5}},\n"
+        "tuple3={{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}},\n"
+        " nest = { abc= {abc1= {def = {abc = {abc= \"sadfsdf\"}}}}}");
+    db->SetValue("Box2", {{0, 5, 3}, {1, 5, 3}});
     MESSAGE << "lua:// " << (*db) << std::endl;
     //    MESSAGE << "Box " << (*db)["Context/Box"]->as<nTuple<int, 2, 3>>() << std::endl;
     EXPECT_EQ(db->GetValue<int>("AAA/c"), 3);
     EXPECT_EQ((db->GetValue<nTuple<int, 4>>("/CCC")), (nTuple<int, 4>{1, 3, 4, 5}));
+
+    db->Flush();
     //
     //    EXPECT_DOUBLE_EQ((*db)["/Context/c"]->as<double>(), 299792458);
 
