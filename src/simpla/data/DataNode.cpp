@@ -32,7 +32,7 @@ std::shared_ptr<DataNode> DataNode::New(eNodeType e_type, std::string const& s) 
         RUNTIME_ERROR << "Fail to connect  Data Backend [ " << scheme << " : " << authority << path << " ]"
                       << std::endl;
     }
-    return res->CreateNode(e_type);
+    return res;
 };
 
 KeyValue::KeyValue(std::string k) : m_key_(std::move(k)), m_node_(DataNode::New(DataLight::New(true))) {}
@@ -49,8 +49,13 @@ template <typename U>
 std::shared_ptr<DataNode> make_node(U const& u) {
     return DataNode::New(DataLight::New(u));
 }
+std::shared_ptr<DataNode> make_node(KeyValue const& kv) {
+    auto res = DataNode::New(DataNode::DN_TABLE);
+    res->Set(kv.m_key_, kv.m_node_);
+    return res;
+}
 std::shared_ptr<DataNode> make_node(std::initializer_list<KeyValue> const& u) {
-    auto res = DataNode::New(DataNode::DN_TABLE, "");
+    auto res = DataNode::New(DataNode::DN_TABLE);
     for (auto const& v : u) { res->Set(v.m_key_, v.m_node_); }
     return res;
 }
@@ -165,31 +170,19 @@ size_type DataNode::Delete(size_type s) { return Delete(std::to_string(s)); }
 std::shared_ptr<DataNode> DataNode::Get(size_type s) const { return Get(std::to_string(s)); }
 size_type DataNode::Add(std::shared_ptr<DataNode> const& v) { return Add(size(), v); }
 
-size_type DataNode::SetValue(std::string const& url, KeyValue const& v) {
-    return Set(url + SP_URL_SPLIT_CHAR + v.m_key_, v.m_node_);
+size_type DataNode::SetValue(std::string const& url, KeyValue const& kv) { return Set(url, make_node(kv)); };
+size_type DataNode::SetValue(std::string const& url, std::initializer_list<KeyValue> const& kv) {
+    return Set(url, make_node(kv));
 };
-size_type DataNode::SetValue(std::string const& url, std::initializer_list<KeyValue> const& v) {
-    size_type count = 0;
-    for (auto const& kv : v) { count += SetValue(url, kv); }
-    return count;
+size_type DataNode::SetValue(std::string const& url, std::initializer_list<std::initializer_list<KeyValue>> const& kv) {
+    return Set(url, make_node(kv));
 };
-size_type DataNode::SetValue(std::string const& url, std::initializer_list<std::initializer_list<KeyValue>> const& v) {
-    size_type count = 0;
-    for (auto const& kv : v) { count += SetValue(url, kv); }
-    return count;
+size_type DataNode::AddValue(std::string const& url, KeyValue const& kv) { return AddValue(url, make_node(kv)); };
+size_type DataNode::AddValue(std::string const& url, std::initializer_list<KeyValue> const& kv) {
+    return AddValue(url, make_node(kv));
 };
-size_type DataNode::AddValue(std::string const& url, KeyValue const& v) {
-    return AddValue(url + "/" + v.m_key_, v.m_node_);
-};
-size_type DataNode::AddValue(std::string const& url, std::initializer_list<KeyValue> const& v) {
-    size_type count = 0;
-    for (auto const& kv : v) { count += AddValue(url, kv); }
-    return count;
-};
-size_type DataNode::AddValue(std::string const& url, std::initializer_list<std::initializer_list<KeyValue>> const& v) {
-    size_type count = 0;
-    for (auto const& kv : v) { count += AddValue(url, kv); }
-    return count;
+size_type DataNode::AddValue(std::string const& url, std::initializer_list<std::initializer_list<KeyValue>> const& kv) {
+    return AddValue(url, make_node(kv));
 };
 
 //    static std::regex const sub_group_regex(R"(([^/?#]+)/)", std::regex::optimize);

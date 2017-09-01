@@ -16,13 +16,17 @@ struct DataNodeLua : public DataNode {
     SP_DATA_NODE_HEAD(DataNodeLua);
     SP_DATA_NODE_FUNCTION(DataNodeLua);
 
-    int Parse(std::string const& s) override;
+   protected:
+    DataNodeLua(eNodeType e_type) : DataNode(e_type) {}
+
+   public:
     int Connect(std::string const& authority, std::string const& path, std::string const& query,
                 std::string const& fragment) override;
     int Disconnect() override;
+    int Parse(std::string const& str) override;
+//    int Flush() override;
     bool isValid() const override;
-    //    int Flush() override;
-    //    void Clear() override;
+//    void Clear() override;
 
    private:
     std::shared_ptr<LuaObject> m_lua_obj_ = nullptr;
@@ -60,7 +64,7 @@ void DataNodeLua::init() {
 
 enum { T_NULL = 0, T_INTEGRAL = 0b00001, T_FLOATING = 0b00010, T_STRING = 0b00100, T_BOOLEAN = 0b01000, T_NAN = -1 };
 
-DataNodeLua::DataNodeLua(DataNode::eNodeType etype) : DataNode(etype) { init(); }
+DataNodeLua::DataNodeLua() : DataNode(DN_TABLE) { init(); }
 DataNodeLua::~DataNodeLua() { m_lua_obj_.reset(); }
 int DataNodeLua::Connect(std::string const& authority, std::string const& path, std::string const& query,
                          std::string const& fragment) {
@@ -198,50 +202,49 @@ std::shared_ptr<DataNode> DataNodeLua::Get(size_type s) const {
     res->m_lua_obj_ = m_lua_obj_->get(s);
     return res;
 }
-size_type DataNodeLua::SetEntity(std::shared_ptr<DataEntity> const&) { return 0; }
-
-std::shared_ptr<DataEntity> DataNodeLua::GetEntity() const {
-    if (m_lua_obj_ == nullptr) { return DataEntity::New(); }
-    std::shared_ptr<DataEntity> res = nullptr;
-    auto lobj = m_lua_obj_;
-
-    if (lobj == nullptr || lobj->is_table()) {
-    } else if (lobj->is_function()) {
-        res = DataFunctionLua::New(lobj);
-    } else if (lobj->is_boolean()) {
-        res = DataLightT<bool>::New(lobj->as<bool>());
-    } else if (lobj->is_floating_point()) {
-        res = DataLightT<double>::New(lobj->as<double>());
-    } else if (lobj->is_integer()) {
-        res = DataLightT<int>::New(lobj->as<int>());
-    } else if (lobj->is_string()) {
-        res = DataLightT<std::string>::New(lobj->as<std::string>());
-    } else if (lobj->is_array()) {
-        size_type rank;
-        auto* extents = new size_type[MAX_NDIMS_OF_ARRAY];
-        auto type = lobj->get_shape(&rank, extents);
-        if (type == typeid(bool).hash_code()) {
-            auto tmp = DataLightT<bool*>::New(rank, extents);
-            lobj->get_value(tmp->pointer(), &rank, extents);
-            res = tmp;
-        } else if (type == typeid(int).hash_code()) {
-            auto tmp = DataLightT<int*>::New(rank, extents);
-            lobj->get_value(tmp->pointer(), &rank, extents);
-            res = tmp;
-        } else if (type == typeid(double).hash_code()) {
-            auto tmp = DataLightT<double*>::New(rank, extents);
-            lobj->get_value(tmp->pointer(), &rank, extents);
-            res = tmp;
-        } else if (type == typeid(std::string).hash_code()) {
-            auto tmp = DataLightT<std::string*>::New(rank, extents);
-            lobj->get_value(tmp->pointer(), &rank, extents);
-            res = tmp;
-        } else
-            delete[] extents;
-    }
-
-    return res;
-}
+//
+//std::shared_ptr<DataEntity> DataNodeLua::GetEntity() const {
+//    if (m_lua_obj_ == nullptr) { return DataEntity::New(); }
+//    std::shared_ptr<DataEntity> res = nullptr;
+//    auto lobj = m_lua_obj_;
+//
+//    if (lobj == nullptr || lobj->is_table()) {
+//    } else if (lobj->is_function()) {
+//        res = DataFunctionLua::New(lobj);
+//    } else if (lobj->is_boolean()) {
+//        res = DataLightT<bool>::New(lobj->as<bool>());
+//    } else if (lobj->is_floating_point()) {
+//        res = DataLightT<double>::New(lobj->as<double>());
+//    } else if (lobj->is_integer()) {
+//        res = DataLightT<int>::New(lobj->as<int>());
+//    } else if (lobj->is_string()) {
+//        res = DataLightT<std::string>::New(lobj->as<std::string>());
+//    } else if (lobj->is_array()) {
+//        size_type rank;
+//        auto* extents = new size_type[MAX_NDIMS_OF_ARRAY];
+//        auto type = lobj->get_shape(&rank, extents);
+//        if (type == typeid(bool).hash_code()) {
+//            auto tmp = DataLightT<bool*>::New(rank, extents);
+//            lobj->get_value(tmp->pointer(), &rank, extents);
+//            res = tmp;
+//        } else if (type == typeid(int).hash_code()) {
+//            auto tmp = DataLightT<int*>::New(rank, extents);
+//            lobj->get_value(tmp->pointer(), &rank, extents);
+//            res = tmp;
+//        } else if (type == typeid(double).hash_code()) {
+//            auto tmp = DataLightT<double*>::New(rank, extents);
+//            lobj->get_value(tmp->pointer(), &rank, extents);
+//            res = tmp;
+//        } else if (type == typeid(std::string).hash_code()) {
+//            auto tmp = DataLightT<std::string*>::New(rank, extents);
+//            lobj->get_value(tmp->pointer(), &rank, extents);
+//            res = tmp;
+//        } else
+//            delete[] extents;
+//    }
+//
+//    return res;
+//}
 
 //
 // int DataNodeLua::SetEntity(std::string const& uri, const std::shared_ptr<DataEntity>& v) {

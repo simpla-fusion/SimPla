@@ -31,10 +31,10 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
 
    public:
     enum eNodeType { DN_NULL = 0, DN_ENTITY = 1, DN_TABLE = 2, DN_ARRAY = 3, DN_FUNCTION = 4 };
+    eNodeType m_type_;
 
    protected:
     //    static int s_num_of_pre_registered_;
-    const eNodeType m_type_;
     std::shared_ptr<DataEntity> m_entity_ = nullptr;
 
     explicit DataNode(eNodeType etype = DN_NULL);
@@ -236,7 +236,7 @@ inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue(std
     _CLASS_NAME_& operator=(_CLASS_NAME_&& other) = delete;                                                          \
                                                                                                                      \
    protected:                                                                                                        \
-    explicit _CLASS_NAME_();                                                                                         \
+    _CLASS_NAME_();                                                                                                  \
                                                                                                                      \
    public:                                                                                                           \
     ~_CLASS_NAME_() override;                                                                                        \
@@ -263,9 +263,6 @@ inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue(std
     std::shared_ptr<DataNode> CreateNode(eNodeType e_type) const override;                                       \
                                                                                                                  \
     size_type size() const override;                                                                             \
-                                                                                                                 \
-    std::shared_ptr<DataEntity> GetEntity() const override;                                                      \
-    size_type SetEntity(const std::shared_ptr<DataEntity>&) override;                                            \
                                                                                                                  \
     size_type Set(std::string const& uri, std::shared_ptr<DataNode> const& v) override;                          \
     size_type Add(std::string const& uri, std::shared_ptr<DataNode> const& v) override;                          \
@@ -318,6 +315,7 @@ size_type _CopyFromData(U& dst, std::shared_ptr<const DataNode> const& src, ENAB
     }
     size_type count = 0;
     switch (src->type()) {
+        case DataNode::DN_TABLE:
         case DataNode::DN_ARRAY: {
             for (size_type i = 0; i < std::extent<U, 0>::value; ++i) { count += _CopyFromData(dst[i], src->Get(i)); }
         } break;
@@ -327,7 +325,6 @@ size_type _CopyFromData(U& dst, std::shared_ptr<const DataNode> const& src, ENAB
             }
         } break;
         case DataNode::DN_NULL:
-        case DataNode::DN_TABLE:
         case DataNode::DN_FUNCTION:
         default:
             dst = std::numeric_limits<traits::value_type_t<U>>::signaling_NaN();
