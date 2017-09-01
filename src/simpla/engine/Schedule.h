@@ -39,6 +39,8 @@ class Schedule : public engine::SPObject {
     void SetAtlas(std::shared_ptr<Atlas> const& a) { m_atlas_ = a; }
     std::shared_ptr<Atlas> GetAtlas() const { return m_atlas_; }
 
+    index_box_type GetIndexBox() const;
+
     virtual void CheckPoint() const;
     virtual void Dump() const;
 

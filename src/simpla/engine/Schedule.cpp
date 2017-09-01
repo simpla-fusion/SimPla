@@ -22,7 +22,7 @@ struct Schedule::pimpl_s {
     size_type m_max_step_ = 0;
     size_type m_check_point_interval_ = 1;
     size_type m_dump_interval_ = 0;
-
+    index_box_type m_index_box_;
     std::shared_ptr<Scenario> m_ctx_ = nullptr;
     std::shared_ptr<Atlas> m_atlas_ = nullptr;
 };
@@ -47,7 +47,7 @@ void Schedule::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
 size_type Schedule::GetNumberOfStep() const { return m_pimpl_->m_step_; }
 // void Schedule::SetMaxStep(size_type s) { m_pimpl_->m_max_step_ = s; }
 // size_type Schedule::GetMaxStep() const { return m_pimpl_->m_max_step_; }
-
+index_box_type Schedule::GetIndexBox() const { return m_pimpl_->m_index_box_; }
 void Schedule::NextStep() { ++m_pimpl_->m_step_; }
 
 bool Schedule::Done() const { return m_pimpl_->m_max_step_ == 0 ? false : m_pimpl_->m_step_ >= m_pimpl_->m_max_step_; }

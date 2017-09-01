@@ -173,7 +173,7 @@ std::istream &operator>>(std::istream &is, SPObject &obj);
     }                                                                                                            \
     template <typename U, typename... Args>                                                                      \
     static std::shared_ptr<U> _TryCreate(std::integral_constant<bool, true> _, Args &&... args) {                \
-        return std::dynamic_pointer_cast<_CLASS_NAME_>(base_type::Create(std::forward<Args>(args)...));          \
+        return std::dynamic_pointer_cast<_CLASS_NAME_>(base_type::New(std::forward<Args>(args)...));             \
     }                                                                                                            \
                                                                                                                  \
    public:                                                                                                       \
