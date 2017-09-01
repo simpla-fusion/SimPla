@@ -26,10 +26,10 @@ struct DataNodeMemory : public DataNode {
     std::shared_ptr<DataNode> Get(std::string const& uri) const override;
     size_type Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& f) const override;
 
-    size_type Set(size_type s, std::shared_ptr<DataNode> const& v) override;
-    size_type Add(size_type s, std::shared_ptr<DataNode> const& v) override;
-    size_type Delete(size_type s) override;
-    std::shared_ptr<DataNode> Get(size_type s) const override;
+    size_type Set(index_type s, std::shared_ptr<DataNode> const& v) override;
+    size_type Add(index_type s, std::shared_ptr<DataNode> const& v) override;
+    size_type Delete(index_type s) override;
+    std::shared_ptr<DataNode> Get(index_type s) const override;
     size_type Add(std::shared_ptr<DataNode> const& v) override;
 
    private:
@@ -41,12 +41,12 @@ DataNodeMemory::DataNodeMemory() : DataNode(DataNode::DN_TABLE){};
 DataNodeMemory::~DataNodeMemory() = default;
 
 size_type DataNodeMemory::size() const { return m_table_.size(); }
-size_type DataNodeMemory::Set(size_type s, std::shared_ptr<DataNode> const& v) { return Set(std::to_string(s), v); }
-size_type DataNodeMemory::Add(size_type s, std::shared_ptr<DataNode> const& v) { return Add(std::to_string(s), v); }
-size_type DataNodeMemory::Delete(size_type s) { return Delete(std::to_string(s)); }
+size_type DataNodeMemory::Set(index_type s, std::shared_ptr<DataNode> const& v) { return Set(std::to_string(s), v); }
+size_type DataNodeMemory::Add(index_type s, std::shared_ptr<DataNode> const& v) { return Add(std::to_string(s), v); }
+size_type DataNodeMemory::Delete(index_type s) { return Delete(std::to_string(s)); }
 
 size_type DataNodeMemory::Add(std::shared_ptr<DataNode> const& v) { return Set(std::to_string(size()), v); };
-std::shared_ptr<DataNode> DataNodeMemory::Get(size_type s) const { return Get(std::to_string(s)); }
+std::shared_ptr<DataNode> DataNodeMemory::Get(index_type s) const { return Get(std::to_string(s)); }
 
 size_type DataNodeMemory::Set(std::string const& uri, std::shared_ptr<DataNode> const& v) {
     if (uri.empty() || v == nullptr) { return 0; }
@@ -105,7 +105,7 @@ std::shared_ptr<DataNode> DataNodeMemory::Get(std::string const& uri) const {
             auto it = p->m_table_.find(k.substr(0, tail));
             obj = (it != p->m_table_.end()) ? it->second : nullptr;
         } else {
-            obj = nullptr;//obj->Get(k.substr(0, tail));
+            obj = nullptr;  // obj->Get(k.substr(0, tail));
         }
         if (tail != std::string::npos) {
             k = k.substr(tail + 1);

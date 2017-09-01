@@ -39,10 +39,10 @@ size_type DataNodeIMAS::Foreach(std::function<size_type(std::string, std::shared
     return 0;
 }
 
-size_type DataNodeIMAS::Set(size_type s, std::shared_ptr<DataNode> const& v) { return 0; }
-size_type DataNodeIMAS::Add(size_type s, std::shared_ptr<DataNode> const& v) { return 0; }
-size_type DataNodeIMAS::Delete(size_type s) { return 0; }
-std::shared_ptr<DataNode> DataNodeIMAS::Get(size_type s) const { return nullptr; }
+size_type DataNodeIMAS::Set(index_type s, std::shared_ptr<DataNode> const& v) { return 0; }
+size_type DataNodeIMAS::Add(index_type s, std::shared_ptr<DataNode> const& v) { return 0; }
+size_type DataNodeIMAS::Delete(index_type s) { return 0; }
+std::shared_ptr<DataNode> DataNodeIMAS::Get(index_type s) const { return nullptr; }
 
 }  // { namespace data {
 }  // namespace simpla

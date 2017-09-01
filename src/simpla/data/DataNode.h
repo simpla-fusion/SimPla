@@ -45,7 +45,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
 
     static std::shared_ptr<DataNode> New(eNodeType e_type = DN_TABLE, std::string const& uri = "");
     static std::shared_ptr<DataNode> New(std::shared_ptr<DataEntity> v) {
-        return std::shared_ptr<DataNode>(new DataNode(v));
+        return std::shared_ptr<DataNode>(new DataNode (v));
     }
 
     eNodeType type() const;
@@ -69,10 +69,10 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     virtual std::shared_ptr<DataNode> Get(std::string const& uri) const;
     virtual size_type Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& f) const;
 
-    virtual size_type Set(size_type s, std::shared_ptr<DataNode> const& v);
-    virtual size_type Add(size_type s, std::shared_ptr<DataNode> const& v);
-    virtual size_type Delete(size_type s);
-    virtual std::shared_ptr<DataNode> Get(size_type s) const;
+    virtual size_type Set(index_type s, std::shared_ptr<DataNode> const& v);
+    virtual size_type Add(index_type s, std::shared_ptr<DataNode> const& v);
+    virtual size_type Delete(index_type s);
+    virtual std::shared_ptr<DataNode> Get(index_type s) const;
 
     virtual size_type Add(std::shared_ptr<DataNode> const& v);
 
@@ -270,10 +270,10 @@ inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue(std
     std::shared_ptr<DataNode> Get(std::string const& uri) const override;                                        \
     size_type Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& f) const override; \
                                                                                                                  \
-    size_type Set(size_type s, std::shared_ptr<DataNode> const& v) override;                                     \
-    size_type Add(size_type s, std::shared_ptr<DataNode> const& v) override;                                     \
-    size_type Delete(size_type s) override;                                                                      \
-    std::shared_ptr<DataNode> Get(size_type s) const override;
+    size_type Set(index_type s, std::shared_ptr<DataNode> const& v) override;                                     \
+    size_type Add(index_type s, std::shared_ptr<DataNode> const& v) override;                                     \
+    size_type Delete(index_type s) override;                                                                      \
+    std::shared_ptr<DataNode> Get(index_type s) const override;
 
 namespace detail {
 template <typename U>

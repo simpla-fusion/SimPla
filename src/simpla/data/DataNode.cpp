@@ -165,10 +165,10 @@ size_type DataNode::Foreach(std::function<size_type(std::string, std::shared_ptr
     DOMAIN_ERROR;
     return 0;
 }
-size_type DataNode::Set(size_type s, std::shared_ptr<DataNode> const& v) { return Set(std::to_string(s), v); }
-size_type DataNode::Add(size_type s, std::shared_ptr<DataNode> const& v) { return Add(std::to_string(s), v); }
-size_type DataNode::Delete(size_type s) { return Delete(std::to_string(s)); }
-std::shared_ptr<DataNode> DataNode::Get(size_type s) const { return Get(std::to_string(s)); }
+size_type DataNode::Set(index_type s, std::shared_ptr<DataNode> const& v) { return Set(std::to_string(s), v); }
+size_type DataNode::Add(index_type s, std::shared_ptr<DataNode> const& v) { return Add(std::to_string(s), v); }
+size_type DataNode::Delete(index_type s) { return Delete(std::to_string(s)); }
+std::shared_ptr<DataNode> DataNode::Get(index_type s) const { return Get(std::to_string(s)); }
 size_type DataNode::Add(std::shared_ptr<DataNode> const& v) { return Add(size(), v); }
 
 size_type DataNode::SetValue(std::string const& url, KeyValue const& kv) { return Set(url, make_node(kv)); };

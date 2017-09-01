@@ -203,26 +203,18 @@ std::pair<std::shared_ptr<LuaObject>, std::shared_ptr<LuaObject>> LuaObject::ite
     return (res);
 }
 
-// size_t LuaObject::accept(std::function<void(LuaObject const &, LuaObject const &)> const &fun) {
-//    size_t s = 0;
-//    if (is_global()) {
-//    } else {
-//        for (auto &item : *this) {
-//            ++s;
-//            fun(item.first, item.m_node_);
-//        }
-//    }
-//    return s;
-//}
-// int LuaObject::accept(std::function<void(int, LuaObject &)> const &) const {}
-
 size_t LuaObject::size() const {
     if (is_null()) { return 0; }
 
     size_t res = 0;
     auto acc = L_->acc();
     try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-    res = lua_rawlen(*acc, lua_gettop(*acc));
+    auto idx = lua_gettop(*acc);
+    if (lua_istable(*acc, idx)) {
+        res = lua_rawlen(*acc, idx);
+    } else {
+        res = 1;
+    }
     lua_pop(*acc, 1);
 
     return res;

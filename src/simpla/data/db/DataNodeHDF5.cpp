@@ -48,10 +48,10 @@ struct DataNodeHDF5 : public DataNode {
     std::shared_ptr<DataNode> Get(std::string const& uri) const override;
     size_type Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& f) const override;
 
-    size_type Set(size_type s, std::shared_ptr<DataNode> const& v) override;
-    size_type Add(size_type s, std::shared_ptr<DataNode> const& v) override;
-    size_type Delete(size_type s) override;
-    std::shared_ptr<DataNode> Get(size_type s) const override;
+    size_type Set(index_type s, std::shared_ptr<DataNode> const& v) override;
+    size_type Add(index_type s, std::shared_ptr<DataNode> const& v) override;
+    size_type Delete(index_type s) override;
+    std::shared_ptr<DataNode> Get(index_type s) const override;
 
    private:
     hid_t m_file_ = -1;
@@ -708,10 +708,10 @@ size_type DataNodeHDF5::Foreach(std::function<size_type(std::string, std::shared
     }
     return count;
 }
-size_type DataNodeHDF5::Set(size_type s, std::shared_ptr<DataNode> const& v) { return Set(std::to_string(s), v); }
-size_type DataNodeHDF5::Add(size_type s, std::shared_ptr<DataNode> const& v) { return Add(std::to_string(s), v); }
-size_type DataNodeHDF5::Delete(size_type s) { return Delete(std::to_string(s)); }
-std::shared_ptr<DataNode> DataNodeHDF5::Get(size_type s) const { return Get(std::to_string(s)); }
+size_type DataNodeHDF5::Set(index_type s, std::shared_ptr<DataNode> const& v) { return Set(std::to_string(s), v); }
+size_type DataNodeHDF5::Add(index_type s, std::shared_ptr<DataNode> const& v) { return Add(std::to_string(s), v); }
+size_type DataNodeHDF5::Delete(index_type s) { return Delete(std::to_string(s)); }
+std::shared_ptr<DataNode> DataNodeHDF5::Get(index_type s) const { return Get(std::to_string(s)); }
 
 }  // namespace data{
 }  // namespace simpla{

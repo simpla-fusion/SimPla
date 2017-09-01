@@ -75,10 +75,10 @@ size_type DataNodeXDMF::Add(std::string const& url, std::shared_ptr<DataNode> co
 size_type DataNodeXDMF::Delete(std::string const& uri) { return 0; }
 std::shared_ptr<DataNode> DataNodeXDMF::Get(std::string const& uri) const { return nullptr; }
 
-size_type DataNodeXDMF::Set(size_type s, std::shared_ptr<DataNode> const& v) { return 0; }
-size_type DataNodeXDMF::Add(size_type s, std::shared_ptr<DataNode> const& v) { return 0; }
-size_type DataNodeXDMF::Delete(size_type s) { return 0; }
-std::shared_ptr<DataNode> DataNodeXDMF::Get(size_type s) const { return nullptr; }
+size_type DataNodeXDMF::Set(index_type s, std::shared_ptr<DataNode> const& v) { return 0; }
+size_type DataNodeXDMF::Add(index_type s, std::shared_ptr<DataNode> const& v) { return 0; }
+size_type DataNodeXDMF::Delete(index_type s) { return 0; }
+std::shared_ptr<DataNode> DataNodeXDMF::Get(index_type s) const { return nullptr; }
 ////
 //// std::shared_ptr<DataEntity> DataBaseXDMF::Get(std::string const& URI) const {
 ////    if (URI[0] == '/') {
