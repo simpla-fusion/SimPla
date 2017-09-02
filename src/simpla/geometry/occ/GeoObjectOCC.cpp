@@ -102,7 +102,7 @@ void GeoObjectOCC::Transform(Real scale, point_type const &location, nTuple<Real
     TopoDS_Shape tmp = m_pimpl_->m_occ_shape_;
     m_pimpl_->m_occ_shape_ = TransformShape(tmp, scale, location, rotate);
 }
-void GeoObjectOCC::Serialize(std::shared_ptr<data::DataNode> cfg) const { base_type::Serialize(cfg); };
+std::shared_ptr<data::DataNode> GeoObjectOCC::Serialize() const { return base_type::Serialize(); };
 void GeoObjectOCC::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
     base_type::Deserialize(cfg);
     auto tdb = std::dynamic_pointer_cast<const data::DataNode>(cfg);

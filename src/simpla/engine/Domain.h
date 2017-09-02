@@ -65,7 +65,7 @@ class DomainBase : public SPObject {
     void Advance(Real time_now, Real time_dt);
 
     void SetBoundary(const std::shared_ptr<geometry::GeoObject> &b) { m_geo_body_ = b; }
-    std::shared_ptr<geometry::GeoObject> SetBoundary() const { return m_geo_body_; }
+    std::shared_ptr<geometry::GeoObject> GetBoundary() const { return m_geo_body_; }
 
     void SetModel(std::shared_ptr<engine::Model> const &m) { m_model_ = m; }
     std::shared_ptr<Model> GetModel() const { return m_model_; }
@@ -125,9 +125,10 @@ template <typename TM, template <typename> class... Policies>
 Domain<TM, Policies...>::~Domain(){};
 
 template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::Serialize(std::shared_ptr<data::DataNode> cfg) const {
-    DomainBase::Serialize(cfg);
+std::shared_ptr<data::DataNode> Domain<TM, Policies...>::Serialize() const {
+    auto cfg = DomainBase::Serialize();
     traits::_try_invoke_Serialize<Policies...>(this, cfg);
+    return cfg;
 };
 
 template <typename TM, template <typename> class... Policies>

@@ -30,11 +30,10 @@ struct Schedule::pimpl_s {
 Schedule::Schedule() : m_pimpl_(new pimpl_s){};
 Schedule::~Schedule() { delete m_pimpl_; };
 
-void Schedule::Serialize(std::shared_ptr<data::DataNode> cfg) const {
-    base_type::Serialize(cfg);
-    db()->Set(cfg);
-    auto tdb = std::dynamic_pointer_cast<data::DataNode>(cfg);
-    if (tdb != nullptr) { tdb->SetValue("CheckPointInterval", GetCheckPointInterval()); }
+std::shared_ptr<data::DataNode> Schedule::Serialize() const {
+    auto tdb = base_type::Serialize();
+    tdb->SetValue("CheckPointInterval", GetCheckPointInterval());
+    return tdb;
 }
 
 void Schedule::Deserialize(std::shared_ptr<const data::DataNode> cfg) {

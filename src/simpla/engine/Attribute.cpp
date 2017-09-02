@@ -103,7 +103,7 @@ Attribute::~Attribute() {
     delete m_pimpl_;
 }
 
-void Attribute::Serialize(std::shared_ptr<data::DataNode> cfg) const { base_type::Serialize(cfg); }
+std::shared_ptr<data::DataNode> Attribute::Serialize() const { return base_type::Serialize(); }
 void Attribute::Deserialize(std::shared_ptr<const data::DataNode> cfg) { base_type::Deserialize(cfg); }
 
 void Attribute::Register(AttributeGroup *attr_b) {

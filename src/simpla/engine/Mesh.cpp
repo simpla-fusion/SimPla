@@ -30,7 +30,7 @@ MeshBase::MeshBase() : m_pimpl_(new pimpl_s), m_mesh_block_(MeshBlock::New({inde
 
 MeshBase::~MeshBase() { delete m_pimpl_; };
 
-void MeshBase::Serialize(std::shared_ptr<data::DataNode> cfg) const { base_type::Serialize(cfg); }
+std::shared_ptr<data::DataNode> MeshBase::Serialize() const { return base_type::Serialize(); }
 void MeshBase::Deserialize(std::shared_ptr<const data::DataNode> tdb) {
     base_type::Deserialize(tdb);
     if (tdb != nullptr) {

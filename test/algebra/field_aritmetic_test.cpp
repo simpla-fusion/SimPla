@@ -1,12 +1,11 @@
 //
 // Created by salmon on 17-1-12.
 //
+#include "simpla/SIMPLA_config.h"
 
-#include <gtest/gtest.h"
-#include "simpla/algebra/algebra.h"
-
+#include <gtest/gtest.h>
+#include "simpla/algebra/Algebra.h"
 using namespace simpla;
-
 
 struct DummyMesh {
     typedef size_type entity_id;

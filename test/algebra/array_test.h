@@ -9,12 +9,11 @@
 #include <memory>
 #include <random>
 
-#include <gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include "simpla/utilities/macro.h"
 #include "simpla/utilities/type_traits.h"
 #include "simpla/utilities/Log.h"
-#include "../../to_delete/sp_def.h"
 #include "simpla/algebra/algebra.h"
 using namespace simpla;
 

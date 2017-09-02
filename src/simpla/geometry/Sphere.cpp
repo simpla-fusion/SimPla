@@ -8,13 +8,11 @@ namespace geometry {
 REGISTER_CREATOR(Sphere, Sphere)
 Sphere::Sphere() {}
 Sphere::~Sphere() {}
-void Sphere::Serialize(std::shared_ptr<data::DataNode> cfg) const {
-    base_type::Serialize(cfg);
-    auto tdb = std::dynamic_pointer_cast<data::DataNode>(cfg);
-    if (tdb != nullptr) {
-        tdb->SetValue("Origin", m_origin_);
-        tdb->SetValue("Radius", m_radius_);
-    }
+std::shared_ptr<data::DataNode> Sphere::Serialize() const {
+    auto tdb = base_type::Serialize();
+    tdb->SetValue("Origin", m_origin_);
+    tdb->SetValue("Radius", m_radius_);
+    return tdb;
 };
 void Sphere::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
     base_type::Deserialize(cfg);

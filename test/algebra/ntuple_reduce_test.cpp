@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 
-#include <gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include <iostream>
 #include <type_traits>

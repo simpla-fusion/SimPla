@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 
-#include <gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include "simpla/algebra/nTuple.ext.h"
 #include "simpla/algebra/nTuple.h"

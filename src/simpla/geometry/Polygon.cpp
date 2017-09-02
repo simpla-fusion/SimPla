@@ -16,21 +16,17 @@ namespace geometry {
 Polygon<2>::Polygon() {}
 Polygon<2>::~Polygon() {}
 
-void Polygon<2>::Serialize(std::shared_ptr<data::DataNode> tdb) const {
-    base_type::Serialize(tdb);
-    if (tdb != nullptr) {
-        tdb->SetValue("Type", "Polygon2D");
-//        auto v_array = data::DataArrayWrapper<point2d_type>::New();
-//        for (size_type s = 0, se = m_polygon_.size(); s < se; ++s) { v_array->Add(m_polygon_[s]); }
-//        tdb->Set("data", std::dynamic_pointer_cast<data::DataNode>(v_array));
-    }
+std::shared_ptr<data::DataNode> Polygon<2>::Serialize() const {
+    auto tdb = base_type::Serialize();
+
+    tdb->SetValue("Type", "Polygon2D");
+    //        auto v_array = data::DataArrayWrapper<point2d_type>::New();
+    //        for (size_type s = 0, se = m_polygon_.size(); s < se; ++s) { v_array->Add(m_polygon_[s]); }
+    //        tdb->Set("data", std::dynamic_pointer_cast<data::DataNode>(v_array));
+
+    return tdb;
 };
 void Polygon<2>::Deserialize(std::shared_ptr<const data::DataNode> tdb) { base_type::Deserialize(tdb); }
-
-// int Polygon<2>::box_intersection(point_type *x0, point_type *x1) const
-//{
-//    return geometry::box_intersection(m_min_, m_max_, x0, x1);
-//}
 
 Real Polygon<2>::nearest_point(Real *x, Real *y) const {
     typedef nTuple<Real, 2> Vec2;

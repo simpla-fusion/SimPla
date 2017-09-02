@@ -44,17 +44,17 @@ struct Atlas::pimpl_s {
 Atlas::Atlas() : m_pimpl_(new pimpl_s) { SPObject::SetName("Atlas"); };
 Atlas::~Atlas() { delete m_pimpl_; }
 
-void Atlas::Serialize(std::shared_ptr<data::DataNode> tdb) const {
-    base_type::Serialize(tdb);
-    if (tdb != nullptr) {
-        tdb->SetValue("PeriodicDimension", GetPeriodicDimensions());
-        tdb->SetValue("CoarsestIndexBox", GetCoarsestIndexBox());
+std::shared_ptr<data::DataNode> Atlas::Serialize() const {
+    auto tdb = base_type::Serialize();
 
-        tdb->SetValue("MaxLevel", GetMaxLevel());
-        tdb->SetValue("RefineRatio", GetRefineRatio());
-        tdb->SetValue("LargestPatchDimensions", GetLargestPatchDimensions());
-        tdb->SetValue("SmallestPatchDimensions", GetSmallestPatchDimensions());
-    }
+    tdb->SetValue("PeriodicDimension", GetPeriodicDimensions());
+    tdb->SetValue("CoarsestIndexBox", GetCoarsestIndexBox());
+
+    tdb->SetValue("MaxLevel", GetMaxLevel());
+    tdb->SetValue("RefineRatio", GetRefineRatio());
+    tdb->SetValue("LargestPatchDimensions", GetLargestPatchDimensions());
+    tdb->SetValue("SmallestPatchDimensions", GetSmallestPatchDimensions());
+    return tdb;
 };
 void Atlas::Deserialize(std::shared_ptr<const data::DataNode> tdb) {
     base_type::Deserialize(tdb);
@@ -104,27 +104,27 @@ std::shared_ptr<const Patch> Atlas::GetPatch(id_type id) const {
 }
 
 int Atlas::GetNumOfLevel() const { return m_pimpl_->m_max_level_; }
-//int Atlas::GetMaxLevel() const { return m_pimpl_->m_max_level_; }
-//void Atlas::SetMaxLevel(int l) {
+// int Atlas::GetMaxLevel() const { return m_pimpl_->m_max_level_; }
+// void Atlas::SetMaxLevel(int l) {
 //    m_pimpl_->m_max_level_ = l;
 //    Click();
 //}
-//void Atlas::SetRefineRatio(nTuple<int, 3> const &v, int level) {
+// void Atlas::SetRefineRatio(nTuple<int, 3> const &v, int level) {
 //    m_pimpl_->m_refine_ratio_[level] = v;
 //    m_pimpl_->m_level_ = std::max(level, m_pimpl_->m_level_);
 //    Click();
 //}
-//nTuple<int, 3> Atlas::GetRefineRatio(int l) const { return m_pimpl_->m_refine_ratio_[l]; };
-//void Atlas::SetLargestPatchDimensions(nTuple<int, 3> const &d) { m_pimpl_->m_largest_dimensions_ = d; };
-//nTuple<int, 3> Atlas::GetLargestPatchDimensions() const { return m_pimpl_->m_largest_dimensions_; };
-//void Atlas::SetSmallestPatchDimensions(nTuple<int, 3> const &d) { m_pimpl_->m_smallest_dimensions_ = d; };
-//nTuple<int, 3> Atlas::GetSmallestPatchDimensions() const { return m_pimpl_->m_smallest_dimensions_; };
+// nTuple<int, 3> Atlas::GetRefineRatio(int l) const { return m_pimpl_->m_refine_ratio_[l]; };
+// void Atlas::SetLargestPatchDimensions(nTuple<int, 3> const &d) { m_pimpl_->m_largest_dimensions_ = d; };
+// nTuple<int, 3> Atlas::GetLargestPatchDimensions() const { return m_pimpl_->m_largest_dimensions_; };
+// void Atlas::SetSmallestPatchDimensions(nTuple<int, 3> const &d) { m_pimpl_->m_smallest_dimensions_ = d; };
+// nTuple<int, 3> Atlas::GetSmallestPatchDimensions() const { return m_pimpl_->m_smallest_dimensions_; };
 //
-//void Atlas::SetPeriodicDimensions(nTuple<int, 3> const &b) { m_pimpl_->m_periodic_dimensions_ = b; }
-//nTuple<int, 3> const &Atlas::GetPeriodicDimensions() const { return m_pimpl_->m_periodic_dimensions_; }
+// void Atlas::SetPeriodicDimensions(nTuple<int, 3> const &b) { m_pimpl_->m_periodic_dimensions_ = b; }
+// nTuple<int, 3> const &Atlas::GetPeriodicDimensions() const { return m_pimpl_->m_periodic_dimensions_; }
 //
-//void Atlas::SetCoarsestIndexBox(index_box_type const &b) { m_pimpl_->m_coarsest_index_box_ = b; }
-//index_box_type const &Atlas::GetCoarsestIndexBox() const { return m_pimpl_->m_coarsest_index_box_; }
+// void Atlas::SetCoarsestIndexBox(index_box_type const &b) { m_pimpl_->m_coarsest_index_box_ = b; }
+// index_box_type const &Atlas::GetCoarsestIndexBox() const { return m_pimpl_->m_coarsest_index_box_; }
 
 //        size_tuple Atlas::GetDimensions() const {
 //            size_tuple d;

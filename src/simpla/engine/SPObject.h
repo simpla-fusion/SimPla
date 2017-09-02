@@ -88,16 +88,10 @@ class SPObject : public Factory<SPObject>, public std::enable_shared_from_this<S
         return Factory<SPObject>::RegisterCreator<U>(std::string(U::TagName()) + "." + k_hint);
     };
 
-    virtual void Serialize(std::shared_ptr<data::DataNode> cfg) const;
+    virtual std::shared_ptr<data::DataNode> Serialize() const;
     virtual void Deserialize(std::shared_ptr<const data::DataNode> cfg);
-    static std::shared_ptr<SPObject> New(std::shared_ptr<const data::DataNode> v) {
-        auto res = base_type::Create(std::string(TagName()) + "." + v->GetValue<std::string>(""));
-        res->Deserialize(v);
-        return res;
-    };
-    static std::shared_ptr<SPObject> NewAndSync(std::shared_ptr<data::DataNode> v);
-    template <typename TOBJ, typename TFun>
-    static std::shared_ptr<TOBJ> NewAndSync(TFun const &v);
+    static std::shared_ptr<SPObject> New(std::shared_ptr<const data::DataNode> v);
+    static std::shared_ptr<SPObject> NewAndSync(std::shared_ptr<const data::DataNode> v);
 
     template <typename TOBJ>
     static std::shared_ptr<TOBJ> NewAndSyncT(std::shared_ptr<data::DataNode> const &v) {
@@ -160,7 +154,7 @@ std::istream &operator>>(std::istream &is, SPObject &obj);
    public:                                                                                                       \
     ~_CLASS_NAME_() override;                                                                                    \
                                                                                                                  \
-    void Serialize(std::shared_ptr<simpla::data::DataNode> cfg) const override;                                  \
+    std::shared_ptr<simpla::data::DataNode> Serialize() const override;                                          \
     void Deserialize(std::shared_ptr<const simpla::data::DataNode> cfg) override;                                \
                                                                                                                  \
    private:                                                                                                      \

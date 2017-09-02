@@ -39,7 +39,7 @@ void ParticleBase::DoFinalize() {
     delete m_pimpl_;
     m_pimpl_ = nullptr;
 }
-void ParticleBase::Serialize(std::shared_ptr<simpla::data::DataNode> cfg) const { base_type::Serialize(cfg); }
+std::shared_ptr<simpla::data::DataNode> ParticleBase::Serialize() const { return base_type::Serialize(); }
 void ParticleBase::Deserialize(std::shared_ptr<const simpla::data::DataNode> cfg) { base_type::Deserialize(cfg); }
 void ParticleBase::Push(std::shared_ptr<data::DataBlock> const& dblk) {
     engine::Attribute::Push(dblk);

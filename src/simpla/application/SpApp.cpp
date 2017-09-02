@@ -32,16 +32,16 @@ SpApp::SpApp() : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_atlas_ = engine::Atlas::New();
 }
 SpApp::~SpApp() { delete m_pimpl_; };
-void SpApp::Serialize(std::shared_ptr<data::DataNode> cfg) const {
-    base_type::Serialize(cfg);
+std::shared_ptr<data::DataNode> SpApp::Serialize() const {
+    auto tdb = base_type::Serialize();
 
-    auto tdb = std::dynamic_pointer_cast<data::DataNode>(cfg);
     if (tdb != nullptr) {
-        if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Serialize(tdb->Get("Schedule")); }
+        if (m_pimpl_->m_schedule_ != nullptr) { tdb->Set("Schedule", m_pimpl_->m_schedule_->Serialize()); }
 
-        m_pimpl_->m_scenario_->Serialize(tdb->Get("Context"));
-        m_pimpl_->m_atlas_->Serialize(tdb->Get("Atlas"));
+        tdb->Set("Context", m_pimpl_->m_scenario_->Serialize());
+        tdb->Set("Atlas", m_pimpl_->m_atlas_->Serialize());
     }
+    return tdb;
 };
 void SpApp::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
     base_type::Deserialize(cfg);
@@ -188,9 +188,8 @@ int main(int argc, char **argv) {
     if (GLOBAL_COMM.rank() == 0) {
         app->Config(argc, argv);
         std::ostringstream os;
-        auto t_db = data::DataNode::New();
-        app->Serialize(t_db);
-//        data::Pack(t_db, os, "lua");
+        auto t_db = app->Serialize();
+        //        data::Pack(t_db, os, "lua");
         std::string buffer = os.str();
         parallel::bcast_string(&buffer);
     } else {

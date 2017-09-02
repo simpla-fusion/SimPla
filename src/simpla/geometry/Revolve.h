@@ -41,14 +41,14 @@ class Revolve : public GeoObject {
     TObj const &base_obj;
 };
 template <typename TObj>
-void Revolve<TObj>::Serialize(std::shared_ptr<data::DataNode> cfg) const {
-    base_type::Serialize(cfg);
-    auto tdb = std::dynamic_pointer_cast<data::DataNode>(cfg);
-    if (tdb != nullptr) {
-        tdb->template SetValue<point_type>("Axis", m_axis_);
-        tdb->template SetValue<point_type>("Origin", m_origin_);
-        tdb->Set("2DShape", base_obj.Pack());
-    }
+std::shared_ptr<data::DataNode> Revolve<TObj>::Serialize() const {
+    auto tdb = base_type::Serialize();
+
+    tdb->SetValue("Axis", m_axis_);
+    tdb->SetValue("Origin", m_origin_);
+    tdb->Set("2DShape", base_obj.Pack());
+
+    return tdb;
 };
 template <typename TObj>
 void Revolve<TObj>::Deserialize(std::shared_ptr<const data::DataNode> cfg) {

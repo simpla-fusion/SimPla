@@ -19,10 +19,10 @@ DomainBase::DomainBase() {}
 DomainBase::DomainBase(std::shared_ptr<MeshBase> const& msh, std::shared_ptr<Model> const& model)
     : m_mesh_(msh), m_model_(model) {}
 DomainBase::~DomainBase() {}
-void DomainBase::Serialize(std::shared_ptr<data::DataNode> cfg) const {
-    base_type::Serialize(cfg);
-
-    if (SetBoundary() != nullptr) { SetBoundary()->Serialize(cfg->CreateNode("Boundary")); }
+std::shared_ptr<data::DataNode> DomainBase::Serialize() const {
+    auto tdb = base_type::Serialize();
+    tdb->Set("Boundary", GetBoundary()->Serialize());
+    return tdb;
 }
 void DomainBase::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
     base_type::Deserialize(cfg);
@@ -37,14 +37,14 @@ void DomainBase::DoFinalize() {}
 
 void DomainBase::InitialCondition(Real time_now) {
     Update();
-    if (std::get<0>(GetMesh()->CheckOverlap(SetBoundary().get())) < EPSILON) { return; }
+    if (std::get<0>(GetMesh()->CheckOverlap(GetBoundary().get())) < EPSILON) { return; }
     PreInitialCondition(this, time_now);
     DoInitialCondition(time_now);
     PostInitialCondition(this, time_now);
 }
 void DomainBase::BoundaryCondition(Real time_now, Real dt) {
     Update();
-    if (std::get<0>(GetMesh()->CheckOverlap(SetBoundary().get())) < EPSILON) { return; }
+    if (std::get<0>(GetMesh()->CheckOverlap(GetBoundary().get())) < EPSILON) { return; }
     PreBoundaryCondition(this, time_now, dt);
     DoBoundaryCondition(time_now, dt);
     PostBoundaryCondition(this, time_now, dt);
@@ -52,7 +52,7 @@ void DomainBase::BoundaryCondition(Real time_now, Real dt) {
 
 void DomainBase::ComputeFluxes(Real time_now, Real dt) {
     Update();
-    if (std::get<0>(GetMesh()->CheckOverlap(SetBoundary().get())) < EPSILON) { return; }
+    if (std::get<0>(GetMesh()->CheckOverlap(GetBoundary().get())) < EPSILON) { return; }
     PreComputeFluxes(this, time_now, dt);
     DoComputeFluxes(time_now, dt);
     PostComputeFluxes(this, time_now, dt);
@@ -61,14 +61,14 @@ Real DomainBase::ComputeStableDtOnPatch(Real time_now, Real time_dt) const { ret
 
 void DomainBase::Advance(Real time_now, Real dt) {
     Update();
-    if (std::get<0>(GetMesh()->CheckOverlap(SetBoundary().get())) < EPSILON) { return; }
+    if (std::get<0>(GetMesh()->CheckOverlap(GetBoundary().get())) < EPSILON) { return; }
     PreAdvance(this, time_now, dt);
     DoAdvance(time_now, dt);
     PostAdvance(this, time_now, dt);
 }
 void DomainBase::TagRefinementCells(Real time_now) {
     Update();
-    if (std::get<0>(GetMesh()->CheckOverlap(SetBoundary().get())) < EPSILON) { return; }
+    if (std::get<0>(GetMesh()->CheckOverlap(GetBoundary().get())) < EPSILON) { return; }
     PreTagRefinementCells(this, time_now);
     GetMesh()->TagRefinementRange(GetMesh()->GetRange(GetName() + "_BOUNDARY_3"));
     DoTagRefinementCells(time_now);

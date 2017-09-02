@@ -43,7 +43,7 @@ SPObject::~SPObject() {
     Finalize();
     delete m_pimpl_;
 }
-//std::shared_ptr<SPObject> SPObject::GlobalNew(std::shared_ptr<data::DataNode> const &v) {
+// std::shared_ptr<SPObject> SPObject::GlobalNew(std::shared_ptr<data::DataNode> const &v) {
 //    std::shared_ptr<SPObject> res = nullptr;
 //    auto db = data::DataNode::New();
 //    if (GLOBAL_COMM.rank() == 0) {
@@ -59,9 +59,14 @@ SPObject::~SPObject() {
 std::shared_ptr<data::DataNode> SPObject::db() const { return m_pimpl_->m_db_; }
 std::shared_ptr<data::DataNode> SPObject::db() { return m_pimpl_->m_db_; }
 
-void SPObject::Serialize(std::shared_ptr<data::DataNode> cfg) const {}
+std::shared_ptr<data::DataNode> SPObject::Serialize() const { return data::DataNode::New(data::DataNode::DN_TABLE); }
 void SPObject::Deserialize(std::shared_ptr<const data::DataNode> cfg) {}
-
+std::shared_ptr<SPObject> SPObject::NewAndSync(std::shared_ptr<const data::DataNode> cfg) { return nullptr; }
+std::shared_ptr<SPObject> SPObject::New(std::shared_ptr<const data::DataNode> v) {
+    auto res = base_type::Create(std::string(TagName()) + "." + v->GetValue<std::string>(""));
+    res->Deserialize(v);
+    return res;
+};
 id_type SPObject::GetGUID() const { return m_pimpl_->m_id_; }
 void SPObject::SetName(std::string const &s) { m_pimpl_->m_name_ = s; };
 std::string const &SPObject::GetName() const { return m_pimpl_->m_name_; }
@@ -126,9 +131,7 @@ void SPObject::Finalize() {
 };
 
 std::ostream &operator<<(std::ostream &os, SPObject const &obj) {
-    auto db = data::DataNode::New();
-    obj.Serialize(db);
-    std::cout << *db << std::endl;
+    std::cout << *obj.Serialize() << std::endl;
     return os;
 }
 std::istream &operator>>(std::istream &is, SPObject &obj) {

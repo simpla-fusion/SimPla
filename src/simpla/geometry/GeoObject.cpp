@@ -10,7 +10,7 @@ namespace geometry {
 GeoObject::GeoObject() = default;
 GeoObject::~GeoObject() = default;
 
-void GeoObject::Serialize(std::shared_ptr<data::DataNode> cfg) const { base_type::Serialize(cfg); }
+std::shared_ptr<data::DataNode> GeoObject::Serialize() const { return base_type::Serialize(); }
 void GeoObject::Deserialize(std::shared_ptr<const data::DataNode> cfg) { base_type::Deserialize(cfg); }
 
 box_type GeoObject::BoundingBox() const { return box_type{{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}; }

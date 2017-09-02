@@ -13,7 +13,8 @@ Chart::Chart(point_type shift, point_type scale, point_type rotate) {
 }
 Chart::~Chart() = default;
 
-void Chart::Serialize(std::shared_ptr<data::DataNode> tdb) const {
+std::shared_ptr<data::DataNode> Chart::Serialize() const {
+    auto tdb = base_type::Serialize();
     if (tdb != nullptr) {
         tdb->SetValue("Type", GetFancyTypeName());
         tdb->SetValue("Level", GetLevel());
@@ -21,6 +22,7 @@ void Chart::Serialize(std::shared_ptr<data::DataNode> tdb) const {
         tdb->SetValue("Scale", GetScale());
         tdb->SetValue("Rotation", GetRotation());
     }
+    return tdb;
 }
 void Chart::Deserialize(std::shared_ptr<const data::DataNode> tdb) {
     if (tdb != nullptr) {

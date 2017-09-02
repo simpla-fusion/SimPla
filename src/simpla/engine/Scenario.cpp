@@ -25,18 +25,19 @@ struct Scenario::pimpl_s {
 Scenario::Scenario() : m_pimpl_(new pimpl_s) {}
 Scenario::~Scenario() { delete m_pimpl_; }
 
-void Scenario::Serialize(std::shared_ptr<data::DataNode> cfg) const {
-    base_type::Serialize(cfg);
+std::shared_ptr<data::DataNode> Scenario::Serialize() const {
+    auto cfg = base_type::Serialize();
 
-    GetMesh()->Serialize(cfg->CreateNode("Mesh"));
-    GetAtlas()->Serialize(cfg->CreateNode("Atlas"));
-    GetSchedule()->Serialize(cfg->CreateNode("Schedule"));
+    cfg->Set("Mesh", GetMesh()->Serialize());
+    cfg->Set("Atlas", GetAtlas()->Serialize());
+    cfg->Set("Schedule", GetSchedule()->Serialize());
 
     auto model = cfg->CreateNode("Model");
-    for (auto const &item : m_pimpl_->m_models_) { item.second->Serialize(model->CreateNode(item.first)); }
+    for (auto const &item : m_pimpl_->m_models_) { model->Set(item.first, item.second->Serialize()); }
 
     auto domain = cfg->CreateNode("Domain");
-    for (auto const &item : m_pimpl_->m_domains_) { item.second->Serialize(domain->CreateNode(item.first)); }
+    for (auto const &item : m_pimpl_->m_domains_) { domain->Set(item.first, item.second->Serialize()); }
+    return cfg;
 }
 
 void Scenario::Deserialize(std::shared_ptr<const data::DataNode> cfg) {

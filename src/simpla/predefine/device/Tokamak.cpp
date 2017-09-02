@@ -22,7 +22,7 @@ struct Tokamak::pimpl_s {
 };
 Tokamak::Tokamak() : m_pimpl_(new pimpl_s) {}
 Tokamak::~Tokamak() { delete m_pimpl_; }
-void Tokamak::Serialize(std::shared_ptr<data::DataNode> cfg) const { base_type::Serialize(cfg); }
+std::shared_ptr<data::DataNode> Tokamak::Serialize() const { return base_type::Serialize(); }
 
 void Tokamak::Deserialize(std::shared_ptr<const data::DataNode> tdb) {
     base_type::Deserialize(tdb);

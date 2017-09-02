@@ -62,15 +62,15 @@ int DataNodeLua::Parse(std::string const& str) {
     return SP_SUCCESS;
 };
 #define PRINT_ND_ARRAY(_TYPE_)                                                                       \
-    else if (auto p = std::dynamic_pointer_cast<DataLightT<int*>>(entity)) {                         \
+    else if (auto p = std::dynamic_pointer_cast<const DataLightT<int*>>(entity)) {                         \
         int ndims = p->rank();                                                                       \
         auto extents = new size_type[ndims];                                                         \
         p->extents(extents);                                                                         \
         printNdArray(os, p->pointer(), ndims, extents, true, false, "{", ",", "}", true, 0, indent); \
-        delete [] extents;                                                                              \
+        delete[] extents;                                                                            \
     }
 
-std::ostream& PrintLua(std::ostream& os, std::shared_ptr<DataEntity> const& entity, int indent) {
+std::ostream& PrintLua(std::ostream& os, std::shared_ptr<const DataEntity> const& entity, int indent) {
     if (entity->rank() == 0) { entity->Print(os, 0); }
     PRINT_ND_ARRAY(int)
     PRINT_ND_ARRAY(long)
@@ -86,7 +86,7 @@ std::ostream& PrintLua(std::ostream& os, std::shared_ptr<DataEntity> const& enti
     return os;
 }
 
-std::ostream& PrintLua(std::ostream& os, std::shared_ptr<DataNode> const& node, int indent) {
+std::ostream& PrintLua(std::ostream& os, std::shared_ptr<const DataNode> const& node, int indent) {
     if (node == nullptr) {
         os << "<N/A>";
         return os;
@@ -188,7 +188,8 @@ std::shared_ptr<DataNode> LuaToDataNode(std::shared_ptr<LuaObject> const& tobj) 
 }
 size_type DataNodeLua::Load(std::shared_ptr<LuaObject> const& lobj) {
     size_type count = 0;
-    count = LuaToDataNode(lobj)->Foreach([&](std::string k, std::shared_ptr<DataNode> v) { return this->Set(k, v); });
+    count =
+        LuaToDataNode(lobj)->Foreach([&](std::string k, std::shared_ptr<const DataNode> v) { return this->Set(k, v); });
     return count;
 }
 

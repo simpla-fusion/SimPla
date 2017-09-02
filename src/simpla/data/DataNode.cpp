@@ -150,6 +150,8 @@ std::ostream& operator<<(std::ostream& os, DataNode const& entry) { return entry
 
 DataNode::eNodeType DataNode::type() const { return m_type_; }
 size_type DataNode::size() const { return m_entity_ == nullptr ? 0 : 1; }
+std::shared_ptr<DataNode> DataNode::Duplicate() const { return const_cast<this_type*>(this)->shared_from_this(); }
+
 std::shared_ptr<DataNode> DataNode::CreateNode(eNodeType e_type) const { return DataNode::New(e_type, ""); };
 std::shared_ptr<DataNode> DataNode::CreateNode(std::string const& url, eNodeType e_type) {
     auto node = DataNode::New(e_type, "");
@@ -157,11 +159,11 @@ std::shared_ptr<DataNode> DataNode::CreateNode(std::string const& url, eNodeType
     return node;
 };
 
-size_type DataNode::Set(std::string const& uri, std::shared_ptr<DataNode> const& v) {
+size_type DataNode::Set(std::string const& uri, std::shared_ptr<const DataNode> v) {
     DOMAIN_ERROR;
     return 0;
 }
-size_type DataNode::Add(std::string const& uri, std::shared_ptr<DataNode> const& v) {
+size_type DataNode::Add(std::string const& uri, std::shared_ptr<const DataNode> v) {
     DOMAIN_ERROR;
     return 0;
 }
@@ -169,21 +171,21 @@ size_type DataNode::Delete(std::string const& s) {
     DOMAIN_ERROR;
     return 0;
 }
-std::shared_ptr<DataNode> DataNode::Get(std::string const& uri) const {
+std::shared_ptr<const DataNode> DataNode::Get(std::string const& uri) const {
     DOMAIN_ERROR;
     return nullptr;
 }
-size_type DataNode::Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode>)> const& f) const {
+size_type DataNode::Foreach(std::function<size_type(std::string, std::shared_ptr<const DataNode>)> const& f) const {
     DOMAIN_ERROR;
     return 0;
 }
-size_type DataNode::Set(index_type s, std::shared_ptr<DataNode> const& v) { return Set(std::to_string(s), v); }
-size_type DataNode::Add(index_type s, std::shared_ptr<DataNode> const& v) { return Add(std::to_string(s), v); }
+size_type DataNode::Set(index_type s, std::shared_ptr<const DataNode> v) { return Set(std::to_string(s), v); }
+size_type DataNode::Add(index_type s, std::shared_ptr<const DataNode> v) { return Add(std::to_string(s), v); }
 size_type DataNode::Delete(index_type s) { return Delete(std::to_string(s)); }
-std::shared_ptr<DataNode> DataNode::Get(index_type s) const { return Get(std::to_string(s)); }
-size_type DataNode::Add(std::shared_ptr<DataNode> const& v) { return Add(size(), v); }
-size_type DataNode::Set(std::shared_ptr<DataNode> const& v) {
-    return v == nullptr ? 0 : v->Foreach([&](std::string k, std::shared_ptr<DataNode> v) { return Set(k, v); });
+std::shared_ptr<const DataNode> DataNode::Get(index_type s) const { return Get(std::to_string(s)); }
+size_type DataNode::Add(std::shared_ptr<const DataNode> v) { return Add(size(), v); }
+size_type DataNode::Set(std::shared_ptr<const DataNode> v) {
+    return v == nullptr ? 0 : v->Foreach([&](std::string k, std::shared_ptr<const DataNode> v) { return Set(k, v); });
 }
 
 size_type DataNode::SetValue(std::string const& url, KeyValue const& kv) { return Set(url, make_node(kv)); };

@@ -6,13 +6,14 @@
 namespace simpla {
 namespace geometry {
 
-void Cylindrical::Serialize(std::shared_ptr<simpla::data::DataNode> cfg) const {
-    base_type::Serialize(cfg);
+std::shared_ptr<simpla::data::DataNode> Cylindrical::Serialize() const {
+    auto cfg = base_type::Serialize();
     if (cfg != nullptr) {
         cfg->SetValue("Axe0", m_axe0_);
         cfg->SetValue("Axe1", m_axe1_);
         cfg->SetValue("Radius", m_radius_);
     }
+    return cfg;
 };
 void Cylindrical::Deserialize(std::shared_ptr<const simpla::data::DataNode> cfg) {
     base_type::Deserialize(cfg);

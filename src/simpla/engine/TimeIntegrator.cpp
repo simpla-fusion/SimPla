@@ -15,15 +15,14 @@ namespace engine {
 TimeIntegrator::TimeIntegrator() = default;
 TimeIntegrator::~TimeIntegrator() = default;
 
-void TimeIntegrator::Serialize(std::shared_ptr<data::DataNode> tdb) const {
-    base_type::Serialize(tdb);
-    if (tdb != nullptr) {
-        tdb->SetValue("Name", GetName());
-        tdb->SetValue("TimeBegin", GetTimeNow());
-        tdb->SetValue("TimeEnd", GetTimeEnd());
-        tdb->SetValue("TimeStep", GetTimeStep());
-        tdb->SetValue("MaxStep", GetMaxStep());
-    }
+std::shared_ptr<data::DataNode> TimeIntegrator::Serialize() const {
+    auto tdb = base_type::Serialize();
+    tdb->SetValue("Name", GetName());
+    tdb->SetValue("TimeBegin", GetTimeNow());
+    tdb->SetValue("TimeEnd", GetTimeEnd());
+    tdb->SetValue("TimeStep", GetTimeStep());
+    tdb->SetValue("MaxStep", GetMaxStep());
+    return tdb;
 }
 
 void TimeIntegrator::Deserialize(std::shared_ptr<const data::DataNode> tdb) {

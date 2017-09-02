@@ -1201,7 +1201,7 @@ SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
 
 void SAMRAITimeIntegrator::Synchronize() { engine::TimeIntegrator::Synchronize(); }
 
-void SAMRAITimeIntegrator::Serialize(std::shared_ptr<data::DataNode> cfg) const { base_type::Serialize(cfg); }
+std::shared_ptr<data::DataNode> SAMRAITimeIntegrator::Serialize() const { return base_type::Serialize(); }
 
 void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<const data::DataNode> tdb) {
     base_type::Deserialize(tdb);
@@ -1310,12 +1310,13 @@ void SAMRAITimeIntegrator::DoUpdate() {
     nTuple<int, 3> i_low{0, 0, 0};
     nTuple<int, 3> i_up{0, 0, 0};
 
-    std::tie(i_low, i_up) = GetScenario()->GetIndexBox();
+    //    std::tie(i_low, i_up) = GetScenario()->GetIndexBox();
 
     cfgCartesianGridGeometry->putDatabaseBox(
         "domain_boxes_0", SAMRAI::tbox::DatabaseBox{SAMRAI::tbox::Dimension(3), &i_low[0], &i_up[0]});
 
-    cfgCartesianGridGeometry->putIntegerArray("periodic_dimension", &GetAtlas()->GetPeriodicDimensions()[0], ndims);
+    //    cfgCartesianGridGeometry->putIntegerArray("periodic_dimension", &GetAtlas()->GetPeriodicDimensions()[0],
+    //    ndims);
 
     auto x_box = GetScenario()->GetMesh()->GetBox(0);
     cfgCartesianGridGeometry->putDoubleArray("x_lo", &std::get<0>(x_box)[0], ndims);
@@ -1331,21 +1332,21 @@ void SAMRAITimeIntegrator::DoUpdate() {
     auto cfgPatchHierarchy = std::make_shared<SAMRAI::tbox::MemoryDatabase>("cfgPatchHierarchy");
 
     // Maximum number of levels in hierarchy.
-    cfgPatchHierarchy->putInteger("max_levels", static_cast<int>(GetAtlas()->GetMaxLevel()));
+    cfgPatchHierarchy->putInteger("max_levels", GetAtlas()->GetMaxLevel());
 
     auto ratio_to_coarser = cfgPatchHierarchy->putDatabase("ratio_to_coarser");
 
     for (int i = 0, n = static_cast<int>(GetAtlas()->GetMaxLevel()); i < n; ++i) {
         nTuple<int, 3> level;
-        level = GetAtlas()->GetRefineRatio(i);
+        level = GetAtlas()->GetRefineRatio();
         ratio_to_coarser->putIntegerArray("level_" + std::to_string(i), &level[0], ndims);
     }
 
     auto largest_patch_size = cfgPatchHierarchy->putDatabase("largest_patch_size");
     auto smallest_patch_size = cfgPatchHierarchy->putDatabase("smallest_patch_size");
 
-    smallest_patch_size->putIntegerArray("level_0", &GetAtlas()->GetSmallestPatchDimensions()[0], ndims);
-    largest_patch_size->putIntegerArray("level_0", &GetAtlas()->GetLargestPatchDimensions()[0], ndims);
+    //    smallest_patch_size->putIntegerArray("level_0", &GetAtlas()->GetSmallestPatchDimensions()[0], ndims);
+    //    largest_patch_size->putIntegerArray("level_0", &GetAtlas()->GetLargestPatchDimensions()[0], ndims);
 
     m_pimpl_->patch_hierarchy.reset(
         new SAMRAI::hier::PatchHierarchy("cfgPatchHierarchy", m_pimpl_->grid_geometry, cfgPatchHierarchy));
