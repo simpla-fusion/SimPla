@@ -10,11 +10,12 @@
 #include <random>
 
 #include <gtest/gtest.h>
+#include <simpla/utilities/SPDefines.h>
 
 #include "simpla/utilities/macro.h"
 #include "simpla/utilities/type_traits.h"
 #include "simpla/utilities/Log.h"
-#include "simpla/algebra/algebra.h"
+#include "simpla/algebra/Algebra.h"
 using namespace simpla;
 
 template<typename TArray>

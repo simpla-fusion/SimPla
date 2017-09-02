@@ -15,10 +15,10 @@
 
 namespace simpla {
 namespace engine {
-DomainBase::DomainBase() {}
+DomainBase::DomainBase() = default;
 DomainBase::DomainBase(std::shared_ptr<MeshBase> const& msh, std::shared_ptr<Model> const& model)
     : m_mesh_(msh), m_model_(model) {}
-DomainBase::~DomainBase() {}
+DomainBase::~DomainBase() = default;
 std::shared_ptr<data::DataNode> DomainBase::Serialize() const {
     auto tdb = base_type::Serialize();
     tdb->Set("Boundary", GetBoundary()->Serialize());

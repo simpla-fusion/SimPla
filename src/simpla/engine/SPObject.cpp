@@ -60,8 +60,8 @@ std::shared_ptr<data::DataNode> SPObject::db() const { return m_pimpl_->m_db_; }
 std::shared_ptr<data::DataNode> SPObject::db() { return m_pimpl_->m_db_; }
 
 std::shared_ptr<data::DataNode> SPObject::Serialize() const { return data::DataNode::New(data::DataNode::DN_TABLE); }
-void SPObject::Deserialize(std::shared_ptr<const data::DataNode> cfg) {}
-std::shared_ptr<SPObject> SPObject::NewAndSync(std::shared_ptr<const data::DataNode> cfg) { return nullptr; }
+void SPObject::Deserialize(std::shared_ptr<const data::DataNode>) {}
+std::shared_ptr<SPObject> SPObject::NewAndSync(std::shared_ptr<const data::DataNode>) { return nullptr; }
 std::shared_ptr<SPObject> SPObject::New(std::shared_ptr<const data::DataNode> v) {
     auto res = base_type::Create(std::string(TagName()) + "." + v->GetValue<std::string>(""));
     res->Deserialize(v);

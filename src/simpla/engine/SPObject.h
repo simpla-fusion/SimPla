@@ -89,7 +89,7 @@ class SPObject : public Factory<SPObject>, public std::enable_shared_from_this<S
     };
 
     virtual std::shared_ptr<data::DataNode> Serialize() const;
-    virtual void Deserialize(std::shared_ptr<const data::DataNode> cfg);
+    virtual void Deserialize(std::shared_ptr<const data::DataNode>);
     static std::shared_ptr<SPObject> New(std::shared_ptr<const data::DataNode> v);
     static std::shared_ptr<SPObject> NewAndSync(std::shared_ptr<const data::DataNode> v);
 
@@ -174,6 +174,12 @@ std::istream &operator>>(std::istream &is, SPObject &obj);
     template <typename... Args>                                                                                  \
     static std::shared_ptr<_CLASS_NAME_> New(Args &&... args) {                                                  \
         return _TryCreate<_CLASS_NAME_>(typename std::is_abstract<_CLASS_NAME_>(), std::forward<Args>(args)...); \
+    };                                                                                                           \
+    static std::shared_ptr<_CLASS_NAME_> New(std::shared_ptr<const data::DataNode> node) {                       \
+        auto res = base_type::New(__STRING(_CLASS_NAME_) + std::string(".") +                                    \
+                                  node->GetValue<std::string>("_TYPE_", "default"));                             \
+        res->Deserialize(node);                                                                                  \
+        return std::dynamic_pointer_cast<_CLASS_NAME_>(res);                                                     \
     };
 
 //    static std::shared_ptr<_CLASS_NAME_> New(std::shared_ptr<const data::DataNode> v) {                                \
