@@ -30,6 +30,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
    public:
     static std::string GetFancyTypeName_s() { return "DataNode"; }
     virtual std::string GetFancyTypeName() const { return GetFancyTypeName_s(); }
+    static int s_num_of_pre_registered_;
 
    private:
     typedef Factory<DataNode> base_type;
@@ -41,7 +42,6 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     eNodeType m_type_;
 
    protected:
-    static int s_num_of_pre_registered_;
     std::shared_ptr<DataEntity> m_entity_ = nullptr;
 
     explicit DataNode(eNodeType etype = DN_NULL);
@@ -72,6 +72,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     virtual void SetEntity(std::shared_ptr<DataEntity> e) { m_entity_ = e; }
 
     virtual size_type size() const;
+    virtual bool empty() const { return size() == 0; }
 
     virtual size_type Set(std::string const& uri, std::shared_ptr<const DataNode> v);
     virtual size_type Add(std::string const& uri, std::shared_ptr<const DataNode> v);
@@ -240,7 +241,19 @@ struct KeyValue {
 
 inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue(std::string(c)); }
 
-#define SP_DATA_NODE_HEAD(_CLASS_NAME_)                                                                              \
+#define SP_DATA_NODE_HEAD(_CLASS_NAME_, _BASE_NAME_)                                                                 \
+                                                                                                                     \
+   public:                                                                                                           \
+    static std::string GetFancyTypeName_s() {                                                                        \
+        return _BASE_NAME_::GetFancyTypeName_s() + "." + __STRING(_CLASS_NAME_);                                     \
+    }                                                                                                                \
+    virtual std::string GetFancyTypeName() const override { return GetFancyTypeName_s(); }                           \
+    static bool _is_registered;                                                                                      \
+                                                                                                                     \
+   private:                                                                                                          \
+    typedef _BASE_NAME_ base_type;                                                                                   \
+    typedef _CLASS_NAME_ this_type;                                                                                  \
+                                                                                                                     \
    public:                                                                                                           \
     explicit _CLASS_NAME_(_CLASS_NAME_ const& other) = delete;                                                       \
     explicit _CLASS_NAME_(_CLASS_NAME_&& other) = delete;                                                            \
@@ -248,7 +261,7 @@ inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue(std
     _CLASS_NAME_& operator=(_CLASS_NAME_&& other) = delete;                                                          \
                                                                                                                      \
    protected:                                                                                                        \
-    _CLASS_NAME_();                                                                                                  \
+    explicit _CLASS_NAME_(DataNode::eNodeType etype = DN_TABLE);                                                     \
                                                                                                                      \
    public:                                                                                                           \
     ~_CLASS_NAME_() override;                                                                                        \

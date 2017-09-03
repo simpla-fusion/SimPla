@@ -7,12 +7,9 @@ namespace simpla {
 namespace data {
 
 struct DataNodeIMAS : public DataNode {
-    SP_DEFINE_FANCY_TYPE_NAME(DataNodeIMAS, DataNode)
-    SP_DATA_NODE_HEAD(DataNodeIMAS);
+    SP_DATA_NODE_HEAD(DataNodeIMAS, DataNode);
 
     SP_DATA_NODE_FUNCTION(DataNodeIMAS)
-
-    DataNodeIMAS(DataNode::eNodeType etype) : DataNode(etype) {}
 
     int Connect(std::string const& authority, std::string const& path, std::string const& query,
                 std::string const& fragment) override;
@@ -20,7 +17,7 @@ struct DataNodeIMAS : public DataNode {
     bool isValid() const override;
 };
 REGISTER_CREATOR(DataNodeIMAS, imas);
-DataNodeIMAS::DataNodeIMAS() : DataNode(DN_TABLE) {}
+DataNodeIMAS::DataNodeIMAS(DataNode::eNodeType e_type) : base_type(e_type){};
 DataNodeIMAS::~DataNodeIMAS() = default;
 
 int DataNodeIMAS::Connect(std::string const& authority, std::string const& path, std::string const& query,

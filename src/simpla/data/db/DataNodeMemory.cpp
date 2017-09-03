@@ -11,8 +11,7 @@ namespace simpla {
 namespace data {
 
 REGISTER_CREATOR(DataNodeMemory, mem);
-
-DataNodeMemory::DataNodeMemory() : DataNode(DataNode::DN_TABLE){};
+DataNodeMemory::DataNodeMemory(DataNode::eNodeType e_type) : base_type(e_type){};
 DataNodeMemory::~DataNodeMemory() = default;
 
 size_type DataNodeMemory::size() const { return m_table_.size(); }

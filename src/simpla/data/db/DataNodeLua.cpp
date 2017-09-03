@@ -13,11 +13,7 @@
 namespace simpla {
 namespace data {
 struct DataNodeLua : public DataNodeMemory {
-    SP_DEFINE_FANCY_TYPE_NAME(DataNodeLua, DataNodeMemory)
-    SP_DATA_NODE_HEAD(DataNodeLua)
-
-   protected:
-    explicit DataNodeLua(eNodeType e_type) : DataNodeMemory(e_type) {}
+    SP_DATA_NODE_HEAD(DataNodeLua, DataNodeMemory)
 
    public:
     int Connect(std::string const& authority, std::string const& path, std::string const& query,
@@ -36,7 +32,7 @@ struct DataNodeLua : public DataNodeMemory {
 };
 
 REGISTER_CREATOR(DataNodeLua, lua);
-DataNodeLua::DataNodeLua() : DataNodeMemory(DataNode::DN_TABLE){};
+DataNodeLua::DataNodeLua(DataNode::eNodeType e_type) : base_type(e_type){};
 DataNodeLua::~DataNodeLua() = default;
 int DataNodeLua::Connect(std::string const& authority, std::string const& path, std::string const& query,
                          std::string const& fragment) {
@@ -62,7 +58,7 @@ int DataNodeLua::Parse(std::string const& str) {
     return SP_SUCCESS;
 };
 #define PRINT_ND_ARRAY(_TYPE_)                                                                       \
-    else if (auto p = std::dynamic_pointer_cast<const DataLightT<int*>>(entity)) {                         \
+    else if (auto p = std::dynamic_pointer_cast<const DataLightT<int*>>(entity)) {                   \
         int ndims = p->rank();                                                                       \
         auto extents = new size_type[ndims];                                                         \
         p->extents(extents);                                                                         \

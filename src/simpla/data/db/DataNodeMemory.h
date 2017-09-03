@@ -10,10 +10,8 @@ namespace simpla {
 namespace data {
 
 struct DataNodeMemory : public DataNode {
-    SP_DEFINE_FANCY_TYPE_NAME(DataNodeMemory, DataNode)
-    SP_DATA_NODE_HEAD(DataNodeMemory)
+    SP_DATA_NODE_HEAD(DataNodeMemory, DataNode)
    protected:
-    explicit DataNodeMemory(eNodeType e_type) : DataNode(e_type) {}
 
    public:
     std::shared_ptr<DataNode> CreateNode(eNodeType e_type) const override;

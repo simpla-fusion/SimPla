@@ -23,12 +23,9 @@ namespace data {
                       << "HDF5 Error:" << __STRING(_FUN_) << "\e[1;37m" << std::endl; \
     }
 struct DataNodeHDF5 : public DataNode {
-    SP_DEFINE_FANCY_TYPE_NAME(DataNodeHDF5, DataNode)
-    SP_DATA_NODE_HEAD(DataNodeHDF5);
+    SP_DATA_NODE_HEAD(DataNodeHDF5, DataNode)
 
    protected:
-    DataNodeHDF5(eNodeType e_type) : DataNode(e_type) {}
-
    public:
     std::shared_ptr<DataNode> CreateNode(eNodeType e_type) const override;
 
@@ -57,8 +54,7 @@ struct DataNodeHDF5 : public DataNode {
     hid_t m_group_ = -1;
 };
 REGISTER_CREATOR(DataNodeHDF5, h5);
-
-DataNodeHDF5::DataNodeHDF5() : DataNode(DN_TABLE) {}
+DataNodeHDF5::DataNodeHDF5(DataNode::eNodeType e_type) : base_type(e_type){};
 DataNodeHDF5::~DataNodeHDF5() { Disconnect(); }
 
 std::shared_ptr<DataNode> DataNodeHDF5::CreateNode(eNodeType e_type) const {
