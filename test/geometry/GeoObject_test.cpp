@@ -5,14 +5,33 @@
  *      Author: salmon
  */
 
-#include "../../to_delete/Arithmetic.h"
-#include "simpla/model/geometry/GeoObject.h"
+#include <gtest/gtest.h>
 
-class Cube : public simpla::geometry::GeoObjectBase {};
-
-int main{
-
+#include "simpla/data/SPObject.h"
+#include "simpla/geometry/GeoObject.h"
+using namespace simpla;
+struct DummyGeoObject : public simpla::geometry::GeoObject {
+    SP_OBJECT_HEAD(DummyGeoObject, SPObject)
+    SP_OBJECT_PROPERTY(Real, Mass);
+    SP_OBJECT_PROPERTY(Real, Charge);
 };
+DummyGeoObject::DummyGeoObject() = default;
+DummyGeoObject::~DummyGeoObject() = default;
+
+std::shared_ptr<simpla::data::DataNode> DummyGeoObject::Serialize() const { return base_type::Serialize(); };
+void DummyGeoObject::Deserialize(std::shared_ptr<const simpla::data::DataNode> cfg) { base_type::Deserialize(cfg); };
+SP_OBJECT_REGISTER(DummyGeoObject)
+TEST(SPObject, Dummy) {
+    auto objA = DummyGeoObject::New();
+    objA->SetMass(1.0);
+    objA->SetCharge(-1.0);
+    std::cout << *objA->Serialize() << std::endl;
+
+    auto objB = std::dynamic_pointer_cast<DummyGeoObject>(SPObject::New(objA->Serialize()));
+    EXPECT_TRUE(objB != nullptr);
+    EXPECT_DOUBLE_EQ(objA->GetMass(), objB->GetMass());
+    EXPECT_DOUBLE_EQ(objA->GetCharge(), objB->GetCharge());
+}
 //#include "../../geometry/geometry.h"
 //
 //#include <gtest/gtest.h>

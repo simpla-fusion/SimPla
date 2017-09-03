@@ -77,10 +77,10 @@ void Schedule::Run() {
     }
 }
 
-void Schedule::DoInitialize() { SPObject::DoInitialize(); }
-void Schedule::DoFinalize() { SPObject::DoFinalize(); }
-void Schedule::DoUpdate() { SPObject::DoUpdate(); }
-void Schedule::DoTearDown() { SPObject::DoTearDown(); }
+void Schedule::DoInitialize() { base_type::DoInitialize(); }
+void Schedule::DoFinalize() { base_type::DoFinalize(); }
+void Schedule::DoUpdate() { base_type::DoUpdate(); }
+void Schedule::DoTearDown() { base_type::DoTearDown(); }
 void Schedule::Synchronize() {
     //    auto &atlas = GetContext()->GetAtlas();
     //    if (from_level >= atlas.GetNumOfLevel() || to_level >= atlas.GetNumOfLevel()) { return; }

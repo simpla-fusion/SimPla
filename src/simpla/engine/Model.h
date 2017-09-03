@@ -12,16 +12,15 @@
 #include "simpla/algebra/Field.h"
 #include "simpla/geometry/GeoObject.h"
 
-#include "SPObject.h"
+#include "EngineObject.h"
 #include "simpla/utilities/Factory.h"
 namespace simpla {
 
 namespace engine {
 using namespace data;
 
-class Model : public SPObject {
-    SP_OBJECT_HEAD(Model, SPObject)
-    static constexpr char const *TagName() { return "Model"; }
+class Model : public EngineObject {
+    SP_OBJECT_HEAD(Model, EngineObject)
 
     void DoInitialize() override;
     void DoUpdate() override;

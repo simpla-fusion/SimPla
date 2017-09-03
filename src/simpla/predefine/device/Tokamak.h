@@ -6,8 +6,8 @@
 #define SIMPLA_TOKAMAK_H
 
 #include "GEqdsk.h"
+#include "simpla/engine/EngineObject.h"
 #include "simpla/engine/Model.h"
-#include "simpla/engine/SPObject.h"
 namespace simpla {
 
 class Tokamak : public engine::Model {

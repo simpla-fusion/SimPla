@@ -8,10 +8,10 @@
 #include "simpla/SIMPLA_config.h"
 
 #include <memory>
+#include "simpla/data/Data.h"
 
 #include "Attribute.h"
-#include "SPObject.h"
-#include "simpla/data/Data.h"
+#include "EngineObject.h"
 
 namespace simpla {
 namespace data {
@@ -20,8 +20,8 @@ class DataIOPort;
 namespace engine {
 class Scenario;
 class Atlas;
-class Schedule : public engine::SPObject {
-    SP_OBJECT_HEAD(Schedule, SPObject)
+class Schedule : public EngineObject {
+    SP_OBJECT_HEAD(Schedule, EngineObject)
 
    public:
     SP_OBJECT_PROPERTY(size_type, MaxStep);

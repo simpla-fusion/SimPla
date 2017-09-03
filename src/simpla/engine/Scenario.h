@@ -6,7 +6,7 @@
 #define SIMPLA_SCENARIO_H
 
 #include "Atlas.h"
-#include "SPObject.h"
+#include "EngineObject.h"
 
 namespace simpla {
 namespace engine {
@@ -15,8 +15,8 @@ class DomainBase;
 class Schedule;
 class Model;
 
-class Scenario : public SPObject {
-    SP_OBJECT_HEAD(Scenario, SPObject)
+class Scenario : public EngineObject {
+    SP_OBJECT_HEAD(Scenario, EngineObject)
 
     void DoInitialize() override;
     void DoFinalize() override;
@@ -32,9 +32,10 @@ class Scenario : public SPObject {
     void SetModel(std::string const &k, std::shared_ptr<Model> const &);
     std::shared_ptr<const Model> GetModel(std::string const &k) const;
 
-    template <typename TD>
-    std::shared_ptr<TD> NewDomain(std::string const &k, std::shared_ptr<Model> const &m = nullptr);
-    std::shared_ptr<DomainBase> NewDomain(std::string const &k, const std::shared_ptr<data::DataNode> &);
+    //    template <typename TD>
+    //    std::shared_ptr<TD> NewDomain(std::string const &k, std::shared_ptr<Model> const &m = nullptr);
+    std::shared_ptr<DomainBase> NewDomain(std::string const &);
+    std::shared_ptr<DomainBase> NewDomain(std::shared_ptr<const data::DataNode>);
     std::shared_ptr<DomainBase> GetDomain(std::string const &k) const;
 
     template <typename TD>
@@ -59,12 +60,12 @@ class Scenario : public SPObject {
     void SetSchedule(std::shared_ptr<Schedule> const &);
 };
 
-template <typename TD>
-std::shared_ptr<TD> Scenario::NewDomain(std::string const &k, std::shared_ptr<Model> const &m) {
-    if (m != nullptr) { SetModel(k, m); }
-    SetDomain(k, TD::New(GetMesh(), GetModel(k)));
+std::shared_ptr<DomainBase> Scenario::NewDomain(std::string const &k) {
+    //    if (m != nullptr) { SetModel(k, m); }
+    //    SetDomain(k, TD::New(GetMesh(), GetModel(k)));
     return GetDomain(k);
 };
+std::shared_ptr<DomainBase> Scenario::NewDomain(std::shared_ptr<const data::DataNode> db) { return nullptr; }
 
 template <typename TD>
 std::shared_ptr<TD> Scenario::NewSchedule() {

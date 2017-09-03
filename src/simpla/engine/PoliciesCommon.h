@@ -5,20 +5,22 @@
 #ifndef SIMPLA_POLICIESCOMMON_H
 #define SIMPLA_POLICIESCOMMON_H
 
-#define SP_ENGINE_POLICY_HEAD(_NAME_)                \
-   private:                                          \
-    typedef THost host_type;                         \
-    typedef _NAME_<THost> this_type;                 \
-                                                     \
-   public:                                           \
-    host_type *m_host_ = nullptr;                    \
-    _NAME_(host_type *h) noexcept : m_host_(h) {}    \
-    virtual ~_NAME_() = default;                     \
-    _NAME_(_NAME_ const &other) = delete;            \
-    _NAME_(_NAME_ &&other) = delete;                 \
-    _NAME_ &operator=(_NAME_ const &other) = delete; \
-    _NAME_ &operator=(_NAME_ &&other) = delete;      \
-    static std::string RegisterName() { return __STRING(_NAME_); }
+#define SP_ENGINE_POLICY_HEAD(_NAME_)                              \
+   private:                                                        \
+    typedef THost host_type;                                       \
+    typedef _NAME_<THost> this_type;                               \
+                                                                   \
+   public:                                                         \
+    host_type *m_host_ = nullptr;                                  \
+    _NAME_(host_type *h) noexcept : m_host_(h) {}                  \
+    virtual ~_NAME_() = default;                                   \
+    _NAME_(_NAME_ const &other) = delete;                          \
+    _NAME_(_NAME_ &&other) = delete;                               \
+    _NAME_ &operator=(_NAME_ const &other) = delete;               \
+    _NAME_ &operator=(_NAME_ &&other) = delete;                    \
+    static std::string RegisterName() { return __STRING(_NAME_); } \
+    std::shared_ptr<data::DataNode> Serialize() const;             \
+    void Deserialize(std::shared_ptr<const data::DataNode> cfg);
 
 #define DEFINE_INVOKE_HELPER(_FUN_NAME_)                                                                           \
     CHECK_MEMBER_FUNCTION(has_mem_fun_##_FUN_NAME_, _FUN_NAME_)                                                    \

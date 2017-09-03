@@ -20,7 +20,7 @@
 namespace simpla {
 namespace geometry {
 
-REGISTER_CREATOR(GeoObjectOCC, occ)
+SP_OBJECT_REGISTER(GeoObjectOCC)
 
 struct GeoObjectOCC::pimpl_s {
     Real m_measure_ = SNaN;
@@ -36,13 +36,13 @@ GeoObjectOCC::GeoObjectOCC(GeoObject const &g) : GeoObjectOCC() {
         UNIMPLEMENTED;
     } else {
         m_pimpl_->m_occ_shape_ = dynamic_cast<GeoObjectOCC const &>(g).m_pimpl_->m_occ_shape_;
-        Update();
+        DoUpdate();
     }
 };
 
 GeoObjectOCC::GeoObjectOCC(TopoDS_Shape const &shape) : GeoObjectOCC() {
     m_pimpl_->m_occ_shape_ = shape;
-    Update();
+    DoUpdate();
 }
 
 GeoObjectOCC::~GeoObjectOCC() { delete m_pimpl_; };
@@ -113,7 +113,7 @@ void GeoObjectOCC::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
             tdb->GetValue("Location", point_type{0, 0, 0}),  //
             tdb->GetValue("Rotation", nTuple<Real, 4>{0, 0, 0, 0}));
     }
-    Update();
+    DoUpdate();
     VERBOSE << " [ Bounding Box :" << m_pimpl_->m_bounding_box_ << "]" << std::endl;
 };
 

@@ -15,6 +15,7 @@
 #include "simpla/utilities/Signal.h"
 
 #include "Attribute.h"
+#include "EngineObject.h"
 #include "Model.h"
 #include "PoliciesCommon.h"
 
@@ -24,8 +25,8 @@ class Patch;
 class Model;
 class MeshBase;
 
-class DomainBase : public SPObject {
-    SP_OBJECT_HEAD(DomainBase, SPObject)
+class DomainBase : public EngineObject {
+    SP_OBJECT_HEAD(DomainBase, EngineObject)
 
    protected:
     explicit DomainBase(std::shared_ptr<MeshBase> const &m, std::shared_ptr<Model> const &model = nullptr);

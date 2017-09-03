@@ -16,8 +16,8 @@
 #include "simpla/geometry/Chart.h"
 #include "simpla/utilities/Log.h"
 
+#include "EngineObject.h"
 #include "Patch.h"
-#include "SPObject.h"
 
 namespace simpla {
 namespace engine {
@@ -70,8 +70,8 @@ class MeshBlock;
 *  - '''Origin''' is the origin point of continue topology space and discrete index space
 *  - '''dx''' is the resolution ratio  of discrete mesh, x = i * dx + r where 0<= r < dx
 */
-class Atlas : public SPObject {
-    SP_OBJECT_HEAD(Atlas, SPObject)
+class Atlas : public EngineObject {
+    SP_OBJECT_HEAD(Atlas, EngineObject)
 
    public:
     size_type DeletePatch(id_type);

@@ -61,10 +61,10 @@ void Scenario::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
     Click();
 }
 
-void Scenario::DoInitialize() { SPObject::DoInitialize(); }
-void Scenario::DoFinalize() { SPObject::DoFinalize(); }
-void Scenario::DoTearDown() { SPObject::DoTearDown(); }
-void Scenario::DoUpdate() { SPObject::DoUpdate(); }
+void Scenario::DoInitialize() { base_type::DoInitialize(); }
+void Scenario::DoFinalize() { base_type::DoFinalize(); }
+void Scenario::DoTearDown() { base_type::DoTearDown(); }
+void Scenario::DoUpdate() { base_type::DoUpdate(); }
 
 void Scenario::SetAtlas(std::shared_ptr<Atlas> const &m) { m_pimpl_->m_atlas_ = m; }
 std::shared_ptr<Atlas> Scenario::GetAtlas() const { return m_pimpl_->m_atlas_; }
@@ -78,11 +78,6 @@ std::shared_ptr<const Model> Scenario::GetModel(std::string const &k) const {
     return it == m_pimpl_->m_models_.end() ? nullptr : it->second;
 }
 
-std::shared_ptr<DomainBase> Scenario::NewDomain(std::string const &k, const std::shared_ptr<DataNode> &t) {
-    //    auto res = DomainBase::New(t, GetMesh(), GetModel(k));
-    //    SetDomain(k, res);
-    return nullptr;
-};
 void Scenario::SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &d) { m_pimpl_->m_domains_[k] = d; }
 
 std::shared_ptr<DomainBase> Scenario::GetDomain(std::string const &k) const {

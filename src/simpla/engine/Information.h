@@ -4,11 +4,11 @@
 
 #ifndef SIMPLA_INFORMATION_H
 #define SIMPLA_INFORMATION_H
-#include "SPObject.h"
+#include "EngineObject.h"
 namespace simpla {
 namespace engine {
-class Information : public SPObject {
-    SP_OBJECT_HEAD(Information, SPObject)
+class Information : public EngineObject {
+    SP_OBJECT_HEAD(Information, EngineObject)
 };
 }  // namespace engine
 }  // namespace simpla

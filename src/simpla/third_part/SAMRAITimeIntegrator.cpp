@@ -586,7 +586,7 @@ void RegisterOperators(SAMRAI::geom::GridGeometry *g) {
 };
 }  //    namespace detail{
 
-REGISTER_CREATOR(SAMRAITimeIntegrator, SAMRAITimeIntegrator)
+SP_OBJECT_REGISTER(SAMRAITimeIntegrator)
 
 class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatchStrategy {
     SP_OBJECT_BASE(SAMRAIHyperbolicPatchStrategyAdapter)

@@ -6,11 +6,14 @@
 #define SIMPLA_ICRFANTENNA_H
 
 #include "simpla/SIMPLA_config.h"
-#include "simpla/algebra/Algebra.h"
-#include "simpla/engine/Engine.h"
-#include "simpla/physics/PhysicalConstants.h"
 
 #include <cmath>
+#include <memory>
+
+#include "simpla/algebra/Algebra.h"
+#include "simpla/data/DataNode.h"
+#include "simpla/engine/Engine.h"
+#include "simpla/physics/PhysicalConstants.h"
 
 namespace simpla {
 
@@ -21,8 +24,6 @@ class ICRFAntenna {
     SP_ENGINE_POLICY_HEAD(ICRFAntenna);
 
    public:
-    void Serialize(data::DataTable* res) const;
-    void Deserialize(std::shared_ptr<DataTable> const& cfg);
     void Advance(Real time_now, Real dt);
     void InitialCondition(Real time_now);
     //    void TagRefinementCells(Real time_now);
@@ -35,10 +36,12 @@ class ICRFAntenna {
 };
 
 template <typename TM>
-void ICRFAntenna<TM>::Serialize(data::DataTable* res) const {
+std::shared_ptr<data::DataNode> ICRFAntenna<TM>::Serialize() const {
+    auto res = data::DataNode::New();
     res->SetValue("Amplify", m_amplify_);
     res->SetValue("Frequency", m_f_);
     res->SetValue("WaveNumber", m_k_);
+    return res;
 };
 
 template <typename TM>
@@ -46,7 +49,7 @@ void ICRFAntenna<TM>::InitialCondition(Real time_now) {
     m_host_->GetMesh()->SetEmbeddedBoundary(m_host_->GetName(), m_host_->GetGeoBody());
 }
 template <typename TM>
-void ICRFAntenna<TM>::Deserialize(std::shared_ptr<DataTable> const& cfg) {
+void ICRFAntenna<TM>::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
     m_amplify_ = cfg->GetValue<Vec3>("Amplify", m_amplify_);
     m_f_ = cfg->GetValue<Real>("Frequency", m_f_);
     m_k_ = cfg->GetValue<Vec3>("WaveNumber", m_k_);

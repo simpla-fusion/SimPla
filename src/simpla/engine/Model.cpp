@@ -6,7 +6,7 @@
 
 #include "Model.h"
 
-#include "SPObject.h"
+#include "EngineObject.h"
 #include "simpla/utilities/Factory.h"
 
 namespace simpla {
@@ -46,7 +46,7 @@ void Model::DoUpdate() {
     ++it;
     for (; it != m_pimpl_->m_g_objs_.end(); ++it) {
         if (it->second != nullptr) {
-            m_pimpl_->m_bound_box_ = geometry::Union(m_pimpl_->m_bound_box_, it->second->BoundingBox());
+//            m_pimpl_->m_bound_box_ = geometry::Union(m_pimpl_->m_bound_box_, it->second->BoundingBox());
         }
     }
 };

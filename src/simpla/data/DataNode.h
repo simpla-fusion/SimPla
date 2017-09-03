@@ -44,7 +44,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
    protected:
     std::shared_ptr<DataEntity> m_entity_ = nullptr;
 
-    explicit DataNode(eNodeType etype = DN_NULL);
+    explicit DataNode(eNodeType etype = DN_TABLE);
     explicit DataNode(std::shared_ptr<DataEntity> v) : m_type_(DataNode::DN_ENTITY), m_entity_(std::move(v)) {}
 
    public:

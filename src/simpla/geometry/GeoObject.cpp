@@ -2,7 +2,10 @@
 // Created by salmon on 17-2-21.
 //
 #include "GeoObject.h"
-#include <simpla/data/DataEntity.h>
+
+#include <memory>
+
+#include "BoxUtilities.h"
 
 namespace simpla {
 namespace geometry {

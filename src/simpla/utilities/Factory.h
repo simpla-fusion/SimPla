@@ -118,7 +118,7 @@ class Factory {
 
 }  // namespace data{
 template <typename T>
-static bool RegisterCreator(std::string const &name) {
-    return T::template RegisterCreator<T>(name);
+static bool RegisterCreator() {
+    return T::template RegisterCreator<T>();
 }  // namespace simpla{
 #endif  // SIMPLA_FACTORY_H

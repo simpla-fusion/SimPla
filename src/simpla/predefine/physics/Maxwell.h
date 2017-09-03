@@ -20,8 +20,6 @@ template <typename THost>
 class Maxwell {
     SP_ENGINE_POLICY_HEAD(Maxwell);
 
-    void Serialize(data::DataTable* res) const;
-    void Deserialize(std::shared_ptr<data::DataTable> const& cfg);
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real time_dt);
     void Advance(Real time_now, Real dt);
@@ -39,9 +37,11 @@ class Maxwell {
 };
 
 template <typename TM>
-void Maxwell<TM>::Serialize(data::DataTable* res) const {};
+std::shared_ptr<data::DataNode> Maxwell<TM>::Serialize() const {
+    return nullptr;
+};
 template <typename TM>
-void Maxwell<TM>::Deserialize(std::shared_ptr<data::DataTable> const& cfg) {}
+void Maxwell<TM>::Deserialize(std::shared_ptr<const data::DataNode> cfg) {}
 
 template <typename TM>
 void Maxwell<TM>::InitialCondition(Real time_now) {

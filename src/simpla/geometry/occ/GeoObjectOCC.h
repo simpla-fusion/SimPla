@@ -21,7 +21,7 @@ struct GeoObjectOCC : public GeoObject {
     void Load(std::string const &);
     void Transform(Real scale, point_type const &location = point_type{0, 0, 0},
                    nTuple<Real, 4> const &rotate = nTuple<Real, 4>{0, 0, 0, 0});
-    void DoUpdate() override;
+    void DoUpdate();
 
     TopoDS_Shape const &GetShape() const;
     Bnd_Box const &GetOCCBoundingBox() const;

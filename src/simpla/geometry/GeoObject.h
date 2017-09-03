@@ -7,18 +7,9 @@
 
 #ifndef CORE_GEOMETRY_GEO_OBJECT_H_
 #define CORE_GEOMETRY_GEO_OBJECT_H_
-
 #include "simpla/SIMPLA_config.h"
 
-#include "simpla/algebra/nTuple.ext.h"
-#include "simpla/algebra/nTuple.h"
-#include "simpla/engine/SPObject.h"
-#include "simpla/utilities/Factory.h"
-#include "simpla/utilities/Log.h"
-#include "simpla/utilities/SPDefines.h"
-#include "simpla/utilities/type_traits.h"
-
-#include "BoxUtilities.h"
+#include "simpla/data/SPObject.h"
 
 namespace simpla {
 namespace geometry {
@@ -67,11 +58,8 @@ namespace geometry {
  *
  *  @enduml
  */
-class GeoObject : public engine::SPObject {
-    SP_OBJECT_HEAD(GeoObject, engine::SPObject)
-
-   public:
-    static constexpr char const *TagName() { return "GeoObject"; }
+class GeoObject : public SPObject {
+    SP_OBJECT_HEAD(GeoObject, SPObject)
 
     virtual int Dimension() const { return 3; };
     virtual Real Measure() const;

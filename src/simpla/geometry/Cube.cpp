@@ -4,7 +4,7 @@
 #include "Cube.h"
 namespace simpla {
 namespace geometry {
-REGISTER_CREATOR(Cube, Cube)
+SP_OBJECT_REGISTER(Cube)
 
 Cube::Cube() = default;
 Cube::~Cube() = default;
@@ -12,6 +12,7 @@ Cube::~Cube() = default;
 std::shared_ptr<data::DataNode> Cube::Serialize() const {
     auto cfg = base_type::Serialize();
     if (cfg != nullptr) { cfg->SetValue("Box", m_bound_box_); }
+    return cfg;
 };
 void Cube::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
     base_type::Deserialize(cfg);

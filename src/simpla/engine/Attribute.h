@@ -11,8 +11,8 @@
 #include "simpla/utilities/Signal.h"
 #include "simpla/utilities/type_traits.h"
 
+#include "EngineObject.h"
 #include "MeshBlock.h"
-#include "SPObject.h"
 
 namespace simpla {
 template <typename V, typename SFC>
@@ -72,7 +72,7 @@ class AttributeGroup {
 
     void RegisterAttributes();
 
-    std::shared_ptr<const data::DataNode> GetAttributeDescription(std::string const &k)const;
+    std::shared_ptr<const data::DataNode> GetAttributeDescription(std::string const &k) const;
     std::shared_ptr<const data::DataNode> GetDescriptions() const;
 
     //    virtual void RegisterAt(AttributeGroup *);
@@ -121,8 +121,8 @@ class AttributeGroup {
  *
  *
  */
-struct Attribute : public SPObject {
-    SP_OBJECT_HEAD(Attribute, SPObject)
+struct Attribute : public EngineObject {
+    SP_OBJECT_HEAD(Attribute, EngineObject)
 
    protected:
     template <typename... Args>

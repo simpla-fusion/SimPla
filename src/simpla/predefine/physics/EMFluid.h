@@ -21,8 +21,6 @@ template <typename THost>
 class EMFluid {
     SP_ENGINE_POLICY_HEAD(EMFluid);
 
-    void Serialize(DataTable& res) const;
-    void Deserialize(const DataTable& cfg);
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real time_dt);
     void Advance(Real time_now, Real dt);
@@ -55,29 +53,30 @@ class EMFluid {
     };
 
     std::map<std::string, std::shared_ptr<fluid_s>> m_fluid_sp_;
-    std::shared_ptr<fluid_s> AddSpecies(std::string const& name, std::shared_ptr<data::DataTable> const& d);
+    std::shared_ptr<fluid_s> AddSpecies(std::string const& name, std::shared_ptr<const data::DataNode> d);
     std::map<std::string, std::shared_ptr<fluid_s>>& GetSpecies() { return m_fluid_sp_; };
 };
 
 template <typename TM>
-void EMFluid<TM>::Serialize(DataTable& res) const {
+std::shared_ptr<data::DataNode> EMFluid<TM>::Serialize() const {
+    auto res = data::DataNode::New();
     for (auto& item : m_fluid_sp_) {
-        auto &t = res.GetTable("Species/" + item.first);
-        t.template SetValue<double>("mass", item.second->mass / SI_proton_mass);
-        t.template SetValue<double>("Z", item.second->charge / SI_elementary_charge);
-        t.template SetValue<double>("ratio", item.second->ratio);
+        res->SetValue("Species/" + item.first + "/mass", item.second->mass / SI_proton_mass);
+        res->SetValue("Species/" + item.first + "/Z", item.second->charge / SI_elementary_charge);
+        res->SetValue("Species/" + item.first + "/ratio", item.second->ratio);
     }
+    return res;
 };
 template <typename TM>
-void EMFluid<TM>::Deserialize(const DataTable& cfg) {
-    cfg.GetTable("Species").Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> v) {
-        return AddSpecies(k, std::dynamic_pointer_cast<data::DataTable>(v)) != nullptr ? 1 : 0;
+void EMFluid<TM>::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
+    cfg->Get("Species")->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> v) {
+        return AddSpecies(k, std::dynamic_pointer_cast<data::DataNode>(v)) != nullptr ? 1 : 0;
     });
 }
 
 template <typename TM>
 std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string const& name,
-                                                                     std::shared_ptr<data::DataTable> const& d) {
+                                                                     std::shared_ptr<const data::DataNode> d) {
     if (d == nullptr) { return nullptr; }
 
     auto sp = std::make_shared<fluid_s>();

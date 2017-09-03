@@ -14,7 +14,7 @@
 #include <TColgp_HArray1OfPnt.hxx>
 
 namespace simpla {
-REGISTER_CREATOR(Tokamak, Tokamak)
+SP_OBJECT_REGISTER(Tokamak)
 
 struct Tokamak::pimpl_s {
     GEqdsk geqdsk;

@@ -10,7 +10,6 @@
 #include "simpla/algebra/EntityId.h"
 
 #include "MeshBlock.h"
-#include "SPObject.h"
 
 namespace simpla {
 namespace engine {

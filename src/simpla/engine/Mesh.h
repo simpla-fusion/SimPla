@@ -8,7 +8,7 @@
 #include "simpla/SIMPLA_config.h"
 
 #include "Attribute.h"
-#include "SPObject.h"
+#include "EngineObject.h"
 #include "simpla/algebra/Field.h"
 #include "simpla/data/Data.h"
 #include "simpla/utilities/Factory.h"
@@ -25,8 +25,8 @@ class MeshBlock;
 class Patch;
 using namespace simpla::data;
 class Curve;
-struct MeshBase : public engine::SPObject, public AttributeGroup {
-    SP_OBJECT_HEAD(MeshBase, SPObject)
+struct MeshBase : public EngineObject, public AttributeGroup {
+    SP_OBJECT_HEAD(MeshBase, EngineObject)
     static constexpr char const *TagName() { return "Mesh"; }
 
    public:

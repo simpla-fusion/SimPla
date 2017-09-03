@@ -9,13 +9,13 @@
 
 #include <string>
 #include "simpla/data/Data.h"
+#include "simpla/engine/EngineObject.h"
 #include "simpla/engine/Model.h"
-#include "simpla/engine/SPObject.h"
 #include "simpla/engine/Schedule.h"
 
 namespace simpla {
-struct SpApp : public engine::SPObject {
-    SP_OBJECT_HEAD(SpApp, engine::SPObject)
+struct SpApp : public engine::EngineObject {
+    SP_OBJECT_HEAD(SpApp, engine::EngineObject)
 
    public:
     void Config(int argc, char **argv);

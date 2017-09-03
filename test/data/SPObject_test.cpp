@@ -5,11 +5,10 @@
 
 #include <iostream>
 #include "simpla/data/Data.h"
-#include "simpla/engine/SPObject.h"
+#include "simpla/data/SPObject.h"
 using namespace simpla;
-using namespace simpla::engine;
 using namespace simpla::data;
-struct DummyObject : public engine::SPObject {
+struct DummyObject : public SPObject {
     SP_OBJECT_HEAD(DummyObject, SPObject)
     SP_OBJECT_PROPERTY(Real, Mass);
     SP_OBJECT_PROPERTY(Real, Charge);
@@ -26,7 +25,7 @@ TEST(SPObject, Dummy) {
     objA->SetCharge(-1.0);
     std::cout << *objA->Serialize() << std::endl;
 
-    auto objB = std::dynamic_pointer_cast<DummyObject>(engine::SPObject::New(objA->Serialize()));
+    auto objB = std::dynamic_pointer_cast<DummyObject>(SPObject::New(objA->Serialize()));
     EXPECT_TRUE(objB != nullptr);
     EXPECT_DOUBLE_EQ(objA->GetMass(), objB->GetMass());
     EXPECT_DOUBLE_EQ(objA->GetCharge(), objB->GetCharge());

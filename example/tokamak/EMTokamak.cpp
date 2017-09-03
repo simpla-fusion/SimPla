@@ -19,13 +19,13 @@ namespace simpla {
 
 typedef engine::Mesh<geometry::csCylindrical, mesh::RectMesh, mesh::EBMesh, scheme::FVM> mesh_type;
 
-static bool _required_module_are_registered_ =                                 //
-    RegisterCreator<Tokamak>("Tokamak") &&                                     //
-    RegisterCreator<mesh_type>("EBRectMesh") &&                                //
-    RegisterCreator<engine::Domain<mesh_type, ICRFAntenna>>("ICRFAntenna") &&  //
-    RegisterCreator<engine::Domain<mesh_type, EMFluid>>("EMFluid") &&          //
-    RegisterCreator<engine::Domain<mesh_type, PICBoris>>("PICBoris") &&        //
-    RegisterCreator<engine::Domain<mesh_type, Maxwell>>("Maxwell");
+static bool _required_module_are_registered_ =                    //
+    RegisterCreator<Tokamak>() &&                                 //
+    RegisterCreator<mesh_type>() &&                               //
+    RegisterCreator<engine::Domain<mesh_type, ICRFAntenna>>() &&  //
+    RegisterCreator<engine::Domain<mesh_type, EMFluid>>() &&      //
+    RegisterCreator<engine::Domain<mesh_type, PICBoris>>() &&     //
+    RegisterCreator<engine::Domain<mesh_type, Maxwell>>();
 
 }  // namespace simpla {
 
@@ -40,8 +40,8 @@ int main(int argc, char** argv) {
 
     scenario->NewSchedule<SAMRAITimeIntegrator>();
 
-    scenario->NewDomain<Maxwell>("Limiter");
-    scenario->NewDomain<EMFluid>("Plasma");
+    //    scenario->template NewDomain<Maxwell>("Limiter");
+    //    scenario->template NewDomain<EMFluid>("Plasma");
 
     scenario->Update();
 

@@ -176,9 +176,7 @@ int main(int argc, char **argv) {
 #endif
 
     parallel::init(argc, argv);
-    MESSAGE << std::endl
-            << data::DataNode::ShowDescription() << std::endl
-            << engine::SPObject::ShowDescription() << std::endl;
+    MESSAGE << std::endl << data::DataNode::ShowDescription() << std::endl << SPObject::ShowDescription() << std::endl;
 
     GLOBAL_COMM.barrier();
 

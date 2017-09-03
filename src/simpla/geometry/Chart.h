@@ -7,18 +7,15 @@
 
 #include "simpla/SIMPLA_config.h"
 
-#include "simpla/data/Data.h"
-#include "simpla/engine/SPObject.h"
+#include "simpla/data/SPObject.h"
 #include "simpla/geometry/GeoObject.h"
 #include "simpla/utilities/Signal.h"
 
 namespace simpla {
 namespace geometry {
 class Curve;
-struct Chart : public engine::SPObject {
-    SP_OBJECT_HEAD(Chart, engine::SPObject)
-    static constexpr char const *TagName() { return "Chart"; }
-
+struct Chart : public SPObject {
+    SP_OBJECT_HEAD(Chart, SPObject)
    protected:
     explicit Chart(point_type shift = point_type{0, 0, 0}, point_type scale = point_type{1, 1, 1},
                    point_type rotate = point_type{0, 0, 0});

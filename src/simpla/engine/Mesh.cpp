@@ -13,7 +13,6 @@
 #include "Attribute.h"
 #include "Domain.h"
 #include "Patch.h"
-#include "SPObject.h"
 
 namespace simpla {
 namespace engine {
@@ -83,7 +82,7 @@ box_type MeshBase::GetBox(int tag) const {
 //}
 
 void MeshBase::DoUpdate() {
-    SPObject::DoUpdate();
+    base_type::DoUpdate();
     if (m_pimpl_->m_pack_ == nullptr) { m_pimpl_->m_pack_ = std::make_shared<pack_s>(); }
     GetChart()->SetLevel(m_mesh_block_->GetLevel());
     AttributeGroup::RegisterAttributes();

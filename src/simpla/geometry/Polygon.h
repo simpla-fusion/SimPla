@@ -13,8 +13,6 @@
 
 #include "GeoObject.h"
 #include "simpla/algebra/nTuple.h"
-#include "simpla/data/Data.h"
-#include "simpla/engine/SPObject.h"
 namespace simpla {
 namespace geometry {
 /**
