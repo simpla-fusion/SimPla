@@ -16,7 +16,7 @@ ENDIF (LUA_FOUND)
 
 #FILE(GLOB database_SRC  *.cpp *.h )
 
-SET(database_SRC
+SET(data_backend_SRC
         DataNodeMemory.h
         DataNodeMemory.cpp
         DataNodeLua.cpp
@@ -27,15 +27,15 @@ SET(database_SRC
         LuaObject.h
         LuaObjectExt.h
         )
-ADD_LIBRARY(database ${database_SRC})
-target_include_directories(database BEFORE PRIVATE
+ADD_LIBRARY(data_backend ${data_backend_SRC})
+target_include_directories(data_backend BEFORE PRIVATE
         ${HDF5_INCLUDE_DIRS}
         ${LUA_INCLUDE_DIR}
         ${MPI_C_INCLUDE_PATH}
         ${XDMF_INCLUDE_DIRS}
         #${VTK_INCLUDE_DIR}
         )
-TARGET_LINK_LIBRARIES(database
+TARGET_LINK_LIBRARIES(data_backend
         ${LUA_LIBRARIES}
         ${HDF5_LIBRARIES}
         ${MPI_LIBRARIES}

@@ -8,7 +8,6 @@
 #include "../DataEntity.h"
 #include "../DataNode.h"
 
-#include "simpla/parallel/MPIComm.h"
 extern "C" {
 #include <hdf5.h>
 #include <hdf5_hl.h>

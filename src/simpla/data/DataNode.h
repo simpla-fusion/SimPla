@@ -27,8 +27,15 @@ template <typename U>
 bool EqualTo(U const& dst, std::shared_ptr<const DataNode> const& src);
 
 class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<DataNode> {
-    SP_DEFINE_FANCY_TYPE_NAME(DataNode, Factory<DataNode>);
+   public:
+    static std::string GetFancyTypeName_s() { return "DataNode"; }
+    virtual std::string GetFancyTypeName() const { return GetFancyTypeName_s(); }
 
+   private:
+    typedef Factory<DataNode> base_type;
+    typedef DataNode this_type;
+
+   public:
    public:
     enum eNodeType { DN_NULL = 0, DN_ENTITY = 1, DN_TABLE = 2, DN_ARRAY = 3, DN_FUNCTION = 4 };
     eNodeType m_type_;

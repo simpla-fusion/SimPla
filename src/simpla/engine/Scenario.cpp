@@ -79,9 +79,9 @@ std::shared_ptr<const Model> Scenario::GetModel(std::string const &k) const {
 }
 
 std::shared_ptr<DomainBase> Scenario::NewDomain(std::string const &k, const std::shared_ptr<DataNode> &t) {
-    auto res = DomainBase::New(t, GetMesh(), GetModel(k));
-    SetDomain(k, res);
-    return res;
+    //    auto res = DomainBase::New(t, GetMesh(), GetModel(k));
+    //    SetDomain(k, res);
+    return nullptr;
 };
 void Scenario::SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &d) { m_pimpl_->m_domains_[k] = d; }
 
@@ -89,7 +89,7 @@ std::shared_ptr<DomainBase> Scenario::GetDomain(std::string const &k) const {
     auto it = m_pimpl_->m_domains_.find(k);
     return (it == m_pimpl_->m_domains_.end()) ? nullptr : it->second;
 }
-std::shared_ptr<Schedule> Scenario::NewSchedule(const std::shared_ptr<data::DataNode> &cfg) {
+std::shared_ptr<Schedule> Scenario::NewSchedule(std::shared_ptr<const data::DataNode> cfg) {
     auto res = Schedule::New(cfg);
     SetSchedule(res);
     return res;

@@ -17,8 +17,6 @@
 namespace simpla {
 template <typename TObj, typename... Args>
 class Factory {
-    SP_OBJECT_BASE(Factory)
-
    public:
     Factory() = default;
     virtual ~Factory() = default;
@@ -45,19 +43,19 @@ class Factory {
         }
         return res;
     };
-    static bool RegisterCreator(std::string const &k,
-                                std::function<std::shared_ptr<TObj>(Args const &...)> const &fun) noexcept {
-        return SingletonHolder<ObjectFactory>::instance().m_factory_.emplace(k, fun).second;
+    static int RegisterCreator(std::string const &k,
+                               std::function<std::shared_ptr<TObj>(Args const &...)> const &fun) noexcept {
+        return SingletonHolder<ObjectFactory>::instance().m_factory_.emplace(k, fun).second ? 1 : 0;
     };
     template <typename U>
-    static bool RegisterCreator(std::string const &k_hint = "",
-                                ENABLE_IF((std::is_constructible<U, Args...>::value))) noexcept {
+    static int RegisterCreator(std::string const &k_hint = "",
+                               ENABLE_IF((std::is_constructible<U, Args...>::value))) noexcept {
         return RegisterCreator(!k_hint.empty() ? k_hint : U::GetFancyTypeName_s(),
                                [](Args const &... args) { return std::make_shared<U>(args...); });
     };
     template <typename U>
-    static bool RegisterCreator(std::string const &k_hint = "",
-                                ENABLE_IF((!std::is_constructible<U, Args...>::value))) noexcept {
+    static int RegisterCreator(std::string const &k_hint = "",
+                               ENABLE_IF((!std::is_constructible<U, Args...>::value))) noexcept {
         return RegisterCreator(!k_hint.empty() ? k_hint : U::GetFancyTypeName_s(),
                                [](Args const &... args) { return U::New(args...); });
     };
@@ -87,7 +85,7 @@ class Factory {
         } else {
             res = _TryCreate(std::is_constructible<TObj, Args...>(), std::forward<U>(args)...);
             if (res == nullptr) {
-                RUNTIME_ERROR << "Can not find Creator " << k << std::endl << ShowDescription() << std::endl;
+                RUNTIME_ERROR << "Can not find Creator \"" << k << "\"" << std::endl << ShowDescription() << std::endl;
             }
         }
         return res;

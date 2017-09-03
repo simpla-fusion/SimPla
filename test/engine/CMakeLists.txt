@@ -1,6 +1,8 @@
-simpla_test(engine_test engine_test.cpp
-         ../../src/simpla/mesh/StructuredMesh.cpp
-        )
-target_link_libraries(engine_test engine algebra  data utilities)
+simpla_test(SPObject_test SPObject_test.cpp ../../src/simpla/engine/SPObject.cpp     )
 
-simpla_test(policies_test   policies_test.cpp)
+target_link_libraries(SPObject_test
+        -Wl,--whole-archive
+        data data_backend
+        -Wl,--no-whole-archive
+
+        )

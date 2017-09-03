@@ -38,7 +38,7 @@ std::shared_ptr<data::DataNode> Schedule::Serialize() const {
 
 void Schedule::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
     base_type::Deserialize(cfg);
-    m_pimpl_->m_ctx_ = Atlas::New(cfg->Get("Atlas"));
+    m_pimpl_->m_atlas_ = Atlas::New(cfg->Get("Atlas"));
     SetCheckPointInterval(static_cast<size_type>(db()->GetValue<int>("CheckPointInterval", 1)));
     //    m_data_io_ = std::make_shared<data::DataIOPort>(cfg->GetEntity<std::string>("DataIOPort", ""));
 }

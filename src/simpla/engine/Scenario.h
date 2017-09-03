@@ -39,7 +39,7 @@ class Scenario : public SPObject {
 
     template <typename TD>
     std::shared_ptr<TD> NewSchedule();
-    std::shared_ptr<Schedule> NewSchedule(const std::shared_ptr<data::DataNode> &);
+    std::shared_ptr<Schedule> NewSchedule(std::shared_ptr<const data::DataNode>);
     std::shared_ptr<Schedule> GetSchedule() const;
 
     void Pop(const std::shared_ptr<Patch> &p);

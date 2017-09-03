@@ -72,7 +72,7 @@ class AttributeGroup {
 
     void RegisterAttributes();
 
-    std::shared_ptr<data::DataNode> GetAttributeDescription(std::string const &k);
+    std::shared_ptr<const data::DataNode> GetAttributeDescription(std::string const &k)const;
     std::shared_ptr<const data::DataNode> GetDescriptions() const;
 
     //    virtual void RegisterAt(AttributeGroup *);

@@ -32,8 +32,8 @@ void AttributeGroup::Detach(Attribute *p) { m_attributes_.erase(p); }
 void AttributeGroup::RegisterAttributes() {
     for (auto *item : m_attributes_) { m_register_desc_->Set(item->GetName(), item->db()->shared_from_this()); }
 }
-std::shared_ptr<data::DataNode> AttributeGroup::GetAttributeDescription(std::string const &k) {
-    return std::dynamic_pointer_cast<data::DataNode>(m_register_desc_->Get(k));
+std::shared_ptr<const data::DataNode> AttributeGroup::GetAttributeDescription(std::string const &k) const {
+    return m_register_desc_->Get(k);
 }
 
 // void AttributeGroup::RegisterDescription(std::map<std::string, std::shared_ptr<AttributeDesc>> *m) const {
