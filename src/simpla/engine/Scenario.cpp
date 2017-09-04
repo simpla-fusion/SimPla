@@ -21,7 +21,16 @@ struct Scenario::pimpl_s {
     std::map<std::string, std::shared_ptr<DomainBase>> m_domains_;
 };
 
-Scenario::Scenario() : m_pimpl_(new pimpl_s) {}
+Scenario::Scenario() : m_pimpl_(new pimpl_s) {
+    PreUpdate.Connect([](SPObject *p) {
+        if (auto self = dynamic_cast<Scenario *>(p)) {
+            self->m_pimpl_->m_mesh_->Update();
+            self->m_pimpl_->m_atlas_->Update();
+            for (auto &item : self->m_pimpl_->m_models_) { item.second->Update(); }
+            for (auto &item : self->m_pimpl_->m_domains_) { item.second->Update(); }
+        }
+    });
+}
 Scenario::~Scenario() { delete m_pimpl_; }
 
 std::shared_ptr<data::DataNode> Scenario::Serialize() const {
@@ -77,13 +86,7 @@ void Scenario::DoFinalize() {
     base_type::DoFinalize();
 }
 void Scenario::DoTearDown() { base_type::DoTearDown(); }
-void Scenario::DoUpdate() {
-    base_type::DoUpdate();
-    m_pimpl_->m_mesh_->Update();
-    m_pimpl_->m_atlas_->Update();
-    for (auto &item : m_pimpl_->m_models_) { item.second->Update(); }
-    for (auto &item : m_pimpl_->m_domains_) { item.second->Update(); }
-}
+void Scenario::DoUpdate() { base_type::DoUpdate(); }
 
 std::shared_ptr<Atlas> Scenario::GetAtlas() const { return m_pimpl_->m_atlas_; }
 
@@ -159,6 +162,6 @@ size_type Scenario::GetNumberOfStep() const { return 0; }
 
 void Scenario::Synchronize() {}
 void Scenario::NextStep() {}
-bool Scenario::Done() const {return true;}
+bool Scenario::Done() const { return true; }
 }  //   namespace engine{
 }  // namespace simpla{
