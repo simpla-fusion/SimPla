@@ -15,6 +15,9 @@ struct GeoObjectOCC : public GeoObject {
     SP_OBJECT_HEAD(GeoObjectOCC, GeoObject)
 
    public:
+    GeoObjectOCC(GeoObject const &g);
+    GeoObjectOCC(TopoDS_Shape const &shape);
+
     void Load(std::string const &);
     void Transform(Real scale, point_type const &location = point_type{0, 0, 0},
                    nTuple<Real, 4> const &rotate = nTuple<Real, 4>{0, 0, 0, 0});
