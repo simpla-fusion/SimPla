@@ -21,27 +21,29 @@ struct Atlas::pimpl_s {
 
     static constexpr int MAX_NUM_OF_LEVEL = 5;
 
-    typedef typename std::multimap<id_type, id_type>::iterator link_iterator;
-    typedef typename std::multimap<id_type, id_type>::const_iterator const_link_iterator;
-    typedef std::pair<const_link_iterator, const_link_iterator> multi_links_type;
-    std::multimap<id_type, id_type> m_adjacent_;
-    std::multimap<id_type, id_type> m_refine_;
-    std::multimap<id_type, id_type> m_coarsen_;
-
-    int m_level_ = 0;
-    int m_max_level_ = 2;
+    //    typedef typename std::multimap<id_type, id_type>::iterator link_iterator;
+    //    typedef typename std::multimap<id_type, id_type>::const_iterator const_link_iterator;
+    //    typedef std::pair<const_link_iterator, const_link_iterator> multi_links_type;
+    //    std::multimap<id_type, id_type> m_adjacent_;
+    //    std::multimap<id_type, id_type> m_refine_;
+    //    std::multimap<id_type, id_type> m_coarsen_;
 
     std::set<std::shared_ptr<Patch>> m_layers_[MAX_NUM_OF_LEVEL];
 
-    nTuple<int, 3> m_refine_ratio_[MAX_NUM_OF_LEVEL] = {{2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}};
-    nTuple<int, 3> m_smallest_dimensions_{8, 8, 8};
-    nTuple<int, 3> m_largest_dimensions_{64, 64, 64};
-    nTuple<int, 3> m_periodic_dimensions_{1, 1, 1};
-    nTuple<int, 3> m_coarsest_dimensions_{1, 1, 1};
-    index_box_type m_coarsest_index_box_{{0, 0, 0}, {1, 1, 1}};
+    //    nTuple<int, 3> m_refine_ratio_[MAX_NUM_OF_LEVEL] = {{2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}};
+    //    index_box_type m_coarsest_index_box_{{0, 0, 0}, {1, 1, 1}};
 };
 
-Atlas::Atlas() : m_pimpl_(new pimpl_s) { SPObject::SetName("Atlas"); };
+Atlas::Atlas() : m_pimpl_(new pimpl_s) {
+    SPObject::SetName("Atlas");
+    SetMaxLevel(2);
+    SetPeriodicDimensions(nTuple<int, 3>{0, 0, 0});
+
+    SetMaxLevel(1);
+    SetSmallestPatchDimensions(nTuple<int, 3>{4, 4, 4});
+    SetLargestPatchDimensions(nTuple<int, 3>{128, 128, 128});
+    SetRefineRatio(nTuple<int, 3>{2, 2, 2});
+};
 Atlas::~Atlas() { delete m_pimpl_; }
 
 std::shared_ptr<data::DataNode> Atlas::Serialize() const {
@@ -58,21 +60,6 @@ std::shared_ptr<data::DataNode> Atlas::Serialize() const {
 };
 void Atlas::Deserialize(std::shared_ptr<const data::DataNode> const &tdb) {
     base_type::Deserialize(tdb);
-    if (tdb != nullptr) {
-        m_pimpl_->m_periodic_dimensions_ = tdb->GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 0});
-        //    std::get<0>(m_pimpl_->m_coarsest_index_box_) =tdb->GetEntity("CoarsestIndexBox/lo", nTuple<int, 3>{0, 0,
-        //    0});
-        std::get<1>(m_pimpl_->m_coarsest_index_box_) = tdb->GetValue("Dimensions", nTuple<int, 3>{1, 1, 1});
-        m_pimpl_->m_max_level_ = tdb->GetValue<int>("MaxLevel", 1);
-
-        m_pimpl_->m_smallest_dimensions_ =
-            tdb->GetValue<nTuple<int, 3>>("SmallestPatchDimensions", nTuple<int, 3>{4, 4, 4});
-
-        m_pimpl_->m_largest_dimensions_ =
-            tdb->GetValue<nTuple<int, 3>>("LargestPatchDimensions", nTuple<int, 3>{128, 128, 128});
-
-        m_pimpl_->m_refine_ratio_[0] = tdb->GetValue<nTuple<int, 3>>("RefineRatio", nTuple<int, 3>{2, 2, 2});
-    }
     Click();
 };
 
@@ -103,7 +90,7 @@ std::shared_ptr<const Patch> Atlas::GetPatch(id_type id) const {
     return res;
 }
 
-int Atlas::GetNumOfLevel() const { return m_pimpl_->m_max_level_; }
+//int Atlas::GetNumOfLevel() const { return m_pimpl_->(); }
 // int Atlas::GetMaxLevel() const { return m_pimpl_->m_max_level_; }
 // void Atlas::SetMaxLevel(int l) {
 //    m_pimpl_->m_max_level_ = l;

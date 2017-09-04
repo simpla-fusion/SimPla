@@ -29,7 +29,7 @@ class Scenario : public EngineObject {
     };
     std::shared_ptr<MeshBase> GetMesh() const;
     std::shared_ptr<Atlas> GetAtlas() const;
-
+    index_box_type GetIndexBox() const;
     std::shared_ptr<Model> AddModel(std::string const &k, std::shared_ptr<Model> m);
     template <typename U, typename... Args>
     std::shared_ptr<U> AddModel(std::string const &k, Args &&... args) {

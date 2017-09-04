@@ -2,6 +2,7 @@
 // Created by salmon on 16-6-2.
 //
 
+#include <simpla/geometry/BoxUtilities.h>
 #include "simpla/geometry/GeoObject.h"
 
 #include "Model.h"
@@ -47,7 +48,7 @@ void Model::DoUpdate() {
     ++it;
     for (; it != m_pimpl_->m_g_objs_.end(); ++it) {
         if (it->second != nullptr) {
-            //            m_pimpl_->m_bound_box_ = geometry::Union(m_pimpl_->m_bound_box_, it->second->BoundingBox());
+            m_pimpl_->m_bound_box_ = geometry::Union(m_pimpl_->m_bound_box_, it->second->BoundingBox());
         }
     }
 };
@@ -57,7 +58,7 @@ box_type const& Model::BoundingBox() const { return m_pimpl_->m_bound_box_; };
 
 void Model::SetObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
     if (g_obj != nullptr) {
-        VERBOSE << "AddEntity GeoObject [ " << key << " : " << g_obj->GetFancyTypeName() << " ]" << std::endl;
+        VERBOSE << "AddEntity GeoObject [ " << key << " : " << g_obj->GetFancyTypeName() << " ]";
         m_pimpl_->m_g_objs_[key] = g_obj;
     }
 }

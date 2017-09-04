@@ -80,7 +80,7 @@ class Atlas : public EngineObject {
     std::shared_ptr<Patch> GetPatch(const std::shared_ptr<MeshBlock> &mblk);
     std::shared_ptr<const Patch> GetPatch(id_type id) const;
 
-    int GetNumOfLevel() const;
+//    int GetNumOfLevel() const;
 
     SP_OBJECT_PROPERTY(int, MaxLevel);
     SP_OBJECT_PROPERTY(index_tuple, RefineRatio);

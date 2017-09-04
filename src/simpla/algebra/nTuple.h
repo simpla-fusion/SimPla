@@ -225,6 +225,10 @@ struct nTuple<TV, N0, N...> {
 
     __host__ __device__ nTuple() = default;
     __host__ __device__ ~nTuple() = default;
+    template <typename U>
+    __host__ __device__ nTuple(nTuple<U, N0, N...> const& other) {
+        *this = other;
+    };
 
     static constexpr size_type rank() { return sizeof...(N) + 1; }
     template <typename I>

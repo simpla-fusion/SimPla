@@ -11,6 +11,7 @@
 #include <BRepBuilderAPI_MakeWire.hxx>
 #include <BRepPrimAPI_MakeRevol.hxx>
 #include <GeomAPI_Interpolate.hxx>
+#include <Precision.hxx>
 #include <TColgp_HArray1OfPnt.hxx>
 
 namespace simpla {
@@ -26,7 +27,7 @@ Tokamak::Tokamak(std::string const &gfile) : Tokamak() { LoadGFile(gfile); }
 
 std::shared_ptr<data::DataNode> Tokamak::Serialize() const { return base_type::Serialize(); }
 
-void Tokamak::Deserialize(std::shared_ptr<const data::DataNode>const & tdb) {
+void Tokamak::Deserialize(std::shared_ptr<const data::DataNode> const &tdb) {
     base_type::Deserialize(tdb);
     if (tdb != nullptr) {
         nTuple<Real, 2> phi = tdb->GetValue("Phi", nTuple<Real, 2>{0, TWOPI});
@@ -61,34 +62,17 @@ engine::Model::vec_attr_fun Tokamak::GetAttributeVector(std::string const &attr_
 void Tokamak::LoadGFile(std::string const &file) { m_pimpl_->geqdsk.load(file); }
 
 void Tokamak::DoUpdate() {
-    //    engine::Model::SetObject("Limiter",
-    //                             std::make_shared<geometry::RevolveZ>(m_pimpl_->geqdsk.limiter(),
-    //                             m_pimpl_->geqdsk.PhiAxis,
-    //                                                                  m_pimpl_->m_phi0_, m_pimpl_->m_phi1_));
-    //    engine::Model::SetObject("Plasma",
-    //                             std::make_shared<geometry::RevolveZ>(m_pimpl_->geqdsk.boundary(),
-    //                             m_pimpl_->geqdsk.PhiAxis,
-    //                                                                  m_pimpl_->m_phi0_, m_pimpl_->m_phi1_));
-
     {
         BRepBuilderAPI_MakeWire wireMaker;
 
-        Handle(TColgp_HArray1OfPnt) gp_array =
-            new TColgp_HArray1OfPnt(1, static_cast<Standard_Integer>(m_pimpl_->geqdsk.boundary()->data().size() - 1));
-
-        size_type count = 1;
-        for (auto const &p : m_pimpl_->geqdsk.limiter()->data()) {
-            ++count;
-            gp_array->SetValue(count, gp_Pnt(p[0], 0, p[1]));
-        }
-
-        GeomAPI_Interpolate sp(gp_array, true, 1.0e-3);
+        auto num = m_pimpl_->geqdsk.boundary()->data().size();
+        Handle(TColgp_HArray1OfPnt) gp_array = new TColgp_HArray1OfPnt(1, static_cast<Standard_Integer>(num));
+        auto const &points = m_pimpl_->geqdsk.boundary()->data();
+        for (size_type s = 0; s < num - 1; ++s) { gp_array->SetValue(s + 1, gp_Pnt(points[s][0], 0, points[s][1])); }
+        GeomAPI_Interpolate sp(gp_array, true, Precision::Confusion());
         sp.Perform();
-
         wireMaker.Add(BRepBuilderAPI_MakeEdge(sp.Curve()));
-
         gp_Ax1 axis(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
-
         BRepBuilderAPI_MakeFace myBoundaryFaceProfile(wireMaker.Wire(), true);
         BRepPrimAPI_MakeRevol revol(myBoundaryFaceProfile.Face(), axis);
         engine::Model::SetObject("Plasma", geometry::GeoObjectOCC::New(revol.Shape()));
@@ -101,7 +85,6 @@ void Tokamak::DoUpdate() {
         BRepPrimAPI_MakeRevol myLimiter(myLimterFaceProfile.Face(), axis);
         engine::Model::SetObject("Limiter", geometry::GeoObjectOCC::New(myLimiter.Shape()));
     }
-
     engine::Model::DoUpdate();
 }
 }  // namespace simpla {

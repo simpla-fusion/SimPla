@@ -570,7 +570,7 @@ std::shared_ptr<SAMRAI::hier::Variable> ConvertVariable(const std::shared_ptr<da
     } else if (type_hash == std::type_index(typeid(int)).hash_code()) {
         res = ConvertVariable_<int>(attr);
     } else {
-        RUNTIME_ERROR << " Can not create variable [" << attr << "]";
+        FIXME << " Can not create variable [" << *attr << "]";
     }
     return res;
 }
@@ -800,7 +800,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         }
 
         auto var = simpla::detail::ConvertVariable(item.second->db());
-
+        if (var == nullptr) { continue; }
         m_samrai_variables_.emplace(item.second->db()->GetValue<id_type>("DescID"),
                                     std::make_pair(std::dynamic_pointer_cast<data::DataNode>(item.second->db()), var));
 
@@ -873,7 +873,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         //                                                        1.0, "CELL", "CLEAN");
         //        }
     }
-    //    integrator->printClassData(std::cout);
+    integrator->printClassData(std::cout);
     vardb->printClassData(std::cout);
 }
 
@@ -1227,7 +1227,7 @@ void SAMRAITimeIntegrator::DoTearDown() { base_type::DoTearDown(); }
 
 void SAMRAITimeIntegrator::DoUpdate() {
     base_type::DoUpdate();
-    /** test.3d.input */
+
     /**
     // Refer to geom::CartesianGridGeometry and its base classes for input
     CartesianGeometry{
@@ -1312,15 +1312,15 @@ void SAMRAITimeIntegrator::DoUpdate() {
     nTuple<int, 3> i_low{0, 0, 0};
     nTuple<int, 3> i_up{0, 0, 0};
 
-    //    std::tie(i_low, i_up) = GetScenario()->GetIndexBox();
+    std::tie(i_low, i_up) = GetMesh()->IndexBox(NODE);
 
     cfgCartesianGridGeometry->putDatabaseBox(
         "domain_boxes_0", SAMRAI::tbox::DatabaseBox{SAMRAI::tbox::Dimension(3), &i_low[0], &i_up[0]});
 
-    //    cfgCartesianGridGeometry->putIntegerArray("periodic_dimension", &GetAtlas()->GetPeriodicDimensions()[0],
-    //    ndims);
+    nTuple<int, 3> period_dims = GetAtlas()->GetPeriodicDimensions();
+    cfgCartesianGridGeometry->putIntegerArray("periodic_dimension", &period_dims[0], ndims);
 
-    auto x_box = this->GetMesh()->GetBox(0);
+    auto x_box = this->GetMesh()->GetBox(NODE);
     cfgCartesianGridGeometry->putDoubleArray("x_lo", &std::get<0>(x_box)[0], ndims);
     cfgCartesianGridGeometry->putDoubleArray("x_up", &std::get<1>(x_box)[0], ndims);
 
@@ -1347,8 +1347,10 @@ void SAMRAITimeIntegrator::DoUpdate() {
     auto largest_patch_size = cfgPatchHierarchy->putDatabase("largest_patch_size");
     auto smallest_patch_size = cfgPatchHierarchy->putDatabase("smallest_patch_size");
 
-    //    smallest_patch_size->putIntegerArray("level_0", &GetAtlas()->GetSmallestPatchDimensions()[0], ndims);
-    //    largest_patch_size->putIntegerArray("level_0", &GetAtlas()->GetLargestPatchDimensions()[0], ndims);
+    nTuple<int, 3> smallest_dims = GetAtlas()->GetSmallestPatchDimensions();
+    nTuple<int, 3> largest_dims = GetAtlas()->GetLargestPatchDimensions();
+    smallest_patch_size->putIntegerArray("level_0", &smallest_dims[0], ndims);
+    largest_patch_size->putIntegerArray("level_0", &largest_dims[0], ndims);
 
     m_pimpl_->patch_hierarchy.reset(
         new SAMRAI::hier::PatchHierarchy("cfgPatchHierarchy", m_pimpl_->grid_geometry, cfgPatchHierarchy));
@@ -1410,7 +1412,9 @@ void SAMRAITimeIntegrator::DoUpdate() {
     cfgTimeRefinementIntegrator->putDouble("start_time", base_type::GetTimeNow());  // initial simulation time
     cfgTimeRefinementIntegrator->putDouble("end_time", base_type::GetTimeEnd());    // final simulation time
     cfgTimeRefinementIntegrator->putDouble("grow_dt", 1.1);                         // growth factor for timesteps
-    cfgTimeRefinementIntegrator->putInteger("max_integrator_steps", 100);
+    cfgTimeRefinementIntegrator->putInteger(
+        "max_integrator_steps",
+        static_cast<int>((base_type::GetTimeEnd() - base_type::GetTimeNow()) / base_type::GetTimeStep()));
 
     m_pimpl_->m_time_refinement_integrator_.reset(new SAMRAI::algs::TimeRefinementIntegrator(
         "TimeRefinementIntegrator", cfgTimeRefinementIntegrator, m_pimpl_->patch_hierarchy,
@@ -1427,7 +1431,6 @@ void SAMRAITimeIntegrator::DoUpdate() {
     m_pimpl_->m_time_refinement_integrator_->initializeHierarchy();
 
     // m_pimpl_->m_time_refinement_integrator_->printClassData(std::cout);
-
     MESSAGE << "==================  Context is initialized!  =================";
 };
 

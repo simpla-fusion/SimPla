@@ -39,11 +39,12 @@ int main(int argc, char** argv) {
     auto scenario = SAMRAITimeIntegrator::New();
 
     scenario->SetMesh<mesh_type>();
-
     scenario->AddModel<Tokamak>("EAST", "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
     scenario->SetDomain<Domain<mesh_type, Maxwell>>("EAST.Limiter");
     scenario->SetDomain<Domain<mesh_type, EMFluid>>("EAST.Plasma");
-
+    scenario->SetTimeNow(0);
+    scenario->SetTimeEnd(1.0);
+    scenario->SetTimeStep(0.1);
     scenario->Update();
     TheStart();
     scenario->Run();
