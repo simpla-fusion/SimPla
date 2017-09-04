@@ -38,9 +38,10 @@ template <typename TM, typename TV, int...>
 class Field;
 
 template <typename TM, typename TV, int IFORM, int... DOF>
-class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
+class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
    private:
-    typedef Field<TM, TV, IFORM, DOF...> field_type;
+    typedef Field<TM, TV, IFORM, DOF...> this_type;
+    typedef engine::AttributeT<TV, IFORM> base_type;
 
    public:
     typedef TV value_type;
@@ -55,12 +56,10 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
     nTuple<array_type, NUM_OF_SUB, DOF...> m_data_;
     mesh_type const* m_host_ = nullptr;
 
-    SP_DEFINE_FANCY_TYPE_NAME(Field, engine::Attribute);
-
    public:
     template <typename... Args>
-    Field(mesh_type* grp, Args&&... args) : engine::Attribute(std::forward<Args>(args)...), m_host_(grp) {
-        Register(dynamic_cast<engine::AttributeGroup*>(grp));
+    Field(mesh_type* grp, Args&&... args) : base_type(grp, std::forward<Args>(args)...), m_host_(grp) {
+        base_type::Register(dynamic_cast<engine::AttributeGroup*>(grp));
     }
     ~Field() override = default;
 
@@ -91,30 +90,30 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
         traits::foreach (m_data_, [&](auto& a, auto&&... s) { a.Finalize(); });
     }
 
-    void PushData(nTuple<array_type, NUM_OF_SUB, DOF...>* d) {
-//        auto blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
-//        if (blk != nullptr) {
-//            int count = 0;
-//            traits::foreach (*d, [&](array_type& a, auto&&... idx) {
-//                array_type(*blk->Get(count)).swap(a);
-//                ++count;
-//            });
-//        }
-//        Tag();
+    void PushData(nTuple<array_type, NUM_OF_SUB, DOF...>* d){
+        //        auto blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
+        //        if (blk != nullptr) {
+        //            int count = 0;
+        //            traits::foreach (*d, [&](array_type& a, auto&&... idx) {
+        //                array_type(*blk->Get(count)).swap(a);
+        //                ++count;
+        //            });
+        //        }
+        //        Tag();
     };
     void PopData(nTuple<array_type, NUM_OF_SUB, DOF...>* d) {
-//        auto blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
-//        if (blk == nullptr) {
-//            Push(data::DataMultiArray<array_type>::New(d->size()));
-//            blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
-//        }
-//        int count = 0;
-//        traits::foreach (*d, [&](array_type& a, auto&&... idx) {
-//            array_type(a).swap(*blk->Get(count));
-//            a.reset();
-//            ++count;
-//        });
-        ResetTag();
+        //        auto blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
+        //        if (blk == nullptr) {
+        //            Push(data::DataMultiArray<array_type>::New(d->size()));
+        //            blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
+        //        }
+        //        int count = 0;
+        //        traits::foreach (*d, [&](array_type& a, auto&&... idx) {
+        //            array_type(a).swap(*blk->Get(count));
+        //            a.reset();
+        //            ++count;
+        //        });
+        base_type::ResetTag();
     };
     //    void swap(this_type& other) {
     //        base_type::swap(other);
@@ -127,16 +126,16 @@ class Field<TM, TV, IFORM, DOF...> : public engine::Attribute {
 
     template <typename Other>
     void Set(Other&& v) {
-        Update();
+        base_type::Update();
         m_host_->Fill(*this, std::forward<Other>(v));
     }
 
     template <typename MR, typename UR, int... NR>
     void DeepCopy(Field<MR, UR, NR...> const& other) {
-        Update();
+        base_type::Update();
         m_data_ = other.Get();
     }
-    void Clear() {
+    void Clear() override {
         traits::foreach (m_data_, [&](auto& a, auto&&... s) { a.Clear(); });
     }
 

@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <iostream>
 #include <memory>
+#include "Log.h"
 #ifdef __CUDA__
 
 #include </usr/local/cuda/include/cuda_runtime_api.h>

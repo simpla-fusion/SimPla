@@ -5,7 +5,7 @@
 #ifndef SIMPLA_PICBORIS_H
 #define SIMPLA_PICBORIS_H
 
-#include <simpla/particle/Particle.h>
+#include <simpla/physics/particle/Particle.h>
 #include "simpla/SIMPLA_config.h"
 
 #include "simpla/algebra/Algebra.h"

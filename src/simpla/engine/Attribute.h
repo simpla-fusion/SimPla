@@ -133,6 +133,7 @@ struct Attribute : public EngineObject {
     virtual std::type_info const &value_type_info() const = 0;
     virtual int GetIFORM() const = 0;
     virtual int GetDOF() const = 0;
+    virtual void SetDOF(int) = 0;
 
     void Register(AttributeGroup *p = nullptr);
     void Deregister(AttributeGroup *p = nullptr);
@@ -147,14 +148,27 @@ struct Attribute : public EngineObject {
     virtual bool empty() const { return isNull(); };
     virtual void Clear();
 };
-template <typename V, int IFORM, int DOF = 1>
+template <typename V, int IFORM>
 struct AttributeT : public Attribute {
+    typedef V value_type;
+    typedef Array<value_type> array_type;
+    std::vector<array_type> m_data_;
+
+    template <typename THost, typename... Args>
+    AttributeT(THost *, Args &&... args) : Attribute(std::forward<Args>(args)...) {}
     AttributeT() : Attribute() {}
     ~AttributeT() override {}
 
-    virtual std::type_info const &value_type_info() const override { return typeid(V); };
-    virtual int GetIFORM() const override { return IFORM; };
-    virtual int GetDOF() const override { return DOF; };
+    array_type &operator[](int s) { return m_data_[s]; }
+    array_type const &operator[](int s) const { return m_data_[s]; }
+
+    std::type_info const &value_type_info() const override { return typeid(V); };
+    int GetIFORM() const override { return IFORM; };
+    int GetDOF() const override { return m_dof_; };
+    void SetDOF(int d) override { m_dof_ = d; };
+
+   private:
+    int m_dof_ = 1;
 };
 //
 // template <typename U, typename... Others, int... N>

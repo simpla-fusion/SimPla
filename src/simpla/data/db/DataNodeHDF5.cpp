@@ -7,7 +7,7 @@
 #include "../DataBlock.h"
 #include "../DataEntity.h"
 #include "../DataNode.h"
-
+#include "simpla/parallel/MPIComm.h"
 extern "C" {
 #include <hdf5.h>
 #include <hdf5_hl.h>
@@ -38,15 +38,15 @@ struct DataNodeHDF5 : public DataNode {
 
     size_type size() const override;
 
-    size_type Set(std::string const &uri, const std::shared_ptr<const DataNode> &v) override;
-    size_type Add(std::string const &uri, const std::shared_ptr<const DataNode> &v) override;
+    size_type Set(std::string const& uri, const std::shared_ptr<const DataNode>& v) override;
+    size_type Add(std::string const& uri, const std::shared_ptr<const DataNode>& v) override;
     size_type Delete(std::string const& uri) override;
     std::shared_ptr<const DataNode> Get(std::string const& uri) const override;
     size_type Foreach(
         std::function<size_type(std::string, std::shared_ptr<const DataNode> const&)> const& f) const override;
 
-    size_type Set(index_type s, const std::shared_ptr<const DataNode> &v) override;
-    size_type Add(index_type s, const std::shared_ptr<const DataNode> &v) override;
+    size_type Set(index_type s, const std::shared_ptr<const DataNode>& v) override;
+    size_type Add(index_type s, const std::shared_ptr<const DataNode>& v) override;
     size_type Delete(index_type s) override;
     std::shared_ptr<const DataNode> Get(index_type s) const override;
 
@@ -633,7 +633,7 @@ size_type HDF5Add(hid_t g_id, std::string const& key, std::shared_ptr<const Data
     }
     return count;
 }
-size_type DataNodeHDF5::Set(std::string const &uri, const std::shared_ptr<const DataNode> &v) {
+size_type DataNodeHDF5::Set(std::string const& uri, const std::shared_ptr<const DataNode>& v) {
     if (uri.empty() || v == nullptr) { return 0; }
     if (uri[0] == SP_URL_SPLIT_CHAR) { return Root()->Set(uri.substr(1), v); }
 
@@ -655,7 +655,7 @@ size_type DataNodeHDF5::Set(std::string const &uri, const std::shared_ptr<const 
     }
     return count;
 }
-size_type DataNodeHDF5::Add(std::string const &uri, const std::shared_ptr<const DataNode> &v) {
+size_type DataNodeHDF5::Add(std::string const& uri, const std::shared_ptr<const DataNode>& v) {
     if (uri.empty() || v == nullptr) { return 0; }
     if (uri[0] == SP_URL_SPLIT_CHAR) { return Root()->Set(uri.substr(1), v); }
 
@@ -707,8 +707,12 @@ size_type DataNodeHDF5::Foreach(
     }
     return count;
 }
-size_type DataNodeHDF5::Set(index_type s, const std::shared_ptr<const DataNode> &v) { return Set(std::to_string(s), v); }
-size_type DataNodeHDF5::Add(index_type s, const std::shared_ptr<const DataNode> &v) { return Add(std::to_string(s), v); }
+size_type DataNodeHDF5::Set(index_type s, const std::shared_ptr<const DataNode>& v) {
+    return Set(std::to_string(s), v);
+}
+size_type DataNodeHDF5::Add(index_type s, const std::shared_ptr<const DataNode>& v) {
+    return Add(std::to_string(s), v);
+}
 size_type DataNodeHDF5::Delete(index_type s) { return Delete(std::to_string(s)); }
 std::shared_ptr<const DataNode> DataNodeHDF5::Get(index_type s) const { return Get(std::to_string(s)); }
 

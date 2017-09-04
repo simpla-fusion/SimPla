@@ -12,7 +12,6 @@
 #include <tuple>
 
 #include "simpla/utilities/Log.h"
-#include "simpla/utilities/memory.h"
 #include "simpla/utilities/type_traits.h"
 
 #include "ExpressionTemplate.h"

@@ -11,7 +11,6 @@
 #include <iostream>
 #include <map>
 #include <string>
-#include "simpla/utilities/memory.h"
 #include "simpla/utilities/Constants.h"
 
 namespace simpla {
