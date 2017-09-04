@@ -16,7 +16,7 @@
 #include "simpla/engine/Engine.h"
 #include "simpla/engine/Mesh.h"
 #include "simpla/parallel/MPIComm.h"
-#include "simpla/particle/ParticleData.h"
+#include "simpla/physics/particle/ParticleData.h"
 #include "simpla/utilities/Log.h"
 
 // Headers for SAMRAI

@@ -133,7 +133,6 @@ struct Attribute : public EngineObject {
     virtual std::type_info const &value_type_info() const = 0;
     virtual int GetIFORM() const = 0;
     virtual int GetDOF() const = 0;
-    virtual void SetDOF(int d) = 0;
 
     void Register(AttributeGroup *p = nullptr);
     void Deregister(AttributeGroup *p = nullptr);
@@ -146,6 +145,16 @@ struct Attribute : public EngineObject {
 
     virtual bool isNull() const;
     virtual bool empty() const { return isNull(); };
+    virtual void Clear();
+};
+template <typename V, int IFORM, int DOF = 1>
+struct AttributeT : public Attribute {
+    AttributeT() : Attribute() {}
+    ~AttributeT() override {}
+
+    virtual std::type_info const &value_type_info() const override { return typeid(V); };
+    virtual int GetIFORM() const override { return IFORM; };
+    virtual int GetDOF() const override { return DOF; };
 };
 //
 // template <typename U, typename... Others, int... N>

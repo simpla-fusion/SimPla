@@ -9,7 +9,6 @@
 
 #include "Attribute.h"
 #include "EngineObject.h"
-#include "simpla/algebra/Field.h"
 #include "simpla/data/Data.h"
 #include "simpla/utilities/Factory.h"
 
@@ -137,8 +136,8 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
         FillRange(lhs, std::forward<TR>(rhs), prefix + "_BOUNDARY_" + std::to_string(TL::iform), false);
     };
 
-    Field<mesh_type, int, CELL> m_refinement_tags_{this, "name"_ = "_refinement_tags_", "IS_NOT_OWNED"_};
-    Field<mesh_type, Real, CELL> m_workload_{this, "name"_ = "_workload_", "IS_NOT_OWNED"_};
+    AttributeT<int, CELL> m_refinement_tags_{this, "name"_ = "_refinement_tags_", "IS_NOT_OWNED"_};
+    AttributeT<Real, CELL> m_workload_{this, "name"_ = "_workload_", "IS_NOT_OWNED"_};
 
     void TagRefinementRange(Range<EntityId> const &r) override;
 

@@ -5,7 +5,7 @@
 #ifndef SIMPLA_CURVE_H
 #define SIMPLA_CURVE_H
 
-#include <simpla/physics/Constants.h>
+#include <simpla/utilities/Constants.h>
 #include "GeoObject.h"
 namespace simpla {
 namespace geometry {

@@ -9,11 +9,11 @@
 
 #include <functional>
 
-#include "simpla/algebra/Field.h"
 #include "simpla/geometry/GeoObject.h"
-
-#include "EngineObject.h"
 #include "simpla/utilities/Factory.h"
+
+#include "Attribute.h"
+#include "EngineObject.h"
 namespace simpla {
 
 namespace engine {
@@ -43,9 +43,9 @@ class Model : public EngineObject {
 
     std::map<std::string, std::shared_ptr<geometry::GeoObject>> const &GetAll() const;
 
-    template <typename TD, typename TV, int IFORM, int... N>
-    void LoadProfile(std::string const &k, Field<TD, TV, IFORM, N...> *f) const {
-        int n = ((IFORM == NODE || IFORM == CELL) ? 1 : 3) * simpla::reduction_v(tags::multiplication(), 1, N...);
+    template <typename TV, int IFORM, int DOF>
+    void LoadProfile(std::string const &k, AttributeT<TV, IFORM, DOF> *f) const {
+        int n = ((IFORM == NODE || IFORM == CELL) ? 1 : 3) * DOF;
         if (n == 1) {
             auto fun = GetAttribute(k);
             if (fun) { *f = fun; }

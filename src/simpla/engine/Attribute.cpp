@@ -111,7 +111,7 @@ Attribute::~Attribute() {
 }
 
 std::shared_ptr<data::DataNode> Attribute::Serialize() const { return base_type::Serialize(); }
-void Attribute::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) { base_type::Deserialize(cfg); }
+void Attribute::Deserialize(std::shared_ptr<const data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
 
 void Attribute::Register(AttributeGroup *attr_b) {
     if (attr_b == nullptr) {
@@ -143,7 +143,7 @@ std::shared_ptr<data::DataBlock> Attribute::Pop() {
 }
 std::shared_ptr<DataBlock> Attribute::GetDataBlock() { return m_pimpl_->m_data_block_; }
 std::shared_ptr<const DataBlock> Attribute::GetDataBlock() const { return m_pimpl_->m_data_block_; }
-
+void Attribute::Clear() { FIXME; }
 bool Attribute::isNull() const { return m_pimpl_ == nullptr || m_pimpl_->m_data_block_ == nullptr; }
 
 }  //{ namespace engine

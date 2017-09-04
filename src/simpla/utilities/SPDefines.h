@@ -6,7 +6,7 @@
 #define SIMPLA_SPDEFINES_H
 #include <simpla/SIMPLA_config.h>
 #include <limits>
-#include "simpla/algebra/nTuple.h"
+//#include "simpla/algebra/nTuple.h"
 namespace simpla {
 
 static constexpr Real SNaN = std::numeric_limits<Real>::signaling_NaN();

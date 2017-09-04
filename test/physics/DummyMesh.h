@@ -13,8 +13,8 @@
 #include "simpla/algebra/ExpressionTemplate.h"
 #include "simpla/utilities/type_traits.h"
 
-#include "Algebra.h"
-#include "Field.h"
+#include "simpla/algebra/Algebra.h"
+#include "simpla/physics/Field.h"
 
 namespace simpla {
 

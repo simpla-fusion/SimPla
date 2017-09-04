@@ -5,7 +5,7 @@
 #ifndef SIMPLA_PARTICLE_H
 #define SIMPLA_PARTICLE_H
 
-#include <simpla/algebra/Field.h>
+#include <simpla/physics/Field.h>
 #include "simpla/SIMPLA_config.h"
 
 #include "simpla/engine/Attribute.h"

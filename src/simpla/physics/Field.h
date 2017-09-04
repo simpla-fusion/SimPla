@@ -13,7 +13,7 @@
 #include "simpla/engine/Attribute.h"
 #include "simpla/utilities/type_traits.h"
 
-#include "ExpressionTemplate.h"
+#include "simpla/algebra/ExpressionTemplate.h"
 
 namespace simpla {
 

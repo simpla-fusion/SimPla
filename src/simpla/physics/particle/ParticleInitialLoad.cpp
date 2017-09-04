@@ -4,8 +4,8 @@
 
 #include </usr/local/cuda/include/curand_kernel.h>
 #include <simpla/utilities/host_define.h>
-#include "../../../../../../../usr/local/cuda/include/cuda_runtime.h"
-#include "../../../../../../../usr/local/cuda/include/host_defines.h"
+#include "cuda_runtime.h"
+#include "host_defines.h"
 #include "simpla/utilities/Log.h"
 #include "simpla/utilities/SPDefines.h"
 

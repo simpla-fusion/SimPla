@@ -7,7 +7,7 @@
 
 #include "simpla/SIMPLA_config.h"
 
-#include "simpla/physics/Constants.h"
+#include "simpla/utilities/Constants.h"
 
 #include "GeoObject.h"
 #include "Polygon.h"

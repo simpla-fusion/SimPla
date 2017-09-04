@@ -9,7 +9,6 @@
 #define KSP_CG_H_
 
 #include <iostream>
-#include "simpla/algebra/Field.h"
 #include "simpla/utilities/Log.h"
 
 namespace simpla {
@@ -17,9 +16,8 @@ namespace simpla {
 /**@ingroup numeric*/
 namespace linear_solver {
 
-template <typename TM, typename TV, unsigned int IFORM>  //
-void ksp_cg(Field<TM, TV, IFORM> const &Ax, Field<TM, IFORM, F3> &x, size_t max_iterative_num = 1000,
-            double residual = 1.0e-10) {
+template <typename TF1, typename TF2>  //
+void ksp_cg(TF1 const &Ax, TF2 &x, size_t max_iterative_num = 1000, double residual = 1.0e-10) {
     //	if (!CheckEquationHasVariable(Ax, x_))
     //	{
     //		THROW_EXCEPTION_LOGIC_ERROR << "Unsolvable Equation!";
@@ -27,9 +25,9 @@ void ksp_cg(Field<TM, TV, IFORM> const &Ax, Field<TM, IFORM, F3> &x, size_t max_
 
     typedef decltype(x[0]) ValueType;
 
-    typename Field<TM, TV, IFORM>::Mesh const &mesh = x.mesh;
+   auto const &mesh = x.mesh();
 
-    Field<TM, TV, IFORM, F3> r(mesh), Ap(mesh), p(mesh), b(mesh);
+    TF2 r(mesh), Ap(mesh), p(mesh), b(mesh);
 
     INFORM << "KSP_CG Solver: Start";
 
