@@ -145,8 +145,10 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     void AddEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g) override;
 };
 
-template <typename TM, template <typename> class... Policies>
-Mesh<TM, Policies...>::Mesh() : Policies<this_type>(this)... {};
+template <typename TChart, template <typename> class... Policies>
+Mesh<TChart, Policies...>::Mesh() : Policies<this_type>(this)... {
+    m_chart_ = TChart::New();
+};
 
 template <typename TM, template <typename> class... Policies>
 Mesh<TM, Policies...>::~Mesh() {}
@@ -183,7 +185,7 @@ std::shared_ptr<data::DataNode> Mesh<TM, Policies...>::Serialize() const {
     return tdb;
 };
 template <typename TM, template <typename> class... Policies>
-void Mesh<TM, Policies...>::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) {
+void Mesh<TM, Policies...>::Deserialize(std::shared_ptr<const data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
     traits::_try_invoke_Deserialize<Policies...>(this, cfg);
 };
