@@ -26,7 +26,7 @@ std::shared_ptr<data::DataNode> Polygon<2>::Serialize() const {
 
     return tdb;
 };
-void Polygon<2>::Deserialize(std::shared_ptr<const data::DataNode> tdb) { base_type::Deserialize(tdb); }
+void Polygon<2>::Deserialize(std::shared_ptr<const data::DataNode>const & tdb) { base_type::Deserialize(tdb); }
 
 Real Polygon<2>::nearest_point(Real *x, Real *y) const {
     typedef nTuple<Real, 2> Vec2;

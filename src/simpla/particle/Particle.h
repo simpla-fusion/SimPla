@@ -144,7 +144,7 @@ std::shared_ptr<simpla::data::DataNode> Particle<TM>::Serialize() const {
     return base_type::Serialize();
 }
 template <typename TM>
-void Particle<TM>::Deserialize(std::shared_ptr<const simpla::data::DataNode> cfg) {
+void Particle<TM>::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) {
     base_type::Deserialize(cfg);
 }
 }  // namespace simpla{

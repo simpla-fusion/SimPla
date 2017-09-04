@@ -10,7 +10,5 @@
 #include "Domain.h"
 #include "Patch.h"
 #include "Scenario.h"
-#include "Schedule.h"
-#include "TimeIntegrator.h"
 
 #endif  // SIMPLA_ENGINE_ALL_H

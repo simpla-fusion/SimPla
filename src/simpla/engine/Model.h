@@ -22,6 +22,8 @@ using namespace data;
 class Model : public EngineObject {
     SP_OBJECT_HEAD(Model, EngineObject)
 
+    Model(std::string const &);
+
     void DoInitialize() override;
     void DoUpdate() override;
     void DoTearDown() override;

@@ -47,7 +47,12 @@ struct RectMesh : public StructuredMesh {
     Field<host_type, Real, FACE> m_face_dual_volume_{m_host_, "name"_ = "m_face_dual_volume_", "TEMP"_};
     Field<host_type, Real, FACE> m_face_inv_dual_volume_{m_host_, "name"_ = "m_face_inv_dual_volume_", "TEMP"_};
 };
-
+template <typename THost>
+std::shared_ptr<data::DataNode> RectMesh<THost>::Serialize() const {
+    return nullptr;
+}
+template <typename THost>
+void RectMesh<THost>::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) {}
 template <typename THost>
 void RectMesh<THost>::InitialCondition(Real time_now) {
     auto chart = m_host_->GetChart();

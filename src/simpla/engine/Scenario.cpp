@@ -4,20 +4,19 @@
 
 #include "simpla/SIMPLA_config.h"
 
+#include "simpla/data/DataNode.h"
+
 #include "Atlas.h"
 #include "Domain.h"
 #include "Mesh.h"
 #include "Model.h"
 #include "Scenario.h"
-#include "Schedule.h"
-#include "simpla/data/DataNode.h"
 namespace simpla {
 namespace engine {
 
 struct Scenario::pimpl_s {
     std::shared_ptr<MeshBase> m_mesh_;
     std::shared_ptr<Atlas> m_atlas_;
-    std::shared_ptr<Schedule> m_schedule_;
     std::map<std::string, std::shared_ptr<Model>> m_models_;
     std::map<std::string, std::shared_ptr<DomainBase>> m_domains_;
 };
@@ -28,72 +27,89 @@ Scenario::~Scenario() { delete m_pimpl_; }
 std::shared_ptr<data::DataNode> Scenario::Serialize() const {
     auto cfg = base_type::Serialize();
 
-    cfg->Set("Mesh", GetMesh()->Serialize());
-    cfg->Set("Atlas", GetAtlas()->Serialize());
-    cfg->Set("Schedule", GetSchedule()->Serialize());
+    if (m_pimpl_->m_mesh_ != nullptr) cfg->Set("Mesh", GetMesh()->Serialize());
+    if (m_pimpl_->m_atlas_ != nullptr) cfg->Set("Atlas", GetAtlas()->Serialize());
 
-    auto model = cfg->CreateNode("Model");
-    for (auto const &item : m_pimpl_->m_models_) { model->Set(item.first, item.second->Serialize()); }
+    if (auto model = cfg->CreateNode("Model")) {
+        for (auto const &item : m_pimpl_->m_models_) { model->Set(item.first, item.second->Serialize()); }
+    };
 
-    auto domain = cfg->CreateNode("Domain");
-    for (auto const &item : m_pimpl_->m_domains_) { domain->Set(item.first, item.second->Serialize()); }
+    if (auto domain = cfg->CreateNode("Domain")) {
+        for (auto const &item : m_pimpl_->m_domains_) { domain->Set(item.first, item.second->Serialize()); }
+    }
     return cfg;
 }
 
-void Scenario::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
+void Scenario::Deserialize(std::shared_ptr<const data::DataNode> const &cfg) {
     DoInitialize();
     base_type::Deserialize(cfg);
     SetMesh(MeshBase::New(cfg->Get("Mesh")));
-    SetAtlas(Atlas::New(cfg->Get("Atlas")));
+    m_pimpl_->m_atlas_ = Atlas::New(cfg->Get("Atlas"));
 
     if (auto model = cfg->Get("Model")) {
-        //        for (auto p = model->FirstChild(); p != nullptr; p = p->Next()) { SetModel(p->Key(), Model::New(p)); }
+        model->Foreach([&](std::string key, std::shared_ptr<const data::DataNode> node) {
+            return AddModel(key, Model::New(node)) != nullptr ? 1 : 0;
+        });
     }
     if (auto domain = cfg->Get("Domain")) {
-        //        for (auto p = domain->FirstChild(); p != nullptr; p = p->Next()) {
-        //            auto key = p->GetValue<std::string>("Name", "");
-        //            auto m = key.empty() ? nullptr : m_pimpl_->m_models_.at(key);
-        //            SetDomain(key, DomainBase::New(m_pimpl_->m_mesh_, m));
-        //        }
+        domain->Foreach([&](std::string key, std::shared_ptr<const data::DataNode> node) {
+            if (auto p = SetDomain(key, DomainBase::New(m_pimpl_->m_mesh_, GetModel(key)))) { p->Deserialize(node); };
+            return 1;
+        });
     }
-    SetSchedule(Schedule::New(cfg->Get("Schedule")));
 
     Click();
 }
 
-void Scenario::DoInitialize() { base_type::DoInitialize(); }
-void Scenario::DoFinalize() { base_type::DoFinalize(); }
-void Scenario::DoTearDown() { base_type::DoTearDown(); }
-void Scenario::DoUpdate() { base_type::DoUpdate(); }
+void Scenario::DoInitialize() {
+    base_type::DoInitialize();
+    ASSERT(m_pimpl_->m_mesh_ != nullptr);
+    m_pimpl_->m_mesh_->Initialize();
 
-void Scenario::SetAtlas(std::shared_ptr<Atlas> const &m) { m_pimpl_->m_atlas_ = m; }
+    if (m_pimpl_->m_atlas_ == nullptr) { m_pimpl_->m_atlas_ = Atlas::New(); }
+    m_pimpl_->m_atlas_->Initialize();
+}
+void Scenario::DoFinalize() {
+    m_pimpl_->m_domains_.clear();
+    m_pimpl_->m_models_.clear();
+    m_pimpl_->m_atlas_.reset();
+    m_pimpl_->m_mesh_.reset();
+    base_type::DoFinalize();
+}
+void Scenario::DoTearDown() { base_type::DoTearDown(); }
+void Scenario::DoUpdate() {
+    base_type::DoUpdate();
+    m_pimpl_->m_mesh_->Update();
+    m_pimpl_->m_atlas_->Update();
+    for (auto &item : m_pimpl_->m_models_) { item.second->Update(); }
+    for (auto &item : m_pimpl_->m_domains_) { item.second->Update(); }
+}
+
 std::shared_ptr<Atlas> Scenario::GetAtlas() const { return m_pimpl_->m_atlas_; }
 
 void Scenario::SetMesh(std::shared_ptr<MeshBase> const &m) { m_pimpl_->m_mesh_ = m; }
 std::shared_ptr<MeshBase> Scenario::GetMesh() const { return m_pimpl_->m_mesh_; }
 
-void Scenario::SetModel(std::string const &k, std::shared_ptr<Model> const &m) { m_pimpl_->m_models_[k] = m; }
-std::shared_ptr<const Model> Scenario::GetModel(std::string const &k) const {
+std::shared_ptr<Model> Scenario::AddModel(std::string const &k, std::shared_ptr<Model> m) {
+    m_pimpl_->m_models_[k] = m;
+    return m_pimpl_->m_models_[k];
+}
+std::shared_ptr<Model> Scenario::GetModel(std::string const &k) const {
     auto it = m_pimpl_->m_models_.find(k);
     return it == m_pimpl_->m_models_.end() ? nullptr : it->second;
 }
 
-void Scenario::SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &d) { m_pimpl_->m_domains_[k] = d; }
-
+std::shared_ptr<DomainBase> Scenario::SetDomain(std::string const &k, std::shared_ptr<DomainBase> d) {
+    m_pimpl_->m_domains_[k] = d;
+    return m_pimpl_->m_domains_[k];
+}
 std::shared_ptr<DomainBase> Scenario::GetDomain(std::string const &k) const {
     auto it = m_pimpl_->m_domains_.find(k);
     return (it == m_pimpl_->m_domains_.end()) ? nullptr : it->second;
 }
-std::shared_ptr<Schedule> Scenario::NewSchedule(std::shared_ptr<const data::DataNode> cfg) {
-    auto res = Schedule::New(cfg);
-    SetSchedule(res);
-    return res;
-}
-std::shared_ptr<Schedule> Scenario::GetSchedule() const { return m_pimpl_->m_schedule_; }
-void Scenario::SetSchedule(std::shared_ptr<Schedule> const &s) { m_pimpl_->m_schedule_ = s; }
 
-void Scenario::Pop(const std::shared_ptr<Patch> &p) { GetMesh()->Pop(p); };
-void Scenario::Push(const std::shared_ptr<Patch> &p) { GetMesh()->Push(p); };
+void Scenario::Pop(std::shared_ptr<Patch> &p) { GetMesh()->Pop(p); };
+void Scenario::Push(std::shared_ptr<Patch> &p) { GetMesh()->Push(p); };
 
 void Scenario::InitialCondition(Real time_now) {
     GetMesh()->InitialCondition(time_now);
@@ -112,15 +128,37 @@ Real Scenario::ComputeStableDtOnPatch(Real time_now, Real time_dt) {
     return time_dt;
 }
 
-void Scenario::Advance(Real time_now, Real dt) {
+Real Scenario::Advance(Real time_now, Real dt) {
     GetMesh()->Advance(time_now, dt);
     for (auto &d : m_pimpl_->m_domains_) { d.second->Advance(time_now, dt); }
+    return time_now + dt;
 }
 
 void Scenario::TagRefinementCells(Real time_now) {
     GetMesh()->TagRefinementCells(time_now);
     for (auto &d : m_pimpl_->m_domains_) { d.second->TagRefinementCells(time_now); }
 }
-void Scenario::Run() { m_pimpl_->m_schedule_->Run(); }
+void Scenario::Run() {
+    //    while (!Done()) {
+    //        VERBOSE << " [ STEP:" << std::setw(5) << m_pimpl_->m_step_ << " START ] " << std::endl;
+    //        if (m_pimpl_->m_step_ == 0) { CheckPoint(); }
+    //        Synchronize();
+    //        NextStep();
+    //        if (m_pimpl_->m_check_point_interval_ > 0 && m_pimpl_->m_step_ % m_pimpl_->m_check_point_interval_ == 0) {
+    //            CheckPoint();
+    //        };
+    //        if (m_pimpl_->m_dump_interval_ > 0 && m_pimpl_->m_step_ % m_pimpl_->m_dump_interval_ == 0) { Dump(); };
+    //
+    //        VERBOSE << " [ STEP:" << std::setw(5) << m_pimpl_->m_step_ - 1 << " STOP  ] " << std::endl;
+    //    }
+}
+void Scenario::CheckPoint() const {}
+void Scenario::Dump() const {}
+
+size_type Scenario::GetNumberOfStep() const { return 0; }
+
+void Scenario::Synchronize() {}
+void Scenario::NextStep() {}
+bool Scenario::Done() const {return true;}
 }  //   namespace engine{
 }  // namespace simpla{

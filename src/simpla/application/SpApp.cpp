@@ -13,7 +13,6 @@
 #include "simpla/engine/Atlas.h"
 #include "simpla/engine/Domain.h"
 #include "simpla/engine/Scenario.h"
-#include "simpla/engine/TimeIntegrator.h"
 #include "simpla/geometry/Chart.h"
 #include "simpla/parallel/MPIComm.h"
 #include "simpla/parallel/Parallel.h"
@@ -23,34 +22,32 @@
 
 namespace simpla {
 struct SpApp::pimpl_s {
-    std::shared_ptr<engine::Schedule> m_schedule_ = nullptr;
     std::shared_ptr<engine::Scenario> m_scenario_ = nullptr;
     std::shared_ptr<engine::Atlas> m_atlas_ = nullptr;
 };
+
 SpApp::SpApp() : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_scenario_ = engine::Scenario::New();
-    m_pimpl_->m_atlas_ = engine::Atlas::New();
+//    m_pimpl_->m_scenario_ = engine::Scenario::New();
+//    m_pimpl_->m_atlas_ = engine::Atlas::New();
 }
+
 SpApp::~SpApp() { delete m_pimpl_; };
+
 std::shared_ptr<data::DataNode> SpApp::Serialize() const {
     auto tdb = base_type::Serialize();
 
     if (tdb != nullptr) {
-        if (m_pimpl_->m_schedule_ != nullptr) { tdb->Set("Schedule", m_pimpl_->m_schedule_->Serialize()); }
-
         tdb->Set("Context", m_pimpl_->m_scenario_->Serialize());
         tdb->Set("Atlas", m_pimpl_->m_atlas_->Serialize());
     }
     return tdb;
 };
-void SpApp::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
+
+void SpApp::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) {
     base_type::Deserialize(cfg);
     if (cfg != nullptr) {
         m_pimpl_->m_scenario_->Deserialize(cfg->Get("Context"));
         m_pimpl_->m_atlas_->Deserialize(cfg->Get("Atlas"));
-        m_pimpl_->m_schedule_->Deserialize(cfg);
-        m_pimpl_->m_schedule_->SetScenario(m_pimpl_->m_scenario_);
-        //        m_pimpl_->m_schedule_->SetAtlas(m_pimpl_->m_atlas_);
     }
     Click();
 };
@@ -135,40 +132,18 @@ void SpApp::Config(int argc, char **argv) {
     Deserialize(cfg);
 }
 
-void SpApp::DoInitialize() {
-    m_pimpl_->m_scenario_->Initialize();
-    if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Initialize(); }
-}
-void SpApp::DoFinalize() {
-    m_pimpl_->m_scenario_->Finalize();
-    if (m_pimpl_->m_schedule_ != nullptr) {
-        m_pimpl_->m_schedule_->Finalize();
-        m_pimpl_->m_schedule_.reset();
-    }
-};
-void SpApp::DoUpdate() {
-    m_pimpl_->m_scenario_->Update();
-    if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Update(); };
-};
-void SpApp::DoTearDown() {
-    m_pimpl_->m_scenario_->TearDown();
-    if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->TearDown(); }
-};
-void SpApp::Run() {
-    Update();
-    if (m_pimpl_->m_schedule_ != nullptr) { m_pimpl_->m_schedule_->Run(); }
-};
+void SpApp::DoInitialize() { m_pimpl_->m_scenario_->Initialize(); }
+
+void SpApp::DoFinalize() { m_pimpl_->m_scenario_->Finalize(); };
+
+void SpApp::DoUpdate() { m_pimpl_->m_scenario_->Update(); };
+
+void SpApp::DoTearDown() { m_pimpl_->m_scenario_->TearDown(); };
+
+void SpApp::Run() { Update(); };
 
 std::shared_ptr<engine::Scenario> SpApp::GetContext() const { return m_pimpl_->m_scenario_; }
-
-void SpApp::SetSchedule(const std::shared_ptr<engine::Schedule> &s) {
-    m_pimpl_->m_schedule_ = s;
-    Click();
-}
-std::shared_ptr<engine::Schedule> SpApp::GetSchedule() const { return m_pimpl_->m_schedule_; }
-
-}  // namespace simpla{
-
+}  // namespace simpla {
 using namespace simpla;
 int main(int argc, char **argv) {
 #ifndef NDEBUG

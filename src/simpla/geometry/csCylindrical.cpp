@@ -6,6 +6,10 @@
 namespace simpla {
 namespace geometry {
 
+csCylindrical::csCylindrical() : Chart() {}
+csCylindrical::~csCylindrical() {}
+std::shared_ptr<simpla::data::DataNode> csCylindrical::Serialize() const { return base_type::Serialize(); };
+void csCylindrical::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) { base_type::Deserialize(cfg); };
 std::shared_ptr<GeoObject> csCylindrical::BoundBox(box_type const &b) const { return nullptr; };
 std::shared_ptr<GeoObject> csCylindrical::BoundBox(index_box_type const &b) const {
     return BoundBox(std::make_tuple(local_coordinates(std::get<0>(b)), local_coordinates(std::get<0>(b))));

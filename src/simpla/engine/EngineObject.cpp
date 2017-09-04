@@ -11,6 +11,8 @@ struct EngineObject::pimpl_s {
     size_type m_click_tag_ = 0;
     bool m_is_initialized_ = false;
 };
+EngineObject::EngineObject() : m_pimpl_(new pimpl_s) {}
+EngineObject::~EngineObject() { Finalize(); }
 
 void EngineObject::lock() { m_pimpl_->m_mutex_.lock(); }
 void EngineObject::unlock() { m_pimpl_->m_mutex_.unlock(); }
@@ -32,7 +34,6 @@ void EngineObject::DoUpdate() {}
 
 void EngineObject::Initialize() {
     if (!isInitialized()) {
-        //        VERBOSE << "Initialize \t:" << GetName() << "[" << GetTypeName() << "]" << std::endl;
         PreInitialize(this);
         DoInitialize();
         PostInitialize(this);
@@ -43,7 +44,6 @@ void EngineObject::Initialize() {
 void EngineObject::Update() {
     Initialize();
     if (isModified()) {
-        //        VERBOSE << "Update    \t:" << GetName() << "[" << GetTypeName() << "]" << std::endl;
         PreUpdate(this);
         DoUpdate();
         PostUpdate(this);
@@ -56,7 +56,6 @@ void EngineObject::TearDown() {
         DoTearDown();
         PostTearDown(this);
         Click();
-        //        VERBOSE << "TearDown  \t:" << GetName() << "[" << GetTypeName() << "]" << std::endl;
     }
 };
 void EngineObject::Finalize() {
@@ -66,8 +65,8 @@ void EngineObject::Finalize() {
         DoFinalize();
         PostFinalize(this);
         ResetTag();
-        //        m_pimpl_->m_is_initialized_ = false;
-        //        VERBOSE << "Finalize  \t:" << GetName() << "[" << GetTypeName() << "]" << std::endl;
+
+        m_pimpl_->m_is_initialized_ = false;
     }
 };
 }

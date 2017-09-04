@@ -74,19 +74,22 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     virtual size_type size() const;
     virtual bool empty() const { return size() == 0; }
 
-    virtual size_type Set(std::string const& uri, std::shared_ptr<const DataNode> v);
-    virtual size_type Add(std::string const& uri, std::shared_ptr<const DataNode> v);
+    virtual size_type Set(std::string const& uri, const std::shared_ptr<const DataNode>& v);
+    virtual size_type Add(std::string const& uri, const std::shared_ptr<const DataNode>& v);
     virtual size_type Delete(std::string const& s);
     virtual std::shared_ptr<const DataNode> Get(std::string const& uri) const;
-    virtual size_type Foreach(std::function<size_type(std::string, std::shared_ptr<const DataNode>)> const& f) const;
+    virtual size_type Foreach(
+        std::function<size_type(std::string, std::shared_ptr<const DataNode> const&)> const& f) const;
 
-    virtual size_type Set(index_type s, std::shared_ptr<const DataNode> v);
-    virtual size_type Add(index_type s, std::shared_ptr<const DataNode> v);
+    virtual size_type Set(index_type s, const std::shared_ptr<const DataNode>& v);
+    virtual size_type Add(index_type s, const std::shared_ptr<const DataNode>& v);
     virtual size_type Delete(index_type s);
     virtual std::shared_ptr<const DataNode> Get(index_type s) const;
 
-    virtual size_type Add(std::shared_ptr<const DataNode> v);
-    virtual size_type Set(std::shared_ptr<const DataNode> v);
+    virtual size_type Add(const std::shared_ptr<const DataNode>& v);
+    virtual size_type Set(const std::shared_ptr<const DataNode>& v);
+    virtual size_type SetValue(const std::shared_ptr<const DataNode>& v) { return Set(v); }
+    virtual size_type AddValue(const std::shared_ptr<const DataNode>& v) { return Add(v); }
 
     /**@ } */
 
@@ -185,6 +188,13 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     /** @} */
 
     //******************************************************************************************************
+    size_type SetValue(KeyValue const& v);
+    template <typename... Others>
+    size_type SetValue(KeyValue const& v, Others&&... others) {
+        return SetValue(v) + SetValue(std::forward<Others>(others)...);
+    };
+    size_type SetValue(std::initializer_list<KeyValue> const& v);
+
     size_type SetValue(std::string const& s, KeyValue const& v);
     size_type SetValue(std::string const& s, std::initializer_list<KeyValue> const& v);
     size_type SetValue(std::string const& s, std::initializer_list<std::initializer_list<KeyValue>> const& v);
@@ -283,21 +293,22 @@ inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue(std
         return std::dynamic_pointer_cast<this_type>(const_cast<this_type*>(this)->GetParent());                      \
     };
 
-#define SP_DATA_NODE_FUNCTION(_CLASS_NAME_)                                                                            \
-                                                                                                                       \
-    std::shared_ptr<DataNode> CreateNode(eNodeType e_type) const override;                                             \
-                                                                                                                       \
-    size_type size() const override;                                                                                   \
-                                                                                                                       \
-    size_type Set(std::string const& uri, std::shared_ptr<const DataNode> v) override;                                 \
-    size_type Add(std::string const& uri, std::shared_ptr<const DataNode> v) override;                                 \
-    size_type Delete(std::string const& s) override;                                                                   \
-    std::shared_ptr<const DataNode> Get(std::string const& uri) const override;                                        \
-    size_type Foreach(std::function<size_type(std::string, std::shared_ptr<const DataNode>)> const& f) const override; \
-                                                                                                                       \
-    size_type Set(index_type s, std::shared_ptr<const DataNode> v) override;                                           \
-    size_type Add(index_type s, std::shared_ptr<const DataNode> v) override;                                           \
-    size_type Delete(index_type s) override;                                                                           \
+#define SP_DATA_NODE_FUNCTION(_CLASS_NAME_)                                                                   \
+                                                                                                              \
+    std::shared_ptr<DataNode> CreateNode(eNodeType e_type) const override;                                    \
+                                                                                                              \
+    size_type size() const override;                                                                          \
+                                                                                                              \
+    size_type Set(std::string const& uri, std::shared_ptr<const DataNode> const& v) override;                 \
+    size_type Add(std::string const& uri, std::shared_ptr<const DataNode> const& v) override;                 \
+    size_type Delete(std::string const& s) override;                                                          \
+    std::shared_ptr<const DataNode> Get(std::string const& uri) const override;                               \
+    size_type Foreach(std::function<size_type(std::string, std::shared_ptr<const DataNode> const&)> const& f) \
+        const override;                                                                                       \
+                                                                                                              \
+    size_type Set(index_type s, std::shared_ptr<const DataNode> const& v) override;                           \
+    size_type Add(index_type s, std::shared_ptr<const DataNode> const& v) override;                           \
+    size_type Delete(index_type s) override;                                                                  \
     std::shared_ptr<const DataNode> Get(index_type s) const override;
 
 namespace detail {

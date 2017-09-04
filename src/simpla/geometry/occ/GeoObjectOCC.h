@@ -13,9 +13,6 @@ namespace simpla {
 namespace geometry {
 struct GeoObjectOCC : public GeoObject {
     SP_OBJECT_HEAD(GeoObjectOCC, GeoObject)
-   protected:
-    GeoObjectOCC(GeoObject const &);
-    GeoObjectOCC(TopoDS_Shape const &);
 
    public:
     void Load(std::string const &);

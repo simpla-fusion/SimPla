@@ -11,7 +11,7 @@
 #include "simpla/data/Data.h"
 #include "simpla/engine/EngineObject.h"
 #include "simpla/engine/Model.h"
-#include "simpla/engine/Schedule.h"
+#include "simpla/engine/Scenario.h"
 
 namespace simpla {
 struct SpApp : public engine::EngineObject {
@@ -27,9 +27,6 @@ struct SpApp : public engine::EngineObject {
     void DoFinalize() override;
 
     std::shared_ptr<engine::Scenario> GetContext() const;
-
-    void SetSchedule(const std::shared_ptr<engine::Schedule> &s);
-    std::shared_ptr<engine::Schedule> GetSchedule() const;
 };
 
 #define SP_APP(_app_name, _app_desc)                                                                   \

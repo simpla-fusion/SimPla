@@ -51,7 +51,7 @@ std::shared_ptr<data::DataNode> Revolve<TObj>::Serialize() const {
     return tdb;
 };
 template <typename TObj>
-void Revolve<TObj>::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
+void Revolve<TObj>::Deserialize(std::shared_ptr<const data::DataNode>  const&cfg) {
     base_type::Deserialize(cfg);
 }
 

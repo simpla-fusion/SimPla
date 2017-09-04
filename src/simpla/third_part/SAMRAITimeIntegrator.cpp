@@ -199,7 +199,6 @@ struct spParticlePatchData : public SAMRAI::hier::PatchData {
     size_type m_number_of_pic_ = 100;
     std::shared_ptr<ParticleData> m_data_block_ = nullptr;
 };
-
 struct spParticlePatchDataFactory : public SAMRAI::hier::PatchDataFactory {
     spParticlePatchDataFactory(int depth, const SAMRAI::hier::IntVector &ghosts, size_type number_of_pic = 100)
         : SAMRAI::hier::PatchDataFactory(ghosts), m_dof_(depth), m_number_of_pic_(number_of_pic) {}
@@ -571,7 +570,7 @@ std::shared_ptr<SAMRAI::hier::Variable> ConvertVariable(const std::shared_ptr<da
     } else if (type_hash == std::type_index(typeid(int)).hash_code()) {
         res = ConvertVariable_<int>(attr);
     } else {
-        RUNTIME_ERROR << " Can not create variable [" << attr << "]" << std::endl;
+        RUNTIME_ERROR << " Can not create variable [" << attr << "]";
     }
     return res;
 }
@@ -591,7 +590,7 @@ SP_OBJECT_REGISTER(SAMRAITimeIntegrator)
 class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatchStrategy {
     SP_OBJECT_BASE(SAMRAIHyperbolicPatchStrategyAdapter)
    public:
-    SAMRAIHyperbolicPatchStrategyAdapter(std::shared_ptr<engine::Scenario> ctx, std::shared_ptr<engine::Atlas> atlas,
+    SAMRAIHyperbolicPatchStrategyAdapter(std::shared_ptr<engine::Scenario> ctx,
                                          std::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom);
 
     /**
@@ -773,15 +772,14 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
 };
 
 SAMRAIHyperbolicPatchStrategyAdapter::SAMRAIHyperbolicPatchStrategyAdapter(
-    std::shared_ptr<engine::Scenario> ctx, std::shared_ptr<engine::Atlas> atlas,
-    std::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom)
+    std::shared_ptr<engine::Scenario> ctx, std::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom)
     : d_dim(3),
       d_grid_geometry(grid_geom),
       d_use_nonuniform_workload(false),
       d_nghosts(d_dim, 4),
       d_fluxghosts(d_dim, 1),
       m_ctx_(ctx),
-      m_atlas_(atlas) {
+      m_atlas_(ctx->GetAtlas()) {
     TBOX_ASSERT(grid_geom);
 }
 
@@ -795,16 +793,16 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     SAMRAI::hier::IntVector d_fluxghosts{d_dim, 1};
     //**************************************************************
 
-    for (auto *item : m_ctx_->GetMesh()->GetAttributes()) {
-        if (item->db()->Check("IS_NOT_OWNED") ||
-            m_samrai_variables_.find(item->db()->GetValue<id_type>("DescID")) != m_samrai_variables_.end()) {
+    for (auto &item : m_ctx_->GetMesh()->GetAttributes()) {
+        if (item.second->db()->Check("IS_NOT_OWNED") ||
+            m_samrai_variables_.find(item.second->db()->GetValue<id_type>("DescID")) != m_samrai_variables_.end()) {
             continue;
         }
 
-        auto var = simpla::detail::ConvertVariable(item->db());
+        auto var = simpla::detail::ConvertVariable(item.second->db());
 
-        m_samrai_variables_.emplace(item->db()->GetValue<id_type>("DescID"),
-                                    std::make_pair(std::dynamic_pointer_cast<data::DataNode>(item->db()), var));
+        m_samrai_variables_.emplace(item.second->db()->GetValue<id_type>("DescID"),
+                                    std::make_pair(std::dynamic_pointer_cast<data::DataNode>(item.second->db()), var));
 
         /*** NOTE:
         *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
@@ -816,15 +814,15 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         std::string coarsen_name = "";
         std::string refine_name = "";
 
-        if (item->db()->Check("COORDINATES")) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
-        if (item->db()->Check("INPUT")) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
-        if (item->db()->Check("FLUX")) {
+        if (item.second->db()->Check("COORDINATES")) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
+        if (item.second->db()->Check("INPUT")) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
+        if (item.second->db()->Check("FLUX")) {
             ghosts = d_fluxghosts;
             v_type = SAMRAI::algs::HyperbolicLevelIntegrator::FLUX;
             coarsen_name = "CONSERVATIVE_COARSEN";
             refine_name = "";
         }
-        if (item->GetIFORM() == FIBER) {
+        if (item.second->GetIFORM() == FIBER) {
             v_type = SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP;
             coarsen_name = "CONSTANT_COARSEN";
             refine_name = "NO_REFINE";
@@ -840,28 +838,32 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
 
         std::string visit_variable_type = "SCALAR";
         ;
-        if ((item->GetIFORM() == NODE || item->GetIFORM() == CELL) && (item->GetDOF() == 1)) {
+        if ((item.second->GetIFORM() == NODE || item.second->GetIFORM() == CELL) && (item.second->GetDOF() == 1)) {
             visit_variable_type = "SCALAR";
-        } else if (((item->GetIFORM() == EDGE || item->GetIFORM() == FACE) && (item->GetDOF() == 1)) ||
-                   ((item->GetIFORM() == NODE || item->GetIFORM() == CELL) && (item->GetDOF() == 3))) {
+        } else if (((item.second->GetIFORM() == EDGE || item.second->GetIFORM() == FACE) &&
+                    (item.second->GetDOF() == 1)) ||
+                   ((item.second->GetIFORM() == NODE || item.second->GetIFORM() == CELL) &&
+                    (item.second->GetDOF() == 3))) {
             visit_variable_type = "VECTOR";
-        } else if (((item->GetIFORM() == NODE || item->GetIFORM() == CELL) && item->GetDOF() == 9) ||
-                   ((item->GetIFORM() == EDGE || item->GetIFORM() == FACE) && item->GetDOF() == 3)) {
+        } else if (((item.second->GetIFORM() == NODE || item.second->GetIFORM() == CELL) &&
+                    item.second->GetDOF() == 9) ||
+                   ((item.second->GetIFORM() == EDGE || item.second->GetIFORM() == FACE) &&
+                    item.second->GetDOF() == 3)) {
             visit_variable_type = "TENSOR";
         }
 
         //        else {
         //            VERBOSE << "Can not register attribute [" << item->GetName() << ":" << item->GetFancyTypeName()
-        //                    << "] to VisIt writer !" << std::endl;
+        //                    << "] to VisIt writer !" ;
         //        }
         //        v_type != SAMRAI::algs::HyperbolicLevelIntegrator::TEMPORARY
 
-        if (visit_variable_type != "" && item->db()->Check("COORDINATES")) {
+        if (visit_variable_type != "" && item.second->db()->Check("COORDINATES")) {
             d_visit_writer->registerNodeCoordinates(
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-        } else if ((item->GetIFORM() == NODE || item->GetIFORM() == CELL)) {
+        } else if ((item.second->GetIFORM() == NODE || item.second->GetIFORM() == CELL)) {
             d_visit_writer->registerPlotQuantity(
-                item->db()->GetValue<std::string>("name"), visit_variable_type,
+                item.second->db()->GetValue<std::string>("name"), visit_variable_type,
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
         }
 
@@ -919,7 +921,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setupLoadBalancer(SAMRAI::algs::Hyper
         } else {
             WARNING << m_name_ << ": "
                     << "  Unknown Load balancer used in gridding algorithm."
-                    << "  Ignoring request for nonuniform Load balancing." << std::endl;
+                    << "  Ignoring request for nonuniform Load balancing.";
             d_use_nonuniform_workload = false;
         }
     } else {
@@ -1060,7 +1062,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
         //        }
         //
         //        for (auto &d : m_ctx_->GetAllDomains()) {
-        //            VERBOSE << "DoInitialize DomainBase : " << d.first << std::endl;
+        //            VERBOSE << "DoInitialize DomainBase : " << d.first ;
         //            d.m_node_->InitialCondition(p.get(), data_time);
         //        }
         //        m_ctx_->GetBaseMesh()->Serialize(p.get());
@@ -1199,18 +1201,18 @@ SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
     SAMRAI::tbox::SAMRAIManager::finalize();
 }
 
-void SAMRAITimeIntegrator::Synchronize() { engine::TimeIntegrator::Synchronize(); }
+void SAMRAITimeIntegrator::Synchronize() { base_type::Synchronize(); }
 
 std::shared_ptr<data::DataNode> SAMRAITimeIntegrator::Serialize() const { return base_type::Serialize(); }
 
-void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<const data::DataNode> tdb) {
+void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<const data::DataNode> const &tdb) {
     base_type::Deserialize(tdb);
     if (tdb != nullptr) { m_pimpl_->m_output_URL_ = tdb->GetValue<std::string>("OutputURL", GetName() + ".simpla"); }
 }
 
 void SAMRAITimeIntegrator::DoInitialize() {
     dcomplex a = std::numeric_limits<dcomplex>::signaling_NaN();
-    engine::TimeIntegrator::DoInitialize();
+    base_type::DoInitialize();
     /** Setup SAMRAI::tbox::MPI.      */
     SAMRAI::tbox::SAMRAI_MPI::init(*reinterpret_cast<MPI_Comm const *>(GLOBAL_COMM.comm()));  //
     SAMRAI::tbox::SAMRAIManager::initialize();
@@ -1221,10 +1223,10 @@ void SAMRAITimeIntegrator::DoInitialize() {
     //    const SAMRAI::tbox::SAMRAI_MPI & mpi(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 }
 
-void SAMRAITimeIntegrator::DoTearDown() { engine::TimeIntegrator::DoTearDown(); }
+void SAMRAITimeIntegrator::DoTearDown() { base_type::DoTearDown(); }
 
 void SAMRAITimeIntegrator::DoUpdate() {
-    engine::TimeIntegrator::DoUpdate();
+    base_type::DoUpdate();
     /** test.3d.input */
     /**
     // Refer to geom::CartesianGridGeometry and its base classes for input
@@ -1318,7 +1320,7 @@ void SAMRAITimeIntegrator::DoUpdate() {
     //    cfgCartesianGridGeometry->putIntegerArray("periodic_dimension", &GetAtlas()->GetPeriodicDimensions()[0],
     //    ndims);
 
-    auto x_box = GetScenario()->GetMesh()->GetBox(0);
+    auto x_box = this->GetMesh()->GetBox(0);
     cfgCartesianGridGeometry->putDoubleArray("x_lo", &std::get<0>(x_box)[0], ndims);
     cfgCartesianGridGeometry->putDoubleArray("x_up", &std::get<1>(x_box)[0], ndims);
 
@@ -1355,7 +1357,7 @@ void SAMRAITimeIntegrator::DoUpdate() {
 
     // Refer to algs::HyperbolicLevelIntegrator for input
     // max cfl factor used in problem
-    cfgHyperbolicLevelIntegrator->putDouble("cfl", engine::TimeIntegrator::GetCFL());
+    cfgHyperbolicLevelIntegrator->putDouble("cfl", base_type::GetCFL());
     cfgHyperbolicLevelIntegrator->putDouble("cfl_init", 0.9);
     cfgHyperbolicLevelIntegrator->putBool("lag_dt_computation", true);
     cfgHyperbolicLevelIntegrator->putBool("use_ghosts_to_compute_dt", true);
@@ -1363,8 +1365,8 @@ void SAMRAITimeIntegrator::DoUpdate() {
     /**
      *  create m_pimpl_->hyp_level_integrator and error_detector
      */
-    m_pimpl_->hyperbolic_patch_strategy.reset(
-        new SAMRAIHyperbolicPatchStrategyAdapter(GetScenario(), GetAtlas(), m_pimpl_->grid_geometry));
+    m_pimpl_->hyperbolic_patch_strategy.reset(new SAMRAIHyperbolicPatchStrategyAdapter(
+        std::dynamic_pointer_cast<engine::Scenario>(shared_from_this()), m_pimpl_->grid_geometry));
 
     m_pimpl_->hyp_level_integrator.reset(new SAMRAI::algs::HyperbolicLevelIntegrator(
         "SAMRAILevelIntegrator", cfgHyperbolicLevelIntegrator, m_pimpl_->hyperbolic_patch_strategy.get(),
@@ -1405,10 +1407,9 @@ void SAMRAITimeIntegrator::DoUpdate() {
     // Refer to algs::TimeRefinementIntegrator for input
     auto cfgTimeRefinementIntegrator = std::make_shared<SAMRAI::tbox::MemoryDatabase>("TimeRefinementIntegrator");
 
-    cfgTimeRefinementIntegrator->putDouble("start_time",
-                                           engine::TimeIntegrator::GetTimeNow());  // initial simulation time
-    cfgTimeRefinementIntegrator->putDouble("end_time", engine::TimeIntegrator::GetTimeEnd());  // final simulation time
-    cfgTimeRefinementIntegrator->putDouble("grow_dt", 1.1);  // growth factor for timesteps
+    cfgTimeRefinementIntegrator->putDouble("start_time", base_type::GetTimeNow());  // initial simulation time
+    cfgTimeRefinementIntegrator->putDouble("end_time", base_type::GetTimeEnd());    // final simulation time
+    cfgTimeRefinementIntegrator->putDouble("grow_dt", 1.1);                         // growth factor for timesteps
     cfgTimeRefinementIntegrator->putInteger("max_integrator_steps", 100);
 
     m_pimpl_->m_time_refinement_integrator_.reset(new SAMRAI::algs::TimeRefinementIntegrator(
@@ -1427,7 +1428,7 @@ void SAMRAITimeIntegrator::DoUpdate() {
 
     // m_pimpl_->m_time_refinement_integrator_->printClassData(std::cout);
 
-    MESSAGE << "==================  Context is initialized!  =================" << std::endl;
+    MESSAGE << "==================  Context is initialized!  =================";
 };
 
 void SAMRAITimeIntegrator::DoFinalize() {
@@ -1435,10 +1436,10 @@ void SAMRAITimeIntegrator::DoFinalize() {
     m_pimpl_->m_time_refinement_integrator_.reset();
     m_pimpl_->hyp_level_integrator.reset();
     m_pimpl_->hyperbolic_patch_strategy.reset();
-    engine::TimeIntegrator::DoFinalize();
+    base_type::DoFinalize();
 }
 
-Real SAMRAITimeIntegrator::Advance(Real time_dt) {
+Real SAMRAITimeIntegrator::Advance(Real time_now, Real time_dt) {
     ASSERT(m_pimpl_->m_time_refinement_integrator_ != nullptr);
 
     // SetTimeNow(m_pack_->m_time_refinement_integrator->getIntegratorTime());
@@ -1476,7 +1477,7 @@ void SAMRAITimeIntegrator::Dump() const {
 bool SAMRAITimeIntegrator::Done() const {
     // m_pack_->m_time_refinement_integrator != nullptr ?
     // !m_pack_->m_time_refinement_integrator->stepsRemaining():;
-    return engine::TimeIntegrator::Done();
+    return base_type::Done();
 }
 
 }  // namespace simpla

@@ -133,7 +133,7 @@ std::shared_ptr<data::DataNode> Domain<TM, Policies...>::Serialize() const {
 };
 
 template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
+void Domain<TM, Policies...>::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) {
     DomainBase::Deserialize(cfg);
     traits::_try_invoke_Deserialize<Policies...>(this, cfg);
 };

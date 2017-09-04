@@ -19,6 +19,7 @@ struct Model::pimpl_s {
 
 Model::Model() : m_pimpl_(new pimpl_s) {}
 Model::~Model() { delete m_pimpl_; };
+Model::Model(std::string const& url) { FIXME; }
 
 std::shared_ptr<data::DataNode> Model::Serialize() const {
     auto tdb = base_type::Serialize();
@@ -27,10 +28,10 @@ std::shared_ptr<data::DataNode> Model::Serialize() const {
     }
     return tdb;
 };
-void Model::Deserialize(std::shared_ptr<const data::DataNode> tdb) {
+void Model::Deserialize(std::shared_ptr<const data::DataNode> const& tdb) {
     base_type::Deserialize(tdb);
     if (tdb != nullptr) {
-        tdb->Foreach([&](std::string const& k, std::shared_ptr<const data::DataNode> v) {
+        tdb->Foreach([&](std::string const& k, std::shared_ptr<const data::DataNode> const& v) {
             if (v != nullptr) { SetObject(k, geometry::GeoObject::New(v)); }
             return (v != nullptr) ? 1 : 0;
         });
@@ -46,7 +47,7 @@ void Model::DoUpdate() {
     ++it;
     for (; it != m_pimpl_->m_g_objs_.end(); ++it) {
         if (it->second != nullptr) {
-//            m_pimpl_->m_bound_box_ = geometry::Union(m_pimpl_->m_bound_box_, it->second->BoundingBox());
+            //            m_pimpl_->m_bound_box_ = geometry::Union(m_pimpl_->m_bound_box_, it->second->BoundingBox());
         }
     }
 };

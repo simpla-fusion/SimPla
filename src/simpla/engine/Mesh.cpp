@@ -30,7 +30,7 @@ MeshBase::MeshBase() : m_pimpl_(new pimpl_s), m_mesh_block_(MeshBlock::New({inde
 MeshBase::~MeshBase() { delete m_pimpl_; };
 
 std::shared_ptr<data::DataNode> MeshBase::Serialize() const { return base_type::Serialize(); }
-void MeshBase::Deserialize(std::shared_ptr<const data::DataNode> tdb) {
+void MeshBase::Deserialize(std::shared_ptr<const data::DataNode>const & tdb) {
     base_type::Deserialize(tdb);
     if (tdb != nullptr) {
         auto lo = tdb->GetValue<point_type>("Box/lo", point_type{0, 0, 0});
@@ -83,12 +83,12 @@ box_type MeshBase::GetBox(int tag) const {
 
 void MeshBase::DoUpdate() {
     base_type::DoUpdate();
-    if (m_pimpl_->m_pack_ == nullptr) { m_pimpl_->m_pack_ = std::make_shared<pack_s>(); }
     GetChart()->SetLevel(m_mesh_block_->GetLevel());
+    if (m_pimpl_->m_pack_ == nullptr) { m_pimpl_->m_pack_ = std::make_shared<pack_s>(); }
     AttributeGroup::RegisterAttributes();
 }
 void MeshBase::DoTearDown() { GetChart()->SetLevel(0); }
-void MeshBase::DoInitialize() { GetChart()->SetLevel(m_mesh_block_->GetLevel()); }
+void MeshBase::DoInitialize() {}
 void MeshBase::DoFinalize() {
     m_pimpl_->m_pack_.reset();
     GetChart()->SetLevel(0);

@@ -68,9 +68,9 @@ std::shared_ptr<data::DataNode> EMFluid<TM>::Serialize() const {
     return res;
 };
 template <typename TM>
-void EMFluid<TM>::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
-    cfg->Get("Species")->Foreach([&](std::string const& k, std::shared_ptr<data::DataEntity> v) {
-        return AddSpecies(k, std::dynamic_pointer_cast<data::DataNode>(v)) != nullptr ? 1 : 0;
+void EMFluid<TM>::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) {
+    cfg->Get("Species")->Foreach([&](std::string const& k, std::shared_ptr<const data::DataNode> v) {
+        return AddSpecies(k, v) != nullptr ? 1 : 0;
     });
 }
 

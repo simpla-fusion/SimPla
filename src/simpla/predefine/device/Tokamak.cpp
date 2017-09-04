@@ -22,9 +22,11 @@ struct Tokamak::pimpl_s {
 };
 Tokamak::Tokamak() : m_pimpl_(new pimpl_s) {}
 Tokamak::~Tokamak() { delete m_pimpl_; }
+Tokamak::Tokamak(std::string const &gfile) : Tokamak() { LoadGFile(gfile); }
+
 std::shared_ptr<data::DataNode> Tokamak::Serialize() const { return base_type::Serialize(); }
 
-void Tokamak::Deserialize(std::shared_ptr<const data::DataNode> tdb) {
+void Tokamak::Deserialize(std::shared_ptr<const data::DataNode>const & tdb) {
     base_type::Deserialize(tdb);
     if (tdb != nullptr) {
         nTuple<Real, 2> phi = tdb->GetValue("Phi", nTuple<Real, 2>{0, TWOPI});
@@ -55,6 +57,7 @@ engine::Model::vec_attr_fun Tokamak::GetAttributeVector(std::string const &attr_
 
     return res;
 };
+
 void Tokamak::LoadGFile(std::string const &file) { m_pimpl_->geqdsk.load(file); }
 
 void Tokamak::DoUpdate() {

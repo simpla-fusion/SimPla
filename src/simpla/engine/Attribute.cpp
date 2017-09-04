@@ -13,27 +13,34 @@
 namespace simpla {
 namespace engine {
 
-AttributeGroup::AttributeGroup() = default;
+AttributeGroup::AttributeGroup(){};
 
 AttributeGroup::~AttributeGroup() {
-    for (auto *item : m_attributes_) { item->Deregister(this); }
+    for (auto &item : m_attributes_) { item.second->Deregister(this); }
 }
 
 void AttributeGroup::Push(const std::shared_ptr<Patch> &p) {
-    for (auto *item : m_attributes_) { item->Push(p->GetDataBlock(item->db()->GetValue<id_type>("DescID", NULL_ID))); }
+    for (auto &item : m_attributes_) {
+        item.second->Push(p->GetDataBlock(item.second->db()->GetValue<id_type>("DescID", NULL_ID)));
+    }
 }
 
 void AttributeGroup::Pop(const std::shared_ptr<Patch> &p) {
-    for (auto *item : m_attributes_) { p->SetDataBlock(item->db()->GetValue<id_type>("DescID", NULL_ID), item->Pop()); }
+    for (auto &item : m_attributes_) {
+        p->SetDataBlock(item.second->db()->GetValue<id_type>("DescID", NULL_ID), item.second->Pop());
+    }
 }
 
-void AttributeGroup::Attach(Attribute *p) { m_attributes_.emplace(p); }
-void AttributeGroup::Detach(Attribute *p) { m_attributes_.erase(p); }
-void AttributeGroup::RegisterAttributes() {
-    for (auto *item : m_attributes_) { m_register_desc_->Set(item->GetName(), item->db()->shared_from_this()); }
+void AttributeGroup::Attach(Attribute *p) { m_attributes_.emplace(p->GetName(), p); }
+void AttributeGroup::Detach(Attribute *p) { m_attributes_.erase(p->GetName()); }
+std::shared_ptr<data::DataNode> AttributeGroup::RegisterAttributes() {
+    auto res = data::DataNode::New();
+    for (auto &item : m_attributes_) { res->Set(item.first, item.second->db()); }
+    return res;
 }
 std::shared_ptr<const data::DataNode> AttributeGroup::GetAttributeDescription(std::string const &k) const {
-    return m_register_desc_->Get(k);
+    auto it = m_attributes_.find(k);
+    return it != m_attributes_.end() ? it->second->db() : nullptr;
 }
 
 // void AttributeGroup::RegisterDescription(std::map<std::string, std::shared_ptr<AttributeDesc>> *m) const {
@@ -104,7 +111,7 @@ Attribute::~Attribute() {
 }
 
 std::shared_ptr<data::DataNode> Attribute::Serialize() const { return base_type::Serialize(); }
-void Attribute::Deserialize(std::shared_ptr<const data::DataNode> cfg) { base_type::Deserialize(cfg); }
+void Attribute::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) { base_type::Deserialize(cfg); }
 
 void Attribute::Register(AttributeGroup *attr_b) {
     if (attr_b == nullptr) {

@@ -610,6 +610,13 @@ struct FVM {
         return getArray(l, S, IY) * getArray(r, S, IZ) - getArray(l, S, IZ) * getArray(r, S, IY);
     }
 };  // class FVM
+
+template <typename THost>
+std::shared_ptr<data::DataNode> FVM<THost>::Serialize() const {
+    return nullptr;
+}
+template <typename THost>
+void FVM<THost>::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) {}
 //    //**********************************************************************************************
 //    // for element-wise arithmetic operation
 //

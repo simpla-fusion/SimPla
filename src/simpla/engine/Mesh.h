@@ -87,11 +87,12 @@ template <typename TChart, template <typename> class... Policies>
 class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     SP_OBJECT_HEAD(Mesh, MeshBase)
    private:
-    std::shared_ptr<TChart> m_chart_;
+    typedef TChart chart_type;
+    std::shared_ptr<chart_type> m_chart_;
+    typedef Mesh<chart_type, Policies...> mesh_type;
 
    public:
-    typedef Mesh<TChart, Policies...> mesh_type;
-    typedef TChart chart_type;
+    void DoInitialize() override;
 
     void DoUpdate() override;
 
@@ -158,9 +159,16 @@ void Mesh<TM, Policies...>::TagRefinementRange(Range<EntityId> const &r) {
         });
     }
 };
-template <typename TM, template <typename> class... Policies>
-void Mesh<TM, Policies...>::DoUpdate() {
+template <typename TChart, template <typename> class... Policies>
+void Mesh<TChart, Policies...>::DoInitialize() {
+    MeshBase::DoInitialize();
+    if (m_chart_ == nullptr) { m_chart_ = chart_type::New(); }
+};
+
+template <typename TChart, template <typename> class... Policies>
+void Mesh<TChart, Policies...>::DoUpdate() {
     MeshBase::DoUpdate();
+    if (m_chart_ == nullptr) { m_chart_ = chart_type::New(); }
     if (!m_refinement_tags_.isNull()) { m_refinement_tags_.Clear(); }
 };
 namespace _detail {
@@ -170,12 +178,12 @@ DEFINE_INVOKE_HELPER(Calculate)
 template <typename TM, template <typename> class... Policies>
 std::shared_ptr<data::DataNode> Mesh<TM, Policies...>::Serialize() const {
     auto tdb = base_type::Serialize();
-    if (tdb != nullptr) { m_chart_->Serialize(tdb->Get("Chart")); }
-    traits::_try_invoke_Serialize<Policies...>(this, tdb);
+    if (m_chart_ != nullptr) tdb->Set("Chart", m_chart_->Serialize());
+    //    traits::_try_invoke_Serialize<Policies...>(this, tdb);
     return tdb;
 };
 template <typename TM, template <typename> class... Policies>
-void Mesh<TM, Policies...>::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
+void Mesh<TM, Policies...>::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) {
     base_type::Deserialize(cfg);
     traits::_try_invoke_Deserialize<Policies...>(this, cfg);
 };

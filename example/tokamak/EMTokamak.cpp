@@ -4,6 +4,8 @@
 
 #include <simpla/parallel/MPIComm.h>
 #include <simpla/third_part/SAMRAITimeIntegrator.h>
+#include <simpla/utilities/Logo.h>
+#include "simpla/application/SPInit.h"
 #include "simpla/engine/Engine.h"
 #include "simpla/engine/Mesh.h"
 #include "simpla/geometry/csCylindrical.h"
@@ -19,32 +21,33 @@ namespace simpla {
 
 typedef engine::Mesh<geometry::csCylindrical, mesh::RectMesh, mesh::EBMesh, scheme::FVM> mesh_type;
 
-static bool _required_module_are_registered_ =                    //
-    RegisterCreator<Tokamak>() &&                                 //
-    RegisterCreator<mesh_type>() &&                               //
-    RegisterCreator<engine::Domain<mesh_type, ICRFAntenna>>() &&  //
-    RegisterCreator<engine::Domain<mesh_type, EMFluid>>() &&      //
-    RegisterCreator<engine::Domain<mesh_type, PICBoris>>() &&     //
-    RegisterCreator<engine::Domain<mesh_type, Maxwell>>();
-
+// static bool _required_module_are_registered_ =                    //
+//    RegisterCreator<Tokamak>() &&                                 //
+//    RegisterCreator<mesh_type>() &&                               //
+//    RegisterCreator<engine::Domain<mesh_type, ICRFAntenna>>() &&  //
+//    RegisterCreator<engine::Domain<mesh_type, EMFluid>>() &&      //
+//    RegisterCreator<engine::Domain<mesh_type, PICBoris>>() &&     //
+//    RegisterCreator<engine::Domain<mesh_type, Maxwell>>();
+//
 }  // namespace simpla {
 
 using namespace simpla;
+using namespace simpla::engine;
 
 int main(int argc, char** argv) {
-    auto scenario = engine::Scenario::New();
+    simpla::Initialize(argc, argv);
+    auto scenario = SAMRAITimeIntegrator::New();
 
-    scenario->SetMesh(mesh_type::New());
+    scenario->SetMesh<mesh_type>();
 
-    scenario->SetModel("Tokamak", engine::Model::New("lalala.gdsk"));
-
-    scenario->NewSchedule<SAMRAITimeIntegrator>();
-
-    //    scenario->template NewDomain<Maxwell>("Limiter");
-    //    scenario->template NewDomain<EMFluid>("Plasma");
+    scenario->AddModel<Tokamak>("EAST", "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
+    scenario->SetDomain<Domain<mesh_type, Maxwell>>("EAST.Limiter");
+    scenario->SetDomain<Domain<mesh_type, EMFluid>>("EAST.Plasma");
 
     scenario->Update();
-
+    TheStart();
+    scenario->Run();
+    TheEnd();
     std::cout << *scenario << std::endl;
 
     //    scenario->Run();

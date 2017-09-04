@@ -14,6 +14,7 @@ class Tokamak : public engine::Model {
     SP_OBJECT_HEAD(Tokamak, engine::Model)
 
    public:
+    explicit Tokamak(std::string const &gfile);
     void DoUpdate() override;
     void LoadGFile(std::string const &);
     engine::Model::attr_fun GetAttribute(std::string const &attr_name) const override;

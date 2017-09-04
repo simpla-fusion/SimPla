@@ -33,7 +33,7 @@ class Schedule : public EngineObject {
     void DoUpdate() override;
     void DoTearDown() override;
 
-    void SetScenario(std::shared_ptr<Scenario> const& c) { m_Scenario_ = c; }
+    void SetScenario(std::shared_ptr<Scenario> c) { m_Scenario_ = c; }
     std::shared_ptr<Scenario> GetScenario() const { return m_Scenario_; }
 
     void SetAtlas(std::shared_ptr<Atlas> const& a) { m_atlas_ = a; }

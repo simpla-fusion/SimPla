@@ -61,8 +61,8 @@ class AttributeGroup {
     AttributeGroup &operator=(AttributeGroup const &other) = delete;
     AttributeGroup &operator=(AttributeGroup &&other) = delete;
 
-    std::set<Attribute *> &GetAttributes() { return m_attributes_; }
-    std::set<Attribute *> const &GetAttributes() const { return m_attributes_; }
+    auto &GetAttributes() { return m_attributes_; }
+    auto const &GetAttributes() const { return m_attributes_; }
 
     virtual void Push(const std::shared_ptr<Patch> &);
     virtual void Pop(const std::shared_ptr<Patch> &);
@@ -70,7 +70,7 @@ class AttributeGroup {
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
 
-    void RegisterAttributes();
+    std::shared_ptr<data::DataNode> RegisterAttributes();
 
     std::shared_ptr<const data::DataNode> GetAttributeDescription(std::string const &k) const;
     std::shared_ptr<const data::DataNode> GetDescriptions() const;
@@ -90,8 +90,7 @@ class AttributeGroup {
     //    T GetAttribute(std::string const &k) const;
 
    private:
-    std::set<Attribute *> m_attributes_;
-    std::shared_ptr<data::DataNode> m_register_desc_ = nullptr;
+    std::map<std::string, Attribute *> m_attributes_;
 };
 
 /**

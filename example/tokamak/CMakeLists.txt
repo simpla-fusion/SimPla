@@ -4,7 +4,7 @@ ADD_EXECUTABLE(tokamak ${tokamak_SRC})
 TARGET_LINK_LIBRARIES(tokamak SimPlaMain
         netcdf ${HDF5_LIBRARIES} ${MPI_C_LIBRARIES} ${TBB_LIBRARIES}
         -Wl,--whole-archive
-        utilities  algebra  data  parallel mesh engine model physics particle database
+        utilities  algebra    parallel mesh engine model physics particle data data_backend
         predefine third_part
         -Wl,--no-whole-archive
         ${OPENMP_LIBRARIES} ${CUDA_LIBRARIES}

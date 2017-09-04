@@ -67,9 +67,9 @@ std::shared_ptr<data::DataNode> PICBoris<TM>::Serialize() const {
     return res;
 };
 template <typename TM>
-void PICBoris<TM>::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
+void PICBoris<TM>::Deserialize(std::shared_ptr<const data::DataNode> const& cfg) {
     cfg->Get("Species")->Foreach(
-        [&](std::string const& k, std::shared_ptr<const data::DataNode> t) { return AddSpecies(k, t); });
+        [&](std::string k, std::shared_ptr<const data::DataNode> t) { return AddSpecies(k, t) != nullptr; });
 }
 
 template <typename TM>

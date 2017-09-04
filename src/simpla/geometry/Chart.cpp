@@ -6,6 +6,7 @@
 
 namespace simpla {
 namespace geometry {
+Chart::Chart() {}
 Chart::Chart(point_type shift, point_type scale, point_type rotate) {
     SetOrigin(shift);
     SetScale(scale);
@@ -24,7 +25,7 @@ std::shared_ptr<data::DataNode> Chart::Serialize() const {
     }
     return tdb;
 }
-void Chart::Deserialize(std::shared_ptr<const data::DataNode> tdb) {
+void Chart::Deserialize(std::shared_ptr<const data::DataNode>const & tdb) {
     if (tdb != nullptr) {
         m_origin_ = tdb->GetValue<point_type>("Origin", m_origin_);
         m_scale_ = tdb->GetValue<point_type>("Scale", m_scale_);

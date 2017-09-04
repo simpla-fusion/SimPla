@@ -13,8 +13,8 @@ namespace simpla {
 /**
 * class SAMRAITimeIntegrator
 */
-struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
-    SP_OBJECT_HEAD(SAMRAITimeIntegrator, engine::TimeIntegrator);
+struct SAMRAITimeIntegrator : public engine::Scenario {
+    SP_OBJECT_HEAD(SAMRAITimeIntegrator, engine::Scenario);
 
    public:
     void DoInitialize() override;
@@ -23,7 +23,7 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
     void DoTearDown() override;
 
     void Synchronize() override;
-    Real Advance(Real time_dt) override;
+    Real Advance(Real time_now, Real time_dt) override;
     bool Done() const override;
 
     void CheckPoint() const override;

@@ -21,10 +21,10 @@ DomainBase::DomainBase(std::shared_ptr<MeshBase> const& msh, std::shared_ptr<Mod
 DomainBase::~DomainBase() = default;
 std::shared_ptr<data::DataNode> DomainBase::Serialize() const {
     auto tdb = base_type::Serialize();
-    tdb->Set("Boundary", GetBoundary()->Serialize());
+    if (m_geo_body_ != nullptr) tdb->Set("Boundary", m_geo_body_->Serialize());
     return tdb;
 }
-void DomainBase::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
+void DomainBase::Deserialize(std::shared_ptr<const data::DataNode> const& cfg) {
     base_type::Deserialize(cfg);
     m_geo_body_ = geometry::GeoObject::New(cfg->Get("Body"));
     Click();

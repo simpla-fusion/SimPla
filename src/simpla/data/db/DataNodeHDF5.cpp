@@ -38,14 +38,15 @@ struct DataNodeHDF5 : public DataNode {
 
     size_type size() const override;
 
-    size_type Set(std::string const& uri, std::shared_ptr<const DataNode> v) override;
-    size_type Add(std::string const& uri, std::shared_ptr<const DataNode> v) override;
+    size_type Set(std::string const &uri, const std::shared_ptr<const DataNode> &v) override;
+    size_type Add(std::string const &uri, const std::shared_ptr<const DataNode> &v) override;
     size_type Delete(std::string const& uri) override;
     std::shared_ptr<const DataNode> Get(std::string const& uri) const override;
-    size_type Foreach(std::function<size_type(std::string, std::shared_ptr<const DataNode>)> const& f) const override;
+    size_type Foreach(
+        std::function<size_type(std::string, std::shared_ptr<const DataNode> const&)> const& f) const override;
 
-    size_type Set(index_type s, std::shared_ptr<const DataNode> v) override;
-    size_type Add(index_type s, std::shared_ptr<const DataNode> v) override;
+    size_type Set(index_type s, const std::shared_ptr<const DataNode> &v) override;
+    size_type Add(index_type s, const std::shared_ptr<const DataNode> &v) override;
     size_type Delete(index_type s) override;
     std::shared_ptr<const DataNode> Get(index_type s) const override;
 
@@ -603,8 +604,8 @@ size_type HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<const Data
         case DataNode::DN_ARRAY:
         case DataNode::DN_TABLE: {
             hid_t sub_gid = HDF5CreateOrOpenGroup(g_id, key);
-            count =
-                node->Foreach([&](std::string k, std::shared_ptr<const DataNode> n) { return HDF5Set(sub_gid, k, n); });
+            count = node->Foreach(
+                [&](std::string k, std::shared_ptr<const DataNode> const& n) { return HDF5Set(sub_gid, k, n); });
         } break;
         case DataNode::DN_ENTITY:
             count = HDF5SetEntity(g_id, key, node->GetEntity());
@@ -621,8 +622,8 @@ size_type HDF5Add(hid_t g_id, std::string const& key, std::shared_ptr<const Data
         case DataNode::DN_ARRAY:
         case DataNode::DN_TABLE: {
             hid_t sub_gid = HDF5CreateOrOpenGroup(g_id, key);
-            count =
-                node->Foreach([&](std::string k, std::shared_ptr<const DataNode> n) { return HDF5Set(sub_gid, k, n); });
+            count = node->Foreach(
+                [&](std::string k, std::shared_ptr<const DataNode> const& n) { return HDF5Set(sub_gid, k, n); });
         } break;
         case DataNode::DN_ENTITY:
             count = HDF5SetEntity(g_id, key, node->GetEntity());
@@ -632,7 +633,7 @@ size_type HDF5Add(hid_t g_id, std::string const& key, std::shared_ptr<const Data
     }
     return count;
 }
-size_type DataNodeHDF5::Set(std::string const& uri, std::shared_ptr<const DataNode> v) {
+size_type DataNodeHDF5::Set(std::string const &uri, const std::shared_ptr<const DataNode> &v) {
     if (uri.empty() || v == nullptr) { return 0; }
     if (uri[0] == SP_URL_SPLIT_CHAR) { return Root()->Set(uri.substr(1), v); }
 
@@ -654,7 +655,7 @@ size_type DataNodeHDF5::Set(std::string const& uri, std::shared_ptr<const DataNo
     }
     return count;
 }
-size_type DataNodeHDF5::Add(std::string const& uri, std::shared_ptr<const DataNode> v) {
+size_type DataNodeHDF5::Add(std::string const &uri, const std::shared_ptr<const DataNode> &v) {
     if (uri.empty() || v == nullptr) { return 0; }
     if (uri[0] == SP_URL_SPLIT_CHAR) { return Root()->Set(uri.substr(1), v); }
 
@@ -680,7 +681,7 @@ size_type DataNodeHDF5::Add(std::string const& uri, std::shared_ptr<const DataNo
 }
 
 size_type DataNodeHDF5::Foreach(
-    std::function<size_type(std::string, std::shared_ptr<const DataNode>)> const& fun) const {
+    std::function<size_type(std::string, std::shared_ptr<const DataNode> const&)> const& fun) const {
     if (m_group_ == -1) { return 0; };
     H5G_info_t g_info;
     H5_ERROR(H5Gget_info(m_group_, &g_info));
@@ -706,8 +707,8 @@ size_type DataNodeHDF5::Foreach(
     }
     return count;
 }
-size_type DataNodeHDF5::Set(index_type s, std::shared_ptr<const DataNode> v) { return Set(std::to_string(s), v); }
-size_type DataNodeHDF5::Add(index_type s, std::shared_ptr<const DataNode> v) { return Add(std::to_string(s), v); }
+size_type DataNodeHDF5::Set(index_type s, const std::shared_ptr<const DataNode> &v) { return Set(std::to_string(s), v); }
+size_type DataNodeHDF5::Add(index_type s, const std::shared_ptr<const DataNode> &v) { return Add(std::to_string(s), v); }
 size_type DataNodeHDF5::Delete(index_type s) { return Delete(std::to_string(s)); }
 std::shared_ptr<const DataNode> DataNodeHDF5::Get(index_type s) const { return Get(std::to_string(s)); }
 

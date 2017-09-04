@@ -12,7 +12,6 @@ namespace simpla {
 namespace engine {
 class MeshBase;
 class DomainBase;
-class Schedule;
 class Model;
 
 class Scenario : public EngineObject {
@@ -23,55 +22,63 @@ class Scenario : public EngineObject {
     void DoUpdate() override;
     void DoTearDown() override;
 
-    void SetAtlas(std::shared_ptr<Atlas> const &);
+    template <typename TD, typename... Args>
+    std::shared_ptr<MeshBase> SetMesh(Args &&... args) {
+        SetMesh(TD::New(std::forward<Args>(args)...));
+        return GetMesh();
+    };
+    std::shared_ptr<MeshBase> GetMesh() const;
     std::shared_ptr<Atlas> GetAtlas() const;
 
-    void SetMesh(std::shared_ptr<MeshBase> const &);
-    std::shared_ptr<MeshBase> GetMesh() const;
+    std::shared_ptr<Model> AddModel(std::string const &k, std::shared_ptr<Model> m);
+    template <typename U, typename... Args>
+    std::shared_ptr<U> AddModel(std::string const &k, Args &&... args) {
+        auto res = U::New(std::forward<Args>(args)...);
+        AddModel(k, res);
+        return res;
+    };
+    std::shared_ptr<Model> GetModel(std::string const &k) const;
 
-    void SetModel(std::string const &k, std::shared_ptr<Model> const &);
-    std::shared_ptr<const Model> GetModel(std::string const &k) const;
-
-    //    template <typename TD>
-    //    std::shared_ptr<TD> NewDomain(std::string const &k, std::shared_ptr<Model> const &m = nullptr);
-    std::shared_ptr<DomainBase> NewDomain(std::string const &);
-    std::shared_ptr<DomainBase> NewDomain(std::shared_ptr<const data::DataNode>);
+    std::shared_ptr<DomainBase> SetDomain(std::string const &k, std::shared_ptr<DomainBase> d);
+    template <typename U, typename... Args>
+    std::shared_ptr<U> SetDomain(std::string const &k, Args &&... args) {
+        static_assert(std::is_base_of<DomainBase, U>::value, " Illegal domain type!");
+        auto res = U::New(GetMesh(), GetModel(k), std::forward<Args>(args)...);
+        SetDomain(k, res);
+        return res;
+    };
     std::shared_ptr<DomainBase> GetDomain(std::string const &k) const;
 
-    template <typename TD>
-    std::shared_ptr<TD> NewSchedule();
-    std::shared_ptr<Schedule> NewSchedule(std::shared_ptr<const data::DataNode>);
-    std::shared_ptr<Schedule> GetSchedule() const;
+    void Pop(std::shared_ptr<Patch> &p);
+    void Push(std::shared_ptr<Patch> &p);
 
-    void Pop(const std::shared_ptr<Patch> &p);
-    void Push(const std::shared_ptr<Patch> &p);
+    virtual void InitialCondition(Real time_now);
+    virtual void BoundaryCondition(Real time_now, Real dt);
+    virtual void ComputeFluxes(Real time_now, Real time_dt);
+    virtual Real ComputeStableDtOnPatch(Real time_now, Real time_dt);
+    virtual Real Advance(Real time_now, Real dt);
+    virtual void TagRefinementCells(Real time_now);
 
-    void InitialCondition(Real time_now);
-    void BoundaryCondition(Real time_now, Real dt);
-    void ComputeFluxes(Real time_now, Real time_dt);
-    Real ComputeStableDtOnPatch(Real time_now, Real time_dt);
-    void Advance(Real time_now, Real dt);
-    void TagRefinementCells(Real time_now);
+    virtual void Run();
 
-    void Run();
+    virtual void CheckPoint() const;
+    virtual void Dump() const;
+
+    size_type GetNumberOfStep() const;
+
+    virtual void Synchronize();
+    virtual void NextStep();
+    virtual bool Done() const;
+
+    SP_OBJECT_PROPERTY(Real, TimeNow);
+    SP_OBJECT_PROPERTY(Real, TimeEnd);
+    SP_OBJECT_PROPERTY(Real, TimeStep);
+    SP_OBJECT_PROPERTY(Real, CFL);
 
    private:
-    void SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &);
-    void SetSchedule(std::shared_ptr<Schedule> const &);
+    void SetMesh(std::shared_ptr<MeshBase> const &);
 };
 
-std::shared_ptr<DomainBase> Scenario::NewDomain(std::string const &k) {
-    //    if (m != nullptr) { SetModel(k, m); }
-    //    SetDomain(k, TD::New(GetMesh(), GetModel(k)));
-    return GetDomain(k);
-};
-std::shared_ptr<DomainBase> Scenario::NewDomain(std::shared_ptr<const data::DataNode> db) { return nullptr; }
-
-template <typename TD>
-std::shared_ptr<TD> Scenario::NewSchedule() {
-    SetSchedule(TD::New(shared_from_this()));
-    return GetSchedule();
-};
 }  // namespace engine
 }  // namespace simpla
 

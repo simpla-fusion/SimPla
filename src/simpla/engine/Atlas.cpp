@@ -56,7 +56,7 @@ std::shared_ptr<data::DataNode> Atlas::Serialize() const {
     tdb->SetValue("SmallestPatchDimensions", GetSmallestPatchDimensions());
     return tdb;
 };
-void Atlas::Deserialize(std::shared_ptr<const data::DataNode> tdb) {
+void Atlas::Deserialize(std::shared_ptr<const data::DataNode> const &tdb) {
     base_type::Deserialize(tdb);
     if (tdb != nullptr) {
         m_pimpl_->m_periodic_dimensions_ = tdb->GetValue<nTuple<int, 3>>("PeriodicDimension", nTuple<int, 3>{0, 0, 0});

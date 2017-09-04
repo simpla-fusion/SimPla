@@ -46,10 +46,10 @@ std::shared_ptr<data::DataNode> ICRFAntenna<TM>::Serialize() const {
 
 template <typename TM>
 void ICRFAntenna<TM>::InitialCondition(Real time_now) {
-    m_host_->GetMesh()->SetEmbeddedBoundary(m_host_->GetName(), m_host_->GetGeoBody());
+//    m_host_->GetMesh()->SetEmbeddedBoundary(m_host_->GetName(), m_host_->GetGeoBody());
 }
 template <typename TM>
-void ICRFAntenna<TM>::Deserialize(std::shared_ptr<const data::DataNode> cfg) {
+void ICRFAntenna<TM>::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) {
     m_amplify_ = cfg->GetValue<Vec3>("Amplify", m_amplify_);
     m_f_ = cfg->GetValue<Real>("Frequency", m_f_);
     m_k_ = cfg->GetValue<Vec3>("WaveNumber", m_k_);

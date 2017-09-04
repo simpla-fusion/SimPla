@@ -17,8 +17,7 @@ class Curve;
 struct Chart : public SPObject {
     SP_OBJECT_HEAD(Chart, SPObject)
    protected:
-    explicit Chart(point_type shift = point_type{0, 0, 0}, point_type scale = point_type{1, 1, 1},
-                   point_type rotate = point_type{0, 0, 0});
+    explicit Chart(point_type shift, point_type scale, point_type rotate);
 
    public:
     virtual std::shared_ptr<Curve> GetAxisCurve(point_type const &x, int dir) const { return nullptr; };

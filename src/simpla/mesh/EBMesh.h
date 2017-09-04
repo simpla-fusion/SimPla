@@ -33,7 +33,12 @@ struct EBMesh {
     //    Field<host_type, Real, FACE> m_face_tag_{m_host_, "name"_ = "face_tag"};
     Field<host_type, Real, CELL> m_volume_tag_{m_host_, "name"_ = "volume_tag"};
 };
-
+template <typename THost>
+std::shared_ptr<data::DataNode> EBMesh<THost>::Serialize() const {
+    return nullptr;
+}
+template <typename THost>
+void EBMesh<THost>::Deserialize(std::shared_ptr<const data::DataNode> const &cfg) {}
 template <typename THost>
 void EBMesh<THost>::SetEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g) {
     if (g == nullptr) { return; }

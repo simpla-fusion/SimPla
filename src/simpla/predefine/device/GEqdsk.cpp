@@ -94,7 +94,7 @@ void GEqdsk::pimpl_s::load(std::string const &fname) {
         return;
     }
 
-    LOGGER << "Load GFile : [" << fname << "]" << std::endl;
+    LOGGER << "Load GFile : [" << fname << "]";
 
     int nw;        // Number of horizontal R grid points
     int nh;        // Number of vertical Z grid points
@@ -170,7 +170,7 @@ void GEqdsk::pimpl_s::load(std::string const &fname) {
 void GEqdsk::load_profile(std::string const &fname) { m_pimpl_->load_profile(fname); }
 
 void GEqdsk::pimpl_s::load_profile(std::string const &fname) {
-    LOGGER << "Load GFile Profiles: [" << fname << "]" << std::endl;
+    LOGGER << "Load GFile Profiles: [" << fname << "]";
 
     std::ifstream inFileStream_(fname);
     if (!inFileStream_.is_open()) { THROW_EXCEPTION_RUNTIME_ERROR("File " + fname + " is not opened!"); }
@@ -203,7 +203,7 @@ void GEqdsk::pimpl_s::load_profile(std::string const &fname) {
 
     for (auto const &item : m_profile_) { profile_list += " , " + item.first; }
 
-    LOGGER << "GFile is ready! Profile={" << profile_list << "}" << std::endl;
+    LOGGER << "GFile is ready! Profile={" << profile_list << "}";
 
     is_valid_ = true;
 }

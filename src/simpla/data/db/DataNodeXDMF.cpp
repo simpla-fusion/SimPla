@@ -66,17 +66,17 @@ std::shared_ptr<DataNode> DataNodeXDMF::CreateNode(DataNode::eNodeType etype) co
 
 size_type DataNodeXDMF::size() const { return 0; }
 size_type DataNodeXDMF::Foreach(
-    std::function<size_type(std::string, std::shared_ptr<const DataNode>)> const& fun) const {
+    std::function<size_type(std::string, std::shared_ptr<const DataNode> const&)> const& fun) const {
     return 0;
 }
 
-size_type DataNodeXDMF::Set(std::string const& url, std::shared_ptr<const DataNode> v) { return 0; }
-size_type DataNodeXDMF::Add(std::string const& url, std::shared_ptr<const DataNode> v) { return 0; }
+size_type DataNodeXDMF::Set(std::string const& url, const std::shared_ptr<const DataNode>& v) { return 0; }
+size_type DataNodeXDMF::Add(std::string const& url, const std::shared_ptr<const DataNode>& v) { return 0; }
 size_type DataNodeXDMF::Delete(std::string const& uri) { return 0; }
 std::shared_ptr<const DataNode> DataNodeXDMF::Get(std::string const& uri) const { return nullptr; }
 
-size_type DataNodeXDMF::Set(index_type s, std::shared_ptr<const DataNode> v) { return 0; }
-size_type DataNodeXDMF::Add(index_type s, std::shared_ptr<const DataNode> v) { return 0; }
+size_type DataNodeXDMF::Set(index_type s, const std::shared_ptr<const DataNode>& v) { return 0; }
+size_type DataNodeXDMF::Add(index_type s, const std::shared_ptr<const DataNode>& v) { return 0; }
 size_type DataNodeXDMF::Delete(index_type s) { return 0; }
 std::shared_ptr<const DataNode> DataNodeXDMF::Get(index_type s) const { return nullptr; }
 ////

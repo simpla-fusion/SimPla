@@ -12,6 +12,8 @@ namespace simpla {
 namespace engine {
 class EngineObject : public SPObject {
    public:
+    EngineObject();
+    ~EngineObject() override;
     void lock();
     void unlock();
     bool try_lock();

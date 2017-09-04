@@ -25,7 +25,7 @@ std::shared_ptr<data::DataNode> TimeIntegrator::Serialize() const {
     return tdb;
 }
 
-void TimeIntegrator::Deserialize(std::shared_ptr<const data::DataNode> tdb) {
+void TimeIntegrator::Deserialize(std::shared_ptr<const data::DataNode>const & tdb) {
     base_type::Deserialize(tdb);
     if (tdb != nullptr) {
         SetTimeNow(tdb->GetValue("TimeBegin", 0.0));
