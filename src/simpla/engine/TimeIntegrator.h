@@ -14,12 +14,11 @@ class TimeIntegrator : public Scenario {
    public:
     virtual void CheckPoint() const;
 
-
     virtual void InitialCondition(Real time_now);
     virtual void BoundaryCondition(Real time_now, Real dt);
     virtual void ComputeFluxes(Real time_now, Real time_dt);
     virtual Real ComputeStableDtOnPatch(Real time_now, Real time_dt);
-    virtual Real Advance(Real time_now, Real dt);
+    virtual void Advance(Real time_now, Real dt);
 
     virtual void Synchronize();
     virtual void NextStep();

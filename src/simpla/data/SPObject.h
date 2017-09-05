@@ -91,6 +91,7 @@ class SPObject : public Factory<SPObject>, public std::enable_shared_from_this<S
 
     virtual std::shared_ptr<data::DataNode> Serialize() const;
     virtual void Deserialize(std::shared_ptr<data::DataNode> const &);
+
     static std::shared_ptr<SPObject> Create(std::string const &v);
     static std::shared_ptr<SPObject> Create(std::shared_ptr<data::DataNode> const &tdb);
     static std::shared_ptr<SPObject> CreateAndSync(std::shared_ptr<data::DataNode> const &v);
@@ -113,10 +114,6 @@ class SPObject : public Factory<SPObject>, public std::enable_shared_from_this<S
 
 std::ostream &operator<<(std::ostream &os, SPObject const &obj);
 std::istream &operator>>(std::istream &is, SPObject &obj);
-
-#define SP_OBJECT_PROPERTY(_TYPE_, _NAME_)                                  \
-    void Set##_NAME_(_TYPE_ const & _v_) { db()->SetValue(__STRING(_NAME_), _v_); } \
-    _TYPE_ Get##_NAME_() const { return db()->template GetValue<_TYPE_>(__STRING(_NAME_)); }
 
 #define SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_)                                                      \
    public:                                                                                             \

@@ -31,8 +31,19 @@ class DomainBase : public EngineObject {
     explicit DomainBase(std::shared_ptr<MeshBase> const &m, std::shared_ptr<Model> const &model = nullptr);
 
    public:
-    void DoInitialize() override;
-    void DoFinalize() override;
+    void SetMesh(std::shared_ptr<MeshBase> const &m);
+    std::shared_ptr<MeshBase> GetMesh() const;
+    void SetModel(std::shared_ptr<Model> const &m);
+    std::shared_ptr<Model> GetModel() const;
+
+    void SetBlock(const std::shared_ptr<MeshBlock> &blk);
+    std::shared_ptr<MeshBlock> GetBlock() const;
+
+    bool CheckOverlap(const std::shared_ptr<MeshBlock> &blk) const;
+    bool Push(std::shared_ptr<engine::MeshBlock> const &, std::shared_ptr<data::DataNode> const &);
+    std::shared_ptr<data::DataNode> Pop() override;
+
+    void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;
 
@@ -60,16 +71,9 @@ class DomainBase : public EngineObject {
     Real ComputeStableDtOnPatch(Real time_now, Real time_dt) const;
 
     design_pattern::Signal<void(DomainBase *, Real, Real)> PreAdvance;
-    virtual void DoAdvance(Real time_now, Real dt) {}
+    virtual Real DoAdvance(Real time_now, Real dt) {}
     design_pattern::Signal<void(DomainBase *, Real, Real)> PostAdvance;
-    void Advance(Real time_now, Real time_dt);
-
-    std::shared_ptr<MeshBase> GetMesh() const { return m_mesh_; }
-    std::shared_ptr<Model> GetModel() const { return m_model_; }
-
-   private:
-    std::shared_ptr<MeshBase> m_mesh_ = nullptr;
-    std::shared_ptr<engine::Model> m_model_ = nullptr;
+    Real Advance(Real time_now, Real time_dt);
 
 };  // class DomainBase
 
@@ -83,6 +87,10 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
     explicit Domain(Args &&... args) : DomainBase(std::forward<Args>(args)...), Policies<this_type>(this)... {}
 
    public:
+    void DoSetUp() override;
+    void DoUpdate() override;
+    void DoTearDown() override;
+
     void DoInitialCondition(Real time_now) override;
     void DoBoundaryCondition(Real time_now, Real dt) override;
     void DoAdvance(Real time_now, Real dt) override;
@@ -98,17 +106,17 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
 
     template <typename TL, typename TR, typename... Others>
     void FillRange(TL &lhs, TR &&rhs, Others &&... others) const {
-        GetMesh()->FillRange(lhs, std::forward<TR>(rhs), std::forward<Others>(others)...);
+        mesh()->FillRange(lhs, std::forward<TR>(rhs), std::forward<Others>(others)...);
     };
 
     template <typename TL, typename TR>
     void FillBody(TL &lhs, TR &&rhs) const {
-        GetMesh()->FillBody(lhs, std::forward<TR>(rhs), GetName());
+        mesh()->FillBody(lhs, std::forward<TR>(rhs), GetName());
     };
 
     template <typename TL, typename TR>
     void FillBoundary(TL &lhs, TR &&rhs) const {
-        GetMesh()->FillBoundary(lhs, std::forward<TR>(rhs), GetName());
+        mesh()->FillBoundary(lhs, std::forward<TR>(rhs), GetName());
     };
 
 };  // class Domain
@@ -129,6 +137,21 @@ void Domain<TM, Policies...>::Deserialize(std::shared_ptr<data::DataNode> const 
     DomainBase::Deserialize(cfg);
     traits::_try_invoke_Deserialize<Policies...>(this, cfg);
 };
+
+template <typename TM, template <typename> class... Policies>
+void Domain<TM, Policies...>::DoSetUp() {
+    if (GetMesh() == nullptr) { SetMesh(TM::New(this)); }
+    base_type::DoSetUp();
+};
+template <typename TM, template <typename> class... Policies>
+void Domain<TM, Policies...>::DoUpdate() {
+    base_type::DoUpdate();
+};
+template <typename TM, template <typename> class... Policies>
+void Domain<TM, Policies...>::DoTearDown() {
+    base_type::DoTearDown();
+};
+
 template <typename TM, template <typename> class... Policies>
 void Domain<TM, Policies...>::DoInitialCondition(Real time_now) {
     simpla::traits::_try_invoke_InitialCondition<Policies...>(this, time_now);

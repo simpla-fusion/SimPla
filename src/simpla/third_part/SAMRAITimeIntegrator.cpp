@@ -1053,7 +1053,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
         PushPatch(m_ctx_->Pop(), patch);
 
         //        m_ctx_->GetBaseMesh()->Deserialize(p.get());
-        //        VERBOSE << "DoInitialize MeshBase : " << m_ctx_->GetBaseMesh()->GetRegisterName() <<
+        //        VERBOSE << "DoSetUp MeshBase : " << m_ctx_->GetBaseMesh()->GetRegisterName() <<
         //        std::endl;
         //        m_ctx_->GetBaseMesh()->InitialCondition(data_time);
         //        for (auto const &item : m_ctx_->GetModel().GetAll()) {
@@ -1061,7 +1061,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
         //        }
         //
         //        for (auto &d : m_ctx_->GetAllDomains()) {
-        //            VERBOSE << "DoInitialize DomainBase : " << d.first ;
+        //            VERBOSE << "DoSetUp DomainBase : " << d.first ;
         //            d.m_node_->InitialCondition(p.get(), data_time);
         //        }
         //        m_ctx_->GetBaseMesh()->Serialize(p.get());
@@ -1196,7 +1196,7 @@ void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<data::DataNode> const &td
 
 void SAMRAITimeIntegrator::DoInitialize() {
     dcomplex a = std::numeric_limits<dcomplex>::signaling_NaN();
-    base_type::DoInitialize();
+    base_type::DoSetUp();
     /** Setup SAMRAI::tbox::MPI.      */
     SAMRAI::tbox::SAMRAI_MPI::init(*reinterpret_cast<MPI_Comm const *>(GLOBAL_COMM.comm()));  //
     SAMRAI::tbox::SAMRAIManager::initialize();

@@ -72,12 +72,7 @@ class Atlas : public EngineObject {
     SP_OBJECT_HEAD(Atlas, EngineObject)
 
    public:
-    size_type DeletePatch(id_type);
-    id_type SetPatch(const std::shared_ptr<MeshBlock> &mblk, const std::shared_ptr<data::DataNode> &p);
-    std::shared_ptr<data::DataNode> GetPatch(const std::shared_ptr<MeshBlock> &mblk);
-
-    std::shared_ptr<data::DataNode> GetPatch(id_type id) const;
-    std::shared_ptr<data::DataNode> GetPatch(id_type id);
+    int Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const &);
 
     //    int GetNumOfLevel() const;
 

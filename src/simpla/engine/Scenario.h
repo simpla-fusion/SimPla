@@ -18,8 +18,7 @@ class Scenario : public EngineObject {
     SP_OBJECT_HEAD(Scenario, EngineObject)
     virtual void TagRefinementCells(Real time_now);
     virtual void Dump();
-    void DoInitialize() override;
-    void DoFinalize() override;
+    void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;
 
@@ -62,6 +61,11 @@ class Scenario : public EngineObject {
     }
     std::map<std::string, std::shared_ptr<DomainBase>> &GetDomains();
     std::map<std::string, std::shared_ptr<DomainBase>> const &GetDomains() const;
+
+    size_type DeletePatch(id_type);
+    id_type SetPatch(id_type id, const std::shared_ptr<data::DataNode> &p);
+    std::shared_ptr<data::DataNode> GetPatch(id_type id) const;
+    std::shared_ptr<data::DataNode> GetPatch(id_type id);
 
     std::shared_ptr<data::DataNode> Pop() override;
     int Push(std::shared_ptr<data::DataNode> const &p) override;

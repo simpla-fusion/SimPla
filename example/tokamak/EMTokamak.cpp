@@ -38,7 +38,9 @@ int main(int argc, char** argv) {
     scenario->SetTimeNow(0);
     scenario->SetTimeEnd(1.0);
     scenario->SetTimeStep(0.1);
-    scenario->Update();
+
+    scenario->SetUp();
+
     TheStart();
     scenario->Run();
     TheEnd();

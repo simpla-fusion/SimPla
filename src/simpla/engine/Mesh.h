@@ -146,7 +146,7 @@ void Mesh<TM, Policies...>::TagRefinementRange(Range<EntityId> const &r) {
 };
 template <typename TChart, template <typename> class... Policies>
 void Mesh<TChart, Policies...>::DoInitialize() {
-    MeshBase::DoInitialize();
+    MeshBase::DoSetUp();
 };
 
 template <typename TChart, template <typename> class... Policies>

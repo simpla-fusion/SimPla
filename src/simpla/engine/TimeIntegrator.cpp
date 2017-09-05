@@ -28,10 +28,9 @@ Real TimeIntegrator::ComputeStableDtOnPatch(Real time_now, Real time_dt) {
     return time_dt;
 }
 
-Real TimeIntegrator::Advance(Real time_now, Real dt) {
+void TimeIntegrator::Advance(Real time_now, Real dt) {
     GetMesh()->Advance(time_now, dt);
     for (auto &d : GetDomains()) { d.second->Advance(time_now, dt); }
-    return time_now + dt;
 }
 void TimeIntegrator::CheckPoint() const {}
 
@@ -48,7 +47,8 @@ void TimeIntegrator::Run() {
     }
 }
 void TimeIntegrator::NextStep() {
-    SetTimeNow(Advance(GetTimeNow(), GetTimeStep()));
+    Advance(GetTimeNow(), GetTimeStep());
+    SetTimeNow(GetTimeNow() + GetTimeStep());
     SetStep(GetStep() + 1);
 }
 

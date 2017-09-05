@@ -37,10 +37,7 @@ SPObject::SPObject() : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_id_ = g_obj_hasher(g_uuid_generator());
     m_pimpl_->m_db_ = data::DataNode::New();
 }
-SPObject::~SPObject() {
-    //    Finalize();
-    delete m_pimpl_;
-}
+SPObject::~SPObject() { delete m_pimpl_; }
 // std::shared_ptr<SPObject> SPObject::GlobalNew(std::shared_ptr<data::DataNode> const &v) {
 //    std::shared_ptr<SPObject> res = nullptr;
 //    auto db = data::DataNode::New();
