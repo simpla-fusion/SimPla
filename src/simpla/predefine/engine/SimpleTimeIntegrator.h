@@ -11,10 +11,11 @@ class SimpleTimeIntegrator : public engine::TimeIntegrator {
     SP_OBJECT_HEAD(SimpleTimeIntegrator, engine::TimeIntegrator);
 
    public:
-    void DoInitialize() override;
-    void DoFinalize() override;
+    void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;
+
+    void Synchronize() override;
 
     void Advance(Real time_now, Real time_dt) override;
 };

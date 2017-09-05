@@ -60,6 +60,11 @@ void Scenario::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
 
     Click();
 }
+
+void Scenario::Synchronize() {}
+void Scenario::NextStep() {}
+void Scenario::Run() {}
+bool Done() const { return true; }
 void Scenario::Dump() {}
 
 void Scenario::DoSetUp() {

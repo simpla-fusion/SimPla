@@ -17,7 +17,14 @@ class Model;
 class Scenario : public EngineObject {
     SP_OBJECT_HEAD(Scenario, EngineObject)
     virtual void TagRefinementCells(Real time_now);
+
+    virtual void Synchronize();
+    virtual void NextStep();
+    virtual void Run();
+    virtual bool Done() const;
+
     virtual void Dump();
+
     void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;
@@ -67,8 +74,8 @@ class Scenario : public EngineObject {
     std::shared_ptr<data::DataNode> GetPatch(id_type id) const;
     std::shared_ptr<data::DataNode> GetPatch(id_type id);
 
-    std::shared_ptr<data::DataNode> Pop() override;
-    int Push(std::shared_ptr<data::DataNode> const &p) override;
+    //    std::shared_ptr<data::DataNode> Pop() override;
+    //    int Push(std::shared_ptr<data::DataNode> const &p) override;
 
    private:
     void SetMesh(std::shared_ptr<MeshBase> const &);

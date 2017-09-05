@@ -6,12 +6,14 @@
 #include "simpla/engine/Mesh.h"
 #include "simpla/engine/MeshBlock.h"
 namespace simpla {
-void SimpleTimeIntegrator::DoInitialize() { base_type::DoSetUp(); }
-void SimpleTimeIntegrator::DoFinalize() { base_type::DoFinalize(); }
+void SimpleTimeIntegrator::DoSetUp() { base_type::DoSetUp(); }
 void SimpleTimeIntegrator::DoUpdate() { base_type::DoUpdate(); }
 void SimpleTimeIntegrator::DoTearDown() { base_type::DoTearDown(); }
 
+void SimpleTimeIntegrator::Synchronize() { Update(); }
+
 void SimpleTimeIntegrator::Advance(Real time_now, Real time_dt) {
+    Update();
     GetAtlas()->Foreach([&](std::shared_ptr<engine::MeshBlock> const &blk) {
         auto p = GetPatch(blk->GetGUID());
 
