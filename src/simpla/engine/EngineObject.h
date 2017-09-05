@@ -44,6 +44,9 @@ class EngineObject : public SPObject {
     void Update();
     void TearDown();
 
+    virtual int Push(std::shared_ptr<data::DataNode> const &);
+    virtual std::shared_ptr<data::DataNode> Pop();
+
    private:
     struct pimpl_s;
     pimpl_s *m_pimpl_;

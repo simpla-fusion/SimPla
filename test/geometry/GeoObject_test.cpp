@@ -19,7 +19,7 @@ DummyGeoObject::DummyGeoObject() = default;
 DummyGeoObject::~DummyGeoObject() = default;
 
 std::shared_ptr<simpla::data::DataNode> DummyGeoObject::Serialize() const { return base_type::Serialize(); };
-void DummyGeoObject::Deserialize(std::shared_ptr<const data::DataNode> const& cfg) { base_type::Deserialize(cfg); };
+void DummyGeoObject::Deserialize(std::shared_ptr<data::DataNode> const& cfg) { base_type::Deserialize(cfg); };
 SP_OBJECT_REGISTER(DummyGeoObject)
 TEST(SPObject, Dummy) {
     auto objA = DummyGeoObject::New();

@@ -22,14 +22,16 @@ class Scenario : public EngineObject {
     void DoUpdate() override;
     void DoTearDown() override;
 
-    template <typename TD, typename... Args>
-    std::shared_ptr<MeshBase> SetMesh(Args &&... args) {
-        SetMesh(TD::New(std::forward<Args>(args)...));
-        return GetMesh();
+    template <typename TM, typename... Args>
+    std::shared_ptr<TM> SetMesh(Args &&... args) {
+        auto p = TM::New(std::forward<Args>(args)...);
+        SetMesh(p);
+        return p;
     };
     std::shared_ptr<MeshBase> GetMesh() const;
+
     std::shared_ptr<Atlas> GetAtlas() const;
-    index_box_type GetIndexBox() const;
+
     std::shared_ptr<Model> AddModel(std::string const &k, std::shared_ptr<Model> m);
     template <typename U, typename... Args>
     std::shared_ptr<U> AddModel(std::string const &k, Args &&... args) {
@@ -38,6 +40,10 @@ class Scenario : public EngineObject {
         return res;
     };
     std::shared_ptr<Model> GetModel(std::string const &k) const;
+    template <typename U>
+    std::shared_ptr<U> GetModelAs(std::string const &k) const {
+        return std::dynamic_pointer_cast<U>(GetModel(k));
+    }
 
     std::shared_ptr<DomainBase> SetDomain(std::string const &k, std::shared_ptr<DomainBase> d);
     template <typename U, typename... Args>
@@ -48,9 +54,13 @@ class Scenario : public EngineObject {
         return res;
     };
     std::shared_ptr<DomainBase> GetDomain(std::string const &k) const;
+    template <typename U>
+    std::shared_ptr<U> GetDomainAs(std::string const &k) const {
+        return std::dynamic_pointer_cast<U>(GetDomain(k));
+    }
 
-    void Pop(std::shared_ptr<Patch> &p);
-    void Push(std::shared_ptr<Patch> &p);
+    std::shared_ptr<data::DataNode> Pop() override;
+    int Push(std::shared_ptr<data::DataNode> const &p) override;
 
     virtual void InitialCondition(Real time_now);
     virtual void BoundaryCondition(Real time_now, Real dt);

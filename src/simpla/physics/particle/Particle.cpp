@@ -40,14 +40,17 @@ void ParticleBase::DoFinalize() {
     m_pimpl_ = nullptr;
 }
 std::shared_ptr<simpla::data::DataNode> ParticleBase::Serialize() const { return base_type::Serialize(); }
-void ParticleBase::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) { base_type::Deserialize(cfg); }
-void ParticleBase::Push(std::shared_ptr<data::DataBlock> const& dblk) {
+void ParticleBase::Deserialize(std::shared_ptr<data::DataNode> const& cfg) { base_type::Deserialize(cfg); }
+int ParticleBase::Push(std::shared_ptr<data::DataNode> const& dblk) {
+    Initialize();
     engine::Attribute::Push(dblk);
-    m_pimpl_->m_data_block_ = std::dynamic_pointer_cast<ParticleData>(GetDataBlock());
+    Update();
+    return 0;
 }
-std::shared_ptr<data::DataBlock> ParticleBase::Pop() {
-    m_pimpl_->m_data_block_ = nullptr;
-    return engine::Attribute::Pop();
+std::shared_ptr<data::DataNode> ParticleBase::Pop() {
+    auto res = engine::Attribute::Pop();
+    TearDown();
+    return res;
 }
 void ParticleBase::SetNumberOfAttributes(int n) { m_pimpl_->m_num_of_attr_ = n; }
 int ParticleBase::GetNumberOfAttributes() const { return m_pimpl_->m_num_of_attr_; }

@@ -15,7 +15,7 @@ std::shared_ptr<simpla::data::DataNode> Cylindrical::Serialize() const {
     }
     return cfg;
 };
-void Cylindrical::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) {
+void Cylindrical::Deserialize(std::shared_ptr<data::DataNode>const & cfg) {
     base_type::Deserialize(cfg);
     if (cfg != nullptr) {
         m_axe0_ = cfg->GetValue("Axe0", m_axe0_);

@@ -21,16 +21,7 @@ struct Scenario::pimpl_s {
     std::map<std::string, std::shared_ptr<DomainBase>> m_domains_;
 };
 
-Scenario::Scenario() : m_pimpl_(new pimpl_s) {
-    PreUpdate.Connect([](SPObject *p) {
-        if (auto self = dynamic_cast<Scenario *>(p)) {
-            self->m_pimpl_->m_mesh_->Update();
-            self->m_pimpl_->m_atlas_->Update();
-            for (auto &item : self->m_pimpl_->m_models_) { item.second->Update(); }
-            for (auto &item : self->m_pimpl_->m_domains_) { item.second->Update(); }
-        }
-    });
-}
+Scenario::Scenario() : m_pimpl_(new pimpl_s) {}
 Scenario::~Scenario() { delete m_pimpl_; }
 
 std::shared_ptr<data::DataNode> Scenario::Serialize() const {
@@ -49,19 +40,19 @@ std::shared_ptr<data::DataNode> Scenario::Serialize() const {
     return cfg;
 }
 
-void Scenario::Deserialize(std::shared_ptr<const data::DataNode> const &cfg) {
+void Scenario::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     DoInitialize();
     base_type::Deserialize(cfg);
     SetMesh(MeshBase::New(cfg->Get("Mesh")));
     m_pimpl_->m_atlas_ = Atlas::New(cfg->Get("Atlas"));
 
     if (auto model = cfg->Get("Model")) {
-        model->Foreach([&](std::string key, std::shared_ptr<const data::DataNode> node) {
+        model->Foreach([&](std::string key, std::shared_ptr<data::DataNode> node) {
             return AddModel(key, Model::New(node)) != nullptr ? 1 : 0;
         });
     }
     if (auto domain = cfg->Get("Domain")) {
-        domain->Foreach([&](std::string key, std::shared_ptr<const data::DataNode> node) {
+        domain->Foreach([&](std::string key, std::shared_ptr<data::DataNode> node) {
             if (auto p = SetDomain(key, DomainBase::New(m_pimpl_->m_mesh_, GetModel(key)))) { p->Deserialize(node); };
             return 1;
         });
@@ -85,8 +76,20 @@ void Scenario::DoFinalize() {
     m_pimpl_->m_mesh_.reset();
     base_type::DoFinalize();
 }
-void Scenario::DoTearDown() { base_type::DoTearDown(); }
-void Scenario::DoUpdate() { base_type::DoUpdate(); }
+void Scenario::DoTearDown() {
+    for (auto &item : m_pimpl_->m_domains_) { item.second->TearDown(); }
+    for (auto &item : m_pimpl_->m_models_) { item.second->TearDown(); }
+    m_pimpl_->m_atlas_->Update();
+    m_pimpl_->m_mesh_->Update();
+    base_type::DoTearDown();
+}
+void Scenario::DoUpdate() {
+    base_type::DoUpdate();
+    m_pimpl_->m_mesh_->Update();
+    m_pimpl_->m_atlas_->Update();
+    for (auto &item : m_pimpl_->m_models_) { item.second->Update(); }
+    for (auto &item : m_pimpl_->m_domains_) { item.second->Update(); }
+}
 
 std::shared_ptr<Atlas> Scenario::GetAtlas() const { return m_pimpl_->m_atlas_; }
 
@@ -111,8 +114,8 @@ std::shared_ptr<DomainBase> Scenario::GetDomain(std::string const &k) const {
     return (it == m_pimpl_->m_domains_.end()) ? nullptr : it->second;
 }
 
-void Scenario::Pop(std::shared_ptr<Patch> &p) { GetMesh()->Pop(p); };
-void Scenario::Push(std::shared_ptr<Patch> &p) { GetMesh()->Push(p); };
+std::shared_ptr<data::DataNode> Scenario::Pop() { return GetMesh()->Pop(); };
+int Scenario::Push(std::shared_ptr<data::DataNode> const &p) { return GetMesh()->Push(p); };
 
 void Scenario::InitialCondition(Real time_now) {
     GetMesh()->InitialCondition(time_now);

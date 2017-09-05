@@ -16,7 +16,7 @@ std::shared_ptr<data::DataNode> RevolveZ::Serialize() const {
 
     return tdb;
 };
-void RevolveZ::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) { base_type::Deserialize(cfg); }
+void RevolveZ::Deserialize(std::shared_ptr<data::DataNode>const & cfg) { base_type::Deserialize(cfg); }
 
 }  // namespace geometry
 }  // namespace simpla

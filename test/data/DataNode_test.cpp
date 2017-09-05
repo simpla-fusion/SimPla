@@ -57,7 +57,7 @@ class DataBaseTest : public testing::TestWithParam<std::string> {
 
    public:
     virtual ~DataBaseTest() {}
-    std::shared_ptr<DataNode> db = nullptr;
+    std::shared_ptr<data::DataNode> db = nullptr;
     std::string m_url;
 };
 

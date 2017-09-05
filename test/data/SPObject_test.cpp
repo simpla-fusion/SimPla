@@ -17,7 +17,7 @@ DummyObject::DummyObject() = default;
 DummyObject::~DummyObject() = default;
 
 std::shared_ptr<simpla::data::DataNode> DummyObject::Serialize() const { return base_type::Serialize(); };
-void DummyObject::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) { base_type::Deserialize(cfg); };
+void DummyObject::Deserialize(std::shared_ptr<data::DataNode>const & cfg) { base_type::Deserialize(cfg); };
 SP_OBJECT_REGISTER(DummyObject)
 TEST(SPObject, Dummy) {
     auto objA = DummyObject::New();

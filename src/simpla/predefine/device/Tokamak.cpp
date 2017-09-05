@@ -27,7 +27,7 @@ Tokamak::Tokamak(std::string const &gfile) : Tokamak() { LoadGFile(gfile); }
 
 std::shared_ptr<data::DataNode> Tokamak::Serialize() const { return base_type::Serialize(); }
 
-void Tokamak::Deserialize(std::shared_ptr<const data::DataNode> const &tdb) {
+void Tokamak::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
     base_type::Deserialize(tdb);
     if (tdb != nullptr) {
         nTuple<Real, 2> phi = tdb->GetValue("Phi", nTuple<Real, 2>{0, TWOPI});

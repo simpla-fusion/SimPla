@@ -46,21 +46,14 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
    public:
     typedef TV value_type;
     typedef TM mesh_type;
-    typedef typename engine::Attribute attribute_type;
-    typedef Array<value_type> array_type;
 
     static constexpr int iform = IFORM;
     static constexpr int NUM_OF_SUB = (IFORM == NODE || IFORM == CELL) ? 1 : 3;
-
-   private:
-    nTuple<array_type, NUM_OF_SUB, DOF...> m_data_;
-    mesh_type const* m_host_ = nullptr;
+    TM* m_host_;
 
    public:
     template <typename... Args>
-    Field(mesh_type* grp, Args&&... args) : base_type(grp, std::forward<Args>(args)...), m_host_(grp) {
-        base_type::Register(dynamic_cast<engine::AttributeGroup*>(grp));
-    }
+    explicit Field(TM* m, Args&&... args) : base_type(m, std::forward<Args>(args)...), m_host_(m) {}
     ~Field() override = default;
 
     Field(Field const& other) = delete;
@@ -70,60 +63,20 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
     static std::shared_ptr<this_type> New(Args&&... args) {
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
     }
-    std::type_info const& value_type_info() const override { return typeid(value_type); };
-    int GetIFORM() const override { return IFORM; };
-    int GetDOF() const override { return reduction_v(tags::multiplication(), 1, DOF...); };
-    void SetDOF(int d) override { RUNTIME_ERROR << "Can not change DOF of Field!" << std::endl; };
+    std::shared_ptr<this_type> Duplicate() const { return std::shared_ptr<this_type>(new this_type(m_host_)); }
 
-    void DoInitialize() override {
+    void DoUpdate() override {
         if (base_type::isNull()) {
-            m_host_->GetMesh()->template initialize_data<IFORM>(&m_data_);
+            //            m_host_->GetMesh()->template initialize_data<IFORM>(&m_data_);
         } else {
-            PushData(&m_data_);
+            //            PushData(&m_data_);
         }
-
-        traits::foreach (m_data_, [&](auto& a, auto&&... s) { a.Initialize(); });
+        //        traits::foreach (m_data_, [&](auto& a, auto&&... s) { a.Initialize(); });
     }
-
-    void DoFinalize() override {
-        PopData(&m_data_);
-        traits::foreach (m_data_, [&](auto& a, auto&&... s) { a.Finalize(); });
+    void DoTearDown() override {
+        //        PopData(&m_data_);
+        //        traits::foreach (m_data_, [&](auto& a, auto&&... s) { a.Finalize(); });
     }
-
-    void PushData(nTuple<array_type, NUM_OF_SUB, DOF...>* d){
-        //        auto blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
-        //        if (blk != nullptr) {
-        //            int count = 0;
-        //            traits::foreach (*d, [&](array_type& a, auto&&... idx) {
-        //                array_type(*blk->Get(count)).swap(a);
-        //                ++count;
-        //            });
-        //        }
-        //        Tag();
-    };
-    void PopData(nTuple<array_type, NUM_OF_SUB, DOF...>* d) {
-        //        auto blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
-        //        if (blk == nullptr) {
-        //            Push(data::DataMultiArray<array_type>::New(d->size()));
-        //            blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
-        //        }
-        //        int count = 0;
-        //        traits::foreach (*d, [&](array_type& a, auto&&... idx) {
-        //            array_type(a).swap(*blk->Get(count));
-        //            a.reset();
-        //            ++count;
-        //        });
-        base_type::ResetTag();
-    };
-    //    void swap(this_type& other) {
-    //        base_type::swap(other);
-    //        m_data_.swap(other.m_data_);
-    //        std::swap(m_host_, other.m_host_);
-    //    }
-
-    auto& Get() { return m_data_; }
-    auto const& Get() const { return m_data_; }
-
     template <typename Other>
     void Set(Other&& v) {
         base_type::Update();
@@ -133,10 +86,10 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
     template <typename MR, typename UR, int... NR>
     void DeepCopy(Field<MR, UR, NR...> const& other) {
         base_type::Update();
-        m_data_ = other.Get();
+        //        m_data_ = other.Get();
     }
     void Clear() override {
-        traits::foreach (m_data_, [&](auto& a, auto&&... s) { a.Clear(); });
+        //        traits::foreach (m_data_, [&](auto& a, auto&&... s) { a.Clear(); });
     }
 
     this_type& operator=(this_type const& other) {
@@ -151,11 +104,11 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
 
     template <typename... Args>
     auto& Get(index_type i0, Args&&... args) {
-        return m_data_.at(i0, std::forward<Args>(args)...);
+        return base_type::m_data_[i0].at(std::forward<Args>(args)...);
     }
     template <typename... Args>
     auto const& Get(index_type i0, Args&&... args) const {
-        return m_data_.at(i0, std::forward<Args>(args)...);
+        return base_type::m_data_[i0].at(std::forward<Args>(args)...);
     }
 
     //    template <typename U, typename... Args>
@@ -181,16 +134,15 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
         return Get(n0, std::forward<Args>(args)...);
     }
 
-    auto& operator[](int n) { return m_data_[n]; }
-    auto const& operator[](int n) const { return m_data_[n]; }
+    //    using operator[];
 
     auto& operator[](EntityId s) {
-        return traits::recursive_index(m_data_[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]], s.w >> 3)(s.x, s.y,
-                                                                                                          s.z);
+        return traits::recursive_index(base_type::m_data_[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]], s.w >> 3)(
+            s.x, s.y, s.z);
     }
     auto const& operator[](EntityId s) const {
-        return traits::recursive_index(m_data_[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]], s.w >> 3)(s.x, s.y,
-                                                                                                          s.z);
+        return traits::recursive_index(base_type::m_data_[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]], s.w >> 3)(
+            s.x, s.y, s.z);
     }
 
     //*****************************************************************************************************************

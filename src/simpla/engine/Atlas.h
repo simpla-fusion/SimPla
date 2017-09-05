@@ -75,10 +75,10 @@ class Atlas : public EngineObject {
 
    public:
     size_type DeletePatch(id_type);
-    id_type SetPatch(const std::shared_ptr<Patch> &p);
-    std::shared_ptr<Patch> GetPatch(id_type id);
-    std::shared_ptr<Patch> GetPatch(const std::shared_ptr<MeshBlock> &mblk);
-    std::shared_ptr<const Patch> GetPatch(id_type id) const;
+    id_type SetPatch(const std::shared_ptr<data::DataNode> &p);
+    std::shared_ptr<data::DataNode> GetPatch(id_type id);
+    std::shared_ptr<data::DataNode> GetPatch(const std::shared_ptr<MeshBlock> &mblk);
+    std::shared_ptr<data::DataNode> GetPatch(id_type id) const;
 
 //    int GetNumOfLevel() const;
 

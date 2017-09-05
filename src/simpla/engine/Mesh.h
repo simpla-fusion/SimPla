@@ -67,12 +67,8 @@ struct MeshBase : public EngineObject, public AttributeGroup {
     void Advance(Real time_now, Real dt);
     void TagRefinementCells(Real time_now);
 
-    void Pop(const std::shared_ptr<Patch> &p) override;
-    void Push(const std::shared_ptr<Patch> &p) override;
-
-    void InitialCondition(const std::shared_ptr<Patch> &patch, Real time_now);
-    void BoundaryCondition(const std::shared_ptr<Patch> &patch, Real time_now, Real dt);
-    void Advance(const std::shared_ptr<Patch> &patch, Real time_now, Real dt);
+    std::shared_ptr<data::DataNode> Pop() override;
+    int Push(const std::shared_ptr<data::DataNode> &p) override;
 
     void SetRange(std::string const &, Range<EntityId> const &);
     Range<EntityId> &GetRange(std::string const &k);
@@ -184,7 +180,7 @@ std::shared_ptr<data::DataNode> Mesh<TM, Policies...>::Serialize() const {
     return tdb;
 };
 template <typename TM, template <typename> class... Policies>
-void Mesh<TM, Policies...>::Deserialize(std::shared_ptr<const data::DataNode> const &cfg) {
+void Mesh<TM, Policies...>::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
     traits::_try_invoke_Deserialize<Policies...>(this, cfg);
 };

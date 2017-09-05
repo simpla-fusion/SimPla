@@ -14,7 +14,7 @@ GeoObject::GeoObject() = default;
 GeoObject::~GeoObject() = default;
 
 std::shared_ptr<data::DataNode> GeoObject::Serialize() const { return base_type::Serialize(); }
-void GeoObject::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) { base_type::Deserialize(cfg); }
+void GeoObject::Deserialize(std::shared_ptr<data::DataNode>const & cfg) { base_type::Deserialize(cfg); }
 
 box_type GeoObject::BoundingBox() const { return box_type{{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}; }
 

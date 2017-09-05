@@ -25,7 +25,7 @@ std::shared_ptr<data::DataNode> Chart::Serialize() const {
     }
     return tdb;
 }
-void Chart::Deserialize(std::shared_ptr<const data::DataNode>const & tdb) {
+void Chart::Deserialize(std::shared_ptr<data::DataNode>const & tdb) {
     if (tdb != nullptr) {
         m_origin_ = tdb->GetValue<point_type>("Origin", m_origin_);
         m_scale_ = tdb->GetValue<point_type>("Scale", m_scale_);

@@ -18,17 +18,7 @@
 #include "simpla/predefine/physics/PICBoris.h"
 #include "simpla/scheme/FVM.h"
 namespace simpla {
-
 typedef engine::Mesh<geometry::csCylindrical, mesh::RectMesh, mesh::EBMesh, scheme::FVM> mesh_type;
-
-// static bool _required_module_are_registered_ =                    //
-//    RegisterCreator<Tokamak>() &&                                 //
-//    RegisterCreator<mesh_type>() &&                               //
-//    RegisterCreator<engine::Domain<mesh_type, ICRFAntenna>>() &&  //
-//    RegisterCreator<engine::Domain<mesh_type, EMFluid>>() &&      //
-//    RegisterCreator<engine::Domain<mesh_type, PICBoris>>() &&     //
-//    RegisterCreator<engine::Domain<mesh_type, Maxwell>>();
-//
 }  // namespace simpla {
 
 using namespace simpla;
@@ -39,11 +29,12 @@ int main(int argc, char** argv) {
     auto scenario = SAMRAITimeIntegrator::New();
 
     scenario->SetMesh<mesh_type>();
+    scenario->GetMesh()->GetChart()->SetScale({1, 1, 1});
+
     scenario->AddModel<Tokamak>("EAST", "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
     scenario->SetDomain<Domain<mesh_type, Maxwell>>("EAST.Limiter");
     scenario->SetDomain<Domain<mesh_type, EMFluid>>("EAST.Plasma");
 
-    scenario->GetMesh()->GetChart()->SetScale({1, 1, 1});
     scenario->SetTimeNow(0);
     scenario->SetTimeEnd(1.0);
     scenario->SetTimeStep(0.1);
@@ -52,6 +43,4 @@ int main(int argc, char** argv) {
     scenario->Run();
     TheEnd();
     std::cout << *scenario << std::endl;
-
-    //    scenario->Run();
 }

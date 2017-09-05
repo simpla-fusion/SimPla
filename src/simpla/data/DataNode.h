@@ -20,11 +20,11 @@ class DataEntity;
 class KeyValue;
 class DataNode;
 template <typename U>
-size_type CopyFromData(U& dst, std::shared_ptr<const DataNode> const& src);
+size_type CopyFromData(U& dst, std::shared_ptr<DataNode> const& src);
 template <typename U>
 size_type CopyToData(std::shared_ptr<DataNode> dst, U const& src);
 template <typename U>
-bool EqualTo(U const& dst, std::shared_ptr<const DataNode> const& src);
+bool EqualTo(U const& dst, std::shared_ptr<DataNode> const& src);
 
 class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<DataNode> {
    public:
@@ -74,23 +74,32 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     virtual size_type size() const;
     virtual bool empty() const { return size() == 0; }
 
-    virtual size_type Set(std::string const& uri, const std::shared_ptr<const DataNode>& v);
-    virtual size_type Add(std::string const& uri, const std::shared_ptr<const DataNode>& v);
+    virtual size_type Set(std::string const& uri, const std::shared_ptr<DataNode>& v);
+    virtual size_type Add(std::string const& uri, const std::shared_ptr<DataNode>& v);
     virtual size_type Delete(std::string const& s);
-    virtual std::shared_ptr<const DataNode> Get(std::string const& uri) const;
+    virtual std::shared_ptr<DataNode> Get(std::string const& uri) const;
     virtual size_type Foreach(
-        std::function<size_type(std::string, std::shared_ptr<const DataNode> const&)> const& f) const;
+        std::function<size_type(std::string, std::shared_ptr<DataNode> const&)> const& f) const;
 
-    virtual size_type Set(index_type s, const std::shared_ptr<const DataNode>& v);
-    virtual size_type Add(index_type s, const std::shared_ptr<const DataNode>& v);
+    virtual size_type Set(index_type s, const std::shared_ptr<DataNode>& v);
+    virtual size_type Add(index_type s, const std::shared_ptr<DataNode>& v);
     virtual size_type Delete(index_type s);
-    virtual std::shared_ptr<const DataNode> Get(index_type s) const;
+    virtual std::shared_ptr<DataNode> Get(index_type s) const;
 
-    virtual size_type Add(const std::shared_ptr<const DataNode>& v);
-    virtual size_type Set(const std::shared_ptr<const DataNode>& v);
-    virtual size_type SetValue(const std::shared_ptr<const DataNode>& v) { return Set(v); }
-    virtual size_type AddValue(const std::shared_ptr<const DataNode>& v) { return Add(v); }
-
+    virtual size_type Add(const std::shared_ptr<DataNode>& v);
+    virtual size_type Set(const std::shared_ptr<DataNode>& v);
+    virtual size_type SetValue(const std::shared_ptr<DataNode>& v) { return Set(v); }
+    virtual size_type AddValue(const std::shared_ptr<DataNode>& v) { return Add(v); }
+    size_type Set(std::string const& uri, const std::shared_ptr<DataEntity>& v) {
+        auto p = CreateNode(DN_ENTITY);
+        p->SetEntity(v);
+        return Set(uri, p);
+    }
+    size_type Set(index_type s, const std::shared_ptr<DataEntity>& v) {
+        auto p = CreateNode(DN_ENTITY);
+        p->SetEntity(v);
+        return Set(s, p);
+    }
     /**@ } */
 
     /** @addtogroup optional @{*/
@@ -299,21 +308,21 @@ inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue(std
                                                                                                               \
     size_type size() const override;                                                                          \
                                                                                                               \
-    size_type Set(std::string const& uri, std::shared_ptr<const DataNode> const& v) override;                 \
-    size_type Add(std::string const& uri, std::shared_ptr<const DataNode> const& v) override;                 \
+    size_type Set(std::string const& uri, std::shared_ptr<DataNode> const& v) override;                 \
+    size_type Add(std::string const& uri, std::shared_ptr<DataNode> const& v) override;                 \
     size_type Delete(std::string const& s) override;                                                          \
-    std::shared_ptr<const DataNode> Get(std::string const& uri) const override;                               \
-    size_type Foreach(std::function<size_type(std::string, std::shared_ptr<const DataNode> const&)> const& f) \
+    std::shared_ptr<DataNode> Get(std::string const& uri) const override;                               \
+    size_type Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode> const&)> const& f) \
         const override;                                                                                       \
                                                                                                               \
-    size_type Set(index_type s, std::shared_ptr<const DataNode> const& v) override;                           \
-    size_type Add(index_type s, std::shared_ptr<const DataNode> const& v) override;                           \
+    size_type Set(index_type s, std::shared_ptr<DataNode> const& v) override;                           \
+    size_type Add(index_type s, std::shared_ptr<DataNode> const& v) override;                           \
     size_type Delete(index_type s) override;                                                                  \
-    std::shared_ptr<const DataNode> Get(index_type s) const override;
+    std::shared_ptr<DataNode> Get(index_type s) const override;
 
 namespace detail {
 template <typename U>
-size_type _CopyFromData(U& dst, std::shared_ptr<const DataNode> const& src, ENABLE_IF(std::rank<U>::value == 0)) {
+size_type _CopyFromData(U& dst, std::shared_ptr<DataNode> const& src, ENABLE_IF(std::rank<U>::value == 0)) {
     static auto snan = std::numeric_limits<U>::signaling_NaN();
 
     if (src == nullptr) {
@@ -343,7 +352,7 @@ size_type _CopyFromData(U& dst, std::shared_ptr<const DataNode> const& src, ENAB
 };
 
 template <typename U>
-size_type _CopyFromData(U& dst, std::shared_ptr<const DataNode> const& src, ENABLE_IF((std::rank<U>::value > 0))) {
+size_type _CopyFromData(U& dst, std::shared_ptr<DataNode> const& src, ENABLE_IF((std::rank<U>::value > 0))) {
     static auto snan = std::numeric_limits<traits::value_type_t<U>>::signaling_NaN();
     if (src == nullptr) {
         dst = snan;
@@ -423,7 +432,7 @@ size_type _CopyToData(std::shared_ptr<DataNode> dst, U const& src, ENABLE_IF((st
 };
 
 template <typename U>
-bool _CompareToData(U const& dst, std::shared_ptr<const DataNode> const& src, ENABLE_IF(std::rank<U>::value == 0)) {
+bool _CompareToData(U const& dst, std::shared_ptr<DataNode> const& src, ENABLE_IF(std::rank<U>::value == 0)) {
     if (src == nullptr) { return false; }
     bool res;
     switch (src->type()) {
@@ -446,7 +455,7 @@ bool _CompareToData(U const& dst, std::shared_ptr<const DataNode> const& src, EN
 };
 
 template <typename U>
-bool _CompareToData(U const& dst, std::shared_ptr<const DataNode> const& src, ENABLE_IF((std::rank<U>::value > 0))) {
+bool _CompareToData(U const& dst, std::shared_ptr<DataNode> const& src, ENABLE_IF((std::rank<U>::value > 0))) {
     if (src == nullptr) { return 0; }
     bool res = true;
     static auto snan = std::numeric_limits<traits::value_type_t<U>>::signaling_NaN();
@@ -473,7 +482,7 @@ bool _CompareToData(U const& dst, std::shared_ptr<const DataNode> const& src, EN
 };
 }  // namespace detail
 template <typename U>
-size_type CopyFromData(U& dst, std::shared_ptr<const DataNode> const& src) {
+size_type CopyFromData(U& dst, std::shared_ptr<DataNode> const& src) {
     return detail::_CopyFromData(dst, src);
 }
 template <typename U>
@@ -481,7 +490,7 @@ size_type CopyToData(std::shared_ptr<DataNode> dst, U const& src) {
     return detail::_CopyToData(dst, src);
 }
 template <typename U>
-bool EqualTo(U const& dst, std::shared_ptr<const DataNode> const& src) {
+bool EqualTo(U const& dst, std::shared_ptr<DataNode> const& src) {
     return detail::_CompareToData(dst, src);
 }
 
@@ -502,13 +511,13 @@ bool EqualTo(U const& dst, std::shared_ptr<const DataNode> const& src) {
 //        return count;
 //    };
 //    template <typename U>
-//    static bool _isEqualTo(U const& left, std::shared_ptr<const DataNode> const& right,
+//    static bool _isEqualTo(U const& left, std::shared_ptr<DataNode> const& right,
 //                           ENABLE_IF(std::rank<U>::value == 0)) {
 //        return right != nullptr && right->GetEntity() != nullptr;
 //    };
 //
 //    template <typename U>
-//    static bool _isEqualTo(U const& left, std::shared_ptr<const DataNode> const& right,
+//    static bool _isEqualTo(U const& left, std::shared_ptr<DataNode> const& right,
 //                           ENABLE_IF((std::rank<U>::value > 0))) {
 //        bool res = true;
 //        for (size_type i = 0; res && i < std::extent<U, 0>::value; ++i) {

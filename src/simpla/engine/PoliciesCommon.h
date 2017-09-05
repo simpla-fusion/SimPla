@@ -20,7 +20,7 @@
     _NAME_ &operator=(_NAME_ &&other) = delete;                    \
     static std::string RegisterName() { return __STRING(_NAME_); } \
     std::shared_ptr<data::DataNode> Serialize() const;             \
-    void Deserialize(std::shared_ptr<const data::DataNode>const & cfg);
+    void Deserialize(std::shared_ptr<data::DataNode>const & cfg);
 
 #define DEFINE_INVOKE_HELPER(_FUN_NAME_)                                                                           \
     CHECK_MEMBER_FUNCTION(has_mem_fun_##_FUN_NAME_, _FUN_NAME_)                                                    \

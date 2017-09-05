@@ -14,7 +14,7 @@ std::shared_ptr<data::DataNode> Sphere::Serialize() const {
     tdb->SetValue("Radius", m_radius_);
     return tdb;
 };
-void Sphere::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) {
+void Sphere::Deserialize(std::shared_ptr<data::DataNode>const & cfg) {
     base_type::Deserialize(cfg);
     m_origin_ = db()->GetValue("Origin", m_origin_);
     m_radius_ = db()->GetValue("Radius", m_radius_);

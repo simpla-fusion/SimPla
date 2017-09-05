@@ -766,9 +766,9 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
     SAMRAI::hier::IntVector d_nghosts;
     SAMRAI::hier::IntVector d_fluxghosts;
 
-    std::shared_ptr<engine::Patch> GetPatch(SAMRAI::hier::Patch &patch);
-    void PopPatch(SAMRAI::hier::Patch &patch, const std::shared_ptr<engine::Patch> &p);
-    void PushPatch(const std::shared_ptr<engine::Patch> &p, SAMRAI::hier::Patch &patch);
+    std::shared_ptr<data::DataNode> GetPatch(SAMRAI::hier::Patch &patch);
+    std::shared_ptr<data::DataNode> PopPatch(SAMRAI::hier::Patch &patch);
+    void PushPatch(const std::shared_ptr<data::DataNode> &p, SAMRAI::hier::Patch &patch);
 };
 
 SAMRAIHyperbolicPatchStrategyAdapter::SAMRAIHyperbolicPatchStrategyAdapter(
@@ -877,15 +877,14 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     vardb->printClassData(std::cout);
 }
 
-std::shared_ptr<engine::Patch> SAMRAIHyperbolicPatchStrategyAdapter::GetPatch(SAMRAI::hier::Patch &patch) {
+std::shared_ptr<data::DataNode> SAMRAIHyperbolicPatchStrategyAdapter::GetPatch(SAMRAI::hier::Patch &patch) {
     return GetAtlas()->GetPatch(engine::MeshBlock::New(
         index_box_type{{patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]},
                        {patch.getBox().upper()[0] + 1, patch.getBox().upper()[1] + 1, patch.getBox().upper()[2] + 1}},
         patch.getLocalId().getValue(), patch.getPatchLevelNumber(), patch.getGlobalId().getOwnerRank()));
 }
 
-void SAMRAIHyperbolicPatchStrategyAdapter::PopPatch(SAMRAI::hier::Patch &patch,
-                                                    const std::shared_ptr<engine::Patch> &p) {
+std::shared_ptr<data::DataNode> SAMRAIHyperbolicPatchStrategyAdapter::PopPatch(SAMRAI::hier::Patch &patch) {
     for (auto &item : m_samrai_variables_) {
         auto samrai_id = SAMRAI::hier::VariableDatabase::getDatabase()->mapVariableAndContextToIndex(item.second.second,
                                                                                                      getDataContext());
@@ -893,16 +892,19 @@ void SAMRAIHyperbolicPatchStrategyAdapter::PopPatch(SAMRAI::hier::Patch &patch,
         //        if (!patch.checkAllocated(samrai_id)) { patch.allocatePatchData(samrai_id); }
         auto addr = patch.getPatchData(samrai_id);
         std::shared_ptr<data::DataBlock> blk = nullptr;
-        if (detail::ConvertDataBlock(addr.get(), &blk)) { p->SetDataBlock(item.first, blk); }
+        //        if (detail::ConvertDataBlock(addr.get(), &blk)) { p->SetDataBlock(item.first, blk); }
     }
+    FIXME;
+    return nullptr;
 }
-void SAMRAIHyperbolicPatchStrategyAdapter::PushPatch(const std::shared_ptr<engine::Patch> &p,
+void SAMRAIHyperbolicPatchStrategyAdapter::PushPatch(const std::shared_ptr<data::DataNode> &p,
                                                      SAMRAI::hier::Patch &patch) {
     for (auto &item : m_samrai_variables_) {
         auto samrai_id = SAMRAI::hier::VariableDatabase::getDatabase()->mapVariableAndContextToIndex(item.second.second,
                                                                                                      getDataContext());
         auto dst = patch.getPatchData(samrai_id);
-        if (detail::ConvertDataBlock(p->GetDataBlock(item.first), dst.get())) { patch.setPatchData(samrai_id, dst); };
+        //        if (detail::ConvertDataBlock(p->GetDataBlock(item.first), dst.get())) { patch.setPatchData(samrai_id,
+        //        dst); };
     }
 }
 
@@ -932,8 +934,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setupLoadBalancer(SAMRAI::algs::Hyper
 void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::Patch &patch, double data_time,
                                                                  bool initial_time) {
     if (initial_time) {
-        auto p = GetPatch(patch);
-        PopPatch(patch, p);
+        auto p = PopPatch(patch);
 
         index_tuple gw{4, 4, 4};  // = p.GetMeshBlock()->GetGhostWidth();
 
@@ -1045,13 +1046,11 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
 
                 d.GetRange("PATCH_BOUNDARY_" + std::to_string(CELL))
                     .append(std::make_shared<ContinueRange<EntityId>>(volume_box, 7));
-                d.Pop(p);
+                d.Pop();
             }
         m_ctx_->Push(p);
         m_ctx_->InitialCondition(data_time);
-        m_ctx_->Pop(p);
-
-        PushPatch(p, patch);
+        PushPatch(m_ctx_->Pop(), patch);
 
         //        m_ctx_->GetBaseMesh()->Deserialize(p.get());
         //        VERBOSE << "DoInitialize MeshBase : " << m_ctx_->GetBaseMesh()->GetRegisterName() <<
@@ -1086,33 +1085,24 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
 
 double SAMRAIHyperbolicPatchStrategyAdapter::computeStableDtOnPatch(SAMRAI::hier::Patch &patch, bool time_now,
                                                                     double time_dt) {
-    auto p = GetPatch(patch);
-    PopPatch(patch, p);
-    m_ctx_->Push(p);
+    m_ctx_->Push(PopPatch(patch));
     time_dt = m_ctx_->ComputeStableDtOnPatch(time_now, time_dt);
-    m_ctx_->Pop(p);
-    PushPatch(p, patch);
+    PushPatch(m_ctx_->Pop(), patch);
     return time_dt;
 }
 
 void SAMRAIHyperbolicPatchStrategyAdapter::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, double time_now,
                                                                 double time_dt) {
-    auto p = GetPatch(patch);
-    PopPatch(patch, p);
-    m_ctx_->Push(p);
+    m_ctx_->Push(PopPatch(patch));
     m_ctx_->ComputeFluxes(time_now, time_dt);
-    m_ctx_->Pop(p);
-    PushPatch(p, patch);
+    PushPatch(m_ctx_->Pop(), patch);
 }
 
 void SAMRAIHyperbolicPatchStrategyAdapter::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, double time_now,
                                                                          double time_dt, bool at_syncronization) {
-    auto p = GetPatch(patch);
-    PopPatch(patch, p);
-    m_ctx_->Push(p);
+    m_ctx_->Push(PopPatch(patch));
     m_ctx_->Advance(time_now, time_dt);
-    m_ctx_->Pop(p);
-    PushPatch(p, patch);
+    PushPatch(m_ctx_->Pop(), patch);
 }
 
 void SAMRAIHyperbolicPatchStrategyAdapter::tagRichardsonExtrapolationCells(
@@ -1128,30 +1118,24 @@ void SAMRAIHyperbolicPatchStrategyAdapter::tagGradientDetectorCells(SAMRAI::hier
     NULL_USE(initial_error);
     NULL_USE(uses_richardson_extrapolation_too);
 
-    auto p = GetPatch(patch);
-    PopPatch(patch, p);
+    m_ctx_->Push(PopPatch(patch));
     auto desc = m_ctx_->GetMesh()->GetAttributeDescription("_refinement_tags_");
     if (desc != nullptr) {
-        std::shared_ptr<data::DataBlock> blk = nullptr;
-        if (detail::ConvertDataBlock(patch.getPatchData(tag_index).get(), &blk)) {
-            p->SetDataBlock(desc->GetValue<id_type>("DescID"), blk);
-        }
+        //        std::shared_ptr<data::DataBlock> blk = nullptr;
+        //        if (detail::ConvertDataBlock(patch.getPatchData(tag_index).get(), &blk)) {
+        //            p->SetDataBlock(desc->GetValue<id_type>("DescID"), blk);
+        //        }
 
-        m_ctx_->Push(p);
         m_ctx_->TagRefinementCells(regrid_time);
-        m_ctx_->Pop(p);
     }
-    PushPatch(p, patch);
+    PushPatch(m_ctx_->Pop(), patch);
 }
 
 void SAMRAIHyperbolicPatchStrategyAdapter::setPhysicalBoundaryConditions(
     SAMRAI::hier::Patch &patch, double fill_time, const SAMRAI::hier::IntVector &ghost_width_to_fill) {
-    auto p = GetPatch(patch);
-    PopPatch(patch, p);
-    m_ctx_->Push(p);
+    m_ctx_->Push(PopPatch(patch));
     m_ctx_->BoundaryCondition(fill_time, 0);
-    m_ctx_->Pop(p);
-    PushPatch(p, patch);
+    PushPatch(m_ctx_->Pop(), patch);
 }
 
 void SAMRAIHyperbolicPatchStrategyAdapter::registerVisItDataWriter(
@@ -1205,7 +1189,7 @@ void SAMRAITimeIntegrator::Synchronize() { base_type::Synchronize(); }
 
 std::shared_ptr<data::DataNode> SAMRAITimeIntegrator::Serialize() const { return base_type::Serialize(); }
 
-void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<const data::DataNode> const &tdb) {
+void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
     base_type::Deserialize(tdb);
     if (tdb != nullptr) { m_pimpl_->m_output_URL_ = tdb->GetValue<std::string>("OutputURL", GetName() + ".simpla"); }
 }

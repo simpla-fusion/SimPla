@@ -24,7 +24,7 @@ std::shared_ptr<data::DataNode> DomainBase::Serialize() const {
     if (m_geo_body_ != nullptr) tdb->Set("Boundary", m_geo_body_->Serialize());
     return tdb;
 }
-void DomainBase::Deserialize(std::shared_ptr<const data::DataNode> const& cfg) {
+void DomainBase::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
     base_type::Deserialize(cfg);
     m_geo_body_ = geometry::GeoObject::New(cfg->Get("Body"));
     Click();

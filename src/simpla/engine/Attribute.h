@@ -20,7 +20,6 @@ class Array;
 namespace engine {
 class DomainBase;
 class Attribute;
-class Patch;
 
 ///**
 // *  permissions
@@ -64,16 +63,16 @@ class AttributeGroup {
     auto &GetAttributes() { return m_attributes_; }
     auto const &GetAttributes() const { return m_attributes_; }
 
-    virtual void Push(const std::shared_ptr<Patch> &);
-    virtual void Pop(const std::shared_ptr<Patch> &);
+    virtual int Push(const std::shared_ptr<data::DataNode> &);
+    virtual std::shared_ptr<data::DataNode> Pop();
 
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
 
     std::shared_ptr<data::DataNode> RegisterAttributes();
 
-    std::shared_ptr<const data::DataNode> GetAttributeDescription(std::string const &k) const;
-    std::shared_ptr<const data::DataNode> GetDescriptions() const;
+    std::shared_ptr<data::DataNode> GetAttributeDescription(std::string const &k) const;
+    std::shared_ptr<data::DataNode> GetDescriptions() const;
 
     //    virtual void RegisterAt(AttributeGroup *);
     //    virtual void DeregisterFrom(AttributeGroup *);
@@ -141,8 +140,8 @@ struct Attribute : public EngineObject {
     std::shared_ptr<data::DataBlock> GetDataBlock();
     std::shared_ptr<const data::DataBlock> GetDataBlock() const;
 
-    virtual void Push(const std::shared_ptr<data::DataBlock> &);
-    virtual std::shared_ptr<data::DataBlock> Pop();
+    int Push(const std::shared_ptr<data::DataNode> &) override;
+    std::shared_ptr<data::DataNode> Pop() override;
 
     virtual bool isNull() const;
     virtual bool empty() const { return isNull(); };
@@ -153,11 +152,14 @@ struct AttributeT : public Attribute {
     typedef V value_type;
     typedef Array<value_type> array_type;
     std::vector<array_type> m_data_;
+    AttributeGroup *m_host_ = nullptr;
 
     template <typename THost, typename... Args>
-    AttributeT(THost *, Args &&... args) : Attribute(std::forward<Args>(args)...) {}
-    AttributeT() : Attribute() {}
-    ~AttributeT() override {}
+    explicit AttributeT(THost *host, Args &&... args) : Attribute(std::forward<Args>(args)...), m_dof_(1) {
+        Register(dynamic_cast<engine::AttributeGroup *>(host));
+    }
+    AttributeT() : Attribute(), m_dof_(1) {}
+    ~AttributeT() override = default;
 
     array_type &operator[](int s) { return m_data_[s]; }
     array_type const &operator[](int s) const { return m_data_[s]; }
@@ -166,6 +168,36 @@ struct AttributeT : public Attribute {
     int GetIFORM() const override { return IFORM; };
     int GetDOF() const override { return m_dof_; };
     void SetDOF(int d) override { m_dof_ = d; };
+    auto &Get() { return m_data_; }
+    auto const &Get() const { return m_data_; }
+
+    int PushData(std::shared_ptr<data::DataBlock> const &d) {
+        //        auto blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
+        //        if (blk != nullptr) {
+        //            int count = 0;
+        //            traits::foreach (*d, [&](array_type& a, auto&&... idx) {
+        //                array_type(*blk->Get(count)).swap(a);
+        //                ++count;
+        //            });
+        //        }
+        //        Tag();
+        return 0;
+    };
+    std::shared_ptr<data::DataBlock> PopData() {
+        //        auto blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
+        //        if (blk == nullptr) {
+        //            Push(data::DataMultiArray<array_type>::New(d->size()));
+        //            blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
+        //        }
+        //        int count = 0;
+        //        traits::foreach (*d, [&](array_type& a, auto&&... idx) {
+        //            array_type(a).swap(*blk->Get(count));
+        //            a.reset();
+        //            ++count;
+        //        });
+        //        base_type::ResetTag();
+        return nullptr;
+    };
 
    private:
     int m_dof_ = 1;

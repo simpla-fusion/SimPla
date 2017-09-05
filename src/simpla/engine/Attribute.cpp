@@ -19,16 +19,22 @@ AttributeGroup::~AttributeGroup() {
     for (auto &item : m_attributes_) { item.second->Deregister(this); }
 }
 
-void AttributeGroup::Push(const std::shared_ptr<Patch> &p) {
+int AttributeGroup::Push(const std::shared_ptr<data::DataNode> &p) {
+    int count = 0;
     for (auto &item : m_attributes_) {
-        item.second->Push(p->GetDataBlock(item.second->db()->GetValue<id_type>("DescID", NULL_ID)));
+        if (auto blk = p->Get(item.second->db()->GetValue<id_type>("DescID", NULL_ID))) {
+            count += item.second->Push(blk);
+        }
     }
+    return count;
 }
 
-void AttributeGroup::Pop(const std::shared_ptr<Patch> &p) {
+std::shared_ptr<data::DataNode> AttributeGroup::Pop() {
+    auto res = data::DataNode::New();
     for (auto &item : m_attributes_) {
-        p->SetDataBlock(item.second->db()->GetValue<id_type>("DescID", NULL_ID), item.second->Pop());
+        res->Set(item.second->db()->GetValue<id_type>("DescID", NULL_ID), item.second->Pop());
     }
+    return res;
 }
 
 void AttributeGroup::Attach(Attribute *p) { m_attributes_.emplace(p->GetName(), p); }
@@ -38,7 +44,7 @@ std::shared_ptr<data::DataNode> AttributeGroup::RegisterAttributes() {
     for (auto &item : m_attributes_) { res->Set(item.first, item.second->db()); }
     return res;
 }
-std::shared_ptr<const data::DataNode> AttributeGroup::GetAttributeDescription(std::string const &k) const {
+std::shared_ptr<data::DataNode> AttributeGroup::GetAttributeDescription(std::string const &k) const {
     auto it = m_attributes_.find(k);
     return it != m_attributes_.end() ? it->second->db() : nullptr;
 }
@@ -111,7 +117,7 @@ Attribute::~Attribute() {
 }
 
 std::shared_ptr<data::DataNode> Attribute::Serialize() const { return base_type::Serialize(); }
-void Attribute::Deserialize(std::shared_ptr<const data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
+void Attribute::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
 
 void Attribute::Register(AttributeGroup *attr_b) {
     if (attr_b == nullptr) {
@@ -133,13 +139,16 @@ void Attribute::Deregister(AttributeGroup *attr_b) {
         m_pimpl_->m_bundle_.erase(attr_b);
     }
 }
-void Attribute::Push(const std::shared_ptr<DataBlock> &d) {
-    m_pimpl_->m_data_block_ = d;
-    Initialize();
+int Attribute::Push(const std::shared_ptr<data::DataNode> &d) {
+    //    m_pimpl_->m_data_block_ = d;
+    Update();
+    return 0;
 }
-std::shared_ptr<data::DataBlock> Attribute::Pop() {
-    Finalize();
-    return m_pimpl_->m_data_block_;
+std::shared_ptr<data::DataNode> Attribute::Pop() {
+    auto res = data::DataNode::New(data::DataNode::DN_ENTITY);
+    res->SetEntity(m_pimpl_->m_data_block_);
+    TearDown();
+    return res;
 }
 std::shared_ptr<DataBlock> Attribute::GetDataBlock() { return m_pimpl_->m_data_block_; }
 std::shared_ptr<const DataBlock> Attribute::GetDataBlock() const { return m_pimpl_->m_data_block_; }

@@ -53,7 +53,7 @@ class EMFluid {
     };
 
     std::map<std::string, std::shared_ptr<fluid_s>> m_fluid_sp_;
-    std::shared_ptr<fluid_s> AddSpecies(std::string const& name, std::shared_ptr<const data::DataNode> d);
+    std::shared_ptr<fluid_s> AddSpecies(std::string const& name, std::shared_ptr<data::DataNode> d);
     std::map<std::string, std::shared_ptr<fluid_s>>& GetSpecies() { return m_fluid_sp_; };
 };
 
@@ -68,15 +68,15 @@ std::shared_ptr<data::DataNode> EMFluid<TM>::Serialize() const {
     return res;
 };
 template <typename TM>
-void EMFluid<TM>::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) {
-    cfg->Get("Species")->Foreach([&](std::string const& k, std::shared_ptr<const data::DataNode> v) {
+void EMFluid<TM>::Deserialize(std::shared_ptr<data::DataNode>const & cfg) {
+    cfg->Get("Species")->Foreach([&](std::string const& k, std::shared_ptr<data::DataNode> v) {
         return AddSpecies(k, v) != nullptr ? 1 : 0;
     });
 }
 
 template <typename TM>
 std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string const& name,
-                                                                     std::shared_ptr<const data::DataNode> d) {
+                                                                     std::shared_ptr<data::DataNode> d) {
     if (d == nullptr) { return nullptr; }
 
     auto sp = std::make_shared<fluid_s>();

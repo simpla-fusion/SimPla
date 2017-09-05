@@ -27,8 +27,8 @@ struct SpApp::pimpl_s {
 };
 
 SpApp::SpApp() : m_pimpl_(new pimpl_s) {
-//    m_pimpl_->m_scenario_ = engine::Scenario::New();
-//    m_pimpl_->m_atlas_ = engine::Atlas::New();
+    //    m_pimpl_->m_scenario_ = engine::Scenario::New();
+    //    m_pimpl_->m_atlas_ = engine::Atlas::New();
 }
 
 SpApp::~SpApp() { delete m_pimpl_; };
@@ -43,7 +43,7 @@ std::shared_ptr<data::DataNode> SpApp::Serialize() const {
     return tdb;
 };
 
-void SpApp::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) {
+void SpApp::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
     if (cfg != nullptr) {
         m_pimpl_->m_scenario_->Deserialize(cfg->Get("Context"));
@@ -169,7 +169,7 @@ int main(int argc, char **argv) {
         std::string buffer;
         parallel::bcast_string(&buffer);
         auto t_cfg = data::DataNode::New("lua://");
-        t_cfg->Set(buffer, nullptr);
+        t_cfg->Parse(buffer);
         app->Deserialize(t_cfg);
     }
 

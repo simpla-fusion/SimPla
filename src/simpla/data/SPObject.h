@@ -90,10 +90,10 @@ class SPObject : public Factory<SPObject>, public std::enable_shared_from_this<S
     ~SPObject() override;
 
     virtual std::shared_ptr<data::DataNode> Serialize() const;
-    virtual void Deserialize(std::shared_ptr<const data::DataNode> const &);
+    virtual void Deserialize(std::shared_ptr<data::DataNode> const &);
     static std::shared_ptr<SPObject> Create(std::string const &v);
-    static std::shared_ptr<SPObject> Create(std::shared_ptr<const data::DataNode> const &tdb);
-    static std::shared_ptr<SPObject> CreateAndSync(std::shared_ptr<const data::DataNode> const &v);
+    static std::shared_ptr<SPObject> Create(std::shared_ptr<data::DataNode> const &tdb);
+    static std::shared_ptr<SPObject> CreateAndSync(std::shared_ptr<data::DataNode> const &v);
 
     template <typename TOBJ>
     static std::shared_ptr<TOBJ> CreateAndSyncT(std::shared_ptr<data::DataNode> const &v) {
@@ -140,7 +140,7 @@ std::istream &operator>>(std::istream &is, SPObject &obj);
     ~_CLASS_NAME_() override;                                                                          \
                                                                                                        \
     std::shared_ptr<simpla::data::DataNode> Serialize() const override;                                \
-    void Deserialize(std::shared_ptr<const simpla::data::DataNode> const &cfg) override;               \
+    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;                     \
                                                                                                        \
    private:                                                                                            \
     template <typename U, typename... Args>                                                            \
@@ -158,7 +158,7 @@ std::istream &operator>>(std::istream &is, SPObject &obj);
         return New_<this_type>(std::is_abstract<this_type>(), std::forward<Args>(args)...);            \
     };                                                                                                 \
     static std::shared_ptr<this_type> New() { return New_<this_type>(std::is_abstract<this_type>()); } \
-    static std::shared_ptr<this_type> New(std::shared_ptr<const simpla::data::DataNode> cfg) {         \
+    static std::shared_ptr<this_type> New(std::shared_ptr<simpla::data::DataNode> cfg) {               \
         auto res = New();                                                                              \
         res->Deserialize(cfg);                                                                         \
         return res;                                                                                    \
@@ -167,7 +167,7 @@ std::istream &operator>>(std::istream &is, SPObject &obj);
 #define SP_OBJECT_REGISTER(_CLASS_NAME_) \
     bool _CLASS_NAME_::_is_registered = simpla::SPObject::RegisterCreator<_CLASS_NAME_>();
 
-//    static std::shared_ptr<_CLASS_NAME_> New(std::shared_ptr<const data::DataNode> v) {                                \
+//    static std::shared_ptr<_CLASS_NAME_> New(std::shared_ptr<data::DataNode> v) {                                \
 //        auto s_type = v->as<std::string>("");                                                                          \
 //        if (s_type.empty() && std::dynamic_pointer_cast<const data::DataTable>(v) != nullptr) {                        \
 //            s_type = std::dynamic_pointer_cast<const data::DataTable>(v)->GetEntity<std::string>("Type", "");           \

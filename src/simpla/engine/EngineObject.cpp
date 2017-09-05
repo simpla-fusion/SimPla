@@ -27,6 +27,9 @@ void EngineObject::ResetTag() { m_pimpl_->m_click_tag_ = (m_pimpl_->m_click_ = 0
 bool EngineObject::isModified() const { return m_pimpl_->m_click_tag_ != m_pimpl_->m_click_; }
 bool EngineObject::isInitialized() const { return m_pimpl_->m_is_initialized_; }
 
+int EngineObject::Push(std::shared_ptr<data::DataNode> const &) { return 0; }
+std::shared_ptr<data::DataNode> EngineObject::Pop() { return nullptr; }
+
 void EngineObject::DoInitialize() {}
 void EngineObject::DoFinalize() {}
 void EngineObject::DoTearDown() {}

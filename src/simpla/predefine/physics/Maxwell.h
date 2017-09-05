@@ -41,7 +41,7 @@ std::shared_ptr<data::DataNode> Maxwell<TM>::Serialize() const {
     return nullptr;
 };
 template <typename TM>
-void Maxwell<TM>::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) {}
+void Maxwell<TM>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}
 
 template <typename TM>
 void Maxwell<TM>::InitialCondition(Real time_now) {
@@ -81,10 +81,10 @@ void Maxwell<TM>::Advance(Real time_now, Real dt) {
     //    dumpE.DeepCopy(E);
     //    dumpB.DeepCopy(B);
     //    dumpJ.DeepCopy(J);
-
-    dumpE[0] = E.Get();
-    dumpB[0] = B.Get();
-    dumpJ[0] = J.Get();
+    //
+    //    dumpE[0] = E.Get();
+    //    dumpB[0] = B.Get();
+    //    dumpJ[0] = J.Get();
     J.Clear();
 }
 

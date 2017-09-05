@@ -43,7 +43,7 @@ class PICBoris {
     //    void TagRefinementCells(Real time_now);
 
     std::map<std::string, std::shared_ptr<Particle<THost>>> m_particle_sp_;
-    std::shared_ptr<Particle<THost>> AddSpecies(std::string const& name, std::shared_ptr<const data::DataNode> d);
+    std::shared_ptr<Particle<THost>> AddSpecies(std::string const& name, std::shared_ptr<data::DataNode> d);
     //    template <typename... Args>
     //    std::shared_ptr<Particle<THost>> AddSpecies(std::string const& name, Args&&... args) {
     //        data::DataNode t;
@@ -67,14 +67,14 @@ std::shared_ptr<data::DataNode> PICBoris<TM>::Serialize() const {
     return res;
 };
 template <typename TM>
-void PICBoris<TM>::Deserialize(std::shared_ptr<const data::DataNode> const& cfg) {
+void PICBoris<TM>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
     cfg->Get("Species")->Foreach(
-        [&](std::string k, std::shared_ptr<const data::DataNode> t) { return AddSpecies(k, t) != nullptr; });
+        [&](std::string k, std::shared_ptr<data::DataNode> t) { return AddSpecies(k, t) != nullptr; });
 }
 
 template <typename TM>
 std::shared_ptr<Particle<TM>> PICBoris<TM>::AddSpecies(std::string const& name,
-                                                       std::shared_ptr<const data::DataNode> d) {
+                                                       std::shared_ptr<data::DataNode> d) {
     auto sp = Particle<TM>::New(m_host_, d);
     sp->SetDOF(7);
     sp->db()->SetValue("mass", d->GetValue<double>("mass", d->GetValue<double>("mass", 1)) * SI_proton_mass);

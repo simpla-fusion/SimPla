@@ -29,10 +29,10 @@ std::shared_ptr<data::DataNode> Model::Serialize() const {
     }
     return tdb;
 };
-void Model::Deserialize(std::shared_ptr<const data::DataNode> const& tdb) {
+void Model::Deserialize(std::shared_ptr<data::DataNode> const& tdb) {
     base_type::Deserialize(tdb);
     if (tdb != nullptr) {
-        tdb->Foreach([&](std::string const& k, std::shared_ptr<const data::DataNode> const& v) {
+        tdb->Foreach([&](std::string const& k, std::shared_ptr<data::DataNode> const& v) {
             if (v != nullptr) { SetObject(k, geometry::GeoObject::New(v)); }
             return (v != nullptr) ? 1 : 0;
         });

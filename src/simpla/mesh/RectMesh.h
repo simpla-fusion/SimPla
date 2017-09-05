@@ -52,7 +52,7 @@ std::shared_ptr<data::DataNode> RectMesh<THost>::Serialize() const {
     return nullptr;
 }
 template <typename THost>
-void RectMesh<THost>::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) {}
+void RectMesh<THost>::Deserialize(std::shared_ptr<data::DataNode>const & cfg) {}
 template <typename THost>
 void RectMesh<THost>::InitialCondition(Real time_now) {
     auto chart = m_host_->GetChart();

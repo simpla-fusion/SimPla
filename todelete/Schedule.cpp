@@ -36,7 +36,7 @@ std::shared_ptr<data::DataNode> Schedule::Serialize() const {
     return tdb;
 }
 
-void Schedule::Deserialize(std::shared_ptr<const data::DataNode>const & cfg) {
+void Schedule::Deserialize(std::shared_ptr<data::DataNode>const & cfg) {
     base_type::Deserialize(cfg);
     m_pimpl_->m_atlas_ = Atlas::New(cfg->Get("Atlas"));
     SetCheckPointInterval(static_cast<size_type>(db()->GetValue<int>("CheckPointInterval", 1)));
