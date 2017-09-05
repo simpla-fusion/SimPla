@@ -3,6 +3,7 @@
 //
 
 #include <simpla/parallel/MPIComm.h>
+#include <simpla/predefine/engine/SimpleTimeIntegrator.h>
 #include <simpla/third_part/SAMRAITimeIntegrator.h>
 #include <simpla/utilities/Logo.h>
 #include "simpla/application/SPInit.h"
@@ -26,7 +27,8 @@ using namespace simpla::engine;
 
 int main(int argc, char** argv) {
     simpla::Initialize(argc, argv);
-    auto scenario = SAMRAITimeIntegrator::New();
+    //    auto scenario = SAMRAITimeIntegrator::New();
+    auto scenario = SimpleTimeIntegrator::New();
 
     scenario->SetMesh<mesh_type>();
     scenario->GetMesh()->GetChart()->SetScale({1, 1, 1});

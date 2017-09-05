@@ -106,13 +106,12 @@ void DomainBase::ComputeFluxes(Real time_now, Real dt) {
 }
 Real DomainBase::ComputeStableDtOnPatch(Real time_now, Real time_dt) const { return time_dt; }
 
-Real DomainBase::Advance(Real time_now, Real dt) {
+void DomainBase::Advance(Real time_now, Real dt) {
     Update();
     if (std::get<0>(GetMesh()->CheckOverlap(GetModel()->GetBoundary())) < EPSILON) { return; }
     PreAdvance(this, time_now, dt);
-    auto res = DoAdvance(time_now, dt);
+    DoAdvance(time_now, dt);
     PostAdvance(this, time_now, dt);
-    return res;
 }
 void DomainBase::TagRefinementCells(Real time_now) {
     Update();

@@ -16,6 +16,7 @@ namespace engine {
 struct Model::pimpl_s {
     std::shared_ptr<geometry::GeoObject> m_g_obj_;
     box_type m_bound_box_{{0, 0, 0}, {0, 0, 0}};
+    std::map<std::string, std::shared_ptr<geometry::GeoObject>> m_g_objs_;
 };
 
 Model::Model() : m_pimpl_(new pimpl_s) {}
@@ -78,8 +79,8 @@ size_type Model::DeleteObject(std::string const& key) {
 }
 
 std::map<std::string, std::shared_ptr<geometry::GeoObject>> const& Model::GetAll() const {
-    //    return m_pimpl_->m_g_objs_;
     FIXME;
+    return m_pimpl_->m_g_objs_;
 };
 
 }  // namespace engine

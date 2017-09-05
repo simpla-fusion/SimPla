@@ -20,10 +20,10 @@ class TimeIntegrator : public Scenario {
     virtual Real ComputeStableDtOnPatch(Real time_now, Real time_dt);
     virtual void Advance(Real time_now, Real dt);
 
-    virtual void Synchronize();
-    virtual void NextStep();
-    virtual void Run();
-    virtual bool Done() const;
+    void Synchronize() override;
+    void NextStep() override;
+    void Run() override;
+    bool Done() const override;
 
     SP_OBJECT_PROPERTY(size_type, Step);
     SP_OBJECT_PROPERTY(size_type, MaxStep);

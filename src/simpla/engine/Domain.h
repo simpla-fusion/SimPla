@@ -71,9 +71,9 @@ class DomainBase : public EngineObject {
     Real ComputeStableDtOnPatch(Real time_now, Real time_dt) const;
 
     design_pattern::Signal<void(DomainBase *, Real, Real)> PreAdvance;
-    virtual Real DoAdvance(Real time_now, Real dt) {}
+    virtual void DoAdvance(Real time_now, Real dt) {}
     design_pattern::Signal<void(DomainBase *, Real, Real)> PostAdvance;
-    Real Advance(Real time_now, Real time_dt);
+    void Advance(Real time_now, Real time_dt);
 
 };  // class DomainBase
 

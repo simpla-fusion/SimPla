@@ -4,12 +4,16 @@
 #include "TimeIntegrator.h"
 #include "Domain.h"
 #include "Mesh.h"
+#include "simpla/data/DataNode.h"
 namespace simpla {
-
 namespace engine {
 
 TimeIntegrator::TimeIntegrator() {}
 TimeIntegrator::~TimeIntegrator() {}
+
+std::shared_ptr<data::DataNode> TimeIntegrator::Serialize() const { return base_type::Serialize(); }
+
+void TimeIntegrator::Deserialize(std::shared_ptr<data::DataNode> const &tdb) { base_type::Deserialize(tdb); }
 
 void TimeIntegrator::InitialCondition(Real time_now) {
     GetMesh()->InitialCondition(time_now);

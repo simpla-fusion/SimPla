@@ -23,7 +23,7 @@ class Scenario : public EngineObject {
     virtual void Run();
     virtual bool Done() const;
 
-    virtual void Dump();
+    virtual void Dump() const;
 
     void DoSetUp() override;
     void DoUpdate() override;

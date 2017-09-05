@@ -58,7 +58,7 @@ class EngineObject : public SPObject {
         db()->SetValue(__STRING(_NAME_), _v_);                    \
     }                                                             \
     _TYPE_ Get##_NAME_() const {                                  \
-        ASSERT(db() != nullptr);                                  \
+        ASSERT(isInitialized());                                  \
         return db()->template GetValue<_TYPE_>(__STRING(_NAME_)); \
     }
 }  // namespace engine

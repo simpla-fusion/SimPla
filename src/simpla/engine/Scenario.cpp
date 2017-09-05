@@ -64,8 +64,8 @@ void Scenario::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
 void Scenario::Synchronize() {}
 void Scenario::NextStep() {}
 void Scenario::Run() {}
-bool Done() const { return true; }
-void Scenario::Dump() {}
+bool Scenario::Done() const { return true; }
+void Scenario::Dump() const {}
 
 void Scenario::DoSetUp() {
     ASSERT(m_pimpl_->m_mesh_ != nullptr);

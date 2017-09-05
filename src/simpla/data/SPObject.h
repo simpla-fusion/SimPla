@@ -115,51 +115,52 @@ class SPObject : public Factory<SPObject>, public std::enable_shared_from_this<S
 std::ostream &operator<<(std::ostream &os, SPObject const &obj);
 std::istream &operator>>(std::istream &is, SPObject &obj);
 
-#define SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_)                                                      \
-   public:                                                                                             \
-    static std::string GetFancyTypeName_s() {                                                          \
-        return _BASE_NAME_::GetFancyTypeName_s() + "." + __STRING(_CLASS_NAME_);                       \
-    }                                                                                                  \
-    virtual std::string GetFancyTypeName() const override { return GetFancyTypeName_s(); }             \
-    static bool _is_registered;                                                                        \
-                                                                                                       \
-   private:                                                                                            \
-    typedef _BASE_NAME_ base_type;                                                                     \
-    typedef _CLASS_NAME_ this_type;                                                                    \
-    struct pimpl_s;                                                                                    \
-    pimpl_s *m_pimpl_ = nullptr;                                                                       \
-                                                                                                       \
-   public:                                                                                             \
-   protected:                                                                                          \
-    _CLASS_NAME_();                                                                                    \
-                                                                                                       \
-   public:                                                                                             \
-    ~_CLASS_NAME_() override;                                                                          \
-                                                                                                       \
-    std::shared_ptr<simpla::data::DataNode> Serialize() const override;                                \
-    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;                     \
-                                                                                                       \
-   private:                                                                                            \
-    template <typename U, typename... Args>                                                            \
-    static std::shared_ptr<U> New_(std::false_type, Args &&... args) {                                 \
-        return std::shared_ptr<U>(new U(std::forward<Args>(args)...));                                 \
-    };                                                                                                 \
-    template <typename U, typename... Args>                                                            \
-    static std::shared_ptr<U> New_(std::true_type, Args &&... args) {                                  \
-        return nullptr;                                                                                \
-    };                                                                                                 \
-                                                                                                       \
-   public:                                                                                             \
-    template <typename... Args>                                                                        \
-    static std::shared_ptr<this_type> New(Args &&... args) {                                           \
-        return New_<this_type>(std::is_abstract<this_type>(), std::forward<Args>(args)...);            \
-    };                                                                                                 \
-    static std::shared_ptr<this_type> New() { return New_<this_type>(std::is_abstract<this_type>()); } \
-    static std::shared_ptr<this_type> New(std::shared_ptr<simpla::data::DataNode> const &cfg) {        \
-        auto res = New();                                                                              \
-        res->Deserialize(cfg);                                                                         \
-        return res;                                                                                    \
-    }
+#define SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_)                                                           \
+   public:                                                                                                  \
+    static std::string GetFancyTypeName_s() {                                                               \
+        return _BASE_NAME_::GetFancyTypeName_s() + "." + __STRING(_CLASS_NAME_);                            \
+    }                                                                                                       \
+    virtual std::string GetFancyTypeName() const override { return GetFancyTypeName_s(); }                  \
+    static bool _is_registered;                                                                             \
+                                                                                                            \
+   private:                                                                                                 \
+    typedef _BASE_NAME_ base_type;                                                                          \
+    typedef _CLASS_NAME_ this_type;                                                                         \
+    struct pimpl_s;                                                                                         \
+    pimpl_s *m_pimpl_ = nullptr;                                                                            \
+                                                                                                            \
+   public:                                                                                                  \
+   protected:                                                                                               \
+    _CLASS_NAME_();                                                                                         \
+                                                                                                            \
+   public:                                                                                                  \
+    ~_CLASS_NAME_() override;                                                                               \
+                                                                                                            \
+    std::shared_ptr<simpla::data::DataNode> Serialize() const override;                                     \
+    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;                          \
+                                                                                                            \
+   private:                                                                                                 \
+    template <typename U, typename... Args>                                                                 \
+    static std::shared_ptr<U> TryNew(std::true_type, Args &&... args) {                                     \
+        return std::shared_ptr<U>(new U(std::forward<Args>(args)...));                                      \
+    };                                                                                                      \
+    template <typename U, typename... Args>                                                                 \
+    static std::shared_ptr<U> TryNew(std::false_type, Args &&... args) {                                    \
+        return nullptr;                                                                                     \
+    };                                                                                                      \
+    template <typename U>                                                                                   \
+    static std::shared_ptr<U> TryNew(std::false_type, std::shared_ptr<simpla::data::DataNode> const &cfg) { \
+        return std::dynamic_pointer_cast<U>(simpla::SPObject::Create(cfg));                                 \
+    };                                                                                                      \
+                                                                                                            \
+   public:                                                                                                  \
+    template <typename... Args>                                                                             \
+    static std::shared_ptr<this_type> New(Args &&... args) {                                                \
+        return TryNew<this_type>(                                                                           \
+            std::integral_constant < bool,                                                                  \
+            !std::is_abstract<this_type>::value && std::is_constructible<this_type, Args...>::value > (),   \
+            std::forward<Args>(args)...);                                                                   \
+    };
 
 #define SP_OBJECT_REGISTER(_CLASS_NAME_) \
     bool _CLASS_NAME_::_is_registered = simpla::SPObject::RegisterCreator<_CLASS_NAME_>();

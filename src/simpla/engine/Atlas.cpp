@@ -67,8 +67,7 @@ void Atlas::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
     TODO << " Need better way save/load patches!";
     auto patches = tdb->Get("Patches");
     patches->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &dnode) {
-        auto res = m_pimpl_->m_patches_.emplace(
-            std::stoi(key), std::make_pair(MeshBlock::New(dnode->Get("block")), dnode->Get("data")));
+        auto res = m_pimpl_->m_patches_.emplace(std::stoi(key), MeshBlock::New(dnode));
         return res.second ? 1 : 0;
     });
 

@@ -83,8 +83,10 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     typedef Mesh<chart_type, Policies...> mesh_type;
 
    public:
-    void DoInitialize() override;
+    void DoSetUp() override;
     void DoUpdate() override;
+    void DoTearDown() override;
+
     this_type *GetMesh() override { return this; }
     this_type const *GetMesh() const override { return this; }
 
@@ -144,15 +146,19 @@ void Mesh<TM, Policies...>::TagRefinementRange(Range<EntityId> const &r) {
         });
     }
 };
+
 template <typename TChart, template <typename> class... Policies>
-void Mesh<TChart, Policies...>::DoInitialize() {
+void Mesh<TChart, Policies...>::DoSetUp() {
     MeshBase::DoSetUp();
 };
-
 template <typename TChart, template <typename> class... Policies>
 void Mesh<TChart, Policies...>::DoUpdate() {
     MeshBase::DoUpdate();
     if (!m_refinement_tags_.isNull()) { m_refinement_tags_.Clear(); }
+};
+template <typename TChart, template <typename> class... Policies>
+void Mesh<TChart, Policies...>::DoTearDown() {
+    MeshBase::DoTearDown();
 };
 namespace _detail {
 DEFINE_INVOKE_HELPER(SetEmbeddedBoundary)

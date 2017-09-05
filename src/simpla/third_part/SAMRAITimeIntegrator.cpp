@@ -590,7 +590,7 @@ SP_OBJECT_REGISTER(SAMRAITimeIntegrator)
 class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatchStrategy {
     SP_OBJECT_BASE(SAMRAIHyperbolicPatchStrategyAdapter)
    public:
-    SAMRAIHyperbolicPatchStrategyAdapter(std::shared_ptr<engine::Scenario> ctx,
+    SAMRAIHyperbolicPatchStrategyAdapter(std::shared_ptr<engine::TimeIntegrator> ctx,
                                          std::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom);
 
     /**
@@ -737,8 +737,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
     std::shared_ptr<const engine::Atlas> GetAtlas() const { return m_atlas_; }
 
    private:
-    static constexpr int NDIMS = 3;
-    std::shared_ptr<engine::Scenario> m_ctx_;
+    std::shared_ptr<engine::TimeIntegrator> m_ctx_;
     std::shared_ptr<engine::Atlas> m_atlas_;
     /*
      * The object GetPrefix is used for error/warning reporting and also as a
@@ -772,7 +771,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
 };
 
 SAMRAIHyperbolicPatchStrategyAdapter::SAMRAIHyperbolicPatchStrategyAdapter(
-    std::shared_ptr<engine::Scenario> ctx, std::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom)
+    std::shared_ptr<engine::TimeIntegrator> ctx, std::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &grid_geom)
     : d_dim(3),
       d_grid_geometry(grid_geom),
       d_use_nonuniform_workload(false),
@@ -878,10 +877,11 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
 }
 
 std::shared_ptr<data::DataNode> SAMRAIHyperbolicPatchStrategyAdapter::GetPatch(SAMRAI::hier::Patch &patch) {
-    return GetAtlas()->GetPatch(engine::MeshBlock::New(
+    auto blk = engine::MeshBlock::New(
         index_box_type{{patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]},
                        {patch.getBox().upper()[0] + 1, patch.getBox().upper()[1] + 1, patch.getBox().upper()[2] + 1}},
-        patch.getLocalId().getValue(), patch.getPatchLevelNumber(), patch.getGlobalId().getOwnerRank()));
+        patch.getLocalId().getValue(), patch.getPatchLevelNumber(), patch.getGlobalId().getOwnerRank());
+    return m_ctx_->GetPatch(blk->GetGUID());
 }
 
 std::shared_ptr<data::DataNode> SAMRAIHyperbolicPatchStrategyAdapter::PopPatch(SAMRAI::hier::Patch &patch) {
@@ -1352,7 +1352,7 @@ void SAMRAITimeIntegrator::DoUpdate() {
      *  create m_pimpl_->hyp_level_integrator and error_detector
      */
     m_pimpl_->hyperbolic_patch_strategy.reset(new SAMRAIHyperbolicPatchStrategyAdapter(
-        std::dynamic_pointer_cast<engine::Scenario>(shared_from_this()), m_pimpl_->grid_geometry));
+        std::dynamic_pointer_cast<engine::TimeIntegrator>(shared_from_this()), m_pimpl_->grid_geometry));
 
     m_pimpl_->hyp_level_integrator.reset(new SAMRAI::algs::HyperbolicLevelIntegrator(
         "SAMRAILevelIntegrator", cfgHyperbolicLevelIntegrator, m_pimpl_->hyperbolic_patch_strategy.get(),
@@ -1426,7 +1426,7 @@ void SAMRAITimeIntegrator::DoFinalize() {
     base_type::DoFinalize();
 }
 
-Real SAMRAITimeIntegrator::Advance(Real time_now, Real time_dt) {
+void SAMRAITimeIntegrator::Advance(Real time_now, Real time_dt) {
     ASSERT(m_pimpl_->m_time_refinement_integrator_ != nullptr);
 
     // SetTimeNow(m_pack_->m_time_refinement_integrator->getIntegratorTime());
@@ -1439,8 +1439,6 @@ Real SAMRAITimeIntegrator::Advance(Real time_now, Real time_dt) {
         loop_dt = std::min(dt_new, loop_time_end - loop_time);
         loop_time += loop_dt;
     }
-
-    return loop_time_end;
 }
 
 void SAMRAITimeIntegrator::CheckPoint() const {
