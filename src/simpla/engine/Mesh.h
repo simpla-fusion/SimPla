@@ -18,12 +18,10 @@ namespace simpla {
 namespace geometry {
 struct Chart;
 struct GeoObject;
+class Curve;
 }
 namespace engine {
 class MeshBlock;
-class Patch;
-using namespace simpla::data;
-class Curve;
 struct MeshBase : public EngineObject, public AttributeGroup {
     SP_OBJECT_HEAD(MeshBase, EngineObject)
 
@@ -35,10 +33,11 @@ struct MeshBase : public EngineObject, public AttributeGroup {
 
     int GetNDIMS() const;
 
-    void GetChart(std::shared_ptr<geometry::Chart> const &c) const { m_chart_ = c; }
-    std::shared_ptr<geometry::Chart> GetChart() const { return m_chart_; }
+    void SetChart(std::shared_ptr<geometry::Chart> const &c);
+    std::shared_ptr<geometry::Chart> GetChart() const;
 
-    std::shared_ptr<MeshBlock> GetBlock() const { return m_mesh_block_; }
+    void SetBlock(const std::shared_ptr<MeshBlock> &blk);
+    std::shared_ptr<MeshBlock> GetBlock() const;
 
     virtual void AddEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g){};
 
@@ -69,14 +68,13 @@ struct MeshBase : public EngineObject, public AttributeGroup {
     std::shared_ptr<data::DataNode> Pop() override;
     int Push(const std::shared_ptr<data::DataNode> &p) override;
     void SetRange(std::string const &, Range<EntityId> const &);
-    Range<EntityId> &GetRange(std::string const &k);
     Range<EntityId> GetRange(std::string const &k) const;
 
    private:
     std::shared_ptr<MeshBlock> m_mesh_block_ = nullptr;
     std::shared_ptr<geometry::Chart> m_chart_ = nullptr;
 };
-
+using namespace data;
 template <typename TChart, template <typename> class... Policies>
 class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     SP_OBJECT_HEAD(Mesh, MeshBase)
@@ -132,7 +130,7 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
 
 template <typename TChart, template <typename> class... Policies>
 Mesh<TChart, Policies...>::Mesh() : Policies<this_type>(this)... {
-    m_chart_ = TChart::New();
+    MeshBase::SetChart(TChart::New());
 };
 
 template <typename TM, template <typename> class... Policies>
@@ -149,13 +147,11 @@ void Mesh<TM, Policies...>::TagRefinementRange(Range<EntityId> const &r) {
 template <typename TChart, template <typename> class... Policies>
 void Mesh<TChart, Policies...>::DoInitialize() {
     MeshBase::DoInitialize();
-    if (m_chart_ == nullptr) { m_chart_ = chart_type::New(); }
 };
 
 template <typename TChart, template <typename> class... Policies>
 void Mesh<TChart, Policies...>::DoUpdate() {
     MeshBase::DoUpdate();
-    if (m_chart_ == nullptr) { m_chart_ = chart_type::New(); }
     if (!m_refinement_tags_.isNull()) { m_refinement_tags_.Clear(); }
 };
 namespace _detail {
@@ -165,7 +161,6 @@ DEFINE_INVOKE_HELPER(Calculate)
 template <typename TM, template <typename> class... Policies>
 std::shared_ptr<data::DataNode> Mesh<TM, Policies...>::Serialize() const {
     auto tdb = base_type::Serialize();
-    if (m_chart_ != nullptr) tdb->Set("Chart", m_chart_->Serialize());
     //    traits::_try_invoke_Serialize<Policies...>(this, tdb);
     return tdb;
 };

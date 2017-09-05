@@ -24,7 +24,7 @@ std::shared_ptr<MeshBlock> MeshBlock::New(std::shared_ptr<simpla::data::DataNode
     res->Deserialize(tdb);
     return res;
 }
-std::shared_ptr<simpla::data::DataNode> MeshBlock::Serialize() const {}
+std::shared_ptr<simpla::data::DataNode> MeshBlock::Serialize() const { return nullptr; }
 void MeshBlock::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {}
 std::shared_ptr<MeshBlock> MeshBlock::New(index_box_type const &box, int id, int level, int global_rank) {
     return std::shared_ptr<MeshBlock>(new MeshBlock(box, id, level, global_rank));

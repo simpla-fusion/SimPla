@@ -41,7 +41,7 @@ std::shared_ptr<data::DataNode> Scenario::Serialize() const {
 }
 
 void Scenario::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
-    DoInitialize();
+    Initialize();
     base_type::Deserialize(cfg);
     SetMesh(MeshBase::New(cfg->Get("Mesh")));
     m_pimpl_->m_atlas_ = Atlas::New(cfg->Get("Atlas"));

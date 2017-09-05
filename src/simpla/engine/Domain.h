@@ -21,7 +21,6 @@
 
 namespace simpla {
 namespace engine {
-class Patch;
 class Model;
 class MeshBase;
 
@@ -65,7 +64,7 @@ class DomainBase : public EngineObject {
     design_pattern::Signal<void(DomainBase *, Real, Real)> PostAdvance;
     void Advance(Real time_now, Real time_dt);
 
-    std::shared_ptr<MeshBase> GetMesh() const { return m_mesh_.; }
+    std::shared_ptr<MeshBase> GetMesh() const { return m_mesh_; }
     std::shared_ptr<Model> GetModel() const { return m_model_; }
 
    private:

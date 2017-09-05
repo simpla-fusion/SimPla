@@ -23,9 +23,9 @@ Model::~Model() { delete m_pimpl_; };
 
 std::shared_ptr<data::DataNode> Model::Serialize() const {
     auto tdb = base_type::Serialize();
-    for (auto const& item : m_pimpl_->m_g_objs_) {
-        if (item.second != nullptr) { tdb->Set(item.first, item.second->Serialize()); }
-    }
+    //    for (auto const& item : m_pimpl_->m_g_objs_) {
+    //        if (item.second != nullptr) { tdb->Set(item.first, item.second->Serialize()); }
+    //    }
     return tdb;
 };
 void Model::Deserialize(std::shared_ptr<data::DataNode> const& tdb) {
@@ -40,16 +40,16 @@ void Model::Deserialize(std::shared_ptr<data::DataNode> const& tdb) {
 void Model::DoInitialize() {}
 void Model::DoFinalize() {}
 
-void Model::DoUpdate() {
-    auto it = m_pimpl_->m_g_objs_.begin();
-    if (it == m_pimpl_->m_g_objs_.end() || it->second == nullptr) { return; }
-    m_pimpl_->m_bound_box_ = it->second->BoundingBox();
-    ++it;
-    for (; it != m_pimpl_->m_g_objs_.end(); ++it) {
-        if (it->second != nullptr) {
-            m_pimpl_->m_bound_box_ = geometry::Union(m_pimpl_->m_bound_box_, it->second->BoundingBox());
-        }
-    }
+void Model::DoUpdate(){
+    //    auto it = m_pimpl_->m_g_objs_.begin();
+    //    if (it == m_pimpl_->m_g_objs_.end() || it->second == nullptr) { return; }
+    //    m_pimpl_->m_bound_box_ = it->second->BoundingBox();
+    //    ++it;
+    //    for (; it != m_pimpl_->m_g_objs_.end(); ++it) {
+    //        if (it->second != nullptr) {
+    //            m_pimpl_->m_bound_box_ = geometry::Union(m_pimpl_->m_bound_box_, it->second->BoundingBox());
+    //        }
+    //    }
 };
 void Model::DoTearDown() {}
 
@@ -60,18 +60,26 @@ std::shared_ptr<geometry::GeoObject> Model::GetBoundary() const { return m_pimpl
 void Model::SetObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
     if (g_obj != nullptr) {
         VERBOSE << "AddEntity GeoObject [ " << key << " : " << g_obj->GetFancyTypeName() << " ]";
-        m_pimpl_->m_g_objs_[key] = g_obj;
+        //        m_pimpl_->m_g_objs_[key] = g_obj;
     }
 }
 
 std::shared_ptr<geometry::GeoObject> Model::GetGeoObject(std::string const& k) const {
-    auto it = m_pimpl_->m_g_objs_.find(k);
-    return it == m_pimpl_->m_g_objs_.end() ? nullptr : it->second;
+    //    auto it = m_pimpl_->m_g_objs_.find(k);
+    //    return it == m_pimpl_->m_g_objs_.end() ? nullptr : it->second;
+    FIXME;
+    return nullptr;
 }
 
-size_type Model::DeleteObject(std::string const& key) { return m_pimpl_->m_g_objs_.erase(key); }
+size_type Model::DeleteObject(std::string const& key) {
+    //    return m_pimpl_->m_g_objs_.erase(key);
+    FIXME;
+    return 0;
+}
+
 std::map<std::string, std::shared_ptr<geometry::GeoObject>> const& Model::GetAll() const {
-    return m_pimpl_->m_g_objs_;
+    //    return m_pimpl_->m_g_objs_;
+    FIXME;
 };
 
 }  // namespace engine

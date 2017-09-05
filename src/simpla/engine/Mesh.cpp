@@ -16,18 +16,22 @@
 namespace simpla {
 namespace engine {
 
+MeshBase::MeshBase() = default;
+MeshBase::~MeshBase() = default;
 
-struct MeshBase::pimpl_s {
-    std::shared_ptr<pack_s> m_pack_;
-};
+std::shared_ptr<data::DataNode> MeshBase::Serialize() const {
+    auto res = base_type::Serialize();
+    res->Set("Chart", m_chart_->Serialize());
 
-MeshBase::MeshBase() : m_pimpl_(new pimpl_s), m_mesh_block_(MeshBlock::New({index_box_type{{0, 0, 0}, {1, 1, 1}}})) {}
-
-MeshBase::~MeshBase() { delete m_pimpl_; };
-
-std::shared_ptr<data::DataNode> MeshBase::Serialize() const { return base_type::Serialize(); }
+    return res;
+}
 void MeshBase::Deserialize(std::shared_ptr<data::DataNode> const& tdb) {
     base_type::Deserialize(tdb);
+    if (m_chart_ == nullptr) {
+        m_chart_ = geometry::Chart::New(tdb->Get("Chart"));
+    } else {
+        m_chart_->Deserialize(tdb->Get("Chart"));
+    }
     if (tdb != nullptr) {
         auto lo = tdb->GetValue<point_type>("Box/lo", point_type{0, 0, 0});
         auto hi = tdb->GetValue<point_type>("Box/hi", point_type{1, 1, 1});
@@ -44,7 +48,7 @@ void MeshBase::Deserialize(std::shared_ptr<data::DataNode> const& tdb) {
 
 int MeshBase::GetNDIMS() const { return 3; }
 
-std::tuple<Real, index_box_type> MeshBase::CheckOverlap(const std::shared_ptr<geometry::GeoObject> &g) const {
+std::tuple<Real, index_box_type> MeshBase::CheckOverlap(const std::shared_ptr<geometry::GeoObject>& g) const {
     Real ratio = 0;
     if (g != nullptr) {
         auto b = GetBox(0);
@@ -80,19 +84,17 @@ box_type MeshBase::GetBox(int tag) const {
 void MeshBase::DoUpdate() {
     base_type::DoUpdate();
     GetChart()->SetLevel(m_mesh_block_->GetLevel());
-    if (m_pimpl_->m_pack_ == nullptr) { m_pimpl_->m_pack_ = std::make_shared<pack_s>(); }
     AttributeGroup::RegisterAttributes();
 }
 void MeshBase::DoTearDown() { GetChart()->SetLevel(0); }
 void MeshBase::DoInitialize() {}
-void MeshBase::DoFinalize() {
-    m_pimpl_->m_pack_.reset();
-    GetChart()->SetLevel(0);
-}
+void MeshBase::DoFinalize() { GetChart()->SetLevel(0); }
+
+void MeshBase::SetChart(std::shared_ptr<geometry::Chart> const& c) { m_chart_ = c; }
+std::shared_ptr<geometry::Chart> MeshBase::GetChart() const { return m_chart_; }
 
 void MeshBase::SetBlock(const std::shared_ptr<MeshBlock>& blk) { m_mesh_block_ = blk; };
-std::shared_ptr<const MeshBlock> MeshBase::GetBlock() const { return m_mesh_block_; }
-std::shared_ptr<MeshBlock> MeshBase::GetBlock() { return m_mesh_block_; }
+std::shared_ptr<MeshBlock> MeshBase::GetBlock() const { return m_mesh_block_; }
 
 int MeshBase::Push(const std::shared_ptr<data::DataNode>& patch) {
     //    VERBOSE << " Patch Level:" << patch->GetMeshBlock()->GetLevel() << " ID: " <<
@@ -111,22 +113,21 @@ std::shared_ptr<data::DataNode> MeshBase::Pop() {
     auto res = AttributeGroup::Pop();
     //    patch->SetDataPack(m_pimpl_->m_pack_);
 
-    Finalize();
+    TearDown();
     return res;
 }
 void MeshBase::SetRange(std::string const& k, Range<EntityId> const& r) {
     Update();
-    m_pimpl_->m_pack_->m_ranges_[k] = r;
+    FIXME;
+    //    m_pimpl_->m_pack_->m_ranges_[k] = r;
 }
 
-Range<EntityId>& MeshBase::GetRange(std::string const& k) {
-    Update();
-    return m_pimpl_->m_pack_->m_ranges_[k];
-};
 Range<EntityId> MeshBase::GetRange(std::string const& k) const {
-    if (m_pimpl_->m_pack_ == nullptr) { return Range<EntityId>{}; };
-    auto it = m_pimpl_->m_pack_->m_ranges_.find(k);
-    return (it == m_pimpl_->m_pack_->m_ranges_.end()) ? Range<EntityId>{} : it->second;
+    //    if (m_pimpl_->m_pack_ == nullptr) { return Range<EntityId>{}; };
+    //    auto it = m_pimpl_->m_pack_->m_ranges_.find(k);
+    //    return (it == m_pimpl_->m_pack_->m_ranges_.end()) ? Range<EntityId>{} : it->second;
+    FIXME;
+    return Range<EntityId>{};
 };
 int MeshBase::InitializeAttribute(Attribute* attr) const { return 0; }
 
