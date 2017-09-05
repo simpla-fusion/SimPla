@@ -16,7 +16,8 @@ class Model;
 
 class Scenario : public EngineObject {
     SP_OBJECT_HEAD(Scenario, EngineObject)
-
+    virtual void TagRefinementCells(Real time_now);
+    virtual void Dump();
     void DoInitialize() override;
     void DoFinalize() override;
     void DoUpdate() override;
@@ -54,36 +55,16 @@ class Scenario : public EngineObject {
         return res;
     };
     std::shared_ptr<DomainBase> GetDomain(std::string const &k) const;
+
     template <typename U>
     std::shared_ptr<U> GetDomainAs(std::string const &k) const {
         return std::dynamic_pointer_cast<U>(GetDomain(k));
     }
+    std::map<std::string, std::shared_ptr<DomainBase>> &GetDomains();
+    std::map<std::string, std::shared_ptr<DomainBase>> const &GetDomains() const;
 
     std::shared_ptr<data::DataNode> Pop() override;
     int Push(std::shared_ptr<data::DataNode> const &p) override;
-
-    virtual void InitialCondition(Real time_now);
-    virtual void BoundaryCondition(Real time_now, Real dt);
-    virtual void ComputeFluxes(Real time_now, Real time_dt);
-    virtual Real ComputeStableDtOnPatch(Real time_now, Real time_dt);
-    virtual Real Advance(Real time_now, Real dt);
-    virtual void TagRefinementCells(Real time_now);
-
-    virtual void Run();
-
-    virtual void CheckPoint() const;
-    virtual void Dump() const;
-
-    size_type GetNumberOfStep() const;
-
-    virtual void Synchronize();
-    virtual void NextStep();
-    virtual bool Done() const;
-
-    SP_OBJECT_PROPERTY(Real, TimeNow);
-    SP_OBJECT_PROPERTY(Real, TimeEnd);
-    SP_OBJECT_PROPERTY(Real, TimeStep);
-    SP_OBJECT_PROPERTY(Real, CFL);
 
    private:
     void SetMesh(std::shared_ptr<MeshBase> const &);

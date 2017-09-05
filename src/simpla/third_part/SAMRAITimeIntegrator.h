@@ -7,14 +7,14 @@
 #include "simpla/SIMPLA_config.h"
 #include "simpla/algebra/Algebra.h"
 #include "simpla/data/Data.h"
-#include "simpla/engine/Engine.h"
+#include "simpla/engine/TimeIntegrator.h"
 namespace simpla {
 
 /**
 * class SAMRAITimeIntegrator
 */
-struct SAMRAITimeIntegrator : public engine::Scenario {
-    SP_OBJECT_HEAD(SAMRAITimeIntegrator, engine::Scenario);
+struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
+    SP_OBJECT_HEAD(SAMRAITimeIntegrator, engine::TimeIntegrator);
 
    public:
     void DoInitialize() override;

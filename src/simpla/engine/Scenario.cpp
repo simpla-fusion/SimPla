@@ -113,58 +113,14 @@ std::shared_ptr<DomainBase> Scenario::GetDomain(std::string const &k) const {
     auto it = m_pimpl_->m_domains_.find(k);
     return (it == m_pimpl_->m_domains_.end()) ? nullptr : it->second;
 }
-
+std::map<std::string, std::shared_ptr<DomainBase>> &Scenario::GetDomains() { return m_pimpl_->m_domains_; };
+std::map<std::string, std::shared_ptr<DomainBase>> const &Scenario::GetDomains() const { return m_pimpl_->m_domains_; }
 std::shared_ptr<data::DataNode> Scenario::Pop() { return GetMesh()->Pop(); };
 int Scenario::Push(std::shared_ptr<data::DataNode> const &p) { return GetMesh()->Push(p); };
-
-void Scenario::InitialCondition(Real time_now) {
-    GetMesh()->InitialCondition(time_now);
-    for (auto &d : m_pimpl_->m_domains_) { d.second->InitialCondition(time_now); }
-}
-void Scenario::BoundaryCondition(Real time_now, Real dt) {
-    GetMesh()->BoundaryCondition(time_now, dt);
-    for (auto &d : m_pimpl_->m_domains_) { d.second->BoundaryCondition(time_now, dt); }
-}
-
-void Scenario::ComputeFluxes(Real time_now, Real dt) {
-    for (auto &d : m_pimpl_->m_domains_) { d.second->ComputeFluxes(time_now, dt); }
-}
-Real Scenario::ComputeStableDtOnPatch(Real time_now, Real time_dt) {
-    for (auto &d : m_pimpl_->m_domains_) { time_dt = d.second->ComputeStableDtOnPatch(time_now, time_dt); }
-    return time_dt;
-}
-
-Real Scenario::Advance(Real time_now, Real dt) {
-    GetMesh()->Advance(time_now, dt);
-    for (auto &d : m_pimpl_->m_domains_) { d.second->Advance(time_now, dt); }
-    return time_now + dt;
-}
 
 void Scenario::TagRefinementCells(Real time_now) {
     GetMesh()->TagRefinementCells(time_now);
     for (auto &d : m_pimpl_->m_domains_) { d.second->TagRefinementCells(time_now); }
 }
-void Scenario::Run() {
-    //    while (!Done()) {
-    //        VERBOSE << " [ STEP:" << std::setw(5) << m_pimpl_->m_step_ << " START ] " << std::endl;
-    //        if (m_pimpl_->m_step_ == 0) { CheckPoint(); }
-    //        Synchronize();
-    //        NextStep();
-    //        if (m_pimpl_->m_check_point_interval_ > 0 && m_pimpl_->m_step_ % m_pimpl_->m_check_point_interval_ == 0) {
-    //            CheckPoint();
-    //        };
-    //        if (m_pimpl_->m_dump_interval_ > 0 && m_pimpl_->m_step_ % m_pimpl_->m_dump_interval_ == 0) { Dump(); };
-    //
-    //        VERBOSE << " [ STEP:" << std::setw(5) << m_pimpl_->m_step_ - 1 << " STOP  ] " << std::endl;
-    //    }
-}
-void Scenario::CheckPoint() const {}
-void Scenario::Dump() const {}
-
-size_type Scenario::GetNumberOfStep() const { return 0; }
-
-void Scenario::Synchronize() {}
-void Scenario::NextStep() {}
-bool Scenario::Done() const { return true; }
 }  //   namespace engine{
 }  // namespace simpla{

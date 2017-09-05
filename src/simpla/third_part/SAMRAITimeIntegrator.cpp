@@ -1430,7 +1430,7 @@ Real SAMRAITimeIntegrator::Advance(Real time_now, Real time_dt) {
     ASSERT(m_pimpl_->m_time_refinement_integrator_ != nullptr);
 
     // SetTimeNow(m_pack_->m_time_refinement_integrator->getIntegratorTime());
-    Real loop_time = GetTimeNow();
+    Real loop_time = time_now;
     Real loop_time_end = std::min(loop_time + time_dt, GetTimeEnd());
     Real loop_dt = time_dt;
     while ((loop_time < loop_time_end) &&
@@ -1440,7 +1440,6 @@ Real SAMRAITimeIntegrator::Advance(Real time_now, Real time_dt) {
         loop_time += loop_dt;
     }
 
-    SetTimeNow(loop_time_end);
     return loop_time_end;
 }
 
