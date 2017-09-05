@@ -133,6 +133,7 @@ struct Attribute : public EngineObject {
     virtual int GetIFORM() const = 0;
     virtual int GetDOF() const = 0;
     virtual void SetDOF(int) = 0;
+    virtual std::shared_ptr<Attribute> Duplicate() const = 0;
 
     void Register(AttributeGroup *p = nullptr);
     void Deregister(AttributeGroup *p = nullptr);
@@ -150,6 +151,7 @@ struct Attribute : public EngineObject {
 template <typename V, int IFORM>
 struct AttributeT : public Attribute {
     typedef V value_type;
+    typedef AttributeT<value_type, IFORM> this_type;
     typedef Array<value_type> array_type;
     std::vector<array_type> m_data_;
     AttributeGroup *m_host_ = nullptr;
@@ -168,10 +170,19 @@ struct AttributeT : public Attribute {
     int GetIFORM() const override { return IFORM; };
     int GetDOF() const override { return m_dof_; };
     void SetDOF(int d) override { m_dof_ = d; };
+
+    std::shared_ptr<Attribute> Duplicate() const override {
+        return std::shared_ptr<this_type>(new this_type(m_host_));
+    };
+
     auto &Get() { return m_data_; }
     auto const &Get() const { return m_data_; }
-
-    int PushData(std::shared_ptr<data::DataBlock> const &d) {
+    template <typename U, int NR>
+    void DeepCopy(AttributeT<U, NR> const &other) {
+        Update();
+        //        m_data_ = other.Get();
+    }
+    int Push(std::shared_ptr<data::DataNode> const &d) override {
         //        auto blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
         //        if (blk != nullptr) {
         //            int count = 0;
@@ -183,7 +194,7 @@ struct AttributeT : public Attribute {
         //        Tag();
         return 0;
     };
-    std::shared_ptr<data::DataBlock> PopData() {
+    std::shared_ptr<data::DataNode> Pop() override {
         //        auto blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
         //        if (blk == nullptr) {
         //            Push(data::DataMultiArray<array_type>::New(d->size()));

@@ -3,6 +3,7 @@
 //
 #include "simpla/SIMPLA_config.h"
 
+#include <simpla/data/DataNode.h>
 #include <boost/functional/hash.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -13,12 +14,18 @@
 
 namespace simpla {
 namespace engine {
-
+MeshBlock::MeshBlock() {}
 MeshBlock::MeshBlock(index_box_type b, int id, int level, int global_rank)
     : m_global_rank_(global_rank), m_level_(level), m_local_id_(id), m_index_box_(std::move(b)) {}
 
 MeshBlock::~MeshBlock() = default;
-
+std::shared_ptr<MeshBlock> MeshBlock::New(std::shared_ptr<simpla::data::DataNode> const &tdb) {
+    auto res = std::shared_ptr<MeshBlock>(new MeshBlock);
+    res->Deserialize(tdb);
+    return res;
+}
+std::shared_ptr<simpla::data::DataNode> MeshBlock::Serialize() const {}
+void MeshBlock::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {}
 std::shared_ptr<MeshBlock> MeshBlock::New(index_box_type const &box, int id, int level, int global_rank) {
     return std::shared_ptr<MeshBlock>(new MeshBlock(box, id, level, global_rank));
 };

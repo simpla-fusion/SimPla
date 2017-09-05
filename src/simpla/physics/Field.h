@@ -49,6 +49,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
 
     static constexpr int iform = IFORM;
     static constexpr int NUM_OF_SUB = (IFORM == NODE || IFORM == CELL) ? 1 : 3;
+
     TM* m_host_;
 
    public:
@@ -63,33 +64,18 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
     static std::shared_ptr<this_type> New(Args&&... args) {
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
     }
-    std::shared_ptr<this_type> Duplicate() const { return std::shared_ptr<this_type>(new this_type(m_host_)); }
+    std::shared_ptr<engine::Attribute> Duplicate() const override {
+        return std::shared_ptr<engine::Attribute>(new this_type(m_host_));
+    }
 
     void DoUpdate() override {
-        if (base_type::isNull()) {
-            //            m_host_->GetMesh()->template initialize_data<IFORM>(&m_data_);
-        } else {
-            //            PushData(&m_data_);
-        }
-        //        traits::foreach (m_data_, [&](auto& a, auto&&... s) { a.Initialize(); });
+        if (base_type::isNull()) { m_host_->GetMesh()->InitializeAttribute(this); }
     }
-    void DoTearDown() override {
-        //        PopData(&m_data_);
-        //        traits::foreach (m_data_, [&](auto& a, auto&&... s) { a.Finalize(); });
-    }
+    void DoTearDown() override {}
     template <typename Other>
     void Set(Other&& v) {
         base_type::Update();
         m_host_->Fill(*this, std::forward<Other>(v));
-    }
-
-    template <typename MR, typename UR, int... NR>
-    void DeepCopy(Field<MR, UR, NR...> const& other) {
-        base_type::Update();
-        //        m_data_ = other.Get();
-    }
-    void Clear() override {
-        //        traits::foreach (m_data_, [&](auto& a, auto&&... s) { a.Clear(); });
     }
 
     this_type& operator=(this_type const& other) {
@@ -110,11 +96,6 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
     auto const& Get(index_type i0, Args&&... args) const {
         return base_type::m_data_[i0].at(std::forward<Args>(args)...);
     }
-
-    //    template <typename U, typename... Args>
-    //    void SetEntity(U&& v, Args&&... args) {
-    //        m_host_->GetEntity(*this, std::forward<U>(v), std::forward<Args>(args)...);
-    //    }
 
     template <typename... Args>
     auto& at(index_type n0, Args&&... args) {

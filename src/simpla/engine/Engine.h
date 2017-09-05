@@ -8,7 +8,6 @@
 #include "Atlas.h"
 #include "Attribute.h"
 #include "Domain.h"
-#include "Patch.h"
 #include "Scenario.h"
 
 #endif  // SIMPLA_ENGINE_ALL_H

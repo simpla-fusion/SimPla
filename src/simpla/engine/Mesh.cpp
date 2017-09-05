@@ -12,14 +12,10 @@
 
 #include "Attribute.h"
 #include "Domain.h"
-#include "Patch.h"
 
 namespace simpla {
 namespace engine {
 
-struct pack_s : public Patch::DataPack_s {
-    std::map<std::string, Range<EntityId>> m_ranges_;
-};
 
 struct MeshBase::pimpl_s {
     std::shared_ptr<pack_s> m_pack_;
@@ -48,7 +44,7 @@ void MeshBase::Deserialize(std::shared_ptr<data::DataNode> const& tdb) {
 
 int MeshBase::GetNDIMS() const { return 3; }
 
-std::tuple<Real, index_box_type> MeshBase::CheckOverlap(const geometry::GeoObject* g) const {
+std::tuple<Real, index_box_type> MeshBase::CheckOverlap(const std::shared_ptr<geometry::GeoObject> &g) const {
     Real ratio = 0;
     if (g != nullptr) {
         auto b = GetBox(0);
@@ -98,7 +94,7 @@ void MeshBase::SetBlock(const std::shared_ptr<MeshBlock>& blk) { m_mesh_block_ =
 std::shared_ptr<const MeshBlock> MeshBase::GetBlock() const { return m_mesh_block_; }
 std::shared_ptr<MeshBlock> MeshBase::GetBlock() { return m_mesh_block_; }
 
-int MeshBase::Push(const std::shared_ptr<data::DataNode> &patch) {
+int MeshBase::Push(const std::shared_ptr<data::DataNode>& patch) {
     //    VERBOSE << " Patch Level:" << patch->GetMeshBlock()->GetLevel() << " ID: " <<
     //    patch->GetMeshBlock()->GetLocalID()
     //            << " Block:" << patch->GetMeshBlock()->IndexBox() << std::endl;
@@ -108,6 +104,7 @@ int MeshBase::Push(const std::shared_ptr<data::DataNode> &patch) {
     AttributeGroup::Push(patch);
     Update();
     ASSERT(GetBlock()->GetLevel() == GetChart()->GetLevel());
+    return 1;
 }
 std::shared_ptr<data::DataNode> MeshBase::Pop() {
     //    patch->SetMeshBlock(GetBlock());
@@ -131,23 +128,24 @@ Range<EntityId> MeshBase::GetRange(std::string const& k) const {
     auto it = m_pimpl_->m_pack_->m_ranges_.find(k);
     return (it == m_pimpl_->m_pack_->m_ranges_.end()) ? Range<EntityId>{} : it->second;
 };
+int MeshBase::InitializeAttribute(Attribute* attr) const { return 0; }
 
 void MeshBase::InitialCondition(Real time_now) { DoInitialCondition(time_now); }
 void MeshBase::BoundaryCondition(Real time_now, Real dt) { DoBoundaryCondition(time_now, dt); }
 void MeshBase::Advance(Real time_now, Real dt) { DoAdvance(time_now, dt); }
 void MeshBase::TagRefinementCells(Real time_now) { DoTagRefinementCells(time_now); }
 //
-//void MeshBase::InitialCondition(const std::shared_ptr<Patch>& patch, Real time_now) {
+// void MeshBase::InitialCondition(const std::shared_ptr<Patch>& patch, Real time_now) {
 //    Push(patch);
 //    InitialCondition(time_now);
 //    Pop();
 //}
-//void MeshBase::BoundaryCondition(const std::shared_ptr<Patch>& patch, Real time_now, Real dt) {
+// void MeshBase::BoundaryCondition(const std::shared_ptr<Patch>& patch, Real time_now, Real dt) {
 //    Push(patch);
 //    BoundaryCondition(time_now, dt);
 //    Pop();
 //}
-//void MeshBase::Advance(const std::shared_ptr<Patch>& patch, Real time_now, Real dt) {
+// void MeshBase::Advance(const std::shared_ptr<Patch>& patch, Real time_now, Real dt) {
 //    Push(patch);
 //    Advance(time_now, dt);
 //    Pop();

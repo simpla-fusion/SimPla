@@ -65,19 +65,12 @@ class DomainBase : public EngineObject {
     design_pattern::Signal<void(DomainBase *, Real, Real)> PostAdvance;
     void Advance(Real time_now, Real time_dt);
 
-    void SetBoundary(const std::shared_ptr<geometry::GeoObject> &b) { m_geo_body_ = b; }
-    std::shared_ptr<geometry::GeoObject> GetBoundary() const { return m_geo_body_; }
-
-    void SetModel(std::shared_ptr<engine::Model> const &m) { m_model_ = m; }
+    std::shared_ptr<MeshBase> GetMesh() const { return m_mesh_.; }
     std::shared_ptr<Model> GetModel() const { return m_model_; }
-
-    virtual const MeshBase *GetMesh() const { return m_mesh_.get(); }
-    virtual MeshBase *GetMesh() { return m_mesh_.get(); }
 
    private:
     std::shared_ptr<MeshBase> m_mesh_ = nullptr;
     std::shared_ptr<engine::Model> m_model_ = nullptr;
-    std::shared_ptr<geometry::GeoObject> m_geo_body_ = nullptr;
 
 };  // class DomainBase
 
@@ -96,8 +89,8 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
     void DoAdvance(Real time_now, Real dt) override;
     void DoTagRefinementCells(Real time_now) override;
 
-    mesh_type const *GetMesh() const override { return dynamic_cast<mesh_type const *>(DomainBase::GetMesh()); }
-    mesh_type *GetMesh() override { return dynamic_cast<mesh_type *>(DomainBase::GetMesh()); }
+    mesh_type const *mesh() const { return dynamic_cast<mesh_type const *>(DomainBase::GetMesh()); }
+    mesh_type *mesh() { return dynamic_cast<mesh_type *>(DomainBase::GetMesh()); }
 
     template <typename TL, typename TR>
     void Fill(TL &lhs, TR &&rhs) const {
@@ -133,7 +126,7 @@ std::shared_ptr<data::DataNode> Domain<TM, Policies...>::Serialize() const {
 };
 
 template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::Deserialize(std::shared_ptr<data::DataNode>const & cfg) {
+void Domain<TM, Policies...>::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     DomainBase::Deserialize(cfg);
     traits::_try_invoke_Deserialize<Policies...>(this, cfg);
 };

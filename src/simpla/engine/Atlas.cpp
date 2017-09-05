@@ -8,8 +8,7 @@
 #include "simpla/geometry/Chart.h"
 
 #include "Atlas.h"
-#include "Patch.h"
-
+#include "MeshBlock.h"
 //#include "TransitionMap.h"
 //#include "simpla/utilities/BoxUtility.h"
 
@@ -17,19 +16,16 @@ namespace simpla {
 namespace engine {
 
 struct Atlas::pimpl_s {
-    std::map<id_type, std::shared_ptr<data::DataNode>> m_patches_;
+    std::map<id_type, std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataNode>>> m_patches_;
 
-    static constexpr int MAX_NUM_OF_LEVEL = 5;
-
+    //    static constexpr int MAX_NUM_OF_LEVEL = 5;
     //    typedef typename std::multimap<id_type, id_type>::iterator link_iterator;
     //    typedef typename std::multimap<id_type, id_type>::const_iterator const_link_iterator;
     //    typedef std::pair<const_link_iterator, const_link_iterator> multi_links_type;
     //    std::multimap<id_type, id_type> m_adjacent_;
     //    std::multimap<id_type, id_type> m_refine_;
     //    std::multimap<id_type, id_type> m_coarsen_;
-
-    std::set<std::shared_ptr<data::DataNode>> m_layers_[MAX_NUM_OF_LEVEL];
-
+    //    std::set<std::shared_ptr<data::DataNode>> m_layers_[MAX_NUM_OF_LEVEL];
     //    nTuple<int, 3> m_refine_ratio_[MAX_NUM_OF_LEVEL] = {{2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}};
     //    index_box_type m_coarsest_index_box_{{0, 0, 0}, {1, 1, 1}};
 };
@@ -49,46 +45,60 @@ Atlas::~Atlas() { delete m_pimpl_; }
 std::shared_ptr<data::DataNode> Atlas::Serialize() const {
     auto tdb = base_type::Serialize();
 
-    tdb->SetValue("PeriodicDimension", GetPeriodicDimensions());
-    tdb->SetValue("CoarsestIndexBox", GetCoarsestIndexBox());
+//    tdb->SetValue("PeriodicDimension", GetPeriodicDimensions());
+//    tdb->SetValue("CoarsestIndexBox", GetCoarsestIndexBox());
+//
+//    tdb->SetValue("MaxLevel", GetMaxLevel());
+//    tdb->SetValue("RefineRatio", GetRefineRatio());
+//    tdb->SetValue("LargestPatchDimensions", GetLargestPatchDimensions());
+//    tdb->SetValue("SmallestPatchDimensions", GetSmallestPatchDimensions());
 
-    tdb->SetValue("MaxLevel", GetMaxLevel());
-    tdb->SetValue("RefineRatio", GetRefineRatio());
-    tdb->SetValue("LargestPatchDimensions", GetLargestPatchDimensions());
-    tdb->SetValue("SmallestPatchDimensions", GetSmallestPatchDimensions());
+    TODO << " Need better way save/load patches!";
+    auto patches = tdb->CreateNode(data::DataNode::DN_TABLE);
+    for (auto const &item : m_pimpl_->m_patches_) {
+        auto tmp = tdb->CreateNode(data::DataNode::DN_TABLE);
+        tmp->Set("block", item.second.first->Serialize());
+        tmp->Set("data", item.second.second);
+        patches->Set(item.first, tmp);
+    }
+    tdb->Set("Patches", patches);
     return tdb;
 };
 void Atlas::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
     base_type::Deserialize(tdb);
+    TODO << " Need better way save/load patches!";
+    auto patches = tdb->Get("Patches");
+    patches->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &dnode) {
+        auto res = m_pimpl_->m_patches_.emplace(
+            std::stoi(key), std::make_pair(MeshBlock::New(dnode->Get("block")), dnode->Get("data")));
+        return res.second ? 1 : 0;
+    });
+
     Click();
 };
 
 size_type Atlas::DeletePatch(id_type id) { return m_pimpl_->m_patches_.erase(id); }
 
-id_type Atlas::SetPatch(const std::shared_ptr<data::DataNode> &p) {
-    auto res = m_pimpl_->m_patches_.emplace(p->GetValue<id_type>("GUID"), p);
-    if (!res.second) { res.first->second = p; }
+id_type Atlas::SetPatch(const std::shared_ptr<MeshBlock> &mblk, const std::shared_ptr<data::DataNode> &p) {
+    auto res = m_pimpl_->m_patches_.emplace(mblk->GetGUID(), std::make_pair(mblk, p));
+    if (!res.second) { res.first->second.second = p; }
     return res.first->first;
+}
+std::shared_ptr<data::DataNode> Atlas::GetPatch(const std::shared_ptr<MeshBlock> &mblk) {
+    return GetPatch(mblk->GetGUID());
 }
 std::shared_ptr<data::DataNode> Atlas::GetPatch(id_type id) {
     std::shared_ptr<data::DataNode> res = nullptr;
     auto it = m_pimpl_->m_patches_.find(id);
-    if (it != m_pimpl_->m_patches_.end()) { res = it->second; }
-    return res;
+    if (it != m_pimpl_->m_patches_.end()) { res = it->second.second; }
+    return res != nullptr ? res : data::DataNode::New();
 }
-std::shared_ptr<data::DataNode> Atlas::GetPatch(const std::shared_ptr<MeshBlock> &mblk) {
-    auto res = GetPatch(mblk->GetGUID());
-    FIXME;
-    //    if (res == nullptr) { res = GetPatch(SetPatch(Patch::New(mblk))); }
-    // else { TODO: check mblk.index_box}
-    return res;
-};
 
 std::shared_ptr<data::DataNode> Atlas::GetPatch(id_type id) const {
     std::shared_ptr<data::DataNode> res = nullptr;
     auto it = m_pimpl_->m_patches_.find(id);
-    if (it != m_pimpl_->m_patches_.end()) { res = it->second; }
-    return res;
+    if (it != m_pimpl_->m_patches_.end()) { res = it->second.second; }
+    return res != nullptr ? res : data::DataNode::New();
 }
 
 // int Atlas::GetNumOfLevel() const { return m_pimpl_->(); }

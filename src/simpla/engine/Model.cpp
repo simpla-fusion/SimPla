@@ -14,13 +14,12 @@ namespace simpla {
 namespace engine {
 
 struct Model::pimpl_s {
-    std::map<std::string, std::shared_ptr<geometry::GeoObject>> m_g_objs_;
+    std::shared_ptr<geometry::GeoObject> m_g_obj_;
     box_type m_bound_box_{{0, 0, 0}, {0, 0, 0}};
 };
 
 Model::Model() : m_pimpl_(new pimpl_s) {}
 Model::~Model() { delete m_pimpl_; };
-Model::Model(std::string const& url) { FIXME; }
 
 std::shared_ptr<data::DataNode> Model::Serialize() const {
     auto tdb = base_type::Serialize();
@@ -55,6 +54,8 @@ void Model::DoUpdate() {
 void Model::DoTearDown() {}
 
 box_type const& Model::BoundingBox() const { return m_pimpl_->m_bound_box_; };
+
+std::shared_ptr<geometry::GeoObject> Model::GetBoundary() const { return m_pimpl_->m_g_obj_; }
 
 void Model::SetObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
     if (g_obj != nullptr) {

@@ -7,7 +7,6 @@
 #include <typeindex>
 #include "Domain.h"
 #include "MeshBlock.h"
-#include "Patch.h"
 #include "simpla/data/DataBlock.h"
 //#include "simpla/mesh/MeshBase.h"
 namespace simpla {

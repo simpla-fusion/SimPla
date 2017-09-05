@@ -22,8 +22,7 @@ using namespace data;
 class Model : public EngineObject {
     SP_OBJECT_HEAD(Model, EngineObject)
 
-    Model(std::string const &);
-
+   public:
     void DoInitialize() override;
     void DoUpdate() override;
     void DoTearDown() override;
@@ -43,15 +42,17 @@ class Model : public EngineObject {
 
     std::map<std::string, std::shared_ptr<geometry::GeoObject>> const &GetAll() const;
 
+    std::shared_ptr<geometry::GeoObject> GetBoundary() const;
+
     template <typename TV, int IFORM>
     void LoadProfile(std::string const &k, AttributeT<TV, IFORM> *f) const {
         int n = ((IFORM == NODE || IFORM == CELL) ? 1 : 3) * f->GetDOF();
         if (n == 1) {
             auto fun = GetAttribute(k);
-//            if (fun) { *f = fun; }
+            //            if (fun) { *f = fun; }
         } else {
             auto fun = GetAttributeVector(k);
-//            if (fun) { *f = fun; }
+            //            if (fun) { *f = fun; }
         }
     };
 };

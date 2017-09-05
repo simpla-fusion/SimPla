@@ -115,7 +115,7 @@ std::ostream &operator<<(std::ostream &os, SPObject const &obj);
 std::istream &operator>>(std::istream &is, SPObject &obj);
 
 #define SP_OBJECT_PROPERTY(_TYPE_, _NAME_)                                  \
-    void Set##_NAME_(_TYPE_ _v_) { db()->SetValue(__STRING(_NAME_), _v_); } \
+    void Set##_NAME_(_TYPE_ const & _v_) { db()->SetValue(__STRING(_NAME_), _v_); } \
     _TYPE_ Get##_NAME_() const { return db()->template GetValue<_TYPE_>(__STRING(_NAME_)); }
 
 #define SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_)                                                      \
@@ -158,7 +158,7 @@ std::istream &operator>>(std::istream &is, SPObject &obj);
         return New_<this_type>(std::is_abstract<this_type>(), std::forward<Args>(args)...);            \
     };                                                                                                 \
     static std::shared_ptr<this_type> New() { return New_<this_type>(std::is_abstract<this_type>()); } \
-    static std::shared_ptr<this_type> New(std::shared_ptr<simpla::data::DataNode> cfg) {               \
+    static std::shared_ptr<this_type> New(std::shared_ptr<simpla::data::DataNode> const &cfg) {        \
         auto res = New();                                                                              \
         res->Deserialize(cfg);                                                                         \
         return res;                                                                                    \

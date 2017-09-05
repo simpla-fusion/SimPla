@@ -17,7 +17,6 @@
 #include "simpla/utilities/Log.h"
 
 #include "EngineObject.h"
-#include "Patch.h"
 
 namespace simpla {
 namespace engine {
@@ -60,7 +59,6 @@ namespace engine {
  * @enduml
  */
 
-class Patch;
 class MeshBlock;
 
 /**
@@ -75,12 +73,13 @@ class Atlas : public EngineObject {
 
    public:
     size_type DeletePatch(id_type);
-    id_type SetPatch(const std::shared_ptr<data::DataNode> &p);
-    std::shared_ptr<data::DataNode> GetPatch(id_type id);
+    id_type SetPatch(const std::shared_ptr<MeshBlock> &mblk, const std::shared_ptr<data::DataNode> &p);
     std::shared_ptr<data::DataNode> GetPatch(const std::shared_ptr<MeshBlock> &mblk);
-    std::shared_ptr<data::DataNode> GetPatch(id_type id) const;
 
-//    int GetNumOfLevel() const;
+    std::shared_ptr<data::DataNode> GetPatch(id_type id) const;
+    std::shared_ptr<data::DataNode> GetPatch(id_type id);
+
+    //    int GetNumOfLevel() const;
 
     SP_OBJECT_PROPERTY(int, MaxLevel);
     SP_OBJECT_PROPERTY(index_tuple, RefineRatio);

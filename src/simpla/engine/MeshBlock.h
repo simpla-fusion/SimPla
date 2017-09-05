@@ -17,15 +17,19 @@ namespace simpla {
 namespace engine {
 
 class MeshBlock {
-    SP_OBJECT_BASE(MeshBlock)
+    typedef MeshBlock this_type;
 
    protected:
+    MeshBlock();
     explicit MeshBlock(index_box_type b, int id, int level, int global_rank);
 
    public:
     ~MeshBlock();
-    SP_DEFAULT_CONSTRUCT(MeshBlock);
+
+    static std::shared_ptr<MeshBlock> New(std::shared_ptr<simpla::data::DataNode> const &);
     static std::shared_ptr<MeshBlock> New(index_box_type const &box, int id = 0, int level = 0, int global_rank = 0);
+    std::shared_ptr<simpla::data::DataNode> Serialize() const;
+    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg);
 
    private:
     static constexpr int MAX_LEVEL_NUMBER = 8;

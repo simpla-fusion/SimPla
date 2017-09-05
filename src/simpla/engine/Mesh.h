@@ -26,30 +26,29 @@ using namespace simpla::data;
 class Curve;
 struct MeshBase : public EngineObject, public AttributeGroup {
     SP_OBJECT_HEAD(MeshBase, EngineObject)
-    static constexpr char const *TagName() { return "Mesh"; }
 
    public:
     using AttributeGroup::attribute_type;
 
-    int GetNDIMS() const;
-
-    virtual std::shared_ptr<geometry::Chart> GetChart() = 0;
-    virtual std::shared_ptr<const geometry::Chart> GetChart() const = 0;
-
     virtual this_type *GetMesh() { return this; }
     virtual this_type const *GetMesh() const { return this; }
 
-    virtual void AddEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g){};
+    int GetNDIMS() const;
 
-    virtual index_box_type IndexBox(int tag) const;
-    virtual box_type GetBox(int tag) const;
+    void GetChart(std::shared_ptr<geometry::Chart> const &c) const { m_chart_ = c; }
+    std::shared_ptr<geometry::Chart> GetChart() const { return m_chart_; }
+
+    std::shared_ptr<MeshBlock> GetBlock() const { return m_mesh_block_; }
+
+    virtual void AddEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g){};
+
+    index_box_type IndexBox(int tag) const;
+    box_type GetBox(int tag) const;
     box_type BoundingBox(int tag) const { return GetBox(tag); }
 
-    virtual std::tuple<Real, index_box_type> CheckOverlap(geometry::GeoObject const *) const;
+    virtual std::tuple<Real, index_box_type> CheckOverlap(const std::shared_ptr<geometry::GeoObject> &) const;
 
-    virtual void SetBlock(const std::shared_ptr<MeshBlock> &blk);
-    virtual std::shared_ptr<const MeshBlock> GetBlock() const;
-    virtual std::shared_ptr<MeshBlock> GetBlock();
+    virtual int InitializeAttribute(Attribute *) const;
 
     void DoInitialize() override;
     void DoFinalize() override;
@@ -69,13 +68,13 @@ struct MeshBase : public EngineObject, public AttributeGroup {
 
     std::shared_ptr<data::DataNode> Pop() override;
     int Push(const std::shared_ptr<data::DataNode> &p) override;
-
     void SetRange(std::string const &, Range<EntityId> const &);
     Range<EntityId> &GetRange(std::string const &k);
     Range<EntityId> GetRange(std::string const &k) const;
 
    private:
     std::shared_ptr<MeshBlock> m_mesh_block_ = nullptr;
+    std::shared_ptr<geometry::Chart> m_chart_ = nullptr;
 };
 
 template <typename TChart, template <typename> class... Policies>
@@ -83,24 +82,15 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     SP_OBJECT_HEAD(Mesh, MeshBase)
    private:
     typedef TChart chart_type;
-    std::shared_ptr<chart_type> m_chart_;
     typedef Mesh<chart_type, Policies...> mesh_type;
 
    public:
     void DoInitialize() override;
-
     void DoUpdate() override;
-
-    std::shared_ptr<geometry::Chart> GetChart() override { return m_chart_; }
-    std::shared_ptr<geometry::Chart const> GetChart() const override { return m_chart_; }
-
-    std::shared_ptr<MeshBlock> GetBlock() override { return MeshBase::GetBlock(); }
-    std::shared_ptr<const MeshBlock> GetBlock() const override { return MeshBase::GetBlock(); }
-
     this_type *GetMesh() override { return this; }
     this_type const *GetMesh() const override { return this; }
 
-    index_box_type IndexBox(int tag) const override { return MeshBase::IndexBox(tag); };
+    std::shared_ptr<chart_type> chart() const { return std::dynamic_pointer_cast<chart_type>(GetChart()); }
 
     void DoInitialCondition(Real time_now) override;
     void DoBoundaryCondition(Real time_now, Real dt) override;
@@ -137,7 +127,7 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
 
     void TagRefinementRange(Range<EntityId> const &r) override;
 
-    void AddEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g) override;
+    void AddEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g) override;
 };
 
 template <typename TChart, template <typename> class... Policies>
@@ -203,7 +193,8 @@ void Mesh<TM, Policies...>::DoTagRefinementCells(Real time_now) {
 }
 
 template <typename TM, template <typename> class... Policies>
-void Mesh<TM, Policies...>::AddEmbeddedBoundary(std::string const &prefix, const geometry::GeoObject *g) {
+void Mesh<TM, Policies...>::AddEmbeddedBoundary(std::string const &prefix,
+                                                const std::shared_ptr<geometry::GeoObject> &g) {
     _detail::_try_invoke_SetEmbeddedBoundary<Policies...>(this, prefix, g);
 };
 
