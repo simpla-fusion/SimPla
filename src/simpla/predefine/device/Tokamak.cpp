@@ -15,28 +15,16 @@
 #include <TColgp_HArray1OfPnt.hxx>
 
 namespace simpla {
-SP_OBJECT_REGISTER(Tokamak)
 
 struct Tokamak::pimpl_s {
     GEqdsk geqdsk;
     Real m_phi0_ = 0, m_phi1_ = TWOPI;
 };
+
 Tokamak::Tokamak() : m_pimpl_(new pimpl_s) {}
+
 Tokamak::~Tokamak() { delete m_pimpl_; }
-Tokamak::Tokamak(std::string const &gfile) : Tokamak() { LoadGFile(gfile); }
 
-std::shared_ptr<data::DataNode> Tokamak::Serialize() const { return base_type::Serialize(); }
-
-void Tokamak::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
-    base_type::Deserialize(tdb);
-    if (tdb != nullptr) {
-        nTuple<Real, 2> phi = tdb->GetValue("Phi", nTuple<Real, 2>{0, TWOPI});
-        m_pimpl_->m_phi0_ = phi[0];
-        m_pimpl_->m_phi1_ = phi[1];
-        LoadGFile(tdb->GetValue<std::string>("gfile", "gfile"));
-    }
-    Update();
-}
 engine::Model::attr_fun Tokamak::GetAttribute(std::string const &attr_name) const {
     attr_fun res = nullptr;
 
@@ -50,6 +38,7 @@ engine::Model::attr_fun Tokamak::GetAttribute(std::string const &attr_name) cons
 
     return res;
 };
+
 engine::Model::vec_attr_fun Tokamak::GetAttributeVector(std::string const &attr_name) const {
     vec_attr_fun res = nullptr;
     if (attr_name == "B0") {
@@ -75,7 +64,7 @@ void Tokamak::DoUpdate() {
         gp_Ax1 axis(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
         BRepBuilderAPI_MakeFace myBoundaryFaceProfile(wireMaker.Wire(), true);
         BRepPrimAPI_MakeRevol revol(myBoundaryFaceProfile.Face(), axis);
-        engine::Model::SetObject("Plasma", geometry::GeoObjectOCC::New(revol.Shape()));
+        m_self_->Add("Plasma", geometry::GeoObjectOCC::New(revol.Shape()));
     }
     {
         BRepBuilderAPI_MakePolygon polygonMaker;
@@ -83,8 +72,8 @@ void Tokamak::DoUpdate() {
         gp_Ax1 axis(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
         BRepBuilderAPI_MakeFace myLimterFaceProfile(polygonMaker.Wire());
         BRepPrimAPI_MakeRevol myLimiter(myLimterFaceProfile.Face(), axis);
-        engine::Model::SetObject("Limiter", geometry::GeoObjectOCC::New(myLimiter.Shape()));
+        m_self_->Add("Limiter", geometry::GeoObjectOCC::New(myLimiter.Shape()));
     }
-    engine::Model::DoUpdate();
 }
+
 }  // namespace simpla {

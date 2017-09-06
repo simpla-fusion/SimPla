@@ -7,9 +7,22 @@
 #include "simpla/data/DataNode.h"
 namespace simpla {
 namespace engine {
-
-TimeIntegrator::TimeIntegrator() {}
-TimeIntegrator::~TimeIntegrator() {}
+struct TimeIntegrator::pimpl_s {
+    Real m_time_now_ = 0.0;
+    Real m_time_end_ = 1.0;
+    Real m_time_step_ = 1.0;
+    size_type m_step_ = 0;
+};
+TimeIntegrator::TimeIntegrator() : m_pimpl_(new pimpl_s) {}
+TimeIntegrator::~TimeIntegrator() { delete m_pimpl_; }
+Real TimeIntegrator::GetTimeNow() const { return m_pimpl_->m_time_now_; }
+void TimeIntegrator::SetTimeNow(Real t) { m_pimpl_->m_time_now_ = t; }
+Real TimeIntegrator::GetTimeEnd() const { return m_pimpl_->m_time_end_; }
+void TimeIntegrator::SetTimeEnd(Real t) { m_pimpl_->m_time_end_ = t; }
+Real TimeIntegrator::GetTimeStep() const { return m_pimpl_->m_time_step_; }
+void TimeIntegrator::SetTimeStep(Real t) { m_pimpl_->m_time_step_ = t; }
+size_type TimeIntegrator::GetStep() const { return m_pimpl_->m_step_; }
+void TimeIntegrator::SetStep(size_type s) { m_pimpl_->m_step_ = s; }
 
 std::shared_ptr<data::DataNode> TimeIntegrator::Serialize() const { return base_type::Serialize(); }
 
@@ -38,7 +51,7 @@ void TimeIntegrator::Advance(Real time_now, Real dt) {
 }
 void TimeIntegrator::CheckPoint() const {}
 void TimeIntegrator::DoSetUp() {
-    SetStep(db()->GetValue<size_type>("Step", 0));
+    SetStep(db()->GetValue<size_type>("Step", m_pimpl_->m_step_));
     SetMaxStep(db()->GetValue<size_type>("MaxStep", 100));
     base_type::DoSetUp();
 }
@@ -46,20 +59,20 @@ void TimeIntegrator::DoTearDown() { base_type::DoTearDown(); }
 void TimeIntegrator::Run() {
     Update();
     while (!Done()) {
-        VERBOSE << " [ STEP:" << std::setw(5) << GetStep() << " START ] " << std::endl;
+        VERBOSE << " [ STEP:" << std::setw(5) << GetStep() << " START ] ";
         if (GetStep() == 0) { CheckPoint(); }
         Synchronize();
         NextStep();
         if (GetCheckPointInterval() > 0 && GetStep() % GetCheckPointInterval() == 0) { CheckPoint(); };
         if (GetDumpInterval() > 0 && GetStep() % GetDumpInterval() == 0) { Dump(); };
 
-        VERBOSE << " [ STEP:" << std::setw(5) << GetStep() - 1 << " STOP  ] " << std::endl;
+        VERBOSE << " [ STEP:" << std::setw(5) << GetStep() - 1 << " STOP  ] ";
     }
 }
 void TimeIntegrator::NextStep() {
     Advance(GetTimeNow(), GetTimeStep());
-    SetTimeNow(GetTimeNow() + GetTimeStep());
-    SetStep(GetStep() + 1);
+    m_pimpl_->m_time_now_ += m_pimpl_->m_step_;
+    ++m_pimpl_->m_step_;
 }
 
 void TimeIntegrator::Synchronize() {}

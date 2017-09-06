@@ -17,6 +17,7 @@ EngineObject::~EngineObject() { Finalize(); }
 std::shared_ptr<data::DataNode> EngineObject::Serialize() const { return base_type::Serialize(); }
 void EngineObject::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     ASSERT(!isSetUp());
+    Initialize();
     base_type::Deserialize(cfg);
 };
 void EngineObject::lock() { m_pimpl_->m_mutex_.lock(); }

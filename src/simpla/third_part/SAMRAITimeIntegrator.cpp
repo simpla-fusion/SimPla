@@ -1056,7 +1056,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
         //        VERBOSE << "DoSetUp MeshBase : " << m_ctx_->GetBaseMesh()->GetRegisterName() <<
         //        std::endl;
         //        m_ctx_->GetBaseMesh()->InitialCondition(data_time);
-        //        for (auto const &item : m_ctx_->GetModel().GetAll()) {
+        //        for (auto const &item : m_ctx_->Get().GetAll()) {
         //            m_ctx_->GetBaseMesh()->RegisterRanges(item.m_node_, item.first);
         //        }
         //

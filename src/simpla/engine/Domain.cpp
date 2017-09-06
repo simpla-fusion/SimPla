@@ -70,7 +70,7 @@ std::shared_ptr<data::DataNode> DomainBase::Pop() { return base_type::Pop(); }
 
 void DomainBase::DoSetUp() {
     ASSERT(m_pimpl_->m_mesh_ != nullptr);
-    //    ASSERT(m_pimpl_->m_model_ != nullptr);
+    ASSERT(m_pimpl_->m_model_ != nullptr);
     base_type::DoSetUp();
 }
 void DomainBase::DoUpdate() {

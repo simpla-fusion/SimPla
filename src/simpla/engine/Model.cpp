@@ -14,14 +14,19 @@ namespace simpla {
 namespace engine {
 
 struct Model::pimpl_s {
-    std::shared_ptr<geometry::GeoObject> m_g_obj_;
+    std::shared_ptr<geometry::GeoObject> m_g_obj_ = nullptr;
     box_type m_bound_box_{{0, 0, 0}, {0, 0, 0}};
-    std::map<std::string, std::shared_ptr<geometry::GeoObject>> m_g_objs_;
+
+    std::shared_ptr<Model> m_parent_;
+    std::map<std::string, std::shared_ptr<Model>> m_sub_model_;
+    std::map<std::string, Model::attr_fun> m_attr_fun_;
+    std::map<std::string, Model::vec_attr_fun> m_vec_attr_fun_;
 };
 
 Model::Model() : m_pimpl_(new pimpl_s) {}
 Model::~Model() { delete m_pimpl_; };
-
+Model::Model(std::shared_ptr<geometry::GeoObject> const& g) : Model() { m_pimpl_->m_g_obj_ = g; };
+void Model::Load(std::string const& url) {}
 std::shared_ptr<data::DataNode> Model::Serialize() const {
     auto tdb = base_type::Serialize();
     //    for (auto const& item : m_pimpl_->m_g_objs_) {
@@ -33,14 +38,13 @@ void Model::Deserialize(std::shared_ptr<data::DataNode> const& tdb) {
     base_type::Deserialize(tdb);
     if (tdb != nullptr) {
         tdb->Foreach([&](std::string const& k, std::shared_ptr<data::DataNode> const& v) {
-            if (v != nullptr) { SetObject(k, geometry::GeoObject::New(v)); }
+            if (v != nullptr) { Add(k, geometry::GeoObject::New(v)); }
             return (v != nullptr) ? 1 : 0;
         });
     }
 };
 void Model::DoInitialize() {}
 void Model::DoFinalize() {}
-
 void Model::DoUpdate(){
     //    auto it = m_pimpl_->m_g_objs_.begin();
     //    if (it == m_pimpl_->m_g_objs_.end() || it->second == nullptr) { return; }
@@ -58,30 +62,61 @@ box_type const& Model::BoundingBox() const { return m_pimpl_->m_bound_box_; };
 
 std::shared_ptr<geometry::GeoObject> Model::GetBoundary() const { return m_pimpl_->m_g_obj_; }
 
-void Model::SetObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
-    if (g_obj != nullptr) {
-        VERBOSE << "AddEntity GeoObject [ " << key << " : " << g_obj->TypeName() << " ]";
-        //        m_pimpl_->m_g_objs_[key] = g_obj;
+std::shared_ptr<Model> Model::Get(std::string const& k) const {
+    std::shared_ptr<Model> res = nullptr;
+    if (k.empty()) {
+        res = std::dynamic_pointer_cast<Model>(const_cast<this_type*>(this)->shared_from_this());
+    } else {
+        auto it = m_pimpl_->m_sub_model_.find(k);
+        if (it != m_pimpl_->m_sub_model_.end()) { res = it->second; }
     }
-}
 
-std::shared_ptr<geometry::GeoObject> Model::GetGeoObject(std::string const& k) const {
-    //    auto it = m_pimpl_->m_g_objs_.find(k);
-    //    return it == m_pimpl_->m_g_objs_.end() ? nullptr : it->second;
-    FIXME;
-    return nullptr;
+    return res;
 }
-
-size_type Model::DeleteObject(std::string const& key) {
-    //    return m_pimpl_->m_g_objs_.erase(key);
-    FIXME;
+size_type Model::Delete(std::string const& k) { return m_pimpl_->m_sub_model_.erase(k); }
+size_type Model::Add(std::string const& k, std::shared_ptr<Model> const& m) {
+    m_pimpl_->m_sub_model_[k] = m;
+    return 1;
+}
+size_type Model::Add(std::string const& k, std::shared_ptr<geometry::GeoObject> const& g) {
+    m_pimpl_->m_sub_model_[k] = Model::New(g);
+    return 1;
+}
+size_type Model::AddAttribute(std::string const& model_name, std::string const& function_name, attr_fun) { return 0; }
+size_type Model::AddAttribute(std::string const& model_name, std::string const& function_name, vec_attr_fun) {
     return 0;
 }
 
-std::map<std::string, std::shared_ptr<geometry::GeoObject>> const& Model::GetAll() const {
-    FIXME;
-    return m_pimpl_->m_g_objs_;
-};
+void Model::LoadAttribute(std::string const& k, Attribute* f) const {}
+
+std::shared_ptr<Model> Model::GetParent() const { return m_pimpl_->m_parent_; }
+void Model::SetParent(std::shared_ptr<Model> const& m) { m_pimpl_->m_parent_ = m; };
+
+//
+// void Model::SetObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
+//    if (g_obj != nullptr) {
+//        VERBOSE << "AddEntity GeoObject [ " << key << " : " << g_obj->TypeName() << " ]";
+//        //        m_pimpl_->m_g_objs_[key] = g_obj;
+//    }
+//}
+//
+// std::shared_ptr<geometry::GeoObject> Model::GetGeoObject(std::string const& k) const {
+//    //    auto it = m_pimpl_->m_g_objs_.find(k);
+//    //    return it == m_pimpl_->m_g_objs_.end() ? nullptr : it->second;
+//    FIXME;
+//    return nullptr;
+//}
+//
+// size_type Model::DeleteObject(std::string const& key) {
+//    //    return m_pimpl_->m_g_objs_.erase(key);
+//    FIXME;
+//    return 0;
+//}
+//
+// std::map<std::string, std::shared_ptr<geometry::GeoObject>> const& Model::GetAll() const {
+//    FIXME;
+//    return m_pimpl_->m_g_objs_;
+//};
 
 }  // namespace engine
 }  // namespace simpla{;

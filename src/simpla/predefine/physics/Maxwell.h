@@ -54,7 +54,7 @@ void Maxwell<TM>::InitialCondition(Real time_now) {
 
     B0v.Clear();
 
-    if (m_host_->GetModel() != nullptr) { m_host_->GetModel()->LoadProfile("B0", &B0v); }
+    if (m_host_->GetModel() != nullptr) { m_host_->GetModel()->LoadAttribute("B0", &B0v); }
 }
 template <typename TM>
 void Maxwell<TM>::BoundaryCondition(Real time_now, Real time_dt) {

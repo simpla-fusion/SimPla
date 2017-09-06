@@ -107,7 +107,7 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
 
     ne.Clear();
 
-    if (m_host_->GetModel() != nullptr) { m_host_->GetModel()->LoadProfile("ne", &ne); }
+    if (m_host_->GetModel() != nullptr) { m_host_->GetModel()->LoadAttribute("ne", &ne); }
 
     return;
     BB = dot(B0v, B0v);

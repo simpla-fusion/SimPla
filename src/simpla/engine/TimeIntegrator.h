@@ -28,15 +28,19 @@ class TimeIntegrator : public Scenario {
     void Run() override;
     bool Done() const override;
 
-    SP_OBJECT_PROPERTY(size_type, Step);
-    SP_OBJECT_PROPERTY(size_type, MaxStep);
     SP_OBJECT_PROPERTY(size_type, CheckPointInterval);
     SP_OBJECT_PROPERTY(size_type, DumpInterval);
-
-    SP_OBJECT_PROPERTY(Real, TimeNow);
-    SP_OBJECT_PROPERTY(Real, TimeEnd);
-    SP_OBJECT_PROPERTY(Real, TimeStep);
+    SP_OBJECT_PROPERTY(size_type, MaxStep);
     SP_OBJECT_PROPERTY(Real, CFL);
+
+    Real GetTimeNow() const;
+    void SetTimeNow(Real);
+    Real GetTimeEnd() const;
+    void SetTimeEnd(Real);
+    Real GetTimeStep() const;
+    void SetTimeStep(Real);
+    size_type GetStep() const;
+    void SetStep(size_type);
 };
 }  // namespace engine
 }  // namespace simpla

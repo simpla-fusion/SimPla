@@ -13,7 +13,6 @@
 #include "simpla/mesh/EBMesh.h"
 #include "simpla/mesh/RectMesh.h"
 #include "simpla/predefine/device/ICRFAntenna.h"
-#include "simpla/predefine/device/Tokamak.h"
 #include "simpla/predefine/physics/EMFluid.h"
 #include "simpla/predefine/physics/Maxwell.h"
 #include "simpla/predefine/physics/PICBoris.h"
@@ -33,9 +32,9 @@ int main(int argc, char** argv) {
     scenario->SetMesh<mesh_type>();
     scenario->GetMesh()->GetChart()->SetScale({1, 1, 1});
 
-    scenario->AddModel<Tokamak>("Tokamak", "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
-    scenario->SetDomain<Domain<mesh_type, Maxwell>>("Tokamak.Limiter");
-    scenario->SetDomain<Domain<mesh_type, EMFluid>>("Tokamak.Plasma");
+    scenario->GetModel()->Load("gfile://home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
+    scenario->SetDomain("Limiter", Domain<mesh_type, Maxwell>::New());
+    scenario->SetDomain("Plasma", Domain<mesh_type, EMFluid>::New());
 
     scenario->SetTimeNow(0);
     scenario->SetTimeEnd(1.0);
