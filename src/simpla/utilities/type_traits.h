@@ -412,6 +412,7 @@ size_type get_value(std::integer_sequence<TI, N0, N...> const& _, TJ* d) {
     }
     return sizeof...(N);
 };
+
 }  // namespace traits
 
 template <typename Arg0>
@@ -818,12 +819,9 @@ EXAMPLE:
  */
 #define CHECK_STATIC_FUNCTION_MEMBER(_CHECKER_NAME_, _FUN_NAME_)                                                      \
     namespace detail {                                                                                                \
-    template <typename...>                                                                                            \
-    struct _CHECKER_NAME_ {                                                                                           \
-        static constexpr bool value = false;                                                                          \
-    };                                                                                                                \
+                                                                                                                      \
     template <typename _T, typename _TRet, typename... _Args>                                                         \
-    struct _CHECKER_NAME_<_T, _TRet(_Args...)> {                                                                      \
+    struct _CHECKER_NAME_ {                                                                                           \
        private:                                                                                                       \
         typedef std::true_type yes;                                                                                   \
         typedef std::false_type no;                                                                                   \
@@ -856,5 +854,17 @@ EXAMPLE:
 
 // CHECK_OPERATOR(is_callable, ())
 
+namespace traits {
+CHECK_STATIC_FUNCTION_MEMBER(has_fancy_type_name, FancyTypeName)
+
+template <typename T, typename Enable = void>
+struct type_name {
+    static std::string value() { return typeid(T).name(); }
+};
+template <typename T>
+struct type_name<T, std::enable_if_t<has_fancy_type_name<T, std::string>::value>> {
+    static std::string value() { return T::FancyTypeName(); }
+};
+}
 }  // namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */

@@ -26,7 +26,7 @@ struct SPObject::pimpl_s {
 
     id_type m_id_ = NULL_ID;
     bool m_is_initialized_ = false;
-    std::string m_name_;
+    std::string m_name_ = "unnamed";
     std::shared_ptr<data::DataNode> m_db_ = nullptr;
 };
 
@@ -36,6 +36,7 @@ static boost::uuids::random_generator g_uuid_generator;
 SPObject::SPObject() : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_id_ = g_obj_hasher(g_uuid_generator());
     m_pimpl_->m_db_ = data::DataNode::New();
+    m_pimpl_->m_name_ = std::to_string(m_pimpl_->m_id_).substr(0, 15);
 }
 SPObject::~SPObject() { delete m_pimpl_; }
 // std::shared_ptr<SPObject> SPObject::GlobalNew(std::shared_ptr<data::DataNode> const &v) {
@@ -50,6 +51,8 @@ SPObject::~SPObject() { delete m_pimpl_; }
 //        res = New(db);
 //    }
 //}
+std::shared_ptr<data::DataNode> SPObject::Pop() { return m_pimpl_->m_db_; }
+void SPObject::Push(std::shared_ptr<data::DataNode> const &tdb) { m_pimpl_->m_db_->Set(tdb); }
 
 std::shared_ptr<data::DataNode> SPObject::db() const { return m_pimpl_->m_db_; }
 std::shared_ptr<data::DataNode> SPObject::db() { return m_pimpl_->m_db_; }
@@ -57,7 +60,7 @@ std::shared_ptr<data::DataNode> SPObject::db() { return m_pimpl_->m_db_; }
 std::shared_ptr<data::DataNode> SPObject::Serialize() const {
     auto db = data::DataNode::New(data::DataNode::DN_TABLE);
     db->Set(m_pimpl_->m_db_);
-    db->SetValue("_TYPE_", GetFancyTypeName());
+    db->SetValue("_TYPE_", TypeName());
     return db;
 }
 void SPObject::Deserialize(std::shared_ptr<data::DataNode> const &d) { m_pimpl_->m_db_->Set(d); }

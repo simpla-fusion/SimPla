@@ -29,22 +29,26 @@ int main(int argc, char** argv) {
     simpla::Initialize(argc, argv);
     //    auto scenario = SAMRAITimeIntegrator::New();
     auto scenario = SimpleTimeIntegrator::New();
-
+    scenario->SetName("EAST");
     scenario->SetMesh<mesh_type>();
     scenario->GetMesh()->GetChart()->SetScale({1, 1, 1});
 
-    scenario->AddModel<Tokamak>("EAST", "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
-    scenario->SetDomain<Domain<mesh_type, Maxwell>>("EAST.Limiter");
-    scenario->SetDomain<Domain<mesh_type, EMFluid>>("EAST.Plasma");
+    scenario->AddModel<Tokamak>("Tokamak", "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
+    scenario->SetDomain<Domain<mesh_type, Maxwell>>("Tokamak.Limiter");
+    scenario->SetDomain<Domain<mesh_type, EMFluid>>("Tokamak.Plasma");
 
     scenario->SetTimeNow(0);
     scenario->SetTimeEnd(1.0);
     scenario->SetTimeStep(0.1);
-
-    scenario->SetUp();
+    scenario->SetMaxStep(100);
 
     TheStart();
+    scenario->SetUp();
+    //    std::cout << *scenario << std::endl;
+
     scenario->Run();
+
+    scenario->TearDown();
+
     TheEnd();
-    std::cout << *scenario << std::endl;
 }

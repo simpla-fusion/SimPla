@@ -18,14 +18,10 @@ AttributeGroup::~AttributeGroup() {
     for (auto &item : m_attributes_) { item.second->Deregister(this); }
 }
 
-int AttributeGroup::Push(const std::shared_ptr<data::DataNode> &p) {
-    int count = 0;
+void AttributeGroup::Push(const std::shared_ptr<data::DataNode> &p) {
     for (auto &item : m_attributes_) {
-        if (auto blk = p->Get(item.second->db()->GetValue<id_type>("DescID", NULL_ID))) {
-            count += item.second->Push(blk);
-        }
+        if (auto blk = p->Get(item.second->db()->GetValue<id_type>("DescID", NULL_ID))) { item.second->Push(blk); }
     }
-    return count;
 }
 
 std::shared_ptr<data::DataNode> AttributeGroup::Pop() {
@@ -138,10 +134,9 @@ void Attribute::Deregister(AttributeGroup *attr_b) {
         m_pimpl_->m_bundle_.erase(attr_b);
     }
 }
-int Attribute::Push(const std::shared_ptr<data::DataNode> &d) {
+void Attribute::Push(const std::shared_ptr<data::DataNode> &d) {
     //    m_pimpl_->m_data_block_ = d;
     Update();
-    return 0;
 }
 std::shared_ptr<data::DataNode> Attribute::Pop() {
     auto res = data::DataNode::New(data::DataNode::DN_ENTITY);

@@ -63,7 +63,7 @@ class AttributeGroup {
     auto &GetAttributes() { return m_attributes_; }
     auto const &GetAttributes() const { return m_attributes_; }
 
-    virtual int Push(const std::shared_ptr<data::DataNode> &);
+    virtual void Push(const std::shared_ptr<data::DataNode> &);
     virtual std::shared_ptr<data::DataNode> Pop();
 
     void Detach(Attribute *attr);
@@ -141,7 +141,7 @@ struct Attribute : public EngineObject {
     std::shared_ptr<data::DataBlock> GetDataBlock();
     std::shared_ptr<const data::DataBlock> GetDataBlock() const;
 
-    int Push(const std::shared_ptr<data::DataNode> &) override;
+    void Push(const std::shared_ptr<data::DataNode> &) override;
     std::shared_ptr<data::DataNode> Pop() override;
 
     virtual bool isNull() const;
@@ -182,7 +182,7 @@ struct AttributeT : public Attribute {
         Update();
         //        m_data_ = other.Get();
     }
-    int Push(std::shared_ptr<data::DataNode> const &d) override {
+    void Push(std::shared_ptr<data::DataNode> const &d) override{
         //        auto blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
         //        if (blk != nullptr) {
         //            int count = 0;
@@ -192,7 +192,7 @@ struct AttributeT : public Attribute {
         //            });
         //        }
         //        Tag();
-        return 0;
+
     };
     std::shared_ptr<data::DataNode> Pop() override {
         //        auto blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());

@@ -41,11 +41,10 @@ void ParticleBase::DoFinalize() {
 }
 std::shared_ptr<simpla::data::DataNode> ParticleBase::Serialize() const { return base_type::Serialize(); }
 void ParticleBase::Deserialize(std::shared_ptr<data::DataNode> const& cfg) { base_type::Deserialize(cfg); }
-int ParticleBase::Push(std::shared_ptr<data::DataNode> const& dblk) {
-    Initialize();
+void ParticleBase::Push(std::shared_ptr<data::DataNode> const& dblk) {
+    SetUp();
     engine::Attribute::Push(dblk);
     Update();
-    return 0;
 }
 std::shared_ptr<data::DataNode> ParticleBase::Pop() {
     auto res = engine::Attribute::Pop();

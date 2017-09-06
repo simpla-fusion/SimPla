@@ -37,7 +37,7 @@ class Factory {
         }
         if (res.empty()) {
             std::ostringstream os;
-            os << std::endl << "Registered " << TObj::GetFancyTypeName_s() << " Creator:" << std::endl;
+            os << std::endl << "Registered " << traits::type_name<TObj>::value() << " Creator:" << std::endl;
             for (auto const &item : f) { os << " " << item.first << std::endl; }
             res = os.str();
         }
@@ -56,7 +56,7 @@ class Factory {
     template <typename U>
     static int RegisterCreator(std::string const &k_hint = "",
                                ENABLE_IF((!std::is_constructible<U, Args...>::value))) noexcept {
-        return RegisterCreator(!k_hint.empty() ? k_hint : U::GetFancyTypeName_s(),
+        return RegisterCreator(!k_hint.empty() ? k_hint : traits::type_name<U>::value(),
                                [](Args const &... args) { return U::New(args...); });
     };
 

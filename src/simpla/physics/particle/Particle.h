@@ -34,7 +34,7 @@ class ParticleBase : public engine::Attribute {
     void DoInitialize() override;
     void DoFinalize() override;
 
-    int Push(std::shared_ptr<data::DataNode> const& blk) override;
+    void Push(std::shared_ptr<data::DataNode> const& blk) override;
     std::shared_ptr<data::DataNode> Pop() override;
 
     void SetNumberOfAttributes(int n);

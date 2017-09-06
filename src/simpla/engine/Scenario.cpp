@@ -22,8 +22,11 @@ struct Scenario::pimpl_s {
     std::map<id_type, std::shared_ptr<data::DataNode>> m_patches_;
 };
 
-Scenario::Scenario() : m_pimpl_(new pimpl_s) {}
-Scenario::~Scenario() { delete m_pimpl_; }
+Scenario::Scenario() : m_pimpl_(new pimpl_s) { Initialize(); }
+Scenario::~Scenario() {
+    Finalize();
+    delete m_pimpl_;
+}
 
 std::shared_ptr<data::DataNode> Scenario::Serialize() const {
     auto cfg = base_type::Serialize();
@@ -73,6 +76,10 @@ void Scenario::DoSetUp() {
 
     if (m_pimpl_->m_atlas_ == nullptr) { m_pimpl_->m_atlas_ = Atlas::New(); }
     m_pimpl_->m_atlas_->SetUp();
+
+    for (auto &item : m_pimpl_->m_models_) { item.second->SetUp(); }
+    for (auto &item : m_pimpl_->m_domains_) { item.second->SetUp(); }
+
     base_type::DoSetUp();
 }
 
@@ -84,9 +91,15 @@ void Scenario::DoUpdate() {
     base_type::DoUpdate();
 }
 void Scenario::DoTearDown() {
+    for (auto &item : m_pimpl_->m_domains_) { item.second->TearDown(); }
     m_pimpl_->m_domains_.clear();
+
+    for (auto &item : m_pimpl_->m_models_) { item.second->TearDown(); }
     m_pimpl_->m_models_.clear();
+
+    m_pimpl_->m_atlas_->TearDown();
     m_pimpl_->m_atlas_.reset();
+    m_pimpl_->m_mesh_->TearDown();
     m_pimpl_->m_mesh_.reset();
     base_type::DoTearDown();
 }
@@ -101,6 +114,7 @@ std::shared_ptr<MeshBase> Scenario::GetMesh() const { return m_pimpl_->m_mesh_; 
 std::shared_ptr<Model> Scenario::AddModel(std::string const &k, std::shared_ptr<Model> m) {
     ASSERT(!isSetUp());
     m_pimpl_->m_models_[k] = m;
+    m_pimpl_->m_models_[k]->SetName(k);
     return m_pimpl_->m_models_[k];
 }
 std::shared_ptr<Model> Scenario::GetModel(std::string const &k) const {
@@ -111,6 +125,7 @@ std::shared_ptr<Model> Scenario::GetModel(std::string const &k) const {
 std::shared_ptr<DomainBase> Scenario::SetDomain(std::string const &k, std::shared_ptr<DomainBase> d) {
     ASSERT(!isSetUp());
     m_pimpl_->m_domains_[k] = d;
+    m_pimpl_->m_domains_[k]->SetName(k);
     return m_pimpl_->m_domains_[k];
 }
 std::shared_ptr<DomainBase> Scenario::GetDomain(std::string const &k) const {

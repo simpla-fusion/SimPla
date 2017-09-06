@@ -37,8 +37,14 @@ void TimeIntegrator::Advance(Real time_now, Real dt) {
     for (auto &d : GetDomains()) { d.second->Advance(time_now, dt); }
 }
 void TimeIntegrator::CheckPoint() const {}
-
+void TimeIntegrator::DoSetUp() {
+    SetStep(db()->GetValue<size_type>("Step", 0));
+    SetMaxStep(db()->GetValue<size_type>("MaxStep", 100));
+    base_type::DoSetUp();
+}
+void TimeIntegrator::DoTearDown() { base_type::DoTearDown(); }
 void TimeIntegrator::Run() {
+    Update();
     while (!Done()) {
         VERBOSE << " [ STEP:" << std::setw(5) << GetStep() << " START ] " << std::endl;
         if (GetStep() == 0) { CheckPoint(); }
@@ -57,6 +63,6 @@ void TimeIntegrator::NextStep() {
 }
 
 void TimeIntegrator::Synchronize() {}
-bool TimeIntegrator::Done() const { return GetStep() >= GetMaxStep(); }
+bool TimeIntegrator::Done() const { return GetTimeNow() >= GetTimeEnd() || GetStep() >= GetMaxStep(); }
 }
 }

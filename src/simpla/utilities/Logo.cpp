@@ -41,31 +41,31 @@ std::string ShowVersion() { return SIMPLA_VERSION_IDENTIFY; }
 void TheStart(int flag) {
     switch (flag) {
         default:
-            VERBOSE << SINGLELINE << std::endl;
-            INFORM << "[MISSION     START]" << std::endl;
+            VERBOSE << SINGLELINE;
+            INFORM << "[MISSION     START]";
     }
 }
 
 void TheEnd(int flag) {
     switch (flag) {
         case -2:
-            INFORM << "Oop! Some thing wrong! Don't worry, maybe not your fault! " << std::endl
-                   << " Just maybe! Please Check your configure file again! " << std::endl;
+            INFORM << "Oop! Some thing wrong! Don't worry, maybe not your fault! "
+                   << " Just maybe! Please Check your configure file again! ";
             break;
         case -1:
-            INFORM << "Sorry! I can't help you now! Please, Try again later!" << std::endl;
+            INFORM << "Sorry! I can't help you now! Please, Try again later!";
             break;
         case 0:
             break;
         case 1:
         default:
-            INFORM << "[MISSION COMPLETED]" << std::endl;
-            VERBOSE << SINGLELINE << std::endl;
-            VERBOSE << "Job is Done!!  I'm so GOOD!" << std::endl;
-            VERBOSE << "		Thanks me  !" << std::endl;
-            VERBOSE << "			Thanks me  !" << std::endl;
-            VERBOSE << "You are welcome!" << std::endl;
-            VERBOSE << SINGLELINE << std::endl;
+            INFORM << "[MISSION COMPLETED]";
+            VERBOSE << SINGLELINE;
+            VERBOSE << "Job is Done!!  I'm so GOOD!";
+            VERBOSE << "		Thanks me  !";
+            VERBOSE << "			Thanks me  !";
+            VERBOSE << "You are welcome!";
+            VERBOSE << SINGLELINE;
     }
     exit(0);
 }

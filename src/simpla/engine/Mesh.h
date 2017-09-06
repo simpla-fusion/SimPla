@@ -49,8 +49,7 @@ struct MeshBase : public EngineObject, public AttributeGroup {
 
     virtual int InitializeAttribute(Attribute *) const;
 
-    void DoInitialize() override;
-    void DoFinalize() override;
+    void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;
 
@@ -66,7 +65,7 @@ struct MeshBase : public EngineObject, public AttributeGroup {
     void TagRefinementCells(Real time_now);
 
     std::shared_ptr<data::DataNode> Pop() override;
-    int Push(const std::shared_ptr<data::DataNode> &p) override;
+    void Push(const std::shared_ptr<data::DataNode> &p) override;
     void SetRange(std::string const &, Range<EntityId> const &);
     Range<EntityId> GetRange(std::string const &k) const;
 
@@ -86,9 +85,11 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;
-
+    std::shared_ptr<const geometry::Chart> GetChart() const override { return base_type::GetChart(); };
+    std::shared_ptr<const engine::MeshBlock> GetBlock() const override { return base_type::GetBlock(); };
     this_type *GetMesh() override { return this; }
     this_type const *GetMesh() const override { return this; }
+    using base_type::IndexBox;
 
     std::shared_ptr<chart_type> chart() const { return std::dynamic_pointer_cast<chart_type>(GetChart()); }
 

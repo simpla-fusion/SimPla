@@ -852,7 +852,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         }
 
         //        else {
-        //            VERBOSE << "Can not register attribute [" << item->GetName() << ":" << item->GetFancyTypeName()
+        //            VERBOSE << "Can not register attribute [" << item->GetName() << ":" << item->TypeName()
         //                    << "] to VisIt writer !" ;
         //        }
         //        v_type != SAMRAI::algs::HyperbolicLevelIntegrator::TEMPORARY

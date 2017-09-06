@@ -15,7 +15,7 @@ namespace simpla {
 namespace geometry {
 class Curve;
 struct Chart : public SPObject {
-    SP_OBJECT_HEAD(Chart, SPObject)
+SP_OBJECT_HEAD(Chart, SPObject)
    protected:
     explicit Chart(point_type shift, point_type scale, point_type rotate);
 

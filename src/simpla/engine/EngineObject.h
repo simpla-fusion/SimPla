@@ -11,7 +11,7 @@
 namespace simpla {
 namespace engine {
 class EngineObject : public SPObject {
-    SP_OBJECT_HEAD(EngineObject, SPObject)
+SP_OBJECT_HEAD(EngineObject, SPObject)
    public:
     void lock();
     void unlock();
@@ -25,29 +25,24 @@ class EngineObject : public SPObject {
     bool isInitialized() const;
     bool isSetUp() const;
     virtual void DoInitialize();  //!< invoke once, before everything,
-    virtual void DoSetUp();  //!< invoke after Object all configure opeation , Set/Deserialize, Disable Set/Deserialize
-    virtual int Push(std::shared_ptr<data::DataNode> const &);
+    virtual void DoSetUp();   //!< invoke after Object all configure opeation , Set/Deserialize, Disable Set/Deserialize
     virtual void DoUpdate();  //!< repeat invoke, Update object after modified
-    virtual std::shared_ptr<data::DataNode> Pop();
     virtual void DoTearDown();  //!< repeat invoke, enable Set/Deserialize
     virtual void DoFinalize();  //!< invoke once, after everything
 
-    design_pattern::Signal<void(SPObject *)> PreInitialize;
-    design_pattern::Signal<void(SPObject *)> PostInitialize;
-    design_pattern::Signal<void(SPObject *)> PreSetUp;
-    design_pattern::Signal<void(SPObject *)> PostSetUp;
-    design_pattern::Signal<void(SPObject *)> PreUpdate;
-    design_pattern::Signal<void(SPObject *)> PostUpdate;
-    design_pattern::Signal<void(SPObject *)> PreTearDown;
-    design_pattern::Signal<void(SPObject *)> PostTearDown;
-    design_pattern::Signal<void(SPObject *)> PreFinalize;
-    design_pattern::Signal<void(SPObject *)> PostFinalize;
+    void Push(std::shared_ptr<data::DataNode> const &) override;
+    std::shared_ptr<data::DataNode> Pop() override;
+
+    design_pattern::Signal<void(EngineObject *)> PreSetUp;
+    design_pattern::Signal<void(EngineObject *)> PostSetUp;
+    design_pattern::Signal<void(EngineObject *)> PreUpdate;
+    design_pattern::Signal<void(EngineObject *)> PostUpdate;
+    design_pattern::Signal<void(EngineObject *)> PreTearDown;
+    design_pattern::Signal<void(EngineObject *)> PostTearDown;
 
     void Initialize();
     void SetUp();
-
     void Update();
-
     void TearDown();
     void Finalize();
 };

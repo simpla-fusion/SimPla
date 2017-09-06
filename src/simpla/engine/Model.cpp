@@ -60,7 +60,7 @@ std::shared_ptr<geometry::GeoObject> Model::GetBoundary() const { return m_pimpl
 
 void Model::SetObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
     if (g_obj != nullptr) {
-        VERBOSE << "AddEntity GeoObject [ " << key << " : " << g_obj->GetFancyTypeName() << " ]";
+        VERBOSE << "AddEntity GeoObject [ " << key << " : " << g_obj->TypeName() << " ]";
         //        m_pimpl_->m_g_objs_[key] = g_obj;
     }
 }

@@ -59,7 +59,7 @@ namespace geometry {
  *  @enduml
  */
 class GeoObject : public SPObject {
-    SP_OBJECT_HEAD(GeoObject, SPObject)
+SP_OBJECT_HEAD(GeoObject, SPObject)
 
     virtual int Dimension() const { return 3; };
     virtual Real Measure() const;

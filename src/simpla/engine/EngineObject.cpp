@@ -34,14 +34,14 @@ bool EngineObject::isModified() const { return m_pimpl_->m_click_tag_ != m_pimpl
 bool EngineObject::isInitialized() const { return m_pimpl_->m_is_initialized_; }
 bool EngineObject::isSetUp() const { return m_pimpl_->m_is_setup_; }
 
-int EngineObject::Push(std::shared_ptr<data::DataNode> const &data) {
+void EngineObject::Push(std::shared_ptr<data::DataNode> const &data) {
     ASSERT(isSetUp());
+    base_type::Push(data);
     Click();
-    return 0;
 }
 std::shared_ptr<data::DataNode> EngineObject::Pop() {
     Click();
-    return nullptr;
+    return base_type::Pop();
 }
 
 void EngineObject::DoInitialize() {}
@@ -52,15 +52,15 @@ void EngineObject::DoFinalize() {}
 
 void EngineObject::Initialize() {
     if (!isInitialized()) {
-        PreInitialize(this);
         DoInitialize();
-        PostInitialize(this);
         Click();
         m_pimpl_->m_is_initialized_ = true;
     }
 }
 void EngineObject::SetUp() {
     if (!isSetUp()) {
+        VERBOSE << std::setw(15) << " Set Up : " << std::setw(20) << std::left << GetName() << " [ " << TypeName()
+                << " ]";
         PreSetUp(this);
         DoSetUp();
         PostSetUp(this);
@@ -84,14 +84,14 @@ void EngineObject::TearDown() {
         PostTearDown(this);
         Click();
         m_pimpl_->m_is_setup_ = false;
+        VERBOSE << std::setw(15) << " Tear Down : " << std::setw(20) << std::left << GetName() << " [ " << TypeName()
+                << " ]";
     }
 };
 void EngineObject::Finalize() {
     if (isInitialized()) {
         TearDown();
-        PreFinalize(this);
         DoFinalize();
-        PostFinalize(this);
         ResetTag();
         m_pimpl_->m_is_initialized_ = false;
     }

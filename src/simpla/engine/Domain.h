@@ -96,8 +96,8 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
     void DoAdvance(Real time_now, Real dt) override;
     void DoTagRefinementCells(Real time_now) override;
 
-    mesh_type const *mesh() const { return dynamic_cast<mesh_type const *>(DomainBase::GetMesh()); }
-    mesh_type *mesh() { return dynamic_cast<mesh_type *>(DomainBase::GetMesh()); }
+    mesh_type const *mesh() const { return dynamic_cast<mesh_type const *>(DomainBase::GetMesh().get()); }
+    mesh_type *mesh() { return dynamic_cast<mesh_type *>(DomainBase::GetMesh().get()); }
 
     template <typename TL, typename TR>
     void Fill(TL &lhs, TR &&rhs) const {
@@ -140,7 +140,7 @@ void Domain<TM, Policies...>::Deserialize(std::shared_ptr<data::DataNode> const 
 
 template <typename TM, template <typename> class... Policies>
 void Domain<TM, Policies...>::DoSetUp() {
-    if (GetMesh() == nullptr) { SetMesh(TM::New(this)); }
+    if (GetMesh() == nullptr) { SetMesh(TM::New()); }
     base_type::DoSetUp();
 };
 template <typename TM, template <typename> class... Policies>

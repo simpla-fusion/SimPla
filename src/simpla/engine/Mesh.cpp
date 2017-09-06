@@ -80,15 +80,12 @@ box_type MeshBase::GetBox(int tag) const {
 //
 //    m_mesh_block_.swap(other.m_mesh_block_);
 //}
-
-void MeshBase::DoUpdate() {
-    base_type::DoUpdate();
-    GetChart()->SetLevel(m_mesh_block_->GetLevel());
-    AttributeGroup::RegisterAttributes();
+void MeshBase::DoSetUp() {
+    //    AttributeGroup::RegisterAttributes();
+    base_type::DoSetUp();
 }
-void MeshBase::DoTearDown() { GetChart()->SetLevel(0); }
-void MeshBase::DoInitialize() {}
-void MeshBase::DoFinalize() { GetChart()->SetLevel(0); }
+void MeshBase::DoUpdate() { base_type::DoUpdate(); }
+void MeshBase::DoTearDown() { base_type::DoTearDown(); }
 
 void MeshBase::SetChart(std::shared_ptr<geometry::Chart> const& c) { m_chart_ = c; }
 std::shared_ptr<geometry::Chart> MeshBase::GetChart() const { return m_chart_; }
@@ -96,7 +93,7 @@ std::shared_ptr<geometry::Chart> MeshBase::GetChart() const { return m_chart_; }
 void MeshBase::SetBlock(const std::shared_ptr<MeshBlock>& blk) { m_mesh_block_ = blk; };
 std::shared_ptr<MeshBlock> MeshBase::GetBlock() const { return m_mesh_block_; }
 
-int MeshBase::Push(const std::shared_ptr<data::DataNode>& patch) {
+void MeshBase::Push(const std::shared_ptr<data::DataNode>& patch) {
     //    VERBOSE << " Patch Level:" << patch->GetMeshBlock()->GetLevel() << " ID: " <<
     //    patch->GetMeshBlock()->GetLocalID()
     //            << " Block:" << patch->GetMeshBlock()->IndexBox() << std::endl;
@@ -106,7 +103,6 @@ int MeshBase::Push(const std::shared_ptr<data::DataNode>& patch) {
     AttributeGroup::Push(patch);
     Update();
     ASSERT(GetBlock()->GetLevel() == GetChart()->GetLevel());
-    return 1;
 }
 std::shared_ptr<data::DataNode> MeshBase::Pop() {
     //    patch->SetMeshBlock(GetBlock());
