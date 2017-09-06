@@ -101,24 +101,17 @@ void Scenario::SetMesh(std::shared_ptr<MeshBase> const &m) {
 }
 std::shared_ptr<MeshBase> Scenario::GetMesh() const { return m_pimpl_->m_mesh_; }
 
-size_type Scenario::SetModel(std::shared_ptr<Model> const &m) {
-    ASSERT(!isSetUp());
-    m_pimpl_->m_model_ = m;
-    return 1;
-}
-
-std::shared_ptr<Model> Scenario::GetModel(std::string const &k) const {
-    return k.empty() ? m_pimpl_->m_model_ : m_pimpl_->m_model_->Get(k);
-}
+std::shared_ptr<Model> Scenario::GetModel() const { return m_pimpl_->m_model_; }
+std::shared_ptr<Model> Scenario::GetModel() { return m_pimpl_->m_model_; }
 
 size_type Scenario::SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &d) {
     ASSERT(!isSetUp());
     size_type count = 0;
-    if (auto model = GetModel(k)) {
+    if (auto g = GetModel()->Get(k)) {
         m_pimpl_->m_domains_[k] = d;
         m_pimpl_->m_domains_[k]->SetName(k);
         m_pimpl_->m_domains_[k]->SetMesh(GetMesh());
-        m_pimpl_->m_domains_[k]->SetModel(model);
+        m_pimpl_->m_domains_[k]->SetBoundary(g);
         count = 1;
     } else {
         WARNING << " Add domain failed! Model [" << k << "] is not defined. ";

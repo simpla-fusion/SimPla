@@ -27,14 +27,12 @@ class MeshBase;
 class DomainBase : public EngineObject {
     SP_OBJECT_HEAD(DomainBase, EngineObject)
 
-   protected:
-    explicit DomainBase(std::shared_ptr<MeshBase> const &m, std::shared_ptr<Model> const &model = nullptr);
-
    public:
     void SetMesh(std::shared_ptr<MeshBase> const &m);
     std::shared_ptr<MeshBase> GetMesh() const;
-    void SetModel(std::shared_ptr<Model> const &m);
-    std::shared_ptr<Model> GetModel() const;
+
+    void SetBoundary(std::shared_ptr<geometry::GeoObject> const &g);
+    std::shared_ptr<geometry::GeoObject> GetBoundary() const;
 
     void SetBlock(const std::shared_ptr<MeshBlock> &blk);
     std::shared_ptr<MeshBlock> GetBlock() const;
@@ -82,11 +80,8 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
     typedef TM mesh_type;
     SP_OBJECT_HEAD(Domain, DomainBase);
 
-   protected:
-    template <typename... Args>
-    explicit Domain(Args &&... args) : DomainBase(std::forward<Args>(args)...), Policies<this_type>(this)... {}
-
    public:
+    void DoInitialize() override;
     void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;
@@ -121,7 +116,7 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
 
 };  // class Domain
 template <typename TM, template <typename> class... Policies>
-Domain<TM, Policies...>::Domain() : Policies<this_type>(this)... {};
+Domain<TM, Policies...>::Domain() : Policies<this_type>(this)... {}
 template <typename TM, template <typename> class... Policies>
 Domain<TM, Policies...>::~Domain(){};
 
@@ -137,10 +132,13 @@ void Domain<TM, Policies...>::Deserialize(std::shared_ptr<data::DataNode> const 
     DomainBase::Deserialize(cfg);
     traits::_try_invoke_Deserialize<Policies...>(this, cfg);
 };
+template <typename TM, template <typename> class... Policies>
+void Domain<TM, Policies...>::DoInitialize() {
+    if (GetMesh() == nullptr) { SetMesh(mesh_type::New()); }
+};
 
 template <typename TM, template <typename> class... Policies>
 void Domain<TM, Policies...>::DoSetUp() {
-    if (GetMesh() == nullptr) { SetMesh(TM::New()); }
     base_type::DoSetUp();
 };
 template <typename TM, template <typename> class... Policies>

@@ -18,14 +18,13 @@ struct Model::pimpl_s {
     box_type m_bound_box_{{0, 0, 0}, {0, 0, 0}};
 
     std::shared_ptr<Model> m_parent_;
-    std::map<std::string, std::shared_ptr<Model>> m_sub_model_;
+    std::map<std::string, std::shared_ptr<geometry::GeoObject>> m_g_objs_;
     std::map<std::string, Model::attr_fun> m_attr_fun_;
     std::map<std::string, Model::vec_attr_fun> m_vec_attr_fun_;
 };
 
 Model::Model() : m_pimpl_(new pimpl_s) {}
 Model::~Model() { delete m_pimpl_; };
-Model::Model(std::shared_ptr<geometry::GeoObject> const& g) : Model() { m_pimpl_->m_g_obj_ = g; };
 void Model::Load(std::string const& url) {}
 std::shared_ptr<data::DataNode> Model::Serialize() const {
     auto tdb = base_type::Serialize();
@@ -45,16 +44,16 @@ void Model::Deserialize(std::shared_ptr<data::DataNode> const& tdb) {
 };
 void Model::DoInitialize() {}
 void Model::DoFinalize() {}
-void Model::DoUpdate(){
-    //    auto it = m_pimpl_->m_g_objs_.begin();
-    //    if (it == m_pimpl_->m_g_objs_.end() || it->second == nullptr) { return; }
-    //    m_pimpl_->m_bound_box_ = it->second->BoundingBox();
-    //    ++it;
-    //    for (; it != m_pimpl_->m_g_objs_.end(); ++it) {
-    //        if (it->second != nullptr) {
-    //            m_pimpl_->m_bound_box_ = geometry::Union(m_pimpl_->m_bound_box_, it->second->BoundingBox());
-    //        }
-    //    }
+void Model::DoUpdate() {
+    auto it = m_pimpl_->m_g_objs_.begin();
+    if (it == m_pimpl_->m_g_objs_.end() || it->second == nullptr) { return; }
+    m_pimpl_->m_bound_box_ = it->second->BoundingBox();
+    ++it;
+    for (; it != m_pimpl_->m_g_objs_.end(); ++it) {
+        if (it->second != nullptr) {
+            m_pimpl_->m_bound_box_ = geometry::Union(m_pimpl_->m_bound_box_, it->second->BoundingBox());
+        }
+    }
 };
 void Model::DoTearDown() {}
 
@@ -62,24 +61,18 @@ box_type const& Model::BoundingBox() const { return m_pimpl_->m_bound_box_; };
 
 std::shared_ptr<geometry::GeoObject> Model::GetBoundary() const { return m_pimpl_->m_g_obj_; }
 
-std::shared_ptr<Model> Model::Get(std::string const& k) const {
-    std::shared_ptr<Model> res = nullptr;
-    if (k.empty()) {
-        res = std::dynamic_pointer_cast<Model>(const_cast<this_type*>(this)->shared_from_this());
-    } else {
-        auto it = m_pimpl_->m_sub_model_.find(k);
-        if (it != m_pimpl_->m_sub_model_.end()) { res = it->second; }
-    }
+std::shared_ptr<geometry::GeoObject> Model::Get(std::string const& k) const {
+    std::shared_ptr<geometry::GeoObject> res = nullptr;
+
+    auto it = m_pimpl_->m_g_objs_.find(k);
+    if (it != m_pimpl_->m_g_objs_.end()) { res = it->second; }
 
     return res;
 }
-size_type Model::Delete(std::string const& k) { return m_pimpl_->m_sub_model_.erase(k); }
-size_type Model::Add(std::string const& k, std::shared_ptr<Model> const& m) {
-    m_pimpl_->m_sub_model_[k] = m;
-    return 1;
-}
+size_type Model::Delete(std::string const& k) { return m_pimpl_->m_g_objs_.erase(k); }
+
 size_type Model::Add(std::string const& k, std::shared_ptr<geometry::GeoObject> const& g) {
-    m_pimpl_->m_sub_model_[k] = Model::New(g);
+    m_pimpl_->m_g_objs_[k] = (g);
     return 1;
 }
 size_type Model::AddAttribute(std::string const& model_name, std::string const& function_name, attr_fun) { return 0; }

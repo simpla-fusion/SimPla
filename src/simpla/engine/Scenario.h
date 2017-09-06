@@ -5,15 +5,13 @@
 #ifndef SIMPLA_SCENARIO_H
 #define SIMPLA_SCENARIO_H
 
-#include "Atlas.h"
 #include "EngineObject.h"
-
 namespace simpla {
 namespace engine {
 class MeshBase;
 class DomainBase;
 class Model;
-
+class Atlas;
 class Scenario : public EngineObject {
     SP_OBJECT_HEAD(Scenario, EngineObject)
     virtual void TagRefinementCells(Real time_now);
@@ -41,14 +39,16 @@ class Scenario : public EngineObject {
 
     std::shared_ptr<Atlas> GetAtlas() const;
 
-    size_type SetModel(std::shared_ptr<Model> const &m);
-    std::shared_ptr<Model> GetModel(std::string const &k = "") const;
-    template <typename U>
-    std::shared_ptr<U> GetModelAs(std::string const &k = "") const {
-        return std::dynamic_pointer_cast<U>(GetModel(k));
-    }
+    std::shared_ptr<Model> GetModel() const;
+    std::shared_ptr<Model> GetModel();
 
     size_type SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &d);
+    template <typename U>
+    size_type SetDomain(std::string const &k) {
+        static_assert(std::is_base_of<DomainBase, U>::value, "illegal domain type!");
+        return SetDomain(k, U::New());
+    }
+
     std::shared_ptr<DomainBase> GetDomain(std::string const &k) const;
 
     std::map<std::string, std::shared_ptr<DomainBase>> &GetDomains();

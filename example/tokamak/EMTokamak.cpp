@@ -33,11 +33,11 @@ int main(int argc, char** argv) {
     scenario->GetMesh()->GetChart()->SetScale({1, 1, 1});
 
     scenario->GetModel()->Load("gfile://home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
-    scenario->SetDomain("Limiter", Domain<mesh_type, Maxwell>::New());
-    scenario->SetDomain("Plasma", Domain<mesh_type, EMFluid>::New());
+    scenario->SetDomain<Domain<mesh_type, Maxwell>>("Limiter");
+    scenario->SetDomain<Domain<mesh_type, EMFluid>>("Plasma");
 
     scenario->SetTimeNow(0);
-    scenario->SetTimeEnd(1.0);
+    scenario->SetTimeEnd(10.0);
     scenario->SetTimeStep(0.1);
     scenario->SetMaxStep(100);
 

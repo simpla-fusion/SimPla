@@ -22,11 +22,7 @@ using namespace data;
 class Model : public EngineObject {
     SP_OBJECT_HEAD(Model, EngineObject)
 
-   protected:
-    Model(std::shared_ptr<geometry::GeoObject> const &);
-
    public:
-
     void DoInitialize() override;
     void DoUpdate() override;
     void DoTearDown() override;
@@ -44,10 +40,10 @@ class Model : public EngineObject {
 
     void Load(std::string const &url);
 
-    virtual std::shared_ptr<Model> Get(std::string const &k) const;
+    virtual std::shared_ptr<geometry::GeoObject> Get(std::string const &k) const;
     virtual size_type Delete(std::string const &k);
-    virtual size_type Add(std::string const &k, std::shared_ptr<Model> const &);
     virtual size_type Add(std::string const &k, std::shared_ptr<geometry::GeoObject> const &);
+
     virtual size_type AddAttribute(std::string const &model_name, std::string const &function_name, attr_fun);
     virtual size_type AddAttribute(std::string const &model_name, std::string const &function_name, vec_attr_fun);
 
