@@ -2,6 +2,7 @@
 // Created by salmon on 17-9-5.
 
 #include "SimpleTimeIntegrator.h"
+#include "simpla/engine/Atlas.h"
 #include "simpla/engine/Domain.h"
 #include "simpla/engine/Mesh.h"
 #include "simpla/engine/MeshBlock.h"

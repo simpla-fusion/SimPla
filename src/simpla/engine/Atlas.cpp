@@ -17,7 +17,7 @@ namespace engine {
 
 struct Atlas::pimpl_s {
     std::map<id_type, std::shared_ptr<MeshBlock>> m_patches_;
-
+    std::shared_ptr<geometry::Chart> m_chart_ = nullptr;
     //    static constexpr int MAX_NUM_OF_LEVEL = 5;
     //    typedef typename std::multimap<id_type, id_type>::iterator link_iterator;
     //    typedef typename std::multimap<id_type, id_type>::const_iterator const_link_iterator;
@@ -27,7 +27,8 @@ struct Atlas::pimpl_s {
     //    std::multimap<id_type, id_type> m_coarsen_;
     //    std::set<std::shared_ptr<data::DataNode>> m_layers_[MAX_NUM_OF_LEVEL];
     //    nTuple<int, 3> m_refine_ratio_[MAX_NUM_OF_LEVEL] = {{2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}};
-    //    index_box_type m_coarsest_index_box_{{0, 0, 0}, {1, 1, 1}};
+    index_box_type m_coarsest_index_box_{{0, 0, 0}, {1, 1, 1}};
+    box_type m_box_{{0, 0, 0}, {1, 1, 1}};
 };
 
 Atlas::Atlas() : m_pimpl_(new pimpl_s) {
@@ -44,6 +45,8 @@ Atlas::~Atlas() { delete m_pimpl_; }
 
 std::shared_ptr<data::DataNode> Atlas::Serialize() const {
     auto tdb = base_type::Serialize();
+
+    if (m_pimpl_->m_chart_ != nullptr) { tdb->Set("Chart", m_pimpl_->m_chart_->Serialize()); }
 
     //    tdb->SetValue("PeriodicDimension", GetPeriodicDimensions());
     //    tdb->SetValue("CoarsestIndexBox", GetCoarsestIndexBox());
@@ -64,6 +67,12 @@ std::shared_ptr<data::DataNode> Atlas::Serialize() const {
 };
 void Atlas::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
     base_type::Deserialize(tdb);
+    if (m_pimpl_->m_chart_ != nullptr) {
+        m_pimpl_->m_chart_->Deserialize(tdb->Get("Chart"));
+    } else {
+        m_pimpl_->m_chart_ = geometry::Chart::New(tdb->Get("Chart"));
+    }
+
     TODO << " Need better way save/load patches!";
     auto patches = tdb->Get("Patches");
     patches->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &dnode) {
@@ -73,7 +82,22 @@ void Atlas::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
 
     Click();
 };
+std::shared_ptr<geometry::Chart> Atlas::GetChart() const { return m_pimpl_->m_chart_; }
+void Atlas::SetChart(std::shared_ptr<geometry::Chart> const &c) { m_pimpl_->m_chart_ = c; }
+void Atlas::DoSetUp() {
+    ASSERT(m_pimpl_->m_chart_ != nullptr);
+    m_pimpl_->m_chart_->SetUp();
+};
+void Atlas::DoUpdate() {
+    if (m_pimpl_->m_chart_ != nullptr) { m_pimpl_->m_chart_->Update(); }
+}
 
+void Atlas::DoTearDown() {
+    if (m_pimpl_->m_chart_ != nullptr) {
+        m_pimpl_->m_chart_->TearDown();
+        m_pimpl_->m_chart_.reset();
+    }
+};
 int Atlas::Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const &fun) {
     int count = 0;
     for (auto &item : m_pimpl_->m_patches_) {
@@ -82,6 +106,9 @@ int Atlas::Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const
     }
     return count;
 };
+
+box_type Atlas::GetBox(int tag) const { return m_pimpl_->m_box_; }
+index_box_type Atlas::GetIndexBox(int tag) { return m_pimpl_->m_coarsest_index_box_; }
 // int Atlas::GetNumOfLevel() const { return m_pimpl_->(); }
 // int Atlas::GetMaxLevel() const { return m_pimpl_->m_max_level_; }
 // void Atlas::SetMaxLevel(int l) {
@@ -145,7 +172,8 @@ int Atlas::Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const
 // std::ostream &Atlas::Print(std::ostream &os, int indent) const {
 ////    os << std::setw(indent) << "*" << name() << std::endl;
 ////    for (auto const &item : m_pimpl_->m_nodes_) {
-////        os << "|" << std::setw(indent + 5 + item.second->level()) << std::setfill('-') << "> " << std::setfill(' ')
+////        os << "|" << std::setw(indent + 5 + item.second->level()) << std::setfill('-') << "> " << std::setfill('
+///')
 ////           << std::setw(10) << std::left << item.first << std::right << " = {";
 ////        item.second->Print(os, indent + 1);
 ////        os << "}," << std::endl;

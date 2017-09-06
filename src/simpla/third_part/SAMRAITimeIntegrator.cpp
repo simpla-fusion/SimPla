@@ -792,7 +792,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     SAMRAI::hier::IntVector d_fluxghosts{d_dim, 1};
     //**************************************************************
 
-    for (auto &item : m_ctx_->GetMesh()->GetAttributes()) {
+    for (auto &item : m_ctx_->GetAttributes()) {
         if (item.second->db()->Check("IS_NOT_OWNED") ||
             m_samrai_variables_.find(item.second->db()->GetValue<id_type>("DescID")) != m_samrai_variables_.end()) {
             continue;
@@ -934,7 +934,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::setupLoadBalancer(SAMRAI::algs::Hyper
 void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::Patch &patch, double data_time,
                                                                  bool initial_time) {
     if (initial_time) {
-        auto p = PopPatch(patch);
+        m_ctx_->Push(PopPatch(patch));
 
         index_tuple gw{4, 4, 4};  // = p.GetMeshBlock()->GetGhostWidth();
 
@@ -1029,26 +1029,23 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
                 //                CHECK(face2_box);
                 //                CHECK(volume_box);
 
-                auto &d = *m_ctx_->GetMesh();
-                d.Push(p);
-                d.GetRange("PATCH_BOUNDARY_" + std::to_string(NODE))
+                m_ctx_->GetRange("PATCH_BOUNDARY_" + std::to_string(NODE))
                     .append(std::make_shared<ContinueRange<EntityId>>(vertex_box, 0));
 
-                d.GetRange("PATCH_BOUNDARY_" + std::to_string(EDGE))
+                m_ctx_->GetRange("PATCH_BOUNDARY_" + std::to_string(EDGE))
                     .append(std::make_shared<ContinueRange<EntityId>>(edge0_box, 1))
                     .append(std::make_shared<ContinueRange<EntityId>>(edge1_box, 2))
                     .append(std::make_shared<ContinueRange<EntityId>>(edge2_box, 4));
 
-                d.GetRange("PATCH_BOUNDARY_" + std::to_string(FACE))
+                m_ctx_->GetRange("PATCH_BOUNDARY_" + std::to_string(FACE))
                     .append(std::make_shared<ContinueRange<EntityId>>(face0_box, 6))
                     .append(std::make_shared<ContinueRange<EntityId>>(face1_box, 5))
                     .append(std::make_shared<ContinueRange<EntityId>>(face2_box, 3));
 
-                d.GetRange("PATCH_BOUNDARY_" + std::to_string(CELL))
+                m_ctx_->GetRange("PATCH_BOUNDARY_" + std::to_string(CELL))
                     .append(std::make_shared<ContinueRange<EntityId>>(volume_box, 7));
-                d.Pop();
             }
-        m_ctx_->Push(p);
+
         m_ctx_->InitialCondition(data_time);
         PushPatch(m_ctx_->Pop(), patch);
 
@@ -1119,15 +1116,15 @@ void SAMRAIHyperbolicPatchStrategyAdapter::tagGradientDetectorCells(SAMRAI::hier
     NULL_USE(uses_richardson_extrapolation_too);
 
     m_ctx_->Push(PopPatch(patch));
-    auto desc = m_ctx_->GetMesh()->GetAttributeDescription("_refinement_tags_");
-    if (desc != nullptr) {
-        //        std::shared_ptr<data::DataBlock> blk = nullptr;
-        //        if (detail::ConvertDataBlock(patch.getPatchData(tag_index).get(), &blk)) {
-        //            p->SetDataBlock(desc->GetValue<id_type>("DescID"), blk);
-        //        }
-
-        m_ctx_->TagRefinementCells(regrid_time);
-    }
+    //    auto desc = m_ctx_->GetAttributeDescription("_refinement_tags_");
+    //    if (desc != nullptr) {
+    //        //        std::shared_ptr<data::DataBlock> blk = nullptr;
+    //        //        if (detail::ConvertDataBlock(patch.getPatchData(tag_index).get(), &blk)) {
+    //        //            p->SetDataBlock(desc->GetValue<id_type>("DescID"), blk);
+    //        //        }
+    //
+    //        m_ctx_->TagRefinementCells(regrid_time);
+    //    }
     PushPatch(m_ctx_->Pop(), patch);
 }
 
@@ -1296,7 +1293,7 @@ void SAMRAITimeIntegrator::DoUpdate() {
     nTuple<int, 3> i_low{0, 0, 0};
     nTuple<int, 3> i_up{0, 0, 0};
 
-    std::tie(i_low, i_up) = GetMesh()->IndexBox(NODE);
+    std::tie(i_low, i_up) = GetAtlas()->GetIndexBox(NODE);
 
     cfgCartesianGridGeometry->putDatabaseBox(
         "domain_boxes_0", SAMRAI::tbox::DatabaseBox{SAMRAI::tbox::Dimension(3), &i_low[0], &i_up[0]});
@@ -1304,7 +1301,7 @@ void SAMRAITimeIntegrator::DoUpdate() {
     nTuple<int, 3> period_dims = GetAtlas()->GetPeriodicDimensions();
     cfgCartesianGridGeometry->putIntegerArray("periodic_dimension", &period_dims[0], ndims);
 
-    auto x_box = this->GetMesh()->GetBox(NODE);
+    auto x_box = GetAtlas()->GetBox(NODE);
     cfgCartesianGridGeometry->putDoubleArray("x_lo", &std::get<0>(x_box)[0], ndims);
     cfgCartesianGridGeometry->putDoubleArray("x_up", &std::get<1>(x_box)[0], ndims);
 

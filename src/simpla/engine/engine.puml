@@ -131,7 +131,7 @@ class Chart{
  ConcreteDomain ..> EBMesh
  class Attribute {
       void Register(AttributeGroup*)
-      void SetMesh(Mesh *);
+      void SetChart(Mesh *);
       {abstract} int GetIFORM()const;
       {abstract} int GetDOF()const
       SetPatch(DataBlock);

@@ -15,11 +15,17 @@ namespace simpla {
 namespace geometry {
 class Curve;
 struct Chart : public SPObject {
-SP_OBJECT_HEAD(Chart, SPObject)
-   protected:
-    explicit Chart(point_type shift, point_type scale, point_type rotate);
+    SP_OBJECT_HEAD(Chart, SPObject)
+
+   private:
+    bool m_is_setup_ = false;
 
    public:
+    virtual void SetUp() { m_is_setup_ = true; }
+    virtual bool isSetUp() { return true; }
+    virtual void Update() { ASSERT(isSetUp()); };
+    virtual void TearDown() { m_is_setup_ = false; };
+
     virtual std::shared_ptr<Curve> GetAxisCurve(point_type const &x, int dir) const { return nullptr; };
 
     void SetLevel(int level);

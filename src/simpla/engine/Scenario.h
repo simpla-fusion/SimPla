@@ -5,7 +5,9 @@
 #ifndef SIMPLA_SCENARIO_H
 #define SIMPLA_SCENARIO_H
 
+#include "Attribute.h"
 #include "EngineObject.h"
+
 namespace simpla {
 namespace engine {
 class MeshBase;
@@ -29,18 +31,8 @@ class Scenario : public EngineObject {
     void DoTearDown() override;
     void DoFinalize() override;
 
-    template <typename TM, typename... Args>
-    std::shared_ptr<TM> SetMesh(Args &&... args) {
-        auto p = TM::New(std::forward<Args>(args)...);
-        SetMesh(p);
-        return p;
-    };
-    std::shared_ptr<MeshBase> GetMesh() const;
-
     std::shared_ptr<Atlas> GetAtlas() const;
-
     std::shared_ptr<Model> GetModel() const;
-    std::shared_ptr<Model> GetModel();
 
     size_type SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &d);
     template <typename U>
@@ -59,11 +51,10 @@ class Scenario : public EngineObject {
     std::shared_ptr<data::DataNode> GetPatch(id_type id) const;
     std::shared_ptr<data::DataNode> GetPatch(id_type id);
 
-    //    std::shared_ptr<data::DataNode> Pop() override;
-    //    int Push(std::shared_ptr<data::DataNode> const &p) override;
+    std::map<std::string, std::shared_ptr<Attribute>> &GetAttributes() const;
 
-   private:
-    void SetMesh(std::shared_ptr<MeshBase> const &);
+    Range<EntityId> &GetRange(std::string const &k);
+    Range<EntityId> const &GetRange(std::string const &k) const;
 };
 
 }  // namespace engine

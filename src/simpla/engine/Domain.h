@@ -28,14 +28,12 @@ class DomainBase : public EngineObject {
     SP_OBJECT_HEAD(DomainBase, EngineObject)
 
    public:
-    void SetMesh(std::shared_ptr<MeshBase> const &m);
+    void SetChart(std::shared_ptr<geometry::Chart> const &c);
+    void SetBlock(const std::shared_ptr<MeshBlock> &blk);
     std::shared_ptr<MeshBase> GetMesh() const;
 
     void SetBoundary(std::shared_ptr<geometry::GeoObject> const &g);
     std::shared_ptr<geometry::GeoObject> GetBoundary() const;
-
-    void SetBlock(const std::shared_ptr<MeshBlock> &blk);
-    std::shared_ptr<MeshBlock> GetBlock() const;
 
     bool CheckOverlap(const std::shared_ptr<MeshBlock> &blk) const;
     bool Push(std::shared_ptr<engine::MeshBlock> const &, std::shared_ptr<data::DataNode> const &);
@@ -72,6 +70,9 @@ class DomainBase : public EngineObject {
     virtual void DoAdvance(Real time_now, Real dt) {}
     design_pattern::Signal<void(DomainBase *, Real, Real)> PostAdvance;
     void Advance(Real time_now, Real time_dt);
+
+   protected:
+    void SetMesh(std::shared_ptr<MeshBase> const &);
 
 };  // class DomainBase
 

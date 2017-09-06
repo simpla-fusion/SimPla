@@ -29,8 +29,8 @@ int main(int argc, char** argv) {
     //    auto scenario = SAMRAITimeIntegrator::New();
     auto scenario = SimpleTimeIntegrator::New();
     scenario->SetName("EAST");
-    scenario->SetMesh<mesh_type>();
-    scenario->GetMesh()->GetChart()->SetScale({1, 1, 1});
+    scenario->GetAtlas()->SetChart<simpla::geometry::csCylindrical>();
+    scenario->GetAtlas()->GetChart()->SetScale({1, 1, 1});
 
     scenario->GetModel()->Load("gfile://home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
     scenario->SetDomain<Domain<mesh_type, Maxwell>>("Limiter");

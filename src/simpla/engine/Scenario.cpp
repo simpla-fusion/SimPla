@@ -15,11 +15,13 @@ namespace simpla {
 namespace engine {
 
 struct Scenario::pimpl_s {
-    std::shared_ptr<MeshBase> m_mesh_;
     std::shared_ptr<Atlas> m_atlas_ = nullptr;
     std::shared_ptr<Model> m_model_ = nullptr;
     std::map<std::string, std::shared_ptr<DomainBase>> m_domains_;
     std::map<id_type, std::shared_ptr<data::DataNode>> m_patches_;
+
+    std::map<std::string, std::shared_ptr<Attribute>> m_attributes_;
+    std::map<std::string, Range<EntityId>> m_ranges_;
 };
 
 Scenario::Scenario() : m_pimpl_(new pimpl_s) {
@@ -34,7 +36,6 @@ Scenario::~Scenario() {
 std::shared_ptr<data::DataNode> Scenario::Serialize() const {
     auto cfg = base_type::Serialize();
 
-    cfg->Set("Mesh", GetMesh()->Serialize());
     cfg->Set("Atlas", GetAtlas()->Serialize());
     cfg->Set("Model", GetModel()->Serialize());
 
@@ -46,7 +47,6 @@ std::shared_ptr<data::DataNode> Scenario::Serialize() const {
 
 void Scenario::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
-    m_pimpl_->m_mesh_->Deserialize(cfg->Get("Mesh"));
     m_pimpl_->m_atlas_->Deserialize(cfg->Get("Atlas"));
     m_pimpl_->m_model_->Deserialize(cfg->Get("Model"));
 
@@ -58,6 +58,13 @@ void Scenario::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
 
     Click();
 }
+std::map<std::string, std::shared_ptr<Attribute>> &Scenario::GetAttributes() const { return m_pimpl_->m_attributes_; };
+Range<EntityId> &Scenario::GetRange(std::string const &k) {
+    auto res = m_pimpl_->m_ranges_.emplace(k, Range<EntityId>{});
+    return res.first->second;
+}
+Range<EntityId> const &Scenario::GetRange(std::string const &k) const { return m_pimpl_->m_ranges_.at(k); }
+
 
 void Scenario::Synchronize() {}
 void Scenario::NextStep() {}
@@ -68,9 +75,6 @@ void Scenario::DoInitialize() {}
 void Scenario::DoFinalize() {}
 
 void Scenario::DoSetUp() {
-    ASSERT(m_pimpl_->m_mesh_ != nullptr);
-
-    m_pimpl_->m_mesh_->SetUp();
     m_pimpl_->m_model_->SetUp();
     m_pimpl_->m_atlas_->SetUp();
 
@@ -80,7 +84,6 @@ void Scenario::DoSetUp() {
 }
 
 void Scenario::DoUpdate() {
-    m_pimpl_->m_mesh_->Update();
     m_pimpl_->m_atlas_->Update();
     m_pimpl_->m_model_->Update();
     for (auto &item : m_pimpl_->m_domains_) { item.second->Update(); }
@@ -90,19 +93,11 @@ void Scenario::DoTearDown() {
     for (auto &item : m_pimpl_->m_domains_) { item.second->TearDown(); }
     m_pimpl_->m_model_->TearDown();
     m_pimpl_->m_atlas_->TearDown();
-    m_pimpl_->m_mesh_->TearDown();
     base_type::DoTearDown();
 }
 std::shared_ptr<Atlas> Scenario::GetAtlas() const { return m_pimpl_->m_atlas_; }
 
-void Scenario::SetMesh(std::shared_ptr<MeshBase> const &m) {
-    ASSERT(!isSetUp());
-    m_pimpl_->m_mesh_ = m;
-}
-std::shared_ptr<MeshBase> Scenario::GetMesh() const { return m_pimpl_->m_mesh_; }
-
 std::shared_ptr<Model> Scenario::GetModel() const { return m_pimpl_->m_model_; }
-std::shared_ptr<Model> Scenario::GetModel() { return m_pimpl_->m_model_; }
 
 size_type Scenario::SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &d) {
     ASSERT(!isSetUp());
@@ -110,7 +105,7 @@ size_type Scenario::SetDomain(std::string const &k, std::shared_ptr<DomainBase> 
     if (auto g = GetModel()->Get(k)) {
         m_pimpl_->m_domains_[k] = d;
         m_pimpl_->m_domains_[k]->SetName(k);
-        m_pimpl_->m_domains_[k]->SetMesh(GetMesh());
+        m_pimpl_->m_domains_[k]->SetChart(m_pimpl_->m_atlas_->GetChart());
         m_pimpl_->m_domains_[k]->SetBoundary(g);
         count = 1;
     } else {
@@ -126,7 +121,7 @@ std::map<std::string, std::shared_ptr<DomainBase>> &Scenario::GetDomains() { ret
 std::map<std::string, std::shared_ptr<DomainBase>> const &Scenario::GetDomains() const { return m_pimpl_->m_domains_; }
 
 void Scenario::TagRefinementCells(Real time_now) {
-    GetMesh()->TagRefinementCells(time_now);
+    //    GetMesh()->TagRefinementCells(time_now);
     for (auto &d : m_pimpl_->m_domains_) { d.second->TagRefinementCells(time_now); }
 }
 

@@ -75,6 +75,20 @@ class Atlas : public EngineObject {
     int Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const &);
 
     //    int GetNumOfLevel() const;
+    std::shared_ptr<geometry::Chart> GetChart() const;
+    void SetChart(std::shared_ptr<geometry::Chart> const &);
+    template <typename U, typename... Args>
+    void SetChart(Args &&... args) {
+        static_assert(std::is_base_of<geometry::Chart, U>::value, "illegal chart type!");
+        SetChart(U::New(std::forward<Args>(args)...));
+    };
+
+    box_type GetBox(int tag) const;
+    index_box_type GetIndexBox(int tag);
+
+    void DoSetUp() override;
+    void DoUpdate() override;
+    void DoTearDown() override;
 
     SP_OBJECT_PROPERTY(int, MaxLevel);
     SP_OBJECT_PROPERTY(index_tuple, RefineRatio);

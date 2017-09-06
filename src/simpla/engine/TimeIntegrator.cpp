@@ -29,11 +29,9 @@ std::shared_ptr<data::DataNode> TimeIntegrator::Serialize() const { return base_
 void TimeIntegrator::Deserialize(std::shared_ptr<data::DataNode> const &tdb) { base_type::Deserialize(tdb); }
 
 void TimeIntegrator::InitialCondition(Real time_now) {
-    GetMesh()->InitialCondition(time_now);
     for (auto &d : GetDomains()) { d.second->InitialCondition(time_now); }
 }
 void TimeIntegrator::BoundaryCondition(Real time_now, Real dt) {
-    GetMesh()->BoundaryCondition(time_now, dt);
     for (auto &d : GetDomains()) { d.second->BoundaryCondition(time_now, dt); }
 }
 
@@ -41,12 +39,11 @@ void TimeIntegrator::ComputeFluxes(Real time_now, Real dt) {
     for (auto &d : GetDomains()) { d.second->ComputeFluxes(time_now, dt); }
 }
 Real TimeIntegrator::ComputeStableDtOnPatch(Real time_now, Real time_dt) {
-    for (auto &d : GetDomains()) { time_dt = d.second->ComputeStableDtOnPatch(time_now, time_dt); }
+    for (auto &d : GetDomains()) { time_dt = std::min(time_dt, d.second->ComputeStableDtOnPatch(time_now, time_dt)); }
     return time_dt;
 }
 
 void TimeIntegrator::Advance(Real time_now, Real dt) {
-    GetMesh()->Advance(time_now, dt);
     for (auto &d : GetDomains()) { d.second->Advance(time_now, dt); }
 }
 void TimeIntegrator::CheckPoint() const {}
