@@ -60,6 +60,7 @@ void EngineObject::Initialize() {
 }
 void EngineObject::SetUp() {
     if (!isSetUp()) {
+
         VERBOSE << std::setw(15) << " Set Up : " << std::setw(20) << std::left << GetName() << " [ " << TypeName()
                 << " ]";
         PreSetUp(this);
