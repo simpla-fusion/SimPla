@@ -14,8 +14,7 @@ namespace simpla {
 namespace engine {
 
 struct Model::pimpl_s {
-    std::shared_ptr<geometry::GeoObject> m_g_obj_ = nullptr;
-    box_type m_bound_box_{{0, 0, 0}, {0, 0, 0}};
+    box_type m_bounding_box_{{0, 0, 0}, {0, 0, 0}};
 
     std::shared_ptr<Model> m_parent_;
     std::map<std::string, std::shared_ptr<geometry::GeoObject>> m_g_objs_;
@@ -42,24 +41,23 @@ void Model::Deserialize(std::shared_ptr<data::DataNode> const& tdb) {
         });
     }
 };
-void Model::DoInitialize() {}
-void Model::DoFinalize() {}
-void Model::DoUpdate() {
+void Model::DoSetUp() {
     auto it = m_pimpl_->m_g_objs_.begin();
     if (it == m_pimpl_->m_g_objs_.end() || it->second == nullptr) { return; }
-    m_pimpl_->m_bound_box_ = it->second->BoundingBox();
+    m_pimpl_->m_bounding_box_ = it->second->GetBoundingBox();
     ++it;
     for (; it != m_pimpl_->m_g_objs_.end(); ++it) {
         if (it->second != nullptr) {
-            m_pimpl_->m_bound_box_ = geometry::Union(m_pimpl_->m_bound_box_, it->second->BoundingBox());
+            m_pimpl_->m_bounding_box_ = geometry::Union(m_pimpl_->m_bounding_box_, it->second->GetBoundingBox());
         }
     }
+}
+void Model::DoUpdate(){
+
 };
 void Model::DoTearDown() {}
 
-box_type const& Model::BoundingBox() const { return m_pimpl_->m_bound_box_; };
-
-std::shared_ptr<geometry::GeoObject> Model::GetBoundary() const { return m_pimpl_->m_g_obj_; }
+box_type const& Model::GetBoundingBox() const { return m_pimpl_->m_bounding_box_; };
 
 std::shared_ptr<geometry::GeoObject> Model::Get(std::string const& k) const {
     std::shared_ptr<geometry::GeoObject> res = nullptr;

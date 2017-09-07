@@ -26,7 +26,7 @@ struct GeoObjectOCC : public GeoObject {
     TopoDS_Shape const &GetShape() const;
     Bnd_Box const &GetOCCBoundingBox() const;
 
-    box_type BoundingBox() const override;
+    box_type GetBoundingBox() const override;
     bool CheckInside(point_type const &x) const override;
 };
 

@@ -76,6 +76,7 @@ void Scenario::DoFinalize() {}
 
 void Scenario::DoSetUp() {
     m_pimpl_->m_model_->SetUp();
+    m_pimpl_->m_atlas_->SetBoundingBox(m_pimpl_->m_model_->GetBoundingBox());
     m_pimpl_->m_atlas_->SetUp();
 
     for (auto &item : m_pimpl_->m_domains_) { item.second->SetUp(); }

@@ -24,7 +24,7 @@ void CutCell(std::shared_ptr<Chart> const &chart, index_box_type m_idx_box, cons
     auto const &scale = chart->GetScale();
     Real tol = std::sqrt(dot(scale, scale) * 0.01);
     std::get<1>(m_idx_box) += 1;
-    box_type bnd_box = g->BoundingBox();
+    box_type bnd_box = g->GetBoundingBox();
     vector_type length = std::get<1>(bnd_box) - std::get<0>(bnd_box);
     std::get<0>(bnd_box) -= 0.03 * length;
     std::get<1>(bnd_box) += 0.03 * length;

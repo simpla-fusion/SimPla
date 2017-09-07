@@ -52,7 +52,7 @@ std::tuple<Real, index_box_type> MeshBase::CheckOverlap(const std::shared_ptr<ge
     Real ratio = 0;
     if (g != nullptr) {
         auto b = GetBox(0);
-        ratio = geometry::Measure(geometry::Overlap(g->BoundingBox(), b)) / geometry::Measure(b);
+        ratio = geometry::Measure(geometry::Overlap(g->GetBoundingBox(), b)) / geometry::Measure(b);
     }
     return std::make_tuple(ratio, IndexBox(0b0));
 }

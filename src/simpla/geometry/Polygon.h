@@ -47,7 +47,7 @@ struct Polygon<2> : public GeoObject {
     Real nearest_point(Real *x, Real *y) const;
     bool check_inside(Real x, Real y) const;
 
-    std::tuple<point_type, point_type> BoundingBox() const override {
+    std::tuple<point_type, point_type> GetBoundingBox() const override {
         return std::move(std::make_tuple(point_type{m_min_[0], m_min_[1], 0}, point_type{m_max_[0], m_max_[1], 1}));
     };
 

@@ -64,14 +64,14 @@ void DomainBase::DoTearDown() {
 
 void DomainBase::InitialCondition(Real time_now) {
     Update();
-    if (std::get<0>(GetMesh()->CheckOverlap(GetBoundary())) < EPSILON) { return; }
+    VERBOSE << "Domain [" << GetName() << "] InitialCondition ";
     PreInitialCondition(this, time_now);
     DoInitialCondition(time_now);
     PostInitialCondition(this, time_now);
 }
 void DomainBase::BoundaryCondition(Real time_now, Real dt) {
     Update();
-    if (std::get<0>(GetMesh()->CheckOverlap(GetBoundary())) < EPSILON) { return; }
+    VERBOSE << "Domain [" << GetName() << "] BoundaryCondition ";
     PreBoundaryCondition(this, time_now, dt);
     DoBoundaryCondition(time_now, dt);
     PostBoundaryCondition(this, time_now, dt);
@@ -79,7 +79,7 @@ void DomainBase::BoundaryCondition(Real time_now, Real dt) {
 
 void DomainBase::ComputeFluxes(Real time_now, Real dt) {
     Update();
-    if (std::get<0>(GetMesh()->CheckOverlap(GetBoundary())) < EPSILON) { return; }
+    VERBOSE << "Domain [" << GetName() << "] ComputeFluxes ";
     PreComputeFluxes(this, time_now, dt);
     DoComputeFluxes(time_now, dt);
     PostComputeFluxes(this, time_now, dt);
@@ -88,7 +88,8 @@ Real DomainBase::ComputeStableDtOnPatch(Real time_now, Real time_dt) const { ret
 
 void DomainBase::Advance(Real time_now, Real dt) {
     Update();
-    if (std::get<0>(GetMesh()->CheckOverlap(GetBoundary())) < EPSILON) { return; }
+//    if (std::get<0>(GetMesh()->CheckOverlap(GetBoundary())) < EPSILON) { return; }
+    VERBOSE << "Domain [" << GetName() << "] Advance ";
     PreAdvance(this, time_now, dt);
     DoAdvance(time_now, dt);
     PostAdvance(this, time_now, dt);

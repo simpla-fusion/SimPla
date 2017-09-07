@@ -23,15 +23,14 @@ class Model : public EngineObject {
     SP_OBJECT_HEAD(Model, EngineObject)
 
    public:
-    void DoInitialize() override;
+    void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;
-    void DoFinalize() override;
 
     std::shared_ptr<Model> GetParent() const;
     void SetParent(std::shared_ptr<Model> const &);
 
-    box_type const &BoundingBox() const;
+    box_type const &GetBoundingBox() const;
 
     typedef std::function<Real(point_type const &)> attr_fun;
     typedef std::function<Vec3(point_type const &)> vec_attr_fun;
@@ -52,7 +51,6 @@ class Model : public EngineObject {
     //    size_type DeleteObject(std::string const &);
     //    std::map<std::string, std::shared_ptr<geometry::GeoObject>> const &GetAll() const;
 
-    std::shared_ptr<geometry::GeoObject> GetBoundary() const;
     void LoadAttribute(std::string const &k, Attribute *f) const;
 
     template <typename TV, int IFORM>

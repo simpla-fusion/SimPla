@@ -22,7 +22,7 @@ struct Sphere : public GeoObject {
     Sphere(Real r, point_type o) : m_radius_(r), m_origin_(std::move(o)) {}
 
    public:
-    box_type BoundingBox() const override {
+    box_type GetBoundingBox() const override {
         box_type b;
         std::get<0>(b) = m_origin_ - m_radius_;
         std::get<1>(b) = m_origin_ + m_radius_;

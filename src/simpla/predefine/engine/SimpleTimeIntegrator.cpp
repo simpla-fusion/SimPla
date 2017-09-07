@@ -26,6 +26,7 @@ void SimpleTimeIntegrator::Synchronize() { Update(); }
 void SimpleTimeIntegrator::Advance(Real time_now, Real time_dt) {
     Update();
     GetAtlas()->Foreach([&](std::shared_ptr<engine::MeshBlock> const &blk) {
+        VERBOSE << " Block : " << blk->IndexBox();
         auto p = GetPatch(blk->GetGUID());
 
         for (auto &item : GetDomains()) {

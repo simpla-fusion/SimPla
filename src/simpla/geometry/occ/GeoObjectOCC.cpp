@@ -125,7 +125,7 @@ void GeoObjectOCC::DoUpdate() {
                              std::get<1>(m_pimpl_->m_bounding_box_)[1], std::get<1>(m_pimpl_->m_bounding_box_)[2]);
 }
 
-box_type GeoObjectOCC::BoundingBox() const { return m_pimpl_->m_bounding_box_; };
+box_type GeoObjectOCC::GetBoundingBox() const { return m_pimpl_->m_bounding_box_; };
 
 bool GeoObjectOCC::CheckInside(point_type const &x) const {
     //    VERBOSE << m_pimpl_->m_bounding_box_ << (x) << std::endl;

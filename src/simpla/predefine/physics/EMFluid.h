@@ -68,10 +68,9 @@ std::shared_ptr<data::DataNode> EMFluid<TM>::Serialize() const {
     return res;
 };
 template <typename TM>
-void EMFluid<TM>::Deserialize(std::shared_ptr<data::DataNode>const & cfg) {
-    cfg->Get("Species")->Foreach([&](std::string const& k, std::shared_ptr<data::DataNode> v) {
-        return AddSpecies(k, v) != nullptr ? 1 : 0;
-    });
+void EMFluid<TM>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
+    cfg->Get("Species")->Foreach(
+        [&](std::string const& k, std::shared_ptr<data::DataNode> v) { return AddSpecies(k, v) != nullptr ? 1 : 0; });
 }
 
 template <typename TM>
@@ -97,7 +96,7 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
 //    m_mesh_->GetMesh()->TagRefinementCells(m_mesh_->GetMesh()->GetRange(m_mesh_->GetName() + "_BOUNDARY_3"));
 //}
 template <typename TM>
-void EMFluid<TM>::InitialCondition(Real time_now) {
+void EMFluid<TM>::SetUp() {
     E.Clear();
     B.Clear();
     J.Clear();
@@ -106,10 +105,13 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
     Bv.Clear();
 
     ne.Clear();
+}
+template <typename TM>
+void EMFluid<TM>::TearDown() {}
+template <typename TM>
+void EMFluid<TM>::InitialCondition(Real time_now) {
+    //    if (m_host_->GetModel() != nullptr) { m_host_->GetModel()->LoadAttribute("ne", &ne); }
 
-//    if (m_host_->GetModel() != nullptr) { m_host_->GetModel()->LoadAttribute("ne", &ne); }
-
-    return;
     BB = dot(B0v, B0v);
 
     for (auto& item : m_fluid_sp_) {
@@ -128,7 +130,6 @@ void EMFluid<TM>::BoundaryCondition(Real time_now, Real dt) {
 }
 template <typename TM>
 void EMFluid<TM>::Advance(Real time_now, Real dt) {
-    return;
     DEFINE_PHYSICAL_CONST
 
     //    B = B - curl(E) * (dt * 0.5);

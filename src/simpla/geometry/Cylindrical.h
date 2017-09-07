@@ -21,7 +21,7 @@ struct Cylindrical : public GeoObject {
     Cylindrical(Real r, point_type o0, point_type o1) : m_radius_(r), m_axe0_(std::move(o0)), m_axe1_(std::move(o1)) {}
 
    public:
-    box_type BoundingBox() const override {
+    box_type GetBoundingBox() const override {
         box_type b;
         std::get<0>(b) = m_axe0_ - m_radius_;
         std::get<1>(b) = m_axe1_ + m_radius_;

@@ -24,7 +24,7 @@ class Revolve : public GeoObject {
     Revolve(TObj const &obj, point_type origin, point_type axis) : base_obj(obj), m_axis_(axis), m_origin_(origin) {}
 
    public:
-    virtual box_type BoundingBox() const override { return box_type{{0, 0, 0}, {1, 2, 3}}; };
+    virtual box_type GetBoundingBox() const override { return box_type{{0, 0, 0}, {1, 2, 3}}; };
 
     bool CheckInside(point_type const &x) const override { return base_obj.CheckInside(MapTo2d(x)); };
 
@@ -67,9 +67,9 @@ class RevolveZ : public GeoObject {
         : m_origin_(origin), base_obj(obj), m_phi_axe_(phi_axis), m_angle_min_(phi0), m_angle_max_(phi1) {}
 
    public:
-    box_type BoundingBox() const override {
+    box_type GetBoundingBox() const override {
         nTuple<Real, 2> lo, hi;
-        std::tie(lo, hi) = base_obj->BoundingBox();
+        std::tie(lo, hi) = base_obj->GetBoundingBox();
         box_type res;
         std::get<0>(res)[m_phi_axe_] = m_angle_min_;
         std::get<1>(res)[m_phi_axe_] = m_angle_max_;

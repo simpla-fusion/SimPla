@@ -19,8 +19,6 @@ using namespace data;
 template <typename THost>
 class Maxwell {
     SP_ENGINE_POLICY_HEAD(Maxwell);
-    virtual void DoSetUp();
-    virtual void DoTearDown();
 
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real time_dt);
@@ -45,7 +43,7 @@ std::shared_ptr<data::DataNode> Maxwell<TM>::Serialize() const {
 template <typename TM>
 void Maxwell<TM>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}
 template <typename TM>
-void Maxwell<TM>::DoSetUp() {
+void Maxwell<TM>::SetUp() {
     dumpE.Clear();
     dumpB.Clear();
     dumpJ.Clear();
@@ -56,7 +54,7 @@ void Maxwell<TM>::DoSetUp() {
     B0v.Clear();
 }
 template <typename TM>
-void Maxwell<TM>::DoTearDown() {}
+void Maxwell<TM>::TearDown() {}
 template <typename TM>
 void Maxwell<TM>::InitialCondition(Real time_now) {}
 template <typename TM>

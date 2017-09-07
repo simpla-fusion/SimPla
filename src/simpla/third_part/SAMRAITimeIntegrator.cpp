@@ -1301,7 +1301,7 @@ void SAMRAITimeIntegrator::DoUpdate() {
     nTuple<int, 3> period_dims = GetAtlas()->GetPeriodicDimensions();
     cfgCartesianGridGeometry->putIntegerArray("periodic_dimension", &period_dims[0], ndims);
 
-    auto x_box = GetAtlas()->GetBox(NODE);
+    auto x_box = GetAtlas()->GetBoundingBox();
     cfgCartesianGridGeometry->putDoubleArray("x_lo", &std::get<0>(x_box)[0], ndims);
     cfgCartesianGridGeometry->putDoubleArray("x_up", &std::get<1>(x_box)[0], ndims);
 

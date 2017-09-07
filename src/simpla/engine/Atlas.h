@@ -82,8 +82,8 @@ class Atlas : public EngineObject {
         static_assert(std::is_base_of<geometry::Chart, U>::value, "illegal chart type!");
         SetChart(U::New(std::forward<Args>(args)...));
     };
-
-    box_type GetBox(int tag) const;
+    void SetBoundingBox(box_type const &);
+    box_type GetBoundingBox() const;
     index_box_type GetIndexBox(int tag);
 
     void DoSetUp() override;
@@ -96,6 +96,10 @@ class Atlas : public EngineObject {
     SP_OBJECT_PROPERTY(index_tuple, SmallestPatchDimensions);
     SP_OBJECT_PROPERTY(index_tuple, PeriodicDimensions);
     SP_OBJECT_PROPERTY(index_tuple, CoarsestIndexBox);
+
+    size_type AddBlock(std::shared_ptr<MeshBlock> const &blk);
+    size_type DeleteBlock(id_type)  ;
+    std::shared_ptr<MeshBlock> GetBlock(id_type) const;
 };
 }
 }  // namespace simpla{namespace mesh_as{

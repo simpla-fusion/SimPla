@@ -65,7 +65,7 @@ SP_OBJECT_HEAD(GeoObject, SPObject)
     virtual Real Measure() const;
     virtual std::shared_ptr<GeoObject> Boundary() const { return nullptr; };
     /// The axis-aligned minimum bounding box (or AABB) , Cartesian
-    virtual box_type BoundingBox() const;
+    virtual box_type GetBoundingBox() const;
     virtual bool CheckInside(point_type const &x) const;
 
     /// arbitrarily oriented minimum bounding box  (or OBB)
