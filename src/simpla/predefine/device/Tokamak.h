@@ -7,7 +7,6 @@
 
 #include "GEqdsk.h"
 #include "simpla/engine/EngineObject.h"
-#include "simpla/engine/Model.h"
 namespace simpla {
 class Tokamak {
    protected:

@@ -3,11 +3,9 @@
 //
 
 #include <simpla/geometry/BoxUtilities.h>
-#include "simpla/geometry/GeoObject.h"
-
-#include "Model.h"
-
+#include <simpla/utilities/SPDefines.h>
 #include "EngineObject.h"
+#include "simpla/geometry/GeoObject.h"
 #include "simpla/utilities/Factory.h"
 
 namespace simpla {

@@ -10,7 +10,6 @@
 #include "Attribute.h"
 #include "Domain.h"
 #include "Mesh.h"
-#include "Model.h"
 
 namespace simpla {
 namespace engine {

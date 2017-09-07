@@ -7,12 +7,11 @@
 
 #include "Attribute.h"
 #include "EngineObject.h"
-
+#include "simpla/geometry/GeoObject.h"
 namespace simpla {
 namespace engine {
 class MeshBase;
 class DomainBase;
-class Model;
 class Atlas;
 class Scenario : public EngineObject {
     SP_OBJECT_HEAD(Scenario, EngineObject)
@@ -32,13 +31,14 @@ class Scenario : public EngineObject {
     void DoFinalize() override;
 
     std::shared_ptr<Atlas> GetAtlas() const;
-    std::shared_ptr<Model> GetModel() const;
 
     size_type SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &d);
     template <typename U>
-    size_type SetDomain(std::string const &k) {
+    size_type SetDomain(std::string const &k, std::shared_ptr<geometry::GeoObject> const &g) {
         static_assert(std::is_base_of<DomainBase, U>::value, "illegal domain type!");
-        return SetDomain(k, U::New());
+        auto res = U::New();
+        res->SetBoundary(g);
+        return SetDomain(k, res);
     }
 
     std::shared_ptr<DomainBase> GetDomain(std::string const &k) const;

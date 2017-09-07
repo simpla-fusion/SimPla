@@ -2,6 +2,7 @@
 // Created by salmon on 17-8-20.
 //
 
+#include <simpla/geometry/BoxUtilities.h>
 #include "simpla/SIMPLA_config.h"
 
 #include "simpla/data/DataNode.h"
@@ -9,25 +10,19 @@
 #include "Atlas.h"
 #include "Domain.h"
 #include "Mesh.h"
-#include "Model.h"
 #include "Scenario.h"
 namespace simpla {
 namespace engine {
 
 struct Scenario::pimpl_s {
     std::shared_ptr<Atlas> m_atlas_ = nullptr;
-    std::shared_ptr<Model> m_model_ = nullptr;
     std::map<std::string, std::shared_ptr<DomainBase>> m_domains_;
     std::map<id_type, std::shared_ptr<data::DataNode>> m_patches_;
-
     std::map<std::string, std::shared_ptr<Attribute>> m_attributes_;
     std::map<std::string, Range<EntityId>> m_ranges_;
 };
 
-Scenario::Scenario() : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_atlas_ = Atlas::New();
-    m_pimpl_->m_model_ = Model::New();
-}
+Scenario::Scenario() : m_pimpl_(new pimpl_s) { m_pimpl_->m_atlas_ = Atlas::New(); }
 Scenario::~Scenario() {
     Finalize();
     delete m_pimpl_;
@@ -35,9 +30,7 @@ Scenario::~Scenario() {
 
 std::shared_ptr<data::DataNode> Scenario::Serialize() const {
     auto cfg = base_type::Serialize();
-
     cfg->Set("Atlas", GetAtlas()->Serialize());
-    cfg->Set("Model", GetModel()->Serialize());
 
     if (auto domain = cfg->CreateNode("Domain")) {
         for (auto const &item : m_pimpl_->m_domains_) { domain->Set(item.first, item.second->Serialize()); }
@@ -48,7 +41,6 @@ std::shared_ptr<data::DataNode> Scenario::Serialize() const {
 void Scenario::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
     m_pimpl_->m_atlas_->Deserialize(cfg->Get("Atlas"));
-    m_pimpl_->m_model_->Deserialize(cfg->Get("Model"));
 
     if (auto domain = cfg->Get("Domain")) {
         domain->Foreach([&](std::string key, std::shared_ptr<data::DataNode> node) {
@@ -65,7 +57,6 @@ Range<EntityId> &Scenario::GetRange(std::string const &k) {
 }
 Range<EntityId> const &Scenario::GetRange(std::string const &k) const { return m_pimpl_->m_ranges_.at(k); }
 
-
 void Scenario::Synchronize() {}
 void Scenario::NextStep() {}
 void Scenario::Run() {}
@@ -75,10 +66,19 @@ void Scenario::DoInitialize() {}
 void Scenario::DoFinalize() {}
 
 void Scenario::DoSetUp() {
-    m_pimpl_->m_model_->SetUp();
-    m_pimpl_->m_atlas_->SetBoundingBox(m_pimpl_->m_model_->GetBoundingBox());
-    m_pimpl_->m_atlas_->SetUp();
+    box_type bounding_box;
+    auto it = m_pimpl_->m_domains_.begin();
+    if (it == m_pimpl_->m_domains_.end() || it->second == nullptr) { return; }
+    bounding_box = it->second->GetBoundary()->GetBoundingBox();
+    ++it;
+    for (; it != m_pimpl_->m_domains_.end(); ++it) {
+        if (it->second != nullptr) {
+            bounding_box = geometry::Union(bounding_box, it->second->GetBoundary()->GetBoundingBox());
+        }
+    }
 
+    m_pimpl_->m_atlas_->SetBoundingBox(bounding_box);
+    m_pimpl_->m_atlas_->SetUp();
     for (auto &item : m_pimpl_->m_domains_) { item.second->SetUp(); }
 
     base_type::DoSetUp();
@@ -86,33 +86,23 @@ void Scenario::DoSetUp() {
 
 void Scenario::DoUpdate() {
     m_pimpl_->m_atlas_->Update();
-    m_pimpl_->m_model_->Update();
     for (auto &item : m_pimpl_->m_domains_) { item.second->Update(); }
     base_type::DoUpdate();
 }
 void Scenario::DoTearDown() {
     for (auto &item : m_pimpl_->m_domains_) { item.second->TearDown(); }
-    m_pimpl_->m_model_->TearDown();
     m_pimpl_->m_atlas_->TearDown();
     base_type::DoTearDown();
 }
 std::shared_ptr<Atlas> Scenario::GetAtlas() const { return m_pimpl_->m_atlas_; }
 
-std::shared_ptr<Model> Scenario::GetModel() const { return m_pimpl_->m_model_; }
-
 size_type Scenario::SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &d) {
     ASSERT(!isSetUp());
-    size_type count = 0;
-    if (auto g = GetModel()->Get(k)) {
-        m_pimpl_->m_domains_[k] = d;
-        m_pimpl_->m_domains_[k]->SetName(k);
-        m_pimpl_->m_domains_[k]->GetMesh()->SetChart(m_pimpl_->m_atlas_->GetChart());
-        m_pimpl_->m_domains_[k]->SetBoundary(g);
-        count = 1;
-    } else {
-        WARNING << " Add domain failed! Model [" << k << "] is not defined. ";
-    }
-    return count;
+    m_pimpl_->m_domains_[k] = d;
+    m_pimpl_->m_domains_[k]->SetName(k);
+    m_pimpl_->m_domains_[k]->GetMesh()->SetChart(m_pimpl_->m_atlas_->GetChart());
+    //        m_pimpl_->m_domains_[k]->SetBoundary(g);
+    return 1;
 }
 std::shared_ptr<DomainBase> Scenario::GetDomain(std::string const &k) const {
     auto it = m_pimpl_->m_domains_.find(k);

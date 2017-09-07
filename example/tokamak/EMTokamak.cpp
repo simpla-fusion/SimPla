@@ -36,13 +36,11 @@ int main(int argc, char** argv) {
 
     auto tokamak = Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
 
-    scenario->GetModel()->Add("Limiter", tokamak->Limiter());
-    scenario->GetModel()->Add("Plasma", tokamak->Boundary());
-    scenario->SetDomain<Domain<mesh_type, Maxwell>>("Limiter");
+    scenario->SetDomain<Domain<mesh_type, Maxwell>>("Limiter", tokamak->Limiter());
     scenario->GetDomain("Limiter")->PreInitialCondition.Connect([=](DomainBase* self, Real time_now) {
         if (auto d = dynamic_cast<Domain<mesh_type, Maxwell>*>(self)) { d->B0v = tokamak->B0(); }
     });
-    scenario->SetDomain<Domain<mesh_type, EMFluid>>("Plasma");
+    scenario->SetDomain<Domain<mesh_type, EMFluid>>("Plasma", tokamak->Boundary());
     scenario->GetDomain("Plasma")->PreInitialCondition.Connect([=](DomainBase* self, Real time_now) {
         if (auto d = dynamic_cast<Domain<mesh_type, EMFluid>*>(self)) { d->ne = tokamak->profile("ne"); }
     });

@@ -10,7 +10,6 @@
 #include <string>
 #include "simpla/data/Data.h"
 #include "simpla/engine/EngineObject.h"
-#include "simpla/engine/Model.h"
 #include "simpla/engine/Scenario.h"
 
 namespace simpla {

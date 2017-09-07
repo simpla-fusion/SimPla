@@ -16,7 +16,6 @@
 #include <utility>
 
 #include "simpla/algebra/nTuple.h"
-#include "simpla/engine/Model.h"
 #include "simpla/geometry/Polygon.h"
 #include "simpla/numeric/Interpolation.h"
 #include "simpla/numeric/find_root.h"

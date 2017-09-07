@@ -16,7 +16,6 @@
 
 #include "Attribute.h"
 #include "EngineObject.h"
-#include "Model.h"
 #include "PoliciesCommon.h"
 
 namespace simpla {
