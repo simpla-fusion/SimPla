@@ -94,7 +94,7 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
 //
 // template <typename TM>
 // void EMFluid<TM>::TagRefinementCells(Real time_now) {
-//    m_host_->GetMesh()->TagRefinementCells(m_host_->GetMesh()->GetRange(m_host_->GetName() + "_BOUNDARY_3"));
+//    m_mesh_->GetMesh()->TagRefinementCells(m_mesh_->GetMesh()->GetRange(m_mesh_->GetName() + "_BOUNDARY_3"));
 //}
 template <typename TM>
 void EMFluid<TM>::InitialCondition(Real time_now) {
@@ -107,7 +107,7 @@ void EMFluid<TM>::InitialCondition(Real time_now) {
 
     ne.Clear();
 
-    if (m_host_->GetModel() != nullptr) { m_host_->GetModel()->LoadAttribute("ne", &ne); }
+//    if (m_host_->GetModel() != nullptr) { m_host_->GetModel()->LoadAttribute("ne", &ne); }
 
     return;
     BB = dot(B0v, B0v);
@@ -132,10 +132,10 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
 
     //    B = B - curl(E) * (dt * 0.5);
-    //    m_host_->FillBoundary(B, 0);
+    //    m_mesh_->FillBoundary(B, 0);
     //
     //    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
-    //    m_host_->FillBoundary(E, 0);
+    //    m_mesh_->FillBoundary(E, 0);
 
     if (m_fluid_sp_.size() <= 0) { return; }
     Ev = map_to<CELL>(E);
@@ -200,10 +200,10 @@ void EMFluid<TM>::Advance(Real time_now, Real dt) {
     E = E + map_to<EDGE>(dE);
 
     //    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
-    //    m_host_->FillBoundary(E, 0);
+    //    m_mesh_->FillBoundary(E, 0);
     //
     //    B = B - curl(E) * (dt * 0.5);
-    //    m_host_->FillBoundary(B, 0);
+    //    m_mesh_->FillBoundary(B, 0);
 }
 
 }  // namespace simpla  {

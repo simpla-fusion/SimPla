@@ -10,18 +10,23 @@
 #include "simpla/engine/Model.h"
 namespace simpla {
 class Tokamak {
+   protected:
+    explicit Tokamak(std::string const &url = "");
+
    public:
-    Tokamak();
     ~Tokamak();
-    void DoUpdate();
+    template <typename... Args>
+    static std::shared_ptr<Tokamak> New(Args &&... args) {
+        return std::shared_ptr<Tokamak>(new Tokamak(std::forward<Args>(args)...));
+    };
     void LoadGFile(std::string const &);
-    typedef std::function<Real(point_type const &)> attr_fun;
-    typedef std::function<Vec3(point_type const &)> vec_attr_fun;
-    engine::Model::attr_fun GetAttribute(std::string const &attr_name) const;
-    engine::Model::vec_attr_fun GetAttributeVector(std::string const &attr_name) const;
+    std::shared_ptr<geometry::GeoObject> Limiter() const;
+    std::shared_ptr<geometry::GeoObject> Boundary() const;
+
+    std::function<Vec3(point_type const &)> B0() const;
+    std::function<Real(point_type const &)> profile(std::string const &k) const;
 
    private:
-    std::shared_ptr<engine::Model> m_self_;
     struct pimpl_s;
     pimpl_s *m_pimpl_ = nullptr;
 };

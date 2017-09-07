@@ -22,37 +22,28 @@ DomainBase::DomainBase() : m_pimpl_(new pimpl_s){};
 DomainBase::~DomainBase() { delete m_pimpl_; };
 std::shared_ptr<data::DataNode> DomainBase::Serialize() const {
     auto tdb = base_type::Serialize();
-    tdb->SetValue("Model", GetBoundary()->GetName());
-    tdb->SetValue("Mesh", GetMesh()->GetName());
+    tdb->Set("Boundary", m_pimpl_->m_boundary_->Serialize());
+    tdb->Set("Mesh", m_pimpl_->m_mesh_->Serialize());
+    tdb->Set("Attributes", AttributeGroup::Serialize());
     return tdb;
 }
 void DomainBase::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
     base_type::Deserialize(cfg);
-    if (m_pimpl_->m_mesh_ == nullptr) {
-        m_pimpl_->m_mesh_ = MeshBase::New(cfg->Get("Mesh"));
-    } else {
-        m_pimpl_->m_mesh_->Deserialize(cfg->Get("Mesh"));
-    }
-    if (auto g = cfg->Get("Boundary")) { m_pimpl_->m_boundary_ = geometry::GeoObject::New(g); }
-
-    Click();
+    if (m_pimpl_->m_mesh_ == nullptr) {}
+    m_pimpl_->m_mesh_->Deserialize(cfg->Get("Mesh"));
+    m_pimpl_->m_boundary_ = geometry::GeoObject::New(cfg->Get("Boundary"));
+    AttributeGroup::Deserialize(cfg->Get("Attributes"));
 };
 void DomainBase::SetMesh(std::shared_ptr<MeshBase> const& m) { m_pimpl_->m_mesh_ = m; };
-
-void DomainBase::SetChart(std::shared_ptr<geometry::Chart> const& c) { GetMesh()->SetChart(c); }
-void DomainBase::SetBlock(const std::shared_ptr<MeshBlock>& blk) { GetMesh()->SetBlock(blk); }
 std::shared_ptr<MeshBase> DomainBase::GetMesh() const { return m_pimpl_->m_mesh_; }
 
-void DomainBase::SetBoundary(std::shared_ptr<geometry::GeoObject> const& g) {
-    ASSERT(!isSetUp());
-    m_pimpl_->m_boundary_ = g;
-}
+void DomainBase::SetBoundary(std::shared_ptr<geometry::GeoObject> const& g) { m_pimpl_->m_boundary_ = g; }
 std::shared_ptr<geometry::GeoObject> DomainBase::GetBoundary() const { return m_pimpl_->m_boundary_; }
 
 bool DomainBase::CheckOverlap(const std::shared_ptr<MeshBlock>& blk) const { return false; }
 bool DomainBase::Push(std::shared_ptr<engine::MeshBlock> const& blk, std::shared_ptr<data::DataNode> const& data) {
     if (!CheckOverlap(blk)) { return false; }
-    SetBlock(blk);
+    GetMesh()->SetBlock(blk);
     base_type::Push(data);
     return true;
 }
@@ -67,7 +58,7 @@ void DomainBase::DoUpdate() {
     m_pimpl_->m_mesh_->Update();
 }
 void DomainBase::DoTearDown() {
-    m_pimpl_->m_mesh_.reset();
+    m_pimpl_->m_mesh_->TearDown();
     m_pimpl_->m_boundary_.reset();
 }
 

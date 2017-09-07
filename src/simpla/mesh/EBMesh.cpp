@@ -19,9 +19,9 @@ namespace detail {
 //    return res;
 //}
 //
-//void UpdateRanges(engine::MeshBase *m_host_, std::string const &prefix, Array<int, ZSFC<3>> const &vertex_tags);
+//void UpdateRanges(engine::MeshBase *m_mesh_, std::string const &prefix, Array<int, ZSFC<3>> const &vertex_tags);
 //
-//void UpdateRanges(engine::MeshBase *m_host_, std::string const &prefix, Array<int, ZSFC<3>> const &vertex_tags) {
+//void UpdateRanges(engine::MeshBase *m_mesh_, std::string const &prefix, Array<int, ZSFC<3>> const &vertex_tags) {
 //    /**
 //    *\verbatim
 //    *                ^s (dl)
@@ -43,7 +43,7 @@ namespace detail {
 //    *\endverbatim
 //    */
 //
-//    //    Array<int, ZSFC<3>> volume_tags{nullptr, m_host_->IndexBox(0b111)};
+//    //    Array<int, ZSFC<3>> volume_tags{nullptr, m_mesh_->IndexBox(0b111)};
 //    //
 //    //    volume_tags = ((vertex_tags(IdxShift{0, 0, 0})) << 0) |  //
 //    //                  ((vertex_tags(IdxShift{1, 0, 0})) << 1) |  //
@@ -92,7 +92,7 @@ namespace detail {
 //    static const EntityId s6 = {0, 1, 1, 0};
 //    static const EntityId s7 = {1, 1, 1, 0};
 //
-//    ZSFC<3>(geometry::Expand(m_host_->IndexBox(0b111), index_tuple{1, 1, 1}))
+//    ZSFC<3>(geometry::Expand(m_mesh_->IndexBox(0b111), index_tuple{1, 1, 1}))
 //        .Foreach(  //
 //            [&](auto I, auto J, auto K) {
 //
@@ -201,19 +201,19 @@ namespace detail {
 //
 //    CHECK(VOLUME_body.size());
 //
-//    m_host_->GetRange(prefix + "_BODY_0").append(make_range(VERTEX_body));
-//    m_host_->GetRange(prefix + "_BODY_1").append(make_range(EDGE_body));
-//    m_host_->GetRange(prefix + "_BODY_2").append(make_range(FACE_body));
-//    m_host_->GetRange(prefix + "_BODY_3").append(make_range(VOLUME_body));
+//    m_mesh_->GetRange(prefix + "_BODY_0").append(make_range(VERTEX_body));
+//    m_mesh_->GetRange(prefix + "_BODY_1").append(make_range(EDGE_body));
+//    m_mesh_->GetRange(prefix + "_BODY_2").append(make_range(FACE_body));
+//    m_mesh_->GetRange(prefix + "_BODY_3").append(make_range(VOLUME_body));
 //
-//    m_host_->GetRange(prefix + "_BOUNDARY_0").append(make_range(VERTEX_boundary));
-//    m_host_->GetRange(prefix + "_BOUNDARY_3").append(make_range(VOLUME_boundary));
+//    m_mesh_->GetRange(prefix + "_BOUNDARY_0").append(make_range(VERTEX_boundary));
+//    m_mesh_->GetRange(prefix + "_BOUNDARY_3").append(make_range(VOLUME_boundary));
 //
-//    m_host_->GetRange(prefix + "_BOUNDARY_1").append(make_range(EDGE_boundary));
-//    m_host_->GetRange(prefix + "_BOUNDARY_2").append(make_range(FACE_boundary));
+//    m_mesh_->GetRange(prefix + "_BOUNDARY_1").append(make_range(EDGE_boundary));
+//    m_mesh_->GetRange(prefix + "_BOUNDARY_2").append(make_range(FACE_boundary));
 //
-//    m_host_->GetRange(prefix + "_CUT_BOUNDARY_1").append(make_range(EDGE_CUT_boundary));
-//    m_host_->GetRange(prefix + "_CUT_BOUNDARY_2").append(make_range(FACE_CUT_boundary));
+//    m_mesh_->GetRange(prefix + "_CUT_BOUNDARY_1").append(make_range(EDGE_CUT_boundary));
+//    m_mesh_->GetRange(prefix + "_CUT_BOUNDARY_2").append(make_range(FACE_CUT_boundary));
 //}
 
 }  // namespace detail {

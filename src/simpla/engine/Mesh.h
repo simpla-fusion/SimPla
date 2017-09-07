@@ -26,18 +26,19 @@ struct MeshBase : public EngineObject, public AttributeGroup {
     SP_OBJECT_HEAD(MeshBase, EngineObject)
 
    public:
-    using AttributeGroup::attribute_type;
-
-    virtual this_type *GetMesh() { return this; }
-    virtual this_type const *GetMesh() const { return this; }
+    virtual std::shared_ptr<const MeshBase> GetMesh() const {
+        return std::dynamic_pointer_cast<MeshBase>(const_cast<this_type *>(this)->shared_from_this());
+    }
+    virtual std::shared_ptr<MeshBase> GetMesh() { return std::dynamic_pointer_cast<MeshBase>(shared_from_this()); }
 
     int GetNDIMS() const;
 
     void SetChart(std::shared_ptr<geometry::Chart> const &c);
-    std::shared_ptr<geometry::Chart> GetChart() const;
+    std::shared_ptr<geometry::Chart> GetChart();
+    virtual std::shared_ptr<const geometry::Chart> GetChart() const;
 
-    void SetBlock(const std::shared_ptr<MeshBlock> &blk);
-    std::shared_ptr<MeshBlock> GetBlock() const;
+    void SetBlock(const std::shared_ptr<const MeshBlock> &blk);
+    virtual std::shared_ptr<const MeshBlock> GetBlock() const;
 
     virtual void AddEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g){};
 
@@ -64,13 +65,11 @@ struct MeshBase : public EngineObject, public AttributeGroup {
     void Advance(Real time_now, Real dt);
     void TagRefinementCells(Real time_now);
 
-    std::shared_ptr<data::DataNode> Pop() override;
-    void Push(const std::shared_ptr<data::DataNode> &p) override;
     void SetRange(std::string const &, Range<EntityId> const &);
     Range<EntityId> GetRange(std::string const &k) const;
 
    private:
-    std::shared_ptr<MeshBlock> m_mesh_block_ = nullptr;
+    std::shared_ptr<const MeshBlock> m_mesh_block_ = nullptr;
     std::shared_ptr<geometry::Chart> m_chart_ = nullptr;
 };
 using namespace data;
@@ -82,16 +81,17 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     typedef Mesh<chart_type, Policies...> mesh_type;
 
    public:
+    template <typename THost>
+    std::shared_ptr<this_type> New(THost *host) {
+        return std::shared_ptr<this_type>(new this_type(host));
+    }
     void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;
     std::shared_ptr<const geometry::Chart> GetChart() const override { return base_type::GetChart(); };
     std::shared_ptr<const engine::MeshBlock> GetBlock() const override { return base_type::GetBlock(); };
-    this_type *GetMesh() override { return this; }
-    this_type const *GetMesh() const override { return this; }
-    using base_type::IndexBox;
 
-    std::shared_ptr<chart_type> chart() const { return std::dynamic_pointer_cast<chart_type>(GetChart()); }
+    using base_type::IndexBox;
 
     void DoInitialCondition(Real time_now) override;
     void DoBoundaryCondition(Real time_now, Real dt) override;

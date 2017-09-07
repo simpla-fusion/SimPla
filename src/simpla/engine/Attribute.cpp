@@ -17,7 +17,8 @@ AttributeGroup::AttributeGroup(){};
 AttributeGroup::~AttributeGroup() {
     for (auto &item : m_attributes_) { item.second->Deregister(this); }
 }
-
+std::shared_ptr<data::DataNode> AttributeGroup::Serialize() const { return nullptr; }
+void AttributeGroup::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {}
 void AttributeGroup::Push(const std::shared_ptr<data::DataNode> &p) {
     for (auto &item : m_attributes_) {
         if (auto blk = p->Get(item.second->db()->GetValue<id_type>("DescID", NULL_ID))) { item.second->Push(blk); }
@@ -144,6 +145,8 @@ std::shared_ptr<data::DataNode> Attribute::Pop() {
     TearDown();
     return res;
 }
+size_type Attribute::CopyOut(Attribute &other) const { return 0; }
+size_type Attribute::CopyIn(Attribute const &other) { return 0; }
 std::shared_ptr<DataBlock> Attribute::GetDataBlock() { return m_pimpl_->m_data_block_; }
 std::shared_ptr<const DataBlock> Attribute::GetDataBlock() const { return m_pimpl_->m_data_block_; }
 void Attribute::Clear() { FIXME; }

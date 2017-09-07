@@ -27,11 +27,11 @@ struct EBMesh {
    public:
     void SetEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g);
 
-    Field<host_type, Real, NODE> m_vertex_tag_{m_host_, "name"_ = "vertex_tag"};
-    //    Field<host_type, Real, EDGE> m_edge_tag_{m_host_, "name"_ = "edge_tag"};
-    //    Field<host_type, Real, NODE, 3> m_edge_tag_d_{m_host_, "name"_ = "edge_tag_d"};
-    //    Field<host_type, Real, FACE> m_face_tag_{m_host_, "name"_ = "face_tag"};
-    Field<host_type, Real, CELL> m_volume_tag_{m_host_, "name"_ = "volume_tag"};
+    engine::AttributeT<Real, NODE> m_vertex_tag_{m_host_, "name"_ = "vertex_tag"};
+    //    Field<host_type, Real, EDGE> m_edge_tag_{m_mesh_, "name"_ = "edge_tag"};
+    //    Field<host_type, Real, NODE, 3> m_edge_tag_d_{m_mesh_, "name"_ = "edge_tag_d"};
+    //    Field<host_type, Real, FACE> m_face_tag_{m_mesh_, "name"_ = "face_tag"};
+    engine::AttributeT<Real, CELL> m_volume_tag_{m_host_, "name"_ = "volume_tag"};
 };
 template <typename THost>
 std::shared_ptr<data::DataNode> EBMesh<THost>::Serialize() const {
@@ -54,17 +54,18 @@ void EBMesh<THost>::SetEmbeddedBoundary(std::string const &prefix, const std::sh
     m_vertex_tag_.Clear();
     //    m_edge_tag_.Clear();
 
-//    geometry::CutCell(m_host_->GetMesh()->GetChart(), m_host_->GetMesh()->IndexBox(0b0), g, &m_volume_tag_.Get()[0]);
+    //    geometry::CutCell(m_mesh_->GetMesh()->GetChart(), m_mesh_->GetMesh()->IndexBox(0b0), g,
+    //    &m_volume_tag_.Get()[0]);
     //    m_edge_tag_d_[0] = m_edge_tag_.GetEntity();
-    //    Real ratio = std::get<0>(m_host_->GetMesh()->CheckOverlap(g));
+    //    Real ratio = std::get<0>(m_mesh_->GetMesh()->CheckOverlap(g));
     //    if (ratio < EPSILON) {
     //    } else if (ratio < 1 - EPSILON) {
-    //        detail::CreateEBMesh(m_host_, prefix, g);
+    //        detail::CreateEBMesh(m_mesh_, prefix, g);
     //    } else {
-    //        m_host_->GetRange(prefix + "_BODY_0").SetFull();
-    //        m_host_->GetRange(prefix + "_BODY_1").SetFull();
-    //        m_host_->GetRange(prefix + "_BODY_2").SetFull();
-    //        m_host_->GetRange(prefix + "_BODY_3").SetFull();
+    //        m_mesh_->GetRange(prefix + "_BODY_0").SetFull();
+    //        m_mesh_->GetRange(prefix + "_BODY_1").SetFull();
+    //        m_mesh_->GetRange(prefix + "_BODY_2").SetFull();
+    //        m_mesh_->GetRange(prefix + "_BODY_3").SetFull();
     //    }
 }
 }  // namespace mesh

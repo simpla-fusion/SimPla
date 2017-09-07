@@ -50,11 +50,13 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
     static constexpr int iform = IFORM;
     static constexpr int NUM_OF_SUB = (IFORM == NODE || IFORM == CELL) ? 1 : 3;
 
-    TM* m_host_;
+    std::shared_ptr<mesh_type> m_mesh_;
 
    public:
-    template <typename... Args>
-    explicit Field(TM* m, Args&&... args) : base_type(m, std::forward<Args>(args)...), m_host_(m) {}
+    template <typename THost, typename... Args>
+    explicit Field(THost* host, Args&&... args)
+        : base_type(host, std::forward<Args>(args)...),
+          m_mesh_(std::dynamic_pointer_cast<mesh_type>(host->GetMesh())) {}
     ~Field() override = default;
 
     Field(Field const& other) = delete;
@@ -64,18 +66,16 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
     static std::shared_ptr<this_type> New(Args&&... args) {
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
     }
-    std::shared_ptr<engine::Attribute> Duplicate() const override {
-        return std::shared_ptr<engine::Attribute>(new this_type(m_host_));
-    }
-
-    void DoUpdate() override {
-        if (base_type::isNull()) { m_host_->GetMesh()->InitializeAttribute(this); }
-    }
+//    std::shared_ptr<engine::Attribute> Duplicate() const override {
+//        return std::shared_ptr<engine::Attribute>(new this_type(m_host_));
+//    }
+    void DoSetUp() override {}
+    void DoUpdate() override { m_mesh_->GetMesh()->InitializeAttribute(this); }
     void DoTearDown() override {}
     template <typename Other>
     void Set(Other&& v) {
         base_type::Update();
-        m_host_->Fill(*this, std::forward<Other>(v));
+        m_mesh_->Fill(*this, std::forward<Other>(v));
     }
 
     this_type& operator=(this_type const& other) {
@@ -130,12 +130,12 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
 
     template <typename... Args>
     decltype(auto) gather(Args&&... args) const {
-        return m_host_->gather(*this, std::forward<Args>(args)...);
+        return m_mesh_->gather(*this, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     decltype(auto) scatter(Args&&... args) {
-        return m_host_->scatter(*this, std::forward<Args>(args)...);
+        return m_mesh_->scatter(*this, std::forward<Args>(args)...);
     }
 
 };  // class Field

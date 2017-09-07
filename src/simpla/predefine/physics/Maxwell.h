@@ -19,6 +19,8 @@ using namespace data;
 template <typename THost>
 class Maxwell {
     SP_ENGINE_POLICY_HEAD(Maxwell);
+    virtual void DoSetUp();
+    virtual void DoTearDown();
 
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real time_dt);
@@ -42,9 +44,8 @@ std::shared_ptr<data::DataNode> Maxwell<TM>::Serialize() const {
 };
 template <typename TM>
 void Maxwell<TM>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}
-
 template <typename TM>
-void Maxwell<TM>::InitialCondition(Real time_now) {
+void Maxwell<TM>::DoSetUp() {
     dumpE.Clear();
     dumpB.Clear();
     dumpJ.Clear();
@@ -53,17 +54,19 @@ void Maxwell<TM>::InitialCondition(Real time_now) {
     J.Clear();
 
     B0v.Clear();
-
-    if (m_host_->GetModel() != nullptr) { m_host_->GetModel()->LoadAttribute("B0", &B0v); }
 }
+template <typename TM>
+void Maxwell<TM>::DoTearDown() {}
+template <typename TM>
+void Maxwell<TM>::InitialCondition(Real time_now) {}
 template <typename TM>
 void Maxwell<TM>::BoundaryCondition(Real time_now, Real time_dt) {
     m_host_->FillBoundary(B, 0);
     m_host_->FillBoundary(E, 0);
     m_host_->FillBoundary(J, 0);
-    //    m_host_->FillBoundary(dumpE, 0);
-    //    m_host_->FillBoundary(dumpB, 0);
-    //    m_host_->FillBoundary(dumpJ, 0);
+    //    m_mesh_->FillBoundary(dumpE, 0);
+    //    m_mesh_->FillBoundary(dumpB, 0);
+    //    m_mesh_->FillBoundary(dumpJ, 0);
 }
 template <typename TM>
 void Maxwell<TM>::Advance(Real time_now, Real dt) {
@@ -78,13 +81,6 @@ void Maxwell<TM>::Advance(Real time_now, Real dt) {
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
     m_host_->FillBoundary(E, 0);
 
-    //    dumpE.DeepCopy(E);
-    //    dumpB.DeepCopy(B);
-    //    dumpJ.DeepCopy(J);
-    //
-    //    dumpE[0] = E.Get();
-    //    dumpB[0] = B.Get();
-    //    dumpJ[0] = J.Get();
     J.Clear();
 }
 

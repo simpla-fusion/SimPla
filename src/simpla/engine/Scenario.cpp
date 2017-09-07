@@ -105,7 +105,7 @@ size_type Scenario::SetDomain(std::string const &k, std::shared_ptr<DomainBase> 
     if (auto g = GetModel()->Get(k)) {
         m_pimpl_->m_domains_[k] = d;
         m_pimpl_->m_domains_[k]->SetName(k);
-        m_pimpl_->m_domains_[k]->SetChart(m_pimpl_->m_atlas_->GetChart());
+        m_pimpl_->m_domains_[k]->GetMesh()->SetChart(m_pimpl_->m_atlas_->GetChart());
         m_pimpl_->m_domains_[k]->SetBoundary(g);
         count = 1;
     } else {

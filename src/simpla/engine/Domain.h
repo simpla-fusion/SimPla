@@ -24,12 +24,10 @@ namespace engine {
 class Model;
 class MeshBase;
 
-class DomainBase : public EngineObject {
+class DomainBase : public EngineObject, public AttributeGroup {
     SP_OBJECT_HEAD(DomainBase, EngineObject)
 
    public:
-    void SetChart(std::shared_ptr<geometry::Chart> const &c);
-    void SetBlock(const std::shared_ptr<MeshBlock> &blk);
     std::shared_ptr<MeshBase> GetMesh() const;
 
     void SetBoundary(std::shared_ptr<geometry::GeoObject> const &g);
@@ -82,7 +80,6 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
     SP_OBJECT_HEAD(Domain, DomainBase);
 
    public:
-    void DoInitialize() override;
     void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;
@@ -117,7 +114,9 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
 
 };  // class Domain
 template <typename TM, template <typename> class... Policies>
-Domain<TM, Policies...>::Domain() : Policies<this_type>(this)... {}
+Domain<TM, Policies...>::Domain() : Policies<this_type>(this)... {
+    SetMesh(mesh_type::New());
+}
 template <typename TM, template <typename> class... Policies>
 Domain<TM, Policies...>::~Domain(){};
 
@@ -132,10 +131,6 @@ template <typename TM, template <typename> class... Policies>
 void Domain<TM, Policies...>::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     DomainBase::Deserialize(cfg);
     traits::_try_invoke_Deserialize<Policies...>(this, cfg);
-};
-template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::DoInitialize() {
-    if (GetMesh() == nullptr) { SetMesh(mesh_type::New()); }
 };
 
 template <typename TM, template <typename> class... Policies>

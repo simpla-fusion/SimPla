@@ -29,6 +29,9 @@ struct Cube : public GeoObject {
     Cube(box_type const &b) : m_bound_box_(b) {}
 
    public:
+    static std::shared_ptr<Cube> New(std::initializer_list<std::initializer_list<Real>> const &box) {
+        return std::shared_ptr<Cube>(new Cube(box));
+    }
     box_type BoundingBox() const override { return m_bound_box_; };
 
     virtual bool CheckInside(point_type const &x) const override {

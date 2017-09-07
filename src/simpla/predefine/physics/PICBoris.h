@@ -91,7 +91,7 @@ std::shared_ptr<Particle<TM>> PICBoris<TM>::AddSpecies(std::string const& name,
 //
 // template <typename TM>
 // void PICBoris<TM>::TagRefinementCells(Real time_now) {
-//    m_host_->GetMesh()->TagRefinementCells(m_host_->GetMesh()->GetRange(m_host_->GetName() + "_BOUNDARY_3"));
+//    m_mesh_->GetMesh()->TagRefinementCells(m_mesh_->GetMesh()->GetRange(m_mesh_->GetName() + "_BOUNDARY_3"));
 //}
 template <typename TM>
 void PICBoris<TM>::InitialCondition(Real time_now) {}

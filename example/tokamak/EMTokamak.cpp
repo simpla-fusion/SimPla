@@ -2,7 +2,9 @@
 // Created by salmon on 16-11-29.
 //
 
+#include <simpla/geometry/Cube.h>
 #include <simpla/parallel/MPIComm.h>
+#include <simpla/predefine/device/Tokamak.h>
 #include <simpla/predefine/engine/SimpleTimeIntegrator.h>
 #include <simpla/third_part/SAMRAITimeIntegrator.h>
 #include <simpla/utilities/Logo.h>
@@ -32,10 +34,18 @@ int main(int argc, char** argv) {
     scenario->GetAtlas()->SetChart<simpla::geometry::csCylindrical>();
     scenario->GetAtlas()->GetChart()->SetScale({1, 1, 1});
 
-    scenario->GetModel()->Load("gfile://home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
-    scenario->SetDomain<Domain<mesh_type, Maxwell>>("Limiter");
-    scenario->SetDomain<Domain<mesh_type, EMFluid>>("Plasma");
+    auto tokamak = Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
 
+    scenario->GetModel()->Add("Limiter", tokamak->Limiter());
+    scenario->GetModel()->Add("Plasma", tokamak->Boundary());
+    scenario->SetDomain<Domain<mesh_type, Maxwell>>("Limiter");
+    scenario->GetDomain("Limiter")->PreInitialCondition.Connect([=](DomainBase* self, Real time_now) {
+        if (auto d = dynamic_cast<Domain<mesh_type, Maxwell>*>(self)) { d->B0v = tokamak->B0(); }
+    });
+    scenario->SetDomain<Domain<mesh_type, EMFluid>>("Plasma");
+    scenario->GetDomain("Plasma")->PreInitialCondition.Connect([=](DomainBase* self, Real time_now) {
+        if (auto d = dynamic_cast<Domain<mesh_type, EMFluid>*>(self)) { d->ne = tokamak->profile("ne"); }
+    });
     scenario->SetTimeNow(0);
     scenario->SetTimeEnd(10.0);
     scenario->SetTimeStep(0.1);

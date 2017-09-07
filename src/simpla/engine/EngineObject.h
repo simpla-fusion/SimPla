@@ -11,7 +11,7 @@
 namespace simpla {
 namespace engine {
 class EngineObject : public SPObject {
-SP_OBJECT_HEAD(EngineObject, SPObject)
+    SP_OBJECT_HEAD(EngineObject, SPObject)
    public:
     void lock();
     void unlock();
@@ -47,15 +47,15 @@ SP_OBJECT_HEAD(EngineObject, SPObject)
     void Finalize();
 };
 
-#define SP_OBJECT_PROPERTY(_TYPE_, _NAME_)                        \
-    void Set##_NAME_(_TYPE_ const &_v_) {                         \
-        ASSERT(!isSetUp());                                       \
-        db()->SetValue(__STRING(_NAME_), _v_);                    \
-    }                                                             \
-    _TYPE_ Get##_NAME_() const {                                  \
-        ASSERT(isInitialized());                                  \
-        return db()->template GetValue<_TYPE_>(__STRING(_NAME_)); \
-    }
+#define SP_OBJECT_PROPERTY(_TYPE_, _NAME_)                             \
+    void Set##_NAME_(_TYPE_ const &_v_) {                              \
+        if (isSetUp()) {                                               \
+            WARNING << "Object is set up, can not change properties."; \
+        } else {                                                       \
+            db()->SetValue(__STRING(_NAME_), _v_);                     \
+        }                                                              \
+    }                                                                  \
+    _TYPE_ Get##_NAME_() const { return db()->template GetValue<_TYPE_>(__STRING(_NAME_)); }
 }  // namespace engine
 }
 #endif  // SIMPLA_ENGOBJECT_H

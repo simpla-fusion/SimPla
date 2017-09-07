@@ -59,6 +59,8 @@ class AttributeGroup {
     AttributeGroup(AttributeGroup &&other) = delete;
     AttributeGroup &operator=(AttributeGroup const &other) = delete;
     AttributeGroup &operator=(AttributeGroup &&other) = delete;
+    virtual std::shared_ptr<data::DataNode> Serialize() const;
+    virtual void Deserialize(std::shared_ptr<data::DataNode> const &);
 
     auto &GetAttributes() { return m_attributes_; }
     auto const &GetAttributes() const { return m_attributes_; }
@@ -120,11 +122,12 @@ class AttributeGroup {
  *
  */
 struct Attribute : public EngineObject {
-    SP_OBJECT_HEAD(Attribute, EngineObject)
+    SP_OBJECT_HEAD(Attribute, SPObject)
 
    protected:
-    template <typename... Args>
-    explicit Attribute(Args &&... args) : Attribute() {
+    template <typename THost, typename... Args>
+    explicit Attribute(THost *host, Args &&... args) : Attribute() {
+        Register(host);
         db()->SetValue(std::forward<Args>(args)...);
     };
 
@@ -133,8 +136,8 @@ struct Attribute : public EngineObject {
     virtual int GetIFORM() const = 0;
     virtual int GetDOF() const = 0;
     virtual void SetDOF(int) = 0;
-    virtual std::shared_ptr<Attribute> Duplicate() const = 0;
-
+    template <typename THost>
+    void Register(THost *p) {}
     void Register(AttributeGroup *p = nullptr);
     void Deregister(AttributeGroup *p = nullptr);
 
@@ -143,6 +146,10 @@ struct Attribute : public EngineObject {
 
     void Push(const std::shared_ptr<data::DataNode> &) override;
     std::shared_ptr<data::DataNode> Pop() override;
+
+    size_type CopyOut(Attribute &other) const;
+    size_type CopyIn(Attribute const &other);
+    //    virtual std::shared_ptr<Attribute> Duplicate() const = 0;
 
     virtual bool isNull() const;
     virtual bool empty() const { return isNull(); };
@@ -156,11 +163,8 @@ struct AttributeT : public Attribute {
     std::vector<array_type> m_data_;
     AttributeGroup *m_host_ = nullptr;
 
-    template <typename THost, typename... Args>
-    explicit AttributeT(THost *host, Args &&... args) : Attribute(std::forward<Args>(args)...), m_dof_(1) {
-        Register(dynamic_cast<engine::AttributeGroup *>(host));
-    }
-    AttributeT() : Attribute(), m_dof_(1) {}
+    template <typename... Args>
+    explicit AttributeT(Args &&... args) : Attribute(std::forward<Args>(args)...), m_dof_(1) {}
     ~AttributeT() override = default;
 
     array_type &operator[](int s) { return m_data_[s]; }
@@ -171,44 +175,12 @@ struct AttributeT : public Attribute {
     int GetDOF() const override { return m_dof_; };
     void SetDOF(int d) override { m_dof_ = d; };
 
-    std::shared_ptr<Attribute> Duplicate() const override {
-        return std::shared_ptr<this_type>(new this_type(m_host_));
-    };
+    //    std::shared_ptr<Attribute> Duplicate() const override {
+    //        return std::shared_ptr<this_type>(new this_type(const_cast<this_type *>(this)->m_host_));
+    //    };
 
     auto &Get() { return m_data_; }
     auto const &Get() const { return m_data_; }
-    template <typename U, int NR>
-    void DeepCopy(AttributeT<U, NR> const &other) {
-        Update();
-        //        m_data_ = other.Get();
-    }
-    void Push(std::shared_ptr<data::DataNode> const &d) override{
-        //        auto blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
-        //        if (blk != nullptr) {
-        //            int count = 0;
-        //            traits::foreach (*d, [&](array_type& a, auto&&... idx) {
-        //                array_type(*blk->Get(count)).swap(a);
-        //                ++count;
-        //            });
-        //        }
-        //        Tag();
-
-    };
-    std::shared_ptr<data::DataNode> Pop() override {
-        //        auto blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
-        //        if (blk == nullptr) {
-        //            Push(data::DataMultiArray<array_type>::New(d->size()));
-        //            blk = std::dynamic_pointer_cast<data::DataMultiArray<array_type>>(GetDataBlock());
-        //        }
-        //        int count = 0;
-        //        traits::foreach (*d, [&](array_type& a, auto&&... idx) {
-        //            array_type(a).swap(*blk->Get(count));
-        //            a.reset();
-        //            ++count;
-        //        });
-        //        base_type::ResetTag();
-        return nullptr;
-    };
 
    private:
     int m_dof_ = 1;

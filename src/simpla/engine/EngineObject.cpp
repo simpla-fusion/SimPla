@@ -12,7 +12,7 @@ struct EngineObject::pimpl_s {
     bool m_is_initialized_ = false;
     bool m_is_setup_ = false;
 };
-EngineObject::EngineObject() : m_pimpl_(new pimpl_s) { Initialize(); }
+EngineObject::EngineObject() : m_pimpl_(new pimpl_s) {}
 EngineObject::~EngineObject() { Finalize(); }
 std::shared_ptr<data::DataNode> EngineObject::Serialize() const { return base_type::Serialize(); }
 void EngineObject::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {

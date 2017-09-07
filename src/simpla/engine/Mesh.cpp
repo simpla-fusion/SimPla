@@ -88,35 +88,22 @@ void MeshBase::DoUpdate() { base_type::DoUpdate(); }
 void MeshBase::DoTearDown() { base_type::DoTearDown(); }
 
 void MeshBase::SetChart(std::shared_ptr<geometry::Chart> const& c) { m_chart_ = c; }
-std::shared_ptr<geometry::Chart> MeshBase::GetChart() const { return m_chart_; }
+std::shared_ptr<geometry::Chart> MeshBase::GetChart() { return m_chart_; }
+std::shared_ptr<const geometry::Chart> MeshBase::GetChart() const { return m_chart_; }
 
-void MeshBase::SetBlock(const std::shared_ptr<MeshBlock>& blk) { m_mesh_block_ = blk; };
-std::shared_ptr<MeshBlock> MeshBase::GetBlock() const { return m_mesh_block_; }
+void MeshBase::SetBlock(std::shared_ptr<const MeshBlock> const& blk) { m_mesh_block_ = blk; };
+std::shared_ptr<const MeshBlock> MeshBase::GetBlock() const { return m_mesh_block_; }
 
-void MeshBase::Push(const std::shared_ptr<data::DataNode>& patch) {
-    //    VERBOSE << " Patch Level:" << patch->GetMeshBlock()->GetLevel() << " ID: " <<
-    //    patch->GetMeshBlock()->GetLocalID()
-    //            << " Block:" << patch->GetMeshBlock()->IndexBox() << std::endl;
-
-    //    SetBlock(patch->GetMeshBlock());
-    GetChart()->SetLevel(GetBlock()->GetLevel());
-    AttributeGroup::Push(patch);
-    Update();
-    ASSERT(GetBlock()->GetLevel() == GetChart()->GetLevel());
-}
-std::shared_ptr<data::DataNode> MeshBase::Pop() {
-    //    patch->SetMeshBlock(GetBlock());
-    auto res = AttributeGroup::Pop();
-    //    patch->SetDataPack(m_pimpl_->m_pack_);
-
-    TearDown();
-    return res;
-}
-void MeshBase::SetRange(std::string const& k, Range<EntityId> const& r) {
-    Update();
-    FIXME;
-    //    m_pimpl_->m_pack_->m_ranges_[k] = r;
-}
+//void MeshBase::Push(const std::shared_ptr<data::DataNode>& patch) {
+//    //    VERBOSE << " Patch Level:" << patch->GetMeshBlock()->GetLevel() << " ID: " <<
+//    //    patch->GetMeshBlock()->GetLocalID()
+//    //            << " Block:" << patch->GetMeshBlock()->IndexBox() << std::endl;
+//
+//    //    SetBlock(patch->GetMeshBlock());
+//    GetChart()->SetLevel(GetBlock()->GetLevel());
+//    Update();
+//    ASSERT(GetBlock()->GetLevel() == GetChart()->GetLevel());
+//}
 
 Range<EntityId> MeshBase::GetRange(std::string const& k) const {
     //    if (m_pimpl_->m_pack_ == nullptr) { return Range<EntityId>{}; };
