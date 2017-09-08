@@ -3,7 +3,7 @@
 //
 #include "TimeIntegrator.h"
 #include "Domain.h"
-#include "Mesh.h"
+#include "Atlas.h"
 #include "simpla/data/DataNode.h"
 namespace simpla {
 namespace engine {
@@ -43,8 +43,21 @@ Real TimeIntegrator::ComputeStableDtOnPatch(Real time_now, Real time_dt) {
     return time_dt;
 }
 
-void TimeIntegrator::Advance(Real time_now, Real dt) {
-    for (auto &d : GetDomains()) { d.second->Advance(time_now, dt); }
+void TimeIntegrator::Advance(Real time_now, Real time_dt) {
+    Update();
+    GetAtlas()->Foreach([&](std::shared_ptr<engine::MeshBlock> const &blk) {
+        VERBOSE << " Block : " << blk->IndexBox();
+        auto p = GetPatch(blk->GetGUID());
+
+        for (auto &item : GetDomains()) {
+            VERBOSE << "  Advance Domain : " << item.first;
+            if (item.second->Push(blk, p)) {
+                item.second->Advance(time_now, time_dt);
+                p = item.second->Pop();
+            };
+        }
+        SetPatch(blk->GetGUID(), p);
+    });
 }
 void TimeIntegrator::CheckPoint() const {}
 void TimeIntegrator::DoSetUp() {

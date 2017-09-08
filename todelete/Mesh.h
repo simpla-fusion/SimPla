@@ -81,10 +81,6 @@ class Mesh : public MeshBase, public Policies<Mesh<TChart, Policies...>>... {
     typedef Mesh<chart_type, Policies...> mesh_type;
 
    public:
-    template <typename THost>
-    std::shared_ptr<this_type> New(THost *host) {
-        return std::shared_ptr<this_type>(new this_type(host));
-    }
     void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;
@@ -161,10 +157,7 @@ template <typename TChart, template <typename> class... Policies>
 void Mesh<TChart, Policies...>::DoTearDown() {
     MeshBase::DoTearDown();
 };
-namespace _detail {
-DEFINE_INVOKE_HELPER(SetEmbeddedBoundary)
-DEFINE_INVOKE_HELPER(Calculate)
-}
+
 template <typename TM, template <typename> class... Policies>
 std::shared_ptr<data::DataNode> Mesh<TM, Policies...>::Serialize() const {
     auto tdb = base_type::Serialize();
@@ -176,37 +169,14 @@ void Mesh<TM, Policies...>::Deserialize(std::shared_ptr<data::DataNode> const &c
     base_type::Deserialize(cfg);
     traits::_try_invoke_Deserialize<Policies...>(this, cfg);
 };
-template <typename TM, template <typename> class... Policies>
-void Mesh<TM, Policies...>::DoInitialCondition(Real time_now) {
-    traits::_try_invoke_InitialCondition<Policies...>(this, time_now);
-}
-template <typename TM, template <typename> class... Policies>
-void Mesh<TM, Policies...>::DoBoundaryCondition(Real time_now, Real dt) {
-    traits::_try_invoke_BoundaryCondition<Policies...>(this, time_now, dt);
-}
-template <typename TM, template <typename> class... Policies>
-void Mesh<TM, Policies...>::DoAdvance(Real time_now, Real dt) {
-    traits::_try_invoke_Advance<Policies...>(this, time_now, dt);
-}
-
-template <typename TM, template <typename> class... Policies>
-void Mesh<TM, Policies...>::DoTagRefinementCells(Real time_now) {
-    traits::_try_invoke_TagRefinementCells<Policies...>(this, time_now);
-}
-
-template <typename TM, template <typename> class... Policies>
-void Mesh<TM, Policies...>::AddEmbeddedBoundary(std::string const &prefix,
-                                                const std::shared_ptr<geometry::GeoObject> &g) {
-    _detail::_try_invoke_SetEmbeddedBoundary<Policies...>(this, prefix, g);
-};
 
 template <typename TM, template <typename> class... Policies>
 template <typename LHS, typename RHS>
 void Mesh<TM, Policies...>::FillRange(LHS &lhs, RHS &&rhs, Range<EntityId> r, bool full_fill_if_range_is_null) const {
     if (r.isFull() || (r.isNull() && full_fill_if_range_is_null)) {
-        _detail::_try_invoke_once_Calculate<Policies...>(this, lhs, std::forward<RHS>(rhs));
+        this_type::Calculate(this, lhs, std::forward<RHS>(rhs));
     } else {
-        _detail::_try_invoke_once_Calculate<Policies...>(this, lhs, std::forward<RHS>(rhs), r);
+        this_type::Calculate(this, lhs, std::forward<RHS>(rhs), r);
     }
 };
 

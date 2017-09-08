@@ -15,66 +15,60 @@ namespace simpla {
 
 using namespace data;
 
-template <typename THost>
-class PICBoris {
-    SP_ENGINE_POLICY_HEAD(PICBoris);
+template <typename TDomain>
+class PICBoris : public TDomain {
+    SP_DOMAIN_HEAD(PICBoris, TDomain);
 
-    void InitialCondition(Real time_now);
-    void BoundaryCondition(Real time_now, Real time_dt);
-    void Advance(Real time_now, Real dt);
-
+   public:
     int DOF = 7;
 
-    Particle<host_type> ele{m_host_, "name"_ = "ele", "DOF"_ = 6};
+    Particle<this_type> ele{this, "name"_ = "ele", "DOF"_ = 6};
 
-    Field<host_type, Real, CELL> ne{m_host_, "name"_ = "ne"};
-    Field<host_type, Real, CELL, 3> B0v{m_host_, "name"_ = "B0v"};
+    Field<this_type, Real, CELL> ne{this, "name"_ = "ne"};
+    Field<this_type, Real, CELL, 3> B0v{this, "name"_ = "B0v"};
 
-    Field<host_type, Real, EDGE> E0{m_host_, "name"_ = "E0"};
-    Field<host_type, Real, FACE> B0{m_host_, "name"_ = "B0"};
-    Field<host_type, Real, CELL> BB{m_host_, "name"_ = "BB"};
-    Field<host_type, Real, CELL, 3> Jv{m_host_, "name"_ = "Jv"};
+    Field<this_type, Real, EDGE> E0{this, "name"_ = "E0"};
+    Field<this_type, Real, FACE> B0{this, "name"_ = "B0"};
+    Field<this_type, Real, CELL> BB{this, "name"_ = "BB"};
+    Field<this_type, Real, CELL, 3> Jv{this, "name"_ = "Jv"};
 
-    Field<host_type, Real, FACE> B{m_host_, "name"_ = "B"};
-    Field<host_type, Real, EDGE> E{m_host_, "name"_ = "E"};
-    Field<host_type, Real, EDGE> J{m_host_, "name"_ = "J"};
+    Field<this_type, Real, FACE> B{this, "name"_ = "B"};
+    Field<this_type, Real, EDGE> E{this, "name"_ = "E"};
+    Field<this_type, Real, EDGE> J{this, "name"_ = "J"};
 
     //    void TagRefinementCells(Real time_now);
 
-    std::map<std::string, std::shared_ptr<Particle<THost>>> m_particle_sp_;
-    std::shared_ptr<Particle<THost>> AddSpecies(std::string const& name, std::shared_ptr<data::DataNode> d);
+    std::map<std::string, std::shared_ptr<Particle<base_type>>> m_particle_sp_;
+    std::shared_ptr<Particle<base_type>> AddSpecies(std::string const& name, std::shared_ptr<data::DataNode> d);
+    std::map<std::string, std::shared_ptr<Particle<base_type>>>& GetSpecies() { return m_particle_sp_; };
+
     //    template <typename... Args>
-    //    std::shared_ptr<Particle<THost>> AddSpecies(std::string const& name, Args&&... args) {
+    //    std::shared_ptr<Particle<base_type>> AddSpecies(std::string const& name, Args&&... args) {
     //        data::DataNode t;
-    ////        t.Assign(std::forward<Args>(args)...);
+    //        t.Assign(std::forward<Args>(args)...);
     //        return AddSpecies(name, t);
     //    };
-
-    std::map<std::string, std::shared_ptr<Particle<THost>>>& GetSpecies() { return m_particle_sp_; };
 };
 
 template <typename TM>
 std::shared_ptr<data::DataNode> PICBoris<TM>::Serialize() const {
     auto res = data::DataNode::New();
-    for (auto& item : m_particle_sp_) {
-        //        t.SetEntity<double>("mass", item.m_node_->mass / SI_proton_mass);
-        //        t.SetEntity<double>("Z", item.m_node_->charge / SI_elementary_charge);
-        //        t.SetEntity<double>("ratio", item.m_node_->ratio);
-
-        res->Set(item.first, item.second->Serialize());
-    }
+    for (auto& item : m_particle_sp_) { res->Set(item.first, item.second->Serialize()); }
     return res;
 };
 template <typename TM>
 void PICBoris<TM>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
     cfg->Get("Species")->Foreach(
         [&](std::string k, std::shared_ptr<data::DataNode> t) { return AddSpecies(k, t) != nullptr; });
+
+    //        t.SetEntity<double>("mass", item.m_node_->mass / SI_proton_mass);
+    //        t.SetEntity<double>("Z", item.m_node_->charge / SI_elementary_charge);
+    //        t.SetEntity<double>("ratio", item.m_node_->ratio);
 }
 
 template <typename TM>
-std::shared_ptr<Particle<TM>> PICBoris<TM>::AddSpecies(std::string const& name,
-                                                       std::shared_ptr<data::DataNode> d) {
-    auto sp = Particle<TM>::New(m_host_, d);
+std::shared_ptr<Particle<TM>> PICBoris<TM>::AddSpecies(std::string const& name, std::shared_ptr<data::DataNode> d) {
+    auto sp = Particle<TM>::New(this, d);
     sp->SetDOF(7);
     sp->db()->SetValue("mass", d->GetValue<double>("mass", d->GetValue<double>("mass", 1)) * SI_proton_mass);
     sp->db()->SetValue("charge", d->GetValue<double>("charge", d->GetValue<double>("Z", 1)) * SI_elementary_charge);
@@ -90,14 +84,24 @@ std::shared_ptr<Particle<TM>> PICBoris<TM>::AddSpecies(std::string const& name,
 //
 // template <typename TM>
 // void PICBoris<TM>::TagRefinementCells(Real time_now) {
-//    m_mesh_->GetMesh()->TagRefinementCells(m_mesh_->GetMesh()->GetRange(m_mesh_->GetName() + "_BOUNDARY_3"));
+//    m_domain_->GetMesh()->TagRefinementCells(m_domain_->GetMesh()->GetRange(m_domain_->GetName() + "_BOUNDARY_3"));
 //}
+
 template <typename TM>
-void PICBoris<TM>::InitialCondition(Real time_now) {}
+void PICBoris<TM>::DoSetUp() {}
 template <typename TM>
-void PICBoris<TM>::BoundaryCondition(Real time_now, Real time_dt) {}
+void PICBoris<TM>::DoUpdate() {}
 template <typename TM>
-void PICBoris<TM>::Advance(Real time_now, Real dt) {}
+void PICBoris<TM>::DoTearDown() {}
+
+template <typename TM>
+void PICBoris<TM>::DoInitialCondition(Real time_now) {}
+template <typename TM>
+void PICBoris<TM>::DoBoundaryCondition(Real time_now, Real dt) {}
+template <typename TM>
+void PICBoris<TM>::DoAdvance(Real time_now, Real dt) {}
+template <typename TM>
+void PICBoris<TM>::DoTagRefinementCells(Real time_now) {}
 
 }  // namespace simpla  {
 

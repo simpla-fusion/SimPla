@@ -9,18 +9,16 @@
 #include "simpla/SIMPLA_config.h"
 
 #include "simpla/engine/Attribute.h"
-#include "simpla/engine/Mesh.h"
+#include "simpla/engine/Domain.h"
 
 namespace simpla {
-namespace engine {
-struct MeshBase;
-}
+
 class ParticleBase : public engine::Attribute {
     SP_OBJECT_HEAD(ParticleBase, engine::Attribute);
 
    protected:
     template <typename... Args>
-    explicit ParticleBase(engine::MeshBase* grp, Args&&... args) : engine::Attribute(std::forward<Args>(args)...) {
+    explicit ParticleBase(engine::DomainBase* grp, Args&&... args) : engine::Attribute(std::forward<Args>(args)...) {
         Register(dynamic_cast<engine::AttributeGroup*>(grp));
         Initialize();
     };
@@ -144,7 +142,7 @@ std::shared_ptr<simpla::data::DataNode> Particle<TM>::Serialize() const {
     return base_type::Serialize();
 }
 template <typename TM>
-void Particle<TM>::Deserialize(std::shared_ptr<data::DataNode>const & cfg) {
+void Particle<TM>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
     base_type::Deserialize(cfg);
 }
 }  // namespace simpla{

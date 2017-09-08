@@ -11,7 +11,7 @@
 namespace simpla {
 namespace engine {
 
-AttributeGroup::AttributeGroup(){};
+AttributeGroup::AttributeGroup() = default;
 
 AttributeGroup::~AttributeGroup() {
     for (auto &item : m_attributes_) { item.second->Deregister(this); }

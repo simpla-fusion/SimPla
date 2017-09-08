@@ -6,7 +6,7 @@
 #include "ParticleData.h"
 #include "simpla/algebra/EntityId.h"
 #include "simpla/algebra/nTuple.h"
-#include "simpla/engine/Mesh.h"
+#include "simpla/engine/Domain.h"
 
 namespace simpla {
 
@@ -15,7 +15,7 @@ struct ParticlePool : public data::DataBlock {};
 
 struct ParticleBase::pimpl_s {
     static constexpr int MAX_NUMBER_OF_PARTICLE_ATTRIBUTES = 10;
-    engine::MeshBase const* m_mesh_;
+    engine::DomainBase const* m_domain_;
     size_type m_num_pic_ = 100;
     size_type m_max_size_ = 0;
     int m_num_of_attr_ = 3;
@@ -88,11 +88,11 @@ void ParticleBase::DeepSort() {}
 
 void ParticleBase::InitialLoad(int const* rnd_dist_type, size_type rnd_offset) {
     int dist_type[GetNumberOfAttributes()];
-    int ndims = m_pimpl_->m_mesh_->GetNDIMS();
+    int ndims = m_pimpl_->m_domain_->GetNDIMS();
     ASSERT(GetNumberOfAttributes() >= 2 * ndims);
 
     if (rnd_dist_type == nullptr) {
-        for (int i = 0; i < m_pimpl_->m_mesh_->GetNDIMS(); ++i) { dist_type[i] = SP_RAND_UNIFORM; }
+        for (int i = 0; i < m_pimpl_->m_domain_->GetNDIMS(); ++i) { dist_type[i] = SP_RAND_UNIFORM; }
         for (int i = ndims; i < 2 * ndims; ++i) { dist_type[i] = SP_RAND_NORMAL; }
 
     } else {

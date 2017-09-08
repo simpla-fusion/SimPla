@@ -4,7 +4,6 @@
 #include "SimpleTimeIntegrator.h"
 #include "simpla/engine/Atlas.h"
 #include "simpla/engine/Domain.h"
-#include "simpla/engine/Mesh.h"
 #include "simpla/engine/MeshBlock.h"
 namespace simpla {
 
@@ -23,21 +22,6 @@ void SimpleTimeIntegrator::DoTearDown() { base_type::DoTearDown(); }
 
 void SimpleTimeIntegrator::Synchronize() { Update(); }
 
-void SimpleTimeIntegrator::Advance(Real time_now, Real time_dt) {
-    Update();
-    GetAtlas()->Foreach([&](std::shared_ptr<engine::MeshBlock> const &blk) {
-        VERBOSE << " Block : " << blk->IndexBox();
-        auto p = GetPatch(blk->GetGUID());
-
-        for (auto &item : GetDomains()) {
-            if (item.second->Push(blk, p)) {
-                item.second->Advance(time_now, time_dt);
-                p = item.second->Pop();
-            };
-        }
-        SetPatch(blk->GetGUID(), p);
-
-    });
-}
+void SimpleTimeIntegrator::Advance(Real time_now, Real time_dt) { base_type::Advance(time_now, time_dt); }
 
 }  // namespace simpla

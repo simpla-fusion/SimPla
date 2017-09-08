@@ -12,37 +12,35 @@
 #include "simpla/engine/Domain.h"
 #include "simpla/physics/PhysicalConstants.h"
 namespace simpla {
+namespace domain {
 
 using namespace data;
 
-template <typename THost>
-class Maxwell {
-    SP_ENGINE_POLICY_HEAD(Maxwell);
+template <typename TDomain>
+class Maxwell : public TDomain {
+    SP_DOMAIN_HEAD(Maxwell, TDomain);
 
-    void InitialCondition(Real time_now);
-    void BoundaryCondition(Real time_now, Real time_dt);
-    void Advance(Real time_now, Real dt);
+    Field<this_type, Real, CELL, 3> B0v{this, "name"_ = "B0v"};
 
-    Field<host_type, Real, CELL, 3> B0v{m_host_, "name"_ = "B0v"};
-
-    Field<host_type, Real, FACE> B{m_host_, "name"_ = "B"};
-    Field<host_type, Real, EDGE> E{m_host_, "name"_ = "E"};
-    Field<host_type, Real, EDGE> J{m_host_, "name"_ = "J"};
-    Field<host_type, Real, CELL, 3> dumpE{m_host_, "name"_ = "dumpE"};
-    Field<host_type, Real, CELL, 3> dumpB{m_host_, "name"_ = "dumpB"};
-    Field<host_type, Real, CELL, 3> dumpJ{m_host_, "name"_ = "dumpJ"};
-
-    std::string m_boundary_geo_obj_prefix_ = "PEC";
+    Field<this_type, Real, FACE> B{this, "name"_ = "B"};
+    Field<this_type, Real, EDGE> E{this, "name"_ = "E"};
+    Field<this_type, Real, EDGE> J{this, "name"_ = "J"};
+    Field<this_type, Real, CELL, 3> dumpE{this, "name"_ = "dumpE"};
+    Field<this_type, Real, CELL, 3> dumpB{this, "name"_ = "dumpB"};
+    Field<this_type, Real, CELL, 3> dumpJ{this, "name"_ = "dumpJ"};
 };
-
-template <typename TM>
-std::shared_ptr<data::DataNode> Maxwell<TM>::Serialize() const {
+template <typename TDomain>
+Maxwell<TDomain>::Maxwell() : base_type() {}
+template <typename TDomain>
+Maxwell<TDomain>::~Maxwell() {}
+template <typename TDomain>
+std::shared_ptr<data::DataNode> Maxwell<TDomain>::Serialize() const {
     return nullptr;
 };
-template <typename TM>
-void Maxwell<TM>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}
-template <typename TM>
-void Maxwell<TM>::SetUp() {
+template <typename TDomain>
+void Maxwell<TDomain>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}
+template <typename TDomain>
+void Maxwell<TDomain>::DoSetUp() {
     dumpE.Clear();
     dumpB.Clear();
     dumpJ.Clear();
@@ -52,34 +50,41 @@ void Maxwell<TM>::SetUp() {
 
     B0v.Clear();
 }
-template <typename TM>
-void Maxwell<TM>::TearDown() {}
-template <typename TM>
-void Maxwell<TM>::InitialCondition(Real time_now) {}
-template <typename TM>
-void Maxwell<TM>::BoundaryCondition(Real time_now, Real time_dt) {
-    m_host_->FillBoundary(B, 0);
-    m_host_->FillBoundary(E, 0);
-    m_host_->FillBoundary(J, 0);
-    //    m_mesh_->FillBoundary(dumpE, 0);
-    //    m_mesh_->FillBoundary(dumpB, 0);
-    //    m_mesh_->FillBoundary(dumpJ, 0);
+template <typename TDomain>
+void Maxwell<TDomain>::DoTearDown() {}
+template <typename TDomain>
+void Maxwell<TDomain>::DoUpdate(){};
+template <typename TDomain>
+void Maxwell<TDomain>::DoInitialCondition(Real time_now) {}
+template <typename TDomain>
+void Maxwell<TDomain>::DoBoundaryCondition(Real time_now, Real time_dt) {
+    this->FillBoundary(B, 0);
+    this->FillBoundary(E, 0);
+    this->FillBoundary(J, 0);
+    //    m_domain_->FillBoundary(dumpE, 0);
+    //    m_domain_->FillBoundary(dumpB, 0);
+    //    m_domain_->FillBoundary(dumpJ, 0);
 }
-template <typename TM>
-void Maxwell<TM>::Advance(Real time_now, Real dt) {
+
+template <typename TDomain>
+void Maxwell<TDomain>::DoAdvance(Real time_now, Real time_dt) {
     DEFINE_PHYSICAL_CONST
 
-    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
-    m_host_->FillBoundary(E, 0);
+    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
+    this->FillBoundary(E, 0);
 
-    B = B - curl(E) * dt;
-    m_host_->FillBoundary(B, 0);
+    B = B - curl(E) * time_dt;
+    this->FillBoundary(B, 0);
 
-    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * dt;
-    m_host_->FillBoundary(E, 0);
+    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
+    this->FillBoundary(E, 0);
 
     J.Clear();
 }
 
+template <typename TDomain>
+void Maxwell<TDomain>::DoTagRefinementCells(Real time_now){};
+
+}  // namespace domain{
 }  // namespace simpla  {
 #endif  // SIMPLA_MAXWELL_H

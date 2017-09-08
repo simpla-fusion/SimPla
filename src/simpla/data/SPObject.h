@@ -128,7 +128,6 @@ std::istream &operator>>(std::istream &is, SPObject &obj);
     struct pimpl_s;                                                                                   \
     pimpl_s *m_pimpl_ = nullptr;                                                                      \
                                                                                                       \
-   public:                                                                                            \
    protected:                                                                                         \
     _CLASS_NAME_();                                                                                   \
                                                                                                       \

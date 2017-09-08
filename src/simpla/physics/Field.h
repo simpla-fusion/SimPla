@@ -53,10 +53,8 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
     std::shared_ptr<mesh_type> m_mesh_;
 
    public:
-    template <typename THost, typename... Args>
-    explicit Field(THost* host, Args&&... args)
-        : base_type(host, std::forward<Args>(args)...),
-          m_mesh_(std::dynamic_pointer_cast<mesh_type>(host->GetMesh())) {}
+    template <typename... Args>
+    explicit Field(mesh_type* host, Args&&... args) : base_type(host, std::forward<Args>(args)...), m_mesh_(host) {}
     ~Field() override = default;
 
     Field(Field const& other) = delete;
@@ -66,11 +64,13 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
     static std::shared_ptr<this_type> New(Args&&... args) {
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
     }
-//    std::shared_ptr<engine::Attribute> Duplicate() const override {
-//        return std::shared_ptr<engine::Attribute>(new this_type(m_host_));
-//    }
+    //    std::shared_ptr<engine::Attribute> Duplicate() const override {
+    //        return std::shared_ptr<engine::Attribute>(new this_type(m_host_));
+    //    }
     void DoSetUp() override {}
-    void DoUpdate() override { m_mesh_->GetMesh()->InitializeAttribute(this); }
+    void DoUpdate() override {
+//        m_mesh_->InitializeAttribute(this);
+    }
     void DoTearDown() override {}
     template <typename Other>
     void Set(Other&& v) {

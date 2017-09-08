@@ -54,6 +54,7 @@ void Chart::SetLevel(int level) {
     m_level_ = level;
 };
 int Chart::GetLevel() const { return m_level_; }
+int Chart::GetNDIMS() const { return 3; }
 
 std::shared_ptr<GeoObject> Chart::BoundBox(box_type const &b) const { return Cube::New(MapToBase(b)); }
 std::shared_ptr<GeoObject> Chart::BoundBox(index_box_type const &b) const {

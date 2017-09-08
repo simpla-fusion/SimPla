@@ -67,7 +67,7 @@ struct csCartesian : public Chart {
     };
 };
 /** @}*/
-}
+}  // namespace geometry {
 }  // namespace simpla
 
 #endif /* CORE_GEOMETRY_CS_CARTESIAN_H_ */

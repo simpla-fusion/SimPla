@@ -19,16 +19,11 @@ namespace simpla {
 
 using namespace data;
 
-template <typename THost>
-class ICRFAntenna {
-    SP_ENGINE_POLICY_HEAD(ICRFAntenna);
+template <typename TDomain>
+class ICRFAntenna : public TDomain {
+    SP_DOMAIN_HEAD(ICRFAntenna, TDomain);
 
-   public:
-    void Advance(Real time_now, Real dt);
-    void InitialCondition(Real time_now);
-    //    void TagRefinementCells(Real time_now);
-
-    Field<host_type, Real, EDGE> J{m_host_, "name"_ = "J"};
+    Field<this_type, Real, EDGE> J{this, "name"_ = "J"};
 
     Vec3 m_amplify_{0, 0, 0};
     Real m_f_ = 1.0;
@@ -45,18 +40,18 @@ std::shared_ptr<data::DataNode> ICRFAntenna<TM>::Serialize() const {
 };
 
 template <typename TM>
-void ICRFAntenna<TM>::InitialCondition(Real time_now) {
-//    m_mesh_->GetMesh()->SetEmbeddedBoundary(m_mesh_->GetName(), m_mesh_->GetGeoBody());
+void ICRFAntenna<TM>::DoInitialCondition(Real time_now) {
+    //    m_domain_->GetMesh()->SetEmbeddedBoundary(m_domain_->GetName(), m_domain_->GetGeoBody());
 }
 template <typename TM>
-void ICRFAntenna<TM>::Deserialize(std::shared_ptr<data::DataNode>const & cfg) {
+void ICRFAntenna<TM>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
     m_amplify_ = cfg->GetValue<Vec3>("Amplify", m_amplify_);
     m_f_ = cfg->GetValue<Real>("Frequency", m_f_);
     m_k_ = cfg->GetValue<Vec3>("WaveNumber", m_k_);
 }
 
 template <typename TM>
-void ICRFAntenna<TM>::Advance(Real time_now, Real dt) {
+void ICRFAntenna<TM>::DoAdvance(Real time_now, Real dt) {
     DEFINE_PHYSICAL_CONST
 
     SP_CMD((J = [=](point_type const& x) -> nTuple<Real, 3> {

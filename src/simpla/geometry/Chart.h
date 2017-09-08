@@ -27,6 +27,7 @@ struct Chart : public SPObject {
     virtual void TearDown() { m_is_setup_ = false; };
 
     virtual std::shared_ptr<Curve> GetAxisCurve(point_type const &x, int dir) const { return nullptr; };
+    virtual int GetNDIMS() const;
 
     void SetLevel(int level);
     int GetLevel() const;

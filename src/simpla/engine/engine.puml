@@ -42,7 +42,7 @@ Atlas o-- "0..*" Patch
 Schedule .. Atlas: create/destroy
 class Domain{
      GeoObject * m_geo_object_
-     Mesh * m_mesh_
+     Mesh * m_domain_
      int CheckOverlap(MeshBlock)
      void Push(Patch)
      Patch Pop()

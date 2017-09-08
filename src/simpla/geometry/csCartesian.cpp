@@ -8,6 +8,11 @@
 
 namespace simpla {
 namespace geometry {
+csCartesian::csCartesian() {}
+csCartesian::~csCartesian() {}
+std::shared_ptr<simpla::data::DataNode> csCartesian::Serialize() const {}
+void csCartesian::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {}
+
 std::shared_ptr<Curve> csCartesian::GetAxisCurve(point_type const &x, int dir) const {
     vector_type v{0, 0, 0};
     v[dir] = 1;

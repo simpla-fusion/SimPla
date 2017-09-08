@@ -13,6 +13,7 @@ namespace engine {
 class MeshBase;
 class DomainBase;
 class Atlas;
+
 class Scenario : public EngineObject {
     SP_OBJECT_HEAD(Scenario, EngineObject)
     virtual void TagRefinementCells(Real time_now);
@@ -21,7 +22,6 @@ class Scenario : public EngineObject {
     virtual void NextStep();
     virtual void Run();
     virtual bool Done() const;
-
     virtual void Dump() const;
 
     void DoInitialize() override;

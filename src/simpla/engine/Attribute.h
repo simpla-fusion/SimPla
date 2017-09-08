@@ -59,22 +59,22 @@ class AttributeGroup {
     AttributeGroup(AttributeGroup &&other) = delete;
     AttributeGroup &operator=(AttributeGroup const &other) = delete;
     AttributeGroup &operator=(AttributeGroup &&other) = delete;
+
     virtual std::shared_ptr<data::DataNode> Serialize() const;
     virtual void Deserialize(std::shared_ptr<data::DataNode> const &);
 
-    auto &GetAttributes() { return m_attributes_; }
-    auto const &GetAttributes() const { return m_attributes_; }
-
     virtual void Push(const std::shared_ptr<data::DataNode> &);
     virtual std::shared_ptr<data::DataNode> Pop();
+
+    auto &GetAttributes() { return m_attributes_; }
+    auto const &GetAttributes() const { return m_attributes_; }
 
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
 
     std::shared_ptr<data::DataNode> RegisterAttributes();
-
     std::shared_ptr<data::DataNode> GetAttributeDescription(std::string const &k) const;
-    std::shared_ptr<data::DataNode> GetDescriptions() const;
+    //    std::shared_ptr<data::DataNode> GetDescriptions() const;
 
     //    virtual void RegisterAt(AttributeGroup *);
     //    virtual void DeregisterFrom(AttributeGroup *);

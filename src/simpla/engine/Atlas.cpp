@@ -3,6 +3,7 @@
  *  Created by salmon on 16-5-23.
  */
 
+#include <simpla/geometry/csCartesian.h>
 #include "simpla/SIMPLA_config.h"
 
 #include "simpla/geometry/Chart.h"
@@ -85,7 +86,7 @@ void Atlas::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
 std::shared_ptr<geometry::Chart> Atlas::GetChart() const { return m_pimpl_->m_chart_; }
 void Atlas::SetChart(std::shared_ptr<geometry::Chart> const &c) { m_pimpl_->m_chart_ = c; }
 void Atlas::DoSetUp() {
-    ASSERT(m_pimpl_->m_chart_ != nullptr);
+    if (m_pimpl_->m_chart_ == nullptr) { m_pimpl_->m_chart_ = geometry::csCartesian::New(); }
     m_pimpl_->m_chart_->SetUp();
     point_type lo{0, 0, 0}, hi{0, 0, 0};
     std::tie(lo, hi) = GetBoundingBox();

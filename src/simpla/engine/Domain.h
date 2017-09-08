@@ -16,18 +16,21 @@
 
 #include "Attribute.h"
 #include "EngineObject.h"
-#include "PoliciesCommon.h"
 
 namespace simpla {
 namespace engine {
-class Model;
-class MeshBase;
 
 class DomainBase : public EngineObject, public AttributeGroup {
     SP_OBJECT_HEAD(DomainBase, EngineObject)
 
    public:
-    std::shared_ptr<MeshBase> GetMesh() const;
+    int GetNDIMS() const;
+    void SetChart(std::shared_ptr<geometry::Chart> const &c);
+    virtual std::shared_ptr<geometry::Chart> GetChart();
+    virtual std::shared_ptr<const geometry::Chart> GetChart() const;
+
+    void SetBlock(const std::shared_ptr<const MeshBlock> &blk);
+    std::shared_ptr<const MeshBlock> GetBlock() const;
 
     void SetBoundary(std::shared_ptr<geometry::GeoObject> const &g);
     std::shared_ptr<geometry::GeoObject> GetBoundary() const;
@@ -68,17 +71,17 @@ class DomainBase : public EngineObject, public AttributeGroup {
     design_pattern::Signal<void(DomainBase *, Real, Real)> PostAdvance;
     void Advance(Real time_now, Real time_dt);
 
-   protected:
-    void SetMesh(std::shared_ptr<MeshBase> const &);
-
 };  // class DomainBase
 
-template <typename TM, template <typename> class... Policies>
-class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
-    typedef TM mesh_type;
+template <typename TChart, template <typename> class... Policies>
+class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>... {
+    typedef TChart chart_type;
     SP_OBJECT_HEAD(Domain, DomainBase);
 
    public:
+    std::shared_ptr<const geometry::Chart> GetChart() const override { return DomainBase::GetChart(); };
+    virtual std::shared_ptr<const engine::MeshBlock> GetBlock() const override { return DomainBase::GetBlock(); };
+
     void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;
@@ -88,83 +91,102 @@ class Domain : public DomainBase, public Policies<Domain<TM, Policies...>>... {
     void DoAdvance(Real time_now, Real dt) override;
     void DoTagRefinementCells(Real time_now) override;
 
-    mesh_type const *mesh() const { return dynamic_cast<mesh_type const *>(DomainBase::GetMesh().get()); }
-    mesh_type *mesh() { return dynamic_cast<mesh_type *>(DomainBase::GetMesh().get()); }
-
+    void SetRange(std::string const &, Range<EntityId> const &);
+    Range<EntityId> GetRange(std::string const &k) const;
     template <typename TL, typename TR>
     void Fill(TL &lhs, TR &&rhs) const {
-        FillBody(lhs, std::forward<TR>(rhs));
-    };
-
-    template <typename TL, typename TR, typename... Others>
-    void FillRange(TL &lhs, TR &&rhs, Others &&... others) const {
-        mesh()->FillRange(lhs, std::forward<TR>(rhs), std::forward<Others>(others)...);
+        FillRange(lhs, std::forward<TR>(rhs), Range<EntityId>{}, true);
+        //        FillRange(lhs, 0, "PATCH_BOUNDARY_" + std::to_string(TL::iform), false);
     };
 
     template <typename TL, typename TR>
-    void FillBody(TL &lhs, TR &&rhs) const {
-        mesh()->FillBody(lhs, std::forward<TR>(rhs), GetName());
+    void FillRange(TL &lhs, TR &&rhs, Range<EntityId> r, bool full_fill_if_range_is_null = false) const;
+
+    template <typename TL, typename TR>
+    void FillRange(TL &lhs, TR &&rhs, std::string const &k = "", bool full_fill_if_range_is_null = false) const {
+        FillRange(lhs, std::forward<TR>(rhs), GetRange(k), full_fill_if_range_is_null);
     };
 
     template <typename TL, typename TR>
-    void FillBoundary(TL &lhs, TR &&rhs) const {
-        mesh()->FillBoundary(lhs, std::forward<TR>(rhs), GetName());
+    void FillBody(TL &lhs, TR &&rhs, std::string const &prefix = "") const {
+        FillRange(lhs, std::forward<TR>(rhs), prefix + "_BODY_" + std::to_string(TL::iform), false);
+    };
+
+    template <typename TL, typename TR>
+    void FillBoundary(TL &lhs, TR &&rhs, std::string const &prefix = "") const {
+        FillRange(lhs, std::forward<TR>(rhs), prefix + "_BOUNDARY_" + std::to_string(TL::iform), false);
     };
 
 };  // class Domain
-template <typename TM, template <typename> class... Policies>
-Domain<TM, Policies...>::Domain() : Policies<this_type>(this)... {
-    SetMesh(mesh_type::New());
-}
-template <typename TM, template <typename> class... Policies>
-Domain<TM, Policies...>::~Domain(){};
 
-template <typename TM, template <typename> class... Policies>
-std::shared_ptr<data::DataNode> Domain<TM, Policies...>::Serialize() const {
+#define SP_DOMAIN_HEAD(_CLASS_NAME_, _BASE_NAME_)              \
+    SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_);                 \
+    void DoSetUp() override;                                   \
+    void DoUpdate() override;                                  \
+    void DoTearDown() override;                                \
+                                                               \
+    void DoInitialCondition(Real time_now) override;           \
+    void DoBoundaryCondition(Real time_now, Real dt) override; \
+    void DoAdvance(Real time_now, Real dt) override;           \
+    void DoTagRefinementCells(Real time_now) override;
+
+template <typename TChart, template <typename> class... Policies>
+Domain<TChart, Policies...>::Domain() : DomainBase() {}
+template <typename TChart, template <typename> class... Policies>
+Domain<TChart, Policies...>::~Domain(){};
+
+template <typename TChart, template <typename> class... Policies>
+std::shared_ptr<data::DataNode> Domain<TChart, Policies...>::Serialize() const {
     auto cfg = DomainBase::Serialize();
-    traits::_try_invoke_Serialize<Policies...>(this, cfg);
     return cfg;
 };
 
-template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
+template <typename TChart, template <typename> class... Policies>
+void Domain<TChart, Policies...>::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     DomainBase::Deserialize(cfg);
-    traits::_try_invoke_Deserialize<Policies...>(this, cfg);
 };
 
-template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::DoSetUp() {
+template <typename TChart, template <typename> class... Policies>
+void Domain<TChart, Policies...>::DoSetUp() {
     base_type::DoSetUp();
 };
-template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::DoUpdate() {
+template <typename TChart, template <typename> class... Policies>
+void Domain<TChart, Policies...>::DoUpdate() {
     base_type::DoUpdate();
 };
-template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::DoTearDown() {
+template <typename TChart, template <typename> class... Policies>
+void Domain<TChart, Policies...>::DoTearDown() {
     base_type::DoTearDown();
 };
 
-template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::DoInitialCondition(Real time_now) {
-    simpla::traits::_try_invoke_InitialCondition<Policies...>(this, time_now);
-}
+template <typename TChart, template <typename> class... Policies>
+void Domain<TChart, Policies...>::DoInitialCondition(Real time_now) {}
+
+template <typename TChart, template <typename> class... Policies>
+void Domain<TChart, Policies...>::DoBoundaryCondition(Real time_now, Real dt) {}
+
+template <typename TChart, template <typename> class... Policies>
+void Domain<TChart, Policies...>::DoAdvance(Real time_now, Real dt) {}
+
+template <typename TChart, template <typename> class... Policies>
+void Domain<TChart, Policies...>::DoTagRefinementCells(Real time_now) {}
 
 template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::DoBoundaryCondition(Real time_now, Real dt) {
-    traits::_try_invoke_BoundaryCondition<Policies...>(this, time_now, dt);
-}
+template <typename LHS, typename RHS>
+void Domain<TM, Policies...>::FillRange(LHS &lhs, RHS &&rhs, Range<EntityId> r, bool full_fill_if_range_is_null) const {
+    //    if (r.isFull() || (r.isNull() && full_fill_if_range_is_null)) {
+    //        this_type::Calculate(this, lhs, std::forward<RHS>(rhs));
+    //    } else {
+    //        this_type::Calculate(this, lhs, std::forward<RHS>(rhs), r);
+    //    }
+};
 
 template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::DoAdvance(Real time_now, Real dt) {
-    traits::_try_invoke_Advance<Policies...>(this, time_now, dt);
-}
-
+void Domain<TM, Policies...>::SetRange(std::string const &, Range<EntityId> const &){};
 template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::DoTagRefinementCells(Real time_now) {
-    traits::_try_invoke_TagRefinementCells<Policies...>(this, time_now);
-}
-
+Range<EntityId> Domain<TM, Policies...>::GetRange(std::string const &k) const {
+    return Range<EntityId>{};
+};
 }  // namespace engine
 }  // namespace simpla
 #endif  // SIMPLA_DOMAINBASE_H

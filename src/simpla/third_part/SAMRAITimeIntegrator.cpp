@@ -14,7 +14,7 @@
 #include "simpla/algebra/Algebra.h"
 #include "simpla/data/Data.h"
 #include "simpla/engine/Engine.h"
-#include "simpla/engine/Mesh.h"
+#include "simpla/engine/Domain.h"
 #include "simpla/parallel/MPIComm.h"
 #include "simpla/physics/particle/ParticleData.h"
 #include "simpla/utilities/Log.h"

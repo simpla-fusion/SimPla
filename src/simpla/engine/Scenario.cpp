@@ -9,7 +9,6 @@
 
 #include "Atlas.h"
 #include "Domain.h"
-#include "Mesh.h"
 #include "Scenario.h"
 namespace simpla {
 namespace engine {
@@ -100,7 +99,7 @@ size_type Scenario::SetDomain(std::string const &k, std::shared_ptr<DomainBase> 
     ASSERT(!isSetUp());
     m_pimpl_->m_domains_[k] = d;
     m_pimpl_->m_domains_[k]->SetName(k);
-    m_pimpl_->m_domains_[k]->GetMesh()->SetChart(m_pimpl_->m_atlas_->GetChart());
+    m_pimpl_->m_domains_[k]->SetChart(m_pimpl_->m_atlas_->GetChart());
     //        m_pimpl_->m_domains_[k]->SetBoundary(g);
     return 1;
 }

@@ -9,57 +9,83 @@
 
 #include "Attribute.h"
 #include "Domain.h"
-#include "Mesh.h"
 
 namespace simpla {
 namespace engine {
 struct DomainBase::pimpl_s {
-    std::shared_ptr<MeshBase> m_mesh_ = nullptr;
+    std::shared_ptr<geometry::Chart> m_chart_ = nullptr;
     std::shared_ptr<geometry::GeoObject> m_boundary_ = nullptr;
+    std::shared_ptr<const MeshBlock> m_mesh_block_ = nullptr;
 };
 DomainBase::DomainBase() : m_pimpl_(new pimpl_s){};
 DomainBase::~DomainBase() { delete m_pimpl_; };
+
 std::shared_ptr<data::DataNode> DomainBase::Serialize() const {
     auto tdb = base_type::Serialize();
+    tdb->Set("Chart", m_pimpl_->m_chart_->Serialize());
+
     tdb->Set("Boundary", m_pimpl_->m_boundary_->Serialize());
-    tdb->Set("Mesh", m_pimpl_->m_mesh_->Serialize());
     tdb->Set("Attributes", AttributeGroup::Serialize());
     return tdb;
 }
 void DomainBase::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
     base_type::Deserialize(cfg);
-    if (m_pimpl_->m_mesh_ == nullptr) {}
-    m_pimpl_->m_mesh_->Deserialize(cfg->Get("Mesh"));
     m_pimpl_->m_boundary_ = geometry::GeoObject::New(cfg->Get("Boundary"));
+    if (m_pimpl_->m_chart_ == nullptr) {
+        m_pimpl_->m_chart_ = geometry::Chart::New(cfg->Get("Chart"));
+    } else {
+        m_pimpl_->m_chart_->Deserialize(cfg->Get("Chart"));
+    }
+    if (cfg != nullptr) {
+        auto lo = cfg->GetValue<point_type>("Box/lo", point_type{0, 0, 0});
+        auto hi = cfg->GetValue<point_type>("Box/hi", point_type{1, 1, 1});
+
+        nTuple<int, 3> dims = cfg->GetValue("Dimensions", nTuple<int, 3>{1, 1, 1});
+
+        GetChart()->SetOrigin(lo);
+        GetChart()->SetScale((hi - lo) / (dims + 1));
+
+        GetChart()->Deserialize(cfg->Get("Chart"));
+    }
     AttributeGroup::Deserialize(cfg->Get("Attributes"));
 };
-void DomainBase::SetMesh(std::shared_ptr<MeshBase> const& m) { m_pimpl_->m_mesh_ = m; };
-std::shared_ptr<MeshBase> DomainBase::GetMesh() const { return m_pimpl_->m_mesh_; }
+int DomainBase::GetNDIMS() const { return GetChart()->GetNDIMS(); }
+
+void DomainBase::SetChart(std::shared_ptr<geometry::Chart> const& c) { m_pimpl_->m_chart_ = c; }
+std::shared_ptr<geometry::Chart> DomainBase::GetChart() { return m_pimpl_->m_chart_; }
+std::shared_ptr<const geometry::Chart> DomainBase::GetChart() const { return m_pimpl_->m_chart_; }
+
+void DomainBase::SetBlock(std::shared_ptr<const MeshBlock> const& blk) { m_pimpl_->m_mesh_block_ = blk; };
+std::shared_ptr<const MeshBlock> DomainBase::GetBlock() const { return m_pimpl_->m_mesh_block_; }
 
 void DomainBase::SetBoundary(std::shared_ptr<geometry::GeoObject> const& g) { m_pimpl_->m_boundary_ = g; }
 std::shared_ptr<geometry::GeoObject> DomainBase::GetBoundary() const { return m_pimpl_->m_boundary_; }
 
-bool DomainBase::CheckOverlap(const std::shared_ptr<MeshBlock>& blk) const { return false; }
+bool DomainBase::CheckOverlap(const std::shared_ptr<MeshBlock>& blk) const {
+    //    Real ratio = 0;
+    //    if (g != nullptr) {
+    //        auto b = GetBox(0);
+    //        ratio = geometry::Measure(geometry::Overlap(g->GetBoundingBox(), b)) / geometry::Measure(b);
+    //    }
+    //    return std::make_tuple(ratio, IndexBox(0b0));
+    return false;
+}
 bool DomainBase::Push(std::shared_ptr<engine::MeshBlock> const& blk, std::shared_ptr<data::DataNode> const& data) {
-    if (!CheckOverlap(blk)) { return false; }
-    GetMesh()->SetBlock(blk);
+    if (blk == nullptr /*|| !CheckOverlap(blk)*/) { return false; }
+    SetBlock(blk);
     base_type::Push(data);
+    AttributeGroup::Push(data->Get("Attributes"));
     return true;
 }
-std::shared_ptr<data::DataNode> DomainBase::Pop() { return base_type::Pop(); }
+std::shared_ptr<data::DataNode> DomainBase::Pop() {
+    auto res = base_type::Pop();
+    res->Set("Attributes", AttributeGroup::Pop());
+    return res;
+}
 
-void DomainBase::DoSetUp() {
-    ASSERT(m_pimpl_->m_mesh_ != nullptr);
-    base_type::DoSetUp();
-}
-void DomainBase::DoUpdate() {
-    ASSERT(m_pimpl_->m_mesh_ != nullptr);
-    m_pimpl_->m_mesh_->Update();
-}
-void DomainBase::DoTearDown() {
-    m_pimpl_->m_mesh_->TearDown();
-    m_pimpl_->m_boundary_.reset();
-}
+void DomainBase::DoSetUp() { base_type::DoSetUp(); }
+void DomainBase::DoUpdate() {}
+void DomainBase::DoTearDown() {}
 
 void DomainBase::InitialCondition(Real time_now) {
     Update();
@@ -87,7 +113,7 @@ Real DomainBase::ComputeStableDtOnPatch(Real time_now, Real time_dt) const { ret
 
 void DomainBase::Advance(Real time_now, Real dt) {
     Update();
-//    if (std::get<0>(GetMesh()->CheckOverlap(GetBoundary())) < EPSILON) { return; }
+    //    if (std::get<0>(GetMesh()->CheckOverlap(GetBoundary())) < EPSILON) { return; }
     VERBOSE << "Domain [" << GetName() << "] Advance ";
     PreAdvance(this, time_now, dt);
     DoAdvance(time_now, dt);
@@ -95,9 +121,10 @@ void DomainBase::Advance(Real time_now, Real dt) {
 }
 void DomainBase::TagRefinementCells(Real time_now) {
     Update();
-    if (std::get<0>(GetMesh()->CheckOverlap(GetBoundary())) < EPSILON) { return; }
+    FIXME;
+    //    if (std::get<0>(GetBoundary()->CheckOverlap()) < EPSILON) { return; }
     PreTagRefinementCells(this, time_now);
-    GetMesh()->TagRefinementRange(GetMesh()->GetRange(GetName() + "_BOUNDARY_3"));
+    //    TagRefinementRange(GetRange(GetName() + "_BOUNDARY_3"));
     DoTagRefinementCells(time_now);
     PostTagRefinementCells(this, time_now);
 }

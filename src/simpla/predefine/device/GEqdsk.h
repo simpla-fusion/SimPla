@@ -27,7 +27,7 @@ namespace simpla {
  * @}
  *
  * @ingroup GEqdsk
- * \brief GEqdsk file paser
+ * \brief GEqdsk file parser
  *  default using cylindrical coordinates \f$R,Z,\phi\f$
  * \note http://w3.pppl.gov/ntcc/TORAY/G_EQDSK.pdf
  */
