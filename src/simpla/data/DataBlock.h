@@ -4,9 +4,9 @@
 
 #ifndef SIMPLA_DATABLOCK_H
 #define SIMPLA_DATABLOCK_H
+#include "simpla/SIMPLA_config.h"
 
 #include "DataEntity.h"
-#include "simpla/SIMPLA_config.h"
 #include "simpla/algebra/Array.h"
 namespace simpla {
 
@@ -48,7 +48,62 @@ class DataBlock : public DataEntity {
     virtual size_type CopyOut(DataBlock &other, index_box_type const &box) const;
 };
 
+template <typename V>
+struct DataBlockT : public DataBlock {
+    SP_DEFINE_FANCY_TYPE_NAME(DataBlockT<V>, DataBlock);
+    typedef V value_type;
 
+   protected:
+    explicit DataBlockT() = default;
+    template <typename... Args>
+    explicit DataBlockT(value_type *d, Args &&... args) : DataBlock(std::forward<Args>(args)...), m_data_(d){};
+    template <typename... Args>
+    explicit DataBlockT(std::shared_ptr<V> const &d, Args &&... args)
+        : DataBlock(std::forward<Args>(args)...), m_data_(d){};
+
+   public:
+    ~DataBlockT() override = default;
+
+    //    SP_DEFAULT_CONSTRUCT(DataBlockT)
+
+    template <typename... Args>
+    static std::shared_ptr<this_type> New(Args &&... args) {
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
+    };
+
+    void const *data() const override { return m_data_.get(); }
+    void *data() override { return m_data_.get(); }
+
+    int Clear() override {
+        UNIMPLEMENTED;
+        return 0;
+    };
+    size_type CopyIn(DataBlock const &other) override {
+        UNIMPLEMENTED;
+        return 0;
+    };
+    size_type CopyIn(DataBlock const &other, index_box_type const &box) override {
+        UNIMPLEMENTED;
+        return 0;
+    };
+    template <typename U>
+    size_type CopyOut(U &d) const {
+        return 0;
+    }
+    template <typename U>
+    size_type CopyIn(U const &d) {
+        return 0;
+    }
+
+   private:
+    std::shared_ptr<value_type> m_data_;
+};
+
+template <typename U>
+std::shared_ptr<DataBlock> DataBlock::New(U const &) {
+    TODO;
+    return nullptr;
+};
 //
 // template <typename... Others>
 // class DataMultiArray;

@@ -143,8 +143,8 @@ struct Attribute : public EngineObject {
     void Register(AttributeGroup *p = nullptr);
     void Deregister(AttributeGroup *p = nullptr);
 
-    virtual void Push(const std::shared_ptr<data::DataNode> &) override;
-    virtual std::shared_ptr<data::DataNode> Pop() override;
+    void Push(const std::shared_ptr<data::DataNode> &) override;
+    std::shared_ptr<data::DataNode> Pop() override;
 
     virtual size_type CopyOut(Attribute &other) const;
     virtual size_type CopyIn(Attribute const &other);
