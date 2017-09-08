@@ -10,6 +10,7 @@
 #include <limits>
 #include <memory>
 #include <tuple>
+#include <simpla/data/DataBlock.h>
 
 #include "simpla/utilities/Log.h"
 #include "simpla/utilities/type_traits.h"
@@ -24,7 +25,7 @@ class Array;
 typedef nTuple<index_type, 3> IdxShift;
 
 template <typename V, typename SFC = ZSFC<3>>
-class Array {
+class Array : public data::DataBlock {
    public:
     typedef V value_type;
     typedef typename SFC::array_index_box_type array_index_box_type;

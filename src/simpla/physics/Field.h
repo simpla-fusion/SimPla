@@ -42,6 +42,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
    private:
     typedef Field<TM, TV, IFORM, DOF...> this_type;
     typedef engine::AttributeT<TV, IFORM> base_type;
+    typedef typename typedef engine::AttributeT<TV, IFORM>::array_type array_type;
 
    public:
     typedef TV value_type;
@@ -50,7 +51,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
     static constexpr int iform = IFORM;
     static constexpr int NUM_OF_SUB = (IFORM == NODE || IFORM == CELL) ? 1 : 3;
 
-    std::shared_ptr<mesh_type> m_mesh_;
+    mesh_type* m_mesh_;
 
    public:
     template <typename... Args>
@@ -64,13 +65,9 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
     static std::shared_ptr<this_type> New(Args&&... args) {
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
     }
-    //    std::shared_ptr<engine::Attribute> Duplicate() const override {
-    //        return std::shared_ptr<engine::Attribute>(new this_type(m_host_));
-    //    }
-    void DoSetUp() override {}
-    void DoUpdate() override {
-//        m_mesh_->InitializeAttribute(this);
-    }
+
+    void DoSetUp() override { m_mesh_->InitializeAttribute(this); }
+    void DoUpdate() override {}
     void DoTearDown() override {}
     template <typename Other>
     void Set(Other&& v) {
@@ -90,11 +87,11 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
 
     template <typename... Args>
     auto& Get(index_type i0, Args&&... args) {
-        return base_type::m_data_[i0].at(std::forward<Args>(args)...);
+        return base_type::GetData(i0).at(std::forward<Args>(args)...);
     }
     template <typename... Args>
     auto const& Get(index_type i0, Args&&... args) const {
-        return base_type::m_data_[i0].at(std::forward<Args>(args)...);
+        return base_type::GetData(i0).at(std::forward<Args>(args)...);
     }
 
     template <typename... Args>
@@ -115,15 +112,13 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
         return Get(n0, std::forward<Args>(args)...);
     }
 
-    //    using operator[];
-
     auto& operator[](EntityId s) {
-        return traits::recursive_index(base_type::m_data_[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]], s.w >> 3)(
-            s.x, s.y, s.z);
+        return traits::recursive_index(GetData(EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.w >> 3)(s.x, s.y,
+                                                                                                          s.z);
     }
     auto const& operator[](EntityId s) const {
-        return traits::recursive_index(base_type::m_data_[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]], s.w >> 3)(
-            s.x, s.y, s.z);
+        return traits::recursive_index(GetData(EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.w >> 3)(s.x, s.y,
+                                                                                                          s.z);
     }
 
     //*****************************************************************************************************************

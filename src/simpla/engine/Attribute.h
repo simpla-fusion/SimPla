@@ -131,6 +131,8 @@ struct Attribute : public EngineObject {
         db()->SetValue(std::forward<Args>(args)...);
     };
 
+    void ReRegister(std::shared_ptr<Attribute> const &) const;
+
    public:
     virtual std::type_info const &value_type_info() const = 0;
     virtual int GetIFORM() const = 0;
@@ -141,15 +143,12 @@ struct Attribute : public EngineObject {
     void Register(AttributeGroup *p = nullptr);
     void Deregister(AttributeGroup *p = nullptr);
 
-    std::shared_ptr<data::DataBlock> GetDataBlock();
-    std::shared_ptr<const data::DataBlock> GetDataBlock() const;
+    virtual void Push(const std::shared_ptr<data::DataNode> &) override;
+    virtual std::shared_ptr<data::DataNode> Pop() override;
 
-    void Push(const std::shared_ptr<data::DataNode> &) override;
-    std::shared_ptr<data::DataNode> Pop() override;
-
-    size_type CopyOut(Attribute &other) const;
-    size_type CopyIn(Attribute const &other);
-    //    virtual std::shared_ptr<Attribute> Duplicate() const = 0;
+    virtual size_type CopyOut(Attribute &other) const;
+    virtual size_type CopyIn(Attribute const &other);
+    virtual std::shared_ptr<Attribute> Duplicate() const;
 
     virtual bool isNull() const;
     virtual bool empty() const { return isNull(); };
@@ -160,29 +159,28 @@ struct AttributeT : public Attribute {
     typedef V value_type;
     typedef AttributeT<value_type, IFORM> this_type;
     typedef Array<value_type> array_type;
-    std::vector<array_type> m_data_;
-    AttributeGroup *m_host_ = nullptr;
 
     template <typename... Args>
     explicit AttributeT(Args &&... args) : Attribute(std::forward<Args>(args)...), m_dof_(1) {}
     ~AttributeT() override = default;
-
-    array_type &operator[](int s) { return m_data_[s]; }
-    array_type const &operator[](int s) const { return m_data_[s]; }
+    std::shared_ptr<Attribute> Duplicate() const override {
+        std::shared_ptr<this_type> res(new this_type);
+        ReRegister(res);
+        return res;
+    }
 
     std::type_info const &value_type_info() const override { return typeid(V); };
     int GetIFORM() const override { return IFORM; };
     int GetDOF() const override { return m_dof_; };
     void SetDOF(int d) override { m_dof_ = d; };
 
-    //    std::shared_ptr<Attribute> Duplicate() const override {
-    //        return std::shared_ptr<this_type>(new this_type(const_cast<this_type *>(this)->m_host_));
-    //    };
-
-    auto &Get() { return m_data_; }
-    auto const &Get() const { return m_data_; }
+    auto &GetData(int n) { return m_data_[n]; }
+    auto const &GetData(int n) const { return m_data_[n]; }
+    array_type &operator[](int s) { return m_data_[s]; }
+    array_type const &operator[](int s) const { return m_data_[s]; }
 
    private:
+    std::vector<array_type> m_data_;
     int m_dof_ = 1;
 };
 //

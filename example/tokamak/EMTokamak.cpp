@@ -31,10 +31,10 @@ int main(int argc, char** argv) {
     auto scenario = SimpleTimeIntegrator::New();
     scenario->SetName("EAST");
     scenario->GetAtlas()->SetChart<simpla::geometry::csCylindrical>();
-    scenario->GetAtlas()->GetChart()->SetScale({1, 1, 1});
+    scenario->GetAtlas()->GetChart()->SetScale({0.1, 0.1, 0.1});
 
     auto tokamak = Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
-//    auto* p = new domain::Maxwell<domain_type>;
+    //    auto* p = new domain::Maxwell<domain_type>;
     scenario->SetDomain<domain::Maxwell<domain_type>>("Limiter", tokamak->Limiter());
     scenario->GetDomain("Limiter")->PreInitialCondition.Connect([=](DomainBase* self, Real time_now) {
         if (auto d = dynamic_cast<domain::Maxwell<domain_type>*>(self)) { d->B0v = tokamak->B0(); }
@@ -47,14 +47,11 @@ int main(int argc, char** argv) {
     scenario->SetTimeEnd(10.0);
     scenario->SetTimeStep(0.1);
     scenario->SetMaxStep(100);
-
-    TheStart();
     scenario->SetUp();
     //    std::cout << *scenario << std::endl;
 
+    TheStart();
     scenario->Run();
-
-    scenario->TearDown();
-
     TheEnd();
+    scenario->TearDown();
 }

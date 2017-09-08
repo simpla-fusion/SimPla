@@ -50,7 +50,6 @@ void TimeIntegrator::Advance(Real time_now, Real time_dt) {
         auto p = GetPatch(blk->GetGUID());
 
         for (auto &item : GetDomains()) {
-            VERBOSE << "  Advance Domain : " << item.first;
             if (item.second->Push(blk, p)) {
                 item.second->Advance(time_now, time_dt);
                 p = item.second->Pop();
