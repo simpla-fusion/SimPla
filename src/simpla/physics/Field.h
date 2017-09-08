@@ -38,18 +38,14 @@ template <typename TM, typename TV, int...>
 class Field;
 
 template <typename TM, typename TV, int IFORM, int... DOF>
-class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
+class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM, DOF...> {
    private:
     typedef Field<TM, TV, IFORM, DOF...> this_type;
-    typedef engine::AttributeT<TV, IFORM> base_type;
-    typedef typename typedef engine::AttributeT<TV, IFORM>::array_type array_type;
+    typedef engine::AttributeT<TV, IFORM, DOF...> base_type;
 
    public:
     typedef TV value_type;
     typedef TM mesh_type;
-
-    static constexpr int iform = IFORM;
-    static constexpr int NUM_OF_SUB = (IFORM == NODE || IFORM == CELL) ? 1 : 3;
 
     mesh_type* m_mesh_;
 
@@ -85,40 +81,13 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM> {
         return *this;
     };
 
-    template <typename... Args>
-    auto& Get(index_type i0, Args&&... args) {
-        return base_type::GetData(i0).at(std::forward<Args>(args)...);
-    }
-    template <typename... Args>
-    auto const& Get(index_type i0, Args&&... args) const {
-        return base_type::GetData(i0).at(std::forward<Args>(args)...);
-    }
-
-    template <typename... Args>
-    auto& at(index_type n0, Args&&... args) {
-        return Get(n0, std::forward<Args>(args)...);
-    }
-    template <typename... Args>
-    auto const& at(index_type n0, Args&&... args) const {
-        return Get(n0, std::forward<Args>(args)...);
-    }
-
-    template <typename... Args>
-    auto& operator()(index_type n0, Args&&... args) {
-        return Get(n0, std::forward<Args>(args)...);
-    }
-    template <typename... Args>
-    auto const& operator()(index_type n0, Args&&... args) const {
-        return Get(n0, std::forward<Args>(args)...);
-    }
-
     auto& operator[](EntityId s) {
-        return traits::recursive_index(GetData(EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.w >> 3)(s.x, s.y,
-                                                                                                          s.z);
+        return traits::recursive_index(base_type::GetData(EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.w >> 3)(
+            s.x, s.y, s.z);
     }
     auto const& operator[](EntityId s) const {
-        return traits::recursive_index(GetData(EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.w >> 3)(s.x, s.y,
-                                                                                                          s.z);
+        return traits::recursive_index(base_type::GetData(EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.w >> 3)(
+            s.x, s.y, s.z);
     }
 
     //*****************************************************************************************************************

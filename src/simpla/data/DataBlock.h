@@ -71,8 +71,8 @@ struct DataBlockT : public DataBlock {
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
     };
 
-    void const *data() const override { return m_data_.get(); }
-    void *data() override { return m_data_.get(); }
+//    void const *data() const override { return m_data_.get(); }
+//    void *data() override { return m_data_.get(); }
 
     int Clear() override {
         UNIMPLEMENTED;

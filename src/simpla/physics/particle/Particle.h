@@ -26,8 +26,8 @@ class ParticleBase : public engine::Attribute {
    public:
     std::type_info const& value_type_info() const override { return typeid(Real); };
     int GetIFORM() const override { return FIBER; };
-    int GetDOF() const override { return db()->GetValue<int>("DOF", 1); };
-    void SetDOF(int d) override { db()->SetValue<int>("DOF", d); };
+    int GetDOF(int) const override { return db()->GetValue<int>("DOF", 1); };
+    int GetRank() const override { return 1; };
 
     void DoInitialize() override;
     void DoFinalize() override;

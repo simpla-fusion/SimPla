@@ -54,19 +54,22 @@ Attribute::~Attribute() {
     for (auto *grp : m_pimpl_->m_bundle_) { grp->Detach(this); }
     delete m_pimpl_;
 }
-std::shared_ptr<Attribute> Attribute::Duplicate() const { FIXME; }
+std::shared_ptr<Attribute> Attribute::Duplicate() const {
+    FIXME;
+    return nullptr;
+}
 void Attribute::ReRegister(std::shared_ptr<Attribute> const &attr) const {
     for (auto &g : m_pimpl_->m_bundle_) { attr->Register(g); }
 }
 
 std::shared_ptr<data::DataNode> Attribute::Serialize() const {
     auto res = base_type::Serialize();
-    res->Set("Data", const_cast<this_type *>(this)->Pop());
+    res->Set("_DATA_", const_cast<this_type *>(this)->Pop());
     return res;
 }
 void Attribute::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
-    Push(cfg->Get("Data"));
+    Push(cfg->Get("_DATA_"));
 }
 
 void Attribute::Register(AttributeGroup *attr_b) {
@@ -75,7 +78,7 @@ void Attribute::Register(AttributeGroup *attr_b) {
         auto id = s_hasher(db()->GetValue<std::string>("name", "unnamed") +  //
                            "." + value_type_info().name() +                  //
                            "." + std::to_string(GetIFORM()) +                //
-                           "." + std::to_string(GetDOF()));
+                           "." + std::to_string(GetRank()));
         db()->SetValue("DescId", id);
         for (auto *item : m_pimpl_->m_bundle_) { Register(item); }
     } else {
@@ -91,11 +94,12 @@ void Attribute::Deregister(AttributeGroup *attr_b) {
 }
 void Attribute::Push(const std::shared_ptr<data::DataNode> &d) {
     m_pimpl_->m_data_block_.clear();
-    if (GetDOF() == 1) {
+    if (GetRank() == 0 && d->type() == data::DataNode::DN_ENTITY) {
         m_pimpl_->m_data_block_.push_back(std::dynamic_pointer_cast<data::DataBlock>(d->GetEntity()));
-    } else {
-        d->Foreach([&](std::string key, std::shared_ptr<data::DataNode> &node) {
+    } else if (d->type() == data::DataNode::DN_ARRAY && GetRank() > 0) {
+        d->Foreach([&](std::string key, std::shared_ptr<data::DataNode> const &node) {
             m_pimpl_->m_data_block_.push_back(std::dynamic_pointer_cast<data::DataBlock>(node->GetEntity()));
+            return 1;
         });
     }
 
@@ -103,13 +107,13 @@ void Attribute::Push(const std::shared_ptr<data::DataNode> &d) {
 }
 std::shared_ptr<data::DataNode> Attribute::Pop() {
     std::shared_ptr<data::DataNode> res = nullptr;
-    if (GetDOF() == 1) {
+    if (m_pimpl_->m_data_block_.empty()) {
+    } else if (GetRank() == 0 && m_pimpl_->m_data_block_.size() == 1) {
         res = data::DataNode::New(m_pimpl_->m_data_block_[0]);
     } else {
         res = data::DataNode::New(data::DataNode::DN_ARRAY);
         for (auto &item : m_pimpl_->m_data_block_) { res->Add(data::DataNode::New(item)); }
     }
-    TearDown();
     return res;
 }
 size_type Attribute::CopyOut(Attribute &other) const { return 0; }
@@ -117,9 +121,11 @@ size_type Attribute::CopyIn(Attribute const &other) { return 0; }
 // std::shared_ptr<data::DataBlock> Attribute::GetDataBlock() { return m_pimpl_->m_data_block_; }
 // std::shared_ptr<const data::DataBlock> Attribute::GetDataBlock() const { return m_pimpl_->m_data_block_; }
 void Attribute::Clear() {
-    if (m_pimpl_->m_data_block_ != nullptr) { m_pimpl_->m_data_block_->Clear(); }
+    for (auto &item : m_pimpl_->m_data_block_) {
+        if (item != nullptr) item->Clear();
+    }
 }
-bool Attribute::isNull() const { return m_pimpl_ == nullptr || m_pimpl_->m_data_block_ == nullptr; }
+bool Attribute::isNull() const { return m_pimpl_->m_data_block_.empty(); }
 
 }  //{ namespace engine
 }  // namespace simpla

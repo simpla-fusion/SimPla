@@ -837,17 +837,17 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
 
         std::string visit_variable_type = "SCALAR";
         ;
-        if ((item.second->GetIFORM() == NODE || item.second->GetIFORM() == CELL) && (item.second->GetDOF() == 1)) {
+        if ((item.second->GetIFORM() == NODE || item.second->GetIFORM() == CELL) && (item.second->GetDOF(0) == 1)) {
             visit_variable_type = "SCALAR";
         } else if (((item.second->GetIFORM() == EDGE || item.second->GetIFORM() == FACE) &&
-                    (item.second->GetDOF() == 1)) ||
+                    (item.second->GetDOF(0) == 1)) ||
                    ((item.second->GetIFORM() == NODE || item.second->GetIFORM() == CELL) &&
-                    (item.second->GetDOF() == 3))) {
+                    (item.second->GetDOF(0) == 3))) {
             visit_variable_type = "VECTOR";
         } else if (((item.second->GetIFORM() == NODE || item.second->GetIFORM() == CELL) &&
-                    item.second->GetDOF() == 9) ||
+                    item.second->GetDOF(0) == 9) ||
                    ((item.second->GetIFORM() == EDGE || item.second->GetIFORM() == FACE) &&
-                    item.second->GetDOF() == 3)) {
+                    item.second->GetDOF(0) == 3)) {
             visit_variable_type = "TENSOR";
         }
 

@@ -128,6 +128,7 @@ void DomainBase::TagRefinementCells(Real time_now) {
     DoTagRefinementCells(time_now);
     PostTagRefinementCells(this, time_now);
 }
+void DomainBase::InitializeAttribute(Attribute*) const {}
 
 }  // namespace engine{
 }  // namespace simpla{

@@ -16,7 +16,7 @@
 
 #include "Attribute.h"
 #include "EngineObject.h"
-
+#include "MeshBlock.h"
 namespace simpla {
 namespace engine {
 
@@ -71,6 +71,8 @@ class DomainBase : public EngineObject, public AttributeGroup {
     design_pattern::Signal<void(DomainBase *, Real, Real)> PostAdvance;
     void Advance(Real time_now, Real time_dt);
 
+    virtual void InitializeAttribute(Attribute *) const;
+
 };  // class DomainBase
 
 template <typename TChart, template <typename> class... Policies>
@@ -117,6 +119,10 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
         FillRange(lhs, std::forward<TR>(rhs), prefix + "_BOUNDARY_" + std::to_string(TL::iform), false);
     };
 
+    template <typename U, int IFORM, int... DOF>
+    void InitializeAttribute(AttributeT<U, IFORM, DOF...> *attr) const override {
+        base_type::InitializeAttribute(attr);
+    };
 };  // class Domain
 
 #define SP_DOMAIN_HEAD(_CLASS_NAME_, _BASE_NAME_)              \

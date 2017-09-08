@@ -33,7 +33,8 @@ ParticleBase::~ParticleBase() {
 
 void ParticleBase::DoInitialize() {
     m_pimpl_ = new pimpl_s;
-    SetDOF(db()->GetValue<int>("DOF", 6));
+    int dof = db()->GetValue<int>("DOF", 6);
+    SetDOF(1, &dof);
 }
 void ParticleBase::DoFinalize() {
     delete m_pimpl_;

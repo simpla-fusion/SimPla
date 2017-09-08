@@ -11,6 +11,7 @@
 #include "simpla/algebra/nTuple.h"
 #include "simpla/data/Data.h"
 #include "simpla/engine/Attribute.h"
+#include "simpla/engine/MeshBlock.h"
 #include "simpla/geometry/Chart.h"
 namespace simpla {
 namespace mesh {

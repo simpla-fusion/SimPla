@@ -7,18 +7,16 @@
 
 #include "simpla/SIMPLA_config.h"
 
-#include "simpla/data/Data.h"
-#include "simpla/utilities/Signal.h"
-#include "simpla/utilities/type_traits.h"
-
 #include "EngineObject.h"
-#include "MeshBlock.h"
+#include "simpla/algebra/Array.h"
+#include "simpla/algebra/ArrayNTuple.h"
+#include "simpla/data/Data.h"
+#include "simpla/utilities/type_traits.h"
 
 namespace simpla {
 template <typename V, typename SFC>
 class Array;
 namespace engine {
-class DomainBase;
 class Attribute;
 
 ///**
@@ -136,8 +134,10 @@ struct Attribute : public EngineObject {
    public:
     virtual std::type_info const &value_type_info() const = 0;
     virtual int GetIFORM() const = 0;
-    virtual int GetDOF() const = 0;
-    virtual void SetDOF(int) = 0;
+    virtual int GetDOF(int) const = 0;
+    virtual int GetRank() const = 0;
+    virtual void SetDOF(int rank, int const *d) = 0;
+
     template <typename THost>
     void Register(THost *p) {}
     void Register(AttributeGroup *p = nullptr);
@@ -154,15 +154,23 @@ struct Attribute : public EngineObject {
     virtual bool empty() const { return isNull(); };
     virtual void Clear();
 };
-template <typename V, int IFORM>
-struct AttributeT : public Attribute {
-    typedef V value_type;
-    typedef AttributeT<value_type, IFORM> this_type;
-    typedef Array<value_type> array_type;
+template <typename V, int IFORM, int... DOF>
+struct AttributeT : public Attribute, nTuple<Array<V>, (IFORM == NODE || IFORM == CELL) ? 1 : 3, DOF...> {
+    SP_OBJECT_HEAD(AttributeT, Attribute)
 
+    typedef V value_type;
+    typedef Array<value_type> array_type;
+    typedef nTuple<Array<V>, (IFORM == NODE || IFORM == CELL) ? 1 : 3, DOF...> data_type;
+    static constexpr int iform = IFORM;
+    static constexpr int NUM_OF_SUB = (IFORM == NODE || IFORM == CELL) ? 1 : 3;
+
+   private:
+    nTuple<array_type, NUM_OF_SUB, DOF...> m_data_;
+
+   public:
     template <typename... Args>
-    explicit AttributeT(Args &&... args) : Attribute(std::forward<Args>(args)...), m_dof_(1) {}
-    ~AttributeT() override = default;
+    explicit AttributeT(Args &&... args) : Attribute(std::forward<Args>(args)...) {}
+
     std::shared_ptr<Attribute> Duplicate() const override {
         std::shared_ptr<this_type> res(new this_type);
         ReRegister(res);
@@ -171,18 +179,51 @@ struct AttributeT : public Attribute {
 
     std::type_info const &value_type_info() const override { return typeid(V); };
     int GetIFORM() const override { return IFORM; };
-    int GetDOF() const override { return m_dof_; };
-    void SetDOF(int d) override { m_dof_ = d; };
+    int GetDOF(int n) const override { return m_extents_[n]; };
+    int GetRank() const override { return sizeof...(DOF); };
+    void SetDOF(int rank, int const *d) override { DOMAIN_ERROR; };
 
     auto &GetData(int n) { return m_data_[n]; }
     auto const &GetData(int n) const { return m_data_[n]; }
-    array_type &operator[](int s) { return m_data_[s]; }
-    array_type const &operator[](int s) const { return m_data_[s]; }
+
+    template <typename... Args>
+    auto &Get(index_type i0, Args &&... args) {
+        return m_data_[i0].at(std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    auto const &Get(index_type i0, Args &&... args) const {
+        return m_data_[i0].at(std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    auto &at(index_type n0, Args &&... args) {
+        return Get(n0, std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    auto const &at(index_type n0, Args &&... args) const {
+        return Get(n0, std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    auto &operator()(index_type n0, Args &&... args) {
+        return Get(n0, std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    auto const &operator()(index_type n0, Args &&... args) const {
+        return Get(n0, std::forward<Args>(args)...);
+    }
+    void Push(const std::shared_ptr<data::DataNode> &) override;
+    std::shared_ptr<data::DataNode> Pop() override;
 
    private:
-    std::vector<array_type> m_data_;
-    int m_dof_ = 1;
+    static constexpr int m_extents_[sizeof...(DOF) + 1] = {NUM_OF_SUB, DOF...};
 };
+template <typename V, int IFORM, int... DOF>
+void AttributeT<V, IFORM, DOF...>::Push(const std::shared_ptr<data::DataNode> &){};
+
+template <typename V, int IFORM, int... DOF>
+std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Pop(){};
+
 //
 // template <typename U, typename... Others, int... N>
 // void Attribute::PushData(nTuple<Array<U, Others...>, N...> *d) {
