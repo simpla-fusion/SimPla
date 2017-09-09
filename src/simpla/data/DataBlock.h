@@ -18,91 +18,86 @@ namespace data {
 class DataBlock : public DataEntity {
     SP_DEFINE_FANCY_TYPE_NAME(DataBlock, DataEntity)
 
-    struct pimpl_s;
-    pimpl_s *m_pimpl_ = nullptr;
-
    protected:
     DataBlock();
-    DataBlock(int ndims, index_type const *lo, index_type const *hi);
 
    public:
     ~DataBlock() override;
-    //    SP_DEFAULT_CONSTRUCT(DataBlock)
+    template <typename... Args>
+    static std::shared_ptr<DataBlock> New(Args &&... args);
 
-    template <typename U>
-    static std::shared_ptr<DataBlock> New(U const &);
+    std::type_info const &value_type_info() const override = 0;
+    size_type value_alignof() const override = 0;
 
-    virtual std::type_info const &value_type_info() const override = 0;
-    virtual size_type value_alignof() const override = 0;
+    virtual size_type size_in_byte() const { return value_alignof() * size(); }
+    size_type size() const override = 0;
 
-    size_type size_in_byte() const { return value_alignof() * size(); }
-    size_type size() const override;
+    virtual int GetNDIMS() const = 0;
+    virtual int GetIndexBox(index_type *lo, index_type *hi) const = 0;
 
-    int GetNDIMS() const;
-    int GetIndexBox(index_type *lo, index_type *hi) const;
-
-    virtual int Clear();
-    virtual size_type CopyIn(DataBlock const &other);
-    virtual size_type CopyOut(DataBlock &other) const;
-    virtual size_type CopyIn(DataBlock const &other, index_box_type const &box);
-    virtual size_type CopyOut(DataBlock &other, index_box_type const &box) const;
+    virtual void Clear() = 0;
+    virtual size_type CopyIn(DataBlock const &other, index_type const *lo, index_type const *hi) = 0;
+    virtual size_type CopyOut(DataBlock &other, index_type const *lo, index_type const *hi) const = 0;
 };
 
 template <typename V>
-struct DataBlockT : public DataBlock {
+struct DataBlockT : public DataBlock, public Array<V> {
     SP_DEFINE_FANCY_TYPE_NAME(DataBlockT<V>, DataBlock);
     typedef V value_type;
+    typedef Array<V> array_type;
 
    protected:
     explicit DataBlockT() = default;
+
     template <typename... Args>
-    explicit DataBlockT(value_type *d, Args &&... args) : DataBlock(std::forward<Args>(args)...), m_data_(d){};
-    template <typename... Args>
-    explicit DataBlockT(std::shared_ptr<V> const &d, Args &&... args)
-        : DataBlock(std::forward<Args>(args)...), m_data_(d){};
+    explicit DataBlockT(Args &&... args) : Array<V>(std::forward<Args>(args)...){};
 
    public:
     ~DataBlockT() override = default;
-
-    //    SP_DEFAULT_CONSTRUCT(DataBlockT)
 
     template <typename... Args>
     static std::shared_ptr<this_type> New(Args &&... args) {
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
     };
 
-//    void const *data() const override { return m_data_.get(); }
-//    void *data() override { return m_data_.get(); }
+    std::type_info const &value_type_info() const override { return typeid(value_type); };
+    size_type value_alignof() const override { return alignof(value_type); };
 
-    int Clear() override {
-        UNIMPLEMENTED;
-        return 0;
-    };
-    size_type CopyIn(DataBlock const &other) override {
-        UNIMPLEMENTED;
-        return 0;
-    };
-    size_type CopyIn(DataBlock const &other, index_box_type const &box) override {
-        UNIMPLEMENTED;
-        return 0;
-    };
-    template <typename U>
-    size_type CopyOut(U &d) const {
-        return 0;
-    }
-    template <typename U>
-    size_type CopyIn(U const &d) {
-        return 0;
-    }
+    size_type size_in_byte() const override { return value_alignof() * size(); }
+    size_type size() const override { return array_type::size(); };
 
-   private:
-    std::shared_ptr<value_type> m_data_;
+    int GetNDIMS() const override { return array_type::GetNDIMS(); };
+    int GetIndexBox(index_type *lo, index_type *hi) const override { return array_type::GetIndexBox(lo, hi); };
+
+    void Clear() override { array_type::Clear(); };
+
+    size_type CopyIn(DataBlock const &other, index_type const *lo, index_type const *hi) override {
+        size_type count = 0;
+        if (auto *p = dynamic_cast<array_type const *>(&other)) { count = array_type::CopyIn(*p, lo, hi); }
+        return count;
+    };
+    size_type CopyOut(DataBlock &other, index_type const *lo, index_type const *hi) const override {
+        size_type count = 0;
+        if (auto *p = dynamic_cast<array_type *>(&other)) { count = array_type::CopyOut(*p, lo, hi); }
+        return count;
+    }
 };
-
 template <typename U>
-std::shared_ptr<DataBlock> DataBlock::New(U const &) {
-    TODO;
-    return nullptr;
+std::shared_ptr<data::DataBlock> make_data_block(U *p, int rank, index_type const *lo, index_type const *hi) {
+    return DataBlockT<U>::New(p, rank, lo, hi);
+}
+template <typename U>
+std::shared_ptr<data::DataBlock> make_data_block(std::shared_ptr<U> const &p, int rank, index_type const *lo,
+                                                 index_type const *hi) {
+    return DataBlockT<U>::New(p, rank, lo, hi);
+}
+template <typename U>
+std::shared_ptr<data::DataBlock> make_data_block(std::shared_ptr<U> const &p, index_box_type const &ibox) {
+    return DataBlockT<U>::New(p, 3, &std::get<0>(ibox)[0], &std::get<1>(ibox)[0]);
+}
+template <typename... Args>
+std::shared_ptr<DataBlock> DataBlock::New(Args &&... args) {
+    return make_data_block(std::forward<Args>(args)...);
 };
 //
 // template <typename... Others>

@@ -124,7 +124,7 @@ struct Attribute : public EngineObject {
 
    protected:
     template <typename THost, typename... Args>
-    explicit Attribute(THost *host, Args &&... args) : Attribute() {
+    explicit Attribute(THost host, Args &&... args) : Attribute() {
         Register(host);
         db()->SetValue(std::forward<Args>(args)...);
     };
@@ -138,13 +138,13 @@ struct Attribute : public EngineObject {
     virtual int GetRank() const = 0;
     virtual void SetDOF(int rank, int const *d) = 0;
 
+    void Push(const std::shared_ptr<data::DataNode> &) override = 0;
+    std::shared_ptr<data::DataNode> Pop() override = 0;
+
     template <typename THost>
-    void Register(THost *p) {}
+    void Register(THost p) {}
     void Register(AttributeGroup *p = nullptr);
     void Deregister(AttributeGroup *p = nullptr);
-
-    void Push(const std::shared_ptr<data::DataNode> &) override;
-    std::shared_ptr<data::DataNode> Pop() override;
 
     virtual size_type CopyOut(Attribute &other) const;
     virtual size_type CopyIn(Attribute const &other);
@@ -155,17 +155,13 @@ struct Attribute : public EngineObject {
     virtual void Clear();
 };
 template <typename V, int IFORM, int... DOF>
-struct AttributeT : public Attribute, nTuple<Array<V>, (IFORM == NODE || IFORM == CELL) ? 1 : 3, DOF...> {
+struct AttributeT : public Attribute, public nTuple<Array<V>, (IFORM == NODE || IFORM == CELL) ? 1 : 3, DOF...> {
     SP_OBJECT_HEAD(AttributeT, Attribute)
 
     typedef V value_type;
     typedef Array<value_type> array_type;
     typedef nTuple<Array<V>, (IFORM == NODE || IFORM == CELL) ? 1 : 3, DOF...> data_type;
     static constexpr int iform = IFORM;
-    static constexpr int NUM_OF_SUB = (IFORM == NODE || IFORM == CELL) ? 1 : 3;
-
-   private:
-    nTuple<array_type, NUM_OF_SUB, DOF...> m_data_;
 
    public:
     template <typename... Args>
@@ -183,16 +179,16 @@ struct AttributeT : public Attribute, nTuple<Array<V>, (IFORM == NODE || IFORM =
     int GetRank() const override { return sizeof...(DOF); };
     void SetDOF(int rank, int const *d) override { DOMAIN_ERROR; };
 
-    auto &GetData(int n) { return m_data_[n]; }
-    auto const &GetData(int n) const { return m_data_[n]; }
+    auto &GetData(int n) { return data_type::operator[](n); }
+    auto const &GetData(int n) const { return data_type::operator[](n); }
 
     template <typename... Args>
     auto &Get(index_type i0, Args &&... args) {
-        return m_data_[i0].at(std::forward<Args>(args)...);
+        return GetData(i0).at(std::forward<Args>(args)...);
     }
     template <typename... Args>
     auto const &Get(index_type i0, Args &&... args) const {
-        return m_data_[i0].at(std::forward<Args>(args)...);
+        return GetData(i0).at(std::forward<Args>(args)...);
     }
 
     template <typename... Args>
@@ -216,13 +212,29 @@ struct AttributeT : public Attribute, nTuple<Array<V>, (IFORM == NODE || IFORM =
     std::shared_ptr<data::DataNode> Pop() override;
 
    private:
-    static constexpr int m_extents_[sizeof...(DOF) + 1] = {NUM_OF_SUB, DOF...};
+    static constexpr int m_extents_[sizeof...(DOF) + 1] = {(IFORM == NODE || IFORM == CELL) ? 1 : 3, DOF...};
 };
+template <typename V, int IFORM, int... DOF>
+constexpr int AttributeT<V, IFORM, DOF...>::m_extents_[sizeof...(DOF) + 1];
+
+template <typename V, int IFORM, int... DOF>
+AttributeT<V, IFORM, DOF...>::AttributeT(){};
+template <typename V, int IFORM, int... DOF>
+AttributeT<V, IFORM, DOF...>::~AttributeT(){};
+
+template <typename V, int IFORM, int... DOF>
+std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Serialize() const {
+    return nullptr;
+};
+template <typename V, int IFORM, int... DOF>
+void AttributeT<V, IFORM, DOF...>::Deserialize(std::shared_ptr<data::DataNode> const &){};
 template <typename V, int IFORM, int... DOF>
 void AttributeT<V, IFORM, DOF...>::Push(const std::shared_ptr<data::DataNode> &){};
 
 template <typename V, int IFORM, int... DOF>
-std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Pop(){};
+std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Pop() {
+    return nullptr;
+};
 
 //
 // template <typename U, typename... Others, int... N>

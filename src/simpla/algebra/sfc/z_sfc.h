@@ -72,6 +72,9 @@ class ZSFC {
         : m_index_box_(b), m_array_order_fast_first_(array_order_fast_first) {
         Update();
     }
+    template <typename U>
+    size_type Copy(U* data, this_type const& other_sfc, U const* other, index_type const* lo = nullptr,
+                   index_type const* hi = nullptr) const;
 
     this_type& operator=(this_type const& other) {
         this_type(other).swap(*this);
@@ -189,7 +192,7 @@ template <>
 template <typename value_type>
 std::ostream& ZSFC<3>::Print(std::ostream& os, value_type const* v, int indent) const {
     os << "Array [" << typeid(value_type).name() << "]: " << m_index_box_ << std::endl;
-
+    if (v == nullptr) { return os; }
     index_type ib = std::get<0>(m_index_box_)[0];
     index_type ie = std::get<1>(m_index_box_)[0];
     index_type jb = std::get<0>(m_index_box_)[1];
@@ -205,7 +208,27 @@ std::ostream& ZSFC<3>::Print(std::ostream& os, value_type const* v, int indent) 
         }
     return os;
 }
-
+template <>
+template <typename U>
+size_type ZSFC<1>::Copy(U* data, this_type const& other_sfc, U const* other, index_type const* lo,
+                        index_type const* hi) const {
+    FIXME;
+    return 0;
+}
+template <>
+template <typename U>
+size_type ZSFC<2>::Copy(U* data, this_type const& other_sfc, U const* other, index_type const* lo,
+                        index_type const* hi) const {
+    FIXME;
+    return 0;
+}
+template <>
+template <typename U>
+size_type ZSFC<3>::Copy(U* data, this_type const& other_sfc, U const* other, index_type const* lo,
+                        index_type const* hi) const {
+    FIXME;
+    return 0;
+}
 // template <int N>
 // template <typename TV, typename TFun>
 // void ZSFC<N>::Foreach(TV* d, TFun const& fun) const {

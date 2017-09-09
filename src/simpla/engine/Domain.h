@@ -120,8 +120,8 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     };
 
     template <typename U, int IFORM, int... DOF>
-    void InitializeAttribute(AttributeT<U, IFORM, DOF...> *attr) const override {
-        base_type::InitializeAttribute(attr);
+    void InitializeAttribute(AttributeT<U, IFORM, DOF...> *attr) const {
+        //        base_type::InitializeAttribute(attr);
     };
 };  // class Domain
 

@@ -3,7 +3,7 @@
 //
 
 #include "simpla/algebra/Algebra.h"
-#include "simpla/mesh/DummyMesh.h"
+#include "simpla/mesh/DummyDomain.h"
 
 using namespace simpla;
 
@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
     index_box_type i_box = {{0, 0, 0}, {2, 4, 3}};
     box_type x_box{{0, 0, 0}, {1, 2, 3}};
     {
-        typedef DummyMesh mesh_type;
+        typedef DummyDomain mesh_type;
         mesh_type m(i_box);
 
         Field<mesh_type, Real, NODE> f(&m);

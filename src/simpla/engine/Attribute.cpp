@@ -92,19 +92,19 @@ void Attribute::Deregister(AttributeGroup *attr_b) {
         m_pimpl_->m_bundle_.erase(attr_b);
     }
 }
-void Attribute::Push(const std::shared_ptr<data::DataNode> &d) {
-    m_pimpl_->m_data_block_.clear();
-    if (GetRank() == 0 && d->type() == data::DataNode::DN_ENTITY) {
-        m_pimpl_->m_data_block_.push_back(std::dynamic_pointer_cast<data::DataBlock>(d->GetEntity()));
-    } else if (d->type() == data::DataNode::DN_ARRAY && GetRank() > 0) {
-        d->Foreach([&](std::string key, std::shared_ptr<data::DataNode> const &node) {
-            m_pimpl_->m_data_block_.push_back(std::dynamic_pointer_cast<data::DataBlock>(node->GetEntity()));
-            return 1;
-        });
-    }
-
-    Update();
-}
+//void Attribute::Push(const std::shared_ptr<data::DataNode> &d) {
+//    m_pimpl_->m_data_block_.clear();
+//    if (GetRank() == 0 && d->type() == data::DataNode::DN_ENTITY) {
+//        m_pimpl_->m_data_block_.push_back(std::dynamic_pointer_cast<data::DataBlock>(d->GetEntity()));
+//    } else if (d->type() == data::DataNode::DN_ARRAY && GetRank() > 0) {
+//        d->Foreach([&](std::string key, std::shared_ptr<data::DataNode> const &node) {
+//            m_pimpl_->m_data_block_.push_back(std::dynamic_pointer_cast<data::DataBlock>(node->GetEntity()));
+//            return 1;
+//        });
+//    }
+//
+//    Update();
+//}
 std::shared_ptr<data::DataNode> Attribute::Pop() {
     std::shared_ptr<data::DataNode> res = nullptr;
     if (m_pimpl_->m_data_block_.empty()) {

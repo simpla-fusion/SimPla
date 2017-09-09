@@ -82,11 +82,11 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM, DOF...
     };
 
     auto& operator[](EntityId s) {
-        return traits::recursive_index(base_type::GetData(EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.w >> 3)(
+        return traits::recursive_index(this->operator[](EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.w >> 3)(
             s.x, s.y, s.z);
     }
     auto const& operator[](EntityId s) const {
-        return traits::recursive_index(base_type::GetData(EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.w >> 3)(
+        return traits::recursive_index(this->operator[](EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.w >> 3)(
             s.x, s.y, s.z);
     }
 

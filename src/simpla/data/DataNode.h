@@ -124,8 +124,8 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     size_type SetValue(std::string const& s, char const* u) {
         return Set(s, DataNode::New(DataLight::New(std::string(u))));
     };
-    template <typename U>
-    size_type SetValue(std::string const& s, U const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {
+    template <typename... U>
+    size_type SetValue(std::string const& s, std::tuple<U...> const& u) {
         return Set(s, DataNode::New(DataBlock::New(u)));
     };
     template <typename U>
@@ -147,8 +147,9 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     size_type AddValue(std::string const& s, U const& u, ENABLE_IF(traits::is_light_data<U>::value)) {
         return Add(s, DataNode::New(DataLight::New(u)));
     };
-    template <typename U>
-    size_type AddValue(std::string const& s, U const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {
+
+    template <typename... U>
+    size_type AddValue(std::string const& s, std::tuple<U...> const& u) {
         return Add(s, DataNode::New(DataBlock::New(u)));
     };
     template <typename U>
@@ -164,6 +165,16 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
                        std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& v) {
         return Add(s, DataNode::New(DataLight::New(v)));
     }
+
+//    template <typename U>
+//    size_type SetValue(std::string const& s, U const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {
+//        return Set(s, DataNode::New(DataBlock::New(u)));
+//    };
+//    template <typename U>
+//    size_type AddValue(std::string const& s, U const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {
+//        DOMAIN_ERROR;
+//        return 0;
+//    };
     template <typename U>
     U GetValue(std::string const& url) const {
         U res;

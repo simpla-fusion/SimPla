@@ -6,50 +6,24 @@
 #define SIMPLA_DUMMYMESH_H
 namespace simpla {
 
-template <typename TM>
-struct DummyAttribute {
-    SP_OBJECT_BASE(DummyAttribute<TM>);
-
-    template <typename... Args>
-    explicit DummyAttribute(TM const *m, Args &&... args) : m_mesh_(m){};
-    DummyAttribute(this_type const &other) : m_mesh_(other.m_mesh_){};
-    DummyAttribute(this_type &&other) : m_mesh_(other.m_mesh_){};
-
-    virtual ~DummyAttribute() {}
-
-    virtual std::size_t size() const { return 0; }
-    virtual bool empty() const { return true; }
-    virtual void swap(this_type &other) { std::swap(m_mesh_, other.m_mesh_); }
-
-    virtual void Push(std::shared_ptr<data::DataBlock> p) {}
-    virtual std::shared_ptr<data::DataBlock> Pop() { return data::DataBlock::New(); }
-    virtual void DoUpdate() {}
-    virtual void DoTearDown() {}
-    void Update() { DoUpdate(); };
-    void TearDown() { DoTearDown(); };
-
-    TM const *GetMesh() { return m_mesh_; }
-    TM const *GetMesh() const { return m_mesh_; }
-    TM const *m_mesh_;
-};
 template <typename THost>
-struct DummyMesh : public MeshBase {
+struct DummyDomain : public MeshBase {
    public:
-    typedef DummyMesh this_type;
+    typedef DummyDomain this_type;
 
     point_type m_dx_{1, 1, 1};
     point_type m_x0_{0, 0, 0};
     static constexpr unsigned int NDIMS = 3;
 
     typedef EntityId entity_id_type;
-    typedef DummyAttribute<DummyMesh> attribute_type;
+    typedef DummyAttribute<DummyDomain> attribute_type;
     template <typename V, int IFORM, int... DOF>
     using data_type = nTuple<Array<V, ZSFC<NDIMS>>, (IFORM == NODE || IFORM == CELL) ? 1 : 3, DOF...>;
     index_box_type m_index_box_;
 
-    typedef DummyMesh mesh_type;
-    explicit DummyMesh(index_box_type const &i_box) : m_index_box_(i_box) {}
-    ~DummyMesh() = default;
+    typedef DummyDomain mesh_type;
+    explicit DummyDomain(index_box_type const &i_box) : m_index_box_(i_box) {}
+    ~DummyDomain() = default;
 
     ZSFC<3> GetSpaceFillingCurve(int IFORM, int sub = 0) const { return ZSFC<3>(m_index_box_); }
 

@@ -53,9 +53,9 @@ class Array {
 
     template <typename... Args>
     explicit Array(value_type* d, Args&&... args) : m_data_(d), m_sfc_(std::forward<Args>(args)...) {}
-
-    //    template <typename... Args>
-    //    explicit Array(Args&&... args) : m_sfc_(std::forward<Args>(args)...) {}
+    template <typename... Args>
+    explicit Array(std::shared_ptr<value_type> const& d, Args&&... args)
+        : m_holder_(d), m_sfc_(std::forward<Args>(args)...) {}
 
     void swap(this_type& other) {
         std::swap(m_holder_, other.m_holder_);
@@ -100,17 +100,12 @@ class Array {
     bool in_box(Args&&... args) const {
         return m_sfc_.in_box(std::forward<Args>(args)...);
     }
-    //    void reset(std::shared_ptr<value_type> const& d = nullptr) { SetData(d); }
-    //
-    //    void SetData(std::shared_ptr<value_type> const& d) {
-    //        m_holder_ = d;
-    //        m_host_data_ = m_holder_.get();
-    //        m_data_ = m_host_data_;
-    //    }
 
     SFC const& GetSpaceFillingCurve() const { return m_sfc_; }
 
-    int GetNDIMS() const { return SFC::ndims; }
+    int GetNDIMS() const { return m_sfc_.GetNDIMS(); }
+    int GetIndexBox(index_type* lo, index_type* hi) const { return m_sfc_.GetIndexBox(lo, hi); }
+
     bool empty() const { return m_data_ == nullptr; }
     bool isNull() const { return m_data_ == nullptr; }
     std::type_info const& value_type_info() const { return typeid(value_type); }
@@ -123,14 +118,9 @@ class Array {
     void Shift(Args&&... args) {
         m_sfc_.Shift(std::forward<Args>(args)...);
     }
-
-    void Update() {
-        if (m_data_ == nullptr) { Initialize(); }
-    }
-
-    void Initialize() {
+    void SetUp() {
         if (m_data_ == nullptr) {
-            m_holder_ = spMakeShared<value_type>(m_data_, m_sfc_.size());
+            if (m_holder_ == nullptr) { m_holder_ = spMakeShared<value_type>(m_data_, m_sfc_.size()); }
             m_host_data_ = m_data_;
             m_data_ = m_holder_.get();
 
@@ -141,31 +131,39 @@ class Array {
 #endif
         }
     }
-    void Finalize() { reset(); }
+    void TearDown() { reset(); }
+
+    template <typename... Args>
+    size_type CopyIn(this_type const& other, Args&&... args) {
+        return m_sfc_.Copy(m_data_, other.m_sfc_, other.m_data_, std::forward<Args>(args)...);
+    };
+    template <typename... Args>
+    size_type CopyOut(this_type& other, Args&&... args) const {
+        return other.CopyIn(*this, std::forward<Args>(args)...);
+    };
+    void DeepCopy(value_type const* other) {
+        SetUp();
+        m_sfc_.CopyIn(m_data_, other);
+    }
 
     void Fill(value_type v) {
-        Update();
-        spMemoryFill(m_data_, v, m_sfc_.size());
+        SetUp();
+        m_sfc_.CopyIn(m_data_, v);
     }
     void Clear() {
-        Update();
-        spMemoryClear(m_data_, m_sfc_.size());
-    }
-
-    void DeepCopy(value_type const* other) {
-        Update();
-        spMemoryCopy(m_data_, other, m_sfc_.size());
+        SetUp();
+        m_sfc_.CopyIn(m_data_, 0);
     }
 
     this_type& operator=(this_type const& rhs) {
-        Update();
+        SetUp();
         Assign(rhs);
         return (*this);
     }
 
     template <typename TR>
     this_type& operator=(TR const& rhs) {
-        Update();
+        SetUp();
         Assign(rhs);
         return (*this);
     }
