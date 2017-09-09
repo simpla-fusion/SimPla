@@ -405,6 +405,15 @@ std::shared_ptr<DataLight> make_light(std::initializer_list<std::initializer_lis
     detail::CopyND(res->pointer(), u, extents);
     return res;
 };
+
+template <typename U, int... N>
+std::shared_ptr<DataLight> make_light(std::tuple<nTuple<U, N...>, nTuple<U, N...>> const& u,
+                                            ENABLE_IF((traits::is_light_data<U>::value))) {
+    nTuple<U, 2, N...> v;
+    v[0] = std::get<0>(u);
+    v[1] = std::get<1>(u);
+    return make_light(v);
+}
 }  // namespace detail
 template <typename... Args>
 std::shared_ptr<DataLight> DataLight::New(Args&&... args) {

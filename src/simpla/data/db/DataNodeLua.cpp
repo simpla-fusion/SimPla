@@ -7,7 +7,6 @@
 #include "../DataEntity.h"
 #include "../DataNode.h"
 #include "../DataTraits.h"
-#include "../DataUtilities.h"
 #include "DataNodeMemory.h"
 #include "LuaObject.h"
 namespace simpla {
