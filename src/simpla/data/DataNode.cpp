@@ -204,12 +204,12 @@ size_type DataNode::SetValue(std::string const& url, std::initializer_list<KeyVa
 size_type DataNode::SetValue(std::string const& url, std::initializer_list<std::initializer_list<KeyValue>> const& kv) {
     return Set(url, make_node(kv));
 };
-size_type DataNode::AddValue(std::string const& url, KeyValue const& kv) { return AddValue(url, make_node(kv)); };
+size_type DataNode::AddValue(std::string const& url, KeyValue const& kv) { return Add(url, make_node(kv)); };
 size_type DataNode::AddValue(std::string const& url, std::initializer_list<KeyValue> const& kv) {
-    return AddValue(url, make_node(kv));
+    return Add(url, make_node(kv));
 };
 size_type DataNode::AddValue(std::string const& url, std::initializer_list<std::initializer_list<KeyValue>> const& kv) {
-    return AddValue(url, make_node(kv));
+    return Add(url, make_node(kv));
 };
 
 //    static std::regex const sub_group_regex(R"(([^/?#]+)/)", std::regex::optimize);

@@ -87,18 +87,18 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
 
     virtual size_type Add(const std::shared_ptr<DataNode>& v);
     virtual size_type Set(const std::shared_ptr<DataNode>& v);
-    virtual size_type SetValue(const std::shared_ptr<DataNode>& v) { return Set(v); }
-    virtual size_type AddValue(const std::shared_ptr<DataNode>& v) { return Add(v); }
-    size_type Set(std::string const& uri, const std::shared_ptr<DataEntity>& v) {
-        auto p = CreateNode(DN_ENTITY);
-        p->SetEntity(v);
-        return Set(uri, p);
-    }
-    size_type Set(index_type s, const std::shared_ptr<DataEntity>& v) {
-        auto p = CreateNode(DN_ENTITY);
-        p->SetEntity(v);
-        return Set(s, p);
-    }
+    //    virtual size_type SetValue(const std::shared_ptr<DataNode>& v) { return Set(v); }
+    //    virtual size_type AddValue(const std::shared_ptr<DataNode>& v) { return Add(v); }
+    //    size_type Set(std::string const& uri, const std::shared_ptr<DataEntity>& v) {
+    //        auto p = CreateNode(DN_ENTITY);
+    //        p->SetEntity(v);
+    //        return Set(uri, p);
+    //    }
+    //    size_type Set(index_type s, const std::shared_ptr<DataEntity>& v) {
+    //        auto p = CreateNode(DN_ENTITY);
+    //        p->SetEntity(v);
+    //        return Set(s, p);
+    //    }
     /**@ } */
 
     /** @addtogroup optional @{*/
@@ -117,64 +117,53 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
 
     /**@ } */
 
-    template <typename U>
-    size_type SetValue(std::string const& s, U const& u, ENABLE_IF(traits::is_light_data<U>::value)) {
-        return Set(s, DataNode::New(DataLight::New(u)));
+    template <typename... Args>
+    size_type SetValue(std::string const& s, Args&&... args) {
+        return Set(s, DataNode::New(make_data_entity(std::forward<Args>(args)...)));
     };
-    size_type SetValue(std::string const& s, char const* u) {
-        return Set(s, DataNode::New(DataLight::New(std::string(u))));
-    };
-    template <typename... U>
-    size_type SetValue(std::string const& s, std::tuple<U...> const& u) {
-        return Set(s, DataNode::New(DataBlock::New(u)));
-    };
-    template <typename U>
-    size_type SetValue(std::string const& s, std::initializer_list<U> const& v) {
-        return Set(s, DataNode::New(DataLight::New(v)));
-    }
 
     template <typename U>
+    size_type SetValue(std::string const& s, std::initializer_list<U> const& v) {
+        return Set(s, DataNode::New(make_data_entity(v)));
+    }
+    template <typename U>
     size_type SetValue(std::string const& s, std::initializer_list<std::initializer_list<U>> const& v) {
-        return Set(s, DataNode::New(DataLight::New(v)));
+        return Set(s, DataNode::New(make_data_entity(v)));
     }
     template <typename U>
     size_type SetValue(std::string const& s,
                        std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& v) {
-        return Set(s, DataNode::New(DataLight::New(v)));
+        return Set(s, DataNode::New(make_data_entity(v)));
     }
 
     template <typename U>
-    size_type AddValue(std::string const& s, U const& u, ENABLE_IF(traits::is_light_data<U>::value)) {
-        return Add(s, DataNode::New(DataLight::New(u)));
+    size_type AddValue(std::string const& s, U const& u) {
+        return Add(s, DataNode::New(make_data_entity(u)));
     };
 
-    template <typename... U>
-    size_type AddValue(std::string const& s, std::tuple<U...> const& u) {
-        return Add(s, DataNode::New(DataBlock::New(u)));
-    };
     template <typename U>
     size_type AddValue(std::string const& s, std::initializer_list<U> const& v) {
-        return Add(s, DataNode::New(DataLight::New(v)));
+        return Add(s, DataNode::New(make_data_entity(v)));
     }
     template <typename U>
     size_type AddValue(std::string const& s, std::initializer_list<std::initializer_list<U>> const& v) {
-        return Add(s, DataNode::New(DataLight::New(v)));
+        return Add(s, DataNode::New(make_data_entity(v)));
     }
     template <typename U>
     size_type AddValue(std::string const& s,
                        std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& v) {
-        return Add(s, DataNode::New(DataLight::New(v)));
+        return Add(s, DataNode::New(make_data_entity(v)));
     }
 
-//    template <typename U>
-//    size_type SetValue(std::string const& s, U const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {
-//        return Set(s, DataNode::New(DataBlock::New(u)));
-//    };
-//    template <typename U>
-//    size_type AddValue(std::string const& s, U const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {
-//        DOMAIN_ERROR;
-//        return 0;
-//    };
+    //    template <typename U>
+    //    size_type SetValue(std::string const& s, U const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {
+    //        return Set(s, DataNode::New(DataBlock::New(u)));
+    //    };
+    //    template <typename U>
+    //    size_type AddValue(std::string const& s, U const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {
+    //        DOMAIN_ERROR;
+    //        return 0;
+    //    };
     template <typename U>
     U GetValue(std::string const& url) const {
         U res;
@@ -248,24 +237,24 @@ struct KeyValue {
 
     template <typename U>
     KeyValue& operator=(U const& u) {
-        m_node_ = DataNode::New(DataLight::New(u));
+        m_node_ = DataNode::New(make_data_entity(u));
         return *this;
     }
 
     template <typename U>
     KeyValue& operator=(std::initializer_list<U> const& u) {
-        m_node_ = DataNode::New(DataLight::New(u));
+        m_node_ = DataNode::New(make_data_entity(u));
         return *this;
     }
 
     template <typename U>
     KeyValue& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
-        m_node_ = DataNode::New(DataLight::New(u));
+        m_node_ = DataNode::New(make_data_entity(u));
         return *this;
     }
     template <typename U>
     KeyValue& operator=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-        m_node_ = DataNode::New(DataLight::New(u));
+        m_node_ = DataNode::New(make_data_entity(u));
         return *this;
     }
 };

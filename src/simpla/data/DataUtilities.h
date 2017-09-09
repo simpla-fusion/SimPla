@@ -32,15 +32,45 @@ template <typename, typename>
 struct DataLightT;
 
 template <typename U>
-std::shared_ptr<DataEntity> make_data(std::shared_ptr<U> const& u, ENABLE_IF((std::is_base_of<DataEntity, U>::value))) {
+std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<U> const& u,
+                                             ENABLE_IF((std::is_base_of<DataEntity, U>::value))) {
     return std::dynamic_pointer_cast<DataEntity>(u);
 }
 template <typename U>
-std::shared_ptr<DataLightT<U>> make_data(U const& u, ENABLE_IF((traits::is_light_data<U>::value))) {
+std::shared_ptr<DataLightT<U>> make_data_entity(U const& u, ENABLE_IF((traits::is_light_data<U>::value))) {
     return DataLightT<U>::New(u);
 }
+template <typename U, int... N>
+auto make_data_entity(std::tuple<nTuple<U, N...>, nTuple<U, N...>> const& u,
+                      ENABLE_IF((traits::is_light_data<U>::value))) {
+    nTuple<U, 2, N...> res;
+    res[0] = std::get<0>(u);
+    res[1] = std::get<1>(u);
 
-inline std::shared_ptr<DataLightT<std::string>> make_data(char const* c) {
+    return make_data_entity(res);
+}
+template <typename U>
+std::shared_ptr<DataLight> make_data_entity(std::initializer_list<U> const& u) {
+    size_type s = u.size();
+    auto res = DataLightT<U*>::New(1, &s);
+    size_type i = 0;
+    for (auto const& v : u) {
+        res->pointer()[i] = v;
+        ++i;
+    }
+    return res;
+}
+
+template <typename U>
+std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<std::initializer_list<U>> const& u) {
+    return nullptr;
+};
+template <typename U>
+std::shared_ptr<DataEntity> make_data_entity(
+    std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
+    return nullptr;
+};
+inline std::shared_ptr<DataLightT<std::string>> make_data_entity(char const* c) {
     return DataLightT<std::string>::New(std::string(c));
 }
 template <int N, typename U>
@@ -59,18 +89,6 @@ std::shared_ptr<DataLightT<std::vector<U>>> make_data_vector(std::initializer_li
     for (auto const& v : u) { res->value().push_back(v); }
     return res;
 };
-
-template <typename U>
-std::shared_ptr<DataLight> make_data(std::initializer_list<U> const& u) {
-    size_type s = u.size();
-    auto res = DataLightT<U*>::New(1, &s);
-    size_type i = 0;
-    for (auto const& v : u) {
-        res->pointer()[i] = v;
-        ++i;
-    }
-    return res;
-}
 
 // KeyValue const& make_data(KeyValue const& u) { return u; }
 // std::initializer_list<KeyValue> const& make_data(std::initializer_list<KeyValue> const& u) { return u; }
