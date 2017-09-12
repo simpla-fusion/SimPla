@@ -20,11 +20,11 @@ std::shared_ptr<data::DataNode> AttributeGroup::Serialize() const { return nullp
 void AttributeGroup::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {}
 void AttributeGroup::Push(const std::shared_ptr<data::DataNode> &p) {
     for (auto &item : m_attributes_) {
-        if (auto blk = p->Get(item.second->db()->GetValue<id_type>("DescID", NULL_ID))) { item.second->Push(blk); }
+        if (auto attr = p->Get(item.second->db()->GetValue<id_type>("DescID", NULL_ID))) { item.second->Push(attr); }
     }
 }
 
-std::shared_ptr<data::DataNode> AttributeGroup::Pop() {
+std::shared_ptr<data::DataNode> AttributeGroup::Pop() const {
     auto res = data::DataNode::New();
     for (auto &item : m_attributes_) {
         res->Set(item.second->db()->GetValue<id_type>("DescID", NULL_ID), item.second->Pop());
@@ -92,20 +92,20 @@ void Attribute::Deregister(AttributeGroup *attr_b) {
         m_pimpl_->m_bundle_.erase(attr_b);
     }
 }
-//void Attribute::Push(const std::shared_ptr<data::DataNode> &d) {
-//    m_pimpl_->m_data_block_.clear();
-//    if (GetRank() == 0 && d->type() == data::DataNode::DN_ENTITY) {
-//        m_pimpl_->m_data_block_.push_back(std::dynamic_pointer_cast<data::DataBlock>(d->GetEntity()));
-//    } else if (d->type() == data::DataNode::DN_ARRAY && GetRank() > 0) {
-//        d->Foreach([&](std::string key, std::shared_ptr<data::DataNode> const &node) {
-//            m_pimpl_->m_data_block_.push_back(std::dynamic_pointer_cast<data::DataBlock>(node->GetEntity()));
-//            return 1;
-//        });
-//    }
-//
-//    Update();
-//}
-std::shared_ptr<data::DataNode> Attribute::Pop() {
+void Attribute::Push(const std::shared_ptr<data::DataNode> &d) {
+    //    m_pimpl_->m_data_block_.clear();
+    //    if (GetRank() == 0 && d->type() == data::DataNode::DN_ENTITY) {
+    //        m_pimpl_->m_data_block_.push_back(std::dynamic_pointer_cast<data::DataBlock>(d->GetEntity()));
+    //    } else if (d->type() == data::DataNode::DN_ARRAY && GetRank() > 0) {
+    //        d->Foreach([&](std::string key, std::shared_ptr<data::DataNode> const &node) {
+    //            m_pimpl_->m_data_block_.push_back(std::dynamic_pointer_cast<data::DataBlock>(node->GetEntity()));
+    //            return 1;
+    //        });
+    //    }
+
+    Update();
+}
+std::shared_ptr<data::DataNode> Attribute::Pop() const {
     std::shared_ptr<data::DataNode> res = nullptr;
     if (m_pimpl_->m_data_block_.empty()) {
     } else if (GetRank() == 0 && m_pimpl_->m_data_block_.size() == 1) {

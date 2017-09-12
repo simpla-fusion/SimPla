@@ -30,10 +30,12 @@ Scenario::~Scenario() {
 std::shared_ptr<data::DataNode> Scenario::Serialize() const {
     auto cfg = base_type::Serialize();
     cfg->Set("Atlas", GetAtlas()->Serialize());
-
-    if (auto domain = cfg->CreateNode("Domain")) {
-        for (auto const &item : m_pimpl_->m_domains_) { domain->Set(item.first, item.second->Serialize()); }
+    auto domain = data::DataNode::New(data::DataNode::DN_TABLE);
+    for (auto const &item : m_pimpl_->m_domains_) {
+        CHECK(item.first);
+        domain->Set(item.first, item.second->Serialize());
     }
+    cfg->Set("Domain", domain);
     return cfg;
 }
 
@@ -127,14 +129,14 @@ std::shared_ptr<data::DataNode> Scenario::GetPatch(id_type id) {
     std::shared_ptr<data::DataNode> res = nullptr;
     auto it = m_pimpl_->m_patches_.find(id);
     if (it != m_pimpl_->m_patches_.end()) { res = it->second; }
-    return res != nullptr ? res : data::DataNode::New();
+    return res;
 }
 
 std::shared_ptr<data::DataNode> Scenario::GetPatch(id_type id) const {
     std::shared_ptr<data::DataNode> res = nullptr;
     auto it = m_pimpl_->m_patches_.find(id);
     if (it != m_pimpl_->m_patches_.end()) { res = it->second; }
-    return res != nullptr ? res : data::DataNode::New();
+    return res;
 }
 }  //   namespace engine{
 }  // namespace simpla{

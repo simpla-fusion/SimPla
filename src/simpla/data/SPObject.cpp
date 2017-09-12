@@ -51,8 +51,8 @@ SPObject::~SPObject() { delete m_pimpl_; }
 //        res = New(db);
 //    }
 //}
-std::shared_ptr<data::DataNode> SPObject::Pop() { return m_pimpl_->m_db_; }
-void SPObject::Push(std::shared_ptr<data::DataNode> const &tdb) { m_pimpl_->m_db_->Set(tdb); }
+//std::shared_ptr<data::DataNode> SPObject::Pop() const { return m_pimpl_->m_db_; }
+//void SPObject::Push(std::shared_ptr<data::DataNode> const &tdb) { m_pimpl_->m_db_->Set(tdb); }
 
 std::shared_ptr<data::DataNode> SPObject::db() const { return m_pimpl_->m_db_; }
 std::shared_ptr<data::DataNode> SPObject::db() { return m_pimpl_->m_db_; }

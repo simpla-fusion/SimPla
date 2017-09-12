@@ -379,7 +379,13 @@ size_type CopyND(V* dst, std::initializer_list<U> const& src, size_type* extents
     }
     return count;
 }
-
+template <typename U, int... N>
+std::shared_ptr<DataLight> make_light(std::tuple<nTuple<U, N...>, nTuple<U, N...>> const& u) {
+    nTuple<U, 2, N...> d;
+    d[0] = std::get<0>(u);
+    d[1] = std::get<1>(u);
+    return make_light(d);
+};
 template <typename U>
 std::shared_ptr<DataLight> make_light(std::initializer_list<U> const& u) {
     size_type extents = u.size();

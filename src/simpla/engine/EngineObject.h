@@ -30,8 +30,8 @@ class EngineObject : public SPObject {
     virtual void DoTearDown();  //!< repeat invoke, enable Set/Deserialize
     virtual void DoFinalize();  //!< invoke once, after everything
 
-    void Push(std::shared_ptr<data::DataNode> const &) override;
-    std::shared_ptr<data::DataNode> Pop() override;
+    virtual void Push(const std::shared_ptr<data::DataNode> &);
+    virtual std::shared_ptr<data::DataNode> Pop() const;
 
     design_pattern::Signal<void(EngineObject *)> PreSetUp;
     design_pattern::Signal<void(EngineObject *)> PostSetUp;

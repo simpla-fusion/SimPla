@@ -24,6 +24,8 @@ class DomainBase : public EngineObject, public AttributeGroup {
     SP_OBJECT_HEAD(DomainBase, EngineObject)
 
    public:
+    void Push(const std::shared_ptr<data::DataNode> &) override;
+    std::shared_ptr<data::DataNode> Pop() const override;
     int GetNDIMS() const;
     void SetChart(std::shared_ptr<geometry::Chart> const &c);
     virtual std::shared_ptr<geometry::Chart> GetChart();
@@ -36,8 +38,6 @@ class DomainBase : public EngineObject, public AttributeGroup {
     std::shared_ptr<geometry::GeoObject> GetBoundary() const;
 
     bool CheckOverlap(const std::shared_ptr<MeshBlock> &blk) const;
-    bool Push(std::shared_ptr<engine::MeshBlock> const &, std::shared_ptr<data::DataNode> const &);
-    std::shared_ptr<data::DataNode> Pop() override;
 
     void DoSetUp() override;
     void DoUpdate() override;

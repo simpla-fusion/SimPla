@@ -70,14 +70,11 @@ bool DomainBase::CheckOverlap(const std::shared_ptr<MeshBlock>& blk) const {
     //    return std::make_tuple(ratio, IndexBox(0b0));
     return false;
 }
-bool DomainBase::Push(std::shared_ptr<engine::MeshBlock> const& blk, std::shared_ptr<data::DataNode> const& data) {
-    if (blk == nullptr /*|| !CheckOverlap(blk)*/) { return false; }
-    SetBlock(blk);
+void DomainBase::Push(std::shared_ptr<data::DataNode> const& data) {
     base_type::Push(data);
     AttributeGroup::Push(data->Get("Attributes"));
-    return true;
 }
-std::shared_ptr<data::DataNode> DomainBase::Pop() {
+std::shared_ptr<data::DataNode> DomainBase::Pop() const {
     auto res = base_type::Pop();
     res->Set("Attributes", AttributeGroup::Pop());
     return res;

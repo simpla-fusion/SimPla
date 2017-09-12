@@ -35,15 +35,8 @@ bool EngineObject::isModified() const { return m_pimpl_->m_click_tag_ != m_pimpl
 bool EngineObject::isInitialized() const { return m_pimpl_->m_is_initialized_; }
 bool EngineObject::isSetUp() const { return m_pimpl_->m_is_setup_; }
 
-void EngineObject::Push(std::shared_ptr<data::DataNode> const &data) {
-    ASSERT(isSetUp());
-    base_type::Push(data);
-    Click();
-}
-std::shared_ptr<data::DataNode> EngineObject::Pop() {
-    Click();
-    return base_type::Pop();
-}
+void EngineObject::Push(std::shared_ptr<data::DataNode> const &data) { ASSERT(isSetUp()); }
+std::shared_ptr<data::DataNode> EngineObject::Pop() const { return data::DataNode::New(data::DataNode::DN_TABLE); };
 
 void EngineObject::DoInitialize() {}
 void EngineObject::DoSetUp() {}
@@ -60,7 +53,6 @@ void EngineObject::Initialize() {
 }
 void EngineObject::SetUp() {
     if (!isSetUp()) {
-
         VERBOSE << std::setw(15) << " Set Up : " << std::setw(20) << std::left << GetName() << " [ " << TypeName()
                 << " ]";
         PreSetUp(this);

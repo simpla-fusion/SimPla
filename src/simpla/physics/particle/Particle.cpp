@@ -47,9 +47,8 @@ void ParticleBase::Push(std::shared_ptr<data::DataNode> const& dblk) {
     engine::Attribute::Push(dblk);
     Update();
 }
-std::shared_ptr<data::DataNode> ParticleBase::Pop() {
+std::shared_ptr<data::DataNode> ParticleBase::Pop() const {
     auto res = engine::Attribute::Pop();
-    TearDown();
     return res;
 }
 void ParticleBase::SetNumberOfAttributes(int n) { m_pimpl_->m_num_of_attr_ = n; }
