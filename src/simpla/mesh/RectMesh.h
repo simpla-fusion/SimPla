@@ -29,14 +29,14 @@ struct RectMesh : public StructuredMesh {
     engine::AttributeT<Real, NODE> m_coordinates_{m_host_, "name"_ = "m_coordinates_", "COORDINATES"_};
     //     engine:: AttributeT< Real, NODE > m_vertices_{m_domain_, "name"_ = "m_vertices_","TEMP"_};
 
-    engine::AttributeT<Real, NODE> m_vertex_volume_{m_host_, "name"_ = "m_vertex_volume_", "TEMP"_};
-    engine::AttributeT<Real, NODE> m_vertex_inv_volume_{m_host_, "name"_ = "m_vertex_inv_volume_", "TEMP"_};
-    engine::AttributeT<Real, NODE> m_vertex_dual_volume_{m_host_, "name"_ = "m_vertex_dual_volume_", "TEMP"_};
-    engine::AttributeT<Real, NODE> m_vertex_inv_dual_volume_{m_host_, "name"_ = "m_vertex_inv_dual_volume_", "TEMP"_};
-    engine::AttributeT<Real, CELL> m_volume_volume_{m_host_, "name"_ = "m_volume_volume_", "TEMP"_};
-    engine::AttributeT<Real, CELL> m_volume_inv_volume_{m_host_, "name"_ = "m_volume_inv_volume_", "TEMP"_};
-    engine::AttributeT<Real, CELL> m_volume_dual_volume_{m_host_, "name"_ = "m_volume_dual_volume_", "TEMP"_};
-    engine::AttributeT<Real, CELL> m_volume_inv_dual_volume_{m_host_, "name"_ = "m_volume_inv_dual_volume_", "TEMP"_};
+    engine::AttributeT<Real, NODE> m_node_volume_{m_host_, "name"_ = "m_node_volume_", "TEMP"_};
+    engine::AttributeT<Real, NODE> m_node_inv_volume_{m_host_, "name"_ = "m_node_inv_volume_", "TEMP"_};
+    engine::AttributeT<Real, NODE> m_node_dual_volume_{m_host_, "name"_ = "m_node_dual_volume_", "TEMP"_};
+    engine::AttributeT<Real, NODE> m_node_inv_dual_volume_{m_host_, "name"_ = "m_node_inv_dual_volume_", "TEMP"_};
+    engine::AttributeT<Real, CELL> m_cell_volume_{m_host_, "name"_ = "m_cell_volume_", "TEMP"_};
+    engine::AttributeT<Real, CELL> m_cell_inv_volume_{m_host_, "name"_ = "m_cell_inv_volume_", "TEMP"_};
+    engine::AttributeT<Real, CELL> m_cell_dual_volume_{m_host_, "name"_ = "m_cell_dual_volume_", "TEMP"_};
+    engine::AttributeT<Real, CELL> m_cell_inv_dual_volume_{m_host_, "name"_ = "m_cell_inv_dual_volume_", "TEMP"_};
     engine::AttributeT<Real, EDGE> m_edge_volume_{m_host_, "name"_ = "m_edge_volume_", "TEMP"_};
     engine::AttributeT<Real, EDGE> m_edge_inv_volume_{m_host_, "name"_ = "m_edge_inv_volume_", "TEMP"_};
     engine::AttributeT<Real, EDGE> m_edge_dual_volume_{m_host_, "name"_ = "m_edge_dual_volume_", "TEMP"_};
@@ -69,15 +69,15 @@ void RectMesh<THost>::InitialCondition(Real time_now) {
     //        return chart->global_coordinates(x, y, z, 0b0)[0];
     //    };
     //    m_vertices_ = [&](point_type const &x) { return (x); };
-    m_vertex_volume_.Update();
-    m_vertex_inv_volume_.Update();
-    m_vertex_dual_volume_.Update();
-    m_vertex_inv_dual_volume_.Update();
+    m_node_volume_.Update();
+    m_node_inv_volume_.Update();
+    m_node_dual_volume_.Update();
+    m_node_inv_dual_volume_.Update();
 
-    m_volume_volume_.Update();
-    m_volume_inv_volume_.Update();
-    m_volume_dual_volume_.Update();
-    m_volume_inv_dual_volume_.Update();
+    m_cell_volume_.Update();
+    m_cell_inv_volume_.Update();
+    m_cell_dual_volume_.Update();
+    m_cell_inv_dual_volume_.Update();
 
     m_edge_volume_.Update();
     m_edge_inv_volume_.Update();
@@ -110,23 +110,23 @@ void RectMesh<THost>::InitialCondition(Real time_now) {
      *\endverbatim
      */
 
-    m_vertex_volume_ = 1.0;
-    m_vertex_inv_volume_ = 1.0;
-    m_vertex_dual_volume_ = 1.0;
-    //    m_vertex_dual_volume_ = [&](index_type x, index_type y, index_type z, int tag) -> Real {
+    m_node_volume_ = 1.0;
+    m_node_inv_volume_ = 1.0;
+    m_node_dual_volume_ = 1.0;
+    //    m_node_dual_volume_ = [&](index_type x, index_type y, index_type z, int tag) -> Real {
     //        return chart->volume(chart->local_coordinates(x - 1, y - 1, z - 1, 0b111),
     //                             chart->local_coordinates(x, y, z, 0b111));
     //    };
-    m_vertex_inv_dual_volume_ = 1.0 / m_vertex_dual_volume_;
+    m_node_inv_dual_volume_ = 1.0 / m_node_dual_volume_;
 
-    m_volume_volume_ = 1.0;
-    //    m_volume_volume_ = [&](index_type x, index_type y, index_type z, int tag) -> Real {
+    m_cell_volume_ = 1.0;
+    //    m_cell_volume_ = [&](index_type x, index_type y, index_type z, int tag) -> Real {
     //        return chart->volume(chart->local_coordinates(x, y, z, 0b0),
     //                             chart->local_coordinates(x + 1, y + 1, z + 1, 0b0));
     //    };
-    m_volume_inv_volume_ = 1.0 / m_volume_volume_;
-    m_volume_dual_volume_ = 1.0;
-    m_volume_inv_dual_volume_ = 1.0;
+    m_cell_inv_volume_ = 1.0 / m_cell_volume_;
+    m_cell_dual_volume_ = 1.0;
+    m_cell_inv_dual_volume_ = 1.0;
 
     //    m_edge_volume_ = [&](index_type x, index_type y, index_type z, int w) -> Real {
     //        return chart->length(
@@ -168,10 +168,10 @@ void RectMesh<THost>::InitialCondition(Real time_now) {
 
 template <typename THost>
 void RectMesh<THost>::BoundaryCondition(Real time_now, Real time_dt) {
-    //    this->FillRange(m_vertex_volume_, 0, "PATCH_BOUNDARY_");
-    //    this->FillRange(m_vertex_dual_volume_, 0, "PATCH_BOUNDARY_");
-    //    this->FillRange(m_vertex_inv_volume_, 0, "PATCH_BOUNDARY_");
-    //    this->FillRange(m_vertex_inv_dual_volume_, 0, "PATCH_BOUNDARY_");
+    //    this->FillRange(m_node_volume_, 0, "PATCH_BOUNDARY_");
+    //    this->FillRange(m_node_dual_volume_, 0, "PATCH_BOUNDARY_");
+    //    this->FillRange(m_node_inv_volume_, 0, "PATCH_BOUNDARY_");
+    //    this->FillRange(m_node_inv_dual_volume_, 0, "PATCH_BOUNDARY_");
     //
     //    this->FillRange(m_edge_volume_, 0, "PATCH_BOUNDARY_");
     //    this->FillRange(m_edge_dual_volume_, 0, "PATCH_BOUNDARY_");
@@ -183,10 +183,10 @@ void RectMesh<THost>::BoundaryCondition(Real time_now, Real time_dt) {
     //    this->FillRange(m_face_inv_volume_, 0, "PATCH_BOUNDARY_");
     //    this->FillRange(m_face_inv_dual_volume_, 0, "PATCH_BOUNDARY_");
     //
-    //    this->FillRange(m_volume_volume_, 0, "PATCH_BOUNDARY_");
-    //    this->FillRange(m_volume_dual_volume_, 0, "PATCH_BOUNDARY_");
-    //    this->FillRange(m_volume_inv_volume_, 0, "PATCH_BOUNDARY_");
-    //    this->FillRange(m_volume_inv_dual_volume_, 0, "PATCH_BOUNDARY_");
+    //    this->FillRange(m_cell_volume_, 0, "PATCH_BOUNDARY_");
+    //    this->FillRange(m_cell_dual_volume_, 0, "PATCH_BOUNDARY_");
+    //    this->FillRange(m_cell_inv_volume_, 0, "PATCH_BOUNDARY_");
+    //    this->FillRange(m_cell_inv_dual_volume_, 0, "PATCH_BOUNDARY_");
 }
 
 }  // namespace mesh {

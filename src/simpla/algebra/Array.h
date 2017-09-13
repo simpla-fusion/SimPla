@@ -211,7 +211,6 @@ class Array {
         }
     }
 
-   private:
     void alloc();
 };
 template <typename V, typename SFC>

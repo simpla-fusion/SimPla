@@ -81,7 +81,9 @@ void Attribute::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
     Push(cfg->Get("_DATA_"));
 }
-
+void Attribute::DoSetUp() { base_type::DoSetUp(); };
+void Attribute::DoUpdate() { base_type::DoUpdate(); };
+void Attribute::DoTearDown() { base_type::DoTearDown(); };
 void Attribute::Register(AttributeGroup *attr_b) {
     if (attr_b == nullptr) {
         static std::hash<std::string> s_hasher;

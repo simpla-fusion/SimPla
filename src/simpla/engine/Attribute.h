@@ -146,6 +146,9 @@ struct Attribute : public EngineObject {
 
     void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;
     std::shared_ptr<simpla::data::DataNode> Serialize() const override;
+    void DoSetUp() override;
+    void DoUpdate() override;
+    void DoTearDown() override;
 
     virtual std::type_info const &value_type_info() const = 0;
     virtual int GetIFORM() const = 0;
@@ -216,8 +219,10 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
     }
 
     void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;
-
     std::shared_ptr<simpla::data::DataNode> Serialize() const override;
+    void DoSetUp() override;
+    void DoUpdate() override;
+    void DoTearDown() override;
 
     void Push(const std::shared_ptr<data::DataNode> &) override;
     std::shared_ptr<data::DataNode> Pop() const override;
@@ -297,6 +302,7 @@ void AttributeT<V, IFORM, DOF...>::Deserialize(std::shared_ptr<data::DataNode> c
     base_type::Deserialize(cfg);
     Push(cfg->Get("_DATA_"));
 };
+
 namespace detail {
 template <typename U>
 std::shared_ptr<data::DataNode> pop_data(Array<U> const &v) {
@@ -349,7 +355,25 @@ template <typename U, int N0, int... N>
 void clear(nTuple<Array<U>, N0, N...> &v) {
     for (int i = 0; i < N0; ++i) { clear(v[i]); }
 }
+template <typename U>
+void update(Array<U> &d) {
+    d.alloc();
+}
+template <typename U, int N0, int... N>
+void update(nTuple<Array<U>, N0, N...> &v) {
+    for (int i = 0; i < N0; ++i) { update(v[i]); }
+}
 }  // namespace detail{
+
+template <typename V, int IFORM, int... DOF>
+void AttributeT<V, IFORM, DOF...>::DoSetUp(){};
+template <typename V, int IFORM, int... DOF>
+void AttributeT<V, IFORM, DOF...>::DoUpdate() {
+    detail::update(*this);
+};
+template <typename V, int IFORM, int... DOF>
+void AttributeT<V, IFORM, DOF...>::DoTearDown(){};
+
 template <typename V, int IFORM, int... DOF>
 bool AttributeT<V, IFORM, DOF...>::isNull() const {
     return detail::is_null(*this);
