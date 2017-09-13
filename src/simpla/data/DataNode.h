@@ -66,7 +66,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     /** @addtogroup required @{*/
     virtual std::shared_ptr<DataNode> Duplicate() const;
     virtual std::shared_ptr<DataNode> CreateNode(eNodeType e_type) const;
-    virtual std::shared_ptr<DataNode> CreateNode(std::string const& url, eNodeType e_type = DN_TABLE);
+    virtual std::shared_ptr<DataNode> CreateNode(std::string const& url, eNodeType e_type);
 
     virtual std::shared_ptr<DataEntity> GetEntity() const { return m_entity_; }
     virtual void SetEntity(std::shared_ptr<DataEntity> e) { m_entity_ = e; }

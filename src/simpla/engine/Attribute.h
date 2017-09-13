@@ -266,7 +266,8 @@ AttributeT<V, IFORM, DOF...>::~AttributeT(){};
 template <typename V, int IFORM, int... DOF>
 std::string AttributeT<V, IFORM, DOF...>::FancyTypeName() {
     return "AttributeT<" + simpla::traits::type_name<V>::value() + "," + EntityIFORMName[IFORM] +
-           simpla::traits::to_string(DOF...) + ">";
+           ((sizeof...(DOF) == 0) ? "" : ("," + simpla::traits::to_string(DOF...))) + ">";
+    ;
 }
 
 template <typename V, int IFORM, int... DOF>

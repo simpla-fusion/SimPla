@@ -108,7 +108,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM, DOF...
 template <typename TM, typename TV, int IFORM, int... DOF>
 std::string Field<TM, TV, IFORM, DOF...>::FancyTypeName() {
     return "Field<" + simpla::traits::type_name<TM>::value() + "," + simpla::traits::type_name<TV>::value() + "," +
-           EntityIFORMName[IFORM] + simpla::traits::to_string(DOF...) + ">";
+           EntityIFORMName[IFORM] + ((sizeof...(DOF) == 0) ? "" : ("," + simpla::traits::to_string(DOF...))) + ">";
 }
 
 template <typename TM, typename TL, int... NL>

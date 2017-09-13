@@ -159,24 +159,11 @@ std::shared_ptr<DataNode> DataNode::CreateNode(std::string const& url, eNodeType
     return node;
 };
 
-size_type DataNode::Set(std::string const& uri, const std::shared_ptr<DataNode>& v) {
-    DOMAIN_ERROR;
-    return 0;
-}
-size_type DataNode::Add(std::string const& uri, const std::shared_ptr<DataNode>& v) {
-    DOMAIN_ERROR;
-    return 0;
-}
-size_type DataNode::Delete(std::string const& s) {
-    DOMAIN_ERROR;
-    return 0;
-}
-std::shared_ptr<DataNode> DataNode::Get(std::string const& uri) const {
-    DOMAIN_ERROR;
-    return nullptr;
-}
+size_type DataNode::Set(std::string const& uri, const std::shared_ptr<DataNode>& v) { return 0; }
+size_type DataNode::Add(std::string const& uri, const std::shared_ptr<DataNode>& v) { return 0; }
+size_type DataNode::Delete(std::string const& s) { return 0; }
+std::shared_ptr<DataNode> DataNode::Get(std::string const& uri) const { return nullptr; }
 size_type DataNode::Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode> const&)> const& f) const {
-    DOMAIN_ERROR;
     return 0;
 }
 size_type DataNode::Set(index_type s, std::shared_ptr<DataNode> const& v) { return Set(std::to_string(s), v); }
