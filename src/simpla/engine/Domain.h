@@ -137,7 +137,7 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     void DoTagRefinementCells(Real time_now) override;
 
 template <typename TChart, template <typename> class... Policies>
-Domain<TChart, Policies...>::Domain() : DomainBase() {}
+Domain<TChart, Policies...>::Domain() : DomainBase(), Policies<this_type>(this)... {}
 template <typename TChart, template <typename> class... Policies>
 Domain<TChart, Policies...>::~Domain(){};
 

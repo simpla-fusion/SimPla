@@ -16,11 +16,29 @@ AttributeGroup::AttributeGroup() = default;
 AttributeGroup::~AttributeGroup() {
     for (auto &item : m_attributes_) { item.second->Deregister(this); }
 }
-std::shared_ptr<data::DataNode> AttributeGroup::Serialize() const { return nullptr; }
-void AttributeGroup::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {}
+std::shared_ptr<data::DataNode> AttributeGroup::Serialize() const {
+    auto res = data::DataNode::New(data::DataNode::DN_TABLE);
+    for (auto const &item : m_attributes_) { res->Set(item.first, item.second->Serialize()); }
+    return res;
+}
+void AttributeGroup::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
+    if (cfg == nullptr) { return; }
+    cfg->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &tdb) {
+        auto attr = Attribute::New(tdb);
+        attr->SetName(key);
+        Attach(attr.get());
+        return 0;
+    });
+}
 void AttributeGroup::Push(const std::shared_ptr<data::DataNode> &p) {
-    for (auto &item : m_attributes_) {
-        if (auto attr = p->Get(item.second->db()->GetValue<id_type>("DescID", NULL_ID))) { item.second->Push(attr); }
+    if (p == nullptr) {
+        for (auto &item : m_attributes_) { item.second->Push(nullptr); }
+    } else {
+        for (auto &item : m_attributes_) {
+            if (auto attr = p->Get(item.second->db()->GetValue<id_type>("DescID", NULL_ID))) {
+                item.second->Push(attr);
+            }
+        }
     }
 }
 

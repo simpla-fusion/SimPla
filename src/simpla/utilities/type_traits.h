@@ -865,6 +865,33 @@ template <typename T>
 struct type_name<T, std::enable_if_t<has_fancy_type_name<T, std::string>::value>> {
     static std::string value() { return T::FancyTypeName(); }
 };
+
+template <>
+struct type_name<double> {
+    static std::string value() { return "double"; }
+};
+template <>
+struct type_name<int> {
+    static std::string value() { return "int"; }
+};
+template <>
+struct type_name<long> {
+    static std::string value() { return "long"; }
+};
+template <>
+struct type_name<unsigned long> {
+    static std::string value() { return "unsigned long"; }
+};
+
+inline std::string to_string() { return ""; }
+template <typename Arg0>
+std::string to_string(Arg0 const& arg0) {
+    return std::to_string(arg0);
 }
+template <typename Arg0, typename... Args>
+std::string to_string(Arg0 const& arg0, Args&&... args) {
+    return to_string(arg0) + "," + to_string(std::forward<Args>(args)...);
+}
+}  // namespace traits
 }  // namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */

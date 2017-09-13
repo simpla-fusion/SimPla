@@ -23,7 +23,6 @@ DomainBase::~DomainBase() { delete m_pimpl_; };
 std::shared_ptr<data::DataNode> DomainBase::Serialize() const {
     auto tdb = base_type::Serialize();
     tdb->Set("Chart", m_pimpl_->m_chart_->Serialize());
-
     tdb->Set("Boundary", m_pimpl_->m_boundary_->Serialize());
     tdb->Set("Attributes", AttributeGroup::Serialize());
     return tdb;

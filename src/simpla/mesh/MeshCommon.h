@@ -12,9 +12,10 @@ namespace mesh {
    private:                                                        \
     typedef THost host_type;                                       \
     typedef _NAME_<THost> this_type;                               \
+    THost *m_host_;                                                \
                                                                    \
    public:                                                         \
-    _NAME_() noexcept {}                                           \
+    _NAME_(THost *h) : m_host_(h) {}                               \
     virtual ~_NAME_() = default;                                   \
     _NAME_(_NAME_ const &other) = delete;                          \
     _NAME_(_NAME_ &&other) = delete;                               \

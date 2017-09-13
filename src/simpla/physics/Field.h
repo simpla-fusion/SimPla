@@ -36,12 +36,13 @@ decltype(auto) GetValue(Array<T, O...> const& expr, Args&&... args) {
 
 template <typename TM, typename TV, int...>
 class Field;
-
 template <typename TM, typename TV, int IFORM, int... DOF>
 class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM, DOF...> {
    private:
     typedef Field<TM, TV, IFORM, DOF...> this_type;
     typedef engine::AttributeT<TV, IFORM, DOF...> base_type;
+    static std::string FancyTypeName();
+    virtual std::string TypeName() const override { return FancyTypeName(); }
 
    public:
     typedef TV value_type;
@@ -103,6 +104,12 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM, DOF...
     }
 
 };  // class Field
+
+template <typename TM, typename TV, int IFORM, int... DOF>
+std::string Field<TM, TV, IFORM, DOF...>::FancyTypeName() {
+    return "Field<" + simpla::traits::type_name<TM>::value() + "," + simpla::traits::type_name<TV>::value() + "," +
+           EntityIFORMName[IFORM] + simpla::traits::to_string(DOF...) + ">";
+}
 
 template <typename TM, typename TL, int... NL>
 auto operator<<(Field<TM, TL, NL...> const& lhs, int n) {

@@ -141,8 +141,6 @@ struct Attribute : public EngineObject {
     virtual int GetRank() const = 0;
     virtual void SetDOF(int rank, int const *d) = 0;
 
-    template <typename THost>
-    void Register(THost p) {}
     void Register(AttributeGroup *p = nullptr);
     void Deregister(AttributeGroup *p = nullptr);
 
@@ -170,7 +168,36 @@ struct attribute_traits<V, CELL> {
 
 template <typename V, int IFORM, int... DOF>
 struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>::data_type {
-    SP_OBJECT_HEAD(AttributeT, Attribute)
+    //    SP_OBJECT_HEAD(AttributeT, Attribute)
+
+   public:
+    static std::string FancyTypeName();
+    virtual std::string TypeName() const override { return simpla::traits::type_name<this_type>::value(); }
+
+    static bool _is_registered;
+
+   private:
+    typedef Attribute base_type;
+    typedef AttributeT this_type;
+
+   protected:
+    AttributeT();
+
+   public:
+    ~AttributeT() override;
+    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;
+    std::shared_ptr<simpla::data::DataNode> Serialize() const override;
+
+    template <typename... Args>
+    static std::shared_ptr<this_type> New(Args &&... args) {
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
+    }
+
+    static std::shared_ptr<this_type> New(std::shared_ptr<simpla::data::DataNode> cfg) {
+        auto res = std::shared_ptr<this_type>(new this_type());
+        res->Deserialize(cfg);
+        return res;
+    }
 
     typedef V value_type;
     typedef Array<value_type> array_type;
@@ -236,6 +263,11 @@ template <typename V, int IFORM, int... DOF>
 AttributeT<V, IFORM, DOF...>::AttributeT(){};
 template <typename V, int IFORM, int... DOF>
 AttributeT<V, IFORM, DOF...>::~AttributeT(){};
+template <typename V, int IFORM, int... DOF>
+std::string AttributeT<V, IFORM, DOF...>::FancyTypeName() {
+    return "AttributeT<" + simpla::traits::type_name<V>::value() + "," + EntityIFORMName[IFORM] +
+           simpla::traits::to_string(DOF...) + ">";
+}
 
 template <typename V, int IFORM, int... DOF>
 std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Serialize() const {
@@ -265,7 +297,8 @@ std::shared_ptr<data::DataNode> pop_data(nTuple<Array<U>, N0, N...> const &v) {
 template <typename U>
 size_type push_data(Array<U> &dest, std::shared_ptr<data::DataNode> const &src) {
     size_type count = 0;
-    if (auto p = std::dynamic_pointer_cast<data::DataBlockT<U>>(src->GetEntity())) {
+    if (src == nullptr) {
+    } else if (auto p = std::dynamic_pointer_cast<data::DataBlockT<U>>(src->GetEntity())) {
         Array<U>(*p).swap(dest);
         count = 1;
     }
@@ -275,7 +308,9 @@ size_type push_data(Array<U> &dest, std::shared_ptr<data::DataNode> const &src) 
 template <typename U, int N0, int... N>
 size_type push_data(nTuple<Array<U>, N0, N...> &v, std::shared_ptr<data::DataNode> const &src) {
     size_type count = 0;
-    for (int i = 0; i < N0; ++i) { count += push_data(v[i], src->Get(i)); }
+
+    for (int i = 0; i < N0; ++i) { count += push_data(v[i], src == nullptr ? nullptr : src->Get(i)); }
+
     return count;
 }
 }  // namespace detail{
@@ -289,173 +324,6 @@ template <typename V, int IFORM, int... DOF>
 std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Pop() const {
     return detail::pop_data(*this);
 };
-
-//
-// template <typename U, typename... Others, int... N>
-// void Attribute::PushData(nTuple<Array<U, Others...>, N...> *d) {
-//    typedef Array<U, Others...> array_type;
-//    auto *blk = dynamic_cast<data::DataMultiArray<array_type> *>(GetDataBlock());
-//    if (blk != nullptr) {
-//        int count = 0;
-//        traits::foreach (*d, [&](array_type &a, auto &&... idx) {
-//            array_type(*blk->GetEntity(count)).swap(a);
-//            ++count;
-//        });
-//    }
-//    Tag();
-//};
-// template <typename U, typename... Others, int... N>
-// void Attribute::PopData(nTuple<Array<U, Others...>, N...> *d) {
-//    typedef Array<U, Others...> array_type;
-//    auto *blk = dynamic_cast<data::DataMultiArray<array_type> *>(GetDataBlock());
-//    if (blk == nullptr) {
-//        Push(std::make_shared<data::DataMultiArray<array_type>>(d->size()));
-//        blk = dynamic_cast<data::DataMultiArray<array_type> *>(GetDataBlock());
-//    }
-//    int count = 0;
-//    traits::foreach (*d, [&](array_type &a, auto &&... idx) {
-//        array_type(a).swap(*blk->GetEntity(count));
-//        a.reset();
-//        ++count;
-//    });
-//    ResetTag();
-//};
-
-// template <typename T>
-// T AttributeGroup::GetAttribute(std::string const &k) const {
-//    return T(AttributeGroup::GetPatch(k)->cast_as<T>());
-//};
-//
-// template <typename, typename Enable = void>
-// class AttributeViewAdapter {};
-//
-// CHECK_MEMBER_TYPE(mesh_type, mesh_type);
-// CHECK_MEMBER_FUNCTION(has_swap, swap)
-// template <typename U>
-// class AttributeViewAdapter<
-//    U, std::enable_if_t<std::is_copy_constructible<U>::value && traits::has_swap<U, void(U &)>::value>>
-//    : public Attribute, public U {
-//    SP_DEFINE_FANCY_TYPE_NAME(AttributeViewAdapter<U>, Attribute);
-//
-//    typedef algebra::traits::value_type_t<U> value_type;
-//    typedef typename algebra::traits::mesh_type_t<U> mesh_type;
-//    static const int iform = algebra::traits::iform<U>::value;
-//    static const int dof = algebra::traits::dof<U>::value;
-//    static const int NDIMS = algebra::traits::ndims<U>::value;
-//    static const int num_of_sub = algebra::traits::num_of_sub<U>::value;
-//
-//   public:
-//    typedef std::true_type prefer_pass_by_reference;
-//
-//    template <typename... Args>
-//    explicit AttributeViewAdapter(AttributeGroup *b, Args &&... args)
-//        : Attribute(b, data::make_data(std::forward<Args>(args)...)) {}
-//
-//    AttributeViewAdapter(AttributeViewAdapter &&) = delete;
-//    AttributeViewAdapter(AttributeViewAdapter const &) = delete;
-//    virtual ~AttributeViewAdapter() {}
-//
-//    virtual int GetIFORM() const { return iform; };
-//    virtual int GetDOF() const { return dof; };
-//    virtual std::type_info const &value_type_info() const { return typeid(value_type); };  //!< value type
-//    virtual std::type_info const &mesh_type_info() const { return typeid(void); };         //!< mesh type
-//    virtual void Clear() { U::Clear(); }
-//    virtual void SetBaseMesh(MeshBase const *){};
-//    virtual MeshBase const *GetBaseMesh() const { return nullptr; };
-//    virtual void GetPatch(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataNode> const
-//    &d) {
-//        data::data_cast<U>(*d).swap(*this);
-//    };
-//    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataNode>> Serialize() {
-//        return std::make_pair(std::shared_ptr<MeshBlock>(nullptr), data::make_data(*this));
-//    };
-//    template <typename TExpr>
-//    this_type &operator=(TExpr const &expr) {
-//        Click();
-//        U::operator=(expr);
-//        return *this;
-//    };
-//
-//    bool UpdatePatch() final {
-//        if (!Attribute::UpdatePatch()) { return false; }
-//        return U::UpdatePatch();
-//    }
-//};
-//
-// template <typename TV, typename TM, int IFORM = NODE, int DOF = 1>
-// using FieldAttribute = Field<TV, TM, IFORM, DOF>;
-//
-// template <typename TV = Real, int IFORM = NODE, int DOF = 1>
-// using DataAttribute = AttributeViewAdapter<Array<TV, 3 + (((IFORM == NODE || IFORM == CELL) && DOF == 1) ? 0 :
-// 1)>>;
-//
-// template <typename TV, int IFORM = NODE, int DOF = 1>
-// struct DataAttribute : public Attribute,
-//                       public Array<TV, 3 + (((IFORM == NODE || IFORM == CELL) && DOF == 1) ? 0 : 1)> {
-//    typedef Array<TV, 3 + (((IFORM == NODE || IFORM == CELL) && DOF == 1) ? 0 : 1)> array_type;
-//    typedef DataAttribute<TV, IFORM, DOF> data_attr_type;
-//    SP_DEFINE_FANCY_TYPE_NAME(data_attr_type, Attribute);
-//    CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, MeshBase)
-//    typedef TV value_type;
-//    static constexpr int GetIFORM = IFORM;
-//    static constexpr int GetDOF = DOF;
-//    typedef MeshBase mesh_type;
-//
-//    template <typename TM, typename... Args>
-//    DataAttribute(TM *w, Args &&... args)
-//        : base_type(w, AttributeDesc::create<value_type, GetIFORM, GetDOF>(std::forward<Args>(args)...)),
-//          Attribute(<#initializer #>, nullptr, <#initializer #>) {}
-//    template <typename TM>
-//    DataAttribute(TM *m, std::initializer_list<data::KeyValue> const &param)
-//        : base_type(m, AttributeDesc::create<value_type, GetIFORM, GetDOF>(param)),
-//          Attribute(<#initializer #>, nullptr, <#initializer #>) {}
-//    DataAttribute(DataAttribute &&) = delete;
-//    DataAttribute(DataAttribute const &) = delete;
-//    virtual ~DataAttribute() {}
-//
-//    template <typename... Args>
-//    static std::shared_ptr<this_type> CreateNew(Args &&... args) {
-//        return std::make_shared<this_type>(std::forward<Args>(args)...);
-//    }
-//
-//    virtual std::shared_ptr<DataBlock> InitialCondition(void *p = nullptr) const {
-//        std::shared_ptr<value_type> d(nullptr);
-//        if (p != nullptr) {
-//            d = std::shared_ptr<value_type>(static_cast<value_type *>(p), simpla::tags::do_nothing());
-//        } else {
-//#ifdef USE_MEMORYPOOL
-//            d = sp_alloc_array<value_type>(array_type::size());
-//#else
-//            d = std::shared_ptr<value_type>(new value_type[array_type::size()]);
-//#endif
-//        }
-//        return std::dynamic_pointer_cast<DataBlock>(
-//            std::make_shared<DefaultDataBlock<value_type, IFORM, DOF>>(d, array_type::size()));
-//    };
-//
-//    using array_type::operator=;
-//    template <typename... Args>
-//    static std::shared_ptr<this_type> make_shared(Args &&... args) {
-//        return std::make_shared<this_type>(std::forward<Args>(args)...);
-//    }
-//    static std::shared_ptr<this_type> make_shared(MeshBase *c, std::initializer_list<data::KeyValue> const &param) {
-//        return std::make_shared<this_type>(c, param);
-//    }
-//    virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return array_type::Print(os, indent); }
-//
-//    virtual value_type *data() { return reinterpret_cast<value_type *>(Attribute::GetDataBlock()->raw_data()); }
-//
-//    virtual void UpdatePatch() {
-//        Attribute::UpdatePatch();
-//        array_type::UpdatePatch();
-//    }
-//    virtual void DoFinalize() {
-//        array_type::DoFinalize();
-//        Attribute::DoFinalize();
-//    }
-//
-//    virtual void Clear() { array_type::Clear(); }
-//};
 
 }  // namespace engine
 }  // namespace simpla
