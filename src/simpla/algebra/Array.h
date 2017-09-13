@@ -120,23 +120,10 @@ class Array {
     void Shift(Args&&... args) {
         m_sfc_.Shift(std::forward<Args>(args)...);
     }
-    void SetUp() {
-        if (m_data_ == nullptr) {
-            if (m_holder_ == nullptr) { m_holder_ = spMakeShared<value_type>(m_data_, m_sfc_.size()); }
-            m_host_data_ = m_data_;
-            m_data_ = m_holder_.get();
-
-#ifndef NDEBUG
-            Fill(std::numeric_limits<V>::signaling_NaN());
-#else
-            Fill(0);
-#endif
-        }
-    }
-    void TearDown() { reset(); }
 
     template <typename... Args>
     size_type CopyIn(this_type const& other, Args&&... args) {
+        alloc();
         return m_sfc_.Copy(m_data_, other, std::forward<Args>(args)...);
     };
     template <typename... Args>
@@ -144,28 +131,28 @@ class Array {
         return other.CopyIn(*this, std::forward<Args>(args)...);
     };
     void DeepCopy(value_type const* other) {
-        SetUp();
+        alloc();
         m_sfc_.CopyIn(m_data_, other);
     }
 
     void Fill(value_type v) {
-        SetUp();
+        alloc();
         //        CopyIn(v);
     }
     void Clear() {
-        SetUp();
+        alloc();
         Fill(0);
     }
 
     this_type& operator=(this_type const& rhs) {
-        SetUp();
+        alloc();
         Assign(rhs);
         return (*this);
     }
 
     template <typename TR>
     this_type& operator=(TR const& rhs) {
-        SetUp();
+        alloc();
         Assign(rhs);
         return (*this);
     }
@@ -223,7 +210,24 @@ class Array {
             at(std::forward<Args>(args)...) = calculus::getValue(rhs, std::forward<Args>(args)...);
         }
     }
+
+   private:
+    void alloc();
 };
+template <typename V, typename SFC>
+void Array<V, SFC>::alloc() {
+    if (m_data_ == nullptr) {
+        if (m_holder_ == nullptr) { m_holder_ = spMakeShared<value_type>(m_data_, m_sfc_.size()); }
+        m_host_data_ = m_data_;
+        m_data_ = m_holder_.get();
+
+#ifndef NDEBUG
+        Fill(std::numeric_limits<V>::signaling_NaN());
+#else
+        Fill(0);
+#endif
+    }
+}
 
 namespace traits {
 template <typename... T>

@@ -190,10 +190,14 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
    private:
     typedef Attribute base_type;
     typedef AttributeT this_type;
+    typedef typename attribute_traits<V, IFORM, DOF...>::data_type data_type;
+    typedef V value_type;
+    typedef Array<value_type> array_type;
 
-public:
+   public:
+    static constexpr int iform = IFORM;
+
     AttributeT();
-
 
     template <typename... Args>
     explicit AttributeT(Args &&... args) : Attribute(std::forward<Args>(args)...) {}
@@ -215,12 +219,6 @@ public:
 
     std::shared_ptr<simpla::data::DataNode> Serialize() const override;
 
-    typedef V value_type;
-    typedef Array<value_type> array_type;
-    typedef typename attribute_traits<V, IFORM, DOF...>::data_type data_type;
-    static constexpr int iform = IFORM;
-
-   public:
     void Push(const std::shared_ptr<data::DataNode> &) override;
     std::shared_ptr<data::DataNode> Pop() const override;
 
@@ -268,6 +266,8 @@ public:
     auto const &operator()(index_type n0, Args &&... args) const {
         return Get(n0, std::forward<Args>(args)...);
     }
+
+    using data_type::operator=;
 
    private:
     static constexpr int m_extents_[sizeof...(DOF) + 1] = {(IFORM == NODE || IFORM == CELL) ? 1 : 3, DOF...};

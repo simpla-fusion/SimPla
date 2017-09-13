@@ -32,7 +32,6 @@ std::shared_ptr<data::DataNode> Scenario::Serialize() const {
     cfg->Set("Atlas", GetAtlas()->Serialize());
     auto domain = data::DataNode::New(data::DataNode::DN_TABLE);
     for (auto const &item : m_pimpl_->m_domains_) {
-        CHECK(item.first);
         domain->Set(item.first, item.second->Serialize());
     }
     cfg->Set("Domain", domain);
