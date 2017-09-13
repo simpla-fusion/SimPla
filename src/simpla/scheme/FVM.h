@@ -614,6 +614,11 @@ struct FVM {
 };  // class FVM
 
 template <typename THost>
+FVM<THost>::FVM(THost* h) : m_host_(h) {}
+template <typename THost>
+FVM<THost>::~FVM() {}
+
+template <typename THost>
 std::shared_ptr<data::DataNode> FVM<THost>::Serialize() const {
     return nullptr;
 }

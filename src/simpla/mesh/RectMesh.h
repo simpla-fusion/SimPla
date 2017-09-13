@@ -10,7 +10,6 @@
 #include <simpla/algebra/Algebra.h>
 #include <simpla/data/Data.h>
 #include <simpla/engine/Attribute.h>
-
 #include "StructuredMesh.h"
 
 namespace simpla {
@@ -47,6 +46,15 @@ struct RectMesh : public StructuredMesh {
     engine::AttributeT<Real, FACE> m_face_dual_volume_{m_host_, "name"_ = "m_face_dual_volume_", "TEMP"_};
     engine::AttributeT<Real, FACE> m_face_inv_dual_volume_{m_host_, "name"_ = "m_face_inv_dual_volume_", "TEMP"_};
 };
+template <typename THost>
+RectMesh<THost>::RectMesh(THost* h) : m_host_(h) {
+    h->PreInitialCondition.Connect([=](engine::DomainBase* self, Real time_now) {
+        if (auto* p = dynamic_cast<RectMesh<THost>*>(self)) { p->InitialCondition(time_now); }
+    });
+}
+template <typename THost>
+RectMesh<THost>::~RectMesh() {}
+
 template <typename THost>
 std::shared_ptr<data::DataNode> RectMesh<THost>::Serialize() const {
     return nullptr;

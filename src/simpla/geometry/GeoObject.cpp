@@ -6,7 +6,7 @@
 #include <memory>
 
 #include "BoxUtilities.h"
-
+#include "Cube.h"
 namespace simpla {
 namespace geometry {
 
@@ -14,7 +14,7 @@ GeoObject::GeoObject() = default;
 GeoObject::~GeoObject() = default;
 
 std::shared_ptr<data::DataNode> GeoObject::Serialize() const { return base_type::Serialize(); }
-void GeoObject::Deserialize(std::shared_ptr<data::DataNode>const & cfg) { base_type::Deserialize(cfg); }
+void GeoObject::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
 
 box_type GeoObject::GetBoundingBox() const { return box_type{{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}; }
 
@@ -25,7 +25,16 @@ Real GeoObject::Measure() const {
 };
 
 bool GeoObject::CheckInside(point_type const &x) const { return CheckInSide(GetBoundingBox(), x); }
-
+std::shared_ptr<GeoObject> GeoObject::Intersection(std::shared_ptr<GeoObject> const &other) const {
+    return Cube::New(geometry::Overlap(GetBoundingBox(), other->GetBoundingBox()));
+}
+std::shared_ptr<GeoObject> GeoObject::Difference(std::shared_ptr<GeoObject> const &other) const {
+    UNIMPLEMENTED;
+    return nullptr;
+}
+std::shared_ptr<GeoObject> GeoObject::Union(std::shared_ptr<GeoObject> const &other) const {
+    return Cube::New(geometry::Union(GetBoundingBox(), other->GetBoundingBox()));
+}
 // Real GeoObject::CheckOverlap(box_type const &b) const { return Measure(Overlap(GetBoundingBox(), b)) / measure(); }
 //
 // Real GeoObject::CheckOverlap(GeoObject const &other) const { return CheckOverlap(other.GetBoundingBox()); }

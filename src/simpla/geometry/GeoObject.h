@@ -59,7 +59,7 @@ namespace geometry {
  *  @enduml
  */
 class GeoObject : public SPObject {
-SP_OBJECT_HEAD(GeoObject, SPObject)
+    SP_OBJECT_HEAD(GeoObject, SPObject)
 
     virtual int Dimension() const { return 3; };
     virtual Real Measure() const;
@@ -67,11 +67,13 @@ SP_OBJECT_HEAD(GeoObject, SPObject)
     /// The axis-aligned minimum bounding box (or AABB) , Cartesian
     virtual box_type GetBoundingBox() const;
     virtual bool CheckInside(point_type const &x) const;
+    virtual std::shared_ptr<GeoObject> Intersection(std::shared_ptr<GeoObject> const &other) const;
+    virtual std::shared_ptr<GeoObject> Difference(std::shared_ptr<GeoObject> const &other) const;
+    virtual std::shared_ptr<GeoObject> Union(std::shared_ptr<GeoObject> const &other) const;
 
     /// arbitrarily oriented minimum bounding box  (or OBB)
     //    virtual std::tuple<point_type, vector_type, vector_type, vector_type> OrientedBoundingBox() const;
 };
-
 }  // namespace geometry
 }  // namespace simpla
 

@@ -62,7 +62,9 @@ void Scenario::Synchronize() {}
 void Scenario::NextStep() {}
 void Scenario::Run() {}
 bool Scenario::Done() const { return true; }
-void Scenario::Dump() const {}
+void Scenario::Dump() const {
+    data::DataNode::New(db()->GetValue("DumpFile", "simpla_unanmed.h5"))->Set(m_pimpl_->m_atlas_->Serialize());
+}
 void Scenario::DoInitialize() {}
 void Scenario::DoFinalize() {}
 

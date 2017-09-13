@@ -81,6 +81,7 @@ struct DataBlockT : public DataBlock, public Array<V> {
         if (auto *p = dynamic_cast<array_type *>(&other)) { count = array_type::CopyOut(*p, lo, hi); }
         return count;
     }
+    std::ostream &Print(std::ostream &os, int indent) const override { return Array<V>::Print(os, indent); }
 };
 template <typename U>
 std::shared_ptr<data::DataBlock> make_data_block(U *p, int rank, index_type const *lo, index_type const *hi) {

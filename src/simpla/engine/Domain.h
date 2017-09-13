@@ -33,11 +33,12 @@ class DomainBase : public EngineObject, public AttributeGroup {
 
     void SetBlock(const std::shared_ptr<const MeshBlock> &blk);
     std::shared_ptr<const MeshBlock> GetBlock() const;
-
+    enum { IN_BOUNDARY = -1, ON_BOUNDARY = 0, OUT_BOUNDARY = 1 };
+    int CheckBoundary() const;
     void SetBoundary(std::shared_ptr<geometry::GeoObject> const &g);
     std::shared_ptr<geometry::GeoObject> GetBoundary() const;
 
-    bool CheckOverlap(const std::shared_ptr<MeshBlock> &blk) const;
+    std::shared_ptr<geometry::GeoObject> GetBlockBoundingBox() const;
 
     void DoSetUp() override;
     void DoUpdate() override;
@@ -139,8 +140,8 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     THost *m_host_;                                    \
                                                        \
    public:                                             \
-    _NAME_(THost *h) : m_host_(h) {}                   \
-    virtual ~_NAME_() = default;                       \
+    _NAME_(THost *h);                                  \
+    virtual ~_NAME_();                                 \
     _NAME_(_NAME_ const &other) = delete;              \
     _NAME_(_NAME_ &&other) = delete;                   \
     _NAME_ &operator=(_NAME_ const &other) = delete;   \

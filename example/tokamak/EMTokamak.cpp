@@ -50,9 +50,9 @@ int main(int argc, char** argv) {
     scenario->SetMaxStep(100);
     scenario->SetUp();
     std::cout << *scenario << std::endl;
-
     TheStart();
     scenario->Run();
+    std::cout << *scenario << std::endl;
     TheEnd();
     scenario->TearDown();
 }

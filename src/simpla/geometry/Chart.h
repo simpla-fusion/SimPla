@@ -165,8 +165,8 @@ struct Chart : public SPObject {
         return _InvMapFromBase(std::index_sequence_for<P...>(), points);
     }
 
-    virtual std::shared_ptr<GeoObject> BoundBox(box_type const &b) const;
-    virtual std::shared_ptr<GeoObject> BoundBox(index_box_type const &b) const;
+    virtual std::shared_ptr<GeoObject> BoundingBox(box_type const &b) const;
+    virtual std::shared_ptr<GeoObject> BoundingBox(index_box_type const &b) const;
 
    private:
     int m_level_ = 0;

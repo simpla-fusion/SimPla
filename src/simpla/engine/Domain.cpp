@@ -2,6 +2,7 @@
 // Created by salmon on 17-4-5.
 //
 
+#include <simpla/geometry/BoxUtilities.h>
 #include "simpla/SIMPLA_config.h"
 
 #include "simpla/geometry/Chart.h"
@@ -62,15 +63,15 @@ std::shared_ptr<const MeshBlock> DomainBase::GetBlock() const {
 
 void DomainBase::SetBoundary(std::shared_ptr<geometry::GeoObject> const& g) { m_pimpl_->m_boundary_ = g; }
 std::shared_ptr<geometry::GeoObject> DomainBase::GetBoundary() const { return m_pimpl_->m_boundary_; }
+std::shared_ptr<geometry::GeoObject> DomainBase::GetBlockBoundingBox() const {
+    return m_pimpl_->m_chart_->BoundingBox(m_pimpl_->m_mesh_block_->IndexBox());
+}
 
-bool DomainBase::CheckOverlap(const std::shared_ptr<MeshBlock>& blk) const {
-    //    Real ratio = 0;
-    //    if (g != nullptr) {
-    //        auto b = GetBox(0);
-    //        ratio = geometry::Measure(geometry::Overlap(g->GetBoundingBox(), b)) / geometry::Measure(b);
-    //    }
-    //    return std::make_tuple(ratio, IndexBox(0b0));
-    return false;
+int DomainBase::CheckBoundary() const {
+    ASSERT(m_pimpl_->m_boundary_ != nullptr);
+    auto b = GetBlockBoundingBox();
+    Real ratio = m_pimpl_->m_boundary_->Intersection(b)->Measure() / b->Measure();
+    return ratio < EPSILON ? OUT_BOUNDARY : (ratio < 1.0 ? ON_BOUNDARY : IN_BOUNDARY);
 }
 void DomainBase::Push(std::shared_ptr<data::DataNode> const& data) {
     base_type::Push(data);
@@ -88,14 +89,14 @@ void DomainBase::DoTearDown() {}
 
 void DomainBase::InitialCondition(Real time_now) {
     Update();
-    VERBOSE << std::setw(20) << "InitialCondition domain :" << GetName();
+    VERBOSE << std::setw(30) << "InitialCondition domain :" << GetName();
     PreInitialCondition(this, time_now);
     DoInitialCondition(time_now);
     PostInitialCondition(this, time_now);
 }
 void DomainBase::BoundaryCondition(Real time_now, Real dt) {
     Update();
-    VERBOSE << std::setw(20) << "BoundaryCondition domain :" << GetName();
+    VERBOSE << std::setw(30) << "BoundaryCondition domain :" << GetName();
     PreBoundaryCondition(this, time_now, dt);
     DoBoundaryCondition(time_now, dt);
     PostBoundaryCondition(this, time_now, dt);
@@ -103,7 +104,7 @@ void DomainBase::BoundaryCondition(Real time_now, Real dt) {
 
 void DomainBase::ComputeFluxes(Real time_now, Real dt) {
     Update();
-    VERBOSE << std::setw(20) << "ComputeFluxes domain :" << GetName();
+    VERBOSE << std::setw(30) << "ComputeFluxes domain :" << GetName();
     PreComputeFluxes(this, time_now, dt);
     DoComputeFluxes(time_now, dt);
     PostComputeFluxes(this, time_now, dt);
@@ -113,7 +114,7 @@ Real DomainBase::ComputeStableDtOnPatch(Real time_now, Real time_dt) const { ret
 void DomainBase::Advance(Real time_now, Real dt) {
     Update();
     //    if (std::get<0>(GetMesh()->CheckOverlap(GetBoundary())) < EPSILON) { return; }
-    VERBOSE << std::setw(20) << "Advance domain :" << GetName();
+    VERBOSE << std::setw(30) << "Advance domain :" << GetName();
     PreAdvance(this, time_now, dt);
     DoAdvance(time_now, dt);
     PostAdvance(this, time_now, dt);

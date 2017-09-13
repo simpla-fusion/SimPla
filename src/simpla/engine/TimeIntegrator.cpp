@@ -48,16 +48,31 @@ void TimeIntegrator::Advance(Real time_now, Real time_dt) {
     GetAtlas()->Foreach([&](std::shared_ptr<engine::MeshBlock> const &blk) {
         ASSERT(blk != nullptr);
         VERBOSE << std::setw(20) << "Block : " << blk->IndexBox();
-        auto p = GetPatch(blk->GetGUID());
-        if (p == nullptr) { p = data::DataNode::New(data::DataNode::DN_TABLE); }
+        auto patch = GetPatch(blk->GetGUID());
+        auto out_patch = data::DataNode::New(data::DataNode::DN_TABLE);
+        bool need_init_cond = false;
+        if (patch == nullptr) {
+            patch = data::DataNode::New(data::DataNode::DN_TABLE);
+            need_init_cond = true;
+        }
+
         for (auto &item : GetDomains()) {
             item.second->SetBlock(blk);
-            item.second->Push(p);
+            int chk_bdry = item.second->CheckBoundary();
+            if (chk_bdry == DomainBase::OUT_BOUNDARY) { continue; }
+
+            item.second->Push(patch);
+
+            if (need_init_cond) { item.second->InitialCondition(time_now); }
+
             item.second->Advance(time_now, time_dt);
 
-            p->Set(item.second->Pop());
+            if (chk_bdry == DomainBase::ON_BOUNDARY) { item.second->BoundaryCondition(time_now, time_dt); }
+
+            patch->Set(item.second->Pop());
         }
-        SetPatch(blk->GetGUID(), p);
+
+        SetPatch(blk->GetGUID(), patch);
 
     });
 }

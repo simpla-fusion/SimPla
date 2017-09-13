@@ -35,6 +35,10 @@ struct EBMesh {
     engine::AttributeT<Real, CELL> m_volume_tag_{m_host_, "name"_ = "volume_tag"};
 };
 template <typename THost>
+EBMesh<THost>::EBMesh(THost *h) : m_host_(h) {}
+template <typename THost>
+EBMesh<THost>::~EBMesh() {}
+template <typename THost>
 std::shared_ptr<data::DataNode> EBMesh<THost>::Serialize() const {
     return nullptr;
 }

@@ -191,10 +191,10 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
     typedef Attribute base_type;
     typedef AttributeT this_type;
 
-   protected:
+public:
     AttributeT();
 
-   public:
+
     template <typename... Args>
     explicit AttributeT(Args &&... args) : Attribute(std::forward<Args>(args)...) {}
 

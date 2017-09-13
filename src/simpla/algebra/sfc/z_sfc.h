@@ -208,21 +208,22 @@ __host__ __device__ constexpr inline bool ZSFC<3>::in_box(array_index_type const
 template <>
 template <typename value_type>
 std::ostream& ZSFC<3>::Print(std::ostream& os, value_type const* v, int indent) const {
-    os << "Array [" << typeid(value_type).name() << "]: " << m_index_box_ << std::endl;
-    if (v == nullptr) { return os; }
-    index_type ib = std::get<0>(m_index_box_)[0];
-    index_type ie = std::get<1>(m_index_box_)[0];
-    index_type jb = std::get<0>(m_index_box_)[1];
-    index_type je = std::get<1>(m_index_box_)[1];
-    index_type kb = std::get<0>(m_index_box_)[2];
-    index_type ke = std::get<1>(m_index_box_)[2];
+    os << "Array<" << simpla::traits::type_name<value_type>::value() << ">" << m_index_box_;
+    if (v != nullptr && size() < 20) {
+        index_type ib = std::get<0>(m_index_box_)[0];
+        index_type ie = std::get<1>(m_index_box_)[0];
+        index_type jb = std::get<0>(m_index_box_)[1];
+        index_type je = std::get<1>(m_index_box_)[1];
+        index_type kb = std::get<0>(m_index_box_)[2];
+        index_type ke = std::get<1>(m_index_box_)[2];
 
-    for (index_type i = ib; i < ie; ++i)
-        for (index_type j = jb; j < je; ++j) {
-            os << "{" << std::setw(8) << v[hash(i, j, kb)];
-            for (index_type k = kb + 1; k < ke; ++k) { os << "," << std::setw(8) << v[hash(i, j, k)]; }
-            os << "}" << std::endl;
-        }
+        for (index_type i = ib; i < ie; ++i)
+            for (index_type j = jb; j < je; ++j) {
+                os << "{" << std::setw(8) << v[hash(i, j, kb)];
+                for (index_type k = kb + 1; k < ke; ++k) { os << "," << std::setw(8) << v[hash(i, j, k)]; }
+                os << "}" << std::endl;
+            }
+    }
     return os;
 }
 // template <>
