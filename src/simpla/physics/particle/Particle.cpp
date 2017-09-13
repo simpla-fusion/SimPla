@@ -44,12 +44,12 @@ std::shared_ptr<simpla::data::DataNode> ParticleBase::Serialize() const { return
 void ParticleBase::Deserialize(std::shared_ptr<data::DataNode> const& cfg) { base_type::Deserialize(cfg); }
 void ParticleBase::Push(std::shared_ptr<data::DataNode> const& dblk) {
     SetUp();
-    engine::Attribute::Push(dblk);
+//    base_type::Push(dblk);
     Update();
 }
 std::shared_ptr<data::DataNode> ParticleBase::Pop() const {
-    auto res = engine::Attribute::Pop();
-    return res;
+//    auto res = engine::Attribute::Pop();
+    return nullptr;
 }
 void ParticleBase::SetNumberOfAttributes(int n) { m_pimpl_->m_num_of_attr_ = n; }
 int ParticleBase::GetNumberOfAttributes() const { return m_pimpl_->m_num_of_attr_; }

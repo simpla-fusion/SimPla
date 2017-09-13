@@ -55,7 +55,10 @@ std::shared_ptr<geometry::Chart> DomainBase::GetChart() { return m_pimpl_->m_cha
 std::shared_ptr<const geometry::Chart> DomainBase::GetChart() const { return m_pimpl_->m_chart_; }
 
 void DomainBase::SetBlock(std::shared_ptr<const MeshBlock> const& blk) { m_pimpl_->m_mesh_block_ = blk; };
-std::shared_ptr<const MeshBlock> DomainBase::GetBlock() const { return m_pimpl_->m_mesh_block_; }
+std::shared_ptr<const MeshBlock> DomainBase::GetBlock() const {
+    ASSERT(m_pimpl_->m_mesh_block_ != nullptr);
+    return m_pimpl_->m_mesh_block_;
+}
 
 void DomainBase::SetBoundary(std::shared_ptr<geometry::GeoObject> const& g) { m_pimpl_->m_boundary_ = g; }
 std::shared_ptr<geometry::GeoObject> DomainBase::GetBoundary() const { return m_pimpl_->m_boundary_; }
@@ -80,19 +83,19 @@ std::shared_ptr<data::DataNode> DomainBase::Pop() const {
 }
 
 void DomainBase::DoSetUp() { base_type::DoSetUp(); }
-void DomainBase::DoUpdate() {}
+void DomainBase::DoUpdate() { base_type::DoUpdate(); }
 void DomainBase::DoTearDown() {}
 
 void DomainBase::InitialCondition(Real time_now) {
     Update();
-    VERBOSE << "Domain [" << GetName() << "] InitialCondition ";
+    VERBOSE << std::setw(20) << "InitialCondition domain :" << GetName();
     PreInitialCondition(this, time_now);
     DoInitialCondition(time_now);
     PostInitialCondition(this, time_now);
 }
 void DomainBase::BoundaryCondition(Real time_now, Real dt) {
     Update();
-    VERBOSE << "Domain [" << GetName() << "] BoundaryCondition ";
+    VERBOSE << std::setw(20) << "BoundaryCondition domain :" << GetName();
     PreBoundaryCondition(this, time_now, dt);
     DoBoundaryCondition(time_now, dt);
     PostBoundaryCondition(this, time_now, dt);
@@ -100,7 +103,7 @@ void DomainBase::BoundaryCondition(Real time_now, Real dt) {
 
 void DomainBase::ComputeFluxes(Real time_now, Real dt) {
     Update();
-    VERBOSE << "Domain [" << GetName() << "] ComputeFluxes ";
+    VERBOSE << std::setw(20) << "ComputeFluxes domain :" << GetName();
     PreComputeFluxes(this, time_now, dt);
     DoComputeFluxes(time_now, dt);
     PostComputeFluxes(this, time_now, dt);
@@ -110,7 +113,7 @@ Real DomainBase::ComputeStableDtOnPatch(Real time_now, Real time_dt) const { ret
 void DomainBase::Advance(Real time_now, Real dt) {
     Update();
     //    if (std::get<0>(GetMesh()->CheckOverlap(GetBoundary())) < EPSILON) { return; }
-    VERBOSE << "Domain [" << GetName() << "] Advance ";
+    VERBOSE << std::setw(20) << "Advance domain :" << GetName();
     PreAdvance(this, time_now, dt);
     DoAdvance(time_now, dt);
     PostAdvance(this, time_now, dt);
@@ -124,7 +127,6 @@ void DomainBase::TagRefinementCells(Real time_now) {
     DoTagRefinementCells(time_now);
     PostTagRefinementCells(this, time_now);
 }
-void DomainBase::InitializeAttribute(Attribute*) const {}
 
 }  // namespace engine{
 }  // namespace simpla{

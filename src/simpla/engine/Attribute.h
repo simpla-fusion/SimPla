@@ -120,9 +120,22 @@ class AttributeGroup {
  *
  */
 struct Attribute : public EngineObject {
-    SP_OBJECT_HEAD(Attribute, SPObject)
+   public:
+    static std::string FancyTypeName() { return __STRING(Attribute); }
+    std::string TypeName() const override { return simpla::traits::type_name<this_type>::value(); }
 
-   protected:
+    static bool _is_registered;
+
+   private:
+    typedef EngineObject base_type;
+    typedef Attribute this_type;
+    struct pimpl_s;
+    pimpl_s *m_pimpl_ = nullptr;
+
+   public:
+    Attribute();
+    ~Attribute() override;
+
     template <typename THost, typename... Args>
     explicit Attribute(THost host, Args &&... args) : Attribute() {
         Register(host);
@@ -131,9 +144,8 @@ struct Attribute : public EngineObject {
 
     void ReRegister(std::shared_ptr<Attribute> const &) const;
 
-   public:
-    void Push(const std::shared_ptr<data::DataNode> &) override;
-    std::shared_ptr<data::DataNode> Pop() const override;
+    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;
+    std::shared_ptr<simpla::data::DataNode> Serialize() const override;
 
     virtual std::type_info const &value_type_info() const = 0;
     virtual int GetIFORM() const = 0;
@@ -144,13 +156,14 @@ struct Attribute : public EngineObject {
     void Register(AttributeGroup *p = nullptr);
     void Deregister(AttributeGroup *p = nullptr);
 
-    virtual size_type CopyOut(Attribute &other) const;
-    virtual size_type CopyIn(Attribute const &other);
-    virtual std::shared_ptr<Attribute> Duplicate() const;
+    void Push(const std::shared_ptr<data::DataNode> &) override = 0;
+    std::shared_ptr<data::DataNode> Pop() const override = 0;
 
-    virtual bool isNull() const;
+    virtual std::shared_ptr<Attribute> Duplicate() const = 0;
+
+    virtual bool isNull() const = 0;
     virtual bool empty() const { return isNull(); };
-    virtual void Clear();
+    virtual void Clear() = 0;
 };
 
 template <typename V, int IFORM, int... DOF>
@@ -168,11 +181,9 @@ struct attribute_traits<V, CELL> {
 
 template <typename V, int IFORM, int... DOF>
 struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>::data_type {
-    //    SP_OBJECT_HEAD(AttributeT, Attribute)
-
    public:
     static std::string FancyTypeName();
-    virtual std::string TypeName() const override { return simpla::traits::type_name<this_type>::value(); }
+    std::string TypeName() const override { return simpla::traits::type_name<this_type>::value(); }
 
     static bool _is_registered;
 
@@ -184,9 +195,10 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
     AttributeT();
 
    public:
+    template <typename... Args>
+    explicit AttributeT(Args &&... args) : Attribute(std::forward<Args>(args)...) {}
+
     ~AttributeT() override;
-    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;
-    std::shared_ptr<simpla::data::DataNode> Serialize() const override;
 
     template <typename... Args>
     static std::shared_ptr<this_type> New(Args &&... args) {
@@ -199,15 +211,16 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
         return res;
     }
 
+    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;
+
+    std::shared_ptr<simpla::data::DataNode> Serialize() const override;
+
     typedef V value_type;
     typedef Array<value_type> array_type;
     typedef typename attribute_traits<V, IFORM, DOF...>::data_type data_type;
     static constexpr int iform = IFORM;
 
    public:
-    template <typename... Args>
-    explicit AttributeT(Args &&... args) : Attribute(std::forward<Args>(args)...) {}
-
     void Push(const std::shared_ptr<data::DataNode> &) override;
     std::shared_ptr<data::DataNode> Pop() const override;
 
@@ -216,6 +229,9 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
         ReRegister(res);
         return res;
     }
+    bool isNull() const override;
+    bool empty() const override { return isNull(); };
+    void Clear() override;
 
     std::type_info const &value_type_info() const override { return typeid(V); };
     int GetIFORM() const override { return IFORM; };
@@ -314,8 +330,35 @@ size_type push_data(nTuple<Array<U>, N0, N...> &v, std::shared_ptr<data::DataNod
 
     return count;
 }
-}  // namespace detail{
 
+template <typename U>
+bool is_null(Array<U> const &d) {
+    return d.isNull();
+}
+template <typename U, int N0, int... N>
+bool is_null(nTuple<Array<U>, N0, N...> const &v) {
+    bool res = false;
+    for (int i = 0; i < N0; ++i) { res = res || is_null(v[i]); }
+    return res;
+}
+template <typename U>
+void clear(Array<U> &d) {
+    d.Clear();
+}
+template <typename U, int N0, int... N>
+void clear(nTuple<Array<U>, N0, N...> &v) {
+    for (int i = 0; i < N0; ++i) { clear(v[i]); }
+}
+}  // namespace detail{
+template <typename V, int IFORM, int... DOF>
+bool AttributeT<V, IFORM, DOF...>::isNull() const {
+    return detail::is_null(*this);
+};
+template <typename V, int IFORM, int... DOF>
+void AttributeT<V, IFORM, DOF...>::Clear() {
+    Update();
+    detail::clear(*this);
+};
 template <typename V, int IFORM, int... DOF>
 void AttributeT<V, IFORM, DOF...>::Push(const std::shared_ptr<data::DataNode> &d) {
     detail::push_data(*this, d);

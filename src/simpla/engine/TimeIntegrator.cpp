@@ -47,13 +47,14 @@ void TimeIntegrator::Advance(Real time_now, Real time_dt) {
     Update();
     GetAtlas()->Foreach([&](std::shared_ptr<engine::MeshBlock> const &blk) {
         ASSERT(blk != nullptr);
-        VERBOSE << " Block : " << blk->IndexBox();
+        VERBOSE << std::setw(20) << "Block : " << blk->IndexBox();
         auto p = GetPatch(blk->GetGUID());
         if (p == nullptr) { p = data::DataNode::New(data::DataNode::DN_TABLE); }
         for (auto &item : GetDomains()) {
             item.second->SetBlock(blk);
             item.second->Push(p);
             item.second->Advance(time_now, time_dt);
+
             p->Set(item.second->Pop());
         }
         SetPatch(blk->GetGUID(), p);

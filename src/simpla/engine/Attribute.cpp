@@ -23,17 +23,10 @@ std::shared_ptr<data::DataNode> AttributeGroup::Serialize() const {
 }
 void AttributeGroup::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     if (cfg == nullptr) { return; }
-    cfg->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &tdb) {
-        auto attr = Attribute::New(tdb);
-        attr->SetName(key);
-        Attach(attr.get());
-        return 0;
-    });
+    for (auto const &item : m_attributes_) { item.second->Deserialize(cfg->Get(item.first)); }
 }
 void AttributeGroup::Push(const std::shared_ptr<data::DataNode> &p) {
-    if (p == nullptr) {
-        for (auto &item : m_attributes_) { item.second->Push(nullptr); }
-    } else {
+    if (p != nullptr) {
         for (auto &item : m_attributes_) {
             if (auto attr = p->Get(item.second->db()->GetValue<id_type>("DescID", NULL_ID))) {
                 item.second->Push(attr);
@@ -63,8 +56,7 @@ std::shared_ptr<data::DataNode> AttributeGroup::GetAttributeDescription(std::str
 }
 
 struct Attribute::pimpl_s {
-    std::set<AttributeGroup *> m_bundle_{};
-    std::vector<std::shared_ptr<data::DataBlock>> m_data_block_;
+    std::set<AttributeGroup *> m_bundle_;
 };
 
 Attribute::Attribute() : m_pimpl_(new pimpl_s) {}
@@ -110,40 +102,6 @@ void Attribute::Deregister(AttributeGroup *attr_b) {
         m_pimpl_->m_bundle_.erase(attr_b);
     }
 }
-void Attribute::Push(const std::shared_ptr<data::DataNode> &d) {
-    //    m_pimpl_->m_data_block_.clear();
-    //    if (GetRank() == 0 && d->type() == data::DataNode::DN_ENTITY) {
-    //        m_pimpl_->m_data_block_.push_back(std::dynamic_pointer_cast<data::DataBlock>(d->GetEntity()));
-    //    } else if (d->type() == data::DataNode::DN_ARRAY && GetRank() > 0) {
-    //        d->Foreach([&](std::string key, std::shared_ptr<data::DataNode> const &node) {
-    //            m_pimpl_->m_data_block_.push_back(std::dynamic_pointer_cast<data::DataBlock>(node->GetEntity()));
-    //            return 1;
-    //        });
-    //    }
-
-    Update();
-}
-std::shared_ptr<data::DataNode> Attribute::Pop() const {
-    std::shared_ptr<data::DataNode> res = nullptr;
-    if (m_pimpl_->m_data_block_.empty()) {
-    } else if (GetRank() == 0 && m_pimpl_->m_data_block_.size() == 1) {
-        res = data::DataNode::New(m_pimpl_->m_data_block_[0]);
-    } else {
-        res = data::DataNode::New(data::DataNode::DN_ARRAY);
-        for (auto &item : m_pimpl_->m_data_block_) { res->Add(data::DataNode::New(item)); }
-    }
-    return res;
-}
-size_type Attribute::CopyOut(Attribute &other) const { return 0; }
-size_type Attribute::CopyIn(Attribute const &other) { return 0; }
-// std::shared_ptr<data::DataBlock> Attribute::GetDataBlock() { return m_pimpl_->m_data_block_; }
-// std::shared_ptr<const data::DataBlock> Attribute::GetDataBlock() const { return m_pimpl_->m_data_block_; }
-void Attribute::Clear() {
-    for (auto &item : m_pimpl_->m_data_block_) {
-        if (item != nullptr) item->Clear();
-    }
-}
-bool Attribute::isNull() const { return m_pimpl_->m_data_block_.empty(); }
 
 }  //{ namespace engine
 }  // namespace simpla

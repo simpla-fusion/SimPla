@@ -7,11 +7,11 @@
 
 #include "simpla/SIMPLA_config.h"
 
-#include "MeshCommon.h"
+#include <simpla/algebra/Algebra.h>
+#include <simpla/data/Data.h>
+#include <simpla/engine/Attribute.h>
+
 #include "StructuredMesh.h"
-#include "simpla/algebra/Algebra.h"
-#include "simpla/data/Data.h"
-#include "simpla/engine/Attribute.h"
 
 namespace simpla {
 namespace mesh {
@@ -22,7 +22,7 @@ using namespace simpla::data;
  */
 template <typename THost>
 struct RectMesh : public StructuredMesh {
-    SP_MESH_POLICY_HEAD(RectMesh);
+    SP_DOMAIN_POLICY_HEAD(RectMesh);
 
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real time_dt);

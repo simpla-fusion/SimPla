@@ -71,8 +71,6 @@ class DomainBase : public EngineObject, public AttributeGroup {
     design_pattern::Signal<void(DomainBase *, Real, Real)> PostAdvance;
     void Advance(Real time_now, Real time_dt);
 
-    virtual void InitializeAttribute(Attribute *) const;
-
 };  // class DomainBase
 
 template <typename TChart, template <typename> class... Policies>
@@ -120,9 +118,7 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     };
 
     template <typename U, int IFORM, int... DOF>
-    void InitializeAttribute(AttributeT<U, IFORM, DOF...> *attr) const {
-        //        base_type::InitializeAttribute(attr);
-    };
+    void InitializeAttribute(AttributeT<U, IFORM, DOF...> *attr) const;
 };  // class Domain
 
 #define SP_DOMAIN_HEAD(_CLASS_NAME_, _BASE_NAME_)              \
@@ -135,6 +131,22 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     void DoBoundaryCondition(Real time_now, Real dt) override; \
     void DoAdvance(Real time_now, Real dt) override;           \
     void DoTagRefinementCells(Real time_now) override;
+
+#define SP_DOMAIN_POLICY_HEAD(_NAME_)                  \
+   private:                                            \
+    typedef THost host_type;                           \
+    typedef _NAME_<THost> this_type;                   \
+    THost *m_host_;                                    \
+                                                       \
+   public:                                             \
+    _NAME_(THost *h) : m_host_(h) {}                   \
+    virtual ~_NAME_() = default;                       \
+    _NAME_(_NAME_ const &other) = delete;              \
+    _NAME_(_NAME_ &&other) = delete;                   \
+    _NAME_ &operator=(_NAME_ const &other) = delete;   \
+    _NAME_ &operator=(_NAME_ &&other) = delete;        \
+    std::shared_ptr<data::DataNode> Serialize() const; \
+    void Deserialize(std::shared_ptr<data::DataNode> const &cfg);
 
 template <typename TChart, template <typename> class... Policies>
 Domain<TChart, Policies...>::Domain() : DomainBase(), Policies<this_type>(this)... {}
@@ -176,6 +188,42 @@ void Domain<TChart, Policies...>::DoAdvance(Real time_now, Real dt) {}
 
 template <typename TChart, template <typename> class... Policies>
 void Domain<TChart, Policies...>::DoTagRefinementCells(Real time_now) {}
+namespace detail {
+template <typename U, typename SFS>
+void InitializeArray(Array<U> &v, SFS const &sfc) {
+    Array<U>(sfc).swap(v);
+}
+template <typename U, int N0, int... N, typename SFC>
+void InitializeArray(nTuple<Array<U>, N0, N...> &v, SFC const &sfc) {
+    for (int i = 0; i < N0; ++i) { InitializeArray(v[i], sfc); }
+}
+}  // namespace detail{
+
+template <typename TChart, template <typename> class... Policies>
+template <typename U, int IFORM, int... DOF>
+void Domain<TChart, Policies...>::InitializeAttribute(AttributeT<U, IFORM, DOF...> *attr) const {
+    switch (IFORM) {
+        case NODE:
+            detail::InitializeArray(*attr, this->GetSpaceFillingCurve(NODE));
+            break;
+        case CELL:
+            detail::InitializeArray(*attr, this->GetSpaceFillingCurve(CELL));
+            break;
+        case EDGE:
+            detail::InitializeArray((*attr)[0], this->GetSpaceFillingCurve(EDGE, 0));
+            detail::InitializeArray((*attr)[1], this->GetSpaceFillingCurve(EDGE, 1));
+            detail::InitializeArray((*attr)[2], this->GetSpaceFillingCurve(EDGE, 2));
+            break;
+        case FACE:
+            detail::InitializeArray((*attr)[0], this->GetSpaceFillingCurve(FACE, 0));
+            detail::InitializeArray((*attr)[1], this->GetSpaceFillingCurve(FACE, 1));
+            detail::InitializeArray((*attr)[2], this->GetSpaceFillingCurve(FACE, 2));
+            break;
+        default:
+            UNIMPLEMENTED;
+            break;
+    }
+};
 
 template <typename TM, template <typename> class... Policies>
 template <typename LHS, typename RHS>

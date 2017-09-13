@@ -7,21 +7,20 @@
 
 #include "simpla/SIMPLA_config.h"
 
-#include "MeshCommon.h"
-#include "simpla/algebra/Algebra.h"
-#include "simpla/algebra/EntityId.h"
-#include "simpla/data/Data.h"
-#include "simpla/engine/Attribute.h"
-#include "simpla/geometry/CutCell.h"
-#include "simpla/utilities/Range.h"
-
+#include <simpla/algebra/Algebra.h>
+#include <simpla/algebra/EntityId.h>
+#include <simpla/data/Data.h>
+#include <simpla/engine/Attribute.h>
+#include <simpla/engine/Domain.h>
+#include <simpla/geometry/CutCell.h>
+#include <simpla/utilities/Range.h>
 
 namespace simpla {
 namespace mesh {
 using namespace data;
 template <typename THost>
 struct EBMesh {
-    SP_MESH_POLICY_HEAD(EBMesh);
+    SP_DOMAIN_POLICY_HEAD(EBMesh);
 
     std::map<id_type, Real> m_volume_;
     std::map<id_type, Real> m_dual_volume_;

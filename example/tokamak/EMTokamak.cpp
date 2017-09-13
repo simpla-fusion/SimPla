@@ -20,7 +20,7 @@
 #include <simpla/third_part/SAMRAITimeIntegrator.h>
 #include <simpla/utilities/Logo.h>
 namespace simpla {
-typedef engine::Domain<geometry::csCylindrical, mesh::RectMesh, scheme::FVM, mesh::EBMesh> domain_type;
+typedef engine::Domain<geometry::csCylindrical, scheme::FVM, mesh::RectMesh, mesh::EBMesh> domain_type;
 }  // namespace simpla {
 
 using namespace simpla;

@@ -40,6 +40,8 @@ class Array {
     Array() = default;
     virtual ~Array(){};
 
+    Array(SFC const& sfc) : m_sfc_(sfc), m_data_(nullptr), m_holder_(nullptr), m_host_data_(nullptr) {}
+
     Array(this_type const& other)
         : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_holder_(other.m_holder_), m_host_data_(other.m_host_data_) {}
 
@@ -148,7 +150,7 @@ class Array {
 
     void Fill(value_type v) {
         SetUp();
-//        CopyIn(v);
+        //        CopyIn(v);
     }
     void Clear() {
         SetUp();

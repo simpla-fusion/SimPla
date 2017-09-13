@@ -16,9 +16,9 @@ namespace domain {
 
 using namespace data;
 
-template <typename TDomain>
-class Maxwell : public TDomain {
-    SP_DOMAIN_HEAD(Maxwell, TDomain);
+template <typename TDomainBase>
+class Maxwell : public TDomainBase {
+    SP_DOMAIN_HEAD(Maxwell, TDomainBase);
 
     Field<this_type, Real, CELL, 3> B0v{this, "name"_ = "B0v"};
 
@@ -39,10 +39,12 @@ std::shared_ptr<data::DataNode> Maxwell<TDomain>::Serialize() const {
 };
 template <typename TDomain>
 void Maxwell<TDomain>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
-    base_type::Deserialize(cfg)
-;}
+    base_type::Deserialize(cfg);
+}
 template <typename TDomain>
-void Maxwell<TDomain>::DoSetUp() {
+void Maxwell<TDomain>::DoSetUp() {}
+template <typename TDomain>
+void Maxwell<TDomain>::DoUpdate() {
     dumpE.Clear();
     dumpB.Clear();
     dumpJ.Clear();
@@ -54,8 +56,7 @@ void Maxwell<TDomain>::DoSetUp() {
 }
 template <typename TDomain>
 void Maxwell<TDomain>::DoTearDown() {}
-template <typename TDomain>
-void Maxwell<TDomain>::DoUpdate(){};
+
 template <typename TDomain>
 void Maxwell<TDomain>::DoInitialCondition(Real time_now) {}
 template <typename TDomain>

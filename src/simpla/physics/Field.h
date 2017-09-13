@@ -42,7 +42,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM, DOF...
     typedef Field<TM, TV, IFORM, DOF...> this_type;
     typedef engine::AttributeT<TV, IFORM, DOF...> base_type;
     static std::string FancyTypeName();
-    virtual std::string TypeName() const override { return FancyTypeName(); }
+    std::string TypeName() const override { return FancyTypeName(); }
 
    public:
     typedef TV value_type;
@@ -62,13 +62,16 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM, DOF...
     static std::shared_ptr<this_type> New(Args&&... args) {
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
     }
+    using base_type::Update;
+    using base_type::SetUp;
+    using base_type::TearDown;
 
-    void DoSetUp() override { m_mesh_->InitializeAttribute(this); }
-    void DoUpdate() override {}
-    void DoTearDown() override {}
+    void DoSetUp() override;
+    void DoUpdate() override;
+    void DoTearDown() override;
     template <typename Other>
     void Set(Other&& v) {
-        base_type::Update();
+        Update();
         m_mesh_->Fill(*this, std::forward<Other>(v));
     }
 
@@ -111,6 +114,14 @@ std::string Field<TM, TV, IFORM, DOF...>::FancyTypeName() {
            EntityIFORMName[IFORM] + ((sizeof...(DOF) == 0) ? "" : ("," + simpla::traits::to_string(DOF...))) + ">";
 }
 
+template <typename TM, typename TV, int IFORM, int... DOF>
+void Field<TM, TV, IFORM, DOF...>::DoSetUp() {}
+template <typename TM, typename TV, int IFORM, int... DOF>
+void Field<TM, TV, IFORM, DOF...>::DoUpdate() {
+    m_mesh_->InitializeAttribute(this);
+}
+template <typename TM, typename TV, int IFORM, int... DOF>
+void Field<TM, TV, IFORM, DOF...>::DoTearDown() {}
 template <typename TM, typename TL, int... NL>
 auto operator<<(Field<TM, TL, NL...> const& lhs, int n) {
     return Expression<tags::bitwise_left_shift, Field<TM, TL, NL...>, int>(lhs, n);

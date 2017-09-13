@@ -53,8 +53,6 @@ void EngineObject::Initialize() {
 }
 void EngineObject::SetUp() {
     if (!isSetUp()) {
-        VERBOSE << std::setw(15) << " Set Up : " << std::setw(20) << std::left << GetName() << " [ " << TypeName()
-                << " ]";
         PreSetUp(this);
         DoSetUp();
         PostSetUp(this);
@@ -78,8 +76,6 @@ void EngineObject::TearDown() {
         PostTearDown(this);
         Click();
         m_pimpl_->m_is_setup_ = false;
-        VERBOSE << std::setw(15) << " Tear Down : " << std::setw(20) << std::left << GetName() << " [ " << TypeName()
-                << " ]";
     }
 };
 void EngineObject::Finalize() {

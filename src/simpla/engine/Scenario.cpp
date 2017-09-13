@@ -81,13 +81,11 @@ void Scenario::DoSetUp() {
     m_pimpl_->m_atlas_->SetBoundingBox(bounding_box);
     m_pimpl_->m_atlas_->SetUp();
     for (auto &item : m_pimpl_->m_domains_) { item.second->SetUp(); }
-
     base_type::DoSetUp();
 }
 
 void Scenario::DoUpdate() {
     m_pimpl_->m_atlas_->Update();
-    for (auto &item : m_pimpl_->m_domains_) { item.second->Update(); }
     base_type::DoUpdate();
 }
 void Scenario::DoTearDown() {
