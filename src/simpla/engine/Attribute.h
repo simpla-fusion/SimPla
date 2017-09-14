@@ -272,7 +272,13 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
         return Get(n0, std::forward<Args>(args)...);
     }
 
-    using data_type::operator=;
+    template <typename RHS>
+    void Assign(RHS const &rhs);
+    template <typename RHS>
+    this_type &operator=(RHS const &rhs) {
+        Assign(rhs);
+        return *this;
+    }
 
    private:
     static constexpr int m_extents_[sizeof...(DOF) + 1] = {(IFORM == NODE || IFORM == CELL) ? 1 : 3, DOF...};
@@ -392,7 +398,11 @@ template <typename V, int IFORM, int... DOF>
 std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Pop() const {
     return detail::pop_data(*this);
 };
+template <typename V, int IFORM, int... DOF>
+template <typename RHS>
+void AttributeT<V, IFORM, DOF...>::Assign(RHS const &rhs){
 
+};
 }  // namespace engine
 }  // namespace simpla
 

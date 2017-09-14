@@ -27,15 +27,17 @@ _SP_DEFINE_ARRAY_BINARY_OPERATOR(%, modulo)
 
 #undef _SP_DEFINE_ARRAY_BINARY_OPERATOR
 
-template <typename... T, int... N, typename TFun>
-auto foreach (nTuple<Array<T...>, N...> const& v, TFun const& f) {
-    foreach (v, [&](auto& a, auto&&... subs) {
-        foreach (a, [&](auto& u, auto&&... idx) {
-            u = f(std::forward<decltype(subs)>(subs)..., std::forward<decltype(idx)>(idx)...);
-        })
-            ;
-    })
-        ;
-}
-}
+// template <typename... T, int... N, typename TFun>
+// auto foreach (nTuple<Array<T...>, N...> const& v, TFun const& f) {
+//    foreach (v, [&](auto& a, auto&&... subs) {
+//        foreach (a, [&](auto& u, auto&&... idx) {
+//            u = f(std::forward<decltype(subs)>(subs)..., std::forward<decltype(idx)>(idx)...);
+//        })
+//            ;
+//    })
+//        ;
+//}
+
+}  // namespace simpla {
+
 #endif  // SIMPLA_ARRAYNTUPLE_H

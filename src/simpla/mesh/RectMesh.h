@@ -65,10 +65,8 @@ template <typename THost>
 void RectMesh<THost>::InitialCondition(Real time_now) {
     auto chart = this->GetChart();
     m_coordinates_.Update();
-    //    m_coordinates_[0] = [&](index_type x, index_type y, index_type z) {
-    //        return chart->global_coordinates(x, y, z, 0b0)[0];
-    //    };
-    //    m_vertices_ = [&](point_type const &x) { return (x); };
+    m_coordinates_ = [&](index_type x, index_type y, index_type z) { return chart->global_coordinates(x, y, z, 0b0); };
+    //    m_vertices_ = [&](point_type const& x) { return (x); };
     m_node_volume_.Update();
     m_node_inv_volume_.Update();
     m_node_dual_volume_.Update();
@@ -112,81 +110,73 @@ void RectMesh<THost>::InitialCondition(Real time_now) {
 
     m_node_volume_ = 1.0;
     m_node_inv_volume_ = 1.0;
-    m_node_dual_volume_ = 1.0;
-    //    m_node_dual_volume_ = [&](index_type x, index_type y, index_type z, int tag) -> Real {
-    //        return chart->volume(chart->local_coordinates(x - 1, y - 1, z - 1, 0b111),
-    //                             chart->local_coordinates(x, y, z, 0b111));
-    //    };
+    m_node_dual_volume_ = [&](index_type x, index_type y, index_type z, int tag) -> Real {
+        return chart->volume(chart->local_coordinates(x - 1, y - 1, z - 1, 0b111),
+                             chart->local_coordinates(x, y, z, 0b111));
+    };
     m_node_inv_dual_volume_ = 1.0 / m_node_dual_volume_;
 
-    m_cell_volume_ = 1.0;
-    //    m_cell_volume_ = [&](index_type x, index_type y, index_type z, int tag) -> Real {
-    //        return chart->volume(chart->local_coordinates(x, y, z, 0b0),
-    //                             chart->local_coordinates(x + 1, y + 1, z + 1, 0b0));
-    //    };
+    m_cell_volume_ = [&](index_type x, index_type y, index_type z, int tag) -> Real {
+        return chart->volume(chart->local_coordinates(x, y, z, 0b0),
+                             chart->local_coordinates(x + 1, y + 1, z + 1, 0b0));
+    };
     m_cell_inv_volume_ = 1.0 / m_cell_volume_;
     m_cell_dual_volume_ = 1.0;
     m_cell_inv_dual_volume_ = 1.0;
 
-    //    m_edge_volume_ = [&](index_type x, index_type y, index_type z, int w) -> Real {
-    //        return chart->length(
-    //            chart->local_coordinates(x, y, z, 0b0),
-    //            chart->local_coordinates(x + (w == 0b001 ? 1 : 0), y + (w == 0b010 ? 1 : 0), z + (w == 0b100 ? 1 : 0),
-    //            0b0),
-    //            EntityIdCoder::m_id_to_sub_index_[w]);
-    //    };
-    m_edge_volume_ = 1.0;
+    m_edge_volume_ = [&](index_type x, index_type y, index_type z, int w) -> Real {
+        return chart->length(
+            chart->local_coordinates(x, y, z, 0b0),
+            chart->local_coordinates(x + (w == 0b001 ? 1 : 0), y + (w == 0b010 ? 1 : 0), z + (w == 0b100 ? 1 : 0), 0b0),
+            EntityIdCoder::m_id_to_sub_index_[w]);
+    };
     m_edge_inv_volume_ = 1.0 / m_edge_volume_;
 
-    //    m_edge_dual_volume_ = [&](index_type x, index_type y, index_type z, int w) -> Real {
-    //        return chart->area(chart->local_coordinates(x - (w != 0b001 ? 1 : 0), y - (w != 0b010 ? 1 : 0),
-    //                                                    z - (w != 0b100 ? 1 : 0), 0b111),
-    //                           chart->local_coordinates(x, y, z, 0b111), EntityIdCoder::m_id_to_sub_index_[w]);
-    //    };
-    m_edge_dual_volume_ = 1.0;
+    m_edge_dual_volume_ = [&](index_type x, index_type y, index_type z, int w) -> Real {
+        return chart->area(chart->local_coordinates(x - (w != 0b001 ? 1 : 0), y - (w != 0b010 ? 1 : 0),
+                                                    z - (w != 0b100 ? 1 : 0), 0b111),
+                           chart->local_coordinates(x, y, z, 0b111), EntityIdCoder::m_id_to_sub_index_[w]);
+    };
     m_edge_inv_dual_volume_ = 1.0 / m_edge_dual_volume_;
 
-    //    m_face_volume_ = [&](index_type x, index_type y, index_type z, int w) -> Real {
-    //        return chart->area(
-    //            chart->local_coordinates(x, y, z, 0b0),
-    //            chart->local_coordinates(x + (w != 0b110 ? 1 : 0), y + (w != 0b101 ? 1 : 0), z + (w != 0b011 ? 1 : 0),
-    //            0b0),
-    //            EntityIdCoder::m_id_to_sub_index_[w]);
-    //
-    //    };
-    m_face_volume_ = 1.0;
+    m_face_volume_ = [&](index_type x, index_type y, index_type z, int w) -> Real {
+        return chart->area(
+            chart->local_coordinates(x, y, z, 0b0),
+            chart->local_coordinates(x + (w != 0b110 ? 1 : 0), y + (w != 0b101 ? 1 : 0), z + (w != 0b011 ? 1 : 0), 0b0),
+            EntityIdCoder::m_id_to_sub_index_[w]);
+
+    };
     m_face_inv_volume_ = 1.0 / m_face_volume_;
 
-    //    m_face_dual_volume_ = [&](index_type x, index_type y, index_type z, int w) -> Real {
-    //        return chart->length(chart->local_coordinates(x - (w == 0b110 ? 1 : 0), y - (w == 0b101 ? 1 : 0),
-    //                                                      z - (w == 0b011 ? 1 : 0), 0b111),
-    //                             chart->local_coordinates(x, y, z, 0b111), EntityIdCoder::m_id_to_sub_index_[w]);
-    //    };
-    m_face_dual_volume_ = 1.0;
+    m_face_dual_volume_ = [&](index_type x, index_type y, index_type z, int w) -> Real {
+        return chart->length(chart->local_coordinates(x - (w == 0b110 ? 1 : 0), y - (w == 0b101 ? 1 : 0),
+                                                      z - (w == 0b011 ? 1 : 0), 0b111),
+                             chart->local_coordinates(x, y, z, 0b111), EntityIdCoder::m_id_to_sub_index_[w]);
+    };
     m_face_inv_dual_volume_ = 1.0 / m_face_dual_volume_;
 };
 
 template <typename THost>
 void RectMesh<THost>::BoundaryCondition(Real time_now, Real time_dt) {
-    //    this->FillRange(m_node_volume_, 0, "PATCH_BOUNDARY_");
-    //    this->FillRange(m_node_dual_volume_, 0, "PATCH_BOUNDARY_");
-    //    this->FillRange(m_node_inv_volume_, 0, "PATCH_BOUNDARY_");
-    //    this->FillRange(m_node_inv_dual_volume_, 0, "PATCH_BOUNDARY_");
-    //
-    //    this->FillRange(m_edge_volume_, 0, "PATCH_BOUNDARY_");
-    //    this->FillRange(m_edge_dual_volume_, 0, "PATCH_BOUNDARY_");
-    //    this->FillRange(m_edge_inv_volume_, 0, "PATCH_BOUNDARY_");
-    //    this->FillRange(m_edge_inv_dual_volume_, 0, "PATCH_BOUNDARY_");
-    //
-    //    this->FillRange(m_face_volume_, 0, "PATCH_BOUNDARY_");
-    //    this->FillRange(m_face_dual_volume_, 0, "PATCH_BOUNDARY_");
-    //    this->FillRange(m_face_inv_volume_, 0, "PATCH_BOUNDARY_");
-    //    this->FillRange(m_face_inv_dual_volume_, 0, "PATCH_BOUNDARY_");
-    //
-    //    this->FillRange(m_cell_volume_, 0, "PATCH_BOUNDARY_");
-    //    this->FillRange(m_cell_dual_volume_, 0, "PATCH_BOUNDARY_");
-    //    this->FillRange(m_cell_inv_volume_, 0, "PATCH_BOUNDARY_");
-    //    this->FillRange(m_cell_inv_dual_volume_, 0, "PATCH_BOUNDARY_");
+    m_host_->FillRange(m_node_volume_, 0, "PATCH_BOUNDARY_");
+    m_host_->FillRange(m_node_dual_volume_, 0, "PATCH_BOUNDARY_");
+    m_host_->FillRange(m_node_inv_volume_, 0, "PATCH_BOUNDARY_");
+    m_host_->FillRange(m_node_inv_dual_volume_, 0, "PATCH_BOUNDARY_");
+
+    m_host_->FillRange(m_edge_volume_, 0, "PATCH_BOUNDARY_");
+    m_host_->FillRange(m_edge_dual_volume_, 0, "PATCH_BOUNDARY_");
+    m_host_->FillRange(m_edge_inv_volume_, 0, "PATCH_BOUNDARY_");
+    m_host_->FillRange(m_edge_inv_dual_volume_, 0, "PATCH_BOUNDARY_");
+
+    m_host_->FillRange(m_face_volume_, 0, "PATCH_BOUNDARY_");
+    m_host_->FillRange(m_face_dual_volume_, 0, "PATCH_BOUNDARY_");
+    m_host_->FillRange(m_face_inv_volume_, 0, "PATCH_BOUNDARY_");
+    m_host_->FillRange(m_face_inv_dual_volume_, 0, "PATCH_BOUNDARY_");
+
+    m_host_->FillRange(m_cell_volume_, 0, "PATCH_BOUNDARY_");
+    m_host_->FillRange(m_cell_dual_volume_, 0, "PATCH_BOUNDARY_");
+    m_host_->FillRange(m_cell_inv_volume_, 0, "PATCH_BOUNDARY_");
+    m_host_->FillRange(m_cell_inv_dual_volume_, 0, "PATCH_BOUNDARY_");
 }
 
 }  // namespace mesh {

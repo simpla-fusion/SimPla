@@ -137,11 +137,11 @@ class Array {
 
     void Fill(value_type v) {
         alloc();
-        //        CopyIn(v);
+//        m_sfc_.CopyIn(m_data_, v);
     }
     void Clear() {
         alloc();
-        Fill(0);
+//        Fill(0);
     }
 
     this_type& operator=(this_type const& rhs) {
