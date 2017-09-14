@@ -53,43 +53,23 @@ class AttributeGroup {
     AttributeGroup();
     virtual ~AttributeGroup();
 
-    AttributeGroup(AttributeGroup const &other) = delete;
-    AttributeGroup(AttributeGroup &&other) = delete;
-    AttributeGroup &operator=(AttributeGroup const &other) = delete;
-    AttributeGroup &operator=(AttributeGroup &&other) = delete;
-
     virtual std::shared_ptr<data::DataNode> Serialize() const;
     virtual void Deserialize(std::shared_ptr<data::DataNode> const &);
 
     virtual void Push(const std::shared_ptr<data::DataNode> &);
     virtual std::shared_ptr<data::DataNode> Pop() const;
 
-    auto &GetAttributes() { return m_attributes_; }
-    auto const &GetAttributes() const { return m_attributes_; }
+    std::set<Attribute *> &GetAttributes();
+    std::set<Attribute *> &GetAttributes() const;
 
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
 
     std::shared_ptr<data::DataNode> RegisterAttributes();
-    std::shared_ptr<data::DataNode> GetAttributeDescription(std::string const &k) const;
-    //    std::shared_ptr<data::DataNode> GetDescriptions() const;
-
-    //    virtual void RegisterAt(AttributeGroup *);
-    //    virtual void DeregisterFrom(AttributeGroup *);
-    //    virtual void RegisterDescription(std::map<std::string, std::shared_ptr<AttributeDesc>> *) const;
-    //    bool has(std::string const &k) const;
-    //    bool check(std::string const &k, std::type_info const &t_info) const;
-    //
-    //    Attribute *GetPatch(std::string const &k);
-    //    Attribute const *GetPatch(std::string const &k) const;
-    //    std::map<std::string, Attribute *> const &GetAll() const;
-    //    virtual std::string GetDomainPrefix() const { return ""; }
-    //
-    //    template <typename T>
-    //    T GetAttribute(std::string const &k) const;
 
    private:
-    std::map<std::string, Attribute *> m_attributes_;
+    struct pimpl_s;
+    pimpl_s *m_pimpl_ = nullptr;
 };
 
 /**
@@ -121,8 +101,8 @@ class AttributeGroup {
  */
 struct Attribute : public EngineObject {
    public:
-    static std::string FancyTypeName() { return __STRING(Attribute); }
-    std::string TypeName() const override { return simpla::traits::type_name<this_type>::value(); }
+    static std::string FancyTypeName() { return "Attribute"; }
+    std::string TypeName() const override { return "Attribute"; }
 
     static bool _is_registered;
 
@@ -141,6 +121,7 @@ struct Attribute : public EngineObject {
         Register(host);
         db()->SetValue(std::forward<Args>(args)...);
     };
+    static std::shared_ptr<this_type> New(std::shared_ptr<simpla::data::DataNode> const &cfg);
 
     void ReRegister(std::shared_ptr<Attribute> const &) const;
 
@@ -153,6 +134,7 @@ struct Attribute : public EngineObject {
     virtual std::type_info const &value_type_info() const = 0;
     virtual int GetIFORM() const = 0;
     virtual int GetDOF(int) const = 0;
+    virtual int const *GetDOFs() const = 0;
     virtual int GetRank() const = 0;
     virtual void SetDOF(int rank, int const *d) = 0;
 
@@ -185,9 +167,6 @@ struct attribute_traits<V, CELL> {
 template <typename V, int IFORM, int... DOF>
 struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>::data_type {
    public:
-    static std::string FancyTypeName();
-    std::string TypeName() const override { return simpla::traits::type_name<this_type>::value(); }
-
     static bool _is_registered;
 
    private:
@@ -212,7 +191,7 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
     }
 
-    static std::shared_ptr<this_type> New(std::shared_ptr<simpla::data::DataNode> cfg) {
+    static std::shared_ptr<this_type> New(std::shared_ptr<simpla::data::DataNode> const &cfg) {
         auto res = std::shared_ptr<this_type>(new this_type());
         res->Deserialize(cfg);
         return res;
@@ -239,6 +218,7 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
     std::type_info const &value_type_info() const override { return typeid(V); };
     int GetIFORM() const override { return IFORM; };
     int GetDOF(int n) const override { return m_extents_[n]; };
+    int const *GetDOFs() const override { return m_extents_; };
     int GetRank() const override { return sizeof...(DOF); };
     void SetDOF(int rank, int const *d) override { DOMAIN_ERROR; };
 
@@ -290,16 +270,19 @@ template <typename V, int IFORM, int... DOF>
 AttributeT<V, IFORM, DOF...>::AttributeT(){};
 template <typename V, int IFORM, int... DOF>
 AttributeT<V, IFORM, DOF...>::~AttributeT(){};
-template <typename V, int IFORM, int... DOF>
-std::string AttributeT<V, IFORM, DOF...>::FancyTypeName() {
-    return "AttributeT<" + simpla::traits::type_name<V>::value() + "," + EntityIFORMName[IFORM] +
-           ((sizeof...(DOF) == 0) ? "" : ("," + simpla::traits::to_string(DOF...))) + ">";
-    ;
-}
+// template <typename V, int IFORM, int... DOF>
+// std::string AttributeT<V, IFORM, DOF...>::FancyTypeName() {
+//    return "AttributeT<" + simpla::traits::type_name<V>::value() + "," + EntityIFORMName[IFORM] +
+//           ((sizeof...(DOF) == 0) ? "" : ("," + simpla::traits::to_string(DOF...))) + ">";
+//    ;
+//}
 
 template <typename V, int IFORM, int... DOF>
 std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Serialize() const {
     auto res = base_type::Serialize();
+    res->SetValue("IFORM", IFORM);
+    res->SetValue("DOF", DOF...);
+    res->SetValue("ValueType", traits::type_name<V>::value());
     res->Set("_DATA_", Pop());
     return res;
 };

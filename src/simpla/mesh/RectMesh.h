@@ -26,25 +26,25 @@ struct RectMesh : public StructuredMesh {
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real time_dt);
 
-    engine::AttributeT<Real, NODE> m_coordinates_{m_host_, "name"_ = "m_coordinates_", "COORDINATES"_};
-    //     engine:: AttributeT< Real, NODE > m_vertices_{m_domain_, "name"_ = "m_vertices_","TEMP"_};
+    engine::AttributeT<Real, NODE> m_coordinates_{m_host_, "Name"_ = "m_coordinates_", "COORDINATES"_};
+    //     engine:: AttributeT< Real, NODE > m_vertices_{m_domain_, "Name"_ = "m_vertices_","TEMP"_};
 
-    engine::AttributeT<Real, NODE> m_node_volume_{m_host_, "name"_ = "m_node_volume_", "TEMP"_};
-    engine::AttributeT<Real, NODE> m_node_inv_volume_{m_host_, "name"_ = "m_node_inv_volume_", "TEMP"_};
-    engine::AttributeT<Real, NODE> m_node_dual_volume_{m_host_, "name"_ = "m_node_dual_volume_", "TEMP"_};
-    engine::AttributeT<Real, NODE> m_node_inv_dual_volume_{m_host_, "name"_ = "m_node_inv_dual_volume_", "TEMP"_};
-    engine::AttributeT<Real, CELL> m_cell_volume_{m_host_, "name"_ = "m_cell_volume_", "TEMP"_};
-    engine::AttributeT<Real, CELL> m_cell_inv_volume_{m_host_, "name"_ = "m_cell_inv_volume_", "TEMP"_};
-    engine::AttributeT<Real, CELL> m_cell_dual_volume_{m_host_, "name"_ = "m_cell_dual_volume_", "TEMP"_};
-    engine::AttributeT<Real, CELL> m_cell_inv_dual_volume_{m_host_, "name"_ = "m_cell_inv_dual_volume_", "TEMP"_};
-    engine::AttributeT<Real, EDGE> m_edge_volume_{m_host_, "name"_ = "m_edge_volume_", "TEMP"_};
-    engine::AttributeT<Real, EDGE> m_edge_inv_volume_{m_host_, "name"_ = "m_edge_inv_volume_", "TEMP"_};
-    engine::AttributeT<Real, EDGE> m_edge_dual_volume_{m_host_, "name"_ = "m_edge_dual_volume_", "TEMP"_};
-    engine::AttributeT<Real, EDGE> m_edge_inv_dual_volume_{m_host_, "name"_ = "m_edge_inv_dual_volume_", "TEMP"_};
-    engine::AttributeT<Real, FACE> m_face_volume_{m_host_, "name"_ = "m_face_volume_", "TEMP"_};
-    engine::AttributeT<Real, FACE> m_face_inv_volume_{m_host_, "name"_ = "m_face_inv_volume_", "TEMP"_};
-    engine::AttributeT<Real, FACE> m_face_dual_volume_{m_host_, "name"_ = "m_face_dual_volume_", "TEMP"_};
-    engine::AttributeT<Real, FACE> m_face_inv_dual_volume_{m_host_, "name"_ = "m_face_inv_dual_volume_", "TEMP"_};
+    engine::AttributeT<Real, NODE> m_node_volume_{m_host_, "Name"_ = "m_node_volume_", "TEMP"_};
+    engine::AttributeT<Real, NODE> m_node_inv_volume_{m_host_, "Name"_ = "m_node_inv_volume_", "TEMP"_};
+    engine::AttributeT<Real, NODE> m_node_dual_volume_{m_host_, "Name"_ = "m_node_dual_volume_", "TEMP"_};
+    engine::AttributeT<Real, NODE> m_node_inv_dual_volume_{m_host_, "Name"_ = "m_node_inv_dual_volume_", "TEMP"_};
+    engine::AttributeT<Real, CELL> m_cell_volume_{m_host_, "Name"_ = "m_cell_volume_", "TEMP"_};
+    engine::AttributeT<Real, CELL> m_cell_inv_volume_{m_host_, "Name"_ = "m_cell_inv_volume_", "TEMP"_};
+    engine::AttributeT<Real, CELL> m_cell_dual_volume_{m_host_, "Name"_ = "m_cell_dual_volume_", "TEMP"_};
+    engine::AttributeT<Real, CELL> m_cell_inv_dual_volume_{m_host_, "Name"_ = "m_cell_inv_dual_volume_", "TEMP"_};
+    engine::AttributeT<Real, EDGE> m_edge_volume_{m_host_, "Name"_ = "m_edge_volume_", "TEMP"_};
+    engine::AttributeT<Real, EDGE> m_edge_inv_volume_{m_host_, "Name"_ = "m_edge_inv_volume_", "TEMP"_};
+    engine::AttributeT<Real, EDGE> m_edge_dual_volume_{m_host_, "Name"_ = "m_edge_dual_volume_", "TEMP"_};
+    engine::AttributeT<Real, EDGE> m_edge_inv_dual_volume_{m_host_, "Name"_ = "m_edge_inv_dual_volume_", "TEMP"_};
+    engine::AttributeT<Real, FACE> m_face_volume_{m_host_, "Name"_ = "m_face_volume_", "TEMP"_};
+    engine::AttributeT<Real, FACE> m_face_inv_volume_{m_host_, "Name"_ = "m_face_inv_volume_", "TEMP"_};
+    engine::AttributeT<Real, FACE> m_face_dual_volume_{m_host_, "Name"_ = "m_face_dual_volume_", "TEMP"_};
+    engine::AttributeT<Real, FACE> m_face_inv_dual_volume_{m_host_, "Name"_ = "m_face_inv_dual_volume_", "TEMP"_};
 };
 template <typename THost>
 RectMesh<THost>::RectMesh(THost* h) : m_host_(h) {

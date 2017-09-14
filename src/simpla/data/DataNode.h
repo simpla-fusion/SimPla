@@ -116,7 +116,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     virtual void Clear() {}
 
     /**@ } */
-
+    size_type SetValue(std::string const& s) { return 0; };
     template <typename... Args>
     size_type SetValue(std::string const& s, Args&&... args) {
         return Set(s, DataNode::New(DataLight::New(std::forward<Args>(args)...)));
@@ -174,12 +174,12 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     template <typename U>
     U GetValue(std::string const& url, U default_value) const {
         CopyFromData(default_value, Get(url));
-        return std::move(default_value);
+        return (default_value);
     };
     std::string GetValue(std::string const& url, char const* default_value) const {
         std::string res(default_value);
         CopyFromData(res, Get(url));
-        return std::move(res);
+        return (res);
     };
 
     template <typename U>

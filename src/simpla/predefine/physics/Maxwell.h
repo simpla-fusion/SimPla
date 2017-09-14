@@ -20,14 +20,14 @@ template <typename TDomainBase>
 class Maxwell : public TDomainBase {
     SP_DOMAIN_HEAD(Maxwell, TDomainBase);
 
-    Field<this_type, Real, CELL, 3> B0v{this, "name"_ = "B0v"};
+    Field<this_type, Real, CELL, 3> B0v{this, "Name"_ = "B0v"};
 
-    Field<this_type, Real, FACE> B{this, "name"_ = "B"};
-    Field<this_type, Real, EDGE> E{this, "name"_ = "E"};
-    Field<this_type, Real, EDGE> J{this, "name"_ = "J"};
-    Field<this_type, Real, CELL, 3> dumpE{this, "name"_ = "dumpE"};
-    Field<this_type, Real, CELL, 3> dumpB{this, "name"_ = "dumpB"};
-    Field<this_type, Real, CELL, 3> dumpJ{this, "name"_ = "dumpJ"};
+    Field<this_type, Real, FACE> B{this, "Name"_ = "B"};
+    Field<this_type, Real, EDGE> E{this, "Name"_ = "E"};
+    Field<this_type, Real, EDGE> J{this, "Name"_ = "J"};
+    Field<this_type, Real, CELL, 3> dumpE{this, "Name"_ = "dumpE"};
+    Field<this_type, Real, CELL, 3> dumpB{this, "Name"_ = "dumpB"};
+    Field<this_type, Real, CELL, 3> dumpJ{this, "Name"_ = "dumpJ"};
 };
 template <typename TDomain>
 Maxwell<TDomain>::Maxwell() : base_type() {}

@@ -26,7 +26,6 @@ struct SPObject::pimpl_s {
 
     id_type m_id_ = NULL_ID;
     bool m_is_initialized_ = false;
-    std::string m_name_ = "unnamed";
     std::shared_ptr<data::DataNode> m_db_ = nullptr;
 };
 
@@ -35,8 +34,8 @@ static boost::uuids::random_generator g_uuid_generator;
 
 SPObject::SPObject() : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_id_ = g_obj_hasher(g_uuid_generator());
-    m_pimpl_->m_db_ = data::DataNode::New();
-    m_pimpl_->m_name_ = std::to_string(m_pimpl_->m_id_).substr(0, 15);
+    m_pimpl_->m_db_ = data::DataNode::New(data::DataNode::DN_TABLE);
+    //    SetName(std::to_string(m_pimpl_->m_id_).substr(0, 15));
 }
 SPObject::~SPObject() { delete m_pimpl_; }
 // std::shared_ptr<SPObject> SPObject::GlobalNew(std::shared_ptr<data::DataNode> const &v) {
@@ -51,8 +50,8 @@ SPObject::~SPObject() { delete m_pimpl_; }
 //        res = New(db);
 //    }
 //}
-//std::shared_ptr<data::DataNode> SPObject::Pop() const { return m_pimpl_->m_db_; }
-//void SPObject::Push(std::shared_ptr<data::DataNode> const &tdb) { m_pimpl_->m_db_->Set(tdb); }
+// std::shared_ptr<data::DataNode> SPObject::Pop() const { return m_pimpl_->m_db_; }
+// void SPObject::Push(std::shared_ptr<data::DataNode> const &tdb) { m_pimpl_->m_db_->Set(tdb); }
 
 std::shared_ptr<data::DataNode> SPObject::db() const { return m_pimpl_->m_db_; }
 std::shared_ptr<data::DataNode> SPObject::db() { return m_pimpl_->m_db_; }
@@ -61,9 +60,14 @@ std::shared_ptr<data::DataNode> SPObject::Serialize() const {
     auto db = data::DataNode::New(data::DataNode::DN_TABLE);
     db->Set(m_pimpl_->m_db_);
     db->SetValue("_TYPE_", TypeName());
+    //    db->SetValue("Name", GetName());
     return db;
 }
-void SPObject::Deserialize(std::shared_ptr<data::DataNode> const &d) { m_pimpl_->m_db_->Set(d); }
+void SPObject::Deserialize(std::shared_ptr<data::DataNode> const &d) {
+    if (d == nullptr) { return; }
+    m_pimpl_->m_db_->Set(d);
+    SetName(m_pimpl_->m_db_->GetValue<std::string>("Name", GetName()));
+}
 std::shared_ptr<SPObject> SPObject::CreateAndSync(std::shared_ptr<data::DataNode> const &) { return nullptr; }
 std::shared_ptr<SPObject> SPObject::Create(std::string const &key) { return base_type::Create(key); };
 std::shared_ptr<SPObject> SPObject::Create(std::shared_ptr<data::DataNode> const &tdb) {
@@ -72,8 +76,10 @@ std::shared_ptr<SPObject> SPObject::Create(std::shared_ptr<data::DataNode> const
     return res;
 };
 id_type SPObject::GetGUID() const { return m_pimpl_->m_id_; }
-void SPObject::SetName(std::string const &s) { m_pimpl_->m_name_ = s; };
-std::string const &SPObject::GetName() const { return m_pimpl_->m_name_; }
+void SPObject::SetName(std::string const &s) { m_pimpl_->m_db_->SetValue("Name", s); };
+std::string SPObject::GetName() const {
+    return m_pimpl_->m_db_->GetValue<std::string>("Name", std::string("unnamed_attribute"));
+}
 
 std::ostream &operator<<(std::ostream &os, SPObject const &obj) {
     std::cout << *obj.Serialize() << std::endl;

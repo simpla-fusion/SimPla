@@ -104,7 +104,7 @@ class SPObject : public Factory<SPObject>, public std::enable_shared_from_this<S
     std::shared_ptr<data::DataNode> db();
     id_type GetGUID() const;
     void SetName(std::string const &);
-    std::string const &GetName() const;
+    std::string GetName() const;
 
    private:
     struct pimpl_s;
