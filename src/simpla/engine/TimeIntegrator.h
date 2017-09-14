@@ -12,7 +12,6 @@ class TimeIntegrator : public Scenario {
     SP_OBJECT_HEAD(TimeIntegrator, Scenario);
 
    public:
-    virtual void CheckPoint() const;
 
     virtual void InitialCondition(Real time_now);
     virtual void BoundaryCondition(Real time_now, Real dt);
@@ -39,8 +38,6 @@ class TimeIntegrator : public Scenario {
     void SetTimeEnd(Real);
     Real GetTimeStep() const;
     void SetTimeStep(Real);
-    size_type GetStep() const;
-    void SetStep(size_type);
 };
 }  // namespace engine
 }  // namespace simpla

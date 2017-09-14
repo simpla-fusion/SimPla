@@ -26,7 +26,7 @@ struct RectMesh : public StructuredMesh {
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real time_dt);
 
-    engine::AttributeT<Real, NODE> m_coordinates_{m_host_, "Name"_ = "m_coordinates_", "COORDINATES"_};
+    engine::AttributeT<Real, NODE> m_coordinates_{m_host_, "Name"_ = "Coordinates", "COORDINATES"_};
     //     engine:: AttributeT< Real, NODE > m_vertices_{m_domain_, "Name"_ = "m_vertices_","TEMP"_};
 
     engine::AttributeT<Real, NODE> m_node_volume_{m_host_, "Name"_ = "m_node_volume_", "TEMP"_};
@@ -57,7 +57,9 @@ RectMesh<THost>::~RectMesh() {}
 
 template <typename THost>
 std::shared_ptr<data::DataNode> RectMesh<THost>::Serialize() const {
-    return nullptr;
+    auto res = data::DataNode::New(data::DataNode::DN_TABLE);
+    res->SetValue("Topology", "3DSMesh");
+    return res;
 }
 template <typename THost>
 void RectMesh<THost>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}

@@ -16,12 +16,15 @@ class Atlas;
 
 class Scenario : public EngineObject {
     SP_OBJECT_HEAD(Scenario, EngineObject)
+
     virtual void TagRefinementCells(Real time_now);
 
     virtual void Synchronize();
     virtual void NextStep();
     virtual void Run();
     virtual bool Done() const;
+
+    virtual void CheckPoint() const;
     virtual void Dump() const;
 
     void DoInitialize() override;
@@ -29,6 +32,9 @@ class Scenario : public EngineObject {
     void DoUpdate() override;
     void DoTearDown() override;
     void DoFinalize() override;
+
+    void SetStepNumber(size_type s);
+    size_type GetStepNumber() const;
 
     std::shared_ptr<Atlas> GetAtlas() const;
 

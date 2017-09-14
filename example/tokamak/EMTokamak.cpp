@@ -31,6 +31,7 @@ int main(int argc, char** argv) {
     //    auto scenario = SAMRAITimeIntegrator::New();
     auto scenario = SimpleTimeIntegrator::New();
     scenario->SetName("EAST");
+    scenario->db()->SetValue("DumpFile", "EAST.xmf");
     scenario->GetAtlas()->SetChart<simpla::geometry::csCylindrical>();
     scenario->GetAtlas()->GetChart()->SetScale({0.1, 0.1, 0.1});
 
@@ -52,7 +53,8 @@ int main(int argc, char** argv) {
     std::cout << *scenario << std::endl;
     TheStart();
     scenario->Run();
-    std::cout << *scenario << std::endl;
+    scenario->Dump();
+    //    std::cout << *scenario << std::endl;
     TheEnd();
     scenario->TearDown();
 }

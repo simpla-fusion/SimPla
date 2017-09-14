@@ -11,7 +11,6 @@ struct TimeIntegrator::pimpl_s {
     Real m_time_now_ = 0.0;
     Real m_time_end_ = 1.0;
     Real m_time_step_ = 1.0;
-    size_type m_step_ = 0;
 };
 TimeIntegrator::TimeIntegrator() : m_pimpl_(new pimpl_s) {}
 TimeIntegrator::~TimeIntegrator() { delete m_pimpl_; }
@@ -21,11 +20,8 @@ Real TimeIntegrator::GetTimeEnd() const { return m_pimpl_->m_time_end_; }
 void TimeIntegrator::SetTimeEnd(Real t) { m_pimpl_->m_time_end_ = t; }
 Real TimeIntegrator::GetTimeStep() const { return m_pimpl_->m_time_step_; }
 void TimeIntegrator::SetTimeStep(Real t) { m_pimpl_->m_time_step_ = t; }
-size_type TimeIntegrator::GetStep() const { return m_pimpl_->m_step_; }
-void TimeIntegrator::SetStep(size_type s) { m_pimpl_->m_step_ = s; }
 
 std::shared_ptr<data::DataNode> TimeIntegrator::Serialize() const { return base_type::Serialize(); }
-
 void TimeIntegrator::Deserialize(std::shared_ptr<data::DataNode> const &tdb) { base_type::Deserialize(tdb); }
 
 void TimeIntegrator::InitialCondition(Real time_now) {
@@ -60,15 +56,10 @@ void TimeIntegrator::Advance(Real time_now, Real time_dt) {
             item.second->SetBlock(blk);
             int chk_bdry = item.second->CheckBoundary();
             if (chk_bdry == DomainBase::OUT_BOUNDARY) { continue; }
-
             item.second->Push(patch);
-
             if (need_init_cond) { item.second->InitialCondition(time_now); }
-
             item.second->Advance(time_now, time_dt);
-
             if (chk_bdry == DomainBase::ON_BOUNDARY) { item.second->BoundaryCondition(time_now, time_dt); }
-
             patch->Set(item.second->Pop());
         }
 
@@ -76,9 +67,8 @@ void TimeIntegrator::Advance(Real time_now, Real time_dt) {
 
     });
 }
-void TimeIntegrator::CheckPoint() const {}
 void TimeIntegrator::DoSetUp() {
-    SetStep(db()->GetValue<size_type>("Step", m_pimpl_->m_step_));
+    SetStepNumber(db()->GetValue<size_type>("Step", GetStepNumber()));
     SetMaxStep(db()->GetValue<size_type>("MaxStep", 100));
     base_type::DoSetUp();
 }
@@ -86,23 +76,23 @@ void TimeIntegrator::DoTearDown() { base_type::DoTearDown(); }
 void TimeIntegrator::Run() {
     Update();
     while (!Done()) {
-        VERBOSE << " [ STEP:" << std::setw(5) << GetStep() << " START ] ";
-        if (GetStep() == 0) { CheckPoint(); }
+        VERBOSE << " [ STEP:" << std::setw(5) << GetStepNumber() << " START ] ";
+        if (GetStepNumber() == 0) { CheckPoint(); }
         Synchronize();
         NextStep();
-        if (GetCheckPointInterval() > 0 && GetStep() % GetCheckPointInterval() == 0) { CheckPoint(); };
-        if (GetDumpInterval() > 0 && GetStep() % GetDumpInterval() == 0) { Dump(); };
+        if (GetCheckPointInterval() > 0 && GetStepNumber() % GetCheckPointInterval() == 0) { CheckPoint(); };
+        if (GetDumpInterval() > 0 && GetStepNumber() % GetDumpInterval() == 0) { Dump(); };
 
-        VERBOSE << " [ STEP:" << std::setw(5) << GetStep() - 1 << " STOP  ] ";
+        VERBOSE << " [ STEP:" << std::setw(5) << GetStepNumber() - 1 << " STOP  ] ";
     }
 }
 void TimeIntegrator::NextStep() {
     Advance(GetTimeNow(), GetTimeStep());
-    m_pimpl_->m_time_now_ += m_pimpl_->m_step_;
-    ++m_pimpl_->m_step_;
+    m_pimpl_->m_time_now_ += m_pimpl_->m_time_step_;
+    base_type::NextStep();
 }
 
 void TimeIntegrator::Synchronize() {}
-bool TimeIntegrator::Done() const { return GetTimeNow() >= GetTimeEnd() || GetStep() >= GetMaxStep(); }
+bool TimeIntegrator::Done() const { return GetTimeNow() >= GetTimeEnd() || GetStepNumber() >= GetMaxStep(); }
 }
 }

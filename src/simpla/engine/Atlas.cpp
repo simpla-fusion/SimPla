@@ -57,13 +57,12 @@ std::shared_ptr<data::DataNode> Atlas::Serialize() const {
     //    tdb->SetValue("LargestPatchDimensions", GetLargestPatchDimensions());
     //    tdb->SetValue("SmallestPatchDimensions", GetSmallestPatchDimensions());
 
-    TODO << " Need better way save/load patches!";
     auto patches = tdb->CreateNode(data::DataNode::DN_TABLE);
     for (auto const &item : m_pimpl_->m_blocks_) {
         auto tmp = tdb->CreateNode(data::DataNode::DN_TABLE);
         patches->Set(item.first, item.second->Serialize());
     }
-    tdb->Set("Patches", patches);
+    tdb->Set("Blocks", patches);
     return tdb;
 };
 void Atlas::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
@@ -74,8 +73,7 @@ void Atlas::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
         m_pimpl_->m_chart_ = geometry::Chart::New(tdb->Get("Chart"));
     }
 
-    TODO << " Need better way save/load patches!";
-    auto patches = tdb->Get("Patches");
+    auto patches = tdb->Get("Blocks");
     patches->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &dnode) {
         auto res = m_pimpl_->m_blocks_.emplace(std::stoi(key), MeshBlock::New(dnode));
         return res.second ? 1 : 0;

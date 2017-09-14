@@ -3,6 +3,7 @@
 //
 
 #include <simpla/geometry/BoxUtilities.h>
+#include <simpla/utilities/type_cast.h>
 #include "simpla/SIMPLA_config.h"
 
 #include "simpla/data/DataNode.h"
@@ -19,6 +20,8 @@ struct Scenario::pimpl_s {
     std::map<id_type, std::shared_ptr<data::DataNode>> m_patches_;
     std::map<std::string, std::shared_ptr<Attribute>> m_attributes_;
     std::map<std::string, Range<EntityId>> m_ranges_;
+
+    size_type m_step_counter_ = 0;
 };
 
 Scenario::Scenario() : m_pimpl_(new pimpl_s) { m_pimpl_->m_atlas_ = Atlas::New(); }
@@ -31,10 +34,13 @@ std::shared_ptr<data::DataNode> Scenario::Serialize() const {
     auto cfg = base_type::Serialize();
     cfg->Set("Atlas", GetAtlas()->Serialize());
     auto domain = data::DataNode::New(data::DataNode::DN_TABLE);
-    for (auto const &item : m_pimpl_->m_domains_) {
-        domain->Set(item.first, item.second->Serialize());
-    }
+    for (auto const &item : m_pimpl_->m_domains_) { domain->Set(item.first, item.second->Serialize()); }
     cfg->Set("Domain", domain);
+
+    auto patches = data::DataNode::New(data::DataNode::DN_TABLE);
+    for (auto const &item : m_pimpl_->m_patches_) { patches->Set(item.first, item.second); }
+    cfg->Set("Patch", patches);
+
     return cfg;
 }
 
@@ -47,7 +53,12 @@ void Scenario::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
             return SetDomain(key, DomainBase::New(node));
         });
     }
-
+    if (auto patches = cfg->Get("Patch")) {
+        patches->Foreach([&](std::string key, std::shared_ptr<data::DataNode> node) {
+            auto res = m_pimpl_->m_patches_.emplace(static_cast<id_type>(std::stol(key)), node);
+            return res.second ? 1 : 0;
+        });
+    }
     Click();
 }
 std::map<std::string, std::shared_ptr<Attribute>> &Scenario::GetAttributes() const { return m_pimpl_->m_attributes_; };
@@ -58,11 +69,34 @@ Range<EntityId> &Scenario::GetRange(std::string const &k) {
 Range<EntityId> const &Scenario::GetRange(std::string const &k) const { return m_pimpl_->m_ranges_.at(k); }
 
 void Scenario::Synchronize() {}
-void Scenario::NextStep() {}
+void Scenario::NextStep() { ++m_pimpl_->m_step_counter_; }
+void Scenario::SetStepNumber(size_type s) { m_pimpl_->m_step_counter_ = s; }
+size_type Scenario::GetStepNumber() const { return m_pimpl_->m_step_counter_; }
 void Scenario::Run() {}
 bool Scenario::Done() const { return true; }
+
+void Scenario::CheckPoint() const {
+    std::ostringstream os;
+    os << db()->GetValue<std::string>("Prefix", GetName()) << std::setfill('0') << std::setw(8) << GetStepNumber()
+       << ".xmf";
+    VERBOSE << std::setw(20) << "Check Point : " << os.str();
+
+    auto dump = data::DataNode::New(os.str());
+    dump->Set("Chart", m_pimpl_->m_atlas_->GetChart()->Serialize());
+    auto patches = dump->CreateNode(data::DataNode::DN_TABLE);
+    for (auto const &item : m_pimpl_->m_patches_) { patches->Set(item.first, item.second); }
+    dump->Flush();
+}
+
 void Scenario::Dump() const {
-    data::DataNode::New(db()->GetValue("DumpFile", "simpla_unanmed.h5"))->Set(m_pimpl_->m_atlas_->Serialize());
+    std::ostringstream os;
+    os << db()->GetValue<std::string>("Prefix", GetName()) << "_dump_" << std::setfill('0') << std::setw(8)
+       << GetStepNumber() << ".xmf";
+    VERBOSE << std::setw(20) << "Dump : " << os.str();
+
+    auto dump = data::DataNode::New(os.str());
+    dump->Set(Serialize());
+    dump->Flush();
 }
 void Scenario::DoInitialize() {}
 void Scenario::DoFinalize() {}
