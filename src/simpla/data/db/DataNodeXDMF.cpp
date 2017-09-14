@@ -60,24 +60,65 @@ DataNodeXDMF::~DataNodeXDMF() = default;
 //    auto geometry = XdmfGeometry::New();
 //    auto topology = XdmfTopology::New();
 //}
-// template <typename U, int N>
-// std::shared_ptr<XdmfArray> XDMFArray(nTuple<U, N> const& v){};
-int XDMFDump(std::string url, std::shared_ptr<DataNode> const& v) {
-    if (v == nullptr) { return SP_FAILED; }
+template <typename U, int N>
+std::shared_ptr<XdmfArray> XDMFNewArray(nTuple<U, N> const& v){};
+
+boost::shared_ptr<XdmfCurvilinearGrid> XDMFCurvilinearGridNew(std::shared_ptr<DataNode> const& chart,
+                                                              std::shared_ptr<data::DataNode> const& patch) {
+    auto grid = XdmfCurvilinearGrid::New(4, 2, 2);
+    auto geo = XdmfGeometry::New();
+    geo->setType(XdmfGeometryType::XYZ());
+    auto origin = chart->GetValue<nTuple<Real, 3>>("Origin");
+    geo->setOrigin(origin[0], origin[1], origin[2]);
+    grid->setGeometry(geo);
+
+    //    if (auto attrs = patch->Get("Attributes")) {
+    //        attrs->Foreach([&](std::string const& k, std::shared_ptr<data::DataNode> const& node) { return 1; });
+    //    }
+    return grid;
+}
+boost::shared_ptr<XdmfRegularGrid> XDMFRegularGridNew(std::shared_ptr<DataNode> const& chart,
+                                                      std::shared_ptr<data::DataNode> const& patch) {
+    auto x0 = chart->GetValue<nTuple<Real, 3>>("Origin");
+    auto dx = chart->GetValue<nTuple<Real, 3>>("Scale");
+    auto idx_box = patch->GetValue<index_box_type>("Block");
+    nTuple<unsigned int, 3> dims;
+    dims = std::get<1>(idx_box) - std::get<0>(idx_box);
+    nTuple<unsigned int, 3> origin;
+    origin = std::get<0>(idx_box) * dx + x0;
+    auto grid = XdmfRegularGrid::New(dx[0], dx[1], dx[2], dims[0], dims[1], dims[2], origin[0], origin[1], origin[2]);
+    return grid;
+}
+int XDMFDump(std::string url, std::shared_ptr<DataNode> const& obj) {
+    if (obj == nullptr || url.empty()) { return SP_FAILED; }
+    int success = SP_FAILED;
+    auto grid_collection = XdmfGridCollection::New();
+    grid_collection->setType(XdmfGridCollectionType::Spatial());
+
+    if (auto time = obj->Get("Time")) {
+        if (auto t = std::dynamic_pointer_cast<DataLightT<Real>>(time->GetEntity())) {
+            grid_collection->setTime(XdmfTime::New(t->value()));
+        }
+    }
+    if (auto chart = obj->Get("Chart"))
+        if (auto patch = obj->Get("Patch")) {
+            patch->Foreach([&](std::string const& k, std::shared_ptr<data::DataNode> const& node) {
+                if (node->Get("Coordinates") != nullptr) {
+                    grid_collection->insert(XDMFCurvilinearGridNew(chart, node));
+                } else {
+                    grid_collection->insert(XDMFRegularGridNew(chart, node));
+                }
+                return 1;
+            });
+        }
+
     auto domain = XdmfDomain::New();
-    //    size_type count = 0;
-    //    auto chart = v->Get("Chart");
-    //    auto patch = v->Get("Patch");
-    //    auto dx = chart->GetValue<nTuple<Real, 3>>("Scale");
-    //    auto x0 = chart->GetValue<nTuple<Real, 3>>("Origin");
-    //    if (chart == nullptr || patch == nullptr) { return 0; }
-    //    if (auto atlas = v->Get("Atlas")) { auto domain = XDMFFromAtlas(v); }
-
-    if (url.empty()) { url = v->GetValue<std::string>("Name", "simpla_unnamed") + ".xmf"; }
-    auto writer = XdmfWriter::New(url);
-    domain->accept(writer);
-
-    return SP_SUCCESS;
+    domain->insert(grid_collection);
+    if (auto writer = XdmfWriter::New(url)) {
+        domain->accept(writer);
+        success = SP_SUCCESS;
+    }
+    return success;
 }
 
 ////

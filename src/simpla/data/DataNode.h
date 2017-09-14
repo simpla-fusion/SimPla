@@ -173,12 +173,12 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
 
     template <typename U>
     U GetValue(std::string const& url, U default_value) const {
-        CopyFromData(default_value, Get(url));
+        if (auto p = Get(url)) { CopyFromData(default_value, p); }
         return (default_value);
     };
     std::string GetValue(std::string const& url, char const* default_value) const {
         std::string res(default_value);
-        CopyFromData(res, Get(url));
+        if (auto p = Get(url)) { CopyFromData(res, p); }
         return (res);
     };
 

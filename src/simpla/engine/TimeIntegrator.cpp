@@ -84,7 +84,7 @@ void TimeIntegrator::Run() {
         if (GetDumpInterval() > 0 && GetStepNumber() % GetDumpInterval() == 0) { Dump(); };
 
         VERBOSE << " [ STEP:" << std::setw(5) << GetStepNumber() - 1 << " STOP  ] ";
-    }
+    }CheckPoint();
 }
 void TimeIntegrator::NextStep() {
     Advance(GetTimeNow(), GetTimeStep());

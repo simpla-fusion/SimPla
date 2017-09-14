@@ -33,6 +33,8 @@ Scenario::~Scenario() {
 std::shared_ptr<data::DataNode> Scenario::Serialize() const {
     auto cfg = base_type::Serialize();
     cfg->Set("Atlas", GetAtlas()->Serialize());
+    cfg->Set("Chart", m_pimpl_->m_atlas_->GetChart()->Serialize());
+
     auto domain = data::DataNode::New(data::DataNode::DN_TABLE);
     for (auto const &item : m_pimpl_->m_domains_) { domain->Set(item.first, item.second->Serialize()); }
     cfg->Set("Domain", domain);
@@ -61,6 +63,31 @@ void Scenario::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     }
     Click();
 }
+
+void Scenario::CheckPoint() const {
+    std::ostringstream os;
+    os << db()->GetValue<std::string>("Prefix", GetName()) << std::setfill('0') << std::setw(8) << GetStepNumber()
+       << ".xmf";
+    VERBOSE << std::setw(20) << "Check Point : " << os.str();
+
+    auto dump = data::DataNode::New(os.str());
+    dump->Set("Chart", m_pimpl_->m_atlas_->GetChart()->Serialize());
+    auto patches = data::DataNode::New(data::DataNode::DN_TABLE);
+    for (auto const &item : m_pimpl_->m_patches_) { patches->Set(item.first, item.second); }
+    dump->Set("Patch", patches);
+    dump->Flush();
+}
+
+void Scenario::Dump() const {
+    std::ostringstream os;
+    os << db()->GetValue<std::string>("Prefix", GetName()) << "_dump_" << std::setfill('0') << std::setw(8)
+       << GetStepNumber() << ".xmf";
+    VERBOSE << std::setw(20) << "Dump : " << os.str();
+
+    auto dump = data::DataNode::New(os.str());
+    dump->Set(Serialize());
+    dump->Flush();
+}
 std::map<std::string, std::shared_ptr<Attribute>> &Scenario::GetAttributes() const { return m_pimpl_->m_attributes_; };
 Range<EntityId> &Scenario::GetRange(std::string const &k) {
     auto res = m_pimpl_->m_ranges_.emplace(k, Range<EntityId>{});
@@ -75,29 +102,6 @@ size_type Scenario::GetStepNumber() const { return m_pimpl_->m_step_counter_; }
 void Scenario::Run() {}
 bool Scenario::Done() const { return true; }
 
-void Scenario::CheckPoint() const {
-    std::ostringstream os;
-    os << db()->GetValue<std::string>("Prefix", GetName()) << std::setfill('0') << std::setw(8) << GetStepNumber()
-       << ".xmf";
-    VERBOSE << std::setw(20) << "Check Point : " << os.str();
-
-    auto dump = data::DataNode::New(os.str());
-    dump->Set("Chart", m_pimpl_->m_atlas_->GetChart()->Serialize());
-    auto patches = dump->CreateNode(data::DataNode::DN_TABLE);
-    for (auto const &item : m_pimpl_->m_patches_) { patches->Set(item.first, item.second); }
-    dump->Flush();
-}
-
-void Scenario::Dump() const {
-    std::ostringstream os;
-    os << db()->GetValue<std::string>("Prefix", GetName()) << "_dump_" << std::setfill('0') << std::setw(8)
-       << GetStepNumber() << ".xmf";
-    VERBOSE << std::setw(20) << "Dump : " << os.str();
-
-    auto dump = data::DataNode::New(os.str());
-    dump->Set(Serialize());
-    dump->Flush();
-}
 void Scenario::DoInitialize() {}
 void Scenario::DoFinalize() {}
 
