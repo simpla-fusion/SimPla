@@ -43,6 +43,8 @@ class DomainBase : public EngineObject, public AttributeGroup {
     void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;
+    design_pattern::Signal<void(DomainBase *, std::shared_ptr<simpla::data::DataNode> const &)> OnDeserialize;
+    design_pattern::Signal<void(DomainBase const *, std::shared_ptr<simpla::data::DataNode> &)> OnSerialize;
 
     design_pattern::Signal<void(DomainBase *, Real)> PreInitialCondition;
     virtual void DoInitialCondition(Real time_now) {}
@@ -157,6 +159,7 @@ Domain<TChart, Policies...>::~Domain(){};
 template <typename TChart, template <typename> class... Policies>
 std::shared_ptr<data::DataNode> Domain<TChart, Policies...>::Serialize() const {
     auto cfg = DomainBase::Serialize();
+
     return cfg;
 };
 
@@ -190,40 +193,46 @@ void Domain<TChart, Policies...>::DoAdvance(Real time_now, Real dt) {}
 template <typename TChart, template <typename> class... Policies>
 void Domain<TChart, Policies...>::DoTagRefinementCells(Real time_now) {}
 namespace detail {
-template <typename U, typename SFS>
-void InitializeArray(Array<U> &v, SFS const &sfc) {
-    Array<U>(sfc).swap(v);
+template <typename U, typename SFC>
+void InitializeArray_(Array<U, SFC> &v, SFC const &sfc) {
+    Array<U, SFC>(sfc).swap(v);
+    v.alloc();
 }
 template <typename U, int N0, int... N, typename SFC>
-void InitializeArray(nTuple<Array<U>, N0, N...> &v, SFC const &sfc) {
-    for (int i = 0; i < N0; ++i) { InitializeArray(v[i], sfc); }
+void InitializeArray_(nTuple<Array<U, SFC>, N0, N...> &v, SFC const &sfc) {
+    for (int i = 0; i < N0; ++i) { InitializeArray_(v[i], sfc); }
+}
+template <typename TArray, typename THost>
+void InitializeArray(std::integral_constant<int, NODE>, TArray &v, THost const *host) {
+    InitializeArray_(v, host->GetSpaceFillingCurve(NODE, 0));
+}
+template <typename TArray, typename THost>
+void InitializeArray(std::integral_constant<int, CELL>, TArray &v, THost const *host) {
+    InitializeArray_(v, host->GetSpaceFillingCurve(CELL, 0));
+}
+template <typename TArray, typename THost>
+void InitializeArray(std::integral_constant<int, EDGE>, TArray &v, THost const *host) {
+    InitializeArray_(v[0], host->GetSpaceFillingCurve(EDGE, 0));
+    InitializeArray_(v[1], host->GetSpaceFillingCurve(EDGE, 1));
+    InitializeArray_(v[2], host->GetSpaceFillingCurve(EDGE, 2));
+}
+template <typename TArray, typename THost>
+void InitializeArray(std::integral_constant<int, FACE>, TArray &v, THost const *host) {
+    InitializeArray_(v[0], host->GetSpaceFillingCurve(FACE, 0));
+    InitializeArray_(v[1], host->GetSpaceFillingCurve(FACE, 1));
+    InitializeArray_(v[2], host->GetSpaceFillingCurve(FACE, 2));
+}
+
+template <int IFORM, typename TArray, typename THost>
+void InitializeArray(std::integral_constant<int, IFORM>, TArray &v, THost const *host) {
+    UNIMPLEMENTED;
 }
 }  // namespace detail{
 
 template <typename TChart, template <typename> class... Policies>
 template <typename U, int IFORM, int... DOF>
 void Domain<TChart, Policies...>::InitializeAttribute(AttributeT<U, IFORM, DOF...> *attr) const {
-    switch (IFORM) {
-        case NODE:
-            detail::InitializeArray(*attr, this->GetSpaceFillingCurve(NODE));
-            break;
-        case CELL:
-            detail::InitializeArray(*attr, this->GetSpaceFillingCurve(CELL));
-            break;
-        case EDGE:
-            detail::InitializeArray((*attr)[0], this->GetSpaceFillingCurve(EDGE, 0));
-            detail::InitializeArray((*attr)[1], this->GetSpaceFillingCurve(EDGE, 1));
-            detail::InitializeArray((*attr)[2], this->GetSpaceFillingCurve(EDGE, 2));
-            break;
-        case FACE:
-            detail::InitializeArray((*attr)[0], this->GetSpaceFillingCurve(FACE, 0));
-            detail::InitializeArray((*attr)[1], this->GetSpaceFillingCurve(FACE, 1));
-            detail::InitializeArray((*attr)[2], this->GetSpaceFillingCurve(FACE, 2));
-            break;
-        default:
-            UNIMPLEMENTED;
-            break;
-    }
+    detail::InitializeArray(std::integral_constant<int, IFORM>(), *attr, this);
 };
 
 template <typename TM, template <typename> class... Policies>

@@ -31,19 +31,19 @@ Scenario::~Scenario() {
 }
 
 std::shared_ptr<data::DataNode> Scenario::Serialize() const {
-    auto cfg = base_type::Serialize();
-    cfg->Set("Atlas", GetAtlas()->Serialize());
-    cfg->Set("Chart", m_pimpl_->m_atlas_->GetChart()->Serialize());
+    auto res = base_type::Serialize();
+    res->Set("Atlas", GetAtlas()->Serialize());
+    res->Set("Chart", m_pimpl_->m_atlas_->GetChart()->Serialize());
 
     auto domain = data::DataNode::New(data::DataNode::DN_TABLE);
     for (auto const &item : m_pimpl_->m_domains_) { domain->Set(item.first, item.second->Serialize()); }
-    cfg->Set("Domain", domain);
+    res->Set("Domain", domain);
 
     auto patches = data::DataNode::New(data::DataNode::DN_TABLE);
     for (auto const &item : m_pimpl_->m_patches_) { patches->Set(item.first, item.second); }
-    cfg->Set("Patch", patches);
+    res->Set("Patch", patches);
 
-    return cfg;
+    return res;
 }
 
 void Scenario::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
@@ -73,7 +73,13 @@ void Scenario::CheckPoint() const {
     auto dump = data::DataNode::New(os.str());
     dump->Set("Chart", m_pimpl_->m_atlas_->GetChart()->Serialize());
     auto patches = data::DataNode::New(data::DataNode::DN_TABLE);
-    for (auto const &item : m_pimpl_->m_patches_) { patches->Set(item.first, item.second); }
+    auto step = GetStepNumber();
+    for (auto const &item : m_pimpl_->m_patches_) {
+        patches->Set(item.first, item.second);
+        //        if ((step % item.second->GetValue<size_type>("CheckPoint", std::numeric_limits<size_type>::max()) ==
+        //        0)) {
+        //        }
+    }
     dump->Set("Patch", patches);
     dump->Flush();
 }

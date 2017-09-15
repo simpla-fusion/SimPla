@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
     TheStart();
     scenario->Run();
     scenario->Dump();
-    //    std::cout << *scenario << std::endl;
+    std::cout << *scenario << std::endl;
     TheEnd();
     scenario->TearDown();
 }

@@ -21,9 +21,7 @@ AttributeGroup::~AttributeGroup() {
 }
 std::shared_ptr<data::DataNode> AttributeGroup::Serialize() const {
     auto res = data::DataNode::New(data::DataNode::DN_TABLE);
-    for (auto const &item : m_pimpl_->m_attributes_) {
-        res->Set(item->GetName(), item->Serialize());
-    }
+    for (auto const &item : m_pimpl_->m_attributes_) { res->Set(item->GetName(), item->Serialize()); }
     return res;
 }
 void AttributeGroup::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
@@ -41,7 +39,7 @@ void AttributeGroup::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
 void AttributeGroup::Push(const std::shared_ptr<data::DataNode> &p) {
     if (p != nullptr) {
         for (auto &item : m_pimpl_->m_attributes_) {
-            if (auto attr = p->Get(item->GetName())) { item->Push(attr); }
+            if (auto patch = p->Get(item->GetName())) { item->Push(patch); }
         }
     }
 }

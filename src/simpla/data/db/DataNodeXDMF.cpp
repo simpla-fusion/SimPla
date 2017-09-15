@@ -3,6 +3,7 @@
 //
 #include <sys/stat.h>
 #include <Xdmf.hpp>
+#include <XdmfAttributeCenter.hpp>
 #include <XdmfDomain.hpp>
 #include <XdmfGridCollection.hpp>
 #include <XdmfWriter.hpp>
@@ -31,50 +32,121 @@ struct DataNodeXDMF : public DataNodeMemory {
 REGISTER_CREATOR(DataNodeXDMF, xmf);
 DataNodeXDMF::DataNodeXDMF(DataNode::eNodeType etype) : base_type(etype) {}
 DataNodeXDMF::~DataNodeXDMF() = default;
+template <typename U>
+void XDMFWriteArrayT(XdmfArray* dst, std::shared_ptr<DataBlockT<U>> const& block) {
+    dst->setValuesInternal(block->get(), block->size());
+}
+int XDMFWriteArray(XdmfArray* dst, std::shared_ptr<DataNode> const& data) {
+    if (data == nullptr) { return 0; }
+    if (data->type() == DataNode::DN_ARRAY) {
+    } else if (data->type() == DataNode::DN_TABLE) {
+    } else if (auto p = std::dynamic_pointer_cast<DataBlockT<double>>(data->GetEntity())) {
+        XDMFWriteArrayT(dst, p);
+    } else if (auto p = std::dynamic_pointer_cast<DataBlockT<float>>(data->GetEntity())) {
+        XDMFWriteArrayT(dst, p);
+    } else if (auto p = std::dynamic_pointer_cast<DataBlockT<int>>(data->GetEntity())) {
+        XDMFWriteArrayT(dst, p);
+    } else if (auto p = std::dynamic_pointer_cast<DataBlockT<long>>(data->GetEntity())) {
+        XDMFWriteArrayT(dst, p);
+    } else if (auto p = std::dynamic_pointer_cast<DataBlockT<unsigned int>>(data->GetEntity())) {
+        XDMFWriteArrayT(dst, p);
+    }
+    return 1;
+}
 
-//************************************************************************************************
-// size_type XDMFCreateOrOpenGroup(std::shared_ptr<XdmfItem>& self, std::string const& uri) {}
-// size_type XDMFSet(std::shared_ptr<XdmfItem>& self, std::string const& uri, const std::shared_ptr<DataNode>& v) {}
-//
-// shared_ptr<XdmfDomain> XDMFFromAtlas(std::shared_ptr<DataNode> const& v) {
-//    auto root = XdmfDomain::New();
-//    // Dimensions
-//    shared_ptr<XdmfArray> dimensions = XdmfArray::New();
-//    dimensions->pushBack((unsigned int)10);
-//    dimensions->pushBack((unsigned int)20);
-//    dimensions->pushBack((unsigned int)30);
-//    // Origin
-//    shared_ptr<XdmfArray> origin = XdmfArray::New();
-//    origin->pushBack((unsigned int)1);
-//    origin->pushBack((unsigned int)2);
-//    origin->pushBack((unsigned int)3);
-//    // Brick Size
-//    shared_ptr<XdmfArray> brick = XdmfArray::New();
-//    brick->pushBack((unsigned int)1);
-//    brick->pushBack((unsigned int)2);
-//    brick->pushBack((unsigned int)3);
-//    // Grid
-//    shared_ptr<XdmfRegularGrid> g = XdmfRegularGrid::New(brick, dimensions, origin);
-//    auto grid = XdmfGridCollection::New();
-//
-//    auto geometry = XdmfGeometry::New();
-//    auto topology = XdmfTopology::New();
-//}
-template <typename U, int N>
-std::shared_ptr<XdmfArray> XDMFNewArray(nTuple<U, N> const& v){};
+boost::shared_ptr<XdmfAttribute> XDMFAttributeNew(std::shared_ptr<DataNode> const& node) {
+    auto attr = XdmfAttribute::New();
+    auto iform = node->GetValue<int>("IFORM");
+    switch (iform) {
+        case NODE:
+            attr->setCenter(XdmfAttributeCenter::Node());
+            break;
+        case CELL:
+            attr->setCenter(XdmfAttributeCenter::Cell());
+            break;
+        case EDGE:
+            attr->setCenter(XdmfAttributeCenter::Edge());
+            break;
+        case FACE:
+            attr->setCenter(XdmfAttributeCenter::Face());
+            break;
+        default:
+            UNIMPLEMENTED;
+            break;
+    }
+    size_type rank = 0;
+    size_type extents[MAX_NDIMS_OF_ARRAY];
+    if (auto p = node->Get("DOF")) {
+        if (auto dof = std::dynamic_pointer_cast<DataLightT<int>>(p->GetEntity())) {
+            switch (dof->value()) {
+                case 1:
+                    attr->setType(XdmfAttributeType::Scalar());
+                    break;
+                case 3:
+                    attr->setType(XdmfAttributeType::Vector());
+                    break;
+                case 6:
+                    attr->setType(XdmfAttributeType::Tensor6());
+                    break;
+                case 9:
+                    attr->setType(XdmfAttributeType::Tensor());
+                    break;
+                default:
+                    attr->setType(XdmfAttributeType::Matrix());
+                    break;
+            }
+            rank = dof->value() > 1 ? 1 : 0;
+            extents[0] = static_cast<size_type>(dof->value());
+        } else if (auto dof = std::dynamic_pointer_cast<DataLightT<int*>>(p->GetEntity())) {
+            attr->setType(XdmfAttributeType::Matrix());
+            rank = dof->extents(extents);
+        }
+    } else {
+        attr->setType(XdmfAttributeType::Scalar());
+    }
 
+    XDMFWriteArray(attr.get(), node->Get("_DATA_"));
+
+    return attr;
+}
+template <typename T>
+size_type XDMFAttributeInsert(T& grid, std::shared_ptr<data::DataNode> const& attrs) {
+    return attrs->Foreach([&](std::string const& k, std::shared_ptr<data::DataNode> const& node) {
+        //        if (node->GetValue<std::string>("_TYPE_") == "Attribute") {
+        auto attr = XDMFAttributeNew(node);
+        attr->setName(k);
+
+        grid->insert(attr);
+        //        }
+        return 1;
+    });
+}
 boost::shared_ptr<XdmfCurvilinearGrid> XDMFCurvilinearGridNew(std::shared_ptr<DataNode> const& chart,
                                                               std::shared_ptr<data::DataNode> const& patch) {
-    auto grid = XdmfCurvilinearGrid::New(4, 2, 2);
+    auto coord = patch->Get("Attributes/_COORDINATES_/_DATA_");
+    ASSERT(coord != nullptr && coord->type() == DataNode::DN_ARRAY);
+    auto x = std::dynamic_pointer_cast<DataBlockT<Real>>(coord->Get(0)->GetEntity());
+    auto y = std::dynamic_pointer_cast<DataBlockT<Real>>(coord->Get(1)->GetEntity());
+    auto z = std::dynamic_pointer_cast<DataBlockT<Real>>(coord->Get(2)->GetEntity());
+    nTuple<index_type, 3> lo{0, 0, 0}, hi{0, 0, 0};
+    x->GetIndexBox(&lo[0], &hi[0]);
+    nTuple<unsigned int, 3> dims{0, 0, 0};
+    dims = hi - lo;
+    unsigned int num = dims[0] * dims[1] * dims[2];
+    auto grid = XdmfCurvilinearGrid::New(dims[0], dims[1], dims[2]);
     auto geo = XdmfGeometry::New();
     geo->setType(XdmfGeometryType::XYZ());
-    auto origin = chart->GetValue<nTuple<Real, 3>>("Origin");
+    nTuple<Real, 3> origin = chart->GetValue<nTuple<Real, 3>>("Origin");
+    origin += lo * chart->GetValue<nTuple<Real, 3>>("Scale");
     geo->setOrigin(origin[0], origin[1], origin[2]);
+    std::vector<unsigned int> dimensions = {dims[0], dims[1], dims[2], 3};
+    geo->initialize(XdmfArrayType::Float64(), dimensions);
+    //    geo->insert(0, x->get(), num * 3, 3, 1);
+    //    geo->insert(1, y->get(), num * 3, 3, 1);
+    //    geo->insert(2, z->get(), num * 3, 3, 1);
     grid->setGeometry(geo);
 
-    //    if (auto attrs = patch->Get("Attributes")) {
-    //        attrs->Foreach([&](std::string const& k, std::shared_ptr<data::DataNode> const& node) { return 1; });
-    //    }
+    XDMFAttributeInsert(grid, patch->Get("Attributes"));
     return grid;
 }
 boost::shared_ptr<XdmfRegularGrid> XDMFRegularGridNew(std::shared_ptr<DataNode> const& chart,
@@ -87,6 +159,7 @@ boost::shared_ptr<XdmfRegularGrid> XDMFRegularGridNew(std::shared_ptr<DataNode> 
     nTuple<unsigned int, 3> origin;
     origin = std::get<0>(idx_box) * dx + x0;
     auto grid = XdmfRegularGrid::New(dx[0], dx[1], dx[2], dims[0], dims[1], dims[2], origin[0], origin[1], origin[2]);
+    XDMFAttributeInsert(grid, patch->Get("Attributes"));
     return grid;
 }
 int XDMFDump(std::string url, std::shared_ptr<DataNode> const& obj) {
@@ -103,10 +176,14 @@ int XDMFDump(std::string url, std::shared_ptr<DataNode> const& obj) {
     if (auto chart = obj->Get("Chart"))
         if (auto patch = obj->Get("Patch")) {
             patch->Foreach([&](std::string const& k, std::shared_ptr<data::DataNode> const& node) {
-                if (node->Get("Coordinates") != nullptr) {
-                    grid_collection->insert(XDMFCurvilinearGridNew(chart, node));
+                if (node->Get("Attributes/_COORDINATES_") != nullptr) {
+                    auto g = XDMFCurvilinearGridNew(chart, node);
+                    g->setName(k);
+                    grid_collection->insert(g);
                 } else {
-                    grid_collection->insert(XDMFRegularGridNew(chart, node));
+                    auto g = XDMFRegularGridNew(chart, node);
+                    g->setName(k);
+                    grid_collection->insert(g);
                 }
                 return 1;
             });
@@ -120,27 +197,6 @@ int XDMFDump(std::string url, std::shared_ptr<DataNode> const& obj) {
     }
     return success;
 }
-
-////
-//// std::shared_ptr<DataEntity> DataBaseXDMF::Get(std::string const& URI) const {
-////    if (URI[0] == '/') {
-////        //        GetRoot()->Get(URI.substr(1));
-////    } else {
-////        auto new_backend = DataBaseXDMF::New();
-////        new_backend->m_pimpl_->m_parent_ =
-////            std::dynamic_pointer_cast<this_type>(const_cast<this_type*>(this)->shared_from_this());
-////        new_backend->m_pimpl_->m_name_ = URI;
-////        auto res = DataTable::New(new_backend);
-////    }
-////    return nullptr;
-////}
-//// int DataBaseXDMF::Set(std::string const& URI, const std::shared_ptr<DataEntity>& entity) { return 0; }
-//// int DataBaseXDMF::Add(std::string const& URI, const std::shared_ptr<DataEntity>& entity) { return 0; }
-//// int DataBaseXDMF::Delete(std::string const& URI) { return 0; }
-//// int DataBaseXDMF::Foreach(std::function<int(std::string const&, std::shared_ptr<DataEntity>)> const& fun) const
-///{
-////    return 0;
-////}
 
 }  // namespace data{
 }  // namespace simpla

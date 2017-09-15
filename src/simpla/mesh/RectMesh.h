@@ -26,7 +26,7 @@ struct RectMesh : public StructuredMesh {
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real time_dt);
 
-    engine::AttributeT<Real, NODE> m_coordinates_{m_host_, "Name"_ = "Coordinates", "COORDINATES"_};
+    engine::AttributeT<Real, NODE, 3> m_coordinates_{m_host_, "Name"_ = "_COORDINATES_", "COORDINATES"_};
     //     engine:: AttributeT< Real, NODE > m_vertices_{m_domain_, "Name"_ = "m_vertices_","TEMP"_};
 
     engine::AttributeT<Real, NODE> m_node_volume_{m_host_, "Name"_ = "m_node_volume_", "TEMP"_};
@@ -51,6 +51,9 @@ RectMesh<THost>::RectMesh(THost* h) : m_host_(h) {
     h->PreInitialCondition.Connect([=](engine::DomainBase* self, Real time_now) {
         if (auto* p = dynamic_cast<RectMesh<THost>*>(self)) { p->InitialCondition(time_now); }
     });
+    h->OnSerialize.Connect([=](engine::DomainBase const* self, std::shared_ptr<simpla::data::DataNode>& tdb) {
+        if (auto const* p = dynamic_cast<RectMesh<THost> const*>(self)) { tdb->Set(p->Serialize()); }
+    });
 }
 template <typename THost>
 RectMesh<THost>::~RectMesh() {}
@@ -66,28 +69,27 @@ void RectMesh<THost>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}
 template <typename THost>
 void RectMesh<THost>::InitialCondition(Real time_now) {
     auto chart = this->GetChart();
-    m_coordinates_.Update();
-    m_coordinates_ = [&](index_type x, index_type y, index_type z) { return chart->global_coordinates(x, y, z, 0b0); };
+    m_host_->InitializeAttribute(&m_coordinates_);
     //    m_vertices_ = [&](point_type const& x) { return (x); };
-    m_node_volume_.Update();
-    m_node_inv_volume_.Update();
-    m_node_dual_volume_.Update();
-    m_node_inv_dual_volume_.Update();
+    m_host_->InitializeAttribute(&m_node_volume_);
+    m_host_->InitializeAttribute(&m_node_inv_volume_);
+    m_host_->InitializeAttribute(&m_node_dual_volume_);
+    m_host_->InitializeAttribute(&m_node_inv_dual_volume_);
 
-    m_cell_volume_.Update();
-    m_cell_inv_volume_.Update();
-    m_cell_dual_volume_.Update();
-    m_cell_inv_dual_volume_.Update();
+    m_host_->InitializeAttribute(&m_cell_volume_);
+    m_host_->InitializeAttribute(&m_cell_inv_volume_);
+    m_host_->InitializeAttribute(&m_cell_dual_volume_);
+    m_host_->InitializeAttribute(&m_cell_inv_dual_volume_);
 
-    m_edge_volume_.Update();
-    m_edge_inv_volume_.Update();
-    m_edge_dual_volume_.Update();
-    m_edge_inv_dual_volume_.Update();
+    m_host_->InitializeAttribute(&m_edge_volume_);
+    m_host_->InitializeAttribute(&m_edge_inv_volume_);
+    m_host_->InitializeAttribute(&m_edge_dual_volume_);
+    m_host_->InitializeAttribute(&m_edge_inv_dual_volume_);
 
-    m_face_volume_.Update();
-    m_face_inv_volume_.Update();
-    m_face_dual_volume_.Update();
-    m_face_inv_dual_volume_.Update();
+    m_host_->InitializeAttribute(&m_face_volume_);
+    m_host_->InitializeAttribute(&m_face_inv_volume_);
+    m_host_->InitializeAttribute(&m_face_dual_volume_);
+    m_host_->InitializeAttribute(&m_face_inv_dual_volume_);
 
     /**
      *\verbatim
@@ -109,6 +111,7 @@ void RectMesh<THost>::InitialCondition(Real time_now) {
      *
      *\endverbatim
      */
+    m_coordinates_ = [&](index_type x, index_type y, index_type z) { return chart->global_coordinates(x, y, z, 0b0); };
 
     m_node_volume_ = 1.0;
     m_node_inv_volume_ = 1.0;

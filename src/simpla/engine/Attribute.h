@@ -153,7 +153,9 @@ struct Attribute : public EngineObject {
 
 template <typename V, int IFORM, int... DOF>
 struct attribute_traits {
-    typedef nTuple<Array<V>, (IFORM == NODE || IFORM == CELL) ? 1 : 3, DOF...> data_type;
+    typedef std::conditional_t<(IFORM == EDGE || IFORM == FACE), nTuple<Array<V>, 3, DOF...>,
+                               std::conditional_t<sizeof...(DOF) == 0, Array<V>, nTuple<Array<V>, DOF...>>>
+        data_type;
 };
 template <typename V>
 struct attribute_traits<V, NODE> {
@@ -277,21 +279,6 @@ AttributeT<V, IFORM, DOF...>::~AttributeT(){};
 //    ;
 //}
 
-template <typename V, int IFORM, int... DOF>
-std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Serialize() const {
-    auto res = base_type::Serialize();
-    res->SetValue("IFORM", IFORM);
-    res->SetValue("DOF", DOF...);
-    res->SetValue("ValueType", traits::type_name<V>::value());
-    res->Set("_DATA_", Pop());
-    return res;
-};
-template <typename V, int IFORM, int... DOF>
-void AttributeT<V, IFORM, DOF...>::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
-    base_type::Deserialize(cfg);
-    Push(cfg->Get("_DATA_"));
-};
-
 namespace detail {
 template <typename U>
 std::shared_ptr<data::DataNode> pop_data(Array<U> const &v) {
@@ -372,14 +359,31 @@ void AttributeT<V, IFORM, DOF...>::Clear() {
     Update();
     detail::clear(*this);
 };
+
+template <typename V, int IFORM, int... DOF>
+std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Serialize() const {
+    auto res = base_type::Serialize();
+    res->Set(Pop());
+    return res;
+};
+template <typename V, int IFORM, int... DOF>
+void AttributeT<V, IFORM, DOF...>::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
+    base_type::Deserialize(cfg);
+    Push(cfg);
+};
 template <typename V, int IFORM, int... DOF>
 void AttributeT<V, IFORM, DOF...>::Push(const std::shared_ptr<data::DataNode> &d) {
-    detail::push_data(*this, d);
+    detail::push_data(*this, d->Get("_DATA_"));
 };
 
 template <typename V, int IFORM, int... DOF>
 std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Pop() const {
-    return detail::pop_data(*this);
+    auto res = data::DataNode::New(data::DataNode::DN_TABLE);
+    res->SetValue("IFORM", IFORM);
+    res->SetValue("DOF", DOF...);
+    res->SetValue("ValueType", traits::type_name<V>::value());
+    res->Set("_DATA_", detail::pop_data(*this));
+    return res;
 };
 template <typename V, int IFORM, int... DOF>
 template <typename RHS>
