@@ -42,8 +42,7 @@ struct DataNodeHDF5 : public DataNode {
     size_type Add(std::string const& uri, const std::shared_ptr<DataNode>& v) override;
     size_type Delete(std::string const& uri) override;
     std::shared_ptr<DataNode> Get(std::string const& uri) const override;
-    size_type Foreach(
-        std::function<size_type(std::string, std::shared_ptr<DataNode> const&)> const& f) const override;
+    size_type Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode> const&)> const& f) const override;
 
     size_type Set(index_type s, const std::shared_ptr<DataNode>& v) override;
     size_type Add(index_type s, const std::shared_ptr<DataNode>& v) override;
@@ -89,7 +88,9 @@ int DataNodeHDF5::Connect(std::string const& authority, std::string const& path,
     // = AutoIncreaseFileName(authority + "/" + path, "// .h5");
 
     LOGGER << "Create HDF5 File: [" << filename << "]" << std::endl;
-    TODO << "Parser query : [ " << query << " ] and fragment : [ " << fragment << " ]" << std::endl;
+    if (!(query.empty() && fragment.empty())) {
+        TODO << "Parser query : [ " << query << " ] and fragment : [ " << fragment << " ]" << std::endl;
+    }
     //    mkdir(authority.c_str(), 0777);
     H5_ERROR(m_file_ = H5Fcreate(filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT));
     H5_ERROR(m_group_ = H5Gopen(m_file_, "/", H5P_DEFAULT));
@@ -529,52 +530,51 @@ size_type HDF5SetEntity(hid_t g_id, std::string const& key, std::shared_ptr<Data
 
         ++count;
     } else if (auto p = std::dynamic_pointer_cast<DataBlock>(entity)) {
-        //    bool is_exist = H5Lexists(loc_id, key.c_str(), H5P_DEFAULT) != 0;
-        //    //            H5Oexists_by_name(loc_id, key.c_str(), H5P_DEFAULT) != 0;
-        //    H5O_info_t g_info;
-        //    if (is_exist) { H5_ERROR(H5Oget_info_by_name(loc_id, key.c_str(), &g_info, H5P_DEFAULT)); }
-        //    if (is_exist && !overwrite) { return 0; }
-        //
-        //    if (overwrite && is_exist && g_info.type != H5O_TYPE_DATASET) {
-        //        H5Ldelete(loc_id, key.c_str(), H5P_DEFAULT);
-        //        is_exist = false;
-        //    }
-        //    const int ndims = src->GetNDIMS();
-        //
-        //    index_type inner_lower[ndims];
-        //    index_type inner_upper[ndims];
-        //    index_type outer_lower[ndims];
-        //    index_type outer_upper[ndims];
-        //
-        //    src->GetIndexBox(inner_lower, inner_upper);
-        //    src->GetIndexBox(outer_lower, outer_upper);
-        //
-        //    hsize_t m_shape[ndims];
-        //    hsize_t m_start[ndims];
-        //    hsize_t m_count[ndims];
-        //    hsize_t m_stride[ndims];
-        //    hsize_t m_block[ndims];
-        //    for (int i = 0; i < ndims; ++i) {
-        //        m_shape[i] = static_cast<hsize_t>(outer_upper[i] - outer_lower[i]);
-        //        m_start[i] = static_cast<hsize_t>(inner_lower[i] - outer_lower[i]);
-        //        m_count[i] = static_cast<hsize_t>(inner_upper[i] - inner_lower[i]);
-        //        m_stride[i] = static_cast<hsize_t>(1);
-        //        m_block[i] = static_cast<hsize_t>(1);
-        //    }
-        //    hid_t m_space = H5Screate_simple(ndims, &m_shape[0], nullptr);
-        //    H5_ERROR(H5Sselect_hyperslab(m_space, H5S_SELECT_SET, &m_start[0], &m_stride[0], &m_count[0],
-        //    &m_block[0]));
-        //    hid_t f_space = H5Screate_simple(ndims, &m_count[0], nullptr);
-        //    hid_t dset;
-        //    hid_t d_type = GetHDF5DataType(src->value_type_info());
-        //    H5_ERROR(dset = H5Dcreate(loc_id, key.c_str(), d_type, f_space, H5P_DEFAULT, H5P_DEFAULT,
-        //    H5P_DEFAULT));
-        //    H5_ERROR(H5Dwrite(dset, d_type, m_space, f_space, H5P_DEFAULT, src->GetPointer()));
-        //
-        //    H5_ERROR(H5Dclose(dset));
-        //    if (m_space != H5S_ALL) H5_ERROR(H5Sclose(m_space));
-        //    if (f_space != H5S_ALL) H5_ERROR(H5Sclose(f_space));
-        ++count;
+        if (auto data = p->GetPointer()) {
+            bool is_exist = H5Lexists(g_id, key.c_str(), H5P_DEFAULT) != 0;
+            //            H5Oexists_by_name(loc_id, key.c_str(), H5P_DEFAULT) != 0;
+            H5O_info_t g_info;
+            if (is_exist) { H5_ERROR(H5Oget_info_by_name(g_id, key.c_str(), &g_info, H5P_DEFAULT)); }
+
+            if (is_exist && g_info.type != H5O_TYPE_DATASET) {
+                H5Ldelete(g_id, key.c_str(), H5P_DEFAULT);
+                is_exist = false;
+            }
+            static constexpr int ndims = 3;  // p->GetNDIMS();
+
+            index_type inner_lower[ndims];
+            index_type inner_upper[ndims];
+            index_type outer_lower[ndims];
+            index_type outer_upper[ndims];
+
+            p->GetIndexBox(inner_lower, inner_upper);
+            p->GetIndexBox(outer_lower, outer_upper);
+
+            hsize_t m_shape[ndims];
+            hsize_t m_start[ndims];
+            hsize_t m_count[ndims];
+            hsize_t m_stride[ndims];
+            hsize_t m_block[ndims];
+            for (int i = 0; i < ndims; ++i) {
+                m_shape[i] = static_cast<hsize_t>(outer_upper[i] - outer_lower[i]);
+                m_start[i] = static_cast<hsize_t>(inner_lower[i] - outer_lower[i]);
+                m_count[i] = static_cast<hsize_t>(inner_upper[i] - inner_lower[i]);
+                m_stride[i] = static_cast<hsize_t>(1);
+                m_block[i] = static_cast<hsize_t>(1);
+            }
+            hid_t m_space = H5Screate_simple(ndims, &m_shape[0], nullptr);
+            H5_ERROR(H5Sselect_hyperslab(m_space, H5S_SELECT_SET, &m_start[0], &m_stride[0], &m_count[0], &m_block[0]));
+            hid_t f_space = H5Screate_simple(ndims, &m_count[0], nullptr);
+            hid_t dset;
+            hid_t d_type = GetHDF5DataType(p->value_type_info());
+            H5_ERROR(dset = H5Dcreate(g_id, key.c_str(), d_type, f_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
+            H5_ERROR(H5Dwrite(dset, d_type, m_space, f_space, H5P_DEFAULT, data));
+
+            H5_ERROR(H5Dclose(dset));
+            if (m_space != H5S_ALL) H5_ERROR(H5Sclose(m_space));
+            if (f_space != H5S_ALL) H5_ERROR(H5Sclose(f_space));
+            ++count;
+        }
     }
     return count;
 }
@@ -707,12 +707,8 @@ size_type DataNodeHDF5::Foreach(
     }
     return count;
 }
-size_type DataNodeHDF5::Set(index_type s, const std::shared_ptr<DataNode>& v) {
-    return Set(std::to_string(s), v);
-}
-size_type DataNodeHDF5::Add(index_type s, const std::shared_ptr<DataNode>& v) {
-    return Add(std::to_string(s), v);
-}
+size_type DataNodeHDF5::Set(index_type s, const std::shared_ptr<DataNode>& v) { return Set(std::to_string(s), v); }
+size_type DataNodeHDF5::Add(index_type s, const std::shared_ptr<DataNode>& v) { return Add(std::to_string(s), v); }
 size_type DataNodeHDF5::Delete(index_type s) { return Delete(std::to_string(s)); }
 std::shared_ptr<DataNode> DataNodeHDF5::Get(index_type s) const { return Get(std::to_string(s)); }
 

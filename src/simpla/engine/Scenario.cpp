@@ -69,8 +69,8 @@ void Scenario::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
 
 void Scenario::CheckPoint() const {
     std::ostringstream os;
-    os << db()->GetValue<std::string>("Prefix", GetName()) << std::setfill('0') << std::setw(8) << GetStepNumber()
-       << ".xmf";
+    os << db()->GetValue<std::string>("CheckPointFilePrefix", GetName()) << std::setfill('0') << std::setw(8)
+       << GetStepNumber() << "." << db()->GetValue<std::string>("CheckPointFileSuffix", "xmf");
     VERBOSE << std::setw(20) << "Check Point : " << os.str();
 
     auto dump = data::DataNode::New(os.str());
@@ -89,8 +89,9 @@ void Scenario::CheckPoint() const {
 
 void Scenario::Dump() const {
     std::ostringstream os;
-    os << db()->GetValue<std::string>("Prefix", GetName()) << "_dump_" << std::setfill('0') << std::setw(8)
-       << GetStepNumber() << ".xmf";
+
+    os << db()->GetValue<std::string>("DumpFilePrefix", GetName()) << "_dump_" << std::setfill('0') << std::setw(8)
+       << GetStepNumber() << "." << db()->GetValue<std::string>("DumpFileSuffix", ".h5");
     VERBOSE << std::setw(20) << "Dump : " << os.str();
 
     auto dump = data::DataNode::New(os.str());

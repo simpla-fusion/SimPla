@@ -38,6 +38,9 @@ class DataBlock : public DataEntity {
     virtual void Clear() = 0;
     virtual size_type CopyIn(DataBlock const &other, index_type const *lo, index_type const *hi) = 0;
     virtual size_type CopyOut(DataBlock &other, index_type const *lo, index_type const *hi) const = 0;
+
+    void *GetPointer() override { return nullptr; }
+    void const *GetPointer() const override { return nullptr; }
 };
 
 template <typename V>
@@ -68,6 +71,9 @@ struct DataBlockT : public DataBlock, public Array<V> {
 
     int GetNDIMS() const override { return array_type::GetNDIMS(); };
     int GetIndexBox(index_type *lo, index_type *hi) const override { return array_type::GetIndexBox(lo, hi); };
+
+    void *GetPointer() override { return Array<V>::get(); }
+    void const *GetPointer() const override { return Array<V>::get(); }
 
     void Clear() override { array_type::Clear(); };
 
