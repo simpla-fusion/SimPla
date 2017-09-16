@@ -32,7 +32,7 @@ class TimeIntegrator : public Scenario {
     SP_OBJECT_PROPERTY(size_type, MaxStep);
     SP_OBJECT_PROPERTY(Real, CFL);
 
-    Real GetTimeNow() const;
+    Real GetTimeNow() const override ;
     void SetTimeNow(Real);
     Real GetTimeEnd() const;
     void SetTimeEnd(Real);

@@ -32,6 +32,9 @@ Scenario::~Scenario() {
 
 std::shared_ptr<data::DataNode> Scenario::Serialize() const {
     auto res = base_type::Serialize();
+    res->SetValue("Name", GetName());
+    res->SetValue("Time", GetTimeNow());
+
     res->Set("Atlas", GetAtlas()->Serialize());
     res->Set("Chart", m_pimpl_->m_atlas_->GetChart()->Serialize());
 

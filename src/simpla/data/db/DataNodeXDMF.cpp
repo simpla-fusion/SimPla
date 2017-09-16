@@ -100,9 +100,11 @@ int XDMFWriteArray(XdmfArray* dst, std::shared_ptr<DataNode> const& data) {
     //    }
     return 1;
 }
-
-boost::shared_ptr<XdmfAttribute> XDMFAttributeNew(std::shared_ptr<DataNode> const& node) {
+template <typename T>
+size_type XDMFAttributeInsertOne(T& grid, std::string const& s_name, std::shared_ptr<data::DataNode> const& node) {
+    size_type count = 0;
     auto attr = XdmfAttribute::New();
+    attr->setName(s_name);
     auto iform = node->GetValue<int>("IFORM");
     switch (iform) {
         case NODE:
@@ -152,20 +154,27 @@ boost::shared_ptr<XdmfAttribute> XDMFAttributeNew(std::shared_ptr<DataNode> cons
         attr->setType(XdmfAttributeType::Scalar());
     }
     auto v_type = node->GetValue<std::string>("ValueType", "double");
-    if (v_type == "double") { XDMFWriteArray<double>(attr.get(), node->Get("_DATA_")); }
-
-    return attr;
+    if (iform == NODE || iform == CELL) {
+        if (v_type == "double") {
+            XDMFWriteArray<double>(attr.get(), node->Get("_DATA_"));
+        } else if (v_type == "float") {
+            XDMFWriteArray<float>(attr.get(), node->Get("_DATA_"));
+        } else if (v_type == "int") {
+            XDMFWriteArray<int>(attr.get(), node->Get("_DATA_"));
+        } else if (v_type == "long") {
+            XDMFWriteArray<long>(attr.get(), node->Get("_DATA_"));
+        }
+        count = 1;
+        grid->insert(attr);
+    } else {
+        TODO << "EDGE/FACE center attribute is not supported!";
+    }
+    return count;
 }
 template <typename T>
 size_type XDMFAttributeInsert(T& grid, std::shared_ptr<data::DataNode> const& attrs) {
     return attrs->Foreach([&](std::string const& k, std::shared_ptr<data::DataNode> const& node) {
-        //        if (node->GetValue<std::string>("_TYPE_") == "Attribute") {
-        auto attr = XDMFAttributeNew(node);
-        attr->setName(k);
-
-        grid->insert(attr);
-        //        }
-        return 1;
+        return XDMFAttributeInsertOne(grid, k, node);
     });
 }
 boost::shared_ptr<XdmfCurvilinearGrid> XDMFCurvilinearGridNew(std::shared_ptr<DataNode> const& chart,
