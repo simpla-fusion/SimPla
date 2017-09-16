@@ -51,14 +51,17 @@ template <>
 struct XdmfType<long> {
     static auto type() { return XdmfArrayType::Int64(); }
 };
-template <typename U>
+template <>
+struct XdmfType<unsigned int> {
+    static auto type() { return XdmfArrayType::UInt32(); }
+};
 int XDMFWriteArray(XdmfArray* dst, std::shared_ptr<DataNode> const& data) {
     if (data == nullptr) { return 0; }
     if (data->type() == DataNode::DN_TABLE) {
     } else if (data->type() == DataNode::DN_ARRAY) {
         unsigned int dof = data->size();
         nTuple<index_type, 3> lo, hi, dims;
-        if (auto blk = std::dynamic_pointer_cast<DataBlockT<U>>(data->Get(0)->GetEntity())) {
+        if (auto blk = std::dynamic_pointer_cast<DataBlock>(data->Get(0)->GetEntity())) {
             blk->GetIndexBox(&lo[0], &hi[0]);
         } else {
             RUNTIME_ERROR << *data;
@@ -67,23 +70,50 @@ int XDMFWriteArray(XdmfArray* dst, std::shared_ptr<DataNode> const& data) {
         std::vector<unsigned int> dimensions{static_cast<unsigned int>(hi[0] - lo[0]),
                                              static_cast<unsigned int>(hi[1] - lo[1]),
                                              static_cast<unsigned int>(hi[2] - lo[2]), dof};
-        dst->initialize(XdmfType<U>::type(), dimensions);
         for (int i = 0; i < dof; ++i) {
-            if (auto block = std::dynamic_pointer_cast<DataBlockT<U>>(data->Get(i)->GetEntity())) {
+            if (auto block = std::dynamic_pointer_cast<DataBlockT<double>>(data->Get(i)->GetEntity())) {
+                dst->initialize(XdmfType<double>::type(), dimensions);
                 dst->insert(i, block->get(), block->size(), dof, 1);
+            } else if (auto block = std::dynamic_pointer_cast<DataBlockT<float>>(data->Get(i)->GetEntity())) {
+                dst->initialize(XdmfType<float>::type(), dimensions);
+                dst->insert(i, block->get(), block->size(), dof, 1);
+            } else if (auto block = std::dynamic_pointer_cast<DataBlockT<int>>(data->Get(i)->GetEntity())) {
+                dst->initialize(XdmfType<int>::type(), dimensions);
+                dst->insert(i, block->get(), block->size(), dof, 1);
+            } else if (auto block = std::dynamic_pointer_cast<DataBlockT<long>>(data->Get(i)->GetEntity())) {
+                dst->initialize(XdmfType<long>::type(), dimensions);
+                dst->insert(i, block->get(), block->size(), dof, 1);
+            } else if (auto block = std::dynamic_pointer_cast<DataBlockT<unsigned int>>(data->Get(i)->GetEntity())) {
+                dst->initialize(XdmfType<unsigned int>::type(), dimensions);
+                dst->insert(i, block->get(), block->size(), dof, 1);
+            } else {
+                UNIMPLEMENTED;
             }
         }
-    } else if (data->type() == DataNode::DN_ENTITY) {
-        if (auto blk = std::dynamic_pointer_cast<DataBlockT<U>>(data->GetEntity())) {
-            nTuple<index_type, 3> lo, hi;
-            blk->GetIndexBox(&lo[0], &hi[0]);
+    } else if (auto blk = std::dynamic_pointer_cast<DataBlock>(data->GetEntity())) {
+        nTuple<index_type, 3> lo, hi;
+        blk->GetIndexBox(&lo[0], &hi[0]);
+        std::vector<unsigned int> dimensions{static_cast<unsigned int>(hi[0] - lo[0]),
+                                             static_cast<unsigned int>(hi[1] - lo[1]),
+                                             static_cast<unsigned int>(hi[2] - lo[2])};
 
-            std::vector<unsigned int> dimensions{static_cast<unsigned int>(hi[0] - lo[0]),
-                                                 static_cast<unsigned int>(hi[1] - lo[1]),
-                                                 static_cast<unsigned int>(hi[2] - lo[2])};
-            dst->initialize(XdmfType<U>::type(), dimensions);
-
-            dst->insert(0, blk->get(), blk->size(), 1, 1);
+        if (auto block = std::dynamic_pointer_cast<DataBlockT<double>>(blk)) {
+            dst->initialize(XdmfType<double>::type(), dimensions);
+            dst->insert(0, block->get(), block->size(), 1, 1);
+        } else if (auto block = std::dynamic_pointer_cast<DataBlockT<float>>(blk)) {
+            dst->initialize(XdmfType<float>::type(), dimensions);
+            dst->insert(0, block->get(), block->size(), 1, 1);
+        } else if (auto block = std::dynamic_pointer_cast<DataBlockT<int>>(blk)) {
+            dst->initialize(XdmfType<int>::type(), dimensions);
+            dst->insert(0, block->get(), block->size(), 1, 1);
+        } else if (auto block = std::dynamic_pointer_cast<DataBlockT<long>>(blk)) {
+            dst->initialize(XdmfType<long>::type(), dimensions);
+            dst->insert(0, block->get(), block->size(), 1, 1);
+        } else if (auto block = std::dynamic_pointer_cast<DataBlockT<unsigned int>>(blk)) {
+            dst->initialize(XdmfType<unsigned int>::type(), dimensions);
+            dst->insert(0, block->get(), block->size(), 1, 1);
+        } else {
+            UNIMPLEMENTED;
         }
     }
 
@@ -153,21 +183,26 @@ size_type XDMFAttributeInsertOne(T& grid, std::string const& s_name, std::shared
     } else {
         attr->setType(XdmfAttributeType::Scalar());
     }
-    auto v_type = node->GetValue<std::string>("ValueType", "double");
+
     if (iform == NODE || iform == CELL) {
-        if (v_type == "double") {
-            XDMFWriteArray<double>(attr.get(), node->Get("_DATA_"));
-        } else if (v_type == "float") {
-            XDMFWriteArray<float>(attr.get(), node->Get("_DATA_"));
-        } else if (v_type == "int") {
-            XDMFWriteArray<int>(attr.get(), node->Get("_DATA_"));
-        } else if (v_type == "long") {
-            XDMFWriteArray<long>(attr.get(), node->Get("_DATA_"));
-        }
-        count = 1;
+        //        auto v_type = node->GetValue<std::string>("ValueType", "double");
+        //
+        //        if (v_type == "double") {
+        //            XDMFWriteArray<double>(attr.get(), node->Get("_DATA_"));
+        //        } else if (v_type == "float") {
+        //            XDMFWriteArray<float>(attr.get(), node->Get("_DATA_"));
+        //        } else if (v_type == "int") {
+        //            XDMFWriteArray<int>(attr.get(), node->Get("_DATA_"));
+        //        } else if (v_type == "long") {
+        //            XDMFWriteArray<long>(attr.get(), node->Get("_DATA_"));
+        //        }
+        XDMFWriteArray(attr.get(), node->Get("_DATA_"));
         grid->insert(attr);
+        count = 1;
+
     } else {
-        TODO << "EDGE/FACE center attribute is not supported!";
+        VERBOSE << std::setw(20) << "Write XDMF : "
+                << "Ignore EDGE/FACE center attribute \"" << s_name << "\".";
     }
     return count;
 }
@@ -197,7 +232,7 @@ boost::shared_ptr<XdmfCurvilinearGrid> XDMFCurvilinearGridNew(std::shared_ptr<Da
     origin += lo * chart->GetValue<nTuple<Real, 3>>("Scale");
     geo->setOrigin(origin[0], origin[1], origin[2]);
 
-    XDMFWriteArray<Real>(geo.get(), coord);
+    XDMFWriteArray(geo.get(), coord);
 
     grid->setGeometry(geo);
 
