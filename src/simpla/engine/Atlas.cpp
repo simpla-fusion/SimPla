@@ -91,6 +91,9 @@ void Atlas::DoSetUp() {
     std::get<0>(m_pimpl_->m_coarsest_index_box_) = ((lo - GetChart()->GetOrigin()) / GetChart()->GetScale());
     std::get<1>(m_pimpl_->m_coarsest_index_box_) = ((hi - GetChart()->GetOrigin()) / GetChart()->GetScale());
     AddBlock(MeshBlock::New(m_pimpl_->m_coarsest_index_box_));
+#ifdef MPI_FOUND
+    FIXME << "mpi decompose";
+#endif
 };
 
 void Atlas::DoUpdate() {

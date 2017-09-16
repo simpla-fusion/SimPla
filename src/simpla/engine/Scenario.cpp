@@ -105,7 +105,11 @@ Range<EntityId> &Scenario::GetRange(std::string const &k) {
 }
 Range<EntityId> const &Scenario::GetRange(std::string const &k) const { return m_pimpl_->m_ranges_.at(k); }
 
-void Scenario::Synchronize() {}
+void Scenario::Synchronize() {
+#ifdef MPI_FOUND
+    FIXME;
+#endif
+}
 void Scenario::NextStep() { ++m_pimpl_->m_step_counter_; }
 void Scenario::SetStepNumber(size_type s) { m_pimpl_->m_step_counter_ = s; }
 size_type Scenario::GetStepNumber() const { return m_pimpl_->m_step_counter_; }
