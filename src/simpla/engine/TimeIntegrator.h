@@ -12,7 +12,6 @@ class TimeIntegrator : public Scenario {
     SP_OBJECT_HEAD(TimeIntegrator, Scenario);
 
    public:
-
     virtual void InitialCondition(Real time_now);
     virtual void BoundaryCondition(Real time_now, Real dt);
     virtual void ComputeFluxes(Real time_now, Real time_dt);
@@ -32,7 +31,7 @@ class TimeIntegrator : public Scenario {
     SP_OBJECT_PROPERTY(size_type, MaxStep);
     SP_OBJECT_PROPERTY(Real, CFL);
 
-    Real GetTimeNow() const override ;
+    Real GetTimeNow() const override;
     void SetTimeNow(Real);
     Real GetTimeEnd() const;
     void SetTimeEnd(Real);

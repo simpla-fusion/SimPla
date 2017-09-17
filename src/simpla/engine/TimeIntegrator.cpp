@@ -84,7 +84,8 @@ void TimeIntegrator::Run() {
         if (GetDumpInterval() > 0 && GetStepNumber() % GetDumpInterval() == 0) { Dump(); };
 
         VERBOSE << " [ STEP:" << std::setw(5) << GetStepNumber() - 1 << " STOP  ] ";
-    }CheckPoint();
+    }
+    CheckPoint();
 }
 void TimeIntegrator::NextStep() {
     Advance(GetTimeNow(), GetTimeStep());
@@ -92,7 +93,7 @@ void TimeIntegrator::NextStep() {
     base_type::NextStep();
 }
 
-void TimeIntegrator::Synchronize() {}
+void TimeIntegrator::Synchronize() { base_type::Synchronize(); }
 bool TimeIntegrator::Done() const { return GetTimeNow() >= GetTimeEnd() || GetStepNumber() >= GetMaxStep(); }
 }
 }

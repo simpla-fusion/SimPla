@@ -20,7 +20,10 @@ void SimpleTimeIntegrator::DoSetUp() { base_type::DoSetUp(); }
 void SimpleTimeIntegrator::DoUpdate() { base_type::DoUpdate(); }
 void SimpleTimeIntegrator::DoTearDown() { base_type::DoTearDown(); }
 
-void SimpleTimeIntegrator::Synchronize() { Update(); }
+void SimpleTimeIntegrator::Synchronize() {
+    Update();
+    base_type::Synchronize();
+}
 
 void SimpleTimeIntegrator::Advance(Real time_now, Real time_dt) { base_type::Advance(time_now, time_dt); }
 

@@ -387,10 +387,8 @@ std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Pop() const {
 };
 template <typename V, int IFORM, int... DOF>
 template <typename RHS>
-void AttributeT<V, IFORM, DOF...>::Assign(RHS const &rhs){
-
+void AttributeT<V, IFORM, DOF...>::Assign(RHS const &rhs) {
     FIXME;
-
 };
 }  // namespace engine
 }  // namespace simpla
