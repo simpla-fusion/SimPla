@@ -3,6 +3,7 @@
 //
 
 #include <simpla/geometry/BoxUtilities.h>
+#include <simpla/parallel/MPIComm.h>
 #include <simpla/utilities/type_cast.h>
 #include "simpla/SIMPLA_config.h"
 
@@ -22,6 +23,8 @@ struct Scenario::pimpl_s {
     std::map<std::string, Range<EntityId>> m_ranges_;
 
     size_type m_step_counter_ = 0;
+
+    void Sync(std::shared_ptr<MeshBlock> const &);
 };
 
 Scenario::Scenario() : m_pimpl_(new pimpl_s) { m_pimpl_->m_atlas_ = Atlas::New(); }
@@ -70,7 +73,11 @@ void Scenario::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
 void Scenario::CheckPoint() const {
     std::ostringstream os;
     os << db()->GetValue<std::string>("CheckPointFilePrefix", GetName()) << std::setfill('0') << std::setw(8)
-       << GetStepNumber() << "." << db()->GetValue<std::string>("CheckPointFileSuffix", "xmf");
+       << GetStepNumber();
+#ifdef MPI_FOUND
+    os << std::setfill('0') << std::setw(4) << GLOBAL_COMM.rank();
+#endif
+    os << "." << db()->GetValue<std::string>("CheckPointFileSuffix", "xmf");
     VERBOSE << std::setw(20) << "Check Point : " << os.str();
 
     auto dump = data::DataNode::New(os.str());
@@ -91,7 +98,11 @@ void Scenario::Dump() const {
     std::ostringstream os;
 
     os << db()->GetValue<std::string>("DumpFilePrefix", GetName()) << "_dump_" << std::setfill('0') << std::setw(8)
-       << GetStepNumber() << "." << db()->GetValue<std::string>("DumpFileSuffix", ".h5");
+       << GetStepNumber();
+#ifdef MPI_FOUND
+    os << std::setfill('0') << std::setw(4) << GLOBAL_COMM.rank();
+#endif
+    os << "." << db()->GetValue<std::string>("DumpFileSuffix", ".h5");
     VERBOSE << std::setw(20) << "Dump : " << os.str();
 
     auto dump = data::DataNode::New(os.str());
@@ -105,10 +116,10 @@ Range<EntityId> &Scenario::GetRange(std::string const &k) {
 }
 Range<EntityId> const &Scenario::GetRange(std::string const &k) const { return m_pimpl_->m_ranges_.at(k); }
 
+void Scenario::pimpl_s::Sync(std::shared_ptr<MeshBlock> const &) {}
+
 void Scenario::Synchronize() {
-#ifdef MPI_FOUND
-    FIXME;
-#endif
+    m_pimpl_->m_atlas_->Foreach([&](std::shared_ptr<MeshBlock> const &blk) { m_pimpl_->Sync(blk); });
 }
 void Scenario::NextStep() { ++m_pimpl_->m_step_counter_; }
 void Scenario::SetStepNumber(size_type s) { m_pimpl_->m_step_counter_ = s; }
@@ -153,7 +164,6 @@ size_type Scenario::SetDomain(std::string const &k, std::shared_ptr<DomainBase> 
     m_pimpl_->m_domains_[k] = d;
     m_pimpl_->m_domains_[k]->SetName(k);
     m_pimpl_->m_domains_[k]->SetChart(m_pimpl_->m_atlas_->GetChart());
-    //        m_pimpl_->m_domains_[k]->SetBoundary(g);
     return 1;
 }
 std::shared_ptr<DomainBase> Scenario::GetDomain(std::string const &k) const {
@@ -164,7 +174,6 @@ std::map<std::string, std::shared_ptr<DomainBase>> &Scenario::GetDomains() { ret
 std::map<std::string, std::shared_ptr<DomainBase>> const &Scenario::GetDomains() const { return m_pimpl_->m_domains_; }
 
 void Scenario::TagRefinementCells(Real time_now) {
-    //    GetMesh()->TagRefinementCells(time_now);
     for (auto &d : m_pimpl_->m_domains_) { d.second->TagRefinementCells(time_now); }
 }
 

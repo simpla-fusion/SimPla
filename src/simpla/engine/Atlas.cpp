@@ -4,6 +4,7 @@
  */
 
 #include <simpla/geometry/csCartesian.h>
+#include <simpla/parallel/MPIComm.h>
 #include "simpla/SIMPLA_config.h"
 
 #include "simpla/geometry/Chart.h"
@@ -28,8 +29,14 @@ struct Atlas::pimpl_s {
     //    std::multimap<id_type, id_type> m_coarsen_;
     //    std::set<std::shared_ptr<data::DataNode>> m_layers_[MAX_NUM_OF_LEVEL];
     //    nTuple<int, 3> m_refine_ratio_[MAX_NUM_OF_LEVEL] = {{2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}};
-    index_box_type m_coarsest_index_box_{{0, 0, 0}, {1, 1, 1}};
+    index_box_type m_index_box_{{0, 0, 0}, {1, 1, 1}};
     box_type m_box_{{0, 0, 0}, {1, 1, 1}};
+    box_type m_local_box_{{0, 0, 0}, {1, 1, 1}};
+    index_box_type m_local_index_box_{{0, 0, 0}, {1, 1, 1}};
+    box_type m_global_box_{{0, 0, 0}, {1, 1, 1}};
+    index_box_type m_global_index_box_{{0, 0, 0}, {1, 1, 1}};
+
+    index_tuple m_ghost_width_{2, 2, 2};
 };
 
 Atlas::Atlas() : m_pimpl_(new pimpl_s) {
@@ -88,12 +95,36 @@ void Atlas::DoSetUp() {
     m_pimpl_->m_chart_->SetUp();
     point_type lo{0, 0, 0}, hi{0, 0, 0};
     std::tie(lo, hi) = GetBoundingBox();
-    std::get<0>(m_pimpl_->m_coarsest_index_box_) = ((lo - GetChart()->GetOrigin()) / GetChart()->GetScale());
-    std::get<1>(m_pimpl_->m_coarsest_index_box_) = ((hi - GetChart()->GetOrigin()) / GetChart()->GetScale());
-    AddBlock(MeshBlock::New(m_pimpl_->m_coarsest_index_box_));
+    std::get<0>(m_pimpl_->m_index_box_) = ((lo - GetChart()->GetOrigin()) / GetChart()->GetScale());
+    std::get<1>(m_pimpl_->m_index_box_) = ((hi - GetChart()->GetOrigin()) / GetChart()->GetScale());
+    m_pimpl_->m_local_index_box_ = m_pimpl_->m_index_box_;
+    m_pimpl_->m_global_index_box_ = m_pimpl_->m_index_box_;
+
 #ifdef MPI_FOUND
     FIXME << "mpi decompose";
+    {
+        int mpi_ndims = 0;
+        int mpi_dims[3] = {1, 1, 1};
+        int mpi_period[3] = {1, 1, 1};
+        int mpi_coord[3] = {0, 0, 0};
+
+        GLOBAL_COMM.topology(&mpi_ndims, mpi_dims, mpi_period, mpi_coord);
+        for (int i = 0; i < mpi_ndims; ++i) {
+            std::get<0>(m_pimpl_->m_local_box_)[i] =
+                std::get<0>(m_pimpl_->m_global_index_box_)[i] +
+                (std::get<1>(m_pimpl_->m_global_index_box_)[i] - std::get<0>(m_pimpl_->m_global_index_box_)[i]) *
+                    mpi_coord[i] / mpi_dims[i] -
+                m_pimpl_->m_ghost_width_[i];
+            std::get<1>(m_pimpl_->m_local_box_)[i] =
+                std::get<0>(m_pimpl_->m_global_index_box_)[i] +
+                (std::get<1>(m_pimpl_->m_global_index_box_)[i] - std::get<0>(m_pimpl_->m_global_index_box_)[i]) *
+                    (mpi_coord[i] + 1) / mpi_dims[i] +
+                m_pimpl_->m_ghost_width_[i];
+        }
+    }
 #endif
+
+    AddBlock(MeshBlock::New(m_pimpl_->m_local_index_box_));
 };
 
 void Atlas::DoUpdate() {
@@ -127,7 +158,7 @@ int Atlas::Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const
 };
 void Atlas::SetBoundingBox(box_type const &b) { m_pimpl_->m_box_ = b; }
 box_type Atlas::GetBoundingBox() const { return m_pimpl_->m_box_; }
-index_box_type Atlas::GetIndexBox(int tag) { return m_pimpl_->m_coarsest_index_box_; }
+index_box_type Atlas::GetIndexBox(int tag) { return m_pimpl_->m_index_box_; }
 // int Atlas::GetNumOfLevel() const { return m_pimpl_->(); }
 // int Atlas::GetMaxLevel() const { return m_pimpl_->m_max_level_; }
 // void Atlas::SetMaxLevel(int l) {
@@ -148,8 +179,8 @@ index_box_type Atlas::GetIndexBox(int tag) { return m_pimpl_->m_coarsest_index_b
 // void Atlas::SetPeriodicDimensions(nTuple<int, 3> const &b) { m_pimpl_->m_periodic_dimensions_ = b; }
 // nTuple<int, 3> const &Atlas::GetPeriodicDimensions() const { return m_pimpl_->m_periodic_dimensions_; }
 //
-// void Atlas::SetCoarsestIndexBox(index_box_type const &b) { m_pimpl_->m_coarsest_index_box_ = b; }
-// index_box_type const &Atlas::GetCoarsestIndexBox() const { return m_pimpl_->m_coarsest_index_box_; }
+// void Atlas::SetCoarsestIndexBox(index_box_type const &b) { m_pimpl_->m_index_box_ = b; }
+// index_box_type const &Atlas::GetCoarsestIndexBox() const { return m_pimpl_->m_index_box_; }
 
 //        size_tuple Atlas::GetDimensions() const {
 //            size_tuple d;

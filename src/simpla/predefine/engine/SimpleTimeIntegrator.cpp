@@ -22,6 +22,9 @@ void SimpleTimeIntegrator::DoTearDown() { base_type::DoTearDown(); }
 
 void SimpleTimeIntegrator::Synchronize() {
     Update();
+#ifdef MPI_FOUND
+    FIXME;
+#endif
     base_type::Synchronize();
 }
 

@@ -98,10 +98,10 @@ class Atlas : public EngineObject {
     SP_OBJECT_PROPERTY(index_tuple, CoarsestIndexBox);
 
     size_type AddBlock(std::shared_ptr<MeshBlock> const &blk);
-    size_type DeleteBlock(id_type)  ;
+    size_type DeleteBlock(id_type);
     std::shared_ptr<MeshBlock> GetBlock(id_type) const;
 };
-}
+}  // namespace engine
 }  // namespace simpla{namespace mesh_as{
 
 #endif  // SIMPLA_MESH_MESHATLAS_H
