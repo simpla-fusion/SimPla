@@ -5,6 +5,7 @@
 #include <simpla/geometry/BoxUtilities.h>
 #include <simpla/parallel/MPIComm.h>
 #include <simpla/utilities/type_cast.h>
+#include <fstream>
 #include "simpla/SIMPLA_config.h"
 
 #include "simpla/data/DataNode.h"
@@ -73,23 +74,13 @@ void Scenario::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
 void Scenario::CheckPoint() const {
     std::ostringstream os;
     os << db()->GetValue<std::string>("CheckPointFilePrefix", GetName()) << std::setfill('0') << std::setw(8)
-       << GetStepNumber();
-#ifdef MPI_FOUND
-    os << std::setfill('0') << std::setw(4) << GLOBAL_COMM.rank();
-#endif
-    os << "." << db()->GetValue<std::string>("CheckPointFileSuffix", "xmf");
+       << GetStepNumber() << "." << db()->GetValue<std::string>("CheckPointFileSuffix", "xmf");
     VERBOSE << std::setw(20) << "Check Point : " << os.str();
 
     auto dump = data::DataNode::New(os.str());
     dump->Set("Chart", m_pimpl_->m_atlas_->GetChart()->Serialize());
     auto patches = data::DataNode::New(data::DataNode::DN_TABLE);
-    auto step = GetStepNumber();
-    for (auto const &item : m_pimpl_->m_patches_) {
-        patches->Set(item.first, item.second);
-        //        if ((step % item.second->GetValue<size_type>("CheckPoint", std::numeric_limits<size_type>::max()) ==
-        //        0)) {
-        //        }
-    }
+    for (auto const &item : m_pimpl_->m_patches_) { patches->Set(item.first, item.second); }
     dump->Set("Patch", patches);
     dump->Flush();
 }
@@ -98,11 +89,7 @@ void Scenario::Dump() const {
     std::ostringstream os;
 
     os << db()->GetValue<std::string>("DumpFilePrefix", GetName()) << "_dump_" << std::setfill('0') << std::setw(8)
-       << GetStepNumber();
-#ifdef MPI_FOUND
-    os << std::setfill('0') << std::setw(4) << GLOBAL_COMM.rank();
-#endif
-    os << "." << db()->GetValue<std::string>("DumpFileSuffix", ".h5");
+       << GetStepNumber() << "." << db()->GetValue<std::string>("DumpFileSuffix", ".h5");
     VERBOSE << std::setw(20) << "Dump : " << os.str();
 
     auto dump = data::DataNode::New(os.str());
@@ -118,7 +105,8 @@ Range<EntityId> const &Scenario::GetRange(std::string const &k) const { return m
 
 void Scenario::pimpl_s::Sync(std::shared_ptr<MeshBlock> const &) {}
 
-void Scenario::Synchronize() {
+void Scenario::Synchronize(int level) {
+    ASSERT(level == 0)
     m_pimpl_->m_atlas_->Foreach([&](std::shared_ptr<MeshBlock> const &blk) { m_pimpl_->Sync(blk); });
 }
 void Scenario::NextStep() { ++m_pimpl_->m_step_counter_; }

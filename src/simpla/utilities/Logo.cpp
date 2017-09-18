@@ -5,6 +5,7 @@
  */
 #include "simpla/SIMPLA_config.h"
 
+#include <simpla/parallel/MPIComm.h>
 #include <cstdlib>
 #include <iomanip>
 #include <string>
@@ -39,6 +40,9 @@ std::string ShowLogo() { return SIMPLA_LOGO; }
 std::string ShowVersion() { return SIMPLA_VERSION_IDENTIFY; }
 
 void TheStart(int flag) {
+#ifdef MPI_FOUND
+    if (GLOBAL_COMM.rank() != 0) { return; }
+#endif  // MPI_FOUND
     switch (flag) {
         default:
             VERBOSE << SINGLELINE;
@@ -47,6 +51,10 @@ void TheStart(int flag) {
 }
 
 void TheEnd(int flag) {
+#ifdef MPI_FOUND
+    if (GLOBAL_COMM.rank() != 0) { return; }
+#endif  // MPI_FOUND
+
     switch (flag) {
         case -2:
             INFORM << "Oop! Some thing wrong! Don't worry, maybe not your fault! "

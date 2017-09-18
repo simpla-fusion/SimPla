@@ -2,11 +2,16 @@
 // Created by salmon on 17-8-13.
 //
 #include <sys/stat.h>
+#include <fstream>
+
 #include <Xdmf.hpp>
 #include <XdmfAttributeCenter.hpp>
 #include <XdmfDomain.hpp>
 #include <XdmfGridCollection.hpp>
 #include <XdmfWriter.hpp>
+
+#include <simpla/parallel/MPIComm.h>
+
 #include "../DataNode.h"
 #include "DataNodeMemory.h"
 
@@ -18,10 +23,7 @@ struct DataNodeXDMF : public DataNodeMemory {
     SP_DATA_NODE_HEAD(DataNodeXDMF, DataNodeMemory)
 
     int Connect(std::string const& authority, std::string const& path, std::string const& query,
-                std::string const& fragment) override {
-        m_file_ = path;
-        return SP_SUCCESS;
-    }
+                std::string const& fragment) override;
     int Disconnect() override { return Flush(); }
     bool isValid() const override { return true; }
     int Flush() override { return XDMFDump(m_file_, shared_from_this()); }
@@ -32,6 +34,34 @@ struct DataNodeXDMF : public DataNodeMemory {
 REGISTER_CREATOR(DataNodeXDMF, xmf);
 DataNodeXDMF::DataNodeXDMF(DataNode::eNodeType etype) : base_type(etype) {}
 DataNodeXDMF::~DataNodeXDMF() = default;
+
+int DataNodeXDMF::Connect(std::string const& authority, std::string const& path, std::string const& query,
+                          std::string const& fragment) {
+    m_file_ = path;
+
+#ifdef MPI_FOUND
+    if (GLOBAL_COMM.size() > 1) {
+        auto pos = path.rfind('.');
+        auto prefix = (pos != std::string::npos) ? path.substr(0, pos) : path;
+        auto ext = (pos != std::string::npos) ? path.substr(pos + 1) : path;
+        int digital = static_cast<int>(std::floor(std::log(static_cast<double>(GLOBAL_COMM.size())))) + 1;
+        if (GLOBAL_COMM.rank() == 0) {
+            std::ofstream summary(prefix + ".summary.xmf");
+            summary << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
+            summary << "<Xdmf Version=\"2.0\" xmlns:xi=\"http://www.w3.org/2001/XInclude\">" << std::endl;
+            for (int i = 0, ie = GLOBAL_COMM.size(); i < ie; ++i) {
+                summary << "  <xi:include href=\"" << prefix << "." << std::setfill('0') << std::setw(digital) << i
+                        << ".xmf\"/>" << std::endl;
+            }
+            summary << "</Xdmf>";
+        }
+        std::ostringstream os;
+        os << prefix << "." << std::setfill('0') << std::setw(digital) << GLOBAL_COMM.rank() << ".xmf";
+        m_file_ = os.str();
+    }
+#endif
+    return SP_SUCCESS;
+}
 template <typename U>
 struct XdmfType {};
 template <>
@@ -254,6 +284,8 @@ boost::shared_ptr<XdmfRegularGrid> XDMFRegularGridNew(std::shared_ptr<DataNode> 
 }
 int XDMFDump(std::string url, std::shared_ptr<DataNode> const& obj) {
     if (obj == nullptr || url.empty()) { return SP_FAILED; }
+    VERBOSE << std::setw(20) << "Write XDMF : " << url;
+
     int success = SP_FAILED;
     auto grid_collection = XdmfGridCollection::New();
     grid_collection->setType(XdmfGridCollectionType::Spatial());

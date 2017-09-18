@@ -19,7 +19,7 @@ class Scenario : public EngineObject {
 
     virtual void TagRefinementCells(Real time_now);
 
-    virtual void Synchronize();
+    virtual void Synchronize(int level);
     virtual void NextStep();
     virtual void Run();
     virtual bool Done() const;

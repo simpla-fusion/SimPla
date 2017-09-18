@@ -22,7 +22,7 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
     void DoUpdate() override;
     void DoTearDown() override;
 
-    void Synchronize() override;
+    void Synchronize(int level) override;
     void Advance(Real time_now, Real time_dt) override;
     bool Done() const override;
 

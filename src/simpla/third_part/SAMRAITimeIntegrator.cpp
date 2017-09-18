@@ -13,8 +13,8 @@
 
 #include "simpla/algebra/Algebra.h"
 #include "simpla/data/Data.h"
-#include "simpla/engine/Engine.h"
 #include "simpla/engine/Domain.h"
+#include "simpla/engine/Engine.h"
 #include "simpla/parallel/MPIComm.h"
 #include "simpla/physics/particle/ParticleData.h"
 #include "simpla/utilities/Log.h"
@@ -1182,7 +1182,7 @@ SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
     SAMRAI::tbox::SAMRAIManager::finalize();
 }
 
-void SAMRAITimeIntegrator::Synchronize() { base_type::Synchronize(); }
+void SAMRAITimeIntegrator::Synchronize(int level) {}
 
 std::shared_ptr<data::DataNode> SAMRAITimeIntegrator::Serialize() const { return base_type::Serialize(); }
 

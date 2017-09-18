@@ -34,6 +34,7 @@ int main(int argc, char** argv) {
     scenario->db()->SetValue("DumpFileSuffix", "h5");
     scenario->db()->SetValue("CheckPointFilePrefix", "EAST");
     scenario->db()->SetValue("CheckPointFileSuffix", "xmf");
+    scenario->SetCheckPointInterval(2);
 
     scenario->GetAtlas()->SetChart<simpla::geometry::csCylindrical>();
     scenario->GetAtlas()->GetChart()->SetScale({0.1, 0.1, 0.1});

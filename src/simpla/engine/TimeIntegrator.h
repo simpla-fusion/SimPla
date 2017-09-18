@@ -21,7 +21,7 @@ class TimeIntegrator : public Scenario {
     void DoSetUp() override;
     void DoTearDown() override;
 
-    void Synchronize() override;
+    void Synchronize(int level) override;
     void NextStep() override;
     void Run() override;
     bool Done() const override;

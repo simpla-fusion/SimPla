@@ -2,8 +2,8 @@
 // Created by salmon on 17-3-10.
 //
 #include <sys/stat.h>
+#include <fstream>
 #include <regex>
-
 #include "../DataBlock.h"
 #include "../DataEntity.h"
 #include "../DataNode.h"
@@ -82,8 +82,24 @@ std::shared_ptr<DataNode> DataNodeHDF5::CreateNode(eNodeType e_type) const {
 int DataNodeHDF5::Connect(std::string const& authority, std::string const& path, std::string const& query,
                           std::string const& fragment) {
     Disconnect();
+    std::string filename = path;
+#ifdef MPI_FOUND
+    if (GLOBAL_COMM.size() > 1) {
+        auto pos = path.rfind('.');
+        std::string prefix = (pos != std::string::npos) ? path.substr(0, pos) : path;
+        int digital = static_cast<int>(std::floor(std::log(static_cast<double>(GLOBAL_COMM.size())))) + 1;
+        if (GLOBAL_COMM.rank() == 0) {
+            std::ofstream summary(prefix + ".summary.txt");
+            for (int i = 0, ie = GLOBAL_COMM.size(); i < ie; ++i) {
+                summary << prefix << "." << std::setfill('0') << std::setw(digital) << i << ".xmf" << std::endl;
+            }
+        }
+        std::ostringstream os;
+        os << prefix << "." << std::setfill('0') << std::setw(digital) << GLOBAL_COMM.rank() << ".xmf";
+        filename = os.str();
+    }
 
-    std::string filename = path.empty() ? "simpla_unnamed.h5" : path;
+#endif
 
     // = AutoIncreaseFileName(authority + "/" + path, "// .h5");
 
