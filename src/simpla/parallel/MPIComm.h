@@ -8,6 +8,7 @@
 #ifndef MPI_COMM_H_
 #define MPI_COMM_H_
 
+#include <mpi.h>
 #include <algorithm>
 #include <cstdbool>
 #include <cstddef>
@@ -26,7 +27,7 @@ class MPIComm {
     ~MPIComm();
     void init(int argc = 0, char **argv = nullptr);
     void close();
-    void const *comm() const;
+    MPI_Comm comm() const;
     //    MPI_Info info();
     void barrier();
     bool is_valid() const;

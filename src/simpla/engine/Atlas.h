@@ -100,6 +100,10 @@ class Atlas : public EngineObject {
     size_type AddBlock(std::shared_ptr<MeshBlock> const &blk);
     size_type DeleteBlock(id_type);
     std::shared_ptr<MeshBlock> GetBlock(id_type) const;
+
+    void Synchronize(int level, std::map<id_type, std::shared_ptr<data::DataNode>> &) const;
+    void Refine(int level, std::map<id_type, std::shared_ptr<data::DataNode>> &) const;
+    void Coarsen(int level, std::map<id_type, std::shared_ptr<data::DataNode>> &) const;
 };
 }  // namespace engine
 }  // namespace simpla{namespace mesh_as{

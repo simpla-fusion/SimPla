@@ -6,11 +6,11 @@
  */
 #include "MPIComm.h"
 #include <mpi.h>
-#include "simpla/SIMPLA_config.h"
-#include "simpla/utilities/Log.h"
 #include <cassert>
 #include <iostream>
 #include <vector>
+#include "simpla/SIMPLA_config.h"
+#include "simpla/utilities/Log.h"
 namespace simpla {
 namespace parallel {
 
@@ -82,7 +82,7 @@ size_type MPIComm::generate_object_id() {
     return m_pimpl_->m_object_id_count_;
 }
 
-void const *MPIComm::comm() const { return reinterpret_cast<void *>(&m_pimpl_->m_comm_); }
+MPI_Comm MPIComm::comm() const { return m_pimpl_->m_comm_; }
 //
 // MPI_Info MPIComm::info() {
 //    assert(m_pack_ != nullptr);

@@ -24,8 +24,6 @@ struct Scenario::pimpl_s {
     std::map<std::string, Range<EntityId>> m_ranges_;
 
     size_type m_step_counter_ = 0;
-
-    void Sync(std::shared_ptr<MeshBlock> const &);
 };
 
 Scenario::Scenario() : m_pimpl_(new pimpl_s) { m_pimpl_->m_atlas_ = Atlas::New(); }
@@ -103,11 +101,10 @@ Range<EntityId> &Scenario::GetRange(std::string const &k) {
 }
 Range<EntityId> const &Scenario::GetRange(std::string const &k) const { return m_pimpl_->m_ranges_.at(k); }
 
-void Scenario::pimpl_s::Sync(std::shared_ptr<MeshBlock> const &) {}
-
 void Scenario::Synchronize(int level) {
     ASSERT(level == 0)
-    m_pimpl_->m_atlas_->Foreach([&](std::shared_ptr<MeshBlock> const &blk) { m_pimpl_->Sync(blk); });
+
+    m_pimpl_->m_atlas_->Synchronize(level, m_pimpl_->m_patches_);
 }
 void Scenario::NextStep() { ++m_pimpl_->m_step_counter_; }
 void Scenario::SetStepNumber(size_type s) { m_pimpl_->m_step_counter_ = s; }

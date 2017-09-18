@@ -2,9 +2,11 @@
  *  @file MeshAtlas.cpp
  *  Created by salmon on 16-5-23.
  */
+#include <mpi.h>
 
 #include <simpla/geometry/csCartesian.h>
 #include <simpla/parallel/MPIComm.h>
+#include <simpla/parallel/MPIUpdater.h>
 #include "simpla/SIMPLA_config.h"
 
 #include "simpla/geometry/Chart.h"
@@ -159,6 +161,20 @@ int Atlas::Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const
 void Atlas::SetBoundingBox(box_type const &b) { m_pimpl_->m_box_ = b; }
 box_type Atlas::GetBoundingBox() const { return m_pimpl_->m_box_; }
 index_box_type Atlas::GetIndexBox(int tag) { return m_pimpl_->m_index_box_; }
+template <typename V>
+size_type Sync(Array<V> &array) {}
+void Atlas::Synchronize(int level, std::map<id_type, std::shared_ptr<data::DataNode>> &patches) const {
+    std::shared_ptr<MeshBlock> blk;
+//    auto updater = parallel::MPIUpdater::New();
+//    updater->SetIndexBox(blk->IndexBox());
+//    auto it = patches.find(blk);
+//    if (it != patches.end()) {
+//        it->second->Foreach([&](std::string const &, std::shared_ptr<data::DataNode> const &node) { return 1; });
+//    }
+}
+void Atlas::Refine(int level, std::map<id_type, std::shared_ptr<data::DataNode>> &) const { UNIMPLEMENTED; }
+void Atlas::Coarsen(int level, std::map<id_type, std::shared_ptr<data::DataNode>> &) const { UNIMPLEMENTED; }
+
 // int Atlas::GetNumOfLevel() const { return m_pimpl_->(); }
 // int Atlas::GetMaxLevel() const { return m_pimpl_->m_max_level_; }
 // void Atlas::SetMaxLevel(int l) {

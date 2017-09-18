@@ -117,16 +117,17 @@ class ZSFC {
         m_size_ = 1;
         for (int i = 0; i < NDIMS; ++i) { m_size_ *= (std::get<1>(m_index_box_)[i] - std::get<0>(m_index_box_)[i]); }
     };
-    size_type GetNDIMS() const { return ndims; }
+    size_type GetNDIMS() const { return static_cast<size_type>(ndims); }
     size_type GetIndexBox(index_type* lo, index_type* hi) const {
         for (int i = 0; i < ndims; ++i) {
             lo[i] = std::get<0>(m_index_box_)[i];
             hi[i] = std::get<1>(m_index_box_)[i];
         }
-        return ndims;
+        return static_cast<size_type>(ndims);
     }
-    template <typename U, typename... Args>
-    size_type Copy(U* dst, Args&&... src) const;
+
+    template <typename LHS, typename RHS>
+    size_type Copy(LHS& dst, RHS const& src) const;
     //    template <typename U>
     //    size_type Copy(U* data, this_type const& other_sfc, U const* other, index_type const* lo = nullptr,
     //                   index_type const* hi = nullptr) const;
@@ -176,13 +177,6 @@ class ZSFC {
     template <typename value_type>
     std::ostream& Print(std::ostream& os, value_type const* v, int indent = 0) const;
 };
-template <int N>
-template <typename U, typename... Args>
-size_type ZSFC<N>::Copy(U* dst, Args&&... src) const {
-    FIXME;
-
-    return 0;
-};
 
 template <>
 __host__ __device__ inline index_type ZSFC<3>::hash(index_type s0, index_type s1, index_type s2, index_type s3,
@@ -209,21 +203,21 @@ template <>
 template <typename value_type>
 std::ostream& ZSFC<3>::Print(std::ostream& os, value_type const* v, int indent) const {
     os << "Array<" << simpla::traits::type_name<value_type>::value() << ">" << m_index_box_;
-//    if (v != nullptr && size() < 20) {
-//        index_type ib = std::get<0>(m_index_box_)[0];
-//        index_type ie = std::get<1>(m_index_box_)[0];
-//        index_type jb = std::get<0>(m_index_box_)[1];
-//        index_type je = std::get<1>(m_index_box_)[1];
-//        index_type kb = std::get<0>(m_index_box_)[2];
-//        index_type ke = std::get<1>(m_index_box_)[2];
-//
-//        for (index_type i = ib; i < ie; ++i)
-//            for (index_type j = jb; j < je; ++j) {
-//                os << "{" << std::setw(8) << v[hash(i, j, kb)];
-//                for (index_type k = kb + 1; k < ke; ++k) { os << "," << std::setw(8) << v[hash(i, j, k)]; }
-//                os << "}" << std::endl;
-//            }
-//    }
+    //    if (v != nullptr && size() < 20) {
+    //        index_type ib = std::get<0>(m_index_box_)[0];
+    //        index_type ie = std::get<1>(m_index_box_)[0];
+    //        index_type jb = std::get<0>(m_index_box_)[1];
+    //        index_type je = std::get<1>(m_index_box_)[1];
+    //        index_type kb = std::get<0>(m_index_box_)[2];
+    //        index_type ke = std::get<1>(m_index_box_)[2];
+    //
+    //        for (index_type i = ib; i < ie; ++i)
+    //            for (index_type j = jb; j < je; ++j) {
+    //                os << "{" << std::setw(8) << v[hash(i, j, kb)];
+    //                for (index_type k = kb + 1; k < ke; ++k) { os << "," << std::setw(8) << v[hash(i, j, k)]; }
+    //                os << "}" << std::endl;
+    //            }
+    //    }
     return os;
 }
 // template <>
@@ -340,6 +334,30 @@ template <typename RHS>
 ZSFC<3> ZSFC<3>::Overlap(RHS const& rhs) const {
     return ZSFC<3>(detail::overlap(m_index_box_, rhs));
 };
+template <>
+template <typename LHS, typename RHS>
+size_type ZSFC<3>::Copy(LHS& dst, RHS const& src) const {
+    index_type ib = std::get<0>(m_index_box_)[0];
+    index_type ie = std::get<1>(m_index_box_)[0];
+    index_type jb = std::get<0>(m_index_box_)[1];
+    index_type je = std::get<1>(m_index_box_)[1];
+    index_type kb = std::get<0>(m_index_box_)[2];
+    index_type ke = std::get<1>(m_index_box_)[2];
+    if (m_array_order_fast_first_) {
+        //#pragma omp parallel for
+        for (index_type k = kb; k < ke; ++k)
+            for (index_type j = jb; j < je; ++j)
+                for (index_type i = ib; i < ie; ++i) { dst(i, j, k) = src(i, j, k); }
+
+    } else {
+        //#pragma omp parallel for
+        for (index_type i = ib; i < ie; ++i)
+            for (index_type j = jb; j < je; ++j)
+                for (index_type k = kb; k < ke; ++k) { dst(i, j, k) = src(i, j, k); }
+    }
+    return static_cast<size_type>((ke - kb) * (je - jb) * (ie - ib));
+};
+
 #ifdef __CUDA__
 template <typename TFUN>
 __global__ void foreach_device(nTuple<index_type, 3> min, nTuple<index_type, 3> max, TFUN fun) {

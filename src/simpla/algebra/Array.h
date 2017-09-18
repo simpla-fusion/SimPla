@@ -124,7 +124,7 @@ class Array {
     template <typename... Args>
     size_type CopyIn(this_type const& other, Args&&... args) {
         alloc();
-        return m_sfc_.Copy(m_data_, other, std::forward<Args>(args)...);
+        return m_sfc_.Overlap(other.m_sfc_).Copy(*this, other);
     };
     template <typename... Args>
     size_type CopyOut(this_type& other, Args&&... args) const {
@@ -137,11 +137,11 @@ class Array {
 
     void Fill(value_type v) {
         alloc();
-//        m_sfc_.CopyIn(m_data_, v);
+        //        m_sfc_.CopyIn(m_data_, v);
     }
     void Clear() {
         alloc();
-//        Fill(0);
+        //        Fill(0);
     }
 
     this_type& operator=(this_type const& rhs) {
