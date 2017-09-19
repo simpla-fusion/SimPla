@@ -173,18 +173,17 @@ void MPIUpdater::Update(ArrayBase &d) {
 
 void MPIUpdater::Push(ArrayBase const &d, int direction) {
     if (!isSetUp()) { return; }
-    CHECK(GetSendBuffer(2 * direction + 0).CopyIn(d));
+    GetSendBuffer(2 * direction + 0).CopyIn(d);
     GetSendBuffer(2 * direction + 1).CopyIn(d);
 }
 void MPIUpdater::Pop(ArrayBase &d, int direction) const {
     if (!isSetUp()) { return; }
-    CHECK(d.CopyIn(GetRecvBuffer(2 * direction + 0)));
+    d.CopyIn(GetRecvBuffer(2 * direction + 0));
     d.CopyIn(GetRecvBuffer(2 * direction + 1));
 }
 
 void MPIUpdater::SendRecv(int d) {
     if (!isSetUp()) { return; }
-
     //    for (int d = 0; d < m_pimpl_->mpi_topology_ndims; ++d) {
     int left, right;
 
