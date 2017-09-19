@@ -91,27 +91,19 @@ void MPIUpdater::SetUp() {
         std::get<0>(m_pimpl_->recv_box[2 * d + 1])[d] = std::get<1>(m_pimpl_->local_box_)[d];
         std::get<1>(m_pimpl_->recv_box[2 * d + 1])[d] = std::get<1>(m_pimpl_->local_box_)[d] + m_pimpl_->m_gw_[d];
 
-        //        for (int i = 0; i < d; ++i) {
-        //            std::get<0>(m_pimpl_->send_box[2 * d + 0])[i] = std::get<0>(m_pimpl_->local_box_)[i] -
-        //            m_pimpl_->m_gw_[i];
-        //            std::get<1>(m_pimpl_->send_box[2 * d + 0])[i] = std::get<0>(m_pimpl_->local_box_)[i] +
-        //            m_pimpl_->m_gw_[i];
-        //
-        //            std::get<0>(m_pimpl_->recv_box[2 * d + 0])[i] = std::get<0>(m_pimpl_->local_box_)[i] -
-        //            m_pimpl_->m_gw_[i];
-        //            std::get<1>(m_pimpl_->recv_box[2 * d + 0])[i] = std::get<0>(m_pimpl_->local_box_)[i] +
-        //            m_pimpl_->m_gw_[i];
-        //
-        //            std::get<0>(m_pimpl_->send_box[2 * d + 1])[i] = std::get<1>(m_pimpl_->local_box_)[i] -
-        //            m_pimpl_->m_gw_[i];
-        //            std::get<1>(m_pimpl_->send_box[2 * d + 1])[i] = std::get<1>(m_pimpl_->local_box_)[i] +
-        //            m_pimpl_->m_gw_[i];
-        //
-        //            std::get<0>(m_pimpl_->recv_box[2 * d + 1])[i] = std::get<1>(m_pimpl_->local_box_)[i] -
-        //            m_pimpl_->m_gw_[i];
-        //            std::get<1>(m_pimpl_->recv_box[2 * d + 1])[i] = std::get<1>(m_pimpl_->local_box_)[i] +
-        //            m_pimpl_->m_gw_[i];
-        //        }
+        for (int i = 0; i < d; ++i) {
+            std::get<0>(m_pimpl_->send_box[2 * d + 0])[i] = std::get<0>(m_pimpl_->local_box_)[i] - m_pimpl_->m_gw_[i];
+            std::get<1>(m_pimpl_->send_box[2 * d + 0])[i] = std::get<1>(m_pimpl_->local_box_)[i] + m_pimpl_->m_gw_[i];
+
+            std::get<0>(m_pimpl_->recv_box[2 * d + 0])[i] = std::get<0>(m_pimpl_->local_box_)[i] - m_pimpl_->m_gw_[i];
+            std::get<1>(m_pimpl_->recv_box[2 * d + 0])[i] = std::get<1>(m_pimpl_->local_box_)[i] + m_pimpl_->m_gw_[i];
+
+            std::get<0>(m_pimpl_->send_box[2 * d + 1])[i] = std::get<0>(m_pimpl_->local_box_)[i] - m_pimpl_->m_gw_[i];
+            std::get<1>(m_pimpl_->send_box[2 * d + 1])[i] = std::get<1>(m_pimpl_->local_box_)[i] + m_pimpl_->m_gw_[i];
+
+            std::get<0>(m_pimpl_->recv_box[2 * d + 1])[i] = std::get<0>(m_pimpl_->local_box_)[i] - m_pimpl_->m_gw_[i];
+            std::get<1>(m_pimpl_->recv_box[2 * d + 1])[i] = std::get<1>(m_pimpl_->local_box_)[i] + m_pimpl_->m_gw_[i];
+        }
     }
 
     size_type ele_size = 0;
