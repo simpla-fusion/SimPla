@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
     logger::set_stdout_level(1000);
 #endif
 
-    parallel::init(argc, argv);
+    parallel::Initialize(argc, argv);
     MESSAGE << std::endl << data::DataNode::ShowDescription() << std::endl << SPObject::ShowDescription() << std::endl;
 
     GLOBAL_COMM.barrier();
@@ -192,6 +192,6 @@ int main(int argc, char **argv) {
 
     app->Finalize();
 
-    parallel::close();
+    parallel::Finalize();
     logger::close();
 }

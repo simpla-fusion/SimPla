@@ -125,6 +125,7 @@ class ZSFC {
         }
         return static_cast<size_type>(ndims);
     }
+    auto GetIndexBox() const { return m_index_box_; }
 
     template <typename LHS, typename RHS>
     size_type Copy(LHS& dst, RHS const& src) const;
@@ -173,9 +174,6 @@ class ZSFC {
 
     template <typename TFun>
     void Foreach(const TFun& fun) const;
-
-    template <typename value_type>
-    std::ostream& Print(std::ostream& os, value_type const* v, int indent = 0) const;
 };
 
 template <>
@@ -199,27 +197,27 @@ __host__ __device__ constexpr inline bool ZSFC<3>::in_box(array_index_type const
     return in_box(idx[0], idx[1], idx[2]);
 };
 
-template <>
-template <typename value_type>
-std::ostream& ZSFC<3>::Print(std::ostream& os, value_type const* v, int indent) const {
-    os << "Array<" << simpla::traits::type_name<value_type>::value() << ">" << m_index_box_;
-    //    if (v != nullptr && size() < 20) {
-    //        index_type ib = std::get<0>(m_index_box_)[0];
-    //        index_type ie = std::get<1>(m_index_box_)[0];
-    //        index_type jb = std::get<0>(m_index_box_)[1];
-    //        index_type je = std::get<1>(m_index_box_)[1];
-    //        index_type kb = std::get<0>(m_index_box_)[2];
-    //        index_type ke = std::get<1>(m_index_box_)[2];
-    //
-    //        for (index_type i = ib; i < ie; ++i)
-    //            for (index_type j = jb; j < je; ++j) {
-    //                os << "{" << std::setw(8) << v[hash(i, j, kb)];
-    //                for (index_type k = kb + 1; k < ke; ++k) { os << "," << std::setw(8) << v[hash(i, j, k)]; }
-    //                os << "}" << std::endl;
-    //            }
-    //    }
-    return os;
-}
+// template <>
+// template <typename value_type>
+// std::ostream& ZSFC<3>::Print(std::ostream& os, value_type const* v, int indent) const {
+//    os << "Array<" << simpla::traits::type_name<value_type>::value() << ">" << m_index_box_;
+//    //    if (v != nullptr && size() < 20) {
+//    //        index_type ib = std::get<0>(m_index_box_)[0];
+//    //        index_type ie = std::get<1>(m_index_box_)[0];
+//    //        index_type jb = std::get<0>(m_index_box_)[1];
+//    //        index_type je = std::get<1>(m_index_box_)[1];
+//    //        index_type kb = std::get<0>(m_index_box_)[2];
+//    //        index_type ke = std::get<1>(m_index_box_)[2];
+//    //
+//    //        for (index_type i = ib; i < ie; ++i)
+//    //            for (index_type j = jb; j < je; ++j) {
+//    //                os << "{" << std::setw(8) << v[hash(i, j, kb)];
+//    //                for (index_type k = kb + 1; k < ke; ++k) { os << "," << std::setw(8) << v[hash(i, j, k)]; }
+//    //                os << "}" << std::endl;
+//    //            }
+//    //    }
+//    return os;
+//}
 // template <>
 // template <typename U>
 // size_type ZSFC<1>::Copy(U* data, this_type const& other_sfc, U const* other, index_type const* lo,

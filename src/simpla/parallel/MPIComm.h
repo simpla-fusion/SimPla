@@ -25,8 +25,8 @@ class MPIComm {
     MPIComm();
     MPIComm(int argc, char **argv);
     ~MPIComm();
-    void init(int argc = 0, char **argv = nullptr);
-    void close();
+    void Initialize(int argc = 0, char **argv = nullptr);
+    void Finalize();
     MPI_Comm comm() const;
     //    MPI_Info info();
     void barrier();

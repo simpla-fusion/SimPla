@@ -11,8 +11,8 @@
 #include <string>
 namespace simpla {
 namespace parallel {
-void init(int argc, char **argv);
-void close();
+void Initialize(int argc, char **argv);
+void Finalize();
 std::string help_message();
 }  //{ namespace parallel
 }  // namespace simpla

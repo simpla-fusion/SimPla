@@ -6,6 +6,7 @@
 #define SIMPLA_ARRAY_H
 #include "simpla/SIMPLA_config.h"
 
+#include <simpla/utilities/FancyStream.h>
 #include <initializer_list>
 #include <limits>
 #include <memory>
@@ -23,8 +24,21 @@ template <typename V, typename SFC>
 class Array;
 typedef nTuple<index_type, 3> IdxShift;
 
+struct ArrayBase {
+    virtual std::type_info const& value_type_info() const = 0;
+    virtual size_type size() const = 0;
+    virtual void* pointer() = 0;
+    virtual void const* pointer() const = 0;
+    virtual int GetNDIMS() const = 0;
+    virtual int GetIndexBox(index_type* lo, index_type* hi) const = 0;
+    virtual bool empty() const = 0;
+    virtual bool isNull() const = 0;
+    virtual size_type CopyIn(ArrayBase const& other) = 0;
+    virtual size_type CopyOut(ArrayBase& other) const { return other.CopyIn(*this); };
+};
+
 template <typename V, typename SFC = ZSFC<3>>
-class Array {
+class Array : public ArrayBase {
    public:
     typedef V value_type;
     typedef typename SFC::array_index_box_type array_index_box_type;
@@ -33,23 +47,18 @@ class Array {
     typedef Array<value_type, SFC> this_type;
     SFC m_sfc_;
     std::shared_ptr<value_type> m_holder_ = nullptr;
-    value_type* m_host_data_ = nullptr;
     value_type* m_data_ = nullptr;
 
    public:
     Array() = default;
     virtual ~Array(){};
 
-    Array(SFC const& sfc) : m_sfc_(sfc), m_data_(nullptr), m_holder_(nullptr), m_host_data_(nullptr) {}
+    Array(SFC const& sfc) : m_sfc_(sfc), m_data_(nullptr), m_holder_(nullptr) {}
 
-    Array(this_type const& other)
-        : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_holder_(other.m_holder_), m_host_data_(other.m_host_data_) {}
+    Array(this_type const& other) : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_holder_(other.m_holder_) {}
 
     Array(this_type&& other) noexcept
-        : m_sfc_(other.m_sfc_),
-          m_data_(other.m_data_),
-          m_holder_(std::shared_ptr<value_type>(other.m_holder_)),
-          m_host_data_(other.m_host_data_) {}
+        : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_holder_(std::shared_ptr<value_type>(other.m_holder_)) {}
 
     Array(this_type const& other, IdxShift s) : Array(other) { Shift(s); }
 
@@ -61,30 +70,59 @@ class Array {
 
     void swap(this_type& other) {
         std::swap(m_holder_, other.m_holder_);
-        std::swap(m_host_data_, other.m_host_data_);
         std::swap(m_data_, other.m_data_);
         m_sfc_.swap(other.m_sfc_);
+    }
+
+    std::ostream& Print(std::ostream& os, int indent = 0,
+#ifndef NDEBUG
+                        bool verbose = true
+#else
+                        bool verbose = false
+#endif
+                        ) const;
+
+    void SetUp() { alloc(); }
+    void TearDown() {
+        m_holder_.reset();
+        m_data_ = nullptr;
     }
 
     Array& operator=(this_type&& other) {
         this_type(std::forward<this_type>(other)).swap(*this);
         return *this;
     };
+    std::type_info const& value_type_info() const override { return typeid(value_type); };
+    size_type size() const override { return m_sfc_.size(); }
+    void* pointer() override { return m_data_; }
+    void const* pointer() const override { return m_data_; }
+    int GetNDIMS() const override { return m_sfc_.GetNDIMS(); }
+    int GetIndexBox(index_type* lo, index_type* hi) const override { return m_sfc_.GetIndexBox(lo, hi); }
+    bool empty() const override { return m_data_ == nullptr; }
+    bool isNull() const override { return m_data_ == nullptr; }
 
-    value_type* get() { return m_data_; }
-    value_type* get() const { return m_data_; }
+    auto GetIndexBox() const { return m_sfc_.GetIndexBox(); }
+
+    size_type CopyIn(ArrayBase const& other) override {
+        size_type count = 0;
+        if (auto* p = dynamic_cast<this_type const*>(&other)) { count = CopyIn(*p); }
+        return count;
+    }
+    size_type CopyOut(ArrayBase& other) const override {
+        size_type count = 0;
+        if (auto* p = dynamic_cast<this_type*>(&other)) { count = CopyOut(*p); }
+        return count;
+    };
 
     template <typename... Args>
     void reset(value_type* d, Args&&... args) {
         m_data_ = d;
         m_holder_.reset();
-        m_host_data_ = nullptr;
         m_sfc_.reset(std::forward<Args>(args)...);
     }
     template <typename... Args>
     void reset(std::shared_ptr<value_type> const& d, Args&&... args) {
         m_holder_ = d;
-        m_host_data_ = nullptr;
         m_data_ = m_holder_.get();
         m_sfc_.reset(std::forward<Args>(args)...);
     }
@@ -95,7 +133,6 @@ class Array {
         if (m_sfc_.empty()) {
             m_data_ = nullptr;
             m_holder_.reset();
-            m_host_data_ = nullptr;
         }
     }
     template <typename... Args>
@@ -105,31 +142,23 @@ class Array {
 
     SFC const& GetSpaceFillingCurve() const { return m_sfc_; }
 
-    int GetNDIMS() const { return m_sfc_.GetNDIMS(); }
-    int GetIndexBox(index_type* lo, index_type* hi) const { return m_sfc_.GetIndexBox(lo, hi); }
-
-    bool empty() const { return m_data_ == nullptr; }
-    bool isNull() const { return m_data_ == nullptr; }
-    std::type_info const& value_type_info() const { return typeid(value_type); }
-    size_type size() const { return m_sfc_.size(); }
-
     std::shared_ptr<value_type>& GetData() { return m_holder_; }
     std::shared_ptr<value_type> const& GetData() const { return m_holder_; }
+
+    value_type* get() { return m_data_; }
+    value_type const* get() const { return m_data_; }
 
     template <typename... Args>
     void Shift(Args&&... args) {
         m_sfc_.Shift(std::forward<Args>(args)...);
     }
 
-    template <typename... Args>
-    size_type CopyIn(this_type const& other, Args&&... args) {
+    size_type CopyIn(this_type const& other) {
         alloc();
         return m_sfc_.Overlap(other.m_sfc_).Copy(*this, other);
     };
-    template <typename... Args>
-    size_type CopyOut(this_type& other, Args&&... args) const {
-        return other.CopyIn(*this, std::forward<Args>(args)...);
-    };
+    size_type CopyOut(this_type& other) const { return other.CopyIn(*this); };
+
     void DeepCopy(value_type const* other) {
         alloc();
         m_sfc_.CopyIn(m_data_, other);
@@ -158,8 +187,6 @@ class Array {
     }
 
     this_type operator()(IdxShift const& idx) const { return this_type(*this, idx); }
-
-    std::ostream& Print(std::ostream& os, int indent = 0) const { return m_sfc_.Print(os, m_data_, indent); }
 
     __host__ __device__ value_type& operator[](size_type s) { return m_data_[s]; }
 
@@ -217,7 +244,6 @@ template <typename V, typename SFC>
 void Array<V, SFC>::alloc() {
     if (m_data_ == nullptr) {
         if (m_holder_ == nullptr) { m_holder_ = spMakeShared<value_type>(m_data_, m_sfc_.size()); }
-        m_host_data_ = m_data_;
         m_data_ = m_holder_.get();
 
 #ifndef NDEBUG
@@ -227,7 +253,18 @@ void Array<V, SFC>::alloc() {
 #endif
     }
 }
+template <typename V, typename SFC>
+std::ostream& Array<V, SFC>::Print(std::ostream& os, int indent, bool verbose) const {
+    os << "Array<" << simpla::traits::type_name<value_type>::value() << ">" << GetIndexBox() << std::endl;
 
+    //    if (size() < 20 || verbose) {
+    int ndims = GetNDIMS();
+    index_type lo[ndims], hi[ndims];
+    GetIndexBox(lo, hi);
+    FancyPrintNd<3>(os, *this, lo, hi, indent);
+    //    }
+    return os;
+}
 namespace traits {
 template <typename... T>
 struct reference<Array<T...>> {

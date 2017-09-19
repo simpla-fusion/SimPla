@@ -6,6 +6,7 @@
 #define SIMPLA_SPDEFINES_H
 #include <simpla/SIMPLA_config.h>
 #include <limits>
+#include <utility>
 //#include "simpla/algebra/nTuple.h"
 namespace simpla {
 

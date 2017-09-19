@@ -50,7 +50,7 @@ inline TV const *printNdArray(std::ostream &os, TV const *v, int rank, TI const 
         for (int s = 0; s < d[0]; ++s) {
             if (s > 0) {
                 os << sep;
-//                if (rank > 1) { os << std::endl << std::setw(indent) << " "; }
+                //                if (rank > 1) { os << std::endl << std::setw(indent) << " "; }
             }
             v = printNdArray(os, v, rank - 1, d + 1, s == 0, s == d[0] - 1, left_brace, sep, right_brace, is_slow_first,
                              tab_width, indent + 1);
@@ -62,6 +62,57 @@ inline TV const *printNdArray(std::ostream &os, TV const *v, int rank, TI const 
     return v;
 }
 
+namespace detail {
+template <size_type... IDX, typename V, typename I>
+auto GetValue(std::integer_sequence<size_type, IDX...>, V const &v, I const *idx) {
+    return v(idx[IDX]...);
+};
+}
+
+template <int NDIMS, typename TV, typename TI>
+std::ostream &FancyPrintNd_(std::ostream &os, TV const &v, int depth, index_type *idx, TI const *lo, TI const *hi,
+                            bool is_slow_first = true, int indent = 0, int tab_width = 0,
+                            std::string const &left_brace = "{", std::string const &sep = ",",
+                            std::string const &right_brace = "}") {
+    if (depth >= NDIMS) { return os; }
+
+    if (depth == NDIMS - 1) {
+        os << std::setw(indent + depth) << "{";
+        idx[NDIMS - 1] = lo[NDIMS - 1];
+        os << std::setw(tab_width) << detail::GetValue(std::make_index_sequence<NDIMS>(), v, idx);
+        for (idx[NDIMS - 1] = lo[NDIMS - 1] + 1; idx[NDIMS - 1] < hi[NDIMS - 1]; ++idx[NDIMS - 1]) {
+            os << "," << std::setw(tab_width) << detail::GetValue(std::make_index_sequence<NDIMS>(), v, idx);
+        }
+        os << "}";
+
+    } else {
+        os << std::setw(indent + depth) << "{" << std::endl;
+        idx[depth] = lo[depth];
+        FancyPrintNd_<NDIMS>(os, v, depth + 1, idx, lo, hi, is_slow_first, indent, tab_width, left_brace, sep,
+                             right_brace);
+
+        for (idx[depth] = lo[depth] + 1; idx[depth] < hi[depth]; ++idx[depth]) {
+            os << "," << std::endl;
+            FancyPrintNd_<NDIMS>(os, v, depth + 1, idx, lo, hi, is_slow_first, indent, tab_width, left_brace, sep,
+                                 right_brace);
+        }
+        os << std::setw(indent + depth) << "}";
+    }
+
+    return os;
+}
+
+template <int NDIMS, typename TV, typename TI>
+std::ostream &FancyPrintNd(std::ostream &os, TV const &v, TI const *lo, TI const *hi, bool is_slow_first = true,
+                           int indent = 0, int tab_width = 8, std::string const &left_brace = "{",
+                           std::string const &sep = ",", std::string const &right_brace = "}") {
+    constexpr int ELE_NUM_PER_LINE = 10;
+
+    index_type idx[NDIMS];
+    FancyPrintNd_<NDIMS>(os, v, 0, idx, lo, hi, is_slow_first, indent, tab_width, left_brace, sep, right_brace);
+
+    return os;
+}
 template <typename TX, typename TY, typename... Others>
 std::istream &get_(std::istream &is, size_t num, std::map<TX, TY, Others...> &a) {
     for (size_t s = 0; s < num; ++s) {

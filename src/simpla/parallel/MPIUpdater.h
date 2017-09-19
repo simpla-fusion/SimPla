@@ -11,7 +11,6 @@
 #include <memory>
 
 #include "simpla/algebra/Array.h"
-#include "simpla/data/DataBlock.h"
 
 namespace simpla {
 namespace parallel {
@@ -25,6 +24,8 @@ struct MPIUpdater {
     template <typename V>
     static std::shared_ptr<MPIUpdater> New();
 
+    void SetGhostWidth(index_tuple const &);
+    index_tuple GetGhostWidth() const;
     void SetIndexBox(index_box_type const &inner);
     index_box_type GetIndexBox() const;
     void SetTag(int tag);
@@ -32,17 +33,17 @@ struct MPIUpdater {
     virtual void SetUp();
     virtual void TearDown();
     bool isSetUp() const;
+    bool isEnable() const;
 
     virtual void Update() const;
+    virtual void Push(ArrayBase const &d) = 0;
+    virtual void Pop(ArrayBase &d) const = 0;
 
    protected:
     virtual std::type_info const &value_type_info() const = 0;
 
     std::tuple<void *, index_box_type> GetSendBuffer(int i) const;
     std::tuple<void *, index_box_type> GetRecvBuffer(int i) const;
-
-    virtual void Push(std::shared_ptr<data::DataBlock> const &d) = 0;
-    virtual void Pop(std::shared_ptr<data::DataBlock> &d) = 0;
 
    private:
     struct pimpl_s;
@@ -60,15 +61,8 @@ struct MPIUpdaterT : public MPIUpdater {
     static std::shared_ptr<MPIUpdaterT<V>> New();
     void SetUp() override;
 
-    void Push(Array<V> const &);
-    void Pop(Array<V> &) const;
-
-    void Push(std::shared_ptr<data::DataBlock> const &d) override {
-        if (auto p = std::dynamic_pointer_cast<data::DataBlockT<V>>(d)) { Push(*p); }
-    }
-    void Pop(std::shared_ptr<data::DataBlock> &d) override {
-        if (auto p = std::dynamic_pointer_cast<data::DataBlockT<V>>(d)) { Pop(*p); }
-    }
+    void Push(ArrayBase const &d) override;
+    void Pop(ArrayBase &d) const override;
 
    private:
     Array<V> send_buffer[6];
@@ -90,7 +84,7 @@ std::shared_ptr<MPIUpdaterT<V>> MPIUpdaterT<V>::New() {
 }
 template <typename V>
 void MPIUpdaterT<V>::SetUp() {
-    if (isSetUp()) { return; }
+    if (isSetUp() || !isEnable()) { return; }
     MPIUpdater::SetUp();
     for (int i = 0; i < 6; ++i) {
         auto send_t = GetSendBuffer(i);
@@ -103,11 +97,13 @@ void MPIUpdaterT<V>::SetUp() {
 }
 
 template <typename V>
-void MPIUpdaterT<V>::Push(Array<V> const &d) {
+void MPIUpdaterT<V>::Push(ArrayBase const &d) {
+    if (!isSetUp()) { return; }
     for (auto &v : send_buffer) { v.CopyIn(d); }
 }
 template <typename V>
-void MPIUpdaterT<V>::Pop(Array<V> &d) const {
+void MPIUpdaterT<V>::Pop(ArrayBase &d) const {
+    if (!isSetUp()) { return; }
     for (auto &v : recv_buffer) { d.CopyIn(v); }
 }
 }  // namespace parallel

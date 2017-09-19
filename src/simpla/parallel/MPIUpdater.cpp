@@ -15,10 +15,11 @@ struct MPIUpdater::pimpl_s {
     MPI_Comm comm;
     int ndims = 3;
     int mpi_topology_ndims = 0;
-
+    int mpi_dims[3], mpi_periods[3], mpi_coords[3];
     index_box_type local_box_;
     index_box_type send_box[6];
     index_box_type recv_box[6];
+    index_tuple m_gw_{2, 2, 2};
 
     MPI_Datatype ele_type;
     int tag;
@@ -39,10 +40,13 @@ MPIUpdater::MPIUpdater() : m_pimpl_(new pimpl_s) {
     MPI_CALL(MPI_Cartdim_get(GLOBAL_COMM.comm(), &m_pimpl_->mpi_topology_ndims));
 };
 MPIUpdater::~MPIUpdater() { TearDown(); };
+void MPIUpdater::SetGhostWidth(index_tuple const &gw) { m_pimpl_->m_gw_ = gw; }
+index_tuple MPIUpdater::GetGhostWidth() const { return m_pimpl_->m_gw_; }
 void MPIUpdater::SetIndexBox(index_box_type const &idx_box) { m_pimpl_->local_box_ = idx_box; }
 index_box_type MPIUpdater::GetIndexBox() const { return m_pimpl_->local_box_; }
 
 bool MPIUpdater::isSetUp() const { return m_pimpl_->m_is_setup_; }
+bool MPIUpdater::isEnable() const { return m_pimpl_->comm != MPI_COMM_NULL && GLOBAL_COMM.size() > 1; }
 
 void MPIUpdater::SetUp() {
     m_pimpl_->m_is_setup_ = true;
@@ -50,91 +54,57 @@ void MPIUpdater::SetUp() {
 
     MPI_CALL(MPI_Topo_test(m_pimpl_->comm, &topo_type));
 
-    assert(topo_type == MPI_CART);
+    ASSERT(topo_type == MPI_CART);
 
-    int mpi_topology_ndims = 0;
+    MPI_CALL(MPI_Cartdim_get(m_pimpl_->comm, &m_pimpl_->mpi_topology_ndims));
 
-    MPI_CALL(MPI_Cartdim_get(m_pimpl_->comm, &mpi_topology_ndims));
+    ASSERT(m_pimpl_->mpi_topology_ndims <= m_pimpl_->ndims);
 
-    assert(mpi_topology_ndims <= m_pimpl_->ndims);
+    MPI_CALL(MPI_Cart_get(m_pimpl_->comm, 3, m_pimpl_->mpi_dims, m_pimpl_->mpi_periods, m_pimpl_->mpi_coords));
+    for (int i = 0; i < 6; ++i) {
+        m_pimpl_->send_box[i] = m_pimpl_->local_box_;
+        m_pimpl_->recv_box[i] = m_pimpl_->local_box_;
+    }
 
-    //    for (int i = 0; i < m_pimpl_->ndims; ++i) { m_pimpl_->dims[i] = shape[i]; }
-    //
-    //    m_pimpl_->num_of_neighbour = mpi_topology_ndims * 2;
-    //
-    //    for (int d = 0; d < mpi_topology_ndims; ++d) {
-    //        m_pimpl_->send_displs[2 * d + 0] = 0;
-    //        m_pimpl_->send_displs[2 * d + 1] = 0;
-    //        m_pimpl_->recv_displs[2 * d + 0] = 0;
-    //        m_pimpl_->recv_displs[2 * d + 1] = 0;
-    //
-    //        if (m_pimpl_->dims[d] == 1) {
-    //            m_pimpl_->send_count[2 * d + 0] = 0;
-    //            m_pimpl_->send_count[2 * d + 1] = 0;
-    //            m_pimpl_->recv_count[2 * d + 0] = 0;
-    //            m_pimpl_->recv_count[2 * d + 1] = 0;
-    //
-    //            for (int i = 0; i < ndims; ++i) {
-    //                m_pimpl_->s_count[2 * d + 0][i] = 0;
-    //                m_pimpl_->s_start[2 * d + 0][i] = 0;
-    //                m_pimpl_->s_count[2 * d + 1][i] = 0;
-    //                m_pimpl_->s_start[2 * d + 1][i] = 0;
-    //                m_pimpl_->r_count[2 * d + 0][i] = 0;
-    //                m_pimpl_->r_start[2 * d + 0][i] = 0;
-    //                m_pimpl_->r_count[2 * d + 1][i] = 0;
-    //                m_pimpl_->r_start[2 * d + 1][i] = 0;
-    //            }
-    //
-    //        } else {
-    //            m_pimpl_->send_count[2 * d + 0] = 1;
-    //            m_pimpl_->send_count[2 * d + 1] = 1;
-    //            m_pimpl_->recv_count[2 * d + 0] = 1;
-    //            m_pimpl_->recv_count[2 * d + 1] = 1;
-    //
-    //            for (int i = 0; i < ndims; ++i) {
-    //                if (i >= mpi_sync_start_dims && i < d + mpi_sync_start_dims) {
-    //                    m_pimpl_->s_count[2 * d + 0][i] = m_pimpl_->dims[i];
-    //                    m_pimpl_->s_start[2 * d + 0][i] = 0;
-    //                    m_pimpl_->s_count[2 * d + 1][i] = m_pimpl_->dims[i];
-    //                    m_pimpl_->s_start[2 * d + 1][i] = 0;
-    //
-    //                    m_pimpl_->r_count[2 * d + 0][i] = m_pimpl_->dims[i];
-    //                    m_pimpl_->r_start[2 * d + 0][i] = 0;
-    //                    m_pimpl_->r_count[2 * d + 1][i] = m_pimpl_->dims[i];
-    //                    m_pimpl_->r_start[2 * d + 1][i] = 0;
-    //                } else if (i == d + mpi_sync_start_dims) {
-    //                    m_pimpl_->s_count[2 * d + 0][i] = start[i];
-    //                    m_pimpl_->s_start[2 * d + 0][i] = start[i];
-    //                    m_pimpl_->s_count[2 * d + 1][i] = (m_pimpl_->dims[i] - count[i] - start[i]);
-    //                    m_pimpl_->s_start[2 * d + 1][i] = (start[i] + count[i] - m_pimpl_->s_count[2 * d + 1][i]);
-    //
-    //                    m_pimpl_->r_count[2 * d + 0][i] = start[i];
-    //                    m_pimpl_->r_start[2 * d + 0][i] = 0;
-    //                    m_pimpl_->r_count[2 * d + 1][i] = (m_pimpl_->dims[i] - count[i] - start[i]);
-    //                    m_pimpl_->r_start[2 * d + 1][i] = m_pimpl_->dims[i] - m_pimpl_->s_count[2 * d + 1][i];
-    //                } else {
-    //                    m_pimpl_->s_count[2 * d + 0][i] = count[i];
-    //                    m_pimpl_->s_start[2 * d + 0][i] = start[i];
-    //                    m_pimpl_->s_count[2 * d + 1][i] = count[i];
-    //                    m_pimpl_->s_start[2 * d + 1][i] = start[i];
-    //
-    //                    m_pimpl_->r_count[2 * d + 0][i] = count[i];
-    //                    m_pimpl_->r_start[2 * d + 0][i] = start[i];
-    //                    m_pimpl_->r_count[2 * d + 1][i] = count[i];
-    //                    m_pimpl_->r_start[2 * d + 1][i] = start[i];
-    //                };
-    //                m_pimpl_->send_count[2 * d + 0] *= m_pimpl_->s_count[2 * d + 0][i];
-    //                m_pimpl_->send_count[2 * d + 1] *= m_pimpl_->s_count[2 * d + 1][i];
-    //                m_pimpl_->recv_count[2 * d + 0] *= m_pimpl_->r_count[2 * d + 0][i];
-    //                m_pimpl_->recv_count[2 * d + 1] *= m_pimpl_->r_count[2 * d + 1][i];
-    //            }
-    //        }
-    //    }
-    //
-    //    m_pimpl_->strides[ndims - 1] = 1;
-    //
-    //    for (int i = ndims - 2; i >= 0; --i) { m_pimpl_->strides[i] = m_pimpl_->dims[i + 1] * m_pimpl_->strides[i +
-    //    1]; }
+    for (int d = 0; d < m_pimpl_->mpi_topology_ndims; ++d) {
+        if (m_pimpl_->mpi_dims[d] == 1) {
+            std::get<0>(m_pimpl_->send_box[2 * d + 0]) = 0;
+            std::get<0>(m_pimpl_->send_box[2 * d + 1]) = 0;
+            std::get<0>(m_pimpl_->recv_box[2 * d + 0]) = 0;
+            std::get<0>(m_pimpl_->recv_box[2 * d + 1]) = 0;
+            std::get<1>(m_pimpl_->send_box[2 * d + 0]) = 0;
+            std::get<1>(m_pimpl_->send_box[2 * d + 1]) = 0;
+            std::get<1>(m_pimpl_->recv_box[2 * d + 0]) = 0;
+            std::get<1>(m_pimpl_->recv_box[2 * d + 1]) = 0;
+            continue;
+        }
+
+        std::get<0>(m_pimpl_->send_box[2 * d + 0])[d] = std::get<0>(m_pimpl_->local_box_)[d];
+        std::get<1>(m_pimpl_->send_box[2 * d + 0])[d] = std::get<0>(m_pimpl_->local_box_)[d] + m_pimpl_->m_gw_[d];
+
+        std::get<0>(m_pimpl_->recv_box[2 * d + 0])[d] = std::get<0>(m_pimpl_->local_box_)[d] - m_pimpl_->m_gw_[d];
+        std::get<1>(m_pimpl_->recv_box[2 * d + 0])[d] = std::get<0>(m_pimpl_->local_box_)[d];
+
+        std::get<0>(m_pimpl_->send_box[2 * d + 1])[d] = std::get<1>(m_pimpl_->local_box_)[d] - m_pimpl_->m_gw_[d];
+        std::get<1>(m_pimpl_->send_box[2 * d + 1])[d] = std::get<1>(m_pimpl_->local_box_)[d];
+
+        std::get<0>(m_pimpl_->recv_box[2 * d + 1])[d] = std::get<1>(m_pimpl_->local_box_)[d];
+        std::get<1>(m_pimpl_->recv_box[2 * d + 1])[d] = std::get<1>(m_pimpl_->local_box_)[d] + m_pimpl_->m_gw_[d];
+
+        for (int i = 0; i < d; ++i) {
+            std::get<0>(m_pimpl_->send_box[2 * d + 0])[i] = std::get<0>(m_pimpl_->local_box_)[i] - m_pimpl_->m_gw_[i];
+            std::get<1>(m_pimpl_->send_box[2 * d + 0])[i] = std::get<0>(m_pimpl_->local_box_)[i] + m_pimpl_->m_gw_[i];
+
+            std::get<0>(m_pimpl_->recv_box[2 * d + 0])[i] = std::get<0>(m_pimpl_->local_box_)[i] - m_pimpl_->m_gw_[i];
+            std::get<1>(m_pimpl_->recv_box[2 * d + 0])[i] = std::get<0>(m_pimpl_->local_box_)[i] + m_pimpl_->m_gw_[i];
+
+            std::get<0>(m_pimpl_->send_box[2 * d + 1])[i] = std::get<1>(m_pimpl_->local_box_)[i] - m_pimpl_->m_gw_[i];
+            std::get<1>(m_pimpl_->send_box[2 * d + 1])[i] = std::get<1>(m_pimpl_->local_box_)[i] + m_pimpl_->m_gw_[i];
+
+            std::get<0>(m_pimpl_->recv_box[2 * d + 1])[i] = std::get<1>(m_pimpl_->local_box_)[i] - m_pimpl_->m_gw_[i];
+            std::get<1>(m_pimpl_->recv_box[2 * d + 1])[i] = std::get<1>(m_pimpl_->local_box_)[i] + m_pimpl_->m_gw_[i];
+        }
+    }
 
     size_type ele_size = 0;
     if (value_type_info() == typeid(int)) {
@@ -190,6 +160,7 @@ std::tuple<void *, index_box_type> MPIUpdater::GetRecvBuffer(int i) const {
     return std::make_tuple(m_pimpl_->recv_buffer[i], m_pimpl_->recv_box[i]);
 };
 void MPIUpdater::Update() const {
+    if (!isSetUp()) { return; }
     for (int d = 0; d < m_pimpl_->ndims; ++d) {
         int left, right;
 

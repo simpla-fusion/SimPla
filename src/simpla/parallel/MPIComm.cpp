@@ -24,9 +24,9 @@ struct MPIComm::pimpl_s {
 
 MPIComm::MPIComm() : m_pimpl_(new pimpl_s) {}
 
-MPIComm::MPIComm(int argc, char **argv) : MPIComm() { init(argc, argv); }
+MPIComm::MPIComm(int argc, char **argv) : MPIComm() { Initialize(argc, argv); }
 
-MPIComm::~MPIComm() { close(); }
+MPIComm::~MPIComm() { Finalize(); }
 
 int MPIComm::process_num() const { return rank(); }
 
@@ -50,7 +50,7 @@ int MPIComm::get_rank(int const *d) const {
     return res;
 }
 
-void MPIComm::init(int argc, char **argv) {
+void MPIComm::Initialize(int argc, char **argv) {
     m_pimpl_->m_object_id_count_ = 0;
     MPI_CALL(MPI_Init(&argc, &argv));
     int m_num_process_;
@@ -117,7 +117,7 @@ int MPIComm::topology(int *mpi_topo_ndims, int *mpi_topo_dims, int *periods, int
     return SP_SUCCESS;
 };
 
-void MPIComm::close() {
+void MPIComm::Finalize() {
     if (m_pimpl_ != nullptr && m_pimpl_->m_comm_ != MPI_COMM_NULL) {
         VERBOSE << "MPI Communicator is closed!" << std::endl;
 

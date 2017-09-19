@@ -11,7 +11,7 @@ int Initialize(int argc, char **argv) {
     logger::set_stdout_level(1000);
 #endif
 
-    parallel::init(argc, argv);
+    parallel::Initialize(argc, argv);
 
     GLOBAL_COMM.barrier();
     MESSAGE << std::endl << ShowLogo() << std::endl;

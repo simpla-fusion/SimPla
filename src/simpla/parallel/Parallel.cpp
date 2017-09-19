@@ -16,20 +16,20 @@
 namespace simpla {
 namespace parallel {
 
-void init(int argc, char **argv) {
+void Initialize(int argc, char **argv) {
     bool no_mpi = false;
     parse_cmd_line(argc, argv, [&](std::string const &opt, std::string const &value) -> int {
         if (opt == "no-mpi") { no_mpi = true; }
         return CONTINUE;
     });
 #ifdef MPI_FOUND
-    if (!no_mpi) { SingletonHolder<MPIComm>::instance().init(argc, argv); }
+    if (!no_mpi) { SingletonHolder<MPIComm>::instance().Initialize(argc, argv); }
 #endif
 }
 
-void close() {
+void Finalize() {
 #ifdef MPI_FOUND
-    SingletonHolder<MPIComm>::instance().close();
+    SingletonHolder<MPIComm>::instance().Finalize();
 #endif
 }
 
