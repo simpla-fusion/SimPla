@@ -61,9 +61,13 @@ class Array : public ArrayBase {
         : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_holder_(std::shared_ptr<value_type>(other.m_holder_)) {}
 
     Array(this_type const& other, IdxShift s) : Array(other) { Shift(s); }
+    template <typename... Args>
+    explicit Array(Args&&... args) : m_sfc_(std::forward<Args>(args)...) {}
 
     template <typename... Args>
-    explicit Array(value_type* d, Args&&... args) : m_data_(d), m_sfc_(std::forward<Args>(args)...) {}
+    explicit Array(value_type* d, Args&&... args)
+        : m_holder_(d, tags::do_nothing()), m_sfc_(std::forward<Args>(args)...) {}
+
     template <typename... Args>
     explicit Array(std::shared_ptr<value_type> const& d, Args&&... args)
         : m_holder_(d), m_sfc_(std::forward<Args>(args)...) {}
@@ -92,14 +96,17 @@ class Array : public ArrayBase {
         this_type(std::forward<this_type>(other)).swap(*this);
         return *this;
     };
+
+    this_type Sub(index_box_type const& b) { return this_type(m_data_, m_sfc_.Sub(b)); }
+
     std::type_info const& value_type_info() const override { return typeid(value_type); };
     size_type size() const override { return m_sfc_.size(); }
     void* pointer() override { return m_data_; }
     void const* pointer() const override { return m_data_; }
     int GetNDIMS() const override { return m_sfc_.GetNDIMS(); }
     int GetIndexBox(index_type* lo, index_type* hi) const override { return m_sfc_.GetIndexBox(lo, hi); }
-    bool empty() const override { return m_data_ == nullptr; }
-    bool isNull() const override { return m_data_ == nullptr; }
+    bool empty() const override { return m_data_ == nullptr || size() == 0; }
+    bool isNull() const override { return m_data_ == nullptr || size() == 0; }
 
     auto GetIndexBox() const { return m_sfc_.GetIndexBox(); }
 
@@ -154,34 +161,34 @@ class Array : public ArrayBase {
     }
 
     size_type CopyIn(this_type const& other) {
-        alloc();
-        return m_sfc_.Overlap(other.m_sfc_).Copy(*this, other);
+        SetUp();
+        return m_sfc_.Overlap(other.m_sfc_).Foreach([&] __host__ __device__(auto&&... s) {
+            this->at(std::forward<decltype(s)>(s)...) = other.at(std::forward<decltype(s)>(s)...);
+        });
     };
     size_type CopyOut(this_type& other) const { return other.CopyIn(*this); };
 
     void DeepCopy(value_type const* other) {
-        alloc();
-        m_sfc_.CopyIn(m_data_, other);
+        SetUp();
+        m_sfc_.Copy(m_data_, other);
     }
-
+    void FillNaN() { Fill(std::numeric_limits<value_type>::signaling_NaN()); }
     void Fill(value_type v) {
-        alloc();
-        //        m_sfc_.CopyIn(m_data_, v);
+        SetUp();
+        m_sfc_.Foreach([&] __host__ __device__(auto&&... s) { this->at(std::forward<decltype(s)>(s)...) = v; });
     }
     void Clear() {
-        alloc();
-        //        Fill(0);
+        SetUp();
+        memset(m_data_, 0, size() * sizeof(value_type));
     }
 
     this_type& operator=(this_type const& rhs) {
-        alloc();
         Assign(rhs);
         return (*this);
     }
 
     template <typename TR>
     this_type& operator=(TR const& rhs) {
-        alloc();
         Assign(rhs);
         return (*this);
     }
@@ -226,6 +233,7 @@ class Array : public ArrayBase {
 
     template <typename RHS>
     void Assign(RHS const& rhs) {
+        SetUp();
         m_sfc_.Overlap(rhs).Foreach([&] __host__ __device__(auto&&... s) {
             this->at(std::forward<decltype(s)>(s)...) = calculus::getValue(rhs, std::forward<decltype(s)>(s)...);
         });
@@ -242,10 +250,9 @@ class Array : public ArrayBase {
 };
 template <typename V, typename SFC>
 void Array<V, SFC>::alloc() {
-    if (m_data_ == nullptr) {
+    if (m_data_ == nullptr && m_sfc_.size() > 0) {
         if (m_holder_ == nullptr) { m_holder_ = spMakeShared<value_type>(m_data_, m_sfc_.size()); }
         m_data_ = m_holder_.get();
-
 #ifndef NDEBUG
         Fill(std::numeric_limits<V>::signaling_NaN());
 #else

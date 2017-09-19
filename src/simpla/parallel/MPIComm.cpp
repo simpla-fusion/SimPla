@@ -19,7 +19,7 @@ struct MPIComm::pimpl_s {
     MPI_Comm m_comm_ = MPI_COMM_WORLD;
     size_type m_object_id_count_ = 0;
     int m_topology_ndims_ = 3;
-    int m_topology_dims_[3] = {0, 0, 0};
+    int m_topology_dims_[3] = {0, 1, 1};
 };
 
 MPIComm::MPIComm() : m_pimpl_(new pimpl_s) {}

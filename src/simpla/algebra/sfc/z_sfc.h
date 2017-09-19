@@ -32,6 +32,7 @@ class ZSFC {
     array_index_box_type m_index_box_{{0, 0, 0}, {1, 1, 1}};
     array_index_type m_strides_{0, 0, 0};
     size_type m_size_ = 0;
+    index_type m_offset_ = 0;
     bool m_array_order_fast_first_ = false;
 
     ZSFC() = default;
@@ -41,32 +42,19 @@ class ZSFC {
         : m_index_box_(other.m_index_box_),
           m_strides_(other.m_strides_),
           m_size_(other.m_size_),
+          m_offset_(other.m_offset_),
           m_array_order_fast_first_(other.m_array_order_fast_first_) {}
     ZSFC(this_type&& other)
     noexcept
         : m_index_box_(other.m_index_box_),
           m_strides_(other.m_strides_),
           m_size_(other.m_size_),
+          m_offset_(other.m_offset_),
           m_array_order_fast_first_(other.m_array_order_fast_first_) {}
 
     template <typename RHS>
     this_type Overlap(RHS const& rhs) const;
-
-    //    ZSFC(std::initializer_list<index_type> const& l) {
-    //        for (int i = 0; i < NDIMS; ++i) {
-    //            std::get<0>(m_index_box_)[i] = 0;
-    //            std::get<1>(m_index_box_)[i] = 1;
-    //        }
-    //        int count = 0;
-    //        for (auto const& v : l) {
-    //            if (count >= NDIMS) { break; }
-    //            std::get<1>(m_index_box_)[count] = v;
-    //            ++count;
-    //        }
-    //        //        std::get<0>(m_index_box_) = std::get<0>(m_index_box_);
-    //        //        std::get<1>(m_index_box_) = std::get<1>(m_index_box_);
-    //        DoSetUp();
-    //    }
+    this_type Overlap(this_type const& rhs) const;
 
     explicit ZSFC(array_index_box_type const& b, bool array_order_fast_first = false)
         : m_index_box_(b), m_array_order_fast_first_(array_order_fast_first) {
@@ -84,13 +72,21 @@ class ZSFC {
     void swap(ZSFC& other) {
         m_index_box_.swap(other.m_index_box_);
         m_strides_.swap(other.m_strides_);
+        std::swap(m_offset_, other.m_offset_);
         std::swap(m_size_, other.m_size_);
         std::swap(m_array_order_fast_first_, other.m_array_order_fast_first_);
+    }
+    this_type Sub(std::tuple<nTuple<index_type, NDIMS>, nTuple<index_type, NDIMS>> const& b) const {
+        this_type res(*this);
+        res.m_index_box_ = b;
+        res.m_offset_ = hash(std::get<0>(b));
+        return res;
     }
     bool empty() const { return m_size_ == 0; }
     void reset() {
         std::get<0>(m_index_box_) = 0;
         std::get<1>(m_index_box_) = 0;
+        m_offset_ = 0;
         m_strides_ = 0;
         m_size_ = 0;
     }
@@ -173,7 +169,7 @@ class ZSFC {
     }
 
     template <typename TFun>
-    void Foreach(const TFun& fun) const;
+    size_type Foreach(const TFun& fun) const;
 };
 
 template <>
@@ -181,7 +177,8 @@ __host__ __device__ inline index_type ZSFC<3>::hash(index_type s0, index_type s1
                                                     index_type s4, index_type s5, index_type s6, index_type s7,
                                                     index_type s8, index_type s9) const {
     return ((s0 - std::get<0>(m_index_box_)[0]) * m_strides_[0] + (s1 - std::get<0>(m_index_box_)[1]) * m_strides_[1] +
-            (s2 - std::get<0>(m_index_box_)[2]) * m_strides_[2]);
+            (s2 - std::get<0>(m_index_box_)[2]) * m_strides_[2]) +
+           m_offset_;
 }
 template <>
 __host__ __device__ inline constexpr bool ZSFC<3>::in_box(index_type s0, index_type s1, index_type s2, index_type s3,
@@ -332,9 +329,16 @@ template <typename RHS>
 ZSFC<3> ZSFC<3>::Overlap(RHS const& rhs) const {
     return ZSFC<3>(detail::overlap(m_index_box_, rhs));
 };
+template <int NDIMS>
+ZSFC<NDIMS> ZSFC<NDIMS>::Overlap(this_type const& rhs) const {
+    return ZSFC<NDIMS>(detail::overlap(m_index_box_, rhs.m_index_box_));
+}
+
 template <>
 template <typename LHS, typename RHS>
 size_type ZSFC<3>::Copy(LHS& dst, RHS const& src) const {
+    auto count = size();
+    if (count == 0) { return count; }
     index_type ib = std::get<0>(m_index_box_)[0];
     index_type ie = std::get<1>(m_index_box_)[0];
     index_type jb = std::get<0>(m_index_box_)[1];
@@ -353,7 +357,7 @@ size_type ZSFC<3>::Copy(LHS& dst, RHS const& src) const {
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k) { dst(i, j, k) = src(i, j, k); }
     }
-    return static_cast<size_type>((ke - kb) * (je - jb) * (ie - ib));
+    return count;
 };
 
 #ifdef __CUDA__
@@ -368,7 +372,9 @@ __global__ void foreach_device(nTuple<index_type, 3> min, nTuple<index_type, 3> 
 #endif
 template <>
 template <typename TFun>
-void ZSFC<3>::Foreach(const TFun& fun) const {
+size_type ZSFC<3>::Foreach(const TFun& fun) const {
+    auto count = size();
+    if (count == 0) { return count; }
     index_type ib = std::get<0>(m_index_box_)[0];
     index_type ie = std::get<1>(m_index_box_)[0];
     index_type jb = std::get<0>(m_index_box_)[1];
@@ -404,6 +410,7 @@ void ZSFC<3>::Foreach(const TFun& fun) const {
                           std::get<1>(m_index_box_), fun);
 
 #endif
+    return count;
 }
 
 // template <>

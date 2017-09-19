@@ -42,8 +42,10 @@ struct MPIUpdater {
    protected:
     virtual std::type_info const &value_type_info() const = 0;
 
-    std::tuple<void *, index_box_type> GetSendBuffer(int i) const;
-    std::tuple<void *, index_box_type> GetRecvBuffer(int i) const;
+    void *GetSendBuffer(int i) const;
+    index_box_type GetSendBufferBox(int i) const;
+    void *GetRecvBuffer(int i) const;
+    index_box_type GetRecvBufferBox(int i) const;
 
    private:
     struct pimpl_s;
@@ -60,6 +62,7 @@ struct MPIUpdaterT : public MPIUpdater {
 
     static std::shared_ptr<MPIUpdaterT<V>> New();
     void SetUp() override;
+    void TearDown() override;
 
     void Push(ArrayBase const &d) override;
     void Pop(ArrayBase &d) const override;
@@ -87,24 +90,32 @@ void MPIUpdaterT<V>::SetUp() {
     if (isSetUp() || !isEnable()) { return; }
     MPIUpdater::SetUp();
     for (int i = 0; i < 6; ++i) {
-        auto send_t = GetSendBuffer(i);
-        Array<V>(reinterpret_cast<V *>(std::get<0>(send_t)), std::get<1>(send_t)).swap(send_buffer[i]);
-        send_buffer[i].alloc();
-        auto recv_t = GetSendBuffer(i);
-        Array<V>(reinterpret_cast<V *>(std::get<0>(recv_t)), std::get<1>(recv_t)).swap(recv_buffer[i]);
-        recv_buffer[i].alloc();
+        send_buffer[i].reset(reinterpret_cast<V *>(GetSendBuffer(i)), GetSendBufferBox(i));
+        recv_buffer[i].reset(reinterpret_cast<V *>(GetRecvBuffer(i)), GetRecvBufferBox(i));
+        send_buffer[i].Clear();
+        recv_buffer[i].Clear();
     }
 }
-
+template <typename V>
+void MPIUpdaterT<V>::TearDown() {
+    for (int i = 0; i < 6; ++i) {
+        send_buffer[i].TearDown();
+        recv_buffer[i].TearDown();
+    }
+}
 template <typename V>
 void MPIUpdaterT<V>::Push(ArrayBase const &d) {
     if (!isSetUp()) { return; }
-    for (auto &v : send_buffer) { v.CopyIn(d); }
+    for (auto &v : send_buffer) {
+        if (!v.empty()) { v.CopyIn(d); }
+    }
 }
 template <typename V>
 void MPIUpdaterT<V>::Pop(ArrayBase &d) const {
     if (!isSetUp()) { return; }
-    for (auto &v : recv_buffer) { d.CopyIn(v); }
+    for (auto &v : recv_buffer) {
+        if (!v.empty()) { d.CopyIn(v); }
+    }
 }
 }  // namespace parallel
 }  // namespace simpla

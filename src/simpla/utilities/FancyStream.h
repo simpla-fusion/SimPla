@@ -70,34 +70,61 @@ auto GetValue(std::integer_sequence<size_type, IDX...>, V const &v, I const *idx
 }
 
 template <int NDIMS, typename TV, typename TI>
-std::ostream &FancyPrintNd_(std::ostream &os, TV const &v, int depth, index_type *idx, TI const *lo, TI const *hi,
-                            bool is_slow_first = true, int indent = 0, int tab_width = 0,
-                            std::string const &left_brace = "{", std::string const &sep = ",",
-                            std::string const &right_brace = "}") {
+std::ostream &FancyPrintNdSlowFirst(std::ostream &os, TV const &v, int depth, index_type *idx, TI const *lo,
+                                    TI const *hi, int indent = 0, int tab_width = 0,
+                                    std::string const &left_brace = "{", std::string const &sep = ",",
+                                    std::string const &right_brace = "}") {
     if (depth >= NDIMS) { return os; }
+    os << "{";
 
     if (depth == NDIMS - 1) {
-        os << std::setw(indent + depth) << "{";
         idx[NDIMS - 1] = lo[NDIMS - 1];
         os << std::setw(tab_width) << detail::GetValue(std::make_index_sequence<NDIMS>(), v, idx);
         for (idx[NDIMS - 1] = lo[NDIMS - 1] + 1; idx[NDIMS - 1] < hi[NDIMS - 1]; ++idx[NDIMS - 1]) {
             os << "," << std::setw(tab_width) << detail::GetValue(std::make_index_sequence<NDIMS>(), v, idx);
         }
-        os << "}";
 
     } else {
-        os << std::setw(indent + depth) << "{" << std::endl;
         idx[depth] = lo[depth];
-        FancyPrintNd_<NDIMS>(os, v, depth + 1, idx, lo, hi, is_slow_first, indent, tab_width, left_brace, sep,
-                             right_brace);
+        FancyPrintNdSlowFirst<NDIMS>(os, v, depth + 1, idx, lo, hi, indent, tab_width, left_brace, sep, right_brace);
 
         for (idx[depth] = lo[depth] + 1; idx[depth] < hi[depth]; ++idx[depth]) {
             os << "," << std::endl;
-            FancyPrintNd_<NDIMS>(os, v, depth + 1, idx, lo, hi, is_slow_first, indent, tab_width, left_brace, sep,
-                                 right_brace);
+            FancyPrintNdSlowFirst<NDIMS>(os, v, depth + 1, idx, lo, hi, indent, tab_width, left_brace, sep,
+                                         right_brace);
         }
-        os << std::setw(indent + depth) << "}";
     }
+    os << "}";
+
+    return os;
+}
+
+template <int NDIMS, typename TV, typename TI>
+std::ostream &FancyPrintNdFastFirst(std::ostream &os, TV const &v, int depth, index_type *idx, TI const *lo,
+                                    TI const *hi, int indent = 0, int tab_width = 0,
+                                    std::string const &left_brace = "{", std::string const &sep = ",",
+                                    std::string const &right_brace = "}") {
+    if (depth < 0) { return os; }
+    os << std::setw(indent + depth) << "{";
+
+    if (depth == 0) {
+        idx[0] = lo[0];
+        os << std::setw(tab_width) << detail::GetValue(std::make_index_sequence<NDIMS>(), v, idx);
+        for (idx[0] = lo[0] + 1; idx[0] < hi[0]; ++idx[0]) {
+            os << "," << std::setw(tab_width) << detail::GetValue(std::make_index_sequence<NDIMS>(), v, idx);
+        }
+
+    } else {
+        idx[depth] = lo[depth];
+        FancyPrintNdFastFirst<NDIMS>(os, v, depth - 1, idx, lo, hi, indent, tab_width, left_brace, sep, right_brace);
+
+        for (idx[depth] = lo[depth] + 1; idx[depth] < hi[depth]; ++idx[depth]) {
+            os << "," << std::endl;
+            FancyPrintNdFastFirst<NDIMS>(os, v, depth - 1, idx, lo, hi, indent, tab_width, left_brace, sep,
+                                         right_brace);
+        }
+    }
+    os << "}";
 
     return os;
 }
@@ -109,7 +136,11 @@ std::ostream &FancyPrintNd(std::ostream &os, TV const &v, TI const *lo, TI const
     constexpr int ELE_NUM_PER_LINE = 10;
 
     index_type idx[NDIMS];
-    FancyPrintNd_<NDIMS>(os, v, 0, idx, lo, hi, is_slow_first, indent, tab_width, left_brace, sep, right_brace);
+    if (is_slow_first) {
+        FancyPrintNdSlowFirst<NDIMS>(os, v, 0, idx, lo, hi, indent, tab_width, left_brace, sep, right_brace);
+    } else {
+        FancyPrintNdFastFirst<NDIMS>(os, v, NDIMS - 1, idx, lo, hi, indent, tab_width, left_brace, sep, right_brace);
+    }
 
     return os;
 }

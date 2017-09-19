@@ -105,6 +105,11 @@ void MPIUpdater::SetUp() {
             std::get<1>(m_pimpl_->recv_box[2 * d + 1])[i] = std::get<1>(m_pimpl_->local_box_)[i] + m_pimpl_->m_gw_[i];
         }
     }
+    GLOBAL_COMM.barrier();
+    if (GLOBAL_COMM.rank() == 0) {
+        for (int i = 0; i < 6; ++i) { std::cout << m_pimpl_->send_box[i] << std::endl; }
+    }
+    GLOBAL_COMM.barrier();
 
     size_type ele_size = 0;
     if (value_type_info() == typeid(int)) {
@@ -127,21 +132,21 @@ void MPIUpdater::SetUp() {
     }
 
     for (int i = 0; i < 6; ++i) {
-        size_type send_size =
-            static_cast<size_type>(std::get<1>(m_pimpl_->send_box[i])[0] - std::get<0>(m_pimpl_->send_box[i])[0]) *
-            static_cast<size_type>(std::get<1>(m_pimpl_->send_box[i])[1] - std::get<0>(m_pimpl_->send_box[i])[1]) *
-            static_cast<size_type>(std::get<1>(m_pimpl_->send_box[i])[2] - std::get<0>(m_pimpl_->send_box[i])[2]);
+        m_pimpl_->send_size[i] =
+            static_cast<int>(std::get<1>(m_pimpl_->send_box[i])[0] - std::get<0>(m_pimpl_->send_box[i])[0]) *
+            static_cast<int>(std::get<1>(m_pimpl_->send_box[i])[1] - std::get<0>(m_pimpl_->send_box[i])[1]) *
+            static_cast<int>(std::get<1>(m_pimpl_->send_box[i])[2] - std::get<0>(m_pimpl_->send_box[i])[2]);
 
-        size_type recv_size =
-            static_cast<size_type>(std::get<1>(m_pimpl_->recv_box[i])[0] - std::get<0>(m_pimpl_->recv_box[i])[0]) *
-            static_cast<size_type>(std::get<1>(m_pimpl_->recv_box[i])[1] - std::get<0>(m_pimpl_->recv_box[i])[1]) *
-            static_cast<size_type>(std::get<1>(m_pimpl_->recv_box[i])[2] - std::get<0>(m_pimpl_->recv_box[i])[2]);
+        m_pimpl_->recv_size[i] =
+            static_cast<int>(std::get<1>(m_pimpl_->recv_box[i])[0] - std::get<0>(m_pimpl_->recv_box[i])[0]) *
+            static_cast<int>(std::get<1>(m_pimpl_->recv_box[i])[1] - std::get<0>(m_pimpl_->recv_box[i])[1]) *
+            static_cast<int>(std::get<1>(m_pimpl_->recv_box[i])[2] - std::get<0>(m_pimpl_->recv_box[i])[2]);
 
         if (m_pimpl_->send_buffer[i] != nullptr) { delete m_pimpl_->send_buffer[i]; }
         if (m_pimpl_->recv_buffer[i] != nullptr) { delete m_pimpl_->recv_buffer[i]; }
 
-        m_pimpl_->send_buffer[i] = operator new(send_size *ele_size);
-        m_pimpl_->recv_buffer[i] = operator new(recv_size *ele_size);
+        if (m_pimpl_->send_size[i] > 0) m_pimpl_->send_buffer[i] = operator new(m_pimpl_->send_size[i] * ele_size);
+        if (m_pimpl_->recv_size[i] > 0) m_pimpl_->recv_buffer[i] = operator new(m_pimpl_->recv_size[i] * ele_size);
     }
 }
 
@@ -153,26 +158,30 @@ void MPIUpdater::TearDown() {
 
 void MPIUpdater::SetTag(int tag) { m_pimpl_->tag = tag; }
 
-std::tuple<void *, index_box_type> MPIUpdater::GetSendBuffer(int i) const {
-    return std::make_tuple(m_pimpl_->send_buffer[i], m_pimpl_->send_box[i]);
-};
-std::tuple<void *, index_box_type> MPIUpdater::GetRecvBuffer(int i) const {
-    return std::make_tuple(m_pimpl_->recv_buffer[i], m_pimpl_->recv_box[i]);
-};
+void *MPIUpdater::GetSendBuffer(int i) const { return m_pimpl_->send_buffer[i]; };
+index_box_type MPIUpdater::GetSendBufferBox(int i) const { return m_pimpl_->send_box[i]; };
+
+void *MPIUpdater::GetRecvBuffer(int i) const { return m_pimpl_->recv_buffer[i]; };
+index_box_type MPIUpdater::GetRecvBufferBox(int i) const { return m_pimpl_->recv_box[i]; };
+
 void MPIUpdater::Update() const {
     if (!isSetUp()) { return; }
-    for (int d = 0; d < m_pimpl_->ndims; ++d) {
+    //    CHECK(m_pimpl_->mpi_topology_ndims);
+
+    for (int d = 0; d < m_pimpl_->mpi_topology_ndims; ++d) {
         int left, right;
 
         MPI_CALL(MPI_Cart_shift(m_pimpl_->comm, d, 1, &left, &right));
-
+        INFORM << "Left : " << left << " Right : " << right << " size : " << m_pimpl_->send_size[d * 2 + 0];
+        GLOBAL_COMM.barrier();
         MPI_CALL(MPI_Sendrecv(m_pimpl_->send_buffer[d * 2 + 0], m_pimpl_->send_size[d * 2 + 0], m_pimpl_->ele_type,
                               left, m_pimpl_->tag, m_pimpl_->recv_buffer[d * 2 + 1], m_pimpl_->recv_size[d * 2 + 1],
                               m_pimpl_->ele_type, right, m_pimpl_->tag, m_pimpl_->comm, MPI_STATUS_IGNORE));
-
+        GLOBAL_COMM.barrier();
         MPI_CALL(MPI_Sendrecv(m_pimpl_->send_buffer[d * 2 + 1], m_pimpl_->send_size[d * 2 + 1], m_pimpl_->ele_type,
                               right, m_pimpl_->tag, m_pimpl_->recv_buffer[d * 2 + 0], m_pimpl_->recv_size[d * 2 + 0],
                               m_pimpl_->ele_type, left, m_pimpl_->tag, m_pimpl_->comm, MPI_STATUS_IGNORE));
+        GLOBAL_COMM.barrier();
     }
 }
 
