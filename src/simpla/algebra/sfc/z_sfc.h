@@ -95,7 +95,13 @@ class ZSFC {
         m_index_box_ = b;
         Update();
     }
-
+    void reset(index_type const* lo, index_type const* hi) {
+        for (int i = 0; i < NDIMS; ++i) {
+            std::get<0>(m_index_box_)[i] = lo[i];
+            std::get<1>(m_index_box_)[i] = hi[i];
+        }
+        Update();
+    }
     void Update() {
         if (m_array_order_fast_first_) {
             m_strides_[0] = 1;

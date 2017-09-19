@@ -35,17 +35,18 @@ struct MPIUpdater {
     bool isSetUp() const;
     bool isEnable() const;
 
-    virtual void Update() const;
-    virtual void Push(ArrayBase const &d) = 0;
-    virtual void Pop(ArrayBase &d) const = 0;
+    void Update(ArrayBase &d);
+
+    void Push(ArrayBase const &d, int direction = -1);
+    void Pop(ArrayBase &d, int direction = -1) const;
+    void SendRecv(int d);
 
    protected:
     virtual std::type_info const &value_type_info() const = 0;
-
-    void *GetSendBuffer(int i) const;
-    index_box_type GetSendBufferBox(int i) const;
-    void *GetRecvBuffer(int i) const;
-    index_box_type GetRecvBufferBox(int i) const;
+    virtual ArrayBase &GetSendBuffer(int i) = 0;
+    virtual ArrayBase const &GetSendBuffer(int i) const = 0;
+    virtual ArrayBase &GetRecvBuffer(int i) = 0;
+    virtual ArrayBase const &GetRecvBuffer(int i) const = 0;
 
    private:
     struct pimpl_s;
@@ -64,8 +65,10 @@ struct MPIUpdaterT : public MPIUpdater {
     void SetUp() override;
     void TearDown() override;
 
-    void Push(ArrayBase const &d) override;
-    void Pop(ArrayBase &d) const override;
+    ArrayBase &GetSendBuffer(int i) override { return send_buffer[i]; }
+    ArrayBase const &GetSendBuffer(int i) const override { return send_buffer[i]; }
+    ArrayBase &GetRecvBuffer(int i) override { return recv_buffer[i]; }
+    ArrayBase const &GetRecvBuffer(int i) const override { return recv_buffer[i]; }
 
    private:
     Array<V> send_buffer[6];
@@ -89,12 +92,6 @@ template <typename V>
 void MPIUpdaterT<V>::SetUp() {
     if (isSetUp() || !isEnable()) { return; }
     MPIUpdater::SetUp();
-    for (int i = 0; i < 6; ++i) {
-        send_buffer[i].reset(reinterpret_cast<V *>(GetSendBuffer(i)), GetSendBufferBox(i));
-        recv_buffer[i].reset(reinterpret_cast<V *>(GetRecvBuffer(i)), GetRecvBufferBox(i));
-        send_buffer[i].Clear();
-        recv_buffer[i].Clear();
-    }
 }
 template <typename V>
 void MPIUpdaterT<V>::TearDown() {
@@ -103,20 +100,7 @@ void MPIUpdaterT<V>::TearDown() {
         recv_buffer[i].TearDown();
     }
 }
-template <typename V>
-void MPIUpdaterT<V>::Push(ArrayBase const &d) {
-    if (!isSetUp()) { return; }
-    for (auto &v : send_buffer) {
-        if (!v.empty()) { v.CopyIn(d); }
-    }
-}
-template <typename V>
-void MPIUpdaterT<V>::Pop(ArrayBase &d) const {
-    if (!isSetUp()) { return; }
-    for (auto &v : recv_buffer) {
-        if (!v.empty()) { d.CopyIn(v); }
-    }
-}
+
 }  // namespace parallel
 }  // namespace simpla
 #endif  // SIMPLA_MPIUPDATER_H

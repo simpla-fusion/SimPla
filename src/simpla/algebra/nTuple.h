@@ -342,8 +342,17 @@ _SP_DEFINE_NTUPLE_UNARY_OPERATOR(bitwise_not, ~)
 _SP_DEFINE_NTUPLE_BINARY_OPERATOR(bitwise_xor, ^)
 _SP_DEFINE_NTUPLE_BINARY_OPERATOR(bitwise_and, &)
 _SP_DEFINE_NTUPLE_BINARY_OPERATOR(bitwise_or, |)
-_SP_DEFINE_NTUPLE_BINARY_OPERATOR(bitwise_left_shift, <<)
-_SP_DEFINE_NTUPLE_BINARY_OPERATOR(bitwise_right_shifit, >>)
+
+template <typename TL, int... NL>
+__host__ __device__ auto operator<<(nTuple<TL, NL...> const& lhs, unsigned int rhs) {
+    return Expression<simpla::tags::bitwise_left_shift, nTuple<TL, NL...>, unsigned int>(lhs, rhs);
+};
+template <typename TL, int... NL>
+__host__ __device__ auto operator>>(nTuple<TL, NL...> const& lhs, unsigned int rhs) {
+    return Expression<simpla::tags::bitwise_right_shifit, nTuple<TL, NL...>, unsigned int>(lhs, rhs);
+};
+//_SP_DEFINE_NTUPLE_BINARY_OPERATOR(bitwise_left_shift, <<)
+//_SP_DEFINE_NTUPLE_BINARY_OPERATOR(bitwise_right_shifit, >>)
 
 _SP_DEFINE_NTUPLE_UNARY_OPERATOR(unary_plus, +)
 _SP_DEFINE_NTUPLE_UNARY_OPERATOR(unary_minus, -)

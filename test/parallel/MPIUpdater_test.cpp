@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
     Array<Real> a(outer_box);
     Array<Real> b(box);
     a.FillNaN();
-    b.Fill(GLOBAL_COMM.rank() + 1);
+    b.Fill(GLOBAL_COMM.rank());
     a.CopyIn(b);
 
     auto center = a.Sub(box);
@@ -32,9 +32,7 @@ int main(int argc, char** argv) {
     if (GLOBAL_COMM.rank() == 0) { std::cout << a << std::endl; }
     GLOBAL_COMM.barrier();
 
-    updater->Push(a);
-    updater->Update();
-    updater->Pop(a);
+    updater->Update(a);
 
     GLOBAL_COMM.barrier();
     if (GLOBAL_COMM.rank() == 0) { std::cout << a << std::endl; }

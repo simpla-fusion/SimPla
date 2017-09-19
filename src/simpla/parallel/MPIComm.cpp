@@ -6,6 +6,9 @@
  */
 #include "MPIComm.h"
 #include <mpi.h>
+#include <simpla/algebra/nTuple.ext.h>
+#include <simpla/utilities/parse_command_line.h>
+#include <simpla/utilities/type_cast.h>
 #include <cassert>
 #include <iostream>
 #include <vector>
@@ -51,8 +54,19 @@ int MPIComm::get_rank(int const *d) const {
 }
 
 void MPIComm::Initialize(int argc, char **argv) {
-    m_pimpl_->m_object_id_count_ = 0;
     MPI_CALL(MPI_Init(&argc, &argv));
+    parse_cmd_line(argc, argv, [&](std::string const &opt, std::string const &value) -> int {
+        if (opt == "mpi_topology") {
+            auto v = type_cast<nTuple<int, 3> >(value);
+            m_pimpl_->m_topology_dims_[0] = v[0];
+            m_pimpl_->m_topology_dims_[1] = v[1];
+            m_pimpl_->m_topology_dims_[2] = v[2];
+        }
+        return CONTINUE;
+    });
+
+    m_pimpl_->m_object_id_count_ = 0;
+
     int m_num_process_;
     MPI_CALL(MPI_Comm_size(MPI_COMM_WORLD, &m_num_process_));
     if (m_num_process_ > 1) {

@@ -35,6 +35,8 @@ struct ArrayBase {
     virtual bool isNull() const = 0;
     virtual size_type CopyIn(ArrayBase const& other) = 0;
     virtual size_type CopyOut(ArrayBase& other) const { return other.CopyIn(*this); };
+    virtual void Clear() = 0;
+    virtual void reset(void*, index_type const* lo, index_type const* hi) = 0;
 };
 
 template <typename V, typename SFC = ZSFC<3>>
@@ -120,7 +122,11 @@ class Array : public ArrayBase {
         if (auto* p = dynamic_cast<this_type*>(&other)) { count = CopyOut(*p); }
         return count;
     };
-
+    void reset(void* d, index_type const* lo, index_type const* hi) override {
+        m_data_ = reinterpret_cast<value_type*>(d);
+        m_holder_.reset();
+        m_sfc_.reset(lo, hi);
+    };
     template <typename... Args>
     void reset(value_type* d, Args&&... args) {
         m_data_ = d;
@@ -177,7 +183,7 @@ class Array : public ArrayBase {
         SetUp();
         m_sfc_.Foreach([&] __host__ __device__(auto&&... s) { this->at(std::forward<decltype(s)>(s)...) = v; });
     }
-    void Clear() {
+    void Clear() override {
         SetUp();
         memset(m_data_, 0, size() * sizeof(value_type));
     }

@@ -231,8 +231,8 @@ std::ostream& operator<<(std::ostream& os, nTuple<T, M...> const& v) {
     return os;
 }
 
-template <typename T, int... M>
-std::istream& operator>>(std::istream& is, nTuple<T, M...>& a) {
+template <typename T, int N0, int... M>
+std::istream& operator>>(std::istream& is, nTuple<T, N0, M...>& a) {
     _detail::input(is, a);
     return is;
 }

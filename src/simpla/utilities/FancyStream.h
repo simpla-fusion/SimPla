@@ -75,26 +75,28 @@ std::ostream &FancyPrintNdSlowFirst(std::ostream &os, TV const &v, int depth, in
                                     std::string const &left_brace = "{", std::string const &sep = ",",
                                     std::string const &right_brace = "}") {
     if (depth >= NDIMS) { return os; }
-    os << "{";
 
     if (depth == NDIMS - 1) {
+        os << std::setw(indent) << left_brace;
         idx[NDIMS - 1] = lo[NDIMS - 1];
         os << std::setw(tab_width) << detail::GetValue(std::make_index_sequence<NDIMS>(), v, idx);
         for (idx[NDIMS - 1] = lo[NDIMS - 1] + 1; idx[NDIMS - 1] < hi[NDIMS - 1]; ++idx[NDIMS - 1]) {
-            os << "," << std::setw(tab_width) << detail::GetValue(std::make_index_sequence<NDIMS>(), v, idx);
+            os << sep << std::setw(tab_width) << detail::GetValue(std::make_index_sequence<NDIMS>(), v, idx);
         }
-
+        os << right_brace;
     } else {
+        os << std::setw(indent) << left_brace << std::endl;
         idx[depth] = lo[depth];
-        FancyPrintNdSlowFirst<NDIMS>(os, v, depth + 1, idx, lo, hi, indent, tab_width, left_brace, sep, right_brace);
+        FancyPrintNdSlowFirst<NDIMS>(os, v, depth + 1, idx, lo, hi, indent + 1, tab_width, left_brace, sep,
+                                     right_brace);
 
         for (idx[depth] = lo[depth] + 1; idx[depth] < hi[depth]; ++idx[depth]) {
-            os << "," << std::endl;
-            FancyPrintNdSlowFirst<NDIMS>(os, v, depth + 1, idx, lo, hi, indent, tab_width, left_brace, sep,
+            os << sep << std::endl;
+            FancyPrintNdSlowFirst<NDIMS>(os, v, depth + 1, idx, lo, hi, indent + 1, tab_width, left_brace, sep,
                                          right_brace);
         }
+        os << std::endl << std::setw(indent) << right_brace;
     }
-    os << "}";
 
     return os;
 }
@@ -105,26 +107,28 @@ std::ostream &FancyPrintNdFastFirst(std::ostream &os, TV const &v, int depth, in
                                     std::string const &left_brace = "{", std::string const &sep = ",",
                                     std::string const &right_brace = "}") {
     if (depth < 0) { return os; }
-    os << std::setw(indent + depth) << "{";
 
     if (depth == 0) {
+        os << std::setw(indent + depth) << left_brace;
         idx[0] = lo[0];
         os << std::setw(tab_width) << detail::GetValue(std::make_index_sequence<NDIMS>(), v, idx);
         for (idx[0] = lo[0] + 1; idx[0] < hi[0]; ++idx[0]) {
             os << "," << std::setw(tab_width) << detail::GetValue(std::make_index_sequence<NDIMS>(), v, idx);
         }
-
+        os << right_brace;
     } else {
+        os << std::setw(indent) << left_brace << std::endl;
         idx[depth] = lo[depth];
-        FancyPrintNdFastFirst<NDIMS>(os, v, depth - 1, idx, lo, hi, indent, tab_width, left_brace, sep, right_brace);
+        FancyPrintNdFastFirst<NDIMS>(os, v, depth - 1, idx, lo, hi, indent + 1, tab_width, left_brace, sep,
+                                     right_brace);
 
         for (idx[depth] = lo[depth] + 1; idx[depth] < hi[depth]; ++idx[depth]) {
             os << "," << std::endl;
-            FancyPrintNdFastFirst<NDIMS>(os, v, depth - 1, idx, lo, hi, indent, tab_width, left_brace, sep,
+            FancyPrintNdFastFirst<NDIMS>(os, v, depth - 1, idx, lo, hi, indent + 1, tab_width, left_brace, sep,
                                          right_brace);
         }
+        os << std::endl << std::setw(indent) << right_brace;
     }
-    os << "}";
 
     return os;
 }
