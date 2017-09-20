@@ -4,6 +4,7 @@
 
 #include <simpla/geometry/BoxUtilities.h>
 #include <simpla/parallel/MPIComm.h>
+#include <simpla/parallel/MPIUpdater.h>
 #include <simpla/utilities/type_cast.h>
 #include <fstream>
 #include "simpla/SIMPLA_config.h"
@@ -18,12 +19,15 @@ namespace engine {
 
 struct Scenario::pimpl_s {
     std::shared_ptr<Atlas> m_atlas_ = nullptr;
+
     std::map<std::string, std::shared_ptr<DomainBase>> m_domains_;
     std::map<id_type, std::shared_ptr<data::DataNode>> m_patches_;
-    std::map<std::string, std::shared_ptr<Attribute>> m_attributes_;
     std::map<std::string, Range<EntityId>> m_ranges_;
 
     size_type m_step_counter_ = 0;
+
+    template <typename V>
+    void Sync(std::string const &key, int IFORM);
 };
 
 Scenario::Scenario() : m_pimpl_(new pimpl_s) { m_pimpl_->m_atlas_ = Atlas::New(); }
@@ -39,7 +43,7 @@ std::shared_ptr<data::DataNode> Scenario::Serialize() const {
 
     res->Set("Atlas", GetAtlas()->Serialize());
     res->Set("Chart", m_pimpl_->m_atlas_->GetChart()->Serialize());
-
+    res->Set("Attributes", GetAttributes());
     auto domain = data::DataNode::New(data::DataNode::DN_TABLE);
     for (auto const &item : m_pimpl_->m_domains_) { domain->Set(item.first, item.second->Serialize()); }
     res->Set("Domain", domain);
@@ -94,17 +98,50 @@ void Scenario::Dump() const {
     dump->Set(Serialize());
     dump->Flush();
 }
-std::map<std::string, std::shared_ptr<Attribute>> &Scenario::GetAttributes() const { return m_pimpl_->m_attributes_; };
+std::shared_ptr<data::DataNode> Scenario::GetAttributes() const {
+    auto res = data::DataNode::New(data::DataNode::DN_TABLE);
+    for (auto &item : m_pimpl_->m_domains_) {
+        for (auto *attr : item.second->GetAttributes()) { res->Set(attr->GetName(), attr->Serialize()); }
+    }
+    return res;
+};
 Range<EntityId> &Scenario::GetRange(std::string const &k) {
     auto res = m_pimpl_->m_ranges_.emplace(k, Range<EntityId>{});
     return res.first->second;
 }
 Range<EntityId> const &Scenario::GetRange(std::string const &k) const { return m_pimpl_->m_ranges_.at(k); }
 
+template <typename V>
+void Scenario::pimpl_s::Sync(std::string const &key, int NODE_ID) {
+    auto updater = parallel::MPIUpdater::New<V>();
+    updater->SetIndexBox(m_atlas_->GetIndexBox(NODE_ID));
+    updater->SetGhostWidth(m_atlas_->GetGhostWidth());
+    updater->SetUp();
+    for (auto &item : m_patches_) {
+        if (auto attr = item.second->Get(key)) {
+            switch (NODE_ID) {
+                case 0:
+                case 7:
+                    if (auto a = std::dynamic_pointer_cast<ArrayBase>(item.second->GetEntity())) { updater->Push(*a); }
+
+            }
+        };
+    }
+}
 void Scenario::Synchronize(int level) {
     ASSERT(level == 0)
 
-    m_pimpl_->m_atlas_->Synchronize(level, m_pimpl_->m_patches_);
+    GetAttributes()->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> &attr) {
+        int iform = attr->GetValue<int>("IFORM");
+        int dof = attr->GetValue<int>("DOF", 0);
+        ASSERT(dof != 0);
+
+        switch (iform) { case NODE: }
+    });
+
+    //    std::shared_ptr<MeshBlock> blk;
+    //    for (auto &item : m_pimpl_->m_attributes_) {}
+    //    m_pimpl_->m_atlas_->Synchronize(level, m_pimpl_->m_patches_);
 }
 void Scenario::NextStep() { ++m_pimpl_->m_step_counter_; }
 void Scenario::SetStepNumber(size_type s) { m_pimpl_->m_step_counter_ = s; }
@@ -117,6 +154,9 @@ void Scenario::DoFinalize() {}
 
 void Scenario::DoSetUp() {
     box_type bounding_box;
+
+    for (auto &item : m_pimpl_->m_domains_) { item.second->SetUp(); }
+
     auto it = m_pimpl_->m_domains_.begin();
     if (it == m_pimpl_->m_domains_.end() || it->second == nullptr) { return; }
     bounding_box = it->second->GetBoundary()->GetBoundingBox();
@@ -129,7 +169,6 @@ void Scenario::DoSetUp() {
 
     m_pimpl_->m_atlas_->SetBoundingBox(bounding_box);
     m_pimpl_->m_atlas_->SetUp();
-    for (auto &item : m_pimpl_->m_domains_) { item.second->SetUp(); }
     base_type::DoSetUp();
 }
 

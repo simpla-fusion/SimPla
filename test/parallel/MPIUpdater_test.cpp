@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
     auto updater = parallel::MPIUpdater::New<double>();
     updater->SetIndexBox(box);
     updater->SetGhostWidth(gw);
-    updater->SetUp();
+
     Array<Real> a(outer_box);
     Array<Real> b(box);
     a.FillNaN();
@@ -32,7 +32,14 @@ int main(int argc, char** argv) {
     if (GLOBAL_COMM.rank() == 0) { std::cout << a << std::endl; }
     GLOBAL_COMM.barrier();
 
-    updater->Update(a);
+    for (int dir = 0; dir < 3; ++dir) {
+        updater->SetDirection(dir);
+        updater->SetUp();
+        updater->Push(a);
+        updater->SendRecv();
+        updater->Pop(a);
+        updater->TearDown();
+    }
 
     GLOBAL_COMM.barrier();
     if (GLOBAL_COMM.rank() == 0) { std::cout << a << std::endl; }

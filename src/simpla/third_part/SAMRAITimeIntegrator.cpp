@@ -184,10 +184,10 @@ struct spParticlePatchData : public SAMRAI::hier::PatchData {
         UNIMPLEMENTED;
         return 0;
     }
-    std::shared_ptr<data::DataBlock> PopDataBlock() { return m_data_block_; };
-    void PushDataBlock(std::shared_ptr<data::DataBlock> blk) {
-        m_data_block_ = std::dynamic_pointer_cast<ParticleData>(blk);
-    };
+    //    std::shared_ptr<data::DataBlock> PopDataBlock() { return m_data_block_; };
+    //    void PushDataBlock(std::shared_ptr<data::DataBlock> blk) {
+    //        m_data_block_ = std::dynamic_pointer_cast<ParticleData>(blk);
+    //    };
     size_type GetNumberOfPIC() const { return m_number_of_pic_; }
     void SetNumberOfPIC(size_type n) { m_number_of_pic_ = n; }
 
@@ -370,7 +370,7 @@ Array<T, ZSFC<NDIMS>> create_array(SAMRAI::pdat::ArrayData<T> &p_data, int depth
 };
 
 template <typename T>
-bool ConvertDataBlock(SAMRAI::pdat::CellData<T> *src, std::shared_ptr<data::DataBlock> *dst) {
+bool ConvertDataBlock(SAMRAI::pdat::CellData<T> *src, std::shared_ptr<data::DataEntity> *dst) {
     if (src == nullptr) { return false; }
     static const int NDIMS = 3;
     typedef Array<T, ZSFC<3>> array_type;
@@ -382,7 +382,7 @@ bool ConvertDataBlock(SAMRAI::pdat::CellData<T> *src, std::shared_ptr<data::Data
     return true;
 }
 template <typename T>
-bool ConvertDataBlock(SAMRAI::pdat::NodeData<T> *src, std::shared_ptr<data::DataBlock> *dst) {
+bool ConvertDataBlock(SAMRAI::pdat::NodeData<T> *src, std::shared_ptr<data::DataEntity> *dst) {
     if (src == nullptr) { return false; }
     static const int NDIMS = 3;
     typedef Array<T, ZSFC<NDIMS>> array_type;
@@ -391,11 +391,11 @@ bool ConvertDataBlock(SAMRAI::pdat::NodeData<T> *src, std::shared_ptr<data::Data
     //    auto mArray = data::DataMultiArray<array_type>::New(depth);
     //    for (int d = 0; d < depth; ++d) { create_array<T, NDIMS>(src->getArrayData(), d).swap(mArray->GetArray(d)); }
     //
-    //    *dst = std::dynamic_pointer_cast<data::DataBlock>(mArray);
+    //    *dst = std::dynamic_pointer_cast<data::DataEntity>(mArray);
     return true;
 }
 template <typename T>
-bool ConvertDataBlock(SAMRAI::pdat::EdgeData<T> *src, std::shared_ptr<data::DataBlock> *dst) {
+bool ConvertDataEntity(SAMRAI::pdat::EdgeData<T> *src, std::shared_ptr<data::DataEntity> *dst) {
     if (src == nullptr) { return false; }
     static const int NDIMS = 3;
     typedef Array<T, ZSFC<3>> array_type;
@@ -407,11 +407,11 @@ bool ConvertDataBlock(SAMRAI::pdat::EdgeData<T> *src, std::shared_ptr<data::Data
     //            create_array<T, NDIMS>(src->getArrayData(axis), d).swap(mArray->GetArray(axis * depth + d));
     //        }
     //    }
-    //    *dst = std::dynamic_pointer_cast<data::DataBlock>(mArray);
+    //    *dst = std::dynamic_pointer_cast<data::DataEntity>(mArray);
     return true;
 }
 template <typename T>
-bool ConvertDataBlock(SAMRAI::pdat::FaceData<T> *src, std::shared_ptr<data::DataBlock> *dst) {
+bool ConvertDataEntity(SAMRAI::pdat::FaceData<T> *src, std::shared_ptr<data::DataEntity> *dst) {
     if (src == nullptr) { return false; }
     static const int NDIMS = 3;
     typedef Array<T, ZSFC<3>> array_type;
@@ -423,11 +423,11 @@ bool ConvertDataBlock(SAMRAI::pdat::FaceData<T> *src, std::shared_ptr<data::Data
     //            create_array<T, NDIMS>(src->getArrayData(axis), d).swap(mArray->GetArray(axis * depth + d));
     //        }
     //    }
-    //    *dst = std::dynamic_pointer_cast<data::DataBlock>(mArray);
+    //    *dst = std::dynamic_pointer_cast<data::DataEntity>(mArray);
     return true;
 }
 template <typename T>
-bool ConvertDataBlock(SAMRAI::pdat::SideData<T> *src, std::shared_ptr<data::DataBlock> *dst) {
+bool ConvertDataEntity(SAMRAI::pdat::SideData<T> *src, std::shared_ptr<data::DataEntity> *dst) {
     if (src == nullptr) { return false; }
     static const int NDIMS = 3;
     typedef Array<T, ZSFC<NDIMS>> array_type;
@@ -439,95 +439,97 @@ bool ConvertDataBlock(SAMRAI::pdat::SideData<T> *src, std::shared_ptr<data::Data
     //            create_array<T, NDIMS>(src->getArrayData(axis), d).swap(mArray->GetArray(axis * depth + d));
     //        }
     //    }
-    //    *dst = std::dynamic_pointer_cast<data::DataBlock>(mArray);
+    //    *dst = std::dynamic_pointer_cast<data::DataEntity>(mArray);
     return true;
 }
 
-bool ConvertDataBlock(spParticlePatchData *src, std::shared_ptr<data::DataBlock> *dst) {
-    if (src == nullptr) { return false; }
-    *dst = src->PopDataBlock();
-    return true;
+bool ConvertDataEntity(spParticlePatchData *src, std::shared_ptr<data::DataEntity> *dst) {
+    //    if (src == nullptr) { return false; }
+    //    *dst = src->PopDataEntity();
+    FIXME;
+    return false;
 }
 
-bool ConvertDataBlock(SAMRAI::hier::PatchData *src, std::shared_ptr<data::DataBlock> *dst) {
-    return ConvertDataBlock(dynamic_cast<SAMRAI::pdat::CellData<double> *>(src), dst) ||
-           ConvertDataBlock(dynamic_cast<SAMRAI::pdat::CellData<float> *>(src), dst) ||
-           ConvertDataBlock(dynamic_cast<SAMRAI::pdat::CellData<int> *>(src), dst) ||
+bool ConvertDataEntity(SAMRAI::hier::PatchData *src, std::shared_ptr<data::DataEntity> *dst) {
+    return ConvertDataEntity(dynamic_cast<SAMRAI::pdat::CellData<double> *>(src), dst) ||
+           ConvertDataEntity(dynamic_cast<SAMRAI::pdat::CellData<float> *>(src), dst) ||
+           ConvertDataEntity(dynamic_cast<SAMRAI::pdat::CellData<int> *>(src), dst) ||
 
-           ConvertDataBlock(dynamic_cast<SAMRAI::pdat::NodeData<double> *>(src), dst) ||
-           ConvertDataBlock(dynamic_cast<SAMRAI::pdat::NodeData<float> *>(src), dst) ||
-           ConvertDataBlock(dynamic_cast<SAMRAI::pdat::NodeData<int> *>(src), dst) ||
+           ConvertDataEntity(dynamic_cast<SAMRAI::pdat::NodeData<double> *>(src), dst) ||
+           ConvertDataEntity(dynamic_cast<SAMRAI::pdat::NodeData<float> *>(src), dst) ||
+           ConvertDataEntity(dynamic_cast<SAMRAI::pdat::NodeData<int> *>(src), dst) ||
 
-           ConvertDataBlock(dynamic_cast<SAMRAI::pdat::EdgeData<double> *>(src), dst) ||
-           ConvertDataBlock(dynamic_cast<SAMRAI::pdat::EdgeData<float> *>(src), dst) ||
-           ConvertDataBlock(dynamic_cast<SAMRAI::pdat::EdgeData<int> *>(src), dst) ||
+           ConvertDataEntity(dynamic_cast<SAMRAI::pdat::EdgeData<double> *>(src), dst) ||
+           ConvertDataEntity(dynamic_cast<SAMRAI::pdat::EdgeData<float> *>(src), dst) ||
+           ConvertDataEntity(dynamic_cast<SAMRAI::pdat::EdgeData<int> *>(src), dst) ||
 
-           ConvertDataBlock(dynamic_cast<SAMRAI::pdat::FaceData<double> *>(src), dst) ||
-           ConvertDataBlock(dynamic_cast<SAMRAI::pdat::FaceData<float> *>(src), dst) ||
-           ConvertDataBlock(dynamic_cast<SAMRAI::pdat::FaceData<int> *>(src), dst) ||
+           ConvertDataEntity(dynamic_cast<SAMRAI::pdat::FaceData<double> *>(src), dst) ||
+           ConvertDataEntity(dynamic_cast<SAMRAI::pdat::FaceData<float> *>(src), dst) ||
+           ConvertDataEntity(dynamic_cast<SAMRAI::pdat::FaceData<int> *>(src), dst) ||
 
-           ConvertDataBlock(dynamic_cast<SAMRAI::pdat::SideData<double> *>(src), dst) ||
-           ConvertDataBlock(dynamic_cast<SAMRAI::pdat::SideData<float> *>(src), dst) ||
-           ConvertDataBlock(dynamic_cast<SAMRAI::pdat::SideData<int> *>(src), dst) ||
+           ConvertDataEntity(dynamic_cast<SAMRAI::pdat::SideData<double> *>(src), dst) ||
+           ConvertDataEntity(dynamic_cast<SAMRAI::pdat::SideData<float> *>(src), dst) ||
+           ConvertDataEntity(dynamic_cast<SAMRAI::pdat::SideData<int> *>(src), dst) ||
 
-           ConvertDataBlock(dynamic_cast<spParticlePatchData *>(src), dst);
+           ConvertDataEntity(dynamic_cast<spParticlePatchData *>(src), dst);
 }
 
 template <typename T>
-bool ConvertDataBlock(std::shared_ptr<data::DataBlock> src, SAMRAI::pdat::CellData<T> *dst) {
-    if (dst == nullptr) { return false; };
-    return true;
-}
-template <typename T>
-bool ConvertDataBlock(std::shared_ptr<data::DataBlock> src, SAMRAI::pdat::NodeData<T> *dst) {
+bool ConvertDataEntity(std::shared_ptr<data::DataEntity> src, SAMRAI::pdat::CellData<T> *dst) {
     if (dst == nullptr) { return false; };
     return true;
 }
 template <typename T>
-bool ConvertDataBlock(std::shared_ptr<data::DataBlock> src, SAMRAI::pdat::EdgeData<T> *dst) {
+bool ConvertDataEntity(std::shared_ptr<data::DataEntity> src, SAMRAI::pdat::NodeData<T> *dst) {
     if (dst == nullptr) { return false; };
     return true;
 }
 template <typename T>
-bool ConvertDataBlock(std::shared_ptr<data::DataBlock> src, SAMRAI::pdat::FaceData<T> *dst) {
+bool ConvertDataEntity(std::shared_ptr<data::DataEntity> src, SAMRAI::pdat::EdgeData<T> *dst) {
     if (dst == nullptr) { return false; };
     return true;
 }
 template <typename T>
-bool ConvertDataBlock(std::shared_ptr<data::DataBlock> src, SAMRAI::pdat::SideData<T> *dst) {
+bool ConvertDataEntity(std::shared_ptr<data::DataEntity> src, SAMRAI::pdat::FaceData<T> *dst) {
+    if (dst == nullptr) { return false; };
+    return true;
+}
+template <typename T>
+bool ConvertDataEntity(std::shared_ptr<data::DataEntity> src, SAMRAI::pdat::SideData<T> *dst) {
     if (dst == nullptr) { return false; };
     return true;
 }
 
-bool ConvertDataBlock(std::shared_ptr<data::DataBlock> src, spParticlePatchData *dst) {
-    if (dst == nullptr) { return false; };
-    dst->PushDataBlock(src);
-    return true;
+bool ConvertDataEntity(std::shared_ptr<data::DataEntity> src, spParticlePatchData *dst) {
+    //    if (dst == nullptr) { return false; };
+    //    dst->PushDataEntity(src);
+    FIXME;
+    return false;
 }
 
-bool ConvertDataBlock(std::shared_ptr<data::DataBlock> src, SAMRAI::hier::PatchData *dst) {
+bool ConvertDataEntity(std::shared_ptr<data::DataEntity> src, SAMRAI::hier::PatchData *dst) {
     return
-        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::CellData<double> *>(dst)) ||
-        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::CellData<float> *>(dst)) ||
-        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::CellData<int> *>(dst)) ||
+        //           ConvertDataEntity(src, dynamic_cast<SAMRAI::pdat::CellData<double> *>(dst)) ||
+        //           ConvertDataEntity(src, dynamic_cast<SAMRAI::pdat::CellData<float> *>(dst)) ||
+        //           ConvertDataEntity(src, dynamic_cast<SAMRAI::pdat::CellData<int> *>(dst)) ||
         //
-        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::NodeData<double> *>(dst)) ||
-        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::NodeData<float> *>(dst)) ||
-        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::NodeData<int> *>(dst)) ||
+        //           ConvertDataEntity(src, dynamic_cast<SAMRAI::pdat::NodeData<double> *>(dst)) ||
+        //           ConvertDataEntity(src, dynamic_cast<SAMRAI::pdat::NodeData<float> *>(dst)) ||
+        //           ConvertDataEntity(src, dynamic_cast<SAMRAI::pdat::NodeData<int> *>(dst)) ||
         //
-        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::EdgeData<double> *>(dst)) ||
-        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::EdgeData<float> *>(dst)) ||
-        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::EdgeData<int> *>(dst)) ||
+        //           ConvertDataEntity(src, dynamic_cast<SAMRAI::pdat::EdgeData<double> *>(dst)) ||
+        //           ConvertDataEntity(src, dynamic_cast<SAMRAI::pdat::EdgeData<float> *>(dst)) ||
+        //           ConvertDataEntity(src, dynamic_cast<SAMRAI::pdat::EdgeData<int> *>(dst)) ||
         //
-        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::FaceData<double> *>(dst)) ||
-        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::FaceData<float> *>(dst)) ||
-        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::FaceData<int> *>(dst)) ||
+        //           ConvertDataEntity(src, dynamic_cast<SAMRAI::pdat::FaceData<double> *>(dst)) ||
+        //           ConvertDataEntity(src, dynamic_cast<SAMRAI::pdat::FaceData<float> *>(dst)) ||
+        //           ConvertDataEntity(src, dynamic_cast<SAMRAI::pdat::FaceData<int> *>(dst)) ||
         //
-        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::SideData<double> *>(dst)) ||
-        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::SideData<float> *>(dst)) ||
-        //           ConvertDataBlock(src, dynamic_cast<SAMRAI::pdat::SideData<int> *>(dst)) ||
+        //           ConvertDataEntity(src, dynamic_cast<SAMRAI::pdat::SideData<double> *>(dst)) ||
+        //           ConvertDataEntity(src, dynamic_cast<SAMRAI::pdat::SideData<float> *>(dst)) ||
+        //           ConvertDataEntity(src, dynamic_cast<SAMRAI::pdat::SideData<int> *>(dst)) ||
         //
-        ConvertDataBlock(src, dynamic_cast<spParticlePatchData *>(dst));
+        ConvertDataEntity(src, dynamic_cast<spParticlePatchData *>(dst));
 }
 
 template <typename T>
@@ -748,7 +750,7 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
 
     /*
      * We cache pointers to the grid geometry object to set up initial
-     * GetDataBlock, SetEntity physical boundary conditions, and register plot
+     * GetDataEntity, SetEntity physical boundary conditions, and register plot
      * variables.
      */
     std::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geometry = nullptr;
@@ -792,17 +794,19 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     SAMRAI::hier::IntVector d_fluxghosts{d_dim, 1};
     //**************************************************************
 
-    for (auto &item : m_ctx_->GetAttributes()) {
-        if (item.second->db()->Check("IS_NOT_OWNED") ||
-            m_samrai_variables_.find(item.second->db()->GetValue<id_type>("DescID")) != m_samrai_variables_.end()) {
-            continue;
+    m_ctx_->GetAttributes()->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &item) {
+        if (item->Check("IS_NOT_OWNED") ||
+            m_samrai_variables_.find(item->GetValue<id_type>("DescID")) != m_samrai_variables_.end()) {
+            return 0;
         }
 
-        auto var = simpla::detail::ConvertVariable(item.second->db());
-        if (var == nullptr) { continue; }
-        m_samrai_variables_.emplace(item.second->db()->GetValue<id_type>("DescID"),
-                                    std::make_pair(std::dynamic_pointer_cast<data::DataNode>(item.second->db()), var));
+        auto var = simpla::detail::ConvertVariable(item);
+        if (var == nullptr) { return 0; }
+        m_samrai_variables_.emplace(item->GetValue<id_type>("DescID"),
+                                    std::make_pair(std::dynamic_pointer_cast<data::DataNode>(item), var));
 
+        int iform = item->GetValue<int>("IFORM", NODE);
+        int dof = item->GetValue<int>("DOF", 1);
         /*** NOTE:
         *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
         *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
@@ -813,15 +817,15 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         std::string coarsen_name = "";
         std::string refine_name = "";
 
-        if (item.second->db()->Check("COORDINATES")) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
-        if (item.second->db()->Check("INPUT")) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
-        if (item.second->db()->Check("FLUX")) {
+        if (item->Check("COORDINATES")) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
+        if (item->Check("INPUT")) { v_type = SAMRAI::algs::HyperbolicLevelIntegrator::INPUT; }
+        if (item->Check("FLUX")) {
             ghosts = d_fluxghosts;
             v_type = SAMRAI::algs::HyperbolicLevelIntegrator::FLUX;
             coarsen_name = "CONSERVATIVE_COARSEN";
             refine_name = "";
         }
-        if (item.second->GetIFORM() == FIBER) {
+        if (iform == FIBER) {
             v_type = SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP;
             coarsen_name = "CONSTANT_COARSEN";
             refine_name = "NO_REFINE";
@@ -836,18 +840,12 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         integrator->registerVariable(var, ghosts, v_type, d_grid_geometry, coarsen_name, refine_name);
 
         std::string visit_variable_type = "SCALAR";
-        ;
-        if ((item.second->GetIFORM() == NODE || item.second->GetIFORM() == CELL) && (item.second->GetDOF(0) == 1)) {
+        if ((iform == NODE || iform == CELL) && (dof == 1)) {
             visit_variable_type = "SCALAR";
-        } else if (((item.second->GetIFORM() == EDGE || item.second->GetIFORM() == FACE) &&
-                    (item.second->GetDOF(0) == 1)) ||
-                   ((item.second->GetIFORM() == NODE || item.second->GetIFORM() == CELL) &&
-                    (item.second->GetDOF(0) == 3))) {
+        } else if (((iform == EDGE || iform == FACE) && (dof == 1)) ||
+                   ((iform == NODE || iform == CELL) && (dof == 3))) {
             visit_variable_type = "VECTOR";
-        } else if (((item.second->GetIFORM() == NODE || item.second->GetIFORM() == CELL) &&
-                    item.second->GetDOF(0) == 9) ||
-                   ((item.second->GetIFORM() == EDGE || item.second->GetIFORM() == FACE) &&
-                    item.second->GetDOF(0) == 3)) {
+        } else if (((iform == NODE || iform == CELL) && dof == 9) || ((iform == EDGE || iform == FACE) && dof == 3)) {
             visit_variable_type = "TENSOR";
         }
 
@@ -857,12 +855,12 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         //        }
         //        v_type != SAMRAI::algs::HyperbolicLevelIntegrator::TEMPORARY
 
-        if (visit_variable_type != "" && item.second->db()->Check("COORDINATES")) {
+        if (visit_variable_type != "" && item->Check("COORDINATES")) {
             d_visit_writer->registerNodeCoordinates(
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-        } else if ((item.second->GetIFORM() == NODE || item.second->GetIFORM() == CELL)) {
+        } else if ((iform == NODE || iform == CELL)) {
             d_visit_writer->registerPlotQuantity(
-                item.second->db()->GetValue<std::string>("name"), visit_variable_type,
+                item->GetValue<std::string>("name"), visit_variable_type,
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
         }
 
@@ -871,7 +869,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         //            &d_particle_writer_,
         //                                                        1.0, "CELL", "CLEAN");
         //        }
-    }
+        return 1;
+    });
     integrator->printClassData(std::cout);
     vardb->printClassData(std::cout);
 }
@@ -891,8 +890,8 @@ std::shared_ptr<data::DataNode> SAMRAIHyperbolicPatchStrategyAdapter::PopPatch(S
 
         //        if (!patch.checkAllocated(samrai_id)) { patch.allocatePatchData(samrai_id); }
         auto addr = patch.getPatchData(samrai_id);
-        std::shared_ptr<data::DataBlock> blk = nullptr;
-        //        if (detail::ConvertDataBlock(addr.get(), &blk)) { p->SetDataBlock(item.first, blk); }
+        std::shared_ptr<data::DataEntity> blk = nullptr;
+        //        if (detail::ConvertDataEntity(addr.get(), &blk)) { p->SetDataEntity(item.first, blk); }
     }
     FIXME;
     return nullptr;
@@ -903,7 +902,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::PushPatch(const std::shared_ptr<data:
         auto samrai_id = SAMRAI::hier::VariableDatabase::getDatabase()->mapVariableAndContextToIndex(item.second.second,
                                                                                                      getDataContext());
         auto dst = patch.getPatchData(samrai_id);
-        //        if (detail::ConvertDataBlock(p->GetDataBlock(item.first), dst.get())) { patch.setPatchData(samrai_id,
+        //        if (detail::ConvertDataEntity(p->GetDataEntity(item.first), dst.get())) { patch.setPatchData(samrai_id,
         //        dst); };
     }
 }
@@ -1118,9 +1117,9 @@ void SAMRAIHyperbolicPatchStrategyAdapter::tagGradientDetectorCells(SAMRAI::hier
     m_ctx_->Push(PopPatch(patch));
     //    auto desc = m_ctx_->GetAttributeDescription("_refinement_tags_");
     //    if (desc != nullptr) {
-    //        //        std::shared_ptr<data::DataBlock> blk = nullptr;
-    //        //        if (detail::ConvertDataBlock(patch.getPatchData(tag_index).get(), &blk)) {
-    //        //            p->SetDataBlock(desc->GetValue<id_type>("DescID"), blk);
+    //        //        std::shared_ptr<data::DataEntity> blk = nullptr;
+    //        //        if (detail::ConvertDataEntity(patch.getPatchData(tag_index).get(), &blk)) {
+    //        //            p->SetDataEntity(desc->GetValue<id_type>("DescID"), blk);
     //        //        }
     //
     //        m_ctx_->TagRefinementCells(regrid_time);

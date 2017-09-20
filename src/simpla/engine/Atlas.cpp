@@ -3,6 +3,7 @@
  *  Created by salmon on 16-5-23.
  */
 #include <mpi.h>
+#include <simpla/geometry/Chart.h>
 
 #include <simpla/geometry/csCartesian.h>
 #include <simpla/parallel/MPIComm.h>
@@ -103,7 +104,6 @@ void Atlas::DoSetUp() {
     m_pimpl_->m_global_index_box_ = m_pimpl_->m_index_box_;
 
 #ifdef MPI_FOUND
-    FIXME << "mpi decompose";
     {
         int mpi_ndims = 0;
         int mpi_dims[3] = {1, 1, 1};
@@ -160,20 +160,10 @@ int Atlas::Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const
 };
 void Atlas::SetBoundingBox(box_type const &b) { m_pimpl_->m_box_ = b; }
 box_type Atlas::GetBoundingBox() const { return m_pimpl_->m_box_; }
-index_box_type Atlas::GetIndexBox(int tag) { return m_pimpl_->m_index_box_; }
-template <typename V>
-size_type Sync(Array<V> &array) {}
-void Atlas::Synchronize(int level, std::map<id_type, std::shared_ptr<data::DataNode>> &patches) const {
-    std::shared_ptr<MeshBlock> blk;
-//    auto updater = parallel::MPIUpdater::New();
-//    updater->SetIndexBox(blk->IndexBox());
-//    auto it = patches.find(blk);
-//    if (it != patches.end()) {
-//        it->second->Foreach([&](std::string const &, std::shared_ptr<data::DataNode> const &node) { return 1; });
-//    }
-}
-void Atlas::Refine(int level, std::map<id_type, std::shared_ptr<data::DataNode>> &) const { UNIMPLEMENTED; }
-void Atlas::Coarsen(int level, std::map<id_type, std::shared_ptr<data::DataNode>> &) const { UNIMPLEMENTED; }
+index_box_type Atlas::GetIndexBox(int tag) const { return m_pimpl_->m_index_box_; }
+index_tuple Atlas::GetGhostWidth() const { return m_pimpl_->m_ghost_width_; }
+
+
 
 // int Atlas::GetNumOfLevel() const { return m_pimpl_->(); }
 // int Atlas::GetMaxLevel() const { return m_pimpl_->m_max_level_; }

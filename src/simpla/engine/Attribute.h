@@ -60,7 +60,7 @@ class AttributeGroup {
     virtual std::shared_ptr<data::DataNode> Pop() const;
 
     std::set<Attribute *> &GetAttributes();
-    std::set<Attribute *> &GetAttributes() const;
+    std::set<Attribute *> const &GetAttributes() const;
 
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
@@ -269,7 +269,11 @@ template <typename V, int IFORM, int... DOF>
 constexpr int AttributeT<V, IFORM, DOF...>::m_extents_[sizeof...(DOF) + 1];
 
 template <typename V, int IFORM, int... DOF>
-AttributeT<V, IFORM, DOF...>::AttributeT(){};
+AttributeT<V, IFORM, DOF...>::AttributeT() {
+    db()->SetValue("IFORM", IFORM);
+    db()->SetValue("DOF", DOF...);
+    db()->SetValue("ValueType", traits::type_name<V>::value());
+};
 template <typename V, int IFORM, int... DOF>
 AttributeT<V, IFORM, DOF...>::~AttributeT(){};
 // template <typename V, int IFORM, int... DOF>
@@ -282,7 +286,7 @@ AttributeT<V, IFORM, DOF...>::~AttributeT(){};
 namespace detail {
 template <typename U>
 std::shared_ptr<data::DataNode> pop_data(Array<U> const &v) {
-    auto d = data::DataBlockT<U>::New();
+    auto d = data::DataBlock<U>::New();
     Array<U>(v).swap(*d);
     return data::DataNode::New(d);
 }
@@ -297,7 +301,7 @@ template <typename U>
 size_type push_data(Array<U> &dest, std::shared_ptr<data::DataNode> const &src) {
     size_type count = 0;
     if (src == nullptr) {
-    } else if (auto p = std::dynamic_pointer_cast<data::DataBlockT<U>>(src->GetEntity())) {
+    } else if (auto p = std::dynamic_pointer_cast<Array<U>>(src->GetEntity())) {
         Array<U>(*p).swap(dest);
         count = 1;
     }

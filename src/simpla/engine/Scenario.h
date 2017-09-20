@@ -33,7 +33,7 @@ class Scenario : public EngineObject {
     void DoTearDown() override;
     void DoFinalize() override;
 
-    virtual Real GetTimeNow()const { return 0.0; }
+    virtual Real GetTimeNow() const { return 0.0; }
 
     void SetStepNumber(size_type s);
     size_type GetStepNumber() const;
@@ -59,7 +59,7 @@ class Scenario : public EngineObject {
     std::shared_ptr<data::DataNode> GetPatch(id_type id) const;
     std::shared_ptr<data::DataNode> GetPatch(id_type id);
 
-    std::map<std::string, std::shared_ptr<Attribute>> &GetAttributes() const;
+    std::shared_ptr<data::DataNode> GetAttributes() const;
 
     Range<EntityId> &GetRange(std::string const &k);
     Range<EntityId> const &GetRange(std::string const &k) const;

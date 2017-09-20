@@ -24,6 +24,9 @@ struct MPIUpdater {
     template <typename V>
     static std::shared_ptr<MPIUpdater> New();
 
+    void SetDirection(int);
+    int GetDirection() const;
+
     void SetGhostWidth(index_tuple const &);
     index_tuple GetGhostWidth() const;
     void SetIndexBox(index_box_type const &inner);
@@ -35,11 +38,9 @@ struct MPIUpdater {
     bool isSetUp() const;
     bool isEnable() const;
 
-    void Update(ArrayBase &d);
-
-    void Push(ArrayBase const &d, int direction = -1);
-    void Pop(ArrayBase &d, int direction = -1) const;
-    void SendRecv(int d);
+    void Push(ArrayBase const &a);
+    void Pop(ArrayBase &a) const;
+    void SendRecv();
 
    protected:
     virtual std::type_info const &value_type_info() const = 0;
@@ -71,8 +72,8 @@ struct MPIUpdaterT : public MPIUpdater {
     ArrayBase const &GetRecvBuffer(int i) const override { return recv_buffer[i]; }
 
    private:
-    Array<V> send_buffer[6];
-    Array<V> recv_buffer[6];
+    Array<V> send_buffer[2];
+    Array<V> recv_buffer[2];
 };
 
 template <typename V>
@@ -95,10 +96,9 @@ void MPIUpdaterT<V>::SetUp() {
 }
 template <typename V>
 void MPIUpdaterT<V>::TearDown() {
-    for (int i = 0; i < 6; ++i) {
-        send_buffer[i].TearDown();
-        recv_buffer[i].TearDown();
-    }
+//    for (auto &v : send_buffer) { v.TearDown(); }
+//    for (auto &v : recv_buffer) { v.TearDown(); }
+    MPIUpdater::TearDown();
 }
 
 }  // namespace parallel

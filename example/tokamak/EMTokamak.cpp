@@ -50,14 +50,15 @@ int main(int argc, char** argv) {
     //        if (auto d = dynamic_cast<Domain<mesh_type, EMFluid>*>(self)) { d->ne = tokamak->profile("ne"); }
     //    });
     scenario->SetTimeNow(0);
-    scenario->SetTimeEnd(10.0);
+    scenario->SetTimeEnd(1.0);
     scenario->SetTimeStep(0.1);
     scenario->SetMaxStep(100);
     scenario->SetUp();
+    std::cout << *scenario->GetAttributes() << std::endl;
+
     TheStart();
     scenario->Run();
     scenario->Dump();
-    //    std::cout << *scenario << std::endl;
     TheEnd();
     scenario->TearDown();
 }

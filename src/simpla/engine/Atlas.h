@@ -84,8 +84,8 @@ class Atlas : public EngineObject {
     };
     void SetBoundingBox(box_type const &);
     box_type GetBoundingBox() const;
-    index_box_type GetIndexBox(int tag);
-
+    index_box_type GetIndexBox(int tag = 0) const;
+    index_tuple GetGhostWidth() const;
     void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;
@@ -100,10 +100,6 @@ class Atlas : public EngineObject {
     size_type AddBlock(std::shared_ptr<MeshBlock> const &blk);
     size_type DeleteBlock(id_type);
     std::shared_ptr<MeshBlock> GetBlock(id_type) const;
-
-    void Synchronize(int level, std::map<id_type, std::shared_ptr<data::DataNode>> &) const;
-    void Refine(int level, std::map<id_type, std::shared_ptr<data::DataNode>> &) const;
-    void Coarsen(int level, std::map<id_type, std::shared_ptr<data::DataNode>> &) const;
 };
 }  // namespace engine
 }  // namespace simpla{namespace mesh_as{

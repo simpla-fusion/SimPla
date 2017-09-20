@@ -545,8 +545,8 @@ size_type HDF5SetEntity(hid_t g_id, std::string const& key, std::shared_ptr<Data
         H5_ERROR(H5Sclose(d_space));
 
         ++count;
-    } else if (auto p = std::dynamic_pointer_cast<DataBlock>(entity)) {
-        if (auto data = p->GetPointer()) {
+    } else if (auto p = std::dynamic_pointer_cast<ArrayBase>(entity)) {
+        if (auto data = p->pointer()) {
             bool is_exist = H5Lexists(g_id, key.c_str(), H5P_DEFAULT) != 0;
             //            H5Oexists_by_name(loc_id, key.c_str(), H5P_DEFAULT) != 0;
             H5O_info_t g_info;

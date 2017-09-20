@@ -18,11 +18,11 @@ template <typename U>
 U data_cast(std::shared_ptr<DataEntity> const& ptr) {
     U res;
     size_type count = 0;
-    if (auto p = std::dynamic_pointer_cast<DataLightT<U>>(ptr)) {
+    if (auto p = std::dynamic_pointer_cast<Array<U>>(ptr)) {
         count = p->CopyOut(res);
-    } else if (auto p = std::dynamic_pointer_cast<DataLightT<traits::value_type_t<U>>>(ptr)) {
+    } else if (auto p = std::dynamic_pointer_cast<Array<traits::value_type_t<U>>>(ptr)) {
         count = p->CopyOut(res);
-    } else if (auto p = std::dynamic_pointer_cast<DataBlockT<traits::value_type_t<U>>>(ptr)) {
+    } else if (auto p = std::dynamic_pointer_cast<Array<traits::value_type_t<U>>>(ptr)) {
         count = p->CopyOut(res);
     }
     if (count == 0) { BAD_CAST; }

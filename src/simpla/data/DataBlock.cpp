@@ -5,8 +5,7 @@
 namespace simpla {
 namespace data {
 
-DataBlock::DataBlock() {}
-DataBlock::~DataBlock() {}
+
 
 }  // namespace data
 }  // namespace simpla

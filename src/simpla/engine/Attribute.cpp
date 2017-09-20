@@ -36,6 +36,9 @@ void AttributeGroup::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
 //        }
 //        return count;
 //    });
+
+std::set<Attribute *> &AttributeGroup::GetAttributes() { return m_pimpl_->m_attributes_; }
+std::set<Attribute *> const &AttributeGroup::GetAttributes() const { return m_pimpl_->m_attributes_; }
 void AttributeGroup::Push(const std::shared_ptr<data::DataNode> &p) {
     if (p != nullptr) {
         for (auto &item : m_pimpl_->m_attributes_) {
