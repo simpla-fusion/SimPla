@@ -19,7 +19,7 @@ namespace parallel {
 
 struct MPIComm::pimpl_s {
     static constexpr int MAX_NUM_OF_DIMS = 3;
-    MPI_Comm m_comm_ = MPI_COMM_WORLD;
+    MPI_Comm m_comm_ = MPI_COMM_NULL;
     size_type m_object_id_count_ = 0;
     int m_topology_ndims_ = 3;
     int m_topology_dims_[3] = {0, 1, 1};
@@ -66,7 +66,6 @@ void MPIComm::Initialize(int argc, char **argv) {
     });
 
     m_pimpl_->m_object_id_count_ = 0;
-
     int m_num_process_;
     MPI_CALL(MPI_Comm_size(MPI_COMM_WORLD, &m_num_process_));
     if (m_num_process_ > 1) {

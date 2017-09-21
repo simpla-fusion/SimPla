@@ -67,11 +67,11 @@ size_type DataNodeMemory::Add(std::string const &uri, const std::shared_ptr<Data
     }
     return count;
 }
-std::shared_ptr<DataNode> DataNodeMemory::Get(std::string const& uri) const {
+std::shared_ptr<DataNode> DataNodeMemory::Get(std::string const &uri) const {
     if (uri.empty()) { return nullptr; }
     if (uri[0] == SP_URL_SPLIT_CHAR) { return Root()->Get(uri.substr(1)); }
 
-    auto obj = const_cast<this_type*>(this)->shared_from_this();
+    auto obj = const_cast<this_type *>(this)->shared_from_this();
     std::string k = uri;
     while (obj != nullptr && !k.empty()) {
         auto tail = k.find(SP_URL_SPLIT_CHAR);
@@ -89,7 +89,7 @@ std::shared_ptr<DataNode> DataNodeMemory::Get(std::string const& uri) const {
     }
     return obj;
 };
-size_type DataNodeMemory::Delete(std::string const& uri) {
+size_type DataNodeMemory::Delete(std::string const &uri) {
     size_type count = 0;
     if (uri.empty()) {
     } else {
@@ -110,11 +110,8 @@ size_type DataNodeMemory::Delete(std::string const& uri) {
     }
     return count;
 }
-size_type DataNodeMemory::Foreach(
-    std::function<size_type(std::string, std::shared_ptr<DataNode> const&)> const& f) const {
-    size_type count = 0;
-    for (auto const& item : m_table_) { count += f(item.first, item.second); }
-    return count;
+void DataNodeMemory::Foreach(std::function<void(std::string, std::shared_ptr<DataNode> const &)> const &f) const {
+    for (auto const &item : m_table_) { f(item.first, item.second); }
 }
 
 std::shared_ptr<DataNode> DataNodeMemory::CreateNode(eNodeType e_type) const {

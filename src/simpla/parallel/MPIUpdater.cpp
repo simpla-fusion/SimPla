@@ -109,8 +109,6 @@ void MPIUpdater::SetUp() {
     }
 
     MPI_CALL(MPI_Cart_shift(GLOBAL_COMM.comm(), m_pimpl_->m_direction_, 1, &m_pimpl_->left, &m_pimpl_->right));
-
-    INFORM << "Dir :" << m_pimpl_->m_direction_ << " Left: " << m_pimpl_->left << " Right: " << m_pimpl_->right;
 }
 
 void MPIUpdater::TearDown() { m_pimpl_->m_is_setup_ = false; }

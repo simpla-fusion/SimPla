@@ -130,7 +130,6 @@ std::ostream& DataNode::Print(std::ostream& os, int indent) const {
                 FancyPrint(os, k, indent);
                 os << " = ";
                 v->Print(os, indent + 1);
-                return 1;
             });
 
             if (new_line) { os << std::endl << std::setw(indent) << " "; }
@@ -163,16 +162,16 @@ size_type DataNode::Set(std::string const& uri, const std::shared_ptr<DataNode>&
 size_type DataNode::Add(std::string const& uri, const std::shared_ptr<DataNode>& v) { return 0; }
 size_type DataNode::Delete(std::string const& s) { return 0; }
 std::shared_ptr<DataNode> DataNode::Get(std::string const& uri) const { return nullptr; }
-size_type DataNode::Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode> const&)> const& f) const {
-    return 0;
-}
+void DataNode::Foreach(std::function<void(std::string, std::shared_ptr<DataNode> const&)> const& f) const {}
 size_type DataNode::Set(index_type s, std::shared_ptr<DataNode> const& v) { return Set(std::to_string(s), v); }
 size_type DataNode::Add(index_type s, std::shared_ptr<DataNode> const& v) { return Add(std::to_string(s), v); }
 size_type DataNode::Delete(index_type s) { return Delete(std::to_string(s)); }
 std::shared_ptr<DataNode> DataNode::Get(index_type s) const { return Get(std::to_string(s)); }
 size_type DataNode::Add(const std::shared_ptr<DataNode>& v) { return Add(size(), v); }
 size_type DataNode::Set(const std::shared_ptr<DataNode>& v) {
-    return v == nullptr ? 0 : v->Foreach([&](std::string k, std::shared_ptr<DataNode> const& v) { return Set(k, v); });
+    size_type count = 0;
+    v->Foreach([&](std::string k, std::shared_ptr<DataNode> const& v) { count += Set(k, v); });
+    return count;
 }
 size_type DataNode::SetValue(KeyValue const& kv) {
     ASSERT(type() == DN_TABLE);

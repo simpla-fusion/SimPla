@@ -33,10 +33,7 @@ size_type DataNodeIMAS::Set(std::string const& uri, const std::shared_ptr<DataNo
 size_type DataNodeIMAS::Add(std::string const& uri, const std::shared_ptr<DataNode>& v) { return 0; }
 size_type DataNodeIMAS::Delete(std::string const& s) { return 0; }
 std::shared_ptr<DataNode> DataNodeIMAS::Get(std::string const& uri) const { return 0; }
-size_type DataNodeIMAS::Foreach(
-    std::function<size_type(std::string, std::shared_ptr<DataNode> const&)> const& f) const {
-    return 0;
-}
+void DataNodeIMAS::Foreach(std::function<void(std::string, std::shared_ptr<DataNode> const&)> const& f) const {}
 
 size_type DataNodeIMAS::Set(index_type s, std::shared_ptr<DataNode> const& v) { return 0; }
 size_type DataNodeIMAS::Add(index_type s, std::shared_ptr<DataNode> const& v) { return 0; }

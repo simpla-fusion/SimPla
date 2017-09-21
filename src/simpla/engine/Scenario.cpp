@@ -60,14 +60,12 @@ void Scenario::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     m_pimpl_->m_atlas_->Deserialize(cfg->Get("Atlas"));
 
     if (auto domain = cfg->Get("Domain")) {
-        domain->Foreach([&](std::string key, std::shared_ptr<data::DataNode> node) {
-            return SetDomain(key, DomainBase::New(node));
-        });
+        domain->Foreach(
+            [&](std::string key, std::shared_ptr<data::DataNode> node) { SetDomain(key, DomainBase::New(node)); });
     }
     if (auto patches = cfg->Get("Patch")) {
         patches->Foreach([&](std::string key, std::shared_ptr<data::DataNode> node) {
-            auto res = m_pimpl_->m_patches_.emplace(static_cast<id_type>(std::stol(key)), node);
-            return res.second ? 1 : 0;
+            m_pimpl_->m_patches_.emplace(static_cast<id_type>(std::stol(key)), node);
         });
     }
 
@@ -78,13 +76,19 @@ void Scenario::CheckPoint() const {
     std::ostringstream os;
     os << db()->GetValue<std::string>("CheckPointFilePrefix", GetName()) << std::setfill('0') << std::setw(8)
        << GetStepNumber() << "." << db()->GetValue<std::string>("CheckPointFileSuffix", "xmf");
-    VERBOSE << std::setw(20) << "Check Point : " << os.str();
 
     auto dump = data::DataNode::New(os.str());
     dump->Set("Chart", m_pimpl_->m_atlas_->GetChart()->Serialize());
     auto patches = data::DataNode::New(data::DataNode::DN_TABLE);
-    for (auto const &item : m_pimpl_->m_patches_) { patches->Set(item.first, item.second); }
+    auto attrs = GetAttributes();
+    for (auto const &item : m_pimpl_->m_patches_) {
+        auto node = patches->CreateNode(std::to_string(item.first), data::DataNode::DN_TABLE);
+        item.second->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &p) {
+            if (attrs->Check(key + "/CheckPoint")) { node->Set(key, p); }
+        });
+    }
     dump->Set("Patch", patches);
+
     dump->Flush();
 }
 
@@ -114,7 +118,7 @@ Range<EntityId> const &Scenario::GetRange(std::string const &k) const { return m
 
 void Scenario::pimpl_s::Sync(std::shared_ptr<data::DataNode> const &attr, int level) {
     ASSERT(attr != nullptr);
-    VERBOSE << "Sync Attribute :" << attr->GetValue<std::string>("Name");
+    //    VERBOSE << "Sync Attribute :" << attr->GetValue<std::string>("Name");
 
     std::shared_ptr<parallel::MPIUpdater> updater = nullptr;
     auto value_type_s = attr->GetValue<std::string>("ValueType", "double");
@@ -130,31 +134,31 @@ void Scenario::pimpl_s::Sync(std::shared_ptr<data::DataNode> const &attr, int le
     } else {
         UNIMPLEMENTED;
     }
-    CHECK(value_type_s);
-//    auto iform = attr->GetValue<int>("IFORM");
-//    auto dof = attr->GetValue<int>("DOF", 0);
-//    auto key = attr->GetValue<std::string>("Name");
-//
-//    for (int N = 0; N < dof; ++N) {
-//        for (int dir = 0; dir < 3; ++dir) {
-//            updater->SetIndexBox(m_atlas_->GetIndexBox(iform, N));
-//            updater->SetGhostWidth(m_atlas_->GetGhostWidth());
-//            updater->SetDirection(dir);
-//            updater->SetUp();
-//            for (auto &item : m_patches_) {
-//                if (auto t = item.second->Get(key)) {
-//                    if (auto array = std::dynamic_pointer_cast<ArrayBase>(t->GetEntity(N))) { updater->Push(*array); }
-//                };
-//            }
-//            updater->SendRecv();
-//            for (auto &item : m_patches_) {
-//                if (auto t = item.second->Get(key)) {
-//                    if (auto array = std::dynamic_pointer_cast<ArrayBase>(t->GetEntity(N))) { updater->Pop(*array); }
-//                };
-//            }
-//            updater->TearDown();
-//        }
-//    }
+
+    auto iform = attr->GetValue<int>("IFORM");
+    auto dof = attr->GetValue<int>("DOF", 0);
+    auto key = attr->GetValue<std::string>("Name");
+
+    for (int N = 0; N < dof; ++N) {
+        for (int dir = 0; dir < 3; ++dir) {
+            updater->SetIndexBox(m_atlas_->GetIndexBox(iform, N));
+            updater->SetGhostWidth(m_atlas_->GetGhostWidth());
+            updater->SetDirection(dir);
+            updater->SetUp();
+            for (auto &item : m_patches_) {
+                if (auto t = item.second->Get(key)) {
+                    if (auto array = std::dynamic_pointer_cast<ArrayBase>(t->GetEntity(N))) { updater->Push(*array); }
+                };
+            }
+            updater->SendRecv();
+            for (auto &item : m_patches_) {
+                if (auto t = item.second->Get(key)) {
+                    if (auto array = std::dynamic_pointer_cast<ArrayBase>(t->GetEntity(N))) { updater->Pop(*array); }
+                };
+            }
+            updater->TearDown();
+        }
+    }
 }
 void Scenario::Synchronize(int level) {
 #ifdef MPI_FOUND
@@ -165,16 +169,15 @@ void Scenario::Synchronize(int level) {
     GLOBAL_COMM.barrier();
     if (GLOBAL_COMM.rank() == 0) {
         attrs->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &attr) {
-            if (attr == nullptr || attr->Check("LOCAL")) { return 0; }
+            if (attr == nullptr || attr->Check("LOCAL")) { return; }
             parallel::bcast_string(key);
             m_pimpl_->Sync(attr, level);
-            return 1;
         });
         parallel::bcast_string("");
     } else {
         while (1) {
             auto key = parallel::bcast_string();
-            if(key.empty()){break;}
+            if (key.empty()) { break; }
             auto attr = attrs->Get(key);
             if (attr == nullptr || attr->Check("LOCAL")) {
                 RUNTIME_ERROR << "Can not sync local/null attribute \"" << key << "\".";

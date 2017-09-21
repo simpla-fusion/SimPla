@@ -42,7 +42,7 @@ struct DataNodeHDF5 : public DataNode {
     size_type Add(std::string const& uri, const std::shared_ptr<DataNode>& v) override;
     size_type Delete(std::string const& uri) override;
     std::shared_ptr<DataNode> Get(std::string const& uri) const override;
-    size_type Foreach(std::function<size_type(std::string, std::shared_ptr<DataNode> const&)> const& f) const override;
+    void Foreach(std::function<void(std::string, std::shared_ptr<DataNode> const&)> const& f) const override;
 
     size_type Set(index_type s, const std::shared_ptr<DataNode>& v) override;
     size_type Add(index_type s, const std::shared_ptr<DataNode>& v) override;
@@ -91,22 +91,23 @@ int DataNodeHDF5::Connect(std::string const& authority, std::string const& path,
         if (GLOBAL_COMM.rank() == 0) {
             std::ofstream summary(prefix + ".summary.txt");
             for (int i = 0, ie = GLOBAL_COMM.size(); i < ie; ++i) {
-                summary << prefix << "." << std::setfill('0') << std::setw(digital) << i << ".xmf" << std::endl;
+                summary << prefix << "." << std::setfill('0') << std::setw(digital) << i << ".h5" << std::endl;
             }
         }
         std::ostringstream os;
-        os << prefix << "." << std::setfill('0') << std::setw(digital) << GLOBAL_COMM.rank() << ".xmf";
+        os << prefix << "." << std::setfill('0') << std::setw(digital) << GLOBAL_COMM.rank() << ".h5";
         filename = os.str();
     }
 
 #endif
+    if (filename.empty()) { filename = "simpla_unamed.h5"; }
 
     // = AutoIncreaseFileName(authority + "/" + path, "// .h5");
 
     LOGGER << "Create HDF5 File: [" << filename << "]" << std::endl;
-    if (!(query.empty() && fragment.empty())) {
-        TODO << "Parser query : [ " << query << " ] and fragment : [ " << fragment << " ]" << std::endl;
-    }
+    //    if (!(query.empty() && fragment.empty())) {
+    //        TODO << "Parser query : [ " << query << " ] and fragment : [ " << fragment << " ]" << std::endl;
+    //    }
     //    mkdir(authority.c_str(), 0777);
     H5_ERROR(m_file_ = H5Fcreate(filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT));
     H5_ERROR(m_group_ = H5Gopen(m_file_, "/", H5P_DEFAULT));
@@ -620,8 +621,7 @@ size_type HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataNode> 
         case DataNode::DN_ARRAY:
         case DataNode::DN_TABLE: {
             hid_t sub_gid = HDF5CreateOrOpenGroup(g_id, key);
-            count = node->Foreach(
-                [&](std::string k, std::shared_ptr<DataNode> const& n) { return HDF5Set(sub_gid, k, n); });
+            node->Foreach([&](std::string k, std::shared_ptr<DataNode> const& n) { count += HDF5Set(sub_gid, k, n); });
         } break;
         case DataNode::DN_ENTITY:
             count = HDF5SetEntity(g_id, key, node->GetEntity());
@@ -638,8 +638,7 @@ size_type HDF5Add(hid_t g_id, std::string const& key, std::shared_ptr<DataNode> 
         case DataNode::DN_ARRAY:
         case DataNode::DN_TABLE: {
             hid_t sub_gid = HDF5CreateOrOpenGroup(g_id, key);
-            count = node->Foreach(
-                [&](std::string k, std::shared_ptr<DataNode> const& n) { return HDF5Set(sub_gid, k, n); });
+            node->Foreach([&](std::string k, std::shared_ptr<DataNode> const& n) { count += HDF5Set(sub_gid, k, n); });
         } break;
         case DataNode::DN_ENTITY:
             count = HDF5SetEntity(g_id, key, node->GetEntity());
@@ -696,9 +695,8 @@ size_type DataNodeHDF5::Add(std::string const& uri, const std::shared_ptr<DataNo
     return count;
 }
 
-size_type DataNodeHDF5::Foreach(
-    std::function<size_type(std::string, std::shared_ptr<DataNode> const&)> const& fun) const {
-    if (m_group_ == -1) { return 0; };
+void DataNodeHDF5::Foreach(std::function<void(std::string, std::shared_ptr<DataNode> const&)> const& fun) const {
+    if (m_group_ == -1) { return; };
     H5G_info_t g_info;
     H5_ERROR(H5Gget_info(m_group_, &g_info));
 
@@ -709,7 +707,7 @@ size_type DataNodeHDF5::Foreach(
         H5Lget_name_by_idx(m_group_, ".", H5_INDEX_NAME, H5_ITER_INC, i, buffer, static_cast<size_t>(num + 1),
                            H5P_DEFAULT);
 
-        count += fun(std::string(buffer), Get(std::string(buffer)));
+        fun(std::string(buffer), Get(std::string(buffer)));
     }
     H5O_info_t o_info;
     H5_ERROR(H5Oget_info(m_group_, &o_info));
@@ -719,9 +717,8 @@ size_type DataNodeHDF5::Foreach(
         H5_ERROR(H5Aget_name_by_idx(m_group_, ".", H5_INDEX_NAME, H5_ITER_INC, i, buffer, static_cast<size_t>(num + 1),
                                     H5P_DEFAULT));
 
-        count += fun(std::string(buffer), Get(std::string(buffer)));
+        fun(std::string(buffer), Get(std::string(buffer)));
     }
-    return count;
 }
 size_type DataNodeHDF5::Set(index_type s, const std::shared_ptr<DataNode>& v) { return Set(std::to_string(s), v); }
 size_type DataNodeHDF5::Add(index_type s, const std::shared_ptr<DataNode>& v) { return Add(std::to_string(s), v); }

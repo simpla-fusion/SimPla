@@ -85,8 +85,7 @@ void Atlas::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
 
     auto patches = tdb->Get("Blocks");
     patches->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &dnode) {
-        auto res = m_pimpl_->m_blocks_.emplace(std::stoi(key), MeshBlock::New(dnode));
-        return res.second ? 1 : 0;
+        m_pimpl_->m_blocks_.emplace(std::stoi(key), MeshBlock::New(dnode));
     });
 
     Click();
@@ -162,8 +161,6 @@ void Atlas::SetBoundingBox(box_type const &b) { m_pimpl_->m_box_ = b; }
 box_type Atlas::GetBoundingBox() const { return m_pimpl_->m_box_; }
 index_box_type Atlas::GetIndexBox(int tag, int direction) const { return m_pimpl_->m_index_box_; }
 index_tuple Atlas::GetGhostWidth() const { return m_pimpl_->m_ghost_width_; }
-
-
 
 // int Atlas::GetNumOfLevel() const { return m_pimpl_->(); }
 // int Atlas::GetMaxLevel() const { return m_pimpl_->m_max_level_; }

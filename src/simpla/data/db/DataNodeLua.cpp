@@ -97,14 +97,13 @@ std::ostream& PrintLua(std::ostream& os, std::shared_ptr<DataNode> const& node, 
             bool is_first = true;
             bool new_line = node->size() > 1;
             node->Foreach([&](auto k, auto v) {
-                if (v == nullptr) { return 0; }
+                if (v == nullptr) { return; }
                 if (is_first) {
                     is_first = false;
                 } else {
                     os << ", ";
                 }
                 PrintLua(os, v, indent + 1);
-                return 1;
             });
 
             //            if (new_line) { os << std::endl << std::setw(indent) << " "; }
@@ -184,8 +183,7 @@ std::shared_ptr<DataNode> LuaToDataNode(std::shared_ptr<LuaObject> const& tobj) 
 }
 size_type DataNodeLua::Load(std::shared_ptr<LuaObject> const& lobj) {
     size_type count = 0;
-    count =
-        LuaToDataNode(lobj)->Foreach([&](std::string k, std::shared_ptr<DataNode> v) { return this->Set(k, v); });
+    LuaToDataNode(lobj)->Foreach([&](std::string k, std::shared_ptr<DataNode> v) { count += this->Set(k, v); });
     return count;
 }
 

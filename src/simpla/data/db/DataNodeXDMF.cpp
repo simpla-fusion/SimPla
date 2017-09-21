@@ -238,9 +238,11 @@ size_type XDMFAttributeInsertOne(T& grid, std::string const& s_name, std::shared
 }
 template <typename T>
 size_type XDMFAttributeInsert(T& grid, std::shared_ptr<data::DataNode> const& attrs) {
-    return attrs->Foreach([&](std::string const& k, std::shared_ptr<data::DataNode> const& node) {
-        return XDMFAttributeInsertOne(grid, k, node);
+    size_type count = 0;
+    attrs->Foreach([&](std::string const& k, std::shared_ptr<data::DataNode> const& node) {
+        count += XDMFAttributeInsertOne(grid, k, node);
     });
+    return count;
 }
 boost::shared_ptr<XdmfCurvilinearGrid> XDMFCurvilinearGridNew(std::shared_ptr<DataNode> const& chart,
                                                               std::shared_ptr<data::DataNode> const& patch) {

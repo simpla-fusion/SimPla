@@ -797,11 +797,11 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     m_ctx_->GetAttributes()->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &item) {
         if (item->Check("IS_NOT_OWNED") ||
             m_samrai_variables_.find(item->GetValue<id_type>("DescID")) != m_samrai_variables_.end()) {
-            return 0;
+            return;
         }
 
         auto var = simpla::detail::ConvertVariable(item);
-        if (var == nullptr) { return 0; }
+        if (var == nullptr) { return; }
         m_samrai_variables_.emplace(item->GetValue<id_type>("DescID"),
                                     std::make_pair(std::dynamic_pointer_cast<data::DataNode>(item), var));
 
@@ -869,7 +869,6 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         //            &d_particle_writer_,
         //                                                        1.0, "CELL", "CLEAN");
         //        }
-        return 1;
     });
     integrator->printClassData(std::cout);
     vardb->printClassData(std::cout);
@@ -902,7 +901,8 @@ void SAMRAIHyperbolicPatchStrategyAdapter::PushPatch(const std::shared_ptr<data:
         auto samrai_id = SAMRAI::hier::VariableDatabase::getDatabase()->mapVariableAndContextToIndex(item.second.second,
                                                                                                      getDataContext());
         auto dst = patch.getPatchData(samrai_id);
-        //        if (detail::ConvertDataEntity(p->GetDataEntity(item.first), dst.get())) { patch.setPatchData(samrai_id,
+        //        if (detail::ConvertDataEntity(p->GetDataEntity(item.first), dst.get())) {
+        //        patch.setPatchData(samrai_id,
         //        dst); };
     }
 }
