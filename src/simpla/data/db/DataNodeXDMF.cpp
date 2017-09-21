@@ -100,7 +100,7 @@ int XDMFWriteArray(XdmfArray* dst, std::shared_ptr<DataNode> const& data) {
         std::vector<unsigned int> dimensions{static_cast<unsigned int>(hi[0] - lo[0]),
                                              static_cast<unsigned int>(hi[1] - lo[1]),
                                              static_cast<unsigned int>(hi[2] - lo[2]), dof};
-        for (int i = 0; i < dof; ++i) {
+        for (unsigned int i = 0; i < dof; ++i) {
             if (auto block = std::dynamic_pointer_cast<Array<double>>(data->Get(i)->GetEntity())) {
                 dst->initialize(XdmfType<double>::type(), dimensions);
                 dst->insert(i, block->get(), block->size(), dof, 1);
@@ -239,9 +239,11 @@ size_type XDMFAttributeInsertOne(T& grid, std::string const& s_name, std::shared
 template <typename T>
 size_type XDMFAttributeInsert(T& grid, std::shared_ptr<data::DataNode> const& attrs) {
     size_type count = 0;
-    attrs->Foreach([&](std::string const& k, std::shared_ptr<data::DataNode> const& node) {
-        count += XDMFAttributeInsertOne(grid, k, node);
-    });
+    if (attrs != nullptr) {
+        attrs->Foreach([&](std::string const& k, std::shared_ptr<data::DataNode> const& node) {
+            count += XDMFAttributeInsertOne(grid, k, node);
+        });
+    }
     return count;
 }
 boost::shared_ptr<XdmfCurvilinearGrid> XDMFCurvilinearGridNew(std::shared_ptr<DataNode> const& chart,
@@ -301,7 +303,7 @@ int XDMFDump(std::string url, std::shared_ptr<DataNode> const& obj) {
         auto attr = obj->Get("Attributes");
         if (auto patch = obj->Get("Patch")) {
             patch->Foreach([&](std::string const& k, std::shared_ptr<data::DataNode> const& node) {
-                if (node->Get("Attributes/_COORDINATES_") != nullptr) {
+                if (node->Get("_COORDINATES_") != nullptr) {
                     auto g = XDMFCurvilinearGridNew(chart, node);
                     g->setName(k);
                     grid_collection->insert(g);

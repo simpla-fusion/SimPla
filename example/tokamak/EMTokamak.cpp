@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
     scenario->SetMaxStep(100);
     scenario->SetUp();
 
-    INFORM << "Attributes" << *scenario->GetAttributes() << std::endl;
+    //    INFORM << "Attributes" << *scenario->GetAttributes() << std::endl;
     //    std::cout << *scenario->Serialize() << std::endl;
 
     TheStart();
