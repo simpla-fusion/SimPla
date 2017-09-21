@@ -137,6 +137,7 @@ struct Attribute : public EngineObject {
     virtual int const *GetDOFs() const = 0;
     virtual int GetRank() const = 0;
     virtual void SetDOF(int rank, int const *d) = 0;
+    virtual std::shared_ptr<data::DataNode> GetDescription() const = 0;
 
     void Register(AttributeGroup *p = nullptr);
     void Deregister(AttributeGroup *p = nullptr);
@@ -223,6 +224,7 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
     int const *GetDOFs() const override { return m_extents_; };
     int GetRank() const override { return sizeof...(DOF); };
     void SetDOF(int rank, int const *d) override { DOMAIN_ERROR; };
+    std::shared_ptr<data::DataNode> GetDescription() const override;
 
     auto &GetData(int n) { return data_type::operator[](n); }
     auto const &GetData(int n) const { return data_type::operator[](n); }
@@ -269,19 +271,20 @@ template <typename V, int IFORM, int... DOF>
 constexpr int AttributeT<V, IFORM, DOF...>::m_extents_[sizeof...(DOF) + 1];
 
 template <typename V, int IFORM, int... DOF>
-AttributeT<V, IFORM, DOF...>::AttributeT() {
-    db()->SetValue("IFORM", IFORM);
-    db()->SetValue("DOF", DOF...);
-    db()->SetValue("ValueType", traits::type_name<V>::value());
-};
+AttributeT<V, IFORM, DOF...>::AttributeT() = default;
 template <typename V, int IFORM, int... DOF>
-AttributeT<V, IFORM, DOF...>::~AttributeT(){};
-// template <typename V, int IFORM, int... DOF>
-// std::string AttributeT<V, IFORM, DOF...>::FancyTypeName() {
-//    return "AttributeT<" + simpla::traits::type_name<V>::value() + "," + EntityIFORMName[IFORM] +
-//           ((sizeof...(DOF) == 0) ? "" : ("," + simpla::traits::to_string(DOF...))) + ">";
-//    ;
-//}
+AttributeT<V, IFORM, DOF...>::~AttributeT() = default;
+
+template <typename V, int IFORM, int... DOF>
+std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::GetDescription() const {
+    auto res = data::DataNode::New(data::DataNode::DN_TABLE);
+    res->Set(db());
+    res->SetValue("Name", GetName());
+    res->SetValue("IFORM", IFORM);
+    res->SetValue("DOF", DOF...);
+    res->SetValue("ValueType", traits::type_name<V>::value());
+    return res;
+};
 
 namespace detail {
 template <typename U>
@@ -367,32 +370,28 @@ void AttributeT<V, IFORM, DOF...>::Clear() {
 template <typename V, int IFORM, int... DOF>
 std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Serialize() const {
     auto res = base_type::Serialize();
-    res->Set(Pop());
+//    res->Set("_DATA_", Pop());
+    res->Set(GetDescription());
     return res;
 };
 template <typename V, int IFORM, int... DOF>
 void AttributeT<V, IFORM, DOF...>::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
-    Push(cfg);
+//    Push(cfg->Get("_DATA_"));
 };
 template <typename V, int IFORM, int... DOF>
 void AttributeT<V, IFORM, DOF...>::Push(const std::shared_ptr<data::DataNode> &d) {
-    detail::push_data(*this, d->Get("_DATA_"));
+    detail::push_data(*this, d);
 };
 
 template <typename V, int IFORM, int... DOF>
 std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Pop() const {
-    auto res = data::DataNode::New(data::DataNode::DN_TABLE);
-    res->SetValue("IFORM", IFORM);
-    res->SetValue("DOF", DOF...);
-    res->SetValue("ValueType", traits::type_name<V>::value());
-    res->Set("_DATA_", detail::pop_data(*this));
-    return res;
+    return detail::pop_data(*this);
 };
 template <typename V, int IFORM, int... DOF>
 template <typename RHS>
-void AttributeT<V, IFORM, DOF...>::Assign(RHS const &rhs) {
-    FIXME;
+void AttributeT<V, IFORM, DOF...>::Assign(RHS const &rhs){
+    //    FIXME;
 };
 }  // namespace engine
 }  // namespace simpla

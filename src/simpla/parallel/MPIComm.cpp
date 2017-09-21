@@ -84,7 +84,8 @@ void MPIComm::Initialize(int argc, char **argv) {
                   "[("
                << m_topology_coord_[0] << "," << m_topology_coord_[1] << "," << m_topology_coord_[2] << ")/("
                << m_pimpl_->m_topology_dims_[0] << "," << m_pimpl_->m_topology_dims_[1] << ","
-               << m_pimpl_->m_topology_dims_[2] << ")]" << std::endl;
+               << m_pimpl_->m_topology_dims_[2] << ")/(" << periods[0] << "," << periods[1] << "," << periods[2] << "]"
+               << std::endl;
     }
 }
 
@@ -141,16 +142,18 @@ void MPIComm::Finalize() {
     }
 }
 
-void bcast_string(std::string *filename_) {
-    if (GLOBAL_COMM.size() <= 1) return;
+std::string bcast_string(std::string const &str) {
+    if (GLOBAL_COMM.size() <= 1) { return str; };
+    std::string s_buffer = str;
     int name_len;
-    if (GLOBAL_COMM.process_num() == 0) { name_len = static_cast<int>(filename_->size()); }
+    if (GLOBAL_COMM.process_num() == 0) { name_len = s_buffer.size(); }
     MPI_Bcast(&name_len, 1, MPI_INT, 0, GLOBAL_COMM.m_pimpl_->m_comm_);
     std::vector<char> buffer(static_cast<size_type>(name_len));
-    if (GLOBAL_COMM.process_num() == 0) { std::copy(filename_->begin(), filename_->end(), buffer.begin()); }
+    if (GLOBAL_COMM.process_num() == 0) { std::copy(s_buffer.begin(), s_buffer.end(), buffer.begin()); }
     MPI_Bcast((&buffer[0]), name_len, MPI_CHAR, 0, GLOBAL_COMM.m_pimpl_->m_comm_);
     buffer.push_back('\0');
-    if (GLOBAL_COMM.process_num() != 0) { *filename_ = &buffer[0]; }
+    if (GLOBAL_COMM.process_num() != 0) { s_buffer = &buffer[0]; }
+    return s_buffer;
 }
 }
 }  // namespace simpla{namespace parallel{

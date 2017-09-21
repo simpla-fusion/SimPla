@@ -37,6 +37,7 @@ struct ArrayBase {
     virtual size_type CopyOut(ArrayBase& other) const { return other.CopyIn(*this); };
     virtual void Clear() = 0;
     virtual void reset(void*, index_type const* lo, index_type const* hi) = 0;
+    virtual void reset(index_box_type const& b) = 0;
 };
 
 template <typename V, typename SFC = ZSFC<3>>
@@ -123,11 +124,18 @@ class Array : public ArrayBase {
         if (auto* p = dynamic_cast<this_type*>(&other)) { count = CopyOut(*p); }
         return count;
     };
+    void reset(index_box_type const& b) override {
+        m_data_ = nullptr;
+        m_holder_.reset();
+        m_sfc_.reset(b);
+    }
+
     void reset(void* d, index_type const* lo, index_type const* hi) override {
         m_data_ = reinterpret_cast<value_type*>(d);
         m_holder_.reset();
         m_sfc_.reset(lo, hi);
     };
+
     template <typename... Args>
     void reset(value_type* d, Args&&... args) {
         m_data_ = d;

@@ -47,8 +47,8 @@ int DataNodeXDMF::Connect(std::string const& authority, std::string const& path,
         int digital = static_cast<int>(std::floor(std::log(static_cast<double>(GLOBAL_COMM.size())))) + 1;
         if (GLOBAL_COMM.rank() == 0) {
             std::ofstream summary(prefix + ".summary.xmf");
-            summary << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
-            summary << "<Xdmf Version=\"2.0\" xmlns:xi=\"http://www.w3.org/2001/XInclude\">" << std::endl;
+            summary << R"(<?xml version="1.0" encoding="utf-8"?>)" << std::endl;
+            summary << R"(<Xdmf Version="2.0" xmlns:xi="http://www.w3.org/2001/XInclude">)" << std::endl;
             for (int i = 0, ie = GLOBAL_COMM.size(); i < ie; ++i) {
                 summary << "  <xi:include href=\"" << prefix << "." << std::setfill('0') << std::setw(digital) << i
                         << ".xmf\"/>" << std::endl;
@@ -231,8 +231,8 @@ size_type XDMFAttributeInsertOne(T& grid, std::string const& s_name, std::shared
         count = 1;
 
     } else {
-//        VERBOSE << std::setw(20) << "Write XDMF : "
-//                << "Ignore EDGE/FACE center attribute \"" << s_name << "\".";
+        //        VERBOSE << std::setw(20) << "Write XDMF : "
+        //                << "Ignore EDGE/FACE center attribute \"" << s_name << "\".";
     }
     return count;
 }
@@ -244,7 +244,7 @@ size_type XDMFAttributeInsert(T& grid, std::shared_ptr<data::DataNode> const& at
 }
 boost::shared_ptr<XdmfCurvilinearGrid> XDMFCurvilinearGridNew(std::shared_ptr<DataNode> const& chart,
                                                               std::shared_ptr<data::DataNode> const& patch) {
-    auto coord = patch->Get("Attributes/_COORDINATES_/_DATA_");
+    auto coord = patch->Get("Attributes/_COORDINATES_");
 
     ASSERT(coord != nullptr && coord->type() == DataNode::DN_ARRAY);
     auto x = std::dynamic_pointer_cast<Array<Real>>(coord->Get(0)->GetEntity());
@@ -295,7 +295,8 @@ int XDMFDump(std::string url, std::shared_ptr<DataNode> const& obj) {
             grid_collection->setTime(XdmfTime::New(t->value()));
         }
     }
-    if (auto chart = obj->Get("Chart"))
+    if (auto chart = obj->Get("Chart")) {
+        auto attr = obj->Get("Attributes");
         if (auto patch = obj->Get("Patch")) {
             patch->Foreach([&](std::string const& k, std::shared_ptr<data::DataNode> const& node) {
                 if (node->Get("Attributes/_COORDINATES_") != nullptr) {
@@ -310,7 +311,7 @@ int XDMFDump(std::string url, std::shared_ptr<DataNode> const& obj) {
                 return 1;
             });
         }
-
+    }
     auto domain = XdmfDomain::New();
     domain->insert(grid_collection);
     if (auto writer = XdmfWriter::New(url)) {

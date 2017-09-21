@@ -84,7 +84,7 @@ class Atlas : public EngineObject {
     };
     void SetBoundingBox(box_type const &);
     box_type GetBoundingBox() const;
-    index_box_type GetIndexBox(int tag = 0) const;
+    index_box_type GetIndexBox(int tag = NODE, int direction = 0) const;
     index_tuple GetGhostWidth() const;
     void DoSetUp() override;
     void DoUpdate() override;

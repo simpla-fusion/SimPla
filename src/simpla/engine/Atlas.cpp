@@ -160,7 +160,7 @@ int Atlas::Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const
 };
 void Atlas::SetBoundingBox(box_type const &b) { m_pimpl_->m_box_ = b; }
 box_type Atlas::GetBoundingBox() const { return m_pimpl_->m_box_; }
-index_box_type Atlas::GetIndexBox(int tag) const { return m_pimpl_->m_index_box_; }
+index_box_type Atlas::GetIndexBox(int tag, int direction) const { return m_pimpl_->m_index_box_; }
 index_tuple Atlas::GetGhostWidth() const { return m_pimpl_->m_ghost_width_; }
 
 

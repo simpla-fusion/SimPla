@@ -26,8 +26,7 @@ struct Scenario::pimpl_s {
 
     size_type m_step_counter_ = 0;
 
-    template <typename V>
-    void Sync(std::string const &key, int IFORM);
+    void Sync(std::shared_ptr<data::DataNode> const &attr, int level);
 };
 
 Scenario::Scenario() : m_pimpl_(new pimpl_s) { m_pimpl_->m_atlas_ = Atlas::New(); }
@@ -42,8 +41,9 @@ std::shared_ptr<data::DataNode> Scenario::Serialize() const {
     res->SetValue("Time", GetTimeNow());
 
     res->Set("Atlas", GetAtlas()->Serialize());
+
     res->Set("Chart", m_pimpl_->m_atlas_->GetChart()->Serialize());
-    res->Set("Attributes", GetAttributes());
+
     auto domain = data::DataNode::New(data::DataNode::DN_TABLE);
     for (auto const &item : m_pimpl_->m_domains_) { domain->Set(item.first, item.second->Serialize()); }
     res->Set("Domain", domain);
@@ -70,6 +70,7 @@ void Scenario::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
             return res.second ? 1 : 0;
         });
     }
+
     Click();
 }
 
@@ -101,7 +102,7 @@ void Scenario::Dump() const {
 std::shared_ptr<data::DataNode> Scenario::GetAttributes() const {
     auto res = data::DataNode::New(data::DataNode::DN_TABLE);
     for (auto &item : m_pimpl_->m_domains_) {
-        for (auto *attr : item.second->GetAttributes()) { res->Set(attr->GetName(), attr->Serialize()); }
+        for (auto *attr : item.second->GetAttributes()) { res->Set(attr->GetName(), attr->GetDescription()); }
     }
     return res;
 };
@@ -111,37 +112,79 @@ Range<EntityId> &Scenario::GetRange(std::string const &k) {
 }
 Range<EntityId> const &Scenario::GetRange(std::string const &k) const { return m_pimpl_->m_ranges_.at(k); }
 
-template <typename V>
-void Scenario::pimpl_s::Sync(std::string const &key, int NODE_ID) {
-    auto updater = parallel::MPIUpdater::New<V>();
-    updater->SetIndexBox(m_atlas_->GetIndexBox(NODE_ID));
-    updater->SetGhostWidth(m_atlas_->GetGhostWidth());
-    updater->SetUp();
-    for (auto &item : m_patches_) {
-        if (auto attr = item.second->Get(key)) {
-            switch (NODE_ID) {
-                case 0:
-                case 7:
-                    if (auto a = std::dynamic_pointer_cast<ArrayBase>(item.second->GetEntity())) { updater->Push(*a); }
+void Scenario::pimpl_s::Sync(std::shared_ptr<data::DataNode> const &attr, int level) {
+    ASSERT(attr != nullptr);
+    VERBOSE << "Sync Attribute :" << attr->GetValue<std::string>("Name");
 
-            }
-        };
+    std::shared_ptr<parallel::MPIUpdater> updater = nullptr;
+    auto value_type_s = attr->GetValue<std::string>("ValueType", "double");
+
+    if (value_type_s == "double") {
+        updater = parallel::MPIUpdater::New<double>();
+    } else if (value_type_s == "int") {
+        updater = parallel::MPIUpdater::New<int>();
+    } else if (value_type_s == "long") {
+        updater = parallel::MPIUpdater::New<long>();
+    } else if (value_type_s == "unsigned long") {
+        updater = parallel::MPIUpdater::New<unsigned long>();
+    } else {
+        UNIMPLEMENTED;
     }
+    CHECK(value_type_s);
+//    auto iform = attr->GetValue<int>("IFORM");
+//    auto dof = attr->GetValue<int>("DOF", 0);
+//    auto key = attr->GetValue<std::string>("Name");
+//
+//    for (int N = 0; N < dof; ++N) {
+//        for (int dir = 0; dir < 3; ++dir) {
+//            updater->SetIndexBox(m_atlas_->GetIndexBox(iform, N));
+//            updater->SetGhostWidth(m_atlas_->GetGhostWidth());
+//            updater->SetDirection(dir);
+//            updater->SetUp();
+//            for (auto &item : m_patches_) {
+//                if (auto t = item.second->Get(key)) {
+//                    if (auto array = std::dynamic_pointer_cast<ArrayBase>(t->GetEntity(N))) { updater->Push(*array); }
+//                };
+//            }
+//            updater->SendRecv();
+//            for (auto &item : m_patches_) {
+//                if (auto t = item.second->Get(key)) {
+//                    if (auto array = std::dynamic_pointer_cast<ArrayBase>(t->GetEntity(N))) { updater->Pop(*array); }
+//                };
+//            }
+//            updater->TearDown();
+//        }
+//    }
 }
 void Scenario::Synchronize(int level) {
+#ifdef MPI_FOUND
+    if (GLOBAL_COMM.size() <= 1) { return; }
+
     ASSERT(level == 0)
+    auto attrs = GetAttributes();
+    GLOBAL_COMM.barrier();
+    if (GLOBAL_COMM.rank() == 0) {
+        attrs->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &attr) {
+            if (attr == nullptr || attr->Check("LOCAL")) { return 0; }
+            parallel::bcast_string(key);
+            m_pimpl_->Sync(attr, level);
+            return 1;
+        });
+        parallel::bcast_string("");
+    } else {
+        while (1) {
+            auto key = parallel::bcast_string();
+            if(key.empty()){break;}
+            auto attr = attrs->Get(key);
+            if (attr == nullptr || attr->Check("LOCAL")) {
+                RUNTIME_ERROR << "Can not sync local/null attribute \"" << key << "\".";
+            }
+            m_pimpl_->Sync(attr, level);
+        }
+    }
+    GLOBAL_COMM.barrier();
 
-    GetAttributes()->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> &attr) {
-        int iform = attr->GetValue<int>("IFORM");
-        int dof = attr->GetValue<int>("DOF", 0);
-        ASSERT(dof != 0);
-
-        switch (iform) { case NODE: }
-    });
-
-    //    std::shared_ptr<MeshBlock> blk;
-    //    for (auto &item : m_pimpl_->m_attributes_) {}
-    //    m_pimpl_->m_atlas_->Synchronize(level, m_pimpl_->m_patches_);
+#endif  // MPI_FOUND
 }
 void Scenario::NextStep() { ++m_pimpl_->m_step_counter_; }
 void Scenario::SetStepNumber(size_type s) { m_pimpl_->m_step_counter_ = s; }

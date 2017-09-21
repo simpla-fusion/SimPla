@@ -92,6 +92,7 @@ class ZSFC {
     }
 
     void reset(index_box_type const& b) {
+        reset();
         m_index_box_ = b;
         Update();
     }

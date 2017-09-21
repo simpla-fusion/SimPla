@@ -163,11 +163,9 @@ int main(int argc, char **argv) {
         std::ostringstream os;
         auto t_db = app->Serialize();
         //        data::Pack(t_db, os, "lua");
-        std::string buffer = os.str();
-        parallel::bcast_string(&buffer);
+        parallel::bcast_string(os.str());
     } else {
-        std::string buffer;
-        parallel::bcast_string(&buffer);
+        std::string buffer = parallel::bcast_string();
         auto t_cfg = data::DataNode::New("lua://");
         t_cfg->Parse(buffer);
         app->Deserialize(t_cfg);

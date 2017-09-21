@@ -1292,7 +1292,7 @@ void SAMRAITimeIntegrator::DoUpdate() {
     nTuple<int, 3> i_low{0, 0, 0};
     nTuple<int, 3> i_up{0, 0, 0};
 
-    std::tie(i_low, i_up) = GetAtlas()->GetIndexBox(NODE);
+    std::tie(i_low, i_up) = GetAtlas()->GetIndexBox(NODE, 0);
 
     cfgCartesianGridGeometry->putDatabaseBox(
         "domain_boxes_0", SAMRAI::tbox::DatabaseBox{SAMRAI::tbox::Dimension(3), &i_low[0], &i_up[0]});
