@@ -17,4 +17,6 @@ TEST(TestAttribute, GUID) {
 
     std::cout << f[0] << std::endl;
     std::cout << g[0] << std::endl;
+
+
 }

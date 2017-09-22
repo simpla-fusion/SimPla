@@ -52,6 +52,7 @@ class ZSFC {
           m_offset_(other.m_offset_),
           m_array_order_fast_first_(other.m_array_order_fast_first_) {}
 
+    this_type Overlap(std::nullptr_t) const { return this; }
     template <typename RHS>
     this_type Overlap(RHS const& rhs) const;
     this_type Overlap(this_type const& rhs) const;

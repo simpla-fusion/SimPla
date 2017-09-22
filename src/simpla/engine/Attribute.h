@@ -2,8 +2,8 @@
 // Created by salmon on 16-10-20.
 //
 
-#ifndef SIMPLA_ATTRIBUTEVIEW_H
-#define SIMPLA_ATTRIBUTEVIEW_H
+#ifndef SIMPLA_ATTRIBUTE_H
+#define SIMPLA_ATTRIBUTE_H
 
 #include "simpla/SIMPLA_config.h"
 
@@ -11,8 +11,8 @@
 #include "simpla/algebra/Array.h"
 #include "simpla/algebra/ArrayNTuple.h"
 #include "simpla/data/Data.h"
+#include "simpla/utilities/SPDefines.h"
 #include "simpla/utilities/type_traits.h"
-
 namespace simpla {
 template <typename V, typename SFC>
 class Array;
@@ -175,11 +175,12 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
    private:
     typedef Attribute base_type;
     typedef AttributeT this_type;
+
+   public:
     typedef typename attribute_traits<V, IFORM, DOF...>::data_type data_type;
     typedef V value_type;
     typedef Array<value_type> array_type;
 
-   public:
     static constexpr int iform = IFORM;
 
     AttributeT();
@@ -261,6 +262,11 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
     template <typename RHS>
     this_type &operator=(RHS const &rhs) {
         Assign(rhs);
+        return *this;
+    }
+    template <typename... RHS>
+    this_type &operator=(Expression<RHS...> const &rhs) {
+        data_type::operator=(rhs);
         return *this;
     }
 
@@ -370,14 +376,12 @@ void AttributeT<V, IFORM, DOF...>::Clear() {
 template <typename V, int IFORM, int... DOF>
 std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Serialize() const {
     auto res = base_type::Serialize();
-//    res->Set("_DATA_", Pop());
     res->Set(GetDescription());
     return res;
 };
 template <typename V, int IFORM, int... DOF>
 void AttributeT<V, IFORM, DOF...>::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
-//    Push(cfg->Get("_DATA_"));
 };
 template <typename V, int IFORM, int... DOF>
 void AttributeT<V, IFORM, DOF...>::Push(const std::shared_ptr<data::DataNode> &d) {
@@ -388,12 +392,108 @@ template <typename V, int IFORM, int... DOF>
 std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Pop() const {
     return detail::pop_data(*this);
 };
+
+namespace detail {
+template <typename... V>
+auto GetSFC(Array<V...> const &f) {
+    return f.GetSpaceFillingCurve();
+};
+template <typename First, typename... Others>
+auto GetSFC(First const &first, Others &&... others) {
+    return GetSFC(first).Overlap(GetSFC(std::forward<Others>(others)...));
+};
+template <size_type... I, typename V, int... N>
+auto GetSFC(std::integer_sequence<size_type, I...>, nTuple<V, N...> const &f) {
+    return GetSFC(f[I]...);
+};
+
+template <typename... V, int N0, int... N>
+auto GetSFC(nTuple<Array<V...>, N0, N...> const &f) {
+    return GetSFC(std::make_index_sequence<N0>(), f);
+};
+
+template <typename V, int... N>
+auto GetSFC(simpla::engine::AttributeT<V, N...> const &f) {
+    return GetSFC(dynamic_cast<typename simpla::engine::AttributeT<V, N...>::data_type const &>(f));
+};
+template <size_type I, typename U>
+U const &get(U const &u) {
+    return u;
+}
+template <size_type I, typename U, int... N>
+auto const &get(nTuple<U, N...> const &u) {
+    return u[I];
+}
+
+template <size_type I, typename U>
+U &get(U &u) {
+    return u;
+}
+template <size_type I, typename U, int... N>
+auto &get(nTuple<U, N...> &u) {
+    return u[I];
+}
+template <typename U, typename... Idx>
+auto get_value(std::true_type, U const &u, Idx &&... idx) {
+    return u(std::forward<Idx>(idx)...);
+}
+template <typename U, typename... Idx>
+auto get_value(std::false_type, U const &u, Idx &&... idx) {
+    return u;
+}
+
+template <typename U, typename... Idx>
+auto get_value(U const &u, Idx &&... idx) {
+    return get_value(std::integral_constant<bool, traits::is_invocable<U, Idx...>::value>(), u,
+                     std::forward<Idx>(idx)...);
+}
+template <typename... V, typename U>
+void Assign_(Array<V...> &f, U const &v) {
+    f = v;
+};
+
+template <typename LHS, typename RHS>
+void Assign_(std::integer_sequence<size_type>, LHS &lhs, RHS const &rhs){};
+
+template <size_type I0, size_type... I, typename LHS, typename RHS>
+void Assign_(std::integer_sequence<size_type, I0, I...>, LHS &lhs, RHS const &rhs) {
+    Assign_(get<I0>(lhs), [&](auto &&... idx) { return get<I0>(get_value(rhs, std::forward<decltype(idx)>(idx)...)); });
+    Assign_(std::integer_sequence<size_type, I...>(), lhs, rhs);
+};
+
+template <typename V, int N0, int... N, typename U, typename... Idx>
+void Assign_(nTuple<V, N0, N...> &lhs, U const &rhs) {
+    Assign_(std::make_index_sequence<N0>(), lhs, rhs);
+};
+template <typename V, int... N, typename DOF>
+void Assign(AttributeT<V, NODE, N...> &lhs, DOF const &rhs) {
+    Assign_(lhs, rhs);
+};
+template <typename V, int... N, typename DOF>
+void Assign(AttributeT<V, CELL, N...> &lhs, DOF const &rhs) {
+    Assign_(lhs, rhs);
+};
+template <typename V, int... DOF, typename RHS>
+void Assign(AttributeT<V, EDGE, DOF...> &lhs, RHS const &rhs) {
+    Assign_(lhs[0], [&](auto &&... idx) { return get_value(rhs, 0b001, std::forward<decltype(idx)>(idx)...); });
+    Assign_(lhs[1], [&](auto &&... idx) { return get_value(rhs, 0b010, std::forward<decltype(idx)>(idx)...); });
+    Assign_(lhs[2], [&](auto &&... idx) { return get_value(rhs, 0b100, std::forward<decltype(idx)>(idx)...); });
+};
+template <typename V, int... DOF, typename RHS>
+void Assign(AttributeT<V, FACE, DOF...> &lhs, RHS const &rhs) {
+    Assign_(lhs[0], [&](auto &&... idx) { return get_value(rhs, 0b110, std::forward<decltype(idx)>(idx)...); });
+    Assign_(lhs[1], [&](auto &&... idx) { return get_value(rhs, 0b101, std::forward<decltype(idx)>(idx)...); });
+    Assign_(lhs[2], [&](auto &&... idx) { return get_value(rhs, 0b011, std::forward<decltype(idx)>(idx)...); });
+};
+}  // namespace detail{
+
 template <typename V, int IFORM, int... DOF>
 template <typename RHS>
-void AttributeT<V, IFORM, DOF...>::Assign(RHS const &rhs){
-    //    FIXME;
+void AttributeT<V, IFORM, DOF...>::Assign(RHS const &rhs) {
+    detail::Assign(*this, rhs);
 };
+
 }  // namespace engine
 }  // namespace simpla
 
-#endif  // SIMPLA_ATTRIBUTEVIEW_H
+#endif  // SIMPLA_ATTRIBUTE_H

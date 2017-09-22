@@ -13,4 +13,10 @@ int main(int argc, char** argv) {
 
     std::cout << f.GetRank() << std::endl;
     std::cout << g.GetRank() << std::endl;
+
+    engine::AttributeT<Real, EDGE> h{nullptr, "H"_};
+    h = [&](int w, index_type x, index_type y, index_type z) { return 1.0; };
+
+    engine::AttributeT<Real, EDGE, 3> h3{nullptr, "H3"_};
+    h3 = [&](int w, index_type x, index_type y, index_type z) { return 1.0; };
 }
