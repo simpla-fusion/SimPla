@@ -172,9 +172,8 @@ int XDMFWriteArray(XdmfArray* dst, std::shared_ptr<DataNode> const& data) {
 }
 auto XDMFAttributeInsertOne(std::shared_ptr<data::DataNode> const& attr_desc,
                             std::shared_ptr<data::DataNode> const& data) {
-    size_type count = 0;
     auto attr = XdmfAttribute::New();
-    attr->setName(s_name);
+    attr->setName(attr_desc->GetValue<std::string>("Name"));
     auto iform = attr_desc->GetValue<int>("IFORM");
     switch (iform) {
         case NODE:
@@ -225,37 +224,14 @@ auto XDMFAttributeInsertOne(std::shared_ptr<data::DataNode> const& attr_desc,
     }
 
     if (iform == NODE || iform == CELL) {
-        //        auto v_type = node->GetValue<std::string>("ValueType", "double");
-        //
-        //        if (v_type == "double") {
-        //            XDMFWriteArray<double>(attr.get(), node->Get("_DATA_"));
-        //        } else if (v_type == "float") {
-        //            XDMFWriteArray<float>(attr.get(), node->Get("_DATA_"));
-        //        } else if (v_type == "int") {
-        //            XDMFWriteArray<int>(attr.get(), node->Get("_DATA_"));
-        //        } else if (v_type == "long") {
-        //            XDMFWriteArray<long>(attr.get(), node->Get("_DATA_"));
-        //        }
         XDMFWriteArray(attr.get(), data);
-        grid->insert(attr);
-        count = 1;
-
     } else {
         //        VERBOSE << std::setw(20) << "Write XDMF : "
         //                << "Ignore EDGE/FACE center attribute \"" << s_name << "\".";
     }
-    return count;
+    return attr;
 }
-template <typename T>
-size_type XDMFAttributeInsert(T& grid, std::shared_ptr<data::DataNode> const& attrs) {
-    size_type count = 0;
-    if (attrs != nullptr) {
-        attrs->Foreach([&](std::string const& k, std::shared_ptr<data::DataNode> const& node) {
-            count += XDMFAttributeInsertOne(grid, k, node);
-        });
-    }
-    return count;
-}
+
 boost::shared_ptr<XdmfCurvilinearGrid> XDMFCurvilinearGridNew(std::shared_ptr<DataNode> const& chart,
                                                               std::shared_ptr<data::DataNode> const& blk,
                                                               std::shared_ptr<data::DataNode> const& coord) {
@@ -313,8 +289,12 @@ int XDMFDump(std::string const& url, std::shared_ptr<DataNode> const& obj) {
         }
     }
 
-    auto attr = obj->Get("Attributes");
-    auto patches = obj->Get("Patch");
+    auto attrs = obj->Get("Attributes");
+
+    auto patches = obj->Get("Patches");
+
+    ASSERT(attrs != nullptr && patches != nullptr);
+
     if (auto atlas = obj->Get("Atlas")) {
         auto chart = atlas->Get("Chart");
         auto blks = atlas->Get("Blocks");
@@ -324,12 +304,17 @@ int XDMFDump(std::string const& url, std::shared_ptr<DataNode> const& obj) {
                 if (patch->Get("_COORDINATES_") != nullptr) {
                     auto g = XDMFCurvilinearGridNew(chart, blk, patch->Get("_COORDINATES_"));
                     g->setName(k);
-                    XDMFAttributeInsert(g, patch);
+                    patch->Foreach([&](std::string const& s, std::shared_ptr<data::DataNode> const& d) {
+                        g->insert(XDMFAttributeInsertOne(attrs->Get(s), d));
+                    });
                     grid_collection->insert(g);
+
                 } else {
                     auto g = XDMFRegularGridNew(chart, blk);
                     g->setName(k);
-                    XDMFAttributeInsert(g, patch);
+                    patch->Foreach([&](std::string const& s, std::shared_ptr<data::DataNode> const& d) {
+                        g->insert(XDMFAttributeInsertOne(attrs->Get(s), d));
+                    });
                     grid_collection->insert(g);
                 }
             }

@@ -74,11 +74,13 @@ void Scenario::CheckPoint() const {
     std::ostringstream os;
     os << db()->GetValue<std::string>("CheckPointFilePrefix", GetName()) << std::setfill('0') << std::setw(8)
        << GetStepNumber() << "." << db()->GetValue<std::string>("CheckPointFileSuffix", "xmf");
+    auto attrs = GetAttributes();
 
     auto dump = data::DataNode::New(os.str());
+    dump->Set("Attributes", attrs);
+
     //    dump->Set("Chart", m_pimpl_->m_atlas_->GetChart()->Serialize());
     auto patches = data::DataNode::New(data::DataNode::DN_TABLE);
-    auto attrs = GetAttributes();
     for (auto const &item : m_pimpl_->m_patches_) {
         auto node = patches->CreateNode(std::to_string(item.first), data::DataNode::DN_TABLE);
         item.second->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &p) {
@@ -86,7 +88,7 @@ void Scenario::CheckPoint() const {
         });
     }
     dump->Set("Atlas", GetAtlas()->Serialize());
-    dump->Set("Patch", patches);
+    dump->Set("Patches", patches);
 
     dump->Flush();
 }
