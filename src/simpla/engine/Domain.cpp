@@ -76,15 +76,8 @@ int DomainBase::CheckBoundary() const {
     Real ratio = m_pimpl_->m_boundary_->Intersection(b)->Measure() / b->Measure();
     return ratio < EPSILON ? OUT_BOUNDARY : (ratio < 1.0 ? ON_BOUNDARY : IN_BOUNDARY);
 }
-void DomainBase::Push(std::shared_ptr<data::DataNode> const& data) {
-    base_type::Push(data);
-    AttributeGroup::Push(data->Get("Attributes"));
-}
-std::shared_ptr<data::DataNode> DomainBase::Pop() const {
-    auto res = base_type::Pop();
-    res->Set("Attributes", AttributeGroup::Pop());
-    return res;
-}
+void DomainBase::Push(std::shared_ptr<data::DataNode> const& data) { AttributeGroup::Push(data); }
+std::shared_ptr<data::DataNode> DomainBase::Pop() const { return AttributeGroup::Pop(); }
 
 void DomainBase::DoSetUp() { base_type::DoSetUp(); }
 void DomainBase::DoUpdate() { base_type::DoUpdate(); }

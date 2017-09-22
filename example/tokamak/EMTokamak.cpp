@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
     scenario->SetCheckPointInterval(2);
 
     scenario->GetAtlas()->SetChart<simpla::geometry::csCylindrical>();
-    scenario->GetAtlas()->GetChart()->SetScale({0.1, 0.1, 0.1});
+    scenario->GetAtlas()->GetChart()->SetScale({0.1, TWOPI / 100.0, 0.1});
 
     auto tokamak = Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
     //    auto* p = new domain::Maxwell<domain_type>;
@@ -56,11 +56,13 @@ int main(int argc, char** argv) {
     scenario->SetUp();
 
     //    INFORM << "Attributes" << *scenario->GetAttributes() << std::endl;
-    //    std::cout << *scenario->Serialize() << std::endl;
 
     TheStart();
     scenario->Run();
     scenario->Dump();
+
+    std::cout << *scenario->Serialize() << std::endl;
+
     TheEnd();
     scenario->TearDown();
 }

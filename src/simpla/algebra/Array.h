@@ -38,6 +38,8 @@ struct ArrayBase {
     virtual void Clear() = 0;
     virtual void reset(void*, index_type const* lo, index_type const* hi) = 0;
     virtual void reset(index_box_type const& b) = 0;
+
+    virtual std::ostream& Print(std::ostream& os, int indent = 0, bool verbose = true) const = 0;
 };
 
 template <typename V, typename SFC = ZSFC<3>>
@@ -88,7 +90,7 @@ class Array : public ArrayBase {
 #else
                         bool verbose = false
 #endif
-                        ) const;
+                        ) const override;
 
     void SetUp() { alloc(); }
     void TearDown() {

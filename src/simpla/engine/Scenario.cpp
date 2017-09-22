@@ -42,8 +42,6 @@ std::shared_ptr<data::DataNode> Scenario::Serialize() const {
 
     res->Set("Atlas", GetAtlas()->Serialize());
 
-    res->Set("Chart", m_pimpl_->m_atlas_->GetChart()->Serialize());
-
     auto domain = data::DataNode::New(data::DataNode::DN_TABLE);
     for (auto const &item : m_pimpl_->m_domains_) { domain->Set(item.first, item.second->Serialize()); }
     res->Set("Domain", domain);
@@ -78,15 +76,16 @@ void Scenario::CheckPoint() const {
        << GetStepNumber() << "." << db()->GetValue<std::string>("CheckPointFileSuffix", "xmf");
 
     auto dump = data::DataNode::New(os.str());
-    dump->Set("Chart", m_pimpl_->m_atlas_->GetChart()->Serialize());
+    //    dump->Set("Chart", m_pimpl_->m_atlas_->GetChart()->Serialize());
     auto patches = data::DataNode::New(data::DataNode::DN_TABLE);
     auto attrs = GetAttributes();
     for (auto const &item : m_pimpl_->m_patches_) {
         auto node = patches->CreateNode(std::to_string(item.first), data::DataNode::DN_TABLE);
         item.second->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &p) {
-            if (attrs->Check(key + "/CheckPoint")) { node->Set(key, p); }
+            if (attrs->Check(key + "/CheckPoint") || attrs->Check(key + "/COORDINATES")) { node->Set(key, p); }
         });
     }
+    dump->Set("Atlas", GetAtlas()->Serialize());
     dump->Set("Patch", patches);
 
     dump->Flush();

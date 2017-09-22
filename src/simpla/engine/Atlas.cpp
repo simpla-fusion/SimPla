@@ -55,24 +55,15 @@ Atlas::Atlas() : m_pimpl_(new pimpl_s) {
 Atlas::~Atlas() { delete m_pimpl_; }
 
 std::shared_ptr<data::DataNode> Atlas::Serialize() const {
+    ASSERT(m_pimpl_->m_chart_ != nullptr);
+
     auto tdb = base_type::Serialize();
 
-    if (m_pimpl_->m_chart_ != nullptr) { tdb->Set("Chart", m_pimpl_->m_chart_->Serialize()); }
+    tdb->Set("Chart", m_pimpl_->m_chart_->Serialize());
 
-    //    tdb->SetValue("PeriodicDimension", GetPeriodicDimensions());
-    //    tdb->SetValue("CoarsestIndexBox", GetCoarsestIndexBox());
-    //
-    //    tdb->SetValue("MaxLevel", GetMaxLevel());
-    //    tdb->SetValue("RefineRatio", GetRefineRatio());
-    //    tdb->SetValue("LargestPatchDimensions", GetLargestPatchDimensions());
-    //    tdb->SetValue("SmallestPatchDimensions", GetSmallestPatchDimensions());
-
-    auto patches = tdb->CreateNode(data::DataNode::DN_TABLE);
-    for (auto const &item : m_pimpl_->m_blocks_) {
-        auto tmp = tdb->CreateNode(data::DataNode::DN_TABLE);
-        patches->Set(item.first, item.second->Serialize());
-    }
-    tdb->Set("Blocks", patches);
+    auto blocks = tdb->CreateNode(data::DataNode::DN_TABLE);
+    for (auto const &item : m_pimpl_->m_blocks_) { blocks->Set(item.first, item.second->Serialize()); }
+    tdb->Set("Blocks", blocks);
     return tdb;
 };
 void Atlas::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
@@ -83,9 +74,9 @@ void Atlas::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
         m_pimpl_->m_chart_ = geometry::Chart::New(tdb->Get("Chart"));
     }
 
-    auto patches = tdb->Get("Blocks");
-    patches->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &dnode) {
-        m_pimpl_->m_blocks_.emplace(std::stoi(key), MeshBlock::New(dnode));
+    auto blocks = tdb->Get("Blocks");
+    blocks->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &block) {
+        m_pimpl_->m_blocks_.emplace(std::stoi(key), MeshBlock::New(block));
     });
 
     Click();

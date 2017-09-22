@@ -25,9 +25,9 @@ class Maxwell : public TDomainBase {
     Field<this_type, Real, FACE> B{this, "Name"_ = "B"};
     Field<this_type, Real, EDGE> E{this, "Name"_ = "E"};
     Field<this_type, Real, EDGE> J{this, "Name"_ = "J"};
-    Field<this_type, Real, CELL, 3> dumpE{this, "Name"_ = "dumpE"};
-    Field<this_type, Real, CELL, 3> dumpB{this, "Name"_ = "dumpB"};
-    Field<this_type, Real, CELL, 3> dumpJ{this, "Name"_ = "dumpJ"};
+    Field<this_type, Real, CELL, 3> dumpE{this, "Name"_ = "dumpE", "CheckPoint"_};
+    Field<this_type, Real, CELL, 3> dumpB{this, "Name"_ = "dumpB", "CheckPoint"_};
+    Field<this_type, Real, CELL, 3> dumpJ{this, "Name"_ = "dumpJ", "CheckPoint"_};
 };
 template <typename TDomain>
 Maxwell<TDomain>::Maxwell() : base_type() {}

@@ -394,28 +394,6 @@ std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Pop() const {
 };
 
 namespace detail {
-template <typename... V>
-auto GetSFC(Array<V...> const &f) {
-    return f.GetSpaceFillingCurve();
-};
-template <typename First, typename... Others>
-auto GetSFC(First const &first, Others &&... others) {
-    return GetSFC(first).Overlap(GetSFC(std::forward<Others>(others)...));
-};
-template <size_type... I, typename V, int... N>
-auto GetSFC(std::integer_sequence<size_type, I...>, nTuple<V, N...> const &f) {
-    return GetSFC(f[I]...);
-};
-
-template <typename... V, int N0, int... N>
-auto GetSFC(nTuple<Array<V...>, N0, N...> const &f) {
-    return GetSFC(std::make_index_sequence<N0>(), f);
-};
-
-template <typename V, int... N>
-auto GetSFC(simpla::engine::AttributeT<V, N...> const &f) {
-    return GetSFC(dynamic_cast<typename simpla::engine::AttributeT<V, N...>::data_type const &>(f));
-};
 template <size_type I, typename U>
 U const &get(U const &u) {
     return u;
