@@ -238,8 +238,9 @@ boost::shared_ptr<XdmfCurvilinearGrid> XDMFCurvilinearGridNew(std::shared_ptr<Da
     auto lo = blk->GetValue<nTuple<index_type, 3>>("LowIndex");
     auto hi = blk->GetValue<nTuple<index_type, 3>>("HighIndex");
 
+    VERBOSE << lo << "~" << hi;
     nTuple<unsigned int, 3> dims{0, 0, 0};
-    dims = hi - lo;
+    dims = hi - lo + 1;
     unsigned int num = dims[0] * dims[1] * dims[2];
     auto grid = XdmfCurvilinearGrid::New(dims[0], dims[1], dims[2]);
     auto geo = XdmfGeometry::New();
@@ -265,7 +266,7 @@ boost::shared_ptr<XdmfRegularGrid> XDMFRegularGridNew(std::shared_ptr<DataNode> 
     auto hi = blk->GetValue<index_tuple>("HighIndex");
 
     nTuple<unsigned int, 3> dims{1, 1, 1};
-    dims = hi - lo;
+    dims = hi - lo + 1;
     nTuple<Real, 3> origin{0, 0, 0};
     origin = lo * dx + x0;
     auto grid = XdmfRegularGrid::New(dx[0], dx[1], dx[2], dims[0], dims[1], dims[2], origin[0], origin[1], origin[2]);
