@@ -876,9 +876,10 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
 
 std::shared_ptr<data::DataNode> SAMRAIHyperbolicPatchStrategyAdapter::GetPatch(SAMRAI::hier::Patch &patch) {
     auto blk = engine::MeshBlock::New(
-        index_box_type{{patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]},
-                       {patch.getBox().upper()[0] + 1, patch.getBox().upper()[1] + 1, patch.getBox().upper()[2] + 1}},
-        patch.getLocalId().getValue(), patch.getPatchLevelNumber(), patch.getGlobalId().getOwnerRank());
+            index_box_type{{patch.getBox().lower()[0],     patch.getBox().lower()[1],     patch.getBox().lower()[2]},
+                           {patch.getBox().upper()[0] + 1, patch.getBox().upper()[1] + 1, patch.getBox().upper()[2] +
+                                                                                          1}},
+            patch.getLocalId().getValue(), patch.getGlobalId().getOwnerRank());
     return m_ctx_->GetPatch(blk->GetGUID());
 }
 

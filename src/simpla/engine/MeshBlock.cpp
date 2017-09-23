@@ -4,6 +4,7 @@
 #include "simpla/SIMPLA_config.h"
 
 #include <simpla/data/DataNode.h>
+#include <simpla/parallel/MPIComm.h>
 #include <boost/functional/hash.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -14,9 +15,13 @@
 
 namespace simpla {
 namespace engine {
+size_type MeshBlock::m_count_ = 0;
+
 MeshBlock::MeshBlock() {}
-MeshBlock::MeshBlock(index_box_type b, int id, int level, int global_rank)
-    : m_global_rank_(global_rank), m_level_(level), m_local_id_(id), m_index_box_(std::move(b)) {}
+MeshBlock::MeshBlock(index_box_type b, int level, size_type local_id)
+    : m_level_(level), m_local_id_(local_id == 0 ? (++m_count_) : local_id), m_index_box_(std::move(b)) {
+    if (local_id > m_count_) { m_count_ = local_id + 1; }
+}
 
 MeshBlock::~MeshBlock() = default;
 std::shared_ptr<MeshBlock> MeshBlock::New(std::shared_ptr<simpla::data::DataNode> const &tdb) {
@@ -29,6 +34,7 @@ std::shared_ptr<simpla::data::DataNode> MeshBlock::Serialize() const {
     res->SetValue("LowIndex", std::get<0>(IndexBox()));
     res->SetValue("HighIndex", std::get<1>(IndexBox()));
     res->SetValue("Level", GetLevel());
+    res->SetValue("LocalId", GetLocalID());
     res->SetValue("GUID", GetGUID());
     return res;
 }
@@ -36,17 +42,20 @@ void MeshBlock::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) 
     std::get<0>(m_index_box_) = cfg->GetValue<index_tuple>("LowIndex", index_tuple{0, 0, 0});
     std::get<1>(m_index_box_) = cfg->GetValue<index_tuple>("HighIndex", index_tuple{1, 1, 1});
     m_level_ = cfg->GetValue<int>("Level", 0);
-    m_local_id_ = cfg->GetValue<id_type>("GUID", 0);
+    m_local_id_ = cfg->GetValue<id_type>("LocalId", m_count_);
 }
-std::shared_ptr<MeshBlock> MeshBlock::New(index_box_type const &box, int id, int level, int global_rank) {
-    return std::shared_ptr<MeshBlock>(new MeshBlock(box, id, level, global_rank));
+std::shared_ptr<MeshBlock> MeshBlock::New(index_box_type const &box, int level, size_type local_id) {
+    return std::shared_ptr<MeshBlock>(new MeshBlock(box, level, local_id));
 };
 
-id_type MeshBlock::hash_id(id_type id, int level, int owner) {
-    return static_cast<id_type>((owner * MAX_LEVEL_NUMBER + level) * MAX_LOCAL_ID_NUMBER) + id;
+id_type MeshBlock::GetGUID() const {
+    id_type res = m_local_id_;
+#ifdef MPI_FOUND
+    res = res * GLOBAL_COMM.size() + GLOBAL_COMM.rank();
+#endif
+    res = res * MAX_LEVEL_NUMBER + m_level_;
+    return res;
 }
-
-id_type MeshBlock::GetGUID() const { return hash_id(m_local_id_, m_level_, m_global_rank_); }
 
 // MeshBlock &MeshBlock::operator=(MeshBlock const &other) {
 //    MeshBlock(other).swap(*this);

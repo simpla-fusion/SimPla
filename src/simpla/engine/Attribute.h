@@ -439,7 +439,7 @@ void Assign_(std::integer_sequence<size_type, I0, I...>, LHS &lhs, RHS const &rh
     Assign_(std::integer_sequence<size_type, I...>(), lhs, rhs);
 };
 
-template <typename V, int N0, int... N, typename U, typename... Idx>
+template <typename V, int N0, int... N, typename U>
 void Assign_(nTuple<V, N0, N...> &lhs, U const &rhs) {
     Assign_(std::make_index_sequence<N0>(), lhs, rhs);
 };

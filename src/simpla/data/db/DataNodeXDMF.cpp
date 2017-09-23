@@ -238,7 +238,6 @@ boost::shared_ptr<XdmfCurvilinearGrid> XDMFCurvilinearGridNew(std::shared_ptr<Da
     auto lo = blk->GetValue<nTuple<index_type, 3>>("LowIndex");
     auto hi = blk->GetValue<nTuple<index_type, 3>>("HighIndex");
 
-    VERBOSE << lo << "~" << hi;
     nTuple<unsigned int, 3> dims{0, 0, 0};
     dims = hi - lo + 1;
     unsigned int num = dims[0] * dims[1] * dims[2];
@@ -282,14 +281,16 @@ int XDMFDump(std::string const& url, std::shared_ptr<DataNode> const& obj) {
     VERBOSE << std::setw(20) << "Write XDMF : " << url;
 
     int success = SP_FAILED;
-    auto grid_collection = XdmfGridCollection::New();
-    grid_collection->setType(XdmfGridCollectionType::Spatial());
 
-    if (auto time = obj->Get("Time")) {
-        if (auto t = std::dynamic_pointer_cast<DataLightT<Real>>(time->GetEntity())) {
-            grid_collection->setTime(XdmfTime::New(t->value()));
-        }
-    }
+    auto domain = XdmfDomain::New();
+
+//    auto grid_collection = XdmfGridCollection::New();
+//    grid_collection->setType(XdmfGridCollectionType::Spatial());
+//    if (auto time = obj->Get("Time")) {
+//        if (auto t = std::dynamic_pointer_cast<DataLightT<Real>>(time->GetEntity())) {
+//            grid_collection->setTime(XdmfTime::New(t->value()));
+//        }
+//    }
 
     auto attrs = obj->Get("Attributes");
 
@@ -308,21 +309,21 @@ int XDMFDump(std::string const& url, std::shared_ptr<DataNode> const& obj) {
                     patch->Foreach([&](std::string const& s, std::shared_ptr<data::DataNode> const& d) {
                         g->insert(XDMFAttributeInsertOne(attrs->Get(s), d));
                     });
-                    grid_collection->insert(g);
+                    domain->insert(g);
 
                 } else {
                     auto g = XDMFRegularGridNew(chart, blk);
                     patch->Foreach([&](std::string const& s, std::shared_ptr<data::DataNode> const& d) {
                         g->insert(XDMFAttributeInsertOne(attrs->Get(s), d));
                     });
-                    grid_collection->insert(g);
+                    domain->insert(g);
                 }
             }
             return 1;
         });
     }
-    auto domain = XdmfDomain::New();
-    domain->insert(grid_collection);
+    //    domain->insert(grid_collection);
+
     if (auto writer = XdmfWriter::New(url)) {
         domain->accept(writer);
         success = SP_SUCCESS;

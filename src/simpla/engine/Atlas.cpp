@@ -32,15 +32,15 @@ struct Atlas::pimpl_s {
     //    std::multimap<id_type, id_type> m_coarsen_;
     //    std::set<std::shared_ptr<data::DataNode>> m_layers_[MAX_NUM_OF_LEVEL];
     //    nTuple<int, 3> m_refine_ratio_[MAX_NUM_OF_LEVEL] = {{2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}};
-    index_box_type m_index_box_{{0, 0, 0}, {1, 1, 1}};
     bool m_has_bounding_box_ = false;
     box_type m_box_{{0, 0, 0}, {1, 1, 1}};
-    box_type m_local_box_{{0, 0, 0}, {1, 1, 1}};
-    index_box_type m_local_index_box_{{0, 0, 0}, {1, 1, 1}};
-    box_type m_global_box_{{0, 0, 0}, {1, 1, 1}};
-    index_box_type m_global_index_box_{{0, 0, 0}, {1, 1, 1}};
-
+    index_box_type m_index_box_{{0, 0, 0}, {1, 1, 1}};
     index_tuple m_ghost_width_{2, 2, 2};
+
+    //    box_type m_local_box_{{0, 0, 0}, {1, 1, 1}};
+    //    index_box_type m_local_index_box_{{0, 0, 0}, {1, 1, 1}};
+    //    box_type m_global_box_{{0, 0, 0}, {1, 1, 1}};
+    //    index_box_type m_global_index_box_{{0, 0, 0}, {1, 1, 1}};
 };
 
 Atlas::Atlas() : m_pimpl_(new pimpl_s) {
@@ -88,38 +88,36 @@ void Atlas::DoSetUp() {
     if (m_pimpl_->m_chart_ == nullptr) { m_pimpl_->m_chart_ = geometry::csCartesian::New(); }
     m_pimpl_->m_chart_->SetUp();
     point_type lo{0, 0, 0}, hi{0, 0, 0};
-    std::tie(lo, hi) = GetBoundingBox();
+    std::tie(lo, hi) = m_pimpl_->m_box_;
     std::get<0>(m_pimpl_->m_index_box_) = ((lo - GetChart()->GetOrigin()) / GetChart()->GetScale());
     std::get<1>(m_pimpl_->m_index_box_) = ((hi - GetChart()->GetOrigin()) / GetChart()->GetScale());
-    m_pimpl_->m_local_index_box_ = m_pimpl_->m_index_box_;
-    m_pimpl_->m_global_index_box_ = m_pimpl_->m_index_box_;
-
+    //    m_pimpl_->m_local_index_box_ = m_pimpl_->m_index_box_;
+    //    m_pimpl_->m_global_index_box_ = m_pimpl_->m_index_box_;
+    index_box_type local_index_box_ = m_pimpl_->m_index_box_;
 #ifdef MPI_FOUND
     {
         int mpi_ndims = 0;
-        int mpi_dims[3] = {1, 1, 1};
-        int mpi_period[3] = {1, 1, 1};
-        int mpi_coord[3] = {0, 0, 0};
+        nTuple<int, 3> mpi_dims = {1, 1, 1};
+        nTuple<int, 3> mpi_period = {1, 1, 1};
+        nTuple<int, 3> mpi_coord = {0, 0, 0};
 
-        GLOBAL_COMM.topology(&mpi_ndims, mpi_dims, mpi_period, mpi_coord);
+        GLOBAL_COMM.topology(&mpi_ndims, &mpi_dims[0], &mpi_period[0], &mpi_coord[0]);
+
         for (int i = 0; i < mpi_ndims; ++i) {
-            std::get<0>(m_pimpl_->m_local_box_)[i] =
-                std::get<0>(m_pimpl_->m_global_index_box_)[i] +
-                (std::get<1>(m_pimpl_->m_global_index_box_)[i] - std::get<0>(m_pimpl_->m_global_index_box_)[i]) *
-                    mpi_coord[i] / mpi_dims[i] -
+            std::get<0>(local_index_box_)[i] =
+                std::get<0>(m_pimpl_->m_index_box_)[i] +
+                (std::get<1>(m_pimpl_->m_index_box_)[i] - std::get<0>(m_pimpl_->m_index_box_)[i]) * mpi_coord[i] /
+                    mpi_dims[i] -
                 m_pimpl_->m_ghost_width_[i];
-            std::get<1>(m_pimpl_->m_local_box_)[i] =
-                std::get<0>(m_pimpl_->m_global_index_box_)[i] +
-                (std::get<1>(m_pimpl_->m_global_index_box_)[i] - std::get<0>(m_pimpl_->m_global_index_box_)[i]) *
-                    (mpi_coord[i] + 1) / mpi_dims[i] +
+            std::get<1>(local_index_box_)[i] =
+                std::get<0>(m_pimpl_->m_index_box_)[i] +
+                (std::get<1>(m_pimpl_->m_index_box_)[i] - std::get<0>(m_pimpl_->m_index_box_)[i]) * (mpi_coord[i] + 1) /
+                    mpi_dims[i] +
                 m_pimpl_->m_ghost_width_[i];
         }
-        AddBlock(MeshBlock::New(m_pimpl_->m_local_index_box_, 0, 0, GLOBAL_COMM.rank()));
     }
-#else
-    AddBlock(MeshBlock::New(m_pimpl_->m_local_index_box_));
-
 #endif
+    AddBlock(MeshBlock::New(local_index_box_, 0));
 };
 
 void Atlas::DoUpdate() {

@@ -15,35 +15,31 @@
 
 namespace simpla {
 namespace engine {
-
 class MeshBlock {
     typedef MeshBlock this_type;
 
    protected:
     MeshBlock();
-    explicit MeshBlock(index_box_type b, int id, int level, int global_rank);
+    explicit MeshBlock(index_box_type b, int level = 0, size_type local_id = 0);
 
    public:
     ~MeshBlock();
 
     static std::shared_ptr<MeshBlock> New(std::shared_ptr<simpla::data::DataNode> const &);
-    static std::shared_ptr<MeshBlock> New(index_box_type const &box, int id = 0, int level = 0, int global_rank = 0);
+    static std::shared_ptr<MeshBlock> New(index_box_type const &box, int level = 0, size_type local_id = 0);
     std::shared_ptr<simpla::data::DataNode> Serialize() const;
     void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg);
 
    private:
     static constexpr int MAX_LEVEL_NUMBER = 8;
-    static constexpr int MAX_LOCAL_ID_NUMBER = std::numeric_limits<int>::max() / 2;
 
    public:
     bool operator==(MeshBlock const &other) const {
         return m_level_ == other.m_level_ && m_index_box_ == other.m_index_box_;
     };
 
-    int GetOwnerRank() const { return m_global_rank_; }
     int GetLevel() const { return m_level_; }
-    int GetLocalID() const { return m_local_id_; }
-
+    id_type GetLocalID() const { return m_local_id_; }
     id_type GetGUID() const;
 
     index_box_type IndexBox() const { return m_index_box_; }
@@ -51,7 +47,7 @@ class MeshBlock {
     static id_type hash_id(id_type id = 0, int level = 0, int owner = 0);
 
    private:
-    int m_global_rank_ = 0;
+    static size_type m_count_;
     int m_level_ = 0;
     id_type m_local_id_ = 0;
     index_box_type m_index_box_{{0, 0, 0}, {1, 1, 1}};

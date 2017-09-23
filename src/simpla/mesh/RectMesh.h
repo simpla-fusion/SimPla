@@ -10,6 +10,7 @@
 #include <simpla/algebra/Algebra.h>
 #include <simpla/data/Data.h>
 #include <simpla/engine/Attribute.h>
+#include <simpla/parallel/MPIComm.h>
 #include "StructuredMesh.h"
 
 namespace simpla {
@@ -26,7 +27,7 @@ struct RectMesh : public StructuredMesh {
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real time_dt);
 
-    engine::AttributeT<Real, NODE, 3> m_coordinates_{m_host_, "Name"_ = "_COORDINATES_", "COORDINATES"_/*, "LOCAL"_*/};
+    engine::AttributeT<Real, NODE, 3> m_coordinates_{m_host_, "Name"_ = "_COORDINATES_", "COORDINATES"_, "LOCAL"_};
     //     engine:: AttributeT< Real, NODE > m_vertices_{m_domain_, "Name"_ = "m_vertices_","LOCAL"_};
 
     engine::AttributeT<Real, NODE> m_node_volume_{m_host_, "Name"_ = "m_node_volume_", "LOCAL"_};
@@ -111,8 +112,9 @@ void RectMesh<THost>::InitialCondition(Real time_now) {
      *
      *\endverbatim
      */
-    m_coordinates_ = [&](index_type x, index_type y, index_type z) { return chart->global_coordinates(x, y, z, 0b0); };
 
+
+    m_coordinates_ = [&](index_type x, index_type y, index_type z) { return chart->global_coordinates(x, y, z, 0b0); };
 
     m_node_volume_ = 1.0;
     m_node_inv_volume_ = 1.0;
