@@ -11,6 +11,7 @@
 #include <XdmfWriter.hpp>
 
 #include <simpla/parallel/MPIComm.h>
+#include <XdmfHDF5Writer.hpp>
 #include <XdmfInformation.hpp>
 
 #include "../DataNode.h"
@@ -18,7 +19,7 @@
 
 namespace simpla {
 namespace data {
-int XDMFDump(std::string const& url, std::shared_ptr<DataNode> const& v);
+int XDMFDump(std::string const& prefix, std::shared_ptr<DataNode> const& v);
 
 struct DataNodeXDMF : public DataNodeMemory {
     SP_DATA_NODE_HEAD(DataNodeXDMF, DataNodeMemory)
@@ -27,10 +28,11 @@ struct DataNodeXDMF : public DataNodeMemory {
                 std::string const& fragment) override;
     int Disconnect() override { return Flush(); }
     bool isValid() const override { return true; }
-    int Flush() override { return XDMFDump(m_file_, shared_from_this()); }
+    int Flush() override { return XDMFDump(m_prefix_, shared_from_this()); }
 
    private:
-    std::string m_file_;
+    std::string m_prefix_;
+    std::string m_ext_;
 };
 REGISTER_CREATOR(DataNodeXDMF, xmf);
 DataNodeXDMF::DataNodeXDMF(DataNode::eNodeType etype) : base_type(etype) {}
@@ -38,29 +40,12 @@ DataNodeXDMF::~DataNodeXDMF() = default;
 
 int DataNodeXDMF::Connect(std::string const& authority, std::string const& path, std::string const& query,
                           std::string const& fragment) {
-    m_file_ = path;
+    m_prefix_ = path;
 
-#ifdef MPI_FOUND
-    if (GLOBAL_COMM.size() > 1) {
-        auto pos = path.rfind('.');
-        auto prefix = (pos != std::string::npos) ? path.substr(0, pos) : path;
-        auto ext = (pos != std::string::npos) ? path.substr(pos + 1) : path;
-        int digital = static_cast<int>(std::floor(std::log(static_cast<double>(GLOBAL_COMM.size())))) + 1;
-        if (GLOBAL_COMM.rank() == 0) {
-            std::ofstream summary(prefix + ".summary.xmf");
-            summary << R"(<?xml version="1.0" encoding="utf-8"?>)" << std::endl;
-            summary << R"(<Xdmf Version="2.0" xmlns:xi="http://www.w3.org/2001/XInclude">)" << std::endl;
-            for (int i = 0, ie = GLOBAL_COMM.size(); i < ie; ++i) {
-                summary << "  <xi:include href=\"" << prefix << "." << std::setfill('0') << std::setw(digital) << i
-                        << ".xmf\"/>" << std::endl;
-            }
-            summary << "</Xdmf>";
-        }
-        std::ostringstream os;
-        os << prefix << "." << std::setfill('0') << std::setw(digital) << GLOBAL_COMM.rank() << ".xmf";
-        m_file_ = os.str();
-    }
-#endif
+    auto pos = path.rfind('.');
+    m_prefix_ = (pos != std::string::npos) ? path.substr(0, pos) : path;
+    m_ext_ = (pos != std::string::npos) ? path.substr(pos + 1) : path;
+
     return SP_SUCCESS;
 }
 template <typename U>
@@ -276,21 +261,34 @@ boost::shared_ptr<XdmfRegularGrid> XDMFRegularGridNew(std::shared_ptr<DataNode> 
     grid->setName(std::to_string(blk->GetValue<id_type>("GUID")));
     return grid;
 }
-int XDMFDump(std::string const& url, std::shared_ptr<DataNode> const& obj) {
-    if (obj == nullptr || url.empty()) { return SP_FAILED; }
-    VERBOSE << std::setw(20) << "Write XDMF : " << url;
+int XDMFDump(std::string const& prefix, std::shared_ptr<DataNode> const& obj) {
+    if (obj == nullptr || prefix.empty()) { return SP_FAILED; }
 
     int success = SP_FAILED;
 
     auto domain = XdmfDomain::New();
 
-//    auto grid_collection = XdmfGridCollection::New();
-//    grid_collection->setType(XdmfGridCollectionType::Spatial());
-//    if (auto time = obj->Get("Time")) {
-//        if (auto t = std::dynamic_pointer_cast<DataLightT<Real>>(time->GetEntity())) {
-//            grid_collection->setTime(XdmfTime::New(t->value()));
-//        }
-//    }
+    //    domain->insert(grid_collection);
+    std::string h5_filename = prefix;
+#ifdef MPI_FOUND
+    if (GLOBAL_COMM.size() > 1) {
+        std::ostringstream os;
+        int digital = static_cast<int>(std::floor(std::log(static_cast<double>(GLOBAL_COMM.size())))) + 1;
+        os << h5_filename << "." << std::setfill('0') << std::setw(digital) << GLOBAL_COMM.rank();
+        h5_filename = os.str();
+    }
+#endif
+    std::ostringstream grid_os;
+    auto hdf_writer = XdmfHDF5Writer::New(h5_filename + ".h5");
+    auto writer = XdmfWriter::New(grid_os, hdf_writer);
+
+    //    auto grid_collection = XdmfGridCollection::New();
+    //    grid_collection->setType(XdmfGridCollectionType::Spatial());
+    //    if (auto time = obj->Get("Time")) {
+    //        if (auto t = std::dynamic_pointer_cast<DataLightT<Real>>(time->GetEntity())) {
+    //            grid_collection->setTime(XdmfTime::New(t->value()));
+    //        }
+    //    }
 
     auto attrs = obj->Get("Attributes");
 
@@ -309,25 +307,51 @@ int XDMFDump(std::string const& url, std::shared_ptr<DataNode> const& obj) {
                     patch->Foreach([&](std::string const& s, std::shared_ptr<data::DataNode> const& d) {
                         g->insert(XDMFAttributeInsertOne(attrs->Get(s), d));
                     });
-                    domain->insert(g);
+                    g->accept(writer);
+                    // grid_collection->insert(g);
 
                 } else {
                     auto g = XDMFRegularGridNew(chart, blk);
                     patch->Foreach([&](std::string const& s, std::shared_ptr<data::DataNode> const& d) {
                         g->insert(XDMFAttributeInsertOne(attrs->Get(s), d));
                     });
-                    domain->insert(g);
+                    g->accept(writer);
+                    // grid_collection->insert(g);
                 }
             }
             return 1;
         });
     }
-    //    domain->insert(grid_collection);
+    GLOBAL_COMM.barrier();
 
-    if (auto writer = XdmfWriter::New(url)) {
-        domain->accept(writer);
-        success = SP_SUCCESS;
+    std::vector<std::string> grid_list;
+    grid_list.push_back(grid_os.str());
+    if (GLOBAL_COMM.rank() == 0) {
+        std::ofstream out_file;
+        out_file.open(prefix + ".xmf", std::ios_base::trunc);
+        VERBOSE << std::setw(20) << "Write XDMF : " << prefix << ".xmf";
+
+        out_file << R"(
+<?xml version="1.0" encoding="utf-8"?>
+<Xdmf xmlns:xi="http://www.w3.org/2001/XInclude" Version="3.3">
+<Domain>
+    <Grid CollectionType="Spatial" GridType="Collection" Name="Collection">)";
+        for (auto const& g_str : grid_list) {
+            if (g_str.empty()) { continue; }
+            auto start = g_str.find("<Grid ");
+            auto end = g_str.rfind("</Grid>");
+            out_file << std::endl << "\t" << g_str.substr(start, end - start) << std::endl << "\t</Grid>" << std::endl;
+        }
+        out_file << R"(
+    </Grid>
+</Domain>
+</Xdmf>)";
+
+        out_file.close();
+
+    } else {
     }
+    GLOBAL_COMM.barrier();
     return success;
 }
 
