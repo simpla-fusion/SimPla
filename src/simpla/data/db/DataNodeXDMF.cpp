@@ -278,9 +278,9 @@ int XDMFDump(std::string const& prefix, std::shared_ptr<DataNode> const& obj) {
         h5_filename = os.str();
     }
 #endif
-    std::ostringstream grid_os;
+    std::ostringstream grid_ostream;
     auto hdf_writer = XdmfHDF5Writer::New(h5_filename + ".h5");
-    auto writer = XdmfWriter::New(grid_os, hdf_writer);
+    auto writer = XdmfWriter::New(grid_ostream, hdf_writer);
 
     //    auto grid_collection = XdmfGridCollection::New();
     //    grid_collection->setType(XdmfGridCollectionType::Spatial());
@@ -325,100 +325,33 @@ int XDMFDump(std::string const& prefix, std::shared_ptr<DataNode> const& obj) {
 
     // Gather String
 
-    std::string my_str = grid_os.str();
-    std::string tstring = my_str;
+    std::string grid_str = grid_ostream.str();
 
-    const int root = 0;
+    if (!grid_str.empty()) {
+        auto begin = grid_str.find("<Grid ");
+        auto end = grid_str.find("</Xdmf>");
+        grid_str = grid_str.substr(begin, end - begin);
+    }
 
 #ifdef MPI_FOUND
-
-    if (GLOBAL_COMM.rank() == root) {
-        std::string grid_list;
-
-        /*
-         * Now, we Gather the string lengths to the root process,
-         * so we can create the buffer into which we'll receive the strings
-         */
-
-        int* recvcounts = nullptr;
-
-        /* Only root has the received data */
-        if (GLOBAL_COMM.rank() == root) recvcounts = reinterpret_cast<int*>(malloc(GLOBAL_COMM.size() * sizeof(int)));
-
-        int str_len = static_cast<int>(my_str.size());
-
-        GLOBAL_COMM.barrier();
-        MPI_Gather(&str_len, 1, MPI_INT, recvcounts, 1, MPI_INT, root, MPI_COMM_WORLD);
-        GLOBAL_COMM.barrier();
-
-        /*
-         * Figure out the total length of string,
-         * and displacements for each rank
-         */
-
-        int totlen = 0;
-        int* displs = nullptr;
-        char* totalstring = nullptr;
-
-        displs = reinterpret_cast<int*>(malloc(GLOBAL_COMM.size() * sizeof(int)));
-
-        displs[0] = 0;
-        totlen += recvcounts[0] + 1;
-
-        for (int i = 1; i < GLOBAL_COMM.size(); i++) {
-            totlen += recvcounts[i] + 1; /* plus one for space or \0 after words */
-            displs[i] = displs[i - 1] + recvcounts[i - 1] + 1;
-        }
-
-        /* allocate string, pre-fill with spaces and null terminator */
-        totalstring = reinterpret_cast<char*>(malloc(totlen * sizeof(char)));
-        for (int i = 0; i < totlen - 1; i++) totalstring[i] = ' ';
-        totalstring[totlen - 1] = '\0';
-
-        /*
-         * Now we have the receive buffer, counts, and displacements, and
-         * can gather the strings
-         */
-        GLOBAL_COMM.barrier();
-        MPI_Gatherv(my_str.c_str(), my_str.size(), MPI_CHAR, totalstring, recvcounts, displs, MPI_CHAR, root,
-                    MPI_COMM_WORLD);
-        GLOBAL_COMM.barrier();
-
-    } else {
-        int str_len = static_cast<int>(my_str.size());
-        GLOBAL_COMM.barrier();
-        MPI_Gather(&str_len, 1, MPI_INT, nullptr, 1, MPI_INT, root, MPI_COMM_WORLD);
-        GLOBAL_COMM.barrier();
-
-        MPI_Gatherv(my_str.c_str(), my_str.size(), MPI_CHAR, nullptr, 0, nullptr, MPI_CHAR, root, MPI_COMM_WORLD);
-        GLOBAL_COMM.barrier();
-    }
+    grid_str = parallel::gather_string(grid_str);
 #endif  // MPI_FOUND
-    if (GLOBAL_COMM.rank() == root) {
+
+    if (GLOBAL_COMM.rank() == 0) {
         std::ofstream out_file;
         out_file.open(prefix + ".xmf", std::ios_base::trunc);
         VERBOSE << std::setw(20) << "Write XDMF : " << prefix << ".xmf";
 
-        out_file << R"(
-<?xml version="1.0" encoding="utf-8"?>
+        out_file << R"(<?xml version="1.0" encoding="utf-8"?>
 <Xdmf xmlns:xi="http://www.w3.org/2001/XInclude" Version="3.3">
 <Domain>
 <Grid CollectionType="Spatial" GridType="Collection" Name="Collection">)";
         if (auto time = obj->Get("Time")) {
             if (auto t = std::dynamic_pointer_cast<DataLightT<Real>>(time->GetEntity())) {
-                out_file << std::endl << "  <Time Value=\"" << t->value() << "\">";
+                out_file << std::endl << "  <Time Value=\"" << t->value() << "\"/>" << std::endl;
             }
         }
-        size_type begin = 0;
-        size_type end = 0;
-        while (begin != std::string::npos) {
-            begin = tstring.find("<Grid ", begin);
-            if (begin == std::string::npos) { break; };
-            end = tstring.find("</Xdmf>", begin);
-            out_file << std::endl << "\t" << tstring.substr(begin, end - begin);
-
-            begin = end + 7;  // sizeof("</Xdmf>")
-        }
+        out_file << grid_str;
         out_file << R"(</Grid>
 </Domain>
 </Xdmf>)";

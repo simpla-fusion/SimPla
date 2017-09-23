@@ -141,18 +141,96 @@ void MPIComm::Finalize() {
     }
 }
 
-std::string bcast_string(std::string const &str) {
+std::string bcast_string(std::string const &str, int root) {
     if (GLOBAL_COMM.size() <= 1) { return str; };
     std::string s_buffer = str;
     int name_len;
-    if (GLOBAL_COMM.process_num() == 0) { name_len = s_buffer.size(); }
+    if (GLOBAL_COMM.process_num() == root) { name_len = s_buffer.size(); }
     MPI_Bcast(&name_len, 1, MPI_INT, 0, GLOBAL_COMM.m_pimpl_->m_comm_);
     std::vector<char> buffer(static_cast<size_type>(name_len));
-    if (GLOBAL_COMM.process_num() == 0) { std::copy(s_buffer.begin(), s_buffer.end(), buffer.begin()); }
+    if (GLOBAL_COMM.process_num() == root) { std::copy(s_buffer.begin(), s_buffer.end(), buffer.begin()); }
     MPI_Bcast((&buffer[0]), name_len, MPI_CHAR, 0, GLOBAL_COMM.m_pimpl_->m_comm_);
     buffer.push_back('\0');
-    if (GLOBAL_COMM.process_num() != 0) { s_buffer = &buffer[0]; }
+    if (GLOBAL_COMM.process_num() != root) { s_buffer = &buffer[0]; }
     return s_buffer;
+}
+
+std::string gather_string(std::string const &str, int root, size_type *num, size_type **disp) {
+    if (GLOBAL_COMM.size() <= 1) { return str; }
+    bool do_bcast = false;
+    if (root < 0) {
+        root = 0;
+        do_bcast = true;
+    }
+
+    std::string res;
+
+    if (GLOBAL_COMM.rank() == root) {
+        std::string grid_list;
+
+        /*
+         * Now, we Gather the string lengths to the root process,
+         * so we can create the buffer into which we'll receive the strings
+         */
+
+        int *recvcounts = nullptr;
+
+        /* Only root has the received data */
+        if (GLOBAL_COMM.rank() == root) recvcounts = reinterpret_cast<int *>(malloc(GLOBAL_COMM.size() * sizeof(int)));
+
+        int str_len = static_cast<int>(str.size());
+
+        GLOBAL_COMM.barrier();
+        MPI_Gather(&str_len, 1, MPI_INT, recvcounts, 1, MPI_INT, root, MPI_COMM_WORLD);
+        GLOBAL_COMM.barrier();
+
+        /*
+         * Figure out the total length of string,
+         * and displacements for each rank
+         */
+
+        int totlen = 0;
+        int *displs = nullptr;
+        char *recvbuf = nullptr;
+
+        displs = reinterpret_cast<int *>(malloc(GLOBAL_COMM.size() * sizeof(int)));
+
+        displs[0] = 0;
+        totlen += recvcounts[0] + 1;
+
+        for (int i = 1; i < GLOBAL_COMM.size(); i++) {
+            totlen += recvcounts[i] + 1; /* plus one for space or \0 after words */
+            displs[i] = displs[i - 1] + recvcounts[i - 1] + 1;
+        }
+
+        /* allocate string, pre-fill with spaces and null terminator */
+        recvbuf = reinterpret_cast<char *>(malloc(totlen * sizeof(char)));
+        for (int i = 0; i < totlen - 1; i++) recvbuf[i] = ' ';
+        recvbuf[totlen - 1] = '\0';
+
+        /*
+         * Now we have the receive buffer, counts, and displacements, and
+         * can gather the strings
+         */
+        MPI_Gatherv(str.c_str(), static_cast<int>(str.size()), MPI_CHAR, recvbuf, recvcounts, displs, MPI_CHAR, root,
+                    MPI_COMM_WORLD);
+        GLOBAL_COMM.barrier();
+        recvbuf[totlen - 1] = '\0';
+        res = recvbuf;
+        free(recvbuf);
+        free(displs);
+    } else {
+        int str_len = static_cast<int>(str.size());
+        GLOBAL_COMM.barrier();
+        MPI_Gather(&str_len, 1, MPI_INT, nullptr, 1, MPI_INT, root, MPI_COMM_WORLD);
+        GLOBAL_COMM.barrier();
+
+        MPI_Gatherv(str.c_str(), static_cast<int>(str.size()), MPI_CHAR, nullptr, nullptr, nullptr, MPI_CHAR, root,
+                    MPI_COMM_WORLD);
+        GLOBAL_COMM.barrier();
+    }
+    if (do_bcast) { res = bcast_string(res, root); }
+    return res;
 }
 }
 }  // namespace simpla{namespace parallel{

@@ -4,3 +4,5 @@ target_link_libraries(MPIUpdater_test
         data utilities data_backend parallel
         -Wl,--no-whole-archive
         )
+ADD_EXECUTABLE(mpi_string_dummy mpi_string_dummy.cpp)
+target_link_libraries(mpi_string_dummy parallel utilities)

@@ -77,7 +77,6 @@ void TimeIntegrator::Run() {
     Update();
     while (!Done()) {
         VERBOSE << " [ STEP:" << std::setw(5) << GetStepNumber() << " START ] ";
-        if (GetStepNumber() == 0) { CheckPoint(); }
         Synchronize(0);
         NextStep();
         if (GetCheckPointInterval() > 0 && (GetStepNumber() % GetCheckPointInterval() == 0)) { CheckPoint(); };

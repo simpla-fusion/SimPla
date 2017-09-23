@@ -45,7 +45,9 @@ class MPIComm {
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
-std::string bcast_string(std::string const &str = "");
+std::string bcast_string(std::string const &str = "", int root = 0);
+std::string gather_string(std::string const &str = "", int root = 0, size_type *num = nullptr,
+                          size_type **disp = nullptr);
 
 #define GLOBAL_COMM SingletonHolder<::simpla::parallel::MPIComm>::instance()
 
