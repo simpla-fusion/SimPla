@@ -89,7 +89,7 @@ void Scenario::CheckPoint() const {
     }
     dump->Set("Atlas", GetAtlas()->Serialize());
     dump->Set("Patches", patches);
-
+    dump->SetValue("Time", GetTimeNow());
     dump->Flush();
 }
 
