@@ -114,10 +114,12 @@ void Atlas::DoSetUp() {
                     (mpi_coord[i] + 1) / mpi_dims[i] +
                 m_pimpl_->m_ghost_width_[i];
         }
+        AddBlock(MeshBlock::New(m_pimpl_->m_local_index_box_, 0, 0, GLOBAL_COMM.rank()));
     }
-#endif
-
+#else
     AddBlock(MeshBlock::New(m_pimpl_->m_local_index_box_));
+
+#endif
 };
 
 void Atlas::DoUpdate() {

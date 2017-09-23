@@ -48,12 +48,12 @@ class MeshBlock {
 
     index_box_type IndexBox() const { return m_index_box_; }
 
-    static id_type hash_id(int id = 0, int level = 0, int owner = 0);
+    static id_type hash_id(id_type id = 0, int level = 0, int owner = 0);
 
    private:
     int m_global_rank_ = 0;
     int m_level_ = 0;
-    int m_local_id_ = 0;
+    id_type m_local_id_ = 0;
     index_box_type m_index_box_{{0, 0, 0}, {1, 1, 1}};
 };  // class MeshBlock
 

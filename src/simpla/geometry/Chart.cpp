@@ -56,8 +56,8 @@ void Chart::SetLevel(int level) {
 int Chart::GetLevel() const { return m_level_; }
 int Chart::GetNDIMS() const { return 3; }
 
-std::shared_ptr<GeoObject> Chart::BoundingBox(box_type const &b) const { return Cube::New(MapToBase(b)); }
-std::shared_ptr<GeoObject> Chart::BoundingBox(index_box_type const &b) const {
+std::shared_ptr<GeoObject> Chart::GetBoundingShape(box_type const &b) const { return Cube::New(MapToBase(b)); }
+std::shared_ptr<GeoObject> Chart::GetBoundingShape(index_box_type const &b) const {
     return Cube::New(std::make_tuple(global_coordinates(std::get<0>(b)), global_coordinates(std::get<0>(b))));
 };
 }  // namespace geometry {

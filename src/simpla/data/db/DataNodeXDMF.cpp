@@ -255,7 +255,7 @@ boost::shared_ptr<XdmfCurvilinearGrid> XDMFCurvilinearGridNew(std::shared_ptr<Da
     level_info->setKey("Level");
     level_info->setValue(std::to_string(blk->GetValue<int>("Level", 0)));
     grid->insert(level_info);
-
+    grid->setName(std::to_string(blk->GetValue<id_type>("GUID")));
     return grid;
 }
 boost::shared_ptr<XdmfRegularGrid> XDMFRegularGridNew(std::shared_ptr<DataNode> const& chart,
@@ -274,6 +274,7 @@ boost::shared_ptr<XdmfRegularGrid> XDMFRegularGridNew(std::shared_ptr<DataNode> 
     level_info->setKey("Level");
     level_info->setValue(std::to_string(blk->GetValue<int>("Level", 0)));
     grid->insert(level_info);
+    grid->setName(std::to_string(blk->GetValue<id_type>("GUID")));
     return grid;
 }
 int XDMFDump(std::string const& url, std::shared_ptr<DataNode> const& obj) {
@@ -304,7 +305,6 @@ int XDMFDump(std::string const& url, std::shared_ptr<DataNode> const& obj) {
             if (auto patch = patches->Get(k)) {
                 if (patch->Get("_COORDINATES_") != nullptr) {
                     auto g = XDMFCurvilinearGridNew(chart, blk, patch->Get("_COORDINATES_"));
-                    g->setName(k);
                     patch->Foreach([&](std::string const& s, std::shared_ptr<data::DataNode> const& d) {
                         g->insert(XDMFAttributeInsertOne(attrs->Get(s), d));
                     });
@@ -312,7 +312,6 @@ int XDMFDump(std::string const& url, std::shared_ptr<DataNode> const& obj) {
 
                 } else {
                     auto g = XDMFRegularGridNew(chart, blk);
-                    g->setName(k);
                     patch->Foreach([&](std::string const& s, std::shared_ptr<data::DataNode> const& d) {
                         g->insert(XDMFAttributeInsertOne(attrs->Get(s), d));
                     });

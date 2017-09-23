@@ -28,10 +28,12 @@ struct Chart : public SPObject {
 
     virtual std::shared_ptr<Curve> GetAxisCurve(point_type const &x, int dir) const { return nullptr; };
     virtual int GetNDIMS() const;
+    virtual box_type GetBoundingBox(box_type const &b) const { return b; };
     virtual box_type GetBoundingBox(std::shared_ptr<geometry::GeoObject> const &geo) const {
         return box_type{{0, 0, 0}, {0, 0, 0}};
     };
-
+    virtual std::shared_ptr<GeoObject> GetBoundingShape(box_type const &b) const;
+    virtual std::shared_ptr<GeoObject> GetBoundingShape(index_box_type const &b) const;
 
     void SetLevel(int level);
     int GetLevel() const;
@@ -168,9 +170,6 @@ struct Chart : public SPObject {
     auto InvMapFromBase(std::tuple<P...> const &points) const {
         return _InvMapFromBase(std::index_sequence_for<P...>(), points);
     }
-
-    virtual std::shared_ptr<GeoObject> BoundingBox(box_type const &b) const;
-    virtual std::shared_ptr<GeoObject> BoundingBox(index_box_type const &b) const;
 
    private:
     int m_level_ = 0;

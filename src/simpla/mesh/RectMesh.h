@@ -113,7 +113,6 @@ void RectMesh<THost>::InitialCondition(Real time_now) {
      */
     m_coordinates_ = [&](index_type x, index_type y, index_type z) { return chart->global_coordinates(x, y, z, 0b0); };
 
-    m_coordinates_.Pop()->GetEntity(0)->Print(std::cout, 0);
 
     m_node_volume_ = 1.0;
     m_node_inv_volume_ = 1.0;

@@ -225,8 +225,8 @@ struct csCylindrical : public Chart {
         //            r[RAxis]));
     }
 
-    std::shared_ptr<GeoObject> BoundingBox(box_type const &b) const override;
-    std::shared_ptr<GeoObject> BoundingBox(index_box_type const &b) const override;
+    std::shared_ptr<GeoObject> GetBoundingShape(box_type const &b) const override;
+    std::shared_ptr<GeoObject> GetBoundingShape(index_box_type const &b) const override;
 };
 
 }  // namespace geometry

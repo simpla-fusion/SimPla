@@ -208,14 +208,14 @@ void Scenario::DoSetUp() {
     if (!m_pimpl_->m_atlas_->hasBoundingBox()) {
         auto it = m_pimpl_->m_domains_.begin();
         if (it == m_pimpl_->m_domains_.end() || it->second == nullptr) { return; }
-        bounding_box = chart->GetBoundingBox(it->second->GetBoundary());
+        bounding_box = it->second->GetBoundary()->GetBoundingBox();
         ++it;
         for (; it != m_pimpl_->m_domains_.end(); ++it) {
             if (it->second != nullptr) {
-                bounding_box = geometry::Union(bounding_box, chart->GetBoundingBox(it->second->GetBoundary()));
+                bounding_box = geometry::Union(bounding_box, it->second->GetBoundary()->GetBoundingBox());
             }
         }
-        m_pimpl_->m_atlas_->SetBoundingBox(bounding_box);
+        m_pimpl_->m_atlas_->SetBoundingBox(chart->GetBoundingBox(bounding_box));
     }
     m_pimpl_->m_atlas_->SetUp();
     base_type::DoSetUp();

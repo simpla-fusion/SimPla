@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
     scenario->Run();
     scenario->Dump();
 
-    std::cout << *scenario->Serialize() << std::endl;
+//    std::cout << *scenario->Serialize() << std::endl;
 
     TheEnd();
     scenario->TearDown();

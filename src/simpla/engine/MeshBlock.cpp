@@ -26,23 +26,23 @@ std::shared_ptr<MeshBlock> MeshBlock::New(std::shared_ptr<simpla::data::DataNode
 }
 std::shared_ptr<simpla::data::DataNode> MeshBlock::Serialize() const {
     auto res = data::DataNode::New(data::DataNode::DN_TABLE);
-    res->SetValue("LowIndex", std::get<0>(m_index_box_));
-    res->SetValue("HighIndex", std::get<1>(m_index_box_));
-    res->SetValue("Level", m_level_);
-    res->SetValue("LocalId", m_local_id_);
+    res->SetValue("LowIndex", std::get<0>(IndexBox()));
+    res->SetValue("HighIndex", std::get<1>(IndexBox()));
+    res->SetValue("Level", GetLevel());
+    res->SetValue("GUID", GetGUID());
     return res;
 }
 void MeshBlock::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
     std::get<0>(m_index_box_) = cfg->GetValue<index_tuple>("LowIndex", index_tuple{0, 0, 0});
     std::get<1>(m_index_box_) = cfg->GetValue<index_tuple>("HighIndex", index_tuple{1, 1, 1});
     m_level_ = cfg->GetValue<int>("Level", 0);
-    m_local_id_ = cfg->GetValue<int>("LocalId", 0);
+    m_local_id_ = cfg->GetValue<id_type>("GUID", 0);
 }
 std::shared_ptr<MeshBlock> MeshBlock::New(index_box_type const &box, int id, int level, int global_rank) {
     return std::shared_ptr<MeshBlock>(new MeshBlock(box, id, level, global_rank));
 };
 
-id_type MeshBlock::hash_id(int id, int level, int owner) {
+id_type MeshBlock::hash_id(id_type id, int level, int owner) {
     return static_cast<id_type>((owner * MAX_LEVEL_NUMBER + level) * MAX_LOCAL_ID_NUMBER) + id;
 }
 
