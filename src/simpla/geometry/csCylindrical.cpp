@@ -39,5 +39,12 @@ std::shared_ptr<Curve> csCylindrical::GetAxisCurve(point_type const &x, int dir)
 
     return std::shared_ptr<Curve>(res);
 }
+
+box_type csCylindrical::GetBoundingBox(std::shared_ptr<geometry::GeoObject> const &geo) const {
+    UNIMPLEMENTED;
+    return box_type{{0, 0, 0}, {0, 0, 0}};
+    ;
+}
+
 }  // namespace geometry
 }  // namespace simpla

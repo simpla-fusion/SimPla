@@ -28,6 +28,10 @@ struct Chart : public SPObject {
 
     virtual std::shared_ptr<Curve> GetAxisCurve(point_type const &x, int dir) const { return nullptr; };
     virtual int GetNDIMS() const;
+    virtual box_type GetBoundingBox(std::shared_ptr<geometry::GeoObject> const &geo) const {
+        return box_type{{0, 0, 0}, {0, 0, 0}};
+    };
+
 
     void SetLevel(int level);
     int GetLevel() const;

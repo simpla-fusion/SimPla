@@ -33,6 +33,7 @@ struct Atlas::pimpl_s {
     //    std::set<std::shared_ptr<data::DataNode>> m_layers_[MAX_NUM_OF_LEVEL];
     //    nTuple<int, 3> m_refine_ratio_[MAX_NUM_OF_LEVEL] = {{2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}};
     index_box_type m_index_box_{{0, 0, 0}, {1, 1, 1}};
+    bool m_has_bounding_box_ = false;
     box_type m_box_{{0, 0, 0}, {1, 1, 1}};
     box_type m_local_box_{{0, 0, 0}, {1, 1, 1}};
     index_box_type m_local_index_box_{{0, 0, 0}, {1, 1, 1}};
@@ -148,7 +149,12 @@ int Atlas::Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const
     }
     return count;
 };
-void Atlas::SetBoundingBox(box_type const &b) { m_pimpl_->m_box_ = b; }
+bool Atlas::hasBoundingBox() const { return m_pimpl_->m_has_bounding_box_; }
+
+void Atlas::SetBoundingBox(box_type const &b) {
+    m_pimpl_->m_box_ = b;
+    m_pimpl_->m_has_bounding_box_ = true;
+}
 box_type Atlas::GetBoundingBox() const { return m_pimpl_->m_box_; }
 index_box_type Atlas::GetIndexBox(int tag, int direction) const { return m_pimpl_->m_index_box_; }
 index_tuple Atlas::GetGhostWidth() const { return m_pimpl_->m_ghost_width_; }

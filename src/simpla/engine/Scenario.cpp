@@ -204,17 +204,19 @@ void Scenario::DoSetUp() {
 
     for (auto &item : m_pimpl_->m_domains_) { item.second->SetUp(); }
 
-    auto it = m_pimpl_->m_domains_.begin();
-    if (it == m_pimpl_->m_domains_.end() || it->second == nullptr) { return; }
-    bounding_box = it->second->GetBoundary()->GetBoundingBox();
-    ++it;
-    for (; it != m_pimpl_->m_domains_.end(); ++it) {
-        if (it->second != nullptr) {
-            bounding_box = geometry::Union(bounding_box, it->second->GetBoundary()->GetBoundingBox());
+    auto chart = m_pimpl_->m_atlas_->GetChart();
+    if (!m_pimpl_->m_atlas_->hasBoundingBox()) {
+        auto it = m_pimpl_->m_domains_.begin();
+        if (it == m_pimpl_->m_domains_.end() || it->second == nullptr) { return; }
+        bounding_box = chart->GetBoundingBox(it->second->GetBoundary());
+        ++it;
+        for (; it != m_pimpl_->m_domains_.end(); ++it) {
+            if (it->second != nullptr) {
+                bounding_box = geometry::Union(bounding_box, chart->GetBoundingBox(it->second->GetBoundary()));
+            }
         }
+        m_pimpl_->m_atlas_->SetBoundingBox(bounding_box);
     }
-
-    m_pimpl_->m_atlas_->SetBoundingBox(bounding_box);
     m_pimpl_->m_atlas_->SetUp();
     base_type::DoSetUp();
 }

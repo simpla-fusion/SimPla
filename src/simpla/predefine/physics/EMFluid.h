@@ -21,7 +21,7 @@ class EMFluid : public TDomain {
     SP_DOMAIN_HEAD(EMFluid, TDomain);
 
     Field<this_type, Real, CELL> ne{this, "name"_ = "ne"};
-    Field<this_type, Real, CELL, 3> B0v{this, "name"_ = "B0v"};
+    Field<this_type, Real, CELL, 3> B0v{this, "name"_ = "B0v", "CheckPoint"_};
 
     Field<this_type, Real, EDGE> E0{this, "name"_ = "E0"};
     Field<this_type, Real, FACE> B0{this, "name"_ = "B0"};

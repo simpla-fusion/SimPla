@@ -82,6 +82,7 @@ class Atlas : public EngineObject {
         static_assert(std::is_base_of<geometry::Chart, U>::value, "illegal chart type!");
         SetChart(U::New(std::forward<Args>(args)...));
     };
+    bool hasBoundingBox() const;
     void SetBoundingBox(box_type const &);
     box_type GetBoundingBox() const;
     index_box_type GetIndexBox(int tag = NODE, int direction = 0) const;

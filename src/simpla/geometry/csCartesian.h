@@ -31,6 +31,9 @@ struct csCartesian : public Chart {
     typedef Real scalar_type;
 
     std::shared_ptr<Curve> GetAxisCurve(point_type const &x, int dir) const override;
+    box_type GetBoundingBox(std::shared_ptr<geometry::GeoObject> const &geo) const override {
+        return geo->GetBoundingBox();
+    };
 
     /**
      * metric only diff_scheme the volume of simplex
