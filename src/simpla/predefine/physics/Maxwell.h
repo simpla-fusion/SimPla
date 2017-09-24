@@ -22,9 +22,9 @@ class Maxwell : public TDomainBase {
 
     Field<this_type, Real, CELL, 3> B0v{this, "Name"_ = "B0v"};
 
-    Field<this_type, Real, FACE> B{this, "Name"_ = "B"};
-    Field<this_type, Real, EDGE> E{this, "Name"_ = "E"};
-    Field<this_type, Real, EDGE> J{this, "Name"_ = "J"};
+    Field<this_type, Real, FACE> B{this, "Name"_ = "B", "CheckPoint"_};
+    Field<this_type, Real, EDGE> E{this, "Name"_ = "E", "CheckPoint"_};
+    Field<this_type, Real, EDGE> J{this, "Name"_ = "J", "CheckPoint"_};
     Field<this_type, Real, CELL, 3> dumpE{this, "Name"_ = "dumpE", "CheckPoint"_};
     Field<this_type, Real, CELL, 3> dumpB{this, "Name"_ = "dumpB", "CheckPoint"_};
     Field<this_type, Real, CELL, 3> dumpJ{this, "Name"_ = "dumpJ", "CheckPoint"_};

@@ -16,17 +16,22 @@ ENDIF (LUA_FOUND)
 
 #FILE(GLOB database_SRC  *.cpp *.h )
 
-SET(data_backend_SRC
+LIST(APPEND data_backend_SRC
         DataNodeMemory.h
         DataNodeMemory.cpp
         DataNodeLua.cpp
         DataNodeHDF5.cpp
         DataNodeXDMF.cpp
         DataNodeIMAS.cpp
+        HDF5Common.cpp
+        HDF5Common.h
         LuaObject.cpp
         LuaObject.h
         LuaObjectExt.h
         )
+IF (XDMF_FOUND)
+    LIST(APPEND data_backend_SRC DataNodeXDMF3.cpp)
+ENDIF (XDMF_FOUND)
 ADD_LIBRARY(data_backend ${data_backend_SRC})
 target_include_directories(data_backend BEFORE PRIVATE
         ${HDF5_INCLUDE_DIRS}
