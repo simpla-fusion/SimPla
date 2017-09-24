@@ -171,11 +171,17 @@ void DataNodeXDMF::WriteDataItem(std::string const& url, std::string const& key,
         for (int i = 0; i < ndims; ++i) { f_shape[i] = static_cast<hsize_t>(hi[i] - lo[i]); }
         f_shape[ndims] = dof;
 
-        hid_t f_space = H5Screate_simple(ndims + 1, &f_shape[0], nullptr);
-
         hid_t dset;
-        H5_ERROR(dset = H5Dcreate(g_id, key.c_str(), d_type, f_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
-        if (f_space != H5S_ALL) H5_ERROR(H5Sclose(f_space));
+        hid_t f_space = H5Screate_simple(ndims + 1, &f_shape[0], nullptr);
+        hid_t plist = H5P_DEFAULT;
+        if (H5Tequal(d_type, H5T_NATIVE_DOUBLE)) {
+            plist = H5Pcreate(H5P_DATASET_CREATE);
+            double fillval = std::numeric_limits<double>::quiet_NaN();
+            H5_ERROR(H5Pset_fill_value(plist, H5T_NATIVE_DOUBLE, &fillval));
+        }
+        H5_ERROR(dset = H5Dcreate(g_id, key.c_str(), d_type, f_space, H5P_DEFAULT, plist, H5P_DEFAULT));
+        H5_ERROR(H5Pclose(plist));
+        H5_ERROR(H5Sclose(f_space));
 
         for (int i = 0; i < dof; ++i) {
             if (auto array = std::dynamic_pointer_cast<ArrayBase>(data->GetEntity(i))) {
@@ -235,7 +241,7 @@ void DataNodeXDMF::WriteDataItem(std::string const& url, std::string const& key,
 }
 void DataNodeXDMF::WriteAttribute(std::string const& url, std::shared_ptr<data::DataNode> const& attr_desc,
                                   std::shared_ptr<data::DataNode> const& data, int indent) {
-    static const char* attr_center[] = {"Node", "Edge", "Face", "Cell", "Grid", "Other"};
+    static const char* attr_center[] = {"Node", "Node" /* "Edge"*/, "Node" /* "Face"*/, "Cell", "Grid", "Other"};
     //    static const char* attr_type[] = {" Scalar", "Vector", "Tensor", "Tensor6", "Matrix", "GlobalID"};
 
     std::string attr_type = "Scalar";
@@ -268,6 +274,7 @@ void DataNodeXDMF::WriteAttribute(std::string const& url, std::shared_ptr<data::
        << "Center=\"" << attr_center[attr_desc->GetValue<int>("IFORM", 0)] << "\" "  //
        << "Name=\"" << s_name << "\" "                                               //
        << "AttributeType=\"" << attr_type << "\" "                                   //
+       << "IFORM=\"" << attr_desc->GetValue<int>("IFORM", 0) << "\" "                //
        << ">" << std::endl;
 
     WriteDataItem(url, s_name, data, indent + 1);
