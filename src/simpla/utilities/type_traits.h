@@ -10,8 +10,8 @@
 
 #include <initializer_list>
 #include <type_traits>
+#include <typeinfo>
 #include <utility>
-#include "Log.h"
 #include "host_define.h"
 
 namespace simpla {
@@ -99,7 +99,7 @@ struct InvokeHelper_ {
 };
 
 template <typename U, typename... Args>
-struct InvokeHelper_<U, std::tuple<Args...>, std::enable_if_t<(is_invocable<std::remove_cv_t<U>, Args...>::value)>> {
+struct InvokeHelper_<U, std::tuple<Args...>, std::enable_if_t<(is_invocable<U, Args...>::value)>> {
     template <typename V, typename... Args2>
     static decltype(auto) eval(V& v, Args2&&... args) {
         return v(std::forward<Args>(args)...);
@@ -108,9 +108,12 @@ struct InvokeHelper_<U, std::tuple<Args...>, std::enable_if_t<(is_invocable<std:
 
 template <typename U, typename... Args>
 decltype(auto) invoke(U& v, Args&&... args) {
-    return InvokeHelper_<std::remove_cv<U>, std::tuple<Args...>>::eval(v, std::forward<Args>(args)...);
+    return InvokeHelper_<U, std::tuple<Args...>>::eval(v, std::forward<Args>(args)...);
 }
-
+template <typename U, typename... Args>
+decltype(auto) invoke(U const& v, Args&&... args) {
+    return InvokeHelper_<const U, std::tuple<Args...>>::eval(v, std::forward<Args>(args)...);
+}
 //**********************************************************************************************************************
 /**
 * @ref http://en.cppreference.com/w/cpp/types/remove_extent
@@ -150,11 +153,11 @@ decltype(auto) index(U& v) {
 }
 template <typename U, typename I0>
 decltype(auto) index(U& v, I0 const& s) {
-    return IndexHelper_<std::remove_cv_t<U>, I0>::eval(v, s);
+    return IndexHelper_<U, I0>::eval(v, s);
 }
 template <typename U, typename I0>
 decltype(auto) index(U const& v, I0 const& s) {
-    return IndexHelper_<U, I0>::eval(v, s);
+    return IndexHelper_<const U, I0>::eval(v, s);
 }
 template <typename U, typename I0, typename... Others>
 decltype(auto) index(U& v, I0 const& s, Others&&... others) {
@@ -162,11 +165,19 @@ decltype(auto) index(U& v, I0 const& s, Others&&... others) {
 }
 
 template <typename U>
-decltype(auto) recursive_index(U& v, int s, ENABLE_IF((std::rank<std::remove_cv_t<U>>::value == 0))) {
+decltype(auto) recursive_index(U& v, int s, ENABLE_IF((std::rank<U>::value == 0))) {
     return v;
 }
 template <typename U>
-decltype(auto) recursive_index(U& v, int s, ENABLE_IF((std::rank<std::remove_cv_t<U>>::value > 0))) {
+decltype(auto) recursive_index(U const& v, int s, ENABLE_IF((std::rank<U>::value == 0))) {
+    return v;
+}
+template <typename U>
+decltype(auto) recursive_index(U& v, int s, ENABLE_IF((std::rank<U>::value > 0))) {
+    return recursive_index(v[s % std::extent<std::remove_cv_t<U>>::value], s / std::extent<std::remove_cv_t<U>>::value);
+}
+template <typename U>
+decltype(auto) recursive_index(U const& v, int s, ENABLE_IF((std::rank<U>::value > 0))) {
     return recursive_index(v[s % std::extent<std::remove_cv_t<U>>::value], s / std::extent<std::remove_cv_t<U>>::value);
 }
 template <typename... T>

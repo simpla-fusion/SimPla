@@ -103,39 +103,39 @@ struct FVM {
 
     template <typename M, typename U, int IFORM, int... N, typename RHS>
     void Calculate(Field<M, U, IFORM, N...>& lhs, RHS const& rhs) const {
-        typedef typename Field<M, U, IFORM, N...>::data_type data_type;
-        st::foreach (dynamic_cast<data_type&>(lhs),  //
-                     [&](auto& a, int n0, auto&&... subs) {
-                         auto tag = static_cast<int16_t>(
-                             EntityIdCoder::m_sub_index_to_id_[IFORM][n0] |
-                             (st::recursive_calculate_shift<1, N...>(0, std::forward<decltype(subs)>(subs)...) << 3));
-                         a = getArray((rhs), IdxShift{0, 0, 0}, tag);
-                     });
+//        typedef typename Field<M, U, IFORM, N...>::data_type data_type;
+//        st::foreach (dynamic_cast<data_type&>(lhs),  //
+//                     [&](auto& a, int n0, auto&&... subs) {
+//                         auto tag = static_cast<int16_t>(
+//                             EntityIdCoder::m_sub_index_to_id_[IFORM][n0] |
+//                             (st::recursive_calculate_shift<1, N...>(0, std::forward<decltype(subs)>(subs)...) << 3));
+////                         a = getArray((rhs), IdxShift{0, 0, 0}, tag);
+//                     });
     }
 
     template <typename M, typename U, int IFORM, int... N, typename RHS>
     void Calculate(Field<M, U, IFORM, N...>& lhs, RHS const& rhs, Range<EntityId> const& r) const {
         if (r.isNull()) { return; }
         typedef typename Field<M, U, IFORM, N...>::data_type data_type;
-
-        st::foreach (dynamic_cast<data_type&>(lhs),  //
-                     [&](auto& a, int n0, auto&&... subs) {
-                         auto tag = static_cast<int16_t>(
-                             EntityIdCoder::m_sub_index_to_id_[IFORM][n0] |
-                             (st::recursive_calculate_shift<1, N...>(0, std::forward<decltype(subs)>(subs)...) << 3));
-
-                         int n = ((tag & 0b111) == 0 || (tag & 0b111) == 0b111)
-                                     ? (tag << 3)
-                                     : EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
-
-                         r.foreach ([&](EntityId s) {
-                             if (s.w == tag) {
-                                 a.Assign(st::recursive_index(
-                                              st::invoke(getArray((rhs), IdxShift{0, 0, 0}, tag), s.x, s.y, s.z), n),
-                                          s.x, s.y, s.z);
-                             }
-                         });
-                     });
+//
+//        st::foreach (dynamic_cast<data_type&>(lhs),  //
+//                     [&](auto& a, int n0, auto&&... subs) {
+//                         auto tag = static_cast<int16_t>(
+//                             EntityIdCoder::m_sub_index_to_id_[IFORM][n0] |
+//                             (st::recursive_calculate_shift<1, N...>(0, std::forward<decltype(subs)>(subs)...) << 3));
+//
+//                         int n = ((tag & 0b111) == 0 || (tag & 0b111) == 0b111)
+//                                     ? (tag << 3)
+//                                     : EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
+//
+//                         r.foreach ([&](EntityId s) {
+//                             if (s.w == tag) {
+//                                 a.Assign(st::recursive_index(
+//                                              st::invoke(getArray((rhs), IdxShift{0, 0, 0}, tag), s.x, s.y, s.z), n),
+//                                          s.x, s.y, s.z);
+//                             }
+//                         });
+//                     });
     }
 
     auto _getV(std::integral_constant<int, NODE> _, IdxShift S, int tag) const {

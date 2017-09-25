@@ -36,7 +36,7 @@ template <typename... T>
 struct is_expression<Expression<T...>> : public std::true_type {};
 
 template <typename... U, typename I0>
-struct IndexHelper_<Expression<U...>, I0> {
+struct IndexHelper_<const Expression<U...>, I0> {
     template <size_type... I>
     static decltype(auto) helper_(std::integer_sequence<size_t, I...>, Expression<U...> const &expr, I0 const &s) {
         return expr.m_op_(index(std::get<I>(expr.m_args_), s)...);
@@ -47,7 +47,7 @@ struct IndexHelper_<Expression<U...>, I0> {
 };
 
 template <typename... U, typename... Args>
-struct InvokeHelper_<Expression<U...>, std::tuple<Args...>> {
+struct InvokeHelper_<Expression<U...> const, std::tuple<Args...>> {
     template <size_type... I, typename... Args2>
     static decltype(auto) helper_(std::integer_sequence<size_type, I...>, Expression<U...> const &expr,
                                   Args2 &&... args) {
@@ -56,7 +56,7 @@ struct InvokeHelper_<Expression<U...>, std::tuple<Args...>> {
 
     template <typename... Args2>
     static decltype(auto) eval(Expression<U...> const &expr, Args2 &&... args) {
-        helper_(std::make_index_sequence<sizeof...(U) - 1>(), expr, std::forward<Args2>(args)...);
+        return helper_(std::make_index_sequence<sizeof...(U) - 1>(), expr, std::forward<Args2>(args)...);
     }
 };
 }

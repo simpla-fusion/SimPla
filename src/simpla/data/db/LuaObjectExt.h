@@ -16,7 +16,7 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-
+#include "simpla/utilities/Log.h"
 #include "simpla/algebra/nTuple.h"
 
 extern "C" {
