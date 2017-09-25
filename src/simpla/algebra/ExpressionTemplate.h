@@ -9,7 +9,7 @@
 #include <complex>
 #include <tuple>
 #include "simpla/utilities/type_traits.h"
-
+#include "simpla/utilities/utility.h"
 namespace simpla {
 template <typename...>
 class Expression;
@@ -27,7 +27,6 @@ struct extent<simpla::Expression<TOP, Args...>, N>
 }
 
 namespace simpla {
-
 namespace traits {
 
 template <typename TExpr>
@@ -36,8 +35,31 @@ struct is_expression : public std::false_type {};
 template <typename... T>
 struct is_expression<Expression<T...>> : public std::true_type {};
 
-}  // namespace
+template <typename... U, typename I0>
+struct IndexHelper_<Expression<U...>, I0> {
+    template <size_type... I>
+    static decltype(auto) helper_(std::integer_sequence<size_t, I...>, Expression<U...> const &expr, I0 const &s) {
+        return expr.m_op_(index(std::get<I>(expr.m_args_), s)...);
+    };
+    static decltype(auto) eval(Expression<U...> const &expr, I0 const &s) {
+        return helper_(std::make_index_sequence<sizeof...(U) - 1>(), expr, s);
+    }
+};
 
+template <typename... U, typename... Args>
+struct InvokeHelper_<Expression<U...>, std::tuple<Args...>> {
+    template <size_type... I, typename... Args2>
+    static decltype(auto) helper_(std::integer_sequence<size_type, I...>, Expression<U...> const &expr,
+                                  Args2 &&... args) {
+        return expr.m_op_(invoke(std::get<I>(expr.m_args_), std::forward<Args2>(args)...)...);
+    };
+
+    template <typename... Args2>
+    static decltype(auto) eval(Expression<U...> const &expr, Args2 &&... args) {
+        helper_(std::make_index_sequence<sizeof...(U) - 1>(), expr, std::forward<Args2>(args)...);
+    }
+};
+}
 namespace calculus {
 
 template <int N>
@@ -124,95 +146,6 @@ struct Expression<TOP, Args...> {
         return static_cast<T>(calculus::reduction(*this));
     }
 };
-
-namespace calculus {
-
-template <typename TFun, typename TypeList, typename Enable = void>
-struct _IndexHelper;
-
-template <typename T, typename... Args>
-decltype(auto) getValue(T &expr, Args &&... args) {
-    return _IndexHelper<T, traits::type_list<std::remove_reference_t<Args>...>>::value((expr),
-                                                                                       std::forward<Args>(args)...);
-};
-template <typename T, typename... Args>
-decltype(auto) getValue(T const &expr, Args &&... args) {
-    return _IndexHelper<T const, traits::type_list<std::remove_reference_t<Args>...>>::value(
-        (expr), std::forward<Args>(args)...);
-};
-
-template <typename T>
-struct _IndexHelper<T, traits::type_list<>> {
-    static decltype(auto) value(T &v) { return (v); };
-};
-
-template <typename T, typename _Arg0, typename... _Args>
-struct _IndexHelper<
-    T, traits::type_list<_Arg0, _Args...>,
-    std::enable_if_t<std::is_arithmetic<T>::value || std::is_same<std::remove_cv_t<T>, std::complex<double>>::value ||
-                     std::is_same<std::remove_cv_t<T>, std::complex<float>>::value>> {
-    template <typename Arg0, typename... Args>
-    static decltype(auto) value(T &v, Arg0 &&arg0, Args &&... args) {
-        return (v);
-    };
-};
-
-template <typename T, typename _Arg0, typename... _Args>
-struct _IndexHelper<T, traits::type_list<_Arg0, _Args...>,
-                    std::enable_if_t<traits::is_invocable<T, _Arg0, _Args...>::value>> {
-    template <typename Arg0, typename... Args>
-    static decltype(auto) value(T &v, Arg0 &&arg0, Args &&... args) {
-        return v(std::forward<Arg0>(arg0), std::forward<Args>(args)...);
-    };
-};
-
-template <typename T, typename _Arg0, typename... _Args>
-struct _IndexHelper<
-    T, traits::type_list<_Arg0, _Args...>,
-    std::enable_if_t<(!traits::is_invocable<T, _Arg0, _Args...>::value) && traits::is_indexable<T, _Arg0>::value>> {
-    template <typename Arg0, typename... Args>
-    static decltype(auto) value(T &v, Arg0 &&arg0, Args &&... args) {
-        return getValue(v[arg0], std::forward<Args>(args)...);
-    };
-};
-
-template <typename TOP, typename... Others, typename... _Args>
-struct _IndexHelper<const Expression<TOP, Others...>, traits::type_list<_Args...>> {
-    template <size_t... index, typename... Args>
-    static decltype(auto) _invoke_helper(std::index_sequence<index...>, Expression<TOP, Others...> const &expr,
-                                         Args &&... args) {
-        return expr.m_op_(getValue(std::get<index>(expr.m_args_), std::forward<Args>(args)...)...);
-    }
-    template <size_t... index, typename... Args>
-    static decltype(auto) value(Expression<TOP, Others...> const &expr, Args &&... args) {
-        return _invoke_helper(std::index_sequence_for<Others...>(), expr, std::forward<Args>(args)...);
-    };
-};
-
-// template <typename T, typename TI>
-// static T getValue(T *v, TI const *s) {
-//    return getValue(v[*s], s + 1);
-//};
-//
-//    template <typename... T, typename... Idx>
-//    static decltype(auto) getValue(Expression<tags::_nTuple_cross, T...> const& expr, int s, Idx&&... others) {
-//        return getValue(std::get<0>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...) *
-//                   getValue(std::get<1>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) -
-//               getValue(std::get<0>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) *
-//                   getValue(std::get<1>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...);
-//    }
-
-// template <typename TOP, typename... Others, typename... Idx>
-// static decltype(auto) getValue(Expression<TOP, Others...> const &expr, Idx &&... s) {
-//    return ((_invoke_helper(expr, std::index_sequence_for<Others...>(), std::forward<Idx>(s)...)));
-//}
-//
-template <typename LHS, typename RHS, typename... Args>
-void Assign(LHS &lhs, RHS const &rhs, Args &&... args) {
-    getValue(lhs, std::forward<Args>(args)...) = getValue(rhs, std::forward<Args>(args)...);
-};
-};
-
 namespace tags {
 struct _assign {
     template <typename TL, typename TR>
@@ -321,7 +254,7 @@ _SP_DEFINE_EXPR_BINARY_OPERATOR(/, division)
 _SP_DEFINE_EXPR_BINARY_OPERATOR(%, modulo)
 
 _SP_DEFINE_EXPR_UNARY_OPERATOR(~, bitwise_not)
-_SP_DEFINE_EXPR_BINARY_OPERATOR(^, bitwise_xor)
+_SP_DEFINE_EXPR_BINARY_OPERATOR (^, bitwise_xor)
 _SP_DEFINE_EXPR_BINARY_OPERATOR(&, bitwise_and)
 _SP_DEFINE_EXPR_BINARY_OPERATOR(|, bitwise_or)
 _SP_DEFINE_EXPR_BINARY_OPERATOR(<<, bitwise_left_shift)

@@ -115,6 +115,8 @@ struct Attribute : public EngineObject {
    public:
     Attribute();
     ~Attribute() override;
+    Attribute(this_type const &other) { UNIMPLEMENTED; };
+    Attribute(this_type &&other) { UNIMPLEMENTED; };
 
     template <typename THost, typename... Args>
     explicit Attribute(THost host, Args &&... args) : Attribute() {

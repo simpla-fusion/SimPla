@@ -82,15 +82,7 @@ template <typename T, T B0, T... B>
 struct mt_min<T, B0, B...>
     : public std::integral_constant<T, ((B0 < (mt_min<T, B...>::value)) ? B0 : (mt_min<T, B...>::value))> {};
 
-template <typename T, typename TI>
-auto index(T &v, std::integer_sequence<TI>, ENABLE_IF((is_indexable<T, TI>::value))) {
-    return (v);
-}
 
-template <typename T, typename TI, TI M, TI... N>
-auto index(T &v, std::integer_sequence<TI, M, N...>, ENABLE_IF((is_indexable<T, TI>::value))) {
-    return ((index(v[M], std::integer_sequence<TI, N...>())));
-}
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -218,8 +210,8 @@ auto seq_reduce(std::index_sequence<N...>, TOP const &op, Args &&... args) {
 }
 //----------------------------------------------------------------------------------------------------------------------
 
-template <size_t... N, typename TOP>
-void seq_for_each(std::index_sequence<N...>, TOP const &op) {
+template <typename TI, TI... N, typename TOP>
+void seq_for_each(std::integer_sequence<TI, N...>, TOP const &op) {
     int ndims = sizeof...(N);
     int idx[10];
     int dims[] = {N...};

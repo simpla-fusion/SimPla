@@ -99,7 +99,7 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     template <typename TL, typename TR>
     void Fill(TL &lhs, TR &&rhs) const {
         FillRange(lhs, std::forward<TR>(rhs), Range<EntityId>{}, true);
-        //        FillRange(lhs, 0, "PATCH_BOUNDARY_" + std::to_string(TL::iform), false);
+        FillRange(lhs, 0, "PATCH_BOUNDARY_" + std::to_string(TL::iform), false);
     };
 
     template <typename TL, typename TR>
@@ -238,11 +238,11 @@ void Domain<TChart, Policies...>::InitializeAttribute(AttributeT<U, IFORM, DOF..
 template <typename TM, template <typename> class... Policies>
 template <typename LHS, typename RHS>
 void Domain<TM, Policies...>::FillRange(LHS &lhs, RHS &&rhs, Range<EntityId> r, bool full_fill_if_range_is_null) const {
-    //    if (r.isFull() || (r.isNull() && full_fill_if_range_is_null)) {
-    //        this_type::Calculate(this, lhs, std::forward<RHS>(rhs));
-    //    } else {
-    //        this_type::Calculate(this, lhs, std::forward<RHS>(rhs), r);
-    //    }
+    if (r.isFull() || (r.isNull() && full_fill_if_range_is_null)) {
+        this_type::Calculate(lhs, std::forward<RHS>(rhs));
+    } else {
+        this_type::Calculate(lhs, std::forward<RHS>(rhs), r);
+    }
 };
 
 template <typename TM, template <typename> class... Policies>

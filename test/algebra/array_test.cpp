@@ -4,11 +4,11 @@
 
 #include <gtest/gtest.h>
 
-#include "simpla/algebra/Array.h"
-#include "simpla/algebra/sfc/z_sfc.h"
 #include <complex>
 #include <iostream>
 #include <typeinfo>
+#include "simpla/algebra/Array.h"
+#include "simpla/algebra/sfc/z_sfc.h"
 using namespace simpla;
 
 #define EQUATION(_A, _B, _C) (-(_A + TestFixture::a) / (_B * TestFixture::b - TestFixture::c) - _C)
@@ -40,7 +40,7 @@ class TestArray : public testing::Test {
    public:
     typedef T type;
 
-    typedef std::extents<type> extents;
+    typedef traits::extents<type> extents;
 
     nTuple<int, std::rank<type>::value> DIMENSIONS;
 
@@ -53,11 +53,9 @@ class TestArray : public testing::Test {
     value_type a, b, c, d;
 };
 
-typedef testing::Types<Array<double, ZSFC<3>>,                //
-                       Array<int, ZSFC<3>>,                   //
-                       Array<std::complex<double>, ZSFC<3>>,  //
-                       Array<nTuple<double, 3>, ZSFC<3>>,     //
-
+typedef testing::Types<Array<double>,               //
+                       Array<int>,                  //
+                       Array<std::complex<double>>  //
                        >
     ntuple_type_lists;
 

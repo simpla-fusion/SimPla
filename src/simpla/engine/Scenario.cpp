@@ -44,11 +44,11 @@ std::shared_ptr<data::DataNode> Scenario::Serialize() const {
 
     auto domain = data::DataNode::New(data::DataNode::DN_TABLE);
     for (auto const &item : m_pimpl_->m_domains_) { domain->Set(item.first, item.second->Serialize()); }
-    res->Set("Domain", domain);
+    res->Set("Domains", domain);
 
     auto patches = data::DataNode::New(data::DataNode::DN_TABLE);
     for (auto const &item : m_pimpl_->m_patches_) { patches->Set(item.first, item.second); }
-    res->Set("Patch", patches);
+    res->Set("Patches", patches);
 
     return res;
 }
@@ -57,11 +57,11 @@ void Scenario::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
     m_pimpl_->m_atlas_->Deserialize(cfg->Get("Atlas"));
 
-    if (auto domain = cfg->Get("Domain")) {
+    if (auto domain = cfg->Get("Domains")) {
         domain->Foreach(
             [&](std::string key, std::shared_ptr<data::DataNode> node) { SetDomain(key, DomainBase::New(node)); });
     }
-    if (auto patches = cfg->Get("Patch")) {
+    if (auto patches = cfg->Get("Patches")) {
         patches->Foreach([&](std::string key, std::shared_ptr<data::DataNode> node) {
             m_pimpl_->m_patches_.emplace(static_cast<id_type>(std::stol(key)), node);
         });

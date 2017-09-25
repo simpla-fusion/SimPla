@@ -34,6 +34,8 @@ struct DataNodeXDMF : public DataNodeMemory {
                        int indent = 0);
     void WriteAttribute(std::string const& url, std::shared_ptr<data::DataNode> const& attr_desc,
                         std::shared_ptr<data::DataNode> const& data, int indent = 0);
+    void WriteParticle(std::string const& url, std::shared_ptr<data::DataNode> const& attr_desc,
+                       std::shared_ptr<data::DataNode> const& data, int indent = 0);
 
     std::string m_prefix_;
     std::string m_h5_prefix_;
@@ -243,13 +245,14 @@ void DataNodeXDMF::WriteAttribute(std::string const& url, std::shared_ptr<data::
                                   std::shared_ptr<data::DataNode> const& data, int indent) {
     static const char* attr_center[] = {"Node", "Node" /* "Edge"*/, "Node" /* "Face"*/, "Cell", "Grid", "Other"};
     //    static const char* attr_type[] = {" Scalar", "Vector", "Tensor", "Tensor6", "Matrix", "GlobalID"};
-
+    auto iform = attr_desc->GetValue<int>("IFORM", 0);
+    int dof = 1;
     std::string attr_type = "Scalar";
     size_type rank = 0;
     size_type extents[MAX_NDIMS_OF_ARRAY] = {1, 1, 1, 1};
     if (auto p = attr_desc->Get("DOF")) {
         if (auto dof_t = std::dynamic_pointer_cast<DataLightT<int>>(p->GetEntity())) {
-            auto dof = static_cast<size_type>(dof_t->value());
+            dof = (dof_t->value());
             switch (dof_t->value()) {
                 case 1:
                     attr_type = "Scalar";
@@ -262,19 +265,21 @@ void DataNodeXDMF::WriteAttribute(std::string const& url, std::shared_ptr<data::
                     break;
             }
             rank = dof > 1 ? 1 : 0;
-            extents[0] = dof;
+            extents[0] =static_cast<size_type>(dof);
         } else if (auto dof_p = std::dynamic_pointer_cast<DataLightT<int*>>(p->GetEntity())) {
             attr_type = "Matrix";
             rank = dof_p->extents(extents);
         }
     }
+    if (dof == 1 && (iform == EDGE || iform == FACE)) { attr_type = "Vector"; }
+
     std::string s_name = attr_desc->GetValue<std::string>("Name");
     os << std::setw(indent) << " "
        << "<Attribute "
        << "Center=\"" << attr_center[attr_desc->GetValue<int>("IFORM", 0)] << "\" "  //
        << "Name=\"" << s_name << "\" "                                               //
        << "AttributeType=\"" << attr_type << "\" "                                   //
-       << "IFORM=\"" << attr_desc->GetValue<int>("IFORM", 0) << "\" "                //
+       << "IFORM=\"" << iform << "\" "                                               //
        << ">" << std::endl;
 
     WriteDataItem(url, s_name, data, indent + 1);
@@ -282,7 +287,36 @@ void DataNodeXDMF::WriteAttribute(std::string const& url, std::shared_ptr<data::
     os << std::setw(indent) << " "
        << "</Attribute>" << std::endl;
 }
+void DataNodeXDMF::WriteParticle(std::string const& url, std::shared_ptr<data::DataNode> const& attr_desc,
+                                 std::shared_ptr<data::DataNode> const& data, int indent) {
+    os << std::setw(indent) << " "
+       << " <Grid Name=\"" << attr_desc->GetValue<std::string>("Name") << "  GridType=\"Uniform\"> "
+       << std::setw(indent + 1) << " "
+       << "<Time Value=\"" << 0.00 << "\"  />" << std::endl
+       << std::setw(indent + 1) << " "
+       << "<Topology TopologyType=\"Polyvertex\" NodesPerElement=\"" << 30 << "\" />" << std::endl;
 
+    os << R"(<Geometry GeometryType="XYZ">
+					<DataItem DataType="Float" Dimensions="30 3" Format="HDF">
+						TestData.h5:/iter00000000/cells/position
+					</DataItem>
+				</Geometry>
+				<Attribute AttributeType="Scalar" Center="Node" Name="leuk_type">
+					<DataItem DataType="Int" Dimensions="30 1" Format="HDF">
+						TestData.h5:/iter00000000/cells/type
+					</DataItem>
+				</Attribute>
+				<Attribute AttributeType="Vector" Center="Node"
+Name="leuk_polarization">
+					<DataItem DataType="Float" Dimensions="30 3" Format="HDF">
+						TestData.h5:/iter00000000/cells/polarization
+					</DataItem>
+				</Attribute>
+
+)";
+    os << std::setw(indent) << " "
+       << "</Grid>" << std::endl;
+}
 void XDMFGeometryCurvilinear(DataNodeXDMF* self, std::string const& prefix, std::shared_ptr<DataNode> const& chart,
                              std::shared_ptr<data::DataNode> const& blk, std::shared_ptr<data::DataNode> const& coord,
                              int indent) {
@@ -336,9 +370,10 @@ int DataNodeXDMF::Flush() {
 
         blks->Foreach([&](std::string const& k, std::shared_ptr<data::DataNode> const& blk) {
             auto guid = blk->GetValue<id_type>("GUID");
-            os << std::setw(indent) << " "
-               << "<Grid Name=\"" << guid << "\" Level=\"" << blk->GetValue<int>("Level", 0) << "\">" << std::endl;
             if (auto patch = patches->Get(k)) {
+                os << std::setw(indent) << " "
+                   << "<Grid Name=\"" << guid << "\" Level=\"" << blk->GetValue<int>("Level", 0) << "\">" << std::endl;
+
                 if (patch->Get("_COORDINATES_") != nullptr) {
                     XDMFGeometryCurvilinear(this, "/Patches/" + std::to_string(guid), chart, blk,
                                             patch->Get("_COORDINATES_"), indent + 1);
@@ -347,11 +382,19 @@ int DataNodeXDMF::Flush() {
                 }
 
                 patch->Foreach([&](std::string const& s, std::shared_ptr<data::DataNode> const& d) {
-                    if (attrs->Get(s)->Check("COORDINATES")) { return; }
+                    auto attr = attrs->Get(s);
+                    if (attr->Check("COORDINATES") || attr->GetValue<int>("IFORM")==FIBER) { return; }
                     WriteAttribute("/Patches/" + std::to_string(guid), attrs->Get(s), d, indent + 1);
                 });
                 os << std::setw(indent) << " "
                    << "</Grid>" << std::endl;
+
+                patch->Foreach([&](std::string const& s, std::shared_ptr<data::DataNode> const& d) {
+                    auto attr = attrs->Get(s);
+                    if (attr->GetValue<int>("IFORM")==FIBER) {
+                        WriteParticle("/Patches/" + std::to_string(guid), attrs->Get(s), d, indent + 1);
+                    }
+                });
             }
             return 1;
         });

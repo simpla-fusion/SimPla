@@ -564,31 +564,30 @@ template <typename, typename>
 struct Array;
 
 namespace calculus {
-template <typename U, int... N>
-struct _IndexHelper<nTuple<U, N...>, traits::type_list<EntityId>> {
-    static auto& value(nTuple<U, N...>& v, EntityId s) {
-        int n = s.w & 0b111;
-        s.w = s.w >> 3;
-        return getValue(v[n], s);
-    };
-};
-template <typename U, int... N>
-struct _IndexHelper<nTuple<U, N...> const, traits::type_list<EntityId>> {
-    static auto const& value(nTuple<U, N...> const& v, EntityId s) {
-        int n = s.w & 0b111;
-        s.w = s.w >> 3;
-        return getValue(v[n], s);
-    };
-};
-template <typename... U>
-struct _IndexHelper<Array<U...>, traits::type_list<EntityId>> {
-    static auto& value(Array<U...>& v, EntityId s) { return v(s.x, s.y, s.z); };
-};
-template <typename... U>
-struct _IndexHelper<Array<U...> const, traits::type_list<EntityId>> {
-    static auto const& value(Array<U...> const& v, EntityId s) { return v(s.x, s.y, s.z); };
-};
-
+// template <typename U, int... N>
+// struct _IndexHelper<nTuple<U, N...>, traits::type_list<EntityId>> {
+//    static auto& value(nTuple<U, N...>& v, EntityId s) {
+//        int n = s.w & 0b111;
+//        s.w = s.w >> 3;
+//        return getValue(v[n], s);
+//    };
+//};
+// template <typename U, int... N>
+// struct _IndexHelper<nTuple<U, N...> const, traits::type_list<EntityId>> {
+//    static auto const& value(nTuple<U, N...> const& v, EntityId s) {
+//        int n = s.w & 0b111;
+//        s.w = s.w >> 3;
+//        return getValue(v[n], s);
+//    };
+//};
+// template <typename... U>
+// struct _IndexHelper<Array<U...>, traits::type_list<EntityId>> {
+//    static auto& value(Array<U...>& v, EntityId s) { return v(s.x, s.y, s.z); };
+//};
+// template <typename... U>
+// struct _IndexHelper<Array<U...> const, traits::type_list<EntityId>> {
+//    static auto const& value(Array<U...> const& v, EntityId s) { return v(s.x, s.y, s.z); };
+//};
 // template <typename T>
 // struct _IndexHelper<T, traits::type_list<EntityId>,
 //                    std::enable_if_t<traits::is_invocable<T, index_type, index_type, index_type>::value>> {

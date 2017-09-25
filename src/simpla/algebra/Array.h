@@ -252,14 +252,14 @@ class Array : public ArrayBase {
     void Assign(RHS const& rhs) {
         SetUp();
         m_sfc_.Overlap(rhs).Foreach([&] __host__ __device__(auto&&... s) {
-            this->at(std::forward<decltype(s)>(s)...) = calculus::getValue(rhs, std::forward<decltype(s)>(s)...);
+            this->at(std::forward<decltype(s)>(s)...) = simpla::traits::invoke(rhs, std::forward<decltype(s)>(s)...);
         });
     }
 
     template <typename RHS, typename... Args>
     void Assign(RHS const& rhs, Args&&... args) {
         if (GetSpaceFillingCurve().in_box(std::forward<Args>(args)...)) {
-            at(std::forward<Args>(args)...) = calculus::getValue(rhs, std::forward<Args>(args)...);
+            at(std::forward<Args>(args)...) = simpla::traits::invoke(rhs, std::forward<Args>(args)...);
         }
     }
 

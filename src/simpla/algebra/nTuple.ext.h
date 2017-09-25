@@ -241,6 +241,21 @@ std::ostream& operator<<(std::ostream& os, std::tuple<nTuple<T, M...>, nTuple<T,
     os << "{ " << std::get<0>(v) << " ," << std::get<1>(v) << "}";
     return os;
 };
+
+namespace traits {
+template <typename T>
+T& RecursiveIndexing(T& expr, unsigned int n) {
+    return expr;
+}
+template <typename T, int N0, int... N>
+T& RecursiveIndexing(nTuple<T, N0, N...>& expr, unsigned int n) {
+    return RecursiveIndexing(expr[n % N0], n / N0);
+}
+template <typename T, int N0, int... N>
+T const& RecursiveIndexing(nTuple<T, N0, N...> const& expr, unsigned int n) {
+    return RecursiveIndexing(expr[n % N0], n / N0);
+}
+}
 }  // namespace simpla{
 
 #endif  // SIMPLA_NTUPLE_EXT_H

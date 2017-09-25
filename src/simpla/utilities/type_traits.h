@@ -32,7 +32,6 @@ struct do_nothing {
 }
 
 namespace traits {
-#if __cplusplus <= 201402L
 
 namespace detail {
 
@@ -91,7 +90,27 @@ struct is_invocable_r
     : public std::integral_constant<bool,
                                     std::is_same<typename detail::check_invocable<TFun, Args...>::type, R>::value> {};
 
-#endif
+template <typename U, typename ArgsTypelist, typename Enable = void>
+struct InvokeHelper_ {
+    template <typename V, typename... Args>
+    static decltype(auto) eval(V& v, Args&&... args) {
+        return v;
+    }
+};
+
+template <typename U, typename... Args>
+struct InvokeHelper_<U, std::tuple<Args...>, std::enable_if_t<(is_invocable<std::remove_cv_t<U>, Args...>::value)>> {
+    template <typename V, typename... Args2>
+    static decltype(auto) eval(V& v, Args2&&... args) {
+        return v(std::forward<Args>(args)...);
+    }
+};
+
+template <typename U, typename... Args>
+decltype(auto) invoke(U& v, Args&&... args) {
+    return InvokeHelper_<std::remove_cv<U>, std::tuple<Args...>>::eval(v, std::forward<Args>(args)...);
+}
+
 //**********************************************************************************************************************
 /**
 * @ref http://en.cppreference.com/w/cpp/types/remove_extent
@@ -110,7 +129,46 @@ template <typename T, typename TI = int>
 struct index_result {
     typedef typename detail::check_indexable<T, TI>::type type;
 };
+template <typename U, typename I0, typename Enable = void>
+struct IndexHelper_ {
+    template <typename V>
+    static decltype(auto) eval(V& v, I0 const& s) {
+        return v;
+    }
+};
 
+template <typename U, typename I0>
+struct IndexHelper_<U, I0, std::enable_if_t<(is_indexable<std::remove_cv_t<U>, I0>::value)>> {
+    template <typename V>
+    static decltype(auto) eval(V& v, I0 const& s) {
+        return v[s];
+    }
+};
+template <typename U>
+decltype(auto) index(U& v) {
+    return v;
+}
+template <typename U, typename I0>
+decltype(auto) index(U& v, I0 const& s) {
+    return IndexHelper_<std::remove_cv_t<U>, I0>::eval(v, s);
+}
+template <typename U, typename I0>
+decltype(auto) index(U const& v, I0 const& s) {
+    return IndexHelper_<U, I0>::eval(v, s);
+}
+template <typename U, typename I0, typename... Others>
+decltype(auto) index(U& v, I0 const& s, Others&&... others) {
+    return index(index(v, s), std::forward<Others>(others)...);
+}
+
+template <typename U>
+decltype(auto) recursive_index(U& v, int s, ENABLE_IF((std::rank<std::remove_cv_t<U>>::value == 0))) {
+    return v;
+}
+template <typename U>
+decltype(auto) recursive_index(U& v, int s, ENABLE_IF((std::rank<std::remove_cv_t<U>>::value > 0))) {
+    return recursive_index(v[s % std::extent<std::remove_cv_t<U>>::value], s / std::extent<std::remove_cv_t<U>>::value);
+}
 template <typename... T>
 struct type_list {};
 ////////////////////////////////////////////////////////////////////////
@@ -145,6 +203,9 @@ using scalar_type_t = typename scalar_type<T>::type;
 
 template <typename TExpr>
 struct dimension : public std::integral_constant<int, 0> {};
+
+template <typename U>
+struct extents : public std::integer_sequence<int, 1> {};
 
 template <typename T, typename Idx = int>
 struct remove_extent {

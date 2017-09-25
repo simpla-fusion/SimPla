@@ -20,7 +20,7 @@ template <typename TDomainBase>
 class Maxwell : public TDomainBase {
     SP_DOMAIN_HEAD(Maxwell, TDomainBase);
 
-    Field<this_type, Real, CELL, 3> B0v{this, "Name"_ = "B0v"};
+    Field<this_type, Real, CELL, 3> B0v{this, "Name"_ = "B0v", "CheckPoint"_};
 
     Field<this_type, Real, FACE> B{this, "Name"_ = "B", "CheckPoint"_};
     Field<this_type, Real, EDGE> E{this, "Name"_ = "E", "CheckPoint"_};

@@ -1,4 +1,4 @@
-FILE(GLOB engine_SRC  *.cpp *.h )
+FILE(GLOB engine_SRC  *.cpp *.h ../scheme/FVM.h)
 add_library(engine ${engine_SRC})
 target_link_libraries(engine  data parallel)
 target_include_directories(engine BEFORE PRIVATE  ${MPI_C_INCLUDE_PATH})

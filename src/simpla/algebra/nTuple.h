@@ -16,7 +16,7 @@
 
 #include "ExpressionTemplate.h"
 #include "simpla/utilities/type_traits.h"
-
+#include "simpla/utilities/utility.h"
 //#include "utility.h"
 namespace simpla {
 template <typename, int...>
@@ -170,30 +170,6 @@ template <typename TFun, typename TV, int... N>
 __host__ __device__ void foreach (nTuple<TV, N...>& m_data_, TFun const& fun) {
     detail::foreach_(m_data_, fun);
 }
-template <typename U>
-U& recursive_index(U& v, int s) {
-    return v;
-}
-template <typename U>
-U const& recursive_index(U const& v, int s) {
-    return v;
-}
-template <typename U, int N0>
-U& recursive_index(nTuple<U, N0>& v, int s) {
-    return v[s % N0];
-}
-template <typename U, int N0>
-U const& recursive_index(nTuple<U, N0> const& v, int s) {
-    return v[s % N0];
-}
-template <typename U, int N0, int N1, int... N>
-U& recursive_index(nTuple<U, N0, N1, N...>& v, int s) {
-    return recursive_index(v[s % N0], s / N0);
-}
-template <typename U, int N0, int N1, int... N>
-U const& recursive_index(nTuple<U, N0, N1, N...> const& v, int s) {
-    return recursive_index(v[s % N0], s / N0);
-}
 
 template <int N0>
 int recursive_calculate_shift(int s0) {
@@ -203,6 +179,9 @@ template <int N0, int... N, typename... Args>
 int recursive_calculate_shift(int s0, Args&&... args) {
     return recursive_calculate_shift<N...>(std::forward<Args>(args)...) * N0 + s0;
 };
+template <typename TV, int... N>
+struct extents<nTuple<TV, N...>> : public std::integer_sequence<int, N...> {};
+
 }  // namespace traits
 
 ///// n-dimensional primary type
@@ -243,7 +222,7 @@ struct nTuple<TV, N0, N...> {
 
     template <typename... U>
     __host__ __device__ nTuple(Expression<U...> const& expr) {
-        for (int i = 0; i < N0; ++i) { m_data_[i] = calculus::getValue(expr, i); }
+        for (int i = 0; i < N0; ++i) { m_data_[i] = traits::index(expr, i); }
     }
 
     __host__ __device__ nTuple(this_type const& other) {
@@ -257,13 +236,13 @@ struct nTuple<TV, N0, N...> {
     }
 
     __host__ __device__ this_type& operator=(this_type const& rhs) {
-        for (int i = 0; i < N0; ++i) { m_data_[i] = calculus::getValue(rhs, i); }
+        for (int i = 0; i < N0; ++i) { m_data_[i] = traits::index(rhs, i); }
         return (*this);
     }
 
     template <typename TR>
     __host__ __device__ this_type& operator=(TR const& rhs) {
-        for (int i = 0; i < N0; ++i) { m_data_[i] = calculus::getValue(rhs, i); }
+        for (int i = 0; i < N0; ++i) { m_data_[i] = traits::index(rhs, i); }
         return (*this);
     }
 
@@ -279,12 +258,12 @@ struct nTuple<TV, N0, N...> {
 
     template <typename... Idx>
     __host__ __device__ auto const& at(Idx&&... idx) const {
-        return calculus::getValue(m_data_, std::forward<Idx>(idx)...);
+        return traits::index(m_data_, std::forward<Idx>(idx)...);
     }
 
     template <typename... Idx>
     __host__ __device__ auto& at(Idx&&... idx) {
-        return calculus::getValue(m_data_, std::forward<Idx>(idx)...);
+        return traits::index(m_data_, std::forward<Idx>(idx)...);
     }
 };
 
@@ -292,7 +271,7 @@ template <>
 template <typename TR>
 __host__ __device__ nTuple<double, 3>& nTuple<double, 3>::operator=(TR const& rhs) {
 #pragma clang loop unroll(full)
-    for (int i = 0; i < 3; ++i) { m_data_[i] = calculus::getValue(rhs, i); }
+    for (int i = 0; i < 3; ++i) { m_data_[i] = traits::index(rhs, i); }
     return (*this);
 }
 
@@ -300,7 +279,7 @@ template <>
 template <typename TR>
 __host__ __device__ nTuple<double, 9>& nTuple<double, 9>::operator=(TR const& rhs) {
 #pragma clang loop unroll(full)
-    for (int i = 0; i < 3; ++i) { m_data_[i] = calculus::getValue(rhs, i); }
+    for (int i = 0; i < 3; ++i) { m_data_[i] = traits::index(rhs, i); }
     return (*this);
 }
 
@@ -478,10 +457,9 @@ __host__ __device__ auto dot(TL const& l, TR const& r) {
 
 template <typename T1, typename T2>
 __host__ __device__ auto cross(T1 const& l, T2 const& r) {
-    return traits::make_ntuple(
-        calculus::getValue(l, 1) * calculus::getValue(r, 2) - calculus::getValue(l, 2) * calculus::getValue(r, 1),
-        calculus::getValue(l, 2) * calculus::getValue(r, 0) - calculus::getValue(l, 0) * calculus::getValue(r, 2),
-        calculus::getValue(l, 0) * calculus::getValue(r, 1) - calculus::getValue(l, 1) * calculus::getValue(r, 0));
+    return traits::make_ntuple(traits::index(l, 1) * traits::index(r, 2) - traits::index(l, 2) * traits::index(r, 1),
+                               traits::index(l, 2) * traits::index(r, 0) - traits::index(l, 0) * traits::index(r, 2),
+                               traits::index(l, 0) * traits::index(r, 1) - traits::index(l, 1) * traits::index(r, 0));
 }
 
 }  // namespace simpla

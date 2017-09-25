@@ -17,23 +17,6 @@
 
 namespace simpla {
 
-namespace traits {
-
-template <typename T>
-T& GetValue(T& expr, int tag) {
-    return expr;
-}
-
-template <typename T, int... N>
-decltype(auto) GetValue(nTuple<T, N...> const& expr, int tag) {
-    return GetValue(expr[tag & 0b111], tag >> 3);
-}
-template <typename T, typename... O, typename... Args>
-decltype(auto) GetValue(Array<T, O...> const& expr, Args&&... args) {
-    return;
-}
-}
-
 template <typename TM, typename TV, int...>
 class Field;
 template <typename TM, typename TV, int IFORM, int... DOF>
@@ -45,6 +28,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM, DOF...
    public:
     typedef TV value_type;
     typedef TM mesh_type;
+    using typename base_type::data_type;
 
     mesh_type* m_mesh_;
 
@@ -53,8 +37,10 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM, DOF...
     explicit Field(mesh_type* host, Args&&... args) : base_type(host, std::forward<Args>(args)...), m_mesh_(host) {}
     ~Field() override = default;
 
-    Field(Field const& other) = delete;
-    Field(Field&& other) = delete;
+    Field(this_type const& other) : base_type(dynamic_cast<base_type const&>(other)){};
+    //    Field(this_type&& other) : base_type(dynamic_cast<base_type&&>(other)){};
+
+    Field(this_type const& other, IdxShift const& s) : this_type(other){};
 
     template <typename... Args>
     static std::shared_ptr<this_type> New(Args&&... args) {
@@ -84,14 +70,16 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM, DOF...
     };
 
     auto& operator[](EntityId s) {
-        return traits::recursive_index(this->operator[](EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.w >> 3)(
+        return traits::recursive_index(
+            traits::index(*dynamic_cast<data_type*>(this), EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.w >> 3)(
             s.x, s.y, s.z);
     }
     auto const& operator[](EntityId s) const {
-        return traits::recursive_index(this->operator[](EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.w >> 3)(
+        return traits::recursive_index(
+            traits::index(*dynamic_cast<data_type*>(this), EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.w >> 3)(
             s.x, s.y, s.z);
     }
-
+    auto operator()(IdxShift S) const { return this_type(*this, S); }
     //*****************************************************************************************************************
 
     template <typename... Args>
@@ -106,8 +94,8 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM, DOF...
 
 };  // class Field
 
-//template <typename TM, typename TV, int IFORM, int... DOF>
-//std::string Field<TM, TV, IFORM, DOF...>::FancyTypeName() {
+// template <typename TM, typename TV, int IFORM, int... DOF>
+// std::string Field<TM, TV, IFORM, DOF...>::FancyTypeName() {
 //    return "Field<" + simpla::traits::type_name<TM>::value() + "," + simpla::traits::type_name<TV>::value() + "," +
 //           EntityIFORMName[IFORM] + ((sizeof...(DOF) == 0) ? "" : ("," + simpla::traits::to_string(DOF...))) + ">";
 //}
@@ -269,4 +257,16 @@ _SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(greater_equal, tags::logical_and, >=)
 
 #undef _SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR
 }  // namespace simpla//namespace algebra
+
+namespace std {
+
+template <typename TM, typename V, int... N>
+struct rank<simpla::Field<TM, V, N...>>
+    : public integral_constant<size_t, rank<typename simpla::Field<TM, V, N...>::data_type>::value> {};
+
+template <typename TM, typename V, int... N, unsigned I>
+struct extent<simpla::Field<TM, V, N...>, I>
+    : public integral_constant<size_t, extent<typename simpla::Field<TM, V, N...>::data_type, I>::value> {};
+}
+
 #endif  // SIMPLA_FIELD_H

@@ -45,7 +45,9 @@ int main(int argc, char** argv) {
     //    auto* p = new domain::Maxwell<domain_type>;
     scenario->SetDomain<domain::Maxwell<domain_type>>("Limiter", tokamak->Limiter());
     scenario->GetDomain("Limiter")->PreInitialCondition.Connect([=](DomainBase* self, Real time_now) {
-        if (auto d = dynamic_cast<domain::Maxwell<domain_type>*>(self)) { d->B0v = tokamak->B0(); }
+        if (auto d = dynamic_cast<domain::Maxwell<domain_type>*>(self)) {
+            d->B0v = tokamak->B0();
+        }
     });
 
     //    scenario->SetDomain<Domain<mesh_type, EMFluid>>("Plasma", tokamak->Boundary());
