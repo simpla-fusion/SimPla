@@ -103,21 +103,21 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     };
 
     template <typename TL, typename TR>
-    void FillRange(TL &lhs, TR &&rhs, Range<EntityId> r, bool full_fill_if_range_is_null = false) const;
+    void FillRange(TL &lhs, TR const &rhs, Range<EntityId> r, bool full_fill_if_range_is_null = false) const;
 
     template <typename TL, typename TR>
-    void FillRange(TL &lhs, TR &&rhs, std::string const &k = "", bool full_fill_if_range_is_null = false) const {
-        FillRange(lhs, std::forward<TR>(rhs), GetRange(k), full_fill_if_range_is_null);
+    void FillRange(TL &lhs, TR const &rhs, std::string const &k = "", bool full_fill_if_range_is_null = false) const {
+        FillRange(lhs, (rhs), GetRange(k), full_fill_if_range_is_null);
     };
 
     template <typename TL, typename TR>
-    void FillBody(TL &lhs, TR &&rhs, std::string const &prefix = "") const {
-        FillRange(lhs, std::forward<TR>(rhs), prefix + "_BODY_" + std::to_string(TL::iform), false);
+    void FillBody(TL &lhs, TR const &rhs, std::string const &prefix = "") const {
+        FillRange(lhs, (rhs), prefix + "_BODY_" + std::to_string(TL::iform), false);
     };
 
     template <typename TL, typename TR>
-    void FillBoundary(TL &lhs, TR &&rhs, std::string const &prefix = "") const {
-        FillRange(lhs, std::forward<TR>(rhs), prefix + "_BOUNDARY_" + std::to_string(TL::iform), false);
+    void FillBoundary(TL &lhs, TR const &rhs, std::string const &prefix = "") const {
+        FillRange(lhs, (rhs), prefix + "_BOUNDARY_" + std::to_string(TL::iform), false);
     };
 
     template <typename U, int IFORM, int... DOF>
@@ -237,11 +237,12 @@ void Domain<TChart, Policies...>::InitializeAttribute(AttributeT<U, IFORM, DOF..
 
 template <typename TM, template <typename> class... Policies>
 template <typename LHS, typename RHS>
-void Domain<TM, Policies...>::FillRange(LHS &lhs, RHS &&rhs, Range<EntityId> r, bool full_fill_if_range_is_null) const {
+void Domain<TM, Policies...>::FillRange(LHS &lhs, RHS const &rhs, Range<EntityId> r,
+                                        bool full_fill_if_range_is_null) const {
     if (r.isFull() || (r.isNull() && full_fill_if_range_is_null)) {
-        this_type::Calculate(lhs, std::forward<RHS>(rhs));
+        this_type::Calculate(lhs, rhs);
     } else {
-        this_type::Calculate(lhs, std::forward<RHS>(rhs), r);
+        this_type::Calculate(lhs, rhs, r);
     }
 };
 

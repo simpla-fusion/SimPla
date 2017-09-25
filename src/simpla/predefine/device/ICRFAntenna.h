@@ -13,6 +13,7 @@
 #include "simpla/algebra/Algebra.h"
 #include "simpla/data/DataNode.h"
 #include "simpla/engine/Engine.h"
+#include "simpla/physics/Field.h"
 #include "simpla/physics/PhysicalConstants.h"
 
 namespace simpla {

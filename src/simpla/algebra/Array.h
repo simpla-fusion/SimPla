@@ -251,7 +251,7 @@ class Array : public ArrayBase {
     template <typename RHS>
     void Assign(RHS const& rhs) {
         SetUp();
-        m_sfc_.Overlap(rhs).Foreach([&] __host__ __device__(auto&&... s) {
+        m_sfc_.Overlap(rhs).Foreach([=] __host__ __device__(auto&&... s) {
             this->at(std::forward<decltype(s)>(s)...) = simpla::traits::invoke(rhs, std::forward<decltype(s)>(s)...);
         });
     }

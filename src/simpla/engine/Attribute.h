@@ -9,7 +9,7 @@
 
 #include "EngineObject.h"
 #include "simpla/algebra/Array.h"
-#include "simpla/algebra/ArrayNTuple.h"
+#include "simpla/algebra/ExpressionTemplate.h"
 #include "simpla/data/Data.h"
 #include "simpla/utilities/SPDefines.h"
 #include "simpla/utilities/type_traits.h"
@@ -115,8 +115,8 @@ struct Attribute : public EngineObject {
    public:
     Attribute();
     ~Attribute() override;
-    Attribute(this_type const &other) { UNIMPLEMENTED; };
-    Attribute(this_type &&other) { UNIMPLEMENTED; };
+    Attribute(this_type const &other) = delete;  // { UNIMPLEMENTED; };
+    Attribute(this_type &&other) = delete;       // { UNIMPLEMENTED; };
 
     template <typename THost, typename... Args>
     explicit Attribute(THost host, Args &&... args) : Attribute() {
@@ -229,34 +229,34 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
     void SetDOF(int rank, int const *d) override { DOMAIN_ERROR; };
     std::shared_ptr<data::DataNode> GetDescription() const override;
 
-    auto &GetData(int n) { return data_type::operator[](n); }
-    auto const &GetData(int n) const { return data_type::operator[](n); }
+    auto &GetData(int n) { return traits::index(dynamic_cast<data_type &>(*this), n); }
+    auto const &GetData(int n) const { return traits::index(dynamic_cast<data_type const &>(*this), n); }
 
     template <typename... Args>
     auto &Get(index_type i0, Args &&... args) {
-        return GetData(i0).at(std::forward<Args>(args)...);
+        return traits::invoke(traits::index(dynamic_cast<data_type &>(*this), i0), std::forward<Args>(args)...);
     }
     template <typename... Args>
     auto const &Get(index_type i0, Args &&... args) const {
-        return GetData(i0).at(std::forward<Args>(args)...);
+        return traits::invoke(traits::index(dynamic_cast<data_type const &>(*this), i0), std::forward<Args>(args)...);
     }
 
     template <typename... Args>
-    auto &at(index_type n0, Args &&... args) {
-        return Get(n0, std::forward<Args>(args)...);
+    auto &at(Args &&... args) {
+        return Get(std::forward<Args>(args)...);
     }
     template <typename... Args>
-    auto const &at(index_type n0, Args &&... args) const {
-        return Get(n0, std::forward<Args>(args)...);
+    auto const &at(Args &&... args) const {
+        return Get(std::forward<Args>(args)...);
     }
 
     template <typename... Args>
-    auto &operator()(index_type n0, Args &&... args) {
-        return Get(n0, std::forward<Args>(args)...);
+    auto &operator()(Args &&... args) {
+        return Get(std::forward<Args>(args)...);
     }
     template <typename... Args>
-    auto const &operator()(index_type n0, Args &&... args) const {
-        return Get(n0, std::forward<Args>(args)...);
+    auto const &operator()(Args &&... args) const {
+        return Get(std::forward<Args>(args)...);
     }
 
     template <typename RHS>
@@ -473,7 +473,193 @@ void AttributeT<V, IFORM, DOF...>::Assign(RHS const &rhs) {
     detail::Assign(*this, rhs);
 };
 
-}  // namespace engine
-}  // namespace simpla
+template <typename TL, int... NL>
+auto operator<<(AttributeT<TL, NL...> const &lhs, int n) {
+    return Expression<tags::bitwise_left_shift, AttributeT<TL, NL...>, int>(lhs, n);
+};
 
+template <typename TL, int... NL>
+auto operator>>(AttributeT<TL, NL...> const &lhs, int n) {
+    return Expression<tags::bitwise_right_shifit, AttributeT<TL, NL...>, int>(lhs, n);
+};
+
+#define _SP_DEFINE_FIELD_BINARY_FUNCTION(_TAG_, _FUN_)                                          \
+    template <typename TL, int... NL, typename TR>                                              \
+    auto _FUN_(AttributeT<TL, NL...> const &lhs, TR const &rhs) {                               \
+        return Expression<tags::_TAG_, AttributeT<TL, NL...>, TR>(lhs, rhs);                    \
+    };                                                                                          \
+    template <typename TL, typename TR, int... NR>                                              \
+    auto _FUN_(TL const &lhs, AttributeT<TR, NR...> const &rhs) {                               \
+        return Expression<tags::_TAG_, TL, AttributeT<TR, NR...>>(lhs, rhs);                    \
+    };                                                                                          \
+    template <typename TL, int... NL, typename... TR>                                           \
+    auto _FUN_(AttributeT<TL, NL...> const &lhs, Expression<TR...> const &rhs) {                \
+        return Expression<tags::_TAG_, AttributeT<TL, NL...>, Expression<TR...>>(lhs, rhs);     \
+    };                                                                                          \
+    template <typename... TL, typename TR, int... NR>                                           \
+    auto _FUN_(Expression<TL...> const &lhs, AttributeT<TR, NR...> const &rhs) {                \
+        return Expression<tags::_TAG_, Expression<TL...>, AttributeT<TR, NR...>>(lhs, rhs);     \
+    };                                                                                          \
+    template <typename TL, int... NL, typename TR, int... NR>                                   \
+    auto _FUN_(AttributeT<TL, NL...> const &lhs, AttributeT<TR, NR...> const &rhs) {            \
+        return Expression<tags::_TAG_, AttributeT<TL, NL...>, AttributeT<TR, NR...>>(lhs, rhs); \
+    };
+
+#define _SP_DEFINE_FIELD_UNARY_FUNCTION(_TAG_, _FUN_)               \
+    template <typename TL, int... NL>                               \
+    auto _FUN_(AttributeT<TL, NL...> const &lhs) {                  \
+        return Expression<tags::_TAG_, AttributeT<TL, NL...>>(lhs); \
+    }
+
+/**
+* @defgroup  vector_algebra   Linear algebra on vector fields
+* @{
+*   Pseudo-Signature  			| Semantics
+*  -------------------------------|--------------
+*  \f$\Omega^n\f$ =\f$\Omega^n\f$  	            | negate operation
+*  \f$\Omega^n\f$ =\f$\Omega^n\f$  	            | positive operation
+*  \f$\Omega^n\f$ =\f$\Omega^n\f$ +\f$\Omega^n\f$ 	| add
+*  \f$\Omega^n\f$ =\f$\Omega^n\f$ -\f$\Omega^n\f$ 	| subtract
+*  \f$\Omega^n\f$ =\f$\Omega^n\f$ *Scalar  	    | multiply
+*  \f$\Omega^n\f$ = Scalar * \f$\Omega^n\f$  	    | multiply
+*  \f$\Omega^n\f$ = \f$\Omega^n\f$ / Scalar  	    | divide
+*
+*/
+
+_SP_DEFINE_FIELD_UNARY_FUNCTION(cos, cos)
+_SP_DEFINE_FIELD_UNARY_FUNCTION(acos, acos)
+_SP_DEFINE_FIELD_UNARY_FUNCTION(cosh, cosh)
+_SP_DEFINE_FIELD_UNARY_FUNCTION(sin, sin)
+_SP_DEFINE_FIELD_UNARY_FUNCTION(asin, asin)
+_SP_DEFINE_FIELD_UNARY_FUNCTION(sinh, sinh)
+_SP_DEFINE_FIELD_UNARY_FUNCTION(tan, tan)
+_SP_DEFINE_FIELD_UNARY_FUNCTION(tanh, tanh)
+_SP_DEFINE_FIELD_UNARY_FUNCTION(atan, atan)
+_SP_DEFINE_FIELD_UNARY_FUNCTION(exp, exp)
+_SP_DEFINE_FIELD_UNARY_FUNCTION(log, log)
+_SP_DEFINE_FIELD_UNARY_FUNCTION(log10, log10)
+_SP_DEFINE_FIELD_UNARY_FUNCTION(sqrt, sqrt)
+_SP_DEFINE_FIELD_BINARY_FUNCTION(atan2, atan2)
+_SP_DEFINE_FIELD_BINARY_FUNCTION(pow, pow)
+_SP_DEFINE_FIELD_BINARY_FUNCTION(dot, dot)
+_SP_DEFINE_FIELD_BINARY_FUNCTION(cross, cross)
+
+_SP_DEFINE_FIELD_BINARY_FUNCTION(addition, operator+)
+_SP_DEFINE_FIELD_BINARY_FUNCTION(subtraction, operator-)
+_SP_DEFINE_FIELD_BINARY_FUNCTION(multiplication, operator*)
+_SP_DEFINE_FIELD_BINARY_FUNCTION(division, operator/)
+_SP_DEFINE_FIELD_BINARY_FUNCTION(modulo, operator%)
+_SP_DEFINE_FIELD_BINARY_FUNCTION(bitwise_xor, operator^)
+_SP_DEFINE_FIELD_BINARY_FUNCTION(bitwise_and, operator&)
+_SP_DEFINE_FIELD_BINARY_FUNCTION(bitwise_or, operator|)
+_SP_DEFINE_FIELD_BINARY_FUNCTION(logical_and, operator&&)
+_SP_DEFINE_FIELD_BINARY_FUNCTION(logical_or, operator||)
+
+_SP_DEFINE_FIELD_UNARY_FUNCTION(bitwise_not, operator~)
+_SP_DEFINE_FIELD_UNARY_FUNCTION(unary_plus, operator+)
+_SP_DEFINE_FIELD_UNARY_FUNCTION(unary_minus, operator-)
+_SP_DEFINE_FIELD_UNARY_FUNCTION(logical_not, operator!)
+
+#undef _SP_DEFINE_FIELD_BINARY_FUNCTION
+#undef _SP_DEFINE_FIELD_UNARY_FUNCTION
+/** @} */
+
+#define _SP_DEFINE_FIELD_COMPOUND_OP(_OP_)                                                              \
+    template <typename TL, int... NL, typename TR>                                                      \
+    AttributeT<TL, NL...> &operator _OP_##=(AttributeT<TL, NL...> &lhs, TR const &rhs) {                \
+        lhs = lhs _OP_ rhs;                                                                             \
+        return lhs;                                                                                     \
+    }                                                                                                   \
+    template <typename TL, int... NL, typename... TR>                                                   \
+    AttributeT<TL, NL...> &operator _OP_##=(AttributeT<TL, NL...> &lhs, Expression<TR...> const &rhs) { \
+        lhs = lhs _OP_ rhs;                                                                             \
+        return lhs;                                                                                     \
+    }
+
+_SP_DEFINE_FIELD_COMPOUND_OP(+)
+_SP_DEFINE_FIELD_COMPOUND_OP(-)
+_SP_DEFINE_FIELD_COMPOUND_OP(*)
+_SP_DEFINE_FIELD_COMPOUND_OP(/)
+_SP_DEFINE_FIELD_COMPOUND_OP(%)
+_SP_DEFINE_FIELD_COMPOUND_OP(&)
+_SP_DEFINE_FIELD_COMPOUND_OP(|)
+_SP_DEFINE_FIELD_COMPOUND_OP (^)
+_SP_DEFINE_FIELD_COMPOUND_OP(<<)
+_SP_DEFINE_FIELD_COMPOUND_OP(>>)
+#undef _SP_DEFINE_FIELD_COMPOUND_OP
+
+#define _SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(_TAG_, _REDUCTION_, _OP_)                                     \
+    template <typename TL, int... NL, typename TR>                                                             \
+    bool operator _OP_(AttributeT<TL, NL...> const &lhs, TR const &rhs) {                                      \
+        return calculus::reduction<_REDUCTION_>(Expression<tags::_TAG_, AttributeT<TL, NL...>, TR>(lhs, rhs)); \
+    };                                                                                                         \
+    template <typename TL, typename TR, int... NR>                                                             \
+    bool operator _OP_(TL const &lhs, AttributeT<TR, NR...> const &rhs) {                                      \
+        return calculus::reduction<_REDUCTION_>(Expression<tags::_TAG_, TL, AttributeT<TR, NR...>>(lhs, rhs)); \
+    };                                                                                                         \
+    template <typename TL, int... NL, typename... TR>                                                          \
+    bool operator _OP_(AttributeT<TL, NL...> const &lhs, Expression<TR...> const &rhs) {                       \
+        return calculus::reduction<_REDUCTION_>(                                                               \
+            Expression<tags::_TAG_, AttributeT<TL, NL...>, Expression<TR...>>(lhs, rhs));                      \
+    };                                                                                                         \
+    template <typename... TL, typename TR, int... NR>                                                          \
+    bool operator _OP_(Expression<TL...> const &lhs, AttributeT<TR, NR...> const &rhs) {                       \
+        return calculus::reduction<_REDUCTION_>(                                                               \
+            Expression<tags::_TAG_, Expression<TL...>, AttributeT<TR, NR...>>(lhs, rhs));                      \
+    };                                                                                                         \
+    template <typename TL, int... NL, typename TR, int... NR>                                                  \
+    bool operator _OP_(AttributeT<TL, NL...> const &lhs, AttributeT<TR, NR...> const &rhs) {                   \
+        return calculus::reduction<_REDUCTION_>(                                                               \
+            Expression<tags::_TAG_, AttributeT<TL, NL...>, AttributeT<TR, NR...>>(lhs, rhs));                  \
+    };
+
+_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(not_equal_to, tags::logical_or, !=)
+_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(equal_to, tags::logical_and, ==)
+_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(less, tags::logical_and, <)
+_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(greater, tags::logical_and, >)
+_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(less_equal, tags::logical_and, <=)
+_SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR(greater_equal, tags::logical_and, >=)
+
+#undef _SP_DEFINE_FIELD_BINARY_BOOLEAN_OPERATOR
+}  // namespace engine
+
+namespace traits {
+template <typename>
+struct reference;
+template <typename TV, int... I>
+struct reference<engine::AttributeT<TV, I...>> {
+    typedef const engine::AttributeT<TV, I...> &type;
+};
+
+template <typename TV, int... I>
+struct reference<const engine::AttributeT<TV, I...>> {
+    typedef const engine::AttributeT<TV, I...> &type;
+};
+template <typename>
+struct iform;
+template <typename TV, int IFORM, int... DOF>
+struct iform<engine::AttributeT<TV, IFORM, DOF...>> : public std::integral_constant<int, IFORM> {};
+template <typename TF>
+struct dof;
+template <typename TV, int IFORM, int... DOF>
+struct dof<engine::AttributeT<TV, IFORM, DOF...>>
+    : public std::integral_constant<int, reduction_v(tags::multiplication(), 1, DOF...)> {};
+
+template <typename TV, int... DOF>
+struct value_type<engine::AttributeT<TV, DOF...>> {
+    typedef TV type;
+};
+}  // namespace traits {
+
+}  // namespace simpla
+namespace std {
+
+template <typename V, int... N>
+struct rank<simpla::engine::AttributeT<V, N...>>
+    : public integral_constant<size_t, rank<typename simpla::engine::AttributeT<V, N...>::data_type>::value> {};
+
+template <typename V, int... N, unsigned I>
+struct extent<simpla::engine::AttributeT<V, N...>, I>
+    : public integral_constant<size_t, extent<typename simpla::engine::AttributeT<V, N...>::data_type, I>::value> {};
+}
 #endif  // SIMPLA_ATTRIBUTE_H

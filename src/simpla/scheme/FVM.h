@@ -16,8 +16,8 @@
 #include "simpla/algebra/Calculus.h"
 #include "simpla/algebra/EntityId.h"
 #include "simpla/algebra/ExpressionTemplate.h"
+#include "simpla/engine/Attribute.h"
 #include "simpla/engine/Engine.h"
-#include "simpla/physics/Field.h"
 #include "simpla/utilities/type_traits.h"
 #include "simpla/utilities/utility.h"
 namespace simpla {
@@ -32,9 +32,39 @@ struct FVM {
     typedef THost domain_type;
     static constexpr unsigned int NDIMS = 3;
 
-    template <typename TM, typename TV, int... N>
-    decltype(auto) getArray(Field<TM, TV, N...> const& v, IdxShift S, int tag) const {
-        return st::recursive_index(st::index(v, EntityIdCoder::m_id_to_sub_index_[tag & 0b111]), tag >> 3)(S);
+    template <typename TOP, typename... Args>
+    decltype(auto) getArray(Expression<TOP, Args...> const& expr, IdxShift S, int tag) const {
+        return eval(std::integer_sequence<int, st::iform<Args>::value...>(), expr, S, tag);
+    }
+
+    template <typename TExpr>
+    decltype(auto) getArray(TExpr const& expr, IdxShift S, int tag,
+                            ENABLE_IF((st::is_invocable<TExpr, point_type const&>::value))) const {
+        auto chart = m_host_->GetChart();
+        return [=](index_type x, index_type y, index_type z) {
+            return expr(chart->local_coordinates(x + S[0], y + S[1], z + S[2], tag));
+        };
+    }
+    template <typename TExpr>
+    decltype(auto) getArray(
+        TExpr const& expr, IdxShift S, int tag,
+        ENABLE_IF((st::is_invocable<TExpr, int, index_type, index_type, index_type>::value))) const {
+        return [=](index_type x, index_type y, index_type z) { return expr(tag, x + S[0], y + S[1], z + S[2]); };
+    }
+    template <typename TExpr>
+    decltype(auto) getArray(TExpr const& expr, IdxShift S, int tag,
+                            ENABLE_IF((st::is_invocable<TExpr, index_type, index_type, index_type>::value))) const {
+        return [=](index_type x, index_type y, index_type z) { return expr(x + S[0], y + S[1], z + S[2]); };
+    }
+    template <typename TExpr>
+    decltype(auto) getArray(TExpr const& expr, IdxShift S, int tag,
+                            ENABLE_IF((std::is_arithmetic<TExpr>::value))) const {
+        return expr;
+    }
+
+    template <typename V, int... N>
+    decltype(auto) getArray(engine::AttributeT<V, N...> const& v, IdxShift S, int tag) const {
+        return st::index(v, EntityIdCoder::m_id_to_sub_index_[tag])(S);
     }
 
     template <size_t... I, typename TOP, typename... Args>
@@ -48,94 +78,32 @@ struct FVM {
                         int tag) const {
         return _invoke_helper(std::make_index_sequence<sizeof...(I)>(), expr, S, tag);
     }
-
-    template <typename TOP, typename... Args>
-    decltype(auto) getArray(Expression<TOP, Args...> const& expr, IdxShift S, int tag) const {
-        return eval(std::integer_sequence<int, st::iform<Args>::value...>(), expr, S, tag);
+    template <typename U, int... DOF, typename RHS>
+    void Calculate(engine::AttributeT<U, NODE, DOF...>& lhs, RHS const& rhs) const {
+        lhs = getArray(rhs, IdxShift{0, 0, 0}, 0b00);
+        //        lhs.Assign([=](int tag, auto&&... idx) {
+        //            return traits::invoke(getArray(rhs, IdxShift{0, 0, 0}, tag), std::forward<decltype(idx)>(idx)...);
+        //        });
     }
-
-   private:
-    template <int N, typename TExpr>
-    auto const& _getArray(std::integral_constant<int, N> _, TExpr const& expr, IdxShift S, int tag) const {
-        return expr;
+    template <typename U, int IFORM, int... DOF, typename RHS>
+    void Calculate(engine::AttributeT<U, IFORM, DOF...>& lhs, RHS const& rhs) const {
+        //        lhs.Assign([=](int tag, auto&&... idx) {
+        //            return traits::invoke(getArray(rhs, IdxShift{0, 0, 0}, tag), std::forward<decltype(idx)>(idx)...);
+        //        });
     }
+    template <typename U, int... DOF, typename RHS>
+    void Calculate(engine::AttributeT<U, EDGE, DOF...>& lhs, RHS const& rhs) const {
+        engine::detail::Assign_(lhs[0], getArray(rhs, IdxShift{0, 0, 0}, 0b001));
+        engine::detail::Assign_(lhs[1], getArray(rhs, IdxShift{0, 0, 0}, 0b010));
+        engine::detail::Assign_(lhs[2], getArray(rhs, IdxShift{0, 0, 0}, 0b100));
 
-    template <typename TExpr>
-    auto _getArray(std::integral_constant<int, 0b00010> _, TExpr const& expr, IdxShift S, int tag) const {
-        int n = ((tag & 0b111) == 0 || (tag & 0b111) == 0b111) ? (tag << 3)
-                                                               : EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
-
-        auto chart = m_host_->GetChart();
-        return [=](index_type x, index_type y, index_type z) {
-            return st::recursive_index(expr(chart->local_coordinates(x + S[0], y + S[1], z + S[2], tag)), n);
-        };
+        //        lhs.Assign([=](int tag, auto&&... idx) {
+        //            return traits::invoke(getArray(rhs, IdxShift{0, 0, 0}, tag), std::forward<decltype(idx)>(idx)...);
+        //        });
     }
-
-    template <typename TExpr>
-    auto _getArray(std::integral_constant<int, 0b00100> _, TExpr const& expr, IdxShift S, int tag) const {
-        int n = ((tag & 0b111) == 0 || (tag & 0b111) == 0b111) ? (tag << 3)
-                                                               : EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
-        return [=](index_type x, index_type y, index_type z) {
-            return st::recursive_index(expr(x + S[0], y + S[1], z + S[2]), n);
-        };
-    }
-
-    template <typename TExpr>
-    auto _getArray(std::integral_constant<int, 0b01000> _, TExpr const& expr, IdxShift S, int tag) const {
-        int n = ((tag & 0b111) == 0 || (tag & 0b111) == 0b111) ? (tag << 3)
-                                                               : EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
-        return [=](index_type x, index_type y, index_type z) {
-            return st::recursive_index(expr(x + S[0], y + S[1], z + S[2], tag), n);
-        };
-    }
-
-   public:
-    template <typename TExpr>
-    auto getArray(TExpr const& expr, IdxShift S, int tag) const {
-        return _getArray(
-            std::integral_constant<
-                int,
-                (st::is_invocable<TExpr, point_type const&>::value /*                     */ ? 0b0010 : 0) |
-                    (st::is_invocable<TExpr, index_type, index_type, index_type>::value /**/ ? 0b0100 : 0) |
-                    (st::is_invocable<TExpr, index_type, index_type, index_type, int>::value ? 0b1000 : 0)>(),
-            expr, S, tag);
-    }
-
-    template <typename M, typename U, int IFORM, int... N, typename RHS>
-    void Calculate(Field<M, U, IFORM, N...>& lhs, RHS const& rhs) const {
-//        typedef typename Field<M, U, IFORM, N...>::data_type data_type;
-//        st::foreach (dynamic_cast<data_type&>(lhs),  //
-//                     [&](auto& a, int n0, auto&&... subs) {
-//                         auto tag = static_cast<int16_t>(
-//                             EntityIdCoder::m_sub_index_to_id_[IFORM][n0] |
-//                             (st::recursive_calculate_shift<1, N...>(0, std::forward<decltype(subs)>(subs)...) << 3));
-////                         a = getArray((rhs), IdxShift{0, 0, 0}, tag);
-//                     });
-    }
-
-    template <typename M, typename U, int IFORM, int... N, typename RHS>
-    void Calculate(Field<M, U, IFORM, N...>& lhs, RHS const& rhs, Range<EntityId> const& r) const {
-        if (r.isNull()) { return; }
-        typedef typename Field<M, U, IFORM, N...>::data_type data_type;
-//
-//        st::foreach (dynamic_cast<data_type&>(lhs),  //
-//                     [&](auto& a, int n0, auto&&... subs) {
-//                         auto tag = static_cast<int16_t>(
-//                             EntityIdCoder::m_sub_index_to_id_[IFORM][n0] |
-//                             (st::recursive_calculate_shift<1, N...>(0, std::forward<decltype(subs)>(subs)...) << 3));
-//
-//                         int n = ((tag & 0b111) == 0 || (tag & 0b111) == 0b111)
-//                                     ? (tag << 3)
-//                                     : EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
-//
-//                         r.foreach ([&](EntityId s) {
-//                             if (s.w == tag) {
-//                                 a.Assign(st::recursive_index(
-//                                              st::invoke(getArray((rhs), IdxShift{0, 0, 0}, tag), s.x, s.y, s.z), n),
-//                                          s.x, s.y, s.z);
-//                             }
-//                         });
-//                     });
+    template <typename U, int IFORM, int... N, typename RHS>
+    void Calculate(engine::AttributeT<U, IFORM, N...>& lhs, RHS const& rhs, Range<EntityId> const& r) const {
+        //        if (!r.isNull()) { Calculate(lhs.Sub(r), rhs); }
     }
 
     auto _getV(std::integral_constant<int, NODE> _, IdxShift S, int tag) const {

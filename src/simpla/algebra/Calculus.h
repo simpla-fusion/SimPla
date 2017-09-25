@@ -17,59 +17,20 @@ namespace simpla {
 template <typename...>
 class Expression;
 
-template <typename TM, typename TV, int...>
-class Field;
-
-}  // namespace simpla
-
-namespace std {
-template <typename TM, typename TV, int IFORM, int... DOF>
-struct rank<simpla::Field<TM, TV, IFORM, DOF...>> : public std::integral_constant<int, sizeof...(DOF)> {};
-}  // namespace std{
-
-namespace simpla {
-
 namespace traits {
 
-template <typename TM, typename TV, int... I>
-struct reference<Field<TM, TV, I...>> {
-    typedef const Field<TM, TV, I...>& type;
-};
-
-template <typename TM, typename TV, int... I>
-struct reference<const Field<TM, TV, I...>> {
-    typedef const Field<TM, TV, I...>& type;
-};
-template <typename, typename Enable = void>
-struct iform;
 template <typename T>
-struct iform<const T> : public std::integral_constant<int, iform<T>::value> {};
+struct iform : public std::integral_constant<int, NODE> {};
 
-template <typename T>
-struct iform<T, std::enable_if_t<std::is_arithmetic<T>::value>> : public std::integral_constant<int, NODE> {};
-
-template <typename TM, typename TV, int IFORM>
-struct iform<Field<TM, TV, IFORM>> : public std::integral_constant<int, IFORM> {};
-
-template <typename TM, typename TV, int IFORM, int... DOF>
-struct iform<Field<TM, TV, IFORM, DOF...>> : public std::integral_constant<int, IFORM> {};
 template <typename TOP, typename... Args>
 struct iform<Expression<TOP, Args...>> : public std::integral_constant<int, max(iform<Args>::value...)> {};
 
 template <typename TF>
 struct dof : public std::integral_constant<int, 1> {};
 
-template <typename TM, typename TV, int IFORM, int... DOF>
-struct dof<Field<TM, TV, IFORM, DOF...>>
-    : public std::integral_constant<int, reduction_v(tags::multiplication(), 1, DOF...)> {};
-
 template <typename>
 struct value_type;
 
-template <typename TM, typename TV, int... DOF>
-struct value_type<Field<TM, TV, DOF...>> {
-    typedef TV type;
-};
 }  // namespace traits {
 
 /**
@@ -383,7 +344,7 @@ auto p_exterior_derivative(U const& f) {
 
 template <int I, typename U>
 auto p_codifferential_derivative(U const& f) {
-    return ((Expression<tags::p_exterior_derivative<I>, U const>(f)));
+    return ((Expression<tags::p_exterior_derivative<I>, traits::reference_t<U const>>(f)));
 }
 
 template <typename T>

@@ -9,7 +9,6 @@
 
 #include <utility>
 #include "Array.h"
-#include "ArrayNTuple.h"
 #include "Calculus.h"
 #include "nTuple.ext.h"
 #include "nTuple.h"
