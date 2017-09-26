@@ -84,7 +84,7 @@ void CutCell(std::shared_ptr<Chart> const &chart, index_box_type m_idx_box, cons
                     //                        }
                     //                    }
 
-                    point_type x_begin = chart->global_coordinates(i, j, k, 0b0);
+                    point_type x_begin = chart->global_coordinates(0b0, i, j, k);
                     Handle(Geom_Curve) c =
                         geometry::detail::OCCCast<Geom_Curve, Curve>::eval(*chart->GetAxisCurve(x_begin, dir));
 

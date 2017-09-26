@@ -242,7 +242,7 @@ void Domain<TM, Policies...>::FillRange(LHS &lhs, RHS const &rhs, Range<EntityId
     if (r.isFull() || (r.isNull() && full_fill_if_range_is_null)) {
         this_type::Calculate(lhs, rhs);
     } else {
-        this_type::Calculate(lhs, rhs, r);
+//        this_type::Calculate(lhs, rhs, r);
     }
 };
 

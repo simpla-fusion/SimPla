@@ -14,7 +14,7 @@ std::shared_ptr<simpla::data::DataNode> csCylindrical::Serialize() const { retur
 void csCylindrical::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); };
 std::shared_ptr<GeoObject> csCylindrical::GetBoundingShape(box_type const &b) const { return geometry::Cube::New(b); };
 std::shared_ptr<GeoObject> csCylindrical::GetBoundingShape(index_box_type const &b) const {
-    return GetBoundingShape(std::make_tuple(local_coordinates(std::get<0>(b)), local_coordinates(std::get<0>(b))));
+    return GetBoundingShape(std::make_tuple(local_coordinates(0, std::get<0>(b)), local_coordinates(0, std::get<0>(b))));
 };
 
 std::shared_ptr<Curve> csCylindrical::GetAxisCurve(point_type const &x, int dir) const {

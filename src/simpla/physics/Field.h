@@ -58,11 +58,11 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM, DOF...
     template <typename Other>
     void Set(Other&& v) {
         Update();
-        //        m_mesh_->Fill(*this, std::forward<Other>(v));
+        m_mesh_->Fill(*this, std::forward<Other>(v));
     }
 
     this_type& operator=(this_type const& other) {
-        //        Set(other);
+        Set(other);
         return *this;
     }
     template <typename TR>
@@ -72,14 +72,14 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM, DOF...
     };
 
     auto& operator[](EntityId s) {
-        return traits::recursive_index(
-            traits::index(*dynamic_cast<data_type*>(this), EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.w >> 3)(
-            s.x, s.y, s.z);
+        return traits::invoke(
+            traits::index(*dynamic_cast<data_type*>(this), EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.x, s.y,
+            s.z);
     }
     auto const& operator[](EntityId s) const {
-        return traits::recursive_index(
-            traits::index(*dynamic_cast<data_type*>(this), EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.w >> 3)(
-            s.x, s.y, s.z);
+        return traits::invoke(
+            traits::index(*dynamic_cast<data_type*>(this), EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.x, s.y,
+            s.z);
     }
     auto operator()(IdxShift S) const { return this_type(*this, S); }
     //*****************************************************************************************************************

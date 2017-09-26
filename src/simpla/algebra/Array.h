@@ -98,11 +98,6 @@ class Array : public ArrayBase {
         m_data_ = nullptr;
     }
 
-    Array& operator=(this_type&& other) {
-        this_type(std::forward<this_type>(other)).swap(*this);
-        return *this;
-    };
-
     this_type Sub(index_box_type const& b) { return this_type(m_data_, m_sfc_.Sub(b)); }
 
     std::type_info const& value_type_info() const override { return typeid(value_type); };

@@ -326,11 +326,11 @@ auto curl(T const& f, std::integral_constant<int, FACE> const&) {
 
 template <typename T>
 auto curl(T const& f, std::integral_constant<int, NODE> const&) {
-    return Expression<tags::curl, const T>(f);
+    return Expression<tags::curl, const std::remove_reference_t<traits::reference_t<T>>>(f);
 }
 template <typename T>
 auto curl(T const& f, std::integral_constant<int, CELL> const&) {
-    return Expression<tags::curl, const T>(f);
+    return Expression<tags::curl, const std::remove_reference_t<traits::reference_t<T>>>(f);
 }
 template <typename T>
 auto curl(T const& f) {
@@ -344,7 +344,8 @@ auto p_exterior_derivative(U const& f) {
 
 template <int I, typename U>
 auto p_codifferential_derivative(U const& f) {
-    return ((Expression<tags::p_exterior_derivative<I>, traits::reference_t<U const>>(f)));
+    return (
+        (Expression<tags::p_exterior_derivative<I>, const std::remove_reference_t<traits::reference_t<U const>>>(f)));
 }
 
 template <typename T>

@@ -79,32 +79,14 @@ struct FVM {
         return _invoke_helper(std::make_index_sequence<sizeof...(I)>(), expr, S, tag);
     }
     template <typename U, int... DOF, typename RHS>
-    void Calculate(engine::AttributeT<U, NODE, DOF...>& lhs, RHS const& rhs) const {
-        lhs = getArray(rhs, IdxShift{0, 0, 0}, 0b00);
-        //        lhs.Assign([=](int tag, auto&&... idx) {
-        //            return traits::invoke(getArray(rhs, IdxShift{0, 0, 0}, tag), std::forward<decltype(idx)>(idx)...);
-        //        });
+    void Calculate(engine::AttributeT<U, CELL, DOF...>& lhs, RHS const& rhs,
+                   ENABLE_IF((traits::is_invocable<RHS, point_type>::value))) const {
+        auto chart = m_host_->GetChart();
+        lhs = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b111, x, y, z)); };
     }
     template <typename U, int IFORM, int... DOF, typename RHS>
-    void Calculate(engine::AttributeT<U, IFORM, DOF...>& lhs, RHS const& rhs) const {
-        //        lhs.Assign([=](int tag, auto&&... idx) {
-        //            return traits::invoke(getArray(rhs, IdxShift{0, 0, 0}, tag), std::forward<decltype(idx)>(idx)...);
-        //        });
-    }
-    template <typename U, int... DOF, typename RHS>
-    void Calculate(engine::AttributeT<U, EDGE, DOF...>& lhs, RHS const& rhs) const {
-        engine::detail::Assign_(lhs[0], getArray(rhs, IdxShift{0, 0, 0}, 0b001));
-        engine::detail::Assign_(lhs[1], getArray(rhs, IdxShift{0, 0, 0}, 0b010));
-        engine::detail::Assign_(lhs[2], getArray(rhs, IdxShift{0, 0, 0}, 0b100));
-
-        //        lhs.Assign([=](int tag, auto&&... idx) {
-        //            return traits::invoke(getArray(rhs, IdxShift{0, 0, 0}, tag), std::forward<decltype(idx)>(idx)...);
-        //        });
-    }
-    template <typename U, int IFORM, int... N, typename RHS>
-    void Calculate(engine::AttributeT<U, IFORM, N...>& lhs, RHS const& rhs, Range<EntityId> const& r) const {
-        //        if (!r.isNull()) { Calculate(lhs.Sub(r), rhs); }
-    }
+    void Calculate(engine::AttributeT<U, IFORM, DOF...>& lhs, RHS const& rhs,
+                   ENABLE_IF((!traits::is_invocable<RHS, point_type>::value))) const {}
 
     auto _getV(std::integral_constant<int, NODE> _, IdxShift S, int tag) const {
         return getArray(m_host_->m_vertex_volume_, S, tag);

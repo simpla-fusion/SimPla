@@ -51,7 +51,7 @@ struct Chart : public SPObject {
 
     template <typename... Args>
     point_type uvw(Args &&... args) const {
-        return local_coordinates(std::forward<Args>(args)...);
+        return local_coordinates(0, std::forward<Args>(args)...);
     }
     template <typename... Args>
     point_type xyz(Args &&... args) const {
@@ -63,30 +63,30 @@ struct Chart : public SPObject {
         return point_type{std::fma(x[0], m_scale_[0], m_origin_[0]), std::fma(x[1], m_scale_[1], m_origin_[1]),
                           std::fma(x[2], m_scale_[2], m_origin_[2])};
     }
-    point_type local_coordinates(index_tuple const &x, int tag = 0b0) const {
-        return local_coordinates(x, EntityIdCoder::m_id_to_coordinates_shift_[tag]);
+
+    point_type local_coordinates(std::tuple<point_type, index_tuple> const &r) const {
+        return local_coordinates(&std::get<0>(r)[0], std::get<1>(r));
     }
-    point_type local_coordinates(std::tuple<index_tuple, point_type> const &r) const {
-        return local_coordinates(std::get<0>(r), &std::get<1>(r)[0]);
+    point_type local_coordinates(point_type const &r, index_tuple const &x) const {
+        return local_coordinates(&r[0], x);
     }
-    point_type local_coordinates(index_tuple const &x, point_type const &r) const {
-        return local_coordinates(x, &r[0]);
-    }
-    point_type local_coordinates(index_tuple const &x, Real const *r) const {
+    point_type local_coordinates(Real const *r, index_tuple const &x) const {
         return local_coordinates(point_type{x[0] + r[0], x[1] + r[1], x[2] + r[2]});
     }
-
-    point_type local_coordinates(index_type x, index_type y, index_type z, int const &tag) const {
-        return local_coordinates(x, y, z, EntityIdCoder::m_id_to_coordinates_shift_[tag]);
+    point_type local_coordinates(int tag, index_tuple const &x) const {
+        return local_coordinates(EntityIdCoder::m_id_to_coordinates_shift_[tag], x);
+    }
+    point_type local_coordinates(int tag, index_type x, index_type y, index_type z) const {
+        return local_coordinates(EntityIdCoder::m_id_to_coordinates_shift_[tag], x, y, z);
     }
 
     template <typename TR>
-    point_type local_coordinates(index_type x, index_type y, index_type z, TR const &r) const {
+    point_type local_coordinates(TR const &r, index_type x, index_type y, index_type z) const {
         return local_coordinates(point_type{x + r[0], y + r[1], z + r[2]});
     }
 
     template <typename TR>
-    std::tuple<index_tuple, point_type> invert_local_coordinates(TR const &x) const {
+    std::tuple<point_type, index_tuple> invert_local_coordinates(TR const &x) const {
         //        point_type r = (x - m_origin_) / m_scale_;
         //        index_tuple idx{static_cast<index_type>(r[0]), static_cast<index_type>(r[1]),
         //        static_cast<index_type>(r[2])};
@@ -107,11 +107,11 @@ struct Chart : public SPObject {
         r[1] = std::fdim(r[1] - epsilon, id[1]);
         r[2] = std::fdim(r[2] - epsilon, id[2]);
 
-        return std::make_tuple(id, r);
+        return std::make_tuple(r, id);
     }
 
     template <typename TR>
-    std::tuple<index_tuple, point_type> invert_global_coordinates(TR const &x) const {
+    std::tuple<point_type, index_tuple> invert_global_coordinates(TR const &x) const {
         return invert_local_coordinates(inv_map(x));
     }
 

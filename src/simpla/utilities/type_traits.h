@@ -99,13 +99,19 @@ struct InvokeHelper_ {
 };
 
 template <typename U, typename... Args>
-struct InvokeHelper_<U, std::tuple<Args...>, std::enable_if_t<(is_invocable<U, Args...>::value)>> {
+struct InvokeHelper_<U, std::tuple<Args...>, std::enable_if_t<is_invocable<U, Args...>::value>> {
     template <typename V, typename... Args2>
     static decltype(auto) eval(V& v, Args2&&... args) {
         return v(std::forward<Args>(args)...);
     }
 };
-
+template <typename U, typename... Args>
+struct InvokeHelper_<const U, std::tuple<Args...>, std::enable_if_t<is_invocable<const U, Args...>::value>> {
+    template <typename V, typename... Args2>
+    static decltype(auto) eval(V const& v, Args2&&... args) {
+        return v(std::forward<Args>(args)...);
+    }
+};
 template <typename U, typename... Args>
 decltype(auto) invoke(U& v, Args&&... args) {
     return InvokeHelper_<U, std::tuple<Args...>>::eval(v, std::forward<Args>(args)...);
