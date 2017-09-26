@@ -247,7 +247,9 @@ class Array : public ArrayBase {
     void Assign(RHS const& rhs) {
         SetUp();
         m_sfc_.Overlap(rhs).Foreach([=] __host__ __device__(auto&&... s) {
-            this->at(std::forward<decltype(s)>(s)...) = simpla::traits::invoke(rhs, std::forward<decltype(s)>(s)...);
+            this->at(std::forward<decltype(s)>(s)...) =
+                simpla::traits::InvokeHelper_<RHS, std::tuple<decltype(s)...>>::eval(
+                    rhs, std::forward<decltype(s)>(s)...);
         });
     }
 

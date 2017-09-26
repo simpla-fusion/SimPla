@@ -47,7 +47,7 @@ struct IndexHelper_<const Expression<U...>, I0> {
 };
 
 template <typename... U, typename... Args>
-struct InvokeHelper_<const Expression<U...>, std::tuple<Args...>> {
+struct InvokeHelper_<Expression<U...>, std::tuple<Args...>> {
     template <size_type... I, typename... Args2>
     static decltype(auto) helper_(std::integer_sequence<size_type, I...>, Expression<U...> const &expr,
                                   Args2 &&... args) {

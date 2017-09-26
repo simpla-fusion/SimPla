@@ -107,6 +107,13 @@ template <typename TM, typename TV, int... I>
 struct reference<const Field<TM, TV, I...>> {
     typedef const engine::AttributeT<TV, I...>& type;
 };
+
+template <typename TM, typename TV, int IFORM, int... DOF>
+struct iform<Field<TM, TV, IFORM, DOF...>> : public std::integral_constant<int, IFORM> {};
+
+template <typename TM, typename TV, int IFORM, int... DOF>
+struct dof<Field<TM, TV, IFORM, DOF...>>
+    : public std::integral_constant<int, reduction_v(tags::multiplication(), 1, DOF...)> {};
 }
 
 template <typename TM, typename TV, int IFORM, int... DOF>

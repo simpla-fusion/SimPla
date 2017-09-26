@@ -488,6 +488,9 @@ struct reference<const engine::AttributeT<TV, I...>> {
 };
 template <typename>
 struct iform;
+
+template <typename T>
+struct iform<const T> : public std::integral_constant<int, iform<T>::value> {};
 template <typename TV, int IFORM, int... DOF>
 struct iform<engine::AttributeT<TV, IFORM, DOF...>> : public std::integral_constant<int, IFORM> {};
 template <typename TF>

@@ -29,104 +29,158 @@ template <typename THost>
 struct FVM {
     SP_DOMAIN_POLICY_HEAD(FVM);
 
+    typedef traits::type_list<simpla::tags::exterior_derivative, tags::codifferential_derivative, tags::hodge_star,
+                              tags::wedge, tags::dot, tags::cross, tags::curl, tags::grad, tags::diverge>
+        op_list;
+
     typedef THost domain_type;
     static constexpr unsigned int NDIMS = 3;
 
-    template <typename TOP, typename... Args>
-    decltype(auto) getArray(Expression<TOP, Args...> const& expr, IdxShift S, int tag) const {
-        return eval(std::integer_sequence<int, st::iform<Args>::value...>(), expr, S, tag);
-    }
-
-    template <typename TExpr>
-    decltype(auto) getArray(TExpr const& expr, IdxShift S, int tag,
-                            ENABLE_IF((st::is_invocable<TExpr, point_type const&>::value))) const {
+   private:
+    template <typename U, int... DOF, typename RHS>
+    void AssignAsFunction(engine::AttributeT<U, NODE, DOF...>& lhs, RHS const& rhs) const {
         auto chart = m_host_->GetChart();
-        return [=](index_type x, index_type y, index_type z) {
-            return expr(chart->local_coordinates(x + S[0], y + S[1], z + S[2], tag));
-        };
-    }
-    template <typename TExpr>
-    decltype(auto) getArray(
-        TExpr const& expr, IdxShift S, int tag,
-        ENABLE_IF((st::is_invocable<TExpr, int, index_type, index_type, index_type>::value))) const {
-        return [=](index_type x, index_type y, index_type z) { return expr(tag, x + S[0], y + S[1], z + S[2]); };
-    }
-    template <typename TExpr>
-    decltype(auto) getArray(TExpr const& expr, IdxShift S, int tag,
-                            ENABLE_IF((st::is_invocable<TExpr, index_type, index_type, index_type>::value))) const {
-        return [=](index_type x, index_type y, index_type z) { return expr(x + S[0], y + S[1], z + S[2]); };
-    }
-    template <typename TExpr>
-    decltype(auto) getArray(TExpr const& expr, IdxShift S, int tag,
-                            ENABLE_IF((std::is_arithmetic<TExpr>::value))) const {
-        return expr;
-    }
-
-    template <typename V, int... N>
-    decltype(auto) getArray(engine::AttributeT<V, N...> const& v, IdxShift S, int tag) const {
-        return st::index(v, EntityIdCoder::m_id_to_sub_index_[tag])(S);
-    }
-
-    template <size_t... I, typename TOP, typename... Args>
-    decltype(auto) _invoke_helper(std::index_sequence<I...> _, Expression<TOP, Args...> const& expr, IdxShift S,
-                                  int tag) const {
-        return expr.m_op_(getArray(std::get<I>(expr.m_args_), S, tag)...);
-    }
-
-    template <int... I, typename TOP, typename... Args>
-    decltype(auto) eval(std::integer_sequence<int, I...> _, Expression<TOP, Args...> const& expr, IdxShift S,
-                        int tag) const {
-        return _invoke_helper(std::make_index_sequence<sizeof...(I)>(), expr, S, tag);
+        lhs = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b000, x, y, z)); };
     }
     template <typename U, int... DOF, typename RHS>
-    void Calculate(engine::AttributeT<U, CELL, DOF...>& lhs, RHS const& rhs,
-                   ENABLE_IF((traits::is_invocable<RHS, point_type>::value))) const {
+    void AssignAsFunction(engine::AttributeT<U, CELL, DOF...>& lhs, RHS const& rhs) const {
         auto chart = m_host_->GetChart();
         lhs = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b111, x, y, z)); };
     }
+    template <typename U, int... DOF, typename RHS>
+    void AssignAsFunction(engine::AttributeT<U, EDGE, DOF...>& lhs, RHS const& rhs) const {
+        auto chart = m_host_->GetChart();
+        lhs[0] = [&](index_type x, index_type y, index_type z) {
+            return rhs(chart->local_coordinates(0b001, x, y, z));
+        };
+        lhs[1] = [&](index_type x, index_type y, index_type z) {
+            return rhs(chart->local_coordinates(0b010, x, y, z));
+        };
+        lhs[2] = [&](index_type x, index_type y, index_type z) {
+            return rhs(chart->local_coordinates(0b100, x, y, z));
+        };
+    }
+    template <typename U, int... DOF, typename RHS>
+    void AssignAsFunction(engine::AttributeT<U, FACE, DOF...>& lhs, RHS const& rhs) const {
+        auto chart = m_host_->GetChart();
+        lhs[0] = [&](index_type x, index_type y, index_type z) {
+            return rhs(chart->local_coordinates(0b110, x, y, z));
+        };
+        lhs[1] = [&](index_type x, index_type y, index_type z) {
+            return rhs(chart->local_coordinates(0b101, x, y, z));
+        };
+        lhs[2] = [&](index_type x, index_type y, index_type z) {
+            return rhs(chart->local_coordinates(0b011, x, y, z));
+        };
+    }
+    template <typename U, int... DOF, typename... TOP>
+    void AssignAsExpression(engine::AttributeT<U, NODE, DOF...>& lhs, Expression<TOP...> const& rhs) const;
+    template <typename U, int... DOF, typename... TOP>
+    void AssignAsExpression(engine::AttributeT<U, EDGE, DOF...>& lhs, Expression<TOP...> const& rhs) const;
+    template <typename U, int... DOF, typename... TOP>
+    void AssignAsExpression(engine::AttributeT<U, FACE, DOF...>& lhs, Expression<TOP...> const& rhs) const;
+    template <typename U, int... DOF, typename... TOP>
+    void AssignAsExpression(engine::AttributeT<U, CELL, DOF...>& lhs, Expression<TOP...> const& rhs) const;
+
+   public:
     template <typename U, int IFORM, int... DOF, typename RHS>
     void Calculate(engine::AttributeT<U, IFORM, DOF...>& lhs, RHS const& rhs,
-                   ENABLE_IF((!traits::is_invocable<RHS, point_type>::value))) const {}
+                   ENABLE_IF((std::is_arithmetic<RHS>::value || std::is_base_of<engine::Attribute, RHS>::value ||
+                              traits::is_invocable<RHS, index_type, index_type, index_type>::value ||
+                              traits::is_invocable<RHS, int, index_type, index_type, index_type>::value))) const {
+        lhs.Assign(rhs);
+    }
+    template <typename U, int IFORM, int... DOF, typename RHS>
+    void Calculate(engine::AttributeT<U, IFORM, DOF...>& lhs, RHS const& rhs,
+                   ENABLE_IF((traits::is_invocable<RHS, point_type>::value))) const {
+        AssignAsFunction(lhs, rhs);
+    }
+    template <typename U, int IFORM, int... DOF, typename TOP, typename... Args>
+    void Calculate(engine::AttributeT<U, IFORM, DOF...>& lhs, Expression<TOP, Args...> const& expr) const {
+        AssignAsExpression(lhs, expr);
+    }
+
+   private:
+    template <typename TExpr>
+    auto get_(TExpr const& expr, IdxShift S, int tag, ENABLE_IF((std::is_arithmetic<TExpr>::value))) const {
+        return expr;
+    }
+    template <typename... V, int... N>
+    auto get_(Array<V...> const& v, IdxShift S, int tag) const {
+        Array<V...> res(v);
+        res.Shift(S);
+        return res;
+    }
+    template <typename... V, int... N>
+    auto get_(nTuple<Array<V...>, N...> const& v, IdxShift S, int tag) const {
+        return v;
+    }
+
+    template <typename V, int... N>
+    auto get_(engine::AttributeT<V, N...> const& v, IdxShift S, int tag) const {
+        return st::index(v, EntityIdCoder::m_id_to_sub_index_[tag])(S);
+    }
+    template <typename TOP, typename... Args>
+    auto get_diff_expr(Expression<TOP, Args...> const& expr, IdxShift S, int tag) const {
+        return eval(std::integer_sequence<int, traits::iform<Args>::value...>(), expr, S, tag);
+    };
+
+    template <typename TOP, typename... Args>
+    auto get_(Expression<TOP, Args...> const& expr, IdxShift S, int tag,
+              ENABLE_IF((traits::check_type_in_list<TOP, op_list>::value))) const {
+        return get_diff_expr(expr, S, tag);
+    };
+
+    template <size_t... I, typename TOP, typename... Args>
+    auto _invoke_helper(std::index_sequence<I...> _, Expression<TOP, Args...> const& expr, IdxShift S, int tag) const {
+        return expr.m_op_(get_(std::get<I>(expr.m_args_), S, tag)...);
+    }
+
+    template <typename TOP, typename... Args>
+    auto get_(Expression<TOP, Args...> const& expr, IdxShift S, int tag,
+              ENABLE_IF((!traits::check_type_in_list<TOP, op_list>::value))) const {
+        return _invoke_helper(std::index_sequence_for<Args...>(), expr, S, tag);
+    }
 
     auto _getV(std::integral_constant<int, NODE> _, IdxShift S, int tag) const {
-        return getArray(m_host_->m_vertex_volume_, S, tag);
+        return get_(m_host_->m_vertex_volume_, S, tag);
     }
 
     auto _getV(std::integral_constant<int, EDGE> _, IdxShift S, int tag) const {
-        return getArray(m_host_->m_edge_volume_, S, tag);
+        return get_(m_host_->m_edge_volume_, S, tag);
     }
 
     auto _getV(std::integral_constant<int, FACE> _, IdxShift S, int tag) const {
-        return getArray(m_host_->m_face_volume_, S, tag);
+        return get_(m_host_->m_face_volume_, S, tag);
     }
 
     auto _getV(std::integral_constant<int, CELL> _, IdxShift S, int tag) const {
-        return getArray(m_host_->m_volume_volume_, S, tag);
+        return get_(m_host_->m_volume_volume_, S, tag);
     }
 
     auto _getDualV(std::integral_constant<int, NODE> _, IdxShift S, int tag) const {
-        return getArray(m_host_->m_vertex_dual_volume_, S, tag);
+        return get_(m_host_->m_vertex_dual_volume_, S, tag);
     }
 
     auto _getDualV(std::integral_constant<int, EDGE> _, IdxShift S, int tag) const {
-        return getArray(m_host_->m_edge_dual_volume_, S, tag);
+        return get_(m_host_->m_edge_dual_volume_, S, tag);
     }
 
     auto _getDualV(std::integral_constant<int, FACE> _, IdxShift S, int tag) const {
-        return getArray(m_host_->m_face_dual_volume_, S, tag);
+        return get_(m_host_->m_face_dual_volume_, S, tag);
     }
 
     auto _getDualV(std::integral_constant<int, CELL> _, IdxShift S, int tag) const {
-        return getArray(m_host_->m_volume_dual_volume_, S, tag);
+        return get_(m_host_->m_volume_dual_volume_, S, tag);
     }
 
     template <typename TExpr>
     auto getDualV(TExpr const& expr, IdxShift S, int tag) const {
-        return getArray(expr, S, tag) * _getDualV(std::integral_constant<int, st::iform<TExpr>::value>(), S, tag);
+        return get_(expr, S, tag) * _getDualV(std::integral_constant<int, st::iform<TExpr>::value>(), S, tag);
     }
     template <typename TExpr>
     auto getV(TExpr const& expr, IdxShift S, int tag) const {
-        return getArray(expr, S, tag) * _getV(std::integral_constant<int, st::iform<TExpr>::value>(), S, tag);
+        return get_(expr, S, tag) * _getV(std::integral_constant<int, st::iform<TExpr>::value>(), S, tag);
     }
 
     //******************************************************************************
@@ -143,7 +197,7 @@ struct FVM {
         int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
         D[n] = 1;
         return (getV(l, S + D, tag & (~0b111)) - getV(l, S, tag & (~0b111))) *
-               getArray(m_host_->m_edge_inv_volume_, S, tag);
+               get_(m_host_->m_edge_inv_volume_, S, tag);
     }
 
     //! curl<1>
@@ -164,7 +218,7 @@ struct FVM {
         SZ[(n + 2) % 3] = 1;
 
         return ((getV(l, S + SZ, IY) - getV(l, S, IY)) - (getV(l, S + SY, IZ) - getV(l, S, IZ))) *
-               getArray(m_host_->m_face_inv_volume_, S, tag);
+               get_(m_host_->m_face_inv_volume_, S, tag);
     }
 
     //! div<2>
@@ -183,7 +237,7 @@ struct FVM {
 
         return ((getV(l, S + SX, IX) - getV(l, S, IX)) + (getV(l, S + SY, IY) - getV(l, S, IY)) +
                 (getV(l, S + SZ, IZ) - getV(l, S, IZ))) *
-               getArray(m_host_->m_volume_inv_volume_, S, tag);
+               get_(m_host_->m_volume_inv_volume_, S, tag);
     }
 
     //! curl<2>
@@ -203,7 +257,7 @@ struct FVM {
         SZ[(n + 2) % 3] = 1;
 
         return ((getDualV(l, S, IY) - getDualV(l, S - SZ, IY)) - (getDualV(l, S, IZ) - getDualV(l, S - SY, IZ))) *
-               (-getArray(m_host_->m_edge_inv_dual_volume_, S, tag));
+               (-get_(m_host_->m_edge_inv_dual_volume_, S, tag));
     }
 
     //! div<1>
@@ -225,7 +279,7 @@ struct FVM {
         return ((getDualV(l, S, IX) - getDualV(l, S - SX, IX)) +  //
                 (getDualV(l, S, IY) - getDualV(l, S - SY, IY)) +  //
                 (getDualV(l, S, IZ) - getDualV(l, S - SZ, IZ))) *
-               (-getArray(m_host_->m_vertex_inv_dual_volume_, S, tag));
+               (-get_(m_host_->m_vertex_inv_dual_volume_, S, tag));
 
         ;
     }
@@ -241,7 +295,7 @@ struct FVM {
         SD[n] = 1;
         int ID = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[CELL][n];
 
-        return (getV(l, S, ID) - getV(l, S - SD, ID)) * (-getArray(m_host_->m_face_inv_volume_, S, tag));
+        return (getV(l, S, ID) - getV(l, S - SD, ID)) * (-get_(m_host_->m_face_inv_volume_, S, tag));
     }
 
     //! *Form<IR> => Form<N-IL>
@@ -255,7 +309,7 @@ struct FVM {
                 getV(l, S + IdxShift{0, 1, 0}, I0) + getV(l, S + IdxShift{0, 1, 1}, I0) +
                 getV(l, S + IdxShift{1, 0, 0}, I0) + getV(l, S + IdxShift{1, 0, 1}, I0) +
                 getV(l, S + IdxShift{1, 1, 0}, I0) + getV(l, S + IdxShift{1, 1, 1}, I0)) *
-               getArray(m_host_->m_volume_inv_volume_, S, tag) * 0.125;
+               get_(m_host_->m_volume_inv_volume_, S, tag) * 0.125;
     };
     ////***************************************************************************************************
     //! p_curl<1>
@@ -298,7 +352,7 @@ struct FVM {
 
     template <int I, typename TExpr>
     auto _map_to(std::index_sequence<I, I> _, TExpr const& expr, IdxShift S, int tag) const {
-        return getArray(expr, S, tag);
+        return get_(expr, S, tag);
     };
 
     template <typename TExpr>
@@ -308,7 +362,7 @@ struct FVM {
         IdxShift SX{0, 0, 0};
         SX[n] = 1;
 
-        return (getArray(expr, S, IX) + getArray(expr, S + SX, IX)) * 0.5;
+        return (get_(expr, S, IX) + get_(expr, S + SX, IX)) * 0.5;
     }
 
     template <typename TExpr>
@@ -317,7 +371,7 @@ struct FVM {
         int IX = (((tag << 3) / 3) >> 3) | EntityIdCoder::m_sub_index_to_id_[EDGE][n];
         IdxShift SX{0, 0, 0};
         SX[n] = 1;
-        return (getArray(expr, S - SX, IX) + getArray(expr, S, IX)) * 0.5;
+        return (get_(expr, S - SX, IX) + get_(expr, S, IX)) * 0.5;
     }
 
     template <typename TExpr>
@@ -328,8 +382,7 @@ struct FVM {
         IdxShift SZ{0, 0, 0};
         SY[(n + 1) % 3] = 1;
         SZ[(n + 2) % 3] = 1;
-        return (getArray(expr, S, IX) + getArray(expr, S + SY, IX) + getArray(expr, S + SZ, IX) +
-                getArray(expr, S + SY + SZ, IX)) *
+        return (get_(expr, S, IX) + get_(expr, S + SY, IX) + get_(expr, S + SZ, IX) + get_(expr, S + SY + SZ, IX)) *
                0.25;
     }
 
@@ -342,28 +395,27 @@ struct FVM {
         SY[(n + 1) % 3] = 1;
         SZ[(n + 2) % 3] = 1;
 
-        return (getArray(expr, S - SY - SZ, IX) + getArray(expr, S - SY, IX) + getArray(expr, S - SZ, IX) +
-                getArray(expr, S, IX)) *
+        return (get_(expr, S - SY - SZ, IX) + get_(expr, S - SY, IX) + get_(expr, S - SZ, IX) + get_(expr, S, IX)) *
                0.25;
     }
 
     template <typename TExpr>
     auto _map_to(std::index_sequence<NODE, CELL> _, TExpr const& expr, IdxShift S, int tag) const {
         tag = tag & (~0b111);
-        return (getArray(expr, S + IdxShift{0, 0, 0}, tag) + getArray(expr, S + IdxShift{0, 0, 1}, tag) +
-                getArray(expr, S + IdxShift{0, 1, 0}, tag) + getArray(expr, S + IdxShift{0, 1, 1}, tag) +
-                getArray(expr, S + IdxShift{1, 0, 0}, tag) + getArray(expr, S + IdxShift{1, 0, 1}, tag) +
-                getArray(expr, S + IdxShift{1, 1, 0}, tag) + getArray(expr, S + IdxShift{1, 1, 1}, tag)) *
+        return (get_(expr, S + IdxShift{0, 0, 0}, tag) + get_(expr, S + IdxShift{0, 0, 1}, tag) +
+                get_(expr, S + IdxShift{0, 1, 0}, tag) + get_(expr, S + IdxShift{0, 1, 1}, tag) +
+                get_(expr, S + IdxShift{1, 0, 0}, tag) + get_(expr, S + IdxShift{1, 0, 1}, tag) +
+                get_(expr, S + IdxShift{1, 1, 0}, tag) + get_(expr, S + IdxShift{1, 1, 1}, tag)) *
                0.125;
     }
 
     template <typename TExpr>
     auto _map_to(std::index_sequence<CELL, NODE> _, TExpr const& expr, IdxShift S, int tag) const {
         tag = tag | (0b111);
-        return (getArray(expr, S - IdxShift{1, 1, 1}, tag) + getArray(expr, S - IdxShift{1, 1, 0}, tag) +
-                getArray(expr, S - IdxShift{1, 0, 1}, tag) + getArray(expr, S - IdxShift{1, 0, 0}, tag) +
-                getArray(expr, S - IdxShift{0, 1, 1}, tag) + getArray(expr, S - IdxShift{0, 1, 0}, tag) +
-                getArray(expr, S - IdxShift{0, 0, 1}, tag) + getArray(expr, S, tag)) *
+        return (get_(expr, S - IdxShift{1, 1, 1}, tag) + get_(expr, S - IdxShift{1, 1, 0}, tag) +
+                get_(expr, S - IdxShift{1, 0, 1}, tag) + get_(expr, S - IdxShift{1, 0, 0}, tag) +
+                get_(expr, S - IdxShift{0, 1, 1}, tag) + get_(expr, S - IdxShift{0, 1, 0}, tag) +
+                get_(expr, S - IdxShift{0, 0, 1}, tag) + get_(expr, S, tag)) *
                0.125;
     }
 
@@ -374,7 +426,7 @@ struct FVM {
 
         IdxShift SD{0, 0, 0};
         SD[n] = 1;
-        return (getArray(expr, S - SD, IX) + getArray(expr, S, IX)) * 0.5;
+        return (get_(expr, S - SD, IX) + get_(expr, S, IX)) * 0.5;
     }
 
     template <typename TExpr>
@@ -383,7 +435,7 @@ struct FVM {
         int IX = (((tag << 3) / 3) >> 3) | EntityIdCoder::m_sub_index_to_id_[FACE][n];
         IdxShift SX{0, 0, 0};
         SX[n] = 1;
-        return (getArray(expr, S, IX) + getArray(expr, S + SX, IX)) * 0.5;
+        return (get_(expr, S, IX) + get_(expr, S + SX, IX)) * 0.5;
     }
 
     template <typename TExpr>
@@ -396,8 +448,7 @@ struct FVM {
         SY[(n + 1) % 3] = 1;
         SZ[(n + 2) % 3] = 1;
 
-        return (getArray(expr, S - SY, IX) + getArray(expr, S - SZ, IX) + getArray(expr, S - SY - SZ, IX) +
-                getArray(expr, S, IX)) *
+        return (get_(expr, S - SY, IX) + get_(expr, S - SZ, IX) + get_(expr, S - SY - SZ, IX) + get_(expr, S, IX)) *
                0.25;
     }
 
@@ -411,8 +462,7 @@ struct FVM {
         SY[(n + 1) % 3] = 1;
         SZ[(n + 2) % 3] = 1;
 
-        return (getArray(expr, S, IX) + getArray(expr, S + SZ, IX) + getArray(expr, S + SY, IX) +
-                getArray(expr, S + SY + SZ, IX)) *
+        return (get_(expr, S, IX) + get_(expr, S + SZ, IX) + get_(expr, S + SY, IX) + get_(expr, S + SY + SZ, IX)) *
                0.25;
     }
 
@@ -451,8 +501,8 @@ struct FVM {
         SY[(n + 1) % 3] = 1;
         SZ[(n + 2) % 3] = 1;
 
-        return (getArray(l, S, IY) + getArray(l, S + SZ, IY)) * (getArray(r, S, IY) + getArray(r, S + SY, IZ)) * 0.25 -
-               (getArray(r, S, IY) + getArray(r, S + SZ, IY)) * (getArray(l, S, IY) + getArray(l, S + SY, IZ)) * 0.25;
+        return (get_(l, S, IY) + get_(l, S + SZ, IY)) * (get_(r, S, IY) + get_(r, S + SY, IZ)) * 0.25 -
+               (get_(r, S, IY) + get_(r, S + SZ, IY)) * (get_(l, S, IY) + get_(l, S + SY, IZ)) * 0.25;
     }
 
     template <typename... TExpr>
@@ -498,14 +548,14 @@ struct FVM {
               int tag) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
-        return getArray(wedge(l, hodgestar(r)), S, tag);
+        return get_(wedge(l, hodgestar(r)), S, tag);
     }
     template <typename... TExpr>
     auto eval(std::integer_sequence<int, FACE, FACE> _, Expression<tags::dot, TExpr...> const& expr, IdxShift S,
               int tag) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
-        return getArray(wedge(l, hodgestar(r)), S, tag);
+        return get_(wedge(l, hodgestar(r)), S, tag);
     }
 
     template <typename... TExpr>
@@ -518,8 +568,7 @@ struct FVM {
         int IY = ((tag << 3) * 3 + 1) >> 3;
         int IZ = ((tag << 3) * 3 + 2) >> 3;
 
-        return getArray(l, S, IX) * getArray(r, S, IX) + getArray(l, S, IY) * getArray(r, S, IY) +
-               getArray(l, S, IZ) * getArray(r, S, IZ);
+        return get_(l, S, IX) * get_(r, S, IX) + get_(l, S, IY) * get_(r, S, IY) + get_(l, S, IZ) * get_(r, S, IZ);
     }
 
     template <typename... TExpr>
@@ -531,8 +580,7 @@ struct FVM {
         int IY = (((tag << 3) * 3 + 1) >> 3) | 0b111;
         int IZ = (((tag << 3) * 3 + 2) >> 3) | 0b111;
 
-        return getArray(l, S, IX) * getArray(r, S, IX) + getArray(l, S, IY) * getArray(r, S, IY) +
-               getArray(l, S, IZ) * getArray(r, S, IZ);
+        return get_(l, S, IX) * get_(r, S, IX) + get_(l, S, IY) * get_(r, S, IY) + get_(l, S, IZ) * get_(r, S, IZ);
     }
 
     template <typename... TExpr>
@@ -546,7 +594,7 @@ struct FVM {
         int IY = ((((tag << 3) / 3) * 3 + (n + 1) % 3) >> 3);
         int IZ = ((((tag << 3) / 3) * 3 + (n + 2) % 3) >> 3);
 
-        return getArray(l, S, IY) * getArray(r, S, IZ) - getArray(l, S, IZ) * getArray(r, S, IY);
+        return get_(l, S, IY) * get_(r, S, IZ) - get_(l, S, IZ) * get_(r, S, IY);
     }
 
     template <typename... TExpr>
@@ -560,7 +608,7 @@ struct FVM {
         int IY = ((((tag << 3) / 3) * 3 + (n + 1) % 3) >> 3) | 0b111;
         int IZ = ((((tag << 3) / 3) * 3 + (n + 2) % 3) >> 3) | 0b111;
 
-        return getArray(l, S, IY) * getArray(r, S, IZ) - getArray(l, S, IZ) * getArray(r, S, IY);
+        return get_(l, S, IY) * get_(r, S, IZ) - get_(l, S, IZ) * get_(r, S, IY);
     }
 };  // class FVM
 
@@ -568,6 +616,59 @@ template <typename THost>
 FVM<THost>::FVM(THost* h) : m_host_(h) {}
 template <typename THost>
 FVM<THost>::~FVM() {}
+
+// template <typename THost>
+// template <typename TOP, typename... Args>
+// auto FVM<THost>::get_diff_expr(Expression<TOP, Args...> const& expr, IdxShift S, int tag) const {
+//    return eval(std::integer_sequence<int, traits::iform<Args>::value...>(), expr, S, tag);
+//}
+
+namespace detail {
+
+template <typename... V, typename U>
+void Assign(Array<V...>& f, U const& v) {
+    f = v;
+};
+
+template <typename LHS, typename RHS>
+void Assign(std::integer_sequence<size_type>, LHS& lhs, RHS const& rhs){};
+
+template <size_type I0, size_type... I, typename LHS, typename RHS>
+void Assign(std::integer_sequence<size_type, I0, I...>, LHS& lhs, RHS const& rhs){
+    //    Assign(get<I0>(lhs), [&](index_type x, index_type y, index_type z) { return get<I0>(get_value(rhs, x, y, z));
+    //    });
+    //    Assign(std::integer_sequence<size_type, I...>(), lhs, rhs);
+};
+
+template <typename V, int N0, int... N, typename U>
+void Assign(nTuple<V, N0, N...>& lhs, U const& rhs) {
+    Assign(std::make_index_sequence<N0>(), lhs, rhs);
+};
+}
+template <typename THost>
+template <typename U, int... DOF, typename... TOP>
+void FVM<THost>::AssignAsExpression(engine::AttributeT<U, NODE, DOF...>& lhs, Expression<TOP...> const& rhs) const {
+    detail::Assign(lhs, get_(rhs, IdxShift{0, 0, 0}, 0b000));
+};
+template <typename THost>
+template <typename U, int... DOF, typename... TOP>
+void FVM<THost>::AssignAsExpression(engine::AttributeT<U, EDGE, DOF...>& lhs, Expression<TOP...> const& rhs) const {
+    detail::Assign(lhs[0], get_(rhs, IdxShift{0, 0, 0}, 0b001));
+    detail::Assign(lhs[1], get_(rhs, IdxShift{0, 0, 0}, 0b010));
+    detail::Assign(lhs[2], get_(rhs, IdxShift{0, 0, 0}, 0b100));
+};
+template <typename THost>
+template <typename U, int... DOF, typename... TOP>
+void FVM<THost>::AssignAsExpression(engine::AttributeT<U, FACE, DOF...>& lhs, Expression<TOP...> const& rhs) const {
+    detail::Assign(lhs[0], get_(rhs, IdxShift{0, 0, 0}, 0b110));
+    detail::Assign(lhs[1], get_(rhs, IdxShift{0, 0, 0}, 0b101));
+    detail::Assign(lhs[2], get_(rhs, IdxShift{0, 0, 0}, 0b011));
+};
+template <typename THost>
+template <typename U, int... DOF, typename... TOP>
+void FVM<THost>::AssignAsExpression(engine::AttributeT<U, CELL, DOF...>& lhs, Expression<TOP...> const& rhs) const {
+    detail::Assign(lhs, get_(rhs, IdxShift{0, 0, 0}, 0b111));
+};
 
 template <typename THost>
 std::shared_ptr<data::DataNode> FVM<THost>::Serialize() const {
@@ -585,18 +686,18 @@ void FVM<THost>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}
 //
 //    template <typename... E, typename... Args>
 //    auto GetEntity(Expression<E...> const& rhs, int tag, int tag) const {
-//        return GetEntity(calculus::getArray(rhs, std::forward<Args>(args)...), tag);
+//        return GetEntity(calculus::get_(rhs, std::forward<Args>(args)...), tag);
 //    }
 //
 //    template <typename V, int N0, int... N, typename... Args>
 //    auto const& GetEntity(nTuple<V, N0, N...> const& rhs, int tag, int tag) const {
-//        return calculus::getArray(
+//        return calculus::get_(
 //            st::recursive_index<N...>(rhs[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]], tag >> 3),
 //            std::forward<Args>(args)...);
 //    }
 //    template <typename V, int N0, int... N, typename... Args>
 //    auto& GetEntity(nTuple<V, N0, N...>& rhs, int tag, int tag) const {
-//        return calculus::getArray(
+//        return calculus::get_(
 //            st::recursive_index<N...>(rhs[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]], tag >> 3),
 //            std::forward<Args>(args)...);
 //    }
@@ -625,7 +726,7 @@ void FVM<THost>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}
 //    const {
 //        lhs.GetPatch() = rhs;
 //        st::foreach (lhs.GetPatch(), [&](auto& a, auto&&... subs) {
-//            a = getArray((rhs), IdxShift{0, 0, 0}, std::forward<decltype(subs)>(subs)...);
+//            a = get_((rhs), IdxShift{0, 0, 0}, std::forward<decltype(subs)>(subs)...);
 //        });
 //    }
 //
@@ -659,11 +760,11 @@ void FVM<THost>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}
 //    /// @{
 //
 //    //    template <typename V, int I, int... D>
-//    //     V const& getArray( Field<M, V, I, D...> const& f, EntityId s)const{
+//    //     V const& get_( Field<M, V, I, D...> const& f, EntityId s)const{
 //    //        return f[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]][(s.w >> 3)](s.x, s.y, s.z);
 //    //    };
 //    //    template <typename V, int I, int... D>
-//    //     V& getArray( Field<M, V, I, D...>& f, EntityId s)const{
+//    //     V& get_( Field<M, V, I, D...>& f, EntityId s)const{
 //    //        return f[EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]][(s.w >> 3)](s.x, s.y, s.z);
 //    //    };
 //
@@ -681,14 +782,14 @@ void FVM<THost>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}
 //        point_type r;  //= std::Serialize<1>(idx);
 //        EntityId s;    //= std::Serialize<0>(idx);
 //
-//        return getArray(f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) +    //
-//               getArray(f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) +    //
-//               getArray(f, (s + X) + Z) * (r[0]) * (1.0 - r[1]) * (r[2]) +    //
-//               getArray(f, (s + X)) * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]) +  //
-//               getArray(f, (s + Y) + Z) * (1.0 - r[0]) * (r[1]) * (r[2]) +    //
-//               getArray(f, (s + Y)) * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]) +  //
-//               getArray(f, s + Z) * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]) +    //
-//               getArray(f, s) * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+//        return get_(f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) +    //
+//               get_(f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) +    //
+//               get_(f, (s + X) + Z) * (r[0]) * (1.0 - r[1]) * (r[2]) +    //
+//               get_(f, (s + X)) * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]) +  //
+//               get_(f, (s + Y) + Z) * (1.0 - r[0]) * (r[1]) * (r[2]) +    //
+//               get_(f, (s + Y)) * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]) +  //
+//               get_(f, s + Z) * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]) +    //
+//               get_(f, s) * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
 //    }
 //
 //   public:
@@ -729,14 +830,14 @@ void FVM<THost>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}
 //        point_type r = std::get<1>(idx);
 //        EntityId s = std::get<0>(idx);
 //
-//        getArray(f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
-//        getArray(f, (s + X) + Y) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
-//        getArray(f, (s + X) + Z) += v * (r[0]) * (1.0 - r[1]) * (r[2]);
-//        getArray(f, s + X) += v * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
-//        getArray(f, (s + Y) + Z) += v * (1.0 - r[0]) * (r[1]) * (r[2]);
-//        getArray(f, s + Y) += v * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]);
-//        getArray(f, s + Z) += v * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]);
-//        getArray(f, s) += v * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+//        get_(f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
+//        get_(f, (s + X) + Y) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
+//        get_(f, (s + X) + Z) += v * (r[0]) * (1.0 - r[1]) * (r[2]);
+//        get_(f, s + X) += v * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+//        get_(f, (s + Y) + Z) += v * (1.0 - r[0]) * (r[1]) * (r[2]);
+//        get_(f, s + Y) += v * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]);
+//        get_(f, s + Z) += v * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]);
+//        get_(f, s) += v * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
 //    }
 //
 //    template <typename TF, typename TX, typename TV>
@@ -788,7 +889,7 @@ void FVM<THost>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}
 //    }
 
 //    template <typename TFun>
-//     auto getArray( TFun const& fun,  IdxShift S, int tag,
+//     auto get_( TFun const& fun,  IdxShift S, int tag,
 //                         ENABLE_IF(simpla::concept::is_callable<TFun(simpla::EntityId)>::value))const{
 //        return [&](index_tuple const& idx)const{
 //            EntityId s;
@@ -801,7 +902,7 @@ void FVM<THost>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}
 //    }
 //
 //    template <typename TFun>
-//     auto getArray( TFun const& fun,  IdxShift S, int tag,
+//     auto get_( TFun const& fun,  IdxShift S, int tag,
 //                         ENABLE_IF(simpla::concept::is_callable<TFun(point_type const&)>::value))const{
 //        return [&](index_tuple const& idx)const{
 //            EntityId s;
@@ -814,16 +915,16 @@ void FVM<THost>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}
 //    }
 //
 //    template <int IFORM, typename TExpr>
-//     auto  getArray(std::integral_constant<int, IFORM> const&,  TExpr const& expr,
+//     auto  get_(std::integral_constant<int, IFORM> const&,  TExpr const& expr,
 //    m,
 //    index_type i,
 //                  index_type j, index_type k, unsigned int n, unsigned int d)  {
-//        return getArray( expr,EntityIdCoder::Serialize<IFORM>(i, j, k, n, d));
+//        return get_( expr,EntityIdCoder::Serialize<IFORM>(i, j, k, n, d));
 //    }
 //    template <typename TField, typename TOP, typename... Args>
 //    void foreach_( TField& self, Range<EntityId> const& r, TOP const& op, int tag) const
 //    {
-//        r.foreach ([&](EntityId s)  { op(getArray(self, s), getArray(std::forward<Others>(others), s)...);
+//        r.foreach ([&](EntityId s)  { op(get_(self, s), get_(std::forward<Others>(others), s)...);
 //        });
 //    }
 //    template <typename... Args>

@@ -39,23 +39,24 @@ struct value_type;
  * @{
  **/
 
-#define _SP_DEFINE_EXPR_BINARY_FUNCTION(_NAME_)                                     \
-    namespace tags {                                                                \
-    struct _NAME_ {};                                                               \
-    }                                                                               \
-    template <typename T1, typename T2>                                             \
-    Expression<tags::_NAME_, const T1, const T2> _NAME_(T1 const& l, T2 const& r) { \
-        return (Expression<tags::_NAME_, const T1, const T2>(l, r));                \
+#define _SP_DEFINE_EXPR_BINARY_FUNCTION(_NAME_)                                            \
+    namespace tags {                                                                       \
+    struct _NAME_ {};                                                                      \
+    }                                                                                      \
+    template <typename T1, typename T2>                                                    \
+    auto _NAME_(T1 const& l, T2 const& r) {                                                \
+        return (Expression<tags::_NAME_, std::remove_reference_t<traits::reference_t<T1>>, \
+                           std::remove_reference_t<traits::reference_t<T2>>>(l, r));       \
     }
 #define DEF_BI_FUN(_NAME_)
 
-#define _SP_DEFINE_EXPR_UNARY_FUNCTION(_NAME_)               \
-    namespace tags {                                         \
-    struct _NAME_ {};                                        \
-    }                                                        \
-    template <typename T1>                                   \
-    Expression<tags::_NAME_, const T1> _NAME_(T1 const& l) { \
-        return Expression<tags::_NAME_, const T1>(l);        \
+#define _SP_DEFINE_EXPR_UNARY_FUNCTION(_NAME_)                                                \
+    namespace tags {                                                                          \
+    struct _NAME_ {};                                                                         \
+    }                                                                                         \
+    template <typename T1>                                                                    \
+    auto _NAME_(T1 const& l) {                                                                \
+        return Expression<tags::_NAME_, std::remove_reference_t<traits::reference_t<T1>>>(l); \
     }
 
 /**
@@ -286,7 +287,7 @@ auto grad(T const& f, std::integral_constant<int, CELL>) {
 
 template <typename T, int I>
 auto grad(T const& f, std::integral_constant<int, I>) {
-    return ((Expression<tags::grad, const T>(f)));
+    return ((Expression<tags::grad, std::remove_reference_t<traits::reference_t<T>>>(f)));
 }
 
 template <typename T>
@@ -306,7 +307,7 @@ auto diverge(T const& f, std::integral_constant<int, EDGE> const&) {
 
 template <typename T, int I>
 auto diverge(T const& f, std::integral_constant<int, I> const&) {
-    return ((Expression<tags::diverge, const T>(f)));
+    return ((Expression<tags::diverge, std::remove_reference_t<traits::reference_t<T>>>(f)));
 }
 
 template <typename T>
@@ -324,14 +325,14 @@ auto curl(T const& f, std::integral_constant<int, FACE> const&) {
     return ((-codifferential_derivative(f)));
 }
 
-template <typename T>
-auto curl(T const& f, std::integral_constant<int, NODE> const&) {
-    return Expression<tags::curl, const std::remove_reference_t<traits::reference_t<T>>>(f);
-}
-template <typename T>
-auto curl(T const& f, std::integral_constant<int, CELL> const&) {
-    return Expression<tags::curl, const std::remove_reference_t<traits::reference_t<T>>>(f);
-}
+// template <typename T>
+// auto curl(T const& f, std::integral_constant<int, NODE> const&) {
+//    return Expression<tags::curl, const std::remove_reference_t<traits::reference_t<T>>>(f);
+//}
+// template <typename T>
+// auto curl(T const& f, std::integral_constant<int, CELL> const&) {
+//    return Expression<tags::curl, const std::remove_reference_t<traits::reference_t<T>>>(f);
+//}
 template <typename T>
 auto curl(T const& f) {
     return curl(f, traits::iform<std::remove_cv_t<T>>());
@@ -339,13 +340,12 @@ auto curl(T const& f) {
 
 template <int I, typename U>
 auto p_exterior_derivative(U const& f) {
-    return Expression<tags::p_exterior_derivative<I>, U const>(f);
+    return Expression<tags::p_exterior_derivative<I>, std::remove_reference_t<traits::reference_t<U>>>(f);
 }
 
 template <int I, typename U>
 auto p_codifferential_derivative(U const& f) {
-    return (
-        (Expression<tags::p_exterior_derivative<I>, const std::remove_reference_t<traits::reference_t<U const>>>(f)));
+    return ((Expression<tags::p_exterior_derivative<I>, const std::remove_reference_t<traits::reference_t<U>>>(f)));
 }
 
 template <typename T>

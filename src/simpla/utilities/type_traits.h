@@ -118,7 +118,7 @@ decltype(auto) invoke(U& v, Args&&... args) {
 }
 template <typename U, typename... Args>
 decltype(auto) invoke(U const& v, Args&&... args) {
-    return InvokeHelper_<const U, std::tuple<Args...>>::eval(v, std::forward<Args>(args)...);
+    return InvokeHelper_<U, std::tuple<Args...>>::eval(v, std::forward<Args>(args)...);
 }
 //**********************************************************************************************************************
 /**
@@ -186,8 +186,7 @@ template <typename U>
 decltype(auto) recursive_index(U const& v, int s, ENABLE_IF((std::rank<U>::value > 0))) {
     return recursive_index(v[s % std::extent<std::remove_cv_t<U>>::value], s / std::extent<std::remove_cv_t<U>>::value);
 }
-template <typename... T>
-struct type_list {};
+
 ////////////////////////////////////////////////////////////////////////
 ///// Property queries of n-dimensional array
 ////////////////////////////////////////////////////////////////////////
@@ -456,6 +455,10 @@ template <int N, typename... Args>
 auto unpack_args(Args&&... args) {
     return ((_impl::unpack_args_helper<N>(std::forward<Args>(args)...)));
 }
+
+template <typename... T>
+struct type_list {};
+
 template <size_t, typename...>
 struct type_list_N;
 
@@ -476,6 +479,28 @@ struct type_list_N<N, First, Others...> {
 
 template <size_t N, typename... T>
 using type_list_N_t = typename type_list_N<N, T...>::type;
+
+template <typename...>
+struct check_type_in_list;
+template <>
+struct check_type_in_list<> : public std::false_type {};
+
+template <typename T>
+struct check_type_in_list<T> : public std::false_type {};
+template <typename T>
+struct check_type_in_list<T, T> : public std::true_type {};
+
+template <typename L, typename R>
+struct check_type_in_list<L, R>
+    : public std::integral_constant<
+          bool, std::is_same<L, R>::value || std::is_base_of<R, L>::value || std::is_base_of<R, L>::value> {};
+template <typename L, typename R, typename... Others>
+struct check_type_in_list<L, R, Others...>
+    : public std::integral_constant<bool, check_type_in_list<L, R>::value || check_type_in_list<L, Others...>::value> {
+};
+template <typename L, typename... Others>
+struct check_type_in_list<L, type_list<Others...>>
+    : public std::integral_constant<bool, check_type_in_list<L, Others...>::value> {};
 
 template <typename TI, typename TJ>
 size_type get_value(std::integer_sequence<TI> const& _, TJ* d) {
