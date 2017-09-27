@@ -137,12 +137,22 @@ template <typename T0, typename... Others>
 auto make_ntuple(T0 const& a0, Others&&... others) {
     return nTuple<T0, sizeof...(Others) + 1>{a0, others...};
 };
-
+template <size_type I, typename U>
+U const& get(U const& u) {
+    return u;
+}
+template <size_type I, typename U>
+U& get(U& u) {
+    return u;
+}
 template <int N, typename T, int... M>
 auto const& get(nTuple<T, M...> const& expr) {
     return expr[N];
 }
-
+template <size_type I, typename U, int... N>
+auto& get(nTuple<U, N...>& u) {
+    return u[I];
+}
 namespace detail {
 
 template <typename TFun, typename TV, int N0>

@@ -56,18 +56,18 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM, DOF...
     void DoUpdate() override;
     void DoTearDown() override;
     template <typename Other>
-    void Set(Other&& v) {
+    void Assign(Other&& v) {
         Update();
         m_mesh_->Fill(*this, std::forward<Other>(v));
     }
 
     this_type& operator=(this_type const& other) {
-        Set(other);
+        Assign(other);
         return *this;
     }
     template <typename TR>
     this_type& operator=(TR&& rhs) {
-        Set(std::forward<TR>(rhs));
+        Assign(std::forward<TR>(rhs));
         return *this;
     };
 

@@ -83,7 +83,7 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
 
    public:
     std::shared_ptr<const geometry::Chart> GetChart() const override { return DomainBase::GetChart(); };
-    virtual std::shared_ptr<const engine::MeshBlock> GetBlock() const override { return DomainBase::GetBlock(); };
+    std::shared_ptr<const engine::MeshBlock> GetBlock() const override { return DomainBase::GetBlock(); };
 
     void DoSetUp() override;
     void DoUpdate() override;
@@ -97,31 +97,35 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     void SetRange(std::string const &, Range<EntityId> const &);
     Range<EntityId> GetRange(std::string const &k) const;
     template <typename TL, typename TR>
-    void Fill(TL &lhs, TR &&rhs) const {
-        FillRange(lhs, std::forward<TR>(rhs), Range<EntityId>{}, true);
-        FillRange(lhs, 0, "PATCH_BOUNDARY_" + std::to_string(TL::iform), false);
+    void Fill(TL &lhs, TR const &rhs) const {
+        FillRange(lhs, rhs, Range<EntityId>{});
+        //        FillRange(lhs, 0, "PATCH_BOUNDARY_" + std::to_string(TL::iform));
     };
 
     template <typename TL, typename TR>
-    void FillRange(TL &lhs, TR const &rhs, Range<EntityId> r, bool full_fill_if_range_is_null = false) const;
+    void FillRange(TL &lhs, TR const &rhs, const Range<EntityId> &r) const;
+
+    template <typename TL, typename... U>
+    void FillRange(TL &lhs, Expression<U...> const &rhs, const Range<EntityId> &r) const;
 
     template <typename TL, typename TR>
-    void FillRange(TL &lhs, TR const &rhs, std::string const &k = "", bool full_fill_if_range_is_null = false) const {
-        FillRange(lhs, (rhs), GetRange(k), full_fill_if_range_is_null);
+    void FillRange(TL &lhs, TR const &rhs, std::string const &k) const {
+        FillRange(lhs, (rhs), GetRange(k));
     };
 
     template <typename TL, typename TR>
     void FillBody(TL &lhs, TR const &rhs, std::string const &prefix = "") const {
-        FillRange(lhs, (rhs), prefix + "_BODY_" + std::to_string(TL::iform), false);
+//        FillRange(lhs, (rhs), prefix + "_BODY_" + std::to_string(TL::iform));
     };
 
     template <typename TL, typename TR>
     void FillBoundary(TL &lhs, TR const &rhs, std::string const &prefix = "") const {
-        FillRange(lhs, (rhs), prefix + "_BOUNDARY_" + std::to_string(TL::iform), false);
+//        FillRange(lhs, (rhs), prefix + "_BOUNDARY_" + std::to_string(TL::iform));
     };
 
     template <typename U, int IFORM, int... DOF>
     void InitializeAttribute(AttributeT<U, IFORM, DOF...> *attr) const;
+
 };  // class Domain
 
 #define SP_DOMAIN_HEAD(_CLASS_NAME_, _BASE_NAME_)              \
@@ -234,15 +238,69 @@ template <typename U, int IFORM, int... DOF>
 void Domain<TChart, Policies...>::InitializeAttribute(AttributeT<U, IFORM, DOF...> *attr) const {
     detail::InitializeArray(std::integral_constant<int, IFORM>(), *attr, this);
 };
+namespace detail {
+
+template <typename THost, typename U, int... DOF, typename RHS>
+void AssignAsFunction(THost *self, engine::AttributeT<U, NODE, DOF...> &lhs, RHS const &rhs) {
+    auto chart = self->GetChart();
+    lhs.Assign([&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b000, x, y, z)); });
+}
+template <typename THost, typename U, int... DOF, typename RHS>
+void AssignAsFunction(THost *self, engine::AttributeT<U, CELL, DOF...> &lhs, RHS const &rhs) {
+    auto chart = self->GetChart();
+    lhs.Assign([&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b111, x, y, z)); });
+}
+template <typename THost, typename U, int... DOF, typename RHS>
+void AssignAsFunction(THost *self, engine::AttributeT<U, EDGE, DOF...> &lhs, RHS const &rhs,
+                      ENABLE_IF((std::is_same<Real, std::result_of_t<RHS(point_type const &)>>::value))) {
+    auto chart = self->GetChart();
+    lhs[0] = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b001, x, y, z)); };
+    lhs[1] = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b010, x, y, z)); };
+    lhs[2] = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b100, x, y, z)); };
+}
+template <typename THost, typename U, int... DOF, typename RHS>
+void AssignAsFunction(THost *self, engine::AttributeT<U, EDGE, DOF...> &lhs, RHS const &rhs,
+                      ENABLE_IF((std::is_same<nTuple<Real, 3>, std::result_of_t<RHS(point_type const &)>>::value))) {
+    auto chart = self->GetChart();
+    lhs[0] = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b001, x, y, z))[0]; };
+    lhs[1] = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b010, x, y, z))[1]; };
+    lhs[2] = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b100, x, y, z))[2]; };
+}
+template <typename THost, typename U, int... DOF, typename RHS>
+void AssignAsFunction(THost *self, engine::AttributeT<U, FACE, DOF...> &lhs, RHS const &rhs) {
+    auto chart = self->GetChart();
+    lhs[0] = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b110, x, y, z)); };
+    lhs[1] = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b101, x, y, z)); };
+    lhs[2] = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b011, x, y, z)); };
+}
+
+template <typename THost, typename U, int IFORM, int... DOF, typename RHS>
+void DomainAssign(THost *self, engine::AttributeT<U, IFORM, DOF...> &lhs, RHS const &rhs,
+                  ENABLE_IF((std::is_arithmetic<RHS>::value || std::is_base_of<engine::Attribute, RHS>::value ||
+                             traits::is_invocable<RHS, index_type, index_type, index_type>::value ||
+                             traits::is_invocable<RHS, int, index_type, index_type, index_type>::value))) {
+    lhs.Assign(rhs);
+}
+template <typename THost, typename U, int IFORM, int... DOF, typename RHS>
+void DomainAssign(THost *self, engine::AttributeT<U, IFORM, DOF...> &lhs, RHS const &rhs,
+                  ENABLE_IF((traits::is_invocable<RHS, point_type>::value))) {
+    AssignAsFunction(self, lhs, rhs);
+}
+}  // namespace detail {
 
 template <typename TM, template <typename> class... Policies>
 template <typename LHS, typename RHS>
-void Domain<TM, Policies...>::FillRange(LHS &lhs, RHS const &rhs, Range<EntityId> r,
-                                        bool full_fill_if_range_is_null) const {
-    if (r.isFull() || (r.isNull() && full_fill_if_range_is_null)) {
-        this_type::Calculate(lhs, rhs);
+void Domain<TM, Policies...>::FillRange(LHS &lhs, RHS const &rhs, const Range<EntityId> &r) const {
+    detail::DomainAssign(this, lhs, rhs);
+};
+
+template <typename TM, template <typename> class... Policies>
+template <typename TL, typename... U>
+void Domain<TM, Policies...>::FillRange(TL &lhs, Expression<U...> const &rhs, const Range<EntityId> &r) const {
+    if (r.isFull()) {
+        //        this_type::Calculate(lhs, rhs);
     } else {
-//        this_type::Calculate(lhs, rhs, r);
+        //        this_type::Calculate(lhs, rhs, r);
     }
 };
 

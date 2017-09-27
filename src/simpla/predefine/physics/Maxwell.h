@@ -25,9 +25,6 @@ class Maxwell : public TDomainBase {
     Field<this_type, Real, FACE> B{this, "Name"_ = "B", "CheckPoint"_};
     Field<this_type, Real, EDGE> E{this, "Name"_ = "E", "CheckPoint"_};
     Field<this_type, Real, EDGE> J{this, "Name"_ = "J", "CheckPoint"_};
-    Field<this_type, Real, CELL, 3> dumpE{this, "Name"_ = "dumpE", "CheckPoint"_};
-    Field<this_type, Real, CELL, 3> dumpB{this, "Name"_ = "dumpB", "CheckPoint"_};
-    Field<this_type, Real, CELL, 3> dumpJ{this, "Name"_ = "dumpJ", "CheckPoint"_};
 };
 template <typename TDomain>
 Maxwell<TDomain>::Maxwell() : base_type() {}
@@ -44,21 +41,19 @@ void Maxwell<TDomain>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
 template <typename TDomain>
 void Maxwell<TDomain>::DoSetUp() {}
 template <typename TDomain>
-void Maxwell<TDomain>::DoUpdate() {
-    dumpE.Clear();
-    dumpB.Clear();
-    dumpJ.Clear();
-    E.Clear();
-    B.Clear();
-    J.Clear();
+void Maxwell<TDomain>::DoUpdate() {}
 
-//    B0v.Clear();
-}
 template <typename TDomain>
 void Maxwell<TDomain>::DoTearDown() {}
 
 template <typename TDomain>
-void Maxwell<TDomain>::DoInitialCondition(Real time_now) {}
+void Maxwell<TDomain>::DoInitialCondition(Real time_now) {
+    E.Clear();
+    B.Clear();
+    J.Clear();
+
+    B0v.Clear();
+}
 template <typename TDomain>
 void Maxwell<TDomain>::DoBoundaryCondition(Real time_now, Real time_dt) {
     this->FillBoundary(B, 0);
@@ -73,13 +68,13 @@ template <typename TDomain>
 void Maxwell<TDomain>::DoAdvance(Real time_now, Real time_dt) {
     DEFINE_PHYSICAL_CONST
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
-    //    this->FillBoundary(E, 0);
-    //
-    //    B = B - curl(E) * time_dt;
-    //    this->FillBoundary(B, 0);
-    //
-    //    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
-    //    this->FillBoundary(E, 0);
+    this->FillBoundary(E, 0);
+
+    B = B - curl(E) * time_dt;
+    this->FillBoundary(B, 0);
+
+    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
+    this->FillBoundary(E, 0);
 
     J.Clear();
 }

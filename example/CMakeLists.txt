@@ -3,8 +3,10 @@
 #ADD_SUBDIRECTORY(multi_block)
 #ADD_SUBDIRECTORY(cylindrical)
 ADD_SUBDIRECTORY(tokamak)
-ADD_SUBDIRECTORY(mhd_test)
-ADD_SUBDIRECTORY(cuda_test)
+#ADD_SUBDIRECTORY(mhd_test)
+#IF (CUDA_FOUND)
+#    ADD_SUBDIRECTORY(cuda_test)
+#ENDIF (CUDA_FOUND)
 
 #add_subdirectory(modeling)
 #add_subdirectory(step2meshkit)

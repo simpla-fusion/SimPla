@@ -44,9 +44,10 @@ int main(int argc, char** argv) {
     auto tokamak = Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
     //    auto* p = new domain::Maxwell<domain_type>;
     scenario->SetDomain<domain::Maxwell<domain_type>>("Limiter", tokamak->Limiter());
-    scenario->GetDomain("Limiter")->PreInitialCondition.Connect([=](DomainBase* self, Real time_now) {
+    scenario->GetDomain("Limiter")->PostInitialCondition.Connect([=](DomainBase* self, Real time_now) {
         if (auto d = dynamic_cast<domain::Maxwell<domain_type>*>(self)) {
             d->B0v = tokamak->B0();
+            d->E = [&](point_type const& x) { return point_type{std::sin(x[0] / 1.4 * TWOPI), 0, 0}; };
         }
     });
 
@@ -66,7 +67,7 @@ int main(int argc, char** argv) {
     scenario->Run();
     scenario->Dump();
 
-//    std::cout << *scenario->Serialize() << std::endl;
+    //    std::cout << *scenario->Serialize() << std::endl;
 
     TheEnd();
     scenario->TearDown();

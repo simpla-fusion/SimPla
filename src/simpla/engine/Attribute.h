@@ -395,74 +395,31 @@ std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Pop() const {
 };
 
 namespace detail {
-template <size_type I, typename U>
-U const &get(U const &u) {
-    return u;
-}
-template <size_type I, typename U, int... N>
-auto const &get(nTuple<U, N...> const &u) {
-    return u[I];
-}
-
-template <size_type I, typename U>
-U &get(U &u) {
-    return u;
-}
-template <size_type I, typename U, int... N>
-auto &get(nTuple<U, N...> &u) {
-    return u[I];
-}
-template <typename U, typename... Idx>
-auto get_value(std::true_type, U const &u, Idx &&... idx) {
-    return u(std::forward<Idx>(idx)...);
-}
-template <typename U, typename... Idx>
-auto get_value(std::false_type, U const &u, Idx &&... idx) {
-    return u;
-}
-
-template <typename U, typename... Idx>
-auto get_value(U const &u, Idx &&... idx) {
-    return get_value(std::integral_constant<bool, traits::is_invocable<U, Idx...>::value>(), u,
-                     std::forward<Idx>(idx)...);
-}
-template <typename... V, typename U>
-void Assign_(Array<V...> &f, U const &v) {
-    f = v;
-};
-
-template <typename LHS, typename RHS>
-void Assign_(std::integer_sequence<size_type>, LHS &lhs, RHS const &rhs){};
-
-template <size_type I0, size_type... I, typename LHS, typename RHS>
-void Assign_(std::integer_sequence<size_type, I0, I...>, LHS &lhs, RHS const &rhs) {
-    Assign_(get<I0>(lhs), [&](index_type x, index_type y, index_type z) { return get<I0>(get_value(rhs, x, y, z)); });
-    Assign_(std::integer_sequence<size_type, I...>(), lhs, rhs);
-};
-
-template <typename V, int N0, int... N, typename U>
-void Assign_(nTuple<V, N0, N...> &lhs, U const &rhs) {
-    Assign_(std::make_index_sequence<N0>(), lhs, rhs);
-};
 template <typename V, int... N, typename RHS>
 void Assign(AttributeT<V, NODE, N...> &lhs, RHS const &rhs) {
-    Assign_(lhs, rhs);
+    traits::Assign(lhs, rhs);
 };
 template <typename V, int... N, typename RHS>
 void Assign(AttributeT<V, CELL, N...> &lhs, RHS const &rhs) {
-    Assign_(lhs, rhs);
+    traits::Assign(lhs, rhs);
 };
 template <typename V, int... DOF, typename RHS>
 void Assign(AttributeT<V, EDGE, DOF...> &lhs, RHS const &rhs) {
-    Assign_(lhs[0], [&](auto &&... idx) { return get_value(rhs, 0b001, std::forward<decltype(idx)>(idx)...); });
-    Assign_(lhs[1], [&](auto &&... idx) { return get_value(rhs, 0b010, std::forward<decltype(idx)>(idx)...); });
-    Assign_(lhs[2], [&](auto &&... idx) { return get_value(rhs, 0b100, std::forward<decltype(idx)>(idx)...); });
+    traits::Assign(lhs[0],
+                   [&](auto &&... idx) { return traits::get_value(rhs, 0b001, std::forward<decltype(idx)>(idx)...); });
+    traits::Assign(lhs[1],
+                   [&](auto &&... idx) { return traits::get_value(rhs, 0b010, std::forward<decltype(idx)>(idx)...); });
+    traits::Assign(lhs[2],
+                   [&](auto &&... idx) { return traits::get_value(rhs, 0b100, std::forward<decltype(idx)>(idx)...); });
 };
 template <typename V, int... DOF, typename RHS>
 void Assign(AttributeT<V, FACE, DOF...> &lhs, RHS const &rhs) {
-    Assign_(lhs[0], [&](auto &&... idx) { return get_value(rhs, 0b110, std::forward<decltype(idx)>(idx)...); });
-    Assign_(lhs[1], [&](auto &&... idx) { return get_value(rhs, 0b101, std::forward<decltype(idx)>(idx)...); });
-    Assign_(lhs[2], [&](auto &&... idx) { return get_value(rhs, 0b011, std::forward<decltype(idx)>(idx)...); });
+    traits::Assign(lhs[0],
+                   [&](auto &&... idx) { return traits::get_value(rhs, 0b110, std::forward<decltype(idx)>(idx)...); });
+    traits::Assign(lhs[1],
+                   [&](auto &&... idx) { return traits::get_value(rhs, 0b101, std::forward<decltype(idx)>(idx)...); });
+    traits::Assign(lhs[2],
+                   [&](auto &&... idx) { return traits::get_value(rhs, 0b011, std::forward<decltype(idx)>(idx)...); });
 };
 }  // namespace detail{
 

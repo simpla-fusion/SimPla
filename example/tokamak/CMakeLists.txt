@@ -6,7 +6,7 @@ TARGET_LINK_LIBRARIES(tokamak SimPlaMain
         netcdf ${HDF5_LIBRARIES} ${MPI_C_LIBRARIES} ${TBB_LIBRARIES}
         -Wl,--whole-archive
         utilities  algebra    parallel mesh engine geometry physics  data data_backend
-        predefine third_part
+        predefine
         -Wl,--no-whole-archive
         ${OPENMP_LIBRARIES} ${CUDA_LIBRARIES}
         )

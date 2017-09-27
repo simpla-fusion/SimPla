@@ -43,6 +43,7 @@ class MeshBlock {
     id_type GetGUID() const;
 
     index_box_type IndexBox() const { return m_index_box_; }
+    index_box_type HaloBox() const { return m_index_box_; }
 
     static id_type hash_id(id_type id = 0, int level = 0, int owner = 0);
 
@@ -51,6 +52,8 @@ class MeshBlock {
     int m_level_ = 0;
     id_type m_local_id_ = 0;
     index_box_type m_index_box_{{0, 0, 0}, {1, 1, 1}};
+    index_box_type m_halo_box_{{0, 0, 0}, {1, 1, 1}};
+
 };  // class MeshBlock
 
 }  // namespace engine{

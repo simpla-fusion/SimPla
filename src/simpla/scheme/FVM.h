@@ -36,69 +36,14 @@ struct FVM {
     typedef THost domain_type;
     static constexpr unsigned int NDIMS = 3;
 
-   private:
-    template <typename U, int... DOF, typename RHS>
-    void AssignAsFunction(engine::AttributeT<U, NODE, DOF...>& lhs, RHS const& rhs) const {
-        auto chart = m_host_->GetChart();
-        lhs = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b000, x, y, z)); };
-    }
-    template <typename U, int... DOF, typename RHS>
-    void AssignAsFunction(engine::AttributeT<U, CELL, DOF...>& lhs, RHS const& rhs) const {
-        auto chart = m_host_->GetChart();
-        lhs = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b111, x, y, z)); };
-    }
-    template <typename U, int... DOF, typename RHS>
-    void AssignAsFunction(engine::AttributeT<U, EDGE, DOF...>& lhs, RHS const& rhs) const {
-        auto chart = m_host_->GetChart();
-        lhs[0] = [&](index_type x, index_type y, index_type z) {
-            return rhs(chart->local_coordinates(0b001, x, y, z));
-        };
-        lhs[1] = [&](index_type x, index_type y, index_type z) {
-            return rhs(chart->local_coordinates(0b010, x, y, z));
-        };
-        lhs[2] = [&](index_type x, index_type y, index_type z) {
-            return rhs(chart->local_coordinates(0b100, x, y, z));
-        };
-    }
-    template <typename U, int... DOF, typename RHS>
-    void AssignAsFunction(engine::AttributeT<U, FACE, DOF...>& lhs, RHS const& rhs) const {
-        auto chart = m_host_->GetChart();
-        lhs[0] = [&](index_type x, index_type y, index_type z) {
-            return rhs(chart->local_coordinates(0b110, x, y, z));
-        };
-        lhs[1] = [&](index_type x, index_type y, index_type z) {
-            return rhs(chart->local_coordinates(0b101, x, y, z));
-        };
-        lhs[2] = [&](index_type x, index_type y, index_type z) {
-            return rhs(chart->local_coordinates(0b011, x, y, z));
-        };
-    }
     template <typename U, int... DOF, typename... TOP>
-    void AssignAsExpression(engine::AttributeT<U, NODE, DOF...>& lhs, Expression<TOP...> const& rhs) const;
+    void Calculate(engine::AttributeT<U, NODE, DOF...>& lhs, Expression<TOP...> const& rhs) const;
     template <typename U, int... DOF, typename... TOP>
-    void AssignAsExpression(engine::AttributeT<U, EDGE, DOF...>& lhs, Expression<TOP...> const& rhs) const;
+    void Calculate(engine::AttributeT<U, EDGE, DOF...>& lhs, Expression<TOP...> const& rhs) const;
     template <typename U, int... DOF, typename... TOP>
-    void AssignAsExpression(engine::AttributeT<U, FACE, DOF...>& lhs, Expression<TOP...> const& rhs) const;
+    void Calculate(engine::AttributeT<U, FACE, DOF...>& lhs, Expression<TOP...> const& rhs) const;
     template <typename U, int... DOF, typename... TOP>
-    void AssignAsExpression(engine::AttributeT<U, CELL, DOF...>& lhs, Expression<TOP...> const& rhs) const;
-
-   public:
-    template <typename U, int IFORM, int... DOF, typename RHS>
-    void Calculate(engine::AttributeT<U, IFORM, DOF...>& lhs, RHS const& rhs,
-                   ENABLE_IF((std::is_arithmetic<RHS>::value || std::is_base_of<engine::Attribute, RHS>::value ||
-                              traits::is_invocable<RHS, index_type, index_type, index_type>::value ||
-                              traits::is_invocable<RHS, int, index_type, index_type, index_type>::value))) const {
-        lhs.Assign(rhs);
-    }
-    template <typename U, int IFORM, int... DOF, typename RHS>
-    void Calculate(engine::AttributeT<U, IFORM, DOF...>& lhs, RHS const& rhs,
-                   ENABLE_IF((traits::is_invocable<RHS, point_type>::value))) const {
-        AssignAsFunction(lhs, rhs);
-    }
-    template <typename U, int IFORM, int... DOF, typename TOP, typename... Args>
-    void Calculate(engine::AttributeT<U, IFORM, DOF...>& lhs, Expression<TOP, Args...> const& expr) const {
-        AssignAsExpression(lhs, expr);
-    }
+    void Calculate(engine::AttributeT<U, CELL, DOF...>& lhs, Expression<TOP...> const& rhs) const;
 
    private:
     template <typename TExpr>
@@ -647,26 +592,26 @@ void Assign(nTuple<V, N0, N...>& lhs, U const& rhs) {
 }
 template <typename THost>
 template <typename U, int... DOF, typename... TOP>
-void FVM<THost>::AssignAsExpression(engine::AttributeT<U, NODE, DOF...>& lhs, Expression<TOP...> const& rhs) const {
+void FVM<THost>::Calculate(engine::AttributeT<U, NODE, DOF...>& lhs, Expression<TOP...> const& rhs) const {
     detail::Assign(lhs, get_(rhs, IdxShift{0, 0, 0}, 0b000));
 };
 template <typename THost>
 template <typename U, int... DOF, typename... TOP>
-void FVM<THost>::AssignAsExpression(engine::AttributeT<U, EDGE, DOF...>& lhs, Expression<TOP...> const& rhs) const {
+void FVM<THost>::Calculate(engine::AttributeT<U, EDGE, DOF...>& lhs, Expression<TOP...> const& rhs) const {
     detail::Assign(lhs[0], get_(rhs, IdxShift{0, 0, 0}, 0b001));
     detail::Assign(lhs[1], get_(rhs, IdxShift{0, 0, 0}, 0b010));
     detail::Assign(lhs[2], get_(rhs, IdxShift{0, 0, 0}, 0b100));
 };
 template <typename THost>
 template <typename U, int... DOF, typename... TOP>
-void FVM<THost>::AssignAsExpression(engine::AttributeT<U, FACE, DOF...>& lhs, Expression<TOP...> const& rhs) const {
+void FVM<THost>::Calculate(engine::AttributeT<U, FACE, DOF...>& lhs, Expression<TOP...> const& rhs) const {
     detail::Assign(lhs[0], get_(rhs, IdxShift{0, 0, 0}, 0b110));
     detail::Assign(lhs[1], get_(rhs, IdxShift{0, 0, 0}, 0b101));
     detail::Assign(lhs[2], get_(rhs, IdxShift{0, 0, 0}, 0b011));
 };
 template <typename THost>
 template <typename U, int... DOF, typename... TOP>
-void FVM<THost>::AssignAsExpression(engine::AttributeT<U, CELL, DOF...>& lhs, Expression<TOP...> const& rhs) const {
+void FVM<THost>::Calculate(engine::AttributeT<U, CELL, DOF...>& lhs, Expression<TOP...> const& rhs) const {
     detail::Assign(lhs, get_(rhs, IdxShift{0, 0, 0}, 0b111));
 };
 

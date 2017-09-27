@@ -248,8 +248,8 @@ class Array : public ArrayBase {
         SetUp();
         m_sfc_.Overlap(rhs).Foreach([=] __host__ __device__(auto&&... s) {
             this->at(std::forward<decltype(s)>(s)...) =
-                simpla::traits::InvokeHelper_<RHS, std::tuple<decltype(s)...>>::eval(
-                    rhs, std::forward<decltype(s)>(s)...);
+                simpla::traits::InvokeHelper_<RHS, std::tuple<decltype(s)...>>::eval(rhs,
+                                                                                     std::forward<decltype(s)>(s)...);
         });
     }
 
@@ -481,5 +481,40 @@ _SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(<, less, simpla::tags::logical_and)
 _SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR(>, greater, simpla::tags::logical_and)
 #undef _SP_DEFINE_ARRAY_BINARY_BOOLEAN_OPERATOR
 
+namespace traits {
+
+template <typename U, typename... Idx>
+auto get_value(std::true_type, U const& u, Idx&&... idx) {
+    return u(std::forward<Idx>(idx)...);
+}
+template <typename U, typename... Idx>
+auto get_value(std::false_type, U const& u, Idx&&... idx) {
+    return u;
+}
+
+template <typename U, typename... Idx>
+auto get_value(U const& u, Idx&&... idx) {
+    return get_value(std::integral_constant<bool, traits::is_invocable<U, Idx...>::value>(), u,
+                     std::forward<Idx>(idx)...);
+}
+template <typename... V, typename U>
+void Assign(Array<V...>& f, U const& v) {
+    f = v;
+};
+
+template <typename LHS, typename RHS>
+void Assign(std::integer_sequence<size_type>, LHS& lhs, RHS const& rhs){};
+
+template <size_type I0, size_type... I, typename LHS, typename RHS>
+void Assign(std::integer_sequence<size_type, I0, I...>, LHS& lhs, RHS const& rhs) {
+    Assign(get<I0>(lhs), [&](index_type x, index_type y, index_type z) { return get<I0>(get_value(rhs, x, y, z)); });
+    Assign(std::integer_sequence<size_type, I...>(), lhs, rhs);
+};
+
+template <typename V, int N0, int... N, typename U>
+void Assign(nTuple<V, N0, N...>& lhs, U const& rhs) {
+    Assign(std::make_index_sequence<N0>(), lhs, rhs);
+};
+}
 }  // namespace simpla{
 #endif  // SIMPLA_ARRAY_H
