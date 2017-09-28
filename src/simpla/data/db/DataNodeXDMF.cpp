@@ -105,14 +105,6 @@ void DataNodeXDMF::WriteDataItem(index_box_type idx_box, std::string const& url,
     std::tie(lo, hi) = idx_box;
 
     auto g_id = H5GroupTryOpen(m_h5_root_, url);
-    //    bool is_exist = H5Lexists(g_id, key.c_str(), H5P_DEFAULT) != 0;
-    //    H5O_info_t g_info;
-    //    if (is_exist) { H5_ERROR(H5Oget_info_by_name(g_id, key.c_str(), &g_info, H5P_DEFAULT)); }
-    //
-    //    if (is_exist && g_info.type != H5O_TYPE_DATASET) {
-    //        H5Ldelete(g_id, key.c_str(), H5P_DEFAULT);
-    //        is_exist = false;
-    //    }
 
     if (auto array = std::dynamic_pointer_cast<ArrayBase>(data->GetEntity())) {
         number_type = XDMFNumberType(array->value_type_info());
@@ -173,7 +165,7 @@ void DataNodeXDMF::WriteDataItem(index_box_type idx_box, std::string const& url,
 
         {
             hsize_t f_shape[MAX_NDIMS_OF_ARRAY];
-            for (int i = 0; i < fndims; ++i) { f_shape[i] = static_cast<hsize_t>(hi[i] - lo[i] + 1); }
+            for (int i = 0; i < fndims; ++i) { f_shape[i] = static_cast<hsize_t>(hi[i] - lo[i]); }
             f_shape[fndims] = static_cast<hsize_t>(dof);
             hid_t f_space = H5Screate_simple(fndims + 1, &f_shape[0], nullptr);
             //        hid_t plist = H5P_DEFAULT;
@@ -261,8 +253,8 @@ void DataNodeXDMF::WriteDataItem(index_box_type idx_box, std::string const& url,
 
     os << std::setw(indent) << " "
        << "<DataItem Format=\"HDF\" " << number_type << " Dimensions=\"";
-    os << hi[0] - lo[0] + 1;
-    for (int i = 1; i < fndims; ++i) { os << " " << hi[i] - lo[i] + 1; };
+    os << hi[0] - lo[0];
+    for (int i = 1; i < fndims; ++i) { os << " " << hi[i] - lo[i]; };
     if (dof > 1) { os << " " << dof; }
     os << "\">" << m_h5_prefix_ << ":" << url << "/" << key << "</DataItem>" << std::endl;
 }
@@ -350,13 +342,13 @@ void XDMFGeometryCurvilinear(DataNodeXDMF* self, std::string const& prefix, std:
                              int indent) {
     auto lo = blk->GetValue<index_tuple>("LowIndex");
     auto hi = blk->GetValue<index_tuple>("HighIndex");
-    //    hi += 1;
 
     self->os << std::setw(indent) << " "
              << R"(<Topology TopologyType="3DSMesh" Dimensions=")" << hi[0] - lo[0] << " " << hi[1] - lo[1] << " "
              << hi[2] - lo[2] << "\" />" << std::endl;
     self->os << std::setw(indent) << " "
              << "<Geometry GeometryType=\"XYZ\">" << std::endl;
+
     self->WriteDataItem(std::make_tuple(lo, hi), prefix, "_XYZ_", coord, indent + 1);
     self->os << std::setw(indent) << " "
              << "</Geometry>" << std::endl;
