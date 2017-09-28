@@ -31,8 +31,9 @@ std::shared_ptr<MeshBlock> MeshBlock::New(std::shared_ptr<simpla::data::DataNode
 }
 std::shared_ptr<simpla::data::DataNode> MeshBlock::Serialize() const {
     auto res = data::DataNode::New(data::DataNode::DN_TABLE);
-    res->SetValue("LowIndex", std::get<0>(IndexBox()));
-    res->SetValue("HighIndex", std::get<1>(IndexBox()));
+    res->SetValue("LowIndex", std::get<0>(GetIndexBox()));
+    res->SetValue("HighIndex", std::get<1>(GetIndexBox()));
+
     res->SetValue("Level", GetLevel());
     res->SetValue("LocalId", GetLocalID());
     res->SetValue("GUID", GetGUID());
@@ -41,6 +42,7 @@ std::shared_ptr<simpla::data::DataNode> MeshBlock::Serialize() const {
 void MeshBlock::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
     std::get<0>(m_index_box_) = cfg->GetValue<index_tuple>("LowIndex", index_tuple{0, 0, 0});
     std::get<1>(m_index_box_) = cfg->GetValue<index_tuple>("HighIndex", index_tuple{1, 1, 1});
+
     m_level_ = cfg->GetValue<int>("Level", 0);
     m_local_id_ = cfg->GetValue<id_type>("LocalId", m_count_);
 }
@@ -67,12 +69,12 @@ id_type MeshBlock::GetGUID() const {
 //}
 // index_tuple MeshBlock::GetGhostWidth() const { return m_ghost_width_; };
 // index_box_type MeshBlock::GetOuterIndexBox() const {
-//    auto ibox = IndexBox();
+//    auto ibox = GetIndexBox();
 //    std::get<0>(ibox) -= GetGhostWidth();
 //    std::get<1>(ibox) += GetGhostWidth();
 //    return std::move(ibox);
 //}
-// index_box_type MeshBlock::GetInnerIndexBox() const { return IndexBox(); }
+// index_box_type MeshBlock::GetInnerIndexBox() const { return GetIndexBox(); }
 //
 // index_tuple MeshBlock::GetIndexOrigin() const { return std::get<0>(m_index_box_); }
 //

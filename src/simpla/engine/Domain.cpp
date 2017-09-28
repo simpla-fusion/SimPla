@@ -67,7 +67,7 @@ std::shared_ptr<const MeshBlock> DomainBase::GetBlock() const {
 void DomainBase::SetBoundary(std::shared_ptr<geometry::GeoObject> const& g) { m_pimpl_->m_boundary_ = g; }
 std::shared_ptr<geometry::GeoObject> DomainBase::GetBoundary() const { return m_pimpl_->m_boundary_; }
 std::shared_ptr<geometry::GeoObject> DomainBase::GetBlockBoundingBox() const {
-    return m_pimpl_->m_chart_->GetBoundingShape(m_pimpl_->m_mesh_block_->IndexBox());
+    return m_pimpl_->m_chart_->GetBoundingShape(m_pimpl_->m_mesh_block_->GetIndexBox());
 }
 
 int DomainBase::CheckBoundary() const {

@@ -43,7 +43,7 @@ namespace detail {
 //    *\endverbatim
 //    */
 //
-//    //    Array<int, ZSFC<3>> volume_tags{nullptr, m_domain_->IndexBox(0b111)};
+//    //    Array<int, ZSFC<3>> volume_tags{nullptr, m_domain_->GetIndexBox(0b111)};
 //    //
 //    //    volume_tags = ((vertex_tags(IdxShift{0, 0, 0})) << 0) |  //
 //    //                  ((vertex_tags(IdxShift{1, 0, 0})) << 1) |  //
@@ -92,7 +92,7 @@ namespace detail {
 //    static const EntityId s6 = {0, 1, 1, 0};
 //    static const EntityId s7 = {1, 1, 1, 0};
 //
-//    ZSFC<3>(geometry::Expand(m_domain_->IndexBox(0b111), index_tuple{1, 1, 1}))
+//    ZSFC<3>(geometry::Expand(m_domain_->GetIndexBox(0b111), index_tuple{1, 1, 1}))
 //        .Foreach(  //
 //            [&](auto I, auto J, auto K) {
 //

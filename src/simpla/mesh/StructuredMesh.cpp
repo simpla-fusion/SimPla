@@ -29,8 +29,8 @@ namespace mesh {
 *\endverbatim
 */
 
-index_box_type StructuredMesh::IndexBox(int tag) const {
-    index_box_type res = GetBlock()->IndexBox();
+index_box_type StructuredMesh::GetIndexBox(int tag) const {
+    auto res = GetBlock()->GetIndexBox();
     switch (tag) {
         case 0:
             std::get<1>(res) += 1;
@@ -62,6 +62,7 @@ index_box_type StructuredMesh::IndexBox(int tag) const {
     }
     return res;
 }
+
 
 }  // namespace mesh{
 }  // namespace simpla{

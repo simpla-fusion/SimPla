@@ -115,12 +115,12 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
 
     template <typename TL, typename TR>
     void FillBody(TL &lhs, TR const &rhs, std::string const &prefix = "") const {
-//        FillRange(lhs, (rhs), prefix + "_BODY_" + std::to_string(TL::iform));
+        //        FillRange(lhs, (rhs), prefix + "_BODY_" + std::to_string(TL::iform));
     };
 
     template <typename TL, typename TR>
     void FillBoundary(TL &lhs, TR const &rhs, std::string const &prefix = "") const {
-//        FillRange(lhs, (rhs), prefix + "_BOUNDARY_" + std::to_string(TL::iform));
+        //        FillRange(lhs, (rhs), prefix + "_BOUNDARY_" + std::to_string(TL::iform));
     };
 
     template <typename U, int IFORM, int... DOF>
@@ -208,23 +208,23 @@ void InitializeArray_(nTuple<Array<U, SFC>, N0, N...> &v, SFC const &sfc) {
 }
 template <typename TArray, typename THost>
 void InitializeArray(std::integral_constant<int, NODE>, TArray &v, THost const *host) {
-    InitializeArray_(v, host->GetSpaceFillingCurve(NODE, 0));
+    InitializeArray_(v, host->GetSpaceFillingCurve(0b000));
 }
 template <typename TArray, typename THost>
 void InitializeArray(std::integral_constant<int, CELL>, TArray &v, THost const *host) {
-    InitializeArray_(v, host->GetSpaceFillingCurve(CELL, 0));
+    InitializeArray_(v, host->GetSpaceFillingCurve(0b000));
 }
 template <typename TArray, typename THost>
 void InitializeArray(std::integral_constant<int, EDGE>, TArray &v, THost const *host) {
-    InitializeArray_(v[0], host->GetSpaceFillingCurve(EDGE, 0));
-    InitializeArray_(v[1], host->GetSpaceFillingCurve(EDGE, 1));
-    InitializeArray_(v[2], host->GetSpaceFillingCurve(EDGE, 2));
+    InitializeArray_(v[0], host->GetSpaceFillingCurve(0b001));
+    InitializeArray_(v[1], host->GetSpaceFillingCurve(0b010));
+    InitializeArray_(v[2], host->GetSpaceFillingCurve(0b100));
 }
 template <typename TArray, typename THost>
 void InitializeArray(std::integral_constant<int, FACE>, TArray &v, THost const *host) {
-    InitializeArray_(v[0], host->GetSpaceFillingCurve(FACE, 0));
-    InitializeArray_(v[1], host->GetSpaceFillingCurve(FACE, 1));
-    InitializeArray_(v[2], host->GetSpaceFillingCurve(FACE, 2));
+    InitializeArray_(v[0], host->GetSpaceFillingCurve(0b110));
+    InitializeArray_(v[1], host->GetSpaceFillingCurve(0b101));
+    InitializeArray_(v[2], host->GetSpaceFillingCurve(0b011));
 }
 
 template <int IFORM, typename TArray, typename THost>

@@ -107,17 +107,15 @@ void Atlas::DoSetUp() {
             std::get<0>(local_index_box_)[i] =
                 std::get<0>(m_pimpl_->m_index_box_)[i] +
                 (std::get<1>(m_pimpl_->m_index_box_)[i] - std::get<0>(m_pimpl_->m_index_box_)[i]) * mpi_coord[i] /
-                    mpi_dims[i] -
-                m_pimpl_->m_ghost_width_[i];
+                    mpi_dims[i];
             std::get<1>(local_index_box_)[i] =
                 std::get<0>(m_pimpl_->m_index_box_)[i] +
                 (std::get<1>(m_pimpl_->m_index_box_)[i] - std::get<0>(m_pimpl_->m_index_box_)[i]) * (mpi_coord[i] + 1) /
-                    mpi_dims[i] +
-                m_pimpl_->m_ghost_width_[i];
+                    mpi_dims[i];
         }
     }
 #endif
-    AddBlock(MeshBlock::New(local_index_box_, 0));
+    AddBlock(MeshBlock::New(local_index_box_, 0, 0));
 };
 
 void Atlas::DoUpdate() {
