@@ -568,51 +568,29 @@ FVM<THost>::~FVM() {}
 //    return eval(std::integer_sequence<int, traits::iform<Args>::value...>(), expr, S, tag);
 //}
 
-namespace detail {
-
-template <typename... V, typename U>
-void Assign(Array<V...>& f, U const& v) {
-    f = v;
-};
-
-template <typename LHS, typename RHS>
-void Assign(std::integer_sequence<size_type>, LHS& lhs, RHS const& rhs){};
-
-template <size_type I0, size_type... I, typename LHS, typename RHS>
-void Assign(std::integer_sequence<size_type, I0, I...>, LHS& lhs, RHS const& rhs){
-    //    Assign(get<I0>(lhs), [&](index_type x, index_type y, index_type z) { return get<I0>(get_value(rhs, x, y, z));
-    //    });
-    //    Assign(std::integer_sequence<size_type, I...>(), lhs, rhs);
-};
-
-template <typename V, int N0, int... N, typename U>
-void Assign(nTuple<V, N0, N...>& lhs, U const& rhs) {
-    Assign(std::make_index_sequence<N0>(), lhs, rhs);
-};
-}
 template <typename THost>
 template <typename U, int... DOF, typename... TOP>
 void FVM<THost>::Calculate(engine::AttributeT<U, NODE, DOF...>& lhs, Expression<TOP...> const& rhs) const {
-    detail::Assign(lhs, get_(rhs, IdxShift{0, 0, 0}, 0b000));
+    traits::Assign(lhs, get_(rhs, IdxShift{0, 0, 0}, 0b000));
 };
 template <typename THost>
 template <typename U, int... DOF, typename... TOP>
 void FVM<THost>::Calculate(engine::AttributeT<U, EDGE, DOF...>& lhs, Expression<TOP...> const& rhs) const {
-    detail::Assign(lhs[0], get_(rhs, IdxShift{0, 0, 0}, 0b001));
-    detail::Assign(lhs[1], get_(rhs, IdxShift{0, 0, 0}, 0b010));
-    detail::Assign(lhs[2], get_(rhs, IdxShift{0, 0, 0}, 0b100));
+    traits::Assign(lhs[0], get_(rhs, IdxShift{0, 0, 0}, 0b001));
+    traits::Assign(lhs[1], get_(rhs, IdxShift{0, 0, 0}, 0b010));
+    traits::Assign(lhs[2], get_(rhs, IdxShift{0, 0, 0}, 0b100));
 };
 template <typename THost>
 template <typename U, int... DOF, typename... TOP>
 void FVM<THost>::Calculate(engine::AttributeT<U, FACE, DOF...>& lhs, Expression<TOP...> const& rhs) const {
-    detail::Assign(lhs[0], get_(rhs, IdxShift{0, 0, 0}, 0b110));
-    detail::Assign(lhs[1], get_(rhs, IdxShift{0, 0, 0}, 0b101));
-    detail::Assign(lhs[2], get_(rhs, IdxShift{0, 0, 0}, 0b011));
+    traits::Assign(lhs[0], get_(rhs, IdxShift{0, 0, 0}, 0b110));
+    traits::Assign(lhs[1], get_(rhs, IdxShift{0, 0, 0}, 0b101));
+    traits::Assign(lhs[2], get_(rhs, IdxShift{0, 0, 0}, 0b011));
 };
 template <typename THost>
 template <typename U, int... DOF, typename... TOP>
 void FVM<THost>::Calculate(engine::AttributeT<U, CELL, DOF...>& lhs, Expression<TOP...> const& rhs) const {
-    detail::Assign(lhs, get_(rhs, IdxShift{0, 0, 0}, 0b111));
+    traits::Assign(lhs, get_(rhs, IdxShift{0, 0, 0}, 0b111));
 };
 
 template <typename THost>

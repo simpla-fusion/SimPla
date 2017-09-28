@@ -190,8 +190,14 @@ int recursive_calculate_shift(int s0, Args&&... args) {
     return recursive_calculate_shift<N...>(std::forward<Args>(args)...) * N0 + s0;
 };
 template <typename TV, int... N>
-struct extents<nTuple<TV, N...>> : public std::integer_sequence<int, N...> {};
+struct extents<nTuple<TV, N...>> : public std::integral_constant<int, N...> {};
 
+template <typename TV>
+struct nt_size : public std::integral_constant<int, 1> {};
+template <typename TV>
+struct nt_size<nTuple<TV>> : public std::integral_constant<int, 1> {};
+template <typename TV, int N0, int... N>
+struct nt_size<nTuple<TV, N0, N...>> : public std::integral_constant<int, N0 * nt_size<nTuple<TV, N...>>::value> {};
 }  // namespace traits
 
 ///// n-dimensional primary type
@@ -224,6 +230,7 @@ struct nTuple<TV, N0, N...> {
     static constexpr size_type extents(I* d) {
         return traits::get_value(std::integer_sequence<int, N0, N...>(), d);
     }
+
     static constexpr size_type size() { return static_cast<size_type>(reduction_v(tags::multiplication(), N0, N...)); }
 
     __host__ __device__ nTuple(simpla::traits::nested_initializer_list_t<value_type, sizeof...(N) + 1> l) {

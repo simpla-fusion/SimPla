@@ -405,21 +405,27 @@ void Assign(AttributeT<V, CELL, N...> &lhs, RHS const &rhs) {
 };
 template <typename V, int... DOF, typename RHS>
 void Assign(AttributeT<V, EDGE, DOF...> &lhs, RHS const &rhs) {
-    traits::Assign(lhs[0],
-                   [&](auto &&... idx) { return traits::get_value(rhs, 0b001, std::forward<decltype(idx)>(idx)...); });
-    traits::Assign(lhs[1],
-                   [&](auto &&... idx) { return traits::get_value(rhs, 0b010, std::forward<decltype(idx)>(idx)...); });
-    traits::Assign(lhs[2],
-                   [&](auto &&... idx) { return traits::get_value(rhs, 0b100, std::forward<decltype(idx)>(idx)...); });
+    traits::Assign(lhs[0], [&](auto &&... idx) {
+        return traits::array_parser<0>::eval(rhs, 0b001, std::forward<decltype(idx)>(idx)...);
+    });
+    traits::Assign(lhs[1], [&](auto &&... idx) {
+        return traits::array_parser<1>::eval(rhs, 0b010, std::forward<decltype(idx)>(idx)...);
+    });
+    traits::Assign(lhs[2], [&](auto &&... idx) {
+        return traits::array_parser<2>::eval(rhs, 0b100, std::forward<decltype(idx)>(idx)...);
+    });
 };
 template <typename V, int... DOF, typename RHS>
 void Assign(AttributeT<V, FACE, DOF...> &lhs, RHS const &rhs) {
-    traits::Assign(lhs[0],
-                   [&](auto &&... idx) { return traits::get_value(rhs, 0b110, std::forward<decltype(idx)>(idx)...); });
-    traits::Assign(lhs[1],
-                   [&](auto &&... idx) { return traits::get_value(rhs, 0b101, std::forward<decltype(idx)>(idx)...); });
-    traits::Assign(lhs[2],
-                   [&](auto &&... idx) { return traits::get_value(rhs, 0b011, std::forward<decltype(idx)>(idx)...); });
+    traits::Assign(lhs[0], [&](auto &&... idx) {
+        return traits::array_parser<0>::eval(rhs, 0b110, std::forward<decltype(idx)>(idx)...);
+    });
+    traits::Assign(lhs[1], [&](auto &&... idx) {
+        return traits::array_parser<1>::eval(rhs, 0b101, std::forward<decltype(idx)>(idx)...);
+    });
+    traits::Assign(lhs[2], [&](auto &&... idx) {
+        return traits::array_parser<2>::eval(rhs, 0b011, std::forward<decltype(idx)>(idx)...);
+    });
 };
 }  // namespace detail{
 
