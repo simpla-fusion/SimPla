@@ -63,14 +63,16 @@ void Maxwell<TDomain>::DoBoundaryCondition(Real time_now, Real time_dt) {
 template <typename TDomain>
 void Maxwell<TDomain>::DoAdvance(Real time_now, Real time_dt) {
     DEFINE_PHYSICAL_CONST
-    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
-    //    this->FillBoundary(E, 0);
 
-    B = B - curl(E) * time_dt;
-    //    this->FillBoundary(B, 0);
-
-    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
-    //    this->FillBoundary(E, 0);
+    B = curl(E);
+    //    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
+    //    //    this->FillBoundary(E, 0);
+    //
+    //    B = B - curl(E) * time_dt;
+    //    //    this->FillBoundary(B, 0);
+    //
+    //    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
+    //    //    this->FillBoundary(E, 0);
 
     J.Clear();
 }

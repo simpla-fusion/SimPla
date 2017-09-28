@@ -4,7 +4,6 @@
 
 #include <iostream>
 #include "simpla/algebra/Array.h"
-#include "simpla/algebra/ArrayNTuple.h"
 #include "simpla/algebra/ExpressionTemplate.h"
 #include "simpla/algebra/nTuple.ext.h"
 #include "simpla/algebra/nTuple.h"
@@ -13,10 +12,10 @@ using namespace simpla;
 
 int main(int argc, char **argv) {
     index_box_type inner_box{{0, 0, 0}, {1, 5, 4}};
-    Array<double> a(nullptr, inner_box);
-    Array<double> b(nullptr, inner_box);
-    Array<double> c(nullptr, inner_box);
-    Array<double> d(nullptr, inner_box);
+    Array<double> a(inner_box);
+    Array<double> b(inner_box);
+    Array<double> c(inner_box);
+    Array<double> d(inner_box);
 
     a = [](index_type i, index_type j, index_type k) { return i + j + k; };
 

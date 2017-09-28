@@ -36,14 +36,10 @@ struct FVM {
     typedef THost domain_type;
     static constexpr unsigned int NDIMS = 3;
 
-    template <typename U, int... DOF, typename... TOP>
-    void Calculate(engine::AttributeT<U, NODE, DOF...>& lhs, Expression<TOP...> const& rhs) const;
-    template <typename U, int... DOF, typename... TOP>
-    void Calculate(engine::AttributeT<U, EDGE, DOF...>& lhs, Expression<TOP...> const& rhs) const;
-    template <typename U, int... DOF, typename... TOP>
-    void Calculate(engine::AttributeT<U, FACE, DOF...>& lhs, Expression<TOP...> const& rhs) const;
-    template <typename U, int... DOF, typename... TOP>
-    void Calculate(engine::AttributeT<U, CELL, DOF...>& lhs, Expression<TOP...> const& rhs) const;
+    template <int TAG, typename... TOP>
+    decltype(auto) Calculate(Expression<TOP...> const& rhs) const {
+        return get_(rhs, IdxShift{0, 0, 0}, TAG);
+    };
 
    private:
     template <typename TExpr>
@@ -567,31 +563,6 @@ FVM<THost>::~FVM() {}
 // auto FVM<THost>::get_diff_expr(Expression<TOP, Args...> const& expr, IdxShift S, int tag) const {
 //    return eval(std::integer_sequence<int, traits::iform<Args>::value...>(), expr, S, tag);
 //}
-
-template <typename THost>
-template <typename U, int... DOF, typename... TOP>
-void FVM<THost>::Calculate(engine::AttributeT<U, NODE, DOF...>& lhs, Expression<TOP...> const& rhs) const {
-    traits::Assign(lhs, get_(rhs, IdxShift{0, 0, 0}, 0b000));
-};
-template <typename THost>
-template <typename U, int... DOF, typename... TOP>
-void FVM<THost>::Calculate(engine::AttributeT<U, EDGE, DOF...>& lhs, Expression<TOP...> const& rhs) const {
-    traits::Assign(lhs[0], get_(rhs, IdxShift{0, 0, 0}, 0b001));
-    traits::Assign(lhs[1], get_(rhs, IdxShift{0, 0, 0}, 0b010));
-    traits::Assign(lhs[2], get_(rhs, IdxShift{0, 0, 0}, 0b100));
-};
-template <typename THost>
-template <typename U, int... DOF, typename... TOP>
-void FVM<THost>::Calculate(engine::AttributeT<U, FACE, DOF...>& lhs, Expression<TOP...> const& rhs) const {
-    traits::Assign(lhs[0], get_(rhs, IdxShift{0, 0, 0}, 0b110));
-    traits::Assign(lhs[1], get_(rhs, IdxShift{0, 0, 0}, 0b101));
-    traits::Assign(lhs[2], get_(rhs, IdxShift{0, 0, 0}, 0b011));
-};
-template <typename THost>
-template <typename U, int... DOF, typename... TOP>
-void FVM<THost>::Calculate(engine::AttributeT<U, CELL, DOF...>& lhs, Expression<TOP...> const& rhs) const {
-    traits::Assign(lhs, get_(rhs, IdxShift{0, 0, 0}, 0b111));
-};
 
 template <typename THost>
 std::shared_ptr<data::DataNode> FVM<THost>::Serialize() const {

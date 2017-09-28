@@ -161,6 +161,15 @@ class Array : public ArrayBase {
 
     SFC const& GetSpaceFillingCurve() const { return m_sfc_; }
 
+    template <typename TFun>
+    void Foreach(TFun const& fun) {
+        m_sfc_.Foreach([&](auto&&... s) { fun(at(std::forward<decltype(s)>(s)...), std::forward<decltype(s)>(s)...); });
+    }
+    template <typename TFun>
+    void Foreach(TFun const& fun) const {
+        m_sfc_.Foreach([&](auto&&... s) { fun(at(std::forward<decltype(s)>(s)...), std::forward<decltype(s)>(s)...); });
+    }
+
     std::shared_ptr<value_type>& GetData() { return m_holder_; }
     std::shared_ptr<value_type> const& GetData() const { return m_holder_; }
 
@@ -245,9 +254,6 @@ class Array : public ArrayBase {
 
     template <typename RHS>
     void Assign(RHS const& rhs);
-
-    template <typename RHS, typename... Args>
-    void Assign(RHS const& rhs, Args&&... args);
 
     void alloc();
 };
@@ -373,11 +379,58 @@ struct array_parser {
         return eval_helper_(std::index_sequence_for<V...>(), expr, std::forward<Args>(args)...);
     }
 };
+// namespace detail {
+//
+// template <typename U, typename... Args>
+// auto const parser(std::true_type, U const& expr, Args&&... args) {
+//    return expr(std::forward<Args>(args)...);
+//};
+// template <typename U, typename... Args>
+// auto const parser(std::false_type, U const& expr, Args&&... args) {
+//    return expr;
+//};
+// template <typename U, typename... Args>
+// auto const parser(U const& expr, Args&&... args) {
+//    return parser(std::integral_constant<bool, traits::is_invocable<U, index_type, index_type, index_type>::value>(),
+//                  expr, std::forward<Args>(args)...);
+//}
+//
+// template <typename U, typename SFC, typename... Args>
+// U parser(Array<U, SFC> const& expr, Args&&... args) {
+//    return expr(std::forward<Args>(args)...);
+//};
+// template <size_type... I, typename... U, typename... Args>
+// auto parser(std::index_sequence<I...>, Expression<U...> const& expr, Args&&... args) {
+//    return expr.m_op_(parser(std::get<I>(expr.m_args_), std::forward<Args>(args)...)...);
+//};
+// template <typename TOP, typename... U, typename... Args>
+// auto parser(Expression<TOP, U...> const& expr, Args&&... args) {
+//    return parser(std::index_sequence_for<U...>(), expr, std::forward<Args>(args)...);
+//};
+//
+// template <typename... V, typename RHS>
+// void assign_(std::false_type, Array<V...>& lhs, RHS const& rhs) {
+//    lhs.Foreach([&](auto& value, auto&&... idx) { value = rhs; });
+//};
+// template <typename... V, typename RHS>
+// void assign_(std::true_type, Array<V...>& lhs, RHS const& rhs) {
+//    lhs.Foreach([&](auto& value, auto&&... idx) { value = rhs(std::forward<decltype(idx)>(idx)...); });
+//};
+// template <typename... V, typename RHS>
+// void assign(Array<V...>& lhs, RHS const& rhs) {
+//    assign_(std::integral_constant<bool, traits::is_invocable<RHS, index_type, index_type, index_type>::value>(), lhs,
+//            rhs);
+//};
+//
+// template <typename... V, typename... U>
+// void assign(Array<V...>& lhs, Expression<U...> const& rhs) {
+//    lhs.Foreach([=](auto& value, auto&&... idx) { value = parser(rhs, std::forward<decltype(idx)>(idx)...); });
+//};
+//}
+
 template <typename... V, typename RHS>
-void Assign(Array<V...>& array, RHS const& rhs) {
-    array.GetSpaceFillingCurve().Foreach([&](auto&&... idx) {
-        array(std::forward<decltype(idx)>(idx)...) = array_parser<0>::eval(rhs, std::forward<decltype(idx)>(idx)...);
-    });
+void Assign(Array<V...>& lhs, RHS const& rhs){
+    //    array_parser<0>::eval(lhs, rhs);
 };
 template <typename LHS, typename RHS>
 void Assign_(std::index_sequence<>, LHS& lhs, RHS const& rhs){};
@@ -401,19 +454,17 @@ template <typename V, typename SFC>
 template <typename RHS>
 void Array<V, SFC>::Assign(RHS const& rhs) {
     SetUp();
-    m_sfc_.Overlap(rhs).Foreach([=] __host__ __device__(auto&&... s) {
-        this->at(std::forward<decltype(s)>(s)...) =
-            simpla::traits::array_parser<0>::eval(rhs, std::forward<decltype(s)>(s)...);
+    Array(m_data_, m_sfc_.Overlap(rhs)).Foreach([=] __host__ __device__(auto& v, auto&&... s) {
+        v = simpla::traits::array_parser<0>::eval(rhs, std::forward<decltype(s)>(s)...);
     });
 }
-template <typename V, typename SFC>
-
-template <typename RHS, typename... Args>
-void Array<V, SFC>::Assign(RHS const& rhs, Args&&... args) {
-    if (GetSpaceFillingCurve().in_box(std::forward<Args>(args)...)) {
-        at(std::forward<Args>(args)...) = simpla::traits::array_parser<0>::eval(rhs, std::forward<Args>(args)...);
-    }
-}
+// template <typename V, typename SFC>
+// template <typename RHS, typename... Args>
+// void Array<V, SFC>::Assign(RHS const& rhs, Args&&... args) {
+//    if (GetSpaceFillingCurve().in_box(std::forward<Args>(args)...)) {
+//        at(std::forward<Args>(args)...) = simpla::traits::array_parser<0>::eval(rhs, std::forward<Args>(args)...);
+//    }
+//}
 template <typename... TL>
 std::ostream& operator<<(std::ostream& os, Array<TL...> const& lhs) {
     return lhs.Print(os, 0);

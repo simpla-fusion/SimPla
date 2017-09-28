@@ -18,6 +18,7 @@ class TimeIntegrator : public Scenario {
     virtual Real ComputeStableDtOnPatch(Real time_now, Real time_dt);
     virtual void Advance(Real time_now, Real dt);
 
+
     void DoSetUp() override;
     void DoTearDown() override;
 

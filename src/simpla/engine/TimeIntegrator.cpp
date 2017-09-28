@@ -25,7 +25,28 @@ std::shared_ptr<data::DataNode> TimeIntegrator::Serialize() const { return base_
 void TimeIntegrator::Deserialize(std::shared_ptr<data::DataNode> const &tdb) { base_type::Deserialize(tdb); }
 
 void TimeIntegrator::InitialCondition(Real time_now) {
-    for (auto &d : GetDomains()) { d.second->InitialCondition(time_now); }
+    //    for (auto &d : GetDomains()) { d.second->InitialCondition(time_now); }
+
+    Update();
+    GetAtlas()->Foreach([&](std::shared_ptr<engine::MeshBlock> const &blk) {
+        ASSERT(blk != nullptr);
+        VERBOSE << std::setw(20) << "Block : " << blk->GetIndexBox();
+        auto patch = GetPatch(blk->GetGUID());
+        auto out_patch = data::DataNode::New(data::DataNode::DN_TABLE);
+        if (patch == nullptr) { patch = data::DataNode::New(data::DataNode::DN_TABLE); }
+
+        for (auto &item : GetDomains()) {
+            item.second->SetBlock(blk);
+            int chk_bdry = item.second->CheckBoundary();
+            if (chk_bdry == DomainBase::OUT_BOUNDARY) { continue; }
+            item.second->Push(patch);
+            item.second->InitialCondition(time_now);
+            patch->Set(item.second->Pop());
+        }
+
+        SetPatch(blk->GetGUID(), patch);
+
+    });
 }
 void TimeIntegrator::BoundaryCondition(Real time_now, Real dt) {
     for (auto &d : GetDomains()) { d.second->BoundaryCondition(time_now, dt); }
@@ -74,7 +95,9 @@ void TimeIntegrator::DoSetUp() {
 }
 void TimeIntegrator::DoTearDown() { base_type::DoTearDown(); }
 void TimeIntegrator::Run() {
-    Update();
+    InitialCondition(GetTimeNow());
+    Synchronize(0);
+    CheckPoint();
     while (!Done()) {
         VERBOSE << " [ STEP:" << std::setw(5) << GetStepNumber() << " START ] ";
         NextStep();
