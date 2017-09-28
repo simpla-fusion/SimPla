@@ -297,11 +297,11 @@ void Domain<TM, Policies...>::FillRange(LHS &lhs, RHS const &rhs, const Range<En
 template <typename TM, template <typename> class... Policies>
 template <typename TL, typename... U>
 void Domain<TM, Policies...>::FillRange(TL &lhs, Expression<U...> const &rhs, const Range<EntityId> &r) const {
-    if (r.isFull()) {
-        this_type::Calculate(lhs, rhs);
-    } else {
-        //        this_type::Calculate(lhs, rhs, r);
-    }
+    //    if (r.isFull()) {
+    this_type::Calculate(lhs, rhs);
+    //    } else {
+    //        //        this_type::Calculate(lhs, rhs, r);
+    //    }
 };
 
 template <typename TM, template <typename> class... Policies>

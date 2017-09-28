@@ -46,8 +46,9 @@ int main(int argc, char** argv) {
     scenario->SetDomain<domain::Maxwell<domain_type>>("Limiter", tokamak->Limiter());
     scenario->GetDomain("Limiter")->PostInitialCondition.Connect([=](DomainBase* self, Real time_now) {
         if (auto d = dynamic_cast<domain::Maxwell<domain_type>*>(self)) {
-            d->B0v = tokamak->B0();
-            d->E = [&](point_type const& x) { return point_type{std::sin(x[0] / 1.4 * TWOPI), 0, 0}; };
+            d->E = [&](point_type const& x) {
+                return point_type{std::sin(x[0] / 1.4 * TWOPI), std::sin(x[1]), std::sin(x[2] / 1.4 * TWOPI)};
+            };
         }
     });
 
