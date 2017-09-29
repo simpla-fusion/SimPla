@@ -53,9 +53,9 @@ class TestArray : public testing::Test {
     value_type a, b, c, d;
 };
 
-typedef testing::Types<Array<double>,               //
-                       Array<int>,                  //
-                       Array<std::complex<double>>  //
+typedef testing::Types<Array<double>,  //
+                       Array<int>      //
+                                       //                     ,  Array<std::complex<double>>  //
                        >
     ntuple_type_lists;
 

@@ -26,6 +26,9 @@ int main(int argc, char **argv) {
     std::cout << " a = " << a << std::endl;
     std::cout << " b = " << b << std::endl;
     std::cout << " c = " << c << std::endl;
+    //
+    //    std::cout << " d = " << c << std::endl;
+    //    FE_CMD(c = a + sin(b) * 3 + d);
 
     //    FE_CMD(c = a + sin(b) * 3 + d);
     //    c = a(IdxShift{0, 1, 0}) - a(IdxShift{0, -1, 0}) + a(IdxShift{0, 0, 1}) - a(IdxShift{0, 0, -1});
