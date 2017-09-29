@@ -394,45 +394,200 @@ std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Pop() const {
     return detail::pop_data(*this);
 };
 
-namespace detail {
-template <typename V, int... N, typename RHS>
-void Assign(AttributeT<V, NODE, N...> &lhs, RHS const &rhs) {
-    traits::Assign(lhs, rhs);
+// namespace detail {
+// template <typename V, int... N, typename RHS>
+// void Assign(AttributeT<V, NODE, N...> &lhs, RHS const &rhs) {
+//    traits::Fill<0>(lhs, rhs);
+//};
+// template <typename V, int... N, typename RHS>
+// void Assign(AttributeT<V, CELL, N...> &lhs, RHS const &rhs) {
+//    traits::Fill<0>(lhs, rhs);
+//};
+// template <typename V, int... DOF, typename RHS>
+// void Assign(AttributeT<V, EDGE, DOF...> &lhs, RHS const &rhs) {
+//    traits::Fill<0>(lhs, rhs);
+//    traits::Fill<1>(lhs, rhs);
+//    traits::Fill<2>(lhs, rhs);
+//};
+// template <typename V, int... DOF, typename RHS>
+// void Assign(AttributeT<V, FACE, DOF...> &lhs, RHS const &rhs) {
+//    traits::Fill<0>(lhs, rhs);
+//    traits::Fill<1>(lhs, rhs);
+//    traits::Fill<2>(lhs, rhs);
+//};
+//}  // namespace detail{
+
+namespace traits {
+//template <typename... T>
+//struct reference<Array<T...>> {
+//    typedef Array<T...> type;
+//};
+//
+// template <typename... T, typename TFun>
+// auto foreach (Array<T...>& v, TFun const& f) {
+//    v.GetSpaceFillingCurve().Foreach(
+//        [&](auto&&... s) { f(v(std::forward<decltype(s)>(s)...), std::forward<decltype(s)>(s)...); });
+//}
+//
+// template <typename... T, typename TFun>
+// auto foreach (Array<T...> const& v, TFun const& f) {
+//    v.GetSpaceFillingCurve().Foreach(
+//        [&](auto&&... s) { f(v(std::forward<decltype(s)>(s)...), std::forward<decltype(s)>(s)...); });
+//}
+
+template <int... N>
+struct array_parser;
+
+template <>
+struct array_parser<> {
+    template <typename Expr, typename... Args>
+    static decltype(auto) get_r_(std::integral_constant<bool, true>, Expr const &expr, Args &&... args) {
+        return expr(std::forward<Args>(args)...);
+    }
+
+    template <typename Expr, typename... Args>
+    static decltype(auto) get_r_(std::integral_constant<bool, false>, Expr const &expr, Args &&... args) {
+        return expr;
+    }
+
+    template <typename Expr, typename... Args>
+    static decltype(auto) eval(Expr &expr, Args &&... args) {
+        return get_r_(std::integral_constant<bool, simpla::traits::is_invocable<Expr, Args...>::value>(), (expr),
+                      std::forward<Args>(args)...);
+    }
+    template <typename Expr, typename... Args>
+    static decltype(auto) eval(Expr const &expr, Args &&... args) {
+        return get_r_(std::integral_constant<bool, simpla::traits::is_invocable<Expr, Args...>::value>(), (expr),
+                      std::forward<Args>(args)...);
+    }
+    template <typename... V, typename... Args>
+    static decltype(auto) eval(Array<V...> const &expr, Args &&... args) {
+        return eval(expr.Get(std::forward<Args>(args)...));
+    }
+    template <typename... V, typename... Args>
+    static decltype(auto) eval(Array<V...> &expr, Args &&... args) {
+        return eval(expr.Get(std::forward<Args>(args)...));
+    }
+
+    template <size_type... I, typename TExpr, typename... Args>
+    static decltype(auto) eval_helper_(std::index_sequence<I...>, TExpr const &expr, Args &&... args) {
+        return expr.m_op_(eval(std::get<I>(expr.m_args_), std::forward<Args>(args)...)...);
+    }
+    template <typename TOP, typename... V, typename... Args>
+    static decltype(auto) eval(Expression<TOP, V...> const &expr, Args &&... args) {
+        return eval_helper_(std::index_sequence_for<V...>(), expr, std::forward<Args>(args)...);
+    }
 };
-template <typename V, int... N, typename RHS>
-void Assign(AttributeT<V, CELL, N...> &lhs, RHS const &rhs) {
-    traits::Assign(lhs, rhs);
+
+template <int N>
+struct array_parser<N> {
+    template <typename Expr, typename... Args>
+    static decltype(auto) get_r_(std::integer_sequence<bool, false, false>, Expr &expr, Args &&... args) {
+        return (expr);
+    }
+    template <typename Expr, typename... Args>
+    static decltype(auto) get_r_(std::integer_sequence<bool, false, false>, Expr const &expr, Args &&... args) {
+        return (expr);
+    }
+    template <typename Expr, typename... Args>
+    static decltype(auto) get_r_(std::integer_sequence<bool, false, true>, Expr &expr, Args &&... args) {
+        return array_parser<N>::eval(expr(std::forward<Args>(args)...));
+    }
+    template <typename Expr, typename... Args>
+    static decltype(auto) get_r_(std::integer_sequence<bool, false, true>, Expr const &expr, Args &&... args) {
+        return array_parser<N>::eval(expr(std::forward<Args>(args)...));
+    }
+    template <typename Expr, typename... Args>
+    static decltype(auto) get_r_(std::integer_sequence<bool, true, false>, Expr &expr, Args &&... args) {
+        return array_parser<N / std::extent<Expr>::value>::eval(expr[N % std::extent<Expr>::value],
+                                                                std::forward<Args>(args)...);
+    }
+    template <typename Expr, typename... Args>
+    static decltype(auto) get_r_(std::integer_sequence<bool, true, false>, Expr const &expr, Args &&... args) {
+        return array_parser<N / std::extent<Expr>::value>::eval(expr[N % std::extent<Expr>::value],
+                                                                std::forward<Args>(args)...);
+    }
+    template <typename Expr, typename... Args>
+    static decltype(auto) get_r_(std::integer_sequence<bool, true, true>, Expr &exr, Args &&... args) {
+        return array_parser<N / std::extent<Expr>::value>::eval(exr[N % std::extent<Expr>::value],
+                                                                std::forward<Args>(args)...);
+    }
+    template <typename Expr, typename... Args>
+    static decltype(auto) get_r_(std::integer_sequence<bool, true, true>, Expr const &exr, Args &&... args) {
+        return array_parser<N / std::extent<Expr>::value>::eval(exr[N % std::extent<Expr>::value],
+                                                                std::forward<Args>(args)...);
+    }
+    template <typename Expr, typename... Args>
+    static decltype(auto) eval(Expr &expr, Args &&... args) {
+        return get_r_(
+            std::integer_sequence<bool, std::rank<std::remove_reference_t<std::remove_cv_t<Expr>>>::value != 0,
+                                  simpla::traits::is_invocable<Expr, Args...>::value>(),
+            (expr), std::forward<Args>(args)...);
+    }
+    template <typename Expr, typename... Args>
+    static decltype(auto) eval(Expr const &expr, Args &&... args) {
+        return get_r_(
+            std::integer_sequence<bool, std::rank<std::remove_reference_t<std::remove_cv_t<Expr>>>::value != 0,
+                                  simpla::traits::is_invocable<Expr, Args...>::value>(),
+            (expr), std::forward<Args>(args)...);
+    }
+    template <typename... V, typename... Args>
+    static decltype(auto) eval(Array<V...> const &expr, Args &&... args) {
+        return eval(expr.Get(std::forward<Args>(args)...));
+    }
+    template <typename... V, typename... Args>
+    static decltype(auto) eval(Array<V...> &expr, Args &&... args) {
+        return eval(expr.Get(std::forward<Args>(args)...));
+    }
+    template <typename... V>
+    static Array<V...> const &eval(Array<V...> const &expr) {
+        return expr;
+    }
+    template <typename... V>
+    static Array<V...> &eval(Array<V...> &expr) {
+        return expr;
+    }
+    template <size_type... I, typename TExpr, typename... Args>
+    static decltype(auto) eval_helper_(std::index_sequence<I...>, TExpr const &expr, Args &&... args) {
+        return expr.m_op_(array_parser<N>::eval(std::get<I>(expr.m_args_), std::forward<Args>(args)...)...);
+    }
+    template <typename TOP, typename... V, typename... Args>
+    static decltype(auto) eval(Expression<TOP, V...> const &expr, Args &&... args) {
+        return eval_helper_(std::index_sequence_for<V...>(), expr, std::forward<Args>(args)...);
+    }
 };
-template <typename V, int... DOF, typename RHS>
-void Assign(AttributeT<V, EDGE, DOF...> &lhs, RHS const &rhs) {
-    traits::Assign(lhs[0], [&](auto &&... idx) {
-        return traits::array_parser<0>::eval(rhs, 0b001, std::forward<decltype(idx)>(idx)...);
-    });
-    traits::Assign(lhs[1], [&](auto &&... idx) {
-        return traits::array_parser<1>::eval(rhs, 0b010, std::forward<decltype(idx)>(idx)...);
-    });
-    traits::Assign(lhs[2], [&](auto &&... idx) {
-        return traits::array_parser<2>::eval(rhs, 0b100, std::forward<decltype(idx)>(idx)...);
-    });
+template <size_type I0, typename LHS, typename RHS>
+void Fill_(LHS &lhs, RHS const &rhs) {
+    nt_get_r<I0>(lhs) = array_parser<I0>::eval(rhs);
 };
-template <typename V, int... DOF, typename RHS>
-void Assign(AttributeT<V, FACE, DOF...> &lhs, RHS const &rhs) {
-    traits::Assign(lhs[0], [&](auto &&... idx) {
-        return traits::array_parser<0>::eval(rhs, 0b110, std::forward<decltype(idx)>(idx)...);
-    });
-    traits::Assign(lhs[1], [&](auto &&... idx) {
-        return traits::array_parser<1>::eval(rhs, 0b101, std::forward<decltype(idx)>(idx)...);
-    });
-    traits::Assign(lhs[2], [&](auto &&... idx) {
-        return traits::array_parser<2>::eval(rhs, 0b011, std::forward<decltype(idx)>(idx)...);
-    });
+template <size_type I0, typename LHS, typename... RHS>
+void Fill_(LHS &lhs, Expression<RHS...> const &rhs) {
+    nt_get_r<I0>(lhs).Foreach(
+        [&](auto &v, auto &&... idx) { v = array_parser<I0>::eval(rhs, std::forward<decltype(idx)>(idx)...); });
 };
-}  // namespace detail{
+template <typename LHS, typename RHS>
+void Fill(std::index_sequence<>, LHS &lhs, RHS const &rhs){};
+
+template <size_type I0, size_type... I, typename... V, int... N, typename RHS>
+void Fill(std::index_sequence<I0, I...>, nTuple<Array<V...>, N...> &lhs, RHS const &rhs) {
+    Fill_<I0>(lhs, rhs);
+    Fill(std::index_sequence<I...>(), lhs, rhs);
+};
+
+template <typename... V, typename RHS>
+void Fill(Array<V...> &lhs, RHS const &rhs) {
+    Fill_<0>(lhs, rhs);
+};
+template <typename... V, int... N, typename RHS>
+void Fill(nTuple<Array<V...>, N...> &lhs, RHS const &rhs) {
+    Fill(std::make_index_sequence<nt_size<nTuple<Array<V...>, N...>>::value>(), lhs, rhs);
+};
+}  // namespace traits
 
 template <typename V, int IFORM, int... DOF>
 template <typename RHS>
 void AttributeT<V, IFORM, DOF...>::Assign(RHS const &rhs) {
-    detail::Assign(*this, rhs);
+    traits::Fill(*this, rhs);
 };
 
 }  // namespace engine

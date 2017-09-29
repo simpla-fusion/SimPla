@@ -19,21 +19,19 @@ int main(int argc, char **argv) {
 
     a = [](index_type i, index_type j, index_type k) { return i + j + k; };
 
-    b = [](index_type i, index_type j, index_type k) { return i * j * k; };
+    b = [](index_type i, index_type j, index_type k) { return j * k; };
 
-    //    c = a + b * 2;
-    //
-    //    std::cout << " a = " << a << std::endl;
-    //    std::cout << " b = " << b << std::endl;
-    //    std::cout << " c = " << c << std::endl;
-    //
-    //    std::cout << " d = " << c << std::endl;
+    c = a + b * 2;
+
+    std::cout << " a = " << a << std::endl;
+    std::cout << " b = " << b << std::endl;
+    std::cout << " c = " << c << std::endl;
+
     //    FE_CMD(c = a + sin(b) * 3 + d);
-
-    c = a(IdxShift{0, 1, 0}) - a(IdxShift{0, -1, 0}) + a(IdxShift{0, 0, 1}) - a(IdxShift{0, 0, -1});
-    //    nTuple<double, 3> v = {1, 2, 3};
-    //    Array<nTuple<double, 3>, 3> e(inner_box);
-    //    e = b * v;
+    //    c = a(IdxShift{0, 1, 0}) - a(IdxShift{0, -1, 0}) + a(IdxShift{0, 0, 1}) - a(IdxShift{0, 0, -1});
+    //    //    nTuple<double, 3> v = {1, 2, 3};
+    //    //    Array<nTuple<double, 3>, 3> e(inner_box);
+    //    //    e = b * v;
     std::cout << a << std::endl;
     std::cout << c << std::endl;
 

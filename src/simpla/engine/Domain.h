@@ -105,15 +105,6 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     template <typename V, int IFORM, int... DOF, typename TR>
     void Fill(AttributeT<V, IFORM, DOF...> &lhs, TR const &rhs, const Range<EntityId> &r) const;
 
-    template <typename V, int... DOF, typename... U>
-    void Fill(AttributeT<V, NODE, DOF...> &lhs, Expression<U...> const &rhs, const Range<EntityId> &r) const;
-    template <typename V, int... DOF, typename... U>
-    void Fill(AttributeT<V, EDGE, DOF...> &lhs, Expression<U...> const &rhs, const Range<EntityId> &r) const;
-    template <typename V, int... DOF, typename... U>
-    void Fill(AttributeT<V, FACE, DOF...> &lhs, Expression<U...> const &rhs, const Range<EntityId> &r) const;
-    template <typename V, int... DOF, typename... U>
-    void Fill(AttributeT<V, CELL, DOF...> &lhs, Expression<U...> const &rhs, const Range<EntityId> &r) const;
-
     template <typename TL, typename TR>
     void Fill(TL &lhs, TR const &rhs, std::string const &k) const {
         Fill(lhs, (rhs), GetRange(k));
@@ -202,6 +193,7 @@ void Domain<TChart, Policies...>::DoAdvance(Real time_now, Real dt) {}
 
 template <typename TChart, template <typename> class... Policies>
 void Domain<TChart, Policies...>::DoTagRefinementCells(Real time_now) {}
+
 namespace detail {
 template <typename U, typename SFC>
 void InitializeArray_(Array<U, SFC> &v, SFC const &sfc) {
@@ -237,47 +229,41 @@ template <int IFORM, typename TArray, typename THost>
 void InitializeArray(std::integral_constant<int, IFORM>, TArray &v, THost const *host) {
     UNIMPLEMENTED;
 }
-}  // namespace detail{
-
-template <typename TChart, template <typename> class... Policies>
-template <typename U, int IFORM, int... DOF>
-void Domain<TChart, Policies...>::InitializeAttribute(AttributeT<U, IFORM, DOF...> *attr) const {
-    detail::InitializeArray(std::integral_constant<int, IFORM>(), *attr, this);
-};
-namespace detail {
 
 template <typename THost, typename U, int... DOF, typename RHS>
 void AssignAsFunction(THost *self, engine::AttributeT<U, NODE, DOF...> &lhs, RHS const &rhs) {
     auto chart = self->GetChart();
-    lhs.Assign([&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b000, x, y, z)); });
+    traits::Fill<0>(
+        lhs, [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b000, x, y, z)); });
 }
 template <typename THost, typename U, int... DOF, typename RHS>
 void AssignAsFunction(THost *self, engine::AttributeT<U, CELL, DOF...> &lhs, RHS const &rhs) {
     auto chart = self->GetChart();
-    lhs.Assign([&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b111, x, y, z)); });
+    traits::Fill<0>(
+        lhs, [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b111, x, y, z)); });
 }
 template <typename THost, typename U, int... DOF, typename RHS>
 void AssignAsFunction(THost *self, engine::AttributeT<U, EDGE, DOF...> &lhs, RHS const &rhs,
-                      ENABLE_IF((std::is_same<Real, std::result_of_t<RHS(point_type const &)>>::value))) {
+                      ENABLE_IF((traits::is_invocable<RHS, point_type const &>::value))) {
     auto chart = self->GetChart();
-    lhs[0] = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b001, x, y, z)); };
-    lhs[1] = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b010, x, y, z)); };
-    lhs[2] = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b100, x, y, z)); };
+    traits::Fill<0>(
+        lhs, [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b001, x, y, z)); });
+    traits::Fill<1>(
+        lhs, [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b010, x, y, z)); });
+    traits::Fill<2>(
+        lhs, [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b100, x, y, z)); });
 }
+
 template <typename THost, typename U, int... DOF, typename RHS>
-void AssignAsFunction(THost *self, engine::AttributeT<U, EDGE, DOF...> &lhs, RHS const &rhs,
-                      ENABLE_IF((std::is_same<nTuple<Real, 3>, std::result_of_t<RHS(point_type const &)>>::value))) {
+void AssignAsFunction(THost *self, engine::AttributeT<U, FACE, DOF...> &lhs, RHS const &rhs,
+                      ENABLE_IF((traits::is_invocable<RHS, point_type const &>::value))) {
     auto chart = self->GetChart();
-    lhs[0] = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b001, x, y, z))[0]; };
-    lhs[1] = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b010, x, y, z))[1]; };
-    lhs[2] = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b100, x, y, z))[2]; };
-}
-template <typename THost, typename U, int... DOF, typename RHS>
-void AssignAsFunction(THost *self, engine::AttributeT<U, FACE, DOF...> &lhs, RHS const &rhs) {
-    auto chart = self->GetChart();
-    lhs[0] = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b110, x, y, z)); };
-    lhs[1] = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b101, x, y, z)); };
-    lhs[2] = [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b011, x, y, z)); };
+    traits::Fill<0>(
+        lhs, [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b110, x, y, z)); });
+    traits::Fill<1>(
+        lhs, [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b101, x, y, z)); });
+    traits::Fill<2>(
+        lhs, [&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0b011, x, y, z)); });
 }
 
 template <typename THost, typename U, int IFORM, int... DOF, typename RHS>
@@ -285,69 +271,70 @@ void DomainAssign(THost *self, engine::AttributeT<U, IFORM, DOF...> &lhs, RHS co
                   ENABLE_IF((std::is_arithmetic<RHS>::value || std::is_base_of<engine::Attribute, RHS>::value ||
                              traits::is_invocable<RHS, index_type, index_type, index_type>::value ||
                              traits::is_invocable<RHS, int, index_type, index_type, index_type>::value))) {
-    lhs.Assign(rhs);
+    traits::Fill_<0>(lhs, rhs);
 }
 template <typename THost, typename U, int IFORM, int... DOF, typename RHS>
 void DomainAssign(THost *self, engine::AttributeT<U, IFORM, DOF...> &lhs, RHS const &rhs,
                   ENABLE_IF((traits::is_invocable<RHS, point_type>::value))) {
     AssignAsFunction(self, lhs, rhs);
 }
+
+template <typename THost, typename V, int... DOF, typename... U>
+void DomainAssign(THost *self, AttributeT<V, NODE, DOF...> &lhs, Expression<U...> const &rhs,
+                  const Range<EntityId> &r) {
+    //    if (r.isFull()) {
+    traits::Fill_<0>(lhs, self->Calculate<0b000>(rhs));
+    //    } else {
+    //        //        this_type::Calculate(lhs, rhs, r);
+    //    }
+};
+template <typename THost, typename V, int... DOF, typename... U>
+void DomainAssign(THost *self, AttributeT<V, EDGE, DOF...> &lhs, Expression<U...> const &rhs,
+                  const Range<EntityId> &r) {
+    //    if (r.isFull()) {
+    traits::Fill_<0>(lhs, self->Calculate<0b001>(rhs));
+    traits::Fill_<1>(lhs, self->Calculate<0b010>(rhs));
+    traits::Fill_<2>(lhs, self->Calculate<0b100>(rhs));
+
+    //    } else {
+    //        //        this_type::Calculate(lhs, rhs, r);
+    //    }
+};
+template <typename THost, typename V, int... DOF, typename... U>
+void DomainAssign(THost *self, AttributeT<V, FACE, DOF...> &lhs, Expression<U...> const &rhs,
+                  const Range<EntityId> &r) {
+    //    if (r.isFull()) {
+    traits::Fill_<0>(lhs, self->template Calculate<0b110>(rhs));
+    traits::Fill_<1>(lhs, self->template Calculate<0b101>(rhs));
+    traits::Fill_<2>(lhs, self->template Calculate<0b011>(rhs));
+
+    //    } else {
+    //        //        this_type::Calculate(lhs, rhs, r);
+    //    }
+};
+template <typename THost, typename V, int... DOF, typename... U>
+void DomainAssign(THost *self, AttributeT<V, CELL, DOF...> &lhs, Expression<U...> const &rhs,
+                  const Range<EntityId> &r) {
+    //    if (r.isFull()) {
+    traits::Fill_<0>(lhs, self->Calculate<0b111>(rhs));
+
+    //    } else {
+    //        //        this_type::Calculate(lhs, rhs, r);
+    //    }
+};
 }  // namespace detail {
 
+template <typename TChart, template <typename> class... Policies>
+template <typename U, int IFORM, int... DOF>
+void Domain<TChart, Policies...>::InitializeAttribute(AttributeT<U, IFORM, DOF...> *attr) const {
+    detail::InitializeArray(std::integral_constant<int, IFORM>(), *attr, this);
+};
 template <typename TM, template <typename> class... Policies>
 template <typename V, int IFORM, int... DOF, typename RHS>
 void Domain<TM, Policies...>::Fill(AttributeT<V, IFORM, DOF...> &lhs, RHS const &rhs, const Range<EntityId> &r) const {
     detail::DomainAssign(this, lhs, rhs);
 };
 
-template <typename TM, template <typename> class... Policies>
-template <typename V, int... DOF, typename... U>
-void Domain<TM, Policies...>::Fill(AttributeT<V, NODE, DOF...> &lhs, Expression<U...> const &rhs,
-                                   const Range<EntityId> &r) const {
-    //    if (r.isFull()) {
-    traits::Assign(lhs, this->Calculate<0b000>(rhs));
-
-    //    } else {
-    //        //        this_type::Calculate(lhs, rhs, r);
-    //    }
-};
-template <typename TM, template <typename> class... Policies>
-template <typename V, int... DOF, typename... U>
-void Domain<TM, Policies...>::Fill(AttributeT<V, EDGE, DOF...> &lhs, Expression<U...> const &rhs,
-                                   const Range<EntityId> &r) const {
-    //    if (r.isFull()) {
-    traits::Assign(lhs[0], this->Calculate<0b001>(rhs));
-    traits::Assign(lhs[1], this->Calculate<0b010>(rhs));
-    traits::Assign(lhs[2], this->Calculate<0b100>(rhs));
-
-    //    } else {
-    //        //        this_type::Calculate(lhs, rhs, r);
-    //    }
-};
-template <typename TM, template <typename> class... Policies>
-template <typename V, int... DOF, typename... U>
-void Domain<TM, Policies...>::Fill(AttributeT<V, FACE, DOF...> &lhs, Expression<U...> const &rhs,
-                                   const Range<EntityId> &r) const {
-    //    if (r.isFull()) {
-    traits::Assign(lhs[0], this->template Calculate<0b110>(rhs));
-    traits::Assign(lhs[1], this->template Calculate<0b101>(rhs));
-    traits::Assign(lhs[2], this->template Calculate<0b011>(rhs));
-
-    //    } else {
-    //        //        this_type::Calculate(lhs, rhs, r);
-    //    }
-};
-template <typename TM, template <typename> class... Policies>
-template <typename V, int... DOF, typename... U>
-void Domain<TM, Policies...>::Fill(AttributeT<V, CELL, DOF...> &lhs, Expression<U...> const &rhs,
-                                   const Range<EntityId> &r) const {
-    //    if (r.isFull()) {
-    traits::Assign(lhs, this->Calculate<0b111>(rhs));
-
-    //    } else {
-    //        //        this_type::Calculate(lhs, rhs, r);
-    //    }
-};
 template <typename TM, template <typename> class... Policies>
 void Domain<TM, Policies...>::SetRange(std::string const &, Range<EntityId> const &){};
 template <typename TM, template <typename> class... Policies>
