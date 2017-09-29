@@ -198,6 +198,25 @@ template <typename TV>
 struct nt_size<nTuple<TV>> : public std::integral_constant<int, 1> {};
 template <typename TV, int N0, int... N>
 struct nt_size<nTuple<TV, N0, N...>> : public std::integral_constant<int, N0 * nt_size<nTuple<TV, N...>>::value> {};
+
+template <int I, typename V>
+V& nt_get_r(V& v) {
+    return v;
+};
+
+template <int I, typename V, int N0, int... N>
+decltype(auto) nt_get_r(nTuple<V, N0, N...>& v) {
+    return nt_get_r<I / N0>(v[I % N0]);
+};
+template <int I, typename V>
+V const& nt_get_r(V const& v) {
+    return v;
+};
+
+template <int I, typename V, int N0, int... N>
+decltype(auto) nt_get_r(nTuple<V, N0, N...> const& v) {
+    return nt_get_r<I / N0>(v[I % N0]);
+};
 }  // namespace traits
 
 ///// n-dimensional primary type

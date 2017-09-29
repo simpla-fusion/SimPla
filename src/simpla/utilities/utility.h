@@ -82,8 +82,6 @@ template <typename T, T B0, T... B>
 struct mt_min<T, B0, B...>
     : public std::integral_constant<T, ((B0 < (mt_min<T, B...>::value)) ? B0 : (mt_min<T, B...>::value))> {};
 
-
-
 //----------------------------------------------------------------------------------------------------------------------
 
 template <typename>
@@ -118,7 +116,19 @@ template <int N, typename _Tp, _Tp... I>
 _Tp get(std::integer_sequence<_Tp, I...>) {
     return seq_get<N, std::integer_sequence<_Tp, I...>>::value;
 };
+template <typename TP, TP... N>
+struct seq_product;
+template <typename TP, TP N0>
+struct seq_product<TP, N0> : public std::integral_constant<TP, N0> {};
+template <typename TP, TP N0, TP... N>
+struct seq_product<TP, N0, N...> : public std::integral_constant<TP, N0 * seq_product<TP, N...>::value> {};
 
+template <typename TP, TP... N>
+struct seq_sum;
+template <typename TP, TP N0>
+struct seq_sum<TP, N0> : public std::integral_constant<TP, N0> {};
+template <typename TP, TP N0, TP... N>
+struct seq_sum<TP, N0, N...> : public std::integral_constant<TP, N0 + seq_sum<TP, N...>::value> {};
 namespace _impl {
 // TODO need implement max_integer_sequence, min_integer_sequence
 template <size_t...>
