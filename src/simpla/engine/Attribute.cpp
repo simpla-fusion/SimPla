@@ -156,17 +156,17 @@ std::shared_ptr<Attribute> Attribute::New(std::shared_ptr<simpla::data::DataNode
     if (cfg == nullptr) { return nullptr; }
     std::shared_ptr<Attribute> res = nullptr;
     auto v_type = cfg->GetValue<std::string>("ValueType");
-    if (v_type == traits::type_name<double>::value()) {
+    if (v_type == simpla::traits::type_name<double>::value()) {
         res = detail::NewAttribute<double>(cfg);
-    } else if (v_type == traits::type_name<float>::value()) {
+    } else if (v_type == simpla::traits::type_name<float>::value()) {
         res = detail::NewAttribute<float>(cfg);
-    } else if (v_type == traits::type_name<int>::value()) {
+    } else if (v_type == simpla::traits::type_name<int>::value()) {
         res = detail::NewAttribute<int>(cfg);
-    } else if (v_type == traits::type_name<long>::value()) {
+    } else if (v_type == simpla::traits::type_name<long>::value()) {
         res = detail::NewAttribute<long>(cfg);
-    } else if (v_type == traits::type_name<unsigned int>::value()) {
+    } else if (v_type == simpla::traits::type_name<unsigned int>::value()) {
         res = detail::NewAttribute<unsigned int>(cfg);
-    } else if (v_type == traits::type_name<unsigned long>::value()) {
+    } else if (v_type == simpla::traits::type_name<unsigned long>::value()) {
         res = detail::NewAttribute<unsigned long>(cfg);
     }
 

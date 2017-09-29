@@ -51,19 +51,25 @@ class Attribute;
 class AttributeGroup {
    public:
     typedef Attribute attribute_type;
+
     AttributeGroup();
+
     virtual ~AttributeGroup();
 
     virtual std::shared_ptr<data::DataNode> Serialize() const;
+
     virtual void Deserialize(std::shared_ptr<data::DataNode> const &);
 
     virtual void Push(const std::shared_ptr<data::DataNode> &);
+
     virtual std::shared_ptr<data::DataNode> Pop() const;
 
     std::set<Attribute *> &GetAttributes();
+
     std::set<Attribute *> const &GetAttributes() const;
 
     void Detach(Attribute *attr);
+
     void Attach(Attribute *attr);
 
     std::shared_ptr<data::DataNode> RegisterAttributes();
@@ -103,6 +109,7 @@ class AttributeGroup {
 struct Attribute : public EngineObject {
    public:
     static std::string FancyTypeName() { return "Attribute"; }
+
     std::string TypeName() const override { return "Attribute"; }
 
     static bool _is_registered;
@@ -115,7 +122,9 @@ struct Attribute : public EngineObject {
 
    public:
     Attribute();
+
     ~Attribute() override;
+
     Attribute(this_type const &other) = delete;  // { UNIMPLEMENTED; };
     Attribute(this_type &&other) = delete;       // { UNIMPLEMENTED; };
 
@@ -124,34 +133,49 @@ struct Attribute : public EngineObject {
         Register(host);
         db()->SetValue(std::forward<Args>(args)...);
     };
+
     static std::shared_ptr<this_type> New(std::shared_ptr<simpla::data::DataNode> const &cfg);
 
     void ReRegister(std::shared_ptr<Attribute> const &) const;
 
     void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;
+
     std::shared_ptr<simpla::data::DataNode> Serialize() const override;
+
     void DoSetUp() override;
+
     void DoUpdate() override;
+
     void DoTearDown() override;
 
     virtual std::type_info const &value_type_info() const = 0;
+
     virtual int GetIFORM() const = 0;
+
     virtual int GetDOF(int) const = 0;
+
     virtual int const *GetDOFs() const = 0;
+
     virtual int GetRank() const = 0;
+
     virtual void SetDOF(int rank, int const *d) = 0;
+
     virtual std::shared_ptr<data::DataNode> GetDescription() const = 0;
 
     void Register(AttributeGroup *p = nullptr);
+
     void Deregister(AttributeGroup *p = nullptr);
 
     void Push(const std::shared_ptr<data::DataNode> &) override = 0;
+
     std::shared_ptr<data::DataNode> Pop() const override = 0;
 
     virtual std::shared_ptr<Attribute> Duplicate() const = 0;
 
     virtual bool isNull() const = 0;
+
     virtual bool empty() const { return isNull(); };
+
     virtual void Clear() = 0;
 };
 
@@ -205,12 +229,17 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
     }
 
     void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;
+
     std::shared_ptr<simpla::data::DataNode> Serialize() const override;
+
     void DoSetUp() override;
+
     void DoUpdate() override;
+
     void DoTearDown() override;
 
     void Push(const std::shared_ptr<data::DataNode> &) override;
+
     std::shared_ptr<data::DataNode> Pop() const override;
 
     std::shared_ptr<Attribute> Duplicate() const override {
@@ -218,25 +247,36 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
         ReRegister(res);
         return res;
     }
+
     bool isNull() const override;
+
     bool empty() const override { return isNull(); };
+
     void Clear() override;
 
     std::type_info const &value_type_info() const override { return typeid(V); };
+
     int GetIFORM() const override { return IFORM; };
+
     int GetDOF(int n) const override { return m_extents_[n]; };
+
     int const *GetDOFs() const override { return m_extents_; };
+
     int GetRank() const override { return sizeof...(DOF); };
+
     void SetDOF(int rank, int const *d) override { DOMAIN_ERROR; };
+
     std::shared_ptr<data::DataNode> GetDescription() const override;
 
     auto &GetData(int n) { return traits::index(dynamic_cast<data_type &>(*this), n); }
+
     auto const &GetData(int n) const { return traits::index(dynamic_cast<data_type const &>(*this), n); }
 
     template <typename... Args>
     auto &Get(index_type i0, Args &&... args) {
         return traits::invoke(traits::index(dynamic_cast<data_type &>(*this), i0), std::forward<Args>(args)...);
     }
+
     template <typename... Args>
     auto const &Get(index_type i0, Args &&... args) const {
         return traits::invoke(traits::index(dynamic_cast<data_type const &>(*this), i0), std::forward<Args>(args)...);
@@ -246,6 +286,7 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
     auto &at(Args &&... args) {
         return Get(std::forward<Args>(args)...);
     }
+
     template <typename... Args>
     auto const &at(Args &&... args) const {
         return Get(std::forward<Args>(args)...);
@@ -255,6 +296,7 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
     auto &operator()(index_type i0, Args &&... args) {
         return Get(i0, std::forward<Args>(args)...);
     }
+
     template <typename... Args>
     auto const &operator()(index_type i0, Args &&... args) const {
         return Get(i0, std::forward<Args>(args)...);
@@ -262,11 +304,13 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
 
     template <typename RHS>
     void Assign(RHS const &rhs);
+
     template <typename RHS>
     this_type &operator=(RHS const &rhs) {
         Assign(rhs);
         return *this;
     }
+
     template <typename... RHS>
     this_type &operator=(Expression<RHS...> const &rhs) {
         data_type::operator=(rhs);
@@ -276,11 +320,13 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
    private:
     static constexpr int m_extents_[sizeof...(DOF) + 1] = {(IFORM == NODE || IFORM == CELL) ? 1 : 3, DOF...};
 };
+
 template <typename V, int IFORM, int... DOF>
 constexpr int AttributeT<V, IFORM, DOF...>::m_extents_[sizeof...(DOF) + 1];
 
 template <typename V, int IFORM, int... DOF>
 AttributeT<V, IFORM, DOF...>::AttributeT() = default;
+
 template <typename V, int IFORM, int... DOF>
 AttributeT<V, IFORM, DOF...>::~AttributeT() = default;
 
@@ -302,6 +348,7 @@ std::shared_ptr<data::DataNode> pop_data(Array<U> const &v) {
     Array<U>(v).swap(*d);
     return data::DataNode::New(d);
 }
+
 template <typename U, int N0, int... N>
 std::shared_ptr<data::DataNode> pop_data(nTuple<Array<U>, N0, N...> const &v) {
     auto res = data::DataNode::New(data::DataNode::DN_ARRAY);
@@ -320,6 +367,7 @@ size_type push_data(Array<U> &dest, std::shared_ptr<data::DataNode> const &src) 
 
     return count;
 }
+
 template <typename U, int N0, int... N>
 size_type push_data(nTuple<Array<U>, N0, N...> &v, std::shared_ptr<data::DataNode> const &src) {
     size_type count = 0;
@@ -333,24 +381,29 @@ template <typename U>
 bool is_null(Array<U> const &d) {
     return d.isNull();
 }
+
 template <typename U, int N0, int... N>
 bool is_null(nTuple<Array<U>, N0, N...> const &v) {
     bool res = false;
     for (int i = 0; i < N0; ++i) { res = res || is_null(v[i]); }
     return res;
 }
+
 template <typename U>
 void clear(Array<U> &d) {
     d.Clear();
 }
+
 template <typename U, int N0, int... N>
 void clear(nTuple<Array<U>, N0, N...> &v) {
     for (int i = 0; i < N0; ++i) { clear(v[i]); }
 }
+
 template <typename U>
 void update(Array<U> &d) {
     d.alloc();
 }
+
 template <typename U, int N0, int... N>
 void update(nTuple<Array<U>, N0, N...> &v) {
     for (int i = 0; i < N0; ++i) { update(v[i]); }
@@ -359,31 +412,38 @@ void update(nTuple<Array<U>, N0, N...> &v) {
 
 template <typename V, int IFORM, int... DOF>
 void AttributeT<V, IFORM, DOF...>::DoSetUp(){};
+
 template <typename V, int IFORM, int... DOF>
 void AttributeT<V, IFORM, DOF...>::DoUpdate() {
     detail::update(*this);
 };
+
 template <typename V, int IFORM, int... DOF>
 void AttributeT<V, IFORM, DOF...>::DoTearDown(){};
+
 template <typename V, int IFORM, int... DOF>
 bool AttributeT<V, IFORM, DOF...>::isNull() const {
     return detail::is_null(*this);
 };
+
 template <typename V, int IFORM, int... DOF>
 void AttributeT<V, IFORM, DOF...>::Clear() {
     Update();
     detail::clear(*this);
 };
+
 template <typename V, int IFORM, int... DOF>
 std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Serialize() const {
     auto res = base_type::Serialize();
     res->Set(GetDescription());
     return res;
 };
+
 template <typename V, int IFORM, int... DOF>
 void AttributeT<V, IFORM, DOF...>::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
 };
+
 template <typename V, int IFORM, int... DOF>
 void AttributeT<V, IFORM, DOF...>::Push(const std::shared_ptr<data::DataNode> &d) {
     detail::push_data(*this, d);
@@ -393,53 +453,15 @@ template <typename V, int IFORM, int... DOF>
 std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Pop() const {
     return detail::pop_data(*this);
 };
-
-// namespace detail {
-// template <typename V, int... N, typename RHS>
-// void Assign(AttributeT<V, NODE, N...> &lhs, RHS const &rhs) {
-//    traits::Fill<0>(lhs, rhs);
-//};
-// template <typename V, int... N, typename RHS>
-// void Assign(AttributeT<V, CELL, N...> &lhs, RHS const &rhs) {
-//    traits::Fill<0>(lhs, rhs);
-//};
-// template <typename V, int... DOF, typename RHS>
-// void Assign(AttributeT<V, EDGE, DOF...> &lhs, RHS const &rhs) {
-//    traits::Fill<0>(lhs, rhs);
-//    traits::Fill<1>(lhs, rhs);
-//    traits::Fill<2>(lhs, rhs);
-//};
-// template <typename V, int... DOF, typename RHS>
-// void Assign(AttributeT<V, FACE, DOF...> &lhs, RHS const &rhs) {
-//    traits::Fill<0>(lhs, rhs);
-//    traits::Fill<1>(lhs, rhs);
-//    traits::Fill<2>(lhs, rhs);
-//};
-//}  // namespace detail{
+}  // namespace engine {
 
 namespace traits {
-//template <typename... T>
-//struct reference<Array<T...>> {
-//    typedef Array<T...> type;
-//};
-//
-// template <typename... T, typename TFun>
-// auto foreach (Array<T...>& v, TFun const& f) {
-//    v.GetSpaceFillingCurve().Foreach(
-//        [&](auto&&... s) { f(v(std::forward<decltype(s)>(s)...), std::forward<decltype(s)>(s)...); });
-//}
-//
-// template <typename... T, typename TFun>
-// auto foreach (Array<T...> const& v, TFun const& f) {
-//    v.GetSpaceFillingCurve().Foreach(
-//        [&](auto&&... s) { f(v(std::forward<decltype(s)>(s)...), std::forward<decltype(s)>(s)...); });
-//}
 
 template <int... N>
-struct array_parser;
+struct attribute_parser;
 
 template <>
-struct array_parser<> {
+struct attribute_parser<> {
     template <typename Expr, typename... Args>
     static decltype(auto) get_r_(std::integral_constant<bool, true>, Expr const &expr, Args &&... args) {
         return expr(std::forward<Args>(args)...);
@@ -480,7 +502,7 @@ struct array_parser<> {
 };
 
 template <int N>
-struct array_parser<N> {
+struct attribute_parser<N> {
     template <typename Expr, typename... Args>
     static decltype(auto) get_r_(std::integer_sequence<bool, false, false>, Expr &expr, Args &&... args) {
         return (expr);
@@ -491,31 +513,31 @@ struct array_parser<N> {
     }
     template <typename Expr, typename... Args>
     static decltype(auto) get_r_(std::integer_sequence<bool, false, true>, Expr &expr, Args &&... args) {
-        return array_parser<N>::eval(expr(std::forward<Args>(args)...));
+        return attribute_parser<N>::eval(expr(std::forward<Args>(args)...));
     }
     template <typename Expr, typename... Args>
     static decltype(auto) get_r_(std::integer_sequence<bool, false, true>, Expr const &expr, Args &&... args) {
-        return array_parser<N>::eval(expr(std::forward<Args>(args)...));
+        return attribute_parser<N>::eval(expr(std::forward<Args>(args)...));
     }
     template <typename Expr, typename... Args>
     static decltype(auto) get_r_(std::integer_sequence<bool, true, false>, Expr &expr, Args &&... args) {
-        return array_parser<N / std::extent<Expr>::value>::eval(expr[N % std::extent<Expr>::value],
-                                                                std::forward<Args>(args)...);
+        return attribute_parser<N / std::extent<Expr>::value>::eval(expr[N % std::extent<Expr>::value],
+                                                                    std::forward<Args>(args)...);
     }
     template <typename Expr, typename... Args>
     static decltype(auto) get_r_(std::integer_sequence<bool, true, false>, Expr const &expr, Args &&... args) {
-        return array_parser<N / std::extent<Expr>::value>::eval(expr[N % std::extent<Expr>::value],
-                                                                std::forward<Args>(args)...);
+        return attribute_parser<N / std::extent<Expr>::value>::eval(expr[N % std::extent<Expr>::value],
+                                                                    std::forward<Args>(args)...);
     }
     template <typename Expr, typename... Args>
     static decltype(auto) get_r_(std::integer_sequence<bool, true, true>, Expr &exr, Args &&... args) {
-        return array_parser<N / std::extent<Expr>::value>::eval(exr[N % std::extent<Expr>::value],
-                                                                std::forward<Args>(args)...);
+        return attribute_parser<N / std::extent<Expr>::value>::eval(exr[N % std::extent<Expr>::value],
+                                                                    std::forward<Args>(args)...);
     }
     template <typename Expr, typename... Args>
     static decltype(auto) get_r_(std::integer_sequence<bool, true, true>, Expr const &exr, Args &&... args) {
-        return array_parser<N / std::extent<Expr>::value>::eval(exr[N % std::extent<Expr>::value],
-                                                                std::forward<Args>(args)...);
+        return attribute_parser<N / std::extent<Expr>::value>::eval(exr[N % std::extent<Expr>::value],
+                                                                    std::forward<Args>(args)...);
     }
     template <typename Expr, typename... Args>
     static decltype(auto) eval(Expr &expr, Args &&... args) {
@@ -549,7 +571,7 @@ struct array_parser<N> {
     }
     template <size_type... I, typename TExpr, typename... Args>
     static decltype(auto) eval_helper_(std::index_sequence<I...>, TExpr const &expr, Args &&... args) {
-        return expr.m_op_(array_parser<N>::eval(std::get<I>(expr.m_args_), std::forward<Args>(args)...)...);
+        return expr.m_op_(attribute_parser<N>::eval(std::get<I>(expr.m_args_), std::forward<Args>(args)...)...);
     }
     template <typename TOP, typename... V, typename... Args>
     static decltype(auto) eval(Expression<TOP, V...> const &expr, Args &&... args) {
@@ -558,12 +580,12 @@ struct array_parser<N> {
 };
 template <size_type I0, typename LHS, typename RHS>
 void Fill_(LHS &lhs, RHS const &rhs) {
-    nt_get_r<I0>(lhs) = array_parser<I0>::eval(rhs);
+    simpla::traits::nt_get_r<I0>(lhs) = attribute_parser<I0>::eval(rhs);
 };
 template <size_type I0, typename LHS, typename... RHS>
 void Fill_(LHS &lhs, Expression<RHS...> const &rhs) {
-    nt_get_r<I0>(lhs).Foreach(
-        [&](auto &v, auto &&... idx) { v = array_parser<I0>::eval(rhs, std::forward<decltype(idx)>(idx)...); });
+    simpla::traits::nt_get_r<I0>(lhs).Foreach(
+        [&](auto &v, auto &&... idx) { v = attribute_parser<I0>::eval(rhs, std::forward<decltype(idx)>(idx)...); });
 };
 template <typename LHS, typename RHS>
 void Fill(std::index_sequence<>, LHS &lhs, RHS const &rhs){};
@@ -580,10 +602,11 @@ void Fill(Array<V...> &lhs, RHS const &rhs) {
 };
 template <typename... V, int... N, typename RHS>
 void Fill(nTuple<Array<V...>, N...> &lhs, RHS const &rhs) {
-    Fill(std::make_index_sequence<nt_size<nTuple<Array<V...>, N...>>::value>(), lhs, rhs);
+    Fill(std::make_index_sequence<simpla::traits::nt_size<nTuple<Array<V...>, N...>>::value>(), lhs, rhs);
 };
 }  // namespace traits
 
+namespace engine {
 template <typename V, int IFORM, int... DOF>
 template <typename RHS>
 void AttributeT<V, IFORM, DOF...>::Assign(RHS const &rhs) {
