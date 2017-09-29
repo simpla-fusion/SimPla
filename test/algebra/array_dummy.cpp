@@ -19,13 +19,12 @@ int main(int argc, char **argv) {
 
     a = [](index_type i, index_type j, index_type k) { return i + j + k; };
 
-    b = [](index_type i, index_type j, index_type k) { return i * j * k; };
+    b = [](index_type i, index_type j, index_type k) { return j * k; };
 
-    //    c = a + b * 2;
-    //
-    //    std::cout << " a = " << a << std::endl;
-    //    std::cout << " b = " << b << std::endl;
-    //    std::cout << " c = " << c << std::endl;
+    c = a + b * 2;
+    std::cout << " a = " << a << std::endl;
+    std::cout << " b = " << b << std::endl;
+    std::cout << " c = " << c << std::endl;
     //
     //    std::cout << " d = " << c << std::endl;
     //    FE_CMD(c = a + sin(b) * 3 + d);
