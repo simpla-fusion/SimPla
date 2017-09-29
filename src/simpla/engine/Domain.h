@@ -105,14 +105,14 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     template <typename V, int IFORM, int... DOF, typename TR>
     void Fill(AttributeT<V, IFORM, DOF...> &lhs, TR const &rhs, const Range<EntityId> &r) const;
 
-    template <typename V, int... DOF, typename... U>
-    void Fill(AttributeT<V, NODE, DOF...> &lhs, Expression<U...> const &rhs, const Range<EntityId> &r) const;
-    template <typename V, int... DOF, typename... U>
-    void Fill(AttributeT<V, EDGE, DOF...> &lhs, Expression<U...> const &rhs, const Range<EntityId> &r) const;
-    template <typename V, int... DOF, typename... U>
-    void Fill(AttributeT<V, FACE, DOF...> &lhs, Expression<U...> const &rhs, const Range<EntityId> &r) const;
-    template <typename V, int... DOF, typename... U>
-    void Fill(AttributeT<V, CELL, DOF...> &lhs, Expression<U...> const &rhs, const Range<EntityId> &r) const;
+//    template <typename V, int... DOF, typename... U>
+//    void Fill(AttributeT<V, NODE, DOF...> &lhs, Expression<U...> const &rhs, const Range<EntityId> &r) const;
+//    template <typename V, int... DOF, typename... U>
+//    void Fill(AttributeT<V, EDGE, DOF...> &lhs, Expression<U...> const &rhs, const Range<EntityId> &r) const;
+//    template <typename V, int... DOF, typename... U>
+//    void Fill(AttributeT<V, FACE, DOF...> &lhs, Expression<U...> const &rhs, const Range<EntityId> &r) const;
+//    template <typename V, int... DOF, typename... U>
+//    void Fill(AttributeT<V, CELL, DOF...> &lhs, Expression<U...> const &rhs, const Range<EntityId> &r) const;
 
     template <typename TL, typename TR>
     void Fill(TL &lhs, TR const &rhs, std::string const &k) const {
@@ -237,14 +237,6 @@ template <int IFORM, typename TArray, typename THost>
 void InitializeArray(std::integral_constant<int, IFORM>, TArray &v, THost const *host) {
     UNIMPLEMENTED;
 }
-}  // namespace detail{
-
-template <typename TChart, template <typename> class... Policies>
-template <typename U, int IFORM, int... DOF>
-void Domain<TChart, Policies...>::InitializeAttribute(AttributeT<U, IFORM, DOF...> *attr) const {
-    detail::InitializeArray(std::integral_constant<int, IFORM>(), *attr, this);
-};
-namespace detail {
 
 template <typename THost, typename U, int... DOF, typename RHS>
 void AssignAsFunction(THost *self, engine::AttributeT<U, NODE, DOF...> &lhs, RHS const &rhs) {
@@ -292,62 +284,72 @@ void DomainAssign(THost *self, engine::AttributeT<U, IFORM, DOF...> &lhs, RHS co
                   ENABLE_IF((traits::is_invocable<RHS, point_type>::value))) {
     AssignAsFunction(self, lhs, rhs);
 }
+template <typename THost, typename U, int IFORM, int... DOF, typename... RHS>
+void DomainAssign(THost *self, engine::AttributeT<U, IFORM, DOF...> &lhs, Expression<RHS...> const &rhs) {
+    AssignAsFunction(self, lhs, rhs);
+}
+
 }  // namespace detail {
 
+template <typename TChart, template <typename> class... Policies>
+template <typename U, int IFORM, int... DOF>
+void Domain<TChart, Policies...>::InitializeAttribute(AttributeT<U, IFORM, DOF...> *attr) const {
+    detail::InitializeArray(std::integral_constant<int, IFORM>(), *attr, this);
+};
 template <typename TM, template <typename> class... Policies>
 template <typename V, int IFORM, int... DOF, typename RHS>
 void Domain<TM, Policies...>::Fill(AttributeT<V, IFORM, DOF...> &lhs, RHS const &rhs, const Range<EntityId> &r) const {
     detail::DomainAssign(this, lhs, rhs);
 };
-
-template <typename TM, template <typename> class... Policies>
-template <typename V, int... DOF, typename... U>
-void Domain<TM, Policies...>::Fill(AttributeT<V, NODE, DOF...> &lhs, Expression<U...> const &rhs,
-                                   const Range<EntityId> &r) const {
-    //    if (r.isFull()) {
-    traits::Assign(lhs, this->Calculate<0b000>(rhs));
-
-    //    } else {
-    //        //        this_type::Calculate(lhs, rhs, r);
-    //    }
-};
-template <typename TM, template <typename> class... Policies>
-template <typename V, int... DOF, typename... U>
-void Domain<TM, Policies...>::Fill(AttributeT<V, EDGE, DOF...> &lhs, Expression<U...> const &rhs,
-                                   const Range<EntityId> &r) const {
-    //    if (r.isFull()) {
-    traits::Assign(lhs[0], this->Calculate<0b001>(rhs));
-    traits::Assign(lhs[1], this->Calculate<0b010>(rhs));
-    traits::Assign(lhs[2], this->Calculate<0b100>(rhs));
-
-    //    } else {
-    //        //        this_type::Calculate(lhs, rhs, r);
-    //    }
-};
-template <typename TM, template <typename> class... Policies>
-template <typename V, int... DOF, typename... U>
-void Domain<TM, Policies...>::Fill(AttributeT<V, FACE, DOF...> &lhs, Expression<U...> const &rhs,
-                                   const Range<EntityId> &r) const {
-    //    if (r.isFull()) {
-    traits::Assign(lhs[0], this->template Calculate<0b110>(rhs));
-    traits::Assign(lhs[1], this->template Calculate<0b101>(rhs));
-    traits::Assign(lhs[2], this->template Calculate<0b011>(rhs));
-
-    //    } else {
-    //        //        this_type::Calculate(lhs, rhs, r);
-    //    }
-};
-template <typename TM, template <typename> class... Policies>
-template <typename V, int... DOF, typename... U>
-void Domain<TM, Policies...>::Fill(AttributeT<V, CELL, DOF...> &lhs, Expression<U...> const &rhs,
-                                   const Range<EntityId> &r) const {
-    //    if (r.isFull()) {
-    traits::Assign(lhs, this->Calculate<0b111>(rhs));
-
-    //    } else {
-    //        //        this_type::Calculate(lhs, rhs, r);
-    //    }
-};
+//
+//template <typename TM, template <typename> class... Policies>
+//template <typename V, int... DOF, typename... U>
+//void Domain<TM, Policies...>::Fill(AttributeT<V, NODE, DOF...> &lhs, Expression<U...> const &rhs,
+//                                   const Range<EntityId> &r) const {
+//    //    if (r.isFull()) {
+//    //    traits::Assign(lhs, this->Calculate<0b000>(rhs));
+//
+//    //    } else {
+//    //        //        this_type::Calculate(lhs, rhs, r);
+//    //    }
+//};
+//template <typename TM, template <typename> class... Policies>
+//template <typename V, int... DOF, typename... U>
+//void Domain<TM, Policies...>::Fill(AttributeT<V, EDGE, DOF...> &lhs, Expression<U...> const &rhs,
+//                                   const Range<EntityId> &r) const {
+//    //    if (r.isFull()) {
+//    //    traits::Assign(lhs[0], this->Calculate<0b001>(rhs));
+//    //    traits::Assign(lhs[1], this->Calculate<0b010>(rhs));
+//    //    traits::Assign(lhs[2], this->Calculate<0b100>(rhs));
+//
+//    //    } else {
+//    //        //        this_type::Calculate(lhs, rhs, r);
+//    //    }
+//};
+//template <typename TM, template <typename> class... Policies>
+//template <typename V, int... DOF, typename... U>
+//void Domain<TM, Policies...>::Fill(AttributeT<V, FACE, DOF...> &lhs, Expression<U...> const &rhs,
+//                                   const Range<EntityId> &r) const {
+//    //    if (r.isFull()) {
+//    //    traits::Assign(lhs[0], this->template Calculate<0b110>(rhs));
+//    //    traits::Assign(lhs[1], this->template Calculate<0b101>(rhs));
+//    //    traits::Assign(lhs[2], this->template Calculate<0b011>(rhs));
+//
+//    //    } else {
+//    //        //        this_type::Calculate(lhs, rhs, r);
+//    //    }
+//};
+//template <typename TM, template <typename> class... Policies>
+//template <typename V, int... DOF, typename... U>
+//void Domain<TM, Policies...>::Fill(AttributeT<V, CELL, DOF...> &lhs, Expression<U...> const &rhs,
+//                                   const Range<EntityId> &r) const {
+//    //    if (r.isFull()) {
+//    //    traits::Assign(lhs, this->Calculate<0b111>(rhs));
+//
+//    //    } else {
+//    //        //        this_type::Calculate(lhs, rhs, r);
+//    //    }
+//};
 template <typename TM, template <typename> class... Policies>
 void Domain<TM, Policies...>::SetRange(std::string const &, Range<EntityId> const &){};
 template <typename TM, template <typename> class... Policies>
