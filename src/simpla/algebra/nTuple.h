@@ -190,7 +190,7 @@ int recursive_calculate_shift(int s0, Args&&... args) {
     return recursive_calculate_shift<N...>(std::forward<Args>(args)...) * N0 + s0;
 };
 template <typename TV, int... N>
-struct extents<nTuple<TV, N...>> : public std::integral_constant<int, N...> {};
+struct extents<nTuple<TV, N...>> : public std::integer_sequence<int, N...> {};
 
 template <typename TV>
 struct nt_size : public std::integral_constant<int, 1> {};

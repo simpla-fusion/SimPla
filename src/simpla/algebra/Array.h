@@ -98,8 +98,6 @@ class Array : public ArrayBase {
         m_data_ = nullptr;
     }
 
-    this_type Sub(index_box_type const& b) { return this_type(m_data_, m_sfc_.Sub(b)); }
-
     std::type_info const& value_type_info() const override { return typeid(value_type); };
     size_type size() const override { return m_sfc_.size(); }
     void* pointer() override { return m_data_; }
@@ -178,11 +176,6 @@ class Array : public ArrayBase {
     value_type* get() { return m_data_; }
     value_type const* get() const { return m_data_; }
 
-    template <typename... Args>
-    void Shift(Args&&... args) {
-        m_sfc_.Shift(std::forward<Args>(args)...);
-    }
-
     size_type CopyIn(this_type const& other) {
         SetUp();
         return m_sfc_.Overlap(other.m_sfc_).Foreach([&] __host__ __device__(auto&&... s) {
@@ -215,12 +208,15 @@ class Array : public ArrayBase {
         Assign(rhs);
         return (*this);
     }
+    template <typename... Args>
+    void Shift(Args&&... args) {
+        m_sfc_.Shift(std::forward<Args>(args)...);
+    }
+    this_type GetShift(IdxShift const& idx) const { return this_type(*this, idx); }
+    this_type Sub(index_box_type const& b) { return this_type(m_data_, m_sfc_.Sub(b)); }
 
-    this_type operator()(IdxShift const& idx) const { return this_type(*this, idx); }
-
-    __host__ __device__ value_type& operator[](size_type s) { return m_data_[s]; }
-
-    __host__ __device__ value_type const& operator[](size_type s) const { return m_data_[s]; }
+    //    __host__ __device__ value_type& operator[](size_type s) { return m_data_[s]; }
+    //    __host__ __device__ value_type const& operator[](size_type s) const { return m_data_[s]; }
 
     template <typename... Args>
     __host__ __device__ value_type& at(Args&&... args) {
@@ -287,6 +283,10 @@ namespace traits {
 template <typename... T>
 struct reference<Array<T...>> {
     typedef Array<T...> type;
+};
+template <typename T, typename... Others>
+struct value_type<Array<T, Others...>> {
+    typedef T type;
 };
 }  //    namespace traits {
 

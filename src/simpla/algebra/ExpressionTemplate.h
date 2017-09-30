@@ -143,7 +143,7 @@ struct Expression<TOP, Args...> {
 
     template <typename T>
     __host__ __device__ explicit operator T() const {
-        return static_cast<T>(calculus::reduction(*this));
+        return calculus::reduction(*this);
     }
 };
 namespace tags {

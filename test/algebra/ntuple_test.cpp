@@ -58,12 +58,12 @@ class TestNTuple : public testing::Test {
     value_type a, b, c, d;
 };
 
-typedef testing::Types<nTuple<double, 3>,        //
-                       nTuple<double, 3, 3>,     //
-                       nTuple<double, 3, 4, 5>,  //
-                       nTuple<int, 3, 4, 5, 6>   //,
-                                                 //                       nTuple<std::complex<double>, 3>,          //
-                                                 //                       nTuple<std::complex<double>, 3, 4, 5, 6>  //
+typedef testing::Types<nTuple<double, 3>,                        //
+                       nTuple<double, 3, 3>,                     //
+                       nTuple<double, 3, 4, 5>,                  //
+                       nTuple<int, 3, 4, 5, 6>,                  //
+                       nTuple<std::complex<double>, 3>,          //
+                       nTuple<std::complex<double>, 3, 4, 5, 6>  //
                        >
     ntuple_type_lists;
 
