@@ -41,19 +41,20 @@ struct FVM {
     auto get_(TExpr const& expr, IdxShift S, ENABLE_IF((std::is_arithmetic<TExpr>::value))) const {
         return expr;
     }
+    template <int I, typename V, int... N>
+    auto get_(nTuple<V, N...> const& v, IdxShift S, ENABLE_IF((std::is_arithmetic<V>::value))) const {
+        return st::nt_get_r<I>(v);
+    }
     template <int I, typename... V, int... N>
     auto get_(Array<V...> const& v, IdxShift S) const {
         return v.GetShift(S);
     }
+
     template <int I, typename... V, int... N>
     auto get_(nTuple<Array<V...>, N...> const& v, IdxShift S) const {
         return st::nt_get_r<I>(v).GetShift(S);
     }
 
-    //    template <int I, typename V, int... N>
-    //    auto get_(engine::AttributeT<V, N...> const& v, IdxShift S, int tag) const {
-    //        return st::index(v, EntityIdCoder::m_id_to_sub_index_[tag]).GetShift(S);
-    //    }
     template <int I, typename TOP, typename... Args>
     auto get_diff_expr(Expression<TOP, Args...> const& expr, IdxShift S) const {
         return eval<I>(std::integer_sequence<int, traits::iform<Args>::value...>(), expr, S /*,tag*/);
@@ -149,8 +150,8 @@ struct FVM {
 
         IdxShift SY{0, 0, 0};
         IdxShift SZ{0, 0, 0};
-        SY[(I + 1) % 3] = 1;
-        SZ[(I + 2) % 3] = 1;
+        SY[IY] = 1;
+        SZ[IZ] = 1;
 
         return ((getV<IY>(l, S + SZ) - getV<IY>(l, S)) - (getV<IZ>(l, S + SY) - getV<IZ>(l, S))) *
                get_<IX>(m_host_->m_face_inv_volume_, S);
@@ -412,7 +413,6 @@ struct FVM {
 
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
-        int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
 
         static constexpr int IX = (I + 0) % 3;
         static constexpr int IY = (I + 1) % 3;
@@ -428,8 +428,8 @@ struct FVM {
     }
 
     template <int I, typename... TExpr>
-    auto eval(std::integer_sequence<int, EDGE, FACE> _, Expression<tags::wedge, TExpr...> const& expr, IdxShift S,
-              int tag) const {
+    auto eval(std::integer_sequence<int, EDGE, FACE> _, Expression<tags::wedge, TExpr...> const& expr,
+              IdxShift S) const {
         FIXME;
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
@@ -447,8 +447,8 @@ struct FVM {
     }
 
     template <int I, typename... TExpr>
-    auto eval(std::integer_sequence<int, FACE, EDGE> _, Expression<tags::wedge, TExpr...> const& expr, IdxShift S,
-              int tag) const {
+    auto eval(std::integer_sequence<int, FACE, EDGE> _, Expression<tags::wedge, TExpr...> const& expr,
+              IdxShift S) const {
         FIXME;
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
@@ -466,23 +466,20 @@ struct FVM {
     }
 
     template <int I, typename... TExpr>
-    auto eval(std::integer_sequence<int, EDGE, EDGE> _, Expression<tags::dot, TExpr...> const& expr, IdxShift S,
-              int tag) const {
+    auto eval(std::integer_sequence<int, EDGE, EDGE> _, Expression<tags::dot, TExpr...> const& expr, IdxShift S) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
         return get_<I>(wedge(l, hodgestar(r)), S);
     }
     template <int I, typename... TExpr>
-    auto eval(std::integer_sequence<int, FACE, FACE> _, Expression<tags::dot, TExpr...> const& expr, IdxShift S,
-              int tag) const {
+    auto eval(std::integer_sequence<int, FACE, FACE> _, Expression<tags::dot, TExpr...> const& expr, IdxShift S) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
         return get_<I>(wedge(l, hodgestar(r)), S);
     }
 
     template <int I, typename... TExpr>
-    auto eval(std::integer_sequence<int, NODE, NODE> _, Expression<tags::dot, TExpr...> const& expr, IdxShift S,
-              int tag) const {
+    auto eval(std::integer_sequence<int, NODE, NODE> _, Expression<tags::dot, TExpr...> const& expr, IdxShift S) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
@@ -494,8 +491,7 @@ struct FVM {
     }
 
     template <int I, typename... TExpr>
-    auto eval(std::integer_sequence<int, CELL, CELL> _, Expression<tags::dot, TExpr...> const& expr, IdxShift S,
-              int tag) const {
+    auto eval(std::integer_sequence<int, CELL, CELL> _, Expression<tags::dot, TExpr...> const& expr, IdxShift S) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
         static constexpr int IX = 0;
@@ -506,8 +502,8 @@ struct FVM {
     }
 
     template <int I, typename... TExpr>
-    auto eval(std::integer_sequence<int, NODE, NODE> _, Expression<tags::cross, TExpr...> const& expr, IdxShift S,
-              int tag) const {
+    auto eval(std::integer_sequence<int, NODE, NODE> _, Expression<tags::cross, TExpr...> const& expr,
+              IdxShift S) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
@@ -519,11 +515,10 @@ struct FVM {
     }
 
     template <int I, typename... TExpr>
-    auto eval(std::integer_sequence<int, CELL, CELL> _, Expression<tags::cross, TExpr...> const& expr, IdxShift S,
-              int tag) const {
+    auto eval(std::integer_sequence<int, CELL, CELL> _, Expression<tags::cross, TExpr...> const& expr,
+              IdxShift S) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
-        int n = (tag << 3) % 3;
 
         static constexpr int IX = (I + 0) % 3;
         static constexpr int IY = (I + 1) % 3;
