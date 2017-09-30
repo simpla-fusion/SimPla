@@ -36,90 +36,89 @@ struct FVM {
     typedef THost domain_type;
     static constexpr unsigned int NDIMS = 3;
 
-    template <int TAG, typename... TOP>
-    decltype(auto) Calculate(Expression<TOP...> const& rhs) const {
-        return get_(rhs, IdxShift{0, 0, 0}, TAG);
-    };
-
    private:
-    template <typename TExpr>
-    auto get_(TExpr const& expr, IdxShift S, int tag, ENABLE_IF((std::is_arithmetic<TExpr>::value))) const {
+    template <int I, typename TExpr>
+    auto get_(TExpr const& expr, IdxShift S, ENABLE_IF((std::is_arithmetic<TExpr>::value))) const {
         return expr;
     }
-    template <typename... V, int... N>
-    auto get_(Array<V...> const& v, IdxShift S, int tag) const {
+    template <int I, typename... V, int... N>
+    auto get_(Array<V...> const& v, IdxShift S) const {
         return v.GetShift(S);
     }
-    template <typename... V, int... N>
-    auto get_(nTuple<Array<V...>, N...> const& v, IdxShift S, int tag) const {
-        return v;
+    template <int I, typename... V, int... N>
+    auto get_(nTuple<Array<V...>, N...> const& v, IdxShift S) const {
+        return st::nt_get_r<I>(v).GetShift(S);
     }
 
-    template <typename V, int... N>
-    auto get_(engine::AttributeT<V, N...> const& v, IdxShift S, int tag) const {
-        return st::index(v, EntityIdCoder::m_id_to_sub_index_[tag]).GetShift(S);
-    }
-    template <typename TOP, typename... Args>
-    auto get_diff_expr(Expression<TOP, Args...> const& expr, IdxShift S, int tag) const {
-        return eval(std::integer_sequence<int, traits::iform<Args>::value...>(), expr, S, tag);
+    //    template <int I, typename V, int... N>
+    //    auto get_(engine::AttributeT<V, N...> const& v, IdxShift S, int tag) const {
+    //        return st::index(v, EntityIdCoder::m_id_to_sub_index_[tag]).GetShift(S);
+    //    }
+    template <int I, typename TOP, typename... Args>
+    auto get_diff_expr(Expression<TOP, Args...> const& expr, IdxShift S) const {
+        return eval<I>(std::integer_sequence<int, traits::iform<Args>::value...>(), expr, S /*,tag*/);
     };
 
-    template <typename TOP, typename... Args>
-    auto get_(Expression<TOP, Args...> const& expr, IdxShift S, int tag,
+    template <int I, typename TOP, typename... Args>
+    auto get_(Expression<TOP, Args...> const& expr, IdxShift S,
               ENABLE_IF((traits::check_type_in_list<TOP, op_list>::value))) const {
-        return get_diff_expr(expr, S, tag);
+        return get_diff_expr<I>(expr, S);
     };
 
-    template <size_t... I, typename TOP, typename... Args>
-    auto _invoke_helper(std::index_sequence<I...> _, Expression<TOP, Args...> const& expr, IdxShift S, int tag) const {
-        return expr.m_op_(get_(std::get<I>(expr.m_args_), S, tag)...);
+    template <int I, size_t... IDX, typename TOP, typename... Args>
+    auto _invoke_helper(std::index_sequence<IDX...> _, Expression<TOP, Args...> const& expr, IdxShift S) const {
+        return expr.m_op_(get_<I>(std::get<IDX>(expr.m_args_), S)...);
     }
 
-    template <typename TOP, typename... Args>
-    auto get_(Expression<TOP, Args...> const& expr, IdxShift S, int tag,
+    template <int I, typename TOP, typename... Args>
+    auto get_(Expression<TOP, Args...> const& expr, IdxShift S,
               ENABLE_IF((!traits::check_type_in_list<TOP, op_list>::value))) const {
-        return _invoke_helper(std::index_sequence_for<Args...>(), expr, S, tag);
+        return _invoke_helper<I>(std::index_sequence_for<Args...>(), expr, S);
+    }
+    template <int I>
+    auto _getV(std::integral_constant<int, NODE> _, IdxShift S) const {
+        return get_<I>(m_host_->m_vertex_volume_, S);
+    }
+    template <int I>
+    auto _getV(std::integral_constant<int, EDGE> _, IdxShift S) const {
+        return get_<I>(m_host_->m_edge_volume_, S);
+    }
+    template <int I>
+    auto _getV(std::integral_constant<int, FACE> _, IdxShift S) const {
+        return get_<I>(m_host_->m_face_volume_, S);
+    }
+    template <int I>
+    auto _getV(std::integral_constant<int, CELL> _, IdxShift S) const {
+        return get_<I>(m_host_->m_volume_volume_, S);
     }
 
-    auto _getV(std::integral_constant<int, NODE> _, IdxShift S, int tag) const {
-        return get_(m_host_->m_vertex_volume_, S, tag);
+    template <int I>
+    auto _getDualV(std::integral_constant<int, NODE> _, IdxShift S) const {
+        return get_<I>(m_host_->m_vertex_dual_volume_, S);
     }
 
-    auto _getV(std::integral_constant<int, EDGE> _, IdxShift S, int tag) const {
-        return get_(m_host_->m_edge_volume_, S, tag);
+    template <int I>
+    auto _getDualV(std::integral_constant<int, EDGE> _, IdxShift S) const {
+        return get_<I>(m_host_->m_edge_dual_volume_, S);
     }
 
-    auto _getV(std::integral_constant<int, FACE> _, IdxShift S, int tag) const {
-        return get_(m_host_->m_face_volume_, S, tag);
+    template <int I>
+    auto _getDualV(std::integral_constant<int, FACE> _, IdxShift S) const {
+        return get_<I>(m_host_->m_face_dual_volume_, S);
     }
 
-    auto _getV(std::integral_constant<int, CELL> _, IdxShift S, int tag) const {
-        return get_(m_host_->m_volume_volume_, S, tag);
+    template <int I>
+    auto _getDualV(std::integral_constant<int, CELL> _, IdxShift S) const {
+        return get_<I>(m_host_->m_volume_dual_volume_, S);
     }
 
-    auto _getDualV(std::integral_constant<int, NODE> _, IdxShift S, int tag) const {
-        return get_(m_host_->m_vertex_dual_volume_, S, tag);
+    template <int I, typename TExpr>
+    auto getDualV(TExpr const& expr, IdxShift S) const {
+        return get_<I>(expr, S) * _getDualV<I>(std::integral_constant<int, st::iform<TExpr>::value>(), S);
     }
-
-    auto _getDualV(std::integral_constant<int, EDGE> _, IdxShift S, int tag) const {
-        return get_(m_host_->m_edge_dual_volume_, S, tag);
-    }
-
-    auto _getDualV(std::integral_constant<int, FACE> _, IdxShift S, int tag) const {
-        return get_(m_host_->m_face_dual_volume_, S, tag);
-    }
-
-    auto _getDualV(std::integral_constant<int, CELL> _, IdxShift S, int tag) const {
-        return get_(m_host_->m_volume_dual_volume_, S, tag);
-    }
-
-    template <typename TExpr>
-    auto getDualV(TExpr const& expr, IdxShift S, int tag) const {
-        return get_(expr, S, tag) * _getDualV(std::integral_constant<int, st::iform<TExpr>::value>(), S, tag);
-    }
-    template <typename TExpr>
-    auto getV(TExpr const& expr, IdxShift S, int tag) const {
-        return get_(expr, S, tag) * _getV(std::integral_constant<int, st::iform<TExpr>::value>(), S, tag);
+    template <int I, typename TExpr>
+    auto getV(TExpr const& expr, IdxShift S) const {
+        return get_<I>(expr, S) * _getV<I>(std::integral_constant<int, st::iform<TExpr>::value>(), S);
     }
 
     //******************************************************************************
@@ -128,127 +127,118 @@ struct FVM {
 
     //! grad<0>
 
-    template <typename TExpr>
-    auto eval(std::integer_sequence<int, NODE> _, Expression<tags::exterior_derivative, TExpr> const& expr, IdxShift S,
-              int tag) const {
+    template <int I, typename TExpr>
+    auto eval(std::integer_sequence<int, NODE> _, Expression<tags::exterior_derivative, TExpr> const& expr,
+              IdxShift S) const {
         auto const& l = std::get<0>(expr.m_args_);
         IdxShift D{0, 0, 0};
-        int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
-        D[n] = 1;
-        return (getV(l, S + D, tag & (~0b111)) - getV(l, S, tag & (~0b111))) *
-               get_(m_host_->m_edge_inv_volume_, S, tag);
+        D[I] = 1;
+        return (getV<0>(l, S + D) - getV<0>(l, S)) * get_<I>(m_host_->m_edge_inv_volume_, S);
     }
 
     //! curl<1>
 
-    template <typename TExpr>
-    auto eval(std::integer_sequence<int, EDGE> _, Expression<tags::exterior_derivative, TExpr> const& expr, IdxShift S,
-              int tag) const {
+    template <int I, typename TExpr>
+    auto eval(std::integer_sequence<int, EDGE> _, Expression<tags::exterior_derivative, TExpr> const& expr,
+              IdxShift S) const {
         auto const& l = std::get<0>(expr.m_args_);
 
-        int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
-        int IX = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 0) % 3];
-        int IY = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 1) % 3];
-        int IZ = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 2) % 3];
+        static constexpr int IX = (I + 0) % 3;
+        static constexpr int IY = (I + 1) % 3;
+        static constexpr int IZ = (I + 2) % 3;
 
         IdxShift SY{0, 0, 0};
         IdxShift SZ{0, 0, 0};
-        SY[(n + 1) % 3] = 1;
-        SZ[(n + 2) % 3] = 1;
+        SY[(I + 1) % 3] = 1;
+        SZ[(I + 2) % 3] = 1;
 
-        return ((getV(l, S + SZ, IY) - getV(l, S, IY)) - (getV(l, S + SY, IZ) - getV(l, S, IZ))) *
-               get_(m_host_->m_face_inv_volume_, S, tag);
+        return ((getV<IY>(l, S + SZ) - getV<IY>(l, S)) - (getV<IZ>(l, S + SY) - getV<IZ>(l, S))) *
+               get_<IX>(m_host_->m_face_inv_volume_, S);
     }
 
     //! div<2>
-    template <typename TExpr>
-    auto eval(std::integer_sequence<int, FACE> _, Expression<tags::exterior_derivative, TExpr> const& expr, IdxShift S,
-              int tag) const {
+    template <int I, typename TExpr>
+    auto eval(std::integer_sequence<int, FACE> _, Expression<tags::exterior_derivative, TExpr> const& expr,
+              IdxShift S) const {
         auto const& l = std::get<0>(expr.m_args_);
 
-        IdxShift SX{1, 0, 0};
-        IdxShift SY{0, 1, 0};
-        IdxShift SZ{0, 0, 1};
+        static constexpr IdxShift SX{1, 0, 0};
+        static constexpr IdxShift SY{0, 1, 0};
+        static constexpr IdxShift SZ{0, 0, 1};
 
-        int IX = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][0];
-        int IY = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][1];
-        int IZ = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][2];
+        static constexpr int IX = 0;
+        static constexpr int IY = 1;
+        static constexpr int IZ = 2;
 
-        return ((getV(l, S + SX, IX) - getV(l, S, IX)) + (getV(l, S + SY, IY) - getV(l, S, IY)) +
-                (getV(l, S + SZ, IZ) - getV(l, S, IZ))) *
-               get_(m_host_->m_volume_inv_volume_, S, tag);
+        return ((getV<IX>(l, S + SX) - getV<IX>(l, S)) + (getV<IY>(l, S + SY) - getV<IY>(l, S)) +
+                (getV<IZ>(l, S + SZ) - getV<IZ>(l, S))) *
+               get_<0>(m_host_->m_volume_inv_volume_, S);
     }
 
     //! curl<2>
-    template <typename TExpr>
+    template <int I, typename TExpr>
     auto eval(std::integer_sequence<int, FACE> _, Expression<tags::codifferential_derivative, TExpr> const& expr,
-              IdxShift S, int tag) const {
+              IdxShift S) const {
         auto const& l = std::get<0>(expr.m_args_);
 
-        int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
-
-        int IX = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][(n + 0) % 3];
-        int IY = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][(n + 1) % 3];
-        int IZ = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[FACE][(n + 2) % 3];
+        static constexpr int IX = (I + 0) % 3;
+        static constexpr int IY = (I + 1) % 3;
+        static constexpr int IZ = (I + 2) % 3;
         IdxShift SY{0, 0, 0};
         IdxShift SZ{0, 0, 0};
-        SY[(n + 1) % 3] = 1;
-        SZ[(n + 2) % 3] = 1;
+        SY[(I + 1) % 3] = 1;
+        SZ[(I + 2) % 3] = 1;
 
-        return ((getDualV(l, S, IY) - getDualV(l, S - SZ, IY)) - (getDualV(l, S, IZ) - getDualV(l, S - SY, IZ))) *
-               (-get_(m_host_->m_edge_inv_dual_volume_, S, tag));
+        return ((getDualV<IY>(l, S) - getDualV<IY>(l, S - SZ)) - (getDualV<IZ>(l, S) - getDualV<IZ>(l, S - SY))) *
+               (-get_<IX>(m_host_->m_edge_inv_dual_volume_, S));
     }
 
     //! div<1>
 
-    template <typename TExpr>
+    template <int I, typename TExpr>
     auto eval(std::integer_sequence<int, EDGE> _, Expression<tags::codifferential_derivative, TExpr> const& expr,
-              IdxShift S, int tag) const {
+              IdxShift S) const {
         auto const& l = std::get<0>(expr.m_args_);
-        int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
 
         IdxShift SX{1, 0, 0};
         IdxShift SY{0, 1, 0};
         IdxShift SZ{0, 0, 1};
 
-        int IX = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][0];
-        int IY = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][1];
-        int IZ = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][2];
+        static constexpr int IX = 0;
+        static constexpr int IY = 1;
+        static constexpr int IZ = 2;
 
-        return ((getDualV(l, S, IX) - getDualV(l, S - SX, IX)) +  //
-                (getDualV(l, S, IY) - getDualV(l, S - SY, IY)) +  //
-                (getDualV(l, S, IZ) - getDualV(l, S - SZ, IZ))) *
-               (-get_(m_host_->m_vertex_inv_dual_volume_, S, tag));
+        return ((getDualV<IX>(l, S) - getDualV<IX>(l, S - SX)) +  //
+                (getDualV<IY>(l, S) - getDualV<IY>(l, S - SY)) +  //
+                (getDualV<IZ>(l, S) - getDualV<IZ>(l, S - SZ))) *
+               (-get_<I>(m_host_->m_vertex_inv_dual_volume_, S));
 
         ;
     }
 
     //! grad<3>
 
-    template <typename TExpr>
+    template <int I, typename TExpr>
     auto eval(std::integer_sequence<int, CELL> _, Expression<tags::codifferential_derivative, TExpr> const& expr,
-              IdxShift S, int tag) const {
+              IdxShift S) const {
         auto const& l = std::get<0>(expr.m_args_);
-        int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
         IdxShift SD{0, 0, 0};
-        SD[n] = 1;
-        int ID = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[CELL][n];
+        SD[I] = 1;
 
-        return (getV(l, S, ID) - getV(l, S - SD, ID)) * (-get_(m_host_->m_face_inv_volume_, S, tag));
+        return (getV<I>(l, S) - getV<I>(l, S - SD)) * (-get_<I>(m_host_->m_face_inv_volume_, S));
     }
 
     //! *Form<IR> => Form<N-IL>
 
-    template <typename TExpr>
+    template <int I, typename TExpr>
     auto eval(std::integer_sequence<int, NODE> _, Expression<tags::hodge_star, TExpr> const& expr, IdxShift S,
               int tag) const {
         auto const& l = std::get<0>(expr.m_args_);
-        int I0 = tag & (~0b111);
-        return (getV(l, S + IdxShift{0, 0, 0}, I0) + getV(l, S + IdxShift{0, 0, 1}, I0) +
-                getV(l, S + IdxShift{0, 1, 0}, I0) + getV(l, S + IdxShift{0, 1, 1}, I0) +
-                getV(l, S + IdxShift{1, 0, 0}, I0) + getV(l, S + IdxShift{1, 0, 1}, I0) +
-                getV(l, S + IdxShift{1, 1, 0}, I0) + getV(l, S + IdxShift{1, 1, 1}, I0)) *
-               get_(m_host_->m_volume_inv_volume_, S, tag) * 0.125;
+        return (getV<I>(l, S + IdxShift{0, 0, 0}) + getV<I>(l, S + IdxShift{0, 0, 1}) +
+                getV<I>(l, S + IdxShift{0, 1, 0}) + getV<I>(l, S + IdxShift{0, 1, 1}) +
+                getV<I>(l, S + IdxShift{1, 0, 0}) + getV<I>(l, S + IdxShift{1, 0, 1}) +
+                getV<I>(l, S + IdxShift{1, 1, 0}) + getV<I>(l, S + IdxShift{1, 1, 1})) *
+               get_<I>(m_host_->m_volume_inv_volume_, S) * 0.125;
     };
     ////***************************************************************************************************
     //! p_curl<1>
@@ -257,7 +247,7 @@ struct FVM {
     //    <Expression<TOP, T>>
     //    GetValue(mesh_type const &Expression<TOP, T> const &expr,
     //    EntityId const &s,
-    //    ENABLE_IF((std::is_same<TOP, tags::p_exterior_derivative < 0>>
+    //    ENABLE_IF((std::is_same<TOP/*,tag*/s::p_exterior_derivative < 0>>
     //                      ::value && st::GetIFORM<T>::value == EDGE))
     //    )
     //    {
@@ -290,138 +280,131 @@ struct FVM {
     ////! map_to
 
     template <int I, typename TExpr>
-    auto _map_to(std::index_sequence<I, I> _, TExpr const& expr, IdxShift S, int tag) const {
-        return get_(expr, S, tag);
+    auto _map_to(std::index_sequence<I, I> _, TExpr const& expr, IdxShift S) const {
+        return get_<I>(expr, S);
     };
 
-    template <typename TExpr>
-    auto _map_to(std::index_sequence<NODE, EDGE> _, TExpr const& expr, IdxShift S, int tag) const {
-        int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
-        int IX = (((tag << 3) * 3) + n) >> 3;
+    template <int I, typename TExpr>
+    auto _map_to(std::index_sequence<NODE, EDGE> _, TExpr const& expr, IdxShift S) const {
         IdxShift SX{0, 0, 0};
-        SX[n] = 1;
-
-        return (get_(expr, S, IX) + get_(expr, S + SX, IX)) * 0.5;
+        SX[I] = 1;
+        return (get_<0>(expr, S) + get_<0>(expr, S + SX)) * 0.5;
     }
 
-    template <typename TExpr>
-    auto _map_to(std::index_sequence<EDGE, NODE> _, TExpr const& expr, IdxShift S, int tag) const {
-        int n = (tag << 3) % 3;
-        int IX = (((tag << 3) / 3) >> 3) | EntityIdCoder::m_sub_index_to_id_[EDGE][n];
+    template <int I, typename TExpr>
+    auto _map_to(std::index_sequence<EDGE, NODE> _, TExpr const& expr, IdxShift S) const {
         IdxShift SX{0, 0, 0};
-        SX[n] = 1;
-        return (get_(expr, S - SX, IX) + get_(expr, S, IX)) * 0.5;
+        SX[I] = 1;
+        return (get_<I>(expr, S - SX) + get_<I>(expr, S)) * 0.5;
     }
 
-    template <typename TExpr>
-    auto _map_to(std::index_sequence<NODE, FACE> _, TExpr const& expr, IdxShift S, int tag) const {
-        int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
-        int IX = (((tag << 3) * 3 + n) >> 3);
+    template <int I, typename TExpr>
+    auto _map_to(std::index_sequence<NODE, FACE> _, TExpr const& expr, IdxShift S) const {
         IdxShift SY{0, 0, 0};
         IdxShift SZ{0, 0, 0};
-        SY[(n + 1) % 3] = 1;
-        SZ[(n + 2) % 3] = 1;
-        return (get_(expr, S, IX) + get_(expr, S + SY, IX) + get_(expr, S + SZ, IX) + get_(expr, S + SY + SZ, IX)) *
+        SY[(I + 1) % 3] = 1;
+        SZ[(I + 2) % 3] = 1;
+        return (get_<I>(expr, S) +          //
+                get_<I>(expr, S + SY) +     //
+                get_<I>(expr, S + SZ) +     //
+                get_<I>(expr, S + SY + SZ)  //
+                ) *
                0.25;
     }
 
-    template <typename TExpr>
-    auto _map_to(std::index_sequence<FACE, NODE> _, TExpr const& expr, IdxShift S, int tag) const {
-        int n = (tag << 3) % 3;
-        int IX = (((tag << 3) / 3) >> 3) | EntityIdCoder::m_sub_index_to_id_[FACE][(n + 0) % 3];
+    template <int I, typename TExpr>
+    auto _map_to(std::index_sequence<FACE, NODE> _, TExpr const& expr, IdxShift S) const {
         IdxShift SY{0, 0, 0};
         IdxShift SZ{0, 0, 0};
-        SY[(n + 1) % 3] = 1;
-        SZ[(n + 2) % 3] = 1;
+        SY[(I + 1) % 3] = 1;
+        SZ[(I + 2) % 3] = 1;
 
-        return (get_(expr, S - SY - SZ, IX) + get_(expr, S - SY, IX) + get_(expr, S - SZ, IX) + get_(expr, S, IX)) *
+        return (get_<I>(expr, S - SY - SZ) +  //
+                get_<I>(expr, S - SY) +       //
+                get_<I>(expr, S - SZ) +       //
+                get_<I>(expr, S)              //
+                ) *
                0.25;
     }
 
-    template <typename TExpr>
-    auto _map_to(std::index_sequence<NODE, CELL> _, TExpr const& expr, IdxShift S, int tag) const {
-        tag = tag & (~0b111);
-        return (get_(expr, S + IdxShift{0, 0, 0}, tag) + get_(expr, S + IdxShift{0, 0, 1}, tag) +
-                get_(expr, S + IdxShift{0, 1, 0}, tag) + get_(expr, S + IdxShift{0, 1, 1}, tag) +
-                get_(expr, S + IdxShift{1, 0, 0}, tag) + get_(expr, S + IdxShift{1, 0, 1}, tag) +
-                get_(expr, S + IdxShift{1, 1, 0}, tag) + get_(expr, S + IdxShift{1, 1, 1}, tag)) *
+    template <int I, typename TExpr>
+    auto _map_to(std::index_sequence<NODE, CELL> _, TExpr const& expr, IdxShift S) const {
+        return (get_<I>(expr, S + IdxShift{0, 0, 0}) + get_<I>(expr, S + IdxShift{0, 0, 1}) +
+                get_<I>(expr, S + IdxShift{0, 1, 0}) + get_<I>(expr, S + IdxShift{0, 1, 1}) +
+                get_<I>(expr, S + IdxShift{1, 0, 0}) + get_<I>(expr, S + IdxShift{1, 0, 1}) +
+                get_<I>(expr, S + IdxShift{1, 1, 0}) + get_<I>(expr, S + IdxShift{1, 1, 1})) *
                0.125;
     }
 
-    template <typename TExpr>
-    auto _map_to(std::index_sequence<CELL, NODE> _, TExpr const& expr, IdxShift S, int tag) const {
-        tag = tag | (0b111);
-        return (get_(expr, S - IdxShift{1, 1, 1}, tag) + get_(expr, S - IdxShift{1, 1, 0}, tag) +
-                get_(expr, S - IdxShift{1, 0, 1}, tag) + get_(expr, S - IdxShift{1, 0, 0}, tag) +
-                get_(expr, S - IdxShift{0, 1, 1}, tag) + get_(expr, S - IdxShift{0, 1, 0}, tag) +
-                get_(expr, S - IdxShift{0, 0, 1}, tag) + get_(expr, S, tag)) *
+    template <int I, typename TExpr>
+    auto _map_to(std::index_sequence<CELL, NODE> _, TExpr const& expr, IdxShift S) const {
+        return (get_<I>(expr, S - IdxShift{1, 1, 1}) + get_<I>(expr, S - IdxShift{1, 1, 0}) +
+                get_<I>(expr, S - IdxShift{1, 0, 1}) + get_<I>(expr, S - IdxShift{1, 0, 0}) +
+                get_<I>(expr, S - IdxShift{0, 1, 1}) + get_<I>(expr, S - IdxShift{0, 1, 0}) +
+                get_<I>(expr, S - IdxShift{0, 0, 1}) + get_<I>(expr, S)) *
                0.125;
     }
 
-    template <typename TExpr>
-    auto _map_to(std::index_sequence<CELL, FACE> _, TExpr const& expr, IdxShift S, int tag) const {
-        int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
-        int IX = 0b111 | (((n << 3) * 3 + n) >> 3);
-
+    template <int I, typename TExpr>
+    auto _map_to(std::index_sequence<CELL, FACE> _, TExpr const& expr, IdxShift S) const {
         IdxShift SD{0, 0, 0};
-        SD[n] = 1;
-        return (get_(expr, S - SD, IX) + get_(expr, S, IX)) * 0.5;
+        SD[I] = 1;
+        return (get_<I>(expr, S - SD) + get_<I>(expr, S)) * 0.5;
     }
 
-    template <typename TExpr>
-    auto _map_to(std::index_sequence<FACE, CELL> _, TExpr const& expr, IdxShift S, int tag) const {
-        int n = (tag << 3) % 3;
-        int IX = (((tag << 3) / 3) >> 3) | EntityIdCoder::m_sub_index_to_id_[FACE][n];
+    template <int I, typename TExpr>
+    auto _map_to(std::index_sequence<FACE, CELL> _, TExpr const& expr, IdxShift S) const {
         IdxShift SX{0, 0, 0};
-        SX[n] = 1;
-        return (get_(expr, S, IX) + get_(expr, S + SX, IX)) * 0.5;
+        SX[I] = 1;
+        return (get_<I>(expr, S) + get_<I>(expr, S + SX)) * 0.5;
     }
 
-    template <typename TExpr>
-    auto _map_to(std::index_sequence<CELL, EDGE> _, TExpr const& expr, IdxShift S, int tag) const {
-        int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
-        int IX = 0b111 | (((n >> 3) * 3 + n) << 3);
-
+    template <int I, typename TExpr>
+    auto _map_to(std::index_sequence<CELL, EDGE> _, TExpr const& expr, IdxShift S) const {
         IdxShift SY{0, 0, 0};
         IdxShift SZ{0, 0, 0};
-        SY[(n + 1) % 3] = 1;
-        SZ[(n + 2) % 3] = 1;
+        SY[(I + 1) % 3] = 1;
+        SZ[(I + 2) % 3] = 1;
 
-        return (get_(expr, S - SY, IX) + get_(expr, S - SZ, IX) + get_(expr, S - SY - SZ, IX) + get_(expr, S, IX)) *
+        return (get_<I>(expr, S - SY) +       //
+                get_<I>(expr, S - SZ) +       //
+                get_<I>(expr, S - SY - SZ) +  //
+                get_<I>(expr, S)              //
+                ) *
                0.25;
     }
 
-    template <typename TExpr>
-    auto _map_to(std::index_sequence<EDGE, CELL> _, TExpr const& expr, IdxShift S, int tag) const {
-        int n = (tag << 3) % 3;
-        int IX = (((tag << 3) / 3) >> 3) | EntityIdCoder::m_sub_index_to_id_[EDGE][n];
-
+    template <int I, typename TExpr>
+    auto _map_to(std::index_sequence<EDGE, CELL> _, TExpr const& expr, IdxShift S) const {
         IdxShift SY{0, 0, 0};
         IdxShift SZ{0, 0, 0};
-        SY[(n + 1) % 3] = 1;
-        SZ[(n + 2) % 3] = 1;
+        SY[(I + 1) % 3] = 1;
+        SZ[(I + 2) % 3] = 1;
 
-        return (get_(expr, S, IX) + get_(expr, S + SZ, IX) + get_(expr, S + SY, IX) + get_(expr, S + SY + SZ, IX)) *
+        return (get_<I>(expr, S) +          //
+                get_<I>(expr, S + SZ) +     //
+                get_<I>(expr, S + SY) +     //
+                get_<I>(expr, S + SY + SZ)  //
+                ) *
                0.25;
     }
 
-    template <typename TExpr, int ISrc, int IDest>
-    auto eval(std::integer_sequence<int, ISrc> _, Expression<tags::map_to<IDest>, TExpr> const& expr, IdxShift S,
-              int tag) const {
-        return _map_to(std::index_sequence<ISrc, IDest>(), std::get<0>(expr.m_args_), S, tag);
+    template <int I, typename TExpr, int ISrc, int IDest>
+    auto eval(std::integer_sequence<int, ISrc> _, Expression<tags::map_to<IDest>, TExpr> const& expr,
+              IdxShift S) const {
+        return _map_to<I>(std::index_sequence<ISrc, IDest>(), std::get<0>(expr.m_args_), S);
     }
     //***************************************************************************************************
     //
     //! Form<IL> ^ Form<IR> => Form<IR+IL>
-    template <typename... TExpr, int IL, int IR>
-    auto eval(std::integer_sequence<int, IL, IR> _, Expression<tags::wedge, TExpr...> const& expr, IdxShift S,
-              int tag) const {
+    template <int I, typename... TExpr, int IL, int IR>
+    auto eval(std::integer_sequence<int, IL, IR> _, Expression<tags::wedge, TExpr...> const& expr, IdxShift S) const {
         FIXME;
-        return m_host_->inner_product(_map_to(std::index_sequence<IL, IR + IL>(), std::get<0>(expr.m_args_), S, tag),
-                                      _map_to(std::index_sequence<IR, IR + IL>(), std::get<1>(expr.m_args_), S, tag));
+        return m_host_->inner_product(_map_to<I>(std::index_sequence<IL, IR + IL>(), std::get<0>(expr.m_args_), S),
+                                      _map_to<I>(std::index_sequence<IR, IR + IL>(), std::get<1>(expr.m_args_), S));
     }
 
-    template <typename... TExpr>
+    template <int I, typename... TExpr>
     auto eval(std::integer_sequence<int, EDGE, EDGE> _, Expression<tags::wedge, TExpr...> const& expr, IdxShift S,
               int tag) const {
         // FIXME: only correct for csCartesian coordinates
@@ -431,124 +414,130 @@ struct FVM {
         auto const& r = std::get<1>(expr.m_args_);
         int n = EntityIdCoder::m_id_to_sub_index_[tag & 0b111];
 
-        int IX = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 0) % 3];
-        int IY = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 1) % 3];
-        int IZ = (tag & (~0b111)) | EntityIdCoder::m_sub_index_to_id_[EDGE][(n + 2) % 3];
+        static constexpr int IX = (I + 0) % 3;
+        static constexpr int IY = (I + 1) % 3;
+        static constexpr int IZ = (I + 2) % 3;
 
         IdxShift SY{0, 0, 0};
         IdxShift SZ{0, 0, 0};
-        SY[(n + 1) % 3] = 1;
-        SZ[(n + 2) % 3] = 1;
+        SY[(I + 1) % 3] = 1;
+        SZ[(I + 2) % 3] = 1;
 
-        return (get_(l, S, IY) + get_(l, S + SZ, IY)) * (get_(r, S, IY) + get_(r, S + SY, IZ)) * 0.25 -
-               (get_(r, S, IY) + get_(r, S + SZ, IY)) * (get_(l, S, IY) + get_(l, S + SY, IZ)) * 0.25;
+        return (get_<IY>(l, S) + get_<IY>(l, S + SZ)) * (get_<IZ>(r, S) + get_<IZ>(r, S + SY)) * 0.25 -
+               (get_<IY>(r, S) + get_<IY>(r, S + SZ)) * (get_<IZ>(l, S) + get_<IZ>(l, S + SY)) * 0.25;
     }
 
-    template <typename... TExpr>
+    template <int I, typename... TExpr>
     auto eval(std::integer_sequence<int, EDGE, FACE> _, Expression<tags::wedge, TExpr...> const& expr, IdxShift S,
               int tag) const {
         FIXME;
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
-        int IX = (~0b111) | (((tag << 3) * 3 + 0) >> 3);
-        int IY = (~0b111) | (((tag << 3) * 3 + 1) >> 3);
-        int IZ = (~0b111) | (((tag << 3) * 3 + 2) >> 3);
+        static constexpr int IX = 0;
+        static constexpr int IY = 1;
+        static constexpr int IZ = 2;
 
-        return _map_to(std::integer_sequence<int, EDGE, CELL>(), l, S, IX) *
-                   _map_to(std::integer_sequence<int, FACE, CELL>(), r, S, IX) +
-               _map_to(std::integer_sequence<int, EDGE, CELL>(), l, S, IY) *
-                   _map_to(std::integer_sequence<int, FACE, CELL>(), r, S, IY) +
-               _map_to(std::integer_sequence<int, EDGE, CELL>(), l, S, IZ) *
-                   _map_to(std::integer_sequence<int, FACE, CELL>(), r, S, IZ);
+        return _map_to<IX>(std::integer_sequence<int, EDGE, CELL>(), l, S) *
+                   _map_to<IX>(std::integer_sequence<int, FACE, CELL>(), r, S) +
+               _map_to<IY>(std::integer_sequence<int, EDGE, CELL>(), l, S) *
+                   _map_to<IY>(std::integer_sequence<int, FACE, CELL>(), r, S) +
+               _map_to<IZ>(std::integer_sequence<int, EDGE, CELL>(), l, S) *
+                   _map_to<IZ>(std::integer_sequence<int, FACE, CELL>(), r, S);
     }
 
-    template <typename... TExpr>
+    template <int I, typename... TExpr>
     auto eval(std::integer_sequence<int, FACE, EDGE> _, Expression<tags::wedge, TExpr...> const& expr, IdxShift S,
               int tag) const {
         FIXME;
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
-        int IX = (~0b111) | (((tag << 3) * 3 + 0) >> 3);
-        int IY = (~0b111) | (((tag << 3) * 3 + 1) >> 3);
-        int IZ = (~0b111) | (((tag << 3) * 3 + 2) >> 3);
+        static constexpr int IX = 0;
+        static constexpr int IY = 1;
+        static constexpr int IZ = 2;
 
-        return _map_to(std::integer_sequence<int, FACE, CELL>(), l, S, IX) *
-                   _map_to(std::integer_sequence<int, EDGE, CELL>(), r, S, IX) +
-               _map_to(std::integer_sequence<int, FACE, CELL>(), l, S, IY) *
-                   _map_to(std::integer_sequence<int, EDGE, CELL>(), r, S, IY) +
-               _map_to(std::integer_sequence<int, FACE, CELL>(), l, S, IZ) *
-                   _map_to(std::integer_sequence<int, EDGE, CELL>(), r, S, IZ);
+        return _map_to<IX>(std::integer_sequence<int, FACE, CELL>(), l, S) *
+                   _map_to<IX>(std::integer_sequence<int, EDGE, CELL>(), r, S) +
+               _map_to<IY>(std::integer_sequence<int, FACE, CELL>(), l, S) *
+                   _map_to<IY>(std::integer_sequence<int, EDGE, CELL>(), r, S) +
+               _map_to<IZ>(std::integer_sequence<int, FACE, CELL>(), l, S) *
+                   _map_to<IZ>(std::integer_sequence<int, EDGE, CELL>(), r, S);
     }
 
-    template <typename... TExpr>
+    template <int I, typename... TExpr>
     auto eval(std::integer_sequence<int, EDGE, EDGE> _, Expression<tags::dot, TExpr...> const& expr, IdxShift S,
               int tag) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
-        return get_(wedge(l, hodgestar(r)), S, tag);
+        return get_<I>(wedge(l, hodgestar(r)), S);
     }
-    template <typename... TExpr>
+    template <int I, typename... TExpr>
     auto eval(std::integer_sequence<int, FACE, FACE> _, Expression<tags::dot, TExpr...> const& expr, IdxShift S,
               int tag) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
-        return get_(wedge(l, hodgestar(r)), S, tag);
+        return get_<I>(wedge(l, hodgestar(r)), S);
     }
 
-    template <typename... TExpr>
+    template <int I, typename... TExpr>
     auto eval(std::integer_sequence<int, NODE, NODE> _, Expression<tags::dot, TExpr...> const& expr, IdxShift S,
               int tag) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
-        int IX = ((tag << 3) * 3 + 0) >> 3;
-        int IY = ((tag << 3) * 3 + 1) >> 3;
-        int IZ = ((tag << 3) * 3 + 2) >> 3;
+        static constexpr int IX = 0;
+        static constexpr int IY = 1;
+        static constexpr int IZ = 2;
 
-        return get_(l, S, IX) * get_(r, S, IX) + get_(l, S, IY) * get_(r, S, IY) + get_(l, S, IZ) * get_(r, S, IZ);
+        return get_<IX>(l, S) * get_<IX>(r, S) + get_<IY>(l, S) * get_<IY>(r, S) + get_<IZ>(l, S) * get_<IZ>(r, S);
     }
 
-    template <typename... TExpr>
+    template <int I, typename... TExpr>
     auto eval(std::integer_sequence<int, CELL, CELL> _, Expression<tags::dot, TExpr...> const& expr, IdxShift S,
               int tag) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
-        int IX = (((tag << 3) * 3 + 0) >> 3) | 0b111;
-        int IY = (((tag << 3) * 3 + 1) >> 3) | 0b111;
-        int IZ = (((tag << 3) * 3 + 2) >> 3) | 0b111;
+        static constexpr int IX = 0;
+        static constexpr int IY = 1;
+        static constexpr int IZ = 2;
 
-        return get_(l, S, IX) * get_(r, S, IX) + get_(l, S, IY) * get_(r, S, IY) + get_(l, S, IZ) * get_(r, S, IZ);
+        return get_<IX>(l, S) * get_<IX>(r, S) + get_<IY>(l, S) * get_<IY>(r, S) + get_<IZ>(l, S) * get_<IZ>(r, S);
     }
 
-    template <typename... TExpr>
+    template <int I, typename... TExpr>
     auto eval(std::integer_sequence<int, NODE, NODE> _, Expression<tags::cross, TExpr...> const& expr, IdxShift S,
               int tag) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
-        int n = (tag << 3) % 3;
 
-        int IX = ((((tag << 3) / 3) * 3 + (n + 0) % 3) >> 3);
-        int IY = ((((tag << 3) / 3) * 3 + (n + 1) % 3) >> 3);
-        int IZ = ((((tag << 3) / 3) * 3 + (n + 2) % 3) >> 3);
+        static constexpr int IX = (I + 0) % 3;
+        static constexpr int IY = (I + 1) % 3;
+        static constexpr int IZ = (I + 2) % 3;
 
-        return get_(l, S, IY) * get_(r, S, IZ) - get_(l, S, IZ) * get_(r, S, IY);
+        return get_<IY>(l, S) * get_<IZ>(r, S) - get_<IZ>(l, S) * get_<IY>(r, S);
     }
 
-    template <typename... TExpr>
+    template <int I, typename... TExpr>
     auto eval(std::integer_sequence<int, CELL, CELL> _, Expression<tags::cross, TExpr...> const& expr, IdxShift S,
               int tag) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
         int n = (tag << 3) % 3;
 
-        int IX = ((((tag << 3) / 3) * 3 + (n + 0) % 3) >> 3) | 0b111;
-        int IY = ((((tag << 3) / 3) * 3 + (n + 1) % 3) >> 3) | 0b111;
-        int IZ = ((((tag << 3) / 3) * 3 + (n + 2) % 3) >> 3) | 0b111;
+        static constexpr int IX = (I + 0) % 3;
+        static constexpr int IY = (I + 1) % 3;
+        static constexpr int IZ = (I + 2) % 3;
 
-        return get_(l, S, IY) * get_(r, S, IZ) - get_(l, S, IZ) * get_(r, S, IY);
+        return get_<IY>(l, S) * get_<IZ>(r, S) - get_<IZ>(l, S) * get_<IY>(r, S);
     }
+
+   public:
+    template <int I, typename... TOP>
+    decltype(auto) Calculate(Expression<TOP...> const& rhs) const {
+        return get_<I>(rhs, IdxShift{0, 0, 0});
+    };
+
 };  // class FVM
 
 template <typename THost>
@@ -558,8 +547,8 @@ FVM<THost>::~FVM() {}
 
 // template <typename THost>
 // template <typename TOP, typename... Args>
-// auto FVM<THost>::get_diff_expr(Expression<TOP, Args...> const& expr, IdxShift S, int tag) const {
-//    return eval(std::integer_sequence<int, traits::iform<Args>::value...>(), expr, S, tag);
+// auto FVM<THost>::get_diff_expr(Expression<TOP, Args...> const& expr, IdxShift S )const {
+//    return eval(std::integer_sequence<int, traits::iform<Args>::value...>(), expr, S/*,tag*/);
 //}
 
 template <typename THost>
@@ -572,31 +561,31 @@ void FVM<THost>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}
 //    // for element-wise arithmetic operation
 //
 //    template <typename T, typename... Args>
-//    T& GetEntity(T& rhs, int tag, int tag) const {
+//    T& GetEntity(T& rhs, int tag const {
 //        return rhs;
 //    }
 //
 //    template <typename... E, typename... Args>
-//    auto GetEntity(Expression<E...> const& rhs, int tag, int tag) const {
-//        return GetEntity(calculus::get_(rhs, std::forward<Args>(args)...), tag);
+//    auto GetEntity(Expression<E...> const& rhs, int tag const {
+//        return GetEntity(calculus::get_(rhs, std::forward<Args>(args)...)/*,tag*/);
 //    }
 //
 //    template <typename V, int N0, int... N, typename... Args>
-//    auto const& GetEntity(nTuple<V, N0, N...> const& rhs, int tag, int tag) const {
+//    auto const& GetEntity(nTuple<V, N0, N...> const& rhs, int tag const {
 //        return calculus::get_(
-//            st::recursive_index<N...>(rhs[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]], tag >> 3),
+//            st::recursive_index<N...>(rhs[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]]/*,tag*/ >> 3),
 //            std::forward<Args>(args)...);
 //    }
 //    template <typename V, int N0, int... N, typename... Args>
-//    auto& GetEntity(nTuple<V, N0, N...>& rhs, int tag, int tag) const {
+//    auto& GetEntity(nTuple<V, N0, N...>& rhs, int tag const {
 //        return calculus::get_(
-//            st::recursive_index<N...>(rhs[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]], tag >> 3),
+//            st::recursive_index<N...>(rhs[EntityIdCoder::m_id_to_sub_index_[tag & 0b111]]/*,tag*/ >> 3),
 //            std::forward<Args>(args)...);
 //    }
 //
 //    template <typename EXPR, typename... Args>
-//    auto GetEntity(EXPR const& expr, int tag, int tag) const {
-//        return GetEntity(expr(m_host_->local_coordinate(x, y, z, tag)), tag);
+//    auto GetEntity(EXPR const& expr, int tag const {
+//        return GetEntity(expr(m_host_->local_coordinate(x, y, z/*,tag*/))/*,tag*/);
 //    }
 //
 //    template <typename EXPR>
@@ -760,7 +749,7 @@ void FVM<THost>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}
 //
 //   public:
 //    template <typename TF, typename... Args>
-//     void scatter( TF& f, int tag)const{
+//     void scatter( TF& fconst{
 //        scatter_(st::iform<TF>(), f, std::forward<Args>(args)...);
 //    }
 //
@@ -814,7 +803,7 @@ void FVM<THost>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}
 //        return get_( expr,EntityIdCoder::Serialize<IFORM>(i, j, k, n, d));
 //    }
 //    template <typename TField, typename TOP, typename... Args>
-//    void foreach_( TField& self, Range<EntityId> const& r, TOP const& op, int tag) const
+//    void foreach_( TField& self, Range<EntityId> const& r, TOP const& op const
 //    {
 //        r.foreach ([&](EntityId s)  { op(get_(self, s), get_(std::forward<Others>(others), s)...);
 //        });
