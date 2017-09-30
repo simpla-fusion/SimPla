@@ -31,6 +31,7 @@ struct ArrayBase {
     virtual void const* pointer() const = 0;
     virtual int GetNDIMS() const = 0;
     virtual int GetIndexBox(index_type* lo, index_type* hi) const = 0;
+    virtual int GetHaloIndexBox(index_type* lo, index_type* hi) const = 0;
     virtual bool empty() const = 0;
     virtual bool isNull() const = 0;
     virtual size_type CopyIn(ArrayBase const& other) = 0;
@@ -66,7 +67,7 @@ class Array : public ArrayBase {
     Array(this_type&& other) noexcept
         : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_holder_(std::shared_ptr<value_type>(other.m_holder_)) {}
 
-    Array(this_type const& other, IdxShift s) : Array(other) { Shift(s); }
+    Array(this_type const& other, IdxShift s) : Array(other) { m_sfc_.Shift(s); }
     template <typename... Args>
     explicit Array(Args&&... args) : m_sfc_(std::forward<Args>(args)...) {}
 
@@ -104,10 +105,13 @@ class Array : public ArrayBase {
     void const* pointer() const override { return m_data_; }
     int GetNDIMS() const override { return m_sfc_.GetNDIMS(); }
     int GetIndexBox(index_type* lo, index_type* hi) const override { return m_sfc_.GetIndexBox(lo, hi); }
-    bool empty() const override { return m_data_ == nullptr || size() == 0; }
-    bool isNull() const override { return m_data_ == nullptr || size() == 0; }
+    int GetHaloIndexBox(index_type* lo, index_type* hi) const override { return m_sfc_.GetHaloIndexBox(lo, hi); }
 
     auto GetIndexBox() const { return m_sfc_.GetIndexBox(); }
+    auto GetHaloIndexBox() const { return m_sfc_.GetHaloIndexBox(); }
+
+    bool empty() const override { return m_data_ == nullptr || size() == 0; }
+    bool isNull() const override { return m_data_ == nullptr || size() == 0; }
 
     size_type CopyIn(ArrayBase const& other) override {
         size_type count = 0;
@@ -213,6 +217,17 @@ class Array : public ArrayBase {
         m_sfc_.Shift(std::forward<Args>(args)...);
     }
     this_type GetShift(IdxShift const& idx) const { return this_type(*this, idx); }
+    this_type GetShift(std::initializer_list<int> const& idx) const {
+        IdxShift s;
+        int count = 0;
+        for (auto const& v : idx) {
+            s[count] = v;
+            ++count;
+            if (count >= 3) { break; }
+        }
+        return this_type(*this, s);
+    }
+
     this_type Sub(index_box_type const& b) { return this_type(m_data_, m_sfc_.Sub(b)); }
 
     //    __host__ __device__ value_type& operator[](size_type s) { return m_data_[s]; }

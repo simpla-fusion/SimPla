@@ -489,6 +489,10 @@ template <size_type I0, typename... V, typename RHS>
 void Assign_(Array<V...> &lhs, RHS const &rhs) {
     lhs.Foreach([&](auto &v, auto &&... idx) { v = try_invoke<I0>(rhs, std::forward<decltype(idx)>(idx)...); });
 };
+template <size_type I0, typename... V, typename... U, int... N>
+void Assign_(Array<V...> &lhs, nTuple<Array<U...>, N...> const &rhs) {
+    lhs.Assign(traits::nt_get_r<I0>(rhs));
+};
 template <size_type I0, typename... V, typename... RHS>
 void Assign_(Array<V...> &lhs, Expression<RHS...> const &rhs) {
     lhs.Assign(rhs);

@@ -257,7 +257,7 @@ template <typename THost, typename V, int... DOF, typename... U>
 void DomainAssign(THost *self, AttributeT<V, NODE, DOF...> &lhs, Expression<U...> const &rhs,
                   const Range<EntityId> &r) {
     //    if (r.isFull()) {
-    lhs.Assign(self->Calculate<0b000>(rhs));
+    lhs.Assign(self->template Calculate<0b000>(rhs));
     //    } else {
     //        //        this_type::Calculate(lhs, rhs, r);
     //    }
@@ -266,9 +266,9 @@ template <typename THost, typename V, int... DOF, typename... U>
 void DomainAssign(THost *self, AttributeT<V, EDGE, DOF...> &lhs, Expression<U...> const &rhs,
                   const Range<EntityId> &r) {
     //    if (r.isFull()) {
-    lhs.template AssignSub<0>(self->Calculate<0b001>(rhs));
-    lhs.template AssignSub<1>(self->Calculate<0b010>(rhs));
-    lhs.template AssignSub<2>(self->Calculate<0b100>(rhs));
+    lhs.template AssignSub<0>(self->template Calculate<0b001>(rhs));
+    lhs.template AssignSub<1>(self->template Calculate<0b010>(rhs));
+    lhs.template AssignSub<2>(self->template Calculate<0b100>(rhs));
 
     //    } else {
     //        //        this_type::Calculate(lhs, rhs, r);
@@ -289,7 +289,7 @@ template <typename THost, typename V, int... DOF, typename... U>
 void DomainAssign(THost *self, AttributeT<V, CELL, DOF...> &lhs, Expression<U...> const &rhs,
                   const Range<EntityId> &r) {
     //    if (r.isFull()) {
-    lhs.Assign(self->Calculate<0b111>(rhs));
+    lhs.Assign(self->template Calculate<0b111>(rhs));
 
     //    } else {
     //        //        this_type::Calculate(lhs, rhs, r);

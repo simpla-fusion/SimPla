@@ -30,6 +30,8 @@ class ZSFC {
     typedef std::tuple<array_index_type, array_index_type> array_index_box_type;
     static constexpr int ndims = NDIMS;
     array_index_box_type m_index_box_{{0, 0, 0}, {1, 1, 1}};
+    array_index_box_type m_halo_index_box_{{0, 0, 0}, {1, 1, 1}};
+
     array_index_type m_strides_{0, 0, 0};
     size_type m_size_ = 0;
     index_type m_offset_ = 0;
@@ -40,6 +42,7 @@ class ZSFC {
 
     ZSFC(this_type const& other)
         : m_index_box_(other.m_index_box_),
+          m_halo_index_box_(other.m_halo_index_box_),
           m_strides_(other.m_strides_),
           m_size_(other.m_size_),
           m_offset_(other.m_offset_),
@@ -47,21 +50,20 @@ class ZSFC {
     ZSFC(this_type&& other)
     noexcept
         : m_index_box_(other.m_index_box_),
+          m_halo_index_box_(other.m_halo_index_box_),
           m_strides_(other.m_strides_),
           m_size_(other.m_size_),
           m_offset_(other.m_offset_),
           m_array_order_fast_first_(other.m_array_order_fast_first_) {}
 
+    explicit ZSFC(array_index_box_type const& b, bool array_order_fast_first = false)
+        : m_halo_index_box_(b), m_array_order_fast_first_(array_order_fast_first) {
+        Update();
+    }
     this_type Overlap(std::nullptr_t) const { return *this; }
     template <typename RHS>
     this_type Overlap(RHS const& rhs) const;
     this_type Overlap(this_type const& rhs) const;
-
-    explicit ZSFC(array_index_box_type const& b, bool array_order_fast_first = false)
-        : m_index_box_(b), m_array_order_fast_first_(array_order_fast_first) {
-        Update();
-    }
-
     this_type& operator=(this_type const& other) {
         this_type(other).swap(*this);
         return *this;
@@ -72,6 +74,8 @@ class ZSFC {
     };
     void swap(ZSFC& other) {
         m_index_box_.swap(other.m_index_box_);
+        m_halo_index_box_.swap(other.m_halo_index_box_);
+
         m_strides_.swap(other.m_strides_);
         std::swap(m_offset_, other.m_offset_);
         std::swap(m_size_, other.m_size_);
@@ -80,13 +84,14 @@ class ZSFC {
     this_type Sub(std::tuple<nTuple<index_type, NDIMS>, nTuple<index_type, NDIMS>> const& b) const {
         this_type res(*this);
         res.m_index_box_ = b;
-        res.m_offset_ = hash(std::get<0>(b));
         return res;
     }
     bool empty() const { return m_size_ == 0; }
     void reset() {
         std::get<0>(m_index_box_) = 0;
         std::get<1>(m_index_box_) = 0;
+        std::get<0>(m_halo_index_box_) = 0;
+        std::get<1>(m_halo_index_box_) = 0;
         m_offset_ = 0;
         m_strides_ = 0;
         m_size_ = 0;
@@ -94,14 +99,15 @@ class ZSFC {
 
     void reset(index_box_type const& b) {
         reset();
-        m_index_box_ = b;
+        m_halo_index_box_ = b;
         Update();
     }
     void reset(index_type const* lo, index_type const* hi) {
         for (int i = 0; i < NDIMS; ++i) {
-            std::get<0>(m_index_box_)[i] = lo[i];
-            std::get<1>(m_index_box_)[i] = hi[i];
+            std::get<0>(m_halo_index_box_)[i] = lo[i];
+            std::get<1>(m_halo_index_box_)[i] = hi[i];
         }
+
         Update();
     }
     void Update() {
@@ -109,17 +115,20 @@ class ZSFC {
             m_strides_[0] = 1;
             for (int i = 1; i < NDIMS; ++i) {
                 m_strides_[i] =
-                    m_strides_[i - 1] * (std::get<1>(m_index_box_)[i - 1] - std::get<0>(m_index_box_)[i - 1]);
+                    m_strides_[i - 1] * (std::get<1>(m_halo_index_box_)[i - 1] - std::get<0>(m_halo_index_box_)[i - 1]);
             }
         } else {
             m_strides_[NDIMS - 1] = 1;
             for (int i = NDIMS - 2; i >= 0; --i) {
                 m_strides_[i] =
-                    m_strides_[i + 1] * (std::get<1>(m_index_box_)[i + 1] - std::get<0>(m_index_box_)[i + 1]);
+                    m_strides_[i + 1] * (std::get<1>(m_halo_index_box_)[i + 1] - std::get<0>(m_halo_index_box_)[i + 1]);
             }
         }
         m_size_ = 1;
-        for (int i = 0; i < NDIMS; ++i) { m_size_ *= (std::get<1>(m_index_box_)[i] - std::get<0>(m_index_box_)[i]); }
+        for (int i = 0; i < NDIMS; ++i) {
+            m_size_ *= (std::get<1>(m_halo_index_box_)[i] - std::get<0>(m_halo_index_box_)[i]);
+        }
+        m_index_box_ = m_halo_index_box_;
     };
     size_type GetNDIMS() const { return static_cast<size_type>(ndims); }
     size_type GetIndexBox(index_type* lo, index_type* hi) const {
@@ -129,19 +138,26 @@ class ZSFC {
         }
         return static_cast<size_type>(ndims);
     }
+    size_type GetHaloIndexBox(index_type* lo, index_type* hi) const {
+        for (int i = 0; i < ndims; ++i) {
+            lo[i] = std::get<0>(m_halo_index_box_)[i];
+            hi[i] = std::get<1>(m_halo_index_box_)[i];
+        }
+        return static_cast<size_type>(ndims);
+    }
     auto GetIndexBox() const { return m_index_box_; }
+    auto GetHaloIndexBox() const { return m_halo_index_box_; }
 
     template <typename LHS, typename RHS>
     size_type Copy(LHS& dst, RHS const& src) const;
-    //    template <typename U>
-    //    size_type Copy(U* data, this_type const& other_sfc, U const* other, index_type const* lo = nullptr,
-    //                   index_type const* hi = nullptr) const;
 
     size_type size() const { return m_size_; }
-    index_box_type IndexBox() const { return m_index_box_; }
+
     void Shift(array_index_type const& offset) {
         std::get<0>(m_index_box_) += offset;
         std::get<1>(m_index_box_) += offset;
+        std::get<0>(m_halo_index_box_) += offset;
+        std::get<1>(m_halo_index_box_) += offset;
         Update();
     }
 
@@ -184,9 +200,9 @@ template <>
 __host__ __device__ inline index_type ZSFC<3>::hash(index_type s0, index_type s1, index_type s2, index_type s3,
                                                     index_type s4, index_type s5, index_type s6, index_type s7,
                                                     index_type s8, index_type s9) const {
-    return ((s0 - std::get<0>(m_index_box_)[0]) * m_strides_[0] + (s1 - std::get<0>(m_index_box_)[1]) * m_strides_[1] +
-            (s2 - std::get<0>(m_index_box_)[2]) * m_strides_[2]) +
-           m_offset_;
+    return ((s0 - std::get<0>(m_halo_index_box_)[0]) * m_strides_[0] +
+            (s1 - std::get<0>(m_halo_index_box_)[1]) * m_strides_[1] +
+            (s2 - std::get<0>(m_halo_index_box_)[2]) * m_strides_[2]);
 }
 template <>
 __host__ __device__ inline constexpr bool ZSFC<3>::in_box(index_type s0, index_type s1, index_type s2, index_type s3,
@@ -202,94 +218,6 @@ __host__ __device__ constexpr inline bool ZSFC<3>::in_box(array_index_type const
     return in_box(idx[0], idx[1], idx[2]);
 };
 
-// template <>
-// template <typename value_type>
-// std::ostream& ZSFC<3>::Print(std::ostream& os, value_type const* v, int indent) const {
-//    os << "Array<" << simpla::traits::type_name<value_type>::value() << ">" << m_index_box_;
-//    //    if (v != nullptr && size() < 20) {
-//    //        index_type ib = std::get<0>(m_index_box_)[0];
-//    //        index_type ie = std::get<1>(m_index_box_)[0];
-//    //        index_type jb = std::get<0>(m_index_box_)[1];
-//    //        index_type je = std::get<1>(m_index_box_)[1];
-//    //        index_type kb = std::get<0>(m_index_box_)[2];
-//    //        index_type ke = std::get<1>(m_index_box_)[2];
-//    //
-//    //        for (index_type i = ib; i < ie; ++i)
-//    //            for (index_type j = jb; j < je; ++j) {
-//    //                os << "{" << std::setw(8) << v[hash(i, j, kb)];
-//    //                for (index_type k = kb + 1; k < ke; ++k) { os << "," << std::setw(8) << v[hash(i, j, k)]; }
-//    //                os << "}" << std::endl;
-//    //            }
-//    //    }
-//    return os;
-//}
-// template <>
-// template <typename U>
-// size_type ZSFC<1>::Copy(U* data, this_type const& other_sfc, U const* other, index_type const* lo,
-//                        index_type const* hi) const {
-//    FIXME;
-//    return 0;
-//}
-// template <>
-// template <typename U>
-// size_type ZSFC<2>::Copy(U* data, this_type const& other_sfc, U const* other, index_type const* lo,
-//                        index_type const* hi) const {
-//    FIXME;
-//    return 0;
-//}
-// template <>
-// template <typename U>
-// size_type ZSFC<3>::Copy(U* data, this_type const& other_sfc, U const* other, index_type const* lo,
-//                        index_type const* hi) const {
-//    FIXME;
-//    return 0;
-//}
-// template <int N>
-// template <typename TV, typename TFun>
-// void ZSFC<N>::Foreach(TV* d, TFun const& fun) const {
-//    UNIMPLEMENTED;
-//    //    nTuple<index_type, N> idx;
-//    //    idx = std::get<0>(inner_box);
-//    //
-//    //    while (1) {
-//    //        fun(idx);
-//    //
-//    //        ++idx[N - 1];
-//    //        for (int rank = N - 1; rank > 0; --rank) {
-//    //            if (idx[rank] >= std::get<1>(inner_box)[rank]) {
-//    //                idx[rank] = std::get<0>(inner_box)[rank];
-//    //                ++idx[rank - 1];
-//    //            }
-//    //        }
-//    //        if (idx[0] >= std::get<1>(inner_box)[0]) break;
-//    //    }
-//}
-// template <>
-// template <typename TFun>
-// void ZSFC<1>::Foreach(TV* d, TFun const& fun) const {
-//    index_type ib = std::get<0>(m_index_box_)[0];
-//    index_type ie = std::get<1>(m_index_box_)[0];
-//    //#pragma omp parallel for
-//    for (index_type i = ib; i < ie; ++i) { fun(nTuple<index_type, 1>{i}); }
-//}
-// template <>
-// template <typename TFun>
-// void ZSFC<2>::Foreach(TV* d, TFun const& fun) const {
-//    index_type ib = std::get<0>(m_index_box_)[0];
-//    index_type ie = std::get<1>(m_index_box_)[0];
-//    index_type jb = std::get<0>(m_index_box_)[1];
-//    index_type je = std::get<1>(m_index_box_)[1];
-//    if (m_array_order_fast_first_) {
-//        //#pragma omp parallel for
-//        for (index_type j = jb; j < je; ++j)
-//            for (index_type i = ib; i < ie; ++i) { fun(nTuple<index_type, 2>{i, j}); }
-//    } else {
-//        //#pragma omp parallel for
-//        for (index_type i = ib; i < ie; ++i)
-//            for (index_type j = jb; j < je; ++j) { fun(nTuple<index_type, 2>{i, j}); }
-//    }
-//}
-
 namespace detail {
 
 inline index_box_type overlap() {
@@ -304,7 +232,7 @@ index_box_type overlap(T const& a) {
 }
 template <typename U>
 index_box_type overlap(Array<U, ZSFC<3>> const& a) {
-    return a.GetSpaceFillingCurve().IndexBox();
+    return a.GetSpaceFillingCurve().GetIndexBox();
 }
 
 inline index_box_type overlap(index_box_type const& a) { return a; }
@@ -331,15 +259,19 @@ index_box_type overlap(Expression<TOP, Args...> const& expr) {
     return _overlap(std::index_sequence_for<Args...>(), expr.m_args_);
 }
 
-}  // namespace traits {
+}  // namespace detail {
 template <>
 template <typename RHS>
 ZSFC<3> ZSFC<3>::Overlap(RHS const& rhs) const {
-    return ZSFC<3>(detail::overlap(m_index_box_, rhs));
+    ZSFC<3> res(m_halo_index_box_);
+    res.Sub(detail::overlap(m_index_box_, rhs));
+    return res;
 };
 template <int NDIMS>
 ZSFC<NDIMS> ZSFC<NDIMS>::Overlap(this_type const& rhs) const {
-    return ZSFC<NDIMS>(detail::overlap(m_index_box_, rhs.m_index_box_));
+    ZSFC<NDIMS> res(m_halo_index_box_);
+    res.Sub(detail::overlap(m_index_box_, rhs.m_index_box_));
+    return res;
 }
 
 template <>
@@ -420,40 +352,6 @@ size_type ZSFC<3>::Foreach(const TFun& fun) const {
 #endif
     return count;
 }
-
-// template <>
-// constexpr inline bool ZSFC<3>::in_box(index_type x, index_type y, index_type z) const {
-//    return (std::get<0>(m_index_box_)[0] <= x) && (x < std::get<1>(m_index_box_)[0]) &&
-//           (std::get<0>(m_index_box_)[1] <= y) && (y < std::get<1>(m_index_box_)[1]) &&
-//           (std::get<0>(m_index_box_)[2] <= z) && (z < std::get<1>(m_index_box_)[2]);
-//}
-// template <>
-// template <typename TFun>
-// void ZSFC<4>::Foreach(TFun const& fun) const {
-//    index_type ib = std::get<0>(m_index_box_)[0];
-//    index_type ie = std::get<1>(m_index_box_)[0];
-//    index_type jb = std::get<0>(m_index_box_)[1];
-//    index_type je = std::get<1>(m_index_box_)[1];
-//    index_type kb = std::get<0>(m_index_box_)[2];
-//    index_type ke = std::get<1>(m_index_box_)[2];
-//    index_type lb = std::get<0>(m_index_box_)[3];
-//    index_type le = std::get<1>(m_index_box_)[3];
-//
-//    if (m_array_order_fast_first_) {
-//#pragma omp parallel for
-//        for (index_type l = lb; l < le; ++l)
-//            for (index_type k = kb; k < ke; ++k)
-//                for (index_type j = jb; j < je; ++j)
-//                    for (index_type i = ib; i < ie; ++i) fun(nTuple<index_type, 4>{i, j, k, l});
-//
-//    } else {
-//#pragma omp parallel for
-//        for (index_type i = ib; i < ie; ++i)
-//            for (index_type j = jb; j < je; ++j)
-//                for (index_type k = kb; k < ke; ++k)
-//                    for (index_type l = lb; l < le; ++l) { fun(nTuple<index_type, 4>{i, j, k, l}); }
-//    }
-//}
 
 }  // namespace simpla
 #endif  // SIMPLA_Z_SFC_H

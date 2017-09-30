@@ -71,17 +71,19 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM, DOF...
         return *this;
     };
 
-    auto& operator[](EntityId s) {
-        return traits::invoke(
-            traits::index(*dynamic_cast<data_type*>(this), EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.x, s.y,
-            s.z);
-    }
-    auto const& operator[](EntityId s) const {
-        return traits::invoke(
-            traits::index(*dynamic_cast<data_type*>(this), EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.x, s.y,
-            s.z);
-    }
-    auto operator()(IdxShift S) const { return this_type(*this, S); }
+    //    auto& operator[](EntityId s) {
+    //        return traits::invoke(
+    //            traits::index(*dynamic_cast<data_type*>(this), EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.x,
+    //            s.y,
+    //            s.z);
+    //    }
+    //    auto const& operator[](EntityId s) const {
+    //        return traits::invoke(
+    //            traits::index(*dynamic_cast<data_type*>(this), EntityIdCoder::m_id_to_sub_index_[s.w & 0b111]), s.x,
+    //            s.y,
+    //            s.z);
+    //    }
+    //    auto operator()(IdxShift S) const { return this_type(*this, S); }
     //*****************************************************************************************************************
 
     template <typename... Args>

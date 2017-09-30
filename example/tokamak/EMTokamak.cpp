@@ -47,7 +47,6 @@ int main(int argc, char** argv) {
     scenario->GetDomain("Limiter")->PostInitialCondition.Connect([=](DomainBase* self, Real time_now) {
         if (auto d = dynamic_cast<domain::Maxwell<domain_type>*>(self)) {
             d->E = [&](point_type const& x) { return point_type{0, 0, std::sin(x[0])}; };
-            d->B = [&](point_type const& x) { return point_type{0, std::sin(x[0]), 0}; };
         }
     });
 

@@ -116,7 +116,7 @@ void DataNodeXDMF::WriteDataItem(std::string const& url, std::string const& key,
         index_type outer_lo[MAX_NDIMS_OF_ARRAY];
         index_type outer_hi[MAX_NDIMS_OF_ARRAY];
 
-        array->GetIndexBox(outer_lo, outer_hi);
+        array->GetHaloIndexBox(outer_lo, outer_hi);
 
         hsize_t m_shape[MAX_NDIMS_OF_ARRAY];
         hsize_t m_start[MAX_NDIMS_OF_ARRAY];
@@ -184,7 +184,7 @@ void DataNodeXDMF::WriteDataItem(std::string const& url, std::string const& key,
                 ASSERT(array->pointer() != nullptr);
 
                 index_type t_lo[MAX_NDIMS_OF_ARRAY], t_hi[MAX_NDIMS_OF_ARRAY];
-                auto m_ndims = array->GetIndexBox(t_lo, t_hi);
+                auto m_ndims = array->GetHaloIndexBox(t_lo, t_hi);
 
                 hsize_t m_shape[MAX_NDIMS_OF_ARRAY];
                 hsize_t m_start[MAX_NDIMS_OF_ARRAY];
