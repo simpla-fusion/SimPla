@@ -304,7 +304,8 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
 
     template <typename RHS>
     void Assign(RHS const &rhs);
-
+    template <int I0, typename RHS>
+    void AssignSub(RHS const &rhs);
     template <typename RHS>
     this_type &operator=(RHS const &rhs) {
         Assign(rhs);
@@ -488,7 +489,11 @@ template <size_type I0, typename... V, typename RHS>
 void Assign_(Array<V...> &lhs, RHS const &rhs) {
     lhs.Foreach([&](auto &v, auto &&... idx) { v = try_invoke<I0>(rhs, std::forward<decltype(idx)>(idx)...); });
 };
-
+template <size_type I0, typename... V, typename... RHS>
+void Assign_(Array<V...> &lhs, Expression<RHS...> const &rhs) {
+    lhs.Assign(rhs);
+    //    lhs.Foreach([&](auto &v, auto &&... idx) { v = try_invoke<I0>(rhs, std::forward<decltype(idx)>(idx)...); });
+};
 template <typename LHS, typename RHS>
 void Assign(std::index_sequence<>, LHS &lhs, RHS const &rhs){};
 
@@ -510,7 +515,11 @@ template <typename RHS>
 void AttributeT<V, IFORM, DOF...>::Assign(RHS const &rhs) {
     detail::Assign(*this, rhs);
 };
-
+template <typename V, int IFORM, int... DOF>
+template <int I0, typename RHS>
+void AttributeT<V, IFORM, DOF...>::AssignSub(RHS const &rhs) {
+    detail::Assign_<I0>(simpla::traits::nt_get_r<I0>(dynamic_cast<data_type &>(*this)), rhs);
+};
 }  // namespace engine
 
 namespace traits {

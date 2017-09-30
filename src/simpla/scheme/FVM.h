@@ -48,9 +48,7 @@ struct FVM {
     }
     template <typename... V, int... N>
     auto get_(Array<V...> const& v, IdxShift S, int tag) const {
-        Array<V...> res(v);
-        res.Shift(S);
-        return res;
+        return v.GetShift(S);
     }
     template <typename... V, int... N>
     auto get_(nTuple<Array<V...>, N...> const& v, IdxShift S, int tag) const {
@@ -59,7 +57,7 @@ struct FVM {
 
     template <typename V, int... N>
     auto get_(engine::AttributeT<V, N...> const& v, IdxShift S, int tag) const {
-        return st::index(v, EntityIdCoder::m_id_to_sub_index_[tag])(S);
+        return st::index(v, EntityIdCoder::m_id_to_sub_index_[tag]).GetShift(S);
     }
     template <typename TOP, typename... Args>
     auto get_diff_expr(Expression<TOP, Args...> const& expr, IdxShift S, int tag) const {
