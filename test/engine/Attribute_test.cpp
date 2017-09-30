@@ -9,14 +9,12 @@ using namespace simpla;
 using namespace simpla::data;
 
 TEST(TestAttribute, GUID) {
-    engine::AttributeT<Real, NODE> f{nullptr, "F"_};
-    engine::AttributeT<Real, NODE, 3> g{nullptr, "G"_};
+    engine::AttributeT<Real, NODE> f;
+    engine::AttributeT<Real, NODE, 3> g;
 
     EXPECT_EQ(f.GetRank(), 0);
     EXPECT_EQ(g.GetRank(), 1);
 
     std::cout << f[0] << std::endl;
     std::cout << g[0] << std::endl;
-
-
 }

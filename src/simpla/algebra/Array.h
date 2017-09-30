@@ -275,7 +275,7 @@ std::ostream& Array<V, SFC>::Print(std::ostream& os, int indent, bool verbose) c
     int ndims = GetNDIMS();
     index_type lo[ndims], hi[ndims];
     GetIndexBox(lo, hi);
-    FancyPrintNd<3>(os, *this, lo, hi, true, indent);
+    FancyPrintNd<3>(os, *this, lo, hi, false, indent);
     //    }
     return os;
 }
