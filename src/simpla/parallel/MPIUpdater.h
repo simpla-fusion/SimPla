@@ -91,7 +91,7 @@ std::shared_ptr<MPIUpdaterT<V>> MPIUpdaterT<V>::New() {
 }
 template <typename V>
 void MPIUpdaterT<V>::SetUp() {
-    if (isSetUp() || !isEnable()) { return; }
+    if (isSetUp()) { return; }
     MPIUpdater::SetUp();
 }
 template <typename V>

@@ -89,7 +89,7 @@ void Scenario::CheckPoint() const {
     }
     dump->Set("Atlas", GetAtlas()->Serialize());
     dump->Set("Patches", patches);
-    dump->SetValue("Time", GetTimeNow());
+    dump->SetValue<Real>("Time", GetTimeNow());
     dump->Flush();
 }
 
@@ -163,7 +163,6 @@ void Scenario::pimpl_s::Sync(std::shared_ptr<data::DataNode> const &attr, int le
 }
 void Scenario::Synchronize(int level) {
 #ifdef MPI_FOUND
-    if (GLOBAL_COMM.size() <= 1) { return; }
 
     ASSERT(level == 0)
     auto attrs = GetAttributes();

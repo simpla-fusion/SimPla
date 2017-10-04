@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
     scenario->db()->SetValue("DumpFileSuffix", "h5");
     scenario->db()->SetValue("CheckPointFilePrefix", "EAST");
     scenario->db()->SetValue("CheckPointFileSuffix", "xdmf");
-    scenario->SetCheckPointInterval(2);
+    scenario->SetCheckPointInterval(1);
 
     scenario->GetAtlas()->SetChart<simpla::geometry::csCylindrical>();
     scenario->GetAtlas()->GetChart()->SetScale({0.1, TWOPI / 100.0, 0.1});
@@ -46,8 +46,9 @@ int main(int argc, char** argv) {
     scenario->SetDomain<domain::Maxwell<domain_type>>("Limiter", tokamak->Limiter());
     scenario->GetDomain("Limiter")->PostInitialCondition.Connect([=](DomainBase* self, Real time_now) {
         if (auto d = dynamic_cast<domain::Maxwell<domain_type>*>(self)) {
-            d->E = [&](point_type const& x) { return point_type{0, 0, std::sin(x[0])}; };
-            d->B = [&](point_type const& x) { return point_type{0, 0, std::sin(x[0])}; };
+            d->E = [&](point_type const& x) { return point_type{std::sin(x[2]), std::sin(x[2]), std::sin(x[0])}; };
+            //            d->B = [&](point_type const& x) { return point_type{std::sin(x[2]), std::sin(x[2]),
+            //            std::sin(x[0])}; };
         }
     });
 
@@ -56,9 +57,9 @@ int main(int argc, char** argv) {
     //        if (auto d = dynamic_cast<Domain<mesh_type, EMFluid>*>(self)) { d->ne = tokamak->profile("ne"); }
     //    });
     scenario->SetTimeNow(0);
-    scenario->SetTimeEnd(1.0);
-    scenario->SetTimeStep(0.1);
-    scenario->SetMaxStep(100);
+    scenario->SetTimeEnd(1.0e-8);
+    scenario->SetTimeStep(1.0e-9);
+    scenario->SetMaxStep(3);
     scenario->SetUp();
 
     //    INFORM << "Attributes" << *scenario->GetAttributes() << std::endl;
@@ -71,4 +72,6 @@ int main(int argc, char** argv) {
 
     TheEnd();
     scenario->TearDown();
+
+    simpla::Finalize();
 }

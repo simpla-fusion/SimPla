@@ -57,7 +57,7 @@ class ZSFC {
           m_array_order_fast_first_(other.m_array_order_fast_first_) {}
 
     explicit ZSFC(array_index_box_type const& b, bool array_order_fast_first = false)
-        : m_halo_index_box_(b), m_array_order_fast_first_(array_order_fast_first) {
+        : m_halo_index_box_(b), m_index_box_(b), m_array_order_fast_first_(array_order_fast_first) {
         Update();
     }
     this_type Overlap(std::nullptr_t) const { return *this; }
@@ -86,6 +86,16 @@ class ZSFC {
         res.m_index_box_ = b;
         return res;
     }
+
+    void Reshape(std::tuple<nTuple<index_type, NDIMS>, nTuple<index_type, NDIMS>> const& b) { m_index_box_ = b; }
+
+    void Reshape(index_type const* lo, index_type const* hi) {
+        for (int i = 0; i < ndims; ++i) {
+            std::get<0>(m_index_box_)[i] = lo[i];
+            std::get<1>(m_index_box_)[i] = hi[i];
+        }
+    }
+
     bool empty() const { return m_size_ == 0; }
     void reset() {
         std::get<0>(m_index_box_) = 0;
@@ -160,7 +170,15 @@ class ZSFC {
         std::get<1>(m_halo_index_box_) += offset;
         Update();
     }
-
+    void Shift(index_type const* offset) {
+        for (int i = 0; i < ndims; ++i) {
+            std::get<0>(m_index_box_)[i] += offset[i];
+            std::get<1>(m_index_box_)[i] += offset[i];
+            std::get<0>(m_halo_index_box_)[i] += offset[i];
+            std::get<1>(m_halo_index_box_)[i] += offset[i];
+        }
+        Update();
+    }
     __host__ __device__ constexpr inline index_type hash() const { return 0; }
 
     __host__ __device__ constexpr inline index_type hash(array_index_type const& idx) const {
@@ -208,9 +226,9 @@ template <>
 __host__ __device__ inline constexpr bool ZSFC<3>::in_box(index_type s0, index_type s1, index_type s2, index_type s3,
                                                           index_type s4, index_type s5, index_type s6, index_type s7,
                                                           index_type s8, index_type s9) const {
-    return (std::get<0>(m_index_box_)[0] <= s0) && (s0 < std::get<1>(m_index_box_)[0]) &&
-           (std::get<0>(m_index_box_)[1] <= s1) && (s1 < std::get<1>(m_index_box_)[1]) &&
-           (std::get<0>(m_index_box_)[2] <= s2) && (s2 < std::get<1>(m_index_box_)[2]);
+    return (std::get<0>(m_halo_index_box_)[0] <= s0) && (s0 < std::get<1>(m_halo_index_box_)[0]) &&
+           (std::get<0>(m_halo_index_box_)[1] <= s1) && (s1 < std::get<1>(m_halo_index_box_)[1]) &&
+           (std::get<0>(m_halo_index_box_)[2] <= s2) && (s2 < std::get<1>(m_halo_index_box_)[2]);
 }
 
 template <>
@@ -237,11 +255,12 @@ index_box_type overlap(Array<U, ZSFC<3>> const& a) {
 
 inline index_box_type overlap(index_box_type const& a) { return a; }
 inline index_box_type overlap(index_box_type const& b0, index_box_type const& b1) {
-    return index_box_type{
-        {std::max(std::get<0>(b0)[0], std::get<0>(b1)[0]), std::max(std::get<0>(b0)[1], std::get<0>(b1)[1]),
-         std::max(std::get<0>(b0)[2], std::get<0>(b1)[2])},
-        {std::min(std::get<1>(b0)[0], std::get<1>(b1)[0]), std::min(std::get<1>(b0)[1], std::get<1>(b1)[1]),
-         std::min(std::get<1>(b0)[2], std::get<1>(b1)[2])}};
+    return index_box_type{{std::max(std::get<0>(b0)[0], std::get<0>(b1)[0]),   //
+                           std::max(std::get<0>(b0)[1], std::get<0>(b1)[1]),   //
+                           std::max(std::get<0>(b0)[2], std::get<0>(b1)[2])},  //
+                          {std::min(std::get<1>(b0)[0], std::get<1>(b1)[0]),   //
+                           std::min(std::get<1>(b0)[1], std::get<1>(b1)[1]),   //
+                           std::min(std::get<1>(b0)[2], std::get<1>(b1)[2])}};
 }
 template <typename TOP, typename... Args>
 index_box_type overlap(Expression<TOP, Args...> const& expr);
@@ -270,7 +289,7 @@ ZSFC<3> ZSFC<3>::Overlap(RHS const& rhs) const {
 template <int NDIMS>
 ZSFC<NDIMS> ZSFC<NDIMS>::Overlap(this_type const& rhs) const {
     ZSFC<NDIMS> res(m_halo_index_box_);
-    res.Sub(detail::overlap(m_index_box_, rhs.m_index_box_));
+    res.Reshape(detail::overlap(m_halo_index_box_, rhs.m_index_box_));
     return res;
 }
 

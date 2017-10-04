@@ -9,21 +9,16 @@
 #include "simpla/utilities/parse_command_line.h"
 
 #ifdef MPI_FOUND
-#include "simpla/utilities/SingletonHolder.h"
 #include "MPIComm.h"
+#include "simpla/utilities/SingletonHolder.h"
 #endif
 
 namespace simpla {
 namespace parallel {
 
 void Initialize(int argc, char **argv) {
-    bool no_mpi = false;
-    parse_cmd_line(argc, argv, [&](std::string const &opt, std::string const &value) -> int {
-        if (opt == "no-mpi") { no_mpi = true; }
-        return CONTINUE;
-    });
 #ifdef MPI_FOUND
-    if (!no_mpi) { SingletonHolder<MPIComm>::instance().Initialize(argc, argv); }
+    SingletonHolder<MPIComm>::instance().Initialize(argc, argv);
 #endif
 }
 

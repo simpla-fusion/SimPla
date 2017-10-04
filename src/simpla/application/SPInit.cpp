@@ -18,5 +18,8 @@ int Initialize(int argc, char **argv) {
     GLOBAL_COMM.barrier();
     return SP_SUCCESS;
 }
-int Finalize() { return SP_SUCCESS; }
+int Finalize() {
+    parallel::Finalize();
+    return SP_SUCCESS;
+}
 }  // namespace simpla

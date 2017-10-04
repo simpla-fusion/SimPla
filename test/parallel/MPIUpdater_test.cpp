@@ -24,6 +24,8 @@ int main(int argc, char** argv) {
     Array<Real> b(box);
     a.FillNaN();
     b.Fill(GLOBAL_COMM.rank());
+    auto rank = GLOBAL_COMM.rank();
+    b.Foreach([&](auto& v, index_type i, index_type j, index_type k) { v = v * 1000000 + i * 10000 + j * 100 + k; });
     a.CopyIn(b);
 
     auto center = a.Sub(box);

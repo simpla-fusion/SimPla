@@ -39,6 +39,9 @@ struct ArrayBase {
     virtual void Clear() = 0;
     virtual void reset(void*, index_type const* lo, index_type const* hi) = 0;
     virtual void reset(index_box_type const& b) = 0;
+    virtual std::shared_ptr<ArrayBase> Duplicate() const = 0;
+    virtual void Shift(index_type const*) = 0;
+    virtual void ReShape(index_type const*, index_type const*) = 0;
 
     virtual std::ostream& Print(std::ostream& os, int indent = 0, bool verbose = true) const = 0;
 };
@@ -84,6 +87,9 @@ class Array : public ArrayBase {
         std::swap(m_data_, other.m_data_);
         m_sfc_.swap(other.m_sfc_);
     }
+    std::shared_ptr<ArrayBase> Duplicate() const override { return std::shared_ptr<ArrayBase>(new this_type(*this)); };
+    void Shift(index_type const* idx) override { m_sfc_.Shift(idx); }
+    void ReShape(index_type const* lo, index_type const* hi) override { m_sfc_.Reshape(lo, hi); }
 
     std::ostream& Print(std::ostream& os, int indent = 0,
 #ifndef NDEBUG

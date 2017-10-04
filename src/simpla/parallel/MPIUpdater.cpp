@@ -23,6 +23,8 @@ struct MPIUpdater::pimpl_s {
     int tag = 0;
     int m_direction_ = 0;
     int left = 0, right = 0;
+    int m_rank_ = 0;
+    int m_coord_[3] = {0, 0, 0};
 };
 MPIUpdater::MPIUpdater() : m_pimpl_(new pimpl_s) {
     if (GLOBAL_COMM.size() <= 1) { return; }
@@ -45,7 +47,8 @@ bool MPIUpdater::isEnable() const {
 }
 
 void MPIUpdater::SetUp() {
-    if (m_pimpl_->m_is_setup_ || m_pimpl_->mpi_dims[m_pimpl_->m_direction_] <= 1) { return; }
+    if (m_pimpl_->m_is_setup_) { return; }
+
     m_pimpl_->m_is_setup_ = true;
     index_box_type send_box[2];
     index_box_type recv_box[2];
@@ -107,8 +110,12 @@ void MPIUpdater::SetUp() {
         GetSendBuffer(i).Clear();
         GetRecvBuffer(i).Clear();
     }
-
-    MPI_CALL(MPI_Cart_shift(GLOBAL_COMM.comm(), m_pimpl_->m_direction_, 1, &m_pimpl_->left, &m_pimpl_->right));
+#ifdef MPI_FOUND
+    if (GLOBAL_COMM.is_valid()) {
+        MPI_CALL(MPI_Comm_rank(GLOBAL_COMM.comm(), &m_pimpl_->m_rank_));
+        MPI_CALL(MPI_Cart_shift(GLOBAL_COMM.comm(), m_pimpl_->m_direction_, 1, &m_pimpl_->left, &m_pimpl_->right));
+    }
+#endif
 }
 
 void MPIUpdater::TearDown() { m_pimpl_->m_is_setup_ = false; }
@@ -116,30 +123,39 @@ void MPIUpdater::TearDown() { m_pimpl_->m_is_setup_ = false; }
 void MPIUpdater::SetTag(int tag) { m_pimpl_->tag = tag; }
 
 void MPIUpdater::Push(ArrayBase const &a) {
-    if (!isEnable()) { return; }
     GetSendBuffer(0).CopyIn(a);
     GetSendBuffer(1).CopyIn(a);
 }
 void MPIUpdater::Pop(ArrayBase &a) const {
-    if (!isEnable()) { return; }
     a.CopyIn(GetRecvBuffer(0));
     a.CopyIn(GetRecvBuffer(1));
 }
 
 void MPIUpdater::SendRecv() {
-    if (!isEnable()) { return; }
-
-    //    GLOBAL_COMM.barrier();
-    MPI_CALL(MPI_Sendrecv(GetSendBuffer(0).pointer(), static_cast<int>(GetSendBuffer(0).size()), m_pimpl_->ele_type,
-                          m_pimpl_->left, m_pimpl_->tag, GetRecvBuffer(1).pointer(),
-                          static_cast<int>(GetRecvBuffer(1).size()), m_pimpl_->ele_type, m_pimpl_->right, m_pimpl_->tag,
-                          GLOBAL_COMM.comm(), MPI_STATUS_IGNORE));
-    //    GLOBAL_COMM.barrier();
-    MPI_CALL(MPI_Sendrecv(GetSendBuffer(1).pointer(), static_cast<int>(GetSendBuffer(1).size()), m_pimpl_->ele_type,
-                          m_pimpl_->right, m_pimpl_->tag, GetRecvBuffer(0).pointer(),
-                          static_cast<int>(GetRecvBuffer(0).size()), m_pimpl_->ele_type, m_pimpl_->left, m_pimpl_->tag,
-                          GLOBAL_COMM.comm(), MPI_STATUS_IGNORE));
-    //    GLOBAL_COMM.barrier();
+    if (m_pimpl_->left != m_pimpl_->m_rank_) {
+        //    GLOBAL_COMM.barrier();
+        MPI_CALL(MPI_Sendrecv(GetSendBuffer(0).pointer(), static_cast<int>(GetSendBuffer(0).size()), m_pimpl_->ele_type,
+                              m_pimpl_->left, m_pimpl_->tag, GetRecvBuffer(1).pointer(),
+                              static_cast<int>(GetRecvBuffer(1).size()), m_pimpl_->ele_type, m_pimpl_->right,
+                              m_pimpl_->tag, GLOBAL_COMM.comm(), MPI_STATUS_IGNORE));
+        //    GLOBAL_COMM.barrier();
+        MPI_CALL(MPI_Sendrecv(GetSendBuffer(1).pointer(), static_cast<int>(GetSendBuffer(1).size()), m_pimpl_->ele_type,
+                              m_pimpl_->right, m_pimpl_->tag, GetRecvBuffer(0).pointer(),
+                              static_cast<int>(GetRecvBuffer(0).size()), m_pimpl_->ele_type, m_pimpl_->left,
+                              m_pimpl_->tag, GLOBAL_COMM.comm(), MPI_STATUS_IGNORE));
+        //    GLOBAL_COMM.barrier(); }
+    } else {
+        index_tuple shift = {0, 0, 0};
+        shift[m_pimpl_->m_direction_] = std::get<1>(m_pimpl_->local_box_)[m_pimpl_->m_direction_] -
+                                        std::get<0>(m_pimpl_->local_box_)[m_pimpl_->m_direction_];
+        auto s0 = GetSendBuffer(0).Duplicate();
+        s0->Shift(&shift[0]);
+        GetRecvBuffer(1).CopyIn(*s0);
+        shift[m_pimpl_->m_direction_] *= -1;
+        auto s1 = GetSendBuffer(1).Duplicate();
+        s1->Shift(&shift[0]);
+        GetRecvBuffer(0).CopyIn(*s1);
+    }
 }
 
 }  // namespace parallel {
