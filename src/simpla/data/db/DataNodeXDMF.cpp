@@ -346,21 +346,21 @@ void XDMFGeometryCurvilinear(DataNodeXDMF* self, std::string const& prefix, inde
 }
 void XDMFGeometryRegular(DataNodeXDMF* self, index_box_type idx_box, std::shared_ptr<DataNode> const& chart,
                          int indent = 0) {
+    index_tuple lo, hi;
+    std::tie(lo, hi) = idx_box;
     self->os << std::setw(indent) << " "
-             << R"(<Topology TopologyType="3DCoRectMesh" Dimensions=")"
-             << std::get<1>(idx_box)[0] - std::get<0>(idx_box)[0] << " "
-             << std::get<1>(idx_box)[1] - std::get<0>(idx_box)[1] << " "
-             << std::get<1>(idx_box)[2] - std::get<0>(idx_box)[2] << "\" />" << std::endl;
+             << R"(<Topology TopologyType="3DCoRectMesh" Dimensions=")" << hi[0] - lo[0] << " " << hi[1] - lo[1] << " "
+             << hi[2] - lo[2] << "\" />" << std::endl;
 
     auto origin = chart->GetValue<point_type>("Origin", point_type{0, 0, 0});
     auto dxdydz = chart->GetValue<point_type>("Scale", point_type{1, 1, 1});
     self->os << std::setw(indent) << " "
              << R"(<Geometry GeometryType="ORIGIN_DXDYDZ"> )" << std::endl
              << std::setw(indent + 1) << " "
-             << R"(<DataItem Format="XML" Dimensions="3"> )" << origin[0] << " " << origin[1] << " " << origin[2]
-             << " </DataItem>" << std::endl
+             << R"(<DataItem Format="XML" Dimensions="3"> )" << origin[0] + lo[0] * dxdydz[0] << " "
+             << origin[1] + lo[1] * dxdydz[1] << " " << origin[2] + lo[2] * dxdydz[2] << " </DataItem>" << std::endl
              << std::setw(indent + 1) << " "
-             << R"(<DataItem Format="XML" Dimensions="3"> )" << dxdydz[0] << " " << dxdydz[0] << " " << dxdydz[0]
+             << R"(<DataItem Format="XML" Dimensions="3"> )" << dxdydz[0] << " " << dxdydz[1] << " " << dxdydz[2]
              << " </DataItem>" << std::endl;
 
     self->os << std::setw(indent) << " "
