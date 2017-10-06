@@ -41,6 +41,10 @@ struct FVM {
     auto get_(TExpr const& expr, IdxShift S, ENABLE_IF((std::is_arithmetic<TExpr>::value))) const {
         return expr;
     }
+    template <int I, typename TExpr>
+    auto get_(TExpr const* expr, IdxShift S, ENABLE_IF((std::is_arithmetic<TExpr>::value))) const {
+        return expr[I];
+    }
     template <int I, typename V, int... N>
     auto get_(nTuple<V, N...> const& v, IdxShift S, ENABLE_IF((std::is_arithmetic<V>::value))) const {
         return st::nt_get_r<I>(v);

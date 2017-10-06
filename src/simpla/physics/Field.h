@@ -119,13 +119,18 @@ struct dof<Field<TM, TV, IFORM, DOF...>>
 }
 
 template <typename TM, typename TV, int IFORM, int... DOF>
-void Field<TM, TV, IFORM, DOF...>::DoSetUp() {}
+void Field<TM, TV, IFORM, DOF...>::DoSetUp() {
+    base_type::DoSetUp();
+}
 template <typename TM, typename TV, int IFORM, int... DOF>
 void Field<TM, TV, IFORM, DOF...>::DoUpdate() {
     m_mesh_->InitializeAttribute(this);
+    base_type::DoUpdate();
 }
 template <typename TM, typename TV, int IFORM, int... DOF>
-void Field<TM, TV, IFORM, DOF...>::DoTearDown() {}
+void Field<TM, TV, IFORM, DOF...>::DoTearDown() {
+    base_type::DoTearDown();
+}
 }  // namespace simpla
 
 #endif  // SIMPLA_FIELD_H

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-cmake_policy(SET CMP0028 NEW)
+cmake_policy(SET CMP0057 NEW)
 cmake_policy(SET CMP0021 OLD)
 PROJECT(SimPla CXX C)
 INCLUDE(local_conf.cmake)

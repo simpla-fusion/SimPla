@@ -154,7 +154,27 @@ void Atlas::SetBoundingBox(box_type const &b) {
     m_pimpl_->m_has_bounding_box_ = true;
 }
 box_type Atlas::GetBoundingBox() const { return m_pimpl_->m_box_; }
-index_box_type Atlas::GetIndexBox(int tag, int direction) const { return m_pimpl_->m_index_box_; }
+index_box_type Atlas::GetIndexBox(int iform, int direction) const {
+    index_tuple lo, hi;
+    std::tie(lo, hi) = m_pimpl_->m_index_box_;
+    switch (iform) {
+        case NODE:
+            hi += 1;
+            break;
+        case EDGE:
+            hi[(direction + 1) % 3] += 1;
+            hi[(direction + 2) % 3] += 1;
+
+            break;
+        case FACE:
+            hi[(direction) % 3] += 1;
+            break;
+        case CELL:
+        default:
+            break;
+    }
+    return std::make_tuple(lo, hi);
+}
 index_tuple Atlas::GetGhostWidth() const { return m_pimpl_->m_ghost_width_; }
 
 // int Atlas::GetNumOfLevel() const { return m_pimpl_->(); }

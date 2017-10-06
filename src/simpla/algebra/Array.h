@@ -39,7 +39,7 @@ struct ArrayBase {
     virtual void Clear() = 0;
     virtual void reset(void*, index_type const* lo, index_type const* hi) = 0;
     virtual void reset(index_box_type const& b) = 0;
-    virtual std::shared_ptr<ArrayBase> Duplicate() const = 0;
+    virtual std::shared_ptr<ArrayBase> DuplicateArray() const = 0;
     virtual void Shift(index_type const*) = 0;
     virtual void ReShape(index_type const*, index_type const*) = 0;
 
@@ -51,6 +51,8 @@ class Array : public ArrayBase {
    public:
     typedef V value_type;
     typedef typename SFC::array_index_box_type array_index_box_type;
+    static constexpr value_type s_nan = std::numeric_limits<value_type>::signaling_NaN();
+    static value_type m_null_;
 
    private:
     typedef Array<value_type, SFC> this_type;
@@ -87,7 +89,9 @@ class Array : public ArrayBase {
         std::swap(m_data_, other.m_data_);
         m_sfc_.swap(other.m_sfc_);
     }
-    std::shared_ptr<ArrayBase> Duplicate() const override { return std::shared_ptr<ArrayBase>(new this_type(*this)); };
+    std::shared_ptr<ArrayBase> DuplicateArray() const override {
+        return std::shared_ptr<ArrayBase>(new this_type(*this));
+    };
     void Shift(index_type const* idx) override { m_sfc_.Shift(idx); }
     void ReShape(index_type const* lo, index_type const* hi) override { m_sfc_.Reshape(lo, hi); }
 
@@ -241,12 +245,12 @@ class Array : public ArrayBase {
 
     template <typename... Args>
     __host__ __device__ value_type& at(Args&&... args) {
-        ASSERT(m_sfc_.in_box(std::forward<Args>(args)...));
+        //        ASSERT(m_sfc_.in_box(std::forward<Args>(args)...));
         return m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
     }
     template <typename... Args>
     __host__ __device__ value_type const& at(Args&&... args) const {
-        ASSERT(m_sfc_.in_box(std::forward<Args>(args)...));
+        //        ASSERT(m_sfc_.in_box(std::forward<Args>(args)...));
         return m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
     }
     template <typename... Args>
@@ -263,19 +267,25 @@ class Array : public ArrayBase {
     }
 
     template <typename... Args>
-    value_type Get(Args&&... args) const {
-        if (m_sfc_.in_box(std::forward<Args>(args)...)) {
-            return m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
-        } else {
-            return std::numeric_limits<value_type>::signaling_NaN();
-        }
+    value_type const& Get(Args&&... args) const {
+        return (!m_sfc_.in_box(std::forward<Args>(args)...)) ? s_nan
+                                                             : m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
     }
-
+    template <typename... Args>
+    value_type& Get(Args&&... args) {
+        return (!m_sfc_.in_box(std::forward<Args>(args)...)) ? m_null_
+                                                             : m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
+    }
     template <typename RHS>
     void Assign(RHS const& rhs);
 
     void alloc();
 };
+template <typename V, typename SFC>
+constexpr typename Array<V, SFC>::value_type Array<V, SFC>::s_nan;
+template <typename V, typename SFC>
+typename Array<V, SFC>::value_type Array<V, SFC>::m_null_;
+
 template <typename V, typename SFC>
 void Array<V, SFC>::alloc() {
     if (m_data_ == nullptr && m_sfc_.size() > 0) {

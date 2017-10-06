@@ -14,7 +14,9 @@ struct MPIUpdater::pimpl_s {
     bool m_is_setup_ = false;
     int ndims = 3;
     int mpi_topology_ndims = 0;
-    int mpi_dims[3], mpi_periods[3], mpi_coords[3];
+    int mpi_dims[3] = {1, 1, 1};
+    int mpi_periods[3] = {1, 1, 1};
+    int mpi_coords[3] = {0, 0, 0};
     index_box_type local_box_{{0, 0, 0}, {1, 1, 1}};
 
     index_tuple m_gw_{2, 2, 2};
@@ -132,27 +134,30 @@ void MPIUpdater::Pop(ArrayBase &a) const {
 }
 
 void MPIUpdater::SendRecv() {
-    if (m_pimpl_->left != m_pimpl_->m_rank_) {
-        //    GLOBAL_COMM.barrier();
-        MPI_CALL(MPI_Sendrecv(GetSendBuffer(0).pointer(), static_cast<int>(GetSendBuffer(0).size()), m_pimpl_->ele_type,
-                              m_pimpl_->left, m_pimpl_->tag, GetRecvBuffer(1).pointer(),
-                              static_cast<int>(GetRecvBuffer(1).size()), m_pimpl_->ele_type, m_pimpl_->right,
-                              m_pimpl_->tag, GLOBAL_COMM.comm(), MPI_STATUS_IGNORE));
-        //    GLOBAL_COMM.barrier();
-        MPI_CALL(MPI_Sendrecv(GetSendBuffer(1).pointer(), static_cast<int>(GetSendBuffer(1).size()), m_pimpl_->ele_type,
-                              m_pimpl_->right, m_pimpl_->tag, GetRecvBuffer(0).pointer(),
-                              static_cast<int>(GetRecvBuffer(0).size()), m_pimpl_->ele_type, m_pimpl_->left,
-                              m_pimpl_->tag, GLOBAL_COMM.comm(), MPI_STATUS_IGNORE));
-        //    GLOBAL_COMM.barrier(); }
-    } else {
+//#ifdef MPI_FOUND
+//    if (m_pimpl_->left != m_pimpl_->m_rank_ && m_pimpl_->right != m_pimpl_->m_rank_) {
+//        //    GLOBAL_COMM.barrier();
+//        MPI_CALL(MPI_Sendrecv(GetSendBuffer(0).pointer(), static_cast<int>(GetSendBuffer(0).size()), m_pimpl_->ele_type,
+//                              m_pimpl_->left, m_pimpl_->tag, GetRecvBuffer(1).pointer(),
+//                              static_cast<int>(GetRecvBuffer(1).size()), m_pimpl_->ele_type, m_pimpl_->right,
+//                              m_pimpl_->tag, GLOBAL_COMM.comm(), MPI_STATUS_IGNORE));
+//        //    GLOBAL_COMM.barrier();
+//        MPI_CALL(MPI_Sendrecv(GetSendBuffer(1).pointer(), static_cast<int>(GetSendBuffer(1).size()), m_pimpl_->ele_type,
+//                              m_pimpl_->right, m_pimpl_->tag, GetRecvBuffer(0).pointer(),
+//                              static_cast<int>(GetRecvBuffer(0).size()), m_pimpl_->ele_type, m_pimpl_->left,
+//                              m_pimpl_->tag, GLOBAL_COMM.comm(), MPI_STATUS_IGNORE));
+//        //    GLOBAL_COMM.barrier(); }
+//    } else /*if (m_pimpl_->mpi_periods[m_pimpl_->m_direction_] > 0) */
+//#endif
+    {
         index_tuple shift = {0, 0, 0};
         shift[m_pimpl_->m_direction_] = std::get<1>(m_pimpl_->local_box_)[m_pimpl_->m_direction_] -
                                         std::get<0>(m_pimpl_->local_box_)[m_pimpl_->m_direction_];
-        auto s0 = GetSendBuffer(0).Duplicate();
+        auto s0 = GetSendBuffer(0).DuplicateArray();
         s0->Shift(&shift[0]);
         GetRecvBuffer(1).CopyIn(*s0);
         shift[m_pimpl_->m_direction_] *= -1;
-        auto s1 = GetSendBuffer(1).Duplicate();
+        auto s1 = GetSendBuffer(1).DuplicateArray();
         s1->Shift(&shift[0]);
         GetRecvBuffer(0).CopyIn(*s1);
     }

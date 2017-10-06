@@ -19,9 +19,12 @@ using namespace data;
 template <typename TDomainBase>
 class Maxwell : public TDomainBase {
     SP_DOMAIN_HEAD(Maxwell, TDomainBase);
-
+    int count = 0;
     Field<this_type, Real, FACE> B{this, "Name"_ = "B", "CheckPoint"_};
     Field<this_type, Real, EDGE> E{this, "Name"_ = "E", "CheckPoint"_};
+    Field<this_type, Real, EDGE> dumpE{this, "Name"_ = "dumpE", "CheckPoint"_};
+    Field<this_type, Real, FACE> dumpB{this, "Name"_ = "dumpB", "CheckPoint"_};
+
     Field<this_type, Real, EDGE> J{this, "Name"_ = "J", "CheckPoint"_};
 };
 template <typename TDomain>
@@ -49,6 +52,8 @@ void Maxwell<TDomain>::DoInitialCondition(Real time_now) {
     E.Clear();
     B.Clear();
     J.Clear();
+    dumpE.Clear();
+    dumpB.Clear();
 }
 template <typename TDomain>
 void Maxwell<TDomain>::DoBoundaryCondition(Real time_now, Real time_dt) {
@@ -63,13 +68,22 @@ void Maxwell<TDomain>::DoBoundaryCondition(Real time_now, Real time_dt) {
 template <typename TDomain>
 void Maxwell<TDomain>::DoAdvance(Real time_now, Real time_dt) {
     DEFINE_PHYSICAL_CONST
+
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
-    this->FillBoundary(E, 0);
+        this->FillBoundary(E, 0);
     B = B - curl(E) * time_dt;
-    this->FillBoundary(B, 0);
+        this->FillBoundary(B, 0);
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
-    this->FillBoundary(E, 0);
+        this->FillBoundary(E, 0);
     J.Clear();
+
+    dumpE[0] = E[0].GetShift({2, 2, 2});
+    dumpE[1] = E[1].GetShift({2, 2, 2});
+    dumpE[2] = E[2].GetShift({2, 2, 2});
+
+    dumpB[0] = B[0].GetShift({2, 2, 2});
+    dumpB[1] = B[1].GetShift({2, 2, 2});
+    dumpB[2] = B[2].GetShift({2, 2, 2});
 }
 
 template <typename TDomain>

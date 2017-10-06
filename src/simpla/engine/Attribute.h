@@ -337,7 +337,11 @@ std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::GetDescription() c
     res->Set(db());
     res->SetValue("Name", GetName());
     res->SetValue("IFORM", IFORM);
-    res->SetValue("DOF", DOF...);
+    if (sizeof...(DOF) > 0) {
+        res->SetValue("DOF", DOF...);
+    } else {
+        res->SetValue("DOF", 1);
+    }
     res->SetValue("ValueType", traits::type_name<V>::value());
     return res;
 };

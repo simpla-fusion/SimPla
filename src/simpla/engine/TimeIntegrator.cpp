@@ -107,7 +107,7 @@ void TimeIntegrator::Run() {
 
         VERBOSE << " [ STEP:" << std::setw(5) << GetStepNumber() - 1 << " STOP  ] ";
     }
- }
+}
 void TimeIntegrator::NextStep() {
     Advance(GetTimeNow(), GetTimeStep());
     m_pimpl_->m_time_now_ += m_pimpl_->m_time_step_;

@@ -4,14 +4,6 @@
 #include <sys/stat.h>
 #include <fstream>
 
-//#include <Xdmf.hpp>
-//#include <XdmfAttributeCenter.hpp>
-//#include <XdmfDomain.hpp>
-//#include <XdmfGridCollection.hpp>
-//#include <XdmfWriter.hpp>
-//#include <XdmfHDF5Writer.hpp>
-//#include <XdmfInformation.hpp>
-
 #include <simpla/parallel/MPIComm.h>
 #include "../DataNode.h"
 #include "HDF5Common.h"
@@ -354,8 +346,25 @@ void XDMFGeometryCurvilinear(DataNodeXDMF* self, std::string const& prefix, inde
 }
 void XDMFGeometryRegular(DataNodeXDMF* self, index_box_type idx_box, std::shared_ptr<DataNode> const& chart,
                          int indent = 0) {
-    auto x0 = chart->GetValue<nTuple<Real, 3>>("Origin");
-    auto dx = chart->GetValue<nTuple<Real, 3>>("Scale");
+    self->os << std::setw(indent) << " "
+             << R"(<Topology TopologyType="3DCoRectMesh" Dimensions=")"
+             << std::get<1>(idx_box)[0] - std::get<0>(idx_box)[0] << " "
+             << std::get<1>(idx_box)[1] - std::get<0>(idx_box)[1] << " "
+             << std::get<1>(idx_box)[2] - std::get<0>(idx_box)[2] << "\" />" << std::endl;
+
+    auto origin = chart->GetValue<point_type>("Origin", point_type{0, 0, 0});
+    auto dxdydz = chart->GetValue<point_type>("Scale", point_type{1, 1, 1});
+    self->os << std::setw(indent) << " "
+             << R"(<Geometry GeometryType="ORIGIN_DXDYDZ"> )" << std::endl
+             << std::setw(indent + 1) << " "
+             << R"(<DataItem Format="XML" Dimensions="3"> )" << origin[0] << " " << origin[1] << " " << origin[2]
+             << " </DataItem>" << std::endl
+             << std::setw(indent + 1) << " "
+             << R"(<DataItem Format="XML" Dimensions="3"> )" << dxdydz[0] << " " << dxdydz[0] << " " << dxdydz[0]
+             << " </DataItem>" << std::endl;
+
+    self->os << std::setw(indent) << " "
+             << "</Geometry>" << std::endl;
 }
 int DataNodeXDMF::Flush() {
     int success = SP_FAILED;

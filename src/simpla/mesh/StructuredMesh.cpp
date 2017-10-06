@@ -30,39 +30,39 @@ namespace mesh {
 */
 
 index_box_type StructuredMesh::GetIndexBox(int tag) const {
-    auto res = GetBlock()->GetIndexBox();
+    index_tuple lo, hi;
+    std::tie(lo, hi) = GetBlock()->GetIndexBox();
     switch (tag) {
         case 0:
-            std::get<1>(res) += 1;
+            hi += 1;
             break;
         case 1:
-            std::get<1>(res)[1] += 1;
-            std::get<1>(res)[2] += 1;
+            hi[1] += 1;
+            hi[2] += 1;
             break;
         case 2:
-            std::get<1>(res)[0] += 1;
-            std::get<1>(res)[2] += 1;
+            hi[0] += 1;
+            hi[2] += 1;
             break;
         case 4:
-            std::get<1>(res)[0] += 1;
-            std::get<1>(res)[1] += 1;
+            hi[0] += 1;
+            hi[1] += 1;
             break;
         case 3:
-            std::get<1>(res)[2] += 1;
+            hi[2] += 1;
             break;
         case 5:
-            std::get<1>(res)[1] += 1;
+            hi[1] += 1;
             break;
         case 6:
-            std::get<1>(res)[0] += 1;
+            hi[0] += 1;
             break;
         case 7:
         default:
             break;
     }
-    return res;
+    return std::make_tuple(lo, hi);
 }
-
 
 }  // namespace mesh{
 }  // namespace simpla{

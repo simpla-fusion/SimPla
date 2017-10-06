@@ -81,7 +81,7 @@ std::shared_ptr<data::DataNode> DomainBase::Pop() const { return AttributeGroup:
 
 void DomainBase::DoSetUp() { base_type::DoSetUp(); }
 void DomainBase::DoUpdate() { base_type::DoUpdate(); }
-void DomainBase::DoTearDown() {}
+void DomainBase::DoTearDown() {base_type::DoTearDown(); }
 
 void DomainBase::InitialCondition(Real time_now) {
     Update();

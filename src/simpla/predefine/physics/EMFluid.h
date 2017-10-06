@@ -20,22 +20,22 @@ template <typename TDomain>
 class EMFluid : public TDomain {
     SP_DOMAIN_HEAD(EMFluid, TDomain);
 
-    Field<this_type, Real, CELL> ne{this, "name"_ = "ne"};
-    Field<this_type, Real, CELL, 3> B0v{this, "name"_ = "B0v", "CheckPoint"_};
+    Field<this_type, Real, CELL> ne{this, "Name"_ = "ne"};
+    Field<this_type, Real, CELL, 3> B0v{this, "Name"_ = "B0v", "CheckPoint"_};
 
-    Field<this_type, Real, EDGE> E0{this, "name"_ = "E0"};
-    Field<this_type, Real, FACE> B0{this, "name"_ = "B0"};
-    Field<this_type, Real, CELL> BB{this, "name"_ = "BB"};
-    Field<this_type, Real, CELL, 3> Jv{this, "name"_ = "Jv"};
-    Field<this_type, Real, CELL, 3> Ev{this, "name"_ = "Ev"};
-    Field<this_type, Real, CELL, 3> Bv{this, "name"_ = "Bv"};
-    Field<this_type, Real, CELL, 3> dE{this, "name"_ = "dE"};
-    Field<this_type, Real, FACE> B{this, "name"_ = "B"};
-    Field<this_type, Real, EDGE> E{this, "name"_ = "E"};
-    Field<this_type, Real, EDGE> J{this, "name"_ = "J"};
-    Field<this_type, Real, CELL, 3> dumpE{this, "name"_ = "dumpE"};
-    Field<this_type, Real, CELL, 3> dumpB{this, "name"_ = "dumpB"};
-    Field<this_type, Real, CELL, 3> dumpJ{this, "name"_ = "dumpJ"};
+    Field<this_type, Real, EDGE> E0{this, "Name"_ = "E0"};
+    Field<this_type, Real, FACE> B0{this, "Name"_ = "B0"};
+    Field<this_type, Real, CELL> BB{this, "Name"_ = "BB"};
+    Field<this_type, Real, CELL, 3> Jv{this, "Name"_ = "Jv"};
+    Field<this_type, Real, CELL, 3> Ev{this, "Name"_ = "Ev"};
+    Field<this_type, Real, CELL, 3> Bv{this, "Name"_ = "Bv"};
+    Field<this_type, Real, CELL, 3> dE{this, "Name"_ = "dE"};
+    Field<this_type, Real, FACE> B{this, "Name"_ = "B"};
+    Field<this_type, Real, EDGE> E{this, "Name"_ = "E"};
+    Field<this_type, Real, EDGE> J{this, "Name"_ = "J"};
+    Field<this_type, Real, CELL, 3> dumpE{this, "Name"_ = "dumpE"};
+    Field<this_type, Real, CELL, 3> dumpB{this, "Name"_ = "dumpB"};
+    Field<this_type, Real, CELL, 3> dumpJ{this, "Name"_ = "dumpJ"};
 
     //    void TagRefinementCells(Real time_now);
 
@@ -78,8 +78,8 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string
     sp->charge = d->GetValue<double>("charge", d->GetValue<double>("Z", 1)) * SI_elementary_charge;
     sp->ratio = d->GetValue<double>("ratio", d->GetValue<double>("ratio", 1));
 
-    sp->n = std::make_shared<Field<this_type, Real, CELL>>(this, "name"_ = name + "_n");
-    sp->J = std::make_shared<Field<this_type, Real, CELL, 3>>(this, "name"_ = name + "_J");
+    sp->n = std::make_shared<Field<this_type, Real, CELL>>(this, "Name"_ = name + "_n");
+    sp->J = std::make_shared<Field<this_type, Real, CELL, 3>>(this, "Name"_ = name + "_J");
     m_fluid_sp_.emplace(name, sp);
     VERBOSE << "AddEntity particle : {\"" << name << "\", mass = " << sp->mass / SI_proton_mass
             << " [m_p], charge = " << sp->charge / SI_elementary_charge << " [q_e] }" << std::endl;

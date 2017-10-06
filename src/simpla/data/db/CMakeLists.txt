@@ -1,8 +1,8 @@
 #FIND_PACKAGE(VTK)
 #MESSAGE("-- VTK version: ${VTK_VERSION}")
-SET(XML2_DIR ${PROJECT_SOURCE_DIR}/external_project/xdmf)
-SET(XDMF_DIR ${PROJECT_SOURCE_DIR}/external_project/xdmf)
-FIND_PACKAGE(XDMF)
+#SET(XML2_DIR ${PROJECT_SOURCE_DIR}/external_project/xdmf)
+#SET(XDMF_DIR ${PROJECT_SOURCE_DIR}/external_project/xdmf)
+#FIND_PACKAGE(XDMF)
 
 
 SET(HDF5_PREFER_PARALLEL OFF)
@@ -29,9 +29,9 @@ LIST(APPEND data_backend_SRC
         LuaObject.h
         LuaObjectExt.h
         )
-IF (XDMF_FOUND)
-    LIST(APPEND data_backend_SRC DataNodeXDMF3.cpp)
-ENDIF (XDMF_FOUND)
+#IF (XDMF_FOUND)
+#    LIST(APPEND data_backend_SRC DataNodeXDMF3.cpp)
+#ENDIF (XDMF_FOUND)
 ADD_LIBRARY(data_backend ${data_backend_SRC})
 target_include_directories(data_backend BEFORE PRIVATE
         ${HDF5_INCLUDE_DIRS}

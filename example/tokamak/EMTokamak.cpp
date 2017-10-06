@@ -6,10 +6,11 @@
 #include <simpla/application/SPInit.h>
 #include <simpla/engine/Engine.h>
 #include <simpla/geometry/Cube.h>
+#include <simpla/geometry/csCartesian.h>
 #include <simpla/geometry/csCylindrical.h>
+#include <simpla/mesh/CoRectMesh.h>
 #include <simpla/mesh/EBMesh.h>
 #include <simpla/mesh/RectMesh.h>
-#include <simpla/parallel/MPIComm.h>
 #include <simpla/predefine/device/ICRFAntenna.h>
 #include <simpla/predefine/device/Tokamak.h>
 #include <simpla/predefine/engine/SimpleTimeIntegrator.h>
@@ -19,8 +20,9 @@
 #include <simpla/scheme/FVM.h>
 #include <simpla/third_part/SAMRAITimeIntegrator.h>
 #include <simpla/utilities/Logo.h>
+
 namespace simpla {
-typedef engine::Domain<geometry::csCylindrical, scheme::FVM, mesh::RectMesh, mesh::EBMesh> domain_type;
+typedef engine::Domain<geometry::csCylindrical, scheme::FVM, mesh::CoRectMesh /*, mesh::EBMesh*/> domain_type;
 }  // namespace simpla {
 
 using namespace simpla;
@@ -36,9 +38,9 @@ int main(int argc, char** argv) {
     scenario->db()->SetValue("CheckPointFileSuffix", "xdmf");
     scenario->SetCheckPointInterval(1);
 
-    scenario->GetAtlas()->SetChart<simpla::geometry::csCylindrical>();
-    scenario->GetAtlas()->GetChart()->SetScale({0.1, TWOPI / 100.0, 0.1});
-    scenario->GetAtlas()->GetChart()->SetOrigin({1, 0, 0});
+    scenario->GetAtlas()->SetChart<simpla::geometry::csCartesian>();
+    scenario->GetAtlas()->GetChart()->SetScale({0.1, 0.1, 0.1});
+    scenario->GetAtlas()->GetChart()->SetOrigin({0, 0, 0});
     scenario->GetAtlas()->SetBoundingBox(box_type{{1.4, -PI / 4, -1.4}, {2.8, PI / 4, 1.4}});
 
     auto tokamak = Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
@@ -46,9 +48,15 @@ int main(int argc, char** argv) {
     scenario->SetDomain<domain::Maxwell<domain_type>>("Limiter", tokamak->Limiter());
     scenario->GetDomain("Limiter")->PostInitialCondition.Connect([=](DomainBase* self, Real time_now) {
         if (auto d = dynamic_cast<domain::Maxwell<domain_type>*>(self)) {
-            d->E = [&](point_type const& x) { return point_type{std::sin(x[2]), std::sin(x[2]), std::sin(x[0])}; };
-            //            d->B = [&](point_type const& x) { return point_type{std::sin(x[2]), std::sin(x[2]),
-            //            std::sin(x[0])}; };
+            d->E = [&](point_type const& x) { return point_type{0, 0, std::sin(x[1])}; };
+            d->E = [&](point_type const& x) { return point_type{0, 0, std::sin(x[1])}; };
+            d->dumpE[0] = d->E[0].GetShift({2, 2, 2});
+            d->dumpE[1] = d->E[1].GetShift({2, 2, 2});
+            d->dumpE[2] = d->E[2].GetShift({2, 2, 2});
+
+            d->dumpB[0] = d->B[0].GetShift({2, 2, 2});
+            d->dumpB[1] = d->B[1].GetShift({2, 2, 2});
+            d->dumpB[2] = d->B[2].GetShift({2, 2, 2});
         }
     });
 
@@ -59,7 +67,7 @@ int main(int argc, char** argv) {
     scenario->SetTimeNow(0);
     scenario->SetTimeEnd(1.0e-8);
     scenario->SetTimeStep(1.0e-9);
-    scenario->SetMaxStep(3);
+    scenario->SetMaxStep(10);
     scenario->SetUp();
 
     //    INFORM << "Attributes" << *scenario->GetAttributes() << std::endl;
