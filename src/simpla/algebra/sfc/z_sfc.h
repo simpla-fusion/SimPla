@@ -81,20 +81,6 @@ class ZSFC {
         std::swap(m_size_, other.m_size_);
         std::swap(m_array_order_fast_first_, other.m_array_order_fast_first_);
     }
-    this_type Sub(std::tuple<nTuple<index_type, NDIMS>, nTuple<index_type, NDIMS>> const& b) const {
-        this_type res(*this);
-        res.m_index_box_ = b;
-        return res;
-    }
-
-    void Reshape(std::tuple<nTuple<index_type, NDIMS>, nTuple<index_type, NDIMS>> const& b) { m_index_box_ = b; }
-
-    void Reshape(index_type const* lo, index_type const* hi) {
-        for (int i = 0; i < ndims; ++i) {
-            std::get<0>(m_index_box_)[i] = lo[i];
-            std::get<1>(m_index_box_)[i] = hi[i];
-        }
-    }
 
     bool empty() const { return m_size_ == 0; }
     void reset() {
@@ -163,13 +149,30 @@ class ZSFC {
 
     size_type size() const { return m_size_; }
 
-    void Shift(array_index_type const& offset) {
-        std::get<0>(m_index_box_) += offset;
-        std::get<1>(m_index_box_) += offset;
-        std::get<0>(m_halo_index_box_) += offset;
-        std::get<1>(m_halo_index_box_) += offset;
-        Update();
+    void Select(index_type const* lo, index_type const* hi) {
+        for (int i = 0; i < ndims; ++i) {
+            std::get<0>(m_index_box_)[i] = lo[i];
+            std::get<1>(m_index_box_)[i] = hi[i];
+        }
     }
+
+    void Select(std::tuple<nTuple<index_type, NDIMS>, nTuple<index_type, NDIMS>> const& b) {
+        Select(&std::get<0>(b)[0], &std::get<1>(b)[0]);
+    }
+
+    void Select(std::initializer_list<std::initializer_list<index_type>> const& b) {
+        ASSERT(b.size() == 2);
+        auto it = b.begin();
+        std::vector<index_type> lo(*it);
+        ++it;
+        std::vector<index_type> hi(*it);
+
+        for (auto i = lo.size(); i < ndims; ++i) { lo.push_back(std::get<0>(m_halo_index_box_)[i]); }
+        for (auto i = hi.size(); i < ndims; ++i) { lo.push_back(std::get<1>(m_halo_index_box_)[i]); }
+
+        Select(&lo[0], &hi[0]);
+    }
+
     void Shift(index_type const* offset) {
         for (int i = 0; i < ndims; ++i) {
             std::get<0>(m_index_box_)[i] += offset[i];
@@ -179,6 +182,29 @@ class ZSFC {
         }
         Update();
     }
+
+    void Shift(std::initializer_list<index_type> const& idx) {
+        std::vector<index_type> s;
+        for (auto const& v : idx) { s.push_back(v); }
+        for (auto i = s.size(); i < ndims; ++i) { s.push_back(0); }
+        Shift(&s[0]);
+    }
+
+    void Shift(array_index_type const& offset) { Shift(&offset[0]); }
+
+    template <typename... Args>
+    this_type GetShift(Args&&... args) const {
+        this_type res(*this);
+        res.Shift(std::forward<Args>(args)...);
+        return res;
+    }
+    template <typename... Args>
+    this_type GetSelection(Args&&... args) const {
+        this_type res(*this);
+        res.Select(std::forward<Args>(args)...);
+        return res;
+    }
+
     __host__ __device__ constexpr inline index_type hash() const { return 0; }
 
     __host__ __device__ constexpr inline index_type hash(array_index_type const& idx) const {
@@ -283,13 +309,13 @@ template <>
 template <typename RHS>
 ZSFC<3> ZSFC<3>::Overlap(RHS const& rhs) const {
     ZSFC<3> res(m_halo_index_box_);
-    res.Sub(detail::overlap(m_index_box_, rhs));
+    res.Select(detail::overlap(m_index_box_, rhs));
     return res;
 };
 template <int NDIMS>
 ZSFC<NDIMS> ZSFC<NDIMS>::Overlap(this_type const& rhs) const {
     ZSFC<NDIMS> res(m_halo_index_box_);
-    res.Reshape(detail::overlap(m_halo_index_box_, rhs.m_index_box_));
+    res.Select(detail::overlap(m_index_box_, rhs.m_index_box_));
     return res;
 }
 
@@ -304,6 +330,8 @@ size_type ZSFC<3>::Copy(LHS& dst, RHS const& src) const {
     index_type je = std::get<1>(m_index_box_)[1];
     index_type kb = std::get<0>(m_index_box_)[2];
     index_type ke = std::get<1>(m_index_box_)[2];
+    count = static_cast<size_type>((ke - kb) * (je - jb) * (ie - ib));
+
     if (m_array_order_fast_first_) {
         //#pragma omp parallel for
         for (index_type k = kb; k < ke; ++k)
@@ -340,7 +368,7 @@ size_type ZSFC<3>::Foreach(const TFun& fun) const {
     index_type je = std::get<1>(m_index_box_)[1];
     index_type kb = std::get<0>(m_index_box_)[2];
     index_type ke = std::get<1>(m_index_box_)[2];
-
+    count = static_cast<size_type>((ke - kb) * (je - jb) * (ie - ib));
 #ifndef __CUDA__
     if (m_array_order_fast_first_) {
         //#pragma omp parallel for

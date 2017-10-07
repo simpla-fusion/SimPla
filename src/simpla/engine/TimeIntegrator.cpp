@@ -89,23 +89,29 @@ void TimeIntegrator::Advance(Real time_now, Real time_dt) {
     });
 }
 void TimeIntegrator::DoSetUp() {
-    SetStepNumber(db()->GetValue<size_type>("Step", GetStepNumber()));
-    SetMaxStep(db()->GetValue<size_type>("MaxStep", 100));
+    //    SetStepNumber(db()->GetValue<size_type>("Step", GetStepNumber()));
+    //    SetTimeNow(
+    //            db()->GetValue<size_type>("MaxStep", static_cast<size_type>((GetTimeEnd() - GetTimeNow()) /
+    //            GetTimeStep())));
+    //    SetMaxStep(
+    //        db()->GetValue<size_type>("MaxStep", static_cast<size_type>((GetTimeEnd() - GetTimeNow()) /
+    //        GetTimeStep())));
+    //
+    SetTimeStep(db()->GetValue<Real>("TimeStep", (GetTimeEnd() - GetTimeNow()) / GetMaxStep()));
     base_type::DoSetUp();
 }
 void TimeIntegrator::DoTearDown() { base_type::DoTearDown(); }
 void TimeIntegrator::Run() {
     InitialCondition(GetTimeNow());
-    Synchronize(0);
     CheckPoint();
+    Dump();
+
     while (!Done()) {
-        VERBOSE << " [ STEP:" << std::setw(5) << GetStepNumber() << " START ] ";
-        NextStep();
+        VERBOSE << " [ TIME :" << std::setw(5) << GetTimeNow() << "   ] ";
         Synchronize(0);
+        NextStep();
         if (GetCheckPointInterval() > 0 && (GetStepNumber() % GetCheckPointInterval() == 0)) { CheckPoint(); };
         if (GetDumpInterval() > 0 && (GetStepNumber() % GetDumpInterval() == 0)) { Dump(); };
-
-        VERBOSE << " [ STEP:" << std::setw(5) << GetStepNumber() - 1 << " STOP  ] ";
     }
 }
 void TimeIntegrator::NextStep() {

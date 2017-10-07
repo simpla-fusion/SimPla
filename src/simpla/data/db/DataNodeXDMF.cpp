@@ -246,8 +246,8 @@ void DataNodeXDMF::WriteDataItem(std::string const& url, std::string const& key,
 
     os << std::setw(indent) << " "
        << "<DataItem Format=\"HDF\" " << number_type << " Dimensions=\"";
-    os << hi[0] - lo[0];
-    for (int i = 1; i < fndims; ++i) { os << " " << hi[i] - lo[i]; };
+
+    for (int i = 0; i < fndims; ++i) { os << " " << hi[i] - lo[i]; };
     if (dof > 1) { os << " " << dof; }
     os << "\">" << m_h5_prefix_ << ":" << url << "/" << key << "</DataItem>" << std::endl;
 }
@@ -384,7 +384,7 @@ int DataNodeXDMF::Flush() {
             auto guid = blk->GetValue<id_type>("GUID");
             if (auto patch = patches->Get(k)) {
                 index_box_type idx_box{blk->GetValue<index_tuple>("LowIndex"), blk->GetValue<index_tuple>("HighIndex")};
-                std::get<0>(idx_box) -= 1;
+                std::get<0>(idx_box) -= 1;  // ghost cell
                 std::get<1>(idx_box) += 1;
 
                 os << std::setw(indent) << " "

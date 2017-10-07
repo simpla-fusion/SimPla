@@ -77,9 +77,9 @@ void Scenario::CheckPoint() const {
     auto attrs = GetAttributes();
 
     auto dump = data::DataNode::New(os.str());
+    dump->Set("Atlas", GetAtlas()->Serialize());
     dump->Set("Attributes", attrs);
 
-    //    dump->Set("Chart", m_pimpl_->m_atlas_->GetChart()->Serialize());
     auto patches = data::DataNode::New(data::DataNode::DN_TABLE);
     for (auto const &item : m_pimpl_->m_patches_) {
         auto node = patches->CreateNode(std::to_string(item.first), data::DataNode::DN_TABLE);
@@ -87,7 +87,6 @@ void Scenario::CheckPoint() const {
             if (attrs->Check(key + "/CheckPoint") || attrs->Check(key + "/COORDINATES")) { node->Set(key, p); }
         });
     }
-    dump->Set("Atlas", GetAtlas()->Serialize());
     dump->Set("Patches", patches);
     dump->SetValue<Real>("Time", GetTimeNow());
     dump->Flush();
@@ -119,7 +118,6 @@ Range<EntityId> const &Scenario::GetRange(std::string const &k) const { return m
 
 void Scenario::pimpl_s::Sync(std::shared_ptr<data::DataNode> const &attr, int level) {
     ASSERT(attr != nullptr);
-    //    VERBOSE << "Sync Attribute :" << attr->GetValue<std::string>("Name") << *attr;
 
     std::shared_ptr<parallel::MPIUpdater> updater = nullptr;
     auto value_type_s = attr->GetValue<std::string>("ValueType", "double");
@@ -139,7 +137,6 @@ void Scenario::pimpl_s::Sync(std::shared_ptr<data::DataNode> const &attr, int le
     auto iform = attr->GetValue<int>("IFORM");
     auto dof = attr->GetValue<int>("DOF");
     auto key = attr->GetValue<std::string>("Name");
-
     for (int N = 0; N < dof; ++N) {
         for (int dir = 0; dir < 3; ++dir) {
             updater->SetIndexBox(m_atlas_->GetIndexBox(iform, N));
@@ -164,32 +161,31 @@ void Scenario::pimpl_s::Sync(std::shared_ptr<data::DataNode> const &attr, int le
 void Scenario::Synchronize(int level) {
     ASSERT(level == 0)
     auto attrs = GetAttributes();
-//#ifdef MPI_FOUND
-//    if (GLOBAL_COMM.rank() == 0) {
-//        attrs->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &attr) {
-//            if (attr == nullptr || attr->Check("LOCAL")) { return; }
-//            parallel::bcast_string(key);
-//            m_pimpl_->Sync(attr, level);
-//        });
-//        parallel::bcast_string("");
-//    } else {
-//        while (1) {
-//            auto key = parallel::bcast_string();
-//            if (key.empty()) { break; }
-//            auto attr = attrs->Get(key);
-//            if (attr == nullptr || attr->Check("LOCAL")) {
-//                RUNTIME_ERROR << "Can not sync local/null attribute \"" << key << "\".";
-//            }
-//            m_pimpl_->Sync(attr, level);
-//        }
-//    }
-//#else
+#ifdef MPI_FOUND
+    if (GLOBAL_COMM.rank() == 0) {
+        attrs->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &attr) {
+            if (attr == nullptr || attr->Check("LOCAL")) { return; }
+            parallel::bcast_string(key);
+            m_pimpl_->Sync(attr, level);
+        });
+        parallel::bcast_string("");
+    } else {
+        while (1) {
+            auto key = parallel::bcast_string();
+            if (key.empty()) { break; }
+            auto attr = attrs->Get(key);
+            if (attr == nullptr || attr->Check("LOCAL")) {
+                RUNTIME_ERROR << "Can not sync local/null attribute \"" << key << "\".";
+            }
+            m_pimpl_->Sync(attr, level);
+        }
+    }
+#else
     attrs->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &attr) {
         if (attr == nullptr || attr->Check("LOCAL")) { return; }
-         m_pimpl_->Sync(attr, level);
+        m_pimpl_->Sync(attr, level);
     });
-
-//#endif  // MPI_FOUND
+#endif  // MPI_FOUND
 }
 void Scenario::NextStep() { ++m_pimpl_->m_step_counter_; }
 void Scenario::SetStepNumber(size_type s) { m_pimpl_->m_step_counter_ = s; }

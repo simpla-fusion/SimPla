@@ -134,21 +134,19 @@ void MPIUpdater::Pop(ArrayBase &a) const {
 }
 
 void MPIUpdater::SendRecv() {
-//#ifdef MPI_FOUND
-//    if (m_pimpl_->left != m_pimpl_->m_rank_ && m_pimpl_->right != m_pimpl_->m_rank_) {
-//        //    GLOBAL_COMM.barrier();
-//        MPI_CALL(MPI_Sendrecv(GetSendBuffer(0).pointer(), static_cast<int>(GetSendBuffer(0).size()), m_pimpl_->ele_type,
-//                              m_pimpl_->left, m_pimpl_->tag, GetRecvBuffer(1).pointer(),
-//                              static_cast<int>(GetRecvBuffer(1).size()), m_pimpl_->ele_type, m_pimpl_->right,
-//                              m_pimpl_->tag, GLOBAL_COMM.comm(), MPI_STATUS_IGNORE));
-//        //    GLOBAL_COMM.barrier();
-//        MPI_CALL(MPI_Sendrecv(GetSendBuffer(1).pointer(), static_cast<int>(GetSendBuffer(1).size()), m_pimpl_->ele_type,
-//                              m_pimpl_->right, m_pimpl_->tag, GetRecvBuffer(0).pointer(),
-//                              static_cast<int>(GetRecvBuffer(0).size()), m_pimpl_->ele_type, m_pimpl_->left,
-//                              m_pimpl_->tag, GLOBAL_COMM.comm(), MPI_STATUS_IGNORE));
-//        //    GLOBAL_COMM.barrier(); }
-//    } else /*if (m_pimpl_->mpi_periods[m_pimpl_->m_direction_] > 0) */
-//#endif
+    if (m_pimpl_->left != m_pimpl_->m_rank_ && m_pimpl_->right != m_pimpl_->m_rank_) {
+        GLOBAL_COMM.barrier();
+        MPI_CALL(MPI_Sendrecv(GetSendBuffer(0).pointer(), static_cast<int>(GetSendBuffer(0).size()), m_pimpl_->ele_type,
+                              m_pimpl_->left, m_pimpl_->tag, GetRecvBuffer(1).pointer(),
+                              static_cast<int>(GetRecvBuffer(1).size()), m_pimpl_->ele_type, m_pimpl_->right,
+                              m_pimpl_->tag, GLOBAL_COMM.comm(), MPI_STATUS_IGNORE));
+        GLOBAL_COMM.barrier();
+        MPI_CALL(MPI_Sendrecv(GetSendBuffer(1).pointer(), static_cast<int>(GetSendBuffer(1).size()), m_pimpl_->ele_type,
+                              m_pimpl_->right, m_pimpl_->tag, GetRecvBuffer(0).pointer(),
+                              static_cast<int>(GetRecvBuffer(0).size()), m_pimpl_->ele_type, m_pimpl_->left,
+                              m_pimpl_->tag, GLOBAL_COMM.comm(), MPI_STATUS_IGNORE));
+        GLOBAL_COMM.barrier();
+    } else  // if (m_pimpl_->mpi_periods[m_pimpl_->m_direction_] > 0)
     {
         index_tuple shift = {0, 0, 0};
         shift[m_pimpl_->m_direction_] = std::get<1>(m_pimpl_->local_box_)[m_pimpl_->m_direction_] -

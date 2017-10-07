@@ -42,7 +42,7 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM, DOF...
 
     //    Field(this_type const& other, IdxShift const& s) : this_type(other){};
 
-    //    this_type Sub(Range<EntityId> const& r) const { return this_type(*this); }
+    //    this_type GetSelection(Range<EntityId> const& r) const { return this_type(*this); }
 
     template <typename... Args>
     static std::shared_ptr<this_type> New(Args&&... args) {

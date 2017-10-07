@@ -41,7 +41,7 @@ struct ArrayBase {
     virtual void reset(index_box_type const& b) = 0;
     virtual std::shared_ptr<ArrayBase> DuplicateArray() const = 0;
     virtual void Shift(index_type const*) = 0;
-    virtual void ReShape(index_type const*, index_type const*) = 0;
+    virtual void Select(index_type const*, index_type const*) = 0;
 
     virtual std::ostream& Print(std::ostream& os, int indent = 0, bool verbose = true) const = 0;
 };
@@ -92,8 +92,6 @@ class Array : public ArrayBase {
     std::shared_ptr<ArrayBase> DuplicateArray() const override {
         return std::shared_ptr<ArrayBase>(new this_type(*this));
     };
-    void Shift(index_type const* idx) override { m_sfc_.Shift(idx); }
-    void ReShape(index_type const* lo, index_type const* hi) override { m_sfc_.Reshape(lo, hi); }
 
     std::ostream& Print(std::ostream& os, int indent = 0,
 #ifndef NDEBUG
@@ -193,7 +191,7 @@ class Array : public ArrayBase {
     size_type CopyIn(this_type const& other) {
         SetUp();
         return m_sfc_.Overlap(other.m_sfc_).Foreach([&] __host__ __device__(auto&&... s) {
-            this->at(std::forward<decltype(s)>(s)...) = other.at(std::forward<decltype(s)>(s)...);
+            this->Set(other.Get(std::forward<decltype(s)>(s)...), std::forward<decltype(s)>(s)...);
         });
     };
     size_type CopyOut(this_type& other) const { return other.CopyIn(*this); };
@@ -205,7 +203,7 @@ class Array : public ArrayBase {
     void FillNaN() { Fill(std::numeric_limits<value_type>::signaling_NaN()); }
     void Fill(value_type v) {
         SetUp();
-        m_sfc_.Foreach([&] __host__ __device__(auto&&... s) { this->at(std::forward<decltype(s)>(s)...) = v; });
+        m_sfc_.Foreach([&] __host__ __device__(auto&&... s) { this->Set(v, std::forward<decltype(s)>(s)...); });
     }
     void Clear() override {
         SetUp();
@@ -222,23 +220,31 @@ class Array : public ArrayBase {
         Assign(rhs);
         return (*this);
     }
+
+    void Shift(index_type const* idx) override { m_sfc_.Shift(idx); }
+    void Select(index_type const* lo, index_type const* hi) override { m_sfc_.Select(lo, hi); }
+
     template <typename... Args>
     void Shift(Args&&... args) {
         m_sfc_.Shift(std::forward<Args>(args)...);
     }
-    this_type GetShift(IdxShift const& idx) const { return this_type(*this, idx); }
-    this_type GetShift(std::initializer_list<int> const& idx) const {
-        IdxShift s;
-        int count = 0;
-        for (auto const& v : idx) {
-            s[count] = v;
-            ++count;
-            if (count >= 3) { break; }
-        }
-        return this_type(*this, s);
+    template <typename... Args>
+    void Select(Args&&... args) {
+        m_sfc_.Select(std::forward<Args>(args)...);
     }
 
-    this_type Sub(index_box_type const& b) { return this_type(m_data_, m_sfc_.Sub(b)); }
+    template <typename... Args>
+    this_type GetShift(Args&&... args) const {
+        this_type res(*this);
+        res.Shift(std::forward<Args>(args)...);
+        return res;
+    }
+    template <typename... Args>
+    this_type GetSelection(Args&&... args) const {
+        this_type res(*this);
+        res.Select(std::forward<Args>(args)...);
+        return res;
+    }
 
     //    __host__ __device__ value_type& operator[](size_type s) { return m_data_[s]; }
     //    __host__ __device__ value_type const& operator[](size_type s) const { return m_data_[s]; }
@@ -271,11 +277,7 @@ class Array : public ArrayBase {
         return (!m_sfc_.in_box(std::forward<Args>(args)...)) ? s_nan
                                                              : m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
     }
-    template <typename... Args>
-    value_type& Get(Args&&... args) {
-        return (!m_sfc_.in_box(std::forward<Args>(args)...)) ? m_null_
-                                                             : m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
-    }
+
     template <typename RHS>
     void Assign(RHS const& rhs);
 
@@ -283,6 +285,7 @@ class Array : public ArrayBase {
 };
 template <typename V, typename SFC>
 constexpr typename Array<V, SFC>::value_type Array<V, SFC>::s_nan;
+//
 template <typename V, typename SFC>
 typename Array<V, SFC>::value_type Array<V, SFC>::m_null_;
 
@@ -360,8 +363,8 @@ template <typename V, typename SFC>
 template <typename RHS>
 void Array<V, SFC>::Assign(RHS const& rhs) {
     SetUp();
-    this_type(m_data_, GetSpaceFillingCurve().Overlap(rhs)).Foreach([&](value_type& v, auto&&... idx) {
-        v = detail::array_parser(rhs, std::forward<decltype(idx)>(idx)...);
+    GetSpaceFillingCurve().Overlap(rhs).Foreach([&](auto&&... idx) {
+        this->Set(detail::array_parser(rhs, std::forward<decltype(idx)>(idx)...), std::forward<decltype(idx)>(idx)...);
     });
 };
 

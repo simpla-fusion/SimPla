@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
     b.Foreach([&](auto& v, index_type i, index_type j, index_type k) { v = v * 1000000 + i * 10000 + j * 100 + k; });
     a.CopyIn(b);
 
-    auto center = a.Sub(box);
+    auto center = a.GetSelection(box);
 
     GLOBAL_COMM.barrier();
     if (GLOBAL_COMM.rank() == 0) { std::cout << a << std::endl; }
