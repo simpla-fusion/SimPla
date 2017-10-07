@@ -21,6 +21,7 @@ class Maxwell : public TDomainBase {
     SP_DOMAIN_HEAD(Maxwell, TDomainBase);
     int count = 0;
     Field<this_type, Real, FACE> B{this, "Name"_ = "B", "CheckPoint"_};
+
     Field<this_type, Real, EDGE> E{this, "Name"_ = "E", "CheckPoint"_};
     Field<this_type, Real, EDGE> J{this, "Name"_ = "J", "CheckPoint"_};
 };
@@ -73,6 +74,7 @@ void Maxwell<TDomain>::DoAdvance(Real time_now, Real time_dt) {
     //    J.Clear();
     LOG_CMD(E = E + (curl(B) * speed_of_light2) * time_dt);
     LOG_CMD(B = B - curl(E) * time_dt);
+    LOG_CMD(J = curl(B));
 }
 
 template <typename TDomain>

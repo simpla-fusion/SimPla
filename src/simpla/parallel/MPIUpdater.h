@@ -36,7 +36,6 @@ struct MPIUpdater {
     virtual void SetUp();
     virtual void TearDown();
     bool isSetUp() const;
-    bool isEnable() const;
 
     void Push(ArrayBase const &a);
     void Pop(ArrayBase &a) const;
