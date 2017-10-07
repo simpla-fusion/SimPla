@@ -38,7 +38,7 @@ struct DataNodeXDMF : public DataNodeMemory {
     hid_t m_h5_file_;
     hid_t m_h5_root_;
 };
-REGISTER_CREATOR(DataNodeXDMF, xdmf);
+REGISTER_CREATOR(DataNodeXDMF, xmf);
 DataNodeXDMF::DataNodeXDMF(DataNode::eNodeType etype) : base_type(etype) {}
 DataNodeXDMF::~DataNodeXDMF() = default;
 
@@ -256,6 +256,10 @@ void DataNodeXDMF::WriteAttribute(std::string const& url, std::string const& key
                                   std::shared_ptr<data::DataNode> const& data, int indent) {
     //    static const char* attr_center[] = {"Node", "Node" /* "Edge"*/, "Node" /* "Face"*/, "Cell", "Grid", "Other"};
     //    static const char* attr_type[] = {" Scalar", "Vector", "Tensor", "Tensor6", "Matrix", "GlobalID"};
+
+    index_tuple lo, hi;
+    std::tie(lo, hi) = idx_box;
+
     auto iform = attr_desc->GetValue<int>("IFORM", 0);
 
     if (iform == CELL) { std::get<1>(idx_box) -= 1; }
@@ -288,7 +292,7 @@ void DataNodeXDMF::WriteAttribute(std::string const& url, std::string const& key
 
     os << std::setw(indent) << " "
        << "<Attribute "
-       << "Center=\"" << (iform == CELL ? "Cell" : "Node") << "\" "       //
+       << "Center=\"" << (iform == NODE ? "Node" : "Cell") << "\" "       //
        << "Name=\"" << attr_desc->GetValue<std::string>("Name") << "\" "  //
        << "AttributeType=\"" << attr_type << "\" "                        //
        << "IFORM=\"" << iform << "\" "                                    //
@@ -333,14 +337,18 @@ Name="leuk_polarization">
 void XDMFGeometryCurvilinear(DataNodeXDMF* self, std::string const& prefix, index_box_type idx_box,
                              std::shared_ptr<DataNode> const& chart, std::shared_ptr<data::DataNode> const& coord,
                              int indent) {
+    index_tuple lo, hi;
+    std::tie(lo, hi) = idx_box;
+    hi += 1;
     self->os << std::setw(indent) << " "
-             << R"(<Topology TopologyType="3DSMesh" Dimensions=")" << std::get<1>(idx_box)[0] - std::get<0>(idx_box)[0]
-             << " " << std::get<1>(idx_box)[1] - std::get<0>(idx_box)[1] << " "
-             << std::get<1>(idx_box)[2] - std::get<0>(idx_box)[2] << "\" />" << std::endl;
+             << R"(<Topology TopologyType="3DSMesh" Dimensions=")" <<  //
+        hi[0] - lo[0] << " " <<                                        //
+        hi[1] - lo[1] << " " <<                                        //
+        hi[2] - lo[2] << "\" />" << std::endl;
     self->os << std::setw(indent) << " "
              << "<Geometry GeometryType=\"XYZ\">" << std::endl;
 
-    self->WriteDataItem(prefix, "_XYZ_", idx_box, coord, indent + 1);
+    self->WriteDataItem(prefix, "_XYZ_", std::make_tuple(lo, hi), coord, indent + 1);
     self->os << std::setw(indent) << " "
              << "</Geometry>" << std::endl;
 }
@@ -348,6 +356,7 @@ void XDMFGeometryRegular(DataNodeXDMF* self, index_box_type idx_box, std::shared
                          int indent = 0) {
     index_tuple lo, hi;
     std::tie(lo, hi) = idx_box;
+    hi += 1;
     self->os << std::setw(indent) << " "
              << R"(<Topology TopologyType="3DCoRectMesh" Dimensions=")" << hi[0] - lo[0] << " " << hi[1] - lo[1] << " "
              << hi[2] - lo[2] << "\" />" << std::endl;
@@ -384,8 +393,8 @@ int DataNodeXDMF::Flush() {
             auto guid = blk->GetValue<id_type>("GUID");
             if (auto patch = patches->Get(k)) {
                 index_box_type idx_box{blk->GetValue<index_tuple>("LowIndex"), blk->GetValue<index_tuple>("HighIndex")};
-                std::get<0>(idx_box) -= 1;  // ghost cell
-                std::get<1>(idx_box) += 1;
+                //                std::get<0>(idx_box) -= 1;  // ghost cell
+                //                std::get<1>(idx_box) += 1;
 
                 os << std::setw(indent) << " "
                    << "<Grid Name=\"" << guid << "\" Level=\"" << blk->GetValue<int>("Level", 0) << "\">" << std::endl;
@@ -432,8 +441,8 @@ int DataNodeXDMF::Flush() {
 
     if (GLOBAL_COMM.rank() == 0) {
         std::ofstream out_file;
-        out_file.open(m_prefix_ + ".xdmf", std::ios_base::trunc);
-        VERBOSE << std::setw(20) << "Write XDMF : " << m_prefix_ << ".xdmf";
+        out_file.open(m_prefix_ + ".xmf", std::ios_base::trunc);
+        VERBOSE << std::setw(20) << "Write XDMF : " << m_prefix_ << ".xmf";
 
         out_file << R"(<?xml version="1.0" encoding="utf-8"?>
 <Xdmf xmlns:xi="http://www.w3.org/2001/XInclude" Version="3.3">
@@ -444,7 +453,7 @@ int DataNodeXDMF::Flush() {
                 out_file << std::endl << "  <Time Value=\"" << t->value() << "\"/>" << std::endl;
             }
         }
-        out_file << grid_str;
+        out_file << std::setw(indent) << " " << grid_str;
         out_file << R"(</Grid>
 </Domain>
 </Xdmf>)";

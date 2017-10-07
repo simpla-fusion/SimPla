@@ -333,13 +333,13 @@ size_type ZSFC<3>::Copy(LHS& dst, RHS const& src) const {
     count = static_cast<size_type>((ke - kb) * (je - jb) * (ie - ib));
 
     if (m_array_order_fast_first_) {
-        //#pragma omp parallel for
+#pragma omp parallel for
         for (index_type k = kb; k < ke; ++k)
             for (index_type j = jb; j < je; ++j)
                 for (index_type i = ib; i < ie; ++i) { dst(i, j, k) = src(i, j, k); }
 
     } else {
-        //#pragma omp parallel for
+#pragma omp parallel for
         for (index_type i = ib; i < ie; ++i)
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k) { dst(i, j, k) = src(i, j, k); }
@@ -371,13 +371,13 @@ size_type ZSFC<3>::Foreach(const TFun& fun) const {
     count = static_cast<size_type>((ke - kb) * (je - jb) * (ie - ib));
 #ifndef __CUDA__
     if (m_array_order_fast_first_) {
-        //#pragma omp parallel for
+#pragma omp parallel for
         for (index_type k = kb; k < ke; ++k)
             for (index_type j = jb; j < je; ++j)
                 for (index_type i = ib; i < ie; ++i) { fun(i, j, k); }
 
     } else {
-        //#pragma omp parallel for
+#pragma omp parallel for
         for (index_type i = ib; i < ie; ++i)
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k) { fun(i, j, k); }

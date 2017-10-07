@@ -35,25 +35,33 @@ int main(int argc, char** argv) {
     scenario->SetName("EAST");
     scenario->db()->SetValue("DumpFileSuffix", "h5");
     scenario->db()->SetValue("CheckPointFilePrefix", "EAST");
-    scenario->db()->SetValue("CheckPointFileSuffix", "xdmf");
+    scenario->db()->SetValue("CheckPointFileSuffix", "xmf");
     scenario->SetCheckPointInterval(1);
-//    scenario->SetDumpInterval(1);
+    //    scenario->SetDumpInterval(1);
 
     scenario->GetAtlas()->SetChart<simpla::geometry::csCartesian>();
     scenario->GetAtlas()->GetChart()->SetScale({0.1, 0.1, 0.1});
     scenario->GetAtlas()->GetChart()->SetOrigin({0, 0, 0});
     //    scenario->GetAtlas()->SetBoundingBox(box_type{{1.4, -PI / 4, -1.4}, {2.8, PI / 4, 1.4}});
-    scenario->GetAtlas()->SetBoundingBox(box_type{{-1, -1, -1}, {1, 1, 1}});
+    scenario->GetAtlas()->SetBoundingBox(box_type{{-1, -2, -3}, {1, 2, 3}});
     //    auto tokamak = Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
     //    auto* p = new domain::Maxwell<domain_type>;/*tokamak->Limiter()*/
-    scenario->SetDomain<domain::Maxwell<domain_type>>("Limiter", geometry::Cube::New({{-1, -1, -1}, {1, 1, 1}}));
+    scenario->SetDomain<domain::Maxwell<domain_type>>("Limiter", geometry::Cube::New(box_type{{-1, -2, -3}, {1, 2, 3}}));
     scenario->GetDomain("Limiter")->PostInitialCondition.Connect([=](DomainBase* self, Real time_now) {
         if (auto d = dynamic_cast<domain::Maxwell<domain_type>*>(self)) {
             //            d->B[0].FillNaN();
             //            d->B[0].GetSelection({{-10, -10, -10}, {11, 10, 10}}) = [&](index_type x, auto&&... others) {
             //                return static_cast<Real>(x);
             //            };
-            d->E = [&](point_type const& x) { return point_type{0, std::cos(PI * x[0]), 0}; };
+            Real rank = GLOBAL_COMM.rank();
+            d->E = [&](point_type const& x) {
+                return x;
+                //                return point_type{1.0 + std::cos(PI * x[1]), 1.0 + std::cos(PI * x[0]), 0};
+            };
+            d->B = [&](point_type const& x) {
+                return x;
+                //                return point_type{1.0 + std::cos(PI * x[1]), 1.0 + std::cos(PI * x[0]), 0};
+            };
             //            d->B = [&](point_type const& x) { return point_type{std::cos(PI * x[0]), 0, 0}; };
         }
     });
@@ -64,7 +72,7 @@ int main(int argc, char** argv) {
     //    });
     //    scenario->SetTimeNow(0);
     scenario->SetTimeEnd(2.0e-8);
-    scenario->SetMaxStep(50);
+    scenario->SetMaxStep(5);
     scenario->SetUp();
 
     //    INFORM << "Attributes" << *scenario->GetAttributes() << std::endl;

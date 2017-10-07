@@ -16,12 +16,12 @@ int main(int argc, char** argv) {
     std::get<0>(outer_box) = std::get<0>(box) - gw;
     std::get<1>(outer_box) = std::get<1>(box) + gw;
 
-    auto updater = parallel::MPIUpdater::New<double>();
+    auto updater = parallel::MPIUpdater::New<int>();
     updater->SetIndexBox(box);
     updater->SetGhostWidth(gw);
 
-    Array<Real> a(outer_box);
-    Array<Real> b(box);
+    Array<int> a(outer_box);
+    Array<int> b(box);
     a.FillNaN();
     b.Fill(GLOBAL_COMM.rank());
     auto rank = GLOBAL_COMM.rank();

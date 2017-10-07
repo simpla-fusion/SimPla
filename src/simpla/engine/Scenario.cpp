@@ -135,24 +135,32 @@ void Scenario::pimpl_s::Sync(std::shared_ptr<data::DataNode> const &attr, int le
     }
 
     auto iform = attr->GetValue<int>("IFORM");
+    int n_sub = iform == NODE || iform == CELL ? 1 : 3;
     auto dof = attr->GetValue<int>("DOF");
     auto key = attr->GetValue<std::string>("Name");
-    for (int N = 0; N < dof; ++N) {
+    for (int N = 0; N < n_sub; ++N) {
+//        VERBOSE << "Sync: " << key << "  " << N;
         for (int dir = 0; dir < 3; ++dir) {
             updater->SetIndexBox(m_atlas_->GetIndexBox(iform, N));
             updater->SetGhostWidth(m_atlas_->GetGhostWidth());
             updater->SetDirection(dir);
             updater->SetUp();
-            for (auto &item : m_patches_) {
-                if (auto t = item.second->Get(key)) {
-                    if (auto array = std::dynamic_pointer_cast<ArrayBase>(t->GetEntity(N))) { updater->Push(*array); }
-                };
-            }
-            updater->SendRecv();
-            for (auto &item : m_patches_) {
-                if (auto t = item.second->Get(key)) {
-                    if (auto array = std::dynamic_pointer_cast<ArrayBase>(t->GetEntity(N))) { updater->Pop(*array); }
-                };
+            for (int d = 0; d < dof; ++d) {
+                for (auto &item : m_patches_) {
+                    if (auto t = item.second->Get(key)) {
+                        if (auto array = std::dynamic_pointer_cast<ArrayBase>(t->GetEntity(N * dof + d))) {
+                            updater->Push(*array);
+                        }
+                    };
+                }
+                updater->SendRecv();
+                for (auto &item : m_patches_) {
+                    if (auto t = item.second->Get(key)) {
+                        if (auto array = std::dynamic_pointer_cast<ArrayBase>(t->GetEntity(N * dof + d))) {
+                            updater->Pop(*array);
+                        }
+                    };
+                }
             }
             updater->TearDown();
         }

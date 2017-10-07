@@ -148,6 +148,7 @@ void MPIUpdater::SendRecv() {
         GLOBAL_COMM.barrier();
     } else  // if (m_pimpl_->mpi_periods[m_pimpl_->m_direction_] > 0)
     {
+        CHECK(m_pimpl_->m_direction_);
         index_tuple shift = {0, 0, 0};
         shift[m_pimpl_->m_direction_] = std::get<1>(m_pimpl_->local_box_)[m_pimpl_->m_direction_] -
                                         std::get<0>(m_pimpl_->local_box_)[m_pimpl_->m_direction_];

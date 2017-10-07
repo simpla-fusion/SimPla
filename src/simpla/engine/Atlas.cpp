@@ -35,7 +35,7 @@ struct Atlas::pimpl_s {
     bool m_has_bounding_box_ = false;
     box_type m_box_{{0, 0, 0}, {1, 1, 1}};
     index_box_type m_index_box_{{0, 0, 0}, {1, 1, 1}};
-    index_tuple m_ghost_width_{2, 2, 2};
+    index_tuple m_ghost_width_{3, 3, 3};
 
     //    box_type m_local_box_{{0, 0, 0}, {1, 1, 1}};
     //    index_box_type m_local_index_box_{{0, 0, 0}, {1, 1, 1}};

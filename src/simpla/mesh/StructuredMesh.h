@@ -37,7 +37,7 @@ class StructuredMesh {
 
     virtual index_box_type GetIndexBox(int tag) const;
 
-    ZSFC<NDIMS> GetSpaceFillingCurve(int tag = 0b000, index_tuple gw = index_tuple{2, 2, 2}) const {
+    ZSFC<NDIMS> GetSpaceFillingCurve(int tag = 0b000, index_tuple gw = index_tuple{3, 3, 3}) const {
         auto i_box = GetIndexBox(tag);
         std::get<0>(i_box) -= gw;
         std::get<1>(i_box) += gw;
