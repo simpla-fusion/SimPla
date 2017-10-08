@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Xdmf xmlns:xi="http://www.w3.org/2001/XInclude" Version="3.3">
+<Domain>
+<Grid CollectionType="Temporal" GridType="Collection" Name="B0c">
+<Grid Name="B0" Level="0">
+   <Time Value="1e-07"/>
+   <Topology TopologyType="3DCoRectMesh" Dimensions="29  28  28" />
+   <Geometry GeometryType="ORIGIN_DXDYDZ"> 
+    <DataItem Format="XML" Dimensions="3"> -1.0 -0.95  -0.95</DataItem>
+    <DataItem Format="XML" Dimensions="3"> 0.1 0.1 0.1 </DataItem>
+   </Geometry>
+   <Attribute Center="Node" Name="B0" AttributeType="Scalar" >
+    <DataItem Format="HDF"  Dimensions="29  28  28">EAST_dump_00000001.h5:/Patches/8/B/0</DataItem>
+   </Attribute>   
+</Grid>
+
+
+<Grid Name="B0" Level="0">
+   <Time Value="1e-07"/>
+   <Topology TopologyType="3DCoRectMesh" Dimensions="29  28  28" />
+   <Geometry GeometryType="ORIGIN_DXDYDZ"> 
+    <DataItem Format="XML" Dimensions="3"> -1.0 -0.95  -0.95</DataItem>
+    <DataItem Format="XML" Dimensions="3"> 0.1 0.1 0.1 </DataItem>
+   </Geometry>
+   <Attribute Center="Node" Name="B0" AttributeType="Scalar" >
+    <DataItem Format="HDF"  Dimensions="29  28  28">EAST_dump_00000001.h5:/Patches/8/B/0</DataItem>
+   </Attribute>   
+</Grid>
+
+</Grid>
+
+<Grid Name="B1" Level="0">
+   <Topology TopologyType="3DCoRectMesh" Dimensions="28 29 28" />
+   <Geometry GeometryType="ORIGIN_DXDYDZ"> 
+    <DataItem Format="XML" Dimensions="3"> -0.95 -1.0  -0.95 </DataItem>
+    <DataItem Format="XML" Dimensions="3"> 0.1 0.1 0.1 </DataItem>
+   </Geometry>
+   <Attribute Center="Node" Name="B1" AttributeType="Scalar" >
+    <DataItem Format="HDF"  Dimensions="28 29 28">EAST_dump_00000001.h5:/Patches/8/B/1</DataItem>
+   </Attribute>   
+</Grid>
+<Grid Name="B2" Level="0">
+   <Topology TopologyType="3DCoRectMesh" Dimensions="28 28  29" />
+   <Geometry GeometryType="ORIGIN_DXDYDZ"> 
+    <DataItem Format="XML" Dimensions="3">  -0.95 -0.95 -1.0 </DataItem>
+    <DataItem Format="XML" Dimensions="3"> 0.1 0.1 0.1 </DataItem>
+   </Geometry>
+   <Attribute Center="Node" Name="B2" AttributeType="Scalar" >
+    <DataItem Format="HDF"  Dimensions="28 28  29">EAST_dump_00000001.h5:/Patches/8/B/2</DataItem>
+   </Attribute>   
+</Grid>
+<Grid Name="E0" Level="0">
+   <Topology TopologyType="3DCoRectMesh" Dimensions="28  29  29" />
+   <Geometry GeometryType="ORIGIN_DXDYDZ"> 
+    <DataItem Format="XML" Dimensions="3"> -0.95 -1.0 -1.0 </DataItem>
+    <DataItem Format="XML" Dimensions="3"> 0.1 0.1 0.1 </DataItem>
+   </Geometry>
+   <Attribute Center="Node" Name="E0" AttributeType="Scalar" >
+    <DataItem Format="HDF"  Dimensions="28  29  29">EAST_dump_00000001.h5:/Patches/8/E/0</DataItem>
+   </Attribute>   
+</Grid>
+<Grid Name="E1" Level="0">
+   <Topology TopologyType="3DCoRectMesh" Dimensions="29  28 29" />
+   <Geometry GeometryType="ORIGIN_DXDYDZ"> 
+    <DataItem Format="XML" Dimensions="3">  -1.0  -0.95 -1.0  </DataItem>
+    <DataItem Format="XML" Dimensions="3"> 0.1 0.1 0.1 </DataItem>
+   </Geometry>
+   <Attribute Center="Node" Name="E1" AttributeType="Scalar" >
+    <DataItem Format="HDF"  Dimensions="29 28 29">EAST_dump_00000001.h5:/Patches/8/E/1</DataItem>
+   </Attribute>   
+</Grid>
+<Grid Name="E2" Level="0">
+   <Topology TopologyType="3DCoRectMesh" Dimensions="29  29  28" />
+   <Geometry GeometryType="ORIGIN_DXDYDZ"> 
+    <DataItem Format="XML" Dimensions="3">  -1.0  -1.0  -0.95</DataItem>
+    <DataItem Format="XML" Dimensions="3"> 0.1 0.1 0.1 </DataItem>
+   </Geometry>
+   <Attribute Center="Node" Name="E2" AttributeType="Scalar" >
+    <DataItem Format="HDF"  Dimensions="29  29  28">EAST_dump_00000001.h5:/Patches/8/E/2</DataItem>
+   </Attribute>   
+</Grid>
+</Domain>
+</Xdmf>

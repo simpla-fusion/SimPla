@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Xdmf xmlns:xi="http://www.w3.org/2001/XInclude" Version="3.3">
+<Domain>
+<Grid CollectionType="Temporal" GridType="Collection" Name="E0">
+	<Grid Name="E0 000" GridType="Uniform" >
+	   <Topology Name="E0 Topology" TopologyType="3DCoRectMesh" Dimensions="26 47 67" />
+	   <Geometry Name="E0 Geometry" GeometryType="ORIGIN_DXDYDZ"> 
+	    <DataItem Format="XML" Dimensions="3"> -13 -23 -33 </DataItem>
+	    <DataItem Format="XML" Dimensions="3"> 1 1 1 </DataItem>
+	   </Geometry>
+
+	   <Time Value="0"/>
+	   <Attribute Center="Cell" Name="E0" AttributeType="Scalar" >
+	    <DataItem Format="HDF"  Dimensions="26 47 67">EAST_dump_00000000.h5:/Patches/8/E/0</DataItem>
+	   </Attribute>   
+	</Grid>
+
+
+	<Grid Name="E0 001"  GridType="Uniform" >
+	   <Topology Reference="//Topology[@Name='E0 Topology']" />
+	   <Geometry Reference="//Geometry[@Name='E0 Geometry']" /> 
+
+	   <Time Value="1.0e-7"/>
+	   <Attribute Center="Cell" Name="E0" AttributeType="Scalar" >
+	    <DataItem Format="HDF"  Dimensions="26 47 67">EAST_dump_00000001.h5:/Patches/8/E/0</DataItem>
+	   </Attribute>   
+	</Grid>
+
+	<Grid Name="E0 002"  GridType="Uniform" >
+	   <Topology Reference="//Topology[@Name='E0 Topology']" />
+	   <Geometry Reference="//Geometry[@Name='E0 Geometry']" /> 
+
+	   <Time Value="2.0e-7"/>
+	   <Attribute Center="Cell" Name="E0" AttributeType="Scalar" >
+	    <DataItem Format="HDF"  Dimensions="26 47 67">EAST_dump_00000002.h5:/Patches/8/E/0</DataItem>
+	   </Attribute>   
+	</Grid>
+
+	<Grid Name="E0 003"  GridType="Uniform" >
+	   <Topology Reference="//Topology[@Name='E0 Topology']" />
+	   <Geometry Reference="//Geometry[@Name='E0 Geometry']" /> 
+
+	   <Time Value="3.0e-7"/>
+	   <Attribute Center="Cell" Name="E0" AttributeType="Scalar" >
+	    <DataItem Format="HDF"  Dimensions="26 47 67">EAST_dump_00000003.h5:/Patches/8/E/0</DataItem>
+	   </Attribute>   
+	</Grid>
+
+</Grid>
+ 
+</Domain>
+</Xdmf>

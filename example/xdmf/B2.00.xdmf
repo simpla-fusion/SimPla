@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Xdmf xmlns:xi="http://www.w3.org/2001/XInclude" Version="3.3">
+<Domain>
+  <Grid CollectionType="Temporal" GridType="Collection" Name="B2c">
+	<Grid Name="B2 000" GridType="Uniform" >
+	   <Topology Name="B2 Topology" TopologyType="3DCoRectMesh" Dimensions="16 16 27" />
+	   <Geometry Name="B2 Geometry" GeometryType="ORIGIN_DXDYDZ"> 
+	    <DataItem Format="XML" Dimensions="3"> -23 -18 -13</DataItem>
+	    <DataItem Format="XML" Dimensions="3"> 2 1.5 1 </DataItem>
+	   </Geometry>
+
+	   <Time Value="0"/>
+	   <Attribute Center="Node" Name="B2" AttributeType="Scalar" >
+	    <DataItem Format="HDF"  Dimensions="16 16 27">EAST_dump_00000000.00.h5:/Patches/32/B/2</DataItem>
+	   </Attribute>   
+	</Grid>
+
+
+	<Grid Name="B2 001"  GridType="Uniform" >
+	   <Topology Reference="//Topology[@Name='B2 Topology']" />
+	   <Geometry Reference="//Geometry[@Name='B2 Geometry']" /> 
+
+	   <Time Value="1.0e-7"/>
+	   <Attribute Center="Node" Name="B2" AttributeType="Scalar" >
+	    <DataItem Format="HDF"  Dimensions="16 16 27">EAST_dump_00000001.00.h5:/Patches/32/B/2</DataItem>
+	   </Attribute>   
+	</Grid>
+
+	<Grid Name="B2 002"  GridType="Uniform" >
+	   <Topology Reference="//Topology[@Name='B2 Topology']" />
+	   <Geometry Reference="//Geometry[@Name='B2 Geometry']" /> 
+
+	   <Time Value="2.0e-7"/>
+	   <Attribute Center="Node" Name="B2" AttributeType="Scalar" >
+	    <DataItem Format="HDF"  Dimensions="16 16 27">EAST_dump_00000002.00.h5:/Patches/32/B/2</DataItem>
+	   </Attribute>   
+	</Grid>
+
+	<Grid Name="B2 003"  GridType="Uniform" >
+	   <Topology Reference="//Topology[@Name='B2 Topology']" />
+	   <Geometry Reference="//Geometry[@Name='B2 Geometry']" /> 
+
+	   <Time Value="3.0e-7"/>
+	   <Attribute Center="Node" Name="B2" AttributeType="Scalar" >
+	    <DataItem Format="HDF"  Dimensions="16 16 27">EAST_dump_00000003.00.h5:/Patches/32/B/2</DataItem>
+	   </Attribute>   
+	</Grid>
+
+</Grid>
+ 
+</Domain>
+</Xdmf>

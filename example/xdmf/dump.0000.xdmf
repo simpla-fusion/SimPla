@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Xdmf xmlns:xi="http://www.w3.org/2001/XInclude" Version="3.3">
+<Domain>
+<Grid CollectionType="Spatial" GridType="Collection" Name="Collection">
+  <Time Value="0"/>
+  <Grid Name="32" Level="0">
+   <Topology TopologyType="3DCoRectMesh" Dimensions="11 11 21" />
+   <Geometry GeometryType="ORIGIN_DXDYDZ"> 
+    <DataItem Format="XML" Dimensions="3"> -20 -15 -10 </DataItem>
+    <DataItem Format="XML" Dimensions="3"> 2 1.5 1 </DataItem>
+   </Geometry>
+   <Attribute Center="Cell" Name="B" AttributeType="Vector" IFORM="2" >
+    <DataItem Format="HDF"  Dimensions=" 10 10 20 3">EAST00000000.00.h5:/Patches/32/B</DataItem>
+   </Attribute>
+   <Attribute Center="Cell" Name="E" AttributeType="Vector" IFORM="1" >
+    <DataItem Format="HDF"  Dimensions=" 10 10 20 3">EAST00000000.00.h5:/Patches/32/E</DataItem>
+   </Attribute>
+   <Attribute Center="Cell" Name="J" AttributeType="Vector" IFORM="1" >
+    <DataItem Format="HDF"  Dimensions=" 10 10 20 3">EAST00000000.00.h5:/Patches/32/J</DataItem>
+   </Attribute>
+  </Grid>
+ <Grid Name="40" Level="0">
+   <Topology TopologyType="3DCoRectMesh" Dimensions="11 11 21" />
+   <Geometry GeometryType="ORIGIN_DXDYDZ"> 
+    <DataItem Format="XML" Dimensions="3"> -20 0 -10 </DataItem>
+    <DataItem Format="XML" Dimensions="3"> 2 1.5 1 </DataItem>
+   </Geometry>
+   <Attribute Center="Cell" Name="B" AttributeType="Vector" IFORM="2" >
+    <DataItem Format="HDF"  Dimensions=" 10 10 20 3">EAST00000000.01.h5:/Patches/40/B</DataItem>
+   </Attribute>
+   <Attribute Center="Cell" Name="E" AttributeType="Vector" IFORM="1" >
+    <DataItem Format="HDF"  Dimensions=" 10 10 20 3">EAST00000000.01.h5:/Patches/40/E</DataItem>
+   </Attribute>
+   <Attribute Center="Cell" Name="J" AttributeType="Vector" IFORM="1" >
+    <DataItem Format="HDF"  Dimensions=" 10 10 20 3">EAST00000000.01.h5:/Patches/40/J</DataItem>
+   </Attribute>
+  </Grid>
+ <Grid Name="48" Level="0">
+   <Topology TopologyType="3DCoRectMesh" Dimensions="11 11 21" />
+   <Geometry GeometryType="ORIGIN_DXDYDZ"> 
+    <DataItem Format="XML" Dimensions="3"> -20 -15 0 </DataItem>
+    <DataItem Format="XML" Dimensions="3"> 2 1.5 1 </DataItem>
+   </Geometry>
+   <Attribute Center="Cell" Name="B" AttributeType="Vector" IFORM="2" >
+    <DataItem Format="HDF"  Dimensions=" 10 10 20 3">EAST00000000.02.h5:/Patches/48/B</DataItem>
+   </Attribute>
+   <Attribute Center="Cell" Name="E" AttributeType="Vector" IFORM="1" >
+    <DataItem Format="HDF"  Dimensions=" 10 10 20 3">EAST00000000.02.h5:/Patches/48/E</DataItem>
+   </Attribute>
+   <Attribute Center="Cell" Name="J" AttributeType="Vector" IFORM="1" >
+    <DataItem Format="HDF"  Dimensions=" 10 10 20 3">EAST00000000.02.h5:/Patches/48/J</DataItem>
+   </Attribute>
+  </Grid>
+ <Grid Name="56" Level="0">
+   <Topology TopologyType="3DCoRectMesh" Dimensions="11 11 21" />
+   <Geometry GeometryType="ORIGIN_DXDYDZ"> 
+    <DataItem Format="XML" Dimensions="3"> -20 0 0 </DataItem>
+    <DataItem Format="XML" Dimensions="3"> 2 1.5 1 </DataItem>
+   </Geometry>
+   <Attribute Center="Cell" Name="B" AttributeType="Vector" IFORM="2" >
+    <DataItem Format="HDF"  Dimensions=" 10 10 20 3">EAST00000000.03.h5:/Patches/56/B</DataItem>
+   </Attribute>
+   <Attribute Center="Cell" Name="E" AttributeType="Vector" IFORM="1" >
+    <DataItem Format="HDF"  Dimensions=" 10 10 20 3">EAST00000000.03.h5:/Patches/56/E</DataItem>
+   </Attribute>
+   <Attribute Center="Cell" Name="J" AttributeType="Vector" IFORM="1" >
+    <DataItem Format="HDF"  Dimensions=" 10 10 20 3">EAST00000000.03.h5:/Patches/56/J</DataItem>
+   </Attribute>
+  </Grid>
+</Grid>
+</Domain>
+</Xdmf>
