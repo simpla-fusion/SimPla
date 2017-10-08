@@ -132,6 +132,7 @@ void MPIUpdater::Pop(ArrayBase &a) const {
 
 void MPIUpdater::SendRecv() {
     if (m_pimpl_->left != m_pimpl_->m_rank_ && m_pimpl_->right != m_pimpl_->m_rank_) {
+        CHECK(m_pimpl_->left);
         GLOBAL_COMM.barrier();
         MPI_CALL(MPI_Sendrecv(GetSendBuffer(0).pointer(), static_cast<int>(GetSendBuffer(0).size()), m_pimpl_->ele_type,
                               m_pimpl_->left, m_pimpl_->tag, GetRecvBuffer(1).pointer(),
