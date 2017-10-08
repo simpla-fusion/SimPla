@@ -37,10 +37,10 @@ int main(int argc, char** argv) {
     scenario->db()->SetValue("CheckPointFilePrefix", "EAST");
     scenario->db()->SetValue("CheckPointFileSuffix", "xmf");
     scenario->SetCheckPointInterval(1);
-    scenario->SetDumpInterval(1);
+//    scenario->SetDumpInterval(1);
 
     scenario->GetAtlas()->SetChart<simpla::geometry::csCartesian>();
-    scenario->GetAtlas()->GetChart()->SetScale({1, 1, 1});
+    scenario->GetAtlas()->GetChart()->SetScale({1, 1.5, 2});
     scenario->GetAtlas()->GetChart()->SetOrigin({0, 0, 0});
     //    scenario->GetAtlas()->SetBoundingBox(box_type{{1.4, -PI / 4, -1.4}, {2.8, PI / 4, 1.4}});
     scenario->GetAtlas()->SetBoundingBox(box_type{{-10, -20, -30}, {10, 20, 30}});
@@ -50,21 +50,13 @@ int main(int argc, char** argv) {
                                                       geometry::Cube::New(box_type{{-10, -20, -30}, {10, 20, 30}}));
     scenario->GetDomain("Limiter")->PostInitialCondition.Connect([=](DomainBase* self, Real time_now) {
         if (auto d = dynamic_cast<domain::Maxwell<domain_type>*>(self)) {
-            //            d->B[0].FillNaN();
-            //            d->B[0].GetSelection({{-10, -10, -10}, {11, 10, 10}}) = [&](index_type x, auto&&... others) {
-            //                return static_cast<Real>(x);
-            //            };
-            //            Real rank = GLOBAL_COMM.rank();
-            //            d->E = [&](point_type const& x) { return point_type{0, 0, -0.1 * PI * (std::sin(0.1 * PI *
-            //            x[0]))}; };
+
             d->B = [&](point_type const& x) {
                 return point_type{std::cos(0.1 * PI * x[1]) * std::cos(0.1 * PI * x[2]),
                                   std::cos(0.1 * PI * x[0]) * std::cos(0.1 * PI * x[2]),
                                   std::cos(0.1 * PI * x[0]) * std::cos(0.1 * PI * x[1])};
             };
-            //            d->J = curl(d->B) / d->E;
         }
-        //            d->B = [&](point_type const& x) { return point_type{std::cos(PI * x[0]), 0, 0}; };
     });
 
     //    scenario->SetDomain<Domain<mesh_type, EMFluid>>("Plasma", tokamak->Boundary());
@@ -73,7 +65,7 @@ int main(int argc, char** argv) {
     //    });
     //    scenario->SetTimeNow(0);
     scenario->SetTimeEnd(1.0e-7);
-    scenario->SetMaxStep(100);
+    scenario->SetMaxStep(20);
     scenario->SetUp();
 
     //    INFORM << "Attributes" << *scenario->GetAttributes() << std::endl;

@@ -366,10 +366,13 @@ void XDMFGeometryRegular(DataNodeXDMF* self, index_box_type idx_box, std::shared
     self->os << std::setw(indent) << " "
              << R"(<Geometry GeometryType="ORIGIN_DXDYDZ"> )" << std::endl
              << std::setw(indent + 1) << " "
-             << R"(<DataItem Format="XML" Dimensions="3"> )" << origin[0] + lo[0] * dxdydz[0] << " "
-             << origin[1] + lo[1] * dxdydz[1] << " " << origin[2] + lo[2] * dxdydz[2] << " </DataItem>" << std::endl
+             << R"(<DataItem Format="XML" Dimensions="3"> )"  //
+             << origin[2] + lo[2] * dxdydz[2] << " "          //
+             << origin[1] + lo[1] * dxdydz[1] << " "          //
+             << origin[0] + lo[0] * dxdydz[0]                 //
+             << " </DataItem>" << std::endl
              << std::setw(indent + 1) << " "
-             << R"(<DataItem Format="XML" Dimensions="3"> )" << dxdydz[0] << " " << dxdydz[1] << " " << dxdydz[2]
+             << R"(<DataItem Format="XML" Dimensions="3"> )" << dxdydz[2] << " " << dxdydz[1] << " " << dxdydz[0]
              << " </DataItem>" << std::endl;
 
     self->os << std::setw(indent) << " "
