@@ -19,9 +19,8 @@ using namespace data;
 template <typename TDomainBase>
 class Maxwell : public TDomainBase {
     SP_DOMAIN_HEAD(Maxwell, TDomainBase);
-    int count = 0;
-    Field<this_type, Real, FACE> B{this, "Name"_ = "B", "CheckPoint"_};
 
+    Field<this_type, Real, FACE> B{this, "Name"_ = "B", "CheckPoint"_};
     Field<this_type, Real, EDGE> E{this, "Name"_ = "E", "CheckPoint"_};
     Field<this_type, Real, EDGE> J{this, "Name"_ = "J", "CheckPoint"_};
 };
@@ -72,8 +71,8 @@ void Maxwell<TDomain>::DoAdvance(Real time_now, Real time_dt) {
     //    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
     //    this->FillBoundary(E, 0);
     //    J.Clear();
-    LOG_CMD(E = E + (curl(B) * speed_of_light2) * time_dt);
-    LOG_CMD(B = B - curl(E) * time_dt);
+    E =  curl(B) * speed_of_light2 * time_dt;
+//    B = B - curl(E) * time_dt;
 }
 
 template <typename TDomain>

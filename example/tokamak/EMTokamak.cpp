@@ -28,7 +28,7 @@ typedef engine::Domain<geometry::csCartesian, scheme::FVM, mesh::CoRectMesh /*, 
 using namespace simpla;
 using namespace simpla::engine;
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
     simpla::Initialize(argc, argv);
     //    auto scenario = SAMRAITimeIntegrator::New();
     auto scenario = SimpleTimeIntegrator::New();
@@ -37,25 +37,43 @@ int main(int argc, char** argv) {
     scenario->db()->SetValue("CheckPointFilePrefix", "EAST");
     scenario->db()->SetValue("CheckPointFileSuffix", "xmf");
     scenario->SetCheckPointInterval(1);
-//    scenario->SetDumpInterval(1);
+    scenario->SetDumpInterval(1);
 
     scenario->GetAtlas()->SetChart<simpla::geometry::csCartesian>();
     scenario->GetAtlas()->GetChart()->SetScale({1, 1.5, 2});
     scenario->GetAtlas()->GetChart()->SetOrigin({0, 0, 0});
     //    scenario->GetAtlas()->SetBoundingBox(box_type{{1.4, -PI / 4, -1.4}, {2.8, PI / 4, 1.4}});
-    scenario->GetAtlas()->SetBoundingBox(box_type{{-10, -20, -30}, {10, 20, 30}});
+    scenario->GetAtlas()->SetBoundingBox(box_type{{-10, -15, -20}, {10, 15, 20}});
     //    auto tokamak = Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
     //    auto* p = new domain::Maxwell<domain_type>;/*tokamak->Limiter()*/
     scenario->SetDomain<domain::Maxwell<domain_type>>("Limiter",
-                                                      geometry::Cube::New(box_type{{-10, -20, -30}, {10, 20, 30}}));
-    scenario->GetDomain("Limiter")->PostInitialCondition.Connect([=](DomainBase* self, Real time_now) {
-        if (auto d = dynamic_cast<domain::Maxwell<domain_type>*>(self)) {
-
-            d->B = [&](point_type const& x) {
-                return point_type{std::cos(0.1 * PI * x[1]) * std::cos(0.1 * PI * x[2]),
-                                  std::cos(0.1 * PI * x[0]) * std::cos(0.1 * PI * x[2]),
-                                  std::cos(0.1 * PI * x[0]) * std::cos(0.1 * PI * x[1])};
-            };
+                                                      geometry::Cube::New(box_type{{-10, -15, -20}, {10, 15, 20}}));
+    scenario->GetDomain("Limiter")->PostInitialCondition.Connect([=](DomainBase *self, Real time_now) {
+        if (auto d = dynamic_cast<domain::Maxwell<domain_type> *>(self)) {
+            VERBOSE << (d->B[2].GetSpaceFillingCurve().GetHaloIndexBox());
+            //            d->B = [&](point_type const &x) {
+            //                return point_type{
+            //                    0,                         // std::cos(0.1 * PI * x[1]) * std::cos(0.1 * PI * x[2]),
+            //                    0,                         // std::cos(0.1 * PI * x[0]) * std::cos(0.1 * PI * x[2]),
+            //                    std::cos(0.1 * PI * x[0])  // * std::cos(0.1 * PI * x[1])
+            //                };
+            //            };
+            d->B[0] = [&](index_type i, index_type j, index_type k) { return static_cast<Real>(i); };
+            d->B[1] = [&](index_type i, index_type j, index_type k) { return static_cast<Real>(j); };
+            d->B[2] = [&](index_type i, index_type j, index_type k) { return static_cast<Real>(k); };
+            //            d->B = [&](point_type const &x) { return x; };
+            //            d->E = [&](point_type const& x) {
+            //                return point_type{
+            //                    0,                                      // std::cos(0.1 * PI * x[1]) * std::cos(0.1 *
+            //                    PI * x[2]),
+            //                    -0.1 * PI * std::sin(0.1 * PI * x[0]),  // std::cos(0.1 * PI * x[0]) * std::cos(0.1 *
+            //                    PI * x[2]),
+            //                    0                                       // * std::cos(0.1 * PI * x[1])
+            //                };
+            //            };
+            //            d->E[1] = GLOBAL_COMM.rank();
+            //            d->B[2] = GLOBAL_COMM.rank();
+            //            d->J = d->E - curl(d->B);
         }
     });
 
@@ -69,14 +87,22 @@ int main(int argc, char** argv) {
     scenario->SetUp();
 
     //    INFORM << "Attributes" << *scenario->GetAttributes() << std::endl;
-
+    GLOBAL_COMM.barrier();
+    if (GLOBAL_COMM.rank() == 0) { std::cout << *scenario->GetAtlas()->GetChart()->Serialize() << std::endl; }
+    GLOBAL_COMM.barrier();
+    if (GLOBAL_COMM.rank() == 1) { std::cout << *scenario->GetAtlas()->GetChart()->Serialize() << std::endl; }
+    GLOBAL_COMM.barrier();
+    if (GLOBAL_COMM.rank() == 2) { std::cout << *scenario->GetAtlas()->GetChart()->Serialize() << std::endl; }
+    GLOBAL_COMM.barrier();
+    if (GLOBAL_COMM.rank() == 3) { std::cout << *scenario->GetAtlas()->GetChart()->Serialize() << std::endl; }
+    GLOBAL_COMM.barrier();
     TheStart();
     scenario->Run();
-    //    scenario->Dump();
 
     //    std::cout << *scenario->Serialize() << std::endl;
 
     TheEnd();
+
     scenario->TearDown();
 
     simpla::Finalize();

@@ -184,8 +184,11 @@ void Scenario::pimpl_s::Sync(std::shared_ptr<data::DataNode> const &attr, int le
 }
 void Scenario::Synchronize(int level) {
     ASSERT(level == 0)
+
     auto attrs = GetAttributes();
 #ifdef MPI_FOUND
+    GLOBAL_COMM.barrier();
+
     if (GLOBAL_COMM.rank() == 0) {
         attrs->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &attr) {
             if (attr == nullptr || attr->Check("LOCAL")) { return; }
@@ -204,12 +207,15 @@ void Scenario::Synchronize(int level) {
             m_pimpl_->Sync(attr, level);
         }
     }
+    GLOBAL_COMM.barrier();
+
 #else
     attrs->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &attr) {
         if (attr == nullptr || attr->Check("LOCAL")) { return; }
         m_pimpl_->Sync(attr, level);
     });
 #endif  // MPI_FOUND
+
 }
 void Scenario::NextStep() { ++m_pimpl_->m_step_counter_; }
 void Scenario::SetStepNumber(size_type s) { m_pimpl_->m_step_counter_ = s; }

@@ -103,21 +103,22 @@ void TimeIntegrator::DoSetUp() {
 void TimeIntegrator::DoTearDown() { base_type::DoTearDown(); }
 void TimeIntegrator::Run() {
     InitialCondition(GetTimeNow());
+    Synchronize(0);
     CheckPoint();
     Dump();
 
     while (!Done()) {
         VERBOSE << " [ TIME :" << std::setw(5) << GetTimeNow() << "   ] ";
+
+        Advance(GetTimeNow(), GetTimeStep());
         Synchronize(0);
         NextStep();
-//        Synchronize(0);
 
         if (GetCheckPointInterval() > 0 && (GetStepNumber() % GetCheckPointInterval() == 0)) { CheckPoint(); };
         if (GetDumpInterval() > 0 && (GetStepNumber() % GetDumpInterval() == 0)) { Dump(); };
     }
 }
 void TimeIntegrator::NextStep() {
-    Advance(GetTimeNow(), GetTimeStep());
     m_pimpl_->m_time_now_ += m_pimpl_->m_time_step_;
     base_type::NextStep();
 }
