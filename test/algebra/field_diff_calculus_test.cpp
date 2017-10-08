@@ -6,9 +6,7 @@
  */
 #include "field_diff_calculus_test.h"
 #include <gtest/gtest.h>
-#include "simpla/algebra/algebra.h"
 #include "simpla/utilities/Constants.h"
-#include "simpla/predefine/CartesianGeometry.h"
 
 using namespace simpla;
 

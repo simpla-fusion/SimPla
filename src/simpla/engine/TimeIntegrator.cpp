@@ -110,6 +110,8 @@ void TimeIntegrator::Run() {
         VERBOSE << " [ TIME :" << std::setw(5) << GetTimeNow() << "   ] ";
         Synchronize(0);
         NextStep();
+//        Synchronize(0);
+
         if (GetCheckPointInterval() > 0 && (GetStepNumber() % GetCheckPointInterval() == 0)) { CheckPoint(); };
         if (GetDumpInterval() > 0 && (GetStepNumber() % GetDumpInterval() == 0)) { Dump(); };
     }

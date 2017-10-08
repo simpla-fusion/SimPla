@@ -139,10 +139,26 @@ void Scenario::pimpl_s::Sync(std::shared_ptr<data::DataNode> const &attr, int le
     auto dof = attr->GetValue<int>("DOF");
     auto key = attr->GetValue<std::string>("Name");
     for (int N = 0; N < n_sub; ++N) {
-//        VERBOSE << "Sync: " << key << "  " << N;
+        //        VERBOSE << "Sync: " << key << "  " << N;
         for (int dir = 0; dir < 3; ++dir) {
-            updater->SetIndexBox(m_atlas_->GetIndexBox(iform, N));
-            updater->SetGhostWidth(m_atlas_->GetGhostWidth());
+            auto gw = m_atlas_->GetGhostWidth();
+            switch (iform) {
+                case NODE:
+                    gw += 1;
+                    break;
+                case EDGE:
+                    gw[(N + 1) % 3] += 1;
+                    gw[(N + 2) % 3] += 1;
+                    break;
+                case FACE:
+                    gw[N] += 1;
+                case CELL:
+                default:
+                    break;
+            }
+
+            updater->SetIndexBox(m_atlas_->GetIndexBox());
+            updater->SetGhostWidth(gw);
             updater->SetDirection(dir);
             updater->SetUp();
             for (int d = 0; d < dof; ++d) {

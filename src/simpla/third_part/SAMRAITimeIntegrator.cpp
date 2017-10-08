@@ -876,10 +876,9 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
 
 std::shared_ptr<data::DataNode> SAMRAIHyperbolicPatchStrategyAdapter::GetPatch(SAMRAI::hier::Patch &patch) {
     auto blk = engine::MeshBlock::New(
-            index_box_type{{patch.getBox().lower()[0],     patch.getBox().lower()[1],     patch.getBox().lower()[2]},
-                               {patch.getBox().upper()[0] + 1, patch.getBox().upper()[1] + 1, patch.getBox().upper()[2] +
-                                                                                              1}},
-            patch.getLocalId().getValue(), patch.getGlobalId().getOwnerRank(), <#initializer#>);
+        index_box_type{{patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]},
+                       {patch.getBox().upper()[0] + 1, patch.getBox().upper()[1] + 1, patch.getBox().upper()[2] + 1}},
+        patch.getLocalId().getValue(), patch.getGlobalId().getOwnerRank(), <#initializer #>);
     return m_ctx_->GetPatch(blk->GetGUID());
 }
 
@@ -1293,7 +1292,7 @@ void SAMRAITimeIntegrator::DoUpdate() {
     nTuple<int, 3> i_low{0, 0, 0};
     nTuple<int, 3> i_up{0, 0, 0};
 
-    std::tie(i_low, i_up) = GetAtlas()->GetIndexBox(NODE, 0);
+    std::tie(i_low, i_up) = GetAtlas()->GetIndexBox();  // FIXME: Get cell index box
 
     cfgCartesianGridGeometry->putDatabaseBox(
         "domain_boxes_0", SAMRAI::tbox::DatabaseBox{SAMRAI::tbox::Dimension(3), &i_low[0], &i_up[0]});

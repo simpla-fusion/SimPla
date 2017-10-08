@@ -74,7 +74,6 @@ void Maxwell<TDomain>::DoAdvance(Real time_now, Real time_dt) {
     //    J.Clear();
     LOG_CMD(E = E + (curl(B) * speed_of_light2) * time_dt);
     LOG_CMD(B = B - curl(E) * time_dt);
-    LOG_CMD(J = curl(B));
 }
 
 template <typename TDomain>

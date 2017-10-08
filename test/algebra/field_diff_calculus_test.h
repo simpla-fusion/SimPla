@@ -18,13 +18,11 @@
 #include <string>
 
 #include <gtest/gtest.h>
-#include "simpla/predefine/CalculusPolicy.h"
+#include <simpla/utilities/SPDefines.h>
+#include <simpla/utilities/Log.h>
 
-#include "simpla/algebra/EntityId.h"
-#include "simpla/algebra/algebra.h"
 
 using namespace simpla;
-using namespace simpla::algebra;
 //#define CYLINDRICAL_COORDINATE_SYSTEM 1
 
 //#ifdef CYLINDRICAL_COORDINATE_SYSTEM
@@ -36,7 +34,6 @@ using namespace simpla::algebra;
 //
 //#else
 
-#include "simpla/predefine/CartesianGeometry.h"
 
 typedef mesh::CartesianGeometry mesh_type;
 

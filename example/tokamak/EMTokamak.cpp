@@ -22,7 +22,7 @@
 #include <simpla/utilities/Logo.h>
 
 namespace simpla {
-typedef engine::Domain<geometry::csCylindrical, scheme::FVM, mesh::CoRectMesh /*, mesh::EBMesh*/> domain_type;
+typedef engine::Domain<geometry::csCartesian, scheme::FVM, mesh::CoRectMesh /*, mesh::EBMesh*/> domain_type;
 }  // namespace simpla {
 
 using namespace simpla;
@@ -55,8 +55,14 @@ int main(int argc, char** argv) {
             //                return static_cast<Real>(x);
             //            };
             //            Real rank = GLOBAL_COMM.rank();
-            d->E = [&](point_type const& x) { return point_type{0, 0, -0.1 * PI * (std::sin(0.1 * PI * x[0]))}; };
-            d->B = [&](point_type const& x) { return point_type{0, std::cos(0.1 * PI * x[0]), 0}; };
+            //            d->E = [&](point_type const& x) { return point_type{0, 0, -0.1 * PI * (std::sin(0.1 * PI *
+            //            x[0]))}; };
+            d->B = [&](point_type const& x) {
+                return point_type{std::cos(0.1 * PI * x[1]) * std::cos(0.1 * PI * x[2]),
+                                  std::cos(0.1 * PI * x[0]) * std::cos(0.1 * PI * x[2]),
+                                  std::cos(0.1 * PI * x[0]) * std::cos(0.1 * PI * x[1])};
+            };
+            //            d->J = curl(d->B) / d->E;
         }
         //            d->B = [&](point_type const& x) { return point_type{std::cos(PI * x[0]), 0, 0}; };
     });
@@ -66,8 +72,8 @@ int main(int argc, char** argv) {
     //        if (auto d = dynamic_cast<Domain<mesh_type, EMFluid>*>(self)) { d->ne = tokamak->profile("ne"); }
     //    });
     //    scenario->SetTimeNow(0);
-    scenario->SetTimeEnd(2.0e-8);
-    scenario->SetMaxStep(5);
+    scenario->SetTimeEnd(1.0e-7);
+    scenario->SetMaxStep(100);
     scenario->SetUp();
 
     //    INFORM << "Attributes" << *scenario->GetAttributes() << std::endl;
