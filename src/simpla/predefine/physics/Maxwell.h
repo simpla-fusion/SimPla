@@ -23,6 +23,8 @@ class Maxwell : public TDomainBase {
     Field<this_type, Real, FACE> B{this, "Name"_ = "B", "CheckPoint"_};
     Field<this_type, Real, EDGE> E{this, "Name"_ = "E", "CheckPoint"_};
     Field<this_type, Real, EDGE> J{this, "Name"_ = "J", "CheckPoint"_};
+    Field<this_type, Real, CELL, 3> Jv{this, "Name"_ = "Jv", "CheckPoint"_};
+    Field<this_type, Real, CELL> phi{this, "Name"_ = "phi", "CheckPoint"_};
 };
 template <typename TDomain>
 Maxwell<TDomain>::Maxwell() : base_type() {}
@@ -49,6 +51,8 @@ void Maxwell<TDomain>::DoInitialCondition(Real time_now) {
     E.Clear();
     B.Clear();
     J.Clear();
+    Jv.Clear();
+    phi.Clear();
 }
 template <typename TDomain>
 void Maxwell<TDomain>::DoBoundaryCondition(Real time_now, Real time_dt) {

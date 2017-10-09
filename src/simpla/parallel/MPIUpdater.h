@@ -95,8 +95,8 @@ void MPIUpdaterT<V>::SetUp() {
 }
 template <typename V>
 void MPIUpdaterT<V>::TearDown() {
-    for (auto &v : send_buffer) { v.TearDown(); }
-    for (auto &v : recv_buffer) { v.TearDown(); }
+    for (auto &v : send_buffer) { v.free(); }
+    for (auto &v : recv_buffer) { v.free(); }
     MPIUpdater::TearDown();
 }
 

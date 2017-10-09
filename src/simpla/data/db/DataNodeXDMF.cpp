@@ -313,8 +313,8 @@ int DataNodeXDMF::Flush() {
             auto guid = blk->GetValue<id_type>("GUID");
             if (auto patch = patches->Get(k)) {
                 index_box_type idx_box{blk->GetValue<index_tuple>("LowIndex"), blk->GetValue<index_tuple>("HighIndex")};
-                //                std::get<0>(idx_box) -= 1;  // ghost cell
-                //                std::get<1>(idx_box) += 1;
+                //std::get<0>(idx_box) -= 1;  // ghost cell
+                //std::get<1>(idx_box) += 1;
 
                 os << std::setw(indent) << " "
                    << "<Grid Name=\"" << guid << "\" Level=\"" << blk->GetValue<int>("Level", 0) << "\">" << std::endl;
@@ -329,7 +329,7 @@ int DataNodeXDMF::Flush() {
                 patch->Foreach([&](std::string const &s, std::shared_ptr<data::DataNode> const &d) {
                     auto attr = attrs->Get(s);
                     if (attr->GetValue<int>("IFORM") == FIBER) { return; }
-//                    WriteAttribute("/Patches/" + std::to_string(guid), s, idx_box, attrs->Get(s), d, indent + 1);
+                    WriteAttribute("/Patches/" + std::to_string(guid), s, idx_box, attrs->Get(s), d, indent + 1);
                 });
                 os << std::setw(indent) << " "
                    << "</Grid>" << std::endl;

@@ -233,9 +233,7 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
     std::shared_ptr<simpla::data::DataNode> Serialize() const override;
 
     void DoSetUp() override;
-
     void DoUpdate() override;
-
     void DoTearDown() override;
 
     void Push(const std::shared_ptr<data::DataNode> &) override;
@@ -396,7 +394,7 @@ bool is_null(nTuple<Array<U>, N0, N...> const &v) {
 
 template <typename U>
 void clear(Array<U> &d) {
-    d.Clear();
+    d.Array<U>::Clear();
 }
 
 template <typename U, int N0, int... N>

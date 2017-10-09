@@ -68,7 +68,11 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
     virtual std::shared_ptr<DataNode> CreateNode(eNodeType e_type) const;
     virtual std::shared_ptr<DataNode> CreateNode(std::string const& url, eNodeType e_type);
 
-    std::shared_ptr<DataEntity> GetEntity(int N) const { return size() == 0 ? GetEntity() : Get(N)->GetEntity(); }
+    std::shared_ptr<DataEntity> GetEntity(int N) const {
+        std::shared_ptr<DataEntity> res = GetEntity();
+        if (res == nullptr && size() > 0) { res = Get(N)->GetEntity(); }
+        return res;
+    }
 
     virtual std::shared_ptr<DataEntity> GetEntity() const { return m_entity_; }
     virtual void SetEntity(std::shared_ptr<DataEntity> e) { m_entity_ = e; }

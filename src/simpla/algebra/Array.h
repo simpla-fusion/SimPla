@@ -92,14 +92,10 @@ class Array : public ArrayBase {
     std::shared_ptr<ArrayBase> DuplicateArray() const override {
         return std::shared_ptr<ArrayBase>(new this_type(*this));
     };
-
+    void alloc();
+    void free();
     std::ostream& Print(std::ostream& os, int indent) const override;
 
-    void SetUp() { alloc(); }
-    void TearDown() {
-        m_holder_.reset();
-        m_data_ = nullptr;
-    }
     bool isSlowFirst() const override { return m_sfc_.isSlowFirst(); };
     std::type_info const& value_type_info() const override { return typeid(value_type); };
     size_type size() const override { return m_sfc_.size(); }
@@ -167,7 +163,7 @@ class Array : public ArrayBase {
 
     template <typename TFun>
     void Foreach(TFun const& fun) {
-        SetUp();
+        alloc();
         m_sfc_.Foreach([&](auto&&... s) { fun(at(std::forward<decltype(s)>(s)...), std::forward<decltype(s)>(s)...); });
     }
     template <typename TFun>
@@ -183,7 +179,7 @@ class Array : public ArrayBase {
     value_type const* get() const { return m_data_; }
 
     size_type CopyIn(this_type const& other) {
-        SetUp();
+        alloc();
         return m_sfc_.Overlap(other.m_sfc_).Foreach([&] __host__ __device__(auto&&... s) {
             this->Set(other.Get(std::forward<decltype(s)>(s)...), std::forward<decltype(s)>(s)...);
         });
@@ -191,15 +187,15 @@ class Array : public ArrayBase {
     size_type CopyOut(this_type& other) const { return other.CopyIn(*this); };
 
     void DeepCopy(value_type const* other) {
-        SetUp();
+        alloc();
         m_sfc_.Copy(m_data_, other);
     }
     void Fill(value_type v) {
-        SetUp();
+        alloc();
         m_sfc_.Foreach([&] __host__ __device__(auto&&... s) { this->Set(v, std::forward<decltype(s)>(s)...); });
     }
     void Clear() override {
-        SetUp();
+        alloc();
         memset(m_data_, 0, m_sfc_.shape_size() * sizeof(value_type));
     }
 
@@ -277,8 +273,6 @@ class Array : public ArrayBase {
 
     template <typename RHS>
     void Assign(RHS const& rhs);
-
-    void alloc();
 };
 template <typename V, typename SFC>
 constexpr typename Array<V, SFC>::value_type Array<V, SFC>::s_nan;
@@ -303,6 +297,12 @@ void Array<V, SFC>::alloc() {
         Fill(0);
 #endif
     }
+}
+
+template <typename V, typename SFC>
+void Array<V, SFC>::free() {
+    m_holder_.reset();
+    m_data_ = nullptr;
 }
 template <typename V, typename SFC>
 std::ostream& Array<V, SFC>::Print(std::ostream& os, int indent) const {
@@ -362,7 +362,7 @@ decltype(auto) array_parser(Expression<TOP, V...> const& expr, Args&&... args) {
 template <typename V, typename SFC>
 template <typename RHS>
 void Array<V, SFC>::Assign(RHS const& rhs) {
-    SetUp();
+    alloc();
     GetSpaceFillingCurve().Overlap(rhs).Foreach([&](auto&&... idx) {
         this->Set(detail::array_parser(rhs, std::forward<decltype(idx)>(idx)...), std::forward<decltype(idx)>(idx)...);
     });

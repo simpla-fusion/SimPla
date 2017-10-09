@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
     scenario->db()->SetValue("CheckPointFilePrefix", "EAST");
     scenario->db()->SetValue("CheckPointFileSuffix", "xmf");
     scenario->SetCheckPointInterval(1);
-//    scenario->SetDumpInterval(1);
+    //    scenario->SetDumpInterval(1);
 
     scenario->GetAtlas()->SetChart<simpla::geometry::csCartesian>();
     scenario->GetAtlas()->GetChart()->SetScale({1, 1.5, 2});
@@ -59,6 +59,8 @@ int main(int argc, char **argv) {
                                   std::cos(2 * PI * x[0] / 40) * std::cos(2 * PI * x[1] / 60)};
             };
 
+            d->Jv = [&](point_type const &x) { return x; };
+            d->phi = GLOBAL_COMM.rank();
             //            d->B[0] = [&](index_type i, index_type j, index_type k) { return static_cast<Real>(i); };
             //            d->B[1] = [&](index_type i, index_type j, index_type k) { return static_cast<Real>(j); };
             //            d->B[2] = [&](index_type i, index_type j, index_type k) { return static_cast<Real>(k); };
@@ -84,7 +86,7 @@ int main(int argc, char **argv) {
     //    });
     //    scenario->SetTimeNow(0);
     scenario->SetTimeEnd(1.0e-7);
-    scenario->SetMaxStep(10);
+    scenario->SetMaxStep(5);
     scenario->SetUp();
 
     //    INFORM << "Attributes" << *scenario->GetAttributes() << std::endl;
