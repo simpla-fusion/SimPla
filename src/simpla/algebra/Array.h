@@ -31,6 +31,7 @@ struct ArrayBase {
     virtual void* pointer() = 0;
     virtual void const* pointer() const = 0;
     virtual int GetNDIMS() const = 0;
+    virtual bool isSlowFirst() const = 0;
     virtual int GetIndexBox(index_type* lo, index_type* hi) const = 0;
     virtual int GetShape(index_type* lo, index_type* hi) const = 0;
     virtual bool empty() const = 0;
@@ -43,7 +44,6 @@ struct ArrayBase {
     virtual std::shared_ptr<ArrayBase> DuplicateArray() const = 0;
     virtual void Shift(index_type const*) = 0;
     virtual void Select(index_type const*, index_type const*) = 0;
-
     virtual std::ostream& Print(std::ostream& os, int indent) const = 0;
 };
 
@@ -100,7 +100,7 @@ class Array : public ArrayBase {
         m_holder_.reset();
         m_data_ = nullptr;
     }
-
+    bool isSlowFirst() const override { return m_sfc_.isSlowFirst(); };
     std::type_info const& value_type_info() const override { return typeid(value_type); };
     size_type size() const override { return m_sfc_.size(); }
     void* pointer() override { return m_data_; }

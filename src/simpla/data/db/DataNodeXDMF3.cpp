@@ -4,322 +4,429 @@
 #include <sys/stat.h>
 #include <fstream>
 
-#include <Xdmf.hpp>
-#include <XdmfAttributeCenter.hpp>
-#include <XdmfDomain.hpp>
-#include <XdmfGridCollection.hpp>
-#include <XdmfWriter.hpp>
-
 #include <simpla/parallel/MPIComm.h>
-#include <XdmfHDF5Writer.hpp>
-#include <XdmfInformation.hpp>
-
 #include "../DataNode.h"
+#include "HDF5Common.h"
+
 #include "DataNodeMemory.h"
 
 namespace simpla {
 namespace data {
-int XDMF3Dump(std::string const& prefix, std::shared_ptr<DataNode> const& v);
 
 struct DataNodeXDMF3 : public DataNodeMemory {
     SP_DATA_NODE_HEAD(DataNodeXDMF3, DataNodeMemory)
 
-    int Connect(std::string const& authority, std::string const& path, std::string const& query,
-                std::string const& fragment) override;
-    int Disconnect() override { return Flush(); }
-    bool isValid() const override { return true; }
-    int Flush() override { return XDMF3Dump(m_prefix_, shared_from_this()); }
+    int Connect(std::string const &authority, std::string const &path, std::string const &query,
+                std::string const &fragment) override;
+    int Disconnect() override;
+    int Flush() override;
+    bool isValid() const override { return !m_prefix_.empty(); }
 
-   private:
+    void WriteDataItem(std::string const &url, std::string const &key, const index_box_type &idx_box,
+                       std::shared_ptr<data::DataNode> const &data, int indent);
+    void WriteAttribute(std::string const &url, std::string const &key, const index_box_type &idx_box,
+                        std::shared_ptr<data::DataNode> const &attr_desc, std::shared_ptr<data::DataNode> const &data,
+                        int indent);
+    void WriteParticle(std::string const &url, std::string const &key, const index_box_type &idx_box,
+                       std::shared_ptr<data::DataNode> const &attr_desc, std::shared_ptr<data::DataNode> const &data,
+                       int indent);
+
     std::string m_prefix_;
+    std::string m_h5_prefix_;
     std::string m_ext_;
+    std::ostringstream os;
+    hid_t m_h5_file_ = 0;
+    hid_t m_h5_root_ = 0;
 };
-REGISTER_CREATOR(DataNodeXDMF3, xmf3);
+REGISTER_CREATOR(DataNodeXDMF, xdmf);
 DataNodeXDMF3::DataNodeXDMF3(DataNode::eNodeType etype) : base_type(etype) {}
 DataNodeXDMF3::~DataNodeXDMF3() = default;
 
-int DataNodeXDMF3::Connect(std::string const& authority, std::string const& path, std::string const& query,
-                           std::string const& fragment) {
+int DataNodeXDMF3::Connect(std::string const &authority, std::string const &path, std::string const &query,
+                          std::string const &fragment) {
     m_prefix_ = path;
-
     auto pos = path.rfind('.');
     m_prefix_ = (pos != std::string::npos) ? path.substr(0, pos) : path;
     m_ext_ = (pos != std::string::npos) ? path.substr(pos + 1) : path;
+    m_h5_prefix_ = m_prefix_;
 
-    return SP_SUCCESS;
-}
-template <typename U>
-struct XdmfType {};
-template <>
-struct XdmfType<double> {
-    static auto type() { return XdmfArrayType::Float64(); }
-};
-
-template <>
-struct XdmfType<float> {
-    static auto type() { return XdmfArrayType::Float32(); }
-};
-template <>
-struct XdmfType<int> {
-    static auto type() { return XdmfArrayType::Int32(); }
-};
-template <>
-struct XdmfType<long> {
-    static auto type() { return XdmfArrayType::Int64(); }
-};
-template <>
-struct XdmfType<unsigned int> {
-    static auto type() { return XdmfArrayType::UInt32(); }
-};
-int XDMF3WriteArray(XdmfArray* dst, std::shared_ptr<DataNode> const& data) {
-    if (data == nullptr) { return 0; }
-    if (data->type() == DataNode::DN_TABLE) {
-    } else if (data->type() == DataNode::DN_ARRAY) {
-        auto dof = static_cast<unsigned int>(data->size());
-        nTuple<index_type, 3> lo{0, 0, 0}, hi{1, 1, 1}, dims{1, 1, 1};
-        if (auto blk = std::dynamic_pointer_cast<ArrayBase>(data->Get(0)->GetEntity())) {
-            blk->GetIndexBox(&lo[0], &hi[0]);
-        } else {
-            RUNTIME_ERROR << *data;
-        }
-
-        std::vector<unsigned int> dimensions{static_cast<unsigned int>(hi[0] - lo[0]),
-                                             static_cast<unsigned int>(hi[1] - lo[1]),
-                                             static_cast<unsigned int>(hi[2] - lo[2]), dof};
-        if (auto block = std::dynamic_pointer_cast<Array<double>>(data->GetEntity(0))) {
-            dst->initialize(XdmfType<double>::type(), dimensions);
-        } else if (auto block = std::dynamic_pointer_cast<Array<float>>(data->GetEntity(0))) {
-            dst->initialize(XdmfType<float>::type(), dimensions);
-        } else if (auto block = std::dynamic_pointer_cast<Array<int>>(data->GetEntity(0))) {
-            dst->initialize(XdmfType<int>::type(), dimensions);
-        } else if (auto block = std::dynamic_pointer_cast<Array<long>>(data->GetEntity(0))) {
-            dst->initialize(XdmfType<long>::type(), dimensions);
-        } else if (auto block = std::dynamic_pointer_cast<Array<unsigned int>>(data->GetEntity(0))) {
-            dst->initialize(XdmfType<unsigned int>::type(), dimensions);
-        } else {
-            UNIMPLEMENTED;
-        }
-
-        for (unsigned int i = 0; i < dof; ++i) {
-            if (auto block = std::dynamic_pointer_cast<Array<double>>(data->GetEntity(i))) {
-                dst->insert(i, block->get(), static_cast<unsigned int>(block->size()), dof, 1);
-            } else if (auto block = std::dynamic_pointer_cast<Array<float>>(data->GetEntity(i))) {
-                dst->insert(i, block->get(), static_cast<unsigned int>(block->size()), dof, 1);
-            } else if (auto block = std::dynamic_pointer_cast<Array<int>>(data->GetEntity(i))) {
-                dst->insert(i, block->get(), static_cast<unsigned int>(block->size()), dof, 1);
-            } else if (auto block = std::dynamic_pointer_cast<Array<long>>(data->GetEntity(i))) {
-                dst->insert(i, block->get(), static_cast<unsigned int>(block->size()), dof, 1);
-            } else if (auto block = std::dynamic_pointer_cast<Array<unsigned int>>(data->GetEntity(i))) {
-                dst->insert(i, block->get(), static_cast<unsigned int>(block->size()), dof, 1);
-            } else {
-                UNIMPLEMENTED;
-            }
-        }
-    } else if (auto blk = std::dynamic_pointer_cast<ArrayBase>(data->GetEntity())) {
-        nTuple<index_type, 3> lo{0, 0, 0}, hi{1, 1, 1};
-        blk->GetIndexBox(&lo[0], &hi[0]);
-        std::vector<unsigned int> dimensions{static_cast<unsigned int>(hi[0] - lo[0]),
-                                             static_cast<unsigned int>(hi[1] - lo[1]),
-                                             static_cast<unsigned int>(hi[2] - lo[2])};
-
-        if (auto block = std::dynamic_pointer_cast<Array<double>>(blk)) {
-            dst->initialize(XdmfType<double>::type(), dimensions);
-            dst->insert(0, block->get(), static_cast<unsigned int>(block->size()), 1, 1);
-        } else if (auto block = std::dynamic_pointer_cast<Array<float>>(blk)) {
-            dst->initialize(XdmfType<float>::type(), dimensions);
-            dst->insert(0, block->get(), static_cast<unsigned int>(block->size()), 1, 1);
-        } else if (auto block = std::dynamic_pointer_cast<Array<int>>(blk)) {
-            dst->initialize(XdmfType<int>::type(), dimensions);
-            dst->insert(0, block->get(), static_cast<unsigned int>(block->size()), 1, 1);
-        } else if (auto block = std::dynamic_pointer_cast<Array<long>>(blk)) {
-            dst->initialize(XdmfType<long>::type(), dimensions);
-            dst->insert(0, block->get(), static_cast<unsigned int>(block->size()), 1, 1);
-        } else if (auto block = std::dynamic_pointer_cast<Array<unsigned int>>(blk)) {
-            dst->initialize(XdmfType<unsigned int>::type(), dimensions);
-            dst->insert(0, block->get(), static_cast<unsigned int>(block->size()), 1, 1);
-        } else {
-            UNIMPLEMENTED;
-        }
-    }
-
-    //            (auto p = std::dynamic_pointer_cast<Array<double>>(data->GetEntity())) {
-    //        XDMFWriteArrayT(dst, p);
-    //    } else if (auto p = std::dynamic_pointer_cast<Array<float>>(data->GetEntity())) {
-    //        XDMFWriteArrayT(dst, p);
-    //    } else if (auto p = std::dynamic_pointer_cast<Array<int>>(data->GetEntity())) {
-    //        XDMFWriteArrayT(dst, p);
-    //    } else if (auto p = std::dynamic_pointer_cast<Array<long>>(data->GetEntity())) {
-    //        XDMFWriteArrayT(dst, p);
-    //    } else if (auto p = std::dynamic_pointer_cast<Array<unsigned int>>(data->GetEntity())) {
-    //        XDMFWriteArrayT(dst, p);
-    //    }
-    return 1;
-}
-auto XDMF3AttributeInsertOne(std::shared_ptr<data::DataNode> const& attr_desc,
-                             std::shared_ptr<data::DataNode> const& data) {
-    auto attr = XdmfAttribute::New();
-    attr->setName(attr_desc->GetValue<std::string>("Name"));
-    auto iform = attr_desc->GetValue<int>("IFORM");
-    switch (iform) {
-        case NODE:
-            attr->setCenter(XdmfAttributeCenter::Node());
-            break;
-        case CELL:
-            attr->setCenter(XdmfAttributeCenter::Cell());
-            break;
-        case EDGE:
-            attr->setCenter(XdmfAttributeCenter::Edge());
-            break;
-        case FACE:
-            attr->setCenter(XdmfAttributeCenter::Face());
-            break;
-        default:
-            UNIMPLEMENTED;
-            break;
-    }
-    size_type rank = 0;
-    size_type extents[SP_ARRAY_MAX_NDIMS];
-    if (auto p = attr_desc->Get("DOF")) {
-        if (auto dof = std::dynamic_pointer_cast<DataLightT<int>>(p->GetEntity())) {
-            switch (dof->value()) {
-                case 1:
-                    attr->setType(XdmfAttributeType::Scalar());
-                    break;
-                case 3:
-                    attr->setType(XdmfAttributeType::Vector());
-                    break;
-                case 6:
-                    attr->setType(XdmfAttributeType::Tensor6());
-                    break;
-                case 9:
-                    attr->setType(XdmfAttributeType::Tensor());
-                    break;
-                default:
-                    attr->setType(XdmfAttributeType::Matrix());
-                    break;
-            }
-            rank = dof->value() > 1 ? 1 : 0;
-            extents[0] = static_cast<size_type>(dof->value());
-        } else if (auto dof = std::dynamic_pointer_cast<DataLightT<int*>>(p->GetEntity())) {
-            attr->setType(XdmfAttributeType::Matrix());
-            rank = dof->extents(extents);
-        }
-    } else {
-        attr->setType(XdmfAttributeType::Scalar());
-    }
-
-    if (iform == NODE || iform == CELL) {
-        XDMF3WriteArray(attr.get(), data);
-    } else {
-        //        VERBOSE << std::setw(20) << "Write XDMF : "
-        //                << "Ignore EDGE/FACE center attribute \"" << s_name << "\".";
-    }
-    return attr;
-}
-
-boost::shared_ptr<XdmfCurvilinearGrid> XDMF3CurvilinearGridNew(std::shared_ptr<DataNode> const& chart,
-                                                               std::shared_ptr<data::DataNode> const& blk,
-                                                               std::shared_ptr<data::DataNode> const& coord) {
-    auto lo = blk->GetValue<nTuple<index_type, 3>>("LowIndex");
-    auto hi = blk->GetValue<nTuple<index_type, 3>>("HighIndex");
-
-    nTuple<unsigned int, 3> dims{0, 0, 0};
-    dims = hi - lo + 1;
-    unsigned int num = dims[0] * dims[1] * dims[2];
-    auto grid = XdmfCurvilinearGrid::New(dims[0], dims[1], dims[2]);
-    auto geo = XdmfGeometry::New();
-    geo->setType(XdmfGeometryType::XYZ());
-    nTuple<Real, 3> origin = chart->GetValue<nTuple<Real, 3>>("Origin");
-    origin += lo * chart->GetValue<nTuple<Real, 3>>("Scale");
-    geo->setOrigin(origin[0], origin[1], origin[2]);
-    XDMF3WriteArray(geo.get(), coord);
-    grid->setGeometry(geo);
-
-    auto level_info = XdmfInformation::New();
-    level_info->setKey("Level");
-    level_info->setValue(std::to_string(blk->GetValue<int>("Level", 0)));
-    grid->insert(level_info);
-    grid->setName(std::to_string(blk->GetValue<id_type>("GUID")));
-    return grid;
-}
-boost::shared_ptr<XdmfRegularGrid> XDMF3RegularGridNew(std::shared_ptr<DataNode> const& chart,
-                                                       std::shared_ptr<data::DataNode> const& blk) {
-    auto x0 = chart->GetValue<nTuple<Real, 3>>("Origin");
-    auto dx = chart->GetValue<nTuple<Real, 3>>("Scale");
-    auto lo = blk->GetValue<index_tuple>("LowIndex");
-    auto hi = blk->GetValue<index_tuple>("HighIndex");
-
-    nTuple<unsigned int, 3> dims{1, 1, 1};
-    dims = hi - lo + 1;
-    nTuple<Real, 3> origin{0, 0, 0};
-    origin = lo * dx + x0;
-    auto grid = XdmfRegularGrid::New(dx[0], dx[1], dx[2], dims[0], dims[1], dims[2], origin[0], origin[1], origin[2]);
-    auto level_info = XdmfInformation::New();
-    level_info->setKey("Level");
-    level_info->setValue(std::to_string(blk->GetValue<int>("Level", 0)));
-    grid->insert(level_info);
-    grid->setName(std::to_string(blk->GetValue<id_type>("GUID")));
-    return grid;
-}
-int XDMF3Dump(std::string const& prefix, std::shared_ptr<DataNode> const& obj) {
-    if (obj == nullptr || prefix.empty()) { return SP_FAILED; }
-
-    int success = SP_FAILED;
-
-    auto domain = XdmfDomain::New();
-
-    //    domain->insert(grid_collection);
-    std::string h5_filename = prefix;
 #ifdef MPI_FOUND
     if (GLOBAL_COMM.size() > 1) {
         std::ostringstream os;
         int digital = static_cast<int>(std::floor(std::log(static_cast<double>(GLOBAL_COMM.size())))) + 1;
-        os << h5_filename << "." << std::setfill('0') << std::setw(digital) << GLOBAL_COMM.rank();
-        h5_filename = os.str();
+        os << m_h5_prefix_ << "." << std::setfill('0') << std::setw(digital) << GLOBAL_COMM.rank();
+        m_h5_prefix_ = os.str();
     }
 #endif
-    std::ostringstream grid_ostream;
-    auto hdf_writer = XdmfHDF5Writer::New(h5_filename + ".h5");
-    auto writer = XdmfWriter::New(grid_ostream, hdf_writer);
+    m_h5_prefix_ = m_h5_prefix_ + ".h5";
+    m_h5_file_ = H5Fcreate(m_h5_prefix_.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    m_h5_root_ = H5Gopen(m_h5_file_, "/", H5P_DEFAULT);
+    return SP_SUCCESS;
+}
 
-    //    auto grid_collection = XdmfGridCollection::New();
-    //    grid_collection->setType(XdmfGridCollectionType::Spatial());
-    //    if (auto time = obj->Get("Time")) {
-    //        if (auto t = std::dynamic_pointer_cast<DataLightT<Real>>(time->GetEntity())) {
-    //            grid_collection->setTime(XdmfTime::New(t->value()));
-    //        }
-    //    }
+int DataNodeXDMF3::Disconnect() {
+    Flush();
+    H5Gclose(m_h5_root_);
+    H5Fclose(m_h5_file_);
+    return SP_SUCCESS;
+}
 
-    auto attrs = obj->Get("Attributes");
+std::string XDMFNumberType(std::type_info const &t_info) {
+    std::string number_type;
+    if (t_info == typeid(double)) {
+        number_type = R"(NumberType="Float" Precision="8")";
+    } else if (t_info == typeid(float)) {
+        number_type = R"(NumberType="Float" Precision="4" )";
+    } else if (t_info == typeid(int)) {
+        number_type = R"(NumberType="Int" )";
+    } else if (t_info == typeid(unsigned int)) {
+        number_type = R"(NumberType="UInt" )";
+    } else {
+    }
+    return number_type;
+}
 
-    auto patches = obj->Get("Patches");
+void DataNodeXDMF3::WriteDataItem(std::string const &url, std::string const &key, const index_box_type &idx_box,
+                                 std::shared_ptr<data::DataNode> const &data, int indent) {
+    int fndims = 3;
+    int dof = 1;
+    std::string number_type;
+    index_tuple lo, hi;
+    std::tie(lo, hi) = idx_box;
+
+    auto g_id = H5GroupTryOpen(m_h5_root_, url);
+
+    if (auto array = std::dynamic_pointer_cast<ArrayBase>(data->GetEntity())) {
+        number_type = XDMFNumberType(array->value_type_info());
+        fndims = 3;
+        dof = 1;
+        index_type inner_lo[SP_ARRAY_MAX_NDIMS];
+        index_type inner_hi[SP_ARRAY_MAX_NDIMS];
+        index_type outer_lo[SP_ARRAY_MAX_NDIMS];
+        index_type outer_hi[SP_ARRAY_MAX_NDIMS];
+
+        array->GetShape(outer_lo, outer_hi);
+
+        hsize_t m_shape[SP_ARRAY_MAX_NDIMS];
+        hsize_t m_start[SP_ARRAY_MAX_NDIMS];
+        hsize_t m_count[SP_ARRAY_MAX_NDIMS];
+        hsize_t m_stride[SP_ARRAY_MAX_NDIMS];
+        hsize_t m_block[SP_ARRAY_MAX_NDIMS];
+        for (int i = 0; i < fndims; ++i) {
+            inner_lo[i] = lo[i];
+            inner_hi[i] = hi[i];
+            ASSERT(inner_lo[i] >= outer_lo[i]);
+            m_shape[i] = static_cast<hsize_t>(outer_hi[i] - outer_lo[i]);
+            m_start[i] = static_cast<hsize_t>(inner_lo[i] - outer_lo[i]);
+            m_count[i] = static_cast<hsize_t>(inner_hi[i] - inner_lo[i]);
+            m_stride[i] = static_cast<hsize_t>(1);
+            m_block[i] = static_cast<hsize_t>(1);
+        }
+        hid_t m_space = H5Screate_simple(fndims, &m_shape[0], nullptr);
+        H5_ERROR(H5Sselect_hyperslab(m_space, H5S_SELECT_SET, &m_start[0], &m_stride[0], &m_count[0], &m_block[0]));
+        hid_t f_space = H5Screate_simple(fndims, &m_count[0], nullptr);
+        hid_t dset;
+        hid_t d_type = H5NumberType(array->value_type_info());
+        H5_ERROR(dset = H5Dcreate(g_id, key.c_str(), d_type, f_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
+        H5_ERROR(H5Dwrite(dset, d_type, m_space, f_space, H5P_DEFAULT, array->pointer()));
+
+        H5_ERROR(H5Dclose(dset));
+        if (m_space != H5S_ALL) H5_ERROR(H5Sclose(m_space));
+        if (f_space != H5S_ALL) H5_ERROR(H5Sclose(f_space));
+    } else if (data->type() == data::DataNode::DN_ARRAY) {
+        hid_t dset;
+        fndims = 3;
+        dof = data->size();
+        hid_t d_type = H5NumberType(data->GetEntity(0)->value_type_info());
+
+        //        for (int i = 0; i < dof; ++i) {
+        //            if (auto array = std::dynamic_pointer_cast<ArrayBase>(data->GetEntity(i))) {
+        //                if (d_type == H5T_NO_CLASS) { d_type = H5NumberType(array->value_type_info()); }
+        //                auto t_ndims = array->GetNDIMS();
+        //                index_type t_lo[SP_ARRAY_MAX_NDIMS], t_hi[SP_ARRAY_MAX_NDIMS];
+        //                array->GetIndexBox(t_lo, t_hi);
+        //                ndims = std::max(ndims, array->GetNDIMS());
+        //                for (int n = 0; n < t_ndims; ++n) {
+        //                    m_lo[n] = std::min(m_lo[n], t_lo[n]);
+        //                    m_hi[n] = std::max(m_hi[n], t_hi[n]);
+        //                }
+        //            }
+        //        }
+
+        {
+            hsize_t f_shape[SP_ARRAY_MAX_NDIMS];
+            for (int i = 0; i < fndims; ++i) { f_shape[i] = static_cast<hsize_t>(hi[i] - lo[i]); }
+            f_shape[fndims] = static_cast<hsize_t>(dof);
+            hid_t f_space = H5Screate_simple(fndims + 1, &f_shape[0], nullptr);
+            //        hid_t plist = H5P_DEFAULT;
+            //        if (H5Tequal(d_type, H5T_NATIVE_DOUBLE)) {
+            //            plist = H5Pcreate(H5P_DATASET_CREATE);
+            //            double fillval = std::numeric_limits<double>::quiet_NaN();
+            //            H5_ERROR(H5Pset_fill_value(plist, H5T_NATIVE_DOUBLE, &fillval));
+            //        }
+            H5_ERROR(dset = H5Dcreate(g_id, key.c_str(), d_type, f_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
+            //        H5_ERROR(H5Pclose(plist));
+            H5_ERROR(H5Sclose(f_space));
+        }
+        for (int i = 0; i < dof; ++i) {
+            if (auto array = std::dynamic_pointer_cast<ArrayBase>(data->GetEntity(i))) {
+                ASSERT(array->pointer() != nullptr);
+
+                index_type t_lo[SP_ARRAY_MAX_NDIMS], t_hi[SP_ARRAY_MAX_NDIMS];
+                auto m_ndims = array->GetShape(t_lo, t_hi);
+
+                hsize_t m_shape[SP_ARRAY_MAX_NDIMS];
+                hsize_t m_start[SP_ARRAY_MAX_NDIMS];
+                hsize_t m_count[SP_ARRAY_MAX_NDIMS];
+                hsize_t m_stride[SP_ARRAY_MAX_NDIMS];
+                hsize_t m_block[SP_ARRAY_MAX_NDIMS];
+
+                hsize_t f_shape[SP_ARRAY_MAX_NDIMS];
+                hsize_t f_start[SP_ARRAY_MAX_NDIMS];
+                hsize_t f_count[SP_ARRAY_MAX_NDIMS];
+                hsize_t f_stride[SP_ARRAY_MAX_NDIMS];
+                hsize_t f_block[SP_ARRAY_MAX_NDIMS];
+                for (int n = 0; n < m_ndims; ++n) {
+                    m_shape[n] = static_cast<hsize_t>(t_hi[n] - t_lo[n]);
+                    m_start[n] = static_cast<hsize_t>(lo[n] - t_lo[n]);
+                    m_count[n] = static_cast<hsize_t>(hi[n] - lo[n]);
+                    m_stride[n] = static_cast<hsize_t>(1);
+                    m_block[n] = static_cast<hsize_t>(1);
+
+                    f_stride[n] = static_cast<hsize_t>(1);
+                    f_block[n] = static_cast<hsize_t>(1);
+
+                    f_shape[n] = static_cast<hsize_t>(hi[n] - lo[n]);
+                    f_start[n] = static_cast<hsize_t>(0);
+                    f_count[n] = static_cast<hsize_t>(hi[n] - lo[n]);
+                    f_stride[n] = static_cast<hsize_t>(1);
+                    f_block[n] = static_cast<hsize_t>(1);
+                }
+                for (int n = m_ndims; n < fndims + 1; ++n) {
+                    m_shape[n] = static_cast<hsize_t>(1);
+                    m_start[n] = static_cast<hsize_t>(0);
+                    m_count[n] = static_cast<hsize_t>(1);
+                    m_stride[n] = static_cast<hsize_t>(1);
+                    m_block[n] = static_cast<hsize_t>(1);
+
+                    f_shape[n] = static_cast<hsize_t>(1);
+                    f_start[n] = static_cast<hsize_t>(0);
+                    f_count[n] = static_cast<hsize_t>(1);
+                    f_stride[n] = static_cast<hsize_t>(1);
+                    f_block[n] = static_cast<hsize_t>(1);
+                }
+
+                m_shape[fndims] = static_cast<hsize_t>(dof);
+                m_start[fndims] = static_cast<hsize_t>(0);
+                f_shape[fndims] = static_cast<hsize_t>(dof);
+                f_start[fndims] = static_cast<hsize_t>(i);
+
+                hid_t m_space = H5Screate_simple(m_ndims, &m_shape[0], nullptr);
+                H5_ERROR(
+                    H5Sselect_hyperslab(m_space, H5S_SELECT_SET, &m_start[0], &m_stride[0], &m_count[0], &m_block[0]));
+                hid_t f_space = H5Screate_simple(fndims + 1, &f_shape[0], nullptr);
+                H5_ERROR(
+                    H5Sselect_hyperslab(f_space, H5S_SELECT_SET, &f_start[0], &f_stride[0], &f_count[0], &f_block[0]));
+                H5_ERROR(H5Dwrite(dset, d_type, m_space, f_space, H5P_DEFAULT, array->pointer()));
+
+                if (f_space != H5S_ALL) H5_ERROR(H5Sclose(f_space));
+                if (m_space != H5S_ALL) H5_ERROR(H5Sclose(m_space));
+            }
+        }
+        H5_ERROR(H5Dclose(dset));
+
+    } else {
+        UNIMPLEMENTED;
+    }
+
+    H5Gclose(g_id);
+
+    os << std::setw(indent) << " "
+       << "<DataItem Format=\"HDF\" " << number_type << " Dimensions=\"";
+
+    for (int i = 0; i < fndims; ++i) { os << " " << hi[i] - lo[i]; };
+    if (dof > 1) { os << " " << dof; }
+    os << "\">" << m_h5_prefix_ << ":" << url << "/" << key << "</DataItem>" << std::endl;
+}
+void DataNodeXDMF3::WriteAttribute(std::string const &url, std::string const &key, const index_box_type &idx_box,
+                                  std::shared_ptr<data::DataNode> const &attr_desc,
+                                  std::shared_ptr<data::DataNode> const &data, int indent) {
+    //    static const char* attr_center[] = {"Node", "Node" /* "Edge"*/, "Node" /* "Face"*/, "Cell", "Grid", "Other"};
+    //    static const char* attr_type[] = {" Scalar", "Vector", "Tensor", "Tensor6", "Matrix", "GlobalID"};
+
+    index_tuple lo, hi;
+    std::tie(lo, hi) = idx_box;
+
+    auto iform = attr_desc->GetValue<int>("IFORM", 0);
+
+    int dof = 1;
+    std::string attr_type = "Scalar";
+    size_type rank = 0;
+    size_type extents[SP_ARRAY_MAX_NDIMS] = {1, 1, 1, 1};
+    if (auto p = attr_desc->Get("DOF")) {
+        if (auto dof_t = std::dynamic_pointer_cast<DataLightT<int>>(p->GetEntity())) {
+            dof = (dof_t->value());
+            switch (dof_t->value()) {
+                case 1:
+                    attr_type = "Scalar";
+                    break;
+                case 3:
+                    attr_type = "Vector";
+                    break;
+                default:
+                    attr_type = "Matrix";
+                    break;
+            }
+            rank = dof > 1 ? 1 : 0;
+            extents[0] = static_cast<size_type>(dof);
+        } else if (auto dof_p = std::dynamic_pointer_cast<DataLightT<int *>>(p->GetEntity())) {
+            attr_type = "Matrix";
+            rank = dof_p->extents(extents);
+        }
+    }
+    if (dof == 1 && (iform == EDGE || iform == FACE)) { attr_type = "Vector"; }
+
+    os << std::setw(indent) << " "
+       << "<Attribute "
+       << "Center=\"" << (iform == NODE ? "Node" : "Cell") << "\" "       //
+       << "Name=\"" << attr_desc->GetValue<std::string>("Name") << "\" "  //
+       << "AttributeType=\"" << attr_type << "\" "                        //
+       << "IFORM=\"" << iform << "\" "                                    //
+       << ">" << std::endl;
+
+    WriteDataItem(url, key, idx_box, data, indent + 1);
+
+    os << std::setw(indent) << " "
+       << "</Attribute>" << std::endl;
+}
+void DataNodeXDMF3::WriteParticle(std::string const &url, std::string const &key, const index_box_type &idx_box,
+                                 std::shared_ptr<data::DataNode> const &attr_desc,
+                                 std::shared_ptr<data::DataNode> const &data, int indent) {
+    os << std::setw(indent) << " "
+       << " <Grid Name=\"" << attr_desc->GetValue<std::string>("Name") << "  GridType=\"Uniform\"> "
+       << std::setw(indent + 1) << " "
+       << "<Time Value=\"" << 0.00 << "\"  />" << std::endl
+       << std::setw(indent + 1) << " "
+       << R"(<Topology TopologyType="Polyvertex" NodesPerElement=")" << 30 << "\" />" << std::endl;
+
+    os << R"(<Geometry GeometryType="XYZ">
+					<DataItem DataType="Float" Dimensions="30 3" Format="HDF">
+						TestData.h5:/iter00000000/cells/position
+					</DataItem>
+				</Geometry>
+				<Attribute AttributeType="Scalar" Center="Node" Name="leuk_type">
+					<DataItem DataType="Int" Dimensions="30 1" Format="HDF">
+						TestData.h5:/iter00000000/cells/type
+					</DataItem>
+				</Attribute>
+				<Attribute AttributeType="Vector" Center="Node"
+Name="leuk_polarization">
+					<DataItem DataType="Float" Dimensions="30 3" Format="HDF">
+						TestData.h5:/iter00000000/cells/polarization
+					</DataItem>
+				</Attribute>
+
+)";
+    os << std::setw(indent) << " "
+       << "</Grid>" << std::endl;
+}
+void XDMFGeometryCurvilinear(DataNodeXDMF3 *self, std::string const &prefix, const index_box_type &idx_box,
+                             std::shared_ptr<DataNode> const &chart, std::shared_ptr<data::DataNode> const &coord,
+                             int indent) {
+    index_tuple lo, hi;
+    std::tie(lo, hi) = idx_box;
+    hi += 1;
+    self->os << std::setw(indent) << " "
+             << R"(<Topology TopologyType="3DSMesh" Dimensions=")" <<  //
+        hi[0] - lo[0] << " " <<                                        //
+        hi[1] - lo[1] << " " <<                                        //
+        hi[2] - lo[2] << "\" />" << std::endl;
+    self->os << std::setw(indent) << " "
+             << R"(<Geometry GeometryType="XYZ">)" << std::endl;
+
+    self->WriteDataItem(prefix, "_XYZ_", std::make_tuple(lo, hi), coord, indent + 1);
+    self->os << std::setw(indent) << " "
+             << "</Geometry>" << std::endl;
+}
+
+/**
+ *  @ref [Paraview] Fwd: Odd behavior of XDMF files with 3DCORECTMesh
+ *
+ *  @quota
+ *
+
+ */
+void XDMFGeometryRegular(DataNodeXDMF3 *self, const index_box_type &idx_box, std::shared_ptr<DataNode> const &chart,
+                         int indent = 0) {
+    index_tuple lo, hi;
+    std::tie(lo, hi) = idx_box;
+    hi += 1;
+    self->os << std::setw(indent) << " "
+             << R"(<Topology TopologyType="3DCoRectMesh" Dimensions=")" << hi[0] - lo[0] << " " << hi[1] - lo[1] << " "
+             << hi[2] - lo[2] << "\" />" << std::endl;
+
+    auto origin = chart->GetValue<point_type>("Origin", point_type{0, 0, 0});
+    auto dxdydz = chart->GetValue<point_type>("Scale", point_type{1, 1, 1});
+    self->os << std::setw(indent) << " "
+             << R"(<Geometry GeometryType="ORIGIN_DXDYDZ"> )" << std::endl
+             << std::setw(indent + 1) << " "
+             << R"(<DataItem Format="XML" Dimensions="3"> )"  // NOTE: inverse xyz order. bug in  libXDMF?
+             << origin[2] + lo[2] * dxdydz[2] << " "          //
+             << origin[1] + lo[1] * dxdydz[1] << " "          //
+             << origin[0] + lo[0] * dxdydz[0]                 //
+             << " </DataItem>" << std::endl
+             << std::setw(indent + 1) << " "
+             << R"(<DataItem Format="XML" Dimensions="3"> )" << dxdydz[2] << " " << dxdydz[1] << " " << dxdydz[0]
+             << " </DataItem>" << std::endl;
+
+    self->os << std::setw(indent) << " "
+             << "</Geometry>" << std::endl;
+}
+int DataNodeXDMF3::Flush() {
+    int success = SP_FAILED;
+
+    auto attrs = this->Get("Attributes");
+
+    auto patches = this->Get("Patches");
 
     ASSERT(attrs != nullptr && patches != nullptr);
 
-    if (auto atlas = obj->Get("Atlas")) {
+    int indent = 2;
+    if (auto atlas = this->Get("Atlas")) {
         auto chart = atlas->Get("Chart");
         auto blks = atlas->Get("Blocks");
 
-        blks->Foreach([&](std::string const& k, std::shared_ptr<data::DataNode> const& blk) {
+        blks->Foreach([&](std::string const &k, std::shared_ptr<data::DataNode> const &blk) {
+            auto guid = blk->GetValue<id_type>("GUID");
             if (auto patch = patches->Get(k)) {
-                if (patch->Get("_COORDINATES_") != nullptr) {
-                    auto g = XDMF3CurvilinearGridNew(chart, blk, patch->Get("_COORDINATES_"));
-                    patch->Foreach([&](std::string const& s, std::shared_ptr<data::DataNode> const& d) {
-                        if (attrs->Get(s)->Check("COORDINATES")) { return; }
-                        g->insert(XDMF3AttributeInsertOne(attrs->Get(s), d));
-                    });
-                    g->accept(writer);
-                    // grid_collection->insert(g);
+                index_box_type idx_box{blk->GetValue<index_tuple>("LowIndex"), blk->GetValue<index_tuple>("HighIndex")};
+                //                std::get<0>(idx_box) -= 1;  // ghost cell
+                //                std::get<1>(idx_box) += 1;
 
+                os << std::setw(indent) << " "
+                   << "<Grid Name=\"" << guid << "\" Level=\"" << blk->GetValue<int>("Level", 0) << "\">" << std::endl;
+
+                if (patch->Get("_COORDINATES_") != nullptr) {
+                    XDMFGeometryCurvilinear(this, "/Patches/" + std::to_string(guid), idx_box, chart,
+                                            patch->Get("_COORDINATES_"), indent + 1);
                 } else {
-                    auto g = XDMF3RegularGridNew(chart, blk);
-                    patch->Foreach([&](std::string const& s, std::shared_ptr<data::DataNode> const& d) {
-                        if (attrs->Get(s)->Check("COORDINATES")) { return; }
-                        g->insert(XDMF3AttributeInsertOne(attrs->Get(s), d));
-                    });
-                    g->accept(writer);
-                    // grid_collection->insert(g);
+                    XDMFGeometryRegular(this, idx_box, chart, indent + 1);
                 }
+
+                patch->Foreach([&](std::string const &s, std::shared_ptr<data::DataNode> const &d) {
+                    auto attr = attrs->Get(s);
+                    if (attr->GetValue<int>("IFORM") == FIBER) { return; }
+                    WriteAttribute("/Patches/" + std::to_string(guid), s, idx_box, attrs->Get(s), d, indent + 1);
+                });
+                os << std::setw(indent) << " "
+                   << "</Grid>" << std::endl;
+
+                patch->Foreach([&](std::string const &s, std::shared_ptr<data::DataNode> const &d) {
+                    auto attr = attrs->Get(s);
+                    if (attr->GetValue<int>("IFORM") == FIBER) {
+                        WriteParticle("/Patches/" + std::to_string(guid), s, idx_box, attrs->Get(s), d, indent + 1);
+                    }
+                });
             }
             return 1;
         });
@@ -327,7 +434,7 @@ int XDMF3Dump(std::string const& prefix, std::shared_ptr<DataNode> const& obj) {
 
     // Gather String
 
-    std::string grid_str = grid_ostream.str();
+    std::string grid_str = os.str();
 
     if (!grid_str.empty()) {
         auto begin = grid_str.find("<Grid ");
@@ -341,19 +448,19 @@ int XDMF3Dump(std::string const& prefix, std::shared_ptr<DataNode> const& obj) {
 
     if (GLOBAL_COMM.rank() == 0) {
         std::ofstream out_file;
-        out_file.open(prefix + ".xmf3", std::ios_base::trunc);
-        VERBOSE << std::setw(20) << "Write XDMF : " << prefix << ".xmf3";
+        out_file.open(m_prefix_ + ".xmf", std::ios_base::trunc);
+        VERBOSE << std::setw(20) << "Write XDMF : " << m_prefix_ << ".xmf";
 
         out_file << R"(<?xml version="1.0" encoding="utf-8"?>
 <Xdmf xmlns:xi="http://www.w3.org/2001/XInclude" Version="3.3">
 <Domain>
 <Grid CollectionType="Spatial" GridType="Collection" Name="Collection">)";
-        if (auto time = obj->Get("Time")) {
+        if (auto time = this->Get("Time")) {
             if (auto t = std::dynamic_pointer_cast<DataLightT<Real>>(time->GetEntity())) {
                 out_file << std::endl << "  <Time Value=\"" << t->value() << "\"/>" << std::endl;
             }
         }
-        out_file << grid_str;
+        out_file << std::setw(indent) << " " << grid_str;
         out_file << R"(</Grid>
 </Domain>
 </Xdmf>)";

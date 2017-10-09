@@ -113,6 +113,8 @@ hid_t HDF5CreateOrOpenGroup(hid_t grp, std::string const& key);
 hid_t H5GroupTryOpen(hid_t grp, std::string const& key);
 size_type HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataNode> node);
 size_type HDF5Add(hid_t g_id, std::string const& key, std::shared_ptr<DataNode> node);
+
+void HDF5WriteArray(hid_t g_id, std::string const& key, std::shared_ptr<ArrayBase> const& data);
 }
 }
 

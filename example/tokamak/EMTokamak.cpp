@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
     scenario->db()->SetValue("CheckPointFilePrefix", "EAST");
     scenario->db()->SetValue("CheckPointFileSuffix", "xmf");
     scenario->SetCheckPointInterval(1);
-    scenario->SetDumpInterval(1);
+//    scenario->SetDumpInterval(1);
 
     scenario->GetAtlas()->SetChart<simpla::geometry::csCartesian>();
     scenario->GetAtlas()->GetChart()->SetScale({1, 1.5, 2});

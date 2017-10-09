@@ -85,168 +85,83 @@ std::string XDMFNumberType(std::type_info const &t_info) {
     }
     return number_type;
 }
+std::ostream &XDMFWriteArray(std::ostream &os, hid_t g_id, std::string const &prefix, std::string const &key,
+                             index_type const *lo, index_type const *hi, std::shared_ptr<ArrayBase> const &array,
+                             int indent) {
+    HDF5WriteArray(g_id, key, array);
+    auto ndims = array->GetNDIMS();
+    index_type m_lo[ndims];
+    index_type m_hi[ndims];
+    array->GetIndexBox(m_lo, m_hi);
+    if (lo != nullptr && hi != nullptr) {
+        os << std::setw(indent) << " "
+           << R"(<DataItem ItemType="HyperSlab" Type="HyperSlab" Dimensions=")";
+        for (int i = 0; i < ndims; ++i) { os << " " << hi[i] - lo[i]; };
+        os << R"(" >)" << std::endl;
+        os << std::setw(indent + 1) << " "
+           << R"(<DataItem Dimensions="3 )" << ndims << R"("  Format="XML">)" << std::endl;
+        os << std::setw(indent + 2) << " ";
+        for (int i = 0; i < ndims; ++i) { os << " " << lo[i] - m_lo[i]; };
+        os << std::endl;
+        os << std::setw(indent + 2) << " ";
+        for (int i = 0; i < ndims; ++i) { os << " " << 1; };
+        os << std::endl;
+        os << std::setw(indent + 2) << " ";
+        for (int i = 0; i < ndims; ++i) { os << " " << hi[i] - lo[i]; };
+        os << std::endl;
+        os << std::setw(indent + 1) << " "
+           << R"(</DataItem>)" << std::endl;
+    }
+    os << std::setw(indent + 1) << " "
+       << "<DataItem Format=\"HDF\" " << XDMFNumberType(array->value_type_info()) << " Dimensions=\"";
+    for (int i = 0; i < ndims; ++i) { os << " " << m_hi[i] - m_lo[i]; };
+    os << "\">" << prefix << "/" << key << "</DataItem>" << std::endl;
 
+    if (lo != nullptr && hi != nullptr) {
+        os << std::setw(indent) << " "
+           << "</DataItem>" << std::endl;
+    }
+    return os;
+}
 void DataNodeXDMF::WriteDataItem(std::string const &url, std::string const &key, const index_box_type &idx_box,
                                  std::shared_ptr<data::DataNode> const &data, int indent) {
-    int fndims = 3;
-    int dof = 1;
-    std::string number_type;
-    index_tuple lo, hi;
-    std::tie(lo, hi) = idx_box;
-
     auto g_id = H5GroupTryOpen(m_h5_root_, url);
 
     if (auto array = std::dynamic_pointer_cast<ArrayBase>(data->GetEntity())) {
-        number_type = XDMFNumberType(array->value_type_info());
-        fndims = 3;
-        dof = 1;
-        index_type inner_lo[SP_ARRAY_MAX_NDIMS];
-        index_type inner_hi[SP_ARRAY_MAX_NDIMS];
-        index_type outer_lo[SP_ARRAY_MAX_NDIMS];
-        index_type outer_hi[SP_ARRAY_MAX_NDIMS];
-
-        array->GetShape(outer_lo, outer_hi);
-
-        hsize_t m_shape[SP_ARRAY_MAX_NDIMS];
-        hsize_t m_start[SP_ARRAY_MAX_NDIMS];
-        hsize_t m_count[SP_ARRAY_MAX_NDIMS];
-        hsize_t m_stride[SP_ARRAY_MAX_NDIMS];
-        hsize_t m_block[SP_ARRAY_MAX_NDIMS];
-        for (int i = 0; i < fndims; ++i) {
-            inner_lo[i] = lo[i];
-            inner_hi[i] = hi[i];
-            ASSERT(inner_lo[i] >= outer_lo[i]);
-            m_shape[i] = static_cast<hsize_t>(outer_hi[i] - outer_lo[i]);
-            m_start[i] = static_cast<hsize_t>(inner_lo[i] - outer_lo[i]);
-            m_count[i] = static_cast<hsize_t>(inner_hi[i] - inner_lo[i]);
-            m_stride[i] = static_cast<hsize_t>(1);
-            m_block[i] = static_cast<hsize_t>(1);
-        }
-        hid_t m_space = H5Screate_simple(fndims, &m_shape[0], nullptr);
-        H5_ERROR(H5Sselect_hyperslab(m_space, H5S_SELECT_SET, &m_start[0], &m_stride[0], &m_count[0], &m_block[0]));
-        hid_t f_space = H5Screate_simple(fndims, &m_count[0], nullptr);
-        hid_t dset;
-        hid_t d_type = H5NumberType(array->value_type_info());
-        H5_ERROR(dset = H5Dcreate(g_id, key.c_str(), d_type, f_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
-        H5_ERROR(H5Dwrite(dset, d_type, m_space, f_space, H5P_DEFAULT, array->pointer()));
-
-        H5_ERROR(H5Dclose(dset));
-        if (m_space != H5S_ALL) H5_ERROR(H5Sclose(m_space));
-        if (f_space != H5S_ALL) H5_ERROR(H5Sclose(f_space));
+        XDMFWriteArray(os, g_id, m_h5_prefix_ + ":" + url, key, &std::get<0>(idx_box)[0], &std::get<1>(idx_box)[0],
+                       array, indent + 1);
     } else if (data->type() == data::DataNode::DN_ARRAY) {
-        hid_t dset;
-        fndims = 3;
-        dof = data->size();
-        hid_t d_type = H5NumberType(data->GetEntity(0)->value_type_info());
+        auto dof = static_cast<int>(data->size());
 
-        //        for (int i = 0; i < dof; ++i) {
-        //            if (auto array = std::dynamic_pointer_cast<ArrayBase>(data->GetEntity(i))) {
-        //                if (d_type == H5T_NO_CLASS) { d_type = H5NumberType(array->value_type_info()); }
-        //                auto t_ndims = array->GetNDIMS();
-        //                index_type t_lo[SP_ARRAY_MAX_NDIMS], t_hi[SP_ARRAY_MAX_NDIMS];
-        //                array->GetIndexBox(t_lo, t_hi);
-        //                ndims = std::max(ndims, array->GetNDIMS());
-        //                for (int n = 0; n < t_ndims; ++n) {
-        //                    m_lo[n] = std::min(m_lo[n], t_lo[n]);
-        //                    m_hi[n] = std::max(m_hi[n], t_hi[n]);
-        //                }
-        //            }
-        //        }
+        os << std::setw(indent + 1) << " "
+           << R"(<DataItem  ItemType="Function" )";
+        os << R"(Function="$0)";
+        for (int i = 1; i < dof; ++i) { os << " ,$" << i; }
+        os << R"(" Dimensions=")";
+        for (int i = 0; i < 3; ++i) { os << " " << std::get<1>(idx_box)[i] - std::get<0>(idx_box)[i]; }
+        os << " " << dof;
+        os << R"(" >)" << std::endl;
 
-        {
-            hsize_t f_shape[SP_ARRAY_MAX_NDIMS];
-            for (int i = 0; i < fndims; ++i) { f_shape[i] = static_cast<hsize_t>(hi[i] - lo[i]); }
-            f_shape[fndims] = static_cast<hsize_t>(dof);
-            hid_t f_space = H5Screate_simple(fndims + 1, &f_shape[0], nullptr);
-            //        hid_t plist = H5P_DEFAULT;
-            //        if (H5Tequal(d_type, H5T_NATIVE_DOUBLE)) {
-            //            plist = H5Pcreate(H5P_DATASET_CREATE);
-            //            double fillval = std::numeric_limits<double>::quiet_NaN();
-            //            H5_ERROR(H5Pset_fill_value(plist, H5T_NATIVE_DOUBLE, &fillval));
-            //        }
-            H5_ERROR(dset = H5Dcreate(g_id, key.c_str(), d_type, f_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
-            //        H5_ERROR(H5Pclose(plist));
-            H5_ERROR(H5Sclose(f_space));
-        }
+        auto subg_id = H5Gcreate(g_id, key.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         for (int i = 0; i < dof; ++i) {
             if (auto array = std::dynamic_pointer_cast<ArrayBase>(data->GetEntity(i))) {
-                ASSERT(array->pointer() != nullptr);
-
-                index_type t_lo[SP_ARRAY_MAX_NDIMS], t_hi[SP_ARRAY_MAX_NDIMS];
-                auto m_ndims = array->GetShape(t_lo, t_hi);
-
-                hsize_t m_shape[SP_ARRAY_MAX_NDIMS];
-                hsize_t m_start[SP_ARRAY_MAX_NDIMS];
-                hsize_t m_count[SP_ARRAY_MAX_NDIMS];
-                hsize_t m_stride[SP_ARRAY_MAX_NDIMS];
-                hsize_t m_block[SP_ARRAY_MAX_NDIMS];
-
-                hsize_t f_shape[SP_ARRAY_MAX_NDIMS];
-                hsize_t f_start[SP_ARRAY_MAX_NDIMS];
-                hsize_t f_count[SP_ARRAY_MAX_NDIMS];
-                hsize_t f_stride[SP_ARRAY_MAX_NDIMS];
-                hsize_t f_block[SP_ARRAY_MAX_NDIMS];
-                for (int n = 0; n < m_ndims; ++n) {
-                    m_shape[n] = static_cast<hsize_t>(t_hi[n] - t_lo[n]);
-                    m_start[n] = static_cast<hsize_t>(lo[n] - t_lo[n]);
-                    m_count[n] = static_cast<hsize_t>(hi[n] - lo[n]);
-                    m_stride[n] = static_cast<hsize_t>(1);
-                    m_block[n] = static_cast<hsize_t>(1);
-
-                    f_stride[n] = static_cast<hsize_t>(1);
-                    f_block[n] = static_cast<hsize_t>(1);
-
-                    f_shape[n] = static_cast<hsize_t>(hi[n] - lo[n]);
-                    f_start[n] = static_cast<hsize_t>(0);
-                    f_count[n] = static_cast<hsize_t>(hi[n] - lo[n]);
-                    f_stride[n] = static_cast<hsize_t>(1);
-                    f_block[n] = static_cast<hsize_t>(1);
-                }
-                for (int n = m_ndims; n < fndims + 1; ++n) {
-                    m_shape[n] = static_cast<hsize_t>(1);
-                    m_start[n] = static_cast<hsize_t>(0);
-                    m_count[n] = static_cast<hsize_t>(1);
-                    m_stride[n] = static_cast<hsize_t>(1);
-                    m_block[n] = static_cast<hsize_t>(1);
-
-                    f_shape[n] = static_cast<hsize_t>(1);
-                    f_start[n] = static_cast<hsize_t>(0);
-                    f_count[n] = static_cast<hsize_t>(1);
-                    f_stride[n] = static_cast<hsize_t>(1);
-                    f_block[n] = static_cast<hsize_t>(1);
-                }
-
-                m_shape[fndims] = static_cast<hsize_t>(dof);
-                m_start[fndims] = static_cast<hsize_t>(0);
-                f_shape[fndims] = static_cast<hsize_t>(dof);
-                f_start[fndims] = static_cast<hsize_t>(i);
-
-                hid_t m_space = H5Screate_simple(m_ndims, &m_shape[0], nullptr);
-                H5_ERROR(
-                    H5Sselect_hyperslab(m_space, H5S_SELECT_SET, &m_start[0], &m_stride[0], &m_count[0], &m_block[0]));
-                hid_t f_space = H5Screate_simple(fndims + 1, &f_shape[0], nullptr);
-                H5_ERROR(
-                    H5Sselect_hyperslab(f_space, H5S_SELECT_SET, &f_start[0], &f_stride[0], &f_count[0], &f_block[0]));
-                H5_ERROR(H5Dwrite(dset, d_type, m_space, f_space, H5P_DEFAULT, array->pointer()));
-
-                if (f_space != H5S_ALL) H5_ERROR(H5Sclose(f_space));
-                if (m_space != H5S_ALL) H5_ERROR(H5Sclose(m_space));
+                std::string prefix = m_h5_prefix_;
+                prefix += ":";
+                prefix += url;
+                prefix += "/";
+                prefix += key;
+                XDMFWriteArray(os, subg_id, prefix, std::to_string(i), &std::get<0>(idx_box)[0],
+                               &std::get<1>(idx_box)[0], array, indent + 2);
             }
         }
-        H5_ERROR(H5Dclose(dset));
-
+        os << std::setw(indent + 1) << " "
+           << R"(</DataItem> )" << std::endl;
+        H5Gclose(subg_id);
     } else {
         UNIMPLEMENTED;
     }
 
     H5Gclose(g_id);
-
-    os << std::setw(indent) << " "
-       << "<DataItem Format=\"HDF\" " << number_type << " Dimensions=\"";
-
-    for (int i = 0; i < fndims; ++i) { os << " " << hi[i] - lo[i]; };
-    if (dof > 1) { os << " " << dof; }
-    os << "\">" << m_h5_prefix_ << ":" << url << "/" << key << "</DataItem>" << std::endl;
 }
 void DataNodeXDMF::WriteAttribute(std::string const &url, std::string const &key, const index_box_type &idx_box,
                                   std::shared_ptr<data::DataNode> const &attr_desc,

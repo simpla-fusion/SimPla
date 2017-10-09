@@ -169,6 +169,62 @@ std::shared_ptr<DataEntity> HDF5GetEntity(hid_t obj_id, bool is_attribute) {
     H5Sclose(d_space);
     return res;
 }
+
+void HDF5WriteArray(hid_t g_id, std::string const& key, std::shared_ptr<ArrayBase> const& data) {
+    bool is_exist = H5Lexists(g_id, key.c_str(), H5P_DEFAULT) != 0;
+    //            H5Oexists_by_name(loc_id, key.c_str(), H5P_DEFAULT) != 0;
+    H5O_info_t g_info;
+    if (is_exist) { H5_ERROR(H5Oget_info_by_name(g_id, key.c_str(), &g_info, H5P_DEFAULT)); }
+
+    if (is_exist && g_info.type != H5O_TYPE_DATASET) {
+        H5Ldelete(g_id, key.c_str(), H5P_DEFAULT);
+        is_exist = false;
+    }
+    int ndims = data->GetNDIMS();
+
+    index_type inner_lower[ndims];
+    index_type inner_upper[ndims];
+    index_type outer_lower[ndims];
+    index_type outer_upper[ndims];
+
+    data->GetIndexBox(inner_lower, inner_upper);
+    data->GetShape(outer_lower, outer_upper);
+
+    hsize_t m_shape[ndims];
+    hsize_t m_start[ndims];
+    hsize_t m_count[ndims];
+    hsize_t m_stride[ndims];
+    hsize_t m_block[ndims];
+
+    if (data->isSlowFirst()) {
+        for (int i = 0; i < ndims; ++i) {
+            m_shape[i] = static_cast<hsize_t>(outer_upper[i] - outer_lower[i]);
+            m_start[i] = static_cast<hsize_t>(inner_lower[i] - outer_lower[i]);
+            m_count[i] = static_cast<hsize_t>(inner_upper[i] - inner_lower[i]);
+            m_stride[i] = static_cast<hsize_t>(1);
+            m_block[i] = static_cast<hsize_t>(1);
+        }
+    } else {
+        for (int i = 0; i < ndims; ++i) {
+            m_shape[ndims - 1 - i] = static_cast<hsize_t>(outer_upper[i] - outer_lower[i]);
+            m_start[ndims - 1 - i] = static_cast<hsize_t>(inner_lower[i] - outer_lower[i]);
+            m_count[ndims - 1 - i] = static_cast<hsize_t>(inner_upper[i] - inner_lower[i]);
+            m_stride[ndims - 1 - i] = static_cast<hsize_t>(1);
+            m_block[ndims - 1 - i] = static_cast<hsize_t>(1);
+        }
+    }
+    hid_t m_space = H5Screate_simple(ndims, &m_shape[0], nullptr);
+    H5_ERROR(H5Sselect_hyperslab(m_space, H5S_SELECT_SET, &m_start[0], &m_stride[0], &m_count[0], &m_block[0]));
+    hid_t f_space = H5Screate_simple(ndims, &m_count[0], nullptr);
+    hid_t dset;
+    hid_t d_type = GetHDF5DataType(data->value_type_info());
+    H5_ERROR(dset = H5Dcreate(g_id, key.c_str(), d_type, f_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
+    H5_ERROR(H5Dwrite(dset, d_type, m_space, f_space, H5P_DEFAULT, data->pointer()));
+
+    H5_ERROR(H5Dclose(dset));
+    if (m_space != H5S_ALL) H5_ERROR(H5Sclose(m_space));
+    if (f_space != H5S_ALL) H5_ERROR(H5Sclose(f_space));
+}
 size_type HDF5SetEntity(hid_t g_id, std::string const& key, std::shared_ptr<DataEntity> const& entity) {
     ASSERT(g_id > 0);
 

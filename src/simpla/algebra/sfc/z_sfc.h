@@ -115,7 +115,7 @@ class ZSFC {
             m_index_max_[i] = (hi == nullptr) ? m_shape_max_[i] : std::min(hi[i], m_shape_max_[i]);
         }
     }
-
+    bool isSlowFirst() const { return m_array_order_ == SLOW_FIRST; };
     size_type GetNDIMS() const { return static_cast<size_type>(ndims); }
     size_type GetIndexBox(index_type* lo, index_type* hi) const {
         for (int i = 0; i < ndims; ++i) {
