@@ -272,8 +272,10 @@ void XDMFGeometryRegular(DataNodeXDMF *self, const index_box_type &idx_box, std:
     index_tuple lo, hi;
     std::tie(lo, hi) = idx_box;
     hi += 1;
+
+    // @NOTE ParaView and VisIt parser 3DCORectMesh in different way, but 3DRectMesh is OK.
     self->os << std::setw(indent) << " "
-             << R"(<Topology TopologyType="3DCoRectMesh" Dimensions=")" << hi[0] - lo[0] << " " << hi[1] - lo[1] << " "
+             << R"(<Topology TopologyType="3DRectMesh" Dimensions=")" << hi[0] - lo[0] << " " << hi[1] - lo[1] << " "
              << hi[2] - lo[2] << "\" />" << std::endl;
 
     auto origin = chart->GetValue<point_type>("Origin", point_type{0, 0, 0});
