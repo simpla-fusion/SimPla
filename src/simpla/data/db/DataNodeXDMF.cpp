@@ -342,12 +342,20 @@ void XDMFGeometryCurvilinear(DataNodeXDMF *self, std::string const &prefix, cons
         hi[1] - lo[1] << " " <<                                        //
         hi[2] - lo[2] << "\" />" << std::endl;
     self->os << std::setw(indent) << " "
-             << "<Geometry GeometryType=\"XYZ\">" << std::endl;
+             << R"(<Geometry GeometryType="XYZ">)" << std::endl;
 
     self->WriteDataItem(prefix, "_XYZ_", std::make_tuple(lo, hi), coord, indent + 1);
     self->os << std::setw(indent) << " "
              << "</Geometry>" << std::endl;
 }
+
+/**
+ *  @ref [Paraview] Fwd: Odd behavior of XDMF files with 3DCORECTMesh
+ *
+ *  @quota
+ *
+
+ */
 void XDMFGeometryRegular(DataNodeXDMF *self, const index_box_type &idx_box, std::shared_ptr<DataNode> const &chart,
                          int indent = 0) {
     index_tuple lo, hi;

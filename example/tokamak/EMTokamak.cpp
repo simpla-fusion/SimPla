@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
     scenario->GetAtlas()->GetChart()->SetOrigin({0, 0, 0});
     //    scenario->GetAtlas()->SetBoundingBox(box_type{{1.4, -PI / 4, -1.4}, {2.8, PI / 4, 1.4}});
     //    box_type bounding_box{{0, 0, 0}, {20, 30, 40}};
-    box_type bounding_box{{-20, -30, -40}, {20, 30, 40}};
+    box_type bounding_box{{-20, -30, -25}, {20, 30, 25}};
 
     scenario->GetAtlas()->SetBoundingBox(bounding_box);
     //    auto tokamak = Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
@@ -54,8 +54,8 @@ int main(int argc, char **argv) {
         if (auto d = dynamic_cast<domain::Maxwell<domain_type> *>(self)) {
             VERBOSE << (d->B[2].GetSpaceFillingCurve().GetShape());
             d->B = [&](point_type const &x) {
-                return point_type{std::cos(2 * PI * x[1] / 60) * std::cos(2 * PI * x[2] / 80),
-                                  std::cos(2 * PI * x[0] / 40) * std::cos(2 * PI * x[2] / 80),
+                return point_type{std::cos(2 * PI * x[1] / 60) * std::cos(2 * PI * x[2] / 50),
+                                  std::cos(2 * PI * x[0] / 40) * std::cos(2 * PI * x[2] / 50),
                                   std::cos(2 * PI * x[0] / 40) * std::cos(2 * PI * x[1] / 60)};
             };
 
