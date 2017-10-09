@@ -42,16 +42,30 @@
 
 #cmakedefine SIMPLA_MAXIMUM_DIMENSION @SIMPLA_MAXIMUM_DIMENSION@
 
-#cmakedefine MAX_NDIMS_OF_ARRAY @MAX_NDIMS_OF_ARRAY@
+#cmakedefine SP_ARRAY_MAX_NDIMS @SP_ARRAY_MAX_NDIMS@
 
-#cmakedefine DEFAULT_SPACE_DIMS @DEFAULT_SPACE_DIMS@
+#ifndef SP_ARRAY_MAX_NDIMS
+#define SP_ARRAY_MAX_NDIMS 8
+#endif
 
-#cmakedefine SIMPLA_INITIALIZE_ARRAY_TO_SIGNALING_NAN
+/* SLOW_FIRST: c-array  , FAST_FIRST: fortran-array slow-fist*/
+#cmakedefine SP_ARRAY_DEFAULT_ORDER @SP_ARRAY_DEFAULT_ORDER@
 
-#cmakedefine SIMPLA_OUTPUT_SUFFIX  "@SIMPLA_OUTPUT_SUFFIX@"
+#ifndef SP_ARRAY_DEFAULT_ORDER
+#define SP_ARRAY_DEFAULT_ORDER SLOW_FIRST
+#endif
+#cmakedefine SP_DEFAULT_SPACE_DIMS @SP_DEFAULT_SPACE_DIMS@
+#ifndef SP_DEFAULT_SPACE_DIMS
+#define SP_DEFAULT_SPACE_DIMS 3
+#endif
 
-#ifndef SIMPLA_OUTPUT_SUFFIX
-#define SIMPLA_OUTPUT_SUFFIX SIMPLA
+/* SNAN: signaling nan,QNAN: quiet nan ,DENORM_MIN: 2^-1074*/
+#cmakedefine SP_ARRAY_INITIALIZE_VALUE @SP_ARRAY_INITIALIZE_VALUE@
+
+#cmakedefine SP_OUTPUT_SUFFIX  "@SIMPLA_OUTPUT_SUFFIX@"
+
+#ifndef SP_OUTPUT_SUFFIX
+#define SP_OUTPUT_SUFFIX SIMPLA
 #endif
 
 #include <stdint.h>
@@ -73,16 +87,13 @@ typedef SP_REAL Real;
 
 #define SP_UNIMPLEMENTED SP_DO_NOTHING + 1
 
-#define SP_MAX_NUM_DIMS 10
 
 typedef size_t size_type;
 typedef int8_t byte_type;  // int8_t
 typedef int Integral;
-typedef int64_t mesh_id_type;  //!< Data value_type_info of vertex's index , i.e. i,j
 typedef int64_t index_type;
 typedef unsigned int uint;
 typedef size_type id_type;
-#define MAX_NDIMS_OF_ARRAY 8
 
 #define SP_SUCCESS 0
 #define SP_FAILED 1
@@ -94,8 +105,6 @@ typedef size_type id_type;
 #include <limits>
 
 namespace simpla {
-static const unsigned short MAX_DIM_VAL = @SIMPLA_MAXIMUM_DIMENSION@;
-typedef Real scalar_type;
 static constexpr Real INIFITY = std::numeric_limits<Real>::infinity();
 static constexpr Real EPSILON = std::numeric_limits<Real>::epsilon();
 }

@@ -78,7 +78,7 @@ void push_container_to_lua(lua_State *L, TC const &v) {
 //            if (v == nullptr) {
 //                extents[0] = std::max(extents[0], len);
 //                *rank += 1;
-//                ASSERT(*rank < MAX_NDIMS_OF_ARRAY);
+//                ASSERT(*rank < SP_ARRAY_MAX_NDIMS);
 //            }
 //            for (int i = 1; i <= len; ++i) {
 //                lua_rawgeti(L, idx, i);
@@ -121,7 +121,7 @@ struct LuaConverter<int> {
                 extents[0] = std::max(extents[0], len);
                 *rank += 1;
             }
-            ASSERT(*rank < MAX_NDIMS_OF_ARRAY);
+            ASSERT(*rank < SP_ARRAY_MAX_NDIMS);
             for (int i = 1; i <= len; ++i) {
                 lua_rawgeti(L, idx, i);
                 count += from(L, lua_gettop(L), v == nullptr ? nullptr : v + count, rank, extents + 1);

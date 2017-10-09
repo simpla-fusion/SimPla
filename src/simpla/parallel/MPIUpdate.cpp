@@ -435,8 +435,8 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count) {
 //{
 //	dist_connect->Clear();
 //
-//	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count, send_offset;
-//	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count, recv_offset;
+//	nTuple<size_t, SP_ARRAY_MAX_NDIMS> send_count, send_offset;
+//	nTuple<size_t, SP_ARRAY_MAX_NDIMS> recv_count, recv_offset;
 //
 //	for (unsigned int GetTag = 0, tag_e = (1U << (m_ndims_ * 2)); tag < tag_e; ++GetTag)
 //	{

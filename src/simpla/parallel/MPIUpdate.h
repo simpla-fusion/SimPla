@@ -91,10 +91,10 @@ void ndarray_update_ghost(void *buffer,
 //{
 //	nTuple<int, 3> coord_shift;
 //
-//	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_offset;
-//	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count;
-//	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_offset;
-//	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count;
+//	nTuple<size_t, SP_ARRAY_MAX_NDIMS> send_offset;
+//	nTuple<size_t, SP_ARRAY_MAX_NDIMS> send_count;
+//	nTuple<size_t, SP_ARRAY_MAX_NDIMS> recv_offset;
+//	nTuple<size_t, SP_ARRAY_MAX_NDIMS> recv_count;
 //};
 //
 //void make_dist_connection(int m_ndims_, size_t const *m_global_start_, size_t const *stride,

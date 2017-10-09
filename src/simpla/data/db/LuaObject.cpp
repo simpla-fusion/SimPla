@@ -430,7 +430,7 @@ LuaObject::eLuaType LuaObject::get_array_value_type() const {
 //            //                size_t len = lua_rawlen(L, -1);
 //            //                extents[0] = std::max(extents[0], len);
 //            //                *rank += 1;
-//            //                ASSERT(*rank < MAX_NDIMS_OF_ARRAY);
+//            //                ASSERT(*rank < SP_ARRAY_MAX_NDIMS);
 //            //                for (int i = 1; i <= len; ++i) {
 //            //                    lua_rawgeti(L, idx, i);
 //            //                    auto sub_type = GetArrayShape(L, lua_gettop(L), rank, extents + 1);
@@ -502,7 +502,7 @@ int LuaGetNestTableShape(lua_State *L, int idx, size_type *rank, size_type *exte
         size_t len = lua_rawlen(L, idx);
         extents[0] = std::max(extents[0], len);
         *rank += 1;
-        ASSERT(*rank < MAX_NDIMS_OF_ARRAY);
+        ASSERT(*rank < SP_ARRAY_MAX_NDIMS);
         for (int i = 1; i <= len; ++i) {
             lua_rawgeti(L, idx, i);
             auto sub_type = LuaGetNestTableShape(L, lua_gettop(L), rank, extents + 1);

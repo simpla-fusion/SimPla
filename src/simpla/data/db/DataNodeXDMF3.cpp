@@ -178,7 +178,7 @@ auto XDMF3AttributeInsertOne(std::shared_ptr<data::DataNode> const& attr_desc,
             break;
     }
     size_type rank = 0;
-    size_type extents[MAX_NDIMS_OF_ARRAY];
+    size_type extents[SP_ARRAY_MAX_NDIMS];
     if (auto p = attr_desc->Get("DOF")) {
         if (auto dof = std::dynamic_pointer_cast<DataLightT<int>>(p->GetEntity())) {
             switch (dof->value()) {

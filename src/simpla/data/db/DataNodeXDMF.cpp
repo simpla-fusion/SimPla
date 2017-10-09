@@ -103,18 +103,18 @@ void DataNodeXDMF::WriteDataItem(std::string const& url, std::string const& key,
         number_type = XDMFNumberType(array->value_type_info());
         int fndims = 3;
         int dof = 0;
-        index_type inner_lo[MAX_NDIMS_OF_ARRAY];
-        index_type inner_hi[MAX_NDIMS_OF_ARRAY];
-        index_type outer_lo[MAX_NDIMS_OF_ARRAY];
-        index_type outer_hi[MAX_NDIMS_OF_ARRAY];
+        index_type inner_lo[SP_ARRAY_MAX_NDIMS];
+        index_type inner_hi[SP_ARRAY_MAX_NDIMS];
+        index_type outer_lo[SP_ARRAY_MAX_NDIMS];
+        index_type outer_hi[SP_ARRAY_MAX_NDIMS];
 
-        array->GetHaloIndexBox(outer_lo, outer_hi);
+        array->GetShape(outer_lo, outer_hi);
 
-        hsize_t m_shape[MAX_NDIMS_OF_ARRAY];
-        hsize_t m_start[MAX_NDIMS_OF_ARRAY];
-        hsize_t m_count[MAX_NDIMS_OF_ARRAY];
-        hsize_t m_stride[MAX_NDIMS_OF_ARRAY];
-        hsize_t m_block[MAX_NDIMS_OF_ARRAY];
+        hsize_t m_shape[SP_ARRAY_MAX_NDIMS];
+        hsize_t m_start[SP_ARRAY_MAX_NDIMS];
+        hsize_t m_count[SP_ARRAY_MAX_NDIMS];
+        hsize_t m_stride[SP_ARRAY_MAX_NDIMS];
+        hsize_t m_block[SP_ARRAY_MAX_NDIMS];
         for (int i = 0; i < fndims; ++i) {
             inner_lo[i] = lo[i];
             inner_hi[i] = hi[i];
@@ -146,7 +146,7 @@ void DataNodeXDMF::WriteDataItem(std::string const& url, std::string const& key,
         //            if (auto array = std::dynamic_pointer_cast<ArrayBase>(data->GetEntity(i))) {
         //                if (d_type == H5T_NO_CLASS) { d_type = H5NumberType(array->value_type_info()); }
         //                auto t_ndims = array->GetNDIMS();
-        //                index_type t_lo[MAX_NDIMS_OF_ARRAY], t_hi[MAX_NDIMS_OF_ARRAY];
+        //                index_type t_lo[SP_ARRAY_MAX_NDIMS], t_hi[SP_ARRAY_MAX_NDIMS];
         //                array->GetIndexBox(t_lo, t_hi);
         //                ndims = std::max(ndims, array->GetNDIMS());
         //                for (int n = 0; n < t_ndims; ++n) {
@@ -157,7 +157,7 @@ void DataNodeXDMF::WriteDataItem(std::string const& url, std::string const& key,
         //        }
 
         {
-            hsize_t f_shape[MAX_NDIMS_OF_ARRAY];
+            hsize_t f_shape[SP_ARRAY_MAX_NDIMS];
             for (int i = 0; i < fndims; ++i) { f_shape[i] = static_cast<hsize_t>(hi[i] - lo[i]); }
             f_shape[fndims] = static_cast<hsize_t>(dof);
             hid_t f_space = H5Screate_simple(fndims + 1, &f_shape[0], nullptr);
@@ -175,20 +175,20 @@ void DataNodeXDMF::WriteDataItem(std::string const& url, std::string const& key,
             if (auto array = std::dynamic_pointer_cast<ArrayBase>(data->GetEntity(i))) {
                 ASSERT(array->pointer() != nullptr);
 
-                index_type t_lo[MAX_NDIMS_OF_ARRAY], t_hi[MAX_NDIMS_OF_ARRAY];
-                auto m_ndims = array->GetHaloIndexBox(t_lo, t_hi);
+                index_type t_lo[SP_ARRAY_MAX_NDIMS], t_hi[SP_ARRAY_MAX_NDIMS];
+                auto m_ndims = array->GetShape(t_lo, t_hi);
 
-                hsize_t m_shape[MAX_NDIMS_OF_ARRAY];
-                hsize_t m_start[MAX_NDIMS_OF_ARRAY];
-                hsize_t m_count[MAX_NDIMS_OF_ARRAY];
-                hsize_t m_stride[MAX_NDIMS_OF_ARRAY];
-                hsize_t m_block[MAX_NDIMS_OF_ARRAY];
+                hsize_t m_shape[SP_ARRAY_MAX_NDIMS];
+                hsize_t m_start[SP_ARRAY_MAX_NDIMS];
+                hsize_t m_count[SP_ARRAY_MAX_NDIMS];
+                hsize_t m_stride[SP_ARRAY_MAX_NDIMS];
+                hsize_t m_block[SP_ARRAY_MAX_NDIMS];
 
-                hsize_t f_shape[MAX_NDIMS_OF_ARRAY];
-                hsize_t f_start[MAX_NDIMS_OF_ARRAY];
-                hsize_t f_count[MAX_NDIMS_OF_ARRAY];
-                hsize_t f_stride[MAX_NDIMS_OF_ARRAY];
-                hsize_t f_block[MAX_NDIMS_OF_ARRAY];
+                hsize_t f_shape[SP_ARRAY_MAX_NDIMS];
+                hsize_t f_start[SP_ARRAY_MAX_NDIMS];
+                hsize_t f_count[SP_ARRAY_MAX_NDIMS];
+                hsize_t f_stride[SP_ARRAY_MAX_NDIMS];
+                hsize_t f_block[SP_ARRAY_MAX_NDIMS];
                 for (int n = 0; n < m_ndims; ++n) {
                     m_shape[n] = static_cast<hsize_t>(t_hi[n] - t_lo[n]);
                     m_start[n] = static_cast<hsize_t>(lo[n] - t_lo[n]);
@@ -266,7 +266,7 @@ void DataNodeXDMF::WriteAttribute(std::string const& url, std::string const& key
     int dof = 1;
     std::string attr_type = "Scalar";
     size_type rank = 0;
-    size_type extents[MAX_NDIMS_OF_ARRAY] = {1, 1, 1, 1};
+    size_type extents[SP_ARRAY_MAX_NDIMS] = {1, 1, 1, 1};
     if (auto p = attr_desc->Get("DOF")) {
         if (auto dof_t = std::dynamic_pointer_cast<DataLightT<int>>(p->GetEntity())) {
             dof = (dof_t->value());

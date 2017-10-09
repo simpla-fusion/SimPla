@@ -20,6 +20,7 @@
 #include "nTuple.h"
 
 namespace simpla {
+
 template <typename V, typename SFC>
 class Array;
 typedef nTuple<index_type, 3> IdxShift;
@@ -31,7 +32,7 @@ struct ArrayBase {
     virtual void const* pointer() const = 0;
     virtual int GetNDIMS() const = 0;
     virtual int GetIndexBox(index_type* lo, index_type* hi) const = 0;
-    virtual int GetHaloIndexBox(index_type* lo, index_type* hi) const = 0;
+    virtual int GetShape(index_type* lo, index_type* hi) const = 0;
     virtual bool empty() const = 0;
     virtual bool isNull() const = 0;
     virtual size_type CopyIn(ArrayBase const& other) = 0;
@@ -43,14 +44,13 @@ struct ArrayBase {
     virtual void Shift(index_type const*) = 0;
     virtual void Select(index_type const*, index_type const*) = 0;
 
-    virtual std::ostream& Print(std::ostream& os, int indent = 0, bool verbose = true) const = 0;
+    virtual std::ostream& Print(std::ostream& os, int indent) const = 0;
 };
 
 template <typename V, typename SFC = ZSFC<3>>
 class Array : public ArrayBase {
    public:
     typedef V value_type;
-    typedef typename SFC::array_index_box_type array_index_box_type;
     static constexpr value_type s_nan = std::numeric_limits<value_type>::signaling_NaN();
     static value_type m_null_;
 
@@ -93,13 +93,7 @@ class Array : public ArrayBase {
         return std::shared_ptr<ArrayBase>(new this_type(*this));
     };
 
-    std::ostream& Print(std::ostream& os, int indent = 0,
-#ifndef NDEBUG
-                        bool verbose = true
-#else
-                        bool verbose = false
-#endif
-                        ) const override;
+    std::ostream& Print(std::ostream& os, int indent) const override;
 
     void SetUp() { alloc(); }
     void TearDown() {
@@ -113,10 +107,10 @@ class Array : public ArrayBase {
     void const* pointer() const override { return m_data_; }
     int GetNDIMS() const override { return m_sfc_.GetNDIMS(); }
     int GetIndexBox(index_type* lo, index_type* hi) const override { return m_sfc_.GetIndexBox(lo, hi); }
-    int GetHaloIndexBox(index_type* lo, index_type* hi) const override { return m_sfc_.GetHaloIndexBox(lo, hi); }
+    int GetShape(index_type* lo, index_type* hi) const override { return m_sfc_.GetShape(lo, hi); }
 
     auto GetIndexBox() const { return m_sfc_.GetIndexBox(); }
-    auto GetHaloIndexBox() const { return m_sfc_.GetHaloIndexBox(); }
+    auto GetShape() const { return m_sfc_.GetShape(); }
 
     bool empty() const override { return m_data_ == nullptr || size() == 0; }
     bool isNull() const override { return m_data_ == nullptr || size() == 0; }
@@ -200,14 +194,13 @@ class Array : public ArrayBase {
         SetUp();
         m_sfc_.Copy(m_data_, other);
     }
-    void FillNaN() { Fill(std::numeric_limits<value_type>::signaling_NaN()); }
     void Fill(value_type v) {
         SetUp();
         m_sfc_.Foreach([&] __host__ __device__(auto&&... s) { this->Set(v, std::forward<decltype(s)>(s)...); });
     }
     void Clear() override {
         SetUp();
-        memset(m_data_, 0, size() * sizeof(value_type));
+        memset(m_data_, 0, m_sfc_.shape_size() * sizeof(value_type));
     }
 
     this_type& operator=(this_type const& rhs) {
@@ -246,17 +239,21 @@ class Array : public ArrayBase {
         return res;
     }
 
-    //    __host__ __device__ value_type& operator[](size_type s) { return m_data_[s]; }
-    //    __host__ __device__ value_type const& operator[](size_type s) const { return m_data_[s]; }
+    __host__ __device__ value_type& operator[](std::initializer_list<index_type> const& s) {
+        return m_data_[m_sfc_.hash(s)];
+    }
+    __host__ __device__ value_type const& operator[](std::initializer_list<index_type> const& s) const {
+        return m_data_[m_sfc_.hash(s)];
+    }
 
     template <typename... Args>
     __host__ __device__ value_type& at(Args&&... args) {
-        //        ASSERT(m_sfc_.in_box(std::forward<Args>(args)...));
+        ASSERT(m_sfc_.in_box(std::forward<Args>(args)...));
         return m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
     }
     template <typename... Args>
     __host__ __device__ value_type const& at(Args&&... args) const {
-        //        ASSERT(m_sfc_.in_box(std::forward<Args>(args)...));
+        ASSERT(m_sfc_.in_box(std::forward<Args>(args)...));
         return m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
     }
     template <typename... Args>
@@ -291,26 +288,29 @@ typename Array<V, SFC>::value_type Array<V, SFC>::m_null_;
 
 template <typename V, typename SFC>
 void Array<V, SFC>::alloc() {
-    if (m_data_ == nullptr && m_sfc_.size() > 0) {
-        if (m_holder_ == nullptr) { m_holder_ = spMakeShared<value_type>(m_data_, m_sfc_.size()); }
+    if (m_data_ == nullptr && m_sfc_.shape_size() > 0) {
+        if (m_holder_ == nullptr) { m_holder_ = spMakeShared<value_type>(m_data_, m_sfc_.shape_size()); }
         m_data_ = m_holder_.get();
-#ifndef NDEBUG
+
+#ifndef SP_ARRAY_INITIALIZE_VALUE
+#elif SP_ARRAY_INITIALIZE_VALUE == SNAN
         Fill(std::numeric_limits<V>::signaling_NaN());
+#elif SP_ARRAY_INITIALIZE_VALUE == QNAN
+        Fill(std::numeric_limits<V>::quiet_NaN());
+#elif SP_ARRAY_INITIALIZE_VALUE == DENORM_MIN
+        Fill(std::numeric_limits<V>::denorm_min());
 #else
         Fill(0);
 #endif
     }
 }
 template <typename V, typename SFC>
-std::ostream& Array<V, SFC>::Print(std::ostream& os, int indent, bool verbose) const {
+std::ostream& Array<V, SFC>::Print(std::ostream& os, int indent) const {
     os << "Array<" << simpla::traits::type_name<value_type>::value() << ">" << GetIndexBox() << std::endl;
-
-    //    if (size() < 20 || verbose) {
     int ndims = GetNDIMS();
     index_type lo[ndims], hi[ndims];
     GetIndexBox(lo, hi);
     FancyPrintNd<3>(os, *this, lo, hi, false, indent);
-    //    }
     return os;
 }
 namespace traits {

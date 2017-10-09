@@ -7,7 +7,7 @@
 
 #include <utility>
 namespace simpla {
-namespace traits {
+namespace utility {
 namespace _impl {
 
 template <typename _Tp, _Tp I0, _Tp... I>
@@ -303,8 +303,73 @@ std::ostream &seq_print(std::integer_sequence<TInts, N...>, std::ostream &os, TA
     //    }
     return os;
 }
+template <typename T0>
+auto NSum(T0 const &a0) {
+    return a0;
+};
+template <typename T0, typename... Args>
+auto NSum(T0 const &a0, Args &&... args) {
+    return a0 + NSum(std::forward<Args>(args)...);
+};
+template <typename T0>
+auto NProduct(T0 const &a0) {
+    return a0;
+};
+template <typename T0, typename... Args>
+auto NProduct(T0 const &a0, Args &&... args) {
+    return a0 * NProduct(std::forward<Args>(args)...);
+};
 
-}  // namespace traits
+template <typename T0>
+auto NAnd(T0 const &a0) {
+    return a0;
+};
+template <typename T0, typename... Args>
+auto NAnd(T0 const &a0, Args &&... args) {
+    return a0 && NAnd(std::forward<Args>(args)...);
+};
+
+template <typename T0>
+auto NOr(T0 const &a0) {
+    return a0;
+};
+template <typename T0, typename... Args>
+auto NOr(T0 const &a0, Args &&... args) {
+    return a0 || NOr(std::forward<Args>(args)...);
+};
+
+template <typename T0>
+auto NMax(T0 const &a0) {
+    return a0;
+};
+template <typename T0, typename... Args>
+auto NMax(T0 const &a0, Args &&... args) {
+    return std::max(a0, NMax(std::forward<Args>(args)...));
+};
+template <typename T0>
+auto NMin(T0 const &a0) {
+    return a0;
+};
+template <typename T0, typename... Args>
+auto NMin(T0 const &a0, Args &&... args) {
+    return std::min(a0, NMin(std::forward<Args>(args)...));
+};
+namespace detail {
+template <typename T0, typename... Args>
+auto NGetHelp(std::integral_constant<size_type, 0>, T0 const &a0, Args &&... args) {
+    return a0;
+};
+template <size_type N, typename T0, typename... Args>
+auto NGetHelp(std::integral_constant<size_type, N>, T0 const &a9, Args &&... args) {
+    return NGetHelp(std::integral_constant<size_type, N - 1>(), std::forward<Args>(args)...);
+};
+}
+template <size_type N, typename... Args>
+auto NGet(Args &&... args) {
+    static_assert(N < sizeof...(Args), "out of range!");
+    return detail::NGetHelp(std::integral_constant<size_type, N>(), std::forward<Args>(args)...);
+};
+}  // namespace utility
 
 }  // namespace simpla
 #endif  // SIMPLA_UTILITY_H

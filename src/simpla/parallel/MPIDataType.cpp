@@ -123,11 +123,11 @@ MPIDataType MPIDataType::create(data::DataType const &data_type,  //
     if (data_type.is_array() || (ndims > 0 && p_dims != nullptr)) {
         int mdims = ndims + data_type.rank();
 
-        nTuple<int, MAX_NDIMS_OF_ARRAY> l_dims;
-        nTuple<int, MAX_NDIMS_OF_ARRAY> l_offset;
-        nTuple<int, MAX_NDIMS_OF_ARRAY> l_stride;
-        nTuple<int, MAX_NDIMS_OF_ARRAY> l_count;
-        nTuple<int, MAX_NDIMS_OF_ARRAY> l_block;
+        nTuple<int, SP_ARRAY_MAX_NDIMS> l_dims;
+        nTuple<int, SP_ARRAY_MAX_NDIMS> l_offset;
+        nTuple<int, SP_ARRAY_MAX_NDIMS> l_stride;
+        nTuple<int, SP_ARRAY_MAX_NDIMS> l_count;
+        nTuple<int, SP_ARRAY_MAX_NDIMS> l_block;
 
         MPIDataType old_type = MPIDataType::create(data_type.element_type());
 
@@ -178,7 +178,7 @@ MPIDataType MPIDataType::create(data::DataType const &data_type,  //
 MPIDataType MPIDataType::create(data::DataType const &data_type, data::DataSpace const &d_space, bool c_order_array) {
     int ndims;
 
-    nTuple<size_t, MAX_NDIMS_OF_ARRAY> dimensions, start, stride, count, block;
+    nTuple<size_t, SP_ARRAY_MAX_NDIMS> dimensions, start, stride, count, block;
 
     std::tie(ndims, dimensions, start, stride, count, block) = d_space.shape();
 
