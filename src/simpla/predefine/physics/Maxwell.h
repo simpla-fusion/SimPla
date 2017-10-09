@@ -71,8 +71,8 @@ void Maxwell<TDomain>::DoAdvance(Real time_now, Real time_dt) {
     //    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
     //    this->FillBoundary(E, 0);
     //    J.Clear();
-    E =  curl(B) * speed_of_light2 * time_dt;
-//    B = B - curl(E) * time_dt;
+    E = curl(B) * speed_of_light2 * time_dt;
+    B = B - curl(E) * time_dt;
 }
 
 template <typename TDomain>

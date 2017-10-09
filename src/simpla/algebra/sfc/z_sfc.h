@@ -205,9 +205,9 @@ class ZSFC {
     __host__ __device__ bool in_box(index_type const* s) const;
 
     template <typename... Args>
-    __host__ __device__ index_type hash(Args&&... args) const;
+    __host__ __device__ index_type hash(index_type i0, Args&&... args) const;
     template <typename... Args>
-    __host__ __device__ bool in_box(Args&&... args) const;
+    __host__ __device__ bool in_box(index_type i0, Args&&... args) const;
 
     __host__ __device__ index_type hash(nTuple<index_type, NDIMS> const& idx) const { return hash(&idx[0]); }
     __host__ __device__ bool in_box(nTuple<index_type, NDIMS> const& idx) const { return in_box(&idx[0]); }
@@ -249,8 +249,9 @@ __host__ __device__ index_type ZSFC<NDIMS>::hash(index_type const* s) const {
 
 template <int NDIMS>
 template <typename... Args>
-__host__ __device__ index_type ZSFC<NDIMS>::hash(Args&&... args) const {
-    return detail::hash_help(std::make_index_sequence<NDIMS>(), m_shape_min_, m_strides_, std::forward<Args>(args)...);
+__host__ __device__ index_type ZSFC<NDIMS>::hash(index_type i0, Args&&... args) const {
+    return detail::hash_help(std::make_index_sequence<NDIMS>(), m_shape_min_, m_strides_, i0,
+                             std::forward<Args>(args)...);
 };
 template <int NDIMS>
 __host__ __device__ bool ZSFC<NDIMS>::in_box(index_type const* s) const {
@@ -259,8 +260,8 @@ __host__ __device__ bool ZSFC<NDIMS>::in_box(index_type const* s) const {
 
 template <int NDIMS>
 template <typename... Args>
-__host__ __device__ bool ZSFC<NDIMS>::in_box(Args&&... args) const {
-    return detail::inbox_help(std::make_index_sequence<NDIMS>(), m_shape_min_, m_shape_max_,
+__host__ __device__ bool ZSFC<NDIMS>::in_box(index_type i0, Args&&... args) const {
+    return detail::inbox_help(std::make_index_sequence<NDIMS>(), m_shape_min_, m_shape_max_, i0,
                               std::forward<Args>(args)...);
 };
 
@@ -378,13 +379,13 @@ size_type ZSFC<3>::Foreach(const TFun& fun) const {
     count = static_cast<size_type>((ke - kb) * (je - jb) * (ie - ib));
 #ifndef __CUDA__
     if (m_array_order_ == SLOW_FIRST) {
-        //#pragma omp parallel for
+#pragma omp parallel for
         for (index_type k = kb; k < ke; ++k)
             for (index_type j = jb; j < je; ++j)
                 for (index_type i = ib; i < ie; ++i) { fun(i, j, k); }
 
     } else {
-        //#pragma omp parallel for
+#pragma omp parallel for
         for (index_type i = ib; i < ie; ++i)
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k) { fun(i, j, k); }

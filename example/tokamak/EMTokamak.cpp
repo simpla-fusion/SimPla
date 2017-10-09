@@ -53,17 +53,15 @@ int main(int argc, char **argv) {
     scenario->GetDomain("Limiter")->PostInitialCondition.Connect([=](DomainBase *self, Real time_now) {
         if (auto d = dynamic_cast<domain::Maxwell<domain_type> *>(self)) {
             VERBOSE << (d->B[2].GetSpaceFillingCurve().GetShape());
-            //            d->B = [&](point_type const &x) {
-            //                return point_type{
-            //                    0,                         // std::cos(0.1 * PI * x[1]) * std::cos(0.1 * PI * x[2]),
-            //                    0,                         // std::cos(0.1 * PI * x[0]) * std::cos(0.1 * PI * x[2]),
-            //                    std::cos(0.1 * PI * x[0])  // * std::cos(0.1 * PI * x[1])
-            //                };
-            //            };
+            d->B = [&](point_type const &x) {
+                return point_type{std::cos(2 * PI * x[1] / 60) * std::cos(2 * PI * x[2] / 80),
+                                  std::cos(2 * PI * x[0] / 40) * std::cos(2 * PI * x[2] / 80),
+                                  std::cos(2 * PI * x[0] / 40) * std::cos(2 * PI * x[1] / 60)};
+            };
 
-            d->B[0] = [&](index_type i, index_type j, index_type k) { return static_cast<Real>(i); };
-            d->B[1] = [&](index_type i, index_type j, index_type k) { return static_cast<Real>(j); };
-            d->B[2] = [&](index_type i, index_type j, index_type k) { return static_cast<Real>(k); };
+            //            d->B[0] = [&](index_type i, index_type j, index_type k) { return static_cast<Real>(i); };
+            //            d->B[1] = [&](index_type i, index_type j, index_type k) { return static_cast<Real>(j); };
+            //            d->B[2] = [&](index_type i, index_type j, index_type k) { return static_cast<Real>(k); };
             //            d->B = [&](point_type const &x) { return x; };
             //            d->E = [&](point_type const& x) {
             //                return point_type{
@@ -86,7 +84,7 @@ int main(int argc, char **argv) {
     //    });
     //    scenario->SetTimeNow(0);
     scenario->SetTimeEnd(1.0e-7);
-    scenario->SetMaxStep(20);
+    scenario->SetMaxStep(100);
     scenario->SetUp();
 
     //    INFORM << "Attributes" << *scenario->GetAttributes() << std::endl;
