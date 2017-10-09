@@ -160,16 +160,12 @@ void DataNodeXDMF::WriteDataItem(std::string const &url, std::string const &key,
     } else {
         UNIMPLEMENTED;
     }
-
     H5Gclose(g_id);
 }
 void DataNodeXDMF::WriteAttribute(std::string const &url, std::string const &key, const index_box_type &idx_box,
                                   std::shared_ptr<data::DataNode> const &attr_desc,
                                   std::shared_ptr<data::DataNode> const &data, int indent) {
-    //    static const char* attr_center[] = {"Node", "Node" /* "Edge"*/, "Node" /* "Face"*/, "Cell", "Grid", "Other"};
-    //    static const char* attr_type[] = {" Scalar", "Vector", "Tensor", "Tensor6", "Matrix", "GlobalID"};
-
-    index_tuple lo, hi;
+    index_tuple lo{0, 0, 0}, hi{1, 1, 1};
     std::tie(lo, hi) = idx_box;
 
     auto iform = attr_desc->GetValue<int>("IFORM", 0);
