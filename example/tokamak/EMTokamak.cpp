@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
     //    });
     //    scenario->SetTimeNow(0);
     scenario->SetTimeEnd(1.0e-7);
-    scenario->SetMaxStep(100);
+    scenario->SetMaxStep(10);
     scenario->SetUp();
 
     //    INFORM << "Attributes" << *scenario->GetAttributes() << std::endl;

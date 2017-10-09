@@ -329,7 +329,7 @@ int DataNodeXDMF::Flush() {
                 patch->Foreach([&](std::string const &s, std::shared_ptr<data::DataNode> const &d) {
                     auto attr = attrs->Get(s);
                     if (attr->GetValue<int>("IFORM") == FIBER) { return; }
-                    WriteAttribute("/Patches/" + std::to_string(guid), s, idx_box, attrs->Get(s), d, indent + 1);
+//                    WriteAttribute("/Patches/" + std::to_string(guid), s, idx_box, attrs->Get(s), d, indent + 1);
                 });
                 os << std::setw(indent) << " "
                    << "</Grid>" << std::endl;
