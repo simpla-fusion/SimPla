@@ -45,6 +45,7 @@ struct ArrayBase {
     virtual void Shift(index_type const*) = 0;
     virtual void Select(index_type const*, index_type const*) = 0;
     virtual std::ostream& Print(std::ostream& os, int indent) const = 0;
+    virtual void FillNaN() = 0;
 };
 
 template <typename V, typename SFC = ZSFC<3>>
@@ -190,7 +191,7 @@ class Array : public ArrayBase {
         alloc();
         m_sfc_.Copy(m_data_, other);
     }
-    void FillNaN() { Fill(s_nan); }
+    void FillNaN() override { Fill(s_nan); }
     void Fill(value_type v) {
         alloc();
         m_sfc_.Foreach([&] __host__ __device__(auto&&... s) { this->Set(v, std::forward<decltype(s)>(s)...); });

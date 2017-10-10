@@ -138,27 +138,23 @@ void MPIUpdater::TearDown() { m_pimpl_->m_is_setup_ = false; }
 void MPIUpdater::SetTag(int tag) { m_pimpl_->tag = tag; }
 
 void MPIUpdater::Push(ArrayBase const &a) {
+#ifndef NDEBUG
+    GetSendBuffer(0).FillNaN();
+    GetSendBuffer(1).FillNaN();
+#endif
     GetSendBuffer(0).CopyIn(a);
     GetSendBuffer(1).CopyIn(a);
 }
 void MPIUpdater::Pop(ArrayBase &a) const {
     a.CopyIn(GetRecvBuffer(0));
     a.CopyIn(GetRecvBuffer(1));
-    {
-        index_box_type ta, tb;
-        a.GetIndexBox(&std::get<0>(ta)[0], &std::get<1>(ta)[0]);
-        GetRecvBuffer(0).GetIndexBox(&std::get<0>(tb)[0], &std::get<1>(tb)[0]);
-        VERBOSE << ta << " <= " << tb;
-    };
-    {
-        index_box_type ta, tb;
-        a.GetIndexBox(&std::get<0>(ta)[0], &std::get<1>(ta)[0]);
-        GetRecvBuffer(1).GetIndexBox(&std::get<0>(tb)[0], &std::get<1>(tb)[0]);
-        VERBOSE << ta << " <= " << tb;
-    };
 }
 
 void MPIUpdater::SendRecv() {
+#ifndef NDEBUG
+    GetRecvBuffer(0).FillNaN();
+    GetRecvBuffer(1).FillNaN();
+#endif
     if (m_pimpl_->left != m_pimpl_->m_rank_ && m_pimpl_->right != m_pimpl_->m_rank_) {
         GLOBAL_COMM.barrier();
         MPI_CALL(MPI_Sendrecv(GetSendBuffer(0).pointer(), static_cast<int>(GetSendBuffer(0).size()),  //

@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
     scenario->db()->SetValue("DumpFileSuffix", "h5");
     scenario->db()->SetValue("CheckPointFilePrefix", "EAST");
     scenario->db()->SetValue("CheckPointFileSuffix", "xmf");
-    scenario->SetCheckPointInterval(1);
+    scenario->SetCheckPointInterval(5);
     //    scenario->SetDumpInterval(1);
 
     scenario->GetAtlas()->SetChart<simpla::geometry::csCartesian>();
@@ -52,8 +52,7 @@ int main(int argc, char **argv) {
     scenario->SetDomain<domain::Maxwell<domain_type>>("Limiter", geometry::Cube::New(bounding_box));
     scenario->GetDomain("Limiter")->PostInitialCondition.Connect([=](DomainBase *self, Real time_now) {
         if (auto d = dynamic_cast<domain::Maxwell<domain_type> *>(self)) {
-            VERBOSE << (d->B[2].GetSpaceFillingCurve().GetShape());
-            d->B = [&](point_type const &x) {
+             d->B = [&](point_type const &x) {
                 return point_type{std::cos(2 * PI * x[1] / 60) * std::cos(2 * PI * x[2] / 50),
                                   std::cos(2 * PI * x[0] / 40) * std::cos(2 * PI * x[2] / 50),
                                   std::cos(2 * PI * x[0] / 40) * std::cos(2 * PI * x[1] / 60)};
@@ -83,8 +82,8 @@ int main(int argc, char **argv) {
     //        if (auto d = dynamic_cast<Domain<mesh_type, EMFluid>*>(self)) { d->ne = tokamak->profile("ne"); }
     //    });
     //    scenario->SetTimeNow(0);
-    scenario->SetTimeEnd(1.0e-7);
-    scenario->SetMaxStep(5);
+    scenario->SetTimeEnd(1.0e-8);
+    scenario->SetMaxStep(200);
     scenario->SetUp();
 
     //    INFORM << "Attributes" << *scenario->GetAttributes() << std::endl;

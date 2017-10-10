@@ -141,7 +141,7 @@ void Scenario::pimpl_s::Sync(std::shared_ptr<data::DataNode> const &attr, int le
     for (int N = 0; N < n_sub; ++N) {
         //        VERBOSE << "Sync: " << key << "  " << N;
         auto idx_box = m_atlas_->GetIndexBox();
-        auto halo_box = m_atlas_->GetHaloIndexBox(iform, N);
+        auto halo_box = m_atlas_->GetHaloIndexBox();
 
         for (int dir = 0; dir < 3; ++dir) {
             updater->SetIndexBox(idx_box);
