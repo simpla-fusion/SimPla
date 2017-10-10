@@ -55,6 +55,7 @@ SPObject::~SPObject() { delete m_pimpl_; }
 
 std::shared_ptr<data::DataNode> SPObject::db() const { return m_pimpl_->m_db_; }
 std::shared_ptr<data::DataNode> SPObject::db() { return m_pimpl_->m_db_; }
+void SPObject::db(std::shared_ptr<data::DataNode> const &d) { m_pimpl_->m_db_ = d; };
 
 std::shared_ptr<data::DataNode> SPObject::Serialize() const {
     auto db = data::DataNode::New(data::DataNode::DN_TABLE);

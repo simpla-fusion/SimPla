@@ -59,11 +59,6 @@ void AttributeGroup::Attach(Attribute *p) {
 void AttributeGroup::Detach(Attribute *p) {
     if (p != nullptr) { m_pimpl_->m_attributes_.erase(p); }
 }
-std::shared_ptr<data::DataNode> AttributeGroup::RegisterAttributes() {
-    auto res = data::DataNode::New();
-    for (auto &item : m_pimpl_->m_attributes_) { res->Set(item->GetName(), item->db()); }
-    return res;
-}
 
 struct Attribute::pimpl_s {
     std::set<AttributeGroup *> m_bundle_;

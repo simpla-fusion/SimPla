@@ -20,15 +20,10 @@ template <typename TDomainBase>
 class Maxwell : public TDomainBase {
     SP_DOMAIN_HEAD(Maxwell, TDomainBase);
 
-    Field<this_type, Real, FACE> B{this, "Name"_ = "B", "CheckPoint"_};
-    Field<this_type, Real, EDGE> E{this, "Name"_ = "E", "CheckPoint"_};
-    Field<this_type, Real, EDGE> J{this, "Name"_ = "J", "CheckPoint"_};
-    //    Field<this_type, Real, CELL> Ex{this, "Name"_ = "Ex", "CheckPoint"_};
-    //    Field<this_type, Real, CELL> Ey{this, "Name"_ = "Ey", "CheckPoint"_};
-    //    Field<this_type, Real, CELL> Ez{this, "Name"_ = "Ez", "CheckPoint"_};
-    //    Field<this_type, Real, CELL> Bx{this, "Name"_ = "Bx", "CheckPoint"_};
-    //    Field<this_type, Real, CELL> By{this, "Name"_ = "By", "CheckPoint"_};
-    //    Field<this_type, Real, CELL> Bz{this, "Name"_ = "Bz", "CheckPoint"_};
+    Field<this_type, Real, FACE> B{this, "Name"_ = "B"};
+    Field<this_type, Real, EDGE> E{this, "Name"_ = "E"};
+    Field<this_type, Real, EDGE> J{this, "Name"_ = "J"};
+    FIELD(rho, Real, EDGE, 1);
 };
 template <typename TDomain>
 Maxwell<TDomain>::Maxwell() : base_type() {}
@@ -57,28 +52,19 @@ void Maxwell<TDomain>::DoInitialCondition(Real time_now) {
     J.Clear();
 }
 template <typename TDomain>
-void Maxwell<TDomain>::DoBoundaryCondition(Real time_now, Real time_dt) {
-    //    this->FillBoundary(B, 0);
-    //    this->FillBoundary(E, 0);
-    //    this->FillBoundary(J, 0);
-    //    m_domain_->FillBoundary(dumpE, 0);
-    //    m_domain_->FillBoundary(dumpB, 0);
-    //    m_domain_->FillBoundary(dumpJ, 0);
-}
+void Maxwell<TDomain>::DoBoundaryCondition(Real time_now, Real time_dt) {}
 
 template <typename TDomain>
 void Maxwell<TDomain>::DoAdvance(Real time_now, Real time_dt) {
     DEFINE_PHYSICAL_CONST
 
-    //    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
-    //    this->FillBoundary(E, 0);
-    //    B = B - curl(E) * time_dt;
-    //    this->FillBoundary(B, 0);
-    //    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
-    //    this->FillBoundary(E, 0);
-    //    J.Clear();
-    E = E + curl(B) * speed_of_light2 * time_dt;
+    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
+    this->FillBoundary(E, 0);
     B = B - curl(E) * time_dt;
+    this->FillBoundary(B, 0);
+    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
+    this->FillBoundary(E, 0);
+    J.Clear();
 }
 
 template <typename TDomain>

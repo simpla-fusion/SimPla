@@ -24,7 +24,7 @@ class Scenario : public EngineObject {
     virtual void Run();
     virtual bool Done() const;
 
-    virtual void CheckPoint() const;
+    virtual void CheckPoint(size_type step_num) const;
     virtual void Dump() const;
 
     void DoInitialize() override;
@@ -59,7 +59,24 @@ class Scenario : public EngineObject {
     std::shared_ptr<data::DataNode> GetPatch(id_type id) const;
     std::shared_ptr<data::DataNode> GetPatch(id_type id);
 
-    std::shared_ptr<data::DataNode> GetAttributes() const;
+    //    std::map<std::string, std::shared_ptr<data::DataNode>> const &GetAttributes() const;
+    //    std::map<std::string, std::shared_ptr<data::DataNode>> &GetAttributes();
+
+    std::shared_ptr<Attribute> GetAttribute(std::string const &key);
+    std::shared_ptr<Attribute> GetAttribute(std::string const &key) const;
+    template <typename... Args>
+    size_type ConfigureAttribute(std::string const &name, Args &&... args) {
+        size_type success = 0;
+        if (auto attr = GetAttribute(name)) { success = attr->db()->SetValue(std::forward<Args>(args)...); }
+        return success;
+    }
+
+    template <typename U>
+    size_type ConfigureAttribute(std::string const &name, std::string const &key, U const &u) {
+        size_type success = 0;
+        if (auto attr = GetAttribute(name)) { success = attr->db()->SetValue<U>(key, u); }
+        return success;
+    }
 
     Range<EntityId> &GetRange(std::string const &k);
     Range<EntityId> const &GetRange(std::string const &k) const;

@@ -26,7 +26,7 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
     void Advance(Real time_now, Real time_dt) override;
     bool Done() const override;
 
-    void CheckPoint() const override;
+    void CheckPoint(size_type step_num) const override;
     void Dump() const override;
 };
 

@@ -26,13 +26,15 @@ class DomainBase : public EngineObject, public AttributeGroup {
    public:
     void Push(const std::shared_ptr<data::DataNode> &) override;
     std::shared_ptr<data::DataNode> Pop() const override;
+
     int GetNDIMS() const;
     void SetChart(std::shared_ptr<geometry::Chart> const &c);
     virtual std::shared_ptr<geometry::Chart> GetChart();
     virtual std::shared_ptr<const geometry::Chart> GetChart() const;
 
     void SetBlock(const std::shared_ptr<const MeshBlock> &blk);
-    std::shared_ptr<const MeshBlock> GetBlock() const;
+    virtual std::shared_ptr<const MeshBlock> GetBlock() const;
+
     enum { IN_BOUNDARY = -1, ON_BOUNDARY = 0, OUT_BOUNDARY = 1 };
     int CheckBoundary() const;
     void SetBoundary(std::shared_ptr<geometry::GeoObject> const &g);
@@ -84,6 +86,10 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
    public:
     std::shared_ptr<const geometry::Chart> GetChart() const override { return DomainBase::GetChart(); };
     std::shared_ptr<const engine::MeshBlock> GetBlock() const override { return DomainBase::GetBlock(); };
+
+    std::shared_ptr<data::DataNode> db() const override { return SPObject::db(); }
+    std::shared_ptr<data::DataNode> db() override { return SPObject::db(); }
+    void db(std::shared_ptr<data::DataNode> const &d) override { SPObject::db(d); }
 
     void DoSetUp() override;
     void DoUpdate() override;

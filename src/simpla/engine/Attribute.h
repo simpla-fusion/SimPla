@@ -57,22 +57,16 @@ class AttributeGroup {
     virtual ~AttributeGroup();
 
     virtual std::shared_ptr<data::DataNode> Serialize() const;
-
     virtual void Deserialize(std::shared_ptr<data::DataNode> const &);
 
     virtual void Push(const std::shared_ptr<data::DataNode> &);
-
     virtual std::shared_ptr<data::DataNode> Pop() const;
 
     std::set<Attribute *> &GetAttributes();
-
     std::set<Attribute *> const &GetAttributes() const;
 
     void Detach(Attribute *attr);
-
     void Attach(Attribute *attr);
-
-    std::shared_ptr<data::DataNode> RegisterAttributes();
 
    private:
     struct pimpl_s;
@@ -133,48 +127,34 @@ struct Attribute : public EngineObject {
         Register(host);
         db()->SetValue(std::forward<Args>(args)...);
     };
-
-    static std::shared_ptr<this_type> New(std::shared_ptr<simpla::data::DataNode> const &cfg);
-
     void ReRegister(std::shared_ptr<Attribute> const &) const;
 
+    static std::shared_ptr<this_type> New(std::shared_ptr<simpla::data::DataNode> const &cfg);
     void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;
-
     std::shared_ptr<simpla::data::DataNode> Serialize() const override;
 
+    virtual std::shared_ptr<Attribute> Duplicate() const = 0;
+    virtual std::shared_ptr<Attribute> CreateNew() const = 0;
+
     void DoSetUp() override;
-
     void DoUpdate() override;
-
     void DoTearDown() override;
 
+    virtual bool CheckType(Attribute const &other) const = 0;
+    virtual bool isNull() const = 0;
+    virtual bool empty() const { return isNull(); };
     virtual std::type_info const &value_type_info() const = 0;
-
     virtual int GetIFORM() const = 0;
-
-    virtual int GetDOF(int) const = 0;
-
-    virtual int const *GetDOFs() const = 0;
-
+    virtual int GetDOF() const = 0;
     virtual int GetRank() const = 0;
 
-    virtual void SetDOF(int rank, int const *d) = 0;
-
-    virtual std::shared_ptr<data::DataNode> GetDescription() const = 0;
+    int GetNumOfSub() const { return GetIFORM() == NODE || GetIFORM() == CELL ? GetDOF() : 3 * GetDOF(); }
 
     void Register(AttributeGroup *p = nullptr);
-
     void Deregister(AttributeGroup *p = nullptr);
 
     void Push(const std::shared_ptr<data::DataNode> &) override = 0;
-
     std::shared_ptr<data::DataNode> Pop() const override = 0;
-
-    virtual std::shared_ptr<Attribute> Duplicate() const = 0;
-
-    virtual bool isNull() const = 0;
-
-    virtual bool empty() const { return isNull(); };
 
     virtual void Clear() = 0;
 };
@@ -214,7 +194,6 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
 
     template <typename... Args>
     explicit AttributeT(Args &&... args) : Attribute(std::forward<Args>(args)...) {}
-
     ~AttributeT() override;
 
     template <typename... Args>
@@ -229,7 +208,6 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
     }
 
     void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;
-
     std::shared_ptr<simpla::data::DataNode> Serialize() const override;
 
     void DoSetUp() override;
@@ -237,7 +215,6 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
     void DoTearDown() override;
 
     void Push(const std::shared_ptr<data::DataNode> &) override;
-
     std::shared_ptr<data::DataNode> Pop() const override;
 
     std::shared_ptr<Attribute> Duplicate() const override {
@@ -245,29 +222,24 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
         ReRegister(res);
         return res;
     }
-
-    bool isNull() const override;
-
-    bool empty() const override { return isNull(); };
+    std::shared_ptr<Attribute> CreateNew() const override { return std::make_shared<this_type>(); }
 
     void Clear() override;
 
+    std::shared_ptr<data::DataNode> db() const override { return SPObject::db(); }
+    std::shared_ptr<data::DataNode> db() override { return SPObject::db(); }
+    void db(std::shared_ptr<data::DataNode> const &d) override { SPObject::db(d); }
+
+    bool CheckType(Attribute const &other) const override { return dynamic_cast<this_type const *>(&other) != nullptr; }
+    bool isNull() const override;
+    bool empty() const override { return isNull(); };
     std::type_info const &value_type_info() const override { return typeid(V); };
-
     int GetIFORM() const override { return IFORM; };
-
-    int GetDOF(int n) const override { return m_extents_[n]; };
-
-    int const *GetDOFs() const override { return m_extents_; };
-
+    int GetDOF() const override { return utility::NProduct(DOF...); };
     int GetRank() const override { return sizeof...(DOF); };
-
-    void SetDOF(int rank, int const *d) override { DOMAIN_ERROR; };
-
-    std::shared_ptr<data::DataNode> GetDescription() const override;
+    auto GetDOFExtents() const { return nTuple<int, sizeof...(DOF)>{DOF...}; };
 
     auto &GetData(int n) { return traits::index(dynamic_cast<data_type &>(*this), n); }
-
     auto const &GetData(int n) const { return traits::index(dynamic_cast<data_type const &>(*this), n); }
 
     template <typename... Args>
@@ -315,13 +287,7 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
         data_type::operator=(rhs);
         return *this;
     }
-
-   private:
-    static constexpr int m_extents_[sizeof...(DOF) + 1] = {(IFORM == NODE || IFORM == CELL) ? 1 : 3, DOF...};
 };
-
-template <typename V, int IFORM, int... DOF>
-constexpr int AttributeT<V, IFORM, DOF...>::m_extents_[sizeof...(DOF) + 1];
 
 template <typename V, int IFORM, int... DOF>
 AttributeT<V, IFORM, DOF...>::AttributeT() = default;
@@ -329,20 +295,20 @@ AttributeT<V, IFORM, DOF...>::AttributeT() = default;
 template <typename V, int IFORM, int... DOF>
 AttributeT<V, IFORM, DOF...>::~AttributeT() = default;
 
-template <typename V, int IFORM, int... DOF>
-std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::GetDescription() const {
-    auto res = data::DataNode::New(data::DataNode::DN_TABLE);
-    res->Set(db());
-    res->SetValue("Name", GetName());
-    res->SetValue("IFORM", IFORM);
-    if (sizeof...(DOF) > 0) {
-        res->SetValue("DOF", DOF...);
-    } else {
-        res->SetValue("DOF", 1);
-    }
-    res->SetValue("ValueType", traits::type_name<V>::value());
-    return res;
-};
+// template <typename V, int IFORM, int... DOF>
+// std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::GetDescription() const {
+//    auto res = data::DataNode::New(data::DataNode::DN_TABLE);
+//    res->Set(db());
+//    res->SetValue("Name", GetName());
+//    res->SetValue("IFORM", IFORM);
+//    if (sizeof...(DOF) > 0) {
+//        res->SetValue("DOF", DOF...);
+//    } else {
+//        res->SetValue("DOF", 1);
+//    }
+//    res->SetValue("ValueType", traits::type_name<V>::value());
+//    return res;
+//};
 
 namespace detail {
 template <typename U>
@@ -438,7 +404,14 @@ void AttributeT<V, IFORM, DOF...>::Clear() {
 template <typename V, int IFORM, int... DOF>
 std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Serialize() const {
     auto res = base_type::Serialize();
-    res->Set(GetDescription());
+    res->SetValue("IFORM", IFORM);
+
+    if (sizeof...(DOF) > 0) {
+        res->SetValue("DOF", DOF...);
+    } else {
+        res->SetValue("DOF", 1);
+    }
+    res->SetValue("ValueType", traits::type_name<V>::value());
     return res;
 };
 

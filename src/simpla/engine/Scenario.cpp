@@ -23,10 +23,11 @@ struct Scenario::pimpl_s {
     std::map<std::string, std::shared_ptr<DomainBase>> m_domains_;
     std::map<id_type, std::shared_ptr<data::DataNode>> m_patches_;
     std::map<std::string, Range<EntityId>> m_ranges_;
+    std::map<std::string, std::shared_ptr<Attribute>> m_attrs_;
 
     size_type m_step_counter_ = 0;
 
-    void Sync(std::shared_ptr<data::DataNode> const &attr, int level);
+    void Sync(std::string const &key, std::shared_ptr<Attribute> const &attr, int level = 0);
 };
 
 Scenario::Scenario() : m_pimpl_(new pimpl_s) { m_pimpl_->m_atlas_ = Atlas::New(); }
@@ -41,6 +42,10 @@ std::shared_ptr<data::DataNode> Scenario::Serialize() const {
     res->SetValue("Time", GetTimeNow());
 
     res->Set("Atlas", GetAtlas()->Serialize());
+
+    auto attributes = data::DataNode::New(data::DataNode::DN_TABLE);
+    for (auto const &item : m_pimpl_->m_attrs_) { attributes->Set(item.first, item.second->Serialize()); }
+    res->Set("Attributes", attributes);
 
     auto domain = data::DataNode::New(data::DataNode::DN_TABLE);
     for (auto const &item : m_pimpl_->m_domains_) { domain->Set(item.first, item.second->Serialize()); }
@@ -70,21 +75,28 @@ void Scenario::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     Click();
 }
 
-void Scenario::CheckPoint() const {
+void Scenario::CheckPoint(size_type step_num) const {
     std::ostringstream os;
     os << db()->GetValue<std::string>("CheckPointFilePrefix", GetName()) << std::setfill('0') << std::setw(8)
        << GetStepNumber() << "." << db()->GetValue<std::string>("CheckPointFileSuffix", "xmf");
-    auto attrs = GetAttributes();
 
     auto dump = data::DataNode::New(os.str());
     dump->Set("Atlas", GetAtlas()->Serialize());
-    dump->Set("Attributes", attrs);
 
     auto patches = data::DataNode::New(data::DataNode::DN_TABLE);
     for (auto const &item : m_pimpl_->m_patches_) {
-        auto node = patches->CreateNode(std::to_string(item.first), data::DataNode::DN_TABLE);
-        item.second->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &p) {
-            if (attrs->Check(key + "/CheckPoint") || attrs->Check(key + "/COORDINATES")) { node->Set(key, p); }
+        auto patch = patches->CreateNode(std::to_string(item.first), data::DataNode::DN_TABLE);
+        item.second->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &data_block) {
+            if (auto attr = GetAttribute(key)) {
+                auto check_point = attr->db()->GetValue<size_type>("CheckPoint", 0);
+                auto isCoordinates = attr->db()->Check(" COORDINATES");
+                if (check_point != 0 && step_num % check_point == 0) {
+                    auto a = patch->CreateNode(key, data::DataNode::DN_TABLE);
+                    a->Set("_DATA_", data_block);
+                    a->SetValue<int>("IFORM", attr->GetIFORM());
+                    a->SetValue<int>("DOF", attr->GetDOF());
+                }
+            }
         });
     }
     dump->Set("Patches", patches);
@@ -103,104 +115,98 @@ void Scenario::Dump() const {
     dump->Set(Serialize());
     dump->Flush();
 }
-std::shared_ptr<data::DataNode> Scenario::GetAttributes() const {
-    auto res = data::DataNode::New(data::DataNode::DN_TABLE);
-    for (auto &item : m_pimpl_->m_domains_) {
-        for (auto *attr : item.second->GetAttributes()) { res->Set(attr->GetName(), attr->GetDescription()); }
-    }
-    return res;
-};
+// std::map<std::string, std::shared_ptr<data::DataNode>> const &Scenario::GetAttributes() const {
+//    return m_pimpl_->m_attrs_;
+//};
+// std::map<std::string, std::shared_ptr<data::DataNode>> &Scenario::GetAttributes() { return m_pimpl_->m_attrs_; };
+
+std::shared_ptr<Attribute> Scenario::GetAttribute(std::string const &key) {
+    auto it = m_pimpl_->m_attrs_.find(key);
+    if (it == m_pimpl_->m_attrs_.end()) { OUT_OF_RANGE << "Can not find Attribute" << key; }
+    return it->second;
+}
+std::shared_ptr<Attribute> Scenario::GetAttribute(std::string const &key) const {
+    auto it = m_pimpl_->m_attrs_.find(key);
+    if (it == m_pimpl_->m_attrs_.end()) { OUT_OF_RANGE << "Can not find Attribute" << key; }
+    return it->second;
+}
+
 Range<EntityId> &Scenario::GetRange(std::string const &k) {
     auto res = m_pimpl_->m_ranges_.emplace(k, Range<EntityId>{});
     return res.first->second;
 }
 Range<EntityId> const &Scenario::GetRange(std::string const &k) const { return m_pimpl_->m_ranges_.at(k); }
 
-void Scenario::pimpl_s::Sync(std::shared_ptr<data::DataNode> const &attr, int level) {
-    ASSERT(attr != nullptr);
-
+void Scenario::pimpl_s::Sync(std::string const &key, std::shared_ptr<Attribute> const &attr, int level) {
     std::shared_ptr<parallel::MPIUpdater> updater = nullptr;
-    auto value_type_s = attr->GetValue<std::string>("ValueType", "double");
 
-    if (value_type_s == "double") {
+    if (attr->value_type_info() == typeid(double)) {
         updater = parallel::MPIUpdater::New<double>();
-    } else if (value_type_s == "int") {
+    } else if (attr->value_type_info() == typeid(int)) {
         updater = parallel::MPIUpdater::New<int>();
-    } else if (value_type_s == "long") {
+    } else if (attr->value_type_info() == typeid(long)) {
         updater = parallel::MPIUpdater::New<long>();
-    } else if (value_type_s == "unsigned long") {
+    } else if (attr->value_type_info() == typeid(unsigned long)) {
         updater = parallel::MPIUpdater::New<unsigned long>();
     } else {
         UNIMPLEMENTED;
     }
+    auto idx_box = m_atlas_->GetIndexBox();
+    auto halo_box = m_atlas_->GetHaloIndexBox();
 
-    auto iform = attr->GetValue<int>("IFORM");
-    int n_sub = iform == NODE || iform == CELL ? 1 : 3;
-    auto dof = attr->GetValue<int>("DOF");
-    auto key = attr->GetValue<std::string>("Name");
-    for (int N = 0; N < n_sub; ++N) {
-        //        VERBOSE << "Sync: " << key << "  " << N;
-        auto idx_box = m_atlas_->GetIndexBox();
-        auto halo_box = m_atlas_->GetHaloIndexBox();
-
-        for (int dir = 0; dir < 3; ++dir) {
-            updater->SetIndexBox(idx_box);
-            updater->SetHaloIndexBox(halo_box);
-            updater->SetDirection(dir);
-            updater->SetUp();
-            for (int d = 0; d < dof; ++d) {
-                for (auto &item : m_patches_) {
-                    if (auto t = item.second->Get(key)) {
-                        if (auto array = std::dynamic_pointer_cast<ArrayBase>(t->GetEntity(N * dof + d))) {
-                            updater->Push(*array);
-                        }
-                    };
-                }
-                updater->SendRecv();
-                for (auto &item : m_patches_) {
-                    if (auto t = item.second->Get(key)) {
-                        if (auto array = std::dynamic_pointer_cast<ArrayBase>(t->GetEntity(N * dof + d))) {
-                            updater->Pop(*array);
-                        }
-                    };
-                }
+    for (int dir = 0; dir < 3; ++dir) {
+        updater->SetIndexBox(idx_box);
+        updater->SetHaloIndexBox(halo_box);
+        updater->SetDirection(dir);
+        updater->SetUp();
+        for (int d = 0; d < attr->GetNumOfSub(); ++d) {
+            updater->Clear();
+            for (auto &item : m_patches_) {
+                if (auto t = item.second->Get(key)) {
+                    if (auto array = std::dynamic_pointer_cast<ArrayBase>(t->GetEntity(d))) { updater->Push(*array); }
+                };
             }
-            updater->TearDown();
+            updater->SendRecv();
+            for (auto &item : m_patches_) {
+                if (auto t = item.second->Get(key)) {
+                    if (auto array = std::dynamic_pointer_cast<ArrayBase>(t->GetEntity(d))) { updater->Pop(*array); }
+                };
+            }
         }
+        updater->TearDown();
     }
 }
 void Scenario::Synchronize(int level) {
     ASSERT(level == 0)
 
-    auto attrs = GetAttributes();
 #ifdef MPI_FOUND
     GLOBAL_COMM.barrier();
 
     if (GLOBAL_COMM.rank() == 0) {
-        attrs->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &attr) {
-            if (attr == nullptr || attr->Check("LOCAL")) { return; }
-            parallel::bcast_string(key);
-            m_pimpl_->Sync(attr, level);
-        });
+        for (auto &item : m_pimpl_->m_attrs_) {
+            if (item.second->db()->Check("LOCAL")) { return; }
+            parallel::bcast_string(item.first);
+            m_pimpl_->Sync(item.first, item.second, level);
+        };
         parallel::bcast_string("");
     } else {
         while (1) {
             auto key = parallel::bcast_string();
             if (key.empty()) { break; }
-            auto attr = attrs->Get(key);
-            if (attr == nullptr || attr->Check("LOCAL")) {
+            auto attr = m_pimpl_->m_attrs_.find(key);
+            if (attr == m_pimpl_->m_attrs_.end() || attr->second->db()->Check("LOCAL")) {
                 RUNTIME_ERROR << "Can not sync local/null attribute \"" << key << "\".";
             }
-            m_pimpl_->Sync(attr, level);
+            m_pimpl_->Sync(attr->first, attr->second, level);
         }
     }
     GLOBAL_COMM.barrier();
 
 #else
-    attrs->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &attr) {
-        if (attr == nullptr || attr->Check("LOCAL")) { return; }
-        m_pimpl_->Sync(attr, level);
-    });
+    for (auto &item : m_pimpl_->m_attrs_) {
+        if (item.second->db()->Check("LOCAL")) { return; }
+        m_pimpl_->Sync(item.first, item.second, level);
+    };
 #endif  // MPI_FOUND
 }
 void Scenario::NextStep() { ++m_pimpl_->m_step_counter_; }
@@ -232,6 +238,15 @@ void Scenario::DoSetUp() {
     }
     m_pimpl_->m_atlas_->SetUp();
     base_type::DoSetUp();
+
+    for (auto &item : m_pimpl_->m_domains_) {
+        for (auto *attr : item.second->GetAttributes()) {
+            auto res = m_pimpl_->m_attrs_.emplace(attr->GetName(), attr->CreateNew());
+            ASSERT(res.first->second->CheckType(*attr));
+            res.first->second->db()->Set(attr->db());
+            attr->db(res.first->second->db());
+        }
+    }
 }
 
 void Scenario::DoUpdate() {

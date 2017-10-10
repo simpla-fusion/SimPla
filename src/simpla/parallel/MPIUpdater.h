@@ -27,16 +27,15 @@ struct MPIUpdater {
     void SetDirection(int);
     int GetDirection() const;
 
-    void SetHaloWidth(index_tuple const &);
-    index_tuple GetGhostWidth() const;
     void SetIndexBox(index_box_type const &inner);
     index_box_type GetIndexBox() const;
-
+    void SetHaloWidth(index_tuple const &);
     void SetHaloIndexBox(index_box_type const &b);
     index_box_type GetHaloIndexBox() const;
     void SetTag(int tag);
 
     virtual void SetUp();
+    virtual void Clear();
     virtual void TearDown();
     bool isSetUp() const;
 

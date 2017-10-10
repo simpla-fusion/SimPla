@@ -100,8 +100,10 @@ class SPObject : public Factory<SPObject>, public std::enable_shared_from_this<S
         return std::dynamic_pointer_cast<TOBJ>(CreateAndSync(v));
     };
 
-    std::shared_ptr<data::DataNode> db() const;
-    std::shared_ptr<data::DataNode> db();
+    virtual std::shared_ptr<data::DataNode> db() const;
+    virtual std::shared_ptr<data::DataNode> db();
+    virtual void db(std::shared_ptr<data::DataNode> const &);
+
     id_type GetGUID() const;
     void SetName(std::string const &);
     std::string GetName() const;

@@ -303,6 +303,8 @@ std::ostream &seq_print(std::integer_sequence<TInts, N...>, std::ostream &os, TA
     //    }
     return os;
 }
+inline constexpr int NSum() { return 0; };
+
 template <typename T0>
 auto NSum(T0 const &a0) {
     return a0;
@@ -311,6 +313,9 @@ template <typename T0, typename... Args>
 auto NSum(T0 const &a0, Args &&... args) {
     return a0 + NSum(std::forward<Args>(args)...);
 };
+
+inline constexpr int NProduct() { return 1; };
+
 template <typename T0>
 auto NProduct(T0 const &a0) {
     return a0;

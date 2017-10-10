@@ -23,13 +23,11 @@ struct DataNodeXDMF : public DataNodeMemory {
     bool isValid() const override { return !m_prefix_.empty(); }
 
     void WriteDataItem(std::string const &url, std::string const &key, const index_box_type &idx_box,
-                       std::shared_ptr<data::DataNode> const &array, int indent);
+                       std::shared_ptr<data::DataNode> const &data, int indent);
     void WriteAttribute(std::string const &url, std::string const &key, const index_box_type &idx_box,
-                        std::shared_ptr<data::DataNode> const &attr_desc, std::shared_ptr<data::DataNode> const &data,
-                        int indent);
+                        std::shared_ptr<data::DataNode> const &attr, int indent);
     void WriteParticle(std::string const &url, std::string const &key, const index_box_type &idx_box,
-                       std::shared_ptr<data::DataNode> const &attr_desc, std::shared_ptr<data::DataNode> const &data,
-                       int indent);
+                       std::shared_ptr<data::DataNode> const &data, int indent);
 
     std::string m_prefix_;
     std::string m_h5_prefix_;
@@ -163,18 +161,16 @@ void DataNodeXDMF::WriteDataItem(std::string const &url, std::string const &key,
     H5Gclose(g_id);
 }
 void DataNodeXDMF::WriteAttribute(std::string const &url, std::string const &key, const index_box_type &idx_box,
-                                  std::shared_ptr<data::DataNode> const &attr_desc,
-                                  std::shared_ptr<data::DataNode> const &data, int indent) {
+                                  std::shared_ptr<data::DataNode> const &attr, int indent) {
     index_tuple lo{0, 0, 0}, hi{1, 1, 1};
     std::tie(lo, hi) = idx_box;
 
-    auto iform = attr_desc->GetValue<int>("IFORM", 0);
-
+    auto iform = attr->GetValue<int>("IFORM", 0);
     int dof = 1;
     std::string attr_type = "Scalar";
     size_type rank = 0;
     size_type extents[SP_ARRAY_MAX_NDIMS] = {1, 1, 1, 1};
-    if (auto p = attr_desc->Get("DOF")) {
+    if (auto p = attr->Get("DOF")) {
         if (auto dof_t = std::dynamic_pointer_cast<DataLightT<int>>(p->GetEntity())) {
             dof = (dof_t->value());
             switch (dof_t->value()) {
@@ -199,22 +195,21 @@ void DataNodeXDMF::WriteAttribute(std::string const &url, std::string const &key
 
     os << std::setw(indent) << " "
        << "<Attribute "
-       << "Center=\"" << (iform == NODE ? "Node" : "Cell") << "\" "       //
-       << "Name=\"" << attr_desc->GetValue<std::string>("Name") << "\" "  //
-       << "AttributeType=\"" << attr_type << "\" "                        //
-       << "IFORM=\"" << iform << "\" "                                    //
+       << "Center=\"" << (iform == NODE ? "Node" : "Cell") << "\" "  //
+       << "Name=\"" << key << "\" "                                  //
+       << "AttributeType=\"" << attr_type << "\" "                   //
+       << "IFORM=\"" << iform << "\" "                               //
        << ">" << std::endl;
 
-    WriteDataItem(url, key, idx_box, data, indent + 1);
+    WriteDataItem(url, key, idx_box, attr->Get("_DATA_"), indent + 1);
 
     os << std::setw(indent) << " "
        << "</Attribute>" << std::endl;
 }
 void DataNodeXDMF::WriteParticle(std::string const &url, std::string const &key, const index_box_type &idx_box,
-                                 std::shared_ptr<data::DataNode> const &attr_desc,
                                  std::shared_ptr<data::DataNode> const &data, int indent) {
     os << std::setw(indent) << " "
-       << " <Grid Name=\"" << attr_desc->GetValue<std::string>("Name") << "  GridType=\"Uniform\"> "
+       << "<Grid Name=\"" << key << "  GridType=\"Uniform\"> " << std::endl
        << std::setw(indent + 1) << " "
        << "<Time Value=\"" << 0.00 << "\"  />" << std::endl
        << std::setw(indent + 1) << " "
@@ -298,11 +293,10 @@ void XDMFGeometryRegular(DataNodeXDMF *self, const index_box_type &idx_box, std:
 int DataNodeXDMF::Flush() {
     int success = SP_FAILED;
 
-    auto attrs = this->Get("Attributes");
+    //    auto attrs = this->Get("Attributes");
 
     auto patches = this->Get("Patches");
-
-    ASSERT(attrs != nullptr && patches != nullptr);
+    ASSERT(patches != nullptr);
 
     int indent = 2;
     if (auto atlas = this->Get("Atlas")) {
@@ -327,17 +321,15 @@ int DataNodeXDMF::Flush() {
                 }
 
                 patch->Foreach([&](std::string const &s, std::shared_ptr<data::DataNode> const &d) {
-                    auto attr = attrs->Get(s);
-                    if (attr->GetValue<int>("IFORM") == FIBER) { return; }
-                    WriteAttribute("/Patches/" + std::to_string(guid), s, idx_box, attrs->Get(s), d, indent + 1);
+                    if (d->GetValue<int>("IFORM") == FIBER) { return; }
+                    WriteAttribute("/Patches/" + std::to_string(guid), s, idx_box, d, indent + 1);
                 });
                 os << std::setw(indent) << " "
                    << "</Grid>" << std::endl;
 
                 patch->Foreach([&](std::string const &s, std::shared_ptr<data::DataNode> const &d) {
-                    auto attr = attrs->Get(s);
-                    if (attr->GetValue<int>("IFORM") == FIBER) {
-                        WriteParticle("/Patches/" + std::to_string(guid), s, idx_box, attrs->Get(s), d, indent + 1);
+                    if (d->GetValue<int>("IFORM") == FIBER) {
+                        WriteParticle("/Patches/" + std::to_string(guid), s, idx_box, d, indent + 1);
                     }
                 });
             }

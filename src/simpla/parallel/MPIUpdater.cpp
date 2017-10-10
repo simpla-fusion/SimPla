@@ -132,6 +132,12 @@ void MPIUpdater::SetUp() {
     }
 #endif
 }
+void MPIUpdater::Clear() {
+    GetRecvBuffer(0).FillNaN();
+    GetRecvBuffer(1).FillNaN();
+    GetSendBuffer(1).FillNaN();
+    GetSendBuffer(1).FillNaN();
+}
 
 void MPIUpdater::TearDown() { m_pimpl_->m_is_setup_ = false; }
 

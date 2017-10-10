@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
     scenario->SetDomain<domain::Maxwell<domain_type>>("Limiter", geometry::Cube::New(bounding_box));
     scenario->GetDomain("Limiter")->PostInitialCondition.Connect([=](DomainBase *self, Real time_now) {
         if (auto d = dynamic_cast<domain::Maxwell<domain_type> *>(self)) {
-             d->B = [&](point_type const &x) {
+            d->B = [&](point_type const &x) {
                 return point_type{std::cos(2 * PI * x[1] / 60) * std::cos(2 * PI * x[2] / 50),
                                   std::cos(2 * PI * x[0] / 40) * std::cos(2 * PI * x[2] / 50),
                                   std::cos(2 * PI * x[0] / 40) * std::cos(2 * PI * x[1] / 60)};
@@ -83,9 +83,12 @@ int main(int argc, char **argv) {
     //    });
     //    scenario->SetTimeNow(0);
     scenario->SetTimeEnd(1.0e-8);
-    scenario->SetMaxStep(200);
+    scenario->SetMaxStep(50);
+    scenario->ConfigureAttribute<size_type>("E", "CheckPoint", 1);
+    scenario->ConfigureAttribute<size_type>("B", "CheckPoint", 1);
     scenario->SetUp();
 
+    VERBOSE << "Scenario: " << *scenario->Serialize();
     //    INFORM << "Attributes" << *scenario->GetAttributes() << std::endl;
     //    GLOBAL_COMM.barrier();
     //    if (GLOBAL_COMM.rank() == 0) { std::cout << *scenario->GetAtlas()->GetChart()->Serialize() << std::endl; }

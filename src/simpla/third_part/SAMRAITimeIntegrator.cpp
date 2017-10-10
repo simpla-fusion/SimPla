@@ -1437,7 +1437,7 @@ void SAMRAITimeIntegrator::Advance(Real time_now, Real time_dt) {
     }
 }
 
-void SAMRAITimeIntegrator::CheckPoint() const {
+void SAMRAITimeIntegrator::CheckPoint(size_type step_num) const {
     if (m_pimpl_->visit_data_writer_ != nullptr) {
         m_pimpl_->visit_data_writer_->writePlotData(m_pimpl_->patch_hierarchy,
                                                     m_pimpl_->m_time_refinement_integrator_->getIntegratorStep(),
