@@ -254,6 +254,8 @@ class DataLightT<std::string*> : public DataLight {
 
     size_type GetAlignOf() const override { return 0; }
 
+    void push_back(std::string const& v) { m_data_.push_back(v); }
+
    private:
     template <typename U>
     static size_type _CopyOut(U& dst, value_type const* src, ENABLE_IF(std::rank<U>::value == 0)) {

@@ -84,9 +84,11 @@ int main(int argc, char **argv) {
     //    scenario->SetTimeNow(0);
     scenario->SetTimeEnd(1.0e-8);
     scenario->SetMaxStep(50);
+    scenario->SetUp();
+
     scenario->ConfigureAttribute<size_type>("E", "CheckPoint", 1);
     scenario->ConfigureAttribute<size_type>("B", "CheckPoint", 1);
-    scenario->SetUp();
+
 
     VERBOSE << "Scenario: " << *scenario->Serialize();
     //    INFORM << "Attributes" << *scenario->GetAttributes() << std::endl;

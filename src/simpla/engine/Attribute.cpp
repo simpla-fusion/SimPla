@@ -20,9 +20,9 @@ AttributeGroup::~AttributeGroup() {
     delete m_pimpl_;
 }
 std::shared_ptr<data::DataNode> AttributeGroup::Serialize() const {
-    auto res = data::DataNode::New(data::DataNode::DN_TABLE);
-    for (auto const &item : m_pimpl_->m_attributes_) { res->Set(item->GetName(), item->Serialize()); }
-    return res;
+    auto res = data::DataLightT<std::string *>::New();
+    for (auto const &item : m_pimpl_->m_attributes_) { res->push_back(item->GetName()); }
+    return data::DataNode::New(res);
 }
 void AttributeGroup::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     if (cfg == nullptr) { return; }

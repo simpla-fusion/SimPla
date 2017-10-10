@@ -103,9 +103,7 @@ class AttributeGroup {
 struct Attribute : public EngineObject {
    public:
     static std::string FancyTypeName() { return "Attribute"; }
-
     std::string TypeName() const override { return "Attribute"; }
-
     static bool _is_registered;
 
    private:
