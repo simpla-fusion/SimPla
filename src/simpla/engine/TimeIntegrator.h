@@ -18,7 +18,6 @@ class TimeIntegrator : public Scenario {
     virtual Real ComputeStableDtOnPatch(Real time_now, Real time_dt);
     virtual void Advance(Real time_now, Real dt);
 
-
     void DoSetUp() override;
     void DoTearDown() override;
 
@@ -27,12 +26,12 @@ class TimeIntegrator : public Scenario {
     void Run() override;
     bool Done() const override;
 
-    SP_OBJECT_PROPERTY(size_type, CheckPointInterval);
-    SP_OBJECT_PROPERTY(size_type, DumpInterval);
     SP_OBJECT_PROPERTY(size_type, MaxStep);
     SP_OBJECT_PROPERTY(Real, CFL);
 
-    Real GetTimeNow() const override;
+    Real GetTime() const override{return GetTimeNow()};
+
+    Real GetTimeNow() const;
     void SetTimeNow(Real);
     Real GetTimeEnd() const;
     void SetTimeEnd(Real);

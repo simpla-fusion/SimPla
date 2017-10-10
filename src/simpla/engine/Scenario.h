@@ -33,7 +33,7 @@ class Scenario : public EngineObject {
     void DoTearDown() override;
     void DoFinalize() override;
 
-    virtual Real GetTimeNow() const { return 0.0; }
+    virtual Real GetTime() const { return 0.0; }
 
     void SetStepNumber(size_type s);
     size_type GetStepNumber() const;

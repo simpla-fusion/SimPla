@@ -39,7 +39,7 @@ Scenario::~Scenario() {
 std::shared_ptr<data::DataNode> Scenario::Serialize() const {
     auto res = base_type::Serialize();
     res->SetValue("Name", GetName());
-    res->SetValue("Time", GetTimeNow());
+    res->SetValue("Time", GetTime());
 
     res->Set("Atlas", GetAtlas()->Serialize());
 
@@ -100,7 +100,7 @@ void Scenario::CheckPoint(size_type step_num) const {
         });
     }
     dump->Set("Patches", patches);
-    dump->SetValue<Real>("Time", GetTimeNow());
+    dump->SetValue<Real>("Time", GetTime());
     dump->Flush();
 }
 

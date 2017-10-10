@@ -1389,12 +1389,12 @@ void SAMRAITimeIntegrator::DoUpdate() {
     // Refer to algs::TimeRefinementIntegrator for input
     auto cfgTimeRefinementIntegrator = std::make_shared<SAMRAI::tbox::MemoryDatabase>("TimeRefinementIntegrator");
 
-    cfgTimeRefinementIntegrator->putDouble("start_time", base_type::GetTimeNow());  // initial simulation time
+    cfgTimeRefinementIntegrator->putDouble("start_time", base_type::GetTime());  // initial simulation time
     cfgTimeRefinementIntegrator->putDouble("end_time", base_type::GetTimeEnd());    // final simulation time
     cfgTimeRefinementIntegrator->putDouble("grow_dt", 1.1);                         // growth factor for timesteps
     cfgTimeRefinementIntegrator->putInteger(
         "max_integrator_steps",
-        static_cast<int>((base_type::GetTimeEnd() - base_type::GetTimeNow()) / base_type::GetTimeStep()));
+        static_cast<int>((base_type::GetTimeEnd() - base_type::GetTime()) / base_type::GetTimeStep()));
 
     m_pimpl_->m_time_refinement_integrator_.reset(new SAMRAI::algs::TimeRefinementIntegrator(
         "TimeRefinementIntegrator", cfgTimeRefinementIntegrator, m_pimpl_->patch_hierarchy,
