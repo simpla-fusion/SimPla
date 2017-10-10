@@ -23,7 +23,6 @@ class Maxwell : public TDomainBase {
     Field<this_type, Real, FACE> B{this, "Name"_ = "B"};
     Field<this_type, Real, EDGE> E{this, "Name"_ = "E"};
     Field<this_type, Real, EDGE> J{this, "Name"_ = "J"};
-    FIELD(rho, Real, EDGE, 1);
 };
 template <typename TDomain>
 Maxwell<TDomain>::Maxwell() : base_type() {}
@@ -51,19 +50,14 @@ void Maxwell<TDomain>::DoInitialCondition(Real time_now) {
     B.Clear();
     J.Clear();
 }
-template <typename TDomain>
-void Maxwell<TDomain>::DoBoundaryCondition(Real time_now, Real time_dt) {}
 
 template <typename TDomain>
 void Maxwell<TDomain>::DoAdvance(Real time_now, Real time_dt) {
     DEFINE_PHYSICAL_CONST
 
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
-    this->FillBoundary(E, 0);
     B = B - curl(E) * time_dt;
-    this->FillBoundary(B, 0);
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
-    this->FillBoundary(E, 0);
     J.Clear();
 }
 

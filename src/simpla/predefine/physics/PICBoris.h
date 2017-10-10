@@ -96,8 +96,7 @@ void PICBoris<TM>::DoTearDown() {}
 
 template <typename TM>
 void PICBoris<TM>::DoInitialCondition(Real time_now) {}
-template <typename TM>
-void PICBoris<TM>::DoBoundaryCondition(Real time_now, Real dt) {}
+
 template <typename TM>
 void PICBoris<TM>::DoAdvance(Real time_now, Real dt) {}
 template <typename TM>

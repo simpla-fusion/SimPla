@@ -111,14 +111,7 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     template <typename V, int IFORM, int... DOF, typename TR>
     void Fill(AttributeT<V, IFORM, DOF...> &lhs, TR const &rhs, const Range<EntityId> &r) const;
 
-    //    template <typename V, int... DOF, typename... U>
-    //    void Fill(AttributeT<V, NODE, DOF...> &lhs, Expression<U...> const &rhs, const Range<EntityId> &r) const;
-    //    template <typename V, int... DOF, typename... U>
-    //    void Fill(AttributeT<V, EDGE, DOF...> &lhs, Expression<U...> const &rhs, const Range<EntityId> &r) const;
-    //    template <typename V, int... DOF, typename... U>
-    //    void Fill(AttributeT<V, FACE, DOF...> &lhs, Expression<U...> const &rhs, const Range<EntityId> &r) const;
-    //    template <typename V, int... DOF, typename... U>
-    //    void Fill(AttributeT<V, CELL, DOF...> &lhs, Expression<U...> const &rhs, const Range<EntityId> &r) const;
+
 
     template <typename TL, typename TR>
     void Fill(TL &lhs, TR const &rhs, std::string const &k) const {
@@ -147,7 +140,6 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     void DoTearDown() override;                                \
                                                                \
     void DoInitialCondition(Real time_now) override;           \
-    void DoBoundaryCondition(Real time_now, Real dt) override; \
     void DoAdvance(Real time_now, Real dt) override;           \
     void DoTagRefinementCells(Real time_now) override;
 
