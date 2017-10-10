@@ -935,7 +935,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
     if (initial_time) {
         m_ctx_->Push(PopPatch(patch));
 
-        index_tuple gw{4, 4, 4};  // = p.GetMeshBlock()->GetGhostWidth();
+        index_tuple gw{4, 4, 4};  // = p.GetMeshBlock()->GetHaloWidth();
 
         auto pgeom = std::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
 

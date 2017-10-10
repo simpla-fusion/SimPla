@@ -110,10 +110,7 @@ class ZSFC {
         reset(&std::get<0>(b)[0], &std::get<1>(b)[0], M);
     }
     void reset(index_type const* lo = nullptr, index_type const* hi = nullptr, int num_dims = NDIMS) {
-        for (int i = 0; i < std::min(num_dims, NDIMS); ++i) {
-            m_index_min_[i] = (lo == nullptr) ? m_shape_min_[i] : std::max(lo[i], m_shape_min_[i]);
-            m_index_max_[i] = (hi == nullptr) ? m_shape_max_[i] : std::min(hi[i], m_shape_max_[i]);
-        }
+        this_type(lo, hi, m_array_order_).swap(*this);
     }
     bool isSlowFirst() const { return m_array_order_ == SLOW_FIRST; };
     size_type GetNDIMS() const { return static_cast<size_type>(ndims); }
@@ -152,10 +149,15 @@ class ZSFC {
         for (int i = 0; i < ndims; ++i) { res *= m_shape_max_[i] - m_shape_min_[i]; }
         return res > 0 ? static_cast<size_type>(res) : 0;
     }
-    void Select(index_type const* lo, index_type const* hi) { reset(lo, hi); }
+    void Select(index_type const* lo, index_type const* hi) {
+        for (int i = 0; i < NDIMS; ++i) {
+            m_index_min_[i] = (lo == nullptr) ? m_shape_min_[i] : std::max(lo[i], m_shape_min_[i]);
+            m_index_max_[i] = (hi == nullptr) ? m_shape_max_[i] : std::min(hi[i], m_shape_max_[i]);
+        }
+    }
 
     void Select(std::tuple<nTuple<index_type, NDIMS>, nTuple<index_type, NDIMS>> const& b) {
-        reset(&std::get<0>(b)[0], &std::get<1>(b)[0]);
+        Select(&std::get<0>(b)[0], &std::get<1>(b)[0]);
     }
 
     void Select(std::initializer_list<std::initializer_list<index_type>> const& b) {
@@ -317,13 +319,13 @@ template <int NDIMS>
 template <typename RHS>
 ZSFC<NDIMS> ZSFC<NDIMS>::Overlap(RHS const& rhs) const {
     ZSFC<NDIMS> res(*this);
-    res.Select(detail::overlap<NDIMS>(GetIndexBox(), rhs));
+    res.Select(detail::overlap<NDIMS>(GetShape(), rhs));
     return res;
 };
 template <int NDIMS>
 ZSFC<NDIMS> ZSFC<NDIMS>::Overlap(this_type const& rhs) const {
     ZSFC<NDIMS> res(*this);
-    res.Select(detail::overlap<NDIMS>(GetIndexBox(), rhs.GetIndexBox()));
+    res.Select(detail::overlap<NDIMS>(GetShape(), rhs.GetIndexBox()));
     return res;
 }
 

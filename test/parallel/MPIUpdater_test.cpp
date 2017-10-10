@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
 
     auto updater = parallel::MPIUpdater::New<int>();
     updater->SetIndexBox(box);
-    updater->SetGhostWidth(gw);
+    updater->SetHaloWidth(gw);
 
     Array<int> a(outer_box);
     Array<int> b(box);

@@ -34,11 +34,12 @@ struct Atlas::pimpl_s {
     //    nTuple<int, 3> m_refine_ratio_[MAX_NUM_OF_LEVEL] = {{2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}};
     bool m_has_bounding_box_ = false;
     box_type m_box_{{0, 0, 0}, {1, 1, 1}};
+    index_box_type m_global_index_box_{{0, 0, 0}, {1, 1, 1}};
     index_box_type m_index_box_{{0, 0, 0}, {1, 1, 1}};
     index_tuple m_ghost_width_{3, 3, 3};
 
     //    box_type m_local_box_{{0, 0, 0}, {1, 1, 1}};
-    //    index_box_type m_local_index_box_{{0, 0, 0}, {1, 1, 1}};
+    //    index_box_type m_index_box_{{0, 0, 0}, {1, 1, 1}};
     //    box_type m_global_box_{{0, 0, 0}, {1, 1, 1}};
     //    index_box_type m_global_index_box_{{0, 0, 0}, {1, 1, 1}};
 };
@@ -91,9 +92,9 @@ void Atlas::DoSetUp() {
     std::tie(lo, hi) = m_pimpl_->m_box_;
     std::get<0>(m_pimpl_->m_index_box_) = ((lo - GetChart()->GetOrigin()) / GetChart()->GetScale());
     std::get<1>(m_pimpl_->m_index_box_) = ((hi - GetChart()->GetOrigin()) / GetChart()->GetScale());
-    //    m_pimpl_->m_local_index_box_ = m_pimpl_->m_index_box_;
-    //    m_pimpl_->m_global_index_box_ = m_pimpl_->m_index_box_;
-    index_box_type local_index_box_ = m_pimpl_->m_index_box_;
+    //    m_pimpl_->m_index_box_ = m_pimpl_->m_global_index_box_;
+    //    m_pimpl_->m_global_index_box_ = m_pimpl_->m_global_index_box_;
+    m_pimpl_->m_global_index_box_ = m_pimpl_->m_index_box_;
 #ifdef MPI_FOUND
     {
         int mpi_ndims = 0;
@@ -104,18 +105,18 @@ void Atlas::DoSetUp() {
         GLOBAL_COMM.topology(&mpi_ndims, &mpi_dims[0], &mpi_period[0], &mpi_coord[0]);
 
         for (int i = 0; i < mpi_ndims; ++i) {
-            std::get<0>(local_index_box_)[i] =
-                std::get<0>(m_pimpl_->m_index_box_)[i] +
-                (std::get<1>(m_pimpl_->m_index_box_)[i] - std::get<0>(m_pimpl_->m_index_box_)[i]) * mpi_coord[i] /
-                    mpi_dims[i];
-            std::get<1>(local_index_box_)[i] =
-                std::get<0>(m_pimpl_->m_index_box_)[i] +
-                (std::get<1>(m_pimpl_->m_index_box_)[i] - std::get<0>(m_pimpl_->m_index_box_)[i]) * (mpi_coord[i] + 1) /
-                    mpi_dims[i];
+            std::get<0>(m_pimpl_->m_index_box_)[i] =
+                std::get<0>(m_pimpl_->m_global_index_box_)[i] +
+                (std::get<1>(m_pimpl_->m_global_index_box_)[i] - std::get<0>(m_pimpl_->m_global_index_box_)[i]) *
+                    mpi_coord[i] / mpi_dims[i];
+            std::get<1>(m_pimpl_->m_index_box_)[i] =
+                std::get<0>(m_pimpl_->m_global_index_box_)[i] +
+                (std::get<1>(m_pimpl_->m_global_index_box_)[i] - std::get<0>(m_pimpl_->m_global_index_box_)[i]) *
+                    (mpi_coord[i] + 1) / mpi_dims[i];
         }
     }
 #endif
-    AddBlock(MeshBlock::New(local_index_box_, 0, 0));
+    AddBlock(MeshBlock::New(m_pimpl_->m_index_box_, 0, 0));
 };
 
 void Atlas::DoUpdate() {
@@ -154,6 +155,7 @@ void Atlas::SetBoundingBox(box_type const &b) {
     m_pimpl_->m_has_bounding_box_ = true;
 }
 box_type Atlas::GetBoundingBox() const { return m_pimpl_->m_box_; }
+index_box_type Atlas::GetGlobalIndexBox() const { return m_pimpl_->m_global_index_box_; };
 index_box_type Atlas::GetIndexBox(int iform, int direction) const {
     index_tuple lo, hi;
     std::tie(lo, hi) = m_pimpl_->m_index_box_;
@@ -175,7 +177,14 @@ index_box_type Atlas::GetIndexBox(int iform, int direction) const {
     }
     return std::make_tuple(lo, hi);
 }
-index_tuple Atlas::GetGhostWidth() const { return m_pimpl_->m_ghost_width_; }
+index_box_type Atlas::GetHaloIndexBox(int tag, int direction) const {
+    index_box_type res = GetIndexBox(tag, direction);
+    std::get<0>(res) -= GetHaloWidth();
+    std::get<1>(res) += GetHaloWidth();
+    return res;
+}
+
+index_tuple Atlas::GetHaloWidth() const { return m_pimpl_->m_ghost_width_; }
 
 // int Atlas::GetNumOfLevel() const { return m_pimpl_->(); }
 // int Atlas::GetMaxLevel() const { return m_pimpl_->m_max_level_; }
@@ -197,12 +206,12 @@ index_tuple Atlas::GetGhostWidth() const { return m_pimpl_->m_ghost_width_; }
 // void Atlas::SetPeriodicDimensions(nTuple<int, 3> const &b) { m_pimpl_->m_periodic_dimensions_ = b; }
 // nTuple<int, 3> const &Atlas::GetPeriodicDimensions() const { return m_pimpl_->m_periodic_dimensions_; }
 //
-// void Atlas::SetCoarsestIndexBox(index_box_type const &b) { m_pimpl_->m_index_box_ = b; }
-// index_box_type const &Atlas::GetCoarsestIndexBox() const { return m_pimpl_->m_index_box_; }
+// void Atlas::SetCoarsestIndexBox(index_box_type const &b) { m_pimpl_->m_global_index_box_ = b; }
+// index_box_type const &Atlas::GetCoarsestIndexBox() const { return m_pimpl_->m_global_index_box_; }
 
 //        size_tuple Atlas::GetDimensions() const {
 //            size_tuple d;
-//            d = std::get<1>(m_pimpl_->m_index_box_) - std::get<0>(m_pimpl_->m_index_box_);
+//            d = std::get<1>(m_pimpl_->m_global_index_box_) - std::get<0>(m_pimpl_->m_global_index_box_);
 //            return d;
 //        }
 // size_type Atlas::size(int level) const { return m_database_->m_layer_[level].size(); }

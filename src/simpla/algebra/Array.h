@@ -190,6 +190,7 @@ class Array : public ArrayBase {
         alloc();
         m_sfc_.Copy(m_data_, other);
     }
+    void FillNaN() { Fill(s_nan); }
     void Fill(value_type v) {
         alloc();
         m_sfc_.Foreach([&] __host__ __device__(auto&&... s) { this->Set(v, std::forward<decltype(s)>(s)...); });

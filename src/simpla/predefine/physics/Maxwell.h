@@ -23,8 +23,12 @@ class Maxwell : public TDomainBase {
     Field<this_type, Real, FACE> B{this, "Name"_ = "B", "CheckPoint"_};
     Field<this_type, Real, EDGE> E{this, "Name"_ = "E", "CheckPoint"_};
     Field<this_type, Real, EDGE> J{this, "Name"_ = "J", "CheckPoint"_};
-    Field<this_type, Real, CELL, 3> Jv{this, "Name"_ = "Jv", "CheckPoint"_};
-    Field<this_type, Real, CELL> phi{this, "Name"_ = "phi", "CheckPoint"_};
+    //    Field<this_type, Real, CELL> Ex{this, "Name"_ = "Ex", "CheckPoint"_};
+    //    Field<this_type, Real, CELL> Ey{this, "Name"_ = "Ey", "CheckPoint"_};
+    //    Field<this_type, Real, CELL> Ez{this, "Name"_ = "Ez", "CheckPoint"_};
+    //    Field<this_type, Real, CELL> Bx{this, "Name"_ = "Bx", "CheckPoint"_};
+    //    Field<this_type, Real, CELL> By{this, "Name"_ = "By", "CheckPoint"_};
+    //    Field<this_type, Real, CELL> Bz{this, "Name"_ = "Bz", "CheckPoint"_};
 };
 template <typename TDomain>
 Maxwell<TDomain>::Maxwell() : base_type() {}
@@ -51,8 +55,6 @@ void Maxwell<TDomain>::DoInitialCondition(Real time_now) {
     E.Clear();
     B.Clear();
     J.Clear();
-    Jv.Clear();
-    phi.Clear();
 }
 template <typename TDomain>
 void Maxwell<TDomain>::DoBoundaryCondition(Real time_now, Real time_dt) {
@@ -75,7 +77,7 @@ void Maxwell<TDomain>::DoAdvance(Real time_now, Real time_dt) {
     //    E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
     //    this->FillBoundary(E, 0);
     //    J.Clear();
-    E = curl(B) * speed_of_light2 * time_dt;
+    E = E + curl(B) * speed_of_light2 * time_dt;
     B = B - curl(E) * time_dt;
 }
 

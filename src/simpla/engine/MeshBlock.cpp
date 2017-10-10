@@ -67,19 +67,19 @@ id_type MeshBlock::GetGUID() const {
 //    MeshBlock(other).swap(*this);
 //    return *this;
 //}
-// index_tuple MeshBlock::GetGhostWidth() const { return m_ghost_width_; };
+// index_tuple MeshBlock::GetHaloWidth() const { return m_ghost_width_; };
 // index_box_type MeshBlock::GetOuterIndexBox() const {
 //    auto ibox = GetIndexBox();
-//    std::get<0>(ibox) -= GetGhostWidth();
-//    std::get<1>(ibox) += GetGhostWidth();
+//    std::get<0>(ibox) -= GetHaloWidth();
+//    std::get<1>(ibox) += GetHaloWidth();
 //    return std::move(ibox);
 //}
 // index_box_type MeshBlock::GetInnerIndexBox() const { return GetIndexBox(); }
 //
-// index_tuple MeshBlock::GetIndexOrigin() const { return std::get<0>(m_index_box_); }
+// index_tuple MeshBlock::GetIndexOrigin() const { return std::get<0>(m_global_index_box_); }
 //
 // size_tuple MeshBlock::GetDimensions() const {
-//    return std::get<1>(m_index_box_) - std::get<0>(m_index_box_);
+//    return std::get<1>(m_global_index_box_) - std::get<0>(m_global_index_box_);
 //}
 
 }  // namespace engine {

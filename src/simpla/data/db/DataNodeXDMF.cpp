@@ -313,8 +313,8 @@ int DataNodeXDMF::Flush() {
             auto guid = blk->GetValue<id_type>("GUID");
             if (auto patch = patches->Get(k)) {
                 index_box_type idx_box{blk->GetValue<index_tuple>("LowIndex"), blk->GetValue<index_tuple>("HighIndex")};
-                //std::get<0>(idx_box) -= 1;  // ghost cell
-                //std::get<1>(idx_box) += 1;
+                std::get<0>(idx_box) -= 3;  // ghost cell
+                std::get<1>(idx_box) += 3;
 
                 os << std::setw(indent) << " "
                    << "<Grid Name=\"" << guid << "\" Level=\"" << blk->GetValue<int>("Level", 0) << "\">" << std::endl;

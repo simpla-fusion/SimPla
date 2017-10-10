@@ -59,8 +59,6 @@ int main(int argc, char **argv) {
                                   std::cos(2 * PI * x[0] / 40) * std::cos(2 * PI * x[1] / 60)};
             };
 
-            d->Jv = [&](point_type const &x) { return x; };
-            d->phi = GLOBAL_COMM.rank();
             //            d->B[0] = [&](index_type i, index_type j, index_type k) { return static_cast<Real>(i); };
             //            d->B[1] = [&](index_type i, index_type j, index_type k) { return static_cast<Real>(j); };
             //            d->B[2] = [&](index_type i, index_type j, index_type k) { return static_cast<Real>(k); };
