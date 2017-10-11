@@ -250,39 +250,51 @@ struct FVM {
     };
     ////***************************************************************************************************
     //! p_curl<1>
-    template <int I, int D, typename TExpr>
-    auto eval(std::integer_sequence<int, EDGE> _, Expression<tags::p_exterior_derivative<D>, TExpr> const& expr,
-              IdxShift S) const {
+    static constexpr index_type S_[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+
+    template <int K, int I, typename TExpr>
+    auto eval(std::integer_sequence<int, EDGE> _, Expression<tags::p_exterior_derivative<I>, TExpr> const& expr,
+              IdxShift S, ENABLE_IF(K != I)) const {
         auto const& l = std::get<0>(expr.m_args_);
 
-        static constexpr int IX = (I + 0) % 3;
-        static constexpr int IY = (I + 1) % 3;
-        static constexpr int IZ = (I + 2) % 3;
+        IdxShift SI{0, 0, 0};
+        SI[I] = 1;
+        static constexpr int J = (2 * I - K + 3) % 3;
+        static constexpr int sign = ((K - I + 3) % 3) * 2 - 3;
+        /**  I  J   K      f=((K-I+3) %3)*2-3      J=(2*I-K+3)%3
+             x  y   z       1=((2-0+3) %3)*2-3      1=(2*0-2+3) %3
+             y  z   x       1=((0-1+3) %3)*2-3      2=(2*1-0+3) %3
+             z  x   y       1=((1-2+3) %3)*2-3      0=(2*2-1+3) %3
+             x  z   y      -1=((1-0+3) %3)*2-3      2=(2*0-1+3) %3
+             y  x   z      -1=((2-1+3) %3)*2-3      0=(2*1-2+3) %3
+             z  y   x      -1=((0-2+3) %3)*2-3      1=(2*2-0+3) %3
 
-        IdxShift SY{0, 0, 0};
-        IdxShift SZ{0, 0, 0};
-        SY[IY] = 1;
-        SZ[IZ] = 1;
 
-        return ((getV<IY>(l, S + SZ) - getV<IY>(l, S)) - (getV<IZ>(l, S + SY) - getV<IZ>(l, S))) *
-               get_<IX>(m_host_->m_face_inv_volume_, S);
+              **/
+        return sign * (getV<J>(l, S + SI) - getV<J>(l, S)) * get_<K>(m_host_->m_face_inv_volume_, S);
     }
 
-    template <int I, int D, typename TExpr>
-    auto eval(std::integer_sequence<int, FACE> _, Expression<tags::p_codifferential_derivative<D>, TExpr> const& expr,
-              IdxShift S) const {
+    template <int K, int I, typename TExpr>
+    auto eval(std::integer_sequence<int, FACE> _, Expression<tags::p_codifferential_derivative<I>, TExpr> const& expr,
+              IdxShift S, ENABLE_IF(K != I)) const {
         auto const& l = std::get<0>(expr.m_args_);
+        IdxShift SI{0, 0, 0};
+        SI[I] = 1;
+        //        static constexpr IdxShift SI{I == 0 ? 0 : 1, I == 1 ? 0 : 1, I == 2 ? 0 : 1};
+        static constexpr int J = (2 * I - K + 3) % 3;
+        static constexpr int sign = ((K - I + 3) % 3) * 2 - 3;
 
-        static constexpr int IX = (I + 0) % 3;
-        static constexpr int IY = (I + 1) % 3;
-        static constexpr int IZ = (I + 2) % 3;
-        IdxShift SY{0, 0, 0};
-        IdxShift SZ{0, 0, 0};
-        SY[(I + 1) % 3] = 1;
-        SZ[(I + 2) % 3] = 1;
-
-        return ((getDualV<IY>(l, S) - getDualV<IY>(l, S - SZ)) - (getDualV<IZ>(l, S) - getDualV<IZ>(l, S - SY))) *
-               (-get_<IX>(m_host_->m_edge_inv_dual_volume_, S));
+        return sign * (getDualV<J>(l, S) - getDualV<J>(l, S - SI)) * (-get_<K>(m_host_->m_edge_inv_dual_volume_, S));
+    }
+    template <int I, typename TExpr>
+    auto eval(std::integer_sequence<int, EDGE> _, Expression<tags::p_exterior_derivative<I>, TExpr> const& expr,
+              IdxShift S) const {
+        return 0;
+    }
+    template <int I, typename TExpr>
+    auto eval(std::integer_sequence<int, FACE> _, Expression<tags::p_codifferential_derivative<I>, TExpr> const& expr,
+              IdxShift S) const {
+        return 0;
     }
     //     constexpr Real m_p_curl_factor_[3] = {0, 1, -1};
     //    template<typename TOP, typename T>   st::value_type_t
