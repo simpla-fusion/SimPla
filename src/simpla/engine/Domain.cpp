@@ -24,8 +24,9 @@ DomainBase::~DomainBase() { delete m_pimpl_; };
 std::shared_ptr<data::DataNode> DomainBase::Serialize() const {
     auto tdb = base_type::Serialize();
     this->OnSerialize(this, tdb);
+    ASSERT(m_pimpl_->m_chart_ != nullptr);
     tdb->Set("Chart", m_pimpl_->m_chart_->Serialize());
-    tdb->Set("Boundary", m_pimpl_->m_boundary_->Serialize());
+    if (m_pimpl_->m_boundary_ != nullptr) { tdb->Set("Boundary", m_pimpl_->m_boundary_->Serialize()); }
     tdb->Set("Attributes", AttributeGroup::Serialize());
     return tdb;
 }
@@ -69,11 +70,18 @@ std::shared_ptr<geometry::GeoObject> DomainBase::GetBoundary() const { return m_
 std::shared_ptr<geometry::GeoObject> DomainBase::GetBlockBoundingBox() const {
     return m_pimpl_->m_chart_->GetBoundingShape(m_pimpl_->m_mesh_block_->GetIndexBox());
 }
+box_type DomainBase::GetBlockBox() const {
+    auto idx_box = m_pimpl_->m_mesh_block_->GetIndexBox();
+    return std::make_tuple(m_pimpl_->m_chart_->local_coordinates(std::get<0>(idx_box)),
+                           m_pimpl_->m_chart_->local_coordinates(std::get<1>(idx_box)));
+}
 
 int DomainBase::CheckBoundary() const {
-    ASSERT(m_pimpl_->m_boundary_ != nullptr);
-    auto b = GetBlockBoundingBox();
-    Real ratio = m_pimpl_->m_boundary_->Intersection(b)->Measure() / b->Measure();
+    Real ratio = 1.0;
+    if (m_pimpl_->m_boundary_ != nullptr) {
+        auto b = GetBlockBoundingBox();
+        ratio = m_pimpl_->m_boundary_->Intersection(b)->Measure() / b->Measure();
+    }
     return ratio < EPSILON ? OUT_BOUNDARY : (ratio < 1.0 ? ON_BOUNDARY : IN_BOUNDARY);
 }
 void DomainBase::Push(std::shared_ptr<data::DataNode> const& data) { AttributeGroup::Push(data); }
@@ -81,7 +89,7 @@ std::shared_ptr<data::DataNode> DomainBase::Pop() const { return AttributeGroup:
 
 void DomainBase::DoSetUp() { base_type::DoSetUp(); }
 void DomainBase::DoUpdate() { base_type::DoUpdate(); }
-void DomainBase::DoTearDown() {base_type::DoTearDown(); }
+void DomainBase::DoTearDown() { base_type::DoTearDown(); }
 
 void DomainBase::InitialCondition(Real time_now) {
     Update();

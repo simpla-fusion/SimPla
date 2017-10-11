@@ -70,6 +70,7 @@ class MeshBlock;
 */
 class Atlas : public EngineObject {
     SP_OBJECT_HEAD(Atlas, EngineObject)
+    std::string TypeName() const final { return "Atlas"; }
 
    public:
     int Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const &);

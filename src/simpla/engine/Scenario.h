@@ -16,6 +16,7 @@ class Atlas;
 
 class Scenario : public EngineObject {
     SP_OBJECT_HEAD(Scenario, EngineObject)
+    std::string TypeName() const final { return "Scenario"; }
 
     virtual void TagRefinementCells(Real time_now);
 
@@ -40,16 +41,14 @@ class Scenario : public EngineObject {
 
     std::shared_ptr<Atlas> GetAtlas() const;
 
-    size_type SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &d);
-    template <typename U>
-    size_type SetDomain(std::string const &k, std::shared_ptr<geometry::GeoObject> const &g) {
-        static_assert(std::is_base_of<DomainBase, U>::value, "illegal domain type!");
-        auto res = U::New();
-        res->SetBoundary(g);
-        return SetDomain(k, res);
-    }
-
+    std::shared_ptr<DomainBase> SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &d);
     std::shared_ptr<DomainBase> GetDomain(std::string const &k) const;
+    template <typename TDomain, typename... Args>
+    std::shared_ptr<TDomain> NewDomain(std::string const &k, Args &&... args) {
+        auto res = TDomain::New(std::forward<Args>(args)...);
+        SetDomain(k, res);
+        return res;
+    };
 
     std::map<std::string, std::shared_ptr<DomainBase>> &GetDomains();
     std::map<std::string, std::shared_ptr<DomainBase>> const &GetDomains() const;

@@ -101,22 +101,12 @@ class AttributeGroup {
  *
  */
 struct Attribute : public EngineObject {
-   public:
-    static std::string FancyTypeName() { return "Attribute"; }
-    std::string TypeName() const override { return "Attribute"; }
-    static bool _is_registered;
-
-   private:
-    typedef EngineObject base_type;
-    typedef Attribute this_type;
-    struct pimpl_s;
-    pimpl_s *m_pimpl_ = nullptr;
+    SP_OBJECT_HEAD(Attribute, EngineObject)
 
    public:
-    Attribute();
+    std::string TypeName() const final { return "Attribute"; }
 
-    ~Attribute() override;
-
+   public:
     Attribute(this_type const &other) = delete;  // { UNIMPLEMENTED; };
     Attribute(this_type &&other) = delete;       // { UNIMPLEMENTED; };
 
@@ -128,8 +118,6 @@ struct Attribute : public EngineObject {
     void ReRegister(std::shared_ptr<Attribute> const &) const;
 
     static std::shared_ptr<this_type> New(std::shared_ptr<simpla::data::DataNode> const &cfg);
-    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;
-    std::shared_ptr<simpla::data::DataNode> Serialize() const override;
 
     virtual std::shared_ptr<Attribute> Duplicate() const = 0;
     virtual std::shared_ptr<Attribute> CreateNew() const = 0;

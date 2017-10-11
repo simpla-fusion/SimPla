@@ -108,7 +108,7 @@ void Scenario::Dump() const {
     std::ostringstream os;
 
     os << db()->GetValue<std::string>("DumpFilePrefix", GetName()) << "_dump_" << std::setfill('0') << std::setw(8)
-       << GetStepNumber() << "." << db()->GetValue<std::string>("DumpFileSuffix", ".h5");
+       << GetStepNumber() << "." << db()->GetValue<std::string>("DumpFileSuffix", "h5");
     VERBOSE << std::setw(20) << "Dump : " << os.str();
 
     auto dump = data::DataNode::New(os.str());
@@ -260,12 +260,12 @@ void Scenario::DoTearDown() {
 }
 std::shared_ptr<Atlas> Scenario::GetAtlas() const { return m_pimpl_->m_atlas_; }
 
-size_type Scenario::SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &d) {
+std::shared_ptr<DomainBase> Scenario::SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &d) {
     ASSERT(!isSetUp());
     m_pimpl_->m_domains_[k] = d;
     m_pimpl_->m_domains_[k]->SetName(k);
     m_pimpl_->m_domains_[k]->SetChart(m_pimpl_->m_atlas_->GetChart());
-    return 1;
+    return d;
 }
 std::shared_ptr<DomainBase> Scenario::GetDomain(std::string const &k) const {
     auto it = m_pimpl_->m_domains_.find(k);

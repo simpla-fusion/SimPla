@@ -30,7 +30,10 @@ struct FVM {
     SP_DOMAIN_POLICY_HEAD(FVM);
 
     typedef traits::type_list<simpla::tags::exterior_derivative, tags::codifferential_derivative, tags::hodge_star,
-                              tags::wedge, tags::dot, tags::cross, tags::curl, tags::grad, tags::diverge>
+                              tags::wedge, tags::dot, tags::cross, tags::curl, tags::grad, tags::diverge,
+                              tags::p_exterior_derivative<0>, tags::p_exterior_derivative<1>,
+                              tags::p_exterior_derivative<2>, tags::p_codifferential_derivative<0>,
+                              tags::p_codifferential_derivative<1>, tags::p_codifferential_derivative<2> >
         op_list;
 
     typedef THost domain_type;
@@ -247,6 +250,40 @@ struct FVM {
     };
     ////***************************************************************************************************
     //! p_curl<1>
+    template <int I, int D, typename TExpr>
+    auto eval(std::integer_sequence<int, EDGE> _, Expression<tags::p_exterior_derivative<D>, TExpr> const& expr,
+              IdxShift S) const {
+        auto const& l = std::get<0>(expr.m_args_);
+
+        static constexpr int IX = (I + 0) % 3;
+        static constexpr int IY = (I + 1) % 3;
+        static constexpr int IZ = (I + 2) % 3;
+
+        IdxShift SY{0, 0, 0};
+        IdxShift SZ{0, 0, 0};
+        SY[IY] = 1;
+        SZ[IZ] = 1;
+
+        return ((getV<IY>(l, S + SZ) - getV<IY>(l, S)) - (getV<IZ>(l, S + SY) - getV<IZ>(l, S))) *
+               get_<IX>(m_host_->m_face_inv_volume_, S);
+    }
+
+    template <int I, int D, typename TExpr>
+    auto eval(std::integer_sequence<int, FACE> _, Expression<tags::p_codifferential_derivative<D>, TExpr> const& expr,
+              IdxShift S) const {
+        auto const& l = std::get<0>(expr.m_args_);
+
+        static constexpr int IX = (I + 0) % 3;
+        static constexpr int IY = (I + 1) % 3;
+        static constexpr int IZ = (I + 2) % 3;
+        IdxShift SY{0, 0, 0};
+        IdxShift SZ{0, 0, 0};
+        SY[(I + 1) % 3] = 1;
+        SZ[(I + 2) % 3] = 1;
+
+        return ((getDualV<IY>(l, S) - getDualV<IY>(l, S - SZ)) - (getDualV<IZ>(l, S) - getDualV<IZ>(l, S - SY))) *
+               (-get_<IX>(m_host_->m_edge_inv_dual_volume_, S));
+    }
     //     constexpr Real m_p_curl_factor_[3] = {0, 1, -1};
     //    template<typename TOP, typename T>   st::value_type_t
     //    <Expression<TOP, T>>

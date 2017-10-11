@@ -16,6 +16,7 @@ namespace geometry {
 class Curve;
 struct Chart : public SPObject {
     SP_OBJECT_HEAD(Chart, SPObject)
+    std::string TypeName() const final { return "Chart"; }
 
    private:
     bool m_is_setup_ = false;

@@ -165,7 +165,8 @@ void DataNodeXDMF::WriteAttribute(std::string const &url, std::string const &key
     index_tuple lo{0, 0, 0}, hi{1, 1, 1};
     std::tie(lo, hi) = idx_box;
 
-    auto iform = attr->GetValue<int>("IFORM", 0);
+    auto iform = attr->GetValue<int>("IFORM", NODE);
+    if (iform == NODE) { hi += 1; }
     int dof = 1;
     std::string attr_type = "Scalar";
     size_type rank = 0;
@@ -201,7 +202,7 @@ void DataNodeXDMF::WriteAttribute(std::string const &url, std::string const &key
        << "IFORM=\"" << iform << "\" "                               //
        << ">" << std::endl;
 
-    WriteDataItem(url, key, idx_box, attr->Get("_DATA_"), indent + 1);
+    WriteDataItem(url, key, std::make_tuple(lo, hi), attr->Get("_DATA_"), indent + 1);
 
     os << std::setw(indent) << " "
        << "</Attribute>" << std::endl;

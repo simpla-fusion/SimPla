@@ -14,28 +14,28 @@
     _CLASS_NAME_ &operator=(_CLASS_NAME_ const &other) = delete; \
     _CLASS_NAME_ &operator=(_CLASS_NAME_ &&other) = delete;
 
-#define SP_OBJECT_BASE(_BASE_CLASS_NAME_)                                 \
-   private:                                                               \
-    typedef _BASE_CLASS_NAME_ this_type;                                  \
-                                                                          \
-   public:                                                                \
-    static bool _is_registered;                                           \
-    static std::string FancyTypeName() { return __STRING(_CLASS_NAME_); } \
-    virtual std::string TypeName() const { return simpla::traits::type_name<this_type>::value(); }
+#define SP_OBJECT_BASE(_BASE_CLASS_NAME_)                                   \
+   private:                                                                 \
+    typedef _BASE_CLASS_NAME_ this_type;                                    \
+                                                                            \
+   public:                                                                  \
+    static bool _is_registered;                                             \
+    static std::string FancyTypeName_s() { return __STRING(_CLASS_NAME_); } \
+    virtual std::string FancyTypeName() const { return __STRING(_CLASS_NAME_); }
 
 /**
  * @brief define the common part of the derived class
  */
-#define SP_DEFINE_FANCY_TYPE_NAME(_CLASS_NAME_, _BASE_CLASS_NAME_)                                  \
-   public:                                                                                          \
-    static std::string FancyTypeName() { return __STRING(_CLASS_NAME_); }                           \
-    virtual std::string TypeName() const override { return traits::type_name<this_type>::value(); } \
-    static bool _is_registered;                                                                     \
-                                                                                                    \
-   private:                                                                                         \
-    typedef _BASE_CLASS_NAME_ base_type;                                                            \
-    typedef _CLASS_NAME_ this_type;                                                                 \
-                                                                                                    \
+#define SP_DEFINE_FANCY_TYPE_NAME(_CLASS_NAME_, _BASE_CLASS_NAME_)                                       \
+   public:                                                                                               \
+    static std::string FancyTypeName_s() { return __STRING(_CLASS_NAME_); }                              \
+    virtual std::string FancyTypeName() const override { return traits::type_name<this_type>::value(); } \
+    static bool _is_registered;                                                                          \
+                                                                                                         \
+   private:                                                                                              \
+    typedef _BASE_CLASS_NAME_ base_type;                                                                 \
+    typedef _CLASS_NAME_ this_type;                                                                      \
+                                                                                                         \
    public:
 
 #endif  // SIMPLA_SPOBJECTHEAD_H

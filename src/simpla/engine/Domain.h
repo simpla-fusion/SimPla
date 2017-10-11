@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "simpla/algebra/Array.h"
+#include "simpla/algebra/nTuple.h"
 #include "simpla/data/Data.h"
 #include "simpla/geometry/Chart.h"
 #include "simpla/utilities/Signal.h"
@@ -22,6 +23,7 @@ namespace engine {
 
 class DomainBase : public EngineObject, public AttributeGroup {
     SP_OBJECT_HEAD(DomainBase, EngineObject)
+    std::string TypeName() const final { return "DomainBase"; }
 
    public:
     void Push(const std::shared_ptr<data::DataNode> &) override;
@@ -36,10 +38,10 @@ class DomainBase : public EngineObject, public AttributeGroup {
     virtual std::shared_ptr<const MeshBlock> GetBlock() const;
 
     enum { IN_BOUNDARY = -1, ON_BOUNDARY = 0, OUT_BOUNDARY = 1 };
-    int CheckBoundary() const;
+    virtual int CheckBoundary() const;
     void SetBoundary(std::shared_ptr<geometry::GeoObject> const &g);
     std::shared_ptr<geometry::GeoObject> GetBoundary() const;
-
+    box_type GetBlockBox() const;
     std::shared_ptr<geometry::GeoObject> GetBlockBoundingBox() const;
 
     void DoSetUp() override;
@@ -111,8 +113,6 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     template <typename V, int IFORM, int... DOF, typename TR>
     void Fill(AttributeT<V, IFORM, DOF...> &lhs, TR const &rhs, const Range<EntityId> &r) const;
 
-
-
     template <typename TL, typename TR>
     void Fill(TL &lhs, TR const &rhs, std::string const &k) const {
         Fill(lhs, (rhs), GetRange(k));
@@ -133,14 +133,14 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
 
 };  // class Domain
 
-#define SP_DOMAIN_HEAD(_CLASS_NAME_, _BASE_NAME_)              \
-    SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_);                 \
-    void DoSetUp() override;                                   \
-    void DoUpdate() override;                                  \
-    void DoTearDown() override;                                \
-                                                               \
-    void DoInitialCondition(Real time_now) override;           \
-    void DoAdvance(Real time_now, Real dt) override;           \
+#define SP_DOMAIN_HEAD(_CLASS_NAME_, _BASE_NAME_)    \
+    SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_);       \
+    void DoSetUp() override;                         \
+    void DoUpdate() override;                        \
+    void DoTearDown() override;                      \
+                                                     \
+    void DoInitialCondition(Real time_now) override; \
+    void DoAdvance(Real time_now, Real dt) override; \
     void DoTagRefinementCells(Real time_now) override;
 
 #define SP_DOMAIN_POLICY_HEAD(_NAME_)                  \
@@ -208,7 +208,7 @@ void InitializeArray_(Array<U, SFC> &v, SFC const &sfc) {
     v.alloc();
 }
 template <typename U, int N0, int... N, typename SFC>
-void InitializeArray_(nTuple<Array<U, SFC>, N0, N...> &v, SFC const &sfc) {
+void InitializeArray_(nTuple<simpla::Array<U, SFC>, N0, N...> &v, SFC const &sfc) {
     for (int i = 0; i < N0; ++i) { InitializeArray_(v[i], sfc); }
 }
 template <typename TArray, typename THost>
@@ -249,6 +249,18 @@ void DomainAssign(THost *self, engine::AttributeT<U, IFORM, DOF...> &lhs, RHS co
     lhs.Assign([&](int w, index_type x, index_type y, index_type z) {
         return rhs(chart->local_coordinates(EntityIdCoder::m_sub_index_to_id_[IFORM][w], x, y, z));
     });
+}
+template <typename THost, typename U, typename RHS>
+void DomainAssign(THost *self, engine::AttributeT<U, NODE> &lhs, RHS const &rhs, const Range<EntityId> &r,
+                  ENABLE_IF((simpla::traits::is_invocable<RHS, point_type>::value))) {
+    auto chart = self->GetChart();
+    lhs.Assign([&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0, x, y, z)); });
+}
+template <typename THost, typename U, typename RHS>
+void DomainAssign(THost *self, engine::AttributeT<U, CELL> &lhs, RHS const &rhs, const Range<EntityId> &r,
+                  ENABLE_IF((simpla::traits::is_invocable<RHS, point_type>::value))) {
+    auto chart = self->GetChart();
+    lhs.Assign([&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(7, x, y, z)); });
 }
 
 template <typename THost, typename V, int... DOF, typename... U>

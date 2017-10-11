@@ -10,19 +10,20 @@
 #include "simpla/SIMPLA_config.h"
 #include "simpla/algebra/Algebra.h"
 #include "simpla/engine/Domain.h"
+#include "simpla/physics/Field.h"
 #include "simpla/physics/PhysicalConstants.h"
 namespace simpla {
 namespace domain {
 
 using namespace data;
 
-template <typename TDomainBase>
-class Maxwell : public TDomainBase {
-    SP_DOMAIN_HEAD(Maxwell, TDomainBase);
+template <typename TDomain>
+class Maxwell : public TDomain {
+    SP_DOMAIN_HEAD(Maxwell, TDomain);
 
-    Field<this_type, Real, FACE> B{this, "Name"_ = "B"};
-    Field<this_type, Real, EDGE> E{this, "Name"_ = "E"};
-    Field<this_type, Real, EDGE> J{this, "Name"_ = "J"};
+    FIELD(E, Real, EDGE);
+    FIELD(B, Real, FACE);
+    FIELD(J, Real, EDGE);
 };
 template <typename TDomain>
 Maxwell<TDomain>::Maxwell() : base_type() {}
@@ -40,10 +41,10 @@ template <typename TDomain>
 void Maxwell<TDomain>::DoSetUp() {}
 template <typename TDomain>
 void Maxwell<TDomain>::DoUpdate() {}
-
 template <typename TDomain>
 void Maxwell<TDomain>::DoTearDown() {}
-
+template <typename TDomain>
+void Maxwell<TDomain>::DoTagRefinementCells(Real time_now){};
 template <typename TDomain>
 void Maxwell<TDomain>::DoInitialCondition(Real time_now) {
     E.Clear();
@@ -60,9 +61,6 @@ void Maxwell<TDomain>::DoAdvance(Real time_now, Real time_dt) {
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
     J.Clear();
 }
-
-template <typename TDomain>
-void Maxwell<TDomain>::DoTagRefinementCells(Real time_now){};
 
 }  // namespace domain{
 }  // namespace simpla  {

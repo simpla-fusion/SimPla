@@ -48,14 +48,19 @@ class EngineObject : public SPObject {
 };
 
 #define SP_OBJECT_PROPERTY(_TYPE_, _NAME_)                             \
+   private:                                                            \
+    _TYPE_ m_##_NAME_##_;                                              \
+                                                                       \
+   public:                                                             \
     void Set##_NAME_(_TYPE_ const &_v_) {                              \
-        if (isSetUp()) {                                               \
+        if (this->isSetUp()) {                                         \
             WARNING << "Object is set up, can not change properties."; \
         } else {                                                       \
-            db()->SetValue(__STRING(_NAME_), _v_);                     \
+            m_##_NAME_##_ = _v_;                                       \
+            this->db()->SetValue(__STRING(_NAME_), _v_);               \
         }                                                              \
     }                                                                  \
-    _TYPE_ Get##_NAME_() const { return db()->template GetValue<_TYPE_>(__STRING(_NAME_)); }
+    _TYPE_ Get##_NAME_() const { return m_##_NAME_##_; }
 }  // namespace engine
 }
 #endif  // SIMPLA_ENGOBJECT_H

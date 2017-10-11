@@ -98,8 +98,10 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM, DOF...
 
 };  // class Field
 
-#define FIELD(_NAME_, _TYPE_, _IFORM_, _DOF_, ...) \
-    Field<this_type, _TYPE_, _IFORM_, _DOF_> _NAME_{this, "Name"_ = __STRING(_NAME_), __VA_ARGS__};
+#define FIELD(_NAME_, _TYPE_, _IFORM_, ...) \
+    Field<this_type, _TYPE_, _IFORM_> _NAME_{this, "Name"_ = __STRING(_NAME_), __VA_ARGS__};
+#define VEC_FIELD(_NAME_, _TYPE_, _IFORM_, ...) \
+    Field<this_type, _TYPE_, _IFORM_, 3> _NAME_{this, "Name"_ = __STRING(_NAME_), __VA_ARGS__};
 namespace traits {
 
 template <typename TM, typename TV, int... I>

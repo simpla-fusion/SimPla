@@ -60,7 +60,8 @@ void SPObject::db(std::shared_ptr<data::DataNode> const &d) { m_pimpl_->m_db_ = 
 std::shared_ptr<data::DataNode> SPObject::Serialize() const {
     auto db = data::DataNode::New(data::DataNode::DN_TABLE);
     db->Set(m_pimpl_->m_db_);
-    db->SetValue("_TYPE_", TypeName());
+    db->SetValue("_CLASS_", TypeName());
+    db->SetValue("_TYPE_", FancyTypeName());
     //    db->SetValue("Name", GetName());
     return db;
 }
