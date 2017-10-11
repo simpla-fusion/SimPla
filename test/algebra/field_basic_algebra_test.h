@@ -278,7 +278,7 @@ REGISTER_TYPED_TEST_CASE_P(TestField, Assign, index, constant_real, scalarField)
 //		geometry.set_dimensions(topology_dims);
 //		geometry.set_extents(xmin, xmax);
 //
-//		geometry.Sync();
+//		geometry.MPISync();
 //
 //	}
 // public:

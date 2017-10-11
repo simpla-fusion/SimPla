@@ -44,9 +44,9 @@ SPObject::~SPObject() { delete m_pimpl_; }
 //    if (GLOBAL_COMM.rank() == 0) {
 //        res = New(v);
 //        res->Serialize(db);
-//        //        db->Sync();
+//        //        db->MPISync();
 //    } else {
-//        //        db->Sync();
+//        //        db->MPISync();
 //        res = New(db);
 //    }
 //}

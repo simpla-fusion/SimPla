@@ -258,7 +258,7 @@ std::shared_ptr<DataBlock<V>> DataBlock<V>::New(Args &&... args) {
 //
 //    virtual void Clear() { data_entity_traits::Clear(); }
 //
-//    virtual void Sync(std::shared_ptr<DataBlock>, bool only_ghost = true) { UNIMPLEMENTED; };
+//    virtual void MPISync(std::shared_ptr<DataBlock>, bool only_ghost = true) { UNIMPLEMENTED; };
 //
 //
 //    template<typename ...Args>

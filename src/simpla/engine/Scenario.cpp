@@ -27,7 +27,9 @@ struct Scenario::pimpl_s {
 
     size_type m_step_counter_ = 0;
 
-    void Sync(std::string const &key, std::shared_ptr<Attribute> const &attr, int level = 0);
+    void LocalSync(int level = 0);
+
+    void MPISync(std::string const &key, std::shared_ptr<Attribute> const &attr, int level = 0);
 };
 
 Scenario::Scenario() : m_pimpl_(new pimpl_s) { m_pimpl_->m_atlas_ = Atlas::New(); }
@@ -137,7 +139,7 @@ Range<EntityId> &Scenario::GetRange(std::string const &k) {
 }
 Range<EntityId> const &Scenario::GetRange(std::string const &k) const { return m_pimpl_->m_ranges_.at(k); }
 
-void Scenario::pimpl_s::Sync(std::string const &key, std::shared_ptr<Attribute> const &attr, int level) {
+void Scenario::pimpl_s::MPISync(std::string const &key, std::shared_ptr<Attribute> const &attr, int level) {
     std::shared_ptr<parallel::MPIUpdater> updater = nullptr;
 
     if (attr->value_type_info() == typeid(double)) {
@@ -176,8 +178,32 @@ void Scenario::pimpl_s::Sync(std::string const &key, std::shared_ptr<Attribute> 
         updater->TearDown();
     }
 }
+
+void Scenario::pimpl_s::LocalSync(int level) {
+    for (auto ia = m_patches_.begin(), ie = m_patches_.end(); ia != ie; ++ia) {
+        for (auto ib = ia++; ib != ie; ++ib) {
+            box_type box_a;  //= ia->second->GetIndexBox();
+            box_type box_b;  //= ib->second->GetIndexBox();
+            FIXME << "Need box_overlap!";
+            //            if (utility::overlap(box_a, box_b) == 0) { continue; }
+            for (auto &attr : m_attrs_) {
+                auto attr_a = ia->second->Get(attr.first);
+                auto attr_b = ib->second->Get(attr.first);
+                for (int d = 0; d < attr.second->GetNumOfSub(); ++d) {
+                    if (auto array_a = std::dynamic_pointer_cast<ArrayBase>(attr_a->GetEntity(d)))
+                        if (auto array_b = std::dynamic_pointer_cast<ArrayBase>(attr_b->GetEntity(d))) {
+                            array_b->CopyIn(*array_a->GetSelectionP(box_a));
+                            array_a->CopyIn(*array_b->GetSelectionP(box_b));
+                        }
+                }
+            };
+        };
+    };
+}
 void Scenario::Synchronize(int level) {
     ASSERT(level == 0)
+
+    m_pimpl_->LocalSync(level);
 
 #ifdef MPI_FOUND
     GLOBAL_COMM.barrier();
@@ -186,7 +212,7 @@ void Scenario::Synchronize(int level) {
         for (auto &item : m_pimpl_->m_attrs_) {
             if (item.second->db()->Check("LOCAL")) { return; }
             parallel::bcast_string(item.first);
-            m_pimpl_->Sync(item.first, item.second, level);
+            m_pimpl_->MPISync(item.first, item.second, level);
         };
         parallel::bcast_string("");
     } else {
@@ -197,7 +223,7 @@ void Scenario::Synchronize(int level) {
             if (attr == m_pimpl_->m_attrs_.end() || attr->second->db()->Check("LOCAL")) {
                 RUNTIME_ERROR << "Can not sync local/null attribute \"" << key << "\".";
             }
-            m_pimpl_->Sync(attr->first, attr->second, level);
+            m_pimpl_->MPISync(attr->first, attr->second, level);
         }
     }
     GLOBAL_COMM.barrier();

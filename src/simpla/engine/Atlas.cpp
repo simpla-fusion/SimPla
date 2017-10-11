@@ -262,7 +262,7 @@ index_tuple Atlas::GetHaloWidth() const { return m_pimpl_->m_ghost_width_; }
 //
 // void Atlas::Save(data::DataNode *) const { UNIMPLEMENTED; }
 //
-// void Atlas::Sync(id_type id)
+// void Atlas::MPISync(id_type id)
 //{
 //    unlink(id);
 //

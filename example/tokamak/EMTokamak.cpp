@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
     scenario->GetAtlas()->SetBoundingBox(bounding_box);
     //    auto tokamak = Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
     //    auto* p = new domain::Maxwell<domain_type>;/*tokamak->Limiter()*/
-    scenario->SetDomain<domain::Maxwell<domain_type>>("Limiter", geometry::Cube::New(bounding_box));
+    scenario->NewDomain<domain::Maxwell<domain_type>>("Limiter");
     scenario->GetDomain("Limiter")->PostInitialCondition.Connect([=](DomainBase *self, Real time_now) {
         if (auto d = dynamic_cast<domain::Maxwell<domain_type> *>(self)) {
             d->B = [&](point_type const &x) {

@@ -26,6 +26,9 @@ class Array;
 typedef nTuple<index_type, 3> IdxShift;
 
 struct ArrayBase {
+    virtual std::ostream& Print(std::ostream& os, int indent) const = 0;
+    virtual void FillNaN() = 0;
+
     virtual std::type_info const& value_type_info() const = 0;
     virtual size_type size() const = 0;
     virtual void* pointer() = 0;
@@ -41,11 +44,34 @@ struct ArrayBase {
     virtual void Clear() = 0;
     virtual void reset(void*, index_type const* lo, index_type const* hi) = 0;
     virtual void reset(index_box_type const& b) = 0;
+
     virtual std::shared_ptr<ArrayBase> DuplicateArray() const = 0;
     virtual void Shift(index_type const*) = 0;
     virtual void Select(index_type const*, index_type const*) = 0;
-    virtual std::ostream& Print(std::ostream& os, int indent) const = 0;
-    virtual void FillNaN() = 0;
+
+    template <typename U, int N>
+    void Shift(nTuple<U, N> const& s) {
+        nTuple<index_type, N> idx = s;
+        Shift(&idx[0]);
+    };
+    template <typename U, int N>
+    void Select(std::tuple<nTuple<U, N>, nTuple<U, N>> const& b) {
+        nTuple<index_type, N> lo, hi;
+        std::tie(lo, hi) = b;
+        Select(&lo[0], &hi[0]);
+    };
+    template <typename... Args>
+    std::shared_ptr<ArrayBase> GetShiftP(Args&&... args) const {
+        auto res = DuplicateArray();
+        res->Shift(std::forward<Args>(args)...);
+        return res;
+    }
+    template <typename... Args>
+    std::shared_ptr<ArrayBase> GetSelectionP(Args&&... args) const {
+        auto res = DuplicateArray();
+        res->Select(std::forward<Args>(args)...);
+        return res;
+    }
 };
 
 template <typename V, typename SFC = ZSFC<3>>
