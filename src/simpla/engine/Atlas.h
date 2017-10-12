@@ -86,8 +86,8 @@ class Atlas : public EngineObject {
     bool hasBoundingBox() const;
     void SetBoundingBox(box_type const &);
     box_type GetBoundingBox() const;
-    index_box_type GetIndexBox(int tag = CELL, int direction = 0) const;
-    index_box_type GetHaloIndexBox(int tag = CELL, int direction = 0) const;
+    index_box_type GetBoundingIndexBox(int tag = CELL, int direction = 0) const;
+    index_box_type GetBoundingHaloIndexBox(int tag = CELL, int direction = 0) const;
 
     index_box_type GetGlobalIndexBox() const;
 
@@ -102,6 +102,8 @@ class Atlas : public EngineObject {
     SP_OBJECT_PROPERTY(index_tuple, SmallestPatchDimensions);
     SP_OBJECT_PROPERTY(index_tuple, PeriodicDimensions);
     SP_OBJECT_PROPERTY(index_tuple, CoarsestIndexBox);
+
+    std::shared_ptr<Patch> NewPatch(index_box_type const &b) { return SetPatch(Patch::New(MeshBlock::New(b))); }
 
     template <typename... Args>
     std::shared_ptr<Patch> NewPatch(Args &&... args) {

@@ -50,7 +50,7 @@ void EBMesh<THost>::SetEmbeddedBoundary(std::string const &prefix, const std::sh
     //
     //    VERBOSE << "AddEntity Embedded Boundary [" << prefix << "]"
     //            << "Patch : Level=" << this->GetMesh()->GetMeshBlock()->GetLevel() << " "
-    //            << this->GetMesh()->GetIndexBox(NODE) << std::endl;
+    //            << this->GetMesh()->GetBoundingIndexBox(NODE) << std::endl;
     //
     //    Range<EntityId> body_ranges[4];
     //    Range<EntityId> boundary_ranges[4];
@@ -59,7 +59,7 @@ void EBMesh<THost>::SetEmbeddedBoundary(std::string const &prefix, const std::sh
     //    m_vertex_tag_.Clear();
     //    m_edge_tag_.Clear();
 
-    //    geometry::CutCell(m_domain_->GetMesh()->GetChart(), m_domain_->GetMesh()->GetIndexBox(0b0), g,
+    //    geometry::CutCell(m_domain_->GetMesh()->GetChart(), m_domain_->GetMesh()->GetBoundingIndexBox(0b0), g,
     //    &m_volume_tag_.Get()[0]);
     //    m_edge_tag_d_[0] = m_edge_tag_.GetEntity();
     //    Real ratio = std::get<0>(m_domain_->GetMesh()->CheckOverlap(g));

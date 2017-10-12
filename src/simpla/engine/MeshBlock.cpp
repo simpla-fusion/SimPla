@@ -69,12 +69,12 @@ id_type MeshBlock::GetGUID() const {
 //}
 // index_tuple MeshBlock::GetHaloWidth() const { return m_ghost_width_; };
 // index_box_type MeshBlock::GetOuterIndexBox() const {
-//    auto ibox = GetIndexBox();
+//    auto ibox = GetBoundingIndexBox();
 //    std::get<0>(ibox) -= GetHaloWidth();
 //    std::get<1>(ibox) += GetHaloWidth();
 //    return std::move(ibox);
 //}
-// index_box_type MeshBlock::GetInnerIndexBox() const { return GetIndexBox(); }
+// index_box_type MeshBlock::GetInnerIndexBox() const { return GetBoundingIndexBox(); }
 //
 // index_tuple MeshBlock::GetIndexOrigin() const { return std::get<0>(m_global_index_box_); }
 //

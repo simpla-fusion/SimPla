@@ -160,7 +160,7 @@ void Atlas::SetBoundingBox(box_type const &b) {
 }
 box_type Atlas::GetBoundingBox() const { return m_pimpl_->m_box_; }
 index_box_type Atlas::GetGlobalIndexBox() const { return m_pimpl_->m_global_index_box_; };
-index_box_type Atlas::GetIndexBox(int iform, int direction) const {
+index_box_type Atlas::GetBoundingIndexBox(int iform, int direction) const {
     index_tuple lo, hi;
     std::tie(lo, hi) = m_pimpl_->m_index_box_;
     switch (iform) {
@@ -181,8 +181,8 @@ index_box_type Atlas::GetIndexBox(int iform, int direction) const {
     }
     return std::make_tuple(lo, hi);
 }
-index_box_type Atlas::GetHaloIndexBox(int tag, int direction) const {
-    index_box_type res = GetIndexBox(tag, direction);
+index_box_type Atlas::GetBoundingHaloIndexBox(int tag, int direction) const {
+    index_box_type res = GetBoundingIndexBox(tag, direction);
     std::get<0>(res) -= GetHaloWidth();
     std::get<1>(res) += GetHaloWidth();
     return res;
@@ -203,8 +203,8 @@ void Atlas::SyncGlobal(std::string const &key, std::type_info const &t_info, int
     } else {
         UNIMPLEMENTED;
     }
-    auto idx_box = GetIndexBox();
-    auto halo_box = GetHaloIndexBox();
+    auto idx_box = GetBoundingIndexBox();
+    auto halo_box = GetBoundingHaloIndexBox();
 
     for (int dir = 0; dir < 3; ++dir) {
         updater->SetIndexBox(idx_box);

@@ -1018,7 +1018,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::initializeDataOnPatch(SAMRAI::hier::P
                             break;
                     }
                 }
-                //                CHECK(p->GetMeshBlock()->GetIndexBox());
+                //                CHECK(p->GetMeshBlock()->GetBoundingIndexBox());
                 //                CHECK(vertex_box);
                 //                CHECK(edge0_box);
                 //                CHECK(edge1_box);
@@ -1292,7 +1292,7 @@ void SAMRAITimeIntegrator::DoUpdate() {
     nTuple<int, 3> i_low{0, 0, 0};
     nTuple<int, 3> i_up{0, 0, 0};
 
-    std::tie(i_low, i_up) = GetAtlas()->GetIndexBox();  // FIXME: Get cell index box
+    std::tie(i_low, i_up) = GetAtlas()->GetBoundingIndexBox();  // FIXME: Get cell index box
 
     cfgCartesianGridGeometry->putDatabaseBox(
         "domain_boxes_0", SAMRAI::tbox::DatabaseBox{SAMRAI::tbox::Dimension(3), &i_low[0], &i_up[0]});

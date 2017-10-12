@@ -47,10 +47,12 @@ int main(int argc, char **argv) {
     scenario->GetAtlas()->GetChart()->SetScale({1, 1.5, 2});
     scenario->GetAtlas()->GetChart()->SetOrigin({0, 0, 0});
 
-    box_type bounding_box{{-20, -30, -25}, {20, 30, 25}};
+    box_type center_box{{-15, -25, -20}, {15, 25, 20}};
+    //    scenario->GetAtlas()->SetBoundingBox(bounding_box);
 
-    scenario->GetAtlas()->SetBoundingBox(bounding_box);
-    scenario->NewDomain<SimpleMaxwell>("Center")->PostInitialCondition.Connect([=](DomainBase *self, Real time_now) {
+    auto center = scenario->NewDomain<SimpleMaxwell>("Center");
+    center->SetBoundary(geometry::Cube::New(center_box));
+    center->PostInitialCondition.Connect([=](DomainBase *self, Real time_now) {
         if (auto d = dynamic_cast<SimpleMaxwell *>(self)) {
             d->B = [&](point_type const &x) {
                 return point_type{std::cos(2 * PI * x[1] / 60) * std::cos(2 * PI * x[2] / 50),
@@ -59,11 +61,19 @@ int main(int argc, char **argv) {
             };
         }
     });
-    //    scenario->NewDomain<SimplePML>("Boundary")->SetCenterBox(box_type{{-15, -25, -20}, {15, 25, 20}});
-
+    auto pml = scenario->NewDomain<SimplePML>("Boundary");
+    pml->SetCenterBox(center_box);
     scenario->SetTimeEnd(1.0e-8);
     scenario->SetMaxStep(num_of_step);
     scenario->SetUp();
+
+    index_tuple pml_width = {5, 5, 5};
+//    box_type bounding_box{{-20, -30, -25}, {20, 30, 25}};
+
+    if (auto atlas = scenario->GetAtlas()) {
+        auto box_list = utility::halo_box_decompose(center_box, pml_width);
+        for (auto const &b : box_list) { atlas->NewPatch(b); }
+    }
 
     scenario->ConfigureAttribute<size_type>("E", "CheckPoint", checkpoint_interval);
     scenario->ConfigureAttribute<size_type>("B", "CheckPoint", checkpoint_interval);
