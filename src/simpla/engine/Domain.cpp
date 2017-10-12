@@ -17,6 +17,9 @@ struct DomainBase::pimpl_s {
     std::shared_ptr<geometry::Chart> m_chart_ = nullptr;
     std::shared_ptr<geometry::GeoObject> m_boundary_ = nullptr;
     std::shared_ptr<const MeshBlock> m_mesh_block_ = nullptr;
+
+    int m_box_in_boundary_ = 1;
+    bool m_is_first_time_ = false;
 };
 DomainBase::DomainBase() : m_pimpl_(new pimpl_s){};
 DomainBase::~DomainBase() { delete m_pimpl_; };
@@ -46,24 +49,23 @@ void DomainBase::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
 
         nTuple<int, 3> dims = cfg->GetValue("Dimensions", nTuple<int, 3>{1, 1, 1});
 
-        GetChart()->SetOrigin(lo);
-        GetChart()->SetScale((hi - lo) / (dims + 1));
-
-        GetChart()->Deserialize(cfg->Get("Chart"));
+        m_pimpl_->m_chart_->SetOrigin(lo);
+        m_pimpl_->m_chart_->SetScale((hi - lo) / (dims + 1));
+        m_pimpl_->m_chart_->Deserialize(cfg->Get("Chart"));
     }
     AttributeGroup::Deserialize(cfg->Get("Attributes"));
 };
 int DomainBase::GetNDIMS() const { return GetChart()->GetNDIMS(); }
 
 void DomainBase::SetChart(std::shared_ptr<geometry::Chart> const& c) { m_pimpl_->m_chart_ = c; }
-std::shared_ptr<geometry::Chart> DomainBase::GetChart() { return m_pimpl_->m_chart_; }
 std::shared_ptr<const geometry::Chart> DomainBase::GetChart() const { return m_pimpl_->m_chart_; }
 
+void DomainBase::SetBoundary(std::shared_ptr<geometry::GeoObject> const& g) { m_pimpl_->m_boundary_ = g; }
+std::shared_ptr<geometry::GeoObject> DomainBase::GetBoundary() const { return m_pimpl_->m_boundary_; }
+
 void DomainBase::SetMeshBlock(std::shared_ptr<const MeshBlock> const& blk) { m_pimpl_->m_mesh_block_ = blk; };
-std::shared_ptr<const MeshBlock> DomainBase::GetMeshBlock() const {
-    ASSERT(m_pimpl_->m_mesh_block_ != nullptr);
-    return m_pimpl_->m_mesh_block_;
-}
+std::shared_ptr<const MeshBlock> DomainBase::GetMeshBlock() const { return m_pimpl_->m_mesh_block_; }
+
 // void DomainBase::Push(std::shared_ptr<data::DataNode> const& data) { AttributeGroup::Push(data); }
 // std::shared_ptr<data::DataNode> DomainBase::Pop() const { return AttributeGroup::Pop(); }
 void DomainBase::Push(const std::shared_ptr<Patch>& p) {
@@ -73,11 +75,11 @@ void DomainBase::Push(const std::shared_ptr<Patch>& p) {
 std::shared_ptr<Patch> DomainBase::Pop() const {
     auto res = AttributeGroup::Pop();
     res->SetMeshBlock(GetMeshBlock());
+    m_pimpl_->m_is_first_time_ = false;
+    m_pimpl_->m_box_in_boundary_ = -1;
     return res;
 }
 
-void DomainBase::SetBoundary(std::shared_ptr<geometry::GeoObject> const& g) { m_pimpl_->m_boundary_ = g; }
-std::shared_ptr<geometry::GeoObject> DomainBase::GetBoundary() const { return m_pimpl_->m_boundary_; }
 std::shared_ptr<geometry::GeoObject> DomainBase::GetBlockBoundingBox() const {
     return m_pimpl_->m_chart_->GetBoundingShape(m_pimpl_->m_mesh_block_->GetIndexBox());
 }
@@ -86,68 +88,74 @@ box_type DomainBase::GetBlockBox() const {
     return std::make_tuple(m_pimpl_->m_chart_->local_coordinates(std::get<0>(idx_box)),
                            m_pimpl_->m_chart_->local_coordinates(std::get<1>(idx_box)));
 }
+int DomainBase::CheckBoundary() const { return m_pimpl_->m_box_in_boundary_; }
 
-int DomainBase::CheckBoundary() const {
-    Real ratio = 1.0;
-    if (m_pimpl_->m_boundary_ != nullptr) {
-        auto b = GetBlockBoundingBox();
-        ratio = m_pimpl_->m_boundary_->Intersection(b)->Measure() / b->Measure();
-    }
-    return ratio < EPSILON ? 1 : (ratio < 1.0 ? 0 : -1);
-}
-bool DomainBase::isOutOfBoundary() const {
-    FIXME;
-    return false;
-}
+bool DomainBase::isOutOfBoundary() const { return m_pimpl_->m_box_in_boundary_ > 1; }
+bool DomainBase::isOnBoundary() const { return m_pimpl_->m_box_in_boundary_ == 0; }
+bool DomainBase::isFirstTime() const { return m_pimpl_->m_is_first_time_; }
 
-bool DomainBase::isOnBoundary() const {
-    FIXME;
-    return false;
-}
-bool DomainBase::isFirstTime() const {
-    FIXME;
-    return false;
-}
 void DomainBase::DoSetUp() { base_type::DoSetUp(); }
-void DomainBase::DoUpdate() { base_type::DoUpdate(); }
+void DomainBase::DoUpdate() {
+    TODO << "Check boundary";
+    base_type::DoUpdate();
+}
 void DomainBase::DoTearDown() { base_type::DoTearDown(); }
 
 void DomainBase::InitialCondition(Real time_now) {
     Update();
-    VERBOSE << std::setw(30) << "InitialCondition domain :" << GetName();
+    VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
+            << "Domain::InitialCondition( time_now =" << time_now << ")"
+            << ":" << GetMeshBlock()->GetIndexBox();
     PreInitialCondition(this, time_now);
     DoInitialCondition(time_now);
     PostInitialCondition(this, time_now);
 }
 void DomainBase::BoundaryCondition(Real time_now, Real dt) {
     Update();
-    VERBOSE << std::setw(30) << "BoundaryCondition domain :" << GetName();
+    if (isOutOfBoundary()) { return; }
+    VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
+            << "Domain::BoundaryCondition( time_now=" << time_now << " , dt=" << dt << ")"
+            << ":" << GetMeshBlock()->GetIndexBox();
     PreBoundaryCondition(this, time_now, dt);
     DoBoundaryCondition(time_now, dt);
     PostBoundaryCondition(this, time_now, dt);
 }
 
-void DomainBase::ComputeFluxes(Real time_now, Real dt) {
+void DomainBase::ComputeFluxes(Real time_now, Real time_dt) {
     Update();
-    VERBOSE << std::setw(30) << "ComputeFluxes domain :" << GetName();
-    PreComputeFluxes(this, time_now, dt);
-    DoComputeFluxes(time_now, dt);
-    PostComputeFluxes(this, time_now, dt);
+    if (isOutOfBoundary()) { return; }
+    VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
+            << "Domain::ComputeFluxes(time_now=" << time_now << " , time_dt=" << time_dt << ")"
+            << ":" << GetMeshBlock()->GetIndexBox();
+    PreComputeFluxes(this, time_now, time_dt);
+    DoComputeFluxes(time_now, time_dt);
+    PostComputeFluxes(this, time_now, time_dt);
 }
-Real DomainBase::ComputeStableDtOnPatch(Real time_now, Real time_dt) const { return time_dt; }
+Real DomainBase::ComputeStableDtOnPatch(Real time_now, Real time_dt) const {
+    if (!isModified() || isOutOfBoundary()) { return time_dt; }
+    VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
+            << "Domain::ComputeStableDtOnPatch( time_now=" << time_now << " , time_dt=" << time_dt << ")"
+            << ":" << GetMeshBlock()->GetIndexBox();
+    return time_dt;
+}
 
-void DomainBase::Advance(Real time_now, Real dt) {
+void DomainBase::Advance(Real time_now, Real time_dt) {
     Update();
-    //    if (std::get<0>(GetMesh()->CheckOverlap(GetBoundary())) < EPSILON) { return; }
-    VERBOSE << std::setw(30) << "Advance domain :" << GetName();
-    PreAdvance(this, time_now, dt);
-    DoAdvance(time_now, dt);
-    PostAdvance(this, time_now, dt);
+    if (isOutOfBoundary()) { return; }
+    VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
+            << "Domain::Advance(time_now=" << time_now << " , dt=" << time_dt << ")"
+            << ":" << GetMeshBlock()->GetIndexBox();
+    PreAdvance(this, time_now, time_dt);
+    DoAdvance(time_now, time_dt);
+    PostAdvance(this, time_now, time_dt);
 }
 void DomainBase::TagRefinementCells(Real time_now) {
     Update();
-    FIXME;
-    //    if (std::get<0>(GetBoundary()->CheckOverlap()) < EPSILON) { return; }
+    if (isOutOfBoundary()) { return; }
+    VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
+            << "Domain::TagRefinementCells(time_now=" << time_now << ")"
+            << ":" << GetMeshBlock()->GetIndexBox();
+
     PreTagRefinementCells(this, time_now);
     //    TagRefinementRange(GetRange(GetName() + "_BOUNDARY_3"));
     DoTagRefinementCells(time_now);

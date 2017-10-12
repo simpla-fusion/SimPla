@@ -36,7 +36,6 @@ int main(int argc, char **argv) {
     box_type bounding_box{{-20, -30, -25}, {20, 30, 25}};
 
     scenario->GetAtlas()->SetBoundingBox(bounding_box);
-
     scenario->NewDomain<SimpleMaxwell>("Center")->PostInitialCondition.Connect([=](DomainBase *self, Real time_now) {
         if (auto d = dynamic_cast<SimpleMaxwell *>(self)) {
             d->B = [&](point_type const &x) {
@@ -46,6 +45,8 @@ int main(int argc, char **argv) {
             };
         }
     });
+    //
+    //    scenario->SetDomain("Center", center);
     scenario->NewDomain<SimplePML>("Boundary")->SetCenterBox(box_type{{-15, -25, -20}, {15, 25, 20}});
 
     scenario->SetTimeEnd(1.0e-8);
@@ -61,9 +62,11 @@ int main(int argc, char **argv) {
     scenario->ConfigureAttribute<size_type>("s1", "CheckPoint", 1);
     scenario->ConfigureAttribute<size_type>("s2", "CheckPoint", 1);
     VERBOSE << "Scenario: " << *scenario->Serialize();
-
     TheStart();
+
     scenario->Run();
+
+    VERBOSE << "Scenario: " << *scenario->Serialize();
     TheEnd();
 
     scenario->TearDown();

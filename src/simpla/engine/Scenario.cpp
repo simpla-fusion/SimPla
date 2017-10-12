@@ -84,9 +84,9 @@ void Scenario::CheckPoint(size_type step_num) const {
     m_pimpl_->m_atlas_->Foreach([&](auto const &patch) {
         auto d_patch = patches->CreateNode(std::to_string(patch->GetGUID()), data::DataNode::DN_TABLE);
         for (auto const &attr : m_pimpl_->m_attrs_) {
-            if (auto data_blk = patch->GetDataBlock(attr.first)) {
-                auto check_point = attr.second->db()->GetValue<size_type>("CheckPoint", 0);
-                if (check_point != 0 && step_num % check_point == 0) { d_patch->Set(attr.first, data_blk); }
+            auto check_point = attr.second->db()->GetValue<size_type>("CheckPoint", 0);
+            if (check_point != 0 && step_num % check_point == 0) {
+                if (auto data_blk = patch->GetDataBlock(attr.first)) { d_patch->Set(attr.first, data_blk); }
             }
         }
 
@@ -219,9 +219,11 @@ std::shared_ptr<Atlas> Scenario::GetAtlas() const { return m_pimpl_->m_atlas_; }
 
 std::shared_ptr<DomainBase> Scenario::SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &d) {
     ASSERT(!isSetUp());
-    m_pimpl_->m_domains_[k] = d;
-    m_pimpl_->m_domains_[k]->SetName(k);
-    m_pimpl_->m_domains_[k]->SetChart(m_pimpl_->m_atlas_->GetChart());
+    if (d != nullptr) {
+        m_pimpl_->m_domains_[k] = d;
+        m_pimpl_->m_domains_[k]->SetName(k);
+        m_pimpl_->m_domains_[k]->SetChart(m_pimpl_->m_atlas_->GetChart());
+    }
     return d;
 }
 std::shared_ptr<DomainBase> Scenario::GetDomain(std::string const &k) const {

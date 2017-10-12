@@ -398,12 +398,15 @@ void AttributeT<V, IFORM, DOF...>::Deserialize(std::shared_ptr<data::DataNode> c
 
 template <typename V, int IFORM, int... DOF>
 void AttributeT<V, IFORM, DOF...>::Push(const std::shared_ptr<data::DataNode> &d) {
-    detail::push_data(*this, d);
+    if (d != nullptr) detail::push_data(*this, d->Get("_DATA_"));
 };
 
 template <typename V, int IFORM, int... DOF>
 std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Pop() const {
-    return detail::pop_data(*this);
+    auto res = data::DataNode::New(data::DataNode::DN_TABLE);
+    res->SetValue<int>("IFORM", GetIFORM());
+    res->Set("_DATA_", detail::pop_data(*this));
+    return res;
 };
 
 namespace detail {

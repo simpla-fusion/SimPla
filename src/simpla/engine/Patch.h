@@ -34,11 +34,12 @@ class Patch : public std::enable_shared_from_this<Patch> {
     void Deserialize(std::shared_ptr<data::DataNode> const &cfg);
 
     std::shared_ptr<data::DataNode> GetDataBlock(std::string const &) const;
-    void SetDataBlock(std::string const &, const std::shared_ptr<data::DataNode> &);
+    void SetDataBlock(std::string const &, std::shared_ptr<data::DataNode> const &);
     std::map<std::string, std::shared_ptr<data::DataNode>> const &GetAllDataBlocks() const;
 
     void SetMeshBlock(const std::shared_ptr<const MeshBlock> &blk);
-    virtual std::shared_ptr<const MeshBlock> GetMeshBlock() const;
+    std::shared_ptr<const MeshBlock> GetMeshBlock() const;
+    index_box_type GetIndexBox() const;
 
     void Push(std::shared_ptr<Patch> const &other);
     std::shared_ptr<Patch> Pop() const;

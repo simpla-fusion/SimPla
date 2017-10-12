@@ -18,7 +18,10 @@ id_type Patch::GetGUID() const { return m_pimpl_->m_mesh_block_->GetGUID(); }
 
 std::shared_ptr<data::DataNode> Patch::Serialize() const {
     auto res = data::DataNode::New(data::DataNode::DN_TABLE);
-    FIXME;
+    res->Set("MeshBlock", m_pimpl_->m_mesh_block_->Serialize());
+
+    auto attrs = res->CreateNode("Attributes", data::DataNode::DN_TABLE);
+    for (auto const &item : m_pimpl_->m_data_blocks_) { attrs->Set(item.first, item.second); }
     return res;
 }
 void Patch::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { FIXME; }
@@ -28,16 +31,19 @@ std::map<std::string, std::shared_ptr<data::DataNode>> const &Patch::GetAllDataB
 }
 
 std::shared_ptr<data::DataNode> Patch::GetDataBlock(std::string const &key) const {
+    std::shared_ptr<data::DataNode> res = nullptr;
     auto it = m_pimpl_->m_data_blocks_.find(key);
-    return it == m_pimpl_->m_data_blocks_.end() ? nullptr : it->second;
+    if (it != m_pimpl_->m_data_blocks_.end()) { res = it->second; }
+    return res;
 }
-void Patch::SetDataBlock(std::string const &key, std::shared_ptr<data::DataNode> const &data) {
-    auto res = m_pimpl_->m_data_blocks_.emplace(key, data);
-    if (!res.second) { res.first->second->Set(data); }
+void Patch::SetDataBlock(std::string const &key, std::shared_ptr<data::DataNode> const &d) {
+    auto res = m_pimpl_->m_data_blocks_.emplace(key, d);
+    res.first->second->Set(d);
 }
 
 void Patch::SetMeshBlock(const std::shared_ptr<const MeshBlock> &blk) { m_pimpl_->m_mesh_block_ = blk; }
 std::shared_ptr<const MeshBlock> Patch::GetMeshBlock() const { return m_pimpl_->m_mesh_block_; }
+index_box_type Patch::GetIndexBox() const { return m_pimpl_->m_mesh_block_->GetIndexBox(); }
 
 void Patch::Push(std::shared_ptr<Patch> const &other) {
     if (other == nullptr) { return; }

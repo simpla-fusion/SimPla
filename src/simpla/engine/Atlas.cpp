@@ -65,10 +65,8 @@ std::shared_ptr<data::DataNode> Atlas::Serialize() const {
     auto tdb = base_type::Serialize();
 
     tdb->Set("Chart", m_pimpl_->m_chart_->Serialize());
-
-    auto blocks = tdb->CreateNode(data::DataNode::DN_TABLE);
-    for (auto const &item : m_pimpl_->m_patches_) { blocks->Set(item.first, item.second->Serialize()); }
-    tdb->Set("Blocks", blocks);
+    auto patches = tdb->CreateNode("Patches", data::DataNode::DN_TABLE);
+    for (auto const &item : m_pimpl_->m_patches_) { patches->Set(item.first, item.second->Serialize()); }
     return tdb;
 };
 void Atlas::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
@@ -90,7 +88,7 @@ void Atlas::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
 std::shared_ptr<geometry::Chart> Atlas::GetChart() const { return m_pimpl_->m_chart_; }
 void Atlas::SetChart(std::shared_ptr<geometry::Chart> const &c) { m_pimpl_->m_chart_ = c; }
 void Atlas::DoSetUp() {
-    ASSERT(m_pimpl_->m_chart_ == nullptr);  //{ m_pimpl_->m_chart_ = geometry::csCartesian::New(); }
+    ASSERT(m_pimpl_->m_chart_ != nullptr);  //{ m_pimpl_->m_chart_ = geometry::csCartesian::New(); }
     m_pimpl_->m_chart_->SetUp();
     point_type lo{0, 0, 0}, hi{0, 0, 0};
     std::tie(lo, hi) = m_pimpl_->m_box_;
@@ -216,14 +214,20 @@ void Atlas::SyncGlobal(std::string const &key, std::type_info const &t_info, int
         for (int d = 0; d < num_of_sub; ++d) {
             updater->Clear();
             for (auto &item : m_pimpl_->m_patches_) {
-                if (auto t = item.second->GetDataBlock(key)) {
-                    if (auto array = std::dynamic_pointer_cast<ArrayBase>(t->GetEntity(d))) { updater->Push(*array); }
-                };
+                if (auto patch = item.second->GetDataBlock(key)) {
+                    if (auto blk = patch->Get("_DATA_"))
+                        if (auto data = std::dynamic_pointer_cast<ArrayBase>(blk->GetEntity(d))) {
+                            updater->Push(*data);
+                        };
+                }
             }
             updater->SendRecv();
             for (auto &item : m_pimpl_->m_patches_) {
-                if (auto t = item.second->GetDataBlock(key)) {
-                    if (auto array = std::dynamic_pointer_cast<ArrayBase>(t->GetEntity(d))) { updater->Pop(*array); }
+                if (auto patch = item.second->GetDataBlock(key)) {
+                    if (auto blk = patch->Get("_DATA_"))
+                        if (auto data = std::dynamic_pointer_cast<ArrayBase>(blk->GetEntity(d))) {
+                            updater->Pop(*data);
+                        }
                 };
             }
         }
@@ -233,20 +237,21 @@ void Atlas::SyncGlobal(std::string const &key, std::type_info const &t_info, int
 
 void Atlas::SyncLocal(int level) {
     for (auto ia = m_pimpl_->m_patches_.begin(), ie = m_pimpl_->m_patches_.end(); ia != ie; ++ia) {
-        for (auto ib = ia++; ib != ie; ++ib) {
-            box_type box_a;  //= ia->second->GetIndexBox();
-            box_type box_b;  //= ib->second->GetIndexBox();
-            FIXME << "Need box_overlap!";
+        auto ib = ia;
+        ++ib;
+        for (; ib != ie; ++ib) {
+            box_type box_a = ia->second->GetIndexBox();
+            box_type box_b = ib->second->GetIndexBox();
             if (!geometry::CheckOverlap(box_a, box_b)) { continue; }
-            for (auto &item : ia->second->GetAllDataBlocks()) {
+            for (auto const &item : ia->second->GetAllDataBlocks()) {
                 auto attr_a = item.second;
                 auto attr_b = ib->second->GetDataBlock(item.first);
                 for (int d = 0; d < attr_a->size(); ++d) {
-                    if (auto array_a = std::dynamic_pointer_cast<ArrayBase>(attr_a->GetEntity(d)))
-                        if (auto array_b = std::dynamic_pointer_cast<ArrayBase>(attr_b->GetEntity(d))) {
-                            array_b->CopyIn(*array_a->GetSelectionP(box_a));
-                            array_a->CopyIn(*array_b->GetSelectionP(box_b));
-                        }
+                    auto array_a = std::dynamic_pointer_cast<ArrayBase>(attr_a->GetEntity(d));
+                    auto array_b = std::dynamic_pointer_cast<ArrayBase>(attr_b->GetEntity(d));
+
+                    array_b->CopyIn(*array_a->GetSelectionP(box_a));
+                    array_a->CopyIn(*array_b->GetSelectionP(box_b));
                 }
             };
         };

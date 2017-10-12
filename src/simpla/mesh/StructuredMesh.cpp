@@ -31,7 +31,7 @@ namespace mesh {
 
 index_box_type StructuredMesh::GetIndexBox(int tag) const {
     index_tuple lo, hi;
-    std::tie(lo, hi) = GetBlock()->GetIndexBox();
+    std::tie(lo, hi) = GetMeshBlock()->GetIndexBox();
     switch (tag) {
         case 0:
             hi += 1;

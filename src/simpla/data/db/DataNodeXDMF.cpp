@@ -124,8 +124,8 @@ std::ostream &XDMFWriteArray(std::ostream &os, hid_t g_id, std::string const &pr
 void DataNodeXDMF::WriteDataItem(std::string const &url, std::string const &key, const index_box_type &idx_box,
                                  std::shared_ptr<data::DataNode> const &data, int indent) {
     auto g_id = H5GroupTryOpen(m_h5_root_, url);
-
-    if (auto array = std::dynamic_pointer_cast<ArrayBase>(data->GetEntity())) {
+    if (data == nullptr) {
+    } else if (auto array = std::dynamic_pointer_cast<ArrayBase>(data->GetEntity())) {
         XDMFWriteArray(os, g_id, m_h5_prefix_ + ":" + url, key, &std::get<0>(idx_box)[0], &std::get<1>(idx_box)[0],
                        array, indent + 1);
     } else if (data->type() == data::DataNode::DN_ARRAY) {
@@ -295,47 +295,45 @@ int DataNodeXDMF::Flush() {
     int success = SP_FAILED;
 
     //    auto attrs = this->Get("Attributes");
-
-    auto patches = this->Get("Patches");
-    ASSERT(patches != nullptr);
-
     int indent = 2;
     if (auto atlas = this->Get("Atlas")) {
         auto chart = atlas->Get("Chart");
-        auto blks = atlas->Get("Blocks");
-
-        blks->Foreach([&](std::string const &k, std::shared_ptr<data::DataNode> const &blk) {
-            auto guid = blk->GetValue<id_type>("GUID");
-            if (auto patch = patches->Get(k)) {
-                index_box_type idx_box{blk->GetValue<index_tuple>("LowIndex"), blk->GetValue<index_tuple>("HighIndex")};
+        if (auto patches = atlas->Get("Patches")) {
+            patches->Foreach([&](std::string const &k, std::shared_ptr<data::DataNode> const &patch) {
+                auto guid = patch->GetValue<id_type>("GUID");
+                auto attrs = patch->Get("Attributes");
+                auto mblk = patch->Get("MeshBlock");
+                index_box_type idx_box{mblk->GetValue<index_tuple>("LowIndex"),
+                                       mblk->GetValue<index_tuple>("HighIndex")};
                 std::get<0>(idx_box) -= 1;  // ghost cell
                 std::get<1>(idx_box) += 1;
 
                 os << std::setw(indent) << " "
-                   << "<Grid Name=\"" << guid << "\" Level=\"" << blk->GetValue<int>("Level", 0) << "\">" << std::endl;
+                   << "<Grid Name=\"" << guid << "\" Level=\"" << patch->GetValue<int>("Level", 0) << "\">"
+                   << std::endl;
 
                 if (patch->Get("_COORDINATES_") != nullptr) {
                     XDMFGeometryCurvilinear(this, "/Patches/" + std::to_string(guid), idx_box, chart,
-                                            patch->Get("_COORDINATES_"), indent + 1);
+                                            patch->Get("Attributes/_COORDINATES_"), indent + 1);
                 } else {
                     XDMFGeometryRegular(this, idx_box, chart, indent + 1);
                 }
 
-                patch->Foreach([&](std::string const &s, std::shared_ptr<data::DataNode> const &d) {
+                attrs->Foreach([&](std::string const &s, std::shared_ptr<data::DataNode> const &d) {
                     if (d->GetValue<int>("IFORM") == FIBER) { return; }
                     WriteAttribute("/Patches/" + std::to_string(guid), s, idx_box, d, indent + 1);
                 });
                 os << std::setw(indent) << " "
                    << "</Grid>" << std::endl;
 
-                patch->Foreach([&](std::string const &s, std::shared_ptr<data::DataNode> const &d) {
+                attrs->Foreach([&](std::string const &s, std::shared_ptr<data::DataNode> const &d) {
                     if (d->GetValue<int>("IFORM") == FIBER) {
                         WriteParticle("/Patches/" + std::to_string(guid), s, idx_box, d, indent + 1);
                     }
                 });
-            }
-            return 1;
-        });
+                return 1;
+            });
+        }
     }
 
     // Gather String

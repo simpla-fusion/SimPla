@@ -33,7 +33,7 @@ class StructuredMesh {
     StructuredMesh &operator=(StructuredMesh &&) = delete;
 
     virtual std::shared_ptr<const geometry::Chart> GetChart() const = 0;
-    virtual std::shared_ptr<const engine::MeshBlock> GetBlock() const = 0;
+    virtual std::shared_ptr<const engine::MeshBlock> GetMeshBlock() const = 0;
 
     virtual index_box_type GetIndexBox(int tag) const;
 
@@ -56,7 +56,7 @@ class StructuredMesh {
 
    public:
     size_type GetNumberOfEntity(int IFORM = NODE) const {
-        index_box_type m_index_box_ = GetBlock()->GetIndexBox();
+        index_box_type m_index_box_ = GetMeshBlock()->GetIndexBox();
         return calculus::reduction<tags::multiplication>(std::get<1>(m_index_box_) - std::get<0>(m_index_box_)) *
                ((IFORM == NODE || IFORM == CELL) ? 1 : 3);
     }
