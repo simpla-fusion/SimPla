@@ -21,7 +21,7 @@ struct DataNodeMemory : public DataNode {
     size_type Add(std::string const &uri, const std::shared_ptr<DataNode> &v) override;
     size_type Delete(std::string const &uri) override;
     std::shared_ptr<DataNode> Get(std::string const &uri) const override;
-    void Foreach(std::function<void(std::string, std::shared_ptr<DataNode> const &)> const &f) const override;
+    void Foreach(std::function<void(std::string const &, std::shared_ptr<DataNode> const &)> const &f) const override;
 
     size_type Set(index_type s, const std::shared_ptr<DataNode> &v) override;
     size_type Add(index_type s, const std::shared_ptr<DataNode> &v) override;

@@ -24,7 +24,15 @@ std::shared_ptr<data::DataNode> Patch::Serialize() const {
     for (auto const &item : m_pimpl_->m_data_blocks_) { attrs->Set(item.first, item.second); }
     return res;
 }
-void Patch::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { FIXME; }
+void Patch::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
+    m_pimpl_->m_mesh_block_ = MeshBlock::New(cfg->Get("MeshBlock"));
+    if (auto attrs = cfg->Get("Attributes")) {
+        attrs->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &node) {
+            auto res = m_pimpl_->m_data_blocks_.emplace(key, node);
+            if (!res.second) { res.first->second->Set(node); }
+        });
+    }
+}
 
 std::map<std::string, std::shared_ptr<data::DataNode>> const &Patch::GetAllDataBlocks() const {
     return m_pimpl_->m_data_blocks_;
@@ -36,6 +44,7 @@ std::shared_ptr<data::DataNode> Patch::GetDataBlock(std::string const &key) cons
     if (it != m_pimpl_->m_data_blocks_.end()) { res = it->second; }
     return res;
 }
+
 void Patch::SetDataBlock(std::string const &key, std::shared_ptr<data::DataNode> const &d) {
     auto res = m_pimpl_->m_data_blocks_.emplace(key, d);
     res.first->second->Set(d);

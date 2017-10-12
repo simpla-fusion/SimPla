@@ -236,6 +236,7 @@ void Atlas::SyncGlobal(std::string const &key, std::type_info const &t_info, int
 }
 
 void Atlas::SyncLocal(int level) {
+
     for (auto ia = m_pimpl_->m_patches_.begin(), ie = m_pimpl_->m_patches_.end(); ia != ie; ++ia) {
         auto ib = ia;
         ++ib;

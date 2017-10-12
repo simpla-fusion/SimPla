@@ -162,7 +162,7 @@ size_type DataNode::Set(std::string const& uri, const std::shared_ptr<DataNode>&
 size_type DataNode::Add(std::string const& uri, const std::shared_ptr<DataNode>& v) { return 0; }
 size_type DataNode::Delete(std::string const& s) { return 0; }
 std::shared_ptr<DataNode> DataNode::Get(std::string const& uri) const { return nullptr; }
-void DataNode::Foreach(std::function<void(std::string, std::shared_ptr<DataNode> const&)> const& f) const {}
+void DataNode::Foreach(std::function<void(std::string const&, std::shared_ptr<DataNode> const&)> const& f) const {}
 size_type DataNode::Set(index_type s, std::shared_ptr<DataNode> const& v) { return Set(std::to_string(s), v); }
 size_type DataNode::Add(index_type s, std::shared_ptr<DataNode> const& v) { return Add(std::to_string(s), v); }
 size_type DataNode::Delete(index_type s) { return Delete(std::to_string(s)); }

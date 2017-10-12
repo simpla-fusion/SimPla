@@ -12,6 +12,9 @@
 
 namespace simpla {
 namespace engine {
+
+/** @brief Patch hold  all data on a meshblock
+ */
 class Patch : public std::enable_shared_from_this<Patch> {
     struct pimpl_s;
     pimpl_s *m_pimpl_ = nullptr;

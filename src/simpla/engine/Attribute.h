@@ -71,6 +71,8 @@ class AttributeGroup {
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
 
+    bool isInitialized() const;
+
    private:
     struct pimpl_s;
     pimpl_s *m_pimpl_ = nullptr;

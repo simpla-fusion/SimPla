@@ -45,9 +45,7 @@ int main(int argc, char **argv) {
             };
         }
     });
-    //
-    //    scenario->SetDomain("Center", center);
-    scenario->NewDomain<SimplePML>("Boundary")->SetCenterBox(box_type{{-15, -25, -20}, {15, 25, 20}});
+    //    scenario->NewDomain<SimplePML>("Boundary")->SetCenterBox(box_type{{-15, -25, -20}, {15, 25, 20}});
 
     scenario->SetTimeEnd(1.0e-8);
     scenario->SetMaxStep(5);
@@ -55,18 +53,15 @@ int main(int argc, char **argv) {
 
     scenario->ConfigureAttribute<size_type>("E", "CheckPoint", 1);
     scenario->ConfigureAttribute<size_type>("B", "CheckPoint", 1);
-    scenario->ConfigureAttribute<size_type>("a0", "CheckPoint", 1);
-    scenario->ConfigureAttribute<size_type>("a1", "CheckPoint", 1);
-    scenario->ConfigureAttribute<size_type>("a2", "CheckPoint", 1);
-    scenario->ConfigureAttribute<size_type>("s0", "CheckPoint", 1);
-    scenario->ConfigureAttribute<size_type>("s1", "CheckPoint", 1);
-    scenario->ConfigureAttribute<size_type>("s2", "CheckPoint", 1);
-    VERBOSE << "Scenario: " << *scenario->Serialize();
+    //    scenario->ConfigureAttribute<size_type>("a0", "CheckPoint", 1);
+    //    scenario->ConfigureAttribute<size_type>("a1", "CheckPoint", 1);
+    //    scenario->ConfigureAttribute<size_type>("a2", "CheckPoint", 1);
+    //    scenario->ConfigureAttribute<size_type>("s0", "CheckPoint", 1);
+    //    scenario->ConfigureAttribute<size_type>("s1", "CheckPoint", 1);
+    //    scenario->ConfigureAttribute<size_type>("s2", "CheckPoint", 1);
+    //    VERBOSE << "Scenario: " << *scenario->Serialize();
     TheStart();
-
     scenario->Run();
-
-    VERBOSE << "Scenario: " << *scenario->Serialize();
     TheEnd();
 
     scenario->TearDown();

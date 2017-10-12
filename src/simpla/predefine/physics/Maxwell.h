@@ -55,7 +55,6 @@ void Maxwell<TDomain>::DoInitialCondition(Real time_now) {
 template <typename TDomain>
 void Maxwell<TDomain>::DoAdvance(Real time_now, Real time_dt) {
     DEFINE_PHYSICAL_CONST
-
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;
     B = B - curl(E) * time_dt;
     E = E + (curl(B) * speed_of_light2 - J / epsilon0) * 0.5 * time_dt;

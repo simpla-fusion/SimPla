@@ -71,6 +71,7 @@ std::shared_ptr<const MeshBlock> DomainBase::GetMeshBlock() const { return m_pim
 void DomainBase::Push(const std::shared_ptr<Patch>& p) {
     SetMeshBlock(p->GetMeshBlock());
     AttributeGroup::Push(p);
+    m_pimpl_->m_is_first_time_ = !AttributeGroup::isInitialized();
 }
 std::shared_ptr<Patch> DomainBase::Pop() const {
     auto res = AttributeGroup::Pop();

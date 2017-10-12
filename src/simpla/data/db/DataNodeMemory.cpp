@@ -110,7 +110,8 @@ size_type DataNodeMemory::Delete(std::string const &uri) {
     }
     return count;
 }
-void DataNodeMemory::Foreach(std::function<void(std::string, std::shared_ptr<DataNode> const &)> const &f) const {
+void DataNodeMemory::Foreach(
+    std::function<void(std::string const &, std::shared_ptr<DataNode> const &)> const &f) const {
     for (auto const &item : m_table_) { f(item.first, item.second); }
 }
 

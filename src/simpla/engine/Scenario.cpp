@@ -113,14 +113,16 @@ void Scenario::Dump() const {
 // std::map<std::string, std::shared_ptr<data::DataNode>> &Scenario::GetAttributes() { return m_pimpl_->m_attrs_; };
 
 std::shared_ptr<Attribute> Scenario::GetAttribute(std::string const &key) {
+    std::shared_ptr<Attribute> res = nullptr;
     auto it = m_pimpl_->m_attrs_.find(key);
-    if (it == m_pimpl_->m_attrs_.end()) { OUT_OF_RANGE << "Can not find Attribute" << key; }
-    return it->second;
+    if (it != m_pimpl_->m_attrs_.end()) { res = it->second; }  // OUT_OF_RANGE << "Can not find Attribute" << key;
+    return res;
 }
 std::shared_ptr<Attribute> Scenario::GetAttribute(std::string const &key) const {
+    std::shared_ptr<Attribute> res = nullptr;
     auto it = m_pimpl_->m_attrs_.find(key);
-    if (it == m_pimpl_->m_attrs_.end()) { OUT_OF_RANGE << "Can not find Attribute" << key; }
-    return it->second;
+    if (it != m_pimpl_->m_attrs_.end()) { res = it->second; }  // OUT_OF_RANGE << "Can not find Attribute" << key;
+    return res;
 }
 
 // Range<EntityId> &Scenario::GetRange(std::string const &k) {

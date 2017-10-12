@@ -12,6 +12,7 @@ namespace simpla {
 namespace engine {
 struct AttributeGroup::pimpl_s {
     std::set<Attribute *> m_attributes_;
+    bool m_is_initiazlied_ = false;
 };
 AttributeGroup::AttributeGroup() : m_pimpl_(new pimpl_s){};
 
@@ -19,6 +20,8 @@ AttributeGroup::~AttributeGroup() {
     for (auto &item : m_pimpl_->m_attributes_) { item->Deregister(this); }
     delete m_pimpl_;
 }
+bool AttributeGroup::isInitialized() const { return m_pimpl_->m_is_initiazlied_; }
+
 std::shared_ptr<data::DataNode> AttributeGroup::Serialize() const {
     auto res = data::DataLightT<std::string *>::New();
     for (auto const &item : m_pimpl_->m_attributes_) { res->push_back(item->GetName()); }
@@ -28,7 +31,6 @@ void AttributeGroup::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     if (cfg == nullptr) { return; }
     for (auto const &item : m_pimpl_->m_attributes_) { item->Deserialize(cfg->Get(item->GetName())); }
 }
-
 
 std::set<Attribute *> &AttributeGroup::GetAttributes() { return m_pimpl_->m_attributes_; }
 std::set<Attribute *> const &AttributeGroup::GetAttributes() const { return m_pimpl_->m_attributes_; }
@@ -47,12 +49,20 @@ std::set<Attribute *> const &AttributeGroup::GetAttributes() const { return m_pi
 //}
 void AttributeGroup::Push(const std::shared_ptr<Patch> &p) {
     if (p == nullptr) { return; }
-    for (auto &item : m_pimpl_->m_attributes_) { item->Push(p->GetDataBlock(item->GetName())); }
+    int count = 0;
+    for (auto &item : m_pimpl_->m_attributes_) {
+        if (auto blk = p->GetDataBlock(item->GetName())) {
+            item->Push(blk);
+            ++count;
+        }
+    }
+    m_pimpl_->m_is_initiazlied_ = count == m_pimpl_->m_attributes_.size();
 }
 
 std::shared_ptr<Patch> AttributeGroup::Pop() const {
     auto res = Patch::New();
     for (auto &item : m_pimpl_->m_attributes_) { res->SetDataBlock(item->GetName(), item->Pop()); }
+    m_pimpl_->m_is_initiazlied_ = false;
     return res;
 }
 void AttributeGroup::Attach(Attribute *p) {

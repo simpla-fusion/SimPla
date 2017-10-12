@@ -35,7 +35,7 @@ struct DataNodeHDF5 : public DataNode {
     size_type Add(std::string const& uri, const std::shared_ptr<DataNode>& v) override;
     size_type Delete(std::string const& uri) override;
     std::shared_ptr<DataNode> Get(std::string const& uri) const override;
-    void Foreach(std::function<void(std::string, std::shared_ptr<DataNode> const&)> const& f) const override;
+    void Foreach(std::function<void(std::string const&, std::shared_ptr<DataNode> const&)> const& f) const override;
 
     size_type Set(index_type s, const std::shared_ptr<DataNode>& v) override;
     size_type Add(index_type s, const std::shared_ptr<DataNode>& v) override;
@@ -270,7 +270,7 @@ size_type DataNodeHDF5::Add(std::string const& uri, const std::shared_ptr<DataNo
     return count;
 }
 
-void DataNodeHDF5::Foreach(std::function<void(std::string, std::shared_ptr<DataNode> const&)> const& fun) const {
+void DataNodeHDF5::Foreach(std::function<void(std::string const&, std::shared_ptr<DataNode> const&)> const& fun) const {
     if (m_group_ == -1) { return; };
     H5G_info_t g_info;
     H5_ERROR(H5Gget_info(m_group_, &g_info));

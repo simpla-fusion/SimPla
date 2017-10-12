@@ -119,8 +119,10 @@ struct dof<Field<TM, TV, IFORM, DOF...>>
 
 template <typename TM, typename TV, int IFORM, int... DOF>
 void Field<TM, TV, IFORM, DOF...>::Update() {
-    m_mesh_->InitializeAttribute(this);
-    base_type::Update();
+    if (this->isNull()) {
+        m_mesh_->InitializeAttribute(this);
+        base_type::Update();
+    }
 }
 
 }  // namespace simpla
