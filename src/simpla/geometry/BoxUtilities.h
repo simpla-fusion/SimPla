@@ -5,6 +5,7 @@
 #ifndef SIMPLA_BOXUTILITIES_H
 #define SIMPLA_BOXUTILITIES_H
 
+#include <vector>
 #include "simpla/algebra/nTuple.h"
 #include "simpla/utilities/SPDefines.h"
 
@@ -12,16 +13,6 @@ namespace simpla {
 template <typename, int...>
 struct nTuple;
 namespace geometry {
-template <typename T, int N>
-bool CheckOverlap(std::tuple<nTuple<T, N>, nTuple<T, N>> const &lhs,
-                  std::tuple<nTuple<T, N>, nTuple<T, N>> const &rhs) {
-    bool no_overlap = true;
-    for (int i = 0; i < N; ++i) {
-        no_overlap =
-            no_overlap && (std::get<1>(lhs)[i] < std::get<0>(rhs)[i] && std::get<0>(lhs)[i] > std::get<1>(rhs)[i]);
-    }
-    return !no_overlap;
-}
 template <typename T>
 constexpr inline T Measure(std::tuple<nTuple<T, 2>, nTuple<T, 2>> const &b) {
     return (std::get<1>(b)[0] - std::get<0>(b)[0]) * (std::get<1>(b)[1] - std::get<0>(b)[1]);
@@ -86,6 +77,51 @@ constexpr inline bool CheckInSide(std::tuple<nTuple<T, 3>, nTuple<T, 3>> const &
            (p[2] < std::get<1>(b)[2]);
 }
 
+template <typename T, int N>
+bool isIllCondition(std::tuple<nTuple<T, N>, nTuple<T, N>> const &lhs) {
+    bool is_ill = false;
+    nTuple<T, N> lo, hi;
+    std::tie(lo, hi) = lhs;
+    for (int i = 0; i < N; ++i) {
+        if (hi[i] <= lo[i]) {
+            is_ill = true;
+            break;
+        }
+    }
+    return is_ill;
+};
+
+template <typename T, int N>
+bool isOverlapped(std::tuple<nTuple<T, N>, nTuple<T, N>> const &lhs,
+                  std::tuple<nTuple<T, N>, nTuple<T, N>> const &rhs) {
+    return !isIllCondition(Overlap(lhs, rhs));
+}
+template <typename T, int N>
+std::vector<std::tuple<nTuple<T, N>, nTuple<T, N>>> HaloBoxDecompose(
+    std::tuple<nTuple<T, N>, nTuple<T, N>> const &bounding_box,
+    std::tuple<nTuple<T, N>, nTuple<T, N>> const &center_box) {
+    std::vector<std::tuple<nTuple<T, N>, nTuple<T, N>>> res;
+    res.push_back(center_box);
+    nTuple<T, N> lo, hi;
+    for (int d = 0; d < N; ++d) {
+        //        for (int i = 0; i < d; ++i) {
+        //            lo[i] = std::get<0>(bounding_box)[d];
+        //            hi[i] = std::get<1>(bounding_box)[d];
+        //        }
+        //        for (int i = d + 1; i < N; ++i) {
+        //            lo[i] = std::get<0>(bounding_box)[d];
+        //            hi[i] = std::get<1>(bounding_box)[d];
+        //        }
+        std::tie(lo, hi) = bounding_box;
+        lo[d] = std::get<0>(bounding_box)[d];
+        hi[d] = std::get<0>(center_box)[d];
+        res.push_back(std::make_tuple(lo, hi));
+        lo[d] = std::get<1>(center_box)[d];
+        hi[d] = std::get<1>(bounding_box)[d];
+        res.push_back(std::make_tuple(lo, hi));
+    }
+    return std::move(res);
+};
 //
 // template <typename T>
 // constexpr inline T size(Box3<T> const &b) {

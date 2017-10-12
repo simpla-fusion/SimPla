@@ -103,7 +103,7 @@ class Atlas : public EngineObject {
     SP_OBJECT_PROPERTY(index_tuple, PeriodicDimensions);
     SP_OBJECT_PROPERTY(index_tuple, CoarsestIndexBox);
 
-    std::shared_ptr<Patch> NewPatch(index_box_type const &b) { return SetPatch(Patch::New(MeshBlock::New(b))); }
+    std::shared_ptr<Patch> NewPatch(box_type const &b, int level = 0);
 
     template <typename... Args>
     std::shared_ptr<Patch> NewPatch(Args &&... args) {

@@ -62,7 +62,7 @@ void EBMesh<THost>::SetEmbeddedBoundary(std::string const &prefix, const std::sh
     //    geometry::CutCell(m_domain_->GetMesh()->GetChart(), m_domain_->GetMesh()->GetBoundingIndexBox(0b0), g,
     //    &m_volume_tag_.Get()[0]);
     //    m_edge_tag_d_[0] = m_edge_tag_.GetEntity();
-    //    Real ratio = std::get<0>(m_domain_->GetMesh()->CheckOverlap(g));
+    //    Real ratio = std::get<0>(m_domain_->GetMesh()->isOverlapped(g));
     //    if (ratio < EPSILON) {
     //    } else if (ratio < 1 - EPSILON) {
     //        detail::CreateEBMesh(m_domain_, prefix, g);

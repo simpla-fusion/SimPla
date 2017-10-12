@@ -22,7 +22,7 @@ namespace simpla {
 namespace geometry {
 
 template <typename U, typename V>
-bool CheckOverlap(std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b0,
+bool isOverlapped(std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b0,
                   std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b1) {
     return !((std::get<1>(b0)[0] < std::get<0>(b1)[0] || std::get<0>(b0)[0] >= std::get<1>(b1)[0]) ||
              (std::get<1>(b0)[1] < std::get<0>(b1)[1] || std::get<0>(b0)[1] >= std::get<1>(b1)[1]) ||

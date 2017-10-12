@@ -35,9 +35,9 @@ std::shared_ptr<GeoObject> GeoObject::Difference(std::shared_ptr<GeoObject> cons
 std::shared_ptr<GeoObject> GeoObject::Union(std::shared_ptr<GeoObject> const &other) const {
     return Cube::New(geometry::Union(GetBoundingBox(), other->GetBoundingBox()));
 }
-// Real GeoObject::CheckOverlap(box_type const &b) const { return Measure(Overlap(GetBoundingBox(), b)) / measure(); }
+// Real GeoObject::isOverlapped(box_type const &b) const { return Measure(Overlap(GetBoundingBox(), b)) / measure(); }
 //
-// Real GeoObject::CheckOverlap(GeoObject const &other) const { return CheckOverlap(other.GetBoundingBox()); }
+// Real GeoObject::CheckOverlap(GeoObject const &other) const { return isOverlapped(other.GetBoundingBox()); }
 //
 // bool GeoObject::CheckInside(const point_type &x) const { return CheckInSide(GetBoundingBox(), x); };
 //

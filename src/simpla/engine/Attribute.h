@@ -218,7 +218,7 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
     bool empty() const override { return isNull(); };
     std::type_info const &value_type_info() const override { return typeid(V); };
     int GetIFORM() const override { return IFORM; };
-    int GetDOF() const override { return utility::NProduct(DOF...); };
+    int GetDOF() const override { return simpla::utility::NProduct(DOF...); };
     int GetRank() const override { return sizeof...(DOF); };
     auto GetDOFExtents() const { return nTuple<int, sizeof...(DOF)>{DOF...}; };
 
@@ -332,7 +332,7 @@ size_type push_data(nTuple<Array<U>, N0, N...> &v, std::shared_ptr<data::DataNod
 
 template <typename U>
 bool is_null(Array<U> const &d) {
-    return d.isNull();
+    return d.Array<U>::isNull();
 }
 
 template <typename U, int N0, int... N>

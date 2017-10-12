@@ -77,10 +77,9 @@ void Atlas::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
         m_pimpl_->m_chart_ = geometry::Chart::New(tdb->Get("Chart"));
     }
 
-    auto blocks = tdb->Get("Blocks");
-    blocks->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &block) {
-        auto res = m_pimpl_->m_patches_.emplace(std::stoi(key), Patch::New());
-        res.first->second->Deserialize(block);
+    auto blocks = tdb->Get("Patches");
+    blocks->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &patch) {
+        auto res = m_pimpl_->m_patches_.emplace(std::stoi(key), Patch::New(patch));
     });
 
     Click();
@@ -118,7 +117,7 @@ void Atlas::DoSetUp() {
         }
     }
 #endif
-    NewPatch(MeshBlock::New(m_pimpl_->m_index_box_, 0, 0));
+    //    NewPatch(MeshBlock::New(m_pimpl_->m_index_box_, 0, 0));
 };
 
 void Atlas::DoUpdate() {
@@ -131,6 +130,15 @@ void Atlas::DoTearDown() {
         m_pimpl_->m_chart_.reset();
     }
 };
+std::shared_ptr<Patch> Atlas::NewPatch(box_type const &box, int level) {
+    std::shared_ptr<Patch> res = nullptr;
+    auto b =
+        geometry::Overlap(m_pimpl_->m_index_box_,
+                          std::make_tuple(std::get<1>(m_pimpl_->m_chart_->invert_local_coordinates(std::get<0>(box))),
+                                          std::get<1>(m_pimpl_->m_chart_->invert_local_coordinates(std::get<1>(box)))));
+    if (!geometry::isIllCondition(b)) { res = SetPatch(Patch::New(MeshBlock::New(b, level))); }
+    return res;
+}
 
 std::shared_ptr<Patch> Atlas::SetPatch(std::shared_ptr<Patch> const &p) {
     if (p == nullptr) { return nullptr; }
@@ -236,17 +244,16 @@ void Atlas::SyncGlobal(std::string const &key, std::type_info const &t_info, int
 }
 
 void Atlas::SyncLocal(int level) {
-
     for (auto ia = m_pimpl_->m_patches_.begin(), ie = m_pimpl_->m_patches_.end(); ia != ie; ++ia) {
         auto ib = ia;
         ++ib;
         for (; ib != ie; ++ib) {
             box_type box_a = ia->second->GetIndexBox();
             box_type box_b = ib->second->GetIndexBox();
-            if (!geometry::CheckOverlap(box_a, box_b)) { continue; }
+            if (!geometry::isOverlapped(box_a, box_b)) { continue; }
             for (auto const &item : ia->second->GetAllDataBlocks()) {
-                auto attr_a = item.second;
-                auto attr_b = ib->second->GetDataBlock(item.first);
+                auto attr_a = item.second->Get("_DATA_");
+                auto attr_b = ib->second->GetDataBlock(item.first)->Get("_DATA_");
                 for (int d = 0; d < attr_a->size(); ++d) {
                     auto array_a = std::dynamic_pointer_cast<ArrayBase>(attr_a->GetEntity(d));
                     auto array_b = std::dynamic_pointer_cast<ArrayBase>(attr_b->GetEntity(d));

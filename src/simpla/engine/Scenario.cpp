@@ -78,20 +78,21 @@ void Scenario::CheckPoint(size_type step_num) const {
        << GetStepNumber() << "." << db()->GetValue<std::string>("CheckPointFileSuffix", "xmf");
 
     auto dump = data::DataNode::New(os.str());
-    dump->Set("Atlas", GetAtlas()->Serialize());
-
-    auto patches = data::DataNode::New(data::DataNode::DN_TABLE);
+    //    dump->Set("Atlas", GetAtlas()->Serialize());
+    dump->Set("Atlas/Chart", GetAtlas()->GetChart()->Serialize());
+    auto patches = dump->CreateNode("Atlas/Patches", data::DataNode::DN_TABLE);
     m_pimpl_->m_atlas_->Foreach([&](auto const &patch) {
         auto d_patch = patches->CreateNode(std::to_string(patch->GetGUID()), data::DataNode::DN_TABLE);
+        d_patch->Set("MeshBlock",patch->GetMeshBlock()->Serialize());
+        auto d_attrs=d_patch->CreateNode("Attributes", data::DataNode::DN_TABLE);
         for (auto const &attr : m_pimpl_->m_attrs_) {
             auto check_point = attr.second->db()->GetValue<size_type>("CheckPoint", 0);
             if (check_point != 0 && step_num % check_point == 0) {
-                if (auto data_blk = patch->GetDataBlock(attr.first)) { d_patch->Set(attr.first, data_blk); }
+                if (auto data_blk = patch->GetDataBlock(attr.first)) { d_attrs->Set(attr.first, data_blk); }
             }
         }
 
     });
-    dump->Set("Patches", patches);
     dump->SetValue<Real>("Time", GetTime());
     dump->Flush();
 }

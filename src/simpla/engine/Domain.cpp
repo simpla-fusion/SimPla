@@ -106,7 +106,7 @@ void DomainBase::InitialCondition(Real time_now) {
     Update();
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::InitialCondition( time_now =" << time_now << ")"
-            << ":" << GetMeshBlock()->GetIndexBox();
+            << ":" << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
     PreInitialCondition(this, time_now);
     DoInitialCondition(time_now);
     PostInitialCondition(this, time_now);
@@ -116,7 +116,7 @@ void DomainBase::BoundaryCondition(Real time_now, Real dt) {
     if (isOutOfBoundary()) { return; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::BoundaryCondition( time_now=" << time_now << " , dt=" << dt << ")"
-            << ":" << GetMeshBlock()->GetIndexBox();
+            << ":" << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
     PreBoundaryCondition(this, time_now, dt);
     DoBoundaryCondition(time_now, dt);
     PostBoundaryCondition(this, time_now, dt);
@@ -127,7 +127,7 @@ void DomainBase::ComputeFluxes(Real time_now, Real time_dt) {
     if (isOutOfBoundary()) { return; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::ComputeFluxes(time_now=" << time_now << " , time_dt=" << time_dt << ")"
-            << ":" << GetMeshBlock()->GetIndexBox();
+            << ":" << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
     PreComputeFluxes(this, time_now, time_dt);
     DoComputeFluxes(time_now, time_dt);
     PostComputeFluxes(this, time_now, time_dt);
@@ -136,7 +136,7 @@ Real DomainBase::ComputeStableDtOnPatch(Real time_now, Real time_dt) const {
     if (!isModified() || isOutOfBoundary()) { return time_dt; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::ComputeStableDtOnPatch( time_now=" << time_now << " , time_dt=" << time_dt << ")"
-            << ":" << GetMeshBlock()->GetIndexBox();
+            << ":" << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
     return time_dt;
 }
 
@@ -145,7 +145,7 @@ void DomainBase::Advance(Real time_now, Real time_dt) {
     if (isOutOfBoundary()) { return; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::Advance(time_now=" << time_now << " , dt=" << time_dt << ")"
-            << ":" << GetMeshBlock()->GetIndexBox();
+            << ":" << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
     PreAdvance(this, time_now, time_dt);
     DoAdvance(time_now, time_dt);
     PostAdvance(this, time_now, time_dt);
@@ -155,7 +155,7 @@ void DomainBase::TagRefinementCells(Real time_now) {
     if (isOutOfBoundary()) { return; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::TagRefinementCells(time_now=" << time_now << ")"
-            << ":" << GetMeshBlock()->GetIndexBox();
+            << ":" << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
 
     PreTagRefinementCells(this, time_now);
     //    TagRefinementRange(GetRange(GetName() + "_BOUNDARY_3"));

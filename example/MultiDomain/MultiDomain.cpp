@@ -7,6 +7,7 @@
 #include <simpla/application/SPInit.h>
 #include <simpla/geometry/Cube.h>
 #include <simpla/geometry/csCartesian.h>
+#include <simpla/geometry/BoxUtilities.h>
 #include <simpla/mesh/CoRectMesh.h>
 #include <simpla/mesh/EBMesh.h>
 #include <simpla/mesh/RectMesh.h>
@@ -16,7 +17,6 @@
 #include <simpla/scheme/FVM.h>
 #include <simpla/utilities/Logo.h>
 #include <simpla/utilities/parse_command_line.h>
-
 namespace simpla {
 using SimpleMaxwell = domain::Maxwell<engine::Domain<geometry::csCartesian, scheme::FVM, mesh::CoRectMesh>>;
 using SimplePML = domain::PML<engine::Domain<geometry::csCartesian, scheme::FVM, mesh::CoRectMesh>>;
@@ -48,7 +48,9 @@ int main(int argc, char **argv) {
     scenario->GetAtlas()->GetChart()->SetOrigin({0, 0, 0});
 
     box_type center_box{{-15, -25, -20}, {15, 25, 20}};
-    //    scenario->GetAtlas()->SetBoundingBox(bounding_box);
+    box_type bounding_box{{-20, -30, -25}, {20, 30, 25}};
+
+    scenario->GetAtlas()->SetBoundingBox(bounding_box);
 
     auto center = scenario->NewDomain<SimpleMaxwell>("Center");
     center->SetBoundary(geometry::Cube::New(center_box));
@@ -67,11 +69,8 @@ int main(int argc, char **argv) {
     scenario->SetMaxStep(num_of_step);
     scenario->SetUp();
 
-    index_tuple pml_width = {5, 5, 5};
-//    box_type bounding_box{{-20, -30, -25}, {20, 30, 25}};
-
     if (auto atlas = scenario->GetAtlas()) {
-        auto box_list = utility::halo_box_decompose(center_box, pml_width);
+        auto box_list = geometry::HaloBoxDecompose(bounding_box, center_box);
         for (auto const &b : box_list) { atlas->NewPatch(b); }
     }
 

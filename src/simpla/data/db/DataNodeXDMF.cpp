@@ -300,9 +300,10 @@ int DataNodeXDMF::Flush() {
         auto chart = atlas->Get("Chart");
         if (auto patches = atlas->Get("Patches")) {
             patches->Foreach([&](std::string const &k, std::shared_ptr<data::DataNode> const &patch) {
-                auto guid = patch->GetValue<id_type>("GUID");
                 auto attrs = patch->Get("Attributes");
                 auto mblk = patch->Get("MeshBlock");
+                auto guid = mblk->GetValue<id_type>("GUID");
+
                 index_box_type idx_box{mblk->GetValue<index_tuple>("LowIndex"),
                                        mblk->GetValue<index_tuple>("HighIndex")};
                 std::get<0>(idx_box) -= 1;  // ghost cell

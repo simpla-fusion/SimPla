@@ -92,7 +92,7 @@ void TimeIntegrator::Run() {
         CheckPoint(GetStepNumber());
     }
 
-    Dump();
+//    Dump();
 }
 void TimeIntegrator::NextStep() {
     m_pimpl_->m_time_now_ += m_pimpl_->m_time_step_;

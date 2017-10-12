@@ -33,6 +33,11 @@ class Patch : public std::enable_shared_from_this<Patch> {
     static std::shared_ptr<Patch> New(Args &&... args) {
         return std::shared_ptr<Patch>(new Patch(std::forward<Args>(args)...));
     };
+    static std::shared_ptr<Patch> New(std::shared_ptr<data::DataNode> const &cfg) {
+        auto p = new Patch();
+        p->Deserialize(cfg);
+        return std::shared_ptr<Patch>(p);
+    };
     std::shared_ptr<data::DataNode> Serialize() const;
     void Deserialize(std::shared_ptr<data::DataNode> const &cfg);
 
