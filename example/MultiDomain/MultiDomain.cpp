@@ -15,6 +15,7 @@
 #include <simpla/predefine/physics/PML.h>
 #include <simpla/scheme/FVM.h>
 #include <simpla/utilities/Logo.h>
+#include <simpla/utilities/parse_command_line.h>
 
 namespace simpla {
 using SimpleMaxwell = domain::Maxwell<engine::Domain<geometry::csCartesian, scheme::FVM, mesh::CoRectMesh>>;
@@ -26,6 +27,19 @@ using namespace simpla;
 using namespace simpla::engine;
 
 int main(int argc, char **argv) {
+    size_type num_of_step = 10;
+    size_type checkpoint_interval = 1;
+    simpla::parse_cmd_line(  //
+        argc, argv, [&](std::string const &opt, std::string const &value) -> int {
+            if (false) {
+            } else if (opt == "n") {
+                num_of_step = static_cast<size_type>(std::atoi(value.c_str()));
+            } else if (opt == "checkpoint") {
+                checkpoint_interval = static_cast<size_type>(std::atoi(value.c_str()));
+            }
+            return CONTINUE;
+        });
+
     simpla::Initialize(argc, argv);
     auto scenario = SimpleTimeIntegrator::New();
     scenario->SetName("MultiDomain");
@@ -48,11 +62,11 @@ int main(int argc, char **argv) {
     //    scenario->NewDomain<SimplePML>("Boundary")->SetCenterBox(box_type{{-15, -25, -20}, {15, 25, 20}});
 
     scenario->SetTimeEnd(1.0e-8);
-    scenario->SetMaxStep(5);
+    scenario->SetMaxStep(num_of_step);
     scenario->SetUp();
 
-    scenario->ConfigureAttribute<size_type>("E", "CheckPoint", 1);
-    scenario->ConfigureAttribute<size_type>("B", "CheckPoint", 1);
+    scenario->ConfigureAttribute<size_type>("E", "CheckPoint", checkpoint_interval);
+    scenario->ConfigureAttribute<size_type>("B", "CheckPoint", checkpoint_interval);
     //    scenario->ConfigureAttribute<size_type>("a0", "CheckPoint", 1);
     //    scenario->ConfigureAttribute<size_type>("a1", "CheckPoint", 1);
     //    scenario->ConfigureAttribute<size_type>("a2", "CheckPoint", 1);
