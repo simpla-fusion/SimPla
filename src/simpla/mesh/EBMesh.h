@@ -49,7 +49,7 @@ void EBMesh<THost>::SetEmbeddedBoundary(std::string const &prefix, const std::sh
     //    if (g == nullptr) { return; }
     //
     //    VERBOSE << "AddEntity Embedded Boundary [" << prefix << "]"
-    //            << "Patch : Level=" << this->GetMesh()->GetBlock()->GetLevel() << " "
+    //            << "Patch : Level=" << this->GetMesh()->GetMeshBlock()->GetLevel() << " "
     //            << this->GetMesh()->GetIndexBox(NODE) << std::endl;
     //
     //    Range<EntityId> body_ranges[4];

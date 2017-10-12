@@ -5,6 +5,7 @@
 #ifndef SIMPLA_ENGOBJECT_H
 #define SIMPLA_ENGOBJECT_H
 
+#include "Patch.h"
 #include "simpla/data/SPObject.h"
 #include "simpla/utilities/Signal.h"
 
@@ -30,8 +31,11 @@ class EngineObject : public SPObject {
     virtual void DoTearDown();  //!< repeat invoke, enable Set/Deserialize
     virtual void DoFinalize();  //!< invoke once, after everything
 
-    virtual void Push(const std::shared_ptr<data::DataNode> &);
-    virtual std::shared_ptr<data::DataNode> Pop() const;
+    //    virtual void Push(const std::shared_ptr<data::DataNode> &);
+    //    virtual std::shared_ptr<data::DataNode> Pop() const;
+
+    virtual void Push(const std::shared_ptr<Patch> &);
+    virtual std::shared_ptr<Patch> Pop() const;
 
     design_pattern::Signal<void(EngineObject *)> PreSetUp;
     design_pattern::Signal<void(EngineObject *)> PostSetUp;

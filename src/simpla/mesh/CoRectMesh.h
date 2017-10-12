@@ -87,7 +87,7 @@ void CoRectMesh<THost>::InitialCondition(Real time_now) {
      */
     //    m_x0_ = GetBaseChart()->GetOrigin();
     //    m_coarsest_cell_width_ = GetBaseChart()->GetDx();
-    //    size_tuple m_dims_ = GetBlock().GetDimensions();
+    //    size_tuple m_dims_ = GetMeshBlock().GetDimensions();
 
     //    m_cell_[0 /*000*/] = 1;
     //    m_cell_[1 /*001*/] = (m_dims_[0] == 1) ? 1 : m_coarsest_cell_width_[0];

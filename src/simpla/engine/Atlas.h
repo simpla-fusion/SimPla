@@ -73,7 +73,7 @@ class Atlas : public EngineObject {
     std::string TypeName() const final { return "Atlas"; }
 
    public:
-    int Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const &);
+    int Foreach(std::function<void(std::shared_ptr<Patch> const &)> const &);
 
     //    int GetNumOfLevel() const;
     std::shared_ptr<geometry::Chart> GetChart() const;
@@ -103,9 +103,16 @@ class Atlas : public EngineObject {
     SP_OBJECT_PROPERTY(index_tuple, PeriodicDimensions);
     SP_OBJECT_PROPERTY(index_tuple, CoarsestIndexBox);
 
-    size_type AddBlock(std::shared_ptr<MeshBlock> const &blk);
-    size_type DeleteBlock(id_type);
-    std::shared_ptr<MeshBlock> GetBlock(id_type) const;
+    template <typename... Args>
+    std::shared_ptr<Patch> NewPatch(Args &&... args) {
+        return SetPatch(Patch::New(std::forward<Args>(args)...));
+    }
+    std::shared_ptr<Patch> SetPatch(std::shared_ptr<Patch> const &);
+    std::shared_ptr<Patch> GetPatch(id_type) const;
+    size_type DeletePatch(id_type);
+
+    void SyncLocal(int level);
+    void SyncGlobal(std::string const &key, std::type_info const &t_info, int num_of_sub, int level);
 };
 }  // namespace engine
 }  // namespace simpla{namespace mesh_as{

@@ -28,31 +28,33 @@ void AttributeGroup::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     if (cfg == nullptr) { return; }
     for (auto const &item : m_pimpl_->m_attributes_) { item->Deserialize(cfg->Get(item->GetName())); }
 }
-//    cfg->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &node) {
-//        int count = 0;
-//        if (auto attr = Attribute::New(node)) {
-//            Attach(attr.get());
-//            count = 1;
-//        }
-//        return count;
-//    });
+
 
 std::set<Attribute *> &AttributeGroup::GetAttributes() { return m_pimpl_->m_attributes_; }
 std::set<Attribute *> const &AttributeGroup::GetAttributes() const { return m_pimpl_->m_attributes_; }
-void AttributeGroup::Push(const std::shared_ptr<data::DataNode> &p) {
-    if (p != nullptr) {
-        for (auto &item : m_pimpl_->m_attributes_) {
-            if (auto patch = p->Get(item->GetName())) { item->Push(patch); }
-        }
-    }
+// void AttributeGroup::Push(const std::shared_ptr<data::DataNode> &p) {
+//    if (p != nullptr) {
+//        for (auto &item : m_pimpl_->m_attributes_) {
+//            if (auto patch = p->Get(item->GetName())) { item->Push(patch); }
+//        }
+//    }
+//}
+//
+// std::shared_ptr<data::DataNode> AttributeGroup::Pop() const {
+//    auto res = data::DataNode::New();
+//    for (auto &item : m_pimpl_->m_attributes_) { res->Set(item->GetName(), item->Pop()); }
+//    return res;
+//}
+void AttributeGroup::Push(const std::shared_ptr<Patch> &p) {
+    if (p == nullptr) { return; }
+    for (auto &item : m_pimpl_->m_attributes_) { item->Push(p->GetDataBlock(item->GetName())); }
 }
 
-std::shared_ptr<data::DataNode> AttributeGroup::Pop() const {
-    auto res = data::DataNode::New();
-    for (auto &item : m_pimpl_->m_attributes_) { res->Set(item->GetName(), item->Pop()); }
+std::shared_ptr<Patch> AttributeGroup::Pop() const {
+    auto res = Patch::New();
+    for (auto &item : m_pimpl_->m_attributes_) { res->SetDataBlock(item->GetName(), item->Pop()); }
     return res;
 }
-
 void AttributeGroup::Attach(Attribute *p) {
     if (p != nullptr) { m_pimpl_->m_attributes_.insert(p); }
 }
@@ -170,9 +172,7 @@ std::shared_ptr<Attribute> Attribute::New(std::shared_ptr<simpla::data::DataNode
 
 std::shared_ptr<data::DataNode> Attribute::Serialize() const { return base_type::Serialize(); }
 void Attribute::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
-void Attribute::DoSetUp() { base_type::DoSetUp(); };
-void Attribute::DoUpdate() { base_type::DoUpdate(); };
-void Attribute::DoTearDown() { base_type::DoTearDown(); };
+
 void Attribute::Register(AttributeGroup *attr_b) {
     if (attr_b == nullptr) {
         static std::hash<std::string> s_hasher;

@@ -35,8 +35,11 @@ bool EngineObject::isModified() const { return m_pimpl_->m_click_tag_ != m_pimpl
 bool EngineObject::isInitialized() const { return m_pimpl_->m_is_initialized_; }
 bool EngineObject::isSetUp() const { return m_pimpl_->m_is_setup_; }
 
-void EngineObject::Push(std::shared_ptr<data::DataNode> const &data) { ASSERT(isSetUp()); }
-std::shared_ptr<data::DataNode> EngineObject::Pop() const { return data::DataNode::New(data::DataNode::DN_TABLE); };
+// void EngineObject::Push(std::shared_ptr<data::DataNode> const &data) { ASSERT(isSetUp()); }
+// std::shared_ptr<data::DataNode> EngineObject::Pop() const { return data::DataNode::New(data::DataNode::DN_TABLE); };
+
+void EngineObject::Push(const std::shared_ptr<Patch> &) { ASSERT(isSetUp()); };
+std::shared_ptr<Patch> EngineObject::Pop() const { return Patch::New(); }
 
 void EngineObject::DoInitialize() {}
 void EngineObject::DoSetUp() {}

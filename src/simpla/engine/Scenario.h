@@ -54,9 +54,8 @@ class Scenario : public EngineObject {
     std::map<std::string, std::shared_ptr<DomainBase>> const &GetDomains() const;
 
     size_type DeletePatch(id_type);
-    id_type SetPatch(id_type id, const std::shared_ptr<data::DataNode> &p);
-    std::shared_ptr<data::DataNode> GetPatch(id_type id) const;
-    std::shared_ptr<data::DataNode> GetPatch(id_type id);
+    id_type SetPatch(id_type id, const std::shared_ptr<Patch> &p);
+    std::shared_ptr<Patch> GetPatch(id_type id) const;
 
     //    std::map<std::string, std::shared_ptr<data::DataNode>> const &GetAttributes() const;
     //    std::map<std::string, std::shared_ptr<data::DataNode>> &GetAttributes();
@@ -77,8 +76,7 @@ class Scenario : public EngineObject {
         return success;
     }
 
-    Range<EntityId> &GetRange(std::string const &k);
-    Range<EntityId> const &GetRange(std::string const &k) const;
+//    Range<EntityId> GetRange(std::string const &k) const;
 };
 
 }  // namespace engine

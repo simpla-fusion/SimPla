@@ -48,13 +48,8 @@ class Field<TM, TV, IFORM, DOF...> : public engine::AttributeT<TV, IFORM, DOF...
     static std::shared_ptr<this_type> New(Args&&... args) {
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
     }
-    using base_type::Update;
-    using base_type::SetUp;
-    using base_type::TearDown;
 
-    void DoSetUp() override;
-    void DoUpdate() override;
-    void DoTearDown() override;
+    void Update() override;
     template <typename Other>
     void Assign(Other&& v) {
         Update();
@@ -123,18 +118,11 @@ struct dof<Field<TM, TV, IFORM, DOF...>>
 }
 
 template <typename TM, typename TV, int IFORM, int... DOF>
-void Field<TM, TV, IFORM, DOF...>::DoSetUp() {
-    base_type::DoSetUp();
-}
-template <typename TM, typename TV, int IFORM, int... DOF>
-void Field<TM, TV, IFORM, DOF...>::DoUpdate() {
+void Field<TM, TV, IFORM, DOF...>::Update() {
     m_mesh_->InitializeAttribute(this);
-    base_type::DoUpdate();
+    base_type::Update();
 }
-template <typename TM, typename TV, int IFORM, int... DOF>
-void Field<TM, TV, IFORM, DOF...>::DoTearDown() {
-    base_type::DoTearDown();
-}
+
 }  // namespace simpla
 
 #endif  // SIMPLA_FIELD_H

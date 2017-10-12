@@ -59,10 +59,13 @@ class AttributeGroup {
     virtual std::shared_ptr<data::DataNode> Serialize() const;
     virtual void Deserialize(std::shared_ptr<data::DataNode> const &);
 
-    virtual void Push(const std::shared_ptr<data::DataNode> &);
-    virtual std::shared_ptr<data::DataNode> Pop() const;
+    //    virtual void Push(const std::shared_ptr<data::DataNode> &);
+    //    virtual std::shared_ptr<data::DataNode> Pop() const;
 
-    std::set<Attribute *> &GetAttributes();
+    virtual void Push(const std::shared_ptr<Patch> &);
+    virtual std::shared_ptr<Patch> Pop() const;
+
+    virtual std::set<Attribute *> &GetAttributes();
     std::set<Attribute *> const &GetAttributes() const;
 
     void Detach(Attribute *attr);
@@ -100,8 +103,8 @@ class AttributeGroup {
  *
  *
  */
-struct Attribute : public EngineObject {
-    SP_OBJECT_HEAD(Attribute, EngineObject)
+struct Attribute : public SPObject {
+    SP_OBJECT_HEAD(Attribute, SPObject)
 
    public:
     std::string TypeName() const final { return "Attribute"; }
@@ -122,9 +125,7 @@ struct Attribute : public EngineObject {
     virtual std::shared_ptr<Attribute> Duplicate() const = 0;
     virtual std::shared_ptr<Attribute> CreateNew() const = 0;
 
-    void DoSetUp() override;
-    void DoUpdate() override;
-    void DoTearDown() override;
+    virtual void Update() = 0;
 
     virtual bool CheckType(Attribute const &other) const = 0;
     virtual bool isNull() const = 0;
@@ -139,8 +140,8 @@ struct Attribute : public EngineObject {
     void Register(AttributeGroup *p = nullptr);
     void Deregister(AttributeGroup *p = nullptr);
 
-    void Push(const std::shared_ptr<data::DataNode> &) override = 0;
-    std::shared_ptr<data::DataNode> Pop() const override = 0;
+    virtual void Push(const std::shared_ptr<data::DataNode> &) = 0;
+    virtual std::shared_ptr<data::DataNode> Pop() const = 0;
 
     virtual void Clear() = 0;
 };
@@ -196,9 +197,7 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
     void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;
     std::shared_ptr<simpla::data::DataNode> Serialize() const override;
 
-    void DoSetUp() override;
-    void DoUpdate() override;
-    void DoTearDown() override;
+    void Update() override;
 
     void Push(const std::shared_ptr<data::DataNode> &) override;
     std::shared_ptr<data::DataNode> Pop() const override;
@@ -211,10 +210,6 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
     std::shared_ptr<Attribute> CreateNew() const override { return std::make_shared<this_type>(); }
 
     void Clear() override;
-
-    std::shared_ptr<data::DataNode> db() const override { return SPObject::db(); }
-    std::shared_ptr<data::DataNode> db() override { return SPObject::db(); }
-    void db(std::shared_ptr<data::DataNode> const &d) override { SPObject::db(d); }
 
     bool CheckType(Attribute const &other) const override { return dynamic_cast<this_type const *>(&other) != nullptr; }
     bool isNull() const override;
@@ -270,6 +265,7 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
 
     template <typename... RHS>
     this_type &operator=(Expression<RHS...> const &rhs) {
+        Update();
         data_type::operator=(rhs);
         return *this;
     }
@@ -366,15 +362,9 @@ void update(nTuple<Array<U>, N0, N...> &v) {
 }  // namespace detail{
 
 template <typename V, int IFORM, int... DOF>
-void AttributeT<V, IFORM, DOF...>::DoSetUp(){};
-
-template <typename V, int IFORM, int... DOF>
-void AttributeT<V, IFORM, DOF...>::DoUpdate() {
+void AttributeT<V, IFORM, DOF...>::Update() {
     detail::update(*this);
 };
-
-template <typename V, int IFORM, int... DOF>
-void AttributeT<V, IFORM, DOF...>::DoTearDown(){};
 
 template <typename V, int IFORM, int... DOF>
 bool AttributeT<V, IFORM, DOF...>::isNull() const {
@@ -478,6 +468,7 @@ void Assign(nTuple<Array<V...>, N...> &lhs, RHS const &rhs) {
 template <typename V, int IFORM, int... DOF>
 template <typename RHS>
 void AttributeT<V, IFORM, DOF...>::Assign(RHS const &rhs) {
+    Update();
     detail::Assign(*this, rhs);
 };
 template <typename V, int IFORM, int... DOF>

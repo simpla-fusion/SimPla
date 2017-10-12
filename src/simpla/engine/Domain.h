@@ -26,19 +26,25 @@ class DomainBase : public EngineObject, public AttributeGroup {
     std::string TypeName() const final { return "DomainBase"; }
 
    public:
-    void Push(const std::shared_ptr<data::DataNode> &) override;
-    std::shared_ptr<data::DataNode> Pop() const override;
+    //    void Push(const std::shared_ptr<data::DataNode> &) override;
+    //    std::shared_ptr<data::DataNode> Pop() const override;
+
+    void Push(const std::shared_ptr<Patch> &) override;
+    std::shared_ptr<Patch> Pop() const override;
 
     int GetNDIMS() const;
     void SetChart(std::shared_ptr<geometry::Chart> const &c);
     virtual std::shared_ptr<geometry::Chart> GetChart();
     virtual std::shared_ptr<const geometry::Chart> GetChart() const;
 
-    void SetBlock(const std::shared_ptr<const MeshBlock> &blk);
-    virtual std::shared_ptr<const MeshBlock> GetBlock() const;
+    void SetMeshBlock(const std::shared_ptr<const MeshBlock> &blk);
+    virtual std::shared_ptr<const MeshBlock> GetMeshBlock() const;
 
-    enum { IN_BOUNDARY = -1, ON_BOUNDARY = 0, OUT_BOUNDARY = 1 };
     virtual int CheckBoundary() const;
+    bool isOutOfBoundary() const;
+    bool isOnBoundary() const;
+    bool isFirstTime() const;
+
     void SetBoundary(std::shared_ptr<geometry::GeoObject> const &g);
     std::shared_ptr<geometry::GeoObject> GetBoundary() const;
     box_type GetBlockBox() const;
@@ -87,7 +93,7 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
 
    public:
     std::shared_ptr<const geometry::Chart> GetChart() const override { return DomainBase::GetChart(); };
-    std::shared_ptr<const engine::MeshBlock> GetBlock() const override { return DomainBase::GetBlock(); };
+    std::shared_ptr<const engine::MeshBlock> GetMeshBlock() const override { return DomainBase::GetMeshBlock(); };
 
     std::shared_ptr<data::DataNode> db() const override { return SPObject::db(); }
     std::shared_ptr<data::DataNode> db() override { return SPObject::db(); }

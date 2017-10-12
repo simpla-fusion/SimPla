@@ -95,12 +95,6 @@ class SPObject : public Factory<SPObject>, public std::enable_shared_from_this<S
 
     static std::shared_ptr<SPObject> Create(std::string const &v);
     static std::shared_ptr<SPObject> Create(std::shared_ptr<data::DataNode> const &tdb);
-    static std::shared_ptr<SPObject> CreateAndSync(std::shared_ptr<data::DataNode> const &v);
-
-    template <typename TOBJ>
-    static std::shared_ptr<TOBJ> CreateAndSyncT(std::shared_ptr<data::DataNode> const &v) {
-        return std::dynamic_pointer_cast<TOBJ>(CreateAndSync(v));
-    };
 
     virtual std::shared_ptr<data::DataNode> db() const;
     virtual std::shared_ptr<data::DataNode> db();

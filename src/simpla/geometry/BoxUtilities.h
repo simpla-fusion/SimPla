@@ -12,7 +12,16 @@ namespace simpla {
 template <typename, int...>
 struct nTuple;
 namespace geometry {
-
+template <typename T, int N>
+bool CheckOverlap(std::tuple<nTuple<T, N>, nTuple<T, N>> const &lhs,
+                  std::tuple<nTuple<T, N>, nTuple<T, N>> const &rhs) {
+    bool no_overlap = true;
+    for (int i = 0; i < N; ++i) {
+        no_overlap =
+            no_overlap && (std::get<1>(lhs)[i] < std::get<0>(rhs)[i] && std::get<0>(lhs)[i] > std::get<1>(rhs)[i]);
+    }
+    return !no_overlap;
+}
 template <typename T>
 constexpr inline T Measure(std::tuple<nTuple<T, 2>, nTuple<T, 2>> const &b) {
     return (std::get<1>(b)[0] - std::get<0>(b)[0]) * (std::get<1>(b)[1] - std::get<0>(b)[1]);

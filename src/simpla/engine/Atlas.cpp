@@ -3,15 +3,16 @@
  *  Created by salmon on 16-5-23.
  */
 #include <mpi.h>
+#include <simpla/geometry/BoxUtilities.h>
 #include <simpla/geometry/Chart.h>
-
-#include <simpla/geometry/csCartesian.h>
 #include <simpla/parallel/MPIComm.h>
 #include <simpla/parallel/MPIUpdater.h>
 #include "simpla/SIMPLA_config.h"
 
 #include "simpla/geometry/Chart.h"
 
+#include <simpla/parallel/MPIComm.h>
+#include <simpla/parallel/MPIUpdater.h>
 #include "Atlas.h"
 #include "MeshBlock.h"
 //#include "TransitionMap.h"
@@ -21,7 +22,9 @@ namespace simpla {
 namespace engine {
 
 struct Atlas::pimpl_s {
-    std::map<id_type, std::shared_ptr<MeshBlock>> m_blocks_;
+    std::map<id_type, std::shared_ptr<Patch>> m_patches_;
+
+    //    std::map<id_type, std::shared_ptr<MeshBlock>> m_blocks_;
     std::shared_ptr<geometry::Chart> m_chart_ = nullptr;
     //    static constexpr int MAX_NUM_OF_LEVEL = 5;
     //    typedef typename std::multimap<id_type, id_type>::iterator link_iterator;
@@ -64,7 +67,7 @@ std::shared_ptr<data::DataNode> Atlas::Serialize() const {
     tdb->Set("Chart", m_pimpl_->m_chart_->Serialize());
 
     auto blocks = tdb->CreateNode(data::DataNode::DN_TABLE);
-    for (auto const &item : m_pimpl_->m_blocks_) { blocks->Set(item.first, item.second->Serialize()); }
+    for (auto const &item : m_pimpl_->m_patches_) { blocks->Set(item.first, item.second->Serialize()); }
     tdb->Set("Blocks", blocks);
     return tdb;
 };
@@ -78,7 +81,8 @@ void Atlas::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
 
     auto blocks = tdb->Get("Blocks");
     blocks->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &block) {
-        m_pimpl_->m_blocks_.emplace(std::stoi(key), MeshBlock::New(block));
+        auto res = m_pimpl_->m_patches_.emplace(std::stoi(key), Patch::New());
+        res.first->second->Deserialize(block);
     });
 
     Click();
@@ -86,7 +90,7 @@ void Atlas::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
 std::shared_ptr<geometry::Chart> Atlas::GetChart() const { return m_pimpl_->m_chart_; }
 void Atlas::SetChart(std::shared_ptr<geometry::Chart> const &c) { m_pimpl_->m_chart_ = c; }
 void Atlas::DoSetUp() {
-    if (m_pimpl_->m_chart_ == nullptr) { m_pimpl_->m_chart_ = geometry::csCartesian::New(); }
+    ASSERT(m_pimpl_->m_chart_ == nullptr);  //{ m_pimpl_->m_chart_ = geometry::csCartesian::New(); }
     m_pimpl_->m_chart_->SetUp();
     point_type lo{0, 0, 0}, hi{0, 0, 0};
     std::tie(lo, hi) = m_pimpl_->m_box_;
@@ -116,7 +120,7 @@ void Atlas::DoSetUp() {
         }
     }
 #endif
-    AddBlock(MeshBlock::New(m_pimpl_->m_index_box_, 0, 0));
+    NewPatch(MeshBlock::New(m_pimpl_->m_index_box_, 0, 0));
 };
 
 void Atlas::DoUpdate() {
@@ -130,19 +134,21 @@ void Atlas::DoTearDown() {
     }
 };
 
-size_type Atlas::AddBlock(std::shared_ptr<MeshBlock> const &blk) {
-    auto id = blk->GetGUID();
-    auto res = m_pimpl_->m_blocks_.emplace(id, blk);
-    return res.second ? 1 : 0;
+std::shared_ptr<Patch> Atlas::SetPatch(std::shared_ptr<Patch> const &p) {
+    if (p == nullptr) { return nullptr; }
+    auto res = m_pimpl_->m_patches_.emplace(p->GetGUID(), p);
+    if (!res.second) { res.first->second->Push(p); }
+    return res.first->second;
 }
-size_type Atlas::DeleteBlock(id_type id) { return m_pimpl_->m_blocks_.erase(id); }
-std::shared_ptr<MeshBlock> Atlas::GetBlock(id_type id) const {
-    auto it = m_pimpl_->m_blocks_.find(id);
-    return it == m_pimpl_->m_blocks_.end() ? nullptr : it->second;
+std::shared_ptr<Patch> Atlas::GetPatch(id_type gid) const {
+    auto it = m_pimpl_->m_patches_.find(gid);
+    return it == m_pimpl_->m_patches_.end() ? nullptr : it->second;
 }
-int Atlas::Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const &fun) {
+size_type Atlas::DeletePatch(id_type id) { return m_pimpl_->m_patches_.erase(id); }
+
+int Atlas::Foreach(std::function<void(std::shared_ptr<Patch> const &)> const &fun) {
     int count = 0;
-    for (auto &item : m_pimpl_->m_blocks_) {
+    for (auto &item : m_pimpl_->m_patches_) {
         fun(item.second);
         ++count;
     }
@@ -185,6 +191,67 @@ index_box_type Atlas::GetHaloIndexBox(int tag, int direction) const {
 }
 
 index_tuple Atlas::GetHaloWidth() const { return m_pimpl_->m_ghost_width_; }
+void Atlas::SyncGlobal(std::string const &key, std::type_info const &t_info, int num_of_sub, int level) {
+    std::shared_ptr<parallel::MPIUpdater> updater = nullptr;
+
+    if (t_info == typeid(double)) {
+        updater = parallel::MPIUpdater::New<double>();
+    } else if (t_info == typeid(int)) {
+        updater = parallel::MPIUpdater::New<int>();
+    } else if (t_info == typeid(long)) {
+        updater = parallel::MPIUpdater::New<long>();
+    } else if (t_info == typeid(unsigned long)) {
+        updater = parallel::MPIUpdater::New<unsigned long>();
+    } else {
+        UNIMPLEMENTED;
+    }
+    auto idx_box = GetIndexBox();
+    auto halo_box = GetHaloIndexBox();
+
+    for (int dir = 0; dir < 3; ++dir) {
+        updater->SetIndexBox(idx_box);
+        updater->SetHaloIndexBox(halo_box);
+        updater->SetDirection(dir);
+        updater->SetUp();
+        for (int d = 0; d < num_of_sub; ++d) {
+            updater->Clear();
+            for (auto &item : m_pimpl_->m_patches_) {
+                if (auto t = item.second->GetDataBlock(key)) {
+                    if (auto array = std::dynamic_pointer_cast<ArrayBase>(t->GetEntity(d))) { updater->Push(*array); }
+                };
+            }
+            updater->SendRecv();
+            for (auto &item : m_pimpl_->m_patches_) {
+                if (auto t = item.second->GetDataBlock(key)) {
+                    if (auto array = std::dynamic_pointer_cast<ArrayBase>(t->GetEntity(d))) { updater->Pop(*array); }
+                };
+            }
+        }
+        updater->TearDown();
+    }
+}
+
+void Atlas::SyncLocal(int level) {
+    for (auto ia = m_pimpl_->m_patches_.begin(), ie = m_pimpl_->m_patches_.end(); ia != ie; ++ia) {
+        for (auto ib = ia++; ib != ie; ++ib) {
+            box_type box_a;  //= ia->second->GetIndexBox();
+            box_type box_b;  //= ib->second->GetIndexBox();
+            FIXME << "Need box_overlap!";
+            if (!geometry::CheckOverlap(box_a, box_b)) { continue; }
+            for (auto &item : ia->second->GetAllDataBlocks()) {
+                auto attr_a = item.second;
+                auto attr_b = ib->second->GetDataBlock(item.first);
+                for (int d = 0; d < attr_a->size(); ++d) {
+                    if (auto array_a = std::dynamic_pointer_cast<ArrayBase>(attr_a->GetEntity(d)))
+                        if (auto array_b = std::dynamic_pointer_cast<ArrayBase>(attr_b->GetEntity(d))) {
+                            array_b->CopyIn(*array_a->GetSelectionP(box_a));
+                            array_a->CopyIn(*array_b->GetSelectionP(box_b));
+                        }
+                }
+            };
+        };
+    };
+}
 
 // int Atlas::GetNumOfLevel() const { return m_pimpl_->(); }
 // int Atlas::GetMaxLevel() const { return m_pimpl_->m_max_level_; }

@@ -59,10 +59,21 @@ void DomainBase::SetChart(std::shared_ptr<geometry::Chart> const& c) { m_pimpl_-
 std::shared_ptr<geometry::Chart> DomainBase::GetChart() { return m_pimpl_->m_chart_; }
 std::shared_ptr<const geometry::Chart> DomainBase::GetChart() const { return m_pimpl_->m_chart_; }
 
-void DomainBase::SetBlock(std::shared_ptr<const MeshBlock> const& blk) { m_pimpl_->m_mesh_block_ = blk; };
-std::shared_ptr<const MeshBlock> DomainBase::GetBlock() const {
+void DomainBase::SetMeshBlock(std::shared_ptr<const MeshBlock> const& blk) { m_pimpl_->m_mesh_block_ = blk; };
+std::shared_ptr<const MeshBlock> DomainBase::GetMeshBlock() const {
     ASSERT(m_pimpl_->m_mesh_block_ != nullptr);
     return m_pimpl_->m_mesh_block_;
+}
+// void DomainBase::Push(std::shared_ptr<data::DataNode> const& data) { AttributeGroup::Push(data); }
+// std::shared_ptr<data::DataNode> DomainBase::Pop() const { return AttributeGroup::Pop(); }
+void DomainBase::Push(const std::shared_ptr<Patch>& p) {
+    SetMeshBlock(p->GetMeshBlock());
+    AttributeGroup::Push(p);
+}
+std::shared_ptr<Patch> DomainBase::Pop() const {
+    auto res = AttributeGroup::Pop();
+    res->SetMeshBlock(GetMeshBlock());
+    return res;
 }
 
 void DomainBase::SetBoundary(std::shared_ptr<geometry::GeoObject> const& g) { m_pimpl_->m_boundary_ = g; }
@@ -82,11 +93,21 @@ int DomainBase::CheckBoundary() const {
         auto b = GetBlockBoundingBox();
         ratio = m_pimpl_->m_boundary_->Intersection(b)->Measure() / b->Measure();
     }
-    return ratio < EPSILON ? OUT_BOUNDARY : (ratio < 1.0 ? ON_BOUNDARY : IN_BOUNDARY);
+    return ratio < EPSILON ? 1 : (ratio < 1.0 ? 0 : -1);
 }
-void DomainBase::Push(std::shared_ptr<data::DataNode> const& data) { AttributeGroup::Push(data); }
-std::shared_ptr<data::DataNode> DomainBase::Pop() const { return AttributeGroup::Pop(); }
+bool DomainBase::isOutOfBoundary() const {
+    FIXME;
+    return false;
+}
 
+bool DomainBase::isOnBoundary() const {
+    FIXME;
+    return false;
+}
+bool DomainBase::isFirstTime() const {
+    FIXME;
+    return false;
+}
 void DomainBase::DoSetUp() { base_type::DoSetUp(); }
 void DomainBase::DoUpdate() { base_type::DoUpdate(); }
 void DomainBase::DoTearDown() { base_type::DoTearDown(); }

@@ -70,7 +70,6 @@ void SPObject::Deserialize(std::shared_ptr<data::DataNode> const &d) {
     m_pimpl_->m_db_->Set(d);
     SetName(m_pimpl_->m_db_->GetValue<std::string>("Name", GetName()));
 }
-std::shared_ptr<SPObject> SPObject::CreateAndSync(std::shared_ptr<data::DataNode> const &) { return nullptr; }
 std::shared_ptr<SPObject> SPObject::Create(std::string const &key) { return base_type::Create(key); };
 std::shared_ptr<SPObject> SPObject::Create(std::shared_ptr<data::DataNode> const &tdb) {
     auto res = base_type::Create(tdb->GetValue<std::string>("_TYPE_"));
