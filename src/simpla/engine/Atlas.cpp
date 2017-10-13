@@ -41,6 +41,8 @@ struct Atlas::pimpl_s {
     box_type m_box_{{0, 0, 0}, {1, 1, 1}};
     index_box_type m_global_index_box_{{0, 0, 0}, {1, 1, 1}};
     index_box_type m_index_box_{{0, 0, 0}, {1, 1, 1}};
+    index_box_type m_halo_box_{{0, 0, 0}, {1, 1, 1}};
+
     index_tuple m_ghost_width_{3, 3, 3};
     index_tuple m_period_{1, 1, 1};
 
@@ -135,9 +137,16 @@ void Atlas::DoSetUp() {
             (std::get<0>(m_pimpl_->m_bounding_box_) - m_pimpl_->m_grid_width_ * 0.5) / m_pimpl_->m_grid_width_;
         std::get<1>(m_pimpl_->m_index_box_) =
             (std::get<1>(m_pimpl_->m_bounding_box_) + m_pimpl_->m_grid_width_ * 0.5) / m_pimpl_->m_grid_width_;
+
+        std::get<0>(m_pimpl_->m_halo_box_)[i] = std::get<0>(m_pimpl_->m_index_box_)[i];
+        std::get<1>(m_pimpl_->m_halo_box_)[i] = std::get<1>(m_pimpl_->m_index_box_)[i];
+
         if (m_pimpl_->m_period_[i] == 0) {  // if it is not a period dimension then fix dx change bounding box
             std::get<0>(m_pimpl_->m_bounding_box_) = std::get<0>(m_pimpl_->m_index_box_) * m_pimpl_->m_grid_width_;
             std::get<1>(m_pimpl_->m_bounding_box_) = std::get<1>(m_pimpl_->m_index_box_) * m_pimpl_->m_grid_width_;
+
+            std::get<0>(m_pimpl_->m_halo_box_)[i] -= m_pimpl_->m_ghost_width_[i];
+            std::get<1>(m_pimpl_->m_halo_box_)[i] += m_pimpl_->m_ghost_width_[i];
         } else {  // if it is a period dimension then fix   bounding box change dx and  origin
             m_pimpl_->m_grid_width_ =
                 (std::get<1>(m_pimpl_->m_bounding_box_) - std::get<0>(m_pimpl_->m_bounding_box_)) /
@@ -154,6 +163,7 @@ void Atlas::DoSetUp() {
     m_pimpl_->m_chart_->SetUp();
 
     m_pimpl_->m_global_index_box_ = m_pimpl_->m_index_box_;
+
 #ifdef MPI_FOUND
     {
         int mpi_ndims = 0;

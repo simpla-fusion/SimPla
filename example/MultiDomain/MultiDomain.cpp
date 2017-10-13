@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
 
     scenario->GetAtlas()->SetOrigin({0, 0, 0});
     scenario->GetAtlas()->SetGridWidth({1, 1, 1});
-    scenario->GetAtlas()->SetPeriodicDimensions({1, 0, 0});
+    scenario->GetAtlas()->SetPeriodicDimensions({0, 1, 1});
 
     scenario->GetAtlas()->NewChart<simpla::geometry::csCartesian>();
 

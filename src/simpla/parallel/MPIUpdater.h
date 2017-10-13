@@ -26,6 +26,8 @@ struct MPIUpdater {
 
     void SetDirection(int);
     int GetDirection() const;
+    void SetPeriodic(bool tag = true);
+    bool IsPeriodic() const;
 
     void SetIndexBox(index_box_type const &inner);
     index_box_type GetIndexBox() const;

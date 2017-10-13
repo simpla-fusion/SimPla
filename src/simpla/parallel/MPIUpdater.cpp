@@ -29,6 +29,7 @@ struct MPIUpdater::pimpl_s {
     int left = 0, right = 0;
     int m_rank_ = 0;
     int m_coord_[3] = {0, 0, 0};
+    bool m_is_perodic_ = true;
 };
 MPIUpdater::MPIUpdater() : m_pimpl_(new pimpl_s) {
     if (GLOBAL_COMM.size() <= 1) { return; }
@@ -40,6 +41,8 @@ MPIUpdater::~MPIUpdater() { TearDown(); };
 
 void MPIUpdater::SetDirection(int d) { m_pimpl_->m_direction_ = d; }
 int MPIUpdater::GetDirection() const { return m_pimpl_->m_direction_; }
+void MPIUpdater::SetPeriodic(bool tag) { m_pimpl_->m_is_perodic_ = tag; }
+bool MPIUpdater::IsPeriodic() const { return m_pimpl_->m_is_perodic_; }
 
 void MPIUpdater::SetIndexBox(index_box_type const &idx_box) {
     m_pimpl_->m_index_box_ = idx_box;
@@ -175,8 +178,7 @@ void MPIUpdater::SendRecv() {
                               m_pimpl_->ele_type, m_pimpl_->left, m_pimpl_->tag,                      //
                               GLOBAL_COMM.comm(), MPI_STATUS_IGNORE));
         GLOBAL_COMM.barrier();
-    } else  // if (m_pimpl_->mpi_periods[m_pimpl_->m_direction_] > 0)
-    {
+    } else if (IsPeriodic()) {
         index_tuple shift = {0, 0, 0};
         shift[m_pimpl_->m_direction_] = std::get<1>(m_pimpl_->m_index_box_)[m_pimpl_->m_direction_] -
                                         std::get<0>(m_pimpl_->m_index_box_)[m_pimpl_->m_direction_];
