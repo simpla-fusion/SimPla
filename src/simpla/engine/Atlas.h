@@ -79,19 +79,26 @@ class Atlas : public EngineObject {
     std::shared_ptr<geometry::Chart> GetChart() const;
     void SetChart(std::shared_ptr<geometry::Chart> const &);
     template <typename U, typename... Args>
-    void SetChart(Args &&... args) {
+    std::shared_ptr<geometry::Chart> NewChart(Args &&... args) {
         static_assert(std::is_base_of<geometry::Chart, U>::value, "illegal chart type!");
-        SetChart(U::New(std::forward<Args>(args)...));
+        auto res = U::New(std::forward<Args>(args)...);
+        SetChart(res);
+        return res;
     };
-    bool hasBoundingBox() const;
+    void SetPeriodicDimension(index_tuple const &p);
+    void SetOrigin(point_type const &);     // origin point of index space
+    void SetGridWidth(point_type const &);  // Coarsest grid size
     void SetBoundingBox(box_type const &);
+
+    index_tuple GetPeriodicDimension() const;
     box_type GetBoundingBox() const;
+    index_box_type GetIndexBox() const;
+    index_box_type GetGlobalIndexBox() const;
+    index_tuple GetHaloWidth() const;
+
     index_box_type GetBoundingIndexBox(int tag = CELL, int direction = 0) const;
     index_box_type GetBoundingHaloIndexBox(int tag = CELL, int direction = 0) const;
 
-    index_box_type GetGlobalIndexBox() const;
-
-    index_tuple GetHaloWidth() const;
     void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;

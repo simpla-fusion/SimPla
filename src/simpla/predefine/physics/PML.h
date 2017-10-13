@@ -26,8 +26,11 @@ template <typename TDomain>
 class PML : public TDomain {
     SP_DOMAIN_HEAD(PML, TDomain);
     box_type m_center_box_ = {{0, 0, 0}, {1, 1, 1}};
+    box_type m_bounding_box_ = {{0, 0, 0}, {1, 1, 1}};
 
    public:
+    void SetBoundingBox(box_type const& b) { m_bounding_box_ = b; }
+    box_type GetBoundingBox() const override { return m_bounding_box_; }
     void SetCenterBox(box_type const& b) { m_center_box_ = b; }
     box_type GetCenterBox() const { return m_center_box_; }
     int CheckBoundary() const override;
@@ -76,7 +79,10 @@ void PML<TDomain>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
 
 template <typename TDomain>
 int PML<TDomain>::CheckBoundary() const {
-    return geometry::isOverlapped(m_center_box_, this->GetBlockBox()) ? -1 : 1;
+    return (geometry::CheckInSide(m_bounding_box_, this->GetBlockBox()) &&
+            !geometry::CheckInSide(m_center_box_, this->GetBlockBox()))
+               ? -1
+               : 1;
 }
 
 template <typename TDomain>

@@ -68,7 +68,7 @@ constexpr inline std::tuple<nTuple<T, N>, nTuple<T, N>> Expand(std::tuple<nTuple
 };
 
 template <typename T>
-constexpr inline bool CheckInSide(std::tuple<nTuple<T, 3>, nTuple<T, 3>> const &b, nTuple<T, 3> const &p) {
+constexpr inline bool isInSide(std::tuple<nTuple<T, 3>, nTuple<T, 3>> const &b, nTuple<T, 3> const &p) {
     return (p[0] >= std::get<0>(b)[0]) &&  //
            (p[1] >= std::get<0>(b)[1]) &&  //
            (p[2] >= std::get<0>(b)[2]) &&  //
@@ -76,7 +76,17 @@ constexpr inline bool CheckInSide(std::tuple<nTuple<T, 3>, nTuple<T, 3>> const &
            (p[1] < std::get<1>(b)[1]) &&   //
            (p[2] < std::get<1>(b)[2]);
 }
+template <typename T, int N>
+constexpr bool isInSide(std::tuple<nTuple<T, N>, nTuple<T, N>> const &b,
+                        std::tuple<nTuple<T, N>, nTuple<T, N>> const &p) {
+    return isInSide(b, std::get<0>(p)) && isInSide(b, std::get<1>(p));
+}
 
+template <typename T, int N>
+constexpr bool isOutSide(std::tuple<nTuple<T, N>, nTuple<T, N>> const &b,
+                        std::tuple<nTuple<T, N>, nTuple<T, N>> const &p) {
+    return isInSide(b, std::get<0>(p)) && isInSide(b, std::get<1>(p));
+}
 template <typename T, int N>
 bool isIllCondition(std::tuple<nTuple<T, N>, nTuple<T, N>> const &lhs) {
     bool is_ill = false;
@@ -104,15 +114,15 @@ std::vector<std::tuple<nTuple<T, N>, nTuple<T, N>>> HaloBoxDecompose(
     res.push_back(center_box);
     nTuple<T, N> lo, hi;
     for (int d = 0; d < N; ++d) {
-        //        for (int i = 0; i < d; ++i) {
-        //            lo[i] = std::get<0>(bounding_box)[d];
-        //            hi[i] = std::get<1>(bounding_box)[d];
-        //        }
-        //        for (int i = d + 1; i < N; ++i) {
-        //            lo[i] = std::get<0>(bounding_box)[d];
-        //            hi[i] = std::get<1>(bounding_box)[d];
-        //        }
-        std::tie(lo, hi) = bounding_box;
+        for (int i = 0; i < d; ++i) {
+            lo[i] = std::get<0>(bounding_box)[i];
+            hi[i] = std::get<1>(bounding_box)[i];
+        }
+        for (int i = d + 1; i < N; ++i) {
+            lo[i] = std::get<0>(center_box)[i];
+            hi[i] = std::get<1>(center_box)[i];
+        }
+        //        std::tie(lo, hi) = bounding_box;
         lo[d] = std::get<0>(bounding_box)[d];
         hi[d] = std::get<0>(center_box)[d];
         res.push_back(std::make_tuple(lo, hi));

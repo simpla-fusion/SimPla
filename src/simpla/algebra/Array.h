@@ -290,13 +290,16 @@ class Array : public ArrayBase {
     }
     template <typename... Args>
     void Set(value_type const& v, Args&&... args) {
-        if (m_sfc_.in_box(std::forward<Args>(args)...)) { m_data_[m_sfc_.hash(std::forward<Args>(args)...)] = v; }
+        if (m_data_ != nullptr && m_sfc_.in_box(std::forward<Args>(args)...)) {
+            m_data_[m_sfc_.hash(std::forward<Args>(args)...)] = v;
+        }
     }
 
     template <typename... Args>
-    value_type const& Get(Args&&... args) const {
-        return (!m_sfc_.in_box(std::forward<Args>(args)...)) ? s_nan
-                                                             : m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
+    value_type Get(Args&&... args) const {
+        return (m_data_ == nullptr || !m_sfc_.in_box(std::forward<Args>(args)...))
+                   ? s_nan
+                   : m_data_[m_sfc_.hash(std::forward<Args>(args)...)];
     }
 
     template <typename RHS>

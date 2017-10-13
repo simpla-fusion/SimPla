@@ -5,9 +5,9 @@
 #include "simpla/SIMPLA_config.h"
 
 #include <simpla/application/SPInit.h>
+#include <simpla/geometry/BoxUtilities.h>
 #include <simpla/geometry/Cube.h>
 #include <simpla/geometry/csCartesian.h>
-#include <simpla/geometry/BoxUtilities.h>
 #include <simpla/mesh/CoRectMesh.h>
 #include <simpla/mesh/EBMesh.h>
 #include <simpla/mesh/RectMesh.h>
@@ -43,14 +43,13 @@ int main(int argc, char **argv) {
     simpla::Initialize(argc, argv);
     auto scenario = SimpleTimeIntegrator::New();
     scenario->SetName("MultiDomain");
-    scenario->GetAtlas()->SetChart<simpla::geometry::csCartesian>();
-    scenario->GetAtlas()->GetChart()->SetScale({1, 1.5, 2});
-    scenario->GetAtlas()->GetChart()->SetOrigin({0, 0, 0});
 
     box_type center_box{{-15, -25, -20}, {15, 25, 20}};
-    box_type bounding_box{{-20, -30, -25}, {20, 30, 25}};
+    box_type bounding_box{{-30, -30, -30}, {20, 30, 30}};
 
-    scenario->GetAtlas()->SetBoundingBox(bounding_box);
+    scenario->GetAtlas()->SetOrigin({0, 0, 0});
+    scenario->GetAtlas()->SetGridWidth({1, 1, 1});
+    scenario->GetAtlas()->NewChart<simpla::geometry::csCartesian>();
 
     auto center = scenario->NewDomain<SimpleMaxwell>("Center");
     center->SetBoundary(geometry::Cube::New(center_box));
@@ -64,6 +63,7 @@ int main(int argc, char **argv) {
         }
     });
     auto pml = scenario->NewDomain<SimplePML>("Boundary");
+    pml->SetBoundingBox(bounding_box);
     pml->SetCenterBox(center_box);
     scenario->SetTimeEnd(1.0e-8);
     scenario->SetMaxStep(num_of_step);
@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
     //    scenario->ConfigureAttribute<size_type>("s0", "CheckPoint", 1);
     //    scenario->ConfigureAttribute<size_type>("s1", "CheckPoint", 1);
     //    scenario->ConfigureAttribute<size_type>("s2", "CheckPoint", 1);
-    //    VERBOSE << "Scenario: " << *scenario->Serialize();
+    VERBOSE << "Scenario: " << *scenario->Serialize();
     TheStart();
     scenario->Run();
     TheEnd();

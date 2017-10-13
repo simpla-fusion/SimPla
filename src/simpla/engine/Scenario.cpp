@@ -83,8 +83,8 @@ void Scenario::CheckPoint(size_type step_num) const {
     auto patches = dump->CreateNode("Atlas/Patches", data::DataNode::DN_TABLE);
     m_pimpl_->m_atlas_->Foreach([&](auto const &patch) {
         auto d_patch = patches->CreateNode(std::to_string(patch->GetGUID()), data::DataNode::DN_TABLE);
-        d_patch->Set("MeshBlock",patch->GetMeshBlock()->Serialize());
-        auto d_attrs=d_patch->CreateNode("Attributes", data::DataNode::DN_TABLE);
+        d_patch->Set("MeshBlock", patch->GetMeshBlock()->Serialize());
+        auto d_attrs = d_patch->CreateNode("Attributes", data::DataNode::DN_TABLE);
         for (auto const &attr : m_pimpl_->m_attrs_) {
             auto check_point = attr.second->db()->GetValue<size_type>("CheckPoint", 0);
             if (check_point != 0 && step_num % check_point == 0) {
@@ -179,25 +179,7 @@ void Scenario::DoInitialize() {}
 void Scenario::DoFinalize() {}
 
 void Scenario::DoSetUp() {
-    box_type bounding_box;
-
     for (auto &item : m_pimpl_->m_domains_) { item.second->SetUp(); }
-
-    auto chart = m_pimpl_->m_atlas_->GetChart();
-    if (!m_pimpl_->m_atlas_->hasBoundingBox()) {
-        auto it = m_pimpl_->m_domains_.begin();
-        if (it == m_pimpl_->m_domains_.end() || it->second == nullptr) { return; }
-        bounding_box = it->second->GetBoundary()->GetBoundingBox();
-        ++it;
-        for (; it != m_pimpl_->m_domains_.end(); ++it) {
-            if (it->second != nullptr) {
-                bounding_box = geometry::Union(bounding_box, it->second->GetBoundary()->GetBoundingBox());
-            }
-        }
-        m_pimpl_->m_atlas_->SetBoundingBox(chart->GetBoundingBox(bounding_box));
-    }
-    m_pimpl_->m_atlas_->SetUp();
-    base_type::DoSetUp();
 
     for (auto &item : m_pimpl_->m_domains_) {
         for (auto *attr : item.second->GetAttributes()) {
@@ -207,6 +189,15 @@ void Scenario::DoSetUp() {
             attr->db(res.first->second->db());
         }
     }
+
+    box_type bounding_box = m_pimpl_->m_atlas_->GetBoundingBox();
+    for (auto it = m_pimpl_->m_domains_.begin(); it != m_pimpl_->m_domains_.end(); ++it) {
+        if (it->second != nullptr) { bounding_box = geometry::Union(bounding_box, it->second->GetBoundingBox()); }
+    }
+    m_pimpl_->m_atlas_->SetBoundingBox(bounding_box);
+
+    m_pimpl_->m_atlas_->SetUp();
+    base_type::DoSetUp();
 }
 
 void Scenario::DoUpdate() {

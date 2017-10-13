@@ -91,6 +91,11 @@ box_type DomainBase::GetBlockBox() const {
     return std::make_tuple(m_pimpl_->m_chart_->local_coordinates(std::get<0>(idx_box)),
                            m_pimpl_->m_chart_->local_coordinates(std::get<1>(idx_box)));
 }
+box_type DomainBase::GetBoundingBox() const {
+    return m_pimpl_->m_boundary_ != nullptr ? GetBoundary()->GetBoundingBox()
+                                            : box_type{{SNaN, SNaN, SNaN}, {SNaN, SNaN, SNaN}};
+}
+
 int DomainBase::CheckBoundary() const {
     return (m_pimpl_->m_boundary_ == nullptr ||
             geometry::isOverlapped(m_pimpl_->m_boundary_->GetBoundingBox(), GetBlockBox()))
@@ -110,7 +115,7 @@ void DomainBase::InitialCondition(Real time_now) {
 
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::InitialCondition( time_now =" << time_now << ")"
-            << ":" << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
+            << " :  " << std::setw(10) << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
     PreInitialCondition(this, time_now);
     DoInitialCondition(time_now);
     PostInitialCondition(this, time_now);
@@ -120,7 +125,7 @@ void DomainBase::BoundaryCondition(Real time_now, Real dt) {
     if (CheckBoundary() < 0) { return; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::BoundaryCondition( time_now=" << time_now << " , dt=" << dt << ")"
-            << ":" << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
+            << " :  " << std::setw(10) << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
     PreBoundaryCondition(this, time_now, dt);
     DoBoundaryCondition(time_now, dt);
     PostBoundaryCondition(this, time_now, dt);
@@ -131,7 +136,7 @@ void DomainBase::ComputeFluxes(Real time_now, Real time_dt) {
     if (CheckBoundary() < 0) { return; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::ComputeFluxes(time_now=" << time_now << " , time_dt=" << time_dt << ")"
-            << ":" << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
+            << " :  " << std::setw(10) << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
     PreComputeFluxes(this, time_now, time_dt);
     DoComputeFluxes(time_now, time_dt);
     PostComputeFluxes(this, time_now, time_dt);
@@ -140,7 +145,7 @@ Real DomainBase::ComputeStableDtOnPatch(Real time_now, Real time_dt) const {
     if (!isModified() || CheckBoundary() < 0) { return time_dt; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::ComputeStableDtOnPatch( time_now=" << time_now << " , time_dt=" << time_dt << ")"
-            << ":" << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
+            << " :  " << std::setw(10) << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
     return time_dt;
 }
 
@@ -149,7 +154,7 @@ void DomainBase::Advance(Real time_now, Real time_dt) {
     if (CheckBoundary() < 0) { return; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::Advance(time_now=" << time_now << " , dt=" << time_dt << ")"
-            << ":" << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
+            << " :  " << std::setw(10) << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
     PreAdvance(this, time_now, time_dt);
     DoAdvance(time_now, time_dt);
     PostAdvance(this, time_now, time_dt);
@@ -159,7 +164,7 @@ void DomainBase::TagRefinementCells(Real time_now) {
     if (CheckBoundary() < 0) { return; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::TagRefinementCells(time_now=" << time_now << ")"
-            << ":" << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
+            << " :  " << std::setw(10) << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
 
     PreTagRefinementCells(this, time_now);
     //    TagRefinementRange(GetRange(GetName() + "_BOUNDARY_3"));
