@@ -45,10 +45,12 @@ int main(int argc, char **argv) {
     scenario->SetName("MultiDomain");
 
     box_type center_box{{-15, -25, -20}, {15, 25, 20}};
-    box_type bounding_box{{-30, -30, -30}, {20, 30, 30}};
+    box_type bounding_box{{-20, -25, -20}, {20, 25, 20}};
 
     scenario->GetAtlas()->SetOrigin({0, 0, 0});
     scenario->GetAtlas()->SetGridWidth({1, 1, 1});
+    scenario->GetAtlas()->SetPeriodicDimensions({1, 0, 0});
+
     scenario->GetAtlas()->NewChart<simpla::geometry::csCartesian>();
 
     auto center = scenario->NewDomain<SimpleMaxwell>("Center");

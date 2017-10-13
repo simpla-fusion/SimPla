@@ -24,7 +24,7 @@ Real GeoObject::Measure() const {
            (std::get<1>(b)[2] - std::get<0>(b)[2]);
 };
 
-bool GeoObject::CheckInside(point_type const &x) const { return CheckInSide(GetBoundingBox(), x); }
+bool GeoObject::CheckInside(point_type const &x) const { return geometry::isInSide(GetBoundingBox(), x); }
 std::shared_ptr<GeoObject> GeoObject::Intersection(std::shared_ptr<GeoObject> const &other) const {
     return Cube::New(geometry::Overlap(GetBoundingBox(), other->GetBoundingBox()));
 }

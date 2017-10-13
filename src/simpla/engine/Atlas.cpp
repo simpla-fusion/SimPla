@@ -276,7 +276,6 @@ void Atlas::SyncLocal(int level) {
             auto box_b = ib->second->GetIndexBox();
             index_box_type a_box;
             if (!geometry::isOverlapped(box_a, box_b)) { continue; }
-            VERBOSE << box_a << box_b;
 
             for (auto const &item : ia->second->GetAllDataBlocks()) {
                 auto attr_a = item.second->Get("_DATA_");
@@ -284,8 +283,8 @@ void Atlas::SyncLocal(int level) {
                 for (int d = 0; d < attr_a->size(); ++d) {
                     auto array_a = std::dynamic_pointer_cast<ArrayBase>(attr_a->GetEntity(d));
                     auto array_b = std::dynamic_pointer_cast<ArrayBase>(attr_b->GetEntity(d));
-                    //                    array_b->CopyIn(*array_a->GetSelectionP(box_a));
-                    //                    array_a->CopyIn(*array_b->GetSelectionP(box_b));
+                    array_b->CopyIn(*array_a->GetSelectionP(box_a));
+                    array_a->CopyIn(*array_b->GetSelectionP(box_b));
                 }
             };
         };

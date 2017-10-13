@@ -79,10 +79,10 @@ void PML<TDomain>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
 
 template <typename TDomain>
 int PML<TDomain>::CheckBoundary() const {
-    return (geometry::CheckInSide(m_bounding_box_, this->GetBlockBox()) &&
-            !geometry::CheckInSide(m_center_box_, this->GetBlockBox()))
-               ? -1
-               : 1;
+    return (geometry::isInSide(m_bounding_box_, this->GetBlockBox()) &&
+            !geometry::isInSide(m_center_box_, this->GetBlockBox()))
+               ? 1
+               : -1;
 }
 
 template <typename TDomain>

@@ -83,9 +83,9 @@ constexpr bool isInSide(std::tuple<nTuple<T, N>, nTuple<T, N>> const &b,
 }
 
 template <typename T, int N>
-constexpr bool isOutSide(std::tuple<nTuple<T, N>, nTuple<T, N>> const &b,
-                        std::tuple<nTuple<T, N>, nTuple<T, N>> const &p) {
-    return isInSide(b, std::get<0>(p)) && isInSide(b, std::get<1>(p));
+constexpr bool isOutSide(std::tuple<nTuple<T, N>, nTuple<T, N>> const &lhs,
+                        std::tuple<nTuple<T, N>, nTuple<T, N>> const &rhs) {
+    return  !isIllCondition(Overlap(lhs, rhs));
 }
 template <typename T, int N>
 bool isIllCondition(std::tuple<nTuple<T, N>, nTuple<T, N>> const &lhs) {
