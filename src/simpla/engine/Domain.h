@@ -40,8 +40,6 @@ class DomainBase : public EngineObject, public AttributeGroup {
     virtual std::shared_ptr<const MeshBlock> GetMeshBlock() const;
 
     virtual int CheckBoundary() const;
-    bool isOutOfBoundary() const;
-    bool isOnBoundary() const;
     bool isFirstTime() const;
 
     void SetBoundary(std::shared_ptr<geometry::GeoObject> const &g);

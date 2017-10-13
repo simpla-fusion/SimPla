@@ -31,7 +31,7 @@ void TimeIntegrator::InitialCondition(Real time_now) {
 
         for (auto &item : GetDomains()) {
             item.second->Push(patch->Pop());
-            if (!item.second->isOutOfBoundary()) { item.second->InitialCondition(time_now); }
+            if (item.second->CheckBoundary() >= 0) { item.second->InitialCondition(time_now); }
             patch->Push(item.second->Pop());
         }
 
@@ -57,10 +57,10 @@ void TimeIntegrator::Advance(Real time_now, Real time_dt) {
 
         for (auto &item : GetDomains()) {
             item.second->Push(patch->Pop());
-            if (item.second->isOutOfBoundary()) { continue; }
+            if (item.second->CheckBoundary() < 0) { continue; }
             if (item.second->isFirstTime()) { item.second->InitialCondition(time_now); }
             item.second->Advance(time_now, time_dt);
-            if (item.second->isOnBoundary()) { item.second->BoundaryCondition(time_now, time_dt); }
+            if (item.second->CheckBoundary() == 0) { item.second->BoundaryCondition(time_now, time_dt); }
             patch->Push(item.second->Pop());
         }
 
@@ -92,7 +92,7 @@ void TimeIntegrator::Run() {
         CheckPoint(GetStepNumber());
     }
 
-//    Dump();
+    //    Dump();
 }
 void TimeIntegrator::NextStep() {
     m_pimpl_->m_time_now_ += m_pimpl_->m_time_step_;

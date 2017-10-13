@@ -71,6 +71,8 @@ std::shared_ptr<const MeshBlock> DomainBase::GetMeshBlock() const { return m_pim
 void DomainBase::Push(const std::shared_ptr<Patch>& p) {
     SetMeshBlock(p->GetMeshBlock());
     AttributeGroup::Push(p);
+    m_pimpl_->m_box_in_boundary_ = CheckBoundary();
+
     m_pimpl_->m_is_first_time_ = !AttributeGroup::isInitialized();
 }
 std::shared_ptr<Patch> DomainBase::Pop() const {
@@ -89,21 +91,23 @@ box_type DomainBase::GetBlockBox() const {
     return std::make_tuple(m_pimpl_->m_chart_->local_coordinates(std::get<0>(idx_box)),
                            m_pimpl_->m_chart_->local_coordinates(std::get<1>(idx_box)));
 }
-int DomainBase::CheckBoundary() const { return m_pimpl_->m_box_in_boundary_; }
+int DomainBase::CheckBoundary() const {
+    return (m_pimpl_->m_boundary_ == nullptr ||
+            geometry::isOverlapped(m_pimpl_->m_boundary_->GetBoundingBox(), GetBlockBox()))
+               ? 1
+               : -1;
+}
 
-bool DomainBase::isOutOfBoundary() const { return m_pimpl_->m_box_in_boundary_ > 1; }
-bool DomainBase::isOnBoundary() const { return m_pimpl_->m_box_in_boundary_ == 0; }
 bool DomainBase::isFirstTime() const { return m_pimpl_->m_is_first_time_; }
 
 void DomainBase::DoSetUp() { base_type::DoSetUp(); }
-void DomainBase::DoUpdate() {
-    TODO << "Check boundary";
-    base_type::DoUpdate();
-}
+void DomainBase::DoUpdate() { base_type::DoUpdate(); }
 void DomainBase::DoTearDown() { base_type::DoTearDown(); }
 
 void DomainBase::InitialCondition(Real time_now) {
     Update();
+    if (CheckBoundary() < 0) { return; }
+
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::InitialCondition( time_now =" << time_now << ")"
             << ":" << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
@@ -113,7 +117,7 @@ void DomainBase::InitialCondition(Real time_now) {
 }
 void DomainBase::BoundaryCondition(Real time_now, Real dt) {
     Update();
-    if (isOutOfBoundary()) { return; }
+    if (CheckBoundary() < 0) { return; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::BoundaryCondition( time_now=" << time_now << " , dt=" << dt << ")"
             << ":" << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
@@ -124,7 +128,7 @@ void DomainBase::BoundaryCondition(Real time_now, Real dt) {
 
 void DomainBase::ComputeFluxes(Real time_now, Real time_dt) {
     Update();
-    if (isOutOfBoundary()) { return; }
+    if (CheckBoundary() < 0) { return; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::ComputeFluxes(time_now=" << time_now << " , time_dt=" << time_dt << ")"
             << ":" << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
@@ -133,7 +137,7 @@ void DomainBase::ComputeFluxes(Real time_now, Real time_dt) {
     PostComputeFluxes(this, time_now, time_dt);
 }
 Real DomainBase::ComputeStableDtOnPatch(Real time_now, Real time_dt) const {
-    if (!isModified() || isOutOfBoundary()) { return time_dt; }
+    if (!isModified() || CheckBoundary() < 0) { return time_dt; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::ComputeStableDtOnPatch( time_now=" << time_now << " , time_dt=" << time_dt << ")"
             << ":" << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
@@ -142,7 +146,7 @@ Real DomainBase::ComputeStableDtOnPatch(Real time_now, Real time_dt) const {
 
 void DomainBase::Advance(Real time_now, Real time_dt) {
     Update();
-    if (isOutOfBoundary()) { return; }
+    if (CheckBoundary() < 0) { return; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::Advance(time_now=" << time_now << " , dt=" << time_dt << ")"
             << ":" << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
@@ -152,7 +156,7 @@ void DomainBase::Advance(Real time_now, Real time_dt) {
 }
 void DomainBase::TagRefinementCells(Real time_now) {
     Update();
-    if (isOutOfBoundary()) { return; }
+    if (CheckBoundary() < 0) { return; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::TagRefinementCells(time_now=" << time_now << ")"
             << ":" << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();

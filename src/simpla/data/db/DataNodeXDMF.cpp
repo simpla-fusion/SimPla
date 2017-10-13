@@ -38,7 +38,7 @@ struct DataNodeXDMF : public DataNodeMemory {
 };
 REGISTER_CREATOR(DataNodeXDMF, xmf);
 DataNodeXDMF::DataNodeXDMF(DataNode::eNodeType etype) : base_type(etype) {}
-DataNodeXDMF::~DataNodeXDMF() = default;
+DataNodeXDMF::~DataNodeXDMF(){{}};
 
 int DataNodeXDMF::Connect(std::string const &authority, std::string const &path, std::string const &query,
                           std::string const &fragment) {

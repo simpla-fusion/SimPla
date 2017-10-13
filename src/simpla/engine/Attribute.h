@@ -143,7 +143,7 @@ struct Attribute : public SPObject {
     void Deregister(AttributeGroup *p = nullptr);
 
     virtual void Push(const std::shared_ptr<data::DataNode> &) = 0;
-    virtual std::shared_ptr<data::DataNode> Pop() const = 0;
+    virtual std::shared_ptr<data::DataNode> Pop() = 0;
 
     virtual void Clear() = 0;
 };
@@ -202,7 +202,7 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
     void Update() override;
 
     void Push(const std::shared_ptr<data::DataNode> &) override;
-    std::shared_ptr<data::DataNode> Pop() const override;
+    std::shared_ptr<data::DataNode> Pop() override;
 
     std::shared_ptr<Attribute> Duplicate() const override {
         std::shared_ptr<this_type> res(new this_type);
@@ -343,6 +343,16 @@ bool is_null(nTuple<Array<U>, N0, N...> const &v) {
 }
 
 template <typename U>
+void tear_down(Array<U> &d) {
+    d.Array<U>::free();
+}
+
+template <typename U, int N0, int... N>
+void tear_down(nTuple<Array<U>, N0, N...> &v) {
+    for (int i = 0; i < N0; ++i) { tear_down(v[i]); }
+}
+
+template <typename U>
 void clear(Array<U> &d) {
     d.Array<U>::Clear();
 }
@@ -404,10 +414,11 @@ void AttributeT<V, IFORM, DOF...>::Push(const std::shared_ptr<data::DataNode> &d
 };
 
 template <typename V, int IFORM, int... DOF>
-std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Pop() const {
+std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Pop() {
     auto res = data::DataNode::New(data::DataNode::DN_TABLE);
     res->SetValue<int>("IFORM", GetIFORM());
     res->Set("_DATA_", detail::pop_data(*this));
+    detail::tear_down(*this);
     return res;
 };
 

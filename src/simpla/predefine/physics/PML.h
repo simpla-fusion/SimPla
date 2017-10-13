@@ -76,21 +76,7 @@ void PML<TDomain>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
 
 template <typename TDomain>
 int PML<TDomain>::CheckBoundary() const {
-    int res = -1;
-    auto blk_box = this->GetBlockBox();
-    Real ratio = 1.0;
-    for (int i = 0; i < 3; ++i) {
-        if (std::get<1>(m_center_box_)[i] < std::get<0>(blk_box)[i] ||
-            std::get<0>(m_center_box_)[i] > std::get<1>(blk_box)[i]) {
-            res = 1;
-            break;
-        } else if (res == -1 && std::get<1>(m_center_box_)[i] > std::get<0>(blk_box)[i] &&
-                   std::get<0>(m_center_box_)[i] < std::get<1>(blk_box)[i]) {
-        } else {
-            res = 0;
-        }
-    }
-    return res;
+    return geometry::isOverlapped(m_center_box_, this->GetBlockBox()) ? -1 : 1;
 }
 
 template <typename TDomain>

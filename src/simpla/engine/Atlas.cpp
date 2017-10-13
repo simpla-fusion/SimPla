@@ -136,6 +136,7 @@ std::shared_ptr<Patch> Atlas::NewPatch(box_type const &box, int level) {
         geometry::Overlap(m_pimpl_->m_index_box_,
                           std::make_tuple(std::get<1>(m_pimpl_->m_chart_->invert_local_coordinates(std::get<0>(box))),
                                           std::get<1>(m_pimpl_->m_chart_->invert_local_coordinates(std::get<1>(box)))));
+
     if (!geometry::isIllCondition(b)) { res = SetPatch(Patch::New(MeshBlock::New(b, level))); }
     return res;
 }
@@ -248,18 +249,20 @@ void Atlas::SyncLocal(int level) {
         auto ib = ia;
         ++ib;
         for (; ib != ie; ++ib) {
-            box_type box_a = ia->second->GetIndexBox();
-            box_type box_b = ib->second->GetIndexBox();
+            auto box_a = ia->second->GetIndexBox();
+            auto box_b = ib->second->GetIndexBox();
+            index_box_type a_box;
             if (!geometry::isOverlapped(box_a, box_b)) { continue; }
+            VERBOSE << box_a << box_b;
+
             for (auto const &item : ia->second->GetAllDataBlocks()) {
                 auto attr_a = item.second->Get("_DATA_");
                 auto attr_b = ib->second->GetDataBlock(item.first)->Get("_DATA_");
                 for (int d = 0; d < attr_a->size(); ++d) {
                     auto array_a = std::dynamic_pointer_cast<ArrayBase>(attr_a->GetEntity(d));
                     auto array_b = std::dynamic_pointer_cast<ArrayBase>(attr_b->GetEntity(d));
-
-                    array_b->CopyIn(*array_a->GetSelectionP(box_a));
-                    array_a->CopyIn(*array_b->GetSelectionP(box_b));
+                    //                    array_b->CopyIn(*array_a->GetSelectionP(box_a));
+                    //                    array_a->CopyIn(*array_b->GetSelectionP(box_b));
                 }
             };
         };
