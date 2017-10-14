@@ -233,6 +233,7 @@ int Atlas::Foreach(std::function<void(std::shared_ptr<Patch> const &)> const &fu
 };
 
 void Atlas::SyncGlobal(std::string const &key, std::type_info const &t_info, int num_of_sub, int level) {
+    VERBOSE << "SyncGlobal:" << key;
     std::shared_ptr<parallel::MPIUpdater> updater = nullptr;
 
     if (t_info == typeid(double)) {
@@ -264,7 +265,7 @@ void Atlas::SyncGlobal(std::string const &key, std::type_info const &t_info, int
                         };
                 }
             }
-            updater->SendRecv();
+//            updater->SendRecv();
             for (auto &item : m_pimpl_->m_patches_) {
                 if (auto patch = item.second->GetDataBlock(key)) {
                     if (auto blk = patch->Get("_DATA_"))
@@ -278,6 +279,7 @@ void Atlas::SyncGlobal(std::string const &key, std::type_info const &t_info, int
     }
 }
 void Atlas::SyncLocal(int level) {
+    VERBOSE << "SyncLocal";
     for (auto ia = m_pimpl_->m_patches_.begin(), ie = m_pimpl_->m_patches_.end(); ia != ie; ++ia) {
         auto ib = ia;
         ++ib;

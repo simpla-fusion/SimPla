@@ -137,37 +137,37 @@ void Scenario::Synchronize(int level) {
 
     m_pimpl_->m_atlas_->SyncLocal(level);
 
-#ifdef MPI_FOUND
-    GLOBAL_COMM.barrier();
+    if (GLOBAL_COMM.size() > 1) {
+        GLOBAL_COMM.barrier();
 
-    if (GLOBAL_COMM.rank() == 0) {
+        if (GLOBAL_COMM.rank() == 0) {
+            for (auto &item : m_pimpl_->m_attrs_) {
+                if (item.second->db()->Check("LOCAL")) { continue; }
+                parallel::bcast_string(item.first);
+                m_pimpl_->m_atlas_->SyncGlobal(item.first, item.second->value_type_info(), item.second->GetNumOfSub(),
+                                               level);
+            };
+            parallel::bcast_string("");
+        } else {
+            while (1) {
+                auto key = parallel::bcast_string();
+                if (key.empty()) { break; }
+                auto attr = m_pimpl_->m_attrs_.find(key);
+                if (attr == m_pimpl_->m_attrs_.end() || attr->second->db()->Check("LOCAL")) {
+                    RUNTIME_ERROR << "Can not sync local/null attribute \"" << key << "\".";
+                }
+                m_pimpl_->m_atlas_->SyncGlobal(attr->first, attr->second->value_type_info(),
+                                               attr->second->GetNumOfSub(), level);
+            }
+        }
+        GLOBAL_COMM.barrier();
+    } else {
         for (auto &item : m_pimpl_->m_attrs_) {
             if (item.second->db()->Check("LOCAL")) { continue; }
-            parallel::bcast_string(item.first);
             m_pimpl_->m_atlas_->SyncGlobal(item.first, item.second->value_type_info(), item.second->GetNumOfSub(),
                                            level);
         };
-        parallel::bcast_string("");
-    } else {
-        while (1) {
-            auto key = parallel::bcast_string();
-            if (key.empty()) { break; }
-            auto attr = m_pimpl_->m_attrs_.find(key);
-            if (attr == m_pimpl_->m_attrs_.end() || attr->second->db()->Check("LOCAL")) {
-                RUNTIME_ERROR << "Can not sync local/null attribute \"" << key << "\".";
-            }
-            m_pimpl_->m_atlas_->SyncGlobal(attr->first, attr->second->value_type_info(), attr->second->GetNumOfSub(),
-                                           level);
-        }
     }
-    GLOBAL_COMM.barrier();
-
-#else
-    for (auto &item : m_pimpl_->m_attrs_) {
-        if (item.second->db()->Check("LOCAL")) { continue; }
-        m_pimpl_->m_atlas_->SyncGlobal(item.first, item.second->value_type_info(), item.second->GetNumOfSub(), level);
-    };
-#endif  // MPI_FOUND
 }
 void Scenario::NextStep() { ++m_pimpl_->m_step_counter_; }
 void Scenario::SetStepNumber(size_type s) { m_pimpl_->m_step_counter_ = s; }

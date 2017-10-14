@@ -38,25 +38,25 @@ class PML : public TDomain {
     FIELD(E, Real, EDGE);
     FIELD(B, Real, FACE);
 
-    FIELD(X10, Real, EDGE);
-    FIELD(X11, Real, EDGE);
-    FIELD(X12, Real, EDGE);
+    FIELD(X10, Real, EDGE, "LOCAL"_);
+    FIELD(X11, Real, EDGE, "LOCAL"_);
+    FIELD(X12, Real, EDGE, "LOCAL"_);
 
-    FIELD(X20, Real, FACE);
-    FIELD(X21, Real, FACE);
-    FIELD(X22, Real, FACE);
+    FIELD(X20, Real, FACE, "LOCAL"_);
+    FIELD(X21, Real, FACE, "LOCAL"_);
+    FIELD(X22, Real, FACE, "LOCAL"_);
 
     // alpha
-    FIELD(a0, Real, NODE);
-    FIELD(a1, Real, NODE);
-    FIELD(a2, Real, NODE);
+    FIELD(a0, Real, NODE, "LOCAL"_);
+    FIELD(a1, Real, NODE, "LOCAL"_);
+    FIELD(a2, Real, NODE, "LOCAL"_);
     // sigma
-    FIELD(s0, Real, NODE);
-    FIELD(s1, Real, NODE);
-    FIELD(s2, Real, NODE);
+    FIELD(s0, Real, NODE, "LOCAL"_);
+    FIELD(s1, Real, NODE, "LOCAL"_);
+    FIELD(s2, Real, NODE, "LOCAL"_);
 
-    FIELD(dX1, Real, EDGE);
-    FIELD(dX2, Real, FACE);
+    FIELD(dX1, Real, EDGE, "LOCAL"_);
+    FIELD(dX2, Real, FACE, "LOCAL"_);
 
     SP_OBJECT_PROPERTY(Real, dB);
     SP_OBJECT_PROPERTY(Real, expN);
