@@ -35,7 +35,7 @@ class StructuredMesh {
     virtual std::shared_ptr<const geometry::Chart> GetChart() const = 0;
     virtual std::shared_ptr<const engine::MeshBlock> GetMeshBlock() const = 0;
 
-    virtual index_box_type GetIndexBox(int tag) const;
+    virtual index_box_type GetIndexBox(int tag = CELL) const;
 
     ZSFC<NDIMS> GetSpaceFillingCurve(int tag = 0b000, index_tuple gw = index_tuple{3, 3, 3}) const {
         auto i_box = GetIndexBox(tag);

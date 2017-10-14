@@ -72,8 +72,13 @@ int main(int argc, char **argv) {
     scenario->SetUp();
 
     if (auto atlas = scenario->GetAtlas()) {
-        auto box_list = geometry::HaloBoxDecompose(bounding_box, center_box);
-        for (auto const &b : box_list) { atlas->NewPatch(b); }
+        auto c_box = center->GetBoundingBox();
+
+        auto box_list = geometry::HaloBoxDecompose(
+            atlas->GetIndexBox(),
+            std::make_tuple(std::get<1>(atlas->GetChart()->invert_local_coordinates(std::get<0>(c_box))),
+                            std::get<1>(atlas->GetChart()->invert_local_coordinates(std::get<1>(c_box)))));
+        for (auto const &b : box_list) { atlas->AddPatch(b); }
     }
 
     scenario->ConfigureAttribute<size_type>("E", "CheckPoint", checkpoint_interval);

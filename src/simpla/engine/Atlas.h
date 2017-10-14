@@ -91,8 +91,11 @@ class Atlas : public EngineObject {
     void SetBoundingBox(box_type const &);
 
     index_tuple GetPeriodicDimension() const;
+
     box_type GetBoundingBox() const;
     index_box_type GetIndexBox() const;
+
+    box_type GetGlobalBoundingBox() const;
     index_box_type GetGlobalIndexBox() const;
     index_tuple GetHaloWidth() const;
 
@@ -110,12 +113,14 @@ class Atlas : public EngineObject {
     SP_OBJECT_PROPERTY(index_tuple, PeriodicDimensions);
     SP_OBJECT_PROPERTY(index_tuple, CoarsestIndexBox);
 
-    std::shared_ptr<Patch> NewPatch(box_type const &b, int level = 0);
-
     template <typename... Args>
     std::shared_ptr<Patch> NewPatch(Args &&... args) {
         return SetPatch(Patch::New(std::forward<Args>(args)...));
     }
+
+    std::shared_ptr<Patch> AddPatch(box_type const &b, int level = 0);
+    std::shared_ptr<Patch> AddPatch(index_box_type const &idx_box, int level = 0);
+
     std::shared_ptr<Patch> SetPatch(std::shared_ptr<Patch> const &);
     std::shared_ptr<Patch> GetPatch(id_type) const;
     size_type DeletePatch(id_type);

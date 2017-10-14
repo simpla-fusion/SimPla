@@ -95,7 +95,12 @@ void Atlas::SetPeriodicDimension(index_tuple const &p) { m_pimpl_->m_period_ = p
 index_tuple Atlas::GetPeriodicDimension() const { return m_pimpl_->m_period_; }
 
 index_box_type Atlas::GetIndexBox() const { return m_pimpl_->m_index_box_; };
-box_type Atlas::GetBoundingBox() const { return m_pimpl_->m_box_; }
+box_type Atlas::GetBoundingBox() const {
+    return std::make_tuple(m_pimpl_->m_chart_->local_coordinates(std::get<0>(m_pimpl_->m_index_box_)),
+                           m_pimpl_->m_chart_->local_coordinates(std::get<0>(m_pimpl_->m_index_box_)));
+}
+
+box_type Atlas::GetGlobalBoundingBox() const { return m_pimpl_->m_box_; }
 index_box_type Atlas::GetGlobalIndexBox() const { return m_pimpl_->m_global_index_box_; };
 index_box_type Atlas::GetBoundingIndexBox(int iform, int direction) const {
     index_tuple lo, hi;
@@ -197,19 +202,17 @@ void Atlas::DoTearDown() {
         m_pimpl_->m_chart_.reset();
     }
 };
-
-std::shared_ptr<Patch> Atlas::NewPatch(box_type const &box, int level) {
-    std::shared_ptr<Patch> res = nullptr;
+std::shared_ptr<Patch> Atlas::AddPatch(index_box_type const &idx_box, int level) {
+    auto b = geometry::Overlap(m_pimpl_->m_index_box_, idx_box);
+    return geometry::isIllCondition(b) ? nullptr : SetPatch(Patch::New(MeshBlock::New(b, level)));
+}
+std::shared_ptr<Patch> Atlas::AddPatch(box_type const &box, int level) {
     point_type lo, hi;
     std::tie(lo, hi) = box;
-    lo += GetChart()->GetScale() * 0.5;
-    hi -= GetChart()->GetScale() * 0.5;
-    auto b = geometry::Overlap(m_pimpl_->m_index_box_,
-                               std::make_tuple(std::get<1>(m_pimpl_->m_chart_->invert_local_coordinates(lo)),
-                                               std::get<1>(m_pimpl_->m_chart_->invert_local_coordinates(hi))));
 
-    if (!geometry::isIllCondition(b)) { res = SetPatch(Patch::New(MeshBlock::New(b, level))); }
-    return res;
+    return AddPatch(std::make_tuple(std::get<1>(m_pimpl_->m_chart_->invert_local_coordinates(lo)),
+                                    std::get<1>(m_pimpl_->m_chart_->invert_local_coordinates(hi))),
+                    level);
 }
 std::shared_ptr<Patch> Atlas::SetPatch(std::shared_ptr<Patch> const &p) {
     if (p == nullptr) { return nullptr; }
@@ -265,7 +268,7 @@ void Atlas::SyncGlobal(std::string const &key, std::type_info const &t_info, int
                         };
                 }
             }
-//            updater->SendRecv();
+            //            updater->SendRecv();
             for (auto &item : m_pimpl_->m_patches_) {
                 if (auto patch = item.second->GetDataBlock(key)) {
                     if (auto blk = patch->Get("_DATA_"))
@@ -279,7 +282,8 @@ void Atlas::SyncGlobal(std::string const &key, std::type_info const &t_info, int
     }
 }
 void Atlas::SyncLocal(int level) {
-    VERBOSE << "SyncLocal";
+    return;
+
     for (auto ia = m_pimpl_->m_patches_.begin(), ie = m_pimpl_->m_patches_.end(); ia != ie; ++ia) {
         auto ib = ia;
         ++ib;
