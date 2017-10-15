@@ -262,13 +262,14 @@ void Atlas::SyncGlobal(std::string const &key, std::type_info const &t_info, int
             updater->Clear();
             for (auto &item : m_pimpl_->m_patches_) {
                 if (auto patch = item.second->GetDataBlock(key)) {
+//                    auto m_idx_blk = item.second->GetIndexBox();
                     if (auto blk = patch->Get("_DATA_"))
                         if (auto data = std::dynamic_pointer_cast<ArrayBase>(blk->GetEntity(d))) {
                             updater->Push(*data);
                         };
                 }
             }
-            //            updater->SendRecv();
+            updater->SendRecv();
             for (auto &item : m_pimpl_->m_patches_) {
                 if (auto patch = item.second->GetDataBlock(key)) {
                     if (auto blk = patch->Get("_DATA_"))
@@ -282,8 +283,6 @@ void Atlas::SyncGlobal(std::string const &key, std::type_info const &t_info, int
     }
 }
 void Atlas::SyncLocal(int level) {
-    return;
-
     for (auto ia = m_pimpl_->m_patches_.begin(), ie = m_pimpl_->m_patches_.end(); ia != ie; ++ia) {
         auto ib = ia;
         ++ib;

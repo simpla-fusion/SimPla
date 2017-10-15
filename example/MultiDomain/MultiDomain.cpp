@@ -67,6 +67,11 @@ int main(int argc, char **argv) {
     auto pml = scenario->NewDomain<SimplePML>("Boundary");
     pml->SetBoundingBox(bounding_box);
     pml->SetCenterBox(center_box);
+    pml->PostInitialCondition.Connect([=](DomainBase *self, Real time_now) {
+        if (auto d = dynamic_cast<SimplePML *>(self)) {
+            d->B = [&](point_type const &x) { return x; };
+        }
+    });
     scenario->SetTimeEnd(1.0e-8);
     scenario->SetMaxStep(num_of_step);
     scenario->SetUp();

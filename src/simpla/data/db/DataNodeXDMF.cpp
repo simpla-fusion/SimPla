@@ -306,8 +306,8 @@ int DataNodeXDMF::Flush() {
 
                 index_box_type idx_box{mblk->GetValue<index_tuple>("LowIndex"),
                                        mblk->GetValue<index_tuple>("HighIndex")};
-                std::get<0>(idx_box) -= 1;  // ghost cell
-                std::get<1>(idx_box) += 1;
+//                std::get<0>(idx_box) -= 1;  // ghost cell
+//                std::get<1>(idx_box) += 1;
 
                 os << std::setw(indent) << " "
                    << "<Grid Name=\"" << guid << "\" Level=\"" << patch->GetValue<int>("Level", 0) << "\">"

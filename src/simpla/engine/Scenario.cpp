@@ -177,7 +177,6 @@ bool Scenario::Done() const { return true; }
 
 void Scenario::DoInitialize() {}
 void Scenario::DoFinalize() {}
-
 void Scenario::DoSetUp() {
     for (auto &item : m_pimpl_->m_domains_) { item.second->SetUp(); }
 
@@ -199,7 +198,6 @@ void Scenario::DoSetUp() {
     m_pimpl_->m_atlas_->SetUp();
     base_type::DoSetUp();
 }
-
 void Scenario::DoUpdate() {
     m_pimpl_->m_atlas_->Update();
     base_type::DoUpdate();
@@ -210,7 +208,6 @@ void Scenario::DoTearDown() {
     base_type::DoTearDown();
 }
 std::shared_ptr<Atlas> Scenario::GetAtlas() const { return m_pimpl_->m_atlas_; }
-
 std::shared_ptr<DomainBase> Scenario::SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &d) {
     ASSERT(!isSetUp());
     if (d != nullptr) {
@@ -226,7 +223,6 @@ std::shared_ptr<DomainBase> Scenario::GetDomain(std::string const &k) const {
 }
 std::map<std::string, std::shared_ptr<DomainBase>> &Scenario::GetDomains() { return m_pimpl_->m_domains_; };
 std::map<std::string, std::shared_ptr<DomainBase>> const &Scenario::GetDomains() const { return m_pimpl_->m_domains_; }
-
 void Scenario::TagRefinementCells(Real time_now) {
     for (auto &d : m_pimpl_->m_domains_) { d.second->TagRefinementCells(time_now); }
 }
