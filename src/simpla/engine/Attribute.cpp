@@ -61,7 +61,9 @@ void AttributeGroup::Push(const std::shared_ptr<Patch> &p) {
 
 std::shared_ptr<Patch> AttributeGroup::Pop() const {
     auto res = Patch::New();
-    for (auto &item : m_pimpl_->m_attributes_) { res->SetDataBlock(item->GetName(), item->Pop()); }
+    for (auto &item : m_pimpl_->m_attributes_) {
+        if (!item->isNull()) { res->SetDataBlock(item->GetName(), item->Pop()); }
+    }
     m_pimpl_->m_is_initiazlied_ = false;
     return res;
 }

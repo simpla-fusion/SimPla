@@ -57,13 +57,14 @@ void TimeIntegrator::Advance(Real time_now, Real time_dt) {
 
         for (auto &item : GetDomains()) {
             item.second->Push(patch->Pop());
-            if (item.second->CheckBoundary() < 0) { continue; }
-            if (item.second->isFirstTime()) { item.second->InitialCondition(time_now); }
-            item.second->Advance(time_now, time_dt);
-            if (item.second->CheckBoundary() == 0) { item.second->BoundaryCondition(time_now, time_dt); }
+
+            if (item.second->CheckBoundary() >= 0) {
+                if (item.second->isFirstTime()) { item.second->InitialCondition(time_now); }
+                item.second->Advance(time_now, time_dt);
+                if (item.second->CheckBoundary() == 0) { item.second->BoundaryCondition(time_now, time_dt); }
+            }
             patch->Push(item.second->Pop());
         }
-
     });
 }
 void TimeIntegrator::DoSetUp() {

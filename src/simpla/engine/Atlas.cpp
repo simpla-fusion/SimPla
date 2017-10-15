@@ -208,7 +208,6 @@ void Atlas::DoTearDown() {
 };
 std::shared_ptr<Patch> Atlas::AddPatch(index_box_type const &idx_box, int level) {
     auto b = geometry::Overlap(m_pimpl_->m_index_box_, idx_box);
-    VERBOSE << b << "/" << m_pimpl_->m_index_box_;
     return geometry::isIllCondition(b) ? nullptr : SetPatch(Patch::New(MeshBlock::New(b, level)));
 }
 std::shared_ptr<Patch> Atlas::AddPatch(box_type const &box, int level) {
@@ -240,6 +239,7 @@ int Atlas::Foreach(std::function<void(std::shared_ptr<Patch> const &)> const &fu
 };
 
 void Atlas::SyncGlobal(std::string const &key, std::type_info const &t_info, int num_of_sub, int level) {
+    VERBOSE << "Sync" << key;
     std::shared_ptr<parallel::MPIUpdater> updater = nullptr;
 
     if (t_info == typeid(double)) {
@@ -292,13 +292,17 @@ void Atlas::SyncLocal(int level) {
             auto box_b = ib->second->GetIndexBox();
             if (geometry::isAdjoining(box_a, box_b, GetHaloWidth())) {
                 for (auto const &item : ia->second->GetAllDataBlocks()) {
-                    auto attr_a = item.second->Get("_DATA_");
-                    auto attr_b = ib->second->GetDataBlock(item.first)->Get("_DATA_");
-                    for (int d = 0; d < attr_a->size(); ++d) {
-                        auto array_a = std::dynamic_pointer_cast<ArrayBase>(attr_a->GetEntity(d));
-                        auto array_b = std::dynamic_pointer_cast<ArrayBase>(attr_b->GetEntity(d));
-                        array_b->CopyIn(*array_a->GetSelectionP(box_a));
-                        array_a->CopyIn(*array_b->GetSelectionP(box_b));
+                    auto a_blk = item.second->Get("_DATA_");
+                    if (auto attr_b = ib->second->GetDataBlock(item.first)) {
+                        auto b_blk = attr_b->Get("_DATA_");
+                        for (int d = 0; d < a_blk->size(); ++d) {
+                            auto array_a = std::dynamic_pointer_cast<ArrayBase>(a_blk->GetEntity(d));
+                            auto array_b = std::dynamic_pointer_cast<ArrayBase>(b_blk->GetEntity(d));
+                            if (array_a != nullptr && array_b != nullptr) {
+                                array_b->CopyIn(*array_a->GetSelectionP(box_a));
+                                array_a->CopyIn(*array_b->GetSelectionP(box_b));
+                            }
+                        }
                     }
                 }
             }

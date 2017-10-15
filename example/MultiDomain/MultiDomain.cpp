@@ -41,6 +41,9 @@ int main(int argc, char **argv) {
         });
 
     simpla::Initialize(argc, argv);
+
+    TheBegin();
+
     auto scenario = SimpleTimeIntegrator::New();
     scenario->SetName("MultiDomain");
 
@@ -62,13 +65,13 @@ int main(int argc, char **argv) {
             };
         }
     });
-        scenario->NewDomain<SimpleMaxwell>("boundary0")
-            ->SetBoundary(geometry::Cube::New(box_type{{-20, -25, -20}, {-15, 25, 20}}));
-        scenario->NewDomain<SimpleMaxwell>("boundary1")
-            ->SetBoundary(geometry::Cube::New(box_type{{15, -25, -20}, {20, 25, 20}}));
-//    auto pml = scenario->NewDomain<SimplePML>("PML");
-//    pml->SetBoundingBox(box_type{{-20, -25, -20}, {20, 25, 20}});
-//    pml->SetCenterBox(center->GetBoundingBox());
+    //    scenario->NewDomain<SimpleMaxwell>("boundary0")
+    //        ->SetBoundary(geometry::Cube::New(box_type{{-20, -25, -20}, {-15, 25, 20}}));
+    //    scenario->NewDomain<SimpleMaxwell>("boundary1")
+    //        ->SetBoundary(geometry::Cube::New(box_type{{15, -25, -20}, {20, 25, 20}}));
+    auto pml = scenario->NewDomain<SimplePML>("PML");
+    pml->SetBoundingBox(box_type{{-20, -25, -20}, {20, 25, 20}});
+    pml->SetCenterBox(center->GetBoundingBox());
 
     scenario->SetTimeEnd(1.0e-8);
     scenario->SetMaxStep(num_of_step);
@@ -86,17 +89,14 @@ int main(int argc, char **argv) {
 
     scenario->ConfigureAttribute<size_type>("E", "CheckPoint", checkpoint_interval);
     scenario->ConfigureAttribute<size_type>("B", "CheckPoint", checkpoint_interval);
-    //    scenario->ConfigureAttribute<size_type>("a0", "CheckPoint", 1);
-    //    scenario->ConfigureAttribute<size_type>("a1", "CheckPoint", 1);
-    //    scenario->ConfigureAttribute<size_type>("a2", "CheckPoint", 1);
-    //    scenario->ConfigureAttribute<size_type>("s0", "CheckPoint", 1);
-    //    scenario->ConfigureAttribute<size_type>("s1", "CheckPoint", 1);
-    //    scenario->ConfigureAttribute<size_type>("s2", "CheckPoint", 1);
-    VERBOSE << "Scenario: " << *scenario->Serialize();
-    TheStart();
+
+    //    VERBOSE << "Scenario: " << *scenario->Serialize();
+
     scenario->Run();
-    TheEnd();
+
+    //    VERBOSE << "Scenario: " << *scenario->Serialize();
 
     scenario->TearDown();
     simpla::Finalize();
+    TheEnd();
 }

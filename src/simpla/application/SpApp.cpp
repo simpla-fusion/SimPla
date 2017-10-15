@@ -181,7 +181,7 @@ int main(int argc, char **argv) {
     VERBOSE << DOUBLELINE << std::endl;
     GLOBAL_COMM.barrier();
 
-    TheStart();
+    TheBegin();
     app->Run();
     TheEnd();
 

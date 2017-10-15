@@ -35,14 +35,14 @@ std::string ShowLogo() { return SIMPLA_LOGO; }
 
 std::string ShowVersion() { return SIMPLA_VERSION_IDENTIFY; }
 
-void TheStart(int flag) {
+void TheBegin(int flag) {
 #ifdef MPI_FOUND
     if (GLOBAL_COMM.rank() != 0) { return; }
 #endif  // MPI_FOUND
     switch (flag) {
         default:
             VERBOSE << SINGLELINE;
-            INFORM << "[MISSION     START]";
+            INFORM << "[MISSION     BEGIN]";
     }
 }
 
@@ -68,7 +68,7 @@ void TheEnd(int flag) {
             VERBOSE << "Job is Done!!";
             VERBOSE << SINGLELINE;
     }
-    exit(0);
+//    exit(0);
 }
 }
 // namespace simpla
