@@ -105,13 +105,14 @@ class Atlas : public EngineObject {
     void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;
-
     SP_OBJECT_PROPERTY(int, MaxLevel);
     SP_OBJECT_PROPERTY(index_tuple, RefineRatio);
     SP_OBJECT_PROPERTY(index_tuple, LargestPatchDimensions);
     SP_OBJECT_PROPERTY(index_tuple, SmallestPatchDimensions);
     SP_OBJECT_PROPERTY(index_tuple, PeriodicDimensions);
     SP_OBJECT_PROPERTY(index_tuple, CoarsestIndexBox);
+
+    void Decompose(index_tuple const &);
 
     template <typename... Args>
     std::shared_ptr<Patch> NewPatch(Args &&... args) {

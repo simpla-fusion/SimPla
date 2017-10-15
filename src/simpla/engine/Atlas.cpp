@@ -169,6 +169,13 @@ void Atlas::DoSetUp() {
 
     m_pimpl_->m_global_index_box_ = m_pimpl_->m_index_box_;
 
+    base_type::DoSetUp();
+};
+void Atlas::DoUpdate() {
+    if (m_pimpl_->m_chart_ != nullptr) { m_pimpl_->m_chart_->Update(); }
+}
+
+void Atlas::Decompose(index_tuple const &) {
 #ifdef MPI_FOUND
     {
         int mpi_ndims = 0;
@@ -191,11 +198,8 @@ void Atlas::DoSetUp() {
     }
 #endif
     //    NewPatch(MeshBlock::New(m_pimpl_->m_index_box_, 0, 0));
-    base_type::DoSetUp();
-};
-void Atlas::DoUpdate() {
-    if (m_pimpl_->m_chart_ != nullptr) { m_pimpl_->m_chart_->Update(); }
 }
+
 void Atlas::DoTearDown() {
     if (m_pimpl_->m_chart_ != nullptr) {
         m_pimpl_->m_chart_->TearDown();
@@ -204,12 +208,12 @@ void Atlas::DoTearDown() {
 };
 std::shared_ptr<Patch> Atlas::AddPatch(index_box_type const &idx_box, int level) {
     auto b = geometry::Overlap(m_pimpl_->m_index_box_, idx_box);
+    VERBOSE << b << "/" << m_pimpl_->m_index_box_;
     return geometry::isIllCondition(b) ? nullptr : SetPatch(Patch::New(MeshBlock::New(b, level)));
 }
 std::shared_ptr<Patch> Atlas::AddPatch(box_type const &box, int level) {
     point_type lo, hi;
     std::tie(lo, hi) = box;
-
     return AddPatch(std::make_tuple(std::get<1>(m_pimpl_->m_chart_->invert_local_coordinates(lo)),
                                     std::get<1>(m_pimpl_->m_chart_->invert_local_coordinates(hi))),
                     level);
@@ -236,7 +240,6 @@ int Atlas::Foreach(std::function<void(std::shared_ptr<Patch> const &)> const &fu
 };
 
 void Atlas::SyncGlobal(std::string const &key, std::type_info const &t_info, int num_of_sub, int level) {
-    VERBOSE << "SyncGlobal:" << key;
     std::shared_ptr<parallel::MPIUpdater> updater = nullptr;
 
     if (t_info == typeid(double)) {
@@ -252,7 +255,6 @@ void Atlas::SyncGlobal(std::string const &key, std::type_info const &t_info, int
     }
     auto idx_box = GetBoundingIndexBox();
     auto halo_box = GetBoundingHaloIndexBox();
-
     for (int dir = 0; dir < 3; ++dir) {
         updater->SetIndexBox(idx_box);
         updater->SetHaloIndexBox(halo_box);
@@ -262,7 +264,6 @@ void Atlas::SyncGlobal(std::string const &key, std::type_info const &t_info, int
             updater->Clear();
             for (auto &item : m_pimpl_->m_patches_) {
                 if (auto patch = item.second->GetDataBlock(key)) {
-//                    auto m_idx_blk = item.second->GetIndexBox();
                     if (auto blk = patch->Get("_DATA_"))
                         if (auto data = std::dynamic_pointer_cast<ArrayBase>(blk->GetEntity(d))) {
                             updater->Push(*data);
@@ -289,19 +290,18 @@ void Atlas::SyncLocal(int level) {
         for (; ib != ie; ++ib) {
             auto box_a = ia->second->GetIndexBox();
             auto box_b = ib->second->GetIndexBox();
-            index_box_type a_box;
-            if (!geometry::isOverlapped(box_a, box_b)) { continue; }
-
-            for (auto const &item : ia->second->GetAllDataBlocks()) {
-                auto attr_a = item.second->Get("_DATA_");
-                auto attr_b = ib->second->GetDataBlock(item.first)->Get("_DATA_");
-                for (int d = 0; d < attr_a->size(); ++d) {
-                    auto array_a = std::dynamic_pointer_cast<ArrayBase>(attr_a->GetEntity(d));
-                    auto array_b = std::dynamic_pointer_cast<ArrayBase>(attr_b->GetEntity(d));
-                    array_b->CopyIn(*array_a->GetSelectionP(box_a));
-                    array_a->CopyIn(*array_b->GetSelectionP(box_b));
+            if (geometry::isAdjoining(box_a, box_b, GetHaloWidth())) {
+                for (auto const &item : ia->second->GetAllDataBlocks()) {
+                    auto attr_a = item.second->Get("_DATA_");
+                    auto attr_b = ib->second->GetDataBlock(item.first)->Get("_DATA_");
+                    for (int d = 0; d < attr_a->size(); ++d) {
+                        auto array_a = std::dynamic_pointer_cast<ArrayBase>(attr_a->GetEntity(d));
+                        auto array_b = std::dynamic_pointer_cast<ArrayBase>(attr_b->GetEntity(d));
+                        array_b->CopyIn(*array_a->GetSelectionP(box_a));
+                        array_a->CopyIn(*array_b->GetSelectionP(box_b));
+                    }
                 }
-            };
+            }
         };
     };
 }

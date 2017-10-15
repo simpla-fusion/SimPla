@@ -73,8 +73,8 @@ constexpr inline bool isInSide(std::tuple<nTuple<T, 3>, nTuple<T, 3>> const &b, 
     return (p[0] >= std::get<0>(b)[0]) &&  //
            (p[1] >= std::get<0>(b)[1]) &&  //
            (p[2] >= std::get<0>(b)[2]) &&  //
-           (p[0] <= std::get<1>(b)[0]) &&   //
-           (p[1] <= std::get<1>(b)[1]) &&   //
+           (p[0] <= std::get<1>(b)[0]) &&  //
+           (p[1] <= std::get<1>(b)[1]) &&  //
            (p[2] <= std::get<1>(b)[2]);
 }
 template <typename T, int N>
@@ -88,6 +88,18 @@ constexpr bool isOutSide(std::tuple<nTuple<T, N>, nTuple<T, N>> const &lhs,
                          std::tuple<nTuple<T, N>, nTuple<T, N>> const &rhs) {
     return !isIllCondition(Overlap(lhs, rhs));
 }
+template <typename T, int N>
+constexpr inline bool isAdjoining(std::tuple<nTuple<T, N>, nTuple<T, N>> const &first,
+                                  std::tuple<nTuple<T, N>, nTuple<T, N>> const &second,
+                                  nTuple<T, N> const &gap = {0, 0, 0}) {
+    bool is_disjoint = true;
+    for (int i = 0; i < N; ++i) {
+        is_disjoint = is_disjoint && std::get<0>(first)[i] > std::get<1>(second)[i] + gap[i] ||
+                      std::get<1>(first)[i] < std::get<0>(second)[i] - gap[i];
+    }
+    return !is_disjoint;
+};
+
 template <typename T, int N>
 bool isIllCondition(std::tuple<nTuple<T, N>, nTuple<T, N>> const &lhs) {
     bool is_ill = false;

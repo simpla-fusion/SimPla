@@ -54,31 +54,32 @@ int main(int argc, char **argv) {
     scenario->GetAtlas()->NewChart<simpla::geometry::csCartesian>();
 
     auto center = scenario->NewDomain<SimpleMaxwell>("Center");
-    center->SetBoundary(geometry::Cube::New(center_box));
+    center->SetBoundary(geometry::Cube::New(box_type{{-15, -25, -20}, {15, 25, 20}}));
     center->PostInitialCondition.Connect([=](DomainBase *self, Real time_now) {
         if (auto d = dynamic_cast<SimpleMaxwell *>(self)) {
             d->B = [&](point_type const &x) {
-                return point_type{std::cos(2 * PI * x[1] / 60) * std::cos(2 * PI * x[2] / 50),
-                                  std::cos(2 * PI * x[0] / 40) * std::cos(2 * PI * x[2] / 50),
-                                  std::cos(2 * PI * x[0] / 40) * std::cos(2 * PI * x[1] / 60)};
+
+                return point_type{std::sin(2 * PI * x[1] / 50) * std::sin(2 * PI * x[2] / 40),
+                                  std::sin(2 * PI * x[0] / 30) * std::sin(2 * PI * x[2] / 40),
+                                  std::sin(2 * PI * x[0] / 30) * std::sin(2 * PI * x[1] / 50)};
             };
         }
     });
-    auto pml = scenario->NewDomain<SimplePML>("Boundary");
-    pml->SetBoundingBox(bounding_box);
-    pml->SetCenterBox(center_box);
-    pml->PostInitialCondition.Connect([=](DomainBase *self, Real time_now) {
-        if (auto d = dynamic_cast<SimplePML *>(self)) {
-            d->B = [&](point_type const &x) { return x; };
-        }
-    });
+    scenario->NewDomain<SimpleMaxwell>("boundary0")
+        ->SetBoundary(geometry::Cube::New(box_type{{-20, -25, -20}, {-15, 25, 20}}));
+    scenario->NewDomain<SimpleMaxwell>("boundary1")
+        ->SetBoundary(geometry::Cube::New(box_type{{15, -25, -20}, {20, 25, 20}}));
+    //    auto pml = scenario->NewDomain<SimplePML>("Boundary");
+    //    pml->SetBoundingBox(bounding_box);
+    //    pml->SetCenterBox(center_box);
+    //
     scenario->SetTimeEnd(1.0e-8);
     scenario->SetMaxStep(num_of_step);
     scenario->SetUp();
 
     if (auto atlas = scenario->GetAtlas()) {
+        scenario->GetAtlas()->Decompose({3, 3, 3});
         auto c_box = center->GetBoundingBox();
-
         auto box_list = geometry::HaloBoxDecompose(
             atlas->GetIndexBox(),
             std::make_tuple(std::get<1>(atlas->GetChart()->invert_local_coordinates(std::get<0>(c_box))),

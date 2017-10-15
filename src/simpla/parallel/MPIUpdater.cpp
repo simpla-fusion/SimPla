@@ -156,10 +156,6 @@ void MPIUpdater::Pop(ArrayBase &a) const {
 }
 
 void MPIUpdater::SendRecv() {
-#ifndef NDEBUG
-    GetRecvBuffer(0).FillNaN();
-    GetRecvBuffer(1).FillNaN();
-#endif
     if (GLOBAL_COMM.size() > 1 && m_pimpl_->left != m_pimpl_->m_rank_ && m_pimpl_->right != m_pimpl_->m_rank_) {
         GLOBAL_COMM.barrier();
         MPI_CALL(MPI_Sendrecv(GetSendBuffer(0).pointer(), static_cast<int>(GetSendBuffer(0).size()),  //
@@ -174,7 +170,8 @@ void MPIUpdater::SendRecv() {
                               m_pimpl_->ele_type, m_pimpl_->left, m_pimpl_->tag,                      //
                               GLOBAL_COMM.comm(), MPI_STATUS_IGNORE));
         GLOBAL_COMM.barrier();
-    } else if (IsPeriodic()) {
+    } else  // if (IsPeriodic())
+    {
         index_tuple shift = {0, 0, 0};
         shift[m_pimpl_->m_direction_] = std::get<1>(m_pimpl_->m_index_box_)[m_pimpl_->m_direction_] -
                                         std::get<0>(m_pimpl_->m_index_box_)[m_pimpl_->m_direction_];
