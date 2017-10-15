@@ -38,7 +38,7 @@ struct DataNodeXDMF : public DataNodeMemory {
 };
 REGISTER_CREATOR(DataNodeXDMF, xmf);
 DataNodeXDMF::DataNodeXDMF(DataNode::eNodeType etype) : base_type(etype) {}
-DataNodeXDMF::~DataNodeXDMF(){{}};
+DataNodeXDMF::~DataNodeXDMF() { Disconnect(); };
 
 int DataNodeXDMF::Connect(std::string const &authority, std::string const &path, std::string const &query,
                           std::string const &fragment) {
@@ -63,9 +63,15 @@ int DataNodeXDMF::Connect(std::string const &authority, std::string const &path,
 }
 
 int DataNodeXDMF::Disconnect() {
-    Flush();
-    H5Gclose(m_h5_root_);
-    H5Fclose(m_h5_file_);
+    if (m_h5_root_ > 0) {
+        H5Gclose(m_h5_root_);
+        m_h5_root_ = -1;
+    }
+    if (m_h5_file_ > 0) {
+        H5Fclose(m_h5_file_);
+        m_h5_file_ = -1;
+    }
+
     return SP_SUCCESS;
 }
 
@@ -306,7 +312,7 @@ int DataNodeXDMF::Flush() {
 
                 index_box_type idx_box{mblk->GetValue<index_tuple>("LowIndex"),
                                        mblk->GetValue<index_tuple>("HighIndex")};
-                std::get<0>(idx_box) -= 1;  //add ghost cell
+                std::get<0>(idx_box) -= 1;  // add ghost cell
                 std::get<1>(idx_box) += 1;
 
                 os << std::setw(indent) << " "

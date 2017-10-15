@@ -12,7 +12,7 @@ namespace data {
 
 REGISTER_CREATOR(DataNodeMemory, mem);
 DataNodeMemory::DataNodeMemory(DataNode::eNodeType e_type) : base_type(e_type){};
-DataNodeMemory::~DataNodeMemory() = default;
+DataNodeMemory::~DataNodeMemory() { Disconnect(); };
 
 size_type DataNodeMemory::size() const { return m_table_.size(); }
 size_type DataNodeMemory::Set(index_type s, const std::shared_ptr<DataNode> &v) { return Set(std::to_string(s), v); }
