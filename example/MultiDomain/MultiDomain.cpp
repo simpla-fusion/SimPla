@@ -27,6 +27,9 @@ using namespace simpla;
 using namespace simpla::engine;
 
 int main(int argc, char **argv) {
+    simpla::Initialize(argc, argv);
+
+
     size_type num_of_step = 10;
     size_type checkpoint_interval = 1;
     simpla::parse_cmd_line(  //
@@ -40,7 +43,6 @@ int main(int argc, char **argv) {
             return CONTINUE;
         });
 
-    simpla::Initialize(argc, argv);
 
     TheBegin();
 
@@ -89,11 +91,12 @@ int main(int argc, char **argv) {
 
     scenario->ConfigureAttribute<size_type>("E", "CheckPoint", checkpoint_interval);
     scenario->ConfigureAttribute<size_type>("B", "CheckPoint", checkpoint_interval);
+    scenario->ConfigureAttribute<size_type>("X10", "CheckPoint", checkpoint_interval);
+    scenario->ConfigureAttribute<size_type>("X11", "CheckPoint", checkpoint_interval);
+    scenario->ConfigureAttribute<size_type>("X12", "CheckPoint", checkpoint_interval);
 
     //    VERBOSE << "Scenario: " << *scenario->Serialize();
-
     scenario->Run();
-
     //    VERBOSE << "Scenario: " << *scenario->Serialize();
 
     scenario->TearDown();
