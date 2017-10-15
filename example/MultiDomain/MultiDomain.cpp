@@ -44,12 +44,9 @@ int main(int argc, char **argv) {
     auto scenario = SimpleTimeIntegrator::New();
     scenario->SetName("MultiDomain");
 
-    box_type center_box{{-15, -25, -20}, {15, 25, 20}};
-    box_type bounding_box{{-20, -25, -20}, {20, 25, 20}};
-
     scenario->GetAtlas()->SetOrigin({0, 0, 0});
     scenario->GetAtlas()->SetGridWidth({1, 1, 1});
-    scenario->GetAtlas()->SetPeriodicDimensions({0, 1, 1});
+    scenario->GetAtlas()->SetPeriodicDimensions({1, 1, 1});
 
     scenario->GetAtlas()->NewChart<simpla::geometry::csCartesian>();
 
@@ -65,14 +62,14 @@ int main(int argc, char **argv) {
             };
         }
     });
-    scenario->NewDomain<SimpleMaxwell>("boundary0")
-        ->SetBoundary(geometry::Cube::New(box_type{{-20, -25, -20}, {-15, 25, 20}}));
-    scenario->NewDomain<SimpleMaxwell>("boundary1")
-        ->SetBoundary(geometry::Cube::New(box_type{{15, -25, -20}, {20, 25, 20}}));
-    //    auto pml = scenario->NewDomain<SimplePML>("Boundary");
-    //    pml->SetBoundingBox(bounding_box);
-    //    pml->SetCenterBox(center_box);
-    //
+    //    scenario->NewDomain<SimpleMaxwell>("boundary0")
+    //        ->SetBoundary(geometry::Cube::New(box_type{{-20, -25, -20}, {-15, 25, 20}}));
+    //    scenario->NewDomain<SimpleMaxwell>("boundary1")
+    //        ->SetBoundary(geometry::Cube::New(box_type{{15, -25, -20}, {20, 25, 20}}));
+    auto pml = scenario->NewDomain<SimplePML>("PML");
+    pml->SetBoundingBox(box_type{{-20, -25, -20}, {20, 25, 20}});
+    pml->SetCenterBox(center->GetBoundingBox());
+
     scenario->SetTimeEnd(1.0e-8);
     scenario->SetMaxStep(num_of_step);
     scenario->SetUp();
