@@ -479,7 +479,6 @@ void Assign_(TRange const &range, Array<V...> &lhs, RHS const &rhs) {
 };
 template <size_type I0, typename TRange, typename... V, typename... U, int... N>
 void Assign_(TRange const &range, Array<V...> &lhs, nTuple<Array<U...>, N...> const &rhs) {
-    //    lhs.Assign(traits::nt_get_r<I0>(rhs));
     range.Foreach([&](auto &&... idx) {
         lhs.Set(simpla::traits::nt_get_r<I0>(lhs).Get(std::forward<decltype(idx)>(idx)...),
                 std::forward<decltype(idx)>(idx)...);

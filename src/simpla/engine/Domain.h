@@ -223,7 +223,39 @@ void InitializeArray(std::integral_constant<int, IFORM>, THost const *host, TArr
 template <typename THost, typename U, int IFORM, int... DOF, typename RHS>
 void DomainAssign(THost *self, AttributeT<U, IFORM, DOF...> &lhs, RHS const &rhs,
                   ENABLE_IF((!simpla::traits::is_invocable<RHS, point_type>::value))) {
-    lhs.Assign(rhs);
+    UNIMPLEMENTED;
+}
+
+template <typename THost, typename U, int... DOF, typename RHS>
+void DomainAssign(THost *self, AttributeT<U, NODE, DOF...> &lhs, RHS const &rhs,
+                  ENABLE_IF((!simpla::traits::is_invocable<RHS, point_type>::value))) {
+    lhs.Assign(rhs, self->GetSpaceFillingCurve(0b000));
+}
+template <typename THost, typename U, int... DOF, typename RHS>
+void DomainAssign(THost *self, AttributeT<U, EDGE, DOF...> &lhs, RHS const &rhs,
+                  ENABLE_IF((!simpla::traits::is_invocable<RHS, point_type>::value))) {
+    lhs.template AssignSub<0>(rhs, self->GetSpaceFillingCurve(0b001));
+    lhs.template AssignSub<1>(rhs, self->GetSpaceFillingCurve(0b010));
+    lhs.template AssignSub<2>(rhs, self->GetSpaceFillingCurve(0b100));
+}
+template <typename THost, typename U, int... DOF, typename RHS>
+void DomainAssign(THost *self, AttributeT<U, FACE, DOF...> &lhs, RHS const &rhs,
+                  ENABLE_IF((!simpla::traits::is_invocable<RHS, point_type>::value))) {
+    lhs.template AssignSub<0>(rhs, self->GetSpaceFillingCurve(0b110));
+    lhs.template AssignSub<1>(rhs, self->GetSpaceFillingCurve(0b101));
+    lhs.template AssignSub<2>(rhs, self->GetSpaceFillingCurve(0b011));
+}
+template <typename THost, typename U, int... DOF, typename RHS>
+void DomainAssign(THost *self, AttributeT<U, CELL, DOF...> &lhs, RHS const &rhs,
+                  ENABLE_IF((!simpla::traits::is_invocable<RHS, point_type>::value))) {
+    lhs.Assign(rhs, self->GetSpaceFillingCurve(0b111));
+}
+template <typename THost, typename U, typename RHS>
+void DomainAssign(THost *self, AttributeT<U, NODE> &lhs, RHS const &rhs,
+                  ENABLE_IF((simpla::traits::is_invocable<RHS, point_type>::value))) {
+    auto chart = self->GetChart();
+    lhs.Assign([&](auto &&... idx) { return rhs(chart->local_coordinates(0, std::forward<decltype(idx)>(idx)...)); },
+               self->GetSpaceFillingCurve(0b000));
 }
 template <typename THost, typename U, int... DOF, typename RHS>
 void DomainAssign(THost *self, AttributeT<U, EDGE, DOF...> &lhs, RHS const &rhs,
@@ -271,13 +303,7 @@ void DomainAssign(THost *self, AttributeT<U, FACE, DOF...> &lhs, RHS const &rhs,
         },
         self->GetSpaceFillingCurve(0b011));
 }
-template <typename THost, typename U, typename RHS>
-void DomainAssign(THost *self, AttributeT<U, NODE> &lhs, RHS const &rhs,
-                  ENABLE_IF((simpla::traits::is_invocable<RHS, point_type>::value))) {
-    auto chart = self->GetChart();
-    lhs.Assign([&](auto &&... idx) { return rhs(chart->local_coordinates(0, std::forward<decltype(idx)>(idx)...)); },
-               self->GetSpaceFillingCurve(0b000));
-}
+
 template <typename THost, typename U, typename RHS>
 void DomainAssign(THost *self, AttributeT<U, CELL> &lhs, RHS const &rhs,
                   ENABLE_IF((simpla::traits::is_invocable<RHS, point_type>::value))) {
