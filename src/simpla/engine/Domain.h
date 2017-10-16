@@ -195,28 +195,28 @@ void InitializeArray_(nTuple<simpla::Array<U, SFC>, N0, N...> &v, SFC const &sfc
     for (int i = 0; i < N0; ++i) { InitializeArray_(v[i], sfc); }
 }
 template <typename TArray, typename THost>
-void InitializeArray(std::integral_constant<int, NODE>, TArray &v, THost const *host) {
+void InitializeArray(std::integral_constant<int, NODE>, THost const *host, TArray &v) {
     InitializeArray_(v, host->GetSpaceFillingCurve(0b000));
 }
 template <typename TArray, typename THost>
-void InitializeArray(std::integral_constant<int, CELL>, TArray &v, THost const *host) {
+void InitializeArray(std::integral_constant<int, CELL>, THost const *host, TArray &v) {
     InitializeArray_(v, host->GetSpaceFillingCurve(0b000));
 }
 template <typename TArray, typename THost>
-void InitializeArray(std::integral_constant<int, EDGE>, TArray &v, THost const *host) {
+void InitializeArray(std::integral_constant<int, EDGE>, THost const *host, TArray &v) {
     InitializeArray_(v[0], host->GetSpaceFillingCurve(0b001));
     InitializeArray_(v[1], host->GetSpaceFillingCurve(0b010));
     InitializeArray_(v[2], host->GetSpaceFillingCurve(0b100));
 }
 template <typename TArray, typename THost>
-void InitializeArray(std::integral_constant<int, FACE>, TArray &v, THost const *host) {
+void InitializeArray(std::integral_constant<int, FACE>, THost const *host, TArray &v) {
     InitializeArray_(v[0], host->GetSpaceFillingCurve(0b110));
     InitializeArray_(v[1], host->GetSpaceFillingCurve(0b101));
     InitializeArray_(v[2], host->GetSpaceFillingCurve(0b011));
 }
 
 template <int IFORM, typename TArray, typename THost>
-void InitializeArray(std::integral_constant<int, IFORM>, TArray &v, THost const *host) {
+void InitializeArray(std::integral_constant<int, IFORM>, THost const *host, TArray &v) {
     UNIMPLEMENTED;
 }
 
@@ -230,21 +230,21 @@ void DomainAssign(THost *self, AttributeT<U, EDGE, DOF...> &lhs, RHS const &rhs,
                   ENABLE_IF((simpla::traits::is_invocable<RHS, point_type>::value))) {
     auto chart = self->GetChart();
     lhs.template AssignSub<0>(
-        [&](index_type x, index_type y, index_type z) {
-            return simpla::traits::nt_get_r<0>(
-                rhs(chart->local_coordinates(EntityIdCoder::m_sub_index_to_id_[EDGE][0], x, y, z)));
+        [&](auto &&... idx) {
+            return simpla::traits::nt_get_r<0>(rhs(chart->local_coordinates(EntityIdCoder::m_sub_index_to_id_[EDGE][0],
+                                                                            std::forward<decltype(idx)>(idx)...)));
         },
         self->GetSpaceFillingCurve(0b001));
     lhs.template AssignSub<1>(
-        [&](index_type x, index_type y, index_type z) {
-            return simpla::traits::nt_get_r<1>(
-                rhs(chart->local_coordinates(EntityIdCoder::m_sub_index_to_id_[EDGE][1], x, y, z)));
+        [&](auto &&... idx) {
+            return simpla::traits::nt_get_r<1>(rhs(chart->local_coordinates(EntityIdCoder::m_sub_index_to_id_[EDGE][1],
+                                                                            std::forward<decltype(idx)>(idx)...)));
         },
         self->GetSpaceFillingCurve(0b010));
     lhs.template AssignSub<2>(
-        [&](index_type x, index_type y, index_type z) {
-            return simpla::traits::nt_get_r<2>(
-                rhs(chart->local_coordinates(EntityIdCoder::m_sub_index_to_id_[EDGE][2], x, y, z)));
+        [&](auto &&... idx) {
+            return simpla::traits::nt_get_r<2>(rhs(chart->local_coordinates(EntityIdCoder::m_sub_index_to_id_[EDGE][2],
+                                                                            std::forward<decltype(idx)>(idx)...)));
         },
         self->GetSpaceFillingCurve(0b100));
 }
@@ -253,21 +253,21 @@ void DomainAssign(THost *self, AttributeT<U, FACE, DOF...> &lhs, RHS const &rhs,
                   ENABLE_IF((simpla::traits::is_invocable<RHS, point_type>::value))) {
     auto chart = self->GetChart();
     lhs.template AssignSub<0>(
-        [&](index_type x, index_type y, index_type z) {
-            return simpla::traits::nt_get_r<0>(
-                rhs(chart->local_coordinates(EntityIdCoder::m_sub_index_to_id_[FACE][0], x, y, z)));
+        [&](auto &&... idx) {
+            return simpla::traits::nt_get_r<0>(rhs(chart->local_coordinates(EntityIdCoder::m_sub_index_to_id_[FACE][0],
+                                                                            std::forward<decltype(idx)>(idx)...)));
         },
         self->GetSpaceFillingCurve(0b110));
     lhs.template AssignSub<1>(
-        [&](index_type x, index_type y, index_type z) {
-            return simpla::traits::nt_get_r<1>(
-                rhs(chart->local_coordinates(EntityIdCoder::m_sub_index_to_id_[FACE][1], x, y, z)));
+        [&](auto &&... idx) {
+            return simpla::traits::nt_get_r<1>(rhs(chart->local_coordinates(EntityIdCoder::m_sub_index_to_id_[FACE][1],
+                                                                            std::forward<decltype(idx)>(idx)...)));
         },
         self->GetSpaceFillingCurve(0b101));
     lhs.template AssignSub<2>(
-        [&](index_type x, index_type y, index_type z) {
-            return simpla::traits::nt_get_r<2>(
-                rhs(chart->local_coordinates(EntityIdCoder::m_sub_index_to_id_[FACE][2], x, y, z)));
+        [&](auto &&... idx) {
+            return simpla::traits::nt_get_r<2>(rhs(chart->local_coordinates(EntityIdCoder::m_sub_index_to_id_[FACE][2],
+                                                                            std::forward<decltype(idx)>(idx)...)));
         },
         self->GetSpaceFillingCurve(0b011));
 }
@@ -275,14 +275,14 @@ template <typename THost, typename U, typename RHS>
 void DomainAssign(THost *self, AttributeT<U, NODE> &lhs, RHS const &rhs,
                   ENABLE_IF((simpla::traits::is_invocable<RHS, point_type>::value))) {
     auto chart = self->GetChart();
-    lhs.Assign([&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0, x, y, z)); },
+    lhs.Assign([&](auto &&... idx) { return rhs(chart->local_coordinates(0, std::forward<decltype(idx)>(idx)...)); },
                self->GetSpaceFillingCurve(0b000));
 }
 template <typename THost, typename U, typename RHS>
 void DomainAssign(THost *self, AttributeT<U, CELL> &lhs, RHS const &rhs,
                   ENABLE_IF((simpla::traits::is_invocable<RHS, point_type>::value))) {
     auto chart = self->GetChart();
-    lhs.Assign([&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(7, x, y, z)); },
+    lhs.Assign([&](auto &&... idx) { return rhs(chart->local_coordinates(7, std::forward<decltype(idx)>(idx)...)); },
                self->GetSpaceFillingCurve(0b111));
 }
 
@@ -311,7 +311,7 @@ void DomainAssign(THost *self, AttributeT<V, CELL, DOF...> &lhs, Expression<U...
 template <typename TChart, template <typename> class... Policies>
 template <typename U, int IFORM, int... DOF>
 void Domain<TChart, Policies...>::InitializeAttribute(AttributeT<U, IFORM, DOF...> *attr) const {
-    detail::InitializeArray(std::integral_constant<int, IFORM>(), *attr, this);
+    detail::InitializeArray(std::integral_constant<int, IFORM>(), this, *attr);
 };
 template <typename TM, template <typename> class... Policies>
 template <typename V, int IFORM, int... DOF, typename RHS>

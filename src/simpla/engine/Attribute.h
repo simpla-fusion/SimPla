@@ -435,25 +435,18 @@ std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Pop() {
 namespace detail {
 
 template <size_type I0, typename RHS, typename... Args>
-auto try_invoke_(std::integral_constant<int, 1>, RHS const &rhs, Args &&... args) {
-    return rhs(std::forward<Args>(args)...);
-};
-template <size_type I0, typename RHS, typename... Args>
-auto try_invoke_(std::integral_constant<int, 2>, RHS const &rhs, Args &&... args) {
-    return (rhs(I0, std::forward<Args>(args)...));
-};
-template <size_type I0, typename RHS, typename... Args>
-auto try_invoke(RHS const &rhs, Args &&... args) {
-    return traits::nt_get_r<I0>(try_invoke_<I0>(
-        std::integral_constant<int, (traits::is_invocable<RHS, Args...>::value
-                                         ? 1
-                                         : (traits::is_invocable<RHS, size_type, Args...>::value ? 2 : 0))>(),
-        rhs, std::forward<Args>(args)...));
+auto try_invoke_(std::true_type, RHS const &rhs, Args &&... args) {
+    return (rhs(std::forward<Args>(args)...));
 };
 
 template <size_type I0, typename RHS, typename... Args>
-auto try_invoke_(std::integral_constant<int, 0>, RHS const &rhs, Args &&... args) {
+auto try_invoke_(std::false_type, RHS const &rhs, Args &&... args) {
     return (rhs);
+};
+template <size_type I0, typename RHS, typename... Args>
+auto try_invoke(RHS const &rhs, Args &&... args) {
+    return traits::nt_get_r<I0>(
+        try_invoke_<I0>(traits::is_invocable<RHS, Args...>(), rhs, std::forward<Args>(args)...));
 };
 
 template <size_type I0, typename... V, typename RHS>
