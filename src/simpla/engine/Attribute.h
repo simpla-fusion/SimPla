@@ -255,10 +255,20 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
         return Get(i0, std::forward<Args>(args)...);
     }
 
+    template <typename RHS, typename TRange>
+    void Assign(RHS const &rhs, TRange const &range);
     template <typename RHS>
-    void Assign(RHS const &rhs);
+    void Assign(RHS const &rhs) {
+        Assign(rhs, std::true_type());
+    };
+
+    template <int I0, typename RHS, typename TRange>
+    void AssignSub(RHS const &rhs, TRange const &range);
     template <int I0, typename RHS>
-    void AssignSub(RHS const &rhs);
+    void AssignSub(RHS const &rhs) {
+        AssignSub<I0>(rhs, std::true_type());
+    };
+
     template <typename RHS>
     this_type &operator=(RHS const &rhs) {
         Assign(rhs);
@@ -423,19 +433,7 @@ std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Pop() {
 };
 
 namespace detail {
-template <typename... V, typename RHS>
-void Assign(Array<V...> &lhs, RHS const &rhs) {
-    lhs.Assign(rhs);
-};
-template <typename... V, int... N, typename... RHS>
-void Assign(nTuple<Array<V...>, N...> &lhs, Expression<RHS...> const &rhs) {
-    lhs = rhs;
-};
 
-template <size_type I0, typename RHS, typename... Args>
-auto try_invoke_(std::integral_constant<int, 0>, RHS const &rhs, Args &&... args) {
-    return (rhs);
-};
 template <size_type I0, typename RHS, typename... Args>
 auto try_invoke_(std::integral_constant<int, 1>, RHS const &rhs, Args &&... args) {
     return rhs(std::forward<Args>(args)...);
@@ -452,45 +450,90 @@ auto try_invoke(RHS const &rhs, Args &&... args) {
                                          : (traits::is_invocable<RHS, size_type, Args...>::value ? 2 : 0))>(),
         rhs, std::forward<Args>(args)...));
 };
+
+template <size_type I0, typename RHS, typename... Args>
+auto try_invoke_(std::integral_constant<int, 0>, RHS const &rhs, Args &&... args) {
+    return (rhs);
+};
+
 template <size_type I0, typename... V, typename RHS>
-void Assign_(Array<V...> &lhs, RHS const &rhs) {
+void Assign_(std::true_type, Array<V...> &lhs, RHS const &rhs) {
     lhs.Foreach([&](auto &v, auto &&... idx) { v = try_invoke<I0>(rhs, std::forward<decltype(idx)>(idx)...); });
 };
 template <size_type I0, typename... V, typename... U, int... N>
-void Assign_(Array<V...> &lhs, nTuple<Array<U...>, N...> const &rhs) {
+void Assign_(std::true_type, Array<V...> &lhs, nTuple<Array<U...>, N...> const &rhs) {
     lhs.Assign(traits::nt_get_r<I0>(rhs));
 };
 template <size_type I0, typename... V, typename... RHS>
-void Assign_(Array<V...> &lhs, Expression<RHS...> const &rhs) {
+void Assign_(std::true_type, Array<V...> &lhs, Expression<RHS...> const &rhs) {
     lhs.Assign(rhs);
-    //    lhs.Foreach([&](auto &v, auto &&... idx) { v = try_invoke<I0>(rhs, std::forward<decltype(idx)>(idx)...); });
 };
-template <typename LHS, typename RHS>
-void Assign(std::index_sequence<>, LHS &lhs, RHS const &rhs){};
-
-template <size_type I0, size_type... I, typename... V, int... N, typename RHS>
-void Assign(std::index_sequence<I0, I...>, nTuple<Array<V...>, N...> &lhs, RHS const &rhs) {
-    Assign_<I0>(simpla::traits::nt_get_r<I0>(lhs), rhs);
-    Assign(std::index_sequence<I...>(), lhs, rhs);
+template <typename... V, typename RHS>
+void Assign(std::true_type const &, Array<V...> &lhs, RHS const &rhs) {
+    lhs.Assign(rhs);
+};
+template <typename... V, int... N, typename... RHS>
+void Assign(std::true_type const &, nTuple<Array<V...>, N...> &lhs, Expression<RHS...> const &rhs) {
+    lhs = rhs;
 };
 
-template <typename... V, int... N, typename RHS>
-void Assign(nTuple<Array<V...>, N...> &lhs, RHS const &rhs) {
-    Assign(std::make_index_sequence<simpla::traits::nt_size<nTuple<Array<V...>, N...>>::value>(), lhs, rhs);
+template <size_type I0, typename TRange, typename... V, typename RHS>
+void Assign_(TRange const &range, Array<V...> &lhs, RHS const &rhs) {
+    range.Foreach([&](auto &&... idx) {
+        lhs.Set(::simpla::detail::array_parser(rhs, std::forward<decltype(idx)>(idx)...),
+                std::forward<decltype(idx)>(idx)...);
+    });
+};
+template <size_type I0, typename TRange, typename... V, typename... U, int... N>
+void Assign_(TRange const &range, Array<V...> &lhs, nTuple<Array<U...>, N...> const &rhs) {
+    //    lhs.Assign(traits::nt_get_r<I0>(rhs));
+    range.Foreach([&](auto &&... idx) {
+        lhs.Set(simpla::traits::nt_get_r<I0>(lhs).Get(std::forward<decltype(idx)>(idx)...),
+                std::forward<decltype(idx)>(idx)...);
+    });
+};
+template <size_type I0, typename TRange, typename... V, typename... RHS>
+void Assign_(TRange const &range, Array<V...> &lhs, Expression<RHS...> const &rhs) {
+    range.Foreach([&](auto &&... idx) {
+        lhs.Set(::simpla::detail::array_parser(rhs, std::forward<decltype(idx)>(idx)...),
+                std::forward<decltype(idx)>(idx)...);
+    });
+};
+
+template <typename TRange, typename... V, typename RHS>
+void Assign(TRange const &range, Array<V...> &lhs, RHS const &rhs) {
+    range.Foreach([&](auto &&... idx) {
+        lhs.Set(try_invoke<0>(rhs, std::forward<decltype(idx)>(idx)...), std::forward<decltype(idx)>(idx)...);
+    });
+};
+
+template <typename TRange, typename LHS, typename RHS>
+void Assign(TRange const &, std::index_sequence<>, LHS &lhs, RHS const &rhs){};
+
+template <typename TRange, size_type I0, size_type... I, typename... V, int... N, typename RHS>
+void Assign(TRange const &range, std::index_sequence<I0, I...>, nTuple<Array<V...>, N...> &lhs, RHS const &rhs) {
+    Assign_<I0>(range, simpla::traits::nt_get_r<I0>(lhs), rhs);
+    Assign(range, std::index_sequence<I...>(), lhs, rhs);
+};
+
+template <typename TRange, typename... V, int... N, typename RHS>
+void Assign(TRange const &range, nTuple<Array<V...>, N...> &lhs, RHS const &rhs) {
+    Assign(range, std::make_index_sequence<simpla::traits::nt_size<nTuple<Array<V...>, N...>>::value>(), lhs, rhs);
 };
 
 }  // namespace detail
 
 template <typename V, int IFORM, int... DOF>
-template <typename RHS>
-void AttributeT<V, IFORM, DOF...>::Assign(RHS const &rhs) {
+template <typename RHS, typename TRange>
+void AttributeT<V, IFORM, DOF...>::Assign(RHS const &rhs, TRange const &range) {
     Update();
-    detail::Assign(*this, rhs);
+    detail::Assign(range, *this, rhs);
 };
+
 template <typename V, int IFORM, int... DOF>
-template <int I0, typename RHS>
-void AttributeT<V, IFORM, DOF...>::AssignSub(RHS const &rhs) {
-    detail::Assign_<I0>(simpla::traits::nt_get_r<I0>(dynamic_cast<data_type &>(*this)), rhs);
+template <int I0, typename RHS, typename TRange>
+void AttributeT<V, IFORM, DOF...>::AssignSub(RHS const &rhs, TRange const &range) {
+    detail::Assign_<I0>(range, simpla::traits::nt_get_r<I0>(dynamic_cast<data_type &>(*this)), rhs);
 };
 }  // namespace engine
 
