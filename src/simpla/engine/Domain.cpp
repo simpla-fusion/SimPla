@@ -171,6 +171,9 @@ void DomainBase::TagRefinementCells(Real time_now) {
     DoTagRefinementCells(time_now);
     PostTagRefinementCells(this, time_now);
 }
+std::shared_ptr<DomainBase> DomainBase::AddEmbeddedDomain(std::string const& k, std::shared_ptr<DomainBase> const& b) {
+    return b;
+}
 
 }  // namespace engine{
 }  // namespace simpla{

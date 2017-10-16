@@ -9,7 +9,7 @@
 #include <simpla/geometry/csCartesian.h>
 #include <simpla/geometry/csCylindrical.h>
 #include <simpla/mesh/CoRectMesh.h>
-#include <simpla/mesh/EBMesh.h>
+#include <simpla/engine/EBDomain.h>
 #include <simpla/mesh/RectMesh.h>
 #include <simpla/predefine/device/ICRFAntenna.h>
 #include <simpla/predefine/device/Tokamak.h>

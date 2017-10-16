@@ -84,6 +84,8 @@ class DomainBase : public EngineObject, public AttributeGroup {
     design_pattern::Signal<void(DomainBase *, Real, Real)> PostAdvance;
     void Advance(Real time_now, Real time_dt);
 
+    std::shared_ptr<DomainBase> AddEmbeddedDomain(std::string const &k, std::shared_ptr<DomainBase> const &b);
+
 };  // class DomainBase
 
 template <typename TChart, template <typename> class... Policies>
@@ -108,31 +110,8 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     void DoAdvance(Real time_now, Real dt) override;
     void DoTagRefinementCells(Real time_now) override;
 
-    void SetRange(std::string const &, Range<EntityId> const &);
-    Range<EntityId> GetRange(std::string const &k) const;
-    template <typename TL, typename TR>
-    void Fill(TL &lhs, TR const &rhs) const {
-        Fill(lhs, rhs, Range<EntityId>{});
-        //        Fill(lhs, 0, "PATCH_BOUNDARY_" + std::to_string(TL::iform));
-    };
-
     template <typename V, int IFORM, int... DOF, typename TR>
-    void Fill(AttributeT<V, IFORM, DOF...> &lhs, TR const &rhs, const Range<EntityId> &r) const;
-
-    template <typename TL, typename TR>
-    void Fill(TL &lhs, TR const &rhs, std::string const &k) const {
-        Fill(lhs, (rhs), GetRange(k));
-    };
-
-    template <typename TL, typename TR>
-    void FillBody(TL &lhs, TR const &rhs, std::string const &prefix = "") const {
-        //        FillRange(lhs, (rhs), prefix + "_BODY_" + std::to_string(TL::iform));
-    };
-
-    template <typename TL, typename TR>
-    void FillBoundary(TL &lhs, TR const &rhs, std::string const &prefix = "") const {
-        //        FillRange(lhs, (rhs), prefix + "_BOUNDARY_" + std::to_string(TL::iform));
-    };
+    void Fill(AttributeT<V, IFORM, DOF...> &lhs, TR const &rhs) const;
 
     template <typename U, int IFORM, int... DOF>
     void InitializeAttribute(AttributeT<U, IFORM, DOF...> *attr) const;
@@ -172,9 +151,7 @@ Domain<TChart, Policies...>::~Domain(){};
 
 template <typename TChart, template <typename> class... Policies>
 std::shared_ptr<data::DataNode> Domain<TChart, Policies...>::Serialize() const {
-    auto cfg = DomainBase::Serialize();
-
-    return cfg;
+    return DomainBase::Serialize();
 };
 
 template <typename TChart, template <typename> class... Policies>
@@ -244,12 +221,12 @@ void InitializeArray(std::integral_constant<int, IFORM>, TArray &v, THost const 
 }
 
 template <typename THost, typename U, int IFORM, int... DOF, typename RHS>
-void DomainAssign(THost *self, engine::AttributeT<U, IFORM, DOF...> &lhs, RHS const &rhs, const Range<EntityId> &r,
+void DomainAssign(THost *self, AttributeT<U, IFORM, DOF...> &lhs, RHS const &rhs,
                   ENABLE_IF((!simpla::traits::is_invocable<RHS, point_type>::value))) {
     lhs.Assign(rhs);
 }
 template <typename THost, typename U, int IFORM, int... DOF, typename RHS>
-void DomainAssign(THost *self, engine::AttributeT<U, IFORM, DOF...> &lhs, RHS const &rhs, const Range<EntityId> &r,
+void DomainAssign(THost *self, AttributeT<U, IFORM, DOF...> &lhs, RHS const &rhs,
                   ENABLE_IF((simpla::traits::is_invocable<RHS, point_type>::value))) {
     auto chart = self->GetChart();
     lhs.Assign([&](int w, index_type x, index_type y, index_type z) {
@@ -257,66 +234,38 @@ void DomainAssign(THost *self, engine::AttributeT<U, IFORM, DOF...> &lhs, RHS co
     });
 }
 template <typename THost, typename U, typename RHS>
-void DomainAssign(THost *self, engine::AttributeT<U, NODE> &lhs, RHS const &rhs, const Range<EntityId> &r,
+void DomainAssign(THost *self, AttributeT<U, NODE> &lhs, RHS const &rhs,
                   ENABLE_IF((simpla::traits::is_invocable<RHS, point_type>::value))) {
     auto chart = self->GetChart();
     lhs.Assign([&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(0, x, y, z)); });
 }
 template <typename THost, typename U, typename RHS>
-void DomainAssign(THost *self, engine::AttributeT<U, CELL> &lhs, RHS const &rhs, const Range<EntityId> &r,
+void DomainAssign(THost *self, AttributeT<U, CELL> &lhs, RHS const &rhs,
                   ENABLE_IF((simpla::traits::is_invocable<RHS, point_type>::value))) {
     auto chart = self->GetChart();
     lhs.Assign([&](index_type x, index_type y, index_type z) { return rhs(chart->local_coordinates(7, x, y, z)); });
 }
 
 template <typename THost, typename V, int... DOF, typename... U>
-void DomainAssign(THost *self, AttributeT<V, NODE, DOF...> &lhs, Expression<U...> const &rhs,
-                  const Range<EntityId> &r) {
-    //    if (r.isFull()) {
+void DomainAssign(THost *self, AttributeT<V, NODE, DOF...> &lhs, Expression<U...> const &rhs) {
     lhs.Assign(self->template Calculate<0>(rhs));
-    //    } else {
-    //        //        this_type::Calculate(lhs, rhs, r);
-    //    }
 };
 template <typename THost, typename V, int... DOF, typename... U>
-void DomainAssign(THost *self, AttributeT<V, EDGE, DOF...> &lhs, Expression<U...> const &rhs,
-                  const Range<EntityId> &r) {
-    //    if (r.isFull()) {
+void DomainAssign(THost *self, AttributeT<V, EDGE, DOF...> &lhs, Expression<U...> const &rhs) {
     lhs.template AssignSub<0>(self->template Calculate<0>(rhs));
     lhs.template AssignSub<1>(self->template Calculate<1>(rhs));
     lhs.template AssignSub<2>(self->template Calculate<2>(rhs));
-
-    //    } else {
-    //        //        this_type::Calculate(lhs, rhs, r);
-    //    }
 };
 template <typename THost, typename V, int... DOF, typename... U>
-void DomainAssign(THost *self, AttributeT<V, FACE, DOF...> &lhs, Expression<U...> const &rhs,
-                  const Range<EntityId> &r) {
-    //    if (r.isFull()) {
+void DomainAssign(THost *self, AttributeT<V, FACE, DOF...> &lhs, Expression<U...> const &rhs) {
     lhs.template AssignSub<0>(self->template Calculate<0>(rhs));
     lhs.template AssignSub<1>(self->template Calculate<1>(rhs));
     lhs.template AssignSub<2>(self->template Calculate<2>(rhs));
-    //    } else {
-    //        //        this_type::Calculate(lhs, rhs, r);
-    //    }
 };
 template <typename THost, typename V, int... DOF, typename... U>
-void DomainAssign(THost *self, AttributeT<V, CELL, DOF...> &lhs, Expression<U...> const &rhs,
-                  const Range<EntityId> &r) {
-    //    if (r.isFull()) {
-    lhs.Assign(self->template Calculate<1>(rhs));
-
-    //    } else {
-    //        //        this_type::Calculate(lhs, rhs, r);
-    //    }
+void DomainAssign(THost *self, AttributeT<V, CELL, DOF...> &lhs, Expression<U...> const &rhs) {
+    lhs.Assign(self->template Calculate<0>(rhs));
 };
-
-// template <typename THost, typename U, int IFORM, int... DOF, typename... RHS>
-// void DomainAssign(THost *self, engine::AttributeT<U, IFORM, DOF...> &lhs, Expression<RHS...> const &rhs) {
-//    lhs.Assign(rhs);
-//}
-
 }  // namespace detail {
 
 template <typename TChart, template <typename> class... Policies>
@@ -326,64 +275,8 @@ void Domain<TChart, Policies...>::InitializeAttribute(AttributeT<U, IFORM, DOF..
 };
 template <typename TM, template <typename> class... Policies>
 template <typename V, int IFORM, int... DOF, typename RHS>
-void Domain<TM, Policies...>::Fill(AttributeT<V, IFORM, DOF...> &lhs, RHS const &rhs, const Range<EntityId> &r) const {
-    detail::DomainAssign(this, lhs, rhs, r);
-};
-
-//
-// template <typename TM, template <typename> class... Policies>
-// template <typename V, int... DOF, typename... U>
-// void Domain<TM, Policies...>::Fill(AttributeT<V, NODE, DOF...> &lhs, Expression<U...> const &rhs,
-//                                   const Range<EntityId> &r) const {
-//    //    if (r.isFull()) {
-//    //    Assign(lhs, this->Calculate<0b000>(rhs));
-//
-//    //    } else {
-//    //        //        this_type::Calculate(lhs, rhs, r);
-//    //    }
-//};
-// template <typename TM, template <typename> class... Policies>
-// template <typename V, int... DOF, typename... U>
-// void Domain<TM, Policies...>::Fill(AttributeT<V, EDGE, DOF...> &lhs, Expression<U...> const &rhs,
-//                                   const Range<EntityId> &r) const {
-//    //    if (r.isFull()) {
-//    //    Assign(lhs[0], this->Calculate<0b001>(rhs));
-//    //    Assign(lhs[1], this->Calculate<0b010>(rhs));
-//    //    Assign(lhs[2], this->Calculate<0b100>(rhs));
-//
-//    //    } else {
-//    //        //        this_type::Calculate(lhs, rhs, r);
-//    //    }
-//};
-// template <typename TM, template <typename> class... Policies>
-// template <typename V, int... DOF, typename... U>
-// void Domain<TM, Policies...>::Fill(AttributeT<V, FACE, DOF...> &lhs, Expression<U...> const &rhs,
-//                                   const Range<EntityId> &r) const {
-//    //    if (r.isFull()) {
-//    //    Assign(lhs[0], this->template Calculate<0b110>(rhs));
-//    //    Assign(lhs[1], this->template Calculate<0b101>(rhs));
-//    //    Assign(lhs[2], this->template Calculate<0b011>(rhs));
-//
-//    //    } else {
-//    //        //        this_type::Calculate(lhs, rhs, r);
-//    //    }
-//};
-// template <typename TM, template <typename> class... Policies>
-// template <typename V, int... DOF, typename... U>
-// void Domain<TM, Policies...>::Fill(AttributeT<V, CELL, DOF...> &lhs, Expression<U...> const &rhs,
-//                                   const Range<EntityId> &r) const {
-//    //    if (r.isFull()) {
-//    //    Assign(lhs, this->Calculate<0b111>(rhs));
-//
-//    //    } else {
-//    //        //        this_type::Calculate(lhs, rhs, r);
-//    //    }
-//};
-template <typename TM, template <typename> class... Policies>
-void Domain<TM, Policies...>::SetRange(std::string const &, Range<EntityId> const &){};
-template <typename TM, template <typename> class... Policies>
-Range<EntityId> Domain<TM, Policies...>::GetRange(std::string const &k) const {
-    return Range<EntityId>{};
+void Domain<TM, Policies...>::Fill(AttributeT<V, IFORM, DOF...> &lhs, RHS const &rhs) const {
+    detail::DomainAssign(this, lhs, rhs);
 };
 }  // namespace engine
 }  // namespace simpla

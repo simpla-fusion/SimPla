@@ -29,6 +29,7 @@ int Initialize(int argc, char **argv) {
 }
 int Finalize() {
     parallel::Finalize();
+    TheEnd();
     return SP_SUCCESS;
 }
 }  // namespace simpla

@@ -43,13 +43,19 @@ class Scenario : public EngineObject {
 
     std::shared_ptr<DomainBase> SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &d);
     std::shared_ptr<DomainBase> GetDomain(std::string const &k) const;
-    template <typename TDomain, typename... Args>
-    std::shared_ptr<TDomain> NewDomain(std::string const &k, Args &&... args) {
-        auto res = TDomain::New(std::forward<Args>(args)...);
+    //    template <typename TDomain, typename... Args>
+    //    std::shared_ptr<TDomain> NewDomain(std::string const &k, Args &&... args) {
+    //        auto res = TDomain::New(std::forward<Args>(args)...);
+    //        SetDomain(k, res);
+    //        return res;
+    //    };
+    template <typename TDomain>
+    std::shared_ptr<TDomain> NewDomain(std::string const &k, std::shared_ptr<geometry::GeoObject> const &g = nullptr) {
+        auto res = TDomain::New();
+        if (g != nullptr) { res->SetBoundary(g); }
         SetDomain(k, res);
         return res;
     };
-
     std::map<std::string, std::shared_ptr<DomainBase>> &GetDomains();
     std::map<std::string, std::shared_ptr<DomainBase>> const &GetDomains() const;
 
@@ -76,7 +82,7 @@ class Scenario : public EngineObject {
         return success;
     }
 
-//    Range<EntityId> GetRange(std::string const &k) const;
+    //    Range<EntityId> GetRange(std::string const &k) const;
 };
 
 }  // namespace engine

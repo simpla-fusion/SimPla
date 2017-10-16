@@ -239,7 +239,6 @@ int Atlas::Foreach(std::function<void(std::shared_ptr<Patch> const &)> const &fu
 };
 
 void Atlas::SyncGlobal(std::string const &key, std::type_info const &t_info, int num_of_sub, int level) {
-    VERBOSE << "Sync" << key;
     std::shared_ptr<parallel::MPIUpdater> updater = nullptr;
 
     if (t_info == typeid(double)) {

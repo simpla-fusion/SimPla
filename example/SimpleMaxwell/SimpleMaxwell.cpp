@@ -7,7 +7,7 @@
 #include <simpla/geometry/Cube.h>
 #include <simpla/geometry/csCartesian.h>
 #include <simpla/mesh/CoRectMesh.h>
-#include <simpla/mesh/EBMesh.h>
+#include <simpla/engine/EBDomain.h>
 #include <simpla/mesh/RectMesh.h>
 #include <simpla/predefine/engine/SimpleTimeIntegrator.h>
 #include <simpla/predefine/physics/Maxwell.h>
@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
     simpla::Initialize(argc, argv);
     auto scenario = SimpleTimeIntegrator::New();
     scenario->SetName("SimpleFDTD");
-    scenario->GetAtlas()->SetChart<simpla::geometry::csCartesian>();
+    scenario->GetAtlas()->NewChart<simpla::geometry::csCartesian>();
     scenario->GetAtlas()->GetChart()->SetScale({1, 1.5, 2});
     scenario->GetAtlas()->GetChart()->SetOrigin({0, 0, 0});
 
@@ -53,9 +53,7 @@ int main(int argc, char **argv) {
 
     VERBOSE << "Scenario: " << *scenario->Serialize();
 
-    TheStart();
     scenario->Run();
-    TheEnd();
 
     scenario->TearDown();
     simpla::Finalize();

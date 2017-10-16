@@ -1,6 +1,8 @@
 
 ADD_SUBDIRECTORY(SimpleMaxwell)
 ADD_SUBDIRECTORY(MultiDomain)
+ADD_SUBDIRECTORY(EmbeddedBoundary)
+
 #ADD_SUBDIRECTORY(em)
 #ADD_SUBDIRECTORY(multi_block)
 #ADD_SUBDIRECTORY(cylindrical)

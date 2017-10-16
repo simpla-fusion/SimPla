@@ -1,15 +1,15 @@
 //
-// Created by salmon on 17-10-11.
+// Created by salmon on 17-10-16.
 //
 
 #include "simpla/SIMPLA_config.h"
 
 #include <simpla/application/SPInit.h>
+#include <simpla/engine/EBDomain.h>
 #include <simpla/geometry/BoxUtilities.h>
 #include <simpla/geometry/Cube.h>
 #include <simpla/geometry/csCartesian.h>
 #include <simpla/mesh/CoRectMesh.h>
-#include <simpla/engine/EBDomain.h>
 #include <simpla/mesh/RectMesh.h>
 #include <simpla/predefine/engine/SimpleTimeIntegrator.h>
 #include <simpla/predefine/physics/Maxwell.h>
@@ -17,14 +17,12 @@
 #include <simpla/scheme/FVM.h>
 #include <simpla/utilities/Logo.h>
 #include <simpla/utilities/parse_command_line.h>
-namespace simpla {
-using SimpleMaxwell = domain::Maxwell<engine::Domain<geometry::csCartesian, scheme::FVM, mesh::CoRectMesh>>;
-using SimplePML = domain::PML<engine::Domain<geometry::csCartesian, scheme::FVM, mesh::CoRectMesh>>;
-
-}  // namespace simpla {
 
 using namespace simpla;
 using namespace simpla::engine;
+
+using EBMaxwell = domain::Maxwell<EBDomain<geometry::csCartesian, scheme::FVM, mesh::CoRectMesh>>;
+using SimplePML = domain::PML<EBDomain<geometry::csCartesian, scheme::FVM, mesh::CoRectMesh>>;
 
 int main(int argc, char **argv) {
     simpla::Initialize(argc, argv);
@@ -43,7 +41,7 @@ int main(int argc, char **argv) {
         });
 
     auto scenario = SimpleTimeIntegrator::New();
-    scenario->SetName("MultiDomain");
+    scenario->SetName("EmbeddedBoundary");
 
     scenario->GetAtlas()->SetOrigin({0, 0, 0});
     scenario->GetAtlas()->SetGridWidth({1, 1, 1});
@@ -51,25 +49,20 @@ int main(int argc, char **argv) {
 
     scenario->GetAtlas()->NewChart<simpla::geometry::csCartesian>();
 
-    auto center = scenario->NewDomain<SimpleMaxwell>("Center");
-    center->SetBoundary(geometry::Cube::New(box_type{{-15, -25, -20}, {15, 25, 20}}));
-    center->PostInitialCondition.Connect([=](DomainBase *self, Real time_now) {
-        if (auto d = dynamic_cast<SimpleMaxwell *>(self)) {
-            d->B = [&](point_type const &x) {
+    auto center =
+        scenario->NewDomain<EBMaxwell>("Center", geometry::Cube::New(box_type{{-15, -25, -20}, {15, 25, 20}}));
 
+    center->AddEmbeddedDomain<domain::Maxwell>("maxwell", geometry::Cube::New(box_type{{-5, -5, -5}, {5, 5, 5}}));
+
+    center->PostInitialCondition.Connect([=](DomainBase *self, Real time_now) {
+        if (auto d = dynamic_cast<EBMaxwell *>(self)) {
+            d->B = [&](point_type const &x) {
                 return point_type{std::sin(2 * PI * x[1] / 50) * std::sin(2 * PI * x[2] / 40),
                                   std::sin(2 * PI * x[0] / 30) * std::sin(2 * PI * x[2] / 40),
                                   std::sin(2 * PI * x[0] / 30) * std::sin(2 * PI * x[1] / 50)};
             };
         }
     });
-    //    scenario->NewDomain<SimpleMaxwell>("boundary0")
-    //        ->SetBoundary(geometry::Cube::New(box_type{{-20, -25, -20}, {-15, 25, 20}}));
-    //    scenario->NewDomain<SimpleMaxwell>("boundary1")
-    //        ->SetBoundary(geometry::Cube::New(box_type{{15, -25, -20}, {20, 25, 20}}));
-    auto pml = scenario->NewDomain<SimplePML>("PML");
-    pml->SetBoundingBox(box_type{{-20, -25, -20}, {20, 25, 20}});
-    pml->SetCenterBox(center->GetBoundingBox());
 
     scenario->SetTimeEnd(1.0e-8);
     scenario->SetMaxStep(num_of_step);
