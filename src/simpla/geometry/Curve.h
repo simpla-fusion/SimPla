@@ -13,6 +13,7 @@ namespace geometry {
 struct Curve : public GeoObject {
     SP_DEFINE_FANCY_TYPE_NAME(Curve, GeoObject);
     int Dimension() const final { return 1; };
+    virtual point_type Value(Real u) const { return point_type{SNaN, SNaN, SNaN}; };
 };
 struct Conic : public Curve {
     SP_DEFINE_FANCY_TYPE_NAME(Conic, Curve);
