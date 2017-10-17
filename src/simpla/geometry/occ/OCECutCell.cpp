@@ -2,7 +2,7 @@
 // Created by salmon on 17-7-26.
 //
 
-#include "simpla/geometry/OCECutCell.h"
+#include "simpla/geometry/CutCell.h"
 
 #include <simpla/algebra/nTuple.ext.h>
 #include <BRepIntCurveSurface_Inter.hxx>
@@ -20,10 +20,10 @@ namespace simpla {
 namespace geometry {
 
 void CutCellTagNodeOCE(Array<Real> *vertex_tags, std::shared_ptr<const Chart> const &chart,
-                       index_box_type const &m_idx_box, const std::shared_ptr<GeoObject> &g, int tag) {
+                       index_box_type const &m_idx_box, const std::shared_ptr<const GeoObject> &g, int tag) {
     auto const &scale = chart->GetScale();
     Real tol = std::sqrt(dot(scale, scale) * 0.01);
-//    std::get<1>(m_idx_box) += 1;
+    //    std::get<1>(m_idx_box) += 1;
     box_type bnd_box = g->GetBoundingBox();
     vector_type length = std::get<1>(bnd_box) - std::get<0>(bnd_box);
     std::get<0>(bnd_box) -= 0.03 * length;

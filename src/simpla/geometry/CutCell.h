@@ -14,8 +14,8 @@ namespace geometry {
 class Chart;
 class GeoObject;
 
-void CutCellTagNode(Array<unsigned int> *vertex_tags, const Chart &chart, index_box_type const &idx_box,
-                    const GeoObject &g, unsigned int tag = 0b001);
+void CutCellTagNode(Array<unsigned int> *vertex_tags, std::shared_ptr<const Chart> const &chart,
+                    index_box_type const &idx_box, std::shared_ptr<const GeoObject> const &g, unsigned int tag = 0b001);
 
 }  //    namespace geometry{
 

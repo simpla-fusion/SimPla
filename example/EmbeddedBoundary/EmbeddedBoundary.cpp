@@ -6,6 +6,7 @@
 
 #include <simpla/application/SPInit.h>
 #include <simpla/engine/EBDomain.h>
+#include <simpla/geometry/Box.h>
 #include <simpla/geometry/BoxUtilities.h>
 #include <simpla/geometry/Cube.h>
 #include <simpla/geometry/csCartesian.h>
@@ -49,10 +50,9 @@ int main(int argc, char **argv) {
 
     scenario->GetAtlas()->NewChart<simpla::geometry::csCartesian>();
 
-    auto center =
-        scenario->NewDomain<EBMaxwell>("Center", geometry::Cube::New(box_type{{-15, -25, -20}, {15, 25, 20}}));
+    auto center = scenario->NewDomain<EBMaxwell>("Center", geometry::Box::New(box_type{{-15, -25, -20}, {15, 25, 20}}));
 
-    center->AddEmbeddedDomain<domain::Maxwell>("maxwell", geometry::Cube::New(box_type{{-5, -5, -5}, {5, 5, 5}}));
+    center->AddEmbeddedDomain<domain::Maxwell>("maxwell", geometry::Box::New(box_type{{-5, -5, -5}, {5, 5, 5}}));
 
     center->PostInitialCondition.Connect([=](DomainBase *self, Real time_now) {
         if (auto d = dynamic_cast<EBMaxwell *>(self)) {

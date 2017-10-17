@@ -7,7 +7,7 @@
 
 #include "simpla/SIMPLA_config.h"
 
-#include <simpla/geometry/OCECutCell.h>
+#include <simpla/geometry/CutCell.h>
 #include <memory>
 
 #include "simpla/algebra/Array.h"
@@ -164,7 +164,6 @@ void Domain<TChart, Policies...>::Deserialize(std::shared_ptr<data::DataNode> co
 
 template <typename TChart, template <typename> class... Policies>
 void Domain<TChart, Policies...>::DoSetUp() {
-
     base_type::DoSetUp();
 };
 template <typename TChart, template <typename> class... Policies>
@@ -181,7 +180,7 @@ void Domain<TChart, Policies...>::DoInitialCondition(Real time_now) {
     //    if (CheckBoundary() == 0)
     {
         InitializeAttribute(&m_node_tag_);
-        geometry::CutCellTagNode(&m_node_tag_, *GetChart(), GetMeshBlock()->GetIndexBox(), *GetBoundary(), 0b001);
+        geometry::CutCellTagNode(&m_node_tag_, GetChart(), GetMeshBlock()->GetIndexBox(), GetBoundary(), 0b001);
     }
 }
 

@@ -12,7 +12,7 @@
 #include <simpla/data/Data.h>
 #include <simpla/engine/Attribute.h>
 #include <simpla/engine/Domain.h>
-#include <simpla/geometry/OCECutCell.h>
+#include <simpla/geometry/CutCell.h>
 #include <simpla/utilities/Range.h>
 
 namespace simpla {
