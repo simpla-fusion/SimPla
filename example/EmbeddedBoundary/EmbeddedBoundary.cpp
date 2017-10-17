@@ -80,6 +80,9 @@ int main(int argc, char **argv) {
 
     scenario->ConfigureAttribute<size_type>("E", "CheckPoint", checkpoint_interval);
     scenario->ConfigureAttribute<size_type>("B", "CheckPoint", checkpoint_interval);
+    scenario->ConfigureAttribute<size_type>("node_tag", "CheckPoint", checkpoint_interval);
+
+    VERBOSE << "Scenario: " << *scenario->Serialize();
 
     scenario->Run();
 

@@ -240,13 +240,16 @@ int Atlas::Foreach(std::function<void(std::shared_ptr<Patch> const &)> const &fu
 
 void Atlas::SyncGlobal(std::string const &key, std::type_info const &t_info, int num_of_sub, int level) {
     std::shared_ptr<parallel::MPIUpdater> updater = nullptr;
-
-    if (t_info == typeid(double)) {
+    if (t_info == typeid(float)) {
+        updater = parallel::MPIUpdater::New<float>();
+    } else if (t_info == typeid(double)) {
         updater = parallel::MPIUpdater::New<double>();
     } else if (t_info == typeid(int)) {
         updater = parallel::MPIUpdater::New<int>();
     } else if (t_info == typeid(long)) {
         updater = parallel::MPIUpdater::New<long>();
+    } else if (t_info == typeid(unsigned int)) {
+        updater = parallel::MPIUpdater::New<unsigned int>();
     } else if (t_info == typeid(unsigned long)) {
         updater = parallel::MPIUpdater::New<unsigned long>();
     } else {

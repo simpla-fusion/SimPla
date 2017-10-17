@@ -38,15 +38,22 @@ void Maxwell<TDomain>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
     base_type::Deserialize(cfg);
 }
 template <typename TDomain>
-void Maxwell<TDomain>::DoSetUp() {}
+void Maxwell<TDomain>::DoSetUp() {
+    base_type::DoSetUp();
+}
 template <typename TDomain>
-void Maxwell<TDomain>::DoUpdate() {}
+void Maxwell<TDomain>::DoUpdate() {
+    base_type::DoUpdate();
+}
 template <typename TDomain>
-void Maxwell<TDomain>::DoTearDown() {}
+void Maxwell<TDomain>::DoTearDown() {
+    base_type::DoTearDown();
+}
 template <typename TDomain>
 void Maxwell<TDomain>::DoTagRefinementCells(Real time_now){};
 template <typename TDomain>
 void Maxwell<TDomain>::DoInitialCondition(Real time_now) {
+    base_type::DoInitialCondition(time_now);
     E.Clear();
     B.Clear();
     J.Clear();

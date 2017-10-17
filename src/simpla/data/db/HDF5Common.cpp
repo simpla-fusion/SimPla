@@ -9,10 +9,14 @@ namespace data {
 hid_t GetHDF5DataType(std::type_info const& t_info) {
     hid_t v_type = H5T_NO_CLASS;
 
-    if (t_info == typeid(int)) {
+    if (t_info == typeid(char)) {
+        v_type = H5T_NATIVE_CHAR;
+    } else if (t_info == typeid(int)) {
         v_type = H5T_NATIVE_INT;
     } else if (t_info == typeid(long)) {
         v_type = H5T_NATIVE_LONG;
+    } else if (t_info == typeid(unsigned int)) {
+        v_type = H5T_NATIVE_UINT;
     } else if (t_info == typeid(unsigned long)) {
         v_type = H5T_NATIVE_ULONG;
     } else if (t_info == typeid(float)) {
@@ -25,7 +29,7 @@ hid_t GetHDF5DataType(std::type_info const& t_info) {
         H5_ERROR(H5Tinsert(v_type, "i", sizeof(double), H5T_NATIVE_DOUBLE));
 
     }
-    // TODO:
+    // TODO: array data type
     //   else if (d_type->isArray()) {
     //        auto const& t_array = d_type->cast_as<DataArray>();
     //        hsize_t dims[t_array.rank()];
@@ -53,11 +57,14 @@ hid_t GetHDF5DataType(std::type_info const& t_info) {
 
 hid_t H5NumberType(std::type_info const& t_info) {
     hid_t v_type = H5T_NO_CLASS;
-
-    if (t_info == typeid(int)) {
+    if (t_info == typeid(char)) {
+        v_type = H5T_NATIVE_CHAR;
+    } else if (t_info == typeid(int)) {
         v_type = H5T_NATIVE_INT;
     } else if (t_info == typeid(long)) {
         v_type = H5T_NATIVE_LONG;
+    } else if (t_info == typeid(unsigned int)) {
+        v_type = H5T_NATIVE_UINT;
     } else if (t_info == typeid(unsigned long)) {
         v_type = H5T_NATIVE_ULONG;
     } else if (t_info == typeid(float)) {

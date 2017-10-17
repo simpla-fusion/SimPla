@@ -7,6 +7,7 @@
 
 #include "simpla/SIMPLA_config.h"
 
+#include <simpla/geometry/OCECutCell.h>
 #include <memory>
 
 #include "simpla/algebra/Array.h"
@@ -20,6 +21,7 @@
 #include "MeshBlock.h"
 namespace simpla {
 namespace engine {
+using namespace simpla::data;
 
 class DomainBase : public EngineObject, public AttributeGroup {
     SP_OBJECT_HEAD(DomainBase, EngineObject)
@@ -116,6 +118,7 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     template <typename U, int IFORM, int... DOF>
     void InitializeAttribute(AttributeT<U, IFORM, DOF...> *attr) const;
 
+    AttributeT<unsigned int, NODE> m_node_tag_{this, "Name"_ = "node_tag"};
 };  // class Domain
 
 #define SP_DOMAIN_HEAD(_CLASS_NAME_, _BASE_NAME_)    \
@@ -161,6 +164,7 @@ void Domain<TChart, Policies...>::Deserialize(std::shared_ptr<data::DataNode> co
 
 template <typename TChart, template <typename> class... Policies>
 void Domain<TChart, Policies...>::DoSetUp() {
+
     base_type::DoSetUp();
 };
 template <typename TChart, template <typename> class... Policies>
@@ -173,7 +177,13 @@ void Domain<TChart, Policies...>::DoTearDown() {
 };
 
 template <typename TChart, template <typename> class... Policies>
-void Domain<TChart, Policies...>::DoInitialCondition(Real time_now) {}
+void Domain<TChart, Policies...>::DoInitialCondition(Real time_now) {
+    //    if (CheckBoundary() == 0)
+    {
+        InitializeAttribute(&m_node_tag_);
+        geometry::CutCellTagNode(&m_node_tag_, *GetChart(), GetMeshBlock()->GetIndexBox(), *GetBoundary(), 0b001);
+    }
+}
 
 template <typename TChart, template <typename> class... Policies>
 void Domain<TChart, Policies...>::DoBoundaryCondition(Real time_now, Real dt) {}

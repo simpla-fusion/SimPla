@@ -6,7 +6,7 @@
 #define SIMPLA_OCCSHAPE_H
 
 
-#include "GeoObjectOCC.h"
+#include "GeoObjectOCE.h"
 class TopoDS_Shape;
 class Geom_Curve;
 class Geom_Surface;

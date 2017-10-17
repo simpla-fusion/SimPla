@@ -3,7 +3,7 @@
 //
 #include "Tokamak.h"
 #include <simpla/data/Data.h>
-#include <simpla/geometry/occ/GeoObjectOCC.h>
+#include <simpla/geometry/occ/GeoObjectOCE.h>
 
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI_MakeFace.hxx>
@@ -57,7 +57,7 @@ std::shared_ptr<geometry::GeoObject> Tokamak::Limiter() const {
     gp_Ax1 axis(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
     BRepBuilderAPI_MakeFace myBoundaryFaceProfile(wireMaker.Wire(), true);
     BRepPrimAPI_MakeRevol revol(myBoundaryFaceProfile.Face(), axis);
-    return geometry::GeoObjectOCC::New(revol.Shape());
+    return geometry::GeoObjectOCE::New(revol.Shape());
 }
 std::shared_ptr<geometry::GeoObject> Tokamak::Boundary() const {
     BRepBuilderAPI_MakePolygon polygonMaker;
@@ -65,7 +65,7 @@ std::shared_ptr<geometry::GeoObject> Tokamak::Boundary() const {
     gp_Ax1 axis(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
     BRepBuilderAPI_MakeFace myLimterFaceProfile(polygonMaker.Wire());
     BRepPrimAPI_MakeRevol myLimiter(myLimterFaceProfile.Face(), axis);
-    return geometry::GeoObjectOCC::New(myLimiter.Shape());
+    return geometry::GeoObjectOCE::New(myLimiter.Shape());
 }
 
 }  // namespace simpla {

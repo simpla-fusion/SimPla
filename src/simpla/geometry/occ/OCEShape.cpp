@@ -1,7 +1,7 @@
 //
 // Created by salmon on 17-8-1.
 //
-#include "OCCShape.h"
+#include "OCEShape.h"
 #include <GeomAdaptor_Curve.hxx>
 #include <Geom_Circle.hxx>
 #include <Geom_Line.hxx>
@@ -19,10 +19,10 @@ gp_Dir dir(vector_type const& p0) { return gp_Dir{p0[0], p0[1], p0[2]}; }
 template <>
 TopoDS_Shape* OCCCast<TopoDS_Shape, GeoObject>::eval(GeoObject const& g) {
     auto* res = new TopoDS_Shape;
-    if (dynamic_cast<GeoObjectOCC const*>(&g) != nullptr) {
-        *res = dynamic_cast<GeoObjectOCC const&>(g).GetShape();
+    if (dynamic_cast<GeoObjectOCE const*>(&g) != nullptr) {
+        *res = dynamic_cast<GeoObjectOCE const&>(g).GetShape();
     } else {
-        auto p = GeoObjectOCC::New(g);
+        auto p = GeoObjectOCE::New(g);
         *res = p->GetShape();
     }
     return res;

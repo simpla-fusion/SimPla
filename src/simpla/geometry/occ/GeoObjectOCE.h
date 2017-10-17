@@ -11,12 +11,12 @@ class TopoDS_Shape;
 class Bnd_Box;
 namespace simpla {
 namespace geometry {
-struct GeoObjectOCC : public GeoObject {
-    SP_OBJECT_HEAD(GeoObjectOCC, GeoObject)
+struct GeoObjectOCE : public GeoObject {
+    SP_OBJECT_HEAD(GeoObjectOCE, GeoObject)
 
    public:
-    GeoObjectOCC(GeoObject const &g);
-    GeoObjectOCC(TopoDS_Shape const &shape);
+    GeoObjectOCE(GeoObject const &g);
+    GeoObjectOCE(TopoDS_Shape const &shape);
 
     void Load(std::string const &);
     void Transform(Real scale, point_type const &location = point_type{0, 0, 0},

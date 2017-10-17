@@ -6,16 +6,16 @@
 #define SIMPLA_CUTCELL_H
 
 #include <simpla/algebra/Array.h>
-#include <simpla/algebra/EntityId.h>
 #include <simpla/utilities/SPDefines.h>
-#include <map>
+#include <memory>
 namespace simpla {
 namespace geometry {
 
 class Chart;
 class GeoObject;
-void CutCell(std::shared_ptr<Chart> const &chart, index_box_type m_idx_box, const std::shared_ptr<GeoObject> &g,
-             Array <Real> *vertex_tags);
+
+void CutCellTagNode(Array<unsigned int> *vertex_tags, const Chart &chart, index_box_type const &idx_box,
+                    const GeoObject &g, unsigned int tag = 0b001);
 
 }  //    namespace geometry{
 

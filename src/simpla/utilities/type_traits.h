@@ -978,6 +978,10 @@ struct type_name<int> {
     static std::string value() { return "int"; }
 };
 template <>
+struct type_name<unsigned int> {
+    static std::string value() { return "unsigned int"; }
+};
+template <>
 struct type_name<long> {
     static std::string value() { return "long"; }
 };

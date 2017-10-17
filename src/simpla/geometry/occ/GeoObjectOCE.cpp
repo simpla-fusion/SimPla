@@ -2,7 +2,7 @@
 // Created by salmon on 17-7-27.
 //
 
-#include "GeoObjectOCC.h"
+#include "GeoObjectOCE.h"
 
 #include <BRepBndLib.hxx>
 #include <BRepBuilderAPI_MakeVertex.hxx>
@@ -20,35 +20,35 @@
 namespace simpla {
 namespace geometry {
 
-SP_OBJECT_REGISTER(GeoObjectOCC)
+SP_OBJECT_REGISTER(GeoObjectOCE)
 
-struct GeoObjectOCC::pimpl_s {
+struct GeoObjectOCE::pimpl_s {
     Real m_measure_ = SNaN;
     TopoDS_Shape m_occ_shape_;
     box_type m_bounding_box_{{0, 0, 0}, {0, 0, 0}};
 
     Bnd_Box m_occ_box_;
 };
-GeoObjectOCC::GeoObjectOCC() : m_pimpl_(new pimpl_s){};
+GeoObjectOCE::GeoObjectOCE() : m_pimpl_(new pimpl_s){};
 
-GeoObjectOCC::GeoObjectOCC(GeoObject const &g) : GeoObjectOCC() {
-    if (dynamic_cast<GeoObjectOCC const *>(&g) == nullptr) {
+GeoObjectOCE::GeoObjectOCE(GeoObject const &g) : GeoObjectOCE() {
+    if (dynamic_cast<GeoObjectOCE const *>(&g) == nullptr) {
         UNIMPLEMENTED;
     } else {
-        m_pimpl_->m_occ_shape_ = dynamic_cast<GeoObjectOCC const &>(g).m_pimpl_->m_occ_shape_;
+        m_pimpl_->m_occ_shape_ = dynamic_cast<GeoObjectOCE const &>(g).m_pimpl_->m_occ_shape_;
         DoUpdate();
     }
 };
 
-GeoObjectOCC::GeoObjectOCC(TopoDS_Shape const &shape) : GeoObjectOCC() {
+GeoObjectOCE::GeoObjectOCE(TopoDS_Shape const &shape) : GeoObjectOCE() {
     m_pimpl_->m_occ_shape_ = shape;
     DoUpdate();
 }
 
-GeoObjectOCC::~GeoObjectOCC() { delete m_pimpl_; };
+GeoObjectOCE::~GeoObjectOCE() { delete m_pimpl_; };
 
-TopoDS_Shape const &GeoObjectOCC::GetShape() const { return m_pimpl_->m_occ_shape_; }
-Bnd_Box const &GeoObjectOCC::GetOCCBoundingBox() const { return m_pimpl_->m_occ_box_; }
+TopoDS_Shape const &GeoObjectOCE::GetShape() const { return m_pimpl_->m_occ_shape_; }
+Bnd_Box const &GeoObjectOCE::GetOCCBoundingBox() const { return m_pimpl_->m_occ_box_; }
 
 TopoDS_Shape ReadSTEP(std::string const &file_name) {
     STEPControl_Reader reader;
@@ -98,12 +98,12 @@ TopoDS_Shape LoadShape(std::string const &file_name) {
     return res;
 };
 
-void GeoObjectOCC::Transform(Real scale, point_type const &location, nTuple<Real, 4> const &rotate) {
+void GeoObjectOCE::Transform(Real scale, point_type const &location, nTuple<Real, 4> const &rotate) {
     TopoDS_Shape tmp = m_pimpl_->m_occ_shape_;
     m_pimpl_->m_occ_shape_ = TransformShape(tmp, scale, location, rotate);
 }
-std::shared_ptr<data::DataNode> GeoObjectOCC::Serialize() const { return base_type::Serialize(); };
-void GeoObjectOCC::Deserialize(std::shared_ptr<data::DataNode>const & cfg) {
+std::shared_ptr<data::DataNode> GeoObjectOCE::Serialize() const { return base_type::Serialize(); };
+void GeoObjectOCE::Deserialize(std::shared_ptr<data::DataNode>const & cfg) {
     base_type::Deserialize(cfg);
     auto tdb = std::dynamic_pointer_cast<const data::DataNode>(cfg);
     if (tdb != nullptr) {
@@ -117,17 +117,17 @@ void GeoObjectOCC::Deserialize(std::shared_ptr<data::DataNode>const & cfg) {
     VERBOSE << " [ Bounding Box :" << m_pimpl_->m_bounding_box_ << "]" << std::endl;
 };
 
-void GeoObjectOCC::Load(std::string const &file_name) { m_pimpl_->m_occ_shape_ = LoadShape(file_name); };
-void GeoObjectOCC::DoUpdate() {
+void GeoObjectOCE::Load(std::string const &file_name) { m_pimpl_->m_occ_shape_ = LoadShape(file_name); };
+void GeoObjectOCE::DoUpdate() {
     BRepBndLib::Add(m_pimpl_->m_occ_shape_, m_pimpl_->m_occ_box_);
     m_pimpl_->m_occ_box_.Get(std::get<0>(m_pimpl_->m_bounding_box_)[0], std::get<0>(m_pimpl_->m_bounding_box_)[1],
                              std::get<0>(m_pimpl_->m_bounding_box_)[2], std::get<1>(m_pimpl_->m_bounding_box_)[0],
                              std::get<1>(m_pimpl_->m_bounding_box_)[1], std::get<1>(m_pimpl_->m_bounding_box_)[2]);
 }
 
-box_type GeoObjectOCC::GetBoundingBox() const { return m_pimpl_->m_bounding_box_; };
+box_type GeoObjectOCE::GetBoundingBox() const { return m_pimpl_->m_bounding_box_; };
 
-bool GeoObjectOCC::CheckInside(point_type const &x) const {
+bool GeoObjectOCE::CheckInside(point_type const &x) const {
     //    VERBOSE << m_pimpl_->m_bounding_box_ << (x) << std::endl;
     gp_Pnt p(x[0], x[1], x[2]);
     //    gp_Pnt p(0,0,0);

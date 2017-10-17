@@ -118,6 +118,9 @@ void MPIUpdater::SetUp() {
     } else if (value_type_info() == typeid(unsigned long)) {
         ele_size = sizeof(unsigned long);
         m_pimpl_->ele_type = MPI_UNSIGNED_LONG;
+    } else if (value_type_info() == typeid(unsigned int)) {
+        ele_size = sizeof(unsigned int);
+        m_pimpl_->ele_type = MPI_UNSIGNED;
     } else {
         UNIMPLEMENTED;
     }
