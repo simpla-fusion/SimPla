@@ -5,14 +5,13 @@
 #ifndef SIMPLA_BOX_H
 #define SIMPLA_BOX_H
 
+#include "Body.h"
 #include "simpla/SIMPLA_config.h"
-#include "GeoObject.h"
-
 namespace simpla {
 namespace geometry {
 
-struct Box : public GeoObject {
-    SP_OBJECT_HEAD(Box, GeoObject)
+struct Box : public Body {
+    SP_OBJECT_HEAD(Box, Body)
 
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 
@@ -35,6 +34,8 @@ struct Box : public GeoObject {
                std::get<0>(m_bound_box_)[1] <= x[1] && x[1] < std::get<1>(m_bound_box_)[1] &&
                std::get<0>(m_bound_box_)[2] <= x[2] && x[2] < std::get<1>(m_bound_box_)[2];
     }
+
+    std::shared_ptr<Shell> GetShell() const override { return nullptr; }
 };
 
 }  // namespace geometry

@@ -16,18 +16,17 @@ struct Curve : public GeoObject {
     virtual point_type Value(Real u) const { return point_type{SNaN, SNaN, SNaN}; };
 };
 struct Conic : public Curve {
-    SP_DEFINE_FANCY_TYPE_NAME(Conic, Curve);
+    SP_OBJECT_HEAD(Conic, Curve);
 };
 
 struct Circle : public Conic {
-    SP_DEFINE_FANCY_TYPE_NAME(Circle, Conic);
+    SP_OBJECT_HEAD(Circle, Conic);
 
-    Circle() = default;
-    ~Circle() override = default;
-
+   protected:
     Circle(point_type x, Real radius, vector_type N, vector_type R)
         : m_origin_(std::move(x)), m_radius_(radius), m_normal_(std::move(N)), m_r_(std::move(R)) {}
 
+   public:
     Real Measure() const final { return TWOPI * m_radius_; };
 
     point_type Origin() const { return m_origin_; }
@@ -42,61 +41,87 @@ struct Circle : public Conic {
     Real Radius() const { return m_radius_; }
     void Radius(Real r) { m_radius_ = r; }
 
+    point_type Value(Real u) const override {
+        UNIMPLEMENTED;
+        return point_type{SNaN, SNaN, SNaN};
+    };
+
    private:
     point_type m_origin_{0, 0, 0};
     vector_type m_normal_{0, 0, 1};
     vector_type m_r_{1, 0, 0};
     Real m_radius_ = 1;
 };
-struct Arc : public Conic {
-    SP_DEFINE_FANCY_TYPE_NAME(Arc, Conic);
-    Arc() = default;
-    ~Arc() override = default;
 
-    Real Measure() const final { return TWOPI * m_radius_; };
+struct Arc : public Conic {
+    SP_OBJECT_HEAD(Arc, Conic);
+
+   public:
+    Real Measure() const final { return m_radius_ * (m_angle_begin_ - m_angle_end_); };
 
     point_type Origin() const { return m_origin_; }
-    void Origin(point_type const &x) { m_origin_ = x; }
-
     vector_type XAxis() const { return m_XAxis_; }
-    void XAxis(vector_type const &v) { m_XAxis_ = v; }
-
     vector_type YAxis() const { return m_YAxis_; }
-    void YAxis(vector_type const &v) { m_YAxis_ = v; }
-
     vector_type ZAxis() const { return cross(m_XAxis_, m_YAxis_); }
-
     Real Radius() const { return m_radius_; }
-    void Radius(Real const &r) { m_radius_ = r; }
 
-    void AngleStart(Real a0) { m_angle_start_ = a0; }
-    void AngleEnd(Real a1) { m_angle_start_ = a1; }
-    Real AngleStart() const { return m_angle_start_; }
+    Real AngleStart() const { return m_angle_begin_; }
     Real AngleEnd() const { return m_angle_end_; }
+
+    point_type Value(Real u) const override {
+        UNIMPLEMENTED;
+        return point_type{SNaN, SNaN, SNaN};
+    };
 
    private:
     point_type m_origin_{0, 0, 0};
     vector_type m_XAxis_{1, 0, 0};
     vector_type m_YAxis_{0, 1, 0};
     Real m_radius_ = 1;
-    Real m_angle_start_ = 0, m_angle_end_ = TWOPI;
+    Real m_angle_begin_ = 0, m_angle_end_ = TWOPI;
 };
 
 struct Line : public Curve {
-    SP_DEFINE_FANCY_TYPE_NAME(Line, Curve);
-    Line(point_type p0, vector_type v) : m_p0_(std::move(p0)), m_v_(std::move(v)){};
-    Line() = default;
-    ~Line() override = default;
+    SP_OBJECT_HEAD(Line, Curve);
 
-    void Origin(point_type const &p0) { m_p0_ = p0; }
-    point_type const &Origin() const { return m_p0_; }
-    void Direction(vector_type const &v) { m_v_ = v; }
-    vector_type const &Direction() const { return m_v_; }
+   protected:
+    Line(point_type p0, point_type p1) : m_p0_(std::move(p0)), m_p1_(std::move(p1)){};
 
-   private:
-    point_type m_p0_{0, 0, 0}, m_v_{1, 0, 0};
+    Line(std::initializer_list<std::initializer_list<Real>> const &v)
+        : m_p0_(point_type(*v.begin())), m_p1_(point_type(*(v.begin() + 1))) {}
+
+   public:
+    static std::shared_ptr<Line> New(std::initializer_list<std::initializer_list<Real>> const &box) {
+        return std::shared_ptr<Line>(new Line(box));
+    }
+    box_type GetBoundingBox() const override { return std::make_tuple(m_p0_, m_p1_); };
+    point_type const &Begin() const { return m_p0_; }
+    vector_type const &End() const { return m_p1_; }
+    point_type Value(Real r) const override { return m_p0_ + (m_p1_ - m_p0_) * r; }
+
+   protected:
+    point_type m_p0_{0, 0, 0}, m_p1_{1, 0, 0};
 };
 
+struct AxeLine : public Line {
+    SP_OBJECT_HEAD(AxeLine, Line);
+
+   protected:
+    AxeLine(int dir, point_type p0, point_type p1) : Line(p0, p1), m_dir_(dir) { m_p1_[dir] = m_p0_[dir]; };
+
+    AxeLine(int dir, std::initializer_list<std::initializer_list<Real>> const &v) : Line(v), m_dir_(dir) {
+        m_p1_[dir] = m_p0_[dir];
+    }
+
+   public:
+    static std::shared_ptr<AxeLine> New(std::initializer_list<std::initializer_list<Real>> const &box) {
+        return std::shared_ptr<AxeLine>(new Line(box));
+    }
+    int GetDirection() const { return m_dir_; }
+
+   private:
+    int m_dir_;
+};
 }  // namespace geometry
 }  // namespace simpla
 
