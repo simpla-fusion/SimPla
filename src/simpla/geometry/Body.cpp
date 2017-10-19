@@ -13,11 +13,15 @@ std::shared_ptr<data::DataNode> Body::Serialize() const {
     auto cfg = base_type::Serialize();
     return cfg;
 };
-void Body::Deserialize(std::shared_ptr<data::DataNode> const& cfg) { base_type::Deserialize(cfg); }
+void Body::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
 
-std::shared_ptr<Shell> Body::GetShell() const {
+std::shared_ptr<Surface> Body::GetBoundary() const {
     UNIMPLEMENTED;
     return nullptr;
+}
+bool Body::CheckInside(point_type const &x) const {
+    UNIMPLEMENTED;
+    return false;
 }
 
 }  // namespace geometry

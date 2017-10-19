@@ -25,16 +25,16 @@ Real GeoObject::Measure() const {
 };
 
 bool GeoObject::CheckInside(point_type const &x) const { return geometry::isInSide(GetBoundingBox(), x); }
-std::shared_ptr<GeoObject> GeoObject::Intersection(std::shared_ptr<GeoObject> const &other) const {
-    return Cube::New(geometry::Overlap(GetBoundingBox(), other->GetBoundingBox()));
-}
-std::shared_ptr<GeoObject> GeoObject::Difference(std::shared_ptr<GeoObject> const &other) const {
-    UNIMPLEMENTED;
-    return nullptr;
-}
-std::shared_ptr<GeoObject> GeoObject::Union(std::shared_ptr<GeoObject> const &other) const {
-    return Cube::New(geometry::Union(GetBoundingBox(), other->GetBoundingBox()));
-}
+//std::shared_ptr<GeoObject> GeoObject::Intersection(std::shared_ptr<GeoObject> const &other) const {
+//    return Cube::New(geometry::Overlap(GetBoundingBox(), other->GetBoundingBox()));
+//}
+//std::shared_ptr<GeoObject> GeoObject::Difference(std::shared_ptr<GeoObject> const &other) const {
+//    UNIMPLEMENTED;
+//    return nullptr;
+//}
+//std::shared_ptr<GeoObject> GeoObject::Union(std::shared_ptr<GeoObject> const &other) const {
+//    return Cube::New(geometry::Union(GetBoundingBox(), other->GetBoundingBox()));
+//}
 // Real GeoObject::isOverlapped(box_type const &b) const { return Measure(Overlap(GetBoundingBox(), b)) / measure(); }
 //
 // Real GeoObject::CheckOverlap(GeoObject const &other) const { return isOverlapped(other.GetBoundingBox()); }

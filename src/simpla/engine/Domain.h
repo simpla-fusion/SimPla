@@ -119,6 +119,10 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     void InitializeAttribute(AttributeT<U, IFORM, DOF...> *attr) const;
 
     AttributeT<unsigned int, NODE> m_node_tag_{this, "Name"_ = "node_tag"};
+    AttributeT<Real, EDGE> m_edge_frac_{this, "Name"_ = "edge_frac"};
+    AttributeT<Real, FACE> m_face_frac_{this, "Name"_ = "face_frac"};
+    AttributeT<Real, CELL> m_cell_frac_{this, "Name"_ = "cell_frac"};
+
 };  // class Domain
 
 #define SP_DOMAIN_HEAD(_CLASS_NAME_, _BASE_NAME_)    \
@@ -180,7 +184,8 @@ void Domain<TChart, Policies...>::DoInitialCondition(Real time_now) {
     //    if (CheckBoundary() == 0)
     {
         InitializeAttribute(&m_node_tag_);
-        geometry::CutCellTagNode(&m_node_tag_, GetChart(), GetMeshBlock()->GetIndexBox(), GetBoundary(), 0b001);
+        geometry::CutCellTagNode(&m_node_tag_, &m_edge_frac_[0], GetChart(), GetMeshBlock()->GetIndexBox(),
+                                 GetBoundary(), 0b001);
     }
 }
 

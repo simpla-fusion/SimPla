@@ -9,11 +9,13 @@
 #include "GeoObject.h"
 namespace simpla {
 namespace geometry {
-struct Shell;
+struct Surface;
+struct Curve;
 struct Body : public GeoObject {
     SP_OBJECT_HEAD(Body, GeoObject)
+    bool CheckInside(point_type const &x) const override;
 
-    virtual std::shared_ptr<Shell> GetShell() const;
+    virtual std::shared_ptr<Surface> GetBoundary() const;
 };
 }  // namespace geometry
 }  // namespace simpla

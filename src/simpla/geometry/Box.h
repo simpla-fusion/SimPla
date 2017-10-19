@@ -35,7 +35,7 @@ struct Box : public Body {
                std::get<0>(m_bound_box_)[2] <= x[2] && x[2] < std::get<1>(m_bound_box_)[2];
     }
 
-    std::shared_ptr<Shell> GetShell() const override { return nullptr; }
+    std::shared_ptr<Surface> GetBoundary() const override { return nullptr; }
 };
 
 }  // namespace geometry

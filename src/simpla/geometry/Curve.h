@@ -110,12 +110,13 @@ struct AxeLine : public Line {
     AxeLine(int dir, point_type p0, point_type p1) : Line(p0, p1), m_dir_(dir) { m_p1_[dir] = m_p0_[dir]; };
 
     AxeLine(int dir, std::initializer_list<std::initializer_list<Real>> const &v) : Line(v), m_dir_(dir) {
-        m_p1_[dir] = m_p0_[dir];
+        m_p1_[(dir + 1) % 3] = m_p0_[(dir + 1) % 3];
+        m_p1_[(dir + 2) % 3] = m_p0_[(dir + 2) % 3];
     }
 
    public:
-    static std::shared_ptr<AxeLine> New(std::initializer_list<std::initializer_list<Real>> const &box) {
-        return std::shared_ptr<AxeLine>(new Line(box));
+    static std::shared_ptr<AxeLine> New(int dir, std::initializer_list<std::initializer_list<Real>> const &box) {
+        return std::shared_ptr<AxeLine>(new AxeLine(dir, box));
     }
     int GetDirection() const { return m_dir_; }
 

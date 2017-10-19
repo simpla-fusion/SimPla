@@ -63,13 +63,15 @@ class GeoObject : public SPObject {
 
     virtual int Dimension() const { return 3; };
     virtual Real Measure() const;
-    virtual std::shared_ptr<GeoObject> Boundary() const { return nullptr; };
-    /// The axis-aligned minimum bounding box (or AABB) , Cartesian
     virtual box_type GetBoundingBox() const;
     virtual bool CheckInside(point_type const &x) const;
-    virtual std::shared_ptr<GeoObject> Intersection(std::shared_ptr<GeoObject> const &other) const;
-    virtual std::shared_ptr<GeoObject> Difference(std::shared_ptr<GeoObject> const &other) const;
-    virtual std::shared_ptr<GeoObject> Union(std::shared_ptr<GeoObject> const &other) const;
+
+//    virtual std::shared_ptr<GeoObject> GetBoundary() const { return nullptr; };
+//    /// The axis-aligned minimum bounding box (or AABB) , Cartesian
+//    virtual bool CheckInside(point_type const &x) const;
+//    virtual std::shared_ptr<GeoObject> Intersection(std::shared_ptr<GeoObject> const &other) const;
+//    virtual std::shared_ptr<GeoObject> Difference(std::shared_ptr<GeoObject> const &other) const;
+//    virtual std::shared_ptr<GeoObject> Union(std::shared_ptr<GeoObject> const &other) const;
 
     /// arbitrarily oriented minimum bounding box  (or OBB)
     //    virtual std::tuple<point_type, vector_type, vector_type, vector_type> OrientedBoundingBox() const;
