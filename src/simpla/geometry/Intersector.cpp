@@ -10,13 +10,22 @@
 
 namespace simpla {
 namespace geometry {
-
-Intersector::Intersector() = default;
-Intersector::~Intersector() = default;
+struct Intersector::pimpl_s {
+    std::shared_ptr<const Surface> m_surface_;
+};
+Intersector::Intersector() : m_pimpl_(new pimpl_s){};
+Intersector::~Intersector() { delete m_pimpl_; };
 
 std::shared_ptr<Intersector> Intersector::New(std::shared_ptr<const GeoObject> const& geo, Real tolerance) {
-    std::shared_ptr<Intersector> res = nullptr;
-    if (auto g = std::dynamic_pointer_cast<const Body>(geo)) {}
+    std::shared_ptr<Intersector> res;
+    if (auto g = std::dynamic_pointer_cast<const Body>(geo)) {
+        res.reset(new Intersector);
+        res->m_pimpl_->m_surface_ = g->GetBoundary();
+    } else if (auto g = std::dynamic_pointer_cast<const Surface>(geo)) {
+        res.reset(new Intersector);
+        res->m_pimpl_->m_surface_ = g;
+    }
+
     return res;
 }
 size_type Intersector::GetIntersectionPoints(std::shared_ptr<const Curve> const& curve,

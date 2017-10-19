@@ -14,11 +14,42 @@
 #include "../BoxUtilities.h"
 #include "../Chart.h"
 #include "../GeoObject.h"
-
+#include "OCEIntersector.h"
 #include "OCEShape.h"
 namespace simpla {
 namespace geometry {
+struct OCEIntersector::pimpl_s {
+    BRepIntCurveSurface_Inter m_body_inter_;
+};
+OCEIntersector::OCEIntersector() : m_pimpl_(new pimpl_s) {}
+OCEIntersector::OCEIntersector(std::shared_ptr<const GeoObject> const &geo, Real tolerance) : m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_body_inter_.Load(*geometry::occ_cast<TopoDS_Shape>(*geo), tolerance);
+}
 
+OCEIntersector::~OCEIntersector() { delete m_pimpl_; }
+
+std::shared_ptr<OCEIntersector> OCEIntersector::New(std::shared_ptr<const GeoObject> const &geo,
+                                                    Real tolerance = 0.001) {
+    std::shared_ptr<OCEIntersector> res(new OCEIntersector(geo, tolerance));
+    return res;
+}
+
+virtual size_type OCEIntersector::GetIntersectionPoints(std::shared_ptr<const Curve> const &curve,
+                                                        std::vector<Real> &intersection_point) const {
+    Handle(Geom_Curve) c = geometry::detail::OCCCast<Geom_Curve, Curve>::eval(*curve);
+
+    m_pimpl_->m_body_inter_.Init(c);
+
+    std::vector<Real> intersection_points;
+    size_type count = 0;
+    for (; m_pimpl_->m_body_inter_.More(); m_pimpl_->m_body_inter_.Next()) {
+        intersection_points.push_back(m_pimpl_->m_body_inter_.W());
+        ++count;
+    }
+
+    std::sort(intersection_points.begin(), intersection_points.end());
+    return count;
+}
 void CutCellTagNodeOCE(Array<Real> *vertex_tags, std::shared_ptr<const Chart> const &chart,
                        index_box_type const &m_idx_box, const std::shared_ptr<const GeoObject> &g, int tag) {
     auto const &scale = chart->GetScale();
