@@ -30,7 +30,7 @@ struct csCartesian : public Chart {
    public:
     typedef Real scalar_type;
 
-    std::shared_ptr<Curve> GetAxisCurve(point_type const &x, int dir) const override;
+    std::shared_ptr<GeoObject> GetAxis(point_type const &x, int dir) const override;
     box_type GetBoundingBox(std::shared_ptr<geometry::GeoObject> const &geo) const override {
         return geo->GetBoundingBox();
     };

@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "GeoObject.h"
-#include "simpla/algebra/nTuple.h"
+#include "Plane.h"
 namespace simpla {
 namespace geometry {
 /**
@@ -20,15 +20,12 @@ namespace geometry {
  * @{
  */
 
-template <int NDIMS>
-class Polygon;
-
 /**
  *  @brief 2D polygon
  */
-template <>
-struct Polygon<2> : public GeoObject {
-    SP_OBJECT_HEAD(Polygon, GeoObject)
+
+struct Polygon : public Plane {
+    SP_OBJECT_HEAD(Polygon, Plane)
    public:
     typedef nTuple<Real, 2> point2d_type;
 

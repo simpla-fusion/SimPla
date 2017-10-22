@@ -16,7 +16,7 @@ std::shared_ptr<data::DataNode> Surface::Serialize() const {
     return cfg;
 };
 void Surface::Deserialize(std::shared_ptr<data::DataNode> const& cfg) { base_type::Deserialize(cfg); }
-std::shared_ptr<Curve> Surface::GetBoundary() const {
+std::shared_ptr<GeoObject> Surface::GetBoundary() const {
     UNIMPLEMENTED;
     return nullptr;
 }

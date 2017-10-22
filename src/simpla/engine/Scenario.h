@@ -16,7 +16,7 @@ class Atlas;
 
 class Scenario : public EngineObject {
     SP_OBJECT_HEAD(Scenario, EngineObject)
-    std::string TypeName() const final { return "Scenario"; }
+    std::string ClassName() const final { return "Scenario"; }
 
     virtual void TagRefinementCells(Real time_now);
 

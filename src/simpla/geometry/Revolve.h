@@ -14,8 +14,7 @@
 
 namespace simpla {
 namespace geometry {
-template <int NDIMS>
-class Polygon;
+
 template <typename TObj>
 class Revolve : public GeoObject {
     SP_OBJECT_HEAD(Revolve<TObj>, GeoObject)
@@ -26,7 +25,9 @@ class Revolve : public GeoObject {
    public:
     virtual box_type GetBoundingBox() const override { return box_type{{0, 0, 0}, {1, 2, 3}}; };
 
-    bool CheckInside(point_type const &x) const override { return base_obj.CheckInside(MapTo2d(x)); };
+    bool CheckInside(point_type const &x, Real tolerance = SP_DEFAULT_GEOMETRY_TOLERANCE) const override {
+        return base_obj.CheckInside(MapTo2d(x), tolerance);
+    };
 
     nTuple<Real, 2> MapTo2d(point_type const &x) const {
         nTuple<Real, 2> y{0, 0};
@@ -51,7 +52,7 @@ std::shared_ptr<data::DataNode> Revolve<TObj>::Serialize() const {
     return tdb;
 };
 template <typename TObj>
-void Revolve<TObj>::Deserialize(std::shared_ptr<data::DataNode>  const&cfg) {
+void Revolve<TObj>::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
 }
 
@@ -63,7 +64,7 @@ std::shared_ptr<GeoObject> revolve(TObj const &obj, int phi_axis = 2) {
 class RevolveZ : public GeoObject {
     SP_OBJECT_HEAD(RevolveZ, GeoObject)
    protected:
-    RevolveZ(std::shared_ptr<Polygon<2>> const &obj, int phi_axis, Real phi0, Real phi1, point_type origin = {0, 0, 0})
+    RevolveZ(std::shared_ptr<Polygon> const &obj, int phi_axis, Real phi0, Real phi1, point_type origin = {0, 0, 0})
         : m_origin_(origin), base_obj(obj), m_phi_axe_(phi_axis), m_angle_min_(phi0), m_angle_max_(phi1) {}
 
    public:
@@ -82,7 +83,7 @@ class RevolveZ : public GeoObject {
         return res;
     };
 
-    bool CheckInside(point_type const &x) const override {
+    bool CheckInside(point_type const &x, Real tolerance) const override {
         return ((x[m_phi_axe_] >= m_angle_min_) && (x[m_phi_axe_] < m_angle_max_)) &&
                base_obj->check_inside(x[(m_phi_axe_ + 1) % 3], x[(m_phi_axe_ + 2) % 3]);
     };
@@ -96,7 +97,7 @@ class RevolveZ : public GeoObject {
     Real m_angle_min_ = 0, m_angle_max_ = TWOPI;
     int m_phi_axe_ = 2;
 
-    std::shared_ptr<Polygon<2>> base_obj;
+    std::shared_ptr<Polygon> base_obj;
 };
 }
 }

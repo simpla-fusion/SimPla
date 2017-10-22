@@ -62,7 +62,12 @@
 /* SNAN: signaling nan,QNAN: quiet nan ,DENORM_MIN: 2^-1074*/
 #cmakedefine SP_ARRAY_INITIALIZE_VALUE @SP_ARRAY_INITIALIZE_VALUE@
 
-#cmakedefine SP_OUTPUT_SUFFIX  "@SIMPLA_OUTPUT_SUFFIX@"
+#cmakedefine SP_DEFAULT_GEOMETRY_TOLERANCE @SP_DEFAULT_GEOMETRY_TOLERANCE@
+#ifndef SP_DEFAULT_GEOMETRY_TOLERANCE
+#define SP_DEFAULT_GEOMETRY_TOLERANCE 1.0e-6
+#endif
+
+#cmakedefine SP_OUTPUT_SUFFIX "@SIMPLA_OUTPUT_SUFFIX@"
 
 #ifndef SP_OUTPUT_SUFFIX
 #define SP_OUTPUT_SUFFIX SIMPLA
@@ -87,7 +92,6 @@ typedef SP_REAL Real;
 
 #define SP_UNIMPLEMENTED SP_DO_NOTHING + 1
 
-
 typedef size_t size_type;
 typedef int8_t byte_type;  // int8_t
 typedef int Integral;
@@ -98,8 +102,6 @@ typedef size_type id_type;
 #define SP_SUCCESS 0
 #define SP_FAILED 1
 
-
-
 #ifdef __cplusplus
 
 #include <limits>
@@ -107,6 +109,7 @@ typedef size_type id_type;
 namespace simpla {
 static constexpr Real INIFITY = std::numeric_limits<Real>::infinity();
 static constexpr Real EPSILON = std::numeric_limits<Real>::epsilon();
+static constexpr Real SNaN = std::numeric_limits<Real>::signaling_NaN();
 }
 #endif  //__cplusplus
 

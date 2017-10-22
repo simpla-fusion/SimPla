@@ -13,10 +13,10 @@
 
 namespace simpla {
 namespace geometry {
-Polygon<2>::Polygon() {}
-Polygon<2>::~Polygon() {}
+Polygon::Polygon() {}
+Polygon::~Polygon() {}
 
-std::shared_ptr<data::DataNode> Polygon<2>::Serialize() const {
+std::shared_ptr<data::DataNode> Polygon::Serialize() const {
     auto tdb = base_type::Serialize();
 
     tdb->SetValue("Type", "Polygon2D");
@@ -26,9 +26,9 @@ std::shared_ptr<data::DataNode> Polygon<2>::Serialize() const {
 
     return tdb;
 };
-void Polygon<2>::Deserialize(std::shared_ptr<data::DataNode>const & tdb) { base_type::Deserialize(tdb); }
+void Polygon::Deserialize(std::shared_ptr<data::DataNode> const &tdb) { base_type::Deserialize(tdb); }
 
-Real Polygon<2>::nearest_point(Real *x, Real *y) const {
+Real Polygon::nearest_point(Real *x, Real *y) const {
     typedef nTuple<Real, 2> Vec2;
 
     point2d_type x0;
@@ -86,9 +86,9 @@ Real Polygon<2>::nearest_point(Real *x, Real *y) const {
     return check_inside(*x, *y) > 0 ? d2 : -d2;
 }
 
-void Polygon<2>::push_back(point2d_type const &pp) { m_polygon_.push_back(pp); }
+void Polygon::push_back(point2d_type const &pp) { m_polygon_.push_back(pp); }
 
-void Polygon<2>::deploy() {
+void Polygon::deploy() {
     size_t num_of_vertex_ = m_polygon_.size();
     constant_.resize(num_of_vertex_);
     multiple_.resize(num_of_vertex_);
@@ -112,7 +112,7 @@ void Polygon<2>::deploy() {
     for (auto const &p : m_polygon_) { geometry::extent_box(&m_min_, &m_max_, &p[0]); }
 }
 
-bool Polygon<2>::check_inside(Real x, Real y) const {
+bool Polygon::check_inside(Real x, Real y) const {
     if ((x >= m_min_[0]) && (y >= m_min_[1]) && (x < m_max_[0]) && (y < m_max_[1])) {
         size_t num_of_vertex_ = m_polygon_.size();
 

@@ -17,6 +17,7 @@ struct GeoObjectOCE : public GeoObject {
    public:
     GeoObjectOCE(GeoObject const &g);
     GeoObjectOCE(TopoDS_Shape const &shape);
+    std::string ClassName() const override { return "GeoObjectOCE"; }
 
     void Load(std::string const &);
     void Transform(Real scale, point_type const &location = point_type{0, 0, 0},
@@ -27,7 +28,7 @@ struct GeoObjectOCE : public GeoObject {
     Bnd_Box const &GetOCCBoundingBox() const;
 
     box_type GetBoundingBox() const override;
-    bool CheckInside(point_type const &x) const override;
+    bool CheckInside(point_type const &x, Real tolerance = SP_DEFAULT_GEOMETRY_TOLERANCE) const override;
 };
 
 }  // namespace geometry

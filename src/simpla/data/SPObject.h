@@ -76,7 +76,7 @@ class SPObject : public Factory<SPObject>, public std::enable_shared_from_this<S
     typedef SPObject this_type;
 
    public:
-    virtual std::string TypeName() const { return ""; }
+    virtual std::string ClassName() const { return ""; }
     virtual std::string FancyTypeName() const { return ""; }
 
     template <typename U>

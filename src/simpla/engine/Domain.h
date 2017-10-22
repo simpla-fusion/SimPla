@@ -25,7 +25,7 @@ using namespace simpla::data;
 
 class DomainBase : public EngineObject, public AttributeGroup {
     SP_OBJECT_HEAD(DomainBase, EngineObject)
-    std::string TypeName() const final { return "DomainBase"; }
+    std::string ClassName() const final { return "Domain"; }
 
    public:
     //    void Push(const std::shared_ptr<data::DataNode> &) override;
@@ -184,6 +184,11 @@ void Domain<TChart, Policies...>::DoInitialCondition(Real time_now) {
     //    if (CheckBoundary() == 0)
     {
         InitializeAttribute(&m_node_tag_);
+        InitializeAttribute(&m_edge_frac_);
+        m_edge_frac_[0].Fill(1.0);
+        m_edge_frac_[1].Fill(1.0);
+        m_edge_frac_[2].Fill(1.0);
+
         geometry::CutCellTagNode(&m_node_tag_, &m_edge_frac_[0], GetChart(), GetMeshBlock()->GetIndexBox(),
                                  GetBoundary(), 0b001);
     }

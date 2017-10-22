@@ -4,6 +4,7 @@
 #include "csCylindrical.h"
 #include "Cube.h"
 #include "Curve.h"
+#include "Line.h"
 
 namespace simpla {
 namespace geometry {
@@ -18,11 +19,11 @@ std::shared_ptr<GeoObject> csCylindrical::GetBoundingShape(index_box_type const 
         std::make_tuple(local_coordinates(0, std::get<0>(b)), local_coordinates(0, std::get<0>(b))));
 };
 
-std::shared_ptr<Curve> csCylindrical::GetAxisCurve(point_type const &x, int dir) const {
+std::shared_ptr<GeoObject> csCylindrical::GetAxis(point_type const &x, int dir) const {
     point_type u = inv_map(x);
     vector_type z_axis{0, 0, 1};
     vector_type r_axis{std::cos(u[PhiAxis]), std::sin(u[PhiAxis]), 0};
-    std::shared_ptr<Curve> res = nullptr;
+    std::shared_ptr<GeoObject> res = nullptr;
     switch (dir % 3) {
         case PhiAxis: {
             point_type o = {0, 0, x[2]};

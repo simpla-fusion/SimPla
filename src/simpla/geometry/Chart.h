@@ -16,7 +16,7 @@ namespace geometry {
 class Curve;
 struct Chart : public SPObject {
     SP_OBJECT_HEAD(Chart, SPObject)
-    std::string TypeName() const final { return "Chart"; }
+    std::string ClassName() const final { return "Chart"; }
 
    private:
     bool m_is_setup_ = false;
@@ -27,7 +27,7 @@ struct Chart : public SPObject {
     virtual void Update() { ASSERT(isSetUp()); };
     virtual void TearDown() { m_is_setup_ = false; };
 
-    virtual std::shared_ptr<Curve> GetAxisCurve(point_type const &x, int dir) const { return nullptr; };
+    virtual std::shared_ptr<GeoObject> GetAxis(point_type const &x, int dir) const { return nullptr; };
     virtual int GetNDIMS() const;
     virtual box_type GetBoundingBox(box_type const &b) const { return b; };
     virtual box_type GetBoundingBox(std::shared_ptr<geometry::GeoObject> const &geo) const {

@@ -18,15 +18,15 @@ namespace geometry {
 
 void CutCellTagNode(Array<unsigned int> *node_tags, Array<Real> *edge_tags, std::shared_ptr<const Chart> const &chart,
                     index_box_type const &idx_box, const std::shared_ptr<const GeoObject> &g, unsigned int tag) {
-    if (auto box = std::dynamic_pointer_cast<const Box>(g)) {
-        auto bound_box = box->GetBoundingBox();
-        index_tuple lo, hi;
-        lo = std::get<1>(chart->invert_local_coordinates(std::get<0>(bound_box)));
-        hi = std::get<1>(chart->invert_local_coordinates(std::get<1>(bound_box)));
-        auto a_selection = node_tags->GetSelection(std::make_tuple(lo, hi));
-        a_selection |= tag;
-        return;
-    }
+//    if (auto box = std::dynamic_pointer_cast<const Box>(g)) {
+//        auto bound_box = box->GetBoundingBox();
+//        index_tuple lo, hi;
+//        lo = std::get<1>(chart->invert_local_coordinates(std::get<0>(bound_box)));
+//        hi = std::get<1>(chart->invert_local_coordinates(std::get<1>(bound_box)));
+//        auto a_selection = node_tags->GetSelection(std::make_tuple(lo, hi));
+//        a_selection |= tag;
+//        return;
+//    }
 
     auto const &scale = chart->GetScale();
     Real tolerance = std::sqrt(dot(scale, scale) * 0.01);
@@ -48,13 +48,12 @@ void CutCellTagNode(Array<unsigned int> *node_tags, Array<Real> *edge_tags, std:
                 id[(dir + 1) % 3] = i;
                 id[(dir + 2) % 3] = j;
                 point_type x_begin = chart->global_coordinates(0b0, id[0], id[1], id[2]);
-                auto curve = chart->GetAxisCurve(x_begin, dir);
-                std::vector<Real> intersection_points;
-                m_body_inter_->GetIntersectionPoints(curve, intersection_points);
+                std::vector<Real> intersection_pos;
+                m_body_inter_->GetIntersectionPoints(chart->GetAxis(x_begin, dir), intersection_pos);
 
-                for (size_t n = 0; n < intersection_points.size(); n += 2) {
-                    auto rlo = intersection_points[n];
-                    auto rhi = intersection_points[n + 1];
+                for (size_t n = 0; n < intersection_pos.size(); n += 2) {
+                    auto rlo = intersection_pos[n];
+                    auto rhi = intersection_pos[n + 1];
                     auto klo = static_cast<index_type>(rlo);
                     auto khi = static_cast<index_type>(rhi);
 

@@ -29,8 +29,8 @@ struct Sphere : public GeoObject {
         return std::move(b);
     };
 
-    bool CheckInside(point_type const &x) const override {
-        return dot((x - m_origin_), (x - m_origin_)) - m_radius_ * m_radius_ < 0;
+    bool CheckInside(point_type const &x, Real tolerance) const override {
+        return dot((x - m_origin_), (x - m_origin_)) - m_radius_ * m_radius_ < tolerance;
     }
 };
 }  // namespace geometry{

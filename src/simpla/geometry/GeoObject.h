@@ -60,18 +60,21 @@ namespace geometry {
  */
 class GeoObject : public SPObject {
     SP_OBJECT_HEAD(GeoObject, SPObject)
+    std::string ClassName() const override { return "GeoObject"; }
 
     virtual int Dimension() const { return 3; };
     virtual Real Measure() const;
     virtual box_type GetBoundingBox() const;
-    virtual bool CheckInside(point_type const &x) const;
+    virtual std::shared_ptr<GeoObject> GetBoundary() const;
 
-//    virtual std::shared_ptr<GeoObject> GetBoundary() const { return nullptr; };
-//    /// The axis-aligned minimum bounding box (or AABB) , Cartesian
-//    virtual bool CheckInside(point_type const &x) const;
-//    virtual std::shared_ptr<GeoObject> Intersection(std::shared_ptr<GeoObject> const &other) const;
-//    virtual std::shared_ptr<GeoObject> Difference(std::shared_ptr<GeoObject> const &other) const;
-//    virtual std::shared_ptr<GeoObject> Union(std::shared_ptr<GeoObject> const &other) const;
+    virtual bool CheckInside(point_type const &x, Real tolerance = SP_DEFAULT_GEOMETRY_TOLERANCE) const;
+
+    //    virtual std::shared_ptr<GeoObject> GetBoundary() const { return nullptr; };
+    //    /// The axis-aligned minimum bounding box (or AABB) , Cartesian
+    //    virtual bool CheckInside(point_type const &x) const;
+    //    virtual std::shared_ptr<GeoObject> Intersection(std::shared_ptr<GeoObject> const &other) const;
+    //    virtual std::shared_ptr<GeoObject> Difference(std::shared_ptr<GeoObject> const &other) const;
+    //    virtual std::shared_ptr<GeoObject> Union(std::shared_ptr<GeoObject> const &other) const;
 
     /// arbitrarily oriented minimum bounding box  (or OBB)
     //    virtual std::tuple<point_type, vector_type, vector_type, vector_type> OrientedBoundingBox() const;

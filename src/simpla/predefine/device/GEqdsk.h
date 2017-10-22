@@ -50,8 +50,8 @@ class GEqdsk {
     std::ostream &print(std::ostream &os);
     std::string const &description() const;
     __host__ __device__ box_type box() const;
-    std::shared_ptr<geometry::Polygon<2>> const &boundary() const;
-    std::shared_ptr<geometry::Polygon<2>> const &limiter() const;
+    std::shared_ptr<geometry::Polygon> const &boundary() const;
+    std::shared_ptr<geometry::Polygon> const &limiter() const;
 
     __host__ __device__ bool in_boundary(point_type const &x) const {
         return boundary()->check_inside(x[RAxis], x[ZAxis]);

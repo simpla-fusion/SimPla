@@ -103,7 +103,7 @@ void GeoObjectOCE::Transform(Real scale, point_type const &location, nTuple<Real
     m_pimpl_->m_occ_shape_ = TransformShape(tmp, scale, location, rotate);
 }
 std::shared_ptr<data::DataNode> GeoObjectOCE::Serialize() const { return base_type::Serialize(); };
-void GeoObjectOCE::Deserialize(std::shared_ptr<data::DataNode>const & cfg) {
+void GeoObjectOCE::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
     auto tdb = std::dynamic_pointer_cast<const data::DataNode>(cfg);
     if (tdb != nullptr) {
@@ -127,7 +127,7 @@ void GeoObjectOCE::DoUpdate() {
 
 box_type GeoObjectOCE::GetBoundingBox() const { return m_pimpl_->m_bounding_box_; };
 
-bool GeoObjectOCE::CheckInside(point_type const &x) const {
+bool GeoObjectOCE::CheckInside(point_type const &x, Real tolerance) const {
     //    VERBOSE << m_pimpl_->m_bounding_box_ << (x) << std::endl;
     gp_Pnt p(x[0], x[1], x[2]);
     //    gp_Pnt p(0,0,0);

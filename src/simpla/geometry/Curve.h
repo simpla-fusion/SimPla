@@ -81,48 +81,7 @@ struct Arc : public Conic {
     Real m_angle_begin_ = 0, m_angle_end_ = TWOPI;
 };
 
-struct Line : public Curve {
-    SP_OBJECT_HEAD(Line, Curve);
 
-   protected:
-    Line(point_type p0, point_type p1) : m_p0_(std::move(p0)), m_p1_(std::move(p1)){};
-
-    Line(std::initializer_list<std::initializer_list<Real>> const &v)
-        : m_p0_(point_type(*v.begin())), m_p1_(point_type(*(v.begin() + 1))) {}
-
-   public:
-    static std::shared_ptr<Line> New(std::initializer_list<std::initializer_list<Real>> const &box) {
-        return std::shared_ptr<Line>(new Line(box));
-    }
-    box_type GetBoundingBox() const override { return std::make_tuple(m_p0_, m_p1_); };
-    point_type const &Begin() const { return m_p0_; }
-    vector_type const &End() const { return m_p1_; }
-    point_type Value(Real r) const override { return m_p0_ + (m_p1_ - m_p0_) * r; }
-
-   protected:
-    point_type m_p0_{0, 0, 0}, m_p1_{1, 0, 0};
-};
-
-struct AxeLine : public Line {
-    SP_OBJECT_HEAD(AxeLine, Line);
-
-   protected:
-    AxeLine(int dir, point_type p0, point_type p1) : Line(p0, p1), m_dir_(dir) { m_p1_[dir] = m_p0_[dir]; };
-
-    AxeLine(int dir, std::initializer_list<std::initializer_list<Real>> const &v) : Line(v), m_dir_(dir) {
-        m_p1_[(dir + 1) % 3] = m_p0_[(dir + 1) % 3];
-        m_p1_[(dir + 2) % 3] = m_p0_[(dir + 2) % 3];
-    }
-
-   public:
-    static std::shared_ptr<AxeLine> New(int dir, std::initializer_list<std::initializer_list<Real>> const &box) {
-        return std::shared_ptr<AxeLine>(new AxeLine(dir, box));
-    }
-    int GetDirection() const { return m_dir_; }
-
-   private:
-    int m_dir_;
-};
 }  // namespace geometry
 }  // namespace simpla
 

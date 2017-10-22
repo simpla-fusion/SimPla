@@ -34,7 +34,7 @@ struct Cube : public GeoObject {
     }
     box_type GetBoundingBox() const override { return m_bound_box_; };
 
-    virtual bool CheckInside(point_type const &x) const override {
+    virtual bool CheckInside(point_type const &x, Real tolerance) const override {
         return std::get<0>(m_bound_box_)[0] <= x[0] && x[0] < std::get<1>(m_bound_box_)[0] &&
                std::get<0>(m_bound_box_)[1] <= x[1] && x[1] < std::get<1>(m_bound_box_)[1] &&
                std::get<0>(m_bound_box_)[2] <= x[2] && x[2] < std::get<1>(m_bound_box_)[2];

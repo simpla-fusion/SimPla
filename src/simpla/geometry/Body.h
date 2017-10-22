@@ -13,9 +13,9 @@ struct Surface;
 struct Curve;
 struct Body : public GeoObject {
     SP_OBJECT_HEAD(Body, GeoObject)
-    bool CheckInside(point_type const &x) const override;
+    bool CheckInside(point_type const &x, Real tolerance) const override;
 
-    virtual std::shared_ptr<Surface> GetBoundary() const;
+    std::shared_ptr<GeoObject> GetBoundary() const override;
 };
 }  // namespace geometry
 }  // namespace simpla

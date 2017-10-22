@@ -11,7 +11,7 @@ namespace geometry {
 class Curve;
 struct Surface : public GeoObject {
     SP_OBJECT_HEAD(Surface, GeoObject)
-    virtual std::shared_ptr<Curve>  GetBoundary() const;
+    std::shared_ptr<GeoObject> GetBoundary() const override;
 };
 }  // namespace geometry
 }  // namespace simpla

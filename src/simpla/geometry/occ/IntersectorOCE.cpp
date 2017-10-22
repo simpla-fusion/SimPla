@@ -14,29 +14,30 @@
 #include "../BoxUtilities.h"
 #include "../Chart.h"
 #include "../GeoObject.h"
-#include "OCEIntersector.h"
+#include "IntersectorOCE.h"
 #include "OCEShape.h"
 namespace simpla {
 namespace geometry {
-struct OCEIntersector::pimpl_s {
+SP_OBJECT_REGISTER(IntersectorOCE)
+
+struct IntersectorOCE::pimpl_s {
     BRepIntCurveSurface_Inter m_body_inter_;
 };
-OCEIntersector::OCEIntersector() : m_pimpl_(new pimpl_s) {}
-OCEIntersector::OCEIntersector(std::shared_ptr<const GeoObject> const &geo, Real tolerance) : m_pimpl_(new pimpl_s) {
+IntersectorOCE::IntersectorOCE() : m_pimpl_(new pimpl_s) {}
+IntersectorOCE::IntersectorOCE(std::shared_ptr<const GeoObject> const &geo, Real tolerance) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_body_inter_.Load(*geometry::occ_cast<TopoDS_Shape>(*geo), tolerance);
 }
 
-OCEIntersector::~OCEIntersector() { delete m_pimpl_; }
+IntersectorOCE::~IntersectorOCE() { delete m_pimpl_; }
 
-std::shared_ptr<OCEIntersector> OCEIntersector::New(std::shared_ptr<const GeoObject> const &geo,
-                                                    Real tolerance = 0.001) {
-    std::shared_ptr<OCEIntersector> res(new OCEIntersector(geo, tolerance));
+std::shared_ptr<IntersectorOCE> IntersectorOCE::New(std::shared_ptr<const GeoObject> const &geo, Real tolerance) {
+    std::shared_ptr<IntersectorOCE> res(new IntersectorOCE(geo, tolerance));
     return res;
 }
 
-virtual size_type OCEIntersector::GetIntersectionPoints(std::shared_ptr<const Curve> const &curve,
-                                                        std::vector<Real> &intersection_point) const {
-    Handle(Geom_Curve) c = geometry::detail::OCCCast<Geom_Curve, Curve>::eval(*curve);
+size_type IntersectorOCE::GetIntersectionPoints(std::shared_ptr<const GeoObject> const &curve,
+                                                std::vector<Real> &intersection_point) const {
+    Handle(Geom_Curve) c = geometry::detail::OCCCast<Geom_Curve, GeoObject>::eval(*curve);
 
     m_pimpl_->m_body_inter_.Init(c);
 
@@ -91,7 +92,7 @@ void CutCellTagNodeOCE(Array<Real> *vertex_tags, std::shared_ptr<const Chart> co
                     //                        index_type s0 = idx[dir];
                     //                        Handle(Geom_Curve) c =
                     //                            geometry::detail::OCCCast<Geom_Curve,
-                    //                            Curve>::eval(*chart->GetAxisCurve(x_begin, dir));
+                    //                            Curve>::eval(*chart->GetAxis(x_begin, dir));
                     //
                     //                        m_box_inter_.Init(c);
                     //
@@ -117,7 +118,7 @@ void CutCellTagNodeOCE(Array<Real> *vertex_tags, std::shared_ptr<const Chart> co
 
                     point_type x_begin = chart->global_coordinates(0b0, i, j, k);
                     Handle(Geom_Curve) c =
-                        geometry::detail::OCCCast<Geom_Curve, Curve>::eval(*chart->GetAxisCurve(x_begin, dir));
+                        geometry::detail::OCCCast<Geom_Curve, GeoObject>::eval(*chart->GetAxis(x_begin, dir));
 
                     m_body_inter_.Init(c);
 

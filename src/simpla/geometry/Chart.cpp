@@ -13,7 +13,7 @@ Chart::~Chart() = default;
 std::shared_ptr<data::DataNode> Chart::Serialize() const {
     auto tdb = base_type::Serialize();
     if (tdb != nullptr) {
-        tdb->SetValue("Type", TypeName());
+        tdb->SetValue("Type", ClassName());
         tdb->SetValue("Level", GetLevel());
         tdb->SetValue("Origin", GetOrigin());
         tdb->SetValue("Scale", GetScale());

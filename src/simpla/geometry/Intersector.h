@@ -18,20 +18,19 @@ class Curve;
 class Surface;
 class Body;
 struct Intersector : public SPObject {
+    SP_OBJECT_HEAD(Intersector, SPObject)
    protected:
-    Intersector();
+    Intersector(std::shared_ptr<const GeoObject> const& geo, Real tolerance);
 
    public:
-    ~Intersector();
-
     static std::shared_ptr<Intersector> New(std::shared_ptr<const GeoObject> const& geo, Real tolerance = 0.001);
+    void SetGeoObject(std::shared_ptr<const GeoObject> const& geo);
+    std::shared_ptr<const GeoObject> SetGeoObject() const;
+    void SetTolerance(Real tolerance);
+    Real GetTolerance() const;
 
-    virtual size_type GetIntersectionPoints(std::shared_ptr<const Curve> const& curve,
+    virtual size_type GetIntersectionPoints(std::shared_ptr<const GeoObject> const& line,
                                             std::vector<Real>& intersection_point) const;
-
-   private:
-    struct pimpl_s;
-    pimpl_s* m_pimpl_ = nullptr;
 };
 
 }  // namespace geometry

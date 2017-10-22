@@ -3,6 +3,7 @@
 //
 #include "csCartesian.h"
 #include "Curve.h"
+#include "Line.h"
 
 #include <memory>
 
@@ -13,7 +14,7 @@ csCartesian::~csCartesian() {}
 std::shared_ptr<simpla::data::DataNode> csCartesian::Serialize() const { return base_type::Serialize(); }
 void csCartesian::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {}
 
-std::shared_ptr<Curve> csCartesian::GetAxisCurve(point_type const &x, int dir) const {
+std::shared_ptr<GeoObject> csCartesian::GetAxis(point_type const &x, int dir) const {
     vector_type v{0, 0, 0};
     v[dir] = 1;
     return Line::New(x, x + v);

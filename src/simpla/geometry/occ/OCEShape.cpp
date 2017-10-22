@@ -2,6 +2,7 @@
 // Created by salmon on 17-8-1.
 //
 #include "OCEShape.h"
+#include <simpla/geometry/Line.h>
 #include <GeomAdaptor_Curve.hxx>
 #include <Geom_Circle.hxx>
 #include <Geom_Line.hxx>
@@ -35,7 +36,7 @@ Geom_Curve* OCCCast<Geom_Curve, Curve>::eval(Curve const& c) {
         res = new Geom_Circle(gp_Ax2(point(l.Origin()), dir(l.Normal()), dir(l.XAxis())), l.Radius());
     } else if (dynamic_cast<Line const*>(&c) != nullptr) {
         auto const& l = dynamic_cast<Line const&>(c);
-        res = new Geom_Line(point(l.Begin()), dir(l.Begin() - l.End()));
+        res = new Geom_Line(point(l.GetVertices()[0]), dir(l.GetVertices()[1] - l.GetVertices()[0]));
     } else {
         UNIMPLEMENTED;
     }

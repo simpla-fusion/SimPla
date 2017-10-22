@@ -73,31 +73,31 @@ std::tuple<simpla::nTuple<U, N>, simpla::nTuple<U, N>> BoundBox(
 // * @{
 // */
 //
-//template <typename T, typename T1>
-//bool in_box(T1 const& p0, T1 const& p1, simpla::nTuple<T, 2> const& x0) {
+// template <typename T, typename T1>
+// bool in_box(T1 const& p0, T1 const& p1, simpla::nTuple<T, 2> const& x0) {
 //    return (x0[0] >= p0[0]) && (x0[1] >= p0[1]) && (x0[0] < p1[0]) && (x0[1] < p1[1]);
 //}
 //
-//template <typename T0, typename T1>
-//bool in_box(std::tuple<T1, T1> const& b, T0 const& x0) {
+// template <typename T0, typename T1>
+// bool in_box(std::tuple<T1, T1> const& b, T0 const& x0) {
 //    return (x0[0] >= std::get<0>(b)[0]) && (x0[1] >= std::get<0>(b)[1]) && (x0[2] >= std::get<0>(b)[2]) &&
 //           (x0[0] < std::get<1>(b)[0]) && (x0[1] < std::get<1>(b)[1]) && (x0[2] < std::get<1>(b)[2]);
 //}
 //
-//template <typename T0, typename T1>
-//std::tuple<Real, point_type, point_type> NearestPointToBox(std::tuple<T1, T1> const& b, T0 const& x0) {
+// template <typename T0, typename T1>
+// std::tuple<Real, point_type, point_type> DistanceToBox(std::tuple<T1, T1> const& b, T0 const& x0) {
 //    UNIMPLEMENTED;
 //    return std::make_tuple(SNaN, x0, point_type{SNaN, SNaN, SNaN});
 //}
 //
-//template <typename T0, typename... Args>
-//std::tuple<Real, point_type, point_type> NearestPointToBox(T0 const& b, Args&&... args) {
+// template <typename T0, typename... Args>
+// std::tuple<Real, point_type, point_type> DistanceToBox(T0 const& b, Args&&... args) {
 //    UNIMPLEMENTED;
 //    return std::make_tuple(SNaN, point_type{SNaN, SNaN, SNaN}, point_type{SNaN, SNaN, SNaN});
 //}
 //
-//template <typename T0, typename T1, typename T2, typename T3>
-//std::tuple<Real, Vec3> NearestPointToPlane(T0 const& x0, T1 const& p0, T2 const& p1, T3 const& p2) {
+// template <typename T0, typename T1, typename T2, typename T3>
+// std::tuple<Real, Vec3> DistanceToPlane(T0 const& x0, T1 const& p0, T2 const& p1, T3 const& p2) {
 //    Vec3 n;
 //
 //    n = cross(p1 - p0, p2 - p1);
@@ -106,49 +106,6 @@ std::tuple<simpla::nTuple<U, N>, simpla::nTuple<U, N>> BoundBox(
 //
 //    return std::make_tuple(dot(p0 - x0, n), std::move(n));
 //}
-
-template <typename T0, typename T1, typename T2>
-Real NearestPointToLineSegment(T0 const& p0, T1 const& p1, T2 const& x) {
-    Vec3 u, v;
-
-    u = x - *p0;
-    v = *p1 - *p0;
-
-    Real v2 = dot(v, v);
-
-    Real s = dot(u, v) / v2;
-
-    if (s < 0) {
-        s = 0;
-    } else if (s > 1) {
-        s = 1;
-    }
-
-    return s;
-}
-
-template <typename T0, typename T1, typename TP>
-Real NearestPointToPolygon(T0 const& p0, T1 const& p1, TP* x) {
-    Real dist2 = 0.0;
-    UNIMPLEMENTED;
-    TP p2 = *x;
-    Vec3 u, v;
-
-    u = x - *p0;
-    v = *p1 - *p0;
-
-    Real v2 = dot(v, v);
-
-    Real s = dot(u, v) / v2;
-
-    if (s < 0) {
-        s = 0;
-    } else if (s > 1) {
-        s = 1;
-    }
-
-    return std::sqrt(dist2);
-}
 
 template <typename TS, int N>
 void extent_box(simpla::nTuple<TS, N>* x0, simpla::nTuple<TS, N>* x1, const TS* x) {
@@ -177,94 +134,6 @@ auto bound_box(T0 const& p0, T1 const& p1) -> std::tuple<decltype(*p0), decltype
 
 /**
  *
- * @param P0 [P0,P1) line segment one
- * @param P1
- * @param Q0 [Q0,Q1) line segment two
- * @param Q1
- * @param id 0: line to line
- *             1: line segment to line segment
- * @return < s,t>
- *         nearest point P= P0*(1-s)+ P1*s ,and Q= Q0*(1-t)+t*Q1,
- *         dist= |P,Q|
- */
-template <typename T0, typename T1, typename T2, typename T3>
-std::tuple<Real, Real> GetNearestLineToLine(T0 const& P0, T1 const& P1, T2 const& Q0, T3 const& Q1, int flag = 0) {
-    Real s = 0.0;
-    Real t = 0.0;
-    Real dist = 0.0;
-
-    auto u = P1 - P0;
-    auto v = Q1 - Q0;
-    auto w0 = P0 - Q0;
-
-    // @ref http://geomalgorithms.com/a07-_distance.html
-    Real a = dot(u, u);
-    Real b = dot(u, v);
-    Real c = dot(v, v);
-    Real d = dot(u, w0);
-    Real e = dot(v, w0);
-
-    if (std::abs(a * c - b * b) < EPSILON) {
-        // two lines are parallel
-        s = 0;
-
-        t = NearestPointToLineSegment(P0, Q0, Q1);
-    } else {
-        s = (b * e - c * d) / (a * c - b * b);
-
-        t = (a * e - b * d) / (a * c - b * b);
-
-        //		auto w = w0
-        //				+ ((b * e - c * d) * u - (a * e - b * d) * v) / (a * c - b *
-        // b);
-        //		dist = dot(w, w);
-    }
-
-    return std::make_tuple(s, t);
-}
-
-/**
- *
- * @param P0
- * @param Q0
- * @param Q1
- * @param Q2
- * @param id  0 means point to plane
- *              1 means point to triangle
- *              2 means point to rectangle
- * @return <dist,u,v >
- *          nearest point on plane  Q=Q0+u*(Q1-Q0)+v*(Q2-Q0)
- *          dist = |P0 Q|. |(Q1-Q0) x (Q2-Q0)|
- *
- *
- */
-template <typename T0, typename T1, typename T2, typename T3>
-std::tuple<Real, Real, Real> NearestPointToPlane(T0 const& P0, T1 const& Q0, T2 const& Q1, T3 const& Q2, int flag = 0) {
-}
-
-/**
- *
- * @param P0
- * @param P1
- * @param Q0
- * @param Q1
- * @param Q2
- * @param id  0 means line to plane
- *              1 means line segment to triangle
- *              2 means line segment to rectangle
- *
- * @return <dist,s,u,v>
- *          nearest point on plane  Q=Q0+u*(Q1-Q0)+v*(Q2-Q0)
- *          nearest point on line segment P= (1-s)*P0+s*P1
- *          dist = |P  Q|. |(Q1-Q0) x (Q2-Q0)|
- *
- */
-template <typename T0, typename T1, typename T2, typename T3, typename T4>
-std::tuple<Real, Real, Real, Real> GetDistanceFromLineToPlane(T0 const& P0, T1 const& P1, T2 const& Q0, T3 const& Q1,
-                                                              T4 const& Q2) {}
-
-/**
- *
  *
  *     x  o
  *       /|
@@ -278,81 +147,190 @@ std::tuple<Real, Real, Real, Real> GetDistanceFromLineToPlane(T0 const& P0, T1 c
  * @param ib begin iterator of polygon
  * @param ie end iterator of polygon
  * @return   <d,s,p0,p1>
+ *
+ * @param v
+ * @param l0,l1 P= P0*(1-s)+ P1*s
+ * @param tolerance
+ * @return tuple( distance, u )
  */
-template <typename TI, typename TX>
-std::tuple<Real, Real, TI, TI> GetDistanceFromLineToPolylines(TX const& x, TI const& ib, TI const& ie,
-                                                              Vec3 normal_vec = Vec3({0, 0, 1})) {
-    auto it = make_cycle_iterator(ib, ie);
-
-    Real min_dist2 = std::numeric_limits<Real>::max();
-
-    Real res_s = 0;
-
-    TI res_p0, res_p1;
-
-    TI p0, p1;
-
-    Real dist;
-
-    p1 = it;
-
-    while (it != ie) {
-        p0 = p1;
-
-        ++it;
-
-        Vec3 u, v, d;
-
-        u = x - *p0;
-        v = *p1 - *p0;
-
-        Real v2 = dot(v, v);
-
-        Real s = dot(u, v) / v2;
-
-        if (s < 0) {
-            s = 0;
-        } else if (s > 1) {
-            s = 1;
-        }
-
-        d = u - v * s;
-
-        Real dist2 = dot(d, d);
-
-        if (min_dist2 > dist2 || (min_dist2 == dist2 && s == 0)) {
-            res_p0 = p0;
-            res_p1 = p1;
-            res_s = s;
-            min_dist2 = dist2;
-        }
-    }
-
-    return std::forward_as_tuple(std::sqrt(min_dist2), res_s, res_p0, res_p1);
-}
-
 template <typename T0, typename T1, typename T2>
-Real IntersectionLineToPolygons(T0 const& p0, T1 const& p1, T2 const& polygon) {
-    auto it = polygon.begin();
+std::tuple<Real, Real> NearestPointPointToLine(T0 const& v, T1 const& l0, T2 const& l1,
+                                               Real tolerance = SP_DEFAULT_GEOMETRY_TOLERANCE) {
+    Real u = dot(v - l0, l1 - l0) / dot(l1 - l0, l1 - l0);
+    auto d = v - l0 - u * (l1 - l0);
+    Real d2 = dot(d, d);
+    return std::make_tuple(d2, u);
+}
+/**
+ *
+ * @param P0,P1 [P0,P1) line segment one P= P0*(1-s)+ P1*s
+ * @param Q0,Q1 [Q0,Q1) line segment two Q= Q0*(1-t)+t*Q1
+ * @param flag 0: line to line
+ *             1: line segment to line segment
+ * @return < dist2,s,t>
+ *         if  parallel then  s,t=nan
+ *         if  intersected than dist2=0  else dist2=d^2
+ *
+ */
+template <typename T0, typename T1, typename T2, typename T3>
+std::tuple<Real, Real, Real> NearestPointLineToLine(T0 const& P0, T1 const& P1, T2 const& Q0, T3 const& Q1,
+                                                    Real tolerance = SP_DEFAULT_GEOMETRY_TOLERANCE) {
+    Real s = SNaN;
+    Real t = SNaN;
+    Real dist2 = SNaN;
 
-    auto q0 = *it;
-    auto q1 = *(++it);
-    auto q2 = *(++it);
+    auto u = P1 - P0;
+    auto v = Q1 - Q0;
+    auto w0 = P0 - Q0;
 
-    Vec3 n;
-    n = cross(q2 - q1, q1 - q0);
-    n /= std::sqrt(static_cast<Real>(dot(n, n)));
+    // @ref http://geomalgorithms.com/a07-_distance.html
+    Real a = dot(u, u);
+    Real b = dot(u, v);
+    Real c = dot(v, v);
+    Real d = dot(u, w0);
+    Real e = dot(v, w0);
 
-    it = polygon.begin();
+    if (std::abs(a * c - b * b) < tolerance) {
+        // two lines are parallel
+        s = 0;
 
-    while (it != polygon.end()) {
-        auto q0 = *it;
-        auto q1 = *(++it);
-        q0 -= dot(q0, n) * n;
-        q1 -= dot(q1, n) * n;
+        dist2 = std::get<0>(NearestPointPointToLine(P0, Q0, Q1));
+    } else {
+        s = (b * e - c * d) / (a * c - b * b);
+
+        t = (a * e - b * d) / (a * c - b * b);
+
+        //		auto w = w0
+        //				+ ((b * e - c * d) * u - (a * e - b * d) * v) / (a * c - b *
+        // b);
+        //		dist = dot(w, w);
     }
+
+    return std::make_tuple(dist2, s, t);
 }
 
+/**
+ *
+ * @param P0
+ * @param Q0 , Q1 , Q2  Plane Q=Q0+u*(Q1-Q0)+v*(Q2-Q0)
+ * @param tolerance
+ * @return <dist2 ,u,v >
+ *           if  parallel then  s,u,v=nan
+ *           if  intersected than dist2=0
+ *
+ */
+template <typename T0, typename T1, typename T2, typename T3>
+std::tuple<Real, Real, Real> NearestPointPointToPlane(T0 const& P0, T1 const& Q0, T2 const& Q1, T3 const& Q2,
+                                                      Real tolerance = SP_DEFAULT_GEOMETRY_TOLERANCE) {
+    Real dist2, u, v;
+    UNIMPLEMENTED;
+    return std::make_tuple(dist2, u, v);
+}
+
+/**
+ *
+ * @param l0,l1    Line  L=l0+s*(l1-l0)
+ * @param p0,p1,p2 Plane P=p0+u*(p1-p0)+v*(p2-p0)
+ *
+ *  @return <dist2 ,s,u,v >
+ *           if  parallel then  s,u,v=nan
+ *           if  intersected than dist2=0
+ *          nearest point on plane
+ *          nearest point on line segment P= (1-s)*P0+s*P1
+ *          dist = |P  Q|. |(Q1-Q0) x (Q2-Q0)|
+ *
+ */
+template <typename T0, typename T1, typename T2, typename T3, typename T4>
+std::tuple<Real, Real, Real, Real> NearestPointLineToPlane(T0 const& l0, T1 const& l1, T2 const& p0, T3 const& p1,
+                                                           T4 const& p2,
+                                                           Real tolerance = SP_DEFAULT_GEOMETRY_TOLERANCE) {
+    Real dist2, s, u, v;
+
+    UNIMPLEMENTED;
+    return std::make_tuple(dist2, s, u, v);
+}
+template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
+std::tuple<Real, Real, Real, Real, Real> NearestPointTriangleToPlane(T0 const& l0, T1 const& l1, T2 const& l2,
+                                                                     T3 const& p0, T4 const& p1, T5 const& p2,
+                                                                     Real tolerance = SP_DEFAULT_GEOMETRY_TOLERANCE) {
+    Real dist2, u0, v0, u1, v1;
+
+    UNIMPLEMENTED;
+    return std::make_tuple(dist2, u0, v0, u1, v1);
+}
+//
+// template <typename TI, typename TX>
+// std::tuple<Real, Real, TI, TI> NearestPointLineToPolylines(TX const& x, TI const& ib, TI const& ie,
+//                                                           Vec3 normal_vec = Vec3({0, 0, 1})) {
+//    auto it = make_cycle_iterator(ib, ie);
+//
+//    Real min_dist2 = std::numeric_limits<Real>::max();
+//
+//    Real res_s = 0;
+//
+//    TI res_p0, res_p1;
+//
+//    TI p0, p1;
+//
+//    Real dist;
+//
+//    p1 = it;
+//
+//    while (it != ie) {
+//        p0 = p1;
+//
+//        ++it;
+//
+//        Vec3 u, v, d;
+//
+//        u = x - *p0;
+//        v = *p1 - *p0;
+//
+//        Real v2 = dot(v, v);
+//
+//        Real s = dot(u, v) / v2;
+//
+//        if (s < 0) {
+//            s = 0;
+//        } else if (s > 1) {
+//            s = 1;
+//        }
+//
+//        d = u - v * s;
+//
+//        Real dist2 = dot(d, d);
+//
+//        if (min_dist2 > dist2 || (min_dist2 == dist2 && s == 0)) {
+//            res_p0 = p0;
+//            res_p1 = p1;
+//            res_s = s;
+//            min_dist2 = dist2;
+//        }
+//    }
+//
+//    return std::forward_as_tuple(std::sqrt(min_dist2), res_s, res_p0, res_p1);
+//}
+// template <typename T0, typename T1, typename T2>
+// Real IntersectionLineToPolygons(T0 const& p0, T1 const& p1, T2 const& polygon) {
+//    auto it = polygon.begin();
+//
+//    auto q0 = *it;
+//    auto q1 = *(++it);
+//    auto q2 = *(++it);
+//
+//    Vec3 n;
+//    n = cross(q2 - q1, q1 - q0);
+//    n /= std::sqrt(static_cast<Real>(dot(n, n)));
+//
+//    it = polygon.begin();
+//
+//    while (it != polygon.end()) {
+//        auto q0 = *it;
+//        auto q1 = *(++it);
+//        q0 -= dot(q0, n) * n;
+//        q1 -= dot(q1, n) * n;
+//    }
+//}
 // namespace mesh_intersection
 //{
 // enum

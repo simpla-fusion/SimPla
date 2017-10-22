@@ -65,8 +65,8 @@ struct GEqdsk::pimpl_s {
 
     //	inter_type qpsi_;//!< q values on uniform flux grid from axis to boundary
 
-    std::shared_ptr<geometry::Polygon<2>> m_rzbbb_;  //!< R,Z of boundary points in meter
-    std::shared_ptr<geometry::Polygon<2>> m_rzlim_;  //!< R,Z of surrounding limiter contour in meter
+    std::shared_ptr<geometry::Polygon> m_rzbbb_;  //!< R,Z of boundary points in meter
+    std::shared_ptr<geometry::Polygon> m_rzlim_;  //!< R,Z of surrounding limiter contour in meter
     std::map<std::string, inter_type> m_profile_;
     void load(std::string const &fname);
     void load_profile(std::string const &fname);
@@ -86,8 +86,8 @@ nTuple<size_type, 3> GEqdsk::dimensions() const {
 
 void GEqdsk::pimpl_s::load(std::string const &fname) {
     std::ifstream inFileStream_(fname);
-    m_rzbbb_ = geometry::Polygon<2>::New();
-    m_rzlim_ = geometry::Polygon<2>::New();
+    m_rzbbb_ = geometry::Polygon::New();
+    m_rzlim_ = geometry::Polygon::New();
     if (!inFileStream_.is_open()) {
         THROW_EXCEPTION_RUNTIME_ERROR("File " + fname + " is not opend!");
         return;
@@ -315,9 +315,9 @@ GEqdsk::~GEqdsk() {}
 
 std::string const &GEqdsk::description() const { return m_pimpl_->m_desc_; }
 
-std::shared_ptr<geometry::Polygon<2>> const &GEqdsk::boundary() const { return m_pimpl_->m_rzbbb_; }
+std::shared_ptr<geometry::Polygon> const &GEqdsk::boundary() const { return m_pimpl_->m_rzbbb_; }
 
-std::shared_ptr<geometry::Polygon<2>> const &GEqdsk::limiter() const { return m_pimpl_->m_rzlim_; }
+std::shared_ptr<geometry::Polygon> const &GEqdsk::limiter() const { return m_pimpl_->m_rzlim_; }
 
 Real GEqdsk::psi(Real R, Real Z) const { return m_pimpl_->m_psirz_(R, Z); }
 

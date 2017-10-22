@@ -20,7 +20,6 @@
 
 namespace simpla {
 namespace geometry {
-class Curve;
 
 /** @ingroup   coordinate_system
  ** @{
@@ -43,7 +42,7 @@ struct csCylindrical : public Chart {
     static constexpr int RAxis = (PhiAxis + 1) % 3;
     static constexpr int ZAxis = (PhiAxis + 2) % 3;
 
-    std::shared_ptr<Curve> GetAxisCurve(point_type const &x, int dir) const override;
+    std::shared_ptr<GeoObject> GetAxis(point_type const &x, int dir) const override;
     box_type GetBoundingBox(std::shared_ptr<geometry::GeoObject> const &geo) const override;
 
    public:

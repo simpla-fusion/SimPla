@@ -42,30 +42,30 @@ void Arc::Deserialize(std::shared_ptr<simpla::data::DataNode> const& cfg) {
     m_XAxis_ = cfg->GetValue("XAxis", m_XAxis_);
     m_YAxis_ = cfg->GetValue("YAXis", m_YAxis_);
 };
-Line::Line() = default;
-Line::~Line() = default;
-std::shared_ptr<simpla::data::DataNode> Line::Serialize() const {
-    auto cfg = base_type::Serialize();
-    cfg->SetValue("Begin", m_p0_);
-    cfg->SetValue("End", m_p1_);
-    return cfg;
-};
-void Line::Deserialize(std::shared_ptr<simpla::data::DataNode> const& cfg) {
-    base_type::Deserialize(cfg);
-    m_p0_ = cfg->GetValue("Begin", m_p0_);
-    m_p1_ = cfg->GetValue("End", m_p1_);
-};
-
-AxeLine::AxeLine() = default;
-AxeLine::~AxeLine() = default;
-std::shared_ptr<simpla::data::DataNode> AxeLine::Serialize() const {
-    auto cfg = base_type::Serialize();
-    cfg->SetValue("Direction", m_dir_);
-    return cfg;
-};
-void AxeLine::Deserialize(std::shared_ptr<simpla::data::DataNode> const& cfg) {
-    base_type::Deserialize(cfg);
-    m_dir_ = cfg->GetValue("Direction", m_dir_);
-};
+//Line::Line() = default;
+//Line::~Line() = default;
+//std::shared_ptr<simpla::data::DataNode> Line::Serialize() const {
+//    auto cfg = base_type::Serialize();
+//    cfg->SetValue("Begin", m_p0_);
+//    cfg->SetValue("End", m_p1_);
+//    return cfg;
+//};
+//void Line::Deserialize(std::shared_ptr<simpla::data::DataNode> const& cfg) {
+//    base_type::Deserialize(cfg);
+//    m_p0_ = cfg->GetValue("Begin", m_p0_);
+//    m_p1_ = cfg->GetValue("End", m_p1_);
+//};
+//
+//AxeLine::AxeLine() = default;
+//AxeLine::~AxeLine() = default;
+//std::shared_ptr<simpla::data::DataNode> AxeLine::Serialize() const {
+//    auto cfg = base_type::Serialize();
+//    cfg->SetValue("Direction", m_dir_);
+//    return cfg;
+//};
+//void AxeLine::Deserialize(std::shared_ptr<simpla::data::DataNode> const& cfg) {
+//    base_type::Deserialize(cfg);
+//    m_dir_ = cfg->GetValue("Direction", m_dir_);
+//};
 }  // namespace geometry
 }  // namespace simpla
