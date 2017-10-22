@@ -8,18 +8,17 @@
 #include "GeoObject.h"
 namespace simpla {
 namespace geometry {
-Surface::Surface() = default;
-Surface::~Surface() = default;
+
 
 std::shared_ptr<data::DataNode> Surface::Serialize() const {
     auto cfg = base_type::Serialize();
     return cfg;
 };
 void Surface::Deserialize(std::shared_ptr<data::DataNode> const& cfg) { base_type::Deserialize(cfg); }
-std::shared_ptr<GeoObject> Surface::GetBoundary() const {
-    UNIMPLEMENTED;
-    return nullptr;
-}
+//std::shared_ptr<GeoObject> Surface::GetBoundary() const {
+//    UNIMPLEMENTED;
+//    return nullptr;
+//}
 
 }  // namespace geometry
 }  // namespace simpla

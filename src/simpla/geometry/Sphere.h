@@ -8,12 +8,14 @@
 #include "simpla/SIMPLA_config.h"
 
 #include "GeoObject.h"
-
+#include "Surface.h"
 namespace simpla {
 namespace geometry {
-
-struct Sphere : public GeoObject {
-    SP_OBJECT_HEAD(Sphere, GeoObject)
+/**
+ * A sphere is the surface of a solid ball, here having radius r.
+ **/
+struct Sphere : public Surface {
+    SP_OBJECT_HEAD(Sphere, Surface)
    private:
     Real m_radius_ = 1;
     point_type m_origin_{0, 0, 0};

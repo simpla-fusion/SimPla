@@ -17,17 +17,17 @@ std::shared_ptr<data::DataNode> GeoObject::Serialize() const { return base_type:
 void GeoObject::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
 
 box_type GeoObject::GetBoundingBox() const { return box_type{{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}; }
-std::shared_ptr<GeoObject> GeoObject::GetBoundary() const { return nullptr; }
+// std::shared_ptr<GeoObject> GeoObject::GetBoundary() const { return nullptr; }
 
-Real GeoObject::Measure() const {
-    auto b = GetBoundingBox();
-    return (std::get<1>(b)[0] - std::get<0>(b)[0]) * (std::get<1>(b)[1] - std::get<0>(b)[1]) *
-           (std::get<1>(b)[2] - std::get<0>(b)[2]);
-};
-
-bool GeoObject::CheckInside(point_type const &x, Real tolerance) const {
-    return geometry::isInSide(GetBoundingBox(), x);
-}
+// Real GeoObject::Measure() const {
+//    auto b = GetBoundingBox();
+//    return (std::get<1>(b)[0] - std::get<0>(b)[0]) * (std::get<1>(b)[1] - std::get<0>(b)[1]) *
+//           (std::get<1>(b)[2] - std::get<0>(b)[2]);
+//};
+//
+// bool GeoObject::CheckInside(point_type const &x, Real tolerance) const {
+//    return geometry::isInSide(GetBoundingBox(), x);
+//}
 // std::shared_ptr<GeoObject> GeoObject::Intersection(std::shared_ptr<GeoObject> const &other) const {
 //    return Cube::New(geometry::Overlap(GetBoundingBox(), other->GetBoundingBox()));
 //}

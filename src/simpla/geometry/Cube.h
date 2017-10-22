@@ -10,17 +10,19 @@
 
 #include "simpla/SIMPLA_config.h"
 
+#include "Body.h"
 #include "GeoObject.h"
-
 namespace simpla {
 namespace geometry {
 
-struct Cube : public GeoObject {
-    SP_OBJECT_HEAD(Cube, GeoObject)
+struct Cube : public Body {
+    SP_GEO_OBJECT_HEAD(Cube, Body)
 
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 
-   protected:
+   public:
+    Cube() = default;
+    ~Cube() override = default;
     Cube(std::initializer_list<std::initializer_list<Real>> const &v)
         : m_bound_box_(point_type(*v.begin()), point_type(*(v.begin() + 1))) {}
 
@@ -28,7 +30,6 @@ struct Cube : public GeoObject {
     Cube(V const *l, U const *h) : m_bound_box_(box_type({l[0], l[1], l[2]}, {h[0], h[1], h[2]})){};
     Cube(box_type const &b) : m_bound_box_(b) {}
 
-   public:
     static std::shared_ptr<Cube> New(std::initializer_list<std::initializer_list<Real>> const &box) {
         return std::shared_ptr<Cube>(new Cube(box));
     }

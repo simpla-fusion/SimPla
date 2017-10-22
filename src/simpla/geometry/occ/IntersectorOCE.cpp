@@ -118,7 +118,7 @@ void CutCellTagNodeOCE(Array<Real> *vertex_tags, std::shared_ptr<const Chart> co
 
                     point_type x_begin = chart->global_coordinates(0b0, i, j, k);
                     Handle(Geom_Curve) c =
-                        geometry::detail::OCCCast<Geom_Curve, GeoObject>::eval(*chart->GetAxis(x_begin, dir));
+                        geometry::detail::OCCCast<Geom_Curve, GeoObject>::eval(*chart->GetAxis(x_begin, x_begin));
 
                     m_body_inter_.Init(c);
 

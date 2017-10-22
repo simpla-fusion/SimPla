@@ -11,76 +11,18 @@ namespace simpla {
 namespace geometry {
 
 struct Curve : public GeoObject {
-    SP_DEFINE_FANCY_TYPE_NAME(Curve, GeoObject);
-    int Dimension() const final { return 1; };
-    virtual point_type Value(Real u) const { return point_type{SNaN, SNaN, SNaN}; };
+    SP_GEO_ABS_OBJECT_HEAD(Curve, GeoObject);
+    Curve() = default;
+    Curve(Curve const &) = default;
+    ~Curve() = default;
+
+    virtual point_type Value(Real u) const = 0;
+    virtual bool IsClosed() const { return false; };
+    virtual bool IsPeriodic() const { return false; };
+    virtual Real Period() const { return INIFITY; };
+    virtual Real MinParameter() const { return -INIFITY; }
+    virtual Real MaxParameter() const { return INFINITY; }
 };
-struct Conic : public Curve {
-    SP_OBJECT_HEAD(Conic, Curve);
-};
-
-struct Circle : public Conic {
-    SP_OBJECT_HEAD(Circle, Conic);
-
-   protected:
-    Circle(point_type x, Real radius, vector_type N, vector_type R)
-        : m_origin_(std::move(x)), m_radius_(radius), m_normal_(std::move(N)), m_r_(std::move(R)) {}
-
-   public:
-    Real Measure() const final { return TWOPI * m_radius_; };
-
-    point_type Origin() const { return m_origin_; }
-    void Origin(point_type const &x) { m_origin_ = x; }
-
-    vector_type Normal() const { return m_normal_; }
-    void Normal(vector_type const &v) { m_normal_ = v; }
-
-    vector_type XAxis() const { return m_r_; }
-    void XAxis(vector_type const &v) { m_r_ = v; }
-
-    Real Radius() const { return m_radius_; }
-    void Radius(Real r) { m_radius_ = r; }
-
-    point_type Value(Real u) const override {
-        UNIMPLEMENTED;
-        return point_type{SNaN, SNaN, SNaN};
-    };
-
-   private:
-    point_type m_origin_{0, 0, 0};
-    vector_type m_normal_{0, 0, 1};
-    vector_type m_r_{1, 0, 0};
-    Real m_radius_ = 1;
-};
-
-struct Arc : public Conic {
-    SP_OBJECT_HEAD(Arc, Conic);
-
-   public:
-    Real Measure() const final { return m_radius_ * (m_angle_begin_ - m_angle_end_); };
-
-    point_type Origin() const { return m_origin_; }
-    vector_type XAxis() const { return m_XAxis_; }
-    vector_type YAxis() const { return m_YAxis_; }
-    vector_type ZAxis() const { return cross(m_XAxis_, m_YAxis_); }
-    Real Radius() const { return m_radius_; }
-
-    Real AngleStart() const { return m_angle_begin_; }
-    Real AngleEnd() const { return m_angle_end_; }
-
-    point_type Value(Real u) const override {
-        UNIMPLEMENTED;
-        return point_type{SNaN, SNaN, SNaN};
-    };
-
-   private:
-    point_type m_origin_{0, 0, 0};
-    vector_type m_XAxis_{1, 0, 0};
-    vector_type m_YAxis_{0, 1, 0};
-    Real m_radius_ = 1;
-    Real m_angle_begin_ = 0, m_angle_end_ = TWOPI;
-};
-
 
 }  // namespace geometry
 }  // namespace simpla

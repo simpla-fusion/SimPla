@@ -19,25 +19,26 @@ std::shared_ptr<GeoObject> csCylindrical::GetBoundingShape(index_box_type const 
         std::make_tuple(local_coordinates(0, std::get<0>(b)), local_coordinates(0, std::get<0>(b))));
 };
 
-std::shared_ptr<GeoObject> csCylindrical::GetAxis(point_type const &x, int dir) const {
-    point_type u = inv_map(x);
+std::shared_ptr<GeoObject> csCylindrical::GetAxis(point_type const &x0, const point_type &x1) const {
+    point_type u = inv_map(x0);
     vector_type z_axis{0, 0, 1};
     vector_type r_axis{std::cos(u[PhiAxis]), std::sin(u[PhiAxis]), 0};
     std::shared_ptr<GeoObject> res = nullptr;
-    switch (dir % 3) {
-        case PhiAxis: {
-            point_type o = {0, 0, x[2]};
-            res = Circle::New(o, u[RAxis], z_axis, r_axis);
-        } break;
-        case ZAxis: {
-            res = Line::New(x, x + z_axis);
-        } break;
-        case RAxis: {
-            res = Line::New(x, x + r_axis);
-        } break;
-        default:
-            break;
-    }
+    FIXME;
+//    switch (x1 % 3) {
+//        case PhiAxis: {
+//            point_type o = {0, 0, x0[2]};
+//            //            res = Circle::New(o, u[RAxis], z_axis, r_axis);
+//        } break;
+//        case ZAxis: {
+//            res = Line::New(x0, x0 + z_axis);
+//        } break;
+//        case RAxis: {
+//            res = Line::New(x0, x0 + r_axis);
+//        } break;
+//        default:
+//            break;
+//    }
 
     return res;
 }

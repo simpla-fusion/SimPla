@@ -9,6 +9,7 @@
 #include <Geom_Surface.hxx>
 #include <Standard_Transient.hxx>
 #include <TopoDS_Shape.hxx>
+#include <simpla/geometry/Circle.h>
 #include "../Curve.h"
 
 namespace simpla {
@@ -33,7 +34,7 @@ Geom_Curve* OCCCast<Geom_Curve, Curve>::eval(Curve const& c) {
     Geom_Curve* res = nullptr;
     if (dynamic_cast<Circle const*>(&c) != nullptr) {
         auto const& l = dynamic_cast<Circle const&>(c);
-        res = new Geom_Circle(gp_Ax2(point(l.Origin()), dir(l.Normal()), dir(l.XAxis())), l.Radius());
+//        res = new Geom_Circle(gp_Ax2(point(l.Origin()), dir(l.Normal()), dir(l.XAxis())), l.Radius());
     } else if (dynamic_cast<Line const*>(&c) != nullptr) {
         auto const& l = dynamic_cast<Line const&>(c);
         res = new Geom_Line(point(l.GetVertices()[0]), dir(l.GetVertices()[1] - l.GetVertices()[0]));

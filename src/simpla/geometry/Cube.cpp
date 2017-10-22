@@ -6,15 +6,12 @@ namespace simpla {
 namespace geometry {
 SP_OBJECT_REGISTER(Cube)
 
-Cube::Cube() = default;
-Cube::~Cube() = default;
-
 std::shared_ptr<data::DataNode> Cube::Serialize() const {
     auto cfg = base_type::Serialize();
     if (cfg != nullptr) { cfg->SetValue("Box", m_bound_box_); }
     return cfg;
 };
-void Cube::Deserialize(std::shared_ptr<data::DataNode>const & cfg) {
+void Cube::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
     base_type::Deserialize(cfg);
 
     if (cfg != nullptr) {

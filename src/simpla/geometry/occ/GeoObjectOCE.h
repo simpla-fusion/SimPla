@@ -27,8 +27,8 @@ struct GeoObjectOCE : public GeoObject {
     TopoDS_Shape const &GetShape() const;
     Bnd_Box const &GetOCCBoundingBox() const;
 
-    box_type GetBoundingBox() const override;
-    bool CheckInside(point_type const &x, Real tolerance = SP_DEFAULT_GEOMETRY_TOLERANCE) const override;
+    box_type GetBoundingBox() const;
+    bool CheckInside(point_type const &x, Real tolerance = SP_DEFAULT_GEOMETRY_TOLERANCE) const;
 };
 
 }  // namespace geometry

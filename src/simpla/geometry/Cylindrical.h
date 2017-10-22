@@ -7,12 +7,16 @@
 
 #include "simpla/SIMPLA_config.h"
 
+#include "Body.h"
 #include "GeoObject.h"
 namespace simpla {
 namespace geometry {
 
-struct Cylindrical : public GeoObject {
-    SP_OBJECT_HEAD(Cylindrical, GeoObject)
+struct Cylindrical : public Body {
+    SP_GEO_OBJECT_HEAD(Cylindrical, Body)
+    Cylindrical() = default;
+    ~Cylindrical() = default;
+
     Real m_radius_ = 1;
     point_type m_axe0_{0, 0, 0};
     point_type m_axe1_{0, 0, 1};
