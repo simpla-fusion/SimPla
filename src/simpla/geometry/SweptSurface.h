@@ -4,6 +4,7 @@
 
 #ifndef SIMPLA_SWEPTSURFACE_H
 #define SIMPLA_SWEPTSURFACE_H
+#include <simpla/algebra/nTuple.ext.h>
 #include <simpla/utilities/Constants.h>
 #include "Curve.h"
 #include "Surface.h"
@@ -17,7 +18,7 @@ struct SweptSurface : public Surface {
     SweptSurface() = default;
     SweptSurface(SweptSurface const &) = default;
     explicit SweptSurface(std::shared_ptr<Curve> const &c, vector_type const &d)
-        : Surface(), m_basis_curve_(c), m_direction_(d) {}
+        : Surface(), m_basis_curve_(c), m_direction_(d / normal(d)) {}
 
    public:
     ~SweptSurface() override = default;
@@ -25,7 +26,7 @@ struct SweptSurface : public Surface {
     std::shared_ptr<Curve> GetBasisCurve() const { return m_basis_curve_; }
     void SetBasisCurve(std::shared_ptr<Curve> const &c) { m_basis_curve_ = c; }
     vector_type GetDirection() const { return m_direction_; }
-    void SetDirection(vector_type const &d) { m_direction_ = d; }
+    void SetDirection(vector_type const &d) { m_direction_ = d / normal(d); }
 
    protected:
     std::shared_ptr<Curve> m_basis_curve_;
