@@ -4,6 +4,7 @@
 #include "Line.h"
 namespace simpla {
 namespace geometry {
+    SP_OBJECT_REGISTER(Line)
 
 std::shared_ptr<data::DataNode> Line::Serialize() const {
     auto res = base_type::Serialize();

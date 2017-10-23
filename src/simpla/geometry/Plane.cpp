@@ -5,6 +5,7 @@
 #include "Plane.h"
 namespace simpla {
 namespace geometry {
+    SP_OBJECT_REGISTER(Plane)
 
 void Plane::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
