@@ -15,10 +15,7 @@ struct Polyline : public Curve {
    protected:
     Polyline();
     Polyline(Polyline const &);
-    template <typename... Args>
-    explicit Polyline(Args &&... args) : Polyline() {
-        Curve::SetUp(std::forward<Args>(args)...);
-    }
+    explicit Polyline(Axis const &axis) : Polyline() { Curve::SetAxis(axis); }
 
    public:
     ~Polyline() override;

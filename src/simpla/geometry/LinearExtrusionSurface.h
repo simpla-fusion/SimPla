@@ -12,12 +12,14 @@ namespace simpla {
 namespace geometry {
 struct LinearExtrusionSurface : public SweptSurface {
     SP_GEO_OBJECT_HEAD(LinearExtrusionSurface, SweptSurface);
-    LinearExtrusionSurface() = default;
-    LinearExtrusionSurface(LinearExtrusionSurface const &) = default;
-    ~LinearExtrusionSurface() override = default;
 
-    template <typename... Args>
-    explicit LinearExtrusionSurface(Args &&... args) : SweptSurface(std::forward<Args>(args)...) {}
+   protected:
+    LinearExtrusionSurface() = default;
+    LinearExtrusionSurface(LinearExtrusionSurface const &other) = default;  // : SweptSurface(other) {}
+    LinearExtrusionSurface(Axis const &axis, std::shared_ptr<Curve> const &c) : SweptSurface(axis, c) {}
+
+   public:
+    ~LinearExtrusionSurface() override = default;
 
     std::tuple<bool, bool> IsClosed() const override { return std::make_tuple(GetBasisCurve()->IsClosed(), false); };
     std::tuple<bool, bool> IsPeriodic() const override {

@@ -20,7 +20,7 @@ class Revolve : public GeoObject {
     SP_OBJECT_HEAD(Revolve<TObj>, GeoObject)
    protected:
     Revolve(TObj const &obj, int ZAxis = 2) : base_obj(obj) { m_axis_[ZAxis] = 1; }
-    Revolve(TObj const &obj, point_type origin, point_type axis) : base_obj(obj), m_axis_(axis), m_axis_.o(origin) {}
+    Revolve(TObj const &obj, Axis const &axis) : base_obj(obj), m_axis_(axis) {}
 
    public:
     virtual box_type GetBoundingBox() const override { return box_type{{0, 0, 0}, {1, 2, 3}}; };
@@ -36,8 +36,7 @@ class Revolve : public GeoObject {
         return std::move(y);
     };
 
-    point_type m_axis_.o{0, 0, 0};
-    point_type m_axis_{0, 0, 1};
+    Axis m_axis_;
 
     TObj const &base_obj;
 };
@@ -65,7 +64,8 @@ class RevolveZ : public GeoObject {
     SP_OBJECT_HEAD(RevolveZ, GeoObject)
    protected:
     RevolveZ(std::shared_ptr<Polygon> const &obj, int phi_axis, Real phi0, Real phi1, point_type origin = {0, 0, 0})
-        : m_axis_.o(origin), base_obj(obj), m_phi_axe_(phi_axis), m_angle_min_(phi0), m_angle_max_(phi1) {}
+        : m_axis_.o(origin),
+        base_obj(obj), m_phi_axe_(phi_axis), m_angle_min_(phi0), m_angle_max_(phi1) {}
 
    public:
     box_type GetBoundingBox() const override {

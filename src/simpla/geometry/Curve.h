@@ -13,11 +13,14 @@ namespace geometry {
 
 struct Curve : public GeoObject {
     SP_GEO_ABS_OBJECT_HEAD(Curve, GeoObject);
+
+   public:
     Curve() = default;
-    Curve(Curve const &) = default;
+    Curve(Curve const &other) : m_axis_(other.m_axis_){};
+    explicit Curve(Axis const &axis) : m_axis_(axis) {}
+
+   public:
     ~Curve() override = default;
-    template <typename... Args>
-    explicit Curve(Args &&... args) : m_axis_(std::forward<Args>(args)...) {}
 
     virtual bool IsClosed() const { return false; };
     virtual bool IsPeriodic() const { return false; };

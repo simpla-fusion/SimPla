@@ -11,12 +11,14 @@ namespace simpla {
 namespace geometry {
 struct SphericalSurface : public Surface {
     SP_GEO_OBJECT_HEAD(SphericalSurface, Surface);
-    SphericalSurface() = default;
-    SphericalSurface(SphericalSurface const &) = default;
-    ~SphericalSurface() override = default;
 
-    template <typename... Args>
-    explicit SphericalSurface(Real R, Args &&... args) : Surface(std::forward<Args>(args)...), m_radius_(R) {}
+   protected:
+    SphericalSurface() = default;
+    SphericalSurface(SphericalSurface const &other) = default;  //: Surface(other), m_radius_(other.m_radius_) {}
+    SphericalSurface(Axis const &axis, Real radius) : Surface(axis), m_radius_(radius) {}
+
+   public:
+    ~SphericalSurface() override = default;
 
     std::tuple<bool, bool> IsClosed() const override { return std::make_tuple(true, true); };
     std::tuple<bool, bool> IsPeriodic() const override { return std::make_tuple(true, true); };
@@ -27,9 +29,9 @@ struct SphericalSurface : public Surface {
     void SetRadius(Real r) { m_radius_ = r; }
     Real GetRadius() const { return m_radius_; }
 
-    point_type Value(Real u, Real v) const override {
-        return m_axis_.o + m_radius_ * std::cos(v) * (std::cos(u) * m_axis_.x + std::sin(u) * m_axis_.y) +
-               m_radius_ * std::sin(v) * m_axis_.z;
+    point_type Value(Real phi, Real theta) const override {
+        return m_axis_.o + m_radius_ * std::cos(theta) * (std::cos(phi) * m_axis_.x + std::sin(phi) * m_axis_.y) +
+               m_radius_ * std::sin(theta) * m_axis_.z;
     };
 
    private:

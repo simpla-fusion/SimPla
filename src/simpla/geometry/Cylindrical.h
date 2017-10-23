@@ -5,6 +5,7 @@
 #ifndef SIMPLA_CYLINDRICAL_H
 #define SIMPLA_CYLINDRICAL_H
 
+#include <simpla/utilities/Constants.h>
 #include "simpla/SIMPLA_config.h"
 
 #include "Body.h"
@@ -14,27 +15,31 @@ namespace geometry {
 
 struct Cylindrical : public Body {
     SP_GEO_OBJECT_HEAD(Cylindrical, Body)
-    Cylindrical() = default;
-    ~Cylindrical() = default;
-
-    Real m_radius_ = 1;
-    point_type m_axe0_{0, 0, 0};
-    point_type m_axe1_{0, 0, 1};
 
    protected:
-    Cylindrical(Real r, point_type o0, point_type o1) : m_radius_(r), m_axe0_(std::move(o0)), m_axe1_(std::move(o1)) {}
+    Cylindrical() = default;
+    explicit Cylindrical(Axis const &axis) : Body(axis) {}
 
    public:
-    box_type GetBoundingBox() const override {
-        box_type b;
-        std::get<0>(b) = m_axe0_ - m_radius_;
-        std::get<1>(b) = m_axe1_ + m_radius_;
-        return std::move(b);
-    };
+    ~Cylindrical() override = default;
 
-    bool CheckInside(point_type const &x, Real tolerance) const override {
-        return dot((x - m_axe0_), (x - m_axe0_)) - m_radius_ * m_radius_ < tolerance;
-    }
+    bool CheckInside(point_type const &x, Real tolerance) const override { return true; }
+
+    std::tuple<bool, bool, bool> IsClosed() const override { return std::make_tuple(false, true, false); };
+    std::tuple<bool, bool, bool> IsPeriodic() const override { return std::make_tuple(false, true, false); };
+    nTuple<Real, 3> GetPeriod() const override { return nTuple<Real, 3>{SP_INFINITY, TWOPI, SP_INFINITY}; };
+    nTuple<Real, 3> GetMinParameter() const override { return nTuple<Real, 3>{0, 0, -SP_INFINITY}; }
+    nTuple<Real, 3> GetMaxParameter() const override { return nTuple<Real, 3>{SP_INFINITY, TWOPI, -SP_INFINITY}; }
+    /**
+     *
+     * @param u R
+     * @param v phi
+     * @param w Z
+     * @return
+     */
+    point_type Value(Real u, Real v, Real w) const override {
+        return m_axis_.o + u * std::cos(v) * m_axis_.x + u * std::sin(v) * m_axis_.y + w * m_axis_.z;
+    };
 };
 }  // namespace geometry
 }  // namespace simpla

@@ -11,13 +11,13 @@ namespace geometry {
 struct Parabola : public Curve {
     SP_GEO_OBJECT_HEAD(Parabola, Curve);
 
-   public:
+   protected:
     Parabola() = default;
     Parabola(Parabola const &other) = default;
-    ~Parabola() override = default;
+    Parabola(Axis const &axis, Real focal) : Curve(axis), m_focal_(focal) {}
 
-    template <typename... Args>
-    explicit Parabola(Real focal, Args &&... args) : Curve(std::forward<Args>(args)...), m_focal_(focal) {}
+   public:
+    ~Parabola() override = default;
 
     bool IsClosed() const override { return false; };
     bool IsPeriodic() const override { return false; };

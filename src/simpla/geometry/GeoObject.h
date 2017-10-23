@@ -9,6 +9,7 @@
 #define CORE_GEOMETRY_GEO_OBJECT_H_
 #include "simpla/SIMPLA_config.h"
 
+#include "Axis.h"
 #include "simpla/data/SPObject.h"
 
 namespace simpla {
@@ -73,12 +74,59 @@ namespace geometry {
  *  @enduml
  */
 class GeoObject : public SPObject {
-    SP_OBJECT_HEAD(GeoObject, SPObject)
+   private:
+    typedef GeoObject this_type;
+    typedef SPObject base_type;
+
+   public:
+    GeoObject() = default;
+    ~GeoObject() = default;
+    static std::string FancyTypeName_s() { return "GeoObject"; }
+    std::string FancyTypeName() const override { return simpla::traits::type_name<this_type>::value(); }
     std::string ClassName() const override { return "GeoObject"; }
-    virtual std::shared_ptr<GeoObject> Copy() const { return nullptr; };
+
+    static std::shared_ptr<this_type> New(std::shared_ptr<data::DataNode> const &cfg) {
+        return std::dynamic_pointer_cast<this_type>(simpla::SPObject::Create(cfg));
+    };
+    std::shared_ptr<data::DataNode> Serialize() const override;
+    void Deserialize(std::shared_ptr<data::DataNode> const &cfg) override;
+
     virtual box_type GetBoundingBox() const;
-    virtual bool CheckInside(point_type const &x, Real tolerance = SP_DEFAULT_GEOMETRY_TOLERANCE) const {
-        return false;
+    virtual bool CheckInside(point_type const &x, Real tolerance) const { return false; }
+    bool CheckInside(point_type const &x) const { return CheckInside(x, SP_DEFAULT_GEOMETRY_TOLERANCE); }
+
+    virtual std::shared_ptr<GeoObject> Copy() const { return nullptr; };
+    virtual void Mirror(const point_type &p) { UNIMPLEMENTED; }
+    virtual void Mirror(const Axis &a1) { UNIMPLEMENTED; }
+    virtual void Rotate(const Axis &a1, Real ang) { UNIMPLEMENTED; }
+    virtual void Scale(Real s, int dir) { UNIMPLEMENTED; }
+    virtual void Translate(const vector_type &v) { UNIMPLEMENTED; }
+
+    void Scale(Real s) { Scale(s, -1); }
+
+    template <typename... Args>
+    std::shared_ptr<GeoObject> Mirrored(Args &&... args) const {
+        auto res = Copy();
+        res->Mirror(std::forward<Args>(args)...);
+        return res;
+    }
+    template <typename... Args>
+    std::shared_ptr<GeoObject> Rotated(Args &&... args) const {
+        auto res = Copy();
+        res->Rotate(std::forward<Args>(args)...);
+        return res;
+    };
+    template <typename... Args>
+    std::shared_ptr<GeoObject> Scaled(Args &&... args) const {
+        auto res = Copy();
+        res->Scale(std::forward<Args>(args)...);
+        return res;
+    }
+    template <typename... Args>
+    std::shared_ptr<GeoObject> Translated(Args &&... args) const {
+        auto res = Copy();
+        res->Translate(std::forward<Args>(args)...);
+        return res;
     }
 
     //    virtual int Dimension() const { return 3; };

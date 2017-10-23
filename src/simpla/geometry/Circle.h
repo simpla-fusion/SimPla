@@ -13,13 +13,13 @@ namespace geometry {
 struct Circle : public Curve {
     SP_GEO_OBJECT_HEAD(Circle, Curve);
 
-   public:
+   protected:
     Circle() = default;
-    Circle(Circle const &other) = default;
-    ~Circle() override = default;
+    Circle(Circle const &) = default;
+    explicit Circle(Axis const &axis, Real radius) : Curve(axis), m_radius_(radius) {}
 
-    template <typename... Args>
-    explicit Circle(Real radius, Args &&... args) : Curve(std::forward<Args>(args)...), m_radius_(radius) {}
+   public:
+    ~Circle() override = default;
 
     bool IsClosed() const override { return true; };
     bool IsPeriodic() const override { return true; };

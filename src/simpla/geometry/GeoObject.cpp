@@ -10,8 +10,7 @@
 namespace simpla {
 namespace geometry {
 
-GeoObject::GeoObject() = default;
-GeoObject::~GeoObject() = default;
+
 
 std::shared_ptr<data::DataNode> GeoObject::Serialize() const { return base_type::Serialize(); }
 void GeoObject::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }

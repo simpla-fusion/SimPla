@@ -18,8 +18,8 @@ struct Line : public Curve {
    protected:
     Line() = default;
     Line(Line const &) = default;
-    template <typename... Args>
-    Line(Args &&... args) : Curve(std::forward<Args>(args)...){};
+    explicit Line(Axis const &axis) : Curve(axis){};
+    Line(point_type const &p0, point_type const &p1) : Curve(Axis{p0, p1 - p0}){};
 
    public:
     ~Line() override = default;

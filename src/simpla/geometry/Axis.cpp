@@ -6,19 +6,25 @@ namespace simpla {
 namespace geometry {
 
 void Axis::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
-    o = cfg->GetValue("Origin", o);
-    x = cfg->GetValue("XAxis", x);
-    y = cfg->GetValue("YAxis", y);
-    z = cfg->GetValue("ZAxis", z);
+    m_origin_ = cfg->GetValue("Origin", m_origin_);
+    m_axis_ = cfg->GetValue("Axis", m_axis_);
 }
 std::shared_ptr<simpla::data::DataNode> Axis::Serialize() const {
     auto res = simpla::data::DataNode::New(simpla::data::DataNode::DN_TABLE);
-    res->SetValue("Origin", o);
-    res->SetValue("XAxis", x);
-    res->SetValue("YAxis", y);
-    res->SetValue("ZAxis", z);
+    res->SetValue("Origin", m_origin_);
+    res->SetValue("Axis", m_axis_);
     return res;
 }
-
+void Axis::Mirror(const point_type &p) { UNIMPLEMENTED; }
+void Axis::Mirror(const Axis &a1) { UNIMPLEMENTED; }
+void Axis::Rotate(const Axis &a1, Real angle) { UNIMPLEMENTED; }
+void Axis::Scale(Real s, int dir) {
+    if (dir < 0) {
+        m_axis_ *= s;
+    } else {
+        m_axis_[dir % 3] *= s;
+    }
+}
+void Axis::Translate(const vector_type &v) { m_origin_ += v; }
 }  // namespace geometry{
 }  // namespace simpla{

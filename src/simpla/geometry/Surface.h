@@ -7,8 +7,8 @@
 
 #include <simpla/algebra/nTuple.h>
 #include <memory>
-#include "GeoObject.h"
 #include "Axis.h"
+#include "GeoObject.h"
 namespace simpla {
 namespace geometry {
 
@@ -19,11 +19,9 @@ namespace geometry {
 struct Surface : public GeoObject {
     SP_GEO_ABS_OBJECT_HEAD(Surface, GeoObject);
     Surface() = default;
-    Surface(Surface const &) = default;
     ~Surface() override = default;
-
-    template <typename... Args>
-    explicit Surface(Args &&... args) : m_axis_(std::forward<Args>(args)...) {}
+    Surface(Surface const &other) : m_axis_(other.m_axis_) {}
+    explicit Surface(Axis axis) : m_axis_(axis) {}
 
     virtual std::tuple<bool, bool> IsClosed() const { return std::make_tuple(false, false); };
     virtual std::tuple<bool, bool> IsPeriodic() const { return std::make_tuple(false, false); };
@@ -32,10 +30,17 @@ struct Surface : public GeoObject {
     virtual nTuple<Real, 2> GetMaxParameter() const { return nTuple<Real, 2>{SP_INFINITY, SP_INFINITY}; }
 
     virtual point_type Value(Real u, Real v) const = 0;
+
     point_type Value(nTuple<Real, 2> const &u) const { return Value(u[0], u[1]); };
 
     void SetAxis(Axis const &a) { m_axis_ = a; }
     Axis const &GetAxis() const { return m_axis_; }
+
+    void Mirror(const point_type &p) override { m_axis_.Mirror(p); }
+    void Mirror(const Axis &a1) override { m_axis_.Mirror(a1); }
+    void Rotate(const Axis &a1, Real angle) override { m_axis_.Rotate(a1, angle); }
+    void Scale(Real s, int dir) override { m_axis_.Scale(s); }
+    void Translate(const vector_type &v) override { m_axis_.Translate(v); }
 
    protected:
     Axis m_axis_;

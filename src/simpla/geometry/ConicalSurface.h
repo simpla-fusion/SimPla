@@ -11,13 +11,15 @@ namespace simpla {
 namespace geometry {
 struct ConicalSurface : public Surface {
     SP_GEO_OBJECT_HEAD(ConicalSurface, Surface);
-    ConicalSurface() = default;
-    ConicalSurface(ConicalSurface const &) = default;
-    ~ConicalSurface() override = default;
 
-    template <typename... Args>
-    explicit ConicalSurface(Real R, Real Ang, Args &&... args)
-        : Surface(std::forward<Args>(args)...), m_radius_(R), m_angle_(Ang) {}
+   protected:
+    ConicalSurface() = default;
+    ConicalSurface(ConicalSurface const &other) = default;
+    //  : Surface(other), m_radius_(other.m_radius_), m_angle_(other.m_angle_) {}
+    ConicalSurface(Axis const &axis, Real R, Real Ang) : Surface(axis), m_radius_(R), m_angle_(Ang) {}
+
+   public:
+    ~ConicalSurface() override = default;
 
     std::tuple<bool, bool> IsClosed() const override { return std::make_tuple(true, false); };
     std::tuple<bool, bool> IsPeriodic() const override { return std::make_tuple(true, false); };
@@ -37,7 +39,7 @@ struct ConicalSurface : public Surface {
 
    private:
     Real m_radius_ = 1.0;
-    Real m_angle_ = PI / 2;
+    Real m_angle_ = PI / 4;
 };
 
 }  // namespace simpla

@@ -16,10 +16,8 @@ struct SweptSurface : public Surface {
 
    protected:
     SweptSurface() = default;
-    SweptSurface(SweptSurface const &) = default;
-    template <typename... Args>
-    explicit SweptSurface(std::shared_ptr<Curve> const &c, Args &&... args)
-        : Surface(std::forward<Args>(args)...), m_basis_curve_(c) {}
+    SweptSurface(SweptSurface const &other) : Surface(other), m_basis_curve_(other.m_basis_curve_){};
+    SweptSurface(Axis const &axis, std::shared_ptr<Curve> const &c) : Surface(axis), m_basis_curve_(c) {}
 
    public:
     ~SweptSurface() override = default;

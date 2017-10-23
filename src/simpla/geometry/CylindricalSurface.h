@@ -11,12 +11,14 @@ namespace simpla {
 namespace geometry {
 struct CylindricalSurface : public Surface {
     SP_GEO_OBJECT_HEAD(CylindricalSurface, Surface);
-    CylindricalSurface() = default;
-    CylindricalSurface(CylindricalSurface const &) = default;
-    ~CylindricalSurface() override = default;
 
-    template <typename... Args>
-    explicit CylindricalSurface(Real R, Args &&... args) : Surface(std::forward<Args>(args)...), m_radius_(R) {}
+   protected:
+    CylindricalSurface() = default;
+    CylindricalSurface(CylindricalSurface const &other) = default;  // : Surface(other), m_radius_(other.m_radius_) {}
+    CylindricalSurface(Axis const &axis, Real R) : Surface(axis), m_radius_(R) {}
+
+   public:
+    ~CylindricalSurface() override = default;
 
     std::tuple<bool, bool> IsClosed() const override { return std::make_tuple(true, false); };
     std::tuple<bool, bool> IsPeriodic() const override { return std::make_tuple(true, false); };
@@ -27,6 +29,12 @@ struct CylindricalSurface : public Surface {
     void SetRadius(Real r) { m_radius_ = r; }
     Real GetRadius() const { return m_radius_; }
 
+    /**
+     *
+     * @param u  \phi
+     * @param v  z
+     * @return
+     */
     point_type Value(Real u, Real v) const override {
         return m_axis_.o + m_radius_ * std::cos(u) * m_axis_.x + m_radius_ * std::sin(u) * m_axis_.y + v * m_axis_.z;
     };

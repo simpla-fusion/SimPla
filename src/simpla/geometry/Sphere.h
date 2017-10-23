@@ -1,40 +1,47 @@
 //
-// Created by salmon on 17-7-21.
+// Created by salmon on 17-10-23.
 //
 
 #ifndef SIMPLA_SPHERE_H
 #define SIMPLA_SPHERE_H
 
+#include <simpla/utilities/Constants.h>
 #include "simpla/SIMPLA_config.h"
 
+#include "Body.h"
 #include "GeoObject.h"
-#include "Surface.h"
 namespace simpla {
 namespace geometry {
-/**
- * A sphere is the surface of a solid ball, here having radius r.
- **/
-struct Sphere : public Surface {
-    SP_OBJECT_HEAD(Sphere, Surface)
-   private:
-    Real m_radius_ = 1;
-    point_type m_axis_.o{0, 0, 0};
+
+struct Sphere : public Body {
+    SP_GEO_OBJECT_HEAD(Sphere, Body)
+    Sphere() = default;
+    ~Sphere() override = default;
 
    protected:
-    Sphere(Real r, point_type o) : m_radius_(r), m_axis_.o(std::move(o)) {}
+    explicit Sphere(Axis const &axis) : Body(axis) {}
 
    public:
-    box_type GetBoundingBox() const override {
-        box_type b;
-        std::get<0>(b) = m_axis_.o - m_radius_;
-        std::get<1>(b) = m_axis_.o + m_radius_;
-        return std::move(b);
-    };
+    bool CheckInside(point_type const &x, Real tolerance) const override { return true; }
 
-    bool CheckInside(point_type const &x, Real tolerance) const override {
-        return dot((x - m_axis_.o), (x - m_axis_.o)) - m_radius_ * m_radius_ < tolerance;
-    }
+    std::tuple<bool, bool, bool> IsClosed() const override { return std::make_tuple(false, true, true); };
+    std::tuple<bool, bool, bool> IsPeriodic() const override { return std::make_tuple(false, true, true); };
+    nTuple<Real, 3> GetPeriod() const override { return nTuple<Real, 3>{SP_INFINITY, TWOPI, PI}; };
+    nTuple<Real, 3> GetMinParameter() const override { return nTuple<Real, 3>{0, 0, -PI / 2}; }
+    nTuple<Real, 3> GetMaxParameter() const override { return nTuple<Real, 3>{SP_INFINITY, TWOPI, PI / 2}; }
+    /**
+     *
+     * @param u R
+     * @param v phi
+     * @param w theta
+     * @return
+     */
+    point_type Value(Real r, Real phi, Real theta) const override {
+        return m_axis_.o + r * std::cos(theta) * (std::cos(phi) * m_axis_.x + std::sin(phi) * m_axis_.y) +
+               r * std::sin(theta) * m_axis_.z;
+    };
 };
-}  // namespace geometry{
-}  // namespace simpla{
+}  // namespace geometry
+}  // namespace simpla
+
 #endif  // SIMPLA_SPHERE_H

@@ -21,7 +21,7 @@ struct Box : public Body {
 
     template <typename V, typename U>
     Box(V const *l, U const *h) : m_bound_box_(box_type({l[0], l[1], l[2]}, {h[0], h[1], h[2]})){};
-    Box(box_type const &b) : m_bound_box_(b) {}
+    explicit Box(box_type b) : m_bound_box_(std::move(b)) {}
 
    public:
     static std::shared_ptr<Box> New(std::initializer_list<std::initializer_list<Real>> const &box) {
@@ -35,7 +35,7 @@ struct Box : public Body {
                std::get<0>(m_bound_box_)[2] <= x[2] && x[2] < std::get<1>(m_bound_box_)[2];
     }
 
-    std::shared_ptr<GeoObject> GetBoundary() const override { return nullptr; }
+    point_type Value(Real u, Real v, Real w) const override { return u * m_axis_.x + v * m_axis_.y + w * m_axis_.z; };
 };
 
 }  // namespace geometry

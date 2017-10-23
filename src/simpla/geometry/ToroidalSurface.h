@@ -12,15 +12,15 @@ namespace simpla {
 namespace geometry {
 struct ToroidalSurface : public Surface {
     SP_GEO_OBJECT_HEAD(ToroidalSurface, Surface);
+
+   protected:
     ToroidalSurface() = default;
     ToroidalSurface(ToroidalSurface const &) = default;
-    ~ToroidalSurface() override = default;
+    ToroidalSurface(Axis const &axis, Real major_radius, Real minor_radius)
+        : Surface(axis), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {}
 
-    template <typename... Args>
-    ToroidalSurface(Real major_radius, Real minor_radius, Args &&... args)
-        : Surface(std::forward<Args>(args)...),
-          m_major_radius_(major_radius),
-          m_minor_radius_(minor_radius) {}
+   public:
+    ~ToroidalSurface() override = default;
 
     std::tuple<bool, bool> IsClosed() const override { return std::make_tuple(true, true); };
     std::tuple<bool, bool> IsPeriodic() const override { return std::make_tuple(true, true); };

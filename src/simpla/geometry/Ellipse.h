@@ -10,14 +10,15 @@ namespace geometry {
 struct Ellipse : public Curve {
     SP_GEO_OBJECT_HEAD(Ellipse, Curve);
 
-   public:
+   protected:
     Ellipse() = default;
     Ellipse(Ellipse const &other) = default;
-    ~Ellipse() override = default;
+    //        : Curve(other), m_major_radius_(other.m_major_radius_), m_minor_radius_(other.m_minor_radius_) {}
+    Ellipse(Axis const &axis, Real major_radius, Real minor_radius)
+        : Curve(axis), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {}
 
-    template <typename... Args>
-    Ellipse(Real major_radius, Real minor_radius, Args &&... args)
-        : Curve(std::forward<Args>(args)...), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {}
+   public:
+    ~Ellipse() override = default;
 
     bool IsClosed() const override { return true; };
     bool IsPeriodic() const override { return true; };

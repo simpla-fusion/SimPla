@@ -20,26 +20,30 @@ struct Cube : public Body {
 
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 
-   public:
+   protected:
     Cube() = default;
-    ~Cube() override = default;
     Cube(std::initializer_list<std::initializer_list<Real>> const &v)
         : m_bound_box_(point_type(*v.begin()), point_type(*(v.begin() + 1))) {}
 
     template <typename V, typename U>
     Cube(V const *l, U const *h) : m_bound_box_(box_type({l[0], l[1], l[2]}, {h[0], h[1], h[2]})){};
-    Cube(box_type const &b) : m_bound_box_(b) {}
+    explicit Cube(box_type b) : m_bound_box_(std::move(b)) {}
+
+   public:
+    ~Cube() override = default;
 
     static std::shared_ptr<Cube> New(std::initializer_list<std::initializer_list<Real>> const &box) {
         return std::shared_ptr<Cube>(new Cube(box));
     }
     box_type GetBoundingBox() const override { return m_bound_box_; };
 
-    virtual bool CheckInside(point_type const &x, Real tolerance) const override {
+    bool CheckInside(point_type const &x, Real tolerance) const override {
         return std::get<0>(m_bound_box_)[0] <= x[0] && x[0] < std::get<1>(m_bound_box_)[0] &&
                std::get<0>(m_bound_box_)[1] <= x[1] && x[1] < std::get<1>(m_bound_box_)[1] &&
                std::get<0>(m_bound_box_)[2] <= x[2] && x[2] < std::get<1>(m_bound_box_)[2];
     }
+
+    point_type Value(Real u, Real v, Real w) const override { return u * m_axis_.x + v * m_axis_.y + w * m_axis_.z; };
 };
 
 // namespace traits

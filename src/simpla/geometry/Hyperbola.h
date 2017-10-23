@@ -11,14 +11,14 @@ namespace geometry {
 struct Hyperbola : public Curve {
     SP_GEO_OBJECT_HEAD(Hyperbola, Curve);
 
-   public:
+   protected:
     Hyperbola() = default;
     Hyperbola(Hyperbola const &other) = default;
-    ~Hyperbola() override = default;
+    Hyperbola(Axis const &axis, Real major_radius, Real minor_radius)
+        : Curve(axis), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {}
 
-    template <typename... Args>
-    Hyperbola(Real major_radius, Real minor_radius, Args &&... args)
-        : Curve(std::forward<Args>(args)...), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {}
+   public:
+    ~Hyperbola() override = default;
 
     bool IsClosed() const override { return false; };
     bool IsPeriodic() const override { return false; };

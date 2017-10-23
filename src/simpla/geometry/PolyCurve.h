@@ -15,10 +15,7 @@ struct PolyCurve : public Curve {
    protected:
     PolyCurve();
     PolyCurve(PolyCurve const &);
-    template <typename... Args>
-    explicit PolyCurve(Args &&... args) : PolyCurve() {
-        Curve::SetUp(std::forward<Args>(args)...);
-    }
+    explicit PolyCurve(Axis const &axis) : PolyCurve() { Curve::SetAxis(axis); }
 
    public:
     ~PolyCurve() override;

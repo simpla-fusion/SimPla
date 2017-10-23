@@ -9,12 +9,14 @@ namespace simpla {
 namespace geometry {
 struct RevolutionSurface : public SweptSurface {
     SP_GEO_OBJECT_HEAD(RevolutionSurface, SweptSurface);
-    RevolutionSurface() = default;
-    RevolutionSurface(RevolutionSurface const &) = default;
-    ~RevolutionSurface() override = default;
 
-    template <typename... Args>
-    explicit RevolutionSurface(Args &&... args) : SweptSurface(std::forward<Args>(args)...) {}
+   protected:
+    RevolutionSurface() = default;
+    RevolutionSurface(RevolutionSurface const &other) = default;  //: SweptSurface(other) {}
+    RevolutionSurface(Axis const &axis, std::shared_ptr<Curve> const &c) : SweptSurface(axis, c) {}
+
+   public:
+    ~RevolutionSurface() override = default;
 
     std::tuple<bool, bool> IsClosed() const override { return std::make_tuple(true, GetBasisCurve()->IsClosed()); };
     std::tuple<bool, bool> IsPeriodic() const override { return std::make_tuple(true, GetBasisCurve()->IsPeriodic()); };
