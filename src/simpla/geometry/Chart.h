@@ -74,11 +74,22 @@ struct Chart : public SPObject {
     point_type local_coordinates(Real const *r, index_tuple const &x) const {
         return local_coordinates(point_type{x[0] + r[0], x[1] + r[1], x[2] + r[2]});
     }
+    static constexpr Real m_id_to_coordinates_shift_[8][3] = {
+        {0.0, 0.0, 0.0},  // 000
+        {0.5, 0.0, 0.0},  // 001
+        {0.0, 0.5, 0.0},  // 010
+        {0.5, 0.5, 0.0},  // 011
+        {0.0, 0.0, 0.5},  // 100
+        {0.5, 0.0, 0.5},  // 101
+        {0.0, 0.5, 0.5},  // 110
+        {0.5, 0.5, 0.5},  // 111
+
+    };
     point_type local_coordinates(int tag, index_tuple const &x) const {
-        return local_coordinates(EntityIdCoder::m_id_to_coordinates_shift_[tag], x);
+        return local_coordinates(m_id_to_coordinates_shift_[tag], x);
     }
     point_type local_coordinates(int tag, index_type x, index_type y, index_type z) const {
-        return local_coordinates(EntityIdCoder::m_id_to_coordinates_shift_[tag], x, y, z);
+        return local_coordinates(m_id_to_coordinates_shift_[tag], x, y, z);
     }
 
     template <typename TR>

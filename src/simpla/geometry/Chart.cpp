@@ -6,6 +6,9 @@
 
 namespace simpla {
 namespace geometry {
+
+constexpr Real Chart::m_id_to_coordinates_shift_[8][3];
+
 Chart::Chart() {}
 
 Chart::~Chart() = default;
