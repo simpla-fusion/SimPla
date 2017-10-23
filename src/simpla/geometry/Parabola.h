@@ -14,7 +14,9 @@ struct Parabola : public Curve {
    protected:
     Parabola() = default;
     Parabola(Parabola const &other) = default;
-    Parabola(std::shared_ptr<Axis> const &axis, Real focal) : Curve(axis), m_focal_(focal) {}
+    Parabola(std::shared_ptr<Axis> const &axis, Real focal) : Curve(axis), m_focal_(focal) {
+        SetParameterRange(GetMinParameter(), GetMaxParameter());
+    }
 
    public:
     ~Parabola() override = default;

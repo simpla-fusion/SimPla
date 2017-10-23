@@ -28,9 +28,16 @@ struct Body : public GeoObject {
     }
     virtual nTuple<Real, 3> GetMaxParameter() const { return nTuple<Real, 3>{SP_INFINITY, SP_INFINITY, SP_INFINITY}; }
 
-    virtual box_type GetParameterBox() const { return std::make_tuple(m_min_, m_max_); }
-    virtual void SetParameterBox(box_type const &b) { std::tie(m_min_, m_max_) = b; }
-
+    void SetParameterRange(std::tuple<nTuple<Real, 3>, nTuple<Real, 3>> const &r) {
+        std::tie(m_uvw_min_, m_uvw_max_) = r;
+    };
+    void SetParameterRange(nTuple<Real, 3> const &min, nTuple<Real, 3> const &max) {
+        m_uvw_min_ = min;
+        m_uvw_max_ = max;
+    };
+    std::tuple<nTuple<Real, 3>, nTuple<Real, 3>> GetParameterRange() const {
+        return std::make_tuple(m_uvw_min_, m_uvw_max_);
+    };
     virtual point_type Value(Real u, Real v, Real w) const = 0;
 
     point_type Value(nTuple<Real, 3> const &u) const { return Value(u[0], u[1], u[2]); };
@@ -50,8 +57,8 @@ struct Body : public GeoObject {
 
    protected:
     std::shared_ptr<Axis> m_axis_ = nullptr;
-    nTuple<Real, 3> m_min_{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY};
-    nTuple<Real, 3> m_max_{SP_INFINITY, SP_INFINITY, SP_INFINITY};
+    nTuple<Real, 3> m_uvw_min_{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY};
+    nTuple<Real, 3> m_uvw_max_{SP_INFINITY, SP_INFINITY, SP_INFINITY};
 };
 
 }  // namespace geometry

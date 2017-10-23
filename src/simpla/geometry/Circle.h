@@ -16,7 +16,9 @@ struct Circle : public Curve {
    protected:
     Circle() = default;
     Circle(Circle const &) = default;
-    explicit Circle(std::shared_ptr<Axis> const &axis, Real radius) : Curve(axis), m_radius_(radius) {}
+    explicit Circle(std::shared_ptr<Axis> const &axis, Real radius) : Curve(axis), m_radius_(radius) {
+        SetParameterRange(GetMinParameter(), GetMaxParameter());
+    }
 
    public:
     ~Circle() override = default;

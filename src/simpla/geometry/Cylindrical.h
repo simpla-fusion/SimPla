@@ -18,7 +18,8 @@ struct Cylindrical : public Body {
 
    protected:
     Cylindrical() = default;
-    explicit Cylindrical(std::shared_ptr<Axis> const &axis) : Body(axis) {}
+    explicit Cylindrical(std::shared_ptr<Axis> const &axis) : Body(axis) {        SetParameterRange(GetMinParameter(), GetMaxParameter());
+    }
 
    public:
     ~Cylindrical() override = default;

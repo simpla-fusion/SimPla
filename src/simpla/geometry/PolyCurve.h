@@ -15,7 +15,10 @@ struct PolyCurve : public Curve {
    protected:
     PolyCurve();
     PolyCurve(PolyCurve const &);
-    explicit PolyCurve(std::shared_ptr<Axis> const &axis) : PolyCurve() { Curve::SetAxis(axis); }
+    explicit PolyCurve(std::shared_ptr<Axis> const &axis) : PolyCurve() {
+        Curve::SetAxis(axis);
+        SetParameterRange(GetMinParameter(), GetMaxParameter());
+    }
 
    public:
     ~PolyCurve() override;

@@ -19,7 +19,9 @@ struct Sphere : public Body {
     ~Sphere() override = default;
 
    protected:
-    explicit Sphere(std::shared_ptr<Axis> const &axis) : Body(axis) {}
+    explicit Sphere(std::shared_ptr<Axis> const &axis) : Body(axis) {
+        SetParameterRange(GetMinParameter(), GetMaxParameter());
+    }
 
    public:
     bool CheckInside(point_type const &x, Real tolerance) const override { return true; }

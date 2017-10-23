@@ -17,7 +17,9 @@ struct ToroidalSurface : public Surface {
     ToroidalSurface() = default;
     ToroidalSurface(ToroidalSurface const &) = default;
     ToroidalSurface(std::shared_ptr<Axis> const &axis, Real major_radius, Real minor_radius)
-        : Surface(axis), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {}
+        : Surface(axis), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {
+        SetParameterRange(std::make_tuple(GetMinParameter(), GetMaxParameter()));
+    }
 
    public:
     ~ToroidalSurface() override = default;

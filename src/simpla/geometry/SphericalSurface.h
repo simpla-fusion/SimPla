@@ -15,7 +15,9 @@ struct SphericalSurface : public Surface {
    protected:
     SphericalSurface() = default;
     SphericalSurface(SphericalSurface const &other) = default;  //: Surface(other), m_radius_(other.m_radius_) {}
-    SphericalSurface(std::shared_ptr<Axis> const &axis, Real radius) : Surface(axis), m_radius_(radius) {}
+    SphericalSurface(std::shared_ptr<Axis> const &axis, Real radius) : Surface(axis), m_radius_(radius) {
+        SetParameterRange(std::make_tuple(GetMinParameter(), GetMaxParameter()));
+    }
 
    public:
     ~SphericalSurface() override = default;

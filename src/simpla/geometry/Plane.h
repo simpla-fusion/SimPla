@@ -19,7 +19,9 @@ struct Plane : public Surface {
     Plane(Plane const &) = default;
 
     template <typename... Args>
-    explicit Plane(Args &&... args) : Surface(std::forward<Args>(args)...) {}
+    explicit Plane(Args &&... args) : Surface(std::forward<Args>(args)...) {
+        SetParameterRange(std::make_tuple(GetMinParameter(), GetMaxParameter()));
+    }
 
    public:
     ~Plane() override = default;

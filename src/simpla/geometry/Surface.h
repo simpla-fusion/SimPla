@@ -29,6 +29,17 @@ struct Surface : public GeoObject {
     virtual nTuple<Real, 2> GetMinParameter() const { return nTuple<Real, 2>{-SP_INFINITY, -SP_INFINITY}; }
     virtual nTuple<Real, 2> GetMaxParameter() const { return nTuple<Real, 2>{SP_INFINITY, SP_INFINITY}; }
 
+    void SetParameterRange(std::tuple<nTuple<Real, 2>, nTuple<Real, 2>> const &r) {
+        std::tie(m_uv_min_, m_uv_max_) = r;
+    };
+    void SetParameterRange(nTuple<Real, 2> const &min, nTuple<Real, 2> const &max) {
+        m_uv_min_ = min;
+        m_uv_max_ = max;
+    };
+    std::tuple<nTuple<Real, 2>, nTuple<Real, 2>> GetParameterRange() const {
+        return std::make_tuple(m_uv_min_, m_uv_max_);
+    };
+
     virtual point_type Value(Real u, Real v) const = 0;
 
     point_type Value(nTuple<Real, 2> const &u) const { return Value(u[0], u[1]); };
@@ -44,6 +55,8 @@ struct Surface : public GeoObject {
 
    protected:
     std::shared_ptr<Axis> m_axis_;
+    nTuple<Real, 2> m_uv_min_{SP_SNaN, SP_SNaN};
+    nTuple<Real, 2> m_uv_max_{SP_SNaN, SP_SNaN};
 };
 
 }  // namespace geometry

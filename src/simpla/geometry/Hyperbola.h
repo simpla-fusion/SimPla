@@ -15,7 +15,9 @@ struct Hyperbola : public Curve {
     Hyperbola() = default;
     Hyperbola(Hyperbola const &other) = default;
     Hyperbola(std::shared_ptr<Axis> const &axis, Real major_radius, Real minor_radius)
-        : Curve(axis), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {}
+        : Curve(axis), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {
+        SetParameterRange(GetMinParameter(), GetMaxParameter());
+    }
 
    public:
     ~Hyperbola() override = default;

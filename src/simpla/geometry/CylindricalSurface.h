@@ -15,7 +15,9 @@ struct CylindricalSurface : public Surface {
    protected:
     CylindricalSurface() = default;
     CylindricalSurface(CylindricalSurface const &other) = default;  // : Surface(other), m_radius_(other.m_radius_) {}
-    CylindricalSurface(std::shared_ptr<Axis> const &axis, Real R) : Surface(axis), m_radius_(R) {}
+    CylindricalSurface(std::shared_ptr<Axis> const &axis, Real R) : Surface(axis), m_radius_(R) {
+        SetParameterRange(GetMinParameter(), GetMaxParameter());
+    }
 
    public:
     ~CylindricalSurface() override = default;

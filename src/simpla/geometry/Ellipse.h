@@ -15,7 +15,9 @@ struct Ellipse : public Curve {
     Ellipse(Ellipse const &other) = default;
     //        : Curve(other), m_major_radius_(other.m_major_radius_), m_minor_radius_(other.m_minor_radius_) {}
     Ellipse(std::shared_ptr<Axis> const &axis, Real major_radius, Real minor_radius)
-        : Curve(axis), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {}
+        : Curve(axis), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {
+        SetParameterRange(GetMinParameter(), GetMaxParameter());
+    }
 
    public:
     ~Ellipse() override = default;
