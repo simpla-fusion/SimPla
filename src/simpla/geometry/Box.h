@@ -13,26 +13,14 @@ namespace geometry {
 struct Box : public Body {
     SP_OBJECT_HEAD(Box, Body)
 
-    box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
-
    protected:
-    Box(std::initializer_list<std::initializer_list<Real>> const &v)
-        : m_bound_box_(point_type(*v.begin()), point_type(*(v.begin() + 1))) {}
-
-    template <typename V, typename U>
-    Box(V const *l, U const *h) : m_bound_box_(box_type({l[0], l[1], l[2]}, {h[0], h[1], h[2]})){};
-    explicit Box(box_type b) : m_bound_box_(std::move(b)) {}
+    Box(std::initializer_list<std::initializer_list<Real>> const &v) : Body() {
+        SetParameterRange(point_type(*v.begin()), point_type(*(v.begin() + 1)));
+    }
 
    public:
     static std::shared_ptr<Box> New(std::initializer_list<std::initializer_list<Real>> const &box) {
         return std::shared_ptr<Box>(new Box(box));
-    }
-    box_type GetBoundingBox() const override { return m_bound_box_; };
-
-    bool CheckInside(point_type const &x, Real tolerance) const override {
-        return std::get<0>(m_bound_box_)[0] <= x[0] && x[0] < std::get<1>(m_bound_box_)[0] &&
-               std::get<0>(m_bound_box_)[1] <= x[1] && x[1] < std::get<1>(m_bound_box_)[1] &&
-               std::get<0>(m_bound_box_)[2] <= x[2] && x[2] < std::get<1>(m_bound_box_)[2];
     }
 
     point_type Value(Real u, Real v, Real w) const override { return m_axis_->Coordinates(u, v, w); };

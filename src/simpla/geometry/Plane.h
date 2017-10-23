@@ -18,8 +18,7 @@ struct Plane : public Surface {
     Plane() = default;
     Plane(Plane const &) = default;
 
-    template <typename... Args>
-    explicit Plane(Args &&... args) : Surface(std::forward<Args>(args)...) {
+    explicit Plane(std::shared_ptr<Axis> const &axis) : Surface(axis) {
         SetParameterRange(std::make_tuple(GetMinParameter(), GetMaxParameter()));
     }
 

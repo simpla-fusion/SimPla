@@ -18,12 +18,11 @@ struct Line : public Curve {
    protected:
     Line() = default;
     Line(Line const &) = default;
-    explicit Line(std::shared_ptr<Axis> const &axis) : Curve(axis) {
-        SetParameterRange(GetMinParameter(), GetMaxParameter());
+    explicit Line(std::shared_ptr<Axis> const &axis, Real alpha0 = SP_SNaN, Real alpha1 = SP_SNaN) : Curve(axis) {
+        SetParameterRange(std::isnan(alpha0) ? GetMinParameter() : alpha0,
+                          std::isnan(alpha1) ? GetMaxParameter() : alpha1);
     };
-    Line(point_type const &p0, point_type const &p1) : Curve(Axis::New(p0, p1 - p0)) {
-        SetParameterRange(GetMinParameter(), GetMaxParameter());
-    };
+    Line(point_type const &p0, point_type const &p1) : Curve(Axis::New(p0, p1 - p0)) { SetParameterRange(0, 1); };
 
    public:
     ~Line() override = default;

@@ -14,7 +14,7 @@ namespace geometry {
 
 struct Body : public GeoObject {
     SP_GEO_ABS_OBJECT_HEAD(Body, GeoObject);
-    Body() = default;
+    Body() : m_axis_(Axis::New()){};
     ~Body() override = default;
 
     Body(Body const &other) : m_axis_(other.m_axis_){};
@@ -43,9 +43,16 @@ struct Body : public GeoObject {
     point_type Value(nTuple<Real, 3> const &u) const { return Value(u[0], u[1], u[2]); };
 
     box_type GetBoundingBox() const override {
-        return std::make_tuple(Value(GetMinParameter()), Value(GetMaxParameter()));
+        auto r = GetParameterRange();
+        return std::make_tuple(Value(std::get<0>(r)), Value(std::get<1>(r)));
     };
 
+    bool CheckInside(point_type const &x, Real tolerance) const override {
+        auto uvw = m_axis_->uvw(x);
+        return m_uvw_min_[0] <= x[0] && x[0] < m_uvw_max_[0] &&  //
+               m_uvw_min_[1] <= x[1] && x[1] < m_uvw_max_[1] &&  //
+               m_uvw_min_[2] <= x[2] && x[2] < m_uvw_max_[2];
+    }
     void SetAxis(std::shared_ptr<Axis> const &a) { m_axis_ = a; }
     std::shared_ptr<Axis> GetAxis() const { return m_axis_; }
 

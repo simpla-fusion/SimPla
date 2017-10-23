@@ -13,9 +13,14 @@ struct RevolutionSurface : public SweptSurface {
    protected:
     RevolutionSurface() = default;
     RevolutionSurface(RevolutionSurface const &other) = default;  //: SweptSurface(other) {}
-    RevolutionSurface(std::shared_ptr<Axis> const &axis, std::shared_ptr<Curve> const &c)
+    RevolutionSurface(std::shared_ptr<Axis> const &axis, std::shared_ptr<Curve> const &c, Real v0 = SP_SNaN,
+                      Real v1 = SP_SNaN)
         : SweptSurface(c), m_r_axis_(axis) {
-        SetParameterRange(GetMinParameter(), GetMaxParameter());
+        auto min = GetMinParameter();
+        auto max = GetMaxParameter();
+        min[1] = std::isnan(v0) ? 0 : v0;
+        max[1] = std::isnan(v1) ? TWOPI : v1;
+        SetParameterRange(min, max);
     }
 
    public:

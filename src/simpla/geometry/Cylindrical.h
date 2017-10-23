@@ -6,6 +6,7 @@
 #define SIMPLA_CYLINDRICAL_H
 
 #include <simpla/utilities/Constants.h>
+#include <simpla/utilities/macro.h>
 #include "simpla/SIMPLA_config.h"
 
 #include "Body.h"
@@ -18,7 +19,19 @@ struct Cylindrical : public Body {
 
    protected:
     Cylindrical() = default;
-    explicit Cylindrical(std::shared_ptr<Axis> const &axis) : Body(axis) {        SetParameterRange(GetMinParameter(), GetMaxParameter());
+    explicit Cylindrical(std::shared_ptr<Axis> const &axis, Real r0 = SP_SNaN, Real r1 = SP_SNaN, Real phi0 = SP_SNaN,
+                         Real phi1 = SP_SNaN, Real z0 = SP_SNaN, Real z1 = SP_SNaN)
+        : Body(axis) {
+        auto min = GetMinParameter();
+        auto max = GetMaxParameter();
+        TRY_ASSIGN(min[0], r0);
+        TRY_ASSIGN(max[0], r1);
+        TRY_ASSIGN(min[1], phi0);
+        TRY_ASSIGN(max[1], phi1);
+        TRY_ASSIGN(min[2], z0);
+        TRY_ASSIGN(min[2], z1);
+
+        SetParameterRange(min, max);
     }
 
    public:

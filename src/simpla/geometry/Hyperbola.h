@@ -14,9 +14,11 @@ struct Hyperbola : public Curve {
    protected:
     Hyperbola() = default;
     Hyperbola(Hyperbola const &other) = default;
-    Hyperbola(std::shared_ptr<Axis> const &axis, Real major_radius, Real minor_radius)
+    Hyperbola(std::shared_ptr<Axis> const &axis, Real major_radius, Real minor_radius, Real alpha0 = SP_SNaN,
+              Real alpha1 = SP_SNaN)
         : Curve(axis), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {
-        SetParameterRange(GetMinParameter(), GetMaxParameter());
+        SetParameterRange(std::isnan(alpha0) ? GetMinParameter() : alpha0,
+                          std::isnan(alpha1) ? GetMaxParameter() : alpha1);
     }
 
    public:

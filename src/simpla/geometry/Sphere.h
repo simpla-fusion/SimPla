@@ -6,10 +6,10 @@
 #define SIMPLA_SPHERE_H
 
 #include <simpla/utilities/Constants.h>
-#include "simpla/SIMPLA_config.h"
-
+#include <simpla/utilities/macro.h>
 #include "Body.h"
 #include "GeoObject.h"
+#include "simpla/SIMPLA_config.h"
 namespace simpla {
 namespace geometry {
 
@@ -19,9 +19,21 @@ struct Sphere : public Body {
     ~Sphere() override = default;
 
    protected:
-    explicit Sphere(std::shared_ptr<Axis> const &axis) : Body(axis) {
-        SetParameterRange(GetMinParameter(), GetMaxParameter());
+    explicit Sphere(std::shared_ptr<Axis> const &axis, Real r0 = SP_SNaN, Real r1 = SP_SNaN, Real phi0 = SP_SNaN,
+                    Real phi1 = SP_SNaN, Real theta0 = SP_SNaN, Real theta1 = SP_SNaN)
+        : Body(axis) {
+        auto min = GetMinParameter();
+        auto max = GetMaxParameter();
+        TRY_ASSIGN(min[0], r0);
+        TRY_ASSIGN(max[0], r1);
+        TRY_ASSIGN(min[1], phi0);
+        TRY_ASSIGN(max[1], phi1);
+        TRY_ASSIGN(min[2], theta0);
+        TRY_ASSIGN(min[2], theta1);
+
+        SetParameterRange(min, max);
     }
+    Sphere(Real r) : Sphere(Axis::New(), 0, r) {}
 
    public:
     bool CheckInside(point_type const &x, Real tolerance) const override { return true; }

@@ -6,6 +6,7 @@
 #define SIMPLA_CONICALSURFACE_H
 
 #include <simpla/utilities/Constants.h>
+#include <simpla/utilities/macro.h>
 #include "Surface.h"
 namespace simpla {
 namespace geometry {
@@ -15,8 +16,19 @@ struct ConicalSurface : public Surface {
    protected:
     ConicalSurface() = default;
     ConicalSurface(ConicalSurface const &other) = default;
-    //  : Surface(other), m_radius_(other.m_radius_), m_angle_(other.m_angle_) {}
-    ConicalSurface(std::shared_ptr<Axis> const &axis, Real R, Real Ang) : Surface(axis), m_radius_(R), m_angle_(Ang) {}
+    ConicalSurface(std::shared_ptr<Axis> const &axis, Real radius, Real semi_angle, Real phi0 = SP_SNaN,
+                   Real phi1 = SP_SNaN, Real z0 = SP_SNaN, Real z1 = SP_SNaN)
+        : Surface(axis), m_radius_(radius), m_semi_angle_(semi_angle) {
+        auto min = GetMinParameter();
+        auto max = GetMaxParameter();
+
+        TRY_ASSIGN(min[0], phi0);
+        TRY_ASSIGN(max[0], phi1);
+        TRY_ASSIGN(min[1], z0);
+        TRY_ASSIGN(min[1], z1);
+
+        SetParameterRange(min, max);
+    }
 
    public:
     ~ConicalSurface() override = default;
@@ -29,17 +41,17 @@ struct ConicalSurface : public Surface {
 
     void SetRadius(Real r) { m_radius_ = r; }
     Real GetRadius() const { return m_radius_; }
-    void SetAngle(Real r) { m_angle_ = r; }
-    Real GetAngle() const { return m_angle_; }
+    void SetSemiAngle(Real r) { m_semi_angle_ = r; }
+    Real GetSemiAngle() const { return m_semi_angle_; }
 
     point_type Value(Real u, Real v) const override {
-        Real r = (m_radius_ + v * std::sin(m_angle_));
-        return m_axis_->Coordinates(r * std::cos(u), r * std::sin(u), v * std::cos(m_angle_));
+        Real r = (m_radius_ + v * std::sin(m_semi_angle_));
+        return m_axis_->Coordinates(r * std::cos(u), r * std::sin(u), v * std::cos(m_semi_angle_));
     };
 
    private:
     Real m_radius_ = 1.0;
-    Real m_angle_ = PI / 4;
+    Real m_semi_angle_ = PI / 4;
 };
 
 }  // namespace simpla

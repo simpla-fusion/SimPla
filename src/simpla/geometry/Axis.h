@@ -33,6 +33,7 @@ struct Axis {
         m_axis_ = other.m_axis_;
         return *this;
     };
+    static std::shared_ptr<Axis> New() { return std::make_shared<Axis>(); };
     template <typename... Args>
     static std::shared_ptr<Axis> New(point_type const &origin, point_type const &x_axis) {
         return std::make_shared<Axis>(origin, x_axis);
@@ -79,7 +80,13 @@ struct Axis {
     void Scale(Real s, int dir = -1);
     void Translate(const vector_type &v);
 
-    virtual point_type Coordinates(Real u, Real v = 0, Real w = 0) const { return o + u * x + v * y + v * z; }
+    virtual point_type xyz(point_type const &uvw_) const { return o + uvw_[0] * x + uvw_[1] * y + uvw_[2] * z; }
+    virtual point_type uvw(point_type const &xyz_) const {
+        return point_type{dot(xyz_ - o, x), dot(xyz_ - o, y), dot(xyz_ - o, z)};
+    }
+    point_type xyz(Real u, Real v = 0, Real w = 0) const { return xyz(point_type{u, v, w}); }
+    point_type uvw(Real x0, Real x1 = 0, Real x2 = 0) const { return uvw(point_type{x0, x1, x2}); }
+    point_type Coordinates(Real u, Real v = 0, Real w = 0) const { return xyz(point_type{u, v, w}); }
 
    private:
     point_type m_origin_{0, 0, 0};

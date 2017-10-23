@@ -6,6 +6,7 @@
 #define SIMPLA_SPHERICALSURFACE_H
 
 #include <simpla/utilities/Constants.h>
+#include <simpla/utilities/macro.h>
 #include "Surface.h"
 namespace simpla {
 namespace geometry {
@@ -15,8 +16,18 @@ struct SphericalSurface : public Surface {
    protected:
     SphericalSurface() = default;
     SphericalSurface(SphericalSurface const &other) = default;  //: Surface(other), m_radius_(other.m_radius_) {}
-    SphericalSurface(std::shared_ptr<Axis> const &axis, Real radius) : Surface(axis), m_radius_(radius) {
-        SetParameterRange(std::make_tuple(GetMinParameter(), GetMaxParameter()));
+    SphericalSurface(std::shared_ptr<Axis> const &axis, Real radius, Real phi0 = SP_SNaN, Real phi1 = SP_SNaN,
+                     Real theta0 = SP_SNaN, Real theta1 = SP_SNaN)
+        : Surface(axis), m_radius_(radius) {
+        auto min = GetMinParameter();
+        auto max = GetMaxParameter();
+
+        TRY_ASSIGN(min[0], phi0);
+        TRY_ASSIGN(max[0], phi1);
+        TRY_ASSIGN(min[1], theta0);
+        TRY_ASSIGN(min[1], theta1);
+
+        SetParameterRange(min, max);
     }
 
    public:

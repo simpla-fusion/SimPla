@@ -48,3 +48,8 @@
     if (SP_SUCCESS != (_CMD_)) { RUNTIME_ERROR << __STRING(_CMD_); } \
 //**********************************
 #endif /* CORE_toolbox_MACRO_H_ */
+
+#define TRY_ASSIGN(_A_, _B_)                   \
+    {                                          \
+        if (!std::isnan((_B_))) { _A_ = _B_; } \
+    }

@@ -6,6 +6,7 @@
 #define SIMPLA_CYLINDRICALSURFACE_H
 
 #include <simpla/utilities/Constants.h>
+#include <simpla/utilities/macro.h>
 #include "Surface.h"
 namespace simpla {
 namespace geometry {
@@ -15,8 +16,18 @@ struct CylindricalSurface : public Surface {
    protected:
     CylindricalSurface() = default;
     CylindricalSurface(CylindricalSurface const &other) = default;  // : Surface(other), m_radius_(other.m_radius_) {}
-    CylindricalSurface(std::shared_ptr<Axis> const &axis, Real R) : Surface(axis), m_radius_(R) {
-        SetParameterRange(GetMinParameter(), GetMaxParameter());
+    CylindricalSurface(std::shared_ptr<Axis> const &axis, Real R, Real phi0 = SP_SNaN, Real phi1 = SP_SNaN,
+                       Real z0 = SP_SNaN, Real z1 = SP_SNaN)
+        : Surface(axis), m_radius_(R) {
+        auto min = GetMinParameter();
+        auto max = GetMaxParameter();
+
+        TRY_ASSIGN(min[0], phi0);
+        TRY_ASSIGN(max[0], phi1);
+        TRY_ASSIGN(min[1], z0);
+        TRY_ASSIGN(min[1], z1);
+
+        SetParameterRange(min, max);
     }
 
    public:

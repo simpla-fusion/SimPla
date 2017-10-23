@@ -16,8 +16,10 @@ struct Circle : public Curve {
    protected:
     Circle() = default;
     Circle(Circle const &) = default;
-    explicit Circle(std::shared_ptr<Axis> const &axis, Real radius) : Curve(axis), m_radius_(radius) {
-        SetParameterRange(GetMinParameter(), GetMaxParameter());
+    explicit Circle(std::shared_ptr<Axis> const &axis, Real radius, Real alpha0 = SP_SNaN, Real alpha1 = SP_SNaN)
+        : Curve(axis), m_radius_(radius) {
+        SetParameterRange(std::isnan(alpha0) ? GetMinParameter() : alpha0,
+                          std::isnan(alpha1) ? GetMaxParameter() : alpha1);
     }
 
    public:

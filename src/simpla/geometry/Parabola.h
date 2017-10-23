@@ -14,8 +14,10 @@ struct Parabola : public Curve {
    protected:
     Parabola() = default;
     Parabola(Parabola const &other) = default;
-    Parabola(std::shared_ptr<Axis> const &axis, Real focal) : Curve(axis), m_focal_(focal) {
-        SetParameterRange(GetMinParameter(), GetMaxParameter());
+    Parabola(std::shared_ptr<Axis> const &axis, Real focal, Real alpha0 = SP_SNaN, Real alpha1 = SP_SNaN)
+        : Curve(axis), m_focal_(focal) {
+        SetParameterRange(std::isnan(alpha0) ? GetMinParameter() : alpha0,
+                          std::isnan(alpha1) ? GetMaxParameter() : alpha1);
     }
 
    public:
