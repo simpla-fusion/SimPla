@@ -60,11 +60,11 @@ struct Surface : public GeoObject {
      *  == 1 partial overlap
      *  >  1 all inside
      */
-    virtual int CheckOverlapped(box_type const &) const { return false; }
+    virtual int CheckOverlap(box_type const &) const { return false; }
 
     bool IsInside(point_type const &p) const {
-        return CheckOverlapped(std::make_tuple(point_type{p - SP_GEO_DEFAULT_TOLERANCE},
-                                               point_type{p + SP_GEO_DEFAULT_TOLERANCE})) > 1;
+        return CheckOverlap(std::make_tuple(point_type{p - SP_GEO_DEFAULT_TOLERANCE},
+                                            point_type{p + SP_GEO_DEFAULT_TOLERANCE})) > 1;
     }
 
     /**
