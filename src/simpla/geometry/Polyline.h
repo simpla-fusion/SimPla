@@ -15,7 +15,7 @@ struct Polyline : public Curve {
    protected:
     Polyline();
     Polyline(Polyline const &);
-    explicit Polyline(Axis const &axis) : Polyline() { Curve::SetAxis(axis); }
+    explicit Polyline(std::shared_ptr<Axis> const &axis) : Polyline() { Curve::SetAxis(axis); }
 
    public:
     ~Polyline() override;

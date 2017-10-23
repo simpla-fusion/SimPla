@@ -18,7 +18,7 @@ struct Cylindrical : public Body {
 
    protected:
     Cylindrical() = default;
-    explicit Cylindrical(Axis const &axis) : Body(axis) {}
+    explicit Cylindrical(std::shared_ptr<Axis> const &axis) : Body(axis) {}
 
    public:
     ~Cylindrical() override = default;
@@ -38,7 +38,7 @@ struct Cylindrical : public Body {
      * @return
      */
     point_type Value(Real u, Real v, Real w) const override {
-        return m_axis_.o + u * std::cos(v) * m_axis_.x + u * std::sin(v) * m_axis_.y + w * m_axis_.z;
+        return m_axis_->Coordinates(u * std::cos(v), u * std::sin(v), w);
     };
 };
 }  // namespace geometry

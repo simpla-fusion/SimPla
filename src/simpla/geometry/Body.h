@@ -18,7 +18,7 @@ struct Body : public GeoObject {
     ~Body() override = default;
 
     Body(Body const &other) : m_axis_(other.m_axis_){};
-    explicit Body(Axis const &axis) : m_axis_(axis){};
+    explicit Body(std::shared_ptr<Axis> const &axis) : m_axis_(axis){};
 
     virtual std::tuple<bool, bool, bool> IsClosed() const { return std::make_tuple(false, false, false); };
     virtual std::tuple<bool, bool, bool> IsPeriodic() const { return std::make_tuple(false, false, false); };
@@ -39,17 +39,17 @@ struct Body : public GeoObject {
         return std::make_tuple(Value(GetMinParameter()), Value(GetMaxParameter()));
     };
 
-    void SetAxis(Axis const &a) { m_axis_ = a; }
-    Axis const &GetAxis() const { return m_axis_; }
+    void SetAxis(std::shared_ptr<Axis> const &a) { m_axis_ = a; }
+    std::shared_ptr<Axis> GetAxis() const { return m_axis_; }
 
-    void Mirror(const point_type &p) override { m_axis_.Mirror(p); }
-    void Mirror(const Axis &a1) override { m_axis_.Mirror(a1); }
-    void Rotate(const Axis &a1, Real angle) override { m_axis_.Rotate(a1, angle); }
-    void Scale(Real s, int dir) override { m_axis_.Scale(s); }
-    void Translate(const vector_type &v) override { m_axis_.Translate(v); }
+    void Mirror(const point_type &p) override { m_axis_->Mirror(p); }
+    void Mirror(const Axis &a1) override { m_axis_->Mirror(a1); }
+    void Rotate(const Axis &a1, Real angle) override { m_axis_->Rotate(a1, angle); }
+    void Scale(Real s, int dir) override { m_axis_->Scale(s); }
+    void Translate(const vector_type &v) override { m_axis_->Translate(v); }
 
    protected:
-    Axis m_axis_;
+    std::shared_ptr<Axis> m_axis_ = nullptr;
     nTuple<Real, 3> m_min_{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY};
     nTuple<Real, 3> m_max_{SP_INFINITY, SP_INFINITY, SP_INFINITY};
 };

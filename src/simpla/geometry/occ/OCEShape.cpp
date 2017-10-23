@@ -37,7 +37,7 @@ Geom_Curve* OCCCast<Geom_Curve, Curve>::eval(Curve const& c) {
         //        res = new Geom_Circle(gp_Ax2(point(l.Origin()), dir(l.Normal()), dir(l.XAxis())), l.Radius());
     } else if (dynamic_cast<Line const*>(&c) != nullptr) {
         auto const& l = dynamic_cast<Line const&>(c);
-        res = new Geom_Line(point(l.GetAxis().GetOrigin()), dir(l.GetAxis().x));
+        res = new Geom_Line(point(l.GetAxis()->GetOrigin()), dir(l.GetAxis()->x));
     } else {
         UNIMPLEMENTED;
     }

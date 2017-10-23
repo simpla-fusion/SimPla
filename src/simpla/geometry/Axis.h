@@ -33,7 +33,24 @@ struct Axis {
         m_axis_ = other.m_axis_;
         return *this;
     };
-
+    template <typename... Args>
+    static std::shared_ptr<Axis> New(point_type const &origin, point_type const &x_axis) {
+        return std::make_shared<Axis>(origin, x_axis);
+    };
+    template <typename... Args>
+    static std::shared_ptr<Axis> New(point_type const &origin, point_type const &x_axis, point_type const &y_axis) {
+        return std::make_shared<Axis>(origin, x_axis, y_axis);
+    };
+    template <typename... Args>
+    static std::shared_ptr<Axis> New(point_type const &origin, point_type const &x_axis, point_type const &y_axis,
+                                     point_type const &z_axis) {
+        return std::make_shared<Axis>(origin, x_axis, y_axis, z_axis);
+    };
+    static std::shared_ptr<Axis> New(std::shared_ptr<data::DataNode> const &cfg) {
+        std::shared_ptr<Axis> res(new Axis);
+        res->Deserialize(cfg);
+        return res;
+    };
     virtual std::shared_ptr<Axis> Copy() const { return std::make_shared<Axis>(*this); };
 
     void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg);
@@ -61,6 +78,8 @@ struct Axis {
     void Rotate(const Axis &a1, Real angle);
     void Scale(Real s, int dir = -1);
     void Translate(const vector_type &v);
+
+    virtual point_type Coordinates(Real u, Real v = 0, Real w = 0) const { return o + u * x + v * y + v * z; }
 
    private:
     point_type m_origin_{0, 0, 0};

@@ -19,7 +19,7 @@ struct Sphere : public Body {
     ~Sphere() override = default;
 
    protected:
-    explicit Sphere(Axis const &axis) : Body(axis) {}
+    explicit Sphere(std::shared_ptr<Axis> const &axis) : Body(axis) {}
 
    public:
     bool CheckInside(point_type const &x, Real tolerance) const override { return true; }
@@ -37,8 +37,10 @@ struct Sphere : public Body {
      * @return
      */
     point_type Value(Real r, Real phi, Real theta) const override {
-        return m_axis_.o + r * std::cos(theta) * (std::cos(phi) * m_axis_.x + std::sin(phi) * m_axis_.y) +
-               r * std::sin(theta) * m_axis_.z;
+        Real cos_theta = std::cos(theta);
+        return m_axis_->Coordinates(r * cos_theta * std::cos(phi), r * cos_theta * std::sin(phi), r * std::sin(theta));
+        //        return m_axis_.o + r * std::cos(theta) * (std::cos(phi) * m_axis_.x + std::sin(phi) * m_axis_.y) +
+        //               r * std::sin(theta) * m_axis_.z;
     };
 };
 }  // namespace geometry

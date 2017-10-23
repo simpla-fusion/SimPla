@@ -18,8 +18,8 @@ struct Line : public Curve {
    protected:
     Line() = default;
     Line(Line const &) = default;
-    explicit Line(Axis const &axis) : Curve(axis){};
-    Line(point_type const &p0, point_type const &p1) : Curve(Axis{p0, p1 - p0}){};
+    explicit Line(std::shared_ptr<Axis> const &axis) : Curve(axis){};
+    Line(point_type const &p0, point_type const &p1) : Curve(Axis::New(p0, p1 - p0)){};
 
    public:
     ~Line() override = default;
@@ -30,7 +30,7 @@ struct Line : public Curve {
     Real GetMinParameter() const override { return -SP_INFINITY; }
     Real GetMaxParameter() const override { return SP_INFINITY; }
 
-    point_type Value(Real u) const override { return m_axis_.o + u * m_axis_.x; }
+    point_type Value(Real u) const override { return m_axis_->Coordinates(u); }
 };
 
 }  // namespace geometry

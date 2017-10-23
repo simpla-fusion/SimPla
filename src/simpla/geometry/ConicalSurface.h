@@ -16,7 +16,7 @@ struct ConicalSurface : public Surface {
     ConicalSurface() = default;
     ConicalSurface(ConicalSurface const &other) = default;
     //  : Surface(other), m_radius_(other.m_radius_), m_angle_(other.m_angle_) {}
-    ConicalSurface(Axis const &axis, Real R, Real Ang) : Surface(axis), m_radius_(R), m_angle_(Ang) {}
+    ConicalSurface(std::shared_ptr<Axis> const &axis, Real R, Real Ang) : Surface(axis), m_radius_(R), m_angle_(Ang) {}
 
    public:
     ~ConicalSurface() override = default;
@@ -33,8 +33,8 @@ struct ConicalSurface : public Surface {
     Real GetAngle() const { return m_angle_; }
 
     point_type Value(Real u, Real v) const override {
-        return m_axis_.o + (m_radius_ + v * std::sin(m_angle_)) * (std::cos(u) * m_axis_.x + std::sin(u) * m_axis_.y) +
-               v * std::cos(m_angle_) * m_axis_.z;
+        Real r = (m_radius_ + v * std::sin(m_angle_));
+        return m_axis_->Coordinates(r * std::cos(u), r * std::sin(u), v * std::cos(m_angle_));
     };
 
    private:

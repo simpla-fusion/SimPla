@@ -24,9 +24,7 @@ struct Plane : public Surface {
    public:
     ~Plane() override = default;
 
-
-
-    point_type Value(Real u, Real v) const override { return u * m_axis_.x + v * m_axis_.y; };
+    point_type Value(Real u, Real v) const override { return m_axis_->Coordinates(u, v); };
 };
 
 }  // namespace simpla

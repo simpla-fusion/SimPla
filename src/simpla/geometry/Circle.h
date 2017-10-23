@@ -16,7 +16,7 @@ struct Circle : public Curve {
    protected:
     Circle() = default;
     Circle(Circle const &) = default;
-    explicit Circle(Axis const &axis, Real radius) : Curve(axis), m_radius_(radius) {}
+    explicit Circle(std::shared_ptr<Axis> const &axis, Real radius) : Curve(axis), m_radius_(radius) {}
 
    public:
     ~Circle() override = default;
@@ -31,7 +31,8 @@ struct Circle : public Curve {
     Real GetRadius() const { return m_radius_; }
 
     point_type Value(Real alpha) const override {
-        return m_axis_.o + m_radius_ * std::cos(alpha) * m_axis_.x + m_radius_ * std::sin(alpha) * m_axis_.y;
+        return m_axis_->Coordinates(m_radius_ * std::cos(alpha), m_radius_ * std::sin(alpha));
+        //        return  m_axis_.o + m_radius_ * std::cos(alpha) * m_axis_.x + m_radius_ * std::sin(alpha) * m_axis_.y;
     };
 
    protected:

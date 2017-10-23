@@ -17,7 +17,7 @@ struct Curve : public GeoObject {
    public:
     Curve() = default;
     Curve(Curve const &other) : m_axis_(other.m_axis_){};
-    explicit Curve(Axis const &axis) : m_axis_(axis) {}
+    explicit Curve(std::shared_ptr<Axis> const &axis) : m_axis_(axis) {}
 
    public:
     ~Curve() override = default;
@@ -30,11 +30,11 @@ struct Curve : public GeoObject {
 
     virtual point_type Value(Real u) const = 0;
 
-    void SetAxis(Axis const &a) { m_axis_ = a; }
-    Axis const &GetAxis() const { return m_axis_; }
+    void SetAxis(std::shared_ptr<Axis> const &a) { m_axis_ = a; }
+    std::shared_ptr<Axis> GetAxis() const { return m_axis_; }
 
    protected:
-    Axis m_axis_;
+    std::shared_ptr<Axis> m_axis_;
 };
 
 }  // namespace geometry

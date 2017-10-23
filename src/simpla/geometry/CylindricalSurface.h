@@ -15,7 +15,7 @@ struct CylindricalSurface : public Surface {
    protected:
     CylindricalSurface() = default;
     CylindricalSurface(CylindricalSurface const &other) = default;  // : Surface(other), m_radius_(other.m_radius_) {}
-    CylindricalSurface(Axis const &axis, Real R) : Surface(axis), m_radius_(R) {}
+    CylindricalSurface(std::shared_ptr<Axis> const &axis, Real R) : Surface(axis), m_radius_(R) {}
 
    public:
     ~CylindricalSurface() override = default;
@@ -36,7 +36,7 @@ struct CylindricalSurface : public Surface {
      * @return
      */
     point_type Value(Real u, Real v) const override {
-        return m_axis_.o + m_radius_ * std::cos(u) * m_axis_.x + m_radius_ * std::sin(u) * m_axis_.y + v * m_axis_.z;
+        return m_axis_->Coordinates(m_radius_ * std::cos(u), m_radius_ * std::sin(u), v);
     };
 
    private:

@@ -14,7 +14,7 @@ struct Parabola : public Curve {
    protected:
     Parabola() = default;
     Parabola(Parabola const &other) = default;
-    Parabola(Axis const &axis, Real focal) : Curve(axis), m_focal_(focal) {}
+    Parabola(std::shared_ptr<Axis> const &axis, Real focal) : Curve(axis), m_focal_(focal) {}
 
    public:
     ~Parabola() override = default;
@@ -28,7 +28,7 @@ struct Parabola : public Curve {
     void SetFocal(Real f) { m_focal_ = f; }
     Real GetFocal() const { return m_focal_; }
 
-    point_type Value(Real u) const override { return m_axis_.o + u * u / (4. * m_focal_) * m_axis_.x + u * m_axis_.y; };
+    point_type Value(Real u) const override { return m_axis_->Coordinates(u * u / (4. * m_focal_), u, 0); };
 
    protected:
     Real m_focal_ = 1;

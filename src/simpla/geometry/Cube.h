@@ -43,7 +43,7 @@ struct Cube : public Body {
                std::get<0>(m_bound_box_)[2] <= x[2] && x[2] < std::get<1>(m_bound_box_)[2];
     }
 
-    point_type Value(Real u, Real v, Real w) const override { return u * m_axis_.x + v * m_axis_.y + w * m_axis_.z; };
+    point_type Value(Real u, Real v, Real w) const override { return m_axis_->Coordinates(u, v, w); };
 };
 
 // namespace traits

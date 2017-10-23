@@ -16,7 +16,8 @@ struct LinearExtrusionSurface : public SweptSurface {
    protected:
     LinearExtrusionSurface() = default;
     LinearExtrusionSurface(LinearExtrusionSurface const &other) = default;  // : SweptSurface(other) {}
-    LinearExtrusionSurface(Axis const &axis, std::shared_ptr<Curve> const &c) : SweptSurface(axis, c) {}
+    LinearExtrusionSurface(std::shared_ptr<Axis> const &axis, std::shared_ptr<Curve> const &c)
+        : SweptSurface(axis, c) {}
 
    public:
     ~LinearExtrusionSurface() override = default;
@@ -33,7 +34,11 @@ struct LinearExtrusionSurface : public SweptSurface {
         return nTuple<Real, 2>{GetBasisCurve()->GetMaxParameter(), SP_INFINITY};
     }
 
-    point_type Value(Real u, Real v) const override { return GetBasisCurve()->Value(u) + v * m_axis_.x; };
+    point_type Value(Real u, Real v) const override {
+        auto p = GetBasisCurve()->Value(u);
+        p[0] += v;
+        return p;
+    };
 };
 
 }  // namespace simpla

@@ -6,7 +6,6 @@
 #include <simpla/data/DataNode.h>
 #include <simpla/utilities/SPDefines.h>
 #include "Body.h"
-#include "BoundedCurve.h"
 #include "Box.h"
 #include "GeoAlgorithm.h"
 #include "Line.h"
@@ -47,10 +46,9 @@ std::shared_ptr<Intersector> Intersector::New(std::shared_ptr<const GeoObject> c
 size_type Intersector::GetIntersectionPoints(std::shared_ptr<const GeoObject> const& curve,
                                              std::vector<Real>& intersection_point) const {
     size_type count = 0;
-    if (auto line = std::dynamic_pointer_cast<const BoundedCurve<Line>>(curve)) {
-        point_type const& l0 = line->GetStartPoint();
-        point_type const& l1 = line->GetEndPoint();
-
+    if (auto line = std::dynamic_pointer_cast<const Line>(curve)) {
+        //        point_type const& l0 = line->GetStartPoint();
+        //        point_type const& l1 = line->GetEndPoint();
         //        for (auto const& obj : m_pimpl_->m_objs_) {
         //            if (!isOverlapped(obj->GetBoundingBox(), std::make_tuple(l0, l1))) { continue; }
         //            if (auto plane = std::dynamic_pointer_cast<Plane>(obj)) {

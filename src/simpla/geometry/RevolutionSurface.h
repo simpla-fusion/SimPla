@@ -13,7 +13,7 @@ struct RevolutionSurface : public SweptSurface {
    protected:
     RevolutionSurface() = default;
     RevolutionSurface(RevolutionSurface const &other) = default;  //: SweptSurface(other) {}
-    RevolutionSurface(Axis const &axis, std::shared_ptr<Curve> const &c) : SweptSurface(axis, c) {}
+    RevolutionSurface(std::shared_ptr<Axis> const &axis, std::shared_ptr<Curve> const &c) : SweptSurface(axis, c) {}
 
    public:
     ~RevolutionSurface() override = default;
@@ -27,9 +27,10 @@ struct RevolutionSurface : public SweptSurface {
     }
 
     point_type Value(Real u, Real v) const override {
-        vector_type P = GetBasisCurve()->Value(u) - m_axis_.o;
-        return m_axis_.o + (dot(P, m_axis_.z) * (1.0 - std::cos(v))) * m_axis_.z + cross(P, m_axis_.x) * std::sin(v) +
-               P * std::cos(v);
+        vector_type P = GetBasisCurve()->Value(u) - m_axis_->o;
+
+        return m_axis_->o + (dot(P, m_axis_->z) * (1.0 - std::cos(v))) * m_axis_->z +
+               cross(P, m_axis_->x) * std::sin(v) + P * std::cos(v);
     };
 };
 

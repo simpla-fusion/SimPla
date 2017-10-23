@@ -15,7 +15,7 @@ struct SphericalSurface : public Surface {
    protected:
     SphericalSurface() = default;
     SphericalSurface(SphericalSurface const &other) = default;  //: Surface(other), m_radius_(other.m_radius_) {}
-    SphericalSurface(Axis const &axis, Real radius) : Surface(axis), m_radius_(radius) {}
+    SphericalSurface(std::shared_ptr<Axis> const &axis, Real radius) : Surface(axis), m_radius_(radius) {}
 
    public:
     ~SphericalSurface() override = default;
@@ -30,8 +30,12 @@ struct SphericalSurface : public Surface {
     Real GetRadius() const { return m_radius_; }
 
     point_type Value(Real phi, Real theta) const override {
-        return m_axis_.o + m_radius_ * std::cos(theta) * (std::cos(phi) * m_axis_.x + std::sin(phi) * m_axis_.y) +
-               m_radius_ * std::sin(theta) * m_axis_.z;
+        Real cos_theta = std::cos(theta);
+        return m_axis_->Coordinates(m_radius_ * cos_theta * std::cos(phi), m_radius_ * cos_theta * std::sin(phi),
+                                    m_radius_ * std::sin(theta));
+        //        return m_axis_.o + m_radius_ * std::cos(theta) * (std::cos(phi) * m_axis_.x + std::sin(phi) *
+        //        m_axis_.y) +
+        //               m_radius_ * std::sin(theta) * m_axis_.z;
     };
 
    private:
