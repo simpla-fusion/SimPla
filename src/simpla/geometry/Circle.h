@@ -5,12 +5,12 @@
 #ifndef SIMPLA_CIRCLE_H
 #define SIMPLA_CIRCLE_H
 
-#include "Conic.h"
+#include "ParametricCurve.h"
 namespace simpla {
 namespace geometry {
 
-struct Circle : public Conic {
-    SP_GEO_OBJECT_HEAD(Circle, Conic);
+struct Circle : public ParametricCurve {
+    SP_GEO_OBJECT_HEAD(Circle, ParametricCurve);
 
    public:
     Circle() = default;
@@ -18,7 +18,7 @@ struct Circle : public Conic {
     ~Circle() override = default;
 
     template <typename... Args>
-    explicit Circle(Real radius, Args &&... args) : Conic(std::forward<Args>(args)...), m_radius_(radius) {}
+    explicit Circle(Real radius, Args &&... args) : ParametricCurve(std::forward<Args>(args)...), m_radius_(radius) {}
 
     point_type Value(Real alpha) const override {
         return m_origin_ + m_radius_ * std::cos(alpha) * m_x_axis_ + m_radius_ * std::sin(alpha) * m_y_axis_;

@@ -36,9 +36,9 @@ struct Line : public Curve {
     }
     bool IsClosed() const override { return false; };
     bool IsPeriodic() const override { return false; };
-    Real Period() const override { return INIFITY; };
-    Real GetMinParameter() const override { return -INIFITY; }
-    Real GetMaxParameter() const override { return INFINITY; }
+    Real GetPeriod() const override { return SP_INFINITY; };
+    Real GetMinParameter() const override { return -SP_INFINITY; }
+    Real GetMaxParameter() const override { return SP_INFINITY; }
     point_type Value(Real u) const override { return m_origin_ + u * m_x_axis_; }
 
     void SetOrigin(point_type const &p) { m_origin_ = p; }

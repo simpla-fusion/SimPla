@@ -87,13 +87,13 @@ std::tuple<simpla::nTuple<U, N>, simpla::nTuple<U, N>> BoundBox(
 // template <typename T0, typename T1>
 // std::tuple<Real, point_type, point_type> DistanceToBox(std::tuple<T1, T1> const& b, T0 const& x0) {
 //    UNIMPLEMENTED;
-//    return std::make_tuple(SNaN, x0, point_type{SNaN, SNaN, SNaN});
+//    return std::make_tuple(SP_SNaN, x0, point_type{SP_SNaN, SP_SNaN, SP_SNaN});
 //}
 //
 // template <typename T0, typename... Args>
 // std::tuple<Real, point_type, point_type> DistanceToBox(T0 const& b, Args&&... args) {
 //    UNIMPLEMENTED;
-//    return std::make_tuple(SNaN, point_type{SNaN, SNaN, SNaN}, point_type{SNaN, SNaN, SNaN});
+//    return std::make_tuple(SP_SNaN, point_type{SP_SNaN, SP_SNaN, SP_SNaN}, point_type{SP_SNaN, SP_SNaN, SP_SNaN});
 //}
 //
 // template <typename T0, typename T1, typename T2, typename T3>
@@ -175,9 +175,9 @@ std::tuple<Real, Real> NearestPointPointToLine(T0 const& v, T1 const& l0, T2 con
 template <typename T0, typename T1, typename T2, typename T3>
 std::tuple<Real, Real, Real> NearestPointLineToLine(T0 const& P0, T1 const& P1, T2 const& Q0, T3 const& Q1,
                                                     Real tolerance = SP_DEFAULT_GEOMETRY_TOLERANCE) {
-    Real s = SNaN;
-    Real t = SNaN;
-    Real dist2 = SNaN;
+    Real s = SP_SNaN;
+    Real t = SP_SNaN;
+    Real dist2 = SP_SNaN;
 
     auto u = P1 - P0;
     auto v = Q1 - Q0;

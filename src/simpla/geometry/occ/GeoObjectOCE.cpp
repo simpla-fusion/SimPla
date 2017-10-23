@@ -23,7 +23,7 @@ namespace geometry {
 SP_OBJECT_REGISTER(GeoObjectOCE)
 
 struct GeoObjectOCE::pimpl_s {
-    Real m_measure_ = SNaN;
+    Real m_measure_ = SP_SNaN;
     TopoDS_Shape m_occ_shape_;
     box_type m_bounding_box_{{0, 0, 0}, {0, 0, 0}};
 

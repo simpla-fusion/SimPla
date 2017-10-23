@@ -4,11 +4,11 @@
 
 #ifndef SIMPLA_ELLIPSE_H
 #define SIMPLA_ELLIPSE_H
-#include "Conic.h"
+#include "ParametricCurve.h"
 namespace simpla {
 namespace geometry {
-struct Ellipse : public Conic {
-    SP_GEO_OBJECT_HEAD(Ellipse, Conic);
+struct Ellipse : public ParametricCurve {
+    SP_GEO_OBJECT_HEAD(Ellipse, ParametricCurve);
 
    public:
     Ellipse() = default;
@@ -17,7 +17,7 @@ struct Ellipse : public Conic {
 
     template <typename... Args>
     Ellipse(Real major_radius, Real minor_radius, Args &&... args)
-        : Conic(std::forward<Args>(args)...), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {}
+        : ParametricCurve(std::forward<Args>(args)...), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {}
 
     point_type Value(Real alpha) const override {
         return m_origin_ + m_major_radius_ * std::cos(alpha) * m_x_axis_ +

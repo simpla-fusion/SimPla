@@ -4,10 +4,10 @@
 #include "Curve.h"
 namespace simpla {
 namespace geometry {
-// Conic::Conic() = default;
-// Conic::~Conic() = default;
-// std::shared_ptr<simpla::data::DataNode> Conic::Serialize() const { return base_type::Serialize(); };
-// void Conic::Deserialize(std::shared_ptr<simpla::data::DataNode> const& cfg) { base_type::Deserialize(cfg); };
+// ParametricCurve::ParametricCurve() = default;
+// ParametricCurve::ParametricCurveetricCurve() = default;
+// std::shared_ptr<simpla::data::DataNode> ParametricCurve::Serialize() const { return base_type::Serialize(); };
+// void ParametricCurve::Deserialize(std::shared_ptr<simpla::data::DataNode> const& cfg) { base_type::Deserialize(cfg); };
 ////
 ////Circle::Circle() = default;
 ////

@@ -18,9 +18,9 @@ struct Curve : public GeoObject {
 
     virtual bool IsClosed() const { return false; };
     virtual bool IsPeriodic() const { return false; };
-    virtual Real GetPeriod() const { return INFINITY; };
-    virtual Real GetMinParameter() const { return -INFINITY; }
-    virtual Real GetMaxParameter() const { return INFINITY; }
+    virtual Real GetPeriod() const { return SP_INFINITY; };
+    virtual Real GetMinParameter() const { return -SP_INFINITY; }
+    virtual Real GetMaxParameter() const { return SP_INFINITY; }
 
     virtual point_type Value(Real u) const = 0;
 

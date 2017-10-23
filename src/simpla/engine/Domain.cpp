@@ -93,7 +93,7 @@ box_type DomainBase::GetBlockBox() const {
 }
 box_type DomainBase::GetBoundingBox() const {
     return m_pimpl_->m_boundary_ != nullptr ? GetBoundary()->GetBoundingBox()
-                                            : box_type{{SNaN, SNaN, SNaN}, {SNaN, SNaN, SNaN}};
+                                            : box_type{{SP_SNaN, SP_SNaN, SP_SNaN}, {SP_SNaN, SP_SNaN, SP_SNaN}};
 }
 
 int DomainBase::CheckBoundary() const {

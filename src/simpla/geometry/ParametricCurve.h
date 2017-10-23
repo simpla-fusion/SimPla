@@ -2,22 +2,22 @@
 // Created by salmon on 17-10-22.
 //
 
-#ifndef SIMPLA_CONIC_H
-#define SIMPLA_CONIC_H
+#ifndef SIMPLA_PARAMETRICSURFACE_H
+#define SIMPLA_PARAMETRICSURFACE_H
 
 #include "Curve.h"
 namespace simpla {
 namespace geometry {
 
-struct Conic : public Curve {
-    SP_GEO_ABS_OBJECT_HEAD(Conic, Curve);
+struct ParametricCurve : public Curve {
+    SP_GEO_ABS_OBJECT_HEAD(ParametricCurve, Curve);
 
    public:
-    Conic(Conic const &other) = default;
-    Conic() = default;
-    ~Conic() override = default;
+    ParametricCurve(ParametricCurve const &other) = default;
+    ParametricCurve() = default;
+    ~ParametricCurve() override = default;
 
-    Conic(point_type origin, point_type x_axis, point_type y_axis)
+    ParametricCurve(point_type origin, point_type x_axis, point_type y_axis)
         : m_origin_(std::move(origin)), m_x_axis_(std::move(x_axis)), m_y_axis_(std::move(y_axis)) {}
 
     void SetOrigin(point_type const &p) { m_origin_ = p; }
@@ -33,8 +33,7 @@ struct Conic : public Curve {
     point_type m_y_axis_{1, 0, 0};
 };
 
-
-}  //    namespace geometry{
+}  // namespace geometry{
 }  // namespace simpla{
 
-#endif  // SIMPLA_CONIC_H
+#endif  // SIMPLA_PARAMETRICSURFACE_H

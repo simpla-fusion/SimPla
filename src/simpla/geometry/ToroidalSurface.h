@@ -1,0 +1,49 @@
+//
+// Created by salmon on 17-10-23.
+//
+
+#ifndef SIMPLA_TOROIDALSURFACE_H
+#define SIMPLA_TOROIDALSURFACE_H
+
+#include <simpla/utilities/Constants.h>
+#include "ParametricSurface.h"
+
+namespace simpla {
+namespace geometry {
+struct ToroidalSurface : public ParametricSurface {
+    SP_GEO_OBJECT_HEAD(ToroidalSurface, ParametricSurface);
+    ToroidalSurface() = default;
+    ToroidalSurface(ToroidalSurface const &) = default;
+    ~ToroidalSurface() override = default;
+
+    template <typename... Args>
+    ToroidalSurface(Real major_radius, Real minor_radius, Args &&... args)
+        : ParametricSurface(std::forward<Args>(args)...),
+          m_major_radius_(major_radius),
+          m_minor_radius_(minor_radius) {}
+
+    std::tuple<bool, bool> IsClosed() const override { return std::make_tuple(true, true); };
+    std::tuple<bool, bool> IsPeriodic() const override { return std::make_tuple(true, true); };
+    nTuple<Real, 2> GetPeriod() const override { return nTuple<Real, 2>{TWOPI, TWOPI}; };
+    nTuple<Real, 2> GetMinParameter() const override { return nTuple<Real, 2>{0, 0}; }
+    nTuple<Real, 2> GetMaxParameter() const override { return nTuple<Real, 2>{TWOPI, TWOPI}; }
+
+    void GetMajorRadius(Real r) { m_major_radius_ = r; }
+    void GetMinorRadius(Real r) { m_minor_radius_ = r; }
+    Real GetMajorRadius() const { return m_major_radius_; }
+    Real GetMinorRadius() const { return m_minor_radius_; }
+
+    point_type Value(Real u, Real v) const override {
+        return m_origin_ +
+               (m_major_radius_ + m_minor_radius_ * std::cos(v)) * (std::cos(u) * m_x_axis_ + std::sin(u) * m_y_axis_) +
+               m_minor_radius_ * std::sin(v) * m_z_axis_;
+    };
+
+   protected:
+    Real m_major_radius_ = 1;
+    Real m_minor_radius_ = 1;
+};
+
+}  // namespace simpla
+}  // namespace geometry
+#endif  // SIMPLA_TOROIDALSURFACE_H

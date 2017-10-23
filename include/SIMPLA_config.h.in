@@ -4,6 +4,7 @@
 #define SIMPLA_VERSION_MAJOR @SIMPLA_VERSION_MAJOR@
 #define SIMPLA_VERSION_MINOR @SIMPLA_VERSION_MAJOR@
 #define SIMPLA_VERSION_PATCHLEVEL @SIMPLA_VERSION_PATCHLEVEL@
+#define SIMPLA_VERSION_PATCHLEVEL @SIMPLA_VERSION_PATCHLEVEL@
 #define SIMPLA_VERSION_IDENTIFY "@SIMPLA_VERSION_IDENTIFY@"
 
 #define AUTHOR "@AUTHOR@"
@@ -59,7 +60,7 @@
 #define SP_DEFAULT_SPACE_DIMS 3
 #endif
 
-/* SNAN: signaling nan,QNAN: quiet nan ,DENORM_MIN: 2^-1074*/
+/* SNaN: signaling nan,QNAN: quiet nan ,DENORM_MIN: 2^-1074*/
 #cmakedefine SP_ARRAY_INITIALIZE_VALUE @SP_ARRAY_INITIALIZE_VALUE@
 
 #cmakedefine SP_DEFAULT_GEOMETRY_TOLERANCE @SP_DEFAULT_GEOMETRY_TOLERANCE@
@@ -107,9 +108,9 @@ typedef size_type id_type;
 #include <limits>
 
 namespace simpla {
-static constexpr Real INIFITY = std::numeric_limits<Real>::infinity();
-static constexpr Real EPSILON = std::numeric_limits<Real>::epsilon();
-static constexpr Real SNaN = std::numeric_limits<Real>::signaling_NaN();
+static constexpr Real SP_INFINITY = std::numeric_limits<Real>::infinity();
+static constexpr Real SP_EPSILON = std::numeric_limits<Real>::epsilon();
+static constexpr Real SP_SNaN = std::numeric_limits<Real>::signaling_NaN();
 }
 #endif  //__cplusplus
 

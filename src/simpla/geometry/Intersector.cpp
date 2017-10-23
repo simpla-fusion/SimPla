@@ -6,6 +6,7 @@
 #include <simpla/data/DataNode.h>
 #include <simpla/utilities/SPDefines.h>
 #include "Body.h"
+#include "BoundedCurve.h"
 #include "Box.h"
 #include "GeoAlgorithm.h"
 #include "Line.h"
@@ -46,26 +47,27 @@ std::shared_ptr<Intersector> Intersector::New(std::shared_ptr<const GeoObject> c
 size_type Intersector::GetIntersectionPoints(std::shared_ptr<const GeoObject> const& curve,
                                              std::vector<Real>& intersection_point) const {
     size_type count = 0;
-    if (auto line = std::dynamic_pointer_cast<const Line>(curve)) {
-        point_type const& l0 = line->GetVertices()[0];
-        point_type const& l1 = line->GetVertices()[1];
+    if (auto line = std::dynamic_pointer_cast<const BoundedCurve<Line>>(curve)) {
+        point_type const& l0 = line->GetStartPoint();
+        point_type const& l1 = line->GetEndPoint();
 
-//        for (auto const& obj : m_pimpl_->m_objs_) {
-//            if (!isOverlapped(obj->GetBoundingBox(), std::make_tuple(l0, l1))) { continue; }
-//            if (auto plane = std::dynamic_pointer_cast<Plane>(obj)) {
-//                Real dist, s, u, v;
-//                std::tie(dist, s, u, v) = NearestPointLineToPlane(l0, l1, plane->GetVertices()[0],
-//                                                                  plane->GetVertices()[1], plane->GetVertices()[2]);
-//                if (std::abs(dist) > m_pimpl_->m_tolerance_ || s < 0 || s > 1 ||
-//                    !plane->CheckInsideUV(u, v, m_pimpl_->m_tolerance_)) {
-//                    continue;
-//                } else {
-//                    intersection_point.push_back(s);
-//                }
-//            } else {
-//                UNIMPLEMENTED;
-//            }
-//        }
+        //        for (auto const& obj : m_pimpl_->m_objs_) {
+        //            if (!isOverlapped(obj->GetBoundingBox(), std::make_tuple(l0, l1))) { continue; }
+        //            if (auto plane = std::dynamic_pointer_cast<Plane>(obj)) {
+        //                Real dist, s, u, v;
+        //                std::tie(dist, s, u, v) = NearestPointLineToPlane(l0, l1, plane->GetVertices()[0],
+        //                                                                  plane->GetVertices()[1],
+        //                                                                  plane->GetVertices()[2]);
+        //                if (std::abs(dist) > m_pimpl_->m_tolerance_ || s < 0 || s > 1 ||
+        //                    !plane->CheckInsideUV(u, v, m_pimpl_->m_tolerance_)) {
+        //                    continue;
+        //                } else {
+        //                    intersection_point.push_back(s);
+        //                }
+        //            } else {
+        //                UNIMPLEMENTED;
+        //            }
+        //        }
     }
     return count;
 }
