@@ -124,6 +124,35 @@ template <typename TReduction, typename TExpr>
 __device__ __host__ auto reduction(TExpr const &expr) {
     return reduction_s<TReduction>::eval(expr);
 };
+//template <typename TL, typename TR>
+//struct contraction_s;
+//
+//template <typename T, int N, int M>
+//struct contraction_s<nTuple<T, N>, nTuple<T, N, M>> {
+//    typedef nTuple<T, N> lhs_type;
+//    typedef nTuple<T, N, M> rhs_type;
+//    typedef nTuple<T, M> res_type;
+//    __device__ __host__ static auto eval(lhs_type const &lhs, rhs_type const &rhs) {
+//        res_type res = lhs[0] * rhs[0];
+//        for (int i = 1; i < N; ++i) { res += lhs[i] * rhs[i]; }
+//        return res;
+//    }
+//};
+//template <typename T, int N, int M>
+//struct contraction_s<nTuple<T, N, M>, nTuple<T, M>> {
+//    typedef nTuple<T, N> rhs_type;
+//    typedef nTuple<T, N, M> lhs_type;
+//    typedef nTuple<T, N> res_type;
+//    __device__ __host__ static auto eval(lhs_type const &lhs, rhs_type const &rhs) {
+//        res_type res;
+//        for (int i = 0; i < N; ++i) { res[i] = reduction<tags::addition>(lhs[0] * rhs[0]); }
+//        return res;
+//    }
+//};
+//template <typename TL, typename TR>
+//__device__ __host__ auto contraction(TL const &lhs, TR const &rhs) {
+//    return contraction_s<TL, TR>::eval(lhs, rhs);
+//};
 };
 
 template <typename TOP, typename... Args>

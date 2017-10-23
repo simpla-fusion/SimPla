@@ -19,7 +19,7 @@ struct Cone : public Body {
     ~Cone() override = default;
 
    protected:
-    explicit Cone(std::shared_ptr<Axis> const &axis, Real angle) : Body(axis), m_semi_angle_(angle) {
+    explicit Cone( Axis  const &axis, Real angle) : Body(axis), m_semi_angle_(angle) {
         SetParameterRange(GetMinParameter(), GetMaxParameter());
     }
 
@@ -44,7 +44,7 @@ struct Cone : public Body {
      */
     point_type Value(Real R, Real theta, Real v) const override {
         Real r = (R + v * std::sin(m_semi_angle_));
-        return m_axis_->Coordinates(r * std::cos(theta), r * std::sin(theta), v * std::cos(m_semi_angle_));
+        return m_axis_.Coordinates(r * std::cos(theta), r * std::sin(theta), v * std::cos(m_semi_angle_));
         //        return m_axis_.o +
         //               (R + v * std::sin(m_semi_angle_)) * (std::cos(theta) * m_axis_.x + std::sin(theta) * m_axis_.y)
         //               +

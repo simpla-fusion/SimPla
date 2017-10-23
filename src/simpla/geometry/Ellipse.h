@@ -14,7 +14,7 @@ struct Ellipse : public Curve {
     Ellipse() = default;
     Ellipse(Ellipse const &other) = default;
     //        : Curve(other), m_major_radius_(other.m_major_radius_), m_minor_radius_(other.m_minor_radius_) {}
-    Ellipse(std::shared_ptr<Axis> const &axis, Real major_radius, Real minor_radius, Real alpha0 = SP_SNaN,
+    Ellipse( Axis  const &axis, Real major_radius, Real minor_radius, Real alpha0 = SP_SNaN,
             Real alpha1 = SP_SNaN)
         : Curve(axis), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {
         SetParameterRange(std::isnan(alpha0) ? GetMinParameter() : alpha0,
@@ -36,7 +36,7 @@ struct Ellipse : public Curve {
     Real GetMinorRadius() const { return m_minor_radius_; }
 
     point_type Value(Real alpha) const override {
-        return m_axis_->Coordinates(m_major_radius_ * std::cos(alpha), m_minor_radius_ * std::sin(alpha));
+        return m_axis_.Coordinates(m_major_radius_ * std::cos(alpha), m_minor_radius_ * std::sin(alpha));
     };
 
    protected:

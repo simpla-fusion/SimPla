@@ -19,8 +19,8 @@ struct Sphere : public Body {
     ~Sphere() override = default;
 
    protected:
-    explicit Sphere(std::shared_ptr<Axis> const &axis, Real r0 = SP_SNaN, Real r1 = SP_SNaN, Real phi0 = SP_SNaN,
-                    Real phi1 = SP_SNaN, Real theta0 = SP_SNaN, Real theta1 = SP_SNaN)
+    explicit Sphere(Axis const &axis, Real r0 = SP_SNaN, Real r1 = SP_SNaN, Real phi0 = SP_SNaN, Real phi1 = SP_SNaN,
+                    Real theta0 = SP_SNaN, Real theta1 = SP_SNaN)
         : Body(axis) {
         auto min = GetMinParameter();
         auto max = GetMaxParameter();
@@ -33,7 +33,7 @@ struct Sphere : public Body {
 
         SetParameterRange(min, max);
     }
-    Sphere(Real r) : Sphere(Axis::New(), 0, r) {}
+    Sphere(Real r) : Sphere(Axis{}, 0, r) {}
 
    public:
     bool CheckInside(point_type const &x, Real tolerance) const override { return true; }
@@ -52,7 +52,7 @@ struct Sphere : public Body {
      */
     point_type Value(Real r, Real phi, Real theta) const override {
         Real cos_theta = std::cos(theta);
-        return m_axis_->Coordinates(r * cos_theta * std::cos(phi), r * cos_theta * std::sin(phi), r * std::sin(theta));
+        return m_axis_.Coordinates(r * cos_theta * std::cos(phi), r * cos_theta * std::sin(phi), r * std::sin(theta));
         //        return m_axis_.o + r * std::cos(theta) * (std::cos(phi) * m_axis_.x + std::sin(phi) * m_axis_.y) +
         //               r * std::sin(theta) * m_axis_.z;
     };

@@ -14,11 +14,11 @@ namespace geometry {
 
 struct Body : public GeoObject {
     SP_GEO_ABS_OBJECT_HEAD(Body, GeoObject);
-    Body() : m_axis_(Axis::New()){};
+    Body(){};
     ~Body() override = default;
 
     Body(Body const &other) : m_axis_(other.m_axis_){};
-    explicit Body(std::shared_ptr<Axis> const &axis) : m_axis_(axis){};
+    explicit Body(Axis const &axis) : m_axis_(axis){};
 
     virtual std::tuple<bool, bool, bool> IsClosed() const { return std::make_tuple(false, false, false); };
     virtual std::tuple<bool, bool, bool> IsPeriodic() const { return std::make_tuple(false, false, false); };
@@ -48,22 +48,22 @@ struct Body : public GeoObject {
     };
 
     bool CheckInside(point_type const &x, Real tolerance) const override {
-        auto uvw = m_axis_->uvw(x);
+        auto uvw = m_axis_.uvw(x);
         return m_uvw_min_[0] <= x[0] && x[0] < m_uvw_max_[0] &&  //
                m_uvw_min_[1] <= x[1] && x[1] < m_uvw_max_[1] &&  //
                m_uvw_min_[2] <= x[2] && x[2] < m_uvw_max_[2];
     }
-    void SetAxis(std::shared_ptr<Axis> const &a) { m_axis_ = a; }
-    std::shared_ptr<Axis> GetAxis() const { return m_axis_; }
+    void SetAxis(Axis const &a) { m_axis_ = a; }
+    Axis GetAxis() const { return m_axis_; }
 
-    void Mirror(const point_type &p) override { m_axis_->Mirror(p); }
-    void Mirror(const Axis &a1) override { m_axis_->Mirror(a1); }
-    void Rotate(const Axis &a1, Real angle) override { m_axis_->Rotate(a1, angle); }
-    void Scale(Real s, int dir) override { m_axis_->Scale(s); }
-    void Translate(const vector_type &v) override { m_axis_->Translate(v); }
+    void Mirror(const point_type &p) override { m_axis_.Mirror(p); }
+    void Mirror(const Axis &a1) override { m_axis_.Mirror(a1); }
+    void Rotate(const Axis &a1, Real angle) override { m_axis_.Rotate(a1, angle); }
+    void Scale(Real s, int dir) override { m_axis_.Scale(s); }
+    void Translate(const vector_type &v) override { m_axis_.Translate(v); }
 
    protected:
-    std::shared_ptr<Axis> m_axis_ = nullptr;
+    Axis m_axis_;
     nTuple<Real, 3> m_uvw_min_{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY};
     nTuple<Real, 3> m_uvw_max_{SP_INFINITY, SP_INFINITY, SP_INFINITY};
 };

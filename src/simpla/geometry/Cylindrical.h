@@ -19,7 +19,7 @@ struct Cylindrical : public Body {
 
    protected:
     Cylindrical() = default;
-    explicit Cylindrical(std::shared_ptr<Axis> const &axis, Real r0 = SP_SNaN, Real r1 = SP_SNaN, Real phi0 = SP_SNaN,
+    explicit Cylindrical( Axis  const &axis, Real r0 = SP_SNaN, Real r1 = SP_SNaN, Real phi0 = SP_SNaN,
                          Real phi1 = SP_SNaN, Real z0 = SP_SNaN, Real z1 = SP_SNaN)
         : Body(axis) {
         auto min = GetMinParameter();
@@ -52,7 +52,7 @@ struct Cylindrical : public Body {
      * @return
      */
     point_type Value(Real u, Real v, Real w) const override {
-        return m_axis_->Coordinates(u * std::cos(v), u * std::sin(v), w);
+        return m_axis_.Coordinates(u * std::cos(v), u * std::sin(v), w);
     };
 };
 }  // namespace geometry

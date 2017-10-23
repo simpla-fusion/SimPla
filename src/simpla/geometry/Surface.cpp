@@ -11,12 +11,12 @@ namespace geometry {
 
 std::shared_ptr<data::DataNode> Surface::Serialize() const {
     auto res = base_type::Serialize();
-    res->Set("Axis", m_axis_->Serialize());
+    res->Set("Axis", m_axis_.Serialize());
     return res;
 };
 void Surface::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
     base_type::Deserialize(cfg);
-    m_axis_ = Axis::New(cfg->Get("Axis"));
+    m_axis_.Deserialize(cfg->Get("Axis"));
 }
 // std::shared_ptr<GeoObject> Surface::GetBoundary() const {
 //    UNIMPLEMENTED;

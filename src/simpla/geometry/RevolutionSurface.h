@@ -13,8 +13,7 @@ struct RevolutionSurface : public SweptSurface {
    protected:
     RevolutionSurface() = default;
     RevolutionSurface(RevolutionSurface const &other) = default;  //: SweptSurface(other) {}
-    RevolutionSurface(std::shared_ptr<Axis> const &axis, std::shared_ptr<Curve> const &c, Real v0 = SP_SNaN,
-                      Real v1 = SP_SNaN)
+    RevolutionSurface(Axis const &axis, std::shared_ptr<Curve> const &c, Real v0 = SP_SNaN, Real v1 = SP_SNaN)
         : SweptSurface(c), m_r_axis_(axis) {
         auto min = GetMinParameter();
         auto max = GetMaxParameter();
@@ -34,14 +33,14 @@ struct RevolutionSurface : public SweptSurface {
         return nTuple<Real, 2>{TWOPI, GetBasisCurve()->GetMaxParameter()};
     }
     point_type Value(Real u, Real v) const override {
-        vector_type P = GetBasisCurve()->Value(u) - m_r_axis_->o;
+        vector_type P = GetBasisCurve()->Value(u) - m_r_axis_.o;
 
-        return m_r_axis_->o + (dot(P, m_r_axis_->z) * (1.0 - std::cos(v))) * m_r_axis_->z +
-               cross(P, m_r_axis_->x) * std::sin(v) + P * std::cos(v);
+        return m_r_axis_.o + (dot(P, m_r_axis_.z) * (1.0 - std::cos(v))) * m_r_axis_.z +
+               cross(P, m_r_axis_.x) * std::sin(v) + P * std::cos(v);
     };
 
    private:
-    std::shared_ptr<Axis> m_r_axis_ = nullptr;
+    Axis m_r_axis_;
 };
 
 }  // namespace simpla

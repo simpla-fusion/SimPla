@@ -14,7 +14,7 @@ struct Parabola : public Curve {
    protected:
     Parabola() = default;
     Parabola(Parabola const &other) = default;
-    Parabola(std::shared_ptr<Axis> const &axis, Real focal, Real alpha0 = SP_SNaN, Real alpha1 = SP_SNaN)
+    Parabola( Axis  const &axis, Real focal, Real alpha0 = SP_SNaN, Real alpha1 = SP_SNaN)
         : Curve(axis), m_focal_(focal) {
         SetParameterRange(std::isnan(alpha0) ? GetMinParameter() : alpha0,
                           std::isnan(alpha1) ? GetMaxParameter() : alpha1);
@@ -32,7 +32,7 @@ struct Parabola : public Curve {
     void SetFocal(Real f) { m_focal_ = f; }
     Real GetFocal() const { return m_focal_; }
 
-    point_type Value(Real u) const override { return m_axis_->Coordinates(u * u / (4. * m_focal_), u, 0); };
+    point_type Value(Real u) const override { return m_axis_.Coordinates(u * u / (4. * m_focal_), u, 0); };
 
    protected:
     Real m_focal_ = 1;

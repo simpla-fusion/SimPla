@@ -17,7 +17,7 @@ struct ToroidalSurface : public Surface {
    protected:
     ToroidalSurface() = default;
     ToroidalSurface(ToroidalSurface const &) = default;
-    ToroidalSurface(std::shared_ptr<Axis> const &axis, Real major_radius, Real minor_radius, Real phi0 = SP_SNaN,
+    ToroidalSurface( Axis  const &axis, Real major_radius, Real minor_radius, Real phi0 = SP_SNaN,
                     Real phi1 = SP_SNaN, Real theta0 = SP_SNaN, Real theta1 = SP_SNaN)
         : Surface(axis), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {
         auto min = GetMinParameter();
@@ -47,7 +47,7 @@ struct ToroidalSurface : public Surface {
 
     point_type Value(Real u, Real v) const override {
         Real r = (m_major_radius_ + m_minor_radius_ * std::cos(v));
-        return m_axis_->Coordinates(r * std::cos(u), r * std::sin(u), m_minor_radius_ * std::sin(v));
+        return m_axis_.Coordinates(r * std::cos(u), r * std::sin(u), m_minor_radius_ * std::sin(v));
         //        return m_axis_.o +
         //               (m_major_radius_ + m_minor_radius_ * std::cos(v)) * (std::cos(u) * m_axis_.x + std::sin(u) *
         //               m_axis_.y) +

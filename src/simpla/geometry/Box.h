@@ -23,7 +23,7 @@ struct Box : public Body {
         return std::shared_ptr<Box>(new Box(box));
     }
 
-    point_type Value(Real u, Real v, Real w) const override { return m_axis_->Coordinates(u, v, w); };
+    point_type Value(Real u, Real v, Real w) const override { return m_axis_.Coordinates(u, v, w); };
 };
 
 }  // namespace geometry

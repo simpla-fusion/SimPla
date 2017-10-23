@@ -17,7 +17,7 @@ struct Curve : public GeoObject {
    public:
     Curve() = default;
     Curve(Curve const &other) : m_axis_(other.m_axis_){};
-    explicit Curve(std::shared_ptr<Axis> const &axis) : m_axis_(axis) {}
+    explicit Curve( Axis  const &axis) : m_axis_(axis) {}
 
    public:
     ~Curve() override = default;
@@ -39,11 +39,11 @@ struct Curve : public GeoObject {
 
     virtual point_type Value(Real u) const = 0;
 
-    void SetAxis(std::shared_ptr<Axis> const &a) { m_axis_ = a; }
-    std::shared_ptr<Axis> GetAxis() const { return m_axis_; }
+    void SetAxis( Axis  const &a) { m_axis_ = a; }
+     Axis  GetAxis() const { return m_axis_; }
 
    protected:
-    std::shared_ptr<Axis> m_axis_;
+     Axis  m_axis_;
     Real m_u_min_ = SP_SNaN, m_u_max_ = SP_SNaN;
 };
 

@@ -18,14 +18,14 @@ struct Plane : public Surface {
     Plane() = default;
     Plane(Plane const &) = default;
 
-    explicit Plane(std::shared_ptr<Axis> const &axis) : Surface(axis) {
+    explicit Plane( Axis  const &axis) : Surface(axis) {
         SetParameterRange(std::make_tuple(GetMinParameter(), GetMaxParameter()));
     }
 
    public:
     ~Plane() override = default;
 
-    point_type Value(Real u, Real v) const override { return m_axis_->Coordinates(u, v); };
+    point_type Value(Real u, Real v) const override { return m_axis_.Coordinates(u, v); };
 };
 
 }  // namespace simpla
