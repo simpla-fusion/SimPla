@@ -5,12 +5,13 @@
 #ifndef SIMPLA_CIRCLE_H
 #define SIMPLA_CIRCLE_H
 
-#include "ParametricCurve.h"
+#include <cmath>
+#include "Curve.h"
 namespace simpla {
 namespace geometry {
 
-struct Circle : public ParametricCurve {
-    SP_GEO_OBJECT_HEAD(Circle, ParametricCurve);
+struct Circle : public Curve {
+    SP_GEO_OBJECT_HEAD(Circle, Curve);
 
    public:
     Circle() = default;
@@ -18,11 +19,8 @@ struct Circle : public ParametricCurve {
     ~Circle() override = default;
 
     template <typename... Args>
-    explicit Circle(Real radius, Args &&... args) : ParametricCurve(std::forward<Args>(args)...), m_radius_(radius) {}
+    explicit Circle(Real radius, Args &&... args) : Curve(std::forward<Args>(args)...), m_radius_(radius) {}
 
-    point_type Value(Real alpha) const override {
-        return m_origin_ + m_radius_ * std::cos(alpha) * m_x_axis_ + m_radius_ * std::sin(alpha) * m_y_axis_;
-    };
     bool IsClosed() const override { return true; };
     bool IsPeriodic() const override { return true; };
     Real GetPeriod() const override { return TWOPI; };
@@ -31,6 +29,10 @@ struct Circle : public ParametricCurve {
 
     void SetRadius(Real r) { m_radius_ = r; }
     Real GetRadius() const { return m_radius_; }
+
+    point_type Value(Real alpha) const override {
+        return m_axis_.o + m_radius_ * std::cos(alpha) * m_axis_.x + m_radius_ * std::sin(alpha) * m_axis_.y;
+    };
 
    protected:
     Real m_radius_ = 1;

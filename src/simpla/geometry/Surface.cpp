@@ -9,13 +9,16 @@
 namespace simpla {
 namespace geometry {
 
-
 std::shared_ptr<data::DataNode> Surface::Serialize() const {
     auto cfg = base_type::Serialize();
+    res->Set("Axis", m_axis_.Serialize());
     return cfg;
 };
-void Surface::Deserialize(std::shared_ptr<data::DataNode> const& cfg) { base_type::Deserialize(cfg); }
-//std::shared_ptr<GeoObject> Surface::GetBoundary() const {
+void Surface::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
+    base_type::Deserialize(cfg);
+    m_axis_.Deserialize(cfg->Get("Axis"));
+}
+// std::shared_ptr<GeoObject> Surface::GetBoundary() const {
 //    UNIMPLEMENTED;
 //    return nullptr;
 //}

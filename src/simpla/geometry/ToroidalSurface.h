@@ -6,19 +6,19 @@
 #define SIMPLA_TOROIDALSURFACE_H
 
 #include <simpla/utilities/Constants.h>
-#include "ParametricSurface.h"
+#include "Surface.h"
 
 namespace simpla {
 namespace geometry {
-struct ToroidalSurface : public ParametricSurface {
-    SP_GEO_OBJECT_HEAD(ToroidalSurface, ParametricSurface);
+struct ToroidalSurface : public Surface {
+    SP_GEO_OBJECT_HEAD(ToroidalSurface, Surface);
     ToroidalSurface() = default;
     ToroidalSurface(ToroidalSurface const &) = default;
     ~ToroidalSurface() override = default;
 
     template <typename... Args>
     ToroidalSurface(Real major_radius, Real minor_radius, Args &&... args)
-        : ParametricSurface(std::forward<Args>(args)...),
+        : Surface(std::forward<Args>(args)...),
           m_major_radius_(major_radius),
           m_minor_radius_(minor_radius) {}
 
@@ -34,9 +34,9 @@ struct ToroidalSurface : public ParametricSurface {
     Real GetMinorRadius() const { return m_minor_radius_; }
 
     point_type Value(Real u, Real v) const override {
-        return m_origin_ +
-               (m_major_radius_ + m_minor_radius_ * std::cos(v)) * (std::cos(u) * m_x_axis_ + std::sin(u) * m_y_axis_) +
-               m_minor_radius_ * std::sin(v) * m_z_axis_;
+        return m_axis_.o +
+               (m_major_radius_ + m_minor_radius_ * std::cos(v)) * (std::cos(u) * m_axis_.x + std::sin(u) * m_axis_.y) +
+               m_minor_radius_ * std::sin(v) * m_axis_.z;
     };
 
    protected:

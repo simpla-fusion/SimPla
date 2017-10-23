@@ -4,12 +4,12 @@
 
 #ifndef SIMPLA_PARABOLA_H
 #define SIMPLA_PARABOLA_H
-#include "ParametricCurve.h"
+#include "Curve.h"
 namespace simpla {
 namespace geometry {
 
-struct Parabola : public ParametricCurve {
-    SP_GEO_OBJECT_HEAD(Parabola, ParametricCurve);
+struct Parabola : public Curve {
+    SP_GEO_OBJECT_HEAD(Parabola, Curve);
 
    public:
     Parabola() = default;
@@ -17,7 +17,7 @@ struct Parabola : public ParametricCurve {
     ~Parabola() override = default;
 
     template <typename... Args>
-    explicit Parabola(Real focal, Args &&... args) : ParametricCurve(std::forward<Args>(args)...), m_focal_(focal) {}
+    explicit Parabola(Real focal, Args &&... args) : Curve(std::forward<Args>(args)...), m_focal_(focal) {}
 
     bool IsClosed() const override { return false; };
     bool IsPeriodic() const override { return false; };
@@ -28,7 +28,7 @@ struct Parabola : public ParametricCurve {
     void SetFocal(Real f) { m_focal_ = f; }
     Real GetFocal() const { return m_focal_; }
 
-    point_type Value(Real u) const override { return m_origin_ + u * u / (4. * m_focal_) * m_x_axis_ + u * m_y_axis_; };
+    point_type Value(Real u) const override { return m_axis_.o + u * u / (4. * m_focal_) * m_axis_.x + u * m_axis_.y; };
 
    protected:
     Real m_focal_ = 1;

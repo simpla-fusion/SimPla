@@ -9,7 +9,7 @@ std::shared_ptr<data::DataNode> RevolveZ::Serialize() const {
     auto tdb = base_type::Serialize();
 
     tdb->template SetValue("Axis", m_phi_axe_);
-    tdb->template SetValue("Origin", m_origin_);
+    tdb->template SetValue("Origin", m_axis_.o);
     tdb->template SetValue("Phi", nTuple<Real, 2>{m_angle_min_, m_angle_max_});
 
     tdb->Set("2DShape", base_obj->Serialize());

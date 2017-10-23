@@ -4,12 +4,12 @@
 
 #ifndef SIMPLA_HYPERBOLA_H
 #define SIMPLA_HYPERBOLA_H
-#include "ParametricCurve.h"
+#include "Curve.h"
 namespace simpla {
 namespace geometry {
 
-struct Hyperbola : public ParametricCurve {
-    SP_GEO_OBJECT_HEAD(Hyperbola, ParametricCurve);
+struct Hyperbola : public Curve {
+    SP_GEO_OBJECT_HEAD(Hyperbola, Curve);
 
    public:
     Hyperbola() = default;
@@ -18,7 +18,7 @@ struct Hyperbola : public ParametricCurve {
 
     template <typename... Args>
     Hyperbola(Real major_radius, Real minor_radius, Args &&... args)
-        : ParametricCurve(std::forward<Args>(args)...), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {}
+        : Curve(std::forward<Args>(args)...), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {}
 
     bool IsClosed() const override { return false; };
     bool IsPeriodic() const override { return false; };
@@ -32,8 +32,8 @@ struct Hyperbola : public ParametricCurve {
     Real GetMinorRadius() const { return m_minor_radius_; }
 
     point_type Value(Real alpha) const override {
-        return m_origin_ + m_major_radius_ * std::cosh(alpha) * m_x_axis_ +
-               m_minor_radius_ * std::sinh(alpha) * m_y_axis_;
+        return m_axis_.o + m_major_radius_ * std::cosh(alpha) * m_axis_.x +
+               m_minor_radius_ * std::sinh(alpha) * m_axis_.y;
     };
 
    protected:

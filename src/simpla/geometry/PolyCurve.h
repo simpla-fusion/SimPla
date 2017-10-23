@@ -5,19 +5,19 @@
 #ifndef SIMPLA_POLYCURVE_H
 #define SIMPLA_POLYCURVE_H
 
-#include "ParametricCurve.h"
+#include "Curve.h"
 namespace simpla {
 namespace geometry {
 
-struct PolyCurve : public ParametricCurve {
-    SP_GEO_OBJECT_HEAD(PolyCurve, ParametricCurve);
+struct PolyCurve : public Curve {
+    SP_GEO_OBJECT_HEAD(PolyCurve, Curve);
 
    protected:
     PolyCurve();
     PolyCurve(PolyCurve const &);
     template <typename... Args>
     explicit PolyCurve(Args &&... args) : PolyCurve() {
-        ParametricCurve::SetUp(std::forward<Args>(args)...);
+        Curve::SetUp(std::forward<Args>(args)...);
     }
 
    public:

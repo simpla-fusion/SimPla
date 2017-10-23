@@ -8,6 +8,7 @@
 #include <simpla/algebra/nTuple.h>
 #include <memory>
 #include "GeoObject.h"
+#include "Axis.h"
 namespace simpla {
 namespace geometry {
 
@@ -21,6 +22,9 @@ struct Surface : public GeoObject {
     Surface(Surface const &) = default;
     ~Surface() override = default;
 
+    template <typename... Args>
+    explicit Surface(Args &&... args) : m_axis_(std::forward<Args>(args)...) {}
+
     virtual std::tuple<bool, bool> IsClosed() const { return std::make_tuple(false, false); };
     virtual std::tuple<bool, bool> IsPeriodic() const { return std::make_tuple(false, false); };
     virtual nTuple<Real, 2> GetPeriod() const { return nTuple<Real, 2>{SP_INFINITY, SP_INFINITY}; };
@@ -29,6 +33,12 @@ struct Surface : public GeoObject {
 
     virtual point_type Value(Real u, Real v) const = 0;
     point_type Value(nTuple<Real, 2> const &u) const { return Value(u[0], u[1]); };
+
+    void SetAxis(Axis const &a) { m_axis_ = a; }
+    Axis const &GetAxis() const { return m_axis_; }
+
+   protected:
+    Axis m_axis_;
 };
 
 }  // namespace geometry

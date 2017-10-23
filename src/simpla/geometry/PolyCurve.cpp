@@ -15,7 +15,7 @@ struct PolyCurve::pimpl_s {
     std::list<std::pair<Real, std::shared_ptr<Curve>>> m_c_list_;
 };
 PolyCurve::PolyCurve() : m_pimpl_(new pimpl_s) {}
-PolyCurve::PolyCurve(PolyCurve const &other) : ParametricCurve(other), m_pimpl_(new pimpl_s) {}
+PolyCurve::PolyCurve(PolyCurve const &other) : Curve(other), m_pimpl_(new pimpl_s) {}
 PolyCurve::~PolyCurve() { delete m_pimpl_; }
 
 bool PolyCurve::IsClosed() const { return m_pimpl_->m_is_closed_; }

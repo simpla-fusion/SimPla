@@ -15,7 +15,7 @@ struct Polyline::pimpl_s {
     std::list<std::pair<Real, std::shared_ptr<Curve>>> m_c_list_;
 };
 Polyline::Polyline() : m_pimpl_(new pimpl_s) {}
-Polyline::Polyline(Polyline const &other) : ParametricCurve(other), m_pimpl_(new pimpl_s) {}
+Polyline::Polyline(Polyline const &other) : Curve(other), m_pimpl_(new pimpl_s) {}
 Polyline::~Polyline() { delete m_pimpl_; }
 
 bool Polyline::IsClosed() const { return m_pimpl_->m_is_closed_; }

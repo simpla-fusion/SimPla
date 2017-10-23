@@ -9,15 +9,15 @@ namespace geometry {
 
 void Plane::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
-    m_origin_ = cfg->GetValue("Origin", m_origin_);
-    m_x_axis_ = cfg->GetValue("XAxis", m_x_axis_);
-    m_y_axis_ = cfg->GetValue("YAxis", m_y_axis_);
+    m_axis_.o = cfg->GetValue("Origin", m_axis_.o);
+    m_axis_.x = cfg->GetValue("XAxis", m_axis_.x);
+    m_axis_.y = cfg->GetValue("YAxis", m_axis_.y);
 }
 std::shared_ptr<simpla::data::DataNode> Plane::Serialize() const {
     auto res = base_type::Serialize();
-    res->SetValue("Origin", m_origin_);
-    res->SetValue("XAxis", m_x_axis_);
-    res->SetValue("YAxis", m_y_axis_);
+    res->SetValue("Origin", m_axis_.o);
+    res->SetValue("XAxis", m_axis_.x);
+    res->SetValue("YAxis", m_axis_.y);
     return res;
 }
 

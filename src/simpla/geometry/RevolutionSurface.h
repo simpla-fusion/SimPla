@@ -14,8 +14,7 @@ struct RevolutionSurface : public SweptSurface {
     ~RevolutionSurface() override = default;
 
     template <typename... Args>
-    explicit RevolutionSurface(point_type const &origin, Args &&... args)
-        : SweptSurface(std::forward<Args>(args)...), m_origin_(origin) {}
+    explicit RevolutionSurface(Args &&... args) : SweptSurface(std::forward<Args>(args)...) {}
 
     std::tuple<bool, bool> IsClosed() const override { return std::make_tuple(true, GetBasisCurve()->IsClosed()); };
     std::tuple<bool, bool> IsPeriodic() const override { return std::make_tuple(true, GetBasisCurve()->IsPeriodic()); };
@@ -26,16 +25,10 @@ struct RevolutionSurface : public SweptSurface {
     }
 
     point_type Value(Real u, Real v) const override {
-        vector_type P = GetBasisCurve()->Value(u) - m_origin_;
-        return m_origin_ + (dot(P, m_direction_) * (1.0 - std::cos(v))) * m_direction_ +
-               cross(P, m_direction_) * std::sin(v) + P * std::cos(v);
+        vector_type P = GetBasisCurve()->Value(u) - m_axis_.o;
+        return m_axis_.o + (dot(P, m_axis_.z) * (1.0 - std::cos(v))) * m_axis_.z + cross(P, m_axis_.x) * std::sin(v) +
+               P * std::cos(v);
     };
-
-    void SetOrigin(point_type const &p) { m_origin_ = p; }
-    point_type const &GetOrigin() const { return m_origin_; }
-
-   private:
-    point_type m_origin_{0, 0, 0};
 };
 
 }  // namespace simpla

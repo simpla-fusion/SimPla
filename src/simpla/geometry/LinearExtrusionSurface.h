@@ -6,7 +6,7 @@
 #define SIMPLA_LINEAREXTRUSIONSURFACE_H
 
 #include <simpla/utilities/Constants.h>
-#include "ParametricSurface.h"
+#include "Surface.h"
 #include "SweptSurface.h"
 namespace simpla {
 namespace geometry {
@@ -31,7 +31,7 @@ struct LinearExtrusionSurface : public SweptSurface {
         return nTuple<Real, 2>{GetBasisCurve()->GetMaxParameter(), SP_INFINITY};
     }
 
-    point_type Value(Real u, Real v) const override { return GetBasisCurve()->Value(u) + v * m_direction_; };
+    point_type Value(Real u, Real v) const override { return GetBasisCurve()->Value(u) + v * m_axis_.x; };
 };
 
 }  // namespace simpla

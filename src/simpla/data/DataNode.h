@@ -49,7 +49,7 @@ class DataNode : public Factory<DataNode>, public std::enable_shared_from_this<D
 
    public:
     ~DataNode() override;
-    static std::shared_ptr<DataNode> New(std::string const& uri = "");
+    static std::shared_ptr<DataNode> New(std::string const& uri);
     static std::shared_ptr<DataNode> New(eNodeType e_type, std::string const& uri = "");
     static std::shared_ptr<DataNode> New(std::shared_ptr<DataEntity> v) {
         return std::shared_ptr<DataNode>(new DataNode(v));

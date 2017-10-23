@@ -4,11 +4,11 @@
 
 #ifndef SIMPLA_ELLIPSE_H
 #define SIMPLA_ELLIPSE_H
-#include "ParametricCurve.h"
+#include "Curve.h"
 namespace simpla {
 namespace geometry {
-struct Ellipse : public ParametricCurve {
-    SP_GEO_OBJECT_HEAD(Ellipse, ParametricCurve);
+struct Ellipse : public Curve {
+    SP_GEO_OBJECT_HEAD(Ellipse, Curve);
 
    public:
     Ellipse() = default;
@@ -17,12 +17,8 @@ struct Ellipse : public ParametricCurve {
 
     template <typename... Args>
     Ellipse(Real major_radius, Real minor_radius, Args &&... args)
-        : ParametricCurve(std::forward<Args>(args)...), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {}
+        : Curve(std::forward<Args>(args)...), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {}
 
-    point_type Value(Real alpha) const override {
-        return m_origin_ + m_major_radius_ * std::cos(alpha) * m_x_axis_ +
-               m_minor_radius_ * std::sin(alpha) * m_y_axis_;
-    };
     bool IsClosed() const override { return true; };
     bool IsPeriodic() const override { return true; };
     Real GetPeriod() const override { return TWOPI; };
@@ -33,6 +29,11 @@ struct Ellipse : public ParametricCurve {
     void GetMinorRadius(Real r) { m_minor_radius_ = r; }
     Real GetMajorRadius() const { return m_major_radius_; }
     Real GetMinorRadius() const { return m_minor_radius_; }
+
+    point_type Value(Real alpha) const override {
+        return m_axis_.o + m_major_radius_ * std::cos(alpha) * m_axis_.x +
+               m_minor_radius_ * std::sin(alpha) * m_axis_.y;
+    };
 
    protected:
     Real m_major_radius_ = 1;

@@ -6,18 +6,18 @@
 #define SIMPLA_CONICALSURFACE_H
 
 #include <simpla/utilities/Constants.h>
-#include "ParametricSurface.h"
+#include "Surface.h"
 namespace simpla {
 namespace geometry {
-struct ConicalSurface : public ParametricSurface {
-    SP_GEO_OBJECT_HEAD(ConicalSurface, ParametricSurface);
+struct ConicalSurface : public Surface {
+    SP_GEO_OBJECT_HEAD(ConicalSurface, Surface);
     ConicalSurface() = default;
     ConicalSurface(ConicalSurface const &) = default;
     ~ConicalSurface() override = default;
 
     template <typename... Args>
     explicit ConicalSurface(Real R, Real Ang, Args &&... args)
-        : ParametricSurface(std::forward<Args>(args)...), m_radius_(R), m_angle_(Ang) {}
+        : Surface(std::forward<Args>(args)...), m_radius_(R), m_angle_(Ang) {}
 
     std::tuple<bool, bool> IsClosed() const override { return std::make_tuple(true, false); };
     std::tuple<bool, bool> IsPeriodic() const override { return std::make_tuple(true, false); };
@@ -31,8 +31,8 @@ struct ConicalSurface : public ParametricSurface {
     Real GetAngle() const { return m_angle_; }
 
     point_type Value(Real u, Real v) const override {
-        return m_origin_ + (m_radius_ + v * std::sin(m_angle_)) * (std::cos(u) * m_x_axis_ + std::sin(u) * m_y_axis_) +
-               v * std::cos(m_angle_) * m_z_axis_;
+        return m_axis_.o + (m_radius_ + v * std::sin(m_angle_)) * (std::cos(u) * m_axis_.x + std::sin(u) * m_axis_.y) +
+               v * std::cos(m_angle_) * m_axis_.z;
     };
 
    private:

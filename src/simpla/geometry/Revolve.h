@@ -20,7 +20,7 @@ class Revolve : public GeoObject {
     SP_OBJECT_HEAD(Revolve<TObj>, GeoObject)
    protected:
     Revolve(TObj const &obj, int ZAxis = 2) : base_obj(obj) { m_axis_[ZAxis] = 1; }
-    Revolve(TObj const &obj, point_type origin, point_type axis) : base_obj(obj), m_axis_(axis), m_origin_(origin) {}
+    Revolve(TObj const &obj, point_type origin, point_type axis) : base_obj(obj), m_axis_(axis), m_axis_.o(origin) {}
 
    public:
     virtual box_type GetBoundingBox() const override { return box_type{{0, 0, 0}, {1, 2, 3}}; };
@@ -31,12 +31,12 @@ class Revolve : public GeoObject {
 
     nTuple<Real, 2> MapTo2d(point_type const &x) const {
         nTuple<Real, 2> y{0, 0};
-        y[1] = dot(m_axis_, x - m_origin_);                                                     // Z
-        y[0] = std::sqrt(dot(x - m_origin_ - y[1] * m_axis_, x - m_origin_ - y[1] * m_axis_));  // R
+        y[1] = dot(m_axis_, x - m_axis_.o);                                                     // Z
+        y[0] = std::sqrt(dot(x - m_axis_.o - y[1] * m_axis_, x - m_axis_.o - y[1] * m_axis_));  // R
         return std::move(y);
     };
 
-    point_type m_origin_{0, 0, 0};
+    point_type m_axis_.o{0, 0, 0};
     point_type m_axis_{0, 0, 1};
 
     TObj const &base_obj;
@@ -46,7 +46,7 @@ std::shared_ptr<data::DataNode> Revolve<TObj>::Serialize() const {
     auto tdb = base_type::Serialize();
 
     tdb->SetValue("Axis", m_axis_);
-    tdb->SetValue("Origin", m_origin_);
+    tdb->SetValue("Origin", m_axis_.o);
     tdb->Set("2DShape", base_obj.Pack());
 
     return tdb;
@@ -65,7 +65,7 @@ class RevolveZ : public GeoObject {
     SP_OBJECT_HEAD(RevolveZ, GeoObject)
    protected:
     RevolveZ(std::shared_ptr<Polygon> const &obj, int phi_axis, Real phi0, Real phi1, point_type origin = {0, 0, 0})
-        : m_origin_(origin), base_obj(obj), m_phi_axe_(phi_axis), m_angle_min_(phi0), m_angle_max_(phi1) {}
+        : m_axis_.o(origin), base_obj(obj), m_phi_axe_(phi_axis), m_angle_min_(phi0), m_angle_max_(phi1) {}
 
    public:
     box_type GetBoundingBox() const override {
@@ -89,11 +89,11 @@ class RevolveZ : public GeoObject {
     };
 
     nTuple<Real, 2> MapTo2d(point_type const &x) const {
-        return nTuple<Real, 2>{x[(m_phi_axe_ + 1) % 3] - m_origin_[(m_phi_axe_ + 1) % 3],
-                               x[(m_phi_axe_ + 2) % 3] - m_origin_[(m_phi_axe_ + 2) % 3]};
+        return nTuple<Real, 2>{x[(m_phi_axe_ + 1) % 3] - m_axis_.o[(m_phi_axe_ + 1) % 3],
+                               x[(m_phi_axe_ + 2) % 3] - m_axis_.o[(m_phi_axe_ + 2) % 3]};
     };
 
-    point_type m_origin_{0, 0, 0};
+    point_type m_axis_.o{0, 0, 0};
     Real m_angle_min_ = 0, m_angle_max_ = TWOPI;
     int m_phi_axe_ = 2;
 
