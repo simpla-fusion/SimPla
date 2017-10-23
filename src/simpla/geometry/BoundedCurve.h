@@ -26,24 +26,24 @@ struct BoundedCurve : public TBaseCurve {
     Real GetMinParameter() const override { return m_min_; }
     Real GetMaxParameter() const override { return m_max_; }
 
-    point_type GetStartPoint() const { return Value(GetMinParameter()); }
-    point_type GetEndPoint() const { return Value(GetMaxParameter()); }
+    point_type GetStartPoint() const { return TBaseCurve::Value(GetMinParameter()); }
+    point_type GetEndPoint() const { return TBaseCurve::Value(GetMaxParameter()); }
 
    private:
     Real m_min_ = 0;
     Real m_max_ = 1;
 };
-template <typename>
+template <typename TBaseCurve>
 void BoundedCurve<TBaseCurve>::Deserialize(std::shared_ptr<simpla::data::DataNode> const& cfg) {
     base_type::Deserialize(cfg);
-    m_min_ = cfg->GetValue<Real>("GetMinParameter", m_min_);
-    m_max_ = cfg->GetValue<Real>("GetMaxParameter", m_max_);
+    m_min_ = cfg->GetValue("GetMinParameter", m_min_);
+    m_max_ = cfg->GetValue("GetMaxParameter", m_max_);
 };
-template <typename>
+template <typename TBaseCurve>
 std::shared_ptr<simpla::data::DataNode> BoundedCurve<TBaseCurve>::Serialize() const {
     auto res = base_type::Serialize();
-    res->SetValue<Real>("GetMinParameter", m_min_);
-    res->SetValue<Real>("GetMaxParameter", m_max_);
+    res->SetValue("GetMinParameter", m_min_);
+    res->SetValue("GetMaxParameter", m_max_);
     return res;
 };
 }  // namespace geometry

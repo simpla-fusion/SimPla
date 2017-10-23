@@ -20,6 +20,12 @@ struct ParametricCurve : public Curve {
     ParametricCurve(point_type origin, point_type x_axis, point_type y_axis)
         : m_origin_(std::move(origin)), m_x_axis_(std::move(x_axis)), m_y_axis_(std::move(y_axis)) {}
 
+    void SetUp(point_type const &origin, point_type const &x_axis, point_type const &y_axis) {
+        SetOrigin(origin);
+        SetXAxis(x_axis);
+        SetYAxis(y_axis);
+    }
+
     void SetOrigin(point_type const &p) { m_origin_ = p; }
     void SetXAxis(point_type const &p) { m_x_axis_ = p; }
     void SetYAxis(point_type const &p) { m_y_axis_ = p; }

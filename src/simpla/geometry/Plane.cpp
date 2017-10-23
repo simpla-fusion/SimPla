@@ -3,27 +3,22 @@
 //
 
 #include "Plane.h"
-#include <simpla/SIMPLA_config.h>
-#include <simpla/algebra/nTuple.h>
-#include "GeoAlgorithm.h"
 namespace simpla {
 namespace geometry {
 
-std::shared_ptr<data::DataNode> Plane::Serialize() const {
-    auto cfg = base_type::Serialize();
-    cfg->SetValue("Vertices", m_p);
-    return cfg;
-};
-void Plane::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
+void Plane::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
-    m_p = cfg->GetValue("Vertices", m_p);
+    m_origin_ = cfg->GetValue("Origin", m_origin_);
+    m_x_axis_ = cfg->GetValue("XAxis", m_x_axis_);
+    m_y_axis_ = cfg->GetValue("YAxis", m_y_axis_);
 }
-box_type Plane::GetBoundingBox() const {
-    UNIMPLEMENTED;
-    box_type res{m_p[0], m_p[1]};
-    //    extent_box(&std::get<0>(res), &std::get<1>(res), m_p[2]);
+std::shared_ptr<simpla::data::DataNode> Plane::Serialize() const {
+    auto res = base_type::Serialize();
+    res->SetValue("Origin", m_origin_);
+    res->SetValue("XAxis", m_x_axis_);
+    res->SetValue("YAxis", m_y_axis_);
     return res;
-};
-// bool Plane::CheckInside(point_type const& x, Real tolerance) const { return false; };
-}  // namespace geometry
-}  // namespace simpla
+}
+
+}  // namespace geometry{
+}  // namespace simpla{impla
