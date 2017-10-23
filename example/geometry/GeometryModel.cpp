@@ -13,4 +13,7 @@ int main(int argc, char** argv) {
         sg::Line::New(sg::Axis{point_type{0, 0, 0}, point_type{1, 0, 0}, point_type{0, 1, 0}, point_type{0, 0, 1}});
     std::cout << *t_surf->Serialize() << std::endl;
     std::cout << *line->Serialize() << std::endl;
+
+    std::vector<Real> intersect_points;
+    t_surf->FindIntersection(line, intersect_points);
 }

@@ -25,7 +25,7 @@ class Revolve : public GeoObject {
    public:
     virtual box_type GetBoundingBox() const override { return box_type{{0, 0, 0}, {1, 2, 3}}; };
 
-    bool CheckInside(point_type const &x, Real tolerance = SP_DEFAULT_GEOMETRY_TOLERANCE) const override {
+    bool CheckInside(point_type const &x, Real tolerance = SP_GEO_DEFAULT_TOLERANCE) const override {
         return base_obj.CheckInside(MapTo2d(x), tolerance);
     };
 

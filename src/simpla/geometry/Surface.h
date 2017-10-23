@@ -45,13 +45,34 @@ struct Surface : public GeoObject {
     point_type Value(nTuple<Real, 2> const &u) const { return Value(u[0], u[1]); };
 
     void SetAxis(Axis const &a) { m_axis_ = a; }
-     Axis  GetAxis() const { return m_axis_; }
+    Axis GetAxis() const { return m_axis_; }
 
     void Mirror(const point_type &p) override { m_axis_.Mirror(p); }
     void Mirror(const Axis &a1) override { m_axis_.Mirror(a1); }
     void Rotate(const Axis &a1, Real angle) override { m_axis_.Rotate(a1, angle); }
     void Scale(Real s, int dir) override { m_axis_.Scale(s); }
     void Translate(const vector_type &v) override { m_axis_.Translate(v); }
+
+    /**
+     *
+     * @return
+     *  <= 0 no overlap
+     *  == 1 partial overlap
+     *  >  1 all inside
+     */
+    virtual int CheckOverlapped(box_type const &) const { return false; }
+
+    bool IsInside(point_type const &p) const {
+        return CheckOverlapped(std::make_tuple(point_type{p - SP_GEO_DEFAULT_TOLERANCE},
+                                               point_type{p + SP_GEO_DEFAULT_TOLERANCE})) > 1;
+    }
+
+    /**
+     *
+     * @return <0 first point is outgoing
+     *         >0 first point is incoming
+     */
+    virtual int FindIntersection(std::shared_ptr<const Curve> const &, std::vector<Real> &) const { return 0; }
 
    protected:
     Axis m_axis_;

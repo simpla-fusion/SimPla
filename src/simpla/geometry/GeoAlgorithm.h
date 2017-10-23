@@ -155,7 +155,7 @@ auto bound_box(T0 const& p0, T1 const& p1) -> std::tuple<decltype(*p0), decltype
  */
 template <typename T0, typename T1, typename T2>
 std::tuple<Real, Real> NearestPointPointToLine(T0 const& v, T1 const& l0, T2 const& l1,
-                                               Real tolerance = SP_DEFAULT_GEOMETRY_TOLERANCE) {
+                                               Real tolerance = SP_GEO_DEFAULT_TOLERANCE) {
     Real u = dot(v - l0, l1 - l0) / dot(l1 - l0, l1 - l0);
     auto d = v - l0 - u * (l1 - l0);
     Real d2 = dot(d, d);
@@ -174,7 +174,7 @@ std::tuple<Real, Real> NearestPointPointToLine(T0 const& v, T1 const& l0, T2 con
  */
 template <typename T0, typename T1, typename T2, typename T3>
 std::tuple<Real, Real, Real> NearestPointLineToLine(T0 const& P0, T1 const& P1, T2 const& Q0, T3 const& Q1,
-                                                    Real tolerance = SP_DEFAULT_GEOMETRY_TOLERANCE) {
+                                                    Real tolerance = SP_GEO_DEFAULT_TOLERANCE) {
     Real s = SP_SNaN;
     Real t = SP_SNaN;
     Real dist2 = SP_SNaN;
@@ -221,7 +221,7 @@ std::tuple<Real, Real, Real> NearestPointLineToLine(T0 const& P0, T1 const& P1, 
  */
 template <typename T0, typename T1, typename T2, typename T3>
 std::tuple<Real, Real, Real> NearestPointPointToPlane(T0 const& P0, T1 const& Q0, T2 const& Q1, T3 const& Q2,
-                                                      Real tolerance = SP_DEFAULT_GEOMETRY_TOLERANCE) {
+                                                      Real tolerance = SP_GEO_DEFAULT_TOLERANCE) {
     Real dist2, u, v;
     UNIMPLEMENTED;
     return std::make_tuple(dist2, u, v);
@@ -243,7 +243,7 @@ std::tuple<Real, Real, Real> NearestPointPointToPlane(T0 const& P0, T1 const& Q0
 template <typename T0, typename T1, typename T2, typename T3, typename T4>
 std::tuple<Real, Real, Real, Real> NearestPointLineToPlane(T0 const& l0, T1 const& l1, T2 const& p0, T3 const& p1,
                                                            T4 const& p2,
-                                                           Real tolerance = SP_DEFAULT_GEOMETRY_TOLERANCE) {
+                                                           Real tolerance = SP_GEO_DEFAULT_TOLERANCE) {
     Real dist2, s, u, v;
 
     UNIMPLEMENTED;
@@ -252,7 +252,7 @@ std::tuple<Real, Real, Real, Real> NearestPointLineToPlane(T0 const& l0, T1 cons
 template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
 std::tuple<Real, Real, Real, Real, Real> NearestPointTriangleToPlane(T0 const& l0, T1 const& l1, T2 const& l2,
                                                                      T3 const& p0, T4 const& p1, T5 const& p2,
-                                                                     Real tolerance = SP_DEFAULT_GEOMETRY_TOLERANCE) {
+                                                                     Real tolerance = SP_GEO_DEFAULT_TOLERANCE) {
     Real dist2, u0, v0, u1, v1;
 
     UNIMPLEMENTED;

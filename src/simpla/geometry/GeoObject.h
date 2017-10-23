@@ -93,7 +93,7 @@ class GeoObject : public SPObject {
 
     virtual box_type GetBoundingBox() const;
     virtual bool CheckInside(point_type const &x, Real tolerance) const { return false; }
-    bool CheckInside(point_type const &x) const { return CheckInside(x, SP_DEFAULT_GEOMETRY_TOLERANCE); }
+    bool CheckInside(point_type const &x) const { return CheckInside(x, SP_GEO_DEFAULT_TOLERANCE); }
 
     virtual std::shared_ptr<GeoObject> Copy() const { return nullptr; };
     virtual void Mirror(const point_type &p) { UNIMPLEMENTED; }
@@ -133,7 +133,7 @@ class GeoObject : public SPObject {
     //    virtual Real Measure() const;
     //    virtual box_type GetBoundingBox() const;
     //    virtual std::shared_ptr<GeoObject> GetBoundary() const;
-    //    virtual bool CheckInside(point_type const &x, Real tolerance = SP_DEFAULT_GEOMETRY_TOLERANCE) const;
+    //    virtual bool CheckInside(point_type const &x, Real tolerance = SP_GEO_DEFAULT_TOLERANCE) const;
     //    virtual std::shared_ptr<GeoObject> GetBoundary() const { return nullptr; };
     //    /// The axis-aligned minimum bounding box (or AABB) , Cartesian
     //    virtual bool CheckInside(point_type const &x) const;
