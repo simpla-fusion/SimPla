@@ -6,13 +6,15 @@ namespace simpla {
 namespace geometry {
 
 std::shared_ptr<data::DataNode> Line::Serialize() const {
-    auto cfg = base_type::Serialize();
-    cfg->SetValue("Vertices", m_p);
-    return cfg;
+    auto res = base_type::Serialize();
+    res->SetValue("Origin", m_origin_);
+    res->SetValue("XAxis", m_x_axis_);
+    return res;
 };
 void Line::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
     base_type::Deserialize(cfg);
-    m_p = cfg->GetValue("Vertices", m_p);
+    m_origin_ = cfg->GetValue("Origin", m_origin_);
+    m_x_axis_ = cfg->GetValue("XAxis", m_x_axis_);
 }
 // box_type Line::GetBoundingBox() const { return box_type{m_p[0], m_p[1]}; };
 // bool Line::CheckInside(point_type const& x, Real tolerance) const { return false; };

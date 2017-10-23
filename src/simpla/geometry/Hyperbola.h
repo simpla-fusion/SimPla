@@ -26,9 +26,9 @@ struct Hyperbola : public Conic {
     };
     bool IsClosed() const override { return false; };
     bool IsPeriodic() const override { return false; };
-    Real Period() const override { return INIFITY; };
-    Real MinParameter() const override { return -INIFITY; }
-    Real MaxParameter() const override { return INIFITY; };
+    Real GetPeriod() const override { return INIFITY; };
+    Real GetMinParameter() const override { return -INIFITY; }
+    Real GetMaxParameter() const override { return INIFITY; };
 
     void GetMajorRadius(Real r) { m_major_radius_ = r; }
     void GetMinorRadius(Real r) { m_minor_radius_ = r; }

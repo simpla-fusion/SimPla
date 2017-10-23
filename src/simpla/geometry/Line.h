@@ -17,35 +17,38 @@ namespace geometry {
 struct Line : public Curve {
     SP_GEO_OBJECT_HEAD(Line, Curve);
 
-   public:
+   protected:
     Line() = default;
     Line(Line const &) = default;
-    ~Line() = default;
-    Line(point_type const &p0, point_type const &p1) : m_p{{p0[0], p0[1], p0[2]}, {p1[0], p1[1], p1[2]}} {};
+    template <typename... Args>
+    Line(point_type origin, point_type x_axis, Args &&... args)
+        : m_origin_(std::move(origin)), m_x_axis_(std::move(x_axis)){};
 
-    Line(std::initializer_list<std::initializer_list<Real>> const &v) {
-        SetVertices(point_type(*v.begin()), point_type(*(v.begin() + 1)));
+    Line(std::initializer_list<Real> const &origin, std::initializer_list<Real> const &x_axis)
+        : m_origin_(origin), m_x_axis_(x_axis){};
+
+   public:
+    ~Line() override = default;
+
+    static std::shared_ptr<Line> New(std::initializer_list<Real> const &origin,
+                                     std::initializer_list<Real> const &x_axis) {
+        return std::shared_ptr<Line>(new Line(origin, x_axis));
     }
+    bool IsClosed() const override { return false; };
+    bool IsPeriodic() const override { return false; };
+    Real Period() const override { return INIFITY; };
+    Real GetMinParameter() const override { return -INIFITY; }
+    Real GetMaxParameter() const override { return INFINITY; }
+    point_type Value(Real u) const override { return m_origin_ + u * m_x_axis_; }
 
-    static std::shared_ptr<Line> New(std::initializer_list<std::initializer_list<Real>> const &box) {
-        return std::shared_ptr<Line>(new Line(box));
-    }
-
-    point_type Value(Real u) const override { return m_p[0] * (1 - u) + u * m_p[1]; }
-
-    void SetVertices(point_type const &v0, point_type const &v1) {
-        m_p[0] = v0;
-        m_p[1] = v1;
-    }
-    nTuple<Real, 2, 3> const &GetVertices() const { return m_p; };
-
-    point_type GetPoint(Real r) const { return m_p[0] + (m_p[1] - m_p[0]) * r; }
-    std::tuple<Real, Real> GetParameter(point_type const &p) const {
-        return std::tuple<Real, Real>{dot(p - m_p[0], m_p[1] - m_p[0]), dot(p - m_p[0], m_p[2] - m_p[0])};
-    };
+    void SetOrigin(point_type const &p) { m_origin_ = p; }
+    void SetXAxis(point_type const &p) { m_x_axis_ = p; }
+    point_type const &GetOrigin() const { return m_origin_; }
+    point_type const &GetXAxis() const { return m_x_axis_; }
 
    protected:
-    nTuple<Real, 2, 3> m_p{{0, 0, 0}, {1, 0, 0}};
+    point_type m_origin_{0, 0, 0};
+    point_type m_x_axis_{1, 0, 0};
 };
 
 }  // namespace geometry

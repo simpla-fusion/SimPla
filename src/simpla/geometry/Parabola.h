@@ -22,9 +22,9 @@ struct Parabola : public Conic {
     point_type Value(Real u) const override { return m_origin_ + u * u / (4. * m_focal_) * m_x_axis_ + u * m_y_axis_; };
     bool IsClosed() const override { return false; };
     bool IsPeriodic() const override { return false; };
-    Real Period() const override { return INIFITY; };
-    Real MinParameter() const override { return -INIFITY; }
-    Real MaxParameter() const override { return INIFITY; };
+    Real GetPeriod() const override { return INFINITY; };
+    Real GetMinParameter() const override { return -INFINITY; }
+    Real GetMaxParameter() const override { return INFINITY; };
 
     void SetFocal(Real f) { m_focal_ = f; }
     Real GetFocal() const { return m_focal_; }

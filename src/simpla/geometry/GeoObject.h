@@ -105,7 +105,9 @@ class GeoObject : public SPObject {
     typedef _BASE_NAME_ base_type;                                                        \
     typedef _CLASS_NAME_ this_type;                                                       \
                                                                                           \
-   public:
+   public:                                                                                \
+    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;        \
+    std::shared_ptr<simpla::data::DataNode> Serialize() const override;
 
 #define SP_GEO_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_)                                     \
    public:                                                                                \

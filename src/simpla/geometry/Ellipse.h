@@ -25,9 +25,9 @@ struct Ellipse : public Conic {
     };
     bool IsClosed() const override { return true; };
     bool IsPeriodic() const override { return true; };
-    Real Period() const override { return TWOPI; };
-    Real MinParameter() const override { return 0.0; }
-    Real MaxParameter() const override { return TWOPI; };
+    Real GetPeriod() const override { return TWOPI; };
+    Real GetMinParameter() const override { return 0.0; }
+    Real GetMaxParameter() const override { return TWOPI; };
 
     void GetMajorRadius(Real r) { m_major_radius_ = r; }
     void GetMinorRadius(Real r) { m_minor_radius_ = r; }
