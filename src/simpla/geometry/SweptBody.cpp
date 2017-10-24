@@ -10,9 +10,12 @@ SP_OBJECT_REGISTER(SweptBody)
 SweptBody::SweptBody() = default;
 SweptBody::SweptBody(SweptBody const &other) = default;
 SweptBody::SweptBody(std::shared_ptr<const Surface> const &s, std::shared_ptr<const Curve> const &c)
-    : Body(s->GetAxis()), m_basis_surface_(s) {
-    //    m_shift_curve_ = (std::dynamic_pointer_cast<const Curve>(c->Moved(point_type{0, 0, 0})));
+    : Body(s->GetAxis()),
+      m_basis_surface_(s),
+      m_shift_curve_(std::dynamic_pointer_cast<const Curve>(c->Moved(point_type{0, 0, 0}))) {
+    ;
     ASSERT(m_shift_curve_ != nullptr);
+    CHECK(*m_basis_surface_->Serialize());
 }
 
 SweptBody::~SweptBody() = default;
@@ -23,8 +26,19 @@ void SweptBody::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) 
 }
 std::shared_ptr<simpla::data::DataNode> SweptBody::Serialize() const {
     auto res = base_type::Serialize();
-    res->Set("BasisSurface", m_basis_surface_->Serialize());
-    res->Set("ShiftCurve", m_shift_curve_->Serialize());
+    CHECK(res != nullptr);
+    CHECK(m_basis_surface_ != nullptr);
+    CHECK(m_shift_curve_ != nullptr);
+    if (m_basis_surface_ != nullptr) {
+        CHECK(*m_basis_surface_->Serialize());
+        res->Set("BasisSurface", m_basis_surface_->Serialize());
+        CHECK(*m_basis_surface_->Serialize());
+    }
+    if (m_shift_curve_ != nullptr) {
+        res->Set("ShiftCurve", m_shift_curve_->Serialize());
+        CHECK(*m_shift_curve_->Serialize());
+    }
+    CHECK("Done");
     return res;
 }
 std::shared_ptr<const Surface> SweptBody::GetBasisSurface() const { return m_basis_surface_; }

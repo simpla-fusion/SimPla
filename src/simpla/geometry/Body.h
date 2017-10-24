@@ -16,12 +16,12 @@ struct Body : public GeoObject {
     SP_GEO_ABS_OBJECT_HEAD(Body, GeoObject);
 
    protected:
-    Body() = default;
-    Body(Body const &other) = default;
-    explicit Body(Axis const &axis) : GeoObject(axis){};
+    Body();
+    Body(Body const &other);
+    explicit Body(Axis const &axis);
 
    public:
-    ~Body() override = default;
+    ~Body() override;
     virtual std::tuple<bool, bool, bool> IsClosed() const { return std::make_tuple(false, false, false); };
     virtual std::tuple<bool, bool, bool> IsPeriodic() const { return std::make_tuple(false, false, false); };
     virtual nTuple<Real, 3> GetPeriod() const { return nTuple<Real, 3>{SP_INFINITY, SP_INFINITY, SP_INFINITY}; };

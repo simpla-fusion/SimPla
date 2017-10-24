@@ -9,15 +9,8 @@
 namespace simpla {
 namespace geometry {
 
-std::shared_ptr<data::DataNode> Surface::Serialize() const {
-    auto res = base_type::Serialize();
-    res->Set("Axis", m_axis_.Serialize());
-    return res;
-};
-void Surface::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
-    base_type::Deserialize(cfg);
-    m_axis_.Deserialize(cfg->Get("Axis"));
-}
+std::shared_ptr<data::DataNode> Surface::Serialize() const { return base_type::Serialize(); };
+void Surface::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
 
 int Surface::FindIntersection(std::shared_ptr<const Curve> const &, std::vector<Real> &, Real tolerance) const {
     UNIMPLEMENTED;
