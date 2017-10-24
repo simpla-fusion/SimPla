@@ -11,7 +11,6 @@
 #include "Curve.h"
 namespace simpla {
 namespace geometry {
-
 struct Line : public Curve {
     SP_GEO_OBJECT_HEAD(Line, Curve);
 
@@ -22,7 +21,8 @@ struct Line : public Curve {
         SetParameterRange(std::isnan(alpha0) ? GetMinParameter() : alpha0,
                           std::isnan(alpha1) ? GetMaxParameter() : alpha1);
     };
-    Line(point_type const &p0, point_type const &p1) : Curve(Axis{p0, p1 - p0}) { SetParameterRange(0, 1); };
+    explicit Line(point_type const &p0, point_type const &p1) : Curve(Axis{p0, p1 - p0}) { SetParameterRange(0, 1); };
+    explicit Line(vector_type const &v) : Curve(Axis{point_type{0, 0, 0}, v}) { SetParameterRange(0, 1); };
 
    public:
     ~Line() override = default;

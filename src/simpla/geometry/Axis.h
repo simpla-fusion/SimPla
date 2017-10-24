@@ -61,6 +61,7 @@ struct Axis {
     void Rotate(const Axis &a1, Real angle);
     void Scale(Real s, int dir = -1);
     void Translate(const vector_type &v);
+    void Move(const point_type &p);
 
     virtual point_type xyz(point_type const &uvw_) const { return o + uvw_[0] * x + uvw_[1] * y + uvw_[2] * z; }
     virtual point_type uvw(point_type const &xyz_) const {

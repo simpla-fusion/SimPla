@@ -10,12 +10,22 @@
 namespace simpla {
 namespace geometry {
 
-
-
 std::shared_ptr<data::DataNode> GeoObject::Serialize() const { return base_type::Serialize(); }
 void GeoObject::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
 
 box_type GeoObject::GetBoundingBox() const { return box_type{{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}; }
+
+Axis &GeoObject::GetAxis() { return m_axis_; }
+Axis const &GeoObject::GetAxis() const { return m_axis_; }
+void GeoObject::SetAxis(Axis const &a) { m_axis_ = a; }
+
+void GeoObject::Mirror(const point_type &p) { m_axis_.Mirror(p); }
+void GeoObject::Mirror(const Axis &a1) { m_axis_.Mirror(a1); }
+void GeoObject::Rotate(const Axis &a1, Real angle) { m_axis_.Rotate(a1, angle); }
+void GeoObject::Scale(Real s, int dir) { m_axis_.Scale(s, dir); }
+void GeoObject::Translate(const vector_type &v) { m_axis_.Translate(v); }
+void GeoObject::Move(const point_type &p) { m_axis_.Move(p); }
+
 // std::shared_ptr<GeoObject> GeoObject::GetBoundary() const { return nullptr; }
 
 // Real GeoObject::Measure() const {

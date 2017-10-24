@@ -11,15 +11,17 @@
 #include "GeoObject.h"
 namespace simpla {
 namespace geometry {
-
+struct Curve;
 struct Body : public GeoObject {
     SP_GEO_ABS_OBJECT_HEAD(Body, GeoObject);
-    Body(){};
+
+   protected:
+    Body() = default;
+    Body(Body const &other) = default;
+    explicit Body(Axis const &axis) : GeoObject(axis){};
+
+   public:
     ~Body() override = default;
-
-    Body(Body const &other) : m_axis_(other.m_axis_){};
-    explicit Body(Axis const &axis) : m_axis_(axis){};
-
     virtual std::tuple<bool, bool, bool> IsClosed() const { return std::make_tuple(false, false, false); };
     virtual std::tuple<bool, bool, bool> IsPeriodic() const { return std::make_tuple(false, false, false); };
     virtual nTuple<Real, 3> GetPeriod() const { return nTuple<Real, 3>{SP_INFINITY, SP_INFINITY, SP_INFINITY}; };
@@ -46,24 +48,25 @@ struct Body : public GeoObject {
         auto r = GetParameterRange();
         return std::make_tuple(Value(std::get<0>(r)), Value(std::get<1>(r)));
     };
-
-    bool CheckInside(point_type const &x, Real tolerance) const override {
-        auto uvw = m_axis_.uvw(x);
-        return m_uvw_min_[0] <= x[0] && x[0] < m_uvw_max_[0] &&  //
-               m_uvw_min_[1] <= x[1] && x[1] < m_uvw_max_[1] &&  //
-               m_uvw_min_[2] <= x[2] && x[2] < m_uvw_max_[2];
+    bool CheckInside(point_type const &p, Real tolerance) const override {
+        return CheckOverlap(std::make_tuple(point_type{p - tolerance}, point_type{p + tolerance}), tolerance) > 1;
     }
-    void SetAxis(Axis const &a) { m_axis_ = a; }
-    Axis GetAxis() const { return m_axis_; }
 
-    void Mirror(const point_type &p) override { m_axis_.Mirror(p); }
-    void Mirror(const Axis &a1) override { m_axis_.Mirror(a1); }
-    void Rotate(const Axis &a1, Real angle) override { m_axis_.Rotate(a1, angle); }
-    void Scale(Real s, int dir) override { m_axis_.Scale(s); }
-    void Translate(const vector_type &v) override { m_axis_.Translate(v); }
+    /**
+    * @return
+    *  <= 0 no overlap
+    *  == 1 partial overlap
+    *  >  1 all inside
+    */
+    virtual int CheckOverlap(box_type const &, Real tolerance) const;
+    /**
+     *
+     * @return <0 first point is outgoing
+     *         >0 first point is incoming
+     */
+    virtual int FindIntersection(std::shared_ptr<const Curve> const &, std::vector<Real> &, Real tolerance) const;
 
    protected:
-    Axis m_axis_;
     nTuple<Real, 3> m_uvw_min_{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY};
     nTuple<Real, 3> m_uvw_max_{SP_INFINITY, SP_INFINITY, SP_INFINITY};
 };

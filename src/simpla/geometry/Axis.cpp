@@ -26,5 +26,7 @@ void Axis::Scale(Real s, int dir) {
     }
 }
 void Axis::Translate(const vector_type &v) { m_origin_ += v; }
+void Axis::Move(const point_type &p) { m_origin_ = p; }
+
 }  // namespace geometry{
 }  // namespace simpla{

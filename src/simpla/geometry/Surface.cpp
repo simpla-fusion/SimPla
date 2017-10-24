@@ -14,10 +14,16 @@ std::shared_ptr<data::DataNode> Surface::Serialize() const {
     res->Set("Axis", m_axis_.Serialize());
     return res;
 };
-void Surface::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
+void Surface::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
     m_axis_.Deserialize(cfg->Get("Axis"));
 }
+
+int Surface::FindIntersection(std::shared_ptr<const Curve> const &, std::vector<Real> &, Real tolerance) const {
+    UNIMPLEMENTED;
+    return 0;
+}
+
 // std::shared_ptr<GeoObject> Surface::GetBoundary() const {
 //    UNIMPLEMENTED;
 //    return nullptr;

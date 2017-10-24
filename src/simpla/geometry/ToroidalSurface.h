@@ -17,8 +17,8 @@ struct ToroidalSurface : public Surface {
    protected:
     ToroidalSurface() = default;
     ToroidalSurface(ToroidalSurface const &) = default;
-    ToroidalSurface( Axis  const &axis, Real major_radius, Real minor_radius, Real phi0 = SP_SNaN,
-                    Real phi1 = SP_SNaN, Real theta0 = SP_SNaN, Real theta1 = SP_SNaN)
+    ToroidalSurface(Axis const &axis, Real major_radius, Real minor_radius, Real phi0 = SP_SNaN, Real phi1 = SP_SNaN,
+                    Real theta0 = SP_SNaN, Real theta1 = SP_SNaN)
         : Surface(axis), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {
         auto min = GetMinParameter();
         auto max = GetMaxParameter();

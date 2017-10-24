@@ -14,16 +14,13 @@ struct Circle : public Curve {
     SP_GEO_OBJECT_HEAD(Circle, Curve);
 
    protected:
-    Circle() = default;
-    Circle(Circle const &) = default;
-    explicit Circle( Axis  const &axis, Real radius, Real alpha0 = SP_SNaN, Real alpha1 = SP_SNaN)
-        : Curve(axis), m_radius_(radius) {
-        SetParameterRange(std::isnan(alpha0) ? GetMinParameter() : alpha0,
-                          std::isnan(alpha1) ? GetMaxParameter() : alpha1);
-    }
+    Circle();
+    Circle(Circle const &);
+    explicit Circle(Axis const &axis, Real radius, Real alpha0 = SP_SNaN, Real alpha1 = SP_SNaN);
 
    public:
-    ~Circle() override = default;
+    ~Circle() override;
+    static std::shared_ptr<Circle> New3(point_type const &o, point_type const &b, vector_type const &axis);
 
     bool IsClosed() const override { return true; };
     bool IsPeriodic() const override { return true; };

@@ -16,8 +16,8 @@ struct Curve : public GeoObject {
 
    public:
     Curve() = default;
-    Curve(Curve const &other) : m_axis_(other.m_axis_){};
-    explicit Curve( Axis  const &axis) : m_axis_(axis) {}
+    Curve(Curve const &other) = default;
+    explicit Curve(Axis const &axis) : GeoObject(axis) {}
 
    public:
     ~Curve() override = default;
@@ -36,14 +36,12 @@ struct Curve : public GeoObject {
         return std::make_tuple(std::isnan(m_u_min_) ? GetMinParameter() : m_u_min_,
                                std::isnan(m_u_max_) ? GetMaxParameter() : m_u_max_);
     };
+    point_type StartPoint() const { return Value(m_u_min_); }
+    point_type EndPoint() const { return Value(m_u_max_); }
 
     virtual point_type Value(Real u) const = 0;
 
-    void SetAxis( Axis  const &a) { m_axis_ = a; }
-     Axis  GetAxis() const { return m_axis_; }
-
    protected:
-     Axis  m_axis_;
     Real m_u_min_ = SP_SNaN, m_u_max_ = SP_SNaN;
 };
 

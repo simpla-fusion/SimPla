@@ -18,7 +18,7 @@ struct Plane : public Surface {
     Plane() = default;
     Plane(Plane const &) = default;
 
-    explicit Plane( Axis  const &axis) : Surface(axis) {
+    explicit Plane(Axis const &axis) : Surface(axis) {
         SetParameterRange(std::make_tuple(GetMinParameter(), GetMaxParameter()));
     }
 
@@ -26,6 +26,10 @@ struct Plane : public Surface {
     ~Plane() override = default;
 
     point_type Value(Real u, Real v) const override { return m_axis_.Coordinates(u, v); };
+
+    int CheckOverlap(box_type const &) const override;
+    int FindIntersection(std::shared_ptr<const Curve> const &, std::vector<Real> &,
+                         Real tolerance = SP_GEO_DEFAULT_TOLERANCE) const override;
 };
 
 }  // namespace simpla

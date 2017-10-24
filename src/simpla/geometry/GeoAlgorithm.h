@@ -241,9 +241,8 @@ std::tuple<Real, Real, Real> NearestPointPointToPlane(T0 const& P0, T1 const& Q0
  *
  */
 template <typename T0, typename T1, typename T2, typename T3, typename T4>
-std::tuple<Real, Real, Real, Real> NearestPointLineToPlane(T0 const& l0, T1 const& l1, T2 const& p0, T3 const& p1,
-                                                           T4 const& p2,
-                                                           Real tolerance = SP_GEO_DEFAULT_TOLERANCE) {
+std::tuple<Real, Real, Real, Real> IntersectLineToPlane(T0 const& l0, T1 const& l1, T2 const& p0, T3 const& p1,
+                                                        T4 const& p2, Real tolerance = SP_GEO_DEFAULT_TOLERANCE) {
     Real dist2, s, u, v;
 
     UNIMPLEMENTED;

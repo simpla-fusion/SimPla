@@ -80,7 +80,9 @@ class GeoObject : public SPObject {
 
    public:
     GeoObject() = default;
+    explicit GeoObject(Axis const &axis) : m_axis_(axis){};
     ~GeoObject() = default;
+
     static std::string FancyTypeName_s() { return "GeoObject"; }
     std::string FancyTypeName() const override { return simpla::traits::type_name<this_type>::value(); }
     std::string ClassName() const override { return "GeoObject"; }
@@ -95,14 +97,20 @@ class GeoObject : public SPObject {
     virtual bool CheckInside(point_type const &x, Real tolerance) const { return false; }
     bool CheckInside(point_type const &x) const { return CheckInside(x, SP_GEO_DEFAULT_TOLERANCE); }
 
-    virtual std::shared_ptr<GeoObject> Copy() const { return nullptr; };
-    virtual void Mirror(const point_type &p) { UNIMPLEMENTED; }
-    virtual void Mirror(const Axis &a1) { UNIMPLEMENTED; }
-    virtual void Rotate(const Axis &a1, Real ang) { UNIMPLEMENTED; }
-    virtual void Scale(Real s, int dir) { UNIMPLEMENTED; }
-    virtual void Translate(const vector_type &v) { UNIMPLEMENTED; }
+    virtual std::shared_ptr<GeoObject> Copy() const = 0;
+
+    virtual void Mirror(const point_type &p);
+    virtual void Mirror(const Axis &a1);
+    virtual void Rotate(const Axis &a1, Real ang);
+    virtual void Scale(Real s, int dir);
+    virtual void Translate(const vector_type &v);
+    virtual void Move(const point_type &p);
 
     void Scale(Real s) { Scale(s, -1); }
+
+    Axis &GetAxis();
+    Axis const &GetAxis() const;
+    void SetAxis(Axis const &);
 
     template <typename... Args>
     std::shared_ptr<GeoObject> Mirrored(Args &&... args) const {
@@ -128,7 +136,15 @@ class GeoObject : public SPObject {
         res->Translate(std::forward<Args>(args)...);
         return res;
     }
+    template <typename... Args>
+    std::shared_ptr<GeoObject> Moved(Args &&... args) const {
+        auto res = Copy();
+        res->Move(std::forward<Args>(args)...);
+        return res;
+    }
 
+   protected:
+    Axis m_axis_{};
     //    virtual int Dimension() const { return 3; };
     //    virtual Real Measure() const;
     //    virtual box_type GetBoundingBox() const;
@@ -162,11 +178,10 @@ class GeoObject : public SPObject {
     static std::string FancyTypeName_s() { return __STRING(_CLASS_NAME_); }               \
     virtual std::string FancyTypeName() const override { return __STRING(_CLASS_NAME_); } \
                                                                                           \
-    static bool _is_registered;                                                           \
-                                                                                          \
    private:                                                                               \
     typedef _BASE_NAME_ base_type;                                                        \
     typedef _CLASS_NAME_ this_type;                                                       \
+    static bool _is_registered;                                                           \
                                                                                           \
    public:                                                                                \
     void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;        \

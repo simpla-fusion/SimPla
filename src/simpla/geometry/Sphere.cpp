@@ -3,10 +3,19 @@
 //
 
 #include "Sphere.h"
+#include <simpla/utilities/SPDefines.h>
+#include "Circle.h"
+#include "Curve.h"
+#include "Line.h"
 namespace simpla {
 namespace geometry {
 
 std::shared_ptr<simpla::data::DataNode> Sphere::Serialize() const { return base_type::Serialize(); };
-void Sphere::Deserialize(std::shared_ptr<data::DataNode> const& cfg) { base_type::Deserialize(cfg); }
+void Sphere::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
+
+int Sphere::CheckOverlap(box_type const &, Real tolerance) const { return 0; }
+int Sphere::FindIntersection(std::shared_ptr<const Curve> const &, std::vector<Real> &, Real tolerance) const {
+    return 0;
+}
 }  // namespace geometry {
 }  // namespace simpla {
