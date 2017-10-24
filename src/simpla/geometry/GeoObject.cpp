@@ -9,9 +9,18 @@
 #include "Cube.h"
 namespace simpla {
 namespace geometry {
-
-std::shared_ptr<data::DataNode> GeoObject::Serialize() const { return base_type::Serialize(); }
-void GeoObject::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
+GeoObject::GeoObject() : SPObject(){};
+GeoObject::GeoObject(Axis const &axis) : SPObject(), m_axis_(axis){};
+GeoObject::~GeoObject(){};
+std::shared_ptr<data::DataNode> GeoObject::Serialize() const {
+    auto res = base_type::Serialize();
+    res->Set("Axis", m_axis_.Serialize());
+    return res;
+}
+void GeoObject::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
+    base_type::Deserialize(cfg);
+    m_axis_.Deserialize(cfg->Get("Axis"));
+}
 
 box_type GeoObject::GetBoundingBox() const { return box_type{{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}; }
 

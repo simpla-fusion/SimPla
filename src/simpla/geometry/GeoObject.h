@@ -79,9 +79,11 @@ class GeoObject : public SPObject {
     typedef SPObject base_type;
 
    public:
-    GeoObject() = default;
-    explicit GeoObject(Axis const &axis) : m_axis_(axis){};
-    ~GeoObject() = default;
+    GeoObject();
+    ~GeoObject() override;
+    explicit GeoObject(Axis const &axis);
+    std::shared_ptr<data::DataNode> Serialize() const override;
+    void Deserialize(std::shared_ptr<data::DataNode> const &) override;
 
     static std::string FancyTypeName_s() { return "GeoObject"; }
     std::string FancyTypeName() const override { return simpla::traits::type_name<this_type>::value(); }
@@ -90,8 +92,6 @@ class GeoObject : public SPObject {
     static std::shared_ptr<this_type> New(std::shared_ptr<data::DataNode> const &cfg) {
         return std::dynamic_pointer_cast<this_type>(simpla::SPObject::Create(cfg));
     };
-    std::shared_ptr<data::DataNode> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataNode> const &cfg) override;
 
     virtual box_type GetBoundingBox() const;
     virtual bool CheckInside(point_type const &x, Real tolerance) const { return false; }

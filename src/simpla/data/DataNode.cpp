@@ -170,7 +170,9 @@ std::shared_ptr<DataNode> DataNode::Get(index_type s) const { return Get(std::to
 size_type DataNode::Add(const std::shared_ptr<DataNode>& v) { return Add(size(), v); }
 size_type DataNode::Set(const std::shared_ptr<DataNode>& v) {
     size_type count = 0;
-    v->Foreach([&](std::string k, std::shared_ptr<DataNode> const& v) { count += Set(k, v); });
+    if (v != nullptr) {
+        v->Foreach([&](std::string k, std::shared_ptr<DataNode> const& v) { count += Set(k, v); });
+    }
     return count;
 }
 size_type DataNode::SetValue(KeyValue const& kv) {
