@@ -74,6 +74,9 @@ void Polyline::Foreach(std::function<void(std::shared_ptr<Curve> const &)> const
 void Polyline::Foreach(std::function<void(std::shared_ptr<const Curve> const &)> const &fun) const {
     for (auto &item : m_pimpl_->m_c_list_) { fun(item.second); }
 }
-
+int Polyline::CheckOverlap(box_type const &) const { return 0; }
+std::shared_ptr<GeoObject> Polyline::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
+    return nullptr;
+}
 }  // namespace geometry{
 }  // namespace simpla{

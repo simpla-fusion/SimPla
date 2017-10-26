@@ -24,12 +24,7 @@ struct Plane : public Surface {
 
    public:
     ~Plane() override = default;
-
     point_type Value(Real u, Real v) const override { return m_axis_.Coordinates(u, v); };
-
-    int CheckOverlap(box_type const &) const override;
-    int FindIntersection(std::shared_ptr<const GeoObject> const &, std::vector<Real> &,
-                         Real tolerance = SP_GEO_DEFAULT_TOLERANCE) const override;
 };
 
 }  // namespace simpla

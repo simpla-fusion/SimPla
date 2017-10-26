@@ -12,5 +12,10 @@ std::shared_ptr<simpla::data::DataNode> RevolutionSurface::Serialize() const {
     auto res = base_type::Serialize();
     return res;
 }
+int RevolutionSurface::CheckOverlap(box_type const &) const { return 0; }
+std::shared_ptr<GeoObject> RevolutionSurface::Intersection(std::shared_ptr<const GeoObject> const &,
+                                                           Real tolerance) const {
+    return nullptr;
+}
 }  // namespace geometry{
 }  // namespace

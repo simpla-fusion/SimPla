@@ -36,7 +36,6 @@ struct Sphere : public Body {
     Sphere(Real r) : Sphere(Axis{}, 0, r) {}
 
    public:
-
     std::tuple<bool, bool, bool> IsClosed() const override { return std::make_tuple(false, true, true); };
     std::tuple<bool, bool, bool> IsPeriodic() const override { return std::make_tuple(false, true, true); };
     nTuple<Real, 3> GetPeriod() const override { return nTuple<Real, 3>{SP_INFINITY, TWOPI, PI}; };
@@ -55,8 +54,6 @@ struct Sphere : public Body {
         //        return m_axis_.o + r * std::cos(theta) * (std::cos(phi) * m_axis_.x + std::sin(phi) * m_axis_.y) +
         //               r * std::sin(theta) * m_axis_.z;
     };
-    int CheckOverlap(box_type const &, Real tolerance) const override;
-    int FindIntersection(std::shared_ptr<const Curve> const &, std::vector<Real> &, Real tolerance) const override;
 };
 }  // namespace geometry
 }  // namespace simpla

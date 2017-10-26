@@ -19,6 +19,9 @@ std::shared_ptr<simpla::data::DataNode> Ellipse::Serialize() const {
     res->SetValue<Real>("MinorRadius", m_minor_radius_);
     return res;
 }
-
+int Ellipse::CheckOverlap(box_type const &) const { return 0; }
+std::shared_ptr<GeoObject> Ellipse::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
+    return nullptr;
+}
 }  // namespace geometry{
 }  // namespace simpla{

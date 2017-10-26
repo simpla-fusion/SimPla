@@ -17,5 +17,9 @@ std::shared_ptr<simpla::data::DataNode> Parabola::Serialize() const {
     res->SetValue<Real>("Focal", m_focal_);
     return res;
 }
+int Parabola::CheckOverlap(box_type const &) const { return 0; }
+std::shared_ptr<GeoObject> Parabola::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
+    return nullptr;
+}
 }  // namespace geometry{
 }  // namespace simpla{

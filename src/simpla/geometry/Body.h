@@ -49,20 +49,6 @@ struct Body : public GeoObject {
         return std::make_tuple(Value(std::get<0>(r)), Value(std::get<1>(r)));
     };
 
-    /**
-    * @return
-    *  <= 0 no overlap
-    *  == 1 partial overlap
-    *  >  1 all inside
-    */
-    virtual int CheckOverlap(box_type const &, Real tolerance) const;
-    /**
-     *
-     * @return <0 first point is outgoing
-     *         >0 first point is incoming
-     */
-    virtual int FindIntersection(std::shared_ptr<const Curve> const &, std::vector<Real> &, Real tolerance) const;
-
    protected:
     nTuple<Real, 3> m_uvw_min_{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY};
     nTuple<Real, 3> m_uvw_max_{SP_INFINITY, SP_INFINITY, SP_INFINITY};

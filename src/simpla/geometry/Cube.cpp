@@ -11,7 +11,7 @@ std::shared_ptr<data::DataNode> Cube::Serialize() const {
     if (cfg != nullptr) { cfg->SetValue("Box", m_bound_box_); }
     return cfg;
 };
-void Cube::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
+void Cube::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
 
     if (cfg != nullptr) {
@@ -23,5 +23,9 @@ void Cube::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
         }
     }
 }
+int Cube::CheckOverlap(box_type const &) const { return 0; }
+std::shared_ptr<GeoObject> Cube::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
+    return nullptr;
 }
-}
+}  // namespace geometry {
+}  // namespace simpla {

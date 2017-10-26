@@ -21,15 +21,12 @@ struct Box : public Body {
     Box(Box const &);
 
    public:
-    ~Box();
+    ~Box() override;
     static std::shared_ptr<Box> New(std::initializer_list<std::initializer_list<Real>> const &box) {
         return std::shared_ptr<Box>(new Box(box));
     }
 
     point_type Value(Real u, Real v, Real w) const override { return m_axis_.Coordinates(u, v, w); };
-
-    int CheckOverlap(box_type const &, Real tolerance) const override;
-    int FindIntersection(std::shared_ptr<const Curve> const &, std::vector<Real> &, Real tolerance) const override;
 };
 
 }  // namespace geometry

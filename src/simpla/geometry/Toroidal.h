@@ -58,8 +58,6 @@ struct Toroidal : public Body {
         r = (m_major_radius_ + r * std::cos(theta));
         return m_axis_.Coordinates(r * std::cos(phi), r * std::sin(phi), r * std::sin(theta));
     };
-    int CheckOverlap(box_type const &, Real tolerance) const override;
-    int FindIntersection(std::shared_ptr<const Curve> const &, std::vector<Real> &, Real tolerance) const override;
 
    private:
     Real m_major_radius_ = 1.0;

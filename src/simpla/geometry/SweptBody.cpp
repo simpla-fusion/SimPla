@@ -60,6 +60,9 @@ nTuple<Real, 3> SweptBody::GetMaxParameter() const {
 point_type SweptBody::Value(Real u, Real v, Real w) const {
     return GetBasisSurface()->Value(u, v) + m_shift_curve_->Value(w);
 };
-
+int SweptBody::CheckOverlap(box_type const &) const { return 0; }
+std::shared_ptr<GeoObject> SweptBody::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
+    return nullptr;
+}
 }  // namespace geometry{
 }  // namespace simpla{

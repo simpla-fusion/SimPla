@@ -16,8 +16,7 @@ int main(int argc, char** argv) {
     std::cout << *t_surf->Serialize() << std::endl;
     auto line = sg::Line::New(point_type{0, 0, 0}, point_type{1, 0, 0});
     std::cout << *line->Serialize() << std::endl;
-    std::vector<Real> intersect_points;
-    t_surf->FindIntersection(line, intersect_points, SP_GEO_DEFAULT_TOLERANCE);
+    auto intersect_points = t_surf->Intersection(line);
     std::cout << intersect_points << std::endl;
 
     auto polygon = sg::Polygon::New();

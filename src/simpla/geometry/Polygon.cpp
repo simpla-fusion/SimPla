@@ -55,10 +55,6 @@ nTuple<Real, 2> Polygon::GetPeriod() const { return nTuple<Real, 2>{SP_INFINITY,
 nTuple<Real, 2> Polygon::GetMinParameter() const { return nTuple<Real, 2>{-SP_INFINITY, -SP_INFINITY}; }
 nTuple<Real, 2> Polygon::GetMaxParameter() const { return nTuple<Real, 2>{SP_INFINITY, SP_INFINITY}; }
 
-int Polygon::CheckOverlap(box_type const &) const { return 0; }
-int Polygon::FindIntersection(std::shared_ptr<const GeoObject> const &, std::vector<Real> &, Real tolerance) const {
-    return 0;
-}
 point_type Polygon::Value(Real u, Real v) const { return point_type{0, 0, 0}; }
 Real Polygon::pimpl_s::nearest_point(Real *x, Real *y) const {
     typedef nTuple<Real, 2> Vec2;
@@ -163,5 +159,10 @@ bool Polygon::pimpl_s::check_inside(Real x, Real y) const {
         return false;
     }
 }
+
+int Polygon::CheckOverlap(box_type const &) const { return 0; }
+std::shared_ptr<GeoObject> Polygon::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
+    return nullptr;
 }
-}  // namespace simpla//namespace  geometry
+}  // namespace  geometry
+}  // namespace simpla

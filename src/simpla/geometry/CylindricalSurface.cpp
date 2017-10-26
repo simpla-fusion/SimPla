@@ -17,5 +17,10 @@ std::shared_ptr<simpla::data::DataNode> CylindricalSurface::Serialize() const {
     res->SetValue<Real>("Radius", m_radius_);
     return res;
 }
+int CylindricalSurface::CheckOverlap(box_type const &) const { return 0; }
+std::shared_ptr<GeoObject> CylindricalSurface::Intersection(std::shared_ptr<const GeoObject> const &,
+                                                        Real tolerance) const {
+    return nullptr;
+}
 }  // namespace geometry{
 }  // namespace simpla{

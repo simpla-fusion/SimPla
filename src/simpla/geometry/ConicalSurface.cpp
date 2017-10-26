@@ -19,5 +19,10 @@ std::shared_ptr<simpla::data::DataNode> ConicalSurface::Serialize() const {
     res->SetValue<Real>("SemiAngle", m_semi_angle_);
     return res;
 }
+int ConicalSurface::CheckOverlap(box_type const &) const { return 0; }
+std::shared_ptr<GeoObject> ConicalSurface::Intersection(std::shared_ptr<const GeoObject> const &,
+                                                        Real tolerance) const {
+    return nullptr;
+}
 }  // namespace geometry{
 }  // namespace simpla{

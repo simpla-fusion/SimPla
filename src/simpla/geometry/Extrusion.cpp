@@ -16,6 +16,9 @@ std::shared_ptr<simpla::data::DataNode> Extrusion::Serialize() const {
     auto res = base_type::Serialize();
     return res;
 }
-
+int Extrusion::CheckOverlap(box_type const &) const { return 0; }
+std::shared_ptr<GeoObject> Extrusion::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
+    return nullptr;
+}
 }  // namespace geometry{
 }  // namespace simpla{

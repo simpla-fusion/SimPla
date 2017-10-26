@@ -33,6 +33,9 @@ std::shared_ptr<Circle> Circle::New3(point_type const &o, point_type const &b, v
 
     return std::shared_ptr<Circle>(new Circle(Axis{o, x, y, z}, radius));
 }
-
+int Circle::CheckOverlap(box_type const &) const { return 0; }
+std::shared_ptr<GeoObject> Circle::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
+    return nullptr;
+}
 }  // namespace geometry{
 }  // namespace simpla{
