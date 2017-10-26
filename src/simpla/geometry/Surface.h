@@ -55,7 +55,29 @@ struct Surface : public GeoObject {
     nTuple<Real, 2> m_uv_min_{SP_SNaN, SP_SNaN};
     nTuple<Real, 2> m_uv_max_{SP_SNaN, SP_SNaN};
 };
+struct PointsOnSurface : public GeoObject {
+    SP_GEO_OBJECT_HEAD(PointsOnSurface, GeoObject);
 
+   protected:
+    PointsOnSurface();
+    explicit PointsOnSurface(std::shared_ptr<const Surface> const &);
+
+   public:
+    ~PointsOnSurface() override;
+    std::shared_ptr<const Surface> GetBasisSurface() const;
+    void SetBasisSurface(std::shared_ptr<const Surface> const &c);
+
+    void PutUV(nTuple<Real, 2> uv);
+    nTuple<Real, 2> GetUV(size_type i) const;
+    point_type GetPoint(size_type i) const;
+    size_type size() const;
+    std::vector<nTuple<Real, 2>> const &data() const;
+    std::vector<nTuple<Real, 2>> &data();
+
+   private:
+    std::shared_ptr<const Surface> m_surface_;
+    std::vector<nTuple<Real, 2>> m_data_;
+};
 }  // namespace geometry
 }  // namespace simpla
 #endif  // SIMPLA_SURFACE_H

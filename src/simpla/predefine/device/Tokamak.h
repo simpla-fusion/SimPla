@@ -37,9 +37,6 @@ class Tokamak : public SPObject {
     std::shared_ptr<geometry::GeoObject> Limiter() const;
     std::shared_ptr<geometry::GeoObject> Boundary() const;
 
-    Real B_center() const;
-    point_type magnetic_axis() const;
-
     std::function<vector_type(point_type const &)> B0() const;
     std::function<Real(point_type const &)> profile(std::string const &k) const;
 

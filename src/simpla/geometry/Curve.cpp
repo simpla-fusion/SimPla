@@ -5,7 +5,22 @@
 namespace simpla {
 namespace geometry {
 std::shared_ptr<simpla::data::DataNode> Curve::Serialize() const { return base_type::Serialize(); };
-void Curve::Deserialize(std::shared_ptr<simpla::data::DataNode> const& cfg) { base_type::Deserialize(cfg); };
+void Curve::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); };
+
+PointsOnCurve::PointsOnCurve() = default;
+PointsOnCurve::~PointsOnCurve() = default;
+PointsOnCurve::PointsOnCurve(std::shared_ptr<const Curve> const &curve) : m_curve_(curve) {}
+std::shared_ptr<data::DataNode> PointsOnCurve::Serialize() const { return base_type::Serialize(); };
+void PointsOnCurve::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
+std::shared_ptr<const Curve> PointsOnCurve::GetBasisCurve() const { return m_curve_; }
+void PointsOnCurve::SetBasisCurve(std::shared_ptr<const Curve> const &c) { m_curve_ = c; }
+
+void PointsOnCurve::PutU(Real u) { m_data_.push_back(u); }
+Real PointsOnCurve::GetU(size_type i) const { return m_data_[i]; }
+point_type PointsOnCurve::GetPoint(size_type i) const { return m_curve_->Value(GetU(i)); }
+size_type PointsOnCurve::size() const { return m_data_.size(); }
+std::vector<Real> const &PointsOnCurve::data() const { return m_data_; }
+std::vector<Real> &PointsOnCurve::data() { return m_data_; }
 ////
 ////Circle::Circle() = default;
 ////

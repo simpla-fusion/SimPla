@@ -44,7 +44,29 @@ struct Curve : public GeoObject {
    protected:
     Real m_u_min_ = SP_SNaN, m_u_max_ = SP_SNaN;
 };
+struct PointsOnCurve : public GeoObject {
+    SP_GEO_OBJECT_HEAD(PointsOnCurve, GeoObject);
 
+   protected:
+    PointsOnCurve();
+    PointsOnCurve(std::shared_ptr<const Curve> const &);
+
+   public:
+    ~PointsOnCurve() override;
+    std::shared_ptr<const Curve> GetBasisCurve() const;
+    void SetBasisCurve(std::shared_ptr<const Curve> const &c);
+
+    void PutU(Real);
+    Real GetU(size_type i) const;
+    point_type GetPoint(size_type i) const;
+    size_type size() const;
+    std::vector<Real> const &data() const;
+    std::vector<Real> &data();
+
+   private:
+    std::shared_ptr<const Curve> m_curve_;
+    std::vector<Real> m_data_;
+};
 }  // namespace geometry
 }  // namespace simpla
 
