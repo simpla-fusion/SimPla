@@ -42,8 +42,6 @@ struct Toroidal : public Body {
    public:
     ~Toroidal() override = default;
 
-    bool CheckInside(point_type const &x, Real tolerance) const override { return true; }
-
     std::tuple<bool, bool, bool> IsClosed() const override { return std::make_tuple(false, true, false); };
     std::tuple<bool, bool, bool> IsPeriodic() const override { return std::make_tuple(false, true, false); };
     nTuple<Real, 3> GetPeriod() const override { return nTuple<Real, 3>{SP_INFINITY, TWOPI, SP_INFINITY}; };

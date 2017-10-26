@@ -8,17 +8,17 @@
 #ifndef GEQDSK_H_
 #define GEQDSK_H_
 
+#include <iostream>
+#include <string>
 #include "simpla/SIMPLA_config.h"
 #include "simpla/algebra/nTuple.h"
 #include "simpla/geometry/Chart.h"
 #include "simpla/geometry/GeoObject.h"
 #include "simpla/geometry/Polygon.h"
-#include "simpla/geometry/Revolve.h"
+#include "simpla/geometry/Revolution.h"
 #include "simpla/utilities/Log.h"
 #include "simpla/utilities/ObjectHead.h"
 #include "simpla/utilities/type_traits.h"
-#include <iostream>
-#include <string>
 namespace simpla {
 /**
  * @ingroup model
@@ -50,15 +50,12 @@ class GEqdsk {
     std::ostream &print(std::ostream &os);
     std::string const &description() const;
     __host__ __device__ box_type box() const;
-    std::shared_ptr<geometry::Polygon> const &boundary() const;
-    std::shared_ptr<geometry::Polygon> const &limiter() const;
-
-    __host__ __device__ bool in_boundary(point_type const &x) const {
-        return boundary()->check_inside(x[RAxis], x[ZAxis]);
-    }
-    __host__ __device__ bool in_limiter(point_type const &x) const {
-        return limiter()->check_inside(x[RAxis], x[ZAxis]);
-    }
+    //    std::shared_ptr<geometry::Polygon> const &boundary() const;
+    //    std::shared_ptr<geometry::Polygon> const &limiter() const;
+    //    __host__ __device__ bool in_boundary(point_type const &x) const { return boundary()->IsInside(x[RAxis],
+    //    x[ZAxis]); }
+    //    __host__ __device__ bool in_limiter(point_type const &x) const { return limiter()->IsInside(x[RAxis],
+    //    x[ZAxis]); }
     __host__ __device__ Real psi(Real R, Real Z) const;
     __host__ __device__ Real psi(point_type const &x) const { return psi(x[RAxis], x[ZAxis]); }
     __host__ __device__ nTuple<Real, 2> grad_psi(Real R, Real Z) const;

@@ -17,7 +17,8 @@ struct Revolution : public SweptBody {
    protected:
     Revolution();
     Revolution(Revolution const &other);
-    explicit Revolution(std::shared_ptr<const Surface> const &s, point_type const &origin, vector_type const &axis);
+    explicit Revolution(std::shared_ptr<const Surface> const &s, point_type const &origin, vector_type const &axis,
+                        Real phi0 = 0, Real phi1 = TWOPI);
 
    public:
     ~Revolution() override;

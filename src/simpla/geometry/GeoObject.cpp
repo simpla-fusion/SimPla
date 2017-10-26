@@ -44,7 +44,7 @@ void GeoObject::Move(const point_type &p) { m_axis_.Move(p); }
 //           (std::get<1>(b)[2] - std::get<0>(b)[2]);
 //};
 //
-// bool GeoObject::CheckInside(point_type const &x, Real tolerance) const {
+// bool GeoObject::IsInside(point_type const &x, Real tolerance) const {
 //    return geometry::isInSide(GetBoundingBox(), x);
 //}
 // std::shared_ptr<GeoObject> GeoObject::Intersection(std::shared_ptr<GeoObject> const &other) const {
@@ -61,7 +61,7 @@ void GeoObject::Move(const point_type &p) { m_axis_.Move(p); }
 //
 // Real GeoObject::CheckOverlap(GeoObject const &other) const { return isOverlapped(other.GetBoundingBox()); }
 //
-// bool GeoObject::CheckInside(const point_type &x) const { return CheckInSide(GetBoundingBox(), x); };
+// bool GeoObject::IsInside(const point_type &x) const { return CheckInSide(GetBoundingBox(), x); };
 //
 // std::tuple<Real, point_type, point_type> GeoObject::ClosestPoint(point_type const &x) const {
 //    return std::tuple<Real, point_type, point_type>{0, x, x};

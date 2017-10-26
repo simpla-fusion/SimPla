@@ -36,7 +36,6 @@ struct Sphere : public Body {
     Sphere(Real r) : Sphere(Axis{}, 0, r) {}
 
    public:
-    bool CheckInside(point_type const &x, Real tolerance) const override { return true; }
 
     std::tuple<bool, bool, bool> IsClosed() const override { return std::make_tuple(false, true, true); };
     std::tuple<bool, bool, bool> IsPeriodic() const override { return std::make_tuple(false, true, true); };

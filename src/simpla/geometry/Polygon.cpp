@@ -56,7 +56,7 @@ nTuple<Real, 2> Polygon::GetMinParameter() const { return nTuple<Real, 2>{-SP_IN
 nTuple<Real, 2> Polygon::GetMaxParameter() const { return nTuple<Real, 2>{SP_INFINITY, SP_INFINITY}; }
 
 int Polygon::CheckOverlap(box_type const &) const { return 0; }
-int Polygon::FindIntersection(std::shared_ptr<const Curve> const &, std::vector<Real> &, Real tolerance) const {
+int Polygon::FindIntersection(std::shared_ptr<const GeoObject> const &, std::vector<Real> &, Real tolerance) const {
     return 0;
 }
 point_type Polygon::Value(Real u, Real v) const { return point_type{0, 0, 0}; }

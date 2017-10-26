@@ -19,13 +19,11 @@ struct Cone : public Body {
     ~Cone() override = default;
 
    protected:
-    explicit Cone( Axis  const &axis, Real angle) : Body(axis), m_semi_angle_(angle) {
+    explicit Cone(Axis const &axis, Real angle) : Body(axis), m_semi_angle_(angle) {
         SetParameterRange(GetMinParameter(), GetMaxParameter());
     }
 
    public:
-    bool CheckInside(point_type const &x, Real tolerance) const override { return true; }
-
     std::tuple<bool, bool, bool> IsClosed() const override { return std::make_tuple(false, true, false); };
     std::tuple<bool, bool, bool> IsPeriodic() const override { return std::make_tuple(false, true, false); };
     nTuple<Real, 3> GetPeriod() const override { return nTuple<Real, 3>{SP_INFINITY, TWOPI, SP_INFINITY}; };

@@ -16,7 +16,7 @@ int Plane::CheckOverlap(box_type const &) const {
     return 0;
 }
 
-int Plane::FindIntersection(std::shared_ptr<const Curve> const &c, std::vector<Real> &res, Real tolerance) const {
+int Plane::FindIntersection(std::shared_ptr<const GeoObject> const &c, std::vector<Real> &res, Real tolerance) const {
     if (auto line = std::dynamic_pointer_cast<const Line>(c)) {
     } else {
         UNIMPLEMENTED;

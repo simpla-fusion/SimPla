@@ -37,7 +37,7 @@ struct FVM {
         op_list;
 
     typedef THost domain_type;
-    static constexpr unsigned int NDIMS = 3;
+    static const unsigned int NDIMS = 3;
 
    private:
     template <int I, typename TExpr>
@@ -151,9 +151,9 @@ struct FVM {
               IdxShift S) const {
         auto const& l = std::get<0>(expr.m_args_);
 
-        static constexpr int IX = (I + 0) % 3;
-        static constexpr int IY = (I + 1) % 3;
-        static constexpr int IZ = (I + 2) % 3;
+        static const int IX = (I + 0) % 3;
+        static const int IY = (I + 1) % 3;
+        static const int IZ = (I + 2) % 3;
 
         IdxShift SY{0, 0, 0};
         IdxShift SZ{0, 0, 0};
@@ -170,13 +170,13 @@ struct FVM {
               IdxShift S) const {
         auto const& l = std::get<0>(expr.m_args_);
 
-        static constexpr IdxShift SX{1, 0, 0};
-        static constexpr IdxShift SY{0, 1, 0};
-        static constexpr IdxShift SZ{0, 0, 1};
+        static const IdxShift SX{1, 0, 0};
+        static const IdxShift SY{0, 1, 0};
+        static const IdxShift SZ{0, 0, 1};
 
-        static constexpr int IX = 0;
-        static constexpr int IY = 1;
-        static constexpr int IZ = 2;
+        static const int IX = 0;
+        static const int IY = 1;
+        static const int IZ = 2;
 
         return ((getV<IX>(l, S + SX) - getV<IX>(l, S)) + (getV<IY>(l, S + SY) - getV<IY>(l, S)) +
                 (getV<IZ>(l, S + SZ) - getV<IZ>(l, S))) *
@@ -189,9 +189,9 @@ struct FVM {
               IdxShift S) const {
         auto const& l = std::get<0>(expr.m_args_);
 
-        static constexpr int IX = (I + 0) % 3;
-        static constexpr int IY = (I + 1) % 3;
-        static constexpr int IZ = (I + 2) % 3;
+        static const int IX = (I + 0) % 3;
+        static const int IY = (I + 1) % 3;
+        static const int IZ = (I + 2) % 3;
         IdxShift SY{0, 0, 0};
         IdxShift SZ{0, 0, 0};
         SY[(I + 1) % 3] = 1;
@@ -212,9 +212,9 @@ struct FVM {
         IdxShift SY{0, 1, 0};
         IdxShift SZ{0, 0, 1};
 
-        static constexpr int IX = 0;
-        static constexpr int IY = 1;
-        static constexpr int IZ = 2;
+        static const int IX = 0;
+        static const int IY = 1;
+        static const int IZ = 2;
 
         return ((getDualV<IX>(l, S) - getDualV<IX>(l, S - SX)) +  //
                 (getDualV<IY>(l, S) - getDualV<IY>(l, S - SY)) +  //
@@ -259,8 +259,8 @@ struct FVM {
 
         IdxShift SI{0, 0, 0};
         SI[I] = 1;
-        static constexpr int J = (2 * I - K + 3) % 3;
-        static constexpr int sign = ((K - I + 3) % 3) * 2 - 3;
+        static const int J = (2 * I - K + 3) % 3;
+        static const int sign = ((K - I + 3) % 3) * 2 - 3;
         /**  I  J   K      f=((K-I+3) %3)*2-3      J=(2*I-K+3)%3
              x  y   z       1=((2-0+3) %3)*2-3      1=(2*0-2+3) %3
              y  z   x       1=((0-1+3) %3)*2-3      2=(2*1-0+3) %3
@@ -280,9 +280,9 @@ struct FVM {
         auto const& l = std::get<0>(expr.m_args_);
         IdxShift SI{0, 0, 0};
         SI[I] = 1;
-        //        static constexpr IdxShift SI{I == 0 ? 0 : 1, I == 1 ? 0 : 1, I == 2 ? 0 : 1};
-        static constexpr int J = (2 * I - K + 3) % 3;
-        static constexpr int sign = ((K - I + 3) % 3) * 2 - 3;
+        //        static const IdxShift SI{I == 0 ? 0 : 1, I == 1 ? 0 : 1, I == 2 ? 0 : 1};
+        static const int J = (2 * I - K + 3) % 3;
+        static const int sign = ((K - I + 3) % 3) * 2 - 3;
 
         return sign * (getDualV<J>(l, S) - getDualV<J>(l, S - SI)) * (-get_<K>(m_host_->m_edge_inv_dual_volume_, S));
     }
@@ -467,9 +467,9 @@ struct FVM {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
-        static constexpr int IX = (I + 0) % 3;
-        static constexpr int IY = (I + 1) % 3;
-        static constexpr int IZ = (I + 2) % 3;
+        static const int IX = (I + 0) % 3;
+        static const int IY = (I + 1) % 3;
+        static const int IZ = (I + 2) % 3;
 
         IdxShift SY{0, 0, 0};
         IdxShift SZ{0, 0, 0};
@@ -487,9 +487,9 @@ struct FVM {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
-        static constexpr int IX = 0;
-        static constexpr int IY = 1;
-        static constexpr int IZ = 2;
+        static const int IX = 0;
+        static const int IY = 1;
+        static const int IZ = 2;
 
         return _map_to<IX>(std::integer_sequence<int, EDGE, CELL>(), l, S) *
                    _map_to<IX>(std::integer_sequence<int, FACE, CELL>(), r, S) +
@@ -506,9 +506,9 @@ struct FVM {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
-        static constexpr int IX = 0;
-        static constexpr int IY = 1;
-        static constexpr int IZ = 2;
+        static const int IX = 0;
+        static const int IY = 1;
+        static const int IZ = 2;
 
         return _map_to<IX>(std::integer_sequence<int, FACE, CELL>(), l, S) *
                    _map_to<IX>(std::integer_sequence<int, EDGE, CELL>(), r, S) +
@@ -536,9 +536,9 @@ struct FVM {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
-        static constexpr int IX = 0;
-        static constexpr int IY = 1;
-        static constexpr int IZ = 2;
+        static const int IX = 0;
+        static const int IY = 1;
+        static const int IZ = 2;
 
         return get_<IX>(l, S) * get_<IX>(r, S) + get_<IY>(l, S) * get_<IY>(r, S) + get_<IZ>(l, S) * get_<IZ>(r, S);
     }
@@ -547,9 +547,9 @@ struct FVM {
     auto eval(std::integer_sequence<int, CELL, CELL> _, Expression<tags::dot, TExpr...> const& expr, IdxShift S) const {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
-        static constexpr int IX = 0;
-        static constexpr int IY = 1;
-        static constexpr int IZ = 2;
+        static const int IX = 0;
+        static const int IY = 1;
+        static const int IZ = 2;
 
         return get_<IX>(l, S) * get_<IX>(r, S) + get_<IY>(l, S) * get_<IY>(r, S) + get_<IZ>(l, S) * get_<IZ>(r, S);
     }
@@ -560,9 +560,9 @@ struct FVM {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
-        static constexpr int IX = (I + 0) % 3;
-        static constexpr int IY = (I + 1) % 3;
-        static constexpr int IZ = (I + 2) % 3;
+        static const int IX = (I + 0) % 3;
+        static const int IY = (I + 1) % 3;
+        static const int IZ = (I + 2) % 3;
 
         return get_<IY>(l, S) * get_<IZ>(r, S) - get_<IZ>(l, S) * get_<IY>(r, S);
     }
@@ -573,9 +573,9 @@ struct FVM {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
 
-        static constexpr int IX = (I + 0) % 3;
-        static constexpr int IY = (I + 1) % 3;
-        static constexpr int IZ = (I + 2) % 3;
+        static const int IX = (I + 0) % 3;
+        static const int IY = (I + 1) % 3;
+        static const int IZ = (I + 2) % 3;
 
         return get_<IY>(l, S) * get_<IZ>(r, S) - get_<IZ>(l, S) * get_<IY>(r, S);
     }

@@ -28,7 +28,7 @@ struct GeoObjectOCE : public GeoObject {
     Bnd_Box const &GetOCCBoundingBox() const;
 
     box_type GetBoundingBox() const override;
-    bool CheckInside(point_type const &x, Real tolerance) const override;
+    bool IsInside(point_type const &x, Real tolerance) const;
 };
 
 }  // namespace geometry

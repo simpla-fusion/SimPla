@@ -53,19 +53,8 @@ struct Surface : public GeoObject {
     void Scale(Real s, int dir) override { m_axis_.Scale(s); }
     void Translate(const vector_type &v) override { m_axis_.Translate(v); }
 
-    /**
-      * @return
-      *  <= 0 no overlap
-      *  == 1 partial overlap
-      *  >  1 all inside
-      */
-    virtual int CheckOverlap(box_type const &) const { return false; }
-    /**
-     *
-     * @return <0 first point is outgoing
-     *         >0 first point is incoming
-     */
-    virtual int FindIntersection(std::shared_ptr<const Curve> const &, std::vector<Real> &, Real tolerance) const;
+    int CheckOverlap(box_type const &) const override;
+    int FindIntersection(std::shared_ptr<const GeoObject> const &, std::vector<Real> &, Real tolerance) const override;
 
    protected:
     nTuple<Real, 2> m_uv_min_{SP_SNaN, SP_SNaN};

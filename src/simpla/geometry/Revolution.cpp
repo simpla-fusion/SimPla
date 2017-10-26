@@ -9,7 +9,8 @@ namespace simpla {
 namespace geometry {
 Revolution::Revolution() = default;
 Revolution::Revolution(Revolution const &other) = default;
-Revolution::Revolution(std::shared_ptr<const Surface> const &s, point_type const &origin, vector_type const &axis)
+Revolution::Revolution(std::shared_ptr<const Surface> const &s, point_type const &origin, vector_type const &axis, Real phi0,
+                       Real phi1)
     : SweptBody(s, Circle::New3(origin, s->GetAxis().o, axis)) {}
 
 Revolution::~Revolution() = default;

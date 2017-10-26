@@ -97,8 +97,33 @@ class GeoObject : public SPObject {
     };
 
     virtual box_type GetBoundingBox() const;
-    virtual bool CheckInside(point_type const &x, Real tolerance) const { return false; }
-    bool CheckInside(point_type const &x) const { return CheckInside(x, SP_GEO_DEFAULT_TOLERANCE); }
+
+    /**
+    * @return
+    *  <= 0 no overlap
+    *  == 1 partial overlap
+    *  >  1 all inside
+    */
+    virtual int CheckOverlap(box_type const &) const {
+        UNIMPLEMENTED;
+        return false;
+    }
+    /**
+     *
+     * @return <0 first point is outgoing
+     *         >0 first point is incoming
+     */
+    virtual int FindIntersection(std::shared_ptr<const GeoObject> const &, std::vector<Real> &, Real tolerance) const {
+        UNIMPLEMENTED;
+        return 0;
+    }
+    bool IsInside(Real u, Real v = 0, Real w = 0, Real tolerance = SP_GEO_DEFAULT_TOLERANCE) const {
+        return CheckOverlap(std::make_tuple(point_type{u - tolerance, v - tolerance, w - tolerance},
+                                            point_type{u + tolerance, v + tolerance, w + tolerance})) > 1;
+    }
+    bool IsInside(point_type const &x, Real tolerance = SP_GEO_DEFAULT_TOLERANCE) const {
+        return IsInside(x[0], x[1], x[2], tolerance);
+    }
 
     virtual void Mirror(const point_type &p);
     virtual void Mirror(const Axis &a1);
@@ -150,10 +175,10 @@ class GeoObject : public SPObject {
     //    virtual Real Measure() const;
     //    virtual box_type GetBoundingBox() const;
     //    virtual std::shared_ptr<GeoObject> GetBoundary() const;
-    //    virtual bool CheckInside(point_type const &x, Real tolerance = SP_GEO_DEFAULT_TOLERANCE) const;
+    //    virtual bool IsInside(point_type const &x, Real tolerance = SP_GEO_DEFAULT_TOLERANCE) const;
     //    virtual std::shared_ptr<GeoObject> GetBoundary() const { return nullptr; };
     //    /// The axis-aligned minimum bounding box (or AABB) , Cartesian
-    //    virtual bool CheckInside(point_type const &x) const;
+    //    virtual bool IsInside(point_type const &x) const;
     //    virtual std::shared_ptr<GeoObject> Intersection(std::shared_ptr<GeoObject> const &other) const;
     //    virtual std::shared_ptr<GeoObject> Difference(std::shared_ptr<GeoObject> const &other) const;
     //    virtual std::shared_ptr<GeoObject> Union(std::shared_ptr<GeoObject> const &other) const;

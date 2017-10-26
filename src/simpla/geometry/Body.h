@@ -48,9 +48,6 @@ struct Body : public GeoObject {
         auto r = GetParameterRange();
         return std::make_tuple(Value(std::get<0>(r)), Value(std::get<1>(r)));
     };
-    bool CheckInside(point_type const &p, Real tolerance) const override {
-        return CheckOverlap(std::make_tuple(point_type{p - tolerance}, point_type{p + tolerance}), tolerance) > 1;
-    }
 
     /**
     * @return
