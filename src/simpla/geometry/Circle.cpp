@@ -20,7 +20,6 @@ void Circle::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
 }
 std::shared_ptr<simpla::data::DataNode> Circle::Serialize() const {
     auto res = base_type::Serialize();
-    CHECK(res == nullptr);
     res->SetValue<Real>("Radius", m_radius_);
     return res;
 }

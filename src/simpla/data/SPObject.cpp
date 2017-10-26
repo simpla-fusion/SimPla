@@ -37,6 +37,8 @@ SPObject::SPObject() : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_db_ = data::DataNode::New(data::DataNode::DN_TABLE);
     //    SetName(std::to_string(m_pimpl_->m_id_).substr(0, 15));
 }
+SPObject::SPObject(SPObject const &other) : SPObject() { m_pimpl_->m_db_->Set(other.m_pimpl_->m_db_); };
+
 SPObject::~SPObject() { delete m_pimpl_; }
 // std::shared_ptr<SPObject> SPObject::GlobalNew(std::shared_ptr<data::DataNode> const &v) {
 //    std::shared_ptr<SPObject> res = nullptr;

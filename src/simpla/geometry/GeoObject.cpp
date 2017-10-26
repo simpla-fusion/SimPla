@@ -10,8 +10,9 @@
 namespace simpla {
 namespace geometry {
 GeoObject::GeoObject() : SPObject(){};
-GeoObject::GeoObject(Axis const &axis) : SPObject(), m_axis_(axis){};
 GeoObject::~GeoObject(){};
+GeoObject::GeoObject(GeoObject const &other) : SPObject(other), m_axis_(other.m_axis_){};
+GeoObject::GeoObject(Axis const &axis) : SPObject(), m_axis_(axis){};
 std::shared_ptr<data::DataNode> GeoObject::Serialize() const {
     auto res = base_type::Serialize();
     res->Set("Axis", m_axis_.Serialize());

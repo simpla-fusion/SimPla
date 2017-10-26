@@ -80,8 +80,11 @@ class GeoObject : public SPObject {
 
    public:
     GeoObject();
+    GeoObject(GeoObject const &other);
     ~GeoObject() override;
     explicit GeoObject(Axis const &axis);
+    virtual std::shared_ptr<GeoObject> Copy() const = 0;
+
     std::shared_ptr<data::DataNode> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataNode> const &) override;
 
@@ -96,8 +99,6 @@ class GeoObject : public SPObject {
     virtual box_type GetBoundingBox() const;
     virtual bool CheckInside(point_type const &x, Real tolerance) const { return false; }
     bool CheckInside(point_type const &x) const { return CheckInside(x, SP_GEO_DEFAULT_TOLERANCE); }
-
-    virtual std::shared_ptr<GeoObject> Copy() const = 0;
 
     virtual void Mirror(const point_type &p);
     virtual void Mirror(const Axis &a1);

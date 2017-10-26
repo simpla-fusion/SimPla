@@ -12,10 +12,7 @@ SweptBody::SweptBody(SweptBody const &other) = default;
 SweptBody::SweptBody(std::shared_ptr<const Surface> const &s, std::shared_ptr<const Curve> const &c)
     : Body(s->GetAxis()),
       m_basis_surface_(s),
-      m_shift_curve_(std::dynamic_pointer_cast<const Curve>(c->Moved(point_type{0, 0, 0}))) {
-    ASSERT(m_shift_curve_ != nullptr);
-    CHECK(*m_shift_curve_->Serialize());
-}
+      m_shift_curve_(std::dynamic_pointer_cast<const Curve>(c->Moved(point_type{0, 0, 0}))) {}
 
 SweptBody::~SweptBody() = default;
 void SweptBody::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
