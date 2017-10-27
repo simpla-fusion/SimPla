@@ -38,7 +38,8 @@ struct RevolutionSurface : public SweptSurface {
         return m_r_axis_.o + (dot(P, m_r_axis_.z) * (1.0 - std::cos(v))) * m_r_axis_.z +
                cross(P, m_r_axis_.x) * std::sin(v) + P * std::cos(v);
     };
-
+    int CheckOverlap(box_type const &) const override;                                                                \
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override; \
    private:
     Axis m_r_axis_;
 };

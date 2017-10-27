@@ -9,9 +9,11 @@ void Curve::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { ba
 
 PointsOnCurve::PointsOnCurve() = default;
 PointsOnCurve::~PointsOnCurve() = default;
-PointsOnCurve::PointsOnCurve(std::shared_ptr<const Curve> const &curve) : m_curve_(curve) {}
+PointsOnCurve::PointsOnCurve(std::shared_ptr<const Curve> const &curve)
+    : GeoObject(curve->GetAxis()), m_curve_(std::dynamic_pointer_cast<Curve>(curve->Copy())) {}
 std::shared_ptr<data::DataNode> PointsOnCurve::Serialize() const { return base_type::Serialize(); };
 void PointsOnCurve::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
+Axis const &PointsOnCurve::GetAxis() const { return m_curve_->GetAxis(); };
 std::shared_ptr<const Curve> PointsOnCurve::GetBasisCurve() const { return m_curve_; }
 void PointsOnCurve::SetBasisCurve(std::shared_ptr<const Curve> const &c) { m_curve_ = c; }
 

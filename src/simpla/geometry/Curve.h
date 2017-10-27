@@ -49,19 +49,20 @@ struct PointsOnCurve : public GeoObject {
 
    protected:
     PointsOnCurve();
-    PointsOnCurve(std::shared_ptr<const Curve> const &);
+    explicit PointsOnCurve(std::shared_ptr<const Curve> const &);
 
    public:
     ~PointsOnCurve() override;
+    Axis const &GetAxis() const override;
     std::shared_ptr<const Curve> GetBasisCurve() const;
     void SetBasisCurve(std::shared_ptr<const Curve> const &c);
 
     void PutU(Real);
     Real GetU(size_type i) const;
     point_type GetPoint(size_type i) const;
-    size_type size() const;
     std::vector<Real> const &data() const;
     std::vector<Real> &data();
+    size_type size() const;
 
    private:
     std::shared_ptr<const Curve> m_curve_;

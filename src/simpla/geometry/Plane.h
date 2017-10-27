@@ -21,6 +21,8 @@ struct Plane : public Surface {
     explicit Plane(Axis const &axis) : Surface(axis) {
         SetParameterRange(std::make_tuple(GetMinParameter(), GetMaxParameter()));
     }
+    int CheckOverlap(box_type const &) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    public:
     ~Plane() override = default;

@@ -70,9 +70,9 @@ struct PointsOnSurface : public GeoObject {
     void PutUV(nTuple<Real, 2> uv);
     nTuple<Real, 2> GetUV(size_type i) const;
     point_type GetPoint(size_type i) const;
-    size_type size() const;
     std::vector<nTuple<Real, 2>> const &data() const;
     std::vector<nTuple<Real, 2>> &data();
+    size_type size() const;
 
    private:
     std::shared_ptr<const Surface> m_surface_;

@@ -36,6 +36,8 @@ struct LinearExtrusionSurface : public SweptSurface {
     }
 
     point_type Value(Real u, Real v) const override { return GetBasisCurve()->Value(u) + v * m_shift_; };
+    int CheckOverlap(box_type const &) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    protected:
     vector_type m_shift_;

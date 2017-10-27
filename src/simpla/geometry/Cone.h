@@ -48,6 +48,8 @@ struct Cone : public Body {
         //               +
         //               v * std::cos(m_semi_angle_) * m_axis_.z;
     };
+    int CheckOverlap(box_type const &) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    private:
     Real m_semi_angle_ = PI / 4;

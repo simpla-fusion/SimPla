@@ -16,8 +16,8 @@ struct ConicalSurface : public Surface {
    protected:
     ConicalSurface() = default;
     ConicalSurface(ConicalSurface const &other) = default;
-    ConicalSurface( Axis  const &axis, Real radius, Real semi_angle, Real phi0 = SP_SNaN,
-                   Real phi1 = SP_SNaN, Real z0 = SP_SNaN, Real z1 = SP_SNaN)
+    ConicalSurface(Axis const &axis, Real radius, Real semi_angle, Real phi0 = SP_SNaN, Real phi1 = SP_SNaN,
+                   Real z0 = SP_SNaN, Real z1 = SP_SNaN)
         : Surface(axis), m_radius_(radius), m_semi_angle_(semi_angle) {
         auto min = GetMinParameter();
         auto max = GetMaxParameter();

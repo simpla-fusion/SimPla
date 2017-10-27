@@ -53,7 +53,8 @@ struct ToroidalSurface : public Surface {
         //               m_axis_.y) +
         //               m_minor_radius_ * std::sin(v) * m_axis_.z;
     };
-
+    int CheckOverlap(box_type const &) const override;                                                                \
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override; \
    protected:
     Real m_major_radius_ = 1;
     Real m_minor_radius_ = 1;

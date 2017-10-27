@@ -84,17 +84,15 @@ class GeoObject : public SPObject {
     ~GeoObject() override;
     explicit GeoObject(Axis const &axis);
     virtual std::shared_ptr<GeoObject> Copy() const = 0;
-
+    static std::shared_ptr<this_type> New(std::shared_ptr<data::DataNode> const &cfg) {
+        return std::dynamic_pointer_cast<this_type>(simpla::SPObject::Create(cfg));
+    };
     std::shared_ptr<data::DataNode> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataNode> const &) override;
 
     static std::string FancyTypeName_s() { return "GeoObject"; }
     std::string FancyTypeName() const override { return simpla::traits::type_name<this_type>::value(); }
     std::string ClassName() const override { return "GeoObject"; }
-
-    static std::shared_ptr<this_type> New(std::shared_ptr<data::DataNode> const &cfg) {
-        return std::dynamic_pointer_cast<this_type>(simpla::SPObject::Create(cfg));
-    };
 
     virtual box_type GetBoundingBox() const;
 
@@ -137,9 +135,9 @@ class GeoObject : public SPObject {
 
     void Scale(Real s) { Scale(s, -1); }
 
-    Axis &GetAxis();
-    Axis const &GetAxis() const;
-    void SetAxis(Axis const &);
+    virtual Axis &GetAxis();
+    virtual Axis const &GetAxis() const;
+    virtual void SetAxis(Axis const &);
 
     template <typename... Args>
     std::shared_ptr<GeoObject> Mirrored(Args &&... args) const {
@@ -202,28 +200,30 @@ class GeoObject : public SPObject {
     void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;        \
     std::shared_ptr<simpla::data::DataNode> Serialize() const override;
 
-#define SP_GEO_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_)                                                                 \
-   public:                                                                                                            \
-    static std::string FancyTypeName_s() { return __STRING(_CLASS_NAME_); }                                           \
-    virtual std::string FancyTypeName() const override { return __STRING(_CLASS_NAME_); }                             \
-                                                                                                                      \
-   private:                                                                                                           \
-    typedef _BASE_NAME_ base_type;                                                                                    \
-    typedef _CLASS_NAME_ this_type;                                                                                   \
-    static bool _is_registered;                                                                                       \
-                                                                                                                      \
-   public:                                                                                                            \
-    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;                                    \
-    std::shared_ptr<simpla::data::DataNode> Serialize() const override;                                               \
-                                                                                                                      \
-    template <typename... Args>                                                                                       \
-    static std::shared_ptr<this_type> New(Args &&... args) {                                                          \
-        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));                                \
-    };                                                                                                                \
-    std::shared_ptr<GeoObject> Copy() const override { return std::shared_ptr<this_type>(new this_type(*this)); };    \
-    int CheckOverlap(box_type const &) const override;                                                                \
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override; \
-    using GeoObject::Intersection;
+#define SP_GEO_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_)                                     \
+   public:                                                                                \
+    static std::string FancyTypeName_s() { return __STRING(_CLASS_NAME_); }               \
+    virtual std::string FancyTypeName() const override { return __STRING(_CLASS_NAME_); } \
+                                                                                          \
+   private:                                                                               \
+    typedef _BASE_NAME_ base_type;                                                        \
+    typedef _CLASS_NAME_ this_type;                                                       \
+    static bool _is_registered;                                                           \
+                                                                                          \
+   public:                                                                                \
+    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;        \
+    std::shared_ptr<simpla::data::DataNode> Serialize() const override;                   \
+                                                                                          \
+    template <typename... Args>                                                           \
+    static std::shared_ptr<this_type> New(Args &&... args) {                              \
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));    \
+    };                                                                                    \
+    static std::shared_ptr<this_type> New(std::shared_ptr<data::DataNode> const &cfg) {   \
+        return std::dynamic_pointer_cast<this_type>(simpla::SPObject::Create(cfg));       \
+    };                                                                                    \
+                                                                                          \
+    std::shared_ptr<GeoObject> Copy() const override { return std::shared_ptr<this_type>(new this_type(*this)); };
+
 
 }  // namespace geometry
 }  // namespace simpla

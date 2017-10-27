@@ -58,6 +58,8 @@ struct Toroidal : public Body {
         r = (m_major_radius_ + r * std::cos(theta));
         return m_axis_.Coordinates(r * std::cos(phi), r * std::sin(phi), r * std::sin(theta));
     };
+    int CheckOverlap(box_type const &) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    private:
     Real m_major_radius_ = 1.0;

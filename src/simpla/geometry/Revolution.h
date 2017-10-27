@@ -24,6 +24,8 @@ struct Revolution : public SweptBody {
     ~Revolution() override;
 
     point_type Value(Real u, Real v, Real w) const override;
+    int CheckOverlap(box_type const &) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 };
 
 }  // namespace simpla

@@ -17,7 +17,8 @@ struct Extrusion : public SweptBody {
     Extrusion();
     Extrusion(Extrusion const &other);
     Extrusion(std::shared_ptr<const Surface> const &s, vector_type const &c);
-
+    int CheckOverlap(box_type const &) const override;                                                                \
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override; \
    public:
     ~Extrusion() override;
 };

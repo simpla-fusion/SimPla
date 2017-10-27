@@ -16,8 +16,8 @@ struct SphericalSurface : public Surface {
    protected:
     SphericalSurface() = default;
     SphericalSurface(SphericalSurface const &other) = default;  //: Surface(other), m_radius_(other.m_radius_) {}
-    SphericalSurface( Axis  const &axis, Real radius, Real phi0 = SP_SNaN, Real phi1 = SP_SNaN,
-                     Real theta0 = SP_SNaN, Real theta1 = SP_SNaN)
+    SphericalSurface(Axis const &axis, Real radius, Real phi0 = SP_SNaN, Real phi1 = SP_SNaN, Real theta0 = SP_SNaN,
+                     Real theta1 = SP_SNaN)
         : Surface(axis), m_radius_(radius) {
         auto min = GetMinParameter();
         auto max = GetMaxParameter();
@@ -45,11 +45,13 @@ struct SphericalSurface : public Surface {
     point_type Value(Real phi, Real theta) const override {
         Real cos_theta = std::cos(theta);
         return m_axis_.Coordinates(m_radius_ * cos_theta * std::cos(phi), m_radius_ * cos_theta * std::sin(phi),
-                                    m_radius_ * std::sin(theta));
+                                   m_radius_ * std::sin(theta));
         //        return m_axis_.o + m_radius_ * std::cos(theta) * (std::cos(phi) * m_axis_.x + std::sin(phi) *
         //        m_axis_.y) +
         //               m_radius_ * std::sin(theta) * m_axis_.z;
     };
+    int CheckOverlap(box_type const &) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    private:
     Real m_radius_ = 1.0;

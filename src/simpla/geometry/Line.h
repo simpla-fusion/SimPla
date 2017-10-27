@@ -34,6 +34,8 @@ struct Line : public Curve {
     Real GetMaxParameter() const override { return SP_INFINITY; }
 
     point_type Value(Real u) const override { return m_axis_.Coordinates(u); }
+    int CheckOverlap(box_type const &) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 };
 
 }  // namespace geometry

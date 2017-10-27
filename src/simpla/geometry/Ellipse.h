@@ -38,7 +38,8 @@ struct Ellipse : public Curve {
     point_type Value(Real alpha) const override {
         return m_axis_.Coordinates(m_major_radius_ * std::cos(alpha), m_minor_radius_ * std::sin(alpha));
     };
-
+    int CheckOverlap(box_type const &) const override;                                                                \
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override; \
    protected:
     Real m_major_radius_ = 1;
     Real m_minor_radius_ = 1;

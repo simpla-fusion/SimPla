@@ -6,6 +6,7 @@
 #include <simpla/algebra/nTuple.h>
 #include <simpla/data/Data.h>
 #include <simpla/geometry/Polygon.h>
+#include <simpla/geometry/Polyline2d.h>
 #include <simpla/geometry/Revolution.h>
 #include <simpla/numeric/Interpolation.h>
 #include <simpla/numeric/find_root.h>
@@ -38,9 +39,8 @@ struct Tokamak::pimpl_s {
     inter2d_type m_psirz_;  //!< Poloidal flux in Webber/rad on the rectangular grid points
 
     //	inter_type qpsi_;//!< q values on uniform flux grid from axis to boundary
-
-    std::vector<nTuple<Real, 2>> m_rzbbb_;  //!< R,Z of boundary points in meter
-    std::vector<nTuple<Real, 2>> m_rzlim_;  //!< R,Z of surrounding limiter contour in meter
+    std::shared_ptr<geometry::Polyline2d> m_rzbbb_;  //!< R,Z of boundary points in meter
+    std::shared_ptr<geometry::Polyline2d> m_rzlim_;  //!< R,Z of surrounding limiter contour in meter
     std::map<std::string, inter_type> m_profile_;
     //    bool flux_surface(Real psi_j, size_t M, point_type *res, Real resoluton = 0.001);
 
@@ -57,8 +57,9 @@ std::shared_ptr<simpla::data::DataNode> Tokamak::Serialize() const {
 
 void Tokamak::ReadGFile(std::string const &fname) {
     std::ifstream inFileStream_(fname);
-    //    m_rzbbb_ = geometry::Polygon::New();
-    //    m_rzlim_ = geometry::Polygon::New();
+    geometry::Axis axis;
+    m_pimpl_->m_rzbbb_ = geometry::Polyline2d::New(axis);
+    m_pimpl_->m_rzlim_ = geometry::Polyline2d::New(axis);
     if (!inFileStream_.is_open()) {
         THROW_EXCEPTION_RUNTIME_ERROR("File " + fname + " is not opend!");
         return;
@@ -146,11 +147,11 @@ void Tokamak::ReadGFile(std::string const &fname) {
     size_t n_bbbs, n_limitr;
     inFileStream_ >> std::setw(5) >> n_bbbs >> n_limitr;
 
-    m_pimpl_->m_rzbbb_.resize(n_bbbs);
-    m_pimpl_->m_rzlim_.resize(n_limitr);
+    m_pimpl_->m_rzbbb_->data().resize(n_bbbs);
+    m_pimpl_->m_rzlim_->data().resize(n_limitr);
 
-    inFileStream_ >> std::setw(16) >> m_pimpl_->m_rzbbb_;
-    inFileStream_ >> std::setw(16) >> m_pimpl_->m_rzlim_;
+    inFileStream_ >> std::setw(16) >> m_pimpl_->m_rzbbb_->data();
+    inFileStream_ >> std::setw(16) >> m_pimpl_->m_rzlim_->data();
 
     ReadProfile(fname + "_profiles.txt");
 }

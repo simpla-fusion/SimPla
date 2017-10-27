@@ -15,7 +15,7 @@ struct Polyline : public Curve {
    protected:
     Polyline();
     Polyline(Polyline const &);
-    explicit Polyline( Axis  const &axis) : Polyline() { Curve::SetAxis(axis); }
+    explicit Polyline(Axis const &axis) : Polyline() { Curve::SetAxis(axis); }
 
    public:
     ~Polyline() override;
@@ -27,15 +27,14 @@ struct Polyline : public Curve {
     Real GetMinParameter() const override;
     Real GetMaxParameter() const override;
 
-    void SetClosed(bool);
-    void SetPeriod(Real);
-
     point_type Value(Real u) const override;
+    //    void Close(bool);
+    //    void AddPoint(point_type const &xyz);  // add xyz
+    //    point_type StartPoint(int n) const;
+    //    point_type EndPoint(int n) const;
 
-    void PushBack(std::shared_ptr<Curve> const &, Real length = SP_SNaN);
-    void PushFront(std::shared_ptr<Curve> const &, Real length = SP_SNaN);
-    void Foreach(std::function<void(std::shared_ptr<Curve> const &)> const &);
-    void Foreach(std::function<void(std::shared_ptr<const Curve> const &)> const &) const;
+    int CheckOverlap(box_type const &) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    private:
     struct pimpl_s;

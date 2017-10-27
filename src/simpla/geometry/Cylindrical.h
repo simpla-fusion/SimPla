@@ -52,6 +52,8 @@ struct Cylindrical : public Body {
     point_type Value(Real u, Real v, Real w) const override {
         return m_axis_.Coordinates(u * std::cos(v), u * std::sin(v), w);
     };
+    int CheckOverlap(box_type const &) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 };
 }  // namespace geometry
 }  // namespace simpla

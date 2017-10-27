@@ -37,13 +37,15 @@ struct Cube : public Body {
     }
     box_type GetBoundingBox() const override { return m_bound_box_; };
 
-//    bool IsInside(point_type const &x, Real tolerance) const override {
-//        return std::get<0>(m_bound_box_)[0] <= x[0] && x[0] < std::get<1>(m_bound_box_)[0] &&
-//               std::get<0>(m_bound_box_)[1] <= x[1] && x[1] < std::get<1>(m_bound_box_)[1] &&
-//               std::get<0>(m_bound_box_)[2] <= x[2] && x[2] < std::get<1>(m_bound_box_)[2];
-//    }
+    //    bool IsInside(point_type const &x, Real tolerance) const override {
+    //        return std::get<0>(m_bound_box_)[0] <= x[0] && x[0] < std::get<1>(m_bound_box_)[0] &&
+    //               std::get<0>(m_bound_box_)[1] <= x[1] && x[1] < std::get<1>(m_bound_box_)[1] &&
+    //               std::get<0>(m_bound_box_)[2] <= x[2] && x[2] < std::get<1>(m_bound_box_)[2];
+    //    }
 
     point_type Value(Real u, Real v, Real w) const override { return m_axis_.xyz(u, v, w); };
+    int CheckOverlap(box_type const &) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 };
 
 // namespace traits

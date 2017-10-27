@@ -34,6 +34,8 @@ struct Sphere : public Body {
         SetParameterRange(min, max);
     }
     Sphere(Real r) : Sphere(Axis{}, 0, r) {}
+    int CheckOverlap(box_type const &) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    public:
     std::tuple<bool, bool, bool> IsClosed() const override { return std::make_tuple(false, true, true); };

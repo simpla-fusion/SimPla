@@ -2,6 +2,8 @@
 // Created by salmon on 17-5-31.
 //
 #include "Cube.h"
+#include "Line.h"
+
 namespace simpla {
 namespace geometry {
 SP_OBJECT_REGISTER(Cube)
@@ -24,7 +26,10 @@ void Cube::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     }
 }
 int Cube::CheckOverlap(box_type const &) const { return 0; }
-std::shared_ptr<GeoObject> Cube::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
+std::shared_ptr<GeoObject> Cube::Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
+    std::shared_ptr<GeoObject> res = nullptr;
+    if (auto line = std::dynamic_pointer_cast<const Line>(g)) { res = PointsOnCurve::New(line);
+    }
     return nullptr;
 }
 }  // namespace geometry {

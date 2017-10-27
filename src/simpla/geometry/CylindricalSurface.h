@@ -16,8 +16,8 @@ struct CylindricalSurface : public Surface {
    protected:
     CylindricalSurface() = default;
     CylindricalSurface(CylindricalSurface const &other) = default;  // : Surface(other), m_radius_(other.m_radius_) {}
-    CylindricalSurface( Axis  const &axis, Real R, Real phi0 = SP_SNaN, Real phi1 = SP_SNaN,
-                       Real z0 = SP_SNaN, Real z1 = SP_SNaN)
+    CylindricalSurface(Axis const &axis, Real R, Real phi0 = SP_SNaN, Real phi1 = SP_SNaN, Real z0 = SP_SNaN,
+                       Real z1 = SP_SNaN)
         : Surface(axis), m_radius_(R) {
         auto min = GetMinParameter();
         auto max = GetMaxParameter();
@@ -51,6 +51,8 @@ struct CylindricalSurface : public Surface {
     point_type Value(Real u, Real v) const override {
         return m_axis_.Coordinates(m_radius_ * std::cos(u), m_radius_ * std::sin(u), v);
     };
+    int CheckOverlap(box_type const &) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    private:
     Real m_radius_ = 1.0;

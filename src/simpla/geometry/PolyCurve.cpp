@@ -74,9 +74,9 @@ void PolyCurve::Foreach(std::function<void(std::shared_ptr<Curve> const &)> cons
 void PolyCurve::Foreach(std::function<void(std::shared_ptr<const Curve> const &)> const &fun) const {
     for (auto &item : m_pimpl_->m_c_list_) { fun(item.second); }
 }
-    int PolyCurve::CheckOverlap(box_type const &) const { return 0; }
-    std::shared_ptr<GeoObject> PolyCurve::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
-        return nullptr;
-    }
+int PolyCurve::CheckOverlap(box_type const &) const { return 0; }
+std::shared_ptr<GeoObject> PolyCurve::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
+    return nullptr;
+}
 }  // namespace geometry{
 }  // namespace simpla{

@@ -11,11 +11,18 @@ namespace geometry {
 struct PolyPoints : public GeoObject {
     SP_GEO_OBJECT_HEAD(PolyPoints, GeoObject);
 
-    std::shared_ptr<const GeoObject> GetBaseShape() const;
-    void SetBaseShape(std::shared_ptr<const GeoObject> const &c);
-    point_type uvw(size_type i) const;
-    point_type xyz(size_type i) const;
+   protected:
+    PolyPoints();
+    PolyPoints(PolyPoints const &);
+    explicit PolyPoints(Axis const &axis);
+
+   public:
+    ~PolyPoints() override;
+
+    point_type Value(size_type i) const;
     size_type size() const;
+    std::vector<point_type> &data();
+    std::vector<point_type> const &data() const;
 };
 
 }  // namespace geometry{
