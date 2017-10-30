@@ -374,6 +374,12 @@ auto NGet(Args &&... args) {
     static_assert(N < sizeof...(Args), "out of range!");
     return detail::NGetHelp(std::integral_constant<size_type, N>(), std::forward<Args>(args)...);
 };
+
+template <typename V>
+auto sp_sqrt(V const &v) {
+    return v * v;
+}
+
 }  // namespace utility
 
 }  // namespace simpla

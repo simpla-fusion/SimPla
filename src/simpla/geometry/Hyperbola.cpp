@@ -19,8 +19,12 @@ std::shared_ptr<simpla::data::DataNode> Hyperbola::Serialize() const {
     res->SetValue<Real>("MinorRadius", m_minor_radius_);
     return res;
 }
-int Hyperbola::CheckOverlap(box_type const &) const { return 0; }
+bool Hyperbola::TestIntersection(box_type const &) const {
+    UNIMPLEMENTED;
+    return false;
+}
 std::shared_ptr<GeoObject> Hyperbola::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
+    UNIMPLEMENTED;
     return nullptr;
 }
 }  // namespace geometry{

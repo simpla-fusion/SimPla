@@ -9,16 +9,16 @@
 namespace simpla {
 namespace geometry {
 
-struct Polyline : public Curve {
-    SP_GEO_OBJECT_HEAD(Polyline, Curve);
+struct PolyLine : public Curve {
+    SP_GEO_OBJECT_HEAD(PolyLine, Curve);
 
    protected:
-    Polyline();
-    Polyline(Polyline const &);
-    explicit Polyline(Axis const &axis) : Polyline() { Curve::SetAxis(axis); }
+    PolyLine();
+    PolyLine(PolyLine const &);
+    explicit PolyLine(Axis const &axis) : PolyLine() { Curve::SetAxis(axis); }
 
    public:
-    ~Polyline() override;
+    ~PolyLine() override;
 
     bool IsClosed() const override;
     bool IsPeriodic() const override;
@@ -33,7 +33,7 @@ struct Polyline : public Curve {
     //    point_type StartPoint(int n) const;
     //    point_type EndPoint(int n) const;
 
-    int CheckOverlap(box_type const &) const override;
+    bool TestIntersection(box_type const &) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    private:

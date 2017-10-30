@@ -13,13 +13,16 @@
 #include <cstddef>
 #include <tuple>
 
-#include "simpla/algebra/nTuple.ext.h"
-#include "simpla/algebra/nTuple.h"
-#include "simpla/utilities/Log.h"
-#include "simpla/utilities/SPDefines.h"
-#include "simpla/utilities/integer_sequence.h"
+#include <simpla/algebra/nTuple.ext.h>
+#include <simpla/algebra/nTuple.h>
+#include <simpla/utilities/Log.h>
+#include <simpla/utilities/SPDefines.h>
+#include <simpla/utilities/integer_sequence.h>
+#include <simpla/utilities/utility.h>
+
 namespace simpla {
 namespace geometry {
+using namespace simpla::utility;
 
 template <typename U, typename V>
 bool isOverlapped(std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b0,
@@ -28,6 +31,10 @@ bool isOverlapped(std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& 
              (std::get<1>(b0)[1] < std::get<0>(b1)[1] || std::get<0>(b0)[1] >= std::get<1>(b1)[1]) ||
              (std::get<1>(b0)[2] < std::get<0>(b1)[2] || std::get<0>(b0)[2] >= std::get<1>(b1)[2]));
 }
+
+bool TestIntersectionCubeSphere(point_type const& bMin, point_type const& bMax, point_type const& C, Real r);
+int IntersectLineSphere(point_type const& p0, point_type const& p1, point_type const& c, Real r, Real tolerance,
+                        std::vecotr<Real>& res);
 /**
  *   (b0 & b1).volume
  * @tparam U

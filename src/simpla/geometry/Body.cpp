@@ -3,6 +3,7 @@
 //
 #include "Body.h"
 #include "Curve.h"
+#include "Surface.h"
 namespace simpla {
 namespace geometry {
 Body::Body() = default;

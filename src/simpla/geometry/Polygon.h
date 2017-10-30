@@ -36,8 +36,10 @@ struct Polygon : public Surface {
     nTuple<Real, 2> GetMaxParameter() const override;
 
     point_type Value(Real u, Real v) const override;
-    int CheckOverlap(box_type const &) const override;                                                                \
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override; \
+    bool TestIntersection(box_type const &) const override;
+    bool TestInside(point_type const &x) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
+
    private:
     struct pimpl_s;
     pimpl_s *m_pimpl_ = nullptr;

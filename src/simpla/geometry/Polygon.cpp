@@ -75,18 +75,12 @@ Real Polygon::pimpl_s::nearest_point(Real *x, Real *y) const {
     while (it != m_polygon_.end()) {
         p1 = *it;
         ++it;
-
         Vec2 u, v;
-
         u = x0 - p0;
         v = p1 - p0;
-
         Real v2 = dot(v, v);
-
         Real s = dot(u, v) / v2;
-
         point2d_type p;
-
         if (s < 0) {
             s = 0;
         } else if (s > 1) {
@@ -100,7 +94,6 @@ Real Polygon::pimpl_s::nearest_point(Real *x, Real *y) const {
         UNIMPLEMENTED;
 
         Real dd = 0;  // dot(x0 - p, x0 - p);
-
         if (std::abs(dd) < std::abs(d2)) {
             d2 = dd;
             (*x) = x0[0] - u[0];
@@ -159,8 +152,9 @@ bool Polygon::pimpl_s::check_inside(Real x, Real y) const {
         return false;
     }
 }
+bool Polygon::TestIntersection(box_type const &) const { return false; }
+bool Polygon::TestInside(point_type const &x) const { return false; }
 
-int Polygon::CheckOverlap(box_type const &) const { return 0; }
 std::shared_ptr<GeoObject> Polygon::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
     return nullptr;
 }

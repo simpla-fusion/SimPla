@@ -8,16 +8,16 @@
 #include "GeoObject.h"
 namespace simpla {
 namespace geometry {
-struct PolyPoints : public GeoObject {
-    SP_GEO_OBJECT_HEAD(PolyPoints, GeoObject);
+struct PolyPoint : public GeoObject {
+    SP_GEO_OBJECT_HEAD(PolyPoint, GeoObject);
 
    protected:
-    PolyPoints();
-    PolyPoints(PolyPoints const &);
-    explicit PolyPoints(Axis const &axis);
+    PolyPoint();
+    PolyPoint(PolyPoint const &);
+    explicit PolyPoint(Axis const &axis);
 
    public:
-    ~PolyPoints() override;
+    ~PolyPoint() override;
 
     point_type Value(size_type i) const;
     size_type size() const;

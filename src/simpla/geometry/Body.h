@@ -10,8 +10,11 @@
 #include <memory>
 #include "GeoObject.h"
 namespace simpla {
+template <typename, int...>
+struct nTuple;
 namespace geometry {
 struct Curve;
+struct Surface;
 struct Body : public GeoObject {
     SP_GEO_ABS_OBJECT_HEAD(Body, GeoObject);
 
@@ -22,6 +25,7 @@ struct Body : public GeoObject {
 
    public:
     ~Body() override;
+
     virtual std::tuple<bool, bool, bool> IsClosed() const { return std::make_tuple(false, false, false); };
     virtual std::tuple<bool, bool, bool> IsPeriodic() const { return std::make_tuple(false, false, false); };
     virtual nTuple<Real, 3> GetPeriod() const { return nTuple<Real, 3>{SP_INFINITY, SP_INFINITY, SP_INFINITY}; };

@@ -24,6 +24,11 @@ void GeoObject::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
 }
 
 box_type GeoObject::GetBoundingBox() const { return box_type{{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}; }
+std::shared_ptr<GeoObject> GeoObject::GetBoundary() const {
+    std::shared_ptr<GeoObject> res = nullptr;
+  { UNIMPLEMENTED; }
+    return res;
+}
 
 Axis &GeoObject::GetAxis() { return m_axis_; }
 Axis const &GeoObject::GetAxis() const { return m_axis_; }
@@ -59,7 +64,7 @@ void GeoObject::Move(const point_type &p) { m_axis_.Move(p); }
 //}
 // Real GeoObject::isOverlapped(box_type const &b) const { return Measure(Overlap(GetBoundingBox(), b)) / measure(); }
 //
-// Real GeoObject::CheckOverlap(GeoObject const &other) const { return isOverlapped(other.GetBoundingBox()); }
+// Real GeoObject::TestIntersection(GeoObject const &other) const { return isOverlapped(other.GetBoundingBox()); }
 //
 // bool GeoObject::IsInside(const point_type &x) const { return CheckInSide(GetBoundingBox(), x); };
 //

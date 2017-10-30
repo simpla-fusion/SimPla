@@ -14,8 +14,7 @@ struct Hyperbola : public Curve {
    protected:
     Hyperbola() = default;
     Hyperbola(Hyperbola const &other) = default;
-    Hyperbola( Axis  const &axis, Real major_radius, Real minor_radius, Real alpha0 = SP_SNaN,
-              Real alpha1 = SP_SNaN)
+    Hyperbola(Axis const &axis, Real major_radius, Real minor_radius, Real alpha0 = SP_SNaN, Real alpha1 = SP_SNaN)
         : Curve(axis), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {
         SetParameterRange(std::isnan(alpha0) ? GetMinParameter() : alpha0,
                           std::isnan(alpha1) ? GetMaxParameter() : alpha1);
@@ -38,8 +37,9 @@ struct Hyperbola : public Curve {
     point_type Value(Real alpha) const override {
         return m_axis_.Coordinates(m_major_radius_ * std::cosh(alpha), m_minor_radius_ * std::sinh(alpha));
     };
-    int CheckOverlap(box_type const &) const override;                                                                \
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override; \
+    bool TestIntersection(box_type const &) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
+
    protected:
     Real m_major_radius_ = 1;
     Real m_minor_radius_ = 1;

@@ -94,36 +94,29 @@ class GeoObject : public SPObject {
     std::string FancyTypeName() const override { return simpla::traits::type_name<this_type>::value(); }
     std::string ClassName() const override { return "GeoObject"; }
 
+    virtual std::shared_ptr<GeoObject> GetBoundary() const;
     virtual box_type GetBoundingBox() const;
 
     /**
     * @return
-    *  <= 0 no overlap
-    *  == 1 partial overlap
+    *  <  0 no overlap
+    *  == 0 partial overlap
     *  >  1 all inside
     */
-    virtual int CheckOverlap(box_type const &) const {
+    virtual bool TestIntersection(box_type const &) const {
         UNIMPLEMENTED;
         return false;
     }
-    /**
-     *
-     * @return <0 first point is outgoing
-     *         >0 first point is incoming
-     */
-    virtual std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
-        UNIMPLEMENTED;
-        return nullptr;
+    virtual bool TestInside(point_type const &x) const {
+        return TestIntersection(
+            std::make_tuple(point_type{x - SP_GEO_DEFAULT_TOLERANCE}, point_type{x + SP_GEO_DEFAULT_TOLERANCE}));
     }
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g) const {
-        return Intersection(g, SP_GEO_DEFAULT_TOLERANCE);
-    }
-    bool IsInside(Real u, Real v = 0, Real w = 0, Real tolerance = SP_GEO_DEFAULT_TOLERANCE) const {
-        return CheckOverlap(std::make_tuple(point_type{u - tolerance, v - tolerance, w - tolerance},
-                                            point_type{u + tolerance, v + tolerance, w + tolerance})) > 1;
-    }
-    bool IsInside(point_type const &x, Real tolerance = SP_GEO_DEFAULT_TOLERANCE) const {
-        return IsInside(x[0], x[1], x[2], tolerance);
+    bool TestInside(Real u, Real v, Real w) const { return TestInside(point_type{u, v, w}); }
+
+    virtual std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
+        std::shared_ptr<GeoObject> res = nullptr;
+        if (TestIntersection(g->GetBoundingBox())) { UNIMPLEMENTED; }
+        return res;
     }
 
     virtual void Mirror(const point_type &p);
@@ -223,7 +216,6 @@ class GeoObject : public SPObject {
     };                                                                                    \
                                                                                           \
     std::shared_ptr<GeoObject> Copy() const override { return std::shared_ptr<this_type>(new this_type(*this)); };
-
 
 }  // namespace geometry
 }  // namespace simpla
