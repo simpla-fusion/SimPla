@@ -37,7 +37,7 @@ struct Polygon : public Surface {
 
     point_type Value(Real u, Real v) const override;
     bool TestIntersection(box_type const &) const override;
-    bool TestInside(point_type const &x) const override;
+    bool TestInsideUV(Real u, Real v, Real tolerance) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    private:

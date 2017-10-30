@@ -12,7 +12,7 @@
 
 namespace simpla {
 namespace geometry {
-
+struct PolyPoints;
 struct Curve : public GeoObject {
     SP_GEO_ABS_OBJECT_HEAD(Curve, GeoObject);
 
@@ -45,12 +45,20 @@ struct Curve : public GeoObject {
     point_type EndPoint() const { return Value(m_u_max_); }
 
     virtual point_type Value(Real u) const = 0;
+    bool TestInsideU(Real u) const;
+    std::shared_ptr<GeoObject> GetBoundary() const override;
+    box_type GetBoundingBox() const override;
+    bool TestIntersection(box_type const &) const override;
+    bool TestInside(point_type const &x, Real tolerance) const override;
+    bool TestInsideUVW(point_type const &x, Real tolerance) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const override;
+    point_type Value(point_type const &uvw) const override;
 
    protected:
     Real m_u_min_ = SP_SNaN, m_u_max_ = SP_SNaN;
 };
-struct PointsOnCurve : public GeoObject {
-    SP_GEO_OBJECT_HEAD(PointsOnCurve, GeoObject);
+struct PointsOnCurve : public PolyPoints {
+    SP_GEO_OBJECT_HEAD(PointsOnCurve, PolyPoints);
 
    protected:
     PointsOnCurve();
@@ -67,7 +75,10 @@ struct PointsOnCurve : public GeoObject {
     point_type GetPoint(size_type i) const;
     std::vector<Real> const &data() const;
     std::vector<Real> &data();
-    size_type size() const;
+
+    size_type size() const override;
+    point_type Value(size_type i) const override;
+    box_type GetBoundingBox() const override;
 
    private:
     std::shared_ptr<const Curve> m_curve_;

@@ -83,10 +83,9 @@ class GeoObject : public SPObject {
     GeoObject(GeoObject const &other);
     ~GeoObject() override;
     explicit GeoObject(Axis const &axis);
-    virtual std::shared_ptr<GeoObject> Copy() const = 0;
-    static std::shared_ptr<this_type> New(std::shared_ptr<data::DataNode> const &cfg) {
-        return std::dynamic_pointer_cast<this_type>(simpla::SPObject::Create(cfg));
-    };
+
+    static std::shared_ptr<this_type> New(std::shared_ptr<data::DataNode> const &cfg);
+
     std::shared_ptr<data::DataNode> Serialize() const override;
     void Deserialize(std::shared_ptr<data::DataNode> const &) override;
 
@@ -94,26 +93,9 @@ class GeoObject : public SPObject {
     std::string FancyTypeName() const override { return simpla::traits::type_name<this_type>::value(); }
     std::string ClassName() const override { return "GeoObject"; }
 
-    virtual std::shared_ptr<GeoObject> GetBoundary() const;
-    virtual box_type GetBoundingBox() const;
     virtual Axis &GetAxis();
     virtual Axis const &GetAxis() const;
     virtual void SetAxis(Axis const &);
-    /**
-    * @return
-    *  <  0 no overlap
-    *  == 0 partial overlap
-    *  >  1 all inside
-    */
-    virtual bool TestIntersection(box_type const &) const;
-    virtual bool TestInside(point_type const &x) const;
-    bool TestInside(Real x, Real y = 0, Real z = 0) const;
-    virtual bool TestInsideUVW(point_type const &x) const;
-    bool TestInsideUVW(Real u, Real v = 0, Real w = 0) const;
-
-    virtual point_type Value(point_type const &x) const;
-
-    virtual std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const;
 
     virtual void Mirror(const point_type &p);
     virtual void Mirror(const Axis &a1);
@@ -122,6 +104,17 @@ class GeoObject : public SPObject {
     virtual void Translate(const vector_type &v);
     virtual void Move(const point_type &p);
     void Scale(Real s) { Scale(s, -1); }
+
+    virtual std::shared_ptr<GeoObject> Copy() const = 0;
+    virtual std::shared_ptr<GeoObject> GetBoundary() const = 0;
+    virtual box_type GetBoundingBox() const = 0;
+    virtual bool TestIntersection(box_type const &) const = 0;
+    virtual bool TestInside(point_type const &x, Real tolerance) const = 0;
+    virtual bool TestInsideUVW(point_type const &x, Real tolerance) const = 0;
+    virtual std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g,
+                                                    Real tolerance) const = 0;
+
+    virtual point_type Value(point_type const &uvw) const = 0;
 
    protected:
     Axis m_axis_{};

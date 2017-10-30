@@ -31,8 +31,12 @@ bool isOverlapped(std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& 
              (std::get<1>(b0)[1] < std::get<0>(b1)[1] || std::get<0>(b0)[1] >= std::get<1>(b1)[1]) ||
              (std::get<1>(b0)[2] < std::get<0>(b1)[2] || std::get<0>(b0)[2] >= std::get<1>(b1)[2]));
 }
+bool TestPointInsideBox(nTuple<Real, 2> const& p, nTuple<Real, 2> const& bMin, nTuple<Real, 2> const& bMax);
+bool TestPointInsideBox(nTuple<Real, 2> const& p, std::tuple<nTuple<Real, 2>, nTuple<Real, 2>> const& box);
 bool TestPointInsideBox(point_type const& p, point_type const& bMin, point_type const& bMax);
 bool TestPointInsideBox(point_type const& p, std::tuple<point_type, point_type> const& box);
+bool TestPointOnPlane(point_type const& p, point_type const& o, vector_type const& normal,
+                      Real tolerance = SP_GEO_DEFAULT_TOLERANCE);
 bool TestIntersectionCubeSphere(point_type const& bMin, point_type const& bMax, point_type const& C, Real r);
 int IntersectLineSphere(point_type const& p0, point_type const& p1, point_type const& c, Real r, Real tolerance,
                         std::vector<Real>& res);

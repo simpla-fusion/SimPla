@@ -33,7 +33,7 @@ std::shared_ptr<Circle> Circle::New3(point_type const &o, point_type const &b, v
 
     return std::shared_ptr<Circle>(new Circle(Axis{o, x, y, z}, radius));
 }
-bool Circle::TestInside(point_type const &x) const { return 0; }
+bool Circle::TestInside(point_type const &x, Real tolerance) const { return 0; }
 std::shared_ptr<GeoObject> Circle::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
     return nullptr;
 }

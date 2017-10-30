@@ -55,11 +55,10 @@ struct Toroidal : public Body {
      * @param w Z
      * @return
      */
-    point_type Value(Real phi, Real theta, Real r) const {
+    point_type Value(Real phi, Real theta, Real r) const override {
         r = (m_major_radius_ + r * std::cos(theta));
         return m_axis_.Coordinates(r * std::cos(phi), r * std::sin(phi), r * std::sin(theta));
     };
-    point_type Value(point_type const &uvw) const override { return Value(uvw[0], uvw[1], uvw[2]); }
 
     bool TestIntersection(box_type const &) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;

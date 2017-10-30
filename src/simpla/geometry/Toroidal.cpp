@@ -16,7 +16,7 @@ void Toroidal::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     m_major_radius_ = cfg->GetValue("MajorRadius", m_major_radius_);
 }
 
-bool Toroidal::TestIntersection(box_type const &) const const { return false; }
+bool Toroidal::TestIntersection(box_type const &) const { return false; }
 std::shared_ptr<GeoObject> Toroidal::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
     return nullptr;
 }
@@ -36,7 +36,7 @@ std::shared_ptr<simpla::data::DataNode> ToroidalSurface::Serialize() const {
     res->SetValue<Real>("MinorRadius", m_minor_radius_);
     return res;
 }
-int ToroidalSurface::TestIntersection(box_type const &) const { return 0; }
+bool ToroidalSurface::TestIntersection(box_type const &) const { return 0; }
 std::shared_ptr<GeoObject> ToroidalSurface::Intersection(std::shared_ptr<const GeoObject> const &,
                                                          Real tolerance) const {
     return nullptr;

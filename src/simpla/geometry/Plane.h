@@ -15,19 +15,21 @@ struct Plane : public Surface {
     SP_GEO_OBJECT_HEAD(Plane, Surface);
 
    protected:
-    Plane() = default;
-    Plane(Plane const &) = default;
-
-    explicit Plane(Axis const &axis) : Surface(axis) {
-        SetParameterRange(std::make_tuple(GetMinParameter(), GetMaxParameter()));
-    }
-    Plane(point_type const &o, vector_type const &x, vector_type const &y) : Plane(Axis(o, x, y)) {}
+    Plane();
+    Plane(Plane const &);
+    explicit Plane(Axis const &axis);
+    Plane(point_type const &o, vector_type const &x, vector_type const &y);
 
    public:
-    ~Plane() override = default;
-    point_type Value(Real u, Real v) const override { return m_axis_.Coordinates(u, v); };
+    ~Plane() override;
+    point_type Value(Real u, Real v) const override;
+    std::shared_ptr<GeoObject> GetBoundary() const override;
+    box_type GetBoundingBox() const override;
     bool TestIntersection(box_type const &) const override;
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
+    bool TestInside(point_type const &x, Real tolerance) const override;
+    bool TestInsideUV(Real u, Real v, Real tolerance) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const override;
+    point_type Value(point_type const &x) const override;
 };
 
 }  // namespace simpla

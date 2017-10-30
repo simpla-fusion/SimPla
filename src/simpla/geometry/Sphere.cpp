@@ -22,19 +22,19 @@ void Sphere::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type
 bool Sphere::TestIntersection(box_type const &b) const {
     return TestIntersectionCubeSphere(std::get<0>(b), std::get<1>(b), m_axis_.o, m_uvw_max_[0]);
 }
-bool Sphere::TestInside(point_type const &x) const {
+bool Sphere::TestInside(Real x, Real y, Real z, Real tolerance) const {
     return dot(x - m_axis_.o, x - m_axis_.o) < m_uvw_max_[0] * m_uvw_max_[0];
 }
-std::shared_ptr<GeoObject> Sphere::Intersection(std::shared_ptr<const GeoObject> const &g) const {
+std::shared_ptr<GeoObject> Sphere::Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
     std::shared_ptr<GeoObject> res = nullptr;
     if (g == nullptr || !TestIntersection(g->GetBoundingBox())) {
-    } else if (auto line = std::dynamic_pointer_cast<Line>(g)) {
+    } else if (auto line = std::dynamic_pointer_cast<const Line>(g)) {
         UNIMPLEMENTED;
-    } else if (auto circle = std::dynamic_pointer_cast<Circle>(g)) {
+    } else if (auto circle = std::dynamic_pointer_cast<const Circle>(g)) {
         UNIMPLEMENTED;
-    } else if (auto curve = std::dynamic_pointer_cast<Curve>(g)) {
+    } else if (auto curve = std::dynamic_pointer_cast<const Curve>(g)) {
         UNIMPLEMENTED;
-    } else if (auto box = std::dynamic_pointer_cast<Box>(g)) {
+    } else if (auto box = std::dynamic_pointer_cast<const Box>(g)) {
     }
     return res;
 }
@@ -66,26 +66,26 @@ std::shared_ptr<simpla::data::DataNode> SphericalSurface::Serialize() const {
 bool SphericalSurface::TestIntersection(box_type const &b) const {
     return TestIntersectionCubeSphere(std::get<0>(b), std::get<1>(b), m_axis_.o, m_radius_);
 }
-bool SphericalSurface::TestInside(point_type const &x) const {
+bool SphericalSurface::TestInside(Real x, Real y, Real z, Real tolerance) const {
     return dot(x - m_axis_.o, x - m_axis_.o) < m_radius_ * m_radius_;
 }
 std::shared_ptr<GeoObject> SphericalSurface::Intersection(std::shared_ptr<const GeoObject> const &g,
                                                           Real tolerance) const {
     std::shared_ptr<GeoObject> res = nullptr;
     if (g == nullptr) {
-    } else if (auto curve = std::dynamic_pointer_cast<Curve>(g)) {
+    } else if (auto curve = std::dynamic_pointer_cast<const Curve>(g)) {
         auto p_on_curve = PointsOnCurve::New(curve);
-        if (auto line = std::dynamic_pointer_cast<Line>(curve)) {
+        if (auto line = std::dynamic_pointer_cast<const Line>(curve)) {
             IntersectLineSphere(line->GetAxis().o, line->GetAxis().o + line->GetAxis().x, GetAxis().o, m_radius_,
                                 tolerance, p_on_curve->data());
-        } else if (auto circle = std::dynamic_pointer_cast<Circle>(g)) {
+        } else if (auto circle = std::dynamic_pointer_cast<const Circle>(g)) {
             UNIMPLEMENTED;
         }
 
         res = p_on_curve;
-    } else if (auto surface = std::dynamic_pointer_cast<Surface>(g)) {
+    } else if (auto surface = std::dynamic_pointer_cast<const Surface>(g)) {
         UNIMPLEMENTED;
-    } else if (auto body = std::dynamic_pointer_cast<Body>(g)) {
+    } else if (auto body = std::dynamic_pointer_cast<const Body>(g)) {
         res = body->Intersection(std::dynamic_pointer_cast<const GeoObject>(shared_from_this()), tolerance);
     }
     return res;

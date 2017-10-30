@@ -6,6 +6,14 @@
 #include <vector>
 namespace simpla {
 namespace geometry {
+
+bool TestPointInsideBox(nTuple<Real, 2> const& p, nTuple<Real, 2> const& bMin, nTuple<Real, 2> const& bMax) {
+    return bMin[0] <= p[0] && p[0] <= bMax[0] &&  //
+           bMin[1] <= p[1] && p[1] <= bMax[1];
+}
+bool TestPointInsideBox(nTuple<Real, 2> const& p, std::tuple<nTuple<Real, 2>, nTuple<Real, 2>> const& box) {
+    return TestPointInsideBox(p, std::get<0>(box), std::get<1>(box));
+}
 bool TestPointInsideBox(point_type const& p, point_type const& bMin, point_type const& bMax) {
     return bMin[0] <= p[0] && p[0] <= bMax[0] &&  //
            bMin[1] <= p[1] && p[1] <= bMax[1] &&  //
@@ -14,7 +22,9 @@ bool TestPointInsideBox(point_type const& p, point_type const& bMin, point_type 
 bool TestPointInsideBox(point_type const& p, std::tuple<point_type, point_type> const& box) {
     return TestPointInsideBox(p, std::get<0>(box), std::get<1>(box));
 }
-
+bool TestPointOnPlane(point_type const& p, point_type const& o, vector_type const& normal, Real tolerance) {
+    return std::abs(dot(p - o, normal)) < tolerance;
+}
 bool TestIntersectionCubeSphere(point_type const& bMin, point_type const& bMax, point_type const& C, Real r) {
     auto r2 = r * r;
     for (int i = 0; i < 3; i++) {

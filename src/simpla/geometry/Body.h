@@ -35,11 +35,22 @@ struct Body : public GeoObject {
     void SetParameterRange(std::tuple<nTuple<Real, 3>, nTuple<Real, 3>> const &r);
     void SetParameterRange(nTuple<Real, 3> const &min, nTuple<Real, 3> const &max);
     std::tuple<nTuple<Real, 3>, nTuple<Real, 3>> GetParameterRange() const;
-    bool TestInsideUVW(point_type const &x) const override;
-    box_type GetBoundingBox() const override;
 
-    virtual point_type Value(Real u, Real v, Real w) const = 0;
-    point_type Value(point_type const &uvw) const override { return Value(uvw[0], uvw[1], uvw[2]); }
+    std::shared_ptr<GeoObject> GetBoundary() const override;
+
+    virtual bool TestInside(Real x, Real y, Real z, Real tolerance) const;
+    bool TestInside(point_type const &x, Real tolerance) const override;
+
+    virtual bool TestInsideUVW(Real u, Real v, Real w, Real tolerance) const;
+    bool TestInsideUVW(point_type const &x, Real tolerance) const override;
+
+    bool TestIntersection(box_type const &) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g,
+                                            Real tolerance) const override = 0;
+
+    virtual point_type Value(Real u, Real v, Real w) const;
+    point_type Value(point_type const &x) const override;
+    box_type GetBoundingBox() const override;
 
    protected:
     nTuple<Real, 3> m_uvw_min_{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY};

@@ -153,8 +153,7 @@ bool Polygon::pimpl_s::check_inside(Real x, Real y) const {
     }
 }
 bool Polygon::TestIntersection(box_type const &) const { return false; }
-bool Polygon::TestInside(point_type const &x) const { return false; }
-
+bool Polygon::TestInsideUV(Real u, Real v, Real tolerance) const { return false; }
 std::shared_ptr<GeoObject> Polygon::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
     return nullptr;
 }

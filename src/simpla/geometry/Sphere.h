@@ -39,8 +39,8 @@ struct Sphere : public Body {
     std::shared_ptr<GeoObject> GetBoundary() const override;
 
     bool TestIntersection(box_type const &) const override;
-    bool TestInside(point_type const &x) const override;
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &) const override;
+    bool TestInside(Real x, Real y, Real z, Real tolerance) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    public:
     std::tuple<bool, bool, bool> IsClosed() const override { return std::make_tuple(false, true, true); };
@@ -93,7 +93,7 @@ struct SphericalSurface : public Surface {
         //               m_radius_ * std::sin(theta) * m_axis_.z;
     };
     bool TestIntersection(box_type const &) const override;
-    bool TestInside(point_type const &x) const override;
+    bool TestInside(Real x, Real y, Real z, Real tolerance) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    private:

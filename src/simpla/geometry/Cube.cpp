@@ -2,6 +2,7 @@
 // Created by salmon on 17-5-31.
 //
 #include "Cube.h"
+#include "GeoAlgorithm.h"
 #include "Line.h"
 
 namespace simpla {
@@ -25,7 +26,10 @@ void Cube::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
         }
     }
 }
-bool Cube::TestInside(point_type const &x) const { return 0; }
+bool Cube::TestInside(Real x, Real y, Real z, Real tolerance) const {
+    return TestPointInsideBox(point_type{x, y, z}, GetBoundingBox());
+};
+
 std::shared_ptr<GeoObject> Cube::Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
     std::shared_ptr<GeoObject> res = nullptr;
     if (auto line = std::dynamic_pointer_cast<const Line>(g)) { res = PointsOnCurve::New(line); }

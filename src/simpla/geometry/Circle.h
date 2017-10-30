@@ -47,7 +47,7 @@ struct Circle : public Curve {
         return m_axis_.Coordinates(m_radius_ * std::cos(alpha), m_radius_ * std::sin(alpha));
         //        return  m_axis_.o + m_radius_ * std::cos(alpha) * m_axis_.x + m_radius_ * std::sin(alpha) * m_axis_.y;
     };
-    bool TestInside(point_type const &x) const override;
+    bool TestInside(point_type const &x,Real tolerance) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    protected:

@@ -2,15 +2,34 @@
 // Created by salmon on 17-10-18.
 //
 #include "Curve.h"
+#include "PolyPoints.h"
 namespace simpla {
 namespace geometry {
 std::shared_ptr<simpla::data::DataNode> Curve::Serialize() const { return base_type::Serialize(); };
 void Curve::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); };
 
+std::shared_ptr<GeoObject> Curve::GetBoundary() const {
+    FIXME;
+    return nullptr;
+}
+box_type Curve::GetBoundingBox() const {
+    return std::make_tuple(point_type{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY},
+                           point_type{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY});
+}
+bool Curve::TestIntersection(box_type const &) const { return false; }
+bool Curve::TestInside(point_type const &x, Real tolerance) const { return false; }
+bool Curve::TestInsideU(Real u) const { return m_u_min_ <= u && u <= m_u_max_; }
+bool Curve::TestInsideUVW(point_type const &uvw, Real tolerance) const { return TestInsideU(uvw[0]); }
+std::shared_ptr<GeoObject> Curve::Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
+    UNIMPLEMENTED;
+    return nullptr;
+}
+point_type Curve::Value(point_type const &uvw) const { return Value(uvw[0]); }
+
 PointsOnCurve::PointsOnCurve() = default;
 PointsOnCurve::~PointsOnCurve() = default;
 PointsOnCurve::PointsOnCurve(std::shared_ptr<const Curve> const &curve)
-    : GeoObject(curve->GetAxis()), m_curve_(std::dynamic_pointer_cast<Curve>(curve->Copy())) {}
+    : PolyPoints(curve->GetAxis()), m_curve_(std::dynamic_pointer_cast<Curve>(curve->Copy())) {}
 std::shared_ptr<data::DataNode> PointsOnCurve::Serialize() const { return base_type::Serialize(); };
 void PointsOnCurve::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
 Axis const &PointsOnCurve::GetAxis() const { return m_curve_->GetAxis(); };
@@ -23,6 +42,12 @@ point_type PointsOnCurve::GetPoint(size_type i) const { return m_curve_->Value(G
 size_type PointsOnCurve::size() const { return m_data_.size(); }
 std::vector<Real> const &PointsOnCurve::data() const { return m_data_; }
 std::vector<Real> &PointsOnCurve::data() { return m_data_; }
+
+point_type PointsOnCurve::Value(size_type i) const { return GetPoint(i); };
+box_type PointsOnCurve::GetBoundingBox() const {
+    FIXME;
+    return m_curve_->GetBoundingBox();
+};
 ////
 ////Circle::Circle() = default;
 ////

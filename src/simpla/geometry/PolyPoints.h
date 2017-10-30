@@ -9,7 +9,7 @@
 namespace simpla {
 namespace geometry {
 struct PolyPoints : public GeoObject {
-    SP_GEO_OBJECT_HEAD(PolyPoints, GeoObject);
+    SP_GEO_ABS_OBJECT_HEAD(PolyPoints, GeoObject);
 
    protected:
     PolyPoints();
@@ -19,10 +19,17 @@ struct PolyPoints : public GeoObject {
    public:
     ~PolyPoints() override;
 
-    point_type Value(size_type i) const;
-    size_type size() const;
-    std::vector<point_type> &data();
-    std::vector<point_type> const &data() const;
+    virtual point_type Value(size_type i) const = 0;
+    virtual size_type size() const = 0;
+
+    std::shared_ptr<GeoObject> GetBoundary() const override;
+    box_type GetBoundingBox() const override;
+    bool TestIntersection(box_type const &) const override;
+    bool TestInside(point_type const &x, Real tolerance) const override;
+    bool TestInsideUVW(point_type const &x, Real tolerance) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const override;
+
+    point_type Value(point_type const &x) const override;
 };
 
 }  // namespace geometry{

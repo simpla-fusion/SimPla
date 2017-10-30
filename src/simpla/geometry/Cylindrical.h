@@ -55,7 +55,7 @@ struct Cylindrical : public Body {
     };
 
     bool TestIntersection(box_type const &) const override;
-    bool TestInside(point_type const &x) const override;
+    bool TestInside(Real x, Real y, Real z, Real tolerance) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 };
 
@@ -101,7 +101,7 @@ struct CylindricalSurface : public Surface {
         return m_axis_.Coordinates(m_radius_ * std::cos(u), m_radius_ * std::sin(u), v);
     };
     bool TestIntersection(box_type const &) const override;
-    bool TestInside(point_type const &x) const override;
+    bool TestInside(Real x, Real y, Real z, Real tolerance) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    private:
