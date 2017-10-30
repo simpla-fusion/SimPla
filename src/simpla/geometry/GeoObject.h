@@ -96,28 +96,24 @@ class GeoObject : public SPObject {
 
     virtual std::shared_ptr<GeoObject> GetBoundary() const;
     virtual box_type GetBoundingBox() const;
-
+    virtual Axis &GetAxis();
+    virtual Axis const &GetAxis() const;
+    virtual void SetAxis(Axis const &);
     /**
     * @return
     *  <  0 no overlap
     *  == 0 partial overlap
     *  >  1 all inside
     */
-    virtual bool TestIntersection(box_type const &) const {
-        UNIMPLEMENTED;
-        return false;
-    }
-    virtual bool TestInside(point_type const &x) const {
-        return TestIntersection(
-            std::make_tuple(point_type{x - SP_GEO_DEFAULT_TOLERANCE}, point_type{x + SP_GEO_DEFAULT_TOLERANCE}));
-    }
-    bool TestInside(Real u, Real v, Real w) const { return TestInside(point_type{u, v, w}); }
+    virtual bool TestIntersection(box_type const &) const;
+    virtual bool TestInside(point_type const &x) const;
+    bool TestInside(Real x, Real y = 0, Real z = 0) const;
+    virtual bool TestInsideUVW(point_type const &x) const;
+    bool TestInsideUVW(Real u, Real v = 0, Real w = 0) const;
 
-    virtual std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
-        std::shared_ptr<GeoObject> res = nullptr;
-        if (TestIntersection(g->GetBoundingBox())) { UNIMPLEMENTED; }
-        return res;
-    }
+    virtual point_type Value(point_type const &x) const;
+
+    virtual std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const;
 
     virtual void Mirror(const point_type &p);
     virtual void Mirror(const Axis &a1);
@@ -125,73 +121,55 @@ class GeoObject : public SPObject {
     virtual void Scale(Real s, int dir);
     virtual void Translate(const vector_type &v);
     virtual void Move(const point_type &p);
-
     void Scale(Real s) { Scale(s, -1); }
-
-    virtual Axis &GetAxis();
-    virtual Axis const &GetAxis() const;
-    virtual void SetAxis(Axis const &);
-
-    template <typename... Args>
-    std::shared_ptr<GeoObject> Mirrored(Args &&... args) const {
-        auto res = Copy();
-        res->Mirror(std::forward<Args>(args)...);
-        return res;
-    }
-    template <typename... Args>
-    std::shared_ptr<GeoObject> Rotated(Args &&... args) const {
-        auto res = Copy();
-        res->Rotate(std::forward<Args>(args)...);
-        return res;
-    };
-    template <typename... Args>
-    std::shared_ptr<GeoObject> Scaled(Args &&... args) const {
-        auto res = Copy();
-        res->Scale(std::forward<Args>(args)...);
-        return res;
-    }
-    template <typename... Args>
-    std::shared_ptr<GeoObject> Translated(Args &&... args) const {
-        auto res = Copy();
-        res->Translate(std::forward<Args>(args)...);
-        return res;
-    }
-    template <typename... Args>
-    std::shared_ptr<GeoObject> Moved(Args &&... args) const {
-        auto res = Copy();
-        res->Move(std::forward<Args>(args)...);
-        return res;
-    }
 
    protected:
     Axis m_axis_{};
-    //    virtual int Dimension() const { return 3; };
-    //    virtual Real Measure() const;
-    //    virtual box_type GetBoundingBox() const;
-    //    virtual std::shared_ptr<GeoObject> GetBoundary() const;
-    //    virtual bool IsInside(point_type const &x, Real tolerance = SP_GEO_DEFAULT_TOLERANCE) const;
-    //    virtual std::shared_ptr<GeoObject> GetBoundary() const { return nullptr; };
-    //    /// The axis-aligned minimum bounding box (or AABB) , Cartesian
-    //    virtual bool IsInside(point_type const &x) const;
-    //    virtual std::shared_ptr<GeoObject> Intersection(std::shared_ptr<GeoObject> const &other) const;
-    //    virtual std::shared_ptr<GeoObject> Difference(std::shared_ptr<GeoObject> const &other) const;
-    //    virtual std::shared_ptr<GeoObject> Union(std::shared_ptr<GeoObject> const &other) const;
-    //  arbitrarily oriented minimum bounding box  (or OBB)
-    //    virtual std::tuple<point_type, vector_type, vector_type, vector_type> OrientedBoundingBox() const;
 };
 
-#define SP_GEO_ABS_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_)                                 \
-   public:                                                                                \
-    static std::string FancyTypeName_s() { return __STRING(_CLASS_NAME_); }               \
-    virtual std::string FancyTypeName() const override { return __STRING(_CLASS_NAME_); } \
-                                                                                          \
-   private:                                                                               \
-    typedef _BASE_NAME_ base_type;                                                        \
-    typedef _CLASS_NAME_ this_type;                                                       \
-                                                                                          \
-   public:                                                                                \
-    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;        \
-    std::shared_ptr<simpla::data::DataNode> Serialize() const override;
+#define SP_GEO_ABS_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_)                                                 \
+   public:                                                                                                \
+    static std::string FancyTypeName_s() { return __STRING(_CLASS_NAME_); }                               \
+    virtual std::string FancyTypeName() const override { return __STRING(_CLASS_NAME_); }                 \
+                                                                                                          \
+   private:                                                                                               \
+    typedef _BASE_NAME_ base_type;                                                                        \
+    typedef _CLASS_NAME_ this_type;                                                                       \
+                                                                                                          \
+   public:                                                                                                \
+    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;                        \
+    std::shared_ptr<simpla::data::DataNode> Serialize() const override;                                   \
+    std::shared_ptr<this_type> CopyThis() const { return std::dynamic_pointer_cast<this_type>(Copy()); }; \
+    template <typename... Args>                                                                           \
+    std::shared_ptr<this_type> Mirrored(Args &&... args) const {                                          \
+        auto res = CopyThis();                                                                            \
+        res->Mirror(std::forward<Args>(args)...);                                                         \
+        return res;                                                                                       \
+    }                                                                                                     \
+    template <typename... Args>                                                                           \
+    std::shared_ptr<this_type> Rotated(Args &&... args) const {                                           \
+        auto res = CopyThis();                                                                            \
+        res->Rotate(std::forward<Args>(args)...);                                                         \
+        return res;                                                                                       \
+    };                                                                                                    \
+    template <typename... Args>                                                                           \
+    std::shared_ptr<this_type> Scaled(Args &&... args) const {                                            \
+        auto res = CopyThis();                                                                            \
+        res->Scale(std::forward<Args>(args)...);                                                          \
+        return res;                                                                                       \
+    }                                                                                                     \
+    template <typename... Args>                                                                           \
+    std::shared_ptr<this_type> Translated(Args &&... args) const {                                        \
+        auto res = CopyThis();                                                                            \
+        res->Translate(std::forward<Args>(args)...);                                                      \
+        return res;                                                                                       \
+    }                                                                                                     \
+    template <typename... Args>                                                                           \
+    std::shared_ptr<this_type> Moved(Args &&... args) const {                                             \
+        auto res = CopyThis();                                                                            \
+        res->Move(std::forward<Args>(args)...);                                                           \
+        return res;                                                                                       \
+    }
 
 #define SP_GEO_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_)                                     \
    public:                                                                                \

@@ -8,8 +8,8 @@ namespace geometry {
 
 std::shared_ptr<simpla::data::DataNode> Cylindrical::Serialize() const { return base_type::Serialize(); };
 void Cylindrical::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
-
-int Cylindrical::CheckOverlap(box_type const &) const { return 0; }
+bool Cylindrical::TestIntersection(box_type const &) const { return false; };
+bool Cylindrical::TestInside(point_type const &x) const { return false; };
 std::shared_ptr<GeoObject> Cylindrical::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
     return 0;
 }
@@ -27,7 +27,8 @@ std::shared_ptr<simpla::data::DataNode> CylindricalSurface::Serialize() const {
     res->SetValue<Real>("Radius", m_radius_);
     return res;
 }
-int CylindricalSurface::CheckOverlap(box_type const &) const { return 0; }
+bool CylindricalSurface::TestIntersection(box_type const &) const { return false; }
+bool CylindricalSurface::TestInside(point_type const &x) const { return false; };
 std::shared_ptr<GeoObject> CylindricalSurface::Intersection(std::shared_ptr<const GeoObject> const &,
                                                             Real tolerance) const {
     return nullptr;

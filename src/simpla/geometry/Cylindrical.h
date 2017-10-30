@@ -53,7 +53,9 @@ struct Cylindrical : public Body {
     point_type Value(Real u, Real v, Real w) const override {
         return m_axis_.Coordinates(u * std::cos(v), u * std::sin(v), w);
     };
-    int CheckOverlap(box_type const &) const override;
+
+    bool TestIntersection(box_type const &) const override;
+    bool TestInside(point_type const &x) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 };
 
@@ -98,7 +100,8 @@ struct CylindricalSurface : public Surface {
     point_type Value(Real u, Real v) const override {
         return m_axis_.Coordinates(m_radius_ * std::cos(u), m_radius_ * std::sin(u), v);
     };
-    int CheckOverlap(box_type const &) const override;
+    bool TestIntersection(box_type const &) const override;
+    bool TestInside(point_type const &x) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    private:

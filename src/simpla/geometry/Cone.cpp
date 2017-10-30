@@ -15,7 +15,7 @@ void Cone::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
     m_semi_angle_ = cfg->GetValue("SemiAngle", m_semi_angle_);
 }
-int Cone::CheckOverlap(box_type const &) const { return 0; }
+bool Cone::TestIntersection(box_type const &) const { return 0; }
 std::shared_ptr<GeoObject> Cone::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
     return nullptr;
 }

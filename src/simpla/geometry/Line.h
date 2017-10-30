@@ -17,7 +17,7 @@ struct Line : public Curve {
    protected:
     Line() = default;
     Line(Line const &) = default;
-    explicit Line(Axis const &axis, Real alpha0 = SP_SNaN, Real alpha1 = SP_SNaN) : Curve(axis) {
+    explicit Line(Axis const &axis, Real alpha0 = -SP_INFINITY, Real alpha1 = SP_INFINITY) : Curve(axis) {
         SetParameterRange(std::isnan(alpha0) ? GetMinParameter() : alpha0,
                           std::isnan(alpha1) ? GetMaxParameter() : alpha1);
     };
@@ -34,7 +34,9 @@ struct Line : public Curve {
     Real GetMaxParameter() const override { return SP_INFINITY; }
 
     point_type Value(Real u) const override { return m_axis_.Coordinates(u); }
- };
+    bool TestIntersection(box_type const &) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
+};
 
 }  // namespace geometry
 }  // namespace simpla

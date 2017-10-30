@@ -45,6 +45,8 @@ struct Surface : public GeoObject {
 
     virtual point_type Value(Real u, Real v) const = 0;
     point_type Value(nTuple<Real, 2> const &u) const { return Value(u[0], u[1]); };
+    point_type Value(point_type const &u) const override { return Value(u[0], u[1]); };
+
     void Mirror(const point_type &p) override { m_axis_.Mirror(p); }
     void Mirror(const Axis &a1) override { m_axis_.Mirror(a1); }
     void Rotate(const Axis &a1, Real angle) override { m_axis_.Rotate(a1, angle); }

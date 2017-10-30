@@ -7,7 +7,11 @@
 
 #include <simpla/data/DataNode.h>
 namespace simpla {
+template <typename, int...>
+struct nTuple;
 namespace geometry {
+struct Plane;
+struct Line;
 struct Axis {
     Axis() = default;
     Axis(Axis const &other) : o(other.m_origin_), m_axis_(other.m_axis_){};
@@ -70,6 +74,15 @@ struct Axis {
     point_type xyz(Real u, Real v = 0, Real w = 0) const { return xyz(point_type{u, v, w}); }
     point_type uvw(Real x0, Real x1 = 0, Real x2 = 0) const { return uvw(point_type{x0, x1, x2}); }
     point_type Coordinates(Real u, Real v = 0, Real w = 0) const { return xyz(point_type{u, v, w}); }
+
+    std::shared_ptr<Plane> GetPlane(int) const;
+    std::shared_ptr<Plane> GetPlaneXY() const;
+    std::shared_ptr<Plane> GetPlaneYZ() const;
+    std::shared_ptr<Plane> GetPlaneZX() const;
+    std::shared_ptr<Line> GetAxe(int) const;
+    std::shared_ptr<Line> GetPlaneX() const;
+    std::shared_ptr<Line> GetPlaneY() const;
+    std::shared_ptr<Line> GetPlaneZ() const;
 
    private:
     point_type m_origin_{0, 0, 0};

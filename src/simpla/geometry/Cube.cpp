@@ -25,11 +25,10 @@ void Cube::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
         }
     }
 }
-int Cube::CheckOverlap(box_type const &) const { return 0; }
+bool Cube::TestInside(point_type const &x) const { return 0; }
 std::shared_ptr<GeoObject> Cube::Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
     std::shared_ptr<GeoObject> res = nullptr;
-    if (auto line = std::dynamic_pointer_cast<const Line>(g)) { res = PointsOnCurve::New(line);
-    }
+    if (auto line = std::dynamic_pointer_cast<const Line>(g)) { res = PointsOnCurve::New(line); }
     return nullptr;
 }
 }  // namespace geometry {

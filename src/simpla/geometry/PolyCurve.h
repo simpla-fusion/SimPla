@@ -39,7 +39,7 @@ struct PolyCurve : public Curve {
     void PushFront(std::shared_ptr<Curve> const &, Real length = SP_SNaN);
     void Foreach(std::function<void(std::shared_ptr<Curve> const &)> const &);
     void Foreach(std::function<void(std::shared_ptr<const Curve> const &)> const &) const;
-    int CheckOverlap(box_type const &) const override;
+    bool TestIntersection(box_type const &) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    private:

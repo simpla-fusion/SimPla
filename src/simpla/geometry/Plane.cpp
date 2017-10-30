@@ -11,7 +11,7 @@ SP_OBJECT_REGISTER(Plane)
 void Plane::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
 std::shared_ptr<simpla::data::DataNode> Plane::Serialize() const { return base_type::Serialize(); }
 
-int Plane::CheckOverlap(box_type const &) const {
+bool Plane::TestIntersection(box_type const &) const {
     UNIMPLEMENTED;
     return 0;
 }

@@ -2,6 +2,8 @@
 // Created by salmon on 17-10-23.
 //
 #include "Axis.h"
+#include "Line.h"
+#include "Plane.h"
 namespace simpla {
 namespace geometry {
 
@@ -27,6 +29,17 @@ void Axis::Scale(Real s, int dir) {
 }
 void Axis::Translate(const vector_type &v) { m_origin_ += v; }
 void Axis::Move(const point_type &p) { m_origin_ = p; }
+
+std::shared_ptr<Plane> Axis::GetPlane(int n) const {
+    return Plane::New(Axis{o, m_axis_[(n + 1) % 3], m_axis_[(n + 2) % 3]});
+}
+std::shared_ptr<Plane> Axis::GetPlaneXY() const { return GetPlane(2); }
+std::shared_ptr<Plane> Axis::GetPlaneYZ() const { return GetPlane(1); }
+std::shared_ptr<Plane> Axis::GetPlaneZX() const { return GetPlane(0); }
+std::shared_ptr<Line> Axis::GetAxe(int n) const { return Line::New(Axis{o, m_axis_[n]}); }
+std::shared_ptr<Line> Axis::GetPlaneX() const { return GetAxe(0); }
+std::shared_ptr<Line> Axis::GetPlaneY() const { return GetAxe(0); }
+std::shared_ptr<Line> Axis::GetPlaneZ() const { return GetAxe(0); }
 
 }  // namespace geometry{
 }  // namespace simpla{

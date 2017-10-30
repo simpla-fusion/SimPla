@@ -26,32 +26,20 @@ struct Body : public GeoObject {
    public:
     ~Body() override;
 
-    virtual std::tuple<bool, bool, bool> IsClosed() const { return std::make_tuple(false, false, false); };
-    virtual std::tuple<bool, bool, bool> IsPeriodic() const { return std::make_tuple(false, false, false); };
-    virtual nTuple<Real, 3> GetPeriod() const { return nTuple<Real, 3>{SP_INFINITY, SP_INFINITY, SP_INFINITY}; };
-    virtual nTuple<Real, 3> GetMinParameter() const {
-        return nTuple<Real, 3>{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY};
-    }
-    virtual nTuple<Real, 3> GetMaxParameter() const { return nTuple<Real, 3>{SP_INFINITY, SP_INFINITY, SP_INFINITY}; }
+    virtual std::tuple<bool, bool, bool> IsClosed() const;
+    virtual std::tuple<bool, bool, bool> IsPeriodic() const;
+    virtual nTuple<Real, 3> GetPeriod() const;
+    virtual nTuple<Real, 3> GetMinParameter() const;
+    virtual nTuple<Real, 3> GetMaxParameter() const;
 
-    void SetParameterRange(std::tuple<nTuple<Real, 3>, nTuple<Real, 3>> const &r) {
-        std::tie(m_uvw_min_, m_uvw_max_) = r;
-    };
-    void SetParameterRange(nTuple<Real, 3> const &min, nTuple<Real, 3> const &max) {
-        m_uvw_min_ = min;
-        m_uvw_max_ = max;
-    };
-    std::tuple<nTuple<Real, 3>, nTuple<Real, 3>> GetParameterRange() const {
-        return std::make_tuple(m_uvw_min_, m_uvw_max_);
-    };
+    void SetParameterRange(std::tuple<nTuple<Real, 3>, nTuple<Real, 3>> const &r);
+    void SetParameterRange(nTuple<Real, 3> const &min, nTuple<Real, 3> const &max);
+    std::tuple<nTuple<Real, 3>, nTuple<Real, 3>> GetParameterRange() const;
+    bool TestInsideUVW(point_type const &x) const override;
+    box_type GetBoundingBox() const override;
+
     virtual point_type Value(Real u, Real v, Real w) const = 0;
-
-    point_type Value(nTuple<Real, 3> const &u) const { return Value(u[0], u[1], u[2]); };
-
-    box_type GetBoundingBox() const override {
-        auto r = GetParameterRange();
-        return std::make_tuple(Value(std::get<0>(r)), Value(std::get<1>(r)));
-    };
+    point_type Value(point_type const &uvw) const override { return Value(uvw[0], uvw[1], uvw[2]); }
 
    protected:
     nTuple<Real, 3> m_uvw_min_{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY};

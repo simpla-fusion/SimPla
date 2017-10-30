@@ -20,6 +20,18 @@ struct Circle : public Curve {
 
    public:
     ~Circle() override;
+
+    /**      ^ axis
+     *       |
+     *       +----> b
+     *       |   /
+     *       | /
+     *       o
+     * @param o
+     * @param b
+     * @param axis
+     * @return
+     */
     static std::shared_ptr<Circle> New3(point_type const &o, point_type const &b, vector_type const &axis);
 
     bool IsClosed() const override { return true; };
@@ -35,7 +47,7 @@ struct Circle : public Curve {
         return m_axis_.Coordinates(m_radius_ * std::cos(alpha), m_radius_ * std::sin(alpha));
         //        return  m_axis_.o + m_radius_ * std::cos(alpha) * m_axis_.x + m_radius_ * std::sin(alpha) * m_axis_.y;
     };
-    int CheckOverlap(box_type const &) const override;
+    bool TestInside(point_type const &x) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    protected:

@@ -6,7 +6,7 @@
 
 namespace simpla {
 namespace geometry {
-SP_OBJECT_REGISTER(Polyline)
+SP_OBJECT_REGISTER(PolyLine)
 struct PolyLine::pimpl_s {
     bool m_is_closed_ = false;
     bool m_is_periodic_ = false;
@@ -47,7 +47,7 @@ std::shared_ptr<simpla::data::DataNode> PolyLine::Serialize() const {
     return res;
 }
 
-point_type PolyLine::Value(Real u) const {}
+point_type PolyLine::Value(Real u) const { return point_type{0, 0, 0}; }
 
 bool PolyLine::TestIntersection(box_type const &) const { return false; }
 std::shared_ptr<GeoObject> PolyLine::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {

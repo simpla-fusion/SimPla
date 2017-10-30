@@ -60,9 +60,21 @@ nTuple<Real, 3> SweptBody::GetMaxParameter() const {
 point_type SweptBody::Value(Real u, Real v, Real w) const {
     return GetBasisSurface()->Value(u, v) + m_shift_curve_->Value(w);
 };
-int SweptBody::CheckOverlap(box_type const &) const { return 0; }
+bool SweptBody::TestIntersection(box_type const &) const { return 0; }
 std::shared_ptr<GeoObject> SweptBody::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
     return nullptr;
 }
+
+/*******************************************************************************************************************/
+void SweptSurface::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
+    base_type::Deserialize(cfg);
+    m_basis_curve_ = std::dynamic_pointer_cast<Curve>(Curve::New(cfg->Get("BasisCurve")));
+}
+std::shared_ptr<simpla::data::DataNode> SweptSurface::Serialize() const {
+    auto res = base_type::Serialize();
+    res->Set("BasisCurve", m_basis_curve_->Serialize());
+    return res;
+}
+
 }  // namespace geometry{
 }  // namespace simpla{

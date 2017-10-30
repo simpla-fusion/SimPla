@@ -26,10 +26,27 @@ void GeoObject::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
 box_type GeoObject::GetBoundingBox() const { return box_type{{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}; }
 std::shared_ptr<GeoObject> GeoObject::GetBoundary() const {
     std::shared_ptr<GeoObject> res = nullptr;
-  { UNIMPLEMENTED; }
+    { UNIMPLEMENTED; }
     return res;
 }
-
+bool GeoObject::TestIntersection(box_type const &) const {
+    UNIMPLEMENTED;
+    return false;
+}
+bool GeoObject::TestInside(point_type const &x) const {
+    return TestIntersection(
+        std::make_tuple(point_type{x - SP_GEO_DEFAULT_TOLERANCE}, point_type{x + SP_GEO_DEFAULT_TOLERANCE}));
+}
+bool GeoObject::TestInside(Real x, Real y, Real z) const { return TestInside(point_type{x, y, z}); }
+bool GeoObject::TestInsideUVW(point_type const &x) const { return false; }
+bool GeoObject::TestInsideUVW(Real u, Real v, Real w) const { return TestInside(point_type{u, v, w}); }
+point_type GeoObject::Value(point_type const &uvw) const { return m_axis_.xyz(uvw); }
+point_type GeoObject::Value(Real u, Real v, Real w) const { return m_axis_.xyz(point_type{u, v, w}); }
+std::shared_ptr<GeoObject> GeoObject::Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
+    std::shared_ptr<GeoObject> res = nullptr;
+    if (TestIntersection(g->GetBoundingBox())) { UNIMPLEMENTED; }
+    return res;
+}
 Axis &GeoObject::GetAxis() { return m_axis_; }
 Axis const &GeoObject::GetAxis() const { return m_axis_; }
 void GeoObject::SetAxis(Axis const &a) { m_axis_ = a; }

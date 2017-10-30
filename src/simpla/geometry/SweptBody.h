@@ -34,7 +34,7 @@ struct SweptBody : public Body {
     nTuple<Real, 3> GetMaxParameter() const override;
 
     point_type Value(Real u, Real v, Real w) const override;
-    int CheckOverlap(box_type const &) const override;
+    bool TestIntersection(box_type const &) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    protected:
@@ -42,6 +42,23 @@ struct SweptBody : public Body {
     std::shared_ptr<const Curve> m_shift_curve_;
 };
 
+struct SweptSurface : public Surface {
+    SP_GEO_ABS_OBJECT_HEAD(SweptSurface, Surface);
+
+   protected:
+    SweptSurface() = default;
+    SweptSurface(SweptSurface const &other) : Surface(other), m_basis_curve_(other.m_basis_curve_){};
+    SweptSurface(std::shared_ptr<Curve> const &c) : Surface(c->GetAxis()), m_basis_curve_(c) {}
+
+   public:
+    ~SweptSurface() override = default;
+
+    std::shared_ptr<Curve> GetBasisCurve() const { return m_basis_curve_; }
+    void SetBasisCurve(std::shared_ptr<Curve> const &c) { m_basis_curve_ = c; }
+
+   protected:
+    std::shared_ptr<Curve> m_basis_curve_;
+};
 }  // namespace geometry
 }  // namespace simpla
 #endif  // SIMPLA_SWEPTBODY_H

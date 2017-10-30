@@ -8,6 +8,8 @@
 #include <simpla/utilities/Constants.h>
 #include "Axis.h"
 #include "GeoObject.h"
+#include "Plane.h"
+
 namespace simpla {
 namespace geometry {
 
@@ -36,6 +38,9 @@ struct Curve : public GeoObject {
         return std::make_tuple(std::isnan(m_u_min_) ? GetMinParameter() : m_u_min_,
                                std::isnan(m_u_max_) ? GetMaxParameter() : m_u_max_);
     };
+
+    virtual bool IsOnPlane() const { return false; };
+
     point_type StartPoint() const { return Value(m_u_min_); }
     point_type EndPoint() const { return Value(m_u_max_); }
 

@@ -14,7 +14,7 @@ struct Parabola : public Curve {
    protected:
     Parabola() = default;
     Parabola(Parabola const &other) = default;
-    Parabola( Axis  const &axis, Real focal, Real alpha0 = SP_SNaN, Real alpha1 = SP_SNaN)
+    Parabola(Axis const &axis, Real focal, Real alpha0 = SP_SNaN, Real alpha1 = SP_SNaN)
         : Curve(axis), m_focal_(focal) {
         SetParameterRange(std::isnan(alpha0) ? GetMinParameter() : alpha0,
                           std::isnan(alpha1) ? GetMaxParameter() : alpha1);
@@ -33,8 +33,9 @@ struct Parabola : public Curve {
     Real GetFocal() const { return m_focal_; }
 
     point_type Value(Real u) const override { return m_axis_.Coordinates(u * u / (4. * m_focal_), u, 0); };
-    int CheckOverlap(box_type const &) const override;                                                                \
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override; \
+    bool TestIntersection(box_type const &) const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
+
    protected:
     Real m_focal_ = 1;
 };

@@ -19,7 +19,7 @@
 #include <simpla/utilities/SPDefines.h>
 #include <simpla/utilities/integer_sequence.h>
 #include <simpla/utilities/utility.h>
-
+#include <vector>
 namespace simpla {
 namespace geometry {
 using namespace simpla::utility;
@@ -31,10 +31,11 @@ bool isOverlapped(std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& 
              (std::get<1>(b0)[1] < std::get<0>(b1)[1] || std::get<0>(b0)[1] >= std::get<1>(b1)[1]) ||
              (std::get<1>(b0)[2] < std::get<0>(b1)[2] || std::get<0>(b0)[2] >= std::get<1>(b1)[2]));
 }
-
+bool TestPointInsideBox(point_type const& p, point_type const& bMin, point_type const& bMax);
+bool TestPointInsideBox(point_type const& p, std::tuple<point_type, point_type> const& box);
 bool TestIntersectionCubeSphere(point_type const& bMin, point_type const& bMax, point_type const& C, Real r);
 int IntersectLineSphere(point_type const& p0, point_type const& p1, point_type const& c, Real r, Real tolerance,
-                        std::vecotr<Real>& res);
+                        std::vector<Real>& res);
 /**
  *   (b0 & b1).volume
  * @tparam U
