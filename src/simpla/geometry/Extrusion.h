@@ -6,12 +6,12 @@
 #define SIMPLA_LINEAREXTRUSIONBODY_H
 
 #include <simpla/utilities/Constants.h>
-#include "SweptBody.h"
+#include "Swept.h"
 namespace simpla {
 namespace geometry {
 struct Curve;
-struct Extrusion : public SweptBody {
-    SP_GEO_OBJECT_HEAD(Extrusion, SweptBody);
+struct Extrusion : public Swept {
+    SP_GEO_OBJECT_HEAD(Extrusion, Swept);
 
    protected:
     Extrusion();

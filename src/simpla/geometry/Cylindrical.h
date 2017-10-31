@@ -12,16 +12,14 @@
 #include "Body.h"
 #include "GeoObject.h"
 #include "ParametricBody.h"
+#include "ParametricSurface.h"
 #include "ShapeFunction.h"
 #include "Surface.h"
 namespace simpla {
 namespace geometry {
 
 struct sfCylindrical : public ShapeFunction {
-    int GetDimension() const override { return 3; }
-    box_type const &GetParameterRange() const override { return m_parameter_range_; };
-    box_type const &GetValueRange() const override { return m_value_range_; }
-
+    point_type Value(Real u, Real v, Real w) const override { return point_type{u, v, w}; }
     point_type InvValue(point_type const &xyz) const override { return xyz; }
     Real Distance(point_type const &xyz) const override { return xyz[2]; }
     bool TestBoxIntersection(point_type const &x_min, point_type const &x_max) const override {
@@ -43,41 +41,39 @@ struct Cylindrical : public ParametricBody {
 
    public:
     ~Cylindrical() override = default;
+    box_type const &GetParameterRange() const override { return m_shape_.m_parameter_range_; };
+    box_type const &GetValueRange() const override { return m_shape_.m_value_range_; };
+    point_type xyz(Real u, Real v, Real w) const override { return m_axis_.xyz(m_shape_.Value(u, v, w)); };
+    point_type uvw(Real x, Real y, Real z) const override { return m_shape_.InvValue(m_axis_.uvw(x, y, z)); };
 
     std::shared_ptr<Body> Intersection(std::shared_ptr<const Body> const &, Real tolerance) const override;
     std::shared_ptr<Curve> Intersection(std::shared_ptr<const Curve> const &, Real tolerance) const override;
     std::shared_ptr<Surface> Intersection(std::shared_ptr<const Surface> const &, Real tolerance) const override;
-};
-
-struct CylindricalSurface : public Surface {
-    SP_GEO_OBJECT_HEAD(CylindricalSurface, Surface);
 
    protected:
-    CylindricalSurface() = default;
-    CylindricalSurface(CylindricalSurface const &other) = default;  // : Surface(other), m_radius_(other.m_radius_) {}
-    CylindricalSurface(Axis const &axis) : Surface(axis) {}
+    sfCylindrical m_shape_;
+};
+
+struct CylindricalSurface : public ParametricSurface {
+    SP_GEO_OBJECT_HEAD(CylindricalSurface, ParametricSurface);
+
+   protected:
+    CylindricalSurface();
+    CylindricalSurface(CylindricalSurface const &other);
+    CylindricalSurface(Axis const &axis, Real radius);
 
    public:
-    ~CylindricalSurface() override = default;
+    ~CylindricalSurface() override;
 
-    void SetRadius(Real r) { m_radius_ = r; }
     Real GetRadius() const { return m_radius_; }
 
-    /**
-     *
-     * @param u  \phi
-     * @param v  z
-     * @return
-     */
-    point_type Value(Real u, Real v) const override {
-        return m_axis_.Coordinates(m_radius_ * std::cos(u), m_radius_ * std::sin(u), v);
-    };
-    bool TestIntersection(box_type const &) const override;
-    bool TestInside(Real x, Real y, Real z, Real tolerance) const override;
+    point_type xyz(Real u, Real v) const override { return m_axis_.xyz(m_shape_.Value(u, v, m_radius_)); };
+    bool TestIntersection(box_type const &, Real tolerance) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    private:
     Real m_radius_ = 1.0;
+    sfCylindrical m_shape_;
 };
 }  // namespace geometry
 }  // namespace simpla

@@ -4,36 +4,29 @@
 
 #ifndef SIMPLA_PARABOLA_H
 #define SIMPLA_PARABOLA_H
-#include "Curve.h"
+#include "ParametricCurve.h"
 namespace simpla {
 namespace geometry {
 
-struct Parabola : public Curve {
-    SP_GEO_OBJECT_HEAD(Parabola, Curve);
+struct Parabola : public ParametricCurve {
+    SP_GEO_OBJECT_HEAD(Parabola, ParametricCurve);
 
    protected:
     Parabola() = default;
     Parabola(Parabola const &other) = default;
     Parabola(Axis const &axis, Real focal, Real alpha0 = SP_SNaN, Real alpha1 = SP_SNaN)
-        : Curve(axis), m_focal_(focal) {
-        SetParameterRange(std::isnan(alpha0) ? GetMinParameter() : alpha0,
-                          std::isnan(alpha1) ? GetMaxParameter() : alpha1);
-    }
+        : ParametricCurve(axis), m_focal_(focal) {}
 
    public:
     ~Parabola() override = default;
 
     bool IsClosed() const override { return false; };
-    bool IsPeriodic() const override { return false; };
-    Real GetPeriod() const override { return SP_INFINITY; };
-    Real GetMinParameter() const override { return -SP_INFINITY; }
-    Real GetMaxParameter() const override { return SP_INFINITY; };
 
     void SetFocal(Real f) { m_focal_ = f; }
     Real GetFocal() const { return m_focal_; }
 
-    point_type Value(Real u) const override { return m_axis_.Coordinates(u * u / (4. * m_focal_), u, 0); };
-    bool TestIntersection(box_type const &) const override;
+    point_type xyz(Real u) const override { return m_axis_.Coordinates(u * u / (4. * m_focal_), u, 0); };
+    bool TestIntersection(box_type const &, Real tolerance) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    protected:

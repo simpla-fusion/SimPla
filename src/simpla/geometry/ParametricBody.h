@@ -7,7 +7,6 @@
 #include "Body.h"
 namespace simpla {
 namespace geometry {
-struct ParametricSurface;
 struct ParametricBody : public Body {
     SP_GEO_ABS_OBJECT_HEAD(ParametricBody, Body);
 
@@ -19,29 +18,14 @@ struct ParametricBody : public Body {
    public:
     ~ParametricBody() override;
 
-    std::shared_ptr<Surface> GetBoundarySurface() const override;
-    std::shared_ptr<Curve> Intersection(std::shared_ptr<const Curve> const &g, Real tolerance) const override;
-    std::shared_ptr<Surface> Intersection(std::shared_ptr<const Surface> const &g, Real tolerance) const override;
-    std::shared_ptr<Body> Intersection(std::shared_ptr<const Body> const &g, Real tolerance) const override;
-    bool TestIntersection(point_type const &, Real tolerance) const override;
-    bool TestIntersection(box_type const &, Real tolerance) const override;
-    box_type GetBoundingBox() const override;
-
-    box_type const &GetParameterRange() const;
-    box_type const &GetValueRange() const;
-
+    virtual box_type const &GetParameterRange() const = 0;
+    virtual box_type const &GetValueRange() const = 0;
     virtual point_type xyz(Real u, Real v, Real w) const = 0;
     virtual point_type uvw(Real x, Real y, Real z) const = 0;
+
     point_type xyz(point_type const &u) const;
     point_type uvw(point_type const &x) const;
-
-   protected:
-    void SetParameterRange(box_type const &);
-    void SetValueRange(box_type const &);
-
-    box_type m_parameter_range_{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
-    box_type m_value_range_{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
-    std::shared_ptr<ParametricSurface> m_surface_ = nullptr;
+    box_type GetBoundingBox() const override;
 };
 }  // namespace geometry{
 }  // namespace simpla{impla

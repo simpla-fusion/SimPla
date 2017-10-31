@@ -10,24 +10,19 @@
 
 #include "Body.h"
 #include "GeoObject.h"
+#include "ParametricBody.h"
 namespace simpla {
 namespace geometry {
 
-struct Cone : public Body {
-    SP_GEO_OBJECT_HEAD(Cone, Body)
+struct Cone : public ParametricBody {
+    SP_GEO_OBJECT_HEAD(Cone, ParametricBody)
     Cone() = default;
     ~Cone() override = default;
 
    protected:
-    explicit Cone(Axis const &axis, Real angle) : Body(axis), m_semi_angle_(angle) {
-        SetParameterRange(GetMinParameter(), GetMaxParameter());
-    }
+    explicit Cone(Axis const &axis, Real angle) : ParametricBody(axis), m_semi_angle_(angle) {}
 
    public:
-    bool IsClosed() const override { return std::make_tuple(false, true, false); };
-    nTuple<Real, 3> GetMinParameter() const override { return nTuple<Real, 3>{0, 0, -SP_INFINITY}; }
-    nTuple<Real, 3> GetMaxParameter() const override { return nTuple<Real, 3>{SP_INFINITY, TWOPI, SP_INFINITY}; }
-
     void SetSemiAngle(Real a) { m_semi_angle_ = a; }
     Real GetSemiAngle() const { return m_semi_angle_; }
 
@@ -38,7 +33,7 @@ struct Cone : public Body {
      * @param w theta
      * @return
      */
-    point_type Value(Real R, Real theta, Real v) const override {
+    point_type xyz(Real R, Real theta, Real v) const override {
         Real r = (R + v * std::sin(m_semi_angle_));
         return m_axis_.Coordinates(r * std::cos(theta), r * std::sin(theta), v * std::cos(m_semi_angle_));
         //        return m_axis_.o +
@@ -46,7 +41,7 @@ struct Cone : public Body {
         //               +
         //               v * std::cos(m_semi_angle_) * m_axis_.z;
     };
-    bool TestIntersection(box_type const &) const override;
+    //    bool TestIntersection(box_type const &, Real tolerance) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    private:

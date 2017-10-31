@@ -6,7 +6,6 @@
 #include <simpla/algebra/nTuple.h>
 #include <simpla/data/Data.h>
 #include <simpla/geometry/Polygon.h>
-#include <simpla/geometry/Polyline2d.h>
 #include <simpla/geometry/Revolution.h>
 #include <simpla/numeric/Interpolation.h>
 #include <simpla/numeric/find_root.h>

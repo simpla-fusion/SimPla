@@ -17,7 +17,11 @@ std::shared_ptr<GeoObject> Cylindrical::Intersection(std::shared_ptr<const GeoOb
 /**********************************************************************************************************************/
 
 SP_OBJECT_REGISTER(CylindricalSurface)
+CylindricalSurface::CylindricalSurface() = default;
+CylindricalSurface::CylindricalSurface(CylindricalSurface const &other) = default;
+CylindricalSurface::CylindricalSurface(Axis const &axis, Real radius) : ParametricSurface(axis), m_radius_(radius) {}
 
+CylindricalSurface::~CylindricalSurface() = default;
 void CylindricalSurface::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
     m_radius_ = cfg->GetValue<Real>("Radius", m_radius_);
@@ -27,8 +31,7 @@ std::shared_ptr<simpla::data::DataNode> CylindricalSurface::Serialize() const {
     res->SetValue<Real>("Radius", m_radius_);
     return res;
 }
-bool CylindricalSurface::TestIntersection(box_type const &) const { return false; }
-bool CylindricalSurface::TestInside(Real x, Real y, Real z, Real tolerance) const { return false; };
+bool CylindricalSurface::TestIntersection(box_type const &, Real tolerance) const { return m_shape_.TestBoxIntersection(); }
 std::shared_ptr<GeoObject> CylindricalSurface::Intersection(std::shared_ptr<const GeoObject> const &,
                                                             Real tolerance) const {
     return nullptr;

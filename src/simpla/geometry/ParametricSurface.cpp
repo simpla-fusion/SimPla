@@ -12,7 +12,7 @@ ParametricSurface::ParametricSurface() = default;
 ParametricSurface::ParametricSurface(ParametricSurface const &other) = default;
 ParametricSurface::ParametricSurface(Axis const &axis) : GeoObject(axis) {}
 ParametricSurface::~ParametricSurface() = default;
-bool ParametricSurface::IsClosed() const { return shape().IsClosedSurface(); };
+bool ParametricSurface::IsClosed() const {return false};
 
 std::shared_ptr<data::DataNode> ParametricSurface::Serialize() const { return base_type::Serialize(); };
 void ParametricSurface::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
@@ -22,12 +22,8 @@ std::shared_ptr<Curve> ParametricSurface::GetBoundaryCurve() const {
 }
 box_type ParametricSurface::GetBoundingBox() const { return GetValueRange(); };
 
-box_type const &ParametricSurface::GetParameterRange() const { return shape().GetParameterRange(); }
-box_type const &ParametricSurface::GetValueRange() const { return shape().GetValueRange(); }
-point_type ParametricSurface::xyz(Real u, Real v) const { return m_axis_.xyz(shape().Value(u, v)); }
-point_type ParametricSurface::xyz(point_type const &u) const { return m_axis_.xyz(shape().Value(u[0], u[1])); }
-point_type ParametricSurface::xyz(point2d_type const &u) const { return m_axis_.xyz(shape().Value(u[0], u[1])); }
-point_type ParametricSurface::uvw(point_type const &x) const { return shape().InvValue(m_axis_.uvw(x)); };
+point_type ParametricSurface::xyz(point_type const &u) const { return xyz(u[0], u[1]); }
+point_type ParametricSurface::uvw(point_type const &x) const { return uvw(x[0], x[1], x[2]); };
 std::shared_ptr<PolyPoints> ParametricSurface::Intersection(std::shared_ptr<const Curve> const &g,
                                                             Real tolerance) const {
     std::shared_ptr<PolyPoints> res = nullptr;

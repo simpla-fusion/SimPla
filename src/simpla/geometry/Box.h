@@ -14,9 +14,7 @@ struct Box : public Body {
     SP_GEO_OBJECT_HEAD(Box, Body)
 
    protected:
-    Box(std::initializer_list<std::initializer_list<Real>> const &v) : Body() {
-        SetParameterRange(point_type(*v.begin()), point_type(*(v.begin() + 1)));
-    }
+    Box(std::initializer_list<std::initializer_list<Real>> const &v) : Body() {}
     Box();
     Box(Box const &);
 
@@ -28,8 +26,7 @@ struct Box : public Body {
 
     point_type Value(Real u, Real v, Real w) const override { return m_axis_.xyz(u, v, w); };
 
-    bool TestIntersection(box_type const &) const override;
-    bool TestInsideUVW(point_type const &, Real tolerance) const override;
+    bool TestIntersection(box_type const &, Real tolerance) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 };
 

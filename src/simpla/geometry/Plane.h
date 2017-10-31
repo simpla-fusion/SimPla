@@ -14,16 +14,8 @@ namespace simpla {
 namespace geometry {
 struct sfPlane : public ShapeFunction {
     int GetDimension() const override { return 2; }
-    box_type const &GetParameterRange() const override {
-        return box_type{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
-    };
-    box_type const &GetValueRange() const override {
-        return box_type{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
-    }
-    Real GetMinParameter(int) const override { return -SP_INFINITY; };
-    Real GetMaxParameter(int) const override { return SP_INFINITY; };
-    Real GetMaxValue(int) const override { return SP_INFINITY; };
-    Real GetMinValue(int) const override { return -SP_INFINITY; };
+    box_type const &GetParameterRange() const override { return m_parameter_range_; };
+    box_type const &GetValueRange() const override { return m_value_range_; }
 
     point_type InvValue(point_type const &xyz) const override { return xyz; }
     Real Distance(point_type const &xyz) const override { return xyz[2]; }
@@ -31,6 +23,10 @@ struct sfPlane : public ShapeFunction {
         return x_min[2] < 0 && x_max[2] > 0;
     }
     int LineIntersection(point_type const &p0, point_type const &p1, Real *u) const override { return 0; }
+
+    const box_type m_parameter_range_{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY},
+                                      {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
+    const box_type m_value_range_{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
 };
 
 struct Plane : public ParametricSurface {
@@ -47,8 +43,8 @@ struct Plane : public ParametricSurface {
     ShapeFunction const &shape() const override { return m_shape_; }
     std::shared_ptr<PolyPoints> Intersection(std::shared_ptr<const Curve> const &g, Real tolerance) const override;
     std::shared_ptr<Curve> Intersection(std::shared_ptr<const Surface> const &g, Real tolerance) const override;
-    bool TestIntersection(point_type const &, Real tolerance) const override override;
-    bool TestIntersection(box_type const &, Real tolerance) const override override;
+    bool TestIntersection(point_type const &, Real tolerance) const override;
+    bool TestIntersection(box_type const &, Real tolerance) const override;
 
    protected:
     const sfPlane m_shape_;
