@@ -12,70 +12,82 @@
 #include "GeoObject.h"
 #include "ParametricBody.h"
 #include "ParametricSurface.h"
-
+#include "ShapeFunction.h"
 namespace simpla {
 namespace geometry {
 
+struct sfCone : public ShapeFunction {
+    sfCone() = default;
+    sfCone(sfCone const &) = default;
+    ~sfCone() = default;
+    sfCone(Real semi_angle) { SetSemiAngle(semi_angle); }
+
+    box_type GetParameterRange() const override;
+    box_type GetValueRange() const override;
+
+    point_type Value(Real l, Real phi, Real theta) const override {
+        Real r = l * std::sin(theta);
+        return point_type{r * std::cos(phi), r * std::sin(phi), l * std::cos(theta)};
+    }
+    point_type Value(Real l, Real phi) const { return Value(l, phi, GetSemiAngle()); }
+    point_type InvValue(Real x, Real y, Real z) const override { return point_type{x, y, z}; }
+
+    point_type InvValue(point_type const &xyz) const override { return xyz; }
+    Real Distance(point_type const &xyz) const override { return xyz[2]; }
+    bool TestBoxIntersection(point_type const &x_min, point_type const &x_max) const override {
+        return x_min[2] < 0 && x_max[2] > 0;
+    }
+    int LineIntersection(point_type const &p0, point_type const &p1, Real *u) const override { return 0; }
+
+    void SetSemiAngle(Real theta) { m_parameter_range_[1][2] = theta; }
+    Real GetSemiAngle() const { return m_parameter_range_[1][2]; }
+
+   protected:
+    Real m_parameter_range_[2][3] = {{0, 0, 0}, {1, TWOPI, PI / 4}};
+    Real m_value_range_[2][3] = {{-1, -1, -1}, {1, 1, 1}};
+};
 struct ConicalSurface : public ParametricSurface {
     SP_GEO_OBJECT_HEAD(ConicalSurface, ParametricSurface);
 
    protected:
-    ConicalSurface() = default;
-    ConicalSurface(ConicalSurface const &other) = default;
-    ConicalSurface(Axis const &axis, Real radius, Real semi_angle, Real phi0 = SP_SNaN, Real phi1 = SP_SNaN,
-                   Real z0 = SP_SNaN, Real z1 = SP_SNaN)
-        : ParametricSurface(axis), m_radius_(radius), m_semi_angle_(semi_angle) {}
+    ConicalSurface();
+    ConicalSurface(ConicalSurface const &other);
+    ConicalSurface(Axis const &axis, Real semi_angle);
 
    public:
-    ~ConicalSurface() override = default;
+    ~ConicalSurface() override;
 
-    void SetRadius(Real r) { m_radius_ = r; }
-    Real GetRadius() const { return m_radius_; }
-    void SetSemiAngle(Real r) { m_semi_angle_ = r; }
-    Real GetSemiAngle() const { return m_semi_angle_; }
+    box_type GetParameterRange() const override;
+    box_type GetValueRange() const override;
 
-    point_type Value(Real u, Real v) const override {
-        Real r = (m_radius_ + v * std::sin(m_semi_angle_));
-        return m_axis_.Coordinates(r * std::cos(u), r * std::sin(u), v * std::cos(m_semi_angle_));
-    };
+    point_type xyz(Real u, Real v) const override;
+    point_type uvw(Real x, Real y, Real z) const override;
 
    private:
-    Real m_radius_ = 1.0;
-    Real m_semi_angle_ = PI / 4;
+    sfCone m_shape_;
 };
 
 struct Cone : public ParametricBody {
     SP_GEO_OBJECT_HEAD(Cone, ParametricBody)
-    Cone() = default;
-    ~Cone() override = default;
 
    protected:
-    explicit Cone(Axis const &axis, Real angle) : ParametricBody(axis), m_semi_angle_(angle) {}
+    Cone();
+    explicit Cone(Axis const &axis, Real semi_angle);
 
    public:
-    void SetSemiAngle(Real a) { m_semi_angle_ = a; }
-    Real GetSemiAngle() const { return m_semi_angle_; }
+    ~Cone() override;
+    box_type GetParameterRange() const override;
+    box_type GetValueRange() const override;
 
-    /**
-     *
-     * @param theta R
-     * @param v phi
-     * @param w theta
-     * @return
-     */
-    point_type xyz(Real R, Real theta, Real v) const override {
-        Real r = (R + v * std::sin(m_semi_angle_));
-        return m_axis_.Coordinates(r * std::cos(theta), r * std::sin(theta), v * std::cos(m_semi_angle_));
-        //        return m_axis_.o +
-        //               (R + v * std::sin(m_semi_angle_)) * (std::cos(theta) * m_axis_.x + std::sin(theta) * m_axis_.y)
-        //               +
-        //               v * std::cos(m_semi_angle_) * m_axis_.z;
-    };
-    //    bool TestIntersection(box_type const &, Real tolerance) const override;
+    point_type xyz(Real u, Real v, Real w) const override;
+    point_type uvw(Real x, Real y, Real z) const override;
+
+    bool TestIntersection(box_type const &, Real tolerance) const override;
+
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    private:
-    Real m_semi_angle_ = PI / 4;
+    sfCone m_shape_;
 };
 }  // namespace geometry
 }  // namespace simpla

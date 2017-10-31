@@ -7,6 +7,11 @@
 namespace simpla {
 namespace geometry {
 SP_OBJECT_REGISTER(Ellipse)
+Ellipse::Ellipse() = default;
+Ellipse::Ellipse(Ellipse const &other) = default;
+Ellipse::Ellipse(Axis const &axis, Real major_radius, Real minor_radius)
+    : ParametricCurve(axis), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {}
+Ellipse::~Ellipse() = default;
 
 void Ellipse::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
@@ -19,7 +24,10 @@ std::shared_ptr<simpla::data::DataNode> Ellipse::Serialize() const {
     res->SetValue<Real>("MinorRadius", m_minor_radius_);
     return res;
 }
-bool Ellipse::TestIntersection(box_type const &) const { return 0; }
+bool Ellipse::TestIntersection(box_type const &, Real tolerance) const {
+    UNIMPLEMENTED;
+    return false;
+}
 std::shared_ptr<GeoObject> Ellipse::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
     return nullptr;
 }

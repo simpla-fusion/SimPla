@@ -31,6 +31,7 @@ struct Polygon::pimpl_s {
 
     point2d_type m_min_{0, 0};
     point2d_type m_max_{0, 0};
+    std::vector<point2d_type> m_uv_;
 };
 Polygon::Polygon() : m_pimpl_(new pimpl_s) {}
 Polygon::~Polygon() { delete m_pimpl_; }
@@ -51,7 +52,9 @@ void Polygon::Deserialize(std::shared_ptr<data::DataNode> const &tdb) { base_typ
 
 bool Polygon::IsClosed() const { return true; }
 
-point_type Polygon::Value(Real u, Real v) const { return point_type{0, 0, 0}; }
+std::vector<point2d_type> &Polygon::data() { return m_pimpl_->m_uv_; }
+std::vector<point2d_type> const &Polygon::data() const { return m_pimpl_->m_uv_; }
+
 Real Polygon::pimpl_s::nearest_point(Real *x, Real *y) const {
     typedef nTuple<Real, 2> Vec2;
 

@@ -57,7 +57,6 @@ std::shared_ptr<GeoObject> Body::Intersection(std::shared_ptr<const GeoObject> c
     }
     return res;
 };
-bool Body::TestIntersection(box_type const &, Real tolerance) const { return false; };
 
 // point_type Body::xyz(Real u, Real v, Real w) const { return m_axis_.xyz(u, v, w); };
 // point_type Body::xyz(point_type const &u) const { return xyz(u[0], u[1], u[2]); };

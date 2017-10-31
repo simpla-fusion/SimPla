@@ -19,7 +19,7 @@ std::shared_ptr<simpla::data::DataNode> Hyperbola::Serialize() const {
     res->SetValue<Real>("MinorRadius", m_minor_radius_);
     return res;
 }
-bool Hyperbola::TestIntersection(box_type const &) const {
+bool Hyperbola::TestIntersection(box_type const &, Real tolerance) const {
     UNIMPLEMENTED;
     return false;
 }

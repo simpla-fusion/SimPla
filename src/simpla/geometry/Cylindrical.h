@@ -26,6 +26,8 @@ struct sfCylindrical : public ShapeFunction {
     box_type GetValueRange() const override;
 
     point_type Value(Real u, Real v, Real w) const override { return point_type{u, v, w}; }
+    point_type Value(Real u, Real v) const { return point_type{u, v, 1}; }
+
     point_type InvValue(point_type const &xyz) const override { return xyz; }
     Real Distance(point_type const &xyz) const override { return xyz[2]; }
     bool TestBoxIntersection(point_type const &x_min, point_type const &x_max) const override {
@@ -34,7 +36,7 @@ struct sfCylindrical : public ShapeFunction {
     int LineIntersection(point_type const &p0, point_type const &p1, Real *u) const override { return 0; }
 
    protected:
-    static constexpr Real m_parameter_range_[2][3] = {{0, -SP_INFINITY, 0}, {1, TWOPI, 1}};
+    static constexpr Real m_parameter_range_[2][3] = {{0, 0, 0}, {1, TWOPI, 1}};
     static constexpr Real m_value_range_[2][3] = {{-1, -1, -1}, {1, 1, 1}};
 };
 
@@ -79,7 +81,9 @@ struct CylindricalSurface : public ParametricSurface {
 
     box_type GetParameterRange() const override;
     box_type GetValueRange() const override;
-    point_type xyz(Real phi, Real Z) const override { return m_axis_.xyz(m_shape_.Value(m_radius_, phi, Z)); };
+    point_type xyz(Real phi, Real Z) const override;
+    point_type uvw(Real x, Real y, Real z) const override;
+
     bool TestIntersection(box_type const &, Real tolerance) const override;
 
     std::shared_ptr<PolyPoints> Intersection(std::shared_ptr<const Curve> const &g, Real tolerance) const override;

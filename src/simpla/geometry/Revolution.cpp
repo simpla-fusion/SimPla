@@ -9,9 +9,9 @@ namespace simpla {
 namespace geometry {
 Revolution::Revolution() = default;
 Revolution::Revolution(Revolution const &other) = default;
-Revolution::Revolution(std::shared_ptr<const Surface> const &s, point_type const &origin, vector_type const &axis,
-                       Real phi0, Real phi1)
-    : Swept(s->Moved(s->GetAxis().o - origin), Circle::New3(origin, s->GetAxis().o, axis)) {
+Revolution::Revolution(std::shared_ptr<const Surface> const &s, point_type const &origin, vector_type const &axis)
+    : Swept(Axis{origin, axis}) {
+    //    , Circle::New3(origin, s->GetAxis().o, axis)
     FIXME;
 }
 
@@ -31,9 +31,7 @@ std::shared_ptr<GeoObject> Revolution::Intersection(std::shared_ptr<const GeoObj
 SP_OBJECT_REGISTER(RevolutionSurface)
 RevolutionSurface::RevolutionSurface() = default;
 RevolutionSurface::RevolutionSurface(RevolutionSurface const &other) = default;
-RevolutionSurface::RevolutionSurface(Axis const &axis, std::shared_ptr<Curve> const &c, Real v0 = SP_SNaN,
-                                     Real v1 = SP_SNaN)
-    : SweptSurface(axis) {}
+RevolutionSurface::RevolutionSurface(Axis const &axis, std::shared_ptr<Curve> const &c) : SweptSurface(axis) {}
 RevolutionSurface::~RevolutionSurface() = default;
 void RevolutionSurface::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
 std::shared_ptr<simpla::data::DataNode> RevolutionSurface::Serialize() const {
@@ -41,9 +39,13 @@ std::shared_ptr<simpla::data::DataNode> RevolutionSurface::Serialize() const {
     return res;
 }
 bool RevolutionSurface::IsClosed() const { return GetBasisCurve()->IsClosed(); };
-bool RevolutionSurface::TestIntersection(box_type const &, Real tolerance) const { return false; }
+bool RevolutionSurface::TestIntersection(box_type const &, Real tolerance) const {
+    UNIMPLEMENTED;
+    return false;
+}
 std::shared_ptr<GeoObject> RevolutionSurface::Intersection(std::shared_ptr<const GeoObject> const &,
                                                            Real tolerance) const {
+    UNIMPLEMENTED;
     return nullptr;
 }
 }  // namespace geometry{

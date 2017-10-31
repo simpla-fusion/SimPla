@@ -15,25 +15,13 @@ struct PolyLine : public Curve {
    protected:
     PolyLine();
     PolyLine(PolyLine const &);
-    explicit PolyLine(Axis const &axis) : PolyLine() { Curve::SetAxis(axis); }
+    explicit PolyLine(Axis const &axis);
 
    public:
     ~PolyLine() override;
-
     bool IsClosed() const override;
-    bool IsPeriodic() const override;
 
-    Real GetPeriod() const override;
-    Real GetMinParameter() const override;
-    Real GetMaxParameter() const override;
-
-    point_type Value(Real u) const override;
-    //    void Close(bool);
-    //    void AddPoint(point_type const &xyz);  // add xyz
-    //    point_type StartPoint(int n) const;
-    //    point_type EndPoint(int n) const;
-
-    bool TestIntersection(box_type const &) const override;
+    bool TestIntersection(box_type const &, Real tolerance) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    private:

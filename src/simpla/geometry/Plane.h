@@ -54,7 +54,7 @@ struct Plane : public ParametricSurface {
     bool TestIntersection(box_type const &, Real tolerance) const override;
 
    protected:
-    const sfPlane m_shape_;
+    sfPlane m_shape_;
 };
 
 }  // namespace simpla

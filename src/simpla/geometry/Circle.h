@@ -40,11 +40,11 @@ struct Circle : public ParametricCurve {
     void SetRadius(Real r) { m_radius_ = r; }
     Real GetRadius() const { return m_radius_; }
 
-    point_type Value(Real alpha) const override {
+    point_type xyz(Real alpha) const override {
         return m_axis_.Coordinates(m_radius_ * std::cos(alpha), m_radius_ * std::sin(alpha));
         //        return  m_axis_.o + m_radius_ * std::cos(alpha) * m_axis_.x + m_radius_ * std::sin(alpha) * m_axis_.y;
     };
-    bool TestInside(point_type const &x, Real tolerance) const override;
+    bool TestIntersection(point_type const &x, Real tolerance) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    protected:

@@ -17,8 +17,7 @@ struct Revolution : public Swept {
    protected:
     Revolution();
     Revolution(Revolution const &other);
-    explicit Revolution(std::shared_ptr<const Surface> const &s, point_type const &origin, vector_type const &axe_z,
-                        Real phi0 = 0, Real phi1 = TWOPI);
+    explicit Revolution(std::shared_ptr<const Surface> const &s, point_type const &origin, vector_type const &axe_z);
 
    public:
     ~Revolution() override;
@@ -33,12 +32,12 @@ struct RevolutionSurface : public SweptSurface {
    protected:
     RevolutionSurface();
     RevolutionSurface(RevolutionSurface const &other);
-    RevolutionSurface(Axis const &axis, std::shared_ptr<Curve> const &c, Real v0 = SP_SNaN, Real v1 = SP_SNaN);
+    RevolutionSurface(Axis const &axis, std::shared_ptr<Curve> const &c);
 
    public:
     ~RevolutionSurface() override;
     std::shared_ptr<const Curve> GetBasisCurve() const { return m_basis_curve_; }
-    bool IsClosed() const override { return GetBasisCurve()->IsClosed(); };
+    bool IsClosed() const override;
 
     bool TestIntersection(box_type const &, Real tolerance) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;

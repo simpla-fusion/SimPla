@@ -26,13 +26,10 @@ void Cube::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
         }
     }
 }
-bool Cube::TestInside(Real x, Real y, Real z, Real tolerance) const {
-    return TestPointInBox(point_type{x, y, z}, GetBoundingBox());
-};
 
 std::shared_ptr<GeoObject> Cube::Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
     std::shared_ptr<GeoObject> res = nullptr;
-    if (auto line = std::dynamic_pointer_cast<const Line>(g)) { res = PointsOnCurve::New(line); }
+    //    if (auto line = std::dynamic_pointer_cast<const Line>(g)) { res = PointsOnCurve::New(line); }
     return nullptr;
 }
 }  // namespace geometry {

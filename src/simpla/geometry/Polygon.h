@@ -8,6 +8,7 @@
 #define SIMPLA_POLYGON_H
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/utilities/SPDefines.h>
 #include <vector>
 #include "GeoObject.h"
 #include "Surface.h"
@@ -33,6 +34,9 @@ struct Polygon : public Surface {
 
     bool TestIntersection(box_type const &, Real tolerance) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
+
+    std::vector<point2d_type> &data();
+    std::vector<point2d_type> const &data() const;
 
    private:
     struct pimpl_s;

@@ -52,7 +52,7 @@ auto make_point(T const* d) {
     return nTuple<T, 3>{d[0], d[1], d[2]};
 }
 template <typename T>
-auto make_box(T const** d) {
+auto make_box(T const& d) {
     return std::make_tuple(make_point(d[0]), make_point(d[1]));
 }
 

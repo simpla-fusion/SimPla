@@ -3,35 +3,54 @@
 //
 
 #include "Cone.h"
+#include "ShapeFunction.h"
 namespace simpla {
 namespace geometry {
+box_type sfCone::GetParameterRange() const { return utility::make_box(m_parameter_range_); }
+box_type sfCone::GetValueRange() const {
+    return std::make_tuple(utility::make_point(m_value_range_[0]), utility::make_point(m_value_range_[1]));
+};
+SP_DEF_PARA_VALUE_RANGE(Cone)
+SP_DEF_PARA_VALUE_RANGE(ConicalSurface)
 
 SP_OBJECT_REGISTER(ConicalSurface)
 
-void ConicalSurface::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
-    base_type::Deserialize(cfg);
-    m_radius_ = cfg->GetValue<Real>("Radius", m_radius_);
-    m_semi_angle_ = cfg->GetValue<Real>("SemiAngle", m_semi_angle_);
-}
+void ConicalSurface::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
 std::shared_ptr<simpla::data::DataNode> ConicalSurface::Serialize() const {
     auto res = base_type::Serialize();
-    res->GetValue<Real>("Radius", m_radius_);
-    res->SetValue<Real>("SemiAngle", m_semi_angle_);
     return res;
 }
-SP_OBJECT_REGISTER(Cone)
+ConicalSurface::ConicalSurface() = default;
+ConicalSurface::ConicalSurface(ConicalSurface const &other) = default;
+ConicalSurface::ConicalSurface(Axis const &axis, Real semi_angle) : ParametricSurface(axis), m_shape_(semi_angle){};
 
+ConicalSurface::~ConicalSurface() = default;
+
+point_type ConicalSurface::xyz(Real u, Real v) const { return m_axis_.xyz(m_shape_.Value(u, v)); };
+point_type ConicalSurface::uvw(Real x, Real y, Real z) const { return m_shape_.InvValue(m_axis_.uvw(x, y, z)); };
+
+SP_OBJECT_REGISTER(Cone)
+Cone::Cone() = default;
+Cone::Cone(Axis const &axis, Real semi_angle) : ParametricBody(axis), m_shape_(semi_angle){};
+Cone::~Cone() = default;
 std::shared_ptr<simpla::data::DataNode> Cone::Serialize() const {
     auto res = base_type::Serialize();
-    res->SetValue("SemiAngle", m_semi_angle_);
+    //    res->SetValue("SemiAngle", m_semi_angle_);
     return res;
 };
 void Cone::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
-    m_semi_angle_ = cfg->GetValue("SemiAngle", m_semi_angle_);
+    //    m_semi_angle_ = cfg->GetValue("SemiAngle", m_semi_angle_);
 }
-bool Cone::TestIntersection(box_type const &) const { return 0; }
+
+point_type Cone::xyz(Real u, Real v, Real w) const { return m_axis_.xyz(m_shape_.Value(u, v, w)); };
+point_type Cone::uvw(Real x, Real y, Real z) const { return m_shape_.InvValue(m_axis_.uvw(x, y, z)); };
+bool Cone::TestIntersection(box_type const &, Real tolerance) const {
+    UNIMPLEMENTED;
+    return nullptr;
+}
 std::shared_ptr<GeoObject> Cone::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
+    UNIMPLEMENTED;
     return nullptr;
 }
 }  // namespace geometry {

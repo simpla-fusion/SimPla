@@ -9,9 +9,7 @@ namespace geometry {
 SP_OBJECT_REGISTER(Circle)
 Circle::Circle() = default;
 Circle::Circle(Circle const &) = default;
-Circle::Circle(Axis const &axis, Real radius, Real alpha0, Real alpha1) : Curve(axis), m_radius_(radius) {
-    SetParameterRange(std::isnan(alpha0) ? GetMinParameter() : alpha0, std::isnan(alpha1) ? GetMaxParameter() : alpha1);
-}
+Circle::Circle(Axis const &axis, Real radius, Real alpha0, Real alpha1) : ParametricCurve(axis), m_radius_(radius) {}
 
 Circle::~Circle() = default;
 void Circle::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
@@ -33,8 +31,12 @@ std::shared_ptr<Circle> Circle::New3(point_type const &o, point_type const &b, v
 
     return std::shared_ptr<Circle>(new Circle(Axis{o, x, y, z}, radius));
 }
-bool Circle::TestInside(point_type const &x, Real tolerance) const { return 0; }
+bool Circle::TestIntersection(point_type const &x, Real tolerance) const {
+    UNIMPLEMENTED;
+    return false;
+}
 std::shared_ptr<GeoObject> Circle::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
+    UNIMPLEMENTED;
     return nullptr;
 }
 }  // namespace geometry{

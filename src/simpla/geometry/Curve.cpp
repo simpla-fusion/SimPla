@@ -19,9 +19,8 @@ bool Curve::IsClosed() const { return false; }
 std::shared_ptr<GeoObject> Curve::GetBoundary() const {
     return std::dynamic_pointer_cast<GeoObject>(GetBoundaryPoints());
 }
-box_type Curve::GetBoundingBox() const override {
-    UNIMPLEMENTED;
-    return nullptr;
+box_type Curve::GetBoundingBox() const {
+    return box_type{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
 }
 std::shared_ptr<PolyPoints> Curve::GetBoundaryPoints() const {
     UNIMPLEMENTED;
@@ -40,11 +39,11 @@ std::shared_ptr<GeoObject> Curve::Intersection(std::shared_ptr<const Box> const 
     UNIMPLEMENTED;
     return nullptr;
 }
-bool Curve::TestIntersection(point_type const &, Real tolerance) const override {
+bool Curve::TestIntersection(point_type const &, Real tolerance) const {
     UNIMPLEMENTED;
     return false;
 }
-bool Curve::TestIntersection(box_type const &, Real tolerance) const override {
+bool Curve::TestIntersection(box_type const &, Real tolerance) const {
     UNIMPLEMENTED;
     return false;
 }

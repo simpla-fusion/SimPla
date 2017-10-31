@@ -24,8 +24,7 @@ std::shared_ptr<GeoObject> Swept::Intersection(std::shared_ptr<const GeoObject> 
 SweptSurface::SweptSurface() = default;
 SweptSurface::SweptSurface(SweptSurface const &other) = default;
 SweptSurface::SweptSurface(Axis const &axis) : Surface(axis) {}
-
-SweptSurface::~SweptSurface() override = default;
+SweptSurface::~SweptSurface() = default;
 void SweptSurface::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
 std::shared_ptr<simpla::data::DataNode> SweptSurface::Serialize() const { return base_type::Serialize(); }
 

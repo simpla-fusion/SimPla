@@ -36,7 +36,7 @@ struct SweptSurface : public Surface {
     SweptSurface(Axis const &axis);
 
    public:
-    ~SweptSurface() override = default;
+    ~SweptSurface() override;
 };
 }  // namespace geometry
 }  // namespace simpla

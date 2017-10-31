@@ -57,8 +57,8 @@ std::shared_ptr<simpla::data::DataNode> Tokamak::Serialize() const {
 void Tokamak::ReadGFile(std::string const &fname) {
     std::ifstream inFileStream_(fname);
     geometry::Axis axis;
-    m_pimpl_->m_rzbbb_ = geometry::Polyline2d::New(axis);
-    m_pimpl_->m_rzlim_ = geometry::Polyline2d::New(axis);
+    m_pimpl_->m_rzbbb_ = geometry::Polygon::New(axis);
+    m_pimpl_->m_rzlim_ = geometry::Polygon::New(axis);
     if (!inFileStream_.is_open()) {
         THROW_EXCEPTION_RUNTIME_ERROR("File " + fname + " is not opend!");
         return;
@@ -233,8 +233,7 @@ std::shared_ptr<geometry::GeoObject> Tokamak::Limiter() const {
     //    gp_Ax1 axis(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
     //    BRepBuilderAPI_MakeFace myBoundaryFaceProfile(wireMaker.Wire(), true);
     //    BRepPrimAPI_MakeRevol revol(myBoundaryFaceProfile.Face(), axis);
-    return geometry::Revolution::New(geometry::Polygon::New(), point_type{0, 0, 0}, vector_type{0, 0, 1},
-                                     m_pimpl_->m_phi0_, m_pimpl_->m_phi1_);
+    return geometry::Revolution::New(geometry::Polygon::New(), point_type{0, 0, 0}, vector_type{0, 0, 1});
 }
 std::shared_ptr<geometry::GeoObject> Tokamak::Boundary() const {
     //    BRepBuilderAPI_MakePolygon polygonMaker;
@@ -243,8 +242,7 @@ std::shared_ptr<geometry::GeoObject> Tokamak::Boundary() const {
     //    BRepBuilderAPI_MakeFace myLimterFaceProfile(polygonMaker.Wire());
     //    BRepPrimAPI_MakeRevol myLimiter(myLimterFaceProfile.Face(), axis);
     //    return geometry::GeoObjectOCE::New(myLimiter.Shape());
-    return geometry::Revolution::New(geometry::Polygon::New(), point_type{0, 0, 0}, vector_type{0, 0, 1},
-                                     m_pimpl_->m_phi0_, m_pimpl_->m_phi1_);
+    return geometry::Revolution::New(geometry::Polygon::New(), point_type{0, 0, 0}, vector_type{0, 0, 1});
 }
 
 }  // namespace simpla {

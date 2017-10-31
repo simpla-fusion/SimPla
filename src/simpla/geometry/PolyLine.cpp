@@ -19,17 +19,6 @@ PolyLine::PolyLine(PolyLine const &other) : Curve(other), m_pimpl_(new pimpl_s) 
 PolyLine::~PolyLine() { delete m_pimpl_; }
 
 bool PolyLine::IsClosed() const { return m_pimpl_->m_is_closed_; }
-bool PolyLine::IsPeriodic() const { return m_pimpl_->m_is_periodic_; }
-
-// void Polyline::SetClosed(bool flag) { m_pimpl_->m_is_closed_ = true; }
-// void Polyline::SetPeriod(Real l) {
-//    m_pimpl_->m_max_ = m_pimpl_->m_min_ + l;
-//    m_pimpl_->m_is_periodic_ = true;
-//    m_pimpl_->m_is_closed_ = true;
-//}
-Real PolyLine::GetPeriod() const { return m_pimpl_->m_max_ - m_pimpl_->m_min_; }
-Real PolyLine::GetMinParameter() const { return m_pimpl_->m_min_; }
-Real PolyLine::GetMaxParameter() const { return m_pimpl_->m_max_; }
 
 void PolyLine::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
@@ -47,10 +36,12 @@ std::shared_ptr<simpla::data::DataNode> PolyLine::Serialize() const {
     return res;
 }
 
-point_type PolyLine::Value(Real u) const { return point_type{0, 0, 0}; }
-
-bool PolyLine::TestIntersection(box_type const &) const { return false; }
+bool PolyLine::TestIntersection(box_type const &, Real tolerance) const {
+    UNIMPLEMENTED;
+    return false;
+}
 std::shared_ptr<GeoObject> PolyLine::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
+    UNIMPLEMENTED;
     return nullptr;
 }
 }  // namespace geometry{

@@ -15,31 +15,16 @@ struct PolyCurve : public Curve {
    protected:
     PolyCurve();
     PolyCurve(PolyCurve const &);
-    explicit PolyCurve(Axis const &axis) : PolyCurve() {
-        Curve::SetAxis(axis);
-        SetParameterRange(GetMinParameter(), GetMaxParameter());
-    }
+    explicit PolyCurve(Axis const &axis) : PolyCurve() { Curve::SetAxis(axis); }
 
    public:
     ~PolyCurve() override;
-
     bool IsClosed() const override;
-    bool IsPeriodic() const override;
-
-    Real GetPeriod() const override;
-    Real GetMinParameter() const override;
-    Real GetMaxParameter() const override;
-
-    void SetClosed(bool);
-    void SetPeriod(Real);
-
-    point_type Value(Real u) const override;
-
     void PushBack(std::shared_ptr<Curve> const &, Real length = SP_SNaN);
     void PushFront(std::shared_ptr<Curve> const &, Real length = SP_SNaN);
     void Foreach(std::function<void(std::shared_ptr<Curve> const &)> const &);
     void Foreach(std::function<void(std::shared_ptr<const Curve> const &)> const &) const;
-    bool TestIntersection(box_type const &) const override;
+    bool TestIntersection(box_type const &, Real tolerance) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    private:

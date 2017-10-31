@@ -16,8 +16,12 @@ struct ShapeFunction {
     virtual bool IsClosedSurface() const { return false; }
     virtual int GetDimension() const { return 3; }
 
-    virtual box_type GetParameterRange() const = 0;
-    virtual box_type GetValueRange() const = 0;
+    virtual box_type GetParameterRange() const {
+        return box_type{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
+    }
+    virtual box_type GetValueRange() const {
+        return box_type{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
+    }
 
     virtual point_type Value(Real u, Real v, Real w) const { return point_type{u, v, w}; }
     virtual point_type InvValue(Real x, Real y, Real z) const { return point_type{x, y, z}; }

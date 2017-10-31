@@ -5,29 +5,36 @@
 #ifndef SIMPLA_BOX_H
 #define SIMPLA_BOX_H
 
+#include <simpla/SIMPLA_config.h>
 #include "Body.h"
-#include "simpla/SIMPLA_config.h"
+#include "ParametricBody.h"
 namespace simpla {
 namespace geometry {
 
-struct Box : public Body {
-    SP_GEO_OBJECT_HEAD(Box, Body)
+struct Box : public ParametricBody {
+    SP_GEO_OBJECT_HEAD(Box, ParametricBody)
 
    protected:
-    Box(std::initializer_list<std::initializer_list<Real>> const &v) : Body() {}
     Box();
     Box(Box const &);
+    Box(std::initializer_list<std::initializer_list<Real>> const &v);
 
    public:
     ~Box() override;
     static std::shared_ptr<Box> New(std::initializer_list<std::initializer_list<Real>> const &box) {
         return std::shared_ptr<Box>(new Box(box));
     }
-
-    point_type xyz(Real u, Real v, Real w) const override { return m_axis_.xyz(u, v, w); };
+    box_type GetParameterRange() const override;
+    box_type GetValueRange() const override;
+    point_type xyz(Real u, Real v, Real w) const override;
+    point_type uvw(Real x, Real y, Real z) const override;
 
     bool TestIntersection(box_type const &, Real tolerance) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
+
+   protected:
+    static constexpr Real m_parameter_range_[2][3] = {{0, 0, 0}, {1, 1, 1}};
+    static constexpr Real m_value_range_[2][3] = {{0, 0, 0}, {1, 1, 1}};
 };
 
 }  // namespace geometry

@@ -25,12 +25,18 @@ std::shared_ptr<PolyPoints> Plane::Intersection(std::shared_ptr<const Curve> con
     } else {
         res = g->Intersection(std::dynamic_pointer_cast<const Plane>(shared_from_this()), tolerance);
     }
+    return res;
 }
 
-std::shared_ptr<Curve> Plane::Intersection(std::shared_ptr<const Surface> const &g, Real tolerance) const {}
-bool Plane::TestIntersection(point_type const &x, Real tolerance) const override {
+std::shared_ptr<Curve> Plane::Intersection(std::shared_ptr<const Surface> const &g, Real tolerance) const {
+    return nullptr;
+}
+bool Plane::TestIntersection(point_type const &x, Real tolerance) const {
     return std::abs(m_axis_.uvw(x)[2]) < tolerance;
 }
-bool Plane::TestIntersection(box_type const &, Real tolerance) const override {}
+bool Plane::TestIntersection(box_type const &, Real tolerance) const {
+    UNIMPLEMENTED;
+    return false;
+}
 }  // namespace geometry{
 }  // namespace simpla{impla

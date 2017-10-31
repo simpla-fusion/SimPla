@@ -12,8 +12,8 @@ SP_DEF_PARA_VALUE_RANGE(CylindricalSurface)
 std::shared_ptr<simpla::data::DataNode> Cylindrical::Serialize() const { return base_type::Serialize(); };
 void Cylindrical::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
 
-point_type Cylindrical::xyz(Real u, Real v, Real w) const override { return m_axis_.xyz(m_shape_.Value(u, v, w)); };
-point_type Cylindrical::uvw(Real x, Real y, Real z) const override { return m_shape_.InvValue(m_axis_.uvw(x, y, z)); };
+point_type Cylindrical::xyz(Real u, Real v, Real w) const { return m_axis_.xyz(m_shape_.Value(u, v, w)); };
+point_type Cylindrical::uvw(Real x, Real y, Real z) const { return m_shape_.InvValue(m_axis_.uvw(x, y, z)); };
 
 bool Cylindrical::TestIntersection(point_type const &p, Real tolerance) const {
     return m_shape_.Distance(m_axis_.uvw(p)) < 0;
@@ -50,6 +50,9 @@ std::shared_ptr<simpla::data::DataNode> CylindricalSurface::Serialize() const {
     res->SetValue<Real>("Radius", m_radius_);
     return res;
 }
+
+point_type CylindricalSurface::xyz(Real u, Real v) const { return m_axis_.xyz(m_shape_.Value(u, v)); };
+point_type CylindricalSurface::uvw(Real x, Real y, Real z) const { return m_shape_.InvValue(m_axis_.uvw(x, y, z)); };
 bool CylindricalSurface::TestIntersection(box_type const &b, Real tolerance) const {
     return m_shape_.TestBoxIntersection(m_axis_.uvw(std::get<0>(b)), m_axis_.uvw(std::get<1>(b)));
 }

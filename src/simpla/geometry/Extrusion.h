@@ -17,7 +17,7 @@ struct Extrusion : public Swept {
     Extrusion();
     Extrusion(Extrusion const &other);
     Extrusion(std::shared_ptr<const Surface> const &s, vector_type const &c);
-    bool TestIntersection(box_type const &) const override;
+    bool TestIntersection(box_type const &, Real tolerance) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    public:
@@ -27,33 +27,17 @@ struct ExtrusionSurface : public SweptSurface {
     SP_GEO_OBJECT_HEAD(ExtrusionSurface, SweptSurface);
 
    protected:
-    ExtrusionSurface() = default;
-    ExtrusionSurface(ExtrusionSurface const &other) = default;  // : SweptSurface(other) {}
-    ExtrusionSurface(std::shared_ptr<Curve> const &base, vector_type const &shift) : SweptSurface(base) {
-        SetParameterRange(GetMinParameter(), GetMaxParameter());
-    }
+    ExtrusionSurface();
+    ExtrusionSurface(ExtrusionSurface const &other);
+    ExtrusionSurface(Axis const &axis);
 
    public:
-    ~ExtrusionSurface() override = default;
+    ~ExtrusionSurface() override;
 
-    std::tuple<bool, bool> IsClosed() const override { return std::make_tuple(GetBasisCurve()->IsClosed(), false); };
-    std::tuple<bool, bool> IsPeriodic() const override {
-        return std::make_tuple(GetBasisCurve()->IsPeriodic(), false);
-    };
-    nTuple<Real, 2> GetPeriod() const override { return nTuple<Real, 2>{GetBasisCurve()->GetPeriod(), SP_INFINITY}; };
-    nTuple<Real, 2> GetMinParameter() const override {
-        return nTuple<Real, 2>{GetBasisCurve()->GetMinParameter(), -SP_INFINITY};
-    }
-    nTuple<Real, 2> GetMaxParameter() const override {
-        return nTuple<Real, 2>{GetBasisCurve()->GetMaxParameter(), SP_INFINITY};
-    }
+    bool IsClosed() const override;
 
-    point_type Value(Real u, Real v) const override { return GetBasisCurve()->Value(u) + v * m_shift_; };
-    bool TestIntersection(box_type const &) const override;
+    bool TestIntersection(box_type const &, Real tolerance) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
-
-   protected:
-    vector_type m_shift_;
 };
 
 }  // namespace simpla
