@@ -28,13 +28,15 @@ namespace geometry {
  *   GeoObject<|--Vertex
  *   GeoObject<|--Curve
  *   GeoObject<|--Surface
- *   GeoObject<|--Solid
- *
- *   Curve <|-- Line
- *   Curve <|-- Polyline
- *   Curve <|-- Conic
+ *   GeoObject<|--Body
+ *   Body o-- Surface
+ *   Surface o-- Curve
+ *   Curve <|-- ParametricCurve
  *   Curve <|-- BoundedCurve
+ *   ParametricCurve <|-- Line
+ *   ParametricCurve <|-- Conic
  *
+ *   BoundedCurve <|-- Polyline
  *   BoundedCurve <|-- BezierCurve
  *   BoundedCurve <|-- BSplineCurve
  *   BoundedCurve <|-- TrimmedCurve
@@ -44,24 +46,24 @@ namespace geometry {
  *   Conic <|-- Hyperbola
  *   Conic <|-- Parabola
  *
- *   Surface <|-- ElementarySurface
- *   ElementarySurface <|-- Plane
- *   ElementarySurface <|-- CylindricalSurface
- *   ElementarySurface <|-- SphericalSurface
- *   ElementarySurface <|-- ToroidalSurface
+ *   Surface <|-- ParametricSurface
+ *   ParametricSurface <|-- Plane
+ *   ParametricSurface <|-- CylindricalSurface
+ *   ParametricSurface <|-- SphericalSurface
+ *   ParametricSurface <|-- ToroidalSurface
  *
  *   Surface <|-- BoundedSurface
  *   BoundedSurface <|-- BezierSurface
  *   BoundedSurface <|-- BSplineSurface
  *   BoundedSurface <|-- PatchSurface
  *
-
+ *  ParametricBody o-- ParametricSurface
  *
- *   Solid <|-- ElementarySolid
- *   ElementarySolid <|-- Cube
- *   ElementarySolid <|-- Ball
- *   ElementarySolid <|-- Cylindrical
- *   ElementarySolid <|-- Toroidal
+ *   Body <|-- ParametricBody
+ *   ParametricBody <|-- Cube
+ *   ParametricBody <|-- Ball
+ *   ParametricBody <|-- Cylindrical
+ *   ParametricBody <|-- Toroidal
  *
  *   Surface <|-- SweptSurface
  *   SweptSurface <|-- SurfaceOfLinearExtrusion
@@ -107,14 +109,12 @@ class GeoObject : public SPObject {
 
     virtual std::shared_ptr<GeoObject> Copy() const = 0;
     virtual std::shared_ptr<GeoObject> GetBoundary() const = 0;
+
     virtual box_type GetBoundingBox() const = 0;
-    virtual bool TestIntersection(box_type const &) const = 0;
-    virtual bool TestInside(point_type const &x, Real tolerance) const = 0;
-    virtual bool TestInsideUVW(point_type const &x, Real tolerance) const = 0;
+    virtual bool TestIntersection(point_type const &x, Real tolerance) const = 0;
+    virtual bool TestIntersection(box_type const &, Real tolerance) const = 0;
     virtual std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g,
                                                     Real tolerance) const = 0;
-
-    virtual point_type Value(point_type const &uvw) const = 0;
 
    protected:
     Axis m_axis_{};

@@ -20,14 +20,17 @@ std::shared_ptr<data::DataNode> Box::Serialize() const {
     return cfg;
 };
 void Box::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
+
+
+
 bool Box::TestIntersection(box_type const &) const {
     UNIMPLEMENTED;
     return false;
 }
-bool Box::TestInsideUVW(point_type const &, Real tolerance) const {
-    UNIMPLEMENTED;
-    return false;
-}
+//bool Box::TestInsideUVW(point_type const &, Real tolerance) const {
+//    UNIMPLEMENTED;
+//    return false;
+//}
 std::shared_ptr<GeoObject> Box::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
     return nullptr;
 }

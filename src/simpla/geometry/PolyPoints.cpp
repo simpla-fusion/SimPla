@@ -18,13 +18,12 @@ box_type PolyPoints::GetBoundingBox() const {
     return std::make_tuple(point_type{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY},
                            point_type{SP_INFINITY, SP_INFINITY, SP_INFINITY});
 }
-bool PolyPoints::TestIntersection(box_type const &) const { return false; }
-bool PolyPoints::TestInside(point_type const &x, Real tolerance) const { return false; }
-bool PolyPoints::TestInsideUVW(point_type const &x, Real tolerance) const { return false; }
+bool PolyPoints::TestIntersection(box_type const &, Real tolerance) const { return false; }
+bool PolyPoints::TestIntersection(point_type const &x, Real tolerance) const { return false; }
+// bool PolyPoints::TestInsideUVW(point_type const &x, Real tolerance) const { return false; }
 std::shared_ptr<GeoObject> PolyPoints::Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
     return nullptr;
 }
-point_type PolyPoints::Value(point_type const &x) const { return point_type{SP_SNaN, SP_SNaN, SP_SNaN}; }
 
 }  // namespace geometry
 }  // namespace simpla

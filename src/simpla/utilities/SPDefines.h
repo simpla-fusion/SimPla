@@ -24,10 +24,12 @@ template <typename T, int... N>
 using Tensor = nTuple<T, N...>;
 
 typedef nTuple<Real, 3> point_type;  //!< DataType of configuration space point (coordinates i.e. (x,y,z) )
-
+typedef nTuple<Real, 2> point2d_type;
 typedef nTuple<Real, 3> vector_type;
+typedef nTuple<Real, 2> vector2d_type;
 
 typedef std::tuple<point_type, point_type> box_type;  //! two corner of rectangle (or hexahedron ) , <lower ,upper>
+typedef std::tuple<point2d_type, point2d_type> box2d_type;
 
 typedef nTuple<index_type, 3> index_tuple;
 

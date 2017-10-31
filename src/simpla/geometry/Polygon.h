@@ -29,15 +29,9 @@ struct Polygon : public Surface {
     void push_back(Real u, Real v);
     void push_back(size_type num, Real const *u, Real const *v);
     void push_back(nTuple<Real, 2> const &p) { push_back(p[0], p[1]); }
-    std::tuple<bool, bool> IsClosed() const override;
-    std::tuple<bool, bool> IsPeriodic() const override;
-    nTuple<Real, 2> GetPeriod() const override;
-    nTuple<Real, 2> GetMinParameter() const override;
-    nTuple<Real, 2> GetMaxParameter() const override;
+    bool IsClosed() const override;
 
-    point_type Value(Real u, Real v) const override;
-    bool TestIntersection(box_type const &) const override;
-    bool TestInsideUV(Real u, Real v, Real tolerance) const override;
+    bool TestIntersection(box_type const &, Real tolerance) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    private:

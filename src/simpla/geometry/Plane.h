@@ -7,12 +7,34 @@
 
 #include <simpla/SIMPLA_config.h>
 #include "GeoObject.h"
+#include "ParametricSurface.h"
+#include "ShapeFunction.h"
 #include "Surface.h"
-
 namespace simpla {
 namespace geometry {
-struct Plane : public Surface {
-    SP_GEO_OBJECT_HEAD(Plane, Surface);
+struct sfPlane : public ShapeFunction {
+    int GetDimension() const override { return 2; }
+    box_type const &GetParameterRange() const override {
+        return box_type{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
+    };
+    box_type const &GetValueRange() const override {
+        return box_type{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
+    }
+    Real GetMinParameter(int) const override { return -SP_INFINITY; };
+    Real GetMaxParameter(int) const override { return SP_INFINITY; };
+    Real GetMaxValue(int) const override { return SP_INFINITY; };
+    Real GetMinValue(int) const override { return -SP_INFINITY; };
+
+    point_type InvValue(point_type const &xyz) const override { return xyz; }
+    Real Distance(point_type const &xyz) const override { return xyz[2]; }
+    bool TestBoxIntersection(point_type const &x_min, point_type const &x_max) const override {
+        return x_min[2] < 0 && x_max[2] > 0;
+    }
+    int LineIntersection(point_type const &p0, point_type const &p1, Real *u) const override { return 0; }
+};
+
+struct Plane : public ParametricSurface {
+    SP_GEO_OBJECT_HEAD(Plane, ParametricSurface);
 
    protected:
     Plane();
@@ -22,14 +44,14 @@ struct Plane : public Surface {
 
    public:
     ~Plane() override;
-    point_type Value(Real u, Real v) const override;
-    std::shared_ptr<GeoObject> GetBoundary() const override;
-    box_type GetBoundingBox() const override;
-    bool TestIntersection(box_type const &) const override;
-    bool TestInside(point_type const &x, Real tolerance) const override;
-    bool TestInsideUV(Real u, Real v, Real tolerance) const override;
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const override;
-    point_type Value(point_type const &x) const override;
+    ShapeFunction const &shape() const override { return m_shape_; }
+    std::shared_ptr<PolyPoints> Intersection(std::shared_ptr<const Curve> const &g, Real tolerance) const override;
+    std::shared_ptr<Curve> Intersection(std::shared_ptr<const Surface> const &g, Real tolerance) const override;
+    bool TestIntersection(point_type const &, Real tolerance) const override override;
+    bool TestIntersection(box_type const &, Real tolerance) const override override;
+
+   protected:
+    const sfPlane m_shape_;
 };
 
 }  // namespace simpla

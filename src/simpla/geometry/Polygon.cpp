@@ -49,11 +49,7 @@ std::shared_ptr<data::DataNode> Polygon::Serialize() const {
 };
 void Polygon::Deserialize(std::shared_ptr<data::DataNode> const &tdb) { base_type::Deserialize(tdb); }
 
-std::tuple<bool, bool> Polygon::IsClosed() const { return std::make_tuple(false, false); }
-std::tuple<bool, bool> Polygon::IsPeriodic() const { return std::make_tuple(false, false); }
-nTuple<Real, 2> Polygon::GetPeriod() const { return nTuple<Real, 2>{SP_INFINITY, SP_INFINITY}; }
-nTuple<Real, 2> Polygon::GetMinParameter() const { return nTuple<Real, 2>{-SP_INFINITY, -SP_INFINITY}; }
-nTuple<Real, 2> Polygon::GetMaxParameter() const { return nTuple<Real, 2>{SP_INFINITY, SP_INFINITY}; }
+bool Polygon::IsClosed() const { return true; }
 
 point_type Polygon::Value(Real u, Real v) const { return point_type{0, 0, 0}; }
 Real Polygon::pimpl_s::nearest_point(Real *x, Real *y) const {
@@ -152,8 +148,7 @@ bool Polygon::pimpl_s::check_inside(Real x, Real y) const {
         return false;
     }
 }
-bool Polygon::TestIntersection(box_type const &) const { return false; }
-bool Polygon::TestInsideUV(Real u, Real v, Real tolerance) const { return false; }
+bool Polygon::TestIntersection(box_type const &, Real tolerance) const { return false; }
 std::shared_ptr<GeoObject> Polygon::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
     return nullptr;
 }

@@ -27,7 +27,7 @@ void Cube::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     }
 }
 bool Cube::TestInside(Real x, Real y, Real z, Real tolerance) const {
-    return TestPointInsideBox(point_type{x, y, z}, GetBoundingBox());
+    return TestPointInBox(point_type{x, y, z}, GetBoundingBox());
 };
 
 std::shared_ptr<GeoObject> Cube::Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {

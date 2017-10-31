@@ -5,49 +5,72 @@
 #ifndef SIMPLA_TOROIDAL_H
 #define SIMPLA_TOROIDAL_H
 
+#include <simpla/SIMPLA_config.h>
 #include <simpla/utilities/Constants.h>
+#include <simpla/utilities/SPDefines.h>
 #include <simpla/utilities/macro.h>
-#include "simpla/SIMPLA_config.h"
 
 #include "Body.h"
 #include "GeoObject.h"
+#include "ShapeFunction.h"
 #include "Surface.h"
 namespace simpla {
 namespace geometry {
+struct sfToroidal : public ShapeFunction {
+    sfToroidal(Real major_radius, Real minor_radius) : m_major_radius_(major_radius), m_minor_radius_(minor_radius) {
+        m_min_value_[0] = -major_radius - m_minor_radius_;
+        m_max_value_[0] = major_radius + m_minor_radius_;
+        m_min_value_[1] = -major_radius - m_minor_radius_;
+        m_max_value_[1] = major_radius + m_minor_radius_;
+        m_min_value_[2] = -m_minor_radius_;
+        m_max_value_[2] = m_minor_radius_;
+    }
+    sfToroidal(sfToroidal const &) = default;
+    ~SfToroidal() override = default;
+    void swap(sfToroidal &other) {
+        std::swap(m_minor_radius_, other.m_minor_radius_);
+        std::swap(m_major_radius_, other.m_major_radius_);
+        std::swap(m_min_parameter_, other.m_min_parameter_);
+        std::swap(m_max_parameter_, other.m_max_parameter_);
+        std::swap(m_min_value_, other.m_min_value_);
+        std::swap(m_max_value_, other.m_max_value_);
+    };
+    int GetDimension() const override { return 3; }
+    Real GetMinParameter(int n) const override { return m_min_parameter_[n]; };
+    Real GetMaxParameter(int n) const override { return m_max_parameter_[n]; };
+    Real GetMaxValue(int n) const override { return SP_INFINITY; };
+    Real GetMinValue(int n) const override { return -SP_INFINITY; };
 
-struct Toroidal : public Body {
+    point_type Value(Real phi, Real theta, Real r) const override {
+        Real R = (m_major_radius_ + r * m_minor_radius_ * std::cos(theta));
+        return point_type{R * std::cos(phi), R * std::sin(phi), m_minor_radius_ * std::sin(theta)};
+    };
+    point_type InvValue(point_type const &xyz) const override { return point_type{SP_SNaN, SP_SNaN, SP_SNaN}; }
+    Real Distance(point_type const &xyz) const override { return SP_SNaN; }
+    bool TestBoxIntersection(point_type const &x_min, point_type const &x_max) const override { return false; }
+    int LineIntersection(point_type const &p0, point_type const &p1, Real *u) const override { return false; }
+
+   private:
+    Real m_major_radius_ = 1;
+    Real m_minor_radius_ = 0.1;
+    nTuple<Real, 3> m_min_parameter_{0, 0, 0};
+    nTuple<Real, 3> m_max_parameter_{TWOPI, TWOPI, SP_INFINITY};
+    nTuple<Real, 3> m_min_value_{0, 0, 0};
+    nTuple<Real, 3> m_max_value_{1, 1, 1};
+};
+struct Toroidal : public Body, public sfToroidal {
     SP_GEO_OBJECT_HEAD(Toroidal, Body)
 
    protected:
     Toroidal() = default;
-
-    explicit Toroidal(Real major_radius, Real r0 = 0, Real r1 = 1, Real phi0 = SP_SNaN, Real phi1 = SP_SNaN,
-                      Real theta0 = SP_SNaN, Real theta1 = SP_SNaN)
-        : m_major_radius_(major_radius) {
-        auto min = GetMinParameter();
-        auto max = GetMaxParameter();
-        TRY_ASSIGN(min[0], r0);
-        TRY_ASSIGN(max[0], r1);
-        TRY_ASSIGN(min[1], phi0);
-        TRY_ASSIGN(max[1], phi1);
-        TRY_ASSIGN(min[2], theta0);
-        TRY_ASSIGN(min[2], theta1);
-
-        SetParameterRange(min, max);
-    }
     template <typename... Args>
-    explicit Toroidal(Axis const &axis, Args &&... args) : Toroidal(std::forward<Args>(args)...) {
-        SetAxis(axis);
-    }
+    explicit Toroidal(Args &&... args) : sfToroidal(std::forward<Args>(args)...) {}
+    template <typename... Args>
+    explicit Toroidal(Axis const &axis, Args &&... args) : Body(Axis), sfToroidal(std::forward<Args>(args)...) {}
 
    public:
     ~Toroidal() override = default;
 
-    std::tuple<bool, bool, bool> IsClosed() const override { return std::make_tuple(false, true, false); };
-    std::tuple<bool, bool, bool> IsPeriodic() const override { return std::make_tuple(false, true, false); };
-    nTuple<Real, 3> GetPeriod() const override { return nTuple<Real, 3>{SP_INFINITY, TWOPI, SP_INFINITY}; };
-    nTuple<Real, 3> GetMinParameter() const override { return nTuple<Real, 3>{0, 0, -SP_INFINITY}; }
-    nTuple<Real, 3> GetMaxParameter() const override { return nTuple<Real, 3>{SP_INFINITY, TWOPI, -SP_INFINITY}; }
     /**
      *
      * @param phi R
@@ -55,10 +78,7 @@ struct Toroidal : public Body {
      * @param w Z
      * @return
      */
-    point_type Value(Real phi, Real theta, Real r) const override {
-        r = (m_major_radius_ + r * std::cos(theta));
-        return m_axis_.Coordinates(r * std::cos(phi), r * std::sin(phi), r * std::sin(theta));
-    };
+    point_type xyz(Real phi, Real theta, Real r) const override { return m_axis_.xyz(sfToroidal(phi, theta, r)); };
 
     bool TestIntersection(box_type const &) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;

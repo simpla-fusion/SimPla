@@ -26,35 +26,15 @@ struct Body : public GeoObject {
    public:
     ~Body() override;
 
-    virtual std::tuple<bool, bool, bool> IsClosed() const;
-    virtual std::tuple<bool, bool, bool> IsPeriodic() const;
-    virtual nTuple<Real, 3> GetPeriod() const;
-    virtual nTuple<Real, 3> GetMinParameter() const;
-    virtual nTuple<Real, 3> GetMaxParameter() const;
-
-    void SetParameterRange(std::tuple<nTuple<Real, 3>, nTuple<Real, 3>> const &r);
-    void SetParameterRange(nTuple<Real, 3> const &min, nTuple<Real, 3> const &max);
-    std::tuple<nTuple<Real, 3>, nTuple<Real, 3>> GetParameterRange() const;
-
-    std::shared_ptr<GeoObject> GetBoundary() const override;
-
-    virtual bool TestInside(Real x, Real y, Real z, Real tolerance) const;
-    bool TestInside(point_type const &x, Real tolerance) const override;
-
-    virtual bool TestInsideUVW(Real u, Real v, Real w, Real tolerance) const;
-    bool TestInsideUVW(point_type const &x, Real tolerance) const override;
-
-    bool TestIntersection(box_type const &) const override;
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g,
-                                            Real tolerance) const override = 0;
-
-    virtual point_type Value(Real u, Real v, Real w) const;
-    point_type Value(point_type const &x) const override;
+    virtual std::shared_ptr<Surface> GetBoundarySurface() const;
+    virtual std::shared_ptr<Curve> Intersection(std::shared_ptr<const Curve> const &g, Real tolerance) const;
+    virtual std::shared_ptr<Surface> Intersection(std::shared_ptr<const Surface> const &g, Real tolerance) const;
+    virtual std::shared_ptr<Body> Intersection(std::shared_ptr<const Body> const &g, Real tolerance) const;
+    bool TestIntersection(point_type const &, Real tolerance) const override;
+    bool TestIntersection(box_type const &, Real tolerance) const override;
     box_type GetBoundingBox() const override;
-
-   protected:
-    nTuple<Real, 3> m_uvw_min_{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY};
-    nTuple<Real, 3> m_uvw_max_{SP_INFINITY, SP_INFINITY, SP_INFINITY};
+    std::shared_ptr<GeoObject> GetBoundary() const override;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const override;
 };
 
 }  // namespace geometry

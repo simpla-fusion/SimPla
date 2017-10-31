@@ -24,9 +24,7 @@ struct Cone : public Body {
     }
 
    public:
-    std::tuple<bool, bool, bool> IsClosed() const override { return std::make_tuple(false, true, false); };
-    std::tuple<bool, bool, bool> IsPeriodic() const override { return std::make_tuple(false, true, false); };
-    nTuple<Real, 3> GetPeriod() const override { return nTuple<Real, 3>{SP_INFINITY, TWOPI, SP_INFINITY}; };
+    bool IsClosed() const override { return std::make_tuple(false, true, false); };
     nTuple<Real, 3> GetMinParameter() const override { return nTuple<Real, 3>{0, 0, -SP_INFINITY}; }
     nTuple<Real, 3> GetMaxParameter() const override { return nTuple<Real, 3>{SP_INFINITY, TWOPI, SP_INFINITY}; }
 

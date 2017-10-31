@@ -13,23 +13,31 @@ struct PolyPoints : public GeoObject {
 
    protected:
     PolyPoints();
-    PolyPoints(PolyPoints const &);
+    PolyPoints(PolyPoints const &other);
     explicit PolyPoints(Axis const &axis);
 
    public:
     ~PolyPoints() override;
 
-    virtual point_type Value(size_type i) const = 0;
-    virtual size_type size() const = 0;
-
-    std::shared_ptr<GeoObject> GetBoundary() const override;
     box_type GetBoundingBox() const override;
-    bool TestIntersection(box_type const &) const override;
-    bool TestInside(point_type const &x, Real tolerance) const override;
-    bool TestInsideUVW(point_type const &x, Real tolerance) const override;
+
+    bool TestIntersection(point_type const &x, Real tolerance) const override;
+    bool TestIntersection(box_type const &, Real tolerance) const override;
+    std::shared_ptr<GeoObject> GetBoundary() const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const override;
 
-    point_type Value(point_type const &x) const override;
+    //    virtual point_type Value(size_type i) const = 0;
+    //    virtual size_type size() const = 0;
+    //
+    //    std::shared_ptr<GeoObject> GetBoundary() const override;
+    //    box_type GetBoundingBox() const override;
+    //    bool TestIntersection(box_type const &) const override;
+    //    bool TestInside(point_type const &x, Real tolerance) const override;
+    //    bool TestInsideUVW(point_type const &x, Real tolerance) const override;
+    //    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const
+    //    override;
+    //
+    //    point_type Value(point_type const &x) const override;
 };
 
 }  // namespace geometry{

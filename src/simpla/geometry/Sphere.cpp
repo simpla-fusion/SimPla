@@ -63,10 +63,10 @@ std::shared_ptr<simpla::data::DataNode> SphericalSurface::Serialize() const {
     res->SetValue<Real>("Radius", m_radius_);
     return res;
 }
-bool SphericalSurface::TestIntersection(box_type const &b) const {
+bool SphericalSurface::TestIntersection(box_type const &b, Real tolerance) const {
     return TestIntersectionCubeSphere(std::get<0>(b), std::get<1>(b), m_axis_.o, m_radius_);
 }
-bool SphericalSurface::TestInside(Real x, Real y, Real z, Real tolerance) const {
+bool SphericalSurface::TestIntersection(Real x, Real y, Real z, Real tolerance) const {
     return dot(x - m_axis_.o, x - m_axis_.o) < m_radius_ * m_radius_;
 }
 std::shared_ptr<GeoObject> SphericalSurface::Intersection(std::shared_ptr<const GeoObject> const &g,

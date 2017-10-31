@@ -25,16 +25,16 @@ namespace geometry {
 using namespace simpla::utility;
 
 template <typename U, typename V>
-bool isOverlapped(std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b0,
-                  std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b1) {
+bool TestBoxOverlapped(std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b0,
+                       std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b1) {
     return !((std::get<1>(b0)[0] < std::get<0>(b1)[0] || std::get<0>(b0)[0] >= std::get<1>(b1)[0]) ||
              (std::get<1>(b0)[1] < std::get<0>(b1)[1] || std::get<0>(b0)[1] >= std::get<1>(b1)[1]) ||
              (std::get<1>(b0)[2] < std::get<0>(b1)[2] || std::get<0>(b0)[2] >= std::get<1>(b1)[2]));
 }
-bool TestPointInsideBox(nTuple<Real, 2> const& p, nTuple<Real, 2> const& bMin, nTuple<Real, 2> const& bMax);
-bool TestPointInsideBox(nTuple<Real, 2> const& p, std::tuple<nTuple<Real, 2>, nTuple<Real, 2>> const& box);
-bool TestPointInsideBox(point_type const& p, point_type const& bMin, point_type const& bMax);
-bool TestPointInsideBox(point_type const& p, std::tuple<point_type, point_type> const& box);
+bool TestPointInBox(nTuple<Real, 2> const& p, nTuple<Real, 2> const& bMin, nTuple<Real, 2> const& bMax);
+bool TestPointInBox(nTuple<Real, 2> const& p, std::tuple<nTuple<Real, 2>, nTuple<Real, 2>> const& box);
+bool TestPointInBox(point_type const& p, point_type const& bMin, point_type const& bMax);
+bool TestPointInBox(point_type const& p, std::tuple<point_type, point_type> const& box);
 bool TestPointOnPlane(point_type const& p, point_type const& o, vector_type const& normal,
                       Real tolerance = SP_GEO_DEFAULT_TOLERANCE);
 bool TestIntersectionCubeSphere(point_type const& bMin, point_type const& bMax, point_type const& C, Real r);

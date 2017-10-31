@@ -43,9 +43,8 @@ struct Cube : public Body {
     //               std::get<0>(m_bound_box_)[2] <= x[2] && x[2] < std::get<1>(m_bound_box_)[2];
     //    }
 
-    point_type Value(Real u, Real v, Real w) const override { return m_axis_.xyz(u, v, w); };
-
-    bool TestInside(Real x, Real y, Real z, Real tolerance) const override;
+    //    point_type Value(Real u, Real v, Real w) const override { return m_axis_.xyz(u, v, w); };
+    //    bool TestInside(Real x, Real y, Real z, Real tolerance) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 };
 

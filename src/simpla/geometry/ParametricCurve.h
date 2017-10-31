@@ -1,0 +1,8 @@
+//
+// Created by salmon on 17-10-31.
+//
+
+#ifndef SIMPLA_PARAMETRICCURVE_H
+#define SIMPLA_PARAMETRICCURVE_H
+
+#endif //SIMPLA_PARAMETRICCURVE_H
