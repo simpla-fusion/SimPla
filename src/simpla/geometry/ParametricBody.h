@@ -18,8 +18,8 @@ struct ParametricBody : public Body {
    public:
     ~ParametricBody() override;
 
-    virtual box_type const &GetParameterRange() const = 0;
-    virtual box_type const &GetValueRange() const = 0;
+    virtual box_type GetParameterRange() const = 0;
+    virtual box_type GetValueRange() const = 0;
     virtual point_type xyz(Real u, Real v, Real w) const = 0;
     virtual point_type uvw(Real x, Real y, Real z) const = 0;
 

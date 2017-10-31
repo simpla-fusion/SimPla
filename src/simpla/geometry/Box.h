@@ -24,7 +24,7 @@ struct Box : public Body {
         return std::shared_ptr<Box>(new Box(box));
     }
 
-    point_type Value(Real u, Real v, Real w) const override { return m_axis_.xyz(u, v, w); };
+    point_type xyz(Real u, Real v, Real w) const override { return m_axis_.xyz(u, v, w); };
 
     bool TestIntersection(box_type const &, Real tolerance) const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;

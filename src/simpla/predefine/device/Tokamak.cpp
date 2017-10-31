@@ -38,8 +38,8 @@ struct Tokamak::pimpl_s {
     inter2d_type m_psirz_;  //!< Poloidal flux in Webber/rad on the rectangular grid points
 
     //	inter_type qpsi_;//!< q values on uniform flux grid from axis to boundary
-    std::shared_ptr<geometry::Polyline2d> m_rzbbb_;  //!< R,Z of boundary points in meter
-    std::shared_ptr<geometry::Polyline2d> m_rzlim_;  //!< R,Z of surrounding limiter contour in meter
+    std::shared_ptr<geometry::Polygon> m_rzbbb_;  //!< R,Z of boundary points in meter
+    std::shared_ptr<geometry::Polygon> m_rzlim_;  //!< R,Z of surrounding limiter contour in meter
     std::map<std::string, inter_type> m_profile_;
     //    bool flux_surface(Real psi_j, size_t M, point_type *res, Real resoluton = 0.001);
 

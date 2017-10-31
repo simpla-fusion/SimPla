@@ -14,19 +14,22 @@ namespace simpla {
 namespace geometry {
 struct sfPlane : public ShapeFunction {
     int GetDimension() const override { return 2; }
-    box_type const &GetParameterRange() const override { return m_parameter_range_; };
-    box_type const &GetValueRange() const override { return m_value_range_; }
+    box_type GetParameterRange() const override;
+    box_type GetValueRange() const override;
 
-    point_type InvValue(point_type const &xyz) const override { return xyz; }
+    point_type Value(Real u, Real v, Real w) const override { return point_type{u, v, w}; }
+    point_type InvValue(Real x, Real y, Real z) const override { return point_type{x, y, z}; }
+
     Real Distance(point_type const &xyz) const override { return xyz[2]; }
     bool TestBoxIntersection(point_type const &x_min, point_type const &x_max) const override {
         return x_min[2] < 0 && x_max[2] > 0;
     }
     int LineIntersection(point_type const &p0, point_type const &p1, Real *u) const override { return 0; }
 
-    const box_type m_parameter_range_{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY},
-                                      {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
-    const box_type m_value_range_{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
+    static constexpr Real m_parameter_range_[2][3] = {{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY},
+                                                      {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
+    static constexpr Real m_value_range_[2][3] = {{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY},
+                                                  {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
 };
 
 struct Plane : public ParametricSurface {
@@ -40,7 +43,11 @@ struct Plane : public ParametricSurface {
 
    public:
     ~Plane() override;
-    ShapeFunction const &shape() const override { return m_shape_; }
+
+    box_type GetParameterRange() const override;
+    box_type GetValueRange() const override;
+    point_type xyz(Real u, Real v) const override { return m_axis_.xyz(m_shape_.Value(u, v, 0)); }
+    point_type uvw(Real x, Real y, Real z) const override { return m_axis_.uvw(m_shape_.InvValue(x, y, z)); }
     std::shared_ptr<PolyPoints> Intersection(std::shared_ptr<const Curve> const &g, Real tolerance) const override;
     std::shared_ptr<Curve> Intersection(std::shared_ptr<const Surface> const &g, Real tolerance) const override;
     bool TestIntersection(point_type const &, Real tolerance) const override;

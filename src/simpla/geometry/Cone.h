@@ -11,8 +11,38 @@
 #include "Body.h"
 #include "GeoObject.h"
 #include "ParametricBody.h"
+#include "ParametricSurface.h"
+
 namespace simpla {
 namespace geometry {
+
+struct ConicalSurface : public ParametricSurface {
+    SP_GEO_OBJECT_HEAD(ConicalSurface, ParametricSurface);
+
+   protected:
+    ConicalSurface() = default;
+    ConicalSurface(ConicalSurface const &other) = default;
+    ConicalSurface(Axis const &axis, Real radius, Real semi_angle, Real phi0 = SP_SNaN, Real phi1 = SP_SNaN,
+                   Real z0 = SP_SNaN, Real z1 = SP_SNaN)
+        : ParametricSurface(axis), m_radius_(radius), m_semi_angle_(semi_angle) {}
+
+   public:
+    ~ConicalSurface() override = default;
+
+    void SetRadius(Real r) { m_radius_ = r; }
+    Real GetRadius() const { return m_radius_; }
+    void SetSemiAngle(Real r) { m_semi_angle_ = r; }
+    Real GetSemiAngle() const { return m_semi_angle_; }
+
+    point_type Value(Real u, Real v) const override {
+        Real r = (m_radius_ + v * std::sin(m_semi_angle_));
+        return m_axis_.Coordinates(r * std::cos(u), r * std::sin(u), v * std::cos(m_semi_angle_));
+    };
+
+   private:
+    Real m_radius_ = 1.0;
+    Real m_semi_angle_ = PI / 4;
+};
 
 struct Cone : public ParametricBody {
     SP_GEO_OBJECT_HEAD(Cone, ParametricBody)

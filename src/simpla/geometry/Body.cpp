@@ -32,7 +32,12 @@ std::shared_ptr<Body> Body::Intersection(std::shared_ptr<const Body> const &g, R
     UNIMPLEMENTED;
     return nullptr;
 }
-bool Body::TestIntersection(point_type const &p, Real tolerance) const { return TestPointInBox(p, GetBoundingBox()); };
+bool Body::TestIntersection(point_type const &p, Real tolerance) const {
+    box_type b;
+    std::get<0>(b) = p - tolerance;
+    std::get<1>(b) = p + tolerance;
+    return TestIntersection(b, tolerance);
+};
 bool Body::TestIntersection(box_type const &box, Real tolerance) const {
     return TestBoxOverlapped(box, GetBoundingBox());
 };

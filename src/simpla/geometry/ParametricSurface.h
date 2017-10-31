@@ -21,10 +21,10 @@ struct ParametricSurface : public Surface {
    public:
     ~ParametricSurface() override;
 
-    virtual box_type const &GetParameterRange() const = 0;
-    virtual box_type const &GetValueRange() const = 0;
+    virtual box_type GetParameterRange() const = 0;
+    virtual box_type GetValueRange() const = 0;
     virtual point_type xyz(Real u, Real v) const = 0;
-    virtual point2d_type uvw(Real x, Real y, Real z) const = 0;
+    virtual point_type uvw(Real x, Real y, Real z) const = 0;
 
     point_type xyz(point_type const &u) const;
     point_type uvw(point_type const &x) const;
