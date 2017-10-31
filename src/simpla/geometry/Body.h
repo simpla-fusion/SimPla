@@ -35,6 +35,7 @@ struct Body : public GeoObject {
     box_type GetBoundingBox() const override;
     std::shared_ptr<GeoObject> GetBoundary() const override;
     std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const override;
+    using base_type::Intersection;
 };
 
 }  // namespace geometry

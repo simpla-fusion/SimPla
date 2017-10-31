@@ -25,11 +25,19 @@ bool Toroidal::TestIntersection(box_type const &, Real tolerance) const {
     UNIMPLEMENTED;
     return false;
 }
-std::shared_ptr<GeoObject> Toroidal::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
+
+std::shared_ptr<Curve> Toroidal::Intersection(std::shared_ptr<const Curve> const &g, Real tolerance) const {
     UNIMPLEMENTED;
     return nullptr;
 }
-
+std::shared_ptr<Surface> Toroidal::Intersection(std::shared_ptr<const Surface> const &g, Real tolerance) const {
+    UNIMPLEMENTED;
+    return nullptr;
+}
+std::shared_ptr<Body> Toroidal::Intersection(std::shared_ptr<const Body> const &g, Real tolerance) const {
+    UNIMPLEMENTED;
+    return nullptr;
+}
 /********************************************************************************************************************/
 
 SP_OBJECT_REGISTER(ToroidalSurface)

@@ -12,7 +12,7 @@ Revolution::Revolution(Revolution const &other) = default;
 Revolution::Revolution(std::shared_ptr<const Surface> const &s, point_type const &origin, vector_type const &axis)
     : Swept(Axis{origin, axis}) {
     //    , Circle::New3(origin, s->GetAxis().o, axis)
-    FIXME;
+ UNIMPLEMENTED;
 }
 
 Revolution::~Revolution() = default;

@@ -75,7 +75,12 @@ struct Toroidal : public ParametricBody {
     point_type uvw(Real x, Real y, Real z) const override { return m_shape_.InvValue(m_axis_.uvw(x, y, z)); };
 
     bool TestIntersection(box_type const &, Real tolerance) const override;
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
+
+    std::shared_ptr<Curve> Intersection(std::shared_ptr<const Curve> const &g, Real tolerance) const override;
+    std::shared_ptr<Surface> Intersection(std::shared_ptr<const Surface> const &g, Real tolerance) const override;
+    std::shared_ptr<Body> Intersection(std::shared_ptr<const Body> const &g, Real tolerance) const override;
+
+    using base_type::Intersection;
 
    private:
     sfToroidal m_shape_;

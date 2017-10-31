@@ -115,6 +115,9 @@ class GeoObject : public SPObject {
     virtual bool TestIntersection(box_type const &, Real tolerance) const = 0;
     virtual std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g,
                                                     Real tolerance) const = 0;
+    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g) const {
+        return Intersection(g, SP_GEO_DEFAULT_TOLERANCE);
+    };
 
    protected:
     Axis m_axis_{};
