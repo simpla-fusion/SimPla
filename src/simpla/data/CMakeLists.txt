@@ -1,4 +1,4 @@
-add_subdirectory(db)
+add_subdirectory(backend)
 
 FILE(GLOB   data_SRC  *.cpp *.h  )
 add_library(data ${data_SRC})

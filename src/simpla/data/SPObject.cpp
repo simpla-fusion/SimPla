@@ -42,14 +42,14 @@ SPObject::SPObject(SPObject const &other) : SPObject() { m_pimpl_->m_db_->Set(ot
 SPObject::~SPObject() { delete m_pimpl_; }
 // std::shared_ptr<SPObject> SPObject::GlobalNew(std::shared_ptr<data::DataNode> const &v) {
 //    std::shared_ptr<SPObject> res = nullptr;
-//    auto db = data::DataNode::New();
+//    auto backend = data::DataNode::New();
 //    if (GLOBAL_COMM.rank() == 0) {
 //        res = New(v);
-//        res->Serialize(db);
-//        //        db->MPISync();
+//        res->Serialize(backend);
+//        //        backend->MPISync();
 //    } else {
-//        //        db->MPISync();
-//        res = New(db);
+//        //        backend->MPISync();
+//        res = New(backend);
 //    }
 //}
 // std::shared_ptr<data::DataNode> SPObject::Pop() const { return m_pimpl_->m_db_; }
@@ -64,7 +64,7 @@ std::shared_ptr<data::DataNode> SPObject::Serialize() const {
     db->Set(m_pimpl_->m_db_);
     db->SetValue("_CLASS_", ClassName());
     db->SetValue("_TYPE_", FancyTypeName());
-    //    db->SetValue("Name", GetName());
+    //    backend->SetValue("Name", GetName());
     return db;
 }
 void SPObject::Deserialize(std::shared_ptr<data::DataNode> const &d) {

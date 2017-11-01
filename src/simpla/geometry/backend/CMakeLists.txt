@@ -1,0 +1,11 @@
+
+FIND_PACKAGE(OCE)
+IF (OCE_FOUND)
+    MESSAGE("-- OCE VERSION: " ${OCE_VERSION} ${OCE_INCLUDE_DIRS})
+    LIST(APPEND geometry_backend_SRC GeoEngineOCE.cpp GeoEngineOCE.h )
+    LIST(APPEND geometry_backend_INCLUDE ${OCE_INCLUDE_DIRS})
+    LIST(APPEND geometry_backend_LIBRARIES ${OCE_LIBRARIES})
+ENDIF (OCE_FOUND)
+add_library(geometry_backend ${geometry_backend_SRC})
+target_include_directories(geometry_backend BEFORE PRIVATE ${geometry_backend_INCLUDE})
+TARGET_LINK_LIBRARIES(geometry_backend utilities data ${geometry_backend_LIBRARIES})

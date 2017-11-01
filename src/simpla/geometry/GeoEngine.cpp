@@ -9,17 +9,20 @@ namespace geometry {
 
 struct GeoEngineHolder {
     std::shared_ptr<GeoEngine> m_engine_ = nullptr;
+    void Initialize(std::string const &s);
     void Initialize(std::shared_ptr<data::DataNode> const &d = nullptr);
     void Initialize(int argc, char **argv);
     void Finalize();
     GeoEngine &get();
     GeoEngine const &get() const;
 };
-void GeoEngineHolder::Initialize(std::shared_ptr<data::DataNode> const &d) { m_engine_ = GeoEngine::Create(d); }
+void GeoEngineHolder::Initialize(std::string const &s) { m_engine_ = GeoEngine::New(s); }
+void GeoEngineHolder::Initialize(std::shared_ptr<data::DataNode> const &d) { m_engine_ = GeoEngine::New(d); }
 void GeoEngineHolder::Initialize(int argc, char **argv) { UNIMPLEMENTED; }
-void GeoEngineHolder::Finalize() {}
+void GeoEngineHolder::Finalize() { m_engine_.reset(); }
 GeoEngine &GeoEngineHolder::get() {
-    Initialize();
+    if (m_engine_ == nullptr) { Initialize(); }
+    ASSERT(m_engine_ != nullptr);
     return *m_engine_;
 }
 GeoEngine const &GeoEngineHolder::get() const {
@@ -28,9 +31,32 @@ GeoEngine const &GeoEngineHolder::get() const {
 }
 
 GeoEngine::GeoEngine() = default;
-// GeoEngine::GeoEngine(GeoEngine const &) = default;
 GeoEngine::~GeoEngine() = default;
+void GeoEngine::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {}
+std::shared_ptr<simpla::data::DataNode> GeoEngine::Serialize() const {
+    return data::DataNode::New(data::DataNode::DN_TABLE);
+}
+std::shared_ptr<GeoEngine> GeoEngine::New(std::string const &key) {
+    auto res = Factory<GeoEngine>::Create(key);
+    if (res == nullptr) {
+        RUNTIME_ERROR << "Create GeoEngine Fail! [" << key << "]" << std::endl << GeoEngine::ShowDescription();
+    }
+    return res;
+}
 
+std::shared_ptr<GeoEngine> GeoEngine::New(std::shared_ptr<data::DataNode> const &d) {
+    std::shared_ptr<GeoEngine> res = nullptr;
+    if (d != nullptr) {
+        res = New(d->GetValue<std::string>("_TYPE_", ""));
+        res->Deserialize(d);
+    }
+    if (res == nullptr) {
+        RUNTIME_ERROR << "Create GeoEngine Fail! " << *d << std::endl << GeoEngine::ShowDescription();
+    }
+    return res;
+}
+
+void GeoEngine::Initialize(std::string const &d) { SingletonHolder<GeoEngineHolder>::instance().Initialize(d); }
 void GeoEngine::Initialize(std::shared_ptr<data::DataNode> const &d) {
     SingletonHolder<GeoEngineHolder>::instance().Initialize(d);
 }

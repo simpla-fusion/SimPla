@@ -831,7 +831,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
             refine_name = "NO_REFINE";
         }
 
-        //        if ((item->GetTypeInfo() != typeid(double)) || item->db().Check("TEMP")) {
+        //        if ((item->GetTypeInfo() != typeid(double)) || item->backend().Check("TEMP")) {
         //            v_type = SAMRAI::algs::HyperbolicLevelIntegrator::TEMPORARY;
         //            coarsen_name = "";
         //            refine_name = "";
@@ -1199,7 +1199,7 @@ void SAMRAITimeIntegrator::DoInitialize() {
     /** Setup SAMRAI, enable logging, and process command line.     */
     SAMRAI::tbox::SAMRAIManager::startup();
 
-    //    data::DataNode(std::make_shared<DataBackendSAMRAI>()).swap(*db());
+    //    data::DataNode(std::make_shared<DataBackendSAMRAI>()).swap(*backend());
     //    const SAMRAI::tbox::SAMRAI_MPI & mpi(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 }
 
@@ -1278,7 +1278,7 @@ void SAMRAITimeIntegrator::DoUpdate() {
 
     SAMRAI::tbox::Dimension dim(static_cast<unsigned short>(ndims));
 
-    //    samrai_db = simpla::detail::convert_database(db(), name());
+    //    samrai_db = simpla::detail::convert_database(backend(), name());
     /**
      * Create major algorithm and data objects which comprise application.
      * Each object will be initialized either from input data or restart

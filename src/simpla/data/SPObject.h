@@ -161,6 +161,34 @@ std::istream &operator>>(std::istream &is, SPObject &obj);
         return TryNew<this_type>(std::integral_constant<bool, !std::is_abstract<this_type>::value>(),            \
                                  std::forward<Args>(args)...);                                                   \
     };                                                                                                           \
+    std::shared_ptr<const this_type> Self() const {                                                              \
+        return std::dynamic_pointer_cast<const this_type>(shared_from_this());                                   \
+    }                                                                                                            \
+    std::shared_ptr<this_type> Self() { return std::dynamic_pointer_cast<this_type>(shared_from_this()); }
+
+#define SP_OBJECT_ABS_HEAD(_CLASS_NAME_, _BASE_NAME_)                                                            \
+   public:                                                                                                       \
+    static std::string FancyTypeName_s() { return __STRING(_CLASS_NAME_); }                                      \
+    virtual std::string FancyTypeName() const override { return simpla::traits::type_name<this_type>::value(); } \
+                                                                                                                 \
+   private:                                                                                                      \
+    typedef _BASE_NAME_ base_type;                                                                               \
+    typedef _CLASS_NAME_ this_type;                                                                              \
+    struct pimpl_s;                                                                                              \
+    pimpl_s *m_pimpl_ = nullptr;                                                                                 \
+                                                                                                                 \
+   protected:                                                                                                    \
+    _CLASS_NAME_();                                                                                              \
+                                                                                                                 \
+   public:                                                                                                       \
+    ~_CLASS_NAME_() override;                                                                                    \
+    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;                               \
+    std::shared_ptr<simpla::data::DataNode> Serialize() const override;                                          \
+                                                                                                                 \
+    template <typename... Args>                                                                                  \
+    static std::shared_ptr<this_type> New(Args &&... args) {                                                     \
+        return std::dynamic_pointer_cast<U>(simpla::SPObject::Create(std::forward<Args>(args)...));              \
+    };                                                                                                           \
     std::shared_ptr<const this_type> self() const {                                                              \
         return std::dynamic_pointer_cast<const this_type>(shared_from_this());                                   \
     }                                                                                                            \

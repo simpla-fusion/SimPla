@@ -15,8 +15,8 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-#    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Winconsistent-missing-override -fcolor-diagnostics
-#    -ftemplate-backtrace-limit=0 -funroll-loops  -fno-limit-debug-info  ")
+    #    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Winconsistent-missing-override -fcolor-diagnostics
+    #    -ftemplate-backtrace-limit=0 -funroll-loops  -fno-limit-debug-info  ")
     SET(CMAKE_Fortran_COMPILER gfortran)
 elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
 
@@ -65,17 +65,6 @@ ENDIF (MPI_FOUND)
 
 #SET(TBB_ROOT /pkg/tbb/20170604/)
 #FIND_PACKAGE(TBB)
-
-IF (TBB_FOUND)
-    SET(HAVE_TBB 1)
-ENDIF (TBB_FOUND)
-
-
-FIND_PACKAGE(OCE)
-IF (OCE_FOUND)
-    MESSAGE("-- OCE VERSION: " ${OCE_VERSION} ${OCE_INCLUDE_DIRS})
-ENDIF (OCE_FOUND)
-
 
 if (NOT IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/simpla)
     FILE(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/simpla)

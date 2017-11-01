@@ -2,16 +2,18 @@
 // Created by salmon on 17-10-23.
 //
 
+#include <simpla/geometry/GeoEngine.h>
 #include <simpla/geometry/Line.h>
 #include <simpla/geometry/Polygon.h>
 #include <simpla/geometry/Revolution.h>
 #include <simpla/geometry/Toroidal.h>
 #include <simpla/utilities/FancyStream.h>
+
 namespace sg = simpla::geometry;
 using namespace simpla;
 int main(int argc, char** argv) {
     logger::set_stdout_level(1000);
-
+    sg::GeoEngine::Initialize("oce");
     auto t_surf = sg::Toroidal::New();
     std::cout << *t_surf->Serialize() << std::endl;
     auto line = sg::Line::New(point_type{0, 0, 0}, point_type{1, 0, 0});

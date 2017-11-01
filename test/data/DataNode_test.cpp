@@ -33,16 +33,16 @@ TEST(DataTable, lua) {
         " nest = { abc= {abc1= {def = {abc = {abc= \"sadfsdf\"}}}}}");
     db->SetValue("Box2", {{0, 5, 3}, {1, 5, 3}});
     MESSAGE << "lua:// " << (*db) << std::endl;
-    //    MESSAGE << "Box " << (*db)["Context/Box"]->as<nTuple<int, 2, 3>>() << std::endl;
+    //    MESSAGE << "Box " << (*backend)["Context/Box"]->as<nTuple<int, 2, 3>>() << std::endl;
     EXPECT_EQ(db->GetValue<int>("AAA/c"), 3);
     EXPECT_EQ((db->GetValue<nTuple<int, 4>>("/CCC")), (nTuple<int, 4>{1, 3, 4, 5}));
 
     db->Flush();
     //
-    //    EXPECT_DOUBLE_EQ((*db)["/Context/c"]->as<double>(), 299792458);
+    //    EXPECT_DOUBLE_EQ((*backend)["/Context/c"]->as<double>(), 299792458);
 
-    //   db->SetEntity("box", {{1, 2, 3}, {4, 5, 6}});
-    //    LOGGER << "box  = " <<db->GetEntity<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
+    //   backend->SetEntity("box", {{1, 2, 3}, {4, 5, 6}});
+    //    LOGGER << "box  = " <<backend->GetEntity<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
 }
 
 class DataBaseTest : public testing::TestWithParam<std::string> {
@@ -74,7 +74,7 @@ TEST_P(DataBaseTest, light_data_sigle_value) {
 
 TEST_P(DataBaseTest, light_data_SetValue_ntuple) {
     db->SetValue("tuple3", {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
-    //    (*db)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
+    //    (*backend)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
     db->SetValue("tuple1", {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});
     db->SetValue("Box", {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}});
     db->SetValue("str_tuple", {"wa wa", "la la"});
@@ -113,7 +113,7 @@ TEST_P(DataBaseTest, light_data_keyvalue) {
     db->SetValue("a",
                  {"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
                   "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}});
-    //    (*db)["h"] = {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}};
+    //    (*backend)["h"] = {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}};
     db->SetValue("nest", {"abc"_ = {"abc1"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
     EXPECT_TRUE(db->Check("a/a"));
     EXPECT_FALSE(db->Check("a/not_debug"));
@@ -121,7 +121,7 @@ TEST_P(DataBaseTest, light_data_keyvalue) {
 }
 
 // TEST_P(DataBaseTest, block_data) {
-//    auto db = DataNode::New(m_url);
+//    auto backend = DataNode::New(m_url);
 //}
 INSTANTIATE_TEST_CASE_P(DataBaseTestP, DataBaseTest,
                         testing::Values(               //
@@ -134,13 +134,13 @@ INSTANTIATE_TEST_CASE_P(DataBaseTestP, DataBaseTest,
 //    logger::set_stdout_level(1000);
 //
 //    LOGGER << "Registered DataBase: " << GLOBAL_DATA_BACKEND_FACTORY.GetBackendList() << std::endl;
-//    DataTable db("samrai://");
-//    //   db->SetEntity("f", {1, 2, 3, 4, 5, 56, 6, 6});
-//    //   db->SetEntity("/d/e/f", "Just atest");
-//    //   db->SetEntity("/d/e/g", {"a"_ = "la la land", "b"_ = 1235.5});
-//    //   db->SetEntity("/d/e/e", 1.23456);
-//   db->SetEntity("box", {{1, 2, 3}, {4, 5, 6}});
-//    LOGGER << *db.database() << std::endl;
-//    LOGGER << "box  = " <<db->GetEntity<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
+//    DataTable backend("samrai://");
+//    //   backend->SetEntity("f", {1, 2, 3, 4, 5, 56, 6, 6});
+//    //   backend->SetEntity("/d/e/f", "Just atest");
+//    //   backend->SetEntity("/d/e/g", {"a"_ = "la la land", "b"_ = 1235.5});
+//    //   backend->SetEntity("/d/e/e", 1.23456);
+//   backend->SetEntity("box", {{1, 2, 3}, {4, 5, 6}});
+//    LOGGER << *backend.database() << std::endl;
+//    LOGGER << "box  = " <<backend->GetEntity<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
 //
 //}
