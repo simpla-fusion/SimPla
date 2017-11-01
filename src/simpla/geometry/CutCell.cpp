@@ -1,22 +1,58 @@
 //
 // Created by salmon on 17-10-17.
 //
-#ifdef OCE_FOUND
-#include "occ/GeoObjectOCC.h"
-#include "occ/OCECutCell.h"
-#endif
 
+#include "CutCell.h"
 #include "Box.h"
 #include "Chart.h"
 #include "Curve.h"
-#include "CutCell.h"
+#include "GeoEngine.h"
 #include "GeoObject.h"
 
 namespace simpla {
 namespace geometry {
 
-void CutCellTagNode(Array<unsigned int> *node_tags, Array<Real> *edge_tags, std::shared_ptr<const Chart> const &chart,
-                    index_box_type const &idx_box, const std::shared_ptr<const GeoObject> &g, unsigned int tag) {
+CutCell::CutCell() = default;
+CutCell::CutCell(std::shared_ptr<const Chart> const &c, std::shared_ptr<const Surface> const &g, Real tolerance) {
+    SetUp(c, g, tolerance);
+}
+
+CutCell::~CutCell() = default;
+std::shared_ptr<CutCell> CutCell::New(std::string const &s) {
+    std::string key = s.empty() ? GeoEngine::RegisterName_s() : s;
+    auto res = Factory<CutCell>::Create(key);
+    if (res == nullptr) {
+        RUNTIME_ERROR << "Create CutCell Fail! [" << key << "]" << std::endl << CutCell::ShowDescription();
+    }
+    return res;
+}
+std::shared_ptr<CutCell> CutCell::New(std::shared_ptr<data::DataNode> const &d) {
+    std::shared_ptr<CutCell> res = nullptr;
+    if (d != nullptr) {
+        res = New(d->GetValue<std::string>("_TYPE_", ""));
+        res->Deserialize(d);
+    }
+    if (res == nullptr) { RUNTIME_ERROR << "Create CutCell Fail! " << *d << std::endl << CutCell::ShowDescription(); }
+    return res;
+}
+
+void CutCell::SetUp(std::shared_ptr<const Chart> const &c, std::shared_ptr<const Surface> const &s, Real tolerance) {
+    m_chart_ = c;
+    m_surface_ = s;
+    m_tolerance_ = tolerance;
+}
+
+void CutCell::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {}
+std::shared_ptr<simpla::data::DataNode> CutCell::Serialize() const {
+    return data::DataNode::New(data::DataNode::DN_TABLE);
+}
+size_type CutCell::IntersectAxe(index_tuple const &idx, int dir, index_type length, std::vector<Real> *u) const {
+    auto res = m_surface_->GetIntersection(m_chart_->GetAxis(idx, dir, length), m_tolerance_);
+
+    return 0;
+}
+
+void CutCell::TagCell(Array<unsigned int> *vertex_tags, Array<Real> *edge_tags, unsigned int tag) const {
     //    if (auto box = std::dynamic_pointer_cast<const Box>(g)) {
     //        auto bound_box = box->GetBoundingBox();
     //        index_tuple lo, hi;
@@ -81,5 +117,4 @@ void CutCellTagNode(Array<unsigned int> *node_tags, Array<Real> *edge_tags, std:
 }
 
 }  //    namespace geometry{
-
 }  // namespace simpla{

@@ -27,7 +27,14 @@ struct Chart : public SPObject {
     virtual void Update() { ASSERT(isSetUp()); };
     virtual void TearDown() { m_is_setup_ = false; };
 
-    virtual std::shared_ptr<GeoObject> GetAxis(point_type const &x0, const point_type &x1) const { return nullptr; };
+    virtual std::shared_ptr<const GeoObject> GetAxis(point_type const &x0, const point_type &x1) const {
+        return nullptr;
+    };
+    virtual std::shared_ptr<const Curve> GetAxis(point_type const &x0, int dir, Real length) const { return nullptr; };
+    virtual std::shared_ptr<const Curve> GetAxis(index_tuple const &x0, int dir, index_type length) const {
+        return nullptr;
+    };
+
     virtual int GetNDIMS() const;
     virtual box_type GetBoundingBox(box_type const &b) const { return b; };
     virtual box_type GetBoundingBox(std::shared_ptr<geometry::GeoObject> const &geo) const {

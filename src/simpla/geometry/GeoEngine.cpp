@@ -32,6 +32,9 @@ GeoEngine const &GeoEngineHolder::get() const {
 
 GeoEngine::GeoEngine() = default;
 GeoEngine::~GeoEngine() = default;
+
+std::string GeoEngine::RegisterName_s() { return static_entry().RegisterName(); }
+
 void GeoEngine::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {}
 std::shared_ptr<simpla::data::DataNode> GeoEngine::Serialize() const {
     return data::DataNode::New(data::DataNode::DN_TABLE);
@@ -64,28 +67,28 @@ void GeoEngine::Initialize(int argc, char **argv) {
     SingletonHolder<GeoEngineHolder>::instance().Initialize(argc, argv);
 }
 void GeoEngine::Finalize() { SingletonHolder<GeoEngineHolder>::instance().Finalize(); }
-GeoEngine &GeoEngine::entry() { return SingletonHolder<GeoEngineHolder>::instance().get(); }
+GeoEngine &GeoEngine::static_entry() { return SingletonHolder<GeoEngineHolder>::instance().get(); }
 std::shared_ptr<GeoObject> GeoEngine::GetBoundary(std::shared_ptr<const GeoObject> const &g) {
-    return entry().GetBoundaryInterface(g);
+    return static_entry().GetBoundaryInterface(g);
 }
 bool GeoEngine::CheckIntersection(std::shared_ptr<const GeoObject> const &g, point_type const &x, Real tolerance) {
-    return entry().CheckIntersectionInterface(g, x, tolerance);
+    return static_entry().CheckIntersectionInterface(g, x, tolerance);
 }
 bool GeoEngine::CheckIntersection(std::shared_ptr<const GeoObject> const &g, box_type const &b, Real tolerance) {
-    return entry().CheckIntersectionInterface(g, b, tolerance);
+    return static_entry().CheckIntersectionInterface(g, b, tolerance);
 }
 
 std::shared_ptr<GeoObject> GeoEngine::GetUnion(std::shared_ptr<const GeoObject> const &g0,
                                                std::shared_ptr<const GeoObject> const &g1, Real tolerance) {
-    return entry().GetIntersectionInterface(g0, g1, tolerance);
+    return static_entry().GetIntersectionInterface(g0, g1, tolerance);
 }
 std::shared_ptr<GeoObject> GeoEngine::GetDifference(std::shared_ptr<const GeoObject> const &g0,
                                                     std::shared_ptr<const GeoObject> const &g1, Real tolerance) {
-    return entry().GetIntersectionInterface(g0, g1, tolerance);
+    return static_entry().GetIntersectionInterface(g0, g1, tolerance);
 }
 std::shared_ptr<GeoObject> GeoEngine::GetIntersection(std::shared_ptr<const GeoObject> const &g0,
                                                       std::shared_ptr<const GeoObject> const &g1, Real tolerance) {
-    return entry().GetIntersectionInterface(g0, g1, tolerance);
+    return static_entry().GetIntersectionInterface(g0, g1, tolerance);
 }
 
 std::shared_ptr<GeoObject> GeoEngine::GetBoundaryInterface(std::shared_ptr<const GeoObject> const &) const {

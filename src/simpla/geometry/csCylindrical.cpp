@@ -19,7 +19,7 @@ std::shared_ptr<GeoObject> csCylindrical::GetBoundingShape(index_box_type const 
         std::make_tuple(local_coordinates(0, std::get<0>(b)), local_coordinates(0, std::get<0>(b))));
 };
 
-std::shared_ptr<GeoObject> csCylindrical::GetAxis(point_type const &x0, const point_type &x1) const {
+std::shared_ptr<const GeoObject> csCylindrical::GetAxis(point_type const &x0, const point_type &x1) const {
     point_type u = inv_map(x0);
     vector_type z_axis{0, 0, 1};
     vector_type r_axis{std::cos(u[PhiAxis]), std::sin(u[PhiAxis]), 0};
