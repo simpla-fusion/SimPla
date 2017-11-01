@@ -17,9 +17,8 @@ struct Extrusion : public Swept {
     Extrusion();
     Extrusion(Extrusion const &other);
     Extrusion(std::shared_ptr<const Surface> const &s, vector_type const &c);
-    bool TestIntersection(box_type const &, Real tolerance) const override;
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
+   protected:
    public:
     ~Extrusion() override;
 };
@@ -33,11 +32,7 @@ struct ExtrusionSurface : public SweptSurface {
 
    public:
     ~ExtrusionSurface() override;
-
     bool IsClosed() const override;
-
-    bool TestIntersection(box_type const &, Real tolerance) const override;
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 };
 
 }  // namespace simpla

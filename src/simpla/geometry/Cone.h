@@ -20,7 +20,7 @@ struct sfCone : public ShapeFunction {
     sfCone() = default;
     sfCone(sfCone const &) = default;
     ~sfCone() = default;
-    sfCone(Real semi_angle) { SetSemiAngle(semi_angle); }
+    explicit sfCone(Real semi_angle) { SetSemiAngle(semi_angle); }
 
     box_type GetParameterRange() const override;
     box_type GetValueRange() const override;
@@ -34,10 +34,10 @@ struct sfCone : public ShapeFunction {
 
     point_type InvValue(point_type const &xyz) const override { return xyz; }
     Real Distance(point_type const &xyz) const override { return xyz[2]; }
-    bool TestBoxIntersection(point_type const &x_min, point_type const &x_max) const override {
+    bool TestBoxGetIntersectionion(point_type const &x_min, point_type const &x_max) const override {
         return x_min[2] < 0 && x_max[2] > 0;
     }
-    int LineIntersection(point_type const &p0, point_type const &p1, Real *u) const override { return 0; }
+    int LineGetIntersectionion(point_type const &p0, point_type const &p1, Real *u) const override { return 0; }
 
     void SetSemiAngle(Real theta) { m_parameter_range_[1][2] = theta; }
     Real GetSemiAngle() const { return m_parameter_range_[1][2]; }
@@ -81,10 +81,6 @@ struct Cone : public ParametricBody {
 
     point_type xyz(Real u, Real v, Real w) const override;
     point_type uvw(Real x, Real y, Real z) const override;
-
-    bool TestIntersection(box_type const &, Real tolerance) const override;
-
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    private:
     sfCone m_shape_;

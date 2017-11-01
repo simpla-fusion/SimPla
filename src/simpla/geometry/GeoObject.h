@@ -69,31 +69,48 @@ namespace geometry {
  *   SweptSurface <|-- SurfaceOfLinearExtrusion
  *   SweptSurface <|-- SurfaceOfRevolution
  *
- *   Vertex  <|-- IntersectionCurveSurface
- *   Surface <|-- IntersectionSurfaceSolid
- *   Solid   <|-- IntersectionSolidSolid
+ *   Vertex  <|-- GetIntersectionionCurveSurface
+ *   Surface <|-- GetIntersectionionSurfaceSolid
+ *   Solid   <|-- GetIntersectionionSolidSolid
  *
  *  @enduml
  */
 class GeoObject : public SPObject {
+    //    SP_OBJECT_HEAD(GeoObject, SPObject)
    private:
     typedef GeoObject this_type;
     typedef SPObject base_type;
 
-   public:
+   protected:
     GeoObject();
     GeoObject(GeoObject const &other);
-    ~GeoObject() override;
+
     explicit GeoObject(Axis const &axis);
 
+   public:
+    ~GeoObject() override;
+    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;
+    std::shared_ptr<simpla::data::DataNode> Serialize() const override;
     static std::shared_ptr<this_type> New(std::shared_ptr<data::DataNode> const &cfg);
+    std::shared_ptr<const this_type> self() const {
+        return std::dynamic_pointer_cast<const this_type>(shared_from_this());
+    }
+    std::shared_ptr<this_type> self() { return std::dynamic_pointer_cast<this_type>(shared_from_this()); }
 
-    std::shared_ptr<data::DataNode> Serialize() const override;
-    void Deserialize(std::shared_ptr<data::DataNode> const &) override;
+    virtual std::shared_ptr<GeoObject> Copy() const = 0;
 
-    static std::string FancyTypeName_s() { return "GeoObject"; }
-    std::string FancyTypeName() const override { return simpla::traits::type_name<this_type>::value(); }
+    //    std::shared_ptr<data::DataNode> Serialize() const override;
+    //    void Deserialize(std::shared_ptr<data::DataNode> const &) override;
+
+    //    static std::string FancyTypeName_s() { return "GeoObject"; }
+    //    std::string FancyTypeName() const override { return simpla::traits::type_name<this_type>::value(); }
     std::string ClassName() const override { return "GeoObject"; }
+
+    virtual int GetDimension() const;
+    virtual bool IsSimpleConnected() const;
+    virtual bool IsConvex() const;
+    virtual bool IsContinued() const;
+    virtual bool IsClosed() const;
 
     virtual Axis &GetAxis();
     virtual Axis const &GetAxis() const;
@@ -107,17 +124,14 @@ class GeoObject : public SPObject {
     virtual void Move(const point_type &p);
     void Scale(Real s) { Scale(s, -1); }
 
-    virtual std::shared_ptr<GeoObject> Copy() const = 0;
-    virtual std::shared_ptr<GeoObject> GetBoundary() const = 0;
-
-    virtual box_type GetBoundingBox() const = 0;
-    virtual bool TestIntersection(point_type const &x, Real tolerance) const = 0;
-    virtual bool TestIntersection(box_type const &, Real tolerance) const = 0;
-    virtual std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g,
-                                                    Real tolerance) const = 0;
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g) const {
-        return Intersection(g, SP_GEO_DEFAULT_TOLERANCE);
-    };
+    virtual std::shared_ptr<GeoObject> GetBoundary() const;
+    virtual box_type GetBoundingBox() const;
+    virtual bool CheckIntersection(point_type const &x, Real tolerance) const;
+    virtual bool CheckIntersection(box_type const &, Real tolerance) const;
+    virtual std::shared_ptr<GeoObject> GetUnion(std::shared_ptr<const GeoObject> const &g, Real tolerance) const;
+    virtual std::shared_ptr<GeoObject> GetDifference(std::shared_ptr<const GeoObject> const &g, Real tolerance) const;
+    virtual std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g,
+                                                          Real tolerance) const;
 
    protected:
     Axis m_axis_{};

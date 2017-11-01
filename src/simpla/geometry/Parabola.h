@@ -26,8 +26,6 @@ struct Parabola : public ParametricCurve {
     Real GetFocal() const { return m_focal_; }
 
     point_type xyz(Real u) const override { return m_axis_.Coordinates(u * u / (4. * m_focal_), u, 0); };
-    bool TestIntersection(box_type const &, Real tolerance) const override;
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    protected:
     Real m_focal_ = 1;

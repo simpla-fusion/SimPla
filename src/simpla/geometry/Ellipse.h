@@ -28,8 +28,8 @@ struct Ellipse : public ParametricCurve {
     point_type xyz(Real alpha) const override {
         return m_axis_.Coordinates(m_major_radius_ * std::cos(alpha), m_minor_radius_ * std::sin(alpha));
     };
-    bool TestIntersection(box_type const &, Real tolerance) const override;
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
+    //    bool CheckIntersection(point_type const &, Real tolerance) override;
+    //    bool CheckIntersection(box_type const &, Real tolerance) override;
 
    protected:
     Real m_major_radius_ = 1;

@@ -31,13 +31,6 @@ std::shared_ptr<Circle> Circle::New3(point_type const &o, point_type const &b, v
 
     return std::shared_ptr<Circle>(new Circle(Axis{o, x, y, z}, radius));
 }
-bool Circle::TestIntersection(point_type const &x, Real tolerance) const {
-    UNIMPLEMENTED;
-    return false;
-}
-std::shared_ptr<GeoObject> Circle::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
-    UNIMPLEMENTED;
-    return nullptr;
-}
+
 }  // namespace geometry{
 }  // namespace simpla{

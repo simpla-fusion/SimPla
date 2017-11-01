@@ -13,6 +13,7 @@ namespace simpla {
 template <typename, int...>
 struct nTuple;
 namespace geometry {
+struct Point;
 struct Curve;
 struct Surface;
 struct Body : public GeoObject {
@@ -25,17 +26,16 @@ struct Body : public GeoObject {
 
    public:
     ~Body() override;
+    int GetDimension() const override { return 3; }
 
     virtual std::shared_ptr<Surface> GetBoundarySurface() const;
-    virtual std::shared_ptr<Curve> Intersection(std::shared_ptr<const Curve> const &g, Real tolerance) const;
-    virtual std::shared_ptr<Surface> Intersection(std::shared_ptr<const Surface> const &g, Real tolerance) const;
-    virtual std::shared_ptr<Body> Intersection(std::shared_ptr<const Body> const &g, Real tolerance) const;
-    bool TestIntersection(point_type const &, Real tolerance) const override;
-    bool TestIntersection(box_type const &, Real tolerance) const override;
-    box_type GetBoundingBox() const override;
-    std::shared_ptr<GeoObject> GetBoundary() const override;
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const override;
-    using base_type::Intersection;
+    std::shared_ptr<GeoObject> GetBoundary() const final;
+    virtual std::shared_ptr<Point> GetIntersection(std::shared_ptr<const Point> const &g, Real tolerance) const;
+    virtual std::shared_ptr<Curve> GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const;
+    virtual std::shared_ptr<Surface> GetIntersection(std::shared_ptr<const Surface> const &g, Real tolerance) const;
+    virtual std::shared_ptr<Body> GetIntersection(std::shared_ptr<const Body> const &g, Real tolerance) const;
+    std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const final;
+    std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g) const;
 };
 
 }  // namespace geometry

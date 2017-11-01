@@ -25,10 +25,7 @@ struct Sphere : public ParametricBody {
 
    protected:
     explicit Sphere(Axis const &axis) : ParametricBody(axis) {}
-    std::shared_ptr<GeoObject> GetBoundary() const override;
-
-    bool TestIntersection(box_type const &, Real tolerance) const override;
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
+    std::shared_ptr<Surface> GetBoundarySurface() const override;
 
    public:
     /**
@@ -73,9 +70,9 @@ struct SphericalSurface : public ParametricSurface {
         //               m_radius_ * std::sin(theta) * m_axis_.z;
     };
     point_type uvw(Real x, Real y, Real z) const override { return point_type{x, y, z}; };
-    bool TestIntersection(point_type const &, Real tolerance) const override;
-    bool TestIntersection(box_type const &, Real tolerance) const override;
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
+
+    bool CheckIntersection(box_type const &b, Real tolerance) const override;
+    bool CheckIntersection(point_type const &x, Real tolerance) const override;
 
    private:
     Real m_radius_ = 1.0;

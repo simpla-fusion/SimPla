@@ -4,22 +4,24 @@
 
 #ifndef SIMPLA_POINT_H
 #define SIMPLA_POINT_H
-
 #include "GeoObject.h"
 namespace simpla {
 namespace geometry {
-
+struct Surface;
+struct Curve;
 struct Point : public GeoObject {
     SP_GEO_ABS_OBJECT_HEAD(Point, GeoObject);
 
    protected:
-    Point() = default;
-    Point(Point const &other) = default;
-    explicit Point(Axis const &axis) : GeoObject(axis) {}
+    Point();
+    Point(Point const &other);
+    explicit Point(Axis const &axis);
 
    public:
-    ~Point() override = default;
-    point_type Value() const { return m_axis_.o; }
+    ~Point() override;
+    int GetDimension() const override { return 0; }
+
+    std::shared_ptr<GeoObject> GetBoundary() const final;
 };
 }  // namespace geometry
 }  // namespace simpla

@@ -30,10 +30,8 @@ struct Polygon : public Surface {
     void push_back(Real u, Real v);
     void push_back(size_type num, Real const *u, Real const *v);
     void push_back(nTuple<Real, 2> const &p) { push_back(p[0], p[1]); }
-    bool IsClosed() const override;
 
-    bool TestIntersection(box_type const &, Real tolerance) const override;
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
+    bool IsClosed() const override;
 
     std::vector<point2d_type> &data();
     std::vector<point2d_type> const &data() const;

@@ -16,14 +16,14 @@ int main(int argc, char** argv) {
     std::cout << *t_surf->Serialize() << std::endl;
     auto line = sg::Line::New(point_type{0, 0, 0}, point_type{1, 0, 0});
     std::cout << *line->Serialize() << std::endl;
-    auto intersect_points = t_surf->Intersection(line);
+    auto intersect_points = t_surf->GetIntersection(line);
     std::cout << intersect_points << std::endl;
 
     auto polygon = sg::Polygon::New();
     std::cout << *polygon->Serialize() << std::endl;
     std::cout << "Done" << std::endl;
 
-    auto revolution = sg::Revolution::New(polygon, point_type{0, 0, 0}, vector_type{0, 0, 1});
+    auto revolution = sg::Revolution::New(sg::Axis{point_type{0, 0, 0}, vector_type{0, 0, 1}}, polygon);
     std::cout << *revolution->Serialize() << std::endl;
     std::cout << "Done" << std::endl;
 }

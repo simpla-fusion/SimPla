@@ -14,11 +14,6 @@ Swept::~Swept() = default;
 void Swept::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
 std::shared_ptr<simpla::data::DataNode> Swept::Serialize() const { return base_type::Serialize(); }
 
-bool Swept::TestIntersection(box_type const &, Real tolerance) const { return false; }
-std::shared_ptr<GeoObject> Swept::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
-    return nullptr;
-}
-
 /*******************************************************************************************************************/
 
 SweptSurface::SweptSurface() = default;

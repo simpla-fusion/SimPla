@@ -23,19 +23,17 @@ struct Curve : public GeoObject {
 
    public:
     ~Curve() override;
+    int GetDimension() const override { return 1; }
 
-    virtual bool IsClosed() const;
-    box_type GetBoundingBox() const override;
     virtual std::shared_ptr<PolyPoints> GetBoundaryPoints() const;
-    virtual std::shared_ptr<PolyPoints> Intersection(std::shared_ptr<const Curve> const &g, Real tolerance) const;
-    virtual std::shared_ptr<PolyPoints> Intersection(std::shared_ptr<const Plane> const &g, Real tolerance) const;
-    virtual std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const Box> const &g, Real tolerance) const;
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const override;
+    std::shared_ptr<GeoObject> GetBoundary() const final;
 
-    bool TestIntersection(point_type const &, Real tolerance) const override;
-    bool TestIntersection(box_type const &, Real tolerance) const override;
+    virtual std::shared_ptr<PolyPoints> GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const;
+    virtual std::shared_ptr<PolyPoints> GetIntersection(std::shared_ptr<const Plane> const &g, Real tolerance) const;
+    virtual std::shared_ptr<PolyPoints> GetIntersection(std::shared_ptr<const Box> const &g, Real tolerance) const;
+    std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const final;
+    std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g) const;
 
-    std::shared_ptr<GeoObject> GetBoundary() const override;
 };
 
 // struct PolyPoints;

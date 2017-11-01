@@ -15,65 +15,51 @@ Curve::Curve(Axis const &axis) : GeoObject(axis) {}
 
 std::shared_ptr<simpla::data::DataNode> Curve::Serialize() const { return base_type::Serialize(); };
 void Curve::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); };
-bool Curve::IsClosed() const { return false; }
 std::shared_ptr<GeoObject> Curve::GetBoundary() const {
-    return std::dynamic_pointer_cast<GeoObject>(GetBoundaryPoints());
-}
-box_type Curve::GetBoundingBox() const {
-    return box_type{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
+    return std::dynamic_pointer_cast<base_type>(GetBoundaryPoints());
 }
 std::shared_ptr<PolyPoints> Curve::GetBoundaryPoints() const {
-    UNIMPLEMENTED;
-    return nullptr;
-}
-std::shared_ptr<PolyPoints> Curve::Intersection(std::shared_ptr<const Curve> const &g, Real tolerance) const {
-    UNIMPLEMENTED;
-    return nullptr;
-}
-std::shared_ptr<PolyPoints> Curve::Intersection(std::shared_ptr<const Plane> const &g, Real tolerance) const {
-    UNIMPLEMENTED;
-    return nullptr;
+    return std::dynamic_pointer_cast<PolyPoints>(base_type::GetBoundary());
 }
 
-std::shared_ptr<GeoObject> Curve::Intersection(std::shared_ptr<const Box> const &g, Real tolerance) const {
-    UNIMPLEMENTED;
-    return nullptr;
+std::shared_ptr<PolyPoints> Curve::GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const {
+    return std::dynamic_pointer_cast<PolyPoints>(base_type::GetIntersection(g, tolerance));
 }
-bool Curve::TestIntersection(point_type const &, Real tolerance) const {
-    UNIMPLEMENTED;
-    return false;
+std::shared_ptr<PolyPoints> Curve::GetIntersection(std::shared_ptr<const Plane> const &g, Real tolerance) const {
+    return std::dynamic_pointer_cast<PolyPoints>(base_type::GetIntersection(g, tolerance));
 }
-bool Curve::TestIntersection(box_type const &, Real tolerance) const {
-    UNIMPLEMENTED;
-    return false;
+std::shared_ptr<PolyPoints> Curve::GetIntersection(std::shared_ptr<const Box> const &g, Real tolerance) const {
+    return std::dynamic_pointer_cast<PolyPoints>(base_type::GetIntersection(g, tolerance));
 }
 
-std::shared_ptr<GeoObject> Curve::Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
+std::shared_ptr<GeoObject> Curve::GetIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
     std::shared_ptr<GeoObject> res = nullptr;
     if (auto curve = std::dynamic_pointer_cast<const Curve>(g)) {
-        res = Intersection(curve, tolerance);
+        res = GetIntersection(curve, tolerance);
     } else if (auto plane = std::dynamic_pointer_cast<const Plane>(g)) {
-        res = Intersection(plane, tolerance);
+        res = GetIntersection(plane, tolerance);
     } else if (auto box = std::dynamic_pointer_cast<const Box>(g)) {
-        res = Intersection(box, tolerance);
+        res = GetIntersection(box, tolerance);
     } else if (auto surface = std::dynamic_pointer_cast<const Surface>(g)) {
-        res = surface->Intersection(std::dynamic_pointer_cast<const Curve>(shared_from_this()), tolerance);
+        res = surface->GetIntersection(std::dynamic_pointer_cast<const Curve>(shared_from_this()), tolerance);
     } else if (auto body = std::dynamic_pointer_cast<const Body>(g)) {
-        res = body->Intersection(std::dynamic_pointer_cast<const Curve>(shared_from_this()), tolerance);
-    } else {
-        UNIMPLEMENTED;
+        res = body->GetIntersection(std::dynamic_pointer_cast<const Curve>(shared_from_this()), tolerance);
     }
+    if (res == nullptr) { res = GeoObject::GetIntersection(g, tolerance); }
     return res;
 };
+std::shared_ptr<GeoObject> Curve::GetIntersection(std::shared_ptr<const GeoObject> const &g) const {
+    return GetIntersection(g, SP_GEO_DEFAULT_TOLERANCE);
+}
 ///*box_type Curve::GetBoundingBox() const {
 //    return std::make_tuple(point_type{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY},
 //                           point_type{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY});
 //}*/
-// bool Curve::TestIntersection(box_type const &) const { return false; }
+// bool Curve::CheckIntersection(box_type const &) const { return false; }
 // bool Curve::TestInside(point_type const &x, Real tolerance) const { return false; }
 // bool Curve::TestInsideU(Real u) const { return m_u_min_ <= u && u <= m_u_max_; }
 // bool Curve::TestInsideUVW(point_type const &uvw, Real tolerance) const { return TestInsideU(uvw[0]); }
-// std::shared_ptr<GeoObject> Curve::Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
+// std::shared_ptr<GeoObject> Curve::GetIntersectionion(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
 //    UNIMPLEMENTED;
 //    return nullptr;
 //}

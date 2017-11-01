@@ -45,13 +45,7 @@ void Cone::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
 
 point_type Cone::xyz(Real u, Real v, Real w) const { return m_axis_.xyz(m_shape_.Value(u, v, w)); };
 point_type Cone::uvw(Real x, Real y, Real z) const { return m_shape_.InvValue(m_axis_.uvw(x, y, z)); };
-bool Cone::TestIntersection(box_type const &, Real tolerance) const {
-    UNIMPLEMENTED;
-    return false;
-}
-std::shared_ptr<GeoObject> Cone::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
-    UNIMPLEMENTED;
-    return nullptr;
-}
+
+
 }  // namespace geometry {
 }  // namespace simpla {

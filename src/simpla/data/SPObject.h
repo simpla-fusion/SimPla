@@ -160,7 +160,11 @@ std::istream &operator>>(std::istream &is, SPObject &obj);
     static std::shared_ptr<this_type> New(Args &&... args) {                                                     \
         return TryNew<this_type>(std::integral_constant<bool, !std::is_abstract<this_type>::value>(),            \
                                  std::forward<Args>(args)...);                                                   \
-    };
+    };                                                                                                           \
+    std::shared_ptr<const this_type> self() const {                                                              \
+        return std::dynamic_pointer_cast<const this_type>(shared_from_this());                                   \
+    }                                                                                                            \
+    std::shared_ptr<this_type> self() { return std::dynamic_pointer_cast<this_type>(shared_from_this()); }
 
 #define SP_OBJECT_REGISTER(_CLASS_NAME_) \
     bool _CLASS_NAME_::_is_registered = simpla::SPObject::RegisterCreator<_CLASS_NAME_>();

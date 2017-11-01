@@ -15,14 +15,6 @@ std::shared_ptr<simpla::data::DataNode> Extrusion::Serialize() const {
     auto res = base_type::Serialize();
     return res;
 }
-bool Extrusion::TestIntersection(box_type const &, Real tolerance) const {
-    UNIMPLEMENTED;
-    return false;
-}
-std::shared_ptr<GeoObject> Extrusion::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
-    UNIMPLEMENTED;
-    return nullptr;
-}
 
 /*******************************************************************************************************************/
 
@@ -38,14 +30,6 @@ std::shared_ptr<simpla::data::DataNode> ExtrusionSurface::Serialize() const {
     auto res = base_type::Serialize();
     return res;
 }
-bool ExtrusionSurface::TestIntersection(box_type const &, Real tolerance) const {
-    UNIMPLEMENTED;
-    return false;
-}
-std::shared_ptr<GeoObject> ExtrusionSurface::Intersection(std::shared_ptr<const GeoObject> const &,
-                                                          Real tolerance) const {
-    UNIMPLEMENTED;
-    return nullptr;
-}
+
 }  // namespace geometry{
 }  // namespace simpla{

@@ -20,24 +20,24 @@ void Toroidal::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
     //    m_major_radius_ = cfg->GetValue("MajorRadius", m_major_radius_);
 }
-
-bool Toroidal::TestIntersection(box_type const &, Real tolerance) const {
-    UNIMPLEMENTED;
-    return false;
-}
-
-std::shared_ptr<Curve> Toroidal::Intersection(std::shared_ptr<const Curve> const &g, Real tolerance) const {
-    UNIMPLEMENTED;
-    return nullptr;
-}
-std::shared_ptr<Surface> Toroidal::Intersection(std::shared_ptr<const Surface> const &g, Real tolerance) const {
-    UNIMPLEMENTED;
-    return nullptr;
-}
-std::shared_ptr<Body> Toroidal::Intersection(std::shared_ptr<const Body> const &g, Real tolerance) const {
-    UNIMPLEMENTED;
-    return nullptr;
-}
+//
+//bool Toroidal::CheckIntersection(box_type const &, Real tolerance) const {
+//    UNIMPLEMENTED;
+//    return false;
+//}
+//
+//std::shared_ptr<Curve> Toroidal::GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const {
+//    UNIMPLEMENTED;
+//    return nullptr;
+//}
+//std::shared_ptr<Surface> Toroidal::GetIntersection(std::shared_ptr<const Surface> const &g, Real tolerance) const {
+//    UNIMPLEMENTED;
+//    return nullptr;
+//}
+//std::shared_ptr<Body> Toroidal::GetIntersection(std::shared_ptr<const Body> const &g, Real tolerance) const {
+//    UNIMPLEMENTED;
+//    return nullptr;
+//}
 /********************************************************************************************************************/
 
 SP_OBJECT_REGISTER(ToroidalSurface)
@@ -53,14 +53,13 @@ std::shared_ptr<simpla::data::DataNode> ToroidalSurface::Serialize() const {
     //    res->SetValue<Real>("MinorRadius", m_minor_radius_);
     return res;
 }
-bool ToroidalSurface::TestIntersection(box_type const &, Real tolerance) const {
-    UNIMPLEMENTED;
-    return false;
-}
-std::shared_ptr<GeoObject> ToroidalSurface::Intersection(std::shared_ptr<const GeoObject> const &,
-                                                         Real tolerance) const {
-    UNIMPLEMENTED;
-    return nullptr;
-}
+//bool ToroidalSurface::CheckIntersection(point_type const &, Real tolerance) const {
+//    UNIMPLEMENTED;
+//    return false;
+//}
+//bool ToroidalSurface::CheckIntersection(box_type const &, Real tolerance) const {
+//    UNIMPLEMENTED;
+//    return false;
+//}
 }  // namespace geometry {
 }  // namespace simpla {

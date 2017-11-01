@@ -6,7 +6,9 @@
 #include <memory>
 
 #include "BoxUtilities.h"
-#include "Cube.h"
+#include "GeoAlgorithm.h"
+#include "GeoEngine.h"
+
 namespace simpla {
 namespace geometry {
 GeoObject::GeoObject() : SPObject(){};
@@ -25,7 +27,11 @@ void GeoObject::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
     m_axis_.Deserialize(cfg->Get("Axis"));
 }
-
+int GeoObject::GetDimension() const { return 3; }
+bool GeoObject::IsSimpleConnected() const { return true; }
+bool GeoObject::IsConvex() const { return true; }
+bool GeoObject::IsContinued() const { return true; }
+bool GeoObject::IsClosed() const { return false; }
 Axis &GeoObject::GetAxis() { return m_axis_; }
 Axis const &GeoObject::GetAxis() const { return m_axis_; }
 void GeoObject::SetAxis(Axis const &a) { m_axis_ = a; }
@@ -36,6 +42,27 @@ void GeoObject::Rotate(const Axis &a1, Real angle) { m_axis_.Rotate(a1, angle); 
 void GeoObject::Scale(Real s, int dir) { m_axis_.Scale(s, dir); }
 void GeoObject::Translate(const vector_type &v) { m_axis_.Translate(v); }
 void GeoObject::Move(const point_type &p) { m_axis_.Move(p); }
+std::shared_ptr<GeoObject> GeoObject::GetBoundary() const { return GeoEngine::GetBoundary(self()); }
+box_type GeoObject::GetBoundingBox() const {
+    return box_type{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
+}
+bool GeoObject::CheckIntersection(point_type const &p, Real tolerance) const {
+    return GeoEngine::CheckIntersection(self(), p, tolerance);
+}
+bool GeoObject::CheckIntersection(box_type const &b, Real tolerance) const {
+    return GeoEngine::CheckIntersection(self(), b, tolerance);
+}
+
+std::shared_ptr<GeoObject> GeoObject::GetUnion(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
+    return GeoEngine::GetUnion(self(), g, tolerance);
+}
+std::shared_ptr<GeoObject> GeoObject::GetDifference(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
+    return GeoEngine::GetDifference(self(), g, tolerance);
+}
+std::shared_ptr<GeoObject> GeoObject::GetIntersection(std::shared_ptr<const GeoObject> const &g,
+                                                         Real tolerance) const {
+    return GeoEngine::GetIntersection(self(), g, tolerance);
+}
 
 // std::shared_ptr<GeoObject> GeoObject::GetBoundary() const { return nullptr; }
 
@@ -48,7 +75,7 @@ void GeoObject::Move(const point_type &p) { m_axis_.Move(p); }
 // bool GeoObject::IsInside(point_type const &x, Real tolerance) const {
 //    return geometry::isInSide(GetBoundingBox(), x);
 //}
-// std::shared_ptr<GeoObject> GeoObject::Intersection(std::shared_ptr<GeoObject> const &other) const {
+// std::shared_ptr<GeoObject> GeoObject::GetIntersectionion(std::shared_ptr<GeoObject> const &other) const {
 //    return Cube::New(geometry::Overlap(GetBoundingBox(), other->GetBoundingBox()));
 //}
 // std::shared_ptr<GeoObject> GeoObject::Difference(std::shared_ptr<GeoObject> const &other) const {
@@ -60,7 +87,7 @@ void GeoObject::Move(const point_type &p) { m_axis_.Move(p); }
 //}
 // Real GeoObject::isOverlapped(box_type const &b) const { return Measure(Overlap(GetBoundingBox(), b)) / measure(); }
 //
-// Real GeoObject::TestIntersection(GeoObject const &other) const { return isOverlapped(other.GetBoundingBox()); }
+// Real GeoObject::CheckIntersection(GeoObject const &other) const { return isOverlapped(other.GetBoundingBox()); }
 //
 // bool GeoObject::IsInside(const point_type &x) const { return CheckInSide(GetBoundingBox(), x); };
 //

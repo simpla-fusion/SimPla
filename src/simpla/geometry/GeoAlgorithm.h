@@ -37,8 +37,8 @@ bool TestPointInBox(point_type const& p, point_type const& bMin, point_type cons
 bool TestPointInBox(point_type const& p, std::tuple<point_type, point_type> const& box);
 bool TestPointOnPlane(point_type const& p, point_type const& o, vector_type const& normal,
                       Real tolerance = SP_GEO_DEFAULT_TOLERANCE);
-bool TestIntersectionCubeSphere(point_type const& bMin, point_type const& bMax, point_type const& C, Real r);
-int IntersectLineSphere(point_type const& p0, point_type const& p1, point_type const& c, Real r, Real tolerance,
+bool CheckIntersectionCubeSphere(point_type const& bMin, point_type const& bMax, point_type const& C, Real r);
+int GetIntersectionLineSphere(point_type const& p0, point_type const& p1, point_type const& c, Real r, Real tolerance,
                         std::vector<Real>& res);
 /**
  *   (b0 & b1).volume
@@ -253,7 +253,7 @@ std::tuple<Real, Real, Real> NearestPointPointToPlane(T0 const& P0, T1 const& Q0
  *
  */
 template <typename T0, typename T1, typename T2, typename T3, typename T4>
-std::tuple<Real, Real, Real, Real> IntersectLineToPlane(T0 const& l0, T1 const& l1, T2 const& p0, T3 const& p1,
+std::tuple<Real, Real, Real, Real> GetIntersectionLineToPlane(T0 const& l0, T1 const& l1, T2 const& p0, T3 const& p1,
                                                         T4 const& p2, Real tolerance = SP_GEO_DEFAULT_TOLERANCE) {
     Real dist2, s, u, v;
 
@@ -322,7 +322,7 @@ std::tuple<Real, Real, Real, Real, Real> NearestPointTriangleToPlane(T0 const& l
 //    return std::forward_as_tuple(std::sqrt(min_dist2), res_s, res_p0, res_p1);
 //}
 // template <typename T0, typename T1, typename T2>
-// Real IntersectionLineToPolygons(T0 const& p0, T1 const& p1, T2 const& polygon) {
+// Real GetIntersectionionLineToPolygons(T0 const& p0, T1 const& p1, T2 const& polygon) {
 //    auto it = polygon.begin();
 //
 //    auto q0 = *it;

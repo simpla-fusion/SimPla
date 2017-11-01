@@ -22,9 +22,6 @@ struct Swept : public Body {
 
    public:
     ~Swept() override;
-
-    bool TestIntersection(box_type const &, Real tolerance) const override;
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 };
 
 struct SweptSurface : public Surface {

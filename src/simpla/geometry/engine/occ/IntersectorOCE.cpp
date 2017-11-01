@@ -14,28 +14,28 @@
 #include "../BoxUtilities.h"
 #include "../Chart.h"
 #include "../GeoObject.h"
-#include "IntersectorOCE.h"
+#include "GetIntersectionorOCE.h"
 #include "OCEShape.h"
 namespace simpla {
 namespace geometry {
-SP_OBJECT_REGISTER(IntersectorOCE)
+SP_OBJECT_REGISTER(GetIntersectionorOCE)
 
-struct IntersectorOCE::pimpl_s {
+struct GetIntersectionorOCE::pimpl_s {
     BRepIntCurveSurface_Inter m_body_inter_;
 };
-IntersectorOCE::IntersectorOCE() : m_pimpl_(new pimpl_s) {}
-IntersectorOCE::IntersectorOCE(std::shared_ptr<const GeoObject> const &geo, Real tolerance) : m_pimpl_(new pimpl_s) {
+GetIntersectionorOCE::GetIntersectionorOCE() : m_pimpl_(new pimpl_s) {}
+GetIntersectionorOCE::GetIntersectionorOCE(std::shared_ptr<const GeoObject> const &geo, Real tolerance) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_body_inter_.Load(*geometry::occ_cast<TopoDS_Shape>(*geo), tolerance);
 }
 
-IntersectorOCE::~IntersectorOCE() { delete m_pimpl_; }
+GetIntersectionorOCE::~GetIntersectionorOCE() { delete m_pimpl_; }
 
-std::shared_ptr<IntersectorOCE> IntersectorOCE::New(std::shared_ptr<const GeoObject> const &geo, Real tolerance) {
-    std::shared_ptr<IntersectorOCE> res(new IntersectorOCE(geo, tolerance));
+std::shared_ptr<GetIntersectionorOCE> GetIntersectionorOCE::New(std::shared_ptr<const GeoObject> const &geo, Real tolerance) {
+    std::shared_ptr<GetIntersectionorOCE> res(new GetIntersectionorOCE(geo, tolerance));
     return res;
 }
 
-size_type IntersectorOCE::GetIntersectionPoints(std::shared_ptr<const GeoObject> const &curve,
+size_type GetIntersectionorOCE::GetIntersectionPoints(std::shared_ptr<const GeoObject> const &curve,
                                                 std::vector<Real> &intersection_point) const {
     Handle(Geom_Curve) c = geometry::detail::OCCCast<Geom_Curve, GeoObject>::eval(*curve);
 

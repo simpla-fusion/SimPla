@@ -17,13 +17,14 @@ struct Revolution : public Swept {
    protected:
     Revolution();
     Revolution(Revolution const &other);
-    explicit Revolution(std::shared_ptr<const Surface> const &s, point_type const &origin, vector_type const &axe_z);
+    explicit Revolution(Axis const &axis, std::shared_ptr<const Surface> const &s);
 
    public:
     ~Revolution() override;
+    std::shared_ptr<const Surface> GetBasisSurface() const { return m_basis_surface_; }
 
-    bool TestIntersection(box_type const &, Real tolerance) const override;
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
+   private:
+    std::shared_ptr<const Surface> m_basis_surface_;
 };
 
 struct RevolutionSurface : public SweptSurface {
@@ -32,15 +33,12 @@ struct RevolutionSurface : public SweptSurface {
    protected:
     RevolutionSurface();
     RevolutionSurface(RevolutionSurface const &other);
-    RevolutionSurface(Axis const &axis, std::shared_ptr<Curve> const &c);
+    explicit RevolutionSurface(Axis const &axis, std::shared_ptr<Curve> const &c);
 
    public:
     ~RevolutionSurface() override;
-    std::shared_ptr<const Curve> GetBasisCurve() const { return m_basis_curve_; }
     bool IsClosed() const override;
-
-    bool TestIntersection(box_type const &, Real tolerance) const override;
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
+    std::shared_ptr<const Curve> GetBasisCurve() const { return m_basis_curve_; }
 
    private:
     std::shared_ptr<const Curve> m_basis_curve_;

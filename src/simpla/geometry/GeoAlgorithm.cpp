@@ -26,7 +26,7 @@ bool TestPointOnPlane(point_type const& p, point_type const& o, vector_type cons
     return std::abs(dot(p - o, normal)) < tolerance;
 }
 
-bool TestIntersectionCubeSphere(point_type const& bMin, point_type const& bMax, point_type const& C, Real r) {
+bool CheckIntersectionCubeSphere(point_type const& bMin, point_type const& bMax, point_type const& C, Real r) {
     auto r2 = r * r;
     for (int i = 0; i < 3; i++) {
         if (C[i] < bMin[i])
@@ -36,7 +36,7 @@ bool TestIntersectionCubeSphere(point_type const& bMin, point_type const& bMax, 
     }
     return r2 > 0;
 }
-int IntersectLineSphere(point_type const& p0, point_type const& p1, point_type const& c, Real r, Real tolerance,
+int GetIntersectionLineSphere(point_type const& p0, point_type const& p1, point_type const& c, Real r, Real tolerance,
                         std::vector<Real>& res) {
     int count = 0;
     point_type const& o = p0;

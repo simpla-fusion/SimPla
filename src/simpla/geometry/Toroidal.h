@@ -50,8 +50,8 @@ struct sfToroidal : public ShapeFunction {
     };
     point_type InvValue(point_type const &xyz) const override { return point_type{SP_SNaN, SP_SNaN, SP_SNaN}; }
     Real Distance(point_type const &xyz) const override { return SP_SNaN; }
-    bool TestBoxIntersection(point_type const &x_min, point_type const &x_max) const override { return false; }
-    int LineIntersection(point_type const &p0, point_type const &p1, Real *u) const override { return false; }
+    bool TestBoxGetIntersectionion(point_type const &x_min, point_type const &x_max) const override { return false; }
+    int LineGetIntersectionion(point_type const &p0, point_type const &p1, Real *u) const override { return false; }
 
    private:
     Real m_major_radius_ = 1;
@@ -74,13 +74,11 @@ struct Toroidal : public ParametricBody {
     point_type xyz(Real phi, Real theta, Real r) const override { return m_axis_.xyz(m_shape_.Value(phi, theta, r)); };
     point_type uvw(Real x, Real y, Real z) const override { return m_shape_.InvValue(m_axis_.uvw(x, y, z)); };
 
-    bool TestIntersection(box_type const &, Real tolerance) const override;
-
-    std::shared_ptr<Curve> Intersection(std::shared_ptr<const Curve> const &g, Real tolerance) const override;
-    std::shared_ptr<Surface> Intersection(std::shared_ptr<const Surface> const &g, Real tolerance) const override;
-    std::shared_ptr<Body> Intersection(std::shared_ptr<const Body> const &g, Real tolerance) const override;
-
-    using base_type::Intersection;
+    //    bool CheckIntersection(box_type const &, Real tolerance) const override;
+    //    std::shared_ptr<Curve> GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const override;
+    //    std::shared_ptr<Surface> GetIntersection(std::shared_ptr<const Surface> const &g, Real tolerance) const override;
+    //    std::shared_ptr<Body> GetIntersection(std::shared_ptr<const Body> const &g, Real tolerance) const override;
+    //    using base_type::GetIntersection;
 
    private:
     sfToroidal m_shape_;
@@ -91,19 +89,18 @@ struct ToroidalSurface : public ParametricSurface {
    protected:
     ToroidalSurface() = default;
     ToroidalSurface(ToroidalSurface const &) = default;
-    ToroidalSurface(Axis const &axis, Real major_radius, Real minor_radius)
+
+    explicit ToroidalSurface(Axis const &axis, Real major_radius, Real minor_radius)
         : ParametricSurface(axis), m_shape_(minor_radius / major_radius) {}
 
    public:
     ~ToroidalSurface() override = default;
-
     bool IsClosed() const override { return true; };
-
+    bool IsSimpleConnected() const override { return false; }
     point_type xyz(Real phi, Real theta) const override { return m_axis_.xyz(m_shape_.Value(phi, theta)); };
     point_type uvw(Real x, Real y, Real z) const override { return m_shape_.InvValue(m_axis_.uvw(x, y, z)); };
-
-    bool TestIntersection(box_type const &, Real tolerance) const override;
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
+    //    bool CheckIntersection(box_type const &b, Real tolerance) const override;
+    //    bool CheckIntersection(point_type const &x, Real tolerance) const override;
 
    protected:
     sfToroidal m_shape_;

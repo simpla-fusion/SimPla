@@ -28,8 +28,6 @@ struct Hyperbola : public ParametricCurve {
     point_type xyz(Real alpha) const override {
         return m_axis_.xyz(m_major_radius_ * std::cosh(alpha), m_minor_radius_ * std::sinh(alpha));
     };
-    bool TestIntersection(box_type const &, Real tolerance) const override;
-    std::shared_ptr<GeoObject> Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
 
    protected:
     Real m_major_radius_ = 1;

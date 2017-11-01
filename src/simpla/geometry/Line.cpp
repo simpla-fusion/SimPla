@@ -15,14 +15,8 @@ Line::Line(point_type const &p0, point_type const &p1) : ParametricCurve(Axis{p0
 Line::Line(vector_type const &v) : ParametricCurve(Axis{point_type{0, 0, 0}, v}){};
 
 Line::~Line() = default;
-
 bool Line::IsClosed() const { return false; };
-
 point_type Line::xyz(Real u) const { return m_axis_.xyz(u); }
 
-bool Line::TestIntersection(box_type const &, Real tolerance) const { return 0; }
-std::shared_ptr<GeoObject> Line::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
-    return nullptr;
-}
 }  // namespace geometry
 }  // namespace simpla

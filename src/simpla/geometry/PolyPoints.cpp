@@ -18,10 +18,10 @@ box_type PolyPoints::GetBoundingBox() const {
     return std::make_tuple(point_type{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY},
                            point_type{SP_INFINITY, SP_INFINITY, SP_INFINITY});
 }
-bool PolyPoints::TestIntersection(box_type const &, Real tolerance) const { return false; }
-bool PolyPoints::TestIntersection(point_type const &x, Real tolerance) const { return false; }
+bool PolyPoints::CheckIntersection(box_type const &, Real tolerance) const { return false; }
+bool PolyPoints::CheckIntersection(point_type const &x, Real tolerance) const { return false; }
 // bool PolyPoints::TestInsideUVW(point_type const &x, Real tolerance) const { return false; }
-std::shared_ptr<GeoObject> PolyPoints::Intersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
+std::shared_ptr<GeoObject> PolyPoints::GetIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
     return nullptr;
 }
 

@@ -36,13 +36,5 @@ std::shared_ptr<simpla::data::DataNode> PolyLine::Serialize() const {
     return res;
 }
 
-bool PolyLine::TestIntersection(box_type const &, Real tolerance) const {
-    UNIMPLEMENTED;
-    return false;
-}
-std::shared_ptr<GeoObject> PolyLine::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
-    UNIMPLEMENTED;
-    return nullptr;
-}
 }  // namespace geometry{
 }  // namespace simpla{

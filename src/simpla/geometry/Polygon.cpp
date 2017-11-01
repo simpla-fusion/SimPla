@@ -151,9 +151,6 @@ bool Polygon::pimpl_s::check_inside(Real x, Real y) const {
         return false;
     }
 }
-bool Polygon::TestIntersection(box_type const &, Real tolerance) const { return false; }
-std::shared_ptr<GeoObject> Polygon::Intersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const {
-    return nullptr;
-}
+
 }  // namespace  geometry
 }  // namespace simpla

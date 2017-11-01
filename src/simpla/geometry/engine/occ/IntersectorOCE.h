@@ -5,16 +5,16 @@
 #ifndef SIMPLA_OCEINTERSECTOR_H
 #define SIMPLA_OCEINTERSECTOR_H
 
-#include "../Intersector.h"
+#include "../GetIntersectionor.h"
 namespace simpla {
 namespace geometry {
-struct IntersectorOCE : public Intersector {
-    SP_OBJECT_HEAD(IntersectorOCE, Intersector)
+struct GetIntersectionorOCE : public GetIntersectionor {
+    SP_OBJECT_HEAD(GetIntersectionorOCE, GetIntersectionor)
    protected:
-    IntersectorOCE(std::shared_ptr<const GeoObject> const& geo, Real tolerance = 0.001);
+    GetIntersectionorOCE(std::shared_ptr<const GeoObject> const& geo, Real tolerance = 0.001);
 
    public:
-    static std::shared_ptr<IntersectorOCE> New(std::shared_ptr<const GeoObject> const& geo, Real tolerance = 0.001);
+    static std::shared_ptr<GetIntersectionorOCE> New(std::shared_ptr<const GeoObject> const& geo, Real tolerance = 0.001);
 
     size_type GetIntersectionPoints(std::shared_ptr<const GeoObject> const& curve,
                                     std::vector<Real>& intersection_point) const override;

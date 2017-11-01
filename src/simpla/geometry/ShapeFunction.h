@@ -28,8 +28,8 @@ struct ShapeFunction {
 
     virtual point_type InvValue(point_type const& xyz) const { return point_type{SP_SNaN, SP_SNaN, SP_SNaN}; }
     virtual Real Distance(point_type const& xyz) const { return SP_SNaN; }
-    virtual bool TestBoxIntersection(point_type const& x_min, point_type const& x_max) const { return false; }
-    virtual int LineIntersection(point_type const& p0, point_type const& p1, Real* u) const { return 0; }
+    virtual bool TestBoxGetIntersectionion(point_type const& x_min, point_type const& x_max) const { return false; }
+    virtual int LineGetIntersectionion(point_type const& p0, point_type const& p1, Real* u) const { return 0; }
 };
 
 #define SP_DEF_SHAPE_FUNCTION_PARA_VALUE_RANGE(_NAME_)                                                          \
