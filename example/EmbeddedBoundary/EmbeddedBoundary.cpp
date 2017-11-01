@@ -8,7 +8,7 @@
 #include <simpla/engine/EBDomain.h>
 #include <simpla/geometry/Box.h>
 #include <simpla/geometry/BoxUtilities.h>
-#include <simpla/geometry/Cube.h>
+#include <simpla/geometry/Box.h>
 #include <simpla/geometry/csCartesian.h>
 #include <simpla/mesh/CoRectMesh.h>
 #include <simpla/mesh/RectMesh.h>

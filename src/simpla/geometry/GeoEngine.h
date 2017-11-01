@@ -14,7 +14,11 @@ struct GeoEngine : public Factory<GeoEngine> {
    public:
     GeoEngine();
     ~GeoEngine() override;
-    static GeoEngine &global();
+
+    static void Initialize(std::shared_ptr<data::DataNode> const &d = nullptr);
+    static void Initialize(int argc, char **argv);
+    static void Finalize();
+    static GeoEngine &entry();
     static std::shared_ptr<GeoObject> GetBoundary(std::shared_ptr<const GeoObject> const &);
     static bool CheckIntersection(std::shared_ptr<const GeoObject> const &, point_type const &x, Real tolerance);
     static bool CheckIntersection(std::shared_ptr<const GeoObject> const &, box_type const &, Real tolerance);
@@ -42,6 +46,8 @@ struct GeoEngine : public Factory<GeoEngine> {
     virtual std::shared_ptr<GeoObject> GetIntersectionInterface(std::shared_ptr<const GeoObject> const &,
                                                                 std::shared_ptr<const GeoObject> const &g,
                                                                 Real tolerance) const;
+
+   private:
 };
 }  // namespace geometry
 }  // namespace simpla
