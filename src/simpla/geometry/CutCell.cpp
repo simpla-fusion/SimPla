@@ -8,51 +8,30 @@
 #include "Curve.h"
 #include "GeoEngine.h"
 #include "GeoObject.h"
-
+#include "IntersectionCurveSurface.h"
 namespace simpla {
 namespace geometry {
+struct CutCell::pimpl_s {
+    std::shared_ptr<const Chart> m_chart_ = nullptr;
+    std::shared_ptr<IntersectionCurveSurface> m_intersector_ = nullptr;
+    Real m_tolerance_ = SP_GEO_DEFAULT_TOLERANCE;
+};
+CutCell::CutCell() : m_pimpl_(new pimpl_s){};
+CutCell::~CutCell() { delete m_pimpl_; }
 
-CutCell::CutCell() = default;
-CutCell::CutCell(std::shared_ptr<const Chart> const &c, std::shared_ptr<const Surface> const &g, Real tolerance) {
-    SetUp(c, g, tolerance);
-}
-
-CutCell::~CutCell() = default;
-std::shared_ptr<CutCell> CutCell::New(std::string const &s) {
-    std::string key = s.empty() ? GeoEngine::RegisterName_s() : s;
-    auto res = Factory<CutCell>::Create(key);
-    if (res == nullptr) {
-        RUNTIME_ERROR << "Create CutCell Fail! [" << key << "]" << std::endl << CutCell::ShowDescription();
+void CutCell::SetUp(std::shared_ptr<const Chart> const &c, std::shared_ptr<const GeoObject> const &g, Real tolerance) {
+    m_pimpl_->m_chart_ = c;
+    if (auto body = std::dynamic_pointer_cast<const Body>(g)) {
+        m_pimpl_->m_intersector_ = IntersectionCurveSurface::New(body->GetBoundarySurface(), tolerance);
+    } else if (auto surface = std::dynamic_pointer_cast<const Surface>(g)) {
+        m_pimpl_->m_intersector_ = IntersectionCurveSurface::New(surface, tolerance);
     }
-    return res;
 }
-std::shared_ptr<CutCell> CutCell::New(std::shared_ptr<data::DataNode> const &d) {
-    std::shared_ptr<CutCell> res = nullptr;
-    if (d != nullptr) {
-        res = New(d->GetValue<std::string>("_TYPE_", ""));
-        res->Deserialize(d);
-    }
-    if (res == nullptr) { RUNTIME_ERROR << "Create CutCell Fail! " << *d << std::endl << CutCell::ShowDescription(); }
-    return res;
-}
-
-void CutCell::SetUp(std::shared_ptr<const Chart> const &c, std::shared_ptr<const Surface> const &s, Real tolerance) {
-    m_chart_ = c;
-    m_surface_ = s;
-    m_tolerance_ = tolerance;
-}
-
-void CutCell::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {}
-std::shared_ptr<simpla::data::DataNode> CutCell::Serialize() const {
-    return data::DataNode::New(data::DataNode::DN_TABLE);
-}
-size_type CutCell::IntersectAxe(index_tuple const &idx, int dir, index_type length, std::vector<Real> *u) const {
-    auto res = m_surface_->GetIntersection(m_chart_->GetAxis(idx, dir, length), m_tolerance_);
-
-    return 0;
-}
+void CutCell::TearDown() {}
 
 void CutCell::TagCell(Array<unsigned int> *vertex_tags, Array<Real> *edge_tags, unsigned int tag) const {
+    //    auto count = m_intersector_->Intersect(m_chart_->GetAxis(idx, dir, length));
+
     //    if (auto box = std::dynamic_pointer_cast<const Box>(g)) {
     //        auto bound_box = box->GetBoundingBox();
     //        index_tuple lo, hi;

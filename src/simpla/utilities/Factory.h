@@ -118,6 +118,22 @@ class Factory {
 #define REGISTER_CREATOR1(_CLASS_NAME_) \
     bool _CLASS_NAME_::_is_registered = _CLASS_NAME_::RegisterCreator<_CLASS_NAME_>(_CLASS_NAME_::RegisterName_s());
 
+#define FACTORY_HEAD(_CLASS_NAME_)                                          \
+   private:                                                                 \
+    typedef _CLASS_NAME_ this_type;                                         \
+                                                                            \
+   public:                                                                  \
+    static std::string FancyTypeName_s() { return __STRING(_CLASS_NAME_); } \
+    static std::string RegisterName_s() { return __STRING(_CLASS_NAME_); }  \
+    virtual std::string FancyTypeName() const { return FancyTypeName_s(); } \
+    virtual std::string RegisterName() const { return RegisterName_s(); }   \
+                                                                            \
+   protected:                                                               \
+    _CLASS_NAME_();                                                         \
+                                                                            \
+   public:                                                                  \
+    ~_CLASS_NAME_() override;
+
 }  // namespace data{
 template <typename T>
 static bool RegisterCreator() {

@@ -27,8 +27,8 @@
 #include <gp_Quaternion.hxx>
 
 #include "../Circle.h"
-#include "../CutCell.h"
 #include "../GeoObject.h"
+#include "../IntersectionCurveSurface.h"
 #include "../Line.h"
 namespace simpla {
 namespace geometry {
@@ -221,31 +221,25 @@ Geom_Curve *OCCCast<Geom_Curve, Curve>::eval(Curve const &c) {
 
 /********************************************************************************************************************/
 
-struct CutCellOCE : public CutCell {
-    SP_GEO_ENGINE_HEAD(OCE, CutCell)
+struct IntersectionCurveSurfaceOCE : public IntersectionCurveSurface {
+    SP_GEO_ENGINE_HEAD(OCE, IntersectionCurveSurface)
 
    public:
-    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;
-    std::shared_ptr<simpla::data::DataNode> Serialize() const override;
-    void SetUp(std::shared_ptr<const Chart> const &, std::shared_ptr<const Surface> const &, Real tolerance) override;
-
-    size_type IntersectAxe(index_tuple const &idx, int dir, index_type length, std::vector<Real> *u) const override;
+    void SetUp(std::shared_ptr<const Surface> const &, Real tolerance) override;
+    size_type Intersect(std::shared_ptr<const Curve> const &curve, std::vector<Real> *u) const override;
 
    private:
     BRepIntCurveSurface_Inter m_body_inter_;
 };
-REGISTER_CREATOR1(CutCellOCE);
+REGISTER_CREATOR1(IntersectionCurveSurfaceOCE);
 
-CutCellOCE::CutCellOCE() = default;
-CutCellOCE::~CutCellOCE() = default;
-void CutCellOCE::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); };
-std::shared_ptr<simpla::data::DataNode> CutCellOCE::Serialize() const { return base_type::Serialize(); };
-void CutCellOCE::SetUp(std::shared_ptr<const Chart> const &c, std::shared_ptr<const Surface> const &s, Real tolerance) {
-    base_type::SetUp(c, s, tolerance);
-}
-size_type CutCellOCE::IntersectAxe(index_tuple const &idx, int dir, index_type length, std::vector<Real> *u) const {
+IntersectionCurveSurfaceOCE::IntersectionCurveSurfaceOCE() = default;
+IntersectionCurveSurfaceOCE::~IntersectionCurveSurfaceOCE() = default;
+
+void IntersectionCurveSurfaceOCE::SetUp(std::shared_ptr<const Surface> const &s, Real tolerance) {}
+size_type IntersectionCurveSurfaceOCE::Intersect(std::shared_ptr<const Curve> const &curve,
+                                                 std::vector<Real> *u) const {
     size_type count = 0;
-    CHECK(idx);
     //    Handle(Geom_Curve) c = geometry::detail::OCCCast<Geom_Curve, GeoObject>::eval(*curve);
     //
     //    m_body_inter_.Init(c);
@@ -259,8 +253,9 @@ size_type CutCellOCE::IntersectAxe(index_tuple const &idx, int dir, index_type l
     //    std::sort(intersection_points.begin(), intersection_points.end());
     return count;
 }
-void CutCellTagNodeOCE(Array<Real> *vertex_tags, std::shared_ptr<const Chart> const &chart,
-                       index_box_type const &m_idx_box, const std::shared_ptr<const GeoObject> &g, int tag) {
+void IntersectionCurveSurfaceTagNodeOCE(Array<Real> *vertex_tags, std::shared_ptr<const Chart> const &chart,
+                                        index_box_type const &m_idx_box, const std::shared_ptr<const GeoObject> &g,
+                                        int tag) {
     auto const &scale = chart->GetScale();
     Real tol = std::sqrt(dot(scale, scale) * 0.01);
     //    std::get<1>(m_idx_box) += 1;

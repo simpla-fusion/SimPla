@@ -26,7 +26,8 @@ struct ParametricCurve : public Curve {
     box_type GetBoundingBox() const override;
     std::shared_ptr<PolyPoints> GetBoundaryPoints() const override;
 
-    virtual point_type xyz(Real u) const;
+    point_type xyz(Real u) const override;
+
     point_type xyz(point_type const &u) const;
     point_type uvw(point_type const &x) const;
 };

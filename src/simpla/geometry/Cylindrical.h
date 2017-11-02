@@ -17,7 +17,7 @@
 #include "Surface.h"
 namespace simpla {
 namespace geometry {
-
+struct PointsOnCurve;
 /**
  *  R phi Z
  */
@@ -86,7 +86,7 @@ struct CylindricalSurface : public ParametricSurface {
 
     bool CheckIntersection(box_type const &, Real tolerance) const override;
 
-    std::shared_ptr<PolyPoints> GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const override;
+    std::shared_ptr<PointsOnCurve> GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const override;
     std::shared_ptr<Curve> GetIntersection(std::shared_ptr<const Surface> const &g, Real tolerance) const override;
 
    private:

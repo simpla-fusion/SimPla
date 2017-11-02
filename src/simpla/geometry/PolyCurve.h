@@ -19,6 +19,9 @@ struct PolyCurve : public Curve {
 
    public:
     ~PolyCurve() override;
+
+    point_type xyz(Real u) const override;
+
     bool IsClosed() const override;
     void PushBack(std::shared_ptr<Curve> const &, Real length = SP_SNaN);
     void PushFront(std::shared_ptr<Curve> const &, Real length = SP_SNaN);

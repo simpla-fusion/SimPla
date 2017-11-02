@@ -4,6 +4,7 @@
 #include "Curve.h"
 #include "Body.h"
 #include "Box.h"
+#include "PointsOnCurve.h"
 #include "PolyPoints.h"
 #include "Surface.h"
 namespace simpla {
@@ -41,9 +42,9 @@ std::shared_ptr<GeoObject> Curve::GetIntersection(std::shared_ptr<const GeoObjec
     } else if (auto box = std::dynamic_pointer_cast<const Box>(g)) {
         res = GetIntersection(box, tolerance);
     } else if (auto surface = std::dynamic_pointer_cast<const Surface>(g)) {
-        res = surface->GetIntersection(std::dynamic_pointer_cast<const Curve>(shared_from_this()), tolerance);
+        res = surface->GetIntersection(Self(), tolerance);
     } else if (auto body = std::dynamic_pointer_cast<const Body>(g)) {
-        res = body->GetIntersection(std::dynamic_pointer_cast<const Curve>(shared_from_this()), tolerance);
+        res = body->GetIntersection(Self(), tolerance);
     }
     if (res == nullptr) { res = GeoObject::GetIntersection(g, tolerance); }
     return res;
@@ -59,7 +60,8 @@ std::shared_ptr<GeoObject> Curve::GetIntersection(std::shared_ptr<const GeoObjec
 // bool Curve::TestInside(point_type const &x, Real tolerance) const { return false; }
 // bool Curve::TestInsideU(Real u) const { return m_u_min_ <= u && u <= m_u_max_; }
 // bool Curve::TestInsideUVW(point_type const &uvw, Real tolerance) const { return TestInsideU(uvw[0]); }
-// std::shared_ptr<GeoObject> Curve::GetIntersectionion(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
+// std::shared_ptr<GeoObject> Curve::GetIntersectionion(std::shared_ptr<const GeoObject> const &g, Real tolerance) const
+// {
 //    UNIMPLEMENTED;
 //    return nullptr;
 //}

@@ -19,12 +19,8 @@ struct PolyPoints : public GeoObject {
    public:
     ~PolyPoints() override;
 
-    box_type GetBoundingBox() const override;
-
-    bool CheckIntersection(point_type const &x, Real tolerance) const override;
-    bool CheckIntersection(box_type const &, Real tolerance) const override;
-    std::shared_ptr<GeoObject> GetBoundary() const override;
-    std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const override;
+    virtual size_type size() const = 0;
+    virtual point_type GetPoint(size_type idx) const = 0;
 
     //    virtual point_type Value(size_type i) const = 0;
     //    virtual size_type size() const = 0;

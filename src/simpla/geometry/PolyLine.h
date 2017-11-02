@@ -5,12 +5,12 @@
 #ifndef SIMPLA_POLYLINE_H
 #define SIMPLA_POLYLINE_H
 
-#include "Curve.h"
+#include "BoundedCurve.h"
 namespace simpla {
 namespace geometry {
 
-struct PolyLine : public Curve {
-    SP_GEO_OBJECT_HEAD(PolyLine, Curve);
+struct PolyLine : public BoundedCurve {
+    SP_GEO_OBJECT_HEAD(PolyLine, BoundedCurve);
 
    protected:
     PolyLine();
@@ -20,7 +20,7 @@ struct PolyLine : public Curve {
    public:
     ~PolyLine() override;
     bool IsClosed() const override;
-
+    point_type xyz(Real u) const override;
 
    private:
     struct pimpl_s;

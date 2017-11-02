@@ -16,7 +16,7 @@ namespace simpla {
 template <typename, int...>
 struct nTuple;
 namespace geometry {
-struct PolyPoints;
+struct PointsOnCurve;
 struct Curve;
 struct Body;
 /**
@@ -39,7 +39,7 @@ struct Surface : public GeoObject {
     virtual std::shared_ptr<Curve> GetBoundaryCurve() const;
     std::shared_ptr<GeoObject> GetBoundary() const final;
 
-    virtual std::shared_ptr<PolyPoints> GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const;
+    virtual std::shared_ptr<PointsOnCurve> GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const;
     virtual std::shared_ptr<Curve> GetIntersection(std::shared_ptr<const Surface> const &g, Real tolerance) const;
     std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const final;
     std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g) const;

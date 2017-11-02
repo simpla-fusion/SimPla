@@ -19,12 +19,9 @@ Plane::~Plane() = default;
 
 void Plane::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
 std::shared_ptr<simpla::data::DataNode> Plane::Serialize() const { return base_type::Serialize(); }
-std::shared_ptr<PolyPoints> Plane::GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const {
-    std::shared_ptr<PolyPoints> res = nullptr;
-    if (auto line = std::dynamic_pointer_cast<const Line>(g)) {
-    } else {
-        res = g->GetIntersection(std::dynamic_pointer_cast<const Plane>(shared_from_this()), tolerance);
-    }
+std::shared_ptr<PointsOnCurve> Plane::GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const {
+    std::shared_ptr<PointsOnCurve> res = nullptr;
+    if (auto line = std::dynamic_pointer_cast<const Line>(g)) {}
     return res;
 }
 

@@ -15,7 +15,6 @@ using namespace simpla;
 int main(int argc, char** argv) {
     logger::set_stdout_level(1000);
     sg::GeoEngine::Initialize("OCE");
-    CHECK(sg::GeoEngine::RegisterName_s());
     auto t_surf = sg::Toroidal::New();
     std::cout << *t_surf->Serialize() << std::endl;
     auto line = sg::Line::New(point_type{0, 0, 0}, point_type{1, 0, 0});

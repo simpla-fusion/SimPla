@@ -130,80 +130,88 @@ class GeoObject : public SPObject {
     virtual bool CheckIntersection(box_type const &, Real tolerance) const;
     virtual std::shared_ptr<GeoObject> GetUnion(std::shared_ptr<const GeoObject> const &g, Real tolerance) const;
     virtual std::shared_ptr<GeoObject> GetDifference(std::shared_ptr<const GeoObject> const &g, Real tolerance) const;
-    virtual std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g,
-                                                          Real tolerance) const;
+    virtual std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const;
 
    protected:
     Axis m_axis_{};
 };
 
-#define SP_GEO_ABS_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_)                                                 \
-   public:                                                                                                \
-    static std::string FancyTypeName_s() { return __STRING(_CLASS_NAME_); }                               \
-    virtual std::string FancyTypeName() const override { return __STRING(_CLASS_NAME_); }                 \
-                                                                                                          \
-   private:                                                                                               \
-    typedef _BASE_NAME_ base_type;                                                                        \
-    typedef _CLASS_NAME_ this_type;                                                                       \
-                                                                                                          \
-   public:                                                                                                \
-    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;                        \
-    std::shared_ptr<simpla::data::DataNode> Serialize() const override;                                   \
-    std::shared_ptr<this_type> CopyThis() const { return std::dynamic_pointer_cast<this_type>(Copy()); }; \
-    template <typename... Args>                                                                           \
-    std::shared_ptr<this_type> Mirrored(Args &&... args) const {                                          \
-        auto res = CopyThis();                                                                            \
-        res->Mirror(std::forward<Args>(args)...);                                                         \
-        return res;                                                                                       \
-    }                                                                                                     \
-    template <typename... Args>                                                                           \
-    std::shared_ptr<this_type> Rotated(Args &&... args) const {                                           \
-        auto res = CopyThis();                                                                            \
-        res->Rotate(std::forward<Args>(args)...);                                                         \
-        return res;                                                                                       \
-    };                                                                                                    \
-    template <typename... Args>                                                                           \
-    std::shared_ptr<this_type> Scaled(Args &&... args) const {                                            \
-        auto res = CopyThis();                                                                            \
-        res->Scale(std::forward<Args>(args)...);                                                          \
-        return res;                                                                                       \
-    }                                                                                                     \
-    template <typename... Args>                                                                           \
-    std::shared_ptr<this_type> Translated(Args &&... args) const {                                        \
-        auto res = CopyThis();                                                                            \
-        res->Translate(std::forward<Args>(args)...);                                                      \
-        return res;                                                                                       \
-    }                                                                                                     \
-    template <typename... Args>                                                                           \
-    std::shared_ptr<this_type> Moved(Args &&... args) const {                                             \
-        auto res = CopyThis();                                                                            \
-        res->Move(std::forward<Args>(args)...);                                                           \
-        return res;                                                                                       \
+#define SP_GEO_ABS_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_)                                                   \
+   public:                                                                                                  \
+    static std::string FancyTypeName_s() { return __STRING(_CLASS_NAME_); }                                 \
+    virtual std::string FancyTypeName() const override { return __STRING(_CLASS_NAME_); }                   \
+                                                                                                            \
+   private:                                                                                                 \
+    typedef _BASE_NAME_ base_type;                                                                          \
+    typedef _CLASS_NAME_ this_type;                                                                         \
+                                                                                                            \
+   public:                                                                                                  \
+    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;                          \
+    std::shared_ptr<simpla::data::DataNode> Serialize() const override;                                     \
+    std::shared_ptr<this_type> CopyThis() const { return std::dynamic_pointer_cast<this_type>(Copy()); };   \
+    std::shared_ptr<const this_type> Self() const {                                                         \
+        return std::dynamic_pointer_cast<const this_type>(shared_from_this());                              \
+    };                                                                                                      \
+    std::shared_ptr<this_type> Self() { return std::dynamic_pointer_cast<this_type>(shared_from_this()); }; \
+    template <typename... Args>                                                                             \
+    std::shared_ptr<this_type> Mirrored(Args &&... args) const {                                            \
+        auto res = CopyThis();                                                                              \
+        res->Mirror(std::forward<Args>(args)...);                                                           \
+        return res;                                                                                         \
+    }                                                                                                       \
+    template <typename... Args>                                                                             \
+    std::shared_ptr<this_type> Rotated(Args &&... args) const {                                             \
+        auto res = CopyThis();                                                                              \
+        res->Rotate(std::forward<Args>(args)...);                                                           \
+        return res;                                                                                         \
+    };                                                                                                      \
+    template <typename... Args>                                                                             \
+    std::shared_ptr<this_type> Scaled(Args &&... args) const {                                              \
+        auto res = CopyThis();                                                                              \
+        res->Scale(std::forward<Args>(args)...);                                                            \
+        return res;                                                                                         \
+    }                                                                                                       \
+    template <typename... Args>                                                                             \
+    std::shared_ptr<this_type> Translated(Args &&... args) const {                                          \
+        auto res = CopyThis();                                                                              \
+        res->Translate(std::forward<Args>(args)...);                                                        \
+        return res;                                                                                         \
+    }                                                                                                       \
+    template <typename... Args>                                                                             \
+    std::shared_ptr<this_type> Moved(Args &&... args) const {                                               \
+        auto res = CopyThis();                                                                              \
+        res->Move(std::forward<Args>(args)...);                                                             \
+        return res;                                                                                         \
     }
 
-#define SP_GEO_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_)                                     \
-   public:                                                                                \
-    static std::string FancyTypeName_s() { return __STRING(_CLASS_NAME_); }               \
-    virtual std::string FancyTypeName() const override { return __STRING(_CLASS_NAME_); } \
-                                                                                          \
-   private:                                                                               \
-    typedef _BASE_NAME_ base_type;                                                        \
-    typedef _CLASS_NAME_ this_type;                                                       \
-    static bool _is_registered;                                                           \
-                                                                                          \
-   public:                                                                                \
-    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;        \
-    std::shared_ptr<simpla::data::DataNode> Serialize() const override;                   \
-                                                                                          \
-    template <typename... Args>                                                           \
-    static std::shared_ptr<this_type> New(Args &&... args) {                              \
-        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));    \
-    };                                                                                    \
-    static std::shared_ptr<this_type> New(std::shared_ptr<data::DataNode> const &cfg) {   \
-        return std::dynamic_pointer_cast<this_type>(simpla::SPObject::Create(cfg));       \
-    };                                                                                    \
-                                                                                          \
-    std::shared_ptr<GeoObject> Copy() const override { return std::shared_ptr<this_type>(new this_type(*this)); };
+#define SP_GEO_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_)                                                              \
+   public:                                                                                                         \
+    static std::string FancyTypeName_s() { return __STRING(_CLASS_NAME_); }                                        \
+    virtual std::string FancyTypeName() const override { return __STRING(_CLASS_NAME_); }                          \
+                                                                                                                   \
+   private:                                                                                                        \
+    typedef _BASE_NAME_ base_type;                                                                                 \
+    typedef _CLASS_NAME_ this_type;                                                                                \
+    static bool _is_registered;                                                                                    \
+                                                                                                                   \
+   public:                                                                                                         \
+    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;                                 \
+    std::shared_ptr<simpla::data::DataNode> Serialize() const override;                                            \
+                                                                                                                   \
+    template <typename... Args>                                                                                    \
+    static std::shared_ptr<this_type> New(Args &&... args) {                                                       \
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));                             \
+    };                                                                                                             \
+    static std::shared_ptr<this_type> New(std::shared_ptr<data::DataNode> const &cfg) {                            \
+        return std::dynamic_pointer_cast<this_type>(simpla::SPObject::Create(cfg));                                \
+    };                                                                                                             \
+                                                                                                                   \
+    std::shared_ptr<GeoObject> Copy() const override { return std::shared_ptr<this_type>(new this_type(*this)); }; \
+    std::shared_ptr<this_type> CopyThis() const { return std::dynamic_pointer_cast<this_type>(Copy()); };          \
+    std::shared_ptr<const this_type> Self() const {                                                                \
+        return std::dynamic_pointer_cast<const this_type>(shared_from_this());                                     \
+    };                                                                                                             \
+    std::shared_ptr<this_type> Self() { return std::dynamic_pointer_cast<this_type>(shared_from_this()); };
 
 }  // namespace geometry
 }  // namespace simpla

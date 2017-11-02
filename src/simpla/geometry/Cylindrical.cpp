@@ -3,6 +3,7 @@
 //
 
 #include "Cylindrical.h"
+#include "PointsOnCurve.h"
 namespace simpla {
 namespace geometry {
 SP_DEF_SHAPE_FUNCTION_PARA_VALUE_RANGE(Cylindrical)
@@ -57,14 +58,13 @@ bool CylindricalSurface::CheckIntersection(box_type const &b, Real tolerance) co
     return m_shape_.TestBoxGetIntersectionion(m_axis_.uvw(std::get<0>(b)), m_axis_.uvw(std::get<1>(b)));
 }
 
-std::shared_ptr<PolyPoints> CylindricalSurface::GetIntersection(std::shared_ptr<const Curve> const &g,
-                                                             Real tolerance) const {
-    UNIMPLEMENTED;
-    return nullptr;
+std::shared_ptr<PointsOnCurve> CylindricalSurface::GetIntersection(std::shared_ptr<const Curve> const &g,
+                                                                   Real tolerance) const {
+    return base_type::GetIntersection(g, tolerance);
 };
-std::shared_ptr<Curve> CylindricalSurface::GetIntersection(std::shared_ptr<const Surface> const &g, Real tolerance) const {
-    UNIMPLEMENTED;
-    return nullptr;
+std::shared_ptr<Curve> CylindricalSurface::GetIntersection(std::shared_ptr<const Surface> const &g,
+                                                           Real tolerance) const {
+    return base_type::GetIntersection(g, tolerance);
 }
 }  // namespace geometry {
 }  // namespace simpla {

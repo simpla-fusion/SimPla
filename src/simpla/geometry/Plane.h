@@ -39,7 +39,7 @@ struct Plane : public ParametricSurface {
     Plane();
     Plane(Plane const &);
     explicit Plane(Axis const &axis);
-    Plane(point_type const &o, vector_type const &x, vector_type const &y);
+    explicit Plane(point_type const &o, vector_type const &x, vector_type const &y);
 
    public:
     ~Plane() override;
@@ -48,7 +48,8 @@ struct Plane : public ParametricSurface {
     box_type GetValueRange() const override;
     point_type xyz(Real u, Real v) const override { return m_axis_.xyz(m_shape_.Value(u, v, 0)); }
     point_type uvw(Real x, Real y, Real z) const override { return m_axis_.uvw(m_shape_.InvValue(x, y, z)); }
-    std::shared_ptr<PolyPoints> GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const override;
+    std::shared_ptr<PointsOnCurve> GetIntersection(std::shared_ptr<const Curve> const &g,
+                                                   Real tolerance) const override;
     std::shared_ptr<Curve> GetIntersection(std::shared_ptr<const Surface> const &g, Real tolerance) const override;
     bool CheckIntersection(point_type const &, Real tolerance) const override;
     bool CheckIntersection(box_type const &, Real tolerance) const override;

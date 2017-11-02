@@ -8,6 +8,7 @@
 #include "Curve.h"
 #include "GeoAlgorithm.h"
 #include "GeoObject.h"
+#include "PointsOnCurve.h"
 namespace simpla {
 namespace geometry {
 Surface::Surface() = default;
@@ -24,8 +25,8 @@ std::shared_ptr<Curve> Surface::GetBoundaryCurve() const {
 std::shared_ptr<GeoObject> Surface::GetBoundary() const {
     return std::dynamic_pointer_cast<GeoObject>(GetBoundaryCurve());
 };
-std::shared_ptr<PolyPoints> Surface::GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const {
-    return std::dynamic_pointer_cast<PolyPoints>(base_type::GetIntersection((g), tolerance));
+std::shared_ptr<PointsOnCurve> Surface::GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const {
+    return std::dynamic_pointer_cast<PointsOnCurve>(base_type::GetIntersection((g), tolerance));
 }
 std::shared_ptr<Curve> Surface::GetIntersection(std::shared_ptr<const Surface> const &g, Real tolerance) const {
     return std::dynamic_pointer_cast<Curve>(base_type::GetIntersection((g), tolerance));
@@ -95,7 +96,8 @@ std::shared_ptr<GeoObject> Surface::GetIntersection(std::shared_ptr<const GeoObj
 //    return false;
 //}
 //
-// std::shared_ptr<GeoObject> Surface::GetIntersectionion(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
+// std::shared_ptr<GeoObject> Surface::GetIntersectionion(std::shared_ptr<const GeoObject> const &g, Real tolerance)
+// const {
 //    return nullptr;
 //}
 // point_type Surface::Value(point_type const &uvw) const { return Value(uvw[0], uvw[1]); }

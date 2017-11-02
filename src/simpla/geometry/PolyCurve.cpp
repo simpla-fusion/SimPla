@@ -35,16 +35,16 @@ std::shared_ptr<simpla::data::DataNode> PolyCurve::Serialize() const {
     return res;
 }
 
-// point_type PolyCurve::Value(Real u) const {
-//    if (m_pimpl_->m_is_periodic_ || m_pimpl_->m_is_closed_) {
-//        u -= static_cast<int>((u - m_pimpl_->m_min_) / (m_pimpl_->m_max_ - m_pimpl_->m_min_)) *
-//             (m_pimpl_->m_max_ - m_pimpl_->m_min_);
-//    }
-//    auto it = m_pimpl_->m_c_list_.rbegin();
-//    while (u < it->first && it != m_pimpl_->m_c_list_.rend()) { --it; };
-//    ASSERT(it != m_pimpl_->m_c_list_.rend());
-//    return it->second->Value(u);
-//}
+point_type PolyCurve::xyz(Real u) const {
+    if (m_pimpl_->m_is_periodic_ || m_pimpl_->m_is_closed_) {
+        u -= static_cast<int>((u - m_pimpl_->m_min_) / (m_pimpl_->m_max_ - m_pimpl_->m_min_)) *
+             (m_pimpl_->m_max_ - m_pimpl_->m_min_);
+    }
+    auto it = m_pimpl_->m_c_list_.rbegin();
+    while (u < it->first && it != m_pimpl_->m_c_list_.rend()) { --it; };
+    ASSERT(it != m_pimpl_->m_c_list_.rend());
+    return it->second->xyz(u);
+}
 void PolyCurve::PushBack(std::shared_ptr<Curve> const &c, Real length) {
     //    length = std::isnan(length) ? (c->GetMaxParameter() - c->GetMinParameter()) : length;
     //    m_pimpl_->m_c_list_.push_front(std::make_pair(m_pimpl_->m_max_, c));
