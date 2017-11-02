@@ -5,11 +5,9 @@
 #ifndef SIMPLA_MPIUPDATER_H
 #define SIMPLA_MPIUPDATER_H
 
-#include "simpla/SIMPLA_config.h"
-
 #include <simpla/utilities/SPDefines.h>
 #include <memory>
-
+#include "simpla/SIMPLA_config.h"
 #include "simpla/algebra/Array.h"
 
 namespace simpla {

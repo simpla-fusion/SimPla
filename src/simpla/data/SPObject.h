@@ -162,9 +162,9 @@ std::istream &operator>>(std::istream &is, SPObject &obj);
                                  std::forward<Args>(args)...);                                                   \
     };                                                                                                           \
     std::shared_ptr<const this_type> Self() const {                                                              \
-        return std::dynamic_pointer_cast<const this_type>(shared_from_this());                                   \
+        return std::dynamic_pointer_cast<const this_type>(SPObject::shared_from_this());                         \
     }                                                                                                            \
-    std::shared_ptr<this_type> Self() { return std::dynamic_pointer_cast<this_type>(shared_from_this()); }
+    std::shared_ptr<this_type> Self() { return std::dynamic_pointer_cast<this_type>(SPObject::shared_from_this()); }
 
 #define SP_OBJECT_ABS_HEAD(_CLASS_NAME_, _BASE_NAME_)                                                            \
    public:                                                                                                       \

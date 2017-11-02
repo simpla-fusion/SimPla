@@ -233,7 +233,8 @@ std::shared_ptr<geometry::GeoObject> Tokamak::Limiter() const {
     //    gp_Ax1 axis(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
     //    BRepBuilderAPI_MakeFace myBoundaryFaceProfile(wireMaker.Wire(), true);
     //    BRepPrimAPI_MakeRevol revol(myBoundaryFaceProfile.Face(), axis);
-    return geometry::Revolution::New(geometry::Polygon::New(), point_type{0, 0, 0}, vector_type{0, 0, 1});
+    return geometry::Revolution::New(geometry::Axis{point_type{0, 0, 0}, vector_type{0, 0, 1}},
+                                     geometry::Polygon::New());
 }
 std::shared_ptr<geometry::GeoObject> Tokamak::Boundary() const {
     //    BRepBuilderAPI_MakePolygon polygonMaker;
@@ -242,7 +243,8 @@ std::shared_ptr<geometry::GeoObject> Tokamak::Boundary() const {
     //    BRepBuilderAPI_MakeFace myLimterFaceProfile(polygonMaker.Wire());
     //    BRepPrimAPI_MakeRevol myLimiter(myLimterFaceProfile.Face(), axis);
     //    return geometry::GeoObjectOCE::New(myLimiter.Shape());
-    return geometry::Revolution::New(geometry::Polygon::New(), point_type{0, 0, 0}, vector_type{0, 0, 1});
+    return geometry::Revolution::New(geometry::Axis{point_type{0, 0, 0}, vector_type{0, 0, 1}},
+                                     geometry::Polygon::New());
 }
 
 }  // namespace simpla {

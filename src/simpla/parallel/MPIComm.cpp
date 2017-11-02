@@ -6,16 +6,27 @@
  */
 #include "MPIComm.h"
 #include <mpi.h>
+#include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/nTuple.ext.h>
+#include <simpla/utilities/Log.h>
 #include <simpla/utilities/parse_command_line.h>
 #include <simpla/utilities/type_cast.h>
 #include <cassert>
 #include <iostream>
+#include <typeindex>
 #include <vector>
-#include "simpla/SIMPLA_config.h"
-#include "simpla/utilities/Log.h"
 namespace simpla {
 namespace parallel {
+
+#define MPI_CALL(_CMD_)                                              \
+    {                                                                \
+        int _mpi_error_code_ = _CMD_;                                \
+        if (_mpi_error_code_ != MPI_SUCCESS) {                       \
+            char _error_msg[MPI_MAX_ERROR_STRING];                   \
+            MPI_Error_string(_mpi_error_code_, _error_msg, nullptr); \
+            THROW_EXCEPTION_RUNTIME_ERROR(_error_msg);               \
+        }                                                            \
+    }
 
 struct MPIComm::pimpl_s {
     static constexpr int MAX_NUM_OF_DIMS = 3;
@@ -23,18 +34,15 @@ struct MPIComm::pimpl_s {
     size_type m_object_id_count_ = 0;
     int m_topology_ndims_ = 3;
     int m_topology_dims_[3] = {0, 1, 1};
+
+    MPI_Datatype DataType(size_type type_hash);
 };
 
 MPIComm::MPIComm() : m_pimpl_(new pimpl_s) {}
-
 MPIComm::MPIComm(int argc, char **argv) : MPIComm() { Initialize(argc, argv); }
-
 MPIComm::~MPIComm() { Finalize(); }
-
 int MPIComm::process_num() const { return rank(); }
-
 int MPIComm::num_of_process() const { return size(); }
-
 int MPIComm::rank() const {
     int res = 0;
     if (m_pimpl_->m_comm_ != MPI_COMM_NULL) { MPI_Comm_rank(m_pimpl_->m_comm_, &res); }
@@ -76,7 +84,6 @@ void MPIComm::Initialize(int argc, char **argv) {
         MPI_CALL(MPI_Cart_create(MPI_COMM_WORLD, m_pimpl_->m_topology_ndims_, m_pimpl_->m_topology_dims_, periods,
                                  MPI_ORDER_C, &m_pimpl_->m_comm_));
         logger::set_mpi_comm(rank(), size());
-
         MPI_CALL(MPI_Cart_coords(m_pimpl_->m_comm_, rank(), m_pimpl_->m_topology_ndims_, m_topology_coord_));
 
         INFORM << "MPI communicator is initialized! "
@@ -90,13 +97,11 @@ void MPIComm::Initialize(int argc, char **argv) {
 
 size_type MPIComm::generate_object_id() {
     assert(m_pimpl_ != nullptr);
-
     ++(m_pimpl_->m_object_id_count_);
-
     return m_pimpl_->m_object_id_count_;
 }
 
-MPI_Comm MPIComm::comm() const { return m_pimpl_->m_comm_; }
+// MPI_Comm MPIComm::comm() const { return m_pimpl_->m_comm_; }
 //
 // MPI_Info MPIComm::info() {
 //    assert(m_pack_ != nullptr);
@@ -130,15 +135,50 @@ int MPIComm::topology(int *mpi_topo_ndims, int *mpi_topo_dims, int *periods, int
     }
     return SP_SUCCESS;
 };
-
+void MPIComm::CartShift(int dirction, int disp, int *left, int *right) const {
+    if (is_valid()) { MPI_CALL(MPI_Cart_shift(m_pimpl_->m_comm_, dirction, disp, left, right)); }
+}
 void MPIComm::Finalize() {
     if (m_pimpl_ != nullptr && m_pimpl_->m_comm_ != MPI_COMM_NULL) {
         VERBOSE << "MPI Communicator is closed!" << std::endl;
-
         MPI_CALL(MPI_Finalize());
-
         m_pimpl_->m_comm_ = MPI_COMM_NULL;
     }
+}
+MPI_Datatype MPIComm::pimpl_s::DataType(size_type type_hash) {
+    MPI_Datatype ele_type = MPI_DATATYPE_NULL;
+    size_type ele_size = 0;
+    if (type_hash == std::type_index(typeid(int)).hash_code()) {
+        ele_size = sizeof(int);
+        ele_type = MPI_INT;
+    } else if (type_hash == std::type_index(typeid(double)).hash_code()) {
+        ele_size = sizeof(double);
+        ele_type = MPI_DOUBLE;
+    } else if (type_hash == std::type_index(typeid(float)).hash_code()) {
+        ele_size = sizeof(float);
+        ele_type = MPI_FLOAT;
+    } else if (type_hash == std::type_index(typeid(long)).hash_code()) {
+        ele_size = sizeof(long);
+        ele_type = MPI_LONG;
+    } else if (type_hash == std::type_index(typeid(unsigned long)).hash_code()) {
+        ele_size = sizeof(unsigned long);
+        ele_type = MPI_UNSIGNED_LONG;
+    } else if (type_hash == std::type_index(typeid(unsigned int)).hash_code()) {
+        ele_size = sizeof(unsigned int);
+        ele_type = MPI_UNSIGNED;
+    } else {
+        UNIMPLEMENTED;
+    }
+    return ele_type;
+}
+
+void MPIComm::SendRecv(const void *sendbuf, int sendcount, size_type sendtype_hash, int dest, int sendtag,
+                       void *recvbuf, int recvcount, size_type recvtype_hash, int source, int recvtag) {
+    MPI_CALL(MPI_Sendrecv(sendbuf, sendcount,                                  //
+                          m_pimpl_->DataType(sendtype_hash), dest, sendtag,    //
+                          recvbuf, recvcount,                                  //
+                          m_pimpl_->DataType(recvtype_hash), source, recvtag,  //
+                          m_pimpl_->m_comm_, MPI_STATUS_IGNORE));
 }
 
 std::string bcast_string(std::string const &str, int root) {
@@ -232,5 +272,6 @@ std::string gather_string(std::string const &str, int root, size_type *num, size
     if (do_bcast) { res = bcast_string(res, root); }
     return res;
 }
-}
-}  // namespace simpla{namespace parallel{
+
+}  // namespace parallel{
+}  // namespace simpla{

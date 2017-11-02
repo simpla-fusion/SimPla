@@ -1,4 +1,11 @@
 #FILE(GLOB parallel_SRC./*.cpp)
-SET(parallel_SRC  MPIComm.h MPIComm.cpp Parallel.cpp MPIUpdater.cpp MPIUpdater.h)
+FIND_PACKAGE(MPI REQUIRED)
+IF (MPI_FOUND)
+    ADD_DEFINITIONS(-DOMPI_SKIP_MPICXX)
+    MESSAGE("-- MPI : " ${MPI_C_INCLUDE_PATH})
+ENDIF (MPI_FOUND)
+
+SET(parallel_SRC MPIComm.h MPIComm.cpp Parallel.cpp MPIUpdater.cpp MPIUpdater.h)
 add_library(parallel ${parallel_SRC})
-target_link_libraries(parallel ${MPI_LIBRARIES})
+target_link_libraries(parallel ${MPI_C_LIBRARIES})
+target_include_directories(parallel BEFORE PRIVATE ${MPI_C_INCLUDE_PATH})

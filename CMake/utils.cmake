@@ -16,7 +16,6 @@ endfunction()
 
 MACRO(SUBDIRLIST result curdir)
     FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
-    SET(dirlist "")
     FOREACH (child ${children})
         IF (EXISTS ${curdir}/${child}/CMakeLists.txt)
             LIST(APPEND dirlist ${child})

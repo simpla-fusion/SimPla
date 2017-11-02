@@ -189,8 +189,8 @@ void Domain<TChart, Policies...>::DoInitialCondition(Real time_now) {
         m_edge_frac_[1].Fill(1.0);
         m_edge_frac_[2].Fill(1.0);
 
-        geometry::CutCellTagNode(&m_node_tag_, &m_edge_frac_[0], GetChart(), GetMeshBlock()->GetIndexBox(),
-                                 GetBoundary(), 0b001);
+//        geometry::CutCellTagNode(&m_node_tag_, &m_edge_frac_[0], GetChart(), GetMeshBlock()->GetIndexBox(),
+//                                 GetBoundary(), 0b001);
     }
 }
 

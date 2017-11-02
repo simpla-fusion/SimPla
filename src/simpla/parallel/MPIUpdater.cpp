@@ -2,11 +2,10 @@
 // Created by salmon on 17-9-18.
 //
 #include "MPIUpdater.h"
-#include <mpi.h>
+#include <simpla/SIMPLA_config.h>
+#include <simpla/utilities/macro.h>
+#include <typeinfo>
 #include "MPIComm.h"
-#include "simpla/SIMPLA_config.h"
-#include "simpla/utilities/macro.h"
-
 namespace simpla {
 namespace parallel {
 
@@ -23,7 +22,8 @@ struct MPIUpdater::pimpl_s {
 
     //    index_tuple m_gw_{2, 2, 2};
 
-    MPI_Datatype ele_type;
+    //    MPI_Datatype ele_type;
+    size_t ele_type;
     int tag = 0;
     int m_direction_ = 0;
     int left = 0, right = 0;
@@ -33,7 +33,6 @@ struct MPIUpdater::pimpl_s {
 };
 MPIUpdater::MPIUpdater() : m_pimpl_(new pimpl_s) {
     if (GLOBAL_COMM.size() <= 1) { return; }
-
     SP_CALL(GLOBAL_COMM.topology(&m_pimpl_->mpi_topology_ndims, m_pimpl_->mpi_dims, m_pimpl_->mpi_periods,
                                  m_pimpl_->mpi_coords));
 };
@@ -102,28 +101,7 @@ void MPIUpdater::SetUp() {
     std::get<0>(recv_box[1])[d] = std::get<1>(m_pimpl_->m_index_box_)[d];
     std::get<1>(recv_box[1])[d] = std::get<1>(m_pimpl_->m_halo_box_)[d];
 
-    size_type ele_size = 0;
-    if (value_type_info() == typeid(int)) {
-        ele_size = sizeof(int);
-        m_pimpl_->ele_type = MPI_INT;
-    } else if (value_type_info() == typeid(double)) {
-        ele_size = sizeof(double);
-        m_pimpl_->ele_type = MPI_DOUBLE;
-    } else if (value_type_info() == typeid(float)) {
-        ele_size = sizeof(float);
-        m_pimpl_->ele_type = MPI_FLOAT;
-    } else if (value_type_info() == typeid(long)) {
-        ele_size = sizeof(long);
-        m_pimpl_->ele_type = MPI_LONG;
-    } else if (value_type_info() == typeid(unsigned long)) {
-        ele_size = sizeof(unsigned long);
-        m_pimpl_->ele_type = MPI_UNSIGNED_LONG;
-    } else if (value_type_info() == typeid(unsigned int)) {
-        ele_size = sizeof(unsigned int);
-        m_pimpl_->ele_type = MPI_UNSIGNED;
-    } else {
-        UNIMPLEMENTED;
-    }
+    m_pimpl_->ele_type = value_type_info().hash_code();
 
     for (int i = 0; i < 2; ++i) {
         GetSendBuffer(i).reset(send_box[i]);
@@ -131,12 +109,9 @@ void MPIUpdater::SetUp() {
         GetSendBuffer(i).Clear();
         GetRecvBuffer(i).Clear();
     }
-#ifdef MPI_FOUND
-    if (GLOBAL_COMM.is_valid()) {
-        MPI_CALL(MPI_Comm_rank(GLOBAL_COMM.comm(), &m_pimpl_->m_rank_));
-        MPI_CALL(MPI_Cart_shift(GLOBAL_COMM.comm(), m_pimpl_->m_direction_, 1, &m_pimpl_->left, &m_pimpl_->right));
-    }
-#endif
+
+    m_pimpl_->m_rank_ = GLOBAL_COMM.rank();
+    GLOBAL_COMM.CartShift(m_pimpl_->m_direction_, 1, &m_pimpl_->left, &m_pimpl_->right);
 }
 void MPIUpdater::Clear() {
     GetRecvBuffer(0).FillNaN();
@@ -161,17 +136,17 @@ void MPIUpdater::Pop(ArrayBase &a) const {
 void MPIUpdater::SendRecv() {
     if (GLOBAL_COMM.size() > 1 && m_pimpl_->left != m_pimpl_->m_rank_ && m_pimpl_->right != m_pimpl_->m_rank_) {
         GLOBAL_COMM.barrier();
-        MPI_CALL(MPI_Sendrecv(GetSendBuffer(0).pointer(), static_cast<int>(GetSendBuffer(0).size()),  //
-                              m_pimpl_->ele_type, m_pimpl_->left, m_pimpl_->tag,                      //
-                              GetRecvBuffer(1).pointer(), static_cast<int>(GetRecvBuffer(1).size()),  //
-                              m_pimpl_->ele_type, m_pimpl_->right, m_pimpl_->tag,                     //
-                              GLOBAL_COMM.comm(), MPI_STATUS_IGNORE));
+        GLOBAL_COMM.SendRecv(GetSendBuffer(0).pointer(), static_cast<int>(GetSendBuffer(0).size()),  //
+                             m_pimpl_->ele_type, m_pimpl_->left, m_pimpl_->tag,                      //
+                             GetRecvBuffer(1).pointer(), static_cast<int>(GetRecvBuffer(1).size()),  //
+                             m_pimpl_->ele_type, m_pimpl_->right, m_pimpl_->tag                      //
+                             );
         GLOBAL_COMM.barrier();
-        MPI_CALL(MPI_Sendrecv(GetSendBuffer(1).pointer(), static_cast<int>(GetSendBuffer(1).size()),  //
-                              m_pimpl_->ele_type, m_pimpl_->right, m_pimpl_->tag,                     //
-                              GetRecvBuffer(0).pointer(), static_cast<int>(GetRecvBuffer(0).size()),  //
-                              m_pimpl_->ele_type, m_pimpl_->left, m_pimpl_->tag,                      //
-                              GLOBAL_COMM.comm(), MPI_STATUS_IGNORE));
+        GLOBAL_COMM.SendRecv(GetSendBuffer(1).pointer(), static_cast<int>(GetSendBuffer(1).size()),  //
+                             m_pimpl_->ele_type, m_pimpl_->right, m_pimpl_->tag,                     //
+                             GetRecvBuffer(0).pointer(), static_cast<int>(GetRecvBuffer(0).size()),  //
+                             m_pimpl_->ele_type, m_pimpl_->left, m_pimpl_->tag                       //
+                             );
         GLOBAL_COMM.barrier();
     } else  // if (IsPeriodic())
     {

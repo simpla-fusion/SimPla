@@ -5,11 +5,11 @@
 #include "simpla/SIMPLA_config.h"
 
 #include <simpla/application/SPInit.h>
+#include <simpla/engine/EBDomain.h>
+#include <simpla/geometry/Box.h>
 #include <simpla/geometry/BoxUtilities.h>
-#include <simpla/geometry/Cube.h>
 #include <simpla/geometry/csCartesian.h>
 #include <simpla/mesh/CoRectMesh.h>
-#include <simpla/engine/EBDomain.h>
 #include <simpla/mesh/RectMesh.h>
 #include <simpla/predefine/engine/SimpleTimeIntegrator.h>
 #include <simpla/predefine/physics/Maxwell.h>
@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
     scenario->GetAtlas()->NewChart<simpla::geometry::csCartesian>();
 
     auto center = scenario->NewDomain<SimpleMaxwell>("Center");
-    center->SetBoundary(geometry::Cube::New(box_type{{-15, -25, -20}, {15, 25, 20}}));
+    center->SetBoundary(geometry::Box::New(box_type{{-15, -25, -20}, {15, 25, 20}}));
     center->PostInitialCondition.Connect([=](DomainBase *self, Real time_now) {
         if (auto d = dynamic_cast<SimpleMaxwell *>(self)) {
             d->B = [&](point_type const &x) {
@@ -64,9 +64,9 @@ int main(int argc, char **argv) {
         }
     });
     //    scenario->NewDomain<SimpleMaxwell>("boundary0")
-    //        ->SetBoundary(geometry::Cube::New(box_type{{-20, -25, -20}, {-15, 25, 20}}));
+    //        ->SetBoundary(geometry::Box::New(box_type{{-20, -25, -20}, {-15, 25, 20}}));
     //    scenario->NewDomain<SimpleMaxwell>("boundary1")
-    //        ->SetBoundary(geometry::Cube::New(box_type{{15, -25, -20}, {20, 25, 20}}));
+    //        ->SetBoundary(geometry::Box::New(box_type{{15, -25, -20}, {20, 25, 20}}));
     auto pml = scenario->NewDomain<SimplePML>("PML");
     pml->SetBoundingBox(box_type{{-20, -25, -20}, {20, 25, 20}});
     pml->SetCenterBox(center->GetBoundingBox());
