@@ -3,6 +3,8 @@
 //
 
 #include "GeoEngineOCE.h"
+#include "../GeoObject.h"
+
 #include <simpla/algebra/nTuple.ext.h>
 
 #include <simpla/geometry/Chart.h>
@@ -34,14 +36,19 @@ namespace simpla {
 namespace geometry {
 
 struct GeoObjectOCE : public GeoObject {
-    SP_OBJECT_HEAD(GeoObjectOCE, GeoObject)
+    SP_GEO_OBJECT_HEAD(GeoObjectOCE, GeoObject)
 
    public:
+    GeoObjectOCE();
+    ~GeoObjectOCE();
     GeoObjectOCE(GeoObject const &g);
     GeoObjectOCE(TopoDS_Shape const &shape);
     std::string ClassName() const override { return "GeoObjectOCE"; }
+    static std::string RegisterName_s() { return "GeoObjectOCE"; }
 
-    void Load(std::string const &);
+    int Load(std::string const &authority, std::string const &path, std::string const &query,
+             std::string const &fragment) override;
+
     void Transform(Real scale, point_type const &location = point_type{0, 0, 0},
                    nTuple<Real, 4> const &rotate = nTuple<Real, 4>{0, 0, 0, 0});
     void DoUpdate();
@@ -49,8 +56,14 @@ struct GeoObjectOCE : public GeoObject {
     TopoDS_Shape const &GetShape() const;
     Bnd_Box const &GetOCCBoundingBox() const;
 
+    std::shared_ptr<GeoObject> GetBoundary() const override;
     box_type GetBoundingBox() const override;
     bool CheckIntersection(point_type const &x, Real tolerance) const override;
+    bool CheckIntersection(box_type const &, Real tolerance) const override;
+    std::shared_ptr<GeoObject> GetUnion(std::shared_ptr<const GeoObject> const &g, Real tolerance) const override;
+    std::shared_ptr<GeoObject> GetDifference(std::shared_ptr<const GeoObject> const &g, Real tolerance) const override;
+    std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g,
+                                               Real tolerance) const override;
 
    private:
     Real m_measure_ = SP_SNaN;
@@ -60,17 +73,16 @@ struct GeoObjectOCE : public GeoObject {
     Bnd_Box m_occ_box_;
 };
 
-SP_OBJECT_REGISTER(GeoObjectOCE)
+bool GeoObjectOCE::_is_registered = simpla::Factory<GeoObject>::RegisterCreator<GeoObjectOCE>("oce") > 0;
 
 GeoObjectOCE::GeoObjectOCE() = default;
 
 GeoObjectOCE::GeoObjectOCE(GeoObject const &g) : GeoObjectOCE() {
-    if (dynamic_cast<GeoObjectOCE const *>(&g) == nullptr) {
-        UNIMPLEMENTED;
+    if (auto p = dynamic_cast<GeoObjectOCE const *>(&g)) {
+        m_occ_shape_ = p->m_occ_shape_;
     } else {
-        m_occ_shape_ = dynamic_cast<GeoObjectOCE const &>(g).m_occ_shape_;
-        DoUpdate();
     }
+    DoUpdate();
 };
 
 GeoObjectOCE::GeoObjectOCE(TopoDS_Shape const &shape) : GeoObjectOCE() {
@@ -149,13 +161,21 @@ void GeoObjectOCE::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     DoUpdate();
     VERBOSE << " [ Bounding Box :" << m_bounding_box_ << "]" << std::endl;
 };
-
-void GeoObjectOCE::Load(std::string const &file_name) { m_occ_shape_ = LoadShape(file_name); };
+int GeoObjectOCE::Load(std::string const &authority, std::string const &path, std::string const &query,
+                       std::string const &fragment) {
+    m_occ_shape_ = LoadShape(path);
+    return m_occ_shape_.IsNull() ? SP_FAILED : SP_SUCCESS;
+};
 void GeoObjectOCE::DoUpdate() {
+    ASSERT(!m_occ_shape_.IsNull());
     BRepBndLib::Add(m_occ_shape_, m_occ_box_);
     m_occ_box_.Get(std::get<0>(m_bounding_box_)[0], std::get<0>(m_bounding_box_)[1], std::get<0>(m_bounding_box_)[2],
                    std::get<1>(m_bounding_box_)[0], std::get<1>(m_bounding_box_)[1], std::get<1>(m_bounding_box_)[2]);
 }
+std::shared_ptr<GeoObject> GeoObjectOCE::GetBoundary() const {
+    DUMMY << "";
+    return nullptr;
+};
 
 box_type GeoObjectOCE::GetBoundingBox() const { return m_bounding_box_; };
 
@@ -168,7 +188,25 @@ bool GeoObjectOCE::CheckIntersection(point_type const &x, Real tolerance) const 
     dist.Perform();
     return dist.InnerSolution();
 };
-
+bool GeoObjectOCE::CheckIntersection(box_type const &, Real tolerance) const { return false; };
+std::shared_ptr<GeoObject> GeoObjectOCE::GetUnion(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
+    DUMMY << "Union : " << g->FancyTypeName();
+    std::shared_ptr<GeoObject> res = nullptr;
+    return res;
+};
+std::shared_ptr<GeoObject> GeoObjectOCE::GetDifference(std::shared_ptr<const GeoObject> const &g,
+                                                       Real tolerance) const {
+    DUMMY << "Difference : " << g->FancyTypeName();
+    std::shared_ptr<GeoObject> res = nullptr;
+    return res;
+};
+std::shared_ptr<GeoObject> GeoObjectOCE::GetIntersection(std::shared_ptr<const GeoObject> const &g,
+                                                         Real tolerance) const {
+    DUMMY << "Intersection : OCE "
+          << " && " << g->FancyTypeName();
+    std::shared_ptr<GeoObject> res = nullptr;
+    return res;
+};
 class Surface;
 class Curve;
 namespace detail {
@@ -414,28 +452,39 @@ REGISTER_CREATOR1(GeoEngineOCE);
 GeoEngineOCE::GeoEngineOCE() = default;
 GeoEngineOCE::~GeoEngineOCE() = default;
 // std::shared_ptr<GeoObject> GeoEngineOCE::GetBoundaryInterface(std::shared_ptr<const GeoObject> const &) const {}
-// bool GeoEngineOCE::CheckIntersectionInterface(std::shared_ptr<const GeoObject> const &, point_type const &x,
-//                                              Real tolerance) const {}
-// bool GeoEngineOCE::CheckIntersectionInterface(std::shared_ptr<const GeoObject> const &, box_type const &,
-//                                              Real tolerance) const {}
+bool GeoEngineOCE::CheckIntersectionInterface(std::shared_ptr<const GeoObject> const &g, point_type const &x,
+                                              Real tolerance) const {
+    bool res = false;
+    if (g != nullptr) { res = GeoObjectOCE::New(*g)->CheckIntersection(x, tolerance); }
+    return res;
+}
+bool GeoEngineOCE::CheckIntersectionInterface(std::shared_ptr<const GeoObject> const &g, box_type const &b,
+                                              Real tolerance) const {
+    bool res = false;
+    if (g != nullptr) { res = GeoObjectOCE::New(*g)->CheckIntersection(b, tolerance); }
+    return res;
+}
 
 std::shared_ptr<GeoObject> GeoEngineOCE::GetUnionInterface(std::shared_ptr<const GeoObject> const &g0,
                                                            std::shared_ptr<const GeoObject> const &g1,
                                                            Real tolerance) const {
-    DUMMY << "Union : " << g0->FancyTypeName() << " && " << g1->FancyTypeName();
-    return nullptr;
+    std::shared_ptr<GeoObject> res = nullptr;
+    if (g0 != nullptr) { res = GeoObjectOCE::New(*g0)->GetUnion(g1, tolerance); }
+    return res;
 }
 std::shared_ptr<GeoObject> GeoEngineOCE::GetDifferenceInterface(std::shared_ptr<const GeoObject> const &g0,
                                                                 std::shared_ptr<const GeoObject> const &g1,
                                                                 Real tolerance) const {
-    DUMMY << "Difference : " << g0->FancyTypeName() << " && " << g1->FancyTypeName();
-    return nullptr;
+    std::shared_ptr<GeoObject> res = nullptr;
+    if (g0 != nullptr) { res = GeoObjectOCE::New(*g0)->GetDifference(g1, tolerance); }
+    return res;
 }
 std::shared_ptr<GeoObject> GeoEngineOCE::GetIntersectionInterface(std::shared_ptr<const GeoObject> const &g0,
                                                                   std::shared_ptr<const GeoObject> const &g1,
                                                                   Real tolerance) const {
-    DUMMY << "Intersection : " << g0->FancyTypeName() << " && " << g1->FancyTypeName();
-    return nullptr;
+    std::shared_ptr<GeoObject> res = nullptr;
+    if (g0 != nullptr) { res = GeoObjectOCE::New(*g0)->GetIntersection(g1, tolerance); }
+    return res;
 }
 }  // namespace geometry
 }  // namespace simpla

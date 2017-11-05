@@ -13,7 +13,7 @@ box_type sfCone::GetValueRange() const {
 SP_DEF_PARA_VALUE_RANGE(Cone)
 SP_DEF_PARA_VALUE_RANGE(ConicalSurface)
 
-SP_OBJECT_REGISTER(ConicalSurface)
+SP_GEO_OBJECT_REGISTER(ConicalSurface)
 
 void ConicalSurface::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
 std::shared_ptr<simpla::data::DataNode> ConicalSurface::Serialize() const {
@@ -29,7 +29,7 @@ ConicalSurface::~ConicalSurface() = default;
 point_type ConicalSurface::xyz(Real u, Real v) const { return m_axis_.xyz(m_shape_.Value(u, v)); };
 point_type ConicalSurface::uvw(Real x, Real y, Real z) const { return m_shape_.InvValue(m_axis_.uvw(x, y, z)); };
 
-SP_OBJECT_REGISTER(Cone)
+SP_GEO_OBJECT_REGISTER(Cone)
 Cone::Cone() = default;
 Cone::Cone(Axis const &axis, Real semi_angle) : ParametricBody(axis), m_shape_(semi_angle){};
 Cone::~Cone() = default;

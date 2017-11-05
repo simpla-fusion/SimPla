@@ -9,7 +9,7 @@
 namespace simpla {
 namespace geometry {
 
-SP_OBJECT_REGISTER(Box)
+SP_GEO_OBJECT_REGISTER(Box)
 constexpr Real Box::m_parameter_range_[2][3];
 constexpr Real Box::m_value_range_[2][3];
 Box::Box() = default;

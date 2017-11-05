@@ -7,7 +7,7 @@
 #include "Line.h"
 namespace simpla {
 namespace geometry {
-SP_OBJECT_REGISTER(Plane)
+SP_GEO_OBJECT_REGISTER(Plane)
 SP_DEF_SHAPE_FUNCTION_PARA_VALUE_RANGE(Plane)
 SP_DEF_PARA_VALUE_RANGE(Plane)
 

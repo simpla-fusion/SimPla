@@ -12,7 +12,7 @@ class Bnd_Box;
 namespace simpla {
 namespace geometry {
 struct GeoObjectOCE : public GeoObject {
-    SP_OBJECT_HEAD(GeoObjectOCE, GeoObject)
+    SP_GEO_OBJECT_HEAD(GeoObjectOCE, GeoObject)
 
    public:
     GeoObjectOCE(GeoObject const &g);

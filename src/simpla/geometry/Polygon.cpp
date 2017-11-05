@@ -13,7 +13,7 @@
 
 namespace simpla {
 namespace geometry {
-SP_OBJECT_REGISTER(Polygon)
+SP_GEO_OBJECT_REGISTER(Polygon)
 
 struct Polygon::pimpl_s {
     typedef nTuple<Real, 2> point2d_type;

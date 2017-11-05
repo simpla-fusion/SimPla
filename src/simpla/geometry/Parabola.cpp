@@ -6,7 +6,7 @@
 
 namespace simpla {
 namespace geometry {
-SP_OBJECT_REGISTER(Parabola)
+SP_GEO_OBJECT_REGISTER(Parabola)
 
 void Parabola::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);

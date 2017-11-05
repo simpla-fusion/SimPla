@@ -9,7 +9,7 @@
 namespace simpla {
 namespace geometry {
 struct GetIntersectionorOCE : public GetIntersectionor {
-    SP_OBJECT_HEAD(GetIntersectionorOCE, GetIntersectionor)
+    SP_GEO_OBJECT_HEAD(GetIntersectionorOCE, GetIntersectionor)
    protected:
     GetIntersectionorOCE(std::shared_ptr<const GeoObject> const& geo, Real tolerance = 0.001);
 

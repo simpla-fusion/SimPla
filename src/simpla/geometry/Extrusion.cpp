@@ -18,7 +18,7 @@ std::shared_ptr<simpla::data::DataNode> Extrusion::Serialize() const {
 
 /*******************************************************************************************************************/
 
-SP_OBJECT_REGISTER(ExtrusionSurface)
+SP_GEO_OBJECT_REGISTER(ExtrusionSurface)
 ExtrusionSurface::ExtrusionSurface() = default;
 ExtrusionSurface::ExtrusionSurface(ExtrusionSurface const &other) = default;
 ExtrusionSurface::ExtrusionSurface(Axis const &axis) : SweptSurface(axis) {}

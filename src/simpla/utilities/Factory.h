@@ -70,7 +70,7 @@ class Factory {
         return nullptr;
     }
 
-   protected:
+   public:
     template <typename... U>
     static std::shared_ptr<TObj> Create(std::string const &k, U &&... args) {
         if (k.empty()) { return nullptr; }

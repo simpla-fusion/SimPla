@@ -3,6 +3,7 @@
 //
 #include "GeoObject.h"
 
+#include <simpla/utilities/ParsingURI.h>
 #include <memory>
 
 #include "BoxUtilities.h"
@@ -11,22 +12,44 @@
 
 namespace simpla {
 namespace geometry {
-GeoObject::GeoObject() : SPObject(){};
-GeoObject::~GeoObject(){};
-GeoObject::GeoObject(GeoObject const &other) : SPObject(other), m_axis_(other.m_axis_){};
-GeoObject::GeoObject(Axis const &axis) : SPObject(), m_axis_(axis){};
+GeoObject::GeoObject() = default;
+GeoObject::~GeoObject() = default;
+GeoObject::GeoObject(GeoObject const &other) : m_axis_(other.m_axis_){};
+GeoObject::GeoObject(Axis const &axis) : m_axis_(axis){};
+std::shared_ptr<GeoObject> GeoObject::New(std::string const &s) {
+    std::string uri = s.empty() ? "mem://" : s;
+
+    std::string scheme;
+    std::string path;
+    std::string authority;
+    std::string query;
+    std::string fragment;
+
+    std::tie(scheme, authority, path, query, fragment) = ParsingURI(uri);
+    auto res = Factory<GeoObject>::Create(scheme);
+    ASSERT(res != nullptr);
+    if (SP_SUCCESS != res->Load(authority, path, query, fragment)) {
+        RUNTIME_ERROR << "Fail to connect  Data Backend [ " << scheme << " : " << authority << path << " ]"
+                      << std::endl;
+    }
+    return res;
+}
+int GeoObject::Load(std::string const &authority, std::string const &path, std::string const &query,
+                    std::string const &fragment) {
+    return SP_SUCCESS;
+}
 std::shared_ptr<GeoObject> GeoObject::New(std::shared_ptr<data::DataNode> const &cfg) {
-    return std::dynamic_pointer_cast<this_type>(simpla::SPObject::Create(cfg));
+    auto res = Factory<GeoObject>::Create(cfg->GetValue<std::string>("_TYPE_", ""));
+    res->Deserialize(cfg);
+    return res;
 };
 std::shared_ptr<data::DataNode> GeoObject::Serialize() const {
-    auto res = base_type::Serialize();
+    auto res = data::DataNode::New(data::DataNode::DN_TABLE);
     res->Set("Axis", m_axis_.Serialize());
     return res;
 }
-void GeoObject::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
-    base_type::Deserialize(cfg);
-    m_axis_.Deserialize(cfg->Get("Axis"));
-}
+void GeoObject::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { m_axis_.Deserialize(cfg->Get("Axis")); }
+
 int GeoObject::GetDimension() const { return 3; }
 bool GeoObject::IsSimpleConnected() const { return true; }
 bool GeoObject::IsConvex() const { return true; }
@@ -42,26 +65,25 @@ void GeoObject::Rotate(const Axis &a1, Real angle) { m_axis_.Rotate(a1, angle); 
 void GeoObject::Scale(Real s, int dir) { m_axis_.Scale(s, dir); }
 void GeoObject::Translate(const vector_type &v) { m_axis_.Translate(v); }
 void GeoObject::Move(const point_type &p) { m_axis_.Move(p); }
-std::shared_ptr<GeoObject> GeoObject::GetBoundary() const { return GeoEngine::GetBoundary(self()); }
+std::shared_ptr<GeoObject> GeoObject::GetBoundary() const { return GeoEngine::GetBoundary(Self()); }
 box_type GeoObject::GetBoundingBox() const {
     return box_type{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
 }
 bool GeoObject::CheckIntersection(point_type const &p, Real tolerance) const {
-    return GeoEngine::CheckIntersection(self(), p, tolerance);
+    return GeoEngine::CheckIntersection(Self(), p, tolerance);
 }
 bool GeoObject::CheckIntersection(box_type const &b, Real tolerance) const {
-    return GeoEngine::CheckIntersection(self(), b, tolerance);
+    return GeoEngine::CheckIntersection(Self(), b, tolerance);
 }
 
 std::shared_ptr<GeoObject> GeoObject::GetUnion(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
-    return GeoEngine::GetUnion(self(), g, tolerance);
+    return GeoEngine::GetUnion(Self(), g, tolerance);
 }
 std::shared_ptr<GeoObject> GeoObject::GetDifference(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
-    return GeoEngine::GetDifference(self(), g, tolerance);
+    return GeoEngine::GetDifference(Self(), g, tolerance);
 }
-std::shared_ptr<GeoObject> GeoObject::GetIntersection(std::shared_ptr<const GeoObject> const &g,
-                                                         Real tolerance) const {
-    return GeoEngine::GetIntersection(self(), g, tolerance);
+std::shared_ptr<GeoObject> GeoObject::GetIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
+    return GeoEngine::GetIntersection(Self(), g, tolerance);
 }
 
 // std::shared_ptr<GeoObject> GeoObject::GetBoundary() const { return nullptr; }

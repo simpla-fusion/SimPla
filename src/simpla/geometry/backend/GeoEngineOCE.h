@@ -12,11 +12,11 @@ struct GeoEngineOCE : public GeoEngine {
     SP_GEO_ENGINE_HEAD(OCE, GeoEngine)
    public:
    protected:
-//    std::shared_ptr<GeoObject> GetBoundaryInterface(std::shared_ptr<const GeoObject> const &) const override;
-//    bool CheckIntersectionInterface(std::shared_ptr<const GeoObject> const &, point_type const &x,
-//                                    Real tolerance) const override;
-//    bool CheckIntersectionInterface(std::shared_ptr<const GeoObject> const &, box_type const &,
-//                                    Real tolerance) const override;
+    //    std::shared_ptr<GeoObject> GetBoundaryInterface(std::shared_ptr<const GeoObject> const &) const override;
+    bool CheckIntersectionInterface(std::shared_ptr<const GeoObject> const &, point_type const &x,
+                                    Real tolerance) const override;
+    bool CheckIntersectionInterface(std::shared_ptr<const GeoObject> const &, box_type const &,
+                                    Real tolerance) const override;
 
     std::shared_ptr<GeoObject> GetUnionInterface(std::shared_ptr<const GeoObject> const &,
                                                  std::shared_ptr<const GeoObject> const &g,

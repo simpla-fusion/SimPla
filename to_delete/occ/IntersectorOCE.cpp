@@ -18,7 +18,7 @@
 #include "OCEShape.h"
 namespace simpla {
 namespace geometry {
-SP_OBJECT_REGISTER(GetIntersectionorOCE)
+SP_GEO_OBJECT_REGISTER(GetIntersectionorOCE)
 
 struct GetIntersectionorOCE::pimpl_s {
     BRepIntCurveSurface_Inter m_body_inter_;

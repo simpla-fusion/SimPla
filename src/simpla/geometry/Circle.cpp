@@ -6,7 +6,7 @@
 
 namespace simpla {
 namespace geometry {
-SP_OBJECT_REGISTER(Circle)
+SP_GEO_OBJECT_REGISTER(Circle)
 Circle::Circle() = default;
 Circle::Circle(Circle const &) = default;
 Circle::Circle(Axis const &axis, Real radius, Real alpha0, Real alpha1) : ParametricCurve(axis), m_radius_(radius) {}

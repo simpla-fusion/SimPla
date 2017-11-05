@@ -6,7 +6,7 @@
 
 namespace simpla {
 namespace geometry {
-SP_OBJECT_REGISTER(Ellipse)
+SP_GEO_OBJECT_REGISTER(Ellipse)
 Ellipse::Ellipse() = default;
 Ellipse::Ellipse(Ellipse const &other) = default;
 Ellipse::Ellipse(Axis const &axis, Real major_radius, Real minor_radius)

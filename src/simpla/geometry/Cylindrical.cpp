@@ -36,7 +36,7 @@ std::shared_ptr<Surface> Cylindrical::GetIntersection(std::shared_ptr<const Surf
 };
 /**********************************************************************************************************************/
 
-SP_OBJECT_REGISTER(CylindricalSurface)
+SP_GEO_OBJECT_REGISTER(CylindricalSurface)
 CylindricalSurface::CylindricalSurface() = default;
 CylindricalSurface::CylindricalSurface(CylindricalSurface const &other) = default;
 CylindricalSurface::CylindricalSurface(Axis const &axis, Real radius) : ParametricSurface(axis), m_radius_(radius) {}

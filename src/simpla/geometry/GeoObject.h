@@ -75,36 +75,38 @@ namespace geometry {
  *
  *  @enduml
  */
-class GeoObject : public SPObject {
-    //    SP_OBJECT_HEAD(GeoObject, SPObject)
+class GeoObject : public std::enable_shared_from_this<GeoObject> {
+    //    SP_GEO_OBJECT_HEAD(GeoObject, SPObject)
    private:
     typedef GeoObject this_type;
-    typedef SPObject base_type;
+    typedef Factory<GeoObject> base_type;
 
    protected:
     GeoObject();
     GeoObject(GeoObject const &other);
-
     explicit GeoObject(Axis const &axis);
 
    public:
-    ~GeoObject() override;
-    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;
-    std::shared_ptr<simpla::data::DataNode> Serialize() const override;
+    virtual std::string ClassName() const { return "GeoObject"; }
+    static std::string FancyTypeName_s() { return "GeoObject"; }
+    virtual std::string FancyTypeName() const { return simpla::traits::type_name<this_type>::value(); }
+
+    virtual ~GeoObject();
+    virtual void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg);
+    virtual std::shared_ptr<simpla::data::DataNode> Serialize() const;
+
+    static std::shared_ptr<this_type> New(std::string const &cfg);
     static std::shared_ptr<this_type> New(std::shared_ptr<data::DataNode> const &cfg);
-    std::shared_ptr<const this_type> self() const {
-        return std::dynamic_pointer_cast<const this_type>(shared_from_this());
-    }
-    std::shared_ptr<this_type> self() { return std::dynamic_pointer_cast<this_type>(shared_from_this()); }
+
+    std::shared_ptr<const this_type> Self() const { return (shared_from_this()); }
+    std::shared_ptr<this_type> Self() { return (shared_from_this()); }
 
     virtual std::shared_ptr<GeoObject> Copy() const = 0;
 
+    virtual int Load(std::string const &authority, std::string const &path, std::string const &query,
+                     std::string const &fragment);
     //    std::shared_ptr<data::DataNode> Serialize() const override;
     //    void Deserialize(std::shared_ptr<data::DataNode> const &) override;
-
-    //    static std::string FancyTypeName_s() { return "GeoObject"; }
-    //    std::string FancyTypeName() const override { return simpla::traits::type_name<this_type>::value(); }
-    std::string ClassName() const override { return "GeoObject"; }
 
     virtual int GetDimension() const;
     virtual bool IsSimpleConnected() const;
@@ -212,6 +214,10 @@ class GeoObject : public SPObject {
         return std::dynamic_pointer_cast<const this_type>(shared_from_this());                                     \
     };                                                                                                             \
     std::shared_ptr<this_type> Self() { return std::dynamic_pointer_cast<this_type>(shared_from_this()); };
+
+#define SP_GEO_OBJECT_REGISTER(_CLASS_NAME_) \
+    bool _CLASS_NAME_::_is_registered =      \
+        simpla::Factory<GeoObject>::RegisterCreator<_CLASS_NAME_>(__STRING(_CLASS_NAME_));
 
 }  // namespace geometry
 }  // namespace simpla

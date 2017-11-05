@@ -17,7 +17,7 @@ namespace geometry {
 
 template <typename TObj>
 class Revolve : public GeoObject {
-    SP_OBJECT_HEAD(Revolve<TObj>, GeoObject)
+    SP_GEO_OBJECT_HEAD(Revolve<TObj>, GeoObject)
    protected:
     Revolve(TObj const &obj, int ZAxis = 2) : base_obj(obj) { m_axis_[ZAxis] = 1; }
     Revolve(TObj const &obj, Axis const &axis) : base_obj(obj), m_axis_(axis) {}
@@ -61,7 +61,7 @@ std::shared_ptr<GeoObject> revolve(TObj const &obj, int phi_axis = 2) {
 }
 
 class RevolveZ : public GeoObject {
-    SP_OBJECT_HEAD(RevolveZ, GeoObject)
+    SP_GEO_OBJECT_HEAD(RevolveZ, GeoObject)
    protected:
     RevolveZ(std::shared_ptr<Polygon> const &obj, int phi_axis, Real phi0, Real phi1, point_type origin = {0, 0, 0})
         : m_axis_.o(origin),

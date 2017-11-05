@@ -5,7 +5,7 @@
 #include "Swept.h"
 namespace simpla {
 namespace geometry {
-SP_OBJECT_REGISTER(Swept)
+SP_GEO_OBJECT_REGISTER(Swept)
 
 Swept::Swept() = default;
 Swept::Swept(Swept const &other) = default;

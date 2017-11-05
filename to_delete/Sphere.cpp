@@ -5,7 +5,7 @@
 #include "Sphere.h"
 namespace simpla {
 namespace geometry {
-SP_OBJECT_REGISTER(Sphere)
+SP_GEO_OBJECT_REGISTER(Sphere)
 Sphere::Sphere() {}
 Sphere::~Sphere() {}
 std::shared_ptr<data::DataNode> Sphere::Serialize() const {

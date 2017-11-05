@@ -21,7 +21,7 @@ void Sphere::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type
 
 /**********************************************************************************************************************/
 
-SP_OBJECT_REGISTER(SphericalSurface)
+SP_GEO_OBJECT_REGISTER(SphericalSurface)
 SphericalSurface::SphericalSurface(Axis const &axis, Real radius, Real phi0, Real phi1, Real theta0, Real theta1)
     : ParametricSurface(axis), m_radius_(radius) {}
 

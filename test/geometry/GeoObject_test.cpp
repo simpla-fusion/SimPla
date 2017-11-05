@@ -11,7 +11,7 @@
 #include "simpla/geometry/GeoObject.h"
 using namespace simpla;
 struct DummyGeoObject : public simpla::geometry::GeoObject {
-    SP_OBJECT_HEAD(DummyGeoObject, SPObject)
+    SP_GEO_OBJECT_HEAD(DummyGeoObject, SPObject)
     SP_OBJECT_PROPERTY(Real, Mass);
     SP_OBJECT_PROPERTY(Real, Charge);
 };
@@ -20,7 +20,7 @@ DummyGeoObject::~DummyGeoObject() = default;
 
 std::shared_ptr<simpla::data::DataNode> DummyGeoObject::Serialize() const { return base_type::Serialize(); };
 void DummyGeoObject::Deserialize(std::shared_ptr<data::DataNode> const& cfg) { base_type::Deserialize(cfg); };
-SP_OBJECT_REGISTER(DummyGeoObject)
+SP_GEO_OBJECT_REGISTER(DummyGeoObject)
 TEST(SPObject, Dummy) {
     auto objA = DummyGeoObject::New();
     objA->SetMass(1.0);

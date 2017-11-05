@@ -6,7 +6,7 @@
 
 namespace simpla {
 namespace geometry {
-SP_OBJECT_REGISTER(PolyCurve)
+SP_GEO_OBJECT_REGISTER(PolyCurve)
 struct PolyCurve::pimpl_s {
     bool m_is_closed_ = false;
     bool m_is_periodic_ = false;

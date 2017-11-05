@@ -71,8 +71,7 @@ namespace simpla {
 
  **/
 
-class SPObject : public Factory<SPObject>, public std::enable_shared_from_this<SPObject> {
-    typedef Factory<SPObject> base_type;
+class SPObject : public std::enable_shared_from_this<SPObject> {
     typedef SPObject this_type;
 
    public:
@@ -89,7 +88,7 @@ class SPObject : public Factory<SPObject>, public std::enable_shared_from_this<S
     SPObject(SPObject const &);
 
    public:
-    ~SPObject() override;
+    virtual ~SPObject();
 
     virtual std::shared_ptr<data::DataNode> Serialize() const;
     virtual void Deserialize(std::shared_ptr<data::DataNode> const &);
@@ -195,7 +194,7 @@ std::istream &operator>>(std::istream &is, SPObject &obj);
     std::shared_ptr<this_type> self() { return std::dynamic_pointer_cast<this_type>(shared_from_this()); }
 
 #define SP_OBJECT_REGISTER(_CLASS_NAME_) \
-    bool _CLASS_NAME_::_is_registered = simpla::SPObject::RegisterCreator<_CLASS_NAME_>();
+    bool _CLASS_NAME_::_is_registered = simpla::SPObject::RegisterCreator<_CLASS_NAME_>(__STRING(_CLASS_NAME_));
 
 //    static std::shared_ptr<_CLASS_NAME_> New(std::shared_ptr<data::DataNode> v) {                                \
 //        auto s_type = v->as<std::string>("");                                                                          \

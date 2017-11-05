@@ -40,7 +40,7 @@ void Toroidal::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
 //}
 /********************************************************************************************************************/
 
-SP_OBJECT_REGISTER(ToroidalSurface)
+SP_GEO_OBJECT_REGISTER(ToroidalSurface)
 
 void ToroidalSurface::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);

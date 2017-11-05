@@ -20,7 +20,7 @@ std::shared_ptr<simpla::data::DataNode> Revolution::Serialize() const {
 }
 
 /*******************************************************************************************************************/
-SP_OBJECT_REGISTER(RevolutionSurface)
+SP_GEO_OBJECT_REGISTER(RevolutionSurface)
 RevolutionSurface::RevolutionSurface() = default;
 RevolutionSurface::RevolutionSurface(RevolutionSurface const &other) = default;
 RevolutionSurface::RevolutionSurface(Axis const &axis, std::shared_ptr<Curve> const &c) : SweptSurface(axis) {}
