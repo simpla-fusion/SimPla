@@ -37,26 +37,55 @@
 #include "../Line.h"
 namespace simpla {
 namespace geometry {
+struct GeoObjectOCE;
 
-class Surface;
-class Curve;
 namespace detail {
 template <typename TDest, typename TSrc, typename Enable = void>
-struct OCCCast {
-    static TDest *eval(TSrc const &s) { return nullptr; }
+struct OCECast {
+    static std::shared_ptr<TDest> eval(std::shared_ptr<TSrc> const &s) {
+        UNIMPLEMENTED;
+        return nullptr;
+    }
 };
-//
-//template <>
-//TopoDS_Shape *OCCCast<TopoDS_Shape, GeoObject>::eval(GeoObject const &g);
-//template <>
-//Geom_Curve *OCCCast<Geom_Curve, Curve>::eval(Curve const &c);
-//template <>
-//Geom_Surface *OCCCast<Geom_Surface, Surface>::eval(Surface const &c);
-
+template <typename TSrc>
+struct OCECast<TopoDS_Shape, TSrc> {
+    static std::shared_ptr<TopoDS_Shape> eval(std::shared_ptr<const TSrc> const &s) {
+        UNIMPLEMENTED;
+        return nullptr;
+    }
+};
+template <typename TSrc>
+struct OCECast<Geom_Curve, TSrc> {
+    static Handle(Geom_Curve) eval(std::shared_ptr<const TSrc> const &s) {
+        UNIMPLEMENTED;
+        return nullptr;
+    }
+};
 gp_Pnt make_point(point_type const &p0) { return gp_Pnt{p0[0], p0[1], p0[2]}; }
 gp_Dir make_dir(vector_type const &p0) { return gp_Dir{p0[0], p0[1], p0[2]}; }
+
+template <>
+Handle(Geom_Curve) OCECast<Geom_Curve, GeoObject>::eval(std::shared_ptr<const GeoObject> const &g) {
+    Handle(Geom_Curve) res;
+    if (auto c = std::dynamic_pointer_cast<Circle const>(g)) {
+        res = new Geom_Circle(gp_Ax2(make_point(c->GetAxis().o), make_dir(c->GetAxis().z), make_dir(c->GetAxis().x)),
+                              c->GetRadius());
+    } else if (auto l = std::dynamic_pointer_cast<Line const>(g)) {
+        res = new Geom_Line(make_point(l->GetAxis().o), make_dir(l->GetAxis().x));
+    } else {
+        UNIMPLEMENTED;
+    }
+    return res;
+};
+//
 // template <>
-// TopoDS_Shape *OCCCast<TopoDS_Shape, GeoObject>::eval(GeoObject const &g) {
+// TopoDS_Shape *OCECast<TopoDS_Shape, GeoObject>::eval(GeoObject const &g);
+// template <>
+// Geom_Curve *OCECast<Geom_Curve, Curve>::eval(Curve const &c);
+// template <>
+// Geom_Surface *OCECast<Geom_Surface, Surface>::eval(Surface const &c);
+// template <>
+// TopoDS_Shape *OCECast<TopoDS_Shape, GeoObject>::eval(GeoObject const &g) {
 //    auto *res = new TopoDS_Shape;
 //    if (dynamic_cast<GeoObjectOCE const *>(&g) != nullptr) {
 //        *res = dynamic_cast<GeoObjectOCE const &>(g).GetShape();
@@ -67,7 +96,7 @@ gp_Dir make_dir(vector_type const &p0) { return gp_Dir{p0[0], p0[1], p0[2]}; }
 //    return res;
 //}
 // template <>
-// Geom_Curve *OCCCast<Geom_Curve, Curve>::eval(Curve const &c) {
+// Geom_Curve *OCECast<Geom_Curve, Curve>::eval(Curve const &c) {
 //    Geom_Curve *res = nullptr;
 //    if (dynamic_cast<Circle const *>(&c) != nullptr) {
 //        auto const &l = dynamic_cast<Circle const &>(c);
@@ -84,8 +113,8 @@ gp_Dir make_dir(vector_type const &p0) { return gp_Dir{p0[0], p0[1], p0[2]}; }
 }
 
 template <typename TDest, typename TSrc>
-TDest *occ_cast(TSrc const &g) {
-    return detail::OCCCast<TDest, TSrc>::eval(g);
+auto oce_cast(std::shared_ptr<const TSrc> const &g) {
+    return detail::OCECast<TDest, TSrc>::eval(g);
 }
 
 struct GeoObjectOCE : public GeoObject {
@@ -96,8 +125,9 @@ struct GeoObjectOCE : public GeoObject {
     GeoObjectOCE(GeoObjectOCE const &shape);
     ~GeoObjectOCE() override;
 
-    GeoObjectOCE(TopoDS_Shape shape);
-    GeoObjectOCE(GeoObject const &g);
+    explicit GeoObjectOCE(std::shared_ptr<const TopoDS_Shape> const &shape);
+    explicit GeoObjectOCE(GeoObject const &g);
+    explicit GeoObjectOCE(std::shared_ptr<const GeoObject> const &g);
 
     std::string ClassName() const override { return "GeoObjectOCE"; }
     static std::string RegisterName_s() { return "GeoObjectOCE"; }
@@ -123,7 +153,7 @@ struct GeoObjectOCE : public GeoObject {
 
    private:
     Real m_measure_ = SP_SNaN;
-    TopoDS_Shape m_occ_shape_;
+    std::shared_ptr<const TopoDS_Shape> m_occ_shape_ = nullptr;
     box_type m_bounding_box_{{0, 0, 0}, {0, 0, 0}};
 
     Bnd_Box m_occ_box_;
@@ -134,20 +164,18 @@ bool GeoObjectOCE::_is_registered = simpla::Factory<GeoObject>::RegisterCreator<
 GeoObjectOCE::GeoObjectOCE() = default;
 GeoObjectOCE::GeoObjectOCE(GeoObjectOCE const &shape) = default;
 GeoObjectOCE::~GeoObjectOCE() = default;
-GeoObjectOCE::GeoObjectOCE(TopoDS_Shape shape) : m_occ_shape_(std::move(shape)) {}
-
-GeoObjectOCE::GeoObjectOCE(GeoObject const &g) : GeoObjectOCE() {
-    if (auto p = dynamic_cast<GeoObjectOCE const *>(&g)) {
-        m_occ_shape_ = p->m_occ_shape_;
-    } else {
-    }
+GeoObjectOCE::GeoObjectOCE(std::shared_ptr<const TopoDS_Shape> const &shape) : m_occ_shape_(shape) { DoUpdate(); }
+GeoObjectOCE::GeoObjectOCE(std::shared_ptr<const GeoObject> const &g) : m_occ_shape_(oce_cast<TopoDS_Shape>(g)) {
+    DoUpdate();
+}
+GeoObjectOCE::GeoObjectOCE(GeoObject const &g) : m_occ_shape_(oce_cast<TopoDS_Shape>(g.shared_from_this())) {
     DoUpdate();
 };
 
-TopoDS_Shape const &GeoObjectOCE::GetShape() const { return m_occ_shape_; }
+TopoDS_Shape const &GeoObjectOCE::GetShape() const { return *m_occ_shape_; }
 Bnd_Box const &GeoObjectOCE::GetOCCBoundingBox() const { return m_occ_box_; }
 
-TopoDS_Shape ReadSTEP(std::string const &file_name) {
+std::shared_ptr<TopoDS_Shape> ReadSTEP(std::string const &file_name) {
     STEPControl_Reader reader;
 
     IFSelect_ReturnStatus stat = reader.ReadFile(file_name.c_str());
@@ -162,30 +190,32 @@ TopoDS_Shape ReadSTEP(std::string const &file_name) {
 
     ASSERT(nRoots > 0);  //, 262 ExcMessage("Read nothing from file."));
     VERBOSE << "STEP Object is loaded from " << file_name << "[" << nRoots << "]" << std::endl;
-    return reader.OneShape();
+    return std::make_shared<TopoDS_Shape>(reader.OneShape());
 }
-TopoDS_Shape ReadSTL(std::string const &file_name) {
+std::shared_ptr<TopoDS_Shape> ReadSTL(std::string const &file_name) {
     StlAPI_Reader reader;
     TopoDS_Shape shape;
     reader.Read(shape, file_name.c_str());
-    return shape;
+    return std::make_shared<TopoDS_Shape>(shape);
 }
 
-TopoDS_Shape TransformShape(TopoDS_Shape const &shape, Real scale, point_type const &location,
-                            nTuple<Real, 4> const &rotate) {
+std::shared_ptr<TopoDS_Shape> TransformShape(std::shared_ptr<const TopoDS_Shape> const &shape, Real scale,
+                                             point_type const &location, nTuple<Real, 4> const &rotate) {
+    auto res = std::make_shared<TopoDS_Shape>();
+    *res = *shape;
     // Handle STEP Scale here.
     gp_Pnt origin{location[0], location[1], location[2]};
     gp_Quaternion rot_v{rotate[0], rotate[1], rotate[2], rotate[3]};
     gp_Trsf transf;
     transf.SetScale(origin, scale);
     //    transf.SetRotation(rot_v);
-    BRepBuilderAPI_Transform trans(shape, transf);
+    BRepBuilderAPI_Transform trans(*res, transf);
 
-    return trans.Shape();
+    return res;
 }
 
-TopoDS_Shape LoadShape(std::string const &file_name) {
-    TopoDS_Shape res;
+std::shared_ptr<TopoDS_Shape> LoadShape(std::string const &file_name) {
+    std::shared_ptr<TopoDS_Shape> res = nullptr;
     std::string ext = file_name.substr(file_name.rfind('.') + 1);
     if (ext == "step" || ext == "stp") {
         res = ReadSTEP(file_name);
@@ -218,11 +248,11 @@ void GeoObjectOCE::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
 int GeoObjectOCE::Load(std::string const &authority, std::string const &path, std::string const &query,
                        std::string const &fragment) {
     m_occ_shape_ = LoadShape(path);
-    return m_occ_shape_.IsNull() ? SP_FAILED : SP_SUCCESS;
+    return m_occ_shape_ == nullptr ? SP_FAILED : SP_SUCCESS;
 };
 void GeoObjectOCE::DoUpdate() {
-    ASSERT(!m_occ_shape_.IsNull());
-    BRepBndLib::Add(m_occ_shape_, m_occ_box_);
+    ASSERT(m_occ_shape_ != nullptr);
+    BRepBndLib::Add(*m_occ_shape_, m_occ_box_);
     m_occ_box_.Get(std::get<0>(m_bounding_box_)[0], std::get<0>(m_bounding_box_)[1], std::get<0>(m_bounding_box_)[2],
                    std::get<1>(m_bounding_box_)[0], std::get<1>(m_bounding_box_)[1], std::get<1>(m_bounding_box_)[2]);
 }
@@ -235,34 +265,34 @@ box_type GeoObjectOCE::GetBoundingBox() const { return m_bounding_box_; };
 
 bool GeoObjectOCE::CheckIntersection(point_type const &x, Real tolerance) const {
     BRepBuilderAPI_MakeVertex vertex(detail::make_point(x));
-    BRepExtrema_DistShapeShape dist(vertex, m_occ_shape_);
+    BRepExtrema_DistShapeShape dist(*m_occ_shape_, vertex);
     dist.Perform();
     return dist.InnerSolution();
 };
 bool GeoObjectOCE::CheckIntersection(box_type const &b, Real tolerance) const {
     BRepPrimAPI_MakeBox box(detail::make_point(std::get<0>(b)), detail::make_point(std::get<1>(b)));
-    BRepExtrema_DistShapeShape dist(m_occ_shape_, box.Solid());
+    BRepExtrema_DistShapeShape dist(*m_occ_shape_, box.Solid());
     dist.Perform();
     return dist.InnerSolution();
 };
 std::shared_ptr<GeoObject> GeoObjectOCE::GetUnion(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
     auto res = GeoObjectOCE::New();
-    auto other = GeoObjectOCE::New(*g);
-    res->m_occ_shape_ = BRepAlgoAPI_Fuse(m_occ_shape_, other->m_occ_shape_);
+    auto other = GeoObjectOCE::New(g);
+    res->m_occ_shape_ = std::make_shared<TopoDS_Shape>(BRepAlgoAPI_Fuse(*m_occ_shape_, *other->m_occ_shape_));
     return res;
 };
 std::shared_ptr<GeoObject> GeoObjectOCE::GetDifference(std::shared_ptr<const GeoObject> const &g,
                                                        Real tolerance) const {
     auto res = GeoObjectOCE::New();
-    auto other = GeoObjectOCE::New(*g);
-    res->m_occ_shape_ = BRepAlgoAPI_Cut(m_occ_shape_, other->m_occ_shape_);
+    auto other = GeoObjectOCE::New(g);
+    res->m_occ_shape_ = std::make_shared<TopoDS_Shape>(BRepAlgoAPI_Cut(*m_occ_shape_, *other->m_occ_shape_));
     return res;
 };
 std::shared_ptr<GeoObject> GeoObjectOCE::GetIntersection(std::shared_ptr<const GeoObject> const &g,
                                                          Real tolerance) const {
     auto res = GeoObjectOCE::New();
-    auto other = GeoObjectOCE::New(*g);
-    res->m_occ_shape_ = BRepAlgoAPI_Common(m_occ_shape_, other->m_occ_shape_);
+    auto other = GeoObjectOCE::New(g);
+    res->m_occ_shape_ = std::make_shared<TopoDS_Shape>(BRepAlgoAPI_Common(*m_occ_shape_, *other->m_occ_shape_));
     return res;
 };
 
@@ -287,7 +317,7 @@ void IntersectionCurveSurfaceOCE::SetUp(std::shared_ptr<const Surface> const &s,
 size_type IntersectionCurveSurfaceOCE::Intersect(std::shared_ptr<const Curve> const &curve,
                                                  std::vector<Real> *u) const {
     size_type count = 0;
-    //    Handle(Geom_Curve) c = geometry::detail::OCCCast<Geom_Curve, GeoObject>::eval(*curve);
+    //    Handle(Geom_Curve) c = geometry::detail::OCECast<Geom_Curve, GeoObject>::eval(*curve);
     //
     //    m_body_inter_.Init(c);
     //
@@ -321,7 +351,7 @@ void IntersectionCurveSurfaceTagNodeOCE(Array<Real> *vertex_tags, std::shared_pt
     m_box_inter_.Load(box, 0.0001);
 
     BRepIntCurveSurface_Inter m_body_inter_;
-    m_body_inter_.Load(*geometry::occ_cast<TopoDS_Shape>(*g), 0.0001);
+    m_body_inter_.Load(*oce_cast<TopoDS_Shape>(g), 0.0001);
 
     //    Array<int, ZSFC<3>> vertex_tags(nullptr, m_idx_box);
     //    vertex_tags.Clear();
@@ -341,7 +371,7 @@ void IntersectionCurveSurfaceTagNodeOCE(Array<Real> *vertex_tags, std::shared_pt
                     //
                     //                        index_type s0 = idx[make_dir];
                     //                        Handle(Geom_Curve) c =
-                    //                            geometry::detail::OCCCast<Geom_Curve,
+                    //                            geometry::detail::OCECast<Geom_Curve,
                     //                            Curve>::eval(*chart->GetAxis(x_begin, make_dir));
                     //
                     //                        m_box_inter_.Init(c);
@@ -367,8 +397,7 @@ void IntersectionCurveSurfaceTagNodeOCE(Array<Real> *vertex_tags, std::shared_pt
                     //                    }
 
                     point_type x_begin = chart->global_coordinates(0b0, i, j, k);
-                    Handle(Geom_Curve) c =
-                        geometry::detail::OCCCast<Geom_Curve, GeoObject>::eval(*chart->GetAxis(x_begin, x_begin));
+                    Handle(Geom_Curve) c = oce_cast<Geom_Curve>(chart->GetAxis(x_begin, x_begin));
 
                     m_body_inter_.Init(c);
 
@@ -464,13 +493,13 @@ GeoEngineOCE::~GeoEngineOCE() = default;
 bool GeoEngineOCE::CheckIntersectionInterface(std::shared_ptr<const GeoObject> const &g, point_type const &x,
                                               Real tolerance) const {
     bool res = false;
-    if (g != nullptr) { res = GeoObjectOCE::New(*g)->CheckIntersection(x, tolerance); }
+    if (g != nullptr) { res = GeoObjectOCE::New(g)->CheckIntersection(x, tolerance); }
     return res;
 }
 bool GeoEngineOCE::CheckIntersectionInterface(std::shared_ptr<const GeoObject> const &g, box_type const &b,
                                               Real tolerance) const {
     bool res = false;
-    if (g != nullptr) { res = GeoObjectOCE::New(*g)->CheckIntersection(b, tolerance); }
+    if (g != nullptr) { res = GeoObjectOCE::New(g)->CheckIntersection(b, tolerance); }
     return res;
 }
 
@@ -478,21 +507,21 @@ std::shared_ptr<GeoObject> GeoEngineOCE::GetUnionInterface(std::shared_ptr<const
                                                            std::shared_ptr<const GeoObject> const &g1,
                                                            Real tolerance) const {
     std::shared_ptr<GeoObject> res = nullptr;
-    if (g0 != nullptr) { res = GeoObjectOCE::New(*g0)->GetUnion(g1, tolerance); }
+    if (g0 != nullptr) { res = GeoObjectOCE::New(g0)->GetUnion(g1, tolerance); }
     return res;
 }
 std::shared_ptr<GeoObject> GeoEngineOCE::GetDifferenceInterface(std::shared_ptr<const GeoObject> const &g0,
                                                                 std::shared_ptr<const GeoObject> const &g1,
                                                                 Real tolerance) const {
     std::shared_ptr<GeoObject> res = nullptr;
-    if (g0 != nullptr) { res = GeoObjectOCE::New(*g0)->GetDifference(g1, tolerance); }
+    if (g0 != nullptr) { res = GeoObjectOCE::New(g0)->GetDifference(g1, tolerance); }
     return res;
 }
 std::shared_ptr<GeoObject> GeoEngineOCE::GetIntersectionInterface(std::shared_ptr<const GeoObject> const &g0,
                                                                   std::shared_ptr<const GeoObject> const &g1,
                                                                   Real tolerance) const {
     std::shared_ptr<GeoObject> res = nullptr;
-    if (g0 != nullptr) { res = GeoObjectOCE::New(*g0)->GetIntersection(g1, tolerance); }
+    if (g0 != nullptr) { res = GeoObjectOCE::New(g0)->GetIntersection(g1, tolerance); }
     return res;
 }
 }  // namespace geometry
