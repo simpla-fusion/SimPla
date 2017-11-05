@@ -1518,7 +1518,7 @@ SERVER_BASED_SEARCH    = NO
 
 EXTERNAL_SEARCH        = NO
 
-# The SEARCHENGINE_URL should point to a search engine hosted by a web server
+# The SEARCHENGINE_URL should make_point to a search engine hosted by a web server
 # which will return the search results when EXTERNAL_SEARCH is enabled.
 #
 # Doxygen ships with an example indexer ( doxyindexer) and search engine

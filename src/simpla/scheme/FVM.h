@@ -839,7 +839,7 @@ void FVM<THost>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}
 //            s.x = _cast<int16_t>(idx[0] + S[0]);
 //            s.y = _cast<int16_t>(idx[1] + S[1]);
 //            s.z = _cast<int16_t>(idx[2] + S[2]);
-//            return sample(tag, fun(m_host_->point(s)));
+//            return sample(tag, fun(m_host_->make_point(s)));
 //        };
 //    }
 //

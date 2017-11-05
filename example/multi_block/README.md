@@ -11,7 +11,7 @@ Build:
     $tar xzvf <src>.tar.gz
     $mkdir build
     $cd build
-    $cmake ../<src dir>/ -DCMAKE_BUILD_TYPE=Release
+    $cmake ../<src make_dir>/ -DCMAKE_BUILD_TYPE=Release
     $make demo_em
 
 Usage:

@@ -45,10 +45,10 @@ int GetIntersectionLineSphere(point_type const& p0, point_type const& p1, point_
     auto oc = dot(o - c, o - c);
     auto t = l_oc * l_oc - oc * oc + r * r;
     if (t < 0) {
-    } else if (std::abs(t) < tolerance) {  // one point
+    } else if (std::abs(t) < tolerance) {  // one make_point
         res.push_back(-l_oc + t);
         count = 1;
-    } else {  // two point
+    } else {  // two make_point
         res.push_back(-l_oc + t);
         res.push_back(-l_oc - t);
         count = 2;

@@ -197,7 +197,7 @@ struct EntityIdCoder {
 
     static constexpr int num_of_ele_in_cell(EntityId s) { return m_id_to_num_of_ele_in_cell_[node_id(s)]; }
 
-    //    static point_type point(EntityId s) {
+    //    static point_type make_point(EntityId s) {
     //        return point_type{static_cast<Real>(s.x - ZERO * 2) * _R,
     //                          static_cast<Real>(s.y - ZERO * 2) * _R,
     //                          static_cast<Real>(s.z - ZERO * 2) * _R};
@@ -208,12 +208,12 @@ struct EntityIdCoder {
     //
     //        EntityId s = pack(i) | m_id_to_shift_[n_id];
     //
-    //        point_type r = (x - point(s)) / (_R * 2.0);
+    //        point_type r = (x - make_point(s)) / (_R * 2.0);
     //
     //        return std::make_tuple(s, r);
     //    }
     //
-    //    static point_type point_local_to_global(EntityId s, point_type const& x) { return point(s) + x * _R * 2; }
+    //    static point_type point_local_to_global(EntityId s, point_type const& x) { return make_point(s) + x * _R * 2; }
     //
     //    static point_type point_local_to_global(std::tuple<EntityId, point_type> const& t) {
     //        return point_local_to_global(std::get<0>(t), std::get<1>(t));

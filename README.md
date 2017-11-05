@@ -31,7 +31,7 @@ SIMPla {#mainpage}
 
     $mkdir build
     $cd build
-    $cmake ../<src dir>/ -DCMAKE_BUILD_TYPE=Release
+    $cmake ../<src make_dir>/ -DCMAKE_BUILD_TYPE=Release
     $make <target>
 
 

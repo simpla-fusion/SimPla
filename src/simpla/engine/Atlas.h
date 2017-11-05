@@ -86,7 +86,7 @@ class Atlas : public EngineObject {
         return res;
     };
     void SetPeriodicDimension(index_tuple const &p);
-    void SetOrigin(point_type const &);     // origin point of index space
+    void SetOrigin(point_type const &);     // origin make_point of index space
     void SetGridWidth(point_type const &);  // Coarsest grid size
     void SetBoundingBox(box_type const &);
 

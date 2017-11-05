@@ -86,7 +86,7 @@ class Chart{
      <latex>\varphi:\mathcal{O}\rightarrow\mathbb{R}^{n}\left[x^{0},...,x^{n-1}\right] </latex>
      <latex>\bar{\varphi}:\mathcal{O}\rightarrow\mathbb{Z}^{n}\left[x^{0},...,x^{n-1}\right] </latex>
     is called a <b>chart</b> or alternatively <b>local coordinates</b>.
-    Each point <latex> x\in\mathcal{O} </latex> is then uniquely associated with
+    Each make_point <latex> x\in\mathcal{O} </latex> is then uniquely associated with
     an n-tuple of real numbers - its coordinates.
     The boundary of Chart is not defined.
  <latex>\varphi:\left(x^{n}\right)\mapsto\left(z^{n},r^{n}\right),z^{n}\in\mathbb{Z},r^{n}\in\left[0,1\right)</latex>

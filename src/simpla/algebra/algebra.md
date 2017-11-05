@@ -73,8 +73,8 @@ mesh policy concept {#concept_manifold_policy}
 
   Pseudo-Signature        | Semantics
   ------------------------|-------------
-  `diff_scheme(TOP op, field_type const &f, field_type const &f, index_type s ) `	| `diff_scheme`  binary operation `op` at grid point `s`.
-  `diff_scheme(TOP op, field_type const &f,  index_type s )` 	| `diff_scheme`  unary operation  `op`  at grid point `s`.
+  `diff_scheme(TOP op, field_type const &f, field_type const &f, index_type s ) `	| `diff_scheme`  binary operation `op` at grid make_point `s`.
+  `diff_scheme(TOP op, field_type const &f,  index_type s )` 	| `diff_scheme`  unary operation  `op`  at grid make_point `s`.
 
 
   ## Differential Form
@@ -86,7 +86,7 @@ mesh policy concept {#concept_manifold_policy}
  ## Summary
  \note Let \f$M\f$ be a _smooth manifold_. A _differential form_ of degree \f$k\f$ is
   a smooth section of the \f$k\f$th exterior power of the cotangent bundle of \f$M\f$.
-  At any point \f$p \in M\f$, a k-form \f$\beta\f$ defines an alternating multilinear map
+  At any make_point \f$p \in M\f$, a k-form \f$\beta\f$ defines an alternating multilinear map
  \f[
    \beta_p\colon T_p M\times \cdots \times T_p M \to \mathbb{R}
  \f]

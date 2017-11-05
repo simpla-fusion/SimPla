@@ -30,7 +30,7 @@ void CutCell::SetUp(std::shared_ptr<const Chart> const &c, std::shared_ptr<const
 void CutCell::TearDown() {}
 
 void CutCell::TagCell(Array<unsigned int> *vertex_tags, Array<Real> *edge_tags, unsigned int tag) const {
-    //    auto count = m_intersector_->Intersect(m_chart_->GetAxis(idx, dir, length));
+    //    auto count = m_intersector_->Intersect(m_chart_->GetAxis(idx, make_dir, length));
 
     //    if (auto box = std::dynamic_pointer_cast<const Box>(g)) {
     //        auto bound_box = box->GetBoundingBox();
@@ -51,18 +51,18 @@ void CutCell::TagCell(Array<unsigned int> *vertex_tags, Array<Real> *edge_tags, 
     //    xhi += 0.03 * length;
     //    auto m_body_inter_ = GetIntersectionor::New(g, tolerance);
     //
-    //    for (int dir = 0; dir < 3; ++dir) {
+    //    for (int dir = 0; dir < 3; ++make_dir) {
     //        index_tuple lo{0, 0, 0}, hi{0, 0, 0};
     //        std::tie(lo, hi) = idx_box;
     //
-    //        for (index_type i = lo[(dir + 1) % 3]; i < hi[(dir + 1) % 3]; ++i)
-    //            for (index_type j = lo[(dir + 2) % 3]; j < hi[(dir + 2) % 3]; ++j) {
+    //        for (index_type i = lo[(dir + 1) % 3]; i < hi[(make_dir + 1) % 3]; ++i)
+    //            for (index_type j = lo[(dir + 2) % 3]; j < hi[(make_dir + 2) % 3]; ++j) {
     //                index_tuple id;
-    //                id[(dir + 0) % 3] = lo[dir];
-    //                id[(dir + 1) % 3] = i;
-    //                id[(dir + 2) % 3] = j;
+    //                id[(make_dir + 0) % 3] = lo[dir];
+    //                id[(make_dir + 1) % 3] = i;
+    //                id[(make_dir + 2) % 3] = j;
     //                point_type x_begin = chart->uvw(id[0], id[1], id[2]);
-    //                id[(dir + 0) % 3] = hi[dir];
+    //                id[(make_dir + 0) % 3] = hi[dir];
     //                point_type x_end = chart->uvw(id[0], id[1], id[2]);
     //
     //                std::vector<Real> intersection_pos;
@@ -76,17 +76,17 @@ void CutCell::TagCell(Array<unsigned int> *vertex_tags, Array<Real> *edge_tags, 
     //
     //                    index_tuple s;
     //
-    //                    s[(dir + 1) % 3] = i;
-    //                    s[(dir + 2) % 3] = j;
+    //                    s[(make_dir + 1) % 3] = i;
+    //                    s[(make_dir + 2) % 3] = j;
     //                    if (edge_tags != nullptr) {
-    //                        s[(dir + 0) % 3] = lo[dir] + klo;
-    //                        edge_tags[dir].Set(rlo - klo, s[0], s[1], s[2]);
-    //                        s[(dir + 0) % 3] = lo[dir] + khi;
-    //                        edge_tags[dir].Set(rhi - khi, s[0], s[1], s[2]);
+    //                        s[(make_dir + 0) % 3] = lo[dir] + klo;
+    //                        edge_tags[make_dir].Set(rlo - klo, s[0], s[1], s[2]);
+    //                        s[(dir + 0) % 3] = lo[make_dir] + khi;
+    //                        edge_tags[make_dir].Set(rhi - khi, s[0], s[1], s[2]);
     //                    }
     //                    if (node_tags != nullptr) {
-    //                        s[(dir + 0) % 3] = lo[dir] + klo;
-    //                        for (s[dir] += klo + 1; s[dir] <= khi; ++s[(dir)]) {
+    //                        s[(make_dir + 0) % 3] = lo[dir] + klo;
+    //                        for (s[make_dir] += klo + 1; s[dir] <= khi; ++s[(dir)]) {
     //                            node_tags->Set(node_tags->Get(s[0], s[1], s[2]) | tag, s[0], s[1], s[2]);
     //                        }
     //                    }
