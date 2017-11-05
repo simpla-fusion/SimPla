@@ -31,10 +31,13 @@
 #include <TopoDS_Shape.hxx>
 #include <gp_Quaternion.hxx>
 
+#include "../Body.h"
 #include "../Circle.h"
+#include "../Curve.h"
 #include "../GeoObject.h"
 #include "../IntersectionCurveSurface.h"
 #include "../Line.h"
+#include "../Surface.h"
 namespace simpla {
 namespace geometry {
 struct GeoObjectOCE;
@@ -72,6 +75,38 @@ Handle(Geom_Curve) OCECast<Geom_Curve, GeoObject>::eval(std::shared_ptr<const Ge
                               c->GetRadius());
     } else if (auto l = std::dynamic_pointer_cast<Line const>(g)) {
         res = new Geom_Line(make_point(l->GetAxis().o), make_dir(l->GetAxis().x));
+    } else {
+        UNIMPLEMENTED;
+    }
+    return res;
+};
+template <>
+std::shared_ptr<TopoDS_Shape> OCECast<TopoDS_Shape, Curve>::eval(std::shared_ptr<const Curve> const &g) {
+    std::shared_ptr<TopoDS_Shape> res = nullptr;
+    UNIMPLEMENTED;
+    return res;
+};
+template <>
+std::shared_ptr<TopoDS_Shape> OCECast<TopoDS_Shape, Surface>::eval(std::shared_ptr<const Surface> const &g) {
+    std::shared_ptr<TopoDS_Shape> res = nullptr;
+    UNIMPLEMENTED;
+    return res;
+};
+template <>
+std::shared_ptr<TopoDS_Shape> OCECast<TopoDS_Shape, Body>::eval(std::shared_ptr<const Body> const &g) {
+    std::shared_ptr<TopoDS_Shape> res = nullptr;
+    UNIMPLEMENTED;
+    return res;
+};
+template <>
+std::shared_ptr<TopoDS_Shape> OCECast<TopoDS_Shape, GeoObject>::eval(std::shared_ptr<const GeoObject> const &g) {
+    std::shared_ptr<TopoDS_Shape> res = nullptr;
+    if (auto c = std::dynamic_pointer_cast<Curve const>(g)) {
+        res = OCECast<TopoDS_Shape, Curve>::eval(c);
+    } else if (auto s = std::dynamic_pointer_cast<Surface const>(g)) {
+        res = OCECast<TopoDS_Shape, Surface>::eval(s);
+    } else if (auto b = std::dynamic_pointer_cast<Body const>(g)) {
+        res = OCECast<TopoDS_Shape, Body>::eval(b);
     } else {
         UNIMPLEMENTED;
     }
@@ -165,7 +200,8 @@ GeoObjectOCE::GeoObjectOCE() = default;
 GeoObjectOCE::GeoObjectOCE(GeoObjectOCE const &shape) = default;
 GeoObjectOCE::~GeoObjectOCE() = default;
 GeoObjectOCE::GeoObjectOCE(std::shared_ptr<const TopoDS_Shape> const &shape) : m_occ_shape_(shape) { DoUpdate(); }
-GeoObjectOCE::GeoObjectOCE(std::shared_ptr<const GeoObject> const &g) : m_occ_shape_(oce_cast<TopoDS_Shape>(g)) {
+GeoObjectOCE::GeoObjectOCE(std::shared_ptr<const GeoObject> const &g)
+    : GeoObject(*g), m_occ_shape_(oce_cast<TopoDS_Shape>(g)) {
     DoUpdate();
 }
 GeoObjectOCE::GeoObjectOCE(GeoObject const &g) : m_occ_shape_(oce_cast<TopoDS_Shape>(g.shared_from_this())) {
