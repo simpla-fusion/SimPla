@@ -10,26 +10,22 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/utilities/SPDefines.h>
 #include <vector>
+#include "Curve.h"
 #include "GeoObject.h"
-#include "Surface.h"
 namespace simpla {
 namespace geometry {
 
-struct Polygon : public Surface {
-    SP_GEO_OBJECT_HEAD(Polygon, Surface)
-
-   protected:
-    Polygon();
-    Polygon(Polygon const &);
-    explicit Polygon(Axis const &axis);
+struct Polygon : public Curve {
+    SP_GEO_OBJECT_HEAD(Polygon, Curve)
 
    public:
-    ~Polygon() override;
     void Open();
     void Close();
-    void push_back(Real u, Real v);
-    void push_back(size_type num, Real const *u, Real const *v);
-    void push_back(nTuple<Real, 2> const &p) { push_back(p[0], p[1]); }
+    point_type xyz(Real u) const override;
+
+    void Add(Real u, Real v);
+    void Add(Real u, Real v, Real w);
+    void Add(size_type num, Real const *u, Real const *v, Real const *w = nullptr);
 
     bool IsClosed() const override;
 

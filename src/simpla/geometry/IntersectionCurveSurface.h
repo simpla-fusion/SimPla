@@ -12,13 +12,24 @@ namespace simpla {
 namespace geometry {
 struct Curve;
 struct Surface;
-class IntersectionCurveSurface : public Factory<IntersectionCurveSurface> {
-    FACTORY_HEAD(IntersectionCurveSurface)
+class IntersectionCurveSurface {
+   private:
+    typedef IntersectionCurveSurface this_type;
+
+   public:
+    virtual std::string RegisterName() const { return "IntersectionCurveSurface"; }
+
+   protected:
+    IntersectionCurveSurface();
+
+   public:
+    virtual ~IntersectionCurveSurface();
+
    public:
     static std::shared_ptr<this_type> New(std::string const &key = "");
-    template <typename... Args>
-    static std::shared_ptr<this_type> New(std::shared_ptr<const Surface> const &g, Real tolerance,
-                                          std::string const &key = "") {
+
+    static std::shared_ptr<this_type> New(std::shared_ptr<const Surface> const &g,
+                                          Real tolerance = SP_GEO_DEFAULT_TOLERANCE, std::string const &key = "") {
         auto res = New(key);
         res->SetUp(g, tolerance);
         return res;

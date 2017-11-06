@@ -12,14 +12,7 @@ namespace geometry {
 struct PolyCurve : public Curve {
     SP_GEO_OBJECT_HEAD(PolyCurve, Curve);
 
-   protected:
-    PolyCurve();
-    PolyCurve(PolyCurve const &);
-    explicit PolyCurve(Axis const &axis) : PolyCurve() { Curve::SetAxis(axis); }
-
    public:
-    ~PolyCurve() override;
-
     point_type xyz(Real u) const override;
 
     bool IsClosed() const override;

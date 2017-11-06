@@ -4,20 +4,16 @@
 
 #ifndef SIMPLA_ELLIPSE_H
 #define SIMPLA_ELLIPSE_H
-#include "ParametricCurve.h"
+#include "Curve.h"
 namespace simpla {
 namespace geometry {
-struct Ellipse : public ParametricCurve {
-    SP_GEO_OBJECT_HEAD(Ellipse, ParametricCurve);
+struct Ellipse : public Curve {
+    SP_GEO_OBJECT_HEAD(Ellipse, Curve);
 
    protected:
-    Ellipse();
-    Ellipse(Ellipse const &other);
     Ellipse(Axis const &axis, Real major_radius, Real minor_radius);
 
    public:
-    ~Ellipse() override;
-
     bool IsClosed() const override { return true; };
 
     void GetMajorRadius(Real r) { m_major_radius_ = r; }

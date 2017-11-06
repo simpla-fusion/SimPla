@@ -12,13 +12,7 @@ struct Curve;
 struct Point : public GeoObject {
     SP_GEO_ABS_OBJECT_HEAD(Point, GeoObject);
 
-   protected:
-    Point();
-    Point(Point const &other);
-    explicit Point(Axis const &axis);
-
    public:
-    ~Point() override;
     int GetDimension() const override { return 0; }
 
     std::shared_ptr<GeoObject> GetBoundary() const final;

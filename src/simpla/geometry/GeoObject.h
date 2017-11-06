@@ -87,10 +87,7 @@ class GeoObject : public std::enable_shared_from_this<GeoObject> {
     explicit GeoObject(Axis const &axis);
 
    public:
-    virtual std::string ClassName() const { return "GeoObject"; }
-    static std::string FancyTypeName_s() { return "GeoObject"; }
-    virtual std::string FancyTypeName() const { return simpla::traits::type_name<this_type>::value(); }
-
+    virtual std::string FancyTypeName() const { return "GeoObject"; }
     virtual ~GeoObject();
     virtual void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg);
     virtual std::shared_ptr<simpla::data::DataNode> Serialize() const;
@@ -133,6 +130,15 @@ class GeoObject : public std::enable_shared_from_this<GeoObject> {
     virtual std::shared_ptr<GeoObject> GetUnion(std::shared_ptr<const GeoObject> const &g, Real tolerance) const;
     virtual std::shared_ptr<GeoObject> GetDifference(std::shared_ptr<const GeoObject> const &g, Real tolerance) const;
     virtual std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const;
+    std::shared_ptr<GeoObject> GetUnion(std::shared_ptr<const GeoObject> const &g) const {
+        return GetUnion(g, SP_GEO_DEFAULT_TOLERANCE);
+    }
+    std::shared_ptr<GeoObject> GetDifference(std::shared_ptr<const GeoObject> const &g) const {
+        return GetDifference(g, SP_GEO_DEFAULT_TOLERANCE);
+    }
+    std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g) const {
+        return GetIntersection(g, SP_GEO_DEFAULT_TOLERANCE);
+    }
 
    protected:
     Axis m_axis_{};
@@ -140,14 +146,21 @@ class GeoObject : public std::enable_shared_from_this<GeoObject> {
 
 #define SP_GEO_ABS_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_)                                                   \
    public:                                                                                                  \
-    static std::string FancyTypeName_s() { return __STRING(_CLASS_NAME_); }                                 \
-    virtual std::string FancyTypeName() const override { return __STRING(_CLASS_NAME_); }                   \
+    virtual std::string FancyTypeName() const override {                                                    \
+        return base_type::FancyTypeName() + "." + __STRING(_CLASS_NAME_);                                   \
+    }                                                                                                       \
                                                                                                             \
    private:                                                                                                 \
     typedef _BASE_NAME_ base_type;                                                                          \
     typedef _CLASS_NAME_ this_type;                                                                         \
                                                                                                             \
+   protected:                                                                                               \
+    _CLASS_NAME_();                                                                                         \
+    _CLASS_NAME_(_CLASS_NAME_ const &);                                                                     \
+    explicit _CLASS_NAME_(Axis const &axis);                                                                \
+                                                                                                            \
    public:                                                                                                  \
+    ~_CLASS_NAME_() override;                                                                               \
     void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;                          \
     std::shared_ptr<simpla::data::DataNode> Serialize() const override;                                     \
     std::shared_ptr<this_type> CopyThis() const { return std::dynamic_pointer_cast<this_type>(Copy()); };   \
@@ -188,8 +201,10 @@ class GeoObject : public std::enable_shared_from_this<GeoObject> {
 
 #define SP_GEO_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_)                                                              \
    public:                                                                                                         \
-    static std::string FancyTypeName_s() { return __STRING(_CLASS_NAME_); }                                        \
-    virtual std::string FancyTypeName() const override { return __STRING(_CLASS_NAME_); }                          \
+    static std::string RegisterName() noexcept { return __STRING(_CLASS_NAME_); }                                  \
+    virtual std::string FancyTypeName() const override {                                                           \
+        return base_type::FancyTypeName() + "." + __STRING(_CLASS_NAME_);                                          \
+    }                                                                                                              \
                                                                                                                    \
    private:                                                                                                        \
     typedef _BASE_NAME_ base_type;                                                                                 \
@@ -197,6 +212,10 @@ class GeoObject : public std::enable_shared_from_this<GeoObject> {
     static bool _is_registered;                                                                                    \
                                                                                                                    \
    public:                                                                                                         \
+    _CLASS_NAME_();                                                                                                \
+    _CLASS_NAME_(_CLASS_NAME_ const &);                                                                            \
+    explicit _CLASS_NAME_(Axis const &axis);                                                                       \
+    ~_CLASS_NAME_() override;                                                                                      \
     void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;                                 \
     std::shared_ptr<simpla::data::DataNode> Serialize() const override;                                            \
                                                                                                                    \
@@ -217,7 +236,7 @@ class GeoObject : public std::enable_shared_from_this<GeoObject> {
 
 #define SP_GEO_OBJECT_REGISTER(_CLASS_NAME_) \
     bool _CLASS_NAME_::_is_registered =      \
-        simpla::Factory<GeoObject>::RegisterCreator<_CLASS_NAME_>(__STRING(_CLASS_NAME_));
+        simpla::Factory<GeoObject>::RegisterCreator<_CLASS_NAME_>(_CLASS_NAME_::RegisterName());
 
 }  // namespace geometry
 }  // namespace simpla

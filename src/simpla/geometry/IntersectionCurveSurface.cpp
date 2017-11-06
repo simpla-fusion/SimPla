@@ -5,8 +5,8 @@
 #include "IntersectionCurveSurface.h"
 #include "GeoEngine.h"
 #include "PointsOnCurve.h"
+#include "Shell.h"
 #include "Surface.h"
-
 namespace simpla {
 namespace geometry {
 

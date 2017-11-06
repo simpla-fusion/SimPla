@@ -12,13 +12,7 @@ namespace geometry {
 struct PolyLine : public BoundedCurve {
     SP_GEO_OBJECT_HEAD(PolyLine, BoundedCurve);
 
-   protected:
-    PolyLine();
-    PolyLine(PolyLine const &);
-    explicit PolyLine(Axis const &axis);
-
    public:
-    ~PolyLine() override;
     bool IsClosed() const override;
     point_type xyz(Real u) const override;
 

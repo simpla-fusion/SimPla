@@ -8,6 +8,8 @@ namespace simpla {
 namespace geometry {
 
 PointsOnCurve::PointsOnCurve() = default;
+PointsOnCurve::PointsOnCurve(PointsOnCurve const &) = default;
+PointsOnCurve::PointsOnCurve(Axis const &axis) : base_type(axis){};
 PointsOnCurve::~PointsOnCurve() = default;
 void PointsOnCurve::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); };
 std::shared_ptr<simpla::data::DataNode> PointsOnCurve::Serialize() const { return base_type::Serialize(); };

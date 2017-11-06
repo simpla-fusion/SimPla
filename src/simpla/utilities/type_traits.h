@@ -958,7 +958,7 @@ EXAMPLE:
 // CHECK_OPERATOR(is_callable, ())
 
 namespace traits {
-CHECK_STATIC_FUNCTION_MEMBER(has_fancy_type_name, FancyTypeName_s)
+CHECK_STATIC_FUNCTION_MEMBER(has_fancy_type_name, RegisterName)
 
 template <typename T, typename Enable = void>
 struct type_name {
@@ -966,7 +966,7 @@ struct type_name {
 };
 template <typename T>
 struct type_name<T, std::enable_if_t<has_fancy_type_name<T, std::string>::value>> {
-    static std::string value() { return T::FancyTypeName_s(); }
+    static std::string value() { return T::RegisterName(); }
 };
 
 template <>

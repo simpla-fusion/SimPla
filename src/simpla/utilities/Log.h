@@ -288,7 +288,7 @@ std::string make_msg(Others const &... others) {
         << FILE_LINE_STAMP << "UNSUPPORTED!! I won't  do this!" << std::endl
 #define UNIMPLEMENTED                                   \
     simpla::logger::Logger(simpla::logger::LOG_WARNING) \
-        << FILE_LINE_STAMP << "Sorry, this function is not implemented. Try again next year, good luck! " << std::endl
+        << FILE_LINE_STAMP << "Sorry, this function is not implemented! " << std::endl
 
 #define TODO \
     simpla::logger::Logger(simpla::logger::LOG_VERBOSE) << FILE_LINE_STAMP << std::endl << " \e[32;1m[ TODO  ]\e[0m "

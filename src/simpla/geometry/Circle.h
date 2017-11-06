@@ -7,21 +7,16 @@
 
 #include <cmath>
 #include "Curve.h"
-#include "ParametricCurve.h"
 namespace simpla {
 namespace geometry {
 
-struct Circle : public ParametricCurve {
-    SP_GEO_OBJECT_HEAD(Circle, ParametricCurve);
+struct Circle : public Curve {
+    SP_GEO_OBJECT_HEAD(Circle, Curve);
 
    protected:
-    Circle();
-    Circle(Circle const &);
     explicit Circle(Axis const &axis, Real radius, Real alpha0 = SP_SNaN, Real alpha1 = SP_SNaN);
 
    public:
-    ~Circle() override;
-
     /**      ^ axis
      *       |
      *       +----> b

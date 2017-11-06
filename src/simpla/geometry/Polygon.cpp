@@ -36,11 +36,17 @@ struct Polygon::pimpl_s {
 Polygon::Polygon() : m_pimpl_(new pimpl_s) {}
 Polygon::~Polygon() { delete m_pimpl_; }
 Polygon::Polygon(Polygon const &) : m_pimpl_(new pimpl_s) {}
-Polygon::Polygon(Axis const &axis) : Surface(axis), m_pimpl_(new pimpl_s) {}
+Polygon::Polygon(Axis const &axis) : Curve(axis), m_pimpl_(new pimpl_s) {}
 void Polygon::Open() {}
 void Polygon::Close() {}
-void Polygon::push_back(Real u, Real v) {}
-void Polygon::push_back(size_type num, Real const *u, Real const *v) {}
+point_type Polygon::xyz(Real u) const {
+    UNIMPLEMENTED;
+    return point_type{};
+};
+void Polygon::Add(Real u, Real v) {}
+void Polygon::Add(Real u, Real v, Real w) {}
+void Polygon::Add(size_type num, Real const *u, Real const *v, Real const *w) {}
+
 std::shared_ptr<data::DataNode> Polygon::Serialize() const {
     auto res = base_type::Serialize();
     //        auto v_array = data::DataArrayWrapper<point2d_type>::New();

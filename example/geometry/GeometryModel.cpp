@@ -7,7 +7,7 @@
 #include <simpla/geometry/Line.h>
 #include <simpla/geometry/Polygon.h>
 #include <simpla/geometry/Revolution.h>
-#include <simpla/geometry/Toroidal.h>
+#include <simpla/geometry/Torus.h>
 #include <simpla/utilities/FancyStream.h>
 
 namespace sg = simpla::geometry;
@@ -15,7 +15,7 @@ using namespace simpla;
 int main(int argc, char** argv) {
     logger::set_stdout_level(1000);
     sg::GeoEngine::Initialize("OCE");
-    auto t_surf = sg::Toroidal::New();
+    auto t_surf = sg::Torus::New();
     std::cout << *t_surf->Serialize() << std::endl;
     auto line = sg::Line::New(point_type{0, 0, 0}, point_type{1, 0, 0});
     std::cout << *line->Serialize() << std::endl;

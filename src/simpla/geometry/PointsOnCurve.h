@@ -12,12 +12,7 @@ struct Curve;
 struct PointsOnCurve : public PolyPoints {
     SP_GEO_OBJECT_HEAD(PointsOnCurve, PolyPoints)
 
-   protected:
-    PointsOnCurve();
-
    public:
-    ~PointsOnCurve() override;
-
     void SetCurve(std::shared_ptr<const Curve> const&);
     std::shared_ptr<const Curve> GetCurve() const;
     size_type size() const override;

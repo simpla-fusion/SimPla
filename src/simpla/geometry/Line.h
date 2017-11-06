@@ -9,25 +9,19 @@
 #include <simpla/utilities/SPDefines.h>
 #include <memory>
 #include "Curve.h"
-#include "ParametricCurve.h"
 namespace simpla {
 namespace geometry {
-struct Line : public ParametricCurve {
-    SP_GEO_OBJECT_HEAD(Line, ParametricCurve);
+struct Line : public Curve {
+    SP_GEO_OBJECT_HEAD(Line, Curve);
 
    protected:
-    Line();
-    Line(Line const &);
-    explicit Line(Axis const &axis, Real alpha0 = -SP_INFINITY, Real alpha1 = SP_INFINITY);
     explicit Line(point_type const &p0, point_type const &p1);
     explicit Line(vector_type const &v);
 
    public:
-    ~Line() override;
-
     bool IsClosed() const override;
     point_type xyz(Real u) const override;
-  };
+};
 
 }  // namespace geometry
 }  // namespace simpla

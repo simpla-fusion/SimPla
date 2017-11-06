@@ -16,14 +16,7 @@ struct Box;
 struct Curve : public GeoObject {
     SP_GEO_ABS_OBJECT_HEAD(Curve, GeoObject);
 
-   protected:
-    Curve();
-    Curve(Curve const &other);
-    explicit Curve(Axis const &axis);
-
    public:
-    ~Curve() override;
-
     virtual point_type xyz(Real u) const = 0;
 
     int GetDimension() const override { return 1; }

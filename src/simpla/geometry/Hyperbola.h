@@ -4,22 +4,19 @@
 
 #ifndef SIMPLA_HYPERBOLA_H
 #define SIMPLA_HYPERBOLA_H
-#include "ParametricCurve.h"
+
+#include "Curve.h"
 namespace simpla {
 namespace geometry {
 
-struct Hyperbola : public ParametricCurve {
-    SP_GEO_OBJECT_HEAD(Hyperbola, ParametricCurve);
+struct Hyperbola : public Curve {
+    SP_GEO_OBJECT_HEAD(Hyperbola, Curve);
 
    protected:
-    Hyperbola() = default;
-    Hyperbola(Hyperbola const &other) = default;
     Hyperbola(Axis const &axis, Real major_radius, Real minor_radius, Real alpha0 = SP_SNaN, Real alpha1 = SP_SNaN)
-        : ParametricCurve(axis), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {}
+        : Curve(axis), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {}
 
    public:
-    ~Hyperbola() override = default;
-
     void GetMajorRadius(Real r) { m_major_radius_ = r; }
     void GetMinorRadius(Real r) { m_minor_radius_ = r; }
     Real GetMajorRadius() const { return m_major_radius_; }

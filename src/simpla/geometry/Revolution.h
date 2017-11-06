@@ -15,33 +15,15 @@ struct Revolution : public Swept {
     SP_GEO_OBJECT_HEAD(Revolution, Swept);
 
    protected:
-    Revolution();
-    Revolution(Revolution const &other);
-    explicit Revolution(Axis const &axis, std::shared_ptr<const Surface> const &s);
+    explicit Revolution(Axis const &axis, std::shared_ptr<const GeoObject> const &s, Real angele = TWOPI);
 
    public:
-    ~Revolution() override;
-    std::shared_ptr<const Surface> GetBasisSurface() const { return m_basis_surface_; }
+    std::shared_ptr<const GeoObject> GetBasisObject() const { return m_basis_obj_; }
+    Real GetAngle() const { return m_angle_; }
 
    private:
-    std::shared_ptr<const Surface> m_basis_surface_;
-};
-
-struct RevolutionSurface : public SweptSurface {
-    SP_GEO_OBJECT_HEAD(RevolutionSurface, SweptSurface);
-
-   protected:
-    RevolutionSurface();
-    RevolutionSurface(RevolutionSurface const &other);
-    explicit RevolutionSurface(Axis const &axis, std::shared_ptr<Curve> const &c);
-
-   public:
-    ~RevolutionSurface() override;
-    bool IsClosed() const override;
-    std::shared_ptr<const Curve> GetBasisCurve() const { return m_basis_curve_; }
-
-   private:
-    std::shared_ptr<const Curve> m_basis_curve_;
+    std::shared_ptr<const GeoObject> m_basis_obj_;
+    Real m_angle_ = TWOPI;
 };
 
 }  // namespace simpla

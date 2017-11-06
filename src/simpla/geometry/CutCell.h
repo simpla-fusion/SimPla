@@ -12,7 +12,7 @@ namespace simpla {
 namespace geometry {
 
 class Chart;
-class GeoObject;
+struct Shape;
 struct IntersectionCurveSurface;
 struct CutCell {
    private:
@@ -34,7 +34,7 @@ struct CutCell {
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
     }
 
-    void SetUp(std::shared_ptr<const Chart> const &, std::shared_ptr<const GeoObject> const &, Real tolerance);
+    void SetUp(std::shared_ptr<const Chart> const &, std::shared_ptr<const Shape> const &, Real tolerance);
     void TearDown();
     void TagCell(Array<unsigned int> *vertex_tags, Array<Real> *edge_tags, unsigned int tag = 0b001) const;
 

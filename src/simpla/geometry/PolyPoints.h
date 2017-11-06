@@ -11,14 +11,7 @@ namespace geometry {
 struct PolyPoints : public GeoObject {
     SP_GEO_ABS_OBJECT_HEAD(PolyPoints, GeoObject);
 
-   protected:
-    PolyPoints();
-    PolyPoints(PolyPoints const &other);
-    explicit PolyPoints(Axis const &axis);
-
    public:
-    ~PolyPoints() override;
-
     virtual size_type size() const = 0;
     virtual point_type GetPoint(size_type idx) const = 0;
 

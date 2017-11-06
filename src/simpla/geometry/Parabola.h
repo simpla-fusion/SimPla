@@ -4,22 +4,18 @@
 
 #ifndef SIMPLA_PARABOLA_H
 #define SIMPLA_PARABOLA_H
-#include "ParametricCurve.h"
+#include "Curve.h"
 namespace simpla {
 namespace geometry {
 
-struct Parabola : public ParametricCurve {
-    SP_GEO_OBJECT_HEAD(Parabola, ParametricCurve);
+struct Parabola : public Curve {
+    SP_GEO_OBJECT_HEAD(Parabola, Curve);
 
    protected:
-    Parabola() = default;
-    Parabola(Parabola const &other) = default;
     Parabola(Axis const &axis, Real focal, Real alpha0 = SP_SNaN, Real alpha1 = SP_SNaN)
-        : ParametricCurve(axis), m_focal_(focal) {}
+        : Curve(axis), m_focal_(focal) {}
 
    public:
-    ~Parabola() override = default;
-
     bool IsClosed() const override { return false; };
 
     void SetFocal(Real f) { m_focal_ = f; }

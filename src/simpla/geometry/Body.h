@@ -9,6 +9,7 @@
 #include <simpla/algebra/nTuple.h>
 #include <memory>
 #include "GeoObject.h"
+
 namespace simpla {
 template <typename, int...>
 struct nTuple;
@@ -16,16 +17,14 @@ namespace geometry {
 struct Point;
 struct Curve;
 struct Surface;
+struct Shape;
 struct Body : public GeoObject {
-    SP_GEO_ABS_OBJECT_HEAD(Body, GeoObject);
-
-   protected:
-    Body();
-    Body(Body const &other);
-    explicit Body(Axis const &axis);
+    SP_GEO_OBJECT_HEAD(Body, GeoObject);
 
    public:
-    ~Body() override;
+    explicit Body(std::shared_ptr<const Shape> const &);
+    std::shared_ptr<const Shape> GetShape() const;
+
     int GetDimension() const override { return 3; }
 
     virtual std::shared_ptr<Surface> GetBoundarySurface() const;
@@ -36,6 +35,9 @@ struct Body : public GeoObject {
     virtual std::shared_ptr<Body> GetIntersection(std::shared_ptr<const Body> const &g, Real tolerance) const;
     std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const final;
     std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g) const;
+
+   private:
+    std::shared_ptr<const Shape> m_shape_ = nullptr;
 };
 
 }  // namespace geometry

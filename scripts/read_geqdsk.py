@@ -31,7 +31,7 @@ def read_geqdsk(filename):
     'rlim'    :rlim,  # R of surrounding limiter contour in meter
     'rlim'    :zlim,  # R of surrounding limiter contour in meter
     
-    Toroidal Current Density
+    Torus Current Density
      $J_T(Amp/m^2)= R P^\prim(\psi)+ F F^\prim(\psi)/R/\mu_0$
     """
     d=open(filename,"r").read().replace("\n","");

@@ -9,29 +9,21 @@ namespace simpla {
 namespace geometry {
 Revolution::Revolution() = default;
 Revolution::Revolution(Revolution const &other) = default;
-Revolution::Revolution(Axis const &axis, std::shared_ptr<const Surface> const &s) : Swept(axis), m_basis_surface_(s) {}
-
 Revolution::~Revolution() = default;
-void Revolution::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
+Revolution::Revolution(Axis const &axis, std::shared_ptr<const GeoObject> const &g, Real angle)
+    : Swept(axis), m_basis_obj_(g), m_angle_(angle) {}
+
+void Revolution::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
+    base_type::Deserialize(cfg);
+    m_basis_obj_ = GeoObject::New(cfg->Get("BasisObject"));
+    m_angle_ = cfg->GetValue<Real>("Angle", m_angle_);
+}
 std::shared_ptr<simpla::data::DataNode> Revolution::Serialize() const {
     auto res = base_type::Serialize();
-    res->Set("BasisSurface", m_basis_surface_->Serialize());
+    res->Set("BasisObject", m_basis_obj_->Serialize());
+    res->SetValue<Real>("Angle", m_angle_);
     return res;
 }
-
-/*******************************************************************************************************************/
-SP_GEO_OBJECT_REGISTER(RevolutionSurface)
-RevolutionSurface::RevolutionSurface() = default;
-RevolutionSurface::RevolutionSurface(RevolutionSurface const &other) = default;
-RevolutionSurface::RevolutionSurface(Axis const &axis, std::shared_ptr<Curve> const &c) : SweptSurface(axis) {}
-RevolutionSurface::~RevolutionSurface() = default;
-void RevolutionSurface::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
-std::shared_ptr<simpla::data::DataNode> RevolutionSurface::Serialize() const {
-    auto res = base_type::Serialize();
-    res->Set("BasisCurve", GetBasisCurve()->Serialize());
-    return res;
-}
-bool RevolutionSurface::IsClosed() const { return GetBasisCurve()->IsClosed(); };
 
 }  // namespace geometry{
 }  // namespace simpla{

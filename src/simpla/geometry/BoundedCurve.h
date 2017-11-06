@@ -10,14 +10,6 @@ namespace simpla {
 namespace geometry {
 class BoundedCurve : public Curve {
     SP_GEO_ABS_OBJECT_HEAD(BoundedCurve, Curve);
-
-   protected:
-    BoundedCurve();
-    BoundedCurve(BoundedCurve const &);
-    explicit BoundedCurve(Axis const &axis);
-
-   public:
-    ~BoundedCurve() override;
 };
 }  // namespace geometry
 }  // namespace simpla

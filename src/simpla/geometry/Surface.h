@@ -27,15 +27,7 @@ struct Body;
 struct Surface : public GeoObject {
     SP_GEO_ABS_OBJECT_HEAD(Surface, GeoObject);
 
-   protected:
-    Surface();
-    Surface(Surface const &other);
-    explicit Surface(Axis const &axis);
-
    public:
-    ~Surface() override;
-    int GetDimension() const override { return 2; }
-
     virtual std::shared_ptr<Curve> GetBoundaryCurve() const;
     std::shared_ptr<GeoObject> GetBoundary() const final;
 

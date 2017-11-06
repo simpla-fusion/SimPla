@@ -28,12 +28,9 @@ std::shared_ptr<data::DataNode> Box::Serialize() const {
     return cfg;
 };
 void Box::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
+point_type Box::GetMinPoint() const { return m_axis_.xyz(utility::make_point(m_value_range_[0])); }
+point_type Box::GetMaxPoint() const { return m_axis_.xyz(utility::make_point(m_value_range_[1])); }
 
-box_type Box::GetParameterRange() const { return utility::make_box(m_parameter_range_); };
-box_type Box::GetValueRange() const {
-    return std::make_tuple(m_axis_.xyz(utility::make_point(m_value_range_[0])),
-                           m_axis_.xyz(utility::make_point(m_value_range_[1])));
-};
 point_type Box::xyz(Real u, Real v, Real w) const { return m_axis_.xyz(u, v, w); };
 point_type Box::uvw(Real x, Real y, Real z) const { return m_axis_.uvw(x, y, z); };
 bool Box::CheckIntersection(box_type const &b, Real tolerance) const { return TestBoxOverlapped(b, GetBoundingBox()); };

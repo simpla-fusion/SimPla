@@ -46,6 +46,7 @@ std::shared_ptr<GeoObject> GeoObject::New(std::shared_ptr<data::DataNode> const 
 std::shared_ptr<data::DataNode> GeoObject::Serialize() const {
     auto res = data::DataNode::New(data::DataNode::DN_TABLE);
     res->Set("Axis", m_axis_.Serialize());
+    res->SetValue("_TYPE_", FancyTypeName());
     return res;
 }
 void GeoObject::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { m_axis_.Deserialize(cfg->Get("Axis")); }

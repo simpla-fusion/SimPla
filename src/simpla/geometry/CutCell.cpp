@@ -9,6 +9,8 @@
 #include "GeoEngine.h"
 #include "GeoObject.h"
 #include "IntersectionCurveSurface.h"
+#include "Shape.h"
+#include "Shell.h"
 namespace simpla {
 namespace geometry {
 struct CutCell::pimpl_s {
@@ -19,13 +21,9 @@ struct CutCell::pimpl_s {
 CutCell::CutCell() : m_pimpl_(new pimpl_s){};
 CutCell::~CutCell() { delete m_pimpl_; }
 
-void CutCell::SetUp(std::shared_ptr<const Chart> const &c, std::shared_ptr<const GeoObject> const &g, Real tolerance) {
+void CutCell::SetUp(std::shared_ptr<const Chart> const &c, std::shared_ptr<const Shape> const &g, Real tolerance) {
     m_pimpl_->m_chart_ = c;
-    if (auto body = std::dynamic_pointer_cast<const Body>(g)) {
-        m_pimpl_->m_intersector_ = IntersectionCurveSurface::New(body->GetBoundarySurface(), tolerance);
-    } else if (auto surface = std::dynamic_pointer_cast<const Surface>(g)) {
-        m_pimpl_->m_intersector_ = IntersectionCurveSurface::New(surface, tolerance);
-    }
+    m_pimpl_->m_intersector_ = IntersectionCurveSurface::New(std::dynamic_pointer_cast<const Surface>(g->AsShell()));
 }
 void CutCell::TearDown() {}
 

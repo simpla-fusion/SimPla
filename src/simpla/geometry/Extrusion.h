@@ -14,25 +14,7 @@ struct Extrusion : public Swept {
     SP_GEO_OBJECT_HEAD(Extrusion, Swept);
 
    protected:
-    Extrusion();
-    Extrusion(Extrusion const &other);
     Extrusion(std::shared_ptr<const Surface> const &s, vector_type const &c);
-
-   protected:
-   public:
-    ~Extrusion() override;
-};
-struct ExtrusionSurface : public SweptSurface {
-    SP_GEO_OBJECT_HEAD(ExtrusionSurface, SweptSurface);
-
-   protected:
-    ExtrusionSurface();
-    ExtrusionSurface(ExtrusionSurface const &other);
-    ExtrusionSurface(Axis const &axis);
-
-   public:
-    ~ExtrusionSurface() override;
-    bool IsClosed() const override;
 };
 
 }  // namespace simpla
