@@ -11,6 +11,7 @@ namespace geometry {
 struct GeoEngineOCE : public GeoEngine {
     SP_GEO_ENGINE_HEAD(OCE, GeoEngine)
    public:
+
    protected:
     //    std::shared_ptr<GeoObject> GetBoundaryInterface(std::shared_ptr<const GeoObject> const &) const override;
     bool CheckIntersectionInterface(std::shared_ptr<const GeoObject> const &, point_type const &x,

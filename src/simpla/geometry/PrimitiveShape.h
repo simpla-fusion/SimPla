@@ -4,6 +4,8 @@
 
 #ifndef SIMPLA_PRIMITIVESSHAPE_H
 #define SIMPLA_PRIMITIVESSHAPE_H
+#include <simpla/data/DataNode.h>
+#include <simpla/utilities/SPDefines.h>
 #include <memory>
 #include "Shape.h"
 namespace simpla {

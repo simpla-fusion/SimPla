@@ -40,6 +40,7 @@
 #include "../GeoObject.h"
 #include "../IntersectionCurveSurface.h"
 #include "../Line.h"
+#include "../PrimitiveShape.h"
 #include "../Sphere.h"
 #include "../Surface.h"
 #include "simpla/geometry/Torus.h"
@@ -161,7 +162,8 @@ bool GeoObjectOCE::_is_registered = simpla::Factory<GeoObject>::RegisterCreator<
 namespace detail {
 
 template <>
-std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, Body>::eval(std::shared_ptr<const Body> const &g) {
+std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, PrimitiveShape>::eval(
+    std::shared_ptr<const PrimitiveShape> const &g) {
     std::shared_ptr<TopoDS_Shape> res = nullptr;
     if (auto box = std::dynamic_pointer_cast<const Box>(g)) {
         res = std::make_shared<TopoDS_Solid>(
@@ -187,6 +189,8 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, GeoObject>::eval(std::s
         res = OCEShapeCast<TopoDS_Shape, Surface>::eval(s);
     } else if (auto b = std::dynamic_pointer_cast<Body const>(g)) {
         res = OCEShapeCast<TopoDS_Shape, Body>::eval(b);
+    } else if (auto p = std::dynamic_pointer_cast<PrimitiveShape const>(g)) {
+        res = OCEShapeCast<TopoDS_Shape, PrimitiveShape>::eval(p);
     } else {
         LOGGER << *g->Serialize();
         UNIMPLEMENTED;
@@ -537,7 +541,8 @@ void IntersectionCurveSurfaceTagNodeOCE(Array<Real> *vertex_tags, std::shared_pt
     }
 }
 /********************************************************************************************************************/
-REGISTER_CREATOR1(GeoEngineOCE);
+bool GeoEngineOCE::_is_registered = Factory<GeoEngine>::RegisterCreator<GeoEngineOCE>(GeoEngineOCE::RegisterName());
+
 GeoEngineOCE::GeoEngineOCE() = default;
 GeoEngineOCE::~GeoEngineOCE() = default;
 // std::shared_ptr<GeoObject> GeoEngineOCE::GetBoundaryInterface(std::shared_ptr<const GeoObject> const &) const {}

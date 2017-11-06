@@ -5,24 +5,25 @@
 #ifndef SIMPLA_ENGINE_H
 #define SIMPLA_ENGINE_H
 
+#include <simpla/data/DataNode.h>
 #include <simpla/data/SPObject.h>
-#include <simpla/utilities/Factory.h>
+#include <simpla/utilities/SPDefines.h>
+#include <memory>
+
 namespace simpla {
 namespace geometry {
 class GeoObject;
-struct GeoEngine : public Factory<GeoEngine> {
+struct GeoEngine : public std::enable_shared_from_this<GeoEngine> {
    public:
-    static std::string FancyTypeName_s() { return "GeoEngine"; }
-    virtual std::string FancyTypeName() const { return FancyTypeName_s(); }
-    static std::string RegisterName_s();
-    virtual std::string RegisterName() const { return RegisterName_s(); }
+    virtual std::string FancyTypeName() const { return "GeoEngine"; }
+    static std::string RegisterName() { return "GeoEngine"; }
 
    private:
     typedef GeoEngine this_type;
 
    public:
     GeoEngine();
-    ~GeoEngine() override;
+    virtual ~GeoEngine();
 
     virtual void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg);
     virtual std::shared_ptr<simpla::data::DataNode> Serialize() const;
@@ -65,29 +66,27 @@ struct GeoEngine : public Factory<GeoEngine> {
    private:
 };
 
-#define SP_GEO_ENGINE_HEAD(_CLASS_NAME_, _BASE_NAME_)                                    \
-   public:                                                                               \
-    static std::string FancyTypeName_s() { return __STRING(_BASE_NAME_##_CLASS_NAME_); } \
-    static std::string RegisterName_s() { return __STRING(_CLASS_NAME_); }               \
-    std::string FancyTypeName() const override { return FancyTypeName_s(); }             \
-    std::string RegisterName() const override { return RegisterName_s(); }               \
-                                                                                         \
-    static bool _is_registered;                                                          \
-                                                                                         \
-   private:                                                                              \
-    typedef _BASE_NAME_ base_type;                                                       \
-    typedef _BASE_NAME_##_CLASS_NAME_ this_type;                                         \
-                                                                                         \
-   protected:                                                                            \
-    _BASE_NAME_##_CLASS_NAME_();                                                         \
-                                                                                         \
-   public:                                                                               \
-    ~_BASE_NAME_##_CLASS_NAME_() override;                                               \
-                                                                                         \
-   public:                                                                               \
-    template <typename... Args>                                                          \
-    static std::shared_ptr<this_type> New(Args &&... args) {                             \
-        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));   \
+#define SP_GEO_ENGINE_HEAD(_CLASS_NAME_, _BASE_NAME_)                                                                \
+   public:                                                                                                           \
+    std::string FancyTypeName() const override { return base_type::FancyTypeName() + "." + __STRING(_CLASS_NAME_); } \
+    static std::string RegisterName() { return __STRING(_CLASS_NAME_); }                                             \
+                                                                                                                     \
+    static bool _is_registered;                                                                                      \
+                                                                                                                     \
+   private:                                                                                                          \
+    typedef _BASE_NAME_ base_type;                                                                                   \
+    typedef _BASE_NAME_##_CLASS_NAME_ this_type;                                                                     \
+                                                                                                                     \
+   protected:                                                                                                        \
+    _BASE_NAME_##_CLASS_NAME_();                                                                                     \
+                                                                                                                     \
+   public:                                                                                                           \
+    ~_BASE_NAME_##_CLASS_NAME_() override;                                                                           \
+                                                                                                                     \
+   public:                                                                                                           \
+    template <typename... Args>                                                                                      \
+    static std::shared_ptr<this_type> New(Args &&... args) {                                                         \
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));                               \
     }
 }  // namespace geometry
 }  // namespace simpla

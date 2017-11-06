@@ -13,12 +13,14 @@
 #include <typeindex>
 #include <typeinfo>
 
-#include "simpla/data/DataNode.h"
-#include "simpla/utilities/Factory.h"
+#include <simpla/data/DataNode.h>
+#include <simpla/utilities/Factory.h>
 
 namespace simpla {
 #define NULL_ID static_cast<id_type>(-1)
-
+namespace data {
+struct DataNode;
+}
 /**
  *
  *  @brief every thing is an Object
@@ -76,11 +78,6 @@ class SPObject : public std::enable_shared_from_this<SPObject> {
 
    public:
     virtual std::string FancyTypeName() const { return "SPObject"; }
-
-    template <typename U>
-    static int RegisterCreator() noexcept {
-        return Factory<SPObject>::RegisterCreator<U>(traits::type_name<U>::value());
-    };
 
    protected:
     SPObject();

@@ -115,8 +115,6 @@ class Factory {
 
 #define REGISTER_CREATOR(_CLASS_NAME_, _REGISTER_NAME_) \
     bool _CLASS_NAME_::_is_registered = _CLASS_NAME_::RegisterCreator<_CLASS_NAME_>(__STRING(_REGISTER_NAME_));
-#define REGISTER_CREATOR1(_CLASS_NAME_) \
-    bool _CLASS_NAME_::_is_registered = _CLASS_NAME_::RegisterCreator<_CLASS_NAME_>(_CLASS_NAME_::RegisterName_s());
 
 #define FACTORY_HEAD(_CLASS_NAME_)                                          \
    private:                                                                 \

@@ -2,6 +2,8 @@
 // Created by salmon on 17-11-1.
 //
 #include "GeoEngine.h"
+#include <simpla/data/DataNode.h>
+#include <simpla/utilities/SingletonHolder.h>
 #include "GeoAlgorithm.h"
 #include "GeoObject.h"
 namespace simpla {
@@ -33,8 +35,6 @@ GeoEngine const &GeoEngineHolder::get() const {
 GeoEngine::GeoEngine() = default;
 GeoEngine::~GeoEngine() = default;
 
-std::string GeoEngine::RegisterName_s() { return static_entry().RegisterName(); }
-
 void GeoEngine::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {}
 std::shared_ptr<simpla::data::DataNode> GeoEngine::Serialize() const {
     return data::DataNode::New(data::DataNode::DN_TABLE);
@@ -42,7 +42,7 @@ std::shared_ptr<simpla::data::DataNode> GeoEngine::Serialize() const {
 std::shared_ptr<GeoEngine> GeoEngine::New(std::string const &key) {
     auto res = Factory<GeoEngine>::Create(key);
     if (res == nullptr) {
-        RUNTIME_ERROR << "Create GeoEngine Fail! [" << key << "]" << std::endl << GeoEngine::ShowDescription();
+        RUNTIME_ERROR << "Create GeoEngine Fail! [" << key << "]" << std::endl << Factory<GeoEngine>::ShowDescription();
     }
     return res;
 }
@@ -54,7 +54,7 @@ std::shared_ptr<GeoEngine> GeoEngine::New(std::shared_ptr<data::DataNode> const 
         res->Deserialize(d);
     }
     if (res == nullptr) {
-        RUNTIME_ERROR << "Create GeoEngine Fail! " << *d << std::endl << GeoEngine::ShowDescription();
+        RUNTIME_ERROR << "Create GeoEngine Fail! " << *d << std::endl << Factory<GeoEngine>::ShowDescription();
     }
     return res;
 }

@@ -1,7 +1,6 @@
 //
 // Created by salmon on 17-10-23.
 //
-
 #include <simpla/geometry/CutCell.h>
 #include <simpla/geometry/GeoEngine.h>
 #include <simpla/geometry/Line.h>
@@ -9,6 +8,9 @@
 #include <simpla/geometry/Revolution.h>
 #include <simpla/geometry/Torus.h>
 #include <simpla/utilities/FancyStream.h>
+#include <simpla/utilities/Log.h>
+
+#include <iostream>
 
 namespace sg = simpla::geometry;
 using namespace simpla;
