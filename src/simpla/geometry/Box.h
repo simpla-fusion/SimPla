@@ -15,7 +15,7 @@ struct Box : public PrimitiveShape {
 
    protected:
     Box(std::initializer_list<std::initializer_list<Real>> const &v);
-    Box(point_type const &p0, point_type const &p1);
+    explicit Box(point_type const &p0, point_type const &p1);
     explicit Box(box_type const &v);
 
    public:
@@ -29,6 +29,7 @@ struct Box : public PrimitiveShape {
     point_type GetMinPoint() const;
     point_type GetMaxPoint() const;
 
+    box_type GetBoundingBox() const override { return std::make_tuple(GetMinPoint(), GetMaxPoint()); }
     bool CheckIntersection(box_type const &, Real tolerance) const override;
     //    std::shared_ptr<Point> GetIntersectionion(std::shared_ptr<const Point> const &g, Real tolerance) const
     //    override;

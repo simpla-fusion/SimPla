@@ -82,12 +82,15 @@ int main(int argc, char **argv) {
             atlas->GetIndexBox(),
             std::make_tuple(std::get<1>(atlas->GetChart()->invert_local_coordinates(std::get<0>(c_box))),
                             std::get<1>(atlas->GetChart()->invert_local_coordinates(std::get<1>(c_box)))));
-        for (auto const &b : box_list) { atlas->AddPatch(b); }
+        for (auto const &b : box_list) {
+            atlas->AddPatch(b);
+            CHECK(b);
+        }
     }
 
     scenario->ConfigureAttribute<size_type>("E", "CheckPoint", checkpoint_interval);
     scenario->ConfigureAttribute<size_type>("B", "CheckPoint", checkpoint_interval);
-
+    std::cout << *scenario->GetAtlas()->Serialize();
     scenario->Run();
 
     scenario->TearDown();

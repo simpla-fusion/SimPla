@@ -109,8 +109,6 @@ struct Attribute : public SPObject {
     SP_OBJECT_HEAD(Attribute, SPObject)
 
    public:
-    std::string ClassName() const final { return "Attribute"; }
-
    public:
     Attribute(this_type const &other) = delete;  // { UNIMPLEMENTED; };
     Attribute(this_type &&other) = delete;       // { UNIMPLEMENTED; };

@@ -62,15 +62,14 @@ void SPObject::db(std::shared_ptr<data::DataNode> const &d) { m_pimpl_->m_db_ = 
 std::shared_ptr<data::DataNode> SPObject::Serialize() const {
     auto db = data::DataNode::New(data::DataNode::DN_TABLE);
     db->Set(m_pimpl_->m_db_);
-    db->SetValue("_CLASS_", ClassName());
     db->SetValue("_TYPE_", FancyTypeName());
-    //    backend->SetValue("Name", GetName());
+    //    db->SetValue("Name", GetName());
     return db;
 }
 void SPObject::Deserialize(std::shared_ptr<data::DataNode> const &d) {
     if (d == nullptr) { return; }
     m_pimpl_->m_db_->Set(d);
-    SetName(m_pimpl_->m_db_->GetValue<std::string>("Name", GetName()));
+    //    SetName(m_pimpl_->m_db_->GetValue<std::string>("Name", GetName()));
 }
 std::shared_ptr<SPObject> SPObject::Create(std::string const &key) { return Factory<SPObject>::Create(key); };
 std::shared_ptr<SPObject> SPObject::Create(std::shared_ptr<data::DataNode> const &tdb) {
