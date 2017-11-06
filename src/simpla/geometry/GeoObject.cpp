@@ -28,14 +28,18 @@ std::shared_ptr<GeoObject> GeoObject::New(std::string const &s) {
     std::tie(scheme, authority, path, query, fragment) = ParsingURI(uri);
     auto res = Factory<GeoObject>::Create(scheme);
     ASSERT(res != nullptr);
-    if (SP_SUCCESS != res->Load(authority, path, query, fragment)) {
+    if (SP_SUCCESS != res->Load(path)) {
         RUNTIME_ERROR << "Fail to connect  Data Backend [ " << scheme << " : " << authority << path << " ]"
                       << std::endl;
     }
     return res;
 }
-int GeoObject::Load(std::string const &authority, std::string const &path, std::string const &query,
-                    std::string const &fragment) {
+int GeoObject::Load(std::string const &path, std::string const &name) {
+    UNIMPLEMENTED;
+    return SP_FAILED;
+}
+int GeoObject::Save(std::string const &path, std::string const &name) const {
+    GeoEngine::Save(Self(), path, name);
     return SP_SUCCESS;
 }
 std::shared_ptr<GeoObject> GeoObject::New(std::shared_ptr<data::DataNode> const &cfg) {

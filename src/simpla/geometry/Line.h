@@ -21,6 +21,8 @@ struct Line : public Curve {
    public:
     bool IsClosed() const override;
     point_type xyz(Real u) const override;
+    point_type GetStartPoint() const;
+    point_type GetEndPoint() const;
 };
 
 }  // namespace geometry

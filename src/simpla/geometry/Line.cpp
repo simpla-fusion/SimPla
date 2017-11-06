@@ -16,6 +16,8 @@ std::shared_ptr<data::DataNode> Line::Serialize() const { return base_type::Seri
 void Line::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
 bool Line::IsClosed() const { return false; };
 point_type Line::xyz(Real u) const { return m_axis_.xyz(u); }
+point_type Line::GetStartPoint() const { return m_axis_.o; }
+point_type Line::GetEndPoint() const { return m_axis_.o + m_axis_.x; }
 
 }  // namespace geometry
 }  // namespace simpla

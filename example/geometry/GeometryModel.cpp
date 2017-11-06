@@ -18,18 +18,19 @@ int main(int argc, char** argv) {
     logger::set_stdout_level(1000);
     sg::GeoEngine::Initialize("OCE");
     auto t_surf = sg::Torus::New();
-    std::cout << *t_surf->Serialize() << std::endl;
+    t_surf->Save("Torus.stp");
     auto line = sg::Line::New(point_type{0, 0, 0}, point_type{1, 0, 0});
-    std::cout << *line->Serialize() << std::endl;
+    line->Save("Line.stp");
     auto intersect_points = t_surf->GetIntersection(line);
-    std::cout << intersect_points << std::endl;
+    std::cout << *intersect_points->Serialize() << std::endl;
 
-    auto polygon = sg::Polygon::New();
-    std::cout << *polygon->Serialize() << std::endl;
-    std::cout << "Done" << std::endl;
-    auto revolution = sg::Revolution::New(sg::Axis{point_type{0, 0, 0}, vector_type{0, 0, 1}}, polygon);
-    std::cout << *revolution->Serialize() << std::endl;
-    std::cout << "Done" << std::endl;
-
-    auto cutcell = sg::CutCell::New();
+    intersect_points->Save("test.stp");
+    //    auto polygon = sg::Polygon::New();
+    //    std::cout << *polygon->Serialize() << std::endl;
+    //    std::cout << "Done" << std::endl;
+    //    auto revolution = sg::Revolution::New(sg::Axis{point_type{0, 0, 0}, vector_type{0, 0, 1}}, polygon);
+    //    std::cout << *revolution->Serialize() << std::endl;
+    //    std::cout << "Done" << std::endl;
+    //
+    //    auto cutcell = sg::CutCell::New();
 }

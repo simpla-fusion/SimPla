@@ -34,6 +34,10 @@ struct GeoEngine : public std::enable_shared_from_this<GeoEngine> {
     static void Initialize(std::shared_ptr<data::DataNode> const &d = nullptr);
     static void Initialize(int argc, char **argv);
     static void Finalize();
+    static void Save(std::shared_ptr<const GeoObject> const &geo, std::string const &path,
+                     std::string const &name = "");
+    static std::shared_ptr<const GeoObject> Load(std::string const &path, std::string const &name = "");
+
     static GeoEngine &static_entry();
     static std::shared_ptr<GeoObject> GetBoundary(std::shared_ptr<const GeoObject> const &);
     static bool CheckIntersection(std::shared_ptr<const GeoObject> const &, point_type const &x, Real tolerance);
@@ -47,21 +51,23 @@ struct GeoEngine : public std::enable_shared_from_this<GeoEngine> {
                                                       std::shared_ptr<const GeoObject> const &g, Real tolerance);
 
    protected:
-    virtual std::shared_ptr<GeoObject> GetBoundaryInterface(std::shared_ptr<const GeoObject> const &) const;
-    virtual bool CheckIntersectionInterface(std::shared_ptr<const GeoObject> const &, point_type const &x,
-                                            Real tolerance) const;
-    virtual bool CheckIntersectionInterface(std::shared_ptr<const GeoObject> const &, box_type const &,
-                                            Real tolerance) const;
+    virtual std::shared_ptr<GeoObject> GetBoundaryAPI(std::shared_ptr<const GeoObject> const &) const;
+    virtual bool CheckIntersectionAPI(std::shared_ptr<const GeoObject> const &, point_type const &x,
+                                      Real tolerance) const;
+    virtual bool CheckIntersectionAPI(std::shared_ptr<const GeoObject> const &, box_type const &, Real tolerance) const;
 
-    virtual std::shared_ptr<GeoObject> GetUnionInterface(std::shared_ptr<const GeoObject> const &,
-                                                         std::shared_ptr<const GeoObject> const &g,
-                                                         Real tolerance) const;
-    virtual std::shared_ptr<GeoObject> GetDifferenceInterface(std::shared_ptr<const GeoObject> const &,
-                                                              std::shared_ptr<const GeoObject> const &g,
-                                                              Real tolerance) const;
-    virtual std::shared_ptr<GeoObject> GetIntersectionInterface(std::shared_ptr<const GeoObject> const &,
-                                                                std::shared_ptr<const GeoObject> const &g,
-                                                                Real tolerance) const;
+    virtual std::shared_ptr<GeoObject> GetUnionAPI(std::shared_ptr<const GeoObject> const &g0,
+                                                   std::shared_ptr<const GeoObject> const &g1, Real tolerance) const;
+    virtual std::shared_ptr<GeoObject> GetDifferenceAPI(std::shared_ptr<const GeoObject> const &g0,
+                                                        std::shared_ptr<const GeoObject> const &g1,
+                                                        Real tolerance) const;
+    virtual std::shared_ptr<GeoObject> GetIntersectionAPI(std::shared_ptr<const GeoObject> const &g0,
+                                                          std::shared_ptr<const GeoObject> const &g1,
+                                                          Real tolerance) const;
+
+    virtual void SaveAPI(std::shared_ptr<const GeoObject> const &geo, std::string const &path,
+                         std::string const &name) const;
+    virtual std::shared_ptr<const GeoObject> LoadAPI(std::string const &path, std::string const &name) const;
 
    private:
 };
