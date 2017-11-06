@@ -11,7 +11,7 @@ Revolution::Revolution() = default;
 Revolution::Revolution(Revolution const &other) = default;
 Revolution::~Revolution() = default;
 Revolution::Revolution(Axis const &axis, std::shared_ptr<const GeoObject> const &g, Real angle)
-    : Sweep(axis), m_basis_obj_(g), m_angle_(angle) {}
+    : PrimitiveShape(axis), m_basis_obj_(g), m_angle_(angle) {}
 
 void Revolution::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
     base_type::Deserialize(cfg);
