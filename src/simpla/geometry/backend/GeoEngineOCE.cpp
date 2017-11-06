@@ -15,10 +15,14 @@
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI_MakePolygon.hxx>
 #include <BRepBuilderAPI_MakeVertex.hxx>
+#include <BRepBuilderAPI_MakeWire.hxx>
 #include <BRepBuilderAPI_Transform.hxx>
 #include <BRepExtrema_DistShapeShape.hxx>
 #include <BRepIntCurveSurface_Inter.hxx>
+#include <BRepOffsetAPI_MakePipe.hxx>
 #include <BRepPrimAPI_MakeBox.hxx>
+#include <BRepPrimAPI_MakePrism.hxx>
+#include <BRepPrimAPI_MakeRevol.hxx>
 #include <BRepPrimAPI_MakeSphere.hxx>
 #include <BRepPrimAPI_MakeTorus.hxx>
 #include <Bnd_Box.hxx>
@@ -58,6 +62,7 @@
 #include "../Parabola.h"
 #include "../Polygon.h"
 #include "../PrimitiveShape.h"
+#include "../Revolution.h"
 #include "../Sphere.h"
 #include "../Surface.h"
 #include "../Torus.h"
@@ -80,6 +85,8 @@ gp_Ax2 make_axe(point_type const &origin, vector_type const &z, vector_type cons
     return gp_Ax2{make_point(origin), make_dir(z), make_dir(x)};
 }
 gp_Ax2 make_axis(Axis const &axis) { return gp_Ax2{make_point(axis.o), make_dir(axis.z), make_dir(axis.x)}; }
+gp_Ax1 make_axis1(Axis const &axis) { return gp_Ax1{make_point(axis.o), make_dir(axis.z)}; }
+
 // template <>
 // Handle(Geom_Curve) OCEGeometryCast<Geom_Curve, GeoObject>::eval(std::shared_ptr<const GeoObject> const &g) {
 //    Handle(Geom_Curve) res;
@@ -146,8 +153,6 @@ struct GeoObjectOCE : public GeoObject {
     int Load(std::string const &path, std::string const &name) override;
     int Save(std::string const &path, std::string const &name) const override;
 
-    void Transform(Real scale, point_type const &location = point_type{0, 0, 0},
-                   nTuple<Real, 4> const &rotate = nTuple<Real, 4>{0, 0, 0, 0});
     void DoUpdate();
 
     std::shared_ptr<TopoDS_Shape> GetShape() const;
@@ -185,6 +190,22 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, PrimitiveShape>::eval(
     } else if (auto torus = std::dynamic_pointer_cast<const Torus>(g)) {
         res = std::make_shared<TopoDS_Solid>(
             BRepPrimAPI_MakeTorus(make_axis(torus->GetAxis()), torus->GetMajorRadius(), torus->GetMinorRadius()));
+    } else if (auto revolution = std::dynamic_pointer_cast<const Revolution>(g)) {
+        if (auto basis_shape = OCEShapeCast<TopoDS_Shape, GeoObject>::eval(revolution->GetBasisObject())) {
+            res = std::make_shared<TopoDS_Solid>(
+                BRepPrimAPI_MakeRevol(*basis_shape, make_axis1(revolution->GetAxis()), revolution->GetAngle()));
+        }
+    } else if (auto sweep = std::dynamic_pointer_cast<const Sweep>(g)) {
+        if (auto line = std::dynamic_pointer_cast<const Line>(sweep->GetCurve())) {
+            auto basis_shape = OCEShapeCast<TopoDS_Shape, GeoObject>::eval(revolution->GetBasisObject());
+            res = std::make_shared<TopoDS_Solid>(
+                BRepPrimAPI_MakePrism(*basis_shape, make_dir(line->GetEndPoint() - line->GetStartPoint())));
+        } else {
+            res = std::make_shared<TopoDS_Solid>(
+                BRepOffsetAPI_MakePipe(*OCEShapeCast<TopoDS_Wire, Curve>::eval(sweep->GetCurve()),
+                                       *OCEShapeCast<TopoDS_Shape, GeoObject>::eval(sweep->GetBasisObject())));
+        }
+
     } else {
         UNIMPLEMENTED;
     }
@@ -220,6 +241,7 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, Curve>::eval(std::share
     }
     return res;
 };
+
 template <>
 std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, GeoObject>::eval(std::shared_ptr<const GeoObject> const &g) {
     std::shared_ptr<TopoDS_Shape> res = nullptr;
@@ -331,13 +353,9 @@ int SaveOCEShape(std::shared_ptr<const TopoDS_Shape> const &shape, std::string c
         UNIMPLEMENTED;
     }
 
-    {}
     return SP_SUCCESS;
 };
 
-void GeoObjectOCE::Transform(Real scale, point_type const &location, nTuple<Real, 4> const &rotate) {
-    m_occ_shape_ = TransformShape(m_occ_shape_, scale, location, rotate);
-}
 std::shared_ptr<data::DataNode> GeoObjectOCE::Serialize() const {
     auto res = base_type::Serialize();
     res->SetValue("HashCode", m_occ_shape_->HashCode(std::numeric_limits<int>::max()));

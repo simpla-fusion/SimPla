@@ -6,13 +6,13 @@
 #define SIMPLA_REVOLUTIONBODY_H
 #include <simpla/utilities/Constants.h>
 #include "Revolution.h"
-#include "Swept.h"
+#include "Sweep.h"
 namespace simpla {
 namespace geometry {
 struct Curve;
 struct Surface;
-struct Revolution : public Swept {
-    SP_GEO_OBJECT_HEAD(Revolution, Swept);
+struct Revolution : public PrimitiveShape {
+    SP_GEO_OBJECT_HEAD(Revolution, PrimitiveShape);
 
    protected:
     explicit Revolution(Axis const &axis, std::shared_ptr<const GeoObject> const &s, Real angele = TWOPI);

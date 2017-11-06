@@ -8,7 +8,7 @@ namespace simpla {
 namespace geometry {
 Extrusion::Extrusion() = default;
 Extrusion::Extrusion(Extrusion const &other) = default;
-Extrusion::Extrusion(std::shared_ptr<const Surface> const &s, vector_type const &v) : Swept(s->GetAxis()) {}
+Extrusion::Extrusion(std::shared_ptr<const Surface> const &s, vector_type const &v) : Sweep(s->GetAxis()) {}
 Extrusion::~Extrusion() = default;
 void Extrusion::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
 std::shared_ptr<simpla::data::DataNode> Extrusion::Serialize() const {
