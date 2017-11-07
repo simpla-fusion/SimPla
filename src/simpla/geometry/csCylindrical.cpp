@@ -3,6 +3,7 @@
 //
 #include "csCylindrical.h"
 #include "Box.h"
+#include "Circle.h"
 #include "Curve.h"
 #include "Line.h"
 
@@ -18,18 +19,26 @@ std::shared_ptr<GeoObject> csCylindrical::GetBoundingShape(index_box_type const 
     return GetBoundingShape(
         std::make_tuple(local_coordinates(0, std::get<0>(b)), local_coordinates(0, std::get<0>(b))));
 };
-std::shared_ptr<const Curve> csCylindrical::GetAxis(index_tuple const &x0, int dir, index_type length) const {
+std::shared_ptr<const Curve> csCylindrical::GetAxis(index_tuple const &idx0, int dir, index_type length) const {
     std::shared_ptr<Curve> res = nullptr;
+    auto uvw = GetNode(idx0);
+    vector_type R_axis{0, 0, 0};
+    vector_type Z_axis{0, 0, 0};
+    vector_type Phi_axis{0, 0, 0};
+    R_axis[RAxis] = 1;
+    Z_axis[ZAxis] = 1;
+    Phi_axis[PhiAxis] = 1;
     switch (dir) {
         case PhiAxis: {
-            point_type o = {0, 0, x0[2]};
-            //            res = Circle::New(o, u[RAxis], z_axis, r_axis);
+            point_type o = GetOrigin();
+            o[ZAxis] = uvw[ZAxis];
+            res = Circle::New(Axis{}, uvw[RAxis], uvw[PhiAxis], uvw[PhiAxis] * GetScale()[PhiAxis]);
         } break;
         case ZAxis: {
-            res = Line::New(x0, x0 + z_axis);
+            res = Line::New(uvw, uvw + Z_axis * length);
         } break;
         case RAxis: {
-            res = Line::New(x0, x0 + r_axis);
+            res = Line::New(uvw, uvw + R_axis * length);
         } break;
         default:
             break;

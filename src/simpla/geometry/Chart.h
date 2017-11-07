@@ -62,7 +62,7 @@ struct Chart : public SPObject {
     point_type xyz(Args &&... args) const {
         return global_coordinates(std::forward<Args>(args)...);
     }
-
+    point_type GetNode(index_tuple const &x) const { return local_coordinates(point_type{x[0], x[1], x[2]}); }
     template <typename TR>
     point_type local_coordinates(TR const &x) const {
         return point_type{std::fma(x[0], m_scale_[0], m_origin_[0]), std::fma(x[1], m_scale_[1], m_origin_[1]),
