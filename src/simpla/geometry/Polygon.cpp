@@ -38,7 +38,7 @@ Polygon::~Polygon() { delete m_pimpl_; }
 Polygon::Polygon(Polygon const &) : m_pimpl_(new pimpl_s) {}
 Polygon::Polygon(Axis const &axis) : Curve(axis), m_pimpl_(new pimpl_s) {}
 void Polygon::Open() {}
-void Polygon::Close() {}
+void Polygon::Close() { m_pimpl_->m_uv_.push_back(m_pimpl_->m_uv_[0]); }
 point_type Polygon::xyz(Real u) const {
     UNIMPLEMENTED;
     return point_type{};

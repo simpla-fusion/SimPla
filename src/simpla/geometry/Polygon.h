@@ -21,13 +21,13 @@ struct Polygon : public Curve {
    public:
     void Open();
     void Close();
+    bool IsClosed() const override;
+
     point_type xyz(Real u) const override;
 
     void Add(Real u, Real v);
     void Add(Real u, Real v, Real w);
     void Add(size_type num, Real const *u, Real const *v, Real const *w = nullptr);
-
-    bool IsClosed() const override;
 
     std::vector<point2d_type> &data();
     std::vector<point2d_type> const &data() const;

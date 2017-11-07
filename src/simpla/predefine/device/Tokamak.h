@@ -34,6 +34,7 @@ class Tokamak : public SPObject {
 
     void ReadProfile(std::string const &fname);
 
+    geometry::Axis GetAxis() const;
     std::shared_ptr<geometry::GeoObject> Limiter() const;
     std::shared_ptr<geometry::GeoObject> Boundary() const;
 

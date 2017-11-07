@@ -27,6 +27,7 @@
 #include <BRepPrimAPI_MakeTorus.hxx>
 #include <BRepPrimAPI_MakeWedge.hxx>
 #include <Bnd_Box.hxx>
+#include <GeomAPI_Interpolate.hxx>
 #include <GeomAdaptor_Curve.hxx>
 #include <Geom_Circle.hxx>
 #include <Geom_Curve.hxx>
@@ -44,6 +45,7 @@
 #include <Standard_Transient.hxx>
 #include <StlAPI_Reader.hxx>
 #include <TColStd_HSequenceOfTransient.hxx>
+#include <TColgp_HArray1OfPnt.hxx>
 #include <TDataStd_Name.hxx>
 #include <TDocStd_Document.hxx>
 #include <TopoDS_Shape.hxx>
@@ -52,6 +54,7 @@
 #include <XCAFDoc_ShapeTool.hxx>
 #include <gp_Quaternion.hxx>
 #include "../Body.h"
+#include "../BoundedCurve.h"
 #include "../Box.h"
 #include "../Circle.h"
 #include "../Curve.h"
@@ -231,9 +234,18 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, Curve>::eval(std::share
 
     if (auto polygon = std::dynamic_pointer_cast<const Polygon>(g)) {
         BRepBuilderAPI_MakePolygon oce_polygon;
+        CHECK(polygon->data().size());
         for (auto const &p : polygon->data()) { oce_polygon.Add(gp_Pnt{p[0], p[1], 0}); }
-        if (polygon->IsClosed()) { oce_polygon.Close(); }
+        oce_polygon.Build();
         res = std::make_shared<TopoDS_Wire>(oce_polygon.Wire());
+    } else if (auto bc = std::dynamic_pointer_cast<const BoundedCurve>(g)) {
+        BRepBuilderAPI_MakeWire wireMaker;
+        auto num = bc->size();
+        Handle(TColgp_HArray1OfPnt) gp_array = new TColgp_HArray1OfPnt(1, static_cast<Standard_Integer>(num));
+        for (size_type s = 0; s < num - 1; ++s) { gp_array->SetValue(s + 1, make_point(bc->GetPoint(s))); }
+        GeomAPI_Interpolate sp(gp_array, true, Precision::Confusion());
+        sp.Perform();
+        res = std::make_shared<TopoDS_Edge>(BRepBuilderAPI_MakeEdge(sp.Curve()));
     } else {
         Handle(Geom_Curve) c;
         if (auto line = std::dynamic_pointer_cast<const Line>(g)) {

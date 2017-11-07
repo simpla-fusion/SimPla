@@ -44,6 +44,8 @@ struct Tokamak::pimpl_s {
     //    bool flux_surface(Real psi_j, size_t M, point_type *res, Real resoluton = 0.001);
 
     Real m_phi0_ = 0.0, m_phi1_ = TWOPI;
+
+    geometry::Axis m_axis_;
 };
 
 Tokamak::Tokamak(std::string const &url) : m_pimpl_(new pimpl_s) { ReadGFile(url); }
@@ -221,30 +223,27 @@ std::function<Real(point_type const &)> Tokamak::profile(std::string const &attr
 std::function<Vec3(point_type const &)> Tokamak::B0() const {
     return [&](point_type const &x) { return B(x); };
 };
-std::shared_ptr<geometry::GeoObject> Tokamak::Limiter() const {
-    //    BRepBuilderAPI_MakeWire wireMaker;
-    //    auto num = boundary()->data().size();
-    //    Handle(TColgp_HArray1OfPnt) gp_array = new TColgp_HArray1OfPnt(1, static_cast<Standard_Integer>(num));
-    //    auto const &points = boundary()->data();
-    //    for (size_type s = 0; s < num - 1; ++s) { gp_array->SetValue(s + 1, gp_Pnt(points[s][0], 0, points[s][1])); }
-    //    GeomAPI_Interpolate sp(gp_array, true, Precision::Confusion());
-    //    sp.Perform();
-    //    wireMaker.Add(BRepBuilderAPI_MakeEdge(sp.Curve()));
-    //    gp_Ax1 axis(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
-    //    BRepBuilderAPI_MakeFace myBoundaryFaceProfile(wireMaker.Wire(), true);
-    //    BRepPrimAPI_MakeRevol revol(myBoundaryFaceProfile.Face(), axis);
-    return geometry::Revolution::New(geometry::Axis{point_type{0, 0, 0}, vector_type{0, 0, 1}},
-                                     geometry::Polygon::New());
-}
-std::shared_ptr<geometry::GeoObject> Tokamak::Boundary() const {
-    //    BRepBuilderAPI_MakePolygon polygonMaker;
-    //    for (auto const &p : limiter()->data()) { polygonMaker.Add(gp_Pnt(p[0], 0, p[1])); }
-    //    gp_Ax1 axis(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
-    //    BRepBuilderAPI_MakeFace myLimterFaceProfile(polygonMaker.Wire());
-    //    BRepPrimAPI_MakeRevol myLimiter(myLimterFaceProfile.Face(), axis);
-    //    return geometry::GeoObjectOCE::New(myLimiter.Shape());
-    return geometry::Revolution::New(geometry::Axis{point_type{0, 0, 0}, vector_type{0, 0, 1}},
-                                     geometry::Polygon::New());
-}
+geometry::Axis Tokamak::GetAxis() const { return m_pimpl_->m_axis_; }
+
+std::shared_ptr<geometry::GeoObject> Tokamak::Limiter() const { return m_pimpl_->m_rzlim_; }
+//    BRepBuilderAPI_MakeWire wireMaker;
+//        auto num = boundary()->data().size();
+//    Handle(TColgp_HArray1OfPnt) gp_array = new TColgp_HArray1OfPnt(1, static_cast<Standard_Integer>(num));
+//    auto const &points = boundary()->data();
+//    for (size_type s = 0; s < num - 1; ++s) { gp_array->SetValue(s + 1, gp_Pnt(points[s][0], 0, points[s][1])); }
+//    GeomAPI_Interpolate sp(gp_array, true, Precision::Confusion());
+//    sp.Perform();
+//    wireMaker.Add(BRepBuilderAPI_MakeEdge(sp.Curve()));
+//    gp_Ax1 axis(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
+//    BRepBuilderAPI_MakeFace myBoundaryFaceProfile(wireMaker.Wire(), true);
+//    BRepPrimAPI_MakeRevol revol(myBoundaryFaceProfile.Face(), axis);
+
+std::shared_ptr<geometry::GeoObject> Tokamak::Boundary() const { return m_pimpl_->m_rzbbb_; }
+//    BRepBuilderAPI_MakePolygon polygonMaker;
+//    for (auto const &p : limiter()->data()) { polygonMaker.Add(gp_Pnt(p[0], 0, p[1])); }
+//    gp_Ax1 axis(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
+//    BRepBuilderAPI_MakeFace myLimterFaceProfile(polygonMaker.Wire());
+//    BRepPrimAPI_MakeRevol myLimiter(myLimterFaceProfile.Face(), axis);
+//    return geometry::GeoObjectOCE::New(myLimiter.Shape());
 
 }  // namespace simpla {

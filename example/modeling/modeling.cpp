@@ -11,9 +11,13 @@ namespace sp = simpla;
 namespace sg = simpla::geometry;
 
 int main(int argc, char **argv) {
-    sp::Initialize(argc, argv);
-    sg::GeoEngine.Initialize("OCE");
-    sg::GeoEngine.OpenFile("tokamak.stp");
+    sp::logger::set_stdout_level(1000);
+    sg::Initialize("OCE");
+    GEO_ENGINE->OpenFile("tokamak.stp");
     auto tokamak = sp::Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
-    sg::GeoEngine.Save("limiter.stp", <#initializer #>);
+    GEO_ENGINE->Save(tokamak->Limiter(), "Limiter");
+    GEO_ENGINE->Save(tokamak->Boundary(), "Boundary");
+
+    GEO_ENGINE->CloseFile();
+    sg::Finalize();
 }
