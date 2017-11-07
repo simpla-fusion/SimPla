@@ -25,12 +25,14 @@ std::shared_ptr<IntersectionCurveSurface> IntersectionCurveSurface::New(std::str
 }
 
 size_type IntersectionCurveSurface::Intersect(std::shared_ptr<const Curve> const &curve, std::vector<Real> *p) const {
+    if (curve == nullptr) { return 0; }
     ASSERT(p != nullptr);
     size_type count = 0;
     if (auto points = std::dynamic_pointer_cast<PointsOnCurve>(m_shape_->GetIntersection((curve), m_tolerance_))) {
         for (auto const &v : points->data()) { p->push_back(v); }
         count = points->data().size();
     }
+
     return count;
 }
 

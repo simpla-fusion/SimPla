@@ -24,7 +24,7 @@ CutCell::CutCell(std::shared_ptr<const Shape> const &s, std::shared_ptr<const Ch
     : m_pimpl_(new pimpl_s) {
     ASSERT(c != nullptr)
     auto const &scale = m_pimpl_->m_chart_->GetScale();
-//    tolerance = std::min(tolerance, std::sqrt(dot(scale, scale) * 0.01));
+    //    tolerance = std::min(tolerance, std::sqrt(dot(scale, scale) * 0.01));
     m_pimpl_->m_chart_ = c;
     m_pimpl_->m_intersector_ = IntersectionCurveSurface::New(s, tolerance);
 }
@@ -48,8 +48,8 @@ void CutCell::TagCell(Array<unsigned int> *node_tags, Array<Real> *edge_tags, un
                 id[(dir + 2) % 3] = j;
 
                 std::vector<Real> intersection_pos;
-                m_pimpl_->m_intersector_->Intersect(m_pimpl_->m_chart_->GetAxis(lo, dir, hi[dir] - lo[dir]),
-                                                    &intersection_pos);
+                auto c = m_pimpl_->m_chart_->GetAxis(lo, dir, hi[dir] - lo[dir]);
+                m_pimpl_->m_intersector_->Intersect(c, &intersection_pos);
 
                 for (size_t n = 0; n < intersection_pos.size(); n += 2) {
                     auto rlo = intersection_pos[n];
