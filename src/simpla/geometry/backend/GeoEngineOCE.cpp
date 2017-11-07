@@ -644,7 +644,10 @@ struct GeoEngineOCE::pimpl_s {
 };
 
 GeoEngineOCE::GeoEngineOCE() : m_pimpl_(new pimpl_s){};
-GeoEngineOCE::~GeoEngineOCE() { delete m_pimpl_; };
+GeoEngineOCE::~GeoEngineOCE() {
+    CloseFile();
+    delete m_pimpl_;
+};
 void GeoEngineOCE::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
     m_pimpl_->m_path_ = cfg->GetValue<std::string>("Path", m_pimpl_->m_path_);
 };
@@ -656,6 +659,7 @@ std::shared_ptr<simpla::data::DataNode> GeoEngineOCE::Serialize() const {
 
 std::string GeoEngineOCE::GetFilePath() const { return m_pimpl_->m_path_; };
 void GeoEngineOCE::OpenFile(std::string const &path) {
+    CloseFile();
     m_pimpl_->m_path_ = path;
     std::string ext = path.substr(path.rfind('.'));
     if (ext.empty() || ext != ".stp") { m_pimpl_->m_path_ += ".stp"; }
@@ -663,9 +667,15 @@ void GeoEngineOCE::OpenFile(std::string const &path) {
     m_pimpl_->anApp->NewDocument("MDTV-XCAF", m_pimpl_->aDoc);
     m_pimpl_->myShapeTool = XCAFDoc_DocumentTool::ShapeTool(m_pimpl_->aDoc->Main());
 };
-void GeoEngineOCE::CloseFile() { DumpFile(); };
-void GeoEngineOCE::DumpFile() { STEPCAFControl_Writer().Perform(m_pimpl_->aDoc, m_pimpl_->m_path_.c_str()); };
+void GeoEngineOCE::CloseFile() {
+    DumpFile();
+    m_pimpl_->m_path_ = "";
+};
+void GeoEngineOCE::DumpFile() {
+    if (!m_pimpl_->m_path_.empty()) { STEPCAFControl_Writer().Perform(m_pimpl_->aDoc, m_pimpl_->m_path_.c_str()); };
+};
 void GeoEngineOCE::Save(std::shared_ptr<const GeoObject> const &geo, std::string const &name) const {
+    ASSERT(!m_pimpl_->m_path_.empty());
     TDF_Label aLabel1 = m_pimpl_->myShapeTool->NewShape();
     Handle(TDataStd_Name) NameAttrib1 = new TDataStd_Name();
     NameAttrib1->Set(name.c_str());
@@ -674,6 +684,7 @@ void GeoEngineOCE::Save(std::shared_ptr<const GeoObject> const &geo, std::string
     m_pimpl_->myShapeTool->UpdateAssembly(aLabel1);
 }
 std::shared_ptr<GeoObject> GeoEngineOCE::Load(std::string const &name) const {
+    ASSERT(!m_pimpl_->m_path_.empty());
     STEPControl_Reader reader;
     IFSelect_ReturnStatus stat = reader.ReadFile(m_pimpl_->m_path_.c_str());
     ASSERT(stat == IFSelect_RetDone);  // ExcMessage("Error in reading file!"));

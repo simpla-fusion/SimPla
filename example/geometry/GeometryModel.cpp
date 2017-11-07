@@ -27,8 +27,8 @@ int main(int argc, char** argv) {
     //    auto intersect_points = t_surf->GetIntersection(line);
     //    std::cout << *intersect_points->Serialize() << std::endl;
     //    GEO_ENGINE->Save(intersect_points, "Intersection");
-    GEO_ENGINE->DumpFile();
     GEO_ENGINE->CloseFile();
+    sg::Finalize();
 
     //    auto polygon = sg::Polygon::New();
     //    std::cout << *polygon->Serialize() << std::endl;
