@@ -242,6 +242,8 @@ struct nTuple<TV, N0, N...> {
     __host__ __device__ nTuple(nTuple<U, N0, N...> const& other) {
         *this = other;
     };
+    //   TODO:
+    //  template <typename U>     __host__ __device__ nTuple(std::initializer_list<U> const& v_list);
 
     static constexpr size_type rank() { return sizeof...(N) + 1; }
     template <typename I>
@@ -302,13 +304,20 @@ struct nTuple<TV, N0, N...> {
     }
 };
 
-template <>
-template <typename TR>
-__host__ __device__ nTuple<double, 3>& nTuple<double, 3>::operator=(TR const& rhs) {
-#pragma clang loop unroll(full)
-    for (int i = 0; i < 3; ++i) { m_data_[i] = traits::index(rhs, i); }
-    return (*this);
-}
+namespace detail {
+template <typename V, typename U>
+void assign_init_list(V& lhs, U const& rhs, ENABLE_IF(std::is_arithmetic<U>::value)) {
+    lhs = rhs;
+};
+template <typename V, typename U>
+void assign_init_list(V& lhs, std::initializer_list<U> const& list) {
+    size_type count = 0;
+    for (auto const& v : list) {
+        assign_init_list(lhs[count], v);
+        ++count;
+    }
+};
+}  // namespace detail {
 
 template <>
 template <typename TR>

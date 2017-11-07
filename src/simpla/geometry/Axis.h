@@ -16,17 +16,23 @@ struct Axis {
     Axis() = default;
     Axis(Axis const &other) : o(other.m_origin_), m_axis_(other.m_axis_){};
     ~Axis() = default;
-    Axis(point_type const &origin, point_type const &x_axis) : m_origin_(origin) {
+    Axis(std::initializer_list<std::initializer_list<Real>> const &v) {
+        m_axis_[0] = point_type{*v.begin()};
+        m_axis_[1] = point_type{*(v.begin() + 1)};
+        m_axis_[2] = point_type{*(v.begin() + 2)};
+    }
+
+    Axis(point_type const &origin, vector_type const &x_axis) : m_origin_(origin) {
         m_axis_[0] = x_axis;
         m_axis_[1] = 0;
         m_axis_[2] = cross(m_axis_[0], m_axis_[1]);
     }
-    Axis(point_type const &origin, point_type const &x_axis, point_type const &y_axis) : m_origin_(origin) {
+    Axis(point_type const &origin, vector_type const &x_axis, vector_type const &y_axis) : m_origin_(origin) {
         m_axis_[0] = x_axis;
         m_axis_[1] = y_axis;
         m_axis_[2] = cross(x_axis, y_axis);
     }
-    Axis(point_type const &origin, point_type const &x_axis, point_type const &y_axis, point_type const &z_axis)
+    Axis(point_type const &origin, vector_type const &x_axis, vector_type const &y_axis, vector_type const &z_axis)
         : m_origin_(origin) {
         m_axis_[0] = x_axis;
         m_axis_[1] = y_axis;

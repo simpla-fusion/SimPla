@@ -16,6 +16,7 @@ struct Revolution : public PrimitiveShape {
 
    protected:
     explicit Revolution(Axis const &axis, std::shared_ptr<const GeoObject> const &s, Real angele = TWOPI);
+    explicit Revolution(std::shared_ptr<const GeoObject> const &s, Real angele = TWOPI);
 
    public:
     std::shared_ptr<const GeoObject> GetBasisObject() const { return m_basis_obj_; }

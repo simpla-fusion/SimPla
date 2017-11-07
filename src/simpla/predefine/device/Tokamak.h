@@ -14,8 +14,8 @@
 #include <simpla/algebra/nTuple.h>
 #include <simpla/data/DataNode.h>
 #include <simpla/data/SPObject.h>
+#include <simpla/geometry/Axis.h>
 #include <simpla/utilities/SPDefines.h>
-
 namespace simpla {
 namespace geometry {
 struct GeoObject;

@@ -54,6 +54,14 @@ void GeoObject::Rotate(const Axis &a1, Real angle) { m_axis_.Rotate(a1, angle); 
 void GeoObject::Scale(Real s, int dir) { m_axis_.Scale(s, dir); }
 void GeoObject::Translate(const vector_type &v) { m_axis_.Translate(v); }
 void GeoObject::Move(const point_type &p) { m_axis_.Move(p); }
+
+void GeoObject::Transform(const Axis &axis) { SetAxis(axis); }
+std::shared_ptr<GeoObject> GeoObject::Transformed(const Axis &axis) const {
+    auto res = Copy();
+    res->Transform(axis);
+    return res;
+}
+
 std::shared_ptr<GeoObject> GeoObject::GetBoundary() const { return GEO_ENGINE->GetBoundary(Self()); }
 box_type GeoObject::GetBoundingBox() const {
     return box_type{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY, SP_INFINITY}};

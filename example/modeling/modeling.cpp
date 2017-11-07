@@ -5,8 +5,9 @@
 #include <simpla/application/SPInit.h>
 #include <simpla/geometry/GeoEngine.h>
 #include <simpla/geometry/GeoObject.h>
+#include <simpla/geometry/Revolution.h>
 #include <simpla/predefine/device/Tokamak.h>
-
+#include <simpla/utilities/Constants.h>
 namespace sp = simpla;
 namespace sg = simpla::geometry;
 
@@ -15,8 +16,9 @@ int main(int argc, char **argv) {
     sg::Initialize("OCE");
     GEO_ENGINE->OpenFile("tokamak.stp");
     auto tokamak = sp::Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
-    GEO_ENGINE->Save(tokamak->Limiter(), "Limiter");
-    GEO_ENGINE->Save(tokamak->Boundary(), "Boundary");
+
+    GEO_ENGINE->Save(sg::Revolution::New(tokamak->Limiter(), sp::PI), "Limiter");
+    GEO_ENGINE->Save(sg::Revolution::New(tokamak->Boundary(), sp::PI), "Boundary");
 
     GEO_ENGINE->CloseFile();
     sg::Finalize();

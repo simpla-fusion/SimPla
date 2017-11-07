@@ -14,7 +14,6 @@ class BoundedCurve : public Curve {
    public:
     virtual void Open() = 0;
     virtual void Close() = 0;
-    virtual bool IsClosed() const = 0;
     virtual size_type size() const = 0;
     virtual void AddPoint(point_type const &) = 0;
     virtual point_type GetPoint(index_type s) const = 0;
@@ -27,14 +26,13 @@ class BoundedCurve2D : public BoundedCurve {
 
     void Open() override;
     void Close() override;
-    bool IsClosed() const override override;
+    bool IsClosed() const override;
 
     size_type size() const override;
     void AddPoint(point_type const &) override;
     point_type GetPoint(index_type s) const override;
-
-    virtual point2d_type GetPoint2d(index_type s);
     virtual void AddPoint(Real x, Real y);
+    virtual point2d_type GetPoint2d(index_type s) const;
     std::vector<point2d_type> &data();
     std::vector<point2d_type> const &data() const;
 
@@ -50,7 +48,7 @@ class BoundedCurve3D : public BoundedCurve {
 
     void Open() override;
     void Close() override;
-    bool IsClosed() const override override;
+    bool IsClosed() const override;
 
     size_type size() const override;
     void AddPoint(Real x, Real y, Real z);

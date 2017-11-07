@@ -5,6 +5,7 @@
 
 #include <simpla/algebra/nTuple.h>
 #include <simpla/data/Data.h>
+#include <simpla/geometry/BoundedCurve.h>
 #include <simpla/geometry/Polygon.h>
 #include <simpla/geometry/Revolution.h>
 #include <simpla/numeric/Interpolation.h>
@@ -44,8 +45,7 @@ struct Tokamak::pimpl_s {
     //    bool flux_surface(Real psi_j, size_t M, point_type *res, Real resoluton = 0.001);
 
     Real m_phi0_ = 0.0, m_phi1_ = TWOPI;
-
-    geometry::Axis m_axis_;
+    geometry::Axis m_axis_{{1, 0, 0}, {0, 0, 1}, {0, 1, 0}};
 };
 
 Tokamak::Tokamak(std::string const &url) : m_pimpl_(new pimpl_s) { ReadGFile(url); }
@@ -58,9 +58,8 @@ std::shared_ptr<simpla::data::DataNode> Tokamak::Serialize() const {
 
 void Tokamak::ReadGFile(std::string const &fname) {
     std::ifstream inFileStream_(fname);
-    geometry::Axis axis;
-    m_pimpl_->m_rzbbb_ = geometry::Polygon::New(axis);
-    m_pimpl_->m_rzlim_ = geometry::Polygon::New(axis);
+    m_pimpl_->m_rzbbb_ = geometry::Polygon::New(GetAxis());
+    m_pimpl_->m_rzlim_ = geometry::Polygon::New(GetAxis());
     if (!inFileStream_.is_open()) {
         THROW_EXCEPTION_RUNTIME_ERROR("File " + fname + " is not opend!");
         return;
@@ -226,6 +225,8 @@ std::function<Vec3(point_type const &)> Tokamak::B0() const {
 geometry::Axis Tokamak::GetAxis() const { return m_pimpl_->m_axis_; }
 
 std::shared_ptr<geometry::GeoObject> Tokamak::Limiter() const { return m_pimpl_->m_rzlim_; }
+std::shared_ptr<geometry::GeoObject> Tokamak::Boundary() const { return m_pimpl_->m_rzbbb_; }
+
 //    BRepBuilderAPI_MakeWire wireMaker;
 //        auto num = boundary()->data().size();
 //    Handle(TColgp_HArray1OfPnt) gp_array = new TColgp_HArray1OfPnt(1, static_cast<Standard_Integer>(num));
@@ -238,7 +239,6 @@ std::shared_ptr<geometry::GeoObject> Tokamak::Limiter() const { return m_pimpl_-
 //    BRepBuilderAPI_MakeFace myBoundaryFaceProfile(wireMaker.Wire(), true);
 //    BRepPrimAPI_MakeRevol revol(myBoundaryFaceProfile.Face(), axis);
 
-std::shared_ptr<geometry::GeoObject> Tokamak::Boundary() const { return m_pimpl_->m_rzbbb_; }
 //    BRepBuilderAPI_MakePolygon polygonMaker;
 //    for (auto const &p : limiter()->data()) { polygonMaker.Add(gp_Pnt(p[0], 0, p[1])); }
 //    gp_Ax1 axis(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));

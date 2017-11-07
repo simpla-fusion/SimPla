@@ -18,7 +18,9 @@ struct BoundedCurve2D::pimpl_s {
     std::vector<point2d_type> m_data_;
 };
 BoundedCurve2D::BoundedCurve2D() : m_pimpl_(new pimpl_s){};
-BoundedCurve2D::BoundedCurve2D(BoundedCurve2D const &other) : m_pimpl_(new pimpl_s) { UNIMPLEMENTED; };
+BoundedCurve2D::BoundedCurve2D(BoundedCurve2D const &other) : base_type(other), m_pimpl_(new pimpl_s) {
+    std::vector<point2d_type>(other.m_pimpl_->m_data_).swap(m_pimpl_->m_data_);
+};
 BoundedCurve2D::~BoundedCurve2D() { delete m_pimpl_; }
 BoundedCurve2D::BoundedCurve2D(Axis const &axis) : BoundedCurve(axis), m_pimpl_(new pimpl_s){};
 void BoundedCurve2D::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
@@ -33,12 +35,13 @@ bool BoundedCurve2D::IsClosed() const { return false; }
 size_type BoundedCurve2D::size() const { return m_pimpl_->m_data_.size(); };
 void BoundedCurve2D::AddPoint(point_type const &p) { AddPoint(p[0], p[1]); };
 point_type BoundedCurve2D::GetPoint(index_type s) const {
-    return m_pimpl_->m_data_[(s + m_pimpl_->m_data_.size()) % m_pimpl_->m_data_.size()];
+    auto p = GetPoint2d(s);
+    return m_axis_.xyz(p[0], p[1], 0);
 };
-virtual point2d_type BoundedCurve2D::GetPoint2d(index_type s) {
+point2d_type BoundedCurve2D::GetPoint2d(index_type s) const {
     return m_pimpl_->m_data_[(s + m_pimpl_->m_data_.size()) % m_pimpl_->m_data_.size()];
 }
-virtual void BoundedCurve2D::AddPoint(Real x, Real y) { m_pimpl_->m_data_.emplace_back(point2d_type{x, y}); }
+void BoundedCurve2D::AddPoint(Real x, Real y) { m_pimpl_->m_data_.emplace_back(point2d_type{x, y}); }
 std::vector<point2d_type> &BoundedCurve2D::data() { return m_pimpl_->m_data_; }
 std::vector<point2d_type> const &BoundedCurve2D::data() const { return m_pimpl_->m_data_; }
 /**************************************************************/
@@ -47,7 +50,9 @@ struct BoundedCurve3D::pimpl_s {
     std::vector<point_type> m_data_;
 };
 BoundedCurve3D::BoundedCurve3D() : BoundedCurve(), m_pimpl_(new pimpl_s){};
-BoundedCurve3D::BoundedCurve3D(BoundedCurve3D const &other) : BoundedCurve(), m_pimpl_(new pimpl_s) { UNIMPLEMENTED; };
+BoundedCurve3D::BoundedCurve3D(BoundedCurve3D const &other) : BoundedCurve(other), m_pimpl_(new pimpl_s) {
+    std::vector<point_type>(other.m_pimpl_->m_data_).swap(m_pimpl_->m_data_);
+};
 BoundedCurve3D::~BoundedCurve3D() { delete m_pimpl_; }
 BoundedCurve3D::BoundedCurve3D(Axis const &axis) : BoundedCurve(axis), m_pimpl_(new pimpl_s){};
 void BoundedCurve3D::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
@@ -63,7 +68,7 @@ size_type BoundedCurve3D::size() const { return m_pimpl_->m_data_.size(); };
 void BoundedCurve3D::AddPoint(Real x, Real y, Real z) { m_pimpl_->m_data_.emplace_back(point_type{x, y, z}); }
 void BoundedCurve3D::AddPoint(point_type const &p) { AddPoint(p[0], p[1], p[2]); };
 point_type BoundedCurve3D::GetPoint(index_type s) const {
-    return m_pimpl_->m_data_[(s + m_pimpl_->m_data_.size()) % m_pimpl_->m_data_.size()];
+    return m_axis_.xyz(m_pimpl_->m_data_[(s + m_pimpl_->m_data_.size()) % m_pimpl_->m_data_.size()]);
 };
 
 std::vector<point_type> &BoundedCurve3D::data() { return m_pimpl_->m_data_; }

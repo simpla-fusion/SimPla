@@ -231,16 +231,14 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, PrimitiveShape>::eval(
 template <>
 std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, Curve>::eval(std::shared_ptr<const Curve> const &g) {
     std::shared_ptr<TopoDS_Shape> res = nullptr;
-
     if (auto polygon = std::dynamic_pointer_cast<const Polygon>(g)) {
         BRepBuilderAPI_MakePolygon oce_polygon;
-        CHECK(polygon->data().size());
-        for (auto const &p : polygon->data()) { oce_polygon.Add(gp_Pnt{p[0], p[1], 0}); }
+        for (size_type s = 0, se = polygon->size(); s < se; ++s) { oce_polygon.Add(make_point(polygon->GetPoint(s))); }
         oce_polygon.Build();
         res = std::make_shared<TopoDS_Wire>(oce_polygon.Wire());
     } else if (auto bc = std::dynamic_pointer_cast<const BoundedCurve>(g)) {
         BRepBuilderAPI_MakeWire wireMaker;
-        auto num = bc->size();
+        auto num = bc->size() - 2;
         Handle(TColgp_HArray1OfPnt) gp_array = new TColgp_HArray1OfPnt(1, static_cast<Standard_Integer>(num));
         for (size_type s = 0; s < num - 1; ++s) { gp_array->SetValue(s + 1, make_point(bc->GetPoint(s))); }
         GeomAPI_Interpolate sp(gp_array, true, Precision::Confusion());

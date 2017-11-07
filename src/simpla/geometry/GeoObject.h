@@ -115,8 +115,11 @@ class GeoObject : public std::enable_shared_from_this<GeoObject> {
     virtual void Rotate(const Axis &a1, Real ang);
     virtual void Scale(Real s, int dir);
     virtual void Translate(const vector_type &v);
+    virtual void Transform(const Axis &v);
     virtual void Move(const point_type &p);
     void Scale(Real s) { Scale(s, -1); }
+
+    std::shared_ptr<GeoObject> Transformed(const Axis &axis) const;
 
     virtual std::shared_ptr<GeoObject> GetBoundary() const;
     virtual box_type GetBoundingBox() const;
