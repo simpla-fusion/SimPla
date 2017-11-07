@@ -23,7 +23,10 @@ struct Wedge : public PrimitiveShape {
     point_type uvw(Real x, Real y, Real z) const override;
 
     vector_type GetExtents() const { return m_extents_; }
+    void SetExtents(vector_type const &extents) { m_extents_ = extents; }
     Real GetLTX() const { return m_ltx_; }
+    void SetLTX(Real l) { m_ltx_ = l; }
+
     box_type GetBoundingBox() const override;
     //    std::shared_ptr<Point> GetIntersectionion(std::shared_ptr<const Point> const &g, Real tolerance) const
     //    override;

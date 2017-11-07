@@ -100,12 +100,6 @@ class GeoObject : public std::enable_shared_from_this<GeoObject> {
 
     virtual std::shared_ptr<GeoObject> Copy() const = 0;
 
-    virtual int Load(std::string const &path, std::string const &name = "");
-    virtual int Save(std::string const &path, std::string const &name = "") const;
-
-    //    std::shared_ptr<data::DataNode> Serialize() const override;
-    //    void Deserialize(std::shared_ptr<data::DataNode> const &) override;
-
     virtual int GetDimension() const;
     virtual bool IsSimpleConnected() const;
     virtual bool IsConvex() const;

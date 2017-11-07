@@ -17,33 +17,17 @@ GeoObject::~GeoObject() = default;
 GeoObject::GeoObject(GeoObject const &other) : m_axis_(other.m_axis_){};
 GeoObject::GeoObject(Axis const &axis) : m_axis_(axis){};
 std::shared_ptr<GeoObject> GeoObject::New(std::string const &s) {
-    std::string uri = s.empty() ? "mem://" : s;
-
-    std::string scheme;
-    std::string path;
-    std::string authority;
-    std::string query;
-    std::string fragment;
-
-    std::tie(scheme, authority, path, query, fragment) = ParsingURI(uri);
-    auto res = Factory<GeoObject>::Create(scheme);
-    ASSERT(res != nullptr);
-    if (SP_SUCCESS != res->Load(path)) {
-        RUNTIME_ERROR << "Fail to connect  Data Backend [ " << scheme << " : " << authority << path << " ]"
-                      << std::endl;
+    std::shared_ptr<GeoObject> res = nullptr;
+    if (s.find(':') == std::string::npos) {
+        res = Factory<GeoObject>::Create(s);
+    } else {
+        res = GEO_ENGINE->Load(s);
     }
     return res;
 }
-int GeoObject::Load(std::string const &path, std::string const &name) {
-    UNIMPLEMENTED;
-    return SP_FAILED;
-}
-int GeoObject::Save(std::string const &path, std::string const &name) const {
-    GeoEngine::Save(Self(), path, name);
-    return SP_SUCCESS;
-}
+
 std::shared_ptr<GeoObject> GeoObject::New(std::shared_ptr<data::DataNode> const &cfg) {
-    auto res = Factory<GeoObject>::Create(cfg->GetValue<std::string>("_TYPE_", ""));
+    auto res = Factory<GeoObject>::Create(cfg->GetValue<std::string>("_REGISTER_NAME_", ""));
     res->Deserialize(cfg);
     return res;
 };
@@ -70,25 +54,25 @@ void GeoObject::Rotate(const Axis &a1, Real angle) { m_axis_.Rotate(a1, angle); 
 void GeoObject::Scale(Real s, int dir) { m_axis_.Scale(s, dir); }
 void GeoObject::Translate(const vector_type &v) { m_axis_.Translate(v); }
 void GeoObject::Move(const point_type &p) { m_axis_.Move(p); }
-std::shared_ptr<GeoObject> GeoObject::GetBoundary() const { return GeoEngine::GetBoundary(Self()); }
+std::shared_ptr<GeoObject> GeoObject::GetBoundary() const { return GEO_ENGINE->GetBoundary(Self()); }
 box_type GeoObject::GetBoundingBox() const {
     return box_type{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
 }
 bool GeoObject::CheckIntersection(point_type const &p, Real tolerance) const {
-    return GeoEngine::CheckIntersection(Self(), p, tolerance);
+    return GEO_ENGINE->CheckIntersection(Self(), p, tolerance);
 }
 bool GeoObject::CheckIntersection(box_type const &b, Real tolerance) const {
-    return GeoEngine::CheckIntersection(Self(), b, tolerance);
+    return GEO_ENGINE->CheckIntersection(Self(), b, tolerance);
 }
 
 std::shared_ptr<GeoObject> GeoObject::GetUnion(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
-    return GeoEngine::GetUnion(Self(), g, tolerance);
+    return GEO_ENGINE->GetUnion(Self(), g, tolerance);
 }
 std::shared_ptr<GeoObject> GeoObject::GetDifference(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
-    return GeoEngine::GetDifference(Self(), g, tolerance);
+    return GEO_ENGINE->GetDifference(Self(), g, tolerance);
 }
 std::shared_ptr<GeoObject> GeoObject::GetIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
-    return GeoEngine::GetIntersection(Self(), g, tolerance);
+    return GEO_ENGINE->GetIntersection(Self(), g, tolerance);
 }
 
 // std::shared_ptr<GeoObject> GeoObject::GetBoundary() const { return nullptr; }

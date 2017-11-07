@@ -16,7 +16,7 @@ namespace geometry {
 IntersectionCurveSurface::IntersectionCurveSurface() = default;
 IntersectionCurveSurface::~IntersectionCurveSurface() = default;
 std::shared_ptr<IntersectionCurveSurface> IntersectionCurveSurface::New(std::string const &key) {
-    return Factory<IntersectionCurveSurface>::Create(key.empty() ? GeoEngine::RegisterName() : key);
+    return Factory<IntersectionCurveSurface>::Create(key.empty() ? GEO_ENGINE->RegisterName() : key);
 }
 
 void IntersectionCurveSurface::SetUp(std::shared_ptr<const Surface> const &g, Real tolerance) {

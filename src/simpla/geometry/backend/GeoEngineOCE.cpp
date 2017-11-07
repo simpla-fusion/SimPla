@@ -152,12 +152,10 @@ struct GeoObjectOCE : public GeoObject {
     SP_GEO_OBJECT_HEAD(GeoObjectOCE, GeoObject)
 
    public:
+    explicit GeoObjectOCE(TopoDS_Shape const &shape);
     explicit GeoObjectOCE(std::shared_ptr<TopoDS_Shape> const &shape);
     explicit GeoObjectOCE(GeoObject const &g);
     explicit GeoObjectOCE(std::shared_ptr<const GeoObject> const &g);
-
-    int Load(std::string const &path, std::string const &name) override;
-    int Save(std::string const &path, std::string const &name) const override;
 
     void DoUpdate();
 
@@ -284,6 +282,9 @@ auto oce_cast(std::shared_ptr<const TSrc> const &g) {
 GeoObjectOCE::GeoObjectOCE() = default;
 GeoObjectOCE::GeoObjectOCE(GeoObjectOCE const &shape) = default;
 GeoObjectOCE::~GeoObjectOCE() = default;
+GeoObjectOCE::GeoObjectOCE(TopoDS_Shape const &shape) : m_occ_shape_(std::make_shared<TopoDS_Shape>(shape)) {
+    DoUpdate();
+}
 GeoObjectOCE::GeoObjectOCE(std::shared_ptr<TopoDS_Shape> const &shape) : m_occ_shape_(shape) { DoUpdate(); }
 GeoObjectOCE::GeoObjectOCE(std::shared_ptr<const GeoObject> const &g)
     : GeoObject(*g), m_occ_shape_(oce_cast<TopoDS_Shape>(g)) {
@@ -292,22 +293,18 @@ GeoObjectOCE::GeoObjectOCE(std::shared_ptr<const GeoObject> const &g)
 GeoObjectOCE::GeoObjectOCE(GeoObject const &g) : m_occ_shape_(oce_cast<TopoDS_Shape>(g.shared_from_this())) {
     DoUpdate();
 };
+
 std::shared_ptr<TopoDS_Shape> GeoObjectOCE::GetShape() const { return m_occ_shape_; }
 Bnd_Box const &GeoObjectOCE::GetOCCBoundingBox() const { return m_occ_box_; }
 
 std::shared_ptr<TopoDS_Shape> ReadSTEP(std::string const &file_name) {
     STEPControl_Reader reader;
-
     IFSelect_ReturnStatus stat = reader.ReadFile(file_name.c_str());
-
     ASSERT(stat == IFSelect_RetDone);  // ExcMessage("Error in reading file!"));
-
     Standard_Boolean failsonly = Standard_False;
     IFSelect_PrintCount mode = IFSelect_ItemsByEntity;
     reader.PrintCheckLoad(failsonly, mode);
-
     Standard_Integer nRoots = reader.TransferRoots();
-
     ASSERT(nRoots > 0);  //, 262 ExcMessage("Read nothing from file."));
     VERBOSE << "STEP Object is loaded from " << file_name << "[" << nRoots << "]" << std::endl;
     return std::make_shared<TopoDS_Shape>(reader.OneShape());
@@ -388,14 +385,6 @@ void GeoObjectOCE::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
     DoUpdate();
     VERBOSE << " [ Bounding Box :" << m_bounding_box_ << "]" << std::endl;
 };
-int GeoObjectOCE::Load(std::string const &path, std::string const &name) {
-    m_occ_shape_ = LoadOCEShape(path, name);
-    return m_occ_shape_ == nullptr ? SP_FAILED : SP_SUCCESS;
-};
-
-int GeoObjectOCE::Save(std::string const &path, std::string const &name) const {
-    return SaveOCEShape(m_occ_shape_, path, name);
-}
 
 void GeoObjectOCE::DoUpdate() {
     ASSERT(m_occ_shape_ != nullptr);
@@ -646,50 +635,86 @@ void IntersectionCurveSurfaceTagNodeOCE(Array<Real> *vertex_tags, std::shared_pt
     }
 }
 /********************************************************************************************************************/
-bool GeoEngineOCE::_is_registered = Factory<GeoEngine>::RegisterCreator<GeoEngineOCE>(GeoEngineOCE::RegisterName());
+int GeoEngineOCE::_is_registered = Factory<GeoEngineAPI>::RegisterCreator<GeoEngineOCE>(GeoEngineOCE::RegisterName());
+struct GeoEngineOCE::pimpl_s {
+    std::string m_path_;
+    Handle(TDocStd_Document) aDoc;
+    Handle(XCAFApp_Application) anApp;
+    Handle(XCAFDoc_ShapeTool) myShapeTool;
+};
 
-GeoEngineOCE::GeoEngineOCE() = default;
-GeoEngineOCE::~GeoEngineOCE() = default;
-
-void GeoEngineOCE::SaveAPI(std::shared_ptr<const GeoObject> const &geo, std::string const &path,
-                           std::string const &name) const {
-    GeoObjectOCE(geo).Save(path, name);
-}
-std::shared_ptr<const GeoObject> GeoEngineOCE::LoadAPI(std::string const &path, std::string const &name) const {
-    auto res = std::make_shared<GeoObjectOCE>();
-    res->Load(path, name);
+GeoEngineOCE::GeoEngineOCE() : m_pimpl_(new pimpl_s){};
+GeoEngineOCE::~GeoEngineOCE() { delete m_pimpl_; };
+void GeoEngineOCE::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
+    m_pimpl_->m_path_ = cfg->GetValue<std::string>("Path", m_pimpl_->m_path_);
+};
+std::shared_ptr<simpla::data::DataNode> GeoEngineOCE::Serialize() const {
+    auto res = base_type::Serialize();
+    res->SetValue<std::string>("Path", m_pimpl_->m_path_);
     return res;
+};
+
+std::string GeoEngineOCE::GetFilePath() const { return m_pimpl_->m_path_; };
+void GeoEngineOCE::OpenFile(std::string const &path) {
+    m_pimpl_->m_path_ = path;
+    std::string ext = path.substr(path.rfind('.'));
+    if (ext.empty() || ext != ".stp") { m_pimpl_->m_path_ += ".stp"; }
+    m_pimpl_->anApp = XCAFApp_Application::GetApplication();
+    m_pimpl_->anApp->NewDocument("MDTV-XCAF", m_pimpl_->aDoc);
+    m_pimpl_->myShapeTool = XCAFDoc_DocumentTool::ShapeTool(m_pimpl_->aDoc->Main());
+};
+void GeoEngineOCE::CloseFile() { DumpFile(); };
+void GeoEngineOCE::DumpFile() { STEPCAFControl_Writer().Perform(m_pimpl_->aDoc, m_pimpl_->m_path_.c_str()); };
+void GeoEngineOCE::Save(std::shared_ptr<const GeoObject> const &geo, std::string const &name) const {
+    TDF_Label aLabel1 = m_pimpl_->myShapeTool->NewShape();
+    Handle(TDataStd_Name) NameAttrib1 = new TDataStd_Name();
+    NameAttrib1->Set(name.c_str());
+    aLabel1.AddAttribute(NameAttrib1);
+    m_pimpl_->myShapeTool->SetShape(aLabel1, *GeoObjectOCE(geo).GetShape());
+    m_pimpl_->myShapeTool->UpdateAssembly(aLabel1);
 }
-// std::shared_ptr<GeoObject> GeoEngineOCE::GetBoundaryAPI(std::shared_ptr<const GeoObject> const &) const {}
-bool GeoEngineOCE::CheckIntersectionAPI(std::shared_ptr<const GeoObject> const &g, point_type const &x,
-                                        Real tolerance) const {
+std::shared_ptr<GeoObject> GeoEngineOCE::Load(std::string const &name) const {
+    STEPControl_Reader reader;
+    IFSelect_ReturnStatus stat = reader.ReadFile(m_pimpl_->m_path_.c_str());
+    ASSERT(stat == IFSelect_RetDone);  // ExcMessage("Error in reading file!"));
+    Standard_Boolean failsonly = Standard_False;
+    IFSelect_PrintCount mode = IFSelect_ItemsByEntity;
+    reader.PrintCheckLoad(failsonly, mode);
+    Standard_Integer nRoots = reader.TransferRoots();
+    ASSERT(nRoots > 0);  //, 262 ExcMessage("Read nothing from file."));
+    VERBOSE << "STEP Object is loaded from " << m_pimpl_->m_path_ << "[" << nRoots << "]" << std::endl;
+    return std::make_shared<GeoObjectOCE>(reader.OneShape());
+}
+// std::shared_ptr<GeoObject> GeoEngineOCE::GetBoundary(std::shared_ptr<const GeoObject> const &) const {}
+bool GeoEngineOCE::CheckIntersection(std::shared_ptr<const GeoObject> const &g, point_type const &x,
+                                     Real tolerance) const {
     bool res = false;
     if (g != nullptr) { res = GeoObjectOCE::New(g)->CheckIntersection(x, tolerance); }
     return res;
 }
-bool GeoEngineOCE::CheckIntersectionAPI(std::shared_ptr<const GeoObject> const &g, box_type const &b,
-                                        Real tolerance) const {
+bool GeoEngineOCE::CheckIntersection(std::shared_ptr<const GeoObject> const &g, box_type const &b,
+                                     Real tolerance) const {
     bool res = false;
     if (g != nullptr) { res = GeoObjectOCE::New(g)->CheckIntersection(b, tolerance); }
     return res;
 }
 
-std::shared_ptr<GeoObject> GeoEngineOCE::GetUnionAPI(std::shared_ptr<const GeoObject> const &g0,
-                                                     std::shared_ptr<const GeoObject> const &g1, Real tolerance) const {
+std::shared_ptr<GeoObject> GeoEngineOCE::GetUnion(std::shared_ptr<const GeoObject> const &g0,
+                                                  std::shared_ptr<const GeoObject> const &g1, Real tolerance) const {
     std::shared_ptr<GeoObject> res = nullptr;
     if (g0 != nullptr) { res = GeoObjectOCE::New(g0)->GetUnion(g1, tolerance); }
     return res;
 }
-std::shared_ptr<GeoObject> GeoEngineOCE::GetDifferenceAPI(std::shared_ptr<const GeoObject> const &g0,
-                                                          std::shared_ptr<const GeoObject> const &g1,
-                                                          Real tolerance) const {
+std::shared_ptr<GeoObject> GeoEngineOCE::GetDifference(std::shared_ptr<const GeoObject> const &g0,
+                                                       std::shared_ptr<const GeoObject> const &g1,
+                                                       Real tolerance) const {
     std::shared_ptr<GeoObject> res = nullptr;
     if (g0 != nullptr) { res = GeoObjectOCE::New(g0)->GetDifference(g1, tolerance); }
     return res;
 }
-std::shared_ptr<GeoObject> GeoEngineOCE::GetIntersectionAPI(std::shared_ptr<const GeoObject> const &g0,
-                                                            std::shared_ptr<const GeoObject> const &g1,
-                                                            Real tolerance) const {
+std::shared_ptr<GeoObject> GeoEngineOCE::GetIntersection(std::shared_ptr<const GeoObject> const &g0,
+                                                         std::shared_ptr<const GeoObject> const &g1,
+                                                         Real tolerance) const {
     std::shared_ptr<GeoObject> res = nullptr;
     if (g0 != nullptr) { res = GeoObjectOCE::New(g0)->GetIntersection(g1, tolerance); }
     return res;
