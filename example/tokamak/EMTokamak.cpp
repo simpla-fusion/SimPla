@@ -1,15 +1,14 @@
 //
 // Created by salmon on 16-11-29.
 //
-#include "simpla/SIMPLA_config.h"
-
+#include <simpla/SIMPLA_config.h>
 #include <simpla/application/SPInit.h>
+#include <simpla/engine/EBDomain.h>
 #include <simpla/engine/Engine.h>
-#include <simpla/geometry/Cube.h>
+#include <simpla/geometry/Box.h>
 #include <simpla/geometry/csCartesian.h>
 #include <simpla/geometry/csCylindrical.h>
 #include <simpla/mesh/CoRectMesh.h>
-#include <simpla/engine/EBDomain.h>
 #include <simpla/mesh/RectMesh.h>
 #include <simpla/predefine/device/ICRFAntenna.h>
 #include <simpla/predefine/device/Tokamak.h>
@@ -18,7 +17,6 @@
 #include <simpla/predefine/physics/Maxwell.h>
 #include <simpla/predefine/physics/PICBoris.h>
 #include <simpla/scheme/FVM.h>
-#include <simpla/third_part/SAMRAITimeIntegrator.h>
 #include <simpla/utilities/Logo.h>
 
 namespace simpla {
@@ -86,7 +84,6 @@ int main(int argc, char **argv) {
 
     scenario->ConfigureAttribute<size_type>("E", "CheckPoint", 1);
     scenario->ConfigureAttribute<size_type>("B", "CheckPoint", 1);
-
 
     VERBOSE << "Scenario: " << *scenario->Serialize();
     //    INFORM << "Attributes" << *scenario->GetAttributes() << std::endl;

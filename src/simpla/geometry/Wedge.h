@@ -1,34 +1,30 @@
 //
-// Created by salmon on 17-10-17.
+// Created by salmon on 17-11-7.
 //
 
-#ifndef SIMPLA_BOX_H
-#define SIMPLA_BOX_H
+#ifndef SIMPLA_WEDGE_H
+#define SIMPLA_WEDGE_H
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/utilities/Constants.h>
 #include "PrimitiveShape.h"
 namespace simpla {
 namespace geometry {
 
-struct Box : public PrimitiveShape {
-    SP_GEO_OBJECT_HEAD(Box, PrimitiveShape)
+struct Wedge : public PrimitiveShape {
+    SP_GEO_OBJECT_HEAD(Wedge, PrimitiveShape)
 
    protected:
-    Box(std::initializer_list<std::initializer_list<Real>> const &v);
-    explicit Box(point_type const &p0, point_type const &p1);
-    explicit Box(box_type const &v);
-    explicit Box(vector_type const &extents);
+    explicit Wedge(vector_type const &v, Real ltx);
+    explicit Wedge(Axis const &axis, vector_type const &v, Real ltx);
 
    public:
-    static std::shared_ptr<Box> New(std::initializer_list<std::initializer_list<Real>> const &box) {
-        return std::shared_ptr<Box>(new Box(box));
-    }
-
     point_type xyz(Real u, Real v, Real w) const override;
     point_type uvw(Real x, Real y, Real z) const override;
-    vector_type const &GetExtents() const { return m_extents_; }
+
+    vector_type GetExtents() const { return m_extents_; }
+    Real GetLTX() const { return m_ltx_; }
     box_type GetBoundingBox() const override;
-    bool CheckIntersection(box_type const &, Real tolerance) const override;
     //    std::shared_ptr<Point> GetIntersectionion(std::shared_ptr<const Point> const &g, Real tolerance) const
     //    override;
     //    std::shared_ptr<Curve> GetIntersectionion(std::shared_ptr<const Curve> const &g, Real tolerance) const
@@ -39,8 +35,9 @@ struct Box : public PrimitiveShape {
 
    protected:
     vector_type m_extents_{1, 1, 1};
+    Real m_ltx_ = PI / 2;
 };
 
 }  // namespace geometry
 }  // namespace simpla
-#endif  // SIMPLA_BOX_H
+#endif  // SIMPLA_WEDGE_H

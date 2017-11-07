@@ -25,6 +25,7 @@
 #include <BRepPrimAPI_MakeRevol.hxx>
 #include <BRepPrimAPI_MakeSphere.hxx>
 #include <BRepPrimAPI_MakeTorus.hxx>
+#include <BRepPrimAPI_MakeWedge.hxx>
 #include <Bnd_Box.hxx>
 #include <GeomAdaptor_Curve.hxx>
 #include <Geom_Circle.hxx>
@@ -66,6 +67,7 @@
 #include "../Sphere.h"
 #include "../Surface.h"
 #include "../Torus.h"
+#include "../Wedge.h"
 namespace simpla {
 namespace geometry {
 struct GeoObjectOCE;
@@ -187,8 +189,14 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, PrimitiveShape>::eval(
     std::shared_ptr<const PrimitiveShape> const &g) {
     std::shared_ptr<TopoDS_Shape> res = nullptr;
     if (auto box = std::dynamic_pointer_cast<const Box>(g)) {
-        res = std::make_shared<TopoDS_Shape>(
-            BRepPrimAPI_MakeBox(make_point(box->GetMinPoint()), make_point(box->GetMaxPoint())).Shape());
+        res = std::make_shared<TopoDS_Shape>(BRepPrimAPI_MakeBox(make_axis(box->GetAxis()), box->GetExtents()[0],
+                                                                 box->GetExtents()[1], box->GetExtents()[2])
+                                                 .Shape());
+    } else if (auto wedge = std::dynamic_pointer_cast<const Wedge>(g)) {
+        res = std::make_shared<TopoDS_Shape>(BRepPrimAPI_MakeWedge(make_axis(wedge->GetAxis()), wedge->GetExtents()[0],
+                                                                   wedge->GetExtents()[1], wedge->GetExtents()[2],
+                                                                   wedge->GetLTX())
+                                                 .Shape());
     } else if (auto sphere = std::dynamic_pointer_cast<const Sphere>(g)) {
         res = std::make_shared<TopoDS_Shape>(
             BRepPrimAPI_MakeSphere(make_axis(sphere->GetAxis()), sphere->GetRadius()).Shape());

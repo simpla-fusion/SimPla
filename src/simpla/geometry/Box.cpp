@@ -8,10 +8,7 @@
 #include "GeoObject.h"
 namespace simpla {
 namespace geometry {
-
 SP_GEO_OBJECT_REGISTER(Box)
-constexpr Real Box::m_parameter_range_[2][3];
-constexpr Real Box::m_value_range_[2][3];
 Box::Box() = default;
 Box::Box(Box const &) = default;
 Box::~Box() = default;
@@ -22,15 +19,18 @@ Box::Box(point_type const &p0, point_type const &p1) {
 Box::Box(std::initializer_list<std::initializer_list<Real>> const &v)
     : Box(point_type{*v.begin()}, point_type{*(v.begin() + 1)}) {}
 Box::Box(box_type const &b) : Box(std::get<0>(b), std::get<1>(b)) {}
+Box::Box(vector_type const &extents) : m_extents_(extents) {}
 
 std::shared_ptr<data::DataNode> Box::Serialize() const {
-    auto cfg = base_type::Serialize();
-    return cfg;
+    auto res = base_type::Serialize();
+    res->SetValue("Extents", m_extents_);
+    return res;
 };
-void Box::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
-point_type Box::GetMinPoint() const { return m_axis_.xyz(utility::make_point(m_value_range_[0])); }
-point_type Box::GetMaxPoint() const { return m_axis_.xyz(utility::make_point(m_value_range_[1])); }
-
+void Box::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
+    base_type::Deserialize(cfg);
+    m_extents_ = cfg->GetValue("Extents", m_extents_);
+}
+box_type Box::GetBoundingBox() const { return std::make_tuple(m_axis_.o, m_axis_.xyz(m_extents_)); };
 point_type Box::xyz(Real u, Real v, Real w) const { return m_axis_.xyz(u, v, w); };
 point_type Box::uvw(Real x, Real y, Real z) const { return m_axis_.uvw(x, y, z); };
 bool Box::CheckIntersection(box_type const &b, Real tolerance) const { return TestBoxOverlapped(b, GetBoundingBox()); };
