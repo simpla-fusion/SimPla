@@ -86,6 +86,28 @@ class ZSFC {
                   enumArrayOrder array_order = SP_ARRAY_DEFAULT_ORDER)
         : ZSFC(&std::get<0>(d)[0], &std::get<1>(d)[0], array_order) {}
 
+    ZSFC(std::initializer_list<index_type> const& extents, enumArrayOrder array_order = SP_ARRAY_DEFAULT_ORDER) {
+        index_type lo[NDIMS];
+        index_type hi[NDIMS];
+        for (int i = 0; i < NDIMS; ++i) { lo[i] = 0; }
+        int count = 0;
+        for (auto const& v : extents) { hi[count] = v; }
+        reset(lo, hi, NDIMS);
+    }
+    ZSFC(std::initializer_list<std::initializer_list<index_type>> const& extents,
+         enumArrayOrder array_order = SP_ARRAY_DEFAULT_ORDER) {
+        auto const& lo_list = *extents.begin();
+        auto const& hi_list = *(extents.begin() + 1);
+
+        index_type lo[NDIMS];
+        index_type hi[NDIMS];
+        for (int i = 0; i < NDIMS; ++i) { lo[i] = 0; }
+        int count = 0;
+        for (auto const& v : lo_list) { lo[count] = v; }
+        count = 0;
+        for (auto const& v : hi_list) { hi[count] = v; }
+        reset(lo, hi, NDIMS);
+    }
     this_type& operator=(this_type const& other) {
         this_type(other).swap(*this);
         return *this;

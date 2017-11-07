@@ -446,8 +446,10 @@ std::shared_ptr<GeoObject> GeoObjectOCE::GetIntersection(std::shared_ptr<const G
 
 struct IntersectionCurveSurfaceOCE : public IntersectionCurveSurface {
    public:
-    static std::string RegisterName_s() { return __STRING(OCE); }
-    std::string RegisterName() const override { return RegisterName_s(); }
+    std::string FancyTypeName() const override {
+        return base_type::FancyTypeName() + "." + __STRING(IntersectionCurveSurface);
+    }
+    static std::string RegisterName() { return "OCE"; }
 
    private:
     typedef IntersectionCurveSurface base_type;
@@ -459,7 +461,6 @@ struct IntersectionCurveSurfaceOCE : public IntersectionCurveSurface {
 
    public:
     ~IntersectionCurveSurfaceOCE() override;
-    void SetUp(std::shared_ptr<const Surface> const &, Real tolerance) override;
     size_type Intersect(std::shared_ptr<const Curve> const &curve, std::vector<Real> *u) const override;
 
    private:
@@ -467,12 +468,11 @@ struct IntersectionCurveSurfaceOCE : public IntersectionCurveSurface {
 };
 int IntersectionCurveSurfaceOCE::_is_registered =
     Factory<IntersectionCurveSurface>::RegisterCreator<IntersectionCurveSurfaceOCE>(
-        IntersectionCurveSurfaceOCE::RegisterName_s());
+        IntersectionCurveSurfaceOCE::RegisterName());
 
 IntersectionCurveSurfaceOCE::IntersectionCurveSurfaceOCE() = default;
 IntersectionCurveSurfaceOCE::~IntersectionCurveSurfaceOCE() = default;
 
-void IntersectionCurveSurfaceOCE::SetUp(std::shared_ptr<const Surface> const &s, Real tolerance) {}
 size_type IntersectionCurveSurfaceOCE::Intersect(std::shared_ptr<const Curve> const &curve,
                                                  std::vector<Real> *u) const {
     size_type count = 0;

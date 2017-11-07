@@ -13,18 +13,14 @@ namespace geometry {
 
 class Chart;
 struct Shape;
-struct IntersectionCurveSurface;
 struct CutCell {
    private:
     typedef CutCell this_type;
 
-   public:
    protected:
     CutCell();
-    template <typename... Args>
-    explicit CutCell(Args &&... args) : CutCell() {
-        SetUp(std::forward<Args>(args)...);
-    };
+    explicit CutCell(std::shared_ptr<const Shape> const &, std::shared_ptr<const Chart> const &c,
+                     Real tolerance = SP_GEO_DEFAULT_TOLERANCE);
 
    public:
     ~CutCell();
@@ -34,9 +30,14 @@ struct CutCell {
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
     }
 
-    void SetUp(std::shared_ptr<const Chart> const &, std::shared_ptr<const Shape> const &, Real tolerance);
-    void TearDown();
     void TagCell(Array<unsigned int> *vertex_tags, Array<Real> *edge_tags, unsigned int tag = 0b001) const;
+
+    void SetChart(std::shared_ptr<Chart> const &c);
+    std::shared_ptr<const Chart> GetChart() const;
+    //    void SetShape(std::shared_ptr<Shape> const &c) { m_shape_ = c; }
+    //    std::shared_ptr<Shape> GetShape() const { return m_shape_; }
+    //    void SetTolerance(Real v) { m_tolerance_ = v; }
+    //    Real GetTolerance() const { return m_tolerance_; }
 
    protected:
     struct pimpl_s;

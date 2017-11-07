@@ -17,6 +17,8 @@ namespace geometry {
 
 struct Polygon : public BoundedCurve2D {
     SP_GEO_OBJECT_HEAD(Polygon, BoundedCurve2D)
+   public:
+    Polygon(point_type const &p0, point_type const &p1);
    private:
     struct pimpl_s;
     pimpl_s *m_pimpl_ = nullptr;

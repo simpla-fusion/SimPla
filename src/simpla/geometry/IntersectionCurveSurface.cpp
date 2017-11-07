@@ -6,6 +6,7 @@
 #include <simpla/utilities/Factory.h>
 #include <simpla/utilities/Log.h>
 #include <vector>
+#include "Curve.h"
 #include "GeoEngine.h"
 #include "PointsOnCurve.h"
 #include "Shell.h"
@@ -15,20 +16,18 @@ namespace geometry {
 
 IntersectionCurveSurface::IntersectionCurveSurface() = default;
 IntersectionCurveSurface::~IntersectionCurveSurface() = default;
+IntersectionCurveSurface::IntersectionCurveSurface(IntersectionCurveSurface const &) = default;
+IntersectionCurveSurface::IntersectionCurveSurface(std::shared_ptr<const Shape> const &g, Real tolerance)
+    : m_shape_(g), m_tolerance_(tolerance) {}
+
 std::shared_ptr<IntersectionCurveSurface> IntersectionCurveSurface::New(std::string const &key) {
     return Factory<IntersectionCurveSurface>::Create(key.empty() ? GEO_ENGINE->RegisterName() : key);
 }
 
-void IntersectionCurveSurface::SetUp(std::shared_ptr<const Surface> const &g, Real tolerance) {
-    m_surface_ = g;
-    m_tolerance_ = tolerance;
-}
-
-void IntersectionCurveSurface::TearDown() { m_surface_.reset(); }
 size_type IntersectionCurveSurface::Intersect(std::shared_ptr<const Curve> const &curve, std::vector<Real> *p) const {
     ASSERT(p != nullptr);
     size_type count = 0;
-    if (auto points = std::dynamic_pointer_cast<PointsOnCurve>(m_surface_->GetIntersection(curve, m_tolerance_))) {
+    if (auto points = std::dynamic_pointer_cast<PointsOnCurve>(m_shape_->GetIntersection((curve), m_tolerance_))) {
         for (auto const &v : points->data()) { p->push_back(v); }
         count = points->data().size();
     }

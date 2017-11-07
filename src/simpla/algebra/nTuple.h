@@ -304,20 +304,13 @@ struct nTuple<TV, N0, N...> {
     }
 };
 
-namespace detail {
-template <typename V, typename U>
-void assign_init_list(V& lhs, U const& rhs, ENABLE_IF(std::is_arithmetic<U>::value)) {
-    lhs = rhs;
-};
-template <typename V, typename U>
-void assign_init_list(V& lhs, std::initializer_list<U> const& list) {
-    size_type count = 0;
-    for (auto const& v : list) {
-        assign_init_list(lhs[count], v);
-        ++count;
-    }
-};
-}  // namespace detail {
+template <>
+template <typename TR>
+__host__ __device__ nTuple<double, 3>& nTuple<double, 3>::operator=(TR const& rhs) {
+#pragma clang loop unroll(full)
+    for (int i = 0; i < 3; ++i) { m_data_[i] = traits::index(rhs, i); }
+    return (*this);
+}
 
 template <>
 template <typename TR>
