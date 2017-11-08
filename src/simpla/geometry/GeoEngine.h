@@ -48,6 +48,7 @@ struct GeoEngineAPI {
     virtual void DumpFile();
     virtual std::string GetFilePath() const;
     virtual void Save(std::shared_ptr<const GeoObject> const &geo, std::string const &name) const;
+    void Save(std::shared_ptr<const GeoObject> const &geo) const { Save(geo, ""); }
     virtual std::shared_ptr<GeoObject> Load(std::string const &name) const;
 
    private:

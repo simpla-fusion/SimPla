@@ -5,6 +5,7 @@
 #ifndef SIMPLA_FACTORY_H
 #define SIMPLA_FACTORY_H
 
+#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <map>

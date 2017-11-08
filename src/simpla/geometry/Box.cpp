@@ -17,7 +17,7 @@ Box::Box(point_type const &p0, point_type const &p1) {
         Axis{p0, point_type{p1[0] - p0[0], 0, 0}, point_type{0, p1[1] - p0[1], 0}, point_type{0, 0, p1[2] - p0[2]}});
 }
 Box::Box(std::initializer_list<std::initializer_list<Real>> const &v)
-    : Box(point_type{*v.begin()}, point_type{*(v.begin() + 1)}) {}
+    : Box(point_type(*v.begin()), point_type(*(v.begin() + 1))) {}
 Box::Box(box_type const &b) : Box(std::get<0>(b), std::get<1>(b)) {}
 Box::Box(vector_type const &extents) : m_extents_(extents) {}
 

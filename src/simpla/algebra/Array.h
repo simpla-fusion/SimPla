@@ -92,16 +92,16 @@ class Array : public ArrayBase {
     virtual ~Array(){};
 
     Array(SFC const& sfc) : m_sfc_(sfc), m_data_(nullptr), m_holder_(nullptr) {}
-
     Array(this_type const& other) : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_holder_(other.m_holder_) {}
     Array(this_type& other) : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_holder_(other.m_holder_) {}
-
     Array(this_type&& other) noexcept
         : m_sfc_(other.m_sfc_), m_data_(other.m_data_), m_holder_(std::shared_ptr<value_type>(other.m_holder_)) {}
 
     Array(this_type const& other, IdxShift s) : Array(other) { m_sfc_.Shift(s); }
     template <typename... Args>
     explicit Array(Args&&... args) : m_sfc_(std::forward<Args>(args)...) {}
+    explicit Array(std::initializer_list<index_type> const& list) : m_sfc_(list) {}
+    explicit Array(std::initializer_list<std::initializer_list<index_type>> const& list) : m_sfc_(list) {}
 
     template <typename... Args>
     explicit Array(value_type* d, Args&&... args)
@@ -318,11 +318,11 @@ void Array<V, SFC>::alloc() {
         m_data_ = m_holder_.get();
 
 #ifndef SP_ARRAY_INITIALIZE_VALUE
-#elif SP_ARRAY_INITIALIZE_VALUE == SNAN
+#elif SP_ARRAY_INITIALIZE_VALUE == SP_SNaN
         Fill(std::numeric_limits<V>::signaling_NaN());
-#elif SP_ARRAY_INITIALIZE_VALUE == QNAN
+#elif SP_ARRAY_INITIALIZE_VALUE == SP_QNaN
         Fill(std::numeric_limits<V>::quiet_NaN());
-#elif SP_ARRAY_INITIALIZE_VALUE == DENORM_MIN
+#elif SP_ARRAY_INITIALIZE_VALUE == SP_DENORM_MIN
         Fill(std::numeric_limits<V>::denorm_min());
 #else
         Fill(0);

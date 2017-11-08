@@ -139,7 +139,7 @@ class GeoObject : public std::enable_shared_from_this<GeoObject> {
     }
 
    protected:
-    Axis m_axis_{};
+    Axis m_axis_;
 };
 
 #define SP_GEO_ABS_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_)                                                   \

@@ -90,7 +90,7 @@ struct OCEShapeCast<TopoDS_Shape, GeoObject> {
 
 gp_Pnt make_point(point_type const &p0) { return gp_Pnt{p0[0], p0[1], p0[2]}; }
 gp_Dir make_dir(vector_type const &p0) { return gp_Dir{p0[0], p0[1], p0[2]}; }
-gp_Ax2 make_axe(point_type const &origin, vector_type const &z, vector_type const &x) {
+gp_Ax2 make_axis(point_type const &origin, vector_type const &z, vector_type const &x) {
     return gp_Ax2{make_point(origin), make_dir(z), make_dir(x)};
 }
 gp_Ax2 make_axis(Axis const &axis) { return gp_Ax2{make_point(axis.o), make_dir(axis.z), make_dir(axis.x)}; }
@@ -247,7 +247,7 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, Curve>::eval(std::share
     } else {
         Handle(Geom_Curve) c;
         if (auto line = std::dynamic_pointer_cast<const Line>(g)) {
-            c = new Geom_Line(make_point(line->GetStartPoint()), make_dir(line->GetEndPoint() - line->GetStartPoint()));
+            c = new Geom_Line(make_point(line->GetStartPoint()), make_dir(line->GetDirection()));
         } else if (auto circle = std::dynamic_pointer_cast<const Circle>(g)) {
             c = new Geom_Circle(make_axis(circle->GetAxis()), circle->GetRadius());
         } else if (auto ellipse = std::dynamic_pointer_cast<const Ellipse>(g)) {
@@ -686,11 +686,18 @@ void GeoEngineOCE::DumpFile() {
 };
 void GeoEngineOCE::Save(std::shared_ptr<const GeoObject> const &geo, std::string const &name) const {
     ASSERT(!m_pimpl_->m_path_.empty());
+    auto oce_shape = GeoObjectOCE(geo).GetShape();
+
     TDF_Label aLabel1 = m_pimpl_->myShapeTool->NewShape();
     Handle(TDataStd_Name) NameAttrib1 = new TDataStd_Name();
-    NameAttrib1->Set(name.c_str());
+    if (name.empty()) {
+        auto s = std::to_string(oce_shape->HashCode(std::numeric_limits<int>::max()));
+        NameAttrib1->Set(s.c_str());
+    } else {
+        NameAttrib1->Set(name.c_str());
+    }
     aLabel1.AddAttribute(NameAttrib1);
-    m_pimpl_->myShapeTool->SetShape(aLabel1, *GeoObjectOCE(geo).GetShape());
+    m_pimpl_->myShapeTool->SetShape(aLabel1, *oce_shape);
     m_pimpl_->myShapeTool->UpdateAssembly(aLabel1);
 }
 std::shared_ptr<GeoObject> GeoEngineOCE::Load(std::string const &name) const {

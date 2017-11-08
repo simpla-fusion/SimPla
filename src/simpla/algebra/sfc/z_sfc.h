@@ -91,7 +91,10 @@ class ZSFC {
         index_type hi[NDIMS];
         for (int i = 0; i < NDIMS; ++i) { lo[i] = 0; }
         int count = 0;
-        for (auto const& v : extents) { hi[count] = v; }
+        for (auto const& v : extents) {
+            hi[count] = v;
+            ++count;
+        }
         reset(lo, hi, NDIMS);
     }
     ZSFC(std::initializer_list<std::initializer_list<index_type>> const& extents,
@@ -103,9 +106,15 @@ class ZSFC {
         index_type hi[NDIMS];
         for (int i = 0; i < NDIMS; ++i) { lo[i] = 0; }
         int count = 0;
-        for (auto const& v : lo_list) { lo[count] = v; }
+        for (auto const& v : lo_list) {
+            lo[count] = v;
+            ++count;
+        }
         count = 0;
-        for (auto const& v : hi_list) { hi[count] = v; }
+        for (auto const& v : hi_list) {
+            hi[count] = v;
+            ++count;
+        }
         reset(lo, hi, NDIMS);
     }
     this_type& operator=(this_type const& other) {

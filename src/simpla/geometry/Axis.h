@@ -10,37 +10,48 @@ namespace simpla {
 template <typename, int...>
 struct nTuple;
 namespace geometry {
+namespace detail {
+
+inline vector_type make_perp1(vector_type const &v) {
+    vector_type res{0, 0, 0};
+    if (dot(v, v) < SP_EPSILON) {
+        RUNTIME_ERROR << "no perpendicular vector for zero ";
+    } else if (std::abs(v[0]) < SP_EPSILON) {
+        res[0] = 1;
+    } else if (std::abs(v[1]) < SP_EPSILON) {
+        res[1] = 1;
+    } else if (std::abs(v[2]) < SP_EPSILON) {
+        res[2] = 1;
+    } else {
+        res[0] = 1;
+        res[1] = 1;
+        res[2] = -(v[0] + v[1]) / v[2];
+    }
+    return normal(res);
+}
+inline vector_type make_perp2(vector_type const &v) { return normal(cross(v, make_perp1(v))); }
+}  // namespace detail{
+
 struct Plane;
 struct Line;
 struct Axis {
     Axis() = default;
-    Axis(Axis const &other) : o(other.m_origin_), m_axis_(other.m_axis_){};
+    Axis(Axis const &other) : m_origin_(other.m_origin_), m_axis_(other.m_axis_){};
     ~Axis() = default;
-    Axis(std::initializer_list<std::initializer_list<Real>> const &v) {
-        m_axis_[0] = point_type{*v.begin()};
-        m_axis_[1] = point_type{*(v.begin() + 1)};
-        m_axis_[2] = point_type{*(v.begin() + 2)};
-    }
+    Axis(std::initializer_list<std::initializer_list<Real>> const &list) : m_axis_(list) {}
+    Axis(point_type origin, vector_type const &x_axis, vector_type const &y_axis, vector_type const &z_axis)
+        : m_origin_(std::move(origin)), m_axis_{x_axis, y_axis, z_axis} {}
+    Axis(point_type const &origin, vector_type const &x_axis, vector_type const &y_axis)
+        : Axis(origin, x_axis, y_axis, cross(x_axis, y_axis)) {}
+    Axis(point_type const &origin, vector_type const &x_axis)
+        : Axis(origin, x_axis, detail::make_perp1(x_axis), detail::make_perp2(x_axis)) {}
 
-    Axis(point_type const &origin, vector_type const &x_axis) : m_origin_(origin) {
-        m_axis_[0] = x_axis;
-        m_axis_[1] = 0;
-        m_axis_[2] = cross(m_axis_[0], m_axis_[1]);
-    }
-    Axis(point_type const &origin, vector_type const &x_axis, vector_type const &y_axis) : m_origin_(origin) {
-        m_axis_[0] = x_axis;
-        m_axis_[1] = y_axis;
-        m_axis_[2] = cross(x_axis, y_axis);
-    }
-    Axis(point_type const &origin, vector_type const &x_axis, vector_type const &y_axis, vector_type const &z_axis)
-        : m_origin_(origin) {
-        m_axis_[0] = x_axis;
-        m_axis_[1] = y_axis;
-        m_axis_[2] = z_axis;
-    }
+    void swap(Axis &other) {
+        std::swap(m_origin_, other.m_origin_);
+        std::swap(m_axis_, other.m_axis_);
+    };
     Axis &operator=(Axis const &other) {
-        m_origin_ = other.m_origin_;
-        m_axis_ = other.m_axis_;
+        Axis(other).swap(*this);
         return *this;
     };
 

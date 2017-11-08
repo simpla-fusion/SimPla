@@ -24,13 +24,12 @@ int main(int argc, char **argv) {
     auto boundary = sg::Revolution::New(tokamak->Boundary(), sp::PI);
     GEO_ENGINE->Save(limiter, "Limiter");
     GEO_ENGINE->Save(boundary, "Boundary");
-    GEO_ENGINE->CloseFile();
 
     auto chart = sg::csCylindrical::New();
     auto cut_cell = sg::CutCell::New(limiter, chart);
-    sp::Array<unsigned int> node_tags{{10, 10, 10}};
+    sp::Array<unsigned int> node_tags{{5, 0, 0}, {10, 2, 2}};
     cut_cell->TagCell(&node_tags, nullptr, 0b001);
-
+    GEO_ENGINE->CloseFile();
     sg::Finalize();
 
     VERBOSE << "DONE";

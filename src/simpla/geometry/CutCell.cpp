@@ -35,8 +35,7 @@ void CutCell::TagCell(Array<unsigned int> *node_tags, Array<Real> *edge_tags, un
     ASSERT(m_pimpl_->m_chart_ != nullptr);
     if (node_tags == nullptr) { return; }
     auto idx_box = node_tags->GetIndexBox();
-
-    for (int dir = 0; dir < 3; ++dir) {
+    for (int dir = 0; dir < 1; ++dir) {
         index_tuple lo{0, 0, 0}, hi{0, 0, 0};
         std::tie(lo, hi) = idx_box;
 
@@ -49,6 +48,7 @@ void CutCell::TagCell(Array<unsigned int> *node_tags, Array<Real> *edge_tags, un
 
                 std::vector<Real> intersection_pos;
                 auto c = m_pimpl_->m_chart_->GetAxis(lo, dir, hi[dir] - lo[dir]);
+                GEO_ENGINE->Save(c);
                 m_pimpl_->m_intersector_->Intersect(c, &intersection_pos);
 
                 for (size_t n = 0; n < intersection_pos.size(); n += 2) {

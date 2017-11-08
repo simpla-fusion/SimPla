@@ -253,10 +253,18 @@ struct nTuple<TV, N0, N...> {
 
     static constexpr size_type size() { return static_cast<size_type>(reduction_v(tags::multiplication(), N0, N...)); }
 
-    __host__ __device__ nTuple(simpla::traits::nested_initializer_list_t<value_type, sizeof...(N) + 1> l) {
+    __host__ __device__ nTuple(simpla::traits::nested_initializer_list_t<value_type, sizeof...(N) + 1> const& l) {
         simpla::traits::assign_nested_initializer_list<N0, N...>::apply(m_data_, l);
     }
 
+    template <typename U>
+    __host__ __device__ nTuple(std::initializer_list<U> const& l) {
+        index_type count = 0;
+        for (auto const& v : l) {
+            m_data_[count] = v;
+            ++count;
+        }
+    }
     template <typename... U>
     __host__ __device__ nTuple(Expression<U...> const& expr) {
         for (int i = 0; i < N0; ++i) { m_data_[i] = traits::index(expr, i); }

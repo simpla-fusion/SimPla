@@ -23,6 +23,7 @@ struct Line : public Curve {
     point_type xyz(Real u) const override;
     point_type GetStartPoint() const;
     point_type GetEndPoint() const;
+    vector_type GetDirection() const;
 };
 
 }  // namespace geometry

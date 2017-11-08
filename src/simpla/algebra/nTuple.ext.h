@@ -157,7 +157,7 @@ auto mod(nTuple<T, N...> const& l) {
 
 template <typename T>
 auto normal(T const& l, ENABLE_IF((std::rank<T>::value > 0))) {
-    return ((std::sqrt(inner_product(l, l))));
+    return (l / (std::sqrt(inner_product(l, l))));
 }
 
 template <typename T>
