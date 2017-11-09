@@ -9,8 +9,8 @@
 
 namespace simpla {
 namespace geometry {
-csCartesian::csCartesian() {}
-csCartesian::~csCartesian() {}
+csCartesian::csCartesian() = default;
+csCartesian::~csCartesian() = default;
 std::shared_ptr<simpla::data::DataNode> csCartesian::Serialize() const { return base_type::Serialize(); }
 void csCartesian::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {}
 std::shared_ptr<Curve> csCartesian::GetAxis(index_tuple const &idx0, int dir, index_type l) const {

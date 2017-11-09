@@ -19,6 +19,7 @@ class IntersectionCurveSurface {
 
    public:
     virtual std::string FancyTypeName() const { return "IntersectionCurveSurface"; }
+    virtual std::string GetRegisterName() const { return RegisterName(); }
     static std::string RegisterName() { return "IntersectionCurveSurface"; }
 
    protected:
@@ -28,14 +29,14 @@ class IntersectionCurveSurface {
 
    public:
     virtual ~IntersectionCurveSurface();
-    template <typename... Args>
-    static std::shared_ptr<this_type> New(Args &&... args) {
-        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
-    };
+//    template <typename... Args>
+//    static std::shared_ptr<this_type> New(Args &&... args) {
+//        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
+//    };
 
-    static std::shared_ptr<this_type> New(std::string const &key);
-
-    virtual size_type Intersect(std::shared_ptr<const Curve> const &curve, std::vector<Real> *u) const;
+    static std::shared_ptr<this_type> Create(std::string const &key = "");
+    virtual size_type Intersect(std::shared_ptr<const Curve> const &curve, std::vector<Real> *u) = 0;
+    virtual size_type Intersect(std::shared_ptr<const Curve> const &curve, std::vector<Real> *u) const = 0;
 
     Real GetTolerance() const { return m_tolerance_; }
     void SetTolerance(Real v) { m_tolerance_ = v; }

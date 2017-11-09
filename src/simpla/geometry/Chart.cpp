@@ -5,13 +5,9 @@
 #include "Box.h"
 namespace simpla {
 namespace geometry {
-
 constexpr Real Chart::m_id_to_coordinates_shift_[8][3];
-
 Chart::Chart() = default;
-
 Chart::~Chart() = default;
-
 std::shared_ptr<data::DataNode> Chart::Serialize() const {
     auto res = base_type::Serialize();
     res->Set("Axis", m_axis_.Serialize());

@@ -24,12 +24,16 @@ CutCell::CutCell(std::shared_ptr<const Shape> const &s, std::shared_ptr<const Ch
     : m_pimpl_(new pimpl_s) {
     ASSERT(c != nullptr)
     m_pimpl_->m_chart_ = c;
-    m_pimpl_->m_intersector_ = IntersectionCurveSurface::New(s, tolerance);
+    m_pimpl_->m_intersector_ = IntersectionCurveSurface::Create("OCE");
+    m_pimpl_->m_intersector_->SetTolerance(tolerance);
 }
 CutCell::~CutCell() { delete m_pimpl_; }
 void CutCell::SetChart(std::shared_ptr<Chart> const &c) { m_pimpl_->m_chart_ = c; }
 std::shared_ptr<const Chart> CutCell::GetChart() const { return m_pimpl_->m_chart_; }
 void CutCell::TagCell(Array<unsigned int> *node_tags, Array<Real> *edge_tags, unsigned int tag) const {
+    UNIMPLEMENTED;
+};
+void CutCell::TagCell(Array<unsigned int> *node_tags, Array<Real> *edge_tags, unsigned int tag) {
     ASSERT(m_pimpl_->m_chart_ != nullptr);
     if (node_tags == nullptr) { return; }
     auto idx_box = node_tags->GetIndexBox();

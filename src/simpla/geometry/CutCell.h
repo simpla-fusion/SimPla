@@ -29,8 +29,8 @@ struct CutCell {
     static std::shared_ptr<this_type> New(Args &&... args) {
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
     }
-
-    void TagCell(Array<unsigned int> *vertex_tags, Array<Real> *edge_tags, unsigned int tag = 0b001) const;
+    void TagCell(Array<unsigned int> *node_tags, Array<Real> *edge_tags, unsigned int tag = 0b001);
+    void TagCell(Array<unsigned int> *node_tags, Array<Real> *edge_tags, unsigned int tag = 0b001) const;
 
     void SetChart(std::shared_ptr<Chart> const &c);
     std::shared_ptr<const Chart> GetChart() const;

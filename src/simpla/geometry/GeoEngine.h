@@ -22,6 +22,7 @@ class GeoObject;
 struct GeoEngineAPI {
    public:
     virtual std::string FancyTypeName() const { return "GeoEngine"; }
+    virtual std::string GetRegisterName() const { return RegisterName(); }
     static std::string RegisterName() { return "GeoEngine"; }
 
    private:

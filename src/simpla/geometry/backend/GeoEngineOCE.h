@@ -11,6 +11,7 @@ namespace geometry {
 struct GeoEngineOCE : public GeoEngineAPI {
    public:
     std::string FancyTypeName() const override { return base_type::FancyTypeName() + ".GeoEngineOCE"; }
+    std::string GetRegisterName() const override { return RegisterName(); }
     static std::string RegisterName() { return "OCE"; }
     static int _is_registered;
 

@@ -84,10 +84,8 @@ class Factory {
             res = it->second(std::forward<U>(args)...);
             //            LOGGER << TObj::GetFancyTypeName_s() << "::" << it->first << "  is created!" << std::endl;
         } else {
-            res = _TryCreate(std::is_constructible<TObj, Args...>(), std::forward<U>(args)...);
-            if (res == nullptr) {
-                RUNTIME_ERROR << "Can not find Creator \"" << k << "\"" << std::endl << ShowDescription() << std::endl;
-            }
+            //            if (res = _TryCreate(std::is_constructible<TObj, Args...>(), std::forward<U>(args)...)) { }
+            RUNTIME_ERROR << "Can not find Creator \"" << k << "\"" << std::endl << ShowDescription() << std::endl;
         }
         return res;
     }

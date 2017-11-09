@@ -456,6 +456,7 @@ struct IntersectionCurveSurfaceOCE : public IntersectionCurveSurface {
     std::string FancyTypeName() const override {
         return base_type::FancyTypeName() + "." + __STRING(IntersectionCurveSurface);
     }
+    std::string GetRegisterName() const override { return RegisterName(); }
     static std::string RegisterName() { return "OCE"; }
 
    private:
@@ -468,33 +469,37 @@ struct IntersectionCurveSurfaceOCE : public IntersectionCurveSurface {
 
    public:
     ~IntersectionCurveSurfaceOCE() override;
+
+    template <typename... Args>
+    static std::shared_ptr<this_type> New(Args &&... args) {
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
+    };
+
+    size_type Intersect(std::shared_ptr<const Curve> const &curve, std::vector<Real> *u) override;
     size_type Intersect(std::shared_ptr<const Curve> const &curve, std::vector<Real> *u) const override;
 
    private:
     BRepIntCurveSurface_Inter m_body_inter_;
 };
 int IntersectionCurveSurfaceOCE::_is_registered =
-    Factory<IntersectionCurveSurface>::RegisterCreator<IntersectionCurveSurfaceOCE>(
-        IntersectionCurveSurfaceOCE::RegisterName());
+    Factory<IntersectionCurveSurface>::RegisterCreator<IntersectionCurveSurfaceOCE>();
 
 IntersectionCurveSurfaceOCE::IntersectionCurveSurfaceOCE() = default;
 IntersectionCurveSurfaceOCE::~IntersectionCurveSurfaceOCE() = default;
-
 size_type IntersectionCurveSurfaceOCE::Intersect(std::shared_ptr<const Curve> const &curve,
                                                  std::vector<Real> *u) const {
-    size_type count = 0;
-    //    Handle(Geom_Curve) c = geometry::detail::OCEShapeCast<Geom_Curve, GeoObject>::eval(*curve);
-    //
-    //    m_body_inter_.Init(c);
-    //
-    //    std::vector<Real> intersection_points;
-    //    for (; m_body_inter_.More(); m_body_inter_.Next()) {
-    //        intersection_points.push_back(m_body_inter_.W());
-    //        ++count;
-    //    }
-    //
-    //    std::sort(intersection_points.begin(), intersection_points.end());
-    return count;
+    UNIMPLEMENTED;
+    return 0;
+};
+
+size_type IntersectionCurveSurfaceOCE::Intersect(std::shared_ptr<const Curve> const &curve, std::vector<Real> *u) {
+    Handle(Geom_Curve) c = geometry::detail::OCEShapeCast<Geom_Curve, Curve>::eval(curve);
+    m_body_inter_.Init(c);
+    std::vector<Real> intersection_points;
+    for (; m_body_inter_.More(); m_body_inter_.Next()) { intersection_points.push_back(m_body_inter_.W()); }
+    std::sort(intersection_points.begin(), intersection_points.end());
+    CHECK(intersection_points);
+    return intersection_points.size();
 }
 void IntersectionCurveSurfaceTagNodeOCE(Array<Real> *vertex_tags, std::shared_ptr<const Chart> const &chart,
                                         index_box_type const &m_idx_box, const std::shared_ptr<const GeoObject> &g,
@@ -734,7 +739,6 @@ std::shared_ptr<GeoObject> GeoEngineOCE::Load(std::string const &name) const {
             << std::endl;
     return std::make_shared<GeoObjectOCE>(reader.OneShape());
 }
-// std::shared_ptr<GeoObject> GeoEngineOCE::GetBoundary(std::shared_ptr<const GeoObject> const &) const {}
 bool GeoEngineOCE::CheckIntersection(std::shared_ptr<const GeoObject> const &g, point_type const &x,
                                      Real tolerance) const {
     bool res = false;
