@@ -42,9 +42,8 @@ struct csCylindrical : public Chart {
     static constexpr int RAxis = (PhiAxis + 1) % 3;
     static constexpr int ZAxis = (PhiAxis + 2) % 3;
 
-    std::shared_ptr<Curve> GetAxis(point_type const &x0, const point_type &x1) const override;
-    std::shared_ptr<Curve> GetAxis(index_tuple const &x0, int dir, index_type length) const override;
-    box_type GetBoundingBox(std::shared_ptr<geometry::GeoObject> const &geo) const override;
+    std::shared_ptr<Curve> GetAxis(point_type const &x0, int dir, Real l) const override;
+    std::shared_ptr<Curve> GetAxis(index_tuple const &x0, int dir, index_type l) const override;
 
    public:
     /**
@@ -224,9 +223,6 @@ struct csCylindrical : public Chart {
         //            (v0[RAxis] * v1[RAxis] + v0[ZAxis] * v1[ZAxis] + v0[PhiAxis] * v1[PhiAxis] * r[RAxis] *
         //            r[RAxis]));
     }
-
-    std::shared_ptr<GeoObject> GetBoundingShape(box_type const &b) const override;
-    std::shared_ptr<GeoObject> GetBoundingShape(index_box_type const &b) const override;
 };
 
 }  // namespace geometry

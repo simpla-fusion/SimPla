@@ -18,7 +18,7 @@ using namespace simpla;
 int main(int argc, char** argv) {
     logger::set_stdout_level(1000);
     sg::Initialize("OCE");
-    GEO_ENGINE->OpenFile("test.stp");
+    GEO_ENGINE->OpenFile("test.igs");
     auto t_surf = sg::Torus::New();
     GEO_ENGINE->Save(t_surf, "Torus");
     GEO_ENGINE->Save(sg::Box::New(), "Box");

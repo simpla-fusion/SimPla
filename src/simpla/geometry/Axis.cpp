@@ -29,6 +29,11 @@ void Axis::Scale(Real s, int dir) {
 }
 void Axis::Translate(const vector_type &v) { m_origin_ += v; }
 void Axis::Move(const point_type &p) { m_origin_ = p; }
+Axis Axis::Moved(const point_type &p) const{
+    Axis res(*this);
+    res.Move(p);
+    return std::move(res);
+}
 
 std::shared_ptr<Plane> Axis::GetPlane(int n) const {
     return Plane::New(Axis{o, m_axis_[(n + 1) % 3], m_axis_[(n + 2) % 3]});

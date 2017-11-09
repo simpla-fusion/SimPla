@@ -84,6 +84,8 @@ struct Axis {
     void Translate(const vector_type &v);
     void Move(const point_type &p);
 
+    Axis Moved(const point_type &p) const;
+
     virtual point_type xyz(point_type const &uvw_) const { return o + uvw_[0] * x + uvw_[1] * y + uvw_[2] * z; }
     virtual point_type uvw(point_type const &xyz_) const {
         return point_type{dot(xyz_ - o, x), dot(xyz_ - o, y), dot(xyz_ - o, z)};
@@ -100,6 +102,7 @@ struct Axis {
     std::shared_ptr<Line> GetPlaneX() const;
     std::shared_ptr<Line> GetPlaneY() const;
     std::shared_ptr<Line> GetPlaneZ() const;
+    vector_type const &GetDirection(int n) const { return m_axis_[n]; }
 
    private:
     point_type m_origin_{0, 0, 0};

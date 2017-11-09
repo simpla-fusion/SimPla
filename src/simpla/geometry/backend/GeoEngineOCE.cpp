@@ -39,11 +39,14 @@
 #include <Handle_TDocStd_Document.hxx>
 #include <Handle_XCAFApp_Application.hxx>
 #include <Handle_XCAFDoc_ShapeTool.hxx>
+#include <IGESCAFControl_Writer.hxx>
 #include <Interface_Static.hxx>
 #include <STEPCAFControl_Writer.hxx>
 #include <STEPControl_Reader.hxx>
+#include <STEPControl_StepModelType.hxx>
 #include <Standard_Transient.hxx>
 #include <StlAPI_Reader.hxx>
+#include <StlAPI_Writer.hxx>
 #include <TColStd_HSequenceOfTransient.hxx>
 #include <TColgp_HArray1OfPnt.hxx>
 #include <TDataStd_Name.hxx>
@@ -227,7 +230,27 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, PrimitiveShape>::eval(
     }
     return res;
 };
-
+template <>
+struct OCEShapeCast<Geom_Curve, Curve> {
+    static Handle(Geom_Curve) eval(std::shared_ptr<const Curve> const &g) {
+        Handle(Geom_Curve) c;
+        if (auto line = std::dynamic_pointer_cast<const Line>(g)) {
+            c = new Geom_Line(make_point(line->GetStartPoint()), make_dir(line->GetDirection()));
+        } else if (auto circle = std::dynamic_pointer_cast<const Circle>(g)) {
+            c = new Geom_Circle(make_axis(circle->GetAxis()), circle->GetRadius());
+        } else if (auto ellipse = std::dynamic_pointer_cast<const Ellipse>(g)) {
+            c = new Geom_Ellipse(make_axis(ellipse->GetAxis()), ellipse->GetMajorRadius(), ellipse->GetMinorRadius());
+        } else if (auto hyperbola = std::dynamic_pointer_cast<const Hyperbola>(g)) {
+            c = new Geom_Hyperbola(make_axis(hyperbola->GetAxis()), hyperbola->GetMajorRadius(),
+                                   hyperbola->GetMinorRadius());
+        } else if (auto parabola = std::dynamic_pointer_cast<const Parabola>(g)) {
+            c = new Geom_Parabola(make_axis(parabola->GetAxis()), parabola->GetFocal());
+        } else {
+            UNIMPLEMENTED;
+        }
+        return c;
+    };
+};
 template <>
 std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, Curve>::eval(std::shared_ptr<const Curve> const &g) {
     std::shared_ptr<TopoDS_Shape> res = nullptr;
@@ -245,26 +268,10 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, Curve>::eval(std::share
         sp.Perform();
         res = std::make_shared<TopoDS_Edge>(BRepBuilderAPI_MakeEdge(sp.Curve()));
     } else {
-        Handle(Geom_Curve) c;
-        if (auto line = std::dynamic_pointer_cast<const Line>(g)) {
-            c = new Geom_Line(make_point(line->GetStartPoint()), make_dir(line->GetDirection()));
-        } else if (auto circle = std::dynamic_pointer_cast<const Circle>(g)) {
-            c = new Geom_Circle(make_axis(circle->GetAxis()), circle->GetRadius());
-        } else if (auto ellipse = std::dynamic_pointer_cast<const Ellipse>(g)) {
-            c = new Geom_Ellipse(make_axis(ellipse->GetAxis()), ellipse->GetMajorRadius(), ellipse->GetMinorRadius());
-        } else if (auto hyperbola = std::dynamic_pointer_cast<const Hyperbola>(g)) {
-            c = new Geom_Hyperbola(make_axis(hyperbola->GetAxis()), hyperbola->GetMajorRadius(),
-                                   hyperbola->GetMinorRadius());
-        } else if (auto parabola = std::dynamic_pointer_cast<const Parabola>(g)) {
-            c = new Geom_Parabola(make_axis(parabola->GetAxis()), parabola->GetFocal());
-        } else {
-            UNIMPLEMENTED;
-        }
-        res = std::make_shared<TopoDS_Edge>(BRepBuilderAPI_MakeEdge(c));
+        res = std::make_shared<TopoDS_Edge>(BRepBuilderAPI_MakeEdge(OCEShapeCast<Geom_Curve, Curve>::eval(g)));
     }
     return res;
 };
-
 std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, GeoObject>::eval(std::shared_ptr<const GeoObject> const &g) {
     std::shared_ptr<TopoDS_Shape> res = nullptr;
     if (auto oce = std::dynamic_pointer_cast<GeoObjectOCE const>(g)) {
@@ -492,8 +499,7 @@ size_type IntersectionCurveSurfaceOCE::Intersect(std::shared_ptr<const Curve> co
 void IntersectionCurveSurfaceTagNodeOCE(Array<Real> *vertex_tags, std::shared_ptr<const Chart> const &chart,
                                         index_box_type const &m_idx_box, const std::shared_ptr<const GeoObject> &g,
                                         int tag) {
-    auto const &scale = chart->GetScale();
-    Real tol = std::sqrt(dot(scale, scale) * 0.01);
+    Real tol = 0.01;
     //    std::get<1>(m_idx_box) += 1;
     box_type bnd_box = g->GetBoundingBox();
     vector_type length = std::get<1>(bnd_box) - std::get<0>(bnd_box);
@@ -647,7 +653,9 @@ void IntersectionCurveSurfaceTagNodeOCE(Array<Real> *vertex_tags, std::shared_pt
 /********************************************************************************************************************/
 int GeoEngineOCE::_is_registered = Factory<GeoEngineAPI>::RegisterCreator<GeoEngineOCE>(GeoEngineOCE::RegisterName());
 struct GeoEngineOCE::pimpl_s {
-    std::string m_path_;
+    std::string m_prefix_;
+    std::string m_ext_ = "stp";
+
     Handle(TDocStd_Document) aDoc;
     Handle(XCAFApp_Application) anApp;
     Handle(XCAFDoc_ShapeTool) myShapeTool;
@@ -659,58 +667,71 @@ GeoEngineOCE::~GeoEngineOCE() {
     delete m_pimpl_;
 };
 void GeoEngineOCE::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
-    m_pimpl_->m_path_ = cfg->GetValue<std::string>("Path", m_pimpl_->m_path_);
+    m_pimpl_->m_prefix_ = cfg->GetValue<std::string>("Path", m_pimpl_->m_prefix_);
 };
 std::shared_ptr<simpla::data::DataNode> GeoEngineOCE::Serialize() const {
     auto res = base_type::Serialize();
-    res->SetValue<std::string>("Path", m_pimpl_->m_path_);
+    res->SetValue<std::string>("Prefix", m_pimpl_->m_prefix_);
     return res;
 };
 
-std::string GeoEngineOCE::GetFilePath() const { return m_pimpl_->m_path_; };
+std::string GeoEngineOCE::GetFilePath() const { return m_pimpl_->m_prefix_ + "." + m_pimpl_->m_ext_; };
 void GeoEngineOCE::OpenFile(std::string const &path) {
     CloseFile();
-    m_pimpl_->m_path_ = path;
-    std::string ext = path.substr(path.rfind('.'));
-    if (ext.empty() || ext != ".stp") { m_pimpl_->m_path_ += ".stp"; }
+    auto pos = path.rfind('.');
+    m_pimpl_->m_prefix_ = path.substr(0, pos);
+    m_pimpl_->m_ext_ = path.substr(pos + 1);
     m_pimpl_->anApp = XCAFApp_Application::GetApplication();
     m_pimpl_->anApp->NewDocument("MDTV-XCAF", m_pimpl_->aDoc);
     m_pimpl_->myShapeTool = XCAFDoc_DocumentTool::ShapeTool(m_pimpl_->aDoc->Main());
 };
 void GeoEngineOCE::CloseFile() {
     DumpFile();
-    m_pimpl_->m_path_ = "";
+    m_pimpl_->m_prefix_ = "";
 };
-void GeoEngineOCE::DumpFile() {
-    if (!m_pimpl_->m_path_.empty()) { STEPCAFControl_Writer().Perform(m_pimpl_->aDoc, m_pimpl_->m_path_.c_str()); };
-};
-void GeoEngineOCE::Save(std::shared_ptr<const GeoObject> const &geo, std::string const &name) const {
-    ASSERT(!m_pimpl_->m_path_.empty());
-    auto oce_shape = GeoObjectOCE(geo).GetShape();
 
-    TDF_Label aLabel1 = m_pimpl_->myShapeTool->NewShape();
-    Handle(TDataStd_Name) NameAttrib1 = new TDataStd_Name();
-    if (name.empty()) {
-        auto s = std::to_string(oce_shape->HashCode(std::numeric_limits<int>::max()));
-        NameAttrib1->Set(s.c_str());
+void GeoEngineOCE::DumpFile() {
+    if (m_pimpl_->m_prefix_.empty()) {
+    } else if (m_pimpl_->m_ext_ == "stp") {
+        STEPCAFControl_Writer writer;
+        if (!writer.Transfer(m_pimpl_->aDoc, STEPControl_AsIs)) {
+            RUNTIME_ERROR << "The document cannot be translated or gives no result";
+        }
+        writer.Write((m_pimpl_->m_prefix_ + "." + m_pimpl_->m_ext_).c_str());
+    } else if (m_pimpl_->m_ext_ == "igs") {
+        IGESCAFControl_Writer writer;
+        writer.Perform(m_pimpl_->aDoc, (m_pimpl_->m_prefix_ + "." + m_pimpl_->m_ext_).c_str());
+    };
+};
+void GeoEngineOCE::Save(std::shared_ptr<const GeoObject> const &geo, std::string const &name_s) const {
+    ASSERT(!m_pimpl_->m_prefix_.empty());
+    auto oce_shape = GeoObjectOCE(geo).GetShape();
+    std::string name = name_s;
+    if (name.empty()) { name = std::to_string(oce_shape->HashCode(std::numeric_limits<int>::max())); }
+
+    if (m_pimpl_->m_ext_ == "stl") {
+        StlAPI_Writer().Write(*oce_shape, (m_pimpl_->m_prefix_ + "_" + name + ".stl").c_str(), true);
     } else {
+        TDF_Label aLabel1 = m_pimpl_->myShapeTool->NewShape();
+        Handle(TDataStd_Name) NameAttrib1 = new TDataStd_Name();
         NameAttrib1->Set(name.c_str());
+        aLabel1.AddAttribute(NameAttrib1);
+        m_pimpl_->myShapeTool->SetShape(aLabel1, *oce_shape);
+        m_pimpl_->myShapeTool->UpdateAssembly(aLabel1);
     }
-    aLabel1.AddAttribute(NameAttrib1);
-    m_pimpl_->myShapeTool->SetShape(aLabel1, *oce_shape);
-    m_pimpl_->myShapeTool->UpdateAssembly(aLabel1);
 }
 std::shared_ptr<GeoObject> GeoEngineOCE::Load(std::string const &name) const {
-    ASSERT(!m_pimpl_->m_path_.empty());
+    ASSERT(!m_pimpl_->m_prefix_.empty());
     STEPControl_Reader reader;
-    IFSelect_ReturnStatus stat = reader.ReadFile(m_pimpl_->m_path_.c_str());
+    IFSelect_ReturnStatus stat = reader.ReadFile((m_pimpl_->m_prefix_ + "." + m_pimpl_->m_ext_).c_str());
     ASSERT(stat == IFSelect_RetDone);  // ExcMessage("Error in reading file!"));
     Standard_Boolean failsonly = Standard_False;
     IFSelect_PrintCount mode = IFSelect_ItemsByEntity;
     reader.PrintCheckLoad(failsonly, mode);
     Standard_Integer nRoots = reader.TransferRoots();
-    ASSERT(nRoots > 0);  //, 262 ExcMessage("Read nothing from file."));
-    VERBOSE << "STEP Object is loaded from " << m_pimpl_->m_path_ << "[" << nRoots << "]" << std::endl;
+    ASSERT(nRoots > 0);
+    VERBOSE << "STEP Object is loaded from " << m_pimpl_->m_prefix_ << "." << m_pimpl_->m_ext_ << "[" << nRoots << "]"
+            << std::endl;
     return std::make_shared<GeoObjectOCE>(reader.OneShape());
 }
 // std::shared_ptr<GeoObject> GeoEngineOCE::GetBoundary(std::shared_ptr<const GeoObject> const &) const {}

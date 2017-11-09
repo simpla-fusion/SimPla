@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
 
     auto tokamak = sp::Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
     sg::Initialize("OCE");
-    GEO_ENGINE->OpenFile("tokamak.stp");
+    GEO_ENGINE->OpenFile("tokamak.stl");
     auto limiter = sg::Revolution::New(tokamak->Limiter(), sp::PI);
     auto boundary = sg::Revolution::New(tokamak->Boundary(), sp::PI);
     GEO_ENGINE->Save(limiter, "Limiter");

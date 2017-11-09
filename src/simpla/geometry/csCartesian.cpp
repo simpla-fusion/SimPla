@@ -13,9 +13,12 @@ csCartesian::csCartesian() {}
 csCartesian::~csCartesian() {}
 std::shared_ptr<simpla::data::DataNode> csCartesian::Serialize() const { return base_type::Serialize(); }
 void csCartesian::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {}
-
-std::shared_ptr<Curve> csCartesian::GetAxis(point_type const &x0, const point_type &x1) const {
-    return Line::New(x0, x1);
+std::shared_ptr<Curve> csCartesian::GetAxis(index_tuple const &idx0, int dir, index_type l) const {
+    return GetAxis(m_axis_.uvw(idx0), dir, static_cast<Real>(l));
 }
+std::shared_ptr<Curve> csCartesian::GetAxis(point_type const &x0, int dir, Real l) const {
+    return Line::New(x0, x0 + m_axis_.GetDirection(dir) * l);
+};
+
 }  // namespace geometry
 }  // namespace simpla
