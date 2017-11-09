@@ -15,21 +15,23 @@ csCylindrical::~csCylindrical() = default;
 std::shared_ptr<simpla::data::DataNode> csCylindrical::Serialize() const { return base_type::Serialize(); };
 void csCylindrical::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); };
 
-std::shared_ptr<Curve> csCylindrical::GetAxis(index_tuple const &idx0, int dir, index_type l) const {
-    return GetAxis(local_coordinates(idx0), dir, static_cast<Real>(l));
+std::shared_ptr<Curve> csCylindrical::GetAxis(index_tuple const &idx0, int dir) const {
+    return GetAxis(local_coordinates(idx0), dir);
 };
 
-std::shared_ptr<Curve> csCylindrical::GetAxis(point_type const &uvw, int dir, Real l) const {
+std::shared_ptr<Curve> csCylindrical::GetAxis(point_type const &uvw, int dir) const {
     std::shared_ptr<Curve> res = nullptr;
-    auto axis = m_axis_.Moved(xyz(uvw));
+
     switch (dir) {
         case PhiAxis:
-            res = Circle::New(axis, uvw[RAxis], uvw[PhiAxis], l);
+            res = Circle::New(m_axis_, uvw[RAxis]);
             break;
         case ZAxis:
-        case RAxis:
-            res = Line::New(axis.o, axis.o + axis.GetDirection(dir) * l);
-            break;
+        case RAxis: {
+            auto axis = m_axis_;
+            axis.o[ZAxis] = xyz(uvw)[ZAxis];
+            res = Line::New(axis.o, axis.GetDirection(dir), 1.0);
+        } break;
         default:
             break;
     }

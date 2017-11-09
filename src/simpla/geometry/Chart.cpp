@@ -17,12 +17,8 @@ void Chart::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
     if (tdb != nullptr) { m_axis_.Deserialize(tdb->Get("Axis")); }
 };
 void Chart::SetOrigin(point_type const &x) { m_axis_.SetOrigin(x); }
-point_type const &Chart::GetOrigin() const { return m_axix_.GetOrigin(); }
+point_type const &Chart::GetOrigin() const { return m_axis_.GetOrigin(); }
 
-void SetScale(point_type const &x);
-point_type const &GetScale() const;
-
-point_type GetCellWidth(int level = 0) const;
 point_type Chart::GetCellWidth(int level) const {
     point_type res{std::sqrt(dot(m_axis_.x, m_axis_.x)), std::sqrt(dot(m_axis_.y, m_axis_.y)),
                    std::sqrt(dot(m_axis_.z, m_axis_.z))};

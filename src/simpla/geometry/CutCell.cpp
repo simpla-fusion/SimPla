@@ -51,7 +51,7 @@ void CutCell::TagCell(Array<unsigned int> *node_tags, Array<Real> *edge_tags, un
                 id[(dir + 2) % 3] = j;
 
                 std::vector<Real> intersection_pos;
-                auto c = m_pimpl_->m_chart_->GetAxis(id, dir, hi[dir] - lo[dir]);
+                auto c = m_pimpl_->m_chart_->GetAxis(id, dir);
                 m_pimpl_->m_intersector_->Intersect(c, &intersection_pos);
 
                 for (size_t n = 0; n < intersection_pos.size(); n += 2) {

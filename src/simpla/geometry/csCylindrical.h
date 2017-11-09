@@ -42,8 +42,8 @@ struct csCylindrical : public Chart {
     static constexpr int RAxis = (PhiAxis + 1) % 3;
     static constexpr int ZAxis = (PhiAxis + 2) % 3;
 
-    std::shared_ptr<Curve> GetAxis(point_type const &x0, int dir, Real l) const override;
-    std::shared_ptr<Curve> GetAxis(index_tuple const &x0, int dir, index_type l) const override;
+    std::shared_ptr<Curve> GetAxis(point_type const &x0, int dir) const override;
+    std::shared_ptr<Curve> GetAxis(index_tuple const &x0, int dir) const override;
 
    public:
     /**
