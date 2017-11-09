@@ -29,19 +29,20 @@ class IntersectionCurveSurface {
 
    public:
     virtual ~IntersectionCurveSurface();
-//    template <typename... Args>
-//    static std::shared_ptr<this_type> New(Args &&... args) {
-//        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
-//    };
+    //    template <typename... Args>
+    //    static std::shared_ptr<this_type> New(Args &&... args) {
+    //        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
+    //    };
 
     static std::shared_ptr<this_type> Create(std::string const &key = "");
-    virtual size_type Intersect(std::shared_ptr<const Curve> const &curve, std::vector<Real> *u) = 0;
-    virtual size_type Intersect(std::shared_ptr<const Curve> const &curve, std::vector<Real> *u) const = 0;
 
     Real GetTolerance() const { return m_tolerance_; }
     void SetTolerance(Real v) { m_tolerance_ = v; }
     std::shared_ptr<const Shape> GetShape() const { return m_shape_; }
     void SetShape(std::shared_ptr<const Shape> const &s) { m_shape_ = s; }
+    virtual void Load() = 0;
+    virtual size_type Intersect(std::shared_ptr<const Curve> const &curve, std::vector<Real> *u) = 0;
+    virtual size_type Intersect(std::shared_ptr<const Curve> const &curve, std::vector<Real> *u) const = 0;
 
    protected:
     std::shared_ptr<const Shape> m_shape_ = nullptr;

@@ -7,6 +7,7 @@
 #include <simpla/geometry/GeoEngine.h>
 #include <simpla/geometry/GeoObject.h>
 #include <simpla/geometry/Revolution.h>
+#include <simpla/geometry/csCartesian.h>
 #include <simpla/geometry/csCylindrical.h>
 #include <simpla/predefine/device/Tokamak.h>
 #include <simpla/utilities/Constants.h>
@@ -20,14 +21,15 @@ int main(int argc, char **argv) {
     auto tokamak = sp::Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
     sg::Initialize("OCE");
     GEO_ENGINE->OpenFile("tokamak.stl");
-    auto limiter = sg::Revolution::New(tokamak->Limiter(), sp::PI);
-    auto boundary = sg::Revolution::New(tokamak->Boundary(), sp::PI);
+    auto limiter = sg::Revolution::New(tokamak->Limiter(), sp::TWOPI);
+    auto boundary = sg::Revolution::New(tokamak->Boundary(), sp::TWOPI);
     GEO_ENGINE->Save(limiter, "Limiter");
     GEO_ENGINE->Save(boundary, "Boundary");
 
-    auto chart = sg::csCylindrical::New();
+    auto chart = sg::csCartesian::New();
     auto cut_cell = sg::CutCell::New(limiter, chart);
-    sp::Array<unsigned int> node_tags{{5, 0, 0}, {10, 2, 2}};
+
+    sp::Array<unsigned int> node_tags{{-2, -2, -2}, {2, 2, 2}};
     cut_cell->TagCell(&node_tags, nullptr, 0b001);
     GEO_ENGINE->CloseFile();
     sg::Finalize();

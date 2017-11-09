@@ -25,7 +25,9 @@ CutCell::CutCell(std::shared_ptr<const Shape> const &s, std::shared_ptr<const Ch
     ASSERT(c != nullptr)
     m_pimpl_->m_chart_ = c;
     m_pimpl_->m_intersector_ = IntersectionCurveSurface::Create("OCE");
+    m_pimpl_->m_intersector_->SetShape(s);
     m_pimpl_->m_intersector_->SetTolerance(tolerance);
+    m_pimpl_->m_intersector_->Load();
 }
 CutCell::~CutCell() { delete m_pimpl_; }
 void CutCell::SetChart(std::shared_ptr<Chart> const &c) { m_pimpl_->m_chart_ = c; }
@@ -37,7 +39,7 @@ void CutCell::TagCell(Array<unsigned int> *node_tags, Array<Real> *edge_tags, un
     ASSERT(m_pimpl_->m_chart_ != nullptr);
     if (node_tags == nullptr) { return; }
     auto idx_box = node_tags->GetIndexBox();
-    for (int dir = 0; dir < 1; ++dir) {
+    for (int dir = 0; dir < 3; ++dir) {
         index_tuple lo{0, 0, 0}, hi{0, 0, 0};
         std::tie(lo, hi) = idx_box;
 
@@ -49,7 +51,7 @@ void CutCell::TagCell(Array<unsigned int> *node_tags, Array<Real> *edge_tags, un
                 id[(dir + 2) % 3] = j;
 
                 std::vector<Real> intersection_pos;
-                auto c = m_pimpl_->m_chart_->GetAxis(lo, dir, hi[dir] - lo[dir]);
+                auto c = m_pimpl_->m_chart_->GetAxis(id, dir, hi[dir] - lo[dir]);
                 m_pimpl_->m_intersector_->Intersect(c, &intersection_pos);
 
                 for (size_t n = 0; n < intersection_pos.size(); n += 2) {

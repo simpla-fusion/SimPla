@@ -17,7 +17,7 @@ std::shared_ptr<Curve> csCartesian::GetAxis(index_tuple const &idx0, int dir, in
     return GetAxis(m_axis_.uvw(idx0), dir, static_cast<Real>(l));
 }
 std::shared_ptr<Curve> csCartesian::GetAxis(point_type const &x0, int dir, Real l) const {
-    return Line::New(x0, x0 + m_axis_.GetDirection(dir) * l);
+    return Line::New(x0, m_axis_.GetDirection(dir), l);
 };
 
 }  // namespace geometry

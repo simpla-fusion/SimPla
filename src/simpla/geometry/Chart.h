@@ -41,9 +41,6 @@ struct Chart : public SPObject {
 
     point_type GetCellWidth(int level = 0) const;
 
-    void SetRotation(point_type const &x);
-    point_type const &GetRotation() const;
-
     template <typename... Args>
     point_type uvw(Args &&... args) const {
         return local_coordinates(0, std::forward<Args>(args)...);
