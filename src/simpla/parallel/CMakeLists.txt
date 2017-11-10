@@ -1,9 +1,5 @@
 #FILE(GLOB parallel_SRC./*.cpp)
-FIND_PACKAGE(MPI REQUIRED)
-IF (MPI_FOUND)
-    ADD_DEFINITIONS(-DOMPI_SKIP_MPICXX)
-    MESSAGE("-- MPI : " ${MPI_C_INCLUDE_PATH})
-ENDIF (MPI_FOUND)
+
 
 SET(parallel_SRC MPIComm.h MPIComm.cpp Parallel.cpp MPIUpdater.cpp MPIUpdater.h)
 add_library(parallel ${parallel_SRC})

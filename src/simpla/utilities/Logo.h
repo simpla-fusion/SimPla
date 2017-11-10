@@ -16,7 +16,7 @@ std::string ShowLogo();
 std::string ShowVersion();
 std::string ShowLogo();
 
-void TheBegin(int flag = 1);
+void TheStart(int flag = 1);
 void TheEnd(int flag = 1);
 
 }

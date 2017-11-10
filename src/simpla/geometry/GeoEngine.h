@@ -14,7 +14,7 @@
 namespace simpla {
 namespace geometry {
 
-void Initialize(std::string const &key);
+void Initialize(std::string const &key = "");
 void Initialize(std::shared_ptr<const data::DataNode> const &);
 void Finalize();
 

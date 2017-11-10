@@ -99,14 +99,18 @@ void Scenario::CheckPoint(size_type step_num) const {
 
 void Scenario::Dump() const {
     std::ostringstream os;
-
-    os << db()->GetValue<std::string>("DumpFilePrefix", GetName()) << "_dump_" << std::setfill('0') << std::setw(8)
-       << GetStepNumber() << "." << db()->GetValue<std::string>("DumpFileSuffix", "h5");
+    auto prefix = db()->GetValue<std::string>("DumpFilePrefix", GetName());
+    auto suffix = db()->GetValue<std::string>("DumpFileSuffix", "h5");
+    os << prefix << "_dump_" << std::setfill('0') << std::setw(8) << GetStepNumber() << "." << suffix;
     VERBOSE << std::setw(20) << "Dump : " << os.str();
-
     auto dump = data::DataNode::New(os.str());
     dump->Set(Serialize());
     dump->Flush();
+    auto geo_prefix = db()->GetValue<std::string>("DumpFilePrefix", GetName());
+    auto geo_suffix = db()->GetValue<std::string>("DumpFileSuffix", "h5");
+
+    GEO_ENGINE->OpenFile(prefix+"tokamak.stl");
+
 }
 // std::map<std::string, std::shared_ptr<data::DataNode>> const &Scenario::GetAttributes() const {
 //    return m_pimpl_->m_attrs_;

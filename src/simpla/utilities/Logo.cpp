@@ -35,14 +35,14 @@ std::string ShowLogo() { return SIMPLA_LOGO; }
 
 std::string ShowVersion() { return SIMPLA_VERSION_IDENTIFY; }
 
-void TheBegin(int flag) {
+void TheStart(int flag) {
 #ifdef MPI_FOUND
     if (GLOBAL_COMM.rank() != 0) { return; }
 #endif  // MPI_FOUND
     switch (flag) {
         default:
             VERBOSE << SINGLELINE;
-            INFORM << "[MISSION     BEGIN]";
+            INFORM << "[MISSION     START]";
     }
 }
 

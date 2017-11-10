@@ -9,11 +9,13 @@
 namespace simpla {
 namespace geometry {
 void Initialize(std::string const &key) {
-    auto p = Factory<GeoEngineAPI>::Create(key);
+    auto p = Factory<GeoEngineAPI>::Create(key.empty() ? "OCE" : key);
     GEO_ENGINE.swap(p);
     if (GEO_ENGINE == nullptr) {
         RUNTIME_ERROR << "Create GeoEngine Fail! [" << key << "]" << std::endl
                       << Factory<GeoEngineAPI>::ShowDescription();
+    } else {
+        VERBOSE << "Create Geometry Engine : " << GEO_ENGINE->GetRegisterName();
     }
 }
 void Initialize(std::shared_ptr<data::DataNode> const &d) {
@@ -26,7 +28,10 @@ void Initialize(std::shared_ptr<data::DataNode> const &d) {
     }
 }
 
-void Finalize() { GEO_ENGINE.reset(); }
+void Finalize() {
+    GEO_ENGINE->CloseFile();
+    GEO_ENGINE.reset();
+}
 
 GeoEngineAPI::GeoEngineAPI() = default;
 GeoEngineAPI::~GeoEngineAPI() = default;
