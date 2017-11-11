@@ -30,6 +30,13 @@ struct Chart : public SPObject {
     virtual std::shared_ptr<Curve> GetAxis(index_tuple const &x0, int dir) const { return nullptr; };
 
     virtual int GetNDIMS() const;
+    virtual box_type GetBoundingBox(box_type const &b) const { return b; };
+    virtual box_type GetBoundingBox(std::shared_ptr<geometry::GeoObject> const &geo) const {
+        return box_type{{0, 0, 0}, {0, 0, 0}};
+    };
+    virtual std::shared_ptr<GeoObject> GetBoundingShape(box_type const &b) const;
+    virtual std::shared_ptr<GeoObject> GetBoundingShape(index_box_type const &b) const;
+
     void SetLevel(int level);
     int GetLevel() const;
 
@@ -41,6 +48,9 @@ struct Chart : public SPObject {
 
     point_type GetCellWidth(int level = 0) const;
 
+    void SetRotation(point_type const &x);
+    point_type const &GetRotation() const;
+
     template <typename... Args>
     point_type uvw(Args &&... args) const {
         return local_coordinates(0, std::forward<Args>(args)...);
@@ -49,9 +59,11 @@ struct Chart : public SPObject {
     point_type xyz(Args &&... args) const {
         return global_coordinates(std::forward<Args>(args)...);
     }
+
     template <typename TR>
     point_type local_coordinates(TR const &x) const {
-        return m_axis_.xyz(x);
+        return point_type{std::fma(x[0], m_scale_[0], m_origin_[0]), std::fma(x[1], m_scale_[1], m_origin_[1]),
+                          std::fma(x[2], m_scale_[2], m_origin_[2])};
     }
 
     point_type local_coordinates(std::tuple<point_type, index_tuple> const &r) const {
@@ -88,11 +100,18 @@ struct Chart : public SPObject {
 
     template <typename TR>
     std::tuple<point_type, index_tuple> invert_local_coordinates(TR const &x) const {
+        //        point_type r = (x - m_origin_) / m_scale_;
+        //        index_tuple idx{static_cast<index_type>(r[0]), static_cast<index_type>(r[1]),
+        //        static_cast<index_type>(r[2])};
+        //        r -= idx;
+
         // NOTE: require 0 < r < 1- epsilon
         static constexpr Real epsilon = 1.0e-8;
-        point_type r = m_axis_.uvw(x);
+        point_type r{0, 0, 0};
         index_tuple id{0, 0, 0};
-
+        r[0] = (x[0] - m_origin_[0]) / m_scale_[0] + epsilon;
+        r[1] = (x[1] - m_origin_[1]) / m_scale_[1] + epsilon;
+        r[2] = (x[2] - m_origin_[2]) / m_scale_[2] + epsilon;
         id[0] = static_cast<index_type>(floor(r[0]));
         id[1] = static_cast<index_type>(floor(r[1]));
         id[2] = static_cast<index_type>(floor(r[2]));
@@ -165,12 +184,12 @@ struct Chart : public SPObject {
         return _InvMapFromBase(std::index_sequence_for<P...>(), points);
     }
 
-    void SetAxis(Axis const &a) { m_axis_ = a; }
-    Axis &GetAxis() { return m_axis_; }
-    Axis const &GetAxis() const { return m_axis_; }
+   private:
+    int m_level_ = 0;
+    point_type m_origin_{0, 0, 0};
+    point_type m_scale_{1, 1, 1};
 
    protected:
-    int m_level_ = 0;
     Axis m_axis_;
 };
 }

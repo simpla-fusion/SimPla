@@ -6,6 +6,7 @@
 #include <simpla/data/DataNode.h>
 #include <simpla/geometry/BoxUtilities.h>
 
+#include <simpla/geometry/GeoEngine.h>
 #include <simpla/parallel/MPIComm.h>
 #include <simpla/parallel/Parallel.h>
 #include <simpla/utilities/type_cast.h>
@@ -106,11 +107,10 @@ void Scenario::Dump() const {
     auto dump = data::DataNode::New(os.str());
     dump->Set(Serialize());
     dump->Flush();
-    auto geo_prefix = db()->GetValue<std::string>("DumpFilePrefix", GetName());
-    auto geo_suffix = db()->GetValue<std::string>("DumpFileSuffix", "h5");
+    auto geo_prefix = db()->GetValue<std::string>("GeoFilePrefix", GetName());
+    auto geo_suffix = db()->GetValue<std::string>("GeoFileSuffix", "stl");
 
-    GEO_ENGINE->OpenFile(prefix+"tokamak.stl");
-
+    GEO_ENGINE->OpenFile(prefix + "." + geo_suffix);
 }
 // std::map<std::string, std::shared_ptr<data::DataNode>> const &Scenario::GetAttributes() const {
 //    return m_pimpl_->m_attrs_;

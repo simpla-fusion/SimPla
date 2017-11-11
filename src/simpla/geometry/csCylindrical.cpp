@@ -29,7 +29,7 @@ std::shared_ptr<Curve> csCylindrical::GetAxis(point_type const &uvw, int dir) co
         case ZAxis:
         case RAxis: {
             auto axis = m_axis_;
-            axis.o[ZAxis] = xyz(uvw)[ZAxis];
+//            axis.o[ZAxis] = xyz(uvw)[ZAxis];
             res = Line::New(axis.o, axis.GetDirection(dir), 1.0);
         } break;
         default:

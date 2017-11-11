@@ -83,9 +83,9 @@ std::shared_ptr<Patch> DomainBase::Pop() const {
     return res;
 }
 
-std::shared_ptr<geometry::GeoObject> DomainBase::GetBlockBoundingBox() const {
-    return m_pimpl_->m_chart_->GetBoundingShape(m_pimpl_->m_mesh_block_->GetIndexBox());
-}
+//std::shared_ptr<geometry::GeoObject> DomainBase::GetBlockBoundingBox() const {
+//    return m_pimpl_->m_chart_->GetBoundingShape(m_pimpl_->m_mesh_block_->GetIndexBox());
+//}
 box_type DomainBase::GetBlockBox() const {
     auto idx_box = m_pimpl_->m_mesh_block_->GetIndexBox();
     return std::make_tuple(m_pimpl_->m_chart_->local_coordinates(std::get<0>(idx_box)),
