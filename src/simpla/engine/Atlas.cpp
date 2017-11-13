@@ -23,7 +23,7 @@ namespace engine {
 
 struct Atlas::pimpl_s {
     std::map<id_type, std::shared_ptr<Patch>> m_patches_;
-    std::shared_ptr<geometry::Chart> m_chart_ = nullptr;
+    std::shared_ptr<const geometry::Chart> m_chart_ = nullptr;
 
     box_type m_local_box_{{0, 0, 0}, {1, 1, 1}};
     box_type m_global_box_{{0, 0, 0}, {1, 1, 1}};
@@ -56,11 +56,7 @@ std::shared_ptr<data::DataNode> Atlas::Serialize() const {
 };
 void Atlas::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
     base_type::Deserialize(tdb);
-    if (m_pimpl_->m_chart_ != nullptr) {
-        m_pimpl_->m_chart_->Deserialize(tdb->Get("Chart"));
-    } else {
-        m_pimpl_->m_chart_ = geometry::Chart::New(tdb->Get("Chart"));
-    }
+    m_pimpl_->m_chart_ = geometry::Chart::New(tdb->Get("Chart"));
     auto blocks = tdb->Get("Patches");
     blocks->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &patch) {
         auto res = m_pimpl_->m_patches_.emplace(std::stoi(key), Patch::New(patch));
@@ -106,12 +102,14 @@ index_box_type Atlas::GetBoundingHaloIndexBox(int tag, int direction) const {
     return res;
 }
 index_tuple Atlas::GetHaloWidth() const { return m_pimpl_->m_ghost_width_; }
+std::shared_ptr<const geometry::Chart> Atlas::GetChart() const { return m_pimpl_->m_chart_; }
+void Atlas::SetChart(std::shared_ptr<const geometry::Chart> const &c) { m_pimpl_->m_chart_ = c; }
 
-std::shared_ptr<geometry::Chart> Atlas::GetChart() const { return m_pimpl_->m_chart_; }
-void Atlas::SetChart(std::shared_ptr<geometry::Chart> const &c) { m_pimpl_->m_chart_ = c; }
+void Atlas::DoSetUp() { base_type::DoSetUp(); }
 
-void Atlas::DoSetUp() {
-    ASSERT(m_pimpl_->m_chart_ != nullptr);
+void Atlas::DoUpdate() {
+    ASSERT(m_pimpl_->m_chart_ != nullptr)
+
     auto grid_width = m_pimpl_->m_chart_->GetGridWidth();
     auto origin = m_pimpl_->m_chart_->GetOrigin();
     m_pimpl_->m_local_box_ = m_pimpl_->m_global_index_box_;
@@ -138,13 +136,8 @@ void Atlas::DoSetUp() {
 
     db()->SetValue("LowIndex", std::get<0>(m_pimpl_->m_global_index_box_));
     db()->SetValue("HighIndex", std::get<1>(m_pimpl_->m_global_index_box_));
-    m_pimpl_->m_chart_->SetOrigin(origin);
-    m_pimpl_->m_chart_->SetGridWidth(grid_width);
-    m_pimpl_->m_chart_->SetUp();
-    base_type::DoSetUp();
-};
-void Atlas::DoUpdate() {
-    if (m_pimpl_->m_chart_ != nullptr) { m_pimpl_->m_chart_->Update(); }
+
+    base_type::DoUpdate();
 }
 
 void Atlas::Decompose(index_tuple const &) {
@@ -172,12 +165,8 @@ void Atlas::Decompose(index_tuple const &) {
     //    NewPatch(MeshBlock::New(m_pimpl_->m_local_index_box_, 0, 0));
 }
 
-void Atlas::DoTearDown() {
-    if (m_pimpl_->m_chart_ != nullptr) {
-        m_pimpl_->m_chart_->TearDown();
-        m_pimpl_->m_chart_.reset();
-    }
-};
+void Atlas::DoTearDown() { m_pimpl_->m_chart_.reset(); };
+
 std::shared_ptr<Patch> Atlas::AddPatch(index_box_type const &idx_box, int level) {
     auto b = geometry::Overlap(m_pimpl_->m_local_index_box_, idx_box);
     return geometry::isIllCondition(b) ? nullptr : SetPatch(Patch::New(MeshBlock::New(b, level)));

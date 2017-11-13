@@ -38,10 +38,14 @@ class Scenario : public EngineObject {
     void SetStepNumber(size_type s);
     size_type GetStepNumber() const;
 
-    std::shared_ptr<Atlas> GetAtlas() const;
+    void SetAtlas(std::shared_ptr<Atlas> const &);
+    std::shared_ptr<const Atlas> GetAtlas() const;
+    std::shared_ptr<Atlas> GetAtlas();
 
     std::shared_ptr<DomainBase> SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &d);
     std::shared_ptr<DomainBase> GetDomain(std::string const &k) const;
+
+    box_type FitBoundingBox() const;
     //    template <typename TDomain, typename... Args>
     //    std::shared_ptr<TDomain> NewDomain(std::string const &k, Args &&... args) {
     //        auto res = TDomain::New(std::forward<Args>(args)...);

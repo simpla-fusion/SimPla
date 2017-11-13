@@ -74,9 +74,16 @@ class Atlas : public EngineObject {
    public:
     int Foreach(std::function<void(std::shared_ptr<Patch> const &)> const &);
 
+    template <typename TChart, typename... Args>
+    static std::shared_ptr<Atlas> Create(Args &&... args) {
+        static_assert(std::is_base_of<geometry::Chart, TChart>::value, "illegal chart type!");
+        auto res = New();
+        res->NewChart<TChart>(std::forward<Args>(args)...);
+        return res;
+    };
+
     //    int GetNumOfLevel() const;
-    std::shared_ptr<geometry::Chart> GetChart() const;
-    void SetChart(std::shared_ptr<geometry::Chart> const &);
+
     template <typename U, typename... Args>
     std::shared_ptr<geometry::Chart> NewChart(Args &&... args) {
         static_assert(std::is_base_of<geometry::Chart, U>::value, "illegal chart type!");
@@ -84,6 +91,9 @@ class Atlas : public EngineObject {
         SetChart(res);
         return res;
     };
+    std::shared_ptr<const geometry::Chart> GetChart() const;
+    void SetChart(std::shared_ptr<const geometry::Chart> const &);
+
     void SetPeriodicDimension(index_tuple const &p);
     index_tuple GetPeriodicDimension() const;
 

@@ -25,6 +25,7 @@ using SimplePML = domain::PML<engine::Domain<geometry::csCartesian, scheme::FVM,
 
 using namespace simpla;
 using namespace simpla::engine;
+namespace sg = simpla::geometry;
 
 int main(int argc, char **argv) {
     simpla::Initialize(argc, argv);
@@ -43,27 +44,28 @@ int main(int argc, char **argv) {
 
     auto scenario = SimpleTimeIntegrator::New();
     scenario->SetName("MultiDomain");
-    scenario->GetAtlas()->NewChart<simpla::geometry::csCartesian>(point_type{0, 0, 0}, point_type{1, 1, 1});
-    scenario->GetAtlas()->SetPeriodicDimensions({1, 1, 1});
-    scenario->GetAtlas()->SetBoundingBox(box_type{{-15, -25, -20}, {15, 25, 20}});
+    scenario->SetAtlas(Atlas::Create<sg::csCartesian>());
+
     auto center = scenario->NewDomain<SimpleMaxwell>("Center");
     center->SetBoundary(geometry::Box::New(box_type{{-15, -25, -20}, {15, 25, 20}}));
-    center->PostInitialCondition.Connect([=](DomainBase *self, Real time_now) {
-        if (auto d = dynamic_cast<SimpleMaxwell *>(self)) {
-            d->B = [&](point_type const &x) {
-                return point_type{std::sin(2 * PI * x[1] / 50) * std::sin(2 * PI * x[2] / 40),
-                                  std::sin(2 * PI * x[0] / 30) * std::sin(2 * PI * x[2] / 40),
-                                  std::sin(2 * PI * x[0] / 30) * std::sin(2 * PI * x[1] / 50)};
-            };
-        }
+    center->AddPostInitialCondition([=](auto *self, Real time_now) {
+        self->B = [&](point_type const &x) {
+            return point_type{std::sin(2 * PI * x[1] / 50) * std::sin(2 * PI * x[2] / 40),
+                              std::sin(2 * PI * x[0] / 30) * std::sin(2 * PI * x[2] / 40),
+                              std::sin(2 * PI * x[0] / 30) * std::sin(2 * PI * x[1] / 50)};
+
+        };
     });
     //    scenario->NewDomain<SimpleMaxwell>("boundary0")
     //        ->SetBoundary(geometry::Box::New(box_type{{-20, -25, -20}, {-15, 25, 20}}));
     //    scenario->NewDomain<SimpleMaxwell>("boundary1")
     //        ->SetBoundary(geometry::Box::New(box_type{{15, -25, -20}, {20, 25, 20}}));
     auto pml = scenario->NewDomain<SimplePML>("PML");
-    pml->SetBoundingBox(scenario->GetAtlas()->GetBoundingBox());
+    pml->SetBoundingBox(box_type{{-15, -25, -20}, {15, 25, 20}});
     pml->SetCenterBox(center->GetBoundingBox());
+
+    scenario->GetAtlas()->SetBoundingBox(scenario->FitBoundingBox());
+    scenario->GetAtlas()->SetPeriodicDimensions({1, 1, 1});
 
     scenario->SetTimeEnd(1.0e-8);
     scenario->SetMaxStep(num_of_step);

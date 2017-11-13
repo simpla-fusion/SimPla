@@ -34,7 +34,7 @@ class DomainBase : public EngineObject, public AttributeGroup {
     std::shared_ptr<Patch> Pop() const override;
 
     int GetNDIMS() const;
-    void SetChart(std::shared_ptr<geometry::Chart> const &c);
+    void SetChart(std::shared_ptr<const geometry::Chart> const &c);
     virtual std::shared_ptr<const geometry::Chart> GetChart() const;
 
     void SetMeshBlock(const std::shared_ptr<const MeshBlock> &blk);
@@ -45,8 +45,8 @@ class DomainBase : public EngineObject, public AttributeGroup {
     virtual box_type GetBoundingBox() const;
     virtual int CheckBoundary() const;
 
-    void SetBoundary(std::shared_ptr<geometry::GeoObject> const &g);
-    std::shared_ptr<geometry::GeoObject> GetBoundary() const;
+    void SetBoundary(std::shared_ptr<const geometry::GeoObject> const &g);
+    std::shared_ptr<const geometry::GeoObject> GetBoundary() const;
     std::shared_ptr<geometry::GeoObject> GetBlockBoundingBox() const;
 
     box_type GetBlockBox() const;
@@ -54,12 +54,15 @@ class DomainBase : public EngineObject, public AttributeGroup {
     void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;
+
     design_pattern::Signal<void(DomainBase *, std::shared_ptr<simpla::data::DataNode> const &)> OnDeserialize;
     design_pattern::Signal<void(DomainBase const *, std::shared_ptr<simpla::data::DataNode> &)> OnSerialize;
 
-    design_pattern::Signal<void(DomainBase *, Real)> PreInitialCondition;
     virtual void DoInitialCondition(Real time_now) {}
+
+    design_pattern::Signal<void(DomainBase *, Real)> PreInitialCondition;
     design_pattern::Signal<void(DomainBase *, Real)> PostInitialCondition;
+
     void InitialCondition(Real time_now);
 
     design_pattern::Signal<void(DomainBase *, Real)> PreTagRefinementCells;
@@ -124,15 +127,40 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
 
 };  // class Domain
 
-#define SP_DOMAIN_HEAD(_CLASS_NAME_, _BASE_NAME_)    \
-    SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_);       \
-    void DoSetUp() override;                         \
-    void DoUpdate() override;                        \
-    void DoTearDown() override;                      \
-                                                     \
-    void DoInitialCondition(Real time_now) override; \
-    void DoAdvance(Real time_now, Real dt) override; \
-    void DoTagRefinementCells(Real time_now) override;
+#define SP_DOMAIN_HEAD(_CLASS_NAME_, _BASE_NAME_)                                                                      \
+    SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_);                                                                         \
+    void DoSetUp() override;                                                                                           \
+    void DoUpdate() override;                                                                                          \
+    void DoTearDown() override;                                                                                        \
+                                                                                                                       \
+    void DoInitialCondition(Real time_now) override;                                                                   \
+    void DoAdvance(Real time_now, Real dt) override;                                                                   \
+    void DoTagRefinementCells(Real time_now) override;                                                                 \
+    void AddOnDeserialize(                                                                                             \
+        std::function<void(this_type *, std::shared_ptr<simpla::data::DataNode> const &)> const &fun) {                \
+        simpla::engine::DomainBase::OnDeserialize.Connect(                                                             \
+            [=](simpla::engine::DomainBase *self, std::shared_ptr<simpla::data::DataNode> const &cfg) {                \
+                if (auto d = dynamic_cast<this_type *>(self)) { fun(d, cfg); };                                        \
+            });                                                                                                        \
+    }                                                                                                                  \
+    void AddOnSerialize(                                                                                               \
+        std::function<void(this_type const *, std::shared_ptr<simpla::data::DataNode> const &)> const &fun) {          \
+        simpla::engine::DomainBase::OnDeserialize.Connect(                                                             \
+            [=](simpla::engine::DomainBase const *self, std::shared_ptr<simpla::data::DataNode> const &cfg) {          \
+                if (auto d = dynamic_cast<this_type const *>(self)) { fun(d, cfg); };                                  \
+            });                                                                                                        \
+    }                                                                                                                  \
+    void AddPreInitialCondition(std::function<void(this_type *, Real)> const &fun) {                                   \
+        simpla::engine::DomainBase::PreInitialCondition.Connect([=](simpla::engine::DomainBase *self, Real time_now) { \
+            if (auto d = dynamic_cast<this_type *>(self)) { fun(d, time_now); };                                       \
+        });                                                                                                            \
+    }                                                                                                                  \
+    void AddPostInitialCondition(std::function<void(this_type *, Real)> const &fun) {                                  \
+        simpla::engine::DomainBase::PostInitialCondition.Connect(                                                      \
+            [=](simpla::engine::DomainBase *self, Real time_now) {                                                     \
+                if (auto d = dynamic_cast<this_type *>(self)) { fun(d, time_now); };                                   \
+            });                                                                                                        \
+    }
 
 #define SP_DOMAIN_POLICY_HEAD(_NAME_)                  \
    private:                                            \
@@ -188,7 +216,8 @@ void Domain<TChart, Policies...>::DoInitialCondition(Real time_now) {
         m_edge_frac_[1].Fill(1.0);
         m_edge_frac_[2].Fill(1.0);
 
-        //        geometry::CutCellTagNode(&m_node_tag_, &m_edge_frac_[0], GetChart(), GetMeshBlock()->GetIndexBox(),
+        //        geometry::CutCellTagNode(&m_node_tag_, &m_edge_frac_[0], GetChart(),
+        //        GetMeshBlock()->GetIndexBox(),
         //                                 GetBoundary(), 0b001);
     }
 }

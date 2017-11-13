@@ -18,16 +18,15 @@ struct Chart : public SPObject {
     SP_OBJECT_HEAD(Chart, SPObject)
 
    private:
-    bool m_is_setup_ = false;
+    bool m_is_valid_ = false;
 
    protected:
     Chart(point_type const &orign, point_type const &grid_width);
 
    public:
-    virtual void SetUp() { m_is_setup_ = true; }
-    virtual bool isSetUp() { return true; }
-    virtual void Update() { ASSERT(isSetUp()); };
-    virtual void TearDown() { m_is_setup_ = false; };
+    bool IsValid() const { return m_is_valid_; }
+    virtual void Update() { m_is_valid_ = true; };
+    virtual void TearDown() { m_is_valid_ = false; };
 
     virtual std::shared_ptr<Curve> GetAxis(point_type const &x0, int dir) const { return nullptr; };
     virtual std::shared_ptr<Curve> GetAxis(index_tuple const &x0, int dir) const { return nullptr; };

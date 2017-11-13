@@ -169,7 +169,8 @@ bool Scenario::Done() const { return true; }
 void Scenario::DoInitialize() {}
 void Scenario::DoFinalize() {}
 void Scenario::DoSetUp() {
-    box_type bounding_box = m_pimpl_->m_atlas_->GetBoundingBox();
+    if (m_pimpl_->m_atlas_ == nullptr) { m_pimpl_->m_atlas_ = Atlas::New(); }
+    m_pimpl_->m_atlas_->SetUp();
     for (auto &item : m_pimpl_->m_domains_) {
         if (item.second != nullptr) {
             item.second->SetUp();
@@ -179,11 +180,8 @@ void Scenario::DoSetUp() {
                 res.first->second->db()->Set(attr->db());
                 attr->db(res.first->second->db());
             }
-            bounding_box = geometry::Union(bounding_box, item.second->GetBoundingBox());
         }
     }
-    m_pimpl_->m_atlas_->SetBoundingBox(bounding_box);
-    m_pimpl_->m_atlas_->SetUp();
     base_type::DoSetUp();
 }
 void Scenario::DoUpdate() {
@@ -195,7 +193,9 @@ void Scenario::DoTearDown() {
     m_pimpl_->m_atlas_->TearDown();
     base_type::DoTearDown();
 }
-std::shared_ptr<Atlas> Scenario::GetAtlas() const { return m_pimpl_->m_atlas_; }
+void Scenario::SetAtlas(std::shared_ptr<Atlas> const &a) { m_pimpl_->m_atlas_ = a; }
+std::shared_ptr<const Atlas> Scenario::GetAtlas() const { return m_pimpl_->m_atlas_; }
+std::shared_ptr<Atlas> Scenario::GetAtlas() { return m_pimpl_->m_atlas_; }
 std::shared_ptr<DomainBase> Scenario::SetDomain(std::string const &k, std::shared_ptr<DomainBase> const &d) {
     ASSERT(!isSetUp());
     if (d != nullptr) {
@@ -209,6 +209,17 @@ std::shared_ptr<DomainBase> Scenario::GetDomain(std::string const &k) const {
     auto it = m_pimpl_->m_domains_.find(k);
     return (it == m_pimpl_->m_domains_.end()) ? nullptr : it->second;
 }
+
+box_type Scenario::FitBoundingBox() const {
+    auto it = m_pimpl_->m_domains_.begin();
+    box_type bounding_box = it->second->GetBoundingBox();
+
+    for (; it != m_pimpl_->m_domains_.end(); ++it) {
+        if (it->second != nullptr) { bounding_box = geometry::Union(bounding_box, it->second->GetBoundingBox()); }
+    }
+    return bounding_box;
+}
+
 std::map<std::string, std::shared_ptr<DomainBase>> &Scenario::GetDomains() { return m_pimpl_->m_domains_; };
 std::map<std::string, std::shared_ptr<DomainBase>> const &Scenario::GetDomains() const { return m_pimpl_->m_domains_; }
 void Scenario::TagRefinementCells(Real time_now) {
