@@ -8,7 +8,6 @@
 #include <simpla/engine/EBDomain.h>
 #include <simpla/geometry/Box.h>
 #include <simpla/geometry/BoxUtilities.h>
-#include <simpla/geometry/Box.h>
 #include <simpla/geometry/csCartesian.h>
 #include <simpla/mesh/CoRectMesh.h>
 #include <simpla/mesh/RectMesh.h>
@@ -43,12 +42,9 @@ int main(int argc, char **argv) {
 
     auto scenario = SimpleTimeIntegrator::New();
     scenario->SetName("EmbeddedBoundary");
+    scenario->GetAtlas()->NewChart<simpla::geometry::csCartesian>(point_type{0, 0, 0}, point_type{1, 1, 1});
 
-    scenario->GetAtlas()->SetOrigin({0, 0, 0});
-    scenario->GetAtlas()->SetGridWidth({1, 1, 1});
     scenario->GetAtlas()->SetPeriodicDimensions({1, 1, 1});
-
-    scenario->GetAtlas()->NewChart<simpla::geometry::csCartesian>();
 
     auto center = scenario->NewDomain<EBMaxwell>("Center", geometry::Box::New({{-15, -25, -20}, {15, 25, 20}}));
 

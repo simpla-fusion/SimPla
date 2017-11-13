@@ -51,7 +51,6 @@ int main(int argc, char **argv) {
     center->PostInitialCondition.Connect([=](DomainBase *self, Real time_now) {
         if (auto d = dynamic_cast<SimpleMaxwell *>(self)) {
             d->B = [&](point_type const &x) {
-
                 return point_type{std::sin(2 * PI * x[1] / 50) * std::sin(2 * PI * x[2] / 40),
                                   std::sin(2 * PI * x[0] / 30) * std::sin(2 * PI * x[2] / 40),
                                   std::sin(2 * PI * x[0] / 30) * std::sin(2 * PI * x[1] / 50)};
@@ -63,7 +62,7 @@ int main(int argc, char **argv) {
     //    scenario->NewDomain<SimpleMaxwell>("boundary1")
     //        ->SetBoundary(geometry::Box::New(box_type{{15, -25, -20}, {20, 25, 20}}));
     auto pml = scenario->NewDomain<SimplePML>("PML");
-    pml->SetBoundingBox(box_type{{-20, -25, -20}, {20, 25, 20}});
+    pml->SetBoundingBox(scenario->GetAtlas()->GetBoundingBox());
     pml->SetCenterBox(center->GetBoundingBox());
 
     scenario->SetTimeEnd(1.0e-8);
@@ -71,7 +70,6 @@ int main(int argc, char **argv) {
     scenario->SetUp();
 
     if (auto atlas = scenario->GetAtlas()) {
-        scenario->GetAtlas()->Decompose({3, 3, 3});
         auto c_box = center->GetBoundingBox();
         auto box_list = geometry::HaloBoxDecompose(
             atlas->GetIndexBox(),

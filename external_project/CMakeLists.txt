@@ -1,4 +1,4 @@
-#add_subdirectory(SAMRAI)
+add_subdirectory(SAMRAI)
 
 
 #ExternalProject_Add(trilinos

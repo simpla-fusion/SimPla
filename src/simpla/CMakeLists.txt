@@ -7,9 +7,9 @@ FOREACH (subdir ${SUBDIRS})
 ENDFOREACH ()
 
 
- #
-##TARGET_LINK_LIBRARIES(SimPlaLib
-##        netcdf ${HDF5_LIBRARIES} ${MPI_LIBRARIES} ${TBB_LIBRARIES}
-##          utilities geometry parallel data mesh engine geometry physics third_part
-##        )
+
+#TARGET_LINK_LIBRARIES(SimPlaLib
+#        netcdf ${HDF5_LIBRARIES} ${MPI_LIBRARIES} ${TBB_LIBRARIES}
+#          utilities geometry parallel data mesh engine geometry physics third_part
+#        )
 

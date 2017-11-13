@@ -9,7 +9,7 @@ namespace geometry {
 constexpr Real Chart::m_id_to_coordinates_shift_[8][3];
 
 Chart::Chart() = default;
-Chart::~Chart() = default;
+Chart::~Chart() { TearDown(); };
 Chart::Chart(point_type const &origin, point_type const &grid_width)
     : SPObject(), m_origin_(origin), m_grid_width_(grid_width) {}
 
