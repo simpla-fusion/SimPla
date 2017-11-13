@@ -105,17 +105,14 @@ index_tuple Atlas::GetHaloWidth() const { return m_pimpl_->m_ghost_width_; }
 std::shared_ptr<const geometry::Chart> Atlas::GetChart() const { return m_pimpl_->m_chart_; }
 void Atlas::SetChart(std::shared_ptr<const geometry::Chart> const &c) { m_pimpl_->m_chart_ = c; }
 
-void Atlas::DoSetUp() { base_type::DoSetUp(); }
-
-void Atlas::DoUpdate() {
-    ASSERT(m_pimpl_->m_chart_ != nullptr)
-
+void Atlas::DoSetUp() {
     auto grid_width = m_pimpl_->m_chart_->GetGridWidth();
     auto origin = m_pimpl_->m_chart_->GetOrigin();
-    m_pimpl_->m_local_box_ = m_pimpl_->m_global_index_box_;
 
-    std::get<0>(m_pimpl_->m_local_index_box_) = (std::get<0>(m_pimpl_->m_local_box_) - grid_width * 0.5) / grid_width;
-    std::get<1>(m_pimpl_->m_local_index_box_) = (std::get<1>(m_pimpl_->m_local_box_) + grid_width * 0.5) / grid_width;
+    std::get<0>(m_pimpl_->m_global_index_box_) = (std::get<0>(m_pimpl_->m_global_box_) - grid_width * 0.5) / grid_width;
+    std::get<1>(m_pimpl_->m_global_index_box_) = (std::get<1>(m_pimpl_->m_global_box_) + grid_width * 0.5) / grid_width;
+    Decompose();
+
     for (int i = 0; i < 3; ++i) {
         std::get<0>(m_pimpl_->m_halo_box_)[i] = std::get<0>(m_pimpl_->m_local_index_box_)[i];
         std::get<1>(m_pimpl_->m_halo_box_)[i] = std::get<1>(m_pimpl_->m_local_index_box_)[i];
@@ -136,11 +133,16 @@ void Atlas::DoUpdate() {
 
     db()->SetValue("LowIndex", std::get<0>(m_pimpl_->m_global_index_box_));
     db()->SetValue("HighIndex", std::get<1>(m_pimpl_->m_global_index_box_));
+    base_type::DoSetUp();
+}
 
+void Atlas::DoUpdate() {
+    ASSERT(m_pimpl_->m_chart_ != nullptr)
     base_type::DoUpdate();
 }
 
-void Atlas::Decompose(index_tuple const &) {
+void Atlas::Decompose(index_tuple const &) { UNIMPLEMENTED; }
+void Atlas::Decompose() {
 #ifdef MPI_FOUND
     {
         int mpi_ndims = 0;
@@ -161,6 +163,9 @@ void Atlas::Decompose(index_tuple const &) {
                     (mpi_coord[i] + 1) / mpi_dims[i];
         }
     }
+#else
+    m_pimpl_->m_local_box_ = m_pimpl_->m_global_index_box_;
+
 #endif
     //    NewPatch(MeshBlock::New(m_pimpl_->m_local_index_box_, 0, 0));
 }

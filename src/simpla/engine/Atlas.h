@@ -121,7 +121,7 @@ class Atlas : public EngineObject {
     SP_OBJECT_PROPERTY(index_tuple, CoarsestIndexBox);
 
     void Decompose(index_tuple const &);
-
+    void Decompose();
     template <typename... Args>
     std::shared_ptr<Patch> NewPatch(Args &&... args) {
         return SetPatch(Patch::New(std::forward<Args>(args)...));

@@ -91,7 +91,7 @@ ALLOW_UNICODE_NAMES    = YES
 # Ukrainian and Vietnamese.
 # The default m_value_ is: English.
 
-OUTPUT_LANGUAGE        = English
+OUTPUT_LANGUAGE        = @DOC_LANGUAGE@
 
 # If the BRIEF_MEMBER_DESC tag is set to YES doxygen will include brief member
 # descriptions after the members that are listed in the file and class
@@ -1581,7 +1581,7 @@ LATEX_OUTPUT           = latex
 # The default file is: latex.
 # This tag requires that the tag GENERATE_LATEX is set to YES.
 
-LATEX_CMD_NAME         = latex
+LATEX_CMD_NAME         = xelatex
 
 # The MAKEINDEX_CMD_NAME tag can be used to specify the command name to generate
 # index for LaTeX.
@@ -1673,7 +1673,7 @@ USE_PDFLATEX           = YES
 # The default m_value_ is: NO.
 # This tag requires that the tag GENERATE_LATEX is set to YES.
 
-LATEX_BATCHMODE        = NO
+LATEX_BATCHMODE        = YES
 
 # If the LATEX_HIDE_INDICES tag is set to YES then doxygen will not include the
 # index chapters (such as File Index, Compound Index, etc.) in the output.

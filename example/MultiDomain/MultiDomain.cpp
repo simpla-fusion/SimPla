@@ -72,11 +72,8 @@ int main(int argc, char **argv) {
     scenario->SetUp();
 
     if (auto atlas = scenario->GetAtlas()) {
-        auto c_box = center->GetBoundingBox();
-        auto box_list = geometry::HaloBoxDecompose(
-            atlas->GetIndexBox(),
-            std::make_tuple(std::get<1>(atlas->GetChart()->invert_local_coordinates(std::get<0>(c_box))),
-                            std::get<1>(atlas->GetChart()->invert_local_coordinates(std::get<1>(c_box)))));
+        auto box_list =
+            geometry::HaloBoxDecompose(atlas->GetIndexBox(), atlas->GetChart()->GetIndexBox(center->GetBoundingBox()));
         for (auto const &b : box_list) {
             atlas->AddPatch(b);
             CHECK(b);

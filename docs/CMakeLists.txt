@@ -6,6 +6,7 @@ if(BUILD_DOCUMENTATION)
     message(FATAL_ERROR 
       "Doxygen is needed to build the documentation. Please install it correctly")
   endif()
+
   #-- Configure the Template Doxyfile for our specific project
   configure_file(Doxyfile.in 
                  ${PROJECT_BINARY_DIR}/Doxyfile  @ONLY IMMEDIATE)

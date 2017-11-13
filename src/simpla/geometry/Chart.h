@@ -49,6 +49,11 @@ struct Chart : public SPObject {
     point_type const &GetGridWidth() const;
     point_type GetGridWidth(int level) const;
 
+    index_box_type GetIndexBox(box_type const &c_box) const {
+        return std::make_tuple(std::get<1>(invert_local_coordinates(std::get<0>(c_box))),
+                               std::get<1>(invert_local_coordinates(std::get<1>(c_box))));
+    }
+
     template <typename... Args>
     point_type uvw(Args &&... args) const {
         return local_coordinates(0, std::forward<Args>(args)...);

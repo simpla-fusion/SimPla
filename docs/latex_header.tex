@@ -1,0 +1,31 @@
+\documentclass[english]{beamer}
+\usepackage{fontspec}
+\setmainfont[Mapping=tex-text]{Latin Modern Roman}
+\setsansfont[Mapping=tex-text]{Noto Sans CJK SC}
+\setmonofont{Noto Sans Mono CJK SC}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+\makeatletter
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Textclass specific LaTeX commands.
+ % this default might be overridden by plain title style
+ \newcommand\makebeamertitle{\frame{\maketitle}}%
+ % (ERT) argument for the TOC
+ \AtBeginDocument{%
+   \let\origtableofcontents=\tableofcontents
+   \def\tableofcontents{\@ifnextchar[{\origtableofcontents}{\gobbletableofcontents}}
+   \def\gobbletableofcontents#1{\origtableofcontents}
+ }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
+\usepackage[CJKnumber]{xeCJK}
+
+\usetheme{CambridgeUS}
+
+\usefonttheme[onlymath]{serif}
+
+\makeatother
+
+\usepackage{xunicode}
+\usepackage{polyglossia}
+\setdefaultlanguage[variant=american]{english}
