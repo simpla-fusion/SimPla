@@ -50,7 +50,7 @@ void DomainBase::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
         nTuple<int, 3> dims = cfg->GetValue("Dimensions", nTuple<int, 3>{1, 1, 1});
 
         m_pimpl_->m_chart_->SetOrigin(lo);
-        m_pimpl_->m_chart_->SetScale((hi - lo) / (dims + 1));
+        m_pimpl_->m_chart_->SetGridWidth((hi - lo) / (dims + 1));
         m_pimpl_->m_chart_->Deserialize(cfg->Get("Chart"));
     }
     AttributeGroup::Deserialize(cfg->Get("Attributes"));

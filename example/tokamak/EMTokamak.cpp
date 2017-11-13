@@ -17,7 +17,7 @@
 #include <simpla/predefine/engine/SimpleTimeIntegrator.h>
 #include <simpla/predefine/physics/EMFluid.h>
 #include <simpla/predefine/physics/Maxwell.h>
-#include <simpla/predefine/physics/PICBoris.h>
+//#include <simpla/predefine/physics/PICBoris.h>
 #include <simpla/scheme/FVM.h>
 #include <simpla/utilities/Logo.h>
 
@@ -37,12 +37,11 @@ int main(int argc, char **argv) {
     scenario->db()->SetValue("DumpFileSuffix", "h5");
     scenario->db()->SetValue("CheckPointFilePrefix", "EAST");
     scenario->db()->SetValue("CheckPointFileSuffix", "xmf");
-
-    scenario->GetAtlas()->SetGridWidth({1, 1.5, 2});
+    scenario->GetAtlas()->NewChart<sg::csCartesian>(point_type{0, 0, 0}, point_type{1, 1.5, 2});
     scenario->GetAtlas()->SetPeriodicDimensions({1, 1, 1});
-    scenario->GetAtlas()->NewChart<sg::csCartesian>();
 
     auto tokamak = sp::Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
+
     auto g_boundary = sg::Revolution::New(tokamak->Boundary(), sp::TWOPI);
 
     auto limiter = scenario->NewDomain<domain::Maxwell<domain_type>>(

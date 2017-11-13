@@ -28,7 +28,6 @@ using namespace simpla::engine;
 
 int main(int argc, char **argv) {
     simpla::Initialize(argc, argv);
-
     size_type num_of_step = 10;
     size_type checkpoint_interval = 1;
     simpla::parse_cmd_line(  //
@@ -44,13 +43,9 @@ int main(int argc, char **argv) {
 
     auto scenario = SimpleTimeIntegrator::New();
     scenario->SetName("MultiDomain");
-
-    scenario->GetAtlas()->SetOrigin({0, 0, 0});
-    scenario->GetAtlas()->SetGridWidth({1, 1, 1});
+    scenario->GetAtlas()->NewChart<simpla::geometry::csCartesian>(point_type{0, 0, 0}, point_type{1, 1, 1});
     scenario->GetAtlas()->SetPeriodicDimensions({1, 1, 1});
-
-    scenario->GetAtlas()->NewChart<simpla::geometry::csCartesian>();
-
+    scenario->GetAtlas()->SetBoundingBox(box_type{{-15, -25, -20}, {15, 25, 20}});
     auto center = scenario->NewDomain<SimpleMaxwell>("Center");
     center->SetBoundary(geometry::Box::New(box_type{{-15, -25, -20}, {15, 25, 20}}));
     center->PostInitialCondition.Connect([=](DomainBase *self, Real time_now) {

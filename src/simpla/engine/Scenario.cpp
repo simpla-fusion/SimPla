@@ -22,10 +22,7 @@ struct Scenario::pimpl_s {
     std::shared_ptr<Atlas> m_atlas_ = nullptr;
     std::map<std::string, std::shared_ptr<Attribute>> m_attrs_;
     std::map<std::string, std::shared_ptr<DomainBase>> m_domains_;
-
     size_type m_step_counter_ = 0;
-    //    void LocalSync(int level = 0);
-    //    void MPISync(std::string const &key, std::shared_ptr<Attribute> const &attr, int level = 0);
 };
 
 Scenario::Scenario() : m_pimpl_(new pimpl_s) { m_pimpl_->m_atlas_ = Atlas::New(); }
@@ -112,10 +109,6 @@ void Scenario::Dump() const {
 
     GEO_ENGINE->OpenFile(prefix + "." + geo_suffix);
 }
-// std::map<std::string, std::shared_ptr<data::DataNode>> const &Scenario::GetAttributes() const {
-//    return m_pimpl_->m_attrs_;
-//};
-// std::map<std::string, std::shared_ptr<data::DataNode>> &Scenario::GetAttributes() { return m_pimpl_->m_attrs_; };
 
 std::shared_ptr<Attribute> Scenario::GetAttribute(std::string const &key) {
     std::shared_ptr<Attribute> res = nullptr;
@@ -129,12 +122,6 @@ std::shared_ptr<Attribute> Scenario::GetAttribute(std::string const &key) const 
     if (it != m_pimpl_->m_attrs_.end()) { res = it->second; }  // OUT_OF_RANGE << "Can not find Attribute" << key;
     return res;
 }
-
-// Range<EntityId> &Scenario::GetRange(std::string const &k) {
-////    auto res = m_pimpl_->m_ranges_.emplace(k, Range<EntityId>{});
-////    return res.first->second;
-//}
-// Range<EntityId> const &Scenario::GetRange(std::string const &k) const { return m_pimpl_->m_ranges_.at(k); }
 
 void Scenario::Synchronize(int level) {
     ASSERT(level == 0)
@@ -182,23 +169,20 @@ bool Scenario::Done() const { return true; }
 void Scenario::DoInitialize() {}
 void Scenario::DoFinalize() {}
 void Scenario::DoSetUp() {
-    for (auto &item : m_pimpl_->m_domains_) { item.second->SetUp(); }
-
+    box_type bounding_box = m_pimpl_->m_atlas_->GetBoundingBox();
     for (auto &item : m_pimpl_->m_domains_) {
-        for (auto *attr : item.second->GetAttributes()) {
-            auto res = m_pimpl_->m_attrs_.emplace(attr->GetName(), attr->CreateNew());
-            ASSERT(res.first->second->CheckType(*attr));
-            res.first->second->db()->Set(attr->db());
-            attr->db(res.first->second->db());
+        if (item.second != nullptr) {
+            item.second->SetUp();
+            for (auto *attr : item.second->GetAttributes()) {
+                auto res = m_pimpl_->m_attrs_.emplace(attr->GetName(), attr->CreateNew());
+                ASSERT(res.first->second->CheckType(*attr));
+                res.first->second->db()->Set(attr->db());
+                attr->db(res.first->second->db());
+            }
+            bounding_box = geometry::Union(bounding_box, item.second->GetBoundingBox());
         }
     }
-
-    box_type bounding_box = m_pimpl_->m_atlas_->GetBoundingBox();
-    for (auto it = m_pimpl_->m_domains_.begin(); it != m_pimpl_->m_domains_.end(); ++it) {
-        if (it->second != nullptr) { bounding_box = geometry::Union(bounding_box, it->second->GetBoundingBox()); }
-    }
     m_pimpl_->m_atlas_->SetBoundingBox(bounding_box);
-
     m_pimpl_->m_atlas_->SetUp();
     base_type::DoSetUp();
 }

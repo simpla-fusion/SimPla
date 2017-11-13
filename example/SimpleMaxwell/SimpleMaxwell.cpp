@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
     auto scenario = SimpleTimeIntegrator::New();
     scenario->SetName("SimpleFDTD");
     scenario->GetAtlas()->NewChart<simpla::geometry::csCartesian>();
-    scenario->GetAtlas()->GetChart()->SetScale({1, 1.5, 2});
+    scenario->GetAtlas()->GetChart()->SetGridWidth({1, 1.5, 2});
     scenario->GetAtlas()->GetChart()->SetOrigin({0, 0, 0});
 
     box_type bounding_box{{-20, -30, -25}, {20, 30, 25}};

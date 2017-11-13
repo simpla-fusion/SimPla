@@ -23,40 +23,22 @@ namespace engine {
 
 struct Atlas::pimpl_s {
     std::map<id_type, std::shared_ptr<Patch>> m_patches_;
-
-    //    std::map<id_type, std::shared_ptr<MeshBlock>> m_blocks_;
     std::shared_ptr<geometry::Chart> m_chart_ = nullptr;
-    //    static constexpr int MAX_NUM_OF_LEVEL = 5;
-    //    typedef typename std::multimap<id_type, id_type>::iterator link_iterator;
-    //    typedef typename std::multimap<id_type, id_type>::const_iterator const_link_iterator;
-    //    typedef std::pair<const_link_iterator, const_link_iterator> multi_links_type;
-    //    std::multimap<id_type, id_type> m_adjacent_;
-    //    std::multimap<id_type, id_type> m_refine_;
-    //    std::multimap<id_type, id_type> m_coarsen_;
-    //    std::set<std::shared_ptr<data::DataNode>> m_layers_[MAX_NUM_OF_LEVEL];
-    //    nTuple<int, 3> m_refine_ratio_[MAX_NUM_OF_LEVEL] = {{2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}, {2, 2, 2}};
-    point_type m_origin_;
-    point_type m_grid_width_;
-    box_type m_bounding_box_;
-    box_type m_box_{{0, 0, 0}, {1, 1, 1}};
+
+    box_type m_local_box_{{0, 0, 0}, {1, 1, 1}};
+    box_type m_global_box_{{0, 0, 0}, {1, 1, 1}};
     index_box_type m_global_index_box_{{0, 0, 0}, {1, 1, 1}};
-    index_box_type m_index_box_{{0, 0, 0}, {1, 1, 1}};
+    index_box_type m_local_index_box_{{0, 0, 0}, {1, 1, 1}};
     index_box_type m_halo_box_{{0, 0, 0}, {1, 1, 1}};
 
     index_tuple m_ghost_width_{3, 3, 3};
     index_tuple m_period_{1, 1, 1};
-
-    //    box_type m_local_box_{{0, 0, 0}, {1, 1, 1}};
-    //    index_box_type m_index_box_{{0, 0, 0}, {1, 1, 1}};
-    //    box_type m_global_box_{{0, 0, 0}, {1, 1, 1}};
-    //    index_box_type m_global_index_box_{{0, 0, 0}, {1, 1, 1}};
 };
 
 Atlas::Atlas() : m_pimpl_(new pimpl_s) {
     SPObject::SetName("Atlas");
     SetMaxLevel(2);
     SetPeriodicDimensions(nTuple<int, 3>{0, 0, 0});
-
     SetMaxLevel(1);
     SetSmallestPatchDimensions(nTuple<int, 3>{4, 4, 4});
     SetLargestPatchDimensions(nTuple<int, 3>{128, 128, 128});
@@ -68,7 +50,6 @@ std::shared_ptr<data::DataNode> Atlas::Serialize() const {
     ASSERT(m_pimpl_->m_chart_ != nullptr);
     auto tdb = base_type::Serialize();
     tdb->Set("Chart", m_pimpl_->m_chart_->Serialize());
-
     auto patches = tdb->CreateNode("Patches", data::DataNode::DN_TABLE);
     for (auto const &item : m_pimpl_->m_patches_) { patches->Set(item.first, item.second->Serialize()); }
     return tdb;
@@ -80,31 +61,27 @@ void Atlas::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
     } else {
         m_pimpl_->m_chart_ = geometry::Chart::New(tdb->Get("Chart"));
     }
-
     auto blocks = tdb->Get("Patches");
     blocks->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &patch) {
         auto res = m_pimpl_->m_patches_.emplace(std::stoi(key), Patch::New(patch));
     });
-
     Click();
 };
-void Atlas::SetOrigin(point_type const &x0) { m_pimpl_->m_origin_ = x0; }
-void Atlas::SetGridWidth(point_type const &dx) { m_pimpl_->m_grid_width_ = dx; }
-void Atlas::SetBoundingBox(box_type const &b) { m_pimpl_->m_bounding_box_ = b; };
+
 void Atlas::SetPeriodicDimension(index_tuple const &p) { m_pimpl_->m_period_ = p; }
 index_tuple Atlas::GetPeriodicDimension() const { return m_pimpl_->m_period_; }
 
-index_box_type Atlas::GetIndexBox() const { return m_pimpl_->m_index_box_; };
-box_type Atlas::GetBoundingBox() const {
-    return std::make_tuple(m_pimpl_->m_chart_->local_coordinates(std::get<0>(m_pimpl_->m_index_box_)),
-                           m_pimpl_->m_chart_->local_coordinates(std::get<0>(m_pimpl_->m_index_box_)));
-}
+void Atlas::SetBoundingBox(box_type const &b) { m_pimpl_->m_global_box_ = b; }
+box_type Atlas::GetBoundingBox() const { return m_pimpl_->m_local_box_; }
+box_type Atlas::GetLocalBoundingBox() const { return m_pimpl_->m_local_box_; }
+box_type Atlas::GetGlobalBoundingBox() const { return m_pimpl_->m_global_box_; }
 
-box_type Atlas::GetGlobalBoundingBox() const { return m_pimpl_->m_box_; }
+index_box_type Atlas::GetIndexBox() const { return m_pimpl_->m_local_index_box_; };
+index_box_type Atlas::GetLocalIndexBox() const { return m_pimpl_->m_local_index_box_; };
 index_box_type Atlas::GetGlobalIndexBox() const { return m_pimpl_->m_global_index_box_; };
 index_box_type Atlas::GetBoundingIndexBox(int iform, int direction) const {
-    index_tuple lo, hi;
-    std::tie(lo, hi) = m_pimpl_->m_index_box_;
+    index_tuple lo{0, 0, 0}, hi{1, 1, 1};
+    std::tie(lo, hi) = m_pimpl_->m_local_index_box_;
     switch (iform) {
         case NODE:
             hi += 1;
@@ -112,7 +89,6 @@ index_box_type Atlas::GetBoundingIndexBox(int iform, int direction) const {
         case EDGE:
             hi[(direction + 1) % 3] += 1;
             hi[(direction + 2) % 3] += 1;
-
             break;
         case FACE:
             hi[(direction) % 3] += 1;
@@ -136,39 +112,35 @@ void Atlas::SetChart(std::shared_ptr<geometry::Chart> const &c) { m_pimpl_->m_ch
 
 void Atlas::DoSetUp() {
     ASSERT(m_pimpl_->m_chart_ != nullptr);
+    auto grid_width = m_pimpl_->m_chart_->GetGridWidth();
+    auto origin = m_pimpl_->m_chart_->GetOrigin();
+    m_pimpl_->m_local_box_ = m_pimpl_->m_global_index_box_;
 
+    std::get<0>(m_pimpl_->m_local_index_box_) = (std::get<0>(m_pimpl_->m_local_box_) - grid_width * 0.5) / grid_width;
+    std::get<1>(m_pimpl_->m_local_index_box_) = (std::get<1>(m_pimpl_->m_local_box_) + grid_width * 0.5) / grid_width;
     for (int i = 0; i < 3; ++i) {
-        std::get<0>(m_pimpl_->m_index_box_) =
-            (std::get<0>(m_pimpl_->m_bounding_box_) - m_pimpl_->m_grid_width_ * 0.5) / m_pimpl_->m_grid_width_;
-        std::get<1>(m_pimpl_->m_index_box_) =
-            (std::get<1>(m_pimpl_->m_bounding_box_) + m_pimpl_->m_grid_width_ * 0.5) / m_pimpl_->m_grid_width_;
-
-        std::get<0>(m_pimpl_->m_halo_box_)[i] = std::get<0>(m_pimpl_->m_index_box_)[i];
-        std::get<1>(m_pimpl_->m_halo_box_)[i] = std::get<1>(m_pimpl_->m_index_box_)[i];
+        std::get<0>(m_pimpl_->m_halo_box_)[i] = std::get<0>(m_pimpl_->m_local_index_box_)[i];
+        std::get<1>(m_pimpl_->m_halo_box_)[i] = std::get<1>(m_pimpl_->m_local_index_box_)[i];
 
         if (m_pimpl_->m_period_[i] == 0) {  // if it is not a period dimension then fix dx change bounding box
-            std::get<0>(m_pimpl_->m_bounding_box_) = std::get<0>(m_pimpl_->m_index_box_) * m_pimpl_->m_grid_width_;
-            std::get<1>(m_pimpl_->m_bounding_box_) = std::get<1>(m_pimpl_->m_index_box_) * m_pimpl_->m_grid_width_;
-
+            std::get<0>(m_pimpl_->m_local_box_) = std::get<0>(m_pimpl_->m_local_index_box_) * grid_width;
+            std::get<1>(m_pimpl_->m_local_box_) = std::get<1>(m_pimpl_->m_local_index_box_) * grid_width;
             std::get<0>(m_pimpl_->m_halo_box_)[i] -= m_pimpl_->m_ghost_width_[i];
             std::get<1>(m_pimpl_->m_halo_box_)[i] += m_pimpl_->m_ghost_width_[i];
         } else {  // if it is a period dimension then fix   bounding box change dx and  origin
-            m_pimpl_->m_grid_width_ =
-                (std::get<1>(m_pimpl_->m_bounding_box_) - std::get<0>(m_pimpl_->m_bounding_box_)) /
-                (std::get<1>(m_pimpl_->m_index_box_) - std::get<0>(m_pimpl_->m_index_box_));
-            m_pimpl_->m_origin_ =
-                std::get<0>(m_pimpl_->m_bounding_box_) - std::get<0>(m_pimpl_->m_index_box_) * m_pimpl_->m_grid_width_;
+            grid_width[i] =
+                (std::get<1>(m_pimpl_->m_local_box_)[i] - std::get<0>(m_pimpl_->m_local_box_)[i]) /
+                (std::get<1>(m_pimpl_->m_local_index_box_)[i] - std::get<0>(m_pimpl_->m_local_index_box_)[i]);
+            origin[i] =
+                std::get<0>(m_pimpl_->m_local_box_)[i] - std::get<0>(m_pimpl_->m_local_index_box_)[i] * grid_width[i];
         }
     }
 
-    db()->SetValue("LowIndex", std::get<0>(m_pimpl_->m_index_box_));
-    db()->SetValue("HighIndex", std::get<1>(m_pimpl_->m_index_box_));
-    m_pimpl_->m_chart_->SetScale(m_pimpl_->m_grid_width_);
-    m_pimpl_->m_chart_->SetOrigin(m_pimpl_->m_origin_);
+    db()->SetValue("LowIndex", std::get<0>(m_pimpl_->m_global_index_box_));
+    db()->SetValue("HighIndex", std::get<1>(m_pimpl_->m_global_index_box_));
+    m_pimpl_->m_chart_->SetOrigin(origin);
+    m_pimpl_->m_chart_->SetGridWidth(grid_width);
     m_pimpl_->m_chart_->SetUp();
-
-    m_pimpl_->m_global_index_box_ = m_pimpl_->m_index_box_;
-
     base_type::DoSetUp();
 };
 void Atlas::DoUpdate() {
@@ -186,18 +158,18 @@ void Atlas::Decompose(index_tuple const &) {
         GLOBAL_COMM.topology(&mpi_ndims, &mpi_dims[0], &mpi_period[0], &mpi_coord[0]);
 
         for (int i = 0; i < mpi_ndims; ++i) {
-            std::get<0>(m_pimpl_->m_index_box_)[i] =
+            std::get<0>(m_pimpl_->m_local_index_box_)[i] =
                 std::get<0>(m_pimpl_->m_global_index_box_)[i] +
                 (std::get<1>(m_pimpl_->m_global_index_box_)[i] - std::get<0>(m_pimpl_->m_global_index_box_)[i]) *
                     mpi_coord[i] / mpi_dims[i];
-            std::get<1>(m_pimpl_->m_index_box_)[i] =
+            std::get<1>(m_pimpl_->m_local_index_box_)[i] =
                 std::get<0>(m_pimpl_->m_global_index_box_)[i] +
                 (std::get<1>(m_pimpl_->m_global_index_box_)[i] - std::get<0>(m_pimpl_->m_global_index_box_)[i]) *
                     (mpi_coord[i] + 1) / mpi_dims[i];
         }
     }
 #endif
-    //    NewPatch(MeshBlock::New(m_pimpl_->m_index_box_, 0, 0));
+    //    NewPatch(MeshBlock::New(m_pimpl_->m_local_index_box_, 0, 0));
 }
 
 void Atlas::DoTearDown() {
@@ -207,7 +179,7 @@ void Atlas::DoTearDown() {
     }
 };
 std::shared_ptr<Patch> Atlas::AddPatch(index_box_type const &idx_box, int level) {
-    auto b = geometry::Overlap(m_pimpl_->m_index_box_, idx_box);
+    auto b = geometry::Overlap(m_pimpl_->m_local_index_box_, idx_box);
     return geometry::isIllCondition(b) ? nullptr : SetPatch(Patch::New(MeshBlock::New(b, level)));
 }
 std::shared_ptr<Patch> Atlas::AddPatch(box_type const &box, int level) {

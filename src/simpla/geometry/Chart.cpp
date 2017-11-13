@@ -9,46 +9,41 @@ namespace geometry {
 constexpr Real Chart::m_id_to_coordinates_shift_[8][3];
 
 Chart::Chart() = default;
-
 Chart::~Chart() = default;
+Chart::Chart(point_type const &origin, point_type const &grid_width)
+    : SPObject(), m_origin_(origin), m_grid_width_(grid_width) {}
 
 std::shared_ptr<data::DataNode> Chart::Serialize() const {
     auto tdb = base_type::Serialize();
     if (tdb != nullptr) {
-         tdb->SetValue("Level", GetLevel());
+        tdb->SetValue("Level", GetLevel());
         tdb->SetValue("Origin", GetOrigin());
-        tdb->SetValue("Scale", GetScale());
-     }
+        tdb->SetValue("GridWidth", GetGridWidth());
+    }
     return tdb;
 }
 void Chart::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
-    if (tdb != nullptr) {
-        m_origin_ = tdb->GetValue<point_type>("Origin", m_origin_);
-        m_scale_ = tdb->GetValue<point_type>("Scale", m_scale_);
-     }
+    ASSERT(tdb != nullptr);
+    m_origin_ = tdb->GetValue<point_type>("Origin", m_origin_);
+    m_grid_width_ = tdb->GetValue<point_type>("GridWidth", m_grid_width_);
 };
 
 void Chart::SetOrigin(point_type const &x) { m_origin_ = x; }
 point_type const &Chart::GetOrigin() const { return m_origin_; }
-
-void Chart::SetScale(point_type const &x) { m_scale_ = x; }
-point_type const &Chart::GetScale() const { return m_scale_; }
-
-
-
-point_type Chart::GetCellWidth(int level) const {
-    point_type res = m_scale_;
+void Chart::SetGridWidth(point_type const &x) { m_grid_width_ = x; }
+point_type const &Chart::GetGridWidth() const { return m_grid_width_; }
+point_type Chart::GetGridWidth(int level) const {
+    point_type res = m_grid_width_;
     if (m_level_ < level) {
         res /= static_cast<Real>(1 << (level - m_level_));
     } else if (m_level_ > level) {
         res *= static_cast<Real>(1 << (m_level_ - level));
     }
-
     return res;
 }
 
 void Chart::SetLevel(int level) {
-    m_scale_ = GetCellWidth(level);
+    m_grid_width_ = GetGridWidth(level);
     m_level_ = level;
 };
 int Chart::GetLevel() const { return m_level_; }

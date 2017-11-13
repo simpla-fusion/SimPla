@@ -85,16 +85,15 @@ class Atlas : public EngineObject {
         return res;
     };
     void SetPeriodicDimension(index_tuple const &p);
-    void SetOrigin(point_type const &);     // origin make_point of index space
-    void SetGridWidth(point_type const &);  // Coarsest grid size
-    void SetBoundingBox(box_type const &);
-
     index_tuple GetPeriodicDimension() const;
 
+    void SetBoundingBox(box_type const &);
     box_type GetBoundingBox() const;
-    index_box_type GetIndexBox() const;
-
+    box_type GetLocalBoundingBox() const;
     box_type GetGlobalBoundingBox() const;
+
+    index_box_type GetIndexBox() const;
+    index_box_type GetLocalIndexBox() const;
     index_box_type GetGlobalIndexBox() const;
     index_tuple GetHaloWidth() const;
 

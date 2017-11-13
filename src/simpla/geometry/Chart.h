@@ -20,6 +20,9 @@ struct Chart : public SPObject {
    private:
     bool m_is_setup_ = false;
 
+   protected:
+    Chart(point_type const &orign, point_type const &grid_width);
+
    public:
     virtual void SetUp() { m_is_setup_ = true; }
     virtual bool isSetUp() { return true; }
@@ -43,13 +46,9 @@ struct Chart : public SPObject {
     void SetOrigin(point_type const &x);
     point_type const &GetOrigin() const;
 
-    void SetScale(point_type const &x);
-    point_type const &GetScale() const;
-
-    point_type GetCellWidth(int level = 0) const;
-
-    void SetRotation(point_type const &x);
-    point_type const &GetRotation() const;
+    void SetGridWidth(point_type const &x);
+    point_type const &GetGridWidth() const;
+    point_type GetGridWidth(int level) const;
 
     template <typename... Args>
     point_type uvw(Args &&... args) const {
@@ -62,8 +61,9 @@ struct Chart : public SPObject {
 
     template <typename TR>
     point_type local_coordinates(TR const &x) const {
-        return point_type{std::fma(x[0], m_scale_[0], m_origin_[0]), std::fma(x[1], m_scale_[1], m_origin_[1]),
-                          std::fma(x[2], m_scale_[2], m_origin_[2])};
+        return point_type{std::fma(x[0], m_grid_width_[0], m_origin_[0]),
+                          std::fma(x[1], m_grid_width_[1], m_origin_[1]),
+                          std::fma(x[2], m_grid_width_[2], m_origin_[2])};
     }
 
     point_type local_coordinates(std::tuple<point_type, index_tuple> const &r) const {
@@ -100,7 +100,7 @@ struct Chart : public SPObject {
 
     template <typename TR>
     std::tuple<point_type, index_tuple> invert_local_coordinates(TR const &x) const {
-        //        point_type r = (x - m_origin_) / m_scale_;
+        //        point_type r = (x - m_origin_) / m_grid_width_;
         //        index_tuple idx{static_cast<index_type>(r[0]), static_cast<index_type>(r[1]),
         //        static_cast<index_type>(r[2])};
         //        r -= idx;
@@ -109,9 +109,9 @@ struct Chart : public SPObject {
         static constexpr Real epsilon = 1.0e-8;
         point_type r{0, 0, 0};
         index_tuple id{0, 0, 0};
-        r[0] = (x[0] - m_origin_[0]) / m_scale_[0] + epsilon;
-        r[1] = (x[1] - m_origin_[1]) / m_scale_[1] + epsilon;
-        r[2] = (x[2] - m_origin_[2]) / m_scale_[2] + epsilon;
+        r[0] = (x[0] - m_origin_[0]) / m_grid_width_[0] + epsilon;
+        r[1] = (x[1] - m_origin_[1]) / m_grid_width_[1] + epsilon;
+        r[2] = (x[2] - m_origin_[2]) / m_grid_width_[2] + epsilon;
         id[0] = static_cast<index_type>(floor(r[0]));
         id[1] = static_cast<index_type>(floor(r[1]));
         id[2] = static_cast<index_type>(floor(r[2]));
@@ -134,22 +134,14 @@ struct Chart : public SPObject {
     };
 
     virtual point_type map(point_type const &x) const { return x; }
-
     virtual point_type inv_map(point_type const &x) const { return x; }
-
     virtual Real length(point_type const &p0, point_type const &p1) const = 0;
-
     virtual Real area(point_type const &p0, point_type const &p1, point_type const &p2) const = 0;
-
     virtual Real volume(point_type const &p0, point_type const &p1, point_type const &p2,
                         point_type const &p3) const = 0;
-
     virtual Real length(point_type const &p0, point_type const &p1, int normal) const = 0;
-
     virtual Real area(point_type const &p0, point_type const &p1, int normal) const = 0;
-
     virtual Real volume(point_type const &p0, point_type const &p1) const = 0;
-
     virtual Real inner_product(point_type const &uvw, vector_type const &v0, vector_type const &v1) const = 0;
 
    private:
@@ -187,7 +179,7 @@ struct Chart : public SPObject {
    private:
     int m_level_ = 0;
     point_type m_origin_{0, 0, 0};
-    point_type m_scale_{1, 1, 1};
+    point_type m_grid_width_{1, 1, 1};
 
    protected:
     Axis m_axis_;
