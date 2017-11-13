@@ -169,7 +169,7 @@ bool Scenario::Done() const { return true; }
 void Scenario::DoInitialize() {}
 void Scenario::DoFinalize() {}
 void Scenario::DoSetUp() {
-    if (m_pimpl_->m_atlas_ == nullptr) { m_pimpl_->m_atlas_ = Atlas::New(); }
+    ASSERT(m_pimpl_->m_atlas_ != nullptr);
     m_pimpl_->m_atlas_->SetUp();
     for (auto &item : m_pimpl_->m_domains_) {
         if (item.second != nullptr) {

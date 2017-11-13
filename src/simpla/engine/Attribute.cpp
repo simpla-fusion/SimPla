@@ -20,7 +20,7 @@ AttributeGroup::~AttributeGroup() {
     for (auto &item : m_pimpl_->m_attributes_) { item->Deregister(this); }
     delete m_pimpl_;
 }
-bool AttributeGroup::isInitialized() const { return m_pimpl_->m_is_initiazlied_; }
+bool AttributeGroup::IsInitialized() const { return m_pimpl_->m_is_initiazlied_; }
 
 std::shared_ptr<data::DataNode> AttributeGroup::Serialize() const {
     auto res = data::DataLightT<std::string *>::New();
@@ -49,14 +49,14 @@ std::set<Attribute *> const &AttributeGroup::GetAttributes() const { return m_pi
 //}
 void AttributeGroup::Push(const std::shared_ptr<Patch> &p) {
     if (p == nullptr) { return; }
-    int count = 0;
+    m_pimpl_->m_is_initiazlied_ = true;
     for (auto &item : m_pimpl_->m_attributes_) {
         if (auto blk = p->GetDataBlock(item->GetName())) {
             item->Push(blk);
-            ++count;
+        } else {
+            m_pimpl_->m_is_initiazlied_ = false;
         }
     }
-    m_pimpl_->m_is_initiazlied_ = count == m_pimpl_->m_attributes_.size();
 }
 
 std::shared_ptr<Patch> AttributeGroup::Pop() const {

@@ -56,15 +56,11 @@ int main(int argc, char **argv) {
 
         };
     });
-    //    scenario->NewDomain<SimpleMaxwell>("boundary0")
-    //        ->SetBoundary(geometry::Box::New(box_type{{-20, -25, -20}, {-15, 25, 20}}));
-    //    scenario->NewDomain<SimpleMaxwell>("boundary1")
-    //        ->SetBoundary(geometry::Box::New(box_type{{15, -25, -20}, {20, 25, 20}}));
+
     auto pml = scenario->NewDomain<SimplePML>("PML");
-    pml->SetBoundingBox(box_type{{-15, -25, -20}, {15, 25, 20}});
     pml->SetCenterBox(center->GetBoundingBox());
 
-    scenario->GetAtlas()->SetBoundingBox(scenario->FitBoundingBox());
+    scenario->GetAtlas()->SetBoundingBox(box_type{{-15, -25, -25}, {15, 25, 25}});
     scenario->GetAtlas()->SetPeriodicDimensions({1, 1, 1});
 
     scenario->SetTimeEnd(1.0e-8);
@@ -74,15 +70,13 @@ int main(int argc, char **argv) {
     if (auto atlas = scenario->GetAtlas()) {
         auto box_list =
             geometry::HaloBoxDecompose(atlas->GetIndexBox(), atlas->GetChart()->GetIndexBox(center->GetBoundingBox()));
-        for (auto const &b : box_list) {
-            atlas->AddPatch(b);
-            CHECK(b);
-        }
+        for (auto const &b : box_list) { atlas->AddPatch(b); }
     }
 
     scenario->ConfigureAttribute<size_type>("E", "CheckPoint", checkpoint_interval);
     scenario->ConfigureAttribute<size_type>("B", "CheckPoint", checkpoint_interval);
-    std::cout << *scenario->GetAtlas()->Serialize();
+    VERBOSE << "Configuration: " << std::endl << *scenario->GetAtlas()->Serialize();
+
     scenario->Run();
 
     scenario->TearDown();

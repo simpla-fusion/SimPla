@@ -239,7 +239,7 @@ class Chart{
       deactivate MeshView
       DomainView -> Worker : Update
       activate Worker
-           alt if isFirstTime
+           alt if IsInitialized
                Worker -> AttributeView : set initialize value
                activate AttributeView
                    AttributeView --> Worker : Done

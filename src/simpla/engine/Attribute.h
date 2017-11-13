@@ -64,14 +64,14 @@ class AttributeGroup {
 
     virtual void Push(const std::shared_ptr<Patch> &);
     virtual std::shared_ptr<Patch> Pop() const;
+    virtual bool IsInitialized() const;
 
-    virtual std::set<Attribute *> &GetAttributes();
+    std::set<Attribute *> &GetAttributes();
     std::set<Attribute *> const &GetAttributes() const;
 
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
 
-    bool isInitialized() const;
 
    private:
     struct pimpl_s;

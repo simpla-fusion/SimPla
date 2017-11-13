@@ -22,9 +22,9 @@ class EngineObject : public SPObject {
     void ResetTag();
     size_type GetTagCount() const;
     size_type GetClickCount() const;
-    bool isModified() const;
-    bool isInitialized() const;
-    bool isSetUp() const;
+    virtual bool isModified() const;
+    virtual bool isInitialized() const;
+    virtual bool isSetUp() const;
     virtual void DoInitialize();  //!< invoke once, before everything,
     virtual void DoSetUp();   //!< invoke after Object all configure opeation , Set/Deserialize, Disable Set/Deserialize
     virtual void DoUpdate();  //!< repeat invoke, Update object after modified

@@ -17,9 +17,6 @@ struct DomainBase::pimpl_s {
     std::shared_ptr<const geometry::Chart> m_chart_ = nullptr;
     std::shared_ptr<const geometry::GeoObject> m_boundary_ = nullptr;
     std::shared_ptr<const MeshBlock> m_mesh_block_ = nullptr;
-
-    int m_box_in_boundary_ = 1;
-    bool m_is_first_time_ = false;
 };
 DomainBase::DomainBase() : m_pimpl_(new pimpl_s){};
 DomainBase::~DomainBase() { delete m_pimpl_; };
@@ -43,7 +40,6 @@ void DomainBase::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
 
     AttributeGroup::Deserialize(cfg->Get("Attributes"));
 };
-int DomainBase::GetNDIMS() const { return GetChart()->GetNDIMS(); }
 
 void DomainBase::SetChart(std::shared_ptr<const geometry::Chart> const& c) { m_pimpl_->m_chart_ = c; }
 std::shared_ptr<const geometry::Chart> DomainBase::GetChart() const { return m_pimpl_->m_chart_; }
@@ -53,45 +49,32 @@ std::shared_ptr<const geometry::GeoObject> DomainBase::GetBoundary() const { ret
 
 void DomainBase::SetMeshBlock(std::shared_ptr<const MeshBlock> const& blk) { m_pimpl_->m_mesh_block_ = blk; };
 std::shared_ptr<const MeshBlock> DomainBase::GetMeshBlock() const { return m_pimpl_->m_mesh_block_; }
-
-// void DomainBase::Push(std::shared_ptr<data::DataNode> const& data) { AttributeGroup::Push(data); }
-// std::shared_ptr<data::DataNode> DomainBase::Pop() const { return AttributeGroup::Pop(); }
+box_type DomainBase::GetBlockBox() const { return GetChart()->GetBoxUVW(GetMeshBlock()->GetIndexBox()); }
 void DomainBase::Push(const std::shared_ptr<Patch>& p) {
     SetMeshBlock(p->GetMeshBlock());
     AttributeGroup::Push(p);
-    m_pimpl_->m_box_in_boundary_ = CheckBoundary();
-
-    m_pimpl_->m_is_first_time_ = !AttributeGroup::isInitialized();
 }
 std::shared_ptr<Patch> DomainBase::Pop() const {
     auto res = AttributeGroup::Pop();
     res->SetMeshBlock(GetMeshBlock());
-    m_pimpl_->m_is_first_time_ = false;
-    m_pimpl_->m_box_in_boundary_ = -1;
     return res;
 }
 
-// std::shared_ptr<geometry::GeoObject> DomainBase::GetBlockBoundingBox() const {
-//    return m_pimpl_->m_chart_->GetBoundingShape(m_pimpl_->m_mesh_block_->GetIndexBox());
-//}
-box_type DomainBase::GetBlockBox() const {
-    auto idx_box = m_pimpl_->m_mesh_block_->GetIndexBox();
-    return std::make_tuple(m_pimpl_->m_chart_->local_coordinates(std::get<0>(idx_box)),
-                           m_pimpl_->m_chart_->local_coordinates(std::get<1>(idx_box)));
-}
 box_type DomainBase::GetBoundingBox() const {
-    return m_pimpl_->m_boundary_ != nullptr ? GetBoundary()->GetBoundingBox()
-                                            : box_type{{SP_SNaN, SP_SNaN, SP_SNaN}, {SP_SNaN, SP_SNaN, SP_SNaN}};
+    return GetBoundary() != nullptr
+               ? GetBoundary()->GetBoundingBox()
+               : box_type{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
 }
 
 int DomainBase::CheckBoundary() const {
-    return (m_pimpl_->m_boundary_ == nullptr ||
-            geometry::isOverlapped(m_pimpl_->m_boundary_->GetBoundingBox(), GetBlockBox()))
+    return (GetBoundary() == nullptr ||
+            GetBoundary()->CheckIntersection(GetChart()->GetBoxXYZ(GetMeshBlock()->GetIndexBox()),
+                                             SP_GEO_DEFAULT_TOLERANCE))
                ? 1
                : -1;
 }
 
-bool DomainBase::isFirstTime() const { return m_pimpl_->m_is_first_time_; }
+bool DomainBase::IsInitialized() const { return AttributeGroup::IsInitialized(); }
 
 void DomainBase::DoSetUp() { base_type::DoSetUp(); }
 void DomainBase::DoUpdate() { base_type::DoUpdate(); }

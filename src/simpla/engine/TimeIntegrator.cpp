@@ -59,7 +59,7 @@ void TimeIntegrator::Advance(Real time_now, Real time_dt) {
             item.second->Push(patch->Pop());
 
             if (item.second->CheckBoundary() >= 0) {
-                if (item.second->isFirstTime()) { item.second->InitialCondition(time_now); }
+                if (item.second->IsInitialized()) { item.second->InitialCondition(time_now); }
                 item.second->Advance(time_now, time_dt);
                 if (item.second->CheckBoundary() == 0) { item.second->BoundaryCondition(time_now, time_dt); }
             }

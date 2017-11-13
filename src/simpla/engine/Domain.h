@@ -32,24 +32,19 @@ class DomainBase : public EngineObject, public AttributeGroup {
 
     void Push(const std::shared_ptr<Patch> &) override;
     std::shared_ptr<Patch> Pop() const override;
+    bool IsInitialized() const override;
 
-    int GetNDIMS() const;
     void SetChart(std::shared_ptr<const geometry::Chart> const &c);
     virtual std::shared_ptr<const geometry::Chart> GetChart() const;
 
     void SetMeshBlock(const std::shared_ptr<const MeshBlock> &blk);
     virtual std::shared_ptr<const MeshBlock> GetMeshBlock() const;
-
-    bool isFirstTime() const;
-
+    box_type GetBlockBox() const;
     virtual box_type GetBoundingBox() const;
     virtual int CheckBoundary() const;
 
     void SetBoundary(std::shared_ptr<const geometry::GeoObject> const &g);
     std::shared_ptr<const geometry::GeoObject> GetBoundary() const;
-    std::shared_ptr<geometry::GeoObject> GetBlockBoundingBox() const;
-
-    box_type GetBlockBox() const;
 
     void DoSetUp() override;
     void DoUpdate() override;
