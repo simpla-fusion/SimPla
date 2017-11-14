@@ -35,7 +35,7 @@ struct GeoEngineOCE : public GeoEngineAPI {
 
     void OpenFile(std::string const &path) override;
     void CloseFile() override;
-    void DumpFile() override;
+    void FlushFile() override;
     std::string GetFilePath() const override;
     void Save(std::shared_ptr<const GeoObject> const &geo, std::string const &name) const override;
     std::shared_ptr<GeoObject> Load(std::string const &name) const override;

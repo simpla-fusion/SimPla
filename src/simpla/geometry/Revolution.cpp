@@ -26,7 +26,7 @@ std::shared_ptr<simpla::data::DataNode> Revolution::Serialize() const {
     return res;
 }
 point_type Revolution::xyz(Real u, Real v, Real w) const {
-    auto b = std::dynamic_pointer_cast<PrimitiveShape>(GetBasisObject());
+    auto b = std::dynamic_pointer_cast<const PrimitiveShape>(GetBasisObject());
     ASSERT(b != nullptr);
     point_type p = b->xyz(u, v, 0);
     Real sinw = std::sin(w);

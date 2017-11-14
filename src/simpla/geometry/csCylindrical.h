@@ -44,7 +44,7 @@ struct csCylindrical : public Chart {
 
     std::shared_ptr<Curve> GetAxis(point_type const &x0, int dir) const override;
     std::shared_ptr<Curve> GetAxis(index_tuple const &x0, int dir) const override;
-    std::shared_ptr<GeoObject> GetBoundingShape(box_type const &uvw) const;
+    std::shared_ptr<GeoObject> GetBoundingShape(box_type const &uvw) const override;
 
    public:
     /**

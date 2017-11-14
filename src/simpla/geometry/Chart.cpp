@@ -54,6 +54,8 @@ int Chart::GetNDIMS() const { return 3; }
 std::shared_ptr<GeoObject> Chart::GetBoundingShape(box_type const &uvw) const {
     return Box::New(map(std::get<0>(uvw)), map(std::get<1>(uvw)));
 }
-std::shared_ptr<GeoObject> Chart::GetBoundingShape(index_box_type const &b) const { return Box::New(GetBoxUVW(b)); };
+std::shared_ptr<GeoObject> Chart::GetBoundingShape(index_box_type const &b) const {
+    return GetBoundingShape(GetBoxUVW(b));
+};
 }  // namespace geometry {
 }  // namespace simpla {

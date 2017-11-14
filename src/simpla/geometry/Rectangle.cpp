@@ -22,6 +22,5 @@ std::shared_ptr<simpla::data::DataNode> Rectangle::Serialize() const {
     res->SetValue("Length", m_l_);
     return res;
 };
-;
 }  // namespace geometry
 }  // namespace simpla

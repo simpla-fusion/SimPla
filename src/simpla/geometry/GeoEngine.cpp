@@ -72,9 +72,9 @@ std::shared_ptr<GeoObject> GeoEngineAPI::GetIntersection(std::shared_ptr<const G
     DUMMY << "Intersection : " << g0->FancyTypeName() << " && " << g1->FancyTypeName();
     return nullptr;
 }
-void GeoEngineAPI::OpenFile(std::string const &path) { DUMMY << "OpenFile :" << path; }
-void GeoEngineAPI::CloseFile() { DUMMY << "Close File"; }
-void GeoEngineAPI::DumpFile() { DUMMY << "Dump File"; }
+void GeoEngineAPI::OpenFile(std::string const &path) { m_is_opened_ = true; }
+void GeoEngineAPI::CloseFile() { m_is_opened_ = false; }
+void GeoEngineAPI::FlushFile() { DUMMY << "Dump File"; }
 std::string GeoEngineAPI::GetFilePath() const { return ""; }
 void GeoEngineAPI::Save(std::shared_ptr<const GeoObject> const &geo, std::string const &name) const {
     DUMMY << "Save GeoObject to:" << name;

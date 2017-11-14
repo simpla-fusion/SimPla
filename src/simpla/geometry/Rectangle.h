@@ -10,7 +10,7 @@
 namespace simpla {
 namespace geometry {
 struct Rectangle : public Face {
-    SP_GEO_ABS_OBJECT_HEAD(Rectangle, Face);
+    SP_GEO_OBJECT_HEAD(Rectangle, Face);
 
    protected:
     Rectangle(Real l, Real w);

@@ -106,7 +106,9 @@ void Scenario::Dump() const {
     dump->Flush();
     auto geo_prefix = db()->GetValue<std::string>("GeoFilePrefix", GetName());
     auto geo_suffix = db()->GetValue<std::string>("GeoFileSuffix", "stl");
-     GEO_ENGINE->OpenFile(prefix + "." + geo_suffix);
+    GEO_ENGINE->OpenFile(prefix + "." + geo_suffix);
+    for (auto const &d : m_pimpl_->m_domains_) { GEO_ENGINE->Save(d.second->GetBoundary(), d.first); }
+    GEO_ENGINE->CloseFile();
 }
 
 std::shared_ptr<Attribute> Scenario::GetAttribute(std::string const &key) {

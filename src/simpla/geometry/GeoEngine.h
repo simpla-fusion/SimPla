@@ -46,15 +46,18 @@ struct GeoEngineAPI {
     virtual std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g0,
                                                        std::shared_ptr<const GeoObject> const &g1,
                                                        Real tolerance) const;
+
+    virtual bool IsOpened() const { return m_is_opened_; }
     virtual void OpenFile(std::string const &path);
     virtual void CloseFile();
-    virtual void DumpFile();
+    virtual void FlushFile();
     virtual std::string GetFilePath() const;
     virtual void Save(std::shared_ptr<const GeoObject> const &geo, std::string const &name) const;
     void Save(std::shared_ptr<const GeoObject> const &geo) const { Save(geo, ""); }
     virtual std::shared_ptr<GeoObject> Load(std::string const &name) const;
 
    private:
+    bool m_is_opened_ = false;
 };
 
 #define GEO_ENGINE simpla::SingletonHolder<std::shared_ptr<simpla::geometry::GeoEngineAPI>>::instance()

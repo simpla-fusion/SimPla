@@ -9,7 +9,7 @@
 #include "Axis.h"
 #include "GeoObject.h"
 #include "Plane.h"
-
+#include "PolyPoints.h"
 namespace simpla {
 namespace geometry {
 struct Box;
@@ -20,14 +20,14 @@ struct Curve : public GeoObject {
     virtual point_type xyz(Real u) const = 0;
 
     int GetDimension() const override { return 1; }
-    //    virtual std::shared_ptr<PolyPoints> GetBoundaryPoints() const;
+        virtual std::shared_ptr<PolyPoints> GetBoundaryPoints() const;
     std::shared_ptr<GeoObject> GetBoundary() const final;
 
-//    virtual std::shared_ptr<PolyPoints> GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const;
-//    virtual std::shared_ptr<PolyPoints> GetIntersection(std::shared_ptr<const Plane> const &g, Real tolerance) const;
-//    virtual std::shared_ptr<PolyPoints> GetIntersection(std::shared_ptr<const Box> const &g, Real tolerance) const;
-//    std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const final;
-//    std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g) const;
+    virtual std::shared_ptr<PolyPoints> GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const;
+    virtual std::shared_ptr<PolyPoints> GetIntersection(std::shared_ptr<const Plane> const &g, Real tolerance) const;
+    virtual std::shared_ptr<PolyPoints> GetIntersection(std::shared_ptr<const Box> const &g, Real tolerance) const;
+    std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const final;
+    std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g) const;
 };
 
 // struct PolyPoints;

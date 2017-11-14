@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
     scenario->SetTimeEnd(1.0e-8);
     scenario->SetMaxStep(50);
     scenario->SetUp();
-
+    scenario->GetAtlas()->AddPatch(scenario->GetAtlas()->GetBoundingBox());
     scenario->ConfigureAttribute<size_type>("E", "CheckPoint", 1);
     scenario->ConfigureAttribute<size_type>("B", "CheckPoint", 1);
 

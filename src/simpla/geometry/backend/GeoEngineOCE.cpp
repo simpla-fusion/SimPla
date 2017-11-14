@@ -195,11 +195,11 @@ template <>
 std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, PrimitiveShape>::eval(
     std::shared_ptr<const PrimitiveShape> const &g) {
     std::shared_ptr<TopoDS_Shape> res = nullptr;
-//    if (auto plane = std::dynamic_pointer_cast<const Plane>(g)) {
-//        res = std::make_shared<TopoDS_Face>(BRepPrimAPI_MakeBox(make_axis(box->GetAxis()), box->GetExtents()[0],
-//                                                                box->GetExtents()[1], box->GetExtents()[2])
-//                                                .Shape());
-//    } else
+    //    if (auto plane = std::dynamic_pointer_cast<const Plane>(g)) {
+    //        res = std::make_shared<TopoDS_Face>(BRepPrimAPI_MakeBox(make_axis(box->GetAxis()), box->GetExtents()[0],
+    //                                                                box->GetExtents()[1], box->GetExtents()[2])
+    //                                                .Shape());
+    //    } else
     if (auto box = std::dynamic_pointer_cast<const Box>(g)) {
         res = std::make_shared<TopoDS_Shape>(BRepPrimAPI_MakeBox(make_axis(box->GetAxis()), box->GetExtents()[0],
                                                                  box->GetExtents()[1], box->GetExtents()[2])
@@ -679,7 +679,7 @@ size_type IntersectionCurveSurfaceOCE::Intersect(std::shared_ptr<const Curve> co
 /********************************************************************************************************************/
 int GeoEngineOCE::_is_registered = Factory<GeoEngineAPI>::RegisterCreator<GeoEngineOCE>(GeoEngineOCE::RegisterName());
 struct GeoEngineOCE::pimpl_s {
-    std::string m_prefix_;
+    std::string m_prefix_ = "simpla";
     std::string m_ext_ = "stp";
 
     Handle(TDocStd_Document) aDoc;
@@ -704,6 +704,8 @@ std::shared_ptr<simpla::data::DataNode> GeoEngineOCE::Serialize() const {
 std::string GeoEngineOCE::GetFilePath() const { return m_pimpl_->m_prefix_ + "." + m_pimpl_->m_ext_; };
 void GeoEngineOCE::OpenFile(std::string const &path) {
     CloseFile();
+    base_type::OpenFile(path);
+
     auto pos = path.rfind('.');
     m_pimpl_->m_prefix_ = path.substr(0, pos);
     m_pimpl_->m_ext_ = path.substr(pos + 1);
@@ -712,12 +714,13 @@ void GeoEngineOCE::OpenFile(std::string const &path) {
     m_pimpl_->myShapeTool = XCAFDoc_DocumentTool::ShapeTool(m_pimpl_->aDoc->Main());
 };
 void GeoEngineOCE::CloseFile() {
-    DumpFile();
+    if (IsOpened()) { FlushFile(); }
     m_pimpl_->m_prefix_ = "";
+    base_type::CloseFile();
 };
 
-void GeoEngineOCE::DumpFile() {
-    if (m_pimpl_->m_prefix_.empty()) {
+void GeoEngineOCE::FlushFile() {
+    if (!IsOpened() || m_pimpl_->m_prefix_.empty()) {
     } else if (m_pimpl_->m_ext_ == "stp") {
         STEPCAFControl_Writer writer;
         if (!writer.Transfer(m_pimpl_->aDoc, STEPControl_AsIs)) {

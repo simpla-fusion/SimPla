@@ -30,7 +30,7 @@ class PML : public TDomain {
    public:
     void SetCenterBox(box_type const& b) { m_center_box_ = b; }
     box_type GetCenterBox() const { return m_center_box_; }
-    int CheckBoundary() const override;
+    int CheckBlockInBoundary() const override;
 
     FIELD(E, Real, EDGE);
     FIELD(B, Real, FACE);
@@ -75,7 +75,7 @@ void PML<TDomain>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
 }
 
 template <typename TDomain>
-int PML<TDomain>::CheckBoundary() const {
+int PML<TDomain>::CheckBlockInBoundary() const {
     return geometry::isInSide(m_center_box_, this->GetBlockBox()) ? -1 : 1;
 }
 
