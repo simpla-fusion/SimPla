@@ -92,6 +92,7 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     SP_OBJECT_HEAD(Domain, DomainBase);
 
    public:
+    static std::shared_ptr<this_type> New(std::string const &s) { return Factory<this_type>::Create(s); }
     std::shared_ptr<const geometry::Chart> GetChart() const override { return DomainBase::GetChart(); };
     std::shared_ptr<const engine::MeshBlock> GetMeshBlock() const override { return DomainBase::GetMeshBlock(); };
 
@@ -123,6 +124,8 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
 
 #define SP_DOMAIN_HEAD(_CLASS_NAME_, _BASE_NAME_)                                                                      \
     SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_NAME_);                                                                         \
+                                                                                                                       \
+   public:                                                                                                             \
     void DoSetUp() override;                                                                                           \
     void DoUpdate() override;                                                                                          \
     void DoTearDown() override;                                                                                        \

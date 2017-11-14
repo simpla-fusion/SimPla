@@ -51,7 +51,9 @@ void Chart::SetLevel(int level) {
 int Chart::GetLevel() const { return m_level_; }
 int Chart::GetNDIMS() const { return 3; }
 
-std::shared_ptr<GeoObject> Chart::GetBoundingShape(box_type const &b) const { return Box::New(MapToBase(b)); }
-std::shared_ptr<GeoObject> Chart::GetBoundingShape(index_box_type const &b) const { return Box::New(GetBoxXYZ(b)); };
+std::shared_ptr<GeoObject> Chart::GetBoundingShape(box_type const &uvw) const {
+    return Box::New(map(std::get<0>(uvw)), map(std::get<1>(uvw)));
+}
+std::shared_ptr<GeoObject> Chart::GetBoundingShape(index_box_type const &b) const { return Box::New(GetBoxUVW(b)); };
 }  // namespace geometry {
 }  // namespace simpla {

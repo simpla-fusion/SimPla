@@ -12,6 +12,7 @@ PrimitiveShape::PrimitiveShape() = default;
 PrimitiveShape::PrimitiveShape(PrimitiveShape const &) = default;
 PrimitiveShape::~PrimitiveShape() = default;
 PrimitiveShape::PrimitiveShape(Axis const &axis) : Shape(axis){};
+
 void PrimitiveShape::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); };
 std::shared_ptr<simpla::data::DataNode> PrimitiveShape::Serialize() const { return base_type::Serialize(); };
 

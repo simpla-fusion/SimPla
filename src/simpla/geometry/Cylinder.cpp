@@ -3,20 +3,28 @@
 //
 
 #include "Cylinder.h"
+#include "ShapeBox.h"
 #include "PointsOnCurve.h"
+
 namespace simpla {
 namespace geometry {
+Cylinder::Cylinder() = default;
+Cylinder::Cylinder(Cylinder const &) = default;
+Cylinder::~Cylinder() = default;
+Cylinder::Cylinder(Axis const &axis, Real radius, Real height, Real angle)
+    : PrimitiveShape(axis), m_radius_(radius), m_height_(height), m_angle_(angle) {}
+Cylinder::Cylinder(Real radius, Real height, Real angle)
+    : PrimitiveShape(), m_radius_(radius), m_height_(height), m_angle_(angle) {}
 
 std::shared_ptr<simpla::data::DataNode> Cylinder::Serialize() const { return base_type::Serialize(); };
 void Cylinder::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
 
-point_type Cylinder::xyz(Real u, Real v, Real w) const {
-    UNIMPLEMENTED;
-    return m_axis_.xyz(u, v, w);
+point_type Cylinder::xyz(Real r, Real angle, Real h) const {
+    return m_axis_.xyz(r * std::cos(angle), r * std::sin(angle), h);
 };
 point_type Cylinder::uvw(Real x, Real y, Real z) const {
-    UNIMPLEMENTED;
-    return m_axis_.uvw(x, y, z);
+    auto xyz = m_axis_.uvw(x, y, z);
+    return point_type{std::hypot(xyz[0], xyz[1]), std::atan2(xyz[1], xyz[0]), xyz[2]};
 };
 //
 // bool Cylinder::CheckIntersection(point_type const &p, Real tolerance) const {

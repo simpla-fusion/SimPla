@@ -59,6 +59,14 @@ class Scenario : public EngineObject {
         SetDomain(k, res);
         return res;
     };
+    template <typename TDomain>
+    std::shared_ptr<TDomain> NewDomain(std::string const &s_type, std::string const &name,
+                                       std::shared_ptr<geometry::GeoObject> const &g = nullptr) {
+        auto res = TDomain::New(s_type);
+        if (g != nullptr) { res->SetBoundary(g); }
+        SetDomain(name, res);
+        return res;
+    };
     std::map<std::string, std::shared_ptr<DomainBase>> &GetDomains();
     std::map<std::string, std::shared_ptr<DomainBase>> const &GetDomains() const;
 

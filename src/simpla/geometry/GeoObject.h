@@ -229,9 +229,9 @@ class GeoObject : public std::enable_shared_from_this<GeoObject> {
     std::shared_ptr<GeoObject> Copy() const override { return std::shared_ptr<this_type>(new this_type(*this)); }; \
     std::shared_ptr<this_type> CopyThis() const { return std::dynamic_pointer_cast<this_type>(Copy()); };          \
     std::shared_ptr<const this_type> Self() const {                                                                \
-        return std::dynamic_pointer_cast<const this_type>(shared_from_this());                                     \
+        return std::dynamic_pointer_cast<const this_type>(base_type::shared_from_this());                          \
     };                                                                                                             \
-    std::shared_ptr<this_type> Self() { return std::dynamic_pointer_cast<this_type>(shared_from_this()); };
+    std::shared_ptr<this_type> Self() { return std::dynamic_pointer_cast<this_type>(base_type::shared_from_this()); };
 
 #define SP_GEO_OBJECT_REGISTER(_CLASS_NAME_) \
     bool _CLASS_NAME_::_is_registered =      \

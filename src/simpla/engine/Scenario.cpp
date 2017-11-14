@@ -106,8 +106,7 @@ void Scenario::Dump() const {
     dump->Flush();
     auto geo_prefix = db()->GetValue<std::string>("GeoFilePrefix", GetName());
     auto geo_suffix = db()->GetValue<std::string>("GeoFileSuffix", "stl");
-
-    GEO_ENGINE->OpenFile(prefix + "." + geo_suffix);
+     GEO_ENGINE->OpenFile(prefix + "." + geo_suffix);
 }
 
 std::shared_ptr<Attribute> Scenario::GetAttribute(std::string const &key) {
@@ -215,7 +214,9 @@ box_type Scenario::FitBoundingBox() const {
     box_type bounding_box = it->second->GetBoundary()->GetBoundingBox();
 
     for (; it != m_pimpl_->m_domains_.end(); ++it) {
-        if (it->second != nullptr) { bounding_box = geometry::Union(bounding_box, it->second->GetBoundary()->GetBoundingBox()); }
+        if (it->second != nullptr) {
+            bounding_box = geometry::Union(bounding_box, it->second->GetBoundary()->GetBoundingBox());
+        }
     }
     return bounding_box;
 }

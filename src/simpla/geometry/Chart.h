@@ -33,11 +33,8 @@ struct Chart : public SPObject {
 
     virtual int GetNDIMS() const;
     virtual box_type GetBoundingBox(box_type const &b) const { return b; };
-    virtual box_type GetBoundingBox(std::shared_ptr<geometry::GeoObject> const &geo) const {
-        return box_type{{0, 0, 0}, {0, 0, 0}};
-    };
-    virtual std::shared_ptr<GeoObject> GetBoundingShape(box_type const &b) const;
-    virtual std::shared_ptr<GeoObject> GetBoundingShape(index_box_type const &b) const;
+    virtual std::shared_ptr<GeoObject> GetBoundingShape(box_type const &uvw) const;
+    std::shared_ptr<GeoObject> GetBoundingShape(index_box_type const &b) const;
 
     void SetLevel(int level);
     int GetLevel() const;

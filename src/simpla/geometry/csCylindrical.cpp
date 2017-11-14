@@ -5,8 +5,10 @@
 #include "Box.h"
 #include "Circle.h"
 #include "Curve.h"
+#include "Cylinder.h"
 #include "Line.h"
-
+#include "Rectangle.h"
+#include "Revolution.h"
 namespace simpla {
 namespace geometry {
 
@@ -18,6 +20,11 @@ void csCylindrical::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { ba
 std::shared_ptr<Curve> csCylindrical::GetAxis(index_tuple const &idx0, int dir) const {
     return GetAxis(local_coordinates(idx0), dir);
 };
+std::shared_ptr<GeoObject> csCylindrical::GetBoundingShape(box_type const &uvw) const {
+    return Revolution::New(
+        m_axis_, Rectangle::New(std::get<1>(uvw)[0] - std::get<0>(uvw)[0], std::get<1>(uvw)[1] - std::get<0>(uvw)[1]),
+        std::get<1>(uvw)[2] - std::get<0>(uvw)[2]);
+}
 
 std::shared_ptr<Curve> csCylindrical::GetAxis(point_type const &uvw, int dir) const {
     std::shared_ptr<Curve> res = nullptr;
@@ -29,7 +36,7 @@ std::shared_ptr<Curve> csCylindrical::GetAxis(point_type const &uvw, int dir) co
         case ZAxis:
         case RAxis: {
             auto axis = m_axis_;
-//            axis.o[ZAxis] = xyz(uvw)[ZAxis];
+            //            axis.o[ZAxis] = xyz(uvw)[ZAxis];
             res = Line::New(axis.o, axis.GetDirection(dir), 1.0);
         } break;
         default:

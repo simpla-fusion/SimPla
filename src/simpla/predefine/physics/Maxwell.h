@@ -26,6 +26,9 @@ class Maxwell : public TDomain {
     FIELD(J, Real, EDGE);
 };
 template <typename TDomain>
+bool Maxwell<TDomain>::_is_registered = Factory<TDomain>::template RegisterCreator<Maxwell<TDomain>>("Maxwell");
+
+template <typename TDomain>
 Maxwell<TDomain>::Maxwell() : base_type() {}
 template <typename TDomain>
 Maxwell<TDomain>::~Maxwell() {}

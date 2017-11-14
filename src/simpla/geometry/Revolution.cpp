@@ -25,6 +25,17 @@ std::shared_ptr<simpla::data::DataNode> Revolution::Serialize() const {
     res->SetValue<Real>("Angle", m_angle_);
     return res;
 }
-
+point_type Revolution::xyz(Real u, Real v, Real w) const {
+    auto b = std::dynamic_pointer_cast<PrimitiveShape>(GetBasisObject());
+    ASSERT(b != nullptr);
+    point_type p = b->xyz(u, v, 0);
+    Real sinw = std::sin(w);
+    Real cosw = std::cos(w);
+    return m_axis_.xyz(p[0] * cosw - p[1] * sinw, p[0] * sinw + p[1] * cosw, p[2]);
+};
+point_type Revolution::uvw(Real x, Real y, Real z) const {
+    point_type p = m_axis_.uvw(x, y, z);
+    return point_type{std::hypot(p[0], p[1]), p[2], std::atan2(p[1], p[0])};
+};
 }  // namespace geometry{
 }  // namespace simpla{

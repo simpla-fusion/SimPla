@@ -11,7 +11,7 @@ SP_GEO_OBJECT_REGISTER(Plane)
 
 Plane::Plane() = default;
 Plane::Plane(Plane const &) = default;
-Plane::Plane(Axis const &axis) : GeoObject(axis) {}
+Plane::Plane(Axis const &axis) : base_type(axis) {}
 Plane::Plane(point_type const &o, vector_type const &x, vector_type const &y) : Plane(Axis(o, x, y)) {}
 Plane::~Plane() = default;
 

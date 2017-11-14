@@ -7,18 +7,17 @@
 
 #include <simpla/SIMPLA_config.h>
 #include "GeoObject.h"
-#include "ShapeFunction.h"
-#include "Surface.h"
+#include "PrimitiveShape.h"
 namespace simpla {
 namespace geometry {
-struct Plane : public GeoObject {
-    SP_GEO_OBJECT_HEAD(Plane, GeoObject)
+struct Plane : public PrimitiveShape {
+    SP_GEO_OBJECT_HEAD(Plane, PrimitiveShape)
    protected:
     Plane(point_type const &o, vector_type const &x, vector_type const &y);
 
    public:
-    point_type xyz(Real u, Real v, Real w) const { return m_axis_.xyz(u, v, w); }
-    point_type uvw(Real x, Real y, Real z) const { return m_axis_.uvw(x, y, z); }
+    point_type xyz(Real u, Real v, Real w) const override { return m_axis_.xyz(u, v, w); }
+    point_type uvw(Real x, Real y, Real z) const override { return m_axis_.uvw(x, y, z); }
 };
 
 }  // namespace simpla

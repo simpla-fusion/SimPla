@@ -21,6 +21,8 @@ struct Revolution : public PrimitiveShape {
    public:
     std::shared_ptr<const GeoObject> GetBasisObject() const { return m_basis_obj_; }
     Real GetAngle() const { return m_angle_; }
+    point_type xyz(Real r, Real phi, Real theta) const override;
+    point_type uvw(Real x, Real y, Real z) const override;
 
    private:
     std::shared_ptr<const GeoObject> m_basis_obj_;

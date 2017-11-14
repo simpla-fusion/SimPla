@@ -4,6 +4,7 @@
 
 #include <simpla/geometry/BoxUtilities.h>
 #include <simpla/geometry/GeoAlgorithm.h>
+#include <simpla/geometry/GeoEngine.h>
 #include "simpla/SIMPLA_config.h"
 
 #include "simpla/geometry/Chart.h"
@@ -78,7 +79,8 @@ void DomainBase::DoTearDown() { base_type::DoTearDown(); }
 void DomainBase::InitialCondition(Real time_now) {
     Update();
     if (CheckBlockInBoundary() < 0) { return; }
-
+    GEO_ENGINE->Save(GetChart()->GetBoundingShape(GetMeshBlock()->GetIndexBox()),
+                     "mesh_block" + std::to_string(GetMeshBlock()->GetGUID()) + ".stl");
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::InitialCondition( time_now =" << time_now << ")"
             << " :  " << std::setw(10) << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
@@ -89,6 +91,7 @@ void DomainBase::InitialCondition(Real time_now) {
 void DomainBase::BoundaryCondition(Real time_now, Real dt) {
     Update();
     if (CheckBlockInBoundary() < 0) { return; }
+
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::BoundaryCondition( time_now=" << time_now << " , dt=" << dt << ")"
             << " :  " << std::setw(10) << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();

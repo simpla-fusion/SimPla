@@ -8,6 +8,7 @@
 #include <simpla/algebra/nTuple.ext.h>
 
 #include <simpla/geometry/Chart.h>
+#include <simpla/geometry/Cylinder.h>
 #include <BRepAlgoAPI_Common.hxx>
 #include <BRepAlgoAPI_Cut.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
@@ -21,6 +22,7 @@
 #include <BRepIntCurveSurface_Inter.hxx>
 #include <BRepOffsetAPI_MakePipe.hxx>
 #include <BRepPrimAPI_MakeBox.hxx>
+#include <BRepPrimAPI_MakeCylinder.hxx>
 #include <BRepPrimAPI_MakePrism.hxx>
 #include <BRepPrimAPI_MakeRevol.hxx>
 #include <BRepPrimAPI_MakeSphere.hxx>
@@ -62,6 +64,7 @@
 #include "../Circle.h"
 #include "../Curve.h"
 #include "../Ellipse.h"
+#include "../Face.h"
 #include "../GeoObject.h"
 #include "../Hyperbola.h"
 #include "../IntersectionCurveSurface.h"
@@ -192,6 +195,11 @@ template <>
 std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, PrimitiveShape>::eval(
     std::shared_ptr<const PrimitiveShape> const &g) {
     std::shared_ptr<TopoDS_Shape> res = nullptr;
+//    if (auto plane = std::dynamic_pointer_cast<const Plane>(g)) {
+//        res = std::make_shared<TopoDS_Face>(BRepPrimAPI_MakeBox(make_axis(box->GetAxis()), box->GetExtents()[0],
+//                                                                box->GetExtents()[1], box->GetExtents()[2])
+//                                                .Shape());
+//    } else
     if (auto box = std::dynamic_pointer_cast<const Box>(g)) {
         res = std::make_shared<TopoDS_Shape>(BRepPrimAPI_MakeBox(make_axis(box->GetAxis()), box->GetExtents()[0],
                                                                  box->GetExtents()[1], box->GetExtents()[2])
@@ -204,6 +212,11 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, PrimitiveShape>::eval(
     } else if (auto sphere = std::dynamic_pointer_cast<const Sphere>(g)) {
         res = std::make_shared<TopoDS_Shape>(
             BRepPrimAPI_MakeSphere(make_axis(sphere->GetAxis()), sphere->GetRadius()).Shape());
+    } else if (auto cylinder = std::dynamic_pointer_cast<const Cylinder>(g)) {
+        res = std::make_shared<TopoDS_Shape>(BRepPrimAPI_MakeCylinder(make_axis(cylinder->GetAxis()),
+                                                                      cylinder->GetRadius(), cylinder->GetHeight(),
+                                                                      cylinder->GetAngle())
+                                                 .Shape());
     } else if (auto torus = std::dynamic_pointer_cast<const Torus>(g)) {
         res = std::make_shared<TopoDS_Shape>(
             BRepPrimAPI_MakeTorus(make_axis(torus->GetAxis()), torus->GetMajorRadius(), torus->GetMinorRadius())
@@ -278,6 +291,8 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, GeoObject>::eval(std::s
         res = oce->GetShape();
     } else if (auto c = std::dynamic_pointer_cast<Curve const>(g)) {
         res = OCEShapeCast<TopoDS_Shape, Curve>::eval(c);
+    } else if (auto s = std::dynamic_pointer_cast<Face const>(g)) {
+        res = OCEShapeCast<TopoDS_Shape, Face>::eval(s);
     } else if (auto s = std::dynamic_pointer_cast<Surface const>(g)) {
         res = OCEShapeCast<TopoDS_Shape, Surface>::eval(s);
     } else if (auto b = std::dynamic_pointer_cast<Body const>(g)) {

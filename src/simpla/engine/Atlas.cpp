@@ -50,6 +50,8 @@ std::shared_ptr<data::DataNode> Atlas::Serialize() const {
     ASSERT(m_pimpl_->m_chart_ != nullptr);
     auto tdb = base_type::Serialize();
     tdb->Set("Chart", m_pimpl_->m_chart_->Serialize());
+    tdb->SetValue("LowIndex", std::get<0>(m_pimpl_->m_global_index_box_));
+    tdb->SetValue("HighIndex", std::get<1>(m_pimpl_->m_global_index_box_));
     auto patches = tdb->CreateNode("Patches", data::DataNode::DN_TABLE);
     for (auto const &item : m_pimpl_->m_patches_) { patches->Set(item.first, item.second->Serialize()); }
     return tdb;
@@ -57,10 +59,14 @@ std::shared_ptr<data::DataNode> Atlas::Serialize() const {
 void Atlas::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
     base_type::Deserialize(tdb);
     m_pimpl_->m_chart_ = geometry::Chart::New(tdb->Get("Chart"));
+    std::get<0>(m_pimpl_->m_global_index_box_) = tdb->GetValue("LowIndex", std::get<0>(m_pimpl_->m_global_index_box_));
+    std::get<1>(m_pimpl_->m_global_index_box_) = tdb->GetValue("HighIndex", std::get<1>(m_pimpl_->m_global_index_box_));
+
     auto blocks = tdb->Get("Patches");
     blocks->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &patch) {
         auto res = m_pimpl_->m_patches_.emplace(std::stoi(key), Patch::New(patch));
     });
+    DoSetUp();
     Click();
 };
 
@@ -106,8 +112,8 @@ std::shared_ptr<const geometry::Chart> Atlas::GetChart() const { return m_pimpl_
 void Atlas::SetChart(std::shared_ptr<const geometry::Chart> const &c) { m_pimpl_->m_chart_ = c; }
 
 void Atlas::DoSetUp() {
-    db()->SetValue("LowIndex", std::get<0>(m_pimpl_->m_global_index_box_));
-    db()->SetValue("HighIndex", std::get<1>(m_pimpl_->m_global_index_box_));
+    ASSERT(m_pimpl_->m_chart_ != nullptr)
+
     m_pimpl_->m_global_index_box_ = GetChart()->GetIndexBox(m_pimpl_->m_global_box_);
     Decompose();
     m_pimpl_->m_local_box_ = GetChart()->GetBoxUVW(m_pimpl_->m_local_index_box_);
@@ -118,14 +124,10 @@ void Atlas::DoSetUp() {
             std::get<1>(m_pimpl_->m_halo_box_)[i] += m_pimpl_->m_ghost_width_[i];
         }
     }
-
     base_type::DoSetUp();
 }
 
-void Atlas::DoUpdate() {
-    ASSERT(m_pimpl_->m_chart_ != nullptr)
-    base_type::DoUpdate();
-}
+void Atlas::DoUpdate() { base_type::DoUpdate(); }
 
 void Atlas::Decompose(index_tuple const &) { UNIMPLEMENTED; }
 void Atlas::Decompose() {
