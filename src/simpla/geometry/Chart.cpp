@@ -52,8 +52,6 @@ int Chart::GetLevel() const { return m_level_; }
 int Chart::GetNDIMS() const { return 3; }
 
 std::shared_ptr<GeoObject> Chart::GetBoundingShape(box_type const &b) const { return Box::New(MapToBase(b)); }
-std::shared_ptr<GeoObject> Chart::GetBoundingShape(index_box_type const &b) const {
-    return Box::New(std::make_tuple(global_coordinates(std::get<0>(b)), global_coordinates(std::get<0>(b))));
-};
+std::shared_ptr<GeoObject> Chart::GetBoundingShape(index_box_type const &b) const { return Box::New(GetBoxXYZ(b)); };
 }  // namespace geometry {
 }  // namespace simpla {

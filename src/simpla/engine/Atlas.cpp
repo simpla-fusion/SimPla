@@ -106,23 +106,18 @@ std::shared_ptr<const geometry::Chart> Atlas::GetChart() const { return m_pimpl_
 void Atlas::SetChart(std::shared_ptr<const geometry::Chart> const &c) { m_pimpl_->m_chart_ = c; }
 
 void Atlas::DoSetUp() {
+    db()->SetValue("LowIndex", std::get<0>(m_pimpl_->m_global_index_box_));
+    db()->SetValue("HighIndex", std::get<1>(m_pimpl_->m_global_index_box_));
     m_pimpl_->m_global_index_box_ = GetChart()->GetIndexBox(m_pimpl_->m_global_box_);
-
     Decompose();
-
     m_pimpl_->m_local_box_ = GetChart()->GetBoxUVW(m_pimpl_->m_local_index_box_);
-
     m_pimpl_->m_halo_box_ = m_pimpl_->m_local_index_box_;
-
     for (int i = 0; i < 3; ++i) {
         if (m_pimpl_->m_period_[i] == 0) {  // if it is not a period dimension then fix dx change bounding box
             std::get<0>(m_pimpl_->m_halo_box_)[i] -= m_pimpl_->m_ghost_width_[i];
             std::get<1>(m_pimpl_->m_halo_box_)[i] += m_pimpl_->m_ghost_width_[i];
         }
     }
-
-    db()->SetValue("LowIndex", std::get<0>(m_pimpl_->m_global_index_box_));
-    db()->SetValue("HighIndex", std::get<1>(m_pimpl_->m_global_index_box_));
 
     base_type::DoSetUp();
 }

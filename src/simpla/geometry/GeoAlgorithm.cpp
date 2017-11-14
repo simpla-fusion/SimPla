@@ -7,22 +7,22 @@
 namespace simpla {
 namespace geometry {
 
-bool TestPointInBox(nTuple<Real, 2> const& p, nTuple<Real, 2> const& bMin, nTuple<Real, 2> const& bMax) {
+bool CheckPointInBox(nTuple<Real, 2> const &p, nTuple<Real, 2> const &bMin, nTuple<Real, 2> const &bMax) {
     return bMin[0] <= p[0] && p[0] <= bMax[0] &&  //
            bMin[1] <= p[1] && p[1] <= bMax[1];
 }
-bool TestPointInBox(nTuple<Real, 2> const& p, std::tuple<nTuple<Real, 2>, nTuple<Real, 2>> const& box) {
-    return TestPointInBox(p, std::get<0>(box), std::get<1>(box));
+bool CheckPointInBox(nTuple<Real, 2> const &p, std::tuple<nTuple<Real, 2>, nTuple<Real, 2>> const &box) {
+    return CheckPointInBox(p, std::get<0>(box), std::get<1>(box));
 }
-bool TestPointInBox(point_type const& p, point_type const& bMin, point_type const& bMax) {
+bool CheckPointInBox(point_type const &p, point_type const &bMin, point_type const &bMax) {
     return bMin[0] <= p[0] && p[0] <= bMax[0] &&  //
            bMin[1] <= p[1] && p[1] <= bMax[1] &&  //
            bMin[2] <= p[2] && p[2] <= bMax[2];
 }
-bool TestPointInBox(point_type const& p, std::tuple<point_type, point_type> const& box) {
-    return TestPointInBox(p, std::get<0>(box), std::get<1>(box));
+bool CheckPointInBox(point_type const &p, std::tuple<point_type, point_type> const &box) {
+    return CheckPointInBox(p, std::get<0>(box), std::get<1>(box));
 }
-bool TestPointOnPlane(point_type const& p, point_type const& o, vector_type const& normal, Real tolerance) {
+bool CheckPointOnPlane(point_type const &p, point_type const &o, vector_type const &normal, Real tolerance) {
     return std::abs(dot(p - o, normal)) < tolerance;
 }
 

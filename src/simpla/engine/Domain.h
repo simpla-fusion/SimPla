@@ -40,9 +40,8 @@ class DomainBase : public EngineObject, public AttributeGroup {
     void SetMeshBlock(const std::shared_ptr<const MeshBlock> &blk);
     virtual std::shared_ptr<const MeshBlock> GetMeshBlock() const;
     box_type GetBlockBox() const;
-    virtual box_type GetBoundingBox() const;
-    virtual int CheckBoundary() const;
 
+    virtual int CheckBlockInBoundary() const;
     void SetBoundary(std::shared_ptr<const geometry::GeoObject> const &g);
     std::shared_ptr<const geometry::GeoObject> GetBoundary() const;
 
@@ -203,7 +202,7 @@ void Domain<TChart, Policies...>::DoTearDown() {
 
 template <typename TChart, template <typename> class... Policies>
 void Domain<TChart, Policies...>::DoInitialCondition(Real time_now) {
-    //    if (CheckBoundary() == 0)
+    //    if (CheckBlockInBoundary() == 0)
     {
         InitializeAttribute(&m_node_tag_);
         InitializeAttribute(&m_edge_frac_);

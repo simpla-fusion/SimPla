@@ -72,6 +72,9 @@ bool GeoObject::CheckIntersection(point_type const &p, Real tolerance) const {
 bool GeoObject::CheckIntersection(box_type const &b, Real tolerance) const {
     return GEO_ENGINE->CheckIntersection(Self(), b, tolerance);
 }
+bool GeoObject::CheckIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
+    return GEO_ENGINE->CheckIntersection(Self(), g, tolerance);
+}
 
 std::shared_ptr<GeoObject> GeoObject::GetUnion(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
     return GEO_ENGINE->GetUnion(Self(), g, tolerance);

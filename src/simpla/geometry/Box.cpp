@@ -33,7 +33,18 @@ void Box::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
 box_type Box::GetBoundingBox() const { return std::make_tuple(m_axis_.o, m_axis_.xyz(m_extents_)); };
 point_type Box::xyz(Real u, Real v, Real w) const { return m_axis_.xyz(u, v, w); };
 point_type Box::uvw(Real x, Real y, Real z) const { return m_axis_.uvw(x, y, z); };
-bool Box::CheckIntersection(box_type const &b, Real tolerance) const { return TestBoxOverlapped(b, GetBoundingBox()); };
+bool Box::CheckIntersection(box_type const &b, Real tolerance) const {
+    return CheckBoxOverlapped(b, GetBoundingBox());
+};
+bool Box::CheckIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
+    bool res = false;
+    if (auto b = std::dynamic_pointer_cast<const Box>(g)) {
+        res = CheckBoxOverlapped(g->GetBoundingBox(), GetBoundingBox());
+    } else {
+        res = base_type::CheckIntersection(g, tolerance);
+    }
+    return res;
+};
 
 }  // namespace geometry
 }  // namespace simpla

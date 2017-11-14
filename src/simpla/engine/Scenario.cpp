@@ -212,10 +212,10 @@ std::shared_ptr<DomainBase> Scenario::GetDomain(std::string const &k) const {
 
 box_type Scenario::FitBoundingBox() const {
     auto it = m_pimpl_->m_domains_.begin();
-    box_type bounding_box = it->second->GetBoundingBox();
+    box_type bounding_box = it->second->GetBoundary()->GetBoundingBox();
 
     for (; it != m_pimpl_->m_domains_.end(); ++it) {
-        if (it->second != nullptr) { bounding_box = geometry::Union(bounding_box, it->second->GetBoundingBox()); }
+        if (it->second != nullptr) { bounding_box = geometry::Union(bounding_box, it->second->GetBoundary()->GetBoundingBox()); }
     }
     return bounding_box;
 }

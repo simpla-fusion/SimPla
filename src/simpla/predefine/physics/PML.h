@@ -26,17 +26,11 @@ template <typename TDomain>
 class PML : public TDomain {
     SP_DOMAIN_HEAD(PML, TDomain);
     box_type m_center_box_ = {{0, 0, 0}, {1, 1, 1}};
-    //    box_type m_bounding_box_ = {{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY,
-    //    SP_INFINITY}};
 
    public:
-    void SetBoundingBox(box_type const& b) { UNIMPLEMENTED; }
-    box_type GetBoundingBox() const override {
-        return box_type{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
-    }
     void SetCenterBox(box_type const& b) { m_center_box_ = b; }
     box_type GetCenterBox() const { return m_center_box_; }
-    int CheckBoundary() const override;
+    int CheckBlockInBoundary() const override;
 
     FIELD(E, Real, EDGE);
     FIELD(B, Real, FACE);
@@ -81,7 +75,7 @@ void PML<TDomain>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
 }
 
 template <typename TDomain>
-int PML<TDomain>::CheckBoundary() const {
+int PML<TDomain>::CheckBlockInBoundary() const {
     return geometry::isInSide(m_center_box_, this->GetBlockBox()) ? -1 : 1;
 }
 

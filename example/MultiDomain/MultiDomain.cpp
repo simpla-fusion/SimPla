@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
     });
 
     auto pml = scenario->NewDomain<SimplePML>("PML");
-    pml->SetCenterBox(center->GetBoundingBox());
+    pml->SetCenterBox(center->GetBoundary()->GetBoundingBox());
 
     scenario->GetAtlas()->SetBoundingBox(box_type{{-15, -25, -25}, {15, 25, 25}});
     scenario->GetAtlas()->SetPeriodicDimensions({1, 1, 1});
@@ -68,8 +68,8 @@ int main(int argc, char **argv) {
     scenario->SetUp();
 
     if (auto atlas = scenario->GetAtlas()) {
-        auto box_list =
-            geometry::HaloBoxDecompose(atlas->GetIndexBox(), atlas->GetChart()->GetIndexBox(center->GetBoundingBox()));
+        auto box_list = geometry::HaloBoxDecompose(
+            atlas->GetIndexBox(), atlas->GetChart()->GetIndexBox(center->GetBoundary()->GetBoundingBox()));
         for (auto const &b : box_list) { atlas->AddPatch(b); }
     }
 

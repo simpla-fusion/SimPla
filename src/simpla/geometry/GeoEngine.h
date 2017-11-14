@@ -36,6 +36,8 @@ struct GeoEngineAPI {
     virtual std::shared_ptr<GeoObject> GetBoundary(std::shared_ptr<const GeoObject> const &) const;
     virtual bool CheckIntersection(std::shared_ptr<const GeoObject> const &, point_type const &x, Real tolerance) const;
     virtual bool CheckIntersection(std::shared_ptr<const GeoObject> const &, box_type const &, Real tolerance) const;
+    virtual bool CheckIntersection(std::shared_ptr<const GeoObject> const &, std::shared_ptr<const GeoObject> const &,
+                                   Real tolerance) const;
 
     virtual std::shared_ptr<GeoObject> GetUnion(std::shared_ptr<const GeoObject> const &g0,
                                                 std::shared_ptr<const GeoObject> const &g1, Real tolerance) const;

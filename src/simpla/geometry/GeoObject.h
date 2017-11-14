@@ -125,6 +125,7 @@ class GeoObject : public std::enable_shared_from_this<GeoObject> {
     virtual box_type GetBoundingBox() const;
     virtual bool CheckIntersection(point_type const &x, Real tolerance) const;
     virtual bool CheckIntersection(box_type const &, Real tolerance) const;
+    virtual bool CheckIntersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const;
     virtual std::shared_ptr<GeoObject> GetUnion(std::shared_ptr<const GeoObject> const &g, Real tolerance) const;
     virtual std::shared_ptr<GeoObject> GetDifference(std::shared_ptr<const GeoObject> const &g, Real tolerance) const;
     virtual std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const;

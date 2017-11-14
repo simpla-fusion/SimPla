@@ -57,14 +57,14 @@ std::shared_ptr<GeoObject> Body::GetIntersection(std::shared_ptr<const GeoObject
 // point_type Body::uvw(point_type const &x) const { return uvw(x[0], x[1], x[2]); };
 
 // bool Body::CheckIntersection(Real x, Real y, Real z, Real tolerance) const {
-//    return TestPointInBox(point_type{x, y, z}, GetBoundingBox());
+//    return CheckPointInBox(point_type{x, y, z}, GetBoundingBox());
 //};
 // bool Body::CheckIntersection(point_type const &xyz, Real tolerance) const {
 //    return CheckIntersection(xyz[0], xyz[1], xyz[2], tolerance);
 //}
 
 // bool Body::TestInsideUVW(Real u, Real v, Real w, Real tolerance) const {
-//    return TestPointInBox(point_type{u, v, w}, GetParameterRange());
+//    return CheckPointInBox(point_type{u, v, w}, GetParameterRange());
 //}
 // bool Body::TestInsideUVW(point_type const &uvw, Real tolerance) const {
 //    return TestInsideUVW(uvw[0], uvw[1], uvw[2], tolerance);

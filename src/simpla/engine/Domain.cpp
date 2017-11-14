@@ -3,6 +3,7 @@
 //
 
 #include <simpla/geometry/BoxUtilities.h>
+#include <simpla/geometry/GeoAlgorithm.h>
 #include "simpla/SIMPLA_config.h"
 
 #include "simpla/geometry/Chart.h"
@@ -33,11 +34,8 @@ std::shared_ptr<data::DataNode> DomainBase::Serialize() const {
 void DomainBase::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
     base_type::Deserialize(cfg);
     this->OnDeserialize(this, cfg);
-
     m_pimpl_->m_boundary_ = geometry::GeoObject::New(cfg->Get("Boundary"));
-
     if (cfg->Get("Chart") != nullptr) { m_pimpl_->m_chart_ = geometry::Chart::New(cfg->Get("Chart")); }
-
     AttributeGroup::Deserialize(cfg->Get("Attributes"));
 };
 
@@ -60,18 +58,15 @@ std::shared_ptr<Patch> DomainBase::Pop() const {
     return res;
 }
 
-box_type DomainBase::GetBoundingBox() const {
-    return GetBoundary() != nullptr
-               ? GetBoundary()->GetBoundingBox()
-               : box_type{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
-}
+// box_type DomainBase::GetBoundingBox() const {
+//    return GetBoundary() != nullptr
+//               ? GetBoundary()->GetBoundingBox()
+//               : box_type{{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY}, {SP_INFINITY, SP_INFINITY, SP_INFINITY}};
+//}
 
-int DomainBase::CheckBoundary() const {
-    return (GetBoundary() == nullptr ||
-            GetBoundary()->CheckIntersection(GetChart()->GetBoxXYZ(GetMeshBlock()->GetIndexBox()),
-                                             SP_GEO_DEFAULT_TOLERANCE))
-               ? 1
-               : -1;
+int DomainBase::CheckBlockInBoundary() const {
+    auto blk = GetChart()->GetBoundingShape(GetMeshBlock()->GetIndexBox());
+    return (GetBoundary() == nullptr || GetBoundary()->CheckIntersection(blk, SP_GEO_DEFAULT_TOLERANCE)) ? 1 : -1;
 }
 
 bool DomainBase::IsInitialized() const { return AttributeGroup::IsInitialized(); }
@@ -82,7 +77,7 @@ void DomainBase::DoTearDown() { base_type::DoTearDown(); }
 
 void DomainBase::InitialCondition(Real time_now) {
     Update();
-    if (CheckBoundary() < 0) { return; }
+    if (CheckBlockInBoundary() < 0) { return; }
 
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::InitialCondition( time_now =" << time_now << ")"
@@ -93,7 +88,7 @@ void DomainBase::InitialCondition(Real time_now) {
 }
 void DomainBase::BoundaryCondition(Real time_now, Real dt) {
     Update();
-    if (CheckBoundary() < 0) { return; }
+    if (CheckBlockInBoundary() < 0) { return; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::BoundaryCondition( time_now=" << time_now << " , dt=" << dt << ")"
             << " :  " << std::setw(10) << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
@@ -104,7 +99,7 @@ void DomainBase::BoundaryCondition(Real time_now, Real dt) {
 
 void DomainBase::ComputeFluxes(Real time_now, Real time_dt) {
     Update();
-    if (CheckBoundary() < 0) { return; }
+    if (CheckBlockInBoundary() < 0) { return; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::ComputeFluxes(time_now=" << time_now << " , time_dt=" << time_dt << ")"
             << " :  " << std::setw(10) << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
@@ -113,7 +108,7 @@ void DomainBase::ComputeFluxes(Real time_now, Real time_dt) {
     PostComputeFluxes(this, time_now, time_dt);
 }
 Real DomainBase::ComputeStableDtOnPatch(Real time_now, Real time_dt) const {
-    if (!isModified() || CheckBoundary() < 0) { return time_dt; }
+    if (!isModified() || CheckBlockInBoundary() < 0) { return time_dt; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::ComputeStableDtOnPatch( time_now=" << time_now << " , time_dt=" << time_dt << ")"
             << " :  " << std::setw(10) << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
@@ -122,7 +117,7 @@ Real DomainBase::ComputeStableDtOnPatch(Real time_now, Real time_dt) const {
 
 void DomainBase::Advance(Real time_now, Real time_dt) {
     Update();
-    if (CheckBoundary() < 0) { return; }
+    if (CheckBlockInBoundary() < 0) { return; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::Advance(time_now=" << time_now << " , dt=" << time_dt << ")"
             << " :  " << std::setw(10) << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();
@@ -132,7 +127,7 @@ void DomainBase::Advance(Real time_now, Real time_dt) {
 }
 void DomainBase::TagRefinementCells(Real time_now) {
     Update();
-    if (CheckBoundary() < 0) { return; }
+    if (CheckBlockInBoundary() < 0) { return; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::TagRefinementCells(time_now=" << time_now << ")"
             << " :  " << std::setw(10) << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();

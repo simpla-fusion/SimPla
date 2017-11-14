@@ -75,7 +75,7 @@ std::shared_ptr<GeoObject> Surface::GetIntersection(std::shared_ptr<const GeoObj
 //                           point_type{-SP_INFINITY, -SP_INFINITY, -SP_INFINITY});
 //}
 // bool Surface::TestInsideUV(Real u, Real v, Real tolerance) const {
-//    return TestPointInBox(nTuple<Real, 2>{u, v}, GetParameterRange());
+//    return CheckPointInBox(nTuple<Real, 2>{u, v}, GetParameterRange());
 //}
 //
 // bool Surface::TestInsideUVW(point_type const &uvw, Real tolerance) const {

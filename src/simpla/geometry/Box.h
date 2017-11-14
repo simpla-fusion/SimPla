@@ -31,6 +31,8 @@ struct Box : public PrimitiveShape {
 
     box_type GetBoundingBox() const override;
     bool CheckIntersection(box_type const &, Real tolerance) const override;
+    bool CheckIntersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
+
     //    std::shared_ptr<Point> GetIntersectionion(std::shared_ptr<const Point> const &g, Real tolerance) const
     //    override;
     //    std::shared_ptr<Curve> GetIntersectionion(std::shared_ptr<const Curve> const &g, Real tolerance) const

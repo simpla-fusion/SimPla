@@ -53,10 +53,10 @@ struct Chart : public SPObject {
         return std::make_tuple(std::get<1>(invert_local_coordinates(std::get<0>(c_box))),
                                std::get<1>(invert_local_coordinates(std::get<1>(c_box))));
     }
-    index_box_type GetBoxUVW(index_box_type const &c_box) const {
+    box_type GetBoxUVW(index_box_type const &c_box) const {
         return std::make_tuple(local_coordinates(0, std::get<0>(c_box)), local_coordinates(0, std::get<1>(c_box)));
     }
-    index_box_type GetBoxXYZ(index_box_type const &c_box) const {
+    box_type GetBoxXYZ(index_box_type const &c_box) const {
         return std::make_tuple(global_coordinates(0, std::get<0>(c_box)), global_coordinates(0, std::get<1>(c_box)));
     }
     template <typename... Args>

@@ -25,21 +25,35 @@ namespace geometry {
 using namespace simpla::utility;
 
 template <typename U, typename V>
-bool TestBoxOverlapped(std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b0,
-                       std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b1) {
-    return !((std::get<1>(b0)[0] < std::get<0>(b1)[0] || std::get<0>(b0)[0] >= std::get<1>(b1)[0]) ||
-             (std::get<1>(b0)[1] < std::get<0>(b1)[1] || std::get<0>(b0)[1] >= std::get<1>(b1)[1]) ||
-             (std::get<1>(b0)[2] < std::get<0>(b1)[2] || std::get<0>(b0)[2] >= std::get<1>(b1)[2]));
+bool CheckBoxOverlapped(std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b0,
+                        std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<V, 3>> const& b1) {
+    return !((std::get<1>(b0)[0] <= std::get<0>(b1)[0] || std::get<0>(b0)[0] >= std::get<1>(b1)[0]) ||
+             (std::get<1>(b0)[1] <= std::get<0>(b1)[1] || std::get<0>(b0)[1] >= std::get<1>(b1)[1]) ||
+             (std::get<1>(b0)[2] <= std::get<0>(b1)[2] || std::get<0>(b0)[2] >= std::get<1>(b1)[2]));
 }
-bool TestPointInBox(nTuple<Real, 2> const& p, nTuple<Real, 2> const& bMin, nTuple<Real, 2> const& bMax);
-bool TestPointInBox(nTuple<Real, 2> const& p, std::tuple<nTuple<Real, 2>, nTuple<Real, 2>> const& box);
-bool TestPointInBox(point_type const& p, point_type const& bMin, point_type const& bMax);
-bool TestPointInBox(point_type const& p, std::tuple<point_type, point_type> const& box);
-bool TestPointOnPlane(point_type const& p, point_type const& o, vector_type const& normal,
-                      Real tolerance = SP_GEO_DEFAULT_TOLERANCE);
+template <typename U>
+auto CalBoxOverlappedArea(std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<U, 3>> const& b0,
+                          std::tuple<simpla::nTuple<U, 3>, simpla::nTuple<U, 3>> const& b1) {
+    return std::max(
+               0.0,
+               std::min(std::get<1>(b0)[0], std::get<1>(b1)[0]) - std::max(std::get<0>(b0)[0], std::get<0>(b1)[0])) *
+           std::max(
+               0.0,
+               std::min(std::get<1>(b0)[1], std::get<1>(b1)[1]) - std::max(std::get<0>(b0)[1], std::get<0>(b1)[1])) *
+           std::max(
+               0.0,
+               std::min(std::get<1>(b0)[2], std::get<1>(b1)[2]) - std::max(std::get<0>(b0)[2], std::get<0>(b1)[2]));
+}
+bool CheckPointInBox(nTuple<Real, 2> const& p, nTuple<Real, 2> const& bMin, nTuple<Real, 2> const& bMax);
+bool CheckPointInBox(nTuple<Real, 2> const& p, std::tuple<nTuple<Real, 2>, nTuple<Real, 2>> const& box);
+bool CheckPointInBox(point_type const& p, point_type const& bMin, point_type const& bMax);
+bool CheckPointInBox(point_type const& p, std::tuple<point_type, point_type> const& box);
+bool CheckPointOnPlane(point_type const& p, point_type const& o, vector_type const& normal,
+                       Real tolerance = SP_GEO_DEFAULT_TOLERANCE);
+
 bool CheckIntersectionCubeSphere(point_type const& bMin, point_type const& bMax, point_type const& C, Real r);
 int GetIntersectionLineSphere(point_type const& p0, point_type const& p1, point_type const& c, Real r, Real tolerance,
-                        std::vector<Real>& res);
+                              std::vector<Real>& res);
 /**
  *   (b0 & b1).volume
  * @tparam U
@@ -254,7 +268,7 @@ std::tuple<Real, Real, Real> NearestPointPointToPlane(T0 const& P0, T1 const& Q0
  */
 template <typename T0, typename T1, typename T2, typename T3, typename T4>
 std::tuple<Real, Real, Real, Real> GetIntersectionLineToPlane(T0 const& l0, T1 const& l1, T2 const& p0, T3 const& p1,
-                                                        T4 const& p2, Real tolerance = SP_GEO_DEFAULT_TOLERANCE) {
+                                                              T4 const& p2, Real tolerance = SP_GEO_DEFAULT_TOLERANCE) {
     Real dist2, s, u, v;
 
     UNIMPLEMENTED;

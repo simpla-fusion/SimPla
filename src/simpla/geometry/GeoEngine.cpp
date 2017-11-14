@@ -45,11 +45,15 @@ std::shared_ptr<GeoObject> GeoEngineAPI::GetBoundary(std::shared_ptr<const GeoOb
 }
 bool GeoEngineAPI::CheckIntersection(std::shared_ptr<const GeoObject> const &g, point_type const &p,
                                      Real tolerance) const {
-    return TestPointInBox(p, g->GetBoundingBox());
+    return CheckPointInBox(p, g->GetBoundingBox());
 }
 bool GeoEngineAPI::CheckIntersection(std::shared_ptr<const GeoObject> const &g, box_type const &box,
                                      Real tolerance) const {
-    return TestBoxOverlapped(box, g->GetBoundingBox());
+    return CheckBoxOverlapped(box, g->GetBoundingBox());
+}
+bool GeoEngineAPI::CheckIntersection(std::shared_ptr<const GeoObject> const &g0,
+                                     std::shared_ptr<const GeoObject> const &g1, Real tolerance) const {
+    return CheckIntersection(g0, g1->GetBoundingBox(), tolerance) && GetIntersection(g0, g1, tolerance) != nullptr;
 }
 std::shared_ptr<GeoObject> GeoEngineAPI::GetUnion(std::shared_ptr<const GeoObject> const &g0,
                                                   std::shared_ptr<const GeoObject> const &g1, Real tolerance) const {
