@@ -14,7 +14,7 @@ struct Rectangle : public Face {
 
    protected:
     Rectangle(Real l, Real w);
-    Rectangle(Axis const &axis, Real l, Real w);
+    Rectangle(Axis const& axis, Real l, Real w);
 
    public:
     point2d_type xy(Real u, Real v) const override { return point2d_type{u * m_l_, v * m_w_}; };

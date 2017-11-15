@@ -9,7 +9,6 @@ Rectangle::Rectangle() = default;
 Rectangle::~Rectangle() = default;
 Rectangle::Rectangle(Rectangle const &other) = default;
 Rectangle::Rectangle(Real l, Real w) : Face(), m_l_(l), m_w_(w) {}
-Rectangle::Rectangle(Axis const &axis, Real l, Real w) : Face(axis), m_l_(l), m_w_(w) {}
 
 Rectangle::Rectangle(Axis const &axis) : Face(axis) {}
 void Rectangle::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {

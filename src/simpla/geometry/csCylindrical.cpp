@@ -21,8 +21,9 @@ std::shared_ptr<Curve> csCylindrical::GetAxis(index_tuple const &idx0, int dir) 
     return GetAxis(local_coordinates(idx0), dir);
 };
 std::shared_ptr<GeoObject> csCylindrical::GetBoundingShape(box_type const &uvw) const {
-    vector_type b = std::get<1>(uvw) - std::get<0>(uvw);
-    return Revolution::New(m_axis_, Rectangle::New(Axis{std::get<0>(uvw), m_axis_.x, m_axis_.z}, b[0], b[1]), b[2]);
+    point_type u_min, u_max;
+    std::tie(u_min, u_max) = std::get<1>(uvw) - std::get<0>(uvw);
+    return Revolution::New(m_axis_, Face::New(b[0], b[1]), b[2]);
 }
 
 std::shared_ptr<Curve> csCylindrical::GetAxis(point_type const &uvw, int dir) const {

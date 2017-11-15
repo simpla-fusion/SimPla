@@ -18,6 +18,9 @@ struct Plane : public PrimitiveShape {
    public:
     point_type xyz(Real u, Real v, Real w) const override { return m_axis_.xyz(u, v, w); }
     point_type uvw(Real x, Real y, Real z) const override { return m_axis_.uvw(x, y, z); }
+
+    point_type GetOrigin() const { return m_axis_.o; }
+    vector_type GetNormal() const { return m_axis_.z; }
 };
 
 }  // namespace simpla

@@ -8,23 +8,28 @@
 #include <simpla/SIMPLA_config.h>
 #include "GeoObject.h"
 #include "PrimitiveShape.h"
+#include "Surface.h"
 namespace simpla {
 namespace geometry {
-struct Face : public PrimitiveShape {
-    SP_GEO_ABS_OBJECT_HEAD(Face, PrimitiveShape);
+struct Face : public GeoObject {
+    SP_GEO_OBJECT_HEAD(Face, GeoObject);
+
+   protected:
+    Face(std::shared_ptr<const Surface> const &surface, Real l, Real w);
+    Face(std::shared_ptr<const Surface> const &surface, Real u_min, Real u_max, Real v_min, Real v_max);
 
    public:
-    virtual point2d_type xy(Real u, Real v) const = 0;
-    virtual point2d_type uv(Real x, Real y) const = 0;
-    point_type xyz(Real u, Real v, Real w) const override {
-        auto p = xy(u, v);
-        return m_axis_.xyz(p[0], p[1], 0);
-    }
-    point_type uvw(Real x, Real y, Real z) const override {
-        auto p = m_axis_.uvw(x, y, z);
-        auto q = uv(p[0], p[1]);
-        return point_type{q[0], q[1], 0};
-    }
+    void SetSurface(std::shared_ptr<const Surface> const &s) { m_surface_ = s; }
+    std::shared_ptr<const Surface> GetSurface() const { return m_surface_; }
+    std::tuple<point2d_type, point2d_type> const &GetUVRange() const { return m_range_; };
+    void SetUVRange(std::tuple<point2d_type, point2d_type> const &b) { m_range_ = b; }
+
+    virtual point_type xy(Real u, Real v) const;
+    virtual point_type uv(Real x, Real y) const;
+
+   private:
+    std::shared_ptr<const Surface> m_surface_;
+    std::tuple<point2d_type, point2d_type> m_range_{{0, 0}, {1, 1}};
 };
 }  // namespace geometry
 }  // namespace simpla
