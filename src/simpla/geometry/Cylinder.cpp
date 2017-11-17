@@ -16,8 +16,8 @@ Cylinder::Cylinder(Axis const &axis, Real radius, Real height, Real angle)
 Cylinder::Cylinder(Real radius, Real height, Real angle)
     : PrimitiveShape(), m_radius_(radius), m_height_(height), m_angle_(angle) {}
 
-std::shared_ptr<simpla::data::DataNode> Cylinder::Serialize() const { return base_type::Serialize(); };
-void Cylinder::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
+std::shared_ptr<simpla::data::DataEntry> Cylinder::Serialize() const { return base_type::Serialize(); };
+void Cylinder::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) { base_type::Deserialize(cfg); }
 
 point_type Cylinder::xyz(Real r, Real angle, Real h) const {
     return m_axis_.xyz(r * std::cos(angle), r * std::sin(angle), h);

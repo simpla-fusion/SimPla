@@ -12,11 +12,11 @@ Circle::Circle(Circle const &) = default;
 Circle::Circle(Axis const &axis, Real radius, Real alpha0, Real alpha1) : Curve(axis), m_radius_(radius) {}
 
 Circle::~Circle() = default;
-void Circle::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
+void Circle::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
     m_radius_ = cfg->GetValue<Real>("Radius", m_radius_);
 }
-std::shared_ptr<simpla::data::DataNode> Circle::Serialize() const {
+std::shared_ptr<simpla::data::DataEntry> Circle::Serialize() const {
     auto res = base_type::Serialize();
     res->SetValue<Real>("Radius", m_radius_);
     return res;

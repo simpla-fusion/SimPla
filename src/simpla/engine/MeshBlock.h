@@ -25,10 +25,10 @@ class MeshBlock {
    public:
     ~MeshBlock();
 
-    static std::shared_ptr<MeshBlock> New(std::shared_ptr<simpla::data::DataNode> const &);
+    static std::shared_ptr<MeshBlock> New(std::shared_ptr<simpla::data::DataEntry> const &);
     static std::shared_ptr<MeshBlock> New(index_box_type const &box, int level = 0, size_type local_id = 0);
-    std::shared_ptr<simpla::data::DataNode> Serialize() const;
-    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg);
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const;
+    void Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg);
 
    private:
     static constexpr int MAX_LEVEL_NUMBER = 8;

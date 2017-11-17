@@ -405,17 +405,17 @@ hid_t HDF5CreateOrOpenGroup(hid_t grp, std::string const& key) {
     }
     return res;
 }
-size_type HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataNode> node) {
+size_type HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataEntry> node) {
     if (node == nullptr) { return 0; }
 
     size_type count = 0;
     switch (node->type()) {
-        case DataNode::DN_ARRAY:
-        case DataNode::DN_TABLE: {
+        case DataEntry::DN_ARRAY:
+        case DataEntry::DN_TABLE: {
             hid_t sub_gid = HDF5CreateOrOpenGroup(g_id, key);
-            node->Foreach([&](std::string k, std::shared_ptr<DataNode> const& n) { count += HDF5Set(sub_gid, k, n); });
+            node->Foreach([&](std::string k, std::shared_ptr<DataEntry> const& n) { count += HDF5Set(sub_gid, k, n); });
         } break;
-        case DataNode::DN_ENTITY:
+        case DataEntry::DN_ENTITY:
             count = HDF5SetEntity(g_id, key, node->GetEntity());
             break;
         default:
@@ -423,16 +423,16 @@ size_type HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataNode> 
     }
     return count;
 }
-size_type HDF5Add(hid_t g_id, std::string const& key, std::shared_ptr<DataNode> node) {
+size_type HDF5Add(hid_t g_id, std::string const& key, std::shared_ptr<DataEntry> node) {
     if (node == nullptr) { return 0; }
     size_type count = 0;
     switch (node->type()) {
-        case DataNode::DN_ARRAY:
-        case DataNode::DN_TABLE: {
+        case DataEntry::DN_ARRAY:
+        case DataEntry::DN_TABLE: {
             hid_t sub_gid = HDF5CreateOrOpenGroup(g_id, key);
-            node->Foreach([&](std::string k, std::shared_ptr<DataNode> const& n) { count += HDF5Set(sub_gid, k, n); });
+            node->Foreach([&](std::string k, std::shared_ptr<DataEntry> const& n) { count += HDF5Set(sub_gid, k, n); });
         } break;
-        case DataNode::DN_ENTITY:
+        case DataEntry::DN_ENTITY:
             count = HDF5SetEntity(g_id, key, node->GetEntity());
             break;
         default:

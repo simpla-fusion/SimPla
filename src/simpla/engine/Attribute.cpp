@@ -22,19 +22,19 @@ AttributeGroup::~AttributeGroup() {
 }
 bool AttributeGroup::IsInitialized() const { return m_pimpl_->m_is_initiazlied_; }
 
-std::shared_ptr<data::DataNode> AttributeGroup::Serialize() const {
+std::shared_ptr<data::DataEntry> AttributeGroup::Serialize() const {
     auto res = data::DataLightT<std::string *>::New();
     for (auto const &item : m_pimpl_->m_attributes_) { res->push_back(item->GetName()); }
-    return data::DataNode::New(res);
+    return data::DataEntry::New(res);
 }
-void AttributeGroup::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
+void AttributeGroup::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) {
     if (cfg == nullptr) { return; }
     for (auto const &item : m_pimpl_->m_attributes_) { item->Deserialize(cfg->Get(item->GetName())); }
 }
 
 std::set<Attribute *> &AttributeGroup::GetAttributes() { return m_pimpl_->m_attributes_; }
 std::set<Attribute *> const &AttributeGroup::GetAttributes() const { return m_pimpl_->m_attributes_; }
-// void AttributeGroup::Push(const std::shared_ptr<data::DataNode> &p) {
+// void AttributeGroup::Push(const std::shared_ptr<data::DataEntry> &p) {
 //    if (p != nullptr) {
 //        for (auto &item : m_pimpl_->m_attributes_) {
 //            if (auto patch = p->Get(item->GetName())) { item->Push(patch); }
@@ -42,8 +42,8 @@ std::set<Attribute *> const &AttributeGroup::GetAttributes() const { return m_pi
 //    }
 //}
 //
-// std::shared_ptr<data::DataNode> AttributeGroup::Pop() const {
-//    auto res = data::DataNode::New();
+// std::shared_ptr<data::DataEntry> AttributeGroup::Pop() const {
+//    auto res = data::DataEntry::New();
 //    for (auto &item : m_pimpl_->m_attributes_) { res->Set(item->GetName(), item->Pop()); }
 //    return res;
 //}
@@ -92,7 +92,7 @@ void Attribute::ReRegister(std::shared_ptr<Attribute> const &attr) const {
 }
 namespace detail {
 template <typename U, int IFORM>
-std::shared_ptr<Attribute> NewAttribute1(std::shared_ptr<simpla::data::DataNode> const &cfg) {
+std::shared_ptr<Attribute> NewAttribute1(std::shared_ptr<simpla::data::DataEntry> const &cfg) {
     if (cfg == nullptr) { return nullptr; }
     std::shared_ptr<Attribute> res = nullptr;
     if (auto p = std::dynamic_pointer_cast<data::DataLightT<int>>(cfg->GetEntity())) {
@@ -134,7 +134,7 @@ std::shared_ptr<Attribute> NewAttribute1(std::shared_ptr<simpla::data::DataNode>
     return res;
 }
 template <typename U>
-std::shared_ptr<Attribute> NewAttribute(std::shared_ptr<simpla::data::DataNode> const &cfg) {
+std::shared_ptr<Attribute> NewAttribute(std::shared_ptr<simpla::data::DataEntry> const &cfg) {
     if (cfg == nullptr) { return nullptr; }
     std::shared_ptr<Attribute> res = nullptr;
 
@@ -161,7 +161,7 @@ std::shared_ptr<Attribute> NewAttribute(std::shared_ptr<simpla::data::DataNode> 
     return res;
 }
 }
-std::shared_ptr<Attribute> Attribute::New(std::shared_ptr<simpla::data::DataNode> const &cfg) {
+std::shared_ptr<Attribute> Attribute::New(std::shared_ptr<simpla::data::DataEntry> const &cfg) {
     if (cfg == nullptr) { return nullptr; }
     std::shared_ptr<Attribute> res = nullptr;
     auto v_type = cfg->GetValue<std::string>("ValueType");
@@ -182,8 +182,8 @@ std::shared_ptr<Attribute> Attribute::New(std::shared_ptr<simpla::data::DataNode
     return res;
 }
 
-std::shared_ptr<data::DataNode> Attribute::Serialize() const { return base_type::Serialize(); }
-void Attribute::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
+std::shared_ptr<data::DataEntry> Attribute::Serialize() const { return base_type::Serialize(); }
+void Attribute::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) { base_type::Deserialize(cfg); }
 
 void Attribute::Register(AttributeGroup *attr_b) {
     if (attr_b == nullptr) {

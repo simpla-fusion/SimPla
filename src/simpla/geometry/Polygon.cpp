@@ -32,8 +32,8 @@ Polygon::~Polygon() { delete m_pimpl_; }
 Polygon::Polygon(Polygon const &other) : BoundedCurve2D(other), m_pimpl_(new pimpl_s) {}
 Polygon::Polygon(Axis const &axis) : BoundedCurve2D(axis), m_pimpl_(new pimpl_s) {}
 
-std::shared_ptr<data::DataNode> Polygon::Serialize() const { return base_type::Serialize(); };
-void Polygon::Deserialize(std::shared_ptr<data::DataNode> const &tdb) { base_type::Deserialize(tdb); }
+std::shared_ptr<data::DataEntry> Polygon::Serialize() const { return base_type::Serialize(); };
+void Polygon::Deserialize(std::shared_ptr<data::DataEntry> const &tdb) { base_type::Deserialize(tdb); }
 //
 // Real Polygon::pimpl_s::nearest_point(Real *x, Real *y) const {
 //    typedef nTuple<Real, 2> Vec2;

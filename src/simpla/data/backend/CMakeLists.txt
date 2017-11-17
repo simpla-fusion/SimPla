@@ -7,12 +7,12 @@
 #FILE(GLOB database_SRC  *.cpp *.h )
 
 LIST(APPEND data_backend_SRC
-        DataNodeMemory.h
-        DataNodeMemory.cpp
-        DataNodeLua.cpp
-        DataNodeHDF5.cpp
-        DataNodeXDMF.cpp
-        DataNodeIMAS.cpp
+        DataEntryMemory.h
+        DataEntryMemory.cpp
+        DataEntryLua.cpp
+        DataEntryHDF5.cpp
+        DataEntryXDMF.cpp
+        DataEntryIMAS.cpp
         HDF5Common.cpp
         HDF5Common.h
         LuaObject.cpp
@@ -20,7 +20,7 @@ LIST(APPEND data_backend_SRC
         LuaObjectExt.h
         )
 #IF (XDMF_FOUND)
-#    LIST(APPEND data_backend_SRC DataNodeXDMF3.cpp)
+#    LIST(APPEND data_backend_SRC DataEntryXDMF3.cpp)
 #ENDIF (XDMF_FOUND)
 ADD_LIBRARY(data_backend ${data_backend_SRC})
 target_include_directories(data_backend BEFORE PRIVATE

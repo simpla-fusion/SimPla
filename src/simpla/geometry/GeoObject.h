@@ -89,11 +89,11 @@ class GeoObject : public std::enable_shared_from_this<GeoObject> {
    public:
     virtual std::string FancyTypeName() const { return "GeoObject"; }
     virtual ~GeoObject();
-    virtual void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg);
-    virtual std::shared_ptr<simpla::data::DataNode> Serialize() const;
+    virtual void Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg);
+    virtual std::shared_ptr<simpla::data::DataEntry> Serialize() const;
 
     static std::shared_ptr<this_type> New(std::string const &cfg);
-    static std::shared_ptr<this_type> New(std::shared_ptr<data::DataNode> const &cfg);
+    static std::shared_ptr<this_type> New(std::shared_ptr<data::DataEntry> const &cfg);
 
     std::shared_ptr<const this_type> Self() const { return (shared_from_this()); }
     std::shared_ptr<this_type> Self() { return (shared_from_this()); }
@@ -160,8 +160,8 @@ class GeoObject : public std::enable_shared_from_this<GeoObject> {
                                                                                                             \
    public:                                                                                                  \
     ~_CLASS_NAME_() override;                                                                               \
-    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;                          \
-    std::shared_ptr<simpla::data::DataNode> Serialize() const override;                                     \
+    void Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) override;                          \
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;                                     \
     std::shared_ptr<this_type> CopyThis() const { return std::dynamic_pointer_cast<this_type>(Copy()); };   \
     std::shared_ptr<const this_type> Self() const {                                                         \
         return std::dynamic_pointer_cast<const this_type>(shared_from_this());                              \
@@ -215,14 +215,14 @@ class GeoObject : public std::enable_shared_from_this<GeoObject> {
     _CLASS_NAME_(_CLASS_NAME_ const &);                                                                            \
     explicit _CLASS_NAME_(Axis const &axis);                                                                       \
     ~_CLASS_NAME_() override;                                                                                      \
-    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;                                 \
-    std::shared_ptr<simpla::data::DataNode> Serialize() const override;                                            \
+    void Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) override;                                 \
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;                                            \
                                                                                                                    \
     template <typename... Args>                                                                                    \
     static std::shared_ptr<this_type> New(Args &&... args) {                                                       \
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));                             \
     };                                                                                                             \
-    static std::shared_ptr<this_type> New(std::shared_ptr<data::DataNode> const &cfg) {                            \
+    static std::shared_ptr<this_type> New(std::shared_ptr<data::DataEntry> const &cfg) {                            \
         return std::dynamic_pointer_cast<this_type>(simpla::SPObject::Create(cfg));                                \
     };                                                                                                             \
                                                                                                                    \

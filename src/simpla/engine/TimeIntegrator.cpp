@@ -4,7 +4,7 @@
 #include "TimeIntegrator.h"
 #include "Atlas.h"
 #include "Domain.h"
-#include "simpla/data/DataNode.h"
+#include "simpla/data/DataEntry.h"
 namespace simpla {
 namespace engine {
 struct TimeIntegrator::pimpl_s {
@@ -21,8 +21,8 @@ void TimeIntegrator::SetTimeEnd(Real t) { m_pimpl_->m_time_end_ = t; }
 Real TimeIntegrator::GetTimeStep() const { return m_pimpl_->m_time_step_; }
 void TimeIntegrator::SetTimeStep(Real t) { m_pimpl_->m_time_step_ = t; }
 
-std::shared_ptr<data::DataNode> TimeIntegrator::Serialize() const { return base_type::Serialize(); }
-void TimeIntegrator::Deserialize(std::shared_ptr<data::DataNode> const &tdb) { base_type::Deserialize(tdb); }
+std::shared_ptr<data::DataEntry> TimeIntegrator::Serialize() const { return base_type::Serialize(); }
+void TimeIntegrator::Deserialize(std::shared_ptr<data::DataEntry> const &tdb) { base_type::Deserialize(tdb); }
 
 void TimeIntegrator::InitialCondition(Real time_now) {
     Update();

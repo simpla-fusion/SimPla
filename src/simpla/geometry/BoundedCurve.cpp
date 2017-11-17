@@ -11,8 +11,8 @@ BoundedCurve::BoundedCurve() = default;
 BoundedCurve::BoundedCurve(BoundedCurve const &other) = default;
 BoundedCurve::~BoundedCurve() = default;
 BoundedCurve::BoundedCurve(Axis const &axis) : Curve(axis){};
-void BoundedCurve::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
-std::shared_ptr<simpla::data::DataNode> BoundedCurve::Serialize() const { return base_type::Serialize(); }
+void BoundedCurve::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) { base_type::Deserialize(cfg); }
+std::shared_ptr<simpla::data::DataEntry> BoundedCurve::Serialize() const { return base_type::Serialize(); }
 
 struct BoundedCurve2D::pimpl_s {
     std::vector<point2d_type> m_data_;
@@ -23,8 +23,8 @@ BoundedCurve2D::BoundedCurve2D(BoundedCurve2D const &other) : base_type(other), 
 };
 BoundedCurve2D::~BoundedCurve2D() { delete m_pimpl_; }
 BoundedCurve2D::BoundedCurve2D(Axis const &axis) : BoundedCurve(axis), m_pimpl_(new pimpl_s){};
-void BoundedCurve2D::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
-std::shared_ptr<simpla::data::DataNode> BoundedCurve2D::Serialize() const { return base_type::Serialize(); }
+void BoundedCurve2D::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) { base_type::Deserialize(cfg); }
+std::shared_ptr<simpla::data::DataEntry> BoundedCurve2D::Serialize() const { return base_type::Serialize(); }
 point_type BoundedCurve2D::xyz(Real u) const {
     UNIMPLEMENTED;
     return point_type{};
@@ -55,8 +55,8 @@ BoundedCurve3D::BoundedCurve3D(BoundedCurve3D const &other) : BoundedCurve(other
 };
 BoundedCurve3D::~BoundedCurve3D() { delete m_pimpl_; }
 BoundedCurve3D::BoundedCurve3D(Axis const &axis) : BoundedCurve(axis), m_pimpl_(new pimpl_s){};
-void BoundedCurve3D::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
-std::shared_ptr<simpla::data::DataNode> BoundedCurve3D::Serialize() const { return base_type::Serialize(); }
+void BoundedCurve3D::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) { base_type::Deserialize(cfg); }
+std::shared_ptr<simpla::data::DataEntry> BoundedCurve3D::Serialize() const { return base_type::Serialize(); }
 point_type BoundedCurve3D::xyz(Real u) const {
     UNIMPLEMENTED;
     return point_type{};

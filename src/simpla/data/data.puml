@@ -1,7 +1,7 @@
 @startuml
-class DataNode{
+class DataEntry{
     DataTable attributes
-    DataNode sub[]
+    DataEntry sub[]
 }
 
 class DataTable{
@@ -9,7 +9,7 @@ class DataTable{
 }
 class DataEntity{
 }
-DataNode *-- DataTable
+DataEntry *-- DataTable
 DataTable *-- DataEntity
-DataNode *-- DataNode
+DataEntry *-- DataEntry
 @enduml

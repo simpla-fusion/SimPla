@@ -56,11 +56,11 @@ class AttributeGroup {
 
     virtual ~AttributeGroup();
 
-    virtual std::shared_ptr<data::DataNode> Serialize() const;
-    virtual void Deserialize(std::shared_ptr<data::DataNode> const &);
+    virtual std::shared_ptr<data::DataEntry> Serialize() const;
+    virtual void Deserialize(std::shared_ptr<data::DataEntry> const &);
 
-    //    virtual void Push(const std::shared_ptr<data::DataNode> &);
-    //    virtual std::shared_ptr<data::DataNode> Pop() const;
+    //    virtual void Push(const std::shared_ptr<data::DataEntry> &);
+    //    virtual std::shared_ptr<data::DataEntry> Pop() const;
 
     virtual void Push(const std::shared_ptr<Patch> &);
     virtual std::shared_ptr<Patch> Pop() const;
@@ -120,7 +120,7 @@ struct Attribute : public SPObject {
     };
     void ReRegister(std::shared_ptr<Attribute> const &) const;
 
-    static std::shared_ptr<this_type> New(std::shared_ptr<simpla::data::DataNode> const &cfg);
+    static std::shared_ptr<this_type> New(std::shared_ptr<simpla::data::DataEntry> const &cfg);
 
     virtual std::shared_ptr<Attribute> Duplicate() const = 0;
     virtual std::shared_ptr<Attribute> CreateNew() const = 0;
@@ -140,8 +140,8 @@ struct Attribute : public SPObject {
     void Register(AttributeGroup *p = nullptr);
     void Deregister(AttributeGroup *p = nullptr);
 
-    virtual void Push(const std::shared_ptr<data::DataNode> &) = 0;
-    virtual std::shared_ptr<data::DataNode> Pop() = 0;
+    virtual void Push(const std::shared_ptr<data::DataEntry> &) = 0;
+    virtual std::shared_ptr<data::DataEntry> Pop() = 0;
 
     virtual void Clear() = 0;
 };
@@ -188,19 +188,19 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
     }
 
-    static std::shared_ptr<this_type> New(std::shared_ptr<simpla::data::DataNode> const &cfg) {
+    static std::shared_ptr<this_type> New(std::shared_ptr<simpla::data::DataEntry> const &cfg) {
         auto res = std::shared_ptr<this_type>(new this_type());
         res->Deserialize(cfg);
         return res;
     }
 
-    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;
-    std::shared_ptr<simpla::data::DataNode> Serialize() const override;
+    void Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) override;
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
     void Update() override;
 
-    void Push(const std::shared_ptr<data::DataNode> &) override;
-    std::shared_ptr<data::DataNode> Pop() override;
+    void Push(const std::shared_ptr<data::DataEntry> &) override;
+    std::shared_ptr<data::DataEntry> Pop() override;
 
     std::shared_ptr<Attribute> Duplicate() const override {
         std::shared_ptr<this_type> res(new this_type);
@@ -288,8 +288,8 @@ template <typename V, int IFORM, int... DOF>
 AttributeT<V, IFORM, DOF...>::~AttributeT() = default;
 
 // template <typename V, int IFORM, int... DOF>
-// std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::GetDescription() const {
-//    auto res = data::DataNode::New(data::DataNode::DN_TABLE);
+// std::shared_ptr<data::DataEntry> AttributeT<V, IFORM, DOF...>::GetDescription() const {
+//    auto res = data::DataEntry::New(data::DataEntry::DN_TABLE);
 //    res->Set(backend());
 //    res->SetValue("Name", GetName());
 //    res->SetValue("IFORM", IFORM);
@@ -304,21 +304,21 @@ AttributeT<V, IFORM, DOF...>::~AttributeT() = default;
 
 namespace detail {
 template <typename U>
-std::shared_ptr<data::DataNode> pop_data(Array<U> const &v) {
+std::shared_ptr<data::DataEntry> pop_data(Array<U> const &v) {
     auto d = data::DataBlock<U>::New();
     Array<U>(v).swap(*d);
-    return data::DataNode::New(d);
+    return data::DataEntry::New(d);
 }
 
 template <typename U, int N0, int... N>
-std::shared_ptr<data::DataNode> pop_data(nTuple<Array<U>, N0, N...> const &v) {
-    auto res = data::DataNode::New(data::DataNode::DN_ARRAY);
+std::shared_ptr<data::DataEntry> pop_data(nTuple<Array<U>, N0, N...> const &v) {
+    auto res = data::DataEntry::New(data::DataEntry::DN_ARRAY);
     for (int i = 0; i < N0; ++i) { res->Add(pop_data(v[i])); }
     return res;
 }
 
 template <typename U>
-size_type push_data(Array<U> &dest, std::shared_ptr<data::DataNode> const &src) {
+size_type push_data(Array<U> &dest, std::shared_ptr<data::DataEntry> const &src) {
     size_type count = 0;
     if (src == nullptr) {
     } else if (auto p = std::dynamic_pointer_cast<Array<U>>(src->GetEntity())) {
@@ -330,7 +330,7 @@ size_type push_data(Array<U> &dest, std::shared_ptr<data::DataNode> const &src) 
 }
 
 template <typename U, int N0, int... N>
-size_type push_data(nTuple<Array<U>, N0, N...> &v, std::shared_ptr<data::DataNode> const &src) {
+size_type push_data(nTuple<Array<U>, N0, N...> &v, std::shared_ptr<data::DataEntry> const &src) {
     size_type count = 0;
 
     for (int i = 0; i < N0; ++i) { count += push_data(v[i], src == nullptr ? nullptr : src->Get(i)); }
@@ -398,7 +398,7 @@ void AttributeT<V, IFORM, DOF...>::Clear() {
 };
 
 template <typename V, int IFORM, int... DOF>
-std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Serialize() const {
+std::shared_ptr<data::DataEntry> AttributeT<V, IFORM, DOF...>::Serialize() const {
     auto res = base_type::Serialize();
     res->SetValue("IFORM", IFORM);
 
@@ -412,18 +412,18 @@ std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Serialize() const 
 };
 
 template <typename V, int IFORM, int... DOF>
-void AttributeT<V, IFORM, DOF...>::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
+void AttributeT<V, IFORM, DOF...>::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
 };
 
 template <typename V, int IFORM, int... DOF>
-void AttributeT<V, IFORM, DOF...>::Push(const std::shared_ptr<data::DataNode> &d) {
+void AttributeT<V, IFORM, DOF...>::Push(const std::shared_ptr<data::DataEntry> &d) {
     if (d != nullptr) detail::push_data(*this, d->Get("_DATA_"));
 };
 
 template <typename V, int IFORM, int... DOF>
-std::shared_ptr<data::DataNode> AttributeT<V, IFORM, DOF...>::Pop() {
-    auto res = data::DataNode::New(data::DataNode::DN_TABLE);
+std::shared_ptr<data::DataEntry> AttributeT<V, IFORM, DOF...>::Pop() {
+    auto res = data::DataEntry::New(data::DataEntry::DN_TABLE);
     res->SetValue<int>("IFORM", GetIFORM());
     res->Set("_DATA_", detail::pop_data(*this));
     detail::tear_down(*this);

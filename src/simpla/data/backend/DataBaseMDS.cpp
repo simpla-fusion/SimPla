@@ -4,7 +4,7 @@
 
 #include "DataBaseMDS.h"
 
-#include "../DataNode.h"
+#include "../DataEntry.h"
 namespace simpla {
 namespace data {
 REGISTER_CREATOR(DataBaseMDS, mds);
@@ -21,7 +21,7 @@ int DataBaseMDS::Disconnect() { return SP_SUCCESS; }
 int DataBaseMDS::Flush() { return SP_SUCCESS; }
 bool DataBaseMDS::isNull() const { return true; }
 
-std::shared_ptr<DataNode> DataBaseMDS::Root() { return DataNode::New(); }
+std::shared_ptr<DataEntry> DataBaseMDS::Root() { return DataEntry::New(); }
 
 }  // namespace data {
 }  // namespace simpla {

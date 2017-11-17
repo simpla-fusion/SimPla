@@ -33,7 +33,7 @@ SpApp::SpApp() : m_pimpl_(new pimpl_s) {
 
 SpApp::~SpApp() { delete m_pimpl_; };
 
-std::shared_ptr<data::DataNode> SpApp::Serialize() const {
+std::shared_ptr<data::DataEntry> SpApp::Serialize() const {
     auto tdb = base_type::Serialize();
 
     if (tdb != nullptr) {
@@ -43,7 +43,7 @@ std::shared_ptr<data::DataNode> SpApp::Serialize() const {
     return tdb;
 };
 
-void SpApp::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
+void SpApp::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
     if (cfg != nullptr) {
         m_pimpl_->m_scenario_->Deserialize(cfg->Get("Context"));
@@ -61,13 +61,13 @@ void SpApp::Config(int argc, char **argv) {
     std::string app_name;
     conf_file += ".lua";
 
-    auto cmd_line_cfg = data::DataNode::New();
-    auto input_file_cfg = data::DataNode::New();
+    auto cmd_line_cfg = data::DataEntry::New();
+    auto input_file_cfg = data::DataEntry::New();
 
     simpla::parse_cmd_line(  //
         argc, argv, [&](std::string const &opt, std::string const &value) -> int {
             if (opt == "i" || opt == "input") {
-                input_file_cfg = data::DataNode::New(value);
+                input_file_cfg = data::DataEntry::New(value);
             } else if (opt == "o" || opt == "output") {
                 cmd_line_cfg->SetValue("OutputPath", value);
             } else if (opt == "log") {
@@ -122,7 +122,7 @@ void SpApp::Config(int argc, char **argv) {
         });
     MESSAGE << std::endl << ShowLogo() << std::endl;
 
-    auto cfg = data::DataNode::New();
+    auto cfg = data::DataEntry::New();
 
     cfg->Set("Context", input_file_cfg->Get("Context"));
     cfg->Set("Atlas", input_file_cfg->Get("Atlas"));
@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
 #endif
 
     parallel::Initialize(argc, argv);
-    MESSAGE << std::endl << data::DataNode::ShowDescription() << std::endl << Factory<SPObject>::ShowDescription() <<
+    MESSAGE << std::endl << data::DataEntry::ShowDescription() << std::endl << Factory<SPObject>::ShowDescription() <<
                                                                                                             std::endl;
 
     GLOBAL_COMM.barrier();
@@ -167,7 +167,7 @@ int main(int argc, char **argv) {
         parallel::bcast_string(os.str());
     } else {
         std::string buffer = parallel::bcast_string();
-        auto t_cfg = data::DataNode::New("lua://");
+        auto t_cfg = data::DataEntry::New("lua://");
         t_cfg->Parse(buffer);
         app->Deserialize(t_cfg);
     }

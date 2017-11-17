@@ -9,13 +9,23 @@
 #include "GeoObject.h"
 namespace simpla {
 namespace geometry {
-struct Body;
-struct Shell;
-struct Shape : public GeoObject {
-    SP_GEO_ABS_OBJECT_HEAD(Shape, GeoObject)
-    virtual std::shared_ptr<Body> AsBody() const = 0;
-    virtual std::shared_ptr<Shell> AsShell() const = 0;
+struct Shape : public data::Serializable {
+   private:
+    typedef Shape this_type;
+
+   public:
+    std::string FancyTypeName() const override { return "Shape"; }
+
+   protected:
+    Shape();
+    Shape(Shape const &other);
+
+   public:
+    virtual ~Shape();
+    static std::shared_ptr<Shape> Create(std::string const &key);
+    virtual std::shared_ptr<Shape> Copy() const = 0;
 };
+
 }  // namespace geometry{
 }  // namespace simpla{
 #endif  // SIMPLA_SHAPE_H

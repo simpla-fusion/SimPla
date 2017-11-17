@@ -14,8 +14,8 @@ struct EngineObject::pimpl_s {
 };
 EngineObject::EngineObject() : m_pimpl_(new pimpl_s) {}
 EngineObject::~EngineObject() { Finalize(); }
-std::shared_ptr<data::DataNode> EngineObject::Serialize() const { return base_type::Serialize(); }
-void EngineObject::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
+std::shared_ptr<data::DataEntry> EngineObject::Serialize() const { return base_type::Serialize(); }
+void EngineObject::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) {
     ASSERT(!isSetUp());
     Initialize();
     base_type::Deserialize(cfg);
@@ -35,8 +35,8 @@ bool EngineObject::isModified() const { return m_pimpl_->m_click_tag_ != m_pimpl
 bool EngineObject::isInitialized() const { return m_pimpl_->m_is_initialized_; }
 bool EngineObject::isSetUp() const { return m_pimpl_->m_is_setup_; }
 
-// void EngineObject::Push(std::shared_ptr<data::DataNode> const &data) { ASSERT(isSetUp()); }
-// std::shared_ptr<data::DataNode> EngineObject::Pop() const { return data::DataNode::New(data::DataNode::DN_TABLE); };
+// void EngineObject::Push(std::shared_ptr<data::DataEntry> const &data) { ASSERT(isSetUp()); }
+// std::shared_ptr<data::DataEntry> EngineObject::Pop() const { return data::DataEntry::New(data::DataEntry::DN_TABLE); };
 
 void EngineObject::Push(const std::shared_ptr<Patch> &) { ASSERT(isSetUp()); };
 std::shared_ptr<Patch> EngineObject::Pop() const { return Patch::New(); }

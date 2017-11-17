@@ -3,7 +3,7 @@
 //
 #include "simpla/SIMPLA_config.h"
 
-#include <simpla/data/DataNode.h>
+#include <simpla/data/DataEntry.h>
 #include <simpla/parallel/MPIComm.h>
 #include <boost/functional/hash.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -24,13 +24,13 @@ MeshBlock::MeshBlock(index_box_type b, int level, size_type local_id)
 }
 
 MeshBlock::~MeshBlock() = default;
-std::shared_ptr<MeshBlock> MeshBlock::New(std::shared_ptr<simpla::data::DataNode> const &tdb) {
+std::shared_ptr<MeshBlock> MeshBlock::New(std::shared_ptr<simpla::data::DataEntry> const &tdb) {
     auto res = std::shared_ptr<MeshBlock>(new MeshBlock);
     res->Deserialize(tdb);
     return res;
 }
-std::shared_ptr<simpla::data::DataNode> MeshBlock::Serialize() const {
-    auto res = data::DataNode::New(data::DataNode::DN_TABLE);
+std::shared_ptr<simpla::data::DataEntry> MeshBlock::Serialize() const {
+    auto res = data::DataEntry::New(data::DataEntry::DN_TABLE);
     res->SetValue("LowIndex", std::get<0>(GetIndexBox()));
     res->SetValue("HighIndex", std::get<1>(GetIndexBox()));
 
@@ -39,7 +39,7 @@ std::shared_ptr<simpla::data::DataNode> MeshBlock::Serialize() const {
     res->SetValue("GUID", GetGUID());
     return res;
 }
-void MeshBlock::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
+void MeshBlock::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) {
     std::get<0>(m_index_box_) = cfg->GetValue<index_tuple>("LowIndex", index_tuple{0, 0, 0});
     std::get<1>(m_index_box_) = cfg->GetValue<index_tuple>("HighIndex", index_tuple{1, 1, 1});
 

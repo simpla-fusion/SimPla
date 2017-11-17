@@ -21,12 +21,12 @@ Box::Box(std::initializer_list<std::initializer_list<Real>> const &v)
 Box::Box(box_type const &b) : Box(std::get<0>(b), std::get<1>(b)) {}
 Box::Box(vector_type const &extents) : m_extents_(extents) {}
 
-std::shared_ptr<data::DataNode> Box::Serialize() const {
+std::shared_ptr<data::DataEntry> Box::Serialize() const {
     auto res = base_type::Serialize();
     res->SetValue("Extents", m_extents_);
     return res;
 };
-void Box::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
+void Box::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
     m_extents_ = cfg->GetValue("Extents", m_extents_);
 }

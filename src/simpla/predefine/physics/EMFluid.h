@@ -48,13 +48,13 @@ class EMFluid : public TDomain {
     };
 
     std::map<std::string, std::shared_ptr<fluid_s>> m_fluid_sp_;
-    std::shared_ptr<fluid_s> AddSpecies(std::string const& name, std::shared_ptr<data::DataNode> d);
+    std::shared_ptr<fluid_s> AddSpecies(std::string const& name, std::shared_ptr<data::DataEntry> d);
     std::map<std::string, std::shared_ptr<fluid_s>>& GetSpecies() { return m_fluid_sp_; };
 };
 
 template <typename TM>
-std::shared_ptr<data::DataNode> EMFluid<TM>::Serialize() const {
-    auto res = data::DataNode::New();
+std::shared_ptr<data::DataEntry> EMFluid<TM>::Serialize() const {
+    auto res = data::DataEntry::New();
     for (auto& item : m_fluid_sp_) {
         res->SetValue("Species/" + item.first + "/mass", item.second->mass / SI_proton_mass);
         res->SetValue("Species/" + item.first + "/Z", item.second->charge / SI_elementary_charge);
@@ -63,14 +63,14 @@ std::shared_ptr<data::DataNode> EMFluid<TM>::Serialize() const {
     return res;
 };
 template <typename TM>
-void EMFluid<TM>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
+void EMFluid<TM>::Deserialize(std::shared_ptr<data::DataEntry> const& cfg) {
     cfg->Get("Species")->Foreach(
-        [&](std::string const& k, std::shared_ptr<data::DataNode> v) { return AddSpecies(k, v) != nullptr ? 1 : 0; });
+        [&](std::string const& k, std::shared_ptr<data::DataEntry> v) { return AddSpecies(k, v) != nullptr ? 1 : 0; });
 }
 
 template <typename TM>
 std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string const& name,
-                                                                     std::shared_ptr<data::DataNode> d) {
+                                                                     std::shared_ptr<data::DataEntry> d) {
     if (d == nullptr) { return nullptr; }
 
     auto sp = std::make_shared<fluid_s>();

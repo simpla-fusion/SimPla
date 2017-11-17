@@ -23,7 +23,7 @@ struct DomainBase::pimpl_s {
 DomainBase::DomainBase() : m_pimpl_(new pimpl_s){};
 DomainBase::~DomainBase() { delete m_pimpl_; };
 
-std::shared_ptr<data::DataNode> DomainBase::Serialize() const {
+std::shared_ptr<data::DataEntry> DomainBase::Serialize() const {
     auto tdb = base_type::Serialize();
     this->OnSerialize(this, tdb);
     ASSERT(m_pimpl_->m_chart_ != nullptr);
@@ -32,7 +32,7 @@ std::shared_ptr<data::DataNode> DomainBase::Serialize() const {
     tdb->Set("Attributes", AttributeGroup::Serialize());
     return tdb;
 }
-void DomainBase::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
+void DomainBase::Deserialize(std::shared_ptr<data::DataEntry> const& cfg) {
     base_type::Deserialize(cfg);
     this->OnDeserialize(this, cfg);
     m_pimpl_->m_boundary_ = geometry::GeoObject::New(cfg->Get("Boundary"));

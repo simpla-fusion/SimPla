@@ -11,7 +11,7 @@
 #include <memory>
 
 #include "simpla/algebra/Algebra.h"
-#include "simpla/data/DataNode.h"
+#include "simpla/data/DataEntry.h"
 #include "simpla/engine/Engine.h"
 #include "simpla/physics/Field.h"
 #include "simpla/physics/PhysicalConstants.h"
@@ -32,8 +32,8 @@ class ICRFAntenna : public TDomain {
 };
 
 template <typename TM>
-std::shared_ptr<data::DataNode> ICRFAntenna<TM>::Serialize() const {
-    auto res = data::DataNode::New();
+std::shared_ptr<data::DataEntry> ICRFAntenna<TM>::Serialize() const {
+    auto res = data::DataEntry::New();
     res->SetValue("Amplify", m_amplify_);
     res->SetValue("Frequency", m_f_);
     res->SetValue("WaveNumber", m_k_);
@@ -45,7 +45,7 @@ void ICRFAntenna<TM>::DoInitialCondition(Real time_now) {
     //    m_domain_->GetMesh()->SetEmbeddedBoundary(m_domain_->GetName(), m_domain_->GetGeoBody());
 }
 template <typename TM>
-void ICRFAntenna<TM>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
+void ICRFAntenna<TM>::Deserialize(std::shared_ptr<data::DataEntry> const& cfg) {
     m_amplify_ = cfg->GetValue<Vec3>("Amplify", m_amplify_);
     m_f_ = cfg->GetValue<Real>("Frequency", m_f_);
     m_k_ = cfg->GetValue<Vec3>("WaveNumber", m_k_);

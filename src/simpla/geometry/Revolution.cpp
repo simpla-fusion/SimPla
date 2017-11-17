@@ -14,12 +14,12 @@ Revolution::Revolution(Axis const &axis, std::shared_ptr<const GeoObject> const 
     : PrimitiveShape(axis), m_basis_obj_(g), m_angle_(angle) {}
 Revolution::Revolution(std::shared_ptr<const GeoObject> const &g, Real angle)
     : PrimitiveShape(), m_basis_obj_(g), m_angle_(angle) {}
-void Revolution::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
+void Revolution::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
     m_basis_obj_ = GeoObject::New(cfg->Get("BasisObject"));
     m_angle_ = cfg->GetValue<Real>("MinAngle", m_angle_);
 }
-std::shared_ptr<simpla::data::DataNode> Revolution::Serialize() const {
+std::shared_ptr<simpla::data::DataEntry> Revolution::Serialize() const {
     auto res = base_type::Serialize();
     res->Set("BasisObject", m_basis_obj_->Serialize());
     res->SetValue<Real>("Angle", m_angle_);

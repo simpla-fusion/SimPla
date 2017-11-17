@@ -11,8 +11,8 @@ PointsOnCurve::PointsOnCurve() = default;
 PointsOnCurve::PointsOnCurve(PointsOnCurve const &) = default;
 PointsOnCurve::PointsOnCurve(Axis const &axis) : base_type(axis){};
 PointsOnCurve::~PointsOnCurve() = default;
-void PointsOnCurve::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); };
-std::shared_ptr<simpla::data::DataNode> PointsOnCurve::Serialize() const { return base_type::Serialize(); };
+void PointsOnCurve::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) { base_type::Deserialize(cfg); };
+std::shared_ptr<simpla::data::DataEntry> PointsOnCurve::Serialize() const { return base_type::Serialize(); };
 void PointsOnCurve::SetCurve(std::shared_ptr<const Curve> const &g) { m_curve_ = g; }
 std::shared_ptr<const Curve> PointsOnCurve::GetCurve() const { return m_curve_; }
 size_type PointsOnCurve::size() const { return m_data_.size(); };

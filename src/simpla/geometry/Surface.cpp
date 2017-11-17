@@ -16,8 +16,8 @@ Surface::~Surface() = default;
 Surface::Surface(Surface const &other) = default;
 Surface::Surface(Axis const &axis) : GeoObject(axis) {}
 
-std::shared_ptr<data::DataNode> Surface::Serialize() const { return base_type::Serialize(); };
-void Surface::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
+std::shared_ptr<data::DataEntry> Surface::Serialize() const { return base_type::Serialize(); };
+void Surface::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) { base_type::Deserialize(cfg); }
 
 std::shared_ptr<Curve> Surface::GetBoundaryCurve() const {
     return std::dynamic_pointer_cast<Curve>(base_type::GetBoundary());
@@ -104,22 +104,22 @@ std::shared_ptr<GeoObject> Surface::GetIntersection(std::shared_ptr<const GeoObj
 //
 // PointsOnSurface::PointsOnSurface() = default;
 // PointsOnSurface::~PointsOnSurface() = default;
-// PointsOnSurface::PointsOnSurface(std::shared_ptr<const Surface> const &surf) : m_surface_(surf) {}
-// std::shared_ptr<data::DataNode> PointsOnSurface::Serialize() const { return base_type::Serialize(); };
-// void PointsOnSurface::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
-// std::shared_ptr<const Surface> PointsOnSurface::GetBasisSurface() const { return m_surface_; }
-// void PointsOnSurface::SetBasisSurface(std::shared_ptr<const Surface> const &c) { m_surface_ = c; }
+// PointsOnSurface::PointsOnSurface(std::shared_ptr<const Surface> const &surf) : m_curve_(surf) {}
+// std::shared_ptr<data::DataEntry> PointsOnSurface::Serialize() const { return base_type::Serialize(); };
+// void PointsOnSurface::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) { base_type::Deserialize(cfg); }
+// std::shared_ptr<const Surface> PointsOnSurface::GetBasisSurface() const { return m_curve_; }
+// void PointsOnSurface::SetBasisSurface(std::shared_ptr<const Surface> const &c) { m_curve_ = c; }
 //
 // void PointsOnSurface::PutUV(nTuple<Real, 2> uv) { m_data_.push_back(std::move(uv)); }
 // nTuple<Real, 2> PointsOnSurface::GetUV(size_type i) const { return m_data_[i]; }
-// point_type PointsOnSurface::GetPoint(size_type i) const { return m_surface_->Value(GetUV(i)); }
+// point_type PointsOnSurface::GetPoint(size_type i) const { return m_curve_->Value(GetUV(i)); }
 // std::vector<nTuple<Real, 2>> const &PointsOnSurface::data() const { return m_data_; }
 // std::vector<nTuple<Real, 2>> &PointsOnSurface::data() { return m_data_; }
 // size_type PointsOnSurface::size() const { return m_data_.size(); }
 // point_type PointsOnSurface::Value(size_type i) const { return GetPoint(i); };
 // box_type PointsOnSurface::GetBoundingBox() const {
 //    FIXME;
-//    return m_surface_->GetBoundingBox();
+//    return m_curve_->GetBoundingBox();
 //};
 }  // namespace geometry
 }  // namespace simpla

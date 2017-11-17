@@ -13,7 +13,8 @@
 
 namespace simpla {
 namespace geometry {
-class Curve;
+struct Curve;
+struct Surface;
 struct Chart : public SPObject {
     SP_OBJECT_HEAD(Chart, SPObject)
 
@@ -24,16 +25,16 @@ struct Chart : public SPObject {
     Chart(point_type const &orign, point_type const &grid_width);
 
    public:
+    virtual int GetNDIMS() const;
     bool IsValid() const { return m_is_valid_; }
     virtual void Update() { m_is_valid_ = true; };
     virtual void TearDown() { m_is_valid_ = false; };
-
     virtual std::shared_ptr<Curve> GetAxis(point_type const &x0, int dir) const { return nullptr; };
-    virtual std::shared_ptr<Curve> GetAxis(index_tuple const &x0, int dir) const { return nullptr; };
-
-    virtual int GetNDIMS() const;
-    virtual box_type GetBoundingBox(box_type const &b) const { return b; };
+    virtual std::shared_ptr<Surface> GetSurface(point_type const &x0, int dir) const { return nullptr; };
     virtual std::shared_ptr<GeoObject> GetBoundingShape(box_type const &uvw) const;
+
+    std::shared_ptr<Surface> GetSurface(index_tuple const &x0, int dir) const { return GetSurface(uvw(x0), dir); };
+    std::shared_ptr<Curve> GetAxis(index_tuple const &x0, int dir) const { return GetAxis(uvw(x0), dir); };
     std::shared_ptr<GeoObject> GetBoundingShape(index_box_type const &b) const;
 
     void SetLevel(int level);

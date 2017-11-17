@@ -19,14 +19,14 @@ PolyCurve::PolyCurve(PolyCurve const &other) : Curve(other), m_pimpl_(new pimpl_
 PolyCurve::~PolyCurve() { delete m_pimpl_; }
 
 bool PolyCurve::IsClosed() const { return m_pimpl_->m_is_closed_; }
-void PolyCurve::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
+void PolyCurve::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
     m_pimpl_->m_is_closed_ = cfg->GetValue<bool>("IsClosed", m_pimpl_->m_is_closed_);
     m_pimpl_->m_is_periodic_ = cfg->GetValue<bool>("IsPeriodic", m_pimpl_->m_is_periodic_);
     m_pimpl_->m_min_ = cfg->GetValue<Real>("MinParameter", m_pimpl_->m_min_);
     m_pimpl_->m_max_ = cfg->GetValue<Real>("MaxParameter", m_pimpl_->m_max_);
 }
-std::shared_ptr<simpla::data::DataNode> PolyCurve::Serialize() const {
+std::shared_ptr<simpla::data::DataEntry> PolyCurve::Serialize() const {
     auto res = base_type::Serialize();
     res->SetValue<bool>("IsClosed", m_pimpl_->m_is_closed_);
     res->SetValue<bool>("IsPeriodic", m_pimpl_->m_is_periodic_);

@@ -14,13 +14,13 @@ Torus::Torus(Axis const &axis, Real major_radius, Real minor_radius)
 Torus::Torus(Real major_radius, Real minor_radius) : m_major_radius_(major_radius), m_minor_radius_(minor_radius) {}
 Torus::~Torus() = default;
 
-std::shared_ptr<simpla::data::DataNode> Torus::Serialize() const {
+std::shared_ptr<simpla::data::DataEntry> Torus::Serialize() const {
     auto res = base_type::Serialize();
     res->SetValue("MajorRadius", m_major_radius_);
     res->SetValue("MinorRadius", m_minor_radius_);
     return res;
 };
-void Torus::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
+void Torus::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
     m_major_radius_ = cfg->GetValue("MajorRadius", m_major_radius_);
     m_minor_radius_ = cfg->GetValue("MinorRadius", m_minor_radius_);

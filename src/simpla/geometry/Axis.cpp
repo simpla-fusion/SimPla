@@ -7,12 +7,12 @@
 namespace simpla {
 namespace geometry {
 
-void Axis::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
+void Axis::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) {
     m_origin_ = cfg->GetValue("Origin", m_origin_);
     m_axis_ = cfg->GetValue("Axis", m_axis_);
 }
-std::shared_ptr<simpla::data::DataNode> Axis::Serialize() const {
-    auto res = simpla::data::DataNode::New(simpla::data::DataNode::DN_TABLE);
+std::shared_ptr<simpla::data::DataEntry> Axis::Serialize() const {
+    auto res = simpla::data::DataEntry::New(simpla::data::DataEntry::DN_TABLE);
     res->SetValue("Origin", m_origin_);
     res->SetValue("Axis", m_axis_);
     return res;

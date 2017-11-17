@@ -3,7 +3,7 @@
 //
 #include "simpla/SIMPLA_config.h"
 
-#include <simpla/data/DataNode.h>
+#include <simpla/data/DataEntry.h>
 #include <simpla/geometry/BoxUtilities.h>
 
 #include <simpla/geometry/GeoEngine.h>
@@ -31,38 +31,38 @@ Scenario::~Scenario() {
     delete m_pimpl_;
 }
 
-std::shared_ptr<data::DataNode> Scenario::Serialize() const {
+std::shared_ptr<data::DataEntry> Scenario::Serialize() const {
     auto res = base_type::Serialize();
     res->SetValue("Name", GetName());
     res->SetValue("Time", GetTime());
 
     res->Set("Atlas", GetAtlas()->Serialize());
 
-    auto attributes = data::DataNode::New(data::DataNode::DN_TABLE);
+    auto attributes = data::DataEntry::New(data::DataEntry::DN_TABLE);
     for (auto const &item : m_pimpl_->m_attrs_) { attributes->Set(item.first, item.second->Serialize()); }
     res->Set("Attributes", attributes);
 
-    auto domain = data::DataNode::New(data::DataNode::DN_TABLE);
+    auto domain = data::DataEntry::New(data::DataEntry::DN_TABLE);
     for (auto const &item : m_pimpl_->m_domains_) { domain->Set(item.first, item.second->Serialize()); }
     res->Set("Domains", domain);
 
-    //    auto patches = data::DataNode::New(data::DataNode::DN_TABLE);
+    //    auto patches = data::DataEntry::New(data::DataEntry::DN_TABLE);
     //    for (auto const &item : m_pimpl_->m_patches_) { patches->Set(item.first, item.second->Serialize()); }
     //    res->Set("Patches", patches);
 
     return res;
 }
 
-void Scenario::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
+void Scenario::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
     m_pimpl_->m_atlas_->Deserialize(cfg->Get("Atlas"));
 
     if (auto domain = cfg->Get("Domains")) {
         domain->Foreach(
-            [&](std::string key, std::shared_ptr<data::DataNode> node) { SetDomain(key, DomainBase::New(node)); });
+            [&](std::string key, std::shared_ptr<data::DataEntry> node) { SetDomain(key, DomainBase::New(node)); });
     }
     //    if (auto patches = cfg->Get("Patches")) {
-    //        patches->Foreach([&](std::string key, std::shared_ptr<data::DataNode> node) {
+    //        patches->Foreach([&](std::string key, std::shared_ptr<data::DataEntry> node) {
     //            m_pimpl_->m_patches_.emplace(static_cast<id_type>(std::stol(key)), node);
     //        });
     //    }
@@ -75,14 +75,14 @@ void Scenario::CheckPoint(size_type step_num) const {
     os << db()->GetValue<std::string>("CheckPointFilePrefix", GetName()) << std::setfill('0') << std::setw(8)
        << GetStepNumber() << "." << db()->GetValue<std::string>("CheckPointFileSuffix", "xmf");
 
-    auto dump = data::DataNode::New(os.str());
+    auto dump = data::DataEntry::New(os.str());
     //    dump->Set("Atlas", GetAtlas()->Serialize());
     dump->Set("Atlas/Chart", GetAtlas()->GetChart()->Serialize());
-    auto patches = dump->CreateNode("Atlas/Patches", data::DataNode::DN_TABLE);
+    auto patches = dump->CreateNode("Atlas/Patches", data::DataEntry::DN_TABLE);
     m_pimpl_->m_atlas_->Foreach([&](auto const &patch) {
-        auto d_patch = patches->CreateNode(std::to_string(patch->GetGUID()), data::DataNode::DN_TABLE);
+        auto d_patch = patches->CreateNode(std::to_string(patch->GetGUID()), data::DataEntry::DN_TABLE);
         d_patch->Set("MeshBlock", patch->GetMeshBlock()->Serialize());
-        auto d_attrs = d_patch->CreateNode("Attributes", data::DataNode::DN_TABLE);
+        auto d_attrs = d_patch->CreateNode("Attributes", data::DataEntry::DN_TABLE);
         for (auto const &attr : m_pimpl_->m_attrs_) {
             auto check_point = attr.second->db()->GetValue<size_type>("CheckPoint", 0);
             if (check_point != 0 && step_num % check_point == 0) {
@@ -101,7 +101,7 @@ void Scenario::Dump() const {
     auto suffix = db()->GetValue<std::string>("DumpFileSuffix", "h5");
     os << prefix << "_dump_" << std::setfill('0') << std::setw(8) << GetStepNumber() << "." << suffix;
     VERBOSE << std::setw(20) << "Dump : " << os.str();
-    auto dump = data::DataNode::New(os.str());
+    auto dump = data::DataEntry::New(os.str());
     dump->Set(Serialize());
     dump->Flush();
     auto geo_prefix = db()->GetValue<std::string>("GeoFilePrefix", GetName());

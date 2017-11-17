@@ -2,7 +2,7 @@
 // Created by salmon on 17-11-1.
 //
 #include "GeoEngine.h"
-#include <simpla/data/DataNode.h>
+#include <simpla/data/DataEntry.h>
 #include <simpla/utilities/SingletonHolder.h>
 #include "GeoAlgorithm.h"
 #include "GeoObject.h"
@@ -18,7 +18,7 @@ void Initialize(std::string const &key) {
         VERBOSE << "Create Geometry Engine : " << GEO_ENGINE->GetRegisterName();
     }
 }
-void Initialize(std::shared_ptr<data::DataNode> const &d) {
+void Initialize(std::shared_ptr<data::DataEntry> const &d) {
     if (d != nullptr) {
         Initialize(d->GetValue<std::string>("_TYPE_", ""));
         GEO_ENGINE->Deserialize(d);
@@ -35,9 +35,9 @@ void Finalize() {
 
 GeoEngineAPI::GeoEngineAPI() = default;
 GeoEngineAPI::~GeoEngineAPI() = default;
-void GeoEngineAPI::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {}
-std::shared_ptr<simpla::data::DataNode> GeoEngineAPI::Serialize() const {
-    return data::DataNode::New(data::DataNode::DN_TABLE);
+void GeoEngineAPI::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) {}
+std::shared_ptr<simpla::data::DataEntry> GeoEngineAPI::Serialize() const {
+    return data::DataEntry::New(data::DataEntry::DN_TABLE);
 }
 std::shared_ptr<GeoObject> GeoEngineAPI::GetBoundary(std::shared_ptr<const GeoObject> const &) const {
     UNIMPLEMENTED;

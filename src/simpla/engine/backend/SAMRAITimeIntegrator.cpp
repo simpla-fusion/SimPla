@@ -533,7 +533,7 @@ bool ConvertDataEntity(std::shared_ptr<data::DataEntity> src, SAMRAI::hier::Patc
 }
 
 template <typename T>
-std::shared_ptr<SAMRAI::hier::Variable> ConvertVariable_(const std::shared_ptr<data::DataNode> &attr) {
+std::shared_ptr<SAMRAI::hier::Variable> ConvertVariable_(const std::shared_ptr<data::DataEntry> &attr) {
     SAMRAI::tbox::Dimension d_dim(3);
 
     std::shared_ptr<SAMRAI::hier::Variable> res;
@@ -562,7 +562,7 @@ std::shared_ptr<SAMRAI::hier::Variable> ConvertVariable_(const std::shared_ptr<d
     return res;
 }
 
-std::shared_ptr<SAMRAI::hier::Variable> ConvertVariable(const std::shared_ptr<data::DataNode> &attr) {
+std::shared_ptr<SAMRAI::hier::Variable> ConvertVariable(const std::shared_ptr<data::DataEntry> &attr) {
     std::shared_ptr<SAMRAI::hier::Variable> res = nullptr;
     size_t type_hash = attr->GetValue<size_t>("ValueTypeHash");
     if (type_hash == std::type_index(typeid(float)).hash_code()) {
@@ -762,14 +762,14 @@ class SAMRAIHyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPatc
     std::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_workload_variable;
     int d_workload_data_id = 0;
     bool d_use_nonuniform_workload;
-    std::map<id_type, std::pair<std::shared_ptr<data::DataNode>, std::shared_ptr<SAMRAI::hier::Variable>>>
+    std::map<id_type, std::pair<std::shared_ptr<data::DataEntry>, std::shared_ptr<SAMRAI::hier::Variable>>>
         m_samrai_variables_;
     SAMRAI::hier::IntVector d_nghosts;
     SAMRAI::hier::IntVector d_fluxghosts;
 
-    std::shared_ptr<data::DataNode> GetPatch(SAMRAI::hier::Patch &patch);
-    std::shared_ptr<data::DataNode> PopPatch(SAMRAI::hier::Patch &patch);
-    void PushPatch(const std::shared_ptr<data::DataNode> &p, SAMRAI::hier::Patch &patch);
+    std::shared_ptr<data::DataEntry> GetPatch(SAMRAI::hier::Patch &patch);
+    std::shared_ptr<data::DataEntry> PopPatch(SAMRAI::hier::Patch &patch);
+    void PushPatch(const std::shared_ptr<data::DataEntry> &p, SAMRAI::hier::Patch &patch);
 };
 
 SAMRAIHyperbolicPatchStrategyAdapter::SAMRAIHyperbolicPatchStrategyAdapter(
@@ -794,7 +794,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     SAMRAI::hier::IntVector d_fluxghosts{d_dim, 1};
     //**************************************************************
 
-    m_ctx_->GetAttributes()->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &item) {
+    m_ctx_->GetAttributes()->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntry> const &item) {
         if (item->Check("IS_NOT_OWNED") ||
             m_samrai_variables_.find(item->GetValue<id_type>("DescID")) != m_samrai_variables_.end()) {
             return;
@@ -803,7 +803,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
         auto var = simpla::detail::ConvertVariable(item);
         if (var == nullptr) { return; }
         m_samrai_variables_.emplace(item->GetValue<id_type>("DescID"),
-                                    std::make_pair(std::dynamic_pointer_cast<data::DataNode>(item), var));
+                                    std::make_pair(std::dynamic_pointer_cast<data::DataEntry>(item), var));
 
         int iform = item->GetValue<int>("IFORM", NODE);
         int dof = item->GetValue<int>("DOF", 1);
@@ -874,7 +874,7 @@ void SAMRAIHyperbolicPatchStrategyAdapter::registerModelVariables(SAMRAI::algs::
     vardb->printClassData(std::cout);
 }
 
-std::shared_ptr<data::DataNode> SAMRAIHyperbolicPatchStrategyAdapter::GetPatch(SAMRAI::hier::Patch &patch) {
+std::shared_ptr<data::DataEntry> SAMRAIHyperbolicPatchStrategyAdapter::GetPatch(SAMRAI::hier::Patch &patch) {
     auto blk = engine::MeshBlock::New(
         index_box_type{{patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]},
                        {patch.getBox().upper()[0] + 1, patch.getBox().upper()[1] + 1, patch.getBox().upper()[2] + 1}},
@@ -882,7 +882,7 @@ std::shared_ptr<data::DataNode> SAMRAIHyperbolicPatchStrategyAdapter::GetPatch(S
     return m_ctx_->GetPatch(blk->GetGUID());
 }
 
-std::shared_ptr<data::DataNode> SAMRAIHyperbolicPatchStrategyAdapter::PopPatch(SAMRAI::hier::Patch &patch) {
+std::shared_ptr<data::DataEntry> SAMRAIHyperbolicPatchStrategyAdapter::PopPatch(SAMRAI::hier::Patch &patch) {
     for (auto &item : m_samrai_variables_) {
         auto samrai_id = SAMRAI::hier::VariableDatabase::getDatabase()->mapVariableAndContextToIndex(item.second.second,
                                                                                                      getDataContext());
@@ -895,7 +895,7 @@ std::shared_ptr<data::DataNode> SAMRAIHyperbolicPatchStrategyAdapter::PopPatch(S
     FIXME;
     return nullptr;
 }
-void SAMRAIHyperbolicPatchStrategyAdapter::PushPatch(const std::shared_ptr<data::DataNode> &p,
+void SAMRAIHyperbolicPatchStrategyAdapter::PushPatch(const std::shared_ptr<data::DataEntry> &p,
                                                      SAMRAI::hier::Patch &patch) {
     for (auto &item : m_samrai_variables_) {
         auto samrai_id = SAMRAI::hier::VariableDatabase::getDatabase()->mapVariableAndContextToIndex(item.second.second,
@@ -1183,9 +1183,9 @@ SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
 
 void SAMRAITimeIntegrator::Synchronize(int level) {}
 
-std::shared_ptr<data::DataNode> SAMRAITimeIntegrator::Serialize() const { return base_type::Serialize(); }
+std::shared_ptr<data::DataEntry> SAMRAITimeIntegrator::Serialize() const { return base_type::Serialize(); }
 
-void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
+void SAMRAITimeIntegrator::Deserialize(std::shared_ptr<data::DataEntry> const &tdb) {
     base_type::Deserialize(tdb);
     if (tdb != nullptr) { m_pimpl_->m_output_URL_ = tdb->GetValue<std::string>("OutputURL", GetName() + ".simpla"); }
 }
@@ -1199,7 +1199,7 @@ void SAMRAITimeIntegrator::DoInitialize() {
     /** Setup SAMRAI, enable logging, and process command line.     */
     SAMRAI::tbox::SAMRAIManager::startup();
 
-    //    data::DataNode(std::make_shared<DataBackendSAMRAI>()).swap(*backend());
+    //    data::DataEntry(std::make_shared<DataBackendSAMRAI>()).swap(*backend());
     //    const SAMRAI::tbox::SAMRAI_MPI & mpi(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 }
 

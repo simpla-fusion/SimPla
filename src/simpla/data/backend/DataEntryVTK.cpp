@@ -3,7 +3,7 @@
 //
 #include "DataBaseVTK.h"
 
-#include "../DataNode.h"
+#include "../DataEntry.h"
 //#include <vtkDoubleArray.h>
 //#include <vtkPoints.h>
 //#include <vtkUnstructuredGrid.h>
@@ -26,7 +26,7 @@ bool DataBaseVTK::isNull() const { return false; }
 int DataBaseVTK::Disconnect() { return SP_FAILED; }
 
 int DataBaseVTK::Flush() { return SP_FAILED; }
-std::shared_ptr<DataNode> DataBaseVTK::Root() { return DataNode::New(); }
+std::shared_ptr<DataEntry> DataBaseVTK::Root() { return DataEntry::New(); }
 // std::shared_ptr<DataEntity> DataBaseVTK::Get(std::string const& URI) const { return nullptr; }
 // int DataBaseVTK::Set(std::string const& URI, const std::shared_ptr<DataEntity>& d) { return SP_FAILED; }
 // int DataBaseVTK::Add(std::string const& URI, const std::shared_ptr<DataEntity>& d) { return SP_FAILED; }

@@ -21,16 +21,11 @@ struct Curve;
 struct Body;
 /**
  * a surface is a generalization of a plane which needs not be flat, that is, the curvature is not necessarily zero.
- *
  */
 
 struct Surface : public GeoObject {
     SP_GEO_ABS_OBJECT_HEAD(Surface, GeoObject);
-
    public:
-    virtual std::shared_ptr<Curve> GetBoundaryCurve() const;
-    std::shared_ptr<GeoObject> GetBoundary() const final;
-
     virtual std::shared_ptr<PointsOnCurve> GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const;
     virtual std::shared_ptr<Curve> GetIntersection(std::shared_ptr<const Surface> const &g, Real tolerance) const;
     std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const final;
@@ -60,7 +55,7 @@ struct Surface : public GeoObject {
 //    box_type GetBoundingBox() const override;
 //
 //   private:
-//    std::shared_ptr<const Surface> m_surface_;
+//    std::shared_ptr<const Surface> m_curve_;
 //    std::vector<nTuple<Real, 2>> m_data_;
 //};
 }  // namespace geometry

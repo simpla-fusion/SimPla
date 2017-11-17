@@ -46,24 +46,24 @@ Atlas::Atlas() : m_pimpl_(new pimpl_s) {
 };
 Atlas::~Atlas() { delete m_pimpl_; }
 
-std::shared_ptr<data::DataNode> Atlas::Serialize() const {
+std::shared_ptr<data::DataEntry> Atlas::Serialize() const {
     ASSERT(m_pimpl_->m_chart_ != nullptr);
     auto tdb = base_type::Serialize();
     tdb->Set("Chart", m_pimpl_->m_chart_->Serialize());
     tdb->SetValue("LowIndex", std::get<0>(m_pimpl_->m_global_index_box_));
     tdb->SetValue("HighIndex", std::get<1>(m_pimpl_->m_global_index_box_));
-    auto patches = tdb->CreateNode("Patches", data::DataNode::DN_TABLE);
+    auto patches = tdb->CreateNode("Patches", data::DataEntry::DN_TABLE);
     for (auto const &item : m_pimpl_->m_patches_) { patches->Set(item.first, item.second->Serialize()); }
     return tdb;
 };
-void Atlas::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
+void Atlas::Deserialize(std::shared_ptr<data::DataEntry> const &tdb) {
     base_type::Deserialize(tdb);
     m_pimpl_->m_chart_ = geometry::Chart::New(tdb->Get("Chart"));
     std::get<0>(m_pimpl_->m_global_index_box_) = tdb->GetValue("LowIndex", std::get<0>(m_pimpl_->m_global_index_box_));
     std::get<1>(m_pimpl_->m_global_index_box_) = tdb->GetValue("HighIndex", std::get<1>(m_pimpl_->m_global_index_box_));
 
     auto blocks = tdb->Get("Patches");
-    blocks->Foreach([&](std::string const &key, std::shared_ptr<data::DataNode> const &patch) {
+    blocks->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntry> const &patch) {
         auto res = m_pimpl_->m_patches_.emplace(std::stoi(key), Patch::New(patch));
     });
     DoSetUp();
@@ -338,9 +338,9 @@ void Atlas::SyncLocal(int level) {
 //    return os;
 //};
 //
-// void Atlas::Load(const data::DataNode &) { UNIMPLEMENTED; }
+// void Atlas::Load(const data::DataEntry &) { UNIMPLEMENTED; }
 //
-// void Atlas::Save(data::DataNode *) const { UNIMPLEMENTED; }
+// void Atlas::Save(data::DataEntry *) const { UNIMPLEMENTED; }
 //
 // void Atlas::MPISync(id_type id)
 //{

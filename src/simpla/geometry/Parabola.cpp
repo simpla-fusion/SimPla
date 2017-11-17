@@ -11,11 +11,11 @@ Parabola::Parabola() = default;
 Parabola::Parabola(Parabola const &) = default;
 Parabola::Parabola(Axis const &axis) : base_type(axis){};
 Parabola::~Parabola() = default;
-void Parabola::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
+void Parabola::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
     m_focal_ = cfg->GetValue<Real>("Focal", m_focal_);
 }
-std::shared_ptr<simpla::data::DataNode> Parabola::Serialize() const {
+std::shared_ptr<simpla::data::DataEntry> Parabola::Serialize() const {
     auto res = base_type::Serialize();
     res->SetValue<Real>("Focal", m_focal_);
     return res;

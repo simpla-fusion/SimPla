@@ -8,11 +8,7 @@ namespace geometry {
 Shape::Shape() = default;
 Shape::Shape(Shape const &) = default;
 Shape::~Shape() = default;
-Shape::Shape(Axis const &axis) : GeoObject(axis){};
-void Shape::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); };
-std::shared_ptr<simpla::data::DataNode> Shape::Serialize() const {
-    auto res = base_type::Serialize();
-    return res;
-};
+std::shared_ptr<Shape> Shape::Create(std::string const &key) { return Factory<Shape>::Create(key); }
+
 }  // namespace geometry{
 }  // namespace simpla{

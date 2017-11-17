@@ -20,11 +20,11 @@ Sphere::~Sphere() = default;
 Sphere::Sphere(Axis const &axis, Real radius, Real phi0, Real phi1, Real theta0, Real theta1)
     : PrimitiveShape(axis), m_radius_(radius) {}
 
-void Sphere::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
+void Sphere::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
     m_radius_ = cfg->GetValue<Real>("Radius", m_radius_);
 }
-std::shared_ptr<simpla::data::DataNode> Sphere::Serialize() const {
+std::shared_ptr<simpla::data::DataEntry> Sphere::Serialize() const {
     auto res = base_type::Serialize();
     res->SetValue<Real>("Radius", m_radius_);
     return res;

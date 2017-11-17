@@ -8,8 +8,8 @@ namespace simpla {
 namespace geometry {
 
 SP_GEO_OBJECT_REGISTER(Cone)
-void Cone::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
-std::shared_ptr<simpla::data::DataNode> Cone::Serialize() const {
+void Cone::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) { base_type::Deserialize(cfg); }
+std::shared_ptr<simpla::data::DataEntry> Cone::Serialize() const {
     auto res = base_type::Serialize();
     return res;
 }

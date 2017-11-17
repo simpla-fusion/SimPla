@@ -4,7 +4,7 @@
 
 #ifndef SIMPLA_PRIMITIVESSHAPE_H
 #define SIMPLA_PRIMITIVESSHAPE_H
-#include <simpla/data/DataNode.h>
+#include <simpla/data/DataEntry.h>
 #include <simpla/utilities/SPDefines.h>
 #include <memory>
 #include "Shape.h"
@@ -13,11 +13,9 @@ namespace geometry {
 struct Body;
 struct Shell;
 struct PrimitiveShape : public Shape {
-    SP_GEO_ABS_OBJECT_HEAD(PrimitiveShape, Shape)
+    SP_FACTORY_HEAD(Shape, PrimitiveShape, Shape)
 
    public:
-    std::shared_ptr<Body> AsBody() const override;
-    std::shared_ptr<Shell> AsShell() const override;
     virtual point_type xyz(Real r, Real phi, Real theta) const;
     virtual point_type uvw(Real x, Real y, Real z) const;
 

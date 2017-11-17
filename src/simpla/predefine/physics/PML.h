@@ -66,11 +66,11 @@ PML<TDomain>::PML() : base_type(), m_dB_(100.0), m_expN_(2.0) {}
 template <typename TDomain>
 PML<TDomain>::~PML() {}
 template <typename TDomain>
-std::shared_ptr<data::DataNode> PML<TDomain>::Serialize() const {
+std::shared_ptr<data::DataEntry> PML<TDomain>::Serialize() const {
     return base_type::Serialize();
 };
 template <typename TDomain>
-void PML<TDomain>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
+void PML<TDomain>::Deserialize(std::shared_ptr<data::DataEntry> const& cfg) {
     base_type::Deserialize(cfg);
 }
 

@@ -5,7 +5,7 @@
 #ifndef SIMPLA_AXIS_H
 #define SIMPLA_AXIS_H
 
-#include <simpla/data/DataNode.h>
+#include <simpla/data/DataEntry.h>
 namespace simpla {
 template <typename, int...>
 struct nTuple;
@@ -57,8 +57,8 @@ struct Axis {
 
     virtual std::shared_ptr<Axis> Copy() const { return std::make_shared<Axis>(*this); };
 
-    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg);
-    std::shared_ptr<simpla::data::DataNode> Serialize() const;
+    void Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg);
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const;
 
     template <typename... Args>
     void SetUp(point_type const &origin, Args &&... args) {

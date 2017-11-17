@@ -26,18 +26,18 @@ std::shared_ptr<GeoObject> GeoObject::New(std::string const &s) {
     return res;
 }
 
-std::shared_ptr<GeoObject> GeoObject::New(std::shared_ptr<data::DataNode> const &cfg) {
+std::shared_ptr<GeoObject> GeoObject::New(std::shared_ptr<data::DataEntry> const &cfg) {
     auto res = Factory<GeoObject>::Create(cfg->GetValue<std::string>("_REGISTER_NAME_", ""));
     res->Deserialize(cfg);
     return res;
 };
-std::shared_ptr<data::DataNode> GeoObject::Serialize() const {
-    auto res = data::DataNode::New(data::DataNode::DN_TABLE);
+std::shared_ptr<data::DataEntry> GeoObject::Serialize() const {
+    auto res = data::DataEntry::New(data::DataEntry::DN_TABLE);
     res->Set("Axis", m_axis_.Serialize());
     res->SetValue("_TYPE_", FancyTypeName());
     return res;
 }
-void GeoObject::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { m_axis_.Deserialize(cfg->Get("Axis")); }
+void GeoObject::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) { m_axis_.Deserialize(cfg->Get("Axis")); }
 
 int GeoObject::GetDimension() const { return 3; }
 bool GeoObject::IsSimpleConnected() const { return true; }

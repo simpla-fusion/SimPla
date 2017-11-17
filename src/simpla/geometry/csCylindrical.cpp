@@ -14,17 +14,8 @@ namespace geometry {
 
 csCylindrical::csCylindrical() : Chart() {}
 csCylindrical::~csCylindrical() = default;
-std::shared_ptr<simpla::data::DataNode> csCylindrical::Serialize() const { return base_type::Serialize(); };
-void csCylindrical::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); };
-
-std::shared_ptr<Curve> csCylindrical::GetAxis(index_tuple const &idx0, int dir) const {
-    return GetAxis(local_coordinates(idx0), dir);
-};
-std::shared_ptr<GeoObject> csCylindrical::GetBoundingShape(box_type const &uvw) const {
-    point_type u_min, u_max;
-    std::tie(u_min, u_max) = std::get<1>(uvw) - std::get<0>(uvw);
-    return Revolution::New(m_axis_, Face::New(b[0], b[1]), b[2]);
-}
+std::shared_ptr<simpla::data::DataEntry> csCylindrical::Serialize() const { return base_type::Serialize(); };
+void csCylindrical::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) { base_type::Deserialize(cfg); };
 
 std::shared_ptr<Curve> csCylindrical::GetAxis(point_type const &uvw, int dir) const {
     std::shared_ptr<Curve> res = nullptr;
@@ -44,6 +35,14 @@ std::shared_ptr<Curve> csCylindrical::GetAxis(point_type const &uvw, int dir) co
     }
     return res;
 }
+std::shared_ptr<Surface> csCylindrical::GetSurface(point_type const &x0, int dir) const {
+    std::shared_ptr<Surface> res = nullptr;
+    return res;
+};
+
+std::shared_ptr<GeoObject> csCylindrical::GetBoundingShape(box_type const &uvw) const {
+    return base_type::GetBoundingShape(uvw);
+};
 
 }  // namespace geometry
 }  // namespace simpla

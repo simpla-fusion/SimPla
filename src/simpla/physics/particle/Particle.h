@@ -32,8 +32,8 @@ class ParticleBase : public engine::Attribute {
     void DoInitialize() override;
     void DoFinalize() override;
 
-    void Push(std::shared_ptr<data::DataNode> const& blk) override;
-    std::shared_ptr<data::DataNode> Pop() const override;
+    void Push(std::shared_ptr<data::DataEntry> const& blk) override;
+    std::shared_ptr<data::DataEntry> Pop() const override;
 
     void SetNumberOfAttributes(int n);
     int GetNumberOfAttributes() const;
@@ -138,11 +138,11 @@ template <typename TM>
 Particle<TM>::~Particle(){};
 
 template <typename TM>
-std::shared_ptr<simpla::data::DataNode> Particle<TM>::Serialize() const {
+std::shared_ptr<simpla::data::DataEntry> Particle<TM>::Serialize() const {
     return base_type::Serialize();
 }
 template <typename TM>
-void Particle<TM>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
+void Particle<TM>::Deserialize(std::shared_ptr<data::DataEntry> const& cfg) {
     base_type::Deserialize(cfg);
 }
 }  // namespace simpla{

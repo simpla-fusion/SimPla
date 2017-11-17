@@ -17,12 +17,12 @@ Line::Line(point_type const &p0, point_type const &p1) : Curve() {
 };
 Line::Line(point_type const &p0, vector_type const &dir, Real l) : Curve(Axis{p0, dir}), m_length_(l) {}
 
-std::shared_ptr<data::DataNode> Line::Serialize() const {
+std::shared_ptr<data::DataEntry> Line::Serialize() const {
     auto res = base_type::Serialize();
     res->SetValue("Length", m_length_);
     return res;
 };
-void Line::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
+void Line::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
     m_length_ = cfg->GetValue("Length", m_length_);
 }

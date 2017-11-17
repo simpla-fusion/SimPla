@@ -5,7 +5,7 @@
 #ifndef SIMPLA_ENGINE_H
 #define SIMPLA_ENGINE_H
 
-#include <simpla/data/DataNode.h>
+#include <simpla/data/DataEntry.h>
 #include <simpla/data/SPObject.h>
 #include <simpla/utilities/SPDefines.h>
 #include <simpla/utilities/SingletonHolder.h>
@@ -15,7 +15,7 @@ namespace simpla {
 namespace geometry {
 
 void Initialize(std::string const &key = "");
-void Initialize(std::shared_ptr<const data::DataNode> const &);
+void Initialize(std::shared_ptr<const data::DataEntry> const &);
 void Finalize();
 
 class GeoObject;
@@ -31,8 +31,8 @@ struct GeoEngineAPI {
    public:
     GeoEngineAPI();
     virtual ~GeoEngineAPI();
-    virtual void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg);
-    virtual std::shared_ptr<simpla::data::DataNode> Serialize() const;
+    virtual void Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg);
+    virtual std::shared_ptr<simpla::data::DataEntry> Serialize() const;
     virtual std::shared_ptr<GeoObject> GetBoundary(std::shared_ptr<const GeoObject> const &) const;
     virtual bool CheckIntersection(std::shared_ptr<const GeoObject> const &, point_type const &x, Real tolerance) const;
     virtual bool CheckIntersection(std::shared_ptr<const GeoObject> const &, box_type const &, Real tolerance) const;

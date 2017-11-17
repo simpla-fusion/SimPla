@@ -27,8 +27,8 @@ class DomainBase : public EngineObject, public AttributeGroup {
     SP_OBJECT_HEAD(DomainBase, EngineObject)
 
    public:
-    //    void Push(const std::shared_ptr<data::DataNode> &) override;
-    //    std::shared_ptr<data::DataNode> Pop() const override;
+    //    void Push(const std::shared_ptr<data::DataEntry> &) override;
+    //    std::shared_ptr<data::DataEntry> Pop() const override;
 
     void Push(const std::shared_ptr<Patch> &) override;
     std::shared_ptr<Patch> Pop() const override;
@@ -49,8 +49,8 @@ class DomainBase : public EngineObject, public AttributeGroup {
     void DoUpdate() override;
     void DoTearDown() override;
 
-    design_pattern::Signal<void(DomainBase *, std::shared_ptr<simpla::data::DataNode> const &)> OnDeserialize;
-    design_pattern::Signal<void(DomainBase const *, std::shared_ptr<simpla::data::DataNode> &)> OnSerialize;
+    design_pattern::Signal<void(DomainBase *, std::shared_ptr<simpla::data::DataEntry> const &)> OnDeserialize;
+    design_pattern::Signal<void(DomainBase const *, std::shared_ptr<simpla::data::DataEntry> &)> OnSerialize;
 
     virtual void DoInitialCondition(Real time_now) {}
 
@@ -96,9 +96,9 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     std::shared_ptr<const geometry::Chart> GetChart() const override { return DomainBase::GetChart(); };
     std::shared_ptr<const engine::MeshBlock> GetMeshBlock() const override { return DomainBase::GetMeshBlock(); };
 
-    std::shared_ptr<data::DataNode> db() const override { return SPObject::db(); }
-    std::shared_ptr<data::DataNode> db() override { return SPObject::db(); }
-    void db(std::shared_ptr<data::DataNode> const &d) override { SPObject::db(d); }
+    std::shared_ptr<data::DataEntry> db() const override { return SPObject::db(); }
+    std::shared_ptr<data::DataEntry> db() override { return SPObject::db(); }
+    void db(std::shared_ptr<data::DataEntry> const &d) override { SPObject::db(d); }
 
     void DoSetUp() override;
     void DoUpdate() override;
@@ -134,16 +134,16 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     void DoAdvance(Real time_now, Real dt) override;                                                                   \
     void DoTagRefinementCells(Real time_now) override;                                                                 \
     void AddOnDeserialize(                                                                                             \
-        std::function<void(this_type *, std::shared_ptr<simpla::data::DataNode> const &)> const &fun) {                \
+        std::function<void(this_type *, std::shared_ptr<simpla::data::DataEntry> const &)> const &fun) {                \
         simpla::engine::DomainBase::OnDeserialize.Connect(                                                             \
-            [=](simpla::engine::DomainBase *self, std::shared_ptr<simpla::data::DataNode> const &cfg) {                \
+            [=](simpla::engine::DomainBase *self, std::shared_ptr<simpla::data::DataEntry> const &cfg) {                \
                 if (auto d = dynamic_cast<this_type *>(self)) { fun(d, cfg); };                                        \
             });                                                                                                        \
     }                                                                                                                  \
     void AddOnSerialize(                                                                                               \
-        std::function<void(this_type const *, std::shared_ptr<simpla::data::DataNode> const &)> const &fun) {          \
+        std::function<void(this_type const *, std::shared_ptr<simpla::data::DataEntry> const &)> const &fun) {          \
         simpla::engine::DomainBase::OnDeserialize.Connect(                                                             \
-            [=](simpla::engine::DomainBase const *self, std::shared_ptr<simpla::data::DataNode> const &cfg) {          \
+            [=](simpla::engine::DomainBase const *self, std::shared_ptr<simpla::data::DataEntry> const &cfg) {          \
                 if (auto d = dynamic_cast<this_type const *>(self)) { fun(d, cfg); };                                  \
             });                                                                                                        \
     }                                                                                                                  \
@@ -172,8 +172,8 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     _NAME_(_NAME_ &&other) = delete;                   \
     _NAME_ &operator=(_NAME_ const &other) = delete;   \
     _NAME_ &operator=(_NAME_ &&other) = delete;        \
-    std::shared_ptr<data::DataNode> Serialize() const; \
-    void Deserialize(std::shared_ptr<data::DataNode> const &cfg);
+    std::shared_ptr<data::DataEntry> Serialize() const; \
+    void Deserialize(std::shared_ptr<data::DataEntry> const &cfg);
 
 template <typename TChart, template <typename> class... Policies>
 Domain<TChart, Policies...>::Domain() : DomainBase(), Policies<this_type>(this)... {}
@@ -181,12 +181,12 @@ template <typename TChart, template <typename> class... Policies>
 Domain<TChart, Policies...>::~Domain(){};
 
 template <typename TChart, template <typename> class... Policies>
-std::shared_ptr<data::DataNode> Domain<TChart, Policies...>::Serialize() const {
+std::shared_ptr<data::DataEntry> Domain<TChart, Policies...>::Serialize() const {
     return DomainBase::Serialize();
 };
 
 template <typename TChart, template <typename> class... Policies>
-void Domain<TChart, Policies...>::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
+void Domain<TChart, Policies...>::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) {
     DomainBase::Deserialize(cfg);
 };
 

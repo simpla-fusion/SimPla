@@ -13,7 +13,7 @@
 using namespace simpla;
 using namespace simpla::data;
 TEST(DataTable, lua) {
-    auto db = DataNode::New("lua://");
+    auto db = DataEntry::New("lua://");
     db->Parse(
         "PI = 3.141592653589793, \n "
         "c = 299792458.0, -- m/s\n"
@@ -50,14 +50,14 @@ class DataBaseTest : public testing::TestWithParam<std::string> {
     void SetUp() {
         logger::set_stdout_level(logger::LOG_VERBOSE);
         m_url = GetParam();
-        db = DataNode::New(m_url);
+        db = DataEntry::New(m_url);
         //        MESSAGE << " Data URL : \"" << m_url << "\"" << std::endl;
     }
     void TearDown() {}
 
    public:
     virtual ~DataBaseTest() {}
-    std::shared_ptr<data::DataNode> db = nullptr;
+    std::shared_ptr<data::DataEntry> db = nullptr;
     std::string m_url;
 };
 
@@ -121,7 +121,7 @@ TEST_P(DataBaseTest, light_data_keyvalue) {
 }
 
 // TEST_P(DataBaseTest, block_data) {
-//    auto backend = DataNode::New(m_url);
+//    auto backend = DataEntry::New(m_url);
 //}
 INSTANTIATE_TEST_CASE_P(DataBaseTestP, DataBaseTest,
                         testing::Values(               //

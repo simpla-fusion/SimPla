@@ -33,10 +33,10 @@ template <typename TChart, template <typename> class... Policies>
 EBDomain<TChart, Policies...>::~EBDomain() {}
 
 template <typename TChart, template <typename> class... Policies>
-void EBDomain<TChart, Policies...>::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg){};
+void EBDomain<TChart, Policies...>::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg){};
 
 template <typename TChart, template <typename> class... Policies>
-std::shared_ptr<simpla::data::DataNode> EBDomain<TChart, Policies...>::Serialize() const {
+std::shared_ptr<simpla::data::DataEntry> EBDomain<TChart, Policies...>::Serialize() const {
     return base_type::Serialize();
 };
 }  // namespace engine

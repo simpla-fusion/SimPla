@@ -1,7 +1,7 @@
-simpla_test(DataNode_test DataNode_test.cpp)
-target_link_libraries(DataNode_test
+simpla_test(DataEntry_test DataEntry_test.cpp)
+target_link_libraries(DataEntry_test
         -Wl,--whole-archive
-          data utilities data_backend
+          data  data_backend utilities
         -Wl,--no-whole-archive
 
         )

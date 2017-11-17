@@ -11,8 +11,8 @@ SimpleTimeIntegrator::SimpleTimeIntegrator() {}
 
 SimpleTimeIntegrator::~SimpleTimeIntegrator() {}
 
-std::shared_ptr<simpla::data::DataNode> SimpleTimeIntegrator::Serialize() const { return base_type::Serialize(); }
-void SimpleTimeIntegrator::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
+std::shared_ptr<simpla::data::DataEntry> SimpleTimeIntegrator::Serialize() const { return base_type::Serialize(); }
+void SimpleTimeIntegrator::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
 }
 

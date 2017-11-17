@@ -15,8 +15,8 @@ struct ShapeBoxBase {
     explicit ShapeBoxBase(box_type const &b) : m_parameter_box_(b) {}
 
    public:
-    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg);
-    std::shared_ptr<simpla::data::DataNode> Serialize() const;
+    void Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg);
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const;
     box_type GetParameterBox() const { return m_parameter_box_; }
     void SetParameterBox(box_type const &b) { m_parameter_box_ = b; }
     virtual std::shared_ptr<const GeoObject> GetBaseShape() const = 0;
@@ -42,12 +42,12 @@ template <typename BaseShape>
 ShapeBox<BaseShape>::ShapeBox(Axis const &axis) : base_type(axis){};
 
 template <typename BaseShape>
-void ShapeBox<BaseShape>::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
+void ShapeBox<BaseShape>::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
     ShapeBoxBase::Deserialize(cfg->Get("Parameter"));
 };
 template <typename BaseShape>
-std::shared_ptr<simpla::data::DataNode> ShapeBox<BaseShape>::Serialize() const {
+std::shared_ptr<simpla::data::DataEntry> ShapeBox<BaseShape>::Serialize() const {
     auto res = base_type::Serialize();
     res->SetValue("Parameter", ShapeBoxBase::Serialize());
     return res;

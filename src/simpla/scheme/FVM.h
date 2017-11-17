@@ -600,11 +600,11 @@ FVM<THost>::~FVM() {}
 //}
 
 template <typename THost>
-std::shared_ptr<data::DataNode> FVM<THost>::Serialize() const {
+std::shared_ptr<data::DataEntry> FVM<THost>::Serialize() const {
     return nullptr;
 }
 template <typename THost>
-void FVM<THost>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}
+void FVM<THost>::Deserialize(std::shared_ptr<data::DataEntry> const& cfg) {}
 //    //**********************************************************************************************
 //    // for element-wise arithmetic operation
 //

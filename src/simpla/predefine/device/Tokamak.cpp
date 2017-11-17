@@ -50,8 +50,8 @@ struct Tokamak::pimpl_s {
 
 Tokamak::Tokamak(std::string const &url) : m_pimpl_(new pimpl_s) { ReadGFile(url); }
 Tokamak::~Tokamak() { delete m_pimpl_; }
-void Tokamak::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
-std::shared_ptr<simpla::data::DataNode> Tokamak::Serialize() const {
+void Tokamak::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) { base_type::Deserialize(cfg); }
+std::shared_ptr<simpla::data::DataEntry> Tokamak::Serialize() const {
     auto res = base_type::Serialize();
     return res;
 }

@@ -14,8 +14,8 @@ Curve::~Curve() = default;
 Curve::Curve(Curve const &other) = default;
 Curve::Curve(Axis const &axis) : GeoObject(axis) {}
 
-std::shared_ptr<simpla::data::DataNode> Curve::Serialize() const { return base_type::Serialize(); };
-void Curve::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); };
+std::shared_ptr<simpla::data::DataEntry> Curve::Serialize() const { return base_type::Serialize(); };
+void Curve::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) { base_type::Deserialize(cfg); };
 std::shared_ptr<GeoObject> Curve::GetBoundary() const {
     return std::dynamic_pointer_cast<base_type>(GetBoundaryPoints());
 }
@@ -71,8 +71,8 @@ std::shared_ptr<GeoObject> Curve::GetIntersection(std::shared_ptr<const GeoObjec
 // PointsOnCurve::~PointsOnCurve() = default;
 // PointsOnCurve::PointsOnCurve(std::shared_ptr<const Curve> const &curve)
 //    : PolyPoints(curve->GetAxis()), m_curve_(std::dynamic_pointer_cast<Curve>(curve->Copy())) {}
-// std::shared_ptr<data::DataNode> PointsOnCurve::Serialize() const { return base_type::Serialize(); };
-// void PointsOnCurve::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
+// std::shared_ptr<data::DataEntry> PointsOnCurve::Serialize() const { return base_type::Serialize(); };
+// void PointsOnCurve::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) { base_type::Deserialize(cfg); }
 // Axis const &PointsOnCurve::GetAxis() const { return m_curve_->GetAxis(); };
 // std::shared_ptr<const Curve> PointsOnCurve::GetBasisCurve() const { return m_curve_; }
 // void PointsOnCurve::SetBasisCurve(std::shared_ptr<const Curve> const &c) { m_curve_ = c; }
@@ -92,7 +92,7 @@ std::shared_ptr<GeoObject> Curve::GetIntersection(std::shared_ptr<const GeoObjec
 ////
 ////Circle::Circle() = default;
 ////
-////std::shared_ptr<simpla::data::DataNode> Circle::Serialize() const {
+////std::shared_ptr<simpla::data::DataEntry> Circle::Serialize() const {
 ////    auto cfg = base_type::Serialize();
 ////    cfg->SetValue("Origin", m_origin_);
 ////    cfg->SetValue("Radius", m_radius_);
@@ -101,10 +101,10 @@ std::shared_ptr<GeoObject> Curve::GetIntersection(std::shared_ptr<const GeoObjec
 ////    cfg->SetValue("Radius", m_radius_);
 ////    return cfg;
 ////};
-////void Circle::Deserialize(std::shared_ptr<simpla::data::DataNode> const& cfg) { base_type::Deserialize(cfg); };
+////void Circle::Deserialize(std::shared_ptr<simpla::data::DataEntry> const& cfg) { base_type::Deserialize(cfg); };
 ////Arc::Arc() = default;
 ////Arc::~Arc() = default;
-////std::shared_ptr<simpla::data::DataNode> Arc::Serialize() const {
+////std::shared_ptr<simpla::data::DataEntry> Arc::Serialize() const {
 ////    auto cfg = base_type::Serialize();
 ////    cfg->SetValue("Origin", m_origin_);
 ////    cfg->SetValue("Radius", m_radius_);
@@ -114,7 +114,7 @@ std::shared_ptr<GeoObject> Curve::GetIntersection(std::shared_ptr<const GeoObjec
 ////    cfg->SetValue("YAXis", m_YAxis_);
 ////    return cfg;
 ////};
-////void Arc::Deserialize(std::shared_ptr<simpla::data::DataNode> const& cfg) {
+////void Arc::Deserialize(std::shared_ptr<simpla::data::DataEntry> const& cfg) {
 ////    base_type::Deserialize(cfg);
 ////    m_origin_ = cfg->GetValue("Origin", m_origin_);
 ////    m_radius_ = cfg->GetValue("Radius", m_radius_);
@@ -125,13 +125,13 @@ std::shared_ptr<GeoObject> Curve::GetIntersection(std::shared_ptr<const GeoObjec
 ////};
 // Line::Line() = default;
 // Line::~Line() = default;
-// std::shared_ptr<simpla::data::DataNode> Line::Serialize() const {
+// std::shared_ptr<simpla::data::DataEntry> Line::Serialize() const {
 //    auto cfg = base_type::Serialize();
 //    cfg->SetValue("Begin", m_p0_);
 //    cfg->SetValue("End", m_p1_);
 //    return cfg;
 //};
-// void Line::Deserialize(std::shared_ptr<simpla::data::DataNode> const& cfg) {
+// void Line::Deserialize(std::shared_ptr<simpla::data::DataEntry> const& cfg) {
 //    base_type::Deserialize(cfg);
 //    m_p0_ = cfg->GetValue("Begin", m_p0_);
 //    m_p1_ = cfg->GetValue("End", m_p1_);
@@ -139,12 +139,12 @@ std::shared_ptr<GeoObject> Curve::GetIntersection(std::shared_ptr<const GeoObjec
 //
 // AxeLine::AxeLine() = default;
 // AxeLine::~AxeLine() = default;
-// std::shared_ptr<simpla::data::DataNode> AxeLine::Serialize() const {
+// std::shared_ptr<simpla::data::DataEntry> AxeLine::Serialize() const {
 //    auto cfg = base_type::Serialize();
 //    cfg->SetValue("Direction", m_dir_);
 //    return cfg;
 //};
-// void AxeLine::Deserialize(std::shared_ptr<simpla::data::DataNode> const& cfg) {
+// void AxeLine::Deserialize(std::shared_ptr<simpla::data::DataEntry> const& cfg) {
 //    base_type::Deserialize(cfg);
 //    m_dir_ = cfg->GetValue("Direction", m_dir_);
 //};

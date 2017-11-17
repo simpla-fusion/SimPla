@@ -74,8 +74,8 @@ class Scenario : public EngineObject {
     id_type SetPatch(id_type id, const std::shared_ptr<Patch> &p);
     std::shared_ptr<Patch> GetPatch(id_type id) const;
 
-    //    std::map<std::string, std::shared_ptr<data::DataNode>> const &GetAttributes() const;
-    //    std::map<std::string, std::shared_ptr<data::DataNode>> &GetAttributes();
+    //    std::map<std::string, std::shared_ptr<data::DataEntry>> const &GetAttributes() const;
+    //    std::map<std::string, std::shared_ptr<data::DataEntry>> &GetAttributes();
 
     std::shared_ptr<Attribute> GetAttribute(std::string const &key);
     std::shared_ptr<Attribute> GetAttribute(std::string const &key) const;

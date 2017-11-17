@@ -2,17 +2,18 @@
 // Created by salmon on 17-9-1.
 //
 #include <simpla/data/DataFunction.h>
+#include <simpla/utilities/Factory.h>
 #include <fstream>
 
 #include "../DataEntity.h"
-#include "../DataNode.h"
+#include "../DataEntry.h"
 #include "../DataTraits.h"
-#include "DataNodeMemory.h"
+#include "DataEntryMemory.h"
 #include "LuaObject.h"
 namespace simpla {
 namespace data {
-struct DataNodeLua : public DataNodeMemory {
-    SP_DATA_NODE_HEAD(DataNodeLua, DataNodeMemory)
+struct DataEntryLua : public DataEntryMemory {
+    SP_DATA_NODE_HEAD(DataEntryMemory, DataEntryLua, lua)
 
    public:
     int Connect(std::string const& authority, std::string const& path, std::string const& query,
@@ -30,11 +31,12 @@ struct DataNodeLua : public DataNodeMemory {
     std::string m_file_name_ = "simpla_unnamed.lua";
 };
 
-REGISTER_CREATOR(DataNodeLua, lua);
-DataNodeLua::DataNodeLua(DataNode::eNodeType e_type) : base_type(e_type){};
-DataNodeLua::~DataNodeLua() = default;
-int DataNodeLua::Connect(std::string const& authority, std::string const& path, std::string const& query,
-                         std::string const& fragment) {
+SP_REGISTER_CREATOR(DataEntry, DataEntryLua);
+DataEntryLua::DataEntryLua(DataEntry::eNodeType e_type) : base_type(e_type){};
+DataEntryLua::DataEntryLua(DataEntryLua const& other) = default;
+DataEntryLua::~DataEntryLua() = default;
+int DataEntryLua::Connect(std::string const& authority, std::string const& path, std::string const& query,
+                          std::string const& fragment) {
     if (!path.empty()) {
         auto tmp = LuaObject::New();
         tmp->parse_file(path);
@@ -44,13 +46,13 @@ int DataNodeLua::Connect(std::string const& authority, std::string const& path, 
     }
     return SP_SUCCESS;
 }
-int DataNodeLua::Disconnect() { return 0; }
-int DataNodeLua::Flush() {
+int DataEntryLua::Disconnect() { return 0; }
+int DataEntryLua::Flush() {
     int success = 0;
     if (isRoot()) { success = Dump(GetFileName()); }
     return success;
 }
-int DataNodeLua::Parse(std::string const& str) {
+int DataEntryLua::Parse(std::string const& str) {
     auto tmp = LuaObject::New();
     tmp->parse_string("_ROOT_={" + str + "}");
     Load(tmp->get("_ROOT_"));
@@ -81,17 +83,17 @@ std::ostream& PrintLua(std::ostream& os, std::shared_ptr<const DataEntity> const
     return os;
 }
 
-std::ostream& PrintLua(std::ostream& os, std::shared_ptr<DataNode> const& node, int indent) {
+std::ostream& PrintLua(std::ostream& os, std::shared_ptr<const DataEntry> const& node, int indent) {
     if (node == nullptr) {
         os << "<N/A>";
         return os;
     }
     switch (node->type()) {
-        case DataNode::DN_ENTITY: {
+        case DataEntry::DN_ENTITY: {
             auto entity = node->GetEntity();
             if (entity != nullptr) PrintLua(os, node->GetEntity(), indent + 1);
         } break;
-        case DataNode::DN_ARRAY: {
+        case DataEntry::DN_ARRAY: {
             os << "{ ";
             bool is_first = true;
             bool new_line = node->size() > 1;
@@ -108,7 +110,7 @@ std::ostream& PrintLua(std::ostream& os, std::shared_ptr<DataNode> const& node, 
             //            if (new_line) { os << std::endl << std::setw(indent) << " "; }
             os << "}";
         } break;
-        case DataNode::DN_TABLE: {
+        case DataEntry::DN_TABLE: {
             os << "{ ";
             bool is_first = true;
             bool new_line = node->size() > 1;
@@ -129,7 +131,7 @@ std::ostream& PrintLua(std::ostream& os, std::shared_ptr<DataNode> const& node, 
             if (new_line) { os << std::endl << std::setw(indent) << " "; }
             os << "}";
         } break;
-        case DataNode::DN_FUNCTION:
+        case DataEntry::DN_FUNCTION:
             os << "<FUNCTION>";
             break;
         default:
@@ -139,40 +141,40 @@ std::ostream& PrintLua(std::ostream& os, std::shared_ptr<DataNode> const& node, 
 
     return os;
 }
-size_type DataNodeLua::Dump(std::string const& path) {
+size_type DataEntryLua::Dump(std::string const& path) {
     std::ofstream os(path);
     PrintLua(os, shared_from_this(), 0);
     return 1;
 }
 
-std::shared_ptr<DataNode> LuaToDataNode(std::shared_ptr<LuaObject> const& tobj) {
-    if (tobj == nullptr) { return DataNode::New(DataEntity::New()); }
-    std::shared_ptr<DataNode> res = nullptr;
+std::shared_ptr<DataEntry> LuaToDataEntry(std::shared_ptr<LuaObject> const& tobj) {
+    if (tobj == nullptr) { return DataEntry::New(DataEntity::New()); }
+    std::shared_ptr<DataEntry> res = nullptr;
     switch (tobj->type()) {
         case LuaObject::LUA_T_BOOLEAN:
-            res = DataNode::New(DataLight::New(tobj->as<bool>()));
+            res = DataEntry::New(DataLight::New(tobj->as<bool>()));
             break;
         case LuaObject::LUA_T_INTEGER:
-            res = DataNode::New(DataLight::New(tobj->as<int>()));
+            res = DataEntry::New(DataLight::New(tobj->as<int>()));
             break;
         case LuaObject::LUA_T_FLOATING:
-            res = DataNode::New(DataLight::New(tobj->as<double>()));
+            res = DataEntry::New(DataLight::New(tobj->as<double>()));
             break;
         case LuaObject::LUA_T_STRING:
-            res = DataNode::New(DataLight::New(tobj->as<std::string>()));
+            res = DataEntry::New(DataLight::New(tobj->as<std::string>()));
             break;
         case LuaObject::LUA_T_TABLE:
-            res = DataNode::New(DataNode::DN_TABLE);
-            for (auto const& kv : *tobj) { res->Set(kv.first->as<std::string>(), LuaToDataNode(kv.second)); }
+            res = DataEntry::New(DataEntry::DN_TABLE);
+            for (auto const& kv : *tobj) { res->Set(kv.first->as<std::string>(), LuaToDataEntry(kv.second)); }
             break;
 
         case LuaObject::LUA_T_ARRAY: {
-            res = DataNode::New(DataNode::DN_ARRAY);
-            for (auto const& kv : *tobj) { res->Add(LuaToDataNode(kv.second)); }
+            res = DataEntry::New(DataEntry::DN_ARRAY);
+            for (auto const& kv : *tobj) { res->Add(LuaToDataEntry(kv.second)); }
             break;
         }
         case LuaObject::LUA_T_FUNCTION:
-            res = DataNode::New(DataNode::DN_FUNCTION);
+            res = DataEntry::New(DataEntry::DN_FUNCTION);
             TODO << " Create Lua Function";
             break;
         default:
@@ -180,9 +182,9 @@ std::shared_ptr<DataNode> LuaToDataNode(std::shared_ptr<LuaObject> const& tobj) 
     }
     return res;
 }
-size_type DataNodeLua::Load(std::shared_ptr<LuaObject> const& lobj) {
+size_type DataEntryLua::Load(std::shared_ptr<LuaObject> const& lobj) {
     size_type count = 0;
-    LuaToDataNode(lobj)->Foreach([&](std::string k, std::shared_ptr<DataNode> v) { count += this->Set(k, v); });
+    LuaToDataEntry(lobj)->Foreach([&](std::string k, std::shared_ptr<DataEntry> v) { count += this->Set(k, v); });
     return count;
 }
 

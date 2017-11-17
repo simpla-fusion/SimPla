@@ -30,8 +30,8 @@ struct GeoEngineOCE : public GeoEngineAPI {
     static std::shared_ptr<this_type> New(Args &&... args) {
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
     }
-    void Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) override;
-    std::shared_ptr<simpla::data::DataNode> Serialize() const override;
+    void Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) override;
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
     void OpenFile(std::string const &path) override;
     void CloseFile() override;

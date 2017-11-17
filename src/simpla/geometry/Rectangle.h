@@ -17,8 +17,8 @@ struct Rectangle : public Face {
     Rectangle(Axis const& axis, Real l, Real w);
 
    public:
-    point2d_type xy(Real u, Real v) const override { return point2d_type{u * m_l_, v * m_w_}; };
-    point2d_type uv(Real x, Real y) const override { return point2d_type{x / m_l_, y / m_w_}; };
+    point_type xy(Real u, Real v) const override { return m_axis_.xyz(u * m_l_, v * m_w_,0) ; };
+    point_type uv(Real x, Real y) const override { return point_type{x / m_l_, y / m_w_,0}; };
 
     Real GetWidth() const { return m_w_; }
     void SetWidth(Real w) { m_w_ = w; }

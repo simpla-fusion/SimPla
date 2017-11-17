@@ -30,7 +30,7 @@ struct csCartesian : public Chart {
    public:
     typedef Real scalar_type;
     std::shared_ptr<Curve> GetAxis(point_type const &x0, int dir) const override;
-    std::shared_ptr<Curve> GetAxis(index_tuple const &x0, int dir) const override;
+    std::shared_ptr<GeoObject> GetBoundingShape(box_type const &uvw) const override;
 
     /**
      * metric only diff_scheme the volume of simplex
@@ -58,7 +58,6 @@ struct csCartesian : public Chart {
     Real inner_product(point_type const &uvw, vector_type const &v0, vector_type const &v1) const override {
         return v0[0] * v1[0] + v0[1] * v1[1] + v0[2] * v1[2];
     };
-
 };
 /** @}*/
 }  // namespace geometry {

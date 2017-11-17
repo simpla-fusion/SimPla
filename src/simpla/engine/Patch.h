@@ -7,7 +7,7 @@
 
 #include <memory>
 
-#include <simpla/data/DataNode.h>
+#include <simpla/data/DataEntry.h>
 #include "MeshBlock.h"
 
 namespace simpla {
@@ -24,7 +24,7 @@ class Patch : public std::enable_shared_from_this<Patch> {
 
 
     explicit Patch(std::shared_ptr<const MeshBlock> const &mblk);
-    explicit Patch(std::shared_ptr<data::DataNode> const &cfg) : Patch() { Deserialize(cfg); };
+    explicit Patch(std::shared_ptr<data::DataEntry> const &cfg) : Patch() { Deserialize(cfg); };
 
    public:
     ~Patch();
@@ -37,12 +37,12 @@ class Patch : public std::enable_shared_from_this<Patch> {
         return std::shared_ptr<Patch>(new Patch(std::forward<Args>(args)...));
     };
 
-    std::shared_ptr<data::DataNode> Serialize() const;
-    void Deserialize(std::shared_ptr<data::DataNode> const &cfg);
+    std::shared_ptr<data::DataEntry> Serialize() const;
+    void Deserialize(std::shared_ptr<data::DataEntry> const &cfg);
 
-    std::shared_ptr<data::DataNode> GetDataBlock(std::string const &) const;
-    void SetDataBlock(std::string const &, std::shared_ptr<data::DataNode> const &);
-    std::map<std::string, std::shared_ptr<data::DataNode>> const &GetAllDataBlocks() const;
+    std::shared_ptr<data::DataEntry> GetDataBlock(std::string const &) const;
+    void SetDataBlock(std::string const &, std::shared_ptr<data::DataEntry> const &);
+    std::map<std::string, std::shared_ptr<data::DataEntry>> const &GetAllDataBlocks() const;
 
     void SetMeshBlock(const std::shared_ptr<const MeshBlock> &blk);
     std::shared_ptr<const MeshBlock> GetMeshBlock() const;

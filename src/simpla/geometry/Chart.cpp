@@ -3,6 +3,8 @@
 //
 #include "Chart.h"
 #include "Box.h"
+#include "Face.h"
+
 namespace simpla {
 namespace geometry {
 
@@ -15,7 +17,7 @@ Chart::Chart(point_type const &origin, point_type const &grid_width)
     Update();
 }
 
-std::shared_ptr<data::DataNode> Chart::Serialize() const {
+std::shared_ptr<data::DataEntry> Chart::Serialize() const {
     auto tdb = base_type::Serialize();
     if (tdb != nullptr) {
         tdb->SetValue("Level", GetLevel());
@@ -24,7 +26,7 @@ std::shared_ptr<data::DataNode> Chart::Serialize() const {
     }
     return tdb;
 }
-void Chart::Deserialize(std::shared_ptr<data::DataNode> const &tdb) {
+void Chart::Deserialize(std::shared_ptr<data::DataEntry> const &tdb) {
     ASSERT(tdb != nullptr);
     m_origin_ = tdb->GetValue<point_type>("Origin", m_origin_);
     m_grid_width_ = tdb->GetValue<point_type>("GridWidth", m_grid_width_);
@@ -52,7 +54,16 @@ int Chart::GetLevel() const { return m_level_; }
 int Chart::GetNDIMS() const { return 3; }
 
 std::shared_ptr<GeoObject> Chart::GetBoundingShape(box_type const &uvw) const {
-    return Box::New(map(std::get<0>(uvw)), map(std::get<1>(uvw)));
+    std::shared_ptr<GeoObject> res = nullptr;
+    point_type u_min, u_max;
+    std::tie(u_min, u_max) = uvw;
+    auto surface = GetSurface(u_min, 2);
+    auto curve = GetAxis(u_min, 2);
+
+    res = Swep::New(m_axis_, Face::New(surface, u_min[0], u_max[0], u_min[1], u_max[1]),
+                    Edge::New(curve, u_min[2], u_max[2]));
+
+    return res;
 }
 std::shared_ptr<GeoObject> Chart::GetBoundingShape(index_box_type const &b) const {
     return GetBoundingShape(GetBoxUVW(b));

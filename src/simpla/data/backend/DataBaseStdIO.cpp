@@ -3,7 +3,7 @@
 //
 #include "DataBaseStdIO.h"
 #include "../DataBlock.h"
-#include "../DataNode.h"
+#include "../DataEntry.h"
 #include "simpla/utilities/FancyStream.h"
 namespace simpla {
 namespace data {
@@ -36,7 +36,7 @@ int DataBaseStdIO::Flush() {
 }
 bool DataBaseStdIO::isNull() const { return m_pimpl_->m_out_ == nullptr; }
 
-std::shared_ptr<DataNode> DataBaseStdIO::Root() { return DataNode::New(); }
+std::shared_ptr<DataEntry> DataBaseStdIO::Root() { return DataEntry::New(); }
 
 //
 // std::shared_ptr<DataEntity> DataBaseStdIO::Get(std::string const& URI) const { return nullptr; }

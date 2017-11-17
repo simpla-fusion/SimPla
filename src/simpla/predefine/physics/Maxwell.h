@@ -33,11 +33,11 @@ Maxwell<TDomain>::Maxwell() : base_type() {}
 template <typename TDomain>
 Maxwell<TDomain>::~Maxwell() {}
 template <typename TDomain>
-std::shared_ptr<data::DataNode> Maxwell<TDomain>::Serialize() const {
+std::shared_ptr<data::DataEntry> Maxwell<TDomain>::Serialize() const {
     return base_type::Serialize();
 };
 template <typename TDomain>
-void Maxwell<TDomain>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
+void Maxwell<TDomain>::Deserialize(std::shared_ptr<data::DataEntry> const& cfg) {
     base_type::Deserialize(cfg);
 }
 template <typename TDomain>

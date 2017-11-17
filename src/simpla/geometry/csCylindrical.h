@@ -43,7 +43,7 @@ struct csCylindrical : public Chart {
     static constexpr int ZAxis = (PhiAxis + 2) % 3;
 
     std::shared_ptr<Curve> GetAxis(point_type const &x0, int dir) const override;
-    std::shared_ptr<Curve> GetAxis(index_tuple const &x0, int dir) const override;
+    std::shared_ptr<Surface> GetSurface(point_type const &x0, int dir) const override;
     std::shared_ptr<GeoObject> GetBoundingShape(box_type const &uvw) const override;
 
    public:

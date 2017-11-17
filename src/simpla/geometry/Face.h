@@ -7,7 +7,6 @@
 
 #include <simpla/SIMPLA_config.h>
 #include "GeoObject.h"
-#include "PrimitiveShape.h"
 #include "Surface.h"
 namespace simpla {
 namespace geometry {
@@ -24,8 +23,8 @@ struct Face : public GeoObject {
     std::tuple<point2d_type, point2d_type> const &GetUVRange() const { return m_range_; };
     void SetUVRange(std::tuple<point2d_type, point2d_type> const &b) { m_range_ = b; }
 
-    virtual point_type xy(Real u, Real v) const;
-    virtual point_type uv(Real x, Real y) const;
+    virtual point_type xyz(Real u, Real v) const { return point_type{0, 0, 0}; };
+    virtual point2d_type uvw(point_type const &) const { return point_type{0, 0, 0}; };
 
    private:
     std::shared_ptr<const Surface> m_surface_;

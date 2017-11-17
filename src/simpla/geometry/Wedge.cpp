@@ -15,11 +15,11 @@ Wedge::Wedge(vector_type const &extents, Real ltx) : Wedge(Axis{}, extents, ltx)
 Wedge::Wedge(Axis const &axis, vector_type const &extents, Real ltx)
     : PrimitiveShape(axis), m_extents_(extents), m_ltx_(ltx){};
 
-std::shared_ptr<data::DataNode> Wedge::Serialize() const {
+std::shared_ptr<data::DataEntry> Wedge::Serialize() const {
     auto cfg = base_type::Serialize();
     return cfg;
 };
-void Wedge::Deserialize(std::shared_ptr<data::DataNode> const &cfg) { base_type::Deserialize(cfg); }
+void Wedge::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) { base_type::Deserialize(cfg); }
 
 point_type Wedge::xyz(Real u, Real v, Real w) const {
     UNIMPLEMENTED;

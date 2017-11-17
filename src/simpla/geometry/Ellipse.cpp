@@ -13,12 +13,12 @@ Ellipse::Ellipse(Axis const &axis, Real major_radius, Real minor_radius)
     : Curve(axis), m_major_radius_(major_radius), m_minor_radius_(minor_radius) {}
 Ellipse::~Ellipse() = default;
 
-void Ellipse::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
+void Ellipse::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
     m_major_radius_ = cfg->GetValue<Real>("MajorRadius", m_major_radius_);
     m_minor_radius_ = cfg->GetValue<Real>("MinorRadius", m_minor_radius_);
 }
-std::shared_ptr<simpla::data::DataNode> Ellipse::Serialize() const {
+std::shared_ptr<simpla::data::DataEntry> Ellipse::Serialize() const {
     auto res = base_type::Serialize();
     res->SetValue<Real>("MajorRadius", m_major_radius_);
     res->SetValue<Real>("MinorRadius", m_minor_radius_);

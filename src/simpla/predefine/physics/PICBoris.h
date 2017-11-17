@@ -39,27 +39,27 @@ class PICBoris : public TDomain {
     //    void TagRefinementCells(Real time_now);
 
     std::map<std::string, std::shared_ptr<Particle<base_type>>> m_particle_sp_;
-    std::shared_ptr<Particle<base_type>> AddSpecies(std::string const& name, std::shared_ptr<data::DataNode> d);
+    std::shared_ptr<Particle<base_type>> AddSpecies(std::string const& name, std::shared_ptr<data::DataEntry> d);
     std::map<std::string, std::shared_ptr<Particle<base_type>>>& GetSpecies() { return m_particle_sp_; };
 
     //    template <typename... Args>
     //    std::shared_ptr<Particle<base_type>> AddSpecies(std::string const& name, Args&&... args) {
-    //        data::DataNode t;
+    //        data::DataEntry t;
     //        t.Assign(std::forward<Args>(args)...);
     //        return AddSpecies(name, t);
     //    };
 };
 
 template <typename TM>
-std::shared_ptr<data::DataNode> PICBoris<TM>::Serialize() const {
-    auto res = data::DataNode::New();
+std::shared_ptr<data::DataEntry> PICBoris<TM>::Serialize() const {
+    auto res = data::DataEntry::New();
     for (auto& item : m_particle_sp_) { res->Set(item.first, item.second->Serialize()); }
     return res;
 };
 template <typename TM>
-void PICBoris<TM>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
+void PICBoris<TM>::Deserialize(std::shared_ptr<data::DataEntry> const& cfg) {
     cfg->Get("Species")->Foreach(
-        [&](std::string k, std::shared_ptr<data::DataNode> t) { return AddSpecies(k, t) != nullptr; });
+        [&](std::string k, std::shared_ptr<data::DataEntry> t) { return AddSpecies(k, t) != nullptr; });
 
     //        t.SetEntity<double>("mass", item.m_node_->mass / SI_proton_mass);
     //        t.SetEntity<double>("Z", item.m_node_->charge / SI_elementary_charge);
@@ -67,7 +67,7 @@ void PICBoris<TM>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {
 }
 
 template <typename TM>
-std::shared_ptr<Particle<TM>> PICBoris<TM>::AddSpecies(std::string const& name, std::shared_ptr<data::DataNode> d) {
+std::shared_ptr<Particle<TM>> PICBoris<TM>::AddSpecies(std::string const& name, std::shared_ptr<data::DataEntry> d) {
     auto sp = Particle<TM>::New(this, d);
     sp->SetDOF(7);
     sp->db()->SetValue("mass", d->GetValue<double>("mass", d->GetValue<double>("mass", 1)) * SI_proton_mass);

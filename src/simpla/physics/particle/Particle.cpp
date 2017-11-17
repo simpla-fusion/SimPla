@@ -40,14 +40,14 @@ void ParticleBase::DoFinalize() {
     delete m_pimpl_;
     m_pimpl_ = nullptr;
 }
-std::shared_ptr<simpla::data::DataNode> ParticleBase::Serialize() const { return base_type::Serialize(); }
-void ParticleBase::Deserialize(std::shared_ptr<data::DataNode> const& cfg) { base_type::Deserialize(cfg); }
-void ParticleBase::Push(std::shared_ptr<data::DataNode> const& dblk) {
+std::shared_ptr<simpla::data::DataEntry> ParticleBase::Serialize() const { return base_type::Serialize(); }
+void ParticleBase::Deserialize(std::shared_ptr<data::DataEntry> const& cfg) { base_type::Deserialize(cfg); }
+void ParticleBase::Push(std::shared_ptr<data::DataEntry> const& dblk) {
     SetUp();
     //    base_type::Push(dblk);
     Update();
 }
-std::shared_ptr<data::DataNode> ParticleBase::Pop() const {
+std::shared_ptr<data::DataEntry> ParticleBase::Pop() const {
     //    auto res = engine::Attribute::Pop();
     return nullptr;
 }

@@ -11,8 +11,8 @@ PolyPoints::PolyPoints(PolyPoints const &) = default;
 PolyPoints::PolyPoints(Axis const &axis) : GeoObject(axis){};
 
 PolyPoints::~PolyPoints() = default;
-std::shared_ptr<simpla::data::DataNode> PolyPoints::Serialize() const { return base_type::Serialize(); };
-void PolyPoints::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) { base_type::Deserialize(cfg); };
+std::shared_ptr<simpla::data::DataEntry> PolyPoints::Serialize() const { return base_type::Serialize(); };
+void PolyPoints::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) { base_type::Deserialize(cfg); };
 
 }  // namespace geometry
 }  // namespace simpla

@@ -47,7 +47,7 @@ CoRectMesh<THost>::CoRectMesh(THost* h) : m_host_(h) {
     h->PreInitialCondition.Connect([=](engine::DomainBase* self, Real time_now) {
         if (auto* p = dynamic_cast<CoRectMesh<THost>*>(self)) { p->InitialCondition(time_now); }
     });
-    h->OnSerialize.Connect([=](engine::DomainBase const* self, std::shared_ptr<simpla::data::DataNode>& tdb) {
+    h->OnSerialize.Connect([=](engine::DomainBase const* self, std::shared_ptr<simpla::data::DataEntry>& tdb) {
         if (auto const* p = dynamic_cast<CoRectMesh<THost> const*>(self)) { tdb->Set(p->Serialize()); }
     });
 }
@@ -55,13 +55,13 @@ template <typename THost>
 CoRectMesh<THost>::~CoRectMesh() {}
 
 template <typename THost>
-std::shared_ptr<data::DataNode> CoRectMesh<THost>::Serialize() const {
-    auto res = data::DataNode::New(data::DataNode::DN_TABLE);
+std::shared_ptr<data::DataEntry> CoRectMesh<THost>::Serialize() const {
+    auto res = data::DataEntry::New(data::DataEntry::DN_TABLE);
     res->SetValue("Topology", "3DCoRectMesh");
     return res;
 }
 template <typename THost>
-void CoRectMesh<THost>::Deserialize(std::shared_ptr<data::DataNode> const& cfg) {}
+void CoRectMesh<THost>::Deserialize(std::shared_ptr<data::DataEntry> const& cfg) {}
 template <typename THost>
 void CoRectMesh<THost>::InitialCondition(Real time_now) {
     //    Update();

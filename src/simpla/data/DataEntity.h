@@ -20,13 +20,13 @@ struct DataEntity : public std::enable_shared_from_this<DataEntity> {
 
    protected:
     DataEntity() = default;
+    DataEntity(DataEntity const&) = default;
 
    public:
     virtual ~DataEntity() = default;
-    SP_DEFAULT_CONSTRUCT(DataEntity)
 
     static std::shared_ptr<DataEntity> New() { return std::shared_ptr<DataEntity>(new DataEntity); }
-
+    std::shared_ptr<DataEntity> Copy() const { return nullptr; }
     virtual std::type_info const& value_type_info() const { return typeid(void); };
     virtual size_type value_alignof() const { return 0; };
     virtual size_type value_sizeof() const { return 0; };

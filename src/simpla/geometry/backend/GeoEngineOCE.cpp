@@ -381,14 +381,14 @@ int SaveOCEShape(std::shared_ptr<const TopoDS_Shape> const &shape, std::string c
     return SP_SUCCESS;
 };
 
-std::shared_ptr<data::DataNode> GeoObjectOCE::Serialize() const {
+std::shared_ptr<data::DataEntry> GeoObjectOCE::Serialize() const {
     auto res = base_type::Serialize();
     res->SetValue("HashCode", m_occ_shape_->HashCode(std::numeric_limits<int>::max()));
     return res;
 };
-void GeoObjectOCE::Deserialize(std::shared_ptr<data::DataNode> const &cfg) {
+void GeoObjectOCE::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
-    auto tdb = std::dynamic_pointer_cast<const data::DataNode>(cfg);
+    auto tdb = std::dynamic_pointer_cast<const data::DataEntry>(cfg);
     if (tdb != nullptr) {
         m_occ_shape_ = TransformShape(
             LoadOCEShape(tdb->GetValue<std::string>("File", ""), ""),
@@ -673,10 +673,10 @@ GeoEngineOCE::~GeoEngineOCE() {
     CloseFile();
     delete m_pimpl_;
 };
-void GeoEngineOCE::Deserialize(std::shared_ptr<simpla::data::DataNode> const &cfg) {
+void GeoEngineOCE::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) {
     m_pimpl_->m_prefix_ = cfg->GetValue<std::string>("Path", m_pimpl_->m_prefix_);
 };
-std::shared_ptr<simpla::data::DataNode> GeoEngineOCE::Serialize() const {
+std::shared_ptr<simpla::data::DataEntry> GeoEngineOCE::Serialize() const {
     auto res = base_type::Serialize();
     res->SetValue<std::string>("Prefix", m_pimpl_->m_prefix_);
     return res;
