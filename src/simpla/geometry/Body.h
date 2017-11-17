@@ -19,7 +19,7 @@ struct Curve;
 struct Surface;
 struct Shape;
 struct Body : public GeoObject {
-    SP_GEO_OBJECT_HEAD(Body, GeoObject);
+    SP_GEO_OBJECT_HEAD(GeoObject, Body)
 
    public:
     explicit Body(std::shared_ptr<const Shape> const &);

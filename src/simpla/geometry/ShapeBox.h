@@ -24,7 +24,7 @@ struct ShapeBoxBase {
 };
 template <typename BaseShape>
 struct ShapeBox : public BaseShape, public ShapeBoxBase {
-    SP_GEO_OBJECT_HEAD(ShapeBox, BaseShape)
+    SP_GEO_OBJECT_HEAD(BaseShape, ShapeBox)
    protected:
     template <typename... Args>
     explicit ShapeBox(box_type const &b, Args &&... args) : BaseShape(std::forward<Args>(args)...), ShapeBoxBase(b) {}
@@ -42,7 +42,7 @@ template <typename BaseShape>
 ShapeBox<BaseShape>::ShapeBox(Axis const &axis) : base_type(axis){};
 
 template <typename BaseShape>
-void ShapeBox<BaseShape>::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) {
+void ShapeBox<BaseShape>::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
     ShapeBoxBase::Deserialize(cfg->Get("Parameter"));
 };

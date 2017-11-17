@@ -3,17 +3,37 @@
 //
 #include <simpla/utilities/Factory.h>
 #include "../DataEntry.h"
+#include "../Serializable.h"
+
 namespace simpla {
 namespace data {
 
 struct DataEntryIMAS : public DataEntry {
-    SP_CREATABLE_HEAD(DataEntry, DataEntryIMAS, imas)
-    SP_DATA_NODE_FUNCTION(DataEntryIMAS)
+    SP_DATA_ENTITY_HEAD(DataEntry, DataEntryIMAS, imas)
 
     int Connect(std::string const& authority, std::string const& path, std::string const& query,
                 std::string const& fragment) override;
     int Disconnect() override;
     bool isValid() const override;
+
+    using base_type::Set;
+    using base_type::Add;
+    using base_type::Get;
+    std::shared_ptr<DataEntry> CreateNode(eNodeType e_type) const override;
+    size_type size() const override;
+    size_type Set(std::string const& uri, std::shared_ptr<DataEntry> const& v) override;
+    size_type Set(index_type s, std::shared_ptr<DataEntry> const& v) override;
+    size_type Add(std::string const& uri, std::shared_ptr<DataEntry> const& v) override;
+    size_type Add(index_type s, std::shared_ptr<DataEntry> const& v) override;
+    size_type Delete(std::string const& s) override;
+    size_type Delete(index_type s) override;
+    std::shared_ptr<const DataEntry> Get(std::string const& uri) const override;
+    std::shared_ptr<const DataEntry> Get(index_type s) const override;
+    std::shared_ptr<DataEntry> Get(std::string const& uri) override;
+    std::shared_ptr<DataEntry> Get(index_type s) override;
+    void Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntry> const&)> const& f) override;
+    void Foreach(
+        std::function<void(std::string const&, std::shared_ptr<const DataEntry> const&)> const& f) const override;
 };
 SP_REGISTER_CREATOR(DataEntry, DataEntryIMAS);
 DataEntryIMAS::DataEntryIMAS(DataEntry::eNodeType e_type) : base_type(e_type){};

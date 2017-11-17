@@ -23,8 +23,7 @@ struct GeoObject;
 /**
  *  Define Tokamak geometry, parser GEqdsk
  */
-class Tokamak : public SPObject {
-    SP_OBJECT_HEAD(Tokamak, SPObject)
+class Tokamak : public data::Serializable, public data::Configurable {
    protected:
     explicit Tokamak(std::string const &url = "");
 

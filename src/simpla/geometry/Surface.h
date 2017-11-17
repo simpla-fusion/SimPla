@@ -24,7 +24,8 @@ struct Body;
  */
 
 struct Surface : public GeoObject {
-    SP_GEO_ABS_OBJECT_HEAD(Surface, GeoObject);
+    SP_GEO_OBJECT_HEAD(GeoObject, Surface);
+
    public:
     virtual std::shared_ptr<PointsOnCurve> GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const;
     virtual std::shared_ptr<Curve> GetIntersection(std::shared_ptr<const Surface> const &g, Real tolerance) const;

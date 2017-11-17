@@ -9,21 +9,8 @@
 #include "GeoObject.h"
 namespace simpla {
 namespace geometry {
-struct Shape : public data::Serializable {
-   private:
-    typedef Shape this_type;
-
-   public:
-    std::string FancyTypeName() const override { return "Shape"; }
-
-   protected:
-    Shape();
-    Shape(Shape const &other);
-
-   public:
-    ~Shape() override;
-    static std::shared_ptr<Shape> Create(std::string const &key);
-    virtual std::shared_ptr<Shape> Copy() const = 0;
+struct Shape : public data::Serializable, public std::enable_shared_from_this<Shape> {
+    SP_SERIALIZABLE_HEAD(data::Serializable, Shape)
 };
 
 }  // namespace geometry{

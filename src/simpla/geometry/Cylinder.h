@@ -21,7 +21,7 @@ namespace geometry {
 *  R phi Z
 */
 struct Cylinder : public PrimitiveShape {
-    SP_GEO_SHAPE_HEAD(Cylinder, PrimitiveShape)
+    SP_SERIALIZABLE_HEAD(PrimitiveShape, Cylinder)
    protected:
     explicit Cylinder(Axis const &, Real radius, Real height, Real angle = TWOPI);
     explicit Cylinder(Real radius, Real height, Real angle = TWOPI);

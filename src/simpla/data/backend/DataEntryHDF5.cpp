@@ -1,6 +1,8 @@
 //
 // Created by salmon on 17-3-10.
 //
+#include <simpla/parallel/MPIComm.h>
+#include <simpla/utilities/Factory.h>
 #include <sys/stat.h>
 #include <fstream>
 #include <regex>
@@ -8,18 +10,16 @@
 #include "../DataBlock.h"
 #include "../DataEntity.h"
 #include "../DataEntry.h"
-#include "simpla/parallel/MPIComm.h"
-
+#include "../Serializable.h"
 #include "HDF5Common.h"
-
 namespace simpla {
 namespace data {
 
 struct DataEntryHDF5 : public DataEntry {
-    SP_CREATABLE_HEAD(DataEntry, DataEntryHDF5, h5)
-    SP_DATA_NODE_FUNCTION(DataEntryHDF5)
+    SP_DATA_ENTITY_HEAD(DataEntry, DataEntryHDF5, h5)
 
    protected:
+
    public:
     int Connect(std::string const& authority, std::string const& path, std::string const& query,
                 std::string const& fragment) override;
@@ -27,6 +27,25 @@ struct DataEntryHDF5 : public DataEntry {
     int Flush() override;
     bool isValid() const override;
     void Clear() override;
+
+    using base_type::Set;
+    using base_type::Add;
+    using base_type::Get;
+    std::shared_ptr<DataEntry> CreateNode(eNodeType e_type) const override;
+    size_type size() const override;
+    size_type Set(std::string const& uri, std::shared_ptr<DataEntry> const& v) override;
+    size_type Set(index_type s, std::shared_ptr<DataEntry> const& v) override;
+    size_type Add(std::string const& uri, std::shared_ptr<DataEntry> const& v) override;
+    size_type Add(index_type s, std::shared_ptr<DataEntry> const& v) override;
+    size_type Delete(std::string const& s) override;
+    size_type Delete(index_type s) override;
+    std::shared_ptr<const DataEntry> Get(std::string const& uri) const override;
+    std::shared_ptr<const DataEntry> Get(index_type s) const override;
+    std::shared_ptr<DataEntry> Get(std::string const& uri) override;
+    std::shared_ptr<DataEntry> Get(index_type s) override;
+    void Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntry> const&)> const& f) override;
+    void Foreach(
+        std::function<void(std::string const&, std::shared_ptr<const DataEntry> const&)> const& f) const override;
 
    private:
     std::shared_ptr<hid_t> m_file_ = nullptr;

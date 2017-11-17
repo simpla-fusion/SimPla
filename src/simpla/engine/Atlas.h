@@ -69,7 +69,7 @@ class MeshBlock;
 *  - '''dx''' is the resolution ratio  of discrete mesh, x = i * dx + r where 0<= r < dx
 */
 class Atlas : public EngineObject {
-    SP_OBJECT_HEAD(Atlas, EngineObject)
+    SP_CREATABLE_HEAD(EngineObject, Atlas)
 
    public:
     int Foreach(std::function<void(std::shared_ptr<Patch> const &)> const &);

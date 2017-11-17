@@ -9,7 +9,7 @@
 namespace simpla {
 namespace geometry {
 struct PolyPoints : public GeoObject {
-    SP_GEO_ABS_OBJECT_HEAD(PolyPoints, GeoObject);
+    SP_GEO_OBJECT_HEAD(GeoObject, PolyPoints);
 
    public:
     virtual size_type size() const = 0;

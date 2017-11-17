@@ -8,12 +8,14 @@
 #include "../DataEntity.h"
 #include "../DataEntry.h"
 #include "../DataTraits.h"
+#include "../Serializable.h"
 #include "DataEntryMemory.h"
 #include "LuaObject.h"
+
 namespace simpla {
 namespace data {
 struct DataEntryLua : public DataEntryMemory {
-    SP_DATA_NODE_HEAD(DataEntryMemory, DataEntryLua, lua)
+    SP_DATA_ENTITY_HEAD(DataEntryMemory, DataEntryLua, lua)
 
    public:
     int Connect(std::string const& authority, std::string const& path, std::string const& query,
@@ -27,12 +29,14 @@ struct DataEntryLua : public DataEntryMemory {
     std::string const& GetFileName() const { return m_file_name_; }
     void SetFileName(std::string const& s) { m_file_name_ = s; }
 
+
+
    private:
     std::string m_file_name_ = "simpla_unnamed.lua";
 };
 
 SP_REGISTER_CREATOR(DataEntry, DataEntryLua);
-DataEntryLua::DataEntryLua(DataEntry::eNodeType e_type) : base_type(e_type){};
+DataEntryLua::DataEntryLua(DataEntry::eNodeType e_type) : DataEntryMemory(e_type){};
 DataEntryLua::DataEntryLua(DataEntryLua const& other) = default;
 DataEntryLua::~DataEntryLua() = default;
 int DataEntryLua::Connect(std::string const& authority, std::string const& path, std::string const& query,
@@ -40,7 +44,6 @@ int DataEntryLua::Connect(std::string const& authority, std::string const& path,
     if (!path.empty()) {
         auto tmp = LuaObject::New();
         tmp->parse_file(path);
-
         Load(tmp->get(query.empty() ? "_ROOT_" : query));
         SetFileName(path);
     }

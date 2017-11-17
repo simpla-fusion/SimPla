@@ -195,7 +195,7 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
         return res;
     }
 
-    void Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) override;
+    void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
     void Update() override;
@@ -203,7 +203,7 @@ struct AttributeT : public Attribute, public attribute_traits<V, IFORM, DOF...>:
     void Push(const std::shared_ptr<data::DataEntry> &) override;
     std::shared_ptr<data::DataEntry> Pop() override;
 
-    std::shared_ptr<Attribute> Duplicate() const override {
+    std::shared_ptr<Attribute> Copy() const override {
         std::shared_ptr<this_type> res(new this_type);
         ReRegister(res);
         return res;
@@ -413,7 +413,7 @@ std::shared_ptr<data::DataEntry> AttributeT<V, IFORM, DOF...>::Serialize() const
 };
 
 template <typename V, int IFORM, int... DOF>
-void AttributeT<V, IFORM, DOF...>::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) {
+void AttributeT<V, IFORM, DOF...>::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
 };
 

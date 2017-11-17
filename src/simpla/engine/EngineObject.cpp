@@ -25,10 +25,6 @@ void EngineObject::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg
 };
 
 virtual std::shared_ptr<EngineObject> EngineObject::Copy() const { return nullptr; }
-std::shared_ptr<EngineObject> EngineObject::New(std::string const &k) { return Factory<EngineObject>::Create(k); }
-std::shared_ptr<EngineObject> EngineObject::New(std::shared_ptr<data::DataEntry> const &cfg) {
-    return data::Serializable::Create<EngineObject>(cfg);
-}
 
 void EngineObject::lock() { m_pimpl_->m_mutex_.lock(); }
 void EngineObject::unlock() { m_pimpl_->m_mutex_.unlock(); }

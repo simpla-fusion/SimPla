@@ -15,7 +15,7 @@ class DomainBase;
 class Atlas;
 
 class Scenario : public EngineObject {
-    SP_OBJECT_HEAD(Scenario, EngineObject)
+    SP_CREATABLE_HEAD(EngineObject, Scenario)
 
     virtual void TagRefinementCells(Real time_now);
 

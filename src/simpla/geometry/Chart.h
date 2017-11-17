@@ -15,8 +15,8 @@ namespace simpla {
 namespace geometry {
 struct Curve;
 struct Surface;
-struct Chart : public SPObject {
-    SP_OBJECT_HEAD(Chart, SPObject)
+struct Chart : public data::Serializable, public data::Configurable {
+    SP_SERIALIZABLE_HEAD(data::Serializable, Chart)
 
    private:
     bool m_is_valid_ = false;

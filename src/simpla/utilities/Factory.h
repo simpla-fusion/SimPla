@@ -89,38 +89,16 @@ class Factory {
 };
 }  // namespace data{
 
+#define SP_REGISTER_HEAD(_REGISTER_NAME_) \
+   private:                               \
+    static bool _is_registered;           \
+                                          \
+   public:                                \
+    static std::string RegisterName() { return __STRING(_REGISTER_NAME_); }
+
 #define SP_REGISTER_CREATOR(_BASE_NAME_, _CLASS_NAME_) \
     bool _CLASS_NAME_::_is_registered =                \
         simpla::Factory<_BASE_NAME_>::RegisterCreator<_CLASS_NAME_>(_CLASS_NAME_::RegisterName());
-
-#define SP_CREATABLE_HEAD(_BASE_NAME_, _CLASS_NAME_, _REGISTER_NAME_)                                                  \
-   public:                                                                                                             \
-    static bool _is_registered;                                                                                        \
-                                                                                                                       \
-    static std::string RegisterName() { return __STRING(_REGISTER_NAME_); }                                            \
-    std::string FancyTypeName() const override { return _BASE_NAME_::FancyTypeName() + "." + __STRING(_CLASS_NAME_); } \
-                                                                                                                       \
-   private:                                                                                                            \
-    typedef _BASE_NAME_ base_type;                                                                                     \
-    typedef _CLASS_NAME_ this_type;                                                                                    \
-                                                                                                                       \
-   protected:                                                                                                          \
-    _CLASS_NAME_(_CLASS_NAME_ const &other);                                                                           \
-    explicit _CLASS_NAME_(DataEntry::eNodeType etype = DN_TABLE);                                                      \
-                                                                                                                       \
-   public:                                                                                                             \
-    ~_CLASS_NAME_() override;                                                                                          \
-                                                                                                                       \
-   public:                                                                                                             \
-    template <typename... Args>                                                                                        \
-    static std::shared_ptr<this_type> New(Args &&... args) {                                                           \
-        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));                                 \
-    }                                                                                                                  \
-    std::shared_ptr<DataEntry> Copy() const override { return std::shared_ptr<this_type>(new this_type(*this)); }      \
-    std::shared_ptr<_CLASS_NAME_> Self() { return std::dynamic_pointer_cast<this_type>(this->shared_from_this()); };   \
-    std::shared_ptr<const _CLASS_NAME_> Self() const {                                                                 \
-        return std::dynamic_pointer_cast<this_type>(const_cast<this_type *>(this)->shared_from_this());                \
-    };
 
 template <typename T>
 static bool RegisterCreator() {

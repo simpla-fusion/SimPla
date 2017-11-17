@@ -122,7 +122,7 @@ struct DataEntryFunction : public DataEntry {
     size_type size() const override { return 0; };
 };
 
-#define SP_DATA_NODE_FUNCTION_HEAD(_CLASS_NAME_)              \
+#define SP_DATA_ENTITY_HEAD_HEAD(_CLASS_NAME_)              \
     SP_DEFINE_FANCY_TYPE_NAME(_CLASS_NAME_, DataEntryFunction) \
     SP_DATA_NODE_HEAD(_CLASS_NAME_)                           \
    protected:                                                 \

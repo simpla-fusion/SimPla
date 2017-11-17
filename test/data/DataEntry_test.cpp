@@ -12,38 +12,38 @@
 
 using namespace simpla;
 using namespace simpla::data;
-//TEST(DataTable, lua) {
-//    auto db = DataEntry::New("lua://");
-//    db->Parse(
-//        "PI = 3.141592653589793, \n "
-//        "c = 299792458.0, -- m/s\n"
-//        "qe = 1.60217656e-19, -- C\n"
-//        "me = 9.10938291e-31, --kg\n"
-//        "mp = 1.672621777e-27, --kg\n"
-//        "mp_me = 1836.15267245, --\n"
-//        "KeV = 1.1604e7, -- K\n"
-//        "Tesla = 1.0, -- Tesla\n"
-//        "TWOPI =  math.pi * 2,\n"
-//        "k_B = 1.3806488e-23, --Boltzmann_constant\n"
-//        "epsilon0 = 8.8542e-12,\n"
-//        "AAA = { c =  3 , d = { c = \"3\", e = { 1, 3, 4, 5 } } },\n"
-//        "CCC = { 1, 3, 4, 5 },\n"
-//        "Box={{1,2,3},{3,4,5}},\n"
-//        "tuple3={{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}},\n"
-//        " nest = { abc= {abc1= {def = {abc = {abc= \"sadfsdf\"}}}}}");
-//    db->SetValue("Box2", {{0, 5, 3}, {1, 5, 3}});
-//    MESSAGE << "lua:// " << (*db) << std::endl;
-//    //    MESSAGE << "Box " << (*backend)["Context/Box"]->as<nTuple<int, 2, 3>>() << std::endl;
-//    EXPECT_EQ(db->GetValue<int>("AAA/c"), 3);
-//    EXPECT_EQ((db->GetValue<nTuple<int, 4>>("/CCC")), (nTuple<int, 4>{1, 3, 4, 5}));
-//
-//    db->Flush();
-//    //
-//    //    EXPECT_DOUBLE_EQ((*backend)["/Context/c"]->as<double>(), 299792458);
-//
-//    //   backend->SetEntity("box", {{1, 2, 3}, {4, 5, 6}});
-//    //    LOGGER << "box  = " <<backend->GetEntity<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
-//}
+TEST(DataTable, lua) {
+    auto db = DataEntry::New("lua://");
+    db->Parse(
+        "PI = 3.141592653589793, \n "
+        "c = 299792458.0, -- m/s\n"
+        "qe = 1.60217656e-19, -- C\n"
+        "me = 9.10938291e-31, --kg\n"
+        "mp = 1.672621777e-27, --kg\n"
+        "mp_me = 1836.15267245, --\n"
+        "KeV = 1.1604e7, -- K\n"
+        "Tesla = 1.0, -- Tesla\n"
+        "TWOPI =  math.pi * 2,\n"
+        "k_B = 1.3806488e-23, --Boltzmann_constant\n"
+        "epsilon0 = 8.8542e-12,\n"
+        "AAA = { c =  3 , d = { c = \"3\", e = { 1, 3, 4, 5 } } },\n"
+        "CCC = { 1, 3, 4, 5 },\n"
+        "Box={{1,2,3},{3,4,5}},\n"
+        "tuple3={{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}},\n"
+        " nest = { abc= {abc1= {def = {abc = {abc= \"sadfsdf\"}}}}}");
+    db->SetValue("Box2", {{0, 5, 3}, {1, 5, 3}});
+    MESSAGE << "lua:// " << (*db) << std::endl;
+    //    MESSAGE << "Box " << (*backend)["Context/Box"]->as<nTuple<int, 2, 3>>() << std::endl;
+    EXPECT_EQ(db->GetValue<int>("AAA/c"), 3);
+    EXPECT_EQ((db->GetValue<nTuple<int, 4>>("/CCC")), (nTuple<int, 4>{1, 3, 4, 5}));
+
+    db->Flush();
+    //
+    //    EXPECT_DOUBLE_EQ((*backend)["/Context/c"]->as<double>(), 299792458);
+
+    //   backend->SetEntity("box", {{1, 2, 3}, {4, 5, 6}});
+    //    LOGGER << "box  = " <<backend->GetEntity<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
+}
 
 class DataBaseTest : public testing::TestWithParam<std::string> {
    protected:
@@ -60,44 +60,44 @@ class DataBaseTest : public testing::TestWithParam<std::string> {
     std::shared_ptr<data::DataEntry> db = nullptr;
     std::string m_url;
 };
-//
-// TEST_P(DataBaseTest, light_data_sigle_value) {
-//    db->SetValue("CartesianGeometry", "hello world!");
-//    db->SetValue("b", 5.0);
-//    db->Flush();
-//    std::cout << m_url << " :  " << (*db) << " " << std::endl;
-//
-//    EXPECT_EQ(db->GetValue<std::string>("CartesianGeometry"), "hello world!");
-//    EXPECT_DOUBLE_EQ(db->GetValue<double>("b"), 5);
-//    EXPECT_EQ(db->size(), 2);
-//}
-//
-// TEST_P(DataBaseTest, light_data_SetValue_ntuple) {
-//    db->SetValue("tuple3", {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
-//    //    (*backend)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
-//    db->SetValue("tuple1", {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});
-//    db->SetValue("Box", {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}});
-//    db->SetValue("str_tuple", {"wa wa", "la la"});
-//
-//    db->SetValue("A", {1, 2, 3});
-//    db->SetValue("C", {{1.0, 2.0, 3.0}, {2.0}, {7.0, 9.0}});
-//
-//    db->Flush();
-//    std::cout << m_url << " : " << (*db) << std::endl;
-//
-//    EXPECT_EQ((db->GetValue<nTuple<Real, 6>>("tuple1")), (nTuple<Real, 6>{1, 2, 3, 4, 5, 6}));
-//    EXPECT_EQ((db->GetValue<nTuple<Real, 2, 3>>("Box")), (nTuple<Real, 2, 3>{{1, 2, 3}, {4, 5, 6}}));
-//}
-// TEST_P(DataBaseTest, light_data_AddValue) {
-//    db->AddValue("a", {0, 5, 3, 4});
-//    db->AddValue("a", {1, 5, 3, 4});
-//
-//    db->Flush();
-//    std::cout << m_url << " : " << (*db) << std::endl;
-//
-//    EXPECT_EQ((db->GetValue<nTuple<int, 4>>("a/1")), (nTuple<int, 4>{1, 5, 3, 4}));
-//    EXPECT_EQ((db->GetValue<nTuple<int, 2, 4>>("a")), (nTuple<int, 2, 4>{{0, 5, 3, 4}, {1, 5, 3, 4}}));
-//}
+
+TEST_P(DataBaseTest, light_data_sigle_value) {
+    db->SetValue("CartesianGeometry", "hello world!");
+    db->SetValue("b", 5.0);
+    db->Flush();
+    std::cout << m_url << " :  " << (*db) << " " << std::endl;
+
+    EXPECT_EQ(db->GetValue<std::string>("CartesianGeometry"), "hello world!");
+    EXPECT_DOUBLE_EQ(db->GetValue<double>("b"), 5);
+    EXPECT_EQ(db->size(), 2);
+}
+
+TEST_P(DataBaseTest, light_data_SetValue_ntuple) {
+    db->SetValue("tuple3", {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
+    //    (*backend)["strlist"] = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}};
+    db->SetValue("tuple1", {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});
+    db->SetValue("Box", {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}});
+    db->SetValue("str_tuple", {"wa wa", "la la"});
+
+    db->SetValue("A", {1, 2, 3});
+    db->SetValue("C", {{1.0, 2.0, 3.0}, {2.0}, {7.0, 9.0}});
+
+    db->Flush();
+    std::cout << m_url << " : " << (*db) << std::endl;
+
+    EXPECT_EQ((db->GetValue<nTuple<Real, 6>>("tuple1")), (nTuple<Real, 6>{1, 2, 3, 4, 5, 6}));
+    EXPECT_EQ((db->GetValue<nTuple<Real, 2, 3>>("Box")), (nTuple<Real, 2, 3>{{1, 2, 3}, {4, 5, 6}}));
+}
+TEST_P(DataBaseTest, light_data_AddValue) {
+    db->AddValue("a", {0, 5, 3, 4});
+    db->AddValue("a", {1, 5, 3, 4});
+
+    db->Flush();
+    std::cout << m_url << " : " << (*db) << std::endl;
+
+    EXPECT_EQ((db->GetValue<nTuple<int, 4>>("a/1")), (nTuple<int, 4>{1, 5, 3, 4}));
+    EXPECT_EQ((db->GetValue<nTuple<int, 2, 4>>("a")), (nTuple<int, 2, 4>{{0, 5, 3, 4}, {1, 5, 3, 4}}));
+}
 
 TEST_P(DataBaseTest, light_data_multilevel) {
     db->SetValue("a/b/sub/1/2/3/4/d", 5.0);
@@ -105,30 +105,27 @@ TEST_P(DataBaseTest, light_data_multilevel) {
     db->Flush();
     EXPECT_DOUBLE_EQ((db->GetValue<Real>("a/b/sub/1/2/3/4/d")), 5);
     EXPECT_EQ((db->GetValue<int>("/1/2/3/4/d")), 5);
-//    std::cout << m_url << " : " << (*db) << std::endl;
+    //    std::cout << m_url << " : " << (*db) << std::endl;
 }
-//TEST_P(DataBaseTest, light_data_keyvalue) {
-//    db->SetValue("i", {"default"_, "abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
-//    db->SetValue("a",
-//                 {"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
-//                  "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}});
-//    //    (*backend)["h"] = {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}};
-//    db->SetValue("nest", {"abc"_ = {"abc1"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
-//    EXPECT_TRUE(db->Check("a/a"));
-//    EXPECT_FALSE(db->Check("a/not_debug"));
-//    std::cout << m_url << " : " << (*db) << std::endl;
-//}
+TEST_P(DataBaseTest, light_data_keyvalue) {
+    db->SetValue("i", {"default"_, "abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
+    db->SetValue("a",
+                 {"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
+                  "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}});
+    //    (*backend)["h"] = {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}};
+    db->SetValue("nest", {"abc"_ = {"abc1"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
+    EXPECT_TRUE(db->Check("a/a"));
+    EXPECT_FALSE(db->Check("a/not_debug"));
+    std::cout << m_url << " : " << (*db) << std::endl;
+}
 
-// TEST_P(DataBaseTest, block_data) {
-//    auto backend = DataEntry::New(m_url);
-//}
+TEST_P(DataBaseTest, block_data) { auto backend = DataEntry::New(m_url); }
 INSTANTIATE_TEST_CASE_P(DataBaseTestP, DataBaseTest,
-                        testing::Values(              //
-                                                      //                            "mem://",                  //
-                            "h5://?rw,a=234,b=6#123"  //,
-                                                      //                            "imas://",                 //
-                                                      //                            "lua://"
-                            ));
+                        testing::Values(  //
+                            "mem://",     //
+                                          //                            "h5://?rw,a=234,b=6#123"  //,
+                                          //                            "imas://",                 //
+                            "lua://"));
 //
 // TEST(DataTable, samrai) {
 //    logger::set_stdout_level(1000);

@@ -12,24 +12,19 @@
 
 namespace simpla {
 namespace engine {
-class EngineObject : public data::Configurable, public data::Serializable {
+class EngineObject : public data::Configurable,
+                     public data::Serializable,
+                     public std::enable_shared_from_this<EngineObject> {
     struct pimpl_s;
     pimpl_s *m_pimpl_ = nullptr;
 
+    SP_SERIALIZABLE_HEAD(data::Serializable, EngineObject)
+
    public:
-    std::string FancyTypeName() const override { return "EngineObject"; }
-
     EngineObject();
-
-    EngineObject(EngineObject const &) = delete;
     ~EngineObject() override;
-
+    EngineObject(EngineObject const &);
     virtual std::shared_ptr<EngineObject> Copy() const;
-    static std::shared_ptr<EngineObject> New(std::string const &);
-    static std::shared_ptr<EngineObject> New(std::shared_ptr<data::DataEntry> const &);
-
-    void Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) override;
-    std::shared_ptr<data::DataEntry> Serialize() const override;
 
     void lock();
     void unlock();

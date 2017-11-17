@@ -7,12 +7,12 @@
 
 #include "simpla/SIMPLA_config.h"
 
+#include <simpla/utilities/Factory.h>
+#include <simpla/utilities/Log.h>
+#include <simpla/utilities/ObjectHead.h>
 #include <memory>
 #include "DataLight.h"
 #include "DataUtilities.h"
-#include "simpla/utilities/Factory.h"
-#include "simpla/utilities/Log.h"
-#include "simpla/utilities/ObjectHead.h"
 namespace simpla {
 namespace data {
 #define SP_URL_SPLIT_CHAR '/'
@@ -35,6 +35,9 @@ class DataEntry : public std::enable_shared_from_this<DataEntry> {
     typedef DataEntry this_type;
 
    protected:
+    typedef DataEntry base_type;
+
+   protected:
     eNodeType m_type_ = DN_NULL;
     std::shared_ptr<DataEntity> m_entity_ = nullptr;
     std::shared_ptr<DataEntry> m_parent_ = nullptr;
@@ -42,8 +45,8 @@ class DataEntry : public std::enable_shared_from_this<DataEntry> {
    protected:
     explicit DataEntry(eNodeType etype = DN_TABLE);
     DataEntry(DataEntry const&);
-    DataEntry(std::shared_ptr<DataEntity> const&);
-    DataEntry(std::shared_ptr<const DataEntity> const&);
+    explicit DataEntry(std::shared_ptr<DataEntity> const&);
+    explicit DataEntry(std::shared_ptr<const DataEntity> const&);
 
    public:
     virtual ~DataEntry();
@@ -269,64 +272,76 @@ struct KeyValue {
 
 inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue(std::string(c)); }
 
-#define SP_DATA_NODE_HEAD(_BASE_NAME_, _CLASS_NAME_, _REGISTER_NAME_)                                                \
+#define SP_DATA_ENTITY_HEAD(_BASE_NAME_, _CLASS_NAME_, _REGISTER_NAME_)                                              \
+   private:                                                                                                          \
+    typedef _CLASS_NAME_ this_type;                                                                                  \
+    typedef _BASE_NAME_ base_type;                                                                                   \
                                                                                                                      \
    public:                                                                                                           \
-    static bool _is_registered;                                                                                      \
-                                                                                                                     \
-    static std::string RegisterName() { return __STRING(_REGISTER_NAME_); }                                          \
-    virtual std::string FancyTypeName() const override {                                                             \
-        return _BASE_NAME_::FancyTypeName() + "." + __STRING(_CLASS_NAME_);                                          \
-    }                                                                                                                \
+    std::string FancyTypeName() const override { return base_type::FancyTypeName() + "." + __STRING(_CLASS_NAME_); } \
                                                                                                                      \
    private:                                                                                                          \
-    typedef _BASE_NAME_ base_type;                                                                                   \
-    typedef _CLASS_NAME_ this_type;                                                                                  \
-                                                                                                                     \
-   protected:                                                                                                        \
-    _CLASS_NAME_(_CLASS_NAME_ const& other);                                                                         \
-    explicit _CLASS_NAME_(DataEntry::eNodeType etype = DN_TABLE);                                                    \
-                                                                                                                     \
-   public:                                                                                                           \
-    ~_CLASS_NAME_() override;                                                                                        \
+    template <typename... Args>                                                                                      \
+    static auto TryNew(std::true_type, Args&&... args) {                                                             \
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));                               \
+    }                                                                                                                \
+    template <typename... Args>                                                                                      \
+    static auto TryNew(std::false_type, Args&&... args) {                                                            \
+        RUNTIME_ERROR << __STRING(_CLASS_NAME_) << " is not constructible!";                                         \
+        return nullptr;                                                                                              \
+    }                                                                                                                \
                                                                                                                      \
    public:                                                                                                           \
     template <typename... Args>                                                                                      \
     static std::shared_ptr<this_type> New(Args&&... args) {                                                          \
-        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));                               \
+        return TryNew(std::is_constructible<this_type, Args...>(), std::forward<Args>(args)...);                     \
     }                                                                                                                \
-    std::shared_ptr<DataEntry> Copy() const override { return std::shared_ptr<this_type>(new this_type(*this)); }    \
-    std::shared_ptr<_CLASS_NAME_> Self() { return std::dynamic_pointer_cast<this_type>(this->shared_from_this()); }; \
-    std::shared_ptr<_CLASS_NAME_> Self() const {                                                                     \
-        return std::dynamic_pointer_cast<this_type>(const_cast<this_type*>(this)->shared_from_this());               \
+    static std::shared_ptr<this_type> New(std::string const& k) {                                                    \
+        return std::dynamic_pointer_cast<this_type>(Serializable::Create(k));                                        \
+    }                                                                                                                \
+    static std::shared_ptr<this_type> New(std::shared_ptr<simpla::data::DataEntry> const& cfg) {                     \
+        return std::dynamic_pointer_cast<this_type>(Serializable::Create(cfg));                                      \
+    }                                                                                                                \
+    std::shared_ptr<this_type> Self() { return std::dynamic_pointer_cast<this_type>(shared_from_this()); }           \
+    std::shared_ptr<const this_type> Self() const {                                                                  \
+        return std::dynamic_pointer_cast<const this_type>(shared_from_this());                                       \
+    }                                                                                                                \
+                                                                                                                     \
+   private:                                                                                                          \
+    static bool _is_registered;                                                                                      \
+                                                                                                                     \
+   public:                                                                                                           \
+    static std::string RegisterName() { return __STRING(_REGISTER_NAME_); }                                          \
+                                                                                                                     \
+   public:                                                                                                           \
+    _CLASS_NAME_(_CLASS_NAME_ const&);                                                                               \
+    _CLASS_NAME_(data::DataEntry::eNodeType e_type = DN_ENTITY);                                                     \
+                                                                                                                     \
+    ~_CLASS_NAME_() override;                                                                                        \
+                                                                                                                     \
+    std::shared_ptr<_CLASS_NAME_> Root() const {                                                                     \
+        return std::dynamic_pointer_cast<this_type>(const_cast<this_type*>(this)->GetRoot());                        \
+    };                                                                                                               \
+    std::shared_ptr<_CLASS_NAME_> Parent() const {                                                                   \
+        return std::dynamic_pointer_cast<this_type>(const_cast<this_type*>(this)->GetParent());                      \
     };
 
-#define SP_DATA_NODE_FUNCTION(_CLASS_NAME_)                                                                     \
-                                                                                                                \
-    std::shared_ptr<DataEntry> CreateNode(eNodeType e_type) const override;                                     \
-    size_type size() const override;                                                                            \
-    std::shared_ptr<_CLASS_NAME_> Root() const {                                                                \
-        return std::dynamic_pointer_cast<this_type>(const_cast<this_type*>(this)->GetRoot());                   \
-    };                                                                                                          \
-    std::shared_ptr<_CLASS_NAME_> Parent() const {                                                              \
-        return std::dynamic_pointer_cast<this_type>(const_cast<this_type*>(this)->GetParent());                 \
-    };                                                                                                          \
-    using base_type::Set;                                                                                       \
-    using base_type::Add;                                                                                       \
-    using base_type::Get;                                                                                       \
-    size_type Set(std::string const& uri, std::shared_ptr<DataEntry> const& v) override;                        \
-    size_type Set(index_type s, std::shared_ptr<DataEntry> const& v) override;                                  \
-    size_type Add(std::string const& uri, std::shared_ptr<DataEntry> const& v) override;                        \
-    size_type Add(index_type s, std::shared_ptr<DataEntry> const& v) override;                                  \
-    size_type Delete(std::string const& s) override;                                                            \
-    size_type Delete(index_type s) override;                                                                    \
-    std::shared_ptr<const DataEntry> Get(std::string const& uri) const override;                                \
-    std::shared_ptr<const DataEntry> Get(index_type s) const override;                                          \
-    std::shared_ptr<DataEntry> Get(std::string const& uri) override;                                            \
-    std::shared_ptr<DataEntry> Get(index_type s) override;                                                      \
-    void Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntry> const&)> const& f) override; \
-    void Foreach(std::function<void(std::string const&, std::shared_ptr<const DataEntry> const&)> const& f)     \
-        const override;
+//    using base_type::Set;                                                                                            \
+//    using base_type::Add;                                                                                            \
+//    using base_type::Get;                                                                                            \
+//    size_type Set(std::string const& uri, std::shared_ptr<DataEntry> const& v) override;                             \
+//    size_type Set(index_type s, std::shared_ptr<DataEntry> const& v) override;                                       \
+//    size_type Add(std::string const& uri, std::shared_ptr<DataEntry> const& v) override;                             \
+//    size_type Add(index_type s, std::shared_ptr<DataEntry> const& v) override;                                       \
+//    size_type Delete(std::string const& s) override;                                                                 \
+//    size_type Delete(index_type s) override;                                                                         \
+//    std::shared_ptr<const DataEntry> Get(std::string const& uri) const override;                                     \
+//    std::shared_ptr<const DataEntry> Get(index_type s) const override;                                               \
+//    std::shared_ptr<DataEntry> Get(std::string const& uri) override;                                                 \
+//    std::shared_ptr<DataEntry> Get(index_type s) override;                                                           \
+//    void Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntry> const&)> const& f) override;      \
+//    void Foreach(std::function<void(std::string const&, std::shared_ptr<const DataEntry> const&)> const& f)          \
+//        const override;
 
 namespace detail {
 template <typename U>

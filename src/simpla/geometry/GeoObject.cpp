@@ -16,28 +16,30 @@ GeoObject::GeoObject() = default;
 GeoObject::~GeoObject() = default;
 GeoObject::GeoObject(GeoObject const &other) : m_axis_(other.m_axis_){};
 GeoObject::GeoObject(Axis const &axis) : m_axis_(axis){};
-std::shared_ptr<GeoObject> GeoObject::Create(std::string const &s) {
-    std::shared_ptr<GeoObject> res = nullptr;
-    if (s.find(':') == std::string::npos) {
-        res = Factory<GeoObject>::Create(s);
-    } else {
-        res = GEO_ENGINE->Load(s);
-    }
-    return res;
-}
-
-std::shared_ptr<GeoObject> GeoObject::Create(std::shared_ptr<data::DataEntry> const &cfg) {
-    auto res = Factory<GeoObject>::Create(cfg->GetValue<std::string>("_REGISTER_NAME_", ""));
-    res->Deserialize(cfg);
-    return res;
-};
+// std::shared_ptr<GeoObject> GeoObject::Create(std::string const &s) {
+//    std::shared_ptr<GeoObject> res = nullptr;
+//    if (s.find(':') == std::string::npos) {
+//        res = Factory<GeoObject>::Create(s);
+//    } else {
+//        res = GEO_ENGINE->Load(s);
+//    }
+//    return res;
+//}
+//
+// std::shared_ptr<GeoObject> GeoObject::Create(std::shared_ptr<data::DataEntry> const &cfg) {
+//    auto res = Factory<GeoObject>::Create(cfg->GetValue<std::string>("_REGISTER_NAME_", ""));
+//    res->Deserialize(cfg);
+//    return res;
+//};
 std::shared_ptr<data::DataEntry> GeoObject::Serialize() const {
-    auto res = data::DataEntry::New(data::DataEntry::DN_TABLE);
+    auto res = base_type::Serialize();
     res->Set("Axis", m_axis_.Serialize());
-    res->SetValue("_TYPE_", FancyTypeName());
     return res;
 }
-void GeoObject::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) { m_axis_.Deserialize(cfg->Get("Axis")); }
+void GeoObject::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) {
+    base_type::Deserialize(cfg);
+    m_axis_.Deserialize(cfg->Get("Axis"));
+}
 
 int GeoObject::GetDimension() const { return 3; }
 bool GeoObject::IsSimpleConnected() const { return true; }

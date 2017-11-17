@@ -19,6 +19,13 @@ std::shared_ptr<DataEntry> Serializable::Serialize() const {
     if (auto const *config = dynamic_cast<const Configurable *>(this)) { res->Set(config->db()); }
     return res;
 };
+
+std::shared_ptr<Serializable> Serializable::Create(std::string const &cfg) {
+    return Factory<Serializable>::Create(cfg);
+}
+std::shared_ptr<Serializable> Serializable::Create(std::shared_ptr<const DataEntry> const &cfg) {
+    return Create(cfg->GetValue<std::string>("_TYPE_", ""));
+}
 std::ostream &operator<<(std::ostream &os, Serializable const &obj) {
     os << *obj.Serialize();
     return os;

@@ -14,7 +14,7 @@ namespace simpla {
 namespace data {
 
 struct DataEntryXDMF : public DataEntryMemory {
-    SP_CREATABLE_HEAD(DataEntryMemory, DataEntryXDMF, xdmf)
+    SP_DATA_ENTITY_HEAD(DataEntryMemory, DataEntryXDMF, xdmf)
 
     int Connect(std::string const &authority, std::string const &path, std::string const &query,
                 std::string const &fragment) override;
@@ -37,8 +37,9 @@ struct DataEntryXDMF : public DataEntryMemory {
     hid_t m_h5_root_ = 0;
 };
 SP_REGISTER_CREATOR(DataEntry, DataEntryXDMF);
+
 DataEntryXDMF::DataEntryXDMF(DataEntry::eNodeType etype)
-    : base_type(etype), m_os_(std::make_shared<std::ostringstream>()) {}
+    : DataEntryMemory(etype), m_os_(std::make_shared<std::ostringstream>()) {}
 DataEntryXDMF::DataEntryXDMF(DataEntryXDMF const &other) = default;
 DataEntryXDMF::~DataEntryXDMF() { Disconnect(); };
 

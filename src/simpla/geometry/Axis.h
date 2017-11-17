@@ -57,7 +57,7 @@ struct Axis {
 
     virtual std::shared_ptr<Axis> Copy() const { return std::make_shared<Axis>(*this); };
 
-    void Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg);
+    void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg);
     std::shared_ptr<simpla::data::DataEntry> Serialize() const;
 
     template <typename... Args>

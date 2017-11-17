@@ -14,7 +14,7 @@ namespace geometry {
 struct Body;
 struct Shell;
 struct PrimitiveShape : public Shape {
-    SP_CREATABLE_HEAD(Shape, PrimitiveShape, PrimitiveShape)
+    SP_SERIALIZABLE_HEAD(Shape, PrimitiveShape)
 
    public:
     virtual point_type xyz(Real r, Real phi, Real theta) const;
