@@ -16,6 +16,9 @@ struct DataEntryMemory : public DataEntry {
     SP_CREATABLE_HEAD(DataEntry, DataEntryMemory, mem)
     SP_DATA_NODE_FUNCTION(DataEntryMemory)
 
+   public:
+    size_type Add(const std::shared_ptr<DataEntry> &v) override;
+
    private:
     std::map<std::string, std::shared_ptr<DataEntry>> m_table_;
 };

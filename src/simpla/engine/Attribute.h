@@ -72,7 +72,6 @@ class AttributeGroup {
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
 
-
    private:
     struct pimpl_s;
     pimpl_s *m_pimpl_ = nullptr;
@@ -105,11 +104,13 @@ class AttributeGroup {
  *
  *
  */
-struct Attribute : public SPObject {
-    SP_OBJECT_HEAD(Attribute, SPObject)
+struct Attribute : public data::Configurable, public data::Serializable {
+   private:
+    typedef Attribute this_type;
 
    public:
-   public:
+    Attribute();
+
     Attribute(this_type const &other) = delete;  // { UNIMPLEMENTED; };
     Attribute(this_type &&other) = delete;       // { UNIMPLEMENTED; };
 
@@ -118,12 +119,12 @@ struct Attribute : public SPObject {
         Register(host);
         db()->SetValue(std::forward<Args>(args)...);
     };
-    void ReRegister(std::shared_ptr<Attribute> const &) const;
-
     static std::shared_ptr<this_type> New(std::shared_ptr<simpla::data::DataEntry> const &cfg);
 
-    virtual std::shared_ptr<Attribute> Duplicate() const = 0;
+    virtual std::shared_ptr<Attribute> Copy() const = 0;
     virtual std::shared_ptr<Attribute> CreateNew() const = 0;
+
+    void ReRegister(std::shared_ptr<Attribute> const &) const;
 
     virtual void Update() = 0;
 

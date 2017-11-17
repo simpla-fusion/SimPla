@@ -3,6 +3,9 @@
 //
 
 #include "EngineObject.h"
+#include <simpla/data/Configurable.h>
+#include <simpla/data/Serializable.h>
+#include <mutex>
 namespace simpla {
 namespace engine {
 struct EngineObject::pimpl_s {
@@ -14,12 +17,19 @@ struct EngineObject::pimpl_s {
 };
 EngineObject::EngineObject() : m_pimpl_(new pimpl_s) {}
 EngineObject::~EngineObject() { Finalize(); }
-std::shared_ptr<data::DataEntry> EngineObject::Serialize() const { return base_type::Serialize(); }
-void EngineObject::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) {
+std::shared_ptr<data::DataEntry> EngineObject::Serialize() const { return data::Serializable::Serialize(); }
+void EngineObject::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) {
     ASSERT(!isSetUp());
     Initialize();
-    base_type::Deserialize(cfg);
+    data::Serializable::Deserialize(cfg);
 };
+
+virtual std::shared_ptr<EngineObject> EngineObject::Copy() const { return nullptr; }
+std::shared_ptr<EngineObject> EngineObject::New(std::string const &k) { return Factory<EngineObject>::Create(k); }
+std::shared_ptr<EngineObject> EngineObject::New(std::shared_ptr<data::DataEntry> const &cfg) {
+    return data::Serializable::Create<EngineObject>(cfg);
+}
+
 void EngineObject::lock() { m_pimpl_->m_mutex_.lock(); }
 void EngineObject::unlock() { m_pimpl_->m_mutex_.unlock(); }
 bool EngineObject::try_lock() { return m_pimpl_->m_mutex_.try_lock(); }
@@ -36,7 +46,8 @@ bool EngineObject::isInitialized() const { return m_pimpl_->m_is_initialized_; }
 bool EngineObject::isSetUp() const { return m_pimpl_->m_is_setup_; }
 
 // void EngineObject::Push(std::shared_ptr<data::DataEntry> const &data) { ASSERT(isSetUp()); }
-// std::shared_ptr<data::DataEntry> EngineObject::Pop() const { return data::DataEntry::New(data::DataEntry::DN_TABLE); };
+// std::shared_ptr<data::DataEntry> EngineObject::Pop() const { return data::DataEntry::New(data::DataEntry::DN_TABLE);
+// };
 
 void EngineObject::Push(const std::shared_ptr<Patch> &) { ASSERT(isSetUp()); };
 std::shared_ptr<Patch> EngineObject::Pop() const { return Patch::New(); }

@@ -5,15 +5,32 @@
 #ifndef SIMPLA_ENGOBJECT_H
 #define SIMPLA_ENGOBJECT_H
 
+#include <simpla/data/Configurable.h>
+#include <simpla/data/Serializable.h>
+#include <simpla/utilities/Signal.h>
 #include "Patch.h"
-#include "simpla/data/SPObject.h"
-#include "simpla/utilities/Signal.h"
 
 namespace simpla {
 namespace engine {
-class EngineObject : public SPObject {
-    SP_OBJECT_HEAD(EngineObject, SPObject)
+class EngineObject : public data::Configurable, public data::Serializable {
+    struct pimpl_s;
+    pimpl_s *m_pimpl_ = nullptr;
+
    public:
+    std::string FancyTypeName() const override { return "EngineObject"; }
+
+    EngineObject();
+
+    EngineObject(EngineObject const &) = delete;
+    ~EngineObject() override;
+
+    virtual std::shared_ptr<EngineObject> Copy() const;
+    static std::shared_ptr<EngineObject> New(std::string const &);
+    static std::shared_ptr<EngineObject> New(std::shared_ptr<data::DataEntry> const &);
+
+    void Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) override;
+    std::shared_ptr<data::DataEntry> Serialize() const override;
+
     void lock();
     void unlock();
     bool try_lock();
@@ -51,20 +68,6 @@ class EngineObject : public SPObject {
     void Finalize();
 };
 
-#define SP_OBJECT_PROPERTY(_TYPE_, _NAME_)                             \
-   private:                                                            \
-    _TYPE_ m_##_NAME_##_;                                              \
-                                                                       \
-   public:                                                             \
-    void Set##_NAME_(_TYPE_ const &_v_) {                              \
-        if (this->isSetUp()) {                                         \
-            WARNING << "Object is set up, can not change properties."; \
-        } else {                                                       \
-            m_##_NAME_##_ = _v_;                                       \
-            this->db()->SetValue(__STRING(_NAME_), _v_);               \
-        }                                                              \
-    }                                                                  \
-    _TYPE_ Get##_NAME_() const { return m_##_NAME_##_; }
 }  // namespace engine
 }
 #endif  // SIMPLA_ENGOBJECT_H

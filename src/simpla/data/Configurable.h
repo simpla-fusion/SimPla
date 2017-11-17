@@ -7,27 +7,32 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <memory>
+#include "DataEntry.h"
 namespace simpla {
 namespace data {
-struct DataEntry;
+
+#define SP_OBJECT_PROPERTY(_TYPE_, _NAME_)                                               \
+   public:                                                                               \
+    void Set##_NAME_(_TYPE_ const &_v_) { this->db()->SetValue(__STRING(_NAME_), _v_); } \
+    _TYPE_ Get##_NAME_() const { return this->db()->GetValue<_TYPE_>(__STRING(_NAME_)); }
+
 struct Configurable {
    public:
     Configurable();
     Configurable(Configurable const &other);
+    Configurable(Configurable &&other) noexcept;
     virtual ~Configurable();
-    id_type GetUUID() const;
 
     std::shared_ptr<const DataEntry> db() const;
-    std::shared_ptr<DataEntry> db();
-    void db(std::shared_ptr<DataEntry> const &);
+    virtual std::shared_ptr<DataEntry> db();
 
-    void SetName(std::string const &);
-    std::string GetName() const;
+    SP_OBJECT_PROPERTY(std::string, Name);
+    SP_OBJECT_PROPERTY(id_type, UUID);
 
    private:
     std::shared_ptr<DataEntry> m_db_;
-    const id_type m_id_;
 };
+
 }  // namespace geometry
 }  // namespace simpla
 #endif  // SIMPLA_CONFIGURABLE_H

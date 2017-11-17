@@ -19,7 +19,7 @@ size_type DataEntryMemory::size() const { return m_table_.size(); }
 
 size_type DataEntryMemory::Set(index_type s, const std::shared_ptr<DataEntry> &v) { return Set(std::to_string(s), v); }
 size_type DataEntryMemory::Add(index_type s, const std::shared_ptr<DataEntry> &v) { return Add(std::to_string(s), v); }
-//size_type DataEntryMemory::Add(const std::shared_ptr<DataEntry> &v) { return Set(std::to_string(size()), v); };
+size_type DataEntryMemory::Add(const std::shared_ptr<DataEntry> &v) { return Set(std::to_string(size()), v); };
 size_type DataEntryMemory::Delete(index_type s) { return Delete(std::to_string(s)); }
 std::shared_ptr<const DataEntry> DataEntryMemory::Get(index_type s) const { return Get(std::to_string(s)); }
 std::shared_ptr<DataEntry> DataEntryMemory::Get(index_type s) { return Get(std::to_string(s)); }

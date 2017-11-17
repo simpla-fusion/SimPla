@@ -16,7 +16,7 @@ GeoObject::GeoObject() = default;
 GeoObject::~GeoObject() = default;
 GeoObject::GeoObject(GeoObject const &other) : m_axis_(other.m_axis_){};
 GeoObject::GeoObject(Axis const &axis) : m_axis_(axis){};
-std::shared_ptr<GeoObject> GeoObject::New(std::string const &s) {
+std::shared_ptr<GeoObject> GeoObject::Create(std::string const &s) {
     std::shared_ptr<GeoObject> res = nullptr;
     if (s.find(':') == std::string::npos) {
         res = Factory<GeoObject>::Create(s);
@@ -26,7 +26,7 @@ std::shared_ptr<GeoObject> GeoObject::New(std::string const &s) {
     return res;
 }
 
-std::shared_ptr<GeoObject> GeoObject::New(std::shared_ptr<data::DataEntry> const &cfg) {
+std::shared_ptr<GeoObject> GeoObject::Create(std::shared_ptr<data::DataEntry> const &cfg) {
     auto res = Factory<GeoObject>::Create(cfg->GetValue<std::string>("_REGISTER_NAME_", ""));
     res->Deserialize(cfg);
     return res;

@@ -35,8 +35,9 @@ class DataEntry : public std::enable_shared_from_this<DataEntry> {
     typedef DataEntry this_type;
 
    protected:
-    eNodeType m_type_;
+    eNodeType m_type_ = DN_NULL;
     std::shared_ptr<DataEntity> m_entity_ = nullptr;
+    std::shared_ptr<DataEntry> m_parent_ = nullptr;
 
    protected:
     explicit DataEntry(eNodeType etype = DN_TABLE);
@@ -61,9 +62,9 @@ class DataEntry : public std::enable_shared_from_this<DataEntry> {
         return GetParent() == nullptr ? const_cast<DataEntry*>(this)->shared_from_this() : GetParent()->GetRoot();
     }
     bool isRoot() const { return GetParent() == nullptr; }
-    void SetParent(std::shared_ptr<DataEntry> const&) {}
-    std::shared_ptr<const DataEntry> GetParent() const { return nullptr; }
-    std::shared_ptr<DataEntry> GetParent() { return nullptr; }
+    void SetParent(std::shared_ptr<DataEntry> const& p) { m_parent_ = p; }
+    std::shared_ptr<const DataEntry> GetParent() const { return m_parent_; }
+    std::shared_ptr<DataEntry> GetParent() { return m_parent_; }
 
     /** @addtogroup required @{*/
     virtual std::shared_ptr<DataEntry> CreateNode(eNodeType e_type) const;

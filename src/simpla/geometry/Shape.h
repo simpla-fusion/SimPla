@@ -21,7 +21,7 @@ struct Shape : public data::Serializable {
     Shape(Shape const &other);
 
    public:
-    virtual ~Shape();
+    ~Shape() override;
     static std::shared_ptr<Shape> Create(std::string const &key);
     virtual std::shared_ptr<Shape> Copy() const = 0;
 };

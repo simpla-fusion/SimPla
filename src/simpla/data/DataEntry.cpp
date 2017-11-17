@@ -175,7 +175,10 @@ std::shared_ptr<DataEntity> DataEntry::GetEntity(int N) {
     return res;
 }
 
-size_type DataEntry::Set(std::string const& uri, const std::shared_ptr<DataEntry>& v) { return 0; }
+size_type DataEntry::Set(std::string const& uri, const std::shared_ptr<DataEntry>& v) {
+    UNIMPLEMENTED;
+    return 0;
+}
 size_type DataEntry::Set(std::string const& uri, const std::shared_ptr<const DataEntry>& v) {
     return Set(uri, v->Copy());
 }

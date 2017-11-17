@@ -5,6 +5,7 @@
 #ifndef SIMPLA_PRIMITIVESSHAPE_H
 #define SIMPLA_PRIMITIVESSHAPE_H
 #include <simpla/data/DataEntry.h>
+#include <simpla/utilities/Factory.h>
 #include <simpla/utilities/SPDefines.h>
 #include <memory>
 #include "Shape.h"
@@ -13,7 +14,7 @@ namespace geometry {
 struct Body;
 struct Shell;
 struct PrimitiveShape : public Shape {
-    SP_FACTORY_HEAD(Shape, PrimitiveShape, Shape)
+    SP_CREATABLE_HEAD(Shape, PrimitiveShape, PrimitiveShape)
 
    public:
     virtual point_type xyz(Real r, Real phi, Real theta) const;

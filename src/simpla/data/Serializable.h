@@ -12,7 +12,7 @@ struct Serializable {
    public:
     Serializable();
     Serializable(Serializable const &);
-    ~Serializable();
+    virtual ~Serializable();
     virtual std::string FancyTypeName() const { return "unknown"; }
     virtual void Deserialize(std::shared_ptr<const DataEntry> const &cfg);
     virtual std::shared_ptr<DataEntry> Serialize() const;
