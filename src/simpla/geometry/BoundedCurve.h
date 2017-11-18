@@ -22,7 +22,7 @@ class BoundedCurve2D : public BoundedCurve {
     SP_SERIALIZABLE_HEAD(BoundedCurve, BoundedCurve2D);
 
    public:
-    point_type xyz(Real u) const override;
+    point_type xyz(Real u) const;
 
     void Open() override;
     void Close() override;
@@ -44,7 +44,7 @@ class BoundedCurve3D : public BoundedCurve {
     SP_SERIALIZABLE_HEAD(BoundedCurve, BoundedCurve3D);
 
    public:
-    point_type xyz(Real u) const override;
+    point_type xyz(Real u) const;
 
     void Open() override;
     void Close() override;

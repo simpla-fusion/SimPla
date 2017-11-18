@@ -24,11 +24,11 @@ std::shared_ptr<data::DataEntry> Patch::Serialize() const {
     for (auto const &item : m_pimpl_->m_data_blocks_) { attrs->Set(item.first, item.second); }
     return res;
 }
-void Patch::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) {
+void Patch::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) {
     m_pimpl_->m_mesh_block_ = MeshBlock::New(cfg->Get("MeshBlock"));
     if (auto attrs = cfg->Get("Attributes")) {
-        attrs->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntry> const &node) {
-            auto res = m_pimpl_->m_data_blocks_.emplace(key, node);
+        attrs->Foreach([&](std::string const &key, std::shared_ptr<const data::DataEntry> const &node) {
+            auto res = m_pimpl_->m_data_blocks_.emplace(key, node->Copy());
             if (!res.second) { res.first->second->Set(node); }
         });
     }

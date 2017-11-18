@@ -20,6 +20,7 @@ Configurable::Configurable(Configurable &&other) noexcept : m_db_(std::move(othe
 Configurable::~Configurable() = default;
 std::shared_ptr<const DataEntry> Configurable::db() const { return m_db_; }
 std::shared_ptr<DataEntry> Configurable::db() { return m_db_; }
+void Configurable::SetDB(std::shared_ptr<DataEntry> const &d) { m_db_ = d; };
 
 }  // namespace geometry
 }  // namespace simpla

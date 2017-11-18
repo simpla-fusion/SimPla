@@ -180,7 +180,7 @@ void Scenario::DoSetUp() {
                 auto res = m_pimpl_->m_attrs_.emplace(attr->GetName(), attr->CreateNew());
                 ASSERT(res.first->second->CheckType(*attr));
                 res.first->second->db()->Set(attr->db());
-                attr->db(res.first->second->db());
+                attr->SetDB(res.first->second->db());
             }
         }
     }

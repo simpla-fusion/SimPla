@@ -6,21 +6,20 @@
 
 #include <simpla/utilities/SPDefines.h>
 #include "Box.h"
-#include "spCircle.h"
 #include "Curve.h"
 #include "GeoAlgorithm.h"
-#include "Line.h"
+#include "spLine.h"
+#include "spCircle.h"
 
 namespace simpla {
 namespace geometry {
-SP_SHAPE_REGISTER(Sphere)
+SP_SHAPE_REGISTER(spSphere)
 spSphere::spSphere() = default;
 spSphere::spSphere(spSphere const &) = default;
 spSphere::~spSphere() = default;
-spSphere::spSphere(  Real radius, Real phi0, Real phi1, Real theta0, Real theta1)
-    :  m_radius_(radius) {}
+spSphere::spSphere(Real radius) : m_radius_(radius) {}
 
-void spSphere::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) {
+void spSphere::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
     m_radius_ = cfg->GetValue<Real>("Radius", m_radius_);
 }
@@ -29,21 +28,20 @@ std::shared_ptr<simpla::data::DataEntry> spSphere::Serialize() const {
     res->SetValue<Real>("Radius", m_radius_);
     return res;
 }
-void spSphere::SetRadius(Real r) { m_radius_ = r; }
-Real spSphere::GetRadius() const { return m_radius_; }
-bool spSphere::CheckIntersection(box_type const &b, Real tolerance) const {
-    return CheckIntersectionCubeSphere(std::get<0>(b), std::get<1>(b), m_axis_.o, m_radius_);
-}
-bool spSphere::CheckIntersection(point_type const &x, Real tolerance) const {
-    return dot(x - m_axis_.o, x - m_axis_.o) < m_radius_ * m_radius_;
-}
+
+// bool spSphere::CheckIntersection(box_type const &b, Real tolerance) const {
+//    return CheckIntersectionCubeSphere(std::get<0>(b), std::get<1>(b), m_axis_.o, m_radius_);
+//}
+// bool spSphere::CheckIntersection(point_type const &x, Real tolerance) const {
+//    return dot(x - m_axis_.o, x - m_axis_.o) < m_radius_ * m_radius_;
+//}
 // std::shared_ptr<GeoObject> spSphere::GetIntersection(std::shared_ptr<const GeoObject> const &g,
 //                                                          Real tolerance) const {
 //    std::shared_ptr<GeoObject> res = nullptr;
 //    if (g == nullptr) {
 //    } else if (auto curve = std::dynamic_pointer_cast<const Curve>(g)) {
 //        //        auto p_on_curve = PointsOnCurve::New(curve);
-//        //        if (auto line = std::dynamic_pointer_cast<const Line>(curve)) {
+//        //        if (auto line = std::dynamic_pointer_cast<const spLine>(curve)) {
 //        //            GetIntersectionLineSphere(line->GetAxis().o, line->GetAxis().o + line->GetAxis().x, GetAxis().o,
 //        //            m_radius_,
 //        //                                tolerance, p_on_curve->data());

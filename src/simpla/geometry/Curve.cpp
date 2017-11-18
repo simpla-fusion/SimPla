@@ -26,7 +26,7 @@ std::shared_ptr<PolyPoints> Curve::GetBoundaryPoints() const {
 std::shared_ptr<PolyPoints> Curve::GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const {
     return std::dynamic_pointer_cast<PolyPoints>(base_type::GetIntersection(g, tolerance));
 }
-std::shared_ptr<PolyPoints> Curve::GetIntersection(std::shared_ptr<const Plane> const &g, Real tolerance) const {
+std::shared_ptr<PolyPoints> Curve::GetIntersection(std::shared_ptr<const spPlane> const &g, Real tolerance) const {
     return std::dynamic_pointer_cast<PolyPoints>(base_type::GetIntersection(g, tolerance));
 }
 std::shared_ptr<PolyPoints> Curve::GetIntersection(std::shared_ptr<const Box> const &g, Real tolerance) const {
@@ -37,7 +37,7 @@ std::shared_ptr<GeoObject> Curve::GetIntersection(std::shared_ptr<const GeoObjec
     std::shared_ptr<GeoObject> res = nullptr;
     if (auto curve = std::dynamic_pointer_cast<const Curve>(g)) {
         res = GetIntersection(curve, tolerance);
-    } else if (auto plane = std::dynamic_pointer_cast<const Plane>(g)) {
+    } else if (auto plane = std::dynamic_pointer_cast<const spPlane>(g)) {
         res = GetIntersection(plane, tolerance);
     } else if (auto box = std::dynamic_pointer_cast<const Box>(g)) {
         res = GetIntersection(box, tolerance);
@@ -123,15 +123,15 @@ std::shared_ptr<GeoObject> Curve::GetIntersection(std::shared_ptr<const GeoObjec
 ////    m_XAxis_ = cfg->GetValue("XAxis", m_XAxis_);
 ////    m_YAxis_ = cfg->GetValue("YAXis", m_YAxis_);
 ////};
-// Line::Line() = default;
-// Line::~Line() = default;
-// std::shared_ptr<simpla::data::DataEntry> Line::Serialize() const {
+// spLine::spLine() = default;
+// spLine::spLinene() = default;
+// std::shared_ptr<simpla::data::DataEntry> spLine::Serialize() const {
 //    auto cfg = base_type::Serialize();
 //    cfg->SetValue("Begin", m_p0_);
 //    cfg->SetValue("End", m_p1_);
 //    return cfg;
 //};
-// void Line::Deserialize(std::shared_ptr<simpla::data::DataEntry> const& cfg) {
+// void spLine::Deserialize(std::shared_ptr<simpla::data::DataEntry> const& cfg) {
 //    base_type::Deserialize(cfg);
 //    m_p0_ = cfg->GetValue("Begin", m_p0_);
 //    m_p1_ = cfg->GetValue("End", m_p1_);

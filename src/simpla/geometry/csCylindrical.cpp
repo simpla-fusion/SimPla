@@ -6,11 +6,10 @@
 #include "Curve.h"
 #include "Edge.h"
 #include "Face.h"
-#include "Line.h"
 #include "Revolution.h"
 #include "spCircle.h"
 #include "spCylinder.h"
-#include "spRectangle.h"
+#include "spLine.h"
 namespace simpla {
 namespace geometry {
 
@@ -30,7 +29,7 @@ std::shared_ptr<Edge> csCylindrical::GetCoordinateEdge(point_type const &o, int 
     //        case RAxis: {
     //            auto axis = m_axis_;
     //            //            axis.o[ZAxis] = xyz(o)[ZAxis];
-    //            curve = Line::New(axis.o, axis.GetDirection(normal), 1.0);
+    //            curve = spLine::New(axis.o, axis.GetDirection(normal), 1.0);
     //        } break;
     //        default:
     //            break;
@@ -48,7 +47,7 @@ std::shared_ptr<Face> csCylindrical::GetCoordinateFace(point_type const &o, int 
     //        case RAxis: {
     //            auto axis = m_axis_;
     //            //            axis.o[ZAxis] = xyz(uvw)[ZAxis];
-    //            surface = Line::New(axis.o, axis.GetDirection(normal), 1.0);
+    //            surface = spLine::New(axis.o, axis.GetDirection(normal), 1.0);
     //        } break;
     //        default:
     //            break;
@@ -56,8 +55,8 @@ std::shared_ptr<Face> csCylindrical::GetCoordinateFace(point_type const &o, int 
     return Face::New(surface, 0, u, 0, v);
 };
 
-std::shared_ptr<Solid> csCylindrical::GetCoordinateSolid(point_type const &o, Real u, Real v, Real w) const {
-    return base_type::GetCoordinateSolid(o, u, v, w);
+std::shared_ptr<Solid> csCylindrical::GetCoordinateBox(point_type const &o, Real u, Real v, Real w) const {
+    return base_type::GetCoordinateBox(o, u, v, w);
 };
 
 }  // namespace geometry

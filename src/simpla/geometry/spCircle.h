@@ -13,14 +13,13 @@ namespace geometry {
 struct spCircle : public Shape {
     SP_SHAPE_HEAD(Shape, spCircle, Circle);
 
-   protected:
     explicit spCircle(Real radius);
 
-   public:
-    point_type xyz(Real alpha, Real r, Real z) const {
-        return point_type{r * std::cos(alpha), r * std::sin(alpha), z};
+    point2d_type xy(Real alpha) const {
+        return point2d_type{m_radius_ * std::cos(alpha), m_radius_ * std::sin(alpha)};
     };
-    point_type uvw(Real x, Real y, Real z) const { return point_type{std::atan2(y, x), std::hypot(x, y), z}; }
+    Real GetRadius() const { return m_radius_; }
+    void SetRadius(Real const &a) { m_radius_ = a; }
 
    private:
     Real m_radius_ = 1;

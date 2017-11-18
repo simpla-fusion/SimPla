@@ -3,7 +3,7 @@
 //
 #include <simpla/geometry/CutCell.h>
 #include <simpla/geometry/GeoEngine.h>
-#include <simpla/geometry/Line.h>
+#include <simpla/geometry/spLine.h>
 #include <simpla/geometry/Polygon.h>
 #include <simpla/geometry/Revolution.h>
 #include <simpla/geometry/spTorus.h>

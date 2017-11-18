@@ -14,24 +14,21 @@ namespace geometry {
 
 struct spCone : public Shape {
     SP_SHAPE_HEAD(Shape, spCone, Cone)
-   protected:
-    explicit spCone(Real semi_angle);
+    explicit spCone(Real angle, Real radius);
 
-   public:
-    //    point_type xyz(Real l, Real phi, Real theta) const override {
-    //        Real r = l * std::sin(theta);
-    //        return m_axis_.xyz(r * std::cos(phi), r * std::sin(phi), l * std::cos(theta));
-    //    }
-    //    point_type uvw(Real x, Real y, Real z) const override {
-    //        UNIMPLEMENTED;
-    //        return point_type{x, y, z};
-    //    }
+    point_type xyz(Real l, Real phi, Real theta) const {
+        Real r = l * std::sin(theta);
+        return m_axis_.xyz(r * std::cos(phi), r * std::sin(phi), l * std::cos(theta));
+    }
 
-    void SetSemiAngle(Real theta) { m_semi_angle_ = theta; }
-    Real GetSemiAngle() const { return m_semi_angle_; }
+    void SetAngle(Real theta) { m_angle_ = theta; }
+    Real GetAngle() const { return m_angle_; }
+    void SetRadius(Real r) { m_radius_ = r; }
+    Real GetRadius() const { return m_radius_; }
 
    protected:
-    Real m_semi_angle_ = PI / 4;
+    Real m_angle_ = PI / 4;
+    Real m_radius_ = 1.0;
 };
 
 }  // namespace geometry

@@ -4,18 +4,16 @@
 
 #ifndef SIMPLA_MESHBLOCK_H
 #define SIMPLA_MESHBLOCK_H
-
-#include "simpla/SIMPLA_config.h"
-
+#include <simpla/SIMPLA_config.h>
+#include <simpla/algebra/nTuple.ext.h>
+#include <simpla/algebra/nTuple.h>
+#include <simpla/data/Serializable.h>
+#include <simpla/utilities/ObjectHead.h>
 #include <memory>
-
-#include "simpla/algebra/nTuple.ext.h"
-#include "simpla/algebra/nTuple.h"
-#include "simpla/utilities/ObjectHead.h"
 
 namespace simpla {
 namespace engine {
-class MeshBlock {
+class MeshBlock : public data::Serializable {
     typedef MeshBlock this_type;
 
    protected:
@@ -25,10 +23,10 @@ class MeshBlock {
    public:
     ~MeshBlock();
 
-    static std::shared_ptr<MeshBlock> New(std::shared_ptr<simpla::data::DataEntry> const &);
+    static std::shared_ptr<MeshBlock> New(std::shared_ptr<const simpla::data::DataEntry> const &);
     static std::shared_ptr<MeshBlock> New(index_box_type const &box, int level = 0, size_type local_id = 0);
-    std::shared_ptr<simpla::data::DataEntry> Serialize() const;
-    void Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg);
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
+    void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
 
    private:
     static constexpr int MAX_LEVEL_NUMBER = 8;

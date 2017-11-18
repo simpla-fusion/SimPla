@@ -21,22 +21,25 @@ namespace geometry {
 */
 struct spCylinder : public Shape {
     SP_SHAPE_HEAD(Shape, spCylinder, Cylinder)
-   protected:
-    spCylinder(Real radius, Real height);
 
-   public:
-    //    point_type xyz(Real u, Real v, Real w) const override;
-    //    point_type uvw(Real x, Real y, Real z) const override;
+    spCylinder(Real radius, Real height);
 
     Real GetRadius() const { return m_radius_; }
     void SetRadius(Real const &a) { m_radius_ = a; }
-
     Real GetHeight() const { return m_height_; }
     void SetHeight(Real const &a) { m_height_ = a; }
+    Real GetAngle() const { return m_angle_; }
+    void SetAngle(Real const &a) { m_angle_ = a; }
+
+    point_type xyz(Real u, Real v, Real w) const {
+        return point_type{u * m_radius_ * std::cos(v * m_angle_), u * m_radius_ * std::sin(v * m_angle_),
+                          w * m_height_};
+    };
 
    private:
     Real m_radius_;
     Real m_height_;
+    Real m_angle_ = TWOPI;
 };
 
 }  // namespace geometry

@@ -18,7 +18,7 @@ struct Solid : public GeoObject {
    public:
     void SetBody(std::shared_ptr<const Body> const &s) { m_body_ = s; }
     std::shared_ptr<const Body> GetBody() const { return m_body_; }
-    void SetParameterRange(point_type const &umin, point_type const &umax) const { m_range_ = std::tie(umin, umax); };
+    void SetParameterRange(point_type const &umin, point_type const &umax) { m_range_ = std::tie(umin, umax); };
     box_type const &GetParameterRange() const { return m_range_; };
 
    private:

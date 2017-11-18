@@ -21,8 +21,8 @@ struct spHyperbola : public Shape {
     Real GetMajorRadius() const { return m_major_radius_; }
     Real GetMinorRadius() const { return m_minor_radius_; }
 
-    point_type xyz(Real alpha) const {
-        return m_axis_.xyz(m_major_radius_ * std::cosh(alpha), m_minor_radius_ * std::sinh(alpha));
+    point2d_type xy(Real alpha) const {
+        return point2d_type{m_major_radius_ * std::cosh(alpha), m_minor_radius_ * std::sinh(alpha)};
     };
 
    protected:

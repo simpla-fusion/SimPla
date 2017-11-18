@@ -7,12 +7,14 @@
 #include <simpla/geometry/GeoEngine.h>
 #include "simpla/SIMPLA_config.h"
 
-#include "simpla/geometry/Chart.h"
-#include "simpla/geometry/GeoObject.h"
+#include <simpla/geometry/Chart.h>
+#include <simpla/geometry/Edge.h>
+#include <simpla/geometry/Face.h>
+#include <simpla/geometry/GeoObject.h>
+#include <simpla/geometry/Solid.h>
 
 #include "Attribute.h"
 #include "Domain.h"
-
 namespace simpla {
 namespace engine {
 struct DomainBase::pimpl_s {
@@ -53,7 +55,7 @@ void DomainBase::Push(const std::shared_ptr<Patch>& p) {
     SetMeshBlock(p->GetMeshBlock());
     AttributeGroup::Push(p);
     GEO_ENGINE->OpenFile("mesh_block.stl");
-    GEO_ENGINE->Save(GetChart()->GetBoundingShape(GetMeshBlock()->GetIndexBox()),
+    GEO_ENGINE->Save(GetChart()->GetCoordinateBox(GetMeshBlock()->GetIndexBox()),
                      std::to_string(GetMeshBlock()->GetGUID()));
     GEO_ENGINE->CloseFile();
 }
@@ -70,7 +72,7 @@ std::shared_ptr<Patch> DomainBase::Pop() const {
 //}
 
 int DomainBase::CheckBlockInBoundary() const {
-    auto blk = GetChart()->GetBoundingShape(GetMeshBlock()->GetIndexBox());
+    auto blk = GetChart()->GetCoordinateBox(GetMeshBlock()->GetIndexBox());
     return (GetBoundary() == nullptr || GetBoundary()->CheckIntersection(blk, SP_GEO_DEFAULT_TOLERANCE)) ? 1 : -1;
 }
 

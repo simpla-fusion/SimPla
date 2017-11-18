@@ -135,6 +135,12 @@ class GeoObject : public data::Serializable, public std::enable_shared_from_this
 
 #define SP_GEO_OBJECT_HEAD(_BASE_NAME_, _CLASS_NAME_)                                                                \
     SP_SERIALIZABLE_HEAD(_BASE_NAME_, _CLASS_NAME_)                                                                  \
+   private:                                                                                                          \
+    static bool _is_registered;                                                                                      \
+                                                                                                                     \
+   public:                                                                                                           \
+    static std::string RegisterName() { return __STRING(_CLASS_NAME_); }                                             \
+                                                                                                                     \
    protected:                                                                                                        \
     explicit _CLASS_NAME_(Axis const &axis);                                                                         \
     _CLASS_NAME_(_CLASS_NAME_ const &other);                                                                         \
@@ -185,8 +191,8 @@ class GeoObject : public data::Serializable, public std::enable_shared_from_this
         return res;                                                                                                  \
     }
 
-#define SP_GEO_OBJECT_REGISTER(_CLASS_NAME_)                        \
-    bool enable_create_from_factory<_CLASS_NAME_>::_is_registered = \
+#define SP_GEO_OBJECT_REGISTER(_CLASS_NAME_) \
+    bool _CLASS_NAME_::_is_registered =      \
         simpla::Factory<GeoObject>::RegisterCreator<_CLASS_NAME_>(_CLASS_NAME_::RegisterName());
 
 }  // namespace geometry

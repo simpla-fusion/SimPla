@@ -22,9 +22,8 @@ class Patch : public std::enable_shared_from_this<Patch> {
    private:
     Patch();
 
-
     explicit Patch(std::shared_ptr<const MeshBlock> const &mblk);
-    explicit Patch(std::shared_ptr<data::DataEntry> const &cfg) : Patch() { Deserialize(cfg); };
+    explicit Patch(std::shared_ptr<const data::DataEntry> const &cfg) : Patch() { Deserialize(cfg); };
 
    public:
     ~Patch();
@@ -38,7 +37,7 @@ class Patch : public std::enable_shared_from_this<Patch> {
     };
 
     std::shared_ptr<data::DataEntry> Serialize() const;
-    void Deserialize(std::shared_ptr<data::DataEntry> const &cfg);
+    void Deserialize(std::shared_ptr<const data::DataEntry> const &cfg);
 
     std::shared_ptr<data::DataEntry> GetDataBlock(std::string const &) const;
     void SetDataBlock(std::string const &, std::shared_ptr<data::DataEntry> const &);

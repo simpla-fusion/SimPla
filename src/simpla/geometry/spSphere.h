@@ -13,18 +13,18 @@ namespace geometry {
 struct spSphere : public Shape {
     SP_SHAPE_HEAD(Shape, spSphere, Sphere)
 
-   protected:
-   public:
-    point_type xyz(Real r, Real phi, Real theta) const override {
+    explicit spSphere(Real radius);
+    Real GetRadius() const { return m_radius_; }
+    void SetRadius(Real const &r) { m_radius_ = r; }
+
+    point_type xyz(Real r, Real phi, Real theta) const {
         Real cos_theta = std::cos(theta);
         return point_type{r * cos_theta * std::cos(phi), r * cos_theta * std::sin(phi), r * std::sin(theta)};
     };
-    point_type uvw(Real x, Real y, Real z) const override { return point_type{x, y, z}; };
+    point_type uvw(Real x, Real y, Real z) const { return point_type{x, y, z}; };
 
-    box_type GetBoundingBox(box_type const &uvw_box) const override {
-        Real r = std::get<1>(uvw_box)[0];
-        return box_type{{-r, -r, -r}, {r, r, r}};
-    };
+   private:
+    Real m_radius_ = 1;
 };
 
 }  // namespace geometry

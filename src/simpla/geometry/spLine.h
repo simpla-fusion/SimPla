@@ -11,16 +11,12 @@
 #include "Curve.h"
 namespace simpla {
 namespace geometry {
-struct Line : public Curve {
-    SP_SHAPE_HEAD(Curve, Line)
+struct spLine : public Shape {
+    SP_SHAPE_HEAD(Shape, spLine, Line)
 
-   protected:
-    explicit Line(point_type const &p0, point_type const &p1);
-    explicit Line(point_type const &p0, vector_type const &dir, Real length);
+    explicit spLine(point_type const &p0, point_type const &p1);
+    explicit spLine(point_type const &p0, vector_type const &dir, Real length);
 
-   public:
-    bool IsClosed() const override;
-    point_type xyz(Real u) const override;
     point_type GetStartPoint() const;
     point_type GetEndPoint() const;
     vector_type GetDirection() const;

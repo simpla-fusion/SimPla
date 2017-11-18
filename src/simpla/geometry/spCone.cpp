@@ -9,16 +9,19 @@ namespace geometry {
 
 void spCone::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
-    SetSemiAngle(cfg->GetValue("SemiAngle", GetSemiAngle()));
+    SetAngle(cfg->GetValue("Angle", GetAngle()));
+    SetRadius(cfg->GetValue("Radius", GetRadius()));
 }
 std::shared_ptr<simpla::data::DataEntry> spCone::Serialize() const {
     auto res = base_type::Serialize();
-    res->SetValue("SemiAngle", GetSemiAngle());
+    res->SetValue("Angle", GetAngle());
+    res->SetValue("Radius", GetRadius());
+
     return res;
 }
 spCone::spCone() = default;
 spCone::spCone(spCone const &other) = default;
-spCone::spCone(Real semi_angle) : Shape(), m_semi_angle_(semi_angle){};
+spCone::spCone(Real angle, Real radius) : Shape(), m_angle_(angle), m_radius_(radius){};
 spCone::~spCone() = default;
 
 }  // namespace geometry {

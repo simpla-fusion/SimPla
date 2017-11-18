@@ -7,15 +7,17 @@
 
 #include <simpla/SIMPLA_config.h>
 #include "Shape.h"
+#include "Solid.h"
 namespace simpla {
 namespace geometry {
 
-struct Box : public GeoObject {
-    SP_GEO_OBJECT_HEAD(GeoObject, Box)
+struct Box : public Solid {
+    SP_GEO_OBJECT_HEAD(Solid, Box)
 
    protected:
     Box(std::initializer_list<std::initializer_list<Real>> const &v);
     explicit Box(point_type const &p0, point_type const &p1);
+    explicit Box(point_type const &p0, Real u, Real v, Real w);
     explicit Box(box_type const &v);
     explicit Box(vector_type const &extents);
 

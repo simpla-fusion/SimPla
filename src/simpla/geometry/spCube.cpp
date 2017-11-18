@@ -26,7 +26,7 @@ std::shared_ptr<simpla::data::DataEntry> spCube::Serialize() const {
 //    if (g == nullptr) {
 //    } else if (auto curve = std::dynamic_pointer_cast<const Curve>(g)) {
 //        //        auto p_on_curve = PointsOnCurve::New(curve);
-//        //        if (auto line = std::dynamic_pointer_cast<const Line>(curve)) {
+//        //        if (auto line = std::dynamic_pointer_cast<const spLine>(curve)) {
 //        //            GetIntersectionLineCube(line->GetAxis().o, line->GetAxis().o + line->GetAxis().x, GetAxis().o,
 //        //            m_radius_,
 //        //                                tolerance, p_on_curve->data());

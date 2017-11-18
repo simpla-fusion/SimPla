@@ -11,8 +11,19 @@ spCylinder::spCylinder() = default;
 spCylinder::spCylinder(spCylinder const &) = default;
 spCylinder::~spCylinder() = default;
 spCylinder::spCylinder(Real radius, Real height) : m_radius_(radius), m_height_(height) {}
-std::shared_ptr<simpla::data::DataEntry> spCylinder::Serialize() const { return base_type::Serialize(); };
-void spCylinder::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) { base_type::Deserialize(cfg); }
+std::shared_ptr<simpla::data::DataEntry> spCylinder::Serialize() const {
+    auto res = base_type::Serialize();
+    res->SetValue("Radius", GetRadius());
+    res->SetValue("Height", GetHeight());
+    res->SetValue("Angle", GetAngle());
+    return res;
+};
+void spCylinder::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) {
+    base_type::Deserialize(cfg);
+    SetRadius(cfg->GetValue("Radius", GetRadius()));
+    SetHeight(cfg->GetValue("Height", GetHeight()));
+    SetAngle(cfg->GetValue("Angle", GetAngle()));
+}
 
 // point_type spCylinder::xyz(Real r, Real angle, Real h) const {
 //    return m_axis_.xyz(r * std::cos(angle), r * std::sin(angle), h);

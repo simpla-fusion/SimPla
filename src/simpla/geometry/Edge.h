@@ -9,7 +9,6 @@
 
 namespace simpla {
 namespace geometry {
-struct Curve;
 struct Edge : public GeoObject {
     SP_GEO_OBJECT_HEAD(GeoObject, Edge);
 
@@ -20,7 +19,7 @@ struct Edge : public GeoObject {
    public:
     void SetCurve(std::shared_ptr<const Curve> const &s) { m_curve_ = s; }
     std::shared_ptr<const Curve> GetCurve() const { return m_curve_; }
-    void SetParameterRange(Real umin, Real umax) const { m_range_ = std::tie(umin, umax); };
+    void SetParameterRange(Real umin, Real umax) { m_range_ = std::tie(umin, umax); };
     std::tuple<Real, Real> const &GetParameterRange() const { return m_range_; };
 
    private:

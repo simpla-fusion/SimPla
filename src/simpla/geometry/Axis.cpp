@@ -2,8 +2,8 @@
 // Created by salmon on 17-10-23.
 //
 #include "Axis.h"
-#include "Line.h"
-#include "Plane.h"
+#include "spLine.h"
+#include "spPlane.h"
 namespace simpla {
 namespace geometry {
 
@@ -35,16 +35,16 @@ Axis Axis::Moved(const point_type &p) const {
     return std::move(res);
 }
 
-std::shared_ptr<Plane> Axis::GetPlane(int n) const {
-    return Plane::New(Axis{o, m_axis_[(n + 1) % 3], m_axis_[(n + 2) % 3]});
+std::shared_ptr<spPlane> Axis::GetPlane(int n) const {
+    return spPlane::New(Axis{o, m_axis_[(n + 1) % 3], m_axis_[(n + 2) % 3]});
 }
-std::shared_ptr<Plane> Axis::GetPlaneXY() const { return GetPlane(2); }
-std::shared_ptr<Plane> Axis::GetPlaneYZ() const { return GetPlane(1); }
-std::shared_ptr<Plane> Axis::GetPlaneZX() const { return GetPlane(0); }
-std::shared_ptr<Line> Axis::GetAxe(int n) const { return Line::New(Axis{o, m_axis_[n]}); }
-std::shared_ptr<Line> Axis::GetPlaneX() const { return GetAxe(0); }
-std::shared_ptr<Line> Axis::GetPlaneY() const { return GetAxe(0); }
-std::shared_ptr<Line> Axis::GetPlaneZ() const { return GetAxe(0); }
+std::shared_ptr<spPlane> Axis::GetPlaneXY() const { return GetPlane(2); }
+std::shared_ptr<spPlane> Axis::GetPlaneYZ() const { return GetPlane(1); }
+std::shared_ptr<spPlane> Axis::GetPlaneZX() const { return GetPlane(0); }
+std::shared_ptr<spLine> Axis::GetAxe(int n) const { return spLine::New(Axis{o, m_axis_[n]}); }
+std::shared_ptr<spLine> Axis::GetPlaneX() const { return GetAxe(0); }
+std::shared_ptr<spLine> Axis::GetPlaneY() const { return GetAxe(0); }
+std::shared_ptr<spLine> Axis::GetPlaneZ() const { return GetAxe(0); }
 
 }  // namespace geometry{
 }  // namespace simpla{

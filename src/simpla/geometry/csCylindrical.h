@@ -51,7 +51,7 @@ struct csCylindrical : public Chart {
 
     std::shared_ptr<Edge> GetCoordinateEdge(point_type const &x0, int normal, Real u) const override;
     std::shared_ptr<Face> GetCoordinateFace(point_type const &x0, int normal, Real u, Real v) const override;
-    std::shared_ptr<Solid> GetCoordinateSolid(point_type const &o, Real u, Real v, Real w) const override;
+    std::shared_ptr<Solid> GetCoordinateBox(point_type const &o, Real u, Real v, Real w) const override;
 
    public:
     /**

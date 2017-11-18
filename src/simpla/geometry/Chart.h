@@ -36,11 +36,13 @@ struct Chart : public data::Serializable {
 
     virtual std::shared_ptr<Edge> GetCoordinateEdge(point_type const &o, int normal, Real u) const = 0;
     virtual std::shared_ptr<Face> GetCoordinateFace(point_type const &o, int normal, Real u, Real v) const;
-    virtual std::shared_ptr<Solid> GetCoordinateSolid(point_type const &o, Real u, Real v, Real w) const;
+    virtual std::shared_ptr<Solid> GetCoordinateBox(point_type const &o, Real u, Real v, Real w) const;
+    std::shared_ptr<Solid> GetCoordinateBox(box_type const &o) const;
 
     std::shared_ptr<Edge> GetCoordinateEdge(index_tuple const &x0, int normal, size_type u) const;
-    std::shared_ptr<Edge> GetCoordinateFace(index_tuple const &x0, int normal, size_type u, size_type v) const;
-    std::shared_ptr<Edge> GetCoordinateSolid(index_box_type const &b, size_type u, size_type v, size_type w) const;
+    std::shared_ptr<Face> GetCoordinateFace(index_tuple const &x0, int normal, size_type u, size_type v) const;
+    std::shared_ptr<Solid> GetCoordinateBox(index_tuple const &b, size_type u, size_type v, size_type w) const;
+    std::shared_ptr<Solid> GetCoordinateBox(index_box_type const &b) const;
 
     void SetLevel(int level);
     int GetLevel() const;
