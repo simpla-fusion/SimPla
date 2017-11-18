@@ -41,13 +41,15 @@ std::istream &operator>>(std::istream &is, Serializable &obj);
     static std::shared_ptr<this_type> New(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {               \
         return std::dynamic_pointer_cast<this_type>(base_type::Create(cfg));                                         \
     }
+#define SP_CREATABLE_HEAD(_CLASS_NAME_)                        \
+   protected:                                                  \
+    _CLASS_NAME_();                                            \
+    _CLASS_NAME_(_CLASS_NAME_ const &)                         \
+   public:                                                     \
+    template <typename... Args>                                \
+    static std::shared_ptr<_CLASS_NAME_> New(Args &&... args); \
+    _CLASS_NAME_ *CopyPointer(Args &&... args) const override { return new this_type(*this); }
 
-#define SP_REGISTERABLE_HEAD(_REGISTER_NAME_) \
-   private:                                   \
-    static bool _is_registered;               \
-                                              \
-   public:                                    \
-    static std::string RegisterName() { return __STRING(_REGISTER_NAME_); }
 }  // namespace geometry
 }  // namespace simpla
 

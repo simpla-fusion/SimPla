@@ -9,7 +9,7 @@
 namespace simpla {
 namespace geometry {
 class BoundedCurve : public Curve {
-    SP_GEO_ABS_OBJECT_HEAD(BoundedCurve, Curve);
+    SP_SERIALIZABLE_HEAD(Curve, BoundedCurve);
 
    public:
     virtual void Open() = 0;
@@ -19,7 +19,7 @@ class BoundedCurve : public Curve {
     virtual point_type GetPoint(index_type s) const = 0;
 };
 class BoundedCurve2D : public BoundedCurve {
-    SP_GEO_OBJECT_HEAD(BoundedCurve2D, BoundedCurve);
+    SP_SERIALIZABLE_HEAD(BoundedCurve, BoundedCurve2D);
 
    public:
     point_type xyz(Real u) const override;
@@ -41,7 +41,7 @@ class BoundedCurve2D : public BoundedCurve {
     pimpl_s *m_pimpl_ = nullptr;
 };
 class BoundedCurve3D : public BoundedCurve {
-    SP_GEO_OBJECT_HEAD(BoundedCurve3D, BoundedCurve);
+    SP_SERIALIZABLE_HEAD(BoundedCurve, BoundedCurve3D);
 
    public:
     point_type xyz(Real u) const override;

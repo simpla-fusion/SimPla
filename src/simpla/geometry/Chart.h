@@ -13,29 +13,34 @@
 
 namespace simpla {
 namespace geometry {
-struct Curve;
-struct Surface;
-struct Chart : public data::Serializable, public data::Configurable {
+struct Edge;
+struct Face;
+struct Solid;
+struct Chart : public data::Serializable {
     SP_SERIALIZABLE_HEAD(data::Serializable, Chart)
 
    private:
     bool m_is_valid_ = false;
 
    protected:
+    Chart();
+    Chart(Chart const &);
     Chart(point_type const &orign, point_type const &grid_width);
 
    public:
+    ~Chart() override;
     virtual int GetNDIMS() const;
     bool IsValid() const { return m_is_valid_; }
     virtual void Update() { m_is_valid_ = true; };
     virtual void TearDown() { m_is_valid_ = false; };
-    virtual std::shared_ptr<Curve> GetAxis(point_type const &x0, int dir) const { return nullptr; };
-    virtual std::shared_ptr<Surface> GetSurface(point_type const &x0, int dir) const { return nullptr; };
-    virtual std::shared_ptr<GeoObject> GetBoundingShape(box_type const &uvw) const;
 
-    std::shared_ptr<Surface> GetSurface(index_tuple const &x0, int dir) const { return GetSurface(uvw(x0), dir); };
-    std::shared_ptr<Curve> GetAxis(index_tuple const &x0, int dir) const { return GetAxis(uvw(x0), dir); };
-    std::shared_ptr<GeoObject> GetBoundingShape(index_box_type const &b) const;
+    virtual std::shared_ptr<Edge> GetCoordinateEdge(point_type const &o, int normal, Real u) const = 0;
+    virtual std::shared_ptr<Face> GetCoordinateFace(point_type const &o, int normal, Real u, Real v) const;
+    virtual std::shared_ptr<Solid> GetCoordinateSolid(point_type const &o, Real u, Real v, Real w) const;
+
+    std::shared_ptr<Edge> GetCoordinateEdge(index_tuple const &x0, int normal, size_type u) const;
+    std::shared_ptr<Edge> GetCoordinateFace(index_tuple const &x0, int normal, size_type u, size_type v) const;
+    std::shared_ptr<Edge> GetCoordinateSolid(index_box_type const &b, size_type u, size_type v, size_type w) const;
 
     void SetLevel(int level);
     int GetLevel() const;

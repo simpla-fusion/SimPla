@@ -23,7 +23,6 @@
 #include <utility>
 
 namespace simpla {
-
 struct Tokamak::pimpl_s {
     typedef Interpolation<LinearInterpolation, Real, Real> inter_type;
     typedef MultiDimensionInterpolation<BiLinearInterpolation, Real> inter2d_type;
@@ -47,15 +46,13 @@ struct Tokamak::pimpl_s {
     Real m_phi0_ = 0.0, m_phi1_ = TWOPI;
     geometry::Axis m_axis_{{1, 0, 0}, {0, 0, 1}, {0, 1, 0}};
 };
-
 Tokamak::Tokamak(std::string const &url) : m_pimpl_(new pimpl_s) { ReadGFile(url); }
 Tokamak::~Tokamak() { delete m_pimpl_; }
-void Tokamak::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) { base_type::Deserialize(cfg); }
+void Tokamak::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) { base_type::Deserialize(cfg); }
 std::shared_ptr<simpla::data::DataEntry> Tokamak::Serialize() const {
     auto res = base_type::Serialize();
     return res;
 }
-
 void Tokamak::ReadGFile(std::string const &fname) {
     std::ifstream inFileStream_(fname);
     m_pimpl_->m_rzbbb_ = geometry::Polygon::New(GetAxis());
@@ -156,7 +153,6 @@ void Tokamak::ReadGFile(std::string const &fname) {
     ReadProfile(fname + "_profiles.txt");
 }
 void Tokamak::WriteGFile(std::string const &) const { UNIMPLEMENTED; }
-
 void Tokamak::ReadProfile(std::string const &fname) {
     LOGGER << "Load GFile Profiles: [" << fname << "]";
 

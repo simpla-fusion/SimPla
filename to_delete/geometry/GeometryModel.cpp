@@ -6,7 +6,7 @@
 #include <simpla/geometry/Line.h>
 #include <simpla/geometry/Polygon.h>
 #include <simpla/geometry/Revolution.h>
-#include <simpla/geometry/Torus.h>
+#include <simpla/geometry/spTorus.h>
 #include <simpla/utilities/FancyStream.h>
 #include <simpla/utilities/Log.h>
 

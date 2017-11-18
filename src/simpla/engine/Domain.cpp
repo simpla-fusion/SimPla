@@ -32,7 +32,7 @@ std::shared_ptr<data::DataEntry> DomainBase::Serialize() const {
     tdb->Set("Attributes", AttributeGroup::Serialize());
     return tdb;
 }
-void DomainBase::Deserialize(std::shared_ptr<data::DataEntry> const& cfg) {
+void DomainBase::Deserialize(std::shared_ptr<const data::DataEntry> const& cfg) {
     base_type::Deserialize(cfg);
     this->OnDeserialize(this, cfg);
     m_pimpl_->m_boundary_ = geometry::GeoObject::New(cfg->Get("Boundary"));

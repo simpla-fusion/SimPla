@@ -10,19 +10,17 @@
 #include <simpla/utilities/SPDefines.h>
 #include <simpla/utilities/macro.h>
 
-#include "PrimitiveShape.h"
-#include "Surface.h"
+#include "Shape.h"
 
 namespace simpla {
 namespace geometry {
-struct Torus : public PrimitiveShape {
-    SP_GEO_OBJECT_HEAD(Torus, PrimitiveShape)
+struct spTorus : public Shape {
+    SP_SHAPE_HEAD(Shape,spTorus, Torus)
    protected:
-    explicit Torus(Real major_radius, Real minor_radius);
-    explicit Torus(Axis const& axis, Real major_radius, Real minor_radius);
+    explicit spTorus(Real major_radius, Real minor_radius);
 
    public:
-    point_type xyz(Real phi, Real theta, Real r) const override {
+    point_type xyz(Real phi, Real theta, Real r) const {
         Real R = (m_major_radius_ + r * m_minor_radius_ * std::cos(theta));
         return point_type{R * std::cos(phi), R * std::sin(phi), m_minor_radius_ * std::sin(theta)};
     };
@@ -30,7 +28,6 @@ struct Torus : public PrimitiveShape {
         Real R = (m_major_radius_ + m_minor_radius_ * std::cos(theta));
         return point_type{R * std::cos(phi), R * std::sin(phi), m_minor_radius_ * std::sin(theta)};
     };
-    point_type uvw(Real x, Real y, Real z) const override { return point_type{SP_SNaN, SP_SNaN, SP_SNaN}; }
 
     //    Real Distance(point_type const &xyz) const override { return SP_SNaN; }
     //    bool TestBoxGetIntersection(point_type const &x_min, point_type const &x_max) const override { return false; }

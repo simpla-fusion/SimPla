@@ -12,8 +12,8 @@
 using namespace simpla;
 struct DummyGeoObject : public simpla::geometry::GeoObject {
     SP_GEO_OBJECT_HEAD(DummyGeoObject, SPObject)
-    SP_OBJECT_PROPERTY(Real, Mass);
-    SP_OBJECT_PROPERTY(Real, Charge);
+    SP_PROPERTY(Real, Mass);
+    SP_PROPERTY(Real, Charge);
 };
 DummyGeoObject::DummyGeoObject() = default;
 DummyGeoObject::~DummyGeoObject() = default;

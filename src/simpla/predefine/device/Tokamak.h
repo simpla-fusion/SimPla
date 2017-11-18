@@ -24,10 +24,18 @@ struct GeoObject;
  *  Define Tokamak geometry, parser GEqdsk
  */
 class Tokamak : public data::Serializable, public data::Configurable {
+    SP_SERIALIZABLE_HEAD(data::Serializable, Tokamak);
+
+   private:
+    struct pimpl_s;
+    pimpl_s *m_pimpl_;
+
    protected:
     explicit Tokamak(std::string const &url = "");
 
    public:
+    ~Tokamak() override;
+
     void ReadGFile(std::string const &);
     void WriteGFile(std::string const &) const;
 

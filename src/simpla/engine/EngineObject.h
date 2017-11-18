@@ -14,10 +14,8 @@ namespace simpla {
 namespace engine {
 class EngineObject : public data::Configurable,
                      public data::Serializable,
-                     public std::enable_shared_from_this<EngineObject> {
-    struct pimpl_s;
-    pimpl_s *m_pimpl_ = nullptr;
-
+                     public std::enable_shared_from_this<EngineObject>,
+                     public enable_create_from_factory<EngineObject> {
     SP_SERIALIZABLE_HEAD(data::Serializable, EngineObject)
 
    public:
@@ -61,6 +59,10 @@ class EngineObject : public data::Configurable,
     void Update();
     void TearDown();
     void Finalize();
+
+   private:
+    struct pimpl_s;
+    pimpl_s *m_pimpl_ = nullptr;
 };
 
 }  // namespace engine

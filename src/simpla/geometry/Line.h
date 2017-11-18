@@ -12,7 +12,7 @@
 namespace simpla {
 namespace geometry {
 struct Line : public Curve {
-    SP_GEO_OBJECT_HEAD(Line, Curve);
+    SP_SHAPE_HEAD(Curve, Line)
 
    protected:
     explicit Line(point_type const &p0, point_type const &p1);

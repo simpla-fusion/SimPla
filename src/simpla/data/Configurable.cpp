@@ -16,7 +16,7 @@ Configurable::Configurable() : m_db_(data::DataEntry::New(data::DataEntry::DN_TA
     SetUUID(g_obj_hasher(g_uuid_generator()));
 };
 Configurable::Configurable(Configurable const &other) : Configurable() { m_db_->Set(other.m_db_); }
-Configurable::Configurable(Configurable &&other) noexcept : m_db_(other.m_db_) { other.m_db_.reset(); }
+Configurable::Configurable(Configurable &&other) noexcept : m_db_(std::move(other.m_db_)) {}
 Configurable::~Configurable() = default;
 std::shared_ptr<const DataEntry> Configurable::db() const { return m_db_; }
 std::shared_ptr<DataEntry> Configurable::db() { return m_db_; }

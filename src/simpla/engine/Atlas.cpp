@@ -36,7 +36,6 @@ struct Atlas::pimpl_s {
 };
 
 Atlas::Atlas() : m_pimpl_(new pimpl_s) {
-    SPObject::SetName("Atlas");
     SetMaxLevel(2);
     SetPeriodicDimensions(nTuple<int, 3>{0, 0, 0});
     SetMaxLevel(1);
@@ -44,6 +43,7 @@ Atlas::Atlas() : m_pimpl_(new pimpl_s) {
     SetLargestPatchDimensions(nTuple<int, 3>{128, 128, 128});
     SetRefineRatio(nTuple<int, 3>{2, 2, 2});
 };
+Atlas::Atlas(Atlas const &) : m_pimpl_(new pimpl_s) { UNIMPLEMENTED; }
 Atlas::~Atlas() { delete m_pimpl_; }
 
 std::shared_ptr<data::DataEntry> Atlas::Serialize() const {
@@ -56,14 +56,14 @@ std::shared_ptr<data::DataEntry> Atlas::Serialize() const {
     for (auto const &item : m_pimpl_->m_patches_) { patches->Set(item.first, item.second->Serialize()); }
     return tdb;
 };
-void Atlas::Deserialize(std::shared_ptr<data::DataEntry> const &tdb) {
+void Atlas::Deserialize(std::shared_ptr<const data::DataEntry> const &tdb) {
     base_type::Deserialize(tdb);
     m_pimpl_->m_chart_ = geometry::Chart::New(tdb->Get("Chart"));
     std::get<0>(m_pimpl_->m_global_index_box_) = tdb->GetValue("LowIndex", std::get<0>(m_pimpl_->m_global_index_box_));
     std::get<1>(m_pimpl_->m_global_index_box_) = tdb->GetValue("HighIndex", std::get<1>(m_pimpl_->m_global_index_box_));
 
     auto blocks = tdb->Get("Patches");
-    blocks->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntry> const &patch) {
+    blocks->Foreach([&](std::string const &key, std::shared_ptr<const data::DataEntry> const &patch) {
         auto res = m_pimpl_->m_patches_.emplace(std::stoi(key), Patch::New(patch));
     });
     DoSetUp();

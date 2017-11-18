@@ -3,7 +3,7 @@
 //
 
 #include "Revolution.h"
-#include "Circle.h"
+#include "spCircle.h"
 
 namespace simpla {
 namespace geometry {

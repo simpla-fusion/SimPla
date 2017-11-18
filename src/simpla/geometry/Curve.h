@@ -14,13 +14,12 @@ namespace simpla {
 namespace geometry {
 struct Box;
 struct Curve : public GeoObject {
-    SP_GEO_ABS_OBJECT_HEAD(Curve, GeoObject);
+    SP_SERIALIZABLE_HEAD(GeoObject, Curve)
 
    public:
-    virtual point_type xyz(Real u) const = 0;
-
+    //    virtual point_type xyz(Real u) const = 0;
     int GetDimension() const override { return 1; }
-        virtual std::shared_ptr<PolyPoints> GetBoundaryPoints() const;
+    virtual std::shared_ptr<PolyPoints> GetBoundaryPoints() const;
     std::shared_ptr<GeoObject> GetBoundary() const final;
 
     virtual std::shared_ptr<PolyPoints> GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const;

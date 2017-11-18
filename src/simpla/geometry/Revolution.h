@@ -11,8 +11,8 @@ namespace simpla {
 namespace geometry {
 struct Curve;
 struct Surface;
-struct Revolution : public PrimitiveShape {
-    SP_GEO_OBJECT_HEAD(Revolution, PrimitiveShape);
+struct Revolution : public GeoObject {
+    SP_GEO_OBJECT_HEAD(GeoObject, Revolution);
 
    protected:
     explicit Revolution(Axis const &axis, std::shared_ptr<const GeoObject> const &s, Real angele = TWOPI);
@@ -21,8 +21,6 @@ struct Revolution : public PrimitiveShape {
    public:
     std::shared_ptr<const GeoObject> GetBasisObject() const { return m_basis_obj_; }
     Real GetAngle() const { return m_angle_; }
-    point_type xyz(Real r, Real phi, Real theta) const override;
-    point_type uvw(Real x, Real y, Real z) const override;
 
    private:
     std::shared_ptr<const GeoObject> m_basis_obj_;

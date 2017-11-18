@@ -22,15 +22,23 @@ class Curve;
  *  Metric of  Cartesian topology_coordinate system
  */
 struct csCartesian : public Chart {
-    SP_OBJECT_HEAD(csCartesian, Chart)
+    SP_SERIALIZABLE_HEAD(Chart, csCartesian)
    protected:
     template <typename... Args>
     explicit csCartesian(Args &&... args) : base_type(std::forward<Args>(args)...) {}
+    csCartesian();
+    csCartesian(csCartesian const &);
 
    public:
-    typedef Real scalar_type;
-    std::shared_ptr<Curve> GetAxis(point_type const &x0, int dir) const override;
-    std::shared_ptr<GeoObject> GetBoundingShape(box_type const &uvw) const override;
+    ~csCartesian() override;
+    template <typename... Args>
+    static std::shared_ptr<this_type> New(Args &&... args) {
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
+    }
+
+    std::shared_ptr<Edge> GetCoordinateEdge(point_type const &x0, int normal, Real u) const override;
+    std::shared_ptr<Face> GetCoordinateFace(point_type const &x0, int normal, Real u, Real v) const override;
+    std::shared_ptr<Solid> GetCoordinateSolid(point_type const &o, Real u, Real v, Real w) const override;
 
     /**
      * metric only diff_scheme the volume of simplex

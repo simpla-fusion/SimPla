@@ -89,12 +89,19 @@ class Factory {
 };
 }  // namespace data{
 
-#define SP_REGISTER_HEAD(_REGISTER_NAME_) \
-   private:                               \
-    static bool _is_registered;           \
-                                          \
-   public:                                \
-    static std::string RegisterName() { return __STRING(_REGISTER_NAME_); }
+template <typename TObj, typename Enable = void>
+struct enable_create_from_factory {};
+template <typename TObj>
+struct enable_create_from_factory<TObj, std::enable_if_t<std::is_constructible<TObj>::value>> {
+   private:
+    static bool _is_registered;
+
+   public:
+    template <typename... Args>
+    static std::shared_ptr<TObj> New(Args &&... args) {
+        return std::shared_ptr<TObj>(new TObj(std::forward<Args>(args)...));
+    }
+};
 
 #define SP_REGISTER_CREATOR(_BASE_NAME_, _CLASS_NAME_) \
     bool _CLASS_NAME_::_is_registered =                \

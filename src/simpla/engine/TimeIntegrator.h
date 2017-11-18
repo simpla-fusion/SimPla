@@ -9,9 +9,12 @@
 namespace simpla {
 namespace engine {
 class TimeIntegrator : public Scenario {
-    SP_OBJECT_HEAD(TimeIntegrator, Scenario);
+    SP_SERIALIZABLE_HEAD(Scenario, TimeIntegrator);
 
    public:
+    TimeIntegrator();
+    ~TimeIntegrator();
+
     virtual void InitialCondition(Real time_now);
     virtual void BoundaryCondition(Real time_now, Real dt);
     virtual void ComputeFluxes(Real time_now, Real time_dt);
@@ -26,10 +29,10 @@ class TimeIntegrator : public Scenario {
     void Run() override;
     bool Done() const override;
 
-    SP_OBJECT_PROPERTY(size_type, MaxStep);
-    SP_OBJECT_PROPERTY(Real, CFL);
+    SP_PROPERTY(size_type, MaxStep);
+    SP_PROPERTY(Real, CFL);
 
-    Real GetTime() const override{return GetTimeNow();};
+    Real GetTime() const override { return GetTimeNow(); };
 
     Real GetTimeNow() const;
     void SetTimeNow(Real);
@@ -37,6 +40,11 @@ class TimeIntegrator : public Scenario {
     void SetTimeEnd(Real);
     Real GetTimeStep() const;
     void SetTimeStep(Real);
+
+   private:
+    Real m_time_now_ = 0.0;
+    Real m_time_end_ = 1.0;
+    Real m_time_step_ = 1.0;
 };
 }  // namespace engine
 }  // namespace simpla

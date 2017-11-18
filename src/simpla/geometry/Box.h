@@ -6,12 +6,12 @@
 #define SIMPLA_BOX_H
 
 #include <simpla/SIMPLA_config.h>
-#include "PrimitiveShape.h"
+#include "Shape.h"
 namespace simpla {
 namespace geometry {
 
-struct Box : public PrimitiveShape {
-    SP_GEO_OBJECT_HEAD(Box, PrimitiveShape)
+struct Box : public GeoObject {
+    SP_GEO_OBJECT_HEAD(GeoObject, Box)
 
    protected:
     Box(std::initializer_list<std::initializer_list<Real>> const &v);
@@ -24,8 +24,8 @@ struct Box : public PrimitiveShape {
         return std::shared_ptr<Box>(new Box(box));
     }
 
-    point_type xyz(Real u, Real v, Real w) const override;
-    point_type uvw(Real x, Real y, Real z) const override;
+    //    point_type xyz(Real u, Real v, Real w) const override;
+    //    point_type uvw(Real x, Real y, Real z) const override;
     vector_type const &GetExtents() const { return m_extents_; }
     void SetExtents(vector_type const &extents) { m_extents_ = extents; }
 

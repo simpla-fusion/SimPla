@@ -55,8 +55,8 @@ class PML : public TDomain {
     FIELD(dX1, Real, EDGE, "LOCAL"_);
     FIELD(dX2, Real, FACE, "LOCAL"_);
 
-    SP_OBJECT_PROPERTY(Real, dB);
-    SP_OBJECT_PROPERTY(Real, expN);
+    SP_PROPERTY(Real, dB);
+    SP_PROPERTY(Real, expN);
 
    private:
     //    Real dB = 100, expN = 2;

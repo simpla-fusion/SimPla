@@ -10,8 +10,8 @@ using namespace simpla;
 using namespace simpla::data;
 struct DummyObject : public SPObject {
     SP_OBJECT_HEAD(DummyObject, SPObject)
-    SP_OBJECT_PROPERTY(Real, Mass);
-    SP_OBJECT_PROPERTY(Real, Charge);
+    SP_PROPERTY(Real, Mass);
+    SP_PROPERTY(Real, Charge);
 };
 DummyObject::DummyObject() = default;
 DummyObject::~DummyObject() = default;

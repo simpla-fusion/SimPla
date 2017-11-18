@@ -30,21 +30,28 @@ namespace geometry {
  *  RZPhi
  */
 struct csCylindrical : public Chart {
-    SP_OBJECT_HEAD(csCylindrical, Chart)
+    SP_SERIALIZABLE_HEAD(Chart, csCylindrical)
    protected:
     template <typename... Args>
     explicit csCylindrical(Args &&... args) : base_type(std::forward<Args>(args)...) {}
+    csCylindrical();
+    csCylindrical(csCylindrical const &);
 
    public:
+    ~csCylindrical() override;
+    template <typename... Args>
+    static std::shared_ptr<this_type> New(Args &&... args) {
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
+    }
     typedef Real scalar_type;
 
     static constexpr int PhiAxis = 2;
     static constexpr int RAxis = (PhiAxis + 1) % 3;
     static constexpr int ZAxis = (PhiAxis + 2) % 3;
 
-    std::shared_ptr<Curve> GetAxis(point_type const &x0, int dir) const override;
-    std::shared_ptr<Surface> GetSurface(point_type const &x0, int dir) const override;
-    std::shared_ptr<GeoObject> GetBoundingShape(box_type const &uvw) const override;
+    std::shared_ptr<Edge> GetCoordinateEdge(point_type const &x0, int normal, Real u) const override;
+    std::shared_ptr<Face> GetCoordinateFace(point_type const &x0, int normal, Real u, Real v) const override;
+    std::shared_ptr<Solid> GetCoordinateSolid(point_type const &o, Real u, Real v, Real w) const override;
 
    public:
     /**

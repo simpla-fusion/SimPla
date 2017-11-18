@@ -4,25 +4,23 @@
 
 #ifndef SIMPLA_ELLIPSE_H
 #define SIMPLA_ELLIPSE_H
-#include "Curve.h"
+#include "Shape.h"
 namespace simpla {
 namespace geometry {
-struct Ellipse : public Curve {
-    SP_GEO_OBJECT_HEAD(Ellipse, Curve);
+struct spEllipse : public Shape {
+    SP_SHAPE_HEAD(Shape, spEllipse, Ellipse);
 
    protected:
-    Ellipse(Axis const &axis, Real major_radius, Real minor_radius);
+    spEllipse(Real major_radius, Real minor_radius);
 
    public:
-    bool IsClosed() const override { return true; };
-
     void GetMajorRadius(Real r) { m_major_radius_ = r; }
     void GetMinorRadius(Real r) { m_minor_radius_ = r; }
     Real GetMajorRadius() const { return m_major_radius_; }
     Real GetMinorRadius() const { return m_minor_radius_; }
 
-    point_type xyz(Real alpha) const override {
-        return m_axis_.Coordinates(m_major_radius_ * std::cos(alpha), m_minor_radius_ * std::sin(alpha));
+    point_type xyz(Real alpha) const {
+        return point_type{m_major_radius_ * std::cos(alpha), m_minor_radius_ * std::sin(alpha)};
     };
     //    bool CheckIntersection(point_type const &, Real tolerance) override;
     //    bool CheckIntersection(box_type const &, Real tolerance) override;

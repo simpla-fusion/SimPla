@@ -53,13 +53,14 @@ std::shared_ptr<data::DataEntry> Scenario::Serialize() const {
     return res;
 }
 
-void Scenario::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) {
+void Scenario::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
     m_pimpl_->m_atlas_->Deserialize(cfg->Get("Atlas"));
 
     if (auto domain = cfg->Get("Domains")) {
-        domain->Foreach(
-            [&](std::string key, std::shared_ptr<data::DataEntry> node) { SetDomain(key, DomainBase::New(node)); });
+        domain->Foreach([&](std::string key, std::shared_ptr<const data::DataEntry> node) {
+            SetDomain(key, DomainBase::New(node));
+        });
     }
     //    if (auto patches = cfg->Get("Patches")) {
     //        patches->Foreach([&](std::string key, std::shared_ptr<data::DataEntry> node) {

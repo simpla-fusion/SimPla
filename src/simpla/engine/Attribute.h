@@ -49,6 +49,10 @@ class Attribute;
 //};
 
 class AttributeGroup {
+   private:
+    struct pimpl_s;
+    pimpl_s *m_pimpl_ = nullptr;
+
    public:
     typedef Attribute attribute_type;
 
@@ -57,7 +61,7 @@ class AttributeGroup {
     virtual ~AttributeGroup();
 
     virtual std::shared_ptr<data::DataEntry> Serialize() const;
-    virtual void Deserialize(std::shared_ptr<data::DataEntry> const &);
+    virtual void Deserialize(std::shared_ptr<const data::DataEntry> const &);
 
     //    virtual void Push(const std::shared_ptr<data::DataEntry> &);
     //    virtual std::shared_ptr<data::DataEntry> Pop() const;
@@ -71,10 +75,6 @@ class AttributeGroup {
 
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
-
-   private:
-    struct pimpl_s;
-    pimpl_s *m_pimpl_ = nullptr;
 };
 
 /**
@@ -105,12 +105,11 @@ class AttributeGroup {
  *
  */
 struct Attribute : public data::Configurable, public data::Serializable {
-   private:
-    typedef Attribute this_type;
+    SP_SERIALIZABLE_HEAD(data::Serializable, Attribute);
 
    public:
     Attribute();
-
+    ~Attribute() override;
     Attribute(this_type const &other) = delete;  // { UNIMPLEMENTED; };
     Attribute(this_type &&other) = delete;       // { UNIMPLEMENTED; };
 
@@ -145,6 +144,10 @@ struct Attribute : public data::Configurable, public data::Serializable {
     virtual std::shared_ptr<data::DataEntry> Pop() = 0;
 
     virtual void Clear() = 0;
+
+   private:
+    struct pimpl_s;
+    pimpl_s *m_pimpl_ = nullptr;
 };
 
 template <typename V, int IFORM, int... DOF>

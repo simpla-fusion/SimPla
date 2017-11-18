@@ -12,8 +12,8 @@ struct PolyPoints : public GeoObject {
     SP_GEO_OBJECT_HEAD(GeoObject, PolyPoints);
 
    public:
-    virtual size_type size() const = 0;
-    virtual point_type GetPoint(size_type idx) const = 0;
+    virtual size_type size() const { return 0; };
+    virtual point_type GetPoint(size_type idx) const { return point_type{0, 0, 0}; };
 
     //    virtual point_type Value(size_type i) const = 0;
     //    virtual size_type size() const = 0;

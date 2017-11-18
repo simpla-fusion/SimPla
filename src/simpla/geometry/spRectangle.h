@@ -6,19 +6,19 @@
 #define SIMPLA_RECTANGLE_H
 
 #include <simpla/SIMPLA_config.h>
-#include "Face.h"
+#include "Shape.h"
 namespace simpla {
 namespace geometry {
-struct Rectangle : public Face {
-    SP_GEO_OBJECT_HEAD(Rectangle, Face);
+struct spRectangle : public Shape {
+    SP_SERIALIZABLE_HEAD(Shape, spRectangle);
 
    protected:
-    Rectangle(Real l, Real w);
-    Rectangle(Axis const& axis, Real l, Real w);
+    spRectangle(Real l, Real w);
+    spRectangle(Axis const& axis, Real l, Real w);
 
    public:
-    point_type xy(Real u, Real v) const override { return m_axis_.xyz(u * m_l_, v * m_w_,0) ; };
-    point_type uv(Real x, Real y) const override { return point_type{x / m_l_, y / m_w_,0}; };
+    //    point_type xy(Real u, Real v) const override { return m_axis_.xyz(u * m_l_, v * m_w_, 0); };
+    //    point_type uv(Real x, Real y) const override { return point_type{x / m_l_, y / m_w_, 0}; };
 
     Real GetWidth() const { return m_w_; }
     void SetWidth(Real w) { m_w_ = w; }

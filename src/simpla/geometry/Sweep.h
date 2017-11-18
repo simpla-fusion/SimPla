@@ -8,14 +8,13 @@
 #include <simpla/utilities/Constants.h>
 #include "Body.h"
 #include "Curve.h"
-#include "PrimitiveShape.h"
+#include "GeoObject.h"
 #include "Surface.h"
 namespace simpla {
 namespace geometry {
-
-struct Sweep : public PrimitiveShape {
-    SP_GEO_ABS_OBJECT_HEAD(Sweep, PrimitiveShape);
-
+struct Face;
+struct Edge;
+struct Sweep {
    protected:
     explicit Sweep(std::shared_ptr<const GeoObject> const &s, std::shared_ptr<const Curve> const &c);
 
@@ -27,7 +26,8 @@ struct Sweep : public PrimitiveShape {
     std::shared_ptr<const GeoObject> m_basis_obj_;
     std::shared_ptr<const Curve> m_curve_;
 };
-
+std::shared_ptr<GeoObject> make_Sweep(std::shared_ptr<const Edge> const &e0, std::shared_ptr<const Edge> const &e1);
+std::shared_ptr<GeoObject> make_Sweep(std::shared_ptr<const Face> const &f0, std::shared_ptr<const Edge> const &e1);
 }  // namespace geometry
 }  // namespace simpla
 #endif  // SIMPLA_SWEPTBODY_H

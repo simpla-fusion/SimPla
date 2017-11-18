@@ -15,8 +15,14 @@ class DomainBase;
 class Atlas;
 
 class Scenario : public EngineObject {
-    SP_CREATABLE_HEAD(EngineObject, Scenario)
+   public:
+    SP_SERIALIZABLE_HEAD(EngineObject, Scenario)
 
+   protected:
+    Scenario();
+
+   public:
+    ~Scenario();
     virtual void TagRefinementCells(Real time_now);
 
     virtual void Synchronize(int level);
@@ -94,6 +100,9 @@ class Scenario : public EngineObject {
     }
 
     //    Range<EntityId> GetRange(std::string const &k) const;
+   private:
+    struct pimpl_s;
+    pimpl_s *m_pimpl_ = nullptr;
 };
 
 }  // namespace engine

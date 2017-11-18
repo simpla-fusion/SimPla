@@ -27,7 +27,7 @@ std::shared_ptr<data::DataEntry> AttributeGroup::Serialize() const {
     for (auto const &item : m_pimpl_->m_attributes_) { res->push_back(item->GetName()); }
     return data::DataEntry::New(res);
 }
-void AttributeGroup::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) {
+void AttributeGroup::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) {
     if (cfg == nullptr) { return; }
     for (auto const &item : m_pimpl_->m_attributes_) { item->Deserialize(cfg->Get(item->GetName())); }
 }
@@ -83,7 +83,7 @@ Attribute::~Attribute() {
     for (auto *grp : m_pimpl_->m_bundle_) { grp->Detach(this); }
     delete m_pimpl_;
 }
-std::shared_ptr<Attribute> Attribute::Duplicate() const {
+std::shared_ptr<Attribute> Attribute::Copy() const {
     FIXME;
     return nullptr;
 }
@@ -183,7 +183,7 @@ std::shared_ptr<Attribute> Attribute::New(std::shared_ptr<simpla::data::DataEntr
 }
 
 std::shared_ptr<data::DataEntry> Attribute::Serialize() const { return base_type::Serialize(); }
-void Attribute::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) { base_type::Deserialize(cfg); }
+void Attribute::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) { base_type::Deserialize(cfg); }
 
 void Attribute::Register(AttributeGroup *attr_b) {
     if (attr_b == nullptr) {
@@ -264,4 +264,3 @@ void Attribute::Deregister(AttributeGroup *attr_b) {
 //        grp->Detach(&other);
 //        grp->Attach(this);
 //    }
-//}

@@ -8,13 +8,18 @@
 #include "simpla/engine/TimeIntegrator.h"
 namespace simpla {
 class SimpleTimeIntegrator : public engine::TimeIntegrator {
-    SP_OBJECT_HEAD(SimpleTimeIntegrator, engine::TimeIntegrator);
+    SP_SERIALIZABLE_HEAD(engine::TimeIntegrator, SimpleTimeIntegrator);
+
+   protected:
+    SimpleTimeIntegrator();
 
    public:
+    ~SimpleTimeIntegrator() override;
+
     void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;
-    void Synchronize(int ) override;
+    void Synchronize(int) override;
     void Advance(Real time_now, Real time_dt) override;
 };
 }  // namespace simpla

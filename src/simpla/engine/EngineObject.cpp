@@ -24,7 +24,7 @@ void EngineObject::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg
     data::Serializable::Deserialize(cfg);
 };
 
-virtual std::shared_ptr<EngineObject> EngineObject::Copy() const { return nullptr; }
+std::shared_ptr<EngineObject> EngineObject::Copy() const { return nullptr; }
 
 void EngineObject::lock() { m_pimpl_->m_mutex_.lock(); }
 void EngineObject::unlock() { m_pimpl_->m_mutex_.unlock(); }

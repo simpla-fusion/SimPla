@@ -3,17 +3,19 @@
 //
 #include "Chart.h"
 #include "Box.h"
+#include "Edge.h"
 #include "Face.h"
-
+#include "Solid.h"
+#include "Sweep.h"
 namespace simpla {
 namespace geometry {
 
 constexpr Real Chart::m_id_to_coordinates_shift_[8][3];
 
 Chart::Chart() = default;
+Chart::Chart(Chart const &) = default;
 Chart::~Chart() { TearDown(); };
-Chart::Chart(point_type const &origin, point_type const &grid_width)
-    : SPObject(), m_origin_(origin), m_grid_width_(grid_width) {
+Chart::Chart(point_type const &origin, point_type const &grid_width) : m_origin_(origin), m_grid_width_(grid_width) {
     Update();
 }
 
@@ -53,20 +55,20 @@ void Chart::SetLevel(int level) {
 int Chart::GetLevel() const { return m_level_; }
 int Chart::GetNDIMS() const { return 3; }
 
-std::shared_ptr<GeoObject> Chart::GetBoundingShape(box_type const &uvw) const {
-    std::shared_ptr<GeoObject> res = nullptr;
-    point_type u_min, u_max;
-    std::tie(u_min, u_max) = uvw;
-    auto surface = GetSurface(u_min, 2);
-    auto curve = GetAxis(u_min, 2);
-
-    res = Swep::New(m_axis_, Face::New(surface, u_min[0], u_max[0], u_min[1], u_max[1]),
-                    Edge::New(curve, u_min[2], u_max[2]));
-
-    return res;
+std::shared_ptr<Face> Chart::GetCoordinateFace(point_type const &o, int normal, Real u, Real v) const {
+    return make_Sweep(GetCoordinateEdge(o, (normal + 1) % 3, u), GetCoordinateEdge(o, (normal + 2) % 3, v));
 }
-std::shared_ptr<GeoObject> Chart::GetBoundingShape(index_box_type const &b) const {
-    return GetBoundingShape(GetBoxUVW(b));
+std::shared_ptr<Solid> Chart::GetCoordinateSolid(point_type const &o, Real u, Real v, Real w) const {
+    return make_Sweep(GetCoordinateFace(o, 2, u, v), GetCoordinateEdge(o, 2, w));
+}
+std::shared_ptr<Edge> Chart::GetCoordinateEdge(index_tuple const &x0, int normal, size_type u) const {
+    return GetCoordinateEdge(uvw(x0), normal, u * m_grid_width_[normal]);
+};
+std::shared_ptr<Edge> Chart::GetCoordinateFace(index_tuple const &x0, int normal, size_type u, size_type v) const {
+    return GetCoordinateFace(uvw(x0), normal, u * m_grid_width_[(normal + 1) % 3], v * m_grid_width_[(normal + 2) % 3]);
+};
+std::shared_ptr<Edge> Chart::GetCoordinateSolid(index_box_type const &b, size_type u, size_type v, size_type w) const {
+    return GetCoordinateSolid(GetBoxUVW(b), u * m_grid_width_[0], v * m_grid_width_[1], w * m_grid_width_[2]);
 };
 }  // namespace geometry {
 }  // namespace simpla {

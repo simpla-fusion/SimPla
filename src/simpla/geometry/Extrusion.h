@@ -11,7 +11,7 @@ namespace simpla {
 namespace geometry {
 struct Curve;
 struct Extrusion : public Sweep {
-    SP_GEO_OBJECT_HEAD(Extrusion, Sweep);
+    SP_GEO_OBJECT_HEAD(Sweep, Extrusion);
 
    protected:
     Extrusion(std::shared_ptr<const Surface> const &s, vector_type const &c);

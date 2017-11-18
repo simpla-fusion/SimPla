@@ -7,22 +7,18 @@
 #include "simpla/data/DataEntry.h"
 namespace simpla {
 namespace engine {
-struct TimeIntegrator::pimpl_s {
-    Real m_time_now_ = 0.0;
-    Real m_time_end_ = 1.0;
-    Real m_time_step_ = 1.0;
-};
-TimeIntegrator::TimeIntegrator() : m_pimpl_(new pimpl_s) {}
-TimeIntegrator::~TimeIntegrator() { delete m_pimpl_; }
-Real TimeIntegrator::GetTimeNow() const { return m_pimpl_->m_time_now_; }
-void TimeIntegrator::SetTimeNow(Real t) { m_pimpl_->m_time_now_ = t; }
-Real TimeIntegrator::GetTimeEnd() const { return m_pimpl_->m_time_end_; }
-void TimeIntegrator::SetTimeEnd(Real t) { m_pimpl_->m_time_end_ = t; }
-Real TimeIntegrator::GetTimeStep() const { return m_pimpl_->m_time_step_; }
-void TimeIntegrator::SetTimeStep(Real t) { m_pimpl_->m_time_step_ = t; }
+
+TimeIntegrator::TimeIntegrator() = default;
+TimeIntegrator::~TimeIntegrator() = default;
+Real TimeIntegrator::GetTimeNow() const { return m_time_now_; }
+void TimeIntegrator::SetTimeNow(Real t) { m_time_now_ = t; }
+Real TimeIntegrator::GetTimeEnd() const { return m_time_end_; }
+void TimeIntegrator::SetTimeEnd(Real t) { m_time_end_ = t; }
+Real TimeIntegrator::GetTimeStep() const { return m_time_step_; }
+void TimeIntegrator::SetTimeStep(Real t) { m_time_step_ = t; }
 
 std::shared_ptr<data::DataEntry> TimeIntegrator::Serialize() const { return base_type::Serialize(); }
-void TimeIntegrator::Deserialize(std::shared_ptr<data::DataEntry> const &tdb) { base_type::Deserialize(tdb); }
+void TimeIntegrator::Deserialize(std::shared_ptr<const data::DataEntry> const &tdb) { base_type::Deserialize(tdb); }
 
 void TimeIntegrator::InitialCondition(Real time_now) {
     Update();
@@ -96,7 +92,7 @@ void TimeIntegrator::Run() {
     //    Dump();
 }
 void TimeIntegrator::NextStep() {
-    m_pimpl_->m_time_now_ += m_pimpl_->m_time_step_;
+    m_time_now_ += m_time_step_;
     base_type::NextStep();
 }
 

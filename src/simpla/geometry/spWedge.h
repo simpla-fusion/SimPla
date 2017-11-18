@@ -7,16 +7,14 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/utilities/Constants.h>
-#include "PrimitiveShape.h"
+#include "Shape.h"
 namespace simpla {
 namespace geometry {
 
-struct Wedge : public PrimitiveShape {
-    SP_GEO_OBJECT_HEAD(Wedge, PrimitiveShape)
-
+struct spWedge : public Shape {
+    SP_SHAPE_HEAD(Shape, Wedge)
    protected:
-    explicit Wedge(vector_type const &v, Real ltx);
-    explicit Wedge(Axis const &axis, vector_type const &v, Real ltx);
+    explicit spWedge(vector_type const &v, Real ltx);
 
    public:
     point_type xyz(Real u, Real v, Real w) const override;

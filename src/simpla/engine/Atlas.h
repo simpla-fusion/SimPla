@@ -69,9 +69,19 @@ class MeshBlock;
 *  - '''dx''' is the resolution ratio  of discrete mesh, x = i * dx + r where 0<= r < dx
 */
 class Atlas : public EngineObject {
-    SP_CREATABLE_HEAD(EngineObject, Atlas)
+    SP_SERIALIZABLE_HEAD(EngineObject, Atlas)
+
+   protected:
+    Atlas();
+    Atlas(Atlas const &);
 
    public:
+    ~Atlas();
+    template <typename... Args>
+    static std::shared_ptr<Atlas> New(Args &&... args) {
+        return std::shared_ptr<Atlas>(new Atlas(std::forward<Args>(args)...));
+    };
+
     int Foreach(std::function<void(std::shared_ptr<Patch> const &)> const &);
 
     template <typename TChart, typename... Args>
@@ -81,8 +91,6 @@ class Atlas : public EngineObject {
         res->NewChart<TChart>(std::forward<Args>(args)...);
         return res;
     };
-
-    //    int GetNumOfLevel() const;
 
     template <typename U, typename... Args>
     std::shared_ptr<geometry::Chart> NewChart(Args &&... args) {
@@ -113,12 +121,12 @@ class Atlas : public EngineObject {
     void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;
-    SP_OBJECT_PROPERTY(int, MaxLevel);
-    SP_OBJECT_PROPERTY(index_tuple, RefineRatio);
-    SP_OBJECT_PROPERTY(index_tuple, LargestPatchDimensions);
-    SP_OBJECT_PROPERTY(index_tuple, SmallestPatchDimensions);
-    SP_OBJECT_PROPERTY(index_tuple, PeriodicDimensions);
-    SP_OBJECT_PROPERTY(index_tuple, CoarsestIndexBox);
+    SP_PROPERTY(int, MaxLevel);
+    SP_PROPERTY(index_tuple, RefineRatio);
+    SP_PROPERTY(index_tuple, LargestPatchDimensions);
+    SP_PROPERTY(index_tuple, SmallestPatchDimensions);
+    SP_PROPERTY(index_tuple, PeriodicDimensions);
+    SP_PROPERTY(index_tuple, CoarsestIndexBox);
 
     void Decompose(index_tuple const &);
     void Decompose();
@@ -136,6 +144,10 @@ class Atlas : public EngineObject {
 
     void SyncLocal(int level);
     void SyncGlobal(std::string const &key, std::type_info const &t_info, int num_of_sub, int level);
+
+   private:
+    struct pimpl_s;
+    pimpl_s *m_pimpl_ = nullptr;
 };
 }  // namespace engine
 }  // namespace simpla{namespace mesh_as{

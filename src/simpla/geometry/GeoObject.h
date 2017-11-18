@@ -9,6 +9,7 @@
 #define CORE_GEOMETRY_GEO_OBJECT_H_
 #include <simpla/SIMPLA_config.h>
 #include <simpla/data/Serializable.h>
+#include <simpla/utilities/Factory.h>
 #include "Axis.h"
 namespace simpla {
 namespace geometry {
@@ -67,13 +68,13 @@ namespace geometry {
  *   SweptSurface <|-- SurfaceOfLinearExtrusion
  *   SweptSurface <|-- SurfaceOfRevolution
  *
- *   Vertex  <|-- GetIntersectionionCurveSurface
- *   Surface <|-- GetIntersectionionSurfaceSolid
- *   Solid   <|-- GetIntersectionionSolidSolid
+ *   Vertex  <|-- GetIntersectionCurveSurface
+ *   Surface <|-- GetIntersectionSurfaceSolid
+ *   Solid   <|-- GetIntersectionSolidSolid
  *
  *  @enduml
  */
-class GeoObject : public std::enable_shared_from_this<GeoObject>, public data::Serializable {
+class GeoObject : public data::Serializable, public std::enable_shared_from_this<GeoObject> {
     SP_SERIALIZABLE_HEAD(data::Serializable, GeoObject)
 
    protected:
@@ -83,10 +84,11 @@ class GeoObject : public std::enable_shared_from_this<GeoObject>, public data::S
 
    public:
     ~GeoObject() override;
+    std::shared_ptr<const GeoObject> Self() const;
+    std::shared_ptr<GeoObject> Self();
 
-    virtual std::shared_ptr<GeoObject> Copy() const = 0;
-    std::shared_ptr<const this_type> Self() const { return (shared_from_this()); }
-    std::shared_ptr<this_type> Self() { return (shared_from_this()); }
+    virtual GeoObject *CopyP() const = 0;
+    std::shared_ptr<GeoObject> Copy() const { return std::shared_ptr<GeoObject>(CopyP()); }
 
     virtual int GetDimension() const;
     virtual bool IsSimpleConnected() const;
@@ -140,12 +142,16 @@ class GeoObject : public std::enable_shared_from_this<GeoObject>, public data::S
                                                                                                                      \
    public:                                                                                                           \
     ~_CLASS_NAME_() override;                                                                                        \
-    std::shared_ptr<GeoObject> Copy() const override { return std::shared_ptr<this_type>(new this_type(*this)); }    \
-    std::shared_ptr<this_type> CopyThis() const { return std::dynamic_pointer_cast<this_type>(Copy()); };            \
     std::shared_ptr<_CLASS_NAME_> Self() { return std::dynamic_pointer_cast<this_type>(this->shared_from_this()); }; \
     std::shared_ptr<const _CLASS_NAME_> Self() const {                                                               \
-        return std::dynamic_pointer_cast<this_type>(const_cast<this_type *>(this)->shared_from_this());              \
+        return std::dynamic_pointer_cast<const this_type>(this->shared_from_this());                                 \
     };                                                                                                               \
+    std::shared_ptr<this_type> CopyThis() const { return std::dynamic_pointer_cast<this_type>(Copy()); };            \
+    template <typename... Args>                                                                                      \
+    static std::shared_ptr<this_type> New(Args &&... args) {                                                         \
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));                               \
+    }                                                                                                                \
+    this_type *CopyP() const override { return (new this_type(*this)); }                                             \
                                                                                                                      \
    public:                                                                                                           \
     template <typename... Args>                                                                                      \
@@ -179,8 +185,8 @@ class GeoObject : public std::enable_shared_from_this<GeoObject>, public data::S
         return res;                                                                                                  \
     }
 
-#define SP_GEO_OBJECT_REGISTER(_CLASS_NAME_) \
-    bool _CLASS_NAME_::_is_registered =      \
+#define SP_GEO_OBJECT_REGISTER(_CLASS_NAME_)                        \
+    bool enable_create_from_factory<_CLASS_NAME_>::_is_registered = \
         simpla::Factory<GeoObject>::RegisterCreator<_CLASS_NAME_>(_CLASS_NAME_::RegisterName());
 
 }  // namespace geometry

@@ -25,12 +25,15 @@ using namespace simpla::data;
 
 class DomainBase : public EngineObject, public AttributeGroup {
     SP_SERIALIZABLE_HEAD(EngineObject, DomainBase)
+   private:
+    struct pimpl_s;
+    pimpl_s *m_pimpl_ = nullptr;
 
    public:
     DomainBase();
     ~DomainBase() override;
     DomainBase(DomainBase const &);
-    virtual std::shared_ptr<DomainBase> Copy() const;
+    std::shared_ptr<EngineObject> Copy() const override;
 
     void Push(const std::shared_ptr<Patch> &) override;
     std::shared_ptr<Patch> Pop() const override;
@@ -51,7 +54,7 @@ class DomainBase : public EngineObject, public AttributeGroup {
     void DoUpdate() override;
     void DoTearDown() override;
 
-    design_pattern::Signal<void(DomainBase *, std::shared_ptr<simpla::data::DataEntry> const &)> OnDeserialize;
+    design_pattern::Signal<void(DomainBase *, std::shared_ptr<const simpla::data::DataEntry> const &)> OnDeserialize;
     design_pattern::Signal<void(DomainBase const *, std::shared_ptr<simpla::data::DataEntry> &)> OnSerialize;
 
     virtual void DoInitialCondition(Real time_now) {}
@@ -93,7 +96,11 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     typedef TChart chart_type;
     SP_SERIALIZABLE_HEAD(DomainBase, Domain);
 
+   protected:
+    Domain();
+
    public:
+    ~Domain();
     std::shared_ptr<const geometry::Chart> GetChart() const override { return DomainBase::GetChart(); };
     std::shared_ptr<const engine::MeshBlock> GetMeshBlock() const override { return DomainBase::GetMeshBlock(); };
 
@@ -179,12 +186,12 @@ Domain<TChart, Policies...>::~Domain(){};
 
 template <typename TChart, template <typename> class... Policies>
 std::shared_ptr<data::DataEntry> Domain<TChart, Policies...>::Serialize() const {
-    return DomainBase::Serialize();
+    return base_type::Serialize();
 };
 
 template <typename TChart, template <typename> class... Policies>
-void Domain<TChart, Policies...>::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) {
-    DomainBase::Deserialize(cfg);
+void Domain<TChart, Policies...>::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) {
+    base_type::Deserialize(cfg);
 };
 
 template <typename TChart, template <typename> class... Policies>
