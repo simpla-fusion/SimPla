@@ -6,6 +6,7 @@
 #define SIMPLA_ELLIPSE_H
 
 #include <simpla/utilities/Constants.h>
+#include "Surface.h"
 #include "gConic.h"
 namespace simpla {
 namespace geometry {
