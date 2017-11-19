@@ -19,25 +19,6 @@ Chart::Chart(point_type const &origin, point_type const &grid_width) : m_origin_
     Update();
 }
 
-std::shared_ptr<data::DataEntry> Chart::Serialize() const {
-    auto tdb = base_type::Serialize();
-    if (tdb != nullptr) {
-        tdb->SetValue("Level", GetLevel());
-        tdb->SetValue("Origin", GetOrigin());
-        tdb->SetValue("GridWidth", GetGridWidth());
-    }
-    return tdb;
-}
-void Chart::Deserialize(std::shared_ptr<const data::DataEntry> const &tdb) {
-    ASSERT(tdb != nullptr);
-    m_origin_ = tdb->GetValue<point_type>("Origin", m_origin_);
-    m_grid_width_ = tdb->GetValue<point_type>("GridWidth", m_grid_width_);
-};
-
-void Chart::SetOrigin(point_type const &x) { m_origin_ = x; }
-point_type const &Chart::GetOrigin() const { return m_origin_; }
-void Chart::SetGridWidth(point_type const &x) { m_grid_width_ = x; }
-point_type const &Chart::GetGridWidth() const { return m_grid_width_; }
 point_type Chart::GetGridWidth(int level) const {
     point_type res = m_grid_width_;
     if (m_level_ < level) {
@@ -47,14 +28,22 @@ point_type Chart::GetGridWidth(int level) const {
     }
     return res;
 }
-
-void Chart::SetLevel(int level) {
-    m_grid_width_ = GetGridWidth(level);
-    m_level_ = level;
+void Chart::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
+    base_type::Deserialize(cfg);
+    m_axis_.Deserialize(cfg->Get("Axis"));
 };
-int Chart::GetLevel() const { return m_level_; }
+std::shared_ptr<simpla::data::DataEntry> Chart::Serialize() const {
+    auto res = base_type::Serialize();
+    res->Set("Axis", m_axis_.Serialize());
+    return res;
+};
 int Chart::GetNDIMS() const { return 3; }
-
+bool Chart::IsValid() const { return m_is_valid_; }
+void Chart::Update() {
+    m_is_valid_ = true;
+    m_grid_width_ = GetGridWidth(GetLevel());
+};
+void Chart::TearDown() { m_is_valid_ = false; };
 std::shared_ptr<Face> Chart::GetCoordinateFace(point_type const &o, int normal, Real u, Real v) const {
     return std::dynamic_pointer_cast<Face>(
         MakeSweep(GetCoordinateEdge(o, (normal + 1) % 3, u), GetCoordinateEdge(o, (normal + 2) % 3, v)));

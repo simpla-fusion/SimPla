@@ -17,9 +17,6 @@ void TimeIntegrator::SetTimeEnd(Real t) { m_time_end_ = t; }
 Real TimeIntegrator::GetTimeStep() const { return m_time_step_; }
 void TimeIntegrator::SetTimeStep(Real t) { m_time_step_ = t; }
 
-std::shared_ptr<data::DataEntry> TimeIntegrator::Serialize() const { return base_type::Serialize(); }
-void TimeIntegrator::Deserialize(std::shared_ptr<const data::DataEntry> const &tdb) { base_type::Deserialize(tdb); }
-
 void TimeIntegrator::InitialCondition(Real time_now) {
     Update();
     GetAtlas()->Foreach([&](std::shared_ptr<Patch> const &patch) {

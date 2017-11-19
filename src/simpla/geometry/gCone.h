@@ -2,8 +2,8 @@
 // Created by salmon on 17-10-23.
 //
 
-#ifndef SIMPLA_CONE_H
-#define SIMPLA_CONE_H
+#ifndef SIMPLA_GCONE_H
+#define SIMPLA_GCONE_H
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/utilities/Constants.h>
@@ -19,9 +19,9 @@ struct gCone : public ParametricBody {
         return point_type{r * std::cos(phi), r * std::sin(phi), l * std::cos(theta)};
     }
     SP_PROPERTY(Real, Angle);
-    SP_PROPERTY(Real, Radius);
+    SP_PROPERTY(Real, Radius)=1.0;
 };
 
 }  // namespace geometry
 }  // namespace simpla
-#endif  // SIMPLA_CONE_H
+#endif  // SIMPLA_GCONE_H

@@ -7,6 +7,10 @@
 
 namespace simpla {
 namespace geometry {
+Edge::Edge() = default;
+Edge::Edge(Edge const &) = default;
+Edge::~Edge() = default;
+
 Edge::Edge(Axis const &axis, std::shared_ptr<const Curve> const &curve, Real u_min, Real u_max)
     : Edge(axis, curve, std::tuple<Real, Real>{u_min, u_max}){};
 Edge::Edge(Axis const &axis, std::shared_ptr<const Curve> const &curve, std::tuple<Real, Real> const &range)

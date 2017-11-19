@@ -14,8 +14,7 @@ namespace simpla {
 namespace engine {
 class EngineObject : public data::Configurable,
                      public data::Serializable,
-                     public std::enable_shared_from_this<EngineObject>,
-                     public enable_create_from_factory<EngineObject> {
+                     public std::enable_shared_from_this<EngineObject> {
     SP_SERIALIZABLE_HEAD(data::Serializable, EngineObject)
 
    public:
@@ -23,7 +22,8 @@ class EngineObject : public data::Configurable,
     ~EngineObject() override;
     EngineObject(EngineObject const &);
     virtual std::shared_ptr<EngineObject> Copy() const;
-
+    void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
     void lock();
     void unlock();
     bool try_lock();

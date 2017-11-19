@@ -2,8 +2,8 @@
 // Created by salmon on 17-11-7.
 //
 
-#ifndef SIMPLA_WEDGE_H
-#define SIMPLA_WEDGE_H
+#ifndef SIMPLA_GWEDGE_H
+#define SIMPLA_GWEDGE_H
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/utilities/Constants.h>
@@ -27,4 +27,4 @@ struct gWedge : public ParametricBody {
 
 }  // namespace geometry
 }  // namespace simpla
-#endif  // SIMPLA_WEDGE_H
+#endif  // SIMPLA_GWEDGE_H

@@ -6,6 +6,9 @@
 namespace simpla {
 namespace geometry {
 SP_GEO_OBJECT_REGISTER(Line)
+Line::Line() = default;
+Line::Line(Line const &) = default;
+Line::~Line() = default;
 Line::Line(Axis const &axis) : Edge(axis, nullptr, 0, 1) {}
 
 }  // namespace geometry {

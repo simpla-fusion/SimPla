@@ -17,6 +17,8 @@ class Atlas;
 class Scenario : public EngineObject {
    public:
     SP_SERIALIZABLE_HEAD(EngineObject, Scenario)
+    void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
    protected:
     Scenario();
@@ -59,7 +61,8 @@ class Scenario : public EngineObject {
     //        return res;
     //    };
     template <typename TDomain>
-    std::shared_ptr<TDomain> NewDomain(std::string const &k, std::shared_ptr<geometry::GeoObject> const &g = nullptr) {
+    std::shared_ptr<TDomain> NewDomain(std::string const &k,
+                                       std::shared_ptr<const geometry::GeoObject> const &g = nullptr) {
         auto res = TDomain::New();
         if (g != nullptr) { res->SetBoundary(g); }
         SetDomain(k, res);
@@ -67,7 +70,7 @@ class Scenario : public EngineObject {
     };
     template <typename TDomain>
     std::shared_ptr<TDomain> NewDomain(std::string const &s_type, std::string const &name,
-                                       std::shared_ptr<geometry::GeoObject> const &g = nullptr) {
+                                       std::shared_ptr<const geometry::GeoObject> const &g = nullptr) {
         auto res = TDomain::New(s_type);
         if (g != nullptr) { res->SetBoundary(g); }
         SetDomain(name, res);

@@ -9,6 +9,10 @@
 namespace simpla {
 namespace geometry {
 SP_GEO_OBJECT_REGISTER(Box)
+Box::Box() = default;
+Box::Box(Box const &) = default;
+Box::~Box() = default;
+
 Box::Box(point_type const &p0, point_type const &p1)
     : Solid(Axis{p0, point_type{p1[0] - p0[0], 0, 0}, point_type{0, p1[1] - p0[1], 0}, point_type{0, 0, p1[2] - p0[2]}},
             nullptr, p0, p1) {}
@@ -20,8 +24,6 @@ Box::Box(std::initializer_list<std::initializer_list<Real>> const &v)
 Box::Box(box_type const &b) : Box(std::get<0>(b), std::get<1>(b)) {}
 Box::Box(Axis const &axis, vector_type const &extents) : Solid(axis, nullptr, point_type{0, 0, 0}, extents) {}
 
-std::shared_ptr<data::DataEntry> Box::Serialize() const { return base_type::Serialize(); };
-void Box::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) { base_type::Deserialize(cfg); }
 // box_type Box::GetBoundingBox() const { return std::make_tuple(m_axis_.o, m_axis_.xyz(m_extents_)); };
 // point_type Box::xyz(Real u, Real v, Real w) const { return m_axis_.xyz(u, v, w); };
 // point_type Box::uvw(Real x, Real y, Real z) const { return m_axis_.uvw(x, y, z); };

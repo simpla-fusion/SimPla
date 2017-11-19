@@ -29,6 +29,8 @@ namespace geometry {
  */
 class GeoObject : public data::Serializable, public data::Configurable, public std::enable_shared_from_this<GeoObject> {
     SP_SERIALIZABLE_HEAD(data::Serializable, GeoObject)
+    void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
    protected:
     GeoObject();
@@ -98,14 +100,33 @@ class GeoObject : public data::Serializable, public data::Configurable, public s
         return std::dynamic_pointer_cast<const this_type>(this->shared_from_this());                                 \
     };
 
+#define SP_GEO_OBJECT_CREATABLE                                                                           \
+   public:                                                                                                \
+    static std::shared_ptr<this_type> Create(std::string const &k) {                                      \
+        return std::dynamic_pointer_cast<this_type>(base_type::Create(k));                                \
+    }                                                                                                     \
+    static std::shared_ptr<this_type> Create(std::shared_ptr<const simpla::data::DataEntry> const &cfg) { \
+        return std::dynamic_pointer_cast<this_type>(base_type::Create(cfg));                              \
+    }
+
 #define SP_GEO_OBJECT_HEAD(_BASE_NAME_, _CLASS_NAME_)                                                                \
-    SP_SERIALIZABLE_HEAD(_BASE_NAME_, _CLASS_NAME_)                                                                  \
+   private:                                                                                                          \
+    typedef _CLASS_NAME_ this_type;                                                                                  \
+    typedef _BASE_NAME_ base_type;                                                                                   \
+                                                                                                                     \
    protected:                                                                                                        \
-    _CLASS_NAME_() = default;                                                                                        \
-    _CLASS_NAME_(_CLASS_NAME_ const &other) = default;                                                               \
+    _CLASS_NAME_();                                                                                                  \
+    _CLASS_NAME_(_CLASS_NAME_ const &other);                                                                         \
                                                                                                                      \
    public:                                                                                                           \
-    ~_CLASS_NAME_() override = default;                                                                              \
+    ~_CLASS_NAME_() override;                                                                                        \
+                                                                                                                     \
+    std::string FancyTypeName() const override { return base_type::FancyTypeName() + "." + __STRING(_CLASS_NAME_); } \
+                                                                                                                     \
+    template <typename... Args>                                                                                      \
+    static std::shared_ptr<this_type> New(Args &&... args) {                                                         \
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));                               \
+    }                                                                                                                \
     std::shared_ptr<_CLASS_NAME_> Self() { return std::dynamic_pointer_cast<this_type>(this->shared_from_this()); }; \
     std::shared_ptr<const _CLASS_NAME_> Self() const {                                                               \
         return std::dynamic_pointer_cast<const this_type>(this->shared_from_this());                                 \
@@ -118,10 +139,7 @@ class GeoObject : public data::Serializable, public data::Configurable, public s
     static std::string RegisterName() { return __STRING(_CLASS_NAME_); }                                             \
                                                                                                                      \
     std::shared_ptr<this_type> CopyThis() const { return std::dynamic_pointer_cast<this_type>(Copy()); };            \
-    template <typename... Args>                                                                                      \
-    static std::shared_ptr<this_type> New(Args &&... args) {                                                         \
-        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));                               \
-    }                                                                                                                \
+                                                                                                                     \
     this_type *CopyP() const override { return (new this_type(*this)); }                                             \
                                                                                                                      \
     template <typename... Args>                                                                                      \

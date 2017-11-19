@@ -116,6 +116,8 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, Surface>::eval(std::sha
 
 struct GeoObjectOCE : public GeoObject {
     SP_GEO_OBJECT_HEAD(GeoObject, GeoObjectOCE)
+    void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
    public:
     explicit GeoObjectOCE(TopoDS_Shape const &shape);
@@ -286,6 +288,20 @@ std::shared_ptr<TopoDS_Face> OCEShapeCast<TopoDS_Face, Face>::eval(std::shared_p
     return res;
 };
 template <>
+std::shared_ptr<TopoDS_Solid> OCEShapeCast<TopoDS_Solid, Solid>::eval(std::shared_ptr<const Solid> const &solid) {
+    std::shared_ptr<TopoDS_Solid> res = nullptr;
+    //    point2d_type p_min, p_max;
+    //    std::tie(p_min, p_max) = face->GetParameterRange();
+    //    if (auto plane = std::dynamic_pointer_cast<const gPlane>(face->GetSurface())) {
+    //        gp_Pln g_plane{make_point(face->GetAxis().o), make_dir(face->GetAxis().z)};
+    //        res = std::make_shared<TopoDS_Face>(
+    //            BRepBuilderAPI_MakeFace(g_plane, p_min[0], p_max[0], p_min[1], p_max[1]).Face());
+    //    } else {
+    //        UNIMPLEMENTED;
+    //    }
+    return res;
+};
+template <>
 std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, GeoObject>::eval(std::shared_ptr<const GeoObject> const &g) {
     std::shared_ptr<TopoDS_Shape> res = nullptr;
     if (auto oce = std::dynamic_pointer_cast<GeoObjectOCE const>(g)) {
@@ -314,6 +330,10 @@ template <typename TDest, typename TSrc>
 std::shared_ptr<TDest> oce_cast(std::shared_ptr<const TSrc> const &s) {
     return OCEShapeCast<TDest, TSrc>::eval(s);
 };
+
+GeoObjectOCE::GeoObjectOCE() = default;
+GeoObjectOCE::GeoObjectOCE(GeoObjectOCE const &) = default;
+GeoObjectOCE::~GeoObjectOCE() = default;
 
 GeoObjectOCE::GeoObjectOCE(TopoDS_Shape const &shape) : m_occ_shape_(std::make_shared<TopoDS_Shape>(shape)) {
     DoUpdate();

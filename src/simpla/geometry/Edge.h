@@ -12,6 +12,9 @@ namespace geometry {
 struct Curve;
 struct Edge : public GeoObject {
     SP_GEO_OBJECT_HEAD(GeoObject, Edge);
+    SP_GEO_OBJECT_CREATABLE
+    void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
    protected:
     explicit Edge(Axis const &axis, std::shared_ptr<const Curve> const &curve = nullptr, Real l = 0, Real w = 1);

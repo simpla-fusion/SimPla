@@ -58,7 +58,7 @@ std::shared_ptr<data::DataEntry> Atlas::Serialize() const {
 };
 void Atlas::Deserialize(std::shared_ptr<const data::DataEntry> const &tdb) {
     base_type::Deserialize(tdb);
-    m_pimpl_->m_chart_ = geometry::Chart::New(tdb->Get("Chart"));
+    m_pimpl_->m_chart_ = geometry::Chart::Create(tdb->Get("Chart"));
     std::get<0>(m_pimpl_->m_global_index_box_) = tdb->GetValue("LowIndex", std::get<0>(m_pimpl_->m_global_index_box_));
     std::get<1>(m_pimpl_->m_global_index_box_) = tdb->GetValue("HighIndex", std::get<1>(m_pimpl_->m_global_index_box_));
 

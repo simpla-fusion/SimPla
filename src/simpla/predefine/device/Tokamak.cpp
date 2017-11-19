@@ -48,11 +48,7 @@ struct Tokamak::pimpl_s {
 };
 Tokamak::Tokamak(std::string const &url) : m_pimpl_(new pimpl_s) { ReadGFile(url); }
 Tokamak::~Tokamak() { delete m_pimpl_; }
-void Tokamak::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) { base_type::Deserialize(cfg); }
-std::shared_ptr<simpla::data::DataEntry> Tokamak::Serialize() const {
-    auto res = base_type::Serialize();
-    return res;
-}
+
 void Tokamak::ReadGFile(std::string const &fname) {
     std::ifstream inFileStream_(fname);
     m_pimpl_->m_rzbbb_ = geometry::gPolygon::New();
@@ -220,8 +216,8 @@ std::function<Vec3(point_type const &)> Tokamak::B0() const {
 };
 geometry::Axis Tokamak::GetAxis() const { return m_pimpl_->m_axis_; }
 
-std::shared_ptr<geometry::GeoEntity> Tokamak::Limiter() const { return m_pimpl_->m_rzlim_; }
-std::shared_ptr<geometry::GeoEntity> Tokamak::Boundary() const { return m_pimpl_->m_rzbbb_; }
+std::shared_ptr<const geometry::Curve> Tokamak::Limiter() const { return m_pimpl_->m_rzlim_; }
+std::shared_ptr<const geometry::Curve> Tokamak::Boundary() const { return m_pimpl_->m_rzbbb_; }
 
 //    BRepBuilderAPI_MakeWire wireMaker;
 //        auto num = boundary()->data().size();

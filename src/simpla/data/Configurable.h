@@ -11,16 +11,14 @@
 namespace simpla {
 namespace data {
 
-#define SP_PROPERTY(_TYPE_, _NAME_)                  \
-   protected:                                        \
-    _TYPE_ m_##_NAME_##_;                            \
-                                                     \
-   public:                                           \
-    void Set##_NAME_(_TYPE_ const &_v_) {            \
-        m_##_NAME_##_ = _v_;                         \
-        this->db()->SetValue(__STRING(_NAME_), _v_); \
-    }                                                \
-    _TYPE_ Get##_NAME_() const { return m_##_NAME_##_; }
+#define SP_PROPERTY(_TYPE_, _NAME_)                      \
+    void Set##_NAME_(_TYPE_ const &_v_) {                \
+        m_##_NAME_##_ = _v_;                             \
+        this->db()->SetValue(__STRING(_NAME_), _v_);     \
+    }                                                    \
+    _TYPE_ Get##_NAME_() const { return m_##_NAME_##_; } \
+                                                         \
+    _TYPE_ m_##_NAME_##_
 
 struct Configurable {
    public:
@@ -33,7 +31,7 @@ struct Configurable {
     virtual std::shared_ptr<DataEntry> db();
     void SetDB(std::shared_ptr<DataEntry> const &d);
 
-    SP_PROPERTY(std::string, Name);
+    SP_PROPERTY(std::string, Name) = "";
     SP_PROPERTY(id_type, UUID);
 
    private:

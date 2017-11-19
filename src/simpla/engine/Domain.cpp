@@ -37,8 +37,8 @@ std::shared_ptr<data::DataEntry> DomainBase::Serialize() const {
 void DomainBase::Deserialize(std::shared_ptr<const data::DataEntry> const& cfg) {
     base_type::Deserialize(cfg);
     this->OnDeserialize(this, cfg);
-    m_pimpl_->m_boundary_ = geometry::GeoObject::New(cfg->Get("Boundary"));
-    if (cfg->Get("Chart") != nullptr) { m_pimpl_->m_chart_ = geometry::Chart::New(cfg->Get("Chart")); }
+    m_pimpl_->m_boundary_ = geometry::GeoObject::Create(cfg->Get("Boundary"));
+    if (cfg->Get("Chart") != nullptr) { m_pimpl_->m_chart_ = geometry::Chart::Create(cfg->Get("Chart")); }
     AttributeGroup::Deserialize(cfg->Get("Attributes"));
 };
 

@@ -10,11 +10,6 @@ namespace simpla {
 SimpleTimeIntegrator::SimpleTimeIntegrator() {}
 SimpleTimeIntegrator::~SimpleTimeIntegrator() {}
 
-std::shared_ptr<simpla::data::DataEntry> SimpleTimeIntegrator::Serialize() const { return base_type::Serialize(); }
-void SimpleTimeIntegrator::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
-    base_type::Deserialize(cfg);
-}
-
 void SimpleTimeIntegrator::DoSetUp() { base_type::DoSetUp(); }
 void SimpleTimeIntegrator::DoUpdate() { base_type::DoUpdate(); }
 void SimpleTimeIntegrator::DoTearDown() { base_type::DoTearDown(); }

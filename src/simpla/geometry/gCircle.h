@@ -2,8 +2,8 @@
 // Created by salmon on 17-10-22.
 //
 
-#ifndef SIMPLA_CIRCLE_H
-#define SIMPLA_CIRCLE_H
+#ifndef SIMPLA_GCIRCLE_H
+#define SIMPLA_GCIRCLE_H
 
 #include <simpla/utilities/Constants.h>
 #include <cmath>
@@ -19,7 +19,7 @@ struct gCircle : public gConic {
         : m_Radius_(radius), m_MinAngle_(angle0), m_MaxAngle_(angle1) {}
     bool IsClosed() const override { return GetMaxAngle() - GetMinAngle() >= TWOPI; }
 
-    SP_PROPERTY(Real, Radius);
+    SP_PROPERTY(Real, Radius)=1.0;
     SP_PROPERTY(Real, MinAngle);
     SP_PROPERTY(Real, MaxAngle);
 
@@ -46,4 +46,4 @@ struct gDisk : public Plane {
 }  //    namespace geometry{
 }  // namespace simpla{
 
-#endif  // SIMPLA_CIRCLE_H
+#endif  // SIMPLA_GCIRCLE_H

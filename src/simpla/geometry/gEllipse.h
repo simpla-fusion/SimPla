@@ -2,8 +2,8 @@
 // Created by salmon on 17-10-22.
 //
 
-#ifndef SIMPLA_ELLIPSE_H
-#define SIMPLA_ELLIPSE_H
+#ifndef SIMPLA_GELLIPSE_H
+#define SIMPLA_GELLIPSE_H
 
 #include <simpla/utilities/Constants.h>
 #include "Surface.h"
@@ -47,4 +47,4 @@ struct gEllipseDisk : public Plane {
 };
 }  // namespace geometry{
 }  // namespace simpla{
-#endif  // SIMPLA_ELLIPSE_H
+#endif  // SIMPLA_GELLIPSE_H

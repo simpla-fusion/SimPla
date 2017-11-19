@@ -8,29 +8,33 @@
 #include "Wire.h"
 namespace simpla {
 namespace geometry {
-
+RevolutionShell::RevolutionShell() = default;
+RevolutionShell::RevolutionShell(RevolutionShell const &) = default;
+RevolutionShell::~RevolutionShell() = default;
 RevolutionShell::RevolutionShell(Axis const &axis, std::shared_ptr<const Wire> const &g, Real min_angle, Real max_angle)
     : Shell(axis), m_basis_obj_(g), m_MinAngle_(min_angle), m_MaxAngle_(max_angle) {}
 RevolutionShell::RevolutionShell(Axis const &axis, std::shared_ptr<const Wire> const &g, Real angle)
     : RevolutionShell(axis, g, 0, angle) {}
 void RevolutionShell::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
-    m_basis_obj_ = Wire::New(cfg->Get("Wire"));
+    m_basis_obj_ = Wire::Create(cfg->Get("Wire"));
 }
 std::shared_ptr<simpla::data::DataEntry> RevolutionShell::Serialize() const {
     auto res = base_type::Serialize();
     res->Set("Wire", m_basis_obj_->Serialize());
     return res;
 }
-
+RevolutionFace::RevolutionFace() = default;
+RevolutionFace::RevolutionFace(RevolutionFace const &) = default;
+RevolutionFace::~RevolutionFace() = default;
 RevolutionFace::RevolutionFace(Axis const &axis, std::shared_ptr<const Edge> const &g, Real min_angle, Real max_angle)
-    : Face(axis, nullptr), m_basis_obj_(g), m_MinAngle_(min_angle), m_MaxAngle_(max_angle) {}
+    : Face(axis), m_basis_obj_(g), m_MinAngle_(min_angle), m_MaxAngle_(max_angle) {}
 RevolutionFace::RevolutionFace(Axis const &axis, std::shared_ptr<const Edge> const &g, Real angle)
     : RevolutionFace(axis, g, 0, angle) {}
 
 void RevolutionFace::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
-    m_basis_obj_ = Edge::New(cfg->Get("Edge"));
+    m_basis_obj_ = Edge::Create(cfg->Get("Edge"));
 }
 std::shared_ptr<simpla::data::DataEntry> RevolutionFace::Serialize() const {
     auto res = base_type::Serialize();
@@ -46,13 +50,16 @@ std::shared_ptr<simpla::data::DataEntry> RevolutionFace::Serialize() const {
 //    Real cosw = std::cos(w);
 //    return m_axis_.xyz(p[0] * cosw - p[1] * sinw, p[0] * sinw + p[1] * cosw, p[2]);
 //};
+RevolutionSolid::RevolutionSolid() = default;
+RevolutionSolid::RevolutionSolid(RevolutionSolid const &) = default;
+RevolutionSolid::~RevolutionSolid() = default;
 RevolutionSolid::RevolutionSolid(Axis const &axis, std::shared_ptr<const Face> const &f, Real min_angle, Real max_angle)
     : Solid(axis), m_basis_obj_(f), m_MinAngle_(min_angle), m_MaxAngle_(max_angle) {}
 RevolutionSolid::RevolutionSolid(Axis const &axis, std::shared_ptr<const Face> const &f, Real angle)
     : RevolutionSolid(axis, f, 0, angle) {}
 void RevolutionSolid::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
-    m_basis_obj_ = Face::New(cfg->Get("Face"));
+    m_basis_obj_ = Face::Create(cfg->Get("Face"));
 }
 std::shared_ptr<simpla::data::DataEntry> RevolutionSolid::Serialize() const {
     auto res = base_type::Serialize();
@@ -70,6 +77,7 @@ std::shared_ptr<Solid> MakeRevolution(Axis const &axis, std::shared_ptr<const Fa
                                       Real angle1) {
     return RevolutionSolid::New(axis, f, angle0, angle1);
 }
-
+std::shared_ptr<Face> MakeRevolution(std::shared_ptr<const Curve> const &g, Real angle) { return nullptr; }
+std::shared_ptr<Solid> MakeRevolution(std::shared_ptr<const Surface> const &g, Real angle) { return nullptr; }
 }  // namespace geometry{
 }  // namespace simpla{

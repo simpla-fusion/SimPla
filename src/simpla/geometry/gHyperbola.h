@@ -2,8 +2,8 @@
 // Created by salmon on 17-10-22.
 //
 
-#ifndef SIMPLA_HYPERBOLA_H
-#define SIMPLA_HYPERBOLA_H
+#ifndef SIMPLA_GHYPERBOLA_H
+#define SIMPLA_GHYPERBOLA_H
 
 #include "gConic.h"
 namespace simpla {
@@ -21,4 +21,4 @@ struct gHyperbola : public gConic {
 };
 }  // namespace geometry{
 }  // namespace simpla{
-#endif  // SIMPLA_HYPERBOLA_H
+#endif  // SIMPLA_GHYPERBOLA_H

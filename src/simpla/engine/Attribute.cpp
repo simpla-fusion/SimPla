@@ -182,9 +182,6 @@ std::shared_ptr<Attribute> Attribute::New(std::shared_ptr<simpla::data::DataEntr
     return res;
 }
 
-std::shared_ptr<data::DataEntry> Attribute::Serialize() const { return base_type::Serialize(); }
-void Attribute::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) { base_type::Deserialize(cfg); }
-
 void Attribute::Register(AttributeGroup *attr_b) {
     if (attr_b == nullptr) {
         static std::hash<std::string> s_hasher;

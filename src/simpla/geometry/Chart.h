@@ -14,8 +14,10 @@ namespace geometry {
 struct Edge;
 struct Face;
 struct Solid;
-struct Chart : public data::Serializable {
+struct Chart : public data::Serializable, public data::Configurable {
     SP_SERIALIZABLE_HEAD(data::Serializable, Chart)
+    void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
    private:
     bool m_is_valid_ = false;
@@ -27,10 +29,11 @@ struct Chart : public data::Serializable {
 
    public:
     ~Chart() override;
+    bool IsValid() const;
+
     virtual int GetNDIMS() const;
-    bool IsValid() const { return m_is_valid_; }
-    virtual void Update() { m_is_valid_ = true; };
-    virtual void TearDown() { m_is_valid_ = false; };
+    virtual void Update();
+    virtual void TearDown();
 
     virtual std::shared_ptr<Edge> GetCoordinateEdge(point_type const &o, int normal, Real u) const = 0;
     virtual std::shared_ptr<Face> GetCoordinateFace(point_type const &o, int normal, Real u, Real v) const;
@@ -38,19 +41,16 @@ struct Chart : public data::Serializable {
     std::shared_ptr<Solid> GetCoordinateBox(box_type const &o) const;
 
     std::shared_ptr<Edge> GetCoordinateEdge(index_tuple const &x0, int normal, index_type u = 1) const;
-    std::shared_ptr<Face> GetCoordinateFace(index_tuple const &x0, int normal, index_type u = 1, index_type v = 1) const;
+    std::shared_ptr<Face> GetCoordinateFace(index_tuple const &x0, int normal, index_type u = 1,
+                                            index_type v = 1) const;
     std::shared_ptr<Solid> GetCoordinateBox(index_tuple const &b, index_type u = 1, index_type v = 1,
                                             index_type w = 1) const;
     std::shared_ptr<Solid> GetCoordinateBox(index_box_type const &b) const;
 
-    void SetLevel(int level);
-    int GetLevel() const;
+    SP_PROPERTY(int, Level) = 0;
+    SP_PROPERTY(point_type, Origin) = {0, 0, 0};
+    SP_PROPERTY(point_type, GridWidth) = {1, 1, 1};
 
-    void SetOrigin(point_type const &x);
-    point_type const &GetOrigin() const;
-
-    void SetGridWidth(point_type const &x);
-    point_type const &GetGridWidth() const;
     point_type GetGridWidth(int level) const;
 
     index_box_type GetIndexBox(box_type const &c_box) const {

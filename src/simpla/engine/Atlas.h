@@ -70,6 +70,8 @@ class MeshBlock;
 */
 class Atlas : public EngineObject {
     SP_SERIALIZABLE_HEAD(EngineObject, Atlas)
+    void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
    protected:
     Atlas();

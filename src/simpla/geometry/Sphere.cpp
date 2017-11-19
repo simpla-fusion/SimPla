@@ -10,10 +10,16 @@ namespace simpla {
 namespace geometry {
 SP_GEO_OBJECT_REGISTER(Sphere)
 SP_GEO_OBJECT_REGISTER(SphereSurface)
+Sphere::Sphere() = default;
+Sphere::Sphere(Sphere const &) = default;
+Sphere::~Sphere() = default;
 
 Sphere::Sphere(Axis const &axis, Real r0, Real r1, Real a0, Real a1, Real h0, Real h1)
     : Solid(axis, simpla::geometry::gSphere::New(), r0, r1, a0, a1, h0, h1) {}
 
+SphereSurface::SphereSurface() = default;
+SphereSurface::SphereSurface(SphereSurface const &) = default;
+SphereSurface::~SphereSurface() = default;
 SphereSurface::SphereSurface(Axis const &axis, Real radius, Real a0, Real a1, Real h0, Real h1)
     : Face(axis, simpla::geometry::gSphereSurface::New(radius), a0, a1, h0, h1) {}
 }  // namespace geometry {

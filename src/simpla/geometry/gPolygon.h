@@ -3,8 +3,8 @@
 * @author salmon
 * @date 2015-11-17.
 */
-#ifndef SIMPLA_POLYGON_H
-#define SIMPLA_POLYGON_H
+#ifndef SIMPLA_GPOLYGON_H
+#define SIMPLA_GPOLYGON_H
 
 #include <simpla/SIMPLA_config.h>
 #include <vector>
@@ -21,4 +21,4 @@ struct gPolygon : public BoundedCurve3D {
 };
 }  // namespace geometry
 }  // namespace simpla
-#endif  // SIMPLA_POLYGON_H
+#endif  // SIMPLA_GPOLYGON_H

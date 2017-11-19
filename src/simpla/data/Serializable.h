@@ -31,24 +31,17 @@ std::istream &operator>>(std::istream &is, Serializable &obj);
    public:                                                                                                           \
     std::string FancyTypeName() const override { return base_type::FancyTypeName() + "." + __STRING(_CLASS_NAME_); } \
                                                                                                                      \
-    void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;                            \
-    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;                                             \
-                                                                                                                     \
-   public:                                                                                                           \
-    static std::shared_ptr<this_type> New(std::string const &k) {                                                    \
+    static std::shared_ptr<this_type> Create(std::string const &k) {                                                 \
         return std::dynamic_pointer_cast<this_type>(base_type::Create(k));                                           \
     }                                                                                                                \
-    static std::shared_ptr<this_type> New(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {               \
+    static std::shared_ptr<this_type> Create(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {            \
         return std::dynamic_pointer_cast<this_type>(base_type::Create(cfg));                                         \
     }
-#define SP_CREATABLE_HEAD(_CLASS_NAME_)                        \
-   protected:                                                  \
-    _CLASS_NAME_();                                            \
-    _CLASS_NAME_(_CLASS_NAME_ const &)                         \
-   public:                                                     \
-    template <typename... Args>                                \
-    static std::shared_ptr<_CLASS_NAME_> New(Args &&... args); \
-    _CLASS_NAME_ *CopyPointer(Args &&... args) const override { return new this_type(*this); }
+#define SP_ENABLE_NEW                                                                  \
+    template <typename... Args>                                                        \
+    static std::shared_ptr<this_type> New(Args &&... args) {                           \
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...)); \
+    }
 
 }  // namespace geometry
 }  // namespace simpla

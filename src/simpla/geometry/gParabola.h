@@ -2,8 +2,8 @@
 // Created by salmon on 17-10-22.
 //
 
-#ifndef SIMPLA_PARABOLA_H
-#define SIMPLA_PARABOLA_H
+#ifndef SIMPLA_GPARABOLA_H
+#define SIMPLA_GPARABOLA_H
 
 #include <simpla/data/Serializable.h>
 #include "gConic.h"
@@ -20,4 +20,4 @@ struct gParabola : public gConic {
 
 }  // namespace geometry{
 }  // namespace simpla{
-#endif  // SIMPLA_PARABOLA_H
+#endif  // SIMPLA_GPARABOLA_H

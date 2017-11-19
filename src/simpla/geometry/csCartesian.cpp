@@ -15,10 +15,7 @@ namespace geometry {
 csCartesian::csCartesian() = default;
 csCartesian::csCartesian(csCartesian const &) = default;
 csCartesian::~csCartesian() = default;
-std::shared_ptr<simpla::data::DataEntry> csCartesian::Serialize() const { return base_type::Serialize(); }
-void csCartesian::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
-    base_type::Deserialize(cfg);
-}
+
 std::shared_ptr<Edge> csCartesian::GetCoordinateEdge(point_type const &o, int normal, Real u) const {
     return Line::New(m_axis_);
 };

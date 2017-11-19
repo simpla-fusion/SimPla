@@ -19,6 +19,8 @@ using namespace data;
 template <typename TDomain>
 class EMFluid : public TDomain {
     SP_DOMAIN_HEAD(EMFluid, TDomain);
+    void Deserialize(std::shared_ptr<const data::DataEntry> const& cfg) override;
+    std::shared_ptr<data::DataEntry> Serialize() const override;
 
     Field<this_type, Real, CELL> ne{this, "Name"_ = "ne"};
     Field<this_type, Real, CELL, 3> B0v{this, "Name"_ = "B0v", "CheckPoint"_};
@@ -63,9 +65,10 @@ std::shared_ptr<data::DataEntry> EMFluid<TM>::Serialize() const {
     return res;
 };
 template <typename TM>
-void EMFluid<TM>::Deserialize(std::shared_ptr<data::DataEntry> const& cfg) {
-    cfg->Get("Species")->Foreach(
-        [&](std::string const& k, std::shared_ptr<data::DataEntry> v) { return AddSpecies(k, v) != nullptr ? 1 : 0; });
+void EMFluid<TM>::Deserialize(std::shared_ptr<const data::DataEntry> const& cfg) {
+    cfg->Get("Species")->Foreach([&](std::string const& k, std::shared_ptr<const data::DataEntry> v) {
+        return AddSpecies(k, v) != nullptr ? 1 : 0;
+    });
 }
 
 template <typename TM>

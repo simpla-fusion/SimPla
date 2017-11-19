@@ -59,7 +59,7 @@ void Scenario::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) {
 
     if (auto domain = cfg->Get("Domains")) {
         domain->Foreach([&](std::string key, std::shared_ptr<const data::DataEntry> node) {
-            SetDomain(key, DomainBase::New(node));
+            SetDomain(key, DomainBase::Create(node));
         });
     }
     //    if (auto patches = cfg->Get("Patches")) {

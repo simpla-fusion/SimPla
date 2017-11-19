@@ -12,9 +12,12 @@ namespace simpla {
 namespace geometry {
 struct Face : public GeoObject {
     SP_GEO_OBJECT_HEAD(GeoObject, Face);
+    SP_GEO_OBJECT_CREATABLE
+    void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
    protected:
-    explicit Face(Axis const &axis, std::shared_ptr<const Surface> const &surface, Real l, Real w);
+    explicit Face(Axis const &axis, std::shared_ptr<const Surface> const &surface = nullptr, Real l = 1, Real w = 1);
     explicit Face(Axis const &axis, std::shared_ptr<const Surface> const &surface, Real u_min, Real u_max, Real v_min,
                   Real v_max);
     explicit Face(Axis const &axis, std::shared_ptr<const Surface> const &surface,

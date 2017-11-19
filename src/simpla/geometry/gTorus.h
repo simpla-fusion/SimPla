@@ -2,8 +2,8 @@
 // Created by salmon on 17-10-24.
 //
 
-#ifndef SIMPLA_TOROIDAL_H
-#define SIMPLA_TOROIDAL_H
+#ifndef SIMPLA_GTORUS_H
+#define SIMPLA_GTORUS_H
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/utilities/Constants.h>
@@ -40,4 +40,4 @@ struct gTorus : public ParametricBody {
 
 }  // namespace geometry
 }  // namespace simpla
-#endif  // SIMPLA_TOROIDAL_H
+#endif  // SIMPLA_GTORUS_H
