@@ -14,7 +14,7 @@
 #include "simpla/algebra/nTuple.h"
 #include "simpla/geometry/Chart.h"
 #include "simpla/geometry/GeoObject.h"
-#include "simpla/geometry/Polygon.h"
+#include "simpla/geometry/gPolygon.h"
 #include "simpla/geometry/Revolution.h"
 #include "simpla/utilities/Log.h"
 #include "simpla/utilities/ObjectHead.h"

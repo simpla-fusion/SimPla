@@ -71,20 +71,19 @@
 #include "../Curve.h"
 #include "../Edge.h"
 #include "../Face.h"
+#include "../GeoEntity.h"
 #include "../GeoObject.h"
 #include "../IntersectionCurveSurface.h"
-#include "../Polygon.h"
 #include "../Revolution.h"
-#include "simpla/geometry/GeoEntity.h"
 #include "../Surface.h"
-#include "simpla/geometry/gCircle.h"
-#include "simpla/geometry/gEllipse.h"
-#include "simpla/geometry/gHyperbola.h"
-#include "../spLine.h"
-#include "simpla/geometry/gParabola.h"
-#include "simpla/geometry/gSphere.h"
-#include "simpla/geometry/gTorus.h"
-#include "simpla/geometry/gWedge.h"
+#include "../gCircle.h"
+#include "../gEllipse.h"
+#include "../gHyperbola.h"
+#include "../gParabola.h"
+#include "../gPolygon.h"
+#include "../gSphere.h"
+#include "../gTorus.h"
+#include "../gWedge.h"
 namespace simpla {
 namespace geometry {
 struct GeoObjectOCE;
@@ -171,24 +170,30 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, Solid>::eval(std::share
     } else if (auto torus = std::dynamic_pointer_cast<const gTorus>(g)) {
         res = std::make_shared<TopoDS_Shape>(
             BRepPrimAPI_MakeTorus(axis, torus->GetMajorRadius(), torus->GetMinorRadius()).Shape());
-    } else if (auto revolution = std::dynamic_pointer_cast<const Revolution>(g)) {
-        if (auto basis_shape = oce_cast<TopoDS_Shape>(revolution->GetBasisObject())) {
-            res = std::make_shared<TopoDS_Shape>(
-                BRepPrimAPI_MakeRevol(*basis_shape, make_axis1(revolution->GetAxis()), revolution->GetAngle()).Shape());
-        }
-    } else if (auto sweep = std::dynamic_pointer_cast<const Sweep>(g)) {
-        if (auto line = std::dynamic_pointer_cast<const spLine>(sweep->GetCurve())) {
-            auto basis_shape = oce_cast<TopoDS_Shape>(revolution->GetBasisObject());
-            res = std::make_shared<TopoDS_Shape>(
-                BRepPrimAPI_MakePrism(*basis_shape, make_dir(line->GetEndPoint() - line->GetStartPoint())).Shape());
-        } else {
-            res =
-                std::make_shared<TopoDS_Shape>(BRepOffsetAPI_MakePipe(*oce_cast<TopoDS_Wire>(sweep->GetCurve()),
-                                                                      *oce_cast<TopoDS_Shape>(sweep->GetBasisObject()))
-                                                   .Shape());
-        }
+    }
 
-    } else {
+    //    else if (auto revolution = std::dynamic_pointer_cast<const Revolution>(g)) {
+    //        if (auto basis_shape = oce_cast<TopoDS_Shape>(revolution->GetBasisObject())) {
+    //            res = std::make_shared<TopoDS_Shape>(
+    //                BRepPrimAPI_MakeRevol(*basis_shape, make_axis1(revolution->GetAxis()),
+    //                revolution->GetAngle()).Shape());
+    //        }
+    //    } else if (auto sweep = std::dynamic_pointer_cast<const Sweep>(g)) {
+    //        if (auto line = std::dynamic_pointer_cast<const spLine>(sweep->GetCurve())) {
+    //            auto basis_shape = oce_cast<TopoDS_Shape>(revolution->GetBasisObject());
+    //            res = std::make_shared<TopoDS_Shape>(
+    //                BRepPrimAPI_MakePrism(*basis_shape, make_dir(line->GetEndPoint() -
+    //                line->GetStartPoint())).Shape());
+    //        } else {
+    //            res =
+    //                std::make_shared<TopoDS_Shape>(BRepOffsetAPI_MakePipe(*oce_cast<TopoDS_Wire>(sweep->GetCurve()),
+    //                                                                      *oce_cast<TopoDS_Shape>(sweep->GetBasisObject()))
+    //                                                   .Shape());
+    //        }
+    //
+    //    }
+
+    else {
         UNIMPLEMENTED;
     }
     return res;
@@ -248,7 +253,7 @@ std::shared_ptr<TopoDS_Edge> OCEShapeCast<TopoDS_Edge, Edge>::eval(std::shared_p
 template <>
 std::shared_ptr<TopoDS_Wire> OCEShapeCast<TopoDS_Wire, Curve>::eval(std::shared_ptr<const Curve> const &g) {
     std::shared_ptr<TopoDS_Wire> res = nullptr;
-    if (auto polygon = std::dynamic_pointer_cast<const Polygon>(g)) {
+    if (auto polygon = std::dynamic_pointer_cast<const gPolygon>(g)) {
         BRepBuilderAPI_MakePolygon oce_polygon;
         for (size_type s = 0, se = polygon->size(); s < se; ++s) { oce_polygon.Add(make_point(polygon->GetPoint(s))); }
         oce_polygon.Build();

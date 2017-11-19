@@ -5,5 +5,7 @@
 #include "gConic.h"
 
 namespace simpla {
-namespace geometry {}  // namespace geometry {
+namespace geometry {
+gConic::gConic() = default;
+}  // namespace geometry {
 }  // namespace simpla {

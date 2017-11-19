@@ -10,8 +10,7 @@ namespace simpla {
 namespace geometry {
 struct Curve : public GeoEntity {
     SP_GEO_ENTITY_ABS_HEAD(GeoEntity, Curve)
-    Curve() = default;
-    virtual bool isClosed() const { return false; }
+    virtual bool IsClosed() const { return false; }
 };
 
 /**

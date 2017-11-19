@@ -94,6 +94,7 @@ struct GeoEntity : public data::Serializable,
                                                                                                                      \
    public:                                                                                                           \
     std::string FancyTypeName() const override { return base_type::FancyTypeName() + "." + __STRING(_CLASS_NAME_); } \
+    _CLASS_NAME_() = default;                                                                                        \
     _CLASS_NAME_(_CLASS_NAME_ const &) = default;                                                                    \
     ~_CLASS_NAME_() override = default;
 
@@ -117,7 +118,7 @@ struct GeoEntity : public data::Serializable,
     this_type *CopyP() const override { return new this_type(*this); };
 
 #define SP_GEO_ENTITY_REGISTER(_CLASS_NAME_) \
-    bool _CLASS_NAME_::_is_registered = \
+    bool _CLASS_NAME_::_is_registered =      \
         simpla::Factory<GeoEntity>::RegisterCreator<_CLASS_NAME_>(_CLASS_NAME_::RegisterName());
 }  // namespace geometry{
 }  // namespace simpla{

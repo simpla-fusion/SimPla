@@ -8,10 +8,7 @@
 namespace simpla {
 namespace geometry {
 struct gConic : public ParametricCurve2D {
-    SP_SERIALIZABLE_HEAD(ParametricCurve2D, gConic)
-    gConic() = default;
-    gConic(gConic const &) = default;
-    ~gConic() override = default;
+    SP_GEO_ENTITY_ABS_HEAD(ParametricCurve2D, gConic)
 };
 }  //  namespace geometry{
 }  // namespace simpla

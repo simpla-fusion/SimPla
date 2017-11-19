@@ -12,14 +12,8 @@ namespace geometry {
 
 struct gBox : public ParametricBody {
     SP_GEO_ENTITY_HEAD(GeoEntity, gBox, Box)
-
     explicit gBox(vector_type const &extents) : m_Extents_(extents) {}
-
-    point_type xyz(Real u, Real v, Real w) const override {
-        UNIMPLEMENTED;
-        return point_type{0, 0, 0};
-    }
-
+    point_type xyz(Real u, Real v, Real w) const override { return point_type{u, v, w}; }
     SP_PROPERTY(vector_type, Extents);
 };
 

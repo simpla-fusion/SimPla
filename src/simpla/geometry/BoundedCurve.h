@@ -9,7 +9,7 @@
 namespace simpla {
 namespace geometry {
 class BoundedCurve : public Curve {
-    SP_SERIALIZABLE_HEAD(Curve, BoundedCurve);
+    SP_GEO_ENTITY_ABS_HEAD(Curve, BoundedCurve);
 
    public:
     virtual void Open() = 0;
@@ -19,47 +19,52 @@ class BoundedCurve : public Curve {
     virtual point_type GetPoint(index_type s) const = 0;
 };
 class BoundedCurve2D : public BoundedCurve {
-    SP_SERIALIZABLE_HEAD(BoundedCurve, BoundedCurve2D);
+    SP_GEO_ENTITY_ABS_HEAD(BoundedCurve, BoundedCurve2D);
 
    public:
-    point_type xyz(Real u) const;
+    void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
     void Open() override;
     void Close() override;
     bool IsClosed() const override;
 
     size_type size() const override;
-    void AddPoint(point_type const &) override;
-    point_type GetPoint(index_type s) const override;
-    virtual void AddPoint(Real x, Real y);
-    virtual point2d_type GetPoint2d(index_type s) const;
-    std::vector<point2d_type> &data();
-    std::vector<point2d_type> const &data() const;
+    virtual void AddPoint2D(Real x, Real y);
+    virtual point2d_type GetPoint2D(index_type s) const;
+
+    void AddPoint(point_type const &p) override { AddPoint2D(p[0], p[1]); }
+    point_type GetPoint(index_type s) const override {
+        auto p = GetPoint2D(s);
+        return point_type{p[0], p[1], 0};
+    }
+
+    std::vector<point2d_type> &data() { return m_data_; }
+    std::vector<point2d_type> const &data() const { return m_data_; }
 
    private:
-    struct pimpl_s;
-    pimpl_s *m_pimpl_ = nullptr;
+    std::vector<point2d_type> m_data_;
 };
 class BoundedCurve3D : public BoundedCurve {
-    SP_SERIALIZABLE_HEAD(BoundedCurve, BoundedCurve3D);
+    SP_GEO_ENTITY_ABS_HEAD(BoundedCurve, BoundedCurve3D);
 
    public:
-    point_type xyz(Real u) const;
+    void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
     void Open() override;
     void Close() override;
     bool IsClosed() const override;
 
-    size_type size() const override;
-    void AddPoint(Real x, Real y, Real z);
+    size_type size() const override { return m_data_.size(); }
+    virtual void AddPoint(Real x, Real y, Real z) { AddPoint(point_type{x, y, z}); }
     void AddPoint(point_type const &) override;
     point_type GetPoint(index_type s) const override;
-    std::vector<point_type> &data();
-    std::vector<point_type> const &data() const;
+    std::vector<point_type> &data() { return m_data_; }
+    std::vector<point_type> const &data() const { return m_data_; }
 
    private:
-    struct pimpl_s;
-    pimpl_s *m_pimpl_ = nullptr;
+    std::vector<point_type> m_data_;
 };
 }  // namespace geometry
 }  // namespace simpla

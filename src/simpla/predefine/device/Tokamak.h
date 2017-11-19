@@ -12,14 +12,16 @@
 #include <utility>
 
 #include <simpla/algebra/nTuple.h>
+#include <simpla/data/Configurable.h>
 #include <simpla/data/DataEntry.h>
-#include <simpla/data/SPObject.h>
+#include <simpla/data/Serializable.h>
 #include <simpla/geometry/Axis.h>
+#include <simpla/geometry/GeoEntity.h>
+
 #include <simpla/utilities/SPDefines.h>
+#include <functional>
 namespace simpla {
-namespace geometry {
-struct GeoObject;
-}
+
 /**
  *  Define Tokamak geometry, parser GEqdsk
  */
@@ -42,14 +44,14 @@ class Tokamak : public data::Serializable, public data::Configurable {
     void ReadProfile(std::string const &fname);
 
     geometry::Axis GetAxis() const;
-    std::shared_ptr<geometry::GeoObject> Limiter() const;
-    std::shared_ptr<geometry::GeoObject> Boundary() const;
+    std::shared_ptr<geometry::GeoEntity> Limiter() const;
+    std::shared_ptr<geometry::GeoEntity> Boundary() const;
 
     std::function<vector_type(point_type const &)> B0() const;
     std::function<Real(point_type const &)> profile(std::string const &k) const;
 
-    //    std::shared_ptr<geometry::Polygon> const &boundary() const;
-    //    std::shared_ptr<geometry::Polygon> const &limiter() const;
+    //    std::shared_ptr<geometry::gPolygon> const &boundary() const;
+    //    std::shared_ptr<geometry::gPolygon> const &limiter() const;
     //     bool in_boundary(point_type const &x) const { return boundary()->IsInside(x[RAxis],
     //    x[ZAxis]); }
     //     bool in_limiter(point_type const &x) const { return limiter()->IsInside(x[RAxis],

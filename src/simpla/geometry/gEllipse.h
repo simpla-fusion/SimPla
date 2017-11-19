@@ -17,16 +17,14 @@ struct gEllipse : public gConic {
         : gEllipse(major_radius, minor_radius, 0, angle) {}
 
     explicit gEllipse(Real major_radius, Real minor_radius, Real angle0, Real angle1)
-        : m_MajorRadius_(major_radius), m_MinorRadius_(minor_radius) {
-        SetMinU(angle0);
-        SetMaxU(angle1);
-    }
+        : m_MajorRadius_(major_radius), m_MinorRadius_(minor_radius) {}
 
-    bool isClosed() const override { return m_MaxU_ - m_MinU_ >= TWOPI; }
+    bool IsClosed() const override { return GetMaxAngle() - GetMinAngle() >= TWOPI; }
 
     SP_PROPERTY(Real, MajorRadius);
     SP_PROPERTY(Real, MinorRadius);
-
+    SP_PROPERTY(Real, MinAngle);
+    SP_PROPERTY(Real, MaxAngle);
     point2d_type xy(Real alpha) const override {
         return point2d_type{m_MajorRadius_ * std::cos((alpha)), m_MinorRadius_ * std::sin((alpha))};
     };

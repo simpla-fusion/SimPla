@@ -6,8 +6,8 @@
 #include <simpla/algebra/nTuple.h>
 #include <simpla/data/Data.h>
 #include <simpla/geometry/BoundedCurve.h>
-#include <simpla/geometry/Polygon.h>
 #include <simpla/geometry/Revolution.h>
+#include <simpla/geometry/gPolygon.h>
 #include <simpla/numeric/Interpolation.h>
 #include <simpla/numeric/find_root.h>
 #include <simpla/utilities/Constants.h>
@@ -38,8 +38,8 @@ struct Tokamak::pimpl_s {
     inter2d_type m_psirz_;  //!< Poloidal flux in Webber/rad on the rectangular grid points
 
     //	inter_type qpsi_;//!< q values on uniform flux grid from axis to boundary
-    std::shared_ptr<geometry::Polygon> m_rzbbb_;  //!< R,Z of boundary points in meter
-    std::shared_ptr<geometry::Polygon> m_rzlim_;  //!< R,Z of surrounding limiter contour in meter
+    std::shared_ptr<geometry::gPolygon> m_rzbbb_;  //!< R,Z of boundary points in meter
+    std::shared_ptr<geometry::gPolygon> m_rzlim_;  //!< R,Z of surrounding limiter contour in meter
     std::map<std::string, inter_type> m_profile_;
     //    bool flux_surface(Real psi_j, size_t M, point_type *res, Real resoluton = 0.001);
 
@@ -55,8 +55,8 @@ std::shared_ptr<simpla::data::DataEntry> Tokamak::Serialize() const {
 }
 void Tokamak::ReadGFile(std::string const &fname) {
     std::ifstream inFileStream_(fname);
-    m_pimpl_->m_rzbbb_ = geometry::Polygon::New(GetAxis());
-    m_pimpl_->m_rzlim_ = geometry::Polygon::New(GetAxis());
+    m_pimpl_->m_rzbbb_ = geometry::gPolygon::New();
+    m_pimpl_->m_rzlim_ = geometry::gPolygon::New();
     if (!inFileStream_.is_open()) {
         THROW_EXCEPTION_RUNTIME_ERROR("File " + fname + " is not opend!");
         return;
@@ -220,8 +220,8 @@ std::function<Vec3(point_type const &)> Tokamak::B0() const {
 };
 geometry::Axis Tokamak::GetAxis() const { return m_pimpl_->m_axis_; }
 
-std::shared_ptr<geometry::GeoObject> Tokamak::Limiter() const { return m_pimpl_->m_rzlim_; }
-std::shared_ptr<geometry::GeoObject> Tokamak::Boundary() const { return m_pimpl_->m_rzbbb_; }
+std::shared_ptr<geometry::GeoEntity> Tokamak::Limiter() const { return m_pimpl_->m_rzlim_; }
+std::shared_ptr<geometry::GeoEntity> Tokamak::Boundary() const { return m_pimpl_->m_rzbbb_; }
 
 //    BRepBuilderAPI_MakeWire wireMaker;
 //        auto num = boundary()->data().size();

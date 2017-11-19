@@ -6,7 +6,6 @@
 #define SIMPLA_ENGINE_H
 
 #include <simpla/data/DataEntry.h>
-#include <simpla/data/SPObject.h>
 #include <simpla/utilities/SPDefines.h>
 #include <simpla/utilities/SingletonHolder.h>
 #include <memory>

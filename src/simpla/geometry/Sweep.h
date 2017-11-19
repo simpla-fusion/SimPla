@@ -4,30 +4,75 @@
 
 #ifndef SIMPLA_SWEPTBODY_H
 #define SIMPLA_SWEPTBODY_H
-#include <simpla/algebra/nTuple.ext.h>
+
+#include <simpla/data/Configurable.h>
+#include <simpla/data/Serializable.h>
 #include <simpla/utilities/Constants.h>
-#include "Body.h"
-#include "Curve.h"
-#include "GeoObject.h"
-#include "Surface.h"
+#include "Face.h"
+#include "Shell.h"
+#include "Solid.h"
 namespace simpla {
 namespace geometry {
-struct Face;
+struct Wire;
 struct Edge;
-struct Sweep {
+
+struct RevolutionShell : public Shell {
+    SP_GEO_OBJECT_HEAD(Shell, RevolutionShell);
+
    protected:
-    explicit Sweep(std::shared_ptr<const GeoObject> const &s, std::shared_ptr<const Curve> const &c);
+    explicit RevolutionShell(Axis const &axis, std::shared_ptr<const Wire> const &s, Real min_angle, Real max_angle);
+    explicit RevolutionShell(Axis const &axis, std::shared_ptr<const Wire> const &s, Real angle = TWOPI);
 
    public:
-    std::shared_ptr<const GeoObject> GetBasisObject() const { return m_basis_obj_; }
-    std::shared_ptr<const Curve> GetCurve() const { return m_curve_; }
+    std::shared_ptr<const GeoObject> GetWire() const { return m_basis_obj_; }
+
+    SP_PROPERTY(Real, MinAngle);
+    SP_PROPERTY(Real, MaxAngle);
 
    private:
-    std::shared_ptr<const GeoObject> m_basis_obj_;
-    std::shared_ptr<const Curve> m_curve_;
+    std::shared_ptr<const Wire> m_basis_obj_;
 };
-std::shared_ptr<GeoObject> make_Sweep(std::shared_ptr<const Edge> const &e0, std::shared_ptr<const Edge> const &e1);
-std::shared_ptr<GeoObject> make_Sweep(std::shared_ptr<const Face> const &f0, std::shared_ptr<const Edge> const &e1);
-}  // namespace geometry
+struct RevolutionFace : public Face {
+    SP_GEO_OBJECT_HEAD(Face, RevolutionFace);
+
+   protected:
+    explicit RevolutionFace(Axis const &axis, std::shared_ptr<const Edge> const &s, Real min_angle, Real max_angle);
+    explicit RevolutionFace(Axis const &axis, std::shared_ptr<const Edge> const &s, Real angle = TWOPI);
+
+   public:
+    std::shared_ptr<const GeoObject> GetEdge() const { return m_basis_obj_; }
+
+    SP_PROPERTY(Real, MinAngle);
+    SP_PROPERTY(Real, MaxAngle);
+
+   private:
+    std::shared_ptr<const Edge> m_basis_obj_;
+};
+struct RevolutionSolid : public Solid {
+    SP_GEO_OBJECT_HEAD(Solid, RevolutionSolid);
+
+   protected:
+    explicit RevolutionSolid(Axis const &axis, std::shared_ptr<const Face> const &s, Real min_angle, Real max_angle);
+    explicit RevolutionSolid(Axis const &axis, std::shared_ptr<const Face> const &s, Real angle = TWOPI);
+
+   public:
+    SP_PROPERTY(Real, MinAngle);
+    SP_PROPERTY(Real, MaxAngle);
+
+    std::shared_ptr<const Face> GetFace() const { return m_basis_obj_; }
+
+   private:
+    std::shared_ptr<const Face> m_basis_obj_;
+};
+
+std::shared_ptr<Shell> MakeRevolution(Axis const &, std::shared_ptr<const Wire> const &, Real angle0, Real angle1);
+std::shared_ptr<Face> MakeRevolution(Axis const &, std::shared_ptr<const Edge> const &, Real angle0, Real angle1);
+std::shared_ptr<Solid> MakeRevolution(Axis const &, std::shared_ptr<const Face> const &, Real angle0, Real angle1);
+template <typename T>
+auto MakeRevolution(Axis const &axis, std::shared_ptr<const T> const &g, Real angle) {
+    return MakeRevolution(axis, g, 0, angle);
+}
+
 }  // namespace simpla
+}  // namespace geometry
 #endif  // SIMPLA_SWEPTBODY_H

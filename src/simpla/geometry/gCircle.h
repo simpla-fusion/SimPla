@@ -7,8 +7,8 @@
 
 #include <simpla/utilities/Constants.h>
 #include <cmath>
-#include "gConic.h"
 #include "Surface.h"
+#include "gConic.h"
 namespace simpla {
 namespace geometry {
 
@@ -18,7 +18,8 @@ struct gCircle : public gConic {
     explicit gCircle(Real radius) : gCircle(radius, 0, TWOPI) {}
     explicit gCircle(Real radius, Real angle0, Real angle1)
         : m_Radius_(radius), m_MinAngle_(angle0), m_MaxAngle_(angle1) {}
-    bool isClosed() const override { return true; }
+    bool IsClosed() const override { return GetMaxAngle() - GetMinAngle() >= TWOPI; }
+
     SP_PROPERTY(Real, Radius);
     SP_PROPERTY(Real, MinAngle);
     SP_PROPERTY(Real, MaxAngle);

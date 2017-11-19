@@ -20,23 +20,22 @@ namespace geometry {
  */
 struct Surface : public GeoEntity {
     SP_GEO_ENTITY_ABS_HEAD(GeoEntity, Surface);
-    Surface() = default;
-    virtual bool isClosed() const { return false; }
+    virtual bool IsClosed() const { return false; }
 };
 
 struct ParametricSurface : public Surface {
     SP_GEO_ENTITY_ABS_HEAD(Surface, ParametricSurface)
-//    ParametricSurface() : m_MinU_(-SP_INFINITY), m_MaxU_(SP_INFINITY), m_MinV_(-SP_INFINITY), m_MaxV_(SP_INFINITY) {}
-//
-//    SP_PROPERTY(Real, MinU);
-//    SP_PROPERTY(Real, MaxU);
-//    SP_PROPERTY(Real, MinV);
-//    SP_PROPERTY(Real, MaxV);
+    //    ParametricSurface() : m_MinU_(-SP_INFINITY), m_MaxU_(SP_INFINITY), m_MinV_(-SP_INFINITY), m_MaxV_(SP_INFINITY)
+    //    {}
+    //
+    //    SP_PROPERTY(Real, MinU);
+    //    SP_PROPERTY(Real, MaxU);
+    //    SP_PROPERTY(Real, MinV);
+    //    SP_PROPERTY(Real, MaxV);
     virtual point_type xyz(Real u, Real v) const = 0;
 };
 struct ParametricSurface2D : public ParametricSurface {
     SP_GEO_ENTITY_ABS_HEAD(ParametricSurface, ParametricSurface2D)
-    ParametricSurface2D() = default;
 
     virtual point2d_type xy(Real u, Real v) const = 0;
     point_type xyz(Real u, Real v) const override {
@@ -46,7 +45,6 @@ struct ParametricSurface2D : public ParametricSurface {
 };
 struct Plane : public ParametricSurface2D {
     SP_GEO_ENTITY_ABS_HEAD(ParametricSurface2D, Plane)
-    Plane() = default;
     point2d_type xy(Real u, Real v) const override { return point2d_type{(u), (v)}; };
 };
 }  // namespace geometry

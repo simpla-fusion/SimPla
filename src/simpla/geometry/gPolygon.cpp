@@ -9,33 +9,17 @@
 #include "simpla/algebra/nTuple.h"
 
 #include "GeoAlgorithm.h"
-#include "Polygon.h"
+#include "gPolygon.h"
 
 namespace simpla {
 namespace geometry {
-SP_GEO_OBJECT_REGISTER(Polygon)
+SP_GEO_ENTITY_REGISTER(gPolygon)
+SP_GEO_ENTITY_REGISTER(gPolygon2D)
+gPolygon2D::gPolygon2D() = default;
+gPolygon::gPolygon() = default;
 
-struct Polygon::pimpl_s {
-    typedef nTuple<Real, 2> point2d_type;
-    //
-    //    std::vector<point2d_type> m_polygon_;
-    //    std::vector<Real> constant_;
-    //    std::vector<Real> multiple_;
-    //
-    //    void deploy();
-    //    Real nearest_point(Real *x, Real *y) const;
-    //    bool check_inside(Real x, Real y) const;
-    //    point2d_type m_min_, m_max_;
-};
-Polygon::Polygon() : m_pimpl_(new pimpl_s) {}
-Polygon::~Polygon() { delete m_pimpl_; }
-Polygon::Polygon(Polygon const &other) : BoundedCurve2D(other), m_pimpl_(new pimpl_s) {}
-Polygon::Polygon(Axis const &axis) : BoundedCurve2D(axis), m_pimpl_(new pimpl_s) {}
-
-std::shared_ptr<data::DataEntry> Polygon::Serialize() const { return base_type::Serialize(); };
-void Polygon::Deserialize(std::shared_ptr<data::DataEntry> const &tdb) { base_type::Deserialize(tdb); }
 //
-// Real Polygon::pimpl_s::nearest_point(Real *x, Real *y) const {
+// Real gPolygon::pimpl_s::nearest_point(Real *x, Real *y) const {
 //    typedef nTuple<Real, 2> Vec2;
 //
 //    point2d_type x0;
@@ -86,7 +70,7 @@ void Polygon::Deserialize(std::shared_ptr<data::DataEntry> const &tdb) { base_ty
 //    return check_inside(*x, *y) > 0 ? d2 : -d2;
 //}
 //
-// void Polygon::pimpl_s::deploy() {
+// void gPolygon::pimpl_s::deploy() {
 //    auto num_of_vertex_ = size();
 //    constant_.resize(num_of_vertex_);
 //    multiple_.resize(num_of_vertex_);
@@ -110,7 +94,7 @@ void Polygon::Deserialize(std::shared_ptr<data::DataEntry> const &tdb) { base_ty
 //    for (auto const &p : m_polygon_) { geometry::extent_box(&m_min_, &m_max_, &p[0]); }
 //}
 //
-// bool Polygon::pimpl_s::check_inside(Real x, Real y) const {
+// bool gPolygon::pimpl_s::check_inside(Real x, Real y) const {
 //    if ((x >= m_min_[0]) && (y >= m_min_[1]) && (x < m_max_[0]) && (y < m_max_[1])) {
 //        size_t num_of_vertex_ = m_polygon_.size();
 //

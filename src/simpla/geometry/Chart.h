@@ -5,12 +5,10 @@
 #ifndef SIMPLA_CHART_H
 #define SIMPLA_CHART_H
 
-#include "simpla/SIMPLA_config.h"
-
-#include "simpla/data/SPObject.h"
-#include "simpla/geometry/GeoObject.h"
-#include "simpla/utilities/Signal.h"
-
+#include <simpla/SIMPLA_config.h>
+#include <simpla/data/Serializable.h>
+#include <simpla/geometry/GeoObject.h>
+#include <simpla/utilities/Signal.h>
 namespace simpla {
 namespace geometry {
 struct Edge;

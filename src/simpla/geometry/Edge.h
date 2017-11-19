@@ -14,8 +14,8 @@ struct Edge : public GeoObject {
     SP_GEO_OBJECT_HEAD(GeoObject, Edge);
 
    protected:
-    Edge(Axis const &axis, std::shared_ptr<const Curve> const &curve, Real l, Real w);
-    Edge(Axis const &axis, std::shared_ptr<const Curve> const &curve, std::tuple<Real, Real> const &range);
+    explicit Edge(Axis const &axis, std::shared_ptr<const Curve> const &curve, Real l, Real w);
+    explicit Edge(Axis const &axis, std::shared_ptr<const Curve> const &curve, std::tuple<Real, Real> const &range);
 
    public:
     void SetCurve(std::shared_ptr<const Curve> const &s) { m_curve_ = s; }

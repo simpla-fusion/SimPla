@@ -5,18 +5,13 @@
 #ifndef SIMPLA_SHELL_H
 #define SIMPLA_SHELL_H
 #include <memory>
-#include "Surface.h"
+#include "Face.h"
 namespace simpla {
 namespace geometry {
-struct GeoEntity;
-struct Shell : public Surface {
-    SP_GEO_OBJECT_HEAD(Shell, Surface)
-   public:
-    explicit Shell(std::shared_ptr<const GeoEntity> const &);
-    std::shared_ptr<const GeoEntity> GetShape() const;
-
-   private:
-    std::shared_ptr<const GeoEntity> m_shape_ = nullptr;
+struct Shell : public GeoObject {
+    SP_GEO_OBJECT_ABS_HEAD(GeoObject, Shell)
+    virtual size_type size() const { return 0; };
+    virtual std::shared_ptr<const Face> GetFace(size_type n) { return nullptr; };
 };
 }  // namespace geometry{
 }  // namespace simpla{
