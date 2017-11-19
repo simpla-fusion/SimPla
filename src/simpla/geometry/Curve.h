@@ -19,10 +19,10 @@ struct Curve : public GeoEntity {
  */
 struct ParametricCurve : public Curve {
     SP_GEO_ENTITY_ABS_HEAD(Curve, ParametricCurve)
-    ParametricCurve() : m_MinU_(-SP_INFINITY), m_MaxU_(SP_INFINITY) {}
     virtual point_type xyz(Real u) const = 0;
-    SP_PROPERTY(Real, MinU);
-    SP_PROPERTY(Real, MaxU);
+    //    ParametricCurve() : m_MinU_(-SP_INFINITY), m_MaxU_(SP_INFINITY) {}
+    //    SP_PROPERTY(Real, MinU);
+    //    SP_PROPERTY(Real, MaxU);
 };
 struct ParametricCurve2D : public ParametricCurve {
     SP_GEO_ENTITY_ABS_HEAD(ParametricCurve, ParametricCurve2D)

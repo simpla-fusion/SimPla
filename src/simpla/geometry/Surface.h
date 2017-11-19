@@ -26,12 +26,12 @@ struct Surface : public GeoEntity {
 
 struct ParametricSurface : public Surface {
     SP_GEO_ENTITY_ABS_HEAD(Surface, ParametricSurface)
-    ParametricSurface() : m_MinU_(-SP_INFINITY), m_MaxU_(SP_INFINITY), m_MinV_(-SP_INFINITY), m_MaxV_(SP_INFINITY) {}
-
-    SP_PROPERTY(Real, MinU);
-    SP_PROPERTY(Real, MaxU);
-    SP_PROPERTY(Real, MinV);
-    SP_PROPERTY(Real, MaxV);
+//    ParametricSurface() : m_MinU_(-SP_INFINITY), m_MaxU_(SP_INFINITY), m_MinV_(-SP_INFINITY), m_MaxV_(SP_INFINITY) {}
+//
+//    SP_PROPERTY(Real, MinU);
+//    SP_PROPERTY(Real, MaxU);
+//    SP_PROPERTY(Real, MinV);
+//    SP_PROPERTY(Real, MaxV);
     virtual point_type xyz(Real u, Real v) const = 0;
 };
 struct ParametricSurface2D : public ParametricSurface {

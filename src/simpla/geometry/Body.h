@@ -17,22 +17,23 @@ struct Body : public GeoEntity {
 };
 struct ParametricBody : public Body {
     SP_GEO_ENTITY_ABS_HEAD(Body, ParametricBody)
-    ParametricBody()
-        : m_MinU_(-SP_INFINITY),
-          m_MaxU_(SP_INFINITY),
-          m_MinV_(-SP_INFINITY),
-          m_MaxV_(SP_INFINITY),
-          m_MinW_(-SP_INFINITY),
-          m_MaxW_(SP_INFINITY) {}
-
     virtual point_type xyz(Real u, Real v, Real w) const = 0;
 
-    SP_PROPERTY(Real, MinU);
-    SP_PROPERTY(Real, MaxU);
-    SP_PROPERTY(Real, MinV);
-    SP_PROPERTY(Real, MaxV);
-    SP_PROPERTY(Real, MinW);
-    SP_PROPERTY(Real, MaxW);
+//    ParametricBody()
+//        : m_MinU_(-SP_INFINITY),
+//          m_MaxU_(SP_INFINITY),
+//          m_MinV_(-SP_INFINITY),
+//          m_MaxV_(SP_INFINITY),
+//          m_MinW_(-SP_INFINITY),
+//          m_MaxW_(SP_INFINITY) {}
+//
+//
+//    SP_PROPERTY(Real, MinU);
+//    SP_PROPERTY(Real, MaxU);
+//    SP_PROPERTY(Real, MinV);
+//    SP_PROPERTY(Real, MaxV);
+//    SP_PROPERTY(Real, MinW);
+//    SP_PROPERTY(Real, MaxW);
 };
 }  // namespace geometry
 }  // namespace simpla
