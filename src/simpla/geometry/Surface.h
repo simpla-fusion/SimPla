@@ -11,8 +11,6 @@
 #include "GeoEntity.h"
 
 namespace simpla {
-template <typename, int...>
-struct nTuple;
 namespace geometry {
 
 /**

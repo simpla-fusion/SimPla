@@ -45,11 +45,6 @@ void GeoObject::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) {
     m_axis_.Deserialize(cfg->Get("Axis"));
 }
 
-int GeoObject::GetDimension() const { return 3; }
-bool GeoObject::IsSimpleConnected() const { return true; }
-bool GeoObject::IsConvex() const { return true; }
-bool GeoObject::IsContinued() const { return true; }
-bool GeoObject::IsClosed() const { return false; }
 Axis &GeoObject::GetAxis() { return m_axis_; }
 Axis const &GeoObject::GetAxis() const { return m_axis_; }
 void GeoObject::SetAxis(Axis const &a) { m_axis_ = a; }

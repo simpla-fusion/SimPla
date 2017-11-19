@@ -31,11 +31,7 @@ struct ParametricCurve2D : public ParametricCurve {
         return point_type{p[0], p[1], 0};
     };
 };
-struct Line : public ParametricCurve2D {
-    SP_GEO_ENTITY_HEAD(ParametricCurve2D, Line, Line)
-    virtual Real x(Real u) const { return (u); };
-    point2d_type xy(Real u) const override { return point2d_type{x(u), 0}; };
-};
+
 }  // namespace geometry
 }  // namespace simpla
 

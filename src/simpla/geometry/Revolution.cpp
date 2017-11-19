@@ -24,7 +24,7 @@ std::shared_ptr<simpla::data::DataEntry> RevolutionShell::Serialize() const {
 }
 
 RevolutionFace::RevolutionFace(Axis const &axis, std::shared_ptr<const Edge> const &g, Real min_angle, Real max_angle)
-    : Face(axis), m_basis_obj_(g), m_MinAngle_(min_angle), m_MaxAngle_(max_angle) {}
+    : Face(axis, nullptr), m_basis_obj_(g), m_MinAngle_(min_angle), m_MaxAngle_(max_angle) {}
 RevolutionFace::RevolutionFace(Axis const &axis, std::shared_ptr<const Edge> const &g, Real angle)
     : RevolutionFace(axis, g, 0, angle) {}
 

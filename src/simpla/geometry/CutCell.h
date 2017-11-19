@@ -12,14 +12,14 @@ namespace simpla {
 namespace geometry {
 
 class Chart;
-struct GeoEntity;
+struct GeoObject;
 struct CutCell {
    private:
     typedef CutCell this_type;
 
    protected:
     CutCell();
-    explicit CutCell(std::shared_ptr<const GeoEntity> const &, std::shared_ptr<const Chart> const &c,
+    explicit CutCell(std::shared_ptr<const GeoObject> const &, std::shared_ptr<const Chart> const &c,
                      Real tolerance = SP_GEO_DEFAULT_TOLERANCE);
 
    public:

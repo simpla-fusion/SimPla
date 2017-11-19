@@ -13,8 +13,8 @@ struct Solid : public GeoObject {
     SP_GEO_OBJECT_HEAD(GeoObject, Solid);
 
    protected:
-    explicit Solid(Axis const &axis, std::shared_ptr<const Body> const &body, Real u_min, Real u_max, Real v_min,
-                   Real v_max, Real w_min, Real w_max);
+    explicit Solid(Axis const &axis, std::shared_ptr<const Body> const &body = nullptr, Real u_min = 0, Real u_max = 1,
+                   Real v_min = 0, Real v_max = 1, Real w_min = 0, Real w_max = 1);
     explicit Solid(Axis const &axis, std::shared_ptr<const Body> const &body, point_type const &u_min,
                    point_type const &u_max);
     explicit Solid(Axis const &axis, std::shared_ptr<const Body> const &body, box_type const &);

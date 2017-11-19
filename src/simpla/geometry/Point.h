@@ -7,15 +7,9 @@
 #include "GeoObject.h"
 namespace simpla {
 namespace geometry {
-struct Surface;
-struct Curve;
 struct Point : public GeoObject {
-    SP_GEO_ABS_OBJECT_HEAD(Point, GeoObject);
-
-   public:
-    int GetDimension() const override { return 0; }
-
-    std::shared_ptr<GeoObject> GetBoundary() const final;
+    SP_GEO_OBJECT_HEAD(GeoObject, Point);
+    Point(Axis const &);
 };
 }  // namespace geometry
 }  // namespace simpla

@@ -11,7 +11,6 @@
 #include "gConic.h"
 namespace simpla {
 namespace geometry {
-
 struct gCircle : public gConic {
     SP_GEO_ENTITY_HEAD(gConic, gCircle, Circle);
 

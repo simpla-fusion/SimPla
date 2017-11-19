@@ -7,26 +7,31 @@
 
 #include <simpla/SIMPLA_config.h>
 #include "Body.h"
+#include "Surface.h"
+
 namespace simpla {
 namespace geometry {
 
 struct gSphere : public ParametricBody {
     SP_GEO_ENTITY_HEAD(ParametricBody, gSphere, Sphere)
-
-    explicit gSphere(Real radius);
-    Real GetRadius() const { return m_radius_; }
-    void SetRadius(Real const &r) { m_radius_ = r; }
-
+    explicit gSphere(Real radius) : m_Radius_(radius){};
+    SP_PROPERTY(Real, Radius);
     point_type xyz(Real r, Real phi, Real theta) const override {
         Real cos_theta = std::cos(theta);
         return point_type{r * cos_theta * std::cos(phi), r * cos_theta * std::sin(phi), r * std::sin(theta)};
     };
-    point_type uvw(Real x, Real y, Real z) const { return point_type{x, y, z}; };
-
-   private:
-    Real m_radius_ = 1;
 };
+struct gSphereSurface : public ParametricSurface {
+    SP_GEO_ENTITY_HEAD(ParametricSurface, gSphereSurface, SphereSurface)
 
+    explicit gSphereSurface(Real radius) : m_Radius_(radius){};
+    SP_PROPERTY(Real, Radius);
+    point_type xyz(Real phi, Real theta) const override {
+        Real cos_theta = std::cos(theta);
+        return point_type{m_Radius_ * cos_theta * std::cos(phi), m_Radius_ * cos_theta * std::sin(phi),
+                          m_Radius_ * std::sin(theta)};
+    };
+};
 }  // namespace geometry
 }  // namespace simpla
 

@@ -7,9 +7,9 @@
 #include "Chart.h"
 #include "Curve.h"
 #include "GeoEngine.h"
+#include "GeoEntity.h"
 #include "GeoObject.h"
 #include "IntersectionCurveSurface.h"
-#include "GeoEntity.h"
 #include "Shell.h"
 namespace simpla {
 namespace geometry {
@@ -20,7 +20,7 @@ struct CutCell::pimpl_s {
     //    Real m_tolerance_ = SP_GEO_DEFAULT_TOLERANCE;
 };
 CutCell::CutCell() : m_pimpl_(new pimpl_s){};
-CutCell::CutCell(std::shared_ptr<const GeoEntity> const &s, std::shared_ptr<const Chart> const &c, Real tolerance)
+CutCell::CutCell(std::shared_ptr<const GeoObject> const &s, std::shared_ptr<const Chart> const &c, Real tolerance)
     : m_pimpl_(new pimpl_s) {
     ASSERT(c != nullptr)
     m_pimpl_->m_chart_ = c;
@@ -51,7 +51,7 @@ void CutCell::TagCell(Array<unsigned int> *node_tags, Array<Real> *edge_tags, un
                 id[(dir + 2) % 3] = j;
 
                 std::vector<Real> intersection_pos;
-                auto c = m_pimpl_->m_chart_->GetAxis(id, dir);
+                auto c = m_pimpl_->m_chart_->GetCoordinateEdge(id, dir, hi[dir] - lo[dir]);
                 m_pimpl_->m_intersector_->Intersect(c, &intersection_pos);
 
                 for (size_t n = 0; n < intersection_pos.size(); n += 2) {

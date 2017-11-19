@@ -12,7 +12,8 @@ void BoundedCurve2D::Deserialize(std::shared_ptr<const simpla::data::DataEntry> 
 }
 std::shared_ptr<simpla::data::DataEntry> BoundedCurve2D::Serialize() const {
     auto res = base_type::Serialize();
-    res->SetValue("Data", m_data_);
+    UNIMPLEMENTED;
+    //    res->SetValue("Data", m_data_);
     return res;
 }
 
@@ -24,12 +25,9 @@ point2d_type BoundedCurve2D::GetPoint2D(index_type s) const { return m_data_[(s 
 void BoundedCurve2D::AddPoint2D(Real x, Real y) { m_data_.emplace_back(point2d_type{x, y}); }
 /**************************************************************/
 
-struct BoundedCurve3D::pimpl_s {
-    std::vector<point_type> m_data_;
-};
-BoundedCurve3D::BoundedCurve3D(BoundedCurve3D const &other) : BoundedCurve(other) {
-    std::vector<point_type>(other.m_data_).swap(m_data_);
-};
+// BoundedCurve3D::BoundedCurve3D(BoundedCurve3D const &other) : BoundedCurve(other) {
+//    std::vector<point_type>(other.m_data_).swap(m_data_);
+//};
 void BoundedCurve3D::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
 }
@@ -38,8 +36,7 @@ std::shared_ptr<simpla::data::DataEntry> BoundedCurve3D::Serialize() const { ret
 void BoundedCurve3D::Open() { UNIMPLEMENTED; };
 void BoundedCurve3D::Close() { UNIMPLEMENTED; };
 bool BoundedCurve3D::IsClosed() const { return false; }
-void BoundedCurve3D::AddPoint(Real x, Real y, Real z) { m_data_.emplace_back(point_type{x, y, z}); }
-void BoundedCurve3D::AddPoint(point_type const &p) { AddPoint(p[0], p[1], p[2]); };
+void BoundedCurve3D::AddPoint(point_type const &p) { m_data_.push_back(p); };
 point_type BoundedCurve3D::GetPoint(index_type s) const { return m_data_[(s + m_data_.size()) % m_data_.size()]; };
 
 }  // namespace geometry{

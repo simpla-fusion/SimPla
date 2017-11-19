@@ -9,7 +9,7 @@
 #include "Revolution.h"
 #include "gCircle.h"
 #include "gCylinder.h"
-#include "spLine.h"
+#include "gLine.h"
 namespace simpla {
 namespace geometry {
 
@@ -52,7 +52,7 @@ std::shared_ptr<Face> csCylindrical::GetCoordinateFace(point_type const &o, int 
     //        default:
     //            break;
     //    }
-    return Face::New(surface, 0, u, 0, v);
+    return Face::New(m_axis_, surface, 0, u, 0, v);
 };
 
 std::shared_ptr<Solid> csCylindrical::GetCoordinateBox(point_type const &o, Real u, Real v, Real w) const {

@@ -10,7 +10,7 @@ namespace simpla {
 namespace geometry {
 
 struct PolyCurve : public Curve {
-    SP_GEO_OBJECT_HEAD(PolyCurve, Curve);
+    SP_GEO_OBJECT_HEAD(Curve, PolyCurve);
 
    public:
     point_type xyz(Real u) const override;

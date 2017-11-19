@@ -5,9 +5,6 @@
 #include "Face.h"
 namespace simpla {
 namespace geometry {
-Face::Face() = default;
-Face::~Face() = default;
-Face::Face(Face const &other) = default;
 Face::Face(Axis const &axis, std::shared_ptr<const Surface> const &surface, Real u_max, Real v_max)
     : Face(axis, surface, 0, 0, u_max, v_max) {}
 Face::Face(Axis const &axis, std::shared_ptr<const Surface> const &surface, Real u_min, Real u_max, Real v_min,
@@ -17,7 +14,7 @@ Face::Face(Axis const &axis, std::shared_ptr<const Surface> const &surface,
            std::tuple<point2d_type, point2d_type> const &range)
     : GeoObject(axis), m_surface_(surface), m_range_{range} {};
 
-void Face::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) {
+void Face::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
     m_surface_ = Surface::New(cfg->Get("Surface"));
     m_range_ = cfg->GetValue("ParameterRange", m_range_);
@@ -28,5 +25,9 @@ std::shared_ptr<simpla::data::DataEntry> Face::Serialize() const {
     res->SetValue("ParameterRange", m_range_);
     return res;
 };
+void Face::SetSurface(std::shared_ptr<const Surface> const &s) { m_surface_ = s; }
+std::shared_ptr<const Surface> Face::GetSurface() const { return m_surface_; }
+void Face::SetParameterRange(std::tuple<point2d_type, point2d_type> const &r) { m_range_ = r; }
+std::tuple<point2d_type, point2d_type> const &Face::GetParameterRange() const { return m_range_; };
 }  // namespace geometry
 }  // namespace simpla

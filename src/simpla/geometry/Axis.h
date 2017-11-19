@@ -7,8 +7,6 @@
 
 #include <simpla/data/DataEntry.h>
 namespace simpla {
-template <typename, int...>
-struct nTuple;
 namespace geometry {
 namespace detail {
 
@@ -32,8 +30,6 @@ inline vector_type make_perp1(vector_type const &v) {
 inline vector_type make_perp2(vector_type const &v) { return normal(cross(v, make_perp1(v))); }
 }  // namespace detail{
 
-struct spPlane;
-struct spLine;
 struct Axis {
     Axis() = default;
     Axis(Axis const &other) : m_origin_(other.m_origin_), m_axis_(other.m_axis_){};
@@ -94,14 +90,6 @@ struct Axis {
     point_type uvw(Real x0, Real x1 = 0, Real x2 = 0) const { return uvw(point_type{x0, x1, x2}); }
     point_type Coordinates(Real u, Real v = 0, Real w = 0) const { return xyz(point_type{u, v, w}); }
 
-    std::shared_ptr<spPlane> GetPlane(int) const;
-    std::shared_ptr<spPlane> GetPlaneXY() const;
-    std::shared_ptr<spPlane> GetPlaneYZ() const;
-    std::shared_ptr<spPlane> GetPlaneZX() const;
-    std::shared_ptr<spLine> GetAxe(int) const;
-    std::shared_ptr<spLine> GetPlaneX() const;
-    std::shared_ptr<spLine> GetPlaneY() const;
-    std::shared_ptr<spLine> GetPlaneZ() const;
     vector_type const &GetDirection(int n) const { return m_axis_[n]; }
 
    private:

@@ -7,8 +7,9 @@
 #include "Curve.h"
 #include "Edge.h"
 #include "Face.h"
+#include "Line.h"
+#include "Rectangle.h"
 #include "Solid.h"
-#include "spLine.h"
 namespace simpla {
 namespace geometry {
 csCartesian::csCartesian() = default;
@@ -19,13 +20,13 @@ void csCartesian::Deserialize(std::shared_ptr<const simpla::data::DataEntry> con
     base_type::Deserialize(cfg);
 }
 std::shared_ptr<Edge> csCartesian::GetCoordinateEdge(point_type const &o, int normal, Real u) const {
-    return spLine().MakeEdge(m_axis_, std::make_tuple(0.0, u));
+    return Line::New(m_axis_);
 };
 std::shared_ptr<Face> csCartesian::GetCoordinateFace(point_type const &o, int normal, Real u, Real v) const {
-    return spPlane().MakeFace(m_axis_, std::make_tuple(point2d_type{0.0, u}, point2d_type{0.0, v}));
+    return Rectangle::New(m_axis_, std::make_tuple(point2d_type{0.0, u}, point2d_type{0.0, v}));
 };
 std::shared_ptr<Solid> csCartesian::GetCoordinateBox(point_type const &o, Real u, Real v, Real w) const {
-    return Solid::New(Box::New(m_axis_.xyz(o)), 0.0, u, 0.0, v, 0.0, w);
+    return Box::New(o, point_type{o[0] + u, o[1] + v, o[2] + w});
 }
 }  // namespace geometry
 }  // namespace simpla

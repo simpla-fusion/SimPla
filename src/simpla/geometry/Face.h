@@ -21,10 +21,10 @@ struct Face : public GeoObject {
                   std::tuple<point2d_type, point2d_type> const &range);
 
    public:
-    void SetSurface(std::shared_ptr<const Surface> const &s) { m_surface_ = s; }
-    std::shared_ptr<const Surface> GetSurface() const { return m_surface_; }
-    std::tuple<point2d_type, point2d_type> const &GetParameterRange() const { return m_range_; };
-    void SetParameterRange(std::tuple<point2d_type, point2d_type> const &b) { m_range_ = b; }
+    void SetSurface(std::shared_ptr<const Surface> const &s);
+    std::shared_ptr<const Surface> GetSurface() const;
+    std::tuple<point2d_type, point2d_type> const &GetParameterRange() const;
+    void SetParameterRange(std::tuple<point2d_type, point2d_type> const &b);
 
    private:
     std::shared_ptr<const Surface> m_surface_;

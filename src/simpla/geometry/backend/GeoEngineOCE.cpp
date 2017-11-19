@@ -79,11 +79,14 @@
 #include "../gCircle.h"
 #include "../gEllipse.h"
 #include "../gHyperbola.h"
+#include "../gLine.h"
 #include "../gParabola.h"
+#include "../gPlane.h"
 #include "../gPolygon.h"
 #include "../gSphere.h"
 #include "../gTorus.h"
 #include "../gWedge.h"
+
 namespace simpla {
 namespace geometry {
 struct GeoObjectOCE;
@@ -150,7 +153,7 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, Solid>::eval(std::share
     point_type p_min, p_max;
     std::tie(p_min, p_max) = g->GetParameterRange();
     std::shared_ptr<TopoDS_Shape> res = nullptr;
-    //    if (auto plane = std::dynamic_pointer_cast<const spPlane>(g)) {
+    //    if (auto plane = std::dynamic_pointer_cast<const gPlane>(g)) {
     //        res = std::make_shared<TopoDS_Face>(BRepPrimAPI_MakeBox(make_axis(box->GetAxis()), box->GetExtents()[0],
     //                                                                box->GetExtents()[1], box->GetExtents()[2])
     //                                                .GeoEntity());
@@ -166,7 +169,7 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, Solid>::eval(std::share
         res = std::make_shared<TopoDS_Shape>(BRepPrimAPI_MakeSphere(axis, sphere->GetRadius()).Shape());
     } else if (auto cylinder = std::dynamic_pointer_cast<const gCylinder>(body)) {
         res = std::make_shared<TopoDS_Shape>(
-            BRepPrimAPI_MakeCylinder(axis, cylinder->GetRadius(), cylinder->GetHeight(), cylinder->GetAngle()).Shape());
+            BRepPrimAPI_MakeCylinder(axis, cylinder->GetRadius(), cylinder->GetHeight()).Shape());
     } else if (auto torus = std::dynamic_pointer_cast<const gTorus>(g)) {
         res = std::make_shared<TopoDS_Shape>(
             BRepPrimAPI_MakeTorus(axis, torus->GetMajorRadius(), torus->GetMinorRadius()).Shape());
@@ -179,7 +182,7 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, Solid>::eval(std::share
     //                revolution->GetAngle()).Shape());
     //        }
     //    } else if (auto sweep = std::dynamic_pointer_cast<const Sweep>(g)) {
-    //        if (auto line = std::dynamic_pointer_cast<const spLine>(sweep->GetCurve())) {
+    //        if (auto line = std::dynamic_pointer_cast<const gLine>(sweep->GetCurve())) {
     //            auto basis_shape = oce_cast<TopoDS_Shape>(revolution->GetBasisObject());
     //            res = std::make_shared<TopoDS_Shape>(
     //                BRepPrimAPI_MakePrism(*basis_shape, make_dir(line->GetEndPoint() -
@@ -199,10 +202,10 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, Solid>::eval(std::share
     return res;
 };
 
-Handle(Geom_Curve) make_geo_curve(Axis const &g_axis, std::shared_ptr<const GeoEntity> const &curve) {
+Handle(Geom_Curve) make_geo_curve(Axis const &g_axis, std::shared_ptr<const Curve> const &curve) {
     auto axis = make_axis(g_axis);
     Handle(Geom_Curve) c;
-    if (auto line = std::dynamic_pointer_cast<const spLine>(curve)) {
+    if (auto line = std::dynamic_pointer_cast<const gLine>(curve)) {
         c = new Geom_Line(make_point(g_axis.o), make_dir(g_axis.x));
     } else if (auto circle = std::dynamic_pointer_cast<const gCircle>(curve)) {
         c = new Geom_Circle(axis, circle->GetRadius());
@@ -217,10 +220,13 @@ Handle(Geom_Curve) make_geo_curve(Axis const &g_axis, std::shared_ptr<const GeoE
     }
     return c;
 };
-Handle(Geom_Surface) make_geo_surface(Axis const &g_axis, std::shared_ptr<const GeoEntity> const &surface) {
+Handle(Geom_Curve) make_geo_curve(std::shared_ptr<const Edge> const &edge) {
+    return make_geo_curve(edge->GetAxis(), edge->GetCurve());
+}
+Handle(Geom_Surface) make_geo_surface(Axis const &g_axis, std::shared_ptr<const Surface> const &surface) {
     auto const &axis = make_axis(g_axis);
     Handle(Geom_Surface) res;
-    if (auto plane = std::dynamic_pointer_cast<const spPlane>(surface)) {
+    if (auto plane = std::dynamic_pointer_cast<const gPlane>(surface)) {
         res = new Geom_Plane(make_point(g_axis.o), make_dir(g_axis.z));
     } else if (auto cylinder = std::dynamic_pointer_cast<const gCylinder>(surface)) {
         res = new Geom_CylindricalSurface(make_axis3(g_axis), cylinder->GetRadius());
@@ -233,7 +239,9 @@ Handle(Geom_Surface) make_geo_surface(Axis const &g_axis, std::shared_ptr<const 
     }
     return res;
 }
-
+Handle(Geom_Surface) make_geo_surface(std::shared_ptr<const Face> const &surface) {
+    return make_geo_surface(surface->GetAxis(), surface->GetSurface());
+}
 template <>
 std::shared_ptr<TopoDS_Edge> OCEShapeCast<TopoDS_Edge, Edge>::eval(std::shared_ptr<const Edge> const &g) {
     std::shared_ptr<TopoDS_Edge> res = nullptr;
@@ -268,7 +276,7 @@ std::shared_ptr<TopoDS_Face> OCEShapeCast<TopoDS_Face, Face>::eval(std::shared_p
     std::shared_ptr<TopoDS_Face> res = nullptr;
     point2d_type p_min, p_max;
     std::tie(p_min, p_max) = face->GetParameterRange();
-    if (auto plane = std::dynamic_pointer_cast<const spPlane>(face->GetSurface())) {
+    if (auto plane = std::dynamic_pointer_cast<const gPlane>(face->GetSurface())) {
         gp_Pln g_plane{make_point(face->GetAxis().o), make_dir(face->GetAxis().z)};
         res = std::make_shared<TopoDS_Face>(
             BRepBuilderAPI_MakeFace(g_plane, p_min[0], p_max[0], p_min[1], p_max[1]).Face());
@@ -307,9 +315,6 @@ std::shared_ptr<TDest> oce_cast(std::shared_ptr<const TSrc> const &s) {
     return OCEShapeCast<TDest, TSrc>::eval(s);
 };
 
-GeoObjectOCE::GeoObjectOCE() = default;
-GeoObjectOCE::GeoObjectOCE(GeoObjectOCE const &shape) = default;
-GeoObjectOCE::~GeoObjectOCE() = default;
 GeoObjectOCE::GeoObjectOCE(TopoDS_Shape const &shape) : m_occ_shape_(std::make_shared<TopoDS_Shape>(shape)) {
     DoUpdate();
 }
@@ -486,8 +491,8 @@ struct IntersectionCurveSurfaceOCE : public IntersectionCurveSurface {
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
     };
     void Load() override;
-    size_type Intersect(std::shared_ptr<const Curve> const &curve, std::vector<Real> *u) override;
-    size_type Intersect(std::shared_ptr<const Curve> const &curve, std::vector<Real> *u) const override;
+    size_type Intersect(std::shared_ptr<const Edge> const &curve, std::vector<Real> *u) override;
+    size_type Intersect(std::shared_ptr<const Edge> const &curve, std::vector<Real> *u) const override;
 
    private:
     BRepIntCurveSurface_Inter m_body_inter_;
@@ -502,15 +507,13 @@ void IntersectionCurveSurfaceOCE::Load() {
     m_body_inter_.Load(*GeoObjectOCE::New(GetShape())->GetShape(), GetTolerance());
 };
 
-size_type IntersectionCurveSurfaceOCE::Intersect(std::shared_ptr<const Curve> const &curve,
-                                                 std::vector<Real> *u) const {
+size_type IntersectionCurveSurfaceOCE::Intersect(std::shared_ptr<const Edge> const &curve, std::vector<Real> *u) const {
     UNIMPLEMENTED;
     return 0;
 };
 
-size_type IntersectionCurveSurfaceOCE::Intersect(std::shared_ptr<const Curve> const &curve, std::vector<Real> *u) {
-    auto c = oce_geo_cast(curve);
-    m_body_inter_.Init(c);
+size_type IntersectionCurveSurfaceOCE::Intersect(std::shared_ptr<const Edge> const &curve, std::vector<Real> *u) {
+    m_body_inter_.Init(make_geo_curve(curve));
     std::vector<Real> intersection_points;
     for (; m_body_inter_.More(); m_body_inter_.Next()) { intersection_points.push_back(m_body_inter_.W()); }
     std::sort(intersection_points.begin(), intersection_points.end());

@@ -15,8 +15,6 @@ namespace simpla {
 namespace geometry {
 SP_GEO_ENTITY_REGISTER(gPolygon)
 SP_GEO_ENTITY_REGISTER(gPolygon2D)
-gPolygon2D::gPolygon2D() = default;
-gPolygon::gPolygon() = default;
 
 //
 // Real gPolygon::pimpl_s::nearest_point(Real *x, Real *y) const {

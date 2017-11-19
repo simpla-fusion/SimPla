@@ -28,7 +28,7 @@ std::shared_ptr<data::DataEntry> Chart::Serialize() const {
     }
     return tdb;
 }
-void Chart::Deserialize(std::shared_ptr<data::DataEntry> const &tdb) {
+void Chart::Deserialize(std::shared_ptr<const data::DataEntry> const &tdb) {
     ASSERT(tdb != nullptr);
     m_origin_ = tdb->GetValue<point_type>("Origin", m_origin_);
     m_grid_width_ = tdb->GetValue<point_type>("GridWidth", m_grid_width_);
@@ -56,22 +56,24 @@ int Chart::GetLevel() const { return m_level_; }
 int Chart::GetNDIMS() const { return 3; }
 
 std::shared_ptr<Face> Chart::GetCoordinateFace(point_type const &o, int normal, Real u, Real v) const {
-    return make_Sweep(GetCoordinateEdge(o, (normal + 1) % 3, u), GetCoordinateEdge(o, (normal + 2) % 3, v));
+    return std::dynamic_pointer_cast<Face>(
+        MakeSweep(GetCoordinateEdge(o, (normal + 1) % 3, u), GetCoordinateEdge(o, (normal + 2) % 3, v)));
 }
 std::shared_ptr<Solid> Chart::GetCoordinateBox(point_type const &o, Real u, Real v, Real w) const {
-    return make_Sweep(GetCoordinateFace(o, 2, u, v), GetCoordinateEdge(o, 2, w));
+    return std::dynamic_pointer_cast<Solid>(MakeSweep(GetCoordinateFace(o, 2, u, v), GetCoordinateEdge(o, 2, w)));
 }
 std::shared_ptr<Solid> Chart::GetCoordinateBox(box_type const &b) const {
     vector_type l = std::get<1>(b) - std::get<0>(b);
-    return make_Sweep(GetCoordinateFace(o, 2, l[0], l[1]), GetCoordinateEdge(o, 2, l[2]));
+    return std::dynamic_pointer_cast<Solid>(
+        MakeSweep(GetCoordinateFace(std::get<0>(b), 2, l[0], l[1]), GetCoordinateEdge(std::get<0>(b), 2, l[2])));
 }
-std::shared_ptr<Edge> Chart::GetCoordinateEdge(index_tuple const &x0, int normal, size_type u) const {
+std::shared_ptr<Edge> Chart::GetCoordinateEdge(index_tuple const &x0, int normal, index_type u) const {
     return GetCoordinateEdge(uvw(x0), normal, u * m_grid_width_[normal]);
 };
-std::shared_ptr<Face> Chart::GetCoordinateFace(index_tuple const &x0, int normal, size_type u, size_type v) const {
+std::shared_ptr<Face> Chart::GetCoordinateFace(index_tuple const &x0, int normal, index_type u, index_type v) const {
     return GetCoordinateFace(uvw(x0), normal, u * m_grid_width_[(normal + 1) % 3], v * m_grid_width_[(normal + 2) % 3]);
 };
-std::shared_ptr<Solid> Chart::GetCoordinateBox(index_tuple const &b, size_type u, size_type v, size_type w) const {
+std::shared_ptr<Solid> Chart::GetCoordinateBox(index_tuple const &b, index_type u, index_type v, index_type w) const {
     return GetCoordinateBox(uvw(b), u * m_grid_width_[0], v * m_grid_width_[1], w * m_grid_width_[2]);
 };
 std::shared_ptr<Solid> Chart::GetCoordinateBox(index_box_type const &b) const {
