@@ -9,18 +9,18 @@
 #include "GeoEngine.h"
 #include "GeoObject.h"
 #include "IntersectionCurveSurface.h"
-#include "Shape.h"
+#include "GeoEntity.h"
 #include "Shell.h"
 namespace simpla {
 namespace geometry {
 struct CutCell::pimpl_s {
     std::shared_ptr<IntersectionCurveSurface> m_intersector_ = nullptr;
     std::shared_ptr<const Chart> m_chart_ = nullptr;
-    //    std::shared_ptr<const Shape> m_shape_ = nullptr;
+    //    std::shared_ptr<const GeoEntity> m_shape_ = nullptr;
     //    Real m_tolerance_ = SP_GEO_DEFAULT_TOLERANCE;
 };
 CutCell::CutCell() : m_pimpl_(new pimpl_s){};
-CutCell::CutCell(std::shared_ptr<const Shape> const &s, std::shared_ptr<const Chart> const &c, Real tolerance)
+CutCell::CutCell(std::shared_ptr<const GeoEntity> const &s, std::shared_ptr<const Chart> const &c, Real tolerance)
     : m_pimpl_(new pimpl_s) {
     ASSERT(c != nullptr)
     m_pimpl_->m_chart_ = c;

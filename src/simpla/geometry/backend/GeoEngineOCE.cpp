@@ -8,8 +8,8 @@
 #include <simpla/algebra/nTuple.ext.h>
 
 #include <simpla/geometry/Chart.h>
-#include <simpla/geometry/spCone.h>
-#include <simpla/geometry/spCylinder.h>
+#include <simpla/geometry/gCone.h>
+#include <simpla/geometry/gCylinder.h>
 #include <BRepAlgoAPI_Common.hxx>
 #include <BRepAlgoAPI_Cut.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
@@ -75,16 +75,16 @@
 #include "../IntersectionCurveSurface.h"
 #include "../Polygon.h"
 #include "../Revolution.h"
-#include "../Shape.h"
+#include "simpla/geometry/GeoEntity.h"
 #include "../Surface.h"
-#include "../spCircle.h"
-#include "../spEllipse.h"
-#include "../spHyperbola.h"
+#include "simpla/geometry/gCircle.h"
+#include "simpla/geometry/gEllipse.h"
+#include "simpla/geometry/gHyperbola.h"
 #include "../spLine.h"
-#include "../spParabola.h"
-#include "../spSphere.h"
-#include "../spTorus.h"
-#include "../spWedge.h"
+#include "simpla/geometry/gParabola.h"
+#include "simpla/geometry/gSphere.h"
+#include "simpla/geometry/gTorus.h"
+#include "simpla/geometry/gWedge.h"
 namespace simpla {
 namespace geometry {
 struct GeoObjectOCE;
@@ -154,21 +154,21 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, Solid>::eval(std::share
     //    if (auto plane = std::dynamic_pointer_cast<const spPlane>(g)) {
     //        res = std::make_shared<TopoDS_Face>(BRepPrimAPI_MakeBox(make_axis(box->GetAxis()), box->GetExtents()[0],
     //                                                                box->GetExtents()[1], box->GetExtents()[2])
-    //                                                .Shape());
+    //                                                .GeoEntity());
     //    } else
     if (auto box = std::dynamic_pointer_cast<const Box>(body)) {
         res = std::make_shared<TopoDS_Shape>(
             BRepPrimAPI_MakeBox(axis, box->GetExtents()[0], box->GetExtents()[1], box->GetExtents()[2]).Shape());
-    } else if (auto wedge = std::dynamic_pointer_cast<const spWedge>(g)) {
+    } else if (auto wedge = std::dynamic_pointer_cast<const gWedge>(g)) {
         res = std::make_shared<TopoDS_Shape>(BRepPrimAPI_MakeWedge(axis, wedge->GetExtents()[0], wedge->GetExtents()[1],
                                                                    wedge->GetExtents()[2], wedge->GetLTX())
                                                  .Shape());
-    } else if (auto sphere = std::dynamic_pointer_cast<const spSphere>(body)) {
+    } else if (auto sphere = std::dynamic_pointer_cast<const gSphere>(body)) {
         res = std::make_shared<TopoDS_Shape>(BRepPrimAPI_MakeSphere(axis, sphere->GetRadius()).Shape());
-    } else if (auto cylinder = std::dynamic_pointer_cast<const spCylinder>(body)) {
+    } else if (auto cylinder = std::dynamic_pointer_cast<const gCylinder>(body)) {
         res = std::make_shared<TopoDS_Shape>(
             BRepPrimAPI_MakeCylinder(axis, cylinder->GetRadius(), cylinder->GetHeight(), cylinder->GetAngle()).Shape());
-    } else if (auto torus = std::dynamic_pointer_cast<const spTorus>(g)) {
+    } else if (auto torus = std::dynamic_pointer_cast<const gTorus>(g)) {
         res = std::make_shared<TopoDS_Shape>(
             BRepPrimAPI_MakeTorus(axis, torus->GetMajorRadius(), torus->GetMinorRadius()).Shape());
     } else if (auto revolution = std::dynamic_pointer_cast<const Revolution>(g)) {
@@ -194,34 +194,34 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, Solid>::eval(std::share
     return res;
 };
 
-Handle(Geom_Curve) make_geo_curve(Axis const &g_axis, std::shared_ptr<const Shape> const &curve) {
+Handle(Geom_Curve) make_geo_curve(Axis const &g_axis, std::shared_ptr<const GeoEntity> const &curve) {
     auto axis = make_axis(g_axis);
     Handle(Geom_Curve) c;
     if (auto line = std::dynamic_pointer_cast<const spLine>(curve)) {
         c = new Geom_Line(make_point(g_axis.o), make_dir(g_axis.x));
-    } else if (auto circle = std::dynamic_pointer_cast<const spCircle>(curve)) {
+    } else if (auto circle = std::dynamic_pointer_cast<const gCircle>(curve)) {
         c = new Geom_Circle(axis, circle->GetRadius());
-    } else if (auto ellipse = std::dynamic_pointer_cast<const spEllipse>(curve)) {
+    } else if (auto ellipse = std::dynamic_pointer_cast<const gEllipse>(curve)) {
         c = new Geom_Ellipse(axis, ellipse->GetMajorRadius(), ellipse->GetMinorRadius());
-    } else if (auto hyperbola = std::dynamic_pointer_cast<const spHyperbola>(curve)) {
+    } else if (auto hyperbola = std::dynamic_pointer_cast<const gHyperbola>(curve)) {
         c = new Geom_Hyperbola(axis, hyperbola->GetMajorRadius(), hyperbola->GetMinorRadius());
-    } else if (auto parabola = std::dynamic_pointer_cast<const spParabola>(curve)) {
+    } else if (auto parabola = std::dynamic_pointer_cast<const gParabola>(curve)) {
         c = new Geom_Parabola(axis, parabola->GetFocal());
     } else {
         UNIMPLEMENTED;
     }
     return c;
 };
-Handle(Geom_Surface) make_geo_surface(Axis const &g_axis, std::shared_ptr<const Shape> const &surface) {
+Handle(Geom_Surface) make_geo_surface(Axis const &g_axis, std::shared_ptr<const GeoEntity> const &surface) {
     auto const &axis = make_axis(g_axis);
     Handle(Geom_Surface) res;
     if (auto plane = std::dynamic_pointer_cast<const spPlane>(surface)) {
         res = new Geom_Plane(make_point(g_axis.o), make_dir(g_axis.z));
-    } else if (auto cylinder = std::dynamic_pointer_cast<const spCylinder>(surface)) {
+    } else if (auto cylinder = std::dynamic_pointer_cast<const gCylinder>(surface)) {
         res = new Geom_CylindricalSurface(make_axis3(g_axis), cylinder->GetRadius());
-    } else if (auto sphere = std::dynamic_pointer_cast<const spSphere>(surface)) {
+    } else if (auto sphere = std::dynamic_pointer_cast<const gSphere>(surface)) {
         res = new Geom_SphericalSurface(make_axis3(g_axis), sphere->GetRadius());
-    } else if (auto cone = std::dynamic_pointer_cast<const spCone>(surface)) {
+    } else if (auto cone = std::dynamic_pointer_cast<const gCone>(surface)) {
         res = new Geom_ConicalSurface(make_axis3(g_axis), cone->GetAngle(), cone->GetRadius());
     } else {
         UNIMPLEMENTED;

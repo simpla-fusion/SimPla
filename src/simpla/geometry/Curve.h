@@ -5,58 +5,38 @@
 #ifndef SIMPLA_CURVE_H
 #define SIMPLA_CURVE_H
 
-#include <simpla/utilities/Constants.h>
-#include "Axis.h"
-#include "GeoObject.h"
-#include "spPlane.h"
-#include "PolyPoints.h"
+#include "GeoEntity.h"
 namespace simpla {
 namespace geometry {
-struct Box;
-struct Curve : public GeoObject {
-    SP_SERIALIZABLE_HEAD(GeoObject, Curve)
-
-   public:
-    //    virtual point_type xyz(Real u) const = 0;
-    int GetDimension() const override { return 1; }
-    virtual std::shared_ptr<PolyPoints> GetBoundaryPoints() const;
-    std::shared_ptr<GeoObject> GetBoundary() const final;
-
-    virtual std::shared_ptr<PolyPoints> GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const;
-    virtual std::shared_ptr<PolyPoints> GetIntersection(std::shared_ptr<const spPlane> const &g, Real tolerance) const;
-    virtual std::shared_ptr<PolyPoints> GetIntersection(std::shared_ptr<const Box> const &g, Real tolerance) const;
-    std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const final;
-    std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g) const;
+struct Curve : public GeoEntity {
+    SP_GEO_ENTITY_ABS_HEAD(GeoEntity, Curve)
+    Curve() = default;
+    virtual bool isClosed() const { return false; }
 };
 
-// struct PolyPoints;
-// struct PointsOnCurve : public PolyPoints {
-//    SP_GEO_OBJECT_HEAD(PointsOnCurve, PolyPoints);
-//
-//   protected:
-//    PointsOnCurve();
-//    explicit PointsOnCurve(std::shared_ptr<const Curve> const &);
-//
-//   public:
-//    ~PointsOnCurve() override;
-//    Axis const &GetAxis() const override;
-//    std::shared_ptr<const Curve> GetBasisCurve() const;
-//    void SetBasisCurve(std::shared_ptr<const Curve> const &c);
-//
-//    void PutU(Real);
-//    Real GetU(size_type i) const;
-//    point_type GetPoint(size_type i) const;
-//    std::vector<Real> const &data() const;
-//    std::vector<Real> &data();
-//
-//    size_type size() const override;
-//    point_type Value(size_type i) const override;
-//    box_type GetBoundingBox() const override;
-//
-//   private:
-//    std::shared_ptr<const Curve> m_curve_;
-//    std::vector<Real> m_data_;
-//};
+/**
+ * the range of parameter is [0,1)
+ */
+struct ParametricCurve : public Curve {
+    SP_GEO_ENTITY_ABS_HEAD(Curve, ParametricCurve)
+    ParametricCurve() : m_MinU_(-SP_INFINITY), m_MaxU_(SP_INFINITY) {}
+    virtual point_type xyz(Real u) const = 0;
+    SP_PROPERTY(Real, MinU);
+    SP_PROPERTY(Real, MaxU);
+};
+struct ParametricCurve2D : public ParametricCurve {
+    SP_GEO_ENTITY_ABS_HEAD(ParametricCurve, ParametricCurve2D)
+    virtual point2d_type xy(Real u) const = 0;
+    point_type xyz(Real u) const override {
+        auto p = xy(u);
+        return point_type{p[0], p[1], 0};
+    };
+};
+struct Line : public ParametricCurve2D {
+    SP_GEO_ENTITY_HEAD(ParametricCurve2D, Line, Line)
+    virtual Real x(Real u) const { return (u); };
+    point2d_type xy(Real u) const override { return point2d_type{x(u), 0}; };
+};
 }  // namespace geometry
 }  // namespace simpla
 

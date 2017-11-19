@@ -199,7 +199,7 @@ TYPED_TEST_P(TestField, scalarField) {
 
     LOG_CMD(f4 = -f1 * fa + f2 * fb - f3 / fc - f1);
 
-    //	Plus( Minus(Negate(spWedge(f1,fa)),Divides(f2,fb)),Multiplies(f3,fc) )
+    //	Plus( Minus(Negate(gWedge(f1,fa)),Divides(f2,fb)),Multiplies(f3,fc) )
 
     /**           (+)
      *           /   \

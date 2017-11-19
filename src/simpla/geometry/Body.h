@@ -6,40 +6,34 @@
 #define SIMPLA_BODY_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/algebra/nTuple.h>
-#include <memory>
-#include "GeoObject.h"
+#include "GeoEntity.h"
 
 namespace simpla {
-template <typename, int...>
-struct nTuple;
 namespace geometry {
-struct Point;
-struct Curve;
-struct Surface;
-struct Shape;
-struct Body : public GeoObject {
-    SP_GEO_OBJECT_HEAD(GeoObject, Body)
 
-   public:
-    explicit Body(std::shared_ptr<const Shape> const &);
-    std::shared_ptr<const Shape> GetShape() const;
-
-    int GetDimension() const override { return 3; }
-
-    virtual std::shared_ptr<Surface> GetBoundarySurface() const;
-    std::shared_ptr<GeoObject> GetBoundary() const final;
-    virtual std::shared_ptr<Point> GetIntersection(std::shared_ptr<const Point> const &g, Real tolerance) const;
-    virtual std::shared_ptr<Curve> GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const;
-    virtual std::shared_ptr<Surface> GetIntersection(std::shared_ptr<const Surface> const &g, Real tolerance) const;
-    virtual std::shared_ptr<Body> GetIntersection(std::shared_ptr<const Body> const &g, Real tolerance) const;
-    std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const final;
-    std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g) const;
-
-   private:
-    std::shared_ptr<const Shape> m_shape_ = nullptr;
+struct Body : public GeoEntity {
+    SP_GEO_ENTITY_ABS_HEAD(GeoEntity, Body)
+    Body() = default;
 };
+struct ParametricBody : public Body {
+    SP_GEO_ENTITY_ABS_HEAD(Body, ParametricBody)
+    ParametricBody()
+        : m_MinU_(-SP_INFINITY),
+          m_MaxU_(SP_INFINITY),
+          m_MinV_(-SP_INFINITY),
+          m_MaxV_(SP_INFINITY),
+          m_MinW_(-SP_INFINITY),
+          m_MaxW_(SP_INFINITY) {}
 
+    virtual point_type xyz(Real u, Real v, Real w) const = 0;
+
+    SP_PROPERTY(Real, MinU);
+    SP_PROPERTY(Real, MaxU);
+    SP_PROPERTY(Real, MinV);
+    SP_PROPERTY(Real, MaxV);
+    SP_PROPERTY(Real, MinW);
+    SP_PROPERTY(Real, MaxW);
+};
 }  // namespace geometry
 }  // namespace simpla
 #endif  // SIMPLA_BODY_H

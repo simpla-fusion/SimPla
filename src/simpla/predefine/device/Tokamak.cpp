@@ -240,6 +240,6 @@ std::shared_ptr<geometry::GeoObject> Tokamak::Boundary() const { return m_pimpl_
 //    gp_Ax1 axis(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
 //    BRepBuilderAPI_MakeFace myLimterFaceProfile(polygonMaker.Wire());
 //    BRepPrimAPI_MakeRevol myLimiter(myLimterFaceProfile.Face(), axis);
-//    return geometry::GeoObjectOCE::New(myLimiter.Shape());
+//    return geometry::GeoObjectOCE::New(myLimiter.GeoEntity());
 
 }  // namespace simpla {

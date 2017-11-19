@@ -7,8 +7,8 @@
 #include "Edge.h"
 #include "Face.h"
 #include "Revolution.h"
-#include "spCircle.h"
-#include "spCylinder.h"
+#include "gCircle.h"
+#include "gCylinder.h"
 #include "spLine.h"
 namespace simpla {
 namespace geometry {
@@ -23,7 +23,7 @@ std::shared_ptr<Edge> csCylindrical::GetCoordinateEdge(point_type const &o, int 
     std::shared_ptr<Curve> curve = nullptr;
     //    switch (normal) {
     //        case PhiAxis:
-    //            curve = spCircle::New(m_axis_, o[RAxis]);
+    //            curve = gCircle::New(m_axis_, o[RAxis]);
     //            break;
     //        case ZAxis:
     //        case RAxis: {
@@ -41,7 +41,7 @@ std::shared_ptr<Face> csCylindrical::GetCoordinateFace(point_type const &o, int 
 
     //    switch (normal) {
     //        case PhiAxis:
-    //            surface = spCircle::New(m_axis_, uvw[RAxis]);
+    //            surface = gCircle::New(m_axis_, uvw[RAxis]);
     //            break;
     //        case ZAxis:
     //        case RAxis: {

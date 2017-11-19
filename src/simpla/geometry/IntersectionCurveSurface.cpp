@@ -17,7 +17,7 @@ namespace geometry {
 IntersectionCurveSurface::IntersectionCurveSurface() = default;
 IntersectionCurveSurface::~IntersectionCurveSurface() = default;
 IntersectionCurveSurface::IntersectionCurveSurface(IntersectionCurveSurface const &) = default;
-IntersectionCurveSurface::IntersectionCurveSurface(std::shared_ptr<const Shape> const &g, Real tolerance)
+IntersectionCurveSurface::IntersectionCurveSurface(std::shared_ptr<const GeoEntity> const &g, Real tolerance)
     : m_shape_(g), m_tolerance_(tolerance) {}
 
 std::shared_ptr<IntersectionCurveSurface> IntersectionCurveSurface::Create(std::string const &key) {

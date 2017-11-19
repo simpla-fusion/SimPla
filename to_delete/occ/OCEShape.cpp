@@ -2,7 +2,7 @@
 // Created by salmon on 17-8-1.
 //
 #include "OCEShape.h"
-#include <simpla/geometry/spCircle.h>
+#include <simpla/geometry/gCircle.h>
 #include <simpla/geometry/spLine.h>
 #include <GeomAdaptor_Curve.hxx>
 #include <Geom_Circle.hxx>

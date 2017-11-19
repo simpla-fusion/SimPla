@@ -8,15 +8,15 @@
 #include "Surface.h"
 namespace simpla {
 namespace geometry {
-struct Shape;
+struct GeoEntity;
 struct Shell : public Surface {
     SP_GEO_OBJECT_HEAD(Shell, Surface)
    public:
-    explicit Shell(std::shared_ptr<const Shape> const &);
-    std::shared_ptr<const Shape> GetShape() const;
+    explicit Shell(std::shared_ptr<const GeoEntity> const &);
+    std::shared_ptr<const GeoEntity> GetShape() const;
 
    private:
-    std::shared_ptr<const Shape> m_shape_ = nullptr;
+    std::shared_ptr<const GeoEntity> m_shape_ = nullptr;
 };
 }  // namespace geometry{
 }  // namespace simpla{

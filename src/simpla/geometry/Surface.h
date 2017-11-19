@@ -8,57 +8,47 @@
 #include <simpla/algebra/nTuple.h>
 #include <memory>
 #include <utility>
-#include "Axis.h"
-#include "GeoObject.h"
-#include "PolyPoints.h"
+#include "GeoEntity.h"
 
 namespace simpla {
 template <typename, int...>
 struct nTuple;
 namespace geometry {
-struct PointsOnCurve;
-struct Curve;
-struct Body;
+
 /**
  * a surface is a generalization of a plane which needs not be flat, that is, the curvature is not necessarily zero.
  */
-
-struct Surface : public GeoObject {
-    SP_GEO_OBJECT_HEAD(GeoObject, Surface);
-
-   public:
-    virtual std::shared_ptr<PointsOnCurve> GetIntersection(std::shared_ptr<const Curve> const &g, Real tolerance) const;
-    virtual std::shared_ptr<Curve> GetIntersection(std::shared_ptr<const Surface> const &g, Real tolerance) const;
-    std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const final;
-    std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g) const;
+struct Surface : public GeoEntity {
+    SP_GEO_ENTITY_ABS_HEAD(GeoEntity, Surface);
+    Surface() = default;
+    virtual bool isClosed() const { return false; }
 };
-//
-// struct PointsOnSurface : public PolyPoints {
-//    SP_GEO_OBJECT_HEAD(PointsOnSurface, PolyPoints);
-//
-//   protected:
-//    PointsOnSurface();
-//    explicit PointsOnSurface(std::shared_ptr<const Surface> const &);
-//
-//   public:
-//    ~PointsOnSurface() override;
-//    std::shared_ptr<const Surface> GetBasisSurface() const;
-//    void SetBasisSurface(std::shared_ptr<const Surface> const &c);
-//
-//    void PutUV(nTuple<Real, 2> uv);
-//    nTuple<Real, 2> GetUV(size_type i) const;
-//    point_type GetPoint(size_type i) const;
-//    std::vector<nTuple<Real, 2>> const &data() const;
-//    std::vector<nTuple<Real, 2>> &data();
-//
-//    size_type size() const override;
-//    point_type Value(size_type i) const override;
-//    box_type GetBoundingBox() const override;
-//
-//   private:
-//    std::shared_ptr<const Surface> m_curve_;
-//    std::vector<nTuple<Real, 2>> m_data_;
-//};
+
+struct ParametricSurface : public Surface {
+    SP_GEO_ENTITY_ABS_HEAD(Surface, ParametricSurface)
+    ParametricSurface() : m_MinU_(-SP_INFINITY), m_MaxU_(SP_INFINITY), m_MinV_(-SP_INFINITY), m_MaxV_(SP_INFINITY) {}
+
+    SP_PROPERTY(Real, MinU);
+    SP_PROPERTY(Real, MaxU);
+    SP_PROPERTY(Real, MinV);
+    SP_PROPERTY(Real, MaxV);
+    virtual point_type xyz(Real u, Real v) const = 0;
+};
+struct ParametricSurface2D : public ParametricSurface {
+    SP_GEO_ENTITY_ABS_HEAD(ParametricSurface, ParametricSurface2D)
+    ParametricSurface2D() = default;
+
+    virtual point2d_type xy(Real u, Real v) const = 0;
+    point_type xyz(Real u, Real v) const override {
+        auto p = xy(u, v);
+        return point_type{p[0], p[1], 0};
+    };
+};
+struct Plane : public ParametricSurface2D {
+    SP_GEO_ENTITY_ABS_HEAD(ParametricSurface2D, Plane)
+    Plane() = default;
+    point2d_type xy(Real u, Real v) const override { return point2d_type{(u), (v)}; };
+};
 }  // namespace geometry
 }  // namespace simpla
 #endif  // SIMPLA_SURFACE_H

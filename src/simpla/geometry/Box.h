@@ -6,7 +6,7 @@
 #define SIMPLA_BOX_H
 
 #include <simpla/SIMPLA_config.h>
-#include "Shape.h"
+#include "GeoEntity.h"
 #include "Solid.h"
 namespace simpla {
 namespace geometry {

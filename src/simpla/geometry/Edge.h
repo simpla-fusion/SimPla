@@ -5,6 +5,7 @@
 #ifndef SIMPLA_EDGE_H
 #define SIMPLA_EDGE_H
 #include <simpla/SIMPLA_config.h>
+#include "Curve.h"
 #include "GeoObject.h"
 
 namespace simpla {
@@ -13,8 +14,8 @@ struct Edge : public GeoObject {
     SP_GEO_OBJECT_HEAD(GeoObject, Edge);
 
    protected:
-    Edge(std::shared_ptr<const Curve> const &surface, Real l, Real w);
-    Edge(std::shared_ptr<const Curve> const &surface, std::tuple<Real, Real> const &range);
+    Edge(std::shared_ptr<const Curve> const &curve, Real l, Real w);
+    Edge(std::shared_ptr<const Curve> const &curve, std::tuple<Real, Real> const &range);
 
    public:
     void SetCurve(std::shared_ptr<const Curve> const &s) { m_curve_ = s; }

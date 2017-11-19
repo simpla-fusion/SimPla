@@ -5,7 +5,7 @@
 #include "Curve.h"
 #include "GeoAlgorithm.h"
 #include "Point.h"
-#include "Shape.h"
+#include "GeoEntity.h"
 #include "Surface.h"
 namespace simpla {
 namespace geometry {
@@ -13,8 +13,8 @@ Body::Body() = default;
 Body::Body(Body const &other) = default;
 Body::Body(Axis const &axis) : GeoObject(axis) {}
 Body::~Body() = default;
-Body::Body(std::shared_ptr<const Shape> const &shape) : GeoObject(shape->GetAxis()), m_shape_(shape){};
-std::shared_ptr<const Shape> Body::GetShape() const { return m_shape_; }
+Body::Body(std::shared_ptr<const GeoEntity> const &shape) : GeoObject(shape->GetAxis()), m_shape_(shape){};
+std::shared_ptr<const GeoEntity> Body::GetShape() const { return m_shape_; }
 std::shared_ptr<data::DataEntry> Body::Serialize() const { return base_type::Serialize(); };
 void Body::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) { base_type::Deserialize(cfg); }
 

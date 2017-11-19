@@ -11,10 +11,16 @@
 namespace simpla {
 namespace data {
 
-#define SP_PROPERTY(_TYPE_, _NAME_)                                                      \
-   public:                                                                               \
-    void Set##_NAME_(_TYPE_ const &_v_) { this->db()->SetValue(__STRING(_NAME_), _v_); } \
-    _TYPE_ Get##_NAME_() const { return this->db()->GetValue<_TYPE_>(__STRING(_NAME_)); }
+#define SP_PROPERTY(_TYPE_, _NAME_)                  \
+   protected:                                        \
+    _TYPE_ m_##_NAME_##_;                            \
+                                                     \
+   public:                                           \
+    void Set##_NAME_(_TYPE_ const &_v_) {            \
+        m_##_NAME_##_ = _v_;                         \
+        this->db()->SetValue(__STRING(_NAME_), _v_); \
+    }                                                \
+    _TYPE_ Get##_NAME_() const { return m_##_NAME_##_; }
 
 struct Configurable {
    public:

@@ -6,18 +6,18 @@
 #define SIMPLA_SPHERE_H
 
 #include <simpla/SIMPLA_config.h>
-#include "Shape.h"
+#include "Body.h"
 namespace simpla {
 namespace geometry {
 
-struct spSphere : public Shape {
-    SP_SHAPE_HEAD(Shape, spSphere, Sphere)
+struct gSphere : public ParametricBody {
+    SP_GEO_ENTITY_HEAD(ParametricBody, gSphere, Sphere)
 
-    explicit spSphere(Real radius);
+    explicit gSphere(Real radius);
     Real GetRadius() const { return m_radius_; }
     void SetRadius(Real const &r) { m_radius_ = r; }
 
-    point_type xyz(Real r, Real phi, Real theta) const {
+    point_type xyz(Real r, Real phi, Real theta) const override {
         Real cos_theta = std::cos(theta);
         return point_type{r * cos_theta * std::cos(phi), r * cos_theta * std::sin(phi), r * std::sin(theta)};
     };

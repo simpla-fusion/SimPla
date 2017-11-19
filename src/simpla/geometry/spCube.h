@@ -7,12 +7,12 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/data/Configurable.h>
-#include "Shape.h"
+#include "GeoEntity.h"
 namespace simpla {
 namespace geometry {
 
-struct spCube : public Shape {
-    SP_SERIALIZABLE_HEAD(Shape, spCube, Cube)
+struct spCube : public GeoEntity {
+    SP_SERIALIZABLE_HEAD(GeoEntity, spCube, Cube)
 
    protected:
     explicit spCube(box_type const &b) : m_min_(std::get<0>(b)), m_max_(std::get<1>(b)) {}

@@ -24,54 +24,6 @@ namespace geometry {
  *  }
  *
  *
- *   GeoObject<|--Vertex
- *   GeoObject<|--Curve
- *   GeoObject<|--Surface
- *   GeoObject<|--Body
- *   Body o-- Surface
- *   Surface o-- Curve
- *   Curve <|-- ParametricCurve
- *   Curve <|-- BoundedCurve
- *   ParametricCurve <|-- Line
- *   ParametricCurve <|-- Conic
- *
- *   BoundedCurve <|-- Polyline
- *   BoundedCurve <|-- BezierCurve
- *   BoundedCurve <|-- BSplineCurve
- *   BoundedCurve <|-- TrimmedCurve
- *
- *   Conic <|-- Circle
- *   Conic <|-- Ellipse
- *   Conic <|-- Hyperbola
- *   Conic <|-- Parabola
- *
- *   Surface <|-- ParametricSurface
- *   ParametricSurface <|-- Plane
- *   ParametricSurface <|-- CylindricalSurface
- *   ParametricSurface <|-- SphericalSurface
- *   ParametricSurface <|-- ToroidalSurface
- *
- *   Surface <|-- BoundedSurface
- *   BoundedSurface <|-- BezierSurface
- *   BoundedSurface <|-- BSplineSurface
- *   BoundedSurface <|-- PatchSurface
- *
- *  ParametricBody o-- ParametricSurface
- *
- *   Body <|-- ParametricBody
- *   ParametricBody <|-- Cube
- *   ParametricBody <|-- Ball
- *   ParametricBody <|-- Cylindrical
- *   ParametricBody <|-- Toroidal
- *
- *   Surface <|-- SweptSurface
- *   SweptSurface <|-- SurfaceOfLinearExtrusion
- *   SweptSurface <|-- SurfaceOfRevolution
- *
- *   Vertex  <|-- GetIntersectionCurveSurface
- *   Surface <|-- GetIntersectionSurfaceSolid
- *   Solid   <|-- GetIntersectionSolidSolid
- *
  *  @enduml
  */
 class GeoObject : public data::Serializable, public std::enable_shared_from_this<GeoObject> {
