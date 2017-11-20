@@ -23,7 +23,7 @@ namespace simpla {
 namespace engine {
 using namespace simpla::data;
 
-class DomainBase : public EngineObject, public AttributeGroup {
+class DomainBase : public EngineObject, public AttributeGroup, public data::Creatable<DomainBase> {
     SP_SERIALIZABLE_HEAD(EngineObject, DomainBase)
     void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
@@ -196,7 +196,7 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     _NAME_ &operator=(_NAME_ const &other) = delete;    \
     _NAME_ &operator=(_NAME_ &&other) = delete;         \
     std::shared_ptr<data::DataEntry> Serialize() const; \
-    void Deserialize(std::shared_ptr<data::DataEntry> const &cfg);
+    void Deserialize(std::shared_ptr<const data::DataEntry> const &cfg);
 
 template <typename TChart, template <typename> class... Policies>
 Domain<TChart, Policies...>::Domain() : DomainBase(), Policies<this_type>(this)... {}

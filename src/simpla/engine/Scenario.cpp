@@ -102,7 +102,7 @@ void Scenario::Dump() const {
     auto suffix = db()->GetValue<std::string>("DumpFileSuffix", "h5");
     os << prefix << "_dump_" << std::setfill('0') << std::setw(8) << GetStepNumber() << "." << suffix;
     VERBOSE << std::setw(20) << "Dump : " << os.str();
-    auto dump = data::DataEntry::New(os.str());
+    auto dump = data::DataEntry::Create(os.str());
     dump->Set(Serialize());
     dump->Flush();
     auto geo_prefix = db()->GetValue<std::string>("GeoFilePrefix", GetName());

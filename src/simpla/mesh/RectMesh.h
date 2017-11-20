@@ -70,12 +70,12 @@ RectMesh<THost>::~RectMesh() {}
 
 template <typename THost>
 std::shared_ptr<data::DataEntry> RectMesh<THost>::Serialize() const {
-    auto res = data::DataEntry::New(data::DataEntry::DN_TABLE);
+    auto res = data::DataEntry::Create(data::DataEntry::DN_TABLE);
     res->SetValue("Topology", "3DSMesh");
     return res;
 }
 template <typename THost>
-void RectMesh<THost>::Deserialize(std::shared_ptr<data::DataEntry> const& cfg) {}
+void RectMesh<THost>::Deserialize(std::shared_ptr<const data::DataEntry> const& cfg) {}
 template <typename THost>
 void RectMesh<THost>::InitialCondition(Real time_now) {
     auto chart = this->GetChart();

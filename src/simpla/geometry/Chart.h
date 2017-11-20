@@ -6,19 +6,20 @@
 #define SIMPLA_CHART_H
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/data/Creatable.h>
 #include <simpla/data/Serializable.h>
 #include <simpla/geometry/GeoObject.h>
 #include <simpla/utilities/Signal.h>
+
 namespace simpla {
 namespace geometry {
 struct Edge;
 struct Face;
 struct Solid;
-struct Chart : public data::Serializable, public data::Configurable, public enable_create_from_factory<Chart> {
+struct Chart : public data::Serializable, public data::Configurable, public data::Creatable<Chart> {
     SP_SERIALIZABLE_HEAD(data::Serializable, Chart)
     void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
-
 
    private:
     bool m_is_valid_ = false;

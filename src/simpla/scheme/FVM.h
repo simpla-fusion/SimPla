@@ -604,7 +604,7 @@ std::shared_ptr<data::DataEntry> FVM<THost>::Serialize() const {
     return nullptr;
 }
 template <typename THost>
-void FVM<THost>::Deserialize(std::shared_ptr<data::DataEntry> const& cfg) {}
+void FVM<THost>::Deserialize(std::shared_ptr<const data::DataEntry> const& cfg) {}
 //    //**********************************************************************************************
 //    // for element-wise arithmetic operation
 //

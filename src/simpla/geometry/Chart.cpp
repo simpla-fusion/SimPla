@@ -37,12 +37,7 @@ std::shared_ptr<simpla::data::DataEntry> Chart::Serialize() const {
     res->Set("Axis", m_axis_.Serialize());
     return res;
 };
-std::shared_ptr<Chart> Chart::Create(std::string const &k) { return simpla::Factory<Chart>::Create(k); }
-std::shared_ptr<Chart> Chart::Create(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
-    auto res = simpla::Factory<Chart>::Create(cfg->GetValue<std::string>("_REGISTER_NAME_", ""));
-    res->Deserialize(cfg);
-    return res;
-}
+
 int Chart::GetNDIMS() const { return 3; }
 bool Chart::IsValid() const { return m_is_valid_; }
 void Chart::Update() {
@@ -51,7 +46,7 @@ void Chart::Update() {
 };
 void Chart::TearDown() { m_is_valid_ = false; };
 
-virtual Axis Chart::GetLocalAxis(point_type const &o) const {
+Axis Chart::GetLocalAxis(point_type const &o) const {
     auto axis = m_axis_;
     axis.SetOrigin(o);
     return std::move(axis);

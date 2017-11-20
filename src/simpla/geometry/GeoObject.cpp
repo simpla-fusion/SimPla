@@ -44,12 +44,7 @@ void GeoObject::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
     m_axis_.Deserialize(cfg->Get("Axis"));
 }
-std::shared_ptr<GeoObject> GeoEntity::Create(std::string const &k) { return simpla::Factory<GeoObject>::Create(k); }
-std::shared_ptr<GeoObject> GeoEntity::Create(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
-    auto res = simpla::Factory<GeoObject>::Create(cfg->GetValue<std::string>("_REGISTER_NAME_", ""));
-    res->Deserialize(cfg);
-    return res;
-}
+
 Axis &GeoObject::GetAxis() { return m_axis_; }
 Axis const &GeoObject::GetAxis() const { return m_axis_; }
 void GeoObject::SetAxis(Axis const &a) { m_axis_ = a; }

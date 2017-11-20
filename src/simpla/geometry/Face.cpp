@@ -20,7 +20,7 @@ Face::Face(Axis const &axis, std::shared_ptr<const gSurface> const &surface,
 
 void Face::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
-    m_surface_ = gSurface::New(cfg->Get("gSurface"));
+    m_surface_ = gSurface::CreateAs<gSurface>(cfg->Get("gSurface"));
     m_range_ = cfg->GetValue("ParameterRange", m_range_);
 };
 std::shared_ptr<simpla::data::DataEntry> Face::Serialize() const {

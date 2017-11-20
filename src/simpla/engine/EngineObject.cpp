@@ -26,14 +26,7 @@ void EngineObject::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg
 };
 
 std::shared_ptr<EngineObject> EngineObject::Copy() const { return nullptr; }
-std::shared_ptr<EngineObject> EngineObject::Create(std::string const &k) {
-    return simpla::Factory<EngineObject>::Create(k);
-}
-std::shared_ptr<EngineObject> EngineObject::Create(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
-    auto res = simpla::Factory<EngineObject>::Create(cfg->GetValue<std::string>("_REGISTER_NAME_", ""));
-    res->Deserialize(cfg);
-    return res;
-}
+
 void EngineObject::lock() { m_pimpl_->m_mutex_.lock(); }
 void EngineObject::unlock() { m_pimpl_->m_mutex_.unlock(); }
 bool EngineObject::try_lock() { return m_pimpl_->m_mutex_.try_lock(); }
@@ -50,7 +43,8 @@ bool EngineObject::isInitialized() const { return m_pimpl_->m_is_initialized_; }
 bool EngineObject::isSetUp() const { return m_pimpl_->m_is_setup_; }
 
 // void EngineObject::Push(std::shared_ptr<data::DataEntry> const &data) { ASSERT(isSetUp()); }
-// std::shared_ptr<data::DataEntry> EngineObject::Pop() const { return data::DataEntry::Create(data::DataEntry::DN_TABLE);
+// std::shared_ptr<data::DataEntry> EngineObject::Pop() const { return
+// data::DataEntry::Create(data::DataEntry::DN_TABLE);
 // };
 
 void EngineObject::Push(const std::shared_ptr<Patch> &) { ASSERT(isSetUp()); };

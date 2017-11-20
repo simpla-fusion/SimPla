@@ -56,12 +56,12 @@ CoRectMesh<THost>::~CoRectMesh() {}
 
 template <typename THost>
 std::shared_ptr<data::DataEntry> CoRectMesh<THost>::Serialize() const {
-    auto res = data::DataEntry::New(data::DataEntry::DN_TABLE);
+    auto res = data::DataEntry::Create(data::DataEntry::DN_TABLE);
     res->SetValue("Topology", "3DCoRectMesh");
     return res;
 }
 template <typename THost>
-void CoRectMesh<THost>::Deserialize(std::shared_ptr<data::DataEntry> const& cfg) {}
+void CoRectMesh<THost>::Deserialize(std::shared_ptr<const data::DataEntry> const& cfg) {}
 template <typename THost>
 void CoRectMesh<THost>::InitialCondition(Real time_now) {
     //    Update();

@@ -20,7 +20,7 @@ Solid::Solid(Axis const &axis, std::shared_ptr<const gBody> const &body, box_typ
     : GeoObject(axis), m_body_(body), m_range_{b} {};
 void Solid::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
-    m_body_ = gBody::Create(cfg->Get("gBody"));
+    m_body_ = GeoEntity::CreateAs<gBody>(cfg->Get("gBody"));
     m_range_ = cfg->GetValue("ParameterRange", m_range_);
 };
 std::shared_ptr<simpla::data::DataEntry> Solid::Serialize() const {

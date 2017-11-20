@@ -21,7 +21,7 @@ namespace mesh {
  *  - index space and local coordinates have same origin coordinates
  *
  */
-class StructuredMesh {
+class StructuredMesh : public data::Serializable {
    public:
     static constexpr unsigned int NDIMS = 3;
     typedef EntityId entity_id_type;

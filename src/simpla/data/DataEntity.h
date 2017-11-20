@@ -4,19 +4,21 @@
 
 #ifndef SIMPLA_DATAENTITY_H
 #define SIMPLA_DATAENTITY_H
-#include "simpla/SIMPLA_config.h"
-
-#include <experimental/any>
+#include <simpla/SIMPLA_config.h>
+#include <simpla/utilities/Log.h>
+//#include <experimental/any>
 #include <typeindex>
 #include <vector>
-#include "simpla/utilities/Log.h"
-#include "simpla/utilities/ObjectHead.h"
 
 namespace simpla {
 namespace data {
 
 struct DataEntity : public std::enable_shared_from_this<DataEntity> {
-    SP_OBJECT_BASE(DataEntity);
+   private:
+    typedef DataEntity this_type;
+
+   public:
+    virtual std::string FancyTypeName() const { return "DataEntity"; }
 
    protected:
     DataEntity() = default;

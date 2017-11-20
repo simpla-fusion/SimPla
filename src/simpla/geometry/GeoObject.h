@@ -9,6 +9,7 @@
 #define CORE_GEOMETRY_GEO_OBJECT_H_
 #include <simpla/SIMPLA_config.h>
 #include <simpla/data/Configurable.h>
+#include <simpla/data/Creatable.h>
 #include <simpla/data/Serializable.h>
 #include <simpla/utilities/Factory.h>
 #include "Axis.h"
@@ -27,12 +28,14 @@ namespace geometry {
  *
  *  @enduml
  */
-class GeoObject : public data::Serializable, public data::Configurable, public std::enable_shared_from_this<GeoObject> {
+class GeoObject : public data::Serializable,
+                  public data::Configurable,
+                  public data::Creatable<GeoObject>,
+                  public std::enable_shared_from_this<GeoObject> {
     SP_SERIALIZABLE_HEAD(data::Serializable, GeoObject)
     void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
-    static std::shared_ptr<GeoObject> Create(std::string const &k);
-    static std::shared_ptr<GeoObject> Create(std::shared_ptr<const simpla::data::DataEntry> const &cfg);
+
    protected:
     GeoObject();
     GeoObject(GeoObject const &other);

@@ -56,7 +56,7 @@ class EMFluid : public TDomain {
 
 template <typename TM>
 std::shared_ptr<data::DataEntry> EMFluid<TM>::Serialize() const {
-    auto res = data::DataEntry::New();
+    auto res = data::DataEntry::Create();
     for (auto& item : m_fluid_sp_) {
         res->SetValue("Species/" + item.first + "/mass", item.second->mass / SI_proton_mass);
         res->SetValue("Species/" + item.first + "/Z", item.second->charge / SI_elementary_charge);

@@ -17,7 +17,7 @@ RevolutionShell::RevolutionShell(Axis const &axis, std::shared_ptr<const Wire> c
     : RevolutionShell(axis, g, 0, angle) {}
 void RevolutionShell::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
-    m_basis_obj_ = Wire::Create(cfg->Get("Wire"));
+    m_basis_obj_ = GeoEntity::CreateAs<Wire>(cfg->Get("Wire"));
 }
 std::shared_ptr<simpla::data::DataEntry> RevolutionShell::Serialize() const {
     auto res = base_type::Serialize();

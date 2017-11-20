@@ -43,7 +43,7 @@ std::shared_ptr<data::DataEntry> EBMesh<THost>::Serialize() const {
     return nullptr;
 }
 template <typename THost>
-void EBMesh<THost>::Deserialize(std::shared_ptr<data::DataEntry> const &cfg) {}
+void EBMesh<THost>::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) {}
 template <typename THost>
 void EBMesh<THost>::SetEmbeddedBoundary(std::string const &prefix, const std::shared_ptr<geometry::GeoObject> &g) {
     //    if (g == nullptr) { return; }
