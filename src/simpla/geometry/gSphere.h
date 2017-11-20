@@ -7,7 +7,7 @@
 
 #include <simpla/SIMPLA_config.h>
 #include "Body.h"
-#include "Surface.h"
+#include "gSurface.h"
 
 namespace simpla {
 namespace geometry {

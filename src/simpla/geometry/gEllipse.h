@@ -6,8 +6,8 @@
 #define SIMPLA_GELLIPSE_H
 
 #include <simpla/utilities/Constants.h>
-#include "Surface.h"
 #include "gConic.h"
+#include "gSurface.h"
 namespace simpla {
 namespace geometry {
 struct gEllipse : public gConic {
@@ -21,17 +21,17 @@ struct gEllipse : public gConic {
 
     bool IsClosed() const override { return GetMaxAngle() - GetMinAngle() >= TWOPI; }
 
-    SP_PROPERTY(Real, MajorRadius);
-    SP_PROPERTY(Real, MinorRadius);
-    SP_PROPERTY(Real, MinAngle);
-    SP_PROPERTY(Real, MaxAngle);
+    SP_PROPERTY(Real, MajorRadius) = 1.0;
+    SP_PROPERTY(Real, MinorRadius) = 0.5;
+    SP_PROPERTY(Real, MinAngle) = 0;
+    SP_PROPERTY(Real, MaxAngle) = TWOPI;
     point2d_type xy(Real alpha) const override {
         return point2d_type{m_MajorRadius_ * std::cos((alpha)), m_MinorRadius_ * std::sin((alpha))};
     };
 };
 
-struct gEllipseDisk : public Plane {
-    SP_GEO_ENTITY_HEAD(Plane, gEllipseDisk, EllipseDisk);
+struct gEllipseDisk : public gPlane {
+    SP_GEO_ENTITY_HEAD(gPlane, gEllipseDisk, EllipseDisk);
 
     explicit gEllipseDisk(Real major_radius, Real minor_radius) : gEllipseDisk(major_radius, minor_radius, 0, TWOPI) {}
     explicit gEllipseDisk(Real major_radius, Real minor_radius, Real min_angle, Real max_angle)

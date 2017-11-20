@@ -4,15 +4,19 @@
 
 #ifndef SIMPLA_GCONIC_H
 #define SIMPLA_GCONIC_H
-#include "Curve.h"
-#include "Surface.h"
+#include "gCurve.h"
+#include "gSurface.h"
 namespace simpla {
 namespace geometry {
-struct gConic : public ParametricCurve2D {
-    SP_GEO_ENTITY_ABS_HEAD(ParametricCurve2D, gConic)
+struct gConic : public gCurve2D {
+    SP_GEO_ENTITY_ABS_HEAD(gCurve2D, gConic)
+    template <typename... Args>
+    explicit gConic(Args&&... args) : gCurve2D(std::forward<Args>(args)...) {}
 };
-struct gConicSurface : public ParametricSurface {
-    SP_GEO_ENTITY_ABS_HEAD(ParametricSurface, gConicSurface)
+struct gConicSurface : public gSurface {
+    SP_GEO_ENTITY_ABS_HEAD(gSurface, gConicSurface)
+    template <typename... Args>
+    explicit gConicSurface(Args&&... args) : gSurface(std::forward<Args>(args)...) {}
 };
 }  //  namespace geometry{
 }  // namespace simpla

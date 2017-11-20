@@ -78,31 +78,29 @@ class Solid;
 struct GeoEntity : public data::Serializable,
                    public data::Configurable,
                    public std::enable_shared_from_this<GeoEntity> {
-    SP_SERIALIZABLE_HEAD(data::Serializable, GeoEntity)
-
    public:
     GeoEntity();
     GeoEntity(GeoEntity const &);
     ~GeoEntity() override;
+    std::string FancyTypeName() const override;
+    static std::shared_ptr<GeoEntity> Create(std::string const &k);
+    static std::shared_ptr<GeoEntity> Create(std::shared_ptr<const simpla::data::DataEntry> const &cfg);
+
     virtual GeoEntity *CopyP() const = 0;
     std::shared_ptr<GeoEntity> Copy() const { return std::shared_ptr<GeoEntity>(CopyP()); }
 };
-#define SP_GEO_ENTITY_ABS_HEAD(_BASE_NAME_, _CLASS_NAME_)                                                            \
-   private:                                                                                                          \
-    typedef _CLASS_NAME_ this_type;                                                                                  \
-    typedef _BASE_NAME_ base_type;                                                                                   \
-                                                                                                                     \
-   public:                                                                                                           \
-    std::string FancyTypeName() const override { return base_type::FancyTypeName() + "." + __STRING(_CLASS_NAME_); } \
-    _CLASS_NAME_() = default;                                                                                        \
-    _CLASS_NAME_(_CLASS_NAME_ const &) = default;                                                                    \
-    ~_CLASS_NAME_() override = default;                                                                              \
-    static std::shared_ptr<this_type> New(std::string const &k) {                                                    \
-        return std::dynamic_pointer_cast<this_type>(base_type::Create(k));                                           \
-    }                                                                                                                \
-    static std::shared_ptr<this_type> New(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {               \
-        return std::dynamic_pointer_cast<this_type>(base_type::Create(cfg));                                         \
-    }
+#define SP_GEO_ENTITY_ABS_HEAD(_BASE_NAME_, _CLASS_NAME_) \
+   private:                                               \
+    typedef _CLASS_NAME_ this_type;                       \
+    typedef _BASE_NAME_ base_type;                        \
+                                                          \
+   protected:                                             \
+    _CLASS_NAME_() = default;                             \
+    _CLASS_NAME_(_CLASS_NAME_ const &) = default;         \
+                                                          \
+   public:                                                \
+    ~_CLASS_NAME_() override = default;                   \
+    std::string FancyTypeName() const override { return base_type::FancyTypeName() + "." + __STRING(_CLASS_NAME_); }
 
 #define SP_GEO_ENTITY_HEAD(_BASE_NAME_, _CLASS_NAME_, _REGISTER_NAME_)                 \
     SP_GEO_ENTITY_ABS_HEAD(_BASE_NAME_, _CLASS_NAME_)                                  \
@@ -110,12 +108,11 @@ struct GeoEntity : public data::Serializable,
     static bool _is_registered;                                                        \
                                                                                        \
    public:                                                                             \
-    static std::string RegisterName() { return __STRING(_REGISTER_NAME_); }            \
+    static std::string RegisterName() noexcept { return __STRING(_REGISTER_NAME_); }   \
     template <typename... Args>                                                        \
     static std::shared_ptr<this_type> New(Args &&... args) {                           \
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...)); \
     }                                                                                  \
-                                                                                       \
     this_type *CopyP() const override { return new this_type(*this); };
 
 #define SP_GEO_ENTITY_REGISTER(_CLASS_NAME_) \

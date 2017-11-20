@@ -11,8 +11,8 @@
 
 namespace simpla {
 namespace geometry {
-struct Curve;
-struct Surface;
+struct gCurve;
+struct gSurface;
 class IntersectionCurveSurface {
    private:
     typedef IntersectionCurveSurface this_type;

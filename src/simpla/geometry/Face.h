@@ -7,7 +7,7 @@
 
 #include <simpla/SIMPLA_config.h>
 #include "GeoObject.h"
-#include "Surface.h"
+#include "gSurface.h"
 namespace simpla {
 namespace geometry {
 struct Face : public GeoObject {
@@ -17,20 +17,20 @@ struct Face : public GeoObject {
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
    protected:
-    explicit Face(Axis const &axis, std::shared_ptr<const Surface> const &surface = nullptr, Real l = 1, Real w = 1);
-    explicit Face(Axis const &axis, std::shared_ptr<const Surface> const &surface, Real u_min, Real u_max, Real v_min,
+    explicit Face(Axis const &axis, std::shared_ptr<const gSurface> const &surface = nullptr, Real l = 1, Real w = 1);
+    explicit Face(Axis const &axis, std::shared_ptr<const gSurface> const &surface, Real u_min, Real u_max, Real v_min,
                   Real v_max);
-    explicit Face(Axis const &axis, std::shared_ptr<const Surface> const &surface,
+    explicit Face(Axis const &axis, std::shared_ptr<const gSurface> const &surface,
                   std::tuple<point2d_type, point2d_type> const &range);
 
    public:
-    void SetSurface(std::shared_ptr<const Surface> const &s);
-    std::shared_ptr<const Surface> GetSurface() const;
+    void SetSurface(std::shared_ptr<const gSurface> const &s);
+    std::shared_ptr<const gSurface> GetSurface() const;
     std::tuple<point2d_type, point2d_type> const &GetParameterRange() const;
     void SetParameterRange(std::tuple<point2d_type, point2d_type> const &b);
 
    private:
-    std::shared_ptr<const Surface> m_surface_;
+    std::shared_ptr<const gSurface> m_surface_;
     std::tuple<point2d_type, point2d_type> m_range_{{0, 0}, {1, 1}};
 };
 

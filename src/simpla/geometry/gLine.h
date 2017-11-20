@@ -5,13 +5,14 @@
 #ifndef SIMPLA_GLINE_H
 #define SIMPLA_GLINE_H
 
-#include "Curve.h"
+#include "gCurve.h"
 namespace simpla {
 namespace geometry {
-struct gLine : public ParametricCurve2D {
-    SP_GEO_ENTITY_HEAD(ParametricCurve2D, gLine, Line)
-    virtual Real x(Real u) const { return (u); };
-    point2d_type xy(Real u) const override { return point2d_type{x(u), 0}; };
+struct gLine : public gCurve {
+    SP_GEO_ENTITY_HEAD(gCurve, gLine, Line)
+    gLine(vector_type const& direction) : m_Direction_(direction) {}
+    SP_PROPERTY(vector_type, Direction) = {1, 0, 0};
+    virtual point_type xyz(Real u) const { return m_Direction_ * u; };
 };
 }  // namespace geometry
 }  // namespace simpla

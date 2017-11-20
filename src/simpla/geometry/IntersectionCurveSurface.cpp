@@ -6,11 +6,11 @@
 #include <simpla/utilities/Factory.h>
 #include <simpla/utilities/Log.h>
 #include <vector>
-#include "Curve.h"
+#include "gCurve.h"
 #include "GeoEngine.h"
 //#include "PointsOnCurve.h"
 #include "Shell.h"
-#include "Surface.h"
+#include "gSurface.h"
 namespace simpla {
 namespace geometry {
 
@@ -23,10 +23,10 @@ IntersectionCurveSurface::IntersectionCurveSurface(std::shared_ptr<const GeoObje
 std::shared_ptr<IntersectionCurveSurface> IntersectionCurveSurface::Create(std::string const &key) {
     return Factory<IntersectionCurveSurface>::Create(key.empty() ? GEO_ENGINE->GetRegisterName() : key);
 }
-// size_type IntersectionCurveSurface::Intersect(std::shared_ptr<const Curve> const &curve, std::vector<Real> *p) {
+// size_type IntersectionCurveSurface::Intersect(std::shared_ptr<const gCurve> const &curve, std::vector<Real> *p) {
 //    return const_cast<this_type const *>(this)->Intersect(curve, p);
 //}
-// size_type IntersectionCurveSurface::Intersect(std::shared_ptr<const Curve> const &curve, std::vector<Real> *p) const
+// size_type IntersectionCurveSurface::Intersect(std::shared_ptr<const gCurve> const &curve, std::vector<Real> *p) const
 // {
 //    if (curve == nullptr) { return 0; }
 //    ASSERT(p != nullptr);

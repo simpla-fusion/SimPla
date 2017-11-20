@@ -8,7 +8,7 @@ gCylinderSurface//
 #include <simpla/SIMPLA_config.h>
 #include <simpla/utilities/Constants.h>
 #include "Body.h"
-#include "Surface.h"
+#include "gSurface.h"
 namespace simpla {
 namespace geometry {
 /**

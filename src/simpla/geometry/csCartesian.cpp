@@ -4,7 +4,7 @@
 #include "csCartesian.h"
 #include <memory>
 #include "Box.h"
-#include "Curve.h"
+#include "gCurve.h"
 #include "Edge.h"
 #include "Face.h"
 #include "Line.h"

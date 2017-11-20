@@ -3,12 +3,13 @@
 //
 #include "csCylindrical.h"
 #include "Box.h"
-#include "Curve.h"
+#include "gCurve.h"
 #include "Cylinder.h"
 #include "Edge.h"
 #include "Face.h"
-#include "gCylinder.h"
 #include "gCircle.h"
+#include "gCylinder.h"
+#include "gPlane.h"
 
 namespace simpla {
 namespace geometry {
@@ -18,7 +19,7 @@ csCylindrical::csCylindrical(csCylindrical const &other) = default;
 csCylindrical::~csCylindrical() = default;
 
 std::shared_ptr<Edge> csCylindrical::GetCoordinateEdge(point_type const &o, int normal, Real u) const {
-    std::shared_ptr<Curve> curve = nullptr;
+    std::shared_ptr<gCurve> curve = nullptr;
     //    switch (normal) {
     //        case PhiAxis:
     //            curve = gCircle::New(m_axis_, o[RAxis]);
@@ -35,24 +36,25 @@ std::shared_ptr<Edge> csCylindrical::GetCoordinateEdge(point_type const &o, int 
     return Edge::New(m_axis_, curve, 0, u);
 }
 std::shared_ptr<Face> csCylindrical::GetCoordinateFace(point_type const &o, int normal, Real u, Real v) const {
-    std::shared_ptr<Face> res = nullptr;
+    std::shared_ptr<gSurface> surface = nullptr;
 
     switch (normal) {
-        case PhiAxis:
-            res = gCylindricalSurface::New(o[RAxis]);
+        case PhiAxis: {
+            auto cos_Phi = std::cos(o[PhiAxis]);
+            auto sin_Phi = std::sin(o[PhiAxis]);
+            surface = gPlane::New(m_axis_.x * cos_Phi + m_axis_.y * sin_Phi, m_axis_.x * sin_Phi - m_axis_.y * cos_Phi);
+        } break;
+        case ZAxis:
+            surface = gDisk::New(o[RAxis]);
             break;
-        case ZAxis: {
-            res = Face::New(m_axis_, gDisk::New());
-
-        } break;
-        case RAxis: {
-            res = Face::New(m_axis_,
-                            gCylindricalSurface::New(o[RAxis], o[PhiAxis], o[PhiAxis] + u, o[ZAxis], o[ZAxis] + v));
-        } break;
+        case RAxis:
+            surface = gCylindricalSurface::New(o[RAxis], o[PhiAxis], o[PhiAxis] + u, o[ZAxis], o[ZAxis] + v);
+            break;
         default:
             break;
     }
-    return res;
+    return Face::New(m_axis_, surface, o[(normal + 1) % 3], o[(normal + 1) % 3] + u, o[(normal + 2) % 3],
+                     o[(normal + 2) % 3] + v);
 };
 
 std::shared_ptr<Solid> csCylindrical::GetCoordinateBox(point_type const &o, Real u, Real v, Real w) const {

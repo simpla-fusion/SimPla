@@ -5,7 +5,7 @@
 #include "CutCell.h"
 #include "Box.h"
 #include "Chart.h"
-#include "Curve.h"
+#include "gCurve.h"
 #include "GeoEngine.h"
 #include "GeoEntity.h"
 #include "GeoObject.h"

@@ -5,11 +5,11 @@
 #ifndef SIMPLA_BOUNDEDCURVE_H
 #define SIMPLA_BOUNDEDCURVE_H
 
-#include "Curve.h"
+#include "gCurve.h"
 namespace simpla {
 namespace geometry {
-class BoundedCurve : public Curve {
-    SP_GEO_ENTITY_ABS_HEAD(Curve, BoundedCurve);
+class BoundedCurve : public gCurve {
+    SP_GEO_ENTITY_ABS_HEAD(gCurve, BoundedCurve);
 
    public:
     virtual void Open() = 0;

@@ -5,10 +5,10 @@
 #ifndef SIMPLA_BOUNDEDSURFACE_H
 #define SIMPLA_BOUNDEDSURFACE_H
 
-#include "Surface.h"
+#include "gSurface.h"
 namespace simpla {
 namespace geometry {
-class BoundedSurface : public Surface {};
+class BoundedSurface : public gSurface {};
 }  // namespace geometry
 }  // namespace simpla
 

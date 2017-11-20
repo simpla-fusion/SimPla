@@ -15,7 +15,7 @@
 #include "simpla/utilities/type_cast.h"
 namespace simpla {
 namespace geometry {
-class Curve;
+class gCurve;
 /**
  * @ingroup  coordinate_system
  * @{

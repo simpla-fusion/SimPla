@@ -34,9 +34,9 @@ struct Box : public Solid {
     //    bool CheckIntersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
     //    std::shared_ptr<Point> GetIntersectionion(std::shared_ptr<const Point> const &g, Real tolerance) const
     //    override;
-    //    std::shared_ptr<Curve> GetIntersectionion(std::shared_ptr<const Curve> const &g, Real tolerance) const
+    //    std::shared_ptr<gCurve> GetIntersectionion(std::shared_ptr<const gCurve> const &g, Real tolerance) const
     //    override;
-    //    std::shared_ptr<Surface> GetIntersectionion(std::shared_ptr<const Surface> const &g, Real tolerance) const
+    //    std::shared_ptr<gSurface> GetIntersectionion(std::shared_ptr<const gSurface> const &g, Real tolerance) const
     //    override;
     //    std::shared_ptr<Body> GetIntersectionion(std::shared_ptr<const Body> const &g, Real tolerance) const override;
 };

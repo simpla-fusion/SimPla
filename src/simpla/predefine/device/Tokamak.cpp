@@ -216,8 +216,8 @@ std::function<Vec3(point_type const &)> Tokamak::B0() const {
 };
 geometry::Axis Tokamak::GetAxis() const { return m_pimpl_->m_axis_; }
 
-std::shared_ptr<const geometry::Curve> Tokamak::Limiter() const { return m_pimpl_->m_rzlim_; }
-std::shared_ptr<const geometry::Curve> Tokamak::Boundary() const { return m_pimpl_->m_rzbbb_; }
+std::shared_ptr<const geometry::gCurve> Tokamak::Limiter() const { return m_pimpl_->m_rzlim_; }
+std::shared_ptr<const geometry::gCurve> Tokamak::Boundary() const { return m_pimpl_->m_rzbbb_; }
 
 //    BRepBuilderAPI_MakeWire wireMaker;
 //        auto num = boundary()->data().size();
@@ -226,7 +226,7 @@ std::shared_ptr<const geometry::Curve> Tokamak::Boundary() const { return m_pimp
 //    for (size_type s = 0; s < num - 1; ++s) { gp_array->SetValue(s + 1, gp_Pnt(points[s][0], 0, points[s][1])); }
 //    GeomAPI_Interpolate sp(gp_array, true, Precision::Confusion());
 //    sp.Perform();
-//    wireMaker.Add(BRepBuilderAPI_MakeEdge(sp.Curve()));
+//    wireMaker.Add(BRepBuilderAPI_MakeEdge(sp.gCurve()));
 //    gp_Ax1 axis(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
 //    BRepBuilderAPI_MakeFace myBoundaryFaceProfile(wireMaker.Wire(), true);
 //    BRepPrimAPI_MakeRevol revol(myBoundaryFaceProfile.Face(), axis);

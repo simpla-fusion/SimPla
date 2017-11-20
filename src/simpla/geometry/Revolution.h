@@ -14,8 +14,8 @@ namespace geometry {
 struct Shell;
 struct Wire;
 struct Face;
-struct Curve;
-struct Surface;
+struct gCurve;
+struct gSurface;
 
 struct RevolutionShell : public Shell {
     SP_GEO_OBJECT_HEAD(Shell, RevolutionShell);
@@ -84,8 +84,8 @@ auto MakeRevolution(std::shared_ptr<const T> const &g, Real angle) {
     return MakeRevolution(g->GetAxis(), g, 0, angle);
 }
 
-std::shared_ptr<Face> MakeRevolution(std::shared_ptr<const Curve> const &g, Real angle);
-std::shared_ptr<Solid> MakeRevolution(std::shared_ptr<const Surface> const &g, Real angle);
+std::shared_ptr<Face> MakeRevolution(std::shared_ptr<const gCurve> const &g, Real angle);
+std::shared_ptr<Solid> MakeRevolution(std::shared_ptr<const gSurface> const &g, Real angle);
 
 }  // namespace simpla
 }  // namespace geometry

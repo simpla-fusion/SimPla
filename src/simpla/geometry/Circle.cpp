@@ -5,7 +5,7 @@
 #include "Circle.h"
 #include "Edge.h"
 #include "Face.h"
-#include "Surface.h"
+#include "gSurface.h"
 #include "gCircle.h"
 namespace simpla {
 namespace geometry {

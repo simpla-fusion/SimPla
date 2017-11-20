@@ -77,7 +77,7 @@ std::shared_ptr<Solid> MakeRevolution(Axis const &axis, std::shared_ptr<const Fa
                                       Real angle1) {
     return RevolutionSolid::New(axis, f, angle0, angle1);
 }
-std::shared_ptr<Face> MakeRevolution(std::shared_ptr<const Curve> const &g, Real angle) { return nullptr; }
-std::shared_ptr<Solid> MakeRevolution(std::shared_ptr<const Surface> const &g, Real angle) { return nullptr; }
+std::shared_ptr<Face> MakeRevolution(std::shared_ptr<const gCurve> const &g, Real angle) { return nullptr; }
+std::shared_ptr<Solid> MakeRevolution(std::shared_ptr<const gSurface> const &g, Real angle) { return nullptr; }
 }  // namespace geometry{
 }  // namespace simpla{

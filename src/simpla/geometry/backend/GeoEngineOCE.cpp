@@ -68,14 +68,14 @@
 #include "../Body.h"
 #include "../BoundedCurve.h"
 #include "../Box.h"
-#include "../Curve.h"
+#include "simpla/geometry/gCurve.h"
 #include "../Edge.h"
 #include "../Face.h"
 #include "../GeoEntity.h"
 #include "../GeoObject.h"
 #include "../IntersectionCurveSurface.h"
 #include "../Revolution.h"
-#include "../Surface.h"
+#include "simpla/geometry/gSurface.h"
 #include "../gCircle.h"
 #include "../gEllipse.h"
 #include "../gHyperbola.h"
@@ -108,7 +108,7 @@ gp_Ax3 make_axis3(Axis const &axis) { return gp_Ax2{make_point(axis.o), make_dir
 gp_Ax1 make_axis1(Axis const &axis) { return gp_Ax1{make_point(axis.o), make_dir(axis.z)}; }
 
 template <>
-std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, Surface>::eval(std::shared_ptr<const Surface> const &g) {
+std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, gSurface>::eval(std::shared_ptr<const gSurface> const &g) {
     std::shared_ptr<TopoDS_Shape> res = nullptr;
     UNIMPLEMENTED;
     return res;
@@ -204,7 +204,7 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, Solid>::eval(std::share
     return res;
 };
 
-Handle(Geom_Curve) make_geo_curve(Axis const &g_axis, std::shared_ptr<const Curve> const &curve) {
+Handle(Geom_Curve) make_geo_curve(Axis const &g_axis, std::shared_ptr<const gCurve> const &curve) {
     auto axis = make_axis(g_axis);
     Handle(Geom_Curve) c;
     if (auto line = std::dynamic_pointer_cast<const gLine>(curve)) {
@@ -225,7 +225,7 @@ Handle(Geom_Curve) make_geo_curve(Axis const &g_axis, std::shared_ptr<const Curv
 Handle(Geom_Curve) make_geo_curve(std::shared_ptr<const Edge> const &edge) {
     return make_geo_curve(edge->GetAxis(), edge->GetCurve());
 }
-Handle(Geom_Surface) make_geo_surface(Axis const &g_axis, std::shared_ptr<const Surface> const &surface) {
+Handle(Geom_Surface) make_geo_surface(Axis const &g_axis, std::shared_ptr<const gSurface> const &surface) {
     auto const &axis = make_axis(g_axis);
     Handle(Geom_Surface) res;
     if (auto plane = std::dynamic_pointer_cast<const gPlane>(surface)) {
@@ -261,7 +261,7 @@ std::shared_ptr<TopoDS_Edge> OCEShapeCast<TopoDS_Edge, Edge>::eval(std::shared_p
     return res;
 }
 template <>
-std::shared_ptr<TopoDS_Wire> OCEShapeCast<TopoDS_Wire, Curve>::eval(std::shared_ptr<const Curve> const &g) {
+std::shared_ptr<TopoDS_Wire> OCEShapeCast<TopoDS_Wire, gCurve>::eval(std::shared_ptr<const gCurve> const &g) {
     std::shared_ptr<TopoDS_Wire> res = nullptr;
     if (auto polygon = std::dynamic_pointer_cast<const gPolygon>(g)) {
         BRepBuilderAPI_MakePolygon oce_polygon;
@@ -313,7 +313,7 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, GeoObject>::eval(std::s
     } else if (auto s = std::dynamic_pointer_cast<Solid const>(g)) {
         res = oce_cast<TopoDS_Solid>(s);
     }
-    //    else if (auto s = std::dynamic_pointer_cast<Surface const>(g)) {
+    //    else if (auto s = std::dynamic_pointer_cast<gSurface const>(g)) {
     //        res = oce_cast<TopoDS_Face>(s);
     //    }
     //    else if (auto b = std::dynamic_pointer_cast<Body const>(g)) {
@@ -580,7 +580,7 @@ size_type IntersectionCurveSurfaceOCE::Intersect(std::shared_ptr<const Edge> con
 //                    //                        index_type s0 = idx[make_dir];
 //                    //                        Handle(Geom_Curve) c =
 //                    //                            geometry::OCEShapeCast<Geom_Curve,
-//                    //                            Curve>::eval(*chart->GetAxis(x_begin, make_dir));
+//                    //                            gCurve>::eval(*chart->GetAxis(x_begin, make_dir));
 //                    //
 //                    //                        m_box_inter_.Init(c);
 //                    //
