@@ -92,25 +92,21 @@ struct GeoEntity : public data::Serializable, public data::Configurable, public 
     typedef _CLASS_NAME_ this_type;                       \
     typedef _BASE_NAME_ base_type;                        \
                                                           \
-   protected:                                             \
+   public:                                                \
     _CLASS_NAME_() = default;                             \
     _CLASS_NAME_(_CLASS_NAME_ const &) = default;         \
                                                           \
-   public:                                                \
     ~_CLASS_NAME_() override = default;                   \
     std::string FancyTypeName() const override { return base_type::FancyTypeName() + "." + __STRING(_CLASS_NAME_); }
 
-#define SP_GEO_ENTITY_HEAD(_BASE_NAME_, _CLASS_NAME_, _REGISTER_NAME_)                 \
-    SP_GEO_ENTITY_ABS_HEAD(_BASE_NAME_, _CLASS_NAME_)                                  \
-   private:                                                                            \
-    static bool _is_registered;                                                        \
-                                                                                       \
-   public:                                                                             \
-    static std::string RegisterName() noexcept { return __STRING(_REGISTER_NAME_); }   \
-    template <typename... Args>                                                        \
-    static std::shared_ptr<this_type> New(Args &&... args) {                           \
-        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...)); \
-    }                                                                                  \
+#define SP_GEO_ENTITY_HEAD(_BASE_NAME_, _CLASS_NAME_, _REGISTER_NAME_)               \
+    SP_GEO_ENTITY_ABS_HEAD(_BASE_NAME_, _CLASS_NAME_)                                \
+    ENABLE_NEW                                                                       \
+   private:                                                                          \
+    static bool _is_registered;                                                      \
+                                                                                     \
+   public:                                                                           \
+    static std::string RegisterName() noexcept { return __STRING(_REGISTER_NAME_); } \
     this_type *CopyP() const override { return new this_type(*this); };
 
 #define SP_GEO_ENTITY_REGISTER(_CLASS_NAME_) \

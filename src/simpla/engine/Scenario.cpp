@@ -38,15 +38,15 @@ std::shared_ptr<data::DataEntry> Scenario::Serialize() const {
 
     res->Set("Atlas", GetAtlas()->Serialize());
 
-    auto attributes = data::DataEntry::Create(data::DataEntry::DN_TABLE);
+    auto attributes = data::DataEntry::New(data::DataEntry::DN_TABLE);
     for (auto const &item : m_pimpl_->m_attrs_) { attributes->Set(item.first, item.second->Serialize()); }
     res->Set("Attributes", attributes);
 
-    auto domain = data::DataEntry::Create(data::DataEntry::DN_TABLE);
+    auto domain = data::DataEntry::New(data::DataEntry::DN_TABLE);
     for (auto const &item : m_pimpl_->m_domains_) { domain->Set(item.first, item.second->Serialize()); }
     res->Set("Domains", domain);
 
-    //    auto patches = data::DataEntry::Create(data::DataEntry::DN_TABLE);
+    //    auto patches = data::DataEntry::New(data::DataEntry::DN_TABLE);
     //    for (auto const &item : m_pimpl_->m_patches_) { patches->Set(item.first, item.second->Serialize()); }
     //    res->Set("Patches", patches);
 
@@ -59,7 +59,7 @@ void Scenario::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) {
 
     if (auto domain = cfg->Get("Domains")) {
         domain->Foreach([&](std::string key, std::shared_ptr<const data::DataEntry> node) {
-            SetDomain(key, DomainBase::Create(node));
+            SetDomain(key, DomainBase::New(node));
         });
     }
     //    if (auto patches = cfg->Get("Patches")) {
@@ -76,7 +76,7 @@ void Scenario::CheckPoint(size_type step_num) const {
     os << db()->GetValue<std::string>("CheckPointFilePrefix", GetName()) << std::setfill('0') << std::setw(8)
        << GetStepNumber() << "." << db()->GetValue<std::string>("CheckPointFileSuffix", "xmf");
 
-    auto dump = data::DataEntry::Create(os.str());
+    auto dump = data::DataEntry::New(os.str());
     //    dump->Set("Atlas", GetAtlas()->Serialize());
     dump->Set("Atlas/Chart", GetAtlas()->GetChart()->Serialize());
     auto patches = dump->CreateNode("Atlas/Patches", data::DataEntry::DN_TABLE);
@@ -102,7 +102,7 @@ void Scenario::Dump() const {
     auto suffix = db()->GetValue<std::string>("DumpFileSuffix", "h5");
     os << prefix << "_dump_" << std::setfill('0') << std::setw(8) << GetStepNumber() << "." << suffix;
     VERBOSE << std::setw(20) << "Dump : " << os.str();
-    auto dump = data::DataEntry::Create(os.str());
+    auto dump = data::DataEntry::New(os.str());
     dump->Set(Serialize());
     dump->Flush();
     auto geo_prefix = db()->GetValue<std::string>("GeoFilePrefix", GetName());

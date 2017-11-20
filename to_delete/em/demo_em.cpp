@@ -32,7 +32,7 @@ std::shared_ptr<data::DataTable> UseCaseEMFluid::Pack() const {
 };
 
 void UseCaseEMFluid::Unpack(std::shared_ptr<data::DataTable> cfg) {
-    m_schedule_ = engine::Schedule::Create("TimeIntegrator");
+    m_schedule_ = engine::Schedule::New("TimeIntegrator");
 
     auto t = std::dynamic_pointer_cast<engine::TimeIntegrator>(m_schedule_);
 

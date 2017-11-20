@@ -376,7 +376,7 @@ bool ConvertDataBlock(SAMRAI::pdat::CellData<T> *src, std::shared_ptr<data::Data
     typedef Array<T, ZSFC<3>> array_type;
 
     int depth = src->getDepth();
-    //    auto mArray = data::DataMultiArray<array_type>::Create(depth);
+    //    auto mArray = data::DataMultiArray<array_type>::New(depth);
     //    for (int d = 0; d < depth; ++d) { create_array<T, NDIMS>(src->getArrayData(), d).swap(mArray->GetArray(d)); }
     //    *dst = std::dynamic_pointer_cast<data::DataBlock>(mArray);
     return true;
@@ -388,7 +388,7 @@ bool ConvertDataBlock(SAMRAI::pdat::NodeData<T> *src, std::shared_ptr<data::Data
     typedef Array<T, ZSFC<NDIMS>> array_type;
 
     int depth = src->getDepth();
-    //    auto mArray = data::DataMultiArray<array_type>::Create(depth);
+    //    auto mArray = data::DataMultiArray<array_type>::New(depth);
     //    for (int d = 0; d < depth; ++d) { create_array<T, NDIMS>(src->getArrayData(), d).swap(mArray->GetArray(d)); }
     //
     //    *dst = std::dynamic_pointer_cast<data::DataEntity>(mArray);
@@ -401,7 +401,7 @@ bool ConvertDataEntity(SAMRAI::pdat::EdgeData<T> *src, std::shared_ptr<data::Dat
     typedef Array<T, ZSFC<3>> array_type;
 
     int depth = src->getDepth();
-    //    auto mArray = data::DataMultiArray<array_type>::Create(depth * 3);
+    //    auto mArray = data::DataMultiArray<array_type>::New(depth * 3);
     //    for (int axis = 0; axis < 3; ++axis) {
     //        for (int d = 0; d < depth; ++d) {
     //            create_array<T, NDIMS>(src->getArrayData(axis), d).swap(mArray->GetArray(axis * depth + d));
@@ -417,7 +417,7 @@ bool ConvertDataEntity(SAMRAI::pdat::FaceData<T> *src, std::shared_ptr<data::Dat
     typedef Array<T, ZSFC<3>> array_type;
 
     int depth = src->getDepth();
-    //    auto mArray = data::DataMultiArray<array_type>::Create(depth * 3);
+    //    auto mArray = data::DataMultiArray<array_type>::New(depth * 3);
     //    for (int axis = 0; axis < 3; ++axis) {
     //        for (int d = 0; d < depth; ++d) {
     //            create_array<T, NDIMS>(src->getArrayData(axis), d).swap(mArray->GetArray(axis * depth + d));
@@ -433,7 +433,7 @@ bool ConvertDataEntity(SAMRAI::pdat::SideData<T> *src, std::shared_ptr<data::Dat
     typedef Array<T, ZSFC<NDIMS>> array_type;
 
     int depth = src->getDepth();
-    //    auto mArray = data::DataMultiArray<array_type>::Create(depth * 3);
+    //    auto mArray = data::DataMultiArray<array_type>::New(depth * 3);
     //    for (int axis = 0; axis < 3; ++axis) {
     //        for (int d = 0; d < depth; ++d) {
     //            create_array<T, NDIMS>(src->getArrayData(axis), d).swap(mArray->GetArray(axis * depth + d));

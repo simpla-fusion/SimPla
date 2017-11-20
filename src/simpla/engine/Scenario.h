@@ -17,6 +17,7 @@ class Atlas;
 class Scenario : public EngineObject {
    public:
     SP_SERIALIZABLE_HEAD(EngineObject, Scenario)
+    ENABLE_NEW
     void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
@@ -56,7 +57,7 @@ class Scenario : public EngineObject {
     box_type FitBoundingBox() const;
     //    template <typename TDomain, typename... Args>
     //    std::shared_ptr<TDomain> NewDomain(std::string const &k, Args &&... args) {
-    //        auto res = TDomain::Create(std::forward<Args>(args)...);
+    //        auto res = TDomain::New(std::forward<Args>(args)...);
     //        SetDomain(k, res);
     //        return res;
     //    };

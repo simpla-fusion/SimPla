@@ -27,7 +27,7 @@ TEST(SPObject, Dummy) {
     objA->SetCharge(-1.0);
     std::cout << *objA->Serialize() << std::endl;
 
-    auto objB = std::dynamic_pointer_cast<DummyGeoObject>(SPObject::Create(objA->Serialize()));
+    auto objB = std::dynamic_pointer_cast<DummyGeoObject>(SPObject::New(objA->Serialize()));
     EXPECT_TRUE(objB != nullptr);
     EXPECT_DOUBLE_EQ(objA->GetMass(), objB->GetMass());
     EXPECT_DOUBLE_EQ(objA->GetCharge(), objB->GetCharge());

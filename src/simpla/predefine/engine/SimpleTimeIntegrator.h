@@ -9,13 +9,10 @@
 namespace simpla {
 class SimpleTimeIntegrator : public engine::TimeIntegrator {
     SP_SERIALIZABLE_HEAD(engine::TimeIntegrator, SimpleTimeIntegrator);
+    ENABLE_NEW;
 
-   protected:
     SimpleTimeIntegrator();
-
-   public:
     ~SimpleTimeIntegrator() override;
-    static std::shared_ptr<this_type> New() { return std::shared_ptr<this_type>(new this_type()); }
     void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;

@@ -52,8 +52,8 @@ class DataEntry : public std::enable_shared_from_this<DataEntry> {
     virtual ~DataEntry();
     virtual std::shared_ptr<DataEntry> Copy() const;
 
-    static std::shared_ptr<DataEntry> Create(std::string const& uri = "");
-    static std::shared_ptr<DataEntry> Create(eNodeType e_type, std::string const& uri = "");
+    static std::shared_ptr<DataEntry> New(std::string const& uri = "");
+    static std::shared_ptr<DataEntry> New(eNodeType e_type, std::string const& uri = "");
     static std::shared_ptr<DataEntry> New(std::shared_ptr<DataEntity> const& v);
 
     eNodeType type() const;
@@ -166,7 +166,7 @@ class DataEntry : public std::enable_shared_from_this<DataEntry> {
 
     //    template <typename U>
     //    size_type SetValue(std::string const& s, U const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {
-    //        return Set(s, DataEntry::New(DataBlock::Create(u)));
+    //        return Set(s, DataEntry::New(DataBlock::New(u)));
     //    };
     //    template <typename U>
     //    size_type AddValue(std::string const& s, U const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {

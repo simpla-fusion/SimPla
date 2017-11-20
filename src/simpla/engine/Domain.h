@@ -23,8 +23,9 @@ namespace simpla {
 namespace engine {
 using namespace simpla::data;
 
-class DomainBase : public EngineObject, public AttributeGroup, public data::Creatable<DomainBase> {
+class DomainBase : public EngineObject, public AttributeGroup {
     SP_SERIALIZABLE_HEAD(EngineObject, DomainBase)
+    ENABLE_NEW
     void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 

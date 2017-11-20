@@ -33,6 +33,23 @@ std::istream &operator>>(std::istream &is, Serializable &obj);
     static std::shared_ptr<this_type> New(Args &&... args) {                           \
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...)); \
     }
+#define ENABLE_NEW                                                                                   \
+                                                                                                     \
+   private:                                                                                          \
+    template <typename... Args>                                                                      \
+    static std::shared_ptr<this_type> TryNew(std::true_type, Args &&... args) {                      \
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));               \
+    }                                                                                                \
+    template <typename... Args>                                                                      \
+    static std::shared_ptr<this_type> TryNew(std::false_type, Args &&... args) {                     \
+        return std::dynamic_pointer_cast<this_type>(base_type::Create(std::forward<Args>(args)...)); \
+    }                                                                                                \
+                                                                                                     \
+   public:                                                                                           \
+    template <typename... Args>                                                                      \
+    static std::shared_ptr<this_type> New(Args &&... args) {                                         \
+        return TryNew(std::is_constructible<this_type,Args...>(),std::forward<Args>(args)...);      \
+    }
 
 }  // namespace geometry
 }  // namespace simpla

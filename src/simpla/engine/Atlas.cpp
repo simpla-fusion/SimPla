@@ -155,7 +155,7 @@ void Atlas::Decompose() {
     }
 
 #endif
-    //    NewPatch(MeshBlock::Create(m_pimpl_->m_local_index_box_, 0, 0));
+    //    NewPatch(MeshBlock::New(m_pimpl_->m_local_index_box_, 0, 0));
 }
 
 void Atlas::DoTearDown() { m_pimpl_->m_chart_.reset(); };

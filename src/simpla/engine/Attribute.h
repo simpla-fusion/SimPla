@@ -112,6 +112,7 @@ struct Attribute : public data::Configurable, public data::Serializable {
     ~Attribute() override;
     Attribute(this_type const &other) = delete;  // { UNIMPLEMENTED; };
     Attribute(this_type &&other) = delete;       // { UNIMPLEMENTED; };
+    std::shared_ptr<Attribute> New(std::shared_ptr<simpla::data::DataEntry> const &cfg);
 
     template <typename THost, typename... Args>
     explicit Attribute(THost host, Args &&... args) : Attribute() {
@@ -293,7 +294,7 @@ AttributeT<V, IFORM, DOF...>::~AttributeT() = default;
 
 // template <typename V, int IFORM, int... DOF>
 // std::shared_ptr<data::DataEntry> AttributeT<V, IFORM, DOF...>::GetDescription() const {
-//    auto res = data::DataEntry::Create(data::DataEntry::DN_TABLE);
+//    auto res = data::DataEntry::New(data::DataEntry::DN_TABLE);
 //    res->Set(backend());
 //    res->SetValue("Name", GetName());
 //    res->SetValue("IFORM", IFORM);
@@ -316,7 +317,7 @@ std::shared_ptr<data::DataEntry> pop_data(Array<U> const &v) {
 
 template <typename U, int N0, int... N>
 std::shared_ptr<data::DataEntry> pop_data(nTuple<Array<U>, N0, N...> const &v) {
-    auto res = data::DataEntry::Create(data::DataEntry::DN_ARRAY);
+    auto res = data::DataEntry::New(data::DataEntry::DN_ARRAY);
     for (int i = 0; i < N0; ++i) { res->Add(pop_data(v[i])); }
     return res;
 }
@@ -427,7 +428,7 @@ void AttributeT<V, IFORM, DOF...>::Push(const std::shared_ptr<data::DataEntry> &
 
 template <typename V, int IFORM, int... DOF>
 std::shared_ptr<data::DataEntry> AttributeT<V, IFORM, DOF...>::Pop() {
-    auto res = data::DataEntry::Create(data::DataEntry::DN_TABLE);
+    auto res = data::DataEntry::New(data::DataEntry::DN_TABLE);
     res->SetValue<int>("IFORM", GetIFORM());
     res->Set("_DATA_", detail::pop_data(*this));
     detail::tear_down(*this);

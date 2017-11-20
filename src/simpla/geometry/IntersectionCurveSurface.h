@@ -13,7 +13,9 @@ namespace simpla {
 namespace geometry {
 struct gCurve;
 struct gSurface;
-class IntersectionCurveSurface {
+class IntersectionCurveSurface : public data::Serializable,
+                                 public data::Configurable,
+                                 public data::Creatable<IntersectionCurveSurface> {
    private:
     typedef IntersectionCurveSurface this_type;
 

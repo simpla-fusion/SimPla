@@ -22,11 +22,9 @@ struct RevolutionShell : public Shell {
     void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
-   protected:
     explicit RevolutionShell(Axis const &axis, std::shared_ptr<const Wire> const &s, Real min_angle, Real max_angle);
     explicit RevolutionShell(Axis const &axis, std::shared_ptr<const Wire> const &s, Real angle = TWOPI);
 
-   public:
     std::shared_ptr<const Wire> GetWire() const { return m_basis_obj_; }
 
     SP_PROPERTY(Real, MinAngle);
@@ -40,11 +38,9 @@ struct RevolutionFace : public Face {
     void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
-   protected:
     explicit RevolutionFace(Axis const &axis, std::shared_ptr<const Edge> const &s, Real min_angle, Real max_angle);
     explicit RevolutionFace(Axis const &axis, std::shared_ptr<const Edge> const &s, Real angle = TWOPI);
 
-   public:
     std::shared_ptr<const Edge> GetEdge() const { return m_basis_obj_; }
 
     SP_PROPERTY(Real, MinAngle);
@@ -55,14 +51,12 @@ struct RevolutionFace : public Face {
 };
 struct RevolutionSolid : public Solid {
     SP_GEO_OBJECT_HEAD(Solid, RevolutionSolid);
-    void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;                            \
-    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;                                             \
+    void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
-   protected:
     explicit RevolutionSolid(Axis const &axis, std::shared_ptr<const Face> const &s, Real min_angle, Real max_angle);
     explicit RevolutionSolid(Axis const &axis, std::shared_ptr<const Face> const &s, Real angle = TWOPI);
 
-   public:
     SP_PROPERTY(Real, MinAngle);
     SP_PROPERTY(Real, MaxAngle);
 

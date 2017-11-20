@@ -167,17 +167,17 @@ std::shared_ptr<DataEntry> LuaToDataEntry(std::shared_ptr<LuaObject> const& tobj
             res = DataEntry::New(DataLight::New(tobj->as<std::string>()));
             break;
         case LuaObject::LUA_T_TABLE:
-            res = DataEntry::Create(DataEntry::DN_TABLE);
+            res = DataEntry::New(DataEntry::DN_TABLE);
             for (auto const& kv : *tobj) { res->Set(kv.first->as<std::string>(), LuaToDataEntry(kv.second)); }
             break;
 
         case LuaObject::LUA_T_ARRAY: {
-            res = DataEntry::Create(DataEntry::DN_ARRAY);
+            res = DataEntry::New(DataEntry::DN_ARRAY);
             for (auto const& kv : *tobj) { res->Add(LuaToDataEntry(kv.second)); }
             break;
         }
         case LuaObject::LUA_T_FUNCTION:
-            res = DataEntry::Create(DataEntry::DN_FUNCTION);
+            res = DataEntry::New(DataEntry::DN_FUNCTION);
             TODO << " Create Lua Function";
             break;
         default:

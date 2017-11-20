@@ -31,13 +31,12 @@ namespace geometry {
  */
 struct csCylindrical : public Chart {
     SP_SERIALIZABLE_HEAD(Chart, csCylindrical)
-   protected:
+
     template <typename... Args>
     explicit csCylindrical(Args &&... args) : base_type(std::forward<Args>(args)...) {}
     csCylindrical();
     csCylindrical(csCylindrical const &);
 
-   public:
     ~csCylindrical() override;
     template <typename... Args>
     static std::shared_ptr<this_type> New(Args &&... args) {

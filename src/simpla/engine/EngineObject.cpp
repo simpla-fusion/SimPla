@@ -44,7 +44,7 @@ bool EngineObject::isSetUp() const { return m_pimpl_->m_is_setup_; }
 
 // void EngineObject::Push(std::shared_ptr<data::DataEntry> const &data) { ASSERT(isSetUp()); }
 // std::shared_ptr<data::DataEntry> EngineObject::Pop() const { return
-// data::DataEntry::Create(data::DataEntry::DN_TABLE);
+// data::DataEntry::New(data::DataEntry::DN_TABLE);
 // };
 
 void EngineObject::Push(const std::shared_ptr<Patch> &) { ASSERT(isSetUp()); };

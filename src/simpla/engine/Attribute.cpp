@@ -43,7 +43,7 @@ std::set<Attribute *> const &AttributeGroup::GetAttributes() const { return m_pi
 //}
 //
 // std::shared_ptr<data::DataEntry> AttributeGroup::Pop() const {
-//    auto res = data::DataEntry::Create();
+//    auto res = data::DataEntry::New();
 //    for (auto &item : m_pimpl_->m_attributes_) { res->Set(item->GetName(), item->Pop()); }
 //    return res;
 //}
@@ -161,7 +161,7 @@ std::shared_ptr<Attribute> NewAttribute(std::shared_ptr<simpla::data::DataEntry>
     return res;
 }
 }
-std::shared_ptr<Attribute> Attribute::Create(std::shared_ptr<simpla::data::DataEntry> const &cfg) {
+std::shared_ptr<Attribute> Attribute::New(std::shared_ptr<simpla::data::DataEntry> const &cfg) {
     if (cfg == nullptr) { return nullptr; }
     std::shared_ptr<Attribute> res = nullptr;
     auto v_type = cfg->GetValue<std::string>("ValueType");

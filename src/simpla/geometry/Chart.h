@@ -18,6 +18,7 @@ struct Face;
 struct Solid;
 struct Chart : public data::Serializable, public data::Configurable, public data::Creatable<Chart> {
     SP_SERIALIZABLE_HEAD(data::Serializable, Chart)
+
     void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 

@@ -56,7 +56,7 @@ CoRectMesh<THost>::~CoRectMesh() {}
 
 template <typename THost>
 std::shared_ptr<data::DataEntry> CoRectMesh<THost>::Serialize() const {
-    auto res = data::DataEntry::Create(data::DataEntry::DN_TABLE);
+    auto res = data::DataEntry::New(data::DataEntry::DN_TABLE);
     res->SetValue("Topology", "3DCoRectMesh");
     return res;
 }

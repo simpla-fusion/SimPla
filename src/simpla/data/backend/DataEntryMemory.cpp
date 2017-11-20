@@ -146,7 +146,7 @@ std::shared_ptr<DataEntry> DataEntryMemory::CreateNode(eNodeType e_type) const {
     std::shared_ptr<DataEntry> res = nullptr;
     switch (e_type) {
         case DN_ENTITY:
-            res = DataEntry::Create();
+            res = DataEntry::New();
             break;
         case DN_ARRAY:
             res = DataEntryMemory::New(DN_ARRAY);

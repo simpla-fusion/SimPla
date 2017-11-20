@@ -20,18 +20,18 @@ GeoObject::GeoObject(Axis const &axis) : m_axis_(axis){};
 std::shared_ptr<const GeoObject> GeoObject::Self() const { return shared_from_this(); }
 std::shared_ptr<GeoObject> GeoObject::Self() { return shared_from_this(); }
 
-// std::shared_ptr<GeoObject> GeoObject::Create(std::string const &s) {
+// std::shared_ptr<GeoObject> GeoObject::New(std::string const &s) {
 //    std::shared_ptr<GeoObject> res = nullptr;
 //    if (s.find(':') == std::string::npos) {
-//        res = Factory<GeoObject>::Create(s);
+//        res = Factory<GeoObject>::New(s);
 //    } else {
 //        res = GEO_ENGINE->Load(s);
 //    }
 //    return res;
 //}
 //
-// std::shared_ptr<GeoObject> GeoObject::Create(std::shared_ptr<data::DataEntry> const &cfg) {
-//    auto res = Factory<GeoObject>::Create(cfg->GetValue<std::string>("_REGISTER_NAME_", ""));
+// std::shared_ptr<GeoObject> GeoObject::New(std::shared_ptr<data::DataEntry> const &cfg) {
+//    auto res = Factory<GeoObject>::New(cfg->GetValue<std::string>("_REGISTER_NAME_", ""));
 //    res->Deserialize(cfg);
 //    return res;
 //};
@@ -99,14 +99,14 @@ std::shared_ptr<GeoObject> GeoObject::GetIntersection(std::shared_ptr<const GeoO
 //    return geometry::isInSide(GetBoundingBox(), x);
 //}
 // std::shared_ptr<GeoObject> GeoObject::GetIntersectionion(std::shared_ptr<GeoObject> const &other) const {
-//    return Cube::Create(geometry::Overlap(GetBoundingBox(), other->GetBoundingBox()));
+//    return Cube::New(geometry::Overlap(GetBoundingBox(), other->GetBoundingBox()));
 //}
 // std::shared_ptr<GeoObject> GeoObject::Difference(std::shared_ptr<GeoObject> const &other) const {
 //    UNIMPLEMENTED;
 //    return nullptr;
 //}
 // std::shared_ptr<GeoObject> GeoObject::Union(std::shared_ptr<GeoObject> const &other) const {
-//    return Cube::Create(geometry::Union(GetBoundingBox(), other->GetBoundingBox()));
+//    return Cube::New(geometry::Union(GetBoundingBox(), other->GetBoundingBox()));
 //}
 // Real GeoObject::isOverlapped(box_type const &b) const { return Measure(Overlap(GetBoundingBox(), b)) / measure(); }
 //

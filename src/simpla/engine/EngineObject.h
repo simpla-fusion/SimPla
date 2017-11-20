@@ -6,7 +6,9 @@
 #define SIMPLA_ENGOBJECT_H
 
 #include <simpla/data/Configurable.h>
+#include <simpla/data/Creatable.h>
 #include <simpla/data/Serializable.h>
+
 #include <simpla/utilities/Signal.h>
 #include "Patch.h"
 
@@ -14,6 +16,7 @@ namespace simpla {
 namespace engine {
 class EngineObject : public data::Configurable,
                      public data::Serializable,
+                     public data::Creatable<EngineObject>,
                      public std::enable_shared_from_this<EngineObject> {
     SP_SERIALIZABLE_HEAD(data::Serializable, EngineObject)
 

@@ -37,7 +37,7 @@ GeoEngineAPI::GeoEngineAPI() = default;
 GeoEngineAPI::~GeoEngineAPI() = default;
 void GeoEngineAPI::Deserialize(std::shared_ptr<simpla::data::DataEntry> const &cfg) {}
 std::shared_ptr<simpla::data::DataEntry> GeoEngineAPI::Serialize() const {
-    return data::DataEntry::Create(data::DataEntry::DN_TABLE);
+    return data::DataEntry::New(data::DataEntry::DN_TABLE);
 }
 std::shared_ptr<GeoObject> GeoEngineAPI::GetBoundary(std::shared_ptr<const GeoObject> const &) const {
     UNIMPLEMENTED;

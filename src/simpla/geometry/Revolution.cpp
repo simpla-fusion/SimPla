@@ -34,7 +34,7 @@ RevolutionFace::RevolutionFace(Axis const &axis, std::shared_ptr<const Edge> con
 
 void RevolutionFace::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
-    m_basis_obj_ = Edge::Create(cfg->Get("Edge"));
+    m_basis_obj_ = Edge::New(cfg->Get("Edge"));
 }
 std::shared_ptr<simpla::data::DataEntry> RevolutionFace::Serialize() const {
     auto res = base_type::Serialize();
@@ -59,7 +59,7 @@ RevolutionSolid::RevolutionSolid(Axis const &axis, std::shared_ptr<const Face> c
     : RevolutionSolid(axis, f, 0, angle) {}
 void RevolutionSolid::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
-    m_basis_obj_ = Face::Create(cfg->Get("Face"));
+    m_basis_obj_ = Face::New(cfg->Get("Face"));
 }
 std::shared_ptr<simpla::data::DataEntry> RevolutionSolid::Serialize() const {
     auto res = base_type::Serialize();

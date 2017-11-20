@@ -70,7 +70,7 @@ RectMesh<THost>::~RectMesh() {}
 
 template <typename THost>
 std::shared_ptr<data::DataEntry> RectMesh<THost>::Serialize() const {
-    auto res = data::DataEntry::Create(data::DataEntry::DN_TABLE);
+    auto res = data::DataEntry::New(data::DataEntry::DN_TABLE);
     res->SetValue("Topology", "3DSMesh");
     return res;
 }
