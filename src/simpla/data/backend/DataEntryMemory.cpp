@@ -149,10 +149,10 @@ std::shared_ptr<DataEntry> DataEntryMemory::CreateNode(eNodeType e_type) const {
             res = DataEntry::Create();
             break;
         case DN_ARRAY:
-            res = DataEntryMemory::Create(DN_ARRAY);
+            res = DataEntryMemory::New(DN_ARRAY);
             break;
         case DN_TABLE:
-            res = DataEntryMemory::Create(DN_TABLE);
+            res = DataEntryMemory::New(DN_TABLE);
             break;
         case DN_FUNCTION:
             break;
