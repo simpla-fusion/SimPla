@@ -12,7 +12,7 @@ struct gLine : public gCurve {
     SP_GEO_ENTITY_HEAD(gCurve, gLine, Line)
     gLine(vector_type const& direction) : m_Direction_(direction) {}
     SP_PROPERTY(vector_type, Direction) = {1, 0, 0};
-    virtual point_type xyz(Real u) const { return m_Direction_ * u; };
+    point_type xyz(Real u) const override { return m_Direction_ * u; };
 };
 }  // namespace geometry
 }  // namespace simpla

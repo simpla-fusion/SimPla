@@ -5,7 +5,7 @@
 
 #include <simpla/algebra/nTuple.h>
 #include <simpla/data/Data.h>
-#include <simpla/geometry/BoundedCurve.h>
+#include <simpla/geometry/gBoundedCurve.h>
 #include <simpla/geometry/Revolution.h>
 #include <simpla/geometry/gPolygon.h>
 #include <simpla/numeric/Interpolation.h>
@@ -236,6 +236,6 @@ std::shared_ptr<const geometry::gCurve> Tokamak::Boundary() const { return m_pim
 //    gp_Ax1 axis(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
 //    BRepBuilderAPI_MakeFace myLimterFaceProfile(polygonMaker.Wire());
 //    BRepPrimAPI_MakeRevol myLimiter(myLimterFaceProfile.Face(), axis);
-//    return geometry::GeoObjectOCE::New(myLimiter.GeoEntity());
+//    return geometry::GeoObjectOCE::Create(myLimiter.GeoEntity());
 
 }  // namespace simpla {

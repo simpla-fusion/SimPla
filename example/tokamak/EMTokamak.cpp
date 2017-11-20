@@ -33,7 +33,7 @@ using namespace simpla::engine;
 
 int main(int argc, char **argv) {
     sp::Initialize(argc, argv);
-    auto scenario = SimpleTimeIntegrator::New();  // SAMRAITimeIntegrator::New();
+    auto scenario = SimpleTimeIntegrator::New();  // SAMRAITimeIntegrator::Create();
     scenario->SetName("EAST");
     scenario->db()->SetValue("DumpFileSuffix", "h5");
     scenario->db()->SetValue("CheckPointFilePrefix", "EAST");

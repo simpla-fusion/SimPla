@@ -10,12 +10,12 @@
 #include <simpla/utilities/SPDefines.h>
 #include <simpla/utilities/macro.h>
 
-#include "Body.h"
+#include "gBody.h"
 
 namespace simpla {
 namespace geometry {
-struct gTorus : public ParametricBody {
-    SP_GEO_ENTITY_HEAD(ParametricBody, gTorus, Torus)
+struct gTorus : public gBody {
+    SP_GEO_ENTITY_HEAD(gBody, gTorus, Torus)
 
     explicit gTorus(Real major_radius, Real minor_radius, Real min_major_angle = 0, Real max_major_angle = TWOPI,
                     Real min_minor_angle = 0, Real max_minor_angle = TWOPI)

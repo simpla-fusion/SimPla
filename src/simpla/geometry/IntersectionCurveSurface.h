@@ -30,7 +30,7 @@ class IntersectionCurveSurface {
    public:
     virtual ~IntersectionCurveSurface();
     //    template <typename... Args>
-    //    static std::shared_ptr<this_type> New(Args &&... args) {
+    //    static std::shared_ptr<this_type> Create(Args &&... args) {
     //        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));
     //    };
 

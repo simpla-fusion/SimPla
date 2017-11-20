@@ -31,7 +31,8 @@ class GeoObject : public data::Serializable, public data::Configurable, public s
     SP_SERIALIZABLE_HEAD(data::Serializable, GeoObject)
     void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
-
+    static std::shared_ptr<GeoObject> Create(std::string const &k);
+    static std::shared_ptr<GeoObject> Create(std::shared_ptr<const simpla::data::DataEntry> const &cfg);
    protected:
     GeoObject();
     GeoObject(GeoObject const &other);

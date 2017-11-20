@@ -5,7 +5,9 @@
 #ifndef SIMPLA_AXIS_H
 #define SIMPLA_AXIS_H
 
+#include <simpla/data/Configurable.h>
 #include <simpla/data/DataEntry.h>
+#include <simpla/data/Serializable.h>
 namespace simpla {
 namespace geometry {
 namespace detail {
@@ -30,7 +32,7 @@ inline vector_type make_perp1(vector_type const &v) {
 inline vector_type make_perp2(vector_type const &v) { return normal(cross(v, make_perp1(v))); }
 }  // namespace detail{
 
-struct Axis {
+struct Axis : public data::Serializable, public data::Configurable {
     Axis() = default;
     Axis(Axis const &other) : m_origin_(other.m_origin_), m_axis_(other.m_axis_){};
     ~Axis() = default;
@@ -64,6 +66,9 @@ struct Axis {
 
     void SetOrigin(point_type const &a) { m_origin_ = a; }
     point_type const &GetOrigin() const { return m_origin_; }
+
+    void SetAxis(int n, vector_type const &v) { m_axis_[n] = v; }
+    vector_type GetAxis(int n) const { return m_axis_[n]; }
 
     void SetMatrix(point_type const &x_axis, point_type const &y_axis, point_type const &z_axis) {
         m_axis_[0] = x_axis;

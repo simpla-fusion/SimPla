@@ -21,7 +21,7 @@ DataEntry::~DataEntry() {
 };
 std::shared_ptr<DataEntry> DataEntry::Copy() const { return std::shared_ptr<DataEntry>(new DataEntry(*this)); }
 
-std::shared_ptr<DataEntry> DataEntry::New(std::string const& s) {
+std::shared_ptr<DataEntry> DataEntry::Create(std::string const& s) {
     //    if (DataEntry::s_num_of_pre_registered_ == 0) { RUNTIME_ERROR << "No database is registered!" << s <<
     //    std::endl; }
     std::string uri = s.empty() ? "mem://" : s;
@@ -41,16 +41,18 @@ std::shared_ptr<DataEntry> DataEntry::New(std::string const& s) {
     }
     return res;
 };
-std::shared_ptr<DataEntry> DataEntry::New(eNodeType e_type, std::string const& url) {
-    return New(url)->CreateNode(e_type);
+std::shared_ptr<DataEntry> DataEntry::Create(eNodeType e_type, std::string const& url) {
+    return Create(url)->CreateNode(e_type);
 }
-
+std::shared_ptr<DataEntry> DataEntry::New(std::shared_ptr<DataEntity> const& v) {
+    return std::shared_ptr<DataEntry>(new DataEntry(v));
+}
 KeyValue::KeyValue(std::string k) : m_key_(std::move(k)), m_node_(DataEntry::New(DataLight::New(true))) {}
 KeyValue::KeyValue(KeyValue const& other) = default;
 KeyValue::KeyValue(KeyValue&& other) noexcept = default;
 KeyValue::~KeyValue() = default;
 KeyValue& KeyValue::operator=(KeyValue const& other) {
-    m_node_ = DataEntry::New(DataEntry::DN_TABLE, "");
+    m_node_ = DataEntry::Create(DataEntry::DN_TABLE, "");
     m_node_->Set(other.m_key_, other.m_node_);
     return *this;
 }
@@ -60,12 +62,12 @@ std::shared_ptr<DataEntry> make_node(U const& u) {
     return DataEntry::New(DataLight::New(u));
 }
 std::shared_ptr<DataEntry> make_node(KeyValue const& kv) {
-    auto res = DataEntry::New(DataEntry::DN_TABLE);
+    auto res = DataEntry::Create(DataEntry::DN_TABLE);
     res->Set(kv.m_key_, kv.m_node_);
     return res;
 }
 std::shared_ptr<DataEntry> make_node(std::initializer_list<KeyValue> const& u) {
-    auto res = DataEntry::New(DataEntry::DN_TABLE);
+    auto res = DataEntry::Create(DataEntry::DN_TABLE);
     for (auto const& v : u) { res->Set(v.m_key_, v.m_node_); }
     return res;
 }
@@ -75,7 +77,7 @@ std::shared_ptr<DataEntry> make_node(std::initializer_list<U> const& u, ENABLE_I
 }
 template <typename U>
 std::shared_ptr<DataEntry> make_node(std::initializer_list<U> const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {
-    auto res = DataEntry::New()->CreateNode(DataEntry::DN_ARRAY);
+    auto res = DataEntry::Create()->CreateNode(DataEntry::DN_ARRAY);
     for (auto const& v : u) { res->Add(make_node(v)); }
     return res;
 }
@@ -153,9 +155,9 @@ std::istream& operator>>(std::istream& is, DataEntry& entry) { return entry.Pars
 
 DataEntry::eNodeType DataEntry::type() const { return m_type_; }
 size_type DataEntry::size() const { return m_entity_ == nullptr ? 0 : 1; }
-std::shared_ptr<DataEntry> DataEntry::CreateNode(eNodeType e_type) const { return DataEntry::New(e_type, ""); };
+std::shared_ptr<DataEntry> DataEntry::CreateNode(eNodeType e_type) const { return DataEntry::Create(e_type, ""); };
 std::shared_ptr<DataEntry> DataEntry::CreateNode(std::string const& url, eNodeType e_type) {
-    auto node = DataEntry::New(e_type, "");
+    auto node = DataEntry::Create(e_type, "");
     Set(url, node);
     return node;
 };

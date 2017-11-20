@@ -87,8 +87,6 @@ class Factory {
         return res;
     }
 };
-}  // namespace data{
-
 template <typename TObj, typename Enable = void>
 struct enable_create_from_factory {};
 template <typename TObj>
@@ -98,11 +96,12 @@ struct enable_create_from_factory<TObj, std::enable_if_t<std::is_constructible<T
 
    public:
     template <typename... Args>
-    static std::shared_ptr<TObj> New(Args &&... args) {
+    static std::shared_ptr<TObj> Create(Args &&... args) {
         return std::shared_ptr<TObj>(new TObj(std::forward<Args>(args)...));
     }
+    static std::shared_ptr<TObj> Create(std::string const &k) { return Factory<TObj>::Create(k); }
+//    static std::shared_ptr<TObj> Create(std::shared_ptr<const simpla::data::DataEntry> const &cfg);
 };
-
 #define SP_REGISTER_CREATOR(_BASE_NAME_, _CLASS_NAME_) \
     bool _CLASS_NAME_::_is_registered =                \
         simpla::Factory<_BASE_NAME_>::RegisterCreator<_CLASS_NAME_>(_CLASS_NAME_::RegisterName());

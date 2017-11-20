@@ -7,12 +7,12 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/utilities/Constants.h>
-#include "Body.h"
+#include "gBody.h"
 namespace simpla {
 namespace geometry {
 
-struct gWedge : public ParametricBody {
-    SP_GEO_ENTITY_HEAD(GeoEntity, gWedge, Wedge)
+struct gWedge : public gBody {
+    SP_GEO_ENTITY_HEAD(gBody, gWedge, Wedge)
 
     explicit gWedge(vector_type const &extents, Real ltx) : m_Extents_(extents), m_LTX_(ltx) {}
 

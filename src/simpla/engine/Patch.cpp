@@ -17,7 +17,7 @@ Patch::Patch(std::shared_ptr<const MeshBlock> const &mblk) : Patch() { m_pimpl_-
 id_type Patch::GetGUID() const { return m_pimpl_->m_mesh_block_->GetGUID(); }
 
 std::shared_ptr<data::DataEntry> Patch::Serialize() const {
-    auto res = data::DataEntry::New(data::DataEntry::DN_TABLE);
+    auto res = data::DataEntry::Create(data::DataEntry::DN_TABLE);
     res->Set("MeshBlock", m_pimpl_->m_mesh_block_->Serialize());
 
     auto attrs = res->CreateNode("Attributes", data::DataEntry::DN_TABLE);

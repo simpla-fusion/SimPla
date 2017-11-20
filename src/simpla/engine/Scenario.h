@@ -56,7 +56,7 @@ class Scenario : public EngineObject {
     box_type FitBoundingBox() const;
     //    template <typename TDomain, typename... Args>
     //    std::shared_ptr<TDomain> NewDomain(std::string const &k, Args &&... args) {
-    //        auto res = TDomain::New(std::forward<Args>(args)...);
+    //        auto res = TDomain::Create(std::forward<Args>(args)...);
     //        SetDomain(k, res);
     //        return res;
     //    };

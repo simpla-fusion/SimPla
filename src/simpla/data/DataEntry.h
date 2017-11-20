@@ -52,11 +52,10 @@ class DataEntry : public std::enable_shared_from_this<DataEntry> {
     virtual ~DataEntry();
     virtual std::shared_ptr<DataEntry> Copy() const;
 
-    static std::shared_ptr<DataEntry> New(std::string const& uri = "");
-    static std::shared_ptr<DataEntry> New(eNodeType e_type, std::string const& uri = "");
-    static std::shared_ptr<DataEntry> New(std::shared_ptr<DataEntity> const& v) {
-        return std::shared_ptr<DataEntry>(new DataEntry(v));
-    }
+    static std::shared_ptr<DataEntry> Create(std::string const& uri = "");
+    static std::shared_ptr<DataEntry> Create(eNodeType e_type, std::string const& uri = "");
+    static std::shared_ptr<DataEntry> New(std::shared_ptr<DataEntity> const& v);
+
     eNodeType type() const;
     std::shared_ptr<const DataEntry> GetRoot() const {
         return GetParent() == nullptr ? const_cast<DataEntry*>(this)->shared_from_this() : GetParent()->GetRoot();
@@ -167,7 +166,7 @@ class DataEntry : public std::enable_shared_from_this<DataEntry> {
 
     //    template <typename U>
     //    size_type SetValue(std::string const& s, U const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {
-    //        return Set(s, DataEntry::New(DataBlock::New(u)));
+    //        return Set(s, DataEntry::New(DataBlock::Create(u)));
     //    };
     //    template <typename U>
     //    size_type AddValue(std::string const& s, U const& u, ENABLE_IF(!traits::is_light_data<U>::value)) {
@@ -296,12 +295,7 @@ inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue(std
     static std::shared_ptr<this_type> New(Args&&... args) {                                                          \
         return TryNew(std::is_constructible<this_type, Args...>(), std::forward<Args>(args)...);                     \
     }                                                                                                                \
-    static std::shared_ptr<this_type> New(std::string const& k) {                                                    \
-        return std::dynamic_pointer_cast<this_type>(Serializable::Create(k));                                        \
-    }                                                                                                                \
-    static std::shared_ptr<this_type> New(std::shared_ptr<simpla::data::DataEntry> const& cfg) {                     \
-        return std::dynamic_pointer_cast<this_type>(Serializable::Create(cfg));                                      \
-    }                                                                                                                \
+                                                                                                                     \
     std::shared_ptr<this_type> Self() { return std::dynamic_pointer_cast<this_type>(shared_from_this()); }           \
     std::shared_ptr<const this_type> Self() const {                                                                  \
         return std::dynamic_pointer_cast<const this_type>(shared_from_this());                                       \

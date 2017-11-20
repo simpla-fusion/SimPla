@@ -14,24 +14,18 @@ void Serializable::Deserialize(std::shared_ptr<const DataEntry> const &cfg) {
     if (auto *config = dynamic_cast<Configurable *>(this)) { config->db()->Set(cfg); }
 }
 std::shared_ptr<DataEntry> Serializable::Serialize() const {
-    auto res = DataEntry::New(DataEntry::DN_TABLE);
+    auto res = DataEntry::Create(DataEntry::DN_TABLE);
     res->SetValue("_TYPE_", FancyTypeName());
     if (auto const *config = dynamic_cast<const Configurable *>(this)) { res->Set(config->db()); }
     return res;
 };
 
-std::shared_ptr<Serializable> Serializable::Create(std::string const &cfg) {
-    return Factory<Serializable>::Create(cfg);
-}
-std::shared_ptr<Serializable> Serializable::Create(std::shared_ptr<const DataEntry> const &cfg) {
-    return Create(cfg->GetValue<std::string>("_TYPE_", ""));
-}
 std::ostream &operator<<(std::ostream &os, Serializable const &obj) {
     os << *obj.Serialize();
     return os;
 }
 std::istream &operator>>(std::istream &is, Serializable &obj) {
-    auto db = DataEntry::New(DataEntry::DN_TABLE);
+    auto db = DataEntry::Create(DataEntry::DN_TABLE);
     is >> *db;
     obj.Deserialize(db);
     return is;

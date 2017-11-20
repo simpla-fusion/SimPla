@@ -37,6 +37,12 @@ std::shared_ptr<simpla::data::DataEntry> Chart::Serialize() const {
     res->Set("Axis", m_axis_.Serialize());
     return res;
 };
+std::shared_ptr<Chart> Chart::Create(std::string const &k) { return simpla::Factory<Chart>::Create(k); }
+std::shared_ptr<Chart> Chart::Create(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
+    auto res = simpla::Factory<Chart>::Create(cfg->GetValue<std::string>("_REGISTER_NAME_", ""));
+    res->Deserialize(cfg);
+    return res;
+}
 int Chart::GetNDIMS() const { return 3; }
 bool Chart::IsValid() const { return m_is_valid_; }
 void Chart::Update() {
@@ -44,6 +50,13 @@ void Chart::Update() {
     m_grid_width_ = GetGridWidth(GetLevel());
 };
 void Chart::TearDown() { m_is_valid_ = false; };
+
+virtual Axis Chart::GetLocalAxis(point_type const &o) const {
+    auto axis = m_axis_;
+    axis.SetOrigin(o);
+    return std::move(axis);
+}
+
 std::shared_ptr<Face> Chart::GetCoordinateFace(point_type const &o, int normal, Real u, Real v) const {
     return std::dynamic_pointer_cast<Face>(
         MakeSweep(GetCoordinateEdge(o, (normal + 1) % 3, u), GetCoordinateEdge(o, (normal + 2) % 3, v)));

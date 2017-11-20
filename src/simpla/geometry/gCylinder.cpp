@@ -7,6 +7,6 @@
 namespace simpla {
 namespace geometry {
 SP_GEO_ENTITY_REGISTER(gCylinder)
-SP_GEO_ENTITY_REGISTER(gCylinderSurface)
+SP_GEO_ENTITY_REGISTER(gCylindricalSurface)
 }  // namespace geometry {
 }  // namespace simpla {

@@ -6,11 +6,11 @@
 #define SIMPLA_GBOX_H
 
 #include <simpla/SIMPLA_config.h>
-#include "Body.h"
+#include "gBody.h"
 namespace simpla {
 namespace geometry {
 
-struct gBox : public ParametricBody {
+struct gBox : public gBody {
     SP_GEO_ENTITY_HEAD(GeoEntity, gBox, Box)
     explicit gBox(vector_type const &extents) : m_Extents_(extents) {}
     point_type xyz(Real u, Real v, Real w) const override { return point_type{u, v, w}; }

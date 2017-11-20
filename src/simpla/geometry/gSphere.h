@@ -6,14 +6,14 @@
 #define SIMPLA_GSPHERE_H
 
 #include <simpla/SIMPLA_config.h>
-#include "Body.h"
+#include "gBody.h"
 #include "gSurface.h"
 
 namespace simpla {
 namespace geometry {
 
-struct gSphere : public ParametricBody {
-    SP_GEO_ENTITY_HEAD(ParametricBody, gSphere, Sphere)
+struct gSphere : public gBody {
+    SP_GEO_ENTITY_HEAD(gBody, gSphere, Sphere)
     explicit gSphere(Real radius) : m_Radius_(radius){};
     SP_PROPERTY(Real, Radius) = 1.0;
     point_type xyz(Real r, Real phi, Real theta) const override {
@@ -21,8 +21,8 @@ struct gSphere : public ParametricBody {
         return point_type{r * cos_theta * std::cos(phi), r * cos_theta * std::sin(phi), r * std::sin(theta)};
     };
 };
-struct gSphereSurface : public ParametricSurface {
-    SP_GEO_ENTITY_HEAD(ParametricSurface, gSphereSurface, SphereSurface)
+struct gSphereSurface : public gSurface {
+    SP_GEO_ENTITY_HEAD(gSurface, gSphereSurface, SphereSurface)
     explicit gSphereSurface(Real radius) : m_Radius_(radius){};
     SP_PROPERTY(Real, Radius) = 1.0;
     point_type xyz(Real phi, Real theta) const override {

@@ -12,7 +12,7 @@ namespace data {
 static boost::hash<boost::uuids::uuid> g_obj_hasher;
 static boost::uuids::random_generator g_uuid_generator;
 
-Configurable::Configurable() : m_db_(data::DataEntry::New(data::DataEntry::DN_TABLE)) {
+Configurable::Configurable() : m_db_(data::DataEntry::Create(data::DataEntry::DN_TABLE)) {
     SetUUID(g_obj_hasher(g_uuid_generator()));
 };
 Configurable::Configurable(Configurable const &other) : Configurable() { m_db_->Set(other.m_db_); }

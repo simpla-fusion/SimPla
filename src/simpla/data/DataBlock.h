@@ -98,7 +98,7 @@ std::shared_ptr<DataBlock<V>> DataBlock<V>::New(Args &&... args) {
 //   public:
 //    ~DataMultiArray() override = default;
 //
-//    static std::shared_ptr<DataMultiArray> New(unsigned long depth) {
+//    static std::shared_ptr<DataMultiArray> Create(unsigned long depth) {
 //        return std::shared_ptr<DataMultiArray>(new DataMultiArray(depth));
 //    }
 //

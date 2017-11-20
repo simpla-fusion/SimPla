@@ -21,7 +21,7 @@ void Edge::SetParameterRange(Real umin, Real umax) { m_range_ = std::tie(umin, u
 std::tuple<Real, Real> const &Edge::GetParameterRange() const { return m_range_; };
 void Edge::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
-    m_curve_ = gCurve::New(cfg->Get("gCurve"));
+    m_curve_ = gCurve::Create(cfg->Get("gCurve"));
     std::get<0>(m_range_) = cfg->GetValue("MinU", std::get<0>(m_range_));
     std::get<1>(m_range_) = cfg->GetValue("MaxU", std::get<1>(m_range_));
 };

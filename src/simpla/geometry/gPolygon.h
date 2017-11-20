@@ -8,16 +8,16 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <vector>
-#include "BoundedCurve.h"
+#include "gBoundedCurve.h"
 namespace simpla {
 namespace geometry {
 
-struct gPolygon2D : public BoundedCurve2D {
-    SP_GEO_ENTITY_HEAD(BoundedCurve2D, gPolygon2D, Polygon2D)
+struct gPolygon2D : public gBoundedCurve2D {
+    SP_GEO_ENTITY_HEAD(gBoundedCurve2D, gPolygon2D, Polygon2D)
 };
 
-struct gPolygon : public BoundedCurve3D {
-    SP_GEO_ENTITY_HEAD(BoundedCurve3D, gPolygon, Polygon)
+struct gPolygon : public gBoundedCurve {
+    SP_GEO_ENTITY_HEAD(gBoundedCurve, gPolygon, Polygon)
 };
 }  // namespace geometry
 }  // namespace simpla

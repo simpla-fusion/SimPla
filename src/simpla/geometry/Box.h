@@ -38,7 +38,7 @@ struct Box : public Solid {
     //    override;
     //    std::shared_ptr<gSurface> GetIntersectionion(std::shared_ptr<const gSurface> const &g, Real tolerance) const
     //    override;
-    //    std::shared_ptr<Body> GetIntersectionion(std::shared_ptr<const Body> const &g, Real tolerance) const override;
+    //    std::shared_ptr<gBody> GetIntersectionion(std::shared_ptr<const gBody> const &g, Real tolerance) const override;
 };
 
 }  // namespace geometry

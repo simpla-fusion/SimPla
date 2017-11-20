@@ -20,8 +20,12 @@ class EngineObject : public data::Configurable,
    public:
     EngineObject();
     ~EngineObject() override;
-    EngineObject(EngineObject const &);
+    EngineObject(EngineObject const &) = delete;
     virtual std::shared_ptr<EngineObject> Copy() const;
+
+    static std::shared_ptr<EngineObject> Create(std::string const &k);
+    static std::shared_ptr<EngineObject> Create(std::shared_ptr<const simpla::data::DataEntry> const &cfg);
+
     void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
     void lock();

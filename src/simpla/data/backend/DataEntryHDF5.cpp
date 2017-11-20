@@ -83,13 +83,13 @@ std::shared_ptr<DataEntry> DataEntryHDF5::CreateNode(eNodeType e_type) const {
     std::shared_ptr<DataEntry> res = nullptr;
     switch (e_type) {
         case DN_ENTITY:
-            res = DataEntry::New();
+            res = DataEntry::Create();
             break;
         case DN_ARRAY:
-            res = DataEntryHDF5::New(DN_ARRAY);
+            res = DataEntryHDF5::Create(DN_ARRAY);
             break;
         case DN_TABLE:
-            res = DataEntryHDF5::New(DN_TABLE);
+            res = DataEntryHDF5::Create(DN_TABLE);
             break;
         case DN_FUNCTION:
             break;

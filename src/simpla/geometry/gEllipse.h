@@ -7,6 +7,7 @@
 
 #include <simpla/utilities/Constants.h>
 #include "gConic.h"
+#include "gPlane.h"
 #include "gSurface.h"
 namespace simpla {
 namespace geometry {

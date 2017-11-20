@@ -65,8 +65,8 @@
 #include <XCAFDoc_ShapeTool.hxx>
 #include <gp_Pln.hxx>
 #include <gp_Quaternion.hxx>
-#include "../Body.h"
-#include "../BoundedCurve.h"
+#include "simpla/geometry/gBody.h"
+#include "simpla/geometry/gBoundedCurve.h"
 #include "../Box.h"
 #include "simpla/geometry/gCurve.h"
 #include "../Edge.h"
@@ -247,7 +247,7 @@ Handle(Geom_Surface) make_geo_surface(std::shared_ptr<const Face> const &surface
 template <>
 std::shared_ptr<TopoDS_Edge> OCEShapeCast<TopoDS_Edge, Edge>::eval(std::shared_ptr<const Edge> const &g) {
     std::shared_ptr<TopoDS_Edge> res = nullptr;
-    if (auto bc = std::dynamic_pointer_cast<const BoundedCurve>(g)) {
+    if (auto bc = std::dynamic_pointer_cast<const gBoundedCurve>(g)) {
         BRepBuilderAPI_MakeWire wireMaker;
         auto num = bc->size() - 2;
         Handle(TColgp_HArray1OfPnt) gp_array = new TColgp_HArray1OfPnt(1, static_cast<Standard_Integer>(num));
@@ -316,7 +316,7 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, GeoObject>::eval(std::s
     //    else if (auto s = std::dynamic_pointer_cast<gSurface const>(g)) {
     //        res = oce_cast<TopoDS_Face>(s);
     //    }
-    //    else if (auto b = std::dynamic_pointer_cast<Body const>(g)) {
+    //    else if (auto b = std::dynamic_pointer_cast<gBody const>(g)) {
     //        res = oce_cast<TopoDS_Solid>(b);
     //    }
     else {
