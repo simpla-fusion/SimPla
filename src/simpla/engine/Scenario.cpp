@@ -174,11 +174,8 @@ void Scenario::DoSetUp() {
             item.second->SetUp();
             for (auto *attr : item.second->GetAttributes()) {
                 auto res = m_pimpl_->m_attrs_.emplace(attr->GetName(), attr->CreateNew());
-                CHECK(attr->GetName());
                 ASSERT(res.first->second->CheckType(*attr));
                 res.first->second->Link(attr);
-
-                //                attr->SetDB(res.first->second->db());
             }
         }
     }

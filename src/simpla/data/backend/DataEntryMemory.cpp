@@ -14,6 +14,9 @@ SP_REGISTER_CREATOR(DataEntry, DataEntryMemory);
 DataEntryMemory::DataEntryMemory(DataEntry::eNodeType e_type) : base_type(e_type){};
 DataEntryMemory::DataEntryMemory(DataEntryMemory const &other) : base_type(other), m_table_(other.m_table_){};
 DataEntryMemory::~DataEntryMemory() { Disconnect(); };
+std::shared_ptr<DataEntry> DataEntryMemory::Copy() const {
+    return std::shared_ptr<DataEntry>(new DataEntryMemory(*this));
+}
 
 size_type DataEntryMemory::size() const { return m_table_.size(); }
 
@@ -34,7 +37,7 @@ size_type DataEntryMemory::Set(std::string const &uri, const std::shared_ptr<Dat
     while (obj != nullptr && !k.empty()) {
         size_type tail = k.find(SP_URL_SPLIT_CHAR);
         if (tail == std::string::npos) {
-            obj->m_table_[k] = v->Copy();  // insert_or_assign
+            obj->m_table_[k] = v;  // insert_or_assign
             count = v->size();
             break;
         } else {

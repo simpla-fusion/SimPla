@@ -80,22 +80,19 @@ class DataEntry : public std::enable_shared_from_this<DataEntry> {
     virtual std::shared_ptr<const DataEntity> GetEntity() const;
     virtual std::shared_ptr<DataEntity> GetEntity();
     virtual void SetEntity(std::shared_ptr<DataEntity> const& e);
-    void SetEntity(std::shared_ptr<const DataEntity> const& e);
-
     virtual size_type Set(std::string const& uri, const std::shared_ptr<DataEntry>& v);
     virtual size_type Set(index_type s, const std::shared_ptr<DataEntry>& v);
     virtual size_type Set(const std::shared_ptr<DataEntry>& v);
-    size_type Set(std::string const& uri, const std::shared_ptr<const DataEntry>& v);
-    size_type Set(index_type s, const std::shared_ptr<const DataEntry>& v);
-    size_type Set(const std::shared_ptr<const DataEntry>& v);
+    virtual size_type Set(std::string const& k, const std::shared_ptr<const DataEntry>& v) { return Set(k, v->Copy()); }
+    virtual size_type Set(index_type k, const std::shared_ptr<const DataEntry>& v) { return Set(k, v->Copy()); }
+    virtual size_type Set(const std::shared_ptr<const DataEntry>& v) { return Set(v->Copy()); }
 
     virtual size_type Add(index_type s, const std::shared_ptr<DataEntry>& v);
     virtual size_type Add(std::string const& uri, const std::shared_ptr<DataEntry>& v);
     virtual size_type Add(const std::shared_ptr<DataEntry>& v);
-    size_type Add(std::string const& uri, const std::shared_ptr<const DataEntry>& v);
-    size_type Add(index_type s, const std::shared_ptr<const DataEntry>& v);
-    size_type Add(const std::shared_ptr<const DataEntry>& v);
-
+    virtual size_type Add(index_type k, const std::shared_ptr<const DataEntry>& v) { return Add(k, v->Copy()); }
+    virtual size_type Add(std::string const& k, const std::shared_ptr<const DataEntry>& v) { return Add(k, v->Copy()); }
+    virtual size_type Add(const std::shared_ptr<const DataEntry>& v) { return Add(v->Copy()); }
     virtual size_type Delete(std::string const& s);
     virtual std::shared_ptr<const DataEntry> Get(std::string const& uri) const;
     virtual std::shared_ptr<DataEntry> Get(std::string const& uri);

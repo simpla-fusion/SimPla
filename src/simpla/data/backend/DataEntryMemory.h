@@ -16,6 +16,8 @@ struct DataEntryMemory : public DataEntry {
     SP_DATA_ENTITY_HEAD(DataEntry, DataEntryMemory, mem)
 
    public:
+    std::shared_ptr<DataEntry> Copy() const override;
+
     size_type Add(const std::shared_ptr<DataEntry>& v) override;
     using base_type::Set;
     using base_type::Add;

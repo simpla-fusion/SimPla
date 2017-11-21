@@ -157,13 +157,12 @@ DataEntry::eNodeType DataEntry::type() const { return m_type_; }
 size_type DataEntry::size() const { return m_entity_ == nullptr ? 0 : 1; }
 std::shared_ptr<DataEntry> DataEntry::CreateNode(eNodeType e_type) const { return DataEntry::New(e_type, ""); };
 std::shared_ptr<DataEntry> DataEntry::CreateNode(std::string const& url, eNodeType e_type) {
-    auto node = DataEntry::New(e_type, "");
+    auto node = DataEntry::New(e_type);
     Set(url, node);
     return node;
 };
 std::shared_ptr<const DataEntity> DataEntry::GetEntity() const { return m_entity_; }
 std::shared_ptr<DataEntity> DataEntry::GetEntity() { return m_entity_; }
-void DataEntry::SetEntity(std::shared_ptr<const DataEntity> const& e) { m_entity_ = e->Copy(); }
 void DataEntry::SetEntity(std::shared_ptr<DataEntity> const& e) { m_entity_ = e; }
 
 std::shared_ptr<const DataEntity> DataEntry::GetEntity(int N) const {
@@ -177,22 +176,10 @@ std::shared_ptr<DataEntity> DataEntry::GetEntity(int N) {
     return res;
 }
 
-size_type DataEntry::Set(std::string const& uri, const std::shared_ptr<DataEntry>& v) {
-    UNIMPLEMENTED;
-    return 0;
-}
-size_type DataEntry::Set(std::string const& uri, const std::shared_ptr<const DataEntry>& v) {
-    return Set(uri, v->Copy());
-}
+size_type DataEntry::Set(std::string const& uri, const std::shared_ptr<DataEntry>& v) { return 0; }
 size_type DataEntry::Set(index_type s, std::shared_ptr<DataEntry> const& v) { return Set(std::to_string(s), v); }
-size_type DataEntry::Set(index_type s, std::shared_ptr<const DataEntry> const& v) { return Set(s, v->Copy()); }
-
 size_type DataEntry::Add(std::string const& uri, const std::shared_ptr<DataEntry>& v) { return 0; }
-size_type DataEntry::Add(std::string const& uri, const std::shared_ptr<const DataEntry>& v) {
-    return Add(uri, v->Copy());
-}
 size_type DataEntry::Add(index_type s, std::shared_ptr<DataEntry> const& v) { return Add(std::to_string(s), v); }
-size_type DataEntry::Add(index_type s, std::shared_ptr<const DataEntry> const& v) { return Add(s, v->Copy()); }
 size_type DataEntry::Delete(std::string const& s) { return 0; }
 size_type DataEntry::Delete(index_type s) { return Delete(std::to_string(s)); }
 std::shared_ptr<const DataEntry> DataEntry::Get(index_type s) const { return Get(std::to_string(s)); }
@@ -208,7 +195,6 @@ void DataEntry::Foreach(std::function<void(std::string const&, std::shared_ptr<D
 }
 
 size_type DataEntry::Add(const std::shared_ptr<DataEntry>& v) { return Add(size(), v); }
-size_type DataEntry::Add(const std::shared_ptr<const DataEntry>& v) { return Add(v->Copy()); }
 
 size_type DataEntry::Set(const std::shared_ptr<DataEntry>& v) {
     size_type count = 0;
@@ -217,7 +203,6 @@ size_type DataEntry::Set(const std::shared_ptr<DataEntry>& v) {
     }
     return count;
 }
-size_type DataEntry::Set(const std::shared_ptr<const DataEntry>& v) { return Set(v->Copy()); }
 size_type DataEntry::SetValue(KeyValue const& kv) {
     ASSERT(type() == DN_TABLE);
     return Set(kv.m_key_, kv.m_node_);

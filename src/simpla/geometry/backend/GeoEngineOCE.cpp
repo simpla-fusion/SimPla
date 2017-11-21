@@ -65,17 +65,13 @@
 #include <XCAFDoc_ShapeTool.hxx>
 #include <gp_Pln.hxx>
 #include <gp_Quaternion.hxx>
-#include "simpla/geometry/gBody.h"
-#include "simpla/geometry/gBoundedCurve.h"
 #include "../Box.h"
-#include "simpla/geometry/gCurve.h"
 #include "../Edge.h"
 #include "../Face.h"
 #include "../GeoEntity.h"
 #include "../GeoObject.h"
 #include "../IntersectionCurveSurface.h"
 #include "../Revolution.h"
-#include "simpla/geometry/gSurface.h"
 #include "../gCircle.h"
 #include "../gEllipse.h"
 #include "../gHyperbola.h"
@@ -86,6 +82,10 @@
 #include "../gSphere.h"
 #include "../gTorus.h"
 #include "../gWedge.h"
+#include "simpla/geometry/gBody.h"
+#include "simpla/geometry/gBoundedCurve.h"
+#include "simpla/geometry/gCurve.h"
+#include "simpla/geometry/gSurface.h"
 
 namespace simpla {
 namespace geometry {
@@ -750,6 +750,7 @@ void GeoEngineOCE::FlushFile() {
     };
 };
 void GeoEngineOCE::Save(std::shared_ptr<const GeoObject> const &geo, std::string const &name_s) const {
+    if (geo == nullptr) { return; }
     ASSERT(!m_pimpl_->m_prefix_.empty());
     CHECK(*geo->Serialize());
     auto oce_shape = GeoObjectOCE(geo).GetShape();
