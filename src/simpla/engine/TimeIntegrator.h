@@ -31,20 +31,11 @@ class TimeIntegrator : public Scenario {
 
     SP_PROPERTY(size_type, MaxStep);
     SP_PROPERTY(Real, CFL);
+    SP_PROPERTY(Real, TimeNow);
+    SP_PROPERTY(Real, TimeEnd);
+    SP_PROPERTY(Real, TimeStep);
 
     Real GetTime() const override { return GetTimeNow(); };
-
-    Real GetTimeNow() const;
-    void SetTimeNow(Real);
-    Real GetTimeEnd() const;
-    void SetTimeEnd(Real);
-    Real GetTimeStep() const;
-    void SetTimeStep(Real);
-
-   private:
-    Real m_time_now_ = 0.0;
-    Real m_time_end_ = 1.0;
-    Real m_time_step_ = 1.0;
 };
 }  // namespace engine
 }  // namespace simpla

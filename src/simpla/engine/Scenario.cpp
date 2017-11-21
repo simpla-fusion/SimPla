@@ -33,18 +33,14 @@ Scenario::~Scenario() {
 
 std::shared_ptr<data::DataEntry> Scenario::Serialize() const {
     auto res = base_type::Serialize();
-    res->SetValue("Name", GetName());
     res->SetValue("Time", GetTime());
-
     res->Set("Atlas", GetAtlas()->Serialize());
 
-    auto attributes = data::DataEntry::New(data::DataEntry::DN_TABLE);
+    auto attributes = res->CreateNode("Attributes", data::DataEntry::DN_TABLE);
     for (auto const &item : m_pimpl_->m_attrs_) { attributes->Set(item.first, item.second->Serialize()); }
-    res->Set("Attributes", attributes);
 
-    auto domain = data::DataEntry::New(data::DataEntry::DN_TABLE);
+    auto domain = res->CreateNode("Domains", data::DataEntry::DN_TABLE);
     for (auto const &item : m_pimpl_->m_domains_) { domain->Set(item.first, item.second->Serialize()); }
-    res->Set("Domains", domain);
 
     //    auto patches = data::DataEntry::New(data::DataEntry::DN_TABLE);
     //    for (auto const &item : m_pimpl_->m_patches_) { patches->Set(item.first, item.second->Serialize()); }
@@ -73,8 +69,8 @@ void Scenario::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) {
 
 void Scenario::CheckPoint(size_type step_num) const {
     std::ostringstream os;
-    os << db()->GetValue<std::string>("CheckPointFilePrefix", GetName()) << std::setfill('0') << std::setw(8)
-       << GetStepNumber() << "." << db()->GetValue<std::string>("CheckPointFileSuffix", "xmf");
+    os << GetProperty<std::string>("CheckPointFilePrefix", GetName()) << std::setfill('0') << std::setw(8)
+       << GetStepNumber() << "." << GetProperty<std::string>("CheckPointFileSuffix", "xmf");
 
     auto dump = data::DataEntry::New(os.str());
     //    dump->Set("Atlas", GetAtlas()->Serialize());
@@ -85,7 +81,7 @@ void Scenario::CheckPoint(size_type step_num) const {
         d_patch->Set("MeshBlock", patch->GetMeshBlock()->Serialize());
         auto d_attrs = d_patch->CreateNode("Attributes", data::DataEntry::DN_TABLE);
         for (auto const &attr : m_pimpl_->m_attrs_) {
-            auto check_point = attr.second->db()->GetValue<size_type>("CheckPoint", 0);
+            auto check_point = attr.second->GetProperty<size_type>("CheckPoint", 0);
             if (check_point != 0 && step_num % check_point == 0) {
                 if (auto data_blk = patch->GetDataBlock(attr.first)) { d_attrs->Set(attr.first, data_blk); }
             }
@@ -98,15 +94,15 @@ void Scenario::CheckPoint(size_type step_num) const {
 
 void Scenario::Dump() const {
     std::ostringstream os;
-    auto prefix = db()->GetValue<std::string>("DumpFilePrefix", GetName());
-    auto suffix = db()->GetValue<std::string>("DumpFileSuffix", "h5");
+    auto prefix = GetProperty<std::string>("DumpFilePrefix", GetName());
+    auto suffix = GetProperty<std::string>("DumpFileSuffix", "h5");
     os << prefix << "_dump_" << std::setfill('0') << std::setw(8) << GetStepNumber() << "." << suffix;
     VERBOSE << std::setw(20) << "Dump : " << os.str();
     auto dump = data::DataEntry::New(os.str());
     dump->Set(Serialize());
     dump->Flush();
-    auto geo_prefix = db()->GetValue<std::string>("GeoFilePrefix", GetName());
-    auto geo_suffix = db()->GetValue<std::string>("GeoFileSuffix", "stl");
+    auto geo_prefix = GetProperty<std::string>("GeoFilePrefix", GetName());
+    auto geo_suffix = GetProperty<std::string>("GeoFileSuffix", "stl");
     GEO_ENGINE->OpenFile(prefix + "." + geo_suffix);
     for (auto const &d : m_pimpl_->m_domains_) { GEO_ENGINE->Save(d.second->GetBoundary(), d.first); }
     GEO_ENGINE->CloseFile();
@@ -135,7 +131,7 @@ void Scenario::Synchronize(int level) {
 
         if (GLOBAL_COMM.rank() == 0) {
             for (auto &item : m_pimpl_->m_attrs_) {
-                if (item.second->db()->Check("LOCAL")) { continue; }
+                if (item.second->CheckProperty("LOCAL")) { continue; }
                 parallel::bcast_string(item.first);
                 m_pimpl_->m_atlas_->SyncGlobal(item.first, item.second->value_type_info(), item.second->GetNumOfSub(),
                                                level);
@@ -146,7 +142,7 @@ void Scenario::Synchronize(int level) {
                 auto key = parallel::bcast_string();
                 if (key.empty()) { break; }
                 auto attr = m_pimpl_->m_attrs_.find(key);
-                if (attr == m_pimpl_->m_attrs_.end() || attr->second->db()->Check("LOCAL")) {
+                if (attr == m_pimpl_->m_attrs_.end() || attr->second->CheckProperty("LOCAL")) {
                     RUNTIME_ERROR << "Can not sync local/null attribute \"" << key << "\".";
                 }
                 m_pimpl_->m_atlas_->SyncGlobal(attr->first, attr->second->value_type_info(),
@@ -156,7 +152,7 @@ void Scenario::Synchronize(int level) {
         GLOBAL_COMM.barrier();
     } else {
         for (auto &item : m_pimpl_->m_attrs_) {
-            if (item.second->db()->Check("LOCAL")) { continue; }
+            if (item.second->CheckProperty("LOCAL")) { continue; }
             m_pimpl_->m_atlas_->SyncGlobal(item.first, item.second->value_type_info(), item.second->GetNumOfSub(),
                                            level);
         };
@@ -178,9 +174,11 @@ void Scenario::DoSetUp() {
             item.second->SetUp();
             for (auto *attr : item.second->GetAttributes()) {
                 auto res = m_pimpl_->m_attrs_.emplace(attr->GetName(), attr->CreateNew());
+                CHECK(attr->GetName());
                 ASSERT(res.first->second->CheckType(*attr));
-                res.first->second->db()->Set(attr->db());
-                attr->SetDB(res.first->second->db());
+                res.first->second->Link(attr);
+
+                //                attr->SetDB(res.first->second->db());
             }
         }
     }

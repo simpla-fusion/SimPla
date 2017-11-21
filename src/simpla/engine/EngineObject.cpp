@@ -53,7 +53,7 @@ std::shared_ptr<Patch> EngineObject::Pop() const { return Patch::New(); }
 void EngineObject::DoInitialize() {}
 void EngineObject::DoSetUp() {}
 void EngineObject::DoUpdate() {}
-void EngineObject::DoTearDown() { db()->Clear(); }
+void EngineObject::DoTearDown() {}
 void EngineObject::DoFinalize() {}
 
 void EngineObject::Initialize() {

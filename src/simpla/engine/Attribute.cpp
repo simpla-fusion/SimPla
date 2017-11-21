@@ -185,11 +185,11 @@ std::shared_ptr<Attribute> Attribute::New(std::shared_ptr<simpla::data::DataEntr
 void Attribute::Register(AttributeGroup *attr_b) {
     if (attr_b == nullptr) {
         static std::hash<std::string> s_hasher;
-        auto id = s_hasher(db()->GetValue<std::string>("name", "unnamed") +  //
-                           "." + value_type_info().name() +                  //
-                           "." + std::to_string(GetIFORM()) +                //
+        auto id = s_hasher(GetProperty<std::string>("name", "unnamed") +  //
+                           "." + value_type_info().name() +               //
+                           "." + std::to_string(GetIFORM()) +             //
                            "." + std::to_string(GetRank()));
-        db()->SetValue("DescId", id);
+        SetProperty("DescId", id);
         for (auto *item : m_pimpl_->m_bundle_) { Register(item); }
     } else {
         auto res = m_pimpl_->m_bundle_.emplace(attr_b);

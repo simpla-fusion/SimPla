@@ -117,9 +117,8 @@ struct Attribute : public data::Configurable, public data::Serializable {
     template <typename THost, typename... Args>
     explicit Attribute(THost host, Args &&... args) : Attribute() {
         Register(host);
-        db()->SetValue(std::forward<Args>(args)...);
+        SetProperties(std::forward<Args>(args)...);
     };
-    static std::shared_ptr<this_type> Create(std::shared_ptr<simpla::data::DataEntry> const &cfg);
 
     virtual std::shared_ptr<Attribute> Copy() const = 0;
     virtual std::shared_ptr<Attribute> CreateNew() const = 0;

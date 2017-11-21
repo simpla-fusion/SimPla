@@ -5,8 +5,8 @@
 
 #include <simpla/algebra/nTuple.h>
 #include <simpla/data/Data.h>
-#include <simpla/geometry/gBoundedCurve.h>
 #include <simpla/geometry/Revolution.h>
+#include <simpla/geometry/gBoundedCurve.h>
 #include <simpla/geometry/gPolygon.h>
 #include <simpla/numeric/Interpolation.h>
 #include <simpla/numeric/find_root.h>
@@ -90,7 +90,7 @@ void Tokamak::ReadGFile(std::string const &fname) {
 
     inFileStream_.get(str_buff, 48);
 
-    db()->SetValue("Description", std::string(str_buff));
+    SetProperty<std::string>("Description", str_buff);
 
     inFileStream_ >> std::setw(4) >> idum >> nw >> nh;
 

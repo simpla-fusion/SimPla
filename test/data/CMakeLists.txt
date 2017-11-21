@@ -13,6 +13,13 @@ target_link_libraries(SPObject_test
         -Wl,--no-whole-archive
 
         )
+add_executable(Configurable_dummy  Configurable_dummy.cpp)
+target_link_libraries(Configurable_dummy
+        -Wl,--whole-archive
+        data data_backend
+        -Wl,--no-whole-archive
+
+        )
 #SET(XML2_DIR ${PROJECT_SOURCE_DIR}/external_project/xdmf)
 #SET(XDMF_DIR ${PROJECT_SOURCE_DIR}/external_project/xdmf)
 #FIND_PACKAGE(XDMF)

@@ -5,7 +5,6 @@
 
 #include <iostream>
 #include "simpla/data/Data.h"
-#include "simpla/data/SPObject.h"
 using namespace simpla;
 using namespace simpla::data;
 struct DummyObject : public SPObject {
@@ -17,7 +16,7 @@ DummyObject::DummyObject() = default;
 DummyObject::~DummyObject() = default;
 
 std::shared_ptr<simpla::data::DataEntry> DummyObject::Serialize() const { return base_type::Serialize(); };
-void DummyObject::Deserialize(std::shared_ptr<data::DataEntry>const & cfg) { base_type::Deserialize(cfg); };
+void DummyObject::Deserialize(std::shared_ptr<data::DataEntry> const& cfg) { base_type::Deserialize(cfg); };
 SP_GEO_OBJECT_REGISTER(DummyObject)
 TEST(SPObject, Dummy) {
     auto objA = DummyObject::New();

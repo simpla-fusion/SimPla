@@ -10,12 +10,6 @@ namespace engine {
 
 TimeIntegrator::TimeIntegrator() = default;
 TimeIntegrator::~TimeIntegrator() = default;
-Real TimeIntegrator::GetTimeNow() const { return m_time_now_; }
-void TimeIntegrator::SetTimeNow(Real t) { m_time_now_ = t; }
-Real TimeIntegrator::GetTimeEnd() const { return m_time_end_; }
-void TimeIntegrator::SetTimeEnd(Real t) { m_time_end_ = t; }
-Real TimeIntegrator::GetTimeStep() const { return m_time_step_; }
-void TimeIntegrator::SetTimeStep(Real t) { m_time_step_ = t; }
 
 void TimeIntegrator::InitialCondition(Real time_now) {
     Update();
@@ -69,7 +63,7 @@ void TimeIntegrator::DoSetUp() {
     //        backend()->GetValue<size_type>("MaxStep", static_cast<size_type>((GetTimeEnd() - GetTimeNow()) /
     //        GetTimeStep())));
     //
-    SetTimeStep(db()->GetValue<Real>("TimeStep", (GetTimeEnd() - GetTimeNow()) / GetMaxStep()));
+    SetTimeStep((GetTimeEnd() - GetTimeNow()) / GetMaxStep());
     base_type::DoSetUp();
 }
 void TimeIntegrator::DoTearDown() { base_type::DoTearDown(); }
@@ -89,7 +83,7 @@ void TimeIntegrator::Run() {
     //    Dump();
 }
 void TimeIntegrator::NextStep() {
-    m_time_now_ += m_time_step_;
+    m_TimeNow_ += m_TimeStep_;
     base_type::NextStep();
 }
 

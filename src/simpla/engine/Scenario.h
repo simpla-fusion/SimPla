@@ -17,22 +17,18 @@ class Atlas;
 class Scenario : public EngineObject {
    public:
     SP_SERIALIZABLE_HEAD(EngineObject, Scenario)
-    ENABLE_NEW
+
     void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
-   protected:
     Scenario();
-
-   public:
     ~Scenario();
-    virtual void TagRefinementCells(Real time_now);
 
+    virtual void TagRefinementCells(Real time_now);
     virtual void Synchronize(int level);
     virtual void NextStep();
     virtual void Run();
     virtual bool Done() const;
-
     virtual void CheckPoint(size_type step_num) const;
     virtual void Dump() const;
 
@@ -92,14 +88,14 @@ class Scenario : public EngineObject {
     template <typename... Args>
     size_type ConfigureAttribute(std::string const &name, Args &&... args) {
         size_type success = 0;
-        if (auto attr = GetAttribute(name)) { success = attr->db()->SetValue(std::forward<Args>(args)...); }
+        if (auto attr = GetAttribute(name)) { success = attr->SetProperties(std::forward<Args>(args)...); }
         return success;
     }
 
     template <typename U>
     size_type ConfigureAttribute(std::string const &name, std::string const &key, U const &u) {
         size_type success = 0;
-        if (auto attr = GetAttribute(name)) { success = attr->db()->SetValue<U>(key, u); }
+        if (auto attr = GetAttribute(name)) { success = attr->SetProperty<U>(key, u); }
         return success;
     }
 

@@ -9,14 +9,11 @@
 #ifndef CORE_UTILITIES_MEMORY_POOL_H_
 #define CORE_UTILITIES_MEMORY_POOL_H_
 
-#include "simpla/SIMPLA_config.h"
-
-#include "device_common.h"
-
-#include <boost/mpl/size_t.hpp>
+#include <simpla/SIMPLA_config.h>
 #include <cstddef>
-#include <memory>
 #include <cstring>
+#include <memory>
+#include "device_common.h"
 namespace simpla {
 
 /** @ingroup toolbox
@@ -125,10 +122,11 @@ __global__ void spCUDA_Clear(T *dest, T src, size_t n) {
 template <typename T>
 int spMemoryClear(T *dest, size_t n) {
 #ifndef __CUDA__
-    memset(reinterpret_cast<void*>(dest), 0, n * sizeof(T));
+    memset(reinterpret_cast<void *>(dest), 0, n * sizeof(T));
 #else
     cudaMemset(dest, 0, n * sizeof(T));
-//    SP_CALL_DEVICE_KERNEL(simpla::detail::spCUDA_Assign, (n + NUM_OF_THREAD) / NUM_OF_THREAD, NUM_OF_THREAD, dest, 0, n);
+//    SP_CALL_DEVICE_KERNEL(simpla::detail::spCUDA_Assign, (n + NUM_OF_THREAD) / NUM_OF_THREAD, NUM_OF_THREAD, dest, 0,
+//    n);
 #endif
     return SP_SUCCESS;
 }

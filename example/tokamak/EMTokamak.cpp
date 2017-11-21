@@ -34,10 +34,10 @@ using namespace simpla::engine;
 int main(int argc, char **argv) {
     sp::Initialize(argc, argv);
     auto scenario = SimpleTimeIntegrator::New();  // SAMRAITimeIntegrator::New();
-    scenario->SetName("EAST");
-    scenario->db()->SetValue("DumpFileSuffix", "h5");
-    scenario->db()->SetValue("CheckPointFilePrefix", "EAST");
-    scenario->db()->SetValue("CheckPointFileSuffix", "xmf");
+    scenario->SetProperty<std::string>("Name", "EAST");
+    scenario->SetProperty<std::string>("DumpFileSuffix", "h5");
+    scenario->SetProperty<std::string>("CheckPointFilePrefix", "EAST");
+    scenario->SetProperty<std::string>("CheckPointFileSuffix", "xmf");
 
     scenario->GetAtlas()->NewChart<sg::csCylindrical>(point_type{0, 0, 0}, vector_type{0.1, 0.1, PI / 32});
     scenario->GetAtlas()->SetPeriodicDimensions({1, 1, 1});
