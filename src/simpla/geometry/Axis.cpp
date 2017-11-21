@@ -6,29 +6,18 @@
 namespace simpla {
 namespace geometry {
 
-void Axis::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
-    data::Serializable::Deserialize(cfg);
-    m_origin_ = cfg->GetValue("Origin", m_origin_);
-    m_axis_ = cfg->GetValue("Axis", m_axis_);
-}
-std::shared_ptr<simpla::data::DataEntry> Axis::Serialize() const {
-    auto res = data::Serializable::Serialize();
-    res->SetValue("Origin", m_origin_);
-    res->SetValue("Axis", m_axis_);
-    return res;
-}
 void Axis::Mirror(const point_type &p) { UNIMPLEMENTED; }
 void Axis::Mirror(const Axis &a1) { UNIMPLEMENTED; }
 void Axis::Rotate(const Axis &a1, Real angle) { UNIMPLEMENTED; }
 void Axis::Scale(Real s, int dir) {
     if (dir < 0) {
-        m_axis_ *= s;
+        m_Axis_ *= s;
     } else {
-        m_axis_[dir % 3] *= s;
+        m_Axis_[dir % 3] *= s;
     }
 }
-void Axis::Translate(const vector_type &v) { m_origin_ += v; }
-void Axis::Move(const point_type &p) { m_origin_ = p; }
+void Axis::Translate(const vector_type &v) { m_Origin_ += v; }
+void Axis::Move(const point_type &p) { m_Origin_ = p; }
 Axis Axis::Moved(const point_type &p) const {
     Axis res(*this);
     res.Move(p);

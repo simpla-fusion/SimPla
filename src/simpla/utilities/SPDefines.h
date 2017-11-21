@@ -28,6 +28,7 @@ typedef nTuple<Real, 3> point_type;  //!< DataType of configuration space point 
 typedef nTuple<Real, 2> point2d_type;
 typedef nTuple<Real, 3> vector_type;
 typedef nTuple<Real, 2> vector2d_type;
+typedef nTuple<Real, 3, 3> matrix_type;
 
 typedef std::tuple<point_type, point_type> box_type;  //! two corner of rectangle (or hexahedron ) , <lower ,upper>
 typedef std::tuple<point2d_type, point2d_type> box2d_type;

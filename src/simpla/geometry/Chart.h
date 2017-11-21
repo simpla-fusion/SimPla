@@ -116,7 +116,7 @@ struct Chart : public data::Serializable, public data::Configurable, public data
 
     template <typename TR>
     std::tuple<point_type, index_tuple> invert_local_coordinates(TR const &x) const {
-        //        point_type r = (x - m_origin_) / m_grid_width_;
+        //        point_type r = (x - m_Origin_) / m_grid_width_;
         //        index_tuple idx{static_cast<index_type>(r[0]), static_cast<index_type>(r[1]),
         //        static_cast<index_type>(r[2])};
         //        r -= idx;

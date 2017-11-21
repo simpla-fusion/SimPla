@@ -14,17 +14,14 @@
 namespace simpla {
 namespace engine {
 class MeshBlock : public data::Serializable {
-    typedef MeshBlock this_type;
-
-   protected:
+    SP_SERIALIZABLE_HEAD(data::Serializable, MeshBlock)
     MeshBlock();
     explicit MeshBlock(index_box_type b, int level = 0, size_type local_id = 0);
-
-   public:
-    ~MeshBlock();
+    ~MeshBlock() override;
 
     static std::shared_ptr<MeshBlock> New(std::shared_ptr<const simpla::data::DataEntry> const &);
     static std::shared_ptr<MeshBlock> New(index_box_type const &box, int level = 0, size_type local_id = 0);
+
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
     void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
 

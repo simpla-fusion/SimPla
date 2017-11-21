@@ -21,7 +21,6 @@ MeshBlock::MeshBlock(index_box_type b, int level, size_type local_id)
     : m_level_(level), m_local_id_(local_id == 0 ? (++m_count_) : local_id), m_index_box_(std::move(b)) {
     if (local_id > m_count_) { m_count_ = local_id + 1; }
 }
-
 MeshBlock::~MeshBlock() = default;
 std::shared_ptr<MeshBlock> MeshBlock::New(std::shared_ptr<const simpla::data::DataEntry> const &tdb) {
     auto res = std::shared_ptr<MeshBlock>(new MeshBlock);
