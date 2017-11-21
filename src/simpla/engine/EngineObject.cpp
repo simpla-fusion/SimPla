@@ -6,6 +6,9 @@
 #include <simpla/data/Configurable.h>
 #include <simpla/data/Serializable.h>
 #include <simpla/utilities/Factory.h>
+#include <boost/functional/hash.hpp>       //for uuid
+#include <boost/uuid/uuid.hpp>             //for uuid
+#include <boost/uuid/uuid_generators.hpp>  //for uuid
 #include <mutex>
 namespace simpla {
 namespace engine {
@@ -16,7 +19,10 @@ struct EngineObject::pimpl_s {
     bool m_is_initialized_ = false;
     bool m_is_setup_ = false;
 };
-EngineObject::EngineObject() : m_pimpl_(new pimpl_s) {}
+static boost::hash<boost::uuids::uuid> g_obj_hasher;
+static boost::uuids::random_generator g_uuid_generator;
+
+EngineObject::EngineObject() : m_pimpl_(new pimpl_s) { SetUUID(g_obj_hasher(g_uuid_generator())); }
 EngineObject::~EngineObject() { Finalize(); }
 std::shared_ptr<data::DataEntry> EngineObject::Serialize() const { return data::Serializable::Serialize(); }
 void EngineObject::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) {

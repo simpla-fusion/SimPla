@@ -25,7 +25,8 @@ class EngineObject : public data::Configurable,
     ~EngineObject() override;
     EngineObject(EngineObject const &) = delete;
     virtual std::shared_ptr<EngineObject> Copy() const;
-
+    SP_PROPERTY(std::string, Name) = "";
+    SP_PROPERTY(size_type, UUID) = 0;
     void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
     void lock();

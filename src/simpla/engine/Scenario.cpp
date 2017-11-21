@@ -70,7 +70,7 @@ void Scenario::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) {
 void Scenario::CheckPoint(size_type step_num) const {
     std::ostringstream os;
     os << GetProperty<std::string>("CheckPointFilePrefix", GetName()) << std::setfill('0') << std::setw(8)
-       << GetStepNumber() << "." << GetProperty<std::string>("CheckPointFileSuffix", "xmf");
+       << GetStepNumber() << "." << GetProperty<std::string>("CheckPointFileSuffix", "xdmf");
 
     auto dump = data::DataEntry::New(os.str());
     //    dump->Set("Atlas", GetAtlas()->Serialize());

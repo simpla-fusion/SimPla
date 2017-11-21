@@ -2,38 +2,23 @@
 // Created by salmon on 17-11-17.
 //
 #include "Configurable.h"
-#include <boost/functional/hash.hpp>       //for uuid
-#include <boost/uuid/uuid.hpp>             //for uuid
-#include <boost/uuid/uuid_generators.hpp>  //for uuid
+
 #include "DataEntry.h"
 namespace simpla {
 namespace data {
 PropertyObserver::PropertyObserver(Configurable *host, std::string const &key) : m_host_(host), m_name_(key) {
     host->Attach(this);
 }
-
 PropertyObserver::~PropertyObserver() { m_host_->Detach(this); }
-
-static boost::hash<boost::uuids::uuid> g_obj_hasher;
-static boost::uuids::random_generator g_uuid_generator;
-
-Configurable::Configurable() : m_db_(data::DataEntry::New(data::DataEntry::DN_TABLE)) {
-    SetUUID(g_obj_hasher(g_uuid_generator()));
-};
-
+Configurable::Configurable() : m_db_(data::DataEntry::New(data::DataEntry::DN_TABLE)){};
 Configurable::Configurable(Configurable const &other) : Configurable() { m_db_->Set(other.m_db_); }
-
 Configurable::~Configurable() = default;
-
 void Configurable::Detach(PropertyObserver *attr) { m_observers_.erase(attr->GetName()); }
-
 void Configurable::Attach(PropertyObserver *attr) { m_observers_.emplace(attr->GetName(), attr); }
-
 void Configurable::Push(std::shared_ptr<const DataEntry> const &cfg) {
     if (cfg != nullptr) { m_db_->Set(cfg); }
     for (auto const &item : m_observers_) { item.second->Push(m_db_, item.first); }
 }
-
 void Configurable::Pop(std::shared_ptr<DataEntry> const &cfg) {
     for (auto const &item : m_observers_) { item.second->Pop(m_db_, item.first); }
     if (cfg != nullptr) { cfg->Set(m_db_); }

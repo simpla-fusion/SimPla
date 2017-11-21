@@ -51,12 +51,7 @@ class Scenario : public EngineObject {
     std::shared_ptr<DomainBase> GetDomain(std::string const &k) const;
 
     box_type FitBoundingBox() const;
-    //    template <typename TDomain, typename... Args>
-    //    std::shared_ptr<TDomain> NewDomain(std::string const &k, Args &&... args) {
-    //        auto res = TDomain::New(std::forward<Args>(args)...);
-    //        SetDomain(k, res);
-    //        return res;
-    //    };
+
     template <typename TDomain>
     std::shared_ptr<TDomain> NewDomain(std::string const &k,
                                        std::shared_ptr<const geometry::GeoObject> const &g = nullptr) {

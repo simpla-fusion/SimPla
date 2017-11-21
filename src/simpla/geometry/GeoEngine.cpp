@@ -53,6 +53,7 @@ bool GeoEngineAPI::CheckIntersection(std::shared_ptr<const GeoObject> const &g, 
 }
 bool GeoEngineAPI::CheckIntersection(std::shared_ptr<const GeoObject> const &g0,
                                      std::shared_ptr<const GeoObject> const &g1, Real tolerance) const {
+    ASSERT(g0 != nullptr && g1 != nullptr);
     return CheckIntersection(g0, g1->GetBoundingBox(), tolerance) && GetIntersection(g0, g1, tolerance) != nullptr;
 }
 std::shared_ptr<GeoObject> GeoEngineAPI::GetUnion(std::shared_ptr<const GeoObject> const &g0,

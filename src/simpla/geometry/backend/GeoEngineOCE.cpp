@@ -794,6 +794,10 @@ bool GeoEngineOCE::CheckIntersection(std::shared_ptr<const GeoObject> const &g, 
     if (g != nullptr) { res = GeoObjectOCE::New(g)->CheckIntersection(b, tolerance); }
     return res;
 }
+bool GeoEngineOCE::CheckIntersection(std::shared_ptr<const GeoObject> const &, std::shared_ptr<const GeoObject> const &,
+                                     Real tolerance) const {
+    return false;
+};
 
 std::shared_ptr<GeoObject> GeoEngineOCE::GetUnion(std::shared_ptr<const GeoObject> const &g0,
                                                   std::shared_ptr<const GeoObject> const &g1, Real tolerance) const {

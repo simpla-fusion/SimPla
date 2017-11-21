@@ -40,10 +40,11 @@ struct GeoEngineOCE : public GeoEngineAPI {
     void Save(std::shared_ptr<const GeoObject> const &geo, std::string const &name) const override;
     std::shared_ptr<GeoObject> Load(std::string const &name) const override;
 
-    //    std::shared_ptr<GeoObject> GetBoundary(std::shared_ptr<const GeoObject> const &) const override;
     bool CheckIntersection(std::shared_ptr<const GeoObject> const &, point_type const &x,
                            Real tolerance) const override;
     bool CheckIntersection(std::shared_ptr<const GeoObject> const &, box_type const &, Real tolerance) const override;
+    bool CheckIntersection(std::shared_ptr<const GeoObject> const &, std::shared_ptr<const GeoObject> const &,
+                           Real tolerance) const override;
 
     std::shared_ptr<GeoObject> GetUnion(std::shared_ptr<const GeoObject> const &,
                                         std::shared_ptr<const GeoObject> const &g, Real tolerance) const override;

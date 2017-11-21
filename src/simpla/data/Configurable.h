@@ -139,10 +139,6 @@ struct Configurable {
     void Link(Configurable const *cfg);
     void Link(std::shared_ptr<Configurable> const &cfg) { Link(cfg.get()); }
     void Link(std::shared_ptr<const Configurable> const &cfg) { Link(cfg.get()); }
-
-    //    std::shared_ptr<const DataEntry> db() const { return m_db_; }
-    SP_PROPERTY(std::string, Name) = "";
-    SP_PROPERTY(size_type, UUID) = 0;
 };
 
 }  // namespace geometry

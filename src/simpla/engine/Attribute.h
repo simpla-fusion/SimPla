@@ -106,6 +106,7 @@ class AttributeGroup {
  */
 struct Attribute : public data::Configurable, public data::Serializable {
     SP_SERIALIZABLE_HEAD(data::Serializable, Attribute);
+    SP_PROPERTY(std::string, Name);
 
    public:
     Attribute();
