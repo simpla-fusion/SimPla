@@ -34,12 +34,13 @@ inline vector_type make_perp2(vector_type const &v) { return normal(cross(v, mak
 
 struct Axis : public data::Serializable, public data::Configurable {
     SP_SERIALIZABLE_HEAD(data::Serializable, Axis)
-
+    SP_PROPERTY(point_type, Origin) = {0, 0, 0};
+    SP_PROPERTY(matrix_type, axis) = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
     Axis() = default;
-    Axis(Axis const &other) = default;
-    Axis(std::initializer_list<std::initializer_list<Real>> const &list) : m_Axis_(list) {}
+    Axis(Axis const &other);
+    Axis(std::initializer_list<std::initializer_list<Real>> const &list) : m_axis_(list) {}
     Axis(point_type origin, vector_type const &x_axis, vector_type const &y_axis, vector_type const &z_axis)
-        : m_Origin_(std::move(origin)), m_Axis_{x_axis, y_axis, z_axis} {}
+        : m_Origin_(std::move(origin)), m_axis_{x_axis, y_axis, z_axis} {}
     Axis(point_type const &origin, vector_type const &x_axis, vector_type const &y_axis)
         : Axis(origin, x_axis, y_axis, cross(x_axis, y_axis)) {}
     Axis(point_type const &origin, vector_type const &x_axis)
@@ -48,7 +49,7 @@ struct Axis : public data::Serializable, public data::Configurable {
 
     void swap(Axis &other) {
         std::swap(m_Origin_, other.m_Origin_);
-        std::swap(m_Axis_, other.m_Axis_);
+        std::swap(m_axis_, other.m_axis_);
     };
 
     Axis &operator=(Axis const &other) {
@@ -64,14 +65,14 @@ struct Axis : public data::Serializable, public data::Configurable {
         SetAxis(std::forward<Args>(args)...);
     }
 
-    void SetAxis(int n, vector_type const &v) { m_Axis_[n] = v; }
-    vector_type GetAxis(int n) const { return m_Axis_[n]; }
-    vector_type const &GetDirection(int n) const { return m_Axis_[n]; }
+    void SetAxis(int n, vector_type const &v) { m_axis_[n] = v; }
+    vector_type GetAxis(int n) const { return m_axis_[n]; }
+    vector_type const &GetDirection(int n) const { return m_axis_[n]; }
 
     void SetAxis(point_type const &x_axis, point_type const &y_axis, point_type const &z_axis) {
-        m_Axis_[0] = x_axis;
-        m_Axis_[1] = y_axis;
-        m_Axis_[2] = z_axis;
+        m_axis_[0] = x_axis;
+        m_axis_[1] = y_axis;
+        m_axis_[2] = z_axis;
     }
 
     void Mirror(const point_type &p);
@@ -90,15 +91,12 @@ struct Axis : public data::Serializable, public data::Configurable {
     point_type uvw(Real x0, Real x1 = 0, Real x2 = 0) const { return uvw(point_type{x0, x1, x2}); }
     point_type Coordinates(Real u, Real v = 0, Real w = 0) const { return xyz(point_type{u, v, w}); }
 
-    SP_PROPERTY(point_type, Origin) = {0, 0, 0};
-    SP_PROPERTY(matrix_type, Axis) = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
-
    private:
    public:
     point_type const &o = m_Origin_;
-    vector_type const &x = m_Axis_[0];
-    vector_type const &y = m_Axis_[1];
-    vector_type const &z = m_Axis_[2];
+    vector_type const &x = m_axis_[0];
+    vector_type const &y = m_axis_[1];
+    vector_type const &z = m_axis_[2];
 };
 }  // namespace geometry
 }  // namespace simpla

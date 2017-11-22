@@ -39,8 +39,8 @@ class GeoObject : public data::Serializable,
 
    protected:
     GeoObject();
-    GeoObject(GeoObject const &other);
     explicit GeoObject(Axis const &axis);
+    GeoObject(GeoObject const &other) ;
 
    public:
     ~GeoObject() override;
@@ -95,8 +95,8 @@ class GeoObject : public data::Serializable,
     SP_SERIALIZABLE_HEAD(_BASE_NAME_, _CLASS_NAME_)                                                               \
    protected:                                                                                                     \
     _CLASS_NAME_() = default;                                                                                     \
-    _CLASS_NAME_(_CLASS_NAME_ const &other) = default;                                                            \
     _CLASS_NAME_(Axis const &axis) : base_type(axis){};                                                           \
+    _CLASS_NAME_(_CLASS_NAME_ const &other) = default;                                                            \
                                                                                                                   \
    public:                                                                                                        \
     ~_CLASS_NAME_() override = default;                                                                           \

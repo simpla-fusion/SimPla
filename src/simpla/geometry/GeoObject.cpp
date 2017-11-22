@@ -14,9 +14,8 @@ namespace simpla {
 namespace geometry {
 GeoObject::GeoObject() = default;
 GeoObject::~GeoObject() = default;
-GeoObject::GeoObject(GeoObject const &other) : m_axis_(other.m_axis_){};
+GeoObject::GeoObject(GeoObject const &other) : data::Configurable(other), m_axis_(other.m_axis_) {}
 GeoObject::GeoObject(Axis const &axis) : m_axis_(axis){};
-
 std::shared_ptr<const GeoObject> GeoObject::Self() const { return shared_from_this(); }
 std::shared_ptr<GeoObject> GeoObject::Self() { return shared_from_this(); }
 

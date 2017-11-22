@@ -12,11 +12,15 @@
 namespace simpla {
 namespace geometry {
 
-struct gSweeping {
-    explicit gSweeping(std::shared_ptr<const GeoEntity> const& basis_entity, std::shared_ptr<const gCurve> const& curve,
-                       vector_type const& Nx = {1, 0, 0}, vector_type const& Ny = {0, 1, 1})
-        : m_basis_entity_(basis_entity), m_curve_(curve), m_Nx_(Nx), m_Ny_(Ny) {}
+struct gSweepingSurface : public gSurface {
+    SP_GEO_ENTITY_HEAD(gSurface, gSweepingSurface, SweepingSurface);
 
+    explicit gSweepingSurface(std::shared_ptr<const gCurve> const& basis_entity,
+                              std::shared_ptr<const gCurve> const& curve, vector_type const& Nx = {1, 0, 0},
+                              vector_type const& Ny = {0, 1, 1})
+        : m_basis_curve_(basis_entity), m_curve_(curve), m_Nx_(Nx), m_Ny_(Ny) {}
+
+    point_type xyz(Real u, Real v) const override { return m_basis_curve_->xyz(u) + m_curve_->xyz(u); };
     vector_type m_Nx_;
     vector_type m_Ny_;
 
@@ -27,28 +31,37 @@ struct gSweeping {
         m_Ny_ = (Ny);
     };
     std::shared_ptr<const gCurve> GetCurve() const { return m_curve_; };
-    void SetBasisEntity(std::shared_ptr<const GeoEntity> const& b) { m_basis_entity_ = b; };
-    std::shared_ptr<const GeoEntity> GetBasisEntity() const { return m_basis_entity_; };
+    void SetBasisEntity(std::shared_ptr<const gCurve> const& b) { m_basis_curve_ = b; };
+    std::shared_ptr<const gCurve> GetBasisEntity() const { return m_basis_curve_; };
 
    private:
     std::shared_ptr<const gCurve> m_curve_;
-    std::shared_ptr<const GeoEntity> m_basis_entity_;
+    std::shared_ptr<const gCurve> m_basis_curve_;
 };
-
-struct gSweepingSurface : public gSurface, public gSweeping {
-    SP_GEO_ENTITY_HEAD(gSurface, gSweepingSurface, SweepingSurface);
-
-    explicit gSweepingSurface(std::shared_ptr<const gCurve> const& basis_entity,
-                              std::shared_ptr<const gCurve> const& curve, vector_type const& Nx = {1, 0, 0},
-                              vector_type const& Ny = {0, 1, 1})
-        : gSweeping(basis_entity, curve, m_Nx_, m_Ny_) {}
-};
-struct gSweepingBody : public gBody, public gSweeping {
+struct gSweepingBody : public gBody {
     SP_GEO_ENTITY_HEAD(gBody, gSweepingBody, SweepingBody);
     explicit gSweepingBody(std::shared_ptr<const gSurface> const& basis_entity,
                            std::shared_ptr<const gCurve> const& curve, vector_type const& Nx = {1, 0, 0},
                            vector_type const& Ny = {0, 1, 1})
-        : gSweeping(basis_entity, curve, m_Nx_, m_Ny_){} {}
+        : m_basis_surface_(basis_entity), m_curve_(curve), m_Nx_(Nx), m_Ny_(Ny) {}
+
+    point_type xyz(Real u, Real v, Real w) const override { return m_basis_surface_->xyz(u, v) + m_curve_->xyz(u); };
+
+    void SetCurve(std::shared_ptr<const gCurve> const& c, vector_type const& Nx = {1, 0, 0},
+                  vector_type const& Ny = {0, 1, 1}) {
+        m_curve_ = c;
+        m_Nx_ = (Nx);
+        m_Ny_ = (Ny);
+    };
+    std::shared_ptr<const gCurve> GetCurve() const { return m_curve_; };
+    void SetBasisEntity(std::shared_ptr<const gSurface> const& b) { m_basis_surface_ = b; };
+    std::shared_ptr<const gSurface> GetBasisEntity() const { return m_basis_surface_; };
+
+   private:
+    std::shared_ptr<const gCurve> m_curve_;
+    std::shared_ptr<const gSurface> m_basis_surface_;
+    vector_type m_Nx_;
+    vector_type m_Ny_;
 };
 std::shared_ptr<GeoEntity> gMakeRevolution(std::shared_ptr<const GeoEntity> const& geo, vector_type const& Nr,
                                            vector_type const& Nz);

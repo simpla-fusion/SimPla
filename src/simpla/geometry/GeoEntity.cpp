@@ -9,7 +9,8 @@
 namespace simpla {
 namespace geometry {
 GeoEntity::GeoEntity() = default;
-GeoEntity::GeoEntity(GeoEntity const &) = default;
+GeoEntity::GeoEntity(GeoEntity const &other) : data::Configurable(other) {}
+
 GeoEntity::~GeoEntity() = default;
 std::string GeoEntity::FancyTypeName() const { return "GeoEntity"; }
 

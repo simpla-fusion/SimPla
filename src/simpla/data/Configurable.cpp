@@ -11,7 +11,10 @@ PropertyObserver::PropertyObserver(Configurable *host, std::string const &key) :
 }
 PropertyObserver::~PropertyObserver() { m_host_->Detach(this); }
 Configurable::Configurable() : m_db_(data::DataEntry::New(data::DataEntry::DN_TABLE)){};
-Configurable::Configurable(Configurable const &other) : Configurable() { m_db_->Set(other.m_db_); }
+Configurable::Configurable(Configurable const &other) : Configurable() {
+    m_db_->Set(other.m_db_);
+    Push();Pop();
+}
 Configurable::~Configurable() = default;
 void Configurable::Detach(PropertyObserver *attr) { m_observers_.erase(attr->GetName()); }
 void Configurable::Attach(PropertyObserver *attr) { m_observers_.emplace(attr->GetName(), attr); }
