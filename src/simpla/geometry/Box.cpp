@@ -11,15 +11,16 @@ namespace geometry {
 SP_GEO_OBJECT_REGISTER(Box)
 
 Box::Box(point_type const &p0, point_type const &p1)
-    : Solid(Axis{p0, point_type{p1[0] - p0[0], 0, 0}, point_type{0, p1[1] - p0[1], 0}, point_type{0, 0, p1[2] - p0[2]}},
-            nullptr, p0, p1) {}
+    : Solid(nullptr,
+            Axis{p0, point_type{p1[0] - p0[0], 0, 0}, point_type{0, p1[1] - p0[1], 0}, point_type{0, 0, p1[2] - p0[2]}},
+            p0, p1) {}
 Box::Box(point_type const &p0, Real u, Real v, Real w)
-    : Solid(Axis{p0, point_type{u, 0, 0}, point_type{0, v, 0}, point_type{0, 0, w}}, nullptr, 0, 0, 0, u, v, w) {}
+    : Solid(nullptr, Axis{p0, point_type{u, 0, 0}, point_type{0, v, 0}, point_type{0, 0, w}}, 0, 0, 0, u, v, w) {}
 
 Box::Box(std::initializer_list<std::initializer_list<Real>> const &v)
     : Box(point_type(*v.begin()), point_type(*(v.begin() + 1))) {}
 Box::Box(box_type const &b) : Box(std::get<0>(b), std::get<1>(b)) {}
-Box::Box(Axis const &axis, vector_type const &extents) : Solid(axis, nullptr, point_type{0, 0, 0}, extents) {}
+Box::Box(Axis const &axis, vector_type const &extents) : Solid(nullptr, axis, point_type{0, 0, 0}, extents) {}
 
 // box_type Box::GetBoundingBox() const { return std::make_tuple(m_axis_.o, m_axis_.xyz(m_extents_)); };
 // point_type Box::xyz(Real u, Real v, Real w) const { return m_axis_.xyz(u, v, w); };

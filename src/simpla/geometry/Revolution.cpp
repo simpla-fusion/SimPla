@@ -72,14 +72,14 @@ std::shared_ptr<simpla::data::DataEntry> RevolutionSolid::Serialize() const {
 //
 //    return res;
 //}
-std::shared_ptr<GeoObject> MakeRevolution(std::shared_ptr<const GeoEntity> const &g, Axis const &axis, Real angle) {
-    std::shared_ptr<GeoObject> res = nullptr;
-    if (auto curve = std::dynamic_pointer_cast<const gCurve>(g)) {
-        //        res = Face::New(axis, gMakeRevolution(g, axis.x, axis.z), 1, 1);
-    } else if (auto surface = std::dynamic_pointer_cast<const gSurface>(g)) {
-        //        res = Solid::New(axis, gMakeRevolution(g, axis.x, axis.z), 0, 1, 0, 1, 0, angle);
-    }
-    return res;
-}
+//std::shared_ptr<GeoObject> MakeRevolution(std::shared_ptr<const GeoEntity> const &g, Axis const &axis, Real angle) {
+//    std::shared_ptr<GeoObject> res = nullptr;
+//    if (auto curve = std::dynamic_pointer_cast<const gCurve>(g)) {
+//        //        res = Face::New(axis, gMakeRevolution(g, axis.x, axis.z), 1, 1);
+//    } else if (auto surface = std::dynamic_pointer_cast<const gSurface>(g)) {
+//        //        res = Solid::New(axis, gMakeRevolution(g, axis.x, axis.z), 0, 1, 0, 1, 0, angle);
+//    }
+//    return res;
+//}
 }  // namespace geometry{
 }  // namespace simpla{
