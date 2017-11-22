@@ -23,7 +23,7 @@ void Solid::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cf
 };
 std::shared_ptr<simpla::data::DataEntry> Solid::Serialize() const {
     auto res = base_type::Serialize();
-    res->Set("gBody", m_body_->Serialize());
+    if (m_body_ != nullptr) res->Set("gBody", m_body_->Serialize());
     res->SetValue("ParameterRange", m_range_);
     return res;
 };

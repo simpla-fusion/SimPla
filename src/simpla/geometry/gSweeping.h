@@ -6,8 +6,8 @@
 #define SIMPLA_GSWEEPING_H
 
 #include "GeoEntity.h"
-#include "gCurve.h"
 #include "Shell.h"
+#include "gCurve.h"
 
 namespace simpla {
 namespace geometry {
@@ -32,12 +32,16 @@ struct gSweeping : public GeoEntity {
     void SetBasisEntity(std::shared_ptr<const GeoEntity> const& b) { m_basis_entity_ = b; };
     std::shared_ptr<const GeoEntity> GetBasisEntity() const { return m_basis_entity_; };
 
-    std::shared_ptr<Shell> AsShell() const;
-    std::shared_ptr<Solid> AsSolid() const;
-
    private:
     std::shared_ptr<const gCurve> m_curve_;
     std::shared_ptr<const GeoEntity> m_basis_entity_;
+};
+
+struct gSweepingSurface : public gSweeping {
+    SP_GEO_ENTITY_HEAD(GeoEntity, gSweepingSurface, SweepingSurface);
+};
+struct gSweepingBody : public GeoEntity {
+    SP_GEO_ENTITY_HEAD(GeoEntity, gSweepingBody, SweepingBody);
 };
 std::shared_ptr<gSweeping> gMakeRevolution(std::shared_ptr<const GeoEntity> const& geo, vector_type const& Nr,
                                            vector_type const& Nz);
