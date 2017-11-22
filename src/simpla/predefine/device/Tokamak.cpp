@@ -38,8 +38,8 @@ struct Tokamak::pimpl_s {
     inter2d_type m_psirz_;  //!< Poloidal flux in Webber/rad on the rectangular grid points
 
     //	inter_type qpsi_;//!< q values on uniform flux grid from axis to boundary
-    std::shared_ptr<geometry::gPolygon> m_rzbbb_;  //!< R,Z of boundary points in meter
-    std::shared_ptr<geometry::gPolygon> m_rzlim_;  //!< R,Z of surrounding limiter contour in meter
+    std::shared_ptr<geometry::gPolygon2D> m_rzbbb_;  //!< R,Z of boundary points in meter
+    std::shared_ptr<geometry::gPolygon2D> m_rzlim_;  //!< R,Z of surrounding limiter contour in meter
     std::map<std::string, inter_type> m_profile_;
     //    bool flux_surface(Real psi_j, size_t M, point_type *res, Real resoluton = 0.001);
 
@@ -216,8 +216,8 @@ std::function<Vec3(point_type const &)> Tokamak::B0() const {
 };
 geometry::Axis Tokamak::GetAxis() const { return m_pimpl_->m_axis_; }
 
-std::shared_ptr<const geometry::gCurve> Tokamak::Limiter() const { return m_pimpl_->m_rzlim_; }
-std::shared_ptr<const geometry::gCurve> Tokamak::Boundary() const { return m_pimpl_->m_rzbbb_; }
+std::shared_ptr<const geometry::gPolygon2D> Tokamak::Limiter() const { return m_pimpl_->m_rzlim_; }
+std::shared_ptr<const geometry::gPolygon2D> Tokamak::Boundary() const { return m_pimpl_->m_rzbbb_; }
 
 //    BRepBuilderAPI_MakeWire wireMaker;
 //        auto num = boundary()->data().size();

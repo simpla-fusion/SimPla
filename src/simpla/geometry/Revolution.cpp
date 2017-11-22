@@ -1,11 +1,12 @@
 //
 // Created by salmon on 17-10-24.
 //
-
 #include "Revolution.h"
 #include "Shell.h"
 #include "Solid.h"
 #include "Wire.h"
+#include "gCurve.h"
+#include "gSurface.h"
 namespace simpla {
 namespace geometry {
 RevolutionShell::RevolutionShell() = default;
@@ -66,18 +67,26 @@ std::shared_ptr<simpla::data::DataEntry> RevolutionSolid::Serialize() const {
     res->Set("Face", m_basis_obj_->Serialize());
     return res;
 }
-std::shared_ptr<Shell> MakeRevolution(Axis const &axis, std::shared_ptr<const Wire> const &w, Real angle0,
-                                      Real angle1) {
-    return RevolutionShell::New(axis, w, angle0, angle1);
+
+std::shared_ptr<GeoObject> MakeRevolution(Axis const &axis, std::shared_ptr<const GeoEntity> const &g, Real angle) {
+    std::shared_ptr<GeoObject> res = nullptr;
+    if (auto curve = std::dynamic_pointer_cast<const gCurve>(g)) {
+        res = RevolutionFace::New(axis, Edge::New(axis, curve), angle);
+    } else if (auto surface = std::dynamic_pointer_cast<const gSurface>(g)) {
+        res = RevolutionSolid::New(axis, Face::New(axis, surface), angle);
+    }
+    return res;
 }
-std::shared_ptr<Face> MakeRevolution(Axis const &axis, std::shared_ptr<const Edge> const &e, Real angle0, Real angle1) {
-    return RevolutionFace::New(axis, e, angle0, angle1);
+std::shared_ptr<GeoObject> MakeRevolution(Axis const &axis, std::shared_ptr<const GeoObject> const &g, Real angle) {
+    std::shared_ptr<GeoObject> res = nullptr;
+    if (auto curve = std::dynamic_pointer_cast<const Edge>(g)) {
+        res = RevolutionFace::New(axis, curve, angle);
+    } else if (auto face = std::dynamic_pointer_cast<const Face>(g)) {
+        res = RevolutionSolid::New(axis, face, angle);
+    }
+
+    return res;
 }
-std::shared_ptr<Solid> MakeRevolution(Axis const &axis, std::shared_ptr<const Face> const &f, Real angle0,
-                                      Real angle1) {
-    return RevolutionSolid::New(axis, f, angle0, angle1);
-}
-std::shared_ptr<Face> MakeRevolution(std::shared_ptr<const gCurve> const &g, Real angle) { return nullptr; }
-std::shared_ptr<Solid> MakeRevolution(std::shared_ptr<const gSurface> const &g, Real angle) { return nullptr; }
+
 }  // namespace geometry{
 }  // namespace simpla{

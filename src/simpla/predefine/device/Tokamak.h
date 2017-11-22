@@ -16,7 +16,7 @@
 #include <simpla/data/DataEntry.h>
 #include <simpla/data/Serializable.h>
 #include <simpla/geometry/Axis.h>
-#include <simpla/geometry/gCurve.h>
+#include <simpla/geometry/gPolygon2D.h>
 #include <simpla/geometry/GeoEntity.h>
 #include <simpla/utilities/SPDefines.h>
 #include <functional>
@@ -45,8 +45,8 @@ class Tokamak : public data::Serializable, public data::Configurable {
     void ReadProfile(std::string const &fname);
 
     geometry::Axis GetAxis() const;
-    std::shared_ptr<const geometry::gCurve> Limiter() const;
-    std::shared_ptr<const geometry::gCurve> Boundary() const;
+    std::shared_ptr<const geometry::gPolygon2D> Limiter() const;
+    std::shared_ptr<const geometry::gPolygon2D> Boundary() const;
 
     std::function<vector_type(point_type const &)> B0() const;
     std::function<Real(point_type const &)> profile(std::string const &k) const;

@@ -66,20 +66,7 @@ struct RevolutionSolid : public Solid {
     std::shared_ptr<const Face> m_basis_obj_;
 };
 
-std::shared_ptr<Shell> MakeRevolution(Axis const &, std::shared_ptr<const Wire> const &, Real angle0, Real angle1);
-std::shared_ptr<Face> MakeRevolution(Axis const &, std::shared_ptr<const Edge> const &, Real angle0, Real angle1);
-std::shared_ptr<Solid> MakeRevolution(Axis const &, std::shared_ptr<const Face> const &, Real angle0, Real angle1);
-template <typename T>
-auto MakeRevolution(Axis const &axis, std::shared_ptr<const T> const &g, Real angle) {
-    return MakeRevolution(axis, g, 0, angle);
-}
-template <typename T>
-auto MakeRevolution(std::shared_ptr<const T> const &g, Real angle) {
-    return MakeRevolution(g->GetAxis(), g, 0, angle);
-}
-
-std::shared_ptr<Face> MakeRevolution(std::shared_ptr<const gCurve> const &g, Real angle);
-std::shared_ptr<Solid> MakeRevolution(std::shared_ptr<const gSurface> const &g, Real angle);
+ std::shared_ptr<GeoObject> MakeRevolution(std::shared_ptr<const GeoObject> const &g, Axis const &axis, Real angle1);
 
 }  // namespace simpla
 }  // namespace geometry

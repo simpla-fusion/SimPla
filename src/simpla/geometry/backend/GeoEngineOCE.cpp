@@ -751,11 +751,11 @@ void GeoEngineOCE::FlushFile() {
     };
 };
 void GeoEngineOCE::Save(std::shared_ptr<const GeoObject> const &geo, std::string const &name_s) const {
-    CHECK(name_s);
     if (geo == nullptr) {
+        VERBOSE << (name_s) << " is null!";
         return;
     } else {
-        CHECK(*geo->Serialize());
+        VERBOSE << name_s << " : " << *geo;
     }
     auto oce_shape = oce_cast<TopoDS_Shape>(geo);
     ASSERT(oce_shape != nullptr);
